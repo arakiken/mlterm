@@ -201,7 +201,7 @@ ml_line_reset(
 		}
 	}
 #else
-	ml_line_set_modified( line , 0 , count) ;
+	ml_line_set_modified( line , 0 , END_CHAR_INDEX(line)) ;
 #endif
 	
 	line->num_of_filled_chars = 0 ;
@@ -245,7 +245,7 @@ ml_line_clear(
 		}
 	}
 #else
-	ml_line_set_modified( line , char_index , count) ;
+	ml_line_set_modified( line , char_index , END_CHAR_INDEX(line)) ;
 #endif
 
 	ml_char_copy( &line->chars[char_index] , ml_sp_ch()) ;
@@ -643,10 +643,15 @@ ml_line_set_modified(
 	}
 
 	end_col = beg_col ;
-	for( ; count < end_char_index ; count ++)
+	for( ; count <= end_char_index ; count ++)
 	{
+		/*
+		 * This will be executed at least once, because beg_char_index is never
+		 * greater than end_char_index.
+		 */
 		end_col += ml_char_cols( &line->chars[count]) ;
 	}
+	end_col -- ;
 
 	if( IS_MODIFIED(line->flag))
 	{

@@ -1,3 +1,9 @@
+2003-08-03  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_line.c(ml_line_set_modified):
+	  Fixed a bug in dealing with multi-byte character.
+	  (Thanks to Kubota Tomohiro san)
+
 2003-07-27  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* mkf/lib/Makefile.in: My change(2003-03-21) seems to be wrong. Fixed.
