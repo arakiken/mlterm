@@ -20,7 +20,7 @@ x_decsp_font_new(
 {
 	x_decsp_font_t *  font ;
 	char  gray_bits[] = { 0x11 , 0x44 } ;
-	Window  win ; 
+	Window  win ;
 	u_int  glyph_width ;
 	u_int  glyph_height ;
 	GC  gc ;
@@ -244,14 +244,29 @@ x_decsp_font_draw_image_string(
 		if( *str < 0x20 && font->glyphs[*str])
 		{
 			XCopyPlane( display, font->glyphs[*str], drawable,
-				    gc , 0 , 0 , font->width , font->height,
-				    x , y , 1);
+				    gc, 0, 0, font->width, font->height,
+				    x, y, 1);
 		}
 		else
 		{
 			/* XXX handle '#'? */
-			XDrawRectangle(display , drawable , gc ,
-				       x , y , font->width-1 , font->height-1 );
+			XGCValues  gcv ;
+			u_long  fg ;
+			u_long  bg ;
+
+			if( ! XGetGCValues( display, gc, GCBackground|GCForeground, &gcv))
+			{
+				return 0 ;
+			}
+
+			fg = gcv.foreground ;
+			bg = gcv.background ;
+			XSetForeground( display, gc, bg) ;
+			XFillRectangle(display, drawable, gc,
+				   x, y, font->width, font->height);
+			XSetForeground( display, gc, fg) ;
+			XDrawRectangle(display, drawable, gc,
+				       x, y, font->width-1, font->height-1);
 		}
 
 		x += font->width ;
