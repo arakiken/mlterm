@@ -1,5 +1,5 @@
 [20020221]
-* root pixmap by "_XROOTPMAP_ID" atom is supported.
+* transparent background using root pixmap by "_XROOTPMAP_ID" atom is supported.
 
 [20020220]
 * compilation fails on platforms where snprintf doesn't exist. fixed.
