@@ -21,7 +21,8 @@ OBJ = ml_window_manager.o ml_window.o ml_char.o ml_image.o ml_logs.o ml_line_hin
 	ml_backscroll.o ml_image_line.o main.o ml_font_manager.o ml_scrollbar.o \
 	ml_sb_term_screen.o ml_picture.o ml_keymap.o ml_font.o ml_config_menu.o \
 	ml_term_manager.o ml_char_encoding.o ml_font_custom.o ml_sb_view_factory.o \
-	ml_simple_sb_view.o ml_color.o ml_termcap.o ml_bidi.o ml_shaping.o ml_str_parser.o
+	ml_simple_sb_view.o ml_color.o ml_termcap.o ml_bidi.o ml_shaping.o \
+	ml_str_parser.o ml_sig_child.o
 
 LKIK = @KIK_LIBS@
 LMKF = @MKF_LIBS@
@@ -32,9 +33,8 @@ CFLAGS=$(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @IMLIB_CFLAGS@ @FR
 	@AA_CFLAGS@ @UCS4_CFLAGS@ @PTY_CFLAGS@ @CFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DLIBEXECDIR=\"$(LIBEXECDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-I/usr/X11R6/include -I/usr/local/include
-LIBS=$(CFLAGS_LOCAL) \
-	@X_EXTRA_LIBS@ @XPG4_LIBS@ @DL_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ @FRIBIDI_LIBS@ \
-	$(LKIK) $(LMKF) -lX11 \
+LIBS=$(CFLAGS_LOCAL) @FRIBIDI_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ \
+	@X_EXTRA_LIBS@ -lX11 $(LKIK) $(LMKF) @DL_LIBS@ @XPG4_LIBS@ \
 	-L/usr/X11R6/lib -L/usr/local/lib
 
 PROG = mlterm
