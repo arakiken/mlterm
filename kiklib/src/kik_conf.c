@@ -569,7 +569,7 @@ kik_conf_write(
 
 	for( count = 0 ; count < size ; count ++)
 	{
-		kik_conf_io_write( to , pairs[count]->key ,
+		fprintf( to , "%s = %s\n" , pairs[count]->key ,
 			pairs[count]->value->value ?
 				pairs[count]->value->value : pairs[count]->value->default_value) ;
 	}
