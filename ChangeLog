@@ -1,3 +1,11 @@
+[20020204]
+* When CapsLock or NumLock is on , control mask or shift mask etc is not recogized.
+  fixed. (Thanks to K.Kawabata san)
+* cursor disappears when screen scrolled with scrollbar. fixed.
+  (Thanks to Sakamoto Hironori san/Minami Hirokazu san)
+* w3mmlconfig is updated.(thanks to Sakamoto Hironori san)
+* baurates are explicitly set with cfsetispeed,cfsetospeed.(thanks to t-matsuo san)
+
 [20020203]
 * If --xim=false is specified , XRegisterIMInstatiateCallback is not done.
 
