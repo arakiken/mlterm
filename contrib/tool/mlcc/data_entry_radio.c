@@ -12,6 +12,7 @@ int entry_radio_edit(window_t *window, entry_t *entry, int x, int y){
 	buffer = read_one();
 	switch(buffer){
 	case KEY_ESC:
+	case 10:
 		return -1;
 	case KEY_RIGHT:
 	case KEY_DOWN:
