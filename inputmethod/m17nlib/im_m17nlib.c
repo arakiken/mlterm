@@ -207,7 +207,7 @@ find_input_method(
 	char *  lang = NULL ;
 	char *  im_name = NULL ;
 	MPlist *  im_list ;
-	MInputMethod *  result ;
+	MInputMethod *  result = NULL;
 	int  found = 0 ;
 	int  num_of_ims ;
 	int  i ;
@@ -240,7 +240,7 @@ find_input_method(
 	if( ! ( im_list = mdatabase_list( msymbol( "input-method") ,
 					  Mnil , Mnil , Mnil)))
 	{
-		kik_error_printf( " Cound not get available input method from m17n database.\n") ;
+		kik_error_printf( "Cound not get available input method from m17n database.\n") ;
 		return  0 ;
 	}
 
@@ -956,7 +956,7 @@ im_new(
 
 	if( ! ( m17nlib->input_method = find_input_method( param)))
 	{
-		kik_error_printf( " Cound not find %s\n" , param) ;
+		kik_error_printf( "Cound not find %s\n" , param) ;
 		goto  error ;
 	}
 
@@ -964,7 +964,7 @@ im_new(
 							m17nlib->input_method ,
 							NULL)))
 	{
-		kik_error_printf( " Cound not crate context for %s\n", param) ;
+		kik_error_printf( "Cound not crate context for %s\n", param) ;
 		goto  error ;
 	}
 

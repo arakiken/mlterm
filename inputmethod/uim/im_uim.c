@@ -1362,7 +1362,7 @@ im_new(
 						      helper_read_handler) ;
 	}
 
-	if( engine == NULL)
+	if( engine == NULL || strlen( engine) == 0)
 	{
 	#ifdef  UIM_0_4_4_OR_LATER
 		engine = (char*)uim_get_default_im_name( kik_get_locale()) ;

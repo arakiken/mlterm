@@ -51,7 +51,7 @@
 #define  IM_IIIMF_DEBUG 1
 #endif
 
-#if  1
+#if  1	/* TODO: should be replaced by handling aux. */
 #define  IM_IIIMF_ATOKX_LOOKUP_HACK 1
 #endif
 

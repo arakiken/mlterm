@@ -1,3 +1,12 @@
+2004-10-14 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/m17nlib/im_m17nlib.c (im_new):
+	  - fixed a segfault with an invalid parameter.
+	    (e.g., --im=m17nlib:non_supported_lang)
+	  - minor cleanups.
+
+	* inputmethod/uim/im_uim.c (im_new): allowed --im=uim:
+
 2004-10-13 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	xim could not get the rectangle information of maximized window. fixed.
