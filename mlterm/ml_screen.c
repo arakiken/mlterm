@@ -1876,6 +1876,38 @@ ml_screen_goto(
 }
 
 int
+ml_screen_set_relative_origin(
+	ml_screen_t *  screen
+	)
+{
+	return  ml_edit_set_relative_origin( screen->edit) ;
+}
+
+int
+ml_screen_set_absolute_origin(
+	ml_screen_t *  screen
+	)
+{
+	return  ml_edit_set_absolute_origin( screen->edit) ;
+}
+
+int
+ml_screen_set_auto_wrap(
+	ml_screen_t *  screen
+	)
+{
+	return  ml_edit_set_auto_wrap( screen->edit) ;
+}
+
+int
+ml_screen_unset_auto_wrap(
+	ml_screen_t *  screen
+	)
+{
+	return  ml_edit_unset_auto_wrap( screen->edit) ;
+}
+
+int
 ml_screen_save_cursor(
 	ml_screen_t *  screen
 	)

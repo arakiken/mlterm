@@ -237,6 +237,14 @@ int  ml_screen_goto_home( ml_screen_t *  screen) ;
 
 int  ml_screen_goto( ml_screen_t *  screen , int  col , int  row) ;
 
+int  ml_screen_set_relative_origin( ml_screen_t *  screen) ;
+
+int  ml_screen_set_absolute_origin( ml_screen_t *  screen) ;
+
+int  ml_screen_set_auto_wrap( ml_screen_t *  screen) ;
+
+int  ml_screen_unset_auto_wrap( ml_screen_t *  screen) ;
+
 int  ml_screen_save_cursor( ml_screen_t *  screen) ;
 
 int  ml_screen_restore_cursor( ml_screen_t *  screen) ;

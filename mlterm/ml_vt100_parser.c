@@ -1031,10 +1031,6 @@ parse_vt100_escape_sequence(
 				int  ps[5] ;
 				size_t  num ;
 
-			#ifdef  ESCSEQ_DEBUG
-				kik_msg_printf( " - ") ;
-			#endif
-
 				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 				{
 					return  0 ;
@@ -1042,10 +1038,6 @@ parse_vt100_escape_sequence(
 				
 				if( *str_p == '?')
 				{
-				#ifdef  ESCSEQ_DEBUG
-					kik_msg_printf( "%c - " , *str_p) ;
-				#endif
-				
 					is_dec_priv = 1 ;
 
 					if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
@@ -1088,10 +1080,6 @@ parse_vt100_escape_sequence(
 
 						ps[num ++] = atoi( digit) ;
 
-					#ifdef  ESCSEQ_DEBUG
-						kik_msg_printf( "%d - " , ps[num - 1]) ;
-					#endif
-
 						if( *str_p != ';')
 						{
 							/*
@@ -1120,10 +1108,6 @@ parse_vt100_escape_sequence(
 						break ;
 					}
 					
-				#ifdef  ESCSEQ_DEBUG
-					kik_msg_printf( "; - ") ;
-				#endif
-				
 					if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 					{
 						return  0 ;
@@ -1191,18 +1175,20 @@ parse_vt100_escape_sequence(
 								start_vt100_cmd( vt100_parser) ;
 							}
 						}
-					#if  0
 						else if( ps[0] == 6)
 						{
-							/* relative absolute origins */
+							/* relative origins */
+
+							ml_screen_set_relative_origin(
+								vt100_parser->screen) ;
 						}
-					#endif
-					#if  0
 						else if( ps[0] == 7)
 						{
 							/* auto wrap */
+
+							ml_screen_set_auto_wrap(
+								vt100_parser->screen) ;
 						}
-					#endif
 					#if  0
 						else if( ps[0] == 8)
 						{
@@ -1346,18 +1332,20 @@ parse_vt100_escape_sequence(
 								start_vt100_cmd( vt100_parser) ;
 							}
 						}
-					#if  0
 						else if( ps[0] == 6)
 						{
-							/* relative absolute origins */
+							/* absolute origins */
+
+							ml_screen_set_absolute_origin(
+								vt100_parser->screen) ;
 						}
-					#endif
-					#if  0
 						else if( ps[0] == 7)
 						{
 							/* auto wrap */
+							
+							ml_screen_unset_auto_wrap(
+								vt100_parser->screen) ;
 						}
-					#endif
 					#if  0
 						else if( ps[0] == 8)
 						{
@@ -1836,6 +1824,7 @@ parse_vt100_escape_sequence(
 					else if( *str_p == 'r')
 					{
 						/* set scroll region */
+						
 						if( num == 2)
 						{
 							/*
@@ -1924,10 +1913,6 @@ parse_vt100_escape_sequence(
 				/* if digit is illegal , ps is set 0. */
 				ps = atoi( digit) ;
 
-			#ifdef  ESCSEQ_DEBUG
-				kik_msg_printf( " - %d" , ps) ;
-			#endif
-
 				if( *str_p == ';')
 				{
 					if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
@@ -1952,10 +1937,6 @@ parse_vt100_escape_sequence(
 					}
 
 					*str_p = '\0' ;
-
-				#ifdef  ESCSEQ_DEBUG
-					kik_msg_printf( " - %s - BEL\n" , pt) ;
-				#endif
 
 					if( ps == 0)
 					{
@@ -2137,10 +2118,6 @@ parse_vt100_escape_sequence(
 					return  0 ;
 				}
 
-			#ifdef  ESCSEQ_DEBUG
-				kik_msg_printf( " - %c" , *str_p) ;
-			#endif
-
 				if( *str_p == '0')
 				{
 					vt100_parser->is_dec_special_in_g0 = 1 ;
@@ -2179,10 +2156,6 @@ parse_vt100_escape_sequence(
 				{
 					return  0 ;
 				}
-				
-			#ifdef  ESCSEQ_DEBUG
-				kik_msg_printf( " - %c" , *str_p) ;
-			#endif
 			
 				if( *str_p == '0')
 				{
@@ -2210,7 +2183,7 @@ parse_vt100_escape_sequence(
 				/* not VT100 control sequence. */
 
 			#ifdef  ESCSEQ_DEBUG
-				kik_msg_printf( "- %c => not VT100 control sequence.\n" , *str_p) ;
+				kik_msg_printf( "=> not VT100 control sequence.\n") ;
 			#endif
 
 				return  1 ;

@@ -43,6 +43,9 @@ typedef struct  ml_edit
 	int  scroll_region_end ;
 
 	ml_edit_scroll_event_listener_t *  scroll_listener ;
+	
+	int8_t  is_relative_origin ;
+	int8_t  is_auto_wrap ;
 
 } ml_edit_t ;
 
@@ -129,6 +132,14 @@ int  ml_edit_goto_beg_of_line( ml_edit_t *  edit) ;
 int  ml_edit_goto_home( ml_edit_t *  edit) ;
 
 int  ml_edit_goto( ml_edit_t *  edit , int  col , int  row) ;
+
+int  ml_edit_set_relative_origin( ml_edit_t *  edit) ;
+
+int  ml_edit_set_absolute_origin( ml_edit_t *  edit) ;
+
+int  ml_edit_set_auto_wrap( ml_edit_t *  edit) ;
+
+int  ml_edit_unset_auto_wrap( ml_edit_t *  edit) ;
 
 int  ml_cursor_save( ml_edit_t *  edit) ;
 

@@ -608,6 +608,9 @@ ml_edit_init(
 	}
 
 	ml_edit_set_tab_size( edit , tab_size) ;
+	
+	edit->is_relative_origin = 0 ;
+	edit->is_auto_wrap = 1 ;
 
 	return  1 ;
 }
@@ -745,6 +748,7 @@ ml_edit_overwrite_chars(
 	ml_line_t *  line ;
 	int  beg ;
 	u_int  cols ;
+	int  new_char_index ;
 
 #ifdef  CURSOR_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
@@ -802,6 +806,12 @@ ml_edit_overwrite_chars(
 		{
 			ml_line_overwrite( line , edit->cursor.char_index , &buffer[beg] ,
 				count - beg , cols) ;
+			
+			if( ! edit->is_auto_wrap)
+			{
+				break ;
+			}
+			
 			ml_line_set_continued_to_next( line) ;
 
 			beg = count ;
@@ -840,30 +850,28 @@ ml_edit_overwrite_chars(
 
 			if( ++ count >= filled_len)
 			{
-				int  new_char_index ;
-				
-				if( edit->cursor.col + cols >= edit->model.num_of_cols &&
-					edit->wraparound_ready_line != line)
-				{
-					edit->wraparound_ready_line = line ;
-					new_char_index = edit->cursor.char_index + count - beg - 1 ;
-				}
-				else
-				{
-					reset_wraparound_checker( edit) ;
-					new_char_index = edit->cursor.char_index + count - beg ;
-				}
-				
-				ml_line_overwrite( line , edit->cursor.char_index , &buffer[beg] ,
-					count - beg , cols) ;
-				ml_line_unset_continued_to_next( line) ;
-
-				cursor_goto_by_char_index( edit , new_char_index , edit->cursor.row) ;
-
 				break ;
 			}
 		}
 	}
+
+	if( edit->cursor.col + cols >= edit->model.num_of_cols &&
+		edit->wraparound_ready_line != line)
+	{
+		edit->wraparound_ready_line = line ;
+		new_char_index = edit->cursor.char_index + count - beg - 1 ;
+	}
+	else
+	{
+		reset_wraparound_checker( edit) ;
+		new_char_index = edit->cursor.char_index + count - beg ;
+	}
+
+	ml_line_overwrite( line , edit->cursor.char_index , &buffer[beg] ,
+		count - beg , cols) ;
+	ml_line_unset_continued_to_next( line) ;
+
+	cursor_goto_by_char_index( edit , new_char_index , edit->cursor.row) ;
 
 	ml_str_final( buffer , buf_len) ;
 
@@ -1158,9 +1166,7 @@ ml_edit_set_scroll_region(
 	edit->scroll_region_end = end ;
 
 	/* cursor position is reset(the same behavior of xterm 4.0.3, kterm 6.2.0 or so) */
-	edit->cursor.row = 0 ;
-	edit->cursor.col = 0 ;
-	edit->cursor.char_index = 0 ;
+	ml_edit_goto( edit , 0 , 0) ;
 
 	return  1 ;
 }
@@ -1656,7 +1662,61 @@ ml_edit_goto(
 {
 	reset_wraparound_checker( edit) ;
 
+	if( edit->is_relative_origin)
+	{
+		if( ( row += edit->scroll_region_beg) > edit->scroll_region_end)
+		{
+			row = edit->scroll_region_end ;
+		}
+	}
+	
 	return  cursor_goto_by_col( edit , col , row) ;
+}
+
+int
+ml_edit_set_relative_origin(
+	ml_edit_t *  edit
+	)
+{
+	edit->is_relative_origin = 1 ;
+
+	/* cursor position is reset(the same behavior of xterm 4.0.3, kterm 6.2.0 or so) */
+	ml_edit_goto( edit , 0 , 0) ;
+
+	return  1 ;
+}
+
+int
+ml_edit_set_absolute_origin(
+	ml_edit_t *  edit
+	)
+{
+	edit->is_relative_origin = 0 ;
+
+	/* cursor position is reset(the same behavior of xterm 4.0.3, kterm 6.2.0 or so) */
+	ml_edit_goto( edit , 0 , 0) ;
+
+	return  1 ;
+}
+
+int
+ml_edit_set_auto_wrap(
+	ml_edit_t *  edit
+	)
+{
+	edit->is_auto_wrap = 1 ;
+
+	return  1 ;
+}
+
+int
+ml_edit_unset_auto_wrap(
+	ml_edit_t *  edit
+	)
+{
+	edit->is_auto_wrap = 0 ;
+
+	return  1 ;
 }
 
 int
