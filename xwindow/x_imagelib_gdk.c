@@ -1204,19 +1204,19 @@ value_table_refresh(
 	real_contrast = (double)(mod->contrast) / 100 ;
 	real_brightness = (double)(mod->brightness) / 100 ;
 	i = 128 ;
-	while( i > 0)
+	while( i >= 0)
 	{
-		tmp = real_contrast * (255 * pow((double)i / 255, real_gamma) -128 ) + 128 *  real_brightness ;
+		tmp = real_contrast * (255 * pow(((double)i + 0.5)/ 255, real_gamma) -128 ) + 128 *  real_brightness ;
 		if( tmp < 0 )
 			break ;
 		value_table[i--] = tmp ;
 	}
-	while( i >= 0)
+	while( i > 0)
 		value_table[i--] = 0;
 	i = 129 ;
 	while( i < 256)
 	{
-		tmp = real_contrast * (255 * pow((double)i / 255, real_gamma) -128 ) + 128 *  real_brightness ;
+		tmp = real_contrast * (255 * pow(((double)i )/ 255, real_gamma) -128 ) + 128 *  real_brightness ;
 		if (tmp > 255)
 			break ;
 		value_table[i++] = tmp ;
@@ -1245,7 +1245,7 @@ modify_image(
 
 	if( !pic_mod)
 		return  -2 ;
-	if(pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100)
+	if( is_picmod_eq( pic_mod, NULL))
 		return  SUCCESS ;
 
        	line = gdk_pixbuf_get_pixels( pixbuf) ;
@@ -1294,7 +1294,7 @@ modify_pixmap(
 	if ( !pixmap )
 		return  -1 ;
 
-	if(pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100)
+	if( is_picmod_eq( pic_mod, NULL))
 		return  SUCCESS ;
 
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
