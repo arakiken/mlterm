@@ -35,6 +35,7 @@
 #define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
 #define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
 
+#define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 /*
  * Drag and Drop stuff.
  */
@@ -44,7 +45,7 @@
 #define  XA_DND_TYPE_LIST(display) (XInternAtom(display, "XdndTypeList", False))
 #define  XA_DND_STATUS(display) (XInternAtom(display, "XdndStatus", False))
 #define  XA_DND_POSITION(display) (XInternAtom(display, "XdndPosition", False))
-#define  XA_DND_STORE(display) (XInternAtom(display, "__STORE__", False))
+#define  XA_DND_STORE(display) (XInternAtom(display, "MLTERM_DND", False))
 #define  XA_DND_ACTION_COPY(display) (XInternAtom(display, "XdndActionCopy", False))
 #define  XA_DND_SELECTION(display) (XInternAtom(display, "XdndSelection", False))
 #define  XA_DND_FINISH(display) (XInternAtom(display, "XdndFinished", False))
@@ -90,13 +91,41 @@ xdnd_parse(
 	char *src,
 	int len)
 {
+	/* COMPOUND_TEXT */
+	if( atom == XA_COMPOUND_TEXT(win->display))
+	{
+		if( !(win->xct_selection_notified))
+		{
+			return 0 ; /* needs ascii capable parser*/
+		}
+		if( !src)
+		{
+			return 1 ; /* return success for judgement */
+		}
+		(*win->xct_selection_notified)( win , src , len) ;
+		return 1 ;
+	}
+	/* UTF8_STRING */
+	if( atom == XA_UTF8_STRING(win->display))
+	{
+		if( !(win->utf8_selection_notified))
+		{
+			return 0 ; /* needs ascii capable parser*/
+		}
+		if( !src)
+		{
+			return 1 ; /* return success for judgement */
+		}
+		(*win->utf8_selection_notified)( win , src , len) ;
+		return 1 ;
+	}
 	/* XXX ASCII sould be safely processed because it's subset of utf8. iso8859-1 may be problematic...*/
 	/* text/plain */
 	if( atom == XA_DND_MIME_TEXT_PLAIN(win->display))
 	{
 		if( !(win->utf8_selection_notified))
 		{
-			return 0 ; /* needs utf8(actuaally ascii) parser*/
+			return 0 ; /* needs ascii capable parser*/
 		}
 		if( !src)
 		{
@@ -112,7 +141,7 @@ xdnd_parse(
 		char *delim ;
 		if( !(win->utf8_selection_notified))
 		{
-			return 0 ; /* needs utf8(actuaally ascii) parser*/
+			return 0 ; /* needs ascii capable parser*/
 		}
 		if( !src)
 		{
@@ -132,9 +161,9 @@ xdnd_parse(
 				if ( !delim)
 					return 0 ; /* parse error */
 			}
-			delim[0] = ' '; /* always optput space as separator */
+			delim[0] = ' '; /* always output ' ' as separator */
 			if( strncmp( &(src[pos]), "file:",5) == 0)
-			{/* remove "file:". write to pty (length - "file:" + " ")*/
+			{/* remove "file:". new length is (length - "file:" + " ")*/
 				(*win->utf8_selection_notified)( win , &(src[pos+5]) , (delim - src) - pos -4) ;
 			}
 			else
@@ -557,7 +586,7 @@ x_window_init(
 	
 	win->cursor_shape = 0 ;
 
-	win->event_mask = ExposureMask | VisibilityChangeMask | FocusChangeMask ;
+	win->event_mask = ExposureMask | VisibilityChangeMask | FocusChangeMask | PropertyChangeMask ;
 
 	/* if visibility is partially obsucured , scrollable will be 0. */
 	win->is_scrollable = 1 ;
