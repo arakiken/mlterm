@@ -87,7 +87,7 @@ x_window_manager_init(
 						     0, 0, 1, 1, 0, 0, 0) ;
 	win_man->icon = None ;
 	win_man->mask = None ;
-	win_man->cardinal = 0 ;
+	win_man->cardinal = NULL ;
 
 	win_man->roots = NULL ;
 	win_man->num_of_roots = 0 ;
