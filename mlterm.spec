@@ -43,7 +43,7 @@ CFLAGS="$RPM_OPT_FLAGS" \
 	    --mandir=%{mandir} \
             --libexecdir=%{libexecdir} \
 	    --sysconfdir=%{sysconfdir}\
-	    --enable-imlib # --enable-anti-alias
+	    --with-imagelib=imlib # --enable-anti-alias
 make
 
 %install
