@@ -79,7 +79,7 @@ modify_image( GdkPixbuf *  pixbuf, GdkPixbuf * root, x_picture_modifier_t *  pic
 		goto marge;
 
 	if(pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100)
-		return 0;
+		goto marge;
 	
        	line = gdk_pixbuf_get_pixels (pixbuf);
 	if ((pic_mod->gamma != 100) &&
@@ -116,6 +116,7 @@ modify_image( GdkPixbuf *  pixbuf, GdkPixbuf * root, x_picture_modifier_t *  pic
 	}
  marge:
 	if (root){
+		long rt_orig, rt_root;
 		int r_width, r_height, r_rowstride;
 		unsigned char *r_line;
 		unsigned char *r_pixel;
@@ -129,9 +130,11 @@ modify_image( GdkPixbuf *  pixbuf, GdkPixbuf * root, x_picture_modifier_t *  pic
 			r_pixel = r_line;
 			r_line += r_rowstride;
 			for (j = 0 ; j < width ; j++) {
-				pixel[0] = ((long)(pixel[0])*pixel[3]+(long)(r_pixel[0])*(255-pixel[3]))/255; 
-				pixel[1] = ((long)(pixel[1])*pixel[3]+(long)(r_pixel[1])*(255-pixel[3]))/255; 
-				pixel[2] = ((long)(pixel[2])*pixel[3]+(long)(r_pixel[2])*(255-pixel[3]))/255; 
+				rt_orig = pixel[3];
+				rt_root = 255 - pixel[3];
+				pixel[0] = (pixel[0]*rt_orig + r_pixel[0]*rt_root)>>8; 
+				pixel[1] = (pixel[1]*rt_orig + r_pixel[1]*rt_root)>>8; 
+				pixel[2] = (pixel[2]*rt_orig + r_pixel[2]*rt_root)>>8; 
 				pixel += 4; /* should have alpha */
 				r_pixel += 3; /* should not have alpha */
 			}
