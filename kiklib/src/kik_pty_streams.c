@@ -6,7 +6,7 @@
  * on GNU libc based systems. (It may have some ill side-effect though) */
 #define  _XOPEN_SOURCE 500
 
-/* When _XOPEN_SOURCE is defined, 
+/* When _XOPEN_SOURCE is defined,
  * u_int/u_long/... may not be defined without _BSD_SOURCE */
 #define  _BSD_SOURCE 1
 
@@ -67,6 +67,7 @@ kik_pty_fork(
 
 	if( ( *master = open("/dev/ptmx", O_RDWR | O_NOCTTY, 0)) == -1)
 	{
+		kik_msg_printf( "Unable to open /dev/ptmx\n") ;
 		return  -1;
 	}
 	/*
@@ -100,7 +101,7 @@ kik_pty_fork(
 	}
 
 	fcntl(*master, F_SETFL, O_NDELAY);
-	
+
 	if( ( *slave = open( ttydev, O_RDWR | O_NOCTTY, 0)) < 0)
 	{
 		return -1;
@@ -219,7 +220,7 @@ kik_pty_fork(
 		/* fork failed */
 
 		free( *slave_name) ;
-		
+
 		return  -1 ;
 	}
 	else if( pid == 0)
@@ -245,7 +246,7 @@ kik_pty_fork(
 			close(fd);
 		}
 		fd = open(ttydev, O_RDWR);
-		if (fd >= 0) 
+		if (fd >= 0)
 		{
 			close(fd);
 		}
