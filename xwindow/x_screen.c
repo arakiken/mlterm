@@ -438,14 +438,14 @@ xft_draw_str(
 				{
 					x_window_set_fg_color( &screen->window ,
 						x_get_color( screen->color_man , fg_color)->pixel) ;
-					x_window_fill( &screen->window , x , y , 1 , height) ;
+					x_window_fill( &screen->window , x , y , (ch_width>>4) + 1 , height) ;
 				}
 				else
 				{
 					x_window_set_fg_color( &screen->window ,
 						x_get_color( screen->color_man , fg_color)->pixel) ;
 					x_window_fill( &screen->window ,
-						x , y + height - bottom_margin - 1 , current_width - x , 1) ;
+						x , y + height_to_baseline - bottom_margin + 1, current_width - x , (height_to_baseline>>4) +1 ) ;
 				}
 			}
 
@@ -864,14 +864,14 @@ x_draw_str(
 				{
 					x_window_set_fg_color( &screen->window ,
 						x_get_color( screen->color_man , fg_color)->pixel) ;
-					x_window_fill( &screen->window , x , y , 1 , height) ;
+					x_window_fill( &screen->window , x , y , (ch_width>>4) + 1 , height) ;
 				}
 				else
 				{
 					x_window_set_fg_color( &screen->window ,
 						x_get_color( screen->color_man , fg_color)->pixel) ;
 					x_window_fill( &screen->window ,
-						x , y + height - bottom_margin - 1 , current_width - x , 1) ;
+						x , y + height_to_baseline - bottom_margin + 1, current_width - x , (height_to_baseline>>4) + 1) ;
 				}
 			}
 
