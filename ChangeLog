@@ -1,3 +1,8 @@
+2004-12-09 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* xwindow/x_im_candidate_screen.c: fixed a syntax error inside #ifndef
+	USE_IM_PLUGIN. (Thanks to SHIOTA Shoichi for sending a patch)
+
 2004-12-06 MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_window_manager.c: pointer should be initialized by NULL. 

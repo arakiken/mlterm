@@ -1074,6 +1074,7 @@ x_im_candidate_screen_new(
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
 	int  is_vertical_term ,
+	int  is_vertical_direction ,
 	u_int  line_height_of_screen ,
 	int  x ,
 	int  y
