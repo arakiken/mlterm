@@ -338,8 +338,11 @@ bidi_render(
 	for( row = 0 ; row < image->model.num_of_rows ; row ++)
 	{
 		int  cols ;
+		int  need_render ;
 
 		line = ml_imgmdl_get_line( &image->model , row) ;
+
+		need_render = 0 ;
 		
 		if( line->num_of_filled_chars > 0)
 		{
@@ -348,21 +351,26 @@ bidi_render(
 			{
 				ml_char_copy( &line->chars[line->num_of_filled_chars++] ,
 					&image->sp_ch) ;
+
+				need_render = 1 ;
 			}
 		}
 
 		if( ! ml_imgline_is_using_bidi( line))
 		{
 			ml_imgline_use_bidi( line) ;
+
+			need_render = 1 ;
 		}
 
-		if( row == image->cursor.row)
+		if( ml_imgline_is_modified( line) || need_render)
 		{
-			ml_imgline_bidi_render( line , image->cursor.char_index) ;
-		}
-		else
-		{
-			ml_imgline_bidi_render( line , -1) ;
+			if( ! ml_imgline_bidi_render( line))
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " ml_imgline_bidi_render failed.\n") ;
+			#endif
+			}
 		}
 	}
 
@@ -497,7 +505,12 @@ bidi_visual_line(
 
 	if( ml_imgline_is_modified( line) || need_render)
 	{
-		ml_imgline_bidi_render( line , -1) ;
+		if( ! ml_imgline_bidi_render( line))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_imgline_bidi_render failed.\n") ;
+		#endif
+		}
 	}
 	
 	if( ! ml_imgline_bidi_visual( line))

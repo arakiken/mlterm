@@ -36,6 +36,11 @@
 #define  IS_EMPTY(line)  ((line)->num_of_filled_chars == 0)
 
 
+#if  0
+#define  __DEBUG
+#endif
+
+
 /* --- global functions --- */
 
 /*
@@ -822,7 +827,7 @@ ml_imgline_copy_line(
 	if( ml_imgline_is_using_bidi( src))
 	{
 		ml_imgline_use_bidi( dst) ;
-		ml_imgline_bidi_render( dst , -1) ;
+		ml_imgline_bidi_render( dst) ;
 	}
 	else
 	{
@@ -960,8 +965,7 @@ ml_imgline_unuse_bidi(
 
 int
 ml_imgline_bidi_render(
-	ml_image_line_t *  line ,
-	int  cursor_pos
+	ml_image_line_t *  line
 	)
 {
 	if( ! line->bidi_state)
@@ -973,11 +977,6 @@ ml_imgline_bidi_render(
 		return  0 ;
 	}
 
-	if( ! IS_MODIFIED(line->flag))
-	{
-		return  1 ;
-	}
-	
 	return  ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars) ;
 }
 
