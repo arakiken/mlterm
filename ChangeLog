@@ -1,4 +1,7 @@
 [20020210]
+* -Y/--decsp/compose_dec_special_font option is added.
+
+[20020210]
 * #include <sys/stat.h> is omitted in kiklib/src/kik_utmp_bsd.c. 
   fixed. (Thanks to Nanashi san)
 
