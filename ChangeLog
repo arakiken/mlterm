@@ -1,3 +1,14 @@
+2003-03-01 Araki Ken <arakiken@users.sf.net>
+
+	* Mlconfig writes changed configs alone to ~/.mlterm/main.
+	  (Thanks to Kubota Tomohiro san)
+	* Revived conf_menu_path option.
+	  (Thanks to Nakada Nobuyoshi san)
+	* Mlterm follows the change of _XROOTPMAP_ID.
+	  (Thanks to Minami Hirokazu san)
+	* "encoding" of mlterm configuration protocol accepts "auto".
+	* Mlclient supports quoted string as arguments.
+
 2003-03-01 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Changed the way how to choose pty in mlconfig
