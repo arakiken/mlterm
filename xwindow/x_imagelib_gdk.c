@@ -343,8 +343,8 @@ pixbuf_to_pixmap_truecolor(
 	case 32:
 	{
 		u_int32_t *  data ;
-		data = (u_int32_t *)malloc( width *  height * 4) ;
 
+		data = (u_int32_t *)malloc( width *  height * 4) ;
 		if( !data)
 			return NULL;
 		image = XCreateImage( display, DefaultVisual( display, screen),
@@ -391,8 +391,13 @@ pixbuf_to_pixmap(
 	if (!vinfo.visualid)
 		return ;
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
-	if ( (!matched) || (!vinfolist) )
+	if( !vinfolist)
 		return ;
+	if ( !matched)
+	{
+		XFree( vinfolist)
+		return ;
+	}
 	switch( vinfolist[0].class)
 	{
 	case TrueColor:
@@ -516,8 +521,13 @@ compose_to_pixmap(
 	if (!vinfo.visualid)
 		return ;
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
-	if ( (!matched) || (!vinfolist) )
+	if( !vinfolist)
 		return ;
+	if ( !matched)
+	{
+		XFree( vinfolist)
+		return ;
+	}
 
 	switch( vinfolist[0].class)
 	{
@@ -586,7 +596,6 @@ pixbuf_to_pixmap_and_mask(
 			}
 		}
 	}
-
 	XFreeGC( display, gc) ;
 }
 
@@ -736,13 +745,21 @@ modify_pixmap(
 
 	if(pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100)
 		return 0 ;
-	XGetGeometry( display, pixmap, &root, &x, &y,
-		      &width, &height, &border, &depth) ;
-
-	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap) ;
 
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
+	if( !vinfolist)
+		return ;
+	if ( !matched)
+	{
+		XFree( vinfolist)
+		return ;
+	}
+
+	XGetGeometry( display, pixmap, &root, &x, &y,
+		      &width, &height, &border, &depth) ;
+	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap) ;
+
 	switch( vinfolist[0].class)
 	{
 	case TrueColor:
@@ -1165,12 +1182,23 @@ int x_imagelib_load_file(
 		}
 	}
 /* Create the Icon pixmap&mask for WMHints. None as result is acceptable.*/
-	if( pixmap && mask)
+	if( pixmap)
 	{
 		*pixmap = XCreatePixmap( display, DefaultRootWindow( display), width, height,
-					DefaultDepth( display, DefaultScreen( display))) ;
-		*mask = XCreatePixmap( display, DefaultRootWindow( display), width, height, 1) ;
-		pixbuf_to_pixmap_and_mask( display, DefaultScreen( display), pixbuf, *pixmap, *mask) ;
+					 DefaultDepth( display, DefaultScreen( display))) ;
+		if( mask)
+		{
+			*mask = XCreatePixmap( display, DefaultRootWindow( display), width, height, 1) ;
+			pixbuf_to_pixmap_and_mask( display, DefaultScreen( display), pixbuf, *pixmap, *mask) ;
+		}
+		else
+		{
+			pixbuf_to_pixmap( display,
+					  DefaultScreen( display),
+					  pixbuf,
+					  *pixmap);
+
+		}
 	}
 
 	gdk_pixbuf_unref(pixbuf) ;
