@@ -6,8 +6,8 @@
 #define  PSEUDO_TRANSPARENT
 #endif
 
-#include <X11/Xatom.h>
-#include <gdk-pixbuf/gdk-pixbuf-xlib.h>
+#include <X11/Xatom.h>                   /* XInternAtom */
+#include <gdk-pixbuf/gdk-pixbuf-xlib.h>  
 #include <kiklib/kik_unistd.h>
 
 #include "ml_picture_dep.h"
@@ -288,7 +288,7 @@ found:
 					    pix_x , pix_y , /* dest */
 					    width ,
 					    height ,
-					    XLIB_RGB_DITHER_NORMAL,
+					    XLIB_RGB_DITHER_NONE,
 					    0 , 0 /* dither x,y */ ) ;
 	XFreeGC( win->display , gc );
 	gdk_pixbuf_unref( img ) ;
@@ -422,7 +422,7 @@ ml_picdep_load_background(
 					    0 , 0 , pix_x , pix_y ,
 					    ACTUAL_WIDTH(win) ,
 					    ACTUAL_HEIGHT(win) ,
-					    XLIB_RGB_DITHER_NORMAL,
+					    XLIB_RGB_DITHER_NONE,
 					    0 , 0) ;
 
 	gdk_pixbuf_unref( img) ;

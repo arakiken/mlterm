@@ -1,3 +1,8 @@
+2002-05-07  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* stopped dithering for root pixmap
+	  which should be already dithered/quantized. (src/ml_picture_gdk.c) 
+
 2002-05-05 MINAMI Hirokazu <minami@chem.s.u-tokyo.ac.jp>
 
 	* dithering support for PseudoColor (src/ml_picture_gdk.c). 
