@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 2.6.3
+%define version 2.7.0
 %define release 1
 %define prefix /usr
 %define bindir /usr/X11R6/bin
@@ -72,7 +72,10 @@ rm -rf $RPM_BUILD_ROOT
 %{pixmapdir}/mlterm*
 
 %changelog
-* Sun Jan 12 2002 Araki Ken <arakiken@users.sf.net>
+* XXX XXX NN 2003 Araki Ken <arakiken@users.sf.net>
+- Source version 2.7.0
+
+* Sun Jan 12 2003 Araki Ken <arakiken@users.sf.net>
 - Source version 2.6.3
 
 * Thu Oct 1 2002 Araki Ken <arakiken@users.sf.net>

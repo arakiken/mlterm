@@ -3,6 +3,7 @@
 # Control+backslash=EXT_KBD
 # Control+F1=OPEN_SCREEN
 # UNUSED=OPEN_PTY
+# UNUSED=NEXT_PTY
 # Shift+Prior=PAGE_UP
 # Shift+Up=SCROLL_UP
 # Shift+Insert=INSERT_SELECTION

@@ -17,6 +17,12 @@ typedef struct canna_kbd
 
 } canna_kbd_t ;
 
+typedef struct skk_kbd
+{
+	x_kbd_t  kbd ;
+	
+} skk_kbd_t ;
+
 #endif
 
 typedef struct iscii_kbd

@@ -13,6 +13,7 @@
 
 static char *  na_options[] =
 {
+	"-@/--screens" ,
 	"-K/--maxptys" ,
 	"-P/--ptys" ,
 	"-R/--fsrange" ,
@@ -37,11 +38,16 @@ help(void)
 {
 	int  count ;
 
-	printf( "Not available options.\n") ;
+	printf( "mlclient [prefix options] [options]\n\n") ;
+	printf( "prefix optioins:\n") ;
+	printf( "  /dev/...: specify pty with which a new window is opened.\n") ;
+	printf( "  pty_list: request pty list.\n\n") ;
+	printf( "options:\n") ;
+	printf( "  N.A. option list\n") ;
 
 	for( count = 0 ; count < sizeof( na_options) / sizeof( na_options[0]) ; count ++)
 	{
-		printf( " %s\n" , na_options[count]) ;
+		printf( "  %s\n" , na_options[count]) ;
 	}
 }
 

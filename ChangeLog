@@ -1,7 +1,12 @@
 2003-2-11 Araki Ken <arakiken@users.sf.net>
 
+	* mlclient wouldn't die until the new window which mlclient created dies. Fixed.
+	  (Thanks to Nanashi san)
+
+2003-2-11 Araki Ken <arakiken@users.sf.net>
+
 	* mlclient accepts "pty_list" and "/dev/..." as the 1st argument.
-	  If pty_list is specified, mlclient outputs pty lists which are opened.
+	  If "pty_list" is specified, mlclient outputs pty lists which are opened.
 	  If "/dev/..." is specified, a new window is opened with the specified pty.
 
 2003-2-11 Araki Ken <arakiken@users.sf.net>

@@ -13,6 +13,7 @@
 #include  <signal.h>		/* kill */
 #include  <stdlib.h>		/* getenv */
 #include  <errno.h>
+#include  <fcntl.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/kik_str_alloca_dup/strdup */
 #include  <kiklib/kik_path.h>	/* kik_basename */
@@ -1729,6 +1730,13 @@ client_connected(void)
 		return ;
 	}
 
+	/*
+	 * Set the close-on-exec flag.
+	 * If this flag off, this fd remained open until the child process forked in
+	 * open_term()(ml_term_open_pty()) close it.
+	 */
+	fcntl( fd , F_SETFD , 1) ;
+
 	if( ( fp = fdopen( fd , "r")) == NULL)
 	{
 		goto  error ;
@@ -1853,7 +1861,7 @@ client_connected(void)
 	}
 
 	fclose( fp) ;
-		
+	
 	return ;
 
 error:
