@@ -1,5 +1,8 @@
+[20020223]
+* 2.3.0 release date is added to mlterm.spec.
+
 [20020222]
-* transparency by _XROOTPMAP_ID hehaves strangely if Window is moved to outside of
+* transparency by _XROOTPMAP_ID behaves strangely if Window is moved to outside of
   Display. fixed.
 
 [20020222]
