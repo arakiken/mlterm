@@ -156,8 +156,8 @@ open_new_term(
 		term_man->xim_open_in_startup , term_man->mod_meta_mode , term_man->bel_mode ,
 		term_man->copy_paste_via_ucs , term_man->pic_file_path ,
 		term_man->use_transbg , term_man->font_present , term_man->use_bidi ,
-		term_man->vertical_mode , term_man->big5_buggy , term_man->conf_menu_path ,
-		term_man->iscii_lang)) == NULL)
+		term_man->vertical_mode , term_man->use_vertical_cursor ,
+		term_man->big5_buggy , term_man->conf_menu_path , term_man->iscii_lang)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_screen_new() failed.\n") ;
@@ -770,6 +770,8 @@ ml_term_manager_init(
 		"variable column width") ;
 	kik_conf_add_opt( conf , 'Z' , "multicol" , 1 , "use_multi_column_char" ,
 		"use multiple column character") ;
+	kik_conf_add_opt( conf , 'Q' , "vcur" , 1 , "use_vertical_cursor" ,
+		"use vertical cursor") ;
 #ifdef  ANTI_ALIAS
 	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
 		"CP932 mapping table for JISX0208-Unicode conversion") ;
@@ -1618,6 +1620,16 @@ ml_term_manager_init(
 	if( ( value = kik_conf_get_value( conf , "vertical_mode")))
 	{
 		term_man->vertical_mode = ml_get_vertical_mode( value) ;
+	}
+
+	term_man->use_vertical_cursor = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_vertical_cursor")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->use_vertical_cursor = 1 ;
+		}
 	}
 
 	term_man->max_terms = 5 ;

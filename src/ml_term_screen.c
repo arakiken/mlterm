@@ -99,6 +99,11 @@ convert_row_to_y(
 	int  row
 	)
 {
+	/*
+	 * !! Notice !!
+	 * assumption: line hight is always the same!
+	 */
+	 
 	return  ml_line_height( termscr->font_man) * row ;
 }
 
@@ -111,6 +116,11 @@ convert_y_to_row(
 {
 	int  row ;
 
+	/*
+	 * !! Notice !!
+	 * assumption: line hight is always the same!
+	 */
+	
 	row = y / ml_line_height( termscr->font_man) ;
 
 	if( y_rest)
@@ -119,6 +129,23 @@ convert_y_to_row(
 	}
 
 	return  row ;
+}
+
+static int
+convert_char_index_to_x(
+	ml_term_screen_t *  termscr ,
+	ml_image_line_t *  line ,
+	int  char_index
+	)
+{
+	if( termscr->font_present & FONT_VAR_WIDTH) 
+	{
+		return  ml_convert_char_index_to_x( line , char_index , termscr->shape) ;
+	}
+	else
+	{
+		return  ml_convert_char_index_to_x( line , char_index , NULL) ;
+	}
 }
 
 static int
@@ -139,21 +166,55 @@ convert_x_to_char_index(
 	}
 }
 
-static int
-convert_char_index_to_x(
-	ml_term_screen_t *  termscr ,
-	ml_image_line_t *  line ,
-	int  char_index
+static u_int
+screen_width(
+	ml_term_screen_t *  termscr
 	)
 {
-	if( termscr->font_present & FONT_VAR_WIDTH) 
+	u_int  width ;
+	
+	/*
+	 * logical cols/rows => visual width/height.
+	 */
+	 
+	if( termscr->vertical_mode)
 	{
-		return  ml_convert_char_index_to_x( line , char_index , termscr->shape) ;
+		width = logical_num_of_rows(termscr) * ml_col_width( termscr->font_man) ;
 	}
 	else
 	{
-		return  ml_convert_char_index_to_x( line , char_index , NULL) ;
+		width = logical_num_of_cols(termscr) * ml_col_width( termscr->font_man) ;
 	}
+
+	if( termscr->vertical_mode & VERT_FULL_WIDTH)
+	{
+		width *= 2 ;
+	}
+	
+	return  (width * termscr->screen_width_ratio) / 100 ;
+}
+
+static u_int
+screen_height(
+	ml_term_screen_t *  termscr
+	)
+{
+	u_int  height ;
+	
+	/*
+	 * logical cols/rows => visual width/height.
+	 */
+	 
+	if( termscr->vertical_mode)
+	{
+		height = logical_num_of_cols(termscr) * ml_line_height( termscr->font_man) ;
+	}
+	else
+	{
+		height = logical_num_of_rows(termscr) * ml_line_height( termscr->font_man) ;
+	}
+
+	return  (height * termscr->screen_height_ratio) / 100 ;
 }
 
 
@@ -1647,6 +1708,48 @@ key_pressed(
 		{
 			char *  buf ;
 
+			if( termscr->use_vertical_cursor)
+			{
+				if( termscr->vertical_mode & VERT_RTL)
+				{
+					if( ksym == XK_Up)
+					{
+						ksym = XK_Left ;
+					}
+					else if( ksym == XK_Down)
+					{
+						ksym = XK_Right ;
+					}
+					else if( ksym == XK_Left)
+					{
+						ksym = XK_Down ;
+					}
+					else if( ksym == XK_Right)
+					{
+						ksym = XK_Up ;
+					}
+				}
+				else if( termscr->vertical_mode & VERT_LTR)
+				{
+					if( ksym == XK_Up)
+					{
+						ksym = XK_Left ;
+					}
+					else if( ksym == XK_Down)
+					{
+						ksym = XK_Right ;
+					}
+					else if( ksym == XK_Left)
+					{
+						ksym = XK_Up ;
+					}
+					else if( ksym == XK_Right)
+					{
+						ksym = XK_Down ;
+					}
+				}
+			}
+
 			if( ksym == XK_Delete && size == 1)
 			{
 				buf = ml_termcap_get_sequence( termscr->termcap , MLT_DELETE) ;
@@ -2492,6 +2595,7 @@ report_mouse_tracking(
 	int  is_released
 	)
 {
+	ml_image_line_t *  line ;
 	int  button ;
 	int  key_state ;
 	int  col ;
@@ -2514,9 +2618,61 @@ report_mouse_tracking(
 	 */
 	key_state = ((event->state & ShiftMask) ? 4 : 0) +
 		((event->state & ControlMask) ? 16 : 0) ;
-	
-	row = event->y / ml_line_height( termscr->font_man) ;
-	col = event->x / ml_col_width( termscr->font_man) ;
+
+	if( termscr->vertical_mode)
+	{
+		u_int  x_rest ;
+		
+		col = convert_y_to_row( termscr , NULL , event->y) ;
+		
+		if( termscr->font_man->use_multi_col_char)
+		{
+			/*
+			 * XXX
+			 * col is still inaccurate since multiple-column(full width)
+			 * characters are not regarded.
+			 */
+		}
+		else
+		{
+			col *= 2 ;
+		}
+
+		if( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , col)) == NULL)
+		{
+			return  0 ;
+		}
+		
+		row = ml_convert_char_index_to_col( line ,
+			convert_x_to_char_index( termscr , line , &x_rest , event->x) , 0) ;
+			
+		if( termscr->vertical_mode & VERT_RTL)
+		{
+			if( x_rest > 0)
+			{
+				row ++ ;
+			}
+			
+			row = ml_image_get_cols( termscr->image) - row - 1 ;
+		}
+
+		if( termscr->vertical_mode & VERT_FULL_WIDTH)
+		{
+			row /= 2 ;
+		}
+	}
+	else
+	{
+		row = convert_y_to_row( termscr , NULL , event->y) ;
+		
+		if( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , row)) == NULL)
+		{
+			return  0 ;
+		}
+		
+		col = ml_convert_char_index_to_col( line ,
+			convert_x_to_char_index( termscr , line , NULL , event->x) , 0) ;
+	}
 
 	strcpy( buf , "\x1b[M") ;
 
@@ -2525,6 +2681,10 @@ report_mouse_tracking(
 	buf[5] = 0x20 + row + 1 ;
 
 	write_to_pty( termscr , buf , 6 , NULL) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;
+#endif
 	
 	return  1 ;
 }
@@ -2715,57 +2875,6 @@ end:
 /*
  * callbacks of ml_config_menu_event events.
  */
-
-static u_int
-screen_width(
-	ml_term_screen_t *  termscr
-	)
-{
-	u_int  width ;
-	
-	/*
-	 * logical cols/rows => visual width/height.
-	 */
-	 
-	if( termscr->vertical_mode)
-	{
-		width = logical_num_of_rows(termscr) * ml_col_width( termscr->font_man) ;
-	}
-	else
-	{
-		width = logical_num_of_cols(termscr) * ml_col_width( termscr->font_man) ;
-	}
-
-	if( termscr->vertical_mode & VERT_FULL_WIDTH)
-	{
-		width *= 2 ;
-	}
-	
-	return  (width * termscr->screen_width_ratio) / 100 ;
-}
-
-static u_int
-screen_height(
-	ml_term_screen_t *  termscr
-	)
-{
-	u_int  height ;
-	
-	/*
-	 * logical cols/rows => visual width/height.
-	 */
-	 
-	if( termscr->vertical_mode)
-	{
-		height = logical_num_of_cols(termscr) * ml_line_height( termscr->font_man) ;
-	}
-	else
-	{
-		height = logical_num_of_rows(termscr) * ml_line_height( termscr->font_man) ;
-	}
-
-	return  (height * termscr->screen_height_ratio) / 100 ;
-}
 
 static void
 font_size_changed(
@@ -3749,6 +3858,7 @@ ml_term_screen_new(
 	ml_font_present_t  font_present ,
 	int  use_bidi ,
 	ml_vertical_mode_t  vertical_mode ,
+	int  use_vertical_cursor ,
 	int  big5_buggy ,
 	char *  conf_menu_path ,
 	ml_iscii_lang_t  iscii_lang
@@ -3792,6 +3902,8 @@ ml_term_screen_new(
 		font_present |= FONT_VERTICAL ;
 		font_present &= ~FONT_VAR_WIDTH ;
 	}
+
+	termscr->use_vertical_cursor = use_vertical_cursor ;
 	
 	if( font_present)
 	{

@@ -92,6 +92,7 @@ typedef struct  ml_term_manager
 	int8_t  copy_paste_via_ucs ;
 	int8_t  use_transbg ;
 	int8_t  use_multi_col_char ;
+	int8_t  use_vertical_cursor ;
 	
 	char *  cmd_path ;
 	char **  cmd_argv ;

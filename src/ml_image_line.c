@@ -291,7 +291,7 @@ ml_imgline_overwrite_chars(
 	else
 	{
 		ml_imgline_set_modified( line , change_char_index ,
-			K_MAX(change_char_index,END_CHAR_INDEX(line)) , 0) ;
+			K_MAX(change_char_index,len - 1) , 0) ;
 	}
 
 	return  1 ;
