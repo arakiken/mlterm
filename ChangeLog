@@ -1,5 +1,11 @@
 2004-10-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* man/mlterm.1, man/mlclient.1:
+	  - fixed typo. (MLTERM -> MLCLIENT)
+	  - changed date. (->2004/10/23)
+
+2004-10-23 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* man/mlterm.1: fixed typo. (for X -> on X)
 
 2004-10-23 Seiichi SATO <ssato@sh.rim.or.jp>
