@@ -603,6 +603,15 @@ im_scim_initialize(void)
 	load_config( config) ;
 	config->signal_connect_reload( slot( load_config)) ;
 
+	be->signal_connect_commit_string( slot( cb_commit)) ;
+	be->signal_connect_update_aux_string( slot( cb_aux_update)) ;
+	be->signal_connect_update_preedit_string( slot( cb_preedit_update)) ;
+	be->signal_connect_hide_preedit_string( slot( cb_preedit_hide)) ;
+	be->signal_connect_update_preedit_caret( slot( cb_preedit_caret)) ;
+	be->signal_connect_update_lookup_table( slot( cb_lookup_update)) ;
+	be->signal_connect_show_lookup_table( slot( cb_lookup_show)) ;
+	be->signal_connect_hide_lookup_table( slot( cb_lookup_hide)) ;
+
 	context_table.clear() ;
 
 	return  1 ;
@@ -693,15 +702,6 @@ im_scim_create_context(
 	context->focused = 0 ;
 	context->self = self ;
 	context->cb = callbacks ;
-
-	be->signal_connect_commit_string( slot( cb_commit)) ;
-	be->signal_connect_update_aux_string( slot( cb_aux_update)) ;
-	be->signal_connect_update_preedit_string( slot( cb_preedit_update)) ;
-	be->signal_connect_hide_preedit_string( slot( cb_preedit_hide)) ;
-	be->signal_connect_update_preedit_caret( slot( cb_preedit_caret)) ;
-	be->signal_connect_update_lookup_table( slot( cb_lookup_update)) ;
-	be->signal_connect_show_lookup_table( slot( cb_lookup_show)) ;
-	be->signal_connect_hide_lookup_table( slot( cb_lookup_hide)) ;
 
 	// workaround for switching factory via panel
 	transaction_init( context->instance) ;

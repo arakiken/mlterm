@@ -1,5 +1,11 @@
 2005-01-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/scim/im_scim.cpp (im_scim_create_context): moved
+	be->signal_connect_*() into
+	* nputmethod/scim/im_scim.cpp (im_scim_initialize): this.
+
+2005-01-23 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	SCIM (Smart Common Input Method platform) support:
 	* configure.in:
 	  - added '--enable-scim'
