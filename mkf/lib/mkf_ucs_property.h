@@ -134,7 +134,8 @@ typedef enum mkf_ucs_property
 	MKF_UCSPROP_DIR_SOP = 0x0u ,
 	MKF_UCSPROP_DIR_EOP = 0x0u ,
 #endif
-	
+	MKF_UCSPROP_DIR_MAX
+
 } mkf_ucs_property_t ;
 
 

@@ -2,6 +2,8 @@
  *	$Id$
  */
 
+#include  <kiklib/kik_str.h>
+
 #include  "mkf_ucs4_jisx0201.h"
 
 #include  "mkf_ucs4_usascii.h"

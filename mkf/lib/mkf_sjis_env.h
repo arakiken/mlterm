@@ -10,7 +10,7 @@ typedef enum  mkf_sjis_type_t
 {
 	APPLE_CS ,
 	MICROSOFT_CS ,
-	MS_CS_WITH_NECDOS_9_12 ,	/* chars(9 - 12 section) not included in MS charset. */
+	MS_CS_WITH_NECDOS_9_12	/* chars(9 - 12 section) not included in MS charset. */
 
 } mkf_sjis_type_t ;
 

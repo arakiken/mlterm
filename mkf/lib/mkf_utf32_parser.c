@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_str.h>
 
 #include  "mkf_ucs_property.h"
 

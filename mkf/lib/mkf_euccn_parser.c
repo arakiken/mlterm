@@ -6,6 +6,7 @@
 
 #include  <stdio.h>			/* NULL */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_str.h>
 
 #include  "mkf_iso2022_parser.h"
 #include  "mkf_gb18030_2000_intern.h"
