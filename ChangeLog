@@ -1,10 +1,14 @@
+2004-04-15  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* pixmap_engine.c: fixed tiny memory leak.
+
 2004-04-12  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* x_uim.c (x_uim_delete): To plug a file descriptor leak, closed pipes
 	for uim-helper-candwin-gtk.
 
 	* x_uim.c (x_uim_new): Plugged a memory leak detected by valgrind. It
-	was caused by uninitialized valiable 'uim->encoding'.
+	was caused by uninitialized variable 'uim->encoding'.
 
 	* x_screen.c (draw_preedit_str, get_segment_spot): Calculate the preedit
 	position correctly in the back scroll mode.

@@ -476,6 +476,7 @@ delete(
 
 	ps->conf->use_count -- ;
 
+	free( ps->dir) ;
 	free( ps) ;
 
 }
