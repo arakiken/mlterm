@@ -237,7 +237,7 @@ comment $Id$
 
       o termtype (*xterm*)
         端末タイプ
-        デフォルトは xterm だが、mlterm とすることを推奨。
+        デフォルトは xterm だが、mlterm を推奨。
 
       o startup_ptys  (*1*)
         起動時に立ち上げる pty の数
@@ -441,18 +441,17 @@ comment $Id$
 
         [input method];[option1]:[option2]
 
-	[input method] にインプットメソッド(xim/uim/iiimf/m17nlib/kbd)を指定し、
-	必要であれば ":" で区切ってオプションを列挙します。
+        [input method] にインプットメソッド(xim/uim/iiimf/m17nlib/kbd)を指定し、
+        必要であれば ":" で区切ってオプションを列挙します。
 
         各インプットメソッドのオプションは以下の通りです。
 
         xim の場合: xim:[xim server]:[locale]
         [xim server] で XIM サーバー名(kinput2, Ami, xcin など)を指定します。
         指定しなかった場合は、環境変数 XMODIFIERS で指定した XIM サーバーが
-        使用されます。
-        [locale] に XIM サーバーを動かしているローケールを指定します。
-        指定しなかった場合はシステムのローケールが使用されます。
-        use_xim で xim を無効にした場合、xim を指定しても無視されます。
+        使用されます。[locale] には XIM サーバーのローケールを指定します。指定し
+        なかった場合はシステムのローケールが使用されます。use_xim オプションで
+        xim を無効にした場合、xim を指定しても無視されます。
 
         uim の場合:
         uim:[conversion engine]
@@ -461,24 +460,27 @@ comment $Id$
 
         iiimf の場合:
         iiimf:[language id]:[language engine]
-	[language id] には RFC1766 に従って言語(ar, zh_CN, ja など)を指定しま
-	す。指定されなかった場合はシステムのローケールから取得した言語が使われま
-	す。
-        [language engine] で使用する LE (CannaLE, newpy など)を指定します。指定
-	されなかった場合は [language id] のデフォルト LE が使用されます。
+        [language id] には RFC1766 に従って言語(ar, zh_CN, ja など)を指定しま
+        す。指定されなかった場合はシステムのローケールから取得した言語が使われ
+        ます。[language engine] では使用する LE (CannaLE, newpy など)を指定しま
+        す。指定されなかった場合は [language id] のデフォルト LE が使用されま
+        す。
 
         m17nlib の場合:
         m17nlib:[language id]:[input method]
-	[language id] には ISO-639 に従って言語(ar, zh, ja など)を指定します。
-	指定しなかった場合はシステムのローケールから取得した言語が使われます
-	[input_method] で使用するインプットメソッド(anthy, py など)を指定します
-	指定されなかった場合は [language id] のデフォルトインプットメソッドが使
-	用されます。
+        [language id] には ISO-639 に従って言語(ar, zh, ja など)を指定します。
+        指定しなかった場合はシステムのローケールから取得した言語が使われます
+        [input_method] で使用するインプットメソッド(anthy, py など)を指定します
+        指定されなかった場合は [language id] のデフォルトインプットメソッドが使
+        用されます。m17nlib を指定した時は key ファイルで IM_HOTKEY を指定して
+        ください。
+
 
         kbd の場合:
         kbd (オプション無し)
         ISCII モードの時は ISCII 配列、それ以外ではアラビア語配列のキーマッピン
-	グになります。
+        グになります。kbd を指定した時は key ファイルで IM_HOTKEY を指定してくだ
+        さい。
 
       o tabsize  (*8*) (#)
         タブ幅
@@ -537,7 +539,7 @@ comment $Id$
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
-        のオプションを input_method に統合したので廃止されました。
+        のオプションを input_method に統合したので廃止しました。
         現在 input_method に xim を指定すると XIM は必ず open されます。
         代替手段として --im=none を指定して、mlterm 起動後に mlconfig などから、
         xim を指定するとすることで対応してください。

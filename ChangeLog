@@ -1,3 +1,7 @@
+2005-01-10 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* doc/ja/README.ja: minor cleanup.
+
 2005-01-01 MINAMI Hirokazu <minami@Mistfall.net>
 
 	* xwindow/x_screen.c: BackSpace/Delete couldn't be used
