@@ -1,3 +1,7 @@
+2003-03-26 Araki Ken <arakiken@users.sf.net>
+
+	* Mlterm died as soon as the shell exited while screen region being selected. Fixed.
+
 2003-03-26 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Updated tool/mlconfig/po/de.po

@@ -6050,6 +6050,9 @@ pty_closed(
 
 	screen = p ;
 
+	/* This should be done before screen->term is NULL */
+	x_sel_clear( &screen->sel) ;
+
 	screen->term = NULL ;
 	(*screen->system_listener->pty_closed)( screen->system_listener->self , screen) ;
 }
@@ -6476,6 +6479,9 @@ x_screen_detach(
 	{
 		return  NULL ;
 	}
+
+	/* This should be done before screen->term is NULL */
+	x_sel_clear( &screen->sel) ;
 
 #if  1
 	exit_backscroll_mode( screen) ;

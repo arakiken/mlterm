@@ -311,7 +311,7 @@ open_pty_intern(
 }
 
 static int
-open_term(
+open_screen_intern(
 	char *  pty
 	)
 {
@@ -543,7 +543,7 @@ error:
 }
 
 static int
-close_term(
+close_screen_intern(
 	x_screen_t *  screen
 	)
 {
@@ -730,7 +730,7 @@ pty_closed(
 			
 			if( ( term = ml_get_detached_term( NULL)) == NULL)
 			{
-				close_term( screen) ;
+				close_screen_intern( screen) ;
 				screens[count] = screens[--num_of_screens] ;
 			}
 			else
@@ -748,10 +748,10 @@ open_screen(
 	void *  p
 	)
 {
-	if( ! open_term(NULL))
+	if( ! open_screen_intern(NULL))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " open_term failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern failed.\n") ;
 	#endif
 	}
 }
@@ -1873,7 +1873,7 @@ client_connected(void)
 	/*
 	 * Set the close-on-exec flag.
 	 * If this flag off, this fd remained open until the child process forked in
-	 * open_term()(ml_term_open_pty()) close it.
+	 * open_screen_intern()(ml_term_open_pty()) close it.
 	 */
 	fcntl( fd , F_SETFD , 1) ;
 
@@ -2064,10 +2064,10 @@ parse_end:
 
 		kik_conf_delete( conf) ;
 
-		if( ! open_term( pty))
+		if( ! open_screen_intern( pty))
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " open_term() failed.\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;
 		#endif
 		}
 		
@@ -2728,7 +2728,7 @@ x_term_manager_final(void)
 	
 	for( count = 0 ; count < num_of_screens ; count ++)
 	{
-		close_term( screens[count]) ;
+		close_screen_intern( screens[count]) ;
 	}
 
 	free( screens) ;
@@ -2765,15 +2765,15 @@ x_term_manager_event_loop(void)
 
 	for( count = 0 ; count < num_of_startup_screens ; count ++)
 	{
-		if( ! open_term(NULL))
+		if( ! open_screen_intern(NULL))
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " open_term() failed.\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;
 		#endif
 
 			if( count == 0 && ! is_genuine_daemon)
 			{
-				kik_msg_printf( "Unable to start - open_term() failed.\n") ;
+				kik_msg_printf( "Unable to start - open_screen_intern() failed.\n") ;
 
 				exit(1) ;
 			}
@@ -2816,7 +2816,7 @@ x_term_manager_event_loop(void)
 			{
 				if( dead_mask & (0x1 << count))
 				{
-					close_term( screens[count]) ;
+					close_screen_intern( screens[count]) ;
 					
 					screens[count] = screens[--num_of_screens] ;
 				}
