@@ -1,3 +1,9 @@
+2004-01-08  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* kiklib/src/kik_pty_streams.c: #defined _XOPEN_SOURCE as 500
+	to make features defined in UNIX98 pty available.
+	(sould fix debian Bug#226654. Thanks to lamont for reporting)
+
 2004-01-07  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_main_config.c: minor bugfix.

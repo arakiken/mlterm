@@ -2,12 +2,17 @@
  *	$Id$
  */
 
+/* ptsname/grantpt/unlockpt are not available without _XOPEN_SOURCE
+ * on GNU libc based systems. (It may have some ill side-effect though) */
+#define  _XOPEN_SOURCE 500
 #include  "kik_pty.h"
 
 #include  <fcntl.h>
 #include  <grp.h>
 #include  <stdio.h>
+
 #include  <stdlib.h>
+
 #include  <string.h>
 #include  <errno.h>
 #include  <sys/param.h>
