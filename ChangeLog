@@ -1,3 +1,9 @@
+2004-09-01 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* man/mlterm.1:
+	- Added cursor_bg_color and cursor_fg_color.
+	- fixed a typo (encoding -> ENCODING).
+
 2004-08-31 Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* x_screen.c: fixed a deadkey problem with uim.
