@@ -1,5 +1,10 @@
 2002-09-04 Araki Ken <arakiken@users.sf.net>
 
+	* cursor moved to the end of line under insert mode. fixed.
+	  (Thanks to Nobuyoshi Nakada san)
+	
+2002-09-04 Araki Ken <arakiken@users.sf.net>
+
 	* String pointed by icon_path in x_term_manager.c is leaked. fixed.
 	* doc/en/History is updated.
 
