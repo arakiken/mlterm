@@ -1,3 +1,7 @@
+2002-06-04 Araki Ken <arakiken@users.sf.net>
+
+	* mlterm version number is set as the value of "MLTERM" environmental variable.
+
 2002-06-04 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Widgets for anti-alias and variable-font-width were not

@@ -12,6 +12,7 @@
 #include  "kik_file.h"
 #include  "kik_conf_io.h"
 #include  "kik_args.h"
+#include  "kik_util.h"		/* DIGIT_STR_LEN */
 
 
 #define  CH2IDX(ch)  ((ch) - 0x20)
@@ -581,4 +582,21 @@ kik_conf_set_default_value(
 	entry->default_value = default_value ;
 
 	return  1 ;
+}
+
+char *
+kik_conf_get_version(
+	kik_conf_t *  conf
+	)
+{
+	char *  ver ;
+
+	if( ( ver = malloc( 9 + DIGIT_STR_LEN(int) * 3 + 1)) == NULL)
+	{
+		return  NULL ;
+	}
+	
+	sprintf( ver , "MLTERM=%d.%d.%d" , conf->major_version , conf->minor_version , conf->revision) ;
+
+	return  ver ;
 }

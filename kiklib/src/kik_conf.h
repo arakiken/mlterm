@@ -71,5 +71,7 @@ char *  kik_conf_get_value( kik_conf_t *  conf , char *  key) ;
 
 int  kik_conf_set_default_value( kik_conf_t *  conf , char *  key , char *  default_value) ;
 
+char *  kik_conf_get_version( kik_conf_t *  conf) ;
+
 
 #endif

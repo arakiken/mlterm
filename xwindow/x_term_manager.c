@@ -326,7 +326,10 @@ open_term(
 	
 	env_p = env ;
 
-	*(env_p ++) = "MLTERM=" ;
+	if( term_man->version)
+	{
+		*(env_p ++) = term_man->version ;
+	}
 	
 	sprintf( wid_env , "WINDOWID=%ld" , root->my_window) ;
 	*(env_p ++) = wid_env ;
@@ -2157,6 +2160,13 @@ x_term_manager_init(
 		ml_set_word_separators( value) ;
 	}
 
+	if( ( term_man->version = kik_conf_get_version( conf)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " version string is NULL\n") ;
+	#endif
+	}
+
 	config_init( term_man , conf , argc , argv) ;
 
 	kik_conf_delete( conf) ;
@@ -2216,6 +2226,10 @@ x_term_manager_final(
 {
 	int  count ;
 
+	kik_remove_sig_child_listener( term_man) ;
+	
+	free( term_man->version) ;
+	
 	config_final( term_man) ;
 	
 	ml_free_word_separators() ;
@@ -2251,7 +2265,6 @@ x_term_manager_final(
 	x_termcap_final( &term_man->termcap) ;
 
 	kik_sig_child_final() ;
-	kik_remove_sig_child_listener( term_man) ;
 	
 	return  1 ;
 }

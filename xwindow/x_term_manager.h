@@ -106,6 +106,8 @@ typedef struct  x_term_manager
 
 	x_system_event_listener_t  system_listener ;
 
+	char *  version ;
+	
 	x_config_t  conf ;
 	
 	x_font_custom_t  normal_font_custom ;
