@@ -13,7 +13,7 @@
 #ifdef  USE_FRIBIDI
 
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_mem.h>	/* alloca */
+#include  <kiklib/kik_mem.h>	/* alloca/realloc/free */
 #include  <fribidi/fribidi.h>
 
 
@@ -186,11 +186,20 @@ ml_bidi(
 end:
 	if( state->size != size)
 	{
-		if( ( state->visual_order = malloc( sizeof( u_int16_t) * size)) == NULL)
+		void *  p ;
+		
+		if( ( p = realloc( state->visual_order , sizeof( u_int16_t) * size)) == NULL)
 		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " realloc() failed.\n") ;
+		#endif
+		
+			state->size = 0 ;
+			
 			return  0 ;
 		}
-
+		
+		state->visual_order = p ;
 		state->size = size ;
 	}
 

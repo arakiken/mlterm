@@ -574,7 +574,7 @@ comb_visual(
 		return  0 ;
 	}
 
-	if( ! ml_is_char_combining())
+	if( ! ml_is_using_char_combining())
 	{
 		return  0 ;
 	}
@@ -603,39 +603,49 @@ comb_visual(
 		cur = line->chars ;
 		for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
 		{
-			if( row == image->cursor.row && src_pos == image->cursor.char_index)
+			if( prev && (ml_char_is_comb( cur) || ml_is_arabic_combining( prev2 , prev , cur)))
 			{
-				image->cursor.char_index = dst_pos ;
-				image->cursor.col = ml_convert_char_index_to_col( CURSOR_LINE(image) ,
-							image->cursor.char_index , 0) + cols_rest ;
-			}
-
-			if( ml_char_is_comb( cur) ||
-				(prev && ml_is_arabic_combining( prev2 , prev , cur)))
-			{
+				/* dst_pos must be over 0 since 'prev' is not NULL */
 				ml_combine_chars( &line->chars[dst_pos - 1] , cur) ;
 
+			#if  0
+				/*
+				 * This doesn't work as expected, for example, when
+				 * one of combined two characters are deleted.
+				 */
 				if( ml_imgline_is_modified( line))
 				{
-					/*
-					 * XXX
-					 * change_{beg|end}_char_index is private.
-					 * Don't access them directly.
-					 */
-					if( line->change_beg_char_index > dst_pos - 1)
+					int  beg ;
+					int  end ;
+
+					beg = ml_imgline_get_beg_of_modified( line) ;
+					end = ml_imgline_get_end_of_modified( line) ;
+					
+					if( beg > dst_pos - 1)
 					{
-						line->change_beg_char_index -- ;
+						beg -- ;
 					}
 
-					if( line->change_end_char_index > dst_pos - 1)
+					if( end > dst_pos - 1)
 					{
-						line->change_end_char_index -- ;
+						end -- ;
 					}
+
+					ml_imgline_updated( line) ;
+					ml_imgline_set_modified( line , beg , end , 1) ;
 				}
+			#endif
 			}
 			else
 			{
 				ml_char_copy( &line->chars[dst_pos ++] , cur) ;
+			}
+
+			if( row == image->cursor.row && src_pos == image->cursor.char_index)
+			{
+				image->cursor.char_index = dst_pos - 1 ;
+				image->cursor.col = ml_convert_char_index_to_col( CURSOR_LINE(image) ,
+							image->cursor.char_index , 0) + cols_rest ;
 			}
 
 			prev2 = prev ;
@@ -643,6 +653,13 @@ comb_visual(
 			cur ++ ;
 		}
 
+	#if  1
+		if( ml_imgline_is_modified( line))
+		{
+			ml_imgline_set_modified_all( line) ;
+		}
+	#endif
+	
 		line->num_of_filled_chars = dst_pos ;
 	}
 
@@ -665,7 +682,7 @@ comb_logical(
 		return  0 ;
 	}
 	
-	if( ! ml_is_char_combining())
+	if( ! ml_is_using_char_combining())
 	{
 		return  0 ;
 	}
@@ -714,23 +731,36 @@ comb_logical(
 						break ;
 					}
 
+				#if  0
+					/*
+					 * This doesn't work as expected, for example, when
+					 * one of combined two characters are deleted.
+					 */
 					if( ml_imgline_is_modified( line))
 					{
-						/*
-						 * XXX
-						 * change_{beg|end}_char_index is private.
-						 * Don't access them directly.
-						 */
-						if( line->change_beg_char_index > src_pos)
+						int  beg ;
+						int  end ;
+						int  is_cleared_to_end ;
+
+						beg = ml_imgline_get_beg_of_modified( line) ;
+						end = ml_imgline_get_end_of_modified( line) ;
+						is_cleared_to_end = ml_imgline_is_cleared_to_end( line) ;
+						
+						if( beg > src_pos)
 						{
-							line->change_beg_char_index ++ ;
+							beg ++ ;
 						}
 
-						if( line->change_end_char_index > src_pos)
+						if( end > src_pos)
 						{
-							line->change_end_char_index ++ ;
+							end ++ ;
 						}
+
+						ml_imgline_updated( line) ;
+						ml_imgline_set_modified( line , beg , end ,
+							is_cleared_to_end) ;
 					}
+				#endif
 
 					ml_char_set( &line->chars[dst_pos ++] ,
 						ml_char_bytes( comb) , ml_char_size( comb) ,
@@ -780,9 +810,9 @@ comb_visual_line(
 	cur = line->chars ;
 	for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
 	{
-		if( ml_char_is_comb( cur) ||
-			(prev && ml_is_arabic_combining( prev2 , prev , cur)))
+		if( prev && (ml_char_is_comb( cur) || ml_is_arabic_combining( prev2 , prev , cur)))
 		{
+			/* dst_pos must be over 0 since 'prev' is not NULL */
 			ml_combine_chars( &line->chars[dst_pos - 1] , cur) ;
 		}
 		else
@@ -1018,13 +1048,13 @@ iscii_visual(
 		#endif
 		
 			ml_imgline_copy_line( &iscii_logvis->logical_lines[row] , line) ;
-			ml_imgline_is_updated( &iscii_logvis->logical_lines[row]) ;
+			ml_imgline_updated( &iscii_logvis->logical_lines[row]) ;
 
 			ml_imgline_iscii_visual( line , iscii_logvis->iscii_state) ;
 
 			/* caching */
 			ml_imgline_copy_line( &iscii_logvis->visual_lines[row] , line) ;
-			ml_imgline_is_updated( &iscii_logvis->visual_lines[row]) ;
+			ml_imgline_updated( &iscii_logvis->visual_lines[row]) ;
 		}
 	}
 
@@ -1301,7 +1331,7 @@ vert_visual_intern(
 			}
 		}
 
-		ml_imgline_is_updated( log_line) ;
+		ml_imgline_updated( log_line) ;
 	}
 
 	vert_logvis->cursor_logical_char_index = image->cursor.char_index ;

@@ -46,7 +46,8 @@ typedef struct  ml_config_menu_session
 	char *  locale ;
 	char *  sb_view_name ;
 	char *  wall_pic ;
-	int8_t  is_combining_char ;
+	int8_t  use_char_combining ;
+	int8_t  use_dynamic_comb ;
 	int8_t  copy_paste_via_ucs ;
 	int8_t  is_transparent ;
 	int8_t  use_bidi ;
@@ -77,6 +78,7 @@ typedef struct  ml_config_menu_event_listener
 	void (*change_vertical_mode)( void * , ml_vertical_mode_t) ;
 	void (*change_sb_mode)( void * , ml_sb_mode_t) ;
 	void (*change_char_combining_flag)( void * , int) ;
+	void (*change_dynamic_comb_flag)( void * , int) ;
 	void (*change_copy_paste_via_ucs_flag)( void * , int) ;
 	void (*change_transparent_flag)( void * , int) ;
 	void (*change_font_present)( void * , ml_font_present_t) ;
@@ -118,9 +120,9 @@ int  ml_config_menu_start( ml_config_menu_t *  config_menu , int  x , int  y ,
 	u_int  orig_screen_width_ratio , u_int  orig_screen_height_ratio ,
 	ml_mod_meta_mode_t  orig_mod_meta_mode , ml_bel_mode_t  orig_bel_mode ,
 	ml_vertical_mode_t  orig_vertical_mode , ml_sb_mode_t  orig_sb_mode ,
-	int  orig_is_combining_char , int  orig_copy_paste_via_ucs , int  orig_is_transparent ,
-	u_int  orig_brightness , u_int  orig_fade_ratio , ml_font_present_t  orig_font_present ,
-	int  orig_use_multi_col_char , int  orig_use_bidi ,
+	int  orig_use_char_combining , int  orig_use_dynamic_comb , int  orig_copy_paste_via_ucs ,
+	int  orig_is_transparent , u_int  orig_brightness , u_int  orig_fade_ratio ,
+	ml_font_present_t  orig_font_present , int  orig_use_multi_col_char , int  orig_use_bidi ,
 	char *  orig_sb_view_name , char *  orig_xim , char *  orig_locale , char *  orig_wall_pic) ;
 
 

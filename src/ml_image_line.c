@@ -33,6 +33,8 @@
 #define  SET_CONTINUED_TO_NEXT(flag)  ((flag) |= 0x4)
 #define  UNSET_CONTINUED_TO_NEXT(flag)  ((flag) &= ~0x4)
 
+#define  IS_EMPTY(line)  ((line)->num_of_filled_chars == 0)
+
 
 /* --- global functions --- */
 
@@ -217,7 +219,7 @@ ml_imgline_overwrite_chars(
 
 	orig_filled_cols = ml_imgline_get_num_of_filled_cols( line) ;
 
-	if( ml_imgline_is_empty( line) || cols >= orig_filled_cols)
+	if( IS_EMPTY( line) || cols >= orig_filled_cols)
 	{
 		return  ml_imgline_overwrite_all( line , change_char_index , chars , len , cols) ;
 	}
@@ -404,7 +406,7 @@ ml_imgline_set_modified_all(
 	ml_image_line_t *  line
 	)
 {
-	if( ml_imgline_is_empty( line))
+	if( IS_EMPTY( line))
 	{
 		ml_imgline_set_modified( line , 0 , 0 , 1) ;
 	}
@@ -430,13 +432,61 @@ ml_imgline_is_modified(
 	return  IS_MODIFIED(line->flag) ;
 }
 
+int
+ml_imgline_get_beg_of_modified(
+	ml_image_line_t *  line
+	)
+{
+	if( IS_EMPTY( line))
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  K_MIN(line->change_beg_char_index,END_CHAR_INDEX(line)) ;
+	}
+}
+
+int
+ml_imgline_get_end_of_modified(
+	ml_image_line_t *  line
+	)
+{
+	if( IS_EMPTY( line))
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  K_MIN(line->change_end_char_index,END_CHAR_INDEX(line)) ;
+	}
+}
+
+u_int
+ml_imgline_get_num_of_redrawn_chars(
+	ml_image_line_t *  line
+	)
+{
+	if( IS_EMPTY( line))
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  ml_imgline_get_end_of_modified( line) - ml_imgline_get_beg_of_modified( line) + 1 ;
+	}
+}
+
 void
-ml_imgline_is_updated(
+ml_imgline_updated(
 	ml_image_line_t *  line
 	)
 {
 	UNSET_MODIFIED(line->flag) ;
 	UNSET_CLEARED_TO_END(line->flag) ;
+
+	line->change_beg_char_index = 0 ;
+	line->change_end_char_index = 0 ;
 }
 
 int
@@ -469,37 +519,6 @@ ml_imgline_get_num_of_filled_cols(
 	)
 {
 	return  ml_str_cols( line->chars , line->num_of_filled_chars) ;
-}
-
-int
-ml_imgline_get_beg_of_modified(
-	ml_image_line_t *  line
-	)
-{
-	if( ml_imgline_is_empty( line))
-	{
-		return  0 ;
-	}
-	else
-	{
-		return  K_MIN(line->change_beg_char_index,END_CHAR_INDEX(line)) ;
-	}
-}
-
-u_int
-ml_imgline_get_num_of_redrawn_chars(
-	ml_image_line_t *  line
-	)
-{
-	if( ml_imgline_is_empty( line))
-	{
-		return  0 ;
-	}
-	else
-	{
-		return  K_MIN(line->change_end_char_index,END_CHAR_INDEX(line)) -
-			K_MIN(line->change_beg_char_index,END_CHAR_INDEX(line)) + 1 ;
-	}
 }
 
 int
@@ -847,7 +866,7 @@ ml_imgline_is_empty(
 	ml_image_line_t *  line
 	)
 {
-	return  (line->num_of_filled_chars == 0) ;
+	return  IS_EMPTY(line) ;
 }
 
 u_int
@@ -1220,7 +1239,7 @@ ml_imgline_iscii_visual(
 	/*
 	 * char combining is necessary for rendering ISCII glyphs
 	 */
-	if( ! ml_is_char_combining())
+	if( ! ml_is_using_char_combining())
 	{
 		return  0 ;
 	}
@@ -1412,7 +1431,7 @@ ml_iscii_convert_logical_char_index_to_visual(
 	/*
 	 * char combining is necessary for rendering ISCII glyphs
 	 */
-	if( ! ml_is_char_combining())
+	if( ! ml_is_using_char_combining())
 	{
 		return  logical_char_index ;
 	}

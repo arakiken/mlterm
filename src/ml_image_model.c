@@ -69,7 +69,7 @@ ml_imgmdl_reset(
 	for( counter = 0 ; counter < model->num_of_rows ; counter ++)
 	{
 		ml_imgline_reset( &model->lines[counter]) ;
-		ml_imgline_is_updated( &model->lines[counter]) ;
+		ml_imgline_updated( &model->lines[counter]) ;
 	}
 
 	model->num_of_filled_rows = 0 ;

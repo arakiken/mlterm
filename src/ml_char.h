@@ -74,7 +74,7 @@ int  ml_use_char_combining(void) ;
 
 int  ml_unuse_char_combining(void) ;
 
-int  ml_is_char_combining(void) ;
+int  ml_is_using_char_combining(void) ;
 
 
 int  ml_str_init( ml_char_t *  str , u_int  size) ;

@@ -82,7 +82,13 @@ int  ml_imgline_is_cleared_to_end( ml_image_line_t *  line) ;
 
 int  ml_imgline_is_modified( ml_image_line_t *  line) ;
 
-void  ml_imgline_is_updated( ml_image_line_t *  line) ;
+int  ml_imgline_get_beg_of_modified( ml_image_line_t *  line) ;
+
+int  ml_imgline_get_end_of_modified( ml_image_line_t *  line) ;
+
+u_int  ml_imgline_get_num_of_redrawn_chars( ml_image_line_t *  line) ;
+
+void  ml_imgline_updated( ml_image_line_t *  line) ;
 
 int  ml_imgline_is_continued_to_next( ml_image_line_t *  line) ;
 
@@ -91,10 +97,6 @@ void  ml_imgline_set_continued_to_next( ml_image_line_t *  line) ;
 void  ml_imgline_unset_continued_to_next( ml_image_line_t *  line) ;
 
 u_int  ml_imgline_get_num_of_filled_cols( ml_image_line_t *  line) ;
-
-int  ml_imgline_get_beg_of_modified( ml_image_line_t *  line) ;
-
-u_int  ml_imgline_get_num_of_redrawn_chars( ml_image_line_t *  line) ;
 
 int  ml_convert_char_index_to_col( ml_image_line_t *  line , int  char_index , int  flag) ;
 

@@ -150,15 +150,17 @@ ml_color_manager_load(
 		{
 			if( ! load_named_xcolor( color_man , &color_man->xcolors[color] , name))
 			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" %s , a basic color , couldn't be loaded.\n" ,
-					name) ;
-			#endif
+				if( color <= MLC_BLACK)
+				{
+					kik_msg_printf( " Not enough colors available.\n") ;
 
-				/* color manager cannot go ahead any more ... */
-				
-				return  0 ;
+					return  0 ;
+				}
+				else
+				{
+					/* MLC_BLACK is used instead */
+					color_man->xcolors[color] = color_man->xcolors[MLC_BLACK] ;
+				}
 			}
 		}
 		else

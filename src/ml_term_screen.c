@@ -519,7 +519,7 @@ redraw_image(
 	beg_y = end_y = y = convert_row_to_y( termscr , counter) ;
 
 	draw_line( termscr , line , y) ;
-	ml_imgline_is_updated( line) ;
+	ml_imgline_updated( line) ;
 
 	counter ++ ;
 	y += ml_line_height( termscr->font_man) ;
@@ -534,7 +534,7 @@ redraw_image(
 		#endif
 
 			draw_line( termscr , line , y) ;
-			ml_imgline_is_updated( line) ;
+			ml_imgline_updated( line) ;
 
 			y += ml_line_height( termscr->font_man) ;
 			end_y = y ;
@@ -1591,7 +1591,7 @@ config_menu(
 		termscr->font_man->line_space ,
 		termscr->screen_width_ratio , termscr->screen_height_ratio ,
 		termscr->mod_meta_mode , termscr->bel_mode , termscr->vertical_mode , sb_mode ,
-		ml_is_char_combining() , termscr->copy_paste_via_ucs ,
+		ml_is_using_char_combining() , termscr->use_dynamic_comb , termscr->copy_paste_via_ucs ,
 		termscr->window.is_transparent , termscr->pic_mod.brightness , termscr->fade_ratio ,
 		termscr->font_present , termscr->font_man->use_multi_col_char , termscr->use_bidi ,
 		sb_view_name , ml_xic_get_xim_name( &termscr->window) , kik_get_locale() , wall_pic) ;
@@ -3456,6 +3456,30 @@ change_char_combining_flag(
 }
 
 static void
+change_dynamic_comb_flag(
+	void *  p ,
+	int  use_dynamic_comb
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+
+	if( termscr->use_dynamic_comb == use_dynamic_comb)
+	{
+		/* not changed */
+		
+		return ;
+	}
+
+	termscr->use_dynamic_comb = use_dynamic_comb ;
+
+	ml_image_set_modified_all( termscr->image) ;
+
+	update_encoding_proper_aux( termscr , 1) ;
+}
+
+static void
 change_copy_paste_via_ucs_flag(
 	void *  p ,
 	int  flag
@@ -4360,6 +4384,7 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_vertical_mode = change_vertical_mode ;
 	termscr->config_menu_listener.change_sb_mode = change_sb_mode ;
 	termscr->config_menu_listener.change_char_combining_flag = change_char_combining_flag ;
+	termscr->config_menu_listener.change_dynamic_comb_flag = change_dynamic_comb_flag ;
 	termscr->config_menu_listener.change_copy_paste_via_ucs_flag = change_copy_paste_via_ucs_flag ;
 	termscr->config_menu_listener.change_transparent_flag = change_transparent_flag ;
 	termscr->config_menu_listener.change_brightness = change_brightness ;

@@ -955,6 +955,28 @@ ml_vt100_cmd_set_config(
 			(*termscr->config_menu_listener.change_char_combining_flag)( termscr , flag) ;
 		}
 	}
+	else if( strcmp( key , "use_dynamic_comb") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_dynamic_comb_flag)
+		{
+			(*termscr->config_menu_listener.change_dynamic_comb_flag)( termscr , flag) ;
+		}
+	}
 	else if( strcmp( key , "copy_paste_via_ucs") == 0)
 	{
 		int  flag ;
@@ -1284,7 +1306,18 @@ ml_vt100_cmd_get_config(
 	}
 	else if( strcmp( key , "use_combining") == 0)
 	{
-		if( ml_is_char_combining())
+		if( ml_is_using_char_combining())
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_dynamic_comb") == 0)
+	{
+		if( termscr->use_dynamic_comb)
 		{
 			value = true ;
 		}

@@ -41,7 +41,8 @@
 
 static FILE *  out ;
 
-static GtkWidget *  is_comb_check ;
+static GtkWidget *  use_comb_check ;
+static GtkWidget *  use_dynamic_comb_check ;
 static GtkWidget *  use_multi_col_char_check ;
 static GtkWidget *  use_bidi_check ;
 static GtkWidget *  copy_paste_via_ucs_check ;
@@ -88,7 +89,7 @@ apply_clicked(
 	 */
 	fprintf( out ,
 		"CONFIG:"
-		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s %s %s\n" ,
+		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s %s %s\n" ,
 		mc_get_char_encoding() ,
 		mc_get_iscii_lang() ,
 		mc_get_fg_color() ,
@@ -105,7 +106,8 @@ apply_clicked(
 		mc_get_bel_mode() ,
 		mc_get_vertical_mode() ,
 		mc_get_sb_mode() ,
-		GTK_TOGGLE_BUTTON(is_comb_check)->active ,
+		GTK_TOGGLE_BUTTON(use_comb_check)->active ,
+		GTK_TOGGLE_BUTTON(use_dynamic_comb_check)->active ,
 		GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active ,
 		GTK_TOGGLE_BUTTON(is_tp_check)->active ,
 		mc_get_brightness() ,
@@ -260,7 +262,8 @@ show(
 	ml_bel_mode_t  bel_mode ,
 	ml_vertical_mode_t  vertical_mode ,
 	ml_sb_mode_t  sb_mode ,
-	int  is_combining_char ,
+	int  use_char_combining ,
+	int  use_dynamic_comb ,
 	int  copy_paste_via_ucs ,
 	int  is_transparent ,
 	char *  brightness ,
@@ -370,19 +373,31 @@ show(
 	gtk_widget_show( use_bidi_check) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , use_bidi_check , TRUE , TRUE , 0) ;
 	
-	if( ! ( is_comb_check = mc_check_config_widget_new( "Combining" , is_combining_char)))
+	hbox = gtk_hbox_new( TRUE , 5) ;
+	gtk_widget_show( hbox) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
+	
+	if( ! ( use_comb_check = mc_check_config_widget_new( "Combining" , use_char_combining)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show( is_comb_check) ;
-	gtk_box_pack_start( GTK_BOX(hbox) , is_comb_check , TRUE , TRUE , 0) ;
+	gtk_widget_show( use_comb_check) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , use_comb_check , TRUE , TRUE , 0) ;
 
+	if( ! ( use_dynamic_comb_check =
+		mc_check_config_widget_new( "Dynamic combining" , use_dynamic_comb)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( use_dynamic_comb_check) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , use_dynamic_comb_check , TRUE , TRUE , 0) ;
+	
 	hbox = gtk_hbox_new( TRUE , 5) ;
 	gtk_widget_show( hbox) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;	
 
 	if( ! ( use_multi_col_char_check = mc_check_config_widget_new(
-				"Process multiple column character" , use_multi_col_char)))
+				"Process multi-column character" , use_multi_col_char)))
 	{
 		return  0 ;
 	}
@@ -601,7 +616,8 @@ start_application(
 	int  bel_mode ;
 	int  vertical_mode ;
 	int  sb_mode ;
-	int  is_combining_char ;
+	int  use_char_combining ;
+	int  use_dynamic_comb ;
 	int  copy_paste_via_ucs ;
 	int  is_transparent ;
 	char *  brightness ;
@@ -644,7 +660,7 @@ start_application(
 	/*
 	 * [encoding] [iscii lang] [fg color] [bg color] [fg color] [bg color] [tabsize] [logsize] \
 	 * [fontsize] [min font size] [max font size] [line space] [mod meta mode] [bel mode] \
-	 * [vertical mode] [sb mode] [combining char] [copy paste via ucs] [is transparent] \
+	 * [vertical mode] [sb mode] [char combining] [dynamic comb] [copy paste via ucs] [is transparent] \
 	 * [font present] [use multi col char] [use bidi] [xim] [locale] [wall pic][LF]
 	 */
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
@@ -750,7 +766,13 @@ start_application(
 	}
 
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &is_combining_char , p))
+		! kik_str_to_int( &use_char_combining , p))
+	{
+		return  0 ;
+	}
+
+	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+		! kik_str_to_int( &use_dynamic_comb , p))
 	{
 		return  0 ;
 	}
@@ -818,8 +840,8 @@ start_application(
 	return  show( x , y , encoding , iscii_lang , fg_color , bg_color , sb_fg_color , sb_bg_color ,
 		tabsize , logsize , fontsize , min_fontsize , max_fontsize , line_space ,
 		screen_width_ratio , screen_height_ratio , mod_meta_mode , bel_mode , vertical_mode ,
-		sb_mode , is_combining_char , copy_paste_via_ucs , is_transparent , brightness ,
-		fade_ratio , font_present , use_multi_col_char , use_bidi ,
+		sb_mode , use_char_combining , use_dynamic_comb , copy_paste_via_ucs , is_transparent ,
+		brightness , fade_ratio , font_present , use_multi_col_char , use_bidi ,
 		sb_view_name , xim , locale , wall_pic) ;
 }
 
@@ -845,7 +867,7 @@ main(
 		! kik_str_to_int( &in_fd , argv[3]) ||
 		! kik_str_to_int( &out_fd , argv[4]))
 	{
-		kik_msg_printf( "usage: (stdin 31) mlconfig [x] [y] [in] [out]\n") ;
+		kik_msg_printf( "usage: (stdin 32) mlconfig [x] [y] [in] [out]\n") ;
 		
 		return  0 ;
 	}

@@ -51,7 +51,7 @@
 
 /* --- static variables --- */
 
-static int  is_char_combining = 0 ;
+static int  is_using_char_combining = 0 ;
 
 
 /* --- global functions --- */
@@ -59,7 +59,7 @@ static int  is_char_combining = 0 ;
 int
 ml_use_char_combining(void)
 {
-	is_char_combining = 1 ;
+	is_using_char_combining = 1 ;
 
 	return  1 ;
 }
@@ -67,15 +67,15 @@ ml_use_char_combining(void)
 int
 ml_unuse_char_combining(void)
 {
-	is_char_combining = 0 ;
+	is_using_char_combining = 0 ;
 
 	return  1 ;
 }
 
 int
-ml_is_char_combining(void)
+ml_is_using_char_combining(void)
 {
-	return  is_char_combining ;
+	return  is_using_char_combining ;
 }
 
 
@@ -347,7 +347,7 @@ ml_char_combine(
 	ml_char_t *  multi_ch ;
 	u_int  comb_size ;
 
-	if( ! is_char_combining || COMB_SIZE(ch->attr) >= 3)
+	if( ! is_using_char_combining || COMB_SIZE(ch->attr) >= 3)
 	{
 		return  0 ;
 	}

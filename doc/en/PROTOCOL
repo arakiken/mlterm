@@ -13,13 +13,13 @@ version 20020206
                      use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
                      wall_picture | full_reset | brightness | line_space | screen_width_ratio |
                      screen_height_ratio | vertical_mode | scrollbar_mode | use_multi_column_char |
-                     scrollbar_view_name | sb_fg_color | sb_bg_color | iscii_lang
+                     scrollbar_view_name | sb_fg_color | sb_bg_color | iscii_lang | use_dynamic_comb
   get key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
                      locale | wall_picture | pwd | brightness | line_space | screen_width_ratio |
                      screen_height_ratio | vertical_mode | scrollbar_mode | use_multi_column_char |
-                     scrollbar_view_name | sb_fg_color | sb_bg_color | iscii_lang
+                     scrollbar_view_name | sb_fg_color | sb_bg_color | iscii_lang | use_dynamic_comb
   value            = <values for each key>
 
 * compatible with other terminals
@@ -65,6 +65,7 @@ version 20020206
   sb_bg_color = <color name>
   iscii_lang = Assamese | Bengali | Gujarati | Hindi | Kannada | Malayalam | Oriya | Punjabi |
                 Roman | Tamil | Telugu
+  use_dynamic_comb = true | false
 
 * note
   o Encoding names are regularized , that is , `-' , `-' are removed , and only upper
