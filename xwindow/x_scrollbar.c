@@ -651,7 +651,7 @@ view_created:
 	sb->is_pressing_up_button = 0 ;
 	sb->is_pressing_down_button = 0 ;
 
-	if( x_window_init( &sb->window , width , height , width , 0 , 0 , 0 , 0) == 0)
+	if( x_window_init( &sb->window , width , height , width , 0 , width , 0 , 0 , 0 , 0) == 0)
 	{
 		goto  error ;
 	}

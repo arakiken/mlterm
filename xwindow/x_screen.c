@@ -6294,10 +6294,11 @@ x_screen_new(
 
 	screen->screen_width_ratio = screen_width_ratio ;
 	screen->screen_height_ratio = screen_height_ratio ;
-	
+
 	if( x_window_init( &screen->window ,
 		screen_width( screen) , screen_height( screen) ,
-		0 , 0 , x_col_width( screen) , x_line_height( screen) , 2) == 0)
+		x_col_width( screen) , x_line_height( screen) , 0 , 0 ,
+		x_col_width( screen) , x_line_height( screen) , 2) == 0)	/* min: 1x1 */
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;

@@ -302,6 +302,48 @@ total_min_height(
 }
 
 static u_int
+total_base_width(
+	x_window_t *  win
+	)
+{
+	int  count ;
+	u_int  base_width ;
+
+	base_width = win->base_width + win->margin * 2 ;
+	
+	for( count = 0 ; count < win->num_of_children ; count ++)
+	{
+		if( win->children[count]->is_mapped)
+		{
+			base_width += total_base_width( win->children[count]) ;
+		}
+	}
+
+	return  base_width ;
+}
+
+static u_int
+total_base_height(
+	x_window_t *  win
+	)
+{
+	int  count ;
+	u_int  base_height ;
+
+	base_height = win->base_height + win->margin * 2 ;
+	
+	for( count = 0 ; count < win->num_of_children ; count ++)
+	{
+		if( win->children[count]->is_mapped)
+		{
+			base_height += total_base_height( win->children[count]) ;
+		}
+	}
+
+	return  base_height ;
+}
+
+static u_int
 total_width_inc(
 	x_window_t *  win
 	)
@@ -370,6 +412,8 @@ x_window_init(
 	u_int  height ,
 	u_int  min_width ,
 	u_int  min_height ,
+	u_int  base_width ,
+	u_int  base_height ,
 	u_int  width_inc ,
 	u_int  height_inc ,
 	u_int  margin
@@ -424,6 +468,8 @@ x_window_init(
 	win->height = height ;
 	win->min_width = min_width ;
 	win->min_height = min_height ;
+	win->base_width = base_width ;
+	win->base_height = base_height ;
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
 	win->margin = margin ;
@@ -1011,8 +1057,10 @@ x_window_show(
 		
 		size_hints.width_inc = total_width_inc( win) ;
 		size_hints.height_inc = total_height_inc( win) ;
-		size_hints.base_width = size_hints.min_width = total_min_width( win) ;
-		size_hints.base_height = size_hints.min_height = total_min_height( win) ;
+		size_hints.min_width = total_min_width( win) ;
+		size_hints.min_height = total_min_height( win) ;
+		size_hints.base_width = total_base_width( win) ;
+		size_hints.base_height = total_base_height( win) ;
 
 		if( hint & XNegative)
 		{
@@ -1237,8 +1285,10 @@ x_window_set_normal_hints(
 	 */
 	size_hints.width_inc = total_width_inc( root) ;
 	size_hints.height_inc = total_height_inc( root) ;
-	size_hints.base_width = size_hints.min_width = total_min_width( root) ;
-	size_hints.base_height = size_hints.min_height = total_min_height( root) ;
+	size_hints.min_width = total_min_width( root) ;
+	size_hints.min_height = total_min_height( root) ;
+	size_hints.base_width = total_base_width( root) ;
+	size_hints.base_height = total_base_height( root) ;
 	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
 
 	XSetWMNormalHints( root->display , root->my_window , &size_hints) ;

@@ -92,6 +92,8 @@ typedef struct  x_window
 	u_int  height ;
 	u_int  min_width ;
 	u_int  min_height ;
+	u_int  base_width ;
+	u_int  base_height ;
 	u_int  width_inc ;
 	u_int  height_inc ;
 	
@@ -161,7 +163,7 @@ typedef struct  x_window
 
 int  x_window_init( x_window_t *  win ,
 	u_int  width , u_int  height , u_int  min_width , u_int  min_height ,
-	u_int  width_inc , u_int  height_inc , u_int  margin) ;
+	u_int  base_width , u_int  base_height , u_int  width_inc , u_int  height_inc , u_int  margin) ;
 
 int  x_window_final( x_window_t *  win) ;
 
