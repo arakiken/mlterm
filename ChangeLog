@@ -1,3 +1,6 @@
+[20020222]
+* transparent by _XROOTPMAP_ID is also supported without Imlib.
+
 [20020221]
 * garbage is left on arrow images of scrollbar. fixed.
 * w3mmlconfig is updated.
