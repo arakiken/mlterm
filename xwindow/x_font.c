@@ -1,4 +1,4 @@
-/*
+x/*
  *	$Id$
  */
 
@@ -26,15 +26,15 @@
 typedef struct  cs_info
 {
 	mkf_charset_t  cs ;
-	
-	/* 
+
+	/*
 	 * default encoding.
 	 *
 	 * !! Notice !!
 	 * the last element must be NULL.
 	 */
 	char *   encoding_names[3] ;
-	
+
 } cs_info_t ;
 
 
@@ -58,7 +58,7 @@ static cs_info_t  cs_info_table[] =
 	{ ISO8859_13_R , { "iso8859-13" , NULL , NULL , } , } ,
 	{ ISO8859_14_R , { "iso8859-14" , NULL , NULL , } , } ,
 	{ ISO8859_15_R , { "iso8859-15" , NULL , NULL , } , } ,
-	
+
 	/*
 	 * XXX
 	 * The encoding of TCVN font is iso8859-1 , and its font family is
@@ -74,7 +74,7 @@ static cs_info_t  cs_info_table[] =
 	{ GEORGIAN_PS , { NULL , NULL , NULL , } , } ,
 	{ CP1251 , { NULL , NULL , NULL , } , } ,
 	{ CP1255 , { NULL , NULL , NULL , } , } ,
-	
+
 	{ JISX0201_KATA , { "jisx0201.1976-0" , NULL , NULL , } , } ,
 	{ JISX0201_ROMAN , { "jisx0201.1976-0" , NULL , NULL , } , } ,
 	{ JISC6226_1978 , { "jisx0208.1978-0" , "jisx0208.1983-0" , NULL , } , } ,
@@ -84,7 +84,7 @@ static cs_info_t  cs_info_table[] =
 	{ JISX0213_2000_1 , { "jisx0213.2000-1" , NULL , NULL , } , } ,
 	{ JISX0213_2000_2 , { "jisx0213.2000-2" , NULL , NULL , } , } ,
 	{ KSC5601_1987 , { "ksc5601.1987-0" , "ksx1001.1997-0" , NULL , } , } ,
-	
+
 	/*
 	 * XXX
 	 * UHC and JOHAB fonts are not used at the present time.
@@ -105,7 +105,7 @@ static cs_info_t  cs_info_table[] =
 	{ CNS11643_1992_6 , { "cns11643.1992-6" , "cns11643.1992.6-0" , NULL , } , } ,
 	{ CNS11643_1992_7 , { "cns11643.1992-7" , "cns11643.1992.7-0" , NULL , } , } ,
 	{ ISO10646_UCS4_1 , { "iso10646-1" , NULL , NULL , } , } ,
-	
+
 } ;
 
 static int  compose_dec_special_font ;
@@ -128,9 +128,9 @@ get_cs_info(
 			return  &cs_info_table[count] ;
 		}
 	}
-	
+
 #ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " not supported cs(%x).\n" , cs) ; 
+	kik_warn_printf( KIK_DEBUG_TAG " not supported cs(%x).\n" , cs) ;
 #endif
 
 	return  NULL ;
@@ -158,7 +158,7 @@ set_decsp_font(
 		font->xfont = NULL ;
 	}
 #endif
-	
+
 	if( ( font->decsp_font = x_decsp_font_new( font->display , font->width , font->height ,
 					font->height_to_baseline)) == NULL)
 	{
@@ -253,6 +253,14 @@ parse_xft_font_name(
 			}
 			s[j] = s[i] ;
 		}
+		if( !s[i])
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " encoding part is missing(%s).\n" ,
+				font_name) ;
+		#endif
+			return  0 ;
+		}
 		/* replace delimiter */
 		s[j] = '\0' ;
 		/* move forward to the next token */
@@ -293,7 +301,7 @@ get_xft_col_width(
 	)
 {
 	XftFont *  xfont ;
-	
+
 	/*
 	 * XXX
 	 * DefaultScreen() should not be used , but ...
@@ -305,17 +313,17 @@ get_xft_col_width(
 		XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , NULL)))
 	{
 		u_int  w_width ;
-		
+
 		w_width = xft_calculate_char_width( font->display , xfont , "W" , 1) ;
-		
+
 		XftFontClose( font->display , xfont) ;
-		
+
 		if( w_width > 0)
 		{
 			return  w_width ;
 		}
 	}
-	
+
 	/* XXX this may be inaccurate. */
 	return  fontsize / 2 ;
 }
@@ -342,7 +350,7 @@ set_xft_font(
 		kik_warn_printf( KIK_DEBUG_TAG " charset(0x%.2x) is not supported.\n" ,
 			FONT_CS(font->id)) ;
 	#endif
-		
+
 		return  0 ;
 	}
 
@@ -354,7 +362,7 @@ set_xft_font(
 	{
 		weight = XFT_WEIGHT_MEDIUM ;
 	}
-	
+
 	if( fontname)
 	{
 		char *  p ;
@@ -368,7 +376,7 @@ set_xft_font(
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
 		#endif
-		
+
 			return  0 ;
 		}
 
@@ -377,7 +385,7 @@ set_xft_font(
 			if( col_width == 0)
 			{
 				/* basic font (e.g. usascii) width */
-				
+
 				if( percent_str == NULL || ! kik_str_to_uint( &percent , percent_str) ||
 					percent == 0)
 				{
@@ -387,7 +395,7 @@ set_xft_font(
 				{
 					ch_width = (fontsize * font->cols * percent) / 200 ;
 				}
-				
+
 				if( font->is_vertical)
 				{
 					/*
@@ -443,10 +451,10 @@ set_xft_font(
 				}
 			}
 		}
-		
+
 		kik_msg_printf( " font %s (for size %d) couln't be loaded.\n" , fontname , fontsize) ;
 	}
-	
+
 	if( col_width == 0)
 	{
 		/* basic font (e.g. usascii) width */
@@ -507,7 +515,7 @@ set_xft_font(
 			}
 		}
 	}
-	
+
 #ifdef  DEBUG
 	kik_warn_printf( KIK_DEBUG_TAG " XftFontOpen(%s) failed.\n" , fontname) ;
 #endif
@@ -536,12 +544,12 @@ font_found:
 	font->width = ch_width ;
 
 	font->is_proportional = font->is_var_col_width ;
-	
+
 	/*
 	 * checking if font height/height_to_baseline member is sane.
 	 * font width must be always sane.
 	 */
-	 
+
 	if( font->height == 0)
 	{
 		/* XXX this may be inaccurate. */
@@ -595,11 +603,11 @@ calculate_char_width(
 	else if( len == 4)
 	{
 		/* is UCS4 */
-		
+
 		XChar2b  c ;
 
 		/* dealing as UCS2 */
-		
+
 		c.byte1 = ch[2] ;
 		c.byte2 = ch[3] ;
 
@@ -663,7 +671,7 @@ load_xfont(
 	max_len = 3 /* gnu */ + strlen(family) + 7 /* unifont */ + strlen( weight) +
 		strlen( slant) + strlen( width) + 2 /* lang */ + DIGIT_STR_LEN(fontsize) +
 		strlen( spacing) + strlen( encoding) + 20 ;
-	
+
 	if( ( fontname = alloca( max_len)) == NULL)
 	{
 		return  0 ;
@@ -684,7 +692,7 @@ load_xfont(
 	if( strcmp( encoding , "iso10646-1") == 0 && strcmp( family , "biwidth") == 0)
 	{
 		/* XFree86 Unicode font */
-		
+
 		kik_snprintf( fontname , max_len , "-*-*-%s-%s-%s-%s-%d-*-*-*-%s-*-%s" ,
 			weight , slant , width , kik_get_lang() , fontsize , spacing , encoding) ;
 
@@ -705,7 +713,7 @@ load_xfont(
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " loading %s.\n" , fontname) ;
 		#endif
-		
+
 			if( ( xfont = XLoadQueryFont( display , fontname)))
 			{
 				return  xfont ;
@@ -713,14 +721,14 @@ load_xfont(
 		}
 
 		/* GNU Unifont */
-		
+
 		kik_snprintf( fontname , max_len , "-gnu-unifont-%s-%s-%s--%d-*-*-*-%s-*-%s" ,
 			weight , slant , width , fontsize , spacing , encoding) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " loading %s.\n" , fontname) ;
 	#endif
-		
+
 		return  XLoadQueryFont( display , fontname) ;
 	}
 	else
@@ -753,7 +761,7 @@ set_xfont(
 		kik_warn_printf( KIK_DEBUG_TAG " get_cs_info(cs %x(id %x)) failed.\n" ,
 			FONT_CS(font->id) , font->id) ;
 	#endif
-	
+
 		return  0 ;
 	}
 
@@ -771,16 +779,16 @@ set_xfont(
 		char *  p ;
 		char *  font_xlfd ;
 		char *  percent_str ;
-		
+
 		if( ( p = kik_str_alloca_dup( fontname)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
 		#endif
-		
+
 			return  0 ;
 		}
-		
+
 		if( parse_xfont_name( &font_xlfd , &percent_str , p))
 		{
 		#ifdef __DEBUG
@@ -796,18 +804,18 @@ set_xfont(
 
 				goto  font_found ;
 			}
-			
+
 			kik_msg_printf( " font %s couln't be loaded.\n" , font_xlfd) ;
 		}
 	}
-	
+
 	percent = 0 ;
-	
+
 	/*
 	 * searching apropriate font by using font info.
 	 */
 
-#ifdef  __DEBUG	 
+#ifdef  __DEBUG
 	kik_debug_printf( "font for id %x will be loaded.\n" , font->id) ;
 #endif
 
@@ -821,7 +829,7 @@ set_xfont(
 	}
 
 	slant = "r" ;
-	
+
 	width = "normal" ;
 
 	if( font->id & FONT_BIWIDTH)
@@ -841,7 +849,7 @@ set_xfont(
 			goto  font_found ;
 		}
 	}
-	
+
 	if( font->id & FONT_BOLD)
 	{
 		FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
@@ -852,7 +860,7 @@ set_xfont(
 				goto  font_found ;
 			}
 		}
-		
+
 		/*
 		 * loading variable width font :(
 		 */
@@ -865,7 +873,7 @@ set_xfont(
 				goto   font_found ;
 			}
 		}
-		
+
 		FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
 		{
 			if( ( xfont = load_xfont( font->display , family , weight , "*" , "*" ,
@@ -874,7 +882,7 @@ set_xfont(
 				goto   font_found ;
 			}
 		}
-		
+
 		/* no bold font is found. */
 		font->is_double_drawing = 1 ;
 	}
@@ -891,7 +899,7 @@ set_xfont(
 	/*
 	 * loading variable width font :(
 	 */
-	 
+
 	FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
 	{
 		if( ( xfont = load_xfont( font->display , family , "*" , "*" , "*" , fontsize ,
@@ -900,7 +908,7 @@ set_xfont(
 			goto   font_found ;
 		}
 	}
-	
+
 	FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
 	{
 		if( ( xfont = load_xfont( font->display , family , "*" , "*" , "*" , fontsize ,
@@ -915,7 +923,7 @@ set_xfont(
 font_found:
 
 	font->xfont = xfont ;
-	
+
 	font->height = xfont->ascent + xfont->descent ;
 	font->height_to_baseline = xfont->ascent ;
 
@@ -979,14 +987,14 @@ font_found:
 				" max font width(%d) and min one(%d) are mismatched.\n" ,
 				xfont->max_bounds.width , xfont->min_bounds.width) ;
 		#endif
-		
+
 			font->is_proportional = 1 ;
 		}
 		else
 		{
 			font->is_proportional = 0 ;
 		}
-		
+
 		font->width = xfont->max_bounds.width ;
 	}
 
@@ -995,7 +1003,7 @@ font_found:
 	if( col_width == 0)
 	{
 		/* standard(usascii) font */
-		
+
 		if( percent > 0)
 		{
 			u_int  ch_width ;
@@ -1021,7 +1029,7 @@ font_found:
 				{
 					font->x_off = (ch_width - font->width) / 2 ;
 				}
-				
+
 				font->width = ch_width ;
 			}
 		}
@@ -1052,16 +1060,16 @@ font_found:
 			 * !! Notice !!
 			 * The width of full and half character font is the same.
 			 */
-			 
+
 			if( font->width != col_width)
 			{
 				font->is_proportional = 1 ;
-				
+
 				if( font->width < col_width)
 				{
 					font->x_off = (col_width - font->width) / 2 ;
 				}
-				
+
 				font->width = col_width ;
 			}
 		}
@@ -1076,12 +1084,12 @@ font_found:
 			#endif
 
 				font->is_proportional = 1 ;
-				
+
 				if( font->width < col_width * font->cols)
 				{
 					font->x_off = (col_width * font->cols - font->width) / 2 ;
 				}
-				
+
 				font->width = col_width * font->cols ;
 			}
 		}
@@ -1091,7 +1099,7 @@ font_found:
 	/*
 	 * checking if font width/height/height_to_baseline member is sane.
 	 */
-	 
+
 	if( font->width == 0)
 	{
 	#ifdef  DEBUG
@@ -1099,7 +1107,7 @@ font_found:
 	#endif
 
 		font->is_proportional = 1 ;
-		
+
 		/* XXX this may be inaccurate. */
 		font->width = (fontsize / 2) * font->cols ;
 	}
@@ -1124,7 +1132,7 @@ font_found:
 	{
 		return  set_decsp_font( font) ;
 	}
-	
+
 	return  1 ;
 }
 
@@ -1293,7 +1301,7 @@ x_change_font_cols(
 	{
 		font->cols = cols ;
 	}
-	
+
 	return  1 ;
 }
 
@@ -1335,7 +1343,7 @@ x_calculate_char_width(
 
 		kik_error_printf( __FUNCTION__ " couldn't calculate correct font width.\n") ;
 	}
-	
+
 	return  font->width ;
 }
 
