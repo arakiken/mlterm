@@ -1,6 +1,6 @@
 AC_INIT()
 
-for dir in mkf kiklib tool scrollbar ; do 
+for dir in mkf kiklib tool scrollbar contrib/scrollbar contrib/tool ; do 
 	mkdir -p ${dir}
 done
 ln -sf ../kiklib mkf/kiklib

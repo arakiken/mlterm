@@ -1,3 +1,10 @@
+2002-04-28 Araki Ken <arakiken@users.sf.net>
+
+	* underline can be left as garbage on screen if line space is 
+	  odd number(1,3,5...). fixed.
+	* configure fails with --with-libtool option. fixed.
+	  (Thanks to Nakada Nobuyoshi san)
+
 2002-04-27 Araki Ken <arakiken@users.sf.net>
 
 	* kik_utmp_sysv.c patch is merged.
