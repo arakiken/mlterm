@@ -1,4 +1,8 @@
 [20020328]
+* lines sometimes get left-aligned. fixed.
+  (Thanks to Nadim Shaikli)
+
+[20020328]
 * parsing sequence from pty is stopped after 4096 bytes are parsed even if 
   it is still left in pty.(Thanks to Nanashi san)
 * LF on the first char of an arabic word gets the original line not to be redrawn correctly.
