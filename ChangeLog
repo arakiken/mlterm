@@ -1,3 +1,7 @@
+2002-05-19 Araki Ken <arakiken@users.sf.net>
+
+	* Unicode characters except 0x00-0x7f could be shown incorrectly. fixed.
+
 2002-05-19 Tomohiro KUBOTA <kubota@debian.org>
 
 	* manpage update: explanations for -H, -J, -Q, -Z, and -q are

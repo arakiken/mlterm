@@ -183,6 +183,7 @@ xft_draw_str(
 	XftChar32 *  str32 ;
 	u_int	str_len ;
 	int  state ;
+	int  next_state ;
 	
 	u_char *  ch_bytes ;
 	size_t  ch_size ;
@@ -231,6 +232,19 @@ xft_draw_str(
 	ch_size = ml_char_size( &chars[count]) ;
 	ch_cs = ml_char_cs( &chars[count]) ;
 
+	if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
+	{
+		state = 0 ;
+	}
+	else if( ch_cs == DEC_SPECIAL)
+	{
+		state = 1 ;
+	}
+	else
+	{
+		state = 2 ;
+	}
+
 	xfont = x_get_font( screen->font_man , ml_char_font( &chars[count])) ;
 
 	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
@@ -252,23 +266,18 @@ xft_draw_str(
 	}
 
 	str_len = 0 ;
-	state = 0 ;
 
 	while( 1)
 	{
-		if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
+		if( state == 0)
 		{
 			str8[str_len++] = ch_bytes[0] ;
-
-			state = 0 ;
 		}
-		else if( ch_cs == DEC_SPECIAL)
+		else if( state == 1)
 		{
 			str8[str_len++] = ch_bytes[0] ;
-
-			state = 1 ;
 		}
-		else
+		else /* if( state == 2) */
 		{
 			char  ucs4_bytes[4] ;
 
@@ -287,8 +296,6 @@ xft_draw_str(
 			str32[str_len++] = ((ucs4_bytes[0] << 24) & 0xff000000) |
 				((ucs4_bytes[1] << 16) & 0xff0000) | ((ucs4_bytes[2] << 8) & 0xff00) |
 				(ucs4_bytes[3] & 0xff) ;
-
-			state = 2 ;
 		}
 
 		comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
@@ -314,6 +321,19 @@ xft_draw_str(
 			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
 			next_xfont = x_get_font( screen->font_man , ml_char_font( &chars[count])) ;
 			
+			if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
+			{
+				next_state = 0 ;
+			}
+			else if( ch_cs == DEC_SPECIAL)
+			{
+				next_state = 1 ;
+			}
+			else
+			{
+				next_state = 2 ;
+			}
+			
 			ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
 			
 			if( current_width + ch_width >= screen->window.width)
@@ -321,6 +341,12 @@ xft_draw_str(
 				start_draw = 1 ;
 				end_of_str = 1 ;
 			}
+			/*
+			 * !! Notice !!
+			 * next_xfont != xfont doen't necessarily detect change of 'state'
+			 * (for example, same Unicode font is used for both US_ASCII/ISO8859_1
+			 * and other half-width unicode characters), 'next_state' is necessary.
+			 */
 			else if( next_xfont != xfont
 				|| next_fg_color != fg_color
 				|| next_bg_color != bg_color
@@ -328,6 +354,7 @@ xft_draw_str(
 				|| (is_underlined && xfont->is_vertical)
 				|| (next_is_underlined && xfont->is_vertical)
 				|| comb_chars != NULL
+				|| state != next_state
 				|| (next_xfont->is_proportional && ! next_xfont->is_var_col_width)
 				|| (xfont->is_proportional && ! xfont->is_var_col_width))
 			{
@@ -429,6 +456,7 @@ xft_draw_str(
 		xfont = next_xfont ;
 		fg_color = next_fg_color ;
 		bg_color = next_bg_color ;
+		state = next_state ;
 		current_width += ch_width ;
 	}
 
@@ -536,6 +564,7 @@ x_draw_str(
 	XChar2b *  str2b ;
 	u_int	str_len ;
 	int  state ;			/* 0(8bit),1(decsp),2(16bit) */
+	int  next_state ;
 	ml_char_t *  comb_chars ;
 	u_int  comb_size ;
 
@@ -584,6 +613,19 @@ x_draw_str(
 	ch_size = ml_char_size( &chars[count]) ;
 	ch_cs = ml_char_cs( &chars[count]) ;
 
+	if( ch_cs == DEC_SPECIAL)
+	{
+		state = 1 ;
+	}
+	else if( ch_size == 1)
+	{
+		state = 0 ;
+	}
+	else /* if( ch_size == 2 || ch_size == 4) */
+	{
+		state = 2 ;
+	}
+	
 	xfont = x_get_font( screen->font_man , ml_char_font( &chars[count])) ;
 	
 	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
@@ -604,29 +646,18 @@ x_draw_str(
 	}
 
 	str_len = 0 ;
-	state = 0 ;
 	
 	while( 1)
 	{
 		if( ch_size == 1)
 		{
 			str[str_len++] = ch_bytes[0] ;
-
-			if( ch_cs == DEC_SPECIAL)
-			{
-				state = 1 ;
-			}
-			else
-			{
-				state = 0 ;
-			}
 		}
 		else if( ch_size == 2)
 		{
 			str2b[str_len].byte1 = ch_bytes[0] ;
 			str2b[str_len].byte2 = ch_bytes[1] ;
 			str_len ++ ;
-			state = 2 ;
 		}
 		else if( ch_size == 4 && ch_bytes[0] == '\0' && ch_bytes[1] == '\0')
 		{
@@ -635,7 +666,6 @@ x_draw_str(
 			str2b[str_len].byte1 = ch_bytes[2] ;
 			str2b[str_len].byte2 = ch_bytes[3] ;
 			str_len ++ ;
-			state = 2 ;
 		}
 		else
 		{
@@ -678,6 +708,19 @@ x_draw_str(
 			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
 			next_xfont = x_get_font( screen->font_man ,  ml_char_font( &chars[count])) ;
 
+			if( ch_cs == DEC_SPECIAL)
+			{
+				next_state = 1 ;
+			}
+			else if( ch_size == 1)
+			{
+				next_state = 0 ;
+			}
+			else /* if( ch_size == 2 || ch_size == 4) */
+			{
+				next_state = 2 ;
+			}
+			
 			ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
 			
 			if( current_width + ch_width > screen->window.width)
@@ -685,12 +728,19 @@ x_draw_str(
 				start_draw = 1 ;
 				end_of_str = 1 ;
 			}
+			/*
+			 * !! Notice !!
+			 * next_xfont != xfont doen't necessarily detect change of 'state'
+			 * (for example, same Unicode font is used for both US_ASCII/ISO8859_1
+			 * and other half-width unicode characters), 'next_state' is necessary.
+			 */
 			else if( next_xfont != xfont
 				|| next_fg_color != fg_color
 				|| next_bg_color != bg_color
 				|| next_is_underlined != is_underlined
 				|| (is_underlined && xfont->is_vertical)
 				|| (next_is_underlined && xfont->is_vertical)
+				|| next_state != state
 				|| comb_chars != NULL
 				|| (next_xfont->is_proportional && ! next_xfont->is_var_col_width)
 				|| (xfont->is_proportional && ! xfont->is_var_col_width))
@@ -820,6 +870,7 @@ x_draw_str(
 		fg_color = next_fg_color ;
 		bg_color = next_bg_color ;
 		is_underlined = next_is_underlined ;
+		state = next_state ;
 		current_width += ch_width ;
 	}
 

@@ -196,7 +196,7 @@ set_xfont(
 	u_int  col_width ;
 	char *  fontname ;
 	
-	if( FONT_CS(xfont->id) == font_man->usascii_font_cs)
+	if( xfont->id == DEFAULT_FONT(font_man->usascii_font_cs))
 	{
 		col_width = 0 ;
 	}
@@ -253,7 +253,7 @@ get_font(
 	int  use_medium_for_bold ;
 	u_int  col_width ;
 
-	if( FONT_CS(font) == font_man->usascii_font_cs)
+	if( font == DEFAULT_FONT(font_man->usascii_font_cs))
 	{
 		col_width = 0 ;
 	}
