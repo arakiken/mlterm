@@ -878,7 +878,7 @@ start_daemon(void)
 	servaddr.sun_family = AF_LOCAL ;
 	kik_snprintf( path , sizeof( servaddr.sun_path) - 1 , "/tmp/.mlterm-%d.unix" , getuid()) ;
 
-	if( ( sock_fd = socket( AF_LOCAL , SOCK_STREAM , 0)) < 0)
+	if( ( sock_fd = socket( PF_LOCAL , SOCK_STREAM , 0)) < 0)
 	{
 		return  -1 ;
 	}

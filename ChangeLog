@@ -1,3 +1,7 @@
+2004-10-20 MINAMI Hirokazu <minami@mistfall.net>
+
+        * xwindow/x_term_mmanager.c: fixed typo.
+
 2004-10-18 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* man/mlterm.1: conf_menu_path -> conf_menu_path_[123].
