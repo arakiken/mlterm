@@ -1553,7 +1553,7 @@ static void
 init_encoding_state_intern(
 	mkf_conv_t *  cc_conv ,
 	mkf_parser_t *  cc_parser ,
-	ml_encoding_type_t  encoding
+	ml_char_encoding_t  encoding
 	)
 {
 	if( encoding == ML_ISO2022KR)
@@ -1568,7 +1568,7 @@ init_encoding_state_intern(
 	}
 }
 
-static ml_encoding_type_t
+static ml_char_encoding_t
 current_encoding(
 	void *  p
 	)
@@ -1583,7 +1583,7 @@ current_encoding(
 static int
 encoding_changed(
 	void *  p ,
-	ml_encoding_type_t  encoding
+	ml_char_encoding_t  encoding
 	)
 {
 	ml_vt100_parser_t *  vt100_parser ;
@@ -1635,15 +1635,6 @@ encoding_changed(
 	/* reset */
 	vt100_parser->is_graphic_char_in_gl = 0 ;
 
-	if( vt100_parser->use_bidi && vt100_parser->encoding == ML_UTF8)
-	{
-		ml_term_screen_use_bidi( vt100_parser->termscr) ;
-	}
-	else
-	{
-		ml_term_screen_unuse_bidi( vt100_parser->termscr) ;
-	}
-	
 	init_encoding_state_intern( vt100_parser->cc_conv , vt100_parser->cc_parser ,
 		vt100_parser->encoding) ;
 	
@@ -1689,12 +1680,11 @@ init_encoding_state(
 ml_vt100_parser_t *
 ml_vt100_parser_new(
 	ml_term_screen_t *  termscr ,
-	ml_encoding_type_t  encoding ,
+	ml_char_encoding_t  encoding ,
 	int  unicode_to_other_cs ,
 	int  all_cs_to_unicode ,
 	int  conv_to_generic_iso2022 ,
-	u_int  col_size_a ,
-	int  use_bidi
+	u_int  col_size_a
 	)
 {
 	ml_vt100_parser_t *  vt100_parser ;
@@ -1762,13 +1752,6 @@ ml_vt100_parser_new(
 	vt100_parser->encoding = encoding ;
 
 	vt100_parser->is_graphic_char_in_gl = 0 ;
-
-	vt100_parser->use_bidi = use_bidi ;
-
-	if( vt100_parser->use_bidi && vt100_parser->encoding == ML_UTF8)
-	{
-		ml_term_screen_use_bidi( vt100_parser->termscr) ;
-	}
 
 	init_encoding_state_intern( vt100_parser->cc_conv , vt100_parser->cc_parser ,
 		vt100_parser->encoding) ;

@@ -12,7 +12,7 @@
 
 #include  "ml_font.h"
 #include  "ml_font_custom.h"
-#include  "ml_encoding.h"
+#include  "ml_char_encoding.h"
 
 
 KIK_MAP_TYPEDEF( ml_font , ml_font_attr_t , ml_font_t *) ;
@@ -32,7 +32,7 @@ typedef struct  ml_font_manager
 	KIK_MAP( ml_font)  font_cache_table ;
 
 	ml_font_t *  usascii_font ;
-	ml_encoding_type_t  encoding ;
+	ml_char_encoding_t  encoding ;
 
 	int  (*set_xfont)( ml_font_t * , char * , u_int , u_int , int) ;
 	
@@ -41,7 +41,7 @@ typedef struct  ml_font_manager
 
 ml_font_manager_t *  ml_font_manager_new( Display *  display ,
 	ml_font_custom_t *  normal_font_custom , ml_font_custom_t *  aa_font_custom ,
-	u_int  font_size , ml_encoding_type_t  encoding) ;
+	u_int  font_size , ml_char_encoding_t  encoding) ;
 	
 int  ml_font_manager_delete( ml_font_manager_t *  font_man) ;
 
@@ -59,7 +59,7 @@ u_int  ml_line_height( ml_font_manager_t *  font_man) ;
 
 u_int  ml_line_height_to_baseline( ml_font_manager_t *  font_man) ;
 
-int  ml_font_manager_change_encoding( ml_font_manager_t *  font_man , ml_encoding_type_t  encoding) ;
+int  ml_font_manager_change_encoding( ml_font_manager_t *  font_man , ml_char_encoding_t  encoding) ;
 
 int  ml_change_font_size( ml_font_manager_t *  font_man , u_int  font_size) ;
 

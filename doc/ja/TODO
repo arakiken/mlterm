@@ -16,9 +16,6 @@ comment $Id$
 
 * JISX0213_2000 <=> UCS と、JISX0208 <=> UCS テーブルを統合する。
 
-* ISO2022の、ESC % / 指示に対応(...したくない)
-  (XCOMPOUND_TEXTのBig5/koi8-rなどに対応)
-
 * Xtで設定画面を作る(gtkなくても設定を動的に変えられるように)
 
 * XInternAtom( display , "_XROOTPMAP_ID" , True) で取得される atom を使って、

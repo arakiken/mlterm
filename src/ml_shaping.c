@@ -144,7 +144,7 @@ get_arabic_present(
 /* --- global functions --- */
 
 int
-ml_str_shape(
+ml_str_shape_arabic(
 	ml_char_t *  dst ,
 	ml_char_t *  src ,
 	u_int  len

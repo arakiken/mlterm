@@ -3,8 +3,8 @@
  */
 
 #include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_locale.h>
 
-#include  "ml_locale.h"
 #include  "ml_term_manager.h"
 
 
@@ -25,7 +25,7 @@ main(
 {
 	ml_term_manager_t  term_man ;
 
-	if( ! ml_locale_init(""))
+	if( ! kik_locale_init(""))
 	{
 		kik_msg_printf( "locale settings failed.\n") ;
 	}
@@ -48,7 +48,7 @@ main(
 	 */
 
 	ml_term_manager_final( &term_man) ;	
-	ml_locale_final() ;
+	kik_locale_final() ;
 
 	return  0 ;
 }

@@ -100,7 +100,7 @@ convert_to_iso2022cn(
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG
-					" parser->init() returns error , but the process is continuing...\n") ;
+					" parser->next_char() returns error , but the process is continuing...\n") ;
 			#endif
 
 				/*

@@ -18,7 +18,7 @@
 
 /*
  * !!! Notice !!!
- * the order should be the same as ml_encoding_type_t in ml_encoding.h
+ * the order should be the same as ml_char_encoding_t in ml_char_encoding.h
  */
 static char *  encodings[] =
 {
@@ -69,7 +69,7 @@ static char *  encodings[] =
 	"ISO2022CN" ,
 } ;
 
-static ml_encoding_type_t  selected_encoding = 0 ;
+static ml_char_encoding_t  selected_encoding = 0 ;
 
 
 /* --- static functions --- */
@@ -107,7 +107,7 @@ encoding_selected(
 
 GtkWidget *
 mc_encoding_config_widget_new(
-	ml_encoding_type_t  encoding
+	ml_char_encoding_t  encoding
 	)
 {
 	selected_encoding = encoding ;
@@ -116,7 +116,7 @@ mc_encoding_config_widget_new(
 		encodings[selected_encoding] , 1 , encoding_selected , NULL) ;
 }
 
-ml_encoding_type_t
+ml_char_encoding_t
 mc_get_encoding(void)
 {
 	return  selected_encoding ;

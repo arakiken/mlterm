@@ -16,7 +16,7 @@
 #include  "ml_window_manager.h"
 #include  "ml_keymap.h"
 #include  "ml_termcap.h"
-#include  "ml_encoding.h"
+#include  "ml_char_encoding.h"
 
 
 typedef struct ml_term
@@ -64,6 +64,7 @@ typedef struct  ml_term_manager
 	int8_t  is_aa ;
 	int8_t  xim_open_in_startup ;
 	int8_t  use_bidi ;
+	int8_t  big5_buggy ;
 	int8_t  unicode_to_other_cs ;
 	int8_t  all_cs_to_unicode ;
 	int8_t  conv_to_generic_iso2022 ;
@@ -74,7 +75,7 @@ typedef struct  ml_term_manager
 	ml_bel_mode_t  bel_mode ;
 	u_int  col_size_a ;
 	char *  conf_menu_path ;
-	ml_encoding_type_t  encoding ;
+	ml_char_encoding_t  encoding ;
 	char *  cmd_path ;
 	char **  cmd_argv ;
 	u_int  num_of_startup_terms ;

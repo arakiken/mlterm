@@ -6,15 +6,12 @@
 #define  __MKF_XCT_PARSER_H__
 
 
-#include  "mkf_iso8859_parser.h"
+#include  "mkf_conv.h"
 
 
-/*
- * XCOMPOUND_TEXT format is almost the same as ISO8859-1 encoding.
- * G0 = GL = US ASCII
- * G1 = GR = ISO8859-1
- */
-#define  mkf_xct_parser_new()  mkf_iso8859_1_parser_new()
+mkf_parser_t *  mkf_xct_parser_new(void) ;
+
+mkf_parser_t *  mkf_xct_big5_buggy_parser_new(void) ;
 
 
 #endif

@@ -7,12 +7,12 @@
 
 
 #include  <gtk/gtk.h>
-#include  <ml_encoding.h>
+#include  <ml_char_encoding.h>
 
 
-GtkWidget *  mc_encoding_config_widget_new( ml_encoding_type_t  encoding) ;
+GtkWidget *  mc_encoding_config_widget_new( ml_char_encoding_t  encoding) ;
 
-ml_encoding_type_t  mc_get_encoding(void) ;
+ml_char_encoding_t  mc_get_encoding(void) ;
 
 
 #endif

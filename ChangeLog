@@ -1,3 +1,10 @@
+[20011210]
+* Big5 copy and paste problem is fixed.
+  (--big5bug option is added)
+* minor bugs of bidi are fixed.
+* documentes are updated except --big5bug option.
+* character shaping stops unless mlterm works on bidi mode.
+ 
 [20011208]
 * Bidi is supported.(FriBidi is required)
 * Arabic character shaping is supported.

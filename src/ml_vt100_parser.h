@@ -12,7 +12,7 @@
 
 #include  "ml_pty.h"
 #include  "ml_term_screen.h"
-#include  "ml_encoding.h"
+#include  "ml_char_encoding.h"
 
 
 /* the same as kterm BUF_SIZE in ptyx.h */
@@ -40,15 +40,13 @@ typedef struct  ml_vt100_parser
 
 	mkf_parser_t *  cc_parser ;	/* char code parser */
 	mkf_conv_t *  cc_conv ;		/* char code converter */
-	ml_encoding_type_t  encoding ;
+	ml_char_encoding_t  encoding ;
 
 	int8_t  is_graphic_char_in_gl ;
 	
 	int8_t  unicode_to_other_cs ;	/* whether unicode chars are converted to other cs or not */
 	int8_t  all_cs_to_unicode ;	/* whether all chars are converted to unicode or not */
 	int8_t  conv_to_generic_iso2022 ;
-	
-	int8_t  use_bidi ;
 	
 	u_int  col_size_of_east_asian_width_a ;
 		
@@ -72,8 +70,8 @@ typedef struct  ml_vt100_parser
 
 
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_term_screen_t *  term_window ,
-	ml_encoding_type_t  type , int  unicode_to_other_cs , int  all_cs_to_unicode ,
-	int  conv_to_generic_iso2022 , u_int  col_size_a , int  use_bidi) ;
+	ml_char_encoding_t  type , int  unicode_to_other_cs , int  all_cs_to_unicode ,
+	int  conv_to_generic_iso2022 , u_int  col_size_a) ;
 
 int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
 

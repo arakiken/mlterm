@@ -17,6 +17,7 @@ mkf_parser_init(
 	parser->str = NULL ;
 	parser->marked_left = 0 ;
 	parser->left = 0 ;
+	
 	parser->is_eos = 0 ;
 }
 

@@ -160,8 +160,12 @@ int  ml_highlight_cursor( ml_image_t *  image) ;
 
 int  ml_unhighlight_cursor( ml_image_t *  image) ;
 
-ml_char_t *  ml_cursor_get_char( ml_image_t *  image) ;
+int  ml_cursor_char_index( ml_image_t *  image) ;
 
+int  ml_cursor_col( ml_image_t *  image) ;
+
+int  ml_cursor_row( ml_image_t *  image) ;
+	
 void  ml_image_is_updated( ml_image_t *  image) ;
 
 void  ml_image_all_modified( ml_image_t *  image) ;

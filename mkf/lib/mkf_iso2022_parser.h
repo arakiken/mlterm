@@ -23,13 +23,20 @@ typedef struct  mkf_iso2022_parser
 	mkf_charset_t  g2 ;
 	mkf_charset_t  g3 ;
 
+	mkf_charset_t  non_iso2022_cs ;
+
 	int  is_single_shifted ;
+
+	int  (*non_iso2022_is_started)( struct mkf_iso2022_parser *) ;
+	int  (*next_non_iso2022_byte)( struct mkf_iso2022_parser * , mkf_char_t *) ;
 	
 } mkf_iso2022_parser_t ;
 
 
 mkf_iso2022_parser_t *  mkf_iso2022_parser_new(void) ;
 
+int  mkf_iso2022_parser_init_func( mkf_iso2022_parser_t *  iso2022_parser) ;
+	
 void  mkf_iso2022_parser_set_str( mkf_parser_t *  parser , u_char *  str , size_t  size) ;
 
 void  mkf_iso2022_parser_delete( mkf_parser_t *  parser) ;

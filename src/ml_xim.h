@@ -8,7 +8,7 @@
 
 #include  <mkf/mkf_parser.h>
 
-#include  "ml_encoding.h"
+#include  "ml_char_encoding.h"
 #include  "ml_window.h"
 
 
@@ -22,7 +22,7 @@ typedef struct  ml_xim
 
 	char *  locale ;
 	mkf_parser_t *  parser ;
-	ml_encoding_type_t  encoding ;
+	ml_char_encoding_t  encoding ;
 
 	ml_window_t *  xic_wins[MAX_XICS_PER_XIM] ;
 	u_int  num_of_xic_wins ;

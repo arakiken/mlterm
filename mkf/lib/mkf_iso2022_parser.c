@@ -49,6 +49,25 @@ get_cs_bytelen(
 			return  2 ;
 		}
 	}
+	else if( cs == ISO10646_UCS2_1)
+	{
+		return  2 ;
+	}
+	else if( cs == ISO10646_UCS4_1)
+	{
+		return  4 ;
+	}
+	/*
+	 * for XCTEXT extensions.
+	 */
+	else if( cs == BIG5 || cs == GBK)
+	{
+		return  2 ;
+	}
+	else if( cs == KOI8_R || cs == KOI8_U || cs == VISCII)
+	{
+		return  1 ;
+	}
 	
 	return  0 ;
 }
@@ -111,7 +130,7 @@ get_charset(
 static int
 parse_escape(
 	mkf_iso2022_parser_t *  iso2022_parser ,
-	mkf_char_t *  ch
+	mkf_char_t *  ch	/* if single shifted ch->cs is set , otherwise this is not touched. */
 	)
 {
 	mkf_parser_mark( iso2022_parser) ;
@@ -195,6 +214,8 @@ parse_escape(
 				{
 					if( mkf_parser_increment( iso2022_parser) == 0)
 					{
+						/* we reach eos. */
+						
 						mkf_parser_reset( iso2022_parser) ;
 
 						return 0 ;
@@ -229,11 +250,25 @@ parse_escape(
 					cs = NON_ISO2022_1_ID( *iso2022_parser->parser.str) ;
 				}
 
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" charset[%x] doesn't confirm to iso2022 and is not supported now.\n" ,
-					cs) ;
-			#endif
+				if( mkf_parser_increment( iso2022_parser) == 0)
+				{
+					/* we reach eos */
+					
+					mkf_parser_reset( iso2022_parser) ;
+
+					return  0 ;
+				}
+				
+				if( iso2022_parser->non_iso2022_is_started)
+				{
+					iso2022_parser->non_iso2022_cs = cs ;
+
+					return  (*iso2022_parser->non_iso2022_is_started)( iso2022_parser) ;
+				}
+				else
+				{
+					/* ignored */
+				}
 			}
 			else if( IS_INTERMEDIATE(*iso2022_parser->parser.str))
 			{
@@ -273,6 +308,8 @@ parse_escape(
 
 					if( mkf_parser_increment( iso2022_parser) == 0)
 					{
+						/* we reach eos. */
+						
 						mkf_parser_reset( iso2022_parser) ;
 
 						return  0 ;
@@ -292,6 +329,8 @@ parse_escape(
 
 					if( mkf_parser_increment( iso2022_parser) == 0)
 					{
+						/* we reach eos. */
+						
 						mkf_parser_reset( iso2022_parser) ;
 
 						return  0 ;
@@ -428,10 +467,21 @@ next_byte(
 {
 	if( iso2022_parser->parser.is_eos)
 	{
-		mkf_parser_reset( iso2022_parser) ;
 		ch->size = 0 ;
 		
 		return  0 ;
+	}
+	else if( IS_NON_ISO2022(iso2022_parser->non_iso2022_cs))
+	{
+		if( ! iso2022_parser->next_non_iso2022_byte ||
+			! (*iso2022_parser->next_non_iso2022_byte)( iso2022_parser , ch))
+		{
+			iso2022_parser->non_iso2022_cs = UNKNOWN_CS ;
+			
+			return  next_byte( iso2022_parser , ch) ;
+		}
+		
+		return  1 ;
 	}
 	else if( IS_ESCAPE( *iso2022_parser->parser.str))
 	{
@@ -625,6 +675,8 @@ iso2022_parser_init(
 	iso2022_parser->gl = NULL ;
 	iso2022_parser->gr = NULL ;
 
+	iso2022_parser->non_iso2022_cs = UNKNOWN_CS ;
+
 	iso2022_parser->is_single_shifted = 0 ;
 }
 
@@ -641,14 +693,27 @@ mkf_iso2022_parser_new(void)
 		return  NULL ;
 	}
 
+	mkf_iso2022_parser_init_func( iso2022_parser) ;
+
 	iso2022_parser_init( ( mkf_parser_t*) iso2022_parser) ;
 	
-	iso2022_parser->parser.init = iso2022_parser_init ;	
+	return  iso2022_parser ;
+}
+
+int
+mkf_iso2022_parser_init_func(
+	mkf_iso2022_parser_t *  iso2022_parser
+	)
+{
+	iso2022_parser->non_iso2022_is_started = NULL ;
+	iso2022_parser->next_non_iso2022_byte = NULL ;
+	
+	iso2022_parser->parser.init = iso2022_parser_init ;
 	iso2022_parser->parser.set_str = mkf_iso2022_parser_set_str ;
 	iso2022_parser->parser.delete = mkf_iso2022_parser_delete ;
 	iso2022_parser->parser.next_char = mkf_iso2022_parser_next_char ;
 
-	return  iso2022_parser ;
+	return  1 ;
 }
 
 void

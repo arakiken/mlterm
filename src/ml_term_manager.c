@@ -18,10 +18,10 @@
 #include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect */
 #include  <kiklib/kik_conf.h>
 #include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_locale.h>
 #include  <mkf/mkf_charset.h>	/* mkf_charset_t */
 
 #include  "version.h"
-#include  "ml_locale.h"		/* get_codeset() */
 #include  "ml_sb_term_screen.h"
 #include  "ml_term_screen.h"
 
@@ -97,7 +97,7 @@ __exit(
 
 	ml_term_manager_final( term_man) ;
 	
-	ml_locale_final() ;
+	kik_locale_final() ;
 
 	kik_alloca_garbage_collect() ;
 
@@ -156,7 +156,8 @@ open_new_term(
 		term_man->use_xim , term_man->xim_open_in_startup ,
 		term_man->mod_meta_mode , term_man->bel_mode ,
 		term_man->pre_conv_xct_to_ucs , term_man->pic_file_path ,
-		term_man->use_transbg , term_man->is_aa , term_man->conf_menu_path)) == NULL)
+		term_man->use_transbg , term_man->is_aa , term_man->use_bidi , term_man->big5_buggy ,
+		term_man->conf_menu_path)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_screen_new() failed.\n") ;
@@ -194,7 +195,7 @@ open_new_term(
 
 	if( ( vt100_parser = ml_vt100_parser_new( termscr , term_man->encoding ,
 		term_man->unicode_to_other_cs , term_man->all_cs_to_unicode ,
-		term_man->conv_to_generic_iso2022 , term_man->col_size_a , term_man->use_bidi)) == NULL)
+		term_man->conv_to_generic_iso2022 , term_man->col_size_a)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_vt100_parser_new() failed.\n") ;
@@ -721,6 +722,7 @@ ml_term_manager_init(
 	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" ,
 		"opening xim in starting up.") ;
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , "use bidi") ;
+	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" , "supporting buggy Big5 CTEXT") ;
 #ifdef  ANTI_ALIAS
 	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , "using anti alias font") ;
 #endif
@@ -1125,6 +1127,16 @@ ml_term_manager_init(
 		}
 	}
 
+	term_man->big5_buggy = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "big5_buggy")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->big5_buggy = 1 ;
+		}
+	}
+
 	term_man->use_scrollbar = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_scrollbar")))
@@ -1224,14 +1236,14 @@ ml_term_manager_init(
 		term_man->use_transbg = 0 ;
 	}
 
-	if( ( term_man->encoding = ml_get_encoding( ml_get_codeset())) == ML_UNKNOWN_ENCODING)
+	if( ( term_man->encoding = ml_get_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING)
 	{
 		term_man->encoding = ML_ISO8859_1 ;
 	}
 	
 	if( ( value = kik_conf_get_value( conf , "ENCODING")))
 	{
-		ml_encoding_type_t  encoding ;
+		ml_char_encoding_t  encoding ;
 
 		if( strcasecmp( value , "AUTO") != 0)
 		{

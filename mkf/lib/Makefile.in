@@ -20,11 +20,11 @@ BUILDDIR = $(TOPDIR)/build
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @CFLAGS@ -I/usr/local/include
 LIBS = $(LIBS_LOCAL)
 
-PARSER_OBJ = mkf_parser.o mkf_iso2022_parser.o mkf_iso8859_parser.o mkf_eucjp_parser.o \
-	mkf_euckr_parser.o mkf_euccn_parser.o mkf_iso2022jp_parser.o mkf_iso2022kr_parser.o \
-	mkf_sjis_parser.o mkf_big5_parser.o mkf_euctw_parser.o mkf_ucs4_parser.o \
-	mkf_iso2022cn_parser.o mkf_hz_parser.o mkf_utf8_parser.o mkf_johab_parser.o \
-	mkf_viscii_parser.o mkf_koi8_parser.o
+PARSER_OBJ = mkf_parser.o mkf_iso2022_parser.o mkf_iso8859_parser.o mkf_xct_parser.o \
+	mkf_eucjp_parser.o mkf_euckr_parser.o mkf_euccn_parser.o mkf_iso2022jp_parser.o \
+	mkf_iso2022kr_parser.o mkf_sjis_parser.o mkf_big5_parser.o mkf_euctw_parser.o \
+	mkf_ucs4_parser.o mkf_iso2022cn_parser.o mkf_hz_parser.o mkf_utf8_parser.o \
+	mkf_johab_parser.o mkf_viscii_parser.o mkf_koi8_parser.o
 
 CONV_OBJ = mkf_iso8859_conv.o mkf_iso2022_conv.o mkf_iso2022jp_conv.o mkf_iso2022kr_conv.o \
 	mkf_sjis_conv.o mkf_utf8_conv.o mkf_big5_conv.o mkf_euctw_conv.o mkf_iso2022cn_conv.o \
@@ -45,11 +45,11 @@ UCS_TABLE_OBJ = mkf_ucs4_usascii.o mkf_ucs4_iso8859.o mkf_ucs4_viscii.o mkf_ucs4
 OBJ = $(PARSER_OBJ) $(CONV_OBJ) $(MAP_OBJ) mkf_char.o mkf_sjis_env.o $(PROP_OBJ) $(UCS_TABLE_OBJ)
 
 INC = $(PARSER_OBJ:.o=.h) $(CONV_OBJ:.o=.h) $(MAP_OBJ:.o=.h) mkf_char.h mkf_sjis_env.h \
-	mkf_property.h mkf_ucs_property.h mkf_charset.h mkf_conv.h mkf_xct_parser.h mkf_xct_conv.h
+	mkf_property.h mkf_ucs_property.h mkf_charset.h mkf_conv.h mkf_xct_conv.h
 
 LIBNAME = libmkf
 LIBNAME_DEB = libmkf_deb
-MAJOR = 10
+MAJOR = 11
 MINOR = 0
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)

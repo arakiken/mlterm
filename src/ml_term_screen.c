@@ -10,18 +10,45 @@
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_util.h>	/* K_MIN */
+#include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <mkf/mkf_xct_parser.h>
+#include  <mkf/mkf_xct_conv.h>
+#include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_ucs4_parser.h>
 #include  <mkf/mkf_ucs4_conv.h>
 
 #include  "ml_image_scroll.h"
-#include  "ml_xcompound_text.h"
-#include  "ml_utf8_string.h"
+#include  "ml_str_parser.h"
 #include  "ml_xic.h"
 #include  "ml_picture.h"
-#include  "ml_locale.h"		/* ml_locale_init */
 #include  "ml_shaping.h"
 
+
+/*
+ * XXX
+ *
+ * char length is max 8 bytes.
+ *
+ * combining chars may be max 3 per char.
+ *
+ * I think this is enough , but I'm not sure.
+ */
+#define  UTF8_MAX_CHAR_SIZE  (8 * 4)
+
+/*
+ * XXX
+ *
+ * char prefixes are max 4 bytes.
+ * additional 3 bytes + cs name len ("viscii1.1-1" is max 11 bytes) = 14 bytes for iso2022
+ * extension.
+ * char length is max 2 bytes.
+ * (total 20 bytes)
+ *
+ * combining chars is max 3 per char.
+ *
+ * I think this is enough , but I'm not sure.
+ */
+#define  XCT_MAX_CHAR_SIZE  (20 * 4)
 
 #define  DEFAULT_TAB_SIZE  8
 
@@ -263,6 +290,7 @@ write_to_pty(
 		u_char  conv_buf[512] ;
 		size_t  filled_len ;
 
+		(*parser->init)( parser) ;
 		(*parser->set_str)( parser , str , len) ;
 
 		while( ! parser->is_eos)
@@ -301,8 +329,6 @@ write_to_pty(
 
 			ml_write_to_pty( termscr->pty , conv_buf , filled_len) ;
 		}
-		
-		(*parser->init)( parser) ;
 	}
 	else
 	{
@@ -497,6 +523,47 @@ get_mod_meta_mask(
 	return  0 ;
 }
 
+static int
+use_bidi(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
+		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
+		== ML_UTF8)
+	{
+		ml_image_use_bidi( &termscr->normal_image) ;
+		ml_image_use_bidi( &termscr->alt_image) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+static int
+unuse_bidi(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
+		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
+		== ML_UTF8)
+	{
+		ml_term_screen_stop_bidi( termscr) ;
+		ml_image_unuse_bidi( &termscr->normal_image) ;
+		ml_image_unuse_bidi( &termscr->alt_image) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
 
 /*
  * callbacks of ml_window events
@@ -510,6 +577,11 @@ window_realized(
 	ml_term_screen_t *  termscr ;
 
 	termscr = (ml_term_screen_t*) win ;
+	
+	if( termscr->use_bidi)
+	{
+		use_bidi( termscr) ;
+	}
 	
 	termscr->mod_meta_mask = get_mod_meta_mask( termscr->window.display) ;
 
@@ -662,18 +734,44 @@ change_font_size(
 static void
 change_encoding(
 	void *  p ,
-	ml_encoding_type_t  encoding
+	ml_char_encoding_t  encoding
 	)
 {
 	ml_term_screen_t *  termscr ;
-
+	int  result ;
+	
 	termscr = p ;
 	
-	if( ! ml_term_screen_change_encoding( termscr , encoding))
+	if( ( result = ml_font_manager_change_encoding( termscr->font_man , encoding)) == -1)
 	{
+		/* failed */
+
+		kik_msg_printf( "encoding couldn't be changed.\n") ;
+
 		return ;
 	}
+
+#if  0
+	/* this is because XIM itself may not work in different encoding. */
+	ml_xim_close( termscr->window.display) ;
+#endif
 	
+	if( result)
+	{
+		font_size_changed( termscr) ;
+
+	#if  1
+		/*
+		 * this is because font_man->font_set may have changed in
+		 * ml_font_manager_change_encoding()
+		 */
+		/* ml_xic_deactivate( &termscr->window) ; */
+		ml_xic_font_set_changed( &termscr->window) ;
+	#endif
+	}
+
+	unuse_bidi( termscr) ;
+
 	if( HAS_ENCODING_LISTENER(termscr,encoding_changed))
 	{
 		if( ! termscr->encoding_listener->encoding_changed(
@@ -682,6 +780,13 @@ change_encoding(
 			kik_msg_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
 		}
 	}
+
+	use_bidi( termscr) ;
+	
+	/*
+	 * redrawing all lines with new fonts.
+	 */
+	ml_image_all_modified( termscr->image) ;
 }
 
 static void
@@ -915,26 +1020,33 @@ change_aa_flag(
 static void
 change_bidi_flag(
 	void *  p ,
-	int  is_bidi
+	int  _use_bidi
 	)
 {
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
 
-	if( is_bidi && HAS_ENCODING_LISTENER(termscr,current_encoding) &&
-		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
-		== ML_UTF8)
-	{		
-		ml_term_screen_use_bidi( termscr) ;
-		
+	termscr->use_bidi = _use_bidi ;
+
+	if( termscr->use_bidi)
+	{
+		use_bidi( termscr) ;
+
+		/*
+		 * rendering and redrawing all lines.
+		 */
 		ml_image_all_modified( termscr->image) ;
 		ml_term_screen_render_bidi( termscr) ;
 	}
 	else
 	{
-		ml_term_screen_stop_bidi( termscr) ;
-		ml_term_screen_unuse_bidi( termscr) ;
+		/*
+		 * redawing all lines.
+		 */
+		ml_image_all_modified( termscr->image) ;
+
+		unuse_bidi( termscr) ;
 	}
 }
 
@@ -1002,27 +1114,32 @@ config_menu(
 	int  global_x ;
 	int  global_y ;
 	Window  child ;
+	ml_char_encoding_t  encoding ;
 	
 	if( ! HAS_ENCODING_LISTENER(termscr,current_encoding))
 	{
-		return ;
+		encoding = ML_ISO8859_1 ;
+	}
+	else
+	{
+		encoding = (*termscr->encoding_listener->current_encoding)(
+			termscr->encoding_listener->self) ;
 	}
 
 	XTranslateCoordinates( termscr->window.display , termscr->window.my_window ,
 		DefaultRootWindow( termscr->window.display) , x , y ,
 		&global_x , &global_y , &child) ;
 
-	ml_config_menu_start( &termscr->config_menu , global_x , global_y ,
-		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self) ,
+	ml_config_menu_start( &termscr->config_menu , global_x , global_y , encoding , 
 		ml_window_get_fg_color( &termscr->window) , ml_window_get_bg_color( &termscr->window) ,
-		termscr->image->tab_cols , termscr->logs.num_of_rows , termscr->font_man->font_size ,
+		termscr->image->tab_cols , ml_get_log_size( &termscr->logs) ,
+		termscr->font_man->font_size ,
 		termscr->font_man->font_custom->min_font_size ,
 		termscr->font_man->font_custom->max_font_size ,
 		termscr->mod_meta_mode , termscr->bel_mode ,
 		ml_is_char_combining() , termscr->pre_conv_xct_to_ucs ,
-		termscr->window.is_transparent , termscr->is_aa ,
-		ml_term_screen_is_using_bidi( termscr) ,
-		ml_xic_get_xim_name( &termscr->window) , ml_get_locale()) ;
+		termscr->window.is_transparent , termscr->is_aa , termscr->use_bidi ,
+		ml_xic_get_xim_name( &termscr->window) , kik_get_locale()) ;
 }
 
 static int
@@ -1039,9 +1156,9 @@ paste_xct(
 		kik_debug_printf( KIK_DEBUG_TAG " pasting str: ") ;
 		for( i = 0 ; i < len ; i ++)
 		{
-			fprintf( stderr , "%.2x" , str[i]) ;
+			fprintf( stderr , "%.2x " , str[i]) ;
 		}
-		fprintf( stderr , "\n ---> \n") ;
+		fprintf( stderr , "\n") ;
 	}
 #endif
 
@@ -1052,6 +1169,7 @@ paste_xct(
 		u_char  conv_buf[128] ;
 		size_t  filled_len ;
 
+		(*termscr->xct_parser->init)( termscr->xct_parser) ;
 		(*termscr->xct_parser->set_str)( termscr->xct_parser , str , len) ;
 
 		while( ! termscr->xct_parser->is_eos)
@@ -1121,8 +1239,12 @@ convert_selection_to_xct(
 	}
 #endif
 
-	filled_len = ml_convert_to_xct( str , len , termscr->sel.sel_str ,
-		termscr->sel.sel_len) ;
+	(*termscr->ml_str_parser->init)( termscr->ml_str_parser) ;
+	ml_str_parser_set_str( termscr->ml_str_parser , termscr->sel.sel_str , termscr->sel.sel_len) ;
+	
+	(*termscr->xct_conv->init)( termscr->xct_conv) ;
+	filled_len = (*termscr->xct_conv->convert)( termscr->xct_conv ,
+		str , len , termscr->ml_str_parser) ;
 
 #ifdef  __DEBUG
 	{
@@ -1148,7 +1270,7 @@ convert_selection_to_utf8(
 	)
 {
 	size_t  filled_len ;
-	
+
 #ifdef  __DEBUG
 	{
 		int  i ;
@@ -1162,8 +1284,12 @@ convert_selection_to_utf8(
 	}
 #endif
 
-	filled_len =  ml_convert_to_utf8( str , len , termscr->sel.sel_str ,
-		termscr->sel.sel_len) ;
+	(*termscr->ml_str_parser->init)( termscr->ml_str_parser) ;
+	ml_str_parser_set_str( termscr->ml_str_parser , termscr->sel.sel_str , termscr->sel.sel_len) ;
+	
+	(*termscr->utf8_conv->init)( termscr->utf8_conv) ;
+	filled_len = (*termscr->utf8_conv->convert)( termscr->utf8_conv ,
+		str , len , termscr->ml_str_parser) ;
 		
 #ifdef  __DEBUG
 	{
@@ -1197,13 +1323,7 @@ yank_event_received(
 			size_t  utf8_len ;
 			size_t  filled_len ;
 
-			/*
-			 * XXX
-			 * on utf8 , char length is max 8 bytes.
-			 * combining chars may be max 2 per char.
-			 * so , I think this is enough , but I'm not sure.
-			 */
-			utf8_len = (termscr->sel.sel_len * 8) * 3 ;
+			utf8_len = termscr->sel.sel_len * UTF8_MAX_CHAR_SIZE ;
 
 			if( ( utf8_str = alloca( utf8_len)) == NULL)
 			{
@@ -1227,13 +1347,7 @@ yank_event_received(
 			size_t  xct_len ;
 			size_t  filled_len ;
 
-			/*
-			 * XXX
-			 * on ISO2022 , char prefixes are max 4 bytes and char length is max 2 bytes.
-			 * combining chars may be max 2 per char.
-			 * so , I think this is enough , but I'm not sure.
-			 */
-			xct_len = (termscr->sel.sel_len * 6) * 3 ;
+			xct_len = termscr->sel.sel_len * XCT_MAX_CHAR_SIZE ;
 
 			if( ( xct_str = alloca( xct_len)) == NULL)
 			{
@@ -1750,13 +1864,7 @@ xct_selection_requested(
 		size_t  xct_len ;
 		size_t  filled_len ;
 
-		/*
-		 * XXX
-		 * on ISO2022 , char prefixes are max 4 bytes and char length is max 2 bytes.
-		 * combining chars may be max 2 per char.
-		 * so , I think this is enough , but I'm not sure.
-		 */
-		xct_len = (termscr->sel.sel_len * 6) * 3 ;
+		xct_len = termscr->sel.sel_len * XCT_MAX_CHAR_SIZE ;
 
 		if( ( xct_str = alloca( xct_len)) == NULL)
 		{
@@ -1793,13 +1901,7 @@ utf8_selection_requested(
 		size_t  utf8_len ;
 		size_t  filled_len ;
 		
-		/*
-		 * XXX
-		 * on utf8 , char length is max 8 bytes.
-		 * combining chars may be max 2 per char.
-		 * so , I think this is enough , but I'm not sure.
-		 */
-		utf8_len = (termscr->sel.sel_len * 8) * 3 ;
+		utf8_len = termscr->sel.sel_len * UTF8_MAX_CHAR_SIZE ;
 
 		if( ( utf8_str = alloca( utf8_len)) == NULL)
 		{
@@ -2655,7 +2757,7 @@ get_spot(
 
 	termscr = p ;
 	
-	if( ( line = ml_image_get_line( termscr->image , termscr->image->cursor.row)) == NULL ||
+	if( ( line = ml_image_get_line( termscr->image , ml_cursor_row( termscr->image))) == NULL ||
 		ml_imgline_is_empty( line))
 	{
 	#ifdef  DEBUG
@@ -2665,10 +2767,10 @@ get_spot(
 		return  0 ;
 	}
 	
-	*y = ml_convert_row_to_y( termscr , termscr->image->cursor.row) +
+	*y = ml_convert_row_to_y( termscr , ml_cursor_row( termscr->image)) +
 		ml_line_height((termscr)->font_man) ;
 
-	*x = ml_convert_char_index_to_x( line , termscr->image->cursor.char_index) ;
+	*x = ml_convert_char_index_to_x( line , ml_cursor_char_index( termscr->image)) ;
 
 	return  1 ;
 }
@@ -2710,7 +2812,7 @@ draw_line(
 		beg_x = ml_convert_char_index_to_x( line , beg_char_index) ;
 		num_of_redrawn = ml_imgline_get_num_of_redrawn_chars( line) ;
 
-		if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
+		if( termscr->use_bidi && HAS_ENCODING_LISTENER(termscr,current_encoding) &&
 			(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
 				== ML_UTF8)
 		{
@@ -2719,7 +2821,7 @@ draw_line(
 				return  0 ;
 			}
 
-			ml_str_shape( shaped , line->chars , line->num_of_filled_chars) ;
+			ml_str_shape_arabic( shaped , line->chars , line->num_of_filled_chars) ;
 			str = &shaped[beg_char_index] ;
 		}
 		else
@@ -2770,9 +2872,9 @@ draw_cursor(
 	int  x ;
 	int  y ;
 
-	y = ml_convert_row_to_y( termscr , termscr->image->cursor.row) ;
+	y = ml_convert_row_to_y( termscr , ml_cursor_row( termscr->image)) ;
 	
-	if( ( line = ml_image_get_line( termscr->image , termscr->image->cursor.row)) == NULL ||
+	if( ( line = ml_image_get_line( termscr->image , ml_cursor_row( termscr->image))) == NULL ||
 		ml_imgline_is_empty( line))
 	{
 	#ifdef  DEBUG
@@ -2782,9 +2884,9 @@ draw_cursor(
 		return  0 ;
 	}
 	
-	x = ml_convert_char_index_to_x( line , termscr->image->cursor.char_index) ;
+	x = ml_convert_char_index_to_x( line , ml_cursor_char_index( termscr->image)) ;
 
-	if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
+	if( termscr->use_bidi && HAS_ENCODING_LISTENER(termscr,current_encoding) &&
 		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
 			== ML_UTF8)
 	{
@@ -2793,13 +2895,13 @@ draw_cursor(
 			return  0 ;
 		}
 
-		ml_str_shape( shaped , line->chars , line->num_of_filled_chars) ;
-		ch = &shaped[termscr->image->cursor.char_index] ;
+		ml_str_shape_arabic( shaped , line->chars , line->num_of_filled_chars) ;
+		ch = &shaped[ ml_cursor_char_index( termscr->image)] ;
 	}
 	else
 	{
 		shaped = NULL ;
-		ch = ml_cursor_get_char( termscr->image) ;
+		ch = &line->chars[ ml_cursor_char_index( termscr->image)] ;
 	}
 
 	if( restore)
@@ -2844,6 +2946,8 @@ ml_term_screen_new(
 	char *  pic_file_path ,
 	int  use_transbg ,
 	int  is_aa ,
+	int  _use_bidi ,
+	int  big5_buggy ,
 	char *  conf_menu_path
 	)
 {
@@ -2861,6 +2965,14 @@ ml_term_screen_new(
 	
 		return  NULL ;
 	}
+
+	/* allocated dynamically */
+	termscr->xct_parser = NULL ;
+	termscr->ucs4_parser = NULL ;
+	termscr->ucs4_conv = NULL ;
+	termscr->ml_str_parser = NULL ;
+	termscr->utf8_conv = NULL ;
+	termscr->xct_conv = NULL ;
 	
 	termscr->pty = NULL ;
 	
@@ -2998,6 +3110,8 @@ ml_term_screen_new(
 
 	termscr->image = &termscr->normal_image ;
 
+	termscr->use_bidi = _use_bidi ;
+
 	termscr->sel_listener.self = termscr ;
 	termscr->sel_listener.select_in_window = select_in_window ;
 	termscr->sel_listener.reverse_color = reverse_color ;
@@ -3073,6 +3187,22 @@ ml_term_screen_new(
 
 	termscr->bel_mode = bel_mode ;
 
+	/*
+	 * for receiving selection.
+	 */
+
+	if( big5_buggy)
+	{
+		if( ( termscr->xct_parser = mkf_xct_big5_buggy_parser_new()) == NULL)
+		{
+			goto  error ;
+		}
+	}
+	else if( ( termscr->xct_parser = mkf_xct_parser_new()) == NULL)
+	{
+		goto  error ;
+	}
+
 	if( pre_conv_xct_to_ucs)
 	{
 		if( ! use_pre_conv_xct_to_ucs( termscr))
@@ -3089,7 +3219,28 @@ ml_term_screen_new(
 		termscr->ucs4_conv = NULL ;
 	}
 
-	if( ( termscr->xct_parser = mkf_xct_parser_new()) == NULL)
+	/*
+	 * for sending selection
+	 */
+	 
+	if( ( termscr->ml_str_parser = ml_str_parser_new()) == NULL)
+	{
+		goto  error ;
+	}
+
+	if( ( termscr->utf8_conv = mkf_utf8_conv_new()) == NULL)
+	{
+		goto  error ;
+	}
+
+	if( big5_buggy)
+	{
+		if( ( termscr->xct_conv = mkf_xct_big5_buggy_conv_new()) == NULL)
+		{
+			goto  error ;
+		}
+	}
+	else if( ( termscr->xct_conv = mkf_xct_conv_new()) == NULL)
 	{
 		goto  error ;
 	}
@@ -3105,6 +3256,36 @@ ml_term_screen_new(
 	return  termscr ;
 
 error:
+	if( termscr->xct_parser)
+	{
+		(*termscr->xct_parser->delete)( termscr->xct_parser) ;
+	}
+	
+	if( termscr->ucs4_parser)
+	{
+		(*termscr->ucs4_parser->delete)( termscr->ucs4_parser) ;
+	}
+	
+	if( termscr->ucs4_conv)
+	{
+		(*termscr->ucs4_conv->delete)( termscr->ucs4_conv) ;
+	}
+	
+	if( termscr->ml_str_parser)
+	{
+		(*termscr->ml_str_parser->delete)( termscr->ml_str_parser) ;
+	}
+	
+	if( termscr->utf8_conv)
+	{
+		(*termscr->utf8_conv->delete)( termscr->utf8_conv) ;
+	}
+	
+	if( termscr->xct_conv)
+	{
+		(*termscr->xct_conv->delete)( termscr->xct_conv) ;
+	}
+	
 	if( termscr)
 	{
 		free( termscr) ;
@@ -3319,6 +3500,10 @@ ml_term_screen_scroll_to(
 }
 
 
+/*
+ * functions to draw screen.
+ */
+
 int
 ml_term_screen_redraw_image(
 	ml_term_screen_t *  termscr
@@ -3432,6 +3617,11 @@ ml_term_screen_unhighlight_cursor(
 	return  1 ;
 }
 
+
+/*
+ * utilities for ml_vt100_parser
+ */
+
 int
 ml_term_screen_combine_with_prev_char(
 	ml_term_screen_t *  termscr ,
@@ -3452,7 +3642,7 @@ ml_term_screen_combine_with_prev_char(
 	
 	ml_cursor_go_back( termscr->image , WRAPAROUND) ;
 	
-	if( ( line = ml_image_get_line( termscr->image , termscr->image->cursor.row)) == NULL ||
+	if( ( line = ml_image_get_line( termscr->image , ml_cursor_row( termscr->image))) == NULL ||
 		ml_imgline_is_empty( line))
 	{
 		result = 0 ;
@@ -3460,13 +3650,14 @@ ml_term_screen_combine_with_prev_char(
 		goto  end ;
 	}
 	
-	ch = ml_cursor_get_char( termscr->image) ;
+	ch = &line->chars[ ml_cursor_char_index( termscr->image)] ;
 	
 	if( ( result = ml_char_combine( ch , bytes , ch_size , font , font_decor ,
 		fg_color , bg_color)))
 	{
-		ml_imgline_update_change_char_index( line , termscr->image->cursor.col ,
-			termscr->image->cursor.col , 0) ;
+		ml_imgline_update_change_char_index( line ,
+			ml_cursor_char_index( termscr->image) ,
+			ml_cursor_char_index( termscr->image) , 0) ;
 	}
 
 end:
@@ -3504,97 +3695,6 @@ ml_term_screen_get_font(
 #endif
 
 	return  font ;
-}
-
-int
-ml_term_screen_change_encoding(
-	ml_term_screen_t *  termscr ,
-	ml_encoding_type_t  encoding
-	)
-{
-	int  result ;
-	
-	if( ( result = ml_font_manager_change_encoding( termscr->font_man , encoding)) == -1)
-	{
-		/* failed */
-
-		kik_msg_printf( "encoding couldn't be changed.\n") ;
-
-		return  0 ;
-	}
-
-#if  0
-	/* this is because XIM itself may not work in different encoding. */
-	ml_xim_close( termscr->window.display) ;
-#endif
-	
-	if( result)
-	{
-		font_size_changed( termscr) ;
-
-	#if  1
-		/*
-		 * this is because font_man->font_set may have changed in
-		 * ml_font_manager_change_encoding()
-		 */
-		/* ml_xic_deactivate( &termscr->window) ; */
-		ml_xic_font_set_changed( &termscr->window) ;
-	#endif
-	}
-
-	return  1 ;
-}
-
-int
-ml_term_screen_is_using_bidi(
-	ml_term_screen_t *  termscr
-	)
-{
-	if( ml_image_is_using_bidi( &termscr->normal_image))
-	{
-		if( ml_image_is_using_bidi( &termscr->alt_image))
-		{
-			return  1 ;
-		}
-	#ifdef  DEBUG
-		else
-		{
-			kik_warn_printf( KIK_DEBUG_TAG
-				" is_using_bidi flag is different between normal and alt image.\n") ;
-		}
-	#endif
-	}
-#ifdef  DEBUG
-	else if( ml_image_is_using_bidi( &termscr->alt_image))
-	{
-		kik_warn_printf( KIK_DEBUG_TAG
-			" is_using_bidi flag is different between normal and alt image.\n") ;
-	}
-#endif
-
-	return  0 ;
-}
-
-int
-ml_term_screen_use_bidi(
-	ml_term_screen_t *  termscr
-	)
-{
-	ml_image_use_bidi( &termscr->normal_image) ;
-	ml_image_use_bidi( &termscr->alt_image) ;
-
-	return  1 ;
-}
-
-int
-ml_term_screen_unuse_bidi(
-	ml_term_screen_t *  termscr
-	)
-{
-	ml_image_unuse_bidi( &termscr->normal_image) ;
-	ml_image_unuse_bidi( &termscr->alt_image) ;
-
-	return  1 ;
 }
 
 int
@@ -3937,7 +4037,7 @@ ml_term_screen_go_horizontally(
 	int  col
 	)
 {
-	return  ml_term_screen_goto( termscr , col , termscr->image->cursor.row) ;
+	return  ml_term_screen_goto( termscr , col , ml_cursor_row( termscr->image)) ;
 }
 
 int
@@ -3946,7 +4046,7 @@ ml_term_screen_go_vertically(
 	int  row
 	)
 {
-	return  ml_term_screen_goto( termscr , termscr->image->cursor.col , row) ;
+	return  ml_term_screen_goto( termscr , ml_cursor_col( termscr->image) , row) ;
 }
 
 int
@@ -4139,7 +4239,7 @@ ml_term_screen_report_cursor_position(
 	char  seq[4 + DIGIT_STR_LEN(sizeof(u_int)) + 1] ;
 
 	sprintf( seq , "\x1b[%d;%dR" ,
-		termscr->image->cursor.row + 1 , termscr->image->cursor.col + 1) ;
+		ml_cursor_row( termscr->image) + 1 , ml_cursor_col( termscr->image) + 1) ;
 	write_to_pty( termscr , seq , strlen( seq) , NULL) ;
 
 	return  1 ;

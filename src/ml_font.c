@@ -11,9 +11,9 @@
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
+#include  <kiklib/kik_locale.h>	/* kik_get_lang() */
 
 #include  "ml_font_intern.h"
-#include  "ml_locale.h"
 
 
 #define  FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p) \
@@ -285,7 +285,7 @@ load_xfont(
 		/* XFree86 Unicode font */
 		
 		sprintf( fontname , "-*-*-%s-%s-%s-%s-%d-*-%s-*-%s" ,
-			weight , slant , width , ml_get_lang() , fontsize , spacing , encoding) ;
+			weight , slant , width , kik_get_lang() , fontsize , spacing , encoding) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " loading %s.\n" , fontname) ;
@@ -296,7 +296,7 @@ load_xfont(
 			return  xfont ;
 		}
 
-		if( strcmp( ml_get_lang() , "ja") != 0)
+		if( strcmp( kik_get_lang() , "ja") != 0)
 		{
 			sprintf( fontname , "-*-*-%s-%s-%s-ja-%d-*-%s-*-%s" ,
 				weight , slant , width , fontsize , spacing , encoding) ;

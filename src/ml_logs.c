@@ -64,6 +64,12 @@ ml_log_init(
 
 	if( ( logs->index = kik_cycle_index_new( num_of_rows)) == NULL)
 	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " kik_cycle_index_new() failed.\n") ;
+	#endif
+	
+		free( logs->lines) ;
+		
 		return  0 ;
 	}
 
@@ -114,7 +120,7 @@ ml_change_log_size(
 			== NULL)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " realloc() failed.\n") ;
 		#endif
 
 			return  0 ;
@@ -243,6 +249,14 @@ ml_get_num_of_logged_lines(
 	)
 {
 	return  kik_get_filled_cycle_index( logs->index) ;
+}
+
+u_int
+ml_get_log_size(
+	ml_logs_t *  logs
+	)
+{
+	return  logs->num_of_rows ;
 }
 
 int

@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_bidi_config_widget_new(int  is_checked) ;
 
-int  mc_is_bidi(void) ;
+int  mc_use_bidi(void) ;
 
 
 #endif

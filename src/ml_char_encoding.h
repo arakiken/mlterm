@@ -65,7 +65,7 @@ typedef enum  ml_encoding_type
 	
 	MAX_ENCODINGS ,
 	
-}  ml_encoding_type_t ;
+}  ml_char_encoding_t ;
 
 
 #define  IS_ISO8859_VARIANT(encoding)  (ML_ISO8859_1 <= (encoding) && (encoding) <= ML_TCVN5712)
@@ -76,11 +76,11 @@ typedef enum  ml_encoding_type
 		ML_ISO2022CN == (encoding) || ML_EUCCN == (encoding))
 
 
-ml_encoding_type_t  ml_get_encoding( char *  name) ;
+ml_char_encoding_t  ml_get_encoding( char *  name) ;
 
-mkf_parser_t *  ml_parser_new( ml_encoding_type_t  encoding) ;
+mkf_parser_t *  ml_parser_new( ml_char_encoding_t  encoding) ;
 
-mkf_conv_t *  ml_conv_new( ml_encoding_type_t  encoding) ;
+mkf_conv_t *  ml_conv_new( ml_char_encoding_t  encoding) ;
 
 
 #endif

@@ -2296,12 +2296,28 @@ ml_unhighlight_cursor(
 	return  1 ;
 }
 
-ml_char_t *
-ml_cursor_get_char(
+int
+ml_cursor_char_index(
 	ml_image_t *  image
 	)
 {
-	return  &CURSOR_CHAR(image) ;
+	return  image->cursor.char_index ;
+}
+
+int
+ml_cursor_col(
+	ml_image_t *  image
+	)
+{
+	return  image->cursor.col ;
+}
+
+int
+ml_cursor_row(
+	ml_image_t *  image
+	)
+{
+	return  image->cursor.row ;
 }
 
 void

@@ -75,7 +75,7 @@ apply_clicked(
 		mc_is_pre_conv_xct_to_ucs() ,
 		mc_is_transparent() ,
 		mc_is_aa() ,
-		mc_is_bidi() ,
+		mc_use_bidi() ,
 		mc_get_xim_name() ,
 		mc_get_xim_locale()) ;
 
@@ -179,7 +179,7 @@ static int
 show(
 	int  x ,
 	int  y ,
-	ml_encoding_type_t  cur_encoding ,
+	ml_char_encoding_t  cur_encoding ,
 	ml_color_t  cur_fg_color ,
 	ml_color_t  cur_bg_color ,
 	char *  cur_tabsize ,
@@ -193,7 +193,7 @@ show(
 	int  pre_conv_xct_to_ucs ,
 	int  is_transparent ,
 	int  is_aa ,
-	int  is_bidi ,
+	int  use_bidi ,
 	char *  cur_xim ,
 	char *  cur_locale
 	)
@@ -317,7 +317,7 @@ show(
 	gtk_widget_show(config_widget) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , TRUE , TRUE , 0) ;
 
-	if( ( config_widget = mc_bidi_config_widget_new(is_bidi)) == NULL)
+	if( ( config_widget = mc_bidi_config_widget_new(use_bidi)) == NULL)
 	{
 		return  0 ;
 	}
@@ -451,7 +451,7 @@ start_application(
 	int  pre_conv_xct_to_ucs ;
 	int  is_transparent ;
 	int  is_aa ;
-	int  is_bidi ;
+	int  use_bidi ;
 	char *  cur_locale ;
 	char *  cur_xim ;
 
@@ -571,7 +571,7 @@ start_application(
 	}
 	
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &is_bidi , p))
+		! kik_str_to_int( &use_bidi , p))
 	{
 		return  0 ;
 	}
@@ -589,7 +589,7 @@ start_application(
 	return  show( x , y , cur_encoding , cur_fg_color , cur_bg_color , cur_tabsize ,
 		cur_logsize , cur_fontsize , min_fontsize , max_fontsize ,
 		cur_mod_meta_mode , cur_bel_mode , is_combining_char , pre_conv_xct_to_ucs ,
-		is_transparent , is_aa , is_bidi , cur_xim , cur_locale) ;
+		is_transparent , is_aa , use_bidi , cur_xim , cur_locale) ;
 }
 
 

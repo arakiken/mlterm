@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "ml_encoding.h"
+#include  "ml_char_encoding.h"
 
 #include  <kiklib/kik_str.h>		/* kik_str_alloca_dup */
 #include  <kiklib/kik_debug.h>
@@ -45,7 +45,7 @@
 
 typedef struct  encoding_table
 {
-	ml_encoding_type_t  encoding ;
+	ml_char_encoding_t  encoding ;
 	char *  name ;
 	mkf_parser_t *  (*parser_new)( void) ;
 	mkf_conv_t *  (*conv_new)( void) ;
@@ -54,7 +54,7 @@ typedef struct  encoding_table
 
 /*
  * !!! Notice !!!
- * the order should be the same as ml_encoding_type_t in ml_encoding.h
+ * the order should be the same as ml_char_encoding_t in ml_char_encoding.h
  */
 static encoding_table_t  encoding_table[] =
 {
@@ -126,7 +126,7 @@ static encoding_table_t  encoding_table[] =
 
 /* --- global functions --- */
 
-ml_encoding_type_t
+ml_char_encoding_t
 ml_get_encoding(
 	char *  name		/* '_' and '-' are ignored. */
 	)
@@ -184,7 +184,7 @@ ml_get_encoding(
 
 mkf_parser_t *
 ml_parser_new(
-	ml_encoding_type_t  encoding
+	ml_char_encoding_t  encoding
 	)
 {
 	if( encoding < 0 || MAX_ENCODINGS <= encoding ||
@@ -202,7 +202,7 @@ ml_parser_new(
 
 mkf_conv_t *
 ml_conv_new(
-	ml_encoding_type_t  encoding
+	ml_char_encoding_t  encoding
 	)
 {
 	if( encoding < 0 || MAX_ENCODINGS <= encoding ||

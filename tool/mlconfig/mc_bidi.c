@@ -66,7 +66,7 @@ mc_bidi_config_widget_new(
 }
 
 int
-mc_is_bidi(void)
+mc_use_bidi(void)
 {
 	return  is_checked ;
 }

@@ -13,13 +13,15 @@
 
 typedef struct  mkf_parser
 {
+	/* private */
 	u_char *  str ;
 	size_t  marked_left ;
-
 	size_t  left ;
-	
+
+	/* public */
 	int  is_eos ;
 
+	/* public */
 	void (*init)( struct mkf_parser *) ;
 	void (*set_str)( struct mkf_parser * , u_char *  str , size_t  size) ;
 	void (*delete)( struct mkf_parser *) ;

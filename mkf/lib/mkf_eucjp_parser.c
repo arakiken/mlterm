@@ -35,6 +35,8 @@ eucjp_parser_init(
 	iso2022_parser->gl = &iso2022_parser->g0 ;
 	iso2022_parser->gr = &iso2022_parser->g1 ;
 
+	iso2022_parser->non_iso2022_cs = UNKNOWN_CS ;
+	
 	iso2022_parser->is_single_shifted = 0 ;
 }
 

@@ -70,7 +70,7 @@ convert_to_euctw(
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG
-					" parser->init() returns error , the process is continuing...\n") ;
+					" parser->next_char() returns error , the process is continuing...\n") ;
 			#endif
 
 				/*

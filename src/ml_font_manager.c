@@ -22,7 +22,7 @@
 
 typedef struct encoding_to_cs_table
 {
-	ml_encoding_type_t  encoding ;
+	ml_char_encoding_t  encoding ;
 	mkf_charset_t  cs ;
 
 } encoding_to_cs_table_t ;
@@ -32,7 +32,7 @@ typedef struct encoding_to_cs_table
 
 /*
  * !!! Notice !!!
- * the order should be the same as ml_encoding_type_t in ml_encoding.h
+ * the order should be the same as ml_char_encoding_t in ml_char_encoding.h
  */
 static encoding_to_cs_table_t  usascii_font_cs_table[] =
 {
@@ -123,7 +123,7 @@ fontattr_compare(
 
 static mkf_charset_t
 get_usascii_font_cs(
-	ml_encoding_type_t  encoding
+	ml_char_encoding_t  encoding
 	)
 {
 	if( encoding < 0 || sizeof( usascii_font_cs_table) / sizeof( usascii_font_cs_table[0]) <= encoding)
@@ -281,7 +281,7 @@ ml_font_manager_new(
 	ml_font_custom_t *  normal_font_custom ,
 	ml_font_custom_t *  aa_font_custom ,
 	u_int  font_size ,
-	ml_encoding_type_t  encoding
+	ml_char_encoding_t  encoding
 	)
 {
 	ml_font_manager_t *  font_man ;
@@ -495,13 +495,13 @@ ml_line_height_to_baseline(
 int
 ml_font_manager_change_encoding(
 	ml_font_manager_t *  font_man ,
-	ml_encoding_type_t  encoding
+	ml_char_encoding_t  encoding
 	)
 {
 	mkf_charset_t  cs ;
 	ml_font_t *  usascii_font ;
 	ml_font_attr_t  orig_attr ;
-	ml_encoding_type_t  orig_encoding ;
+	ml_char_encoding_t  orig_encoding ;
 	int  result ;
 	
 	if( ( cs = get_usascii_font_cs( encoding)) == get_usascii_font_cs( font_man->encoding))

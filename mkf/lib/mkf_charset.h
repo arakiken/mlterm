@@ -34,13 +34,18 @@
 #define  CS94MB_FT(i)  ( (int)(i) - 0x70)
 #define  CS96MB_FT(i)  ( (int)(i) - 0xc0)
 
-/* 'and 0x3ff' should be done because 0x400 - is 'or cs_revision' */
+/*
+ * 'and 0x3ff' should be done because 0x400 - is 'or cs_revision'
+ */
+ 
 #define  IS_CS94SB(cs)  (0x00 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0x4e)
 #define  IS_CS96SB(cs)  (0x50 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0x9e)
 #define  IS_CS94MB(cs)  (0xa0 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0xde)
 #define  IS_CS96MB(cs)  (0xf0 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0x13e)
 
-#define  IS_CS_BASED_ON_ISO2022(cs)  ( 0x0 <= (cs) && (cs) <= 0x13e)
+#define  IS_NON_ISO2022(cs)  (0x140 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0x1de)
+
+#define  IS_CS_BASED_ON_ISO2022(cs)  ( 0x0 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0x13e)
 
 
 /*
@@ -104,6 +109,8 @@ typedef enum  mkf_charset
 	UTF8 = NON_ISO2022_1_ID('G') ,
 
 	/* NOT ISO2022 - class 2 (ESC 2/5 2/15 Ft) */
+	XCT_NON_ISO2022_CS_1 = NON_ISO2022_2_ID('1') ,	/* CTEXT */
+	XCT_NON_ISO2022_CS_2 = NON_ISO2022_2_ID('2') ,	/* CTEXT */
 	ISO10646_UCS2_1 = NON_ISO2022_2_ID('@') ,
 	ISO10646_UCS4_1 = NON_ISO2022_2_ID('A') ,
 
@@ -116,8 +123,6 @@ typedef enum  mkf_charset
 	JISC6226_1978_NEC_EXT = 0x200 ,
 	JISC6226_1978_NECIBM_EXT = 0x201 ,
 	JISX0208_1983_MAC_EXT = 0x202 ,
-	KOI8_R = 0x203 ,
-	KOI8_U = 0x204 ,
 
 	/*
 	 * those who are not ISO2022 registed characterset and do not confirm to ISO2022.
@@ -131,6 +136,8 @@ typedef enum  mkf_charset
 	JOHAB = 0x305 ,
 	VISCII = 0x306 ,
 	TCVN5712_1_1993 = 0x307 ,
+	KOI8_R = 0x308 ,
+	KOI8_U = 0x309 ,
 
 	/* followings are ISO2022 charsets of rev 1 */
 	JISX0208_1990 = CS_REVISION_1( CS94MB_ID('B')) ,

@@ -10,9 +10,9 @@
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_map.h>
+#include  <kiklib/kik_locale.h>	/* kik_locale_init/kik_get_locale/kik_get_codeset */
 
 #include  "ml_xic.h"		/* refering mutually */
-#include  "ml_locale.h"
 
 
 #if  0
@@ -153,7 +153,7 @@ open_xim(
 		xim->im = im ;
 		xim->num_of_xic_wins = 0 ;
 
-		if( ( xim->encoding = ml_get_encoding( ml_get_codeset())) == ML_UNKNOWN_ENCODING)
+		if( ( xim->encoding = ml_get_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING)
 		{
 			goto  error ;
 		}
@@ -168,7 +168,7 @@ open_xim(
 			goto  error ;
 		}
 
-		if( ( xim->locale = strdup( ml_get_locale())) == NULL)
+		if( ( xim->locale = strdup( kik_get_locale())) == NULL)
 		{
 			goto  error ;
 		}
@@ -256,7 +256,7 @@ ml_get_xim(
 
 		if( xim_locale)
 		{
-			cur_locale = ml_get_locale() ;
+			cur_locale = kik_get_locale() ;
 
 			if( strcmp( xim_locale , cur_locale) == 0)
 			{
@@ -267,11 +267,11 @@ ml_get_xim(
 			{
 				cur_locale = strdup( cur_locale) ;
 				
-				if( ! ml_locale_init( xim_locale))
+				if( ! kik_locale_init( xim_locale))
 				{
 					/* setlocale() failed. restoring */
 
-					ml_locale_init( cur_locale) ;
+					kik_locale_init( cur_locale) ;
 					free( cur_locale) ;
 
 					return  NULL ;
@@ -307,7 +307,7 @@ ml_get_xim(
 	if( cur_locale)
 	{
 		/* restoring */
-		ml_locale_init( cur_locale) ;
+		kik_locale_init( cur_locale) ;
 		free( cur_locale) ;
 	}
 	

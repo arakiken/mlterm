@@ -134,6 +134,7 @@ comment $Id$
 
       o use_anti_alias ... アンチエイリアスフォントを使用する(true/*false*)
       o use_xim        ... XIMを使う(*true*/false)
+      o use_bidi       ... BiDi レンダリングを行う(*false*/true)
       o xim_open_in_startup ... 起動時にXIMをopenする(*true*/false)
       o use_scrollbar  ... スクロールバーをつける(true/*false*)
       o use_combining  ... 結合文字を動的合成する(true/*false*)

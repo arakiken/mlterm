@@ -76,7 +76,7 @@ convert_to_big5(
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG
-					" parser->init() returns error , but the process is continuing...\n") ;
+					" parser->next_char() returns error , but the process is continuing...\n") ;
 			#endif
 
 				/*

@@ -17,7 +17,7 @@
 #include  "ml_logs.h"
 #include  "ml_selection.h"
 #include  "ml_backscroll.h"
-#include  "ml_encoding.h"
+#include  "ml_char_encoding.h"
 #include  "ml_font_manager.h"
 #include  "ml_color.h"
 #include  "ml_keymap.h"
@@ -32,8 +32,8 @@ typedef struct  ml_encoding_event_listener
 {
 	void *  self ;
 
-	int  (*encoding_changed)( void * , ml_encoding_type_t) ;
-	ml_encoding_type_t  (*current_encoding)( void *) ;
+	int  (*encoding_changed)( void * , ml_char_encoding_t) ;
+	ml_char_encoding_t  (*current_encoding)( void *) ;
 	size_t  (*convert_to_current_encoding)( void * , u_char * , size_t , mkf_parser_t *) ;
 	int  (*init_encoding_state)( void *) ;
 	
@@ -101,12 +101,15 @@ typedef struct  ml_term_screen
 	ml_system_event_listener_t *  system_listener ;
 	ml_screen_scroll_event_listener_t *  screen_scroll_listener ;
 
-	mkf_parser_t *  xct_parser ;
-
+	mkf_parser_t *  xct_parser ;	
 	int8_t  pre_conv_xct_to_ucs ;
 	mkf_parser_t *  ucs4_parser ;
 	mkf_conv_t *  ucs4_conv ;
 
+	mkf_parser_t *  ml_str_parser ;
+	mkf_conv_t *  utf8_conv ;
+	mkf_conv_t *  xct_conv ;
+	
 	int  scroll_cache ;
 	int  scroll_cache_boundary_start ;
 	int  scroll_cache_boundary_end ;
@@ -116,6 +119,7 @@ typedef struct  ml_term_screen
 	int8_t  is_mouse_pos_sending ;
 	int8_t  xim_open_in_startup ;
 	int8_t  is_aa ;
+	int8_t  use_bidi ;
 	
 	char *  pic_file_path ;
 
@@ -130,7 +134,7 @@ ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 	u_int  num_of_log_lines , u_int  tab_size , int  use_xim ,
 	int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode ,
 	ml_bel_mode_t  bel_mode , int  pre_conv_xct_to_ucs , char *  pic_file_path ,
-	int  use_transbg , int  is_aa , char *  conf_menu_path) ;
+	int  use_transbg , int  is_aa , int  use_bidi , int  big5_buggy , char *  conf_menu_path) ;
 
 int  ml_term_screen_delete( ml_term_screen_t *  termscr) ;
 
@@ -171,14 +175,6 @@ ml_font_t *  ml_term_screen_get_font( ml_term_screen_t *  termscr , ml_font_attr
 
 int  ml_term_screen_set_fontname( ml_term_screen_t *  termscr , ml_font_attr_t  attr , char *  font_name) ;
 
-int  ml_term_screen_change_encoding( ml_term_screen_t *  termscr , ml_encoding_type_t  encoding) ;
-
-int  ml_term_screen_is_using_bidi( ml_term_screen_t *  termscr) ;
-
-int  ml_term_screen_use_bidi( ml_term_screen_t *  termscr) ;
-
-int  ml_term_screen_unuse_bidi( ml_term_screen_t *  termscr) ;
-	
 int  ml_term_screen_render_bidi( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_start_bidi( ml_term_screen_t *  termscr) ;

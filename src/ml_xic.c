@@ -7,10 +7,10 @@
 #include  <X11/Xutil.h>		/* XLookupString */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
+#include  <kiklib/kik_locale.h>	/* kik_get_locale */
 
 #include  "ml_window_intern.h"
 #include  "ml_xim.h"		/* refering mutually */
-#include  "ml_locale.h"
 
 
 /* --- static functions --- */
@@ -60,13 +60,13 @@ load_fontset(
 	char *  cur_locale ;
 	XFontSet  fontset ;
 	
-	cur_locale = kik_str_alloca_dup( ml_get_locale()) ;
-	if( ml_locale_init( xim->locale))
+	cur_locale = kik_str_alloca_dup( kik_get_locale()) ;
+	if( kik_locale_init( xim->locale))
 	{
 		fontset = (*win->xim_listener->get_fontset)( win->xim_listener->self) ;
 		
 		/* restoring */
-		ml_locale_init( cur_locale) ;
+		kik_locale_init( cur_locale) ;
 	}
 	else
 	{
