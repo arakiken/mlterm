@@ -91,6 +91,8 @@ int  ml_str_delete( ml_char_t *  str , u_int  size) ;
 
 inline int  ml_str_copy( ml_char_t *  dst , ml_char_t *  src , u_int  size) ; 
 
+u_int  ml_str_cols( ml_char_t *  chars , u_int  len) ;
+
 #ifdef  DEBUG
 
 void  ml_str_dump( ml_char_t *  chars , u_int  len) ;

@@ -17,7 +17,6 @@
 #include  <mkf/mkf_ucs4_parser.h>
 #include  <mkf/mkf_ucs4_conv.h>
 
-#include  "ml_image_scroll.h"
 #include  "ml_str_parser.h"
 #include  "ml_xic.h"
 #include  "ml_picture.h"
@@ -436,18 +435,30 @@ use_pre_conv_xct_to_ucs(
 }
 
 static void
+resize_window(
+	ml_term_screen_t *  termscr ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	if( termscr->window.width == width && termscr->window.height == height)
+	{
+		return ;
+	}
+
+	/* screen will redrawn in window_resized() */
+	ml_window_resize( &termscr->window , width , height , NOTIFY_TO_PARENT) ;
+	
+	ml_window_reset_font( &termscr->window) ;
+}
+
+static void
 font_size_changed(
 	ml_term_screen_t *  termscr
 	)
 {
-	u_int  new_width ;
-	u_int  new_height ;
-
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
-
-	new_width = ml_col_width((termscr)->font_man) * ml_image_get_cols( termscr->image) ;
-	new_height = ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image) ;
 
 	if( HAS_SCROLL_LISTENER(termscr,line_height_changed))
 	{
@@ -455,15 +466,13 @@ font_size_changed(
 			termscr->screen_scroll_listener->self , ml_line_height(termscr->font_man)) ;
 	}
 
-	/* screen is redrawn */
-	ml_window_resize( &termscr->window , new_width , new_height , NOTIFY_TO_PARENT) ;
+	resize_window( termscr ,
+		ml_col_width((termscr)->font_man) * ml_image_get_cols( termscr->image) ,
+		ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image)) ;
 	
 	ml_window_set_normal_hints( &termscr->window ,
 		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man) ,
 		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man)) ;
-	ml_window_reset_font( &termscr->window) ;
-
-	set_wall_picture( termscr) ;
 }
 
 static int
@@ -668,8 +677,6 @@ window_resized(
 	ml_term_screen_redraw_image( termscr) ;
 
 	ml_term_screen_highlight_cursor( termscr) ;
-	
-	return ;
 }
 
 /*
@@ -3249,6 +3256,7 @@ ml_term_screen_new(
 	termscr->system_listener = NULL ;
 	termscr->screen_scroll_listener = NULL ;
 
+	termscr->is_reverse = 0 ;
 	termscr->is_app_keypad = 0 ;
 	termscr->is_app_cursor_keys = 0 ;
 	termscr->is_mouse_pos_sending = 0 ;
@@ -3793,7 +3801,7 @@ ml_term_screen_line_feed(
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
 
-	return  ml_cursor_go_downward( termscr->image , BREAK_BOUNDARY | SCROLL) ;
+	return  ml_cursor_go_downward( termscr->image , SCROLL | BREAK_BOUNDARY) ;
 }
 
 int
@@ -3900,7 +3908,7 @@ ml_term_screen_scroll_image_upward(
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
 
-	return  ml_image_scroll_upward( termscr->image , size) ;
+	return  ml_cursor_go_downward( termscr->image , SCROLL | BREAK_BOUNDARY) ;
 }
 
 int
@@ -3912,7 +3920,7 @@ ml_term_screen_scroll_image_downward(
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
 
-	return  ml_image_scroll_downward( termscr->image , size) ;
+	return  ml_cursor_go_upward( termscr->image , SCROLL | BREAK_BOUNDARY) ;
 }
 
 int
@@ -4123,6 +4131,74 @@ ml_term_screen_bel(
 }
 
 int
+ml_term_screen_resize_columns(
+	ml_term_screen_t *  termscr ,
+	u_int  cols
+	)
+{
+	ml_restore_selected_region_color( &termscr->sel) ;
+	exit_backscroll_mode( termscr) ;
+
+	if( cols == ml_image_get_cols( termscr->image))
+	{
+		return  1 ;
+	}
+	
+	resize_window( termscr , ml_col_width((termscr)->font_man) * cols ,
+		ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image)) ;
+
+	/*
+	 * !! Notice !!
+	 * resize_window() invokes ConfigureNotify event and window_resized() will be called,
+	 * but ml_term_screen_resize_columns() is called in ml_vt100_parser , so X Events
+	 * may not be received for a while.
+	 */
+	window_resized( &termscr->window) ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_reverse_video(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( termscr->is_reverse == 1)
+	{
+		return  0 ;
+	}
+
+	ml_window_reverse_video( &termscr->window) ;
+	
+	ml_image_all_modified( termscr->image) ;
+	ml_term_screen_redraw_image( termscr) ;
+
+	termscr->is_reverse = 1 ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_restore_video(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( termscr->is_reverse == 0)
+	{
+		return  0 ;
+	}
+	
+	ml_window_reverse_video( &termscr->window) ;
+	
+	ml_image_all_modified( termscr->image) ;
+	ml_term_screen_redraw_image( termscr) ;
+	
+	termscr->is_reverse = 0 ;
+
+	return  0 ;
+}
+
+int
 ml_term_screen_set_app_keypad(
 	ml_term_screen_t *  termscr
 	)
@@ -4222,6 +4298,19 @@ ml_term_screen_use_alternative_image(
 }
 
 int
+ml_term_screen_send_device_attr(
+	ml_term_screen_t *  termscr
+	)
+{
+	/* vt100 answerback */
+	char  seq[] = "\1b[?1;2c" ;
+	
+	write_to_pty( termscr , seq , strlen( seq) , NULL) ;
+
+	return  1 ;
+}
+
+int
 ml_term_screen_report_device_status(
 	ml_term_screen_t *  termscr
 	)
@@ -4261,4 +4350,22 @@ ml_term_screen_set_icon_name(
 	)
 {
 	return  ml_set_icon_name( &termscr->window , name) ;
+}
+
+int
+ml_term_screen_fill_all_with_e(
+	ml_term_screen_t *  termscr
+	)
+{
+	ml_char_t  e_ch ;
+
+	ml_char_init( &e_ch) ;
+	ml_char_set( &e_ch , "E" , 1 , ml_get_usascii_font( termscr->font_man) ,
+		0 , MLC_FG_COLOR , MLC_BG_COLOR) ;
+
+	ml_image_fill_all( termscr->image , &e_ch) ;
+
+	ml_char_final( &e_ch) ;
+
+	return  1 ;
 }

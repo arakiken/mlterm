@@ -129,13 +129,51 @@ remap_unsupported_charset(
 	 
 	if( ch->cs == UHC)
 	{
-		if( mkf_map_uhc_to_ksc5601_1987( &c , ch) == 0)
+		if( mkf_map_uhc_to_ksc5601_1987( &c , ch))
 		{
-			return ;
+			*ch = c ;
 		}
-
-		*ch = c ;
 	}
+	else if( ch->cs == GB2312_80 && strcasecmp( kik_get_codeset() , "GBK") == 0)
+	{
+		if( mkf_map_gb2312_80_to_gbk( &c , ch))
+		{
+			*ch = c ;
+		}
+	}
+	else if( ch->cs == GBK && strcasecmp( kik_get_codeset() , "GBK") != 0)
+	{
+		if( mkf_map_gbk_to_gb2312_80( &c , ch))
+		{
+			*ch = c ;
+		}
+	}
+	else if( ch->cs == CNS11643_1992_1 && strcasecmp( kik_get_codeset() , "BIG5") == 0)
+	{
+		if( mkf_map_cns11643_1992_1_to_big5( &c , ch))
+		{
+			*ch = c ;
+		}
+	}
+	else if( ch->cs == CNS11643_1992_2 && strcasecmp( kik_get_codeset() , "BIG5") == 0)
+	{
+		if( mkf_map_cns11643_1992_2_to_big5( &c , ch))
+		{
+			*ch = c ;
+		}
+	}
+	else if( ch->cs == BIG5 && strcasecmp( kik_get_codeset() , "BIG5") != 0)
+	{
+		if( mkf_map_big5_to_cns11643_1992( &c , ch))
+		{
+			*ch = c ;
+		}
+	}
+	
+	/*
+	 * XXX
+	 * KOI8-R , KOI8-U ...
+	 */
 }
 
 static size_t
@@ -326,12 +364,12 @@ convert_to_iso2022_intern(
 				}
 				else
 				{
-					prefix = "\x1b\x25\x2f\x32\x80\x89" "BIG5-0" "\x02" ;
+					prefix = "\x1b\x25\x2f\x32\x80\x89" "big5-0" "\x02" ;
 				}
 			}
 			else
 			{
-				prefix = "\x1b\x25\x2f\x32\x80\x88" "GBK-0" "\x02" ;
+				prefix = "\x1b\x25\x2f\x32\x80\x88" "gbk-0" "\x02" ;
 			}
 			
 			if( filled_size + strlen( prefix) + ch.size > dst_size)

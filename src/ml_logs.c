@@ -272,7 +272,7 @@ ml_log_reverse_color(
 	
 	ml_char_reverse_color( &line->chars[char_index]) ;
 
-	ml_imgline_update_change_char_index( line , char_index , END_CHAR_INDEX(*line) , 0) ;
+	ml_imgline_update_change_char_index( line , char_index , ml_imgline_end_char_index(line) , 0) ;
 
 	return  1 ;
 }
@@ -290,7 +290,7 @@ ml_log_restore_color(
 
 	ml_char_restore_color( &line->chars[char_index]) ;
 
-	ml_imgline_update_change_char_index( line , char_index , END_CHAR_INDEX(*line) , 0) ;
+	ml_imgline_update_change_char_index( line , char_index , ml_imgline_end_char_index(line) , 0) ;
 
 	return  1 ;
 }

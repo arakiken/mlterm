@@ -2014,6 +2014,30 @@ ml_window_set_normal_hints(
 	return  1 ;
 }
 
+int
+ml_window_reverse_video(
+	ml_window_t *  win
+	)
+{
+	void *  color ;
+
+	color = win->color_table[MLC_FG_COLOR] ;
+	win->color_table[MLC_FG_COLOR] = win->color_table[MLC_BG_COLOR]  ;
+	win->color_table[MLC_BG_COLOR] = color ;
+
+	XSetForeground( win->display , win->gc , FG_COLOR_PIXEL(win)) ;
+	XSetBackground( win->display , win->gc , BG_COLOR_PIXEL(win)) ;
+
+	if( ! win->wall_picture_is_set)
+	{
+		XSetWindowBackground( win->display , win->my_window , BG_COLOR_PIXEL(win)) ;
+	}
+
+	ml_window_clear_all( win) ;
+
+	return  1 ;
+}
+
 void
 ml_window_clear(
 	ml_window_t *  win ,

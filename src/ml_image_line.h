@@ -9,20 +9,12 @@
 #include  "ml_char.h"
 
 
-#ifdef  DEBUG
-
-#define  END_CHAR_INDEX( image_line) \
-	( (image_line).num_of_filled_chars == 0 && \
-		kik_warn_printf( "END_CHAR_INDEX()[" __FUNCTION__  "] ml_image_line_t::num_of_filled_chars is 0.\n") ? \
-		0 : (image_line).num_of_filled_chars - 1 )
-
-#else
-
-#define  END_CHAR_INDEX( image_line)  ((image_line).num_of_filled_chars - 1)
-
-#endif
-
-#define  END_CHAR( image_line)  ((image_line).chars[END_CHAR_INDEX(image_line)])
+enum
+{
+	WRAPAROUND   = 0x01 ,
+	BREAK_BOUNDARY = 0x02 ,
+	SCROLL         = 0x04 ,
+} ;
 
 
 /*
@@ -35,13 +27,13 @@
  */
 typedef struct  ml_image_line
 {
-	/* public */
+	/* public(readonly) */
 	ml_char_t *  chars ;
 
 	/* private */
 	u_int16_t *  visual_order ;		/* if bidi rendering isn't used , this is NULL */
 
-	/* public */
+	/* public(readonly) */
 	u_int16_t  num_of_chars ;
 	u_int16_t  num_of_filled_chars ;	/* 0 - 65536 */
 	u_int16_t  num_of_filled_cols ;		/* 0 - 65536 */
@@ -67,19 +59,26 @@ int  ml_set_word_separators( char *  seps) ;
 int  ml_free_word_separators(void) ;
 
 
-u_int  ml_get_cols_of( ml_char_t *  chars , u_int  len) ;
-
-
 int  ml_imgline_init( ml_image_line_t *  line , u_int  num_of_chars) ;
 
 int  ml_imgline_clone( ml_image_line_t *  clone , ml_image_line_t *  orig , u_int  num_of_chars) ;
 
 int  ml_imgline_final( ml_image_line_t *  line) ;
 
+u_int  ml_imgline_break_boundary( ml_image_line_t *  line , u_int  size , ml_char_t *  sp_ch) ;
+
 int  ml_imgline_reset( ml_image_line_t *  line) ;
 
-int  ml_imgline_clear( ml_image_line_t *  line , ml_char_t *  sp_ch) ;
+int  ml_imgline_clear( ml_image_line_t *  line , int  char_index , ml_char_t *  sp_ch) ;
 
+int  ml_imgline_overwrite_chars( ml_image_line_t *  line , int  change_char_index ,
+	ml_char_t *  chars , u_int  len , u_int  cols , ml_char_t *  sp_ch) ;
+	
+int  ml_imgline_overwrite_all( ml_image_line_t *  line , int  change_char_index ,
+	ml_char_t *  chars , int  len , u_int  cols) ;
+
+int  ml_imgline_fill_all( ml_image_line_t *  line , ml_char_t *  ch , u_int  num) ;
+	
 void  ml_imgline_update_change_char_index( ml_image_line_t *  line ,
 	int  beg_char_index , int  end_char_index , int  is_cleared_to_end) ;
 
@@ -91,6 +90,10 @@ int  ml_imgline_get_beg_of_modified( ml_image_line_t *  line) ;
 
 u_int  ml_imgline_get_num_of_redrawn_chars( ml_image_line_t *  line) ;
 
+int  ml_convert_char_index_to_col( ml_image_line_t *  line , int  char_index , int  flag) ;
+
+int  ml_convert_col_to_char_index( ml_image_line_t *  line , int *  cols_rest , int  col , int  flag) ;
+	
 int  ml_convert_char_index_to_x( ml_image_line_t *  line , int  char_index) ;
 
 int  ml_convert_x_to_char_index( ml_image_line_t *  line , u_int *  x_rest , int  x) ;
@@ -103,6 +106,8 @@ int  ml_imgline_copy_line( ml_image_line_t *  dst , ml_image_line_t *  src) ;
 
 int  ml_imgline_share( ml_image_line_t *  dst , ml_image_line_t *  src) ;
 
+inline int  ml_imgline_end_char_index( ml_image_line_t *  line) ;
+	
 int  ml_imgline_is_empty( ml_image_line_t *  line) ;
 
 u_int  ml_get_num_of_filled_chars_except_end_space( ml_image_line_t *  line) ;

@@ -114,6 +114,7 @@ typedef struct  ml_term_screen
 	int  scroll_cache_boundary_start ;
 	int  scroll_cache_boundary_end ;
 
+	int8_t  is_reverse ;
 	int8_t  is_app_keypad ;
 	int8_t  is_app_cursor_keys ;
 	int8_t  is_mouse_pos_sending ;
@@ -249,6 +250,12 @@ u_int ml_term_screen_get_rows( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_bel( ml_term_screen_t *  termscr) ;
 
+int  ml_term_screen_reverse_video( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_restore_video( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_resize_columns( ml_term_screen_t *  termscr , u_int  cols) ;
+
 int  ml_term_screen_set_app_keypad( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_set_normal_keypad( ml_term_screen_t *  termscr) ;
@@ -265,6 +272,8 @@ int  ml_term_screen_use_normal_image( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_use_alternative_image( ml_term_screen_t *  termscr) ;
 
+int  ml_term_screen_send_device_attr( ml_term_screen_t *  termscr) ;
+
 int  ml_term_screen_report_device_status( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_report_cursor_position( ml_term_screen_t *  termscr) ;
@@ -272,6 +281,8 @@ int  ml_term_screen_report_cursor_position( ml_term_screen_t *  termscr) ;
 int  ml_term_screen_set_window_name( ml_term_screen_t *  termscr , u_char *  name) ;
 
 int  ml_term_screen_set_icon_name( ml_term_screen_t *  termscr , u_char *  name) ;
+
+int  ml_term_screen_fill_all_with_e( ml_term_screen_t *  termscr) ;
 
 
 #endif

@@ -183,6 +183,8 @@ int  ml_window_resize( ml_window_t *  win , u_int  width , u_int  height , ml_ev
 int  ml_window_set_normal_hints( ml_window_t *  win , u_int  width_inc , u_int  height_inc ,
 	u_int  min_width , u_int  min_height) ;
 
+int  ml_window_reverse_video( ml_window_t *  win) ;
+
 void  ml_window_clear( ml_window_t *  win , int  x , int  y , u_int  width , u_int  height) ;
 
 void  ml_window_clear_all( ml_window_t *  win) ;

@@ -122,7 +122,11 @@ xct_non_iso2022_is_started(
 	}
 	else if( xct_parser->iso2022_parser.non_iso2022_cs == XCT_NON_ISO2022_CS_2)
 	{
-		if( cs_len == 6 && strncmp( cs_str , "BIG5-0" , cs_len) == 0)
+		if( cs_len == 6 && strncmp( cs_str , "big5-0" , cs_len) == 0)
+		{
+			xct_parser->cs = BIG5 ;
+		}
+		else if( cs_len == 6 && strncmp( cs_str , "BIG5-0" , cs_len) == 0)
 		{
 			/*
 			 * XXX
@@ -151,7 +155,7 @@ xct_non_iso2022_is_started(
 			
 			xct_parser->cs = BIG5 ;
 		}
-		else if( cs_len == 5 && strncmp( cs_str , "GBK-0" , cs_len) == 0)
+		else if( cs_len == 5 && strncmp( cs_str , "gbk-0" , cs_len) == 0)
 		{
 			xct_parser->cs = GBK ;
 		}

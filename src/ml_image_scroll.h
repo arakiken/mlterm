@@ -9,19 +9,17 @@
 #include  "ml_image.h"
 
 
-int  ml_image_set_scroll_region( ml_image_t *  image , int  beg , int  end) ;
+int  ml_imgscrl_scroll_upward( ml_image_t *  image , u_int  size) ;
 
-int  ml_image_scroll_upward( ml_image_t *  image , u_int  size) ;
-
-int  ml_image_scroll_downward( ml_image_t *  image , u_int  size) ;
-
-int  ml_image_insert_new_line( ml_image_t *  image) ;
-
-int  ml_image_delete_line( ml_image_t *  image) ;
+int  ml_imgscrl_scroll_downward( ml_image_t *  image , u_int  size) ;
 
 inline int  ml_is_scroll_upperlimit( ml_image_t *  image , int  row) ;
 
 inline int  ml_is_scroll_lowerlimit( ml_image_t *  image , int  row) ;
+
+int  ml_imgscrl_delete_line( ml_image_t *  image) ;
+
+int  ml_imgscrl_insert_new_line( ml_image_t *  image) ;
 
 
 #endif

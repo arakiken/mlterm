@@ -71,8 +71,10 @@ copy_lines(
 				&IMAGE_LINE(image,src_row + counter)) ;
 			if( mark_changed)
 			{
-				ml_imgline_update_change_char_index( &IMAGE_LINE(image,dst_row + counter) ,
-					0 , END_CHAR_INDEX(IMAGE_LINE(image,dst_row + counter)) , 1) ;
+				ml_imgline_update_change_char_index(
+					&IMAGE_LINE(image,dst_row + counter) , 0 ,
+					ml_imgline_end_char_index( &IMAGE_LINE(image,dst_row + counter)) ,
+					1) ;
 			}
 		}
 	}
@@ -84,8 +86,10 @@ copy_lines(
 				&IMAGE_LINE(image,src_row + counter)) ;
 			if( mark_changed)
 			{
-				ml_imgline_update_change_char_index( &IMAGE_LINE(image,dst_row + counter) ,
-					0 , END_CHAR_INDEX(IMAGE_LINE(image,dst_row + counter)) , 1) ;
+				ml_imgline_update_change_char_index(
+					&IMAGE_LINE(image,dst_row + counter) , 0 ,
+					ml_imgline_end_char_index( &IMAGE_LINE(image,dst_row + counter)) ,
+					1) ;
 			}
 		}
 	}
@@ -102,6 +106,7 @@ scroll_upward_region(
 	)
 {
 	int  counter ;
+	int  old_num_of_filled_rows ;
 
 	if( END_ROW(image) < boundary_end)
 	{
@@ -142,6 +147,7 @@ scroll_upward_region(
 	/*
 	 * resetting cursor position.
 	 */
+	 
 	if( boundary_beg <= image->cursor.row && image->cursor.row <= boundary_end)
 	{
 		if( image->cursor.row < boundary_beg + size)
@@ -155,11 +161,13 @@ scroll_upward_region(
 			image->cursor.row -= size ;
 		}
 	}
-
+	
 	/*
 	 * scrolling up in image.
 	 */
 	 
+	old_num_of_filled_rows = image->num_of_filled_rows ;
+
 	if( boundary_beg > 0)
 	{
 		/*
@@ -169,6 +177,7 @@ scroll_upward_region(
 		copy_lines( image , size , 0 , boundary_beg , 0) ;
 	}
 
+	/* sliding offset */
 	if( image->beg_line + size >= image->num_of_rows)
 	{
 		image->beg_line = (image->beg_line + size) - image->num_of_rows ;
@@ -186,11 +195,32 @@ scroll_upward_region(
 		 */
 		copy_lines( image , boundary_end + 1 , boundary_end + 1 - size ,
 			END_ROW(image) - boundary_end , 0) ;
+
+		/* num_of_filled_rows value doesn't change */
+	}
+	else if( boundary_end == END_ROW(image))
+	{
+		image->num_of_filled_rows -= size ;
 	}
 
-	for( counter = boundary_end - size + 1 ; counter <= boundary_end ; counter ++)
+	/*
+	 * clearing
+	 */
+	 
+	for( counter = image->num_of_filled_rows ; counter < old_num_of_filled_rows ; counter ++)
 	{
-		ml_imgline_clear( &IMAGE_LINE(image,counter) , &image->sp_ch) ;
+		ml_imgline_reset( &IMAGE_LINE(image,counter)) ;
+
+		/*
+		 * this is necessary because lines between old_num_of_filled_rows and
+		 * num_of_filled_rows are cleared above but not cleared in window.
+		 */
+		ml_imgline_set_modified( &IMAGE_LINE(image,counter)) ;
+	}
+
+	for( ; counter < image->num_of_rows ; counter ++)
+	{
+		ml_imgline_reset( &IMAGE_LINE(image,counter)) ;
 	}
 
 	/*
@@ -221,6 +251,11 @@ scroll_downward_region(
 {
 	int  counter ;
 	
+	if( END_ROW(image) < boundary_end)
+	{
+		boundary_end = END_ROW(image) ;
+	}
+	
 	if( boundary_beg + size > boundary_end)
 	{
 		/*
@@ -238,16 +273,15 @@ scroll_downward_region(
 		if( image->cursor.row + size >= boundary_end + 1)
 		{
 			image->cursor.row = boundary_end ;
-			image->cursor.char_index = END_CHAR_INDEX(IMAGE_LINE(image,boundary_end)) ;
-			image->cursor.col = ml_convert_char_index_to_col( image , boundary_end ,
-				image->cursor.char_index , 0) ;
+			image->cursor.char_index = 0 ;
+			image->cursor.col = 0 ;
 		}
 		else
 		{
 			image->cursor.row += size ;
 		}
 	}
-
+	
 	/*
 	 * scrolling down in image.
 	 */
@@ -260,11 +294,12 @@ scroll_downward_region(
 		 */
 		copy_lines( image , boundary_end + 1 - size ,
 			boundary_end + 1 , END_ROW(image) - boundary_end , 0) ;
+
+		/* num_of_filled_rows value doesn't change */
 	}
-	else if( boundary_end > END_ROW(image))
+	else if( boundary_end == END_ROW(image))
 	{
-		image->num_of_filled_rows =
-			K_MIN(image->num_of_filled_rows + size , boundary_end + 1) ;
+		image->num_of_filled_rows = K_MIN(image->num_of_filled_rows + size,image->num_of_rows) ;
 	}
 
 	if( image->beg_line < size)
@@ -285,9 +320,18 @@ scroll_downward_region(
 		copy_lines( image , 0 , size , boundary_beg , 0) ;
 	}
 
+	/*
+	 * clearing
+	 */
+	
 	for( counter = boundary_beg ; counter < boundary_beg + size ; counter ++)
 	{
-		ml_imgline_clear( &IMAGE_LINE(image,counter) , &image->sp_ch) ;
+		ml_imgline_clear( &IMAGE_LINE(image,counter) , 0 , &image->sp_ch) ;
+	}
+
+	for( counter = image->num_of_filled_rows ; counter < image->num_of_rows ; counter ++)
+	{
+		ml_imgline_reset( &IMAGE_LINE(image,counter)) ;
 	}
 	
 	/*
@@ -312,20 +356,7 @@ scroll_downward_region(
 /* --- global functions --- */
 
 int
-ml_image_set_scroll_region(
-	ml_image_t *  image ,
-	int  beg ,
-	int  end
-	)
-{
-	image->scroll_region_beg = beg ;
-	image->scroll_region_end = end ;
-
-	return  1 ;
-}
-
-int
-ml_image_scroll_upward(
+ml_imgscrl_scroll_upward(
 	ml_image_t *  image ,
 	u_int  size
 	)
@@ -334,7 +365,7 @@ ml_image_scroll_upward(
 }
 
 int
-ml_image_scroll_downward(
+ml_imgscrl_scroll_downward(
 	ml_image_t *  image ,
 	u_int  size
 	)
@@ -342,12 +373,26 @@ ml_image_scroll_downward(
 	return  scroll_downward_region( image , image->scroll_region_beg , image->scroll_region_end , size) ;
 }
 
-/*
- * XXX
- * this shoule be ml_image_insert_new_lines(ml_image_t * , u_int).
- */
+inline int
+ml_is_scroll_upperlimit(
+	ml_image_t *  image ,
+	int  row
+	)
+{
+	return  (row == image->scroll_region_beg) ;
+}
+
+inline int
+ml_is_scroll_lowerlimit(
+	ml_image_t *  image ,
+	int  row
+	)
+{
+	return  (row == image->scroll_region_end) ;
+}
+
 int
-ml_image_insert_new_line(
+ml_imgscrl_insert_new_line(
 	ml_image_t *  image
 	)
 {
@@ -386,12 +431,8 @@ ml_image_insert_new_line(
 	return  1 ;
 }
 
-/*
- * XXX
- * this should be ml_image_insert_delete_lines(ml_image_t * , u_int).
- */
 int
-ml_image_delete_line(
+ml_imgscrl_delete_line(
 	ml_image_t *  image
 	)
 {
@@ -415,22 +456,4 @@ ml_image_delete_line(
 	}
 	
 	return  1 ;
-}
-
-inline int
-ml_is_scroll_upperlimit(
-	ml_image_t *  image ,
-	int  row
-	)
-{
-	return  (row == image->scroll_region_beg) ;
-}
-
-inline int
-ml_is_scroll_lowerlimit(
-	ml_image_t *  image ,
-	int  row
-	)
-{
-	return  (row == image->scroll_region_end) ;
 }

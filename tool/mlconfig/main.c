@@ -199,7 +199,6 @@ show(
 	)
 {
 	GtkWidget *  window ;
-	GtkWidget *  notebook ;
 	GtkWidget *  frame ;
 	GtkWidget *  label ;
 	GtkWidget *  vbox ;
@@ -213,27 +212,19 @@ show(
 	gtk_signal_connect(GTK_OBJECT(window) , "delete_event" ,
 		GTK_SIGNAL_FUNC(end_application) , NULL) ;
 	gtk_window_set_title(GTK_WINDOW(window) , "mlterm configuration") ;
-	gtk_container_set_border_width(GTK_CONTAINER(window) , 10) ;
+	gtk_container_set_border_width(GTK_CONTAINER(window) , 0) ;
 	gtk_widget_show(window) ;
 	gdk_window_move(window->window , x , y) ;
-	
-	notebook = gtk_notebook_new() ;
-	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(notebook) , GTK_POS_TOP) ;
-	gtk_widget_show(notebook) ;
-	
-	gtk_container_add(GTK_CONTAINER(window) , notebook) ;
-	
-	label = gtk_label_new("mlterm") ;
-	gtk_widget_show(label) ;
 
-	frame = gtk_frame_new("current setting") ;
-	gtk_container_set_border_width(GTK_CONTAINER(frame) , 5) ;
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , frame , label) ;
+	frame = gtk_frame_new("mlterm configuration") ;
 	gtk_widget_show(frame) ;
+	gtk_container_set_border_width(GTK_CONTAINER(frame) , 5) ;
+	gtk_container_add(GTK_CONTAINER(window) , frame) ;
 	
-	vbox = gtk_vbox_new(FALSE , 5) ;
+	vbox = gtk_vbox_new( FALSE , 2) ;
 	gtk_widget_show(vbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , vbox) ;
+
 	
 	if( ( config_widget = mc_encoding_config_widget_new(cur_encoding)) == NULL)
 	{
@@ -352,8 +343,8 @@ show(
 	}
 	gtk_widget_show(config_widget) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , TRUE , TRUE , 0) ;
-
 	
+
 	hbox = gtk_hbox_new(FALSE , 5) ;
 	gtk_widget_show(hbox) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
@@ -372,50 +363,50 @@ show(
 	separator = gtk_hseparator_new() ;
 	gtk_widget_show(separator) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , separator , FALSE , FALSE , 0) ;
-
+	
 
 	hbox = gtk_hbox_new(FALSE , 5) ;
 	gtk_widget_show(hbox) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
+	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 2) ;
 
 	label = gtk_label_new( "Change  Font  Size") ;
 	gtk_widget_show(label) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 2) ;
-	
+	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 5) ;
+
 	button = gtk_button_new_with_label("larger") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "pressed" , GTK_SIGNAL_FUNC(larger_pressed) , NULL) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 2) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
 
 	button = gtk_button_new_with_label("smaller") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "pressed" , GTK_SIGNAL_FUNC(smaller_pressed) , NULL) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 2) ;
-	
+	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
 
-	separator = gtk_hseparator_new() ;
-	gtk_widget_show(separator) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , separator , FALSE , FALSE , 0) ;
+	
+        separator = gtk_hseparator_new() ;
+        gtk_widget_show(separator) ;
+        gtk_box_pack_start(GTK_BOX(vbox) , separator , FALSE , FALSE , 0) ;
 
 
 	hbox = gtk_hbox_new(FALSE , 5) ;
 	gtk_widget_show(hbox) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
+	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 2) ;
 	
 	label = gtk_label_new( "Change Wall Picture") ;
 	gtk_widget_show(label) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 2) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 5) ;
 	
 	button = gtk_button_new_with_label( "select") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect_object(GTK_OBJECT(button) ,
 		"pressed" , GTK_SIGNAL_FUNC(wall_pic_pressed) , GTK_OBJECT(window)) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 2) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
 
 	button = gtk_button_new_with_label( "off") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "pressed" , GTK_SIGNAL_FUNC(no_wall_pic_pressed) , NULL) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 2) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
 
 
 	gtk_main() ;

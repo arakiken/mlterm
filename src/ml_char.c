@@ -196,6 +196,25 @@ ml_str_copy(
 	return  1 ;
 }
 
+u_int
+ml_str_cols(
+	ml_char_t *  chars ,
+	u_int  len
+	)
+{
+	int  counter ;
+	u_int  cols ;
+
+	cols = 0 ;
+
+	for( counter = 0 ; counter < len ; counter ++)
+	{
+		cols += ml_char_cols( &chars[counter]) ;
+	}
+
+	return  cols ;
+}
+
 #ifdef  DEBUG
 
 void
@@ -682,7 +701,7 @@ ml_char_is_reversed(
 
 #ifdef  DEBUG
 
-#if  1
+#if  0
 #define  DUMP_HEX
 #endif
 

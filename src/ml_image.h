@@ -13,13 +13,6 @@
 #include  "ml_image_line.h"
 
 
-enum
-{
-	WRAPAROUND   = 0x01 ,
-	BREAK_BOUNDARY = 0x02 ,
-	SCROLL         = 0x04 ,
-} ;
-
 typedef struct  ml_cursor
 {
 	int  row ;
@@ -114,6 +107,10 @@ int  ml_image_overwrite_chars( ml_image_t *  image , ml_char_t *  chars , u_int 
 
 int  ml_image_delete_cols( ml_image_t *  image , u_int  delete_len) ;
 
+int  ml_image_insert_new_line( ml_image_t *  image) ;
+
+int  ml_image_delete_line( ml_image_t *  image) ;
+
 int  ml_image_clear_line_to_right( ml_image_t *  image) ;
 
 int  ml_image_clear_line_to_left( ml_image_t *  image) ;
@@ -121,6 +118,12 @@ int  ml_image_clear_line_to_left( ml_image_t *  image) ;
 int  ml_image_clear_below( ml_image_t *  image) ;
 
 int  ml_image_clear_above( ml_image_t *  image) ;
+
+int  ml_image_set_scroll_region( ml_image_t *  image , int  beg , int  end) ;
+
+int  ml_image_scroll_upward( ml_image_t *  image , u_int  size) ;
+
+int  ml_image_scroll_downward( ml_image_t *  image , u_int  size) ;
 
 int  ml_image_vertical_tab( ml_image_t *  image) ;
 
@@ -174,6 +177,8 @@ inline u_int ml_image_get_cols( ml_image_t *  image) ;
 
 inline u_int ml_image_get_rows( ml_image_t *  image) ;
 
+int  ml_image_fill_all( ml_image_t *  image , ml_char_t *  ch) ;
+	
 #ifdef  DEBUG
 
 void  ml_image_dump( ml_image_t *  image) ;

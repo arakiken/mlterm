@@ -30,7 +30,7 @@ mc_combo_new(
 
 	label = gtk_label_new(label_name) ;
 	gtk_widget_show(label) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 2) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 5) ;
 
 	items = NULL ;
 	item_found = 0 ;

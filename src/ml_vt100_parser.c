@@ -196,7 +196,7 @@ flush_buffer(
 	{
 		int  counter ;
 
-		fprintf( stderr , "\nflushing chars(%d)...==>\n" , buffer->len) ;
+		fprintf( stderr , "\nflushing chars(%d)...==>" , buffer->len) ;
 		for( counter = 0 ; counter < buffer->len ; counter ++)
 		{
 			if( ml_char_size( &buffer->chars[counter]) == 2)
@@ -228,6 +228,10 @@ flush_buffer(
 	(*buffer->output_func)( vt100_parser->termscr , buffer->chars , buffer->len) ;
 
 	clear_buffer( vt100_parser) ;
+
+#ifdef __DEBUG
+	ml_image_dump( vt100_parser->termscr->image) ;
+#endif
 
 	return  1 ;
 }
@@ -641,10 +645,6 @@ scroll_down(
 	flush_buffer( vt100_parser) ;
 	
 	ml_term_screen_scroll_image_downward( vt100_parser->termscr , 1) ;
-	
-	/* ml_term_screen_goto_home( vt100_parser->termscr) ; */
-	ml_term_screen_go_upward( vt100_parser->termscr , 1) ;
-	ml_term_screen_goto_beg_of_line( vt100_parser->termscr) ;
 }
 
 static void
@@ -655,10 +655,6 @@ scroll_up(
 	flush_buffer( vt100_parser) ;
 
 	ml_term_screen_scroll_image_upward( vt100_parser->termscr , 1) ;
-
-	/* ml_term_screen_goto_home( vt100_parser->termscr) ; */
-	ml_term_screen_go_upward( vt100_parser->termscr , 1) ;
-	ml_term_screen_goto_beg_of_line( vt100_parser->termscr) ;
 }
 
 static int
@@ -698,7 +694,7 @@ parse_vt100_escape_sequence(
 	while( 1)
 	{
 		if( *str_p == CTLKEY_ESC)
-		{
+		{			
 			if( increment_str( &str_p , &left) == 0)
 			{
 				return  0 ;
@@ -714,6 +710,18 @@ parse_vt100_escape_sequence(
 				kik_warn_printf( KIK_DEBUG_TAG " illegal escape sequence ESC - 0x%x.\n" , 
 					*str_p) ;
 			#endif
+			}
+			else if( *str_p == '#')
+			{
+				if( increment_str( &str_p , &left) == 0)
+				{
+					return  0 ;
+				}
+
+				if( *str_p == '8')
+				{
+					ml_term_screen_fill_all_with_e( vt100_parser->termscr) ;
+				}
 			}
 			else if( *str_p == '7')
 			{
@@ -770,6 +778,23 @@ parse_vt100_escape_sequence(
 				/* index(scroll up) */
 
 				scroll_up( vt100_parser) ;
+			}
+			else if( *str_p == 'E')
+			{
+				/* next line */
+				
+				flush_buffer( vt100_parser) ;
+				ml_term_screen_line_feed( vt100_parser->termscr) ;
+				ml_term_screen_goto_beg_of_line( vt100_parser->termscr) ;
+			}
+			else if( *str_p == 'F')
+			{
+				/* cursor to lower left corner of screen */
+
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" cursor to lower left corner is not implemented.\n") ;
+			#endif
 			}
 			else if( *str_p == 'H')
 			{
@@ -834,7 +859,6 @@ parse_vt100_escape_sequence(
 					return  0 ;
 				}
 
-				is_dec_priv = 0 ; 
 				if( *str_p == '?')
 				{
 				#ifdef  ESCSEQ_DEBUG
@@ -848,50 +872,74 @@ parse_vt100_escape_sequence(
 						return  0 ;
 					}
 				}
+				else
+				{
+					is_dec_priv = 0 ;
+				}
 
 				num = 0 ;
-
-				while( '0' <= *str_p && *str_p <= '9')
+				while( num < 5)
 				{
-					int  counter ;
-					u_char  digit[10] ;
-
-					counter = 0 ;
-					do
+					if( '0' <= *str_p && *str_p <= '9')
 					{
-						digit[counter++] = *str_p ;
+						u_char  digit[20] ;
+						int  counter ;
 
-						if( increment_str( &str_p , &left) == 0)
+						digit[0] = *str_p ;
+
+						for( counter = 1 ; counter < 19 ; counter ++)
 						{
-							return  0 ;
+							if( increment_str( &str_p , &left) == 0)
+							{
+								return  0 ;
+							}
+
+							if( *str_p < '0' || '9' < *str_p)
+							{
+								break ;
+							}
+							
+							digit[counter] = *str_p ;
 						}
-					}
-					while( '0' <= *str_p && *str_p <= '9') ;
 
-					digit[counter] = '\0' ;
+						digit[counter] = '\0' ;
 
-					/* if digit is illegal , ps[num] is set 0. */
-					ps[num++] = atoi( digit) ;
+						ps[num ++] = atoi( digit) ;
 
-				#ifdef  ESCSEQ_DEBUG
-					fprintf( stderr , "%d - " , ps[num - 1]) ;
-				#endif
-
-					if( *str_p == ';')
-					{
 					#ifdef  ESCSEQ_DEBUG
-						fprintf( stderr , "%c - " , *str_p) ;
+						fprintf( stderr , "%d - " , ps[num - 1]) ;
 					#endif
 
-						if( increment_str( &str_p , &left) == 0)
+						if( *str_p != ';')
 						{
-							return  0 ;
+							break ;
 						}
+					}
+					else if( *str_p == ';')
+					{
+						ps[num ++] = 0 ;
 					}
 					else
 					{
 						break ;
 					}
+					
+				#ifdef  ESCSEQ_DEBUG
+					fprintf( stderr , "; - ") ;
+				#endif
+				
+					if( increment_str( &str_p , &left) == 0)
+					{
+						return  0 ;
+					}
+				}
+
+				/*
+				 * ingoring end 0 numbers.
+				 */
+				while( num > 0 && ps[num - 1] == 0)
+				{
+					num -- ;
 				}
 
 			#ifdef  ESCSEQ_DEBUG
@@ -916,7 +964,7 @@ parse_vt100_escape_sequence(
 				}
 				else if( is_dec_priv)
 				{
-					/* DEC private mode(not supported) */
+					/* DEC private mode */
 
 					if( *str_p == 'h')
 					{
@@ -925,6 +973,16 @@ parse_vt100_escape_sequence(
 						if( ps[0] == 1)
 						{
 							ml_term_screen_set_app_cursor_keys(
+								vt100_parser->termscr) ;
+						}
+						else if( ps[0] == 3)
+						{
+							ml_term_screen_resize_columns(
+								vt100_parser->termscr , 132) ;
+						}
+						else if( ps[0] == 5)
+						{
+							ml_term_screen_reverse_video(
 								vt100_parser->termscr) ;
 						}
 						else if( ps[0] == 47)
@@ -961,6 +1019,16 @@ parse_vt100_escape_sequence(
 						if( ps[0] == 1)
 						{
 							ml_term_screen_set_normal_cursor_keys(
+								vt100_parser->termscr) ;
+						}
+						else if( ps[0] == 3)
+						{
+							ml_term_screen_resize_columns(
+								vt100_parser->termscr , 80) ;
+						}
+						else if( ps[0] == 5)
+						{
+							ml_term_screen_restore_video(
 								vt100_parser->termscr) ;
 						}
 						else if( ps[0] == 47)
@@ -1228,10 +1296,7 @@ parse_vt100_escape_sequence(
 					{
 						/* send device attributes */
 
-					#ifdef  DEBUG
-						kik_warn_printf( KIK_DEBUG_TAG
-							" ESC - [ - c is not implemented.\n") ;
-					#endif
+						ml_term_screen_send_device_attr( vt100_parser->termscr) ;
 					}
 					else if( *str_p == 'd')
 					{
@@ -1524,20 +1589,6 @@ parse_vt100_escape_sequence(
 		str_p ++ ;
 		
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " parse vt100_parser escape sequence[left %d -> %d] " ,
-			vt100_parser->left , left) ;
-		
-		{
-			int  counter ;
-			for( counter = 0 ; counter < vt100_parser->left - left ; counter ++)
-			{
-				fprintf( stderr , "%.2x" , *(vt100_parser->seq + counter)) ;
-			}
-			fprintf( stderr , "\n") ;
-		}
-		
-		flush_buffer( vt100_parser) ;
-
 		kik_debug_printf( KIK_DEBUG_TAG " --> dumping\n") ;
 		ml_image_dump( vt100_parser->termscr->image) ;
 	#endif

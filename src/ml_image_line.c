@@ -4,12 +4,27 @@
 
 #include  "ml_image_line.h"
 
+#include  <stdio.h>			/* fprintf */
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_str.h>		/* strdup */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>
 
 #include  "ml_bidi.h"
+
+
+#ifdef  DEBUG
+
+#define  END_CHAR_INDEX(line) \
+	( (line)->num_of_filled_chars == 0 && \
+		kik_warn_printf( "END_CHAR_INDEX()[" __FUNCTION__  "] num_of_filled_chars is 0.\n") ? \
+		0 : (line)->num_of_filled_chars - 1 )
+
+#else
+
+#define  END_CHAR_INDEX(line)  ((line)->num_of_filled_chars - 1)
+
+#endif
 
 
 /* --- static variables --- */
@@ -84,26 +99,6 @@ ml_free_word_separators(void)
 }
 
 
-u_int
-ml_get_cols_of(
-	ml_char_t *  chars ,
-	u_int  len
-	)
-{
-	int  counter ;
-	u_int  cols ;
-
-	cols = 0 ;
-
-	for( counter = 0 ; counter < len ; counter ++)
-	{
-		cols += ml_char_cols( &chars[counter]) ;
-	}
-
-	return  cols ;
-}
-
-
 int
 ml_imgline_init(
 	ml_image_line_t *  line ,
@@ -156,6 +151,58 @@ ml_imgline_final(
 	return  1 ;
 }
 
+/*
+ * return: actually broken rows.
+ */
+u_int
+ml_imgline_break_boundary(
+	ml_image_line_t *  line ,
+	u_int  size ,
+	ml_char_t *  sp_ch
+	)
+{
+	int  counter ;
+
+	if( line->num_of_filled_chars + size > line->num_of_chars)
+	{
+		/* over line length */
+
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " it failed to break from col %d by size %d" ,
+			END_CHAR_INDEX(line) , size) ;
+	#endif
+
+		size = line->num_of_chars - line->num_of_filled_chars ;
+
+	#ifdef  DEBUG
+		fprintf( stderr , " ... size modified -> %d\n" , size) ;
+	#endif
+	}
+
+	if( size == 0)
+	{
+		/* nothing is done */
+		
+		return  0 ;
+	}
+
+	/* padding spaces */
+	for( counter = line->num_of_filled_chars ; counter < line->num_of_filled_chars + size ;
+		counter ++)
+	{
+		ml_char_copy( &line->chars[counter] , sp_ch) ;
+	}
+
+	line->num_of_filled_chars += size ;
+	line->num_of_filled_cols += ( ml_char_cols(sp_ch) * size) ;
+
+	/*
+	 * change char index is not updated , because space has no glyph.
+	 */
+
+	return  size ;
+}
+
 int
 ml_imgline_reset(
 	ml_image_line_t *  line
@@ -178,14 +225,194 @@ ml_imgline_reset(
 int
 ml_imgline_clear(
 	ml_image_line_t *  line ,
+	int  char_index ,
 	ml_char_t *  sp_ch
 	)
 {
-	ml_imgline_reset( line) ;
+	if( char_index == 0)
+	{
+		ml_imgline_reset( line) ;
+
+		ml_char_copy( &line->chars[0] , sp_ch) ;
+		line->num_of_filled_chars = 1 ;
+		line->num_of_filled_cols = 1 ;
+	}
+	else
+	{
+		if( char_index >= line->num_of_filled_chars)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " nothing is cleared.\n") ;
+		#endif
+
+			return  1 ;
+		}
+
+		ml_char_copy( &line->chars[char_index] , sp_ch) ;
+		line->num_of_filled_chars = char_index + 1 ;
+		line->num_of_filled_cols = ml_str_cols( line->chars , line->num_of_filled_chars) ;
+
+		ml_imgline_update_change_char_index( line , char_index , END_CHAR_INDEX(line) , 1) ;
+	}
 	
-	ml_char_copy( &line->chars[0] , sp_ch) ;
-	line->num_of_filled_chars = 1 ;
+	return  1 ;
+}
+
+int
+ml_imgline_overwrite_chars(
+	ml_image_line_t *  line ,
+	int  change_char_index ,
+	ml_char_t *  chars ,
+	u_int  len ,
+	u_int  cols ,
+	ml_char_t *  sp_ch
+	)
+{
+	int  counter ;
+	int  char_index ;
+	u_int  cols_rest ;
+	u_int  padding ;
+	u_int  new_len ;
+	u_int  copy_len ;
+
+	if( cols >= line->num_of_filled_cols || ml_imgline_is_empty( line))
+	{
+		return  ml_imgline_overwrite_all( line , change_char_index , chars , len , cols) ;
+	}
+
+	/* trying to delete from pos 0 to the pos just before this char_index */
+	char_index = ml_convert_col_to_char_index( line , &cols_rest , cols , 0) ;
+
+	if( char_index == END_CHAR_INDEX(line) && cols_rest >= 1)
+	{
+		return  ml_imgline_overwrite_all( line , change_char_index , chars , len , cols) ;
+	}
+
+	if( 1 <= cols_rest && cols_rest < ml_char_cols( &line->chars[char_index]))
+	{
+		padding = ml_char_cols( &line->chars[char_index]) - cols_rest ;
+		char_index ++ ;
+	}
+	else
+	{
+		padding = 0 ;
+	}
+
+	copy_len = line->num_of_filled_chars - char_index ;
+	new_len = len + padding + copy_len ;
+	if( new_len > line->num_of_chars)
+	{
+	#ifdef DEBUG
+		kik_warn_printf(
+			KIK_DEBUG_TAG " line length %d(ow %d copy %d) after overwriting is overflowed\n" ,
+			new_len , len , copy_len) ;
+	#endif
+		
+		new_len = line->num_of_chars ;
+
+	#ifdef  DEBUG
+		if( new_len < padding + copy_len)
+		{
+			kik_error_printf( KIK_DEBUG_TAG "\n") ;
+
+			abort() ;
+		}
+	#endif
+		
+		len = new_len - padding - copy_len ;
+
+	#ifdef  DEBUG
+		fprintf( stderr , " ... modified -> new_len %d , ow len %d\n" , new_len , len) ;
+	#endif
+	}
+
+	ml_str_copy( &line->chars[len + padding] , &line->chars[char_index] , copy_len) ;
+
+	for( counter = 0 ; counter < padding ; counter ++)
+	{
+		ml_char_copy( &line->chars[len + counter] , sp_ch) ;
+	}
+
+	ml_str_copy( line->chars , chars , len) ;
+
+	line->num_of_filled_chars = new_len ;
 	
+	/*
+	 * reculculating width...
+	 */
+	 
+	for( counter = len ; counter <= END_CHAR_INDEX(line) ; counter ++)
+	{
+		cols += ml_char_cols( &line->chars[counter]) ;
+	}
+
+	if( line->num_of_filled_cols > cols)
+	{
+		ml_imgline_update_change_char_index( line , change_char_index ,
+			K_MAX(change_char_index,END_CHAR_INDEX(line)) , 1) ;
+	}
+	else
+	{
+		ml_imgline_update_change_char_index( line , change_char_index ,
+			K_MAX(change_char_index,len - 1) , 0) ;
+	}
+
+	line->num_of_filled_cols = cols ;
+
+	return  1 ;
+}
+
+int
+ml_imgline_overwrite_all(
+	ml_image_line_t *  line ,
+	int  change_char_index ,
+	ml_char_t *  chars ,
+	int  len ,
+	u_int  cols
+	)
+{
+	ml_str_copy( line->chars , chars , len) ;
+
+	line->num_of_filled_chars = len ;
+
+	if( line->num_of_filled_cols > cols)
+	{
+		ml_imgline_update_change_char_index( line , change_char_index , END_CHAR_INDEX(line) , 1) ;
+	}
+	else
+	{
+		ml_imgline_update_change_char_index( line , change_char_index , END_CHAR_INDEX(line) , 0) ;
+	}
+	
+	line->num_of_filled_cols = cols ;
+
+	return  1 ;
+}
+
+int
+ml_imgline_fill_all(
+	ml_image_line_t *  line ,
+	ml_char_t *  ch ,
+	u_int  num
+	)
+{
+	int  char_index ;
+	int  cols ;
+
+	num = K_MIN(num,line->num_of_chars) ;
+
+	cols = 0 ;
+	for( char_index = 0 ; char_index < num ; char_index ++)
+	{
+		ml_char_copy( &line->chars[char_index] , ch) ;
+		cols += ml_char_cols( ch) ;
+	}
+
+	line->num_of_filled_chars = char_index ;
+	line->num_of_filled_cols = cols ;
+
+	ml_imgline_set_modified( line) ;
+
 	return  1 ;
 }
 
@@ -241,7 +468,7 @@ ml_imgline_set_modified(
 	}
 	else
 	{
-		ml_imgline_update_change_char_index( line , 0 , END_CHAR_INDEX(*line) , 1) ;
+		ml_imgline_update_change_char_index( line , 0 , END_CHAR_INDEX(line) , 1) ;
 	}
 }
 
@@ -264,7 +491,7 @@ ml_imgline_get_beg_of_modified(
 	}
 	else
 	{
-		return  K_MIN(line->change_beg_char_index,END_CHAR_INDEX(*line)) ;
+		return  K_MIN(line->change_beg_char_index,END_CHAR_INDEX(line)) ;
 	}
 }
 
@@ -279,9 +506,149 @@ ml_imgline_get_num_of_redrawn_chars(
 	}
 	else
 	{
-		return  K_MIN(line->change_end_char_index,END_CHAR_INDEX(*line)) -
-			K_MIN(line->change_beg_char_index,END_CHAR_INDEX(*line)) + 1 ;
+		return  K_MIN(line->change_end_char_index,END_CHAR_INDEX(line)) -
+			K_MIN(line->change_beg_char_index,END_CHAR_INDEX(line)) + 1 ;
 	}
+}
+
+/*
+ * used in ml_image/ml_image_scroll
+ */
+int
+ml_convert_char_index_to_col(
+	ml_image_line_t *  line ,
+	int  char_index ,
+	int  flag		/* BREAK_BOUNDARY */
+	)
+{
+	int  counter ;
+	int  col ;
+
+	if( line->num_of_filled_chars == 0)
+	{
+		return  0 ;
+	}
+
+#ifdef  DEBUG
+	if( char_index >= line->num_of_chars)
+	{
+		/* this must never happen */
+		
+		kik_warn_printf( KIK_DEBUG_TAG
+			" char index %d is larger than num_of_chars(%d)\n" ,
+			char_index , line->num_of_chars) ;
+			
+		abort() ;
+	}
+#endif
+	
+	col = 0 ;
+
+	if( (flag & BREAK_BOUNDARY) && line->num_of_filled_chars <= char_index)
+	{
+		for( counter = 0 ; counter < line->num_of_filled_chars ; counter ++)
+		{
+		#ifdef  DEBUG
+			if( ml_char_cols( &line->chars[counter]) == 0)
+			{
+				kik_warn_printf( KIK_DEBUG_TAG " ml_char_cols returns 0.\n") ;
+			
+				continue ;
+			}
+		#endif
+		
+			col += ml_char_cols( &line->chars[counter]) ;
+		}
+
+		col += (char_index - counter) ;
+	}
+	else
+	{
+		/*
+		 * excluding the width of the last char.
+		 */
+		for( counter = 0 ; counter < K_MIN(char_index,END_CHAR_INDEX(line)) ; counter ++)
+		{
+		#ifdef  DEBUG
+			if( ml_char_cols( &line->chars[counter]) == 0)
+			{
+				kik_warn_printf( KIK_DEBUG_TAG " ml_char_cols returns 0.\n") ;
+				
+				continue ;
+			}
+		#endif
+
+			col += ml_char_cols( &line->chars[counter]) ;
+		}
+	}
+
+	return  col ;
+}
+
+/*
+ * used in ml_image.
+ */
+int
+ml_convert_col_to_char_index(
+	ml_image_line_t *  line ,
+	int *  cols_rest ,
+	int  col ,
+	int  flag	/* BREAK_BOUNDARY */
+	)
+{
+	int  char_index ;
+
+	if( line->num_of_filled_chars == 0)
+	{
+		return  0 ;
+	}
+	
+#ifdef  DEBUG
+	if( col >= line->num_of_chars)
+	{
+		/* this must never happen */
+		
+		kik_warn_printf( KIK_DEBUG_TAG " col %d is larger than num_of_chars(%d)" ,
+			col , line->num_of_chars) ;
+
+		abort() ;
+	}
+#endif
+
+	char_index = 0 ;
+	
+	for( ; char_index < END_CHAR_INDEX(line) ; char_index ++)
+	{
+		if( col < ml_char_cols( &line->chars[char_index]))
+		{
+			goto  end ;
+		}
+
+		col -= ml_char_cols( &line->chars[char_index]) ;
+	}
+
+	if( col < ml_char_cols( &line->chars[char_index]))
+	{
+		goto  end ;
+	}
+	else if( flag & BREAK_BOUNDARY)
+	{
+		col -= ml_char_cols( &line->chars[char_index++]) ;
+		
+		while( col > 0)
+		{
+			col -- ;
+			char_index ++ ;
+		}
+	}
+
+end:
+	if( cols_rest != NULL)
+	{
+		*cols_rest = col ;
+	}
+
+	return  char_index ;
 }
 
 int
@@ -293,9 +660,9 @@ ml_convert_char_index_to_x(
 	int  counter ;
 	int  x ;
 
-	if( char_index > END_CHAR_INDEX(*line))
+	if( char_index > END_CHAR_INDEX(line))
 	{
-		char_index = END_CHAR_INDEX(*line) ;
+		char_index = END_CHAR_INDEX(line) ;
 	}
 
 	/*
@@ -319,7 +686,7 @@ ml_convert_x_to_char_index(
 {
 	int  counter ;
 	
-	for( counter = 0 ; counter < END_CHAR_INDEX(*line) ; counter ++)
+	for( counter = 0 ; counter < END_CHAR_INDEX(line) ; counter ++)
 	{
 		if( x < ml_char_width( &line->chars[counter]))
 		{
@@ -343,7 +710,7 @@ ml_imgline_reverse_color(
 	int  char_index
 	)
 {
-	if( char_index > END_CHAR_INDEX(*line))
+	if( char_index > END_CHAR_INDEX(line))
 	{
 		return  0 ;
 	}
@@ -361,7 +728,7 @@ ml_imgline_restore_color(
 	int  char_index
 	)
 {
-	if( char_index > END_CHAR_INDEX(*line))
+	if( char_index > END_CHAR_INDEX(line))
 	{
 		return  0 ;
 	}
@@ -393,12 +760,14 @@ ml_imgline_copy_line(
 	}
 	else
 	{
-		dst->num_of_filled_cols = ml_get_cols_of( dst->chars , dst->num_of_filled_chars) ;
+		dst->num_of_filled_cols = ml_str_cols( dst->chars , dst->num_of_filled_chars) ;
 	}
 
+	dst->is_modified = src->is_modified ;
 	dst->change_beg_char_index = src->change_beg_char_index ;
 	dst->change_end_char_index = src->change_end_char_index ;
-	dst->is_modified = src->is_modified ;
+	dst->is_cleared_to_end = src->is_cleared_to_end ;
+
 	dst->is_continued_to_next = src->is_continued_to_next ;
 	dst->is_bidi = src->is_bidi ;
 
@@ -444,6 +813,25 @@ ml_imgline_share(
 	return  1 ;
 }
 
+inline int
+ml_imgline_end_char_index(
+	ml_image_line_t *  line
+	)
+{
+	if( line->num_of_filled_chars == 0)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " num_of_filled_chars is 0.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+	else
+	{
+		return  line->num_of_filled_chars - 1 ;
+	}
+}
+
 int
 ml_imgline_is_empty(
 	ml_image_line_t *  line
@@ -460,7 +848,7 @@ ml_get_num_of_filled_chars_except_end_space(
 	ml_char_t *  ch ;
 	int  char_index ;
 
-	for( char_index = END_CHAR_INDEX(*line) ; char_index >= 0 ; char_index --)
+	for( char_index = END_CHAR_INDEX(line) ; char_index >= 0 ; char_index --)
 	{
 		ch = &line->chars[char_index] ;
 		
@@ -535,7 +923,7 @@ ml_imgline_get_word_pos(
 			break ;
 		}
 
-		if( char_index == END_CHAR_INDEX(*line))
+		if( char_index == END_CHAR_INDEX(line))
 		{
 			*end_char_index = char_index ;
 
@@ -635,7 +1023,7 @@ ml_imgline_start_bidi(
 	
 	if( ! line->visual_order)
 	{
-	#ifdef  DEBUG
+	#ifdef  __DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " visual bidi failed..\n") ;
 	#endif
 
@@ -677,7 +1065,10 @@ ml_imgline_start_bidi(
 		ml_char_copy( &line->chars[line->visual_order[counter]] , &src[counter]) ;
 	}
 
-	ml_imgline_set_modified( line) ;
+	if( line->is_modified)
+	{
+		ml_imgline_set_modified( line) ;
+	}
 
 	line->is_bidi = 1 ;
 
