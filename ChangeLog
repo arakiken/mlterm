@@ -1,3 +1,7 @@
+2003-10-12  Araki Ken  <arakiken@users.sf.net>
+
+	* mlmenu/main.c: ~/.mlterm/menu couldn't be loaded correctly. Fixed.
+
 2003-10-11  Araki Ken  <arakiken@users.sf.net>
 
 	* Renamed font_custom and color_custom to font_config and font_custom.

@@ -6,12 +6,20 @@
 #include  <unistd.h>	/* read */
 #include  <stdlib.h>	/* malloc */
 #include  <string.h>
-#include  <X11/Xlib.h>
-#include  <X11/Xutil.h>
 #include  <sys/stat.h>
 #include  <fcntl.h>	/* open */
+#include  <X11/Xlib.h>
+#include  <X11/Xutil.h>
+
+
+#ifndef  SYSCONFDIR
+#define  SYSCONFDIR  "/usr/local/etc"
+#endif
+
+#define  MENU_FILE  SYSCONFDIR "/mlterm/menu"
 
 #define  FONT_NAME  "-*-fixed-*-*-*--12-*-*-*-*-*-iso8859-1"
+
 
 typedef struct entry
 {
@@ -19,6 +27,9 @@ typedef struct entry
 	char *  seq ;
 
 } entry_t ;
+
+
+/* --- static variables --- */
 
 static Display *  disp ;
 static Window  win ;
@@ -28,6 +39,9 @@ static XFontStruct *  xfont ;
 static entry_t  entries[124] ;
 static u_int  n_ent ;
 static int  cur_ent = -1 ;
+
+
+/* --- static functions --- */
 
 static char *
 get_value(
@@ -47,6 +61,7 @@ get_value(
         {
 		printf("\x1b]5381;%s\x07", key) ;
 	}
+	
 	fflush(stdout) ;
 
 	for( count = 0 ; count < 1024 ; count++)
@@ -92,13 +107,29 @@ init_entries(
 	char *  buf ;
 	char *  line ;
 	char *  p ;
+	char *  menu_file ;
 
-	if( ( fd = open( "/home/ken/.mlterm/menu" , O_RDONLY , 0600)) == -1 &&
-		( fd = open( "/usr/local/etc/mlterm/menu" , O_RDONLY , 0600)) == -1)
+	if( getenv( "HOME") &&
+		( menu_file = malloc( strlen( getenv( "HOME")) + 13 + 1)))
+	{
+		sprintf( menu_file , "%s/.mlterm/menu" , getenv( "HOME")) ;
+		
+		fd = open( menu_file , O_RDONLY , 0600) ;
+
+		free( menu_file) ;
+
+		if( fd >= 0)
+		{
+			goto  success ;
+		}
+	}
+	
+	if( ( fd = open( MENU_FILE , O_RDONLY , 0600)) == -1)
 	{
 		return  0 ;
 	}
 
+success:
 	fstat( fd , &st) ;
 
 	if( ( buf = malloc( st.st_size + 1)) == NULL)
@@ -458,6 +489,9 @@ event_loop(void)
 
 	return  1 ;
 }
+
+
+/* --- global functions --- */
 
 int
 main(
