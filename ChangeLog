@@ -1,3 +1,8 @@
+2003-09-15  Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* x_font_manager.c (x_get_fontset): Fixed a compile error with
+	  --enable-debug.
+
 2003-09-15  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: Added --enable-optimize-redrawing option.

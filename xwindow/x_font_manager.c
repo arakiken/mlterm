@@ -439,6 +439,8 @@ x_get_fontset(
 #ifdef  DEBUG
 	if( miss_num)
 	{
+		int  count ;
+		
 		kik_warn_printf( KIK_DEBUG_TAG " missing these fonts ...\n") ;
 		for( count = 0 ; count < miss_num ; count ++)
 		{
