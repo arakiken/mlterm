@@ -7,6 +7,7 @@
 #include  <X11/Xutil.h>		/* XLookupString */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
+#include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 
 #include  "ml_window_intern.h"
@@ -53,15 +54,14 @@ get_spot(
 
 static XFontSet
 load_fontset(
-	ml_window_t *  win ,
-	ml_xim_t *  xim
+	ml_window_t *  win
 	)
 {
 	char *  cur_locale ;
 	XFontSet  fontset ;
-	
+
 	cur_locale = kik_str_alloca_dup( kik_get_locale()) ;
-	if( kik_locale_init( xim->locale))
+	if( kik_locale_init( ml_get_xim_locale( win)))
 	{
 		fontset = (*win->xim_listener->get_fontset)( win->xim_listener->self) ;
 		
@@ -76,85 +76,53 @@ load_fontset(
 	return  fontset ;
 }
 
-static XIMStyle
-search_xim_style(
-	XIMStyles *  xim_styles ,
-	XIMStyle *  supported_styles ,
-	u_int  size
+static int
+destroy_xic(
+	ml_window_t *  win
 	)
 {
-	int  counter ;
-	
-	for( counter = 0 ; counter < xim_styles->count_styles ; counter ++)
+	if( ! win->xic)
 	{
-		int  _counter ;
-
-		for( _counter = 0 ; _counter < size ; _counter ++)
-		{
-			if( supported_styles[_counter] == xim_styles->supported_styles[counter])
-			{
-				return  supported_styles[_counter] ;
-			}
-		}
+		return  0 ;
 	}
 	
-	return  0 ;
+	XDestroyIC( win->xic->ic) ;
+
+	if( win->xic->fontset)
+	{
+		XFreeFontSet( win->display , win->xic->fontset) ;
+	}
+	
+	free( win->xic) ;
+	win->xic = NULL ;
+
+	return  1 ;
 }
 
 static int
-xic_create(
-	ml_window_t *  win ,
-	ml_xim_t *  xim
+create_xic(
+	ml_window_t *  win
 	)
 {
-	XIMStyle  over_the_spot_styles[] =
-	{
-		XIMPreeditPosition | XIMStatusNothing ,
-		XIMPreeditPosition | XIMStatusNone ,
-	} ;
-
-	XIMStyle  root_styles[] =
-	{
-		XIMPreeditNothing | XIMStatusNothing ,
-		XIMPreeditNothing | XIMStatusNone ,
-		XIMPreeditNone | XIMStatusNothing ,
-		XIMPreeditNone | XIMStatusNone ,
-	} ;
-
 	XIMStyle  selected_style ;
-	XIMStyles *  xim_styles ;
 	XVaNestedList  preedit_attr ;
 	XRectangle  rect ;
 	XPoint  spot ;
 	XFontSet  fontset ;
 	XIC  xic ;
+	int  xim_ev_mask ;
 
-	if( XGetIMValues( xim->im , XNQueryInputStyle , &xim_styles , NULL) || ! xim_styles)
+	if( win->xic)
+	{
+		/* already created */
+		
+		return  0 ;
+	}
+
+	if( ( selected_style = ml_xim_get_style( win)) == 0)
 	{
 		return  0 ;
 	}
-	
-	if( ! ( selected_style = search_xim_style( xim_styles , over_the_spot_styles ,
-			sizeof( over_the_spot_styles) / sizeof( over_the_spot_styles[0]))))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " over the spot style not found.\n") ;
-	#endif
-
-		if( ! ( selected_style = search_xim_style( xim_styles , root_styles ,
-			sizeof( root_styles) / sizeof( root_styles[0]))))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " root style not found.\n") ;
-		#endif
-		
-			XFree( xim_styles) ;
-
-			return  0 ;
-		}
-	}
-
-	XFree( xim_styles) ;
 
 	if( selected_style & XIMPreeditPosition)
 	{
@@ -170,7 +138,7 @@ xic_create(
 			spot.y = 0 ;
 		}
 
-		if( ( fontset = load_fontset( win , xim)) == 0)
+		if( ( fontset = load_fontset( win)) == 0)
 		{
 			return  0 ;
 		}
@@ -188,9 +156,7 @@ xic_create(
 			return  0 ;
 		}
 
-		if( ( xic = XCreateIC( xim->im , XNInputStyle , selected_style ,
-				XNClientWindow , win->my_window , XNFocusWindow , win->my_window ,
-				XNPreeditAttributes  , preedit_attr , NULL)) == NULL)
+		if( ( xic = ml_xim_create_ic( win , selected_style , preedit_attr)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " XCreateIC() failed\n") ;
@@ -209,10 +175,8 @@ xic_create(
 		/*
 		 * root style
 		 */
-		 
-		if( ( xic = XCreateIC( xim->im , XNInputStyle , selected_style ,
-				XNClientWindow , win->my_window , XNFocusWindow , win->my_window ,
-				NULL)) == NULL)
+
+		if( ( xic = ml_xim_create_ic( win , selected_style , NULL)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " XCreateIC() failed\n") ;
@@ -238,32 +202,18 @@ xic_create(
 		return  0 ;
 	}
 
-	win->xic->xim = xim ;
 	win->xic->ic = xic ;
 	win->xic->fontset = fontset ;
 	win->xic->style = selected_style ;
 
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " XIM was successfully opened.\n") ;
+	xim_ev_mask = 0 ;
+
+	XGetICValues( win->xic->ic , XNFilterEvents , &xim_ev_mask , NULL) ;
+	ml_window_add_event_mask( win , xim_ev_mask) ;
+
+#ifdef  DEBUG
+	kik_warn_printf( KIK_DEBUG_TAG " XIC activated.\n") ;
 #endif
-
-	return  1 ;
-}
-
-static int
-destroy_xic(
-	ml_window_t *  win
-	)
-{
-	XDestroyIC( win->xic->ic) ;
-
-	if( win->xic->fontset)
-	{
-		XFreeFontSet( win->display , win->xic->fontset) ;
-	}
-	
-	free( win->xic) ;
-	win->xic = NULL ;
 
 	return  1 ;
 }
@@ -290,50 +240,14 @@ ml_xic_activate(
 	char *  xim_locale
 	)
 {
-	ml_xim_t *  xim ;
-	int  xim_ev_mask ;
-
 	if( win->xic)
 	{
-		ml_xic_deactivate( win) ;
-	}
-	
-	if( strcmp( xim_name , "unused") == 0)
-	{
-		return  0 ;
-	}
-	
-	if( ( xim = ml_get_xim( win->display , xim_name , xim_locale)) == NULL)
-	{
-		return  0 ;
-	}
-
-	if( ! xic_create( win , xim))
-	{
-		return  0 ;
-	}
-
-	xim_ev_mask = 0 ;
-
-	XGetICValues( win->xic->ic , XNFilterEvents , &xim_ev_mask , NULL) ;
-	ml_window_add_event_mask( win , xim_ev_mask) ;
-
-	if( ! ml_xic_created( xim , win))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_xic_created() failed.\n") ;
-	#endif
-	
-		ml_xic_deactivate( win) ;
+		/* already activated */
 		
 		return  0 ;
 	}
-
-#ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " XIC activated.\n") ;
-#endif
-
-	return  1 ;
+	
+	return  ml_add_xim_listener( win , xim_name , xim_locale) ;
 }
 
 int
@@ -341,8 +255,6 @@ ml_xic_deactivate(
 	ml_window_t *  win
 	)
 {
-	ml_xim_t *  xim ;
-	
 	if( win->xic == NULL)
 	{
 		/* already deactivated */
@@ -362,14 +274,12 @@ ml_xic_deactivate(
 	}
 #endif
 	
-	xim = win->xic->xim ;
-
 	destroy_xic( win) ;
 	
-	if( ! ml_xic_destroyed( xim , win))
+	if( ! ml_remove_xim_listener( win))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_xic_destroyed() failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " ml_remove_xim_listener() failed.\n") ;
 	#endif
 	}
 
@@ -380,17 +290,28 @@ ml_xic_deactivate(
 	return  1 ;
 }
 
+int
+ml_xim_activated(
+	ml_window_t *  win
+	)
+{
+	return  create_xic( win) ;
+}
+
+int
+ml_xim_destroyed(
+	ml_window_t *  win
+	)
+{
+	return  destroy_xic( win) ;
+}
+
 char *
 ml_xic_get_xim_name(
 	ml_window_t *  win
 	)
 {
-	if( ! win->xic)
-	{
-		return  "unused" ;
-	}
-	
-	return  ml_get_xim_name( win->xic->xim) ;
+	return  ml_get_xim_name( win) ;
 }
 
 int
@@ -454,7 +375,7 @@ ml_xic_font_set_changed(
 		return  0 ;
 	}
 
-	if( ! ( fontset = load_fontset( win , win->xic->xim)))
+	if( ! ( fontset = load_fontset( win)))
 	{
 		return  0 ;
 	}
@@ -574,7 +495,7 @@ ml_xic_get_str(
 		return  0 ;
 	}
 
-	if( IS_ENCODING_BASED_ON_ISO2022(win->xic->xim->encoding) && *seq < 0x20)
+	if( IS_ENCODING_BASED_ON_ISO2022(win->xim->encoding) && *seq < 0x20)
 	{
 		/*
 		 * XXX hack
@@ -586,7 +507,7 @@ ml_xic_get_str(
 	}
 	else
 	{
-		*parser = win->xic->xim->parser ;
+		*parser = win->xim->parser ;
 	}
 
 	return  len ;

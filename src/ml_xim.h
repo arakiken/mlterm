@@ -18,9 +18,10 @@
 typedef struct  ml_xim
 {
 	XIM  im ;
-	char *  xmod ;
-
+	
+	char *  name ;
 	char *  locale ;
+	
 	mkf_parser_t *  parser ;
 	ml_char_encoding_t  encoding ;
 
@@ -30,15 +31,21 @@ typedef struct  ml_xim
 } ml_xim_t ;
 
 
+int  ml_xim_init( Display *  display) ;
+
 int  ml_xim_final(void) ;
 
-ml_xim_t *  ml_get_xim( Display *  display , char *  name , char *  locale) ;
+int  ml_add_xim_listener( ml_window_t *  win , char *  xim_name , char *  xim_locale) ;
 
-int  ml_xic_created( ml_xim_t *  xim , ml_window_t *  win) ;
+int  ml_remove_xim_listener( ml_window_t *  win) ;
 
-int  ml_xic_destroyed( ml_xim_t *  xim , ml_window_t *  win) ;
+XIMStyle  ml_xim_get_style( ml_window_t *  win) ;
 
-char *  ml_get_xim_name( ml_xim_t *  xim) ;
+XIC  ml_xim_create_ic( ml_window_t *  win , XIMStyle  selected_style , XVaNestedList  preedit_attr) ;
+
+char *  ml_get_xim_name( ml_window_t *  win) ;
+
+char *  ml_get_xim_locale( ml_window_t *  win) ;
 
 
 #endif

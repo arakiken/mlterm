@@ -1245,7 +1245,8 @@ ml_window_init(
 	win->color_table = color_table ;
 
 	win->use_xim = 0 ;
-	win->xic = 0 ;
+	win->xic = NULL ;
+	win->xim = NULL ;
 	win->xim_listener = NULL ;
 
 	win->prev_clicked_time = 0 ;

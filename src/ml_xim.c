@@ -24,44 +24,36 @@
 
 /* --- static variables --- */
 
+static Display *  xim_display ;
+static char *  default_xim_name ;
+
 static ml_xim_t  xims[MAX_XIMS_SAME_TIME] ;
 static u_int  num_of_xims ;
 
 
 /* --- static functions --- */
 
-static ml_xim_t *
-search_xim(
-	char *  xmod
-	)
-{
-	int  counter ;
-	
-	for( counter = 0 ; counter < num_of_xims ; counter ++)
-	{
-		if( strcasecmp( xims[counter].xmod , xmod) == 0)
-		{
-			return  &xims[counter] ;
-		}
-	}
+/* refered in xim_closed */
+static void  xim_server_instantiated( Display *  display , XPointer  client_data , XPointer  call_data) ;
 
-	return  NULL ;
-}
 
 static int
 close_xim(
 	ml_xim_t *  xim
 	)
 {
-	XCloseIM( xim->im) ;
+	if( xim->im)
+	{
+		XCloseIM( xim->im) ;
+	}
 
-	free( xim->xmod) ;
+	if( xim->parser)
+	{
+		(*xim->parser->delete)( xim->parser) ;
+	}
+		
+	free( xim->name) ;
 	free( xim->locale) ;
-	(*xim->parser->delete)( xim->parser) ;
-
-#ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " xim closed.\n") ;
-#endif
 	
 	return  1 ;
 }
@@ -79,146 +71,267 @@ xim_server_destroyed(
 	{
 		if( xims[counter].im == im)
 		{
+			int  _counter ;
+			
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
-				" %s xim server destroyed.\n" , xims[counter].xmod) ;
+				" %s xim(with %d xic) server destroyed.\n" ,
+				xims[counter].name , xims[counter].num_of_xic_wins) ;
 		#endif
 
-			while( xims[counter].num_of_xic_wins)
+			for( _counter = 0 ; _counter < xims[counter].num_of_xic_wins ; _counter ++)
 			{
-				/*
-				 * ml_xic_deactivate() calls ml_xic_destroyed() internally.
-				 * so num_of_xic_wins member is automatically decreased.
-				 */
-				if( ! ml_xic_deactivate( xims[counter].xic_wins[0]))
-				{
-					xims[counter].num_of_xic_wins -- ;
-				}
+				ml_xim_destroyed( xims[counter].xic_wins[_counter]) ;
 			}
-			
-			free( xims[counter].xmod) ;
-			free( xims[counter].locale) ;
-			(*xims[counter].parser->delete)( xims[counter].parser) ;
-			
-			xims[counter] = xims[--num_of_xims] ;
 
-			return  ;
+			xims[counter].im = NULL ;
+
+			break ;
 		}
 	}
+
+	/* it is necessary to reset callback */
+	XRegisterIMInstantiateCallback( xim_display , NULL , NULL , NULL ,
+		xim_server_instantiated , NULL) ;
 }
-	
-static ml_xim_t *
+
+static int
 open_xim(
-	Display *  display ,
-	char *  xmod
+	ml_xim_t *  xim
 	)
 {
-	XIM  im ;
-	int  counter ;
+	char *  xmod ;
+	char *  cur_locale ;
+	int  result ;
 
-	if( num_of_xims == MAX_XIMS_SAME_TIME)
+	/* 4 is the length of "@im=" */
+	if( ( xmod = alloca( 4 + strlen( xim->name) + 1)) == NULL)
 	{
-		counter = 0 ;
-		
-		while( 1)
+		return  0 ;
+	}
+	
+	sprintf( xmod , "@im=%s" , xim->name) ;
+
+	cur_locale = kik_get_locale() ;
+
+	if( strcmp( xim->locale , cur_locale) == 0)
+	{
+		/* the same locale as current */
+		cur_locale = NULL ;
+	}
+	else
+	{
+		cur_locale = strdup( cur_locale) ;
+
+		if( ! kik_locale_init( xim->locale))
 		{
-			if( counter == num_of_xims)
-			{
-				return  NULL ;
-			}
-			else if( xims[counter].num_of_xic_wins == 0)
-			{
-				close_xim( &xims[counter]) ;
+			/* setlocale() failed. restoring */
 
-				xims[counter] = xims[-- num_of_xims] ;
+			kik_locale_init( cur_locale) ;
+			free( cur_locale) ;
 
-				break ;
-			}
-			else
-			{
-				counter ++ ;
-			}
+			return  0 ;
+		}
+	}
+
+	XSetLocaleModifiers(xmod) ;
+
+	result = 0 ;
+
+	if( xmod && *xmod && ( xim->im = XOpenIM( xim_display , NULL , NULL , NULL)))
+	{
+		XIMCallback  callback = { NULL , xim_server_destroyed } ;
+
+		if( ( xim->encoding = ml_get_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING ||
+			( xim->parser = ml_parser_new( xim->encoding)) == NULL)
+		{
+			XCloseIM( xim->im) ;
+		}
+		else
+		{
+			XSetIMValues( xim->im , XNDestroyCallback , &callback , NULL) ;
+
+			/* succeeded */
+			result = 1 ;
 		}
 	}
 	
-	if( ( im = XOpenIM( display , NULL , NULL , NULL)))
+	if( cur_locale)
 	{
-		ml_xim_t *  xim ;
-		XIMCallback  callback = { NULL , xim_server_destroyed } ;
+		/* restoring */
+		kik_locale_init( cur_locale) ;
+		free( cur_locale) ;
+	}
+	
+	return  result ;
+}
 
-		xim = &xims[num_of_xims] ;
+static int
+activate_xim(
+	ml_xim_t *  xim
+	)
+{
+	int  counter ;
 
-		memset( xim , 0 , sizeof( ml_xim_t)) ;
+	if( ! xim->im && ! open_xim( xim))
+	{
+		return  0 ;
+	}
+	
+	for( counter = 0 ; counter < xim->num_of_xic_wins ; counter ++)
+	{
+		ml_xim_activated( xim->xic_wins[counter]) ;
+	}
 
-		xim->im = im ;
-		xim->num_of_xic_wins = 0 ;
+	return  1 ;
+}
 
-		if( ( xim->encoding = ml_get_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING)
+static void
+xim_server_instantiated(
+	Display *  display ,
+	XPointer  client_data ,
+	XPointer  call_data
+	)
+{
+	int  counter ;
+
+#ifdef  DEBUG
+	kik_warn_printf( KIK_DEBUG_TAG " new xim server is instantiated.\n") ;
+#endif
+
+	for( counter = 0 ; counter < num_of_xims ; counter ++)
+	{
+		activate_xim( &xims[counter]) ;
+	}
+}
+
+static ml_xim_t *
+search_xim(
+	char *  xim_name
+	)
+{
+	int  counter ;
+
+	for( counter = 0 ; counter < num_of_xims ; counter ++)
+	{
+		if( strcmp( xims[counter].name , xim_name) == 0)
 		{
-			goto  error ;
+			return  &xims[counter] ;
 		}
-		
-		if( ( xim->parser = ml_parser_new( xim->encoding)) == NULL)
-		{
-			goto  error ;
-		}
-
-		if( ( xim->xmod = strdup( xmod)) == NULL)
-		{
-			goto  error ;
-		}
-
-		if( ( xim->locale = strdup( kik_get_locale())) == NULL)
-		{
-			goto  error ;
-		}
-
-		XSetIMValues( im , XNDestroyCallback , &callback , NULL) ;
-
-		num_of_xims ++ ;
-
-		return  xim ;
-
-	error:
-		if( xim->parser)
-		{
-			(*xim->parser->delete)( xim->parser) ;
-		}
-
-		if( xim->xmod)
-		{
-			free( xim->xmod) ;
-		}
-
-		if( xim->locale)
-		{
-			free( xim->locale) ;
-		}
-
-		XCloseIM( xim->im) ;
 	}
 
 	return  NULL ;
 }
 
-static char *
-get_xim_name(
-	char *  xmod
+static ml_xim_t *
+get_xim(
+	char *  xim_name ,
+	char *  xim_locale
 	)
 {
-	char *  p ;
+	ml_xim_t *  xim ;
 	
-	/* 4 is the length of "@im=" */
-	if( strlen( xmod) < 4 || ( p = strstr( xmod , "@im=")) == NULL)
+	if( ( xim = search_xim( xim_name)) == NULL)
 	{
-		return  NULL ;
+		if( num_of_xims == MAX_XIMS_SAME_TIME)
+		{
+			int  counter ;
+
+			counter = 0 ;
+
+			while( 1)
+			{
+				if( counter == num_of_xims)
+				{
+					return  NULL ;
+				}
+				else if( xims[counter].num_of_xic_wins == 0)
+				{
+					close_xim( &xims[counter]) ;
+
+					xims[counter] = xims[-- num_of_xims] ;
+
+					break ;
+				}
+				else
+				{
+					counter ++ ;
+				}
+			}
+		}
+
+		xim = &xims[num_of_xims ++] ;
+		memset( xim , 0 , sizeof( ml_xim_t)) ;
+
+		xim->name = strdup( xim_name) ;
+		xim->locale = strdup( xim_locale) ;
 	}
 
-	return  p + 4 ;
+	return  xim ;
+}
+
+static XIMStyle
+search_xim_style(
+	XIMStyles *  xim_styles ,
+	XIMStyle *  supported_styles ,
+	u_int  size
+	)
+{
+	int  counter ;
+	
+	for( counter = 0 ; counter < xim_styles->count_styles ; counter ++)
+	{
+		int  _counter ;
+
+		for( _counter = 0 ; _counter < size ; _counter ++)
+		{
+			if( supported_styles[_counter] == xim_styles->supported_styles[counter])
+			{
+				return  supported_styles[_counter] ;
+			}
+		}
+	}
+	
+	return  0 ;
 }
 
 
 /* --- global functions --- */
+
+int
+ml_xim_init(
+	Display *  display
+	)
+{
+	char *  xmod ;
+	char *  p ;
+
+	xim_display = display ;
+
+	xmod = XSetLocaleModifiers("") ;
+
+	/* 4 is the length of "@im=" */
+	if( strlen( xmod) < 4 || ( p = strstr( xmod , "@im=")) == NULL)
+	{
+		return  0 ;
+	}
+
+	if( ( default_xim_name = strdup( p + 4)) == NULL)
+	{
+		return  0 ;
+	}
+
+	if( ( p = strstr( default_xim_name , "@")))
+	{
+		/* only the first entry is used , others are ignored. */
+		*p = '\0' ;
+	}
+
+	XRegisterIMInstantiateCallback( xim_display , NULL , NULL , NULL ,
+		xim_server_instantiated , NULL) ;
+		
+	return  1 ;
+}
 
 int
 ml_xim_final(void)
@@ -230,135 +343,78 @@ ml_xim_final(void)
 		close_xim( &xims[counter]) ;
 	}
 
+	free( default_xim_name) ;
+
+	XUnregisterIMInstantiateCallback( xim_display , NULL , NULL , NULL ,
+		xim_server_instantiated , NULL) ;
+	
 	return  1 ;
 }
 
-ml_xim_t *
-ml_get_xim(
-	Display *  display ,
+int
+ml_add_xim_listener(
+	ml_window_t *  win ,
 	char *  xim_name ,
 	char *  xim_locale
 	)
 {
-	ml_xim_t *  xim ;
-	char *  xmod ;
-	char *  cur_locale ;
-
-	if( xim_locale != NULL && strcmp( xim_locale , "C") == 0)
-	{
-		return  NULL ;
-	}
-
-	/* 4 is the length of "@im=" */
-	if( *xim_name && ( xmod = alloca( 4 + strlen( xim_name) + 1)) != NULL)
-	{
-		sprintf( xmod , "@im=%s" , xim_name) ;
-
-		if( xim_locale)
-		{
-			cur_locale = kik_get_locale() ;
-
-			if( strcmp( xim_locale , cur_locale) == 0)
-			{
-				/* the same locale as current */
-				cur_locale = NULL ;
-			}
-			else
-			{
-				cur_locale = strdup( cur_locale) ;
-				
-				if( ! kik_locale_init( xim_locale))
-				{
-					/* setlocale() failed. restoring */
-
-					kik_locale_init( cur_locale) ;
-					free( cur_locale) ;
-
-					return  NULL ;
-				}
-			}
-			
-			XSetLocaleModifiers(xmod) ;
-		}
-		else
-		{
-			XSetLocaleModifiers(xmod) ;
-			cur_locale = NULL ;
-		}
-	}
-	else
-	{
-		/* under current locale */
-		
-		xmod = XSetLocaleModifiers("") ;
-		cur_locale = NULL ;
-	}
-
-	xim = NULL ;
-	
-	if( xmod != NULL && *xmod)
-	{
-		if( ! ( xim = search_xim( xmod)))
-		{
-			xim = open_xim( display , xmod) ;
-		}
-	}
-
-	if( cur_locale)
-	{
-		/* restoring */
-		kik_locale_init( cur_locale) ;
-		free( cur_locale) ;
-	}
-	
-	if( xim == NULL)
-	{
-		xmod = "@im=none" ;
-		XSetLocaleModifiers(xmod) ;
-		
-		if( ! ( xim = search_xim( xmod)))
-		{
-			xim = open_xim( display , xmod) ;
-		}
-	}
-
-	return  xim ;
-}
-
-int
-ml_xic_created(
-	ml_xim_t *  xim ,
-	ml_window_t *  win
-	)
-{
-	if( xim->num_of_xic_wins == MAX_XICS_PER_XIM)
+	if( strcmp( xim_locale , "C") == 0 ||
+		strcmp( xim_name , "unused") == 0)
 	{
 		return  0 ;
 	}
 	
-	xim->xic_wins[xim->num_of_xic_wins ++] = win ;
+	if( *xim_name == '\0' && win->xim)
+	{
+		/*
+		 * reactivating current xim.
+		 */
 
-	return  1 ;
+		return  activate_xim( win->xim) ;
+	}
+	 
+	if( win->xim)
+	{
+		ml_remove_xim_listener( win) ;
+	}
+
+	if( *xim_name == '\0')
+	{
+		/*
+		 * default xim name is used
+		 */
+
+		xim_name = default_xim_name ;
+	}
+	
+	if( ( win->xim = get_xim( xim_name , xim_locale)) == NULL)
+	{
+		return  0 ;
+	}
+	
+	win->xim->xic_wins[ win->xim->num_of_xic_wins ++] = win ;
+	
+	return  activate_xim( win->xim) ;
 }
 
 int
-ml_xic_destroyed(
-	ml_xim_t *  xim ,
+ml_remove_xim_listener(
 	ml_window_t *  win
 	)
 {
 	int  counter ;
-	
-	if( xim->num_of_xic_wins == 0)
+
+	if( win->xim->num_of_xic_wins == 0)
 	{
 		return  0 ;
 	}
 
-	for( counter = 0 ; counter < xim->num_of_xic_wins ; counter ++)
+	for( counter = 0 ; counter < win->xim->num_of_xic_wins ; counter ++)
 	{
-		if( xim->xic_wins[counter] == win)
+		if( win->xim->xic_wins[counter] == win)
 		{
-			xim->xic_wins[counter] = xim->xic_wins[-- xim->num_of_xic_wins] ;
+			win->xim->xic_wins[counter] = win->xim->xic_wins[-- win->xim->num_of_xic_wins] ;
+			win->xim = NULL ;
 
 			return  1 ;
 		}
@@ -367,10 +423,102 @@ ml_xic_destroyed(
 	return  0 ;
 }
 
-char *
-ml_get_xim_name(
-	ml_xim_t *  xim
+XIC
+ml_xim_create_ic(
+	ml_window_t *  win ,
+	XIMStyle  selected_style ,
+	XVaNestedList  preedit_attr
 	)
 {
-	return  get_xim_name( xim->xmod) ;
+	if( preedit_attr)
+	{
+		return  XCreateIC( win->xim->im , XNClientWindow , win->my_window ,
+				XNFocusWindow , win->my_window ,
+				XNInputStyle , selected_style ,
+				XNPreeditAttributes  , preedit_attr , NULL) ;
+	}
+	else
+	{
+		return  XCreateIC( win->xim->im , XNClientWindow , win->my_window ,
+				XNFocusWindow , win->my_window ,
+				XNInputStyle , selected_style , NULL) ;
+	}
+}
+
+XIMStyle
+ml_xim_get_style(
+	ml_window_t *  win
+	)
+{
+	XIMStyle  over_the_spot_styles[] =
+	{
+		XIMPreeditPosition | XIMStatusNothing ,
+		XIMPreeditPosition | XIMStatusNone ,
+	} ;
+
+	XIMStyle  root_styles[] =
+	{
+		XIMPreeditNothing | XIMStatusNothing ,
+		XIMPreeditNothing | XIMStatusNone ,
+		XIMPreeditNone | XIMStatusNothing ,
+		XIMPreeditNone | XIMStatusNone ,
+	} ;
+
+	XIMStyle  selected_style ;
+	XIMStyles *  xim_styles ;
+
+	if( XGetIMValues( win->xim->im , XNQueryInputStyle , &xim_styles , NULL) || ! xim_styles)
+	{
+		return  0 ;
+	}
+	
+	if( ! ( selected_style = search_xim_style( xim_styles , over_the_spot_styles ,
+			sizeof( over_the_spot_styles) / sizeof( over_the_spot_styles[0]))))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " over the spot style not found.\n") ;
+	#endif
+
+		if( ! ( selected_style = search_xim_style( xim_styles , root_styles ,
+			sizeof( root_styles) / sizeof( root_styles[0]))))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " root style not found.\n") ;
+		#endif
+		
+			XFree( xim_styles) ;
+
+			return  0 ;
+		}
+	}
+
+	XFree( xim_styles) ;
+
+	return  selected_style ;
+}
+
+char *
+ml_get_xim_name(
+	ml_window_t *  win
+	)
+{
+	if( win->xim == NULL)
+	{
+		return  "unused" ;
+	}
+	
+	return  win->xim->name ;
+}
+
+char *
+ml_get_xim_locale(
+	ml_window_t *  win
+	)
+{
+	if( win->xim == NULL)
+	{
+		return  "" ;
+	}
+
+	return  win->xim->locale ;
 }

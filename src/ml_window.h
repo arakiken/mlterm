@@ -46,6 +46,8 @@ typedef struct ml_window_manager *  ml_window_manager_ptr_t ;
 
 typedef struct ml_xic *  ml_xic_ptr_t ;
 
+typedef struct ml_xim *  ml_xim_ptr_t ;
+
 typedef struct  ml_window
 {
 	Display *  display ;
@@ -105,6 +107,7 @@ typedef struct  ml_window
 	/* used by ml_xim */
 	int8_t  use_xim ;
 	ml_xic_ptr_t  xic ;
+	ml_xim_ptr_t  xim ;
 	ml_xim_event_listener_t *  xim_listener ;
 
 	Time  prev_clicked_time ;

@@ -596,7 +596,7 @@ window_realized(
 
 	if( termscr->xim_open_in_startup)
 	{
-		ml_xic_activate( &termscr->window , "" , NULL) ;
+		ml_xic_activate( &termscr->window , "" , "") ;
 	}
 
 	set_wall_picture( termscr) ;
@@ -3320,7 +3320,35 @@ ml_term_screen_delete(
 		free( termscr->pic_file_path) ;
 	}
 	
-	(*termscr->xct_parser->delete)( termscr->xct_parser) ;
+	if( termscr->xct_parser)
+	{
+		(*termscr->xct_parser->delete)( termscr->xct_parser) ;
+	}
+	
+	if( termscr->ucs4_parser)
+	{
+		(*termscr->ucs4_parser->delete)( termscr->ucs4_parser) ;
+	}
+	
+	if( termscr->ucs4_conv)
+	{
+		(*termscr->ucs4_conv->delete)( termscr->ucs4_conv) ;
+	}
+	
+	if( termscr->ml_str_parser)
+	{
+		(*termscr->ml_str_parser->delete)( termscr->ml_str_parser) ;
+	}
+	
+	if( termscr->utf8_conv)
+	{
+		(*termscr->utf8_conv->delete)( termscr->utf8_conv) ;
+	}
+	
+	if( termscr->xct_conv)
+	{
+		(*termscr->xct_conv->delete)( termscr->xct_conv) ;
+	}
 	
 	free( termscr) ;
 

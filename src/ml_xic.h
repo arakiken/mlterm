@@ -9,12 +9,10 @@
 #include  <X11/Xlib.h>
 
 #include  "ml_window.h"
-#include  "ml_xim.h"
 
 
 typedef struct  ml_xic
 {
-	ml_xim_t *  xim ;
 	XIC   ic ;
 	XFontSet  fontset ;
 	XIMStyle  style ;
@@ -28,6 +26,10 @@ int  ml_xic_activate( ml_window_t *  win , char *  name , char *  locale) ;
 
 int  ml_xic_deactivate( ml_window_t *  win) ;
 
+int  ml_xim_activated( ml_window_t *  win) ;
+
+int  ml_xim_destroyed( ml_window_t *  win) ;
+	
 char *  ml_xic_get_xim_name( ml_window_t *  win) ;
 
 int  ml_xic_fg_color_changed( ml_window_t *  win) ;

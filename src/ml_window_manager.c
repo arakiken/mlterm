@@ -43,6 +43,8 @@ ml_window_manager_init(
 	win_man->selection_owner = NULL ;
 	
 	ml_window_init_atom( win_man->display) ;
+
+	ml_xim_init( win_man->display) ;
 	
 	return  1 ;
 }
