@@ -1,7 +1,14 @@
 comment -*- mode: text -*-
 comment $Id$
 
-This list is whether mlterm 2.0.0 can be compiled and work fine or not.
+supported platforms (mlterm-2.1.0)
+
+* tested by Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
+  NetBSD 1.5Y current
+  HP-UX 10.20 (CC="cc -Ae") ([notice] kinput2 doesn't work)
+
+
+supported platforms (mlterm-2.0.0)
 
 * tested by Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
   NetBSD 1.5Y current

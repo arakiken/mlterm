@@ -1,3 +1,5 @@
+ver 2.1.0 以降 => doc/en/History
+
 ver 2.0.0(2001/11/29)
 * ドキュメントを若干追加。
 * --enable-ucs4 したときに font/aafont で、ISO10646_UCS4_1 と指定したフォントが有効になら

@@ -211,8 +211,6 @@ ml_start_selection(
 	int  row_r
 	)
 {
-	sel->sel_len = 0 ;
-
 	sel->is_owner = 1 ;
 	sel->is_reversed = 1 ;
 	sel->is_selecting = 1 ;
@@ -245,6 +243,11 @@ ml_selecting(
 	int  row
 	)
 {
+	if( ! sel->is_selecting)
+	{
+		return  0 ;
+	}
+	
 	sel->prev_col = col ;
 	sel->prev_row = row ;
 
@@ -291,6 +294,32 @@ ml_stop_selecting(
 }
 
 int
+ml_sel_clear(
+	ml_selection_t *  sel
+	)
+{
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " selection is cleared.\n") ;
+#endif
+
+	if( sel->is_selecting)
+	{
+		if( sel->sel_str)
+		{
+			ml_str_delete( sel->sel_str , sel->sel_len) ;
+			sel->sel_str = NULL ;
+			sel->sel_len = 0 ;
+		}
+
+		sel->is_selecting = 0 ;
+	}
+	
+	sel->is_owner = 0 ;
+
+	return  1 ;
+}
+
+int
 ml_restore_selected_region_color(
 	ml_selection_t *  sel
 	)
@@ -309,33 +338,6 @@ ml_restore_selected_region_color(
 
 	reset_sel_region( sel) ;
 	
-	return  1 ;
-}
-
-int
-ml_sel_clear(
-	ml_selection_t *  sel
-	)
-{
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " selection is cleared.\n") ;
-#endif
-
-	if( sel->is_selecting)
-	{
-		ml_stop_selecting( sel) ;
-	}
-	 
-	sel->is_owner = 0 ;
-	
-	if( sel->sel_str)
-	{
-		ml_str_delete( sel->sel_str , sel->sel_len) ;
-		sel->sel_str = NULL ;
-	}
-	
-	sel->sel_len = 0 ;
-
 	return  1 ;
 }
 

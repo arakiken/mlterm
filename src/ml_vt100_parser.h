@@ -42,7 +42,9 @@ typedef struct  ml_vt100_parser
 	mkf_conv_t *  cc_conv ;		/* char code converter */
 	ml_char_encoding_t  encoding ;
 
-	int8_t  is_graphic_char_in_gl ;
+	int8_t  is_dec_special_in_gl ;
+	int8_t  is_dec_special_in_g0 ;
+	int8_t  is_dec_special_in_g1 ;
 	
 	int8_t  not_use_unicode_font ;
 	int8_t  only_use_unicode_font ;

@@ -22,8 +22,8 @@
 #define  CTLKEY_LF	0x0a
 #define  CTLKEY_VT	0x0b
 #define  CTLKEY_CR	0x0d
-#define  CTLKEY_SI      0x0e
-#define  CTLKEY_SO      0x0f
+#define  CTLKEY_SO      0x0e
+#define  CTLKEY_SI      0x0f
 #define  CTLKEY_ESC	0x1b
 
 #define  CURRENT_STR_P(vt100_parser)  (&vt100_parser->seq[(vt100_parser)->len - (vt100_parser)->left])
@@ -739,6 +739,10 @@ parse_vt100_escape_sequence(
 				 *   col,row,fg_color,bg_color(aka ml_cursor_t),
 				 *   and font_decor,font_attr.
 				 * in other words , "char" is not saved , but maybe it works.
+				 *
+				 * BTW , owing to this behavior , 
+				 * "2. Test of screen features" - "Test of the SAVE/RESTORE CURSOR feature"
+				 * of vttest fails.
 				 */
 
 				/* cursor position should be determined before save_cursor */
@@ -1731,11 +1735,6 @@ parse_vt100_escape_sequence(
 
 					return  1 ;
 				}
-				
-				/*
-				 * this is for the case that vt100_parser->cc_parser is
-				 * not compatible with ISO2022.
-				 */
 
 				if( increment_str( &str_p , &left) == 0)
 				{
@@ -1748,11 +1747,48 @@ parse_vt100_escape_sequence(
 
 				if( *str_p == '0')
 				{
-					vt100_parser->is_graphic_char_in_gl = 1 ;
+					vt100_parser->is_dec_special_in_g0 = 1 ;
 				}
 				else if( *str_p == 'B')
 				{
-					vt100_parser->is_graphic_char_in_gl = 0 ;
+					vt100_parser->is_dec_special_in_g0 = 0 ;
+				}
+				else
+				{
+					/* not VT100 control sequence */
+
+					return  1 ;
+				}
+			}
+			else if( *str_p == ')')
+			{
+				if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+				{
+					/* not VT100 control sequence */
+
+					return  1 ;
+				}
+
+				/*
+				 * ignored.
+				 */
+				 
+				if( increment_str( &str_p , &left) == 0)
+				{
+					return  0 ;
+				}
+				
+			#ifdef  ESCSEQ_DEBUG
+				fprintf( stderr , " - %c" , *str_p) ;
+			#endif
+			
+				if( *str_p == '0')
+				{
+					vt100_parser->is_dec_special_in_g1 = 1 ;
+				}
+				else if( *str_p == 'B')
+				{
+					vt100_parser->is_dec_special_in_g1 = 0 ;
 				}
 				else
 				{
@@ -1774,29 +1810,33 @@ parse_vt100_escape_sequence(
 		}
 		else if( *str_p == CTLKEY_SI)
 		{
-			if( ! IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
-			{
-				vt100_parser->is_graphic_char_in_gl = 1 ;
-			}
-			else
+			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 			{
 				/* not VT100 control sequence */
 				
 				return  1 ;
 			}
+			
+		#ifdef  ESCSEQ_DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " receiving SI\n") ;
+		#endif
+		
+			vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g0 ;
 		}
 		else if( *str_p == CTLKEY_SO)
 		{
-			if( ! IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
-			{
-				vt100_parser->is_graphic_char_in_gl = 0 ;
-			}
-			else
+			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 			{
 				/* not VT100 control sequence */
 
 				return  1 ;
 			}
+			
+		#ifdef  ESCSEQ_DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " receiving SO\n") ;
+		#endif
+		
+			vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g1 ;
 		}
 		else if( *str_p == CTLKEY_LF || *str_p == CTLKEY_VT)
 		{
@@ -1863,7 +1903,6 @@ parse_vt100_escape_sequence(
 	}
 }
 
-
 /*
  * callbacks of pty encoding listener
  */
@@ -1913,7 +1952,9 @@ encoding_changed(
 	vt100_parser->cc_conv = cc_conv ;
 
 	/* reset */
-	vt100_parser->is_graphic_char_in_gl = 0 ;
+	vt100_parser->is_dec_special_in_gl = 0 ;
+	vt100_parser->is_dec_special_in_g0 = 0 ;
+	vt100_parser->is_dec_special_in_g1 = 1 ;
 	
 	return  1 ;
 }
@@ -1958,7 +1999,9 @@ init_pty_encoding(
 	if( which == 1)
 	{
 		(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
-		vt100_parser->is_graphic_char_in_gl = 0 ;
+		vt100_parser->is_dec_special_in_gl = 0 ;
+		vt100_parser->is_dec_special_in_g0 = 0 ;
+		vt100_parser->is_dec_special_in_g1 = 1 ;
 	}
 	else if( which == 0)
 	{
@@ -1974,7 +2017,9 @@ init_pty_encoding(
 		if( IS_STATEFUL_ENCODING(vt100_parser->encoding))
 		{
 			(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
-			vt100_parser->is_graphic_char_in_gl = 0 ;
+			vt100_parser->is_dec_special_in_gl = 0 ;
+			vt100_parser->is_dec_special_in_g0 = 0 ;
+			vt100_parser->is_dec_special_in_g1 = 1 ;
 		}
 	}
 #ifdef  DEBUG
@@ -2055,7 +2100,9 @@ ml_vt100_parser_new(
 
 	vt100_parser->encoding = encoding ;
 
-	vt100_parser->is_graphic_char_in_gl = 0 ;
+	vt100_parser->is_dec_special_in_gl = 0 ;
+	vt100_parser->is_dec_special_in_g0 = 0 ;
+	vt100_parser->is_dec_special_in_g1 = 1 ;
 
 	if( col_size_a == 1 || col_size_a == 2)
 	{
@@ -2297,7 +2344,7 @@ ml_parse_vt100_sequence(
 						SET_MSB( ch.ch[0]) ;
 					}
 
-					if( ( ch.cs == US_ASCII && vt100_parser->is_graphic_char_in_gl) ||
+					if( ( ch.cs == US_ASCII && vt100_parser->is_dec_special_in_gl) ||
 						ch.cs == DEC_SPECIAL)
 					{
 						if( ch.ch[0] == 0x5f)

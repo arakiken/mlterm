@@ -584,7 +584,7 @@ insert_chars(
 	/*
 	 * inserted chars
 	 */
-	 
+	
 	filled_cols = ml_str_cols( buffer , filled_len) ;
 	
 	for( counter = 0 ; counter < num_of_ins_chars ; counter ++)
@@ -618,7 +618,7 @@ insert_chars(
 			{
 				if( filled_cols + ml_char_cols( &image->sp_ch) > image->num_of_cols)
 				{
-					goto  full ;
+					goto  line_full ;
 				}
 
 				ml_char_copy( &buffer[filled_len++] , &image->sp_ch) ;
@@ -629,7 +629,7 @@ insert_chars(
 		{
 			if( filled_cols + ml_char_cols( &CURSOR_CHAR(image)) > image->num_of_cols)
 			{
-				goto  full ;
+				goto  line_full ;
 			}
 
 			ml_char_copy( &buffer[filled_len++] , &CURSOR_CHAR(image)) ;
@@ -653,8 +653,9 @@ insert_chars(
 			ml_char_copy( &buffer[filled_len ++] , &CURSOR_LINE(image).chars[counter]) ;
 			filled_cols += ml_char_cols( &CURSOR_LINE(image).chars[counter]) ;
 		}
-	full:
 	}
+
+line_full:
 	
 	/*
 	 * overwriting.
