@@ -1,3 +1,7 @@
+2003-03-02 Araki Ken <arakiken@users.sf.net>
+
+	* Unswitchable ptys were shown in PTY List of mlconfig. Fixed.
+
 2003-03-02 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Forgot to define N_() in addition to _() in common/c_intl.h .
