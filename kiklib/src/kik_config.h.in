@@ -24,6 +24,16 @@
 
 #undef  HAVE_FUNCTION
 
+#undef  HAVE_STROPTS_H
+
+#undef  HAVE_SYS_STROPTS_H
+
+#undef  HAVE_ISASTREAM
+
+#undef  PTY_STREAMS
+
+#undef  PTY_BSD
+
 #undef  inline
 
 #undef  const

@@ -2,22 +2,20 @@
  *	$Id$
  */
 
-#include  "ml_pty_fork.h"
+#include  "kik_pty.h"
 
+#include  <termios.h>		/* tcset|tcget */
 #include  <fcntl.h>
 #include  <grp.h>
 #include  <stdio.h>
-#include  <stdlib.h>
 #include  <string.h>
 #include  <errno.h>
 #include  <sys/param.h>
 #include  <sys/ioctl.h>
 #include  <sys/stat.h>
 #include  <unistd.h>
-#include  <sys/termios.h>
-#include  <stropts.h>
-#include  <sys/stropts.h>
-#include  <kiklib/kik_debug.h>
+
+#include  "kik_debug.h"
 
 
 /* Disable special character functions */
@@ -28,54 +26,148 @@
 #endif
 
 
+/* --- static functions --- */
+
+static int
+login_tty(
+	int fd
+	)
+{
+	setsid() ;
+	
+	if( ioctl( fd , TIOCSCTTY , (char*)NULL) == -1)
+	{
+		return 0 ;
+	}
+	
+	dup2( fd , 0) ;
+	dup2( fd , 1) ;
+	dup2( fd , 2) ;
+	
+	if( fd > STDERR_FILENO)
+	{
+		close(fd) ;
+	}
+	
+	return  1 ;
+}
+
+static int
+open_pty(
+	int *  master ,
+	int *  slave
+	)
+{
+	char  name[] = "/dev/XtyXX" ;
+	char *  p1 ;
+	char *  p2 ;
+	gid_t  ttygid ;
+	struct group *  gr ;
+
+	if( ( gr = getgrnam( "tty")) != NULL)
+	{
+		ttygid = gr->gr_gid ;
+	}
+	else
+	{
+		ttygid = (gid_t) -1 ;
+	}
+
+	for( p1 = "pqrstuvwxyzPQRST" ; *p1 ; p1++)
+	{
+		name[8] = *p1 ;
+		
+		for( p2 = "0123456789abcdef" ; *p2 ; p2++)
+		{
+			name[5] = 'p';
+			name[9] = *p2 ;
+			
+			if( ( *master = open( name , O_RDWR , 0)) == -1)
+			{
+				if (errno == ENOENT)
+				{
+					return  0 ;	/* out of ptys */
+				}
+			}
+			else
+			{
+				/*
+				 * we succeeded to open pty master.
+				 * opening pty slave in succession. 
+				 */
+				 
+				name[5] = 't' ;
+				
+				chown( name, getuid(), ttygid) ;
+				chmod( name, S_IRUSR|S_IWUSR|S_IWGRP) ;
+				
+				if( ( *slave = open( name, O_RDWR, 0)) != -1)
+				{
+					return  1 ;
+				}
+
+				close( *master);
+			}
+		}
+	}
+
+	return  0 ;
+}
+
+
 /* --- global functions --- */
 
 pid_t
-ml_pty_fork(
+kik_pty_fork(
 	int *  master
 	)
 {
 	int  slave ;
 	pid_t pid ;
-	char * ttydev;
-	struct  termios  tio ;
-	int fd;
+	struct termios  tio ;
+	int  fd ;
 
-	if ((*master = open("/dev/ptmx", O_RDWR | O_NOCTTY, 0)) == -1)
+	if( ! open_pty( master , &slave))
 	{
-		return  -1;
-	}
-	if (grantpt(*master) < 0)
-	{
-	#if  0
-		/* XXX this fails but it doesn't do harm in some environments */
-		return  -1;
-	#endif
-	}
-	if (unlockpt(*master) < 0)
-	{
-		return  -1;
-	}
-	if ((ttydev = ptsname(*master)) == NULL)
-	{
-		return  -1;
+		return  -1 ;
 	}
 
-	fcntl(*master, F_SETFL, O_NDELAY);
+	pid = fork() ;
+	if( pid == -1)
+	{
+		/* failed to fork. */
 		
-	if ((slave = open( ttydev, O_RDWR | O_NOCTTY, 0)) < 0)
-	{
-		return -1;
+		return  -1 ;
 	}
-		
-	if (isastream(slave) == 1)
+	else if( pid == 0)
 	{
-		ioctl(slave, I_PUSH, "ptem");
-		ioctl(slave, I_PUSH, "ldterm");
-		ioctl(slave, I_PUSH, "ttcompat");
-	}
+		/*
+		 * child process
+		 */
 
-	if( tcgetattr(STDIN_FILENO, &tio) < 0)
+		close( *master) ;
+		
+		login_tty( slave) ;
+		
+		return  0 ;
+	}
+	
+	/*
+	 * parent process
+	 */
+	 
+	close(slave) ;
+
+	/*
+	 * delaying.
+	 */
+	fcntl( *master , F_SETFL , O_NDELAY) ;
+
+	/*
+	 * terminal attributes.
+	 */
+	 
+	if( tcgetattr( *master , &tio) < 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " tcgetattr() failed.\n") ;
@@ -131,11 +223,11 @@ ml_pty_fork(
 	tio.c_lflag = ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK ;
 
 	/* inheriting tty(0,1,2) settings ... */
-
+	
 	for( fd = 0 ; fd <= 2 ; fd ++)
 	{
 		struct termios  def_tio ;
-
+		
 		if( tcgetattr( fd , &def_tio) == 0)
 		{
 			tio.c_cc[VEOF] = def_tio.c_cc[VEOF] ;
@@ -152,69 +244,15 @@ ml_pty_fork(
 		}
 	}
 
-	pid = fork() ;
-	if( pid == -1)
+	cfsetispeed( &tio , B9600) ;
+	cfsetospeed( &tio , B9600) ;
+
+	if( tcsetattr( *master , TCSANOW , &tio) < 0)
 	{
-		/* failed to fork. */
-		
-		return  -1 ;
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " tcsetattr() failed.\n") ;
+	#endif
 	}
-	else if( pid == 0)
-	{
-		/* child */
-
-		setsid() ;
-		
-		close(*master) ;
-		
-#ifdef TIOCNOTTY
-		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
-		if (fd >= 0)
-		{
-			ioctl(fd, TIOCNOTTY, NULL);
-			close(fd);
-		}
-#endif
-		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
-		if (fd >= 0)
-		{
-			close(fd);
-		}
-		fd = open(ttydev, O_RDWR);
-		if (fd >= 0) 
-		{
-			close(fd);
-		}
-		fd = open("/dev/tty", O_WRONLY);
-		if (fd < 0)
-		{
-			return -1;
-		}
-		close(fd);
-
-		dup2( slave , 0) ;
-		dup2( slave , 1) ;
-		dup2( slave , 2) ;
-
-		if( slave > STDERR_FILENO)
-		{
-			close(slave) ;
-		}
-
-		cfsetispeed( &tio , B9600) ;
-		cfsetospeed( &tio , B9600) ;
-
-		if( tcsetattr(STDIN_FILENO, TCSANOW , &tio) < 0)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " tcsetattr() failed.\n") ;
-		#endif
-		}
-
-		return  0 ;
-	}
-
-	close(slave) ;
-
+	
 	return  pid ;
 }

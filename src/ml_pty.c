@@ -14,8 +14,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* realloc/alloca */
 #include  <kiklib/kik_str.h>	/* strdup */
-
-#include  "ml_pty_fork.h"
+#include  <kiklib/kik_pty.h>
 
 
 /* --- global functions --- */
@@ -37,7 +36,7 @@ ml_pty_new(
 		return  NULL ;
 	}
 	
-	pid = ml_pty_fork( &pty->fd) ;
+	pid = kik_pty_fork( &pty->fd) ;
 
 	if( pid == -1)
 	{

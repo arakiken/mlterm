@@ -16,7 +16,7 @@ SYSCONFDIR = $(sysconfdir)
 LIBEXECDIR = $(libexecdir)
 
 OBJ = ml_window_manager.o ml_window.o ml_char.o ml_image.o ml_logs.o ml_line_hints.o \
-	ml_vt100_parser.o ml_pty_fork.o ml_pty.o ml_image_intern.o ml_image_scroll.o \
+	ml_vt100_parser.o ml_pty.o ml_image_intern.o ml_image_scroll.o \
 	ml_selection.o ml_term_screen.o ml_xim.o ml_xic.o ml_color_manager.o \
 	ml_backscroll.o ml_image_line.o main.o ml_font_manager.o ml_scrollbar.o \
 	ml_sb_term_screen.o ml_picture.o ml_keymap.o ml_font.o ml_config_menu.o \
@@ -31,7 +31,7 @@ LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
 
 CFLAGS=$(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @IMLIB_CFLAGS@ @FRIBIDI_CFLAGS@ \
-	@AA_CFLAGS@ @UCS4_CFLAGS@ @PTY_CFLAGS@ @IND_CFLAGS@ @CFLAGS@ \
+	@AA_CFLAGS@ @UCS4_CFLAGS@ @IND_CFLAGS@ @CFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DLIBEXECDIR=\"$(LIBEXECDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-I/usr/X11R6/include -I/usr/local/include
 LIBS=$(CFLAGS_LOCAL) @FRIBIDI_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ @IND_LIBS@ \

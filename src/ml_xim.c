@@ -91,9 +91,15 @@ xim_server_destroyed(
 		}
 	}
 
+	/*
+	 * XXX
+	 * XRegisterIMInstantiateCallback of sunos/openwin seems buggy.
+	 */
+#if  ! defined(sun) && ! defined(__sun__) && ! defined(__sun)
 	/* it is necessary to reset callback */
 	XRegisterIMInstantiateCallback( xim_display , NULL , NULL , NULL ,
 		xim_server_instantiated , NULL) ;
+#endif
 }
 
 static int
@@ -331,9 +337,15 @@ ml_xim_init(
 		}
 	}
 
+	/*
+	 * XXX
+	 * XRegisterIMInstantiateCallback of sunos/openwin seems buggy.
+	 */
+#if  ! defined(sun) && ! defined(__sun__) && ! defined(__sun)
 	XRegisterIMInstantiateCallback( xim_display , NULL , NULL , NULL ,
 		xim_server_instantiated , NULL) ;
-		
+#endif
+	
 	return  1 ;
 }
 
@@ -357,8 +369,14 @@ ml_xim_final(void)
 		free( default_xim_name) ;
 	}
 
+	/*
+	 * XXX
+	 * XRegisterIMInstantiateCallback of sunos/openwin seems buggy.
+	 */
+#if  ! defined(sun) && ! defined(__sun__) && ! defined(__sun)
 	XUnregisterIMInstantiateCallback( xim_display , NULL , NULL , NULL ,
 		xim_server_instantiated , NULL) ;
+#endif
 	
 	return  1 ;
 }
