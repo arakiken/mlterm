@@ -1,5 +1,5 @@
-#ISO8859_1 = 12,-mona-*-medium-r-*-12-*-jisx0201*;
-#ISO8859_1_BOLD = 12,-mona-*-bold-r-*-12-*-jisx0201*;
+#ISO8859_1 = 12,-mona-*-medium-r-*-12-*-jisx0201*:100;
+#ISO8859_1_BOLD = 12,-mona-*-bold-r-*-12-*-jisx0201*:100;
 #JISX0201_KATA = 12,-mona-*-medium-r-*-12-*-jisx0201*;
 #JISX0201_KATA_BOLD = 12,-mona-*-bold-r-*-12-*-jisx0201*;
 #JISX0201_ROMAN = 12,-mona-*-medium-r-*-12-*-jisx0201*;
