@@ -597,19 +597,34 @@ config_protocol_set(
 		/*
 		 * accept multiple key=value pairs.
 		 */
-		while( pt && ( val = strchr( pt , '=')))
+		while( pt)
 		{
-			*(val ++) = '\0' ;
-
-			if( ( p = strchr( val , ';')))
+			if( ( p = strchr( pt , ';')))
 			{
 				*(p ++) = '\0' ;
 			}
 
-			(*vt100_parser->config_listener->set)(
-				vt100_parser->config_listener->self ,
+			if( ( val = strchr( pt , '=')))
+			{
+				*(val ++) = '\0' ;
+			}
+			else
+			{
+				val = "" ;
+			}
+			
+			(*vt100_parser->config_listener->set)( vt100_parser->config_listener->self ,
 				pt , val) ;
 
+			/* XXX */
+			if( vt100_parser->config_listener == NULL)
+			{
+				/*
+				 * pty changed.
+				 */
+				break ;
+			}
+			
 			pt = p ;
 		}
 
@@ -643,13 +658,20 @@ config_protocol_save(
 		/*
 		 * accept multiple key=value pairs.
 		 */
-		while( pt && ( val = strchr( pt , '=')))
+		while( pt)
 		{
-			*(val ++) = '\0' ;
-
-			if( ( p = strchr( val , ';')))
+			if( ( p = strchr( pt , ';')))
 			{
 				*(p ++) = '\0' ;
+			}
+
+			if( ( val = strchr( pt , '=')))
+			{
+				*(val ++) = '\0' ;
+			}
+			else
+			{
+				val = "" ;
 			}
 
 			/* XXX */
@@ -657,7 +679,7 @@ config_protocol_save(
 			{
 				pt = "ENCODING" ;
 			}
-			
+
 			kik_conf_io_write( conf , pt , val) ;
 
 			pt = p ;

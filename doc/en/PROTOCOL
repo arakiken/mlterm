@@ -2,7 +2,7 @@ comment -*- mode: text -*-
 comment $Id$
 
 mlterm configuration protocol
-version 20020206
+version 20030301
 
 * mlterm proper
   set              = "\x1b" "]" "5379" ( ";" <key> [ "=" <value> ] )* "\x07"
@@ -17,7 +17,8 @@ version 20020206
                      wall_picture | full_reset | brightness | gamma | contrast | line_space |
                      screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
                      use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
-                     iscii_lang | use_dynamic_comb | cursor_fg_color | cursor_bg_color
+                     iscii_lang | use_dynamic_comb | cursor_fg_color | cursor_bg_color |
+                     open_pty | open_screen | select_pty
   get key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_key | mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | receive_string_via_ucs | xim |
@@ -36,7 +37,7 @@ version 20020206
   encoding = ISO8859[1-11] | ISO8859[13-16] | TCVN5712 | KOI8R | KOI8U | VISCII |
            EUCJP | EUCJISX0213 | ISO2022JP[1-3] | SJIS | SJISX0213 | ISO2022KR |
            EUCKR | UHC | JOHAB | EUCCN | GBK | ISO2022CN | BIG5 | BIG5HKSCS |
-           EUCTW | HZ | UTF8 | GB18030
+           EUCTW | HZ | UTF8 | GB18030 | auto
   fg_color = <color name> | <color rgb>
   bg_color = <color name> | <color rgb>
   tabsize = <any ASCII decimal digit>
@@ -76,6 +77,9 @@ version 20020206
   cols = <any ASCII decimal digit>
   cursor_fg_color = <color name> | <color rgb>
   cursor_bg_color = <color name> | <color rgb>
+  open_pty = <none>
+  open_screen = <none>
+  select_pty = <pty dev name>
 
 * note
   o Encoding names are regularized , that is , `-' , `-' are removed , and only upper

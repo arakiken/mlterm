@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_gamma_config_widget_new(void) ;
 
-void  mc_update_gamma( int  save) ;
+void  mc_update_gamma(void) ;
 
 
 #endif

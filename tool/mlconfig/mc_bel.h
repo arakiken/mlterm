@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_bel_config_widget_new( void) ;
 
-void  mc_update_bel_mode( int  save) ;
+void  mc_update_bel_mode(void) ;
 
 
 #endif

@@ -23,6 +23,7 @@
 
 static char *  new_iscii_lang ;
 static char *  old_iscii_lang ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -65,6 +66,7 @@ mc_iscii_lang_config_widget_new(void)
 	} ;
 	
 	new_iscii_lang = old_iscii_lang = mc_get_str_value( "iscii_lang") ;
+	is_changed = 0;
 
 	return  mc_combo_new( _("ISCII language") , iscii_langs ,
 		sizeof(iscii_langs) / sizeof(iscii_langs[0]) ,
@@ -72,21 +74,14 @@ mc_iscii_lang_config_widget_new(void)
 }
 
 void
-mc_update_iscii_lang(
-	int  save
-	)
+mc_update_iscii_lang(void)
 {
-	if( save)
+	if (strcmp(new_iscii_lang, old_iscii_lang)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "iscii_lang" , new_iscii_lang , save) ;
-	}
-	else
-	{
-		if( strcmp( new_iscii_lang , old_iscii_lang) != 0)
-		{
-			mc_set_str_value( "iscii_lang" , new_iscii_lang , save) ;
-			free( old_iscii_lang) ;
-			old_iscii_lang = strdup( new_iscii_lang) ;
-		}
+		mc_set_str_value( "iscii_lang" , new_iscii_lang) ;
+		free( old_iscii_lang) ;
+		old_iscii_lang = strdup( new_iscii_lang) ;
 	}
 }

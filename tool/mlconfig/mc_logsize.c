@@ -23,6 +23,7 @@
 
 static char *  new_logsize ;
 static char *  old_logsize ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -57,6 +58,7 @@ mc_logsize_config_widget_new(void)
 	} ;
 
 	new_logsize = old_logsize = mc_get_str_value( "logsize") ;
+	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Backlog size (lines)"), logsizes,
 		sizeof(logsizes) / sizeof(logsizes[0]),
@@ -64,21 +66,14 @@ mc_logsize_config_widget_new(void)
 }
 
 void
-mc_update_logsize(
-	int  save
-	)
+mc_update_logsize(void)
 {
-	if( save)
+	if (strcmp(new_logsize, old_logsize)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "logsize" , new_logsize , save) ;
-	}
-	else
-	{
-		if( strcmp( new_logsize , old_logsize) != 0)
-		{
-			mc_set_str_value( "logsize" , new_logsize , save) ;
-			free( old_logsize) ;
-			old_logsize = strdup( new_logsize) ;
-		}
+		mc_set_str_value( "logsize" , new_logsize) ;
+		free( old_logsize) ;
+		old_logsize = strdup( new_logsize) ;
 	}
 }

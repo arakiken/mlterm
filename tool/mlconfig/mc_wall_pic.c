@@ -98,28 +98,14 @@ mc_wall_pic_config_widget_new(void)
 }
 
 void
-mc_update_wall_pic(
-	int  save
-	)
+mc_update_wall_pic(void)
 {
 	char *  new_wall_pic ;
 
-	if( *( new_wall_pic = gtk_entry_get_text( GTK_ENTRY(entry))) == '\0')
+	if( strcmp( old_wall_pic , new_wall_pic) != 0)
 	{
-		new_wall_pic = "none" ;
-	}
-
-	if( save)
-	{
-		mc_set_str_value( "wall_picture" , new_wall_pic , save) ;
-	}
-	else
-	{
-		if( strcmp( old_wall_pic , new_wall_pic) != 0)
-		{
-			mc_set_str_value( "wall_picture" , new_wall_pic , save) ;
-			free( old_wall_pic) ;
-			old_wall_pic = strdup( new_wall_pic) ;
-		}
+		mc_set_str_value( "wall_picture" , new_wall_pic) ;
+		free( old_wall_pic) ;
+		old_wall_pic = strdup( new_wall_pic) ;
 	}
 }

@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_vertical_config_widget_new(void) ;
 
-void  mc_update_vertical_mode( int  save) ;
+void  mc_update_vertical_mode(void) ;
 
 
 #endif

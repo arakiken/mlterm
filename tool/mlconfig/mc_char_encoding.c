@@ -23,9 +23,12 @@
 
 static char *  new_encoding ;
 static char *  old_encoding ;
+static int is_changed;
 
 static char *  encodings[] =
 {
+	"auto" ,
+	
 	"ISO-8859-1" ,
 	"ISO-8859-2" ,
 	"ISO-8859-3" ,
@@ -86,11 +89,11 @@ regularize(
 {
 	if( strcmp( encoding , "ISO-8859-11 (TIS-620)") == 0)
 	{
-		return  "ISO-8859-11" ;
+		return  strdup("ISO-8859-11") ;
 	}
 	else
 	{
-		return  encoding ;
+		return  strdup(encoding) ;
 	}
 }
 
@@ -101,6 +104,8 @@ unregularize(
 {
 	char *  regularized_encodings[] =
 	{
+		"auto" ,
+		
 		"ISO88591" ,
 		"ISO88592" ,
 		"ISO88593" ,
@@ -199,26 +204,20 @@ mc_char_encoding_config_widget_new(void)
 	}
 
 	new_encoding = old_encoding = regularize( encoding) ;
+	is_changed = 0;
 
 	return  widget ;
 }
 
 void
-mc_update_char_encoding(
-	int  save
-	)
+mc_update_char_encoding(void)
 {
-	if( save)
+	if (strcmp(new_encoding, old_encoding)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "encoding" , new_encoding , save) ;
-	}
-	else
-	{
-		if( strcmp( new_encoding , old_encoding) != 0)
-		{
-			mc_set_str_value( "encoding" , new_encoding , save) ;
-			free( old_encoding) ;
-			old_encoding = strdup( new_encoding) ;
-		}
+		mc_set_str_value( "encoding" , new_encoding) ;
+		free( old_encoding) ;
+		old_encoding = strdup( new_encoding) ;
 	}
 }

@@ -63,10 +63,10 @@ main(
 	char *  p ;
 	int  sock_fd ;
 	struct sockaddr_un  servaddr ;
-	int  count ;
 	char  buf[256] ;
 	size_t  len ;
-
+	int  count ;
+	
 	for( count = 1 ; count < argc ; count ++)
 	{
 		p = argv[count];
@@ -120,20 +120,41 @@ main(
 	}
 #endif
 
-	count = 0 ;
-	while( 1)
+	write( sock_fd , argv[0] , strlen( argv[0])) ;
+
+	if( argc > 1)
 	{
-		write( sock_fd , argv[count] , strlen( argv[count])) ;
-
-		if( ++ count < argc)
+		count = 1 ;
+		while( 1)
 		{
-			write( sock_fd , " " , 1) ;
-		}
-		else
-		{
-			write( sock_fd , "\n" , 1) ;
+			p = argv[count] ;
+			
+			write( sock_fd , " \"" , 2) ;
 
-			break ;
+			while( *p)
+			{
+				if( *p == '\"')
+				{
+					write( sock_fd , "\\\"" , 2) ;
+				}
+				else
+				{
+					write( sock_fd , p , 1) ;
+				}
+
+				p ++ ;
+			}
+			
+			if( ++ count < argc)
+			{
+				write( sock_fd , "\"" , 1) ;
+			}
+			else
+			{
+				write( sock_fd , "\"\n" , 2) ;
+
+				break ;
+			}
 		}
 	}
 

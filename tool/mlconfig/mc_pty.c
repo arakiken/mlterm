@@ -41,7 +41,6 @@ mc_pty_config_widget_new(void)
 {
 	char *  my_pty ;
 	char *  pty_list ;
-	char *  dev ;
 	char *  ptys[MAX_TERMS];
 	int num;
 
@@ -78,7 +77,8 @@ mc_select_pty(void)
 
 		sprintf( dev , "/dev/%s" , new_pty) ;
 
-		mc_set_str_value( "select_pty" , dev , 0) ;
+		mc_set_str_value( "select_pty" , dev) ;
+		mc_flush(mc_io_set);
 
 		free( dev) ;
 

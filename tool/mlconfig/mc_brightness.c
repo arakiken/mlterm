@@ -23,6 +23,7 @@
 
 static char *  new_brightness ;
 static char *  old_brightness ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -65,6 +66,7 @@ mc_brightness_config_widget_new(
 	} ;
 
 	old_brightness = new_brightness = mc_get_str_value( "brightness") ;
+	is_changed = 0;
 	
 	return  mc_combo_new_with_width(_("Brightness"), brightnesses,
 		sizeof(brightnesses) / sizeof(brightnesses[0]), 
@@ -72,21 +74,14 @@ mc_brightness_config_widget_new(
 }
 
 void
-mc_update_brightness(
-	int  save
-	)
+mc_update_brightness(void)
 {
-	if( save)
+	if (strcmp(new_brightness, old_brightness)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "brightness" , new_brightness , save) ;
-	}
-	else
-	{
-		if( strcmp( old_brightness , new_brightness) != 0)
-		{
-			mc_set_str_value( "brightness" , new_brightness , save) ;
-			free( old_brightness) ;
-			old_brightness = strdup( new_brightness) ;
-		}
+		mc_set_str_value( "brightness" , new_brightness) ;
+		free( old_brightness) ;
+		old_brightness = strdup( new_brightness) ;
 	}
 }

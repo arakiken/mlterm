@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_bgtype_config_widget_new(void) ;
 
-void  mc_update_bgtype( int  save) ;
+void  mc_update_bgtype(void) ;
 
 
 #endif

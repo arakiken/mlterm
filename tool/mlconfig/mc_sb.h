@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_sb_config_widget_new(void) ;
 
-void  mc_update_sb_mode( int  save) ;
+void  mc_update_sb_mode(void) ;
 
 
 #endif

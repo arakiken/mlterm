@@ -42,6 +42,7 @@ static char *  old_xim ;
 static char *  new_locale ;
 static char *  old_locale ;
 static char *  cur_locale ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -162,6 +163,7 @@ mc_xim_config_widget_new(void)
 	GtkWidget *  entry ;
 
 	old_xim = new_xim = mc_get_str_value( "xim") ;
+	is_changed = 0;
 	cur_locale = mc_get_str_value( "locale") ;
 	
 	kik_map_new(char *, char *, xim_locale_table, kik_map_hash_str,
@@ -231,9 +233,7 @@ mc_xim_config_widget_new(void)
 }
 
 void
-mc_update_xim(
-	int  save
-	)
+mc_update_xim(void)
 {
 	char *  p ;
 
@@ -249,22 +249,16 @@ mc_update_xim(
 
 	sprintf( p , "%s:%s" , new_xim , new_locale) ;
 
-	if( save)
-	{
-		mc_set_str_value( "xim" , p , save) ;
-	}
-	else
-	{
-		if( strcmp( new_xim , old_xim) != 0 || strcmp( new_locale , old_locale) != 0)
-		{
-			mc_set_str_value( "xim" , p , save) ;
+	if (strcmp(new_xim, old_xim) || strcmp(new_locale, old_locale))
+		is_changed = 1;
 
+	if (is_changed)
+	{
+		mc_set_str_value( "xim" , p) ;
 			free( old_xim) ;
-			old_xim = strdup( new_xim) ;
-
+		old_xim = strdup( new_xim) ;
 			free( old_locale) ;			
-			old_locale = strdup( new_locale) ;
-		}
+		old_locale = strdup( new_locale) ;
 	}
 
 	free( p) ;

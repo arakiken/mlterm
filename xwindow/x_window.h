@@ -24,7 +24,6 @@
 #include  "x_color_manager.h"
 #include  "ml_char.h"
 #include  "x_picture.h"
-#include  "ml_logical_visual.h"		/* ml_vertical_mode_t */
 
 
 #define  ACTUAL_WIDTH(win)  ((win)->width + (win)->margin * 2)

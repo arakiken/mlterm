@@ -7,6 +7,7 @@
 #include  <kiklib/kik_str.h>		/* kik_str_alloca_dup */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>		/* alloca */
+#include  <kiklib/kik_locale.h>		/* kik_get_codeset */
 
 #include  <mkf/mkf_iso8859_parser.h>
 #include  <mkf/mkf_viscii_parser.h>
@@ -282,6 +283,11 @@ ml_get_char_encoding(
 	kik_debug_printf( KIK_DEBUG_TAG " encoding -> %s.\n" , encoding) ;
 #endif
 
+	if( strcasecmp( encoding , "auto") == 0)
+	{
+		return  ml_get_char_encoding( kik_get_codeset()) ;
+	}
+	
 	for( count = 0 ; count < sizeof( encoding_table) / sizeof( encoding_table_t) ;
 		count ++)
 	{

@@ -23,6 +23,7 @@
 
 static char *  new_sb_view_name ;
 static char *  old_sb_view_name ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -60,6 +61,7 @@ mc_sb_view_config_widget_new(void)
 	} ;
 
 	new_sb_view_name = old_sb_view_name = mc_get_str_value( "scrollbar_view_name") ;
+	is_changed = 0;
 
 	return  mc_combo_new( _("View") , sb_view_names ,
 		sizeof(sb_view_names) / sizeof(sb_view_names[0]) ,
@@ -67,21 +69,14 @@ mc_sb_view_config_widget_new(void)
 }
 
 void
-mc_update_sb_view_name(
-	int  save
-	)
+mc_update_sb_view_name(void)
 {
-	if( save)
+	if (strcmp(new_sb_view_name, old_sb_view_name)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "scrollbar_view_name" , new_sb_view_name , save) ;
-	}
-	else
-	{
-		if( strcmp( new_sb_view_name , old_sb_view_name) != 0)
-		{
-			mc_set_str_value( "scrollbar_view_name" , new_sb_view_name , save) ;
-			free( old_sb_view_name) ;
-			old_sb_view_name = strdup( new_sb_view_name) ;
-		}
+		mc_set_str_value( "scrollbar_view_name" , new_sb_view_name) ;
+		free( old_sb_view_name) ;
+		old_sb_view_name = strdup( new_sb_view_name) ;
 	}
 }

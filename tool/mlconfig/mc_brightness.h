@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_brightness_config_widget_new( void) ;
 
-void  mc_update_brightness( int  save) ;
+void  mc_update_brightness(void) ;
 
 
 #endif

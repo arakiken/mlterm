@@ -21,7 +21,6 @@
 #include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect/malloc/free */
 #include  <kiklib/kik_conf.h>
 #include  <kiklib/kik_conf_io.h>
-#include  <kiklib/kik_locale.h>	/* kik_get_codeset */
 #include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
 #include  <kiklib/kik_types.h>	/* u_int */
 #include  <kiklib/kik_sig_child.h>
@@ -1559,27 +1558,21 @@ config_init(
 		}
 	}
 
-	if( ( main_config.encoding = ml_get_char_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING)
-	{
-		main_config.encoding = ML_ISO8859_1 ;
-	}
+	main_config.encoding = ML_ISO8859_1 ;
 	
 	if( ( value = kik_conf_get_value( conf , "ENCODING")))
 	{
 		ml_char_encoding_t  encoding ;
 
-		if( strcasecmp( value , "AUTO") != 0)
+		if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
 		{
-			if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
-			{
-				kik_msg_printf(
-					"%s encoding is not supported. Auto detected encoding is used.\n" ,
-					value) ;
-			}
-			else
-			{
-				main_config.encoding = encoding ;
-			}
+			kik_msg_printf(
+				"%s encoding is not supported. Auto detected encoding is used.\n" ,
+				value) ;
+		}
+		else
+		{
+			main_config.encoding = encoding ;
 		}
 	}
 
@@ -1808,6 +1801,8 @@ client_connected(void)
 	char *  args ;
 	char **  argv ;
 	int  argc ;
+	char *  args_dup ;
+	char *  p ;
 
 	fp = NULL ;
 
@@ -1857,27 +1852,93 @@ client_connected(void)
 	args[line_len - 1] = '\0' ;
 
 	kik_file_delete( from) ;
-	
+
+//#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s\n" , line) ;
+//#endif
 	
 	/*
 	 * parsing options.
 	 */
 
 	argc = 0 ;
+
 	if( ( argv = alloca( sizeof( char*) * line_len)) == NULL)
 	{
 		goto  error ;
 	}
 
-	while( ( argv[argc] = kik_str_sep( &args , " \t")))
+	if( ( args_dup = alloca( line_len)) == NULL)
 	{
-		if( *argv[argc] != '\0')
-		{
-			argc ++ ;
-		}
+		goto  error ;
 	}
+	
+	p = args_dup ;
 
-#ifdef  __DEBUG
+	while( *args)
+	{
+		int  quoted ;
+
+		while( *args == ' ' || *args == '\t')
+		{
+			if( *args == '\0')
+			{
+				goto  parse_end ;
+			}
+
+			args ++ ;
+		}
+
+		if( *args == '\"')
+		{
+			quoted = 1 ;
+			args ++ ;
+		}
+		else
+		{
+			quoted = 0 ;
+		}
+		
+		while( *args)
+		{
+			if( quoted)
+			{
+				if( *args == '\"')
+				{
+					args ++ ;
+					
+					break ;
+				}
+			}
+			else
+			{
+				if( *args == ' ' || *args == '\t')
+				{
+					args ++ ;
+					
+					break ;
+				}
+			}
+			
+			if( *args == '\\' && *(args + 1) == '\"')
+			{
+				*(p ++) = *(++ args) ;
+			}
+			else
+			{
+				*(p ++) = *args ;
+			}
+
+			args ++ ;
+		}
+
+		*(p ++) = '\0' ;
+		argv[argc ++] = args_dup ;
+		args_dup = p ;
+	}
+parse_end:
+
+//#ifdef  __DEBUG
 	{
 		int  i ;
 
@@ -1886,7 +1947,7 @@ client_connected(void)
 			kik_msg_printf( "%s\n" , argv[i]) ;
 		}
 	}
-#endif
+//#endif
 
 	if( argc == 0)
 	{

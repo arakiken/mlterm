@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_contrast_config_widget_new(void) ;
 
-void  mc_update_contrast( int  save) ;
+void  mc_update_contrast(void) ;
 
 
 #endif

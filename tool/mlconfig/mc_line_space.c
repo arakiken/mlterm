@@ -23,6 +23,7 @@
 
 static char *  new_line_space ;
 static char *  old_line_space ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -59,6 +60,7 @@ mc_line_space_config_widget_new(void)
 	} ;
 
 	new_line_space = old_line_space = mc_get_str_value( "line_space") ;
+	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Line space (pixels)"), line_spaces,
 		sizeof(line_spaces) / sizeof(line_spaces[0]),
@@ -66,21 +68,14 @@ mc_line_space_config_widget_new(void)
 }
 
 void
-mc_update_line_space(
-	int  save
-	)
+mc_update_line_space(void)
 {
-	if( save)
+	if (strcmp(new_line_space, old_line_space)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "line_space" , new_line_space , save) ;
-	}
-	else
-	{
-		if( strcmp( new_line_space , old_line_space) != 0)
-		{
-			mc_set_str_value( "line_space" , new_line_space , save) ;
-			free( old_line_space) ;
-			old_line_space = strdup( new_line_space) ;
-		}
+		mc_set_str_value( "line_space" , new_line_space) ;
+		free( old_line_space) ;
+		old_line_space = strdup( new_line_space) ;
 	}
 }

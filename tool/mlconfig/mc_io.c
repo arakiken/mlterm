@@ -13,41 +13,41 @@
 
 /* --- static variables --- */
 
-char *  save_str ;
-char *  set_str ;
+char *  message ;
 
 
 /* --- static functions --- */
 
 static int
 append_value(
-	char **  str ,	/* save_str or set_str */
 	char *  key ,
 	char *  value
 	)
 {
-	if( *str == NULL)
+	if( message == NULL)
 	{
-		if( ( *str = malloc( strlen( key) + 1 + strlen( value) + 1)) == NULL)
+		if( ( message = malloc( strlen( key) + 1 + strlen( value) + 1)) == NULL)
 		{
 			return  0 ;
 		}
 
-		sprintf( *str , "%s=%s" , key , value) ;
+		sprintf( message , "%s=%s" , key , value) ;
 	}
 	else
 	{
 		void *  p ;
+		int len;
 		
-		if( ( p = realloc( *str , strlen( *str) + 1 + strlen( key) + 1 + strlen( value) + 1))
+		len = strlen(message);
+		if( ( p = realloc( message , len + 1 + strlen( key) + 1 + strlen( value) + 1))
 				== NULL)
 		{
 			return  0 ;
 		}
 
-		*str = p ;
+		message = p ;
 		
-		sprintf( *str , "%s;%s=%s" , *str , key , value) ;
+		sprintf( message + len , ";%s=%s" , key , value) ;
 	}
 
 	return  1 ;
@@ -58,14 +58,15 @@ get_value(
 	char *  key
 	)
 {
+#define RET_SIZE 1024
 	int  count ;
-	char  ret[1024] ;
+	char  ret[RET_SIZE] ;
 	char  c ;
 
-	printf( "\x1b]5381;%s\x07" , key) ;
+	printf( "\x1b]%d;%s\x07" , mc_io_get, key) ;
 	fflush( stdout) ;
 
-	for( count = 0 ; count < 1024 ; count ++)
+	for( count = 0 ; count < RET_SIZE ; count ++)
 	{
 		if( read( STDIN_FILENO , &c , 1) == 1)
 		{
@@ -97,6 +98,7 @@ get_value(
 	}
 
 	return  NULL ;
+#undef RET_SIZE
 }
 
 
@@ -105,94 +107,48 @@ get_value(
 int
 mc_set_str_value(
 	char *  key ,
-	char *  value ,
-	int  save
+	char *  value
 	)
 {
-	if( value == NULL)
-	{
-		return  0 ;
-	}
+	if (value == NULL) return 0;
 
 #ifdef __DEBUG
 	kik_debug_printf( "%s=%s\n" , key , value) ;
 #endif
 
-	if( save)
-	{
-		if( strcmp( key , "encoding") == 0)
-		{
-			key = "ENCODING" ;
-		}
-		
-		return  append_value( &save_str , key , value) ;
-	}
-	else
-	{
-		return  append_value( &set_str , key , value) ;
-	}
+	return append_value(key, value);
 }
 
 int
 mc_set_flag_value(
 	char *  key ,
-	int  flag_val ,
-	int  save
+	int  flag_val
 	)
 {
-	char *  value ;
-
-	if( flag_val)
-	{
-		value = "true" ;
-	}
-	else
-	{
-		value = "false" ;
-	}
-
 #ifdef __DEBUG
 	kik_debug_printf( "%s=%s\n" , key , value) ;
 #endif
 
-	if( save)
-	{
-		return  append_value( &save_str , key , value) ;
-	}
-	else
-	{
-		return  append_value( &set_str , key , value) ;
-	}
+	return append_value(key, (flag_val ? "true" : "false"));
 }
 
 int
-mc_flush(void)
+mc_flush(mc_io_t  io)
 {
-	if( save_str)
+	if( message == NULL)
 	{
-		printf( "\x1b]5382;%s\x07" , save_str) ;
-
-	#if  0
-		fprintf( stderr , "%s\n" , save_str) ;
-	#endif
-	
-		free( save_str) ;
-		save_str = NULL ;
+		return  1 ;
 	}
 	
-	if( set_str)
-	{
-		printf( "\x1b]5379;%s\x07" , set_str) ;
-
-	#if  0
-		fprintf( stderr , "%s\n" , set_str) ;
-	#endif
-
-		free( set_str) ;
-		set_str = NULL ;
-	}
-
+	printf("\x1b]%d;%s\x07" , io , message);
 	fflush( stdout) ;
+
+#if  0
+	fprintf( stderr , "%s\n" , message) ;
+#endif
+
+	free(message);
+	message = NULL;
 
 	return  1 ;
 }

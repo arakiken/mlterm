@@ -22,6 +22,7 @@
 
 static char *  new_sb_mode ;
 static char *  old_sb_mode ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -124,26 +125,20 @@ mc_sb_config_widget_new(void)
 	}
 
 	new_sb_mode = old_sb_mode = sb_mode ;
+	is_changed = 0;
 	
 	return  hbox ;
 }
 
 void
-mc_update_sb_mode(
-	int  save
-	)
+mc_update_sb_mode(void)
 {
-	if( save)
+	if (strcmp(new_sb_mode, old_sb_mode)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "scrollbar_mode" , new_sb_mode , save) ;
-	}
-	else
-	{
-		if( strcmp( new_sb_mode , old_sb_mode) != 0)
-		{
-			mc_set_str_value( "scrollbar_mode" , new_sb_mode , save) ;
-			free( new_sb_mode) ;
-			old_sb_mode = strdup( new_sb_mode) ;
-		}
+		mc_set_str_value( "scrollbar_mode" , new_sb_mode) ;
+		free( new_sb_mode) ;
+		old_sb_mode = strdup( new_sb_mode) ;
 	}
 }

@@ -117,6 +117,8 @@ typedef struct  x_screen
 	char *  pic_file_path ;
 	x_picture_modifier_t  pic_mod ;
 
+	char *  conf_menu_path ;
+
 	u_int8_t  fade_ratio ;
 	int8_t  is_focused ;
 	int8_t  receive_string_via_ucs ;

@@ -33,6 +33,7 @@
 #define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
 #define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
+#define  XA_XROOTPMAP_ID(display) (XInternAtom(display, "_XROOTPMAP_ID", False))
 
 /*
  * Extended Window Manager Hint support
@@ -213,6 +214,24 @@ notify_reparent_to_children(
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		notify_reparent_to_children( win->children[count]) ;
+	}
+}
+
+static void
+notify_property_to_children(
+	x_window_t *  win
+	)
+{
+	int  count ;
+
+	if( win->is_transparent && x_root_pixmap_available( win->display))
+	{
+		update_pic_transparent( win) ;
+	}
+
+	for( count = 0 ; count < win->num_of_children ; count ++)
+	{
+		notify_property_to_children( win->children[count]) ;
 	}
 }
 
@@ -1578,6 +1597,16 @@ x_window_receive_event(
 			{
 				return  1 ;
 			}
+		}
+
+		if( x_root_pixmap_available( win->display) &&
+			( event->type == PropertyNotify) &&
+			( win == x_get_root_window( win)) &&
+			( event->xproperty.atom == XA_XROOTPMAP_ID(win->display)))
+		{
+			notify_property_to_children( win) ;
+
+			return  1 ;
 		}
 
 		return  0 ;

@@ -2372,7 +2372,7 @@ config_menu(
 		DefaultRootWindow( screen->window.display) , x , y ,
 		&global_x , &global_y , &child) ;
 
-	ml_term_start_config_menu( screen->term , NULL , global_x , global_y ,
+	ml_term_start_config_menu( screen->term , screen->conf_menu_path , global_x , global_y ,
 		DisplayString(screen->window.display)) ;
 }
 
@@ -5084,9 +5084,21 @@ set_config(
 				value) ;
 		}
 	}
-
-	redraw_screen( screen) ;
-	highlight_cursor( screen) ;
+	else if( strcmp( key , "open_pty") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,open_pty))
+		{
+			(*screen->system_listener->open_pty)(
+				screen->system_listener->self , screen , NULL) ;
+		}
+	}
+	else if( strcmp( key , "open_screen") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,open_screen))
+		{
+			(*screen->system_listener->open_screen)( screen->system_listener->self) ;
+		}
+	}
 }
 
 static void
@@ -6124,6 +6136,8 @@ x_screen_new(
 	{
 		screen->pic_file_path = NULL ;
 	}
+
+	screen->conf_menu_path = conf_menu_path ;
 
 	screen->shortcut = shortcut ;
 	screen->termcap = termcap ;

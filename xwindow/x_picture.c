@@ -18,7 +18,15 @@ x_picture_display_opened(
 	Display *  display
 	)
 {
-	return  x_imagelib_display_opened( display) ;
+	if( ! x_imagelib_display_opened( display))
+	{
+		return  0 ;
+	}
+
+	/* Want _XROOTPIAMP_ID changed events. */
+	XSelectInput( display , DefaultRootWindow(display) , PropertyChangeMask) ;
+
+	return  1 ;
 }
 
 int
@@ -29,6 +37,14 @@ x_picture_display_closed(
 	return  x_imagelib_display_closed( display) ;
 }
 
+int
+x_root_pixmap_available(
+	Display *  display
+	)
+{
+	return  x_imagelib_root_pixmap_available( display) ;
+}
+	
 int
 x_picture_init(
 	x_picture_t *  pic ,
@@ -77,14 +93,6 @@ x_picture_load_file(
 	return  1 ;
 }
 
-int
-x_root_pixmap_available(
-	Display *  display
-	)
-{
-	return  x_imagelib_root_pixmap_available( display) ;
-}
-	
 int
 x_picture_load_background(
 	x_picture_t *  pic

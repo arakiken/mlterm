@@ -23,6 +23,7 @@
 
 static char *  new_fade_ratio ;
 static char *  old_fade_ratio ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -63,6 +64,7 @@ mc_fade_config_widget_new(void)
 	} ;
 
 	new_fade_ratio = old_fade_ratio = mc_get_str_value( "fade_ratio") ;
+	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Fade ratio on unfocus"), fade_ratios,
 		sizeof(fade_ratios) / sizeof(fade_ratios[0]),
@@ -70,21 +72,14 @@ mc_fade_config_widget_new(void)
 }
 
 void
-mc_update_fade_ratio(
-	int  save
-	)
+mc_update_fade_ratio(void)
 {
-	if( save)
+	if (strcmp(new_fade_ratio, old_fade_ratio)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "fade_ratio" , new_fade_ratio , save) ;
-	}
-	else
-	{
-		if( strcmp( new_fade_ratio , old_fade_ratio) != 0)
-		{
-			mc_set_str_value( "fade_ratio" , new_fade_ratio , save) ;
-			free( old_fade_ratio) ;
-			old_fade_ratio = strdup( new_fade_ratio) ;
-		}
+		mc_set_str_value( "fade_ratio" , new_fade_ratio) ;
+		free( old_fade_ratio) ;
+		old_fade_ratio = strdup( new_fade_ratio) ;
 	}
 }

@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_fontsize_config_widget_new(void) ;
 
-void  mc_update_fontsize( int  save) ;
+void  mc_update_fontsize(void) ;
 
 
 #endif

@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_logsize_config_widget_new(void) ;
 
-void  mc_update_logsize( int  save) ;
+void  mc_update_logsize(void) ;
 
 
 #endif

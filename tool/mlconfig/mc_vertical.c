@@ -22,6 +22,7 @@
 
 static char *  new_vertical_mode ;
 static char *  old_vertical_mode ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -124,26 +125,20 @@ mc_vertical_config_widget_new(void)
 	}
 
 	new_vertical_mode = old_vertical_mode = vertical_mode ;
+	is_changed = 0;
 	
 	return  hbox ;
 }
 
 void
-mc_update_vertical_mode(
-	int  save
-	)
+mc_update_vertical_mode(void)
 {
-	if( save)
+	if (strcmp(new_vertical_mode, old_vertical_mode)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "vertical_mode" , new_vertical_mode , save) ;
-	}
-	else
-	{
-		if( strcmp( new_vertical_mode , old_vertical_mode) != 0)
-		{
-			mc_set_str_value( "vertical_mode" , new_vertical_mode , save) ;
-			free( old_vertical_mode) ;
-			old_vertical_mode = strdup( new_vertical_mode) ;
-		}
+		mc_set_str_value( "vertical_mode" , new_vertical_mode) ;
+		free( old_vertical_mode) ;
+		old_vertical_mode = strdup( new_vertical_mode) ;
 	}
 }

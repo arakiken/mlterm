@@ -23,6 +23,7 @@
 
 static char *  new_tabsize ;
 static char *  old_tabsize ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -56,6 +57,7 @@ mc_tabsize_config_widget_new(void)
 	} ;
 
 	new_tabsize = old_tabsize = mc_get_str_value( "tabsize") ;
+	is_changed = 0;
 
 	return  mc_combo_new_with_width( _("Tab width (columns)"), tabsizes,
 		sizeof(tabsizes) / sizeof(tabsizes[0]),
@@ -63,21 +65,14 @@ mc_tabsize_config_widget_new(void)
 }
 
 void
-mc_update_tabsize(
-	int  save
-	)
+mc_update_tabsize(void)
 {
-	if( save)
+	if (strcmp(new_tabsize, old_tabsize)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "tabsize" , new_tabsize , save) ;
-	}
-	else
-	{
-		if( strcmp( new_tabsize , old_tabsize) != 0)
-		{
-			mc_set_str_value( "tabsize" , new_tabsize , save) ;
-			free( old_tabsize) ;
-			old_tabsize = strdup( new_tabsize) ;
-		}
+		mc_set_str_value( "tabsize" , new_tabsize) ;
+		free( old_tabsize) ;
+		old_tabsize = strdup( new_tabsize) ;
 	}
 }

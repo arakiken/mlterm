@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_xim_config_widget_new(void) ;
 
-void  mc_update_xim( int  save) ;
+void  mc_update_xim(void) ;
 
 
 #endif

@@ -22,6 +22,7 @@
 
 static char *  new_mod_meta_mode ;
 static char *  old_mod_meta_mode ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -124,26 +125,20 @@ mc_mod_meta_config_widget_new(void)
 	}
 
 	new_mod_meta_mode = old_mod_meta_mode = mod_meta_mode ;
+	is_changed = 0;
 	
 	return  hbox ;
 }
 
 void
-mc_update_mod_meta_mode(
-	int  save
-	)
+mc_update_mod_meta_mode(void)
 {
-	if( save)
+	if (strcmp(new_mod_meta_mode, old_mod_meta_mode)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "mod_meta_mode" , new_mod_meta_mode , save) ;
-	}
-	else
-	{
-		if( strcmp( new_mod_meta_mode , old_mod_meta_mode) != 0)
-		{
-			mc_set_str_value( "mod_meta_mode" , new_mod_meta_mode , save) ;
-			free( old_mod_meta_mode) ;
-			old_mod_meta_mode = strdup( new_mod_meta_mode) ;
-		}
+		mc_set_str_value( "mod_meta_mode" , new_mod_meta_mode) ;
+		free( old_mod_meta_mode) ;
+		old_mod_meta_mode = strdup( new_mod_meta_mode) ;
 	}
 }

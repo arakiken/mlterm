@@ -422,7 +422,7 @@ search_usascii_font(
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG
-					"a font for displaying us ascii chars is not found.\n") ;
+					" a font for displaying us ascii chars is not found.\n") ;
 			#endif
 			
 				return  NULL ;
@@ -501,9 +501,7 @@ x_font_manager_new(
 
 	if( ( font_man->usascii_font = search_usascii_font( font_man)) == NULL)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Not found usascii font. Bye...\n") ;
-	#endif
+		kik_msg_printf( "Not found any fonts for the encoding. Bye...\n") ;
 
 		exit(1) ;
 	}

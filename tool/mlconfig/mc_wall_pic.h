@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_wall_pic_config_widget_new(void) ;
 
-void  mc_update_wall_pic( int  save) ;
+void  mc_update_wall_pic(void) ;
 
 
 #endif

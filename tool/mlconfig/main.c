@@ -32,6 +32,7 @@
 #include  "mc_sb_view.h"
 #include  "mc_io.h"
 #include  "mc_pty.h"
+#include  "mc_flags.h"
 
 
 #if  0
@@ -40,14 +41,6 @@
 
 
 /* --- static variables --- */
-
-static GtkWidget *  use_aa_check ;
-static GtkWidget *  use_vcol_check ;
-static GtkWidget *  use_comb_check ;
-static GtkWidget *  use_dynamic_comb_check ;
-static GtkWidget *  use_multi_col_char_check ;
-static GtkWidget *  use_bidi_check ;
-static GtkWidget *  receive_string_via_ucs_check ;
 
 
 /* --- static functions --- */
@@ -77,41 +70,41 @@ cancel_clicked(
 
 static int
 update(
-	int  save
+	mc_io_t  io
 	)
 {
-    mc_update_char_encoding( save) ;
-    mc_update_iscii_lang( save) ;
-    mc_update_fg_color( save) ;
-    mc_update_bgtype( save) ;
-    mc_update_sb_fg_color( save) ;
-    mc_update_sb_bg_color( save) ;
-    mc_update_tabsize( save) ;
-    mc_update_logsize( save) ;
-    mc_update_fontsize( save) ;
-    mc_update_line_space( save) ;
-    mc_update_screen_width_ratio( save) ;
-    mc_update_screen_height_ratio( save) ;
-    mc_update_mod_meta_mode( save) ;
-    mc_update_bel_mode( save) ;
-    mc_update_vertical_mode( save) ;
-    mc_update_sb_mode( save) ;
-    mc_update_brightness( save) ;
-    mc_update_contrast( save) ;
-    mc_update_gamma( save) ;
-    mc_update_fade_ratio( save) ;
-    mc_update_sb_view_name( save) ;
-    mc_update_xim( save) ;
+    mc_update_char_encoding() ;
+    mc_update_iscii_lang() ;
+    mc_update_fg_color() ;
+    mc_update_bgtype() ;
+    mc_update_sb_fg_color() ;
+    mc_update_sb_bg_color() ;
+    mc_update_tabsize() ;
+    mc_update_logsize() ;
+    mc_update_fontsize() ;
+    mc_update_line_space() ;
+    mc_update_screen_width_ratio() ;
+    mc_update_screen_height_ratio() ;
+    mc_update_mod_meta_mode() ;
+    mc_update_bel_mode() ;
+    mc_update_vertical_mode() ;
+    mc_update_sb_mode() ;
+    mc_update_brightness() ;
+    mc_update_contrast() ;
+    mc_update_gamma() ;
+    mc_update_fade_ratio() ;
+    mc_update_sb_view_name() ;
+    mc_update_xim() ;
 
-    mc_set_flag_value("use_anti_alias", GTK_TOGGLE_BUTTON(use_aa_check)->active, save);
-    mc_set_flag_value("use_variable_column_width", GTK_TOGGLE_BUTTON(use_vcol_check)->active, save);
-    mc_set_flag_value("use_combining", GTK_TOGGLE_BUTTON(use_comb_check)->active, save);
-    mc_set_flag_value("use_dynamic_comb", GTK_TOGGLE_BUTTON(use_dynamic_comb_check)->active, save);
-    mc_set_flag_value("receive_string_via_ucs", GTK_TOGGLE_BUTTON(receive_string_via_ucs_check)->active, save);
-    mc_set_flag_value("use_multi_column_char", GTK_TOGGLE_BUTTON(use_multi_col_char_check)->active, save);
-    mc_set_flag_value("use_bidi", GTK_TOGGLE_BUTTON(use_bidi_check)->active, save);
+    mc_update_flag_mode(MC_FLAG_AA);
+    mc_update_flag_mode(MC_FLAG_VCOL);
+    mc_update_flag_mode(MC_FLAG_COMB);
+    mc_update_flag_mode(MC_FLAG_DYNCOMB);
+    mc_update_flag_mode(MC_FLAG_RECVUCS);
+    mc_update_flag_mode(MC_FLAG_MCOL);
+    mc_update_flag_mode(MC_FLAG_BIDI);
 
-    mc_flush() ;
+    mc_flush(io) ;
     
     return  1 ;
 }
@@ -122,7 +115,7 @@ apply_clicked(
 	gpointer  data
 	)
 {
-	update( 0) ;
+	update(mc_io_set);
 	
 	return  1 ;
 }
@@ -133,8 +126,7 @@ ok_clicked(
 	gpointer  data
 	)
 {
-	update( 0) ;
-	update( 1) ;
+	update(mc_io_set_save);
 
 	gtk_main_quit() ;
 	
@@ -147,8 +139,8 @@ larger_clicked(
 	gpointer  data
 	)
 {
-	mc_set_str_value( "fontsize" , "larger" , 0) ;
-	mc_flush();
+	mc_set_str_value( "fontsize" , "larger") ;
+	mc_flush(mc_io_set);
 	
 	return  1 ;
 }
@@ -159,9 +151,9 @@ smaller_clicked(
 	gpointer  data
 	)
 {
-	mc_set_str_value( "fontsize" , "smaller" , 0) ;
-	mc_flush();
-		
+	mc_set_str_value( "fontsize" , "smaller") ;
+	mc_flush(mc_io_set);
+	
 	return  1 ;
 }
 
@@ -171,8 +163,8 @@ full_reset_clicked(
 	gpointer  data
 	)
 {
-	mc_set_str_value( "full_reset" , "" , 0) ;
-	mc_flush();
+	mc_set_str_value( "full_reset" , "") ;
+	mc_flush(mc_io_set);
 
 	return  1 ;
 }
@@ -184,8 +176,11 @@ pty_button_clicked(
 	)
 {
 	mc_select_pty() ;
-	mc_flush();
-	
+
+	/*
+	 * As soon as  pty changed, stdout is also changed, but mlconfig couldn't
+	 * follow it.
+	 */
 	gtk_main_quit() ;
 	
 	return  1 ;
@@ -387,30 +382,25 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);	
 
 
-	if (!(use_bidi_check = mc_check_config_widget_new(
-		   _("Bidi (UTF8 only)"), mc_get_flag_value( "use_bidi"))))
+	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_BIDI)))
 	    return 0;
 #ifndef USE_FRIBIDI
-	gtk_widget_set_sensitive(use_bidi_check, 0);
+	gtk_widget_set_sensitive(config_widget, 0);
 #endif
-	gtk_widget_show(use_bidi_check);
-	gtk_box_pack_start(GTK_BOX(hbox), use_bidi_check, TRUE, TRUE, 0);
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
 
 
-	if(!(use_comb_check = mc_check_config_widget_new(
-		  _("Combining"), mc_get_flag_value("use_combining"))))
+	if(!(config_widget = mc_flag_config_widget_new(MC_FLAG_COMB)))
 	    return 0;
-	gtk_widget_show(use_comb_check);
-	gtk_box_pack_start(GTK_BOX(hbox), use_comb_check, TRUE, TRUE , 0);
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE , 0);
 
 
-	if (!(receive_string_via_ucs_check = mc_check_config_widget_new(
-		   _("Process received strings via Unicode") , 
-		   mc_get_flag_value( "receive_string_via_ucs"))))
+	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_RECVUCS)))
 	    return 0;
-	gtk_widget_show(receive_string_via_ucs_check);
-	gtk_box_pack_start(GTK_BOX(vbox), receive_string_via_ucs_check,
-			   FALSE, FALSE, 0);
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
 	/* contents of the "Font" tab */
@@ -463,23 +453,20 @@ show(void)
 	gtk_widget_show(hbox);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);	
 	
-
-	if (!(use_aa_check = mc_check_config_widget_new(
-		   _("Anti Alias"), mc_get_flag_value("use_anti_alias"))))
+	
+	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_AA)))
 	    return 0;
 #ifndef ANTI_ALIAS
-	gtk_widget_set_sensitive(use_aa_check, 0);
+	gtk_widget_set_sensitive(config_widget, 0);
 #endif
-	gtk_widget_show(use_aa_check);
-	gtk_box_pack_start(GTK_BOX(hbox), use_aa_check, TRUE, TRUE, 0) ;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0) ;
 
 
-	if (!(use_vcol_check = mc_check_config_widget_new(
-		   _("Variable column width") , 
-		   mc_get_flag_value( "use_variable_column_width"))))
+	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_VCOL)))
 	    return 0;
-	gtk_widget_show(use_vcol_check);
-	gtk_box_pack_start(GTK_BOX(hbox), use_vcol_check, TRUE, TRUE, 0);
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
 
 
 	/* contents of the "Background" tab */
@@ -593,20 +580,16 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
-	if (!(use_dynamic_comb_check = mc_check_config_widget_new(
-		   _("Combining = 1 (or 0) logical column(s)"),
-		   mc_get_flag_value("use_dynamic_comb")))) return 0;
-	gtk_widget_show(use_dynamic_comb_check);
-	gtk_box_pack_start(GTK_BOX(vbox), use_dynamic_comb_check,
-			   FALSE, FALSE, 0);
+	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_DYNCOMB)))
+	    return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
-	if (!(use_multi_col_char_check = mc_check_config_widget_new(
-		   _("Fullwidth = 2 (or 1) logical column(s)"),
-		   mc_get_flag_value("use_multi_column_char")))) return 0;
-	gtk_widget_show(use_multi_col_char_check);
-	gtk_box_pack_start(GTK_BOX(vbox), use_multi_col_char_check,
-			   FALSE, FALSE, 0);
+	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_MCOL)))
+	    return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_MOUSE);

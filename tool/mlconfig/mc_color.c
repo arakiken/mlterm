@@ -29,6 +29,10 @@ static char *  old_fg_color ;
 static char *  old_bg_color ;
 static char *  old_sb_fg_color ;
 static char *  old_sb_bg_color ;
+static int is_changed_fg;
+static int is_changed_bg;
+static int is_changed_sb_fg;
+static int is_changed_sb_bg;
 
 
 /* --- static functions --- */
@@ -128,6 +132,7 @@ GtkWidget *
 mc_fg_color_config_widget_new(void)
 {
 	new_fg_color = old_fg_color = mc_get_str_value( "fg_color") ;
+	is_changed_fg = 0;
 	
 	return  config_widget_new( _("Foreground color") , new_fg_color , fg_color_selected) ;
 }
@@ -136,6 +141,7 @@ GtkWidget *
 mc_bg_color_config_widget_new(void)
 {
 	new_bg_color = old_bg_color = mc_get_str_value( "bg_color") ;
+	is_changed_bg = 0;
 	
 	return  config_widget_new(_("Background color") , new_bg_color , bg_color_selected) ;
 }
@@ -144,6 +150,7 @@ GtkWidget *
 mc_sb_fg_color_config_widget_new(void)
 {
 	new_sb_fg_color = old_sb_fg_color = mc_get_str_value( "sb_fg_color") ;
+	is_changed_sb_fg = 0;
 	
 	return  config_widget_new( _("Foreground color") , new_sb_fg_color , sb_fg_color_selected) ;
 }
@@ -152,86 +159,59 @@ GtkWidget *
 mc_sb_bg_color_config_widget_new(void)
 {
 	new_sb_bg_color = old_sb_bg_color = mc_get_str_value( "sb_bg_color") ;
+	is_changed_sb_bg = 0;
 	
 	return  config_widget_new( _("Background color") , new_sb_bg_color , sb_bg_color_selected) ;
 }
 
 void
-mc_update_fg_color(
-	int  save
-	)
+mc_update_fg_color(void)
 {
-	if( save)
+	if (strcmp(new_fg_color, old_fg_color)) is_changed_fg = 1;
+
+	if (is_changed_fg)
 	{
-		mc_set_str_value( "fg_color" , new_fg_color , save) ;
-	}
-	else
-	{
-		if( strcmp( new_fg_color , old_fg_color) != 0)
-		{
-			mc_set_str_value( "fg_color" , new_fg_color , save) ;
-			free( old_fg_color) ;
-			old_fg_color = strdup( new_fg_color) ;
-		}
+		mc_set_str_value( "fg_color" , new_fg_color) ;
+		free( old_fg_color) ;
+		old_fg_color = strdup( new_fg_color) ;
 	}
 }
 
 void
-mc_update_bg_color(
-	int  save
-	)
+mc_update_bg_color(void)
 {
-	if( save)
+	if (strcmp(new_bg_color, old_bg_color)) is_changed_bg = 1;
+
+	if (is_changed_bg)
 	{
-		mc_set_str_value( "bg_color" , new_bg_color , save) ;
-	}
-	else
-	{
-		if( strcmp( new_bg_color , old_bg_color) != 0)
-		{
-			mc_set_str_value( "bg_color" , new_bg_color , save) ;
-			free( old_bg_color) ;
-			old_bg_color = strdup( new_bg_color) ;
-		}
+		mc_set_str_value( "bg_color" , new_bg_color) ;
+		free( old_bg_color) ;
+		old_bg_color = strdup( new_bg_color) ;
 	}
 }
 
 void
-mc_update_sb_fg_color(
-	int  save
-	)
+mc_update_sb_fg_color(void)
 {
-	if( save)
+	if (strcmp(new_sb_fg_color, old_sb_fg_color)) is_changed_sb_fg = 1;
+
+	if (is_changed_sb_fg)
 	{
-		mc_set_str_value( "sb_fg_color" , new_sb_fg_color , save) ;
-	}
-	else
-	{
-		if( strcmp( new_sb_fg_color , old_sb_fg_color) != 0)
-		{
-			mc_set_str_value( "sb_fg_color" , new_sb_fg_color , save) ;
-			free( old_sb_fg_color) ;
-			old_sb_fg_color = strdup( new_sb_fg_color) ;
-		}
+		mc_set_str_value( "sb_fg_color" , new_sb_fg_color) ;
+		free( old_sb_fg_color) ;
+		old_sb_fg_color = strdup( new_sb_fg_color) ;
 	}
 }
 
 void
-mc_update_sb_bg_color(
-	int  save
-	)
+mc_update_sb_bg_color(void)
 {
-	if( save)
+	if (strcmp(new_sb_bg_color, old_sb_bg_color)) is_changed_sb_bg = 1;
+
+	if (is_changed_sb_bg)
 	{
-		mc_set_str_value( "sb_bg_color" , new_sb_bg_color , save) ;
-	}
-	else
-	{
-		if( strcmp( new_sb_bg_color , old_sb_bg_color) != 0)
-		{
-			mc_set_str_value( "sb_bg_color" , new_sb_bg_color , save) ;
-			free( old_sb_bg_color) ;
-			old_sb_bg_color = strdup( new_sb_bg_color) ;
-		}
+		mc_set_str_value( "sb_bg_color" , new_sb_bg_color) ;
+		free( old_sb_bg_color) ;
+		old_sb_bg_color = strdup( new_sb_bg_color) ;
 	}
 }

@@ -21,6 +21,7 @@
 
 static char *  old_bel_mode ;
 static char *  new_bel_mode ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -123,26 +124,20 @@ mc_bel_config_widget_new(void)
 	}
 
 	old_bel_mode = new_bel_mode = bel_mode ;
+	is_changed = 0;
 	
 	return  hbox ;
 }
 
 void
-mc_update_bel_mode(
-	int  save
-	)
+mc_update_bel_mode(void)
 {
-	if( save)
+	if (strcmp(new_bel_mode, old_bel_mode)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "bel_mode" , new_bel_mode , save) ;
-	}
-	else
-	{
-		if( strcmp( old_bel_mode , new_bel_mode) != 0)
-		{
-			mc_set_str_value( "bel_mode" , new_bel_mode , save) ;
-			free( old_bel_mode) ;
-			old_bel_mode = strdup( new_bel_mode) ;
-		}
+		mc_set_str_value( "bel_mode" , new_bel_mode) ;
+		free( old_bel_mode) ;
+		old_bel_mode = strdup( new_bel_mode) ;
 	}
 }

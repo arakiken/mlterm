@@ -25,6 +25,8 @@ static char *  new_screen_width_ratio ;
 static char *  new_screen_height_ratio ;
 static char *  old_screen_width_ratio ;
 static char *  old_screen_height_ratio ;
+static int is_changed_width_ratio;
+static int is_changed_height_ratio;
 
 
 /* --- static functions --- */
@@ -94,6 +96,7 @@ GtkWidget *
 mc_screen_width_ratio_config_widget_new(void)
 {
 	new_screen_width_ratio = old_screen_width_ratio = mc_get_str_value( "screen_width_ratio") ;
+	is_changed_width_ratio = 0;
 
 	return  config_widget_new(_("Width") , new_screen_width_ratio , screen_width_ratio_selected) ;
 }
@@ -102,46 +105,36 @@ GtkWidget *
 mc_screen_height_ratio_config_widget_new(void)
 {
 	new_screen_height_ratio = old_screen_height_ratio = mc_get_str_value( "screen_height_ratio") ;
+	is_changed_height_ratio = 0;
 
 	return  config_widget_new(_("Height") , new_screen_height_ratio , screen_height_ratio_selected) ;
 }
 
 void
-mc_update_screen_width_ratio(
-	int  save
-	)
+mc_update_screen_width_ratio(void)
 {
-	if( save)
+	if (strcmp(new_screen_width_ratio, old_screen_width_ratio))
+		is_changed_width_ratio = 1;
+
+	if (is_changed_width_ratio)
 	{
-		mc_set_str_value( "screen_width_ratio" , new_screen_width_ratio , save) ;
+		mc_set_str_value( "screen_width_ratio" , new_screen_width_ratio) ;
+		free( old_screen_width_ratio) ;
+		old_screen_width_ratio = strdup( new_screen_width_ratio) ;
 	}
-	else
-	{
-		if( strcmp( new_screen_width_ratio , old_screen_width_ratio) != 0)
-		{
-			mc_set_str_value( "screen_width_ratio" , new_screen_width_ratio , save) ;
-			free( old_screen_width_ratio) ;
-			old_screen_width_ratio = strdup( new_screen_width_ratio) ;
-		}
-	}
+
 }
 
 void
-mc_update_screen_height_ratio(
-	int  save
-	)
+mc_update_screen_height_ratio(void)
 {
-	if( save)
+	if (strcmp(new_screen_height_ratio, old_screen_height_ratio))
+		is_changed_height_ratio = 1;
+
+	if (is_changed_height_ratio)
 	{
-		mc_set_str_value( "screen_height_ratio" , new_screen_height_ratio , save) ;
-	}
-	else
-	{
-		if( strcmp( new_screen_height_ratio , old_screen_height_ratio) != 0)
-		{
-			mc_set_str_value( "screen_height_ratio" , new_screen_height_ratio , save) ;
-			free( old_screen_height_ratio) ;
-			old_screen_height_ratio = strdup( new_screen_height_ratio) ;
-		}
+		mc_set_str_value( "screen_height_ratio" , new_screen_height_ratio) ;
+		free( old_screen_height_ratio) ;
+		old_screen_height_ratio = strdup( new_screen_height_ratio) ;
 	}
 }

@@ -23,6 +23,7 @@
 
 static char *  new_fontsize ;
 static char *  old_fontsize ;
+static int is_changed;
 
 
 /* --- static functions  --- */
@@ -56,6 +57,7 @@ mc_fontsize_config_widget_new(void)
 	} ;
 
 	new_fontsize = old_fontsize = mc_get_str_value( "fontsize") ;
+	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Font size (pixels)"), fontlist ,
 		sizeof(fontlist) / sizeof(fontlist[0]), new_fontsize , 1 ,
@@ -63,21 +65,14 @@ mc_fontsize_config_widget_new(void)
 }
 
 void
-mc_update_fontsize(
-	int  save
-	)
+mc_update_fontsize(void)
 {
-	if( save)
+	if (strcmp(new_fontsize, old_fontsize)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "fontsize" , new_fontsize , save) ;
-	}
-	else
-	{
-		if( strcmp( new_fontsize , old_fontsize) != 0)
-		{
-			mc_set_str_value( "fontsize" , new_fontsize , save) ;
-			free( old_fontsize) ;
-			old_fontsize = strdup( new_fontsize) ;
-		}
+		mc_set_str_value( "fontsize" , new_fontsize) ;
+		free( old_fontsize) ;
+		old_fontsize = strdup( new_fontsize) ;
 	}
 }

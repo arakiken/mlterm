@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_char_encoding_config_widget_new(void) ;
 
-void  mc_update_char_encoding( int  save) ;
+void  mc_update_char_encoding(void) ;
 
 
 #endif

@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_fade_config_widget_new( void) ;
 
-void  mc_update_fade_ratio( int  save) ;
+void  mc_update_fade_ratio(void) ;
 
 
 #endif

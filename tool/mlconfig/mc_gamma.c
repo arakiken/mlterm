@@ -23,6 +23,7 @@
 
 static char *  new_gamma ;
 static char *  old_gamma ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -63,6 +64,7 @@ mc_gamma_config_widget_new(void)
 	} ;
 
 	new_gamma = old_gamma = mc_get_str_value( "gamma") ;
+	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Gamma"), gammas,
 		sizeof(gammas) / sizeof(gammas[0]), 
@@ -70,21 +72,14 @@ mc_gamma_config_widget_new(void)
 }
 
 void
-mc_update_gamma(
-	int  save
-	)
+mc_update_gamma(void)
 {
-	if( save)
+	if (strcmp(new_gamma, old_gamma)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "gamma" , new_gamma , save) ;
-	}
-	else
-	{
-		if( strcmp( new_gamma , old_gamma) != 0)
-		{
-			mc_set_str_value( "gamma" , new_gamma , save) ;
-			free( old_gamma) ;
-			old_gamma = strdup( new_gamma) ;
-		}
+		mc_set_str_value( "gamma" , new_gamma) ;
+		free( old_gamma) ;
+		old_gamma = strdup( new_gamma) ;
 	}
 }

@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_tabsize_config_widget_new(void) ;
 
-void  mc_update_tabsize( int  save) ;
+void  mc_update_tabsize(void) ;
 
 
 #endif

@@ -11,7 +11,7 @@
 
 GtkWidget *  mc_line_space_config_widget_new(void) ;
 
-void  mc_update_line_space( int  save) ;
+void  mc_update_line_space(void) ;
 
 
 #endif

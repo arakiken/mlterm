@@ -23,6 +23,7 @@
 
 static char *  new_contrast ;
 static char *  old_contrast ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -63,6 +64,7 @@ mc_contrast_config_widget_new(void)
 	} ;
 
 	new_contrast = old_contrast = mc_get_str_value( "contrast") ;
+	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Contrast"), contrasts,
 		sizeof(contrasts) / sizeof(contrasts[0]), 
@@ -70,21 +72,14 @@ mc_contrast_config_widget_new(void)
 }
 
 void
-mc_update_contrast(
-	int  save
-	)
+mc_update_contrast(void)
 {
-	if( save)
+	if (strcmp(new_contrast, old_contrast)) is_changed = 1;
+
+	if (is_changed)
 	{
-		mc_set_str_value( "contrast" , new_contrast , save) ;
-	}
-	else
-	{
-		if( strcmp( new_contrast , old_contrast) != 0)
-		{
-			mc_set_str_value( "contrast" , new_contrast , save) ;
-			free( old_contrast) ;
-			old_contrast = strdup( new_contrast) ;
-		}
+		mc_set_str_value( "contrast" , new_contrast) ;
+		free( old_contrast) ;
+		old_contrast = strdup( new_contrast) ;
 	}
 }
