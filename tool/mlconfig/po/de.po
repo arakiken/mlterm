@@ -333,18 +333,16 @@ msgstr "Mongolisch"
 
 #: tool/mlconfig/mc_im.c:300
 msgid "XIM Server"
-msgstr ""
+msgstr "XIM Server"
 
 #: tool/mlconfig/mc_im.c:303
 msgid "XIM locale"
 msgstr "XIM Locale"
 
 #: tool/mlconfig/mc_im.c:385
-#, fuzzy
 msgid "Option"
-msgstr "Pink"
+msgstr "Option"
 
 #: tool/mlconfig/mc_im.c:497
-#, fuzzy
 msgid "Input Method"
-msgstr "X Input Methode"
+msgstr "Input Methode"
