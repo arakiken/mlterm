@@ -1764,15 +1764,14 @@ parse_vt100_escape_sequence(
 						if( ( p = strchr( pt , '=')))
 						{
 							*(p ++) = '\0' ;
+						}
 							
-							if( HAS_CONFIG_LISTENER(vt100_parser,set))
-							{
-								stop_vt100_cmd( vt100_parser) ;
-								(*vt100_parser->config_listener->set)(
-									vt100_parser->config_listener->self ,
-									pt , p) ;
-								start_vt100_cmd( vt100_parser) ;
-							}
+						if( HAS_CONFIG_LISTENER(vt100_parser,set))
+						{
+							stop_vt100_cmd( vt100_parser) ;
+							(*vt100_parser->config_listener->set)(
+								vt100_parser->config_listener->self , pt , p) ;
+							start_vt100_cmd( vt100_parser) ;
 						}
 					}
 					else if( ps == 5380)

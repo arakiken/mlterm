@@ -32,7 +32,6 @@ OBJ = ml_bidi.o ml_char.o ml_char_encoding.o ml_color.o ml_edit.o ml_edit_intern
 INC = $(OBJ:.o=.h)
 
 LIBNAME = libmlterm
-LIBNAME_DEB = libmlterm_deb
 MAJOR = 0
 MINOR = 0
 
@@ -43,8 +42,7 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all : $(LIBNAME).a
 
-debug :
-	$(MAKE) LIBNAME=$(LIBNAME_DEB) $(LIBNAME_DEB).a
+debug : $(LIBNAME).a
 
 $(LIBNAME).a : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ) $(LIBS)

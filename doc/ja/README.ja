@@ -167,9 +167,9 @@ comment $Id$
       o use_loing_shell  (true/*false*)
         ログインシェルを使うかどうか
         
-      o termtype  (*xterm*/kterm)
+      o termtype (*xterm*)
         端末タイプ
-        kterm の方が無難
+        デフォルトは xterm だが、mlterm とすることを推奨。
         
       o ptys  (*1*)
         起動時に立ち上げるptyウィンドウの数

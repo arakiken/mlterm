@@ -5,9 +5,9 @@ mlterm configuration protocol
 version 20020206
 
 * mlterm proper
-  set              = "\x1b" "]" "5379" ";" <set key> "=" <value> "\x07"
+  set              = "\x1b" "]" "5379" ";" <set key> [ "=" <value> ] "\x07"
   get(pty)         = "\x1b" "]" "5380" ";" <get key> "\x07"
-  get(menu)        = "\x1b" "]" "5380" ";" <get key> "\x07"
+  get(GUI menu)    = "\x1b" "]" "5381" ";" <get key> "\x07"
   return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a"
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_key | mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |

@@ -202,7 +202,7 @@ full_reset_clicked(
 	gpointer  data
 	)
 {
-	mc_set_str_value( "fullreset" , "") ;
+	mc_set_str_value( "full_reset" , "") ;
 
 	return  1 ;
 }
