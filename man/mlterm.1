@@ -91,6 +91,13 @@ The default is \fB100\fR.
 Specify icon name.
 The default is "\fBmlterm\fR".
 .TP
+\fB\-J\fR, \fB\-\-dyncomb\fR(=\fIbool\fR)
+Enable dynamic character combining.
+Even if console applications don't support character combining,
+this option enables them to show combining characters correctly.
+Don't forget to enable -m/--comb option together.
+The default is \fBfalse\fR.
+.TP
 \fB\-K\fR, \fB\-\-maxptys\fR=\fIvalue\fR
 Specify max pty windows.
 The default is \fB5\fR.
@@ -297,6 +304,14 @@ The default is \fB0\fR.
 \fB\-p\fR, \fB\-\-pic\fR=\fIpath\fR
 Path for wallpaper (background) image.
 Note that wallpaper cannot be used with transparent background.
+.TP
+\fB\-q\fR, \fB\-\-extkey\fR(=\fIbool\fR)
+Enable extended short cut keys for scrolling.
+The default is \fBfalse\fR.
+Extended short cut keys are
+\fBSCROLL_UP(Shift+Up)\fR,\fBSCROLL_DOWN(Shift+Down)\fR,\fBUp\fR,\fBDown\fR,\fBj\fR,\fBk\fR.
+Only \fBPAGE_UP(Shift+Prior)\fR,\fBPAGE_DOWN(Shift+Next)\fR keys
+are available by default.
 .TP
 \fB\-r\fR, \fB\-\-fade\fR=\fIratio\fR
 Specify fading ratio when window is unfocused.
@@ -745,6 +760,9 @@ Use BiDi rendering on UTF8 encoding.
 \fBuse_combining=\fIbool\fR (\fB\-m\fR, \fB\-\-comb\fR) 
 Enable combining characters.
 .TP
+\fBuse_dynamic_comb=\fIbool\fR (\fB\-J\fR, \fB\-\-dyncomb\fR)
+Enable dynamic character combining.
+.TP
 \fBiscii_lang=\fIvalue\fR (\fB\-C\fR, \fB\-\-iscii\fR) 
 Specify iscii language.
 .TP
@@ -863,6 +881,9 @@ Path for \fBmlconfig\fR GUI configurator.
 .TP
 \fBdaemon_mode=\fImode\fR (\fB\-j\fR, \fB\-\-daemon\fR) 
 Start as a daemon process.
+.TP
+\fBuse_extended_scroll_shortcut=\fIbool\fR (\fB\-q\fR, \fB\-\-extkey\fR)
+Enable extended short cut keys for scrolling.
 .\" ******************************************************
 .SS Font Configuration File
 The font configuration files "\fBfont\fR", "\fBvfont\fR", "\fBtfont\fR",
@@ -963,9 +984,17 @@ Specify key to open new pty (default \fBCtrl+F1\fR).
 Specify key to start backscroll mode and scroll up one page
 (default \fBShift+prior\fR).
 .TP
+\fBPAGE_DOWN=\fIkey\fR
+Specify key to scroll down one page.
+(default \fBShift+next\fR).
+.TP
 \fBSCROLL_UP=\fIkey\fR
 Specify key to start backscroll mode and scroll up one line
 (default \fBShift+up\fR).
+.TP
+\fBSCROLL_DOWN=\fIkey\fR
+Specify key to scroll down one line.
+(default \fBShift+down\fR).
 .TP
 \fBINSERT_SELECTION=\fIkey\fR
 Specify key to insert selection (default \fBShift+Insert\fR).

@@ -65,6 +65,10 @@ int  ml_term_model_delete( ml_term_model_t *  termmdl) ;
 
 int  ml_term_model_resize( ml_term_model_t *  termmdl , u_int  cols , u_int  rows) ;
 
+u_int  ml_term_model_get_cols( ml_term_model_t *  termmdl) ;
+
+u_int  ml_term_model_get_rows( ml_term_model_t *  termmdl) ;
+
 u_int  ml_term_model_get_logical_cols( ml_term_model_t *  termmdl) ;
 
 u_int  ml_term_model_get_logical_rows( ml_term_model_t *  termmdl) ;
@@ -105,6 +109,7 @@ int  ml_unset_backscroll_mode( ml_term_model_t *  termmdl) ;
 
 void  ml_term_model_set_modified_all( ml_term_model_t *  termmdl) ;
 
+
 int  ml_term_model_backscroll_to( ml_term_model_t *  termmdl , int  row) ;
 
 int  ml_term_model_backscroll_upward( ml_term_model_t *  termmdl , u_int  size) ;
@@ -123,10 +128,6 @@ int  ml_term_model_get_line_region( ml_term_model_t *  termmdl , int *  beg_row 
 int  ml_term_model_get_word_region( ml_term_model_t *  termmdl , int *  beg_char_index ,
 	int *  beg_row , int *  end_char_index , int *  end_row , int  base_char_index , int  base_row) ;
 
-
-u_int  ml_term_model_get_cols( ml_term_model_t *  termmdl) ;
-
-u_int  ml_term_model_get_rows( ml_term_model_t *  termmdl) ;
 
 ml_char_t *  ml_term_model_get_n_prev_char( ml_term_model_t *  termmdl , int  n) ;
 

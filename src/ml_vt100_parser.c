@@ -177,7 +177,7 @@ flush_buffer(
 	vt100_parser->buffer.len = 0 ;
 
 #ifdef __DEBUG
-	ml_image_dump( vt100_parser->termscr->image) ;
+	ml_image_dump( vt100_parser->termscr->model->image) ;
 #endif
 
 	return  1 ;
@@ -1837,7 +1837,7 @@ parse_vt100_escape_sequence(
 		
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " --> dumping\n") ;
-		ml_image_dump( vt100_parser->termscr->image) ;
+		ml_image_dump( vt100_parser->termscr->model->image) ;
 	#endif
 
 		if( ( vt100_parser->left = left) == 0)

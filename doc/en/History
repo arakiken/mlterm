@@ -1,3 +1,13 @@
+ver 2.4.0
+* #RRGGBB format is supported for specifying fg/bg color.
+* All color names defined in rgb.txt are available for specifying fg/bg color.
+* Bidi processing is improved for practical use.(Thanks to Nadim Shaikli)
+* Even if console applications don't support character combining, -J/--dyncomb
+  option enables them to show combining characters correctly.
+* Shortcut keys for scrolling which are not compatible with xterm are disabled
+  by default. -q/--extkey option enables them.
+* And many monor bus are fixed.
+
 ver 2.3.0
 * Vertical view(both right to left and left to right) is supported.
 * Max number of pty windows is increased to 32.

@@ -1692,13 +1692,13 @@ key_pressed(
 				return ;
 			}
 		#if  1
-			else if( ksym == XK_Prior)
+			else if( ksym == XK_u || ksym == XK_Prior)
 			{
 				bs_half_page_downward( termscr) ;
 
 				return ;
 			}
-			else if( ksym == XK_Next)
+			else if( ksym == XK_d || ksym == XK_Next)
 			{
 				bs_half_page_upward( termscr) ;
 
@@ -4653,6 +4653,9 @@ ml_term_screen_stop_vt100_cmd(
 
 /*
  * VT100 commands
+ *
+ * !! Notice !!
+ * These functions are called under logical order mode.
  */
  
 ml_font_t *
@@ -4723,7 +4726,7 @@ ml_term_screen_resize_columns(
 	u_int  cols
 	)
 {
-	if( cols == ml_term_model_get_cols( termscr->model))
+	if( cols == ml_term_model_get_logical_cols( termscr->model))
 	{
 		return  0 ;
 	}

@@ -457,8 +457,8 @@ open_term(
 	if( term_man->conf.cmd_path && term_man->conf.cmd_argv)
 	{
 		if( ( pty = ml_pty_new( term_man->conf.cmd_path , term_man->conf.cmd_argv ,
-				env , disp_str , ml_term_model_get_cols( termscr->model) ,
-				ml_term_model_get_rows( termscr->model))) == NULL)
+				env , disp_str , ml_term_model_get_logical_cols( termscr->model) ,
+				ml_term_model_get_logical_rows( termscr->model))) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new() failed.\n") ;
@@ -515,8 +515,8 @@ open_term(
 		cmd_argv[1] = NULL ;
 
 		if( ( pty = ml_pty_new( cmd_path , cmd_argv , env , disp_str ,
-			ml_term_model_get_cols( termscr->model) ,
-			ml_term_model_get_rows( termscr->model))) == NULL)
+				ml_term_model_get_logical_cols( termscr->model) ,
+				ml_term_model_get_logical_rows( termscr->model))) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new() failed.\n") ;

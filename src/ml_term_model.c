@@ -328,6 +328,22 @@ ml_term_model_resize(
 }
 	
 u_int
+ml_term_model_get_cols(
+	ml_term_model_t *  termmdl
+	)
+{
+	return  ml_image_get_cols( termmdl->image) ;
+}
+
+u_int
+ml_term_model_get_rows(
+	ml_term_model_t *  termmdl
+	)
+{
+	return  ml_image_get_rows( termmdl->image) ;
+}
+
+u_int
 ml_term_model_get_logical_cols(
 	ml_term_model_t *  termmdl
 	)
@@ -1148,23 +1164,10 @@ ml_term_model_get_word_region(
 
 /*
  * VT100 commands
+ *
+ * !! Notice !!
+ * These functions are called under logical order mode.
  */
-
-u_int
-ml_term_model_get_cols(
-	ml_term_model_t *  termmdl
-	)
-{
-	return  ml_image_get_cols( termmdl->image) ;
-}
-
-u_int
-ml_term_model_get_rows(
-	ml_term_model_t *  termmdl
-	)
-{
-	return  ml_image_get_rows( termmdl->image) ;
-}
 
 ml_char_t *
 ml_term_model_get_n_prev_char(

@@ -202,7 +202,13 @@ comment $Id$
         BiDi レンダリングを行う
         
       o use_combining  (*true*/false) (#)
-        結合文字を動的合成する
+        結合文字を処理する
+
+      o use_dynamic_comb  (true/*false*) (#)
+        結合文字を動的に合成する
+
+	端末アプリケーションが結合文字をサポートしていない場合に使用します。
+        use_combining が true でないと、有効になりません。
 
       o iscii_lang  (assamese/bengali/gujarati/hindi/kannada/*malayalam*/oriya/punjabi/roman/tamil/telugu) (#)
         ISCII にて、使用する言語を指定する
@@ -353,7 +359,7 @@ comment $Id$
 
         double クリックで、単語選択する際に使用されます。
 
-      o mod_meta_mode  (*none*/esc/8bit)
+      o mod_meta_mode  (*none*/esc/8bit) (#)
         Metaキーを押下した時の挙動
 
         esc の場合、"0x1b" を、8bit の場合は、入力文字の8ビット目をたてます。
@@ -363,7 +369,7 @@ comment $Id$
 
         soundの場合はビープ音で、visualの場合は画面ブランクでBELを通知します。
         
-      o conf_menu_path  (*/usr/local/libexec/mlconfig*) (#)
+      o conf_menu_path  (*/usr/local/libexec/mlconfig*)
         mlconfig(GUI設定コマンド)のパス
 
       o daemon_mode (*none*/blend/genuine)
