@@ -1,3 +1,7 @@
+2002-07-07  Tomohiro KUBOTA  <kubota@debian.org>
+
+	* manpage update for -M/-3/-4 command options.
+
 2002-07-05  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* Code cleanup (xwindow/x_picture_gdk.c).
