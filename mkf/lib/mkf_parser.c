@@ -22,7 +22,7 @@ mkf_parser_init(
 	parser->is_eos = 0 ;
 }
 
-inline size_t
+size_t
 __mkf_parser_increment(
 	mkf_parser_t *  parser
 	)
@@ -42,7 +42,7 @@ __mkf_parser_increment(
 	return  parser->left ;
 }
 
-inline size_t
+size_t
 __mkf_parser_n_increment(
 	mkf_parser_t *  parser ,
 	size_t  n
@@ -63,7 +63,7 @@ __mkf_parser_n_increment(
 	return  parser->left ;
 }
 
-inline void
+void
 __mkf_parser_mark(
 	mkf_parser_t *  parser
 	)
@@ -71,7 +71,7 @@ __mkf_parser_mark(
 	parser->marked_left = parser->left ;
 }
 
-inline void
+void
 __mkf_parser_reset(
 	mkf_parser_t *  parser
 	)

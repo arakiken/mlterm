@@ -37,11 +37,11 @@ typedef struct  mkf_char
 } mkf_char_t ;
 
 
-inline u_int32_t  mkf_char_to_int( mkf_char_t *  ch) ;
+u_int32_t  mkf_char_to_int( mkf_char_t *  ch) ;
 
-inline u_char *  mkf_int_to_bytes( u_char *  bytes , size_t  len , u_int32_t  int_ch) ;
+u_char *  mkf_int_to_bytes( u_char *  bytes , size_t  len , u_int32_t  int_ch) ;
 
-inline u_int32_t  mkf_bytes_to_int( u_char *  bytes , size_t  len) ;
+u_int32_t  mkf_bytes_to_int( u_char *  bytes , size_t  len) ;
 
 
 #endif

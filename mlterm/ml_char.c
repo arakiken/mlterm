@@ -121,7 +121,7 @@ ml_unuse_multi_col_char(void)
  * character functions
  */
 
-inline int
+int
 ml_char_init(
 	ml_char_t *  ch
 	)
@@ -143,7 +143,7 @@ ml_char_init(
 	return  1 ;
 }
 
-inline int
+int
 ml_char_final(
 	ml_char_t *  ch
 	)
@@ -156,7 +156,7 @@ ml_char_final(
 	return  1 ;
 }
 
-inline int
+int
 ml_char_set(
 	ml_char_t *  ch ,
 	u_char *  bytes ,
@@ -219,7 +219,7 @@ ml_char_set(
 	return  1 ;
 }
 
-inline int
+int
 ml_char_combine(
 	ml_char_t *  ch ,
 	u_char *  bytes ,
@@ -311,7 +311,7 @@ ml_char_combine(
 	return  1 ;
 }
 
-inline int
+int
 ml_combine_chars(
 	ml_char_t *  ch ,
 	ml_char_t *  comb
@@ -324,7 +324,7 @@ ml_combine_chars(
 			IS_BOLD(comb->u.ch.attr) , IS_UNDERLINED(comb->u.ch.attr)) ;
 }
 
-inline ml_char_t *
+ml_char_t *
 ml_get_base_char(
 	ml_char_t *  ch
 	)
@@ -339,7 +339,7 @@ ml_get_base_char(
 	}
 }
 
-inline ml_char_t *
+ml_char_t *
 ml_get_combining_chars(
 	ml_char_t *  ch ,
 	u_int *  size
@@ -359,7 +359,7 @@ ml_get_combining_chars(
 	}
 }
 
-inline int
+int
 ml_char_move(
 	ml_char_t *  dst ,
 	ml_char_t *  src
@@ -382,7 +382,7 @@ ml_char_move(
 	return  1 ;
 }
 
-inline int
+int
 ml_char_copy(
 	ml_char_t *  dst ,
 	ml_char_t *  src
@@ -422,7 +422,7 @@ ml_char_copy(
 	return  1 ;
 }
 
-inline u_char *
+u_char *
 ml_char_bytes(
 	ml_char_t *  ch
 	)
@@ -437,7 +437,7 @@ ml_char_bytes(
 	}
 }
 
-inline size_t
+size_t
 ml_char_size(
 	ml_char_t *  ch
 	)
@@ -452,7 +452,7 @@ ml_char_size(
 	}
 }
 
-inline int
+int
 ml_char_set_bytes(
 	ml_char_t *  ch ,
 	u_char *  bytes
@@ -470,7 +470,7 @@ ml_char_set_bytes(
 	return  1 ;
 }
 
-inline mkf_charset_t
+mkf_charset_t
 ml_char_cs(
 	ml_char_t *  ch
 	)
@@ -485,7 +485,7 @@ ml_char_cs(
 	}
 }
 
-inline ml_font_t
+ml_font_t
 ml_char_font(
 	ml_char_t *  ch
 	)
@@ -514,7 +514,7 @@ ml_char_font(
 	}
 }
 
-inline u_int
+u_int
 ml_char_cols(
 	ml_char_t *  ch
 	)
@@ -532,7 +532,7 @@ ml_char_cols(
 /*
  * 'use_multi_col_char' not concerned.
  */
-inline u_int
+u_int
 ml_char_is_biwidth(
 	ml_char_t *  ch
 	)
@@ -547,7 +547,7 @@ ml_char_is_biwidth(
 	}
 }
 
-inline int
+int
 ml_char_is_comb(
 	ml_char_t *  ch
 	)
@@ -562,7 +562,7 @@ ml_char_is_comb(
 	}
 }
 
-inline ml_color_t
+ml_color_t
 ml_char_fg_color(
 	ml_char_t *  ch
 	)
@@ -595,7 +595,7 @@ ml_char_fg_color(
 	}
 }
 
-inline int
+int
 ml_char_set_fg_color(
 	ml_char_t *  ch ,
 	ml_color_t  color
@@ -622,7 +622,7 @@ ml_char_set_fg_color(
 	}
 }
 
-inline ml_color_t
+ml_color_t
 ml_char_bg_color(
 	ml_char_t *  ch
 	)
@@ -650,7 +650,7 @@ ml_char_bg_color(
 	}
 }
 
-inline int
+int
 ml_char_set_bg_color(
 	ml_char_t *  ch ,
 	ml_color_t  color
@@ -677,7 +677,7 @@ ml_char_set_bg_color(
 	}
 }
 
-inline int
+int
 ml_char_is_underlined(
 	ml_char_t *  ch
 	)
@@ -692,7 +692,7 @@ ml_char_is_underlined(
 	}
 }
 
-inline int
+int
 ml_char_reverse_color(
 	ml_char_t *  ch
 	)
@@ -721,7 +721,7 @@ ml_char_reverse_color(
 	}
 }
 
-inline int
+int
 ml_char_restore_color(
 	ml_char_t *  ch
 	)
@@ -751,7 +751,7 @@ ml_char_restore_color(
 }
 
 /* XXX only used in iscii_logical() */
-inline int
+int
 ml_char_copy_color_reversed_flag(
 	ml_char_t *  dst ,
 	ml_char_t *  src
@@ -782,7 +782,7 @@ ml_char_copy_color_reversed_flag(
 	}
 }
 
-inline int
+int
 ml_char_is_null(
 	ml_char_t *  ch
 	)
@@ -803,7 +803,7 @@ ml_char_is_null(
  * Even if they have the same bytes, false is returned since
  * ml_char_t:multi_ch-s never point the same address.)
  */
-inline int
+int
 ml_char_equal(
 	ml_char_t *  ch1 ,
 	ml_char_t *  ch2
@@ -812,7 +812,7 @@ ml_char_equal(
 	return  memcmp( ch1 , ch2 , sizeof( ml_char_t)) == 0 ;
 }
 
-inline int
+int
 ml_char_bytes_is(
 	ml_char_t *  ch ,
 	char *  bytes ,
@@ -839,7 +839,7 @@ ml_char_bytes_is(
 	}
 }
 
-inline int
+int
 ml_char_bytes_equal(
 	ml_char_t *  ch1 ,
 	ml_char_t *  ch2
@@ -885,7 +885,7 @@ ml_char_bytes_equal(
 	return  1 ;
 }
 
-inline ml_char_t *
+ml_char_t *
 ml_sp_ch(void)
 {
 	if( sp_ch.u.ch.attr == 0)
@@ -897,7 +897,7 @@ ml_sp_ch(void)
 	return  &sp_ch ;
 }
 
-inline ml_char_t *
+ml_char_t *
 ml_nl_ch(void)
 {
 	if( nl_ch.u.ch.attr == 0)

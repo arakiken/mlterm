@@ -41,13 +41,13 @@ typedef struct  mkf_parser
 
 void  mkf_parser_init( mkf_parser_t *  parser) ;
 
-inline size_t  __mkf_parser_increment( mkf_parser_t *  parser) ;
+size_t  __mkf_parser_increment( mkf_parser_t *  parser) ;
 
-inline size_t  __mkf_parser_n_increment( mkf_parser_t *  parser , size_t  n) ;
+size_t  __mkf_parser_n_increment( mkf_parser_t *  parser , size_t  n) ;
 
-inline void  __mkf_parser_mark( mkf_parser_t *  parser) ;
+void  __mkf_parser_mark( mkf_parser_t *  parser) ;
 
-inline void  __mkf_parser_reset( mkf_parser_t *  parser) ;
+void  __mkf_parser_reset( mkf_parser_t *  parser) ;
 
 int  mkf_parser_next_char( mkf_parser_t *  parser , mkf_char_t *  ch) ;
 

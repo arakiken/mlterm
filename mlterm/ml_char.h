@@ -82,73 +82,73 @@ int  ml_use_multi_col_char(void) ;
 
 int  ml_unuse_multi_col_char(void) ;
 
-inline int  ml_char_init( ml_char_t *  ch) ;
+int  ml_char_init( ml_char_t *  ch) ;
 
-inline int  ml_char_final( ml_char_t *  ch) ;
+int  ml_char_final( ml_char_t *  ch) ;
 
-inline int  ml_char_set( ml_char_t *  ch , u_char *  bytes , size_t  size ,
+int  ml_char_set( ml_char_t *  ch , u_char *  bytes , size_t  size ,
 	mkf_charset_t  cs , int  is_biwidth , int  is_comb ,
 	ml_color_t  fg_color , ml_color_t  bg_color , int  is_bold , int  is_underlined) ;
 
-inline int  ml_char_combine( ml_char_t *  ch , u_char *  bytes , size_t  size ,
+int  ml_char_combine( ml_char_t *  ch , u_char *  bytes , size_t  size ,
 	mkf_charset_t  cs , int  is_biwidth , int  is_comb ,
 	ml_color_t  fg_color , ml_color_t  bg_color , int  is_bold , int  is_underlined) ;
 
-inline int  ml_combine_chars( ml_char_t *  ch , ml_char_t *  comb) ;
+int  ml_combine_chars( ml_char_t *  ch , ml_char_t *  comb) ;
 
-inline int  ml_remove_combining_char( ml_char_t *  ch) ;
+int  ml_remove_combining_char( ml_char_t *  ch) ;
 
-inline ml_char_t *  ml_get_base_char( ml_char_t *  ch) ;
+ml_char_t *  ml_get_base_char( ml_char_t *  ch) ;
 
-inline ml_char_t *  ml_get_combining_chars( ml_char_t *  ch , u_int *  size) ;
+ml_char_t *  ml_get_combining_chars( ml_char_t *  ch , u_int *  size) ;
 
-inline int  ml_char_move( ml_char_t *  dst , ml_char_t *  src) ;
+int  ml_char_move( ml_char_t *  dst , ml_char_t *  src) ;
 
-inline int  ml_char_copy( ml_char_t *  dst , ml_char_t *  src) ;
+int  ml_char_copy( ml_char_t *  dst , ml_char_t *  src) ;
 
-inline u_char *  ml_char_bytes( ml_char_t *  ch) ;
+u_char *  ml_char_bytes( ml_char_t *  ch) ;
 
-inline size_t  ml_char_size( ml_char_t *  ch) ;
+size_t  ml_char_size( ml_char_t *  ch) ;
 
-inline int  ml_char_set_bytes( ml_char_t *  ch , u_char *  bytes) ;
+int  ml_char_set_bytes( ml_char_t *  ch , u_char *  bytes) ;
 
-inline mkf_charset_t  ml_char_cs( ml_char_t *  ch) ;
+mkf_charset_t  ml_char_cs( ml_char_t *  ch) ;
 
-inline int  ml_char_is_comb( ml_char_t *  ch) ;
+int  ml_char_is_comb( ml_char_t *  ch) ;
 
-inline ml_font_t  ml_char_font( ml_char_t *  ch) ;
+ml_font_t  ml_char_font( ml_char_t *  ch) ;
 
-inline u_int  ml_char_cols( ml_char_t *  ch) ;
+u_int  ml_char_cols( ml_char_t *  ch) ;
 
-inline u_int  ml_char_is_biwidth( ml_char_t *  ch) ;
+u_int  ml_char_is_biwidth( ml_char_t *  ch) ;
 
-inline ml_color_t  ml_char_fg_color( ml_char_t *  ch) ;
+ml_color_t  ml_char_fg_color( ml_char_t *  ch) ;
 
-inline int  ml_char_set_fg_color( ml_char_t *  ch , ml_color_t  color) ;
+int  ml_char_set_fg_color( ml_char_t *  ch , ml_color_t  color) ;
 
-inline ml_color_t  ml_char_bg_color( ml_char_t *  ch) ;
+ml_color_t  ml_char_bg_color( ml_char_t *  ch) ;
 
-inline int  ml_char_set_bg_color( ml_char_t *  ch , ml_color_t  color) ;
+int  ml_char_set_bg_color( ml_char_t *  ch , ml_color_t  color) ;
 
-inline int  ml_char_is_underlined( ml_char_t *  ch) ;
+int  ml_char_is_underlined( ml_char_t *  ch) ;
 
-inline int  ml_char_reverse_color( ml_char_t *  ch) ;
+int  ml_char_reverse_color( ml_char_t *  ch) ;
 
-inline int  ml_char_restore_color( ml_char_t *  ch) ;
+int  ml_char_restore_color( ml_char_t *  ch) ;
 
-inline int  ml_char_copy_color_reversed_flag( ml_char_t *  dst , ml_char_t *  src) ;
+int  ml_char_copy_color_reversed_flag( ml_char_t *  dst , ml_char_t *  src) ;
 
-inline int  ml_char_is_null( ml_char_t *  ch) ;
+int  ml_char_is_null( ml_char_t *  ch) ;
 
-inline int  ml_char_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
+int  ml_char_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
 
-inline int  ml_char_bytes_is( ml_char_t *  ch , char *  bytes , size_t  size , mkf_charset_t  cs) ;
+int  ml_char_bytes_is( ml_char_t *  ch , char *  bytes , size_t  size , mkf_charset_t  cs) ;
 
-inline int  ml_char_bytes_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
+int  ml_char_bytes_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
 
-inline ml_char_t *  ml_sp_ch(void) ;
+ml_char_t *  ml_sp_ch(void) ;
 
-inline ml_char_t *  ml_nl_ch(void) ;
+ml_char_t *  ml_nl_ch(void) ;
 
 #ifdef  DEBUG
 

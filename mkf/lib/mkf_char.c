@@ -10,7 +10,7 @@
 
 /* --- global functions --- */
 
-inline u_int32_t
+u_int32_t
 mkf_char_to_int(
 	mkf_char_t *  ch
 	)
@@ -38,7 +38,7 @@ mkf_char_to_int(
 	}
 }
 
-inline u_char *
+u_char *
 mkf_int_to_bytes(
 	u_char *  bytes ,
 	size_t  len ,
@@ -69,7 +69,7 @@ mkf_int_to_bytes(
 	return  bytes ;
 }
 
-inline u_int32_t
+u_int32_t
 mkf_bytes_to_int(
 	u_char *  bytes ,
 	size_t  len

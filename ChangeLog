@@ -1,3 +1,28 @@
+2005-02-05 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* configure.in: if scim is enabled, try to detect c++ compiler. if not,
+	do nothing.
+
+	* mkf_char.c, mkf_char.h
+	(mkf_char_to_int) (mkf_int_to_bytes) (mkf_bytes_to_int)
+	* mkf_parser.c mkf_parser.h
+	(__mkf_parser_increment) (__mkf_parser_n_increment) (__mkf_parser_mark)
+	(__mkf_parser_reset)
+	* ml_char.c, ml_char.h
+	(ml_char_init) (ml_char_final) (ml_char_set) (ml_char_combine)
+	(ml_combine_chars) (ml_remove_combining_char) (ml_get_base_char)
+	(ml_get_combining_chars) (ml_char_move) (ml_char_copy) (ml_char_bytes)
+	(ml_char_size) (ml_char_set_bytes) (ml_char_cs) (ml_char_is_comb)
+	(ml_char_font) (ml_char_cols) (ml_char_is_biwidth) (ml_char_fg_color)
+	(ml_char_set_fg_color) (ml_char_bg_color) (ml_char_set_bg_color)
+	(ml_char_is_underlined) (ml_char_reverse_color)
+	(ml_char_restore_color) (ml_char_copy_color_reversed_flag)
+	(ml_char_is_null) (ml_char_equal) (ml_char_bytes_is)
+	(ml_char_bytes_equal) (ml_sp_ch) (ml_nl_ch)
+	* ml_str.c, ml_str.h
+	(ml_str_copy) (ml_str_cols) (ml_str_equal) (ml_str_bytes_equal):
+	removed 'inline' from all global functions. (#1081111)
+
 2005-02-04 MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_window.c: * use Mapnotify as a trigger of transparency

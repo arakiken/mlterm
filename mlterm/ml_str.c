@@ -117,7 +117,7 @@ ml_str_delete(
 /*
  * dst and src may overlap.
  */
-inline int
+int
 ml_str_copy(
 	ml_char_t *  dst ,
 	ml_char_t *  src ,
@@ -151,7 +151,7 @@ ml_str_copy(
 	return  1 ;
 }
 
-inline u_int
+u_int
 ml_str_cols(
 	ml_char_t *  chars ,
 	u_int  len
@@ -176,7 +176,7 @@ ml_str_cols(
  * Even if they have the same bytes, false is returned since
  * ml_char_t:multi_ch-s never point the same address.)
  */
-inline int
+int
 ml_str_equal(
 	ml_char_t *  str1 ,
 	ml_char_t *  str2 ,
@@ -186,7 +186,7 @@ ml_str_equal(
 	return  memcmp( str1 , str2 , sizeof( ml_char_t) * len) == 0 ;
 }
 
-inline int
+int
 ml_str_bytes_equal(
 	ml_char_t *  str1 ,
 	ml_char_t *  str2 ,
