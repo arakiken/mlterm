@@ -1,3 +1,8 @@
+2003-03-02 Araki Ken <arakiken@users.sf.net>
+
+	* grantpt() could behave unexpectedly because SIGCHLD installed when
+	  grantpt() execed. Fixed.
+
 2003-03-02 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Added "New PTY" button for mlconfig.

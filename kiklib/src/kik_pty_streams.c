@@ -24,6 +24,7 @@
 
 #include  "kik_str.h"		/* strdup */
 #include  "kik_debug.h"
+#include  "kik_sig_child.h"
 
 
 /* Disable special character functions */
@@ -55,13 +56,21 @@ kik_pty_fork(
 	{
 		return  -1;
 	}
+	/*
+	 * The behaviour of the grantpt() function is unspecified
+	 * if the application has installed a signal handler to catch SIGCHLD signals.
+	 * (see http://www.opengroup.org/onlinepubs/007908799/xsh/grantpt.html)
+	 */
+	kik_sig_child_suspend() ;
 	if( grantpt(*master) < 0)
 	{
 	#if  0
 		/* XXX this fails but it doesn't do harm in some environments */
+		kik_sig_child_resume() ;
 		return  -1;
 	#endif
 	}
+	kik_sig_child_resume() ;
 	if( unlockpt(*master) < 0)
 	{
 		return  -1;

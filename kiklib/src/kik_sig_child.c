@@ -24,6 +24,7 @@ typedef struct  sig_child_event_listener
 
 static sig_child_event_listener_t *  listeners ;
 static u_int  num_of_listeners ;
+static int  is_init ;
 
 
 /* --- static functions --- */
@@ -61,6 +62,7 @@ int
 kik_sig_child_init(void)
 {
 	signal( SIGCHLD , sig_child) ;
+	is_init = 1 ;
 
 	return  1 ;
 }
@@ -73,6 +75,28 @@ kik_sig_child_final(void)
 		free( listeners) ;
 	}
 	
+	return  1 ;
+}
+
+int
+kik_sig_child_suspend(void)
+{
+	if( is_init)
+	{
+		signal( SIGCHLD , SIG_IGN) ;
+	}
+
+	return  1 ;
+}
+
+int
+kik_sig_child_resume(void)
+{
+	if( is_init)
+	{
+		signal( SIGCHLD , sig_child) ;
+	}
+
 	return  1 ;
 }
 
