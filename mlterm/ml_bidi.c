@@ -111,14 +111,23 @@ ml_bidi(
 		{
 			fri_src[count] = (bytes[0] << 24) + (bytes[1] << 16) + (bytes[2] << 8) + bytes[3] ;
 		}
+		else if( ml_char_cs( &src[count]) == DEC_SPECIAL)
+		{
+			/*
+			 * Regarded as LTR character.
+			 */
+			fri_src[count] = 'a' ;
+		}
 		else
 		{
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " %x is not ucs.\n" , ml_char_cs(&src[count])) ;
 		#endif
-		
-			/* white space */
-			fri_src[count] = 0x20 ;
+
+			/*
+			 * Regarded as NEUTRAL character.
+			 */
+			fri_src[count] = ' ' ;
 		}
 
 		if( ! state->has_rtl && (fribidi_get_type( fri_src[count]) & FRIBIDI_MASK_RTL))

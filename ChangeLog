@@ -1,5 +1,11 @@
 2002-10-02 Araki Ken <arakiken@users.sf.net>
 
+	* If line characters and RTL characters mixed in a line, screen corrupt.
+	  Fixed a little.
+	  (Thanks to Nadim Shaikli)
+
+2002-10-02 Araki Ken <arakiken@users.sf.net>
+
 	* Scrollbar never get too small even if the value of 'logsize' option
 	  is huge.
 
