@@ -1,8 +1,15 @@
+[20020125]
+* mlconf_curses is updated(20020125 version) and LICENCE,Makefile,mlcc.html
+  files are added. (thanks to Minami Hirokazu san)
+* CP932 gaiji characters (IBM , NEC , NECIBM) <=> UCS conversion is supported.
+* -z/--largesmall/font_larger_smaller_size option is added.
+
 [20020124]
 * use_cp932_ucs_for_xft option is true by default.
 * screen is corrupt when scrolled. fixed.
 * if font_size_range is not set , mlterm behaves unexpectedly. fixed.
 * mlconf_curses(2002/01/24 version) is added. (thanks to Minami Hirokazu san)
+* doc/ja/FAQ is added.
 
 [20020124]
 * NEC Gaiji couldn't be converted to UCS. fixed.
