@@ -488,12 +488,18 @@ change_sb_mode(
 		x_window_resize_with_margin( &sb_screen->window ,
 			ACTUAL_WIDTH( &sb_screen->screen->window) ,
 			ACTUAL_HEIGHT( &sb_screen->screen->window) , NOTIFY_TO_NONE) ;
+
+		sb_screen->window.min_width = 0 ;
+		sb_screen->scrollbar.window.min_width = 0 ;
 			
 		/* overlaying scrollbar window */
 		move_term_screen( sb_screen , 0) ;
 	}
 	else
 	{
+		sb_screen->window.min_width = SEPARATOR_WIDTH ;
+		sb_screen->scrollbar.window.min_width = sb_screen->scrollbar.window.width ;
+
 		if( sb_screen->sb_mode == SB_NONE) ;
 		{
 		#if  0
@@ -537,6 +543,7 @@ x_sb_screen_new(
 {
 	x_sb_screen_t *  sb_screen ;
 	u_int  actual_width ;
+	u_int  min_width ;
 	
 	if( ( sb_screen = malloc( sizeof( x_sb_screen_t))) == NULL)
 	{
@@ -555,7 +562,7 @@ x_sb_screen_new(
 		view_name , fg_color , bg_color , ACTUAL_HEIGHT( &screen->window) ,
 		x_line_height( screen) , ml_term_get_log_size( screen->term) ,
 		screen->window.is_transparent ,
-		x_screen_get_picture_modifier( screen)) == 0)
+		x_screen_get_picture_modifier( screen) , mode) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_scrollbar_init() failed.\n") ;
@@ -601,16 +608,18 @@ x_sb_screen_new(
 	if( sb_screen->sb_mode == SB_NONE)
 	{
 		actual_width = ACTUAL_WIDTH( &screen->window) ;
+		min_width = 0 ;
 	}
 	else
 	{
 		actual_width = (ACTUAL_WIDTH( &screen->window) +
 				ACTUAL_WIDTH( &sb_screen->scrollbar.window) + SEPARATOR_WIDTH) ;
+		min_width = SEPARATOR_WIDTH ;
 	}
 
 	if( x_window_init( &sb_screen->window ,
 		actual_width , ACTUAL_HEIGHT( &screen->window) ,
-		SEPARATOR_WIDTH , 0 , 0 , 0 , 0) == 0)
+		min_width , 0 , 0 , 0 , 0) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init() failed.\n") ;

@@ -3930,8 +3930,7 @@ font_size_changed(
 	x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
 		NOTIFY_TO_PARENT) ;
 
-	x_window_set_normal_hints( &screen->window ,
-		x_col_width( screen) , x_line_height( screen) ,
+	x_window_set_normal_hints( &screen->window , 0 , 0 ,
 		x_col_width( screen) , x_line_height( screen)) ;
 		
 	/*
@@ -4201,6 +4200,10 @@ change_sb_view(
 	{
 		(*screen->screen_scroll_listener->change_view)(
 			screen->screen_scroll_listener->self , name) ;
+
+		x_window_set_normal_hints( &screen->window ,
+			x_col_width( screen) , x_line_height( screen) ,
+			x_col_width( screen) , x_line_height( screen)) ;
 	}
 }
 
@@ -4309,6 +4312,9 @@ change_sb_mode(
 	{
 		(*screen->screen_scroll_listener->change_sb_mode)(
 			screen->screen_scroll_listener->self , sb_mode) ;
+
+		x_window_set_normal_hints( &screen->window , 0 , 0 ,
+			x_col_width( screen) , x_line_height( screen)) ;
 	}
 }
 
@@ -5986,8 +5992,7 @@ x_screen_new(
 	
 	if( x_window_init( &screen->window ,
 		screen_width( screen) , screen_height( screen) ,
-		x_col_width( screen) , x_line_height( screen) ,
-		x_col_width( screen) , x_line_height( screen) , 2) == 0)
+		0 , 0 , x_col_width( screen) , x_line_height( screen) , 2) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;
