@@ -19,10 +19,6 @@ typedef struct  ml_cursor
 	int  col ;
 	int  col_in_char ;
 	
-	ml_color_t  orig_fg ;
-	ml_color_t  orig_bg ;
-	int8_t  is_highlighted ;
-
 	int  saved_row ;
 	int  saved_char_index ;
 	int  saved_col ;

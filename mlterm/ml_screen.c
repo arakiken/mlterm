@@ -712,29 +712,6 @@ ml_screen_cursor_row_in_screen(
 	return  row ;
 }
 
-int
-ml_screen_highlight_cursor(
-	ml_screen_t *  screen
-	)
-{
-	if( screen->is_cursor_visible)
-	{
-		return  ml_highlight_cursor( screen->edit) ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
-int
-ml_screen_unhighlight_cursor(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_unhighlight_cursor( screen->edit) ;
-}
-
 u_int
 ml_screen_get_cols(
 	ml_screen_t *  screen
@@ -1958,8 +1935,6 @@ ml_screen_cursor_invisible(
 	{
 		return  1 ;
 	}
-	
-	ml_unhighlight_cursor( screen->edit) ;
 	
 	screen->is_cursor_visible = 0 ;
 

@@ -94,10 +94,6 @@ int  ml_screen_cursor_row( ml_screen_t *  screen) ;
 
 int  ml_screen_cursor_row_in_screen( ml_screen_t *  screen) ;
 
-int  ml_screen_highlight_cursor( ml_screen_t *  screen) ;
-
-int  ml_screen_unhighlight_cursor( ml_screen_t *  screen) ;
-
 u_int  ml_screen_get_cols( ml_screen_t *  screen) ;
 
 u_int  ml_screen_get_rows( ml_screen_t *  screen) ;

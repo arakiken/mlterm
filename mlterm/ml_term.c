@@ -332,22 +332,6 @@ ml_term_cursor_row_in_screen(
 	return  ml_screen_cursor_row_in_screen( term->screen) ;
 }
 
-int
-ml_term_highlight_cursor(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_highlight_cursor( term->screen) ;
-}
-
-int
-ml_term_unhighlight_cursor(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_unhighlight_cursor( term->screen) ;
-}
-
 u_int
 ml_term_get_cols(
 	ml_term_t *  term

@@ -1,3 +1,9 @@
+2003-2-2 Araki Ken <arakiken@users.sf.net>
+
+	* Added -9/--crfg/cursor_fg_color,-0/--crbg/cursor_bg_color options.
+	  These options specify foreground/background colors of the cursor.
+	  If not specified, cursor fg color is default bg color, and vice versa.
+
 2003-2-2 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Fixed a bug in alloc_closest_xcolor_pseudo(). (diff_r -> diff_b)

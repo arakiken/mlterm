@@ -1351,7 +1351,7 @@ draw_cursor(
 	int  y ;
 	ml_line_t *  line ;
 	ml_line_t *  orig ;
-	ml_char_t *  ch ;
+	ml_char_t  ch ;
 
 	if( ( row = ml_term_cursor_row_in_screen( screen->term)) == -1)
 	{
@@ -1383,12 +1383,13 @@ draw_cursor(
 	
 	/* don't use _with_shape function since line is already shaped */
 	x = convert_char_index_to_x( screen , line , ml_term_cursor_char_index( screen->term)) ;
-	
-	ch = &line->chars[ ml_term_cursor_char_index( screen->term)] ;
+
+	ml_char_init( &ch) ;
+	ml_char_copy( &ch , &line->chars[ ml_term_cursor_char_index( screen->term)]) ;
 
 	if( restore)
 	{
-		draw_str( screen , ch , 1 , x , y ,
+		draw_str( screen , &ch , 1 , x , y ,
 			x_line_height( screen) ,
 			x_line_height_to_baseline( screen) ,
 			x_line_top_margin( screen) ,
@@ -1398,36 +1399,45 @@ draw_cursor(
 	{
 		if( screen->is_focused)
 		{
+			ml_char_set_fg_color( &ch , ML_FG_COLOR) ;
+			ml_char_set_bg_color( &ch , ML_BG_COLOR) ;
+			
+			x_color_manager_begin_cursor_color( screen->color_man) ;
+			
 			if( screen->window.wall_picture_is_set)
 			{
 				screen->window.wall_picture_is_set = 0 ;
-				draw_str( screen , ch , 1 , x , y ,
+				draw_str( screen , &ch , 1 , x , y ,
 					x_line_height( screen) ,
 					x_line_height_to_baseline( screen) , 0 , 0) ;
 				screen->window.wall_picture_is_set = 1 ;
 			}
 			else
 			{
-				draw_str( screen , ch , 1 , x , y ,
+				draw_str( screen , &ch , 1 , x , y ,
 					x_line_height( screen) ,
 					x_line_height_to_baseline( screen) , 0 , 0) ;
 			}
+
+			x_color_manager_end_cursor_color( screen->color_man) ;
 		}
 		else
 		{
 			x_font_t *  xfont ;
 
-			xfont = x_get_font( screen->font_man , ml_char_font( ch)) ;
+			xfont = x_get_font( screen->font_man , ml_char_font( &ch)) ;
 			
 			x_window_draw_rect_frame( &screen->window ,
 				x + 2 ,
 				y + x_line_top_margin( screen) + 2 ,
 				x + x_calculate_char_width( xfont ,
-					ml_char_bytes(ch) , ml_char_size(ch) , ml_char_cs(ch)) + 1 ,
+					ml_char_bytes(&ch) , ml_char_size(&ch) , ml_char_cs(&ch)) + 1 ,
 				y + x_line_top_margin( screen) + xfont->height + 1) ;
 		}
 	}
 
+	ml_char_final( &ch) ;
+	
 	if( orig)
 	{
 		ml_line_unshape( line , orig) ;
@@ -1624,15 +1634,7 @@ highlight_cursor(
 {
 	flush_scroll_cache( screen , 1) ;
 
-	if( ! ml_term_highlight_cursor( screen->term))
-	{
-		return  0 ;
-	}
-
 	draw_cursor( screen , 0) ;
-
-	/* restoring color as soon as highlighted cursor is drawn. */
-	ml_term_unhighlight_cursor( screen->term) ;
 
 	x_xic_set_spot( &screen->window) ;
 
@@ -2258,11 +2260,7 @@ window_exposed(
 	}
 	
 	redraw_screen( screen) ;
-
-	if( ml_term_cursor_row_in_screen( screen->term) >= 0)
-	{
-		highlight_cursor( screen) ;
-	}
+	highlight_cursor( screen) ;
 }
 
 static void
@@ -2311,7 +2309,6 @@ window_resized(
 	set_wall_picture( screen) ;
 
 	redraw_screen( screen) ;
-
 	highlight_cursor( screen) ;
 }
 
@@ -3924,6 +3921,7 @@ button_released(
 	else
 	{
 		x_stop_selecting( &screen->sel) ;
+		highlight_cursor( screen) ;
 	}
 }
 
@@ -4369,7 +4367,7 @@ change_fg_color(
 	char *  name
 	)
 {
-	if( strcmp( name , x_get_fg_color_name( screen->color_man)) == 0)
+	if( strcmp( name , x_color_manager_get_fg_color( screen->color_man)) == 0)
 	{
 		return ;
 	}
@@ -4390,7 +4388,7 @@ change_bg_color(
 	char *  name
 	)
 {
-	if( strcmp( name , x_get_bg_color_name( screen->color_man)) == 0)
+	if( strcmp( name , x_color_manager_get_bg_color( screen->color_man)) == 0)
 	{
 		return ;
 	}
@@ -4403,6 +4401,58 @@ change_bg_color(
 	x_xic_bg_color_changed( &screen->window) ;
 	
 	ml_term_set_modified_all( screen->term) ;
+}
+
+static void
+change_cursor_fg_color(
+	x_screen_t *  screen ,
+	char *  name
+	)
+{
+	char *  old ;
+	
+	if( ( old = x_color_manager_get_cursor_fg_color( screen->color_man)) == NULL)
+	{
+		old = "" ;
+	}
+	
+	if( strcmp( name , old) == 0)
+	{
+		return ;
+	}
+
+	if( *name == '\0')
+	{
+		name = NULL ;
+	}
+
+	x_color_manager_set_cursor_fg_color( screen->color_man , name) ;
+}
+
+static void
+change_cursor_bg_color(
+	x_screen_t *  screen ,
+	char *  name
+	)
+{
+	char *  old ;
+	
+	if( ( old = x_color_manager_get_cursor_bg_color( screen->color_man)) == NULL)
+	{
+		old = "" ;
+	}
+	
+	if( strcmp( name , old) == 0)
+	{
+		return ;
+	}
+
+	if( *name == '\0')
+	{
+		name = NULL ;
+	}
+
+	x_color_manager_set_cursor_bg_color( screen->color_man , name) ;
 }
 
 static void
@@ -4738,6 +4788,14 @@ set_config(
 	else if( strcmp( key , "bg_color") == 0)
 	{
 		change_bg_color( screen , value) ;
+	}
+	else if( strcmp( key , "cursor_fg_color") == 0)
+	{
+		change_cursor_fg_color( screen , value) ;
+	}
+	else if( strcmp( key , "cursor_bg_color") == 0)
+	{
+		change_cursor_bg_color( screen , value) ;
 	}
 	else if( strcmp( key , "sb_fg_color") == 0)
 	{
@@ -5109,11 +5167,25 @@ get_config(
 	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
-		value = x_get_fg_color_name( screen->color_man) ;
+		value = x_color_manager_get_fg_color( screen->color_man) ;
 	}
 	else if( strcmp( key , "bg_color") == 0)
 	{
-		value = x_get_bg_color_name( screen->color_man) ;
+		value = x_color_manager_get_bg_color( screen->color_man) ;
+	}
+	else if( strcmp( key , "cursor_fg_color") == 0)
+	{
+		if( ( value = x_color_manager_get_cursor_fg_color( screen->color_man)) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "cursor_bg_color") == 0)
+	{
+		if( ( value = x_color_manager_get_cursor_bg_color( screen->color_man)) == NULL)
+		{
+			value = "" ;
+		}
 	}
 	else if( strcmp( key , "sb_fg_color") == 0)
 	{
@@ -5829,6 +5901,7 @@ xterm_set_mouse_report(
 	if( ( screen->is_mouse_pos_sending = do_report))
 	{
 		x_stop_selecting( &screen->sel) ;
+		highlight_cursor( screen) ;
 	}
 }
 
@@ -5987,7 +6060,7 @@ x_screen_new(
 	screen->kbd = NULL ;
 
 	screen->iscii_lang_type = iscii_lang_type ;
-	
+
 	screen->vertical_mode = vertical_mode ;
 	screen->use_vertical_cursor = use_vertical_cursor ;
 	

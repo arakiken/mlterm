@@ -138,10 +138,6 @@ int  ml_cursor_save( ml_edit_t *  edit) ;
 
 int  ml_cursor_restore( ml_edit_t *  edit) ;
 
-int  ml_highlight_cursor( ml_edit_t *  edit) ;
-
-int  ml_unhighlight_cursor( ml_edit_t *  edit) ;
-
 int  ml_cursor_char_index( ml_edit_t *  edit) ;
 
 int  ml_cursor_col( ml_edit_t *  edit) ;

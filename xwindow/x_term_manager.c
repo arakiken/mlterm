@@ -68,6 +68,8 @@ typedef struct main_config
 	char *  conf_menu_path ;
 	char *  fg_color ;
 	char *  bg_color ;
+	char *  cursor_fg_color ;
+	char *  cursor_bg_color ;
 	char *  sb_fg_color ;
 	char *  sb_bg_color ;
 	char *  mod_meta_key ;
@@ -357,7 +359,8 @@ open_term(void)
 
 	if( ( color_man = x_color_manager_new( disp->display ,
 				DefaultScreen( disp->display) , &color_custom ,
-				main_config.fg_color , main_config.bg_color)) == NULL)
+				main_config.fg_color , main_config.bg_color ,
+				main_config.cursor_fg_color , main_config.cursor_bg_color)) == NULL)
 	{
 		goto  error ;
 	}
@@ -827,6 +830,10 @@ get_min_conf(
 		"bel (0x07) mode [none/sound/visual, default = none]") ;
 	kik_conf_add_opt( conf , '8' , "88591" , 1 , "iso88591_font_for_usascii" ,
 		"use ISO-8859-1 font for ASCII part of any encoding [false]") ;
+	kik_conf_add_opt( conf , '9' , "crfg" , 0 , "cursor_fg_color" ,
+		"cursor foreground color") ;
+	kik_conf_add_opt( conf , '0' , "crbg" , 0 , "cursor_bg_color" ,
+		"cursor background color") ;
 #ifdef  ANTI_ALIAS
 	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , 
 		"use anti-alias font by using Xft [false]") ;
@@ -1094,6 +1101,20 @@ config_init(
 		main_config.bg_color = strdup( value) ;
 	}
 
+	main_config.cursor_fg_color = NULL ;
+	
+	if( ( value = kik_conf_get_value( conf , "cursor_fg_color")))
+	{
+		main_config.cursor_fg_color = strdup( value) ;
+	}
+
+	main_config.cursor_bg_color = NULL ;
+	
+	if( ( value = kik_conf_get_value( conf , "cursor_bg_color")))
+	{
+		main_config.cursor_bg_color = strdup( value) ;
+	}
+	
 	main_config.sb_fg_color = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "sb_fg_color")))
@@ -1583,6 +1604,8 @@ config_final(void)
 	free( main_config.scrollbar_view_name) ;
 	free( main_config.fg_color) ;
 	free( main_config.bg_color) ;
+	free( main_config.cursor_fg_color) ;
+	free( main_config.cursor_bg_color) ;
 	free( main_config.sb_fg_color) ;
 	free( main_config.sb_bg_color) ;
 	free( main_config.icon_path) ;

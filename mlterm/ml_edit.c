@@ -494,9 +494,6 @@ ml_edit_init(
 	edit->cursor.char_index = 0 ;
 	edit->cursor.col = 0 ;
 	edit->cursor.col_in_char = 0 ;
-	edit->cursor.orig_fg = ML_BG_COLOR ;
-	edit->cursor.orig_bg = ML_FG_COLOR ;
-	edit->cursor.is_highlighted = 0 ;
 	edit->cursor.saved_row = 0 ;
 	edit->cursor.saved_char_index = 0 ;
 	edit->cursor.saved_col = 0 ;
@@ -1881,53 +1878,6 @@ ml_cursor_restore(
 	
 	edit->cursor.is_saved = 0 ;
 
-	return  1 ;
-}
-
-int
-ml_highlight_cursor(
-	ml_edit_t *  edit
-	)
-{
-	if( edit->cursor.is_highlighted)
-	{
-		/* already highlighted */
-		
-		return  0 ;
-	}
-
-	edit->cursor.orig_fg = ml_char_fg_color( CURSOR_CHAR(edit)) ;
-	edit->cursor.orig_bg = ml_char_bg_color( CURSOR_CHAR(edit)) ;
-	
-#if  0
-	ml_char_set_fg_color( CURSOR_CHAR(edit) , ML_BG_COLOR) ;	
-	ml_char_set_bg_color( CURSOR_CHAR(edit) , ML_FG_COLOR) ;
-#else
-	ml_char_set_fg_color( CURSOR_CHAR(edit) , edit->cursor.orig_bg) ;
-	ml_char_set_bg_color( CURSOR_CHAR(edit) , edit->cursor.orig_fg) ;
-#endif
-	edit->cursor.is_highlighted = 1 ;
-
-	return  1 ;
-}
-
-int
-ml_unhighlight_cursor(
-	ml_edit_t *  edit
-	)
-{
-	if( ! edit->cursor.is_highlighted)
-	{
-		/* already highlighted */
-		
-		return  0 ;
-	}
-	
-	ml_char_set_fg_color( CURSOR_CHAR(edit) , edit->cursor.orig_fg) ;
-	ml_char_set_bg_color( CURSOR_CHAR(edit) , edit->cursor.orig_bg) ;
-
-	edit->cursor.is_highlighted = 0 ;
-	
 	return  1 ;
 }
 
