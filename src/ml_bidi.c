@@ -10,13 +10,6 @@
 #endif
 
 
-#ifdef  USE_FRIBIDI
-
-#include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_mem.h>	/* alloca */
-#include  <fribidi/fribidi.h>
-
-
 /* --- static variables --- */
 
 static int  base_dir_is_rtl ;
@@ -33,6 +26,16 @@ ml_bidi_set_base_dir(
 
 	return  1 ;
 }
+
+
+#ifdef  USE_FRIBIDI
+
+#include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_mem.h>	/* alloca */
+#include  <fribidi/fribidi.h>
+
+
+/* --- global functions --- */
 
 int
 ml_bidi_support_level(void)
