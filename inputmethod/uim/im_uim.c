@@ -1481,9 +1481,7 @@ im_uim_new(
 
 	if( ! find_engine( engine , &encoding_name))
 	{
-		kik_error_printf( " Could not find '%s' conversion engine.\n" ,
-				  engine) ;
-
+		kik_error_printf( "%s: No such conversion engine.\n" , engine) ;
 		goto  error ;
 	}
 

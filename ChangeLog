@@ -7,6 +7,9 @@
 	* inputmethod/scim/im_scim_mod_if.c (im_scim_get_info):
 	  fixed a segfault when scim daemon is not running.
 
+	* xwindow/x_im.c (x_im_new): cleaned up error messages.
+	* inputmethod/im_uim.c (im_uim_new): cleaned up error messages.
+
 2005-01-24 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/iiimf/im_iiimf.c (show_available_gui_objects):

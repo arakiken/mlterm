@@ -150,9 +150,6 @@ x_im_new(
 		im_attr = NULL ;
 	}
 
-	/*
-	 * inputmethod specific workarounds
-	 */
 #ifdef  RESTORE_LOCALE
 	cur_locale = kik_str_alloca_dup( kik_get_locale()) ;
 #endif
@@ -162,6 +159,7 @@ x_im_new(
 	#ifdef  RESTORE_LOCALE
 		kik_locale_init( cur_locale) ;
 	#endif
+		kik_error_printf( "%s: Could not load.\n" , im_name) ;
 		return  NULL ;
 	}
 
@@ -169,31 +167,30 @@ x_im_new(
 	kik_locale_init( cur_locale) ;
 #endif
 
-	if( ( im = (*func)( IM_API_COMPAT_CHECK_MAGIC , term_encoding ,
-			    &im_export_syms , im_attr , mod_ignore_mask)))
+	if( ! ( im = (*func)( IM_API_COMPAT_CHECK_MAGIC , term_encoding ,
+			      &im_export_syms , im_attr , mod_ignore_mask)))
 	{
-		/*
-		 * initializations for x_im_t
-		 */
-		im->handle = handle ;
-		im->name = strdup( im_name) ;
-		im->listener = im_listener ;
-		im->cand_screen = NULL ;
-		im->stat_screen = NULL ;
-		im->preedit.chars = NULL ;
-		im->preedit.num_of_chars = 0 ;
-		im->preedit.filled_len = 0 ;
-		im->preedit.segment_offset = 0 ;
-		im->preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
-
-	}
-	else
-	{
-		kik_error_printf( "Could not open specified "
-				  "input method(%s).\n" , im_name) ;
-
+		kik_error_printf( "%s: Could not open.\n" , im_name) ;
 		kik_dl_close( handle) ;
+
+		return  NULL ;
 	}
+
+
+	/*
+	 * initializations for x_im_t
+	 */
+	im->handle = handle ;
+	im->name = strdup( im_name) ;
+	im->listener = im_listener ;
+	im->cand_screen = NULL ;
+	im->stat_screen = NULL ;
+	im->preedit.chars = NULL ;
+	im->preedit.num_of_chars = 0 ;
+	im->preedit.filled_len = 0 ;
+	im->preedit.segment_offset = 0 ;
+	im->preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
+
 
 	return  im ;
 }
