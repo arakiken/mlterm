@@ -32,7 +32,7 @@ AC_SUBST(LIBTOOL)
 #
 # NOTE: if --with-libtool is specified, stdc header isn't detected.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(langinfo.h dlfcn.h dl.h stropts.h sys/stropts.h)
+AC_CHECK_HEADERS(langinfo.h dlfcn.h dl.h stropts.h sys/stropts.h stdint.h)
 
 #
 # --- Checks for library functions ---

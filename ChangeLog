@@ -1,5 +1,13 @@
 2004-11-21 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* kiklib/configure.in, kiklib/src/kik_config.h.in: added check for
+	stdint.h.
+
+	* inputmethod/iiimf/im_iiimf.c:
+	"#define HAVE_STDINT_H 1" -> #include <kiklib/src/kik_types.h>
+
+2004-11-21 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	Fixed #1069725.
 	* kiklib/src/kik_conf.c (kik_conf_parse_args): check whether argc is 0.
 	* xwindow/x_term_manager.c (client_connected): argv[argc] = NULL.

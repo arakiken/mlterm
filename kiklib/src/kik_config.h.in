@@ -67,6 +67,8 @@
 
 #undef  USE_WIN32API
 
+#undef  HAVE_STDINT_H
+
 #undef  inline
 
 #undef  const

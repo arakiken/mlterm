@@ -30,7 +30,7 @@
  *	$Id$
  */
 
-#define  HAVE_STDINT_H 1	/* FIXME */
+#include  <kiklib/kik_types.h> /* HAVE_STDINT_H */
 #include  <iiimcf.h>
 
 #include  <string.h>		/* strncmp */
