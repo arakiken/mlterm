@@ -1,3 +1,8 @@
+2003-09-18  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_char.[ch]: It was not test if ml_char_t combined or not. Fixed.
+	  (96bit in LP64 system now) (Thanks to Minami Hirokazu san)
+
 2003-09-17  Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* doc/ja/README.sb: Fixed a typo.
