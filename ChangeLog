@@ -1,3 +1,7 @@
+2004-01-26  Tomohiro KUBOTA  <kubota@debian.org>
+
+	* Added an explanation for -*/--type option for man/mlterm.1.
+
 2004-01-25  KATO Kazuyoshi  <kzys@users.sf.net>
 
 	* tool/mlmenu/Makefile.in: Fixed a installation path.
