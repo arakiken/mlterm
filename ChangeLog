@@ -1,3 +1,8 @@
+2002-09-05 Araki Ken <arakiken@users.sf.net>
+
+	* Screen gets disordered when new line inserted. fixed.
+	  (Thanks to Takahashi Tamotsu san, Sato Seiichi san)
+
 2002-09-04 Araki Ken <arakiken@users.sf.net>
 
 	* cursor moved to the end of line under insert mode. fixed.

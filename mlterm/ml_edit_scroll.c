@@ -410,7 +410,7 @@ ml_edsl_insert_new_line(
 		end_row = ml_model_end_row( &edit->model) ;
 	}
 
-	copy_lines( edit , start_row + 1 , start_row , end_row - start_row + 1 , 1) ;
+	copy_lines( edit , start_row + 1 , start_row , end_row - start_row , 1) ;
 	ml_edit_clear_lines( edit , start_row , 1) ;
 
 	return  1 ;
