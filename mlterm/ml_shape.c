@@ -128,7 +128,7 @@ static arabic_comb_t  arabic_comb_table[] =
 	{ 0x0644 , 0x0623 , 0xFEF7 , 0xFEF8 , } ,
 	{ 0x0644 , 0x0625 , 0xFEF9 , 0xFEFA , } ,
 	{ 0x0644 , 0x0627 , 0xFEFB , 0xFEFC , } ,
-	
+
 } ;
 
 
@@ -368,7 +368,7 @@ shape_iscii(
 				}
 			}
 
-			ml_char_copy( &dst[dst_filled ++] , ch) ;
+			ml_char_copy( &dst[dst_filled ++] , ml_get_base_char( ch)) ;
 
 			if( dst_filled >= dst_len)
 			{
@@ -423,7 +423,7 @@ shape_iscii(
 	{
 		iscii_buf[iscii_filled] = '\0' ;
 		font_filled = ml_iscii_shape( iscii_shape->iscii_state , font_buf , dst_len , iscii_buf) ;
-				
+		
 		for( count = 0 ; count < font_filled ; count ++)
 		{
 			ml_char_set_bytes( &dst_shaped[count] , &font_buf[count]) ;

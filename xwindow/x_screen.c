@@ -5854,6 +5854,8 @@ x_screen_new(
 	screen->vertical_mode = vertical_mode ;
 	screen->use_vertical_cursor = use_vertical_cursor ;
 	
+	screen->font_man = font_man ;
+	
 	if( ml_term_get_encoding( screen->term) == ML_ISCII)
 	{
 		/*
@@ -5869,8 +5871,6 @@ x_screen_new(
 
 		ml_term_set_char_combining_flag( screen->term , 1) ;
 	}
-	
-	screen->font_man = font_man ;
 	
 	screen->use_bidi = use_bidi ;
 

@@ -1,3 +1,8 @@
+2002-06-15 Araki Ken <arakiken@users.sf.net>
+
+	* if -E iscii is specified, mlterm died. fixed.
+	* shaped characters were not shown correctly. fixed.
+
 2002-06-14 Araki Ken <arakiken@users.sf.net>
 
 	* w3mmlconfig is updated.

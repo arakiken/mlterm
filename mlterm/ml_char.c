@@ -653,15 +653,18 @@ ml_char_set_fg_color(
 	ml_color_t  color
 	)
 {
-	int  count ;
-	
-	for( count = 0 ; count < COMB_SIZE(ch->attr) ; count ++)
+	if( COMB_SIZE(ch->attr) > 0)
 	{
-		ml_char_set_fg_color( &ch->u.multi_ch[count + 1] , color) ;
+		int  count ;
+
+		for( count = 0 ; count < COMB_SIZE(ch->attr) + 1 ; count ++)
+		{
+			ml_char_set_fg_color( &ch->u.multi_ch[count] , color) ;
+		}
 	}
 
 	INTERN_COLOR(color) ;
-
+	
 	SET_FG_COLOR(ch->attr,color) ;
 
 	return  1 ;
@@ -694,11 +697,14 @@ ml_char_set_bg_color(
 	ml_color_t  color
 	)
 {
-	int  count ;
-
-	for( count = 0 ; count < COMB_SIZE(ch->attr) ; count ++)
+	if( COMB_SIZE(ch->attr) > 0)
 	{
-		ml_char_set_bg_color( &ch->u.multi_ch[count + 1] , color) ;
+		int  count ;
+
+		for( count = 0 ; count < COMB_SIZE(ch->attr) + 1 ; count ++)
+		{
+			ml_char_set_bg_color( &ch->u.multi_ch[count] , color) ;
+		}
 	}
 
 	INTERN_COLOR(color) ;
@@ -721,18 +727,21 @@ ml_char_reverse_color(
 	ml_char_t *  ch
 	)
 {
-	int  count ;
-
 	if( IS_REVERSED(ch->attr))
 	{
 		return  0 ;
 	}
 
-	for( count = 0 ; count < COMB_SIZE(ch->attr) ; count ++)
+	if( COMB_SIZE(ch->attr) > 0)
 	{
-		ml_char_reverse_color( &ch->u.multi_ch[count + 1]) ;
-	}
+		int  count ;
 
+		for( count = 0 ; count < COMB_SIZE(ch->attr) + 1 ; count ++)
+		{
+			ml_char_reverse_color( &ch->u.multi_ch[count]) ;
+		}
+	}
+	
 	REVERSE_COLOR(ch->attr) ;
 		
 	return  1 ;
@@ -743,16 +752,19 @@ ml_char_restore_color(
 	ml_char_t *  ch
 	)
 {
-	int  count ;
-	
 	if( ! IS_REVERSED(ch->attr))
 	{
 		return  0 ;
 	}
 	
-	for( count = 0 ; count < COMB_SIZE(ch->attr) ; count ++)
+	if( COMB_SIZE(ch->attr) > 0)
 	{
-		ml_char_restore_color( &ch->u.multi_ch[count + 1]) ;
+		int  count ;
+
+		for( count = 0 ; count < COMB_SIZE(ch->attr) + 1 ; count ++)
+		{
+			ml_char_restore_color( &ch->u.multi_ch[count]) ;
+		}
 	}
 
 	RESTORE_COLOR(ch->attr) ;
