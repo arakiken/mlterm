@@ -864,7 +864,15 @@ x_scrollbar_move_upward(
 	u_int  size
 	)
 {
+#if  0
 	if( sb->bar_top_y == 0)
+#else
+	/*
+	 * XXX Adhoc solution
+	 * Fix x_screen.c:bs_{half_}page_{up|down}ward() instead.
+	 */
+	if( sb->current_row + sb->num_of_filled_log_lines == 0)
+#endif
 	{
 		return  0 ;
 	}

@@ -1,3 +1,8 @@
+2003-07-27  Araki Ken  <arakiken@users.sf.net>
+
+	* Fixed scrollbar behavior bug(BTS:762666).
+	  (Thanks to Murase Masaki san)
+
 2003-07-22  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* kik_dlfcn_dl.c: Fixed a typo.
