@@ -3,6 +3,8 @@
 	* If 5380 request is denied as a result of challenge failure,
 	  #forbidden is returned.
 	* Set "@im=none" as the value of XMODIFIERS by default.
+	* Fixed contrib/tool/mlcc/Makefile.in and removed contrib/tool/mlcc/Makefile.
+	* Added mlcc to --with-tools in configure.in.
 
 2003-06-29 Seiichi SATO <ssato@sh.rim.or.jp>
 
