@@ -22,6 +22,11 @@ typedef struct  cs_table
 } cs_table_t ;
 
 
+#if  0
+#define  __DEBUG
+#endif
+
+
 /* --- static variables --- */
 
 static cs_table_t  cs_table[] =

@@ -1,4 +1,4 @@
-ver 2.2.0()
+ver 2.2.0(2002/01/29)
 * variable length column is supported.
 * ISCII support codes are imported(but is not still supported formally).
 * fribidi 0.10.0 is supported.

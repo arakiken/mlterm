@@ -1,5 +1,8 @@
 [20020129]
-* mlcurses_conf is updated(20020127 version).
+* 2.2.0 released
+
+[20020129]
+* mlcurses_conf is updated(20020127 version).(thanks to Minami Hirokazu san)
 
 [20020129]
 * copy&paste with kterm fails. fixed. (thanks to Sakamoto Hironori san)
