@@ -171,9 +171,10 @@
 # XIM を使う
 # use_xim = true
   
-# 起動時に XIM を open する
-# xim_open_in_startup = true
-  
+# インプットメソッド
+# (xim,uim,iiimf,scim,m17n-lib,none)
+# input_method = xim
+
 # タブ幅
 # tabsize = 8
 

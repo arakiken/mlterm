@@ -1,3 +1,10 @@
+2005-02-03 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* man/mlterm.1: removed xim_open_in_startup. (#1115198)
+	* etc/main.ja:
+	- removed xim_open_in_startup. (#1115198)
+	- added input_method
+
 2005-02-02 MINAMI Hiroakzu <minami@mistfall.net>
 
 	* xwindow/x_screen.c: For mouse tracking, 
