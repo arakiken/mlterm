@@ -25,7 +25,7 @@ pixmap_cache_tag
 	Display *  display; /**<Display */
 	Pixmap  root;      /**<Root pixmap !!! NOT owned by mlterm. DON'T FREE !!!*/
 	Pixmap  cooked;    /**<Background pixmap cache*/
-	x_picture_modifier_t  pic_mod; /**<modification applied to "cooked"*/
+	x_picture_modifier_t *  pic_mod; /**<modification applied to "cooked"*/
 	struct pixmap_cache_tag *  next ;
 } pixmap_cache_t ;
 
@@ -567,7 +567,7 @@ cache_add(
 	cache->display = display ;
 	cache->root = None ;
 	cache->cooked = None ;
-	memset( &(cache->pic_mod), 0, sizeof(x_picture_modifier_t)) ;
+	cache->pic_mod = NULL ;
 	cache->next = pixmap_cache ;
 	pixmap_cache = cache ;
 
@@ -595,6 +595,8 @@ cache_delete(
 		{
 			if ((cache->cooked) && (cache->root != cache->cooked))
 				XFreePixmap( display, cache->cooked) ;
+			if ( cache->pic_mod)
+				free( cache->pic_mod) ;
 			if ( o == NULL)
 			{
 				pixmap_cache = cache->next ;
@@ -622,24 +624,33 @@ cache_delete(
  */
 static int
 is_picmod_eq(
-	pixmap_cache_t *  cache,
-	x_picture_modifier_t *  new
+	x_picture_modifier_t *  a ,
+	x_picture_modifier_t *  b
 	)
 {
-	if (new == NULL)
+	if( a == b )
+		return 1 ;
+	
+	if ( a == NULL )
 	{
-		if( (cache->pic_mod.brightness == 100) &&
-		    (cache->pic_mod.contrast == 100) &&
-		    (cache->pic_mod.gamma == 100))
+		a = b ;
+		b = NULL ;
+	}
+
+	if (b == NULL)
+	{
+		if( (a->brightness == 100) &&
+		    (a->contrast == 100) &&
+		    (a->gamma == 100))
 		{
 			return 1 ;
 		}
 	}
 	else
 	{
-		if( (cache->pic_mod.brightness == new->brightness) &&
-		    (cache->pic_mod.contrast == new->contrast) &&
-		    (cache->pic_mod.gamma == new->gamma))
+		if( (a->brightness == b->brightness) &&
+		    (a->contrast == b->contrast) &&
+		    (a->gamma == b->gamma))
 		{
 			return 1 ;
 		}
@@ -1689,7 +1700,7 @@ x_imagelib_get_transparent_background(
 
 	gc = XCreateGC( win->display, win->my_window, 0, 0 );
 
-	if ( !is_picmod_eq( cache, pic_mod))
+	if ( !is_picmod_eq( cache->pic_mod, pic_mod))
 	{
 		if((cache->cooked != None) && (cache->cooked != cache->root))
 			XFreePixmap( win->display, cache->cooked) ;
@@ -1703,7 +1714,10 @@ x_imagelib_get_transparent_background(
 						     gc,
 						     current_root						     
 						     ,1 ) ;
-			memcpy( &(cache->pic_mod), pic_mod, sizeof(x_picture_modifier_t)) ;
+			if(cache->pic_mod)
+				free(cache->pic_mod) ;
+			cache->pic_mod = malloc(sizeof(x_picture_modifier_t)) ;
+			memcpy( cache->pic_mod, pic_mod, sizeof(x_picture_modifier_t)) ;
 			modify_pixmap( win->display, win->screen, cache->cooked, pic_mod) ;
 		}
 		else

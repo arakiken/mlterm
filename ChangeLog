@@ -1,5 +1,9 @@
 2003-02-23  MINAMI Hirokazu  <minami@mistfall.net>
 
+	* REALLY fix the chaching bug.
+
+2003-02-23  MINAMI Hirokazu  <minami@mistfall.net>
+
 	* Modifications to the background image were not applied
 	  when the wallpaper had been changed. 
 	  (Thanks to KATO Kazuyoshi san)
