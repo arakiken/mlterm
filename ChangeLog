@@ -1,3 +1,8 @@
+2003-05-20 Araki Ken <arakiken@users.sf.net>
+
+	* Fixed some problems in resizing window.
+	  (Thanks to >>796)
+
 2003-05-19  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* support DND from nautilus's background setting dialog. 
