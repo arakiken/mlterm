@@ -1,9 +1,20 @@
+2004-10-15 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* tool/mlconfig/mc_im.c:
+	  - removed a workaround for gettext problem in uim, since the problem
+	    fixed at uim-0.4.5-beta1.
+	  - fixed a bug with 'cyg' prefix for DLL on cygwin.
+
+	* configure.in:
+	  - fixed minor bugs in the configuration result message.
+	  - added USE_KDB into IM_CFLAGS.
+
 2004-10-14 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* x_xim.c: fixed a segfault.
 	  how to reproduce:
-	  $ LANG=UNSUPPORTED_LOCALE mlterm --im=foo
-	  switch input method
+	  1. $ LANG=UNSUPPORTED_LOCALE mlterm --im=foo
+	  2. switch input method
 
 2004-10-14 Seiichi SATO <ssato@sh.rim.or.jp>
 

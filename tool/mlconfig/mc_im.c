@@ -79,7 +79,7 @@ static int
 is_im_plugin(char *file_name)
 {
 	if (kik_dl_is_module(file_name) &&
-	    strncmp(file_name, "libim-", 6) == 0)
+	    strstr(file_name, "im-") == 0)
 	{
 		return 1;
 	}
@@ -460,12 +460,6 @@ mc_im_config_widget_new(void)
 	encoding = mc_get_str_value("encoding");
 
 	get_im_info(cur_locale , encoding);
-
-	/*
-	 * XXX: textdomain() are called in libuim with uim's domain name.
-	 * we need to overwrite mlconfig's domain name.
-	 */
-	textdomain("mlconfig");
 
 	value = mc_get_str_value("input_method");
 
