@@ -1,8 +1,9 @@
-/*
+/** @file
+ *  @brief image handring functions using gdk-pixbuf
  *	$Id$
  */
 
-#include <math.h>                        /* XXX replace by talor expansion? */
+#include <math.h>
 #include <X11/Xatom.h>                   /* XInternAtom */
 
 #ifdef OLD_GDK_PIXBUF
@@ -12,6 +13,7 @@
 #endif
 
 #include <kiklib/kik_unistd.h>
+#include <kiklib/kik_str.h>    /* strdup */
 
 #include "x_picture_dep.h"
 
@@ -20,7 +22,7 @@ typedef struct {
 	char * path;
 	Pixmap icon;
 	Pixmap mask;
-	unsigned long * data;
+	unsigned long * data; 	///< used for _NET_WM_ICON
 	int width;
 	int height;
 } icon_cache_t;
@@ -40,6 +42,7 @@ icon_cache_lookup(
 	char *path)
 {
 	int i;
+
 	for (i = 0; i< cache_size; i++){
 		if ((icon_cache[i].display == display) && (strcmp(icon_cache[i].path, path) == 0) )
 			return &icon_cache[i];
@@ -58,6 +61,7 @@ icon_cache_add(
 {
 	void *p;
 	icon_cache_t * dest;
+
 	dest = icon_cache_lookup(NULL, NULL); /* seek freed ones */
 	if (dest == NULL){
 		if( !( p = realloc( icon_cache , sizeof( icon_cache_t) * (cache_size + 1) ) ) ){ /* no free area, expand */
@@ -93,9 +97,12 @@ icon_cache_add(
 static int
 icon_cache_remove_display(Display * display){
 	int i;
-	int flag = 0;
+	int is_shrinked = 0;
 	for (i = 0; i< cache_size; i++){
 		if (icon_cache[i].display == display){
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " freeing display %d.\n", display) ;
+			#endif
 			free(icon_cache[i].path);
 			free(icon_cache[i].data);
 			icon_cache[i].path = NULL;
@@ -105,11 +112,11 @@ icon_cache_remove_display(Display * display){
 			XFreePixmap(icon_cache[i].display, icon_cache[i].mask);
 			icon_cache[i].icon = icon_cache[i].mask = None;
 			icon_cache[i].display = NULL;
-			/* icon cache is never shrinked. (cache_size is kept sane here) */
-			flag = 1;
+			/* icon cache never shrink. (cache_size is kept sane here) */
+			is_shrinked = 1;
 		}
 	}
-	return flag;
+	return is_shrinked;
 }
 
 static unsigned char
@@ -201,6 +208,11 @@ int
 x_picdep_display_closed( Display *  display){
 	display_count --;
 	icon_cache_remove_display(display); /* clean up pixmaps/cardinals */
+	/* XXX
+         *
+         *  there's no way to free mamories alocated from gdk_pixbuf_xlib_init( display, 0 ).
+         *  replacement shou be written
+         */
 	return  1 ; 
 }
 
@@ -437,12 +449,23 @@ int x_picdep_set_icon_from_file(
 			(pixbuf,
 			 &pixmap_return,
 			 &mask_return,
-			 128); /* XXX too high ? */
+			 127);
 		gdk_pixbuf_unref(pixbuf);
 
 /* cache the reslut */
 		icon = icon_cache_add( win->display, file_path, pixmap_return, mask_return, data, width, height);
 	}
+
+/* XXX
+ *
+ * Following stuff should be moved into x_window.c.  
+ * Ths function should be separated into 
+ *  - return CARDINAL[] (_NET_WM_ICON data)
+ *  - return pixmap     ( WMHints data)
+ *  - return mask       ( WMHints data)
+ *  - and backend       (maintain cache)
+ */ 
+
 
 /* set extended window manager hint's icon */
 	XChangeProperty ( win->display, win->my_window,
