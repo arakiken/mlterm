@@ -1,3 +1,21 @@
+2004-10-11 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	I got "YOUR MEMORY MANAGEMENT IS PERFECT!" message from kik_mem by this
+	changes:
+
+	* inputmethod/iiimf/Makefile.in, inputmethod/kbd/Makefile.in,
+	  inputmethod/m17nlib/Makefile.in, inputmethod/uim/Makefile.in:
+	  added DEB_CFLAGS
+
+	* inputmethod/iiimf/im_iiimf.c, inputmethod/kbd/im_kbd.c,
+	  inputmethod/m17nlib/im_m17nlib.c, inputmethod/uim/im_uim.c:
+	  - #include <kiklib/kik_mem.h>
+	  - minor cleanups.
+
+	* inputmethod/uim/im_uim.c: #include <uim-im-switcher.h>
+
+	* x_im.c, x_im.h: fixed a bug caused by using uim and m17nlib together.
+
 2004-10-10 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* configure.in:

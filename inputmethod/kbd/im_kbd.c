@@ -35,6 +35,7 @@
  */
 
 #include  <X11/keysym.h>	/* XK_xxx */
+#include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_snprintf */
 #include  <mkf/mkf_utf16_parser.h>
 #include  <ml_iscii.h>
@@ -209,11 +210,6 @@ delete(
 	if( kbd->conv)
 	{
 		(*kbd->conv->delete)( kbd->conv) ;
-	}
-
-	if( kbd->im.stat_screen)
-	{
-		(*kbd->im.stat_screen->delete)( kbd->im.stat_screen) ;
 	}
 
 	ref_count-- ;

@@ -16,6 +16,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @AA_CFLAGS@ 			\
 	 @KIK_CFLAGS@			\
 	 @MKF_CFLAGS@			\
+	 @DEB_CFLAGS@			\
 	 @DND_CFLAGS@			\
 	 @X_CFLAGS@			\
 	 @CFLAGS@			\

@@ -35,6 +35,7 @@
 
 #include  <string.h>		/* strncmp */
 #include  <X11/keysym.h>	/* XK_xxx */
+#include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_str_sep kik_str_alloca_dup kik_snprintf*/
 #include  <kiklib/kik_locale.h>	/* kik_get_lang */
 #include  <kiklib/kik_debug.h>
@@ -1267,16 +1268,6 @@ delete(
 		(*iiimf->conv->delete)( iiimf->conv) ;
 	}
 
-	if( iiimf->im.cand_screen)
-	{
-		(*iiimf->im.cand_screen->delete)( iiimf->im.cand_screen) ;
-	}
-
-	if( iiimf->im.stat_screen)
-	{
-		(*iiimf->im.stat_screen->delete)( iiimf->im.stat_screen) ;
-	}
-
 	if( iiimf->context)
 	{
 		iiimcf_destroy_context( iiimf->context) ;
@@ -1297,6 +1288,11 @@ delete(
 		handle = NULL ;
 
 		iiimcf_finalize() ;
+
+		if( parser_utf16)
+		{
+			(*parser_utf16->delete)( parser_utf16) ;
+		}
 
 		initialized = 0 ;
 	}

@@ -91,6 +91,7 @@ typedef struct x_im_export_syms
 typedef struct x_im
 {
 	kik_dl_handle_t  handle ;
+	char *  name ;
 
 	x_im_event_listener_t *  listener ;
 

@@ -33,8 +33,12 @@
 
 #include  <uim.h>
 #include  <uim-helper.h>
+#ifdef  UIM_0_4_4_OR_LATER
+# include <uim-im-switcher.h>
+#endif
 
 #include  <X11/keysym.h>	/* XK_xxx */
+#include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep kik_snprintf*/
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <kiklib/kik_list.h>
@@ -56,7 +60,7 @@
 
 /*
  * When uim encoding is the same as terminal, parser_uim and conv are NULL,
- * so recived string encoding will not be converted.
+ * so encoding of received string will not be converted.
  */
 #define  NEED_TO_CONV(uim)  ((uim)->parser_uim && (uim)->conv)
 
@@ -373,7 +377,7 @@ prop_list_update(
 	}
 #endif
 
-#define PROP_LIST_FORMAT			\
+#define  PROP_LIST_FORMAT			\
 	"prop_list_update\ncharset=%s\n%s"	\
 	"branch\t%s\t%s\n"
 
@@ -394,6 +398,8 @@ prop_list_update(
 		      uim->engine_name , uim->engine_name) ;
 
 	uim_helper_send_message( helper_fd , buf) ;
+
+#undef  PROP_LIST_FORMAT
 }
 
 static void
@@ -419,7 +425,7 @@ prop_label_update(
 	}
 #endif
 
-#define PROP_LABEL_FORMAT "prop_label_update\ncharset=%s\n%s%s\t%s\n"
+#define  PROP_LABEL_FORMAT "prop_label_update\ncharset=%s\n%s%s\t%s\n"
 
 	len = strlen(PROP_LABEL_FORMAT) + strlen( uim->encoding_name) +
 	      strlen( str) + (strlen(uim->engine_name) * 2) + 1 ;
@@ -438,6 +444,8 @@ prop_label_update(
 		      uim->engine_name , uim->engine_name) ;
 
 	uim_helper_send_message( helper_fd , buf) ;
+
+#undef  PROP_LABEL_FORMAT
 }
 
 
@@ -790,7 +798,6 @@ candidate_activate(
 	if( ! (*uim->im.cand_screen->init)( uim->im.cand_screen , num , 10))
 	{
 		(*uim->im.cand_screen->delete)( uim->im.cand_screen) ;
-
 		uim->im.cand_screen = NULL ;
 
 		return ;
@@ -925,11 +932,6 @@ delete(
 		(*uim->conv->delete)( uim->conv) ;
 	}
 
-	if( uim->im.cand_screen)
-	{
-		(*uim->im.cand_screen->delete)( uim->im.cand_screen) ;
-	}
-
 	if( uim->engine_name)
 	{
 		free( uim->engine_name) ;
@@ -953,9 +955,7 @@ delete(
 		(*mlterm_syms->x_term_manager_remove_fd)( helper_fd) ;
 		helper_fd = -1 ;
 
-	#ifndef  USE_M17NLIB /* FIXME */
 		uim_quit() ;
-	#endif
 
 		if( ! kik_list_is_empty( uim_list))
 		{
@@ -1493,9 +1493,7 @@ error:
 
 	if( initialized && ref_count == 0)
 	{
-	#ifndef  USE_M17NLIB
 		uim_quit() ;
-	#endif
 
 		initialized = 0 ;
 	}

@@ -31,12 +31,13 @@
  *	$Id$
  */
 
-#include  <m17n.h>
-#include  <m17n-misc.h>		/* merror_code */
-
 #include  <X11/keysym.h>	/* XK_xxx */
+#include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_snprintf kik_str_sep*/
 #include  <kiklib/kik_locale.h>	/* kik_get_lang */
+
+#include  <m17n.h>
+#include  <m17n-misc.h>		/* merror_code */
 
 #include  <x_im.h>
 #include  "../im_common.h"
@@ -694,16 +695,6 @@ delete(
 		(*m17nlib->conv->delete)( m17nlib->conv) ;
 	}
 
-	if( m17nlib->im.cand_screen)
-	{
-		(*m17nlib->im.cand_screen->delete)( m17nlib->im.cand_screen) ;
-	}
-
-	if( m17nlib->im.stat_screen)
-	{
-		(*m17nlib->im.stat_screen->delete)( m17nlib->im.stat_screen) ;
-	}
-
 	free( m17nlib) ;
 
 	if( ref_count == 0 && initialized)
@@ -712,7 +703,7 @@ delete(
 
 		initialized = 0 ;
 
-		if( ! parser_ascii)
+		if( parser_ascii)
 		{
 			(*parser_ascii->delete)( parser_ascii) ;
 			parser_ascii = NULL ;
