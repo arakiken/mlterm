@@ -378,6 +378,10 @@ if test "x$uim" = xyes ; then
 			     [
 			     UIM_CFLAGS="$UIM_CFLAGS -DUIM_0_4_4_OR_LATER"
 			     ])
+		AC_CHECK_LIB(uim, uim_prop_update_custom,
+			     [
+			     UIM_CFLAGS="$UIM_CFLAGS -DUIM_0_4_6_OR_LATER"
+			     ])
 		LIBS="$ml_saved_libs"
 		if test "x$with_libltdl" != "xno" ; then
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/uim/libim-uim.la ${DL_LIBS_IM}"

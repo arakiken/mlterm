@@ -1,3 +1,7 @@
+2005-02-15 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/uim/im_uim.c, configure.in: uim_prop_update_custrom()
+
 2005-02-10 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* doc/term/mlterm.tc: revived.

@@ -82,6 +82,8 @@ typedef struct im_uim
 	u_int  pressing_mod_key ;
 	u_int  mod_ignore_mask ;
 
+	u_int  cand_limit ;
+
 }  im_uim_t ;
 
 KIK_LIST_TYPEDEF( im_uim_t) ;
@@ -793,7 +795,7 @@ candidate_activate(
 		uim->im.cand_screen->listener.selected = candidate_selected ;
 	}
 
-	if( ! (*uim->im.cand_screen->init)( uim->im.cand_screen , num , 10))
+	if( ! (*uim->im.cand_screen->init)( uim->im.cand_screen , num , limit))
 	{
 		(*uim->im.cand_screen->delete)( uim->im.cand_screen) ;
 		uim->im.cand_screen = NULL ;
@@ -840,6 +842,7 @@ candidate_activate(
 	}
 
 	(*uim->im.cand_screen->select)( uim->im.cand_screen , 0) ;
+	uim->cand_limit = limit ;
 }
 
 static void
@@ -884,31 +887,30 @@ candidate_shift_page(
 
 	index = (int) uim->im.cand_screen->index ;
 
-	if( ! direction && index < 10)
+	if( ! direction && index < uim->cand_limit)
 	{
 		/* top page -> last page */
-		index = (uim->im.cand_screen->num_of_candidates / 10) * 10 + index ;
+		index = (uim->im.cand_screen->num_of_candidates / uim->cand_limit) * uim->cand_limit + index ;
 	}
 	else if( direction &&
-		 index + 10 >= uim->im.cand_screen->num_of_candidates)
+		 ((index / uim->cand_limit) + 1) * uim->cand_limit > uim->im.cand_screen->num_of_candidates)
 	{
 		/* last page -> top page */
-		index = index % 10 ;
+		index = index % uim->cand_limit ;
 	}
 	else
 	{
 		/* shift page according to the direction */
+		index += (direction ? uim->cand_limit : -(uim->cand_limit)) ;
+	}
 
-		index += (direction ? 10 : -10) ;
-
-		if( index < 0)
-		{
-			index = 0 ;
-		}
-		else if( index >= uim->im.cand_screen->num_of_candidates)
-		{
-			index = uim->im.cand_screen->num_of_candidates - 1 ;
-		}
+	if( index < 0)
+	{
+		index = 0 ;
+	}
+	else if( index >= uim->im.cand_screen->num_of_candidates)
+	{
+		index = uim->im.cand_screen->num_of_candidates - 1 ;
 	}
 
 	(*uim->im.cand_screen->select)( uim->im.cand_screen , index) ;
@@ -1329,8 +1331,23 @@ helper_im_changed(
 			iterator = kik_iterator_next( iterator) ;
 		}
 	}
+#endif  /* UIM_0_4_4_OR_LATER */
+}
 
-#endif
+static void
+helper_update_custom(
+	im_uim_t *  last_focused_uim ,
+	char *  custom ,
+	char *  value
+	)
+{
+#ifdef  UIM_0_4_6_OR_LATER
+	if( last_focused_uim)
+	{
+		uim_prop_update_custom( last_focused_uim->context ,
+					custom , value) ;
+	}
+#endif  /* UIM_0_4_6_OR_LATER */
 }
 
 static void
@@ -1378,6 +1395,17 @@ helper_read_handler( void)
 					helper_im_changed( last_focused_uim ,
 							   first_line ,
 							   second_line) ;
+				}
+			}
+			else if( strcmp( first_line , "prop_update_custom") == 0)
+			{
+				second_line = kik_str_sep( &message , "\n") ;
+
+				if( second_line && last_focused_uim)
+				{
+					helper_update_custom( last_focused_uim ,
+							      second_line ,
+							      message) ;
 				}
 			}
 
@@ -1509,6 +1537,7 @@ im_uim_new(
 	uim->conv = NULL ;
 	uim->pressing_mod_key = 0 ;
 	uim->mod_ignore_mask =  mod_ignore_mask ;
+	uim->cand_limit = 0 ;
 
 	if( uim->term_encoding != encoding)
 	{
