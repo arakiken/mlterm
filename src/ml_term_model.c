@@ -274,6 +274,9 @@ ml_term_model_new(
 	ml_char_init( &termmdl->nl_ch) ;
 	ml_char_copy( &termmdl->nl_ch , nl_ch) ;
 
+	termmdl->backscroll_rows = 0 ;
+	termmdl->is_backscroll_mode = 0 ;
+
 	return  termmdl ;
 
 error3:
