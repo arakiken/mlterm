@@ -1,3 +1,7 @@
+2003-06-29 Araki Ken <arakiken@users.sf.net>
+
+	* Minor fixes of pixmap_engine.c and x_sb_view_factory.c.
+
 2003-06-29 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Fixed segfault with scrollbar rcfile which does not specify engine.

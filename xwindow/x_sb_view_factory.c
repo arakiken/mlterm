@@ -295,9 +295,7 @@ find_view_rcfile(
 	x_sb_view_conf_t *  conf ;
 	kik_file_t *  rcfile ;
 	char *  user_dir ;
-	char *  sb_dir ;
 	char *  path ;
-	int  count ;
 
 	/* search known conf from view_conf_list */
 	if( ( conf = search_view_conf( name)))

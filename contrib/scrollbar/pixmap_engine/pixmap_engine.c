@@ -96,6 +96,10 @@ typedef struct  pixmap_sb_view
 
 /* --- static functions --- */
 
+/* declared in x_imagelib.h */
+int  x_imagelib_load_file( Display *  display, char *  path, u_int32_t **  cardinal,
+	Pixmap *  pixmap, Pixmap *  mask, int  width, int  height) ;
+
 static void
 load_image(
 	Display *  display ,
@@ -846,6 +850,8 @@ parse(
 	}
 
 	ps->dir = strdup( conf->dir) ;
+
+	return  1 ;
 }
 
 
