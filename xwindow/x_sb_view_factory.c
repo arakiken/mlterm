@@ -26,41 +26,16 @@
 #define  SB_DIR  DATADIR "/mlterm/scrollbars"
 #endif
 
-typedef struct  lib_ref
-{
-	char *  name ;
-	kik_dl_handle_t  handle ;
-	u_int  count ;
-
-} lib_ref_t ;
 
 KIK_LIST_TYPEDEF( x_sb_view_conf_t) ;
 
+
 /* --- static variables --- */
 
-static lib_ref_t *  lib_ref_table ;
-static u_int  lib_ref_table_size ;
 static KIK_LIST( x_sb_view_conf_t)  view_conf_list = NULL ;
 
+
 /* --- static functions --- */
-
-static lib_ref_t *
-search_lib_ref(
-	char *  name
-	)
-{
-	int  count ;
-	
-	for( count = 0 ; count < lib_ref_table_size ; count ++)
-	{
-		if( strcmp( lib_ref_table[count].name , name) == 0)
-		{
-			return  &lib_ref_table[count] ;
-		}
-	}
-
-	return  NULL ;
-}
 
 static x_sb_view_new_func_t
 dlsym_sb_view_new_func(
@@ -72,36 +47,10 @@ dlsym_sb_view_new_func(
 	kik_dl_handle_t  handle ;
 	char *  symbol ;
 	u_int  len ;
-	lib_ref_t *  lib_ref ;
 
-	if( ( lib_ref = search_lib_ref( name)))
+	if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL)
 	{
-		handle = lib_ref->handle ;
-		lib_ref->count ++ ;
-	}
-	else
-	{
-		void *  p ;
-
-		if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL)
-		{
-			return  NULL ;
-		}
-		
-		if( ( p = realloc( lib_ref_table , sizeof( lib_ref_t) * (lib_ref_table_size + 1)))
-			== NULL)
-		{
-			kik_dl_close( handle) ;
-			
-			return  NULL ;
-		}
-
-		lib_ref_table = p ;
-		lib_ref = &lib_ref_table[lib_ref_table_size ++] ;
-
-		lib_ref->name = strdup( name) ;
-		lib_ref->handle = handle ;
-		lib_ref->count = 1 ;
+		return  NULL ;
 	}
 
 	len = 27 + strlen( name) + 1 ;
@@ -138,10 +87,6 @@ dlsym_sb_view_new_func(
 		}
 	}
 
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s %d\n" , lib_ref->name , lib_ref->count) ;
-#endif
-
 	return  func ;
 }
 
@@ -154,36 +99,10 @@ dlsym_sb_engine_new_func(
 	kik_dl_handle_t  handle ;
 	char *  symbol ;
 	u_int  len ;
-	lib_ref_t *  lib_ref ;
 
-	if( ( lib_ref = search_lib_ref( name)))
+	if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL)
 	{
-		handle = lib_ref->handle ;
-		lib_ref->count ++ ;
-	}
-	else
-	{
-		void *  p ;
-
-		if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL)
-		{
-			return  NULL ;
-		}
-		
-		if( ( p = realloc( lib_ref_table , sizeof( lib_ref_t) * (lib_ref_table_size + 1)))
-			== NULL)
-		{
-			kik_dl_close( handle) ;
-			
-			return  NULL ;
-		}
-
-		lib_ref_table = p ;
-		lib_ref = &lib_ref_table[lib_ref_table_size ++] ;
-
-		lib_ref->name = strdup( name) ;
-		lib_ref->handle = handle ;
-		lib_ref->count = 1 ;
+		return  NULL ;
 	}
 
 	len = 16 + strlen( name) + 1 ;
@@ -198,10 +117,6 @@ dlsym_sb_engine_new_func(
 	{
 		return  NULL ;
 	}
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s %d\n" , lib_ref->name , lib_ref->count) ;
-#endif
 
 	return  func ;
 }
@@ -332,7 +247,8 @@ register_new_view_conf(
 	}
 
 #ifdef __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG "%s has been registered as new view. [dir: %s]\n" , conf->sb_name , conf->dir);
+	kik_debug_printf( KIK_DEBUG_TAG "%s has been registered as new view. [dir: %s]\n" ,
+		conf->sb_name , conf->dir);
 #endif
 
 	if( view_conf_list == NULL)
@@ -346,6 +262,27 @@ register_new_view_conf(
 	kik_list_insert_head( x_sb_view_conf_t , view_conf_list , conf) ;
 
 	return  conf ;
+}
+
+static int
+unregister_view_conf(
+	x_sb_view_conf_t *  conf
+	)
+{
+	kik_list_search_and_remove( x_sb_view_conf_t , view_conf_list , conf) ;
+
+	free_conf( conf) ;
+
+	if( kik_list_is_empty( view_conf_list))
+	{
+	#ifdef __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " view_conf_list is empty. freeing\n");
+	#endif
+		kik_list_delete( x_sb_view_conf_t , view_conf_list) ;
+		view_conf_list = NULL ;
+	}
+
+	return  1 ;
 }
 
 static x_sb_view_conf_t *
@@ -384,10 +321,15 @@ find_view_rcfile(
 
 	if( ! ( rcfile = kik_file_open( path , "r")))
 	{
-		if( ! ( path = realloc( path , strlen( SB_DIR) + strlen( name) + 5)))
+		void *  p ;
+		
+		if( ! ( p = realloc( path , strlen( SB_DIR) + strlen( name) + 5)))
 		{
+			free( path) ;
 			return  NULL ;
 		}
+
+		path = p ;
 
 		sprintf( path, "%s/%s/rc" , SB_DIR , name);
 
@@ -432,9 +374,11 @@ x_sb_view_new(
 		
 		if( ( func_engine = dlsym_sb_engine_new_func( conf->engine_name)) == NULL)
 		{
+			unregister_view_conf( conf) ;
+			
 			return  NULL ;
 		}
-		
+
 		return  (*func_engine)( conf , 0) ;
 	}
 
@@ -465,9 +409,11 @@ x_transparent_scrollbar_view_new(
 		
 		if( ( func_engine = dlsym_sb_engine_new_func( conf->engine_name)) == NULL)
 		{
+			unregister_view_conf( conf) ;
+			
 			return  NULL ;
 		}
-		
+
 		return  (*func_engine)( conf , 1) ;
 	}
 
@@ -475,12 +421,7 @@ x_transparent_scrollbar_view_new(
 	{
 		return  x_simple_transparent_sb_view_new() ;
 	}
-	else if( ( func = dlsym_sb_view_new_func( name , 0)) == NULL)
-	{
-		return  NULL ;
-	}
-
-	if( ( func = dlsym_sb_view_new_func( name , 1)) == NULL)
+	else if( ( func = dlsym_sb_view_new_func( name , 1)) == NULL)
 	{
 		return  NULL ;
 	}
@@ -494,8 +435,6 @@ x_unload_scrollbar_view_lib(
 	)
 {
 	x_sb_view_conf_t *  conf ;
-	int  count ;
-	int  ret = 0 ;
 
 	/* new style plugin? (requires an rcfile and an engine library) */
 	if( ( conf = search_view_conf( name)))
@@ -504,64 +443,26 @@ x_unload_scrollbar_view_lib(
 		name = conf->engine_name ;
 	}
 
-	for( count = 0 ; count < lib_ref_table_size ; count ++)
-	{
-		if( strcmp( lib_ref_table[count].name , name) == 0)
-		{
-			if( -- lib_ref_table[count].count == 0)
-			{
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG " %s unloaded.\n" , name) ;
-			#endif
-			
-				kik_dl_close( lib_ref_table[count].handle) ;
-				free( lib_ref_table[count].name) ;
-				
-				if( -- lib_ref_table_size == 0)
-				{
-					free( lib_ref_table) ;
-					lib_ref_table = NULL ;
-				}
-				else
-				{
-					lib_ref_table[count] = lib_ref_table[lib_ref_table_size] ;
-				}
-				
-				ret = 1 ;
-
-				break ;
-			}
-		}
-	}
-
+	/* remove unused conf */
 	if( conf)
 	{
-		/* remove unused conf */
 		if( conf->use_count == 0)
 		{
 		#ifdef __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " %s is no longer used. removing from view_conf_list\n", name);
+			kik_debug_printf( KIK_DEBUG_TAG
+				" %s is no longer used. removing from view_conf_list\n", name);
 		#endif
-			kik_list_search_and_remove( x_sb_view_conf_t , view_conf_list , conf) ;
 
-			free_conf( conf) ;
-
-			if( kik_list_is_empty( view_conf_list))
-			{
-			#ifdef __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG " view_conf_list is empty. freeing\n");
-			#endif
-				kik_list_delete( x_sb_view_conf_t , view_conf_list) ;
-				view_conf_list = NULL ;
-			}
+			unregister_view_conf( conf) ;
 		}
-		#ifdef __DEBUG
+	#ifdef __DEBUG
 		else
 		{
-			kik_debug_printf( KIK_DEBUG_TAG " %s is still being used. [use_count: %d]\n", conf->use_count) ;
+			kik_debug_printf( KIK_DEBUG_TAG " %s is still being used. [use_count: %d]\n" ,
+				conf->use_count) ;
 		}
-		#endif
+	#endif
 	}
-
-	return  ret ;
+		
+	return  1 ;
 }

@@ -543,7 +543,11 @@ ml_char_move(
 	ml_char_final( dst) ;
 
 	memcpy( dst , src , sizeof( ml_char_t)) ;
-	memset( src , 0 , sizeof( ml_char_t)) ;
+
+#if  0
+	/* invalidated src */
+	ml_char_init( src) ;
+#endif
 
 	return  1 ;
 }

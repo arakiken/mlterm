@@ -586,12 +586,6 @@ x_scrollbar_init(
 		{
 			goto  view_created ;
 		}
-		else
-		{
-			/* transparency is not used */
-
-			use_transbg = 0 ;
-		}
 	}
 
 	if( ( sb->view = x_sb_view_new( sb->view_name)) == NULL)
@@ -603,11 +597,21 @@ x_scrollbar_init(
 			goto  error ;
 		}
 
+		if( use_transbg)
+		{
+			if( ( sb->view = x_transparent_scrollbar_view_new( sb->view_name)))
+			{
+				goto  view_created ;
+			}
+		}
+		
 		if( ( sb->view = x_sb_view_new( sb->view_name)) == NULL)
 		{
 			goto  error ;
 		}
 	}
+	
+	use_transbg = 0 ;
 
 view_created:
 	sb->sb_listener = sb_listener ;

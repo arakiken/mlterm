@@ -1,3 +1,12 @@
+2003-09-30  Araki Ken  <arakiken@users.sf.net>
+
+	* x_sb_view_factory.c: Memory leaked if specified scrollbar not found and
+	  "simple" scrollbar used. Fixed.
+
+	* x_sb_view_factory.c: Removed stuff about lib_ref_table.
+
+	* ml_char.c(ml_char_move): Use ml_char_init instead of memset.
+
 2003-09-29  Araki Ken  <arakiken@users.sf.net>
 
 	* version.h: 2.8.0
