@@ -3173,15 +3173,6 @@ report_mouse_tracking(
 	int  row ;
 	u_char  buf[7] ;
 
-	if( is_released)
-	{
-		button = 3 ;
-	}
-	else
-	{
-		button = event->button - Button1 ;
-	}
-
 	/*
 	 * Shift = 4
 	 * Meta = 8
@@ -3190,12 +3181,29 @@ report_mouse_tracking(
 	key_state = ((event->state & ShiftMask) ? 4 : 0) +
 		((event->state & ControlMask) ? 16 : 0) ;
 
+	if( is_released)
+	{
+		button = 3 ;
+	}
+	else
+	{
+		button = event->button - Button1 ;
+		while( button >= 3){
+			key_state += 64;
+			button -= 3;
+		}
+	}
+
 	if( screen->term->vertical_mode)
 	{
 		u_int  x_rest ;
 
 		col = convert_y_to_row( screen , NULL , event->y) ;
 
+		if( 0x20 + col + 1 > 0xff){
+			/* mouse position can't be reported using this protocol */
+			return  0 ;
+		}
 	#if  0
 		if( x_is_using_multi_col_char( screen->font_man))
 		{
@@ -3219,6 +3227,9 @@ report_mouse_tracking(
 			row = ml_term_get_cols( screen->term) - row - 1 ;
 		}
 
+		if( 0x20 + row + 1 > 0xff){
+			return  0 ;
+		}
 	#if  0
 		if( x_is_using_multi_col_char( screen->font_man))
 		{
@@ -3233,6 +3244,10 @@ report_mouse_tracking(
 	{
 		row = convert_y_to_row( screen , NULL , event->y) ;
 
+		if( 0x20 + row + 1 > 0xff){
+			return  0 ;
+		}
+
 		if( ( line = ml_term_get_line_in_screen( screen->term , row)) == NULL)
 		{
 			return  0 ;
@@ -3240,23 +3255,16 @@ report_mouse_tracking(
 
 		col = ml_convert_char_index_to_col( line ,
 			convert_x_to_char_index_with_shape( screen , line , NULL , event->x) , 0) ;
+                if( 0x20 + col + 1 > 0xff){
+			return  0 ;
+		}
 	}
 
 	strcpy( buf , "\x1b[M") ;
 
 	buf[3] = 0x20 + button + key_state ;
-	
-	col = 0x20 + col + 1 ;
-	if( col > 0xff){
-		col = 0xff ;
-	}
-	buf[4] = col ;
-
-	row = 0x20 + row + 1 ;
-	if( row > 0xff){
-		row = 0xff ;
-	}
-	buf[5] = row ;
+	buf[4] = 0x20 + col +1 ;
+	buf[5] = 0x20 + row +1 ;
 
 	write_to_pty( screen , buf , 6 , NULL) ;
 

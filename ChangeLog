@@ -1,3 +1,9 @@
+2005-02-03 MINAMI Hirokazu <minami@mistfall.net>
+
+	* xwindow/x_screen.c:
+	- changed to ignore un-reportable mouse click.
+	- fixed a bug for sending button4/5 events.
+
 2005-02-03 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* man/mlterm.1: removed xim_open_in_startup. (#1115198)
