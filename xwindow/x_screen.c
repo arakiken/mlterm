@@ -338,6 +338,43 @@ screen_height(
 	return  (height * screen->screen_height_ratio) / 100 ;
 }
 
+static int
+activate_xic(
+	x_screen_t *  screen
+	)
+{
+	/*
+	 * FIXME: This function is a dirty wrapper on x_xic_activate().
+	 */
+
+	char *  saved_ptr;
+	char *  xim_name ;
+	char *  xim_locale ;
+
+	xim_name = xim_locale = NULL ;
+
+	saved_ptr = kik_str_sep( &screen->input_method , ":") ;
+	xim_name = kik_str_sep( &screen->input_method , ":") ;
+	xim_locale = kik_str_sep( &screen->input_method , ":") ;
+
+	x_xic_activate( &screen->window ,
+			xim_name ? xim_name : "" ,
+			xim_locale ? xim_locale : "") ;
+
+	if( xim_name)
+	{
+		*(xim_name-1) = ':' ;
+	}
+
+	if( xim_locale)
+	{
+		*(xim_locale-1) = ':' ;
+	}
+
+	screen->input_method = saved_ptr ;
+
+	return  1 ;
+}
 
 /*
  * drawing screen functions.
@@ -1353,48 +1390,23 @@ window_realized(
 	screen->mod_meta_mask = get_mod_meta_mask( win, screen->mod_meta_key) ;
 	screen->mod_ignore_mask = get_mod_ignore_mask( win, NULL) ;
 
-	if( screen->xim_open_in_startup)
-	{
-		x_xic_activate( &screen->window , "" , "") ;
-	}
-
 	if( screen->input_method)
 	{
-#if 0
+		/* XIM? or other input method? */
 		if( strncmp( screen->input_method , "xim" , 3) == 0)
 		{
-			char *  xim_name ;
-			char *  xim_locale ;
-			char *  restore ;
-			
-			xim_name = xim_locale = restore = NULL ;
-
-			if( ( xim_name = strchr( screen->input_method , ':')))
-			{
-				xim_name++ ;
-
-				if( ( xim_locale = strchr( xim_name , ':')))
-				{
-					restore = xim_locale ;
-					*xim_locale = '\0' ;
-					xim_locale++ ;
-				}
-			}
-
-			x_xic_activate( &screen->window ,
-					xim_name ? xim_name : "" ,
-					xim_locale ? xim_locale : "") ;
-
-			if( restore)
-			{
-				*restore = ':' ;
-			}
+			activate_xic( screen) ;
 		}
 		else
-#endif
 		{
-			screen->im = x_im_new( ml_term_get_encoding( screen->term) ,
-					&screen->im_listener , screen->input_method) ;
+			if( ! ( screen->im = x_im_new(
+					ml_term_get_encoding( screen->term) ,
+					&screen->im_listener ,
+					screen->input_method)))
+			{
+				free( screen->input_method) ;
+				screen->input_method = NULL ;
+			}
 		}
 	}
 
@@ -4161,15 +4173,49 @@ change_fade_ratio(
 }
 
 static void
-change_xim(
+change_im(
 	x_screen_t *  screen ,
-	char *  xim ,
-	char *  locale
+	char *  input_method
 	)
 {
 	x_xic_deactivate( &screen->window) ;
 
-	x_xic_activate( &screen->window , xim , locale) ;
+	if( screen->im)
+	{
+		screen->im->delete( screen->im) ;
+		screen->im = NULL ;
+	}
+
+	if( screen->input_method)
+	{
+		free( screen->input_method) ;
+	}
+
+	if( ! input_method)
+	{
+		return ;
+	}
+
+	screen->input_method = strdup( input_method) ;
+
+	if( strncmp( screen->input_method , "xim" , 3) == 0)
+	{
+		activate_xic( screen) ;
+	}
+	else
+	{
+		if( ( screen->im = x_im_new(
+				ml_term_get_encoding( screen->term) ,
+				&screen->im_listener ,
+				screen->input_method)))
+		{
+			if(screen->is_focused)
+			{
+				screen->im->focused( screen->im) ;
+			}
+		}
+	}
+
 }
 
 static void
@@ -4255,44 +4301,6 @@ snapshot(
 	}
 
 	fclose( file) ;
-}
-
-static void
-change_im(
-	x_screen_t *  screen ,
-	char *  input_method
-	)
-{
-	if( screen->im)
-	{
-		screen->im->delete( screen->im) ;
-		screen->im = NULL ;
-	}
-
-	if( input_method)
-	{
-		screen->im = x_im_new( ml_term_get_encoding( screen->term) ,
-				&screen->im_listener , input_method) ;
-	}
-
-	if( screen->input_method)
-	{
-		free( screen->input_method) ;
-	}
-
-	if( screen->im == NULL)
-	{
-		screen->input_method = NULL ;
-
-		return ;
-	}
-
-	screen->input_method = strdup( input_method) ;
-
-	if( screen->is_focused)
-	{
-		screen->im->focused( screen->im) ;
-	}
 }
 
 static void
@@ -4701,25 +4709,9 @@ set_config(
 
 		change_bidi_flag( screen , flag) ;
 	}
-	else if( strcmp( key , "xim") == 0)
+	else if( strcmp( key , "input_method") == 0)
 	{
-		char *  xim ;
-		char *  locale ;
-		char *  p ;
-
-		xim = value ;
-
-		if( ( p = strchr( value , ':')) == NULL)
-		{
-			locale = "" ;
-		}
-		else
-		{
-			*p = '\0' ;
-			locale = p + 1 ;
-		}
-
-		change_xim( screen , xim , locale) ;
+		change_im( screen , value) ;
 	}
 	else if( strcmp( key , "borderless") == 0)
 	{
@@ -4805,10 +4797,6 @@ set_config(
 		sprintf( file , "mlterm/%s.snp" , p) ;
 
 		snapshot( screen , ml_get_char_encoding( encoding) , file) ;
-	}
-	else if( strcmp( key , "input_method") == 0)
-	{
-		change_im( screen , value) ;
 	}
 }
 
@@ -5096,9 +5084,20 @@ get_config(
 			value = false ;
 		}
 	}
-	else if( strcmp( key , "xim") == 0)
+	else if( strcmp( key , "input_method") == 0)
 	{
-		value = x_xic_get_xim_name( &screen->window) ;
+		if( screen->input_method)
+		{
+			value = screen->input_method ;
+		}
+		else
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "default_xim_name") == 0)
+	{
+		value = x_xic_get_default_xim_name() ;
 	}
 	else if( strcmp( key , "locale") == 0)
 	{
@@ -5159,17 +5158,6 @@ get_config(
 		else
 		{
 			value = ml_term_get_slave_name( term) ;
-		}
-	}
-	else if( strcmp( key , "input_method") == 0)
-	{
-		if( screen->input_method)
-		{
-			value = screen->input_method ;
-		}
-		else
-		{
-			value = "" ;
 		}
 	}
 	else
@@ -6229,7 +6217,6 @@ x_screen_new(
 	x_shortcut_t *  shortcut ,
 	u_int  screen_width_ratio ,
 	u_int  screen_height_ratio ,
-	int  xim_open_in_startup ,
 	char *  mod_meta_key ,
 	x_mod_meta_mode_t  mod_meta_mode ,
 	x_bel_mode_t  bel_mode ,
@@ -6363,8 +6350,6 @@ x_screen_new(
 	screen->xim_listener.get_fg_color = get_fg_color ;
 	screen->xim_listener.get_bg_color = get_bg_color ;
 	screen->window.xim_listener = &screen->xim_listener ;
-
-	screen->xim_open_in_startup = xim_open_in_startup ;
 
 	if( input_method)
 	{

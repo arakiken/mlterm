@@ -62,7 +62,7 @@ x_prepare_for_main_config(
 		"type engine [xft]") ;
 #endif
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
-		"screen width in percent against font width [default = 100]") ;
+		"screen width in percent against font width [100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
 		"screen height in percent against font height [100]") ;
 #if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
@@ -76,7 +76,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '6' , "stbs" , 1 , "static_backscroll_mode" ,
 		"screen is static under backscroll mode [false]") ;
 	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , 
-		"bel (0x07) mode [none/sound/visual, default = sound]") ;
+		"bel (0x07) mode (none/sound/visual) [sound]") ;
 	kik_conf_add_opt( conf , '8' , "88591" , 1 , "iso88591_font_for_usascii" ,
 		"use ISO-8859-1 font for ASCII part of any encoding [false]") ;
 	kik_conf_add_opt( conf , '9' , "crfg" , 0 , "cursor_fg_color" ,
@@ -98,11 +98,11 @@ x_prepare_for_main_config(
 		"use bidi (bi-directional text) [false]") ;
 #endif
 	kik_conf_add_opt( conf , 'E' , "km" , 0 , "ENCODING" , 
-		"character encoding [AUTO/ISO-8859-*/EUC-*/UTF-8/...]") ;
+		"character encoding (AUTO/ISO-8859-*/EUC-*/UTF-8/...) [AUTO]") ;
 	kik_conf_add_opt( conf , 'F' , "sbfg" , 0 , "sb_fg_color" , 
 		"scrollbar foreground color") ;
 	kik_conf_add_opt( conf , 'G' , "vertical" , 0 , "vertical_mode" ,
-		"vertical mode [none/cjk/mongol]") ;
+		"vertical mode (none/cjk/mongol) [none]") ;
 #if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
 	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
 		"brightness of background image in percent [100]") ;
@@ -120,19 +120,17 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'N' , "name" , 0 , "app_name" , 
 		"application name") ;
 	kik_conf_add_opt( conf , 'O' , "sbmod" , 0 , "scrollbar_mode" ,
-		"scrollbar mode [none/left/right]") ;
+		"scrollbar mode (none/left/right) [none]") ;
 	kik_conf_add_opt( conf , 'Q' , "vcur" , 1 , "use_vertical_cursor" ,
 		"rearrange cursor key for vertical mode [false]") ;
 	kik_conf_add_opt( conf , 'S' , "sbview" , 0 , "scrollbar_view_name" , 
-		"scrollbar view name [simple/sample/athena/motif/...]") ;
+		"scrollbar view name (simple/sample/...) [simple]") ;
 	kik_conf_add_opt( conf , 'T' , "title" , 0 , "title" , 
 		"title name") ;
 	kik_conf_add_opt( conf , 'U' , "viaucs" , 1 , "receive_string_via_ucs" ,
 		"process received (pasted) strings via Unicode [false]") ;
 	kik_conf_add_opt( conf , 'V' , "varwidth" , 1 , "use_variable_column_width" ,
 		"variable column width (for proportional/ISCII) [false]") ;
-	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" , 
-		"open XIM (X Input Method) in starting up [true]") ;
 	kik_conf_add_opt( conf , 'Z' , "multicol" , 1 , "use_multi_column_char" ,
 		"fullwidth character occupies two logical columns [true]") ;
 	kik_conf_add_opt( conf , 'a' , "ac" , 0 , "col_size_of_width_a" ,
@@ -146,7 +144,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'g' , "geometry" , 0 , "geometry" , 
 		"size (in characters) and position [80x24]") ;
 	kik_conf_add_opt( conf , 'k' , "meta" , 0 , "mod_meta_mode" , 
-		"mode in pressing meta key [none/esc/8bit]") ;
+		"mode in pressing meta key (none/esc/8bit) [none]") ;
 	kik_conf_add_opt( conf , 'l' , "sl" , 0 , "logsize" , 
 		"number of backlog (scrolled lines to save) [128]") ;
 	kik_conf_add_opt( conf , 'm' , "comb" , 1 , "use_combining" , 
@@ -178,7 +176,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
 		"step in changing font size in GUI configurator [1]") ;
 	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
-		"input method (xim/xim:kinput2/uim:anthy/uim:py/uim:viqr/...) [xim]") ;
+		"input method (xim/xim:kinput2/uim:anthy/uim:py/...) [xim]") ;
 
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
@@ -765,16 +763,6 @@ x_main_config_init(
 		main_config->encoding = ML_ISO8859_1 ;
 	}
 
-	main_config->xim_open_in_startup = 1 ;
-	
-	if( ( value = kik_conf_get_value( conf , "xim_open_in_startup")))
-	{
-		if( strcmp( value , "false") == 0)
-		{
-			main_config->xim_open_in_startup = 0 ;
-		}
-	}
-
 	main_config->use_bidi = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_bidi")))
@@ -882,7 +870,7 @@ x_main_config_init(
 	}
 	else
 	{
-		main_config->input_method = NULL ;
+		main_config->input_method = strdup( "xim") ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "init_str")))

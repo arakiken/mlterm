@@ -56,6 +56,7 @@ typedef struct x_im_export_syms
 				 mkf_charset_t  cs , int , int , ml_color_t ,
 				 ml_color_t , int , int) ;
 	int (*func_ml_get_char_encoding)( char *) ;
+	int (*func_ml_is_msb_set)( mkf_charset_t  cs) ;
 	mkf_parser_t * (*func_ml_parser_new)( ml_char_encoding_t) ;
 	mkf_conv_t * (*func_ml_conv_new)( ml_char_encoding_t) ;
 	x_im_candidate_screen_t *  (*func_x_im_candidate_screen_new)(
@@ -92,7 +93,7 @@ x_im_t *  x_im_new( ml_char_encoding_t  term_encoding ,
 		    x_im_event_listener_t *  im_listener ,
 		    char *  input_method) ;
 
-#define  IM_API_VERSION  0x0
+#define  IM_API_VERSION  0x1
 #define  IM_API_COMPAT_CHECK_MAGIC			\
 	(IM_API_VERSION & 0xf << 28 |			\
 	 ((sizeof( x_im_t) & 0xff) << 20) |		\

@@ -302,6 +302,12 @@ x_xic_get_xim_name(
 	return  x_get_xim_name( win) ;
 }
 
+char *
+x_xic_get_default_xim_name(void)
+{
+	return  x_get_default_xim_name() ;
+}
+
 int
 x_xic_fg_color_changed(
 	x_window_t *  win

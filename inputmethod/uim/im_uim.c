@@ -605,6 +605,11 @@ preedit_pushback(
 			 */
 		}
 
+		if( (*mlterm_syms->func_ml_is_msb_set)( ch.cs))
+		{
+			SET_MSB( ch.ch[0]) ;
+		}
+
 		(*mlterm_syms->func_ml_char_set)( p , ch.ch , ch.size , ch.cs ,
 						  is_biwidth , is_comb ,
 						  fg_color , bg_color ,

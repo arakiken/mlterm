@@ -27,6 +27,8 @@ int  x_xic_deactivate( x_window_t *  win) ;
 
 char *  x_xic_get_xim_name( x_window_t *  win) ;
 
+char *  x_xic_get_default_xim_name( void) ;
+
 int  x_xic_fg_color_changed( x_window_t *  win) ;
 
 int  x_xic_bg_color_changed( x_window_t *  win) ;

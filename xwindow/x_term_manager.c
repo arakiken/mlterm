@@ -408,7 +408,7 @@ open_screen_intern(
 			main_config.brightness , main_config.contrast , main_config.gamma ,
 			main_config.fade_ratio , &shortcut ,
 			main_config.screen_width_ratio , main_config.screen_height_ratio ,
-			main_config.xim_open_in_startup , main_config.mod_meta_key ,
+			main_config.mod_meta_key ,
 			main_config.mod_meta_mode , main_config.bel_mode ,
 			main_config.receive_string_via_ucs , main_config.pic_file_path ,
 			main_config.use_transbg , main_config.use_vertical_cursor ,
@@ -1502,7 +1502,7 @@ x_term_manager_init(
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
 		"use XIM (X Input Method) [true]") ;
 	kik_conf_add_opt( conf , 'j' , "daemon" , 0 , "daemon_mode" ,
-		"start as a daemon [none/blend/genuine]") ;
+		"start as a daemon (none/blend/genuine) [blend]") ;
 
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
 	{

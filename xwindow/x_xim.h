@@ -48,5 +48,6 @@ char *  x_get_xim_name( x_window_t *  win) ;
 
 char *  x_get_xim_locale( x_window_t *  win) ;
 
+char *  x_get_default_xim_name(void) ;
 
 #endif

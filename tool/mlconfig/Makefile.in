@@ -23,7 +23,7 @@ LKIK = @KIK_LIBS@
 
 GTK_CONFIG=@GTK_CONFIG@
 CFLAGS = `$(GTK_CONFIG) --cflags` $(CFLAGS_LOCAL) \
-	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @AA_CFLAGS@ @IMAGELIB_CFLAGS@ \
+	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @AA_CFLAGS@ @IMAGELIB_CFLAGS@ @UIM_CFLAGS@ \
 	@DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-I${top_srcdir}/xwindow -I${top_srcdir}/mlterm \
 	-I${top_builddir}/common -I${top_srcdir}/common \
@@ -39,7 +39,7 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
-OBJ = main.o mc_combo.o mc_char_encoding.o mc_xim.o mc_tabsize.o mc_logsize.o mc_check.o \
+OBJ = main.o mc_combo.o mc_char_encoding.o mc_im.o mc_tabsize.o mc_logsize.o mc_check.o \
 	mc_fontsize.o mc_color.o mc_mod_meta.o mc_bel.o mc_iscii_lang.o \
 	mc_fade.o mc_brightness.o mc_contrast.o mc_gamma.o mc_screen_ratio.o \
 	mc_line_space.o mc_vertical.o mc_sb.o mc_sb_view.o mc_wall_pic.o \

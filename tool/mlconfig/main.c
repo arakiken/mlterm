@@ -26,7 +26,7 @@
 #include  "mc_bel.h"
 #include  "mc_vertical.h"
 #include  "mc_sb.h"
-#include  "mc_xim.h"
+#include  "mc_im.h"
 #include  "mc_check.h"
 #include  "mc_iscii_lang.h"
 #include  "mc_sb_view.h"
@@ -87,7 +87,7 @@ update(
     mc_update_gamma() ;
     mc_update_fade_ratio() ;
     mc_update_sb_view_name() ;
-    mc_update_xim() ;
+    mc_update_im() ;
 
     mc_update_flag_mode(MC_FLAG_AA);
     mc_update_flag_mode(MC_FLAG_VCOL);
@@ -370,7 +370,7 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
-	if (!(config_widget = mc_xim_config_widget_new())) return 0;
+	if (!(config_widget = mc_im_config_widget_new())) return 0;
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
@@ -378,7 +378,6 @@ show(void)
 	hbox = gtk_hbox_new(TRUE, 5);
 	gtk_widget_show(hbox);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);	
-
 
 	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_BIDI)))
 	    return 0;
@@ -399,7 +398,6 @@ show(void)
 	    return 0;
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
-
 
 	/* contents of the "Font" tab */
 

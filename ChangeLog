@@ -1,3 +1,44 @@
+2004-06-20  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* x_term_manager.c(x_term_manager_init):
+	* x_main_config.c(x_prepare_for_main_config):
+	Some cleanups against help messages. The words in round brackets
+	indicate available values, and the square bracket quoted value is
+	default. (description (value1/value2/...) [default])
+
+	* x_screen.c, x_screen.h:
+	To unified input method related options and configuration keys,
+	--openim(xim_open_in_startup) option, 'xim' key and 'xim_name' key are
+	removed. How to use new input method option:
+	--im=xim .... use XIM with the default server specified by XMODIFIERS
+	--im=xim:xcin ... use XIM with xcin on the current locale.
+	--im=xim:Ami:ko_KR.eucKR ... use XIM with Ami on ko_KR.eucKR locale.
+	--im=uim ... use uim with the default conversion engine.
+	--im=uim:anthy ... use uim with anthy engine.
+
+	- Added 'default_xim_name' key to allow mlconfig to select xim server
+	automatically.
+
+	* x_xic.c, x_xic.h(x_xic_get_default_xim_name):
+	* x_xim.c, x_xim.h(x_get_default_xim_name):
+	New functions for 'default_xim_name' key, used to get the name of XIM
+	server which is set by XMODIFIERS.
+
+	* tool/mlconfig/mc_xim.c, tool/mlconfig/mc_xim.h: Removed.
+
+	* tool/mlconfig/mc_im.c tool/mlconfig/mc_im.h:
+	* tool/mlconfig/Makefile.in:
+	* tool/mlconfig/main.c:
+	* etc/uim:
+	Supported uim.
+
+	* x_im.c, x_im.h:
+	- added a symbol for ml_is_msg_set() to x_im_export_syms_t.
+	- incremented IM_API_VERSION.
+
+	* inputmethod/uim/im_uim.c(preedit_pushback): In encoding conversion,
+	set msb if need be.
+
 2004-06-16  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* x_im_candidate_screen.c(init_candidates): cleared index of candidate

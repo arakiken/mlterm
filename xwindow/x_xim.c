@@ -661,3 +661,15 @@ x_get_xim_locale(
 
 	return  win->xim->locale ;
 }
+
+char *
+x_get_default_xim_name(void)
+{
+	if ( ! use_xim)
+	{
+		return  "disable" ;
+	}
+
+	return  default_xim_name ;
+}
+

@@ -31,6 +31,7 @@ static  x_im_export_syms_t  im_export_syms =
 	ml_char_combine ,
 	ml_char_set ,
 	ml_get_char_encoding ,
+	ml_is_msb_set ,
 	ml_parser_new ,
 	ml_conv_new ,
 	x_im_candidate_screen_new ,
