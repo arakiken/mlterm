@@ -2232,7 +2232,9 @@ x_window_get_str(
 	)
 {
 	size_t  len ;
-	
+
+	*keysym = 0 ;
+
 	if( ( len = x_xic_get_str( win , seq , seq_len , parser , keysym , event)) > 0)
 	{
 		return  len ;

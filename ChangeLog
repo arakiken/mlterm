@@ -1,5 +1,10 @@
 2003-03-02 Araki Ken <arakiken@users.sf.net>
 
+	* If Backspace -> 0-9 or space pressed continuously, backspace was output twice
+	  in some environment. Fixed.
+
+2003-03-02 Araki Ken <arakiken@users.sf.net>
+
 	* Added -$/--mc/click_interval option.
 	* Updated libtool to 1.4.3.
 

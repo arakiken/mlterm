@@ -2759,7 +2759,12 @@ key_pressed(
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_DELETE) ;
 		}
-		else if( ksym == XK_BackSpace && size == 1)
+		/*
+		 * XXX
+		 * In some environment, if backspace(1) -> 0-9 or space(2) pressed continuously,
+		 * ksym in (2) as well as (1) is XK_BackSpace.
+		 */
+		else if( ksym == XK_BackSpace && size == 1 && seq[0] == 0x8)
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE) ;
 		}
