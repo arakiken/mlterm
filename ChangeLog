@@ -1,3 +1,7 @@
+2003-05-24 Araki Ken <arakiken@users.sf.net>
+
+	* Fixed set_xdnd_config() in x_screen.c
+
 2003-05-22  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* Removed unused fuctions from x_window.c.

@@ -3394,6 +3394,31 @@ utf8_selection_notified(
 	write_to_pty( (x_screen_t*) win , str , len , ( (x_screen_t*) win)->utf8_parser) ;
 }
 
+/* refered in set_xdnd_config. */
+static void set_config( void *  p , char *  dev , char *  key , char *  value) ;
+
+static void
+set_xdnd_config(
+	x_window_t *  win,
+	char *  key,
+	char *  dev,
+	char *  value
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = (x_screen_t*)win ;
+
+	set_config( screen, key, dev, value) ;
+	
+	redraw_screen( screen) ;
+	highlight_cursor( screen) ;
+}
+
+
+/*
+ * Functions related to selection.
+ */
 
 static void
 start_selection(
@@ -5866,23 +5891,6 @@ stop_vt100_cmd(
 	
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
-}
-
-static void
-set_xdnd_config(
-	void *  p,
-	char *  key,
-	char *  dev,
-	char *  value
-	)
-{
-	x_screen_t *  screen ;
-
-	screen = p ;
-
-	start_vt100_cmd( p) ;
-	set_config( p, key, dev, value);
-	stop_vt100_cmd( p) ;
 }
 
 static void
