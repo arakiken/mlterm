@@ -1,3 +1,10 @@
+[20011226]
+* typos in mlterm.1 are fixed.(thanks to Kubota Tomohiro san)
+* something like "ESC [ 34 ; 0 ; m" sequence is parsed incorrectly.fixed.
+  (thanks to Sakamoto Hironori san)
+* cursor is not repainted under transparent mode. fixed.
+  (thanks to Uebayashi Masao san)
+
 [20011225]
 * memory leaks if you use both -m and -bi options under utf8 encoding. fixed.
 * mkf/mkf_ucs4_xxx.c are thread-safe.
