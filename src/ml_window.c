@@ -1206,6 +1206,96 @@ is_in_the_same_window_family(
 	return  is_descendant_window( ml_get_root_window( win) , window) ;
 }
 
+u_int
+total_min_width(
+	ml_window_t *  win
+	)
+{
+	int  counter ;
+	u_int  min_width ;
+
+	min_width = win->min_width + win->margin * 2 ;
+	
+	for( counter = 0 ; counter < win->num_of_children ; counter ++)
+	{
+		min_width += total_min_width( win->children[counter]) ;
+	}
+
+	return  min_width ;
+}
+
+u_int
+total_min_height(
+	ml_window_t *  win
+	)
+{
+	int  counter ;
+	u_int  min_height ;
+
+	min_height = win->min_height + win->margin * 2 ;
+	
+	for( counter = 0 ; counter < win->num_of_children ; counter ++)
+	{
+		min_height += total_min_height( win->children[counter]) ;
+	}
+
+	return  min_height ;
+}
+
+u_int
+total_width_inc(
+	ml_window_t *  win
+	)
+{
+	int  counter ;
+	u_int  width_inc ;
+
+	width_inc = win->width_inc ;
+	
+	for( counter = 0 ; counter < win->num_of_children ; counter ++)
+	{
+		u_int  sub_inc ;
+
+		/*
+		 * XXX
+		 * we should calculate least common multiple of width_inc and sub_inc.
+		 */
+		if( ( sub_inc = total_width_inc( win->children[counter])) > width_inc)
+		{
+			width_inc = sub_inc ;
+		}
+	}
+
+	return  width_inc ;
+}
+
+u_int
+total_height_inc(
+	ml_window_t *  win
+	)
+{
+	int  counter ;
+	u_int  height_inc ;
+
+	height_inc = win->height_inc ;
+	
+	for( counter = 0 ; counter < win->num_of_children ; counter ++)
+	{
+		u_int  sub_inc ;
+		
+		/*
+		 * XXX
+		 * we should calculate least common multiple of width_inc and sub_inc.
+		 */
+		if( ( sub_inc = total_height_inc( win->children[counter])) > height_inc)
+		{
+			height_inc = sub_inc ;
+		}
+	}
+
+	return  height_inc ;
+}
+
 
 /* --- global functions --- */
 
@@ -2069,12 +2159,10 @@ ml_window_show(
 		size_hints.width = ACTUAL_WIDTH(win) ;
 		size_hints.height = ACTUAL_HEIGHT(win) ;
 		
-		size_hints.base_width = 2 * win->margin ;
-		size_hints.base_height = 2 * win->margin ;
-		size_hints.width_inc = win->width_inc ;
-		size_hints.height_inc = win->height_inc ;
-		size_hints.min_width = win->min_width + 2 * win->margin ;
-		size_hints.min_height = win->min_height + 2 * win->margin ;
+		size_hints.width_inc = total_width_inc( win) ;
+		size_hints.height_inc = total_height_inc( win) ;
+		size_hints.base_width = size_hints.min_width = total_min_width( win) ;
+		size_hints.base_height = size_hints.min_height = total_min_height( win) ;
 
 		if( hint & XNegative)
 		{
@@ -2238,33 +2326,32 @@ ml_window_resize_with_margin(
 int
 ml_window_set_normal_hints(
 	ml_window_t *  win ,
-	u_int  width_inc ,
-	u_int  height_inc ,
 	u_int  min_width ,
-	u_int  min_height
+	u_int  min_height ,
+	u_int  width_inc ,
+	u_int  height_inc
 	)
 {
 	XSizeHints  size_hints ;
-
-	win = ml_get_root_window(win) ;
-
-	/*
-	 * these hints must be set at the same time !
-	 */	
-	size_hints.min_width = min_width + 2 * win->margin ;
-	size_hints.min_height = min_height + 2 * win->margin ;
-	size_hints.width_inc = width_inc ;
-	size_hints.height_inc = height_inc ;
-	size_hints.base_width = 2 * win->margin ;
-	size_hints.base_height = 2 * win->margin ;
-	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
+	ml_window_t *  root ;
 
 	win->min_width = min_width ;
 	win->min_height = min_height  ;
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
 
-	XSetWMNormalHints( win->display , win->my_window , &size_hints) ;
+	root = ml_get_root_window(win) ;
+
+	/*
+	 * these hints must be set at the same time !
+	 */
+	size_hints.width_inc = total_width_inc( root) ;
+	size_hints.height_inc = total_height_inc( root) ;
+	size_hints.base_width = size_hints.min_width = total_min_width( root) ;
+	size_hints.base_height = size_hints.min_height = total_min_height( root) ;
+	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
+	
+	XSetWMNormalHints( root->display , root->my_window , &size_hints) ;
 	
 	return  1 ;
 }

@@ -1020,38 +1020,7 @@ cjk_vert_visual(
 	vert_logvis->cursor_logical_col = image->cursor.col ;
 	vert_logvis->cursor_logical_row = image->cursor.row ;
 
-#if  1
 	image->cursor.row = vert_logvis->cursor_logical_char_index ;
-#else
-	/*
-	 * visual cursor position is decided by regarding full width characters
-	 * as 1 column.
-	 */
-	image->cursor.row = vert_logvis->cursor_logical_col ;
-	for( row = 0 ; row < vert_logvis->cursor_logical_col ; row ++)
-	{
-		int  char_index ;
-
-		char_index = 0 ;
-		
-		for( counter = 0 ;
-			counter < vert_logvis->logical_num_of_rows - vert_logvis->cursor_logical_row - 1 ;
-			counter ++)
-		{
-			if( ml_char_default_cols( &IMAGE_LINE(image,row).chars[counter]) == 1)
-			{
-				char_index ++ ;
-			}
-			char_index ++ ;
-		}
-		
-		if( ml_char_default_cols( &IMAGE_LINE(image,row).chars[char_index]) == 2)
-		{
-			image->cursor.row -- ;
-		}
-	}
-#endif
-
 	image->cursor.char_index = image->cursor.col = 0 ;
 	for( counter = 0 ; counter < vert_logvis->logical_num_of_rows - vert_logvis->cursor_logical_row - 1 ;
 		counter ++)

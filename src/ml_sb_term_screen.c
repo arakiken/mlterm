@@ -149,7 +149,7 @@ window_exposed(
 	u_int  height
 	)
 {
-	ml_window_fill( win , x , y - win->margin , width , height + win->margin * 2) ;
+	ml_window_fill( win , x , y , width , height) ;
 }
 
 static void
@@ -377,7 +377,7 @@ change_sb_mode(
 		ml_window_resize_with_margin( &sb_termscr->window ,
 			ACTUAL_WIDTH( &sb_termscr->termscr->window) ,
 			ACTUAL_HEIGHT( &sb_termscr->termscr->window) , NOTIFY_TO_NONE) ;
-
+			
 		/* overlaying scrollbar window */
 		move_term_screen( sb_termscr , 0) ;
 	}
@@ -487,13 +487,10 @@ ml_sb_term_screen_new(
 		actual_width = (ACTUAL_WIDTH( &termscr->window) +
 				ACTUAL_WIDTH( &sb_termscr->scrollbar.window) + SEPARATOR_WIDTH) ;
 	}
-	
+
 	if( ml_window_init( &sb_termscr->window , ml_color_table_dup( color_table) ,
-		actual_width - termscr->window.margin * 2 ,
-		ACTUAL_HEIGHT( &termscr->window) - termscr->window.margin * 2 ,
-		termscr->window.min_width , termscr->window.min_height ,
-		termscr->window.width_inc , termscr->window.height_inc ,
-		termscr->window.margin) == 0)
+		actual_width , ACTUAL_HEIGHT( &termscr->window) ,
+		SEPARATOR_WIDTH , 0 , 0 , 0 , 0) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_window_init() failed.\n") ;
