@@ -1,5 +1,10 @@
 2004-09-13 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* tool/mlconfig/mc_im.c(iiimf_best_match_index): select default language
+	automatically. (according to current locale)
+
+2004-09-13 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* tool/mlconfig/mc_im.c: cleaned up.
 
 	* tool/mlconfig/po/POTFILES.in: mc_xim -> mc_im.c.

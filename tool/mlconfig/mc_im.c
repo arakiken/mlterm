@@ -155,14 +155,13 @@ read_xim_conf(KIK_MAP(xim_locale) xim_locale_table, char *filename)
 }
 
 static GtkWidget *
-xim_widget_new(const char *xim_name, const char *xim_locale)
+xim_widget_new(const char *xim_name, const char *xim_locale, const char *cur_locale)
 {
 	KIK_MAP(xim_locale) xim_locale_table;
 	KIK_PAIR(xim_locale) *array;
 	u_int size;
 	char *rcpath;
 	char *default_xim_name;
-	char *cur_locale;
 	GtkWidget *vbox;
 	GtkWidget *hbox;
 	GtkWidget *label;
@@ -223,10 +222,8 @@ xim_widget_new(const char *xim_name, const char *xim_locale)
 
 	vbox = gtk_vbox_new(FALSE, 5);
 
-	cur_locale = mc_get_str_value("locale");
 	snprintf(current_locale_str, STR_LEN, _("auto (currently %s)"),
 		 cur_locale);
-	free(cur_locale);
 	entry = gtk_entry_new();
 	snprintf(selected_xim_locale, STR_LEN,
 		 xim_locale ? xim_locale : current_locale_str);
@@ -394,17 +391,29 @@ iiimf_selected(GtkWidget *widget, gpointer data)
 }
 
 static int
-iiimf_best_match_index(char **items, int num, char *lang_id, char *le_name)
+iiimf_best_match_index(const char **items,
+		       int num,
+		       const char *lang_id,
+		       const char *le_name,
+		       const char *cur_locale)
 {
+	char buf[STR_LEN];
 	int i;
-	int result;
+	int result = 0;
 	int best_score = 0;
 
-	if (lang_id == NULL && le_name == NULL)
-		return 0;
+	snprintf(buf, STR_LEN, cur_locale);
 
-	if (!strlen(lang_id) && le_name == NULL)
-		return 0;
+	if (lang_id && strlen(lang_id) == 0) lang_id = NULL;
+	if (le_name && strlen(le_name) == 0) le_name = NULL;
+
+	if (lang_id == NULL && le_name == NULL) {
+		char *p;
+		if (!(p = strstr(buf, ".")))
+			return 0;
+		*p = '\0';
+		lang_id = buf;
+	}
 
 	for (i = 0; i < num; i++) {
 		int score = 0;
@@ -438,12 +447,12 @@ iiimf_best_match_index(char **items, int num, char *lang_id, char *le_name)
 #endif
 
 static GtkWidget *
-iiimf_widget_new(const char *iiimf_lang_id, const char *iiimf_le)
+iiimf_widget_new(const char *iiimf_lang_id, const char *iiimf_le, const char *cur_locale)
 {
 #ifdef USE_IIIMF
 #  if GLIB_MAJOR_VERSION >= 2
-	const char **items = NULL;
 	GtkWidget *combo;
+	const char **items = NULL;
 	IIIMCF_handle handle = NULL ;
 	IIIMCF_input_method *input_methods;
 	IIIMCF_language *langs;
@@ -505,7 +514,8 @@ iiimf_widget_new(const char *iiimf_lang_id, const char *iiimf_le)
 
 	selected_index = iiimf_best_match_index(items, num_total,
 					        iiimf_lang_id, 
-						iiimf_le);
+						iiimf_le,
+						cur_locale);
 
 	combo = mc_combo_new(_("Language (Language engine)"), items, num_total,
 			     items[selected_index], 0, iiimf_selected, NULL);
@@ -623,6 +633,7 @@ button_none_checked(
 GtkWidget *
 mc_im_config_widget_new(void)
 {
+	char *cur_locale = NULL;
 	char *xim_name = NULL;
 	char *xim_locale = NULL;
 	char *uim_engine = NULL;
@@ -661,9 +672,13 @@ mc_im_config_widget_new(void)
 		im_type = IM_NONE;
 	}
 
-	xim = xim_widget_new(xim_name, xim_locale);
+	cur_locale = mc_get_str_value("locale");
+
+	xim = xim_widget_new(xim_name, xim_locale, cur_locale);
 	uim = uim_widget_new(uim_engine);
-	iiimf = iiimf_widget_new(iiimf_lang_id, iiimf_le);
+	iiimf = iiimf_widget_new(iiimf_lang_id, iiimf_le, cur_locale);
+
+	free(cur_locale);
 
 	free(p);
 
@@ -734,10 +749,12 @@ mc_im_config_widget_new(void)
 		gtk_widget_hide(xim);
 		gtk_widget_hide(uim);
 		gtk_widget_show(iiimf);
+		break;
 	case IM_NONE:
 		gtk_widget_hide(xim);
 		gtk_widget_hide(uim);
 		gtk_widget_hide(iiimf);
+		break;
 	default:
 		break;
 	}
