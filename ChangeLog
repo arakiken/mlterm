@@ -1,3 +1,9 @@
+2004-10-29 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* doc/ja/README.ja: added description about kbd and m17nlib.
+
+	* configure.in: discontinue if imlib-config is not available.
+
 2004-10-28 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/uim/im_uim.c:

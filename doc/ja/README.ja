@@ -441,8 +441,8 @@ comment $Id$
 
         [input method];[option1]:[option2]
 
-        [input method] にインプットメソッド(xim/uim/iiimf)を指定し、必要であ
-        れば ":" で区切ってオプションを列挙します。
+	[input method] にインプットメソッド(xim/uim/iiimf/m17nlib/kbd)を指定し、
+	必要であれば ":" で区切ってオプションを列挙します。
 
         各インプットメソッドのオプションは以下の通りです。
 
@@ -457,14 +457,28 @@ comment $Id$
         uim の場合:
         uim:[conversion engine]
         [conversion engine] に変換エンジン(anthy, prime, hangul2など)を指定しま
-        す。
+        す。指定しなかった場合は uim のデフォルト変換エンジンが使用されます。
 
         iiimf の場合:
         iiimf:[language id]:[language engine]
-        [language id] でRFC1766に従って言語(ar, zh_CN, ja など)を指定します。
-        指定しなかった場合はシステムのローケールから取得した言語が使われます。
-        [language engine] で使用する LE (CannaLE, newpy など)を指定します。
-        指定しなかった場合、[language id] のデフォルト LE が使用されます。
+	[language id] には RFC1766 に従って言語(ar, zh_CN, ja など)を指定しま
+	す。指定されなかった場合はシステムのローケールから取得した言語が使われま
+	す。
+        [language engine] で使用する LE (CannaLE, newpy など)を指定します。指定
+	されなかった場合は [language id] のデフォルト LE が使用されます。
+
+        m17nlib の場合:
+        m17nlib:[language id]:[input method]
+	[language id] には ISO-639 に従って言語(ar, zh, ja など)を指定します。
+	指定しなかった場合はシステムのローケールから取得した言語が使われます
+	[input_method] で使用するインプットメソッド(anthy, py など)を指定します
+	指定されなかった場合は [language id] のデフォルトインプットメソッドが使
+	用されます。
+
+        kbd の場合:
+        kbd (オプション無し)
+        ISCII モードの時は ISCII 配列、それ以外ではアラビア語配列のキーマッピン
+	グになります。
 
       o tabsize  (*8*) (#)
         タブ幅

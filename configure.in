@@ -81,12 +81,17 @@ AC_ARG_WITH(imagelib,
 	imagelib=$with_imagelib)
 case ${imagelib} in
 imlib)
-	AC_CHECK_PROG(imlib_config,imlib-config,yes)
-	if test "$imlib_config" = "yes" ; then
-		IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_IMLIB"
-		IMAGELIB_LIBS="`imlib-config --libs`"
-		IMAGELIB_NAME=imlib
+	AC_CHECK_PROG(imlib_config,imlib-config,yes,no)
+	if test "x$imlib_config" = "xno" ; then
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find imlib-config."
+		echo ""
+		exit 1
 	fi
+	IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_IMLIB"
+	IMAGELIB_LIBS="`imlib-config --libs`"
+	IMAGELIB_NAME=imlib
 	;;
 gdk-pixbuf)
 	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
@@ -119,6 +124,7 @@ gdk-pixbuf1)
 *)
 	if test "${imagelib}" != "" ; then
 		echo ""
+		echo "** ERROR **"
 		echo "${imagelib} library is NOT supported."
 		echo ""
 		exit 1
@@ -470,6 +476,7 @@ extra)
 pixmap_engine)
 	if test "x$allow_undefined_flag" = "xunsupported" ; then
 		echo ""
+		echo "** ERROR **"
 		echo "pixmap_engine has undefined symbols. $host_os does NOT allow it. Please retry"
 		echo "to run configure scripts without pixmap_engine"
 		echo "(e.g.  --with-scrllbars=sample,extra)"
@@ -487,7 +494,8 @@ pixmap_engine)
 		scrollbars_result="$scrollbars_result $scrollbar"
 	else
 		echo ""
-		echo "To use pixmap_engine for scrollbar, you will need the image library such as"
+		echo "** ERROR **"
+		echo "To use pixmap_engine for scrollbar, you need any image library such as"
 		echo "gdk-pixbuf and imlib. (e.g. --with-imagelib=imlib)"
 		echo ""
 		exit 1
