@@ -36,6 +36,12 @@ mlterm icon collection
     from an icon which was made by Tomohiro KUBOTA san. (mlterm_48x48.xpm)
 
 
+- mlterm-icon-24colors-1.png, mlterm-icon-24colors-2.png
+
+    These icons I made use less than 24 colors. I hope these make you happy
+    with low depth color. Licensed under modified BSD-style license.
+
+
 comments, suggestions are welcome.
 
 --
