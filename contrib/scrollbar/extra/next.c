@@ -722,6 +722,7 @@ ml_next_sb_view_new(void)
 	next_sb->arrow_down_pressed = None ;
 
 	next_sb->is_transparent = 0 ;
+	next_sb->has_scrollbuf = 0 ;
 
 	return  (ml_sb_view_t*) next_sb ;
 }
@@ -758,6 +759,7 @@ ml_next_transparent_sb_view_new(void)
 	next_sb->arrow_down_pressed = None ;
 
 	next_sb->is_transparent = 1 ;
+	next_sb->has_scrollbuf = 0 ;
 
 	return  (ml_sb_view_t*) next_sb ;
 }
