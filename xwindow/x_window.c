@@ -1409,12 +1409,60 @@ x_window_fill(
 }
 
 int
+x_window_fill_with(
+	x_window_t *  win ,
+	u_long  color ,
+	int  x ,
+	int  y ,
+	u_int	width ,
+	u_int	height
+	)
+{
+	if( color != win->fg_color)
+	{
+		XSetForeground( win->display , win->gc , color) ;
+	}
+	
+	XFillRectangle( win->display , win->drawable , win->gc , x + win->margin , y + win->margin ,
+		width , height) ;
+
+	if( color != win->fg_color)
+	{
+		XSetForeground( win->display , win->gc , win->fg_color) ;
+	}
+
+	return  1 ;
+}
+
+int
 x_window_fill_all(
 	x_window_t *  win
 	)
 {
 	XFillRectangle( win->display , win->drawable , win->gc , 0 , 0 ,
 		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+
+	return  1 ;
+}
+
+int
+x_window_fill_all_with(
+	x_window_t *  win ,
+	u_long  color
+	)
+{
+	if( color != win->fg_color)
+	{
+		XSetForeground( win->display , win->gc , color) ;
+	}
+	
+	XFillRectangle( win->display , win->drawable , win->gc ,
+		0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+
+	if( color != win->fg_color)
+	{
+		XSetForeground( win->display , win->gc , win->fg_color) ;
+	}
 
 	return  1 ;
 }

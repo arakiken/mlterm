@@ -217,7 +217,12 @@ int  x_window_clear_all( x_window_t *  win) ;
 
 int  x_window_fill( x_window_t *  win , int  x , int  y , u_int  width , u_int  height) ;
 
+int  x_window_fill_with( x_window_t *  win , u_long  color ,
+	int  x , int  y , u_int  width , u_int  height) ;
+
 int  x_window_fill_all( x_window_t *  win) ;
+
+int  x_window_fill_all_with( x_window_t *  win , u_long  color) ;
 
 int  x_window_update_view( x_window_t *  win , int  x , int  y , u_int  width , u_int  height) ;
 

@@ -413,9 +413,9 @@ xft_draw_str(
 			}
 			else
 			{
-				x_window_set_fg_color( &screen->window ,
-					x_get_color( screen->color_man , bg_color)->pixel) ;
-				x_window_fill( &screen->window , x , y , current_width - x , height) ;
+				x_window_fill_with( &screen->window ,
+					x_get_color( screen->color_man , bg_color)->pixel ,
+					x , y , current_width - x , height) ;
 			}
 			
 			/*
@@ -450,15 +450,14 @@ xft_draw_str(
 			{
 				if( xfont->is_vertical)
 				{
-					x_window_set_fg_color( &screen->window ,
-						x_get_color( screen->color_man , fg_color)->pixel) ;
-					x_window_fill( &screen->window , x , y , (ch_width>>4) + 1 , height) ;
+					x_window_fill_with( &screen->window ,
+						x_get_color( screen->color_man , fg_color)->pixel ,
+						x , y , (ch_width>>4) + 1 , height) ;
 				}
 				else
 				{
-					x_window_set_fg_color( &screen->window ,
-						x_get_color( screen->color_man , fg_color)->pixel) ;
-					x_window_fill( &screen->window ,
+					x_window_fill_with( &screen->window ,
+						x_get_color( screen->color_man , fg_color)->pixel ,
 						x , y + height_to_baseline - bottom_margin + 1,
 						current_width - x , (height_to_baseline>>4) +1 ) ;
 				}
@@ -482,8 +481,6 @@ xft_draw_str(
 		state = next_state ;
 		current_width += (ch_width = next_ch_width) ;
 	}
-
-	x_window_set_fg_color( &screen->window , x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
 
 	if( updated_width != NULL)
 	{
@@ -818,9 +815,8 @@ x_draw_str(
 					kik_debug_printf( KIK_DEBUG_TAG "prop font is used.\n") ;
 				#endif
 
-					x_window_set_fg_color( &screen->window ,
-						x_get_color( screen->color_man , bg_color)->pixel) ;
-					x_window_fill( &screen->window ,
+					x_window_fill_with( &screen->window ,
+						x_get_color( screen->color_man , bg_color)->pixel ,
 						x , y , current_width - x , height) ;
 				}
 
@@ -878,15 +874,14 @@ x_draw_str(
 			{
 				if( xfont->is_vertical)
 				{
-					x_window_set_fg_color( &screen->window ,
-						x_get_color( screen->color_man , fg_color)->pixel) ;
-					x_window_fill( &screen->window , x , y , (ch_width>>4) + 1 , height) ;
+					x_window_fill_with( &screen->window ,
+						x_get_color( screen->color_man , fg_color)->pixel ,
+						x , y , (ch_width>>4) + 1 , height) ;
 				}
 				else
 				{
-					x_window_set_fg_color( &screen->window ,
-						x_get_color( screen->color_man , fg_color)->pixel) ;
-					x_window_fill( &screen->window ,
+					x_window_fill_with( &screen->window ,
+						x_get_color( screen->color_man , fg_color)->pixel ,
 						x , y + height_to_baseline - bottom_margin + 1,
 						current_width - x , (height_to_baseline>>4) + 1) ;
 				}
@@ -911,8 +906,6 @@ x_draw_str(
 		current_width += (ch_width = next_ch_width) ;
 	}
 
-	x_window_set_fg_color( &screen->window , x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
-	
 	if( updated_width != NULL)
 	{
 		*updated_width = current_width ;

@@ -1,3 +1,10 @@
+2003-10-05  Araki Ken  <arakiken@users.sf.net>
+
+	* 2.8.0 released.
+	  (tag "rel-2_8_0")
+
+	* Visual bel didn't work as expected. Fixed.
+
 2003-10-04  Araki Ken  <arakiken@users.sf.net>
 
 	* Added --with-tools and --with-scrollbars description to README and
@@ -13,7 +20,7 @@
 
 2003-09-30  Araki Ken  <arakiken@users.sf.net>
 
-	* x_screenc.c(window_exposed): Consider vertical mode.
+	* x_screen.c(window_exposed): Consider vertical mode.
 
 2003-09-30  Araki Ken  <arakiken@users.sf.net>
 
