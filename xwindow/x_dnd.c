@@ -51,9 +51,14 @@ is_pref(
 {
 	int i ;
 	for( i = 0 ; i < num ; i++)
+	{
+#ifdef  DEBUG
+
+#endif
 		if( atom[i] == type)
 			return i ;
-	return 0 ;
+	}
+	return  -1 ;
 }
 
 
@@ -334,33 +339,22 @@ x_dnd_preferable_atom(
 	int  num
 	)
 {
-	int  i = 0 ;
+	int  i = -1 ;
 
 	i = is_pref( XA_COMPOUND_TEXT( win->display), atom, num) ;
-	if(!i)
+	if( i < 0)
 		i = is_pref( XA_UTF8_STRING( win->display), atom, num) ;
-	if(!i)
+	if( i < 0)
 		i = is_pref( XA_TEXT( win->display), atom, num) ;
-	if(!i)
+	if( i < 0)
 		i = is_pref( XA_DND_MIME_TEXT_PLAIN( win->display), atom, num) ;
-	if(!i)
+	if( i < 0)
 		i = is_pref( XA_DND_MIME_TEXT_UNICODE( win->display), atom, num) ;
-	if(!i)
+	if( i < 0)
 		i = is_pref( XA_DND_MIME_TEXT_URI_LIST( win->display), atom, num) ;
 		
 #ifdef  DEBUG
-	if( i)
-	{
-		char *  p ;
-		p = XGetAtomName( win->display, atom[i]);
-		if( p)
-		{
-			kik_debug_printf( "accepted as atom: %s(%d)\n",
-					  p, atom[i]) ;
-			XFree( p) ;
-		}
-	}
-	else
+	if( i < 0)
 	{
 		char *  p ;
 		for( i = 0 ; i < num ; i++)
@@ -373,10 +367,22 @@ x_dnd_preferable_atom(
 				XFree( p) ;
 			}
 	}
-#endif
-	if( i)
-		return atom[i] ;
 	else
+	{
+		char *  p ;
+		p = XGetAtomName( win->display, atom[i]);
+		if( p)
+		{
+			kik_debug_printf( "accepted as atom: %s(%d)\n",
+					  p, atom[i]) ;
+			XFree( p) ;
+		}
+	}
+
+#endif
+	if( i < 0)
 		return (Atom)0  ;/* 0 would never be used for Atom */
+	else
+		return atom[i] ;
 }
 

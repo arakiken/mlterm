@@ -1,5 +1,10 @@
 2003-05-12  MINAMI Hirokazu  <minami@mistfall.net>
 
+	* xwindow/x_dnd.c: mlterm could be crashed
+	if only one mime-type was provided for a dropped data.
+
+2003-05-12  MINAMI Hirokazu  <minami@mistfall.net>
+
 	* xwindow/x_dnd.c: fixed typo
 
 2003-05-11  MINAMI Hirokazu  <minami@mistfall.net>
@@ -13,10 +18,11 @@
 	* kiklib/src/Makefile.in: MAJOR increment with a change of
 	  kik_dl_open().
 
+
 2003-05-06  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_dnd.c, xwindow/x_dnd.h : adopt XDnD v5 spec.
-
+	
 2003-05-06  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_term_manager.c: plugged memory leak.
