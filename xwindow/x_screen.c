@@ -2796,6 +2796,10 @@ key_pressed(
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE) ;
 		}
+		else if( x_keymap_str( screen->keymap , ksym , event->state))
+		{
+			buf = x_keymap_str( screen->keymap , ksym , event->state) ;
+		}
 		else if( size > 0)
 		{
 			buf = NULL ;

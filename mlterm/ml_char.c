@@ -12,7 +12,7 @@
 
 
 /*
- * !Notice!
+ * !! Notice !!
  * Internal size representation is as follows.
  * 0x0 = size 1 , 0x1 = size 2 , 0x2 = size 3 , 0x3 = size 4.
  */
@@ -28,6 +28,21 @@
 
 #define  IS_COMB(attr)  (((attr) >> 11) & 0x1)
 
+/*
+ * !! Notice !!
+ * Internal color representation is as follows.
+ * ML_BLACK - ML_WHITE: as they are
+ * ML_FG_COLOR        : 0x8
+ * ML_BG_COLOR        : 0x9
+ */
+#define  INTERN_COLOR(color) \
+	((color) = ((color) == ML_FG_COLOR ? 0x8 : \
+		(color) == ML_BG_COLOR ? 0x9 : (color) & ~ML_BOLD_COLOR_MASK))
+
+#define  EXTERN_COLOR(color) \
+	((color) = ((color) == 0x8 ? ML_FG_COLOR : \
+		(color) == 0x9 ? ML_BG_COLOR : (color)))
+	
 #define  FG_COLOR(attr)  (((attr) >> 7) & 0xf)
 
 #define  SET_FG_COLOR(attr,color)  ((attr) = (((attr) & 0xfffff87f) | ((color) << 7)))
@@ -333,6 +348,9 @@ ml_char_set(
 
 	memcpy( ch->u.bytes , bytes , size) ;
 
+	INTERN_COLOR(fg_color) ;
+	INTERN_COLOR(bg_color) ;
+	
 	ch->attr = COMPOUND_ATTR(size,cs,is_biwidth,0,is_comb,fg_color,bg_color,is_bold,is_underlined,0) ;
 
 	return  1 ;
@@ -619,7 +637,9 @@ ml_char_fg_color(
 		color = FG_COLOR(ch->attr) ;
 	}
 
-	if( color != ML_FG_COLOR && color != ML_BG_COLOR && IS_BOLD(ch->attr))
+	EXTERN_COLOR(color) ;
+
+	if( color < MAX_VT_COLORS && IS_BOLD(ch->attr))
 	{
 		color |= ML_BOLD_COLOR_MASK ;
 	}
@@ -630,19 +650,19 @@ ml_char_fg_color(
 inline int
 ml_char_set_fg_color(
 	ml_char_t *  ch ,
-	ml_color_t  fg_color
+	ml_color_t  color
 	)
 {
 	int  count ;
-
-	fg_color &= ~ML_BOLD_COLOR_MASK ;
-
+	
 	for( count = 0 ; count < COMB_SIZE(ch->attr) ; count ++)
 	{
-		ml_char_set_fg_color( &ch->u.multi_ch[count + 1] , fg_color) ;
+		ml_char_set_fg_color( &ch->u.multi_ch[count + 1] , color) ;
 	}
 
-	SET_FG_COLOR(ch->attr,fg_color) ;
+	INTERN_COLOR(color) ;
+
+	SET_FG_COLOR(ch->attr,color) ;
 
 	return  1 ;
 }
@@ -663,25 +683,27 @@ ml_char_bg_color(
 		color = BG_COLOR(ch->attr) ;
 	}
 
+	EXTERN_COLOR(color) ;
+	
 	return  color ;
 }
 
 inline int
 ml_char_set_bg_color(
 	ml_char_t *  ch ,
-	ml_color_t  bg_color
+	ml_color_t  color
 	)
 {
 	int  count ;
 
-	bg_color &= ~ML_BOLD_COLOR_MASK ;
-
 	for( count = 0 ; count < COMB_SIZE(ch->attr) ; count ++)
 	{
-		ml_char_set_bg_color( &ch->u.multi_ch[count + 1] , bg_color) ;
+		ml_char_set_bg_color( &ch->u.multi_ch[count + 1] , color) ;
 	}
 
-	SET_BG_COLOR(ch->attr,bg_color) ;
+	INTERN_COLOR(color) ;
+
+	SET_BG_COLOR(ch->attr,color) ;
 
 	return  1 ;
 }

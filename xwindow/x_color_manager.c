@@ -4,6 +4,7 @@
 
 #include  "x_color_manager.h"
 
+#include  <stdio.h>		/* sprintf */
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
@@ -25,13 +26,6 @@ unload_all_colors(
 		{
 			x_unload_xcolor( color_man->display , color_man->screen ,
 				&color_man->colors[color]) ;
-			
-			if( color < MAX_VT_COLORS)
-			{
-				x_unload_xcolor( color_man->display , color_man->screen ,
-					&color_man->highlighted_colors[color]) ;
-			}
-			
 			color_man->is_loaded[color] = 0 ;
 		}
 	}
@@ -158,27 +152,9 @@ x_get_color(
 	u_short  red ;
 	u_short  green ;
 	u_short  blue ;
+	char *  tag ;
 	char *  name ;
-	int  is_highlighted ;
 
-	if( ( color & ML_BOLD_COLOR_MASK))
-	{
-		color &= ~ML_BOLD_COLOR_MASK ;
-		is_highlighted = 1 ;
-		
-	#ifdef  DEBUG
-		if( color == ML_FG_COLOR || color == ML_BG_COLOR)
-		{
-			kik_warn_printf( KIK_DEBUG_TAG " fg/bg color must not be highlighted.\n") ;
-			is_highlighted = 0 ;
-		}
-	#endif
-	}
-	else
-	{
-		is_highlighted = 0 ;
-	}
-	
 	if( color_man->is_reversed)
 	{
 		if( color == ML_FG_COLOR)
@@ -193,16 +169,9 @@ x_get_color(
 
 	if( color_man->is_loaded[color])
 	{
-		if( is_highlighted)
-		{
-			return  &color_man->highlighted_colors[color] ;
-		}
-		else
-		{
-			return  &color_man->colors[color] ;
-		}
+		return  &color_man->colors[color] ;
 	}
-
+	
 	if( color == ML_FG_COLOR)
 	{
 		name = color_man->fg_color ;
@@ -211,65 +180,56 @@ x_get_color(
 	{
 		name = color_man->bg_color ;
 	}
+	else if( ( name = ml_get_color_name( color)) == NULL)
+	{
+		goto  not_found ;
+	}
+
+	if( color & ML_BOLD_COLOR_MASK)
+	{
+		if( ( tag = malloc( strlen(name) + 4)) == NULL)
+		{
+			return  0 ;
+		}
+
+		sprintf( tag , "hl_%s" , name) ;
+	}
 	else
 	{
-		name = ml_get_color_name( color) ;
+		tag = name ;
 	}
 	
-	if( x_color_custom_get_rgb( color_man->color_custom , &red , &green , &blue , name))
+	if( x_color_custom_get_rgb( color_man->color_custom , &red , &green , &blue , tag))
 	{
-		if( color < MAX_VT_COLORS)
+		if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
+			&color_man->colors[color] , red , green , blue))
 		{
-			if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
-				&color_man->highlighted_colors[color] , red , green , blue))
-			{
-				if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
-					&color_man->colors[color] ,
-					red * 90 / 100 , green * 90 / 100 , blue * 90 / 100))
-				{
-					goto  found ;
-				}
-				else
-				{
-					x_unload_xcolor( color_man->display , color_man->screen ,
-						&color_man->colors[color]) ;
-				}
-			}
-		}
-		else
-		{
-			if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
-				&color_man->colors[color] , red , green , blue))
-			{
-				goto  found ;
-			}
+			goto  found ;
 		}
 	}
 
-	if( color < MAX_VT_COLORS)
+	if( tag != name)
 	{
-		if( x_load_named_xcolor( color_man->display , color_man->screen ,
-			&color_man->highlighted_colors[color] , name))
-		{
-			x_get_xcolor_rgb( &red , &green , &blue , &color_man->highlighted_colors[color]) ;
+		free( tag) ;
+	}
 
+	if( x_load_named_xcolor( color_man->display , color_man->screen , &color_man->colors[color] , name))
+	{
+		if( color < MAX_BASIC_VT_COLORS)
+		{
+			x_get_xcolor_rgb( &red , &green , &blue , &color_man->colors[color]) ;
+
+			x_unload_xcolor( color_man->display , color_man->screen ,
+				&color_man->colors[color]) ;
+			
 			if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
 				&color_man->colors[color] ,
 				red * 90 / 100 , green * 90 / 100 , blue * 90 / 100))
 			{
 				goto  found ;
 			}
-			else
-			{
-				x_unload_xcolor( color_man->display , color_man->screen ,
-					&color_man->highlighted_colors[color]) ;
-			}
 		}
-	}
-	else
-	{
-		if( x_load_named_xcolor( color_man->display , color_man->screen ,
-			&color_man->colors[color] , name))
+		else
 		{
 			goto  found ;
 		}
@@ -283,47 +243,18 @@ found:
 		if( ! x_xcolor_fade( color_man->display , color_man->screen ,
 			&color_man->colors[color] , color_man->fade_ratio))
 		{
-			x_unload_xcolor( color_man->display , color_man->screen ,
-				&color_man->highlighted_colors[color]) ;
-
-			goto  not_found ;
-		}
-
-		if( color < MAX_VT_COLORS &&
-			! x_xcolor_fade( color_man->display , color_man->screen ,
-				&color_man->highlighted_colors[color] , color_man->fade_ratio))
-		{
-			x_unload_xcolor( color_man->display , color_man->screen ,
-				&color_man->colors[color]) ;
-			
 			goto  not_found ;
 		}
 	}
 	
 	color_man->is_loaded[color] = 1 ;
 
-	if( is_highlighted)
-	{
-		return  &color_man->highlighted_colors[color] ;
-	}
-	else
-	{
-		return  &color_man->colors[color] ;
-	}
+	return  &color_man->colors[color] ;
 
 not_found:
 	kik_msg_printf( " Loading color %s failed. Using black color instead.\n" , name) ;
 
-	color_man->colors[color] = color_man->black ;
-
-	if( color < MAX_VT_COLORS)
-	{
-		color_man->highlighted_colors[color] = color_man->black ;
-	}
-
-	color_man->is_loaded[color] = 1 ;
-
-	return  &color_man->colors[color] ;
+	return  &color_man->black ;
 }
 
 x_color_t *

@@ -6,8 +6,9 @@
 #define  __ML_COLOR_H__
 
 
-#define  MAX_COLORS     10
-#define  MAX_VT_COLORS  8
+#define  MAX_COLORS     18
+#define  MAX_VT_COLORS  16
+#define  MAX_BASIC_VT_COLORS  8
 
 
 typedef enum  ml_color
@@ -22,10 +23,11 @@ typedef enum  ml_color
 	ML_MAGENTA = 0x5 ,
 	ML_CYAN = 0x6 ,
 	ML_WHITE = 0x7 ,
-	ML_FG_COLOR = 0x8 ,
-	ML_BG_COLOR = 0x9 ,
 
-	ML_BOLD_COLOR_MASK = 0x10 ,
+	ML_BOLD_COLOR_MASK = 0x8 ,
+	
+	ML_FG_COLOR = 0x10 ,
+	ML_BG_COLOR = 0x11 ,
 
 } ml_color_t ;
 

@@ -29,9 +29,9 @@ ml_get_color_name(
 	ml_color_t  color
 	)
 {
-	if( ML_BLACK <= color && color <= ML_WHITE)
+	if( ML_BLACK <= color && color <= (ML_WHITE | ML_BOLD_COLOR_MASK))
 	{
-		return  color_name_table[color] ;
+		return  color_name_table[color & ~ML_BOLD_COLOR_MASK] ;
 	}
 	else
 	{

@@ -4,8 +4,10 @@
 
 #include  "x_keymap.h"
 
+#include  <stdio.h>		/* sscanf */
 #include  <string.h>		/* strchr/memcpy */
 #include  <X11/keysym.h>
+#include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_conf_io.h>
@@ -26,7 +28,7 @@ typedef struct  key_func_table
 #define  ModMask  (Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask)
 
 
-/* --- static functions --- */
+/* --- static variables --- */
 
 static key_func_table_t  key_func_table[] =
 {
@@ -40,6 +42,131 @@ static key_func_table_t  key_func_table[] =
 	{ "INSERT_SELECTION" , INSERT_SELECTION , } ,
 	{ "EXIT_PROGRAM" , EXIT_PROGRAM , } ,
 } ;
+
+
+/* --- static functions --- */
+
+static int
+parse(
+	x_keymap_t *  keymap ,
+	char *  key ,
+	char *  oper
+	)
+{
+	char *  p ;
+	KeySym  ksym ;
+	u_int  state ;
+	int  count ;
+
+	state = 0 ;
+
+	while( ( p = strchr( key , '+')) != NULL)
+	{
+		*(p ++) = '\0' ;
+
+		if( strcmp( key , "Control") == 0)
+		{
+			state |= ControlMask ;
+		}
+		else if( strcmp( key , "Shift") == 0)
+		{
+			state |= ShiftMask ;
+		}
+		else if( strcmp( key , "Mod") == 0)
+		{
+			state |= ModMask ;
+		}
+	#ifdef  DEBUG
+		else
+		{
+			kik_warn_printf( KIK_DEBUG_TAG " unrecognized mask(%s)\n" , key) ;
+		}
+	#endif
+
+		key = p ;
+	}
+
+	if( ( ksym = XStringToKeysym( key)) == NoSymbol)
+	{
+		return  0 ;
+	}
+
+	if( *oper == '"')
+	{
+		char *  str ;
+		char *  p ;
+
+		if( ( str = malloc( strlen( oper))) == NULL)
+		{
+			return  0 ;
+		}
+
+		p = str ;
+
+		oper ++ ;
+
+		while( *oper != '"' && *oper != '\0')
+		{
+			int  digit ;
+
+			if( sscanf( oper , "\\x%2x" , &digit) == 1)
+			{
+				*p = (char)digit ;
+
+				oper += 4 ;
+			}
+			else
+			{
+				*p = *oper ;
+
+				oper ++ ;
+			}
+
+			p ++ ;
+		}
+
+		*p = '\0' ;
+
+		if( ( keymap->str_map = realloc( keymap->str_map ,
+				sizeof( x_str_key_t) * (keymap->str_map_size + 1))) == NULL)
+		{
+			free( str) ;
+
+			return  0 ;
+		}
+
+		keymap->str_map[keymap->str_map_size].ksym = ksym ;
+		keymap->str_map[keymap->str_map_size].state = state ;
+		keymap->str_map[keymap->str_map_size].str = str ;
+		keymap->str_map_size ++ ;
+
+		return  1 ;
+	}
+	
+	for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ; count ++)
+	{
+		if( strcmp( oper , key_func_table[count].name) == 0)
+		{
+			if( strcmp( key , "UNUSED") == 0)
+			{
+				keymap->map[key_func_table[count].func].is_used = 0 ;
+			}
+			else
+			{
+				keymap->map[key_func_table[count].func].ksym = ksym ;
+				keymap->map[key_func_table[count].func].is_used = 1 ;
+			}
+
+			kik_debug_printf( "%s\n" , oper) ;
+
+			keymap->map[key_func_table[count].func].state = state ;
+
+			return  1 ;
+		}
+	}
+
+	return  0 ;
+}
 
 
 /* --- global functions --- */
@@ -81,6 +208,9 @@ x_keymap_init(
 
 	memcpy( &keymap->map , &default_key_map , sizeof( default_key_map)) ;
 
+	keymap->str_map = NULL ;
+	keymap->str_map_size = 0 ;
+
 	return  1 ;
 }
 
@@ -89,6 +219,15 @@ x_keymap_final(
 	x_keymap_t *  keymap
 	)
 {
+	int  count ;
+	
+	free( keymap->str_map) ;
+
+	for( count = 0 ; count < keymap->str_map_size ; count ++)
+	{
+		free( keymap->str_map[count].str) ;
+	}
+
 	return  1 ;
 }
 
@@ -113,58 +252,18 @@ x_keymap_read_conf(
 
 	while( kik_conf_io_read( from , &key , &value))
 	{
-		char *  p ;
-		u_int  state ;
-		int  count ;
-
-		state = 0 ;
-		
-		while( ( p = strchr( value , '+')) != NULL)
+		/*
+		 * [shortcut key]=[operation]
+		 */
+		if( ! parse( keymap , key , value))
 		{
-			*(p ++) = '\0' ;
-
-			if( strcmp( value , "Control") == 0)
-			{
-				state |= ControlMask ;
-			}
-			else if( strcmp( value , "Shift") == 0)
-			{
-				state |= ShiftMask ;
-			}
-			else if( strcmp( value , "Mod") == 0)
-			{
-				state |= ModMask ;
-			}
-		#ifdef  DEBUG
-			else
-			{
-				kik_warn_printf( KIK_DEBUG_TAG " unrecognized mask(%s)\n" , value) ;
-			}
-		#endif
-
-			value = p ;
-		}
-		
-		for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ;
-			count ++)
-		{
-			if( strcmp( key , key_func_table[count].name) == 0)
-			{
-				if( strcmp( value , "UNUSED") == 0)
-				{
-					keymap->map[key_func_table[count].func].is_used = 0 ;
-				}
-				else
-				{
-					keymap->map[key_func_table[count].func].ksym =
-						XStringToKeysym( value) ;
-					keymap->map[key_func_table[count].func].is_used = 1 ;
-				}
-
-				keymap->map[key_func_table[count].func].state = state ;
-
-				break ;
-			}
+			/*
+			 * XXX
+			 * Backward compatibility with 2.4.0 or before.
+			 * [operation]=[shortcut key]
+			 */
+			 
+			parse( keymap , value , key) ;
 		}
 	}
 
@@ -211,4 +310,34 @@ x_keymap_match(
 	{
 		return  0 ;
 	}
+}
+
+char *
+x_keymap_str(
+	x_keymap_t *  keymap ,
+	KeySym  ksym ,
+	u_int  state
+	)
+{
+	int  count ;
+
+	/* ingoring except ModMask / ControlMask / ShiftMask */
+	state &= (ModMask | ControlMask | ShiftMask) ;
+
+	if( state & ModMask)
+	{
+		/* all ModNMasks are set. */
+		state |= ModMask ;
+	}
+	
+	for( count = 0 ; count < keymap->str_map_size ; count ++)
+	{
+		if( keymap->str_map[count].state == state &&
+			keymap->str_map[count].ksym == ksym)
+		{
+			return  keymap->str_map[count].str ;
+		}
+	}
+
+	return  NULL ;
 }

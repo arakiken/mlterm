@@ -1,3 +1,10 @@
+2002-05-30 Araki Ken <arakiken@users.sf.net>
+
+	* string to be output can be defined in ~/.mlterm/key like
+	  Control+F1="foobar".
+	* rgb of highlighted 8 colors can be defined as hl_{black|white|...} 
+	  in ~/.mlterm/color.
+
 2002-05-26 Tomohiro KUBOTA <kubota@debian.org>
 
 	* rewrite help message ("mlterm --help").

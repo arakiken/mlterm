@@ -46,10 +46,13 @@ debug :
 $(LIBNAME).a : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ) $(LIBS)
 
-install:
+install :
 
 clean :
 	rm -rf $(OBJ) $(OBJ:.o=.lo) .libs *.a
+
+wc :
+	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 
 .SUFFIXES : .c.o
 

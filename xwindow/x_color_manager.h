@@ -18,11 +18,11 @@ typedef struct  x_color_manager
 	Display *  display ;
 	int  screen ;
 
-	int8_t  is_loaded[MAX_COLORS] ;
 	x_color_t  colors[MAX_COLORS] ;
-	x_color_t  highlighted_colors[MAX_VT_COLORS] ;
+	int8_t  is_loaded[MAX_COLORS] ;
+	
 	x_color_t  black ;
-
+	
 	char *  fg_color ;
 	char *  bg_color ;
 

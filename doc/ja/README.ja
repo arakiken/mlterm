@@ -539,11 +539,14 @@ comment $Id$
     o key
       ショートカットキーの定義
 
-      FUNCTION=KEY_BINDING
+      [SHORTCUT_KEY]=[OPERATION]
+
+      OPERATION は以下の通り
 
       o XIM_OPEN(Shift+space)
-        XIMメソッドをOpenします。xim_open_in_startupがtrueに設定されている場合は、
-        最初からOpenされていますので、使われません。
+        XIM メソッドを Open します。
+	xim_open_in_startup が true に設定されている場合は、最初から Open されています
+	ので、使われません。
       o XIM_CLOSE(UNUSED)
       o NEW_PTY(Ctrl+F1)
         新しいPTYを起動します。
@@ -557,11 +560,13 @@ comment $Id$
         スクロールダウン
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
+      o "" で囲まれた文字列
+	文字列の出力
 
-      KEY_BINDINGのフォーマットは以下の通り
-      
+      SHORTCUT_KEY のフォーマットは以下の通り
+
       (MASK+)KEY
-      
+
       キー割り当てしない場合は UNUSED としてください。
       また、マスク指定も可能です。
 
@@ -572,8 +577,8 @@ comment $Id$
       の 3 つが使用できます。
 
       e.g.)
-      XIM_OPEN=Control+backslash
-      XIM_OPENを、Control+backslashキーに割り当てます。
+      Control+backslash=XIM_OPEN
+      XIM_OPEN を、Control+backslash キーに割り当てます。
 
     o termcap
       termcapデータベースもどき

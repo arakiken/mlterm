@@ -134,11 +134,11 @@ inline u_int  ml_char_cols( ml_char_t *  ch) ;
 
 inline ml_color_t  ml_char_fg_color( ml_char_t *  ch) ;
 
-inline int  ml_char_set_fg_color( ml_char_t *  ch , ml_color_t  fg_color) ;
+inline int  ml_char_set_fg_color( ml_char_t *  ch , ml_color_t  color) ;
 
 inline ml_color_t  ml_char_bg_color( ml_char_t *  ch) ;
 
-inline int  ml_char_set_bg_color( ml_char_t *  ch , ml_color_t  bg_color) ;
+inline int  ml_char_set_bg_color( ml_char_t *  ch , ml_color_t  color) ;
 
 inline int  ml_char_is_underlined( ml_char_t *  ch) ;
 
