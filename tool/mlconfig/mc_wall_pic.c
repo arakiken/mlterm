@@ -16,6 +16,7 @@
 
 static GtkWidget *  entry ;
 static char *  old_wall_pic ;
+static int is_changed;
 
 
 /* --- static functions --- */
@@ -93,6 +94,7 @@ mc_wall_pic_config_widget_new(void)
 	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;
 
 	old_wall_pic = wall_pic ;
+	is_changed = 0 ;
 
 	return  hbox ;
 }
@@ -104,10 +106,12 @@ mc_update_wall_pic(void)
 
 	if( *( new_wall_pic = gtk_entry_get_text(GTK_ENTRY(entry))) == '\0')
 	{
-		new_wall_pic = "none" ;
+		new_wall_pic = "" ;
 	}
 
-	if( strcmp( old_wall_pic , new_wall_pic) != 0)
+	if( strcmp( old_wall_pic , new_wall_pic) != 0) is_changed = 1;
+
+	if( is_changed)
 	{
 		mc_set_str_value( "wall_picture" , new_wall_pic) ;
 		free( old_wall_pic) ;
@@ -119,8 +123,8 @@ void
 mc_wall_pic_none(void)
 {
 	free( old_wall_pic);
-	old_wall_pic = strdup( "none");
+	old_wall_pic = strdup( "");
 
-	mc_set_str_value( "wall_picture" , "none") ;
+	mc_set_str_value( "wall_picture" , "") ;
 }
 
