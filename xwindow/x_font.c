@@ -1339,6 +1339,18 @@ x_calculate_char_width(
 	return  font->width ;
 }
 
+char **
+x_font_get_cs_names(
+	mkf_charset_t  cs
+	)
+{
+	cs_info_t  * info ;
+
+	info = get_cs_info( cs) ;
+
+	return  info->encoding_names ;
+}
+
 #ifdef  DEBUG
 
 int

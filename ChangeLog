@@ -1,3 +1,9 @@
+2004-02-11  Tomohiro KUBOTA  <kubota@debian.org>
+
+	* xwindow/xfont.c, xwindow/xfont.h, xwindow/x_term_manager.c:
+	  mlterm will print an error message if mlterm cannot start
+	  because of lacking of fonts.
+
 2004-02-09  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/Makefile.in, scrollbar/sample/Makefile.in,

@@ -90,6 +90,8 @@ int  x_change_font_cols( x_font_t *  font , u_int  cols) ;
 
 u_int  x_calculate_char_width( x_font_t *  font , u_char *  ch , size_t  len , mkf_charset_t  cs) ;
 
+char **  x_font_get_cs_names( mkf_charset_t  cs) ;
+
 #ifdef  DEBUG
 int  x_font_dump( x_font_t *  font) ;
 #endif

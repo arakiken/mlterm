@@ -25,6 +25,7 @@
 #include  <kiklib/kik_types.h>	/* u_int */
 #include  <kiklib/kik_sig_child.h>
 #include  <ml_term_manager.h>
+#include  <ml_char_encoding.h>
 
 #include  "version.h"
 #include  "x_main_config.h"
@@ -350,6 +351,37 @@ open_screen_intern(
 		usascii_font_cs_changable , main_config.use_multi_col_char ,
 		main_config.step_in_changing_font_size)) == NULL)
 	{
+		char **  csnames;
+
+		csnames = x_font_get_cs_names( usascii_font_cs) ;
+		if( csnames[0] == NULL)
+		{
+			kik_msg_printf(
+			  "Current encoding \"%s\" is supported only with "
+			  "Unicode font.  "
+			  "Please use \"-u\" option.\n",
+			  ml_get_char_encoding_name(ml_term_get_encoding(term))) ;
+		}
+		else if( strcmp( csnames[0] , "iso10646-1" ) == 0 )
+		{
+			kik_msg_printf(
+			  "No fonts found for charset \"%s\".  "
+			  "Please install fonts.\n" , csnames[0]) ;
+		}
+		else if( csnames[1] == NULL)
+		{
+			kik_msg_printf(
+			  "No fonts found for charset \"%s\".  "
+			  "Please install fonts or use Unicode font "
+			  "(\"-u\" option).\n" , csnames[0]) ;
+		}
+		else
+		{
+			kik_msg_printf(
+			  "No fonts found for charset \"%s\" or \"%s\".  "
+			  "Please install fonts or use Unicode font "
+			  "(\"-u\" option).\n" , csnames[0] , csnames[1] );
+		}
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_font_manager_new() failed.\n") ;
 	#endif
