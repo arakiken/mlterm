@@ -1,3 +1,8 @@
+2003-07-07  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* fixed a compilation error.
+	(Thanks to Hironori SAKAMOTO san)
+
 2003-07-08  Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Previous fix for sizehint bug still had a problem in

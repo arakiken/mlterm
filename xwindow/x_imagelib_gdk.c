@@ -1131,51 +1131,50 @@ pixbuf_to_pixmap_and_mask(
 	Pixmap *  mask
 	)
 {
-
-	int  bytes_per_pixel ;
-
 	if( pixbuf_to_pixmap( display, screen, pixbuf, *pixmap) == -1)
 		return  -1 ;
 
-	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
-	if (bytes_per_pixel == 3)
-	{ /* no mask */
-		*mask = None ;
-	}
-	else
+	if( gdk_pixbuf_get_has_alpha( pixbuf))
 	{
 		int  i, j ;
 		int  width, height, rowstride ;
 		unsigned char *  line ;
 		unsigned char *  pixel ;
+		GC  gc ;
+		XGCValues  gcv ;
 
 		width = gdk_pixbuf_get_width (pixbuf) ;
 		height = gdk_pixbuf_get_height (pixbuf) ;
-		GC  gc ;
-		XGCValues  gcv ;
 
 		*mask = XCreatePixmap( display,
 				       DefaultRootWindow( display),
 				       width, height, 1) ;		
 		gc = XCreateGC (display, *mask, 0, &gcv) ;
+
 		XSetForeground( display, gc, 0) ;
 		XFillRectangle( display, *mask, gc,
 				0, 0, width, height) ;
 		XSetForeground( display, gc, 1) ;
+
 		line = gdk_pixbuf_get_pixels( pixbuf) ;
 		rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
+
 		for (i = 0; i < height; i++)
 		{
-			pixel = line ;
-       			line += rowstride ;
+			pixel = line[3];
 			for (j = 0; j < width; j++)
 			{
-				if( pixel[3] > 127)
+				if( *pixel > 127)
 					XDrawPoint( display, *mask, gc, j, i) ;
 				pixel += 4 ;
 			}
+       			line += rowstride ;
 		}
 		XFreeGC( display, gc) ;
+	}
+	else
+	{ /* no mask */
+		*mask = None ;
 	}
 
 	return  SUCCESS ;
