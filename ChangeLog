@@ -1,3 +1,8 @@
+2005-03-10 MINAMI Hirokazu <minami@mistfall.net>
+
+	* xwindow/x_imagelib_gdk.c: don't try to be translucent
+	if root pixmap is not available.
+
 2005-03-05 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* xwindow/version.h.in: 2.9.2 -> 2.9.2 post

@@ -615,7 +615,7 @@ tile_pixmap(
 
 static Pixmap
 root_pixmap(
-	x_window_t *  win
+	Display *  display
 	)
 {
 	Atom  id ;
@@ -624,7 +624,7 @@ root_pixmap(
 	u_long  bytes_after ;
 	u_char *  prop ;
 
-	id = XInternAtom( win->display, "_XROOTPMAP_ID", True) ;
+	id = XInternAtom( display, "_XROOTPMAP_ID", True) ;
 	if( !id)
 	{
 #ifdef DEBUG
@@ -633,7 +633,7 @@ root_pixmap(
 		return  None ;
 	}
 
-	if( XGetWindowProperty( win->display, DefaultRootWindow(win->display), id, 0, 1,
+	if( XGetWindowProperty( display, DefaultRootWindow(display), id, 0, 1,
 				False, XA_PIXMAP, &id, &act_format,
 				&nitems, &bytes_after, &prop) == Success)
 	{
@@ -1567,9 +1567,8 @@ x_imagelib_load_file_for_background(
 		pixbuf = cached_pixbuf ;
 	}
 
-	if( gdk_pixbuf_get_has_alpha ( pixbuf))
+	if( gdk_pixbuf_get_has_alpha ( pixbuf) && (pixmap = x_imagelib_get_transparent_background( win, NULL)))
 	{
-		pixmap = x_imagelib_get_transparent_background( win, NULL) ;
 		if( compose_to_pixmap( win->display, win->screen,
 				       pixbuf, pixmap) != SUCCESS)
 		{
@@ -1603,7 +1602,7 @@ x_imagelib_root_pixmap_available(
 	Display *  display
 	)
 {
-	if( XInternAtom( display, "_XROOTPMAP_ID", True))
+	if( root_pixmap( display))
 		return  1 ;
 	return  0 ;
 }
@@ -1631,7 +1630,7 @@ x_imagelib_get_transparent_background(
 	Pixmap  current_root ;
 	GC  gc ;
 
-	current_root =  root_pixmap( win) ;
+	current_root =  root_pixmap( win->display) ;
 
 	if(current_root == None)
 		return  None;
