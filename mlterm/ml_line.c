@@ -279,8 +279,12 @@ ml_line_overwrite(
 	{
 		/* making space */
 		ml_str_copy( &line->chars[len + padding] , &line->chars[char_index] , copy_len) ;
-		ml_line_set_modified( line , line->change_beg_char_index ,
-			line->change_end_char_index + copy_len , 0) ;
+		
+		if( IS_MODIFIED(line->flag))
+		{
+			ml_line_set_modified( line , line->change_beg_char_index ,
+				line->change_end_char_index + (len + padding - char_index) , 0) ;
+		}
 	}
 
 	for( count = 0 ; count < padding ; count ++)
@@ -386,8 +390,12 @@ ml_line_fill(
 	{
 		/* making space */
 		ml_str_copy( &line->chars[beg + num + left_cols] , &line->chars[char_index] , copy_len) ;
-		ml_line_set_modified( line , line->change_beg_char_index ,
-			line->change_end_char_index + copy_len , 0) ;
+
+		if( IS_MODIFIED(line->flag))
+		{
+			ml_line_set_modified( line , line->change_beg_char_index ,
+				line->change_end_char_index + (beg + num + left_cols - char_index) , 0) ;
+		}
 	}
 
 
