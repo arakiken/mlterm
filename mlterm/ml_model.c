@@ -122,8 +122,7 @@ ml_model_resize(
 	
 	copy_len = K_MIN(num_of_cols , model->num_of_cols) ;
 
-	count = model->num_of_rows - 1 ;
-	while( 1)
+	for( count = model->num_of_rows - 1 ; count >= 0 ; count --)
 	{
 	#if  0
 		/*
@@ -136,14 +135,6 @@ ml_model_resize(
 	#endif
 		{
 			filled_rows = count + 1 ;
-			
-			break ;
-		}
-		else if( -- count == 0)
-		{
-			/* Line num 0 must not be empty. */
-			
-			filled_rows = 0 ;
 			
 			break ;
 		}
