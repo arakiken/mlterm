@@ -1,3 +1,8 @@
+2003-06-23  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* Priority of "text/plain" in XDND is degraded 
+	so that work around mozilla's buggy DND handling.
+
 2003-06-22  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* Added support of window group. 

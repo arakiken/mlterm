@@ -249,12 +249,12 @@ dnd_parser_t dnd_parsers[] ={
 	{"UTF8_STRING"  , parse_utf8_string } ,
 	{"COMPOUND_TEXT", parse_compound_text } ,
 	{"text/uri-list", parse_text_uri_list } ,
-	{"text/plain"   , parse_utf8_string } ,
 	{"TEXT"         , parse_text } ,
 	{"text/unicode"   , parse_text_unicode } ,
 	{"application/x-color"  , parse_app_color } ,
 	{"property/bgimage"  , parse_prop_bgimage } ,
 	{"x-special/gnome-reset-background"  , parse_prop_bgimage },
+	{"text/plain"   , parse_utf8_string } ,
 /*
 	{"GIMP_PATTERN"  , parse_utf8_string } ,
 	{"GIMP_BRUSH"  , parse_utf8_string } ,
