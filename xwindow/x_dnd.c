@@ -87,38 +87,51 @@ x_dnd_parse(
 		mkf_parser_t *  parser ;
 		mkf_conv_t * conv ;
 		
-		char * conv_buf ;
-		
+		char conv_buf[512] ;
+		char * src_buf ;
+		int i ;
+
 		if( !(win->utf8_selection_notified))
 			return 0 ;
 		/* XXX */
-		if(! (conv_buf = malloc(len * 2)))
+		if(! (src_buf = malloc(len * 2)))
 			return 0;
 
 		if(! (conv = mkf_utf8_conv_new()))
 		{
-			free( conv_buf);
+			free( src_buf);
 			return 0;
 		}
 		if(! (parser = mkf_ucs4_parser_new()))
 		{
 			(conv->delete)(conv);
-			free( conv_buf);
+			free( src_buf);
 			return 0;
 		}
-		(parser->init)( parser) ;
-		(parser->set_str)( parser , src , len) ;
 
-		filled_len = (conv->convert)(
-			conv , conv_buf , len ,
-			parser);
-		    
+		for( i = 0 ; i < len ; i = i +2)
+		{
+			src_buf[i*2] = 0;
+			src_buf[i*2+1] = 0;
+			src_buf[i*2+2] = src[i+1];
+			src_buf[i*2+3] = src[i];
+		}
+
+		(parser->init)( parser) ;
+		(parser->set_str)( parser , src_buf , len*2) ;
+
+                while( ! parser->is_eos)
+                {
+			if( (filled_len = (conv->convert)(conv , conv_buf , sizeof(conv_buf) , parser)) == 0)
+                        {
+                                break ;
+                        }
+			     (*win->utf8_selection_notified)( win , conv_buf , filled_len) ;
+                }
 		(conv->delete)(conv);
 		(parser->delete)(parser);
 
-		(*win->utf8_selection_notified)( win , conv_buf , filled_len) ;
-
-		free(conv_buf);
+		free(src_buf);
 		return 1 ;
 	}
 	/* text/plain */
