@@ -1,3 +1,7 @@
+[20020202]
+* if number of terminal rows is double as many as that of cols , mlterm dumps core. fixed.
+* mongol vertical mode is added.
+
 [20020201]
 * -o/--lsp/line_space option is added.
 
