@@ -136,7 +136,6 @@ id_to_context(
 	int  id
 	)
 {
-	im_scim_context_private_t *  context = NULL ;
 	size_t i ;
 
 	for( i = 0 ; i < context_table.size() ; i++)
@@ -312,7 +311,7 @@ cb_lookup_update(
 	)
 {
 	im_scim_context_private_t *  context ;
-	u_int  num_of_candiate ;
+	int  num_of_candiate ;
 	int  index ;
 	char **  str ;
 	int  i ;
@@ -490,20 +489,20 @@ im_scim_initialize( char *  locale)
 					   TIMEOUT))
 	{
 		kik_error_printf( "Unable to connect to the socket frontend.\n") ;
-		return  0 ;
+		goto  error ;
 	}
 
 	if( scim_get_imengine_module_list( imengines) == 0)
 	{
 		kik_error_printf( "Could not find any IMEngines.\n") ;
-		return  0 ;
+		goto  error ;
 	}
 
 	if( std::find( imengines.begin() , imengines.end() , "socket")
 							== imengines.end())
 	{
 		kik_error_printf( "Could not find socket module.\n");
-		return  0 ;
+		goto  error ;
 	}
 
 	imengines.clear() ;
@@ -512,7 +511,7 @@ im_scim_initialize( char *  locale)
 	if( scim_get_config_module_list( config_modules) == 0)
 	{
 		kik_error_printf( "Could not find any config modules.\n") ;
-		return  0 ;
+		goto  error ;
 	}
 
 	config_mod_name = scim_global_config_read(
@@ -531,7 +530,7 @@ im_scim_initialize( char *  locale)
 	{
 		kik_error_printf( "ConfigModule failed. (%s)\n" ,
 				  config_mod_name.c_str());
-		return  0 ;
+		goto  error ;
 	}
 
 	config = config_module->create_config( "scim") ;
@@ -540,14 +539,14 @@ im_scim_initialize( char *  locale)
 	{
 		// TODO fallback DummyConfig
 		kik_error_printf( "create_config failed.\n") ;
-		return  0 ;
+		goto  error ;
 	}
 
 	be = new CommonBackEnd( config , imengines) ;
 	if( be.null())
 	{
 		kik_error_printf( "CommonBackEnd failed.\n") ;
-		return  0 ;
+		goto  error ;
 	}
 
 	sock_addr.set_address( scim_get_default_panel_socket_address( getenv( "DISPLAY"))) ; // FIXME
@@ -623,7 +622,6 @@ im_scim_create_context(
 	im_scim_callbacks_t *  callbacks)
 {
 	im_scim_context_private_t *  context = NULL ;
-	size_t  i ;
 
 	context = new im_scim_context_private_t ;
 

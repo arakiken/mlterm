@@ -506,14 +506,14 @@ im_scim_initialize( char *  locale)
 	if( scim_get_imengine_module_list( imengines) == 0)
 	{
 		kik_error_printf( "Could not find any IMEngines.\n") ;
-		return  error ;
+		goto  error ;
 	}
 
 	if( std::find( imengines.begin() , imengines.end() , "socket")
 							== imengines.end())
 	{
 		kik_error_printf( "Could not find socket module.\n");
-		return  error ;
+		goto  error ;
 	}
 
 	imengines.clear() ;
@@ -522,7 +522,7 @@ im_scim_initialize( char *  locale)
 	if( scim_get_config_module_list( config_modules) == 0)
 	{
 		kik_error_printf( "Could not find any config modules.\n") ;
-		return  error ;
+		goto  error ;
 	}
 
 	config_mod_name = scim_global_config_read(
@@ -541,7 +541,7 @@ im_scim_initialize( char *  locale)
 	{
 		kik_error_printf( "ConfigModule failed. (%s)\n" ,
 				  config_mod_name.c_str());
-		return  error ;
+		goto  error ;
 	}
 
 	config = config_module->create_config( "scim") ;
@@ -550,20 +550,20 @@ im_scim_initialize( char *  locale)
 	{
 		// TODO fallback DummyConfig
 		kik_error_printf( "create_config failed.\n") ;
-		return  error ;
+		goto  error ;
 	}
 
 	be = new CommonBackEnd( config , imengines) ;
 	if( be.null())
 	{
 		kik_error_printf( "CommonBackEnd failed.\n") ;
-		return  error ;
+		goto  error ;
 	}
 
 	if( be->number_of_factories() == 0)
 	{
 		kik_error_printf( "No factory\n");
-		return  error ;
+		goto  error ;
 	}
 
 	be->get_factory_list( factories) ;
