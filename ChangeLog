@@ -1,6 +1,7 @@
-2003-03-02 Araki Ken <arakiken@users.sf.net>
+2003-03-02 Tomohiro KUBOTA <kubota@debian.org>
 
-	* Compilation failed in mc_flags.c(static char * label[]). Fixed(Removed _N()).
+	* Forgot to define N_() in addition to _() in common/c_intl.h .
+	  Thanks to Sakamoto Hironori san.
 
 2003-03-02 Araki Ken <arakiken@users.sf.net>
 
