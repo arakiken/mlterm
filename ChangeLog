@@ -4,6 +4,8 @@
 	  create config file, which caused [save&exit] button of
 	  mlconfig could not save config if ~/.mlterm/main didn't
 	  exist.
+	* man/mlterm.1 and tool/mlconfig/mc_char_encoding.c: added
+	  "cp1251" and "cp1255".
 
 2003-04-06 Araki Ken <arakiken@users.sf.net>
 

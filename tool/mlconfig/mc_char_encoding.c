@@ -57,6 +57,8 @@ static char *  encodings[] =
 	"GEORGIAN-PS (Georgian)" ,
 	"TCVN5712 (Vietnamese)" ,
 	"VISCII (Vietnamese)" ,
+	"CP1251 (Bulgarian,Belarusian)" ,
+	"CP1255 (Hebrew)" ,
 	"ISCII (Indics)" ,
 
 	N_("--- Japanese ---"),
