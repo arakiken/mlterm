@@ -23,7 +23,7 @@ int  ml_picture_init( ml_picture_t *  pic , ml_window_t *  win) ;
 
 int  ml_picture_final( ml_picture_t *  pic) ;
 
-int  ml_picture_load( ml_picture_t *  pic , char *  file_path) ;
+int  ml_picture_load( ml_picture_t *  pic , char *  file_path , u_int  shade_ratio) ;
 
 
 #endif

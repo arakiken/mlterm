@@ -144,7 +144,7 @@ open_new_term(
 
 	if( ( termscr = ml_term_screen_new( term_man->cols , term_man->rows , font_man ,
 		ml_color_table_new( &term_man->color_man , term_man->fg_color , term_man->bg_color) ,
-		term_man->fade_ratio , &term_man->keymap , &term_man->termcap ,
+		term_man->shade_ratio , term_man->fade_ratio , &term_man->keymap , &term_man->termcap ,
 		term_man->num_of_log_lines , term_man->tab_size ,
 		term_man->screen_width_ratio , term_man->screen_height_ratio ,
 		term_man->use_xim , term_man->xim_open_in_startup ,
@@ -722,6 +722,8 @@ ml_term_manager_init(
 		"scrollbar fg color") ;
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
 		"scrollbar bg color") ;
+	kik_conf_add_opt( conf , 'H' , "shade" , 0 , "shade_ratio" ,
+		"shading ratio of background image") ;
 	kik_conf_add_opt( conf , 'r' , "fade" , 0 , "fade_ratio" , 
 		"fade ratio when window unfocued.") ;
 	kik_conf_add_opt( conf , 'p' , "pic" , 0 , "wall_picture" , 
@@ -1142,7 +1144,24 @@ ml_term_manager_init(
 		term_man->sb_bg_color = MLC_UNKNOWN_COLOR ;
 	}
 
+	term_man->shade_ratio = 100 ;
+
+	if( ( value = kik_conf_get_value( conf , "shade_ratio")))
+	{
+		u_int  shade_ratio ;
+		
+		if( kik_str_to_uint( &shade_ratio , value))
+		{
+			term_man->shade_ratio = shade_ratio ;
+		}
+		else
+		{
+			kik_msg_printf( "shade ratio %s is not valid.\n" , value) ;
+		}
+	}
+	
 	term_man->fade_ratio = 100 ;
+	
 	if( ( value = kik_conf_get_value( conf , "fade_ratio")))
 	{
 		u_int  fade_ratio ;

@@ -26,10 +26,12 @@ static ImlibData *  imlib ;
 static Pixmap
 load_picture(
 	ml_picture_t *  pic ,
-	char *  file_path
+	char *  file_path ,
+	u_int  shade_ratio
 	)
 {
 	ImlibImage *  img ;
+	ImlibColorModifier mod ;
 	Pixmap  pixmap ;
 
 	if( imlib == NULL)
@@ -53,6 +55,16 @@ load_picture(
 		return  0 ;
 	}
 
+	if( shade_ratio < 100)
+	{
+		Imlib_get_image_modifier( imlib , img , &mod) ;
+
+		/* usually 256 */
+		mod.brightness = (mod.brightness * shade_ratio) / 100 ;
+
+		Imlib_set_image_modifier( imlib , img , &mod) ;
+	}
+	
 	pixmap = XCreatePixmap( pic->win->display , pic->win->my_window ,
 		ACTUAL_WIDTH(pic->win) , ACTUAL_HEIGHT(pic->win) ,
 		DefaultDepth( pic->win->display , pic->win->screen)) ;
@@ -112,7 +124,8 @@ ml_picture_final(
 int
 ml_picture_load(
 	ml_picture_t *  pic ,
-	char *  file_path
+	char *  file_path ,
+	u_int  shade_ratio
 	)
 {
 	if( pic->pixmap)
@@ -122,7 +135,7 @@ ml_picture_load(
 		return  0 ;
 	}
 
-	if( ( pic->pixmap = load_picture( pic , file_path)) == 0)
+	if( ( pic->pixmap = load_picture( pic , file_path , shade_ratio)) == 0)
 	{
 		return  0 ;
 	}

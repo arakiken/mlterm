@@ -940,6 +940,20 @@ ml_vt100_cmd_set_config(
 			(*termscr->config_menu_listener.change_transparent_flag)( termscr , flag) ;
 		}
 	}
+	else if( strcmp( key , "shade_ratio") == 0)
+	{
+		u_int  shade_ratio ;
+
+		if( ! kik_str_to_uint( &shade_ratio , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_shade_ratio)
+		{
+			(*termscr->config_menu_listener.change_shade_ratio)( termscr , shade_ratio) ;
+		}
+	}
 	else if( strcmp( key , "fade_ratio") == 0)
 	{
 		u_int  fade_ratio ;
@@ -1162,6 +1176,11 @@ ml_vt100_cmd_get_config(
 		{
 			value = false ;
 		}
+	}
+	else if( strcmp( key , "shade_ratio") == 0)
+	{
+		sprintf( digit , "%d" , termscr->shade_ratio) ;
+		value = digit ;
 	}
 	else if( strcmp( key , "fade_ratio") == 0)
 	{

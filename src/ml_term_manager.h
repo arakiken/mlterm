@@ -81,7 +81,8 @@ typedef struct  ml_term_manager
 	ml_vertical_mode_t  vertical_mode ;
 
 	u_int8_t  step_in_changing_font_size ;
-	int8_t  fade_ratio ;
+	u_int8_t  shade_ratio ;
+	u_int8_t  fade_ratio ;
 	int8_t  use_scrollbar ;
 	int8_t  use_login_shell ;
 	int8_t  use_xim ;

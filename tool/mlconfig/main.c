@@ -13,6 +13,7 @@
 
 #include  "mc_char_encoding.h"
 #include  "mc_color.h"
+#include  "mc_shade.h"
 #include  "mc_fade.h"
 #include  "mc_tabsize.h"
 #include  "mc_logsize.h"
@@ -77,10 +78,10 @@ apply_clicked(
 	/*
 	 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
 	 * [screen width ratio] [screen height ratio] [mod meta mode] [bel mode] [vertical mode] \
-	 * [combining char] [copy paste via ucs] [is transparent] [fade ratio] [font present] \
-	 * [is bidi] [xim] [locale][LF]
+	 * [combining char] [copy paste via ucs] [is transparent] [shade ratio] [fade ratio] \
+	 * [font present] [is bidi] [xim] [locale][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
 		mc_get_char_encoding() ,
 		mc_get_iscii_lang() ,
 		mc_get_fg_color() ,
@@ -97,6 +98,7 @@ apply_clicked(
 		GTK_TOGGLE_BUTTON(is_comb_check)->active ,
 		GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active ,
 		GTK_TOGGLE_BUTTON(is_tp_check)->active ,
+		mc_get_shade_ratio() ,
 		mc_get_fade_ratio() ,
 		mc_get_font_present() ,
 		GTK_TOGGLE_BUTTON(use_bidi_check)->active ,
@@ -341,6 +343,7 @@ show(
 	int  is_combining_char ,
 	int  copy_paste_via_ucs ,
 	int  is_transparent ,
+	char *  shade_ratio ,
 	char *  fade_ratio ,
 	ml_font_present_t  font_present ,
 	int  use_bidi ,
@@ -534,6 +537,13 @@ show(
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 	
+	if( ! ( config_widget = mc_shade_config_widget_new( shade_ratio)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	
 	if( ! ( config_widget = mc_fade_config_widget_new( fade_ratio)))
 	{
 		return  0 ;
@@ -643,6 +653,7 @@ start_application(
 	int  is_combining_char ;
 	int  copy_paste_via_ucs ;
 	int  is_transparent ;
+	char *  shade_ratio ;
 	char *  fade_ratio ;
 	int  font_present ;
 	int  use_bidi ;
@@ -784,6 +795,11 @@ start_application(
 		return  0 ;
 	}
 
+	if( ( shade_ratio = kik_str_sep( &input_line , " ")) == NULL)
+	{
+		return  0 ;
+	}
+	
 	if( ( fade_ratio = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
@@ -814,7 +830,7 @@ start_application(
 	return  show( x , y , encoding , iscii_lang , fg_color , bg_color , tabsize ,
 		logsize , fontsize , min_fontsize , max_fontsize , line_space ,
 		screen_width_ratio , screen_height_ratio , mod_meta_mode , bel_mode , vertical_mode ,
-		is_combining_char , copy_paste_via_ucs , is_transparent , fade_ratio ,
+		is_combining_char , copy_paste_via_ucs , is_transparent , shade_ratio , fade_ratio ,
 		font_present , use_bidi , xim , locale) ;
 }
 
@@ -840,7 +856,7 @@ main(
 		! kik_str_to_int( &in_fd , argv[3]) ||
 		! kik_str_to_int( &out_fd , argv[4]))
 	{
-		kik_msg_printf( "usage: (stdin 23) mlconfig [x] [y] [in] [out]\n") ;
+		kik_msg_printf( "usage: (stdin 24) mlconfig [x] [y] [in] [out]\n") ;
 		
 		return  0 ;
 	}

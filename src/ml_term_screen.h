@@ -133,6 +133,7 @@ typedef struct  ml_term_screen
 
 	char *  pic_file_path ;
 
+	u_int8_t  shade_ratio ;
 	u_int8_t  fade_ratio ;
 	int8_t  is_focused ;
 	int8_t  copy_paste_via_ucs ;
@@ -148,7 +149,8 @@ typedef struct  ml_term_screen
 
 
 ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
-	ml_font_manager_t *  font_man , ml_color_table_t  color_table , u_int  fade_ratio ,
+	ml_font_manager_t *  font_man , ml_color_table_t  color_table ,
+	u_int  shade_ratio , u_int  fade_ratio ,
 	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
 	u_int  num_of_log_lines , u_int  tab_size ,
 	u_int  screen_width_ratio , u_int  screen_height_ratio ,
