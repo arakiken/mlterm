@@ -111,14 +111,17 @@ delete(
 
 	sample = (sample_sb_view_t*) view ;
 
-	XFreePixmap( view->display , sample->arrow_up) ;
-	XFreePixmap( view->display , sample->arrow_up_dent) ;
-	XFreePixmap( view->display , sample->arrow_down) ;
-	XFreePixmap( view->display , sample->arrow_down_dent) ;
-	
-	XFreeGC( view->display , sample->gc) ;
-	
-	free( sample) ;
+	if( sample)
+	{
+		XFreePixmap( view->display , sample->arrow_up) ;
+		XFreePixmap( view->display , sample->arrow_up_dent) ;
+		XFreePixmap( view->display , sample->arrow_down) ;
+		XFreePixmap( view->display , sample->arrow_down_dent) ;
+
+		XFreeGC( view->display , sample->gc) ;
+
+		free( sample) ;
+	}
 }
 
 static void

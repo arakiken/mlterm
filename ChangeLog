@@ -1,3 +1,8 @@
+2002-05-02 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Fixed segfault when destroying a scrollbar in PseudoColor visual.
+	  (Thanks to Minami Hirokazu san)
+
 2002-05-01 Tomohiro KUBOTA <kutoba@debian.org>
 
 	* manpage update: termcap file and -y option.
