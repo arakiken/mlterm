@@ -1,3 +1,9 @@
+2003-08-29  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* x_dnd.c:
+	 - fixed sgev in incremental data transfer.
+	 - code cleanup.
+
 2003-08-27  Araki Ken  <arakiken@users.sf.net>
 
 	* The colors of lines next to empty ones were not reversed correctly
