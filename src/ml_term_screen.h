@@ -74,7 +74,7 @@ typedef struct  ml_term_screen
 	ml_window_t  window ;
 	
 	ml_image_t *  image ;
-	
+
 	ml_image_t  normal_image ;
 	ml_image_t  alt_image ;
 	
@@ -111,6 +111,11 @@ typedef struct  ml_term_screen
 
 	ml_font_present_t  font_present ;
 
+	ml_vertical_mode_t  vertical_mode ;
+	
+	u_int  screen_width_ratio ;
+	u_int  screen_height_ratio ;
+	
 	ml_pty_encoding_event_listener_t *  encoding_listener ;
 	ml_system_event_listener_t *  system_listener ;
 	ml_screen_scroll_event_listener_t *  screen_scroll_listener ;
@@ -145,11 +150,13 @@ typedef struct  ml_term_screen
 ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 	ml_font_manager_t *  font_man , ml_color_table_t  color_table , u_int  fade_ratio ,
 	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
-	u_int  num_of_log_lines , u_int  tab_size , int  use_xim ,
-	int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode , ml_bel_mode_t  bel_mode ,
-	int  prefer_utf8_selection , char *  pic_file_path , int  use_transbg ,
-	ml_font_present_t  font_present , int  use_bidi , int  big5_buggy ,
-	char *  conf_menu_path , ml_iscii_lang_t  iscii_lang) ;
+	u_int  num_of_log_lines , u_int  tab_size ,
+	u_int  screen_width_ratio , u_int  screen_height_ratio ,
+	int  use_xim , int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode ,
+	ml_bel_mode_t  bel_mode , int  prefer_utf8_selection , char *  pic_file_path ,
+	int  use_transbg , ml_font_present_t  font_present , int  use_bidi ,
+	ml_vertical_mode_t  vertical_mode , int  big5_buggy , char *  conf_menu_path ,
+	ml_iscii_lang_t  iscii_lang) ;
 
 int  ml_term_screen_delete( ml_term_screen_t *  termscr) ;
 

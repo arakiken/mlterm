@@ -195,7 +195,7 @@ xft_draw_str(
 	if( x > win->width || y + height > win->height)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " drawing string in overflowed area.(x %d y %d h)\n" ,
+		kik_warn_printf( KIK_DEBUG_TAG " drawing string in overflowed area.(x %d y %d h %d)\n" ,
 			x , y , height) ;
 	#endif
 	
@@ -703,7 +703,7 @@ draw_str(
 	if( x > win->width || y + height > win->height)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " drawing string in overflowed area.(x %d y %d h)\n" , 
+		kik_warn_printf( KIK_DEBUG_TAG " drawing string in overflowed area.(x %d y %d h %d)\n" , 
 			x , y , height) ;
 	#endif
 	

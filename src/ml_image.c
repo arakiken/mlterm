@@ -2121,7 +2121,7 @@ ml_image_set_modified_all(
 	}
 }
 
-inline u_int
+u_int
 ml_image_get_cols(
 	ml_image_t *  image
 	)
@@ -2129,7 +2129,7 @@ ml_image_get_cols(
 	return  image->num_of_cols ;
 }
 
-inline u_int
+u_int
 ml_image_get_rows(
 	ml_image_t *  image
 	)

@@ -52,6 +52,8 @@ typedef struct  ml_term_manager
 	int  geom_hint ;
 	u_int  cols ;
 	u_int  rows ;
+	u_int  screen_width_ratio ;
+	u_int  screen_height_ratio ;
 	char *  app_name ;
 	char *  title ;
 	char *  icon_name ;
@@ -73,6 +75,7 @@ typedef struct  ml_term_manager
 	u_int  col_size_a ;
 	ml_char_encoding_t  encoding ;
 	ml_font_present_t  font_present ;
+	ml_vertical_mode_t  vertical_mode ;
 
 	u_int8_t  step_in_changing_font_size ;
 	int8_t  fade_ratio ;

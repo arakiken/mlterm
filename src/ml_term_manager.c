@@ -146,11 +146,12 @@ open_new_term(
 		ml_color_table_new( &term_man->color_man , term_man->fg_color , term_man->bg_color) ,
 		term_man->fade_ratio , &term_man->keymap , &term_man->termcap ,
 		term_man->num_of_log_lines , term_man->tab_size ,
+		term_man->screen_width_ratio , term_man->screen_height_ratio ,
 		term_man->use_xim , term_man->xim_open_in_startup ,
 		term_man->mod_meta_mode , term_man->bel_mode ,
 		term_man->copy_paste_via_ucs , term_man->pic_file_path , term_man->use_transbg ,
-		term_man->font_present , term_man->use_bidi , term_man->big5_buggy ,
-		term_man->conf_menu_path , term_man->iscii_lang)) == NULL)
+		term_man->font_present , term_man->use_bidi , term_man->vertical_mode ,
+		term_man->big5_buggy , term_man->conf_menu_path , term_man->iscii_lang)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_screen_new() failed.\n") ;
@@ -196,7 +197,7 @@ open_new_term(
 		
 		goto  error ;
 	}
-	
+
 	if( ! ml_window_manager_show_root( &term_man->win_man , root ,
 		term_man->x , term_man->y , term_man->geom_hint))
 	{
@@ -689,6 +690,10 @@ ml_term_manager_init(
 		"X server to connect") ;
 	kik_conf_add_opt( conf , 'g' , "geometry" , 0 , "geometry" , 
 		"size (in characters) and position") ;
+	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
+		"screen width ratio") ;
+	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
+		"screen height ratio") ;
 	kik_conf_add_opt( conf , 'N' , "name" , 0 , "app_name" , 
 		"application name") ;
 	kik_conf_add_opt( conf , 'T' , "title" , 0 , "title" , 
@@ -735,6 +740,8 @@ ml_term_manager_init(
 		"mode in pressing meta key") ;
 	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , 
 		"bel(0x07) mode") ;
+	kik_conf_add_opt( conf , 'G' , "vertical" , 0 , "vertical_mode" ,
+		"vertical view mode") ;
 	kik_conf_add_opt( conf , 'C' , "iscii" , 0 , "iscii_lang" , 
 		"language to be used in ISCII encoding") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
@@ -1226,6 +1233,30 @@ ml_term_manager_init(
 		term_man->geom_hint = 0 ;
 	}
 
+	term_man->screen_width_ratio = 100 ;
+	
+	if( ( value = kik_conf_get_value( conf , "screen_width_ratio")))
+	{
+		u_int  ratio ;
+
+		if( kik_str_to_uint( &ratio , value))
+		{
+			term_man->screen_width_ratio = ratio ;
+		}
+	}
+
+	term_man->screen_height_ratio = 100 ;
+	
+	if( ( value = kik_conf_get_value( conf , "screen_height_ratio")))
+	{
+		u_int  ratio ;
+
+		if( kik_str_to_uint( &ratio , value))
+		{
+			term_man->screen_height_ratio = ratio ;
+		}
+	}
+	
 	if( ( value = kik_conf_get_value( conf , "fontsize")) == NULL)
 	{
 		term_man->font_size = 16 ;
@@ -1479,6 +1510,13 @@ ml_term_manager_init(
 	else
 	{
 		term_man->bel_mode = BEL_SOUND ;
+	}
+
+	term_man->vertical_mode = 0 ;
+	
+	if( ( value = kik_conf_get_value( conf , "vertical_mode")))
+	{
+		term_man->vertical_mode = ml_get_vertical_mode( value) ;
 	}
 
 	term_man->num_of_startup_terms = 1 ;

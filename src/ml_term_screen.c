@@ -56,6 +56,15 @@
 	((termscr)->screen_scroll_listener && (termscr)->screen_scroll_listener->function)
 
 
+#define  LOGICAL_NUM_OF_COLS(termscr) \
+	( (termscr)->logvis ? (*(termscr)->logvis->logical_cols)( (termscr)->logvis) : \
+		ml_image_get_cols( (termscr)->image))
+		
+#define  LOGICAL_NUM_OF_ROWS(termscr) \
+	( (termscr)->logvis ? (*(termscr)->logvis->logical_rows)( (termscr)->logvis) : \
+		ml_image_get_rows( (termscr)->image))
+
+
 #if  0
 #define  __DEBUG
 #endif
@@ -914,7 +923,8 @@ select_iscii_lang(
  */
 static int
 update_encoding_proper_aux(
-	ml_term_screen_t *  termscr
+	ml_term_screen_t *  termscr ,
+	int  is_visual
 	)
 {
 	if( termscr->logvis)
@@ -1007,9 +1017,49 @@ update_encoding_proper_aux(
 			termscr->logvis = NULL ;
 			termscr->shape = NULL ;
 		}
+		
+		if( termscr->vertical_mode)
+		{
+			ml_logical_visual_t *  logvis ;
+			
+			if( ( logvis = ml_logvis_vert_new( termscr->image , termscr->vertical_mode))
+				== NULL)
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_vert_new() failed.\n") ;
+			#endif
+
+				return  0 ;
+			}
+
+			if( termscr->logvis)
+			{
+				ml_logical_visual_t *  container ;
+
+				if( ( container = ml_logvis_container_new( termscr->image)) == NULL)
+				{
+					return  0 ;
+				}
+
+				ml_logvis_container_add( container , termscr->logvis) ;
+				ml_logvis_container_add( container , logvis) ;
+
+				termscr->logvis = container ;
+			}
+			else
+			{
+				termscr->logvis = logvis ;
+			}
+
+			if( termscr->shape)
+			{
+				(*termscr->shape->delete)( termscr->shape) ;
+				termscr->shape = NULL ;
+			}
+		}
 	}
 
-	if( termscr->logvis)
+	if( is_visual && termscr->logvis)
 	{
 		(*termscr->logvis->render)( termscr->logvis) ;
 		(*termscr->logvis->visual)( termscr->logvis) ;
@@ -1092,6 +1142,10 @@ window_resized(
 	)
 {
 	ml_term_screen_t *  termscr ;
+	u_int  rows ;
+	u_int  cols ;
+	u_int  width ;
+	u_int  height ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " term screen resized.\n") ;
@@ -1113,14 +1167,37 @@ window_resized(
 	{
 		(*termscr->logvis->logical)( termscr->logvis) ;
 	}
-	
-	ml_image_resize( &termscr->normal_image ,
-		termscr->window.width / ml_col_width( termscr->font_man) ,
-		termscr->window.height / ml_line_height( termscr->font_man)) ;
 
-	ml_image_resize( &termscr->alt_image ,
-		termscr->window.width / ml_col_width( termscr->font_man) ,
-		termscr->window.height / ml_line_height( termscr->font_man)) ;
+	/*
+	 * visual width/height => logical cols/rows
+	 */
+
+	width = (termscr->window.width * 100) / termscr->screen_width_ratio ;
+	height = (termscr->window.height * 100) / termscr->screen_height_ratio ;
+	
+	if( termscr->vertical_mode)
+	{
+		rows = width / ml_col_width( termscr->font_man) ;
+		cols = height / ml_line_height( termscr->font_man) ;
+	}
+	else
+	{
+		cols = width / ml_col_width( termscr->font_man) ;
+		rows = height / ml_line_height( termscr->font_man) ;
+	}
+
+	if( termscr->vertical_mode & VERT_FULL_WIDTH)
+	{
+		rows /= 2 ;
+	}
+
+	ml_image_resize( &termscr->normal_image , cols , rows) ;
+	ml_image_resize( &termscr->alt_image , cols , rows) ;
+
+	if( termscr->pty)
+	{
+		ml_set_pty_winsize( termscr->pty , cols , rows) ;
+	}
 
 	if( termscr->logvis)
 	{
@@ -1128,12 +1205,6 @@ window_resized(
 		(*termscr->logvis->visual)( termscr->logvis) ;
 	}
 	
-	if( termscr->pty)
-	{
-		ml_set_pty_winsize( termscr->pty , ml_image_get_cols( termscr->image) ,
-			ml_image_get_rows( termscr->image)) ;
-	}
-
 	set_wall_picture( termscr) ;
 
 	redraw_image( termscr) ;
@@ -1239,7 +1310,8 @@ config_menu(
 		termscr->font_man->font_size ,
 		termscr->font_man->font_custom->min_font_size ,
 		termscr->font_man->font_custom->max_font_size ,
-		termscr->mod_meta_mode , termscr->bel_mode ,
+		termscr->screen_width_ratio , termscr->screen_height_ratio ,
+		termscr->mod_meta_mode , termscr->bel_mode , termscr->vertical_mode ,
 		ml_is_char_combining() , termscr->copy_paste_via_ucs ,
 		termscr->window.is_transparent , termscr->fade_ratio ,
 		termscr->font_present , termscr->use_bidi ,
@@ -2561,6 +2633,57 @@ end:
  * callbacks of ml_config_menu_event events.
  */
 
+static int
+screen_width(
+	ml_term_screen_t *  termscr
+	)
+{
+	u_int  width ;
+	
+	/*
+	 * logical cols/rows => visual width/height.
+	 */
+	 
+	if( termscr->vertical_mode)
+	{
+		width = LOGICAL_NUM_OF_ROWS(termscr) * ml_col_width( termscr->font_man) ;
+	}
+	else
+	{
+		width = LOGICAL_NUM_OF_COLS(termscr) * ml_col_width( termscr->font_man) ;
+	}
+
+	if( termscr->vertical_mode & VERT_FULL_WIDTH)
+	{
+		width *= 2 ;
+	}
+	
+	return  (width * termscr->screen_width_ratio) / 100 ;
+}
+
+static int
+screen_height(
+	ml_term_screen_t *  termscr
+	)
+{
+	u_int  height ;
+	
+	/*
+	 * logical cols/rows => visual width/height.
+	 */
+	 
+	if( termscr->vertical_mode)
+	{
+		height = LOGICAL_NUM_OF_COLS(termscr) * ml_line_height( termscr->font_man) ;
+	}
+	else
+	{
+		height = LOGICAL_NUM_OF_ROWS(termscr) * ml_line_height( termscr->font_man) ;
+	}
+
+	return  (height * termscr->screen_height_ratio) / 100 ;
+}
+
 static void
 font_size_changed(
 	ml_term_screen_t *  termscr
@@ -2576,9 +2699,7 @@ font_size_changed(
 	}
 
 	/* screen will redrawn in window_resized() */
-	ml_window_resize( &termscr->window ,
-		ml_col_width( termscr->font_man) * ml_image_get_cols( termscr->image) ,
-		ml_line_height( termscr->font_man) * ml_image_get_rows( termscr->image) ,
+	ml_window_resize( &termscr->window , screen_width( termscr) , screen_height( termscr) ,
 		NOTIFY_TO_PARENT) ;
 
 	ml_window_set_normal_hints( &termscr->window ,
@@ -2623,6 +2744,70 @@ change_font_size(
 
 	/* redrawing all lines with new fonts. */
 	ml_image_set_modified_all( termscr->image) ;
+}
+
+static void
+change_screen_width_ratio(
+	void *  p ,
+	u_int  ratio
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+
+	if( termscr->screen_width_ratio == ratio)
+	{
+		return ;
+	}
+	
+	termscr->screen_width_ratio = ratio ;
+
+	ml_window_resize( &termscr->window , screen_width( termscr) , screen_height( termscr) ,
+		NOTIFY_TO_PARENT) ;
+
+	/*
+	 * !! Notice !!
+	 * ml_window_resize() will invoke ConfigureNotify event but window_resized() won't be
+	 * called , since xconfigure.width , xconfigure.height are the same as the already
+	 * resized window.
+	 */
+	if( termscr->window.window_resized)
+	{
+		(*termscr->window.window_resized)( &termscr->window) ;
+	}
+}
+
+static void
+change_screen_height_ratio(
+	void *  p ,
+	u_int  ratio
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+
+	if( termscr->screen_height_ratio == ratio)
+	{
+		return ;
+	}
+	
+	termscr->screen_height_ratio = ratio ;
+
+	ml_window_resize( &termscr->window , screen_width( termscr) , screen_height( termscr) ,
+		NOTIFY_TO_PARENT) ;
+
+	/*
+	 * !! Notice !!
+	 * ml_window_resize() will invoke ConfigureNotify event but window_resized() won't be
+	 * called , since xconfigure.width , xconfigure.height are the same as the already
+	 * resized window.
+	 */
+	if( termscr->window.window_resized)
+	{
+		(*termscr->window.window_resized)( &termscr->window) ;
+	}
 }
 
 static void
@@ -2680,7 +2865,7 @@ change_char_encoding(
 	
 	ml_image_set_modified_all( termscr->image) ;
 	
-	update_encoding_proper_aux( termscr) ;
+	update_encoding_proper_aux( termscr , 1) ;
 }
 
 static void
@@ -2773,6 +2958,40 @@ change_bel_mode(
 	termscr = p ;
 	
 	termscr->bel_mode = bel_mode ;
+}
+
+static void
+change_vertical_mode(
+	void *  p ,
+	ml_vertical_mode_t  vertical_mode
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+
+	if( termscr->vertical_mode == vertical_mode)
+	{
+		return ;
+	}
+
+	termscr->vertical_mode = vertical_mode ;
+
+	update_encoding_proper_aux( termscr , 1) ;
+	
+	ml_window_resize( &termscr->window , screen_width(termscr) , screen_height(termscr) ,
+		NOTIFY_TO_PARENT) ;
+
+	/*
+	 * !! Notice !!
+	 * ml_window_resize() will invoke ConfigureNotify event but window_resized() won't be
+	 * called , since xconfigure.width , xconfigure.height are the same as the already
+	 * resized window.
+	 */
+	if( termscr->window.window_resized)
+	{
+		(*termscr->window.window_resized)( &termscr->window) ;
+	}
 }
 
 static void
@@ -2948,7 +3167,7 @@ change_bidi_flag(
 	
 	ml_image_set_modified_all( termscr->image) ;
 
-	update_encoding_proper_aux( termscr) ;
+	update_encoding_proper_aux( termscr , 1) ;
 }
 
 static void
@@ -3200,8 +3419,8 @@ window_scroll_upward_region(
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
-	
-	if( ! ml_window_is_scrollable( &termscr->window))
+
+	if( termscr->vertical_mode || ! ml_window_is_scrollable( &termscr->window))
 	{
 		return  0 ;
 	}
@@ -3225,7 +3444,7 @@ window_scroll_downward_region(
 
 	termscr = p ;
 
-	if( ! ml_window_is_scrollable( &termscr->window))
+	if( termscr->vertical_mode || ! ml_window_is_scrollable( &termscr->window))
 	{
 		return  0 ;
 	}
@@ -3293,6 +3512,10 @@ get_spot(
 	
 	*x = convert_char_index_to_x( termscr , line , ml_cursor_char_index( termscr->image)) ;
 
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " xim spot => x %d y %d\n" , *x , *y) ;
+#endif
+
 	return  1 ;
 }
 
@@ -3322,6 +3545,8 @@ ml_term_screen_new(
 	ml_termcap_t *  termcap ,
 	u_int  num_of_log_lines ,
 	u_int  tab_size ,
+	u_int  screen_width_ratio ,
+	u_int  screen_height_ratio ,
 	int  use_xim ,
 	int  xim_open_in_startup ,
 	ml_mod_meta_mode_t  mod_meta_mode ,
@@ -3331,14 +3556,13 @@ ml_term_screen_new(
 	int  use_transbg ,
 	ml_font_present_t  font_present ,
 	int  use_bidi ,
+	ml_vertical_mode_t  vertical_mode ,
 	int  big5_buggy ,
 	char *  conf_menu_path ,
 	ml_iscii_lang_t  iscii_lang
 	)
 {
 	ml_term_screen_t *  termscr ;
-	u_int  width ;
-	u_int  height ;
 	ml_char_t  sp_ch ;
 	ml_char_t  nl_ch ;
 
@@ -3376,13 +3600,100 @@ ml_term_screen_new(
 	
 	termscr->font_present = font_present ;
 
-	width = cols * ml_col_width( font_man) ;
-	height = rows * ml_line_height( font_man) ;
+	termscr->logvis = NULL ;
+	termscr->iscii_lang = iscii_lang ;
+	termscr->iscii_state = NULL ;
+	termscr->shape = NULL ;
+
+	termscr->use_bidi = use_bidi ;
+	
+	ml_char_init( &sp_ch) ;
+	ml_char_init( &nl_ch) ;
+	
+	ml_char_set( &sp_ch , " " , 1 , ml_get_usascii_font( termscr->font_man) ,
+		0 , MLC_FG_COLOR , MLC_BG_COLOR) ;
+	ml_char_set( &nl_ch , "\n" , 1 , ml_get_usascii_font( termscr->font_man) ,
+		0 , MLC_FG_COLOR , MLC_BG_COLOR) ;
+
+	termscr->image_scroll_listener.self = termscr ;
+	/* this may be overwritten */
+	termscr->image_scroll_listener.receive_upward_scrolled_out_line = receive_scrolled_out_line ;
+	termscr->image_scroll_listener.receive_downward_scrolled_out_line = NULL ;
+	termscr->image_scroll_listener.window_scroll_upward_region = window_scroll_upward_region ;
+	termscr->image_scroll_listener.window_scroll_downward_region = window_scroll_downward_region ;
+	
+	if( ! ml_image_init( &termscr->normal_image , &termscr->image_scroll_listener ,
+		cols , rows , sp_ch , tab_size , 1))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_image_init failed.\n") ;
+	#endif
+	
+		goto  error ;
+	}
+
+	if( ! ml_image_init( &termscr->alt_image , &termscr->image_scroll_listener ,
+		cols , rows , sp_ch , tab_size , 0))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_image_init failed.\n") ;
+	#endif
+	
+		goto  error ;
+	}
+
+	termscr->image = &termscr->normal_image ;
+
+	termscr->sel_listener.self = termscr ;
+	termscr->sel_listener.select_in_window = select_in_window ;
+	termscr->sel_listener.reverse_color = reverse_color ;
+	termscr->sel_listener.restore_color = restore_color ;
+
+	if( ! ml_sel_init( &termscr->sel , &termscr->sel_listener))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_sel_init failed.\n") ;
+	#endif
+	
+		goto  error ;
+	}
+
+	if( ! ml_log_init( &termscr->logs , cols , num_of_log_lines))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_log_init failed.\n") ;
+	#endif
+	
+		goto  error ;
+	}
+
+	termscr->bs_listener.self = termscr ;
+	termscr->bs_listener.window_scroll_upward = window_scroll_upward ;
+	termscr->bs_listener.window_scroll_downward = window_scroll_downward ;
+
+	if( ! ml_bs_init( &termscr->bs_image , termscr->image , &termscr->logs ,
+		&termscr->bs_listener , &nl_ch))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_bs_init failed.\n") ;
+	#endif
+	
+		goto  error ;
+	}
+
+	ml_char_final( &sp_ch) ;
+	ml_char_final( &nl_ch) ;
 
 	termscr->fade_ratio = fade_ratio ;
 	termscr->is_focused = 0 ;
 
-	if( ml_window_init( &termscr->window , color_table , width , height ,
+	termscr->vertical_mode = vertical_mode ;
+
+	termscr->screen_width_ratio = screen_width_ratio ;
+	termscr->screen_height_ratio = screen_height_ratio ;
+	
+	if( ml_window_init( &termscr->window , color_table ,
+		screen_width(termscr) , screen_height(termscr) ,
 		ml_col_width( termscr->font_man) , ml_line_height( termscr->font_man) ,
 		ml_col_width( termscr->font_man) , ml_line_height( termscr->font_man) , 2) == 0)
 	{
@@ -3452,85 +3763,6 @@ ml_term_screen_new(
 		termscr->pic_file_path = NULL ;
 	}
 
-	ml_char_init( &sp_ch) ;
-	ml_char_init( &nl_ch) ;
-	
-	ml_char_set( &sp_ch , " " , 1 , ml_get_usascii_font( termscr->font_man) ,
-		0 , MLC_FG_COLOR , MLC_BG_COLOR) ;
-	ml_char_set( &nl_ch , "\n" , 1 , ml_get_usascii_font( termscr->font_man) ,
-		0 , MLC_FG_COLOR , MLC_BG_COLOR) ;
-
-	termscr->image_scroll_listener.self = termscr ;
-	/* this may be overwritten */
-	termscr->image_scroll_listener.receive_upward_scrolled_out_line = receive_scrolled_out_line ;
-	termscr->image_scroll_listener.receive_downward_scrolled_out_line = NULL ;
-	termscr->image_scroll_listener.window_scroll_upward_region = window_scroll_upward_region ;
-	termscr->image_scroll_listener.window_scroll_downward_region = window_scroll_downward_region ;
-	
-	if( ! ml_image_init( &termscr->normal_image , &termscr->image_scroll_listener ,
-		cols , rows , sp_ch , tab_size , 1))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_image_init failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	if( ! ml_image_init( &termscr->alt_image , &termscr->image_scroll_listener ,
-		cols , rows , sp_ch , tab_size , 0))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_image_init failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	termscr->image = &termscr->normal_image ;
-
-	termscr->use_bidi = use_bidi ;
-
-	termscr->sel_listener.self = termscr ;
-	termscr->sel_listener.select_in_window = select_in_window ;
-	termscr->sel_listener.reverse_color = reverse_color ;
-	termscr->sel_listener.restore_color = restore_color ;
-
-	if( ! ml_sel_init( &termscr->sel , &termscr->sel_listener))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_sel_init failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	if( ! ml_log_init( &termscr->logs , cols , num_of_log_lines))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_log_init failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	termscr->bs_listener.self = termscr ;
-	termscr->bs_listener.window_scroll_upward = window_scroll_upward ;
-	termscr->bs_listener.window_scroll_downward = window_scroll_downward ;
-
-	if( ! ml_bs_init( &termscr->bs_image , termscr->image , &termscr->logs ,
-		&termscr->bs_listener , &nl_ch))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_bs_init failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	ml_char_final( &sp_ch) ;
-	ml_char_final( &nl_ch) ;
-
 	termscr->config_menu_listener.self = termscr ;
 	termscr->config_menu_listener.change_char_encoding = change_char_encoding ;
 	termscr->config_menu_listener.change_iscii_lang = change_iscii_lang ;
@@ -3539,8 +3771,11 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_tab_size = change_tab_size ;
 	termscr->config_menu_listener.change_log_size = change_log_size ;
 	termscr->config_menu_listener.change_font_size = change_font_size ;
+	termscr->config_menu_listener.change_screen_width_ratio = change_screen_width_ratio ;
+	termscr->config_menu_listener.change_screen_height_ratio = change_screen_height_ratio ;
 	termscr->config_menu_listener.change_mod_meta_mode = change_mod_meta_mode ;
 	termscr->config_menu_listener.change_bel_mode = change_bel_mode ;
+	termscr->config_menu_listener.change_vertical_mode = change_vertical_mode ;
 	termscr->config_menu_listener.change_char_combining_flag = change_char_combining_flag ;
 	termscr->config_menu_listener.change_copy_paste_via_ucs_flag = change_copy_paste_via_ucs_flag ;
 	termscr->config_menu_listener.change_transparent_flag = change_transparent_flag ;
@@ -3571,11 +3806,6 @@ ml_term_screen_new(
 	termscr->mod_meta_mode = mod_meta_mode ;
 
 	termscr->bel_mode = bel_mode ;
-
-	termscr->logvis = NULL ;
-	termscr->iscii_lang = iscii_lang ;
-	termscr->iscii_state = NULL ;
-	termscr->shape = NULL ;
 
 	/*
 	 * for receiving selection.
@@ -3682,7 +3912,7 @@ ml_term_screen_delete(
 	{
 		(*termscr->logvis->delete)( termscr->logvis) ;
 	}
-	
+
 	ml_image_final( &termscr->normal_image) ;
 	ml_image_final( &termscr->alt_image) ;
 
@@ -3804,7 +4034,7 @@ ml_set_encoding_listener(
 
 	termscr->encoding_listener = encoding_listener ;
 	
-	update_encoding_proper_aux( termscr) ;
+	update_encoding_proper_aux( termscr , 0) ;
 
 	if( (*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) == ML_ISCII)
 	{
@@ -3920,7 +4150,7 @@ ml_term_screen_get_cols(
 	ml_term_screen_t *  termscr
 	)
 {
-	return  ml_image_get_cols( termscr->image) ;
+	return  LOGICAL_NUM_OF_COLS(termscr) ;
 }
 
 u_int
@@ -3928,7 +4158,7 @@ ml_term_screen_get_rows(
 	ml_term_screen_t *  termscr
 	)
 {
-	return  ml_image_get_rows( termscr->image) ;
+	return  LOGICAL_NUM_OF_ROWS(termscr) ;
 }
 
 

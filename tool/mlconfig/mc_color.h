@@ -10,10 +10,13 @@
 #include  <ml_color.h>
 
 
-GtkWidget *  mc_color_config_widget_new( ml_color_t  selected_color ,
-	char *  title ,gint (*color_selected)(GtkWidget *,gpointer)) ;
+GtkWidget *  mc_fg_color_config_widget_new( ml_color_t  color) ;
 
-ml_color_t  mc_get_color( char *  name) ;
+GtkWidget *  mc_bg_color_config_widget_new( ml_color_t  color) ;
+
+ml_color_t  mc_get_fg_color(void) ;
+
+ml_color_t  mc_get_bg_color(void) ;
 
 
 #endif

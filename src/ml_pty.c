@@ -152,7 +152,7 @@ ml_set_pty_winsize(
 	)
 {
 	struct winsize  ws ;
-	
+
 	ws.ws_col = cols ;
 	ws.ws_row = rows ;
 	

@@ -11,13 +11,15 @@
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_str.h>
 
+#include  <ml_logical_visual.h>		/* ml_vertical_mode_t */
+
 #include  "mc_char_encoding.h"
-#include  "mc_fg_color.h"
-#include  "mc_bg_color.h"
+#include  "mc_color.h"
 #include  "mc_fade.h"
 #include  "mc_tabsize.h"
 #include  "mc_logsize.h"
 #include  "mc_fontsize.h"
+#include  "mc_screen_ratio.h"
 #include  "mc_mod_meta.h"
 #include  "mc_bel.h"
 #include  "mc_font_present.h"
@@ -38,8 +40,8 @@ static FILE *  out ;
 static GtkWidget *  is_comb_check ;
 static GtkWidget *  use_bidi_check ;
 static GtkWidget *  copy_paste_via_ucs_check ;
-
 static GtkWidget *  is_tp_check ;
+static GtkWidget *  is_vertical ;
 
 
 /* --- static functions --- */
@@ -75,10 +77,11 @@ apply_clicked(
 {
 	/*
 	 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
-	 * [mod meta mode] [bel mode] [combining char] [copy paste via ucs] [is transparent] \
-	 * [fade ratio] [font present] [is bidi] [xim] [locale][LF]
+	 * [screen width ratio] [screen height ratio] [mod meta mode] [bel mode] [vertical mode] \
+	 * [combining char] [copy paste via ucs] [is transparent] [fade ratio] [font present] \
+	 * [is bidi] [xim] [locale][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
 		mc_get_char_encoding() ,
 		mc_get_iscii_lang() ,
 		mc_get_fg_color() ,
@@ -86,8 +89,11 @@ apply_clicked(
 		mc_get_tabsize() ,
 		mc_get_logsize() ,
 		mc_get_fontsize() ,
+		mc_get_screen_width_ratio() ,
+		mc_get_screen_height_ratio() ,
 		mc_get_mod_meta_mode() ,
 		mc_get_bel_mode() ,
+		GTK_TOGGLE_BUTTON(is_vertical)->active ? (VERT_RTL | VERT_FULL_WIDTH) : 0 ,
 		GTK_TOGGLE_BUTTON(is_comb_check)->active ,
 		GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active ,
 		GTK_TOGGLE_BUTTON(is_tp_check)->active ,
@@ -326,8 +332,11 @@ show(
 	char *  fontsize ,
 	u_int  min_fontsize ,
 	u_int  max_fontsize ,
+	char *  screen_width_ratio ,
+	char *  screen_height_ratio ,
 	ml_mod_meta_mode_t  mod_meta_mode ,
 	ml_bel_mode_t  bel_mode ,
+	ml_vertical_mode_t  vertical_mode ,
 	int  is_combining_char ,
 	int  copy_paste_via_ucs ,
 	int  is_transparent ,
@@ -435,7 +444,19 @@ show(
 	gtk_widget_show( is_comb_check) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , is_comb_check , TRUE , TRUE , 0) ;
 
-	
+	hbox = gtk_hbox_new( TRUE , 5) ;
+	gtk_widget_show( hbox) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;	
+
+	if( ! ( is_vertical = mc_check_config_widget_new( "Vertical(CJK)" ,
+				vertical_mode == (VERT_RTL | VERT_FULL_WIDTH))) )
+	{
+		return  0 ;
+	}
+	gtk_widget_show( is_vertical) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , is_vertical , TRUE , TRUE , 0) ;
+
+
 	/* contents of the "Copy&paste" tab */
 
 	label = gtk_label_new( "Copy&paste") ;
@@ -525,6 +546,20 @@ show(
 	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
 	gtk_widget_show( vbox) ;
 
+	if( ! ( config_widget = mc_screen_width_ratio_config_widget_new( screen_width_ratio)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	
+	if( ! ( config_widget = mc_screen_height_ratio_config_widget_new( screen_height_ratio)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	
 	if( ! ( config_widget = mc_tabsize_config_widget_new( tabsize)))
 	{
 		return  0 ;
@@ -582,8 +617,11 @@ start_application(
 	char *  fontsize ;
 	u_int  min_fontsize ;
 	u_int  max_fontsize ;
+	char *  screen_width_ratio ;
+	char *  screen_height_ratio ;
 	int  mod_meta_mode ;
 	int  bel_mode ;
+	int  vertical_mode ;
 	int  is_combining_char ;
 	int  copy_paste_via_ucs ;
 	int  is_transparent ;
@@ -621,9 +659,9 @@ start_application(
 	fclose( in) ;
 
 	/*
-	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
-	 * [bel mode] [combining char] [copy paste via ucs] [is transparent] [font present] \
-	 * [is bidi] [xim] [locale][LF]
+	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
+	 * [mod meta mode] [bel mode] [vertical mode] [combining char] [copy paste via ucs] \
+	 * [is transparent] [font present] [is bidi] [xim] [locale][LF]
 	 */
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &encoding , p))
@@ -676,6 +714,16 @@ start_application(
 		return  0 ;
 	}
 	
+	if( ( screen_width_ratio = kik_str_sep( &input_line , " ")) == NULL)
+	{
+		return  0 ;
+	}
+	
+	if( ( screen_height_ratio = kik_str_sep( &input_line , " ")) == NULL)
+	{
+		return  0 ;
+	}
+	
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &mod_meta_mode , p))
 	{
@@ -684,6 +732,12 @@ start_application(
 
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &bel_mode , p))
+	{
+		return  0 ;
+	}
+
+	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+		! kik_str_to_int( &vertical_mode , p))
 	{
 		return  0 ;
 	}
@@ -734,9 +788,10 @@ start_application(
 	}
 	
 	return  show( x , y , encoding , iscii_lang , fg_color , bg_color , tabsize ,
-		logsize , fontsize , min_fontsize , max_fontsize ,
-		mod_meta_mode , bel_mode , is_combining_char , copy_paste_via_ucs ,
-		is_transparent , fade_ratio , font_present , use_bidi , xim , locale) ;
+		logsize , fontsize , min_fontsize , max_fontsize , screen_width_ratio ,
+		screen_height_ratio , mod_meta_mode , bel_mode , vertical_mode ,
+		is_combining_char , copy_paste_via_ucs , is_transparent , fade_ratio ,
+		font_present , use_bidi , xim , locale) ;
 }
 
 
@@ -761,7 +816,7 @@ main(
 		! kik_str_to_int( &in_fd , argv[3]) ||
 		! kik_str_to_int( &out_fd , argv[4]))
 	{
-		kik_msg_printf( "usage: (stdin 19) mlconfig [x] [y] [in] [out]\n") ;
+		kik_msg_printf( "usage: (stdin 22) mlconfig [x] [y] [in] [out]\n") ;
 		
 		return  0 ;
 	}

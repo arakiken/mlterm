@@ -808,6 +808,34 @@ ml_vt100_cmd_set_config(
 			}
 		}
 	}
+	else if( strcmp( key , "screen_width_ratio") == 0)
+	{
+		u_int  ratio ;
+
+		if( ! kik_str_to_uint( &ratio , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_screen_width_ratio)
+		{
+			(*termscr->config_menu_listener.change_screen_width_ratio)( termscr , ratio) ;
+		}
+	}
+	else if( strcmp( key , "screen_height_ratio") == 0)
+	{
+		u_int  ratio ;
+
+		if( ! kik_str_to_uint( &ratio , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_screen_height_ratio)
+		{
+			(*termscr->config_menu_listener.change_screen_height_ratio)( termscr , ratio) ;
+		}
+	}
 	else if( strcmp( key , "mod_meta_mode") == 0)
 	{
 		if( termscr->config_menu_listener.change_mod_meta_mode)
@@ -822,6 +850,14 @@ ml_vt100_cmd_set_config(
 		{
 			(*termscr->config_menu_listener.change_bel_mode)(
 				termscr , ml_get_bel_mode( value)) ;
+		}
+	}
+	else if( strcmp( key , "vertical_mode") == 0)
+	{
+		if( termscr->config_menu_listener.change_vertical_mode)
+		{
+			(*termscr->config_menu_listener.change_vertical_mode)(
+				termscr , ml_get_vertical_mode( value)) ;
 		}
 	}
 	else if( strcmp( key , "use_combining") == 0)
@@ -1055,6 +1091,16 @@ ml_vt100_cmd_get_config(
 	else if( strcmp( key , "fontsize") == 0)
 	{
 		sprintf( digit , "%d" , termscr->font_man->font_size) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "screen_width_ratio") == 0)
+	{
+		sprintf( digit , "%d" , termscr->screen_width_ratio) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "screen_height_ratio") == 0)
+	{
+		sprintf( digit , "%d" , termscr->screen_height_ratio) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "mod_meta_mode") == 0)

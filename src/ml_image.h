@@ -166,9 +166,9 @@ int  ml_cursor_row( ml_image_t *  image) ;
 
 void  ml_image_set_modified_all( ml_image_t *  image) ;
 
-inline u_int ml_image_get_cols( ml_image_t *  image) ;
+u_int ml_image_get_cols( ml_image_t *  image) ;
 
-inline u_int ml_image_get_rows( ml_image_t *  image) ;
+u_int ml_image_get_rows( ml_image_t *  image) ;
 
 int  ml_image_fill_all( ml_image_t *  image , ml_char_t *  ch) ;
 	
