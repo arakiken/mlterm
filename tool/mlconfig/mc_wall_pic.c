@@ -4,7 +4,7 @@
 
 #include  "mc_wall_pic.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <glib.h>
 #include  <c_intl.h>
@@ -104,7 +104,7 @@ mc_update_wall_pic(void)
 {
 	char *  new_wall_pic ;
 
-	new_wall_pic = gtk_editable_get_chars(GTK_EDITABLE(entry)));
+	new_wall_pic = gtk_editable_get_chars(GTK_EDITABLE(entry), 0, -1);
 
 	if( strcmp( old_wall_pic , new_wall_pic) != 0) is_changed = 1;
 

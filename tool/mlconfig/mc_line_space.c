@@ -4,7 +4,7 @@
 
 #include  "mc_line_space.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -60,7 +60,7 @@ mc_line_space_config_widget_new(void)
 		"0" ,
 	} ;
 
-	new_line_space = old_line_space = mc_get_str_value( "line_space") ;
+	new_line_space = strdup( old_line_space = mc_get_str_value( "line_space")) ;
 	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Line space (pixels)"), line_spaces,

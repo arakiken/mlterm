@@ -5,14 +5,14 @@
 #include  "mc_pty.h"
 
 #include  <stdio.h>
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>	/* malloc */
 #include  <kiklib/kik_str.h>	/* kik_str_sep */
 
 #include  "mc_combo.h"
 #include  "mc_io.h"
 
-#define MAX_TERMS 32 /* this must coincide with xwindow/x_term_manager.c */
+#define MAX_TERMS (sizeof(long)*8) /* this must coincide with xwindow/x_term_manager.c */
 
 /* --- static variables --- */
 
@@ -44,7 +44,7 @@ get_pty_title(char *dev)
 	sprintf(query, "%s:pty_name", dev);
 	name = mc_get_str_value(query);
 	return name;
-}  
+}
 
 char *
 get_pty_entry(char *dev)
@@ -68,7 +68,7 @@ get_pty_entry(char *dev)
 		free(title);
 		return dev+5;
 	}
-}  
+}
 
 /* --- global functions --- */
 
@@ -104,7 +104,7 @@ mc_pty_config_widget_new(void)
 		if (pty_list) pty_list++;
 	}
 
-	new_pty = old_pty = strdup(my_pty + 5);
+	new_pty = strdup( old_pty = strdup(my_pty + 5));
 
 	return mc_combo_new("", ptys, num, new_pty, 1, selected, NULL);
 }

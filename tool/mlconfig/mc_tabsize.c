@@ -4,7 +4,7 @@
 
 #include  "mc_tabsize.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -57,7 +57,7 @@ mc_tabsize_config_widget_new(void)
 		"2" ,
 	} ;
 
-	new_tabsize = old_tabsize = mc_get_str_value( "tabsize") ;
+	new_tabsize = strdup( old_tabsize = mc_get_str_value( "tabsize")) ;
 	is_changed = 0;
 
 	return  mc_combo_new_with_width( _("Tab width (columns)"), tabsizes,

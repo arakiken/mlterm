@@ -4,7 +4,7 @@
 
 #include  "mc_contrast.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -64,7 +64,7 @@ mc_contrast_config_widget_new(void)
 		"10" ,
 	} ;
 
-	new_contrast = old_contrast = mc_get_str_value( "contrast") ;
+	new_contrast = strdup( old_contrast = mc_get_str_value( "contrast")) ;
 	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Contrast"), contrasts,

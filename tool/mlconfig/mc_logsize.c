@@ -4,7 +4,7 @@
 
 #include  "mc_logsize.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -58,7 +58,7 @@ mc_logsize_config_widget_new(void)
 		"1024" ,
 	} ;
 
-	new_logsize = old_logsize = mc_get_str_value( "logsize") ;
+	new_logsize = strdup( old_logsize = mc_get_str_value( "logsize")) ;
 	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Backlog size (lines)"), logsizes,

@@ -4,7 +4,7 @@
 
 #include  "mc_sb_view.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_conf_io.h>
@@ -135,8 +135,8 @@ mc_sb_view_config_widget_new(void)
 	if (userdir) n = read_sb_names(userdir, sb_view_names, n);
 	n = read_sb_names(SB_DIR, sb_view_names, n);
 
-	new_sb_view_name = old_sb_view_name =
-	  mc_get_str_value( "scrollbar_view_name") ;
+	new_sb_view_name =
+		strdup( old_sb_view_name = mc_get_str_value( "scrollbar_view_name")) ;
 	is_changed = 0;
 
 	return  mc_combo_new( _("View") , sb_view_names , n,

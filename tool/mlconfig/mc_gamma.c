@@ -4,7 +4,7 @@
 
 #include  "mc_gamma.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -64,7 +64,7 @@ mc_gamma_config_widget_new(void)
 		"10" ,
 	} ;
 
-	new_gamma = old_gamma = mc_get_str_value( "gamma") ;
+	new_gamma = strdup( old_gamma = mc_get_str_value( "gamma")) ;
 	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Gamma"), gammas,

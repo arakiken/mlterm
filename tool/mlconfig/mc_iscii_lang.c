@@ -4,7 +4,7 @@
 
 #include  "mc_iscii_lang.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -66,7 +66,7 @@ mc_iscii_lang_config_widget_new(void)
 
 	} ;
 	
-	new_iscii_lang = old_iscii_lang = mc_get_str_value( "iscii_lang") ;
+	new_iscii_lang = strdup( old_iscii_lang = mc_get_str_value( "iscii_lang")) ;
 	is_changed = 0;
 
 	return  mc_combo_new( _("ISCII language") , iscii_langs ,

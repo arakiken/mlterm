@@ -4,7 +4,7 @@
 
 #include  "mc_brightness.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -66,7 +66,7 @@ mc_brightness_config_widget_new(
 		"10" ,
 	} ;
 
-	old_brightness = new_brightness = mc_get_str_value( "brightness") ;
+	old_brightness = strdup( new_brightness = mc_get_str_value( "brightness"));
 	is_changed = 0;
 	
 	return  mc_combo_new_with_width(_("Brightness"), brightnesses,

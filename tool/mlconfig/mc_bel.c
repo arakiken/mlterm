@@ -4,7 +4,7 @@
 
 #include  "mc_bel.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <glib.h>
 #include  <c_intl.h>

@@ -4,7 +4,7 @@
 
 #include  "mc_fade.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -64,7 +64,7 @@ mc_fade_config_widget_new(void)
 		"10" ,
 	} ;
 
-	new_fade_ratio = old_fade_ratio = mc_get_str_value( "fade_ratio") ;
+	new_fade_ratio = strdup( old_fade_ratio = mc_get_str_value( "fade_ratio")) ;
 	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Fade ratio on unfocus"), fade_ratios,

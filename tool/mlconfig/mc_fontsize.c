@@ -4,7 +4,7 @@
 
 #include  "mc_fontsize.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -21,8 +21,8 @@
 
 /* --- static variables --- */
 
-static char *  new_fontsize ;
-static char *  old_fontsize ;
+static char *  new_fontsize = NULL;
+static char *  old_fontsize = NULL;
 static int is_changed;
 
 
@@ -34,7 +34,8 @@ fontsize_selected(
 	gpointer  data
 	)
 {
-	new_fontsize = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	free( new_fontsize);
+	new_fontsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s font size is selected.\n" , new_fontsize) ;
@@ -56,7 +57,7 @@ mc_fontsize_config_widget_new(void)
 		"21" , "22" , "23" , "24" , "25" , "26" , "27" , "28" , "29" , "30" ,
 	} ;
 
-	new_fontsize = old_fontsize = mc_get_str_value( "fontsize") ;
+	new_fontsize = strdup( old_fontsize = mc_get_str_value( "fontsize")) ;
 	is_changed = 0;
 
 	return  mc_combo_new_with_width(_("Font size (pixels)"), fontlist ,

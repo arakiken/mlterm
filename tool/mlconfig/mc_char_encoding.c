@@ -4,7 +4,7 @@
 
 #include  "mc_char_encoding.h"
 #include  <stdio.h>
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <ctype.h>
 #include  <kiklib/kik_debug.h>
@@ -190,7 +190,8 @@ mc_char_encoding_config_widget_new(void)
 		sprintf(autostr, _("auto (currently %s)"),
 			savename(get_index(encoding)));
 		encodings[0] = autostr;
-	} else idx = get_index(encoding);	
+	} else
+		idx = get_index(encoding);
 
 	prepare_encodings_l10n();
 	widget = mc_combo_new(_("Encoding"), encodings_l10n,

@@ -4,7 +4,7 @@
 
 #include  "mc_screen_ratio.h"
 
-#include  <string.h>
+#include  <kiklib/kik_str.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -97,7 +97,7 @@ config_widget_new(
 GtkWidget *
 mc_screen_width_ratio_config_widget_new(void)
 {
-	new_screen_width_ratio = old_screen_width_ratio = mc_get_str_value( "screen_width_ratio") ;
+	new_screen_width_ratio = strdup( old_screen_width_ratio = mc_get_str_value( "screen_width_ratio")) ;
 	is_changed_width_ratio = 0;
 
 	return  config_widget_new(_("Width") , new_screen_width_ratio , screen_width_ratio_selected) ;
@@ -106,7 +106,7 @@ mc_screen_width_ratio_config_widget_new(void)
 GtkWidget *
 mc_screen_height_ratio_config_widget_new(void)
 {
-	new_screen_height_ratio = old_screen_height_ratio = mc_get_str_value( "screen_height_ratio") ;
+	new_screen_height_ratio = strdup( old_screen_height_ratio = mc_get_str_value( "screen_height_ratio")) ;
 	is_changed_height_ratio = 0;
 
 	return  config_widget_new(_("Height") , new_screen_height_ratio , screen_height_ratio_selected) ;
