@@ -910,15 +910,29 @@ parse_vt100_escape_sequence(
 
 						if( *str_p != ';')
 						{
+							/*
+							 * "ESC [ 0 n" is regarded as it is.
+							 */
 							break ;
 						}
 					}
 					else if( *str_p == ';')
 					{
+						/*
+						 * "ESC [ ; n " is regarded as "ESC [ 0 ; n"
+						 */
 						ps[num ++] = 0 ;
 					}
 					else
 					{
+						/*
+						 * "ESC [ n" is regarded as "ESC [ 0 n"
+						 * => this 0 is ignored after exiting this while block.
+						 *
+						 * "ESC [ 1 ; n" is regarded as "ESC [ 1 ; 0 n"
+						 */
+						ps[num ++] = 0 ;
+
 						break ;
 					}
 					
@@ -933,11 +947,14 @@ parse_vt100_escape_sequence(
 				}
 
 				/*
-				 * ingoring end 0 numbers.
+				 * XXX
+				 * 0 ps of something like ESC [ 0 n is ignored.
+				 * if there are multiple ps , no ps is ignored.
+				 * adhoc for vttest.
 				 */
-				while( num > 0 && ps[num - 1] == 0)
+				if( num == 1 && ps[0] == 0)
 				{
-					num -- ;
+					num = 0 ;
 				}
 
 			#ifdef  ESCSEQ_DEBUG

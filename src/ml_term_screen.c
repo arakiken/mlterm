@@ -551,6 +551,12 @@ window_exposed(
 	}
 	
 	ml_term_screen_redraw_image( termscr) ;
+
+	if( ml_convert_row_to_bs_row( &termscr->bs_image , start_row) <= ml_cursor_row( termscr->image) &&
+		ml_cursor_row( termscr->image) <= ml_convert_row_to_bs_row( &termscr->bs_image , end_row))
+	{
+		ml_term_screen_highlight_cursor( termscr) ;
+	}
 }
 
 static void
@@ -801,7 +807,7 @@ change_char_combining_flag(
 {
 	if( ! is_combining_char)
 	{
-		ml_stop_char_combining() ;
+		ml_unuse_char_combining() ;
 	}
 	else
 	{
@@ -2419,7 +2425,7 @@ flush_scroll_cache(
 	ml_term_screen_t *  termscr
 	)
 {
-	if( termscr->scroll_cache)
+	if( termscr->scroll_cache_rows)
 	{
 		if( ml_window_is_scrollable( &termscr->window))
 		{
@@ -2427,7 +2433,8 @@ flush_scroll_cache(
 			int  end_y ;
 			u_int  scroll_height ;
 
-			scroll_height = ml_line_height((termscr)->font_man) * abs( termscr->scroll_cache) ;
+			scroll_height = ml_line_height((termscr)->font_man) *
+						abs( termscr->scroll_cache_rows) ;
 
 			if( scroll_height < termscr->window.height)
 			{
@@ -2438,7 +2445,7 @@ flush_scroll_cache(
 					(termscr->scroll_cache_boundary_end -
 					termscr->scroll_cache_boundary_start + 1) ;
 
-				if( termscr->scroll_cache > 0)
+				if( termscr->scroll_cache_rows > 0)
 				{
 					ml_window_scroll_upward_region( &termscr->window ,
 						start_y , end_y , scroll_height) ;
@@ -2457,7 +2464,7 @@ flush_scroll_cache(
 		#endif
 		}
 
-		termscr->scroll_cache = 0 ;
+		termscr->scroll_cache_rows = 0 ;
 		
 		return  1 ;
 	}
@@ -2501,7 +2508,7 @@ window_scroll_upward(
 
 	set_scroll_boundary( termscr , 0 , ml_image_get_rows( termscr->image) - 1) ;
 	
-	termscr->scroll_cache += size ;
+	termscr->scroll_cache_rows += size ;
 
 	return  1 ;
 }
@@ -2523,7 +2530,7 @@ window_scroll_downward(
 	
 	set_scroll_boundary( termscr , 0 , ml_image_get_rows( termscr->image) - 1) ;
 	
-	termscr->scroll_cache -= size ;
+	termscr->scroll_cache_rows -= size ;
 
 	return  1 ;
 }
@@ -2549,7 +2556,7 @@ window_scroll_upward_region(
 
 	set_scroll_boundary( termscr , beg_row , end_row) ;
 	
-	termscr->scroll_cache += size ;
+	termscr->scroll_cache_rows += size ;
 
 	return  1 ;
 }
@@ -2575,7 +2582,7 @@ window_scroll_downward_region(
 
 	set_scroll_boundary( termscr , beg_row , end_row) ;
 	
-	termscr->scroll_cache -= size ;
+	termscr->scroll_cache_rows -= size ;
 
 	return  1 ;
 }
@@ -2995,6 +3002,9 @@ ml_term_screen_new(
 		goto  error ;
 	}
 
+	ml_char_final( &sp_ch) ;
+	ml_char_final( &nl_ch) ;
+
 	termscr->config_menu_listener.self = termscr ;
 	termscr->config_menu_listener.change_encoding = change_encoding ;
 	termscr->config_menu_listener.change_fg_color = change_fg_color ;
@@ -3079,7 +3089,7 @@ ml_term_screen_new(
 	termscr->system_listener = NULL ;
 	termscr->screen_scroll_listener = NULL ;
 
-	termscr->scroll_cache = 0 ;
+	termscr->scroll_cache_rows = 0 ;
 	termscr->scroll_cache_boundary_start = 0 ;
 	termscr->scroll_cache_boundary_end = 0 ;
 

@@ -6,7 +6,6 @@
 #define  __ML_CHAR_H__
 
 
-#include  <X11/Xlib.h>
 #include  <kiklib/kik_types.h>
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <mkf/mkf_charset.h>	/* mkf_charset_t */
@@ -72,7 +71,7 @@ typedef struct ml_char
 
 int  ml_use_char_combining(void) ;
 
-int  ml_stop_char_combining(void) ;
+int  ml_unuse_char_combining(void) ;
 
 int  ml_is_char_combining(void) ;
 
@@ -113,11 +112,11 @@ inline int  ml_char_combine( ml_char_t *  ch , u_char *  bytes , size_t  ch_size
 	ml_color_t  fg_color , ml_color_t  bg_color) ;
 	
 inline ml_char_t *  ml_get_combining_chars( ml_char_t *  ch , u_int *  size) ;
-	
+
 inline int  ml_char_copy( ml_char_t *  dst , ml_char_t *  src) ;
 
 inline u_char *  ml_char_bytes( ml_char_t *  ch) ;
-	
+
 inline int  ml_char_set_bytes( ml_char_t *  ch , u_char *  bytes , size_t  size) ;
 
 inline ml_font_t *  ml_char_font( ml_char_t *  ch) ;

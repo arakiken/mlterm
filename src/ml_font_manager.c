@@ -9,8 +9,6 @@
 #include  <kiklib/kik_mem.h>	/* malloc/alloca */
 #include  <kiklib/kik_str.h>	/* kik_str_dup */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
-#include  <kiklib/kik_conf_io.h>
-#include  <kiklib/kik_file.h>
 
 #include  "ml_font_intern.h"
 

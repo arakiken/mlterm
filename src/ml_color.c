@@ -4,6 +4,7 @@
 
 #include  "ml_color.h"
 
+#include  <string.h>		/* memcpy */
 #include  <kiklib/kik_mem.h>
 
 

@@ -4,7 +4,7 @@
 
 #include  "ml_keymap.h"
 
-#include  <string.h>		/* strchr */
+#include  <string.h>		/* strchr/memcpy */
 #include  <X11/keysym.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>

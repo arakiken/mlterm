@@ -5,7 +5,7 @@
 #include  "ml_term_manager.h"
 
 #include  <stdio.h>		/* sprintf */
-#include  <string.h>		/* memset */
+#include  <string.h>		/* memset/memcpy */
 #include  <pwd.h>		/* getpwuid */
 #include  <sys/time.h>		/* timeval */
 #include  <unistd.h>		/* getpid/select */

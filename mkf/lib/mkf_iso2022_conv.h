@@ -6,6 +6,8 @@
 #define  __MKF_ISO2022_CONV_H__
 
 
+#include  <kiklib/kik_types.h>	/* size_t */
+
 #include  "mkf_conv.h"
 
 

@@ -24,21 +24,21 @@
 
 typedef enum ml_font_attr
 {
-	/* 0x00 - 0x3fff is reserved for mkf_charset_t */
+	/* 0x00 - MAX_CHARSET(0x7ff) is reserved for mkf_charset_t */
 
-	/* 0x4000 - 0x8000 is reserved for font thickness */
-	FONT_MEDIUM = 0x4000u ,
-	FONT_BOLD   = 0x8000u ,
+	/* 0x1000 - 0x2000 is reserved for font thickness */
+	FONT_MEDIUM = 0x1000u ,
+	FONT_BOLD   = 0x2000u ,
 
-	/* 0x10000 - 0x20000 is reserved for font slant */
-	FONT_ROMAN  = 0x10000u ,
-	FONT_ITALIC = 0x20000u ,
+	/* 0x4000 - 0x8000 is reserved for font slant */
+	FONT_ROMAN  = 0x4000u ,
+	FONT_ITALIC = 0x8000u ,
 	
-	/* 0x40000 - 0x40000 is reserved for font width */
-	FONT_NORMAL = 0x40000u ,
+	/* 0x10000 - 0x10000 is reserved for font width */
+	FONT_NORMAL = 0x10000u ,
 
-	/* 0x80000 - 0x80000 is reserved for font */
-	FONT_BIWIDTH = 0x80000u ,
+	/* 0x20000 - 0x20000 is reserved for font */
+	FONT_BIWIDTH = 0x20000u ,
 
 } ml_font_attr_t ;
 

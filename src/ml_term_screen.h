@@ -108,7 +108,7 @@ typedef struct  ml_term_screen
 	mkf_conv_t *  utf8_conv ;
 	mkf_conv_t *  xct_conv ;
 	
-	int  scroll_cache ;
+	int  scroll_cache_rows ;
 	int  scroll_cache_boundary_start ;
 	int  scroll_cache_boundary_end ;
 

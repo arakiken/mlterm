@@ -7,7 +7,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* free */
 #include  <kiklib/kik_str.h>	/* strdup */
-#include  <kiklib/kik_util.h>
+#include  <kiklib/kik_util.h>	/* K_MIN */
 
 
 #define  ROW_IN_LOGS(bs_image,row) \

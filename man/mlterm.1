@@ -1,7 +1,7 @@
 .\" mlterm.1   -*- nroff -*-
 .TH MLTERM 1 "2001-12-21"
 .SH NAME
-mlterm \- Multi Lingual TERMinal emultator for X
+mlterm \- Multi Lingual TERMinal emulator for X
 .SH SYNOPSIS
 .B mlterm
 .RB [-\fIoptions\fP]
@@ -203,7 +203,7 @@ Enable combining characters by overstriking glyphs (recommended
 for TIS-620, TCVN5712, and UTF-8).
 Note that fonts which contain combining characters which extend
 backward cannot be used, since \fBmlterm\fR does combine characters
-by controling the writing positions.
+by controlling the writing positions.
 The default is "\fBtrue\fR".
 .TP
 \fB\-n\fR, \fB\-\-noucsfont\fR(=\fIbool\fR)
@@ -272,7 +272,7 @@ X Input Method
 Specify the name of XIM server to be connected.  You can input
 from your keyboard or you can choose one of registered XIM servers.
 This doesn't have equivalent command option.
-See the section of \fBXIM Configuation File\fR for registration of
+See the section of \fBXIM Configuration File\fR for registration of
 XIM servers.
 .TP
 XIM locale
@@ -346,14 +346,14 @@ Specify the image file to be used for background image.
 .SH MULTIPLE XIM
 \fBmlterm\fR can use multiple XIM (X Input Method) servers.  The current
 XIM is specified by the GUI configurator.  Using this feature you
-can input multiple complex languages such as Japanse and Korean.
-Locale to be used for comminucation with XIM can also be specified
+can input multiple complex languages such as Japanese and Korean.
+Locale to be used for communication with XIM can also be specified
 for each XIM.  In the GUI configurator, you can choose one of
 registered pair of XIM and its locale or you can input your favorite
 XIM and its locale.
 .PP
 The locale for XIM is only used for communication with the XIM and
-is not related to the current \fBmterm\fR locale.  You have to
+is not related to the current \fBmlterm\fR locale.  You have to
 properly configure the XIM locale only when your XIM has preference
 on the locale of XIM client (i.e., \fBmlterm\fR in this case).
 \fBmlterm\fR automatically convert the inputed string into proper
@@ -385,7 +385,7 @@ by using \fB\-p\fR option.
 .PP
 Note this feature needs imlib.
 .\" ********************************************************************
-.SH MULITPLE PTY
+.SH MULTIPLE PTY
 This is one of most unique features of \fBmlterm\fR.
 The number of windows can be specified using \-P option.
 Typing control + F1 opens another window which shares the same process.
@@ -557,7 +557,7 @@ version 1.9.44.
 This file contains main configuration items which can be
 overrided by command line options.
 The main configuration file "\fBmain\fR" has the following keys.
-Parentheses show the correspoinding command-line options.
+Parentheses show the corresponding command-line options.
 See the explanation on these command-line options for detail.
 .TP
 \fBtabsize=\fIvalue\fR (\-x, \-\-tw)
@@ -773,11 +773,11 @@ where \fIMASK\fR is one of \fBControl\fR, \fBShift\fR, and
 The feature key configuration file "\fBtermcap\fR" has the following keys.
 .TP
 \fBkD=\fIsequence\fR
-Specify sequence to be outputed when Delete key is pushed
+Specify sequence to be outputted when Delete key is pushed
 (default \fI^?\fR).
 .TP
 \fBkb=\fIsequence\fR
-Specify sequence to be outputed when BackSpace key is pushed
+Specify sequence to be outputted when BackSpace key is pushed
 (default \fI^H\fR).
 .PP
 The following special characters can be used to specify \fIsequence\fR.
@@ -789,7 +789,7 @@ ESC code (0x1b).
 DEL code (0x7f).
 .TP
 \fB^A\fR, \fB^B\fR,...
-Corrsponding control code (0x01 \- 0x1a).
+Corresponding control code (0x01 \- 0x1a).
 .\" ********************************************************************
 .SH SEE ALSO
 Manual pages of

@@ -5,9 +5,8 @@
 #include  "ml_char.h"
 
 #include  <stdio.h>		/* fprintf */
-#include  <string.h>		/* memset */
+#include  <string.h>		/* memset/memcpy */
 #include  <kiklib/kik_debug.h>
-#include  <mkf/mkf_ucs_property.h>
 
 #include  "ml_font.h"
 
@@ -50,7 +49,7 @@ ml_use_char_combining(void)
 }
 
 int
-ml_stop_char_combining(void)
+ml_unuse_char_combining(void)
 {
 	is_char_combining = 0 ;
 

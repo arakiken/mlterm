@@ -29,7 +29,7 @@ ml_bidi(
 	)
 {
 	FriBidiChar *  fri_src ;
-	FriBidiCharType  type = FRIBIDI_TYPE_LTR ;
+	FriBidiCharType  type ;
 	u_char *  bytes ;
 	int  counter ;
 
@@ -73,6 +73,9 @@ ml_bidi(
 			fri_src[counter] = 0x20 ;
 		}
 	}
+
+	/* initial state */
+	type = FRIBIDI_TYPE_LTR ;
 
 	fribidi_log2vis( fri_src , size , &type , NULL , order , NULL , NULL) ;
 

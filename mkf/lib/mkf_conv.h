@@ -6,6 +6,8 @@
 #define  __MKF_CONV_H__
 
 
+#include  <kiklib/kik_types.h>	/* size_t */
+
 #include  "mkf_parser.h"
 
 

@@ -9,7 +9,7 @@
 #include  <termios.h>
 #include  <signal.h>		/* signal/SIGWINCH */
 #include  <stdio.h>		/* fprintf */
-#include  <string.h>		/* strchr */
+#include  <string.h>		/* strchr/memcpy */
 #include  <stdlib.h>		/* putenv */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* realloc/alloca */

@@ -48,7 +48,7 @@ typedef struct  ml_vt100_parser
 	int8_t  only_use_unicode_font ;
 	
 	u_int  col_size_of_east_asian_width_a ;
-		
+	
 	ml_font_attr_t  font_attr ;
 	ml_font_decor_t  font_decor ;
 	ml_font_attr_t  saved_attr ;
@@ -75,7 +75,7 @@ ml_vt100_parser_t *  ml_vt100_parser_new( ml_term_screen_t *  term_window ,
 int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
 
 int  ml_vt100_parser_set_pty( ml_vt100_parser_t *  vt100_parser , ml_pty_t *  pty) ;
-	
+
 int  ml_set_col_size_of_east_asian_width_a( int  col_size) ;
 
 int  ml_parse_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;

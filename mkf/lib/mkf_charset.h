@@ -19,6 +19,7 @@
 #define  CS94MB_ID(c)  ( (u_char)(c) + 0x70)
 /* 0xf0 - 0x13e */
 #define  CS96MB_ID(c)  ( (u_char)(c) + 0xc0)
+
 /* 0x140 - 0x18e */
 #define  NON_ISO2022_1_ID(c)  ( (u_char)(c) + 0x110)
 /* 0x190 - 0x1de */
@@ -26,7 +27,7 @@
 
 /* 0x400 - 0x53e (= 0x400 | CS9XXB_ID) */
 #define  CS_REVISION_1(cs)	( (cs) + 0x400)
-/* 0x600 - 0x73e (= 0x800 | CS9XXB_ID) */
+/* 0x600 - 0x73e (= 0x600 | CS9XXB_ID) */
 #define  CS_REVISION_2(cs)	( (cs) + 0x600)
 
 #define  CS94SB_FT(i)  ( (int)(i) + 0x30)
@@ -35,7 +36,7 @@
 #define  CS96MB_FT(i)  ( (int)(i) - 0xc0)
 
 /*
- * 'and 0x3ff' should be done because 0x400 - is 'or cs_revision'
+ * 'and 0x3ff' should be done because 0x400 - region is used for 'or cs_revision'
  */
  
 #define  IS_CS94SB(cs)  (0x00 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0x4e)
@@ -142,6 +143,8 @@ typedef enum  mkf_charset
 
 	/* followings are ISO2022 charsets of rev 1 */
 	JISX0208_1990 = CS_REVISION_1( CS94MB_ID('B')) ,
+	
+	MAX_CHARSET = 0x7ff ,
 	
 } mkf_charset_t ;
 

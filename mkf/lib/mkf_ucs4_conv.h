@@ -12,5 +12,4 @@
 mkf_conv_t *  mkf_ucs4_conv_new(void) ;
 
 
-
 #endif

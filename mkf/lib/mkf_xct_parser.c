@@ -8,7 +8,6 @@
 #include  <string.h>		/* strncmp */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* malloc */
-#include  <kiklib/kik_types.h>	/* size_t */
 
 #include  "mkf_iso2022_parser.h"
 
