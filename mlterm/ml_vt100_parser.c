@@ -652,6 +652,12 @@ config_protocol_save(
 				*(p ++) = '\0' ;
 			}
 
+			/* XXX */
+			if( strcmp( pt , "encoding") == 0)
+			{
+				pt = "ENCODING" ;
+			}
+			
 			kik_conf_io_write( conf , pt , val) ;
 
 			pt = p ;
