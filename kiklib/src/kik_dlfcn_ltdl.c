@@ -39,11 +39,7 @@ kik_dl_open(
 		return  NULL ;
 	}
 
-#ifndef __CYGWIN__
 	sprintf( path , "%slib%s" , dirpath , name) ;
-#else
-	sprintf( path , "%scyg%s" , dirpath , name) ;
-#endif
 
 	handle = lt_dlopenext( path ) ;
 

@@ -1,3 +1,13 @@
+2003-08-03  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* configure.in, configure, kiklib/configure.in, kiklib/configure
+	  kiklib/src/Makefile.in, kik_dlfcn_ltdl.c, xwindow/Makefile.in
+	  tool/mlconfig/Makefile.in, contrib/tool/mlterm-menu/Makefile.in:
+	  Added libltdl support.
+	  (Thanks to Aida Shinra san for sending a patch)
+
+	* kik_dlfcn_dld.c, kik_dlfcn_win32.c: Some cleanups.
+
 2003-08-03  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_line.c(ml_line_set_modified):

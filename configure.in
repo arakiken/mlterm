@@ -261,7 +261,7 @@ sample)
 	OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
 	if test "x$with_libltdl" != "xno" ; then
 		for name in sample sample2 ; do
-			DL_LIBS="-dlopen \$(top_builddir)/scrollbar/sample/lib$name.la ${MODULES}"
+			DL_LIBS="-dlopen \$(top_builddir)/scrollbar/sample/lib$name.la ${DL_LIBS}"
 		done
 	fi
 	;;
@@ -270,7 +270,7 @@ extra)
 	OUTPUT_FILES="contrib/scrollbar/extra/Makefile ${OUTPUT_FILES}"
 	if test "x$with_libltdl" != "xno" ; then
 		for name in athena next motif mozmodern ; do
-			DL_LIBS="-dlopen \$(top_builddir)/contrib/scrollbar/extra/lib$name.la ${MODULES}"
+			DL_LIBS="-dlopen \$(top_builddir)/contrib/scrollbar/extra/lib$name.la ${DL_LIBS}"
 		done
 	fi
 	;;
@@ -287,7 +287,7 @@ pixmap_engine)
 		MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
-			DL_LIBS="-dlopen \$(top_builddir)/contrib/scrollbar/pixmap_engine/libpixmap_engine.la ${MODULES}"
+			DL_LIBS="-dlopen \$(top_builddir)/contrib/scrollbar/pixmap_engine/libpixmap_engine.la ${DL_LIBS}"
 		else
 			DL_LIBS="-export-dynamic"
 		fi
