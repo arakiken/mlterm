@@ -133,11 +133,15 @@ ml_get_detached_term(
 	char *  dev
 	)
 {
-	ml_term_t *  term ;
+	int  count ;
 
-	if( ( term = ml_get_term( dev)) && ! ml_term_is_attached( term))
+	for( count = 0 ; count < num_of_terms ; count ++)
 	{
-		return  term ;
+		if( ( dev == NULL || strcmp( dev , ml_term_get_slave_name( terms[count])) == 0) &&
+			! ml_term_is_attached( terms[count]))
+		{
+			return  terms[count] ;
+		}
 	}
 
 	return  NULL ;
