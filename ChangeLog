@@ -1,3 +1,7 @@
+2003-05-18 Araki Ken <arakiken@users.sf.net>
+
+	* Set adhoc_right_align of bidi_logical_visual off.
+
 2003-05-17  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* mlterm now accepts configuration strings 
