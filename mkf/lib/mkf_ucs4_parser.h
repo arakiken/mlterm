@@ -11,5 +11,7 @@
 
 mkf_parser_t *  mkf_ucs4_parser_new(void) ;
 
+mkf_parser_t *  mkf_utf32_parser_new(void) ;
+
 
 #endif

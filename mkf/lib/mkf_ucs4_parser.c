@@ -32,15 +32,15 @@ ucs4_parser_init(
 
 static void
 ucs4_parser_set_str(
-	mkf_parser_t *  ucs4_parser ,
+	mkf_parser_t *  parser ,
 	u_char *  str ,
 	size_t  size
 	)
 {
-	ucs4_parser->str = str ;
-	ucs4_parser->left = size ;
-	ucs4_parser->marked_left = 0 ;
-	ucs4_parser->is_eos = 0 ;
+	parser->str = str ;
+	parser->left = size ;
+	parser->marked_left = 0 ;
+	parser->is_eos = 0 ;
 }
 
 static void
@@ -53,59 +53,59 @@ ucs4_parser_delete(
 
 static int
 ucs4_parser_next_char(
-	mkf_parser_t *  ucs4_parser ,
+	mkf_parser_t *  parser ,
 	mkf_char_t *  ucs4_ch
 	)
 {
-	mkf_ucs4_parser_t *  __ucs4_parser ;
+	mkf_ucs4_parser_t *  ucs4_parser ;
 
-	if( ucs4_parser->is_eos)
+	if( parser->is_eos)
 	{
 		return  0 ;
 	}
 
-	mkf_parser_mark( ucs4_parser) ;
+	mkf_parser_mark( parser) ;
 	
-	__ucs4_parser = (mkf_ucs4_parser_t*)ucs4_parser ;
+	ucs4_parser = (mkf_ucs4_parser_t*)parser ;
 	
-	if( ucs4_parser->left < 4)
+	if( parser->left < 4)
 	{
-		ucs4_parser->is_eos = 1 ;
+		parser->is_eos = 1 ;
 	
 		return  0 ;
 	}
 
-	if( memcmp( ucs4_parser->str , "\x00\x00\xfe\xff" , 4) == 0)
+	if( memcmp( parser->str , "\x00\x00\xfe\xff" , 4) == 0)
 	{
-		__ucs4_parser->is_big_endian = 1 ;
+		ucs4_parser->is_big_endian = 1 ;
 
-		mkf_parser_n_increment( ucs4_parser , 4) ;
+		mkf_parser_n_increment( parser , 4) ;
 
-		return  ucs4_parser_next_char( ucs4_parser , ucs4_ch) ;
+		return  ucs4_parser_next_char( parser , ucs4_ch) ;
 	}
-	else if( memcmp( ucs4_parser->str , "\xff\xfe\x00\x00" , 4) == 0)
+	else if( memcmp( parser->str , "\xff\xfe\x00\x00" , 4) == 0)
 	{
-		__ucs4_parser->is_big_endian = 0 ;
+		ucs4_parser->is_big_endian = 0 ;
 		
-		mkf_parser_n_increment( ucs4_parser , 4) ;
+		mkf_parser_n_increment( parser , 4) ;
 
-		return  ucs4_parser_next_char( ucs4_parser , ucs4_ch) ;
+		return  ucs4_parser_next_char( parser , ucs4_ch) ;
 	}
 	else
 	{
-		if( __ucs4_parser->is_big_endian)
+		if( ucs4_parser->is_big_endian)
 		{
-			memcpy( ucs4_ch->ch , ucs4_parser->str , 4) ;
+			memcpy( ucs4_ch->ch , parser->str , 4) ;
 		}
 		else
 		{
-			ucs4_ch->ch[0] = ucs4_parser->str[3] ;
-			ucs4_ch->ch[1] = ucs4_parser->str[2] ;
-			ucs4_ch->ch[2] = ucs4_parser->str[1] ;
-			ucs4_ch->ch[3] = ucs4_parser->str[0] ;
+			ucs4_ch->ch[0] = parser->str[3] ;
+			ucs4_ch->ch[1] = parser->str[2] ;
+			ucs4_ch->ch[2] = parser->str[1] ;
+			ucs4_ch->ch[3] = parser->str[0] ;
 		}
 
-		mkf_parser_n_increment( ucs4_parser , 4) ;
+		mkf_parser_n_increment( parser , 4) ;
 
 		ucs4_ch->cs = ISO10646_UCS4_1 ;
 		ucs4_ch->size = 4 ;
@@ -123,7 +123,7 @@ mkf_ucs4_parser_new(void)
 {
 	mkf_ucs4_parser_t *  ucs4_parser ;
 
-	if( ( ucs4_parser = malloc( sizeof( mkf_ucs4_parser_t))) == 0)
+	if( ( ucs4_parser = malloc( sizeof( mkf_ucs4_parser_t))) == NULL)
 	{
 		return  NULL ;
 	}
@@ -136,4 +136,10 @@ mkf_ucs4_parser_new(void)
 	ucs4_parser->parser.next_char = ucs4_parser_next_char ;
 
 	return  (mkf_parser_t*) ucs4_parser ;
+}
+
+mkf_parser_t *
+mkf_utf32_parser_new(void)
+{
+	return  mkf_ucs4_parser_new() ;
 }

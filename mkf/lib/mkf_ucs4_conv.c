@@ -154,3 +154,9 @@ mkf_ucs4_conv_new(void)
 
 	return  (mkf_conv_t*)ucs4_conv ;
 }
+
+mkf_conv_t *
+mkf_utf32_conv_new(void)
+{
+	return  mkf_ucs4_conv_new() ;
+}

@@ -11,5 +11,8 @@
 
 mkf_conv_t *  mkf_ucs4_conv_new(void) ;
 
+/* alias of mkf_ucs4_conv_new */
+mkf_conv_t *  mkf_utf32_conv_new(void) ;
+
 
 #endif

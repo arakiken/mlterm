@@ -186,7 +186,7 @@ mkf_utf16_parser_new(void)
 {
 	mkf_utf16_parser_t *  utf16_parser ;
 
-	if( ( utf16_parser = malloc( sizeof( mkf_utf16_parser_t))) == 0)
+	if( ( utf16_parser = malloc( sizeof( mkf_utf16_parser_t))) == NULL)
 	{
 		return  NULL ;
 	}
