@@ -1,5 +1,13 @@
 2003-1-12 Araki Ken <arakiken@users.sf.net>
 
+	* Multiple 'key=value' pairs separated by ';' can be specified
+	  in "ESC ] 5379 ; .... BEL".
+	* Newly added "ESC ] 5382 ; ... BEL sequence" and "ESC ] 5383 ; ... BEL sequence".
+	  The former sequence saves specified key and value pairs in ~/.mlterm/main,
+	  and the latter one sets and saves them at the same time.
+
+2003-1-12 Araki Ken <arakiken@users.sf.net>
+
 	* Cleaned up codes around arabic shaping.
 	* Merged gettextize patch.
 	  (Thanks to Mike Fabian and Koushi Takahashi san)
