@@ -49,7 +49,6 @@ static cache_info_t misc ;
 static int  display_count = 0 ;
 
 static unsigned char  value_table[256] ;
-static x_picture_modifier_t  value_table_mod ;
 
 /* --- static functions --- */
 static int
@@ -1175,18 +1174,9 @@ value_table_refresh(
 	int i ;
 	double real_gamma , real_brightness, real_contrast;
 
-	if( is_picmod_eq(mod, &value_table_mod))
-		return ;
-
-	value_table_mod.brightness = mod->brightness ;
-	value_table_mod.contrast = mod->contrast ;
-	value_table_mod.gamma = mod->gamma ;
-
-	memset(value_table, 0, sizeof(value_table)) ;
-
-	real_gamma = (double)(value_table_mod.gamma) / 100 ;
-	real_contrast = (double)(value_table_mod.contrast) / 100 ;
-	real_brightness = (double)(value_table_mod.brightness) / 100 ;
+	real_gamma = (double)(mod->gamma) / 100 ;
+	real_contrast = (double)(mod->contrast) / 100 ;
+	real_brightness = (double)(mod->brightness) / 100 ;
 	i = 128 ;
 	while( i > 0)
 	{
@@ -1447,11 +1437,6 @@ x_imagelib_display_opened(
 #ifndef OLD_GDK_PIXBUF
 		g_type_init() ;
 #endif /*OLD_GDK_PIXBUF*/
-		for (i = 0; i < 256; i++)		
-			value_table[i] = i ;		
-		value_table_mod.brightness = 100 ;
-		value_table_mod.contrast = 100 ;
-		value_table_mod.gamma = 100 ;
 	}
 	display_count ++ ;
 	return 1 ;
