@@ -22,6 +22,10 @@ static char *  sb_view_names[] =
 	"simple" ,
 	"sample" ,
 	"sample2" ,
+	"athena" ,
+	"motif" ,
+	"mozmodern" ,
+	"next" ,
 } ;
 
 static char *  selected_sb_view_name ;
