@@ -1292,7 +1292,7 @@ ml_calculate_char_width(
 	mkf_charset_t  cs
 	)
 {
-	if( ! font->is_proportional)
+	if( ! font->is_proportional || font->decsp_font)
 	{
 		return  font->width ;
 	}
