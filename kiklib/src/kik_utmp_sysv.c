@@ -3,7 +3,7 @@
  */
 
 /* Sample implementation - who/w  works;
-                           finger doesn't
+                           finger doesn't (WHY ??)
  */
 
 #if 1
@@ -29,6 +29,18 @@
 #include "kik_util.h"	/* K_MIN */
 #include "kik_mem.h"	/* malloc/free */
 
+#ifdef UTMPX
+#define LINE_WIDTH 32
+#else
+#define LINE_WIDTH 12
+#endif
+
+struct  kik_utmp
+{
+        char  ut_line[LINE_WIDTH];
+        char  ut_pos[4];
+};
+
 /* --- global functions --- */
 
 kik_utmp_t
@@ -38,20 +50,22 @@ kik_utmp_new(
 	     int    pty_fd
 	    )
 {
-  kik_utmp_t	utmp;
 #ifdef UTMPX
   struct utmpx	ut;
 #else
   struct utmp	ut;
 #endif
+
+  kik_utmp_t      utmp;
   struct passwd * pwent;
-  char		* pw_name;
+  char          * pw_name;
+  char          * tty_num;
 
   struct timeval timenow;
 
   gettimeofday(&timenow, NULL);
 
-  if ( (utmp = malloc(sizeof(kik_utmp_t))) == NULL )
+  if ( (utmp = malloc(sizeof(*utmp))) == NULL )
   {
     return NULL;
   }
@@ -94,17 +108,17 @@ kik_utmp_new(
     return NULL;
   }
 
-  /* fill the ut.ut_line */
-#ifdef UTMPX
-  strncpy( ut.ut_name, pw_name, K_MIN(sizeof(ut.ut_name), strlen(pw_name)) );
-#else
-  strncpy( ut.ut_user, pw_name, K_MIN(sizeof(ut.ut_name), strlen(pw_name)) );
-#endif
-	
-  memcpy( ut.ut_line, tty, K_MIN(sizeof(ut.ut_line), strlen(tty)));
+  strncpy( ut.ut_user, pw_name, K_MIN(sizeof(ut.ut_user), strlen(pw_name)) );
+
+  tty_num = strstr(tty, "/");
+  tty_num++;
+
+  memcpy( ut.ut_id, tty_num, K_MIN(sizeof(ut.ut_id), strlen(tty_num)) );
+  memcpy( ut.ut_line, tty, K_MIN(sizeof(ut.ut_line), strlen(tty)) );
 
   ut.ut_pid	= getpid();
   ut.ut_type	= USER_PROCESS;
+
 #ifdef UTMPX
   ut.ut_tv	= timenow;
 #else
@@ -112,15 +126,16 @@ kik_utmp_new(
 #endif
 
 #ifdef UTMPX
-  memcpy(ut.ut_host, host, K_MIN(sizeof( ut.ut_host), strlen(host)));
+  memcpy(ut.ut_host, host, K_MIN(sizeof(ut.ut_host), strlen(host)));
 #endif
+
+  memcpy( utmp->ut_line, tty,
+	  K_MIN(sizeof(utmp->ut_line), strlen(tty)) );
+  memcpy( utmp->ut_pos, tty_num,
+	  K_MIN(sizeof(utmp->ut_pos), strlen(tty_num)) );
 
   kik_priv_restore_euid();	/* useless? */
   kik_priv_restore_egid();
-
-/*
-  memcpy(utmp->ut_line, ut.ut_line, sizeof(utmp->ut_line));
- */
 
   /* insert new entry */
 #ifdef UTMPX
@@ -161,9 +176,15 @@ kik_utmp_delete(
 
   memset( &ut, 0, sizeof(ut) );
 
-  *ut.ut_user	= 0;
+  memcpy( ut.ut_id, utmp->ut_pos,
+	  K_MIN(sizeof(ut.ut_id), strlen(utmp->ut_pos)) );
+  memcpy( ut.ut_line, utmp->ut_line,
+	  K_MIN(sizeof(ut.ut_line), strlen(utmp->ut_line)) );
+  memset( ut.ut_user, 0, sizeof(ut.ut_name));
+
   ut.ut_pid	= getpid();
   ut.ut_type	= DEAD_PROCESS;
+
 #ifdef UTMPX
   ut.ut_tv.tv_sec  = 0;
   ut.ut_tv.tv_usec = 0;

@@ -877,6 +877,9 @@ ml_line_bidi_render(
 	ml_line_t *  line
 	)
 {
+	int  base_is_rtl ;
+	int  result ;
+	
 	if( ! line->bidi_state)
 	{
 	#ifdef  DEBUG
@@ -886,7 +889,22 @@ ml_line_bidi_render(
 		return  0 ;
 	}
 
-	return  ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars) ;
+	base_is_rtl = line->bidi_state->base_is_rtl ;
+
+	result = ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars) ;
+
+	if( base_is_rtl && ! line->bidi_state->base_is_rtl)
+	{
+		/* shifting RTL-base to LTR-base (which requires redrawing line all) */
+		ml_line_set_modified_all( line) ;
+	}
+	else if( line->bidi_state->has_rtl && IS_MODIFIED(line->flag))
+	{
+		/* if line contains RTL chars, line is redrawn all */
+		ml_line_set_modified( line , 0 , END_CHAR_INDEX(line) , IS_CLEARED_TO_END(line->flag)) ;
+	}
+	
+	return  result ;
 }
 
 int
@@ -928,11 +946,6 @@ ml_line_bidi_visual(
 	}
 
 	ml_str_final( src , line->bidi_state->size) ;
-
-	if( line->bidi_state->has_rtl && IS_MODIFIED(line->flag))
-	{
-		ml_line_set_modified( line , 0 , END_CHAR_INDEX(line) , IS_CLEARED_TO_END(line->flag)) ;
-	}
 
 	return  1 ;
 }
