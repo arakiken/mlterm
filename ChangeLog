@@ -1,3 +1,7 @@
+2003-07-27  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* mkf/lib/Makefile.in: My change(2003-03-21) seems to be wrong. Fixed.
+
 2003-07-27  Araki Ken  <arakiken@users.sf.net>
 
 	* Added OPTIMIZE_REDRAWING macro, which is defined by default, to ml_line.c.
