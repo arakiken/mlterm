@@ -7,6 +7,7 @@
 #include  <X11/cursorfont.h>
 #include  <ml_sb_view.h>
 
+#include  "exsb_common.h"
 #include  "next_data.h"
 
 #define  WIDTH          18
@@ -42,33 +43,8 @@ typedef struct  next_sb_view
 
 /* --- static functions --- */
 
-static unsigned long
-get_color_by_name(
-	ml_sb_view_t *  view ,
-	char * color_name
-	)
-{
-	XColor color ;
-
-	if ( XParseColor( view -> display ,
-			DefaultColormap( view->display , view->screen),
-			color_name , &color )  == 0)
-	{
-		return BlackPixel( view->display , view->screen ) ;
-	}
-
-	if ( XAllocColor( view->display ,
-			DefaultColormap( view->display , view->screen ) ,
-			&color ) == 0)
-	{
-		return BlackPixel( view->display , view->screen ) ;
-	}
-
-	return color.pixel ;
-}
-
 static Pixmap
-ml_next_sb_get_icon_pixmap(
+get_icon_pixmap(
 	ml_sb_view_t *  view ,
 	GC  gc ,
 	char **  data ,
@@ -271,25 +247,25 @@ realized(
 			GCForeground | GCBackground | GCGraphicsExposures ,
 			&gc_value) ;
 
-	next_sb->gray_light = get_color_by_name( view , "rgb:ae/aa/ae") ;
-	next_sb->gray_dark  = get_color_by_name( view , "rgb:51/55/51") ;
+	next_sb->gray_light = exsb_get_pixel( view->display , view->screen ,
+					      "rgb:ae/aa/ae") ;
+	next_sb->gray_dark  = exsb_get_pixel( view->display , view->screen ,
+					      "rgb:51/55/51") ;
 
 	next_sb->background = create_bg( view , WIDTH , view->height);
-	next_sb->bar_relief = ml_next_sb_get_icon_pixmap( view , next_sb->gc ,
+	next_sb->bar_relief = get_icon_pixmap( view , next_sb->gc ,
 				bar_relief_src ,
 				BAR_RELIEF_SIZE , BAR_RELIEF_SIZE);
-	next_sb->arrow_up = ml_next_sb_get_icon_pixmap( view , next_sb->gc ,
+	next_sb->arrow_up = get_icon_pixmap( view , next_sb->gc ,
 				arrow_up_src ,
 				BUTTON_SIZE , BUTTON_SIZE) ;
-	next_sb->arrow_down = ml_next_sb_get_icon_pixmap( view , next_sb->gc ,
+	next_sb->arrow_down = get_icon_pixmap( view , next_sb->gc ,
 				arrow_down_src ,
 				BUTTON_SIZE , BUTTON_SIZE) ;
-	next_sb->arrow_up_pressed = ml_next_sb_get_icon_pixmap( view ,
-				next_sb->gc ,
+	next_sb->arrow_up_pressed = get_icon_pixmap( view , next_sb->gc ,
 				arrow_up_pressed_src ,
 				BUTTON_SIZE , BUTTON_SIZE) ;
-	next_sb->arrow_down_pressed = ml_next_sb_get_icon_pixmap( view ,
-				next_sb->gc ,
+	next_sb->arrow_down_pressed = get_icon_pixmap( view , next_sb->gc ,
 				arrow_down_pressed_src ,
 				BUTTON_SIZE , BUTTON_SIZE) ;
 
@@ -328,16 +304,19 @@ delete(
 
 	next_sb = (next_sb_view_t*) view ;
 
-	XFreePixmap( view->display , next_sb->background) ;
-	XFreePixmap( view->display , next_sb->bar_relief) ;
-	XFreePixmap( view->display , next_sb->arrow_up) ;
-	XFreePixmap( view->display , next_sb->arrow_up_pressed) ;
-	XFreePixmap( view->display , next_sb->arrow_down) ;
-	XFreePixmap( view->display , next_sb->arrow_down_pressed) ;
-	
-	XFreeGC( view->display , next_sb->gc) ;
-	
-	free( next_sb) ;
+	if( next_sb)
+	{
+		XFreePixmap( view->display , next_sb->background) ;
+		XFreePixmap( view->display , next_sb->bar_relief) ;
+		XFreePixmap( view->display , next_sb->arrow_up) ;
+		XFreePixmap( view->display , next_sb->arrow_up_pressed) ;
+		XFreePixmap( view->display , next_sb->arrow_down) ;
+		XFreePixmap( view->display , next_sb->arrow_down_pressed) ;
+
+		XFreeGC( view->display , next_sb->gc) ;
+
+		free( next_sb) ;
+	}
 }
 
 static void
@@ -714,6 +693,8 @@ ml_next_sb_view_new(void)
 	next_sb->view.up_button_released = up_button_released ;
 	next_sb->view.down_button_released = down_button_released ;
 
+	next_sb->gc = NULL ;
+
 	next_sb->background = None ;
 	next_sb->bar_relief = None ;
 	next_sb->arrow_up = None ;
@@ -750,6 +731,8 @@ ml_next_transparent_sb_view_new(void)
 	next_sb->view.down_button_pressed = down_button_pressed ;
 	next_sb->view.up_button_released = up_button_released ;
 	next_sb->view.down_button_released = down_button_released ;
+
+	next_sb->gc = NULL ;
 
 	next_sb->background = None ;
 	next_sb->bar_relief = None ;

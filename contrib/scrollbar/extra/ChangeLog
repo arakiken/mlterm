@@ -1,3 +1,10 @@
+2002-04-30 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* LICENCE: This file, initial import.
+	* fixed some bugs related to destroy pixmaps and/or graphic contexts.
+	* added initialization for graphic contexts
+	* exsb_common.c: Initial import, common functions to manipulate color
+
 2002-04-26 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* next.c: bugfix in flag initialization in ml_*_sb_view_new()

@@ -1,5 +1,5 @@
 /*
- *	$ Id: $
+ *	$Id$
  */
 
 #include  <stdio.h>
@@ -96,7 +96,10 @@ delete(
 
 	athena_sb = (athena_sb_view_t*) view ;
 
-	free( athena_sb) ;
+	if( athena_sb)
+	{
+		free( athena_sb) ;
+	}
 }
 
 static void

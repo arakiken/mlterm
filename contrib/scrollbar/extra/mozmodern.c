@@ -1,5 +1,5 @@
 /*
- *	$ Id: $
+ *	$Id$
  */
 
 #include  <stdio.h>
@@ -7,6 +7,7 @@
 #include  <X11/cursorfont.h>
 #include  <ml_sb_view.h>
 
+#include  "exsb_common.h"
 #include  "mozmodern_data.h"
 
 #define  WIDTH      15
@@ -44,25 +45,6 @@ static char *color_name[] =
 
 
 /* --- static functions --- */
-
-unsigned long
-get_pixel_by_name(
-	ml_sb_view_t *  view ,
-	char * color_name
-	)
-{
-	XColor color ;
-
-	if ( XParseColor( view -> display ,
-			DefaultColormap( view->display , view->screen),
-			color_name , &color )  == 0)
-		return BlackPixel( view->display , view->screen ) ;
-
-	if ( XAllocColor( view->display , DefaultColormap( view->display , view->screen ) , &color ) == 0)
-		return BlackPixel( view->display , view->screen ) ;
-
-	return color.pixel ;
-}
 
 unsigned long
 get_pixel_by_symbol(
@@ -114,7 +96,7 @@ get_pixel_by_symbol(
 			index = 0 ;
 			break ;
 	}
-	return  get_pixel_by_name( view , color_name[index]) ;
+	return  exsb_get_pixel( view->display , view->screen , color_name[index]) ;
 }
 
 static Pixmap
@@ -200,7 +182,7 @@ ml_create_sb_bg_pixmap(
 		DefaultDepth( view->display , view->screen)) ;
 
 	XSetForeground( view->display , mozmod_sb->gc ,
-		get_pixel_by_name( view , "rgb:98/9e/a6")) ;
+		exsb_get_pixel( view->display , view->screen , "rgb:98/9e/a6")) ;
 	XFillRectangle( view->display , pix , mozmod_sb->gc ,
 		1 , 0 , width - 2 , height);
 
@@ -212,17 +194,17 @@ ml_create_sb_bg_pixmap(
 		width - 1 , 0 , width - 1 , height - 1) ;
 
 	XSetForeground( view->display , mozmod_sb->gc ,
-		get_pixel_by_name( view , "rgb:79/81/8c")) ;
+		exsb_get_pixel( view->display , view->screen , "rgb:79/81/8c")) ;
 	XDrawLine( view->display , pix , mozmod_sb->gc ,
 		1 , 0 , 1 , height - 1) ;
 
 	XSetForeground( view->display , mozmod_sb->gc ,
-		get_pixel_by_name( view , "rgb:8d/95/9f")) ;
+		exsb_get_pixel( view->display , view->screen , "rgb:8d/95/9f")) ;
 	XDrawLine( view->display , pix , mozmod_sb->gc ,
 		2 , 0 , 2 , height - 1) ;
 
 	XSetForeground( view->display , mozmod_sb->gc ,
-		get_pixel_by_name( view , "rgb:a0/a8/ae")) ;
+		exsb_get_pixel( view->display , view->screen , "rgb:a0/a8/ae")) ;
 	XDrawLine( view->display , pix , mozmod_sb->gc ,
 		width - 2 , 0 , width - 2 , height - 1) ;
 
@@ -297,8 +279,7 @@ resized(
 	view->height = height ;
 
 	/*
-	 * create new background pixmap to fit well with resized scroll
-	 * view
+	 * create new background pixmap to fit well with resized scroll view
 	 */
 	XFreePixmap( view->display , mozmod_sb->background) ;
 	mozmod_sb->background = ml_create_sb_bg_pixmap( view , WIDTH ,
@@ -314,15 +295,18 @@ delete(
 
 	mozmod_sb = (mozmod_sb_view_t*) view ;
 
-	XFreePixmap( view->display , mozmod_sb->background) ;
-	XFreePixmap( view->display , mozmod_sb->arrow_up) ;
-	XFreePixmap( view->display , mozmod_sb->arrow_up_pressed) ;
-	XFreePixmap( view->display , mozmod_sb->arrow_down) ;
-	XFreePixmap( view->display , mozmod_sb->arrow_down_pressed) ;
-	
-	XFreeGC( view->display , mozmod_sb->gc) ;
-	
-	free( mozmod_sb) ;
+	if (mozmod_sb)
+	{
+		XFreePixmap( view->display , mozmod_sb->background) ;
+		XFreePixmap( view->display , mozmod_sb->arrow_up) ;
+		XFreePixmap( view->display , mozmod_sb->arrow_up_pressed) ;
+		XFreePixmap( view->display , mozmod_sb->arrow_down) ;
+		XFreePixmap( view->display , mozmod_sb->arrow_down_pressed) ;
+
+		XFreeGC( view->display , mozmod_sb->gc) ;
+
+		free( mozmod_sb) ;
+	}
 }
 
 static void
@@ -521,7 +505,7 @@ draw_scrollbar_common(
 			i ++ ;
 		}
 		XSetForeground( view->display , mozmod_sb->gc ,
-			get_pixel_by_name( view , "rgb:6d/80/94")) ;
+			exsb_get_pixel( view->display , view->screen , "rgb:6d/80/94")) ;
 		XDrawSegments( view->display , view->window , mozmod_sb->gc ,
 				line , i) ;
 
@@ -535,7 +519,7 @@ draw_scrollbar_common(
 			i ++ ;
 		}
 		XSetForeground( view->display , mozmod_sb->gc ,
-			get_pixel_by_name( view , "rgb:d7/df/e6")) ;
+			exsb_get_pixel( view->display , view->screen , "rgb:d7/df/e6")) ;
 		XDrawSegments( view->display , view->window , mozmod_sb->gc ,
 				line , i) ;
 	}
@@ -621,6 +605,8 @@ ml_mozmodern_sb_view_new(void)
 	mozmod_sb->view.up_button_released = up_button_released ;
 	mozmod_sb->view.down_button_released = down_button_released ;
 
+	mozmod_sb->gc = NULL ;
+
 	mozmod_sb->background = None ;
 	mozmod_sb->arrow_up = None ;
 	mozmod_sb->arrow_up_pressed = None ;
@@ -653,6 +639,8 @@ ml_mozmodern_transparent_sb_view_new(void)
 	mozmod_sb->view.down_button_pressed = down_button_pressed ;
 	mozmod_sb->view.up_button_released = up_button_released ;
 	mozmod_sb->view.down_button_released = down_button_released ;
+
+	mozmod_sb->gc = NULL ;
 
 	mozmod_sb->background = None ;
 	mozmod_sb->arrow_up = None ;

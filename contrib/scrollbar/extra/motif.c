@@ -1,5 +1,5 @@
 /*
- *	$ Id: $
+ *	$Id$
  */
 
 #include  <stdio.h>
@@ -118,9 +118,11 @@ delete(
 
 	motif_sb = (motif_sb_view_t*) view ;
 
-	XFreeGC( view->display , motif_sb->gc) ;
-
-	free( motif_sb) ;
+	if( motif_sb)
+	{
+		XFreeGC( view->display , motif_sb->gc) ;
+		free( motif_sb) ;
+	}
 }
 
 static void
@@ -560,6 +562,8 @@ ml_motif_sb_view_new(void)
 	motif_sb->view.draw_decoration = draw_decoration ;
 	motif_sb->view.draw_scrollbar = draw_scrollbar ;
 
+	motif_sb->gc = NULL ;
+
 	motif_sb->view.up_button_pressed = up_button_pressed ;
 	motif_sb->view.down_button_pressed = down_button_pressed ;
 	motif_sb->view.up_button_released = up_button_released ;
@@ -588,6 +592,8 @@ ml_motif_transparent_sb_view_new(void)
 
 	motif_sb->view.draw_decoration = draw_decoration ;
 	motif_sb->view.draw_scrollbar = draw_scrollbar ;
+
+	motif_sb->gc = NULL ;
 
 	motif_sb->view.up_button_pressed = up_button_pressed ;
 	motif_sb->view.down_button_pressed = down_button_pressed ;
