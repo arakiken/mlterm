@@ -1,3 +1,9 @@
+2003-03-08 Araki Ken <arakiken@users.sf.net>
+
+	* Removed --with-conf-menu option.
+	* Added conf_menu_path_1,conf_menu_path_2,conf_menu_path3 options.
+	* Ctrl+Left button launches mlterm-menu by default.
+
 2003-03-09 Tomohiro KUBOTA <kubota@debian.org>
 
 	* "wall_picture = none" in "main" configuration file now means

@@ -22,9 +22,6 @@ Options for configure
   --with-imagelib=[imlib,gdk-pixbuf2,gdk-pixbuf1]
     Image library
 
-  --with-conf-menu=[mlconfig,mlterm-menu]
-    Config menu program
-  
   --enable-anti-alias
     Use FreeType for anti-alias of TrueType fonts
 
