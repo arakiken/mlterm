@@ -360,6 +360,7 @@ preedit_change(
 	int  is_underline = 0 ;
 	int  caret_pos ;
 	u_int  count = 0 ;
+	int  in_reverse = 0 ;
 
 #ifdef  IM_IIIMF_DEBUG
 	kik_warn_printf( KIK_DEBUG_TAG "\n");
@@ -501,9 +502,10 @@ preedit_change(
 				switch(feedbacks[i])
 				{
 				case IIIMP_FEEDBACK_0_REVERSE_VIDEO:
-					if( ! iiimf->im.preedit.segment_offset)
+					if( ! in_reverse)
 					{
 						iiimf->im.preedit.segment_offset = iiimf->im.preedit.filled_len ;
+						in_reverse = 1 ;
 					}
 					iiimf->im.preedit.cursor_offset =
 							X_IM_PREEDIT_NOCURSOR ;
@@ -698,8 +700,7 @@ lookup_choice_change(
 	iiimf->im.cand_screen->listener.self = iiimf ;
 	iiimf->im.cand_screen->listener.selected = NULL ; /* XXX */
 
-	if( ! (*iiimf->im.cand_screen->init)( iiimf->im.cand_screen ,
-					      index_last - index_first + 1))
+	if( ! (*iiimf->im.cand_screen->init)( iiimf->im.cand_screen , size))
 	{
 		(*iiimf->im.cand_screen->delete)( iiimf->im.cand_screen) ;
 		iiimf->im.cand_screen = NULL ;
@@ -955,7 +956,7 @@ dispatch:
 		if( iiimcf_get_event_type( received_event , &type) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Cound not get event type\n");
+			kik_warn_printf( KIK_DEBUG_TAG " Cound not get event type\n");
 		#endif
 
 			return  0 ;
@@ -984,14 +985,14 @@ dispatch:
 		if( iiimcf_dispatch_event( iiimf->context , received_event) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Cound not dispatch event\n");
+			kik_warn_printf( KIK_DEBUG_TAG " Cound not dispatch event\n");
 		#endif
 		}
 
 		if( iiimcf_ignore_event( received_event) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Cound not dispatch event\n");
+			kik_warn_printf( KIK_DEBUG_TAG " Cound not dispatch event\n");
 		#endif
 		}
 	}
@@ -1053,22 +1054,6 @@ unfocused(
 	}
 }
 
-static void
-draw_preedit(
-	x_im_t *  im ,
-	int  is_focused
-	)
-{
-	im_iiimf_t *  iiimf ;
-
-	iiimf = (im_iiimf_t*)  im ;
-
-	(*iiimf->im.listener->draw_preedit_str)(
-					iiimf->im.listener->self ,
-					iiimf->im.preedit.chars ,
-					iiimf->im.preedit.filled_len ,
-					iiimf->im.preedit.cursor_offset) ;
-}
 
 /* --- global functions --- */
 
@@ -1098,7 +1083,7 @@ im_new(
 		if( iiimcf_initialize( IIIMCF_ATTR_NULL) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Cound not initialize\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Cound not initialize\n") ;
 		#endif
 			return  NULL ;
 		}
@@ -1108,7 +1093,7 @@ im_new(
 		if( iiimcf_create_attr( &attr) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Cound not create attribute\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Cound not create attribute\n") ;
 		#endif
 			goto  error ;
 		}
@@ -1119,7 +1104,7 @@ im_new(
 							!= IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Cound not append a string to the attribute\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Cound not append a string to the attribute\n") ;
 		#endif
 			goto  error ;
 		}
@@ -1171,7 +1156,6 @@ im_new(
 	iiimf->im.key_event = key_event ;
 	iiimf->im.focused = focused ;
 	iiimf->im.unfocused = unfocused ;
-	iiimf->im.draw_preedit = draw_preedit ;
 
 	if( ! ( iiimf->parser_term = (*mlterm_syms->ml_parser_new)( term_encoding)))
 	{
@@ -1186,7 +1170,7 @@ im_new(
 	if( iiimcf_create_attr( &attr) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Cound not create attribute\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Cound not create attribute\n") ;
 	#endif
 		goto  error ;
 	}
@@ -1199,7 +1183,7 @@ im_new(
 							!= IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Cound not append value to the attribute\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Cound not append value to the attribute\n") ;
 		#endif
 		}
 	}
@@ -1212,7 +1196,7 @@ im_new(
 							!= IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " Cound not append value to the attribute\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Cound not append value to the attribute\n") ;
 		#endif
 		}
 	}
@@ -1220,7 +1204,7 @@ im_new(
 	if( iiimcf_create_context( handle , attr , &iiimf->context) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " Cound not create context\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Cound not create context\n") ;
 	#endif
 		goto  error ;
 	}
@@ -1231,7 +1215,7 @@ im_new(
 	ref_count++ ;
 
 #ifdef  IM_IIIMF_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " New object was created. ref_count is %d.\n" , ref_count);
+	kik_warn_printf( KIK_DEBUG_TAG " New object was created. ref_count is %d.\n" , ref_count);
 #endif
 
 	return  (x_im_t*) iiimf ;

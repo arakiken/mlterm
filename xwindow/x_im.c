@@ -129,3 +129,39 @@ x_im_new(
 	return  im ;
 }
 
+void
+x_im_redraw_preedit(
+	x_im_t *  im ,
+	int  is_focused
+	)
+{
+	(*im->listener->draw_preedit_str)( im->listener->self ,
+					   im->preedit.chars ,
+					   im->preedit.filled_len ,
+					   im->preedit.cursor_offset) ;
+
+	if( ! im->cand_screen)
+	{
+		return ;
+	}
+
+	if( is_focused)
+	{
+		int  x ;
+		int  y ;
+
+		if( (*im->listener->get_spot)( im->listener->self ,
+					       im->preedit.chars ,
+					       im->preedit.segment_offset ,
+					       &x , &y))
+		{
+			(*im->cand_screen->show)( im->cand_screen) ;
+			(*im->cand_screen->set_spot)( im->cand_screen , x , y) ;
+		}
+	}
+	else
+	{
+		(*im->cand_screen->hide)( im->cand_screen) ;
+	}
+}
+

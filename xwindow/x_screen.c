@@ -809,7 +809,7 @@ redraw_screen(
 
 	if( screen->im)
 	{
-		(*screen->im->draw_preedit)( screen->im , screen->is_focused) ;
+		x_im_redraw_preedit( screen->im , screen->is_focused) ;
 	}
 
 	return  1 ;

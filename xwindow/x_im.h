@@ -85,7 +85,6 @@ typedef struct x_im
 	int (*key_event)( struct x_im * , KeySym , XKeyEvent *) ;
 	void (*focused)( struct x_im *) ;
 	void (*unfocused)( struct x_im *) ;
-	void (*draw_preedit)( struct x_im * , int) ;
 
 } x_im_t ;
 
@@ -93,7 +92,9 @@ x_im_t *  x_im_new( ml_char_encoding_t  term_encoding ,
 		    x_im_event_listener_t *  im_listener ,
 		    char *  input_method) ;
 
-#define  IM_API_VERSION  0x02
+void  x_im_redraw_preedit( x_im_t *  im , int  is_focused) ;
+
+#define  IM_API_VERSION  0x03
 #define  IM_API_COMPAT_CHECK_MAGIC			\
 	 (IM_API_VERSION & 0xff << 28 |			\
 	 ((sizeof( x_im_t) & 0xff) << 20) |		\

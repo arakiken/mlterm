@@ -1011,54 +1011,6 @@ unfocused(
 }
 
 static void
-draw_preedit(
-	x_im_t *  im ,
-	int  is_focused
-	)
-{
-	im_uim_t *  uim ;
-
-#ifdef  IM_UIM_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG "is_focused: %d\n", is_focused);
-#endif
-
-	uim = (im_uim_t*)  im ;
-
-	(*uim->im.listener->draw_preedit_str)( uim->im.listener->self ,
-					       uim->im.preedit.chars ,
-					       uim->im.preedit.filled_len ,
-					       uim->im.preedit.cursor_offset) ;
-
-	if( ! uim->im.cand_screen)
-	{
-		return ;
-	}
-
-	if( is_focused)
-	{
-		int  x ;
-		int  y ;
-
-		if( (*uim->im.listener->get_spot)(
-					uim->im.listener->self ,
-					uim->im.preedit.chars ,
-					uim->im.preedit.segment_offset ,
-					&x , &y))
-		{
-			(*uim->im.cand_screen->show)(
-						uim->im.cand_screen) ;
-			(*uim->im.cand_screen->set_spot)(
-						uim->im.cand_screen ,
-						x , y) ;
-		}
-	}
-	else
-	{
-		(*uim->im.cand_screen->hide)( uim->im.cand_screen) ;
-	}
-}
-
-static void
 helper_read_handler( void)
 {
 	char *  message ;
@@ -1256,7 +1208,6 @@ im_new(
 	uim->im.key_event = key_event ;
 	uim->im.focused = focused ;
 	uim->im.unfocused = unfocused ;
-	uim->im.draw_preedit = draw_preedit ;
 
 	ref_count++;
 

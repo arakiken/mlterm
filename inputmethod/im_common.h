@@ -22,13 +22,13 @@ im_convert_encoding(
 
 	(*parser->set_str)( parser , from , from_len) ;
 
-#define  UNIT__ 1024
+#define  UNIT__ 32
 
 	while( ! parser->is_eos)
 	{
 		u_char *  p ;
 
-		if( ! ( p = realloc( *to , UNIT__)))
+		if( ! ( p = realloc( *to , len + UNIT__ + 1)))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
@@ -46,7 +46,7 @@ im_convert_encoding(
 
 		p = *to + len ;
 
-		filled_len = (*conv->convert)( conv , p , UNIT__ - 1 , parser) ;
+		filled_len = (*conv->convert)( conv , p , UNIT__ , parser) ;
 
 		len += filled_len ;
 

@@ -1,5 +1,21 @@
 2004-09-10 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* x_im.h (x_im_t):
+	- remove draw_preedit.
+	- increased IM_API_VERSION.
+
+	* inputmethod/uim/im_uim.c(drar_preedit),
+	  inputmethod/iiimf/im_iiimf.c(drar_preedit): moved to ..
+	* x_im.c (x_im_redraw_preedit): ..this
+
+	* inputmethod/iiimf/im_iiimf.c: minor cleanups.
+
+	* inputmethod/im_common.h:
+	- minor cleanups.
+	- fixed a memory leak.
+
+2004-09-10 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* inputmethod/uim/Makefile.in:
 	* inputmethod/iiimf/Makefile.in:
 	- fixed typo.
