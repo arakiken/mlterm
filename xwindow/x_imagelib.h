@@ -2,8 +2,8 @@
  *	$Id$
  */
 
-#ifndef  __X_PICTURE_DEP_H__
-#define  __X_PICTURE_DEP_H__
+#ifndef  __X_IMAGELIB_H__
+#define  __X_IMAGELIB_H__
 
 
 #include  "x_window.h"

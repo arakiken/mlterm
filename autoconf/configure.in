@@ -76,6 +76,8 @@ fi
 AC_SUBST(FRIBIDI_CFLAGS)
 AC_SUBST(FRIBIDI_LIBS)
 
+# default value
+IMAGELIB_NAME=none
 AC_ARG_WITH(imagelib,
 	[  --with-imagelib[=ARG]   image library [imlib, gdk-pixbuf2, gdk-pixbuf1]],
 	imagelib=$with_imagelib)
@@ -83,29 +85,26 @@ case ${imagelib} in
 imlib)
 	AC_CHECK_PROG(imlib_config,imlib-config,yes)
 	if test "$imlib_config" = "yes" ; then
-		IMLIB_CFLAGS="`imlib-config --cflags` -DUSE_IMLIB"
-		IMLIB_LIBS="`imlib-config --libs`"
+		IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_IMLIB"
+		IMAGELIB_LIBS="`imlib-config --libs`"
+		IMAGELIB_NAME=imlib
 	fi
-	AC_SUBST(IMLIB_CFLAGS)
-	AC_SUBST(IMLIB_LIBS)
 	;;
 gdk-pixbuf2)
 	AC_CHECK_PROG(pkg_config,pkg-config,yes)
 	if test "$pkg_config" = "yes" ; then
-		GDK_PIXBUF_CFLAGS="`pkg-config --cflags gdk-pixbuf-xlib-2.0` -DUSE_GDK_PIXBUF"
-		GDK_PIXBUF_LIBS="`pkg-config --libs gdk-pixbuf-xlib-2.0`"
+		IMAGELIB_CFLAGS="`pkg-config --cflags gdk-pixbuf-xlib-2.0` -DUSE_GDK_PIXBUF"
+		IMAGELIB_LIBS="`pkg-config --libs gdk-pixbuf-xlib-2.0`"
+		IMAGELIB_NAME=gdk
 	fi
-	AC_SUBST(GDK_PIXBUF_CFLAGS)
-	AC_SUBST(GDK_PIXBUF_LIBS)
 	;;
 gdk-pixbuf1)
 	AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
 	if test "$pkg_config" = "yes" ; then
-		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF -DOLD_GDK_PIXBUF"
-		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs` -lgdk_pixbuf_xlib"
+		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF -DOLD_GDK_PIXBUF"
+		IMAGELIB_LIBS="`gdk-pixbuf-config --libs` -lgdk_pixbuf_xlib"
+		IMAGELIB_NAME=gdk
 	fi
-	AC_SUBST(GDK_PIXBUF_CFLAGS)
-	AC_SUBST(GDK_PIXBUF_LIBS)
 	;;
 *)
 	if test "${imagelib}" != "" ; then
@@ -116,6 +115,9 @@ gdk-pixbuf1)
 	fi
 	;;
 esac
+AC_SUBST(IMAGELIB_CFLAGS)
+AC_SUBST(IMAGELIB_LIBS)
+AC_SUBST(IMAGELIB_NAME)
 
 AC_ARG_ENABLE(anti_alias,
 	[  --enable-anti-alias     anti alias[disabled]],

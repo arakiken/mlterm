@@ -21,6 +21,7 @@
 #include  "x_xic.h"
 #include  "x_window_manager.h"
 #include  "ml_char_encoding.h"	/* x_convert_to_xft_ucs4 */
+#include  "x_imagelib.h"
 
 
 /*

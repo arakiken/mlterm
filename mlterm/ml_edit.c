@@ -957,7 +957,7 @@ ml_edit_delete_cols_bce(
 	u_int  delete_cols
 	)
 {
-	ml_line_t *  line ;
+	ml_line_t *  cursor_line ;
 	int  char_index ;
 	int  col ;
 	
@@ -966,18 +966,19 @@ ml_edit_delete_cols_bce(
 		return  0 ;
 	}
 
-	line = CURSOR_LINE(edit) ;
+	cursor_line = CURSOR_LINE(edit) ;
 	
-	char_index = ml_line_end_char_index( line) + 1 ;
+	char_index = ml_line_end_char_index( cursor_line) + 1 ;
 
-	for( col = ml_line_get_num_of_filled_cols( line) ; col < edit->model.num_of_cols ; col ++)
+	for( col = ml_line_get_num_of_filled_cols( cursor_line) ; col < edit->model.num_of_cols ; col ++)
 	{
-		ml_char_copy( &line->chars[char_index++] , &edit->bce_ch) ;
+		ml_char_copy( &cursor_line->chars[char_index++] , &edit->bce_ch) ;
 	}
 
-	line->num_of_filled_chars = char_index ;
+	cursor_line->num_of_filled_chars = char_index ;
 
-	ml_line_set_modified( line , edit->cursor.char_index , ml_line_end_char_index( line)) ;
+	ml_line_set_modified( cursor_line , edit->cursor.char_index ,
+		ml_line_end_char_index( cursor_line)) ;
 	
 	return  1 ;
 }
@@ -1091,30 +1092,31 @@ ml_edit_clear_line_to_right_bce(
 	int  cols ;
 	int  char_index ;
 	u_int  cols_rest ;
-	ml_line_t *  line ;
+	ml_line_t *  cursor_line ;
 
 	reset_wraparound_checker( edit) ;
 
-	line = CURSOR_LINE(edit) ;
+	cursor_line = CURSOR_LINE(edit) ;
 	
-	ml_convert_col_to_char_index( line , &cols_rest , edit->cursor.col , 0) ;
+	ml_convert_col_to_char_index( cursor_line , &cols_rest , edit->cursor.col , 0) ;
 	if( cols_rest)
 	{
-		ml_line_fill( line , ml_sp_ch() , edit->cursor.char_index , cols_rest) ;
+		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index , cols_rest) ;
 		edit->cursor.char_index += cols_rest ;
 	}
 
 	char_index = edit->cursor.char_index ;
 
-	for( cols = ml_str_cols( line->chars , edit->cursor.char_index) ;
+	for( cols = ml_str_cols( cursor_line->chars , edit->cursor.char_index) ;
 		cols < edit->model.num_of_cols ; cols ++)
 	{
-		ml_char_copy( &line->chars[char_index++] , &edit->bce_ch) ;
+		ml_char_copy( &cursor_line->chars[char_index++] , &edit->bce_ch) ;
 	}
 
-	line->num_of_filled_chars = char_index ;
+	cursor_line->num_of_filled_chars = char_index ;
 
-	ml_line_set_modified( line , edit->cursor.char_index , ml_line_end_char_index( line)) ;
+	ml_line_set_modified( cursor_line , edit->cursor.char_index ,
+		ml_line_end_char_index( cursor_line)) ;
 
 	return  1 ;
 }

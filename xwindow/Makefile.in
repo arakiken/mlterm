@@ -22,9 +22,9 @@ VPATH = $(SRC_TOPDIR)/xwindow
 OBJ = x_window_manager.o x_window.o x_screen.o x_xim.o x_xic.o x_color_manager.o \
 	x_font_manager.o x_scrollbar.o x_sb_screen.o x_picture.o x_font.o \
 	x_sb_view_factory.o x_simple_sb_view.o x_color.o x_decsp_font.o \
-	x_imagelib.o x_selection.o x_font_custom.o x_color_custom.o x_keymap.o \
-	x_bel_mode.o x_sb_mode.o x_mod_meta_mode.o main.o x_term_manager.o x_termcap.o \
-	x_display.o x_term.o
+	x_imagelib_@IMAGELIB_NAME@.o x_selection.o x_font_custom.o x_color_custom.o \
+	x_keymap.o x_bel_mode.o x_sb_mode.o x_mod_meta_mode.o main.o x_term_manager.o \
+	x_termcap.o x_display.o x_term.o
 
 LKIK = @KIK_LIBS@
 LMKF = @MKF_LIBS@
@@ -33,11 +33,11 @@ LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
 
 CFLAGS=$(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ \
-	@IMLIB_CFLAGS@ @GDK_PIXBUF_CFLAGS@ @AA_CFLAGS@ @XUTF8_CFLAGS@ @CFLAGS@ \
+	@IMAGELIB_CFLAGS@ @AA_CFLAGS@ @XUTF8_CFLAGS@ @CFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-I$(SRC_TOPDIR)/mlterm -I/usr/X11R6/include -I/usr/local/include
 
-LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ @GDK_PIXBUF_LIBS@ @X_EXTRA_LIBS@ \
+LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @X_EXTRA_LIBS@ \
 	-lX11 $(LMLTERM) $(LMKF) $(LKIK) \
 	-L/usr/X11R6/lib -L/usr/local/lib -R/usr/X11R6/lib -R/usr/local/lib
 
