@@ -1,9 +1,10 @@
 #include <stdlib.h> /* free/malloc */
+#include <string.h>
 #include "comm.h"
 #include "data.h"
 #include "data_entry_bool.h"
 
-static int _is_true(char *str){
+static int _is_true(const char *str){
 	if (!str)
 		return 0;
 
@@ -13,13 +14,14 @@ static int _is_true(char *str){
 }
 
 
-void entry_bool_reset(entry_t *entry){
+void entry_bool_reset(const entry_t *entry){
 	entry_bool_t * data = entry->data;
-	mlterm_set_param(entry->key, (char *)((data->initial)? "true" : "false"));
+	mlterm_set_param(entry->key, ((data->initial)? "true" : "false"));
 }
-void entry_bool_apply(entry_t *entry){
+
+void entry_bool_apply(const entry_t *entry){
 	entry_bool_t * data = entry->data;
-	mlterm_set_param(entry->key, (char *)((data->current)? "true" : "false"));
+	mlterm_set_param(entry->key, ((data->current)? "true" : "false"));
 }
 
 entry_bool_t *entry_bool_new(const char *key){
@@ -47,11 +49,11 @@ void entry_bool_free_data(entry_t * entry){
 	return;
 }
 
-void entry_bool_display(window_t *window, entry_t *entry, int x, int y, int state){
+void entry_bool_display(window_t *window, const entry_t *entry, int x, int y, int state){
 	entry_bool_t * data;
 
 	data = entry->data;
-	display_str(window, x, y, (char *)((data->current)? "True" : "False"), DC_NORMAL);
+	display_str(window, x, y, ((data->current)? "True" : "False"), DC_NORMAL);
 }
 
 int entry_bool_edit(window_t *window, entry_t *entry, int x, int y){

@@ -24,13 +24,15 @@ static const char *  color_name_table[] =
 	NULL
 };
 
+static const char color_name_error[]="(error)";
+
 struct termios _oldtio;
 
 /*
  * communication functions
  */
 
-static void csi(char *str){
+static void csi(const char *str){
 	write(STDOUT_FILENO, "\033",1);
 	write(STDOUT_FILENO, str, strlen(str));
 }
@@ -95,11 +97,11 @@ void flush_stdout(){
 }
 
 void dec_char(){
-	csi((char *)"(0"); 
+	csi("(0"); 
 }
 
 void normal_char(){
-	csi((char *)"(B"); 
+	csi("(B"); 
 }
 
 void set_cursor_pos(window_t * window, int x, int y){
@@ -119,7 +121,7 @@ void set_fg_color(int colorid){
 }
 
 void set_fg_color_default(){
-	csi((char *)"[39m");
+	csi("[39m");
 }
 
 void set_bg_color(int colorid){
@@ -129,35 +131,35 @@ void set_bg_color(int colorid){
 	if (colorid > COLORID_DEFAULT)
 		colorid = COLORID_DEFAULT;
 	cmd[2] += colorid;
-	csi((char *)cmd);
+	csi(cmd);
 }
 
 void set_altscr(){
-	csi((char *)"7");
-	csi((char *)"[?47h");
+	csi("7");
+	csi("[?47h");
 }
 
 void unset_altscr(){
-	csi((char *)"[?47l");
-	csi((char *)"8");
+	csi("[?47l");
+	csi("8");
 }
 
 void set_keypad(){
-	csi((char *)"[?1h");
-	csi((char *)"=");
+	csi("[?1h");
+	csi("=");
 }
 
 void unset_keypad(){
-	csi((char *)"[?1l");
-	csi((char *)">");
+	csi("[?1l");
+	csi(">");
 }
 
 void cursor_show(){
-	csi((char *)"[?25h");
+	csi("[?25h");
 }
 
 void cursor_hide(){
-	csi((char *)"[?25l");
+	csi("[?25l");
 }
 
 void term_size(int *w, int *h){
@@ -210,7 +212,7 @@ void display_colorcube(window_t * window, int x, int y, int colorid){
 		window_addstr(window, x, y, (char *)" ");
 }
 
-void display_str(window_t *window, int x, int y, char *src , decor_t flag){
+void display_str(window_t *window, int x, int y, const char *src , decor_t flag){
 	int len;
 	
 	len = strlen(src);
@@ -289,10 +291,11 @@ int colorid_from_name(char * name){
 	return -1;
 }
 
-char *colorname_from_id(int colorid){
+const char *colorname_from_id(int colorid){
+  
 	if ((colorid >= 0) && (colorid < COLORID_DEFAULT)) 
-		return (char *)(color_name_table[colorid]);
-	return (char *)"(error)";
+		return (color_name_table[colorid]);
+	return color_name_error;
 }
 
 /*
@@ -322,7 +325,7 @@ void window_free(window_t * window){
 	free(window);
 }
 
-void window_addstr(window_t * window, int x, int y, char *str){
+void window_addstr(window_t * window, int x, int y, const char *str){
 	if (window->framed){
 		set_cursor_pos(window, x +1, y+1);
 	}else{

@@ -56,7 +56,7 @@ void entry_radio_apply(entry_t *entry){
 	mlterm_set_param(entry->key, data->term[data->current]);
 }
 
-entry_radio_t *entry_radio_new(const char *key, char *terms){
+entry_radio_t *entry_radio_new(const char *key, const char *terms){
 	int i = 0;
 	char *p;
 	char *src;
@@ -85,7 +85,7 @@ entry_radio_t *entry_radio_new(const char *key, char *terms){
 	return entry;
 }
 
-int entry_radio_add(section_t *section, const char *name, const char * key, char *terms){
+int entry_radio_add(section_t *section, const char *name, const char * key, const char *terms){
 	if (section->maxwidth < strlen(name))
 		section->maxwidth = strlen(name);
 	section->entry[section->size].name = name;

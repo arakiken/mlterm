@@ -86,7 +86,7 @@ int color_select(window_t *edit, int initial){
 			window_clear(edit);
 			for(i = 0; i < 8; i++){				
 				if (i == ind)
-					window_addstr(edit, 0, i, (char *)">");
+					window_addstr(edit, 0, i, ">");
 				set_fg_color(i);
 				window_addstr(edit, 1, i, colorname_from_id(i));
 				set_fg_color_default();

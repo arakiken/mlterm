@@ -60,7 +60,7 @@ void mlterm_set_value(const char * key, int value);
  *  text window management
  */
 window_t * window_new(int left, int top, int right, int bottom, int framed, window_t * parent);
-void window_addstr(window_t * window, int x, int y, char *str);
+void window_addstr(window_t * window, int x, int y, const char *str);
 void window_clear(window_t * window);
 void window_free(window_t * window);
 int window_width(window_t *window);
@@ -75,10 +75,10 @@ int termios_final(void);
  *  convenience functions
  */
 void display_colorcube(window_t * window, int x, int y, int colorid);
-void display_str(window_t *window, int x, int y, char *src , decor_t flag);
+void display_str(window_t *window, int x, int y, const char *src , decor_t flag);
 void display_numeric(window_t *window, int x, int y, int value, const char *unit , decor_t flag);
 int colorid_from_name(char * name);
-char * colorname_from_id(int colorid);
+const char * colorname_from_id(int colorid);
 
 int string_edit(window_t *window, char *src, char **result);
 int color_select(window_t *edit, int initial);

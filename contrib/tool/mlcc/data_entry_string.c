@@ -22,7 +22,7 @@ int entry_string_edit(window_t *window, entry_t *entry, int x, int y){
 
 void entry_string_reset(entry_t *entry){
 	entry_string_t * data = entry->data;
-	mlterm_set_param(entry->key, (char *)data->initial);
+	mlterm_set_param(entry->key, data->initial);
 }
 
 void entry_string_apply(entry_t *entry){
@@ -84,7 +84,7 @@ void entry_string_display(window_t *window, entry_t *entry, int x, int y, int st
 	if (data->current)
 		display_str(window, x, y, data->current, DC_NORMAL);
 	else
-		display_str(window, x, y, (char *)"(error??)", DC_NORMAL);
+		display_str(window, x, y, "(error?)", DC_NORMAL);
 }
 
 int string_edit(window_t *window, char *src, char **result){

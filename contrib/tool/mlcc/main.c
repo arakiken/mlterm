@@ -1,4 +1,6 @@
 #include <signal.h> /* sigaction */
+#include <stdlib.h>
+#include <string.h>
 
 #include "comm.h"
 #include "data.h"
@@ -141,7 +143,7 @@ int display_section(window_t *window, config_data_t *data){
 			skip ++;
 		}else{
 			display_str(window, pos+1, skip +1,
-				    (char *)(data->section[cur].name),
+				    (data->section[cur].name),
 			    (data->selected == cur) ? (data->state == DS_SELECT ? DC_POINTED:DC_CHOOSED):DC_NORMAL);
 			pos += len;
 		}
@@ -189,10 +191,10 @@ int display_entry(window_t *window, config_data_t *data){
 	current = current_section(data);
 	for(i = 0; i < current->size; i++){
 		display_str(window, 1, i*2  ,
-			    (char *)(current->entry[i].name),
+			    (current->entry[i].name),
 			    (current->selected == i) ? (data->state == DS_SELECT ? DC_CHOOSED:DC_POINTED):DC_NORMAL);
 
-		window_addstr(window, current->maxwidth +3, i*2, (char *)":");
+		window_addstr(window, current->maxwidth +3, i*2, ":");
 		if ((i == current->selected) && (data->state == DS_EDIT))
 			entry_display(window, &(current->entry[i]),
 				      current->maxwidth +4, i*2, 1);
@@ -251,14 +253,14 @@ int query_exit(window_t *parent){
 	while(1){
 		if (flag){
 			window_clear(query);
-			window_addstr(query, 0, 0, (char *)" Really Quit?");
+			window_addstr(query, 0, 0, " Really Quit?");
 			if (state == 0){
-				window_addstr(query, 1, 2, (char *)" <apply>");
-				window_addstr(query, 1, 3, (char *)" discard ");
+				window_addstr(query, 1, 2, " <apply>");
+				window_addstr(query, 1, 3, " discard ");
 			}else{
 
-				window_addstr(query, 1, 2, (char *)"  apply ");
-				window_addstr(query, 1, 3, (char *)"<discard>");
+				window_addstr(query, 1, 2, "  apply ");
+				window_addstr(query, 1, 3, "<discard>");
 			}
 			flush_stdout();
 			flag = 0;
@@ -320,7 +322,7 @@ int init_data(config_data_t *data){
 	entry_bool_add(section, "Transparent background", "use_transbg");
 
 	section = section_add(data, "Scrollbar");
-	entry_radio_add(section, "Position", "scrollbar_mode", (char *)"none/left/right");
+	entry_radio_add(section, "Position", "scrollbar_mode", "none/left/right");
 	entry_string_add(section, "View", "scrollbar_view_name");
 	entry_color_add(section, "Foreground color", "sb_fg_color");
 	entry_color_add(section, "Background color", "sb_bg_color");
@@ -328,9 +330,9 @@ int init_data(config_data_t *data){
 	section = section_add(data, "Others");
 	entry_numeric_add(section, "Tab width", "tabsize", 0, 100, "column");
 	entry_numeric_add(section, "Backlog size", "logsize", 128, 2048, "line");
-	entry_radio_add(section, "Meta key outputs", "mod_meta_mode", (char *)"none/esc/8bit");
-	entry_radio_add(section, "Vertical mode", "vertical_mode", (char *)"none/cjk/mongol");
-	entry_radio_add(section, "Bel mode", "bel_mode", (char *)"none/sound/visual");
+	entry_radio_add(section, "Meta key outputs", "mod_meta_mode", "none/esc/8bit");
+	entry_radio_add(section, "Vertical mode", "vertical_mode", "none/cjk/mongol");
+	entry_radio_add(section, "Bel mode", "bel_mode", "none/sound/visual");
 	entry_bool_add(section, "Combining", "use_dynamic_comb");
 	entry_bool_add(section, "Fullwidth", "use_multi_column_char");
 	return 0;
