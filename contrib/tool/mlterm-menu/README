@@ -1,10 +1,10 @@
 = mlterm-menu
-mlterm-menu is popup menu style configration tool for mlterm.
+mlterm-menu is a popup-menu-style configuration tool for mlterm.
 
 == File
  * ~/.mlterm/menu
  * SYSCONFDIR/menu (e.g. /etc/mlterm/menu)
-When ~/.mlterm/menu is exist, Ignore SYSCONFDIF/menu.
+When ~/.mlterm/menu exists, mlterm-menu ignores SYSCONFDIR/menu.
 
 == Syntax
   menu          = (normal-entry | special-entry) *
