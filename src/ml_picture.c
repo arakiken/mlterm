@@ -68,7 +68,7 @@ modify_image(
 	ml_picture_modifier_t *  pic_mod
 	)
 {
-	if( pic_mod->brightness < 100)
+	if( pic_mod->brightness != 100)
 	{
 		ImlibColorModifier  mod ;
 

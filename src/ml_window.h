@@ -177,7 +177,7 @@ int  ml_window_get_fg_color( ml_window_t *  win) ;
 
 int  ml_window_get_bg_color( ml_window_t *  win) ;
 
-int  ml_window_fade( ml_window_t *  win , u_int8_t  fade_ratio) ;
+int  ml_window_fade( ml_window_t *  win , u_int  fade_ratio) ;
 
 int  ml_window_unfade( ml_window_t *  win) ;
 

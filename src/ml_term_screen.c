@@ -3123,7 +3123,7 @@ change_char_encoding(
 	if( ! (*termscr->encoding_listener->encoding_changed)(
 		termscr->encoding_listener->self , encoding))
 	{
-		kik_msg_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
+		kik_error_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
 	}
 	
 	update_encoding_proper_aux( termscr , 1) ;

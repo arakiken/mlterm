@@ -15,7 +15,7 @@ typedef struct ml_window *  ml_window_ptr_t ;
 
 typedef struct ml_picture_modifier
 {
-	u_int8_t  brightness ;
+	u_int16_t  brightness ;		/* 0 - 65536 */
 	
 } ml_picture_modifier_t ;
 

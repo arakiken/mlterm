@@ -889,7 +889,7 @@ get_min_conf(
 	kik_conf_add_opt( conf , 'G' , "vertical" , 0 , "vertical_mode" ,
 		"vertical view mode") ;
 	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
-		"shading ratio of background image") ;
+		"the amount of darkening or lightening background image") ;
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
@@ -1421,7 +1421,7 @@ config_init(
 	{
 		u_int  fade_ratio ;
 		
-		if( kik_str_to_uint( &fade_ratio , value))
+		if( kik_str_to_uint( &fade_ratio , value) && fade_ratio <= 100)
 		{
 			term_man->conf.fade_ratio = fade_ratio ;
 		}

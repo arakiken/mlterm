@@ -78,7 +78,7 @@ typedef struct ml_config
 	char **  cmd_argv ;
 
 	u_int8_t  step_in_changing_font_size ;
-	u_int8_t  brightness ;
+	u_int16_t  brightness ;
 	u_int8_t  fade_ratio ;
 	int8_t  use_scrollbar ;
 	int8_t  use_login_shell ;

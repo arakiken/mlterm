@@ -1,5 +1,6 @@
 ver 2.3.0
 * Vertical view(both right to left and left to right) is supported.
+* Max number of pty windows is increased to 32.
 * Most settings of scrollbar(position,type,color etc) can be dynamically changed.
 * Number of extra dots between lines can be specified.
 * Brightness of wall picture and transparent background can be adjustied.
