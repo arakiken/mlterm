@@ -213,7 +213,6 @@ draw_arrow_up_icon(
 	)
 {
 	motif_sb_view_t *  motif_sb ;
-	Pixmap  arrow ;
 	char **  src ;
 	XSegment line[4] ;
 
@@ -264,7 +263,6 @@ draw_arrow_down_icon(
 	)
 {
 	motif_sb_view_t *  motif_sb ;
-	Pixmap  arrow ;
 	char **  src ;
 	XSegment line[4] ;
 

@@ -62,7 +62,6 @@ realized(
 	)
 {
 	athena_sb_view_t *  athena_sb ;
-	XGCValues  gc_value ;
 
 	athena_sb = (athena_sb_view_t*) view ;
 

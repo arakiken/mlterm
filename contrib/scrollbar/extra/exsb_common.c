@@ -6,8 +6,6 @@
 #include  <stdlib.h>
 #include  <X11/Xlib.h>
 
-#define ABS(x)	((x < 0) ? -(x) : (x))
-
 /* --- static functions --- */
 
 void
@@ -15,17 +13,16 @@ get_closest_xcolor_pseudo(
 	Display * display ,
 	int screen ,
 	Colormap cmap ,
-	XColor color ,
+	XColor * color ,
 	XColor * closest_color
 	)
 {
 	XColor *  all_colors ;
 	int  i ;
-	int  index ;
-	int  min ;
-	int  sum ;
-	int  diff_r , diff_g , diff_b ;
-	unsigned long  ret = BlackPixel( display , screen) ;
+	int  closest_index = 0 ;
+	unsigned long  min = 0xffffffff ;
+	unsigned long  diff ;
+	unsigned long  diff_r = 0 , diff_g = 0 , diff_b = 0 ;
 	int ncells = DisplayCells( display , screen) ;
 
 	all_colors = malloc( ncells * sizeof( XColor)) ;
@@ -37,28 +34,48 @@ get_closest_xcolor_pseudo(
 	}
 	XQueryColors( display , cmap , all_colors, ncells) ;
 
-	/* compare */
+	/* find closest color */
 	for( i = 0 ; i < ncells ; i ++)
 	{
-		diff_r = color.red - all_colors[i].red ;
-		diff_g = color.green - all_colors[i].green ;
-		diff_r = color.blue - all_colors[i].blue ;
+		diff_r = (color->red - all_colors[i].red) >> 8 ;
+		diff_g = (color->green - all_colors[i].green) >> 8 ;
+		diff_r = (color->blue - all_colors[i].blue) >> 8 ;
 
-		sum = ABS( diff_r) + ABS( diff_g) + ABS( diff_b) ;
+		diff = diff_r * diff_r + diff_g * diff_g + diff_b * diff_b ;
 
-		if ( sum < min) /* closest ? */
+		if ( diff < min) /* closest ? */
 		{
-			min = sum ;
-			index = i ;
+			min = diff ;
+			closest_index = i ;
 		}
 	}
 
-	closest_color->pixel = all_colors[index].pixel ;
-	closest_color->red = all_colors[index].red ;
-	closest_color->green = all_colors[index].green ;
-	closest_color->blue = all_colors[index].blue ;
+	closest_color->red = all_colors[closest_index].red ;
+	closest_color->green = all_colors[closest_index].green ;
+	closest_color->blue = all_colors[closest_index].blue ;
+	closest_color->flags = DoRed | DoGreen | DoBlue;
 
 	free( all_colors) ;
+
+	if (XAllocColor( display , cmap , closest_color) == 0)
+	{
+		unsigned long sum = 0;
+		sum = (color->red + color->green + color->blue) >> 8 ;
+		if (sum > 384) /* 0xff * 3 / 2 */
+		{
+			closest_color->red = 0xffff ;
+			closest_color->green = 0xffff ;
+			closest_color->blue = 0xffff ;
+			closest_color->pixel = WhitePixel( display , screen) ;
+		}
+		else
+		{
+			closest_color->red = 0 ;
+			closest_color->green = 0 ;
+			closest_color->blue = 0 ;
+			closest_color->pixel = BlackPixel( display , screen) ;
+		}
+	}
 }
 
 /* --- global functions -- */
@@ -80,12 +97,12 @@ exsb_get_pixel(
 		return BlackPixel( display , screen ) ;
 	}
 
-	if ( XAllocColor( display , cmap , &color ) == 0)
+	if ( XAllocColor( display , cmap , &color) == 0)
 	{
 		if( visual->class == PseudoColor || visual->class == GrayScale)
 		{
 			get_closest_xcolor_pseudo( display , screen , cmap ,
-						  color ,
+						  &color ,
 						  &closest_color) ;
 			return closest_color.pixel ;
 		}
