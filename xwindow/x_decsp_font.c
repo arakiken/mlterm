@@ -197,9 +197,12 @@ x_decsp_font_draw_string(
 	{
 		if( /* 0x00 <= *str && */ *str < 0x20 && font->glyphs[*str])
 		{
+			XSetClipOrigin( display, gc, x , y - font->height_to_baseline);
+			XSetClipMask( display, gc, font->glyphs[*str]);
 			XCopyPlane( display , font->glyphs[*str] , drawable , gc ,
 				0 , 0 , font->width , font->height ,
 				x , y - font->height_to_baseline , 1) ;
+			XSetClipMask( display, gc, None);
 		}
 
 		x += font->width ;

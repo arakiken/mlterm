@@ -9,7 +9,7 @@
 #include  <X11/Xutil.h>		/* for XSizeHints */
 #include  <X11/Xatom.h>
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_mem.h>	/* alloca/realloc */
+#include  <kiklib/kik_mem.h>	/* realloc/free */
 #include  <mkf/mkf_charset.h>	/* mkf_charset */
 
 #include  "x_xic.h"
