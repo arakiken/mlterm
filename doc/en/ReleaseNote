@@ -3,7 +3,7 @@ ver 2.8.0(rc1)
   to mlterm.
 * Shrunk used memory if many font names specified in ~/.mlterm/*font files.
 * Added tool/viewsfml.
-* Garbage characters were often left in a screen. Fixed.
+* Garbage multi-byte characters were often left in a screen. Fixed.
 * Partially ported kiklib to MS Windows.
 * Added -%,--logseq,logging_vt_seq option.
 * Revivied mlterm configuration protocol 5380, added mlcc and w3mmlconfig again.

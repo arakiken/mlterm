@@ -2241,13 +2241,46 @@ window_exposed(
 	
 	screen = (x_screen_t *) win ;
 
-	beg_row = convert_y_to_row( screen , NULL , y) ;
-	end_row = convert_y_to_row( screen , NULL , y + height) ;
+	if( screen->term->vertical_mode)
+	{
+		u_int  ncols ;
 
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " exposed [row] from %d to %d [y] from %d to %d\n" ,
-		beg_row , end_row , y , y + height) ;
-#endif
+		ncols = ml_term_get_cols( screen->term) ;
+		
+		if( ( beg_row = x / x_col_width( screen)) >= ncols)
+		{
+			beg_row = ncols - 1 ;
+		}
+		
+		if( ( end_row = (x + width) / x_col_width( screen) + 1) >= ncols)
+		{
+			end_row = ncols - 1 ;
+		}
+
+		if( screen->term->vertical_mode & VERT_RTL)
+		{
+			u_int  swp ;
+			
+			swp = ncols - beg_row - 1 ;
+			beg_row = ncols - end_row - 1 ;
+			end_row = swp ;
+		}
+		
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " exposed [row] from %d to %d [x] from %d to %d\n" ,
+			beg_row , end_row , x , x + width) ;
+	#endif
+	}
+	else
+	{
+		beg_row = convert_y_to_row( screen , NULL , y) ;
+		end_row = convert_y_to_row( screen , NULL , y + height) ;
+		
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " exposed [row] from %d to %d [y] from %d to %d\n" ,
+			beg_row , end_row , y , y + height) ;
+	#endif
+	}
 
 	ml_term_set_modified_lines_in_screen( screen->term , beg_row , end_row) ;
 	

@@ -1,5 +1,9 @@
 2003-09-30  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screenc.c(window_exposed): Consider vertical mode.
+
+2003-09-30  Araki Ken  <arakiken@users.sf.net>
+
 	* x_sb_view_factory.c: Memory leaked if specified scrollbar not found and
 	  "simple" scrollbar used. Fixed.
 
