@@ -1,3 +1,7 @@
+2003-09-17  Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* doc/ja/README.sb: Fixed a typo.
+
 2003-09-16  Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* configure.in : Disabled pixmap_engine by default.
