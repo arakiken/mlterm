@@ -1,3 +1,8 @@
+2002-07-04  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* Enabled command-line option for contrast/gamma
+	 when configured with gdk-pixbuf. (Thanks to IWAMOTO Toshihiro san)
+
 2002-07-03  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* Added contrast/gamma support to gdk-pixbuf module. 

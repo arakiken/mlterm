@@ -799,7 +799,7 @@ get_min_conf(
 		"screen width in percent against font width [default = 100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
 		"screen height in percent against font height [100]") ;
-#if defined(USE_IMLIB)
+#if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
 	kik_conf_add_opt( conf , '3' , "contrast" , 0 , "contrast" ,
 		"contrast of background image in percent [100]") ;
 	kik_conf_add_opt( conf , '4' , "gamma" , 0 , "gamma" ,
