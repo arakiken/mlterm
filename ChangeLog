@@ -1,5 +1,8 @@
 2003-05-12  MINAMI Hirokazu  <minami@mistfall.net>
 
+	* xwindow/x_dnd.c: added another sanity check so that
+	malicious dnd data will be ignored
+
 	* xwindow/x_dnd.c: mlterm could be crashed
 	if only one mime-type was provided for a dropped data.
 

@@ -53,7 +53,7 @@ is_pref(
 	for( i = 0 ; i < num ; i++)
 	{
 #ifdef  DEBUG
-
+		kik_debug_printf("%d %d == %d?\n", i, type, atom[i]);
 #endif
 		if( atom[i] == type)
 			return i ;
@@ -332,6 +332,13 @@ x_dnd_parse(
 	return 0 ;
 }
 
+/* i is used as an index for an array of atom.
+ * i = -1 means "nothing"
+ *
+ * returned value is the atom found and NOT THE INDEX
+ * and 0 means "nothing" 
+ */
+
 Atom
 x_dnd_preferable_atom(
 	x_window_t *  win ,
@@ -353,9 +360,9 @@ x_dnd_preferable_atom(
 	if( i < 0)
 		i = is_pref( XA_DND_MIME_TEXT_URI_LIST( win->display), atom, num) ;
 		
-#ifdef  DEBUG
 	if( i < 0)
 	{
+#ifdef  DEBUG
 		char *  p ;
 		for( i = 0 ; i < num ; i++)
 			if( atom[i])
@@ -366,9 +373,12 @@ x_dnd_preferable_atom(
 							       atom[i])) ;
 				XFree( p) ;
 			}
+#endif
+		return (Atom)0  ;/* 0 would never be used for Atom */
 	}
 	else
 	{
+#ifdef  DEBUG
 		char *  p ;
 		p = XGetAtomName( win->display, atom[i]);
 		if( p)
@@ -377,12 +387,9 @@ x_dnd_preferable_atom(
 					  p, atom[i]) ;
 			XFree( p) ;
 		}
-	}
-
 #endif
-	if( i < 0)
-		return (Atom)0  ;/* 0 would never be used for Atom */
-	else
+		kik_debug_printf( "accepted %d\n", atom[i]);
 		return atom[i] ;
+	}
 }
 
