@@ -1,0 +1,13 @@
+= mlterm-menu
+mlterm-menu is popup menu style configration tool for mlterm.
+
+== File
+ * ~/.mlterm/menu
+ * SYSCONFDIR/menu (e.g. /etc/mlterm/menu)
+When ~/.mlterm/menu is exist, Ignore SYSCONFDIF/menu.
+
+== Syntax
+  menu          = (normal-entry | special-entry) *
+  normal-entry  = STRING (STRING | submenu)
+  submenu       = "{" menu "}"
+  special-entry = "pty_list" | "-"

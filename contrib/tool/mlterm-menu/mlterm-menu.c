@@ -1,6 +1,6 @@
 /*
  * mlterm-menu - popup menu style configration tool for mlterm
- * 
+ *
  * $Id$
  */
 
@@ -91,12 +91,10 @@ GtkWidget* create_menu()
 
     menu = gtk_menu_new();
 
-    if ((rc_path = kik_get_sys_rc_path(MENU_RCFILE))) {
+    if ((rc_path = kik_get_user_rc_path(MENU_RCFILE))) {
         append_menu_from_file(GTK_MENU(menu), rc_path);
         free(rc_path);
-    }
-
-    if ((rc_path = kik_get_user_rc_path(MENU_RCFILE))) {
+    } else if ((rc_path = kik_get_sys_rc_path(MENU_RCFILE))) {
         append_menu_from_file(GTK_MENU(menu), rc_path);
         free(rc_path);
     }
