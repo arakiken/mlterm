@@ -1878,7 +1878,7 @@ write_to_pty(
 			}
 		#endif
 
-			ml_term_write( screen->term , conv_buf , filled_len) ;
+			ml_term_write( screen->term , conv_buf , filled_len , 0) ;
 		}
 	}
 	else if( str)
@@ -1896,7 +1896,7 @@ write_to_pty(
 		}
 	#endif
 
-		ml_term_write( screen->term , str , len) ;
+		ml_term_write( screen->term , str , len , 0) ;
 	}
 	else
 	{
@@ -2409,83 +2409,12 @@ config_menu(
 	int  global_x ;
 	int  global_y ;
 	Window  child ;
-	x_sb_mode_t  sb_mode ;
-	char *  sb_view_name ;
-	char *  sb_fg_color ;
-	char *  sb_bg_color ;
-	char *  wall_pic ;
 
 	XTranslateCoordinates( screen->window.display , screen->window.my_window ,
 		DefaultRootWindow( screen->window.display) , x , y ,
 		&global_x , &global_y , &child) ;
 
-	if( HAS_SCROLL_LISTENER(screen,fg_color))
-	{
-		sb_fg_color = (*screen->screen_scroll_listener->fg_color)(
-				screen->screen_scroll_listener->self) ;
-	}
-	else
-	{
-		sb_fg_color = "unknown" ;
-	}
-	
-	if( HAS_SCROLL_LISTENER(screen,bg_color))
-	{
-		sb_bg_color = (*screen->screen_scroll_listener->bg_color)(
-				screen->screen_scroll_listener->self) ;
-	}
-	else
-	{
-		sb_bg_color = "unknown" ;
-	}
-	
-	if( HAS_SCROLL_LISTENER(screen,sb_mode))
-	{
-		sb_mode = (*screen->screen_scroll_listener->sb_mode)(
-				screen->screen_scroll_listener->self) ;
-	}
-	else
-	{
-		sb_mode = SB_NONE ;
-	}
-	
-	if( HAS_SCROLL_LISTENER(screen,view_name))
-	{
-		sb_view_name = (*screen->screen_scroll_listener->view_name)(
-				screen->screen_scroll_listener->self) ;
-	}
-	else
-	{
-		sb_view_name = "none" ;
-	}
-
-	if( screen->pic_file_path)
-	{
-		wall_pic = screen->pic_file_path ;
-	}
-	else
-	{
-		wall_pic = "none" ;
-	}
-
-	x_config_menu_start( &screen->config_menu , global_x , global_y ,
-		ml_term_get_encoding( screen->term) , screen->iscii_lang ,
-		x_get_fg_color_name( screen->color_man) ,
-		x_get_bg_color_name( screen->color_man) ,
-		sb_fg_color , sb_bg_color ,
-		ml_term_get_tab_size( screen->term) , ml_term_get_log_size( screen->term) ,
-		screen->font_man->font_size ,
-		screen->font_man->font_custom->min_font_size ,
-		screen->font_man->font_custom->max_font_size ,
-		screen->line_space , screen->screen_width_ratio , screen->screen_height_ratio ,
-		screen->mod_meta_mode , screen->bel_mode , screen->vertical_mode , sb_mode ,
-		ml_term_is_using_char_combining( screen->term) , screen->use_dynamic_comb ,
-		screen->copy_paste_via_ucs , screen->window.is_transparent ,
-		screen->pic_mod.brightness , screen->fade_ratio ,
-		x_font_manager_get_font_present( screen->font_man) ,
-		ml_term_is_using_multi_col_char( screen->term) ,
-		screen->use_bidi , sb_view_name , x_xic_get_xim_name( &screen->window) ,
-		kik_get_locale() , wall_pic) ;
+	ml_term_start_config_menu( screen->term , NULL , global_x , global_y) ;
 }
 
 static int
@@ -3782,7 +3711,7 @@ button_pressed(
 	
 	restore_selected_region_color( screen) ;
 
-	if( screen->is_mouse_pos_sending && ! (event->state & ShiftMask))
+	if( screen->is_mouse_pos_sending && ! (event->state & (ShiftMask | ControlMask)))
 	{
 		report_mouse_tracking( screen , event , 0) ;
 
@@ -3950,7 +3879,7 @@ end:
 
 
 /*
- * callbacks of x_config_menu_event events.
+ * processing config menu events.
  */
 
 static void
@@ -4099,6 +4028,39 @@ change_screen_height_ratio(
 }
 
 static void
+change_font_present(
+	void *  p ,
+	x_font_present_t  font_present
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+	
+	if( screen->vertical_mode)
+	{
+		font_present &= ~FONT_VAR_WIDTH ;
+	}
+
+	if( x_font_manager_get_font_present( screen->font_man) == font_present)
+	{
+		/* not changed */
+		
+		return ;
+	}
+
+	if( ! x_font_manager_change_font_present( screen->font_man , font_present))
+	{
+		return ;
+	}
+
+	font_size_changed( screen) ;
+	
+	/* redrawing all lines with new fonts. */
+	ml_term_set_modified_all( screen->term) ;
+}
+
+static void
 change_char_encoding(
 	void *  p ,
 	ml_char_encoding_t  encoding
@@ -4123,7 +4085,7 @@ change_char_encoding(
 
 		if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
 		{
-			(*screen->config_menu_listener.change_font_present)( screen ,
+			change_font_present( screen ,
 				x_font_manager_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
 		}
 
@@ -4289,7 +4251,7 @@ change_vertical_mode(
 	{
 		if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_VERTICAL))
 		{
-			(*screen->config_menu_listener.change_font_present)( screen ,
+			change_font_present( screen ,
 				( x_font_manager_get_font_present( screen->font_man) | FONT_VERTICAL) &
 					~FONT_VAR_WIDTH) ;
 		}
@@ -4298,7 +4260,7 @@ change_vertical_mode(
 	{
 		if( x_font_manager_get_font_present( screen->font_man) & FONT_VERTICAL)
 		{
-			(*screen->config_menu_listener.change_font_present)( screen ,
+			change_font_present( screen ,
 				x_font_manager_get_font_present( screen->font_man) & ~FONT_VERTICAL) ;
 		}
 	}
@@ -4550,39 +4512,6 @@ change_transparent_flag(
 			screen->screen_scroll_listener->self , is_transparent ,
 			get_picture_modifier( screen)) ;
 	}
-}
-
-static void
-change_font_present(
-	void *  p ,
-	x_font_present_t  font_present
-	)
-{
-	x_screen_t *  screen ;
-
-	screen = p ;
-	
-	if( screen->vertical_mode)
-	{
-		font_present &= ~FONT_VAR_WIDTH ;
-	}
-
-	if( x_font_manager_get_font_present( screen->font_man) == font_present)
-	{
-		/* not changed */
-		
-		return ;
-	}
-
-	if( ! x_font_manager_change_font_present( screen->font_man , font_present))
-	{
-		return ;
-	}
-
-	font_size_changed( screen) ;
-	
-	/* redrawing all lines with new fonts. */
-	ml_term_set_modified_all( screen->term) ;
 }
 
 static void
@@ -5145,7 +5074,8 @@ set_config(
 static void
 get_config(
 	void *  p ,
-	char *  key
+	char *  key ,
+	int  to_cfg
 	)
 {
 	x_screen_t *  screen ;
@@ -5395,11 +5325,11 @@ get_config(
 		goto  error ;
 	}
 
-	ml_term_write( screen->term , "#" , 1) ;
-	ml_term_write( screen->term , key , strlen( key)) ;
-	ml_term_write( screen->term , "=" , 1) ;
-	ml_term_write( screen->term , value , strlen( value)) ;
-	ml_term_write( screen->term , "\n" , 1) ;
+	ml_term_write( screen->term , "#" , 1 , to_cfg) ;
+	ml_term_write( screen->term , key , strlen( key) , to_cfg) ;
+	ml_term_write( screen->term , "=" , 1 , to_cfg) ;
+	ml_term_write( screen->term , value , strlen( value) , to_cfg) ;
+	ml_term_write( screen->term , "\n" , 1 , to_cfg) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
@@ -5408,7 +5338,7 @@ get_config(
 	return ;
 
 error:
-	ml_term_write( screen->term , "#error\n" , 7) ;
+	ml_term_write( screen->term , "#error\n" , 7 , to_cfg) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " #error\n") ;
@@ -6022,50 +5952,6 @@ x_screen_new(
 		screen->pic_file_path = NULL ;
 	}
 
-	screen->config_menu_listener.self = screen ;
-	screen->config_menu_listener.change_char_encoding = change_char_encoding ;
-	screen->config_menu_listener.change_iscii_lang = change_iscii_lang ;
-	screen->config_menu_listener.change_fg_color = change_fg_color ;
-	screen->config_menu_listener.change_bg_color = change_bg_color ;
-	screen->config_menu_listener.change_sb_fg_color = change_sb_fg_color ;
-	screen->config_menu_listener.change_sb_bg_color = change_sb_bg_color ;
-	screen->config_menu_listener.change_tab_size = change_tab_size ;
-	screen->config_menu_listener.change_log_size = change_log_size ;
-	screen->config_menu_listener.change_font_size = change_font_size ;
-	screen->config_menu_listener.change_line_space = change_line_space ;
-	screen->config_menu_listener.change_screen_width_ratio = change_screen_width_ratio ;
-	screen->config_menu_listener.change_screen_height_ratio = change_screen_height_ratio ;
-	screen->config_menu_listener.change_mod_meta_mode = change_mod_meta_mode ;
-	screen->config_menu_listener.change_bel_mode = change_bel_mode ;
-	screen->config_menu_listener.change_vertical_mode = change_vertical_mode ;
-	screen->config_menu_listener.change_sb_mode = change_sb_mode ;
-	screen->config_menu_listener.change_char_combining_flag = change_char_combining_flag ;
-	screen->config_menu_listener.change_dynamic_comb_flag = change_dynamic_comb_flag ;
-	screen->config_menu_listener.change_copy_paste_via_ucs_flag = change_copy_paste_via_ucs_flag ;
-	screen->config_menu_listener.change_transparent_flag = change_transparent_flag ;
-	screen->config_menu_listener.change_brightness = change_brightness ;
-	screen->config_menu_listener.change_fade_ratio = change_fade_ratio ;
-	screen->config_menu_listener.change_font_present = change_font_present ;
-	screen->config_menu_listener.change_multi_col_char_flag = change_multi_col_char_flag ;
-	screen->config_menu_listener.change_bidi_flag = change_bidi_flag ;
-	screen->config_menu_listener.change_sb_view = change_sb_view ;
-	screen->config_menu_listener.change_xim = change_xim ;
-	screen->config_menu_listener.larger_font_size = larger_font_size ;
-	screen->config_menu_listener.smaller_font_size = smaller_font_size ;
-	screen->config_menu_listener.change_wall_picture = change_wall_picture ;
-	screen->config_menu_listener.full_reset = full_reset ;
-	screen->config_menu_listener.updated = config_updated ;
-
-	if( ! x_config_menu_init( &screen->config_menu , conf_menu_path ,
-		&screen->config_menu_listener))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_config_menu_init failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
 	screen->keymap = keymap ;
 	screen->termcap = termcap ;
 	
@@ -6176,7 +6062,6 @@ x_screen_delete(
 	ml_term_set_listener( screen->term , NULL , NULL , NULL) ;
 
 	x_sel_final( &screen->sel) ;
-	x_config_menu_final( &screen->config_menu) ;
 
 	if( screen->shape)
 	{

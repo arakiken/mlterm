@@ -7,6 +7,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 
+
 #if  0
 #define  __DEBUG
 #endif
@@ -14,7 +15,8 @@
 
 /* --- static variables --- */
 
-static ml_vertical_mode_t  new_vertical_mode ;
+static char *  new_vertical_mode ;
+static int  is_changed ;
 
 
 /* --- static functions --- */
@@ -27,7 +29,8 @@ button_none_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		new_vertical_mode = 0 ;
+		new_vertical_mode = "none" ;
+		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -41,7 +44,8 @@ button_cjk_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		new_vertical_mode = VERT_RTL ;
+		new_vertical_mode = "cjk" ;
+		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -55,7 +59,8 @@ button_mongol_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		new_vertical_mode = VERT_LTR ;
+		new_vertical_mode = "mongol" ;
+		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -66,7 +71,7 @@ button_mongol_checked(
 
 GtkWidget *
 mc_vertical_config_widget_new(
-	ml_vertical_mode_t  vertical_mode
+	char *  vertical_mode
 	)
 {
 	GtkWidget *  label ;
@@ -88,7 +93,7 @@ mc_vertical_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 
-	if( vertical_mode != VERT_RTL && vertical_mode != VERT_LTR)
+	if( strcmp( vertical_mode , "none") == 0)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
@@ -99,7 +104,7 @@ mc_vertical_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
-	if( vertical_mode == VERT_RTL)
+	if( strcmp( vertical_mode , "cjk") == 0)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
@@ -110,7 +115,7 @@ mc_vertical_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
-	if( vertical_mode == VERT_LTR)
+	if( strcmp( vertical_mode , "mongol") == 0)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
@@ -120,8 +125,15 @@ mc_vertical_config_widget_new(
 	return  hbox ;
 }
 
-ml_vertical_mode_t
+char *
 mc_get_vertical_mode(void)
 {
+	if( ! is_changed)
+	{
+		return  NULL ;
+	}
+	
+	is_changed = 0 ;
+	
 	return  new_vertical_mode ;
 }

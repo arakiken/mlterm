@@ -18,19 +18,38 @@ mc_combo_new(
 	gpointer  data
 	)
 {
-	GtkWidget *  hbox ;
+	return mc_combo_new_with_width( label_name , item_names , item_num , 
+			     selected_item_name , is_readonly , callback ,
+			     data , MC_COMBO_LABEL_WIDTH, MC_COMBO_TOTAL_WIDTH) ;
+}
+
+GtkWidget *
+mc_combo_new_with_width(
+	char *  label_name ,
+	char **  item_names ,
+	u_int  item_num ,
+	char *  selected_item_name ,
+	int  is_readonly ,
+	gint (*callback)(GtkWidget * , gpointer) ,
+	gpointer  data,
+	int label_width,
+	int total_width
+	)
+{
+	GtkWidget *  table ;
 	GtkWidget *  label ;
 	GtkWidget *  combo ;
 	GList *  items ;
 	int  item_found ;
 	int  count ;
 
-	hbox = gtk_hbox_new(FALSE , 5) ;
-	gtk_widget_show(hbox) ;
+	table = gtk_table_new(1 , total_width , TRUE);
+	gtk_widget_show(table) ;
 
 	label = gtk_label_new(label_name) ;
 	gtk_widget_show(label) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 5) ;
+	gtk_table_attach(GTK_TABLE(table) , label , 0 , label_width , 
+			 0 , 1 , GTK_FILL|GTK_EXPAND , 0 , 2 , 0);
 
 	items = NULL ;
 	item_found = 0 ;
@@ -64,7 +83,9 @@ mc_combo_new(
 		gtk_entry_set_editable(GTK_ENTRY(GTK_COMBO(combo)->entry) , FALSE) ;
 	}
 	
-	gtk_box_pack_start(GTK_BOX(hbox) , combo , TRUE , TRUE , 2) ;
+	gtk_widget_set_usize(GTK_WIDGET(GTK_COMBO(combo)->entry) , 10 , 0);
+	gtk_table_attach(GTK_TABLE(table) , combo , label_width , total_width ,
+			 0 , 1 , GTK_FILL|GTK_EXPAND|GTK_SHRINK , 0 , 2 , 0);
 
-	return  hbox ;
+	return  table ;
 }

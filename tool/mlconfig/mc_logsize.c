@@ -5,10 +5,10 @@
 #include  "mc_logsize.h"
 
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_str.h>
 #include  <glib.h>
 
 #include  "mc_combo.h"
+
 
 #if  0
 #define  __DEBUG
@@ -17,15 +17,8 @@
 
 /* --- static variables --- */
 
-static char *  logsizes[] =
-{
-	"128" ,
-	"256" ,
-	"512" ,
-	"1024" ,
-} ;
-
 static char *  selected_logsize ;
+static int  is_changed ;
 
 
 /* --- static functions --- */
@@ -37,6 +30,7 @@ logsize_selected(
 	)
 {
 	selected_logsize = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	is_changed = 1 ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s logsize is selected.\n" , selected_logsize) ;
@@ -53,21 +47,30 @@ mc_logsize_config_widget_new(
 	char *  logsize
 	)
 {
+	char *  logsizes[] =
+	{
+		"128" ,
+		"256" ,
+		"512" ,
+		"1024" ,
+	} ;
+
 	selected_logsize = logsize ;
 
-	return  mc_combo_new( "Log size" , logsizes , sizeof(logsizes) / sizeof(logsizes[0]) ,
-		selected_logsize , 0 , logsize_selected , NULL) ;
+	return  mc_combo_new_with_width( "Backlog size (lines)" , logsizes ,
+		sizeof(logsizes) / sizeof(logsizes[0]) ,
+		selected_logsize , 0 , logsize_selected , NULL , 3 , 4) ;
 }
 
-u_int
+char *
 mc_get_logsize(void)
 {
-	u_int  logsize ;
-	
-	if( ! kik_str_to_uint( &logsize , selected_logsize))
+	if( ! is_changed)
 	{
-		kik_str_to_uint( &logsize , logsizes[0]) ;
+		return  NULL ;
 	}
 	
-	return  logsize ;
+	is_changed = 0 ;
+	
+	return  selected_logsize ;
 }

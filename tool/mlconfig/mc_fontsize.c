@@ -4,13 +4,11 @@
 
 #include  "mc_fontsize.h"
 
-#include  <stdio.h>		/* sprintf */
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_str.h>
-#include  <kiklib/kik_mem.h>	/* alloca */
 #include  <glib.h>
 
 #include  "mc_combo.h"
+
 
 #if  0
 #define  __DEBUG
@@ -20,6 +18,7 @@
 /* --- static variables --- */
 
 static char *  selected_fontsize ;
+static int  is_changed ;
 
 
 /* --- static functions  --- */
@@ -31,6 +30,7 @@ fontsize_selected(
 	)
 {
 	selected_fontsize = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	is_changed = 1 ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s font size is selected.\n" , selected_fontsize) ;
@@ -44,32 +44,16 @@ fontsize_selected(
 
 GtkWidget *
 mc_fontsize_config_widget_new(
-	char * fontsize ,
-	u_int  min_fontsize ,
-	u_int  max_fontsize
+	char *  fontsize
 	)
 {
-	char **  fontlist ;
-	char *  sizes ;
-	int  count ;
+	char *  fontlist[] =
+	{
+		"6" , "7" , "8" , "9" , "10" ,
+		"11" , "12" , "13" , "14" , "15" , "16" , "17" , "18" , "19" , "20" ,
+		"21" , "22" , "23" , "24" , "25" , "26" , "27" , "28" , "29" , "30" ,
+	} ;
 	
-	if( ( fontlist = alloca( sizeof(char*) * (max_fontsize - min_fontsize + 1))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	if( ( sizes = alloca( ( max_fontsize - min_fontsize + 1) * 10)) == NULL)
-	{
-		return  NULL ;
-	}
-
-	for( count = min_fontsize ; count <= max_fontsize ; count++)
-	{
-		sprintf( sizes , "%d" , count) ;
-		fontlist[count - min_fontsize] = sizes ;
-		sizes += 10 ;
-	}
-
 	if( fontsize == NULL)
 	{
 		selected_fontsize = fontlist[0] ;
@@ -79,20 +63,19 @@ mc_fontsize_config_widget_new(
 		selected_fontsize = fontsize ;
 	}
 
-	return  mc_combo_new( "Font size" , fontlist , max_fontsize - min_fontsize + 1 ,
-		fontsize , 1 , fontsize_selected , NULL) ;
+	return  mc_combo_new_with_width( "Font size (pixels)" , fontlist ,
+		sizeof( fontlist) / sizeof( fontlist[0]) , fontsize , 1 , fontsize_selected , NULL , 3 , 4) ;
 }
 
-u_int
+char *
 mc_get_fontsize(void)
 {
-	u_int  fontsize ;
-	
-	/* this never fails */
-	if( ! kik_str_to_uint( &fontsize , selected_fontsize))
+	if( ! is_changed)
 	{
-		fontsize = 16 ;
+		return  NULL ;
 	}
 	
-	return  fontsize ;
+	is_changed = 0 ;
+	
+	return  selected_fontsize ;
 }

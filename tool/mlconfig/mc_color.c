@@ -9,6 +9,7 @@
 
 #include  "mc_combo.h"
 
+
 #if  0
 #define  __DEBUG
 #endif
@@ -16,31 +17,14 @@
 
 /* --- static variables --- */
 
-/*
- * !!! Notice !!!
- * the order should be the same as x_color_t in x_color.h
- */
-static char *  colors[] =
-{
-	"black" ,
-	"red" ,
-	"green" ,
-	"yellow" ,
-	"blue" ,
-	"magenta" ,
-	"cyan" ,
-	"white" ,
-	"gray" ,
-	"lightgray" ,
-	"pink" ,
-	"brown" ,
-	
-} ;
-
 static char *  selected_fg_color ;
 static char *  selected_bg_color ;
 static char *  selected_sb_fg_color ;
 static char *  selected_sb_bg_color ;
+static int  fg_is_changed ;
+static int  bg_is_changed ;
+static int  sb_fg_is_changed ;
+static int  sb_bg_is_changed ;
 
 
 /* --- static functions --- */
@@ -52,6 +36,7 @@ fg_color_selected(
 	)
 {
 	selected_fg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	fg_is_changed = 1 ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_fg_color) ;
@@ -67,6 +52,7 @@ bg_color_selected(
 	)
 {
 	selected_bg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	bg_is_changed = 1 ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_bg_color) ;
@@ -82,6 +68,7 @@ sb_fg_color_selected(
 	)
 {
 	selected_sb_fg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	sb_fg_is_changed = 1 ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_sb_fg_color) ;
@@ -97,6 +84,7 @@ sb_bg_color_selected(
 	)
 {
 	selected_sb_bg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	sb_bg_is_changed = 1 ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_sb_bg_color) ;
@@ -112,6 +100,23 @@ config_widget_new(
 	gint (*color_selected)(GtkWidget *,gpointer)
 	)
 {
+	char *  colors[] =
+	{
+		"black" ,
+		"red" ,
+		"green" ,
+		"yellow" ,
+		"blue" ,
+		"magenta" ,
+		"cyan" ,
+		"white" ,
+		"gray" ,
+		"lightgray" ,
+		"pink" ,
+		"brown" ,
+
+	} ;
+	
 	return  mc_combo_new( title , colors , sizeof(colors) / sizeof(colors[0]) ,
 			selected_color , 0 , color_selected , NULL) ;
 }
@@ -126,7 +131,7 @@ mc_fg_color_config_widget_new(
 {
 	selected_fg_color = color ;
 	
-	return  config_widget_new( "FG color" , color , fg_color_selected) ;
+	return  config_widget_new( "Foreground color" , color , fg_color_selected) ;
 }
 
 GtkWidget *
@@ -136,7 +141,7 @@ mc_bg_color_config_widget_new(
 {
 	selected_bg_color = color ;
 	
-	return  config_widget_new( "BG color" , color , bg_color_selected) ;
+	return  config_widget_new( "Background color" , color , bg_color_selected) ;
 }
 
 GtkWidget *
@@ -146,7 +151,7 @@ mc_sb_fg_color_config_widget_new(
 {
 	selected_sb_fg_color = color ;
 	
-	return  config_widget_new( "FG color" , color , sb_fg_color_selected) ;
+	return  config_widget_new( "Foreground color" , color , sb_fg_color_selected) ;
 }
 
 GtkWidget *
@@ -156,29 +161,57 @@ mc_sb_bg_color_config_widget_new(
 {
 	selected_sb_bg_color = color ;
 	
-	return  config_widget_new( "BG color" , color , sb_bg_color_selected) ;
+	return  config_widget_new( "Background color" , color , sb_bg_color_selected) ;
 }
 
 char *
 mc_get_fg_color(void)
 {
+	if( ! fg_is_changed)
+	{
+		return  NULL ;
+	}
+	
+	fg_is_changed = 0 ;
+	
 	return  selected_fg_color ;
 }
 
 char *
 mc_get_bg_color(void)
 {
+	if( ! bg_is_changed)
+	{
+		return  NULL ;
+	}
+	
+	bg_is_changed = 0 ;
+	
 	return  selected_bg_color ;
 }
 
 char *
 mc_get_sb_fg_color(void)
 {
+	if( ! sb_fg_is_changed)
+	{
+		return  NULL ;
+	}
+	
+	sb_fg_is_changed = 0 ;
+	
 	return  selected_sb_fg_color ;
 }
 
 char *
 mc_get_sb_bg_color(void)
 {
+	if( ! sb_bg_is_changed)
+	{
+		return  NULL ;
+	}
+	
+	sb_bg_is_changed = 0 ;
+	
 	return  selected_sb_bg_color ;
 }

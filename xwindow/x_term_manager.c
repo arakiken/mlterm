@@ -1718,6 +1718,12 @@ receive_next_event(
 		return ;
 	}
 
+	/*
+	 * Processing order should be as follows.
+	 *
+	 * PTY -> X WINDOW -> Socket
+	 */
+	 
 	for( count = 0 ; count < term_man->num_of_terms ; count ++)
 	{
 		if( FD_ISSET( ml_term_get_pty_fd( term_man->terms[count].term) , &read_fds))

@@ -9,6 +9,7 @@
 #include  "ml_pty.h"
 #include  "ml_vt100_parser.h"
 #include  "ml_screen.h"
+#include  "ml_config_menu.h"
 
 
 typedef enum  ml_special_visual
@@ -25,6 +26,7 @@ typedef struct ml_term
 	ml_pty_t *  pty ;
 	ml_vt100_parser_t *  parser ;
 	ml_screen_t *  screen ;
+	ml_config_menu_t  config_menu ;
 
 } ml_term_t ;
 
@@ -59,7 +61,7 @@ int  ml_term_get_pty_fd( ml_term_t *  term) ;
 
 pid_t  ml_term_get_child_pid( ml_term_t *  term) ;
 
-size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len) ;
+size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len , int  to_cfg) ;
 
 int  ml_term_flush( ml_term_t *  term) ;
 
@@ -142,6 +144,8 @@ int  ml_term_is_using_char_combining( ml_term_t *  term) ;
 int  ml_term_set_multi_col_char_flag( ml_term_t *  term , int  flag) ;
 
 int  ml_term_is_using_multi_col_char( ml_term_t *  term) ;
+
+int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path , int  x , int  y) ;
 
 
 #endif

@@ -13,10 +13,10 @@
 
 #include  "mc_combo.h"
 
+
 #if  0
 #define  __DEBUG
 #endif
-
 
 #ifndef  SYSCONFDIR
 #define  CONFIG_PATH  "/etc"
@@ -37,6 +37,8 @@ static u_int  num_of_xims ;
 static char *  selected_xim ;
 static char *  selected_locale ;
 static char *  cur_locale ;
+static int  xim_is_changed ;
+static int  locale_is_changed ;
 
 
 /* --- static functions --- */
@@ -48,6 +50,7 @@ locale_changed(
 	)
 {
 	selected_locale = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	locale_is_changed = 1 ;
 
 	return  1 ;
 }
@@ -81,6 +84,7 @@ xim_selected(
 	locale_entry = (GtkWidget*)data ;
 	
 	selected_xim = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	xim_is_changed = 1 ;
 
 	if( ( selected_locale = get_xim_locale( selected_xim)))
 	{
@@ -154,7 +158,7 @@ mc_xim_config_widget_new(
 	u_int  size ;
 	int  count ;
 	GtkWidget *  vbox ;
-	GtkWidget *  hbox ;
+	GtkWidget *  table ;
 	GtkWidget *  label ;
 	GtkWidget *  combo ;
 	GtkWidget *  entry ;
@@ -214,15 +218,18 @@ mc_xim_config_widget_new(
 	
 	vbox = gtk_vbox_new(FALSE , 5) ;
 	
-	hbox = gtk_hbox_new(FALSE , 5) ;
-	
+	table = gtk_table_new(1 , MC_COMBO_TOTAL_WIDTH , TRUE) ;
+
 	label = gtk_label_new( "XIM locale") ;
 	gtk_widget_show( label) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 2) ;
+	gtk_table_attach(GTK_TABLE(table) , label , 0 , MC_COMBO_LABEL_WIDTH ,
+			 0 , 1 , GTK_FILL|GTK_EXPAND , 0 , 2 , 0);
 	
 	entry = gtk_entry_new() ;
 	gtk_widget_show( entry) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , entry , TRUE , TRUE , 2) ;
+	gtk_table_attach(GTK_TABLE(table) , entry , MC_COMBO_LABEL_WIDTH ,
+			 MC_COMBO_TOTAL_WIDTH , 0 , 1 ,
+			 GTK_FILL|GTK_EXPAND , 0 , 2 , 0);
 	gtk_entry_set_text( GTK_ENTRY(entry) , selected_locale) ;
 	
 	gtk_signal_connect(GTK_OBJECT(entry) , "changed" , GTK_SIGNAL_FUNC(locale_changed) , NULL) ;
@@ -233,8 +240,8 @@ mc_xim_config_widget_new(
 	gtk_widget_show( combo) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , combo , TRUE , TRUE , 0) ;	
 	
-	gtk_widget_show(hbox) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
+	gtk_widget_show(table) ;
+	gtk_box_pack_start(GTK_BOX(vbox) , table , TRUE , TRUE , 0) ;
 	
 	return  vbox ;
 }
@@ -242,6 +249,13 @@ mc_xim_config_widget_new(
 char *
 mc_get_xim_name(void)
 {
+	if( ! xim_is_changed)
+	{
+		return  NULL ;
+	}
+	
+	xim_is_changed = 0 ;
+	
 	if( strcmp( selected_xim , "") == 0)
 	{
 		return  "unsed" ;
@@ -255,6 +269,13 @@ mc_get_xim_name(void)
 char *
 mc_get_xim_locale(void)
 {
+	if( ! locale_is_changed)
+	{
+		return  NULL ;
+	}
+	
+	locale_is_changed = 0 ;
+	
 	if( selected_locale == NULL || strcmp( selected_locale , "") == 0)
 	{
 		return  "NULL" ;

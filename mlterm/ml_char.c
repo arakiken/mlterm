@@ -603,7 +603,7 @@ ml_char_cols(
 	)
 {
 	if( use_multi_col_char &&
-		(IS_BIWIDTH( CHARSET(ch->attr)) || IS_BIWIDTH_CS( CHARSET(ch->attr))))
+		(IS_BIWIDTH(ch->attr) || IS_BIWIDTH_CS( CHARSET(ch->attr))))
 	{
 		return  2 ;
 	}

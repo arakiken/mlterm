@@ -5,10 +5,10 @@
 #include  "mc_screen_ratio.h"
 
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_str.h>
 #include  <glib.h>
 
 #include  "mc_combo.h"
+
 
 #if  0
 #define  __DEBUG
@@ -17,22 +17,10 @@
 
 /* --- static variables --- */
 
-static char *  screen_ratios[] =
-{
-	"100" ,
-	"90" ,
-	"80" ,
-	"70" ,
-	"60" ,
-	"50" ,
-	"40" ,
-	"30" ,
-	"20" ,
-	"10" ,
-} ;
-
 static char *  selected_screen_width_ratio ;
 static char *  selected_screen_height_ratio ;
+static int  width_is_changed ;
+static int  height_is_changed ;
 
 
 /* --- static functions --- */
@@ -44,6 +32,7 @@ screen_width_ratio_selected(
 	)
 {
 	selected_screen_width_ratio = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	width_is_changed = 1 ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s screen_width_ratio is selected.\n" ,
@@ -60,6 +49,7 @@ screen_height_ratio_selected(
 	)
 {
 	selected_screen_height_ratio = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	height_is_changed = 1 ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s screen_height_ratio is selected.\n" ,
@@ -76,8 +66,23 @@ config_widget_new(
 	gint (*ratio_selected)(GtkWidget *,gpointer)
 	)
 {
-	return  mc_combo_new( title , screen_ratios , sizeof(screen_ratios) / sizeof(screen_ratios[0]) ,
-		ratio , 0 , ratio_selected , NULL) ;
+	char *  screen_ratios[] =
+	{
+		"100" ,
+		"90" ,
+		"80" ,
+		"70" ,
+		"60" ,
+		"50" ,
+		"40" ,
+		"30" ,
+		"20" ,
+		"10" ,
+	} ;
+
+	return  mc_combo_new_with_width( title , screen_ratios ,
+		sizeof(screen_ratios) / sizeof(screen_ratios[0]) ,
+		ratio , 0 , ratio_selected , NULL , 3 , 4) ;
 }
 
 
@@ -103,28 +108,28 @@ mc_screen_height_ratio_config_widget_new(
 	return  config_widget_new( "Height ratio" , ratio , screen_height_ratio_selected) ;
 }
 
-u_int
+char *
 mc_get_screen_width_ratio(void)
 {
-	u_int  ratio ;
-	
-	if( ! kik_str_to_uint( &ratio , selected_screen_width_ratio))
+	if( ! width_is_changed)
 	{
-		kik_str_to_uint( &ratio , screen_ratios[0]) ;
+		return  NULL ;
 	}
 	
-	return  ratio ;
+	width_is_changed = 0 ;
+	
+	return  selected_screen_width_ratio ;
 }
 
-u_int
+char *
 mc_get_screen_height_ratio(void)
 {
-	u_int  ratio ;
-	
-	if( ! kik_str_to_uint( &ratio , selected_screen_height_ratio))
+	if( ! height_is_changed)
 	{
-		kik_str_to_uint( &ratio , screen_ratios[0]) ;
+		return  NULL ;
 	}
 	
-	return  ratio ;
+	height_is_changed = 0 ;
+	
+	return  selected_screen_height_ratio ;
 }

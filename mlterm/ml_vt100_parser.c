@@ -1769,7 +1769,19 @@ parse_vt100_escape_sequence(
 						{
 							stop_vt100_cmd( vt100_parser) ;
 							(*vt100_parser->config_listener->get)(
-								vt100_parser->config_listener->self , pt) ;
+								vt100_parser->config_listener->self ,
+								pt , 0) ;
+							start_vt100_cmd( vt100_parser) ;
+						}
+					}
+					else if( ps == 5381)
+					{
+						if( HAS_CONFIG_LISTENER(vt100_parser,get))
+						{
+							stop_vt100_cmd( vt100_parser) ;
+							(*vt100_parser->config_listener->get)(
+								vt100_parser->config_listener->self ,
+								pt , 1) ;
 							start_vt100_cmd( vt100_parser) ;
 						}
 					}

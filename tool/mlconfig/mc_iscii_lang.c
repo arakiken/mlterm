@@ -9,6 +9,7 @@
 
 #include  "mc_combo.h"
 
+
 #if  0
 #define  __DEBUG
 #endif
@@ -16,27 +17,8 @@
 
 /* --- static variables --- */
 
-/*
- * !!! Notice !!!
- * the order should be the same as ml_iscii_lang_t in ml_iscii.h
- */
-static char *  iscii_langs[] =
-{
-	"Assamese" ,
-	"Bengali",
-	"Gujarati",
-	"Hindi",
-	"Kannada",
-	"Malayalam",
-	"Oriya",
-	"Punjabi",
-	"Roman",
-	"Tamil",
-	"Telugu",
-	
-} ;
-
-static ml_iscii_lang_t  selected_iscii_lang = 0 ;
+static char *  selected_iscii_lang ;
+static int  is_changed ;
 
 
 /* --- static functions --- */
@@ -47,21 +29,9 @@ iscii_lang_selected(
 	gpointer  data
 	)
 {
-	int  count ;
-	char *  text ;
+	selected_iscii_lang = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	is_changed = 1 ;
 
-	text = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-
-	for( count = 0 ; count < sizeof( iscii_langs) / sizeof( iscii_langs[0]) ; count ++)
-	{
-		if( strcmp( text , iscii_langs[count]) == 0)
-		{
-			break ;
-		}
-	}
-	
-	selected_iscii_lang = count ;
-	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s iscii_lang is selected.\n" , selected_iscii_lang) ;
 #endif
@@ -74,17 +44,40 @@ iscii_lang_selected(
 
 GtkWidget *
 mc_iscii_lang_config_widget_new(
-	ml_iscii_lang_t  iscii_lang
+	char *  iscii_lang
 	)
 {
+	char *  iscii_langs[] =
+	{
+		"Assamese" ,
+		"Bengali",
+		"Gujarati",
+		"Hindi",
+		"Kannada",
+		"Malayalam",
+		"Oriya",
+		"Punjabi",
+		"Roman",
+		"Tamil",
+		"Telugu",
+
+	} ;
+	
 	selected_iscii_lang = iscii_lang ;
 
-	return  mc_combo_new( "ISCII lang" , iscii_langs , sizeof(iscii_langs) / sizeof(iscii_langs[0]) ,
-		iscii_langs[selected_iscii_lang] , 1 , iscii_lang_selected , NULL) ;
+	return  mc_combo_new( "ISCII language" , iscii_langs , sizeof(iscii_langs) / sizeof(iscii_langs[0]) ,
+		selected_iscii_lang , 1 , iscii_lang_selected , NULL) ;
 }
 
-ml_iscii_lang_t
+char *
 mc_get_iscii_lang(void)
 {
+	if( ! is_changed)
+	{
+		return  NULL ;
+	}
+	
+	is_changed = 0 ;
+	
 	return  selected_iscii_lang ;
 }

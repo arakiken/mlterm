@@ -1,3 +1,11 @@
+2002-06-03 Araki Ken <arakiken@users.sf.net>
+
+	* multi-column characters were not treated as multi-column in UTF-8 encoding. fixed.
+	  (Thanks to Sakamoto Hironori san)
+	* If Control Mask is set, mouse position is not reported.
+	  (Thanks to Sakamoto Hironori san)
+	* mlconfig and mlterm communicate through doc/en/PROTOCOL protocol.
+
 2002-05-31 Tomohiro KUBOTA <kubota@debian.org>
 
 	* rewrite manpage for 2002-05-30 changes.

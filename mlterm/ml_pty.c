@@ -38,7 +38,7 @@ ml_pty_new(
 		return  NULL ;
 	}
 	
-	pid = kik_pty_fork( &pty->fd , &slave) ;
+	pid = kik_pty_fork( &pty->master , &pty->slave , &slave) ;
 
 	if( pid == -1)
 	{
@@ -106,7 +106,7 @@ ml_pty_new(
 	/* parent process */
 
 #ifdef  USE_UTMP
-	if( ( pty->utmp = kik_utmp_new( slave , host , pty->fd)) == NULL)
+	if( ( pty->utmp = kik_utmp_new( slave , host , pty->master)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG "utmp failed.\n") ;
@@ -143,21 +143,15 @@ ml_pty_delete(
 #endif
 
 #ifdef  __DEBUG
-	kik_debug_printf( "%d fd is closed\n" , pty->fd) ;
+	kik_debug_printf( "%d fd is closed\n" , pty->master) ;
 #endif
 
-	if( close( pty->fd) == 0)
-	{
-		free( pty) ;
+	close( pty->master) ;
+	close( pty->slave) ;
 	
-		return  1 ;
-	}
-	else
-	{
-		free( pty) ;
-		
-		return  0 ;
-	}
+	free( pty) ;
+
+	return  1 ;
 }
 
 int
@@ -176,7 +170,7 @@ ml_set_pty_winsize(
 	ws.ws_col = cols ;
 	ws.ws_row = rows ;
 	
-	if( ioctl( pty->fd , TIOCSWINSZ , &ws) < 0)
+	if( ioctl( pty->master , TIOCSWINSZ , &ws) < 0)
 	{
 	#ifdef  DBEUG
 		kik_warn_printf( KIK_DEBUG_TAG " ioctl(TIOCSWINSZ) failed.\n") ;
@@ -199,7 +193,7 @@ ml_write_to_pty(
 {
 	u_char *  w_buf ;
 	size_t  w_buf_size ;
-	int  written_size ;
+	ssize_t  written_size ;
 	void *  p ;
 
 	if( ( w_buf_size = pty->left + len) == 0)
@@ -238,7 +232,7 @@ ml_write_to_pty(
 	}
 #endif
 
-	written_size = write( pty->fd , w_buf , w_buf_size) ;
+	written_size = write( pty->master , w_buf , w_buf_size) ;
 	if( written_size == w_buf_size)
 	{
 		if( pty->buf)
@@ -296,7 +290,7 @@ ml_read_pty(
 	{
 		int  ret ;
 
-		ret = read( pty->fd , &bytes[read_size] , left) ;
+		ret = read( pty->master , &bytes[read_size] , left) ;
 		if( ret <= 0)
 		{
 			return  read_size ;

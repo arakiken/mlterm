@@ -5,10 +5,10 @@
 #include  "mc_line_space.h"
 
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_str.h>
 #include  <glib.h>
 
 #include  "mc_combo.h"
+
 
 #if  0
 #define  __DEBUG
@@ -17,17 +17,8 @@
 
 /* --- static variables --- */
 
-static char *  line_spaces[] =
-{
-	"5" ,
-	"4" ,
-	"3" ,
-	"2" ,
-	"1" ,
-	"0" ,
-} ;
-
 static char *  selected_line_space ;
+static int  is_changed ;
 
 
 /* --- static functions --- */
@@ -39,6 +30,7 @@ line_space_selected(
 	)
 {
 	selected_line_space = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	is_changed = 1 ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s line_space is selected.\n" , selected_line_space) ;
@@ -55,21 +47,32 @@ mc_line_space_config_widget_new(
 	char *  line_space
 	)
 {
+	char *  line_spaces[] =
+	{
+		"5" ,
+		"4" ,
+		"3" ,
+		"2" ,
+		"1" ,
+		"0" ,
+	} ;
+
 	selected_line_space = line_space ;
 
-	return  mc_combo_new( "Line space" , line_spaces , sizeof(line_spaces) / sizeof(line_spaces[0]) ,
-		selected_line_space , 0 , line_space_selected , NULL) ;
+	return  mc_combo_new_with_width( "Line space (pixels)" , line_spaces ,
+		sizeof(line_spaces) / sizeof(line_spaces[0]) ,
+		selected_line_space , 0 , line_space_selected , NULL , 3 , 4) ;
 }
 
-u_int
+char *
 mc_get_line_space(void)
 {
-	u_int  line_space ;
-	
-	if( ! kik_str_to_uint( &line_space , selected_line_space))
+	if( ! is_changed)
 	{
-		kik_str_to_uint( &line_space , line_spaces[0]) ;
+		return  NULL ;
 	}
 	
-	return  line_space ;
+	is_changed = 0 ;
+	
+	return  selected_line_space ;
 }

@@ -10,6 +10,7 @@
 /* --- static functions --- */
 
 static GtkWidget *  entry ;
+static int  is_changed ;
 
 
 /* --- static functions --- */
@@ -32,6 +33,8 @@ file_sel_ok_clicked(
 	gtk_entry_set_text( GTK_ENTRY(entry) ,
 		gtk_file_selection_get_filename( GTK_FILE_SELECTION( object))) ;
 	gtk_widget_destroy( GTK_WIDGET(object)) ;
+
+	is_changed = 1 ;
 	
 	return  TRUE ;
 }
@@ -43,13 +46,13 @@ button_clicked(
 {
 	GtkWidget *  file_sel ;
 
-	file_sel = gtk_file_selection_new( "Wall Picture") ;
+	file_sel = gtk_file_selection_new( "Wallpaper") ;
 	gtk_widget_show( GTK_WIDGET(file_sel)) ;
 
-	gtk_signal_connect_object( GTK_OBJECT( GTK_FILE_SELECTION(file_sel)->ok_button ) ,
+	gtk_signal_connect_object( GTK_OBJECT( GTK_FILE_SELECTION(file_sel)->ok_button) ,
 		"clicked" , GTK_SIGNAL_FUNC(file_sel_ok_clicked) , GTK_OBJECT(file_sel)) ;
 
-	gtk_signal_connect_object( GTK_OBJECT( GTK_FILE_SELECTION(file_sel)->cancel_button ) ,
+	gtk_signal_connect_object( GTK_OBJECT( GTK_FILE_SELECTION(file_sel)->cancel_button) ,
 		"clicked" , GTK_SIGNAL_FUNC(file_sel_cancel_clicked) , GTK_OBJECT(file_sel)) ;
 		
 	return  TRUE ;
@@ -91,11 +94,18 @@ char *
 mc_get_wall_pic(void)
 {
 	char *  wall_pic ;
+
+	if( ! is_changed)
+	{
+		return  NULL ;
+	}
 	
 	if( *( wall_pic = gtk_entry_get_text( GTK_ENTRY(entry))) == '\0')
 	{
 		wall_pic = "none" ;
 	}
 
+	is_changed = 0 ;
+	
 	return  wall_pic ;
 }

@@ -7,6 +7,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 
+
 #if  0
 #define  __DEBUG
 #endif
@@ -14,7 +15,8 @@
 
 /* --- static variables --- */
 
-static x_mod_meta_mode_t  new_mod_meta_mode ;
+static char *  new_mod_meta_mode ;
+static int  is_changed ;
 
 
 /* --- static functions --- */
@@ -27,7 +29,8 @@ button_none_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		new_mod_meta_mode = MOD_META_NONE ;
+		new_mod_meta_mode = "none" ;
+		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -41,7 +44,8 @@ button_esc_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		new_mod_meta_mode = MOD_META_OUTPUT_ESC ;
+		new_mod_meta_mode = "esc" ;
+		is_changed = 1 ;
 	}
 		
 	return  1 ;
@@ -55,7 +59,8 @@ button_8bit_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		new_mod_meta_mode = MOD_META_SET_MSB ;
+		new_mod_meta_mode = "8bit" ;
+		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -66,7 +71,7 @@ button_8bit_checked(
 
 GtkWidget *
 mc_mod_meta_config_widget_new(
-	x_mod_meta_mode_t  mod_meta_mode
+	char *  mod_meta_mode
 	)
 {
 	GtkWidget *  label ;
@@ -76,7 +81,7 @@ mc_mod_meta_config_widget_new(
 
 	hbox = gtk_hbox_new(FALSE , 0) ;
 
-	label = gtk_label_new( "Mod Meta mode") ;
+	label = gtk_label_new( "Meta key outputs:") ;
 	gtk_widget_show(label) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 0) ;
 	
@@ -88,7 +93,7 @@ mc_mod_meta_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 
-	if( mod_meta_mode == 0)
+	if( strcmp( mod_meta_mode , "none") == 0)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
@@ -99,7 +104,7 @@ mc_mod_meta_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
-	if( mod_meta_mode == 1)
+	if( strcmp( mod_meta_mode , "esc") == 0)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
@@ -110,18 +115,26 @@ mc_mod_meta_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
-	if( mod_meta_mode == 2)
+	if( strcmp( mod_meta_mode , "8bit") == 0)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 
 	new_mod_meta_mode = mod_meta_mode ;
+	is_changed = 0 ;
 	
 	return  hbox ;
 }
 
-x_mod_meta_mode_t
+char *
 mc_get_mod_meta_mode(void)
 {
+	if( ! is_changed)
+	{
+		return  NULL ;
+	}
+	
+	is_changed = 0 ;
+	
 	return  new_mod_meta_mode ;
 }

@@ -42,10 +42,10 @@
 pid_t
 kik_pty_fork(
 	int *  master ,
+	int *  slave ,
 	char **  slave_name
 	)
 {
-	int  slave ;
 	pid_t pid ;
 	char * ttydev;
 	struct  termios  tio ;
@@ -73,7 +73,7 @@ kik_pty_fork(
 
 	fcntl(*master, F_SETFL, O_NDELAY);
 	
-	if( ( slave = open( ttydev, O_RDWR | O_NOCTTY, 0)) < 0)
+	if( ( *slave = open( ttydev, O_RDWR | O_NOCTTY, 0)) < 0)
 	{
 		return -1;
 	}
@@ -82,11 +82,11 @@ kik_pty_fork(
 	 * cygwin doesn't have isastream.
 	 */
 #ifdef  HAVE_ISASTREAM
-	if( isastream(slave) == 1)
+	if( isastream(*slave) == 1)
 	{
-		ioctl(slave, I_PUSH, "ptem");
-		ioctl(slave, I_PUSH, "ldterm");
-		ioctl(slave, I_PUSH, "ttcompat");
+		ioctl(*slave, I_PUSH, "ptem");
+		ioctl(*slave, I_PUSH, "ldterm");
+		ioctl(*slave, I_PUSH, "ttcompat");
 	}
 #endif
 
@@ -178,7 +178,7 @@ kik_pty_fork(
 	if( ( *slave_name = strdup( ttydev)) == NULL)
 	{
 		close( *master) ;
-		close( slave) ;
+		close( *slave) ;
 
 		return  -1 ;
 	}
@@ -226,13 +226,13 @@ kik_pty_fork(
 		}
 		close(fd);
 
-		dup2( slave , 0) ;
-		dup2( slave , 1) ;
-		dup2( slave , 2) ;
+		dup2( *slave , 0) ;
+		dup2( *slave , 1) ;
+		dup2( *slave , 2) ;
 
 		if( slave > STDERR_FILENO)
 		{
-			close(slave) ;
+			close(*slave) ;
 		}
 
 		cfsetispeed( &tio , B9600) ;
@@ -247,8 +247,6 @@ kik_pty_fork(
 
 		return  0 ;
 	}
-
-	close(slave) ;
 
 	return  pid ;
 }

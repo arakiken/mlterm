@@ -9,6 +9,7 @@
 
 #include  "mc_combo.h"
 
+
 #if  0
 #define  __DEBUG
 #endif
@@ -16,10 +17,9 @@
 
 /* --- static variables --- */
 
-/*
- * !!! Notice !!!
- * the order should be the same as ml_char_encoding_t in ml_char_encoding.h
- */
+static char *  selected_encoding ;
+static int  is_changed ;
+
 static char *  encodings[] =
 {
 	"ISO-8859-1" ,
@@ -72,8 +72,6 @@ static char *  encodings[] =
 	"ISO-2022-CN" ,
 } ;
 
-static ml_char_encoding_t  selected_encoding = 0 ;
-
 
 /* --- static functions --- */
 
@@ -83,21 +81,9 @@ encoding_selected(
 	gpointer  data
 	)
 {
-	int  count ;
-	char *  text ;
+	selected_encoding = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	is_changed = 1 ;
 
-	text = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-
-	for( count = 0 ; count < sizeof( encodings) / sizeof( encodings[0]) ; count ++)
-	{
-		if( strcmp( text , encodings[count]) == 0)
-		{
-			break ;
-		}
-	}
-	
-	selected_encoding = count ;
-	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s encoding is selected.\n" , selected_encoding) ;
 #endif
@@ -105,22 +91,98 @@ encoding_selected(
 	return  1 ;
 }
 
+static char *
+unregularized(
+	char *  encoding
+	)
+{
+	int  count ;
+	char *  regularized[] =
+	{
+		"ISO88591" ,
+		"ISO88592" ,
+		"ISO88593" ,
+		"ISO88594" ,
+		"ISO88595" ,
+		"ISO88596" ,
+		"ISO88597" ,
+		"ISO88598" ,
+		"ISO88599" ,
+		"ISO885910" ,
+		"ISO885911" ,
+		"ISO885913" ,
+		"ISO885914" ,
+		"ISO885915" ,
+		"ISO885916" ,
+		"TCVN5712" ,
 
-/* --- global functions --- */
+		"ISCII" ,
+		"VISCII" ,
+		"KOI8R" ,
+		"KOI8U" ,
+
+		"UTF8" ,
+
+		"EUCJP" ,
+		"EUCJISX0213" ,
+		"ISO2022JP" ,
+		"ISO2022JP2" ,
+		"ISO2022JP3" ,
+		"SJIS" ,
+		"SJISX0213" ,
+
+		"EUCKR" ,
+		"UHC" ,
+		"JOHAB" ,
+		"ISO2022KR" ,
+
+		"BIG5" ,
+		"EUCTW" ,
+
+		"BIG5HKSCS" ,
+
+		"EUCCN" ,
+		"GBK" ,
+		"GB18030" ,
+		"HZ" ,
+
+		"ISO2022CN" ,
+	} ;
+
+	for( count = 0 ; count < sizeof( regularized) / sizeof( regularized[0]) ; count ++)
+	{
+		if( strcmp( regularized[count] , encoding) == 0)
+		{
+			return  encodings[count] ;
+		}
+	}
+
+	return  "UNKNOWN" ;
+}
+
+
+/* -- global functions --- */
 
 GtkWidget *
 mc_char_encoding_config_widget_new(
-	ml_char_encoding_t  encoding
+	char *  encoding
 	)
 {
-	selected_encoding = encoding ;
+	selected_encoding = unregularized( encoding) ;
 
-	return  mc_combo_new( "Encoding" , encodings , sizeof(encodings) / sizeof(encodings[0]) ,
-		encodings[selected_encoding] , 1 , encoding_selected , NULL) ;
+	return  mc_combo_new_with_width( "Encoding" , encodings , sizeof(encodings) / sizeof(encodings[0]) ,
+		selected_encoding , 1 , encoding_selected , NULL , 1 , 3) ;
 }
 
-ml_char_encoding_t
+char *
 mc_get_char_encoding(void)
 {
+	if( ! is_changed)
+	{
+		return  NULL ;
+	}
+	
+	is_changed = 0 ;
+	
 	return  selected_encoding ;
 }

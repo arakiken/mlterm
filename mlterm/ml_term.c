@@ -62,6 +62,15 @@ ml_term_new(
 		goto  error ;
 	}
 
+	if( ! ml_config_menu_init( &term->config_menu))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_config_menu_init failed.\n") ;
+	#endif
+	
+		goto  error ;
+	}
+
 	return  term ;
 
 error:
@@ -93,6 +102,8 @@ ml_term_delete(
 	ml_screen_delete( term->screen) ;
 	ml_vt100_parser_delete( term->parser) ;
 
+	ml_config_menu_final( &term->config_menu) ;
+	
 	free( term) ;
 
 	return  1 ;
@@ -207,7 +218,7 @@ ml_term_get_pty_fd(
 		return  -1 ;
 	}
 	 
-	return  term->pty->fd ;
+	return  term->pty->master ;
 }
 
 pid_t
@@ -227,15 +238,23 @@ size_t
 ml_term_write(
 	ml_term_t *  term ,
 	u_char *  buf ,
-	size_t  len
+	size_t  len ,
+	int  to_cfg
 	)
 {
-	if( term->pty == NULL)
+	if( to_cfg)
 	{
-		return  0 ;
+		return  ml_config_menu_write( &term->config_menu , buf , len) ;
 	}
-	
-	return  ml_write_to_pty( term->pty , buf , len) ;
+	else
+	{
+		if( term->pty == NULL)
+		{
+			return  0 ;
+		}
+
+		return  ml_write_to_pty( term->pty , buf , len) ;
+	}
 }
 
 int
@@ -690,4 +709,17 @@ ml_term_is_using_multi_col_char(
 	)
 {
 	return  term->parser->use_multi_col_char ;
+}
+
+int
+ml_term_start_config_menu(
+	ml_term_t *  term ,
+	char *  cmd_path ,
+	int  x ,
+	int  y
+	)
+{
+	ml_config_menu_start( &term->config_menu , cmd_path , x , y , term->pty->slave) ;
+	
+	return  1 ;
 }

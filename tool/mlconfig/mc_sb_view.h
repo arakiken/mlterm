@@ -6,7 +6,6 @@
 #define  __MC_SB_VIEW_H__
 
 
-#include  <kiklib/kik_types.h>
 #include  <gtk/gtk.h>
 
 

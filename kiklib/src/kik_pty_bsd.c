@@ -134,15 +134,15 @@ open_pty(
 pid_t
 kik_pty_fork(
 	int *  master ,
+	int *  slave ,
 	char **  slave_name
 	)
 {
-	int  slave ;
 	pid_t pid ;
 	struct termios  tio ;
 	int  fd ;
 
-	if( ! open_pty( master , &slave , slave_name))
+	if( ! open_pty( master , slave , slave_name))
 	{
 		return  -1 ;
 	}
@@ -164,7 +164,7 @@ kik_pty_fork(
 
 		close( *master) ;
 		
-		login_tty( slave) ;
+		login_tty( *slave) ;
 		
 		return  0 ;
 	}
@@ -172,8 +172,6 @@ kik_pty_fork(
 	/*
 	 * parent process
 	 */
-	 
-	close(slave) ;
 
 	/*
 	 * delaying.

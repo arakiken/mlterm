@@ -7,12 +7,11 @@
 
 
 #include  <gtk/gtk.h>
-#include  <kiklib/kik_types.h>
 
 
-GtkWidget *  mc_fontsize_config_widget_new( char * fontsize , u_int  min , u_int  max) ;
+GtkWidget *  mc_fontsize_config_widget_new( char * fontsize) ;
 
-u_int  mc_get_fontsize(void) ;
+char *  mc_get_fontsize(void) ;
 
 
 #endif

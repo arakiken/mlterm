@@ -7,6 +7,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 
+
 #if  0
 #define  __DEBUG
 #endif
@@ -14,7 +15,8 @@
 
 /* --- static variables --- */
 
-static x_sb_mode_t  new_sb_mode ;
+static char *  new_sb_mode ;
+static int  is_changed ;
 
 
 /* --- static functions --- */
@@ -27,7 +29,8 @@ button_none_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		new_sb_mode = SB_NONE ;
+		new_sb_mode = "none" ;
+		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -41,7 +44,8 @@ button_left_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		new_sb_mode = SB_LEFT ;
+		new_sb_mode = "left" ;
+		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -55,7 +59,8 @@ button_right_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		new_sb_mode = SB_RIGHT ;
+		new_sb_mode = "right" ;
+		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -66,7 +71,7 @@ button_right_checked(
 
 GtkWidget *
 mc_sb_config_widget_new(
-	x_sb_mode_t  sb_mode
+	char *  sb_mode
 	)
 {
 	GtkWidget *  label ;
@@ -88,7 +93,7 @@ mc_sb_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 
-	if( sb_mode == SB_NONE)
+	if( strcmp( sb_mode , "none") == 0)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
@@ -99,7 +104,7 @@ mc_sb_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
-	if( sb_mode == SB_LEFT)
+	if( strcmp( sb_mode , "left") == 0)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
@@ -110,18 +115,26 @@ mc_sb_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
-	if( sb_mode == SB_RIGHT)
+	if( strcmp( sb_mode , "right") == 0)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 
 	new_sb_mode = sb_mode ;
+	is_changed = 0 ;
 	
 	return  hbox ;
 }
 
-x_sb_mode_t
+char *
 mc_get_sb_mode(void)
 {
+	if( ! is_changed)
+	{
+		return  NULL ;
+	}
+
+	is_changed = 0 ;
+	
 	return  new_sb_mode ;
 }

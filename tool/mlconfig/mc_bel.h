@@ -7,12 +7,11 @@
 
 
 #include  <gtk/gtk.h>
-#include  <x_bel_mode.h>
 
 
-GtkWidget *  mc_bel_config_widget_new( x_bel_mode_t  bel_mode) ;
+GtkWidget *  mc_bel_config_widget_new( char *  bel_mode) ;
 
-x_bel_mode_t  mc_get_bel_mode(void) ;
+char *  mc_get_bel_mode(void) ;
 
 
 #endif

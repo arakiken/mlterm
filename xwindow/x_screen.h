@@ -14,7 +14,6 @@
 #include  "x_selection.h"
 #include  "x_keymap.h"
 #include  "x_termcap.h"
-#include  "x_config_menu.h"
 #include  "x_mod_meta_mode.h"
 #include  "x_bel_mode.h"
 #include  "x_sb_mode.h"
@@ -64,15 +63,13 @@ typedef struct  x_screen
 	ml_term_t *  term ;
 	
 	x_selection_t  sel ;
-	x_config_menu_t  config_menu ;
 
 	ml_screen_event_listener_t  screen_listener ;
-	ml_config_event_listener_t  config_listener ;
 	ml_xterm_event_listener_t  xterm_listener ;
+	ml_config_event_listener_t  config_listener ;
 
 	x_sel_event_listener_t  sel_listener ;
 	x_xim_event_listener_t  xim_listener ;
-	x_config_menu_event_listener_t  config_menu_listener ;
 
 	x_keymap_t *  keymap ;
 	x_termcap_entry_t *  termcap ;
