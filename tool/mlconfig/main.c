@@ -45,7 +45,7 @@ static GtkWidget *  use_comb_check ;
 static GtkWidget *  use_dynamic_comb_check ;
 static GtkWidget *  use_multi_col_char_check ;
 static GtkWidget *  use_bidi_check ;
-static GtkWidget *  copy_paste_via_ucs_check ;
+static GtkWidget *  receive_string_via_ucs_check ;
 static GtkWidget *  is_tp_check ;
 
 
@@ -143,7 +143,7 @@ update(void)
     mc_set_flag_value("use_variable_column_width", GTK_TOGGLE_BUTTON(use_vcol_check)->active);
     mc_set_flag_value("use_combining", GTK_TOGGLE_BUTTON(use_comb_check)->active);
     mc_set_flag_value("use_dynamic_comb", GTK_TOGGLE_BUTTON(use_dynamic_comb_check)->active);
-    mc_set_flag_value("copy_paste_via_ucs", GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active);
+    mc_set_flag_value("receive_string_via_ucs", GTK_TOGGLE_BUTTON(receive_string_via_ucs_check)->active);
     mc_set_flag_value("use_multi_column_char", GTK_TOGGLE_BUTTON(use_multi_col_char_check)->active);
     mc_set_flag_value("use_bidi", GTK_TOGGLE_BUTTON(use_bidi_check)->active);
 
@@ -393,12 +393,12 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(hbox), use_comb_check, TRUE, TRUE , 0);
 
 
-	if (!(copy_paste_via_ucs_check = mc_check_config_widget_new(
+	if (!(receive_string_via_ucs_check = mc_check_config_widget_new(
 		   "Process received strings via Unicode" , 
-		   mc_get_flag_value( "copy_paste_via_ucs"))))
+		   mc_get_flag_value( "receive_string_via_ucs"))))
 	    return 0;
-	gtk_widget_show(copy_paste_via_ucs_check);
-	gtk_box_pack_start(GTK_BOX(vbox), copy_paste_via_ucs_check,
+	gtk_widget_show(receive_string_via_ucs_check);
+	gtk_box_pack_start(GTK_BOX(vbox), receive_string_via_ucs_check,
 			   FALSE, FALSE, 0);
 
 

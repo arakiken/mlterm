@@ -1,3 +1,11 @@
+2002-10-06 Araki Ken <arakiken@users.sf.net>
+
+	* copy_paste_via_ucs option is renamed to receive_string_via_ucs.
+	  And if its value is true, strings from XIM as well as from X Selection are 
+	  converted to UCS once.
+	* Even if the value of fade_ratio option was 100, screen was completely redrawn
+	  when window focus is switched.
+
 2002-10-05 Araki Ken <arakiken@users.sf.net>
 
 	* Cleaned up size hint patch(see 2002-08-29) by Sato Seiichi san.

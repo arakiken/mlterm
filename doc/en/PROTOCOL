@@ -11,14 +11,14 @@ version 20020206
   return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a"
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_key | mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
-                     use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
+                     use_combining | use_transbg | use_bidi | receive_string_via_ucs | xim |
                      wall_picture | full_reset | brightness | gamma | contrast | line_space |
 		     screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
 		     use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
 		     iscii_lang | use_dynamic_comb
   get key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_key | mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
-                     use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
+                     use_combining | use_transbg | use_bidi | receive_string_via_ucs | xim |
                      locale | wall_picture | pwd | brightness | gamma | contrast | line_space | 
 		     screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
 		     use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
@@ -49,7 +49,7 @@ version 20020206
   use_combining = true | false
   use_transbg = true | false
   use_bidi = true | false
-  copy_paste_via_ucs = true | false
+  receive_string_via_ucs = true | false
   xim = <xim name> ":" <locale name> | <xim name>
   locale = <locale name>
   wall_picture = <file path>

@@ -2385,17 +2385,20 @@ window_focused(
 
 	screen->is_focused = 1 ;
 
-	x_color_manager_unfade( screen->color_man) ;
+	if( screen->fade_ratio != 100)
+	{
+		x_color_manager_unfade( screen->color_man) ;
 
-	x_window_set_fg_color( &screen->window ,
-		x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
-	x_window_set_bg_color( &screen->window ,
-		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
+		x_window_set_fg_color( &screen->window ,
+			x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
+		x_window_set_bg_color( &screen->window ,
+			x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
-	ml_term_set_modified_all( screen->term) ;
+		ml_term_set_modified_all( screen->term) ;
 
-	redraw_screen( screen) ;
-	
+		redraw_screen( screen) ;
+	}
+
 	highlight_cursor( screen) ;
 }
 
@@ -2414,19 +2417,22 @@ window_unfocused(
 	}
 	
 	unhighlight_cursor( screen) ;
-	
+
 	screen->is_focused = 0 ;
-	
-	x_color_manager_fade( screen->color_man , screen->fade_ratio) ;
 
-	x_window_set_fg_color( &screen->window ,
-		x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
-	x_window_set_bg_color( &screen->window ,
-		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
-	
-	ml_term_set_modified_all( screen->term) ;
+	if( screen->fade_ratio != 100)
+	{
+		x_color_manager_fade( screen->color_man , screen->fade_ratio) ;
 
-	redraw_screen( screen) ;
+		x_window_set_fg_color( &screen->window ,
+			x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
+		x_window_set_bg_color( &screen->window ,
+			x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
+
+		ml_term_set_modified_all( screen->term) ;
+
+		redraw_screen( screen) ;
+	}
 
 	highlight_cursor( screen) ;
 }
@@ -2491,7 +2497,7 @@ use_utf8_selection(
 	{
 		return  1 ;
 	}
-	else if( IS_UCS_SUBSET_ENCODING(encoding) && screen->copy_paste_via_ucs)
+	else if( IS_UCS_SUBSET_ENCODING(encoding) && screen->receive_string_via_ucs)
 	{
 		return  1 ;
 	}
@@ -2532,6 +2538,25 @@ yank_event_received(
 		{
 			return  x_window_xct_selection_request( &screen->window , time) ;
 		}
+	}
+}
+
+static int
+receive_string_via_ucs(
+	x_screen_t *  screen
+	)
+{
+	ml_char_encoding_t  encoding ;
+
+	encoding = ml_term_get_encoding( screen->term) ;
+
+	if( IS_UCS_SUBSET_ENCODING(encoding) && screen->receive_string_via_ucs)
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
 	}
 }
 
@@ -3113,7 +3138,34 @@ key_pressed(
 		}
 		else
 		{
-			write_to_pty( screen , seq , size , parser) ;
+			if( parser && receive_string_via_ucs(screen))
+			{
+				/* XIM Text -> UCS -> PTY ENCODING */
+
+				u_char  conv_buf[512] ;
+				size_t  filled_len ;
+
+				(*parser->init)( parser) ;
+				(*parser->set_str)( parser , seq , size) ;
+
+				(*screen->utf8_conv->init)( screen->utf8_conv) ;
+
+				while( ! screen->xct_parser->is_eos)
+				{
+					if( ( filled_len = (*screen->utf8_conv->convert)(
+						screen->utf8_conv , conv_buf , sizeof( conv_buf) ,
+						parser)) == 0)
+					{
+						break ;
+					}
+
+					write_to_pty( screen , conv_buf , filled_len , screen->utf8_parser) ;
+				}
+			}
+			else
+			{
+				write_to_pty( screen , seq , size , parser) ;
+			}
 		}
 	}
 }
@@ -3148,25 +3200,6 @@ selection_cleared(
 	}
 
 	restore_selected_region_color( screen) ;
-}
-
-static int
-copy_paste_via_ucs(
-	x_screen_t *  screen
-	)
-{
-	ml_char_encoding_t  encoding ;
-
-	encoding = ml_term_get_encoding( screen->term) ;
-
-	if( IS_UCS_SUBSET_ENCODING(encoding) && screen->copy_paste_via_ucs)
-	{
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
 }
 
 static size_t
@@ -3357,7 +3390,7 @@ xct_selection_notified(
 	}
 	else
 #endif
-	if( copy_paste_via_ucs(screen))
+	if( receive_string_via_ucs(screen))
 	{
 		/* XCOMPOUND TEXT -> UCS -> PTY ENCODING */
 		
@@ -4339,12 +4372,12 @@ change_dynamic_comb_flag(
 }
 
 static void
-change_copy_paste_via_ucs_flag(
+change_receive_string_via_ucs_flag(
 	x_screen_t *  screen ,
 	int  flag
 	)
 {
-	screen->copy_paste_via_ucs = flag ;
+	screen->receive_string_via_ucs = flag ;
 }
 
 static void
@@ -4869,7 +4902,9 @@ set_config(
 
 		change_dynamic_comb_flag( screen , flag) ;
 	}
-	else if( strcmp( key , "copy_paste_via_ucs") == 0)
+	else if( strcmp( key , "receive_string_via_ucs") == 0 ||
+		/* backward compatibility with 2.6.1 or before */
+		strcmp( key , "copy_paste_via_ucs") == 0)
 	{
 		int  flag ;
 		
@@ -4886,7 +4921,7 @@ set_config(
 			return ;
 		}
 		
-		change_copy_paste_via_ucs_flag( screen , flag) ;
+		change_receive_string_via_ucs_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "use_transbg") == 0)
 	{
@@ -5220,9 +5255,11 @@ get_config(
 			value = false ;
 		}
 	}
-	else if( strcmp( key , "copy_paste_via_ucs") == 0)
+	else if( strcmp( key , "receive_string_via_ucs") == 0
+		/* backward compatibility with 2.6.1 or before */
+		strcmp( key , "copy_paste_via_ucs") == 0)
 	{
-		if( screen->copy_paste_via_ucs)
+		if( screen->receive_string_via_ucs)
 		{
 			value = true ;
 		}
@@ -5864,7 +5901,7 @@ x_screen_new(
 	char *  mod_meta_key ,
 	x_mod_meta_mode_t  mod_meta_mode ,
 	x_bel_mode_t  bel_mode ,
-	int  copy_paste_via_ucs ,
+	int  receive_string_via_ucs ,
 	char *  pic_file_path ,
 	int  use_transbg ,
 	int  use_bidi ,
@@ -6103,7 +6140,7 @@ x_screen_new(
 		goto  error ;
 	}
 
-	screen->copy_paste_via_ucs = copy_paste_via_ucs ;
+	screen->receive_string_via_ucs = receive_string_via_ucs ;
 
 	screen->system_listener = NULL ;
 	screen->screen_scroll_listener = NULL ;

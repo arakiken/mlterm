@@ -121,7 +121,7 @@ typedef struct  x_screen
 
 	u_int8_t  fade_ratio ;
 	int8_t  is_focused ;
-	int8_t  copy_paste_via_ucs ;
+	int8_t  receive_string_via_ucs ;
 	int8_t  is_reverse ;
 	int8_t  is_app_keypad ;
 	int8_t  is_app_cursor_keys ;
@@ -141,7 +141,7 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	u_int  fade_ratio , x_keymap_t *  keymap ,
 	u_int  screen_width_ratio , u_int  screen_height_ratio ,
 	int  xim_open_in_startup , char *  mod_meta_key , x_mod_meta_mode_t  mod_meta_mode ,
-	x_bel_mode_t  bel_mode , int  prefer_utf8_selection , char *  pic_file_path ,
+	x_bel_mode_t  bel_mode , int  receive_string_via_ucs , char *  pic_file_path ,
 	int  use_transbg , int  use_bidi , ml_vertical_mode_t  vertical_mode ,
 	int  use_vertical_cursor , int  big5_buggy ,
 	char *  conf_menu_path , ml_iscii_lang_t  iscii_lang , int  use_extended_scroll_shortcut ,

@@ -88,7 +88,7 @@ typedef struct main_config
 	int8_t  iso88591_font_for_usascii ;
 	int8_t  not_use_unicode_font ;
 	int8_t  only_use_unicode_font ;
-	int8_t  copy_paste_via_ucs ;
+	int8_t  receive_string_via_ucs ;
 	int8_t  use_transbg ;
 	int8_t  use_char_combining ;
 	int8_t  use_multi_col_char ;
@@ -369,7 +369,7 @@ open_term(void)
 			main_config.screen_width_ratio , main_config.screen_height_ratio ,
 			main_config.xim_open_in_startup , main_config.mod_meta_key ,
 			main_config.mod_meta_mode , main_config.bel_mode ,
-			main_config.copy_paste_via_ucs , main_config.pic_file_path ,
+			main_config.receive_string_via_ucs , main_config.pic_file_path ,
 			main_config.use_transbg , main_config.use_bidi ,
 			main_config.vertical_mode , main_config.use_vertical_cursor ,
 			main_config.big5_buggy , main_config.conf_menu_path ,
@@ -868,7 +868,7 @@ get_min_conf(
 		"scrollbar view name [simple/sample/athena/motif/...]") ;
 	kik_conf_add_opt( conf , 'T' , "title" , 0 , "title" , 
 		"title name") ;
-	kik_conf_add_opt( conf , 'U' , "viaucs" , 1 , "copy_paste_via_ucs" ,
+	kik_conf_add_opt( conf , 'U' , "viaucs" , 1 , "receive_string_via_ucs" ,
 		"process received (pasted) strings via Unicode [false]") ;
 	kik_conf_add_opt( conf , 'V' , "varwidth" , 1 , "use_variable_column_width" ,
 		"variable column width (for proportional/ISCII) [false]") ;
@@ -1292,13 +1292,13 @@ config_init(
 		main_config.not_use_unicode_font = 0 ;
 	}
 
-	main_config.copy_paste_via_ucs = 0 ;
+	main_config.receive_string_via_ucs = 0 ;
 
-	if( ( value = kik_conf_get_value( conf , "copy_paste_via_ucs")))
+	if( ( value = kik_conf_get_value( conf , "receive_string_via_ucs")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			main_config.copy_paste_via_ucs = 1 ;
+			main_config.receive_string_via_ucs = 1 ;
 		}
 	}
 	

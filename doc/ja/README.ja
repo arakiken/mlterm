@@ -238,9 +238,9 @@ comment $Id$
         いわゆる全角文字を処理するかどうかを指定します。
         w3m-m17n を縦表示で使用する場合には、このオプションを有効にしてください。
          
-      o copy_paste_via_ucs  (true/*false*) (#)
-        copy and paste で受け取った XCOMPOUND TEXT を一度 UNICODE を経由してから、
-        端末エンコーディングに変換する
+      o receive_string_via_ucs  (true/*false*) (#)
+        copy and paste で受け取った XCOMPOUND TEXT や、XIM から入力された文字列
+        を、一旦 UNICODE を経由してから端末エンコーディングに変換する
 
       -- Font 関連 --
       o fontsize  (*16*) (#)
