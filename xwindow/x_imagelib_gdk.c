@@ -40,6 +40,181 @@ static int modify_lbound = 0 ;
 
 /* --- static functions --- */
 
+static int
+closest_color_index(
+	Display *  display ,
+	int  screen ,
+	XColor *  color_list,
+	int  len,
+	unsigned char red,
+	unsigned char green,
+	unsigned char blue
+	)
+{
+	int  i ;
+	int  closest = 0 ;
+	unsigned long  min = 0xffffffff ;
+	unsigned long  diff ;
+	unsigned long  diff_r = 0 , diff_g = 0 , diff_b = 0 ;
+
+	for( i = 0 ; i < len ; i ++)
+	{
+		/* lazy color-space convesion*/
+		diff_r = (red - color_list[i].red) >> 7 ;
+		diff_g = (green - color_list[i].green) >> 8 ;
+		diff_b = (blue - color_list[i].blue) >> 8 ;
+		diff = diff_r * diff_r + diff_g * diff_g * 3 + diff_b * diff_b * 2;
+
+		if ( diff < min)
+		{
+			min = diff ;
+			closest = i ;
+		}
+	}
+
+	return closest ;
+}
+
+
+static int
+dither_to_pixmap(
+	Display *  display ,
+	int screen, 
+	GdkPixbuf *  pixbuf,
+	Pixmap pixmap
+	)
+{
+	unsigned int  width, height, rowstride, bytes_per_pixel ;
+	
+	int  x, y ;
+	int  num_cells;
+	char *  diff_next ;
+	char *  diff_cur ;
+	char *  temp;
+	unsigned char *  line;
+	unsigned char *  pixel;
+	XColor *  color_list ;
+	int  closest, i ;
+	GC  gc;
+	XGCValues  gcv ;
+	int  diff_r, diff_g, diff_b ;
+	Colormap  cmap = DefaultColormap( display, screen) ;
+
+	num_cells = DisplayCells( display , screen) ;
+	color_list = malloc( num_cells * sizeof(XColor)) ;
+	for( i = 0 ; i < num_cells ; i ++)
+	{
+		color_list[i].pixel = i ;
+	}
+
+	XQueryColors( display , cmap , color_list, num_cells) ;
+
+	width = gdk_pixbuf_get_width (pixbuf) ;
+	height = gdk_pixbuf_get_height (pixbuf) ;
+
+	diff_cur = calloc( width*3, 1) ;
+	if( !diff_cur)
+	{
+		return -1 ;
+	}	
+	diff_next = calloc( width*3, 1) ;
+	if( !diff_next)
+	{
+		free( diff_cur) ;
+		return -1 ;
+	}
+
+	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
+	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
+
+	line = gdk_pixbuf_get_pixels (pixbuf) ;	
+	gc = XCreateGC (display, pixmap, 0, &gcv) ;
+
+	for ( y = 0 ; y < height ; y++ ) {
+		pixel = line ;
+		closest = closest_color_index( display, screen, color_list, num_cells, 
+					       pixel[0] + diff_cur[0], 
+					       pixel[1] + diff_cur[1],
+					       pixel[2] + diff_cur[2]) ;
+		diff_r = (color_list[closest].red   >>8 ) - pixel[0];
+		diff_g = (color_list[closest].green >>8 ) - pixel[1];
+		diff_b = (color_list[closest].blue  >>8 ) - pixel[2];
+
+		diff_cur[3*1 + 0 ] += diff_r /2; 
+		diff_cur[3*1 + 1 ] += diff_g /2; 
+		diff_cur[3*1 + 2 ] += diff_b /2; 
+		
+		diff_next[3*0 +0] = diff_r /4; 
+		diff_next[3*0 +1] = diff_g /4; 
+		diff_next[3*0 +2] = diff_b /4; 
+
+		diff_next[3*1 +0] = diff_r /4; 
+		diff_next[3*1 +1] = diff_g /4; 
+		diff_next[3*1 +2] = diff_b /4; 
+		XSetForeground( display, gc, closest) ;		
+		XDrawPoint( display, pixmap, gc, 0, y) ;	
+		pixel += bytes_per_pixel ;
+
+		for ( x = 1 ; x <= width -1 ; x++ ) {			
+			closest = closest_color_index( display, screen, color_list, num_cells, 
+						       pixel[3*x +0] + diff_cur[3*x +0], 
+						       pixel[3*x +1] + diff_cur[3*x +1], 
+						       pixel[3*x +2] + diff_cur[3*x +2]) ;
+			diff_r = (color_list[closest].red   >>8 ) - pixel[3*x +0];
+			diff_g = (color_list[closest].green >>8 ) - pixel[3*x +1];
+			diff_b = (color_list[closest].blue  >>8 ) - pixel[3*x +2];
+			
+			diff_cur[3*(x+1) + 0 ] += diff_r /2; 
+			diff_cur[3*(x+1) + 1 ] += diff_g /2; 
+			diff_cur[3*(x+1) + 2 ] += diff_b /2; 
+			
+			diff_next[3*(x-1) +0] += diff_r /8; 
+			diff_next[3*(x-1) +1] += diff_g /8; 
+			diff_next[3*(x-1) +2] += diff_b /8; 
+
+			diff_next[3*(x+0) +0] += diff_r /8; 
+			diff_next[3*(x+0) +1] += diff_g /8; 
+			diff_next[3*(x+0) +2] += diff_b /8; 
+
+			diff_next[3*(x+1) +0] = diff_r /4; 
+			diff_next[3*(x+1) +1] = diff_g /4; 
+			diff_next[3*(x+1) +2] = diff_b /4; 
+
+			XSetForeground( display, gc, closest) ;		
+			XDrawPoint( display, pixmap, gc, x, y) ;	
+
+			pixel += bytes_per_pixel ;
+		}
+		closest = closest_color_index( display, screen, color_list, num_cells, 
+					       pixel[3*x +0] + diff_cur[3*x +0], 
+					       pixel[3*x +1] + diff_cur[3*x +1], 
+					       pixel[3*x +2] + diff_cur[3*x +2]) ;
+
+		XSetForeground( display, gc, closest) ;		
+		XDrawPoint( display, pixmap, gc, x, y) ;	
+			
+		diff_r = (color_list[closest].red   >>8 ) - pixel[3*x +0];
+		diff_g = (color_list[closest].green >>8 ) - pixel[3*x +1];
+		diff_b = (color_list[closest].blue  >>8 ) - pixel[3*x +2];
+		
+		diff_next[3*(x-1) +0] += diff_r /4; 
+		diff_next[3*(x-1) +1] += diff_g /4; 
+		diff_next[3*(x-1) +2] += diff_b /4; 
+		
+		diff_next[3*(x+0) +0] += diff_r /4; 
+		diff_next[3*(x+0) +1] += diff_g /4; 
+		diff_next[3*(x+0) +2] += diff_b /4; 
+		
+		line += rowstride ;
+		temp = diff_cur;
+		diff_cur = diff_next;
+		diff_next = temp;
+	}
+	free( color_list) ;
+	return 0 ;
+}	
+
+
 /* Get an background pixmap from _XROOTMAP_ID */
 
 static Pixmap
@@ -271,11 +446,10 @@ msb(
  *
  */
 static XImage *
-pixbuf_to_pixmap_truecolor(
+pixbuf_to_ximage_truecolor(
 	Display *  display,
 	int  screen,
 	GdkPixbuf *  pixbuf,
-	Pixmap  pixmap,
 	int  depth ,
 	XVisualInfo * vinfo
 	)
@@ -371,7 +545,7 @@ pixbuf_to_pixmap_truecolor(
 	return image ;
 }
 
-static void
+static int
 pixbuf_to_pixmap(
 	Display *  display,
 	int  screen,
@@ -385,45 +559,59 @@ pixbuf_to_pixmap(
 	XVisualInfo  vinfo ;
 
 	if( !pixbuf)
-		return ;
+		return -1 ;
 
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
 	if (!vinfo.visualid)
-		return ;
+		return -1 ;
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
 	if( !vinfolist)
-		return ;
+		return -1 ;
 	if ( !matched)
 	{
 		XFree( vinfolist) ;
-		return ;
+		return -1 ;
 	}
 	switch( vinfolist[0].class)
 	{
 	case TrueColor:
-		image = pixbuf_to_pixmap_truecolor( display,
+	{
+		XFree( vinfolist) ;
+		image = pixbuf_to_ximage_truecolor( display,
 						    screen,
 						    pixbuf,
-						    pixmap,
-						    DefaultDepth( display, screen),
+						    DefaultDepth( display, screen),						    
 						    vinfolist) ;
-		break ;
-	default:
+		if( image)
+		{
+			XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
+				   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
+			XDestroyImage( image) ;
+			return 0 ;
+		}
 		break ;
 	}
-	XFree( vinfolist) ;
-
-	if( image)
+	case PseudoColor:
 	{
-		XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
-			   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
-		XDestroyImage( image) ;
+		XFree( vinfolist) ;
+
+		if( dither_to_pixmap( display, screen, pixbuf, pixmap) == -1)
+			return -1;
+		return 0 ;
+		break ;
+	}
+	default:
+	{
+		XFree( vinfolist) ;
+		break ;
+	}
 	}
 
+	return -1 ;
 }
 
 static XImage *
-compose__truecolor(
+compose_truecolor(
 	Display *  display,
 	int  screen,
 	GdkPixbuf *  pixbuf,
@@ -503,7 +691,7 @@ compose__truecolor(
 	return image ;
 }
 
-static void
+static int
 compose_to_pixmap(
 	Display *  display,
 	int  screen,
@@ -516,23 +704,23 @@ compose_to_pixmap(
 	XImage *  image = NULL ;
 
 	if(!pixbuf)
-		return ;
+		return -1 ;
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
 	if (!vinfo.visualid)
-		return ;
+		return -1 ;
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
 	if( !vinfolist)
-		return ;
+		return -1 ;
 	if ( !matched)
 	{
 		XFree( vinfolist) ;
-		return ;
+		return -1 ;
 	}
 
 	switch( vinfolist[0].class)
 	{
 	case TrueColor:
-		image = compose__truecolor( display,
+		image = compose_truecolor( display,
 					     screen,
 					     pixbuf,
 					     pixmap,
@@ -542,16 +730,18 @@ compose_to_pixmap(
 	default:
 		break;
 	}
+	XFree( vinfolist) ;
 	if (image)
 	{
 		XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
 			   gdk_pixbuf_get_width( pixbuf), gdk_pixbuf_get_height( pixbuf)) ;
 		XDestroyImage( image) ;
+		return 0;
 	}
-	XFree( vinfolist) ;
+	return -1 ;
 }
 
-static void
+static int
 pixbuf_to_pixmap_and_mask(
 	Display *  display,
 	int  screen,
@@ -569,8 +759,8 @@ pixbuf_to_pixmap_and_mask(
 
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
-
-	pixbuf_to_pixmap( display, screen, pixbuf, pixmap) ;
+	if( pixbuf_to_pixmap( display, screen, pixbuf, pixmap) == -1)
+		return -1 ;
 
 	gc = XCreateGC (display, mask, 0, &gcv) ;
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
@@ -597,6 +787,7 @@ pixbuf_to_pixmap_and_mask(
 		}
 	}
 	XFreeGC( display, gc) ;
+	return 0 ;
 }
 
 static void
@@ -979,15 +1170,23 @@ x_imagelib_load_file_for_background(
 
 	if( gdk_pixbuf_get_has_alpha ( pixbuf) ){
 		pixmap = x_imagelib_get_transparent_background( win, NULL) ;
-		compose_to_pixmap( win->display,
-				   win->screen,
-				   pixbuf,
-				   pixmap) ;
-	}else{
-		pixbuf_to_pixmap( win->display,
-				  win->screen,
-				  pixbuf,
-				  pixmap) ;
+		if( compose_to_pixmap( win->display,
+				       win->screen,
+				       pixbuf,
+				       pixmap) == -1)
+		{
+			XFreePixmap( win->display, pixmap) ;
+			return None ;
+		}
+	}else{	      
+		if( pixbuf_to_pixmap( win->display,
+				      win->screen,
+				      pixbuf,
+				      pixmap) == -1)
+		{
+			XFreePixmap( win->display, pixmap) ;
+			return None ;
+		}
 	}
 	return pixmap ;
 }
@@ -1189,14 +1388,29 @@ int x_imagelib_load_file(
 		if( mask)
 		{
 			*mask = XCreatePixmap( display, DefaultRootWindow( display), width, height, 1) ;
-			pixbuf_to_pixmap_and_mask( display, DefaultScreen( display), pixbuf, *pixmap, *mask) ;
+			if( pixbuf_to_pixmap_and_mask( display, 
+						       DefaultScreen( display), 
+						       pixbuf, *pixmap, *mask) == -1)
+			{
+				XFreePixmap( display, *pixmap) ;
+				*pixmap = 0;
+				XFreePixmap( display, *mask) ;
+				*mask = 0 ;
+				return 0 ;
+			}
+			
 		}
 		else
 		{
-			pixbuf_to_pixmap( display,
-					  DefaultScreen( display),
-					  pixbuf,
-					  *pixmap);
+			if( pixbuf_to_pixmap( display,
+					      DefaultScreen( display),
+					      pixbuf,
+					      *pixmap) == -1)
+			{
+				XFreePixmap( display, *pixmap) ;
+				*pixmap = 0 ;
+				return 0 ;
+			}
 
 		}
 	}
