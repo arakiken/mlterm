@@ -1,3 +1,9 @@
+2003-03-15 Tomohiro KUBOTA <kubota@debian.org>
+
+	* "configure --with-tools --with-scrollbars" didn't compile
+	  any tools nor scroll bars.  Now it compiles all tools and
+	  scroll bars.
+
 2003-03-15 Araki Ken <arakiken@users.sf.net>
 
 	* Changed doc/en/PROTOCOL format.
@@ -18,7 +24,7 @@
 	* Added conf_menu_path_1,conf_menu_path_2,conf_menu_path3 options.
 	* Ctrl+Left button launches mlterm-menu by default.
 
-2003-03-09 Tomohiro KUBOTA <kubota@debian.org>
+2003-03-08 Tomohiro KUBOTA <kubota@debian.org>
 
 	* "wall_picture = none" in "main" configuration file now means
 	  that the user doesn't use wall picture.  Previously, the same

@@ -1807,7 +1807,7 @@ else
   if { (eval echo configure:1808: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
     for file in conftest.*; do
       case $file in
-      *.c | *.o | *.obj) ;;
+      *.$ac_ext | *.c | *.o | *.obj) ;;
       *) ac_cv_exeext=`echo $file | sed -e s/conftest//` ;;
       esac
     done
@@ -6653,9 +6653,9 @@ if test "${with_tools+set}" = set; then
   withval="$with_tools"
   
 	# If given --without-tools or --with-tools with no args.
-	if test "${with_tools}" = "no" -o "${with_tools}" = "yes" ; then
+	if test "${with_tools}" = "no" ; then
 		tools=""
-	else
+	elif test "${with_tools}" != "yes" ; then
 		tools=${with_tools}
 	fi
 	
@@ -6701,9 +6701,9 @@ if test "${with_scrollbars+set}" = set; then
   withval="$with_scrollbars"
   
 	# If given --without-scrollbars or --with-scrollbars with no args.
-	if test "${with_scrollbars}" = "no" -o "${with_scrollbars}" = "yes" ; then
+	if test "${with_scrollbars}" = "no" ; then
 		scrollbars=""
-	else
+	elif test "${with_scrollbars}" != "yes" ; then
 		scrollbars=${with_scrollbars}
 	fi
 	

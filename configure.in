@@ -181,9 +181,9 @@ AC_ARG_WITH(tools,
 	[  --with-tools[=ARG]      external tools [mlclient,mlconfig,mlterm-menu]],
 	[
 	# If given --without-tools or --with-tools with no args.
-	if test "${with_tools}" = "no" -o "${with_tools}" = "yes" ; then
+	if test "${with_tools}" = "no" ; then
 		tools=""
-	else
+	elif test "${with_tools}" != "yes" ; then
 		tools=${with_tools}
 	fi
 	])
@@ -226,9 +226,9 @@ AC_ARG_WITH(scrollbars,
 	[  --with-scrollbars[=ARG] scrollbar plugins [sample,extra]],
 	[
 	# If given --without-scrollbars or --with-scrollbars with no args.
-	if test "${with_scrollbars}" = "no" -o "${with_scrollbars}" = "yes" ; then
+	if test "${with_scrollbars}" = "no" ; then
 		scrollbars=""
-	else
+	elif test "${with_scrollbars}" != "yes" ; then
 		scrollbars=${with_scrollbars}
 	fi
 	])
