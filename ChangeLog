@@ -1,5 +1,10 @@
 2004-06-20  Seiichi SATO  <ssato@sh.rim.or.jp>
 
+	* x_im_candidate_screen.c(set_candidates): In encoding conversion, set
+	msb if need be.
+
+2004-06-20  Seiichi SATO  <ssato@sh.rim.or.jp>
+
 	* x_term_manager.c(x_term_manager_init):
 	* x_main_config.c(x_prepare_for_main_config):
 	Some cleanups against help messages. The words in round brackets

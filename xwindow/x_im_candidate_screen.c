@@ -576,6 +576,11 @@ set_candidates(
 			 */
 		}
 
+		if( ml_is_msb_set( ch.cs))
+		{
+			SET_MSB( ch.ch[0]) ;
+		}
+
 		ml_char_set( p , ch.ch , ch.size , ch.cs ,
 			     is_biwidth , is_comb ,
 			     ML_FG_COLOR , ML_BG_COLOR ,
