@@ -1187,6 +1187,14 @@ Specify sequence to be outputted when Delete key is pushed
 Specify sequence to be outputted when BackSpace key is pushed
 (default \fB^H\fR).
 .TP
+\fBkh=\fIsequence\fR
+Specify sequence to be outputted when HOME key is pushed
+(nothig is outputted by default).
+.TP
+\fB@7=\fIsequence\fR
+Specify sequence to be outputted when END key is pushed
+(nothig is outputted by default).
+.TP
 \fBut\fR
 Specify the way how the screen is erased by control codes.
 If \fBut\fR is written in the \fBtermcap\fR file, charcells
@@ -1195,7 +1203,7 @@ otherwise the charcells are painted by the initial background
 color.  Default is non-\fBut\fR behavior.
 .PP
 The following special characters can be used to specify \fIsequence\fR
-in keys of \fBkD\fR and \fBkb\fR.
+in keys of \fBkD\fR/\fBkb\fR/\fBkh\fR/\fB@7\fR.
 .TP
 \fB\\E\fR
 ESC code (0x1b).
