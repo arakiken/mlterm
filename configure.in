@@ -179,7 +179,7 @@ AC_SUBST(PROG)
 
 AC_ARG_ENABLE(ind,
 	[  --enable-ind            libind[default=disabled]],
-	ind=$enable_ind)
+	ind=$enable_ind, ind="no")
 if test "$ind" = "yes" ; then
 	AC_CHECK_LIB(ind,indian_init,
 		[
@@ -344,6 +344,9 @@ if test "$enable_iiimf" = yes ; then
 		IIIMF_LIBS="-liiimcf"
 		MAKE_DIRS="inputmethod/iiimf ${MAKE_DIRS}"
 		OUTPUT_FILES="inputmethod/iiimf/Makefile ${OUTPUT_FILES}"
+		],
+		[
+		enable_iiimf=no
 		])
 fi
 AC_SUBST(IIIMF_CFLAGS)
@@ -493,3 +496,36 @@ if test "${MAKE_DIRS}" != "" ; then
 fi
 
 AC_OUTPUT(${OUTPUT_FILES})
+
+# Spit out the configuration
+
+echo
+echo
+echo "Mlterm was configured as follows"
+echo
+echo "Installation path prefix          : $prefix"
+dnl echo "Character mapping table           : "
+dnl echo "Character property table          : "
+echo "build shared libraries            : $enable_shared"
+echo "build static libraries            : $enable_static"
+echo -n "Optimization for redrawing a line : "
+  if test "x$optimize_redrawing" = xyes ; then echo "yes" ; else echo "no" ; fi
+echo -n "BiDi rendering (Fribidi)          : "
+  if test "x$fribidi_config" = xyes ; then echo "yes" ; else echo "no" ; fi
+echo "ISCII rendering (libind)          : $ind"
+echo -n "External tools                    : "
+  echo `echo "$with_tools" | sed 's/,/ /g'`
+echo "Image library                     : $with_imagelib"
+echo -n "utmp support                      : "
+  if test "x$utmp" = xyes ; then echo "yes" ; else echo "no" ; fi
+echo "Type engine                       : $type_engines"
+echo -n "DnD                               : "
+  if test "$enable_dnd" = xno ; then echo "no" ; else echo "yes" ; fi
+echo -n "Input Methods                     : XIM "
+  if test "x$have_uim" = xyes ; then echo -n "uim " ; fi
+  if test "x$enable_iiimf" = xyes ; then echo -n "IIIMF " ; fi
+echo
+echo -n "Scrollbarbars                     : simple "
+  echo `echo "$with_scrollbars" | sed 's/,/ /g'`
+echo
+
