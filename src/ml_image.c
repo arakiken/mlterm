@@ -126,7 +126,14 @@ get_pos(
 			
 			if( *row == image->num_of_rows - 1)
 			{
+			#if  0
+				/*
+				 * XXX
+				 * This can cause unexpected behavior if scroll region
+				 * is too small.
+				 */
 				if( ! ml_imgscrl_scroll_upward( image , 1))
+			#endif
 				{
 					ml_imgscrl_scroll_upward_in_all( image , 1) ;
 				}
@@ -280,7 +287,14 @@ render_chars(
 
 			if( scroll_size)
 			{
+			#if  0
+				/*
+				 * XXX
+				 * This can cause unexpected behavior if scroll region
+				 * is too small.
+				 */
 				if( ! ml_imgscrl_scroll_upward( image , scroll_size))
+			#endif
 				{
 					ml_imgscrl_scroll_upward_in_all( image , scroll_size) ;
 				}
