@@ -1,3 +1,9 @@
+2005-03-14 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* mlterm/ml_screen.c (receive_scrolled_out_line): if backscrolling
+	mode is BTS_NONE, do nothing to make the scroll caching mechanism in
+	x_screen.c to work correctly. (#1161050)
+
 2005-03-13 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* kiklib/src/Makefile.in, mkf/lib/Makefile.in,

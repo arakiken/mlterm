@@ -111,13 +111,17 @@ receive_scrolled_out_line(
 	
 	ml_log_add( &screen->logs , line) ;
 
-	if( ml_screen_is_backscrolling( p) == BSM_STATIC)
+	switch( ml_screen_is_backscrolling( p))
 	{
+	case  BSM_STATIC:
 		screen->backscroll_rows ++ ;
-	}
-	else
-	{
+		break ;
+	case  BSM_VOLATILE:
 		ml_screen_set_modified_all( screen) ;
+		break ;
+	case  BSM_NONE:
+	default:
+		break ;
 	}
 }
 
