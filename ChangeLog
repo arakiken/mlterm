@@ -1,3 +1,11 @@
+[20011224]
+* US-ASCII chars may be shown incorrectly under EUC-CN/GBK/GB18030. fixed.
+* mlterm.1 document is updated a little more.(thanks to Kubota Tomohiro san)
+* Unicode <=> CNS11643-1992 plane 3 convertion table is added.
+* EUC-TW is excluded from Unicode subset group.
+* the default value of use_bidi and use_combining is true.
+* if mlterm is resized under bidi-mode , you cannot copy&paste RTL chars. fixed.
+
 [20011222]
 * Hangul chars are not shown correctly in --noucsfont. fixed.
 * manual page(mlterm.1) is updated. (thanks to Kubota Tomohiro san)
