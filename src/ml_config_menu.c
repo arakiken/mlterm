@@ -8,7 +8,7 @@
 #include  <unistd.h>		/* pipe/close */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>
-#include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int */
+#include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/strdup */
 #include  <kiklib/kik_mem.h>	/* alloca/malloc */
 
 #include  "ml_sig_child.h"

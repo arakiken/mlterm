@@ -42,13 +42,8 @@ Unicode.
 .TP
 \fB\-B\fR, \fB\-\-sbbg\fR=\fIcolor\fR
 Specify background color of the scrollbar.
-Valid values for \fIcolor\fR are
-\fBwhite\fR, \fBblack\fR, \fBred\fR, \fBgreen\fR, \fByellow\fR,
-\fBblue\fR, \fBmagenta\fR, \fBcyan\fR, \fBgray\fR, \fBlightgray\fR,
-\fBpink\fR, \fBbrown\fR, \fBpriv_fg\fR, and \fBpriv_bg\fR.
-See \fBCOLOR CONFIGURATION FILE\fR section for detail of
-\fBpriv_fg\fR and \fBpriv_bg\fR.
-The default is same to the color specified by \fB\-b\fR option.
+Valid values for \fIcolor\fR are color names defined in rgb.txt and "\fBcolor\fR" 
+configuration file and color rgb string whose format is "#RRGGBB".
 .TP
 \fB\-C\fR, \fB\-\-iscii\fR=\fIlanguage\fR
 Specify a language to be used in ISCII encoding.
@@ -80,13 +75,8 @@ by using locale information (default \fBAUTO\fR).
 .TP
 \fB\-F\fR, \fB\-\-sbfg\fR=\fIcolor\fR
 Specify foreground color of the scrollbar.
-Valid values for \fIcolor\fR are
-\fBwhite\fR, \fBblack\fR, \fBred\fR, \fBgreen\fR, \fByellow\fR,
-\fBblue\fR, \fBmagenta\fR, \fBcyan\fR, \fBgray\fR, \fBlightgray\fR,
-\fBpink\fR, \fBbrown\fR, \fBpriv_fg\fR, and \fBpriv_bg\fR.
-See \fBCOLOR CONFIGURATION FILE\fR section for detail of
-\fBpriv_fg\fR and \fBpriv_bg\fR.
-The default is same to the color specified by \fB\-f\fR option.
+Valid values for \fIcolor\fR are color names defined in rgb.txt and "\fBcolor\fR"
+configuration file and color rgb string whose format is "#RRGGBB".
 .TP
 \fB\-G\fR, \fB\-\-vertical=\fImode\fR
 Specify vertical writing mode.
@@ -218,12 +208,8 @@ East Asian Width found at Unicode web site for detail.
 .TP
 \fB\-b\fR, \fB\-\-bg\fR=\fIcolor\fR
 Specify background color (default \fBwhite\fR).
-Valid values for \fIcolor\fR are
-\fBwhite\fR, \fBblack\fR, \fBred\fR, \fBgreen\fR, \fByellow\fR,
-\fBblue\fR, \fBmagenta\fR, \fBcyan\fR, \fBgray\fR, \fBlightgray\fR,
-\fBpink\fR, \fBbrown\fR, \fBpriv_fg\fR, and \fBpriv_bg\fR.
-See \fBCOLOR CONFIGURATION FILE\fR section for detail of
-\fBpriv_fg\fR and \fBpriv_bg\fR.
+Valid values for \fIcolor\fR are color names defined in rgb.txt and "\fBcolor\fR"
+configuration file and color rgb string whose format is "#RRGGBB".
 .TP
 \fB\-c\fR, \fB\-\-cp932\fR(=\fIbool\fR)
 Use CP932 mapping table to convert from JIS X 0208 to Unicode
@@ -260,12 +246,8 @@ must be the last option on the command line.
 .TP
 \fB\-f\fR, \fB\-\-fg\fR=\fIcolor\fR
 Foreground color (default \fBblack\fR).
-Valid values for \fIcolor\fR are
-\fBwhite\fR, \fBblack\fR, \fBred\fR, \fBgreen\fR, \fByellow\fR,
-\fBblue\fR, \fBmagenta\fR, \fBcyan\fR, \fBgray\fR, \fBlightgray\fR,
-\fBpink\fR, \fBbrown\fR, \fBpriv_fg\fR, and \fBpriv_bg\fR.
-See \fBCOLOR CONFIGURATION FILE\fR section for detail of
-\fBpriv_fg\fR and \fBpriv_bg\fR.
+Valid values for \fIcolor\fR are color names defined in rgb.txt and "\fBcolor\fR"
+configuration file and color rgb string whose format is "#RRGGBB".
 .TP
 \fB\-g\fR, \fB\-\-geometry\fR=\fIgeometry\fR
 Specify size and position of the window; see \fBX\fR(7).

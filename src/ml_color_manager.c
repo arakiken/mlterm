@@ -93,6 +93,12 @@ ml_get_color(
 
 	kik_msg_printf( " Unable to handle more than 14 colors.\n") ;
 
+	/*
+	 * XXX
+	 * Load a color by "name", then find and replace a color similar to it in
+	 * color_man->xcolors.
+	 */
+
 	return  ML_UNKNOWN_COLOR ;
 }
 

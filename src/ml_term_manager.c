@@ -14,7 +14,7 @@
 #include  <stdlib.h>		/* getenv */
 #include  <fcntl.h>		/* creat */
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/kik_str_alloca_dup */
+#include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/kik_str_alloca_dup/strdup */
 #include  <kiklib/kik_path.h>	/* kik_basename */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 #include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect/malloc/free */
@@ -310,6 +310,11 @@ open_term(
 		{
 			goto  error ;
 		}
+	}
+
+	if( fg_color == bg_color)
+	{
+		kik_msg_printf( " Foreground and background colors are the same.\n") ;
 	}
 
 	if( ( termscr = ml_term_screen_new( term_man->conf.cols , term_man->conf.rows , font_man ,
