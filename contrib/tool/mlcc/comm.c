@@ -145,7 +145,6 @@ char * mlterm_get_param(const char * key){
 	}
 	*result = 0; /* terminate */
 	result = strchr(_buffer, '=');
-	fprintf(stderr, "got %s=%s\n",key,result);
 	if (result){ /*XXX check key and error!!*/
 		if (*(result +1))
 			return result +1;
@@ -162,7 +161,6 @@ void mlterm_set_value(const char * key, int value){
 
 void mlterm_set_param(const char * key, char *value){
 	snprintf(_buffer, sizeof(_buffer), "]5379;%s=%s\007",key, value);
-	fprintf(stderr, "set %s=%s\n",key, value);
 	_csi(_buffer);
 }
 
