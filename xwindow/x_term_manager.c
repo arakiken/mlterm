@@ -28,7 +28,6 @@
 #include  "version.h"
 #include  "x_xim.h"
 #include  "x_term.h"
-#include  "x_screen.h"	/* x_system_event_listener_t */
 #include  "x_sb_screen.h"
 #include  "x_termcap.h"
 
@@ -177,7 +176,6 @@ open_pty_intern(
 	ml_term_t *  term ,
 	char *  cmd_path ,
 	char **  cmd_argv ,
-	char *  version ,
 	char *  display ,
 	Window  window ,
 	char *  term_type ,
@@ -444,7 +442,7 @@ open_term(void)
 	}
 
 	if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
-		version , XDisplayString( disp->display) , root->my_window ,
+		XDisplayString( disp->display) , root->my_window ,
 		main_config.term_type , main_config.use_login_shell))
 	{
 		goto  error ;
@@ -563,7 +561,7 @@ open_pty(
 			}
 			
 			if( ! open_pty_intern( new , main_config.cmd_path , main_config.cmd_argv ,
-				version , XDisplayString( screen->window.display) ,
+				XDisplayString( screen->window.display) ,
 				x_get_root_window( &screen->window)->my_window ,
 				main_config.term_type , main_config.use_login_shell))
 			{
