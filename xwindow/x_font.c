@@ -566,7 +566,7 @@ font_found:
 	return  1 ;
 }
 
-#endif
+#endif  /* USE_TYPE_XFT */
 
 #ifdef  USE_TYPE_XCORE
 
@@ -1127,7 +1127,7 @@ font_found:
 	return  1 ;
 }
 
-#endif	/* USE_TYPE_XFT */
+#endif	/* USE_TYPE_XCORE */
 
 
 /* --- global functions --- */
