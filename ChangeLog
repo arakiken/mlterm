@@ -1,3 +1,7 @@
+* strange cursor movement on bidi is fixed.
+* memory leak in ml_bidi.c:ml_bidi() is fixed.
+* -J/--dyncomb option can be dynamically changed.
+
 [20020323]
 * if mlterm doesn't work as a genuine daemon and cannot start any pty windows,
   it outputs error messages and do exit(1).
