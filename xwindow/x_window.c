@@ -508,8 +508,10 @@ x_window_init(
 	win->click_num = 0 ;
 	win->button_is_pressing = 0 ;
 
-	win->icon = 0 ;
-	win->mask = 0 ;
+	win->dnd = NULL ;
+
+	win->icon = None ;
+	win->mask = None ;
 
 	win->app_name = "mlterm" ;
 	win->app_class = "Mlterm" ;
@@ -1060,7 +1062,7 @@ x_window_show(
 #endif
 
 	/* declare support XDND protocol */
-	x_dnd_set_awareness( win, 1) ;
+	x_dnd_set_awareness( win, 5) ;
 
 	/*
 	 * graphic context.
@@ -1990,14 +1992,13 @@ x_window_receive_event(
 			return  1 ;
 		}
 
-		if( event->xselection.property == XA_DND_STORE(win->display) || /* XDND */
-			/* or SELECTION */
-			( event->xselection.selection == XA_PRIMARY &&
-				( event->xselection.property == xa_selection &&
-				( event->xselection.target == XA_STRING ||
-				event->xselection.target == xa_text ||
-				event->xselection.target == xa_compound_text ||
-				event->xselection.target == xa_utf8_string))))
+		/* SELECTION */
+		if( event->xselection.selection == XA_PRIMARY &&
+		    ( event->xselection.property == xa_selection &&
+		      ( event->xselection.target == XA_STRING ||
+			event->xselection.target == xa_text ||
+			event->xselection.target == xa_compound_text ||
+			event->xselection.target == xa_utf8_string)))
 		{
 			u_long  bytes_after ;
 			XTextProperty  ct ;
@@ -2023,19 +2024,7 @@ x_window_receive_event(
 					break ;
 				}
 
-				/* XDND */
-				if( win->is_dnd_accepting && 
-				    event->xselection.property == XA_DND_STORE(win->display))
-				{
-					if( ct.encoding != XA_INCR(win->display)) /* XXX should read size */
-					{
-						x_dnd_parse(win,
-							   win->is_dnd_accepting, /* Mime type is stored as Atom */
-							   ct.value, ct.nitems) ;
-					}
-				}
-				/* SELECTION */
-				else if( event->xselection.target == XA_STRING || 
+				if( event->xselection.target == XA_STRING || 
 					 event->xselection.target == xa_text ||
 					 event->xselection.target == xa_compound_text)
 				{
@@ -2055,21 +2044,21 @@ x_window_receive_event(
 				}
 
 				XFree( ct.value) ;
-
+				
 				if( bytes_after == 0)
 				{
 					break ;
 				}
 			}
-
-			if( event->xselection.property == XA_DND_STORE(win->display) &&
-			    ct.encoding != XA_INCR(win->display) )
-			{
-				x_dnd_finish( win) ;
-			}
+			
 		}
 		
-
+		/* XDND */
+		if( event->xselection.property == XA_DND_STORE(win->display))
+		{
+			x_dnd_process_selection( win, event) ;
+		}
+		
 		XDeleteProperty( win->display, event->xselection.requestor,
 			event->xselection.property) ;
 	}
@@ -2116,55 +2105,21 @@ x_window_receive_event(
 		if( event->xclient.format == 32 &&
 		    event->xclient.message_type == XA_DND_ENTER( win->display))
 		{
-			win->is_dnd_accepting = (Atom)0;
-
-			/* more than 3 type ? */
-			if (event->xclient.data.l[1] & 0x01)
-			{
-				Atom act_type;
-				int act_format;
-				unsigned long nitems,left;
-				Atom * dat;
-
-				XGetWindowProperty(win->display, event->xclient.data.l[0],
-					XA_DND_TYPE_LIST(win->display), 0L, 1024L,
-					False, XA_ATOM,
-					&act_type, &act_format, &nitems, &left,
-					(unsigned char **)&dat);
-
-				if( act_type == None)
-				{
-					return 1;
-				}
-				win->is_dnd_accepting = x_dnd_preferable_atom( win , dat, nitems) ;
-				XFree(dat);
-			}
-			else
-			{
-				/* less than 3*/
-				win->is_dnd_accepting = x_dnd_preferable_atom( win , (event->xclient.data.l)+2 , 3);
-			}
+			x_dnd_process_enter( win, event) ;
 		}
 
 		/* DnD Position */
 		if( event->xclient.format == 32 &&
-			event->xclient.message_type == XA_DND_POSITION( win->display))
+		    event->xclient.message_type == XA_DND_POSITION( win->display))
 		{
-			win->dnd_source = event->xclient.data.l[0];
-			x_dnd_reply( win);
+			x_dnd_process_position( win, event) ;
 		}
 
 		/*DnD Drop*/
-		if( win->is_dnd_accepting &&
-		    event->xclient.format == 32 &&
+		if( event->xclient.format == 32 &&
 		    event->xclient.message_type == XA_DND_DROP( win->display))
 		{
-			/* data request */
-			XConvertSelection(win->display, XA_DND_SELECTION(win->display),
-				  win->is_dnd_accepting, /* mime type */
-				  XA_DND_STORE(win->display),
-				  win->my_window,
-				  event->xclient.data.l[2]);
+			x_dnd_process_drop( win, event) ;
 		}
 	}
 	else if( event->type == PropertyNotify)
@@ -2173,39 +2128,7 @@ x_window_receive_event(
 
 		if( event->xproperty.atom == XA_DND_STORE( win->display))
                 {			
-			u_long  bytes_after ;
-			XTextProperty  ct ;
-			int result ;
-			/* dummy read to determine data length (it shouldn't so long because this is INCR handler)*/
-			result = XGetWindowProperty( win->display , event->xproperty.window ,
-						     event->xproperty.atom , 0 , 0 , False ,
-						     AnyPropertyType , &ct.encoding , &ct.format ,
-						     &ct.nitems , &bytes_after , &ct.value) ;
-			if( (result == Success) && 
-			    /* when ct.encoding == XA_INCR, delete will be done in another place(SelectionNotify). 
-			       ct.encoding == None, the event should be ignored */
-			    (ct.encoding != XA_INCR(win->display)) && ( ct.encoding != None))
-			{
-				XGetWindowProperty( win->display , event->xproperty.window ,
-						    event->xproperty.atom , 0 , bytes_after , False ,
-						    AnyPropertyType , &ct.encoding , &ct.format ,
-						    &ct.nitems , &bytes_after , &ct.value) ; /* should alway success*/
-			
-				if( ct.nitems > 0)
-				{
-					x_dnd_parse( win, win->is_dnd_accepting,
-						     ct.value, ct.nitems) ;
-				}
-				else
-				{       /* all data have received */
-					x_dnd_finish( win) ;
-				}
-
-				XFree( ct.value) ; 
-				/* This delete triggers next update*/
-				XDeleteProperty( win->display, event->xproperty.window,
-						 event->xproperty.atom) ;					
-			}
+			x_dnd_process_incr( win, event) ;
 		}
 	}
 #ifdef  __DEBUG

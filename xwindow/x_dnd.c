@@ -5,15 +5,14 @@
  */
 
 #include  "x_window.h"
-
+#include  "x_dnd.h"
 /*
 #include  <ctype.h>
 */
 #include  <X11/Xatom.h>
+#include  <X11/Xutil.h>
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
-
-#include  "x_dnd.h"
 
 /* XXX Should we create x_atom.h ?? */
 #define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
@@ -21,9 +20,65 @@
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 
-static u_char  DND_VERSION = 5 ;
+#define  XA_DND_AWARE(display) (XInternAtom(display, "XdndAware", False))
+#define  XA_DND_TYPE_LIST(display) (XInternAtom(display, "XdndTypeList", False))
+#define  XA_DND_STATUS(display) (XInternAtom(display, "XdndStatus", False))
+#define  XA_DND_ACTION_COPY(display) (XInternAtom(display, "XdndActionCopy", False))
+#define  XA_DND_SELECTION(display) (XInternAtom(display, "XdndSelection", False))
+#define  XA_DND_FINISH(display) (XInternAtom(display, "XdndFinished", False))
+#define  XA_DND_MIME_TEXT_PLAIN(display) (XInternAtom(display, "text/plain", False))
+#define  XA_DND_MIME_TEXT_UNICODE(display) (XInternAtom(display, "text/unicode", False))
+#define  XA_DND_MIME_TEXT_URI_LIST(display) (XInternAtom(display, "text/uri-list", False))
 
 /* --- static functions --- */
+static int
+ignore_badwin(
+	Display *  display,
+	XErrorEvent *  event
+	)
+{
+	char  buffer[1024] ;
+
+	XGetErrorText( display , event->error_code , buffer , 1024) ;
+
+	kik_error_printf( "%s\n" , buffer) ;
+	
+	switch( event->error_code)
+	{
+	case BadWindow:
+		return 1;
+	default:
+		abort() ;
+	}
+}
+
+static int
+set_badwin_handler(
+	int  flag
+	)
+{
+	static XErrorHandler  old;
+
+	if( flag)
+	{
+		if( !old)
+		{
+			old = XSetErrorHandler( ignore_badwin) ;
+		}
+#ifdef  __DEBUG
+		else
+		{
+			kik_debug_printf("handler aready istalled\n") ;
+		}
+#endif
+	}
+	else
+	{
+		XSetErrorHandler( old) ;
+		old = NULL ;
+	}
+}
+
 static int
 charset_name2code(
 	char *charset
@@ -61,91 +116,65 @@ is_pref(
 	return  -1 ;
 }
 
-
-/* --- global functions --- */
-
-/**set/reset the window's dnd awareness
- *\param win mlterm window
- *\param flag awareness is set when true
- */
-void
-x_dnd_set_awareness(
-	x_window_t * win,
-	int flag
-	)
-{
-	if( flag)
-	{
-		XChangeProperty(win->display, win->my_window,
-				XA_DND_AWARE(win->display),
-				XA_ATOM, 32, PropModeReplace, 
-				&DND_VERSION, 1) ;
-	}
-	else
-	{
-		XDeleteProperty(win->display, win->my_window,
-				XA_DND_AWARE(win->display)) ;
-	}
-}
 /**send a accept/reject message to the dnd sender
  *\param win mlterm window
  */
-void
-x_dnd_reply(
+static void
+reply(
 	x_window_t * win
 	)
 {
-	XClientMessageEvent reply_msg;
+	XClientMessageEvent msg;
 	
-	reply_msg.type = ClientMessage;
-	reply_msg.display = win->display;
-	reply_msg.format = 32;
-	reply_msg.window = win->dnd_source;
-	reply_msg.message_type = XA_DND_STATUS(win->display);
-	reply_msg.data.l[0] = win->my_window;
-	if (win->is_dnd_accepting)
+	msg.type = ClientMessage;
+	msg.display = win->display;
+	msg.format = 32;
+	msg.window = win->dnd->source;
+	msg.message_type = XA_DND_STATUS(win->display);
+	msg.data.l[0] = win->my_window;
+	if (win->dnd->waiting_atom)
 	{
-		reply_msg.data.l[1] = 0x1 | 0x2; /* accept the drop | use [2][3] */
-		reply_msg.data.l[2] = 0;
-		reply_msg.data.l[3] = 0;
-		reply_msg.data.l[4] = XA_DND_ACTION_COPY(win->display);
+		msg.data.l[1] = 0x1 | 0x2; /* accept the drop | use [2][3] */
+		msg.data.l[2] = 0;
+		msg.data.l[3] = 0;
+		msg.data.l[4] = XA_DND_ACTION_COPY(win->display);
 	}
 	else
 	{
-		reply_msg.data.l[1] = 0;
-		reply_msg.data.l[2] = 0;
-		reply_msg.data.l[3] = 0;
-		reply_msg.data.l[4] = 0;
+		msg.data.l[1] = 0;
+		msg.data.l[2] = 0;
+		msg.data.l[3] = 0;
+		msg.data.l[4] = 0;
 	}
 	
-	XSendEvent(win->display, reply_msg.window, False, 0, (XEvent*)&reply_msg);
+	XSendEvent(win->display, msg.window, False, 0, (XEvent*)&msg);
 }
 
 /**send finish message to dnd sender
  *\param win mlterm window 
  */
-void
-x_dnd_finish(
+static void
+finish(
 	x_window_t *  win 
 	)
 {
-	XClientMessageEvent reply_msg ;
+	XClientMessageEvent msg ;
 	
-	if( win->dnd_source)
+	if( win->dnd->source)
 	{
-		reply_msg.message_type = XA_DND_FINISH(win->display) ;
-		reply_msg.data.l[0] = win->my_window ;
+		msg.message_type = XA_DND_FINISH(win->display) ;
+		msg.data.l[0] = win->my_window ;
 		/* setting bit 0 means success */
-		reply_msg.data.l[1] = 1 ; 
-		reply_msg.data.l[2] = XA_DND_ACTION_COPY(win->display) ;
-		reply_msg.type = ClientMessage ;
-		reply_msg.format = 32 ;
-		reply_msg.window = win->dnd_source ;
-		reply_msg.display = win->display ;
+		msg.data.l[1] = 1 ; 
+		msg.data.l[2] = XA_DND_ACTION_COPY(win->display) ;
+		msg.type = ClientMessage ;
+		msg.format = 32 ;
+		msg.window = win->dnd->source ;
+		msg.display = win->display ;
 		
-		XSendEvent(win->display, win->dnd_source, False, 0,
-			  (XEvent*)&reply_msg) ;
-		win->dnd_source = 0 ;
+		XSendEvent(win->display, win->dnd->source, False, 0,
+			  (XEvent*)&msg) ;
+		win->dnd->source = 0 ;
 	}
 }
 
@@ -155,8 +184,8 @@ x_dnd_finish(
  *\param src data from dnd
  *\param len size of data in bytes
  */
-int
-x_dnd_parse(
+static int
+parse(
 	x_window_t * win,
 	Atom atom,
 	
@@ -332,6 +361,7 @@ x_dnd_parse(
 	return 0 ;
 }
 
+
 /* i is used as an index for an array of atom.
  * i = -1 means "nothing"
  *
@@ -339,8 +369,8 @@ x_dnd_parse(
  * and 0 means "nothing" 
  */
 
-Atom
-x_dnd_preferable_atom(
+static Atom
+choose_atom(
 	x_window_t *  win ,
 	Atom *  atom,
 	int  num
@@ -393,3 +423,299 @@ x_dnd_preferable_atom(
 	}
 }
 
+/* --- global functions --- */
+
+/**set/reset the window's dnd awareness
+ *\param win mlterm window
+ *\param flag awareness is set when true
+ */
+void
+x_dnd_set_awareness(
+	x_window_t * win,
+	int version
+	)
+{
+	XChangeProperty(win->display, win->my_window,
+			XA_DND_AWARE(win->display),
+			XA_ATOM, 32, PropModeReplace, 
+			(unsigned char *)(&version), 1) ;
+}
+
+int 
+x_dnd_process_enter(
+	x_window_t *  win,
+	XEvent *  event
+	)
+{
+	Atom  to_wait ;	
+
+#ifdef  __DEBUG
+			kik_debug_printf("ENTER\n") ;
+#endif
+	/* more than 3 type is available? */
+	if (event->xclient.data.l[1] & 0x01)
+	{
+		Atom act_type;
+		int act_format;
+		unsigned long nitems,left;
+		Atom * dat;
+		
+		XGetWindowProperty(win->display, event->xclient.data.l[0],
+				   XA_DND_TYPE_LIST(win->display), 0L, 1024L,
+				   False, XA_ATOM,
+				   &act_type, &act_format, &nitems, &left,
+				   (unsigned char **)&dat);
+		
+		if( act_type == None)
+		{
+			return 1 ;
+		}
+		to_wait = choose_atom( win , dat, nitems) ;
+		XFree(dat);
+	}
+	else
+	{
+		/* less than 3 candiates */
+		to_wait = choose_atom( win , (event->xclient.data.l)+2 , 3);
+	}
+	
+	if( to_wait)
+	{
+		if( !(win->dnd))
+		{
+			win->dnd = malloc( sizeof( x_dnd_context_t)) ;
+		}
+		if( !(win->dnd))
+		{
+			return 1 ;
+		}
+		win->dnd->source = event->xclient.data.l[0];
+		win->dnd->waiting_atom = to_wait;
+#ifdef  __DEBUG
+			kik_debug_printf("INITIATED for %d %d\n", 
+					 win->dnd->source,
+					 win->dnd->waiting_atom) ;
+#endif
+	}
+	else
+	{
+		free( win->dnd);
+		win->dnd = NULL ;
+
+		return 1 ;
+	}
+
+	return 0 ;
+}
+
+int 
+x_dnd_process_position(
+	x_window_t *  win,
+	XEvent *  event
+	)
+{
+#ifdef  __DEBUG
+	kik_debug_printf("POSITION\n") ;
+#endif
+	if( !(win->dnd))
+	{
+		return 1 ;
+	}
+
+	if( win->dnd->source != event->xclient.data.l[0])
+	{
+#ifdef  __DEBUG
+	kik_debug_printf("%d do not match\n", event->xclient.data.l[0]) ;
+#endif
+		/* reject malicious drop */
+		free( win->dnd);
+		win->dnd = NULL ;
+
+		return 1 ;
+	}
+
+	reply( win);
+#ifdef  __DEBUG
+	kik_debug_printf("SUCCESS\n") ;
+#endif
+	
+	return 0 ;
+}
+
+int 
+x_dnd_process_drop(
+	x_window_t *  win,
+	XEvent *  event
+	)
+{
+#ifdef  __DEBUG
+	kik_debug_printf("DROP\n") ;
+#endif
+	if( !(win->dnd))
+	{
+#ifdef  __DEBUG
+	kik_debug_printf("no session\n") ;
+#endif
+		return 1 ;
+	}
+
+	if( win->dnd->source != event->xclient.data.l[0])
+	{
+#ifdef  __DEBUG
+	kik_debug_printf("%d do not match\n", event->xclient.data.l[0]) ;
+#endif
+		/* reject malicious drop */
+		free( win->dnd);
+		win->dnd = NULL ;
+
+		return 1 ;
+	}
+	
+	/* data request */
+	XConvertSelection(win->display, XA_DND_SELECTION(win->display),
+			  win->dnd->waiting_atom, /* mime type */
+			  XA_DND_STORE(win->display),
+			  win->my_window,
+			  event->xclient.data.l[2]);
+#ifdef  __DEBUG
+	kik_debug_printf("SUCCESS\n") ;
+#endif
+	return 0 ;
+}
+
+int 
+x_dnd_process_incr(
+	x_window_t *  win,
+	XEvent *  event
+	)
+{
+#ifdef  __DEBUG
+	kik_debug_printf("INCR\n") ;
+#endif
+	u_long  bytes_after ;
+	XTextProperty  ct ;
+	int result ;
+
+	if( !(win->dnd))
+	{
+		return 1 ;
+	}
+
+	/* dummy read to determine data length */
+	if( XGetWindowProperty( win->display , event->xproperty.window ,
+				event->xproperty.atom , 0 , 0 , False ,
+				AnyPropertyType , &ct.encoding , &ct.format ,
+				&ct.nitems , &bytes_after , &ct.value) != Success)
+	{
+#ifdef  __DEBUG
+	kik_debug_printf("no Prop\n") ;
+#endif
+		return  1 ; 
+	}
+
+	if( ct.encoding == None)
+	{
+		/* the event should be ignored */
+		return  1 ;
+	}
+
+	/* when ct.encoding != XA_INCR, 
+	   delete will be read when SelectionNotify would arrive  */
+	if( ct.encoding != XA_INCR(win->display))
+	{
+#ifdef  __DEBUG
+	kik_debug_printf("encoding is %d not icremental\n", ct.encoding) ;
+#endif
+		return  1 ;
+	}
+
+	XGetWindowProperty( win->display , event->xproperty.window ,
+			    event->xproperty.atom , 0 , bytes_after , False ,
+			    AnyPropertyType , &ct.encoding , &ct.format ,
+			    &ct.nitems , &bytes_after , &ct.value) ; /* should alway success*/
+	
+	if( ct.nitems > 0)
+	{
+		parse( win, win->dnd->waiting_atom,
+			     ct.value, ct.nitems) ;
+	}
+	else
+	{       /* all data have been received */
+		finish( win) ;
+	}
+	
+	XFree( ct.value) ; 
+	/* This delete will triggers the next update*/
+	XDeleteProperty( win->display, event->xproperty.window,
+			 event->xproperty.atom) ;					
+#ifdef  __DEBUG
+	kik_debug_printf("SUCCESS\n") ;
+#endif
+	return 0 ;
+}
+
+int 
+x_dnd_process_selection(
+	x_window_t *  win,
+	XEvent *  event
+	)
+{
+	u_long  bytes_after ;
+	XTextProperty  ct ;
+	int  seg = 0 ;
+
+#ifdef  __DEBUG
+	kik_debug_printf("SELECTION\n") ;
+#endif
+	if( !(win->dnd))
+	{
+		return 1 ;
+	}
+
+	/* dummy read to determine data length */	
+	if( XGetWindowProperty( win->display , event->xselection.requestor ,
+				event->xselection.property , 0 , 0 , False ,
+				AnyPropertyType , &ct.encoding , &ct.format ,
+				&ct.nitems , &bytes_after , &ct.value) != Success)
+	{
+#ifdef  __DEBUG
+		kik_debug_printf("read failure \n") ;
+#endif
+		/* reject malicious drop */
+		free( win->dnd);
+		win->dnd = NULL ;
+
+		return 1 ;		
+	}
+	if( ct.encoding == XA_INCR(win->display))
+	{
+#ifdef  __DEBUG
+	kik_debug_printf("it's INCR, skipping\n") ;
+#endif
+		return 0 ;
+	}
+
+	while( bytes_after > 0)
+	{
+		if( XGetWindowProperty( win->display , event->xselection.requestor ,
+					event->xselection.property , seg / 4 , 4096 , False ,
+					AnyPropertyType , &ct.encoding , &ct.format ,
+					&ct.nitems , &bytes_after , &ct.value) != Success)
+		{
+			break ;
+		}		
+				
+		parse( win, win->dnd->waiting_atom,
+			     ct.value, ct.nitems) ;		
+		XFree( ct.value) ;
+		
+		seg += ct.nitems ;
+	}
+	
+	finish( win) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf("SUCCESS\n") ;
+#endif
+	return  0 ;
+}

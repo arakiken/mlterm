@@ -56,6 +56,8 @@ typedef struct x_xic *  x_xic_ptr_t ;
 
 typedef struct x_xim *  x_xim_ptr_t ;
 
+typedef struct x_dnd_context *  x_dnd_context_ptr_t ;
+
 typedef struct  x_window
 {
 	Display *  display ;
@@ -115,8 +117,7 @@ typedef struct  x_window
 	/*
 	 * XDND
 	 */
-	Window  dnd_source ;
-	Atom  is_dnd_accepting ;
+	x_dnd_context_ptr_t  dnd ;
 
 	/*
 	 * WMHints Icon
