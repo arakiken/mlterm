@@ -1,10 +1,15 @@
+[20011222]
+* Hangul chars are not shown correctly in --noucsfont. fixed.
+* manual page(mlterm.1) is updated. (thanks to Kubota Tomohiro san)
+* the same CTEXT generator engine is used whether --big5bug option is set or not. fixed.
+
 [20011221]
 * option names are changed.
   --ucs2other => --noucsfont
   unicode_to_other_cs => not_use_unicode_font
   --all2ucs => --onlyucsfont
   all_cs_to_unicode => only_use_unicode_font
-* full width chars are not be shown correctly in --onlyucsfont. fixed.
+* full width chars are not shown correctly in --onlyucsfont. fixed.
 * -8/--88591 (iso88591_font_for_usascii) option is added.
 * -R /usr/local/lib -R /usr/X11R6/lib options are added to LIBS macro in
   src/Makefile.in tool/mlconfig/Makefile.in
