@@ -110,7 +110,7 @@ convert_row_to_y(
 static int
 convert_y_to_row(
 	ml_term_screen_t *  termscr ,
-	int *  y_rest ,
+	u_int *  y_rest ,
 	int  y
 	)
 {

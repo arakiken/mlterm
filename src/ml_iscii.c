@@ -19,17 +19,17 @@
 
 static char *  iscii_langs[] =
 {
-	"Assamese" ,
-	"Bengali",
-	"Gujarati",
-	"Hindi",
-	"Kannada",
-	"Malayalam",
-	"Oriya",
-	"Punjabi",
-	"Roman",
-	"Tamil",
-	"Telugu",
+	"assamese" ,
+	"bengali",
+	"gujarati",
+	"hindi",
+	"kannada",
+	"malayalam",
+	"oriya",
+	"punjabi",
+	"roman",
+	"tamil",
+	"telugu",
 	
 } ;
 
@@ -52,6 +52,21 @@ ml_iscii_get_lang(
 	}
 
 	return  ISCIILANG_UNKNOWN ;
+}
+
+char *
+ml_iscii_get_lang_name(
+	ml_iscii_lang_t  lang
+	)
+{
+	if( ISCIILANG_UNKNOWN < lang && lang < MAX_ISCIILANG)
+	{
+		return  iscii_langs[lang] ;
+	}
+	else
+	{
+		return  NULL ;
+	}
 }
 
 

@@ -46,6 +46,8 @@ typedef enum  ml_iscii_keyb
 
 ml_iscii_lang_t  ml_iscii_get_lang( char *  name) ;
 
+char *  ml_iscii_get_lang_name( ml_iscii_lang_t  lang) ;
+
 
 ml_iscii_state_t  ml_iscii_new(void) ;
 

@@ -721,6 +721,20 @@ ml_vt100_cmd_set_config(
 			(*termscr->config_menu_listener.change_char_encoding)( termscr , encoding) ;
 		}
 	}
+	else if( strcmp( key , "iscii_lang") == 0)
+	{
+		ml_iscii_lang_t  lang ;
+
+		if( ( lang = ml_iscii_get_lang( value)) == ISCIILANG_UNKNOWN)
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_iscii_lang)
+		{
+			(*termscr->config_menu_listener.change_iscii_lang)( termscr , lang) ;
+		}
+	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
 		ml_color_t  color ;
@@ -1163,6 +1177,10 @@ ml_vt100_cmd_get_config(
 	{
 		value = ml_get_char_encoding_name( (*termscr->encoding_listener->encoding)(
 				termscr->encoding_listener->self)) ;
+	}
+	else if( strcmp( key , "iscii_lang") == 0)
+	{
+		value = ml_iscii_get_lang_name( termscr->iscii_lang) ;
 	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
