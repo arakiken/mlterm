@@ -1,3 +1,10 @@
+* ml_char_copy() frees necessary memory area if src and dst is equal. fixed.
+  (Thanks to Sakamoto Hironori san)
+* -J/--rtl, bidi_base_dir_is_rtl option is removed.
+  (Thanks to Nadim Shaikli)
+* when all lines in scroll region is scrolled out, cursor position is not moved 
+  correctly. fixed.
+
 [20020312]
 * if USE_FRIBIDI is not defined, compilation fails in ml_bidi() because of shortage of arguments.
   (Thanks to Nanashi san)
