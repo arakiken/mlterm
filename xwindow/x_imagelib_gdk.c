@@ -17,7 +17,7 @@
 #include <kiklib/kik_unistd.h>
 #include <kiklib/kik_str.h>    /* strdup */
 
-#include "x_picture_dep.h"
+#include "x_imagelib.h"
 
 struct pixmap_store_tag {
 	Display  *display;
@@ -108,7 +108,7 @@ modify_image( GdkPixbuf *  pixbuf, x_picture_modifier_t *  pic_mod){
 /* --- global functions --- */
 
 int
-x_picdep_display_opened( Display *  display){
+x_imagelib_display_opened( Display *  display){
 	if (display_count == 0){
 #ifndef OLD_GDK_PIXBUF
 		g_type_init();
@@ -121,7 +121,7 @@ x_picdep_display_opened( Display *  display){
 }
 
 int
-x_picdep_display_closed( Display *  display){
+x_imagelib_display_closed( Display *  display){
 	display_count --;
 
 	/* XXX
@@ -133,7 +133,7 @@ x_picdep_display_closed( Display *  display){
 }
 
 Pixmap
-x_picdep_load_file( x_window_t *  win , char *  file_path , x_picture_modifier_t *  pic_mod){
+x_imagelib_load_file_for_background( x_window_t *  win , char *  file_path , x_picture_modifier_t *  pic_mod){
 	GdkPixbuf *  img ;
 	GdkPixbuf *  scaled ;
 	Pixmap  pixmap ;
@@ -176,7 +176,7 @@ x_picdep_load_file( x_window_t *  win , char *  file_path , x_picture_modifier_t
 }
 
 int
-x_picdep_root_pixmap_available( Display *  display){
+x_imagelib_root_pixmap_available( Display *  display){
 	if( XInternAtom( display , "_XROOTPMAP_ID" , True))
 		return  1 ;
 
@@ -184,7 +184,7 @@ x_picdep_root_pixmap_available( Display *  display){
 }
 
 Pixmap
-x_picdep_load_background( x_window_t *  win , x_picture_modifier_t *  pic_mod){
+x_imagelib_get_transparent_background( x_window_t *  win , x_picture_modifier_t *  pic_mod){
 	int  x ;
 	int  y ;
 	int  pix_x ;
@@ -298,8 +298,8 @@ found:
 	return  pixmap ;
 }
 
-int x_picdep_load_icon(
-	x_window_ptr_t * win,
+int x_imagelib_load_file(
+	Display * display,
 	char * path,
 	u_int32_t **cardinal,
 	Pixmap *pixmap,

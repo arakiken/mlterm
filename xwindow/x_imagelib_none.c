@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "x_picture_dep.h"
+#include  "x_imagelib.h"
 
 #include  <X11/Xatom.h>			/* XA_PIXMAP */
 #include  <kiklib/kik_debug.h>
@@ -11,7 +11,7 @@
 /* --- global functions --- */
 
 int
-x_picdep_display_opened(
+x_imagelib_display_opened(
 	Display *  display
 	)
 {
@@ -19,7 +19,7 @@ x_picdep_display_opened(
 }
 
 int
-x_picdep_display_closed(
+x_imagelib_display_closed(
 	Display *  display
 	)
 {
@@ -27,7 +27,7 @@ x_picdep_display_closed(
 }
 
 Pixmap
-x_picdep_load_file(
+x_imagelib_load_file_for_background(
 	x_window_t *  win ,
 	char *  file_path ,
 	x_picture_modifier_t *  pic_mod
@@ -37,7 +37,7 @@ x_picdep_load_file(
 }
 
 int
-x_picdep_root_pixmap_available(
+x_imagelib_root_pixmap_available(
 	Display *   display
 	)
 {
@@ -50,7 +50,7 @@ x_picdep_root_pixmap_available(
 }
 
 Pixmap
-x_picdep_load_background(
+x_imagelib_get_transparent_background(
 	x_window_t *  win ,
 	x_picture_modifier_t *  pic_mod
 	)
@@ -116,8 +116,8 @@ x_picdep_load_background(
 	return  pixmap ;
 }
 
-int x_picdep_load_icon(
-	x_window_ptr_t * win,
+int x_imagelib_load_file(
+	Display * display,
 	char * path,
 	u_int32_t **cardinal,
 	Pixmap *pixmap,

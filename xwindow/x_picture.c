@@ -8,7 +8,7 @@
 #include  <kiklib/kik_debug.h>
 
 #include  "x_window.h"
-#include  "x_picture_dep.h"
+#include  "x_imagelib.h"
 
 
 /* --- global functions --- */
@@ -18,7 +18,7 @@ x_picture_display_opened(
 	Display *  display
 	)
 {
-	return  x_picdep_display_opened( display) ;
+	return  x_imagelib_display_opened( display) ;
 }
 
 int
@@ -26,7 +26,7 @@ x_picture_display_closed(
 	Display *  display
 	)
 {
-	return  x_picdep_display_closed( display) ;
+	return  x_imagelib_display_closed( display) ;
 }
 
 int
@@ -68,8 +68,8 @@ x_picture_load_file(
 		
 		return  0 ;
 	}
-
-	if( ( pic->pixmap = x_picdep_load_file( pic->win , file_path , pic->mod)) == None)
+	pic->pixmap = x_imagelib_load_file_for_background( pic->win , file_path , pic->mod) ;
+	if( pic->pixmap == None)
 	{
 		return  0 ;
 	}
@@ -82,7 +82,7 @@ x_root_pixmap_available(
 	Display *  display
 	)
 {
-	return  x_picdep_root_pixmap_available( display) ;
+	return  x_imagelib_root_pixmap_available( display) ;
 }
 	
 int
@@ -97,7 +97,7 @@ x_picture_load_background(
 		return  0 ;
 	}
 
-	if( ( pic->pixmap = x_picdep_load_background( pic->win , pic->mod)) == None)
+	if( ( pic->pixmap = x_imagelib_get_transparent_background( pic->win , pic->mod)) == None)
 	{
 		return  0 ;
 	}
