@@ -8,18 +8,17 @@
 </HEAD>
  <BODY>
 
- !!!THIS TOOL IS OBSOLETED BY "mlcc"!!!
+ !!!THIS TOOL IS OBSOLETED BY "mlcc".!!!
  <h1>mlterm configurator on curses</h1>
 
  <h2>What is mlterm configurator on curses?</h2>
 
- <p>A tiny tool to change terminal setting of mlterm through escape
- sequence.</p>
- <p> If you have installed gtk, mlconfig is available and you will never need this tool at all.<br>
- mlconfig is a GUI configurator and should be more user-friendly.</p>
+ <p>A tiny tool to change terminal settings of mltermi.</p>
+ <p> If you have installed gtk, mlconfig can be used and this tool is not needed at all.<br>
+ (mlconfig is a GUI configurator and should be more user-friendly)</p>
 
- <p>Or you can also use w3mmlconfig if you have installed w3m.</p>
- <p>When you are not using both of them, this tool will help you to change</p>
+ <p>Or you can also try "w3mmlconfig" if you have w3m.</p>
+ <p>If you are not using both of them, this tool may help you to change</p>
  <ul>
   <li>Terminal encoding</li>
   <li>X Input Method</li>
@@ -30,8 +29,8 @@
   <li>... and more .</li>
  </ul>
 
- <p>Actually, you can send escape sequence to mlterm by hand and control
- the setting. For example, </p>
+ <p># Actually, you can send an escape sequence to your mlterm by hand and control
+ its setting. For example, </p>
  <pre>
  echo -e "\e]5379;wall_picture=/path/to/file.jpg\x07"
  </pre>
@@ -45,7 +44,7 @@
  <h2>Requirement</h2>
  <ul>
   <li> perl 5 (5.6 is recommended)</li>
-  <li> ncurses 5.2 or compatible (BSD curses 4.2 is known to be problematic)</li>
+  <li> ncurses 5.2 or compatible (BSD curses ver4.2 is known to be problematic)</li>
  </ul>
 
  <h2>Install</h2>
@@ -57,8 +56,8 @@
  <pre>make&amp;make install</pre>
  <p> After installation, you should be able to run this tool by </p>
  <pre>mlconf_curses</pre>
- <p>(.pl is omitted because 1. it's ugly.  2. someday this tool would be
- rewritten in other language.)</p>
+ <p>(.pl is omitted because it's ugly and someday this tool would be
+ rewritten using one of other languages.)</p>
  <h2>To Do</h2>
  <ul>
   <li>Implement file selector (someday)</li>
@@ -70,7 +69,7 @@
   <li>Serialization (write back changes to config file)</li>
  </ul>
  <h2>Author</h2>
- <p>MINAMI Hirokazu (minami@chem.s.u-tokyo.ac.jp)</p>
+ <p>MINAMI Hirokazu (minami@mistfall.net)</p>
  </BODY>
 </HTML>
 
