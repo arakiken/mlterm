@@ -323,10 +323,10 @@ ml_term_write(
 	ml_term_t *  term ,
 	u_char *  buf ,
 	size_t  len ,
-	int  to_cfg
+	int  to_menu
 	)
 {
-	if( to_cfg)
+	if( to_menu)
 	{
 		return  ml_config_menu_write( &term->config_menu , buf , len) ;
 	}

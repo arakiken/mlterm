@@ -94,7 +94,7 @@ char *  ml_term_get_slave_name( ml_term_t *  term) ;
 
 pid_t  ml_term_get_child_pid( ml_term_t *  term) ;
 
-size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len , int  to_cfg) ;
+size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len , int  to_menu) ;
 
 int  ml_term_flush( ml_term_t *  term) ;
 

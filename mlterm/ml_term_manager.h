@@ -21,6 +21,8 @@ ml_term_t *  ml_create_term( u_int  cols , u_int  rows , u_int  tab_size , u_int
 
 ml_term_t *  ml_get_term( char *  dev) ;
 
+ml_term_t *  ml_get_detached_term( char *  dev) ;
+
 ml_term_t *  ml_next_term( ml_term_t *  term) ;
 
 ml_term_t *  ml_prev_term( ml_term_t *  term) ;

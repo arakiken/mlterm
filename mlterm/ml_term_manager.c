@@ -119,11 +119,25 @@ ml_get_term(
 
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
-		if( ( dev == NULL || strcmp( dev , ml_term_get_slave_name( terms[count])) == 0) &&
-			! ml_term_is_attached( terms[count]))
+		if( dev == NULL || strcmp( dev , ml_term_get_slave_name( terms[count])) == 0)
 		{
 			return  terms[count] ;
 		}
+	}
+
+	return  NULL ;
+}
+
+ml_term_t *
+ml_get_detached_term(
+	char *  dev
+	)
+{
+	ml_term_t *  term ;
+
+	if( ( term = ml_get_term( dev)) && ! ml_term_is_attached( term))
+	{
+		return  term ;
 	}
 
 	return  NULL ;
@@ -249,25 +263,22 @@ ml_get_pty_list(void)
 	free( pty_list) ;
 
 	/* The length of pty name is under 50. */
-	len = (50 + 2) * num_of_terms + 1 ;
+	len = (50 + 2) * num_of_terms ;
 	
-	if( ( pty_list = malloc( len)) == NULL)
+	if( ( pty_list = malloc( len + 1)) == NULL)
 	{
 		return  "" ;
 	}
 
 	p = pty_list ;
+
+	*p = '\0' ;
 	
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
-	#if  1
 		kik_snprintf( p , len , "%s:%d;" ,
 			ml_term_get_slave_name( terms[count]) , ml_term_is_attached( terms[count])) ;
-	#else
-		kik_snprintf( p , len , "%s:%s:%d;" ,
-			ml_term_window_name( terms[count]) ? ml_term_window_name( terms[count]) : "" ,
-			ml_term_get_slave_name( terms[count]) , ml_term_is_attached( terms[count])) ;
-	#endif
+
 		len -= strlen( p) ;
 		p += strlen( p) ;
 	}

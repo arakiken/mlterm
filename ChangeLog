@@ -1,4 +1,10 @@
-2003-03-10 Araki Ken <arakiken@users.sf.net
+2003-03-15 Araki Ken <arakiken@users.sf.net>
+
+	* Changed doc/en/PROTOCOL format.
+	  /dev/... can be specified before key(=value) now.
+	* Forbidden config protocol 5380 because of security issues.
+
+2003-03-10 Araki Ken <arakiken@users.sf.net>
 
 	* Added --with-tools,--with-scrollbars options.
 

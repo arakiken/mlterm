@@ -50,8 +50,8 @@ typedef struct  ml_config_event_listener
 {
 	void *  self ;
 
-	void (*set)( void * , char * , char *) ;
-	void (*get)( void * , char * , int) ;
+	void (*set)( void * , char * , char * , char *) ;
+	void (*get)( void * , char * , char * , int) ;
 
 } ml_config_event_listener_t ;
 

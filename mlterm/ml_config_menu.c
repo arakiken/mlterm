@@ -13,6 +13,10 @@
 #include  <kiklib/kik_mem.h>	/* malloc */
 
 
+#ifndef  LIBEXECDIR
+#define  LIBEXECDIR  /usr/local/libexec
+#endif
+
 
 /* --- static functions --- */
 

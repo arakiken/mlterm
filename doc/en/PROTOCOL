@@ -5,11 +5,11 @@ mlterm configuration protocol
 version 20030301
 
 * mlterm proper
-  set              = "\x1b" "]" "5379" ( ";" <key> [ "=" <value> ] )* "\x07"
-  get(pty)         = "\x1b" "]" "5380" ";" <key> "\x07"
-  get(GUI menu)    = "\x1b" "]" "5381" ";" <key> "\x07"
-  save             = "\x1b" "]" "5382" ( ";" <key> [ "=" <value> ] )* "\x07"
-  set&save         = "\x1b" "]" "5383" ( ";" <key> [ "=" <value> ] )* "\x07"
+  set              = "\x1b" "]" "5379" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
+  get(pty)         = "\x1b" "]" "5380" ";" [ "/dev/..." ":" ] <key> "\x07"
+  get(GUI menu)    = "\x1b" "]" "5381" ";" [ "/dev/..." ":" ] <key> "\x07"
+  save             = "\x1b" "]" "5382" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
+  set&save         = "\x1b" "]" "5383" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
   return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a"
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_key | mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
@@ -25,7 +25,8 @@ version 20030301
                      locale | wall_picture | pwd | brightness | gamma | contrast | line_space | 
                      screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
                      use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
-                     iscii_lang | use_dynamic_comb | rows | cols | cursor_fg_color | cursor_bg_color
+                     iscii_lang | use_dynamic_comb | rows | cols | cursor_fg_color | cursor_bg_color |
+                     pty_list
   value            = <values for each key>
 
 * compatible with other terminals
@@ -80,6 +81,7 @@ version 20030301
   open_pty = <none>
   open_screen = <none>
   select_pty = <pty dev name>
+  pty_list = <[pty dev]BEL[pty name]BEL[pty_list]EOT>*
 
 * note
   o Encoding names are regularized , that is , `-' , `-' are removed , and only upper

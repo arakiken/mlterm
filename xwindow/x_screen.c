@@ -4750,6 +4750,7 @@ full_reset(
 static void
 set_config(
 	void *  p ,
+	char *  dev ,		/* not used in now */
 	char *  key ,
 	char *  value
 	)
@@ -5172,26 +5173,50 @@ set_config(
 static void
 get_config(
 	void *  p ,
+	char *  dev ,
 	char *  key ,
-	int  to_cfg
+	int  to_menu
 	)
 {
 	x_screen_t *  screen ;
+	ml_term_t *  term ;
 	char *  value ;
 	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
 	char *  true = "true" ;
 	char *  false = "false" ;
 	char  cwd[PATH_MAX] ;
 
+#if  1
+	if( ! to_menu)
+	{
+		kik_msg_printf( "XXXX UNFIXED VULNERABILITY XXX\n") ;
+
+		return ;
+	}
+#endif
+
 	screen = p ;
+	
+	if( dev)
+	{
+		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
+				dev)) == NULL)
+		{
+			goto  error ;
+		}
+	}
+	else
+	{
+		term = screen->term ;
+	}
 	
 	if( strcmp( key , "encoding") == 0)
 	{
-		value = ml_get_char_encoding_name( ml_term_get_encoding( screen->term)) ;
+		value = ml_get_char_encoding_name( ml_term_get_encoding( term)) ;
 	}
 	else if( strcmp( key , "iscii_lang") == 0)
 	{
-		value = ml_iscii_get_lang_name( screen->term->iscii_lang_type) ;
+		value = ml_iscii_get_lang_name( term->iscii_lang_type) ;
 	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
@@ -5241,12 +5266,12 @@ get_config(
 	}
 	else if( strcmp( key , "tabsize") == 0)
 	{
-		sprintf( digit , "%d" , ml_term_get_tab_size( screen->term)) ;
+		sprintf( digit , "%d" , ml_term_get_tab_size( term)) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "logsize") == 0)
 	{
-		sprintf( digit , "%d" , ml_term_get_log_size( screen->term)) ;
+		sprintf( digit , "%d" , ml_term_get_log_size( term)) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "fontsize") == 0)
@@ -5302,7 +5327,7 @@ get_config(
 	}
 	else if( strcmp( key , "vertical_mode") == 0)
 	{
-		value = ml_get_vertical_mode_name( screen->term->vertical_mode) ;
+		value = ml_get_vertical_mode_name( term->vertical_mode) ;
 	}
 	else if( strcmp( key , "scrollbar_mode") == 0)
 	{
@@ -5319,7 +5344,7 @@ get_config(
 	}
 	else if( strcmp( key , "use_combining") == 0)
 	{
-		if( ml_term_is_using_char_combining( screen->term))
+		if( ml_term_is_using_char_combining( term))
 		{
 			value = true ;
 		}
@@ -5330,7 +5355,7 @@ get_config(
 	}
 	else if( strcmp( key , "use_dynamic_comb") == 0)
 	{
-		if( screen->term->use_dynamic_comb)
+		if( term->use_dynamic_comb)
 		{
 			value = true ;
 		}
@@ -5418,7 +5443,7 @@ get_config(
 	}
 	else if( strcmp( key , "use_bidi") == 0)
 	{
-		if( screen->term->use_bidi)
+		if( term->use_bidi)
 		{
 			value = true ;
 		}
@@ -5452,12 +5477,12 @@ get_config(
 	}
 	else if( strcmp( key , "rows") == 0)
 	{
-		sprintf( digit , "%d" , ml_term_get_rows( screen->term)) ;
+		sprintf( digit , "%d" , ml_term_get_rows( term)) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "cols") == 0)
 	{
-		sprintf( digit , "%d" , ml_term_get_cols( screen->term)) ;
+		sprintf( digit , "%d" , ml_term_get_cols( term)) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "pty_list") == 0)
@@ -5469,7 +5494,17 @@ get_config(
 	}
 	else if( strcmp( key , "pty_name") == 0)
 	{
-		value = ml_term_get_slave_name( screen->term) ;
+		if( dev)
+		{
+			if( ( value = ml_term_window_name( term)) == NULL)
+			{
+				value = dev ;
+			}
+		}
+		else
+		{
+			value = ml_term_get_slave_name( term) ;
+		}
 	}
 	else
 	{
@@ -5481,11 +5516,11 @@ get_config(
 		goto  error ;
 	}
 
-	ml_term_write( screen->term , "#" , 1 , to_cfg) ;
-	ml_term_write( screen->term , key , strlen( key) , to_cfg) ;
-	ml_term_write( screen->term , "=" , 1 , to_cfg) ;
-	ml_term_write( screen->term , value , strlen( value) , to_cfg) ;
-	ml_term_write( screen->term , "\n" , 1 , to_cfg) ;
+	ml_term_write( screen->term , "#" , 1 , to_menu) ;
+	ml_term_write( screen->term , key , strlen( key) , to_menu) ;
+	ml_term_write( screen->term , "=" , 1 , to_menu) ;
+	ml_term_write( screen->term , value , strlen( value) , to_menu) ;
+	ml_term_write( screen->term , "\n" , 1 , to_menu) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
@@ -5494,7 +5529,7 @@ get_config(
 	return ;
 
 error:
-	ml_term_write( screen->term , "#error\n" , 7 , to_cfg) ;
+	ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " #error\n") ;

@@ -350,7 +350,7 @@ open_term(
 
 	if( pty)
 	{
-		if( ( term = ml_get_term( pty)) == NULL)
+		if( ( term = ml_get_detached_term( pty)) == NULL)
 		{
 			return  0 ;
 		}
@@ -358,7 +358,8 @@ open_term(
 	else
 	{
 	#if  0
-		if( ( term = ml_get_term( NULL)) == NULL && ( term = create_term_intern()) == NULL)
+		if( ( term = ml_get_detached_term( NULL)) == NULL &&
+			( term = create_term_intern()) == NULL)
 	#else
 		if( ( term = create_term_intern()) == NULL)
 	#endif
@@ -622,7 +623,7 @@ open_pty(
 
 			if( dev)
 			{
-				if( ( new = ml_get_term( dev)) == NULL)
+				if( ( new = ml_get_detached_term( dev)) == NULL)
 				{
 					return ;
 				}
@@ -649,8 +650,6 @@ open_pty(
 			return ;
 		}
 	}
-
-	return ;
 }
 
 static void
@@ -685,8 +684,6 @@ next_pty(
 			return ;
 		}
 	}
-
-	return ;
 }
 
 static void
@@ -721,8 +718,6 @@ prev_pty(
 			return ;
 		}
 	}
-
-	return ;
 }
 	
 static void
@@ -739,7 +734,7 @@ pty_closed(
 		{
 			ml_term_t *  term ;
 			
-			if( ( term = ml_get_term( NULL)) == NULL)
+			if( ( term = ml_get_detached_term( NULL)) == NULL)
 			{
 				close_term( screen) ;
 				screens[count] = screens[--num_of_screens] ;
@@ -784,6 +779,15 @@ close_screen(
 			return ;
 		}
 	}
+}
+
+static ml_term_t *
+get_pty(
+	void *  p ,
+	char *  dev
+	)
+{
+	return  ml_get_term( dev) ;
 }
 
 static char *
@@ -2692,6 +2696,7 @@ x_term_manager_init(
 	system_listener.prev_pty = prev_pty ;
 	system_listener.close_pty = NULL ;
 	system_listener.pty_closed = pty_closed ;
+	system_listener.get_pty = get_pty ;
 	system_listener.pty_list = pty_list ;
 
 	signal( SIGHUP , sig_fatal) ;

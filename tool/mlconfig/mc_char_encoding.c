@@ -6,6 +6,7 @@
 
 #include  <string.h>
 #include  <stdlib.h>		/* free */
+#include  <ctype.h>
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>

@@ -589,6 +589,7 @@ config_protocol_set(
 {
 	if( HAS_CONFIG_LISTENER(vt100_parser,set))
 	{
+		char *  dev ;
 		char *  val ;
 		char *  p ;
 
@@ -604,6 +605,24 @@ config_protocol_set(
 				*(p ++) = '\0' ;
 			}
 
+			if( strncmp( pt , "/dev" , 4) == 0)
+			{
+				dev = pt ;
+				
+				if( ( pt = strchr( pt , ':')) == NULL)
+				{
+					/* Illegal format */
+
+					goto  next ;
+				}
+
+				pt ++ ;
+			}
+			else
+			{
+				dev = NULL ;
+			}
+			
 			if( ( val = strchr( pt , '=')))
 			{
 				*(val ++) = '\0' ;
@@ -614,7 +633,7 @@ config_protocol_set(
 			}
 			
 			(*vt100_parser->config_listener->set)( vt100_parser->config_listener->self ,
-				pt , val) ;
+				dev , pt , val) ;
 
 			/* XXX */
 			if( vt100_parser->config_listener == NULL)
@@ -624,7 +643,8 @@ config_protocol_set(
 				 */
 				break ;
 			}
-			
+
+		next:			
 			pt = p ;
 		}
 
@@ -649,6 +669,7 @@ config_protocol_save(
 {
 	char *  file ;
 	kik_conf_write_t *  conf ;
+	char *  dev ;
 	char *  val ;
 	char *  p ;
 
@@ -663,6 +684,28 @@ config_protocol_save(
 			if( ( p = strchr( pt , ';')))
 			{
 				*(p ++) = '\0' ;
+			}
+
+			/*
+			 * In case "/dev/..." specified in set&save protocol.
+			 * Not used 'dev' var.
+			 */
+			if( strncmp( pt , "/dev" , 4) == 0)
+			{
+				dev = pt ;
+				
+				if( ( pt = strchr( pt , ':')) == NULL)
+				{
+					/* Illegal format */
+
+					goto  next ;
+				}
+
+				pt ++ ;
+			}
+			else
+			{
+				dev = NULL ;
 			}
 
 			if( ( val = strchr( pt , '=')))
@@ -686,6 +729,7 @@ config_protocol_save(
 				kik_conf_io_write( conf , pt , val) ;
 			}
 
+		next:
 			pt = p ;
 		}
 
@@ -694,6 +738,53 @@ config_protocol_save(
 	free( file) ;
 
 	return  1 ;
+}
+
+/*
+ * This function will destroy the content of pt.
+ */
+static int
+config_protocol_get(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  pt ,
+	int  to_menu
+	)
+{
+	if( HAS_CONFIG_LISTENER(vt100_parser,get))
+	{
+		char *  dev ;
+
+		if( strncmp( pt , "/dev" , 4) == 0)
+		{
+			dev = pt ;
+
+			if( ( pt = strchr( pt , ':')) == NULL)
+			{
+				/* Illegal format */
+
+				return  0 ;
+			}
+
+			*(pt ++) = '\0' ;
+		}
+		else
+		{
+			dev = NULL ;
+		}
+
+		stop_vt100_cmd( vt100_parser) ;
+
+		(*vt100_parser->config_listener->get)( vt100_parser->config_listener->self ,
+			dev , pt , to_menu) ;
+
+		start_vt100_cmd( vt100_parser) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }
 
 static int
@@ -1912,7 +2003,7 @@ parse_vt100_escape_sequence(
 							stop_vt100_cmd( vt100_parser) ;
 							(*vt100_parser->config_listener->set)(
 								vt100_parser->config_listener->self ,
-								"wall_picture" , pt) ;
+								NULL , "wall_picture" , pt) ;
 							start_vt100_cmd( vt100_parser) ;
 						}
 					}
@@ -1923,7 +2014,7 @@ parse_vt100_escape_sequence(
 							stop_vt100_cmd( vt100_parser) ;
 							(*vt100_parser->config_listener->set)(
 								vt100_parser->config_listener->self ,
-								"fg_color" , pt) ;
+								NULL , "fg_color" , pt) ;
 							start_vt100_cmd( vt100_parser) ;
 						}
 					}
@@ -1934,7 +2025,7 @@ parse_vt100_escape_sequence(
 							stop_vt100_cmd( vt100_parser) ;
 							(*vt100_parser->config_listener->set)(
 								vt100_parser->config_listener->self ,
-								"bg_color" , pt) ;
+								NULL , "bg_color" , pt) ;
 							start_vt100_cmd( vt100_parser) ;
 						}
 					}
@@ -1948,36 +2039,32 @@ parse_vt100_escape_sequence(
 					}
 					else if( ps == 5379)
 					{
+						/* set */
+						
 						config_protocol_set( vt100_parser , pt) ;
 					}
 					else if( ps == 5380)
 					{
-						if( HAS_CONFIG_LISTENER(vt100_parser,get))
-						{
-							stop_vt100_cmd( vt100_parser) ;
-							(*vt100_parser->config_listener->get)(
-								vt100_parser->config_listener->self ,
-								pt , 0) ;
-							start_vt100_cmd( vt100_parser) ;
-						}
+						/* get */
+
+						config_protocol_get( vt100_parser , pt , 0) ;
 					}
 					else if( ps == 5381)
 					{
-						if( HAS_CONFIG_LISTENER(vt100_parser,get))
-						{
-							stop_vt100_cmd( vt100_parser) ;
-							(*vt100_parser->config_listener->get)(
-								vt100_parser->config_listener->self ,
-								pt , 1) ;
-							start_vt100_cmd( vt100_parser) ;
-						}
+						/* get(menu) */
+
+						config_protocol_get( vt100_parser , pt , 1) ;
 					}
 					else if( ps == 5382)
 					{
+						/* save */
+						
 						config_protocol_save( vt100_parser , pt) ;
 					}
 					else if( ps == 5383)
 					{
+						/* set&save */
+						
 						char *  p ;
 
 						p = kik_str_alloca_dup( pt) ;
