@@ -1,5 +1,11 @@
 2003-10-12  Araki Ken  <arakiken@users.sf.net>
 
+	* Removed tool/viewsfml/.
+
+	* Added tool/accessories/.
+
+2003-10-12  Araki Ken  <arakiken@users.sf.net>
+
 	* mlmenu/main.c: Fixed a critical bug.
 
 	* mlmenu/Makefile: Removed.
