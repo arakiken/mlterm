@@ -1,3 +1,7 @@
+[20020113]
+* priv_fg and priv_bg cannot be customized. fixed. (Thanks to Nekoie san)
+* utmper is supported. (Thanks to Mike Fabian)
+
 [20020213]
 * before starting daemon , whether /tmp/mlterm.unix is exists or not is checked.
   and it is also unlinked when mlterm server exits.
