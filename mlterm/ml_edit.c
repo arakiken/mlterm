@@ -825,9 +825,6 @@ ml_edit_overwrite_chars(
 
 			ml_line_set_continued_to_next( line) ;
 
-			beg = count ;
-			cols = 0 ;
-			
 			edit->cursor.char_index = edit->cursor.col = 0 ;
 			if( edit->cursor.row + 1 > edit->scroll_region_end)
 			{
@@ -860,6 +857,7 @@ ml_edit_overwrite_chars(
 			}
 			else
 			{
+				beg = count ;
 				cols = 0 ;
 			}
 
