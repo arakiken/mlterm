@@ -11,23 +11,33 @@ Options for configure
 ---------------------
 
   --prefix
-    installation prefix
+    Installation prefix
 
   --enable-imlib
-    background image (aka wallpaper) using imlib
+    Background image (aka wallpaper) using imlib
 
   --enable-anti-alias
-    use FreeType for anti-alias of TrueType fonts
+    Use FreeType for anti-alias of TrueType fonts
 
   --enable-fribidi
-    use Fribidi for BiDi rendering.
+    Use Fribidi for BiDi rendering
+
+  --enable-ind
+    Use libind for ISCII rendering
 
   --enable-debug
-    build debug version
+    Build debug version
 
   --enable-ucs4
     Use UCS4 instead of UCS2 for internal encoding (not recommended).
     No merits so far.
+
+  --disable-shared
+    Disable shared libraries
+
+  --disable-static
+    Disable static libraries
+
 
 What you need for compilation
 -----------------------------

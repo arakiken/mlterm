@@ -18,13 +18,17 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-fribidi        fribidi[disabled]"
 ac_help="$ac_help
-  --enable-ind            ind[disabled]"
+  --enable-ind            libind[disabled]"
 ac_help="$ac_help
   --enable-imlib          imlib[disabled]"
 ac_help="$ac_help
   --enable-anti-alias     anti alias[disabled]"
 ac_help="$ac_help
   --enable-ucs4           ucs4[disabled]"
+ac_help="$ac_help
+  --disable-shared        shared libraries[enabled]"
+ac_help="$ac_help
+  --disable-static        static libraries[enabled]"
 
 # Initialize some variables set by options.
 # The variables have the same names as the options, with
@@ -605,6 +609,18 @@ fi
 # Check whether --enable-ucs4 or --disable-ucs4 was given.
 if test "${enable_ucs4+set}" = set; then
   enableval="$enable_ucs4"
+  :
+fi
+
+# Check whether --enable-shared or --disable-shared was given.
+if test "${enable_shared+set}" = set; then
+  enableval="$enable_shared"
+  :
+fi
+
+# Check whether --enable-static or --disable-static was given.
+if test "${enable_static+set}" = set; then
+  enableval="$enable_static"
   :
 fi
 

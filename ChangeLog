@@ -1,4 +1,9 @@
-[20020204]
+[20020205]
+* -O/--sbpos/scrollbar_position option is added.
+* processing brightness adjustment under transparent mode is tuned.
+* doc/ja/README.ja is updated.
+
+[20020205]
 * cywin port patch is merged.(thanks to Tetsurou Okazaki san)
 * XRegisterIMInstantiateCallback is never called on sunos.
 
