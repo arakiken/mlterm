@@ -3,6 +3,7 @@ BUILD_TOPDIR = ..
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
+libexecdir = @libexecdir@
 
 SRC_TOPDIR = @SRC_TOPDIR@
 
@@ -13,13 +14,14 @@ INSTALL = @INSTALL@
 PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)
 INCDIR = $(DESTDIR)$(PREFIX)/include
+LIBEXECDIR = $(libexecdir)
 
 VPATH = $(SRC_TOPDIR)/mlterm
 
 INCDIR_TMP = $(BUILD_TOPDIR)/include
 
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ \
-	@UTMP_CFLAGS@ @CFLAGS@ -I/usr/local/include
+	@UTMP_CFLAGS@ @CFLAGS@ -I/usr/local/include -DLIBEXECDIR=\"$(LIBEXECDIR)\"
 LIBS = $(LIBS_LOCAL)
 
 OBJ = ml_bidi.o ml_char.o ml_char_encoding.o ml_color.o ml_edit.o ml_edit_intern.o ml_edit_scroll.o \

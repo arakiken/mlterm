@@ -1,0 +1,6 @@
+fg_color	select:lower	black	0	Foreground color
+bg_color	select:lower	white	0	Background color
+fade_ratio	text:digit	100	0	Fade ratio on unfocus
+wall_picture	text		none	0	Wall picture
+brightness	text:digit	100	0	Wall picture brightness
+use_transbg	checkbox	false	0	Transparent background

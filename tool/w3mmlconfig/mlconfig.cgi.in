@@ -163,7 +163,7 @@ sub make_key {
 	}
 	if ($type =~ /^text/) {
 		print "<input type=text name=\"$k\" value=\"",
-			&html_quote($value->{$k}), "\">\n";
+			&html_quote($value->{$k}), "\" size=15>\n";
 	} elsif ($type =~ /^select/) {
 		print "<select name=\"$k\">\n";
 		for $i (@{$attr->{item}}) {

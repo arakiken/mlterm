@@ -1,7 +1,7 @@
-screen_width_ratio	text:digit	100	0	Width ratio
-screen_height_ratio	text:digit	100	0	Height ratio
-line_space	text:digit	0	0	Line space
-tabsize		text:digit	8	0	Tab size
-logsize		text:digit	128	0	Log size
-mod_meta_mode	radio:lower	none	0	Mod Meta mode
+tabsize		text:digit	8	0	Tab width (columns)
+logsize		text:digit	128	0	Backlog size (lines)
+mod_meta_mode	radio:lower	none	0	Meta key outputs:
+vertical_mode	radio:lower	none	0	Vertical mode
 bel_mode	radio:lower	sound	0	Bel mode
+use_dynamic_comb	checkbox	false	0	Combining=1(or 0) logical column(s)
+use_multi_column_char	checkbox	true	0	Fullwidth=2(or 1) logical column(s)

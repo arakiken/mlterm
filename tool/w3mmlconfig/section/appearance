@@ -1,9 +1,6 @@
-fontsize	text:digit	16	0	Font size
-fg_color	select:lower	black	0	FG color
-bg_color	select:lower	white	0	BG color
-brightness	text:digit	100	0	Brightness
-fade_ratio	text:digit	100	0	Fade ratio
-wall_picture	text		none	0	Wall picture
-use_variable_column_width	checkbox	false	0	Variable column width
+fontsize	text:digit	16	0	Font size (pixels)
+line_space	text:digit	0	0	Line space (pixels)
+screen_width_ratio	text:digit	100	0	Width ratio
+screen_height_ratio	text:digit	100	0	Height ratio
 use_anti_alias	checkbox	false	0	Anti Alias
-use_transbg	checkbox	false	0	Transparent
+use_variable_column_width	checkbox	false	0	Variable column width
