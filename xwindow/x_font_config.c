@@ -251,29 +251,31 @@ read_conf(
 
 int
 x_set_font_size_range(
-	u_int  min_font_size ,
-	u_int  max_font_size
+	u_int  min_fsize ,
+	u_int  max_fsize
 	)
 {
-	if( min_font_size == 0 || max_font_size == 0)
+	if( min_fsize == 0)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " max_font_size/min_font_size must not be 0.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " min_font_size must not be 0.\n") ;
 	#endif
-	
-		return  0 ;
-	}
-	
-	if( max_font_size < min_font_size)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " max_font_size %d is smaller than min_font_size %d\n" ,
-			max_font_size , min_font_size) ;
-	#endif
-	
+
 		return  0 ;
 	}
 
+	if( max_fsize < min_fsize)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " max_font_size %d should be larger than min_font_size %d\n" ,
+			max_fsize , min_fsize) ;
+	#endif
+
+		return  0 ;
+	}
+
+	min_font_size = min_fsize;
+	max_font_size = max_fsize;
 	return  1 ;
 }
 

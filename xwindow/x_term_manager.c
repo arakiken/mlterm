@@ -113,6 +113,13 @@ get_font_size_range(
 		return  0 ;
 	}
 
+	if( str_p  == NULL)
+	{
+		kik_msg_printf( "max font size is missing.\n");
+
+		return 0;
+	}
+	
 	if( ! kik_str_to_uint( max , str_p))
 	{
 		kik_msg_printf( "max font size %s is not valid.\n" , str_p) ;

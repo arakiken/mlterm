@@ -1,3 +1,8 @@
+2004-01-21  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* made font size range specification options work again.
+	(THanks to Mike FABIAN for patchs)
+
 2004-01-17  Tomohiro KUBOTA  <kubota@debian.org>
 
 	* When "configure --with-type-engines=xcore,xft" or "configure
@@ -12,7 +17,7 @@
 	use g_object_unref insted of (deprecated)gdk_pixbuf_unref.
 
 	* kik_pty_streams.c: #define __EXTENSIONS__ for solaris.
- 
+
 2004-01-14  Tomohiro KUBOTA  <kubota@debian.org>
 
 	* mlconfig lists scrollbars in user's configuration directory
@@ -450,7 +455,7 @@
 
 2003-08-18  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* x_window.c, x_dnd.h: code cleanup. 
+	* x_window.c, x_dnd.h: code cleanup.
 	  XDnD subsystem is separated into x_dnd.c and should be easily
 	  disabled if it's desired.
 	* x_dnd.c: plugged tiny memory leaks.
@@ -471,7 +476,7 @@
 
 2003-08-12  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* x_dnd.c: for incremental transfer, parser/converter 
+	* x_dnd.c: for incremental transfer, parser/converter
 	  should be kept to remember its state(endianess/fragments etc.)
 
 2003-08-10  MINAMI Hirokazu  <minami@mistfall.net>
@@ -671,7 +676,7 @@
 2003-07-05  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* x_imagelib_gdk.c:x_imagelib_load_file() now retuens None as "mask"
-	when there's no alpha plane in the specified image file.	
+	when there's no alpha plane in the specified image file.
 
 2003-07-05  Seiichi SATO <ssato@sh.rim.or.jp>
 
@@ -712,7 +717,7 @@
 2003-06-29 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Renamed entry function name of scrollbar engine to x_*_sb_engine_new.
-	* '-export-dynamic' is only used when you specify 
+	* '-export-dynamic' is only used when you specify
 	  -with-scrollbars=pixmap_engine.
 	* Fixed a description for --with-scrollbars.
 
@@ -767,12 +772,12 @@
 
 2003-06-23  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* Priority of "text/plain" in XDND is degraded 
+	* Priority of "text/plain" in XDND is degraded
 	so that work around mozilla's buggy DND handling.
 
 2003-06-22  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* Added support of window group. 
+	* Added support of window group.
 	
 2003-06-22 Araki Ken <arakiken@users.sf.net>
 
@@ -839,7 +844,7 @@
 	* Icon handling is re-designed.
 	 - do not hinder window property anymore
 	 - smaller memory consumption
-	(Thanks to  Tatsuya Kinoshita san and Seiichi SATO san) 
+	(Thanks to Tatsuya Kinoshita san and Seiichi SATO san)
 	
 2003-06-04 Seiichi SATO <ssato@sh.rim.or.jp>
 
@@ -870,7 +875,7 @@
 
 2003-06-03  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* xwindow/x_imagelib_gdk.c: 
+	* xwindow/x_imagelib_gdk.c:
 	 - support MSBFirst screen
 	 - fixed bugs in PseudoColor visual
 
@@ -937,13 +942,13 @@
 
 2003-05-19  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* support DND from nautilus's background setting dialog. 
+	* support DND from nautilus's background setting dialog.
 	* support application/x-color as DND type and
 	reflect the color to the window's background.
 	* added lots of debug messages.
 
 	* In DND session, "text/x-mlterm.config" is now preffered
-	to other mime types. 
+	to other mime types.
 
 2003-05-18 Araki Ken <arakiken@users.sf.net>
 
@@ -951,7 +956,7 @@
 
 2003-05-18  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* Really fixed the XDND bug 
+	* Really fixed the XDND bug
 	(Thanks to Seiichi SATO san)
 
 2003-05-18 Araki Ken <arakiken@users.sf.net>
@@ -982,7 +987,7 @@
 
 2003-05-17  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* mlterm now accepts configuration strings 
+	* mlterm now accepts configuration strings
 	through XDND protocol.
 
 2003-05-17 Araki Ken <arakiken@users.sf.net>
@@ -1018,7 +1023,7 @@
 
 2003-05-15  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* xwindow/x_dnd.h, xwindow/x_dnd.c, 
+	* xwindow/x_dnd.h, xwindow/x_dnd.c,
 	  xwindow/x_window.h,xwindow/x_window.c:
 	Major rewrite of the DND subsystem.
 
@@ -1060,8 +1065,8 @@
 
 2003-05-05  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* mlterm/ml_vt100_parser.c: The rxvt style background changing 
-	sequence "ESC ] 49 ; colorname BEL" was not working. 
+	* mlterm/ml_vt100_parser.c: The rxvt style background changing
+	sequence "ESC ] 49 ; colorname BEL" was not working.
 
 2003-05-05 Araki Ken <arakiken@users.sf.net>
 
@@ -1069,8 +1074,8 @@
 
 2003-04-14  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* xwindow/x_imagelib_gdk.c: 
-	 - power of zero was used for color conversion. fixed. 
+	* xwindow/x_imagelib_gdk.c:
+	 - power of zero was used for color conversion. fixed.
 
 2003-04-13 Seiichi SATO <ssato@sh.rim.or.jp>
 
@@ -1123,7 +1128,7 @@
 
 2003-04-06 Araki Ken <arakiken@users.sf.net>
 
-	* The message mlclient -P outputs is easier to understand. 
+	* The message mlclient -P outputs is easier to understand.
 
 2003-04-05 Tomohiro KUBOTA <kubota@debian.org>
 
@@ -1285,7 +1290,7 @@
 
 2003-03-02 MINAMI Hirokazu <minami@mistfall.net>
 
-	* Code cleanup in the gdk-pixbuf module. 
+	* Code cleanup in the gdk-pixbuf module.
 	 (gave up "correct" color conversion scheme for the sake of simplicity)
 
 2003-03-02 Araki Ken <arakiken@users.sf.net>
@@ -1387,7 +1392,7 @@
 2003-02-23  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* Modifications to the background image were not applied
-	  when the wallpaper had been changed. 
+	  when the wallpaper had been changed.
 	  (Thanks to KATO Kazuyoshi san)
 
 2003-02-18 Seiichi SATO <ssato@sh.rim.or.jp>
@@ -1432,14 +1437,14 @@
 
 2003-02-12  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
-	* Added a cache to x_imagelib_load_file in x_imagelib_gdk.c 
-	  so that the last used image can be re-generated 
+	* Added a cache to x_imagelib_load_file in x_imagelib_gdk.c
+	  so that the last used image can be re-generated
 	  without reading from the image file again.
 	  (for Seiichi SATO san)
 
 2003-2-11 Araki Ken <arakiken@users.sf.net>
 
-	* Mlterm died as soon as the pty in the last window closed even if 
+	* Mlterm died as soon as the pty in the last window closed even if
 	  other background ptys exist. Fixed.
 	  (Thanks to Nanashi san)
 
@@ -1483,10 +1488,10 @@
 
 	* mlconfig saves configurations in ~/.mlterm/main if OK button pressed.
 
-2003-2-5 MINAMI Hirokazu <minami@chem.s.u-tokyo.ac.jp> 
+2003-2-5 MINAMI Hirokazu <minami@chem.s.u-tokyo.ac.jp>
 	
 	* Added support for depth 8 PseudoColor in gdkpixbuf
-	  image processing module. 
+	  image processing module.
 	
 2003-2-3 Araki Ken <arakiken@users.sf.net>
 
@@ -1533,7 +1538,7 @@
 2003-1-26 MINAMI hirokazu <minami@chem.s.u-tokyo.ac.jp>
 
 	* Fixed a bug in gdk-pixbuf module which prevents gamma correction
-	  with pseudo-transparency (Thanks to TAKAHASHI Tamotsu san) 
+	  with pseudo-transparency (Thanks to TAKAHASHI Tamotsu san)
 	* Rewrited cache mechanism of background pictures for performance.
 	
 2003-1-26 Araki Ken <arakiken@users.sf.net>
@@ -1637,7 +1642,7 @@
 
 2002-11-13  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
-	* In XDND, drop via UCS2 (as "text/unicode") is supported. 
+	* In XDND, drop via UCS2 (as "text/unicode") is supported.
 
 2002-11-12  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
@@ -1652,7 +1657,7 @@
 
 	* Rewrited XDND processiong code.
 	- INCR (incremantal transfer of huge data) is supported.
-	- cleaned up a bit for future separation. 
+	- cleaned up a bit for future separation.
 	
 2002-11-07 Araki Ken <arakiken@users.sf.net>
 
@@ -1667,13 +1672,13 @@
 
 2002-11-04  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
-	* UTF8_STRING and COMPOUND_TEXT are now accepted as XDND's mime type. 
+	* UTF8_STRING and COMPOUND_TEXT are now accepted as XDND's mime type.
 	
 2002-10-16  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* Major rewrite of x_imagelib_gdk.c.
 	  Now it's only depends on gdk-pixbuf and not gdk-pixbuf-xlib.
-	  
+	
 2002-10-11 Araki Ken <arakiken@users.sf.net>
 
 	* Transparency failed in some situations. fixed.
@@ -1711,13 +1716,13 @@
 
 2002-10-06 Araki Ken <arakiken@users.sf.net>
 
-	* If screen was resized too small, it disappeared once, but resized smaller, 
+	* If screen was resized too small, it disappeared once, but resized smaller,
 	  it appeared again drawn corruptly. fixed.
 
 2002-10-06 Araki Ken <arakiken@users.sf.net>
 
 	* copy_paste_via_ucs option is renamed to receive_string_via_ucs.
-	  And if its value is true, strings from XIM as well as from X Selection are 
+	  And if its value is true, strings from XIM as well as from X Selection are
 	  converted to UCS once.
 	* Even if the value of fade_ratio option was 100, screen was completely redrawn
 	  when window focus is switched. fixed.
@@ -1757,7 +1762,7 @@
 2002-09-28 Araki Ken <arakiken@users.sf.net>
 
 	* If cursor was placed at a half-width char preceded by a full-width char and
-	  the full-width char was deleted by "ESC [ 2 P", the half-width char was also 
+	  the full-width char was deleted by "ESC [ 2 P", the half-width char was also
 	  deleted. fixed.
 	  (Thanks to Hideki EIRAKU san)
 
@@ -1773,7 +1778,7 @@
 
 2002-09-27 Araki Ken <arakiken@users.sf.net>
 
-	* GDK_PIXBUF_CFLAGS and IMILB_CFLAGS are renamed to IMAGELIB_CFLAGS in 
+	* GDK_PIXBUF_CFLAGS and IMILB_CFLAGS are renamed to IMAGELIB_CFLAGS in
 	  tool/mlconfig/Makefile.in.
 	  (Thanks to Muto Kenshi san)
 
@@ -1812,7 +1817,7 @@
 2002-09-15  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	*  x_picdep_load_icon( &data,&pixmap,&mask) is added
-	  in gdk-pixbuf module. 
+	  in gdk-pixbuf module.
 
 2002-09-15 Araki Ken <arakiken@users.sf.net>
 
@@ -1945,7 +1950,7 @@
 
 2002-08-28  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
-	* Generalized XDND support. "text/uri-list" is now also accepted. 
+	* Generalized XDND support. "text/uri-list" is now also accepted.
 	
 2002-08-28  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
@@ -2006,7 +2011,7 @@
 
 2002-07-03  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
-	* Added contrast/gamma support to gdk-pixbuf module. 
+	* Added contrast/gamma support to gdk-pixbuf module.
 
 2002-07-04 Araki Ken <arakiken@users.sf.net>
 
@@ -2024,7 +2029,7 @@
 
 2002-07-01  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
-	* Background of line characters did not drawn when 
+	* Background of line characters did not drawn when
 	  pseudo transparency is enabled. fixed.
 	  (Thanks to Tomohiro KUBOTA san)
 
@@ -2155,7 +2160,7 @@
 
 	* string to be output can be defined in ~/.mlterm/key like
 	  Control+F1="foobar".
-	* rgb of highlighted 8 colors can be defined as hl_{black|white|...} 
+	* rgb of highlighted 8 colors can be defined as hl_{black|white|...}
 	  in ~/.mlterm/color.
 
 2002-05-26 Tomohiro KUBOTA <kubota@debian.org>
@@ -2229,10 +2234,10 @@
 
 2002-05-16 Araki Ken <arakiken@users.sf.net>
 
-	* change of scrollbar foreground and background colors etc is not reflected 
+	* change of scrollbar foreground and background colors etc is not reflected
 	  immediately. fixed.(2002-05-14 fix was incomplete)
         * #RRGGBB format is accepted in "color" config file.
-	* ECHOE and ECHOCTL are added to termios.c_lflag. 
+	* ECHOE and ECHOCTL are added to termios.c_lflag.
 	  (Thanks to Kitagawa Takurou san and Minami Hirokazu san)
 
 2002-05-15 Araki Ken <arakiken@users.sf.net>
@@ -2243,7 +2248,7 @@
 
         * change of fade ratio, fg color and bg color was not reflected immediately. fixed.
 	* fg color and bg color are not highlighted by "\E[1m".
- 
+
 2002-05-14 Araki Ken <arakiken@users.sf.net>
 
 	* vt100 core functions and GUI(x window system) functions are separated.
@@ -2251,16 +2256,16 @@
 
 2002-05-09  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
-	* utmp entry may be left unterminated when login() is used. fixed. 
+	* utmp entry may be left unterminated when login() is used. fixed.
 
 2002-05-07  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* stopped dithering for root pixmap
-	  which should be already dithered/quantized. (src/ml_picture_gdk.c) 
+	  which should be already dithered/quantized. (src/ml_picture_gdk.c)
 
 2002-05-05 MINAMI Hirokazu <minami@chem.s.u-tokyo.ac.jp>
 
-	* dithering support for PseudoColor (src/ml_picture_gdk.c). 
+	* dithering support for PseudoColor (src/ml_picture_gdk.c).
 
 2002-05-04 Seiichi SATO <ssato@sh.rim.or.jp>
 
@@ -2296,7 +2301,7 @@
 
 2002-04-28 Araki Ken <arakiken@users.sf.net>
 
-	* underline can be left as garbage on screen if line space is 
+	* underline can be left as garbage on screen if line space is
 	  odd number(1,3,5...). fixed.
 	* configure fails with --with-libtool option. fixed.
 	  (Thanks to Nakada Nobuyoshi san)
@@ -2340,7 +2345,7 @@
 
 2002-04-23 Araki Ken <arakiken@users.sf.net>
 
-	* if ${srcdir} is absolute path, configure fails. fixed. 
+	* if ${srcdir} is absolute path, configure fails. fixed.
 
 2002-04-23 Araki Ken <arakiken@users.sf.net>
 
