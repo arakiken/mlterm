@@ -1,3 +1,8 @@
+2003-06-28 Araki Ken <arakiken@users.sf.net>
+
+	* Added description of -6,--stbs,static_backscroll_mode option to
+	  mlterm.1 manual.
+
 2003-06-26 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Fixed a installation path for mlterm-menu.
