@@ -75,7 +75,7 @@ load_fontset(
 	{
 		if( ! HAS_XIM_LISTENER(win,get_fontset))
 		{
-			return  None ;
+			return  NULL ;
 		}
 		
 		fontset = (*win->xim_listener->get_fontset)( win->xim_listener->self) ;
@@ -85,7 +85,7 @@ load_fontset(
 	}
 	else
 	{
-		fontset = None ;
+		fontset = NULL ;
 	}
 
 	return  fontset ;
@@ -153,7 +153,7 @@ create_xic(
 			spot.y = 0 ;
 		}
 
-		if( ( fontset = load_fontset( win)) == 0)
+		if( ! ( fontset = load_fontset( win)))
 		{
 			return  0 ;
 		}

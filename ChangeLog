@@ -4,9 +4,11 @@
 	- shouldn't displaced by bottom_margin.
 	- use the same bottom_margin to draw a cursor.
 
+	* x_xic.c: load_fontset() should return NULL in case of failure.
+
 2004-05-16 MINAMI Hirokazu <minami@mistfall.net>
 
-	* x_window.c: use ct.encoding insted of xselection.property 
+	* x_window.c: use ct.encoding instead of xselection.property 
 	to reject garbage data. 
 
 2004-05-16  Seiichi SATO  <ssato@sh.rim.or.jp>
