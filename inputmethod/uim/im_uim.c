@@ -1052,7 +1052,6 @@ x_im_t *
 im_new(
 	u_int64_t  magic ,
 	ml_char_encoding_t  term_encoding ,
-	x_im_event_listener_t *  im_listener ,
 	x_im_export_syms_t *  export_syms ,
 	char *  engine
 	)
@@ -1192,18 +1191,8 @@ im_new(
 	uim_prop_list_update( uim->context) ;
 
 	/*
-	 * initialize im object
+	 * set methods of x_im_t
 	 */
-	uim->im.listener = im_listener ;
-
-	uim->im.cand_screen = NULL ;
-
-	uim->im.preedit.chars = NULL ;
-	uim->im.preedit.num_of_chars = 0 ;
-	uim->im.preedit.filled_len = 0 ;
-	uim->im.preedit.segment_offset = 0 ;
-	uim->im.preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
-
 	uim->im.delete = delete ;
 	uim->im.key_event = key_event ;
 	uim->im.focused = focused ;

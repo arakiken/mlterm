@@ -119,7 +119,7 @@ strlen_utf16(
 
 static IIIMCF_language
 find_language(
-	char *  args
+	char *  language_id
 	)
 {
 	IIIMCF_language *  array ;
@@ -130,9 +130,9 @@ find_language(
 	int  num ;
 	int  i ;
 
-	if( args)
+	if( language_id)
 	{
-		p = strdup( args) ;
+		p = strdup( language_id) ;
 
 		if( ( country = kik_str_sep( &p , ":")))
 		{
@@ -193,7 +193,7 @@ find_language(
 
 static IIIMCF_input_method
 find_language_engine(
-	char *  args
+	char *  le_name
        )
 {
 	IIIMCF_input_method *  array ;
@@ -203,12 +203,12 @@ find_language_engine(
 	int  num ;
 	int  i ;
 
-	if( ! args)
+	if( ! le_name)
 	{
 		return  NULL ;
 	}
 
-	if( ! ( le_name = strstr( args , ":")))
+	if( ! ( le_name = strstr( le_name , ":")))
 	{
 		return  NULL ;
 	}
@@ -1061,9 +1061,8 @@ x_im_t *
 im_new(
 	u_int64_t  magic ,
 	ml_char_encoding_t  term_encoding ,
-	x_im_event_listener_t *  im_listener ,
 	x_im_export_syms_t *  export_syms ,
-	char *  args	/* <language id(rfc1766)>:<language engine> */
+	char *  lang	/* <language id(rfc1766)>:<language engine> */
 	)
 {
 	im_iiimf_t *  iiimf = NULL ;
@@ -1126,8 +1125,8 @@ im_new(
 		mlterm_syms = export_syms ;
 	}
 
-	language = find_language( args) ;
-	language_engine = find_language_engine( args) ;
+	language = find_language( lang) ;
+	language_engine = find_language_engine( lang) ;
 
 	if( ! ( iiimf = malloc( sizeof( im_iiimf_t))))
 	{
@@ -1139,19 +1138,8 @@ im_new(
 	}
 
 	/*
-	 * initialize im object
+	 * set methods of x_im_t
 	 */
-
-	iiimf->im.listener = im_listener ;
-
-	iiimf->im.cand_screen = NULL ;
-
-	iiimf->im.preedit.chars = NULL ;
-	iiimf->im.preedit.num_of_chars = 0 ;
-	iiimf->im.preedit.filled_len = 0 ;
-	iiimf->im.preedit.segment_offset = 0 ;
-	iiimf->im.preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
-
 	iiimf->im.delete = delete ;
 	iiimf->im.key_event = key_event ;
 	iiimf->im.focused = focused ;

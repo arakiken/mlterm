@@ -17,7 +17,6 @@
 
 typedef  x_im_t * (*x_im_new_func_t)( u_int64_t  magic ,
 				      ml_char_encoding_t  term_encoding ,
-				      x_im_event_listener_t *  im_listener ,
 				      x_im_export_syms_t *  syms ,
 				      char *  engine) ;
 
@@ -120,13 +119,25 @@ x_im_new(
 		return  NULL ;
 	}
 
-	if( ! ( im = (*func)( IM_API_COMPAT_CHECK_MAGIC ,
-			      term_encoding ,
-			      im_listener ,
-			      &im_export_syms ,
-			      im_attr)))
+	if( ( im = (*func)( IM_API_COMPAT_CHECK_MAGIC , term_encoding ,
+			    &im_export_syms , im_attr)))
 	{
-		kik_error_printf( "Cound not open specified input method(%s)\n" , im_name) ;
+		/*
+		 * initializations for x_im_t
+		 */
+		im->listener = im_listener ;
+		im->cand_screen = NULL ;
+		im->preedit.chars = NULL ;
+		im->preedit.num_of_chars = 0 ;
+		im->preedit.filled_len = 0 ;
+		im->preedit.segment_offset = 0 ;
+		im->preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
+
+	}
+	else
+	{
+		kik_error_printf( "Cound not open specified "
+				  "input method(%s).\n" , im_name) ;
 	}
 
 	free( im_name) ;

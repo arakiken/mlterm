@@ -1,5 +1,13 @@
 2004-09-12 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/iiimf/im_iiimf.c, inputmethod/uim/im_uim.c, x_im.c:
+	- initialized the common object in x_im_new().
+	- minor cleanups.
+
+	* x_im.h: increased IM_API_VERSION.
+
+2004-09-12 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* configure.in: fixed typo.
 
 2004-09-12 Seiichi SATO <ssato@sh.rim.or.jp>
