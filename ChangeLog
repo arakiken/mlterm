@@ -1,3 +1,9 @@
+2003-04-01  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* xwindow/x_imagelib_gdk.c:
+	 - last change caused a X error. reverted.
+	 - fixed a bug in color conversion.
+	
 2003-04-01 Tomohiro KUBOTA <kubota@debian.org>
 
 	* tool/mlconfig/mc_char_encoding.c: mlconfig supports "GEORGIAN-PS"

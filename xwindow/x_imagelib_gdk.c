@@ -531,20 +531,13 @@ tile_pixmap(
 	unsigned int bw, depth;
 	Pixmap result;
 
-	if( force_copy)
-	{
-		/* force tiling */
-		aw = 0 ;
-	}
-	else
-	{
-		/* border width is not used */
-		XGetGeometry( display, pixmap, &dummy, &ax, &ay,
-			      &aw, &ah, &bw, &depth) ;
-	}
+	/* border width is not used */
+	XGetGeometry( display, pixmap, &dummy, &ax, &ay,
+		      &aw, &ah, &bw, &depth) ;
 
-	if ( ( aw < DisplayWidth( display, screen)) ||
-	     ( ah < DisplayHeight( display, screen)) )
+	if ( force_copy ||
+	     aw < DisplayWidth( display, screen) ||
+	     ah < DisplayHeight( display, screen) )
 	{
 		/* Some WM needs tiling... sigh.*/
 		result = XCreatePixmap( display, pixmap,
@@ -1204,7 +1197,7 @@ value_table_refresh(
 	x_picture_modifier_t *  mod
 	)
 {
-	int i ;
+	int i, tmp ;
 	double real_gamma , real_brightness, real_contrast;
 
 	real_gamma = (double)(mod->gamma) / 100 ;
@@ -1213,18 +1206,20 @@ value_table_refresh(
 	i = 128 ;
 	while( i > 0)
 	{
-		value_table[i] = real_contrast * (255 * pow((double)i / 255, real_gamma) -128 ) + 128 *  real_brightness ;
-		if (value_table[i--] == 0)
+		tmp = real_contrast * (255 * pow((double)i / 255, real_gamma) -128 ) + 128 *  real_brightness ;
+		if( tmp < 0 )
 			break ;
+		value_table[i--] = tmp ;
 	}
 	while( i >= 0)
 		value_table[i--] = 0;
-	i = 128 ;
+	i = 129 ;
 	while( i < 254)
 	{
-		value_table[i] = real_contrast * (255 * pow((double)i / 255, real_gamma) -128 ) + 128 *  real_brightness ;
-		if (value_table[i++] == 255)
+		tmp = real_contrast * (255 * pow((double)i / 255, real_gamma) -128 ) + 128 *  real_brightness ;
+		if (tmp > 255)
 			break ;
+		value_table[i++] = tmp ;
 	}
 	while( i <= 255)
 		value_table[i++] = 255 ;
