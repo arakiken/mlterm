@@ -28,7 +28,7 @@ typedef void *  kik_dl_handle_t ;
 #endif
 
 
-kik_dl_handle_t  kik_dl_open( char *  path) ;
+kik_dl_handle_t  kik_dl_open( char *  dirpath , char * name) ;
 
 int  kik_dl_close( kik_dl_handle_t  handle) ;
 

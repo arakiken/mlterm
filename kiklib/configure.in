@@ -3,6 +3,9 @@ AC_INIT()
 AC_CONFIG_HEADER(src/kik_config.h)
 AC_CONFIG_AUX_DIR(script)
 
+AC_CANONICAL_HOST
+# AC_CANONICAL_TARGET  TODO: cross-compile support (sato)
+
 AC_PROG_CC
 # if --with-libtool is specified, cpp isn't detected.
 AC_PROG_CPP
@@ -85,10 +88,7 @@ AC_SUBST(LOGIN_LIBS)
 kik_cv_utmp=login
 ])
 
-AC_CYGWIN
-if test "$CYGWIN" = "yes" ; then
-	kik_cv_utmp=none
-elif test -z "$kik_cv_utmp" ; then
+if test -z "$kik_cv_utmp" ; then
 	if test "$ac_cv_func_setutent" = yes ; then
 		kik_cv_utmp=sysv
 	else
@@ -103,7 +103,11 @@ AC_SUBST(UTMPER_LIBS)
 kik_cv_utmp=utmper
 ])
 
-UTMP_NAME=$kik_cv_utmp
+if test "${host_os}" = "cygwin" ; then
+	UTMP_NAME=none
+else
+	UTMP_NAME=$kik_cv_utmp
+fi
 AC_SUBST(UTMP_NAME)
 
 AC_MSG_CHECKING(for pty/tty type)
@@ -125,5 +129,24 @@ if test "$debug" = "yes" ; then
 	DEB_CFLAGS="-DDEBUG -DKIK_DEBUG"
 fi
 AC_SUBST(DEB_CFLAGS)
+
+# librarie name (cygwin: cygfoo.dll, darwin: libfoo.dylib, other: libfoo.so)
+# case ${target_os} in  TODO: cross-compile support (sato)
+case ${host_os} in
+	cygwin*)
+		LIB_PREFIX="cyg"
+		LIB_SUFFIX=".dll"
+		;;
+#	drawin* | rhapsody*) TODO: darwin support (sato)
+#		LIB_PREFIX="lib"
+#		LIB_SUFFIX=".dylib"
+#		;;
+	*)
+		LIB_PREFIX="lib"
+		LIB_SUFFIX=".so"
+		;;
+esac
+AC_SUBST(LIB_PREFIX)
+AC_SUBST(LIB_SUFFIX)
 
 AC_OUTPUT(Makefile src/Makefile)

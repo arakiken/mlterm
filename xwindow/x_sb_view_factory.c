@@ -76,23 +76,8 @@ dlsym_sb_view_new_func(
 	else
 	{
 		void *  p ;
-		char *  libpath ;
 
-		dir = SBLIB_DIR ;
-
-		len = strlen( dir) + 3 + strlen( name) + 1 ;
-		if( ( libpath = alloca( len)) == NULL)
-		{
-			return  NULL ;
-		}
-
-#ifndef __CYGWIN__
-		sprintf( libpath , "%slib%s" , dir , name) ;
-#else
-		sprintf( libpath , "%scyg%s" , dir , name) ;
-#endif
-
-		if( ( handle = kik_dl_open( libpath)) == NULL)
+		if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL)
 		{
 			return  NULL ;
 		}

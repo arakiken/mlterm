@@ -16,19 +16,20 @@
 
 kik_dl_handle_t
 kik_dl_open(
-	char *  path
+	char *  dirpath ,
+	char *  name
 	)
 {
-	char *  _path ;
-	
-	if( ( _path = alloca( strlen( path) + 4)) == NULL)
+	char *  path ;
+
+	if( ( _path = alloca( strlen( dirpath) + strlen( LIB_PREFIX) + strlen( name) + 4)) == NULL)
 	{
 		return  NULL ;
 	}
 
-	sprintf( _path , "%s.sl" , path) ;
+	sprintf( path , "%s%s%s.sl" , dirpath , LIB_PREFIX , name) ;
 
-	return  shl_load( _path , BIND_DEFERRED , 0x0) ;
+	return  shl_load( path , BIND_DEFERRED , 0x0) ;
 }
 
 int
@@ -59,23 +60,20 @@ kik_dl_func_symbol(
 
 kik_dl_handle_t
 kik_dl_open(
-	char *  path
+	char *  dirpath ,
+	char *  name
 	)
 {
-	char *  _path ;
-	
-	if( ( _path = alloca( strlen( path) + 5)) == NULL)
+	char *  path ;
+
+	if( ( path = alloca( strlen( dirpath) + strlen( LIB_PREFIX) + strlen( name) + strlen( LIB_SUFFIX) + 1)) == NULL)
 	{
 		return  NULL ;
 	}
 
-#ifndef __CYGWIN__
-	sprintf( _path , "%s.so" , path) ;
-#else
-	sprintf( _path , "%s.dll" , path) ;
-#endif
-	
-	return  dlopen( _path , RTLD_LAZY) ;
+	sprintf( path , "%s%s%s%s" , dirpath , LIB_PREFIX , name , LIB_SUFFIX) ;
+
+	return  dlopen( path , RTLD_LAZY) ;
 }
 
 int
@@ -103,7 +101,8 @@ kik_dl_func_symbol(
  
 kik_dl_handle_t
 kik_dl_open(
-	char *  path
+	char *  dirpath ,
+	char *  name
 	)
 {
 	return  NULL ;
