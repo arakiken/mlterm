@@ -19,9 +19,6 @@ typedef enum  ml_vertical_mode
 	VERT_LTR = 0x1 ,
 	VERT_RTL = 0x2 ,
 
-	VERT_HALF_WIDTH = 0x4 ,		/* Half-width character is the basis */
-	VERT_FULL_WIDTH = 0x8 ,		/* Full-width character is the basis */
-	
 } ml_vertical_mode_t ;
 
 typedef struct  ml_logical_visual
@@ -64,8 +61,6 @@ ml_logical_visual_t *  ml_logvis_vert_new( ml_image_t *  image , ml_vertical_mod
 ml_vertical_mode_t  ml_get_vertical_mode( char *  name) ;
 
 char *  ml_get_vertical_mode_name( ml_vertical_mode_t  mode) ;
-
-int  ml_vert_convert_char_index_to_col( ml_image_line_t *  line , int  char_index) ;
 
 
 #endif

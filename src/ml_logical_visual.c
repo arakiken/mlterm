@@ -904,7 +904,7 @@ cjk_vert_visual(
 		
 		for( row = 0 ; row < vert_logvis->logical_num_of_cols ; row ++)
 		{
-			ml_imgline_init( &vert_logvis->visual_lines[row] , image->num_of_rows * 2) ;
+			ml_imgline_init( &vert_logvis->visual_lines[row] , image->num_of_rows) ;
 		}
 
 		vert_logvis->logical_num_of_rows = image->num_of_rows ;
@@ -925,7 +925,7 @@ cjk_vert_visual(
 
 	image->num_of_rows = vert_logvis->logical_num_of_cols ;
 	image->num_of_filled_rows = vert_logvis->logical_num_of_cols ;
-	image->num_of_cols = vert_logvis->logical_num_of_rows * 2 ;
+	image->num_of_cols = vert_logvis->logical_num_of_rows ;
 	
 	vert_logvis->logical_lines = image->lines ;
 	image->lines = vert_logvis->visual_lines ;
@@ -934,6 +934,9 @@ cjk_vert_visual(
 	{
 		ml_image_line_t *  line ;
 
+		/*
+		 * the same processing as IMAGE_LINE macro.
+		 */
 		if( counter + vert_logvis->logical_beg_row >= vert_logvis->logical_num_of_rows)
 		{
 			line = &vert_logvis->logical_lines[
@@ -948,7 +951,7 @@ cjk_vert_visual(
 		{
 			ml_char_t *  ch ;
 			
-			if( IMAGE_LINE(image,row).num_of_filled_chars + 2 >
+			if( IMAGE_LINE(image,row).num_of_filled_chars + 1 >
 				IMAGE_LINE(image,row).num_of_chars)
 			{
 				continue ;
@@ -963,38 +966,17 @@ cjk_vert_visual(
 				ml_char_set_font_decor( ch , FONT_LEFTLINE) ;
 			}
 			
-			if( ml_char_default_cols( &line->chars[row]) == 1)
+			if( ml_imgline_is_modified( line))
 			{
-				ml_char_set( &IMAGE_LINE(image,row).chars[
-					IMAGE_LINE(image,row).num_of_filled_chars ++] ,
-					ml_char_bytes( &image->sp_ch) ,
-					ml_char_size( &image->sp_ch) ,
-					ml_char_font( &image->sp_ch) ,
-					ml_char_font_decor( &image->sp_ch) ,
-					ml_char_fg_color( ch) ,
-					ml_char_bg_color( ch)) ;
-				
-				if( ml_imgline_is_modified( line))
-				{
-					ml_imgline_set_modified( &IMAGE_LINE(image,row) ,
-						IMAGE_LINE(image,row).num_of_filled_chars - 2 ,
-						IMAGE_LINE(image,row).num_of_filled_chars - 1 , 0) ;
-				}
-			}
-			else
-			{
-				if( ml_imgline_is_modified( line))
-				{
-					ml_imgline_set_modified( &IMAGE_LINE(image,row) ,
-						IMAGE_LINE(image,row).num_of_filled_chars - 1 ,
-						IMAGE_LINE(image,row).num_of_filled_chars - 1 , 0) ;
-				}
+				ml_imgline_set_modified( &IMAGE_LINE(image,row) ,
+					IMAGE_LINE(image,row).num_of_filled_chars - 1 ,
+					IMAGE_LINE(image,row).num_of_filled_chars - 1 , 0) ;
 			}
 		}
 
 		for( ; row < image->num_of_rows ; row ++)
 		{
-			if( IMAGE_LINE(image,row).num_of_filled_chars + 2 >
+			if( IMAGE_LINE(image,row).num_of_filled_chars + 1 >
 				IMAGE_LINE(image,row).num_of_chars)
 			{
 				continue ;
@@ -1002,13 +984,11 @@ cjk_vert_visual(
 			
 			ml_char_copy( &IMAGE_LINE(image,row).chars[
 				IMAGE_LINE(image,row).num_of_filled_chars ++] , &image->sp_ch) ;
-			ml_char_copy( &IMAGE_LINE(image,row).chars[
-				IMAGE_LINE(image,row).num_of_filled_chars ++] , &image->sp_ch) ;
 				
 			if( ml_imgline_is_modified( line))
 			{
 				ml_imgline_set_modified( &IMAGE_LINE(image,row) ,
-					IMAGE_LINE(image,row).num_of_filled_chars - 2 ,
+					IMAGE_LINE(image,row).num_of_filled_chars - 1 ,
 					IMAGE_LINE(image,row).num_of_filled_chars - 1 , 0) ;
 			}
 		}
@@ -1025,13 +1005,8 @@ cjk_vert_visual(
 	for( counter = 0 ; counter < vert_logvis->logical_num_of_rows - vert_logvis->cursor_logical_row - 1 ;
 		counter ++)
 	{
-		if( ml_char_default_cols( &CURSOR_CHAR(image)) == 1)
-		{
-			image->cursor.char_index ++ ;
-		}
+		image->cursor.col ++ ;
 		image->cursor.char_index ++ ;
-		
-		image->cursor.col += 2 ;
 	}
 
 #ifdef  __DEBUG
@@ -1194,7 +1169,7 @@ mongol_vert_visual(
 	image->cursor.char_index = image->cursor.col = 0 ;
 	for( counter = 0 ; counter < vert_logvis->cursor_logical_row ; counter ++)
 	{
-		image->cursor.col += ml_char_default_cols( &CURSOR_CHAR(image)) ;
+		image->cursor.col ++ ;
 		image->cursor.char_index ++ ;
 	}
 
@@ -1387,8 +1362,7 @@ ml_logvis_vert_new(
 {
 	vert_logical_visual_t *  vert_logvis ;
 
-	if( vertical_mode != (VERT_RTL | VERT_FULL_WIDTH) &&
-		vertical_mode != (VERT_LTR | VERT_HALF_WIDTH))
+	if( vertical_mode != VERT_RTL && vertical_mode != VERT_LTR)
 	{
 		return  NULL ;
 	}
@@ -1418,7 +1392,7 @@ ml_logvis_vert_new(
 	vert_logvis->logvis.logical = vert_logical ;
 	vert_logvis->logvis.visual_line = vert_visual_line ;
 
-	if( vertical_mode == (VERT_RTL | VERT_FULL_WIDTH))
+	if( vertical_mode == VERT_RTL)
 	{
 		/*
 		 * CJK type vertical view
@@ -1426,7 +1400,7 @@ ml_logvis_vert_new(
 
 		vert_logvis->logvis.visual = cjk_vert_visual ;
 	}
-	else /* if( vertical_mode == (VERT_LTR | VERT_HALF_WIDTH)) */
+	else /* if( vertical_mode == VERT_LTR) */
 	{
 		/*
 		 * mongol type vertical view
@@ -1445,11 +1419,11 @@ ml_get_vertical_mode(
 {
 	if( strcmp( name , "cjk") == 0)
 	{
-		return  VERT_RTL | VERT_FULL_WIDTH ;
+		return  VERT_RTL ;
 	}
 	else if( strcmp( name , "mongol") == 0)
 	{
-		return  VERT_LTR | VERT_HALF_WIDTH ;
+		return  VERT_LTR ;
 	}
 	else /* if( strcmp( name , "none") == 0 */
 	{
@@ -1462,11 +1436,11 @@ ml_get_vertical_mode_name(
 	ml_vertical_mode_t  mode
 	)
 {
-	if( mode == (VERT_RTL | VERT_FULL_WIDTH))
+	if( mode == VERT_RTL)
 	{
 		return  "cjk" ;
 	}
-	else if( mode == (VERT_LTR | VERT_HALF_WIDTH))
+	else if( mode == VERT_LTR)
 	{
 		return  "mongol" ;
 	}
@@ -1474,37 +1448,4 @@ ml_get_vertical_mode_name(
 	{
 		return  "none" ;
 	}
-}
-
-/*
- * Easy and vertical proper version of ml_convert_char_index_to_col.
- */
-int
-ml_vert_convert_char_index_to_col(
-	ml_image_line_t *  line ,
-	int  char_index
-	)
-{
-	int  counter ;
-	int  col ;
-	u_int  max ;
-
-	if( line->num_of_filled_chars == 0)
-	{
-		return  0 ;
-	}
-
-	col = 0 ;
-
-	max = K_MIN(char_index,line->num_of_filled_chars - 1) ;
-	
-	/*
-	 * excluding the width of the last char.
-	 */
-	for( counter = 0 ; counter < max ; counter ++)
-	{
-		col += ml_char_default_cols( &line->chars[counter]) ;
-	}
-
-	return  col ;
 }

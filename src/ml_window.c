@@ -329,6 +329,7 @@ xft_draw_str(
 				|| bg_color != next_bg_color
 				|| next_decor != decor
 				|| (decor & FONT_LEFTLINE)
+				|| (next_decor & FONT_LEFTLINE)
 				|| comb_chars != NULL
 				|| ch_size != next_ch_size
 				|| (next_font->is_proportional && ! next_font->is_var_col_width)
@@ -505,11 +506,11 @@ x_draw_string(
 	int  len
 	)
 {
-	XDrawString( win->display , win->drawable , win->gc , x , y , str , len) ;
+	XDrawString( win->display , win->drawable , win->gc , x + font->x_off , y , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString( win->display , win->drawable , win->gc , x + 1 , y , str , len) ;
+		XDrawString( win->display , win->drawable , win->gc , x + font->x_off + 1 , y , str , len) ;
 	}
 }
 
@@ -523,11 +524,12 @@ x_draw_string16(
 	int  len
 	)
 {
-	XDrawString16( win->display , win->drawable , win->gc , x , y , str , len) ;
+	XDrawString16( win->display , win->drawable , win->gc , x + font->x_off , y , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString16( win->display , win->drawable , win->gc , x + 1 , y , str , len) ;
+		XDrawString16( win->display , win->drawable , win->gc , x + font->x_off + 1 , y ,
+			str , len) ;
 	}
 }
 
@@ -541,11 +543,11 @@ x_draw_image_string(
 	int  len
 	)
 {
-	XDrawImageString( win->display , win->drawable , win->gc , x , y , str , len) ;
+	XDrawImageString( win->display , win->drawable , win->gc , x + font->x_off , y , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString( win->display , win->drawable , win->gc , x + 1 , y , str , len) ;
+		XDrawString( win->display , win->drawable , win->gc , x + font->x_off + 1 , y , str , len) ;
 	}
 }
 
@@ -559,11 +561,12 @@ x_draw_image_string16(
 	int  len
 	)
 {
-	XDrawImageString16( win->display , win->drawable , win->gc , x , y , str , len) ;
+	XDrawImageString16( win->display , win->drawable , win->gc , x + font->x_off , y , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString16( win->display , win->drawable , win->gc , x + 1 , y , str , len) ;
+		XDrawString16( win->display , win->drawable , win->gc , x + font->x_off + 1 , y ,
+			str , len) ;
 	}
 }
 
@@ -854,6 +857,7 @@ draw_str(
 				|| bg_color != next_bg_color
 				|| next_decor != decor
 				|| (decor & FONT_LEFTLINE)
+				|| (next_decor & FONT_LEFTLINE)
 				|| comb_chars != NULL
 				|| (is_mb == 1 && next_ch_size == 1)
 				|| (is_mb == 0 && next_ch_size > 1)

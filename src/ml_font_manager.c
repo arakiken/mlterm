@@ -72,8 +72,7 @@ is_var_col_width(
 	)
 {
 	return  (font_man->font_custom == font_man->v_font_custom) ||
-		(font_man->font_custom == font_man->vaa_font_custom) ||
-		(font_man->font_custom == font_man->taa_font_custom) ;
+		(font_man->font_custom == font_man->vaa_font_custom) ;
 }
 
 static int
@@ -82,7 +81,8 @@ is_aa(
 	)
 {
 	return  (font_man->font_custom == font_man->aa_font_custom) ||
-		(font_man->font_custom == font_man->vaa_font_custom) ;
+		(font_man->font_custom == font_man->vaa_font_custom) ||
+		(font_man->font_custom == font_man->taa_font_custom) ;
 }
 
 static int
@@ -156,6 +156,27 @@ set_xfont(
 	int  use_medium_for_bold
 	)
 {
+	ml_font_present_t  font_present ;
+
+	font_present = 0 ;
+	
+	if( is_aa( font_man))
+	{
+		font_present |= FONT_AA ;
+	}
+
+	if( is_var_col_width( font_man))
+	{
+		font_present |= FONT_VAR_WIDTH ;
+	}
+	
+	if( is_vertical( font_man))
+	{
+		font_present |= FONT_VERTICAL ;
+	}
+	
+	ml_font_set_font_present( font , font_present) ;
+	
 	if( ! (*font_man->set_xfont)( font , fontname , fontsize , col_width , use_medium_for_bold))
 	{
 		return  0 ;
@@ -238,8 +259,6 @@ get_font_intern(
 	{
 		return  NULL ;
 	}
-
-	font->is_var_col_width = is_var_col_width( font_man) ;
 
 	if( ( fontname = get_font_name_for_attr( font_man , fontattr)))
 	{
@@ -425,7 +444,7 @@ ml_font_manager_change_font_present(
 			return  0 ;
 		}
 
-		font_man->set_xfont = ml_font_set_xft_pfont ;
+		font_man->set_xfont = ml_font_set_xft_font ;
 		font_man->font_custom = font_man->vaa_font_custom ;
 	}
 	else if( font_present == FONT_VERTICAL)
@@ -446,7 +465,7 @@ ml_font_manager_change_font_present(
 			return  0 ;
 		}
 
-		font_man->set_xfont = ml_font_set_xft_pfont ;
+		font_man->set_xfont = ml_font_set_xft_font ;
 		font_man->font_custom = font_man->taa_font_custom ;
 	}
 	else
@@ -565,7 +584,7 @@ ml_font_manager_reload(
 
 		return  0 ;
 	}
-	
+
 	if( set_usascii_xfont( font_man , usascii_font , 0) == 0)
 	{
 	#ifdef  DEBUG
@@ -577,8 +596,6 @@ ml_font_manager_reload(
 		return  0 ;
 	}
 	
-	usascii_font->is_var_col_width = is_var_col_width( font_man) ;
-
 	kik_map_get_pairs_array( font_man->font_cache_table , array , size) ;
 
 	for( counter = 0 ; counter < size ; counter ++)
@@ -658,8 +675,6 @@ ml_font_manager_reload(
 			#endif
 			}
 		}
-		
-		font->is_var_col_width = is_var_col_width( font_man) ;
 	}
 	
 #ifdef  DEBUG
@@ -994,7 +1009,7 @@ ml_get_fontset(
 
 	list_str_len = strlen( default_font_name) ;
 
-	if( is_aa( font_man))
+	if( is_aa( font_man) || is_vertical( font_man))
 	{
 		if( is_var_col_width( font_man))
 		{

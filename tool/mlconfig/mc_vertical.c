@@ -41,7 +41,7 @@ button_cjk_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		new_vertical_mode = VERT_RTL | VERT_FULL_WIDTH ;
+		new_vertical_mode = VERT_RTL ;
 	}
 	
 	return  1 ;
@@ -55,7 +55,7 @@ button_mongol_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		new_vertical_mode = VERT_LTR | VERT_HALF_WIDTH ;
+		new_vertical_mode = VERT_LTR ;
 	}
 	
 	return  1 ;
@@ -88,8 +88,7 @@ mc_vertical_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 
-	if( vertical_mode != (VERT_RTL | VERT_FULL_WIDTH) &&
-		vertical_mode != (VERT_LTR | VERT_HALF_WIDTH))
+	if( vertical_mode != VERT_RTL && vertical_mode != VERT_LTR)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
@@ -100,7 +99,7 @@ mc_vertical_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
-	if( vertical_mode == (VERT_RTL | VERT_FULL_WIDTH))
+	if( vertical_mode == VERT_RTL)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
@@ -111,7 +110,7 @@ mc_vertical_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
-	if( vertical_mode == (VERT_LTR | VERT_HALF_WIDTH))
+	if( vertical_mode == VERT_LTR)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}

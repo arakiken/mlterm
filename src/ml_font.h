@@ -76,15 +76,19 @@ typedef struct  ml_font
 	u_int  height ;
 	u_int  height_to_baseline ;
 
+	/* this is not zero only when is_proportional is true and xfont is set. */
+	int  x_off ;
+
+	/*
+	 * private
+	 */
+	int8_t  is_vertical ;
+	
 	/*
 	 * public(readonly)
 	 */
 	int8_t  is_double_drawing ;
 	int8_t  is_proportional ;
-
-	/*
-	 * public
-	 */
 	int8_t  is_var_col_width ;
 
 } ml_font_t ;
@@ -94,29 +98,17 @@ ml_font_t *  ml_font_new( Display *  display , ml_font_attr_t  attr) ;
 
 int  ml_font_delete( ml_font_t *  font) ;
 
-int  ml_font_set_xfont( ml_font_t *  font , char *  fontname , u_int  fontsize ,
-	u_int  col_width , int  use_medium_for_bold) ;
-
-#ifdef  ANTI_ALIAS
+int  ml_font_set_font_present( ml_font_t *  font , ml_font_present_t  font_present) ;
 
 int  ml_font_set_xft_font( ml_font_t *  font , char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold) ;
 	
-int  ml_font_set_xft_pfont( ml_font_t *  font , char *  fontname , u_int  fontsize ,
+int  ml_font_set_xfont( ml_font_t *  font , char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold) ;
-
-#else
-
-#define  ml_font_set_xft_font  ml_font_set_xfont
-#define  ml_font_set_xft_pfont  ml_font_set_xfont
-
-#endif
 
 mkf_charset_t  ml_font_cs( ml_font_t *  font) ;
 
 int  ml_change_font_cs( ml_font_t *  font , mkf_charset_t  cs) ;
-
-u_int  ml_font_default_cols( ml_font_t *  font) ;
 
 int  ml_change_font_cols( ml_font_t *  font , u_int  cols) ;
 

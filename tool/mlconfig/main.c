@@ -466,8 +466,8 @@ show(
 	gtk_widget_show( hbox) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;	
 
-	if( ! ( use_multi_col_char_check =
-			mc_check_config_widget_new( "Multiple column character" , use_multi_col_char)))
+	if( ! ( use_multi_col_char_check = mc_check_config_widget_new(
+				"Process multiple column character" , use_multi_col_char)))
 	{
 		return  0 ;
 	}

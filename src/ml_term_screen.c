@@ -185,11 +185,6 @@ screen_width(
 	{
 		width = logical_num_of_cols(termscr) * ml_col_width( termscr->font_man) ;
 	}
-
-	if( termscr->vertical_mode & VERT_FULL_WIDTH)
-	{
-		width *= 2 ;
-	}
 	
 	return  (width * termscr->screen_width_ratio) / 100 ;
 }
@@ -1321,11 +1316,6 @@ window_resized(
 	{
 		cols = width / ml_col_width( termscr->font_man) ;
 		rows = height / ml_line_height( termscr->font_man) ;
-	}
-
-	if( termscr->vertical_mode & VERT_FULL_WIDTH)
-	{
-		rows /= 2 ;
 	}
 
 	ml_image_resize( &termscr->normal_image , cols , rows) ;
@@ -2625,43 +2615,39 @@ report_mouse_tracking(
 		u_int  x_rest ;
 		
 		col = convert_y_to_row( termscr , NULL , event->y) ;
-		
+
+	#if  0
 		if( termscr->font_man->use_multi_col_char)
 		{
 			/*
 			 * XXX
-			 * col is still inaccurate since multiple-column(full width)
-			 * characters are not regarded.
+			 * col can be inaccurate if full width characters are used.
 			 */
-			 
-			if( termscr->vertical_mode & VERT_FULL_WIDTH)
-			{
-				col *= 2 ;
-			}
 		}
-
+	#endif
+	
 		if( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , col)) == NULL)
 		{
 			return  0 ;
 		}
 		
-		row = ml_vert_convert_char_index_to_col( line ,
-			convert_x_to_char_index( termscr , line , &x_rest , event->x)) ;
+		row = ml_convert_char_index_to_col( line ,
+			convert_x_to_char_index( termscr , line , &x_rest , event->x) , 0) ;
 			
 		if( termscr->vertical_mode & VERT_RTL)
 		{
-			if( x_rest > 0)
-			{
-				row ++ ;
-			}
-			
 			row = ml_image_get_cols( termscr->image) - row - 1 ;
 		}
-
-		if( termscr->vertical_mode & VERT_FULL_WIDTH)
+		
+	#if  0
+		if( termscr->font_man->use_multi_col_char)
 		{
-			row /= 2 ;
+			/*
+			 * XXX
+			 * row can be inaccurate if full width characters are used.
+			 */
 		}
+	#endif
 	}
 	else
 	{
@@ -2927,14 +2913,14 @@ change_font_size(
 	
 		return  ;
 	}
+	
+	/* redrawing all lines with new fonts. */
+	ml_image_set_modified_all( termscr->image) ;
 
 	font_size_changed( termscr) ;
 
 	/* this is because font_man->font_set may have changed in ml_smaller_font() */
 	ml_xic_font_set_changed( &termscr->window) ;
-
-	/* redrawing all lines with new fonts. */
-	ml_image_set_modified_all( termscr->image) ;
 }
 
 static void
@@ -3069,9 +3055,9 @@ change_char_encoding(
 		kik_msg_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
 	}
 	
-	ml_image_set_modified_all( termscr->image) ;
-	
 	update_encoding_proper_aux( termscr , 1) ;
+	
+	ml_image_set_modified_all( termscr->image) ;
 }
 
 static void
@@ -3208,6 +3194,9 @@ change_vertical_mode(
 	termscr->vertical_mode = vertical_mode ;
 	
 	update_encoding_proper_aux( termscr , 1) ;
+	
+	/* redrawing under new vertical mode. */
+	ml_image_set_modified_all( termscr->image) ;
 	
 	ml_window_resize( &termscr->window , screen_width(termscr) , screen_height(termscr) ,
 		NOTIFY_TO_PARENT) ;
@@ -3527,12 +3516,19 @@ change_fade_ratio(
 	{
 		unhighlight_cursor( termscr) ;
 
-		/* suppressing redrawing */
-		termscr->window.window_exposed = NULL ;
-		ml_window_unfade( &termscr->window) ;
-		
-		termscr->window.window_exposed = window_exposed ;
-		ml_window_fade( &termscr->window , termscr->fade_ratio) ;
+		if( termscr->fade_ratio >= 100)
+		{
+			ml_window_unfade( &termscr->window) ;
+		}
+		else
+		{
+			/* suppressing redrawing */
+			termscr->window.window_exposed = NULL ;
+			ml_window_unfade( &termscr->window) ;
+
+			termscr->window.window_exposed = window_exposed ;
+			ml_window_fade( &termscr->window , termscr->fade_ratio) ;
+		}
 		
 		highlight_cursor( termscr) ;
 	}

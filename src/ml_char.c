@@ -573,35 +573,6 @@ ml_char_cols(
 	return  font->cols ;
 }
 
-/*
- * !! Notice !!
- * for ml_logical_visual(vertical cjk)
- */
-inline u_int
-ml_char_default_cols(
-	ml_char_t *  ch
-	)
-{
-	ml_font_t *  font ;
-	u_int  cols ;
-	
-	if( ( font = ml_char_font(ch)) == NULL)
-	{
-		kik_error_printf( "ml_font_t is NULL.\n") ;
-
-		/* XXX avoiding zero division */
-		return  1 ;
-	}
-	
-	if( ( cols = ml_font_default_cols( font)) == 0)
-	{
-		/* XXX avoiding zero division */
-		return  1 ;
-	}
-
-	return  cols ;
-}
-
 inline mkf_charset_t
 ml_char_cs(
 	ml_char_t *  ch
