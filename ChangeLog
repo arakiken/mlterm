@@ -1,3 +1,8 @@
+2003-2-2 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Fixed a bug in alloc_closest_xcolor_pseudo(). (diff_r -> diff_b)
+	  (Thanks to Hirokazu Minami san)
+
 2003-2-2 Araki Ken <arakiken@users.sf.net>
 
 	* Added EXT_KBD shortcut in ~/.mlterm/key.

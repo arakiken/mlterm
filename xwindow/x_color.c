@@ -66,7 +66,7 @@ alloc_closest_xcolor_pseudo(
 	{
 		diff_r = (red - all_colors[i].red) >> 8 ;
 		diff_g = (green - all_colors[i].green) >> 8 ;
-		diff_r = (blue - all_colors[i].blue) >> 8 ;
+		diff_b = (blue - all_colors[i].blue) >> 8 ;
 
 		diff = diff_r * diff_r + diff_g * diff_g + diff_b * diff_b ;
 
