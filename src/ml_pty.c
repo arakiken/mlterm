@@ -85,7 +85,7 @@ ml_pty_new(
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " execve(%s) failed.\n" , cmd_path) ;
 			#endif
-
+			
 				exit(1) ;
 			}
 		}
@@ -96,7 +96,7 @@ ml_pty_new(
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " execve(%s) failed.\n" , cmd_path) ;
 			#endif
-
+			
 				exit(1) ;
 			}
 		}

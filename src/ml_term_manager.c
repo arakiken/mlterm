@@ -417,7 +417,7 @@ open_term(
 
 	/* NULL terminator */
 	*env_p = NULL ;
-	
+
 	if( term_man->conf.cmd_path && term_man->conf.cmd_argv)
 	{
 		if( ( pty = ml_pty_new( term_man->conf.cmd_path , term_man->conf.cmd_argv ,
@@ -1524,7 +1524,7 @@ config_init(
 
 	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , "true") == 0)
 	{
-		if( ( term_man->conf.cmd_argv = malloc( sizeof( char*) * (argc + 2))) == NULL)
+		if( ( term_man->conf.cmd_argv = malloc( sizeof( char*) * (argc + 1))) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
@@ -1544,7 +1544,7 @@ config_init(
 			term_man->conf.cmd_path = argv[0] ;
 			
 			memcpy( &term_man->conf.cmd_argv[0] , argv , sizeof( char*) * argc) ;
-			term_man->conf.cmd_argv[argc + 1] = NULL ;
+			term_man->conf.cmd_argv[argc] = NULL ;
 		}
 	}
 	else

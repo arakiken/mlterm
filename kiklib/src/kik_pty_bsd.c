@@ -86,7 +86,7 @@ open_pty(
 			
 			if( ( *master = open( name , O_RDWR , 0)) == -1)
 			{
-				if (errno == ENOENT)
+				if( errno == ENOENT)
 				{
 					/* out of ptys */
 					
