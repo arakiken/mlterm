@@ -1,3 +1,17 @@
+[20011221]
+* option names are changed.
+  --ucs2other => --noucsfont
+  unicode_to_other_cs => not_use_unicode_font
+  --all2ucs => --onlyucsfont
+  all_cs_to_unicode => only_use_unicode_font
+* full width chars are not be shown correctly in --onlyucsfont. fixed.
+* -8/--88591 (iso88591_font_for_usascii) option is added.
+* -R /usr/local/lib -R /usr/X11R6/lib options are added to LIBS macro in
+  src/Makefile.in tool/mlconfig/Makefile.in
+  (thanks to Uebayashi Masao san)
+* illegal chars which is not based on ISO2022 (e.g. KOI8-R) are also accepted if
+  at all possible in ISO2022-based encodings.
+
 [20011220]
 * prefer_utf8_selection and xct_process_mode options are removed , and copy_paste_via_ucs
   option is added.
@@ -5,6 +19,7 @@
 * memory leaks when copy&paste combined chars. fixed.
 * illegal chars based on ISO2022 are accepted if at all possible in ISO2022-based encodings.
 * ISO2022 parser doesn't parse correctly when sequence is splited. fixed.
+* core dump when copy&paste with no chars selected. fixed.
 
 [20011216]
 * prefer_utf8_selection includes auto_detect_utf8_selection.
