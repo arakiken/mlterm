@@ -32,6 +32,7 @@ ver 2.9.0
 * Fixed a bug that the preedit area of XIM became invisible in the maximized
   window. [seiichi]
 * Cleanups and refactorings for ml_* APIs [karaki]
+* New svg icons [Tobias Kieslich <tobias@justdreams.de>]
 
 ver 2.8.0p1
 * New '--borderless' option [karaki]
