@@ -13,6 +13,10 @@
 
 #include  <langinfo.h>
 
+#endif
+
+#ifdef CODESET 
+
 #define  kik_langinfo( item)  nl_langinfo( item)
 
 #else
@@ -85,6 +89,8 @@ typedef  long  nl_item ;
 #define CRNCYSTR	50
  
 #define CODESET		51
+
+#define USE_BUILTIN_LANGINFO
 
 #define  kik_langinfo( item)  __kik_langinfo( item)
 

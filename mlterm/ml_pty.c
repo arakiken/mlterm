@@ -167,6 +167,8 @@ ml_set_pty_winsize(
 
 	ws.ws_col = cols ;
 	ws.ws_row = rows ;
+	ws.ws_xpixel = 0 ;
+	ws.ws_ypixel = 0 ;
 	
 	if( ioctl( pty->master , TIOCSWINSZ , &ws) < 0)
 	{

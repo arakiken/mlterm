@@ -1,3 +1,14 @@
+2002-08-28  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* Compilation failed on Linux glibc 2.1.x because of incomplete langinfo.h.
+	  Built-in (dummy) kik_langinfo is now used when CODESET is not defined.
+	  (Thanks to Kubota Tomohiro san)
+	* background picture was not drawn when pseudo transparency had been
+	  turned off. fixed.
+	* winsize structure were not fully initialized during pty setup. fixed.
+	  (Thanks to Nanashi san)
+	* Fixed typos in Changelog.
+
 2002-08-09  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* Corrected path for gdk-pixbuf headers.
@@ -74,7 +85,7 @@
 
 2002-06-28  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
-	* XDnD sesson was not terminated properly. fixed.
+	* XDnD session was not terminated properly. fixed.
 
 2002-06-25 Araki Ken <arakiken@users.sf.net>
 
@@ -148,7 +159,7 @@
 2002-06-06 Araki Ken <arakiken@users.sf.net>
 
 	* -K/--maxptys option is removed.
-	* Logged lines are not faded when screen is not focued.
+	* Logged lines are not faded when screen is not focused.
 	* If 0 is specified as value of -sl option, mlterm died. fixed.
 
 2002-06-05 Tomohiro KUBOTA <kubota@debian.org>
@@ -234,7 +245,7 @@
 	* DEC_SPECIAL characters were not shown with -Y,--decsp option. fixed.
 	  (Thanks to Kubota Tomohiro san)
 	* "RRRRR-BBBBB-GGGG;" style is accepted in color config file for backward
-	  compatiblity with 2.4.0 or before.
+	  compatibility with 2.4.0 or before.
 	  (Thanks to Nanashi san)
 
 2002-05-19 Araki Ken <arakiken@users.sf.net>
@@ -357,7 +368,7 @@
 2002-04-26 Tomohiro KUBOTA <kubota@debian.org>
 
 	* The manpage now mentions Sato-san's new scrollbar libraries.
-	* Added whitespace after commas and before open paretheses
+	* Added whitespace after commas and before open parentheses
 	  in the manpage.
 
 2002-04-25 Tomohiro KUBOTA <kubota@debian.org>

@@ -7,7 +7,7 @@
 
 /* --- global functions --- */
 
-#ifndef  HAVE_LANGINFO_H
+#ifdef  USE_BUILTIN_LANGINFO
 
 char *
 __kik_langinfo(

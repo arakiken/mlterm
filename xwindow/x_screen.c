@@ -4472,6 +4472,7 @@ change_transparent_flag(
 	else
 	{
 		x_window_unset_transparent( &screen->window) ;
+		set_wall_picture( screen) ;
 	}
 	
 	if( HAS_SCROLL_LISTENER(screen,transparent_state_changed))
