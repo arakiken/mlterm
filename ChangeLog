@@ -1,3 +1,8 @@
+2002-09-20  Nobuyoshi Nakada  <nobu.nokada@softhome.net>
+
+	* kiklib: link kik_pty_*.o and kik_utmp_*.o directly, not via
+	  kik_pty.o and kik_utmp.o.
+
 2002-09-17  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* Renamed x_picdep_* to x_imagelib_*
