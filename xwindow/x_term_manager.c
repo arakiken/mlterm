@@ -209,6 +209,11 @@ create_term_intern(void)
 	{
 		ml_term_set_icon_name( term , main_config.icon_name) ;
 	}
+	else if( main_config.title)
+	{
+		/* If icon name was not specified, title name is used. */
+		ml_term_set_icon_name( term , main_config.title);
+	}
 
 	return  term ;
 }

@@ -1,11 +1,17 @@
 2003-04-13 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* x_term_manager.c: changed to be more compatible with xterm/rxvt.
+	  If "--icon" option was not specified, title name is used for
+	  WM_ICON_NAME,
+
+2003-04-13 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* kiklib/configure.in, kiklib/configure, kiklib/src/Makefile.in,
 	  kiklib/src/kik_dlfcn.c, kiklib/src/kik_dlfcn.h,
 	  xwindow/x_sb_view_factory.c:
 	  - Removed obsolete AC_CYGWIN from kiklib/configure.in. (Thanks to
 	    Sakai Masahiro san)
-	  - Added AC_CANONICAL_HOST insted of AC_CYGWIN into
+	  - Added AC_CANONICAL_HOST instead of AC_CYGWIN into
 	    kiklib/configure.in.
 	  - Removed all of "#ifdef __CYGWIN__".
 	  - Added a test to define LIB_PREFIX and LIB_SUFFIX.
