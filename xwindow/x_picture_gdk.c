@@ -6,6 +6,7 @@
 #define  PSEUDO_TRANSPARENT
 #endif
 
+#include <math.h>
 #include <X11/Xatom.h>                   /* XInternAtom */
 #include <gdk-pixbuf/gdk-pixbuf-xlib.h>  
 #include <kiklib/kik_unistd.h>
@@ -22,22 +23,18 @@
 
 
 static unsigned char
-illuminate(unsigned char value, int luminosity){
-	
-	if (luminosity >100)  
-		return 255 - (255 - value)*100/luminosity;
-	if (luminosity ==100)  
-		return value;
-	if (luminosity >0)  
-		return luminosity*value/100;
-	if (luminosity ==0)  
-		return 0;
-	if (luminosity > -100)  
-		return (-100-luminosity)*value/100;
-	/* XXX who cares? */
-		return 0 ;
-}
+modify_color(unsigned char value, x_picture_modifier_t *  pic_mod){
+	unsigned int result;
 
+	result = pic_mod->contrast*(value - 128)/100 + 128 * pic_mod->brightness/100;
+	if (result > 255)
+		return 255;
+ 	if (result <0)
+		return 0;
+	if (pic_mod->gamma != 100)
+		result = 255 * pow((double)result / 255, (double)pic_mod->gamma / 100); /* XXX  LUT should be made*/
+	return (unsigned char)(result);
+}
 static int
 modify_image(
 	GdkPixbuf *  pixbuf ,
@@ -49,7 +46,7 @@ modify_image(
 	unsigned char *line;
 	unsigned char *pixel;
 
-	if( pic_mod->brightness == 100)
+	if( pic_mod->brightness == 100 && pic_mod->brightness == 100 && pic_mod->gamma == 100)
 		return 0;
 
         if ( !pixbuf )
@@ -68,9 +65,9 @@ modify_image(
 		
 		for (j = 0 ; j < width ; j++) {
 /* XXX keeps neither hue nor saturation. MUST be replaced using better color model(CIE Yxy? lab?)*/
-			pixel[0] = illuminate(pixel[0], pic_mod->brightness); 
-			pixel[1] = illuminate(pixel[1], pic_mod->brightness);
-			pixel[2] = illuminate(pixel[2], pic_mod->brightness);
+			pixel[0] = modify_color(pixel[0], pic_mod); 
+			pixel[1] = modify_color(pixel[1], pic_mod);
+			pixel[2] = modify_color(pixel[2], pic_mod);
 			/* alpha is not changed */
 			pixel += bytes_per_pixel;
 		}

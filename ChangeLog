@@ -1,3 +1,7 @@
+2002-07-03  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* Added contrast/gamma support to gdk-pixbuf module. 
+
 2002-07-04 Araki Ken <arakiken@users.sf.net>
 
 	* -3/--contrast,-4/--gamma options are added.
