@@ -1,3 +1,7 @@
+2003-12-28  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* configure.in, configure: changed VERSION from 2.7.0->2.8.0
+
 2003-12-27  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* tool/mlconfig/main.c: ANTI_ALIAS -> USE_TYPE_XFT

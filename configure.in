@@ -369,7 +369,7 @@ AC_SUBST(MAKE_DIRS)
 AC_SUBST(OUTPUT_FILES)
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,2.7.0)
+AM_INIT_AUTOMAKE(mlterm,2.8.0)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)

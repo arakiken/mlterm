@@ -7357,7 +7357,7 @@ fi
 
 # Define the identity of the package.
 PACKAGE=mlterm
-VERSION=2.7.0
+VERSION=2.8.0
 cat >> confdefs.h <<EOF
 #define PACKAGE "$PACKAGE"
 EOF
