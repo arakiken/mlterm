@@ -327,20 +327,6 @@ cb_commit(
 }
 
 static void
-cb_aux_update(
-	int  instance ,
-	const  WideString &  wstr ,
-	const AttributeList &  attr_list
-	)
-{
-	transaction_init( instance) ;
-	sock.put_command( SCIM_TRANS_CMD_UPDATE_AUX_STRING) ;
-	sock.put_data( utf8_wcstombs(wstr)) ;
-	sock.put_data( attr_list) ;
-	sock.write_to_socket( panel , SCIM_TRANS_MAGIC);
-}
-
-static void
 cb_preedit_update(
 	int  instance ,
 	const  WideString &  wstr ,
@@ -497,6 +483,40 @@ cb_lookup_hide(
 	(*context->cb->candidate_hide)( context->self) ;
 }
 
+static void
+cb_prop_register(
+	int  instance ,
+	const PropertyList &  props
+	)
+{
+	if( ! panel.is_connected())
+	{
+		return ;
+	}
+
+	transaction_init( instance) ;
+	sock.put_command( SCIM_TRANS_CMD_REGISTER_PROPERTIES) ;
+	sock.put_data( props) ;
+	sock.write_to_socket( panel , SCIM_TRANS_MAGIC);
+}
+
+static void
+cb_prop_update(
+	int  instance ,
+	const Property &  prop
+	)
+{
+	if( ! panel.is_connected())
+	{
+		return ;
+	}
+
+	transaction_init( instance) ;
+	sock.put_command( SCIM_TRANS_CMD_UPDATE_PROPERTY) ;
+	sock.put_data( prop) ;
+	sock.write_to_socket( panel , SCIM_TRANS_MAGIC);
+}
+
 
 // --- global functions ---
 
@@ -604,13 +624,14 @@ im_scim_initialize(void)
 	config->signal_connect_reload( slot( load_config)) ;
 
 	be->signal_connect_commit_string( slot( cb_commit)) ;
-	be->signal_connect_update_aux_string( slot( cb_aux_update)) ;
 	be->signal_connect_update_preedit_string( slot( cb_preedit_update)) ;
 	be->signal_connect_hide_preedit_string( slot( cb_preedit_hide)) ;
 	be->signal_connect_update_preedit_caret( slot( cb_preedit_caret)) ;
 	be->signal_connect_update_lookup_table( slot( cb_lookup_update)) ;
 	be->signal_connect_show_lookup_table( slot( cb_lookup_show)) ;
 	be->signal_connect_hide_lookup_table( slot( cb_lookup_hide)) ;
+	be->signal_connect_register_properties( slot( cb_prop_register)) ;
+	be->signal_connect_update_property( slot( cb_prop_update)) ;
 
 	context_table.clear() ;
 
@@ -707,7 +728,9 @@ im_scim_create_context(
 	transaction_init( context->instance) ;
 	sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
 	sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_OFF) ;
+	sock.put_command( SCIM_TRANS_CMD_FOCUS_OUT) ;
 	sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
+	be->focus_out( context->instance) ;
 
 	return  (im_scim_context_t) context ;
 }
@@ -747,10 +770,10 @@ im_scim_focused(
 		sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
 		if( context->on)
 		{
-			sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_ON) ;
 			sock.put_command( SCIM_TRANS_CMD_PANEL_UPDATE_FACTORY_INFO);
 			sock.put_data( utf8_wcstombs( be->get_instance_name( context->instance))) ;
 			sock.put_data( be->get_instance_icon_file( context->instance));
+			sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_ON) ;
 		}
 		else
 		{
@@ -778,8 +801,9 @@ im_scim_unfocused(
 	if( panel.is_connected())
 	{
 		transaction_init( context->instance) ;
-		sock.put_command( SCIM_TRANS_CMD_FOCUS_OUT) ;
+		sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
 		sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_OFF);
+		sock.put_command( SCIM_TRANS_CMD_FOCUS_OUT) ;
 		sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
 	}
 
@@ -806,12 +830,14 @@ im_scim_key_event(
 	switch( kind_of_key( ksym , event->state))
 	{
 	case KEY_TRIGER:
+		transaction_init( context->instance) ;
+		sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
 		if( context->on)
 		{
 			if( panel.is_connected())
 			{
-				transaction_init( context->instance) ;
 				sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_OFF) ;
+				sock.put_command( SCIM_TRANS_CMD_FOCUS_OUT) ;
 				sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
 			}
 
@@ -819,17 +845,19 @@ im_scim_key_event(
 							NULL , 0) ;
 			(*context->cb->candidate_hide)( context->self) ;
 
+			be->focus_out( context->instance) ;
+
 			context->on = 0 ;
 		}
 		else
 		{
 			if( panel.is_connected())
 			{
-				transaction_init( context->instance) ;
-				sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_ON) ;
 				sock.put_command( SCIM_TRANS_CMD_PANEL_UPDATE_FACTORY_INFO);
 				sock.put_data( utf8_wcstombs( be->get_instance_name( context->instance))) ;
 				sock.put_data( be->get_instance_icon_file( context->instance));
+				sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_ON) ;
+				sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
 				sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
 			}
 
@@ -838,6 +866,8 @@ im_scim_key_event(
 						C_STR( context->preedit_str) ,
 						context->preedit_caret) ;
 			(*context->cb->candidate_show)( context->self) ;
+
+			be->focus_in( context->instance) ;
 
 			context->on = 1 ;
 		}
@@ -862,6 +892,7 @@ im_scim_key_event(
 
 	if( be->process_key_event( context->instance , scim_key))
 	{
+		sock.write_to_socket( panel , SCIM_TRANS_MAGIC);
 		return  0 ;
 	}
 
@@ -938,7 +969,7 @@ im_scim_receive_panel_event( void)
 {
 	int  command ;
 	SocketTransactionDataType  type ;
-	String  factory ;
+	String  string ;
 	uint32  data_uint32 ;
 	int  instance ;
 
@@ -983,12 +1014,16 @@ im_scim_receive_panel_event( void)
 		send_factory_menu_item( instance) ;
 		break ;
 	case SCIM_TRANS_CMD_PANEL_CHANGE_FACTORY:
-		sock.get_data( factory) ;
-		change_factory( instance , factory) ;
+		sock.get_data( string) ;
+		change_factory( instance , string) ;
 		break ;
 	case SCIM_TRANS_CMD_PANEL_REQUEST_HELP:
 		send_help_description( instance) ;
 		break ;
+	case SCIM_TRANS_CMD_TRIGGER_PROPERTY:
+		sock.get_data( string) ;
+		be->trigger_property( instance , string) ;
+		break;
 	default:
 		break ;
 	}
