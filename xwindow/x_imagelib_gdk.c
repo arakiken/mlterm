@@ -18,29 +18,88 @@
 #define USE_FS 1
 
 /** Pixmap cache per display. */
-typedef struct display_store_tag {
+typedef struct pixmap_cache_tag {
 	Display *  display; /**<Display */
 	Pixmap  root;      /**<Root pixmap !!! NOT owned by mlterm. DON'T FREE !!!*/
 	Pixmap  cooked;    /**<Background pixmap cache*/
 	x_picture_modifier_t  pic_mod; /**<modification applied to "cooked"*/
-	struct display_store_tag *  next ;
-} display_store_t ;
+	struct pixmap_cache_tag *  next ;
+} pixmap_cache_t ;
 
+typedef struct cache_info_tag {
+	char *  name ;
+	GdkPixbuf *  data ;
+	GdkPixbuf *  scaled ;
+	int  width ;
+	int  height ;
+} cache_info_t ;
 /* --- static variables --- */
 
 static int  display_count = 0 ;
 static unsigned char  gamma_cache[256 +1] ;
-static display_store_t *  display_store = NULL ;
-static char *  wp_cache_name = NULL ;
-static GdkPixbuf *  wp_cache_data = NULL ;
-static int  wp_cache_width = 0 ;
-static int  wp_cache_height = 0 ;
-static GdkPixbuf *  wp_cache_scaled = NULL ;
+static pixmap_cache_t *  pixmap_cache = NULL ;
+
+static cache_info_t wp ;
+static cache_info_t misc ;
 
 static int modify_ubound = 255 ;
 static int modify_lbound = 0 ;
 
 /* --- static functions --- */
+
+static int create_cardinals(
+	u_int32_t **  cardinal,
+	int  width,
+	int  height,
+	GdkPixbuf *  pixbuf
+	)
+{
+	int  rowstride ;
+	unsigned char *line ;
+	unsigned char *pixel ;
+	int i, j ;
+	
+/* create an CARDINAL array for_NET_WM_ICON data */
+	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
+	line = gdk_pixbuf_get_pixels (pixbuf) ;
+	*cardinal = malloc((width * height + 2) *4) ;
+	if (!(*cardinal))
+		return 0 ;
+
+/* {width, height, ARGB[][]} */
+	(*cardinal)[0] = width ;
+	(*cardinal)[1] = height ;
+	if ( gdk_pixbuf_get_has_alpha (pixbuf)){ /* alpha support (convert to ARGB format)*/
+		for (i = 0; i < height; i++) {
+			pixel = line ;
+			line += rowstride;
+			for (j = 0; j < width; j++) {
+				(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(pixel[3]) << 8)
+								 + pixel[0]) << 8)
+							       + pixel[1]) << 8) + pixel[2] ;
+				pixel += 4 ;
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < height; i++)
+		{
+			pixel = line ;
+			line += rowstride;
+			for (j = 0; j < width; j++) {
+				(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8 )
+								 + pixel[0]) << 8)
+							       + pixel[1]) << 8) + pixel[2] ;
+				pixel += 3 ;
+			}
+		}
+	}
+	return 1 ;
+}
+
+
+
 
 static int
 closest_color_index(
@@ -336,12 +395,12 @@ root_pixmap(
 	return None ;
 }
 
-static display_store_t *
+static pixmap_cache_t *
 cache_seek(
 	   Display *  display
 	   )
 {
-	display_store_t *  cache = display_store ;
+	pixmap_cache_t *  cache = pixmap_cache ;
 
 	while( cache)
 	{
@@ -352,22 +411,22 @@ cache_seek(
 	return cache ;
 }
 
-static display_store_t *
+static pixmap_cache_t *
 cache_add(
 	   Display *  display
 	   )
 {
-	display_store_t *  cache ;
+	pixmap_cache_t *  cache ;
 
-	cache = malloc( sizeof( display_store_t)) ;
+	cache = malloc( sizeof( pixmap_cache_t)) ;
 	if (!cache)
 		return NULL ;
 	cache->display = display ;
 	cache->root = None ;
 	cache->cooked = None ;
 	memset( &(cache->pic_mod), 0, sizeof(x_picture_modifier_t)) ;
-	cache->next = display_store ;
-	display_store = cache ;
+	cache->next = pixmap_cache ;
+	pixmap_cache = cache ;
 
 	return cache ;
 }
@@ -382,11 +441,11 @@ cache_delete(
 	Display *  display
 	)
 {
-	display_store_t *  cache ;
-	display_store_t *  o ;
+	pixmap_cache_t *  cache ;
+	pixmap_cache_t *  o ;
 
 	o = NULL ;
-	cache = display_store ;
+	cache = pixmap_cache ;
 	while( cache)
 	{
 		if ( cache->display == display)
@@ -395,9 +454,9 @@ cache_delete(
 				XFreePixmap( display, cache->cooked) ;
 			if ( o == NULL)
 			{
-				display_store = cache->next ;
+				pixmap_cache = cache->next ;
 				free( cache) ;
-				cache = display_store ;
+				cache = pixmap_cache ;
 			}
 			else
 			{
@@ -420,7 +479,7 @@ cache_delete(
  */
 static int
 is_picmod_eq(
-	display_store_t *  cache,
+	pixmap_cache_t *  cache,
 	x_picture_modifier_t *  new
 	)
 {
@@ -1332,20 +1391,20 @@ x_imagelib_load_file_for_background(
 
 	if(!file_path)
 		return None ;
-	if( wp_cache_name && (strcmp( wp_cache_name, file_path) == 0) && wp_cache_data && (!pic_mod)){
-		pixbuf = wp_cache_data ;
+	if( wp.name && (strcmp( wp.name, file_path) == 0) && wp.data && (!pic_mod)){
+		pixbuf = wp.data ;
 	}else{
-		if ( wp_cache_data){
-			gdk_pixbuf_unref( wp_cache_data ) ;
-			wp_cache_data = NULL ;
+		if ( wp.data){
+			gdk_pixbuf_unref( wp.data ) ;
+			wp.data = NULL ;
 		}
-		if ( wp_cache_scaled){
-			gdk_pixbuf_unref( wp_cache_scaled ) ;
-			wp_cache_scaled = NULL ;
+		if ( wp.scaled){
+			gdk_pixbuf_unref( wp.scaled ) ;
+			wp.scaled = NULL ;
 		}
-		if ( wp_cache_name){
-			free( wp_cache_name) ;
-			wp_cache_name = NULL ;
+		if ( wp.name){
+			free( wp.name) ;
+			wp.name = NULL ;
 		}
 #ifndef OLD_GDK_PIXBUF
 		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path, NULL )) == NULL)
@@ -1354,14 +1413,14 @@ x_imagelib_load_file_for_background(
 		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path )) == NULL)
 			return None ;
 #endif /*OLD_GDK_PIXBUF*/
-		wp_cache_data = pixbuf ;
-		wp_cache_name = strdup( file_path) ;
+		wp.data = pixbuf ;
+		wp.name = strdup( file_path) ;
 
-		wp_cache_height = 0 ;
-		wp_cache_width = 0 ;
+		wp.height = 0 ;
+		wp.width = 0 ;
 	}
 
-	if (wp_cache_width != ACTUAL_WIDTH(win) || ACTUAL_HEIGHT(win) != wp_cache_height){
+	if (wp.width != ACTUAL_WIDTH(win) || ACTUAL_HEIGHT(win) != wp.height){
 		/* it's new pixbuf */
 		pixbuf = gdk_pixbuf_scale_simple(pixbuf, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
 						 GDK_INTERP_TILES); /* use one of _NEAREST, _TILES, _BILINEAR, _HYPER (speed<->quality) */
@@ -1369,11 +1428,11 @@ x_imagelib_load_file_for_background(
 		if( pic_mod)
 			modify_image( pixbuf, pic_mod) ;
 
-		wp_cache_scaled = pixbuf ;
-		wp_cache_width = ACTUAL_WIDTH(win) ;
-		wp_cache_height = ACTUAL_HEIGHT(win) ;
+		wp.scaled = pixbuf ;
+		wp.width = ACTUAL_WIDTH(win) ;
+		wp.height = ACTUAL_HEIGHT(win) ;
 	}else
-		pixbuf = wp_cache_scaled ;
+		pixbuf = wp.scaled ;
 
 	if( gdk_pixbuf_get_has_alpha ( pixbuf) ){
 		int res;
@@ -1436,7 +1495,7 @@ x_imagelib_get_transparent_background(
 	int  pix_y ;
 	u_int  width ;
 	u_int  height ;
-	display_store_t *  cache ;
+	pixmap_cache_t *  cache ;
 	Pixmap  pixmap ;
 	Pixmap  current_root ;
 	GC  gc ;
@@ -1541,14 +1600,40 @@ int x_imagelib_load_file(
 	)
 {
 	GdkPixbuf *  pixbuf ;
-	int  rowstride ;
+
+	if( !path)
+		return 0 ;
+	if( misc.name && (strcmp( misc.name, path) == 0))
+	{
+		pixbuf = misc.data ;
+	}
+	else
+	{
+		if( misc.name)
+		{
+			free( misc.name);
+			misc.name = strdup( path) ;
+		}
+		if( misc.data)
+		{
+			gdk_pixbuf_unref( misc.data) ;
+		}
+		if( misc.scaled)
+		{
+			gdk_pixbuf_unref( misc.scaled) ;
+			misc.scaled = 0 ;
+		}
 #ifndef OLD_GDK_PIXBUF
-	pixbuf = gdk_pixbuf_new_from_file( path, NULL ) ;
+		pixbuf = gdk_pixbuf_new_from_file( path, NULL ) ;
 #else
-	pixbuf = gdk_pixbuf_new_from_file( path ) ;
+		pixbuf = gdk_pixbuf_new_from_file( path ) ;
 #endif /*OLD_GDK_PIXBUF*/
+		misc.data = pixbuf ;
+	}
 	if ( !pixbuf )
 		return 0 ;
+
+/* scaling is done here */
 	if( width == 0)
 		width = gdk_pixbuf_get_width( pixbuf) ;
 	if( height == 0)
@@ -1559,56 +1644,20 @@ int x_imagelib_load_file(
 	{
 		GdkPixbuf * scaled;
 /* use one of _NEAREST, _TILES, _BILINEAR, _HYPER (speed<->quality) */
-		scaled = gdk_pixbuf_scale_simple(pixbuf, width, height,
-						 GDK_INTERP_TILES); 
+		if( misc.width == width && misc.height == height && misc.scaled)
+			scaled = misc.scaled ;
+		else
+			scaled = gdk_pixbuf_scale_simple(pixbuf, width, height,
+							 GDK_INTERP_NEAREST); 
 		if( scaled)
 		{
-			gdk_pixbuf_unref( pixbuf) ;
 			pixbuf = scaled ;
 		}
 	}
-	if ( cardinal){
-		unsigned char *line ;
-		unsigned char *pixel ;
-		int i, j ;
 
-/* create an CARDINAL array for_NET_WM_ICON data */
-		rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
-		line = gdk_pixbuf_get_pixels (pixbuf) ;
-		*cardinal = malloc((width * height + 2) *4) ;
-		if (!(*cardinal))
-			return 0 ;
+	if ( cardinal)
+		create_cardinals( cardinal, width, height, pixbuf) ;	
 
-/* {width, height, ARGB[][]} */
-		(*cardinal)[0] = width ;
-		(*cardinal)[1] = height ;
-		if ( gdk_pixbuf_get_has_alpha (pixbuf)){ /* alpha support (convert to ARGB format)*/
-			for (i = 0; i < height; i++) {
-				pixel = line ;
-				line += rowstride;
-				for (j = 0; j < width; j++) {
-					(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(pixel[3]) << 8)
-									 + pixel[0]) << 8)
-								       + pixel[1]) << 8) + pixel[2] ;
-					pixel += 4 ;
-				}
-			}
-		}
-		else
-		{
-			for (i = 0; i < height; i++)
-			{
-				pixel = line ;
-				line += rowstride;
-				for (j = 0; j < width; j++) {
-					(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8 )
-									 + pixel[0]) << 8)
-								       + pixel[1]) << 8) + pixel[2] ;
-					pixel += 3 ;
-				}
-			}
-		}
-	}
 /* Create the Icon pixmap&mask for WMHints. None as result is acceptable.*/
 	if( pixmap)
 	{
@@ -1644,6 +1693,5 @@ int x_imagelib_load_file(
 		}
 	}
 
-	gdk_pixbuf_unref(pixbuf) ;
 	return 1 ;
 }
