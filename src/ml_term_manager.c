@@ -150,8 +150,10 @@ open_new_term(
 		term_man->num_of_log_lines , term_man->tab_size ,
 		term_man->use_xim , term_man->xim_open_in_startup ,
 		term_man->mod_meta_mode , term_man->bel_mode ,
-		term_man->pre_conv_xct_to_ucs , term_man->pic_file_path ,
-		term_man->use_transbg , term_man->is_aa , term_man->use_bidi , term_man->big5_buggy ,
+		term_man->prefer_utf8_selection , term_man->pre_conv_xct_to_ucs ,
+		term_man->auto_detect_utf8_selection ,
+		term_man->pic_file_path , term_man->use_transbg , term_man->is_aa ,
+		term_man->use_bidi , term_man->big5_buggy ,
 		term_man->conf_menu_path)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -705,8 +707,12 @@ ml_term_manager_init(
 		"converting all cs to unicode.") ;
 	kik_conf_add_opt( conf , 'c' , "conv2022" , 1 , "conv_to_generic_iso2022" ,
 		"converting generic ISO2022 in pasting.") ;
+	kik_conf_add_opt( conf , 'U' , "utf8sel" , 1 , "prefer_utf8_selection" ,
+		"prefer utf8 selection request.") ;
 	kik_conf_add_opt( conf , 'C' , "xct2ucs" , 1 , "pre_conv_xct_to_ucs" ,
 		"pre-converting xct to ucs in pasting selection.") ;
+	kik_conf_add_opt( conf , 'o' , "autoutf8" , 1 , "auto_detect_utf8_selection" ,
+		"auto detection of using utf8 selection.") ;
 	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" ,
 		"opening xim in starting up.") ;
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , "use bidi") ;
@@ -1175,6 +1181,16 @@ ml_term_manager_init(
 		}
 	}
 
+	term_man->prefer_utf8_selection = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "prefer_utf8_selection")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->prefer_utf8_selection = 1 ;
+		}
+	}
+	
 	term_man->pre_conv_xct_to_ucs = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "pre_conv_xct_to_ucs")))
@@ -1185,6 +1201,16 @@ ml_term_manager_init(
 		}
 	}
 
+	term_man->auto_detect_utf8_selection = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "auto_detect_utf8_selection")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->auto_detect_utf8_selection = 1 ;
+		}
+	}
+	
 	term_man->col_size_a = 0 ;
 	
 	if( ( value = kik_conf_get_value( conf , "col_size_of_width_a")))

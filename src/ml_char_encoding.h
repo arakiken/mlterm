@@ -65,7 +65,7 @@ typedef enum  ml_encoding_type
 
 	ML_ISO2022CN ,
 	
-	MAX_ENCODINGS ,
+	MAX_CHAR_ENCODINGS ,
 	
 }  ml_char_encoding_t ;
 
@@ -77,6 +77,9 @@ typedef enum  ml_encoding_type
 		ML_EUCKR == (encoding) || ML_ISO2022KR == (encoding) || ML_EUCTW == (encoding) || \
 		ML_ISO2022CN == (encoding) || ML_EUCCN == (encoding))
 
+#define  IS_UTF8_SUBSET_ENCODING(encoding) \
+	( (encoding) != ML_ISO2022JP && (encoding) != ML_ISO2022JP2 && (encoding) != ML_ISO2022JP3 && \
+		(encoding) != ML_ISO2022CN && (encoding) != ML_ISO2022KR )
 
 ml_char_encoding_t  ml_get_encoding( char *  name) ;
 

@@ -1269,7 +1269,8 @@ ml_window_init(
 	win->utf8_selection_requested = NULL ;
 	win->xct_selection_notified = NULL ;
 	win->utf8_selection_notified = NULL ;
-	win->selection_request_failed = NULL ;
+	win->xct_selection_request_failed = NULL ;
+	win->utf8_selection_request_failed = NULL ;
 	win->window_deleted = NULL ;
 		
 	return	1 ;
@@ -2484,8 +2485,15 @@ ml_window_receive_event(
 			/*
 			 * trying with xa_compound_text => xa_text => XA_STRING
 			 */
-			 
-			if( event->xselection.target == xa_compound_text)
+
+			if( event->xselection.target == xa_utf8_string)
+			{
+				if( win->utf8_selection_request_failed)
+				{
+					(*win->utf8_selection_request_failed)( win , &event->xselection) ;
+				}
+			}
+			else if( event->xselection.target == xa_compound_text)
 			{
 				XConvertSelection( win->display , XA_PRIMARY , xa_text ,
 					xa_selection_prop , win->my_window , CurrentTime) ;
@@ -2495,9 +2503,9 @@ ml_window_receive_event(
 				XConvertSelection( win->display , XA_PRIMARY , XA_STRING ,
 					xa_selection_prop , win->my_window , CurrentTime) ;
 			}
-			else if( win->selection_request_failed)
+			else if( win->xct_selection_request_failed)
 			{
-				(*win->selection_request_failed)( win , &event->xselection) ;
+				(*win->xct_selection_request_failed)( win , &event->xselection) ;
 			}
 			
 			return  1 ;

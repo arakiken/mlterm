@@ -68,7 +68,9 @@ typedef struct  ml_term_manager
 	int8_t  unicode_to_other_cs ;
 	int8_t  all_cs_to_unicode ;
 	int8_t  conv_to_generic_iso2022 ;
+	int8_t  prefer_utf8_selection ;
 	int8_t  pre_conv_xct_to_ucs ;
+	int8_t  auto_detect_utf8_selection ;
 	int8_t  use_transbg ;
 	char *  pic_file_path ;
 	ml_mod_meta_mode_t  mod_meta_mode ;

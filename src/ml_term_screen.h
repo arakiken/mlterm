@@ -104,8 +104,6 @@ typedef struct  ml_term_screen
 	mkf_parser_t *  xct_parser ;
 	mkf_parser_t *  utf8_parser ;
 	
-	int8_t  pre_conv_xct_to_ucs ;
-
 	mkf_parser_t *  ml_str_parser ;
 	mkf_conv_t *  utf8_conv ;
 	mkf_conv_t *  xct_conv ;
@@ -114,6 +112,9 @@ typedef struct  ml_term_screen
 	int  scroll_cache_boundary_start ;
 	int  scroll_cache_boundary_end ;
 
+	int8_t  prefer_utf8_selection ;
+	int8_t  pre_conv_xct_to_ucs ;
+	int8_t  auto_detect_utf8_selection ;
 	int8_t  is_reverse ;
 	int8_t  is_app_keypad ;
 	int8_t  is_app_cursor_keys ;
@@ -131,9 +132,10 @@ ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 	ml_font_manager_t *  font_man , ml_color_table_t  color_table ,
 	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
 	u_int  num_of_log_lines , u_int  tab_size , int  use_xim ,
-	int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode ,
-	ml_bel_mode_t  bel_mode , int  pre_conv_xct_to_ucs , char *  pic_file_path ,
-	int  use_transbg , int  is_aa , int  use_bidi , int  big5_buggy , char *  conf_menu_path) ;
+	int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode , ml_bel_mode_t  bel_mode ,
+	int  prefer_utf8_selection , int  pre_conv_xct_to_ucs , int  auto_detect_utf8_selection ,
+	char *  pic_file_path , int  use_transbg , int  is_aa , int  use_bidi ,
+	int  big5_buggy , char *  conf_menu_path) ;
 
 int  ml_term_screen_delete( ml_term_screen_t *  termscr) ;
 

@@ -281,13 +281,16 @@ write_to_pty(
 		return ;
 	}
 	
+	if( parser && str)
+	{
+		(*parser->init)( parser) ;
+		(*parser->set_str)( parser , str , len) ;
+	}
+
 	if( parser && HAS_ENCODING_LISTENER(termscr,convert_to_current_encoding))
 	{
 		u_char  conv_buf[512] ;
 		size_t  filled_len ;
-
-		(*parser->init)( parser) ;
-		(*parser->set_str)( parser , str , len) ;
 
 		while( ! parser->is_eos)
 		{
@@ -326,7 +329,7 @@ write_to_pty(
 			ml_write_to_pty( termscr->pty , conv_buf , filled_len) ;
 		}
 	}
-	else
+	else if( str)
 	{
 	#ifdef  __DEBUG
 		{
@@ -340,8 +343,12 @@ write_to_pty(
 			fprintf( stderr , "\n") ;
 		}
 	#endif
-	
+
 		ml_write_to_pty( termscr->pty , str , len) ;
+	}
+	else
+	{
+		return ;
 	}
 	
 	if( HAS_ENCODING_LISTENER(termscr,init_encoding_state))
@@ -390,33 +397,6 @@ set_wall_picture(
 
 		return  1 ;
 	}
-}
-
-static void
-font_size_changed(
-	ml_term_screen_t *  termscr
-	)
-{
-	ml_restore_selected_region_color( &termscr->sel) ;
-	exit_backscroll_mode( termscr) ;
-
-	if( HAS_SCROLL_LISTENER(termscr,line_height_changed))
-	{
-		(*termscr->screen_scroll_listener->line_height_changed)(
-			termscr->screen_scroll_listener->self , ml_line_height(termscr->font_man)) ;
-	}
-
-	/* screen will redrawn in window_resized() */
-	ml_window_resize( &termscr->window ,
-		ml_col_width((termscr)->font_man) * ml_image_get_cols( termscr->image) ,
-		ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image) ,
-		NOTIFY_TO_PARENT) ;
-	
-	ml_window_set_normal_hints( &termscr->window ,
-		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man) ,
-		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man)) ;
-		
-	ml_window_reset_font( &termscr->window) ;
 }
 
 static int
@@ -483,7 +463,7 @@ use_bidi(
 {
 	if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
 		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
-		== ML_UTF8)
+			== ML_UTF8)
 	{
 		ml_image_use_bidi( &termscr->normal_image) ;
 		ml_image_use_bidi( &termscr->alt_image) ;
@@ -653,6 +633,41 @@ window_deleted(
 }
 
 
+static void
+font_size_changed(
+	ml_term_screen_t *  termscr
+	)
+{
+	ml_restore_selected_region_color( &termscr->sel) ;
+	exit_backscroll_mode( termscr) ;
+
+	if( HAS_SCROLL_LISTENER(termscr,line_height_changed))
+	{
+		(*termscr->screen_scroll_listener->line_height_changed)(
+			termscr->screen_scroll_listener->self , ml_line_height(termscr->font_man)) ;
+	}
+
+	/* screen will redrawn in window_resized() */
+	ml_window_resize( &termscr->window ,
+		ml_col_width((termscr)->font_man) * ml_image_get_cols( termscr->image) ,
+		ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image) ,
+		NOTIFY_TO_PARENT) ;
+	
+	ml_window_set_normal_hints( &termscr->window ,
+		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man) ,
+		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man)) ;
+		
+	ml_window_reset_font( &termscr->window) ;
+
+	/*
+	 * !! Notice !!
+	 * ml_window_resize() will invoke ConfigureNotify event but window_resized() won't be
+	 * called , since xconfigure.width , xconfigure.height are the same as the already
+	 * resized window.
+	 */
+	window_resized( &termscr->window) ;
+}
+
 /*
  * callbacks of ml_config_menu_event events.
  */
@@ -809,6 +824,19 @@ change_char_combining_flag(
 }
 
 static void
+change_prefer_utf8_selection_flag(
+	void *  p ,
+	int  flag
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+	
+	termscr->prefer_utf8_selection = flag ;
+}
+
+static void
 change_pre_conv_xct_to_ucs_flag(
 	void *  p ,
 	int  flag
@@ -819,6 +847,19 @@ change_pre_conv_xct_to_ucs_flag(
 	termscr = p ;
 	
 	termscr->pre_conv_xct_to_ucs = flag ;
+}
+
+static void
+change_auto_detect_utf8_selection_flag(
+	void *  p ,
+	int  flag
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+	
+	termscr->auto_detect_utf8_selection = flag ;
 }
 
 static void
@@ -1079,82 +1120,35 @@ config_menu(
 		termscr->font_man->font_custom->min_font_size ,
 		termscr->font_man->font_custom->max_font_size ,
 		termscr->mod_meta_mode , termscr->bel_mode ,
-		ml_is_char_combining() , termscr->pre_conv_xct_to_ucs ,
+		ml_is_char_combining() , termscr->prefer_utf8_selection ,
+		termscr->pre_conv_xct_to_ucs , termscr->auto_detect_utf8_selection ,
 		termscr->window.is_transparent , termscr->is_aa , termscr->use_bidi ,
 		ml_xic_get_xim_name( &termscr->window) , kik_get_locale()) ;
 }
 
 static int
-paste_xct(
-	ml_term_screen_t *  termscr ,
-	u_char *  str ,
-	size_t  len
+is_auto_detected_utf8_selection(
+	ml_term_screen_t *  termscr
 	)
 {
-#ifdef  __DEBUG
+	ml_char_encoding_t  encoding ;
+
+	if( ! termscr->auto_detect_utf8_selection)
 	{
-		int  i ;
-
-		kik_debug_printf( KIK_DEBUG_TAG " pasting str: ") ;
-		for( i = 0 ; i < len ; i ++)
-		{
-			fprintf( stderr , "%.2x " , str[i]) ;
-		}
-		fprintf( stderr , "\n") ;
-	}
-#endif
-
-	if( termscr->pre_conv_xct_to_ucs)
-	{
-		/* XCOMPOUND TEXT -> UCS -> CURRENT ENCODING */
-		
-		u_char  conv_buf[128] ;
-		size_t  filled_len ;
-
-		(*termscr->xct_parser->init)( termscr->xct_parser) ;
-		(*termscr->xct_parser->set_str)( termscr->xct_parser , str , len) ;
-		
-		(*termscr->utf8_conv->init)( termscr->utf8_conv) ;
-
-		while( ! termscr->xct_parser->is_eos)
-		{
-			if( ( filled_len = (*termscr->utf8_conv->convert)(
-				termscr->utf8_conv , conv_buf , sizeof( conv_buf) ,
-				termscr->xct_parser)) == 0)
-			{
-				break ;
-			}
-
-			write_to_pty( termscr , conv_buf , filled_len , termscr->utf8_parser) ;
-		}
-	}
-	else
-	{
-		write_to_pty( termscr , str , len , termscr->xct_parser) ;
-	}
-
-	return  1 ;
-}
-
-static int
-paste_utf8(
-	ml_term_screen_t *  termscr ,
-	u_char *  str ,
-	size_t  len
-	)
-{
-	if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
-		termscr->encoding_listener->current_encoding( termscr->encoding_listener->self)
-		== ML_UTF8)
-	{
-		write_to_pty( termscr , str , len , NULL) ;
-	}
-	else
-	{
-		write_to_pty( termscr , str , len , termscr->utf8_parser) ;
+		return  0 ;
 	}
 	
-	return  1 ;
+	if( HAS_ENCODING_LISTENER(termscr,current_encoding))
+	{
+		encoding = (*termscr->encoding_listener->current_encoding)(
+			termscr->encoding_listener->self) ;
+	}
+	else
+	{
+		encoding = ML_UNKNOWN_ENCODING ;
+	}
+
+	return  IS_UTF8_SUBSET_ENCODING(encoding) ;
 }
 
 static size_t
@@ -1253,50 +1247,21 @@ yank_event_received(
 	Time  time
 	)
 {
-	if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
-		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
-		== ML_UTF8)
+	if( termscr->sel.is_owner)
 	{
-		if( termscr->sel.is_owner)
-		{
-			u_char *  utf8_str ;
-			size_t  utf8_len ;
-			size_t  filled_len ;
+		(*termscr->ml_str_parser->init)( termscr->ml_str_parser) ;
+		ml_str_parser_set_str( termscr->ml_str_parser ,
+			termscr->sel.sel_str , termscr->sel.sel_len) ;
+		
+		write_to_pty( termscr , NULL , 0 , termscr->ml_str_parser) ;
 
-			utf8_len = termscr->sel.sel_len * UTF8_MAX_CHAR_SIZE ;
-
-			if( ( utf8_str = alloca( utf8_len)) == NULL)
-			{
-				return  0 ;
-			}
-
-			filled_len = convert_selection_to_utf8( termscr , utf8_str , utf8_len) ;
-
-			return  paste_utf8( termscr , utf8_str , filled_len) ;
-		}
-		else
-		{
-			return  ml_window_utf8_selection_request( &termscr->window , time) ;
-		}
+		return  1 ;
 	}
 	else
 	{
-		if( termscr->sel.is_owner)
+		if( termscr->prefer_utf8_selection || is_auto_detected_utf8_selection(termscr))
 		{
-			u_char *  xct_str ;
-			size_t  xct_len ;
-			size_t  filled_len ;
-
-			xct_len = termscr->sel.sel_len * XCT_MAX_CHAR_SIZE ;
-
-			if( ( xct_str = alloca( xct_len)) == NULL)
-			{
-				return  0 ;
-			}
-
-			filled_len = convert_selection_to_xct( termscr , xct_str , xct_len) ;
-
-			return  paste_xct( termscr , xct_str , filled_len) ;
+			return  ml_window_utf8_selection_request( &termscr->window , time) ;
 		}
 		else
 		{
@@ -1746,7 +1711,7 @@ key_pressed(
 }
 
 static void
-selection_request_failed(
+utf8_selection_request_failed(
 	ml_window_t *  win ,
 	XSelectionEvent *  event
 	)
@@ -1755,14 +1720,8 @@ selection_request_failed(
 
 	termscr = (ml_term_screen_t*) win ;
 	
-	if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
-		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
-		== ML_UTF8)
-	{
-		/* UTF8_STRING selection request failed. retrying with XCOMPOUND_TEXT */
-		
-		ml_window_xct_selection_request( &termscr->window , event->time) ;
-	}
+	/* UTF8_STRING selection request failed. retrying with XCOMPOUND_TEXT */
+	ml_window_xct_selection_request( &termscr->window , event->time) ;
 }
 
 static void
@@ -1828,14 +1787,10 @@ utf8_selection_requested(
 
 	termscr = (ml_term_screen_t*) win ;
 
-	if( termscr->sel.sel_str == NULL ||
-		! HAS_ENCODING_LISTENER(termscr,current_encoding) ||
-		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
-		!= ML_UTF8)
-	{
-		ml_window_send_selection( win , event , NULL , 0 , 0) ;
-	}
-	else
+	if( termscr->sel.sel_str &&
+		(termscr->prefer_utf8_selection || is_auto_detected_utf8_selection( termscr) ||
+		(! HAS_ENCODING_LISTENER(termscr,current_encoding) &&
+		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self) != ML_UTF8)))
 	{
 		u_char *  utf8_str ;
 		size_t  utf8_len ;
@@ -1852,34 +1807,82 @@ utf8_selection_requested(
 
 		ml_window_send_selection( win , event , utf8_str , filled_len , type) ;
 	}
+	else
+	{
+		/* rejecting */
+		
+		ml_window_send_selection( win , event , NULL , 0 , 0) ;
+	}
 }
 
 static void
 xct_selection_notified(
 	ml_window_t *  win ,
 	u_char *  str ,
-	size_t  str_len
+	size_t  len
 	)
 {
 	ml_term_screen_t *  termscr ;
 
 	termscr = (ml_term_screen_t*) win ;
 
-	paste_xct( termscr , str , str_len) ;
+#ifdef  __DEBUG
+	{
+		int  i ;
+
+		kik_debug_printf( KIK_DEBUG_TAG " pasting str: ") ;
+		for( i = 0 ; i < len ; i ++)
+		{
+			fprintf( stderr , "%.2x " , str[i]) ;
+		}
+		fprintf( stderr , "\n") ;
+	}
+#endif
+
+	if( termscr->pre_conv_xct_to_ucs || is_auto_detected_utf8_selection( termscr))
+	{
+		/* XCOMPOUND TEXT -> UCS -> CURRENT ENCODING */
+		
+		u_char  conv_buf[512] ;
+		size_t  filled_len ;
+
+		(*termscr->xct_parser->init)( termscr->xct_parser) ;
+		(*termscr->xct_parser->set_str)( termscr->xct_parser , str , len) ;
+		
+		(*termscr->utf8_conv->init)( termscr->utf8_conv) ;
+
+		while( ! termscr->xct_parser->is_eos)
+		{
+			if( ( filled_len = (*termscr->utf8_conv->convert)(
+				termscr->utf8_conv , conv_buf , sizeof( conv_buf) ,
+				termscr->xct_parser)) == 0)
+			{
+				break ;
+			}
+
+			write_to_pty( termscr , conv_buf , filled_len , termscr->utf8_parser) ;
+		}
+	}
+	else
+	{
+		write_to_pty( termscr , str , len , termscr->xct_parser) ;
+	}
+
+	return ;
 }
 
 static void
 utf8_selection_notified(
 	ml_window_t *  win ,
 	u_char *  str ,
-	size_t  str_len
+	size_t  len
 	)
 {
 	ml_term_screen_t *  termscr ;
 
 	termscr = (ml_term_screen_t*) win ;
 
-	paste_utf8( termscr , str , str_len) ;
+	write_to_pty( termscr , str , len , termscr->utf8_parser) ;
 }
 
 static void
@@ -2882,7 +2885,9 @@ ml_term_screen_new(
 	int  xim_open_in_startup ,
 	ml_mod_meta_mode_t  mod_meta_mode ,
 	ml_bel_mode_t  bel_mode ,
+	int  prefer_utf8_selection ,
 	int  pre_conv_xct_to_ucs ,
+	int  auto_detect_utf8_selection ,
 	char *  pic_file_path ,
 	int  use_transbg ,
 	int  is_aa ,
@@ -2984,7 +2989,8 @@ ml_term_screen_new(
 	termscr->window.utf8_selection_requested = utf8_selection_requested ;
 	termscr->window.xct_selection_notified = xct_selection_notified ;
 	termscr->window.utf8_selection_notified = utf8_selection_notified ;
-	termscr->window.selection_request_failed = selection_request_failed ;
+	termscr->window.xct_selection_request_failed = NULL ;
+	termscr->window.utf8_selection_request_failed = utf8_selection_request_failed ;
 	termscr->window.window_deleted = window_deleted ;
 
 	if( use_transbg)
@@ -3087,7 +3093,11 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_mod_meta_mode = change_mod_meta_mode ;
 	termscr->config_menu_listener.change_bel_mode = change_bel_mode ;
 	termscr->config_menu_listener.change_char_combining_flag = change_char_combining_flag ;
+	termscr->config_menu_listener.change_prefer_utf8_selection_flag =
+		change_prefer_utf8_selection_flag ;
 	termscr->config_menu_listener.change_pre_conv_xct_to_ucs_flag = change_pre_conv_xct_to_ucs_flag ;
+	termscr->config_menu_listener.change_auto_detect_utf8_selection_flag =
+		change_auto_detect_utf8_selection_flag ;
 	termscr->config_menu_listener.change_transparent_flag = change_transparent_flag ;
 	termscr->config_menu_listener.change_aa_flag = change_aa_flag ;
 	termscr->config_menu_listener.change_bidi_flag = change_bidi_flag ;
@@ -3129,8 +3139,6 @@ ml_term_screen_new(
 		goto  error ;
 	}
 
-	termscr->pre_conv_xct_to_ucs = pre_conv_xct_to_ucs ;
-
 	/*
 	 * for sending selection
 	 */
@@ -3156,6 +3164,10 @@ ml_term_screen_new(
 	{
 		goto  error ;
 	}
+
+	termscr->prefer_utf8_selection = prefer_utf8_selection ;
+	termscr->pre_conv_xct_to_ucs = pre_conv_xct_to_ucs ;
+	termscr->auto_detect_utf8_selection = auto_detect_utf8_selection ;
 
 	termscr->encoding_listener = NULL ;
 	termscr->system_listener = NULL ;
@@ -4101,9 +4113,9 @@ ml_term_screen_resize_columns(
 
 	/*
 	 * !! Notice !!
-	 * ml_window_resize() invokes ConfigureNotify event and window_resized() will be called,
-	 * but ml_term_screen_resize_columns() is called in ml_vt100_parser , so X Events
-	 * may not be received for a while.
+	 * ml_window_resize() will invoke ConfigureNotify event but window_resized() won't be
+	 * called , since xconfigure.width , xconfigure.height are the same as the already
+	 * resized window.
 	 */
 	window_resized( &termscr->window) ;
 

@@ -189,7 +189,7 @@ ml_parser_new(
 	ml_char_encoding_t  encoding
 	)
 {
-	if( encoding < 0 || MAX_ENCODINGS <= encoding ||
+	if( encoding < 0 || MAX_CHAR_ENCODINGS <= encoding ||
 		encoding_table[encoding].encoding != encoding)
 	{
 	#ifdef  DEBUG
@@ -207,7 +207,7 @@ ml_conv_new(
 	ml_char_encoding_t  encoding
 	)
 {
-	if( encoding < 0 || MAX_ENCODINGS <= encoding ||
+	if( encoding < 0 || MAX_CHAR_ENCODINGS <= encoding ||
 		encoding_table[encoding].encoding != encoding)
 	{
 	#ifdef  DEBUG

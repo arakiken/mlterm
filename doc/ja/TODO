@@ -5,8 +5,6 @@ comment $Id$
 
 * reverse wraparound機能を実装 (需要ある?)
 
-* DEC PrivateMode Restore/Save (何これ?)
-
 * 文字コード変換テーブルを外してコンパイルできるようにする。
 
 * DEC_SPECIALは、XDrawLineを使い、フォントは使用せずに表示する。

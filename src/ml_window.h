@@ -131,7 +131,8 @@ typedef struct  ml_window
 	void (*utf8_selection_requested)( struct ml_window * , XSelectionRequestEvent * , Atom) ;
 	void (*xct_selection_notified)( struct ml_window * , u_char * , size_t) ;
 	void (*utf8_selection_notified)( struct ml_window * , u_char * , size_t) ;
-	void (*selection_request_failed)( struct ml_window * , XSelectionEvent *) ;
+	void (*xct_selection_request_failed)( struct ml_window * , XSelectionEvent *) ;
+	void (*utf8_selection_request_failed)( struct ml_window * , XSelectionEvent *) ;
 	void (*window_deleted)( struct ml_window *) ;
 	
 } ml_window_t ;
