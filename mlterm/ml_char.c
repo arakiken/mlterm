@@ -16,17 +16,17 @@
  * Internal size representation is as follows.
  * 0x0 = size 1 , 0x1 = size 2 , 0x2 = size 3 , 0x3 = size 4.
  */
-#define  SIZE(attr) ((((attr) >> 27) & 0x3) + 1)
+#define  SIZE(attr) ((((attr) >> 28) & 0x3) + 1)
 
-#define  CHARSET(attr)  (((attr) >> 16) & 0x7ff)
+#define  CHARSET(attr)  (((attr) >> 17) & 0x7ff)
 
-#define  IS_BIWIDTH(attr)  (((attr) >> 15) & 0x1)
+#define  IS_BIWIDTH(attr)  (((attr) >> 16) & 0x1)
 
-#define  COMB_SIZE(attr)  (((attr) >> 12) & 0x7)
+#define  IS_REVERSED(attr)  (((attr) >> 15) & 0x1)
 
-#define  SET_COMB_SIZE(attr,size)  ((attr) = (((attr) & 0xffff8fff) | ((size) << 12)))
+#define  REVERSE_COLOR(attr) ((attr) |= (0x1 << 15))
 
-#define  IS_COMB(attr)  (((attr) >> 11) & 0x1)
+#define  RESTORE_COLOR(attr) ((attr) &= ~(0x1 << 15))
 
 /*
  * !! Notice !!
@@ -43,28 +43,33 @@
 	((color) = ((color) == 0x8 ? ML_FG_COLOR : \
 		(color) == 0x9 ? ML_BG_COLOR : (color)))
 	
-#define  FG_COLOR(attr)  (((attr) >> 7) & 0xf)
+#define  FG_COLOR(attr)  (((attr) >> 11) & 0xf)
 
-#define  SET_FG_COLOR(attr,color)  ((attr) = (((attr) & 0xfffff87f) | ((color) << 7)))
+#define  SET_FG_COLOR(attr,color)  ((attr) = (((attr) & 0xffff87ff) | ((color) << 11)))
 
-#define  BG_COLOR(attr)  (((attr) >> 3) & 0xf)
+#define  BG_COLOR(attr)  (((attr) >> 7) & 0xf)
 
-#define  SET_BG_COLOR(attr,color)  ((attr) = (((attr) & 0xffffff87) | ((color) << 3)))
+#define  SET_BG_COLOR(attr,color)  ((attr) = (((attr) & 0xfffff87f) | ((color) << 7)))
 
-#define  IS_BOLD(attr)  (((attr) >> 2) & 0x1)
+#define  IS_BOLD(attr)  (((attr) >> 6) & 0x1)
 
-#define  IS_UNDERLINED(attr)  (((attr) >> 1) & 0x1)
+#define  IS_UNDERLINED(attr)  (((attr) >> 5) & 0x1)
 
-#define  IS_REVERSED(attr)  ((attr) & 0x1)
+#define  COMB_SIZE(attr)  (((attr) >> 2) & 0x7)
 
-#define  REVERSE_COLOR(attr) ((attr) |= 0x1)
+#define  SET_COMB_SIZE(attr,size)  ((attr) = (((attr) & 0xffffffe3) | ((size) << 2)))
 
-#define  RESTORE_COLOR(attr) ((attr) &= ~0x1)
+#define  IS_COMB(attr)  (((attr) >> 1) & 0x2)
 
-#define  COMPOUND_ATTR(size,charset,is_biwidth,comb_size,is_comb,fg_color,bg_color,is_bold,is_underlined,is_reversed) \
-	( ((size - 1) << 27) | ((charset) << 16) | ((is_biwidth) << 15) | \
-	((comb_size) << 12) | ((is_comb) << 11) | ((fg_color) << 7) | \
-	((bg_color) << 3) | ((is_bold) << 2) | ((is_underlined) << 1) | (is_reversed) )
+#define  IS_SINGLE_CH(attr)  ((attr) & 0x1)
+
+#define  USE_MULTI_CH(attr)  ((attr) &= 0xfffffffe)
+
+#define  COMPOUND_ATTR(size,charset,is_biwidth,fg_color,bg_color,is_bold,is_underlined,is_comb) \
+	( ((size - 1) << 28) | ((charset) << 17) | ((is_biwidth) << 16) | \
+	((0x0) << 15) | ((fg_color) << 11) | ((bg_color) << 7) | \
+	((is_bold) << 6) | ((is_underlined) << 5) | (0x0 << 2) | \
+	(is_comb << 1) | 0x1 )
 
 
 /* --- static variables --- */
@@ -120,7 +125,12 @@ ml_str_init(
 	u_int  size
 	)
 {
-	memset( str , 0 , sizeof( ml_char_t) * size) ;
+	int  count ;
+
+	for( count = 0 ; count < size ; count ++)
+	{
+		ml_char_init( str ++) ;
+	}
 
 	return  1 ;
 }
@@ -331,6 +341,9 @@ ml_char_init(
 	)
 {
 	memset( ch , 0 , sizeof( ml_char_t)) ;
+	
+	/* u.ch.is_single_ch is true */
+	ch->u.ch.attr = 0x1 ;
 
 	return  1 ;
 }
@@ -340,7 +353,7 @@ ml_char_final(
 	ml_char_t *  ch
 	)
 {
-	if( COMB_SIZE(ch->attr) > 0)
+	if( ! IS_SINGLE_CH(ch->u.ch.attr))
 	{
 		free( ch->u.multi_ch) ;
 	}
@@ -364,13 +377,14 @@ ml_char_set(
 {
 	ml_char_final( ch) ;
 
-	memcpy( ch->u.bytes , bytes , size) ;
-	memset( ch->u.bytes + size , 0 , MAX_CHAR_SIZE - size) ;
+	memcpy( ch->u.ch.bytes , bytes , size) ;
+	memset( ch->u.ch.bytes + size , 0 , MAX_CHAR_SIZE - size) ;
 
 	INTERN_COLOR(fg_color) ;
 	INTERN_COLOR(bg_color) ;
 	
-	ch->attr = COMPOUND_ATTR(size,cs,is_biwidth,0,is_comb,fg_color,bg_color,is_bold,is_underlined,0) ;
+	ch->u.ch.attr =
+		COMPOUND_ATTR(size,cs,is_biwidth,fg_color,bg_color,is_bold,is_underlined,is_comb) ;
 
 	return  1 ;
 }
@@ -392,12 +406,12 @@ ml_char_combine(
 	ml_char_t *  multi_ch ;
 	u_int  comb_size ;
 
-	if( ! use_char_combining || COMB_SIZE(ch->attr) >= MAX_COMB_SIZE)
+	if( ! use_char_combining)
 	{
 		return  0 ;
 	}
-	
-	if( COMB_SIZE(ch->attr) == 0)
+
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
 		if( ( multi_ch = malloc( sizeof( ml_char_t) * 2)) == NULL)
 		{
@@ -408,11 +422,19 @@ ml_char_combine(
 			return  0 ;
 		}
 
+		if( sizeof( multi_ch) == 8 && ((int)( multi_ch) & 0x1) != 0)
+		{
+			kik_msg_printf( "Your malloc() doesn't return 2 byte aligned address."
+			                "Character combining is not supported.\n") ;
+
+			return  0 ;
+		}
+
 		ml_str_init( multi_ch , 2) ;
 
-		ml_char_copy( &multi_ch[0] , ch) ;
+		ml_char_copy( multi_ch , ch) ;
 
-		if( ml_char_set( &multi_ch[1] , bytes , size , cs , is_biwidth , is_comb ,
+		if( ml_char_set( multi_ch + 1 , bytes , size , cs , is_biwidth , is_comb ,
 			fg_color , bg_color , is_bold , is_underlined) == 0)
 		{
 			return  0 ;
@@ -422,13 +444,24 @@ ml_char_combine(
 	}
 	else
 	{
-		comb_size = COMB_SIZE(ch->attr) ;
+		if( ( comb_size = COMB_SIZE(ch->u.multi_ch->u.ch.attr)) >= MAX_COMB_SIZE)
+		{
+			return  0 ;
+		}
 		
 		if( ( multi_ch = realloc( ch->u.multi_ch , sizeof( ml_char_t) * (comb_size + 2))) == NULL)
 		{
 			return  0 ;
 		}
 
+		if( sizeof( multi_ch) == 8 && ((int)( multi_ch) & 0x1) != 0)
+		{
+			kik_msg_printf( "Your malloc() doesn't return 2 bytes aligned address."
+			                "Character combining is not supported.\n") ;
+
+			return  0 ;
+		}
+		
 		ml_char_init( &multi_ch[comb_size + 1]) ;
 
 		if( ml_char_set( &multi_ch[comb_size + 1] , bytes , size , cs , is_biwidth , is_comb ,
@@ -440,9 +473,10 @@ ml_char_combine(
 		comb_size ++ ;
 	}
 
-	ch->u.multi_ch = multi_ch ;
+	SET_COMB_SIZE(multi_ch->u.ch.attr,comb_size) ;
 
-	SET_COMB_SIZE(ch->attr,comb_size) ;
+	ch->u.multi_ch = multi_ch ;
+	USE_MULTI_CH(ch->u.ch.attr) ;
 
 	return  1 ;
 }
@@ -453,10 +487,11 @@ ml_combine_chars(
 	ml_char_t *  comb
 	)
 {
-	return  ml_char_combine( ch , ml_char_bytes( comb) , SIZE(comb->attr) , CHARSET(comb->attr) ,
-			IS_BIWIDTH(comb->attr) , IS_COMB(comb->attr) ,
-			FG_COLOR(comb->attr) , BG_COLOR(comb->attr) ,
-			IS_BOLD(comb->attr) , IS_UNDERLINED(comb->attr)) ;
+	return  ml_char_combine( ch , ml_char_bytes( comb) , SIZE(comb->u.ch.attr) ,
+			CHARSET(comb->u.ch.attr) ,
+			IS_BIWIDTH(comb->u.ch.attr) , IS_COMB(comb->u.ch.attr) ,
+			FG_COLOR(comb->u.ch.attr) , BG_COLOR(comb->u.ch.attr) ,
+			IS_BOLD(comb->u.ch.attr) , IS_UNDERLINED(comb->u.ch.attr)) ;
 }
 
 inline ml_char_t *
@@ -464,13 +499,13 @@ ml_get_base_char(
 	ml_char_t *  ch
 	)
 {
-	if( COMB_SIZE(ch->attr) > 0)
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  &ch->u.multi_ch[0] ;
+		return  ch ;
 	}
 	else
 	{
-		return  ch ;
+		return  ch->u.multi_ch ;
 	}
 }
 
@@ -480,13 +515,17 @@ ml_get_combining_chars(
 	u_int *  size
 	)
 {
-	if( ( *size = COMB_SIZE(ch->attr)) > 0)
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  &ch->u.multi_ch[1] ;
+		*size = 0 ;
+
+		return  NULL ;
 	}
 	else
 	{
-		return  NULL ;
+		*size = COMB_SIZE(ch->u.multi_ch->u.ch.attr) ;
+
+		return  ch->u.multi_ch + 1 ;
 	}
 }
 
@@ -524,11 +563,14 @@ ml_char_copy(
 
 	memcpy( dst , src , sizeof( ml_char_t)) ;
 
-	if( COMB_SIZE(src->attr) > 0)
+	if( ! IS_SINGLE_CH(src->u.ch.attr))
 	{
 		ml_char_t *  multi_ch ;
+		u_int  comb_size ;
+
+		comb_size = COMB_SIZE(src->u.multi_ch->u.ch.attr) ;
 		
-		if( ( multi_ch = malloc( sizeof( ml_char_t) * (COMB_SIZE(src->attr) + 1))) == NULL)
+		if( ( multi_ch = malloc( sizeof( ml_char_t) * (comb_size + 1))) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " failed to malloc.\n") ;
@@ -537,9 +579,10 @@ ml_char_copy(
 			return  0 ;
 		}
 
-		memcpy( multi_ch , src->u.multi_ch , sizeof( ml_char_t) * (COMB_SIZE(src->attr) + 1)) ;
+		memcpy( multi_ch , src->u.multi_ch , sizeof( ml_char_t) * (comb_size + 1)) ;
 
 		dst->u.multi_ch = multi_ch ;
+		USE_MULTI_CH(dst->u.ch.attr) ;
 	}
 	
 	return  1 ;
@@ -550,13 +593,28 @@ ml_char_bytes(
 	ml_char_t *  ch
 	)
 {
-	if( COMB_SIZE(ch->attr) > 0)
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  ch->u.multi_ch[0].u.bytes ;
+		return  ch->u.ch.bytes ;
 	}
 	else
 	{
-		return  ch->u.bytes ;
+		return  ml_char_bytes( ch->u.multi_ch) ;
+	}
+}
+
+inline size_t
+ml_char_size(
+	ml_char_t *  ch
+	)
+{
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		return  SIZE(ch->u.ch.attr) ;
+	}
+	else
+	{
+		return  ml_char_size( ch->u.multi_ch) ;
 	}
 }
 
@@ -566,24 +624,16 @@ ml_char_set_bytes(
 	u_char *  bytes
 	)
 {
-	if( COMB_SIZE(ch->attr) > 0)
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		ml_char_set_bytes( &ch->u.multi_ch[0] , bytes) ;
+		memcpy( ch->u.ch.bytes , bytes , SIZE(ch->u.ch.attr)) ;
 	}
 	else
 	{
-		memcpy( ch->u.bytes , bytes , SIZE(ch->attr)) ;
+		ml_char_set_bytes( ch->u.multi_ch , bytes) ;
 	}
 	
 	return  1 ;
-}
-
-inline size_t
-ml_char_size(
-	ml_char_t *  ch
-	)
-{
-	return  SIZE(ch->attr) ;
 }
 
 inline mkf_charset_t
@@ -591,7 +641,14 @@ ml_char_cs(
 	ml_char_t *  ch
 	)
 {
-	return  CHARSET(ch->attr) ;
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		return  CHARSET(ch->u.ch.attr) ;
+	}
+	else
+	{
+		return  ml_char_cs( ch->u.multi_ch) ;
+	}
 }
 
 inline ml_font_t
@@ -599,21 +656,28 @@ ml_char_font(
 	ml_char_t *  ch
 	)
 {
-	ml_font_t  font ;
-
-	font = CHARSET(ch->attr) ;
-
-	if( IS_BOLD(ch->attr))
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		font |= FONT_BOLD ;
-	}
+		ml_font_t  font ;
 
-	if( IS_BIWIDTH(ch->attr))
+		font = CHARSET(ch->u.ch.attr) ;
+
+		if( IS_BOLD(ch->u.ch.attr))
+		{
+			font |= FONT_BOLD ;
+		}
+
+		if( IS_BIWIDTH(ch->u.ch.attr))
+		{
+			font |= FONT_BIWIDTH ;
+		}
+
+		return  font ;
+	}
+	else
 	{
-		font |= FONT_BIWIDTH ;
+		return  ml_char_font( ch->u.multi_ch) ;
 	}
-
-	return  font ;
 }
 
 inline u_int
@@ -639,7 +703,14 @@ ml_char_is_biwidth(
 	ml_char_t *  ch
 	)
 {
-	return  IS_BIWIDTH(ch->attr) || IS_BIWIDTH_CS( CHARSET(ch->attr)) ;
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		return  IS_BIWIDTH(ch->u.ch.attr) || IS_BIWIDTH_CS( CHARSET(ch->u.ch.attr)) ;
+	}
+	else
+	{
+		return  ml_char_is_biwidth( ch->u.multi_ch) ;
+	}
 }
 
 inline int
@@ -647,7 +718,14 @@ ml_char_is_comb(
 	ml_char_t *  ch
 	)
 {
-	return  IS_COMB(ch->attr) ;
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		return  IS_COMB(ch->u.ch.attr) ;
+	}
+	else
+	{
+		return  ml_char_is_comb( ch->u.multi_ch) ;
+	}
 }
 
 inline ml_color_t
@@ -655,25 +733,32 @@ ml_char_fg_color(
 	ml_char_t *  ch
 	)
 {
-	ml_color_t  color ;
-	
-	if( IS_REVERSED(ch->attr))
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		color = BG_COLOR(ch->attr) ;
+		ml_color_t  color ;
+
+		if( IS_REVERSED(ch->u.ch.attr))
+		{
+			color = BG_COLOR(ch->u.ch.attr) ;
+		}
+		else
+		{
+			color = FG_COLOR(ch->u.ch.attr) ;
+		}
+
+		EXTERN_COLOR(color) ;
+
+		if( color < MAX_VT_COLORS && IS_BOLD(ch->u.ch.attr))
+		{
+			color |= ML_BOLD_COLOR_MASK ;
+		}
+
+		return  color ;
 	}
 	else
 	{
-		color = FG_COLOR(ch->attr) ;
+		return  ml_char_fg_color( ch->u.multi_ch) ;
 	}
-
-	EXTERN_COLOR(color) ;
-
-	if( color < MAX_VT_COLORS && IS_BOLD(ch->attr))
-	{
-		color |= ML_BOLD_COLOR_MASK ;
-	}
-
-	return  color ;
 }
 
 inline int
@@ -682,21 +767,25 @@ ml_char_set_fg_color(
 	ml_color_t  color
 	)
 {
-	if( COMB_SIZE(ch->attr) > 0)
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		INTERN_COLOR(color) ;
+
+		SET_FG_COLOR(ch->u.ch.attr,color) ;
+
+		return  1 ;
+	}
+	else
 	{
 		int  count ;
 
-		for( count = 0 ; count < COMB_SIZE(ch->attr) + 1 ; count ++)
+		for( count = 0 ; count < COMB_SIZE(ch->u.multi_ch->u.ch.attr) + 1 ; count ++)
 		{
-			ml_char_set_fg_color( &ch->u.multi_ch[count] , color) ;
+			ml_char_set_fg_color( ch->u.multi_ch + count , color) ;
 		}
+
+		return  1 ;
 	}
-
-	INTERN_COLOR(color) ;
-	
-	SET_FG_COLOR(ch->attr,color) ;
-
-	return  1 ;
 }
 
 inline ml_color_t
@@ -704,20 +793,27 @@ ml_char_bg_color(
 	ml_char_t *  ch
 	)
 {
-	ml_color_t  color ;
-	
-	if( IS_REVERSED(ch->attr))
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		color = FG_COLOR(ch->attr) ;
+		ml_color_t  color ;
+
+		if( IS_REVERSED(ch->u.ch.attr))
+		{
+			color = FG_COLOR(ch->u.ch.attr) ;
+		}
+		else
+		{
+			color = BG_COLOR(ch->u.ch.attr) ;
+		}
+
+		EXTERN_COLOR(color) ;
+
+		return  color ;
 	}
 	else
 	{
-		color = BG_COLOR(ch->attr) ;
+		return  ml_char_bg_color( ch->u.multi_ch) ;
 	}
-
-	EXTERN_COLOR(color) ;
-	
-	return  color ;
 }
 
 inline int
@@ -726,21 +822,25 @@ ml_char_set_bg_color(
 	ml_color_t  color
 	)
 {
-	if( COMB_SIZE(ch->attr) > 0)
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		INTERN_COLOR(color) ;
+
+		SET_BG_COLOR(ch->u.ch.attr,color) ;
+
+		return  1 ;
+	}
+	else
 	{
 		int  count ;
 
-		for( count = 0 ; count < COMB_SIZE(ch->attr) + 1 ; count ++)
+		for( count = 0 ; count < COMB_SIZE(ch->u.multi_ch->u.ch.attr) + 1 ; count ++)
 		{
-			ml_char_set_bg_color( &ch->u.multi_ch[count] , color) ;
+			ml_char_set_bg_color( ch->u.multi_ch + count , color) ;
 		}
+
+		return  1 ;
 	}
-
-	INTERN_COLOR(color) ;
-
-	SET_BG_COLOR(ch->attr,color) ;
-
-	return  1 ;
 }
 
 inline int
@@ -748,7 +848,14 @@ ml_char_is_underlined(
 	ml_char_t *  ch
 	)
 {
-	return  IS_UNDERLINED(ch->attr) ;
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		return  IS_UNDERLINED(ch->u.ch.attr) ;
+	}
+	else
+	{
+		return  ml_char_is_underlined( ch->u.multi_ch) ;
+	}
 }
 
 inline int
@@ -756,24 +863,28 @@ ml_char_reverse_color(
 	ml_char_t *  ch
 	)
 {
-	if( IS_REVERSED(ch->attr))
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  0 ;
-	}
+		if( IS_REVERSED(ch->u.ch.attr))
+		{
+			return  0 ;
+		}
 
-	if( COMB_SIZE(ch->attr) > 0)
+		REVERSE_COLOR(ch->u.ch.attr) ;
+
+		return  1 ;
+	}
+	else
 	{
 		int  count ;
 
-		for( count = 0 ; count < COMB_SIZE(ch->attr) + 1 ; count ++)
+		for( count = 0 ; count < COMB_SIZE(ch->u.multi_ch->u.ch.attr) + 1 ; count ++)
 		{
-			ml_char_reverse_color( &ch->u.multi_ch[count]) ;
+			ml_char_reverse_color( ch->u.multi_ch + count) ;
 		}
+
+		return  1 ;
 	}
-	
-	REVERSE_COLOR(ch->attr) ;
-		
-	return  1 ;
 }
 
 inline int
@@ -781,24 +892,28 @@ ml_char_restore_color(
 	ml_char_t *  ch
 	)
 {
-	if( ! IS_REVERSED(ch->attr))
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  0 ;
+		if( ! IS_REVERSED(ch->u.ch.attr))
+		{
+			return  0 ;
+		}
+
+		RESTORE_COLOR(ch->u.ch.attr) ;
+
+		return  1 ;
 	}
-	
-	if( COMB_SIZE(ch->attr) > 0)
+	else
 	{
 		int  count ;
 
-		for( count = 0 ; count < COMB_SIZE(ch->attr) + 1 ; count ++)
+		for( count = 0 ; count < COMB_SIZE(ch->u.multi_ch->u.ch.attr) + 1 ; count ++)
 		{
-			ml_char_restore_color( &ch->u.multi_ch[count]) ;
+			ml_char_restore_color( ch->u.multi_ch + count) ;
 		}
-	}
 
-	RESTORE_COLOR(ch->attr) ;
-	
-	return  1 ;
+		return  1 ;
+	}
 }
 
 int
@@ -806,7 +921,14 @@ ml_char_is_null(
 	ml_char_t *  ch
 	)
 {
-	return  (SIZE(ch->attr) == 1 && ch->u.bytes[0] == '\0') ;
+	if( IS_SINGLE_CH( ch->u.ch.attr))
+	{
+		return  (SIZE(ch->u.ch.attr) == 1 && ch->u.ch.bytes[0] == '\0') ;
+	}
+	else
+	{
+		return  ml_char_is_null( ch->u.multi_ch) ;
+	}
 }
 
 /*
@@ -832,15 +954,22 @@ ml_char_bytes_is(
 	mkf_charset_t  cs
 	)
 {
-	if( CHARSET(ch->attr) == cs &&
-		SIZE(ch->attr) == size &&
-		memcmp( ml_char_bytes( ch) , bytes , size) == 0)
+	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  1 ;
+		if( CHARSET(ch->u.ch.attr) == cs &&
+			SIZE(ch->u.ch.attr) == size &&
+			memcmp( ml_char_bytes( ch) , bytes , size) == 0)
+		{
+			return  1 ;
+		}
+		else
+		{
+			return  0 ;
+		}
 	}
 	else
 	{
-		return  0 ;
+		return  ml_char_bytes_is( ch->u.multi_ch , bytes , size , cs) ;
 	}
 }
 
@@ -858,8 +987,8 @@ ml_char_bytes_equal(
 	u_int  comb2_size ;
 	int  count ;
 
-	size1 = SIZE( ch1->attr) ;
-	size2 = SIZE( ch2->attr) ;
+	size1 = ml_char_size( ch1) ;
+	size2 = ml_char_size( ch2) ;
 
 	if( size1 != size2)
 	{
@@ -893,11 +1022,10 @@ ml_char_bytes_equal(
 ml_char_t *
 ml_sp_ch(void)
 {
-	if( sp_ch.attr == 0)
+	if( sp_ch.u.ch.attr == 0)
 	{
 		ml_char_init( &sp_ch) ;
-		ml_char_set( &sp_ch , " " , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR ,
-			0 , 0) ;
+		ml_char_set( &sp_ch , " " , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
 	}
 
 	return  &sp_ch ;
@@ -906,7 +1034,7 @@ ml_sp_ch(void)
 ml_char_t *
 ml_nl_ch(void)
 {
-	if( nl_ch.attr == 0)
+	if( nl_ch.u.ch.attr == 0)
 	{
 		ml_char_init( &nl_ch) ;
 		ml_char_set( &nl_ch , "\n" , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR ,
@@ -965,7 +1093,7 @@ ml_char_dump(
 	else
 	{
 		kik_msg_printf( "!!! unsupported char[0x%.2x len %d] !!!" ,
-			ml_char_bytes(ch)[0] , SIZE(ch->attr)) ;
+			ml_char_bytes(ch)[0] , SIZE(ch->u.ch.attr)) ;
 	}
 #endif
 

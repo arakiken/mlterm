@@ -20,7 +20,7 @@
 
 /*
  * This object size should be kept as small as possible.
- * (ILP32: 64bit) (LP64: 96bit)
+ * (ILP32: 64bit) (LP64: 64bit)
  *
  * [combining state]
  * ml_char_t.u.bytes is invalid.
@@ -33,30 +33,39 @@ typedef struct ml_char
 {
 	union
 	{
-		/* 32 bit */
-		u_char  bytes[MAX_CHAR_SIZE] ;
+		struct
+		{
+			/* 32 bit */
+			u_char  bytes[MAX_CHAR_SIZE] ;
+			
+			/*
+			 * Total 32 bit
+			 * 3 bit : free
+			 * 2 bit : size(0x0 - 0x3)
+			 * 11 bit: charset(0x0 - 0x7ff)
+			 * 1 bit : is_biwidth(0 or 1)
+			 * 1 bit : is_reversed(0 or 1)	... used for X Selection
+			 * 4 bit : fg_color(0x0 - 0xf)
+			 * 4 bit : bg_color(0x0 - 0xf)
+			 * 1 bit : is_bold(0 or 1)
+			 * 1 bit : is_underlined(0 or 1)
+			 * 3 bit : comb_size(0x0 - 0x7)
+			 * 1 bit : is_comb(0 or 1)
+			 * ---
+			 * 1 bit : is_single_ch(0 or 1)
+			 */
+			u_int32_t  attr ;
 
-		/* 32(ILP32) or 64(LP64) bit */
+		} ch ;
+
+		/*
+		 * 32(ILP32) or 64(LP64) bit.
+		 * Least 4 significant bits are considered 0.
+		 */
 		struct ml_char *  multi_ch ;
 
 	} u ;
 	
-	/*
-	 * Total 32 bit
-	 * 4 bit : free
-	 * 2 bit : size(0x0 - 0x3)
-	 * 11 bit: charset(0x0 - 0x7ff)
-	 * 1 bit : is_biwidth(0 or 1)
-	 * 3 bit : comb_size(0x0 - 0x7)
-	 * 1 bit : is_comb(0 or 1)
-	 * 4 bit : fg_color(0x0 - 0xf)
-	 * 4 bit : bg_color(0x0 - 0xf)
-	 * 1 bit : is_bold(0 or 1)
-	 * 1 bit : is_underlined(0 or 1)
-	 * 1 bit : is_reversed(0 or 1)	... used for X Selection
-	 */
-	u_int32_t  attr ;
-
 } ml_char_t ;
 
 
@@ -122,9 +131,9 @@ inline int  ml_char_copy( ml_char_t *  dst , ml_char_t *  src) ;
 
 inline u_char *  ml_char_bytes( ml_char_t *  ch) ;
 
-inline int  ml_char_set_bytes( ml_char_t *  ch , u_char *  bytes) ;
-
 inline size_t  ml_char_size( ml_char_t *  ch) ;
+
+inline int  ml_char_set_bytes( ml_char_t *  ch , u_char *  bytes) ;
 
 inline mkf_charset_t  ml_char_cs( ml_char_t *  ch) ;
 

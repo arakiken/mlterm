@@ -1,3 +1,8 @@
+2003-09-20  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_char.[ch]: ml_char_t is 64bit in LP64 system. LSB 4bits of attr
+	  are always valid even if characters combined.
+
 2003-09-19  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
 
 	* x_dnd.c: code cleanup.
