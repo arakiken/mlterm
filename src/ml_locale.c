@@ -110,7 +110,7 @@ ml_locale_init(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " setlocale() failed.\n") ;
 	#endif
-	
+
 		result = 0 ;
 
 		if( sys_locale)
@@ -123,6 +123,8 @@ ml_locale_init(
 		}
 		else
 		{
+			/* sys_locale is NULL */
+			
 			if( ( locale_p = getenv( "LC_ALL")) == NULL &&
 				( locale_p = getenv( "LC_CTYPE")) == NULL &&
 				( locale_p = getenv( "LANG")) == NULL)
@@ -133,10 +135,9 @@ ml_locale_init(
 	}
 	else
 	{
+		sys_locale = locale_p ;
 		result = 1 ;
 	}
-
-	sys_locale = locale_p ;
 
 	if( ( locale_p = strdup( locale_p)) == NULL)
 	{

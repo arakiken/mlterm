@@ -1,0 +1,15 @@
+comment -*- mode: text -*-
+comment $Id$
+
+mlterm deals with XIM as below.
+
+1. OpenXIM() under certain locale(LC_CTYPE locale or "XIM Locale" field locale in mlconfig)
+2. parser object of the locale codeset is created and bound to the XIM.
+   (see XIM and mkf_parser_t member of ml_xim.h:ml_xim_t) 
+3. text received from XIM is parsed with the parser object bound to it , converted to the 
+   encoding of pty and output to pty.
+
+this enables mlterm to manage the condition that locale when OpenXIM() and pty encoding
+conflict.(e.g. pty encoding is UTF-8 and locale when OpenXIM() is ko_KR.eucKR)
+
+multiple XIM feature bases on this framework.

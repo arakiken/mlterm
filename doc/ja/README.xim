@@ -1,0 +1,20 @@
+comment -*- mode: text -*-
+comment $Id$
+
+mlterm の XIM 処理についてのメモ
+
+mlterm では、XIM からの文字列を処理するにあたって、
+
+1. 指定された locale (起動時の locale or 設定画面で指定した locale)にて、OpenXIM()
+2. その locale の codeset 用の parser object を、その XIM に bind
+   (ml_xim.h:ml_xim_t の XIM , mkf_parser_t メンバ)
+3. XIM から受け取った文字列を、その XIM に bind されている parser object
+   を使って解釈し、pty 側の encoding に変換、出力。
+
+という手順をとっております。
+
+これにより、pty 側の encoding と、XIM 側の locale が、矛盾していても構わない(例
+えば、pty 側が、UTF-8 encoding で、XIM の locale が ko_KR.eucKR でも構わない)よ
+うになっております。
+
+複数の XIM の動的切替えについても、このような枠組を基盤にして実現されております。

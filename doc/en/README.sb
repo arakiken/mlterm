@@ -1,0 +1,87 @@
+comment -*- mode: text -*-
+comment $Id$
+
+This document describes how to implement your own scrollbar.
+
+* general intructions
+  1. implement member functions of ml_sb_view_t.
+  2. compile and make shared library.
+  3. place it in certain directory.
+
+* requirement
+  dl*/sh*() APIs.
+
+* members of ml_sb_view_t.
+  o void (*get_geometry_hints)( struct  ml_sb_view * , unsigned int *  width , 
+        unsigned int *  top_margin , unsigned int *  bottom_margin ,
+        int *  up_button_y , unsigned int *  up_button_height ,
+        int *  down_button_y , unsigned int *  down_button_height) ;
+    this provides geometry info of your scrollbar.
+    (must)
+
+  o void (*get_default_color)( struct ml_sb_view * , char **  fg_color , char **  bg_color) ;
+    this provides default colors of your scrollbar.
+    you can use the same color names as {fg|bg}_color.
+    (recommended)
+    
+  o void (*realized)( struct  ml_sb_view *  , Display * , int , Window , GC , unsigned int  win_height) ;
+    this is invoked just before the Window is mapped.
+    ml_sb_view_t status should be initialized here.
+    Don't forget to set display,screen,window,gc given as arguments to each member of ml_sb_view_t.
+    (must)
+    
+  o void (*resized)( struct  ml_sb_view * , Window , unsigned int  height) ;
+    this is invoked when the height of scrollbar is changed.
+    ml_sb_view_t status should be reset here.
+    Don't forget to set window argument to the member of ml_sb_view_t.
+    (must)
+    
+  o void (*delete)( struct  ml_sb_view *) ;
+    this is invoked when ml_sb_view_t is never used.
+    Free resources you allocaed.
+    (must)
+
+  o void (*draw_decoration)( struct  ml_sb_view *) ;
+    this is invoked when scrollbar decoration should be drawn.
+    (recommended)
+    
+  o void (*draw_scrollbar)( struct  ml_sb_view * , int  bar_top_y , unsigned int  bar_height) ;
+    this is invoked when scrollbar should be drawn.
+    you should draw scrollbar of bar_height from bar_top_y position.
+    (recommended)
+
+  o void (*up_button_pressed)( struct  ml_sb_view *) ;
+  o void (*down_button_pressed)( struct  ml_sb_view *) ;
+  o void (*up_button_released)( struct  ml_sb_view *) ;
+  o void (*down_button_released)( struct  ml_sb_view *) ;
+    these are invoked when up_button or down_button is pressed or released.
+    (recommended)
+  
+* compilation
+  you must name your scrollbar constructor functions as below.
+
+  ml_sb_view_t *  ml_[yourbar]_sb_view_new(void) ;  /* normal version */
+  ml_sb_view_t *  ml_[yourbar]_transparent_sb_view_new(void) ;  /* transparent version */
+
+  you should prepare both normal and transparent versions of your scrollbar.
+  if transparent version is not found , normal version is used under transparent mode.
+
+  Be careful of using static data , which may be shared by multiple ml_sb_view_t objects
+  if more than one pty windows are created.
+
+  you must also name your scrollbar library as below.
+
+  lib[yourbar].so
+
+  when you compile , don't forget to add the directory of ml_sb_view.h to cc -I option 
+  for cpp to find it.
+
+* registration
+  place your scrollbar library to $(PREFIX)/lib/mlterm.
+
+* usage
+  $ mlterm -S "your_sb"
+
+  if your_sb scrollbar is not found , simple scrollbar is used.
+
+* see src/ml_simple_sb_view.[ch],contrib/scrollbar/sample for detail.

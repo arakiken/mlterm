@@ -1,3 +1,10 @@
+[20011203]
+* ml_get_locale() in ml_locale.c returns "C" if setlocale() failed in ml_locale_init().
+* ml_get_xim() in ml_xim.c returns NULL if xim_locale argument is "C" or 
+  ml_locale_init(xim_locale) fails.
+* doc/en/README.sb is added.
+* doc/{ja|en}/README.xim is added.
+
 [20011202]
 * BEL(0x7) is supported and bel_mode option(none/visual/sound) is added.
 * VWERSE typo is fixed.(ml_pty_fork_{streams|bsd}.c)

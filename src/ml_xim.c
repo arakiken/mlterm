@@ -244,6 +244,11 @@ ml_get_xim(
 	char *  xmod ;
 	char *  cur_locale ;
 
+	if( strcmp( xim_locale , "C") == 0)
+	{
+		return  NULL ;
+	}
+
 	/* 4 is the length of "@im=" */
 	if( *xim_name && ( xmod = alloca( 4 + strlen( xim_name) + 1)) != NULL)
 	{
@@ -251,13 +256,26 @@ ml_get_xim(
 
 		if( xim_locale)
 		{
-			cur_locale = strdup( ml_get_locale()) ;
+			cur_locale = ml_get_locale() ;
 
-			if( strcmp( xim_locale , cur_locale) == 0 ||
-				! ml_locale_init( xim_locale))
+			if( strcmp( xim_locale , cur_locale) == 0)
 			{
-				free( cur_locale) ;
+				/* the same locale as current */
 				cur_locale = NULL ;
+			}
+			else
+			{
+				cur_locale = strdup( cur_locale) ;
+				
+				if( ! ml_locale_init( xim_locale))
+				{
+					/* setlocale() failed. restoring */
+
+					ml_locale_init( cur_locale) ;
+					free( cur_locale) ;
+
+					return  NULL ;
+				}
 			}
 			
 			XSetLocaleModifiers(xmod) ;
@@ -270,6 +288,8 @@ ml_get_xim(
 	}
 	else
 	{
+		/* under current locale */
+		
 		xmod = XSetLocaleModifiers("") ;
 		cur_locale = NULL ;
 	}
@@ -291,8 +311,11 @@ ml_get_xim(
 		free( cur_locale) ;
 	}
 	
-	if( xim == NULL && ( xmod = XSetLocaleModifiers("@im=none")) != NULL && *xmod)
+	if( xim == NULL)
 	{
+		xmod = "@im=none" ;
+		XSetLocaleModifiers(xmod) ;
+		
 		if( ! ( xim = search_xim( xmod)))
 		{
 			xim = open_xim( display , xmod) ;
