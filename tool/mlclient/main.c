@@ -11,7 +11,7 @@
 
 /* --- static variables --- */
 
-static char *  options[] =
+static char *  na_options[] =
 {
 	"-K/--maxptys" ,
 	"-P/--ptys" ,
@@ -39,9 +39,9 @@ help(void)
 
 	printf( "Not available options.\n") ;
 
-	for( counter = 0 ; counter < sizeof( options) / sizeof( options[0]) ; counter ++)
+	for( counter = 0 ; counter < sizeof( na_options) / sizeof( na_options[0]) ; counter ++)
 	{
-		printf( " %s\n" , options[counter]) ;
+		printf( " %s\n" , na_options[counter]) ;
 	}
 }
 
