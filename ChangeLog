@@ -1,3 +1,8 @@
+2003-08-05  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_screen.c(receive_scrolled_out_line): Adhoc workaround
+	  to fix strange selection in backscroll mode.
+
 2003-08-03  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* configure.in: I forgot appending '-export-symbol' to DL_LIBS.

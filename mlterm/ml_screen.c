@@ -113,7 +113,20 @@ receive_scrolled_out_line(
 	 */
 	else
 	{
+		/*
+		 * XXX
+		 * Adhoc workaround to fix strange selection in backscroll mode.
+		 */
+	#if  1
+		u_int  num ;
+
+		if( ( num = ml_get_num_of_filled_chars_except_spaces( line)) < line->num_of_filled_chars)
+		{
+			line->num_of_filled_chars = num + 1 ;
+		}
+	#else
 		line->num_of_filled_chars = ml_get_num_of_filled_chars_except_spaces( line) ;
+	#endif
 	}
 #endif
 	
