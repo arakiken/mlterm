@@ -1,3 +1,10 @@
+2003-04-06 Tomohiro KUBOTA <kubota@debian.org>
+
+	* kiklib/src/kik_conf_io.c kik_conf_write_open(): Could not
+	  create config file, which caused [save&exit] button of
+	  mlconfig could not save config if ~/.mlterm/main didn't
+	  exist.
+
 2003-04-06 Araki Ken <arakiken@users.sf.net>
 
 	* Added "cp1251" and "cp1255" encodings.

@@ -7,6 +7,8 @@
 #include  <stdio.h>	/* sprintf */
 #include  <string.h>	/* strlen */
 #include  <stdlib.h>	/* getenv */
+#include  <sys/stat.h>	/* stat */
+#include  <errno.h>
 
 #include  "kik_str.h"	/* kik_str_sep/kik_str_chop_spaces */
 #include  "kik_mem.h"	/* malloc */
@@ -76,6 +78,7 @@ kik_conf_write_open(
 {
 	kik_conf_write_t *  conf ;
 	kik_file_t *  from ;
+	char *  p ;
 
 	if( ( conf = malloc( sizeof( kik_conf_write_t))) == NULL)
 	{
@@ -92,38 +95,59 @@ kik_conf_write_open(
 	conf->num = 0 ;
 	conf->scale = 1 ;
 
-	if( ( from = kik_file_open( name , "r")) == NULL)
+	from = kik_file_open( name , "r") ;
+	if( from)
 	{
-		goto  error ;
+		while( 1)
+		{
+			char *  line ;
+			size_t  len ;
+
+			if( conf->num >= conf->scale * 128)
+			{
+				void *  p ;
+
+				if( ( p = realloc( conf->lines , sizeof( char *) * 128 * (++ conf->scale))) == NULL)
+				{
+					goto  error ;
+				}
+
+				conf->lines = p ;
+			}
+
+			if( ( line = kik_file_get_line( from , &len)) == NULL)
+			{
+				break ;
+			}
+
+			line[len - 1] = '\0' ;
+			conf->lines[conf->num++] = strdup( line) ;
+		}
+
+		kik_file_close( from) ;
 	}
 
-	while( 1)
+	/*
+	 * Prepare directory for creating a configuration file.
+	 */
+	for( p = strchr( name + 1 , '/'); p != NULL; p = strchr(p + 1, '/'))
 	{
-		char *  line ;
-		size_t  len ;
-		
-		if( conf->num >= conf->scale * 128)
+		struct stat s;
+
+		*p = 0 ;
+		if( stat( name , &s) != 0)
 		{
-			void *  p ;
-			
-			if( ( p = realloc( conf->lines , sizeof( char *) * 128 * (++ conf->scale))) == NULL)
+			if( errno == ENOENT)
+			{
+				if( mkdir( name , 0755))  goto  error ;
+			}
+			else
 			{
 				goto  error ;
 			}
-
-			conf->lines = p ;
 		}
-
-		if( ( line = kik_file_get_line( from , &len)) == NULL)
-		{
-			break ;
-		}
-
-		line[len - 1] = '\0' ;
-		conf->lines[conf->num++] = strdup( line) ;
+		*p = '/' ;
 	}
-
-	kik_file_close( from) ;
 	
 	if( ( conf->to = fopen( name , "w")) == NULL)
 	{
