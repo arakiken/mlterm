@@ -242,7 +242,7 @@ find_language_engine(
 				PARSER_INIT_WITH_BOM( parser_utf16) ;
 				im_convert_encoding( parser_utf16 , conv ,
 						     (u_char*) id , &str ,
-						     strlen_utf16( id)) ;
+						     strlen_utf16( id) + 1) ;
 
 				if( strcmp( le_name , str) == 0)
 				{
@@ -456,7 +456,7 @@ preedit_change(
 	PARSER_INIT_WITH_BOM( parser_utf16) ;
 	im_convert_encoding( parser_utf16 , iiimf->conv ,
 			     (u_char*) utf16str , &str ,
-			     strlen_utf16( utf16str)) ;
+			     strlen_utf16( utf16str) + 1) ;
 
 	/*
 	 * count number of characters to re-allocate im.preedit.chars
@@ -819,7 +819,7 @@ lookup_choice_change(
 		PARSER_INIT_WITH_BOM( parser_utf16) ;
 		if( im_convert_encoding( parser_utf16 , iiimf->conv ,
 					 (u_char*)utf16str , &str ,
-					 strlen_utf16( utf16str)))
+					 strlen_utf16( utf16str) + 1))
 		{
 			(*iiimf->im.cand_screen->set)(
 						iiimf->im.cand_screen ,
@@ -932,7 +932,7 @@ atokx_lookup_set(
 		PARSER_INIT_WITH_BOM( parser_utf16) ;
 		if( im_convert_encoding( parser_utf16 , iiimf->conv ,
 					 (u_char*)candidates[i] , &str ,
-					 strlen_utf16( candidates[i])))
+					 strlen_utf16( candidates[i]) + 1))
 		{
 			(*iiimf->im.cand_screen->set)(
 						iiimf->im.cand_screen ,
@@ -987,8 +987,8 @@ atokx_lookup(
 	PARSER_INIT_WITH_BOM( parser_utf16) ;
 	im_convert_encoding( parser_utf16, iiimf->conv ,
 			     (u_char*)aux_name, &str,
-			     strlen_utf16( aux_name)) ;
-	if( strcmp( str , "jp.co.justsystem.atok12.LookupAu"))
+			     strlen_utf16( aux_name) + 1) ;
+	if( strcmp( str , "jp.co.justsystem.atok12.LookupAux"))
 	{
 		free( str) ;
 		return ;
@@ -1054,7 +1054,7 @@ aux_dump(
 	PARSER_INIT_WITH_BOM( parser_utf16) ;
 	im_convert_encoding( parser_utf16, iiimf->conv ,
 			     (u_char*)aux_name, &str,
-			     strlen_utf16( aux_name)) ;
+			     strlen_utf16( aux_name) + 1) ;
 	kik_debug_printf( "aux_name: %s\n" , str) ;
 	free( str) ;
 	str = NULL ;
@@ -1071,7 +1071,7 @@ aux_dump(
 		PARSER_INIT_WITH_BOM( parser_utf16) ;
 		im_convert_encoding( parser_utf16, iiimf->conv ,
 				     (u_char*)array_val_str[i], &str,
-				     strlen_utf16( array_val_str[i])) ;
+				     strlen_utf16( array_val_str[i]) + 1) ;
 		kik_debug_printf( "str[%d]: %s\n" , i , str) ;
 		free( str) ;
 	}
@@ -1154,7 +1154,7 @@ status_change(
 	PARSER_INIT_WITH_BOM( parser_utf16) ;
 	if( im_convert_encoding( parser_utf16 , iiimf->conv ,
 				 (u_char*)utf16str , &str ,
-				 strlen_utf16( utf16str)))
+				 strlen_utf16( utf16str) + 1))
 	{
 		(*iiimf->im.stat_screen->set)( iiimf->im.stat_screen ,
 					       iiimf->parser_term ,
@@ -1847,7 +1847,7 @@ im_get_info(
 
 		PARSER_INIT_WITH_BOM( parser_utf16) ;
 		im_convert_encoding( parser_utf16 , conv , (u_char*)im_id  ,
-				     (u_char**)&im , strlen_utf16( im_id)) ;
+				     (u_char**)&im , strlen_utf16( im_id) + 1) ;
 
 		for( j = 0 ; j < num_of_langs ; j++)
 		{

@@ -915,12 +915,12 @@ im_new(
 	m17nlib = NULL ;
 
 #if 1
-#define  RESOTORE_LOCALE
+#define  RESTORE_LOCALE
 #endif
 
 	if( ! initialized)
 	{
-	#ifdef  RESOTORE_LOCALE
+	#ifdef  RESTORE_LOCALE
 		/*
 		 * Workaround against make_locale() of m17nlib.
 		 */
@@ -930,7 +930,7 @@ im_new(
 
 		M17N_INIT() ;
 
-	#ifdef  RESOTORE_LOCALE
+	#ifdef  RESTORE_LOCALE
 		/* restoring */
 		/*
 		 * TODO: remove valgrind warning.

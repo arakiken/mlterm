@@ -582,7 +582,7 @@ preedit_pushback(
 		(*uim->parser_uim->init)( uim->parser_uim) ;
 		if( ! (im_convert_encoding( uim->parser_uim , uim->conv ,
 					    (u_char*)_str , &str ,
-					    strlen( _str))))
+					    strlen( _str) + 1)))
 		{
 			return ;
 		}
@@ -822,7 +822,7 @@ candidate_activate(
 		{
 			(*uim->parser_uim->init)( uim->parser_uim) ;
 			if( im_convert_encoding( uim->parser_uim , uim->conv ,
-						 _p , &p , strlen( _p)))
+						 _p , &p , strlen( _p) + 1))
 			{
 				(*uim->im.cand_screen->set)(
 							uim->im.cand_screen ,
@@ -1312,12 +1312,12 @@ im_new(
 	uim = NULL ;
 
 #if 1
-#define  RESOTORE_LOCALE
+#define  RESTORE_LOCALE
 #endif
 
 	if( ! initialized)
 	{
-	#ifdef  RESOTORE_LOCALE
+	#ifdef  RESTORE_LOCALE
 		/*
 		 * Workaround against make_locale() of m17nlib.
 		 */
@@ -1334,7 +1334,7 @@ im_new(
 			return  NULL ;
 		}
 
-	#ifdef  RESOTORE_LOCALE
+	#ifdef  RESTORE_LOCALE
 		/* restoring */
 		/*
 		 * TODO: remove valgrind warning.

@@ -48,13 +48,12 @@ im_convert_encoding(
 
 		p += len ;
 
-		parser->is_eos = 0 ;
 
 		filled_len = (*conv->convert)( conv , p , UNIT__ , parser) ;
 
 		len += filled_len ;
 
-		if( filled_len == 0)
+		if( filled_len == 0 && parser->is_eos)
 		{
 			/* finished converting */
 
