@@ -353,21 +353,18 @@ bidi_render(
 			}
 		}
 
-		if( ml_imgline_is_modified( line))
+		if( ! ml_imgline_is_using_bidi( line))
 		{
-			if( ! ml_imgline_is_using_bidi( line))
-			{
-				ml_imgline_use_bidi( line) ;
-			}
+			ml_imgline_use_bidi( line) ;
+		}
 
-			if( row == image->cursor.row)
-			{
-				ml_imgline_bidi_render( line , image->cursor.char_index) ;
-			}
-			else
-			{
-				ml_imgline_bidi_render( line , -1) ;
-			}
+		if( row == image->cursor.row)
+		{
+			ml_imgline_bidi_render( line , image->cursor.char_index) ;
+		}
+		else
+		{
+			ml_imgline_bidi_render( line , -1) ;
 		}
 	}
 

@@ -937,10 +937,25 @@ ml_imgline_bidi_render(
 
 		return  0 ;
 	}
-	else
+
+	if( line->bidi_state->cursor_pos != cursor_pos)
 	{
-		return  ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars , cursor_pos) ;
+		if( cursor_pos == -1)
+		{
+			ml_imgline_set_modified( line , line->bidi_state->cursor_pos ,
+				line->bidi_state->cursor_pos , 0) ;
+		}
+		else
+		{
+			ml_imgline_set_modified( line , cursor_pos , cursor_pos , 0) ;
+		}
 	}
+	else if( ! IS_MODIFIED(line->flag))
+	{
+		return  1 ;
+	}
+	
+	return  ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars , cursor_pos) ;
 }
 
 int

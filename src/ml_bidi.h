@@ -16,6 +16,7 @@ typedef struct  ml_bidi_state
 	u_int16_t *  visual_order ;
 	u_int16_t  size ;
 	int8_t  base_is_rtl ;
+	int  cursor_pos ;
 	
 } ml_bidi_state_t ;
 

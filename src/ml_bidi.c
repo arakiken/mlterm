@@ -32,6 +32,7 @@ ml_bidi_new(void)
 	state->visual_order = NULL ;
 	state->size = 0 ;
 	state->base_is_rtl = 0 ;
+	state->cursor_pos = -1 ;
 
 	return  state ;
 }
@@ -137,6 +138,8 @@ ml_bidi(
 
 	fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
 
+	state->cursor_pos = -1 ;
+	
 	if( cursor_pos >= 0)
 	{
 		int  pos ;
@@ -172,6 +175,8 @@ ml_bidi(
 			goto  end ;
 		}
 
+		state->cursor_pos = cursor_pos ;
+
 		fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
 	}
 
@@ -199,7 +204,7 @@ end:
 	{
 		state->base_is_rtl = 0 ;
 	}
-	
+
 #ifdef  __DEBUG
 	kik_msg_printf( "visual order => ") ;
 	for( counter = 0 ; counter < size ; counter ++)
