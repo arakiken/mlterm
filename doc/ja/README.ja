@@ -91,6 +91,10 @@ comment $Id$
       m17n library が提供するインプットメソッドをサポートします。
       m17n-lib と m17n-db が必要です。
 
+    --enable-scim
+      SCIM (Smart Common Input Method platform) をサポートします。
+      libscim が必要です。
+
     --with-tools
       tool/ か contrib/tool/ 以下の指定されたツールをビルドします。
 
@@ -153,9 +157,9 @@ comment $Id$
     (see doc/ja/README.xim)
 
   o インプットメソッド プラグイン
-    IIIMF、uim、m17n library に対応しています。プラグインとして、使用時だけロー
-    ドされます。マルチXIMと同様、動的変更が可能で端末のエンコーディングに依存
-    しません。
+    IIIMF、uim、m17n library、scim に対応しています。プラグインとして使用時だ
+    けロードされます。マルチXIMと同様に動的変更が可能で端末のエンコーディング
+    に依存しません。
 
   o プロポーショナルフォント
     プロポーショナルフォントも使用できます。
@@ -442,8 +446,8 @@ comment $Id$
 
         [input method];[option1]:[option2]
 
-        [input method] にインプットメソッド(xim/uim/iiimf/m17nlib/kbd)を指定し、
-        必要であれば ":" で区切ってオプションを列挙します。
+        [input method] にインプットメソッド(xim/uim/iiimf/m17nlib/scim/kbd)を
+        指定し、必要であれば ":" で区切ってオプションを列挙します。
 
         各インプットメソッドのオプションは以下の通りです。
 
@@ -476,6 +480,8 @@ comment $Id$
         用されます。m17nlib を指定した時は key ファイルで IM_HOTKEY を指定して
         ください。
 
+        scim の場合:
+        scim (オプション無し)
 
         kbd の場合:
         kbd (オプション無し)

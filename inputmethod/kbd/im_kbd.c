@@ -90,7 +90,7 @@ static int  initialized = 0 ;
 static mkf_parser_t *  parser_ascii = NULL ;
 
 /* mlterm internal symbols */
-static x_im_export_syms_t *  mlterm_syms = NULL ;
+static x_im_export_syms_t *  syms = NULL ;
 
 static u_char *  arabic_conv_tbl[] =
 {
@@ -203,7 +203,7 @@ delete(
 
 	if( kbd->keymap)
 	{
-		(*mlterm_syms->ml_iscii_keymap_delete)( kbd->keymap) ;
+		(*syms->ml_iscii_keymap_delete)( kbd->keymap) ;
 	}
 
 	if( kbd->parser)
@@ -332,9 +332,9 @@ key_event_iscii(
 		return  1 ;
 	}
 
-	len = (*mlterm_syms->ml_convert_ascii_to_iscii)( kbd->keymap ,
-							 buf , sizeof( buf) ,
-							 &key_char , 1) ;
+	len = (*syms->ml_convert_ascii_to_iscii)( kbd->keymap ,
+						  buf , sizeof( buf) ,
+						  &key_char , 1) ;
 
 	(*kbd->im.listener->write_to_term)( kbd->im.listener->self ,
 					    buf , len) ;
@@ -366,7 +366,7 @@ switch_mode(
 	{
 		if( kbd->keymap)
 		{
-			(*mlterm_syms->ml_iscii_keymap_delete)( kbd->keymap) ;
+			(*syms->ml_iscii_keymap_delete)( kbd->keymap) ;
 			kbd->keymap = NULL ;
 		}
 
@@ -375,7 +375,7 @@ switch_mode(
 
 		if( kbd->mode == KBD_MODE_ASCII)
 		{
-			kbd->keymap = (*mlterm_syms->ml_iscii_keymap_new)( 1) ;
+			kbd->keymap = (*syms->ml_iscii_keymap_new)( 1) ;
 			kbd->mode = KBD_MODE_ISCII_INSCRIPT ;
 
 		#ifdef  IM_KBD_DEBUG
@@ -385,7 +385,7 @@ switch_mode(
 		}
 		else if( kbd->mode == KBD_MODE_ISCII_INSCRIPT)
 		{
-			kbd->keymap = (*mlterm_syms->ml_iscii_keymap_new)( 0) ;
+			kbd->keymap = (*syms->ml_iscii_keymap_new)( 0) ;
 			kbd->mode = KBD_MODE_ISCII_PHONETIC ;
 
 		#ifdef  IM_KBD_DEBUG
@@ -430,7 +430,7 @@ switch_mode(
 
 		if( kbd->im.stat_screen == NULL)
 		{
-			if( ! ( kbd->im.stat_screen = (*mlterm_syms->x_im_status_screen_new)(
+			if( ! ( kbd->im.stat_screen = (*syms->x_im_status_screen_new)(
 						(*kbd->im.listener->get_win_man)(kbd->im.listener->self) ,
 						(*kbd->im.listener->get_font_man)(kbd->im.listener->self) ,
 						(*kbd->im.listener->get_color_man)(kbd->im.listener->self) ,
@@ -523,9 +523,9 @@ im_kbd_new(
 
 	if( ! initialized)
 	{
-		mlterm_syms = export_syms ;
+		syms = export_syms ;
 
-		if( ! ( parser_ascii = (*mlterm_syms->ml_parser_new)( ML_ISO8859_1)))
+		if( ! ( parser_ascii = (*syms->ml_parser_new)( ML_ISO8859_1)))
 		{
 			return  NULL ;
 		}
@@ -566,7 +566,7 @@ im_kbd_new(
 		}
 	}
 
-	if( ! ( kbd->conv = (*mlterm_syms->ml_conv_new)( term_encoding)))
+	if( ! ( kbd->conv = (*syms->ml_conv_new)( term_encoding)))
 	{
 		goto  error ;
 	}

@@ -7,6 +7,11 @@
 	  - use replace_instance method for changing the factory.
 	  - removed find_factory().
 
+	* README, doc/ja/README.ja, man/mlterm.1, xwindow/x_main_config.c:
+	  updated.
+
+	* inputmethod/kbd/im_kbd.c (mlterm_syms): renamed to syms.
+
 2005-01-25 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/uim/im_uim.c

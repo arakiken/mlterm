@@ -56,13 +56,16 @@ Options for configure
     Disable kbd input method for Arabic and Indic.
 
   --enable-uim
-    Support uim(Universal? Input Method) if available.
+    Support uim (Universal? Input Method) if available.
 
   --enable-iiimf
-    Support IIIMF(Internet/Intranet Input Method Framework) if available.
+    Support IIIMF (Internet/Intranet Input Method Framework) if available.
 
   --enable-m17nlib
     Support m17n library if available.
+
+  --enable-scim
+    Support SCIM (Smart Common Input Method platform) if available.
 
   --disable-shared
     Disable shared libraries
