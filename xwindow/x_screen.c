@@ -3919,13 +3919,13 @@ font_size_changed(
 			screen->screen_scroll_listener->self , x_line_height( screen)) ;
 	}
 
+	x_window_set_normal_hints( &screen->window , 0 , 0 ,
+		x_col_width( screen) , x_line_height( screen)) ;
+
 	/* screen will redrawn in window_resized() */
 	x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
 		NOTIFY_TO_PARENT) ;
 
-	x_window_set_normal_hints( &screen->window , 0 , 0 ,
-		x_col_width( screen) , x_line_height( screen)) ;
-		
 	/*
 	 * !! Notice !!
 	 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be

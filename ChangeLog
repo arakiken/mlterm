@@ -1,3 +1,9 @@
+2003-03-02 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* When the font size is dynamically changed, Enlightenment and FVWM2
+	  make an error in the calculation for window size (WMHints). Fixed.
+	  (Thanks to Sakamoto Hironori san)
+
 2003-03-02 Araki Ken <arakiken@users.sf.net>
 
 	* Added PREV_PTY shortcut.
