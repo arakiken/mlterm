@@ -492,6 +492,14 @@ int x_imagelib_load_file(
 
 	if( pixmap)
 	{
+		if( width == 0)
+		{
+			width = img->rgb_width;
+		}
+		if( height == 0)
+		{
+			height = img->rgb_height ;
+		}
 		*pixmap = XCreatePixmap( display , DefaultRootWindow( display) , width , height ,
 			DefaultDepth( display , DefaultScreen( display))) ;
 		Imlib_paste_image( imlib , img , *pixmap , 0 , 0 ,
