@@ -14,7 +14,7 @@
 #include  <kiklib/kik_locale.h>	/* kik_get_lang() */
 
 #include  "ml_font_intern.h"
-#include  "ml_char_encoding.h"	/* ml_convert_to_ucs4 */
+#include  "ml_char_encoding.h"	/* ml_convert_to_xft_ucs4 */
 
 
 #define  FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p) \
@@ -1051,7 +1051,7 @@ ml_calculate_char_width(
 
 			if( cs != US_ASCII)
 			{
-				if( ! ml_convert_to_ucs4( ucs4 , ch , len , cs))
+				if( ! ml_convert_to_xft_ucs4( ucs4 , ch , len , cs))
 				{
 					return  0 ;
 				}

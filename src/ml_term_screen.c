@@ -69,7 +69,7 @@ convert_row_to_y(
 	int  row
 	)
 {
-	return  ml_line_height((termscr)->font_man) * row ;
+	return  ml_line_height( termscr->font_man) * row ;
 }
 
 static int
@@ -81,11 +81,11 @@ convert_y_to_row(
 {
 	int  row ;
 
-	row = y / ml_line_height((termscr)->font_man) ;
+	row = y / ml_line_height( termscr->font_man) ;
 
 	if( y_rest)
 	{
-		*y_rest = y - row * ml_line_height((termscr)->font_man) ;
+		*y_rest = y - row * ml_line_height( termscr->font_man) ;
 	}
 
 	return  row ;
@@ -141,7 +141,7 @@ draw_line(
 	if( ml_imgline_is_empty( line))
 	{
 		ml_window_clear( &termscr->window , 0 , y , termscr->window.width ,
-			ml_line_height((termscr)->font_man)) ;
+			ml_line_height(termscr->font_man)) ;
 	}
 	else
 	{
@@ -180,8 +180,8 @@ draw_line(
 		{
 			if( ! ml_window_draw_str_to_eol( &termscr->window , &line->chars[beg_char_index] ,
 				num_of_redrawn , beg_x , y ,
-				ml_line_height((termscr)->font_man) ,
-				ml_line_height_to_baseline((termscr)->font_man)))
+				ml_line_height( termscr->font_man) ,
+				ml_line_height_to_baseline( termscr->font_man)))
 			{
 				return  0 ;
 			}
@@ -190,8 +190,8 @@ draw_line(
 		{
 			if( ! ml_window_draw_str( &termscr->window , &line->chars[beg_char_index] ,
 				num_of_redrawn , beg_x , y ,
-				ml_line_height(termscr->font_man) ,
-				ml_line_height_to_baseline(termscr->font_man)))
+				ml_line_height( termscr->font_man) ,
+				ml_line_height_to_baseline( termscr->font_man)))
 			{
 				return  0 ;
 			}
@@ -293,15 +293,14 @@ flush_scroll_cache(
 		int  end_y ;
 		u_int  scroll_height ;
 
-		scroll_height = ml_line_height((termscr)->font_man) *
-					abs( termscr->scroll_cache_rows) ;
+		scroll_height = ml_line_height( termscr->font_man) * abs( termscr->scroll_cache_rows) ;
 
 		if( scroll_height < termscr->window.height)
 		{
 			start_y = convert_row_to_y( termscr ,
 				termscr->scroll_cache_boundary_start) ;
 			end_y = start_y +
-				ml_line_height((termscr)->font_man) *
+				ml_line_height( termscr->font_man) *
 				(termscr->scroll_cache_boundary_end -
 				termscr->scroll_cache_boundary_start + 1) ;
 
@@ -430,7 +429,7 @@ redraw_image(
 	ml_imgline_is_updated( line) ;
 
 	counter ++ ;
-	y += ml_line_height((termscr)->font_man) ;
+	y += ml_line_height( termscr->font_man) ;
 	end_y = y ;
 
 	while( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , counter)) != NULL)
@@ -444,12 +443,12 @@ redraw_image(
 			draw_line( termscr , line , y) ;
 			ml_imgline_is_updated( line) ;
 
-			y += ml_line_height((termscr)->font_man) ;
+			y += ml_line_height( termscr->font_man) ;
 			end_y = y ;
 		}
 		else
 		{
-			y += ml_line_height((termscr)->font_man) ;
+			y += ml_line_height( termscr->font_man) ;
 		}
 	
 		counter ++ ;
@@ -1100,12 +1099,12 @@ window_resized(
 	}
 	
 	ml_image_resize( &termscr->normal_image ,
-		termscr->window.width / ml_col_width((termscr)->font_man) ,
-		termscr->window.height / ml_line_height((termscr)->font_man)) ;
+		termscr->window.width / ml_col_width( termscr->font_man) ,
+		termscr->window.height / ml_line_height( termscr->font_man)) ;
 
 	ml_image_resize( &termscr->alt_image ,
-		termscr->window.width / ml_col_width((termscr)->font_man) ,
-		termscr->window.height / ml_line_height((termscr)->font_man)) ;
+		termscr->window.width / ml_col_width( termscr->font_man) ,
+		termscr->window.height / ml_line_height( termscr->font_man)) ;
 
 	if( termscr->logvis)
 	{
@@ -2112,14 +2111,14 @@ selecting_with_motion(
 		
 		y = 0 ;
 	}
-	else if( y > termscr->window.height - ml_line_height((termscr)->font_man))
+	else if( y > termscr->window.height - ml_line_height( termscr->font_man))
 	{
 		if( ml_is_backscroll_mode( &termscr->bs_image))
 		{
 			bs_scroll_upward( termscr) ;
 		}
 		
-		y = termscr->window.height - ml_line_height((termscr)->font_man) ;
+		y = termscr->window.height - ml_line_height( termscr->font_man) ;
 	}
 
 	bs_row = ml_convert_row_to_bs_row( &termscr->bs_image ,
@@ -2214,7 +2213,7 @@ button_press_continued(
 	termscr = (ml_term_screen_t*) win ;
 	
 	if( termscr->sel.is_selecting &&
-		(event->y < 0 || win->height - ml_line_height((termscr)->font_man) < event->y))
+		(event->y < 0 || win->height - ml_line_height( termscr->font_man) < event->y))
 	{
 		selecting_with_motion( termscr , event->x , event->y , event->time) ;
 	}
@@ -2345,8 +2344,8 @@ report_mouse_tracking(
 	key_state = ((event->state & ShiftMask) ? 4 : 0) +
 		((event->state & ControlMask) ? 16 : 0) ;
 	
-	row = event->y / ml_line_height((termscr)->font_man) ;
-	col = event->x / ml_col_width((termscr)->font_man) ;
+	row = event->y / ml_line_height( termscr->font_man) ;
+	col = event->x / ml_col_width( termscr->font_man) ;
 
 	strcpy( buf , "\x1b[M") ;
 
@@ -2403,36 +2402,36 @@ button_pressed(
 	{
 		/* wheel mouse */
 		
-		enter_backscroll_mode(termscr);
+		enter_backscroll_mode(termscr) ;
 		if( event->state == ShiftMask)
 		{
-			bs_scroll_downward(termscr);
+			bs_scroll_downward(termscr) ;
 		}
 		else if( event->state == ControlMask)
 		{
-			bs_page_downward(termscr);
+			bs_page_downward(termscr) ;
 		} 
 		else 
 		{
-			bs_half_page_downward(termscr);
+			bs_half_page_downward(termscr) ;
 		}
 	}
 	else if ( event->button == 5) 
 	{
 		/* wheel mouse */
 		
-		enter_backscroll_mode(termscr);
+		enter_backscroll_mode(termscr) ;
 		if( event->state == ShiftMask)
 		{
-			bs_scroll_upward(termscr);
+			bs_scroll_upward(termscr) ;
 		}
 		else if( event->state == ControlMask)
 		{
-			bs_page_upward(termscr);
+			bs_page_upward(termscr) ;
 		} 
 		else 
 		{
-			bs_half_page_upward(termscr);
+			bs_half_page_upward(termscr) ;
 		}
 	}
 }
@@ -2557,18 +2556,18 @@ font_size_changed(
 	if( HAS_SCROLL_LISTENER(termscr,line_height_changed))
 	{
 		(*termscr->screen_scroll_listener->line_height_changed)(
-			termscr->screen_scroll_listener->self , ml_line_height(termscr->font_man)) ;
+			termscr->screen_scroll_listener->self , ml_line_height( termscr->font_man)) ;
 	}
 
 	/* screen will redrawn in window_resized() */
 	ml_window_resize( &termscr->window ,
-		ml_col_width((termscr)->font_man) * ml_image_get_cols( termscr->image) ,
-		ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image) ,
+		ml_col_width( termscr->font_man) * ml_image_get_cols( termscr->image) ,
+		ml_line_height( termscr->font_man) * ml_image_get_rows( termscr->image) ,
 		NOTIFY_TO_PARENT) ;
 
 	ml_window_set_normal_hints( &termscr->window ,
-		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man) ,
-		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man)) ;
+		ml_col_width( termscr->font_man) , ml_line_height( termscr->font_man) ,
+		ml_col_width( termscr->font_man) , ml_line_height( termscr->font_man)) ;
 		
 	ml_window_reset_font( &termscr->window) ;
 
@@ -3256,7 +3255,7 @@ get_spot(
 	}
 	
 	*y = convert_row_to_y( termscr , ml_cursor_row( termscr->image)) +
-		ml_line_height((termscr)->font_man) ;
+		ml_line_height( termscr->font_man) ;
 	
 	*x = convert_char_index_to_x( termscr , line , ml_cursor_char_index( termscr->image)) ;
 
@@ -3350,8 +3349,8 @@ ml_term_screen_new(
 	termscr->is_focused = 0 ;
 
 	if( ml_window_init( &termscr->window , color_table , width , height ,
-		ml_col_width((termscr)->font_man) , ml_line_height((termscr)->font_man) ,
-		ml_col_width((termscr)->font_man) , ml_line_height((termscr)->font_man) , 2) == 0)
+		ml_col_width( termscr->font_man) , ml_line_height( termscr->font_man) ,
+		ml_col_width( termscr->font_man) , ml_line_height( termscr->font_man) , 2) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_window_init failed.\n") ;
@@ -3934,17 +3933,17 @@ ml_term_screen_get_font(
 	}
 
 #ifdef  DEBUG
-	if( ml_line_height((termscr)->font_man) < font->height)
+	if( ml_line_height( termscr->font_man) < font->height)
 	{
 		kik_warn_printf( KIK_DEBUG_TAG
 			" font(cs %x) height %d is larger than the basic line height %d.\n" ,
-			ml_font_cs(font) , font->height , ml_line_height((termscr)->font_man)) ;
+			ml_font_cs(font) , font->height , ml_line_height( termscr->font_man)) ;
 	}
-	else if( ml_line_height((termscr)->font_man) > font->height)
+	else if( ml_line_height( termscr->font_man) > font->height)
 	{
 		kik_warn_printf( KIK_DEBUG_TAG
 			" font(cs %x) height %d is smaller than the basic line height %d.\n" ,
-			ml_font_cs(font) , font->height , ml_line_height((termscr)->font_man)) ;
+			ml_font_cs(font) , font->height , ml_line_height( termscr->font_man)) ;
 	}
 #endif
 

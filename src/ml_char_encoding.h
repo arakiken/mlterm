@@ -106,5 +106,10 @@ int  ml_is_msb_set( mkf_charset_t  cs) ;
 int  ml_convert_to_ucs4( u_char *  ucs4_bytes , u_char *  src_bytes , size_t  src_size ,
 	mkf_charset_t  cs) ;
 
+int  ml_use_cp932_ucs_for_xft(void) ;
+
+int  ml_convert_to_xft_ucs4( u_char *  ucs4_bytes , u_char *  src_bytes , size_t  src_size ,
+	mkf_charset_t  cs) ;
+
 
 #endif

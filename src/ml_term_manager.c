@@ -710,11 +710,11 @@ ml_term_manager_init(
 	kik_conf_add_opt( conf , 'k' , "meta" , 0 , "mod_meta_mode" , "mode in pressing meta key") ;
 	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , "bel(0x07) mode") ;
 	kik_conf_add_opt( conf , 'C' , "iscii" , 0 , "iscii_lang" , "which iscii lang you want to use?") ;
-	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , "turning on login shell") ;
+	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , "turn on login shell") ;
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , "use xim") ;
 	kik_conf_add_opt( conf , 't' , "transbg" , 1 , "use_transbg" , "use transparent background.") ;
 	kik_conf_add_opt( conf , 's' , "sb" , 1 , "use_scrollbar" , "use scrollbar") ;
-	kik_conf_add_opt( conf , 'm' , "comb" , 1 , "use_combining" , "combining chars") ;
+	kik_conf_add_opt( conf , 'm' , "comb" , 1 , "use_combining" , "use combining chars") ;
 	kik_conf_add_opt( conf , '8' , "88591" , 1 , "iso88591_font_for_usascii" ,
 				"iso8859-1 font is used for us ascii characters.") ;
 	kik_conf_add_opt( conf , 'n' , "noucsfont" , 1 , "not_use_unicode_font" ,
@@ -723,17 +723,17 @@ ml_term_manager_init(
 				"only use unicode font") ;
 	kik_conf_add_opt( conf , 'U' , "viaucs" , 1 , "copy_paste_via_ucs" ,
 				"process received strings via ucs.") ;
-	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" ,
-				"opening xim in starting up.") ;
+	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" , "open xim in starting up.") ;
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , "use bidi") ;
-	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" , "supporting buggy Big5 CTEXT") ;
+	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" , "support buggy Big5 CTEXT") ;
 	kik_conf_add_opt( conf , 'V' , "varwidth" , 1 , "use_variable_column_width" ,
 				"column width is variable") ;
 #ifdef  ANTI_ALIAS
-	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , "using anti alias font") ;
+	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , "use cp932 ucs for xft") ;
+	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , "use anti alias font") ;
 #endif
 
-	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , "executing external command") ;
+	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , "execute external command") ;
 
 	kik_conf_parse_args( conf , &argc , &argv) ;
 
@@ -901,6 +901,14 @@ ml_term_manager_init(
 		if( strcmp( value , "true") == 0)
 		{
 			term_man->font_present |= FONT_AA ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			ml_use_cp932_ucs_for_xft() ;
 		}
 	}
 #endif

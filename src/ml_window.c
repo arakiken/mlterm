@@ -18,7 +18,7 @@
 #include  "ml_xic.h"
 #include  "ml_window_manager.h"
 #include  "ml_window_intern.h"
-#include  "ml_char_encoding.h"	/* ml_convert_to_ucs4 */
+#include  "ml_char_encoding.h"	/* ml_convert_to_xft_ucs4 */
 
 
 #define  DOUBLE_CLICK_INTERVAL  1000	/* mili second */
@@ -121,7 +121,7 @@ xft_draw_combining_chars(
 			
 			char  ucs4_bytes[4] ;
 
-			if( ! ml_convert_to_ucs4( ucs4_bytes , ch_bytes , ch_size ,
+			if( ! ml_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size ,
 				ml_char_cs(&chars[counter])))
 			{
 				return  0 ;
@@ -273,7 +273,7 @@ xft_draw_str(
 		{
 			char  ucs4_bytes[4] ;
 
-			if( ! ml_convert_to_ucs4( ucs4_bytes , ch_bytes , ch_size ,
+			if( ! ml_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size ,
 				ml_char_cs(&chars[counter])))
 			{
 			#ifdef  DEBUG

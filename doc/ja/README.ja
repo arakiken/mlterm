@@ -362,9 +362,9 @@ comment $Id$
     -7/--bel=value     : BEL(0x7)を受け取った時の挙動
     -5/--big5bug(=bool): Big5 CTEXT のバグに対応する
     -a/--ac=value      : EastAsianWidth.txtのAプロパティ文字のコラム数
-    -f/--fg=value      : 前景色
     -b/--bg=value      : 背景色
     -d/--display       : DISPLAYを指定
+    -f/--fg=value      : 前景色
     -g/--geometry=value : 表示座標位置
     -i/--xim(=bool)    : ximを使う
     -k/--meta(=value)  : Meta キーを押した時の動作

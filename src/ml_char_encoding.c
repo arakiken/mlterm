@@ -206,11 +206,13 @@ static mkf_charset_t  msb_set_cs_table[] =
 
 } ;
 
-
-/* --- static functions --- */
-
 static void (*iso2022kr_conv_init)( mkf_conv_t *) ;
 static void (*iso2022kr_parser_init)( mkf_parser_t *) ;
+
+static int  use_cp932_ucs_for_xft = 0 ;
+
+
+/* --- static functions --- */
 
 static void
 ovrd_iso2022kr_conv_init(
@@ -456,6 +458,10 @@ ml_is_msb_set(
 	return  0 ;
 }
 
+/*
+ * used for general ucs4 conversion.
+ * (not used for now)
+ */
 int
 ml_convert_to_ucs4(
 	u_char *  ucs4_bytes ,
@@ -500,4 +506,79 @@ ml_convert_to_ucs4(
 	}
 
 	return  1 ;
+}
+
+int
+ml_use_cp932_ucs_for_xft(void)
+{
+	use_cp932_ucs_for_xft = 1 ;
+
+	return  1 ;
+}
+
+/*
+ * used only for xft
+ */
+int
+ml_convert_to_xft_ucs4(
+	u_char *  ucs4_bytes ,
+	u_char *  src_bytes ,
+	size_t  src_size ,
+	mkf_charset_t  cs
+	)
+{
+	if( use_cp932_ucs_for_xft && cs == JISX0208_1983)
+	{
+		u_int16_t  code ;
+
+		code = mkf_bytes_to_int( src_bytes , src_size) ;
+
+		if( code == 0x2140)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0x3c ;
+		}
+		else if( code == 0x2141)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0x5e ;
+		}
+		else if( code == 0x2142)
+		{
+			ucs4_bytes[2] = 0x22 ;
+			ucs4_bytes[3] = 0x25 ;
+		}
+		else if( code == 0x215d)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0x0d ;
+		}
+		else if( code == 0x2171)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0xe0 ;
+		}
+		else if( code == 0x2172)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0xe1 ;
+		}
+		else if( code == 0x224c)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0xe2 ;
+		}
+		else
+		{
+			goto  no_diff ;
+		}
+		
+		ucs4_bytes[0] = 0x0 ;
+		ucs4_bytes[1] = 0x0 ;
+		
+		return  1 ;
+	}
+
+no_diff:
+	return  ml_convert_to_ucs4( ucs4_bytes , src_bytes , src_size , cs) ;
 }
