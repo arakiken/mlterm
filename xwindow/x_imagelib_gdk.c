@@ -570,7 +570,13 @@ root_pixmap(
 
 	id = XInternAtom( win->display, "_XROOTPMAP_ID", True) ;
 	if( !id)
+	{
+#ifdef DEBUG
+			kik_warn_printf(KIK_DEBUG_TAG "_XROOTPMAP_ID is not available\n") ;
+#endif
+
 		return  None ;
+	}
 
 	if( XGetWindowProperty( win->display, DefaultRootWindow(win->display), id, 0, 1,
 				False, XA_PIXMAP, &id, &act_format,
@@ -581,9 +587,18 @@ root_pixmap(
 			Pixmap root ;
 			root = *((Drawable *)prop) ;
 			XFree( prop) ;
+#ifdef DEBUG
+			kik_warn_printf(KIK_DEBUG_TAG "pixmap id # %d is read\n" , root) ;
+#endif
 
 			return  root ;
 		}
+#ifdef DEBUG
+		else
+		{
+			kik_warn_printf(KIK_DEBUG_TAG "failed tp read prop\n") ;		}
+
+#endif
 	}
 
 	return  None ;
