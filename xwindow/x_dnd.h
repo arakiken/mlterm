@@ -17,7 +17,7 @@
 #define  XA_DND_FINISH(display) (XInternAtom(display, "XdndFinished", False))
 #define  XA_DND_MIME_TEXT_PLAIN(display) (XInternAtom(display, "text/plain", False))
 #define  XA_DND_MIME_TEXT_UNICODE(display) (XInternAtom(display, "text/unicode", False))
-#define  XA_DND_MIME_TEXT_URL_LIST(display) (XInternAtom(display, "text/uri-list", False))
+#define  XA_DND_MIME_TEXT_URI_LIST(display) (XInternAtom(display, "text/uri-list", False))
 
 void x_dnd_set_awareness( x_window_t * win, int flag );
 

@@ -1,5 +1,9 @@
 2003-05-06  MINAMI Hirokazu  <minami@mistfall.net>
 
+	* xwindow/x_dnd.c, xwindow/x_dnd.h : adopt XDnD v5 spec.
+
+2003-05-06  MINAMI Hirokazu  <minami@mistfall.net>
+
 	* xwindow/x_term_manager.c: plugged memory leak.
 
 2003-05-05  MINAMI Hirokazu  <minami@mistfall.net>

@@ -6,6 +6,9 @@
 
 #include  "x_window.h"
 
+/*
+#include  <ctype.h>
+*/
 #include  <X11/Xatom.h>
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
@@ -18,9 +21,7 @@
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 
-static u_char  DND_VERSION = 4 ;
-
-/* --- static variables --- */
+static u_char  DND_VERSION = 5 ;
 
 /* --- static functions --- */
 static int
@@ -28,15 +29,17 @@ charset_name2code(
 	char *charset
 	)
 {
-/*      Someday mozilla become sane, we can support XDND v4 spec. No one, however, seems to support charset.
-	int i;
+	/*  Not used for now.
+	    Someday we can use codeset as defined in XDND spec.
+
+	    int i;
 	for( i = strlen(charset) -1 ; i > 0 ; i--)
-		charset[i] = (charset[i] > 'A')? charset[i]-'A'+'a':charset[i];
+		charset[i] = tolower(charset[i]);
 	if( strcmp(charset, "utf-16le") ==0 )
 		return 0 ;
+	*/
 
-*/
-	return 1 ;
+	return -1 ;
 }
 
 static int
@@ -127,7 +130,9 @@ x_dnd_finish(
 	{
 		reply_msg.message_type = XA_DND_FINISH(win->display) ;
 		reply_msg.data.l[0] = win->my_window ;
-		reply_msg.data.l[1] = 0 ;
+		/* setting bit 0 means success */
+		reply_msg.data.l[1] = 1 ; 
+		reply_msg.data.l[2] = XA_DND_ACTION_COPY(win->display) ;
 		reply_msg.type = ClientMessage ;
 		reply_msg.format = 32 ;
 		reply_msg.window = win->dnd_source ;
@@ -171,9 +176,10 @@ x_dnd_parse(
 		    || strncmp(charset+1, "CHARSET", 7))
 		{
 			/* remove charset=... and re-read atom */
-			*charset = 0 ;
+			*charset = 0; 
 			charset = strchr( charset +1, '=') +1 ;
 			charset_code = charset_name2code( charset) ;
+			/* atom_name is now terminated before ";charset=xxx" */
 			atom = XInternAtom( win->display, atom_name, False) ;
 			XFree( atom_name) ;
 			if( !atom)
@@ -231,15 +237,14 @@ x_dnd_parse(
 		     && (src[1] == 0xFF || src[1] == 0xFE)
 		     && (src[0] != src[1]))
 		{			
-			/* src sequence seems to have a valid BOM*/
+			/* src sequence seems to have a valid BOM and *
+			 * should be processed correctly */
 		}
 		else
 		{
-			/* some stupid apps(mozilla at el.) sends UTF-16LE without BOM */
-			/* force parser to be LE by sending BOM */
-			/* XXX this may cause problems on LE processor */
+			/* try to set parser state by sending BOM */
 			u_int16_t BOM[] =  {0xFEFF};
-
+			
 			(parser->set_str)( parser , (char *)BOM , 2) ;
 			(parser->next_char)( parser , 0) ;	     
 		}
@@ -280,7 +285,7 @@ x_dnd_parse(
 		return 1 ;
 	}
 	/* text/url-list */
-	if( atom == XA_DND_MIME_TEXT_URL_LIST(win->display))
+	if( atom == XA_DND_MIME_TEXT_URI_LIST(win->display))
 	{
 		int pos ;
 		unsigned char *delim ;
@@ -291,28 +296,32 @@ x_dnd_parse(
 		delim = src ;
 		while( pos < len){
 			delim = strchr( &(src[pos]), 13) ;
-			if( !delim)
-				return 0 ; /* parse error */
-			while( delim[1] != 10)
+			if( delim )
 			{
-				delim[0] = ' ' ; /* eliminate illegal 0x0Ds (they should not appear) */
-				delim = strchr( delim, 13) ;
-				if ( !delim)
-					return 0 ; /* parse error */
-			}
-			delim[0] = ' ' ; /* always output a ' ' as separator */
-			if( strncmp( &(src[pos]), "file:",5) == 0)
-			{/* remove "file:". new length is (length - "file:" + " ")*/
-				(*win->utf8_selection_notified)
-					( win ,
-					  &(src[pos+5]),
-					  (delim - src) - pos -4 ) ;
+				/* output one ' ' as a separator */
+				*delim = ' ' ; 
 			}
 			else
-			{/* as-is + " " */
-				(*win->utf8_selection_notified)( win , &(src[pos]) , (delim - src) - pos +1) ;
+			{
+				delim = &(src[len -1]) ;
 			}
-			pos = (delim - src) +2 ; /* skip 0x0A */
+			if( strncmp( &(src[pos]), "file:",5) == 0)
+			{
+				/* remove garbage("file:").
+				   new length should be (length - "file:" + " ")*/
+				(*win->utf8_selection_notified)( win ,
+								 &(src[pos+5]),
+								 (delim - &(src[pos])) -5 +1 ) ;
+			}
+			else
+			{
+				/* original string + " " */
+				(*win->utf8_selection_notified)( win ,
+								 &(src[pos]),
+								 (delim - &(src[pos])) +1) ;
+			}
+			/* skip trailing 0x0A */
+			pos = (delim - src) +2 ; 
 		}
 	}
 	return 0 ;
@@ -337,7 +346,7 @@ x_dnd_preferable_atom(
 	if(!i)
 		i = is_pref( XA_DND_MIME_TEXT_UNICODE( win->display), atom, num) ;
 	if(!i)
-		i = is_pref( XA_DND_MIME_TEXT_URL_LIST( win->display), atom, num) ;
+		i = is_pref( XA_DND_MIME_TEXT_URI_LIST( win->display), atom, num) ;
 		
 #ifdef  DEBUG
 	if( i)
