@@ -20,6 +20,7 @@
 #include  "ml_xic.h"
 #include  "ml_picture.h"
 #include  "ml_locale.h"		/* ml_locale_init */
+#include  "ml_shaping.h"
 
 
 #define  DEFAULT_TAB_SIZE  8
@@ -77,7 +78,7 @@ print_usascii_message(
 	for( counter = 0 ; counter < len ; counter ++)
 	{
 		ml_char_set( &msg[counter] , &ascii[counter] , 1 , usascii_font ,
-			0 , MLC_FG_COLOR , MLC_BG_COLOR) ;
+			0 , MLC_FG_COLOR , MLC_BG_COLOR , 0) ;
 	}
 
 	ml_term_screen_unhighlight_cursor( termscr) ;
@@ -584,8 +585,6 @@ window_resized(
 		termscr->window.width / ml_col_width((termscr)->font_man) ,
 		termscr->window.height / ml_line_height((termscr)->font_man)) ;
 
-	ml_log_resized( &termscr->logs , ml_image_get_cols( termscr->image)) ;
-
 	if( termscr->pty)
 	{
 		ml_set_pty_winsize( termscr->pty , ml_image_get_cols( termscr->image) ,
@@ -914,6 +913,32 @@ change_aa_flag(
 }
 
 static void
+change_bidi_flag(
+	void *  p ,
+	int  is_bidi
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+
+	if( is_bidi && HAS_ENCODING_LISTENER(termscr,current_encoding) &&
+		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
+		== ML_UTF8)
+	{		
+		ml_term_screen_use_bidi( termscr) ;
+		
+		ml_image_all_modified( termscr->image) ;
+		ml_term_screen_render_bidi( termscr) ;
+	}
+	else
+	{
+		ml_term_screen_stop_bidi( termscr) ;
+		ml_term_screen_unuse_bidi( termscr) ;
+	}
+}
+
+static void
 change_wall_picture(
 	void *  p ,
 	char *  file_path
@@ -996,6 +1021,7 @@ config_menu(
 		termscr->mod_meta_mode , termscr->bel_mode ,
 		ml_is_char_combining() , termscr->pre_conv_xct_to_ucs ,
 		termscr->window.is_transparent , termscr->is_aa ,
+		ml_term_screen_is_using_bidi( termscr) ,
 		ml_xic_get_xim_name( &termscr->window) , ml_get_locale()) ;
 }
 
@@ -2382,8 +2408,9 @@ select_in_window(
 	int  end_row
 	)
 {
-	u_int  size ;
 	ml_term_screen_t *  termscr ;
+	u_int  size ;
+	ml_char_t *  buf ;
 
 	termscr = p ;
 
@@ -2393,12 +2420,12 @@ select_in_window(
 		return  0 ;
 	}
 
-	if( (*chars = ml_str_new( size)) == NULL)
+	if( ( buf = ml_str_alloca( size)) == NULL)
 	{
 		return  0 ;
 	}
-	
-	*len = ml_bs_copy_region( &termscr->bs_image , *chars , size , beg_char_index ,
+
+	*len = ml_bs_copy_region( &termscr->bs_image , buf , size , beg_char_index ,
 		beg_row , end_char_index , end_row) ;
 
 #ifdef  DEBUG
@@ -2411,6 +2438,13 @@ select_in_window(
 	}
 #endif
 
+	if( (*chars = ml_str_new( size)) == NULL)
+	{
+		return  0 ;
+	}
+
+	ml_str_copy( *chars , buf , size) ;
+	
 	return  1 ;
 }
 
@@ -2652,6 +2686,144 @@ get_fontset(
 }
 
 
+static int
+draw_line(
+	ml_term_screen_t *  termscr ,
+	ml_image_line_t *  line ,
+	int  y
+	)
+{
+	int  beg_char_index ;
+	int  beg_x ;
+	u_int  num_of_redrawn ;
+	ml_char_t *  shaped ;
+	ml_char_t *  str ;
+	
+	if( ml_imgline_is_empty( line))
+	{
+		ml_window_clear( &termscr->window , 0 , y , termscr->window.width ,
+			ml_line_height((termscr)->font_man)) ;
+	}
+	else
+	{
+		beg_char_index = ml_imgline_get_beg_of_modified( line) ;
+		beg_x = ml_convert_char_index_to_x( line , beg_char_index) ;
+		num_of_redrawn = ml_imgline_get_num_of_redrawn_chars( line) ;
+
+		if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
+			(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
+				== ML_UTF8)
+		{
+			if( ( shaped = ml_str_new( line->num_of_filled_chars)) == NULL)
+			{
+				return  0 ;
+			}
+
+			ml_str_shape( shaped , line->chars , line->num_of_filled_chars) ;
+			str = &shaped[beg_char_index] ;
+		}
+		else
+		{
+			shaped = NULL ;
+			str = &line->chars[beg_char_index] ;
+		}
+
+		if( line->is_cleared_to_end)
+		{
+			if( ! ml_window_draw_str_to_eol( &termscr->window , str ,
+				num_of_redrawn , beg_x , y ,
+				ml_line_height((termscr)->font_man) ,
+				ml_line_height_to_baseline((termscr)->font_man)))
+			{
+				return  0 ;
+			}
+		}
+		else
+		{
+			if( ! ml_window_draw_str( &termscr->window , str ,
+				num_of_redrawn , beg_x , y ,
+				ml_line_height(termscr->font_man) ,
+				ml_line_height_to_baseline(termscr->font_man)))
+			{
+				return  0 ;
+			}
+		}
+
+		if( shaped)
+		{
+			ml_str_delete( shaped , line->num_of_filled_chars) ;
+		}
+	}
+
+	return  1 ;
+}
+
+static int
+draw_cursor(
+	ml_term_screen_t *  termscr ,
+	int  restore
+	)
+{
+	ml_image_line_t *  line ;
+	ml_char_t *  shaped ;
+	ml_char_t *  ch ;
+	int  x ;
+	int  y ;
+
+	y = ml_convert_row_to_y( termscr , termscr->image->cursor.row) ;
+	
+	if( ( line = ml_image_get_line( termscr->image , termscr->image->cursor.row)) == NULL ||
+		ml_imgline_is_empty( line))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " cursor line doesn't exist.\n") ;
+	#endif
+
+		return  0 ;
+	}
+	
+	x = ml_convert_char_index_to_x( line , termscr->image->cursor.char_index) ;
+
+	if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
+		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
+			== ML_UTF8)
+	{
+		if( ( shaped = ml_str_new( line->num_of_filled_chars)) == NULL)
+		{
+			return  0 ;
+		}
+
+		ml_str_shape( shaped , line->chars , line->num_of_filled_chars) ;
+		ch = &shaped[termscr->image->cursor.char_index] ;
+	}
+	else
+	{
+		shaped = NULL ;
+		ch = ml_cursor_get_char( termscr->image) ;
+	}
+
+	if( restore)
+	{
+		ml_window_draw_str( &termscr->window , ch , 1 , x , y ,
+			ml_line_height( termscr->font_man) ,
+			ml_line_height_to_baseline( termscr->font_man)) ;
+	}
+	else
+	{
+		ml_window_draw_cursor( &termscr->window , ch , x , y ,
+			ml_line_height( termscr->font_man) ,
+			ml_line_height_to_baseline( termscr->font_man)) ;
+	}
+
+	if( shaped)
+	{
+		ml_str_delete( shaped , line->num_of_filled_chars) ;
+	}
+
+	return  1 ;
+}
+
+
 /* --- global functions --- */
 
 ml_term_screen_t *
@@ -2805,7 +2977,7 @@ ml_term_screen_new(
 	termscr->image_scroll_listener.window_scroll_downward_region = window_scroll_downward_region ;
 	
 	if( ! ml_image_init( &termscr->normal_image , &termscr->image_scroll_listener ,
-		cols , rows , sp_ch , nl_ch , tab_size , 1))
+		cols , rows , sp_ch , tab_size , 1))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_image_init failed.\n") ;
@@ -2813,9 +2985,9 @@ ml_term_screen_new(
 	
 		goto  error ;
 	}
-	
+
 	if( ! ml_image_init( &termscr->alt_image , &termscr->image_scroll_listener ,
-		cols , rows , sp_ch , nl_ch , tab_size , 0))
+		cols , rows , sp_ch , tab_size , 0))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_image_init failed.\n") ;
@@ -2840,7 +3012,7 @@ ml_term_screen_new(
 		goto  error ;
 	}
 
-	if( ! ml_log_init( &termscr->logs , cols , num_of_log_lines , nl_ch))
+	if( ! ml_log_init( &termscr->logs , cols , num_of_log_lines))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_log_init failed.\n") ;
@@ -2853,7 +3025,8 @@ ml_term_screen_new(
 	termscr->bs_listener.window_scroll_upward = window_scroll_upward ;
 	termscr->bs_listener.window_scroll_downward = window_scroll_downward ;
 
-	if( ! ml_bs_init( &termscr->bs_image , termscr->image , &termscr->logs , &termscr->bs_listener))
+	if( ! ml_bs_init( &termscr->bs_image , termscr->image , &termscr->logs ,
+		&termscr->bs_listener , &nl_ch))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_bs_init failed.\n") ;
@@ -2875,6 +3048,7 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_pre_conv_xct_to_ucs_flag = change_pre_conv_xct_to_ucs_flag ;
 	termscr->config_menu_listener.change_transparent_flag = change_transparent_flag ;
 	termscr->config_menu_listener.change_aa_flag = change_aa_flag ;
+	termscr->config_menu_listener.change_bidi_flag = change_bidi_flag ;
 	termscr->config_menu_listener.change_xim = change_xim ;
 	termscr->config_menu_listener.larger_font_size = larger_font_size ;
 	termscr->config_menu_listener.smaller_font_size = smaller_font_size ;
@@ -3155,11 +3329,10 @@ ml_term_screen_redraw_image(
 	int  y ;
 	int  end_y ;
 	int  beg_y ;
-	int  beg_char_index ;
-	int  beg_x ;
-	u_int  num_of_redrawn ;
 
 	flush_scroll_cache( termscr) ;
+
+	ml_term_screen_start_bidi( termscr) ;
 
 	counter = 0 ;
 	while(1)
@@ -3187,38 +3360,7 @@ ml_term_screen_redraw_image(
 
 	beg_y = end_y = y = ml_convert_row_to_y( termscr , counter) ;
 
-	if( ml_imgline_is_empty( line))
-	{
-		ml_window_clear( &termscr->window , 0 , beg_y , termscr->window.width ,
-			ml_line_height((termscr)->font_man)) ;
-	}
-	else
-	{
-		beg_char_index = ml_imgline_get_beg_of_modified( line) ;
-		beg_x = ml_convert_char_index_to_x( line , beg_char_index) ;
-		num_of_redrawn = ml_imgline_get_num_of_redrawn_chars( line) ;
-
-		if( line->is_cleared_to_end)
-		{
-			if( ! ml_window_draw_str_to_eol( &termscr->window , &line->chars[beg_char_index] ,
-				num_of_redrawn , beg_x , y ,
-				ml_line_height((termscr)->font_man) ,
-				ml_line_height_to_baseline((termscr)->font_man)))
-			{
-				return  0 ;
-			}
-		}
-		else
-		{
-			if( ! ml_window_draw_str( &termscr->window , &line->chars[beg_char_index] ,
-				num_of_redrawn , beg_x , y ,
-				ml_line_height(termscr->font_man) ,
-				ml_line_height_to_baseline(termscr->font_man)))
-			{
-				return  0 ;
-			}
-		}
-	}
+	draw_line( termscr , line , y) ;
 
 	counter ++ ;
 	y += ml_line_height((termscr)->font_man) ;
@@ -3232,40 +3374,7 @@ ml_term_screen_redraw_image(
 			kik_debug_printf( KIK_DEBUG_TAG " redrawing -> line %d\n" , counter) ;
 		#endif
 
-			if( ml_imgline_is_empty( line))
-			{
-				ml_window_clear( &termscr->window , 0 , y , termscr->window.width ,
-					ml_line_height((termscr)->font_man)) ;
-			}
-			else
-			{
-				beg_char_index = ml_imgline_get_beg_of_modified( line) ;
-				beg_x = ml_convert_char_index_to_x( line , beg_char_index) ;
-				num_of_redrawn = ml_imgline_get_num_of_redrawn_chars( line) ;
-
-				if( line->is_cleared_to_end)
-				{
-					if( ! ml_window_draw_str_to_eol( &termscr->window ,
-						&line->chars[beg_char_index] ,
-						num_of_redrawn , beg_x , y ,
-						ml_line_height((termscr)->font_man) ,
-						ml_line_height_to_baseline((termscr)->font_man)))
-					{
-						return  0 ;
-					}
-				}
-				else
-				{
-					if( ! ml_window_draw_str( &termscr->window ,
-						&line->chars[beg_char_index] ,
-						num_of_redrawn , beg_x , y ,
-						ml_line_height((termscr)->font_man) ,
-						ml_line_height_to_baseline((termscr)->font_man)))
-					{
-						return  0 ;
-					}
-				}
-			}
+			draw_line( termscr , line , y) ;
 			
 			y += ml_line_height((termscr)->font_man) ;
 			end_y = y ;
@@ -3277,7 +3386,7 @@ ml_term_screen_redraw_image(
 	
 		counter ++ ;
 	}
-	
+		
 	ml_bs_is_updated( &termscr->bs_image) ;
 
 	return  1 ;
@@ -3291,38 +3400,13 @@ ml_term_screen_highlight_cursor(
 	ml_term_screen_t *  termscr
 	)
 {
-	ml_image_line_t *  line ;
-	ml_char_t *  ch ;
-	int  x ;
-	int  y ;
-
 	flush_scroll_cache( termscr) ;
+
+	ml_term_screen_start_bidi( termscr) ;
 
 	ml_highlight_cursor( termscr->image) ;
 
-	y = ml_convert_row_to_y( termscr , termscr->image->cursor.row) ;
-	
-	if( ( line = ml_image_get_line( termscr->image , termscr->image->cursor.row)) == NULL ||
-		ml_imgline_is_empty( line))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " cursor line doesn't exist.\n") ;
-	#endif
-
-		return  0 ;
-	}
-	
-	x = ml_convert_char_index_to_x( line , termscr->image->cursor.char_index) ;
-
-	ch = ml_cursor_get_char( termscr->image) ;
-
-#if  0
-	ml_window_draw_str( &termscr->window , ch , 1 , x , y ,
-		ml_line_height( termscr->font_man) , ml_line_height_to_baseline( termscr->font_man)) ;
-#else
-	ml_window_draw_cursor( &termscr->window , ch , x , y ,
-		ml_line_height( termscr->font_man) , ml_line_height_to_baseline( termscr->font_man)) ;
-#endif
+	draw_cursor( termscr , 0) ;
 
 	ml_xic_set_spot( &termscr->window) ;
 
@@ -3337,34 +3421,14 @@ ml_term_screen_unhighlight_cursor(
 	ml_term_screen_t *  termscr
 	)
 {
-	ml_image_line_t *  line ;
-	ml_char_t *  ch ;
-	int  x ;
-	int  y ;
-	
 	flush_scroll_cache( termscr) ;
-	
+
+	ml_term_screen_start_bidi( termscr) ;
+
 	ml_unhighlight_cursor( termscr->image) ;
 
-	y = ml_convert_row_to_y( termscr , termscr->image->cursor.row) ;
+	draw_cursor( termscr , 1) ;
 	
-	if( ( line = ml_image_get_line( termscr->image , termscr->image->cursor.row)) == NULL ||
-		ml_imgline_is_empty( line))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " cursor line doesn't exist.\n") ;
-	#endif
-
-		return  0 ;
-	}
-	
-	x = ml_convert_char_index_to_x( line , termscr->image->cursor.char_index) ;
-
-	ch = ml_cursor_get_char( termscr->image) ;
-
-	ml_window_draw_str( &termscr->window , ch , 1 , x , y ,
-		ml_line_height( termscr->font_man) , ml_line_height_to_baseline( termscr->font_man)) ;
-
 	return  1 ;
 }
 
@@ -3382,15 +3446,11 @@ ml_term_screen_combine_with_prev_char(
 	ml_char_t *  ch ;
 	ml_image_line_t *  line ;
 	int  result ;
-	int  x ;
-	int  y ;
-		
+	
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
 	
 	ml_cursor_go_back( termscr->image , WRAPAROUND) ;
-	
-	y = ml_convert_row_to_y( termscr , termscr->image->cursor.row) ;
 	
 	if( ( line = ml_image_get_line( termscr->image , termscr->image->cursor.row)) == NULL ||
 		ml_imgline_is_empty( line))
@@ -3400,15 +3460,13 @@ ml_term_screen_combine_with_prev_char(
 		goto  end ;
 	}
 	
-	x = ml_convert_char_index_to_x( line , termscr->image->cursor.char_index) ;
-
 	ch = ml_cursor_get_char( termscr->image) ;
-
-	if( ( result = ml_char_combine( ch , bytes , ch_size , font , font_decor , fg_color , bg_color)))
+	
+	if( ( result = ml_char_combine( ch , bytes , ch_size , font , font_decor ,
+		fg_color , bg_color)))
 	{
-		ml_window_draw_str( &termscr->window , ch , 1 , x , y ,
-			ml_line_height( termscr->font_man) ,
-			ml_line_height_to_baseline( termscr->font_man)) ;
+		ml_imgline_update_change_char_index( line , termscr->image->cursor.col ,
+			termscr->image->cursor.col , 0) ;
 	}
 
 end:
@@ -3416,7 +3474,7 @@ end:
 
 	return  result ;
 }
-	
+
 ml_font_t *
 ml_term_screen_get_font(
 	ml_term_screen_t *  termscr ,
@@ -3487,11 +3545,90 @@ ml_term_screen_change_encoding(
 	return  1 ;
 }
 
+int
+ml_term_screen_is_using_bidi(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( ml_image_is_using_bidi( &termscr->normal_image))
+	{
+		if( ml_image_is_using_bidi( &termscr->alt_image))
+		{
+			return  1 ;
+		}
+	#ifdef  DEBUG
+		else
+		{
+			kik_warn_printf( KIK_DEBUG_TAG
+				" is_using_bidi flag is different between normal and alt image.\n") ;
+		}
+	#endif
+	}
+#ifdef  DEBUG
+	else if( ml_image_is_using_bidi( &termscr->alt_image))
+	{
+		kik_warn_printf( KIK_DEBUG_TAG
+			" is_using_bidi flag is different between normal and alt image.\n") ;
+	}
+#endif
+
+	return  0 ;
+}
+
+int
+ml_term_screen_use_bidi(
+	ml_term_screen_t *  termscr
+	)
+{
+	ml_image_use_bidi( &termscr->normal_image) ;
+	ml_image_use_bidi( &termscr->alt_image) ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_unuse_bidi(
+	ml_term_screen_t *  termscr
+	)
+{
+	ml_image_unuse_bidi( &termscr->normal_image) ;
+	ml_image_unuse_bidi( &termscr->alt_image) ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_render_bidi(
+	ml_term_screen_t *  termscr
+	)
+{
+	return  ml_image_render_bidi( termscr->image) ;
+}
+
+int
+ml_term_screen_start_bidi(
+	ml_term_screen_t *  termscr
+	)
+{
+	return  ml_image_start_bidi( termscr->image) ;
+}
+
+int
+ml_term_screen_stop_bidi(
+	ml_term_screen_t *  termscr
+	)
+{
+	return  ml_image_stop_bidi( termscr->image) ;
+}
+
 
 /*
  * for VT100 commands
+ *
+ * !! Notice !!
+ * these functions considers termscr->image not to be visual bidi order.
+ * call ml_term_screen_stop_bidi() before using them.
  */
-
  
 int
 ml_term_screen_insert_chars(
@@ -3502,7 +3639,7 @@ ml_term_screen_insert_chars(
 {
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
-
+	
 	return  ml_image_insert_chars( termscr->image , chars , len) ;
 }
 
@@ -3536,10 +3673,10 @@ ml_term_screen_insert_new_lines(
 	)
 {
 	int  counter ;
-	
+		
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
-	
+
 	for( counter = 0 ; counter < size ; counter ++)
 	{
 		ml_image_insert_new_line( termscr->image) ;
@@ -3552,7 +3689,7 @@ int
 ml_term_screen_line_feed(
 	ml_term_screen_t *  termscr
 	)
-{
+{	
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
 
@@ -3577,7 +3714,7 @@ ml_term_screen_delete_cols(
 	ml_term_screen_t *  termscr ,
 	u_int  len
 	)
-{
+{	
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
 
@@ -3602,11 +3739,11 @@ ml_term_screen_delete_lines(
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " deleting nonexisting lines.\n") ;
 		#endif
-		
+			
 			return  0 ;
 		}
 	}
-
+	
 	return  1 ;
 }
 
@@ -3614,7 +3751,7 @@ int
 ml_term_screen_clear_line_to_right(
 	ml_term_screen_t *  termscr
 	)
-{
+{	
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
 
@@ -3636,7 +3773,7 @@ int
 ml_term_screen_clear_below(
 	ml_term_screen_t *  termscr
 	)
-{
+{	
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
 
@@ -3662,7 +3799,7 @@ ml_term_screen_scroll_image_upward(
 {
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
-	
+
 	return  ml_image_scroll_upward( termscr->image , size) ;
 }
 
@@ -3671,10 +3808,10 @@ ml_term_screen_scroll_image_downward(
 	ml_term_screen_t *  termscr ,
 	u_int  size
 	)
-{
+{	
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
-	
+
 	return  ml_image_scroll_downward( termscr->image , size) ;
 }
 
@@ -3685,7 +3822,7 @@ ml_term_screen_go_forward(
 	)
 {
 	int  counter ;
-	
+
 	for( counter = 0 ; counter < size ; counter ++)
 	{
 		if( ! ml_cursor_go_forward( termscr->image , BREAK_BOUNDARY))
@@ -3708,7 +3845,7 @@ ml_term_screen_go_back(
 	)
 {
 	int  counter ;
-	
+
 	for( counter = 0 ; counter < size ; counter ++)
 	{
 		if( ! ml_cursor_go_back( termscr->image , 0))
@@ -3716,7 +3853,7 @@ ml_term_screen_go_back(
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot go back any more.\n") ;
 		#endif
-		
+					
 			return  0 ;
 		}
 	}
@@ -3739,7 +3876,7 @@ ml_term_screen_go_upward(
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot go upward any more.\n") ;
 		#endif
-		
+				
 			return  0 ;
 		}
 	}
@@ -3866,7 +4003,7 @@ int
 ml_term_screen_bel(
 	ml_term_screen_t *  termscr
 	)
-{
+{	
 	if( termscr->bel_mode == BEL_SOUND)
 	{
 		XBell( termscr->window.display , 0) ;

@@ -72,6 +72,7 @@ ml_config_menu_start(
 	int  orig_pre_conv_xct_to_ucs ,
 	int  orig_is_transparent ,
 	int  orig_is_aa ,
+	int  orig_is_bidi ,
 	char *  orig_xim ,
 	char *  orig_locale
 	)
@@ -144,12 +145,14 @@ ml_config_menu_start(
 	 * output format
 	 * [encoding] [fg color] [bg color] [tabsize] [logsize] [font size] [min font size] \
 	 * [max font size] [mod meta mode] [bel mode] [is combining char] [pre conv xct to ucs]
-	 * [is transparent] [is aa] [xim] [locale][LF]
+	 * [is transparent] [is aa] [is bidi] [xim] [locale][LF]
 	 */
-	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" , orig_encoding , orig_fg_color ,
-		orig_bg_color , orig_tabsize , orig_logsize , orig_fontsize , min_fontsize ,
-		max_fontsize , orig_mod_meta_mode , orig_bel_mode , orig_is_combining_char ,
-		orig_pre_conv_xct_to_ucs , orig_is_transparent , orig_is_aa , orig_xim , orig_locale) ;
+	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+		orig_encoding , orig_fg_color , orig_bg_color , orig_tabsize ,
+		orig_logsize , orig_fontsize , min_fontsize , max_fontsize ,
+		orig_mod_meta_mode , orig_bel_mode , orig_is_combining_char ,
+		orig_pre_conv_xct_to_ucs , orig_is_transparent , orig_is_aa , orig_is_bidi ,
+		orig_xim , orig_locale) ;
 	fclose( fp) ;
 	
 	waitpid( pid , &state , WUNTRACED) ;
@@ -211,6 +214,7 @@ ml_config_menu_start(
 		int  pre_conv_xct_to_ucs ;
 		int  is_transparent ;
 		int  is_aa ;
+		int  is_bidi ;
 		char *  xim ;
 		char *  locale ;
 
@@ -292,6 +296,12 @@ ml_config_menu_start(
 			return  0 ;
 		}
 
+		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+			! kik_str_to_int( &is_bidi , p))
+		{
+			return  0 ;
+		}
+		
 		if( ( xim = kik_str_sep( &input_line , " ")) == NULL)
 		{
 			return  0 ;
@@ -410,6 +420,15 @@ ml_config_menu_start(
 			}
 		}
 
+		if( is_bidi != orig_is_bidi)
+		{
+			if( config_menu->config_menu_listener->change_bidi_flag)
+			{
+				(*config_menu->config_menu_listener->change_bidi_flag)(
+					config_menu->config_menu_listener->self , is_bidi) ;
+			}
+		}
+		
 		if( strcmp( xim , orig_xim) != 0)
 		{
 			if( config_menu->config_menu_listener->change_xim)

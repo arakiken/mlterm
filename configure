@@ -16,6 +16,8 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-debug          debug[disabled]"
 ac_help="$ac_help
+  --enable-fribidi        fribidi[disabled]"
+ac_help="$ac_help
   --enable-imlib          imlib[disabled]"
 ac_help="$ac_help
   --enable-anti-alias     anti alias[disabled]"
@@ -571,6 +573,12 @@ fi
 # Check whether --enable-debug or --disable-debug was given.
 if test "${enable_debug+set}" = set; then
   enableval="$enable_debug"
+  :
+fi
+
+# Check whether --enable-fribidi or --disable-fribidi was given.
+if test "${enable_fribidi+set}" = set; then
+  enableval="$enable_fribidi"
   :
 fi
 

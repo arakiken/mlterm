@@ -73,6 +73,19 @@ fi
 AC_SUBST(DEB_CFLAGS)
 AC_SUBST(OPT_CFLAGS)
 
+AC_ARG_ENABLE(fribidi,
+	[  --enable-fribidi           bidi[disabled]],
+	fribidi=$enable_fribidi)
+if test "$fribidi" = "yes" ; then
+	AC_CHECK_LIB(fribidi,fribidi_log2vis,
+		[
+		FRIBIDI_CFLAGS="`glib-config --cflags` -DUSE_FRIBIDI"
+		FRIBIDI_LIBS="`glib-config --libs` -lfribidi"
+		],,`glib-config --libs`)
+fi
+AC_SUBST(FRIBIDI_CFLAGS)
+AC_SUBST(FRIBIDI_LIBS)
+	
 AC_ARG_ENABLE(imlib,
 	[  --enable-imlib          imlib[disabled]],
 	imlib=$enable_imlib)

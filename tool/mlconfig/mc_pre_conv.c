@@ -53,7 +53,7 @@ mc_pre_conv_config_widget_new(
 
 	is_checked = is_checked_default ;
 
-	check = gtk_check_button_new_with_label( "ucspreconv") ;
+	check = gtk_check_button_new_with_label( "convert xct to ucs") ;
 
 	if( is_checked)
 	{

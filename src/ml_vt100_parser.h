@@ -42,21 +42,24 @@ typedef struct  ml_vt100_parser
 	mkf_conv_t *  cc_conv ;		/* char code converter */
 	ml_encoding_type_t  encoding ;
 
-	int  is_graphic_char_in_gl ;
+	int8_t  is_graphic_char_in_gl ;
 	
-	int  unicode_to_other_cs ;	/* whether unicode chars are converted to other cs or not */
-	int  all_cs_to_unicode ;	/* whether all chars are converted to unicode or not */
-	int  conv_to_generic_iso2022 ;
-	size_t  col_size_of_east_asian_width_a ;
+	int8_t  unicode_to_other_cs ;	/* whether unicode chars are converted to other cs or not */
+	int8_t  all_cs_to_unicode ;	/* whether all chars are converted to unicode or not */
+	int8_t  conv_to_generic_iso2022 ;
 	
+	int8_t  use_bidi ;
+	
+	u_int  col_size_of_east_asian_width_a ;
+		
 	ml_font_attr_t  font_attr ;
 	ml_font_decor_t  font_decor ;
 	ml_font_attr_t  saved_attr ;
 	ml_font_decor_t  saved_decor ;
+	
 	u_long  fg_color ;
 	u_long  bg_color ;
-
-	int  is_reversed ;
+	int8_t  is_reversed ;
 	
 	mkf_charset_t  cs ;
 	ml_font_t *  font ;
@@ -70,7 +73,7 @@ typedef struct  ml_vt100_parser
 
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_term_screen_t *  term_window ,
 	ml_encoding_type_t  type , int  unicode_to_other_cs , int  all_cs_to_unicode ,
-	int  conv_to_generic_iso2022 , size_t  col_size_a) ;
+	int  conv_to_generic_iso2022 , u_int  col_size_a , int  use_bidi) ;
 
 int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
 

@@ -20,6 +20,7 @@
 #include  "mc_char_combining.h"
 #include  "mc_pre_conv.h"
 #include  "mc_transparent.h"
+#include  "mc_bidi.h"
 #include  "mc_aa.h"
 #include  "mc_mod_meta.h"
 #include  "mc_bel.h"
@@ -58,9 +59,10 @@ apply_clicked(
 {
 	/*
 	 * CONFIG:[encoding] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
-	 * [bel mode] [combining char] [pre conv xct to ucs] [is transparent] [is aa] [xim] [locale][LF]
+	 * [bel mode] [combining char] [pre conv xct to ucs] [is transparent] [is aa] [is bidi] \
+	 * [xim] [locale][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %s %d %d %d %d %d %d %s %s\n" ,
+	fprintf( out , "CONFIG:%d %d %d %d %d %s %d %d %d %d %d %d %d %s %s\n" ,
 		mc_get_encoding() ,
 		mc_get_fg_color() ,
 		mc_get_bg_color() ,
@@ -73,6 +75,7 @@ apply_clicked(
 		mc_is_pre_conv_xct_to_ucs() ,
 		mc_is_transparent() ,
 		mc_is_aa() ,
+		mc_is_bidi() ,
 		mc_get_xim_name() ,
 		mc_get_xim_locale()) ;
 
@@ -190,6 +193,7 @@ show(
 	int  pre_conv_xct_to_ucs ,
 	int  is_transparent ,
 	int  is_aa ,
+	int  is_bidi ,
 	char *  cur_xim ,
 	char *  cur_locale
 	)
@@ -199,8 +203,9 @@ show(
 	GtkWidget *  frame ;
 	GtkWidget *  label ;
 	GtkWidget *  vbox ;
-	GtkWidget *  config_widget ;
+	GtkWidget *  vbox2 ;
 	GtkWidget *  hbox ;
+	GtkWidget *  config_widget ;
 	GtkWidget *  button ;
 	GtkWidget *  separator ;
 	
@@ -297,16 +302,49 @@ show(
 	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , TRUE , TRUE , 0) ;
 	
 	
-	hbox = gtk_hbox_new(FALSE , 0) ;
-	gtk_widget_show(hbox) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
+	vbox2 = gtk_vbox_new(FALSE , 0) ;
+	gtk_widget_show(vbox2) ;
+	gtk_box_pack_start(GTK_BOX(vbox) , vbox2 , TRUE , TRUE , 0) ;
 
+	hbox = gtk_hbox_new(TRUE , 5) ;
+	gtk_widget_show(hbox) ;
+	gtk_box_pack_start(GTK_BOX(vbox2) , hbox , TRUE , TRUE , 0) ;	
+	
+	if( ( config_widget = mc_aa_config_widget_new(is_aa)) == NULL)
+	{
+		return  0 ;
+	}
+	gtk_widget_show(config_widget) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , TRUE , TRUE , 0) ;
+
+	if( ( config_widget = mc_bidi_config_widget_new(is_bidi)) == NULL)
+	{
+		return  0 ;
+	}
+	gtk_widget_show(config_widget) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , TRUE , TRUE , 0) ;
+
+	hbox = gtk_hbox_new(TRUE , 5) ;
+	gtk_widget_show(hbox) ;
+	gtk_box_pack_start(GTK_BOX(vbox2) , hbox , TRUE , TRUE , 0) ;
+	
 	if( ( config_widget = mc_char_combining_config_widget_new(is_combining_char)) == NULL)
 	{
 		return  0 ;
 	}
 	gtk_widget_show(config_widget) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , TRUE , TRUE , 0) ;
+	
+	if( ( config_widget = mc_transparent_config_widget_new(is_transparent)) == NULL)
+	{
+		return  0 ;
+	}
+	gtk_widget_show(config_widget) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , TRUE , TRUE , 0) ;
+
+	hbox = gtk_hbox_new(TRUE , 5) ;
+	gtk_widget_show(hbox) ;
+	gtk_box_pack_start(GTK_BOX(vbox2) , hbox , TRUE , TRUE , 0) ;
 	
 	if( ( config_widget = mc_pre_conv_config_widget_new(pre_conv_xct_to_ucs)) == NULL)
 	{
@@ -315,38 +353,20 @@ show(
 	gtk_widget_show(config_widget) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , TRUE , TRUE , 0) ;
 
-	if( ( config_widget = mc_transparent_config_widget_new(is_transparent)) == NULL)
-	{
-		return  0 ;
-	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , TRUE , TRUE , 0) ;
-
-	if( ( config_widget = mc_aa_config_widget_new(is_aa)) == NULL)
-	{
-		return  0 ;
-	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , TRUE , TRUE , 0) ;
 	
 	hbox = gtk_hbox_new(FALSE , 5) ;
 	gtk_widget_show(hbox) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
-	
-	
-	label = gtk_label_new( "Change Setting") ;
-	gtk_widget_show(label) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 2) ;
+	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 	
 	button = gtk_button_new_with_label("apply") ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(apply_clicked) , NULL) ;
 	gtk_widget_show(button) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 2) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 10) ;
 	
 	button = gtk_button_new_with_label("cancel") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "pressed" , GTK_SIGNAL_FUNC(end_application) , NULL) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 2) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 10) ;
 
 
 	separator = gtk_hseparator_new() ;
@@ -358,7 +378,7 @@ show(
 	gtk_widget_show(hbox) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 
-	label = gtk_label_new( "Change Font Size") ;
+	label = gtk_label_new( "Change  Font  Size") ;
 	gtk_widget_show(label) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 2) ;
 	
@@ -382,7 +402,7 @@ show(
 	gtk_widget_show(hbox) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 	
-	label = gtk_label_new( "Change Wall Pic ") ;
+	label = gtk_label_new( "Change Wall Picture") ;
 	gtk_widget_show(label) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 2) ;
 	
@@ -431,6 +451,7 @@ start_application(
 	int  pre_conv_xct_to_ucs ;
 	int  is_transparent ;
 	int  is_aa ;
+	int  is_bidi ;
 	char *  cur_locale ;
 	char *  cur_xim ;
 
@@ -549,6 +570,12 @@ start_application(
 		return  0 ;
 	}
 	
+	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+		! kik_str_to_int( &is_bidi , p))
+	{
+		return  0 ;
+	}
+	
 	if( ( cur_xim = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
@@ -562,7 +589,7 @@ start_application(
 	return  show( x , y , cur_encoding , cur_fg_color , cur_bg_color , cur_tabsize ,
 		cur_logsize , cur_fontsize , min_fontsize , max_fontsize ,
 		cur_mod_meta_mode , cur_bel_mode , is_combining_char , pre_conv_xct_to_ucs ,
-		is_transparent , is_aa , cur_xim , cur_locale) ;
+		is_transparent , is_aa , is_bidi , cur_xim , cur_locale) ;
 }
 
 

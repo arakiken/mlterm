@@ -27,23 +27,31 @@ ml_image_clear_line(
 		return  1 ;
 	}
 
-	if( char_index > END_CHAR_INDEX(IMAGE_LINE(image,row)))
+	if( char_index == 0)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" col %d is overflowed(char array of line %d is %d) , and nothing is cleared.\n" ,
-			char_index , row , END_CHAR_INDEX(IMAGE_LINE(image,row))) ;
-	#endif
-
-		return  1 ;
+		ml_imgline_clear( &IMAGE_LINE(image,row) , &image->sp_ch) ;
 	}
+	else
+	{
+		if( char_index > END_CHAR_INDEX(IMAGE_LINE(image,row)))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG
+				" col %d is overflowed(char array of line %d is %d) ,"
+				" and nothing is cleared.\n" ,
+				char_index , row , END_CHAR_INDEX(IMAGE_LINE(image,row))) ;
+		#endif
 
-	ml_char_copy( &IMAGE_LINE(image,row).chars[char_index] , &image->sp_ch) ;
-	IMAGE_LINE(image,row).num_of_filled_chars = char_index + 1 ;
+			return  1 ;
+		}
 
-	ml_imgline_update_change_char_index( &IMAGE_LINE(image,row) , char_index ,
-		END_CHAR_INDEX(IMAGE_LINE(image,row)) , 1) ;
+		ml_char_copy( &IMAGE_LINE(image,row).chars[char_index] , &image->sp_ch) ;
+		IMAGE_LINE(image,row).num_of_filled_chars = char_index + 1 ;
 
+		ml_imgline_update_change_char_index( &IMAGE_LINE(image,row) , char_index ,
+			END_CHAR_INDEX(IMAGE_LINE(image,row)) , 1) ;
+	}
+	
 	if( row == image->cursor.row)
 	{
 		if( image->cursor.char_index > char_index)
@@ -144,12 +152,13 @@ ml_convert_char_index_to_col(
 	int  col ;
 
 #ifdef  DEBUG
-	if( char_index >= image->num_of_chars)
+	if( char_index >= image->num_of_cols)
 	{
 		/* this must never happens */
 		
-		kik_warn_printf( KIK_DEBUG_TAG " char index %d is larger than ml_image_t::num_of_chars(%d)\n" ,
-			char_index , image->num_of_chars) ;
+		kik_warn_printf( KIK_DEBUG_TAG
+			" char index %d is larger than ml_image_t::num_of_cols(%d)\n" ,
+			char_index , image->num_of_cols) ;
 
 		abort() ;
 	}
@@ -209,12 +218,13 @@ ml_convert_char_index_to_col(
 			if( ml_char_cols( &IMAGE_LINE(image,row).chars[counter]) == 0)
 			{
 				ml_image_dump( image) ;
+				
 				kik_warn_printf( KIK_DEBUG_TAG " ml_char_cols returns 0.\n") ;
-			
+				
 				continue ;
 			}
 		#endif
-			
+
 			col += ml_char_cols( &IMAGE_LINE(image,row).chars[counter]) ;
 		}
 	}
@@ -237,16 +247,18 @@ ml_convert_col_to_char_index(
 	int  char_index ;
 
 #ifdef  DEBUG
-	if( col >= image->num_of_chars)
+	if( col >= image->num_of_cols)
 	{
 		/* this must never happen */
 		
-		kik_warn_printf( KIK_DEBUG_TAG " col %d is larger than ml_image_t::num_of_chars(%d)" ,
-			col , image->num_of_chars) ;
+		kik_warn_printf( KIK_DEBUG_TAG " col %d is larger than ml_image_t::num_of_cols(%d)" ,
+			col , image->num_of_cols) ;
 
-		col = image->num_of_chars - 1 ;
+		col = image->num_of_cols - 1 ;
 
 		fprintf( stderr , " ... modified -> %d\n" , col) ;
+
+		abort() ;
 	}
 #endif
 

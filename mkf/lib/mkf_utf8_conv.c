@@ -19,7 +19,7 @@ remap_unsupported_charset(
 {
 	mkf_char_t  c ;
 
-	if( ch->cs != ISO10646_UCS4_1)
+	if( ch->cs != ISO10646_UCS4_1 && ch->cs != ISO10646_UCS2_1)
 	{
 		if( mkf_map_to_ucs4( &c , ch))
 		{

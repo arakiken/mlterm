@@ -1,3 +1,10 @@
+[20011208]
+* Bidi is supported.(FriBidi is required)
+* Arabic character shaping is supported.
+* ml_image module is cleaned up.
+* many minor bugs are fixed.
+* mlterm icons are added.(thanks to Kubota Tomohiro san.)
+
 [20011203]
 * ml_get_locale() in ml_locale.c returns "C" if setlocale() failed in ml_locale_init().
 * ml_get_xim() in ml_xim.c returns NULL if xim_locale argument is "C" or 

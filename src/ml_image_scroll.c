@@ -18,7 +18,7 @@
  * the caller side must be responsible for whether {dst|src} + size is within
  * image->num_of_filled_lines.
  *
- * !Notice!
+ * !! Notice !!
  * this function doesn't concern about crossing over the boundary and num_of_filled_rows.
  */
 static int
@@ -188,21 +188,9 @@ scroll_upward_region(
 			END_ROW(image) - boundary_end , 0) ;
 	}
 
-	/*
-	 * ml_image_clear_lines( image , boundary_end - size + 1 , size) cannot be used here
-	 * because num_of_filled_chars member of the lines between
-	 * boundary_beg and boundary_beg + size may be 0.
-	 */
 	for( counter = boundary_end - size + 1 ; counter <= boundary_end ; counter ++)
 	{
-		if( IMAGE_LINE(image,counter).num_of_filled_chars > 0)
-		{
-			ml_imgline_update_change_char_index( &IMAGE_LINE(image,counter) , 0 ,
-				END_CHAR_INDEX(IMAGE_LINE(image,counter)) , 1) ;
-		}
-		
-		ml_char_copy( &IMAGE_LINE(image,counter).chars[0] , &image->sp_ch) ;
-		IMAGE_LINE(image,counter).num_of_filled_chars = 1 ;
+		ml_imgline_clear( &IMAGE_LINE(image,counter) , &image->sp_ch) ;
 	}
 
 	/*
@@ -297,21 +285,9 @@ scroll_downward_region(
 		copy_lines( image , 0 , size , boundary_beg , 0) ;
 	}
 
-	/*
-	 * ml_image_clear_lines( image , boundary_beg , size) cannot be used here
-	 * because num_of_filled_chars member of the lines between
-	 * boundary_beg and boundary_beg + size may be 0.
-	 */
 	for( counter = boundary_beg ; counter < boundary_beg + size ; counter ++)
 	{
-		if( IMAGE_LINE(image,counter).num_of_filled_chars > 0)
-		{
-			ml_imgline_update_change_char_index( &IMAGE_LINE(image,counter) , 0 ,
-				END_CHAR_INDEX(IMAGE_LINE(image,counter)) , 1) ;
-		}
-		
-		ml_char_copy( &IMAGE_LINE(image,counter).chars[0] , &image->sp_ch) ;
-		IMAGE_LINE(image,counter).num_of_filled_chars = 1 ;
+		ml_imgline_clear( &IMAGE_LINE(image,counter) , &image->sp_ch) ;
 	}
 	
 	/*

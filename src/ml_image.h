@@ -53,7 +53,6 @@ typedef struct  ml_image
 	ml_image_line_t *  lines ;
 
 	u_int  num_of_rows ;
-	u_int  num_of_chars ;
 	u_int  num_of_cols ;
 
 	u_int  num_of_filled_rows ;
@@ -68,14 +67,13 @@ typedef struct  ml_image
 	ml_cursor_t  cursor ;
 
 	ml_cursor_t  saved_cursor ;
-	int  cursor_is_saved ;
+	int8_t  cursor_is_saved ;
+
+	int8_t  is_logging ;
 
 	u_int  tab_cols ;
 
 	ml_char_t  sp_ch ;
-	ml_char_t  nl_ch ;
-
-	int  is_logging ;
 
 	/* used for line overlapping */
 	ml_image_line_t *  wraparound_ready_line ;
@@ -90,17 +88,28 @@ typedef struct  ml_image
 
 
 int  ml_image_init( ml_image_t *  image , ml_image_scroll_event_listener_t *  scroll_listener ,
-	u_int  num_of_cols , u_int  num_of_rows , ml_char_t  sp_ch , ml_char_t  nl_ch ,
-	u_int  tab_size , int  is_logging) ;
+	u_int  num_of_cols , u_int  num_of_rows , ml_char_t  sp_ch , u_int  tab_size , int  is_logging) ;
 
 int  ml_image_final( ml_image_t *  image) ;
 
 int  ml_image_resize( ml_image_t *  image , u_int  num_of_cols , u_int  num_of_rows) ;
 
+int  ml_image_is_using_bidi( ml_image_t *  image) ;
+
+int  ml_image_use_bidi( ml_image_t *  image) ;
+
+int  ml_image_unuse_bidi( ml_image_t *  image) ;
+
+int  ml_image_render_bidi( ml_image_t *  image) ;
+
+int  ml_image_start_bidi( ml_image_t *  image) ;
+
+int  ml_image_stop_bidi( ml_image_t *  image) ;
+
 int  ml_image_insert_chars( ml_image_t *  image , ml_char_t *  chars , u_int  num_of_chars) ;
 
 int  ml_image_insert_blank_chars( ml_image_t *  image , u_int  num_of_blank_chars) ;
-	
+
 int  ml_image_overwrite_chars( ml_image_t *  image , ml_char_t *  chars , u_int  num_of_chars) ;
 
 int  ml_image_delete_cols( ml_image_t *  image , u_int  delete_len) ;
@@ -160,12 +169,6 @@ void  ml_image_all_modified( ml_image_t *  image) ;
 inline u_int ml_image_get_cols( ml_image_t *  image) ;
 
 inline u_int ml_image_get_rows( ml_image_t *  image) ;
-
-u_int  ml_image_copy_region( ml_image_t *  image , ml_char_t *  chars , u_int  num_of_chars ,
-	int  beg_char_index , int  beg_row , int  end_char_index , int  end_row) ;
-
-u_int  ml_image_get_region_size( ml_image_t *  image , int  beg_char_index , int  beg_row ,
-	int  end_char_index , int  end_row) ;
 
 #ifdef  DEBUG
 

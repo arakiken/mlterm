@@ -45,12 +45,11 @@ UCS_TABLE_OBJ = mkf_ucs4_usascii.o mkf_ucs4_iso8859.o mkf_ucs4_viscii.o mkf_ucs4
 OBJ = $(PARSER_OBJ) $(CONV_OBJ) $(MAP_OBJ) mkf_char.o mkf_sjis_env.o $(PROP_OBJ) $(UCS_TABLE_OBJ)
 
 INC = $(PARSER_OBJ:.o=.h) $(CONV_OBJ:.o=.h) $(MAP_OBJ:.o=.h) mkf_char.h mkf_sjis_env.h \
-	mkf_ucs_property.h mkf_property.h \
-	mkf_charset.h mkf_conv.h mkf_xct_parser.h mkf_xct_conv.h
+	mkf_property.h mkf_ucs_property.h mkf_charset.h mkf_conv.h mkf_xct_parser.h mkf_xct_conv.h
 
 LIBNAME = libmkf
 LIBNAME_DEB = libmkf_deb
-MAJOR = 9
+MAJOR = 10
 MINOR = 0
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)

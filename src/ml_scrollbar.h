@@ -41,12 +41,12 @@ typedef struct  ml_scrollbar
 
 	int  up_button_y ;
 	u_int  up_button_height ;
-	int  is_pressing_up_button ;
 	int  down_button_y ;
 	u_int  down_button_height ;
-	int  is_pressing_down_button ;
+	int8_t  is_pressing_up_button ;
+	int8_t  is_pressing_down_button ;
 
-	int  is_motion ;
+	int8_t  is_motion ;
 
 } ml_scrollbar_t ;
 

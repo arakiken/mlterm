@@ -194,7 +194,7 @@ open_new_term(
 
 	if( ( vt100_parser = ml_vt100_parser_new( termscr , term_man->encoding ,
 		term_man->unicode_to_other_cs , term_man->all_cs_to_unicode ,
-		term_man->conv_to_generic_iso2022 , term_man->col_size_a)) == NULL)
+		term_man->conv_to_generic_iso2022 , term_man->col_size_a , term_man->use_bidi)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_vt100_parser_new() failed.\n") ;
@@ -720,6 +720,7 @@ ml_term_manager_init(
 		"pre-converting xct to ucs in pasting selection.") ;
 	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" ,
 		"opening xim in starting up.") ;
+	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , "use bidi") ;
 #ifdef  ANTI_ALIAS
 	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , "using anti alias font") ;
 #endif
@@ -1261,6 +1262,16 @@ ml_term_manager_init(
 		if( strcmp( value , "false") == 0)
 		{
 			term_man->xim_open_in_startup = 0 ;
+		}
+	}
+
+	term_man->use_bidi = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_bidi")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->use_bidi = 1 ;
 		}
 	}
 

@@ -56,9 +56,6 @@ typedef struct  ml_font
 
 	ml_font_attr_t  attr ;
 
-	int  is_double_drawing ;
-	int  is_proportional ;
-
 	/*
 	 * these members are never zero.
 	 */
@@ -67,6 +64,9 @@ typedef struct  ml_font
 	u_int  height ;
 	u_int  height_to_baseline ;
 	
+	int8_t  is_double_drawing ;
+	int8_t  is_proportional ;
+
 } ml_font_t ;
 
 

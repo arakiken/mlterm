@@ -57,7 +57,7 @@ typedef struct  ml_window
 	Drawable  drawable ;
 
 	Pixmap  pixmap ;
-	int  use_pixmap ;
+	int8_t  use_pixmap ;
 
 #ifdef  ANTI_ALIAS
 	XftDraw *  xft_draw ;
@@ -79,14 +79,14 @@ typedef struct  ml_window
 
 	u_int  num_of_children ;
 	
-	int  wall_picture_is_set ;
-	int  is_transparent ;
+	int8_t  wall_picture_is_set ;
+	int8_t  is_transparent ;
+	
+	int8_t  is_scrollable ;
 
 	u_int  cursor_shape ;
 
 	long  event_mask ;
-
-	int  is_scrollable ;
 
 	ml_font_t *  font ;
 
@@ -103,15 +103,15 @@ typedef struct  ml_window
 	ml_color_table_t  color_table ;
 
 	/* used by ml_xim */
-	int  use_xim ;
+	int8_t  use_xim ;
 	ml_xic_ptr_t  xic ;
 	ml_xim_event_listener_t *  xim_listener ;
 
 	Time  prev_clicked_time ;
 	int  prev_clicked_button ;
-	int  click_num ;
-	int  button_is_pressing ;
 	XButtonEvent  prev_button_press_event ;
+	int  click_num ;
+	int8_t  button_is_pressing ;
 
 	void (*window_realized)( struct ml_window *) ;
 	void (*window_finalized)( struct ml_window *) ;

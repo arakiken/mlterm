@@ -59,7 +59,7 @@ convert_to_ucs4(
 		}
 		else if( ml_char_cs( &mlchars[mlch_counter]) == ISO10646_UCS4_1)
 		{
-			memcpy( ucs4_str , ml_char_bytes( &mlchars[mlch_counter]) , 4) ;
+			memcpy( &ucs4_str[ucs4_counter] , ml_char_bytes( &mlchars[mlch_counter]) , 4) ;
 		}
 		else
 		{
@@ -120,17 +120,15 @@ ml_convert_to_utf8(
 	{
 		ucs4_parser = mkf_ucs4_parser_new() ;
 	}
-	else
-	{
-		(*ucs4_parser->set_str)( ucs4_parser , ucs4_str , filled_len) ;
-	}
+	
+	(*ucs4_parser->set_str)( ucs4_parser , ucs4_str , filled_len) ;
 
 	if( utf8_conv == NULL)
 	{
 		utf8_conv = mkf_utf8_conv_new() ;
 	}
 
-	filled_len = (*utf8_conv->convert)( utf8_conv , utf8_str , filled_len , ucs4_parser) ;
-
+	filled_len = (*utf8_conv->convert)( utf8_conv , utf8_str , utf8_len , ucs4_parser) ;
+	
 	return  filled_len ;
 }

@@ -12,7 +12,6 @@
 #include  <mkf/mkf_iso2022_conv.h>
 #include  <mkf/mkf_ucs4_map.h>
 #include  <mkf/mkf_ko_kr_map.h>
-#include  <mkf/mkf_ucs_property.h>
 
 #include  "ml_color.h"
 
@@ -239,7 +238,7 @@ put_char(
 	u_char *  ch ,
 	size_t  len ,
 	mkf_charset_t  cs ,
-	int  is_combining
+	mkf_property_t  prop
 	)
 {
 	ml_font_attr_t  width_attr ;
@@ -260,30 +259,11 @@ put_char(
 		 * checking East Aisan Width property of the char.
 		 */
 		 
-		mkf_ucs_property_t  prop ;
-		u_char  bytes[4] ;
-
-		if( cs == ISO10646_UCS2_1)
-		{
-			bytes[0] = 0x0 ;
-			bytes[1] = 0x0 ;
-			bytes[2] = ch[0] ;
-			bytes[3] = ch[1] ;
-		}
-		else
-		{
-			memcpy( bytes , ch , 4) ;
-		}
-
-		prop = mkf_get_ucs_property( bytes , 4) ;
-
-		if( UCSPROP_EAST_ASIAN_WIDTH(prop) == MKF_UCSPROP_F ||
-			UCSPROP_EAST_ASIAN_WIDTH(prop) == MKF_UCSPROP_W)
+		if( prop & MKF_BIWIDTH)
 		{
 			width_attr = FONT_BIWIDTH ;
 		}
-		else if( UCSPROP_EAST_ASIAN_WIDTH(prop) == MKF_UCSPROP_A &&
-			vt100_parser->col_size_of_east_asian_width_a == 2)
+		else if( (prop & MKF_AWIDTH) && vt100_parser->col_size_of_east_asian_width_a == 2)
 		{
 			width_attr = FONT_BIWIDTH ;
 		}
@@ -318,8 +298,8 @@ put_char(
 		fg_color = vt100_parser->fg_color ;
 		bg_color = vt100_parser->bg_color ;
 	}
-	
-	if( is_combining)
+
+	if( prop & MKF_COMBINING)
 	{
 		if( vt100_parser->buffer.len == 0)
 		{
@@ -339,12 +319,15 @@ put_char(
 				return  ;
 			}
 		}
+
+		/*
+		 * if combining failed , char is normally appended.
+		 */
 	}
-	
+
 	ml_char_set( &vt100_parser->buffer.chars[vt100_parser->buffer.len++] , ch , len ,
-		vt100_parser->font , vt100_parser->font_decor ,
-		fg_color , bg_color) ;
-	
+		vt100_parser->font , vt100_parser->font_decor , fg_color , bg_color) ;
+
 	return ;
 }
 
@@ -1652,6 +1635,15 @@ encoding_changed(
 	/* reset */
 	vt100_parser->is_graphic_char_in_gl = 0 ;
 
+	if( vt100_parser->use_bidi && vt100_parser->encoding == ML_UTF8)
+	{
+		ml_term_screen_use_bidi( vt100_parser->termscr) ;
+	}
+	else
+	{
+		ml_term_screen_unuse_bidi( vt100_parser->termscr) ;
+	}
+	
 	init_encoding_state_intern( vt100_parser->cc_conv , vt100_parser->cc_parser ,
 		vt100_parser->encoding) ;
 	
@@ -1701,7 +1693,8 @@ ml_vt100_parser_new(
 	int  unicode_to_other_cs ,
 	int  all_cs_to_unicode ,
 	int  conv_to_generic_iso2022 ,
-	size_t  col_size_a
+	u_int  col_size_a ,
+	int  use_bidi
 	)
 {
 	ml_vt100_parser_t *  vt100_parser ;
@@ -1769,6 +1762,13 @@ ml_vt100_parser_new(
 	vt100_parser->encoding = encoding ;
 
 	vt100_parser->is_graphic_char_in_gl = 0 ;
+
+	vt100_parser->use_bidi = use_bidi ;
+
+	if( vt100_parser->use_bidi && vt100_parser->encoding == ML_UTF8)
+	{
+		ml_term_screen_use_bidi( vt100_parser->termscr) ;
+	}
 
 	init_encoding_state_intern( vt100_parser->cc_conv , vt100_parser->cc_parser ,
 		vt100_parser->encoding) ;
@@ -1853,6 +1853,12 @@ ml_parse_vt100_sequence(
 
 	while( receive_bytes( vt100_parser))
 	{
+		ml_term_screen_stop_bidi( vt100_parser->termscr) ;
+
+		/*
+		 * bidi is always stopped from here.
+		 */
+		 
 		while( 1)
 		{
 			prev_left = vt100_parser->left ;
@@ -1953,17 +1959,13 @@ ml_parse_vt100_sequence(
 					if( mkf_map_to_ucs4( &ucs , &ch))
 					{
 					#ifdef  USE_UCS4
-						ch.ch[0] = ucs.ch[0] ;
-						ch.ch[1] = ucs.ch[1] ;
-						ch.ch[2] = ucs.ch[2] ;
-						ch.ch[3] = ucs.ch[3] ;
-						ch.size = 4 ;
-						ch.cs = ISO10646_UCS4_1 ;
+						ch = ucs ;
 					#else
 						ch.ch[0] = ucs.ch[2] ;
 						ch.ch[1] = ucs.ch[3] ;
 						ch.size = 2 ;
 						ch.cs = ISO10646_UCS2_1 ;
+						ch.property = ucs.property ;
 					#endif
 					}
 				#ifdef  DEBUG
@@ -2016,10 +2018,11 @@ ml_parse_vt100_sequence(
 						}
 
 						ch.cs = DEC_SPECIAL ;
+						ch.property = 0 ;
 					}
-
+					
 					put_char( vt100_parser , ch.ch , ch.size , ch.cs ,
-						ch.property & MKF_COMBINING) ;
+						ch.property) ;
 				}
 			}
 
@@ -2059,10 +2062,20 @@ ml_parse_vt100_sequence(
 		
 		flush_buffer( vt100_parser) ;
 
+		ml_term_screen_render_bidi( vt100_parser->termscr) ;
+		
+		/*
+		 * bidi is always stopped until here.
+		 */
+
+		ml_term_screen_start_bidi( vt100_parser->termscr) ;
+		
 		ml_term_screen_redraw_image( vt100_parser->termscr) ;
 	}
 
 	ml_term_screen_highlight_cursor( vt100_parser->termscr) ;
 	
+	ml_term_screen_start_bidi( vt100_parser->termscr) ;
+
 	return  1 ;
 }

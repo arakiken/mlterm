@@ -22,6 +22,9 @@
 #endif
 
 
+/*
+ * max value of ml_font_decor_t is FONT_UNDERLINE | FONT_OVERLINE = 0x3
+ */
 typedef enum  ml_font_decor
 {
 	FONT_UNDERLINE = 0x1u ,
@@ -50,12 +53,12 @@ typedef struct ml_char
 		struct ml_char *  multi_ch ;
 	} u ;
 
-	/* 16 bit or 32 bit(on ILP32) */
+	/* 16 bit or 32 bit */
 	u_char  bytes[MAX_CHAR_SIZE] ;
-	
+
 	/*
-	 * 16 bit
-	 * 2 bit : size(0x0 - 0x3)
+	 * total 16 bit
+	 * 2 bit : size(0x0 - 0x1)
 	 * 2 bit : comb_size(0x0 - 0x3)
 	 * 1 bit : is_reversed flag(0 or 1)
 	 * 4 bit : fg_color(0x0 - 0xf)
@@ -100,10 +103,12 @@ inline int  ml_char_init( ml_char_t *  ch) ;
 inline int  ml_char_final( ml_char_t *  ch) ;
 
 inline int  ml_char_set( ml_char_t *  ch , u_char *  bytes , size_t  ch_size ,
-	ml_font_t *  font , ml_font_decor_t  font_decor , ml_color_t  fg_color , ml_color_t  bg_color) ;
+	ml_font_t *  font , ml_font_decor_t  font_decor ,
+	ml_color_t  fg_color , ml_color_t  bg_color) ;
 
 inline int  ml_char_combine( ml_char_t *  ch , u_char *  bytes , size_t  ch_size ,
-	ml_font_t *  font , ml_font_decor_t  font_decor , ml_color_t  fg_color , ml_color_t  bg_color) ;
+	ml_font_t *  font , ml_font_decor_t  font_decor ,
+	ml_color_t  fg_color , ml_color_t  bg_color) ;
 	
 inline ml_char_t *  ml_get_combining_chars( ml_char_t *  ch , u_int *  size) ;
 	
@@ -125,8 +130,6 @@ inline u_int  ml_char_cols( ml_char_t *  ch) ;
 
 inline mkf_charset_t  ml_char_cs( ml_char_t *  ch) ;
 
-inline int  ml_char_is_reversed( ml_char_t *  ch) ;
-
 inline ml_color_t  ml_char_fg_color( ml_char_t *  ch) ;
 
 inline int  ml_char_set_fg_color( ml_char_t *  ch , ml_color_t  fg_color) ;
@@ -142,6 +145,8 @@ inline size_t  ml_char_size( ml_char_t *  ch) ;
 inline int  ml_char_reverse_color( ml_char_t *  ch) ;
 
 inline int  ml_char_restore_color( ml_char_t *  ch) ;
+
+inline int  ml_char_is_reversed( ml_char_t *  ch) ;
 
 #ifdef  DEBUG
 

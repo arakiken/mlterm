@@ -1272,7 +1272,7 @@ ml_window_init(
 	win->utf8_selection_notified = NULL ;
 	win->selection_request_failed = NULL ;
 	win->window_deleted = NULL ;
-	
+		
 	return	1 ;
 }
 
@@ -2581,7 +2581,7 @@ ml_window_receive_event(
 			}
 		}
 	}
-#ifdef  DEBUG
+#ifdef  __DEBUG
 	else
 	{
 		kik_warn_printf( KIK_DEBUG_TAG " event %d is received, but not processed.\n" ,

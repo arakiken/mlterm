@@ -29,11 +29,13 @@ typedef struct  ml_bs_image
 	u_int  backscroll_rows ;
 	int  is_backscroll_mode ;
 
+	ml_char_t  nl_ch ;
+	
 } ml_bs_image_t ;
 
 
 int  ml_bs_init( ml_bs_image_t *  bs_image , ml_image_t *  image ,
-	ml_logs_t *  logs , ml_bs_event_listener_t *  bs_listener) ;
+	ml_logs_t *  logs , ml_bs_event_listener_t *  bs_listener , ml_char_t *  nl_ch) ;
 
 int  ml_bs_final( ml_bs_image_t *  image) ;
 

@@ -3,8 +3,6 @@ comment $Id$
 
 * hantermが、johab(s(h))-1フォントをどう扱っているのか調べる
 
-* 中東アラブ系言語(BIDI) xtermの実装を調べる
-
 * reverse wraparound機能を実装 (需要ある?)
 
 * DEC PrivateMode Restore/Save (何これ?)

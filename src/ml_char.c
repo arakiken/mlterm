@@ -8,6 +8,7 @@
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
+#include  <mkf/mkf_ucs_property.h>
 
 #include  "ml_font.h"
 
@@ -21,7 +22,7 @@
 
 #define  COMB_SIZE(attr)  (((attr) >> 12) & 0x3)
 
-#define  IS_REVERSED(attr)  (((attr) >> 11) & 0x01)
+#define  IS_REVERSED(attr)  (((attr) >> 11) & 0x1)
 
 #define  FG_COLOR(attr)  (((attr) >> 7) & 0xf)
 
@@ -30,8 +31,8 @@
 #define  FONT_DECOR(attr)  ((attr) & 0x7)
 
 #define  COMPOUND_ATTR(size,comb_size,is_reversed,fg_color,bg_color,decor) \
-	((((size - 1) << 14) & 0xc000) | (((comb_size) << 12) & 0x3000) | (((is_reversed) << 11) & 0x800) | \
-	(((fg_color) << 7) & 0x780) | (((bg_color) << 3) & 0x78) | decor)
+	( ((size - 1) << 14) | ((comb_size) << 12) | ((is_reversed) << 11) | \
+	 ((fg_color) << 7) | ((bg_color) << 3) | (decor) )
 
 
 /* --- static variables --- */
@@ -170,7 +171,7 @@ ml_str_copy(
 {
 	int  counter ;
 
-	if( size == 0 || dst == src)
+	if( size == NULL || dst == src)
 	{
 		return  0 ;
 	}
@@ -542,14 +543,6 @@ ml_char_cs(
 	}
 }
 
-inline int
-ml_char_is_reversed(
-	ml_char_t *  ch
-	)
-{
-	return  IS_REVERSED(ch->attr) ;
-}
-
 inline ml_color_t
 ml_char_fg_color(
 	ml_char_t *  ch
@@ -678,9 +671,18 @@ ml_char_restore_color(
 	return  1 ;
 }
 
+inline int
+ml_char_is_reversed(
+	ml_char_t *  ch
+	)
+{
+	return  IS_REVERSED(ch->attr) ;
+}
+
+
 #ifdef  DEBUG
 
-#if  0
+#if  1
 #define  DUMP_HEX
 #endif
 
@@ -698,10 +700,12 @@ ml_char_dump(
 #ifdef  DUMP_HEX
 	int  i ;
 	
+	fprintf( stderr , "[") ;
 	for( i = 0 ; i < ml_char_size(ch) ; i ++)
 	{
 		fprintf( stderr , "%.2x" , ml_char_bytes(ch)[i]) ;
 	}
+	fprintf( stderr , "]") ;
 #else
 	if( ml_char_size(ch) == 2)
 	{

@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "mc_transparent.h"
+#include  "mc_bidi.h"
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -30,11 +30,11 @@ button_checked(
 #ifdef  __DEBUG
 	if( is_checked)
 	{
-		kik_debug_printf( KIK_DEBUG_TAG " transparent on.\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " bidi on.\n") ;
 	}
 	else
 	{
-		kik_debug_printf( KIK_DEBUG_TAG " transparent off.\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " bidi off.\n") ;
 	}
 #endif
 
@@ -45,7 +45,7 @@ button_checked(
 /* --- global functions --- */
 
 GtkWidget *
-mc_transparent_config_widget_new(
+mc_bidi_config_widget_new(
 	int  is_checked_default
 	)
 {
@@ -53,7 +53,7 @@ mc_transparent_config_widget_new(
 
 	is_checked = is_checked_default ;
 
-	check = gtk_check_button_new_with_label( "transparent") ;
+	check = gtk_check_button_new_with_label( "bidi (only UTF8)") ;
 
 	if( is_checked)
 	{
@@ -66,7 +66,7 @@ mc_transparent_config_widget_new(
 }
 
 int
-mc_is_transparent(void)
+mc_is_bidi(void)
 {
 	return  is_checked ;
 }

@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_util.h>
 
 
 #define  ROW_IN_LOGS(bs_image,row) \
@@ -23,7 +24,8 @@ ml_bs_init(
 	ml_bs_image_t *  bs_image ,
 	ml_image_t *  image ,
 	ml_logs_t *  logs ,
-	ml_bs_event_listener_t *  bs_listener
+	ml_bs_event_listener_t *  bs_listener ,
+	ml_char_t *  nl_ch
 	)
 {
 	bs_image->image = image ;
@@ -33,6 +35,9 @@ ml_bs_init(
 	bs_image->backscroll_rows = 0 ;
 	bs_image->is_backscroll_mode = 0 ;
 
+	ml_char_init( &bs_image->nl_ch) ;
+	ml_char_copy( &bs_image->nl_ch , nl_ch) ;
+
 	return  1 ;
 }
 
@@ -41,6 +46,8 @@ ml_bs_final(
 	ml_bs_image_t *  bs_image
 	)
 {
+	ml_char_final( &bs_image->nl_ch) ;
+	
 	return  1 ;
 }
 
@@ -284,102 +291,197 @@ ml_bs_copy_region(
 	ml_bs_image_t *  bs_image ,
 	ml_char_t *  chars ,
 	u_int  num_of_chars ,
-        int  beg_col ,
+        int  beg_char_index ,
 	int  beg_row ,
-	int  end_col ,
+	int  end_char_index ,
 	int  end_row
 	)
 {
-	u_int  read_size ;
+	ml_image_line_t *  line ;
+	int  counter ;
+	u_int  size_except_end_space ;
+	int  beg_row_in_all ;
+	int  end_row_in_all ;
 
-	read_size = 0 ;
+	/* u_int => int */
+	beg_row_in_all = -(ml_get_num_of_logged_lines((bs_image)->logs)) ;
+	end_row_in_all = bs_image->image->num_of_filled_rows - 1 ;
+
+	if( beg_row < beg_row_in_all)
+	{
+		return  0 ;
+	}
 	
-	if( beg_row < 0)
+	while( 1)
 	{
-		int  log_beg_row ;
-		int  log_end_row ;
-		int  log_beg_col ;
-		int  log_end_col ;
+		line = ml_bs_get_image_line_in_all( bs_image , beg_row) ;
 
-		log_beg_row = ROW_IN_LOGS(bs_image,beg_row) ;
-		log_beg_col = beg_col ;
+		size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
 
-		if( end_row < 0)
+		if( beg_char_index < size_except_end_space)
 		{
-			log_end_row = ROW_IN_LOGS(bs_image,end_row) ;
-			log_end_col = end_col ;
+			break ;
 		}
-		else
-		{
-			log_end_row = ml_get_num_of_logged_lines( bs_image->logs) - 1 ;
-			log_end_col = 0 ;
-		}
-
-		read_size += ml_log_copy_region( bs_image->logs , &chars[read_size] ,
-			num_of_chars - read_size , log_beg_col , log_beg_row , log_end_col ,
-			log_end_row) ;
 		
-		beg_col = 0 ;
-		beg_row = 0 ;
+		beg_row ++ ;
+		beg_char_index = 0 ;
+		
+		if( beg_row > end_row_in_all)
+		{
+			return  0 ;
+		}
 	}
-
-	if( end_row >= 0)
+	
+	if( end_row > end_row_in_all)
 	{
-		read_size += ml_image_copy_region( bs_image->image , &chars[read_size] ,
-			num_of_chars - read_size , beg_col , beg_row , end_col , end_row) ;
+		end_row = end_row_in_all ;
 	}
+	
+	counter = 0 ;
+	
+	if( beg_row == end_row)
+	{
+		size_except_end_space = K_MIN(end_char_index + 1,size_except_end_space) ;
 
-	return  read_size ;
+		ml_imgline_copy_str( line , &chars[counter] , beg_char_index ,
+			size_except_end_space - beg_char_index) ;
+		counter += (size_except_end_space - beg_char_index) ;
+	}
+	else if( beg_row < end_row)
+	{
+		int  row ;
+
+		ml_imgline_copy_str( line , &chars[counter] , beg_char_index ,
+				size_except_end_space - beg_char_index) ;
+		counter += (size_except_end_space - beg_char_index) ;
+
+		if( ! line->is_continued_to_next)
+		{
+			ml_char_copy( &chars[counter++] , &bs_image->nl_ch) ;
+		}
+		
+		for( row = beg_row + 1 ; row < end_row ; row ++)
+		{
+			line = ml_bs_get_image_line_in_all( bs_image , row) ;
+
+			size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
+
+			ml_imgline_copy_str( line , &chars[counter] , 0 , size_except_end_space) ;
+			counter += size_except_end_space ;
+
+			if( ! line->is_continued_to_next)
+			{
+				ml_char_copy( &chars[counter++] , &bs_image->nl_ch) ;
+			}
+		}
+
+		line = ml_bs_get_image_line_in_all( bs_image , row) ;
+
+		size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
+
+		ml_imgline_copy_str( line , &chars[counter] , 0 ,
+			K_MIN(end_char_index + 1,size_except_end_space)) ;
+		counter += K_MIN(end_char_index + 1,size_except_end_space) ;
+	}
+	#ifdef  DEBUG
+	else
+	{
+		kik_warn_printf( KIK_DEBUG_TAG " copy region is illegal. nothing is copyed.\n") ;
+	}
+	#endif
+
+	return  counter ;
 }
 
 u_int
 ml_bs_get_region_size(
 	ml_bs_image_t *  bs_image ,
-        int  beg_col ,
+        int  beg_char_index ,
 	int  beg_row ,
-	int  end_col ,
+	int  end_char_index ,
 	int  end_row
 	)
 {
-	u_int  read_size ;
+	ml_image_line_t *  line ;
+	u_int  region_size ;
+	u_int  size_except_end_space ;
+	int  beg_row_in_all ;
+	int  end_row_in_all ;
 
-	read_size = 0 ;
+	/* u_int => int */
+	beg_row_in_all = -(ml_get_num_of_logged_lines((bs_image)->logs)) ;
+	end_row_in_all = bs_image->image->num_of_filled_rows - 1 ;
+
+	if( beg_row < beg_row_in_all)
+	{
+		return  0 ;
+	}
 	
-	if( beg_row < 0)
+	while( 1)
 	{
-		int  log_beg_row ;
-		int  log_end_row ;
-		int  log_beg_col ;
-		int  log_end_col ;
+		line = ml_bs_get_image_line_in_all( bs_image , beg_row) ;
 
-		log_beg_row = ROW_IN_LOGS(bs_image,beg_row) ;
-		log_beg_col = beg_col ;
+		size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
 
-		if( end_row < 0)
+		if( beg_char_index < size_except_end_space)
 		{
-			log_end_row = ROW_IN_LOGS(bs_image,end_row) ;
-			log_end_col = end_col ;
+			break ;
 		}
-		else
-		{
-			log_end_row = ml_get_num_of_logged_lines( bs_image->logs) - 1 ;
-			log_end_col = 0 ;
-		}
-
-		read_size += ml_log_get_region_size( bs_image->logs , log_beg_col ,
-			log_beg_row , log_end_col , log_end_row) ;
 		
-		beg_col = 0 ;
-		beg_row = 0 ;
+		beg_row ++ ;
+		beg_char_index = 0 ;
+		
+		if( beg_row > end_row_in_all)
+		{
+			return  0 ;
+		}
 	}
-
-	if( end_row >= 0)
+	
+	if( end_row > end_row_in_all)
 	{
-		read_size += ml_image_get_region_size( bs_image->image , beg_col ,
-			beg_row , end_col , end_row) ;
+		end_row = end_row_in_all ;
+	}
+	
+	if( beg_row == end_row)
+	{
+		region_size = K_MIN(end_char_index + 1,size_except_end_space) - beg_char_index ;
+	}
+	else if( beg_row < end_row)
+	{
+		int  row ;
+
+		region_size = size_except_end_space - beg_char_index ;
+
+		if( ! line->is_continued_to_next)
+		{
+			/* for NL */
+			region_size ++ ;
+		}
+
+		for( row = beg_row + 1 ; row < end_row ; row ++)
+		{
+			line = ml_bs_get_image_line_in_all( bs_image , row) ;
+
+			region_size += ml_get_num_of_filled_chars_except_end_space( line) ;
+
+			if( ! line->is_continued_to_next)
+			{
+				/* for NL */
+				region_size ++ ;
+			}
+		}
+
+		line = ml_bs_get_image_line_in_all( bs_image , row) ;
+
+		size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
+		region_size += (K_MIN(end_char_index + 1,size_except_end_space)) ;
+	}
+	else
+	{
+		region_size = 0 ;
 	}
 
-	return  read_size ;
+	return  region_size ;
 }
 
 int

@@ -30,6 +30,7 @@ typedef struct  ml_config_menu_event_listener
 	void (*change_pre_conv_xct_to_ucs_flag)( void * , int) ;
 	void (*change_transparent_flag)( void * , int) ;
 	void (*change_aa_flag)( void * , int) ;
+	void (*change_bidi_flag)( void * , int) ;
 	void (*change_xim)( void * , char * , char *) ;
 	
 	void (*larger_font_size)( void *) ;
@@ -59,7 +60,7 @@ int  ml_config_menu_start( ml_config_menu_t *  config_menu , int  orig_x , int  
 	u_int  orig_tabsize , u_int  orig_logsize , u_int  orig_fontsize , u_int  orig_min_fontsize ,
 	u_int  orig_max_fontsize , ml_mod_meta_mode_t  orig_mod_meta_mode , ml_bel_mode_t  orig_bel_mode ,
 	int  orig_is_combining_char , int  orig_pre_conv_xct_to_ucs4 , int  orig_is_transparent ,
-	int  orig_is_aa ,char *  orig_xim , char *  orig_locale) ;
+	int  orig_is_aa , int  orig_is_bidi , char *  orig_xim , char *  orig_locale) ;
 
 
 #endif

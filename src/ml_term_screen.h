@@ -70,6 +70,7 @@ typedef struct  ml_term_screen
 	ml_window_t  window ;
 	
 	ml_image_t *  image ;
+	
 	ml_image_t  normal_image ;
 	ml_image_t  alt_image ;
 	
@@ -102,7 +103,7 @@ typedef struct  ml_term_screen
 
 	mkf_parser_t *  xct_parser ;
 
-	int  pre_conv_xct_to_ucs ;
+	int8_t  pre_conv_xct_to_ucs ;
 	mkf_parser_t *  ucs4_parser ;
 	mkf_conv_t *  ucs4_conv ;
 
@@ -110,12 +111,11 @@ typedef struct  ml_term_screen
 	int  scroll_cache_boundary_start ;
 	int  scroll_cache_boundary_end ;
 
-	int  is_app_keypad ;
-	int  is_app_cursor_keys ;
-	int  is_mouse_pos_sending ;
-
-	int  xim_open_in_startup ;
-	int  is_aa ;
+	int8_t  is_app_keypad ;
+	int8_t  is_app_cursor_keys ;
+	int8_t  is_mouse_pos_sending ;
+	int8_t  xim_open_in_startup ;
+	int8_t  is_aa ;
 	
 	char *  pic_file_path ;
 
@@ -166,12 +166,24 @@ int  ml_term_screen_unhighlight_cursor( ml_term_screen_t *  termscr) ;
 int  ml_term_screen_combine_with_prev_char( ml_term_screen_t *  termscr , u_char *  bytes ,
 	size_t  ch_size , ml_font_t *  font , ml_font_decor_t  font_decor ,
 	ml_color_t  fg_color , ml_color_t  bg_color) ;
-	
+
 ml_font_t *  ml_term_screen_get_font( ml_term_screen_t *  termscr , ml_font_attr_t  attr) ;
 
 int  ml_term_screen_set_fontname( ml_term_screen_t *  termscr , ml_font_attr_t  attr , char *  font_name) ;
 
 int  ml_term_screen_change_encoding( ml_term_screen_t *  termscr , ml_encoding_type_t  encoding) ;
+
+int  ml_term_screen_is_using_bidi( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_use_bidi( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_unuse_bidi( ml_term_screen_t *  termscr) ;
+	
+int  ml_term_screen_render_bidi( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_start_bidi( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_stop_bidi( ml_term_screen_t *  termscr) ;
 
 
 /*

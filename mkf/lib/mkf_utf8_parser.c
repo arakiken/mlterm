@@ -19,7 +19,6 @@ utf8_parser_next_char(
 	)
 {
 	u_char *  utf8_ch ;
-	mkf_ucs_property_t  prop ;
 
 	if( utf8_parser->is_eos)
 	{
@@ -176,18 +175,7 @@ utf8_parser_next_char(
 
 	ucs4_ch->size = 4 ;
 	ucs4_ch->cs = ISO10646_UCS4_1 ;
-	
-	prop = mkf_get_ucs_property( ucs4_ch->ch , ucs4_ch->size) ;
-	if( UCSPROP_GENERAL_CATEGORY(prop) == MKF_UCSPROP_MC ||
-		UCSPROP_GENERAL_CATEGORY(prop) == MKF_UCSPROP_ME ||
-		UCSPROP_GENERAL_CATEGORY(prop) == MKF_UCSPROP_MN)
-	{
-		ucs4_ch->property = MKF_COMBINING ;
-	}
-	else
-	{
-		ucs4_ch->property = 0 ;
-	}
+	ucs4_ch->property = mkf_get_ucs_property( ucs4_ch->ch , ucs4_ch->size) ;
 	
 	return  1 ;
 	

@@ -8,7 +8,10 @@
 
 typedef enum mkf_property
 {
-	MKF_COMBINING = 0x1 ,
+	MKF_COMBINING = 0x1u ,
+	
+	MKF_BIWIDTH = 0x2u ,
+	MKF_AWIDTH = 0x4u ,
 
 } mkf_property_t ;
 

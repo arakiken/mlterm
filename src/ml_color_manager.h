@@ -27,7 +27,7 @@ typedef struct  ml_xcolor
 	XColor  xcolor ;
 #endif
 
-	int  is_loaded ;
+	int8_t  is_loaded ;
 	
 } ml_xcolor_t ;
 

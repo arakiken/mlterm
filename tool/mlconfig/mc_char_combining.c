@@ -53,7 +53,7 @@ mc_char_combining_config_widget_new(
 
 	is_checked = is_checked_default ;
 
-	check = gtk_check_button_new_with_label( "charcomb") ;
+	check = gtk_check_button_new_with_label( "char combining") ;
 
 	if( is_checked)
 	{
