@@ -1,3 +1,8 @@
+2003-03-30 Tomohiro KUBOTA <kubota@debian.org>
+
+	* A patch contributed by Mike Fabian to fix unstability in
+	  64 bit platforms, by changing "0" into "NULL".
+
 2003-03-29 Araki Ken <arakiken@users.sf.net>
 
 	* Output cvs revision of ChangeLog by mlterm -v.

@@ -425,7 +425,7 @@ get_xft_col_width(
 		XFT_FAMILY , XftTypeString , family ,
 		XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
 		XFT_ENCODING , XftTypeString , "iso8859-1" ,
-		XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
+		XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , NULL)))
 	{
 		u_int  w_width ;
 		
@@ -672,7 +672,7 @@ x_font_set_xft_font(
 						XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
 						XFT_ENCODING , XftTypeString , font_encoding ,
 						XFT_WEIGHT , XftTypeInteger , weight ,
-						XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
+						XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , NULL)))
 				{
 					goto  font_found ;
 				}
@@ -685,7 +685,7 @@ x_font_set_xft_font(
 						XFT_ENCODING , XftTypeString , font_encoding ,
 						XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
 						XFT_WEIGHT , XftTypeInteger , weight ,
-						XFT_SPACING , XftTypeInteger , XFT_CHARCELL , 0)))
+						XFT_SPACING , XftTypeInteger , XFT_CHARCELL , NULL)))
 				{
 					goto  font_found ;
 				}
@@ -733,7 +733,7 @@ x_font_set_xft_font(
 					XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
 					XFT_ENCODING , XftTypeString , *font_encoding_p ,
 					XFT_WEIGHT , XftTypeInteger , weight ,
-					XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
+					XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , NULL)))
 			{
 				goto  font_found ;
 			}
@@ -745,7 +745,7 @@ x_font_set_xft_font(
 					XFT_ENCODING , XftTypeString , *font_encoding_p ,
 					XFT_WEIGHT , XftTypeInteger , weight ,
 					XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
-					XFT_SPACING , XftTypeInteger , XFT_CHARCELL , 0)))
+					XFT_SPACING , XftTypeInteger , XFT_CHARCELL , NULL)))
 			{
 				goto  font_found ;
 			}
