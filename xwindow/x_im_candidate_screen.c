@@ -468,6 +468,8 @@ init_candidates(
 		cand_screen->candidates[i].filled_len = 0 ;
 	}
 
+	cand_screen->index = 0 ;
+
 	return  1 ;
 }
 

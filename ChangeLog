@@ -1,3 +1,8 @@
+2004-06-16  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* x_im_candidate_screen.c(init_candidates): cleared index of candidate
+	table.
+
 2004-06-14  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* im_uim.c: updated for uim-0.3.9.
