@@ -106,3 +106,4 @@ to understand what is going on.
      file_path:   path of the image file
 
     Returns 1 in success. Retuens 0 in failure.
+!!this function is ad-hoc solution. It will be removed in next release!!
