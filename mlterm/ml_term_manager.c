@@ -81,8 +81,7 @@ ml_create_term(
 	u_int  tab_size ,
 	u_int  log_size ,
 	ml_char_encoding_t  encoding ,
-	int  not_use_unicode_font ,
-	int  only_use_unicode_font ,
+	ml_unicode_font_policy_t  policy ,
 	int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char ,
@@ -100,9 +99,9 @@ ml_create_term(
 	}
 
 	if( ( terms[num_of_terms] = ml_term_new( cols , rows , tab_size , log_size , encoding ,
-				not_use_unicode_font , only_use_unicode_font , col_size_a ,
-				use_char_combining , use_multi_col_char , use_bidi , use_bce ,
-				use_dynamic_comb , bs_mode , vertical_mode , iscii_lang_type)) == NULL)
+				policy , col_size_a , use_char_combining , use_multi_col_char ,
+				use_bidi , use_bce , use_dynamic_comb , bs_mode , vertical_mode ,
+				iscii_lang_type)) == NULL)
 	{
 		return  NULL ;
 	}

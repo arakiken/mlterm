@@ -58,6 +58,7 @@ typedef struct main_config
 	x_font_present_t  font_present ;
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bs_mode_t  bs_mode ;
+	ml_unicode_font_policy_t  unicode_font_policy ;
 
 	char *  disp_name ;
 	char *  app_name ;
@@ -93,8 +94,6 @@ typedef struct main_config
 	int8_t  use_bidi ;
 	int8_t  big5_buggy ;
 	int8_t  iso88591_font_for_usascii ;
-	int8_t  not_use_unicode_font ;
-	int8_t  only_use_unicode_font ;
 	int8_t  receive_string_via_ucs ;
 	int8_t  use_transbg ;
 	int8_t  use_char_combining ;
@@ -190,12 +189,12 @@ create_term_intern(void)
 	
 	if( ( term = ml_create_term( main_config.cols , main_config.rows ,
 			main_config.tab_size , main_config.num_of_log_lines ,
-			main_config.encoding , main_config.not_use_unicode_font ,
-			main_config.only_use_unicode_font , main_config.col_size_a ,
-			main_config.use_char_combining , main_config.use_multi_col_char ,
-			main_config.use_bidi , x_termcap_get_bool_field( main_config.tent , ML_BCE) ,
-			main_config.use_dynamic_comb , main_config.bs_mode , main_config.vertical_mode ,
-			main_config.iscii_lang_type)) == NULL)
+			main_config.encoding , main_config.unicode_font_policy ,
+			main_config.col_size_a , main_config.use_char_combining ,
+			main_config.use_multi_col_char , main_config.use_bidi ,
+			x_termcap_get_bool_field( main_config.tent , ML_BCE) ,
+			main_config.use_dynamic_comb , main_config.bs_mode ,
+			main_config.vertical_mode , main_config.iscii_lang_type)) == NULL)
 	{
 		return  NULL ;
 	}
@@ -375,12 +374,13 @@ open_screen_intern(
 		goto  error ;
 	}
 
-	if( main_config.not_use_unicode_font || main_config.iso88591_font_for_usascii)
+	if( main_config.unicode_font_policy == NOT_USE_UNICODE_FONT ||
+		main_config.iso88591_font_for_usascii)
 	{
 		usascii_font_cs = x_get_usascii_font_cs( ML_ISO8859_1) ;
 		usascii_font_cs_changable = 0 ;
 	}
-	else if( main_config.only_use_unicode_font)
+	else if( main_config.unicode_font_policy == ONLY_USE_UNICODE_FONT)
 	{
 		usascii_font_cs = x_get_usascii_font_cs( ML_UTF8) ;
 		usascii_font_cs_changable = 0 ;
@@ -1459,35 +1459,34 @@ config_init(
 		}
 	}
 
-	main_config.not_use_unicode_font = 0 ;
+	main_config.unicode_font_policy = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "not_use_unicode_font")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			main_config.not_use_unicode_font = 1 ;
+			main_config.unicode_font_policy = NOT_USE_UNICODE_FONT ;
 		}
 	}
-
-	main_config.only_use_unicode_font = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "only_use_unicode_font")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			main_config.only_use_unicode_font = 1 ;
+			if( main_config.unicode_font_policy == NOT_USE_UNICODE_FONT)
+			{
+				kik_msg_printf(
+					"only_use_unicode_font and not_use_unicode_font options "
+					"cannot be used at the same time.\n") ;
+
+				/* default values are used */
+				main_config.unicode_font_policy = 0 ;
+			}
+			else
+			{
+				main_config.unicode_font_policy = ONLY_USE_UNICODE_FONT ;
+			}
 		}
-	}
-
-	if( main_config.only_use_unicode_font && main_config.not_use_unicode_font)
-	{
-		kik_msg_printf(
-			"only_use_unicode_font and not_use_unicode_font options cannot be used "
-			"at the same time.\n") ;
-
-		/* default values are used */
-		main_config.only_use_unicode_font = 0 ;
-		main_config.not_use_unicode_font = 0 ;
 	}
 
 	main_config.receive_string_via_ucs = 0 ;

@@ -22,8 +22,7 @@ ml_term_new(
 	u_int  tab_size ,
 	u_int  log_size ,
 	ml_char_encoding_t  encoding ,
-	int  not_use_unicode_font ,
-	int  only_use_unicode_font ,
+	ml_unicode_font_policy_t  policy ,
 	int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char ,
@@ -58,8 +57,7 @@ ml_term_new(
 		goto  error ;
 	}
 
-	if( ( term->parser = ml_vt100_parser_new( term->screen , encoding ,
-					not_use_unicode_font , only_use_unicode_font ,
+	if( ( term->parser = ml_vt100_parser_new( term->screen , encoding , policy ,
 					col_size_a , use_char_combining , use_multi_col_char)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -250,6 +248,15 @@ ml_term_get_encoding(
 	)
 {
 	return  ml_vt100_parser_get_encoding( term->parser) ;
+}
+
+int
+ml_term_set_unicode_font_policy(
+	ml_term_t *  term ,
+	ml_unicode_font_policy_t  policy
+	)
+{
+	return  ml_vt100_parser_set_unicode_font_policy( term->parser , policy) ;
 }
 
 size_t

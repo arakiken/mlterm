@@ -19,6 +19,14 @@
 #define  PTYMSG_BUFFER_SIZE	4096
 
 
+typedef enum  ml_unicode_font_policy
+{
+	NO_UNICODE_FONT_POLICY = 0x0 ,
+	NOT_USE_UNICODE_FONT ,
+	ONLY_USE_UNICODE_FONT ,
+	
+} ml_unicode_font_policy_t ;
+
 typedef struct  ml_char_buffer
 {
 	ml_char_t  chars[PTYMSG_BUFFER_SIZE] ;
@@ -76,6 +84,8 @@ typedef struct  ml_vt100_parser
 	
 	mkf_charset_t  cs ;
 
+	ml_unicode_font_policy_t  unicode_font_policy ;
+
 	ml_xterm_event_listener_t *  xterm_listener ;
 	ml_config_event_listener_t *  config_listener ;
 
@@ -99,7 +109,7 @@ typedef struct  ml_vt100_parser
 
 
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,
-	int  not_use_unicode_font , int  only_use_unicode_font , u_int  col_size_a ,
+	ml_unicode_font_policy_t  policy , u_int  col_size_a ,
 	int  use_char_combining , int  use_multi_col_char) ;
 
 int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
@@ -111,6 +121,9 @@ int  ml_vt100_parser_set_xterm_listener( ml_vt100_parser_t *  vt100_parser ,
 
 int  ml_vt100_parser_set_config_listener( ml_vt100_parser_t *  vt100_parser ,
 	ml_config_event_listener_t *  config_listener) ;
+
+int  ml_vt100_parser_set_unicode_font_policy( ml_vt100_parser_t *  vt100_parser ,
+	ml_unicode_font_policy_t  policy) ;
 
 int  ml_parse_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
 

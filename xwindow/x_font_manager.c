@@ -504,14 +504,29 @@ x_font_manager_new(
 
 	set_font_present( font_man , font_present) ;
 
-	if( ( font_man->usascii_font = search_usascii_font( font_man)) == NULL)
+	if( ( font_man->usascii_font = search_usascii_font( font_man)))
 	{
-		kik_msg_printf( "Not found any fonts for the encoding. Bye...\n") ;
-
-		exit(1) ;
+		return  font_man ;
 	}
+
+#if  0
+	if( font_man->usascii_font_cs_changable)
+	{
+		font_man->usascii_font_cs = ISO10646_UCS4_1 ;
+
+		if( ( font_man->usascii_font = search_usascii_font( font_man)))
+		{
+			return  font_man ;
+		}
+	}
+#endif
 	
-	return  font_man ;
+	kik_msg_printf( "Not found any fonts for the encoding. Bye...\n") ;
+
+	exit(1) ;
+
+	/* not reachable */
+	return  NULL ;
 }
 
 int
@@ -731,20 +746,26 @@ x_font_manager_usascii_font_cs_changed(
 
 	if( ( font = search_usascii_font( font_man)) == NULL)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Not found usascii font for %x cs.\n") ;
+	#if  0
+		font_man->usascii_font_cs = ISO10646_UCS4_1 ;
+
+		if( ( font = search_usascii_font( font_man)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " Not found usascii font for %x cs.\n") ;
+		#endif
 	#endif
+			font_man->usascii_font_cs = old_cs ;
+
+			return  0 ;
+	#if  0
+		}
+	#endif
+	}
 	
-		font_man->usascii_font_cs = old_cs ;
-
-		return  0 ;
-	}
-	else
-	{
-		font_man->usascii_font = font ;
-
-		return  1 ;
-	}
+	font_man->usascii_font = font ;
+	
+	return  1 ;
 }
 
 int

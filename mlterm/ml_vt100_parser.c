@@ -2298,8 +2298,7 @@ ml_vt100_parser_t *
 ml_vt100_parser_new(
 	ml_screen_t *  screen ,
 	ml_char_encoding_t  encoding ,
-	int  not_use_unicode_font ,
-	int  only_use_unicode_font ,
+	ml_unicode_font_policy_t  policy ,
 	u_int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char
@@ -2334,8 +2333,7 @@ ml_vt100_parser_new(
 	vt100_parser->use_char_combining = use_char_combining ;
 	vt100_parser->use_multi_col_char = use_multi_col_char ;
 
-	vt100_parser->not_use_unicode_font = not_use_unicode_font ;
-	vt100_parser->only_use_unicode_font = only_use_unicode_font ;
+	vt100_parser->unicode_font_policy = policy ;
 
 	if( ( vt100_parser->cc_conv = ml_conv_new( encoding)) == NULL)
 	{
@@ -2425,6 +2423,17 @@ ml_vt100_parser_set_config_listener(
 }
 
 int
+ml_vt100_parser_set_unicode_font_policy(
+	ml_vt100_parser_t *  vt100_parser ,
+	ml_unicode_font_policy_t  policy
+	)
+{
+	vt100_parser->unicode_font_policy = policy ;
+
+	return  1 ;
+}
+
+int
 ml_parse_vt100_sequence(
 	ml_vt100_parser_t *  vt100_parser
 	)
@@ -2467,7 +2476,7 @@ ml_parse_vt100_sequence(
 						ch.size = 1 ;
 						ch.cs = US_ASCII ;
 					}
-					else if( vt100_parser->not_use_unicode_font)
+					else if( vt100_parser->unicode_font_policy == NOT_USE_UNICODE_FONT)
 					{
 						/* convert ucs4 to appropriate charset */
 
@@ -2487,7 +2496,8 @@ ml_parse_vt100_sequence(
 						}
 					}
 				}
-				else if( ( vt100_parser->only_use_unicode_font && ch.cs != US_ASCII)
+				else if( ( (vt100_parser->unicode_font_policy == ONLY_USE_UNICODE_FONT)
+					&& ch.cs != US_ASCII)
 				#if  0
 					/* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
 					|| ( vt100_parser->encoding == ML_GB18030 && ch.cs == GBK)

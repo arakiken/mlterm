@@ -61,7 +61,6 @@ dlsym_sb_view_new_func(
 	int  is_transparent
 	)
 {
-	char *  dir ;
 	x_sb_view_new_func_t  func ;
 	kik_dl_handle_t  handle ;
 	char *  symbol ;
