@@ -26,9 +26,9 @@ typedef struct ml_win32_pty
 	ml_pty_t  ml_pty ;
 
 	/*
-	 * w(write): pearent --> client(stdin)
-	 * r(read) : pearent <-- client(stdout)
-	 * e(error): pearent <-- client(stderr)
+	 * w(write): pearent --> child(stdin)
+	 * r(read) : pearent <-- child(stdout)
+	 * e(error): pearent <-- child(stderr)
 	 */
 	HANDLE  wthread ;
 	HANDLE  rthread ;
@@ -41,20 +41,20 @@ typedef struct ml_win32_pty
 } ml_pty_win32_t ;
 
 /*
- * Mlterm-win32 uses pty helper programs instead of UNIX pty devices. If the
+ * Mlterm-win32 uses pty helper programs instead of UNIX pty device. If the
  * helper program is an ssh client like Plink(PuTTY Link), mlterm will also
  * become an ssh client, along with a multilingual terminal.
  *
- * This file 'ml_pty_win32.c' provides the internal interfaces to access helper
- * programs, and work with abstract pty structure ml_pty_t. These interfaces
- * are same as ml_pty.c handling the UNIX pty, so that both interfaces can be
- * called in the same way through the higher terminal interfaces in ml_term.c.
+ * This file 'ml_pty_win32.c' provides an internal interface to access helper
+ * programs, and work with abstract pty structure ml_pty_t. This interface
+ * is same as ml_pty.c handling UNIX pty, so that both interfaces can be
+ * called in the same way through the higher terminal interface in ml_term.c.
  * Exceptionally, the handles in ml_pty_win32_t are directlly used by Win32 GUI
- * layer, not through the common interfaces.
+ * layer, not through the common interface.
  *
  * Also when a helper program is invoked as a child process, three threads
- * will be spawned in mlterm, and standard I/O handles(stdin/stdout/stderr) of
- * the helper program are redirected to each thread. Therefore, the helper
+ * will be spawned in mlterm and standard I/O handles(stdin/stdout/stderr) of
+ * the helper program will be redirected to each thread. Therefore, the helper
  * program must be a console-based program which has standard I/O handles, as
  * shown in below figure.
  *
@@ -155,60 +155,64 @@ create_pty_proc(
 	/* pearent(pipe_write) --> child(stdin) */
 	if( ! CreatePipe( &child_stdin , &pearent_write , &sa , 0))
 	{
-	#ifdef  DEBUG 
-		kik_warn_printf( KIK_DEBUG_TAG "CreatePipe() failed. "
-				 "[error: 0x%x]\n", GetLastError()) ;
-	#endif
-		exit(1) ;
+		kik_msg_printf( "CreatePipe() failed. [error: 0x%x]\n",
+				GetLastError()) ;
+		return  0 ;
 	}
 	if( ! DuplicateHandle( me , pearent_write , me , pipe_write , 0 ,
 			       FALSE , DUPLICATE_SAME_ACCESS))
 	{
-	#ifdef  DEBUG 
-		kik_warn_printf( KIK_DEBUG_TAG "DuplicateHandle() failed. "
-				 "[error: 0x%x]\n", GetLastError()) ;
-	#endif
-		exit(1) ;
+		kik_msg_printf( "DuplicateHandle() failed. [error: 0x%x]\n",
+				GetLastError()) ;
+		CloseHandle( child_stdin) ;
+		CloseHandle( pearent_write) ;
+		return  0 ;
 	}
 	CloseHandle( pearent_write) ;
 
 	/* parent(pipe_read) <-- child(stdout) */
 	if( ! CreatePipe( &pearent_read , &child_stdout , &sa , 0))
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG "CreatePipe() failed. "
-				 "[error: 0x%x]\n", GetLastError()) ;
-	#endif
-		exit(1) ;
+		kik_msg_printf( "CreatePipe() failed. [error: 0x%x]\n",
+				GetLastError()) ;
+		CloseHandle( child_stdin) ;
+		CloseHandle( *pipe_write) ;
+		return  0 ;
 	}
 	if( ! DuplicateHandle( me , pearent_read , me , pipe_read , 0 ,
 			       FALSE , DUPLICATE_SAME_ACCESS))
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG "DuplicateHandle() failed. "
-				 "[error: 0x%x]\n", GetLastError()) ;
-	#endif
-		exit(1) ;
+		kik_msg_printf( "DuplicateHandle() failed. [error: 0x%x]\n",
+				GetLastError()) ;
+		CloseHandle( child_stdin) ;
+		CloseHandle( *pipe_write) ;
+		CloseHandle( pearent_read) ;
+		CloseHandle( child_stdout) ;
+		return  0 ;
 	}
 	CloseHandle( pearent_read) ;
 
 	/* parent(pipe_err) <-- child(stderr) */
 	if( ! CreatePipe( &pearent_readerr , &child_stderr , &sa , 0))
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG "CreatePipe() failed. "
-				 "[error: 0x%x]\n", GetLastError()) ;
-	#endif
-		exit(1) ;
+		kik_msg_printf( "CreatePipe() failed. [error: 0x%x]\n",
+				GetLastError()) ;
+		CloseHandle( child_stdin) ;
+		CloseHandle( *pipe_write) ;
+		CloseHandle( child_stdout) ;
+		return  0 ;
 	}
 	if( ! DuplicateHandle( me , pearent_readerr , me , pipe_err , 0 ,
 			       FALSE , DUPLICATE_SAME_ACCESS))
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG "DuplicateHandle() failed. "
-				 "[error: 0x%x]\n", GetLastError()) ;
-	#endif
-		exit(1) ;
+		kik_msg_printf( "DuplicateHandle() failed. [error: 0x%x]\n",
+				GetLastError()) ;
+		CloseHandle( child_stdin) ;
+		CloseHandle( *pipe_write) ;
+		CloseHandle( child_stdout) ;
+		CloseHandle( pearent_readerr) ;
+		CloseHandle( child_stderr) ;
+		return  0 ;
 	}
 	CloseHandle( pearent_readerr) ;
 
@@ -271,7 +275,7 @@ read_thread(
 			parm->lasterr = GetLastError() ;
 			parm->left = 0 ; 
 
-			/* exit this thread */
+			/* exit */
 			break ;
 		}
 		
@@ -279,12 +283,12 @@ read_thread(
 
 		SetEvent( parm->ev_ready) ;
 
-		/* waiting for the request from main thread */
+		/* waiting for a request from main thread */
 		ret = WaitForSingleObject( parm->ev_start , INFINITE) ;
 		if( ( ret == WAIT_OBJECT_0 && parm->is_exit_request) ||
 		    ret == WAIT_ABANDONED_0)
 		{
-			/* exit this thread */
+			/* exit */
 			break ;
 		}
 	}
@@ -309,7 +313,7 @@ write_thread(
 
 	while( 1)
 	{
-		/* waiting for the request from main thread */
+		/* waiting for a request from main thread */
 		ret = WaitForSingleObject( parm->ev_start , INFINITE) ;
 		if( ( ret == WAIT_OBJECT_0 && parm->is_exit_request) ||
 		    ret == WAIT_ABANDONED_0)
@@ -380,11 +384,13 @@ ml_pty_new(
 					   &win32_pty->wparm , 0 , &id) ;
 	if( win32_pty->wthread == NULL)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG "CreateThread() failed. "
-				 "[error: 0x%x]\n", GetLastError()) ;
-	#endif
-		exit(1) ;
+		kik_msg_printf( "CreateThread() failed. [error: 0x%x]\n",
+				GetLastError()) ;
+		CloseHandle( win32_pty->wparm.ev_start) ;
+		CloseHandle( win32_pty->wparm.ev_ready) ;
+		free( win32_pty) ;
+
+		return  NULL ;
 	}
 
 	win32_pty->rparm.ev_start = CreateEvent( NULL , FALSE , FALSE , NULL) ;
@@ -394,11 +400,15 @@ ml_pty_new(
 					   &win32_pty->rparm , 0 , &id) ;
 	if( win32_pty->rthread == NULL)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG "CreatePipe() failed. "
-				 "[error: 0x%x]\n", GetLastError()) ;
-	#endif
-		exit(1) ;
+		kik_msg_printf( "CreatePipe() failed. [error: 0x%x]\n",
+				GetLastError()) ;
+		CloseHandle( win32_pty->wparm.ev_start) ;
+		CloseHandle( win32_pty->wparm.ev_ready) ;
+		CloseHandle( win32_pty->rparm.ev_start) ;
+		CloseHandle( win32_pty->rparm.ev_ready) ;
+		free( win32_pty) ;
+
+		return  NULL ;
 	}
 
 	win32_pty->eparm.ev_start = CreateEvent( NULL , FALSE , FALSE , NULL) ;
@@ -408,11 +418,17 @@ ml_pty_new(
 					   &win32_pty->eparm , 0 , &id) ;
 	if( win32_pty->ethread == NULL)
 	{
-	#ifdef  DEBUG 
-		kik_warn_printf( KIK_DEBUG_TAG "CreatePipe() failed. " 
-				 "[error: 0x%x]\n", GetLastError()) ;
-	#endif
-		exit(1) ;
+		kik_msg_printf( "CreatePipe() failed. [error: 0x%x]\n",
+				GetLastError()) ;
+		CloseHandle( win32_pty->wparm.ev_start) ;
+		CloseHandle( win32_pty->wparm.ev_ready) ;
+		CloseHandle( win32_pty->rparm.ev_start) ;
+		CloseHandle( win32_pty->rparm.ev_ready) ;
+		CloseHandle( win32_pty->eparm.ev_start) ;
+		CloseHandle( win32_pty->eparm.ev_ready) ;
+		free( win32_pty) ;
+
+		return  NULL ;
 	}
 
 	if( ml_set_pty_winsize( (ml_pty_t*) win32_pty , cols , rows) == 0)

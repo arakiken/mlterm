@@ -1,3 +1,8 @@
+2003-12-27  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* mlterm/ml_pty_win32.c: cleaned up error handling.
+	* updated config.sub and config.guess. (timestamp='2003-10-07')
+
 2003-12-25  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* tools/mlconfig/main.c: made gettext work with GTK2.
@@ -9,7 +14,7 @@
 2003-12-24  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* contrib/scrollbar/pixmap_engine/pixmap_engine.c: fixed a problem when
-	  slider images was not presented.
+	  slider images were not presented.
 
 2003-12-22  MINAMI Hirokazu  <minami@mistfall.net>
 
