@@ -120,41 +120,36 @@ main(
 	}
 #endif
 
-	write( sock_fd , argv[0] , strlen( argv[0])) ;
-
-	if( argc > 1)
+	count = 0 ;
+	while( 1)
 	{
-		count = 1 ;
-		while( 1)
+		p = argv[count] ;
+
+		write( sock_fd , " \"" , 2) ;
+
+		while( *p)
 		{
-			p = argv[count] ;
-			
-			write( sock_fd , " \"" , 2) ;
-
-			while( *p)
+			if( *p == '\"')
 			{
-				if( *p == '\"')
-				{
-					write( sock_fd , "\\\"" , 2) ;
-				}
-				else
-				{
-					write( sock_fd , p , 1) ;
-				}
-
-				p ++ ;
-			}
-			
-			if( ++ count < argc)
-			{
-				write( sock_fd , "\"" , 1) ;
+				write( sock_fd , "\\\"" , 2) ;
 			}
 			else
 			{
-				write( sock_fd , "\"\n" , 2) ;
-
-				break ;
+				write( sock_fd , p , 1) ;
 			}
+
+			p ++ ;
+		}
+
+		if( ++ count < argc)
+		{
+			write( sock_fd , "\" " , 2) ;
+		}
+		else
+		{
+			write( sock_fd , "\"\n" , 2) ;
+
+			break ;
 		}
 	}
 

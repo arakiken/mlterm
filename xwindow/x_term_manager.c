@@ -1896,9 +1896,9 @@ client_connected(void)
 
 	kik_file_delete( from) ;
 
-//#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s\n" , line) ;
-//#endif
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s\n" , args) ;
+#endif
 	
 	/*
 	 * parsing options.
@@ -2292,7 +2292,7 @@ x_term_manager_init(
 			}
 		}
 	#if  0
-		else if( strcmp( value , "none")
+		else if( strcmp( value , "none") == 0)
 		{
 		}
 	#endif

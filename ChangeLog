@@ -1,3 +1,8 @@
+2003-03-02 Araki Ken <arakiken@users.sf.net>
+
+	* Mlterm/mlclient hung up if mlclient execed with no options. Fixed.
+	  (Thanks to Nakada Nobuyoshi san)
+
 2003-03-02 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* When the font size is dynamically changed, Enlightenment and FVWM2
