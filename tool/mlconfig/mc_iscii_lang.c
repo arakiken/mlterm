@@ -21,8 +21,8 @@
 
 /* --- static variables --- */
 
-static char *  new_iscii_lang ;
-static char *  old_iscii_lang ;
+static char *  new_iscii_lang = NULL;
+static char *  old_iscii_lang = NULL;
 static int is_changed;
 
 
@@ -34,7 +34,8 @@ iscii_lang_selected(
 	gpointer  data
 	)
 {
-	new_iscii_lang = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	free( new_iscii_lang);
+	new_iscii_lang = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s iscii_lang is selected.\n" , new_iscii_lang) ;

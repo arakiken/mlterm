@@ -21,8 +21,8 @@
 
 /* --- static variables --- */
 
-static char *  new_tabsize ;
-static char *  old_tabsize ;
+static char *  new_tabsize = NULL;
+static char *  old_tabsize = NULL;
 static int is_changed;
 
 
@@ -34,7 +34,8 @@ tabsize_selected(
 	gpointer  data
 	)
 {
-	new_tabsize = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	free( new_tabsize);
+	new_tabsize = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s tabsize is selected.\n" , new_tabsize) ;

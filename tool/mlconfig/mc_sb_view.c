@@ -32,8 +32,8 @@
 
 /* --- static variables --- */
 
-static char *  new_sb_view_name ;
-static char *  old_sb_view_name ;
+static char *  new_sb_view_name = NULL;
+static char *  old_sb_view_name = NULL;
 static int is_changed;
 
 
@@ -45,7 +45,8 @@ sb_view_name_selected(
 	gpointer  data
 	)
 {
-	new_sb_view_name = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	free( new_sb_view_name);
+	new_sb_view_name = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s sb_view_name is selected.\n" , new_sb_view_name) ;

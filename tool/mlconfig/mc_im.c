@@ -91,7 +91,6 @@ get_im_info(char *locale, char *encoding)
 {
 	DIR *dir;
 	struct dirent *d;
-	int num = 0;
 
 	if (!(dir = opendir(IM_DIR))) return 0;
 
@@ -385,6 +384,8 @@ im_widget_new(int nth_im, const char *value, char *locale)
 	combo = mc_combo_new(_("Option"), info->readable_args,
 			     info->num_of_args, info->readable_args[selected],
 			     1, im_selected, NULL);
+
+	return combo;
 }
 
 /*
@@ -409,9 +410,9 @@ static gint
 button_im_checked(GtkWidget *widget, gpointer  data)
 {
 	int i;
-	int idx;
+	int idx = 0;
 
-	if (data == NULL) {
+	if (data == NULL || num_of_info == 0) {
 		if (GTK_TOGGLE_BUTTON(widget)->active) {
 			im_type = IM_NONE;
 		}
@@ -447,7 +448,7 @@ mc_im_config_widget_new(void)
 	char *value;
 	char *p;
 	int i;
-	int index;
+	int index = -1;
 	GtkWidget *xim;
 	GtkWidget *frame;
 	GtkWidget *vbox;
@@ -590,9 +591,6 @@ mc_update_im(void)
 			sprintf(p, "xim:%s:%s", selected_xim_name, selected_xim_locale);
 		}
 		break;
-	case IM_NONE:
-		p = strdup("none");
-		break;
 	case IM_OTHER:
 		if (selected_im == NULL) return;
 		if (selected_im_arg == 0) { /* auto */
@@ -604,7 +602,9 @@ mc_update_im(void)
 			sprintf(p, "%s:%s", selected_im->id ,
 				selected_im->args[selected_im_arg]);
 		}
+	case IM_NONE:
 	default:
+		p = strdup("none");
 		break;
 	}
 

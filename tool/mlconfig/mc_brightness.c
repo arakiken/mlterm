@@ -21,8 +21,8 @@
 
 /* --- static variables --- */
 
-static char *  new_brightness ;
-static char *  old_brightness ;
+static char *  new_brightness = NULL;
+static char *  old_brightness = NULL;
 static int is_changed;
 
 
@@ -34,7 +34,8 @@ brightness_selected(
 	gpointer  data
 	)
 {
-	new_brightness = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	free( new_brightness);
+	new_brightness = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s brightness is selected.\n" , new_brightness) ;

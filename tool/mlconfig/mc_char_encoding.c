@@ -3,7 +3,6 @@
  */
 
 #include  "mc_char_encoding.h"
-
 #include  <stdio.h>
 #include  <string.h>
 #include  <stdlib.h>		/* free */
@@ -11,11 +10,8 @@
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
-
 #include  "mc_combo.h"
 #include  "mc_io.h"
-
-
 #if  0
 #define  __DEBUG
 #endif
@@ -120,7 +116,7 @@ static void prepare_encodings_l10n(void)
 
 /* compare two encoding names, returns non-zero if equal
  */
-static int compare(char *e1, char *e2)
+static int compare(const char *e1, const char *e2)
 {
 	while(1) {
 		if (*e1 == '_' || *e1 == '-') {e1++; continue;}
@@ -132,7 +128,7 @@ static int compare(char *e1, char *e2)
 	}
 }
 
-static int get_index(char *encoding)
+static int get_index(const char *encoding)
 {
 	int j;
 	for(j=0; encodings[j]; j++)
@@ -162,7 +158,7 @@ static char *savename(int index)
 static gint
 encoding_selected(GtkWidget *widget, gpointer data)
 {
-	char *p;
+	const char *p;
 
 	p = gtk_entry_get_text(GTK_ENTRY(widget));
 	if (*p == '-') return 1;

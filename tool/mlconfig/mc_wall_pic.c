@@ -15,7 +15,7 @@
 /* --- static functions --- */
 
 static GtkWidget *  entry ;
-static char *  old_wall_pic ;
+static char *  old_wall_pic = NULL;
 static int is_changed;
 
 
@@ -104,10 +104,7 @@ mc_update_wall_pic(void)
 {
 	char *  new_wall_pic ;
 
-	if( *( new_wall_pic = gtk_entry_get_text(GTK_ENTRY(entry))) == '\0')
-	{
-		new_wall_pic = "" ;
-	}
+	new_wall_pic = gtk_editable_get_chars(GTK_EDITABLE(entry)));
 
 	if( strcmp( old_wall_pic , new_wall_pic) != 0) is_changed = 1;
 
@@ -115,7 +112,9 @@ mc_update_wall_pic(void)
 	{
 		mc_set_str_value( "wall_picture" , new_wall_pic) ;
 		free( old_wall_pic) ;
-		old_wall_pic = strdup( new_wall_pic) ;
+		old_wall_pic = new_wall_pic ;
+	}else{
+		free( new_wall_pic);
 	}
 }
 

@@ -10,7 +10,6 @@
 
 #define _(arg) gettext(arg) 
 #define N_(arg) arg
-#define const
 
 #include "gettext.h"
 

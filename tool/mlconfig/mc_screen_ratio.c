@@ -21,10 +21,10 @@
 
 /* --- static variables --- */
 
-static char *  new_screen_width_ratio ;
-static char *  new_screen_height_ratio ;
-static char *  old_screen_width_ratio ;
-static char *  old_screen_height_ratio ;
+static char *  new_screen_width_ratio = NULL;
+static char *  new_screen_height_ratio = NULL;
+static char *  old_screen_width_ratio = NULL;
+static char *  old_screen_height_ratio = NULL;
 static int is_changed_width_ratio;
 static int is_changed_height_ratio;
 
@@ -37,7 +37,8 @@ screen_width_ratio_selected(
 	gpointer  data
 	)
 {
-	new_screen_width_ratio = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	free( new_screen_width_ratio);
+	new_screen_width_ratio = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s screen_width_ratio is selected.\n" ,
@@ -53,7 +54,8 @@ screen_height_ratio_selected(
 	gpointer  data
 	)
 {
-	new_screen_height_ratio = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	free( new_screen_height_ratio);
+	new_screen_height_ratio = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s screen_height_ratio is selected.\n" ,

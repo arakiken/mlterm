@@ -72,7 +72,7 @@ static void init_i18ncolors(void)
 	return;
 }
 
-static char *untranslate(char *color)
+static const char *untranslate(const char *color)
 {
 	int j;
 
@@ -92,7 +92,7 @@ static char *translate(char *color)
 	return color;
 }
 
-static char *color_strncpy(char *dst, char *src)
+static char *color_strncpy(char *dst, const char *src)
 {
 	strncpy(dst, src, MC_COLOR_LEN);
 	dst[MC_COLOR_LEN-1] = 0;

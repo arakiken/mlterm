@@ -16,8 +16,8 @@
 
 /* --- static variables --- */
 
-static char *  new_pty ;
-static char *  old_pty ;
+static char *  new_pty = NULL;
+static char *  old_pty = NULL;
 
 
 /* --- static functions --- */
@@ -28,7 +28,8 @@ selected(
 	gpointer  data
 	)
 {
-	new_pty = gtk_entry_get_text(GTK_ENTRY(widget));
+	free( new_pty);
+	new_pty = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 
 	return  1 ;
 }

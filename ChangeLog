@@ -1,3 +1,8 @@
+2004-11-25 MINAMI Hirokazu <minami@mistfall.net>
+
+	* common/c_intl.h: removed "#define const " which seems to be useless.
+	* tool/mlconfig/*.c: tried to be -Wall clean.
+
 2004-11-25 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* mlterm.spec:

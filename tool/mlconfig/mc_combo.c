@@ -2,6 +2,7 @@
  *	$Id$
  */
 
+#include <string.h>
 #include  "mc_combo.h"
 
 

@@ -21,8 +21,8 @@
 
 /* --- static variables --- */
 
-static char *  new_line_space ;
-static char *  old_line_space ;
+static char *  new_line_space = NULL;
+static char *  old_line_space = NULL;
 static int is_changed;
 
 
@@ -34,7 +34,8 @@ line_space_selected(
 	gpointer  data
 	)
 {
-	new_line_space = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	free( new_line_space);
+	new_line_space = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1) ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s line_space is selected.\n" , new_line_space) ;

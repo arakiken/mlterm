@@ -21,8 +21,8 @@
 
 /* --- static variables --- */
 
-static char *  new_fade_ratio ;
-static char *  old_fade_ratio ;
+static char *  new_fade_ratio = NULL;
+static char *  old_fade_ratio = NULL;
 static int is_changed;
 
 
@@ -34,7 +34,8 @@ fade_ratio_selected(
 	gpointer  data
 	)
 {
-	new_fade_ratio = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	free( new_fade_ratio);
+	new_fade_ratio = gtk_editable_get_chars(GTK_EDITABLE(widget), 0, -1);
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s fade_ratio is selected.\n" , new_fade_ratio) ;
