@@ -1,5 +1,10 @@
 2004-10-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* xwindow/x_term_manager.c (open_pty_intern): set COLORFGBG
+	  environment variable to "default;default" (hardcorded).
+
+2004-10-23 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* kiklib/src/kik_pty_streams.c: moved linux specific error message
 	  into #ifdef __linux__.
 

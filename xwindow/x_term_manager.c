@@ -185,13 +185,14 @@ open_pty_intern(
 	int  use_login_shell
 	)
 {
-	char *  env[5] ;	/* MLTERM,TERM,WINDOWID,DISPLAY,NULL */
+	char *  env[6] ;	/* MLTERM,TERM,WINDOWID,DISPLAY,COLORFGBG,NULL */
 	char **  env_p ;
 	char  wid_env[9 + DIGIT_STR_LEN(Window) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
 	char *  ver_env ;
 	char *  disp_env ;
 	char *  term_env ;
-	
+	char *  colorfgbg_env ;
+
 	env_p = env ;
 
 	if( version && ( ver_env = alloca( 7 + strlen( version) + 1)))
@@ -215,6 +216,12 @@ open_pty_intern(
 	{
 		sprintf( term_env , "TERM=%s" , term_type) ;
 		*(env_p ++) = term_env ;
+	}
+
+	/* COLORFGBG=default;default */
+	if( ( colorfgbg_env = kik_str_alloca_dup( "COLORFGBG=default;default")))
+	{
+		*(env_p ++) = colorfgbg_env ;
 	}
 
 	/* NULL terminator */
