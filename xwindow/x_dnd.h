@@ -23,3 +23,9 @@
 #define  XA_DND_MIME_TEXT_UNICODE(display) (XInternAtom(display, "text/unicode", False))
 #define  XA_DND_MIME_TEXT_URL_LIST(display) (XInternAtom(display, "text/uri-list", False))
 
+void x_dnd_set_awareness( x_window_t * win, int flag );
+
+int x_dnd_parse( x_window_t * win, Atom atom, char *src, int len);
+
+Atom x_dnd_preferable_atom( x_window_t *  win , Atom *atom, int num);
+
