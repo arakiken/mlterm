@@ -1,3 +1,8 @@
+[20020208]
+* processing half width character in vertical view is improved.
+* XLFD font name to query internally is strange. fixed. (Thanks to Karl Koehler)
+* when fade_ratio is set 100 from mlconfig , screen is not completely cleared. fixed.
+
 [20020207]
 * window increment/decrement size and minimum window width and height can be wrong. fixed.
   (Thanks to Minami Hirokazu san)
