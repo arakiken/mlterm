@@ -316,7 +316,7 @@ load_xfont(
 }
 
 static int
-unset_xfont(
+unload_xfont(
 	x_font_t *  font
 	)
 {
@@ -538,7 +538,7 @@ x_font_delete(
 	x_font_t *  font
 	)
 {
-	unset_xfont( font) ;
+	unload_xfont( font) ;
 
 	free( font) ;
 
@@ -576,7 +576,7 @@ x_font_set_font_present(
 #ifdef  ANTI_ALIAS
 
 int
-x_font_set_xft_font(
+x_font_load_xft_font(
 	x_font_t *  font ,
 	char *  fontname ,
 	u_int  fontsize ,
@@ -773,7 +773,7 @@ font_found:
 		font->is_double_drawing = 0 ;
 	}
 
-	unset_xfont( font) ;
+	unload_xfont( font) ;
 
 	font->xft_font = xfont ;
 
@@ -817,7 +817,7 @@ font_found:
 #else
 
 int
-x_font_set_xft_font(
+x_font_load_xft_font(
 	x_font_t *  font ,
 	char *  fontname ,
 	u_int  fontsize ,
@@ -825,13 +825,13 @@ x_font_set_xft_font(
 	int  use_medium_for_bold
 	)
 {
-	return  x_font_set_xfont( font , fontname , fontsize , col_width , use_medium_for_bold) ;
+	return  x_font_load_xfont( font , fontname , fontsize , col_width , use_medium_for_bold) ;
 }
 
 #endif
 
 int
-x_font_set_xfont(
+x_font_load_xfont(
 	x_font_t *  font ,
 	char *  fontname ,
 	u_int  fontsize ,
@@ -1015,7 +1015,7 @@ x_font_set_xfont(
 
 font_found:
 
-	unset_xfont( font) ;
+	unload_xfont( font) ;
 
 	font->xfont = xfont ;
 	

@@ -74,10 +74,10 @@ int  x_font_delete( x_font_t *  font) ;
 
 int  x_font_set_font_present( x_font_t *  font , x_font_present_t  font_present) ;
 
-int  x_font_set_xft_font( x_font_t *  font , char *  fontname , u_int  fontsize ,
+int  x_font_load_xft_font( x_font_t *  font , char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold) ;
 	
-int  x_font_set_xfont( x_font_t *  font , char *  fontname , u_int  fontsize ,
+int  x_font_load_xfont( x_font_t *  font , char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold) ;
 
 int  x_change_font_cols( x_font_t *  font , u_int  cols) ;

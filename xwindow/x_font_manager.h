@@ -57,7 +57,7 @@ typedef struct  x_font_manager
 	
 	u_int8_t  step_in_changing_font_size ;
 	
-	int  (*set_xfont)( x_font_t * , char * , u_int , u_int , int) ;
+	int  (*load_xfont)( x_font_t * , char * , u_int , u_int , int) ;
 	
 }  x_font_manager_t ;
 

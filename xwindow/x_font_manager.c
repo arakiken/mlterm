@@ -192,7 +192,7 @@ get_font_name(
 }
 
 static int
-set_xfont(
+load_xfont(
 	x_font_manager_t *  font_man ,
 	x_font_t *  xfont
 	)
@@ -231,7 +231,7 @@ set_xfont(
 
 	x_font_set_font_present( xfont , x_font_manager_get_font_present( font_man)) ;
 	
-	if( ! (*font_man->set_xfont)( xfont , fontname , font_man->font_size ,
+	if( ! (*font_man->load_xfont)( xfont , fontname , font_man->font_size ,
 		col_width , use_medium_for_bold))
 	{
 		return  0 ;
@@ -299,7 +299,7 @@ get_font(
 
 	x_font_set_font_present( xfont , x_font_manager_get_font_present( font_man)) ;
 
-	if( ! (*font_man->set_xfont)( xfont , fontname , font_man->font_size ,
+	if( ! (*font_man->load_xfont)( xfont , fontname , font_man->font_size ,
 		col_width , use_medium_for_bold))
 	{
 	#ifdef  DEBUG
@@ -342,7 +342,7 @@ set_font_present(
 			return  0 ;
 		}
 
-		font_man->set_xfont = x_font_set_xfont ;
+		font_man->load_xfont = x_font_load_xfont ;
 		font_man->font_custom = font_man->v_font_custom ;
 	}
 	else if( font_present == FONT_AA)
@@ -353,7 +353,7 @@ set_font_present(
 			return  0 ;
 		}
 
-		font_man->set_xfont = x_font_set_xft_font ;
+		font_man->load_xfont = x_font_load_xft_font ;
 		font_man->font_custom = font_man->aa_font_custom ;
 	}
 	else if( font_present == (FONT_AA | FONT_VAR_WIDTH))
@@ -364,7 +364,7 @@ set_font_present(
 			return  0 ;
 		}
 
-		font_man->set_xfont = x_font_set_xft_font ;
+		font_man->load_xfont = x_font_load_xft_font ;
 		font_man->font_custom = font_man->vaa_font_custom ;
 	}
 	else if( font_present == FONT_VERTICAL)
@@ -374,7 +374,7 @@ set_font_present(
 			return  0 ;
 		}
 
-		font_man->set_xfont = x_font_set_xfont ;
+		font_man->load_xfont = x_font_load_xfont ;
 		font_man->font_custom = font_man->t_font_custom ;
 	}
 	else if( font_present == (FONT_AA | FONT_VERTICAL))
@@ -385,7 +385,7 @@ set_font_present(
 			return  0 ;
 		}
 
-		font_man->set_xfont = x_font_set_xft_font ;
+		font_man->load_xfont = x_font_load_xft_font ;
 		font_man->font_custom = font_man->taa_font_custom ;
 	}
 	else
@@ -395,7 +395,7 @@ set_font_present(
 			return  0 ;
 		}
 
-		font_man->set_xfont = x_font_set_xfont ;
+		font_man->load_xfont = x_font_load_xfont ;
 		font_man->font_custom = font_man->normal_font_custom ;
 	}
 
@@ -674,7 +674,7 @@ x_font_manager_reload(
 	u_int  size ;
 	int  count ;
 	
-	if( ! set_xfont( font_man , font_man->usascii_font))
+	if( ! load_xfont( font_man , font_man->usascii_font))
 	{
 		return  0 ;
 	}
@@ -708,7 +708,7 @@ x_font_manager_reload(
 			continue ;
 		}
 
-		if( set_xfont( font_man , xfont) == 0)
+		if( load_xfont( font_man , xfont) == 0)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " larger font for id %x is not found.\n" ,
