@@ -175,7 +175,9 @@ parse_mlterm_config(
 	if( !value)
 		return 0 ;
 	*value = 0 ;
-
+#ifdef  DEBUG
+	kik_debug_printf("key %s val %s",src, value);
+#endif 
 	(*win->config_listener)( win , 
 				 NULL, /* dev */
 				 src, /* key */
@@ -253,8 +255,13 @@ is_pref(
 {
 	int i ;
 	for( i = 0 ; i < num ; i++)
+	{
+#ifdef  DEBUG
+		kik_debug_printf("%d %d %d\n " , i, atom[i], type) ;
+#endif 
 		if( atom[i] == type)
 			return i ;			
+	}
 	return  -1 ;
 }
 
@@ -343,6 +350,7 @@ parse(
 		return 1 ;
 	if( !(win->dnd))
 		return 1;
+
 	atom = win->dnd->waiting_atom ;
 	if( !atom)
 		return 1 ;
@@ -477,17 +485,26 @@ x_dnd_process_enter(
 
 	if( to_wait)
 	{
+#ifdef  DEBUG
+		kik_debug_printf("preparing DND session for %d on %p \n", to_wait, win->dnd) ;
+#endif
 		if( !(win->dnd))
 			win->dnd = malloc( sizeof( x_dnd_context_t)) ;
 		if( !(win->dnd))
 			return 1 ;
 		win->dnd->source = event->xclient.data.l[0];
 		win->dnd->waiting_atom = to_wait;
+#ifdef  DEBUG
+		kik_debug_printf("prepared DND session as %p\n", win->dnd) ;
+#endif
 	}
 	else
 	{
 		if( win->dnd)
 		{
+#ifdef  DEBUG
+		kik_debug_printf("terminating DND session\n") ;
+#endif
 			free( win->dnd);
 			win->dnd = NULL ;
 		}
@@ -506,7 +523,7 @@ x_dnd_process_position(
 	if( !(win->dnd))
 	{
 #ifdef  DEBUG
-		kik_debug_printf("DND session nonexistent\n");
+		kik_debug_printf("POSITION:DND session nonexistent\n");
 #endif
 		return 1 ;
 	}
@@ -537,7 +554,7 @@ x_dnd_process_drop(
 	if( !(win->dnd))
 	{
 #ifdef  DEBUG
-		kik_debug_printf("DND session nonexistent\n");
+		kik_debug_printf("DROP:DND session nonexistent\n");
 #endif
 		return 1 ;
 	}
@@ -578,7 +595,7 @@ x_dnd_process_incr(
 	if( !(win->dnd))
 	{
 #ifdef  DEBUG
-		kik_debug_printf("DND session nonexistent\n");
+		kik_debug_printf("INCR:DND session nonexistent\n");
 #endif
 		return 1 ;
 	}
@@ -618,6 +635,9 @@ x_dnd_process_incr(
 	}
 	else
 	{       /* all data have been received */
+#ifdef  DEBUG
+		kik_debug_printf("terminating DND session\n") ;
+#endif
 		finish( win) ;
 		free( win->dnd);
 		win->dnd = NULL ;
@@ -648,6 +668,9 @@ x_dnd_process_selection(
 	if( !(win->dnd))
 		return 1 ;
 
+#ifdef  DEBUG
+		kik_debug_printf("processing selection\n");
+#endif
 	/* dummy read to determine data length */	
 	set_badwin_handler(1) ;
 	result = XGetWindowProperty( win->display , event->xselection.requestor ,
@@ -680,7 +703,6 @@ x_dnd_process_selection(
 
 		if(result != Success)
 			break ;
-				
 		parse( win, ct.value, ct.nitems) ;		
 		XFree( ct.value) ;
 		
@@ -689,6 +711,9 @@ x_dnd_process_selection(
 	
 	finish( win) ;
 
+#ifdef  DEBUG
+		kik_debug_printf("terminating DND session\n") ;
+#endif
 	free( win->dnd);
 	win->dnd = NULL ;
 

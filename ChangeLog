@@ -1,5 +1,7 @@
 2003-05-19  MINAMI Hirokazu  <minami@mistfall.net>
 
+	* added lots of dubug messages.
+
 	* In DND session, "text/x-mlterm.config" is now preffered
 	to other mime types. 
 
