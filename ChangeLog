@@ -2,6 +2,8 @@
 
 	* inputmethod/uim/Makefile.in: Added X_CFLAGS.
 
+	* inputmethod/uim/im_uim.c: fixed wrong header path.
+
 2004-06-27  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window.c: Fixed a failure of compilation.
@@ -30,7 +32,7 @@
 	default. (description (value1/value2/...) [default])
 
 	* x_screen.c, x_screen.h:
-	To unified input method related options and configuration keys,
+	To unify input method related options and configuration keys,
 	--openim(xim_open_in_startup) option, 'xim' key and 'xim_name' key are
 	removed. How to use new input method option:
 	--im=xim .... use XIM with the default server specified by XMODIFIERS

@@ -2,8 +2,8 @@
  *	$Id$
  */
 
-#include  <uim/uim.h>
-#include  <uim/uim-helper.h>
+#include  <uim.h>
+#include  <uim-helper.h>
 
 #include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_str.h>	/* kik_str_sep, kik_snprintf */
