@@ -1,3 +1,9 @@
+2003-09-29  Araki Ken  <arakiken@users.sf.net>
+
+	* version.h: 2.8.0
+
+	* mlconfig: "Font size (temporal)" changed to "Font size (temporary)".
+
 2003-09-26  Araki Ken  <arakiken@users.sf.net>
 
 	* Added font.ja and main.ja

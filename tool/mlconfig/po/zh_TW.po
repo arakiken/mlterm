@@ -32,7 +32,7 @@ msgstr "取消"
 
 # FIXME incomplete translation (but still makes sense)
 #: tool/mlconfig/main.c:234
-msgid "Font size (temporal)"
+msgid "Font size (temporary)"
 msgstr "字型大小"
 
 #: tool/mlconfig/main.c:242

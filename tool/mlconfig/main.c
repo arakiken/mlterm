@@ -231,7 +231,7 @@ font_large_small(void)
 	GtkWidget * frame;
 	GtkWidget * hbox;
 
-	frame = gtk_frame_new(_("Font size (temporal)")) ;
+	frame = gtk_frame_new(_("Font size (temporary)")) ;
 	gtk_widget_show(frame) ;
 
 	hbox = gtk_hbox_new( FALSE , 5) ;

@@ -11,10 +11,10 @@
 #define  REVISION	0
 #define  PATCH_LEVEL	0
 
-#if  1
+#if  0
 #define  CVS_REVISION   "pre/cvs-@CVS_REVISION@"
 #else
-#define  CVS_REVISION   "rc2"
+#define  CVS_REVISION   ""
 #endif
 
 

@@ -31,7 +31,7 @@ msgid "Cancel"
 msgstr "キャンセル"
 
 #: tool/mlconfig/main.c:234
-msgid "Font size (temporal)"
+msgid "Font size (temporary)"
 msgstr "フォントサイズ (一時設定)"
 
 #: tool/mlconfig/main.c:242
