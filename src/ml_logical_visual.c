@@ -677,7 +677,7 @@ comb_logical(
 
 			if( prev_c &&
 				( (comb = ml_get_combining_chars( c , &size)) &&
-				ml_is_arabic_combining( prev_c , c , comb) ) )
+				ml_is_arabic_combining( prev_c , comb , c) ) )
 			{
 				int  counter ;
 				
