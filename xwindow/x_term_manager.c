@@ -1502,7 +1502,10 @@ config_init(
 
 	if( ( value = kik_conf_get_value( conf , "wall_picture")))
 	{
-		main_config.pic_file_path = strdup( value) ;
+		if( strcmp( value , "none") != 0)
+		{
+			main_config.pic_file_path = strdup( value) ;
+		}
 	}
 
 	main_config.use_transbg = 0 ;

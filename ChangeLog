@@ -1,3 +1,10 @@
+2003-03-09 Tomohiro KUBOTA <kubota@debian.org>
+
+	* "wall_picture = none" in "main" configuration file now means
+	  that the user doesn't use wall picture.  Previously, the same
+	  configuration caused that mlterm complains "wall picture file
+	  none is not found."
+
 2003-03-08 Araki Ken <arakiken@users.sf.net>
 
 	* Added --with-conf-menu option.
