@@ -1,3 +1,17 @@
+ver 2.9.1
+* Fixed a segfault caused by broken hash table. (#1061470) [seiichi]
+* Fixed a segfault when mlclient has bool option. (#1069725) [minami, seiichi]
+* Workaround for a segfault of uim-prime. [seiichi]
+* Some improvements for m17n-lib support. [seiichi]
+* Updated w3mmlconfig. [seiichi]
+* A couple of fixes in configure scripts. [minami, seiichi]
+* Minor improvement to allow signal handling to be old POSIX compliant. [minami]
+* Horizontal candidate window for input methods. [seiichi]
+* Non-interactive mode of mlcc. [minami]
+* man-page of mlcc. [minami]
+* A lot of cleanups for mlconfig to get rid of compiler warnings. [minami]
+* Fixes for missing locale files in mlterm.spec. (#1072304) [seiichi]
+
 ver 2.9.0
 * Improvement of borderless mode using _MOTIF_WM_HINTS [minami]
 * Fixed a selection bug with KDE klipper. [minami]

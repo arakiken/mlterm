@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 2.9.0
+%define version 2.9.1
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
@@ -76,7 +76,10 @@ rm -rf $RPM_BUILD_ROOT
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
 
 %changelog
-* Sun Nov 25 2004 Seiichi SATO <ssato@sh.rim.or.jp>
+* Sun Nov 28 2004 Seiichi SATO <ssato@sh.rim.or.jp>
+- Source version 2.9.0
+
+* Thu Nov 25 2004 Seiichi SATO <ssato@sh.rim.or.jp>
 - Fixed #1072304
 - FHS compliance
 

@@ -1,3 +1,11 @@
+2004-11-29 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* 2.9.1 released.
+	  (tag "rel-2_9_1)
+
+	* configure.in, mlterm.spec, xwindow/version.h.in, doc/en/ReleaseNote:
+	  updated.
+
 2004-11-27 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* doc/en/PLATFORM: updated. (Thanks to MURASE, Masaki)
@@ -31,7 +39,7 @@
 	stdint.h.
 
 	* inputmethod/iiimf/im_iiimf.c:
-	"#define HAVE_STDINT_H 1" -> #include <kiklib/src/kik_types.h>
+	"#define HAVE_STDINT_H 1" -> #include <kiklib/kik_types.h>
 
 2004-11-21 Seiichi SATO <ssato@sh.rim.or.jp>
 
