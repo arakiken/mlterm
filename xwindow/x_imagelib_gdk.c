@@ -30,8 +30,11 @@ typedef struct display_store_tag {
 static int display_count = 0;
 static unsigned char gamma_cache[256 +1];
 static display_store_t * display_store = NULL;
-static char * wallpaper_cache_name = NULL;
-static char * wallpaper_cache_data = NULL;
+static char * wp_cache_name = NULL;
+static GdkPixbuf * wp_cache_data = NULL;
+static int wp_cache_width = 0;
+static int wp_cache_height = 0;
+static GdkPixbuf * wp_cache_scaled = NULL;
 
 /* --- static functions --- */
 
@@ -303,6 +306,77 @@ pixbuf_to_pixmap(
 		break;
 	default:
 	}
+}
+
+static void
+compose_to_pixmap_16t(
+	Display * display,
+	int screen,
+	GdkPixbuf * pixbuf,
+	Pixmap pixmap){
+
+	XImage * image;
+
+	unsigned int i, j;
+	unsigned int width, height, rowstride, bytes_per_pixel;
+	unsigned char *line;
+	unsigned char *pixel;
+	
+	int r_offset, g_offset, b_offset;	
+	int r_limit, g_limit, b_limit;
+	long r_mask, g_mask, b_mask;
+	long r, g, b;
+	int matched;
+	XVisualInfo *vinfolist;
+	XVisualInfo vinfo;
+
+	if (!pixbuf)
+		return;
+	width = gdk_pixbuf_get_width (pixbuf);
+	height = gdk_pixbuf_get_height (pixbuf);
+
+	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap);
+	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display , screen));
+	if (!vinfo.visualid)
+		return;       
+	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched);
+	if ( (!matched) || (!vinfolist) ){
+		XDestroyImage( image);
+		return;
+	}
+	r_mask = vinfolist[0].red_mask;
+	g_mask = vinfolist[0].green_mask;
+	b_mask = vinfolist[0].blue_mask;
+	r_offset = lsb( r_mask);
+	g_offset = lsb( g_mask);
+	b_offset = lsb( b_mask);
+	r_limit = 8 + r_offset - msb( r_mask);
+	g_limit = 8 + g_offset - msb( g_mask);
+	b_limit = 8 + b_offset - msb( b_mask);
+	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3;
+	rowstride = gdk_pixbuf_get_rowstride (pixbuf);
+       	line = gdk_pixbuf_get_pixels (pixbuf);
+	for( i = 0; i < height; i++){
+		pixel = line;
+		for( j = 0; j < width; j++){
+			r = ((((u_int32_t *)image->data)[ i*width + j]) & r_mask ) >>r_offset;
+			g = ((((u_int32_t *)image->data)[ i*width + j]) & g_mask ) >>g_offset;
+			b = ((((u_int32_t *)image->data)[ i*width + j]) & b_mask ) >>b_offset;
+			r = (r*(255 - pixel[3]) + (pixel[0] * pixel[3])>>r_limit)/255;
+			g = (g*(255 - pixel[3]) + (pixel[1] * pixel[3])>>g_limit)/255;
+			b = (b*(255 - pixel[3]) + (pixel[2] * pixel[3])>>b_limit)/255;
+			((u_int32_t *)image->data)[i*width +j ] = 
+				((r <<r_offset ) & r_mask) |
+				((g <<g_offset ) & g_mask) |
+				((b <<b_offset ) & b_mask);
+			pixel +=bytes_per_pixel;
+		}
+		line += rowstride;
+	}
+	XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
+		   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf));
+	XFree(vinfolist);
+	XDestroyImage( image);
 }
 
 static void
@@ -718,31 +792,54 @@ x_imagelib_display_closed( Display * display){
 Pixmap
 x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_picture_modifier_t * pic_mod){
 	GdkPixbuf * pixbuf;
-	GdkPixbuf * scaled;
 	Pixmap pixmap;
 	GC gc;
-
+	if(!file_path)
+		return None;
+	if( wp_cache_name && (strcmp( wp_cache_name, file_path) == 0) && wp_cache_data ){		
+		pixbuf = wp_cache_data;
+	}else{
+		if ( wp_cache_data){
+			gdk_pixbuf_unref( wp_cache_data );
+			wp_cache_data = NULL;
+		}
+		if ( wp_cache_scaled){
+			gdk_pixbuf_unref( wp_cache_scaled );
+			wp_cache_scaled = NULL;
+		}
+		if ( wp_cache_name){
+			free( wp_cache_name);
+			wp_cache_name = NULL;
+		}
 #ifndef OLD_GDK_PIXBUF
-	if( ( pixbuf = gdk_pixbuf_new_from_file( file_path , NULL )) == NULL)
-		return None;
+		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path , NULL )) == NULL)
+			return None;
 #else
-	if( ( pixbuf = gdk_pixbuf_new_from_file( file_path )) == NULL)
-		return None;
+		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path )) == NULL)
+			return None;
 #endif /*OLD_GDK_PIXBUF*/
+		wp_cache_data = pixbuf;
+		wp_cache_name = strdup( file_path);
+	}
+	
 	pixmap = XCreatePixmap( win->display, win->my_window,
 				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
 				DefaultDepth( win->display , win->screen));		
 
-	scaled = gdk_pixbuf_scale_simple(pixbuf, ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-				GDK_INTERP_TILES); /* use one of _NEAREST, _TILES, _BILINEAR, _HYPER (speed<->quality) */
-
-	if (scaled){
-		gdk_pixbuf_unref( pixbuf );
-		pixbuf = scaled;
-	}
-	if( pic_mod)
-		modify_image( pixbuf, pic_mod);
-
+	if (wp_cache_width != ACTUAL_WIDTH(win) || ACTUAL_HEIGHT(win) != wp_cache_height){
+		/* it's new pixbuf */
+		pixbuf = gdk_pixbuf_scale_simple(pixbuf, ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+						 GDK_INTERP_TILES); /* use one of _NEAREST, _TILES, _BILINEAR, _HYPER (speed<->quality) */
+		
+		if( pic_mod)
+			modify_image( pixbuf, pic_mod);
+		
+		wp_cache_scaled = pixbuf;
+		wp_cache_width = ACTUAL_WIDTH(win);
+		wp_cache_height = ACTUAL_HEIGHT(win);
+	}else
+		pixbuf = wp_cache_scaled;
+	
 	if( gdk_pixbuf_get_has_alpha ( pixbuf) ){
 		pixmap = x_imagelib_get_transparent_background( win , NULL);
 		compose_to_pixmap( win->display,
@@ -755,7 +852,6 @@ x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_pic
 				  pixbuf,
 				  pixmap);
 	}
-	gdk_pixbuf_unref( pixbuf );
 	return pixmap;
 }
 
