@@ -1,5 +1,11 @@
 2003-1-12 Araki Ken <arakiken@users.sf.net>
 
+	* Cleaned up codes around arabic shaping.
+	* Merged gettextize patch.
+	  (Thanks to Mike Fabian and Koushi Takahashi san)
+
+2003-1-12 Araki Ken <arakiken@users.sf.net>
+
 	* 2.6.3 released.
 	  (rel-2_6_3)
 
