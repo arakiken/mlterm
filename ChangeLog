@@ -1,5 +1,11 @@
 2003-2-11 Araki Ken <arakiken@users.sf.net>
 
+	* Mlterm died as soon as the pty in the last window closed even if 
+	  other background ptys exist. Fixed.
+	  (Thanks to Nanashi san)
+
+2003-2-11 Araki Ken <arakiken@users.sf.net>
+
 	* Backscroll mode is automatically exitted if screen is scrolled to the bottom.
 	  (Thanks to Murase Masaki san)
 	* Mlconfig appears in the correct display even if it is called from the window

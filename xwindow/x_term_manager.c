@@ -681,9 +681,17 @@ pty_closed(
 	{
 		if( screen == screens[count])
 		{
-			close_term( screens[count]) ;
+			ml_term_t *  term ;
 			
-			screens[count] = screens[--num_of_screens] ;
+			if( ( term = ml_get_term( NULL)) == NULL)
+			{
+				close_term( screen) ;
+				screens[count] = screens[--num_of_screens] ;
+			}
+			else
+			{
+				x_screen_attach( screen , term) ;
+			}
 
 			return ;
 		}
