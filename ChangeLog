@@ -1,5 +1,11 @@
 2003-05-17 Araki Ken <arakiken@users.sf.net>
 
+	* The width of U+300A¡Ô,U+300B¡Õ,U+301A,U+301B chars changed from
+	  "ambiguous" to "wide" for xterm compatibility.
+	  (Thanks to Sakamoto Hironori san)
+
+2003-05-17 Araki Ken <arakiken@users.sf.net>
+
 	* Removed -%/--class/app_class.
 	* Fixed the behaviors of --name,--title,--icon options.
 	  (Thanks to Gareth Jones)

@@ -230,25 +230,33 @@ put_char(
 		flush_buffer( vt100_parser) ;
 	}
 
+	is_biwidth = 0 ;
+
 	if( cs == ISO10646_UCS4_1)
 	{
 		/*
-		 * checking East Aisan Width property of the char.
+		 * checking width property of the char.
 		 */
 		 
-		if( ( prop & MKF_BIWIDTH) ||
-			( ( prop & MKF_AWIDTH) && vt100_parser->col_size_of_east_asian_width_a == 2))
+		if( prop & MKF_BIWIDTH)
 		{
 			is_biwidth = 1 ;
 		}
-		else
+		else if( prop & MKF_AWIDTH)
 		{
-			is_biwidth = 0 ;
+			if( vt100_parser->col_size_of_east_asian_width_a == 2)
+			{
+				is_biwidth = 1 ;
+			}
+		#if  1
+			/* XTERM compatibility */
+			else if( ch[0] == 0x0 && ch[1] == 0x0 && ch[2] == 0x30 &&
+				(ch[3] == 0x0a || ch[3] == 0x0b || ch[3] == 0x1a || ch[3] == 0x1b) )
+			{
+				is_biwidth = 1 ;
+			}
+		#endif
 		}
-	}
-	else
-	{
-		is_biwidth = 0 ;
 	}
 
 	if( prop & MKF_COMBINING)
