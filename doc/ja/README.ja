@@ -374,6 +374,11 @@ comment $Id$
         一方、genuine の場合、最後の端末ウィンドウが閉じられた後も、また、X
         が終了したのちも、daemon process として動作しつづけることが可能です。
 
+      o use_extended_scroll_shortcut (true/*false*)
+        スクロールのショートカットキーとして、PAGE_UP,PAGE_DOWN ショートカット
+        以外に、Up,Down,j,k,Prior,Next キー及び、SCROLL_UP,SCROLL_DOWN ショート
+        カットを有効にするかどうか
+
     o font/vfont/aafont/vaafont/tfont/taafont
       o DEC_SPECIAL        ... 罫線文字用のフォント
       o ISO8859_N          ... ISO8859_Nフォント
@@ -537,9 +542,13 @@ comment $Id$
       o NEW_PTY(Ctrl+F1)
         新しいPTYを起動します。
       o PAGE_UP(Shift+Prior)
-        ページアップ開始
+        ページアップ
       o SCROLL_UP(Shift+Up)
-        スクロール開始
+        スクロールアップ
+      o PAGE_DOWN(Shift+Next)
+        ページダウン
+      o SCROLL_DOWN(Shift+Down)
+        スクロールダウン
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
 
@@ -624,6 +633,7 @@ comment $Id$
     -n/--noucsfont(=bool) : UNICODE フォントを使用しない
     -o/--lsp=value     : 行間の広さ
     -p/--pic=value     : 背景画像のパス
+    -q/--extkey(=bool) : スクロール時の拡張ショートカットキーを有効にするかどうか
     -r/--fade=value    : Focus を外れたときの Fade 率
     -s/--sb(=bool)     : スクロールバーをつける
     -t/--transbg(=bool) : 背景透過
@@ -672,7 +682,7 @@ comment $Id$
     Ctrl+F1 ... 新しいptyウィンドウを起動
 
     [バックスクロールモード]
-    j/↓      ... 下スクロール
+    j/↓      ... 下スクロール(use_
     k/↑      ... 上スクロール
     u/PageUP  ... ページアップ
     d/PageDown ... ページダウン

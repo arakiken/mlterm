@@ -114,6 +114,8 @@ kik_mem_malloc(
 		return  NULL ;
 	}
 
+	memset( log->ptr , 0xff , size) ;
+
 	log->size = size ;
 	log->file = file ;
 	log->line = line ;
@@ -341,6 +343,10 @@ kik_alloca(
 			
 			return  NULL ;
 		}
+
+	#ifdef  DEBUG
+		memset( new_page->ptr , 0xff , new_page->size) ;
+	#endif
 
 	#ifdef  __DEBUG
 		fprintf( stderr , "new page(size %d) created.\n" , new_page->size) ;

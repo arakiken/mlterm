@@ -1677,57 +1677,57 @@ key_pressed(
 
 	if( ml_is_backscroll_mode( termscr->model))
 	{
+		if( termscr->use_extended_scroll_shortcut)
+		{
+			if( ml_keymap_match( termscr->keymap , SCROLL_UP , ksym , event->state))
+			{
+				bs_scroll_downward( termscr) ;
+
+				return ;
+			}
+			else if( ml_keymap_match( termscr->keymap , SCROLL_DOWN , ksym , event->state))
+			{
+				bs_scroll_upward( termscr) ;
+
+				return ;
+			}
+		#if  1
+			else if( ksym == XK_Prior)
+			{
+				bs_half_page_downward( termscr) ;
+
+				return ;
+			}
+			else if( ksym == XK_Next)
+			{
+				bs_half_page_upward( termscr) ;
+
+				return ;
+			}
+			else if( ksym == XK_k || ksym == XK_Up)
+			{
+				bs_scroll_downward( termscr) ;
+
+				return ;
+			}
+			else if( ksym == XK_j || ksym == XK_Down)
+			{
+				bs_scroll_upward( termscr) ;
+
+				return ;
+			}
+		#endif
+		}
+		
 		if( ml_keymap_match( termscr->keymap , PAGE_UP , ksym , event->state))
 		{
 			bs_half_page_downward( termscr) ;
+
+			return ;
 		}
 		else if( ml_keymap_match( termscr->keymap , PAGE_DOWN , ksym , event->state))
 		{
 			bs_half_page_upward( termscr) ;
-		}
-		else if( ml_keymap_match( termscr->keymap , SCROLL_UP , ksym , event->state))
-		{
-			bs_scroll_downward( termscr) ;
-		}
-		else if( ml_keymap_match( termscr->keymap , SCROLL_DOWN , ksym , event->state))
-		{
-			bs_scroll_upward( termscr) ;
-		}
-		else if( ksym == XK_Prior)
-		{
-			if( event->state & ShiftMask)
-			{
-				bs_half_page_downward( termscr) ;
-			}
-			else
-			{
-				bs_page_downward( termscr) ;
-			}
-
-			return ;
-		}
-		else if( ksym == XK_Next)
-		{
-			if( event->state & ShiftMask)
-			{
-				bs_half_page_upward( termscr) ;
-			}
-			else
-			{
-				bs_page_upward( termscr) ;
-			}
-
-			return ;
-		}
-		else if( termscr->use_extended_scroll_shortcut && (ksym == XK_k || ksym == XK_Up))
-		{
-			bs_scroll_downward( termscr) ;
-
-			return ;
-		}
-		else if( termscr->use_extended_scroll_shortcut && (ksym == XK_j || ksym == XK_Down))
-		{
-			bs_scroll_upward( termscr) ;
 
 			return ;
 		}
@@ -1747,25 +1747,16 @@ key_pressed(
 		}
 	}
 
-	if( ml_keymap_match( termscr->keymap , PAGE_UP , ksym , event->state))
-	{
-		enter_backscroll_mode( termscr) ;
-		bs_half_page_downward( termscr) ;
-	}
-	else if( ml_keymap_match( termscr->keymap , PAGE_DOWN , ksym , event->state))
-	{
-		enter_backscroll_mode( termscr) ;
-	}
-	else if( termscr->use_extended_scroll_shortcut &&
+	if( termscr->use_extended_scroll_shortcut &&
 		ml_keymap_match( termscr->keymap , SCROLL_UP , ksym , event->state))
 	{
 		enter_backscroll_mode( termscr) ;
 		bs_scroll_downward( termscr) ;
 	}
-	else if( termscr->use_extended_scroll_shortcut &&
-		ml_keymap_match( termscr->keymap , SCROLL_DOWN , ksym , event->state))
+	else if( ml_keymap_match( termscr->keymap , PAGE_UP , ksym , event->state))
 	{
 		enter_backscroll_mode( termscr) ;
+		bs_half_page_downward( termscr) ;
 	}
 	else if( ml_keymap_match( termscr->keymap , INSERT_SELECTION , ksym , event->state))
 	{
