@@ -1,3 +1,9 @@
+[20020207]
+* vertical mode and veriable column width mode are considered for reporting
+  mouse position to console applications.
+* -Q/--vcur/use_vertical_cursor option is added.
+* mlconfig_curses([patch tracker 513620]) is updated. (thanks to Minami Hirokazu san)
+
 [20020206]
 * -Z/--multicol/use_multi_column_char option is added.
 
