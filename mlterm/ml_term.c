@@ -1157,6 +1157,8 @@ ml_term_set_icon_path(
 {
 	free( term->icon_path) ;
 	term->icon_path = strdup( path) ;
+
+	return 1 ;
 }
 
 char *

@@ -1,3 +1,9 @@
+2005-03-03  Mike FABIAN  <mfabian@suse.de>
+
+	* inputmethod/scim/im_scim_1.0.cpp, inputmethod/scim/im_scim_1.2.cpp,
+	  mlterm/ml_term.c: add "return 1 ;" to some functions to avoid
+	  compiler warning "Control reaches end of non-void function".
+
 2005-03-02 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* xwindow/x_window.h: added x_window_remove_icon().

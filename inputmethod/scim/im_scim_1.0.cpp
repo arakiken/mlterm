@@ -749,6 +749,8 @@ im_scim_focused(
 	(*context->cb->candidate_show)( context->self) ;
 
 	context->focused = 1 ;
+
+	return 1 ;
 }
 
 int
@@ -775,6 +777,7 @@ im_scim_unfocused(
 
 	context->focused = 0 ;
 
+	return 1 ;
 }
 
 int
