@@ -214,7 +214,6 @@ find_factory(
 					utf8_wcstombs( be->get_factory_name( factories[i])))
 			{
 				factory = factories[i] ;
-				printf("found %s\n", factory_name);
 				goto  found ;
 			}
 		}
