@@ -1,3 +1,7 @@
+2003-06-03  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* xwindow/x_imagelib_gdk.c: support MSBFirst screen
+
 2003-06-02  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* Removed obsoleted config tools(mlcc/mlconf_curses)

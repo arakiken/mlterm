@@ -848,10 +848,10 @@ pixbuf_to_ximage_truecolor(
 			pixel = line ;
 			for (j = 0; j < width; j++)
 			{
-				*data = ( ( (pixel[0] >> r_limit) << r_offset) & r_mask) |
-					( ( (pixel[1] >> g_limit) << g_offset) & g_mask) |
-					( ( (pixel[2] >> b_limit) << b_offset) & b_mask) ;
-				data ++ ;
+				XPutPixel( image, j, i, 
+					   ( ( (pixel[0] >> r_limit) << r_offset) & r_mask) |
+					   ( ( (pixel[1] >> g_limit) << g_offset) & g_mask) |
+					   ( ( (pixel[2] >> b_limit) << b_offset) & b_mask) ) ;
 				pixel += bytes_per_pixel ;
 			}
 			line += rowstride ;
@@ -877,8 +877,7 @@ pixbuf_to_ximage_truecolor(
 			pixel = line ;
 			for( j = 0; j < width; j++)
 			{
-				*data = pixel[0] <<r_offset | pixel[1] <<g_offset | pixel[2]<<b_offset ;
-				data ++ ;
+				XPutPixel( image, j, i, pixel[0] <<r_offset | pixel[1] <<g_offset | pixel[2]<<b_offset) ;
 				pixel +=bytes_per_pixel ;
 			}
 			line += rowstride ;
@@ -962,7 +961,6 @@ compose_truecolor(
 	int  screen,
 	GdkPixbuf *  pixbuf,
 	Pixmap  pixmap,
-	int  depth,
 	XVisualInfo * vinfo
 	)
 {
@@ -976,6 +974,7 @@ compose_truecolor(
 	int r_offset, g_offset, b_offset;
 	long r_mask, g_mask, b_mask ;
 	long r, g, b ;
+	long  data ;
 
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
@@ -990,36 +989,29 @@ compose_truecolor(
 
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
-
-	switch( depth)
+	
+	for( i = 0; i < height; i++)
 	{
-	case 24:
-	case 32:
-	{
-		u_int32_t *  data ;
-		data = (u_int32_t *)(image->data) ;
-		for( i = 0; i < height; i++){
-			pixel = line ;
-			for( j = 0; j < width; j++){
-				r = ((*data) >>r_offset) & 0xFF ;
-				g = ((*data) >>g_offset) & 0xFF ;
-				b = ((*data) >>b_offset) & 0xFF ;
-
-				r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
-				g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
-				b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
-
-				*data =	(r <<r_offset ) |
-					(g <<g_offset ) |
-					(b <<b_offset ) ;
-				data++ ;
-				pixel += 4 ;
-			}
-			line += rowstride ;
+		pixel = line ;
+		for( j = 0; j < width; j++)
+		{
+			data = XGetPixel( image, j, i) ;
+			
+			r = ((data & r_mask) >>r_offset) ;
+			g = ((data & g_mask) >>g_offset) ;
+			b = ((data & b_mask) >>b_offset) ;
+			
+			r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
+			g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
+			b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
+			
+			XPutPixel( image, j, i,
+				   (r <<r_offset ) |
+				   (g <<g_offset ) |
+				   (b <<b_offset ) ) ;
+			pixel += 4 ;
 		}
-	}
-	default:
-		break;
+		line += rowstride ;
 	}
 
 	return  image ;
@@ -1041,6 +1033,7 @@ compose_pseudocolor(
 	unsigned int width, height, rowstride ;
 	unsigned char *line ;
 	unsigned char *pixel ;
+	long  data ; 
 	XColor *  color_list ;
 
 	num_cells = fetch_colormap( display, screen, &color_list) ;
@@ -1056,40 +1049,30 @@ compose_pseudocolor(
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
-	switch( depth)
+	for( i = 0; i < height; i++)
 	{
-	case 8:
-	{
-		u_int8_t *  data = (u_int8_t *)(image->data) ;
-
-		for( i = 0; i < height; i++)
+		pixel = line ;
+		for( j = 0; j < width; j++)
 		{
-			pixel = line ;
-			for( j = 0; j < width; j++)
-			{
-				r = color_list[*data].red >>8 ;
-				g = color_list[*data].green >>8 ;
-				b = color_list[*data].blue >>8 ;
-
-				r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
-				g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
-				b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
-
-				*data = closest_color_index( display, screen,
-							     color_list, num_cells,
-							     r, g, b ) ;
-
-				data++ ;
-				pixel += 4 ;
-			}
-			line += rowstride ;
+			data = XGetPixel( image, j ,i) ;
+			r = color_list[data].red >>8 ;
+			g = color_list[data].green >>8 ;
+			b = color_list[data].blue >>8 ;
+			
+			r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
+			g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
+			b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
+			
+			XPutPixel( image, j, i,
+				   closest_color_index( display, screen,
+							color_list, num_cells,
+							r, g, b ) );
+			pixel += 4 ;
 		}
-		break ;
-	}
-	default:
-		break;
+		line += rowstride ;
 	}
 	free( color_list) ;
+
 	return  image ;
 }
 
@@ -1126,7 +1109,6 @@ compose_to_pixmap(
 					   screen,
 					   pixbuf,
 					   pixmap,
-					   DefaultDepth( display, screen),
 					   vinfolist) ;
 		break;
 	case PseudoColor:
@@ -1325,88 +1307,48 @@ modify_pixmap(
 	switch( vinfolist[0].class)
 	{
 	case TrueColor:
-		switch( depth)
-		{
-		case 1:
-			/* XXX not yet supported */
-			break ;
-		case 8:
-			/* XXX not yet supported */
-			break ;
-		case 15:
-		case 16:
-		{
-			unsigned char  r, g, b ;
-			int r_limit, g_limit, b_limit ;
-			u_int16_t *  data;
-			
-			r_mask = vinfolist[0].red_mask ;
-			g_mask = vinfolist[0].green_mask ;
-			b_mask = vinfolist[0].blue_mask ;
-			
-			r_offset = lsb( r_mask) ;
-			g_offset = lsb( g_mask) ;
-			b_offset = lsb( b_mask) ;
+	{
+		unsigned char  r, g, b ;
+		int r_limit, g_limit, b_limit ;
+		long  data;			
+		
+		r_mask = vinfolist[0].red_mask ;
+		g_mask = vinfolist[0].green_mask ;
+		b_mask = vinfolist[0].blue_mask ;
+		
+		r_offset = lsb( r_mask) ;
+		g_offset = lsb( g_mask) ;
+		b_offset = lsb( b_mask) ;		
 
-			data = (u_int16_t *)(image->data) ;
-			r_limit = 8 + r_offset - msb( r_mask) ;
-			g_limit = 8 + g_offset - msb( g_mask) ;
-			b_limit = 8 + b_offset - msb( b_mask) ;
-
-			value_table_refresh( pic_mod) ;
-			for (i = 0; i < height; i++)
+		r_limit = 8 + r_offset - msb( r_mask) ;
+		g_limit = 8 + g_offset - msb( g_mask) ;
+		b_limit = 8 + b_offset - msb( b_mask) ;
+		
+		value_table_refresh( pic_mod) ;
+		for (i = 0; i < height; i++)
+		{
+			for (j = 0; j < width; j++)
 			{
-				for (j = 0; j < width; j++)
-				{
-					r = ((*data & r_mask) >> r_offset)<<r_limit ;
-					g = ((*data & g_mask) >> g_offset)<<g_limit ;
-					b = ((*data & b_mask) >> b_offset)<<b_limit ;
-
-					r = value_table[r] ;
-					g = value_table[g] ;
-					b = value_table[b] ;
-
-
-					*data = (r >> r_limit) << r_offset |
-						(g >> g_limit) << g_offset |
-						(b >> b_limit) << b_offset ;
-					data++;
-				}
+				data = XGetPixel( image, j, i) ;
+				
+				r = ((data & r_mask) >> r_offset)<<r_limit ;
+				g = ((data & g_mask) >> g_offset)<<g_limit ;
+				b = ((data & b_mask) >> b_offset)<<b_limit ;
+				
+				r = value_table[r] ;
+				g = value_table[g] ;
+				b = value_table[b] ;
+				
+				XPutPixel( image, j, i, 
+					   (r >> r_limit) << r_offset |
+					   (g >> g_limit) << g_offset |
+					   (b >> b_limit) << b_offset) ;
 			}
-			XPutImage( display, pixmap, DefaultGC( display, screen),
-				   image, 0, 0, 0, 0, width, height) ;
-			break ;
 		}
-		case 24:
-		case 32:
-		{
-			long  limit ;
-			u_int8_t *  data ;
-
-			data = (u_int8_t *)(image->data) ;
-			value_table_refresh( pic_mod) ;
-			for (i = 0; i < height; i++)
-			{
-				for (j = 0; j < width; j++)
-				{
-					*data = value_table[*data];
-					data++ ;
-					*data = value_table[*data];
-					data++ ;
-					*data = value_table[*data];
-					data++ ;
-					*data = value_table[*data];
-					data++ ;
-				}
-			}
-
-			XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
-				   width, height) ;
-			break ;
-		}
-		default:
-			break;
-		}
+		XPutImage( display, pixmap, DefaultGC( display, screen),
+			   image, 0, 0, 0, 0, width, height) ;
+		break ;
+	}
 	case PseudoColor:
 		switch( vinfolist[0].depth)
 		{
