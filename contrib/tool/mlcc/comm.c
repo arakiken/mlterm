@@ -37,23 +37,31 @@ static void _csi(char *str){
 
 int read_one(){
 	int count;
-	char buf[3] = {0,0,0};
-	count = read(STDIN_FILENO, buf, 3);
-	if (buf[0] != 27)  /* XXX should check non-printable */
+	char buf[3] = {0};
+	count = read(STDIN_FILENO, buf, 4);
+	if(buf[0]==127)
+		return KEY_BS;
+	if (buf[0] != 0x1b)  /* XXX should check non-printable */
 		return  buf[0];
 	if (buf[1] == 0)
 		return KEY_ESC; /* single esc */
-	if (buf[1] == 79)  /*cursor key?*/
+	if (buf[1] == 0x4f)  /*cursor key?*/
 		switch(buf[2]){
-		case 65:
+		case 0x41:
 			return KEY_UP;
-		case 66:
+		case 0x42:
 			return KEY_DOWN;
-		case 67:
+		case 0x43:
 			return KEY_RIGHT;
-		case 68:
+		case 0x44:
 			return KEY_LEFT;
+		default:
+			return -1;
 		}
+	if (buf[1] == 0x5b)  /*cursor key?*/
+		if ((buf[1] == 0x5b) && (buf[1] == 0x5b))
+			return KEY_DEL;
+	
 	return -1; /* couldn't processed */
 }
 

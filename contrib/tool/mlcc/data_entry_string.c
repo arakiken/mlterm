@@ -124,7 +124,7 @@ int string_edit(window_t *window, char *src, char **result){
 		
 		input = read_one();
 		switch(input){
-		case 8: /* BS */
+		case KEY_BS: /* BS */
 			if(cur_pos > 1){
 				memmove(buffer + cur_pos -2, buffer + cur_pos-1 , strlen(buffer) - cur_pos+2);
 				cur_pos --;
@@ -158,7 +158,7 @@ int string_edit(window_t *window, char *src, char **result){
 			if ( cur_pos < offset)
 				offset--;
 			break;
-		case 127: /* DEL */
+		case KEY_DEL: /* DEL */
 			if ((cur_pos >0) && (cur_pos <= strlen(buffer)))
 				memmove(buffer + cur_pos -1, buffer + cur_pos , strlen(buffer) - cur_pos +2);
 			flag = 1;

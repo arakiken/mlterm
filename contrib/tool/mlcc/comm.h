@@ -21,7 +21,9 @@ enum {
 	KEY_DOWN,
 	KEY_RIGHT,
 	KEY_LEFT,
-	KEY_ESC
+	KEY_ESC,
+	KEY_DEL,
+	KEY_BS
 };
 /*
  *  control terminal
