@@ -269,7 +269,7 @@ fi
 AC_SUBST(INTL_LIBS)
 
 # CVS revision
-CVS_REVISION=`tail -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^.Id: .* \(.*\) .* .* .* Exp .$/\1/p`
+CVS_REVISION=`tail -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^.Id: .* \(.*\) .* .* .* Exp .$/\1/p'`
 AC_SUBST(CVS_REVISION)
 OUTPUT_FILES="xwindow/version.h ${OUTPUT_FILES}"
 
