@@ -1,3 +1,7 @@
+2003-03-09 Araki Ken <arakiken@users.sf.net>
+
+	* -M/--menu option was bound to conf_menu_path_1 previously, but is to conf_menu_path_3 now.
+
 2003-03-08 Araki Ken <arakiken@users.sf.net>
 
 	* Removed --with-conf-menu option.

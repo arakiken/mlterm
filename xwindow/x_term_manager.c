@@ -1022,7 +1022,7 @@ get_min_conf(
 		"specify meta key [none]") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell [false]") ;
-	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path_1" ,
+	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path_3" ,
 		"command path of mlconfig (GUI configurator)") ;
 	kik_conf_add_opt( conf , 'N' , "name" , 0 , "app_name" , 
 		"application name") ;
@@ -1159,14 +1159,14 @@ config_init(
 	}
 
 	/*
-	 * conf_menu_path_[23] are set x_term_manager_init() once.
-	 * conf_menu_path_1 alone is changable.
+	 * conf_menu_path_[12] are set x_term_manager_init() once.
+	 * conf_menu_path_3 alone is changable.
 	 */	
-	main_config.conf_menu_path_1 = NULL ;
+	main_config.conf_menu_path_3 = NULL ;
 
-	if( ( value = kik_conf_get_value( conf , "conf_menu_path_1")))
+	if( ( value = kik_conf_get_value( conf , "conf_menu_path_3")))
 	{
-		main_config.conf_menu_path_1 = strdup( value) ;
+		main_config.conf_menu_path_3 = strdup( value) ;
 	}
 
 	/* use default value */
@@ -2341,21 +2341,21 @@ x_term_manager_init(
 	}
 
 	/*
-	 * conf_menu_path_1 is set config_init().
-	 * conf_menu_path_[23] aren't changable.
+	 * conf_menu_path_3 is set config_init().
+	 * conf_menu_path_[12] aren't changable.
 	 */	
+	main_config.conf_menu_path_1 = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "conf_menu_path_1")))
+	{
+		main_config.conf_menu_path_1 = strdup( value) ;
+	}
+
 	main_config.conf_menu_path_2 = NULL ;
 
 	if( ( value = kik_conf_get_value( conf , "conf_menu_path_2")))
 	{
 		main_config.conf_menu_path_2 = strdup( value) ;
-	}
-
-	main_config.conf_menu_path_3 = NULL ;
-
-	if( ( value = kik_conf_get_value( conf , "conf_menu_path_3")))
-	{
-		main_config.conf_menu_path_3 = strdup( value) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
