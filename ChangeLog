@@ -1,3 +1,8 @@
+2004-10-20  Araki Ken  <arakiken@users.sf.net>
+
+	* xwindow/x_shortcut.h: Removed XIM_OPEN XIM_CLOSE from x_key_func.
+	  (This bug has broken default shortcut keys.)
+
 2004-10-20 MINAMI Hirokazu <minami@mistfall.net>
 
         * xwindow/x_term_mmanager.c: fixed typo.
