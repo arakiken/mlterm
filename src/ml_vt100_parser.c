@@ -800,9 +800,7 @@ parse_vt100_escape_sequence(
 			{
 				/* set tab */
 
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " set tab is not implemented.\n") ;
-			#endif
+				ml_term_screen_set_tab_stop( vt100_parser->termscr) ;
 			}
 			else if( *str_p == 'M')
 			{
@@ -1332,10 +1330,16 @@ parse_vt100_escape_sequence(
 					{
 						/* tab clear */
 
-					#ifdef  DEBUG
-						kik_warn_printf( KIK_DEBUG_TAG
-							" ESC - [ - g is not implemented.\n") ;
-					#endif
+						if( num == 0)
+						{
+							ml_term_screen_clear_tab_stop(
+								vt100_parser->termscr) ;
+						}
+						else if( num == 1 && ps[0] == 3)
+						{
+							ml_term_screen_clear_all_tab_stops(
+								vt100_parser->termscr) ;
+						}
 					}
 					else if( *str_p == 'l')
 					{

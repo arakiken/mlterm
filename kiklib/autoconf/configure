@@ -6263,6 +6263,50 @@ EOF
 fi
 
 
+# I don't know why , but xpg4 check is also necessary here for FreeBSD
+# according to Sakamoto Hironori san.
+echo $ac_n "checking for setlocale in -lxpg4""... $ac_c" 1>&6
+echo "configure:6270: checking for setlocale in -lxpg4" >&5
+ac_lib_var=`echo xpg4'_'setlocale | sed 'y%./+-%__p_%'`
+if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  ac_save_LIBS="$LIBS"
+LIBS="-lxpg4  $LIBS"
+cat > conftest.$ac_ext <<EOF
+#line 6278 "configure"
+#include "confdefs.h"
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char setlocale();
+
+int main() {
+setlocale()
+; return 0; }
+EOF
+if { (eval echo configure:6289: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=no"
+fi
+rm -f conftest*
+LIBS="$ac_save_LIBS"
+
+fi
+if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+  XPG4_LIBS=-lxpg4
+else
+  echo "$ac_t""no" 1>&6
+fi
+
+
+
 # Check whether --enable-debug or --disable-debug was given.
 if test "${enable_debug+set}" = set; then
   enableval="$enable_debug"
@@ -6431,6 +6475,7 @@ s%@STRIP@%$STRIP%g
 s%@CPP@%$CPP%g
 s%@LIBTOOL@%$LIBTOOL%g
 s%@ALLOCA@%$ALLOCA%g
+s%@XPG4_LIBS@%$XPG4_LIBS%g
 s%@DEB_CFLAGS@%$DEB_CFLAGS%g
 
 CEOF

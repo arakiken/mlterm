@@ -9,9 +9,15 @@
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
 #include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
+#include  <mkf/mkf_utf8_parser.h>
 
 #include  "ml_window_intern.h"
 #include  "ml_xim.h"		/* refering mutually */
+
+
+/* --- static variables --- */
+
+static mkf_parser_t *  utf8_parser ;
 
 
 /* --- static functions --- */
@@ -511,6 +517,43 @@ ml_xic_get_str(
 	}
 
 	return  len ;
+}
+
+size_t
+ml_xic_get_utf8_str(
+	ml_window_t *  win ,
+	u_char *  seq ,
+	size_t  seq_len ,
+	mkf_parser_t **  parser ,
+	KeySym *  keysym ,
+	XKeyEvent *  event
+	)
+{
+#ifdef  X_HAVE_UTF8_STRING
+	Status  stat ;
+	size_t  len ;
+
+	if( win->xic == NULL || win->use_xim == 0)
+	{
+		return  0 ;
+	}
+	
+	if( ( len = Xutf8LookupString( win->xic->ic , event , seq , seq_len , keysym , &stat)) == 0)
+	{
+		return  0 ;
+	}
+	
+	if( ! utf8_parser)
+	{
+		utf8_parser = mkf_utf8_parser_new() ;
+	}
+
+	*parser = utf8_parser ;
+
+	return  len ;
+#else
+	return  0 ;
+#endif
 }
 
 int

@@ -101,10 +101,10 @@ typedef struct  ml_term_screen
 	ml_system_event_listener_t *  system_listener ;
 	ml_screen_scroll_event_listener_t *  screen_scroll_listener ;
 
-	mkf_parser_t *  xct_parser ;	
+	mkf_parser_t *  xct_parser ;
+	mkf_parser_t *  utf8_parser ;
+	
 	int8_t  pre_conv_xct_to_ucs ;
-	mkf_parser_t *  ucs4_parser ;
-	mkf_conv_t *  ucs4_conv ;
 
 	mkf_parser_t *  ml_str_parser ;
 	mkf_conv_t *  utf8_conv ;
@@ -123,8 +123,6 @@ typedef struct  ml_term_screen
 	int8_t  use_bidi ;
 	
 	char *  pic_file_path ;
-
-	u_int  tab_size ;
 
 } ml_term_screen_t ;
 
@@ -193,6 +191,12 @@ int  ml_term_screen_insert_blank_chars( ml_term_screen_t *  termscr , u_int  len
 
 int  ml_term_screen_vertical_tab( ml_term_screen_t *  termscr) ;
 
+int  ml_term_screen_set_tab_stop( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_clear_tab_stop( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_clear_all_tab_stops( ml_term_screen_t *  termscr) ;
+	
 int  ml_term_screen_insert_new_lines( ml_term_screen_t *  termscr , u_int  size) ;
 
 int  ml_term_screen_line_feed( ml_term_screen_t *  termscr) ;

@@ -1948,6 +1948,11 @@ ml_window_resize(
 	ml_event_dispatch_t  flag
 	)
 {
+	if( win->width == width && win->height == height)
+	{
+		return  0 ;
+	}
+	
 	win->width = width ;
 	win->height = height ;
 	
@@ -2625,11 +2630,16 @@ ml_window_get_str(
 		return  len ;
 	}
 	 
-	*parser = NULL ;
-
 	if( ( len = XLookupString( event , seq , seq_len , keysym , NULL)) > 0)
 	{
+		*parser = NULL ;
+
                 return  len ;
+	}
+
+	if( ( len = ml_xic_get_utf8_str( win , seq , seq_len , parser , keysym , event)) > 0)
+	{
+		return  len ;
 	}
 
 	return  0 ;

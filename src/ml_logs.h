@@ -44,9 +44,5 @@ int  ml_log_reverse_color( ml_logs_t *  logs , int  char_index , int  row) ;
 
 int  ml_log_restore_color( ml_logs_t *  logs , int  char_index , int  row) ;
 
-void  ml_log_is_updated( ml_logs_t *  logs) ;
-
-int  ml_log_convert_col_to_char_index( ml_logs_t *  logs , int  row , int  x) ;
-
 
 #endif

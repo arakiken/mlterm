@@ -198,7 +198,7 @@ ml_bs_scroll_to(
 			return  0 ;
 		}
 
-		ml_imgline_set_modified( line) ;
+		ml_imgline_set_modified_all( line) ;
 	}
 	
 	return  1 ;
@@ -228,14 +228,14 @@ ml_bs_scroll_upward(
 	{
 		for( counter = 0 ; counter < ml_image_get_rows( bs_image->image) - size ; counter++)
 		{
-			ml_imgline_set_modified( ml_bs_get_image_line_in_screen( bs_image , counter)) ;
+			ml_imgline_set_modified_all( ml_bs_get_image_line_in_screen( bs_image , counter)) ;
 		}
 	}
 
 	for( counter = ml_image_get_rows( bs_image->image) - size ;
 		counter < ml_image_get_rows( bs_image->image) ; counter++)
 	{
-		ml_imgline_set_modified( ml_bs_get_image_line_in_screen( bs_image , counter)) ;
+		ml_imgline_set_modified_all( ml_bs_get_image_line_in_screen( bs_image , counter)) ;
 	}
 	
 	return  1 ;
@@ -265,25 +265,16 @@ ml_bs_scroll_downward(
 	{
 		for( counter = size ; counter < ml_image_get_rows( bs_image->image) ; counter++)
 		{
-			ml_imgline_set_modified( ml_bs_get_image_line_in_screen( bs_image , counter)) ;
+			ml_imgline_set_modified_all( ml_bs_get_image_line_in_screen( bs_image , counter)) ;
 		}
 	}
 	
 	for( counter = 0 ; counter < size ; counter ++)
 	{
-		ml_imgline_set_modified( ml_bs_get_image_line_in_screen( bs_image , counter)) ;
+		ml_imgline_set_modified_all( ml_bs_get_image_line_in_screen( bs_image , counter)) ;
 	}
 	
 	return  1 ;
-}
-
-void
-ml_bs_is_updated(
-	ml_bs_image_t *   bs_image
-	)
-{
-	ml_image_is_updated( bs_image->image) ;
-	ml_log_is_updated( bs_image->logs) ;
 }
 
 u_int

@@ -80,10 +80,9 @@ dump_cached_fonts(
 	
 	fprintf( stderr , "these fonts are cached ->\n") ;
 #ifdef  ANTI_ALIAS
-	fprintf( stderr , "  usascii: XFont %p\n" , font_man->usascii_font->xft_font) ;
-#else
-	fprintf( stderr , "  usascii: XFont %li\n" , font_man->usascii_font->xfont->fid) ;
+	fprintf( stderr , "  usascii: XftFont %p\n" , font_man->usascii_font->xft_font) ;
 #endif
+	fprintf( stderr , "  usascii: XFont %li\n" , font_man->usascii_font->xfont->fid) ;
 	
 	kik_map_get_pairs_array( font_man->font_cache_table , f_array , size) ;
 	for( counter = 0 ; counter < size ; counter++)
@@ -91,12 +90,11 @@ dump_cached_fonts(
 		if( f_array[counter]->value != NULL)
 		{
 		#ifdef  ANTI_ALIAS
-			fprintf( stderr , "  attr %x: XFont %p\n" , f_array[counter]->value->attr ,
+			fprintf( stderr , "  attr %x: XftFont %p\n" , f_array[counter]->value->attr ,
 				f_array[counter]->value->xft_font) ;
-		#else
+		#endif
 			fprintf( stderr , "  attr %x: XFont %li\n" , f_array[counter]->value->attr ,
 				f_array[counter]->value->xfont->fid) ;
-		#endif
 		}
 	}
 }
@@ -547,6 +545,7 @@ ml_font_manager_change_encoding(
 	/* us ascii font size may be changed. */
 
 #ifdef  DEBUG
+	kik_warn_printf( KIK_DEBUG_TAG) ;
 	dump_cached_fonts( font_man) ;
 #endif
 	

@@ -14,8 +14,7 @@
 #include  <mkf/mkf_xct_parser.h>
 #include  <mkf/mkf_xct_conv.h>
 #include  <mkf/mkf_utf8_conv.h>
-#include  <mkf/mkf_ucs4_parser.h>
-#include  <mkf/mkf_ucs4_conv.h>
+#include  <mkf/mkf_utf8_parser.h>
 
 #include  "ml_str_parser.h"
 #include  "ml_xic.h"
@@ -48,8 +47,6 @@
  * I think this is enough , but I'm not sure.
  */
 #define  XCT_MAX_CHAR_SIZE  (20 * 4)
-
-#define  DEFAULT_TAB_SIZE  8
 
 /* the same as rxvt. if this size is too few , we may drop sequences from kinput2. */
 #define  KEY_BUF_SIZE  512
@@ -155,7 +152,7 @@ exit_backscroll_mode(
 	}
 	
 	ml_unset_backscroll_mode( &termscr->bs_image) ;
-	ml_image_all_modified( termscr->image) ;
+	ml_image_set_modified_all( termscr->image) ;
 
 	if( HAS_SCROLL_LISTENER(termscr,bs_mode_exited))
 	{
@@ -395,82 +392,6 @@ set_wall_picture(
 	}
 }
 
-static int
-use_pre_conv_xct_to_ucs(
-	ml_term_screen_t *  termscr
-	)
-{
-	if( termscr->pre_conv_xct_to_ucs)
-	{
-		return  1 ;
-	}
-
-	termscr->ucs4_parser = mkf_ucs4_parser_new() ;
-	termscr->ucs4_conv = mkf_ucs4_conv_new() ;
-
-	if( termscr->ucs4_parser == NULL || termscr->ucs4_conv == NULL)
-	{
-		if( termscr->ucs4_parser)
-		{
-			(*termscr->ucs4_parser->delete)( termscr->ucs4_parser) ;
-			termscr->ucs4_parser = NULL ;
-		}
-
-		if( termscr->ucs4_conv)
-		{
-			(*termscr->ucs4_conv->delete)( termscr->ucs4_conv) ;
-			termscr->ucs4_conv = NULL ;
-		}
-
-		return  0 ;
-	}
-	else
-	{
-		termscr->pre_conv_xct_to_ucs = 1 ;
-
-		return  1 ;
-	}
-}
-
-static int
-unuse_pre_conv_xct_to_ucs(
-	ml_term_screen_t *  termscr
-	)
-{
-	if( ! termscr->pre_conv_xct_to_ucs)
-	{
-		return  0 ;
-	}
-
-	(*termscr->ucs4_parser->delete)( termscr->ucs4_parser) ;
-	termscr->ucs4_parser = NULL ;
-	
-	(*termscr->ucs4_conv->delete)( termscr->ucs4_conv) ;
-	termscr->ucs4_conv = NULL ;
-
-	termscr->pre_conv_xct_to_ucs = 0 ;
-
-	return  1 ;
-}
-
-static void
-resize_window(
-	ml_term_screen_t *  termscr ,
-	u_int  width ,
-	u_int  height
-	)
-{
-	if( termscr->window.width == width && termscr->window.height == height)
-	{
-		return ;
-	}
-
-	/* screen will redrawn in window_resized() */
-	ml_window_resize( &termscr->window , width , height , NOTIFY_TO_PARENT) ;
-	
-	ml_window_reset_font( &termscr->window) ;
-}
-
 static void
 font_size_changed(
 	ml_term_screen_t *  termscr
@@ -485,13 +406,17 @@ font_size_changed(
 			termscr->screen_scroll_listener->self , ml_line_height(termscr->font_man)) ;
 	}
 
-	resize_window( termscr ,
+	/* screen will redrawn in window_resized() */
+	ml_window_resize( &termscr->window ,
 		ml_col_width((termscr)->font_man) * ml_image_get_cols( termscr->image) ,
-		ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image)) ;
+		ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image) ,
+		NOTIFY_TO_PARENT) ;
 	
 	ml_window_set_normal_hints( &termscr->window ,
 		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man) ,
 		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man)) ;
+		
+	ml_window_reset_font( &termscr->window) ;
 }
 
 static int
@@ -652,8 +577,8 @@ window_exposed(
 		{
 			break ;
 		}
-		
-		ml_imgline_set_modified( line) ;
+
+		ml_imgline_set_modified_all( line) ;
 	}
 	
 	ml_term_screen_redraw_image( termscr) ;
@@ -750,11 +675,12 @@ change_font_size(
 	}
 
 	font_size_changed( termscr) ;
-	
+
 	/* this is because font_man->font_set may have changed in ml_smaller_font() */
 	ml_xic_font_set_changed( &termscr->window) ;
 
-	return ;
+	/* redrawing all lines with new fonts. */
+	ml_image_set_modified_all( termscr->image) ;
 }
 
 static void
@@ -777,23 +703,15 @@ change_encoding(
 		return ;
 	}
 
-#if  0
-	/* this is because XIM itself may not work in different encoding. */
-	ml_xim_close( termscr->window.display) ;
-#endif
-	
 	if( result)
 	{
 		font_size_changed( termscr) ;
 
-	#if  1
 		/*
 		 * this is because font_man->font_set may have changed in
 		 * ml_font_manager_change_encoding()
 		 */
-		/* ml_xic_deactivate( &termscr->window) ; */
 		ml_xic_font_set_changed( &termscr->window) ;
-	#endif
 	}
 
 	unuse_bidi( termscr) ;
@@ -809,23 +727,21 @@ change_encoding(
 
 	use_bidi( termscr) ;
 	
-	/*
-	 * redrawing all lines with new fonts.
-	 */
-	ml_image_all_modified( termscr->image) ;
+	/* redrawing all lines with new fonts. */
+	ml_image_set_modified_all( termscr->image) ;
 }
 
 static void
 change_tab_size(
 	void *  p ,
-	u_int  tabsize
+	u_int  tab_size
 	)
 {
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
 
-	ml_image_set_tab_width( termscr->image , tabsize) ;
+	ml_image_set_tab_size( termscr->image , tab_size) ;
 }
 
 static void
@@ -902,14 +818,7 @@ change_pre_conv_xct_to_ucs_flag(
 
 	termscr = p ;
 	
-	if( ! flag)
-	{
-		unuse_pre_conv_xct_to_ucs( termscr) ;
-	}
-	else
-	{
-		use_pre_conv_xct_to_ucs( termscr) ;
-	}
+	termscr->pre_conv_xct_to_ucs = flag ;
 }
 
 static void
@@ -954,9 +863,11 @@ larger_font_size(
 	font_size_changed( termscr) ;
 
 	/* this is because font_man->font_set may have changed in ml_larger_font() */
-	/* ml_xic_deactivate( &termscr->window) ; */
 	ml_xic_font_set_changed( &termscr->window) ;
 
+	/* redrawing all lines with new fonts. */
+	ml_image_set_modified_all( termscr->image) ;
+		
 	return ;
 }
 
@@ -974,9 +885,11 @@ smaller_font_size(
 	font_size_changed( termscr) ;
 	
 	/* this is because font_man->font_set may have changed in ml_smaller_font() */
-	/* ml_xic_deactivate( &termscr->window) ; */
 	ml_xic_font_set_changed( &termscr->window) ;
 
+	/* redrawing all lines with new fonts. */
+	ml_image_set_modified_all( termscr->image) ;
+	
 	return ;
 }
 
@@ -1040,6 +953,9 @@ change_aa_flag(
 	
 	font_size_changed( termscr) ;
 	
+	/* redrawing all lines with new fonts. */
+	ml_image_set_modified_all( termscr->image) ;
+	
 	termscr->is_aa = is_aa ;
 }
 
@@ -1062,15 +978,15 @@ change_bidi_flag(
 		/*
 		 * rendering and redrawing all lines.
 		 */
-		ml_image_all_modified( termscr->image) ;
-		ml_term_screen_render_bidi( termscr) ;
+		ml_image_set_modified_all( termscr->image) ;
+		ml_term_screen_render_bidi( termscr) ;		
 	}
 	else
 	{
 		/*
 		 * redawing all lines.
 		 */
-		ml_image_all_modified( termscr->image) ;
+		ml_image_set_modified_all( termscr->image) ;
 
 		unuse_bidi( termscr) ;
 	}
@@ -1158,7 +1074,7 @@ config_menu(
 
 	ml_config_menu_start( &termscr->config_menu , global_x , global_y , encoding , 
 		ml_window_get_fg_color( &termscr->window) , ml_window_get_bg_color( &termscr->window) ,
-		termscr->image->tab_cols , ml_get_log_size( &termscr->logs) ,
+		termscr->image->tab_size , ml_get_log_size( &termscr->logs) ,
 		termscr->font_man->font_size ,
 		termscr->font_man->font_custom->min_font_size ,
 		termscr->font_man->font_custom->max_font_size ,
@@ -1197,17 +1113,19 @@ paste_xct(
 
 		(*termscr->xct_parser->init)( termscr->xct_parser) ;
 		(*termscr->xct_parser->set_str)( termscr->xct_parser , str , len) ;
+		
+		(*termscr->utf8_conv->init)( termscr->utf8_conv) ;
 
 		while( ! termscr->xct_parser->is_eos)
 		{
-			if( ( filled_len = (*termscr->ucs4_conv->convert)(
-				termscr->ucs4_conv , conv_buf , sizeof( conv_buf) ,
+			if( ( filled_len = (*termscr->utf8_conv->convert)(
+				termscr->utf8_conv , conv_buf , sizeof( conv_buf) ,
 				termscr->xct_parser)) == 0)
 			{
 				break ;
 			}
 
-			write_to_pty( termscr , conv_buf , filled_len , termscr->ucs4_parser) ;
+			write_to_pty( termscr , conv_buf , filled_len , termscr->utf8_parser) ;
 		}
 	}
 	else
@@ -1231,14 +1149,10 @@ paste_utf8(
 	{
 		write_to_pty( termscr , str , len , NULL) ;
 	}
-#ifdef  DEBUG
 	else
 	{
-		kik_warn_printf( KIK_DEBUG_TAG
-			" it is not and will not be supported to paste raw UTF8 string"
-			" in other encoding modes than UTF8 , where XCOMPOUND TEXT should be used.\n") ;
+		write_to_pty( termscr , str , len , termscr->utf8_parser) ;
 	}
-#endif
 	
 	return  1 ;
 }
@@ -2993,9 +2907,8 @@ ml_term_screen_new(
 	}
 
 	/* allocated dynamically */
+	termscr->utf8_parser = NULL ;
 	termscr->xct_parser = NULL ;
-	termscr->ucs4_parser = NULL ;
-	termscr->ucs4_conv = NULL ;
 	termscr->ml_str_parser = NULL ;
 	termscr->utf8_conv = NULL ;
 	termscr->xct_conv = NULL ;
@@ -3086,15 +2999,6 @@ ml_term_screen_new(
 	else
 	{
 		termscr->pic_file_path = NULL ;
-	}
-
-	if( tab_size == 0)
-	{
-		termscr->tab_size = DEFAULT_TAB_SIZE ;
-	}
-	else
-	{
-		termscr->tab_size = tab_size ;
 	}
 
 	ml_char_init( &sp_ch) ;
@@ -3215,33 +3119,17 @@ ml_term_screen_new(
 	 * for receiving selection.
 	 */
 
-	if( big5_buggy)
+	if( ( termscr->utf8_parser = mkf_utf8_parser_new()) == NULL)
 	{
-		if( ( termscr->xct_parser = mkf_xct_big5_buggy_parser_new()) == NULL)
-		{
-			goto  error ;
-		}
+		goto  error ;
 	}
-	else if( ( termscr->xct_parser = mkf_xct_parser_new()) == NULL)
+	
+	if( ( termscr->xct_parser = mkf_xct_parser_new()) == NULL)
 	{
 		goto  error ;
 	}
 
-	if( pre_conv_xct_to_ucs)
-	{
-		if( ! use_pre_conv_xct_to_ucs( termscr))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " use_pre_conv_xct_to_ucs failed.\n") ;
-		#endif
-		}
-	}
-	else
-	{
-		termscr->pre_conv_xct_to_ucs = 0 ;
-		termscr->ucs4_parser = NULL ;
-		termscr->ucs4_conv = NULL ;
-	}
+	termscr->pre_conv_xct_to_ucs = pre_conv_xct_to_ucs ;
 
 	/*
 	 * for sending selection
@@ -3273,6 +3161,10 @@ ml_term_screen_new(
 	termscr->system_listener = NULL ;
 	termscr->screen_scroll_listener = NULL ;
 
+	termscr->scroll_cache = 0 ;
+	termscr->scroll_cache_boundary_start = 0 ;
+	termscr->scroll_cache_boundary_end = 0 ;
+
 	termscr->is_reverse = 0 ;
 	termscr->is_app_keypad = 0 ;
 	termscr->is_app_cursor_keys = 0 ;
@@ -3281,19 +3173,14 @@ ml_term_screen_new(
 	return  termscr ;
 
 error:
+	if( termscr->utf8_parser)
+	{
+		(*termscr->utf8_parser->delete)( termscr->utf8_parser) ;
+	}
+	
 	if( termscr->xct_parser)
 	{
 		(*termscr->xct_parser->delete)( termscr->xct_parser) ;
-	}
-	
-	if( termscr->ucs4_parser)
-	{
-		(*termscr->ucs4_parser->delete)( termscr->ucs4_parser) ;
-	}
-	
-	if( termscr->ucs4_conv)
-	{
-		(*termscr->ucs4_conv->delete)( termscr->ucs4_conv) ;
 	}
 	
 	if( termscr->ml_str_parser)
@@ -3337,19 +3224,14 @@ ml_term_screen_delete(
 		free( termscr->pic_file_path) ;
 	}
 	
+	if( termscr->utf8_parser)
+	{
+		(*termscr->utf8_parser->delete)( termscr->utf8_parser) ;
+	}
+	
 	if( termscr->xct_parser)
 	{
 		(*termscr->xct_parser->delete)( termscr->xct_parser) ;
-	}
-	
-	if( termscr->ucs4_parser)
-	{
-		(*termscr->ucs4_parser->delete)( termscr->ucs4_parser) ;
-	}
-	
-	if( termscr->ucs4_conv)
-	{
-		(*termscr->ucs4_conv->delete)( termscr->ucs4_conv) ;
 	}
 	
 	if( termscr->ml_str_parser)
@@ -3599,6 +3481,7 @@ ml_term_screen_redraw_image(
 	beg_y = end_y = y = ml_convert_row_to_y( termscr , counter) ;
 
 	draw_line( termscr , line , y) ;
+	ml_imgline_is_updated( line) ;
 
 	counter ++ ;
 	y += ml_line_height((termscr)->font_man) ;
@@ -3613,7 +3496,8 @@ ml_term_screen_redraw_image(
 		#endif
 
 			draw_line( termscr , line , y) ;
-			
+			ml_imgline_is_updated( line) ;
+
 			y += ml_line_height((termscr)->font_man) ;
 			end_y = y ;
 		}
@@ -3624,8 +3508,6 @@ ml_term_screen_redraw_image(
 	
 		counter ++ ;
 	}
-		
-	ml_bs_is_updated( &termscr->bs_image) ;
 
 	return  1 ;
 }
@@ -3708,7 +3590,7 @@ ml_term_screen_combine_with_prev_char(
 	if( ( result = ml_char_combine( ch , bytes , ch_size , font , font_decor ,
 		fg_color , bg_color)))
 	{
-		ml_imgline_update_change_char_index( line ,
+		ml_imgline_set_modified( line ,
 			ml_cursor_char_index( termscr->image) ,
 			ml_cursor_char_index( termscr->image) , 0) ;
 	}
@@ -3817,6 +3699,30 @@ ml_term_screen_vertical_tab(
 	exit_backscroll_mode( termscr) ;
 
 	return  ml_image_vertical_tab( termscr->image) ;
+}
+
+int
+ml_term_screen_set_tab_stop(
+	ml_term_screen_t *  termscr
+	)
+{
+	return  ml_image_set_tab_stop( termscr->image) ;
+}
+
+int
+ml_term_screen_clear_tab_stop(
+	ml_term_screen_t *  termscr
+	)
+{
+	return  ml_image_clear_tab_stop( termscr->image) ;
+}
+
+int
+ml_term_screen_clear_all_tab_stops(
+	ml_term_screen_t *  termscr
+	)
+{
+	return  ml_image_clear_all_tab_stops( termscr->image) ;
 }
 
 int
@@ -4168,7 +4074,7 @@ ml_term_screen_bel(
 		XFlush( termscr->window.display) ;
 
 		ml_window_clear_all( &termscr->window) ;
-		ml_image_all_modified( termscr->image) ;
+		ml_image_set_modified_all( termscr->image) ;
 		ml_term_screen_redraw_image( termscr) ;
 	}
 
@@ -4186,15 +4092,16 @@ ml_term_screen_resize_columns(
 
 	if( cols == ml_image_get_cols( termscr->image))
 	{
-		return  1 ;
+		return  0 ;
 	}
 	
-	resize_window( termscr , ml_col_width((termscr)->font_man) * cols ,
-		ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image)) ;
+	ml_window_resize( &termscr->window , ml_col_width((termscr)->font_man) * cols ,
+		ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image) ,
+		NOTIFY_TO_PARENT) ;
 
 	/*
 	 * !! Notice !!
-	 * resize_window() invokes ConfigureNotify event and window_resized() will be called,
+	 * ml_window_resize() invokes ConfigureNotify event and window_resized() will be called,
 	 * but ml_term_screen_resize_columns() is called in ml_vt100_parser , so X Events
 	 * may not be received for a while.
 	 */
@@ -4215,7 +4122,7 @@ ml_term_screen_reverse_video(
 
 	ml_window_reverse_video( &termscr->window) ;
 	
-	ml_image_all_modified( termscr->image) ;
+	ml_image_set_modified_all( termscr->image) ;
 	ml_term_screen_redraw_image( termscr) ;
 
 	termscr->is_reverse = 1 ;
@@ -4235,7 +4142,7 @@ ml_term_screen_restore_video(
 	
 	ml_window_reverse_video( &termscr->window) ;
 	
-	ml_image_all_modified( termscr->image) ;
+	ml_image_set_modified_all( termscr->image) ;
 	ml_term_screen_redraw_image( termscr) ;
 	
 	termscr->is_reverse = 0 ;
@@ -4313,7 +4220,7 @@ ml_term_screen_use_normal_image(
 	
 	ml_window_clear_all( &termscr->window) ;
 
-	ml_image_all_modified( &termscr->normal_image) ;
+	ml_image_set_modified_all( &termscr->normal_image) ;
 	
 	termscr->image = &termscr->normal_image ;
 

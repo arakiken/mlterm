@@ -64,7 +64,8 @@ typedef struct  ml_image
 
 	int8_t  is_logging ;
 
-	u_int  tab_cols ;
+	u_int8_t *  tab_stops ;
+	u_int  tab_size ;
 
 	ml_char_t  sp_ch ;
 
@@ -127,7 +128,13 @@ int  ml_image_scroll_downward( ml_image_t *  image , u_int  size) ;
 
 int  ml_image_vertical_tab( ml_image_t *  image) ;
 
-int  ml_image_set_tab_width( ml_image_t *  image , u_int  tab_width) ;
+int  ml_image_set_tab_size( ml_image_t *  image , u_int  tab_size) ;
+
+int  ml_image_set_tab_stop( ml_image_t *  image) ;
+
+int  ml_image_clear_tab_stop( ml_image_t *  image) ;
+
+int  ml_image_clear_all_tab_stops( ml_image_t *  image) ;
 
 ml_image_line_t *  ml_image_get_line( ml_image_t *  image , int  row) ;
 
@@ -168,10 +175,8 @@ int  ml_cursor_char_index( ml_image_t *  image) ;
 int  ml_cursor_col( ml_image_t *  image) ;
 
 int  ml_cursor_row( ml_image_t *  image) ;
-	
-void  ml_image_is_updated( ml_image_t *  image) ;
 
-void  ml_image_all_modified( ml_image_t *  image) ;
+void  ml_image_set_modified_all( ml_image_t *  image) ;
 
 inline u_int ml_image_get_cols( ml_image_t *  image) ;
 

@@ -11,7 +11,5 @@
 
 mkf_parser_t *  mkf_xct_parser_new(void) ;
 
-mkf_parser_t *  mkf_xct_big5_buggy_parser_new(void) ;
-
 
 #endif

@@ -6,8 +6,8 @@
 #define  __MKF_UCS4_COMPAT_TO_BIG5_TABLE__
 
 
-#include  <stdio.h>
-#include  <kiklib/kik_types.h>
+#include  <stdio.h>			/* NULL */
+#include  <kiklib/kik_types.h>		/* u_xxx */
 
 
 static u_char  ucs4_compat_to_big5_bytes[2] ;
@@ -1451,12 +1451,12 @@ static u_int16_t  ucs4_compat_to_big5_table[] =
 	0x00 ,
 	0x00 ,
 	0xa149 ,
-	0x00 ,
+	0xc8d0 ,
 	0xa1ad ,
 	0xa243 ,
 	0xa248 ,
 	0xa1ae ,
-	0x00 ,
+	0xc8cf ,
 	0xa15d ,
 	0xa15e ,
 	0xa1af ,
@@ -1514,11 +1514,11 @@ static u_int16_t  ucs4_compat_to_big5_table[] =
 	0xa2e6 ,
 	0xa2e7 ,
 	0xa2e8 ,
-	0x00 ,
+	0xc6e4 ,
 
 	/* 0xff3c */
 	0xa242 ,
-	0x00 ,
+	0xc6e5 ,
 	0x00 ,
 	0xa1c4 ,
 	0x00 ,
@@ -1703,9 +1703,9 @@ static u_int16_t  ucs4_compat_to_big5_table[] =
 	0x00 ,
 	0x00 ,
 	0x00 ,
+	0xc8cd ,
 	0x00 ,
-	0x00 ,
-	0x00 ,
+	0xc8ce ,
 	0x00 ,
 	0x00 ,
 	0x00 ,
@@ -1716,30 +1716,12 @@ static u_int16_t  ucs4_compat_to_big5_table[] =
 
 	/* 0xffec */
 	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-	0x00 ,
-
-	/* 0xfffc */
-	0x00 ,
-	0xa2ce ,
+	0xf9fe ,
 } ;
 
 static u_int  ucs4_compat_to_big5_beg = 0xfa0c ;
 
-static u_int  ucs4_compat_to_big5_end = 0xfffd ;
+static u_int  ucs4_compat_to_big5_end = 0xffed ;
 
 
 #endif

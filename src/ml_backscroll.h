@@ -57,8 +57,6 @@ int  ml_bs_scroll_upward( ml_bs_image_t *  bs_image , u_int  size) ;
 
 int  ml_bs_scroll_downward( ml_bs_image_t *  bs_image , u_int  size) ;
 
-void  ml_bs_is_updated( ml_bs_image_t *   bs_image) ;
-
 int  ml_bs_reverse_color( ml_bs_image_t *  bs_image , int  col , int  row) ;
 
 int  ml_bs_restore_color( ml_bs_image_t *  bs_image , int  col , int  row) ;

@@ -129,28 +129,17 @@ xct_non_iso2022_is_started(
 		else if( cs_len == 6 && strncmp( cs_str , "BIG5-0" , cs_len) == 0)
 		{
 			/*
-			 * XXX
+			 * !! Notice !!
 			 * Big5 CTEXT implementation of XFree86 4.1.0 or before is very BUGGY!
 			 */
-			if( xct_parser->big5_buggy)
+			if( xct_parser->iso2022_parser.parser.left >= 10 &&
+				memcmp( xct_parser->iso2022_parser.parser.str ,
+					"\x02\x80\x89" "BIG5-0" "\x02" , 10) == 0)
 			{
-				/*
-				 * skipping to next 0x02.
-				 */
-				while( 1)
-				{
-					if( mkf_parser_increment( xct_parser) == 0)
-					{
-						mkf_parser_reset( xct_parser) ;
-
-						return  0 ;
-					}
-
-					if( *xct_parser->iso2022_parser.parser.str == 0x02)
-					{
-						break ;
-					}
-				}
+				/* skip to next 0x2 */
+				xct_parser->iso2022_parser.parser.str += 9 ;
+				xct_parser->iso2022_parser.parser.left -= 9 ;
+				xct_parser->big5_buggy = 1 ;
 			}
 			
 			xct_parser->cs = BIG5 ;
@@ -199,7 +188,7 @@ xct_next_non_iso2022_byte(
 	if( xct_parser->left == 0)
 	{
 		/*
-		 * XXX
+		 * !! Notice !!
 		 * Big5 CTEXT implementation of XFree86 4.1.0 or before is very BUGGY!
 		 */
 		if( xct_parser->big5_buggy && xct_parser->cs == BIG5 &&
@@ -211,6 +200,7 @@ xct_next_non_iso2022_byte(
 		else
 		{
 			xct_parser->cs = UNKNOWN_CS ;
+			xct_parser->big5_buggy = 0 ;
 			
 			return  0 ;
 		}
@@ -269,32 +259,6 @@ mkf_xct_parser_new(void)
 	xct_parser->left = 0 ;
 	xct_parser->cs = UNKNOWN_CS ;
 	xct_parser->big5_buggy = 0 ;
-	
-	/* overrride */
-	xct_parser->iso2022_parser.non_iso2022_is_started = xct_non_iso2022_is_started ;
-	xct_parser->iso2022_parser.next_non_iso2022_byte = xct_next_non_iso2022_byte ;
-	xct_parser->iso2022_parser.parser.init = xct_parser_init ;
-
-	return  (mkf_parser_t*) xct_parser ;
-}
-
-mkf_parser_t *
-mkf_xct_big5_buggy_parser_new(void)
-{
-	mkf_xct_parser_t *  xct_parser ;
-
-	if( ( xct_parser = malloc(sizeof( mkf_xct_parser_t))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	mkf_iso2022_parser_init_func( &xct_parser->iso2022_parser) ;
-
-	xct_parser_init( &xct_parser->iso2022_parser.parser) ;
-
-	xct_parser->left = 0 ;
-	xct_parser->cs = UNKNOWN_CS ;
-	xct_parser->big5_buggy = 1 ;
 	
 	/* overrride */
 	xct_parser->iso2022_parser.non_iso2022_is_started = xct_non_iso2022_is_started ;

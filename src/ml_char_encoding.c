@@ -96,6 +96,8 @@ static encoding_table_t  encoding_table[] =
 	{ ML_BIG5 , "BIG5" , mkf_big5_parser_new , mkf_big5_conv_new , } ,
 	{ ML_EUCTW , "EUCTW" , mkf_euctw_parser_new , mkf_euctw_conv_new , } ,
 
+	{ ML_BIG5HKSCS , "BIG5HKSCS" , mkf_big5hkscs_parser_new , mkf_big5hkscs_conv_new , } ,
+	
 	/* not listed in IANA. GB2312 is usually used instead. */
 	{ ML_EUCCN , "EUCCN" , mkf_euccn_parser_new , mkf_euccn_conv_new , } ,
 	{ ML_GBK , "GBK" , mkf_gbk_parser_new , mkf_gbk_conv_new , } ,
@@ -191,7 +193,7 @@ ml_parser_new(
 		encoding_table[encoding].encoding != encoding)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG "%x is illegal encoding.\n" , encoding) ;
+		kik_warn_printf( KIK_DEBUG_TAG " %d is illegal encoding.\n" , encoding) ;
 	#endif
 	
 		return  NULL ;
@@ -209,7 +211,7 @@ ml_conv_new(
 		encoding_table[encoding].encoding != encoding)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG "%x is illegal encoding.\n" , encoding) ;
+		kik_warn_printf( KIK_DEBUG_TAG " %d is illegal encoding.\n" , encoding) ;
 	#endif
 	
 		return  NULL ;

@@ -11,5 +11,7 @@
 
 mkf_parser_t *  mkf_big5_parser_new(void) ;
 
+mkf_parser_t *  mkf_big5hkscs_parser_new(void) ;
+
 
 #endif

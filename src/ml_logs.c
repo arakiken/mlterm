@@ -272,7 +272,7 @@ ml_log_reverse_color(
 	
 	ml_char_reverse_color( &line->chars[char_index]) ;
 
-	ml_imgline_update_change_char_index( line , char_index , ml_imgline_end_char_index(line) , 0) ;
+	ml_imgline_set_modified( line , char_index , ml_imgline_end_char_index(line) , 0) ;
 
 	return  1 ;
 }
@@ -290,23 +290,7 @@ ml_log_restore_color(
 
 	ml_char_restore_color( &line->chars[char_index]) ;
 
-	ml_imgline_update_change_char_index( line , char_index , ml_imgline_end_char_index(line) , 0) ;
+	ml_imgline_set_modified( line , char_index , ml_imgline_end_char_index(line) , 0) ;
 
 	return  1 ;
-}
-
-void
-ml_log_is_updated(
-	ml_logs_t *  logs
-	)
-{
-	int  counter ;
-	u_int  num_of_rows ;
-
-	num_of_rows = kik_get_filled_cycle_index( logs->index) ;
-
-	for( counter = 0 ; counter < num_of_rows ; counter ++)
-	{
-		logs->lines[ kik_cycle_index_of( logs->index , counter)].is_modified = 0 ;
-	}
 }

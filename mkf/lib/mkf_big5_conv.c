@@ -14,7 +14,8 @@
 
 static void
 remap_unsupported_charset(
-	mkf_char_t *  ch
+	mkf_char_t *  ch ,
+	mkf_charset_t  big5cs
 	)
 {
 	mkf_char_t  c ;
@@ -43,14 +44,30 @@ remap_unsupported_charset(
 			*ch = c ;
 		}
 	}
+
+	if( big5cs == BIG5 && ch->cs == BIG5HKSCS)
+	{
+		if( mkf_map_big5hkscs_to_big5( &c , ch))
+		{
+			*ch = c ;
+		}
+	}
+	else if( big5cs == BIG5HKSCS && ch->cs == BIG5)
+	{
+		if( mkf_map_big5_to_big5hkscs( &c , ch))
+		{
+			*ch = c ;
+		}
+	}
 }
 
 static size_t
-convert_to_big5(
+convert_to_big5_intern(
 	mkf_conv_t *  conv ,
 	u_char *  dst ,
 	size_t  dst_size ,
-	mkf_parser_t *  parser
+	mkf_parser_t *  parser ,
+	mkf_charset_t  big5cs
 	)
 {
 	size_t  filled_size ;
@@ -91,9 +108,9 @@ convert_to_big5(
 			}
 		}
 
-		remap_unsupported_charset( &ch) ;
+		remap_unsupported_charset( &ch , big5cs) ;
 
-		if( ch.cs == BIG5)
+		if( ch.cs == big5cs)
 		{
 			if( filled_size + 1 >= dst_size)
 			{
@@ -141,6 +158,28 @@ convert_to_big5(
 	}
 }
 
+static size_t
+convert_to_big5(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_big5_intern( conv , dst , dst_size , parser , BIG5) ;
+}
+
+static size_t
+convert_to_big5hkscs(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_big5_intern( conv , dst , dst_size , parser , BIG5HKSCS) ;
+}
+
 static void
 conv_init(
 	mkf_conv_t *  conv
@@ -170,6 +209,23 @@ mkf_big5_conv_new(void)
 	}
 
 	conv->convert = convert_to_big5 ;
+	conv->init = conv_init ;
+	conv->delete = conv_delete ;
+
+	return  conv ;
+}
+
+mkf_conv_t *
+mkf_big5hkscs_conv_new(void)
+{
+	mkf_conv_t *  conv ;
+
+	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	conv->convert = convert_to_big5hkscs ;
 	conv->init = conv_init ;
 	conv->delete = conv_delete ;
 

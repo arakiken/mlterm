@@ -79,10 +79,10 @@ int  ml_imgline_overwrite_all( ml_image_line_t *  line , int  change_char_index 
 
 int  ml_imgline_fill_all( ml_image_line_t *  line , ml_char_t *  ch , u_int  num) ;
 	
-void  ml_imgline_update_change_char_index( ml_image_line_t *  line ,
+void  ml_imgline_set_modified( ml_image_line_t *  line ,
 	int  beg_char_index , int  end_char_index , int  is_cleared_to_end) ;
 
-void  ml_imgline_set_modified( ml_image_line_t *  line) ;
+void  ml_imgline_set_modified_all( ml_image_line_t *  line) ;
 
 void  ml_imgline_is_updated( ml_image_line_t *  line) ;
 

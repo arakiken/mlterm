@@ -1,2 +1,11 @@
-* less でページ移動する際に画面にゴミが残る(再現性乏し)
+* less でページ移動する際に画面にゴミが残る場合がある。
   man で、マニュアル閲覧中に先頭ページにジャンプすると発生することが多い。
+  <原因>
+  less が、
+  set scroll region 0 - 10
+  => scroll 1 line
+  => set scroll region 0 - 11
+  => scroll 1 line
+  => set scroll region 0 - 12
+  => scroll 1 line
+  というシーケンスを投げてくる場合に発生する模様。

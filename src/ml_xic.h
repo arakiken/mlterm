@@ -42,7 +42,10 @@ int  ml_xic_resized( ml_window_t *  win) ;
 
 int  ml_xic_set_spot( ml_window_t *  win) ;
 
-size_t  ml_xic_get_str(	ml_window_t *  win , u_char *  seq , size_t  seq_len ,
+size_t  ml_xic_get_str( ml_window_t *  win , u_char *  seq , size_t  seq_len ,
+	mkf_parser_t **  parser , KeySym *  keysym , XKeyEvent *  event) ;
+
+size_t  ml_xic_get_utf8_str( ml_window_t *  win , u_char *  seq , size_t  seq_len ,
 	mkf_parser_t **  parser , KeySym *  keysym , XKeyEvent *  event) ;
 
 int  ml_xic_set_focus( ml_window_t *  win) ;

@@ -67,14 +67,15 @@ static lang_codeset_table_t  lang_codeset_table[] =
 	{ "pl" , "ISO8859-2" , } ,
 	{ "sl" , "ISO8859-2" , } ,
 	{ "el" , "ISO8859-7" , } ,
-	{ "ru" , "KOI8R" , } ,
-	{ "uk" , "KOI8U" , } ,
+	{ "ru" , "KOI8-R" , } ,
+	{ "uk" , "KOI8-U" , } ,
 	{ "vi" , "VISCII" , } ,
 	{ "th" , "TIS-620" , } ,
 	{ "ja" , "eucJP" , } ,
 	{ "ko" , "eucKR" , } ,
-	{ "zh_CN" , "EUC-CN" , } ,
-	{ "zh_TW" , "Big-5" , } ,
+	{ "zh_CN" , "eucCN" , } ,
+	{ "zh_TW" , "Big5" , } ,
+	{ "zh_HK" , "Big5HKSCS" , } ,
 	
 } ;
 

@@ -11,5 +11,7 @@
 
 mkf_conv_t *  mkf_big5_conv_new(void) ;
 
+mkf_conv_t *  mkf_big5hkscs_conv_new(void) ;
+
 
 #endif

@@ -61,6 +61,8 @@ static char *  encodings[] =
 	"BIG5" ,
 	"EUCTW" ,
 
+	"BIG5HKSCS" ,
+
 	"EUCCN" ,
 	"GBK" ,
 	"GB18030" ,

@@ -145,8 +145,11 @@ ml_imgline_final(
 	{
 		ml_str_delete( line->chars , line->num_of_chars) ;
 	}
-	
-	free( line->visual_order) ;
+
+	if( line->visual_order)
+	{
+		free( line->visual_order) ;
+	}
 
 	return  1 ;
 }
@@ -210,7 +213,7 @@ ml_imgline_reset(
 {
 	if( line->num_of_filled_chars > 0)
 	{
-		ml_imgline_update_change_char_index( line , 0 , 0 , 1) ;
+		ml_imgline_set_modified( line , 0 , 0 , 1) ;
 	}
 
 	line->num_of_filled_chars = 0 ;
@@ -252,7 +255,7 @@ ml_imgline_clear(
 		line->num_of_filled_chars = char_index + 1 ;
 		line->num_of_filled_cols = ml_str_cols( line->chars , line->num_of_filled_chars) ;
 
-		ml_imgline_update_change_char_index( line , char_index , END_CHAR_INDEX(line) , 1) ;
+		ml_imgline_set_modified( line , char_index , END_CHAR_INDEX(line) , 1) ;
 	}
 	
 	return  1 ;
@@ -348,12 +351,12 @@ ml_imgline_overwrite_chars(
 
 	if( line->num_of_filled_cols > cols)
 	{
-		ml_imgline_update_change_char_index( line , change_char_index ,
+		ml_imgline_set_modified( line , change_char_index ,
 			K_MAX(change_char_index,END_CHAR_INDEX(line)) , 1) ;
 	}
 	else
 	{
-		ml_imgline_update_change_char_index( line , change_char_index ,
+		ml_imgline_set_modified( line , change_char_index ,
 			K_MAX(change_char_index,len - 1) , 0) ;
 	}
 
@@ -377,11 +380,11 @@ ml_imgline_overwrite_all(
 
 	if( line->num_of_filled_cols > cols)
 	{
-		ml_imgline_update_change_char_index( line , change_char_index , END_CHAR_INDEX(line) , 1) ;
+		ml_imgline_set_modified( line , change_char_index , END_CHAR_INDEX(line) , 1) ;
 	}
 	else
 	{
-		ml_imgline_update_change_char_index( line , change_char_index , END_CHAR_INDEX(line) , 0) ;
+		ml_imgline_set_modified( line , change_char_index , END_CHAR_INDEX(line) , 0) ;
 	}
 	
 	line->num_of_filled_cols = cols ;
@@ -411,13 +414,13 @@ ml_imgline_fill_all(
 	line->num_of_filled_chars = char_index ;
 	line->num_of_filled_cols = cols ;
 
-	ml_imgline_set_modified( line) ;
+	ml_imgline_set_modified_all( line) ;
 
 	return  1 ;
 }
 
 void
-ml_imgline_update_change_char_index(
+ml_imgline_set_modified(
 	ml_image_line_t *  line ,
 	int  beg_char_index ,
 	int  end_char_index ,
@@ -458,17 +461,17 @@ ml_imgline_update_change_char_index(
 }
 
 void
-ml_imgline_set_modified(
+ml_imgline_set_modified_all(
 	ml_image_line_t *  line
 	)
 {
 	if( ml_imgline_is_empty( line))
 	{
-		ml_imgline_update_change_char_index( line , 0 , 0 , 1) ;
+		ml_imgline_set_modified( line , 0 , 0 , 1) ;
 	}
 	else
 	{
-		ml_imgline_update_change_char_index( line , 0 , END_CHAR_INDEX(line) , 1) ;
+		ml_imgline_set_modified( line , 0 , END_CHAR_INDEX(line) , 1) ;
 	}
 }
 
@@ -717,7 +720,7 @@ ml_imgline_reverse_color(
 
 	ml_char_reverse_color( &line->chars[char_index]) ;
 
-	ml_imgline_update_change_char_index( line , char_index , char_index , 0) ;
+	ml_imgline_set_modified( line , char_index , char_index , 0) ;
 
 	return  1 ;
 }
@@ -735,7 +738,7 @@ ml_imgline_restore_color(
 
 	ml_char_restore_color( &line->chars[char_index]) ;
 
-	ml_imgline_update_change_char_index( line , char_index , char_index , 0) ;
+	ml_imgline_set_modified( line , char_index , char_index , 0) ;
 
 	return  1 ;
 }
@@ -1067,7 +1070,7 @@ ml_imgline_start_bidi(
 
 	if( line->is_modified)
 	{
-		ml_imgline_set_modified( line) ;
+		ml_imgline_set_modified_all( line) ;
 	}
 
 	line->is_bidi = 1 ;

@@ -29,7 +29,8 @@
 
 #define  IS_BIDI_VISUAL(image) ((image)->lines[0].is_bidi)
 
-#define  DEFAULT_TAB_COLS  8
+#define  LINE_TAB_STOPS_SIZE(image) ((image)->num_of_cols / 8 + 1)
+#define  DEFAULT_TAB_SIZE  8
 
 
 /* --- static functions --- */
@@ -708,15 +709,6 @@ ml_image_init(
 	image->saved_cursor = image->cursor ;
 	image->cursor_is_saved = 0 ;
 
-	if( tab_size == 0)
-	{
-		image->tab_cols = DEFAULT_TAB_COLS ;
-	}
-	else
-	{
-		image->tab_cols = tab_size ;
-	}
-
 	ml_char_init( &image->sp_ch) ;
 	ml_char_copy( &image->sp_ch , &sp_ch) ;
 
@@ -735,6 +727,12 @@ ml_image_init(
 	image->scroll_region_beg = 0 ;
 	image->scroll_region_end = image->num_of_rows - 1 ;
 	image->scroll_listener = scroll_listener ;
+
+	if( ( image->tab_stops = malloc( image->num_of_rows * LINE_TAB_STOPS_SIZE(image))) == NULL)
+	{
+		return  0 ;
+	}
+	ml_image_set_tab_size( image , tab_size) ;
 
 	ml_line_hints_init( &image->line_hints , image->num_of_rows) ;
 
@@ -758,6 +756,8 @@ ml_image_final(
 	ml_char_final( &image->sp_ch) ;
 	ml_char_final( &image->prev_recv_ch) ;
 
+	free( image->tab_stops) ;
+
 	ml_line_hints_final( &image->line_hints) ;
 
 	return  1 ;
@@ -773,6 +773,7 @@ ml_image_resize(
 	int  is_using_bidi ;
 	int  old_row ;
 	int  new_row ;
+	int  counter ;
 	u_int  copy_rows ;
 	u_int  copy_len ;
 	ml_image_line_t *  lines_p ;
@@ -781,6 +782,13 @@ ml_image_resize(
 	kik_debug_printf( KIK_DEBUG_TAG " resizing to %d %d , char index %d row %d ->" ,
 		num_of_cols , num_of_rows , image->cursor.char_index , image->cursor.row) ;
 #endif
+
+	if( num_of_cols == image->num_of_cols && num_of_rows == image->num_of_rows)
+	{
+		/* not resized */
+		
+		return  0 ;
+	}
 
 	is_using_bidi = ml_image_is_using_bidi(image) ;
 
@@ -836,11 +844,10 @@ ml_image_resize(
 	{
 		ml_imgline_init( &lines_p[new_row] , num_of_cols) ;
 
-		ml_imgline_copy_line( &lines_p[new_row] , &IMAGE_LINE(image,new_row)) ;
+		ml_imgline_copy_line( &lines_p[new_row] , &IMAGE_LINE(image,old_row)) ;
+		old_row ++ ;
 		
-		ml_imgline_set_modified( &lines_p[new_row]) ;
-		
-		ml_imgline_final( &IMAGE_LINE(image,new_row)) ;
+		ml_imgline_set_modified_all( &lines_p[new_row]) ;
 	}
 
 	image->num_of_filled_rows = new_row ;
@@ -849,7 +856,16 @@ ml_image_resize(
 	{
 		ml_imgline_init( &lines_p[new_row] , num_of_cols) ;
 
-		ml_imgline_set_modified( &lines_p[new_row]) ;
+		ml_imgline_set_modified_all( &lines_p[new_row]) ;
+	}
+
+	/*
+	 * freeing old data.
+	 */
+	 
+	for( counter = 0 ; counter < image->num_of_rows ; counter ++)
+	{
+		ml_imgline_final( &IMAGE_LINE(image,counter)) ;
 	}
 
 	free( image->lines) ;
@@ -866,6 +882,13 @@ ml_image_resize(
 	image->scroll_region_beg = 0 ;
 	image->scroll_region_end = image->num_of_rows - 1 ;
 
+	free( image->tab_stops) ;
+	if( ( image->tab_stops = malloc( image->num_of_rows * LINE_TAB_STOPS_SIZE(image))) == NULL)
+	{
+		return  0 ;
+	}
+	ml_image_set_tab_size( image , image->tab_size) ;
+	
 	ml_line_hints_final( &image->line_hints) ;
 	ml_line_hints_init( &image->line_hints , image->num_of_rows) ;
 
@@ -1482,7 +1505,7 @@ ml_image_clear_line_to_left(
 		ml_str_delete( buf , buf_size) ;
 	}
 
-	ml_imgline_update_change_char_index(
+	ml_imgline_set_modified(
 		&CURSOR_LINE(image) , 0 , image->cursor.char_index , 0) ;
 
 	return  1 ;
@@ -1570,10 +1593,19 @@ ml_image_vertical_tab(
 	)
 {
 	int  col ;
+	u_char *  tab_stops ;
 
 	reset_wraparound_checker( image) ;
-	
-	col = image->cursor.col + image->tab_cols - image->cursor.col % image->tab_cols ;
+
+	tab_stops = &image->tab_stops[ image->cursor.row * LINE_TAB_STOPS_SIZE(image)] ;
+
+	for( col = image->cursor.col + 1 ; col < image->num_of_cols ; col ++)
+	{
+		if( tab_stops[col / 8] & ( 1 << (7 - col % 8)))
+		{
+			break ;
+		}
+	}
 
 	cursor_goto_by_col( image , col , image->cursor.row , BREAK_BOUNDARY) ;
 	
@@ -1581,18 +1613,89 @@ ml_image_vertical_tab(
 }
 
 int
-ml_image_set_tab_width(
+ml_image_set_tab_size(
 	ml_image_t *  image ,
 	u_int  tab_size
 	)
 {
+	int  row ;
+	int  col ;
+	u_int8_t *  tab_stops ;
+
 	if( tab_size == 0)
 	{
-		image->tab_cols = DEFAULT_TAB_COLS ;
+		tab_size = DEFAULT_TAB_SIZE ;
 	}
-	
-	image->tab_cols = tab_size ;
 
+	ml_image_clear_all_tab_stops( image) ;
+
+	tab_stops = image->tab_stops ;
+	
+	for( row = 0 ; row < image->num_of_rows ; row ++)
+	{
+		col = 0 ;
+		
+		while( 1)
+		{
+			if( col % tab_size == 0)
+			{
+				(*tab_stops) |= ( 1 << (7 - col % 8)) ;
+			}
+
+			col ++ ;
+			
+			if( col % 8 == 0)
+			{
+				tab_stops ++ ;
+
+				if( col >= image->num_of_cols)
+				{
+					break ;
+				}
+			}
+			else if( col >= image->num_of_cols)
+			{
+				tab_stops ++ ;
+
+				break ;
+			}
+		}
+	}
+
+	image->tab_size = tab_size ;
+
+	return  1 ;
+}
+
+int
+ml_image_set_tab_stop(
+	ml_image_t *  image
+	)
+{
+	image->tab_stops[ image->cursor.row * LINE_TAB_STOPS_SIZE(image) + image->cursor.col / 8]
+		|= (1 << (7 - image->cursor.col % 8)) ;
+	
+	return  1 ;
+}
+
+int
+ml_image_clear_tab_stop(
+	ml_image_t *  image
+	)
+{
+	image->tab_stops[ image->cursor.row * LINE_TAB_STOPS_SIZE(image) + image->cursor.col / 8]
+		&= ~(1 << (7 - image->cursor.col % 8)) ;
+	
+	return  1 ;
+}
+
+int
+ml_image_clear_all_tab_stops(
+	ml_image_t *  image
+	)
+{
+	memset( image->tab_stops , 0 , image->num_of_rows * LINE_TAB_STOPS_SIZE(image)) ;
+	
 	return  1 ;
 }
 
@@ -2107,7 +2210,7 @@ ml_cursor_row(
 }
 
 void
-ml_image_is_updated(
+ml_image_set_modified_all(
 	ml_image_t *  image
 	)
 {
@@ -2115,20 +2218,7 @@ ml_image_is_updated(
 
 	for( counter = 0 ; counter < image->num_of_rows ; counter ++)
 	{
-		ml_imgline_is_updated( &IMAGE_LINE(image,counter)) ;
-	}
-}
-
-void
-ml_image_all_modified(
-	ml_image_t *  image
-	)
-{
-	int  counter ;
-
-	for( counter = 0 ; counter < image->num_of_rows ; counter ++)
-	{
-		ml_imgline_set_modified( &IMAGE_LINE(image,counter)) ;
+		ml_imgline_set_modified_all( &IMAGE_LINE(image,counter)) ;
 	}
 }
 

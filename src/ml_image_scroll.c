@@ -71,7 +71,7 @@ copy_lines(
 				&IMAGE_LINE(image,src_row + counter)) ;
 			if( mark_changed)
 			{
-				ml_imgline_update_change_char_index(
+				ml_imgline_set_modified(
 					&IMAGE_LINE(image,dst_row + counter) , 0 ,
 					ml_imgline_end_char_index( &IMAGE_LINE(image,dst_row + counter)) ,
 					1) ;
@@ -86,7 +86,7 @@ copy_lines(
 				&IMAGE_LINE(image,src_row + counter)) ;
 			if( mark_changed)
 			{
-				ml_imgline_update_change_char_index(
+				ml_imgline_set_modified(
 					&IMAGE_LINE(image,dst_row + counter) , 0 ,
 					ml_imgline_end_char_index( &IMAGE_LINE(image,dst_row + counter)) ,
 					1) ;
@@ -220,7 +220,7 @@ scroll_upward_region(
 		 * this is necessary because lines between old_num_of_filled_rows and
 		 * num_of_filled_rows are cleared above but not cleared in window.
 		 */
-		ml_imgline_set_modified( &IMAGE_LINE(image,counter)) ;
+		ml_imgline_set_modified_all( &IMAGE_LINE(image,counter)) ;
 	}
 
 	for( ; counter < image->num_of_rows ; counter ++)
@@ -239,7 +239,7 @@ scroll_upward_region(
 
 		for( counter = boundary_beg ; counter <= boundary_end ; counter ++)
 		{
-			ml_imgline_set_modified( &IMAGE_LINE(image,counter)) ;
+			ml_imgline_set_modified_all( &IMAGE_LINE(image,counter)) ;
 		}
 	}
 
@@ -350,7 +350,7 @@ scroll_downward_region(
 		
 		for( counter = boundary_beg ; counter <= boundary_end ; counter ++)
 		{
-			ml_imgline_set_modified( &IMAGE_LINE(image,counter)) ;
+			ml_imgline_set_modified_all( &IMAGE_LINE(image,counter)) ;
 		}
 	}
 

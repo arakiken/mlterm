@@ -55,6 +55,8 @@ typedef enum  ml_encoding_type
 
 	ML_BIG5 ,
 	ML_EUCTW ,
+
+	ML_BIG5HKSCS ,
 	
 	ML_EUCCN ,
 	ML_GBK ,
