@@ -55,11 +55,9 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '&' , "borderless" , 1 , "borderless" ,
 		"override redirect [false]") ;
 #ifdef  USE_TYPE_XCORE
-	main_config->type_engine = TYPE_XCORE ;
 	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
 		"type engine [xcore]") ;
 #else
-	main_config->type_engine = TYPE_XFT ;
 	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
 		"type engine [xft]") ;
 #endif
@@ -339,6 +337,11 @@ x_main_config_init(
 		}
 	}
 
+#ifdef  USE_TYPE_XCORE
+	main_config->type_engine = TYPE_XCORE ;
+#else
+	main_config->type_engine = TYPE_XFT ;
+#endif
 	if( ( value = kik_conf_get_value( conf , "type_engine")))
 	{
 	#ifdef  USE_TYPE_XFT
