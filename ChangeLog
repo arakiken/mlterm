@@ -1,3 +1,21 @@
+2005-02-24 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	supported IIIMF X aux object.
+	* inputmethod/iiimf/aux.c:
+	  new file (heavily based on iiimpAux.c of IIIMXCF)
+	* inputmethod/iiimf/keymap.c:
+	  - renamed from im_iiimf_keymap.h.
+	  - fixed wrong mappings. ("%", "|", "~". "`", "?")
+	* inputmethod/iiimf/LICENCE: new file
+	* inputmethod/iiimf/keymap.h: new file
+	* inputmethod/iiimf/im_iiimf.c:
+	 - code cleanup.
+	 - check for HTT_DISABLE_STATUS_WINDOW environment variable.
+	 - removed IM_IIIMF_ATOKX_HACK.
+
+	Note: In the next release, IIIMF plugin will be distributed under MIX/X
+	      license. See inputmethod/iiimf/LICENCE for more detail.
+
 2005-02-23 MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_screen.c: reprt meta while mouse tracking mode.

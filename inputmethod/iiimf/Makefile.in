@@ -8,11 +8,11 @@ DESTDIR =
 PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
-VPATH = ${top_srcdir}/inputmethod/iiim
+VPATH = ${top_srcdir}/inputmethod/iiimf
 
-IM_IIIMF_OBJ = im_iiimf.o
+IM_IIIMF_OBJ = im_iiimf.o keymap.o aux.o
 
-CFLAGS = $(CFLAGS_LOCAL) 		\
+CFLAGS = $(CFLAGS_LOCAL)		\
 	 @KIK_CFLAGS@			\
 	 @MKF_CFLAGS@			\
 	 @DEB_CFLAGS@			\
@@ -53,7 +53,7 @@ install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) libim-iiimf.la $(LIBDIR)
 
 clean:
-	rm -rf $(IM_IIIMF_OBJ) $(IM_IIIMF_OBJ:.o=.lo) libim-iiimf.la *.core .libs
+	rm -rf $(IM_IIIMF_OBJ) $(IM_IIIMF_OBJ:.o=.lo) libim-iiimf.la core *.core .libs
 
 distclean: clean
 	rm -f Makefile

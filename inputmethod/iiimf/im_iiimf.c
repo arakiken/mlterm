@@ -3,38 +3,59 @@
  *
  * Copyright (C) 2004 Seiichi SATO <ssato@sh.rim.or.jp>
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. The name of any author may not be used to endorse or promote
- *    products derived from this software without their specific prior
- *    written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ * $Id$
+ */
+
+/*
+ * im_iiimf_process_event() is based on IMProcessIncomingEvent() of iiimxcf.
+ */
+
+/*
+ * Copyright 1990-2001 Sun Microsystems, Inc. All Rights Reserved.
  *
- *	$Id$
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions: The above copyright notice and this
+ * permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE OPEN GROUP OR SUN MICROSYSTEMS, INC. BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
+ * THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE EVEN IF
+ * ADVISED IN ADVANCE OF THE POSSIBILITY OF SUCH DAMAGES.
+ *
+ *
+ * Except as contained in this notice, the names of The Open Group and/or
+ * Sun Microsystems, Inc. shall not be used in advertising or otherwise to
+ * promote the sale, use or other dealings in this Software without prior
+ * written authorization from The Open Group and/or Sun Microsystems,
+ * Inc., as applicable.
+ *
+ *
+ * X Window System is a trademark of The Open Group
+ *
+ * OSF/1, OSF/Motif and Motif are registered trademarks, and OSF, the OSF
+ * logo, LBX, X Window System, and Xinerama are trademarks of the Open
+ * Group. All other trademarks and registered trademarks mentioned herein
+ * are the property of their respective owners. No right, title or
+ * interest in or to any trademark, service mark, logo or trade name of
+ * Sun Microsystems, Inc. or its licensors is granted.
+ *
  */
 
 #include  <kiklib/kik_types.h> /* HAVE_STDINT_H */
 #include  <iiimcf.h>
 
 #include  <string.h>		/* strncmp */
-#include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_str_sep kik_str_alloca_dup kik_snprintf*/
 #include  <kiklib/kik_locale.h>	/* kik_get_lang */
@@ -42,8 +63,8 @@
 #include  <mkf/mkf_utf16_parser.h>
 #include  <mkf/mkf_iso8859_conv.h>
 
-#include  <x_im.h>
-#include  "im_iiimf_keymap.h"
+#include  "im_iiimf.h"
+#include  "keymap.h"
 #include  "../im_common.h"
 #include  "../im_info.h"
 
@@ -51,41 +72,11 @@
 #define  IM_IIIMF_DEBUG 1
 #endif
 
-#if  1	/* TODO: should be replaced by handling aux. */
-#define  IM_IIIMF_ATOKX_LOOKUP_HACK 1
-#endif
-
-/*
- * taken from Minami-san's hack in x_dnd.c
- * Note: The byte order is the same as client.
- *       (see lib/iiimp/data/im-connect.c:iiimp_connect_new())
- */
-#define PARSER_INIT_WITH_BOM(parser)				\
-do {								\
-	u_int16_t BOM[] = {0xfeff};				\
-	(*(parser)->init)( ( parser)) ;				\
-	(*(parser)->set_str)( ( parser) , (u_char*)BOM , 2) ;	\
-	(*(parser)->next_char)( ( parser) , NULL) ;		\
-} while(0)
-
 /* XXX: it seems to be undefined in iiim*.h. why? */
 #define  IIIMF_SHIFT_MODIFIER	1
 #define  IIIMF_CONTROL_MODIFIER	2
 #define  IIIMF_META_MODIFIER	4
 #define  IIIMF_ALT_MODIFIER	8
-
-typedef struct im_iiimf
-{
-	/* input method common object */
-	x_im_t  im ;
-
-	IIIMCF_context  context ;
-
-	mkf_parser_t *  parser_term ;
-	mkf_conv_t *  conv ;
-
-}  im_iiimf_t ;
-
 
 /* --- static variables --- */
 
@@ -96,32 +87,10 @@ static IIIMCF_handle  handle = NULL ;
 /* mlterm internal symbols */
 static x_im_export_syms_t *  syms = NULL ;
 
+static int  htt_disable_status_window = 0 ;
+static int  htt_generates_kanakey = 0 ;
+
 /* --- static functions --- */
-
-static size_t
-strlen_utf16(
-	const IIIMP_card16 *  str
-	)
-{
-	size_t  len = 0 ;
-
-	if( ! str)
-	{
-		return 0 ;
-	}
-
-	while ( *str)
-	{
-		len += 2 ;
-		str ++ ;
-		if( len == 0xffff) /* prevent infinity loop */
-		{
-			return  0 ;
-		}
-	}
-
-	return  len ;
-}
 
 static IIIMCF_language
 find_language(
@@ -212,7 +181,8 @@ find_language_engine(
 		return  NULL ;
 	}
 
-	le_name ++;	/* remove ":". ex. ":CannaLE" -> "CannaLE" */
+	/* eliminate leading ":" */
+	le_name ++;
 
 	if( ! ( conv = (*syms->ml_conv_new)( ML_ISO8859_1)))
 	{
@@ -232,8 +202,7 @@ find_language_engine(
 			if( iiimcf_get_input_method_desc( array[i] ,
 							  &id ,
 							  &hrn ,
-							  &domain)
-							== IIIMF_STATUS_SUCCESS)
+							  &domain) == IIIMF_STATUS_SUCCESS)
 			{
 				size_t  len ;
 				u_int  filled_len ;
@@ -286,109 +255,6 @@ do { 									\
 	SHOW_VER( IIIMCF_PROTOCOL_VERSION , "protocol version") ;
 	SHOW_VER( IIIMCF_MINOR_VERSION , "minor version") ;
 	SHOW_VER( IIIMCF_MAJOR_VERSION , "major version") ;
-#endif
-}
-
-static void
-show_available_gui_objects(void)
-{
-#ifdef  IM_IIIMF_DEBUG
-	const IIIMCF_object_descriptor *  objdesc_list ;
-	IIIMCF_object_descriptor **  bin_objdesc_list = NULL ;
-	IIIMCF_downloaded_object * objs = NULL ;
-	IIIMF_status  status ;
-	int  i ;
-	int  num_of_objs ;
-	int  num_of_bin_objs = 0 ;
-	mkf_conv_t *  conv = NULL ;
-
-	if( ! ( conv = (*syms->ml_conv_new)( ML_ISO8859_1)))
-	{
-		return ;
-	}
-
-	if( iiimcf_get_object_descriptor_list(
-					handle ,
-					&num_of_objs ,
-					&objdesc_list) != IIIMF_STATUS_SUCCESS)
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " iiimcf_get_object_descriptor_list failed.\n");
-	#endif
-		goto  error ;
-	}
-
-	bin_objdesc_list = malloc( sizeof(IIIMCF_object_descriptor*) * num_of_objs) ;
-	objs = malloc( sizeof(IIIMCF_downloaded_object) * num_of_objs) ;
-
-	if( ! bin_objdesc_list || ! objs)
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " malloc failed.\n");
-	#endif
-		goto  error ;
-	}
-
-	for( i = 0 ; i < num_of_objs; i++)
-	{
-		if( objdesc_list[i].predefined_id == IIIMP_IMATTRIBUTE_BINARY_GUI_OBJECT)
-		{
-			bin_objdesc_list[num_of_bin_objs] = &objdesc_list[i] ;
-			num_of_bin_objs++ ;
-		}
-	}
-
-	if( iiimcf_get_downloaded_objects( handle ,
-					   num_of_bin_objs ,
-					   bin_objdesc_list ,
-					   objs) != IIIMF_STATUS_SUCCESS)
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "iiimcf_get_downloaded_objects failed\n");
-	#endif
-		goto  error ;
-	}
-
-	for( i = 0 ; i < num_of_bin_objs ; i++)
-	{
-		const IIIMP_card16 *  obj_name ;
-		u_char *  str = NULL ;
-
-		if( iiimcf_get_downloaded_object_filename(
-					objs[i] ,
-					&obj_name) != IIIMF_STATUS_SUCCESS)
-		{
-			continue ;
-		}
-
-		PARSER_INIT_WITH_BOM( parser_utf16) ;
-		im_convert_encoding( parser_utf16, conv ,
-				     (u_char*)obj_name, &str,
-				     strlen_utf16( obj_name) + 1) ;
-		kik_debug_printf( "%d: object_name: %s\n" , i , str) ;
-		free( str) ;
-		str = NULL ;
-	}
-
-	conv->delete( conv);
-
-	return ;
-
-error:
-	if( conv)
-	{
-		conv->delete( conv) ;
-	}
-
-	if( bin_objdesc_list)
-	{
-		free( bin_objdesc_list) ;
-	}
-
-	if( objs)
-	{
-		free( objs) ;
-	}
 #endif
 }
 
@@ -511,6 +377,7 @@ preedit_change(
 	kik_debug_printf( KIK_DEBUG_TAG "\n");
 #endif
 
+
 	/*
 	 * get preedit string without attribute.
 	 */
@@ -554,11 +421,12 @@ preedit_change(
 		return  ;
 	}
 
-	/* utf16 -> term encoding */
+	/* UTF16 -> term encoding */
 	PARSER_INIT_WITH_BOM( parser_utf16) ;
 	im_convert_encoding( parser_utf16 , iiimf->conv ,
 			     (u_char*) utf16str , &str ,
 			     strlen_utf16( utf16str) + 1) ;
+
 
 	/*
 	 * count number of characters to re-allocate im.preedit.chars
@@ -573,9 +441,11 @@ preedit_change(
 		count ++ ;
 	}
 
+
 	/*
 	 * allocate im.preedit.chars
 	 */
+
 	if( iiimf->im.preedit.chars)
 	{
 		(*syms->ml_str_delete)( iiimf->im.preedit.chars ,
@@ -587,10 +457,10 @@ preedit_change(
 		iiimf->im.preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
 	}
 
-	if( ! ( iiimf->im.preedit.chars = malloc( sizeof(ml_char_t) * count)))
+	if( ! ( iiimf->im.preedit.chars = calloc( count , sizeof(ml_char_t))))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG "malloc failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG "calloc failed.\n") ;
 	#endif
 
 		return ;
@@ -602,8 +472,9 @@ preedit_change(
 	(*syms->ml_str_init)( iiimf->im.preedit.chars ,
 			      iiimf->im.preedit.num_of_chars) ;
 
+
 	/*
-	 * IIIMP_card16(utf16) -> ml_char_t
+	 * IIIMP_card16(UTF16) -> ml_char_t
 	 */
 
 	p = iiimf->im.preedit.chars ;
@@ -739,11 +610,10 @@ preedit_change(
 		iiimf->im.preedit.cursor_offset = iiimf->im.preedit.filled_len ;
 	}
 
-	(*iiimf->im.listener->draw_preedit_str)(
-					iiimf->im.listener->self ,
-					iiimf->im.preedit.chars ,
-					iiimf->im.preedit.filled_len ,
-					iiimf->im.preedit.cursor_offset) ;
+	(*iiimf->im.listener->draw_preedit_str)( iiimf->im.listener->self ,
+						 iiimf->im.preedit.chars ,
+						 iiimf->im.preedit.filled_len ,
+						 iiimf->im.preedit.cursor_offset) ;
 }
 
 static void
@@ -766,11 +636,10 @@ preedit_done(
 		iiimf->im.preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
 	}
 
-	(*iiimf->im.listener->draw_preedit_str)(
-					iiimf->im.listener->self ,
-					iiimf->im.preedit.chars ,
-					iiimf->im.preedit.filled_len ,
-					iiimf->im.preedit.cursor_offset) ;
+	(*iiimf->im.listener->draw_preedit_str)( iiimf->im.listener->self ,
+						 iiimf->im.preedit.chars ,
+						 iiimf->im.preedit.filled_len ,
+						 iiimf->im.preedit.cursor_offset) ;
 }
 
 static void
@@ -824,12 +693,10 @@ lookup_choice_change(
 		return ;
 	}
 
-	if( iiimcf_get_lookup_choice_configuration(
-					lookup_choice ,
-					&num_per_window ,
-					&row ,
-					&col ,
-					&direction) != IIIMF_STATUS_SUCCESS)
+	if( iiimcf_get_lookup_choice_configuration( lookup_choice ,
+						    &num_per_window ,
+						    &row , &col ,
+						    &direction) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " Could not get lookup information.\n") ;
@@ -852,11 +719,10 @@ lookup_choice_change(
 		return ;
 	}
 
-	(*iiimf->im.listener->get_spot)(
-				iiimf->im.listener->self ,
-				iiimf->im.preedit.chars ,
-				iiimf->im.preedit.segment_offset ,
-				&x , &y) ;
+	(*iiimf->im.listener->get_spot)( iiimf->im.listener->self ,
+					 iiimf->im.preedit.chars ,
+					 iiimf->im.preedit.segment_offset ,
+					 &x , &y) ;
 
 	if( ! iiimf->im.cand_screen)
 	{
@@ -916,9 +782,8 @@ lookup_choice_change(
 			continue ;
 		}
 
-		if( iiimcf_get_text_utf16string(
-					iiimcf_text_cand ,
-					&utf16str) != IIIMF_STATUS_SUCCESS)
+		if( iiimcf_get_text_utf16string( iiimcf_text_cand ,
+						 &utf16str) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " Could not get utf16 string\n") ;
@@ -931,16 +796,14 @@ lookup_choice_change(
 					 (u_char*)utf16str , &str ,
 					 strlen_utf16( utf16str) + 1))
 		{
-			(*iiimf->im.cand_screen->set)(
-						iiimf->im.cand_screen ,
-						iiimf->parser_term ,
-						str , i) ;
+			(*iiimf->im.cand_screen->set)( iiimf->im.cand_screen ,
+						       iiimf->parser_term ,
+						       str , i) ;
 			free( str) ;
 		}
 	}
 
-	(*iiimf->im.cand_screen->select)( iiimf->im.cand_screen ,
-					  index_current) ;
+	(*iiimf->im.cand_screen->select)( iiimf->im.cand_screen , index_current) ;
 }
 
 static void
@@ -953,240 +816,6 @@ lookup_choice_done(
 		(*iiimf->im.cand_screen->delete)( iiimf->im.cand_screen) ;
 		iiimf->im.cand_screen = NULL ;
 	}
-}
-
-#ifdef  IM_IIIMF_ATOKX_LOOKUP_HACK
-static void
-atokx_lookup_show(
-	im_iiimf_t *  iiimf
-	)
-{
-}
-
-static void
-atokx_lookup_hide(
-	im_iiimf_t *  iiimf
-	)
-{
-	if( iiimf->im.cand_screen)
-	{
-		(*iiimf->im.cand_screen->delete)( iiimf->im.cand_screen) ;
-		iiimf->im.cand_screen = NULL ;
-	}
-}
-
-static void
-atokx_lookup_select(
-	im_iiimf_t *  iiimf ,
-	int  index
-	)
-{
-	(*iiimf->im.cand_screen->select)( iiimf->im.cand_screen , index) ;
-}
-
-static void
-atokx_lookup_set(
-	im_iiimf_t *  iiimf ,
-	const IIIMP_card16 **  candidates ,
-	int  num_of_candidate ,
-	int  num_per_window ,
-	int  index
-	)
-{
-	u_char *  str = NULL ;
-	int  top ;
-	int  x ;
-	int  y ;
-	int  i ;
-
-	(*iiimf->im.listener->get_spot)(
-				iiimf->im.listener->self ,
-				iiimf->im.preedit.chars ,
-				iiimf->im.preedit.segment_offset ,
-				&x , &y) ;
-
-	if( ! iiimf->im.cand_screen)
-	{
-		if( ! ( iiimf->im.cand_screen = (*syms->x_im_candidate_screen_new)(
-				(*iiimf->im.listener->get_win_man)(iiimf->im.listener->self) ,
-				(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
-				(*iiimf->im.listener->get_color_man)(iiimf->im.listener->self) ,
-				(*iiimf->im.listener->is_vertical)(iiimf->im.listener->self) ,
-				1 ,
-				(*iiimf->im.listener->get_line_height)(iiimf->im.listener->self) ,
-				x , y)))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " x_im_candidate_screen_new() failed.\n") ;
-		#endif
-			
-			return ;
-		}
-
-		iiimf->im.cand_screen->listener.self = iiimf ;
-		iiimf->im.cand_screen->listener.selected = candidate_selected ;
-	}
-
-	if( ! (*iiimf->im.cand_screen->init)( iiimf->im.cand_screen ,
-					      num_of_candidate ,
-					      num_per_window))
-	{
-		(*iiimf->im.cand_screen->delete)( iiimf->im.cand_screen) ;
-		iiimf->im.cand_screen = NULL ;
-		return ;
-	}
-
-	top = (index / num_per_window) * num_per_window ;
-
-	for( i = 1 ; i < num_per_window + 1 ; i++)
-	{
-		PARSER_INIT_WITH_BOM( parser_utf16) ;
-		if( im_convert_encoding( parser_utf16 , iiimf->conv ,
-					 (u_char*)candidates[i] , &str ,
-					 strlen_utf16( candidates[i]) + 1))
-		{
-			(*iiimf->im.cand_screen->set)(
-						iiimf->im.cand_screen ,
-						iiimf->parser_term ,
-						str , i - 1 + top) ;
-			free( str) ;
-		}
-	}
-
-	(*iiimf->im.cand_screen->select)( iiimf->im.cand_screen , index) ;
-}
-
-#define ATOKX_LOOKUP_SHOW	0x0a02
-#define ATOKX_LOOKUP_HIDE	0x0a03
-#define ATOKX_LOOKUP_SELECT	0x0a04
-#define ATOKX_LOOKUP_SET	0x0a05
-
-static void
-atokx_lookup(
-	im_iiimf_t *  iiimf ,
-	IIIMCF_event  event
-	)
-{
-	const IIIMP_card16 *  aux_name ;
-	IIIMP_card32  class_index ;
-	const IIIMP_card32 *  array_val_int ;
-	const IIIMP_card16 **  array_val_str ;
-	int  num_of_int ;
-	int  num_of_str ;
-	int  i ;
-	u_char *  str = NULL ;
-
-	if( iiimcf_get_aux_event_value( event ,
-					&aux_name ,
-					&class_index ,
-					&num_of_int ,
-					&array_val_int ,
-					&num_of_str ,
-					&array_val_str) != IIIMF_STATUS_SUCCESS)
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " iiimcf_get_aux_event_value() failed\n");
-	#endif
-		return ;
-	}
-
-	if( ! num_of_int)
-	{
-		return ;
-	}
-
-	PARSER_INIT_WITH_BOM( parser_utf16) ;
-	im_convert_encoding( parser_utf16, iiimf->conv ,
-			     (u_char*)aux_name, &str,
-			     strlen_utf16( aux_name) + 1) ;
-	if( strcmp( str , "jp.co.justsystem.atok12.LookupAux"))
-	{
-		free( str) ;
-		return ;
-	}
-
-	free( str) ;
-
-	switch( array_val_int[0])
-	{
-	case ATOKX_LOOKUP_SHOW:
-		atokx_lookup_show( iiimf) ;
-		break;
-	case ATOKX_LOOKUP_HIDE:
-		atokx_lookup_hide( iiimf) ;
-		break;
-	case ATOKX_LOOKUP_SELECT:
-		atokx_lookup_select( iiimf, array_val_int[1] - 1) ;
-		break;
-	case ATOKX_LOOKUP_SET:
-		atokx_lookup_set( iiimf ,
-				  array_val_str ,
-				  array_val_int[2] ,
-				  array_val_int[1] ,
-				  array_val_int[3] - 1) ;
-		break;
-	}
-}
-
-#endif /* IM_IIIMF_ATOKX_LOOKUP_HACK */
-
-static void
-aux_dump(
-	char *  tag ,
-	im_iiimf_t *  iiimf ,
-	IIIMCF_event  event
-	)
-{
-#ifdef  IM_IIIMF_DEBUG
-	const IIIMP_card16 *  aux_name ;
-	IIIMP_card32  class_index ;
-	const IIIMP_card32 *  array_val_int ;
-	const IIIMP_card16 **  array_val_str ;
-	int  num_of_int ;
-	int  num_of_str ;
-	int  i ;
-	u_char *  str = NULL ;
-
-	kik_debug_printf( "%s\n", tag) ;
-
-	if( iiimcf_get_aux_event_value( event ,
-					&aux_name ,
-					&class_index ,
-					&num_of_int ,
-					&array_val_int ,
-					&num_of_str ,
-					&array_val_str) != IIIMF_STATUS_SUCCESS)
-	{
-		/* XXX */
-		kik_warn_printf("iiimcf_get_aux_event_value() failed\n");
-		return ;
-	}
-
-	PARSER_INIT_WITH_BOM( parser_utf16) ;
-	im_convert_encoding( parser_utf16, iiimf->conv ,
-			     (u_char*)aux_name, &str,
-			     strlen_utf16( aux_name) + 1) ;
-	kik_debug_printf( "aux_name: %s\n" , str) ;
-	free( str) ;
-	str = NULL ;
-
-	kik_debug_printf( "class_index: %d, int: %d, str: %d\n",
-			  class_index , num_of_int, num_of_str);
-
-	for( i = 0 ; i < num_of_int ; i++)
-	{
-		kik_debug_printf( "int[%d]: %d\n", i, array_val_int[i]);
-	}
-	for( i = 0 ; i < num_of_str ; i++)
-	{
-		PARSER_INIT_WITH_BOM( parser_utf16) ;
-		im_convert_encoding( parser_utf16, iiimf->conv ,
-				     (u_char*)array_val_str[i], &str,
-				     strlen_utf16( array_val_str[i]) + 1) ;
-		kik_debug_printf( "str[%d]: %s\n" , i , str) ;
-		free( str) ;
-	}
-#endif
 }
 
 static void
@@ -1206,21 +835,14 @@ status_change(
 	u_char *  str ;
 	int  x ;
 	int  y ;
-	int  on ;
 
 #ifdef  IM_IIIMF_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "\n");
 #endif
 
-	if( iiimcf_get_current_conversion_mode( iiimf->context , &on) != IIIMF_STATUS_SUCCESS)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Could not get the current mode.\n") ;
-	#endif
-		return ;
-	}
-
-	if( iiimcf_get_status_text( iiimf->context , &iiimcf_text) != IIIMF_STATUS_SUCCESS || ! on)
+	if( ! iiimf->on ||
+	    htt_disable_status_window ||
+	    iiimcf_get_status_text( iiimf->context , &iiimcf_text) != IIIMF_STATUS_SUCCESS)
 	{
 		if( iiimf->im.stat_screen)
 		{
@@ -1294,13 +916,25 @@ dispatch(
 	IIIMCF_event_type  event_type
 	)
 {
+	int  trigger_flag ;
+
 	switch( event_type)
 	{
+#if 0
 	case IIIMCF_EVENT_TYPE_DESTROY:
 	case IIIMCF_EVENT_TYPE_RESET:
 	case IIIMCF_EVENT_TYPE_EVENTLIKE:
 /*	case IIIMCF_EVENT_TYPE_KEYEVENT: */
+		/* not implemented yet */
+		break ;
+#endif
 	case IIIMCF_EVENT_TYPE_TRIGGER_NOTIFY:
+		if( iiimcf_get_trigger_notify_flag( event , &trigger_flag) == IIIMF_STATUS_SUCCESS)
+		{
+			iiimf->on = trigger_flag ? 1 : 0 ;
+		}
+		break ;
+#if 0
 	case IIIMCF_EVENT_TYPE_OPERATION:
 	case IIIMCF_EVENT_TYPE_SETICFOCUS:
 	case IIIMCF_EVENT_TYPE_UNSETICFOCUS:
@@ -1309,6 +943,7 @@ dispatch(
 #endif
 		/* not implemented yet */
 		break ;
+#endif
 	case IIIMCF_EVENT_TYPE_UI_PREEDIT_START:
 		preedit_start( iiimf) ;
 		break ;
@@ -1340,25 +975,21 @@ dispatch(
 		commit( iiimf);
 		break;
 	case IIIMCF_EVENT_TYPE_AUX_START:
-		aux_dump( "start" , iiimf, event);
-		break;
 	case IIIMCF_EVENT_TYPE_AUX_DRAW:
-		aux_dump( "draw" , iiimf, event);
-	#ifdef  IM_IIIMF_ATOKX_LOOKUP_HACK
-		atokx_lookup( iiimf , event) ;
-	#endif
-		break;
 	case IIIMCF_EVENT_TYPE_AUX_SETVALUES:
-		aux_dump( "setvalues" , iiimf, event);
-		break ;
 	case IIIMCF_EVENT_TYPE_AUX_DONE:
-		aux_dump( "done" , iiimf, event);
-		break;
 #ifdef  HAVE_AUX_GETVALUES_EVENT
 	case IIIMCF_EVENT_TYPE_AUX_GETVALUES:
-		aux_dump( "getvalues" , iiimf, event);
-		break;
 #endif
+		if( iiimf->aux == NULL)
+		{
+			iiimf->aux = aux_new( iiimf) ;
+		}
+		if( iiimf->aux)
+		{
+			aux_event( iiimf->aux , event , event_type) ;
+		}
+		break;
 	default:
 		break ;
 	}
@@ -1388,6 +1019,11 @@ delete(
 		(*iiimf->conv->delete)( iiimf->conv) ;
 	}
 
+	if( iiimf->aux)
+	{
+		aux_delete( iiimf->aux) ;
+	}
+
 	if( iiimf->context)
 	{
 		iiimcf_destroy_context( iiimf->context) ;
@@ -1414,6 +1050,8 @@ delete(
 			(*parser_utf16->delete)( parser_utf16) ;
 		}
 
+		aux_quit() ;
+
 		initialized = 0 ;
 	}
 
@@ -1432,7 +1070,6 @@ key_event(
 	IIIMCF_keyevent  key ;
 	IIIMCF_event  event ;
 	IIIMF_status  status ;
-	int  ret ;
 
 	int  is_shift ;
 	int  is_lock ;
@@ -1460,9 +1097,40 @@ key_event(
 	if( is_alt)   key.modifier |= IIIMF_ALT_MODIFIER ;
 	if( is_meta)  key.modifier |= IIIMF_META_MODIFIER ;
 
+#if 0
+	if( htt_generates_kanakey && is_shift)
+	{
+		if( ! xksym_to_iiimfkey_kana_shift( ksym ,
+						    &key.keychar ,
+						    &key.keycode))
+		{
+				xksym_to_iiimfkey( ksym ,
+						   &key.keychar ,
+						   &key.keycode) ;
+		}
+	}
+	else
+	{
+		xksym_to_iiimfkey( ksym , &key.keychar , &key.keycode) ;
+	}
+#endif
+
 	xksym_to_iiimfkey( ksym , &key.keychar , &key.keycode) ;
 
 	key.time_stamp = xevent->time ;
+
+#if  1
+	/*
+	 * ignore Ctrl+] defined as default hotkey.
+	 * (see iiimsf/src/IIIMP_hotkey_profile.cpp)
+	 */
+	if( ! iiimf->on &&
+	    key.keycode == IIIMF_KEYCODE_CLOSE_BRACKET &&
+	    key.modifier & IIIMF_CONTROL_MODIFIER)
+	{
+		return  1 ;
+	}
+#endif
 
 	if( iiimcf_create_keyevent( &key , &event) == IIIMF_STATUS_SUCCESS)
 	{
@@ -1471,7 +1139,7 @@ key_event(
 		switch( status)
 		{
 		case IIIMF_STATUS_SUCCESS:
-			goto  dispatch ;
+			return  im_iiimf_process_event( iiimf) ;
 		case IIIMF_STATUS_EVENT_NOT_FORWARDED:
 			break ;
 		case IIIMF_STATUS_IC_INVALID:
@@ -1489,65 +1157,7 @@ key_event(
 		}
 	}
 
-	return  1;
-
-dispatch:
-
-	while( 1)
-	{
-		IIIMCF_event  received_event ;
-		IIIMCF_event_type  type ;
-
-		if( iiimcf_get_next_event( iiimf->context , &received_event) != IIIMF_STATUS_SUCCESS)
-		{
-			break ;
-		}
-
-		if( iiimcf_get_event_type( received_event , &type) != IIIMF_STATUS_SUCCESS)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Could not get event type\n");
-		#endif
-
-			return  0 ;
-		}
-
-		if( type == IIIMCF_EVENT_TYPE_KEYEVENT)
-		{
-			/* don't dispatch this event */
-			ret = 1 ;
-		}
-		else
-		{
-			dispatch( iiimf , received_event, type) ;
-			ret = 0 ; /* key event was swallowed by IIIMSF */
-		}
-
-		/*
-		 * from 'IIICF library specification':'IIIMCF object life-cycle'
-		 *
-		 * NOTICE: old version of libiiimcf had discarded any events
-		 * dispatched by iiimcf_dispatch_event. But in the new
-		 * version, you MUST call iiimcf_ignore_event to all events
-		 * that are obtained by iiimcf_get_next_event even though they
-		 * are dispatched by iiimcf_dispatch_event.
-		 */
-		if( iiimcf_dispatch_event( iiimf->context , received_event) != IIIMF_STATUS_SUCCESS)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Could not dispatch event\n");
-		#endif
-		}
-
-		if( iiimcf_ignore_event( received_event) != IIIMF_STATUS_SUCCESS)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Could not dispatch event\n");
-		#endif
-		}
-	}
-
-	return  ret ;
+	return  1 ;
 }
 
 static int
@@ -1555,19 +1165,6 @@ switch_mode(
 	x_im_t *  im
 	)
 {
-#if  0
-	XKeyEvent  event ;
-
-	event.state = ControlMask ;
-	event.time = 0 ;	/* XXX */
-
-	if( ! (key_event( im , 0x20 , XK_space , &event)))
-	{
-		return  1 ;
-	}
-
-	return  0 ;
-#endif
 }
 
 static void
@@ -1584,14 +1181,16 @@ focused(
 
 	iiimf =  (im_iiimf_t*)  im ;
 
+	if( iiimf->aux)
+	{
+		aux_set_focus( iiimf->aux) ;
+	}
+
 	if( iiimcf_create_seticfocus_event( &event) == IIIMF_STATUS_SUCCESS)
 	{
-		IIIMF_status  status ;
-
-		status = iiimcf_forward_event( iiimf->context , event) ;
-		if( status != IIIMF_STATUS_SUCCESS)
+		if( iiimcf_forward_event( iiimf->context , event) == IIIMF_STATUS_SUCCESS)
 		{
-			kik_error_printf( "Could not forward focus event to IIIMS [status = %d]\n", status) ;
+			im_iiimf_process_event( iiimf) ;
 		}
 	}
 
@@ -1620,14 +1219,16 @@ unfocused(
 
 	iiimf = (im_iiimf_t*)  im ;
 
+	if( iiimf->aux)
+	{
+		aux_set_focus( iiimf->aux) ;
+	}
+
 	if( iiimcf_create_unseticfocus_event( &event) == IIIMF_STATUS_SUCCESS)
 	{
-		IIIMF_status  status ;
-
-		status = iiimcf_forward_event( iiimf->context , event) ;
-		if( status != IIIMF_STATUS_SUCCESS)
+		if( iiimcf_forward_event( iiimf->context , event) == IIIMF_STATUS_SUCCESS)
 		{
-			kik_error_printf( "Could not forward unfocus event to IIIMS [status = %d]\n", status) ;
+			im_iiimf_process_event( iiimf) ;
 		}
 	}
 
@@ -1668,6 +1269,8 @@ im_iiimf_new(
 
 	if( ! initialized)
 	{
+		char *  env ;
+
 		if( iiimcf_initialize( IIIMCF_ATTR_NULL) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
@@ -1688,8 +1291,7 @@ im_iiimf_new(
 
 		if( iiimcf_attr_put_string_value( attr ,
 						  IIIMCF_ATTR_CLIENT_TYPE ,
-						  "IIIMF plugin for mlterm")
-							!= IIIMF_STATUS_SUCCESS)
+						  "IIIMF plugin for mlterm") != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " Could not append a string to the attribute\n") ;
@@ -1711,11 +1313,26 @@ im_iiimf_new(
 			goto  error ;
 		}
 
-		show_iiimcf_version();
+		if( ( env = getenv( "HTT_DISABLE_STATUS_WINDOW")))
+		{
+			if( *env == 't' || *env == 'T')
+			{
+				htt_disable_status_window = 1 ;
+			}
+		}
+
+		if( ( env = getenv( "HTT_GENERATES_KANAKEY")))
+		{
+			if( *env == 't' || *env == 'T')
+			{
+				htt_generates_kanakey = 1 ;
+			}
+		}
 
 		syms = export_syms ;
+		aux_init( handle , syms , parser_utf16) ;
 
-		show_available_gui_objects() ;
+		show_iiimcf_version();
 	}
 
 	language = find_language( lang) ;
@@ -1739,6 +1356,12 @@ im_iiimf_new(
 	iiimf->im.focused = focused ;
 	iiimf->im.unfocused = unfocused ;
 
+	iiimf->context = NULL ;
+	iiimf->parser_term = NULL ;
+	iiimf->conv = NULL ;
+	iiimf->aux = NULL ;
+	iiimf->on = 0 ;
+
 	if( ! ( iiimf->parser_term = (*syms->ml_parser_new)( term_encoding)))
 	{
 		goto  error ;
@@ -1761,8 +1384,7 @@ im_iiimf_new(
 	{
 		if( iiimcf_attr_put_ptr_value( attr ,
 					       IIIMCF_ATTR_INPUT_LANGUAGE ,
-					       language)
-							!= IIIMF_STATUS_SUCCESS)
+					       language) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " Could not append value to the attribute\n") ;
@@ -1772,10 +1394,9 @@ im_iiimf_new(
 
 	if( language_engine)
 	{
-		if( iiimcf_attr_put_ptr_value(
-				attr ,
-				IIIMCF_ATTR_INPUT_METHOD ,
-				language_engine) != IIIMF_STATUS_SUCCESS)
+		if( iiimcf_attr_put_ptr_value( attr ,
+					       IIIMCF_ATTR_INPUT_METHOD ,
+					       language_engine) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " Could not append value to the attribute\n") ;
@@ -1827,6 +1448,8 @@ error:
 
 		iiimcf_finalize() ;
 
+		aux_quit() ;
+
 		initialized = 0 ;
 	}
 
@@ -1848,6 +1471,57 @@ error:
 	return  NULL ;
 }
 
+int
+im_iiimf_process_event(
+	im_iiimf_t *  iiimf
+	)
+{
+	int  ret = 0 ;
+	IIIMCF_event  received_event ;
+	IIIMCF_event_type  type ;
+
+	while( iiimcf_get_next_event( iiimf->context , &received_event) == IIIMF_STATUS_SUCCESS)
+	{
+		if( iiimcf_get_event_type( received_event ,
+					   &type) != IIIMF_STATUS_SUCCESS)
+		{
+			ret = 1 ;
+			continue ;
+		}
+
+		if( type == IIIMCF_EVENT_TYPE_KEYEVENT)
+		{
+			ret = 1 ;
+		}
+		dispatch( iiimf , received_event , type) ;
+
+		/*
+		 * IIICF library specification said:
+		 *
+		 * NOTICE: old version of libiiimcf had discarded any events
+		 * dispatched by iiimcf_dispatch_event. But in the new
+		 * version, you MUST call iiimcf_ignore_event to all events
+		 * that are obtained by iiimcf_get_next_event even though they
+		 * are dispatched by iiimcf_dispatch_event.
+		 *
+		 */
+		if( iiimcf_dispatch_event( iiimf->context , received_event) != IIIMF_STATUS_SUCCESS)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " Could not dispatch event\n");
+		#endif
+		}
+
+		if( iiimcf_ignore_event( received_event) != IIIMF_STATUS_SUCCESS)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " Could not dispatch event\n");
+		#endif
+		}
+	}
+
+	return  ret ;
+}
 
 /* --- API for external tools --- */
 
@@ -1881,20 +1555,18 @@ im_iiimf_get_info(
 		return  NULL ;
 	}
 
-	if( iiimcf_get_supported_input_methods(
-				handle,
-				&num_of_ims,
-				&input_methods) != IIIMF_STATUS_SUCCESS)
+	if( iiimcf_get_supported_input_methods( handle,
+						&num_of_ims,
+						&input_methods) != IIIMF_STATUS_SUCCESS)
 	{
 		goto  error ;
 	}
 
 	for( i = 0 ; i < num_of_ims ; i++)
 	{
-		if( iiimcf_get_input_method_languages(
-					input_methods[i] ,
-					&num_of_langs ,
-					&langs) != IIIMF_STATUS_SUCCESS)
+		if( iiimcf_get_input_method_languages( input_methods[i] ,
+						       &num_of_langs ,
+						       &langs) != IIIMF_STATUS_SUCCESS)
 		{
 			goto  error ;
 		}
@@ -1923,12 +1595,12 @@ im_iiimf_get_info(
 	result->args = NULL ;
 	result->readable_args = NULL ;
 
-	if( ! ( result->args = malloc( sizeof(char*) * result->num_of_args)))
+	if( ! ( result->args = calloc( result->num_of_args , sizeof( char*))))
 	{
 		goto  error ;
 	}
 
-	if( ! ( result->readable_args = malloc( sizeof(char*) * result->num_of_args)))
+	if( ! ( result->readable_args = calloc( result->num_of_args , sizeof( char*))))
 	{
 		goto  error ;
 	}
@@ -1942,19 +1614,17 @@ im_iiimf_get_info(
 		const  IIIMP_card16 *  im_domain ;
 		char *  im ;
 
-		if( iiimcf_get_input_method_desc(
-					input_methods[i],
-					&im_id,
-					&im_hrn,
-					&im_domain) != IIIMF_STATUS_SUCCESS)
+		if( iiimcf_get_input_method_desc( input_methods[i],
+						  &im_id,
+						  &im_hrn,
+						  &im_domain) != IIIMF_STATUS_SUCCESS)
 		{
 			continue ;
 		}
 
-		if( iiimcf_get_input_method_languages(
-					input_methods[i] ,
-					&num_of_langs ,
-					&langs) != IIIMF_STATUS_SUCCESS)
+		if( iiimcf_get_input_method_languages( input_methods[i] ,
+						       &num_of_langs ,
+						       &langs) != IIIMF_STATUS_SUCCESS)
 		{
 			continue ;
 		}

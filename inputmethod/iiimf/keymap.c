@@ -1,4 +1,18 @@
-static inline void
+/*
+ * im_iiimf_keymap.c - IIIMF plugin for mlterm (key mapping part)
+ *
+ * Copyright 2005 Seiichi SATO <ssato@sh.rim.or.jp>
+ *
+ * $Id$
+ */
+
+#include  <kiklib/kik_types.h> /* HAVE_STDINT_H */
+#include  <iiimcf.h>
+#include  <X11/keysym.h>	/* XK_xxx */
+
+#include  "x_im.h"
+
+int
 xksym_to_iiimfkey(
 	KeySym ksym ,
 	IIIMP_int32 *  kchar ,
@@ -29,7 +43,7 @@ xksym_to_iiimfkey(
 		*kchar = 0x0024 ;
 		break ;
 	case  XK_percent:
-		*kcode = IIIMF_KEYCODE_UNDEFINED ; /* FIXME */
+		*kcode = IIIMF_KEYCODE_5 ; /* XXX */
 		*kchar = 0x0025 ;
 		break ;
 	case  XK_ampersand:
@@ -38,7 +52,7 @@ xksym_to_iiimfkey(
 		break ;
 	case  XK_apostrophe:
 	/* case  XK_quoteright: */
-		*kcode = IIIMF_KEYCODE_UNDEFINED ; /* FIXME */
+		*kcode = IIIMF_KEYCODE_QUOTE ;
 		*kchar = 0x0027 ;
 		break ;
 	case  XK_parenleft:
@@ -126,7 +140,7 @@ xksym_to_iiimfkey(
 		*kchar = 0x003c ;
 		break ;
 	case  XK_equal:
-		*kcode = IIIMF_KEYCODE_EQUALS ; /* XXX: right? */
+		*kcode = IIIMF_KEYCODE_EQUALS ; /* XXX */
 		*kchar = 0x003d ;
 		break ;
 	case  XK_greater:
@@ -134,7 +148,7 @@ xksym_to_iiimfkey(
 		*kchar = 0x003e ;
 		break ;
 	case  XK_question:
-		*kcode = IIIMF_KEYCODE_UNDEFINED ; /* FIXME */
+		*kcode = IIIMF_KEYCODE_SLASH ; /* XXX */
 		*kchar = 0x003f ;
 		break ;
 	case  XK_at:
@@ -246,7 +260,7 @@ xksym_to_iiimfkey(
 		*kchar = 0x005a ;
 		break ;
 	case  XK_bracketleft:
-		*kcode = IIIMF_KEYCODE_OPEN_BRACKET ; /* XXX: right? */
+		*kcode = IIIMF_KEYCODE_OPEN_BRACKET ;
 		*kchar = 0x005b ;
 		break ;
 	case  XK_backslash:
@@ -267,7 +281,7 @@ xksym_to_iiimfkey(
 		break ;
 	case  XK_grave:
 /*	case  XK_quoteleft: */
-		*kcode = IIIMF_KEYCODE_UNDEFINED ; /* FIXME */
+		*kcode = IIIMF_KEYCODE_BACK_QUOTE ; /* XXX */
 		*kchar = 0x0060 ;
 		break ;
 	case  XK_a:
@@ -379,7 +393,7 @@ xksym_to_iiimfkey(
 		*kchar = 0x007b ;
 		break ;
 	case  XK_bar:
-		*kcode = IIIMF_KEYCODE_UNDEFINED ;
+		*kcode = IIIMF_KEYCODE_BACK_SLASH ; /* XXX */
 		*kchar = 0x007c ;
 		break ;
 	case  XK_braceright:
@@ -387,11 +401,11 @@ xksym_to_iiimfkey(
 		*kchar = 0x007d ;
 		break ;
 	case  XK_asciitilde:
-		*kcode = IIIMF_KEYCODE_UNDEFINED ;
+		*kcode = IIIMF_KEYCODE_BACK_QUOTE ; /* XXX */
 		*kchar = 0x007e ;
 		break ;
 	case  XK_nobreakspace:
-		*kcode = IIIMF_KEYCODE_UNDEFINED ;
+		*kcode = IIIMF_KEYCODE_UNDEFINED ; /* FIXME */
 		*kchar = 0x00a0 ;
 		break;
 	case  XK_exclamdown:
@@ -575,8 +589,31 @@ xksym_to_iiimfkey(
 	 */
 	default:
 		*kcode =  IIIMF_KEYCODE_UNDEFINED ;
-		return ;
+		return  0 ;
 	}
+
+	return  1 ;
 }
 
+#if  0	/* not implemented yet */
+int
+xksym_to_iiimfkey_kana(
+	KeySym ksym ,
+	IIIMP_int32 *  kchar ,
+	IIIMP_int32 *  kcode
+	)
+{
+	return  0 ;
+}
+
+int
+xksym_to_iiimfkey_kana_shift(
+	KeySym ksym ,
+	IIIMP_int32 *  kchar ,
+	IIIMP_int32 *  kcode
+	)
+{
+	return  0 ;
+}
+#endif
 
