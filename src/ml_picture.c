@@ -6,6 +6,7 @@
 
 #include  <stdlib.h>			/* abs */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_mem.h>		/* realloc/free */
 
 #ifdef  USE_IMLIB
 #include  <Imlib.h>
@@ -323,7 +324,15 @@ ml_picture_display_closed(
 				free( imlibs[counter].imlib) ;
 			}
 			
-			imlibs[counter] = imlibs[--num_of_imlibs] ;
+			if( -- num_of_imlibs == 0)
+			{
+				free( imlibs) ;
+				imlibs = NULL ;
+			}
+			else
+			{
+				imlibs[counter] = imlibs[num_of_imlibs] ;
+			}
 
 			return  1 ;
 		}

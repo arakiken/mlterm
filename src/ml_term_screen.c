@@ -3062,6 +3062,13 @@ change_char_encoding(
 	
 	termscr = p ;
 
+	if( (*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) == encoding)
+	{
+		/* not changed */
+		
+		return ;
+	}
+
 	if( encoding == ML_ISCII)
 	{
 		/*
@@ -3099,7 +3106,8 @@ change_char_encoding(
 		ml_xic_font_set_changed( &termscr->window) ;
 	}
 
-	if( ! termscr->encoding_listener->encoding_changed( termscr->encoding_listener->self , encoding))
+	if( ! (*termscr->encoding_listener->encoding_changed)(
+		termscr->encoding_listener->self , encoding))
 	{
 		kik_msg_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
 	}
@@ -3118,6 +3126,13 @@ change_iscii_lang(
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
+
+	if( termscr->iscii_lang == lang)
+	{
+		/* not changed */
+		
+		return ;
+	}
 
 	termscr->iscii_lang = lang ;
 	
@@ -3162,6 +3177,13 @@ change_log_size(
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
+
+	if( ml_get_log_size( &termscr->logs) == logsize)
+	{
+		/* not changed */
+		
+		return ;
+	}
 
 	/*
 	 * this is necesary since ml_logs_t size is changed.
@@ -3233,6 +3255,8 @@ change_vertical_mode(
 
 	if( termscr->vertical_mode == vertical_mode)
 	{
+		/* not changed */
+		
 		return ;
 	}
 
@@ -3335,6 +3359,13 @@ change_fg_color(
 
 	termscr = p ;
 
+	if( ml_window_get_fg_color( &termscr->window) == color)
+	{
+		/* not changed */
+		
+		return ;
+	}
+
 	ml_window_unfade( &termscr->window) ;
 	
 	ml_window_set_fg_color( &termscr->window , color) ;
@@ -3351,6 +3382,13 @@ change_bg_color(
 
 	termscr = p ;
 
+	if( ml_window_get_bg_color( &termscr->window) == color)
+	{
+		/* not changed */
+		
+		return ;
+	}
+	
 	ml_window_unfade( &termscr->window) ;
 
 	ml_window_set_bg_color( &termscr->window , color) ;
@@ -3445,6 +3483,13 @@ change_transparent_flag(
 
 	termscr = p ;
 
+	if( termscr->window.is_transparent == is_transparent)
+	{
+		/* not changed */
+		
+		return ;
+	}
+
 	if( is_transparent)
 	{
 		ml_window_set_transparent( &termscr->window , get_picture_modifier( termscr)) ;
@@ -3479,6 +3524,8 @@ change_font_present(
 
 	if( termscr->font_present == font_present)
 	{
+		/* not changed */
+		
 		return ;
 	}
 
@@ -3525,6 +3572,13 @@ change_bidi_flag(
 
 	termscr = p ;
 
+	if( termscr->use_bidi == use_bidi)
+	{
+		/* not changed */
+		
+		return ;
+	}
+
 	termscr->use_bidi = use_bidi ;
 	
 	ml_image_set_modified_all( termscr->image) ;
@@ -3544,6 +3598,13 @@ change_wall_picture(
 
 	if( termscr->pic_file_path)
 	{
+		if( strcmp( termscr->pic_file_path , file_path) == 0)
+		{
+			/* not changed */
+			
+			return ;
+		}
+		
 		free( termscr->pic_file_path) ;
 	}
 
@@ -3564,6 +3625,8 @@ change_brightness(
 
 	if( termscr->brightness == brightness)
 	{
+		/* not changed */
+		
 		return ;
 	}
 
@@ -3591,6 +3654,13 @@ change_fade_ratio(
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
+
+	if( termscr->fade_ratio == fade_ratio)
+	{
+		/* not changed */
+		
+		return ;
+	}
 
 	termscr->fade_ratio = fade_ratio ;
 
