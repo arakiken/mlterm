@@ -87,7 +87,7 @@ main(
 	
 	memset( &servaddr , 0 , sizeof( servaddr)) ;
 	servaddr.sun_family = AF_LOCAL ;
-	strcpy( servaddr.sun_path , "/tmp/mlterm.unix") ;
+	sprintf( servaddr.sun_path , "/tmp/.mlterm-%d.unix" , getuid()) ;
 	
 	if( connect( sock_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) < 0)
 	{

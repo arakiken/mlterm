@@ -12,7 +12,7 @@
 #include  <sys/wait.h>		/* wait */
 #include  <signal.h>		/* kill */
 #include  <stdlib.h>		/* getenv */
-#include  <fcntl.h>		/* creat */
+#include  <errno.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/kik_str_alloca_dup/strdup */
 #include  <kiklib/kik_path.h>	/* kik_basename */
@@ -666,23 +666,41 @@ sig_fatal( int  sig)
 static int
 start_daemon(void)
 {
-	int  fd ;
-	char *  path = "/tmp/mlterm.unix" ;
 	pid_t  pid ;
 	int  sock_fd ;
 	struct sockaddr_un  servaddr ;
+	char * const path = servaddr.sun_path ;
 
-	if( ( fd = creat( path , 0600)) == -1)
+	memset( &servaddr , 0 , sizeof( servaddr)) ;
+	servaddr.sun_family = AF_LOCAL ;
+	kik_snprintf( path , sizeof( servaddr.sun_path) - 1 , "/tmp/.mlterm-%d.unix" , getuid()) ;
+
+	if( ( sock_fd = socket( AF_LOCAL , SOCK_STREAM , 0)) < 0)
 	{
-		/* already exists */
+		return  -1 ;
+	}
 
-		kik_msg_printf( "remove %s before starting daemon.\n" , path) ;
+	while( bind( sock_fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) < 0)
+	{
+		if( errno == EADDRINUSE)
+		{
+			if( connect( sock_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
+			{
+				kik_msg_printf( "daemon is already running.\n") ;
+				return  -1 ;
+			}
+
+			kik_msg_printf( "removing stale lock file %s.\n" , path) ;
+			if( unlink( path) == 0) continue ;
+		}
+
+		close( sock_fd) ;
+
+		kik_msg_printf( "failed to lock file %s: %s\n" , path , strerror(errno)) ;
 
 		return  -1 ;
 	}
 
-	close( fd) ;
-	
 	pid = fork() ;
 
 	if( pid == -1)
@@ -726,32 +744,15 @@ start_daemon(void)
 	 * grandchild
 	 */
 
-	if( ( sock_fd = socket( AF_LOCAL , SOCK_STREAM , 0)) < 0)
-	{
-		return  -1 ;
-	}
-
-	unlink( path) ;
-
-	memset( &servaddr , 0 , sizeof( servaddr)) ;
-	servaddr.sun_family = AF_LOCAL ;
-	strcpy( servaddr.sun_path , path) ;
-
-	if( bind( sock_fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) < 0)
-	{
-		close( sock_fd) ;
-	
-		return  -1 ;
-	}
-	
 	if( listen( sock_fd , 1024) < 0)
 	{
 		close( sock_fd) ;
+		unlink( path) ;
 		
 		return  -1 ;
 	}
 
-	un_file = path ;
+	un_file = strdup( path) ;
 
 	return  sock_fd ;
 }
