@@ -1,3 +1,8 @@
+[20020130]
+* vertical view support is added.(-G/--vertical/vertical_mode option)
+* actual screen size can be specified with -1/--wscr/screen_width_ratio and
+  -2/--hscr/screen_height_ratio options regardless of console columns and rows.
+
 [20020129]
 * 2.2.0 released
 
