@@ -10,6 +10,7 @@
 #include  <sys/types.h>
 #include  <unistd.h>		/* write/close/getuid/getgid */
 #include  <pwd.h>		/* getpwuid */
+#include  <sys/stat.h>		/* stat */
 #include  <errno.h>
 #include  <utmp.h>
 
