@@ -1,5 +1,10 @@
 2003-03-02 Araki Ken <arakiken@users.sf.net>
 
+	* Added -$/--mc/click_interval option.
+	* Updated libtool to 1.4.3.
+
+2003-03-02 Araki Ken <arakiken@users.sf.net>
+
 	* Mlterm/mlclient hung up if mlclient execed with no options. Fixed.
 	  (Thanks to Nakada Nobuyoshi san)
 
