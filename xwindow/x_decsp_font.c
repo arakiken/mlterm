@@ -68,7 +68,7 @@ x_decsp_font_new(
 	}
 
 	XSetForeground( display , gc , 1) ;
-
+	XSetLineAttributes( display, gc, (glyph_width >>3) +1, LineSolid, CapProjecting, JoinMiter) ; 
 	pts[0].x = glyph_width / 2 ;
 	pts[0].y = 0 ;
 	pts[1].x = 0 ;
