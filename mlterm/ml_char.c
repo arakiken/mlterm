@@ -604,7 +604,7 @@ ml_char_fg_color(
 		color = FG_COLOR(ch->attr) ;
 	}
 
-	if( IS_BOLD(ch->attr))
+	if( color != ML_FG_COLOR && color != ML_BG_COLOR && IS_BOLD(ch->attr))
 	{
 		color |= ML_BOLD_COLOR_MASK ;
 	}

@@ -6,8 +6,8 @@
 #define  __ML_COLOR_H__
 
 
-#define  MAX_COLORS         10
-#define  MAX_ACTUAL_COLORS  8
+#define  MAX_COLORS     10
+#define  MAX_VT_COLORS  8
 
 
 typedef enum  ml_color

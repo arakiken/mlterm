@@ -1,5 +1,9 @@
 2002-05-16 Araki Ken <arakiken@users.sf.net>
 
+	* core dump when illegal color name is specified for fg/bg color. fixed.
+
+2002-05-16 Araki Ken <arakiken@users.sf.net>
+
 	* change of scrollbar foreground and background colors etc is not reflected 
 	  immediately. fixed.(2002-05-14 fix was incomplete)
         * #RRGGBB format is accepted in "color" config file.

@@ -25,8 +25,13 @@ unload_all_colors(
 		{
 			x_unload_xcolor( color_man->display , color_man->screen ,
 				&color_man->colors[color]) ;
-			x_unload_xcolor( color_man->display , color_man->screen ,
-				&color_man->colors[color]) ;
+			
+			if( color < MAX_VT_COLORS)
+			{
+				x_unload_xcolor( color_man->display , color_man->screen ,
+					&color_man->highlighted_colors[color]) ;
+			}
+			
 			color_man->is_loaded[color] = 0 ;
 		}
 	}
@@ -52,15 +57,22 @@ x_color_manager_new(
 	{
 		return  NULL ;
 	}
-	
-	memset( color_man , 0 , sizeof( x_color_manager_t)) ;
 
+	memset( color_man->is_loaded , 0 , sizeof( color_man->is_loaded)) ;
+	
 	color_man->display = display ;
 	color_man->screen = screen ;
 
 	color_man->color_custom = color_custom ;
 	color_man->fade_ratio = 100 ;
 	color_man->is_reversed = 0 ;
+
+	if( ! x_load_named_xcolor( color_man->display , color_man->screen , &color_man->black , "black"))
+	{
+		free( color_man) ;
+		
+		return  NULL ;
+	}
 
 	if( fg_color == NULL)
 	{
@@ -85,6 +97,8 @@ x_color_manager_delete(
 {
 	unload_all_colors( color_man) ;
 
+	x_unload_xcolor( color_man->display , color_man->screen , &color_man->black) ;
+	
 	free( color_man->fg_color) ;
 	free( color_man->bg_color) ;
 
@@ -100,18 +114,17 @@ x_color_manager_set_fg_color(
 	)
 {
 	free( color_man->fg_color) ;
-	color_man->fg_color = strdup( fg_color) ;
-
+	
 	if( color_man->is_loaded[ML_FG_COLOR])
 	{
 		x_unload_xcolor( color_man->display , color_man->screen ,
 			&color_man->colors[ML_FG_COLOR]) ;
-		x_unload_xcolor( color_man->display , color_man->screen ,
-			&color_man->highlighted_colors[ML_FG_COLOR]) ;
 
 		color_man->is_loaded[ML_FG_COLOR] = 0 ;
 	}
 	
+	color_man->fg_color = strdup( fg_color) ;
+
 	return  1 ;
 }
 
@@ -122,18 +135,17 @@ x_color_manager_set_bg_color(
 	)
 {
 	free( color_man->bg_color) ;
-	color_man->bg_color = strdup( bg_color) ;
 	
 	if( color_man->is_loaded[ML_BG_COLOR])
 	{
 		x_unload_xcolor( color_man->display , color_man->screen ,
 			&color_man->colors[ML_BG_COLOR]) ;
-		x_unload_xcolor( color_man->display , color_man->screen ,
-			&color_man->highlighted_colors[ML_BG_COLOR]) ;
 
 		color_man->is_loaded[ML_BG_COLOR] = 0 ;
 	}
 
+	color_man->bg_color = strdup( bg_color) ;
+	
 	return  1 ;
 }
 
@@ -153,6 +165,14 @@ x_get_color(
 	{
 		color &= ~ML_BOLD_COLOR_MASK ;
 		is_highlighted = 1 ;
+		
+	#ifdef  DEBUG
+		if( color == ML_FG_COLOR || color == ML_BG_COLOR)
+		{
+			kik_warn_printf( KIK_DEBUG_TAG " fg/bg color must not be highlighted.\n") ;
+			is_highlighted = 0 ;
+		}
+	#endif
 	}
 	else
 	{
@@ -198,16 +218,10 @@ x_get_color(
 	
 	if( x_color_custom_get_rgb( color_man->color_custom , &red , &green , &blue , name))
 	{
-		if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
-			&color_man->highlighted_colors[color] , red , green , blue))
+		if( color < MAX_VT_COLORS)
 		{
-			if( color == ML_FG_COLOR || color == ML_BG_COLOR)
-			{
-				color_man->colors[color] = color_man->highlighted_colors[color] ;
-
-				goto  found ;
-			}
-			else
+			if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
+				&color_man->highlighted_colors[color] , red , green , blue))
 			{
 				if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
 					&color_man->colors[color] ,
@@ -222,18 +236,20 @@ x_get_color(
 				}
 			}
 		}
+		else
+		{
+			if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
+				&color_man->colors[color] , red , green , blue))
+			{
+				goto  found ;
+			}
+		}
 	}
 
-	if( x_load_named_xcolor( color_man->display , color_man->screen ,
-		&color_man->highlighted_colors[color] , name))
+	if( color < MAX_VT_COLORS)
 	{
-		if( color == ML_FG_COLOR || color == ML_BG_COLOR)
-		{
-			color_man->colors[color] = color_man->highlighted_colors[color] ;
-
-			goto  found ;
-		}
-		else
+		if( x_load_named_xcolor( color_man->display , color_man->screen ,
+			&color_man->highlighted_colors[color] , name))
 		{
 			x_get_xcolor_rgb( &red , &green , &blue , &color_man->highlighted_colors[color]) ;
 
@@ -250,20 +266,37 @@ x_get_color(
 			}
 		}
 	}
+	else
+	{
+		if( x_load_named_xcolor( color_man->display , color_man->screen ,
+			&color_man->colors[color] , name))
+		{
+			goto  found ;
+		}
+	}
 
-	kik_msg_printf( " Not enough colors available. %s setting problematic.\n" , name) ;
-
-	return  NULL ;
+	goto  not_found ;
 
 found:
 	if( color_man->fade_ratio < 100)
 	{
 		if( ! x_xcolor_fade( color_man->display , color_man->screen ,
-			&color_man->colors[color] , color_man->fade_ratio) ||
-			! x_xcolor_fade( color_man->display , color_man->screen ,
-			&color_man->highlighted_colors[color] , color_man->fade_ratio))
+			&color_man->colors[color] , color_man->fade_ratio))
 		{
-			return  NULL ;
+			x_unload_xcolor( color_man->display , color_man->screen ,
+				&color_man->highlighted_colors[color]) ;
+
+			goto  not_found ;
+		}
+
+		if( color < MAX_VT_COLORS &&
+			! x_xcolor_fade( color_man->display , color_man->screen ,
+				&color_man->highlighted_colors[color] , color_man->fade_ratio))
+		{
+			x_unload_xcolor( color_man->display , color_man->screen ,
+				&color_man->colors[color]) ;
+			
+			goto  not_found ;
 		}
 	}
 	
@@ -277,6 +310,20 @@ found:
 	{
 		return  &color_man->colors[color] ;
 	}
+
+not_found:
+	kik_msg_printf( " Loading color %s failed. Using black color instead.\n" , name) ;
+
+	color_man->colors[color] = color_man->black ;
+
+	if( color < MAX_VT_COLORS)
+	{
+		color_man->highlighted_colors[color] = color_man->black ;
+	}
+
+	color_man->is_loaded[color] = 1 ;
+
+	return  &color_man->colors[color] ;
 }
 
 x_color_t *

@@ -4,6 +4,7 @@
 
 #include  "x_color_custom.h"
 
+#include  <stdio.h>		/* sscanf */
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>
