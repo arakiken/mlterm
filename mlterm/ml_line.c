@@ -226,6 +226,11 @@ ml_line_overwrite(
 	u_int  copy_len ;
 	ml_char_t *  copy_src ;
 
+	if( len == 0)
+	{
+		return  1 ;
+	}
+
 	if( beg_char_index > line->num_of_filled_chars)
 	{
 	#ifdef  DEBUG
@@ -359,10 +364,17 @@ ml_line_fill(
 	u_int  left_cols ;
 	u_int  copy_len ;
 
+	if( num == 0)
+	{
+		return  1 ;
+	}
+
 	if( beg > line->num_of_filled_chars || beg >= line->num_of_chars)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " illegal beg[%d].\n" , beg) ;
+		kik_warn_printf( KIK_DEBUG_TAG " beg[%d] is illegal since it is over"
+			" num_of_filled_chars[%d] or num_of_chars[%d].\n" ,
+			beg , line->num_of_filled_chars , line->num_of_chars) ;
 	#endif
 	
 		return  0 ;

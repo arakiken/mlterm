@@ -623,7 +623,7 @@ ml_term_update_special_visual(
 				goto  error ;
 			}
 
-		#if  0
+		#if  1
 			if( ( logvis = ml_logvis_bidi_new( 0)) == NULL)
 		#else
 			if( ( logvis = ml_logvis_bidi_new( 1)) == NULL)
