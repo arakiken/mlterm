@@ -116,10 +116,12 @@ u_int  ml_line_get_num_of_filled_cols( ml_line_t *  line) ;
 
 int  ml_line_end_char_index( ml_line_t *  line) ;
 
-u_int  ml_get_num_of_filled_chars_except_end_space( ml_line_t *  line) ;
+int  ml_line_beg_char_index_except_spaces( ml_line_t *  line) ;
 
-int  ml_line_get_word_pos( ml_line_t *  line ,
-	int *  beg_char_index , int *  end_char_index , int  char_index) ;
+u_int  ml_get_num_of_filled_chars_except_spaces( ml_line_t *  line) ;
+
+int  ml_line_get_word_pos( ml_line_t *  line , int *  beg_char_index , int *  end_char_index ,
+	int  char_index) ;
 
 
 int  ml_line_is_using_bidi( ml_line_t *  line) ;
@@ -127,6 +129,8 @@ int  ml_line_is_using_bidi( ml_line_t *  line) ;
 int  ml_line_use_bidi( ml_line_t *  line) ;
 
 int  ml_line_unuse_bidi( ml_line_t *  line) ;
+
+int  ml_line_is_rtl( ml_line_t *  line) ;
 
 int  ml_line_bidi_render( ml_line_t *  line) ;
 

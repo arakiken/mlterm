@@ -187,6 +187,264 @@ window_scroll_downward_region(
 			screen->screen_listener->self , beg_row , end_row , size) ;
 }
 
+static int
+reverse_or_restore_color(
+	ml_screen_t *  screen ,
+	int  beg_char_index ,
+	int  beg_row ,
+	int  end_char_index ,
+	int  end_row ,
+	int (*func)( ml_line_t * , int)
+	)
+{
+	int  char_index ;
+	int  row ;
+	ml_line_t *  line ;
+	u_int  size_except_spaces ;
+	int  beg_except_spaces ;
+
+	if( ( line = ml_screen_get_line( screen , beg_row)) == NULL || ml_line_is_empty( line))
+	{
+		return  0 ;
+	}
+
+	size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+	beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+
+	row = beg_row ;
+	if( beg_row == end_row)
+	{
+		for( char_index = K_MAX(beg_char_index,beg_except_spaces) ;
+			char_index < K_MIN(end_char_index + 1,size_except_spaces) ; char_index ++)
+		{
+			(*func)( line , char_index) ;
+		}
+	}
+	else if( beg_row < end_row)
+	{
+		if( ml_line_is_rtl( line))
+		{
+			for( char_index = beg_except_spaces ; char_index <= beg_char_index ; char_index ++)
+			{
+				(*func)( line , char_index) ;
+			}
+		}
+		else
+		{
+			for( char_index = K_MAX(beg_char_index,beg_except_spaces) ;
+				char_index < size_except_spaces ; char_index ++)
+			{
+				(*func)( line , char_index) ;
+			}
+		}
+
+		for( row ++ ; row < end_row ; row ++)
+		{
+			if( ( line = ml_screen_get_line( screen , row)) == NULL ||
+				ml_line_is_empty( line))
+			{
+				return  0 ;
+			}
+
+			size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+			beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+			
+			for( char_index = beg_except_spaces ;
+				char_index < size_except_spaces ; char_index ++)
+			{
+				(*func)( line , char_index) ;
+			}
+		}
+		
+		if( ( line = ml_screen_get_line( screen , row)) == NULL ||
+			ml_line_is_empty( line))
+		{
+			return  0 ;
+		}
+
+		size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+		beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+
+		if( ml_line_is_rtl( line))
+		{
+			for( char_index = K_MAX(end_char_index,beg_except_spaces) ;
+				char_index < size_except_spaces ; char_index ++)
+			{
+				(*func)( line , char_index) ;
+			}
+		}
+		else
+		{
+			for( char_index = beg_except_spaces ;
+				char_index < K_MIN(end_char_index + 1,size_except_spaces) ; char_index ++)
+			{
+				(*func)( line , char_index) ;
+			}
+		}
+	}
+
+	return  1 ;
+}
+
+static u_int
+check_or_copy_region(
+	ml_screen_t *  screen ,
+	ml_char_t *  chars ,
+	u_int  num_of_chars ,
+        int  beg_char_index ,
+	int  beg_row ,
+	int  end_char_index ,
+	int  end_row
+	)
+{
+	ml_line_t *  line ;
+	int  count ;
+	u_int  size_except_spaces ;
+	int  beg_except_spaces ;
+	int  beg_limit ;
+	int  end_limit ;
+
+	/* u_int => int */
+	beg_limit = - ( ml_get_num_of_logged_lines( &screen->logs)) ;
+	end_limit = ml_model_end_row( &screen->edit->model) ;
+
+	if( beg_row < beg_limit)
+	{
+		beg_row = beg_limit ;
+	}
+	
+	if( end_row > end_limit)
+	{
+		end_row = end_limit ;
+	}
+	
+	if( ( line = ml_screen_get_line( screen , beg_row)) == NULL)
+	{
+		return  0 ;
+	}
+
+	if( beg_char_index >= (size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line)))
+	{
+		do
+		{
+			if( ++ beg_row >= end_row ||
+				( line = ml_screen_get_line( screen , beg_row)) == NULL)
+			{
+				return  0 ;
+			}
+		}
+		while( ( size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line)) == 0) ;
+
+		if( ml_line_is_rtl( line))
+		{
+			beg_char_index = size_except_spaces - 1 ;
+		}
+		else
+		{
+			beg_char_index = 0 ;
+		}
+	}
+
+	beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+
+	if( beg_row == end_row)
+	{
+		count = K_MIN(end_char_index + 1,size_except_spaces) -
+				K_MAX(beg_char_index,beg_except_spaces) ;
+		if( chars)
+		{
+			ml_line_copy_str( line , chars , beg_char_index , count) ;
+		}
+	}
+	else if( beg_row < end_row)
+	{
+		int  row ;
+
+		if( ml_line_is_rtl( line))
+		{
+			count = (K_MAX(beg_char_index,beg_except_spaces) - beg_except_spaces + 1) ;
+			if( chars)
+			{
+				ml_line_copy_str( line , chars , beg_except_spaces , count) ;
+			}
+		}
+		else
+		{
+			count = (size_except_spaces - K_MAX(beg_char_index,beg_except_spaces)) ;
+			if( chars)
+			{
+				ml_line_copy_str( line , chars , beg_char_index , count) ;
+			}
+		}
+
+		if( ! ml_line_is_continued_to_next( line))
+		{
+			if( chars)
+			{
+				ml_char_copy( &chars[count] , &screen->nl_ch) ;
+			}
+			count ++ ;
+		}
+
+		for( row = beg_row + 1 ; row < end_row ; row ++)
+		{
+			line = ml_screen_get_line( screen , row) ;
+
+			size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+			beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+
+			if( chars)
+			{
+				ml_line_copy_str( line , &chars[count] , beg_except_spaces ,
+					size_except_spaces - beg_except_spaces) ;
+			}
+			count += (size_except_spaces - beg_except_spaces) ;
+
+			if( ! ml_line_is_continued_to_next( line))
+			{
+				if( chars)
+				{
+					ml_char_copy( &chars[count] , &screen->nl_ch) ;
+				}
+				count ++ ;
+			}
+		}
+
+		line = ml_screen_get_line( screen , row) ;
+
+		size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+		beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+
+		if( ml_line_is_rtl( line))
+		{
+			if( chars)
+			{
+				ml_line_copy_str( line , &chars[count] ,
+					K_MAX(end_char_index,beg_except_spaces) ,
+					size_except_spaces - K_MAX(end_char_index,beg_except_spaces)) ;
+			}
+			count += (size_except_spaces - K_MAX(end_char_index,beg_except_spaces)) ;
+		}
+		else
+		{
+			if( chars)
+			{
+				ml_line_copy_str( line , &chars[count] , beg_except_spaces ,
+					K_MIN(end_char_index + 1,size_except_spaces)) ;
+			}
+			count += K_MIN(end_char_index + 1,size_except_spaces) ;
+		}
+	}
+	#ifdef  DEBUG
+	else
+	{
+		kik_warn_printf( KIK_DEBUG_TAG " copy region is illegal. nothing is copyed.\n") ;
+	}
+	#endif
+
+	return  count ;
+}
+
 
 /* --- global functions --- */
 
@@ -920,6 +1178,32 @@ ml_screen_set_tab_size(
 	return  ml_edit_set_tab_size( screen->edit , tab_size) ;
 }
 
+int
+ml_screen_reverse_color(
+	ml_screen_t *  screen ,
+	int  beg_char_index ,
+	int  beg_row ,
+	int  end_char_index ,
+	int  end_row
+	)
+{
+	return  reverse_or_restore_color( screen , beg_char_index , beg_row ,
+		end_char_index , end_row , ml_line_reverse_color) ;
+}
+
+int
+ml_screen_restore_color(
+	ml_screen_t *  screen ,
+	int  beg_char_index ,
+	int  beg_row ,
+	int  end_char_index ,
+	int  end_row
+	)
+{
+	return  reverse_or_restore_color( screen , beg_char_index , beg_row ,
+		end_char_index , end_row , ml_line_restore_color) ;
+}
+
 u_int
 ml_screen_copy_region(
 	ml_screen_t *  screen ,
@@ -931,100 +1215,8 @@ ml_screen_copy_region(
 	int  end_row
 	)
 {
-	ml_line_t *  line ;
-	int  count ;
-	u_int  size_except_end_space ;
-	int  beg_limit ;
-	int  end_limit ;
-
-	/* u_int => int */
-	beg_limit = - ( ml_get_num_of_logged_lines( &screen->logs)) ;
-	end_limit = ml_model_end_row( &screen->edit->model) ;
-
-	if( beg_row < beg_limit)
-	{
-		return  0 ;
-	}
-	
-	while( 1)
-	{
-		line = ml_screen_get_line( screen , beg_row) ;
-
-		size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
-
-		if( beg_char_index < size_except_end_space)
-		{
-			break ;
-		}
-		
-		beg_row ++ ;
-		beg_char_index = 0 ;
-		
-		if( beg_row > end_limit)
-		{
-			return  0 ;
-		}
-	}
-	
-	if( end_row > end_limit)
-	{
-		end_row = end_limit ;
-	}
-	
-	count = 0 ;
-	
-	if( beg_row == end_row)
-	{
-		size_except_end_space = K_MIN( end_char_index + 1 , size_except_end_space) ;
-
-		ml_line_copy_str( line , &chars[count] , beg_char_index ,
-			size_except_end_space - beg_char_index) ;
-		count += (size_except_end_space - beg_char_index) ;
-	}
-	else if( beg_row < end_row)
-	{
-		int  row ;
-
-		ml_line_copy_str( line , &chars[count] , beg_char_index ,
-				size_except_end_space - beg_char_index) ;
-		count += (size_except_end_space - beg_char_index) ;
-
-		if( ! ml_line_is_continued_to_next( line))
-		{
-			ml_char_copy( &chars[count++] , &screen->nl_ch) ;
-		}
-		
-		for( row = beg_row + 1 ; row < end_row ; row ++)
-		{
-			line = ml_screen_get_line( screen , row) ;
-
-			size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
-
-			ml_line_copy_str( line , &chars[count] , 0 , size_except_end_space) ;
-			count += size_except_end_space ;
-
-			if( ! ml_line_is_continued_to_next( line))
-			{
-				ml_char_copy( &chars[count++] , &screen->nl_ch) ;
-			}
-		}
-
-		line = ml_screen_get_line( screen , row) ;
-
-		size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
-
-		ml_line_copy_str( line , &chars[count] , 0 ,
-			K_MIN(end_char_index + 1,size_except_end_space)) ;
-		count += K_MIN(end_char_index + 1,size_except_end_space) ;
-	}
-	#ifdef  DEBUG
-	else
-	{
-		kik_warn_printf( KIK_DEBUG_TAG " copy region is illegal. nothing is copyed.\n") ;
-	}
-	#endif
-
-	return  count ;
+	return  check_or_copy_region( screen , chars , num_of_chars , beg_char_index , beg_row ,
+			end_char_index , end_row) ;
 }
 
 u_int
@@ -1036,86 +1228,8 @@ ml_screen_get_region_size(
 	int  end_row
 	)
 {
-	ml_line_t *  line ;
-	u_int  region_size ;
-	u_int  size_except_end_space ;
-	int  beg_limit ;
-	int  end_limit ;
-
-	/* u_int => int */
-	beg_limit = -(ml_get_num_of_logged_lines( &screen->logs)) ;
-	end_limit = ml_model_end_row( &screen->edit->model) ;
-
-	if( beg_row < beg_limit)
-	{
-		return  0 ;
-	}
-	
-	while( 1)
-	{
-		line = ml_screen_get_line( screen , beg_row) ;
-
-		size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
-
-		if( beg_char_index < size_except_end_space)
-		{
-			break ;
-		}
-		
-		beg_row ++ ;
-		beg_char_index = 0 ;
-		
-		if( beg_row > end_limit)
-		{
-			return  0 ;
-		}
-	}
-	
-	if( end_row > end_limit)
-	{
-		end_row = end_limit ;
-	}
-	
-	if( beg_row == end_row)
-	{
-		region_size = K_MIN( end_char_index + 1 , size_except_end_space) - beg_char_index ;
-	}
-	else if( beg_row < end_row)
-	{
-		int  row ;
-
-		region_size = size_except_end_space - beg_char_index ;
-
-		if( ! ml_line_is_continued_to_next( line))
-		{
-			/* for NL */
-			region_size ++ ;
-		}
-
-		for( row = beg_row + 1 ; row < end_row ; row ++)
-		{
-			line = ml_screen_get_line( screen , row) ;
-
-			region_size += ml_get_num_of_filled_chars_except_end_space( line) ;
-
-			if( ! ml_line_is_continued_to_next( line))
-			{
-				/* for NL */
-				region_size ++ ;
-			}
-		}
-
-		line = ml_screen_get_line( screen , row) ;
-
-		size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
-		region_size += (K_MIN( end_char_index + 1 , size_except_end_space)) ;
-	}
-	else
-	{
-		region_size = 0 ;
-	}
-
-	return  region_size ;
+	return  check_or_copy_region( screen , NULL , 0 , beg_char_index , beg_row ,
+			end_char_index , end_row) ;
 }
 
 int

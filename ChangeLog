@@ -1,3 +1,7 @@
+2002-06-23 Araki Ken <arakiken@users.sf.net>
+
+	* the style of selecting characters in RTL lines is improved.
+
 2002-06-19 Tomohiro KUBOTA <kubota@debian.org>
 
 	* A debug message was displayed by mlconfig even if compiled

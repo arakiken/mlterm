@@ -863,25 +863,50 @@ ml_line_end_char_index(
 	}
 }
 
-u_int
-ml_get_num_of_filled_chars_except_end_space(
+int
+ml_line_beg_char_index_except_spaces(
 	ml_line_t *  line
 	)
 {
-	ml_char_t *  ch ;
 	int  char_index ;
 
-	for( char_index = END_CHAR_INDEX(line) ; char_index >= 0 ; char_index --)
+	if( ml_line_is_rtl( line))
 	{
-		ch = &line->chars[char_index] ;
-		
-		if( ml_char_size( ch) != 1 || ml_char_bytes( ch)[0] != ' ')
+		for( char_index = 0 ; char_index < line->num_of_filled_chars ; char_index ++)
 		{
-			return  char_index + 1 ;
+			if( ! ml_char_bytes_is( &line->chars[char_index] , " " , 1 , US_ASCII))
+			{
+				return  char_index ;
+			}
 		}
 	}
 
 	return  0 ;
+}
+
+u_int
+ml_get_num_of_filled_chars_except_spaces(
+	ml_line_t *  line
+	)
+{
+	int  char_index ;
+
+	if( ml_line_is_rtl( line))
+	{
+		return  line->num_of_filled_chars ;
+	}
+	else
+	{
+		for( char_index = END_CHAR_INDEX(line) ; char_index >= 0 ; char_index --)
+		{
+			if( ! ml_char_bytes_is( &line->chars[char_index] , " " , 1 , US_ASCII))
+			{
+				return  char_index + 1 ;
+			}
+		}
+
+		return  0 ;
+	}
 }
 
 
@@ -934,6 +959,21 @@ ml_line_unuse_bidi(
 	}
 
 	return  1 ;
+}
+
+int
+ml_line_is_rtl(
+	ml_line_t *  line
+	)
+{
+	if( line->bidi_state)
+	{
+		return  line->bidi_state->base_is_rtl ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }
 
 int

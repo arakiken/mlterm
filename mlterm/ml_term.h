@@ -125,6 +125,12 @@ u_int  ml_term_get_tab_size( ml_term_t *  term) ;
 
 int  ml_term_set_tab_size( ml_term_t *  term , u_int  size) ;
 
+int  ml_term_reverse_color( ml_term_t *  term , int  beg_char_index , int  beg_row ,
+	int  end_char_index , int  end_row) ;
+
+int  ml_term_restore_color( ml_term_t *  term , int  beg_char_index , int  beg_row ,
+	int  end_char_index , int  end_row) ;
+
 u_int  ml_term_copy_region( ml_term_t *  term , ml_char_t *  chars ,
 	u_int  num_of_chars , int  beg_char_index , int  beg_row , int  end_char_index , int  end_row) ;
 

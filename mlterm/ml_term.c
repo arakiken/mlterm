@@ -623,6 +623,32 @@ ml_term_set_tab_size(
 	return  ml_screen_set_tab_size( term->screen , tab_size) ;
 }
 
+int
+ml_term_reverse_color(
+	ml_term_t *  term ,
+	int  beg_char_index ,
+	int  beg_row ,
+	int  end_char_index ,
+	int  end_row
+	)
+{
+	return  ml_screen_reverse_color( term->screen , beg_char_index , beg_row ,
+		end_char_index , end_row) ;
+}
+
+int
+ml_term_restore_color(
+	ml_term_t *  term ,
+	int  beg_char_index ,
+	int  beg_row ,
+	int  end_char_index ,
+	int  end_row
+	)
+{
+	return  ml_screen_restore_color( term->screen , beg_char_index , beg_row ,
+		end_char_index , end_row) ;
+}
+
 u_int
 ml_term_copy_region(
 	ml_term_t *  term ,

@@ -1045,17 +1045,33 @@ convert_char_index_to_x(
 		char_index = ml_line_end_char_index(line) ;
 	}
 
-	/*
-	 * excluding the last char width.
-	 */
-	x = 0 ;
-	for( count = 0 ; count < char_index ; count ++)
+	if( ml_line_is_rtl( line))
 	{
-		x += x_calculate_char_width(
-			x_get_font( screen->font_man , ml_char_font( &line->chars[count])) ,
-			ml_char_bytes( &line->chars[count]) ,
-			ml_char_size( &line->chars[count]) ,
-			ml_char_cs( &line->chars[count])) ;
+		x = screen->window.width ;
+
+		for( count = ml_line_end_char_index(line) ; count >= char_index ; count --)
+		{
+			x -= x_calculate_char_width(
+				x_get_font( screen->font_man , ml_char_font( &line->chars[count])) ,
+				ml_char_bytes( &line->chars[count]) ,
+				ml_char_size( &line->chars[count]) ,
+				ml_char_cs( &line->chars[count])) ;
+		}
+	}
+	else
+	{
+		/*
+		 * excluding the last char width.
+		 */
+		x = 0 ;
+		for( count = 0 ; count < char_index ; count ++)
+		{
+			x += x_calculate_char_width(
+				x_get_font( screen->font_man , ml_char_font( &line->chars[count])) ,
+				ml_char_bytes( &line->chars[count]) ,
+				ml_char_size( &line->chars[count]) ,
+				ml_char_cs( &line->chars[count])) ;
+		}
 	}
 
 	return  x ;
@@ -1105,21 +1121,44 @@ convert_x_to_char_index(
 {
 	int  count ;
 	u_int  width ;
-	
-	for( count = 0 ; count < ml_line_end_char_index(line) ; count ++)
-	{
-		width = x_calculate_char_width(
-			x_get_font( screen->font_man , ml_char_font( &line->chars[count])) ,
-			ml_char_bytes( &line->chars[count]) ,
-			ml_char_size( &line->chars[count]) ,
-			ml_char_cs( &line->chars[count])) ;
-		
-		if( x < width)
-		{
-			break ;
-		}
 
-		x -= width ;
+	if( ml_line_is_rtl( line))
+	{
+		x = screen->window.width - x ;
+
+		for( count = ml_line_end_char_index(line) ; count > 0 ; count --)
+		{
+			width = x_calculate_char_width(
+				x_get_font( screen->font_man , ml_char_font( &line->chars[count])) ,
+				ml_char_bytes( &line->chars[count]) ,
+				ml_char_size( &line->chars[count]) ,
+				ml_char_cs( &line->chars[count])) ;
+
+			if( x <= width)
+			{
+				break ;
+			}
+
+			x -= width ;
+		}
+	}
+	else
+	{
+		for( count = 0 ; count < ml_line_end_char_index(line) ; count ++)
+		{
+			width = x_calculate_char_width(
+				x_get_font( screen->font_man , ml_char_font( &line->chars[count])) ,
+				ml_char_bytes( &line->chars[count]) ,
+				ml_char_size( &line->chars[count]) ,
+				ml_char_cs( &line->chars[count])) ;
+
+			if( x < width)
+			{
+				break ;
+			}
+
+			x -= width ;
+		}
 	}
 
 	if( x_rest != NULL)
@@ -1263,6 +1302,12 @@ draw_line(
 		if( ml_line_is_cleared_to_end( line) ||
 			( x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
 		{
+			if( ml_line_is_rtl( line))
+			{
+				x_window_clear( &screen->window , 0 , y ,
+					screen->window.width , x_line_height( screen)) ;
+			}
+			
 			if( ! draw_str_to_eol( screen , &line->chars[beg_char_index] ,
 				num_of_redrawn , beg_x , y ,
 				x_line_height( screen) ,
@@ -1404,7 +1449,7 @@ flush_scroll_cache(
 	
 	if( scroll_actual_screen && x_window_is_scrollable( &screen->window))
 	{
-		int  start_y ;
+		int  beg_y ;
 		int  end_y ;
 		u_int  scroll_height ;
 
@@ -1412,22 +1457,20 @@ flush_scroll_cache(
 
 		if( scroll_height < screen->window.height)
 		{
-			start_y = convert_row_to_y( screen ,
-				screen->scroll_cache_boundary_start) ;
-			end_y = start_y +
-				x_line_height( screen) *
+			beg_y = convert_row_to_y( screen , screen->scroll_cache_boundary_start) ;
+			end_y = beg_y + x_line_height( screen) *
 					(screen->scroll_cache_boundary_end -
 					screen->scroll_cache_boundary_start + 1) ;
 
 			if( screen->scroll_cache_rows > 0)
 			{
 				x_window_scroll_upward_region( &screen->window ,
-					start_y , end_y , scroll_height) ;
+					beg_y , end_y , scroll_height) ;
 			}
 			else
 			{
 				x_window_scroll_downward_region( &screen->window ,
-					start_y , end_y , scroll_height) ;
+					beg_y , end_y , scroll_height) ;
 			}
 		}
 	#if  0
@@ -2166,7 +2209,7 @@ update_encoding_proper_aux(
 		screen->shape = shape ;
 
 		if( ! ml_term_enable_special_visual( screen->term , visual ,
-			1 , NULL , screen->vertical_mode))
+			0 , NULL , screen->vertical_mode))
 		{
 			goto  error ;
 		}
@@ -3335,11 +3378,16 @@ start_selection(
 {
 	int  col_l ;
 	int  row_l ;
+	ml_line_t *  line ;
 
-	if( col_r == 0)
+	if( ( line = ml_term_get_line( screen->term , row_r)) == NULL || ml_line_is_empty( line))
 	{
-		ml_line_t *  line ;
-		
+		return ;
+	}
+	
+	if( ( ! ml_line_is_rtl( line) && col_r == 0) ||
+		( ml_line_is_rtl( line) && abs( col_r) == line->num_of_filled_chars - 1))
+	{
 		if( ( line = ml_term_get_line( screen->term , row_r - 1)) == NULL ||
 			ml_line_is_empty( line))
 		{
@@ -3348,7 +3396,14 @@ start_selection(
 		}
 		else
 		{
-			col_l = line->num_of_filled_chars - 1 ;
+			if( ml_line_is_rtl( line))
+			{
+				col_l = 0 ;
+			}
+			else
+			{
+				col_l = line->num_of_filled_chars - 1 ;
+			}
 			row_l = row_r - 1 ;
 		}
 	}
@@ -3422,15 +3477,10 @@ selecting_with_motion(
 	}
 	
 	char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
-
-	if( line->num_of_filled_chars - 1 == char_index && x_rest)
+	
+	if( ml_line_is_rtl( line))
 	{
-		/*
-		 * XXX hack (anyway it works)
-		 * this points to an invalid char , but by its secondary effect ,
-		 * if mouse is dragged in a char-less area , nothing is selected.
-		 */
-		char_index ++ ;
+		char_index = -char_index ;
 	}
 
 	if( ! screen->sel.is_selecting)
@@ -3451,14 +3501,14 @@ selecting_with_motion(
 	{
 		if( x_is_after_sel_right_base_pos( &screen->sel , char_index , row))
 		{
-			if( char_index > 0)
+			if( abs( char_index) > 0 || ( ! x_is_minus && ml_line_is_rtl( line)))
 			{
 				char_index -- ;
 			}
 		}
 		else if( x_is_before_sel_left_base_pos( &screen->sel , char_index , row))
 		{
-			if( ! x_is_minus && char_index < line->num_of_filled_chars - 1)
+			if( ! x_is_minus && abs( char_index) < ml_line_end_char_index( line))
 			{
 				char_index ++ ;
 			}
@@ -3545,6 +3595,16 @@ selecting_word(
 		return ;
 	}
 
+	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)))
+	{
+		beg_char_index = -beg_char_index + 1 ;
+	}
+	
+	if( ml_line_is_rtl( ml_term_get_line( screen->term , end_row)))
+	{
+		end_char_index = -end_char_index ;
+	}
+	
 	if( ! screen->sel.is_selecting)
 	{
 		restore_selected_region_color( screen) ;
@@ -3571,6 +3631,7 @@ selecting_line(
 	)
 {
 	int  row ;
+	int  beg_char_index ;
 	int  beg_row ;
 	int  end_char_index ;
 	int  end_row ;
@@ -3580,6 +3641,21 @@ selecting_line(
 	if( ml_term_get_line_region( screen->term , &beg_row , &end_char_index , &end_row , row) == 0)
 	{
 		return ;
+	}
+
+	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)))
+	{
+		beg_char_index = -ml_line_end_char_index( ml_term_get_line( screen->term , beg_row)) ;
+	}
+	else
+	{
+		beg_char_index = 0 ;
+	}
+	
+	if( ml_line_is_rtl( ml_term_get_line( screen->term , end_row)))
+	{
+		end_char_index = end_char_index -
+			ml_line_end_char_index( ml_term_get_line( screen->term , end_row)) ;
 	}
 	
 	if( ! screen->sel.is_selecting)
@@ -3594,7 +3670,7 @@ selecting_line(
 			}
 		}
 		
-		start_selection( screen , 0 , beg_row) ;
+		start_selection( screen , beg_char_index , beg_row) ;
 	}
 
 	x_selecting( &screen->sel , end_char_index , end_row) ;
@@ -3798,85 +3874,6 @@ button_released(
 		x_stop_selecting( &screen->sel) ;
 	}
 }
-
-
-/*
- * !! Notice !!
- * this is closely related to x_{image|log}_copy_region()
- */
-static void
-reverse_or_restore_color(
-	x_screen_t *  screen ,
-	int  beg_char_index ,
-	int  beg_row ,
-	int  end_char_index ,
-	int  end_row ,
-	int (*func)( ml_line_t * , int)
-	)
-{
-	int  char_index ;
-	int  row ;
-	ml_line_t *  line ;
-	u_int  size_except_end_space ;
-
-	if( ( line = ml_term_get_line( screen->term , beg_row)) == NULL || ml_line_is_empty( line))
-	{
-		return ;
-	}
-
-	size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
-
-	row = beg_row ;
-	if( beg_row == end_row)
-	{
-		for( char_index = beg_char_index ;
-			char_index < K_MIN(end_char_index + 1,size_except_end_space) ; char_index ++)
-		{
-			(*func)( line , char_index) ;
-		}
-	}
-	else if( beg_row < end_row)
-	{
-		for( char_index = beg_char_index ; char_index < size_except_end_space ; char_index ++)
-		{
-			(*func)( line , char_index) ;
-		}
-
-		for( row ++ ; row < end_row ; row ++)
-		{
-			if( ( line = ml_term_get_line( screen->term , row)) == NULL ||
-				ml_line_is_empty( line))
-			{
-				goto  end ;
-			}
-
-			size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
-			
-			for( char_index = 0 ; char_index < size_except_end_space ; char_index ++)
-			{
-				(*func)( line , char_index) ;
-			}
-		}
-		
-		if( ( line = ml_term_get_line( screen->term , row)) == NULL ||
-			ml_line_is_empty( line))
-		{
-			goto  end ;
-		}
-
-		size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
-		
-		for( char_index = 0 ;
-			char_index < K_MIN(end_char_index + 1,size_except_end_space) ; char_index ++)
-		{
-			(*func)( line , char_index) ;
-		}
-	}
-
-end:
-	redraw_screen( screen) ;
-}
-
 
 /*
  * processing config menu events.
@@ -5371,8 +5368,26 @@ reverse_color(
 	int  end_row
 	)
 {
-	reverse_or_restore_color( (x_screen_t*)p , beg_char_index , beg_row ,
-		end_char_index , end_row , ml_line_reverse_color) ;
+	x_screen_t *  screen ;
+
+	screen = (x_screen_t*)p ;
+	
+	beg_char_index = abs( beg_char_index) ;
+	end_char_index = abs( end_char_index) ;
+
+	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)) && beg_row == end_row)
+	{
+		int  buf ;
+
+		buf = beg_char_index ;
+		beg_char_index = end_char_index ;
+		end_char_index = buf ;
+	}
+	
+	ml_term_reverse_color( screen->term , beg_char_index , beg_row ,
+		end_char_index , end_row) ;
+		
+	redraw_screen( screen) ;
 }
 
 static void
@@ -5386,10 +5401,24 @@ restore_color(
 {
 	x_screen_t *  screen ;
 
-	screen = p ;
+	screen = (x_screen_t*)p ;
 	
-	reverse_or_restore_color( (x_screen_t*)p , beg_char_index , beg_row ,
-		end_char_index , end_row , ml_line_restore_color) ;
+	beg_char_index = abs( beg_char_index) ;
+	end_char_index = abs( end_char_index) ;
+
+	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)) && beg_row == end_row)
+	{
+		int  buf ;
+
+		buf = beg_char_index ;
+		beg_char_index = end_char_index ;
+		end_char_index = buf ;
+	}
+	
+	ml_term_restore_color( screen->term , beg_char_index , beg_row ,
+		end_char_index , end_row) ;
+
+	redraw_screen( screen) ;
 }
 
 static int
@@ -5408,6 +5437,18 @@ select_in_window(
 	ml_char_t *  buf ;
 
 	screen = p ;
+
+	beg_char_index = abs( beg_char_index) ;
+	end_char_index = abs( end_char_index) ;
+
+	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)) && beg_row == end_row)
+	{
+		int  buf ;
+
+		buf = beg_char_index ;
+		beg_char_index = end_char_index ;
+		end_char_index = buf ;
+	}
 
 	if( ( size = ml_term_get_region_size( screen->term , beg_char_index , beg_row ,
 			end_char_index , end_row)) == 0)

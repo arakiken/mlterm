@@ -230,7 +230,7 @@ x_start_selection(
 		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " selection started from %d %d\n" , sel->beg_col , sel->beg_row) ;
+	kik_debug_printf( KIK_DEBUG_TAG " selection started => %d %d\n" , sel->beg_col , sel->beg_row) ;
 #endif
 	
 	return  1 ;
@@ -247,11 +247,16 @@ x_selecting(
 	{
 		return  0 ;
 	}
-	
+
 	sel->prev_col = col ;
 	sel->prev_row = row ;
 
 	update_sel_region( sel , col , row) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " selecting %d %d => %d %d - %d %d.\n" ,
+		col , row , sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
+#endif
 
 	return  1 ;
 }
@@ -262,7 +267,8 @@ x_stop_selecting(
 	)
 {
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " selection stops.\n") ;
+	kik_debug_printf( KIK_DEBUG_TAG " selection stops => %d %d - %d %d.\n" ,
+		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
 #endif
 
 	if( ! sel->is_selecting)

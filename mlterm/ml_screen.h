@@ -140,6 +140,12 @@ u_int  ml_screen_get_tab_size( ml_screen_t *  screen) ;
 
 int  ml_screen_set_tab_size( ml_screen_t *  screen , u_int  tab_size) ;
 
+int  ml_screen_restore_color( ml_screen_t *  screen , int  beg_char_index , int  beg_row ,
+	int  end_char_index , int  end_row) ;
+
+int  ml_screen_reverse_color( ml_screen_t *  screen , int  beg_char_index , int  beg_row ,
+	int  end_char_index , int  end_row) ;
+
 u_int  ml_screen_copy_region( ml_screen_t *  screen , ml_char_t *  chars ,
 	u_int  num_of_chars , int  beg_char_index , int  beg_row , int  end_char_index , int  end_row) ;
 
