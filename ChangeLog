@@ -1,3 +1,10 @@
+2002-09-16  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
+
+	* Major rewrite of icon handling
+	 - Added new members (icon and mask) to struct x_window_t
+	 - Actuall icon setting process is now done in x_window.c.
+	 - remove icon cache from x_picture_gdk which seems not to be useful.
+	
 2002-09-15  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	*  x_picdep_load_icon( &data,&pixmap,&mask) is added

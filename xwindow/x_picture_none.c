@@ -116,10 +116,12 @@ x_picdep_load_background(
 	return  pixmap ;
 }
 
-int x_picdep_set_icon_from_file(
-	x_window_t * win,
-	char * file_path
-	)
+int x_picdep_load_icon(
+	x_window_ptr_t * win,
+	char * path,
+	u_int32_t **cardinal,
+	Pixmap *pixmap,
+	Pixmap *mask)
 {
-	return 0;
+	return 0 ;
 }

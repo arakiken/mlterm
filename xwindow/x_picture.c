@@ -120,18 +120,12 @@ x_picture_modifier_is_normal(
 	}
 }
 
-/*
- * XXX
- * This function will be removed from x_picture* module, which will provide more limited
- * interface for setting window icon, and libraray independent processings are abstracted
- * from x_picdep_set_icon_from_file() into x_window.c:x_window_set_icon().
- * - Commented by Araki Ken(arakiken@users.sf.net)
- */
-int
-x_picture_set_icon_from_file(
-	x_window_ptr_t  win ,
-	char *  file_path
-	)
+int x_picture_load_icon(
+	x_window_t * win,
+	char * path,
+	u_int32_t **cardinal,
+	Pixmap *pixmap,
+	Pixmap *mask)
 {
-	return  x_picdep_set_icon_from_file( win, file_path) ;
+	return x_picdep_load_icon( win, path, cardinal, pixmap, mask) ;
 }

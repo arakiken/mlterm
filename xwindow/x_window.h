@@ -116,8 +116,14 @@ typedef struct  x_window
 	/*
 	 * XDND
 	 */
-	Window  dnd_source;
+	Window  dnd_source ;
 	Atom  is_dnd_accepting ;
+
+	/*
+	 * WMHints Icon
+	 */
+	Pixmap icon ;
+	Pixmap mask ;
 
 	/*
 	 * flags etc.

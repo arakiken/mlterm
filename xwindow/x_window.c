@@ -568,6 +568,9 @@ x_window_init(
 	win->click_num = 0 ;
 	win->button_is_pressing = 0 ;
 
+	win->icon = 0 ;
+	win->mask = 0 ;
+
 	win->window_realized = NULL ;
 	win->window_finalized = NULL ;
 	win->window_exposed = NULL ;
@@ -622,6 +625,18 @@ x_window_final(
 	if( win->pixmap)
 	{
 		XFreePixmap( win->display , win->pixmap) ;
+	}
+
+	if( win->icon)
+	{
+		XFreePixmap( win->display , win->icon) ;
+		win->icon = 0 ;
+	}
+
+	if( win->mask)
+	{
+		XFreePixmap( win->display , win->mask) ;
+		win->mask = 0 ;
 	}
 
 #ifdef  ANTI_ALIAS
@@ -2742,12 +2757,81 @@ x_window_set_icon(
 	char * file_path
 	)
 {
-	/*
-	 * XXX
-	 * All about window icon are processed in x_picture_gdk.c for now.
-	 */
-	 
-	return x_picture_set_icon_from_file(x_get_root_window(win), file_path);
+	XWMHints *hints ;
+	u_int32_t *cardinal ; 
+	Pixmap icon ;
+	Pixmap mask ;
+
+	/* caller should do this? */
+	win = x_get_root_window( win) ;
+
+	/* clean up old icons */
+	if( win->icon)
+	{
+		XFreePixmap( win->display, win->icon) ;
+		win->icon = 0 ;
+	}
+	if( win->mask)
+	{
+		XFreePixmap( win->display, win->mask) ;
+		win->mask = 0 ;
+	}
+	XDeleteProperty( win->display, win->my_window,
+			 XInternAtom( win->display,
+				      "_NET_WM_ICON",
+				      False)) ;
+	/* note that delete is already done anyway. 
+	   i.e. icons are removed */
+	if( !file_path || !*file_path)
+	{
+		return 0 ;
+	}
+
+	if (! x_picture_load_icon( win ,
+				   file_path,
+				   &cardinal,
+				   &icon,
+				   &mask))
+	{
+		return 0 ;
+	}
+	
+/* set extended window manager hint's icon */
+	if( *cardinal)
+	{
+	  /*it shuold be possible to set multiple icons...*/
+		XChangeProperty( win->display, win->my_window,
+				 XInternAtom( win->display,
+					      "_NET_WM_ICON",
+					      False),
+				 XA_CARDINAL, 32, PropModeReplace,
+				 (unsigned char *)(cardinal),
+				 (cardinal[0])*(cardinal[1]) +2) ; /* (cardinal[0])*(cardinal[1]) = width * height */
+		free(cardinal) ; /* not used anymore */
+	}
+/* set old style window manager hint's icon */		
+	hints = NULL ;
+	if (icon || mask)
+	{
+		hints = XAllocWMHints() ;
+	}
+	if (!hints){ /* can be NULL*/
+		XFreePixmap( win->display, icon) ;
+		XFreePixmap( win->display, mask) ;
+		return 0 ;
+	}
+	hints->flags |= IconPixmapHint ;
+	hints->flags |= IconMaskHint ;
+	hints->icon_mask = mask ;
+	hints->icon_pixmap = icon ;
+	
+	XSetWMHints( win->display, win->my_window, hints) ;
+	XFree( hints) ;
+	/* pixmaps should be freed later */
+	win->icon = icon ;
+	win->mask = mask ;
+
+	return 1 ;
 }
 
 int
