@@ -549,7 +549,9 @@ x_dnd_process_position(
 
 	if( win->dnd->source != event->xclient.data.l[0])
 	{
-		/* reject malicious drop */
+#ifdef  DEBUG
+		kik_debug_printf("WID not matched. drop rejected. \n");
+#endif
 		free( win->dnd);
 		win->dnd = NULL ;
 
@@ -569,11 +571,18 @@ x_dnd_process_drop(
 {
 
 	if( !(win->dnd))
+	{
+#ifdef  DEBUG
+		kik_debug_printf("DND session nonexistent\n");
+#endif
 		return 1 ;
+	}
 
 	if( win->dnd->source != event->xclient.data.l[0])
 	{
-		/* reject malicious drop */
+#ifdef  DEBUG
+		kik_debug_printf("WID not matched. drop rejected. \n");
+#endif
 		free( win->dnd);
 		win->dnd = NULL ;
 
@@ -603,7 +612,12 @@ x_dnd_process_incr(
 	int result ;
 
 	if( !(win->dnd))
+	{
+#ifdef  DEBUG
+		kik_debug_printf("DND session nonexistent\n");
+#endif
 		return 1 ;
+	}
 
 	/* dummy read to determine data length */
 	set_badwin_handler(1) ;
@@ -680,7 +694,9 @@ x_dnd_process_selection(
 
 	if( result != Success)
 	{
-		/* reject malicious drop */
+#ifdef  DEBUG
+		kik_debug_printf("couldn't get property. terminating DND session\n");
+#endif
 		free( win->dnd);
 		win->dnd = NULL ;
 
