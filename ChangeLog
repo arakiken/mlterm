@@ -1,3 +1,7 @@
+2002-04-24 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Added a note on older changelog information to this file.
+
 2002-04-23 Araki Ken <arakiken@users.sf.net>
 
 	* if ${srcdir} is absolute path, configure fails. fixed. 
@@ -7,4 +11,5 @@
 	* "configure ; make ; make install" process is possible in any directories
 	  other than mlterm source directory.
 	  (Thanks to Nobuyoshi Nakada san)
-	  
+	* Please read doc/en/ChangeLog.old for previous changelog information.
+	  (This term was written by Tomohiro KUBOTA in 2002-04-24.)
