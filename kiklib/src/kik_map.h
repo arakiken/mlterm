@@ -180,6 +180,9 @@ typedef struct  __ ## name ## _map \
 			/* reconstruct (map)->pairs since map_size is changed. */ \
 			for( count = 0 ; count < (map)->map_size ; count ++) \
 			{ \
+				void *  src ; \
+				void *  dst ; \
+				\
 				hash_key = (*(map)->hash_func)( (map)->pairs[count].key , new_size) ; \
 				\
 				(map)->pairs = new ; \
@@ -188,21 +191,11 @@ typedef struct  __ ## name ## _map \
 					hash_key = kik_map_rehash( hash_key , new_size) ; \
 				} \
 				\
-				if( hash_key == count) \
-				{ \
-					(map)->pairs = old ; \
-				} \
-				else \
-				{ \
-					void *  src ; \
-					void *  dst ; \
-					\
-					dst = &(map)->pairs[hash_key] ; \
-					(map)->pairs = old ; \
-					src = &(map)->pairs[count] ; \
-					memcpy( dst , src , sizeof( *(map)->pairs)) ; \
-					(map)->pairs[count].is_filled = 0 ; \
-				} \
+				dst = &(map)->pairs[hash_key] ; \
+				(map)->pairs = old ; \
+				src = &(map)->pairs[count] ; \
+				memcpy( dst , src , sizeof( *(map)->pairs)) ; \
+				(map)->pairs[count].is_filled = 0 ; \
 			} \
 			\
 			free( old) ; \

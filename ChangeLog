@@ -1,5 +1,10 @@
 2004-11-12 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* kiklib/src/kik_map.h: An expanded hash table was broken. Fixed.
+	  (#1061470)
+
+2004-11-12 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* xwindow/x_im.c, xwindow/x_im_candidate_screen.c,
 	  xwindow/x_im_candidate_screen.h, inputmethod/iiimf/im_iiimf.c,
 	  inputmethod/m17nlib/im_m17nlib.c, inputmethod/uim/im_uim.c:
