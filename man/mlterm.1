@@ -199,14 +199,6 @@ consulted when you double-clicked mlterm, to define what
 is a word.
 The default is "\fB ,.:;/@\fR")
 .TP
-\fB\-X\fR, \fB\-\-openim\fR(=\fIbool\fR)
-Connect to an XIM (X Input Method) server on startup.  Most east Asian
-people will want to enable this option.  Other people can also
-safely enable this.
-The name of the XIM server to be connected is specified by
-standard way (i.e., \fBXMODIFIERS\fR environmental variable).
-The default is \fBtrue\fR.
-.TP
 \fB\-Y\fR, \fB\-\-decsp\fR(=\fIbool\fR)
 Use dynamically composed line drawing character set.
 This overrides DEC_SPECIAL in "font" configuration file.
@@ -468,6 +460,38 @@ Specify the step of change of font size in pixel when you pushed
 "Font size larger" or "Font size smaller" button on 
 GUI configurator.
 The default is \fB1\fR.
+.TP
+\fB\-\-im\fR= \fIinput method\fR : \fB[\fR\fI arguments\fR \fB... ]\fR
+Specify input method.
+.PP
+.RS
+.B Examples:
+.TP
+--im=xim
+use XIM with the default XIM server specified by standard way (i.e.,
+\fBXMODIFIERS\fR environmental variable).
+.TP
+--im=xim:Ami
+use XIM with Ami on the system locale.
+.TP
+--im=xim:kinput2:ja_JP.EUC-JP
+use XIM with kinput2 on ja_JP.EUC-JP locale.
+.TP
+--im=uim
+use uim with the default conversion engine.
+.TP
+--im=uim:prime
+use uim with prime conversion engine.
+.TP
+--im=iiimf
+use IIIMF with the system language.
+.TP
+--im=iiimf:ar
+use IIIMF with Arabic.
+.TP
+--im=iiimf:ja:CannaLE
+use IIIMF with Japanese using CannaLE language engine.
+.RE
 .\" ********************************************************************
 .SH GUI CONFIGURATOR
 Pushing control key and mouse button 3 invokes GUI configurator
@@ -479,7 +503,7 @@ GUI configurator has five pages (Encoding, Appearance, Color,
 Scrollbar, and Others), OK/Apply/Cancel buttons, and
 three special buttons.
 .PP
-Note this feature needs GTK+ 1.2.
+Note this feature needs GTK+ 1.2 or later.
 .\" ******************************************************
 .SS Encoding page
 Encoding-related configurations are located in this page.
@@ -491,7 +515,13 @@ Specify encoding.  (\fB\-E\fR, \fB\-\-km\fR)
 ISCII language
 Specify ISCII language. (\fB\-C\fR, \fB\-\-iscii\fR) 
 .TP
-X Input Method
+Input Method
+Specify which input method to be used. (\fB\--\im\fR)
+.PP
+.RS
+.B XIM:
+.TP
+XIM Server
 Specify the name of XIM server to be connected.  You can input
 from your keyboard or you can choose one of registered XIM servers.
 This doesn't have equivalent command option.
@@ -504,6 +534,21 @@ the XIM server.  Popular XIM servers usually have acceptable
 locales to be used for connection.  If you choose registered
 XIM server in \fBInput Method\fR, this will be set automatically.
 You can also input the locale name from your keyboard.
+.PP
+.B uim:
+.TP
+Conversion engine
+Specify the name of the conversion engine to be used.
+.PP
+Note this feature needs uim library.
+.\".PP
+.\".B IIIMF:
+.\".TP
+.\"Language
+.\"Specify the language id (RFC1766) and/or the language engine to be used.
+.\".PP
+.\"Note this feature needs IIIMCF library.
+.RE
 .TP
 Bidi (UTF-8 only)
 Whether to support BiDi (bi-direction).  (\fB\-D\fR, \fB\-\-bi\fR) 
@@ -637,7 +682,7 @@ is supplied, you can freely define menu items by writing a menu
 configuration file.  See \fBMenu Configuration File\fR section
 for detail.
 .PP
-Note this feature needs GTK+ 1.2.
+Note this feature needs GTK+ 1.2 or later.
 .\" ********************************************************************
 .SH MULTIPLE XIM
 \fBmlterm\fR can use multiple XIM (X Input Method) servers.  The current
@@ -972,6 +1017,9 @@ Specify size and position of the window; see \fBX\fR(7).
 .TP
 \fBicon_name=\fIname\fR (\fB\-I\fR, \fB\-\-icon\fR) 
 Icon name.
+.TP
+\fBinput_method\fR= \fIinput method\fR : \fB[\fR\fI arguments\fR \fB... ]\fR (\fB\-\-im\fR)
+Specify input method.
 .TP
 \fBiscii_lang=\fIvalue\fR (\fB\-C\fR, \fB\-\-iscii\fR) 
 Specify iscii language.

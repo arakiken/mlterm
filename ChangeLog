@@ -1,3 +1,11 @@
+2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* man/mlterm.1:
+	- removed xim_open_in_startup.
+	- added input_method and --im.
+	- 'GTK+ 1.2' -> 'GTK+ 1.2 or later'.
+	- added 'Input Method' into 'GUI CONFIGURATOR' section.
+
 2004-09-10 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* README, doc/ja/README.ja:
@@ -6,7 +14,7 @@
 	- added --enable-dnd, --enable-uim and --enable-iiimf.
 	- reformatted to fit in 80 columns.
 
-	* LICENCE: updated. (The contents are not changed)
+	* LICENCE: updated. (Contents are not changed)
 
 	* kiklib/configure.in:
 	applied SuSE's patches(mlterm-configure.patch).
