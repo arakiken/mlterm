@@ -544,10 +544,13 @@ xksym_to_iiimfkey(
 	case  XK_Delete:
 		*kcode =  IIIMF_KEYCODE_DELETE ;
 		break ;
-	/* TODO:
+
+	/*
+	 * TODO:
 	 * - International & multi-key character composition
 	 * - Japanese keyboard support
 	 */
+
 	/* Cursor control & motion */
 	case XK_Home:
 		*kcode = IIIMF_KEYCODE_HOME ;
@@ -578,17 +581,223 @@ xksym_to_iiimfkey(
 	case XK_Begin:
 		*kcode = IIIMF_KEYCODE_UNDEFINED ;
 		break ;
+
 	/*
 	 * TODO
 	 * - Misc Functions
-	 * - Keypad Functions, keypad numbers cleverly chosen to map to ascii
-	 * - Auxilliary Functions
+	 */
+
+	/* - Keypad Functions, keypad numbers cleverly chosen to map to ascii */
+	case XK_KP_Space:
+		*kcode = IIIMF_KEYCODE_SPACE ;
+		break ;
+	case XK_KP_Tab:
+		*kcode = IIIMF_KEYCODE_TAB ;
+		break ;
+	case XK_KP_Enter:
+		*kcode = IIIMF_KEYCODE_ENTER ;
+		break ;
+	case XK_KP_F1:
+		*kcode = IIIMF_KEYCODE_F1 ;
+		break ;
+	case XK_KP_F2:
+		*kcode = IIIMF_KEYCODE_F2 ;
+		break ;
+	case XK_KP_F3:
+		*kcode = IIIMF_KEYCODE_F3 ;
+		break ;
+	case XK_KP_F4:
+		*kcode = IIIMF_KEYCODE_F4 ;
+		break ;
+	case XK_KP_Home:
+		*kcode = IIIMF_KEYCODE_HOME ;
+		break ;
+	case XK_KP_Left:
+		*kcode = IIIMF_KEYCODE_LEFT ;
+		break ;
+	case XK_KP_Up:
+		*kcode = IIIMF_KEYCODE_UP ;
+		break ;
+	case XK_KP_Right:
+		*kcode = IIIMF_KEYCODE_RIGHT ;
+		break ;
+	case XK_KP_Down:
+		*kcode = IIIMF_KEYCODE_DOWN ;
+		break ;
+	case XK_KP_Prior:
+/*	case XK_KP_Page_Up: */
+		*kcode = IIIMF_KEYCODE_PAGE_UP ;
+		break ;
+	case XK_KP_Next:
+/*	case XK_KP_Page_Down: */
+		*kcode = IIIMF_KEYCODE_PAGE_DOWN ;
+		break ;
+	case XK_KP_End:
+		*kcode = IIIMF_KEYCODE_END ;
+		break ;
+#if  0
+	case XK_KP_Begin:
+	case XK_KP_Insert:
+		*kcode = IIIMF_KEYCODE_UNDEFINED ;
+		break ;
+#endif
+	case XK_KP_Delete:
+		*kcode =  IIIMF_KEYCODE_DELETE ;
+		break ;
+	case XK_KP_Equal:
+		*kcode = IIIMF_KEYCODE_EQUALS ; /* XXX */
+		*kchar = 0x003d ;
+		break ;
+#if  0
+	case XK_KP_Multiply:
+	case XK_KP_Add:
+	case XK_KP_Separator:
+	case XK_KP_Subtract:
+	case XK_KP_Decimal:
+	case XK_KP_Divide:
+		*kcode = IIIMF_KEYCODE_UNDEFINED ;
+		break ;
+#endif
+	case XK_KP_0:
+		*kcode = IIIMF_KEYCODE_0 ;
+		*kchar = 0x0030 ;
+		break ;
+	case XK_KP_1:
+		*kcode = IIIMF_KEYCODE_1 ;
+		*kchar = 0x0031 ;
+		break ;
+	case XK_KP_2:
+		*kcode = IIIMF_KEYCODE_2 ;
+		*kchar = 0x0032 ;
+		break ;
+	case XK_KP_3:
+		*kcode = IIIMF_KEYCODE_3 ;
+		*kchar = 0x0033 ;
+		break ;
+	case XK_KP_4:
+		*kcode = IIIMF_KEYCODE_4 ;
+		*kchar = 0x0034 ;
+		break ;
+	case XK_KP_5:
+		*kcode = IIIMF_KEYCODE_5 ;
+		*kchar = 0x0035 ;
+		break ;
+	case XK_KP_6:
+		*kcode = IIIMF_KEYCODE_6 ;
+		*kchar = 0x0036 ;
+		break ;
+	case XK_KP_7:
+		*kcode = IIIMF_KEYCODE_7 ;
+		*kchar = 0x0037 ;
+		break ;
+	case XK_KP_8:
+		*kcode = IIIMF_KEYCODE_8 ;
+		*kchar = 0x0038 ;
+		break ;
+	case XK_KP_9:
+		*kcode = IIIMF_KEYCODE_9 ;
+		*kchar = 0x0039 ;
+		break ;
+
+	/* Auxiliary Functions */
+	case XK_F1:
+		*kcode = IIIMF_KEYCODE_F1 ;
+		break ;
+	case XK_F2:
+		*kcode = IIIMF_KEYCODE_F2 ;
+		break ;
+	case XK_F3:
+		*kcode = IIIMF_KEYCODE_F3 ;
+		break ;
+	case XK_F4:
+		*kcode = IIIMF_KEYCODE_F4 ;
+		break ;
+	case XK_F5:
+		*kcode = IIIMF_KEYCODE_F5 ;
+		break ;
+	case XK_F6:
+		*kcode = IIIMF_KEYCODE_F6 ;
+		break ;
+	case XK_F7:
+		*kcode = IIIMF_KEYCODE_F7 ;
+		break ;
+	case XK_F8:
+		*kcode = IIIMF_KEYCODE_F8 ;
+		break ;
+	case XK_F9:
+		*kcode = IIIMF_KEYCODE_F9 ;
+		break ;
+	case XK_F10:
+		*kcode = IIIMF_KEYCODE_F10 ;
+		break ;
+	case XK_F11:
+/*	case XK_L1: */
+		*kcode = IIIMF_KEYCODE_F11 ;
+		break ;
+	case XK_F12:
+/* 	case XK_L2: */
+		*kcode = IIIMF_KEYCODE_F12 ;
+		break ;
+#if  0
+	case XK_F13:
+	case XK_L3:
+	case XK_F14:
+	case XK_L4:
+	case XK_F15:
+	case XK_L5:
+	case XK_F16:
+	case XK_L6:
+	case XK_F17:
+	case XK_L7:
+	case XK_F18:
+	case XK_L8:
+	case XK_F19:
+	case XK_L9:
+	case XK_F20:
+	case XK_L10:
+	case XK_F21:
+	case XK_R1:
+	case XK_F22:
+	case XK_R2:
+	case XK_F23:
+	case XK_R3:
+	case XK_F24:
+	case XK_R4:
+	case XK_F25:
+	case XK_R5:
+	case XK_F26:
+	case XK_R6:
+	case XK_F27:
+	case XK_R7:
+	case XK_F28:
+	case XK_R8:
+	case XK_F29:
+	case XK_R9:
+	case XK_F30:
+	case XK_R10:
+	case XK_F31:
+	case XK_R11:
+	case XK_F32:
+	case XK_R12:
+	case XK_F33:
+	case XK_R13:
+	case XK_F34:
+	case XK_R14:
+	case XK_F35:
+	case XK_R15:
+		*kcode = IIIMF_KEYCODE_UNDEFINED ;
+		break ;
+#endif
+
+	/*
+	 * TODO
 	 * - Modifiers
 	 * - ISO 9995 Function and Modifier Keys
 	 * - 3270 Terminal Keys
 	 */
+
 	default:
-		*kcode =  IIIMF_KEYCODE_UNDEFINED ;
+		*kcode = IIIMF_KEYCODE_UNDEFINED ;
 		return  0 ;
 	}
 

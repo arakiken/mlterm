@@ -708,6 +708,11 @@ lookup_choice_change(
 	kik_debug_printf( KIK_DEBUG_TAG "col:           %d\n" , col) ;
 #endif
 
+	if( num_per_window == 0) /* for Wnn8 */
+	{
+		num_per_window = 10 ;
+	}
+
 	if( index_first == 0 && index_last == 0)
 	{
 		return ;

@@ -324,6 +324,8 @@ int  x_set_icon_name( x_window_t *  win , u_char *  name) ;
 
 int  x_window_set_icon( x_window_t *  win , Pixmap  icon , Pixmap  mask , u_int32_t *  cardinal) ;
 
+int x_window_remove_icon( x_window_t *  win) ;
+
 int  x_window_set_icon_from_file( x_window_t *  win , char *  path) ;
 
 int  x_window_get_visible_geometry( x_window_t *  win ,

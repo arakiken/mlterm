@@ -3639,11 +3639,7 @@ change_char_encoding(
 
 	if( screen->im)
 	{
-		x_im_delete( screen->im) ;
-
-		screen->im = x_im_new( encoding , &screen->im_listener ,
-				       screen->input_method ,
-				       screen->mod_ignore_mask) ;
+		change_im( screen , kik_str_alloca_dup( screen->input_method)) ;
 	}
 }
 

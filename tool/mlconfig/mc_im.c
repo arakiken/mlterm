@@ -41,22 +41,24 @@
 
 KIK_MAP_TYPEDEF(xim_locale, char*, char*);
 
+#define IM_MAX  20
+
 typedef enum im_type {
-	IM_XIM,
-	IM_NONE,
-	IM_OTHER,
-	
-	IM_TYPE_MAX
+	IM_NONE = 0,
+	IM_XIM = 1,
+	IM_OTHER = 2,
+
+	IM_TYPE_MAX = IM_MAX
 
 } im_type_t ;
 
 typedef im_info_t* (*im_get_info_func_t)(char *, char *);
 
-#define MAX_IM_INFO 6
 
 /* --- static variables --- */
 
-static im_type_t im_type ;
+static im_type_t im_type;
+static im_type_t cur_im_type;
 
 static char **xims;
 static char **locales;
@@ -69,12 +71,12 @@ static char current_locale_str[STR_LEN] = "";
 static char selected_xim_name[STR_LEN] = "";
 static char selected_xim_locale[STR_LEN] = "";
 
-static im_info_t *im_info_table[MAX_IM_INFO];
+static im_info_t *im_info_table[IM_MAX];
 static u_int  num_of_info = 0;
 static im_info_t *selected_im = NULL;
-static int selected_im_arg = 0;
+static int selected_im_arg = -1 ;
 
-static GtkWidget *im_opt_widget[MAX_IM_INFO];
+static GtkWidget *im_opt_widget[IM_MAX];
 
 /* --- static functions --- */
 
@@ -140,17 +142,6 @@ get_im_info(char *locale, char *encoding)
 /*
  * XIM
  */
-
-static gint
-locale_changed(GtkWidget *widget, gpointer data)
-{
-	is_changed = 1;
-
-	snprintf(selected_xim_locale, STR_LEN,
-		 gtk_entry_get_text(GTK_ENTRY(widget)));
-
-	return 1;
-}
 
 static char *
 get_xim_locale(char *xim)
@@ -431,7 +422,7 @@ button_im_checked(GtkWidget *widget, gpointer  data)
 				idx = i;
 
 		if (GTK_TOGGLE_BUTTON(widget)->active) {
-			im_type = IM_OTHER;
+			im_type = IM_OTHER + idx;
 			selected_im = data;
 			if (im_opt_widget[idx])
 				gtk_widget_show(GTK_WIDGET(im_opt_widget[idx]));
@@ -476,22 +467,23 @@ mc_im_config_widget_new(void)
 
 	p = kik_str_sep(&value, ":");
 
+	im_type = IM_NONE ;
 	if (strncmp(p, "xim", 3) == 0) {
 		im_type = IM_XIM;
 		xim_name = kik_str_sep(&value, ":");
 		xim_locale = kik_str_sep(&value, ":");
 	} else if (strncmp(p, "none", 4) == 0) {
-		im_type = IM_NONE;
+		/* do nothing */
 	} else {
-		im_type = IM_NONE;
 		for (i = 0; i < num_of_info; i++) {
 			if (strcmp(p, im_info_table[i]->id) == 0) {
 				index = i;
-				im_type = IM_OTHER;
+				im_type = IM_OTHER + i;
 				break;
 			}
 		}
 	}
+	cur_im_type = im_type ;
 
 	xim = xim_widget_new(xim_name, xim_locale, cur_locale);
 	for (i = 0; i < num_of_info; i++) {
@@ -529,7 +521,7 @@ mc_im_config_widget_new(void)
 				   im_info_table[i]);
 		gtk_widget_show(GTK_WIDGET(radio));
 		gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
-		if (im_type == IM_OTHER && index == i)
+		if (im_type >= IM_OTHER && index == i)
 			gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio) ,
 						    TRUE);
 	}
@@ -559,7 +551,7 @@ mc_im_config_widget_new(void)
 			if (im_opt_widget[i])
 				gtk_widget_hide(im_opt_widget[i]);
 		break;
-	case IM_OTHER:
+	default: /* OTHER */
 		gtk_widget_hide(xim);
 		for (i = 0; i < num_of_info; i++) {
 			if (!im_opt_widget[i])
@@ -570,8 +562,6 @@ mc_im_config_widget_new(void)
 			else
 				gtk_widget_hide(im_opt_widget[i]);
 		}
-		break;
-	default:
 		break;
 	}
 
@@ -584,6 +574,8 @@ mc_im_config_widget_new(void)
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
 
+	is_changed = 0 ;
+
 	return frame;
 }
 
@@ -593,7 +585,18 @@ mc_update_im(void)
 	char *p;
 	size_t len;
 
-	if (!is_changed) return;
+	if (!is_changed)
+		return;
+
+	if (im_type == cur_im_type && selected_im_arg == -1) {
+		is_changed = 0;
+		return;
+	}
+
+	if (selected_im_arg == -1) {
+		is_changed = 0;
+		selected_im_arg = 0 ;
+	}
 
 	switch (im_type) {
 	case IM_XIM:
@@ -609,7 +612,11 @@ mc_update_im(void)
 			sprintf(p, "xim:%s:%s", selected_xim_name, selected_xim_locale);
 		}
 		break;
-	case IM_OTHER:
+	case IM_NONE:
+		p = strdup("none");
+		break;
+	/* case IM_OTHER: */
+	default:
 		if (selected_im == NULL) return;
 		if (selected_im_arg == 0) { /* auto */
 			p = strdup(selected_im->id);
@@ -621,16 +628,14 @@ mc_update_im(void)
 				selected_im->args[selected_im_arg]);
 		}
 		break;
-	case IM_NONE:
-	default:
-		p = strdup("none");
-		break;
 	}
 
 	mc_set_str_value("input_method", p);
 
-	free(p);
-
+	selected_im_arg = -1;
+	cur_im_type = im_type;
 	is_changed = 0;
+
+	free(p);
 }
 

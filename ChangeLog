@@ -1,7 +1,22 @@
+2005-03-02 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* xwindow/x_window.h: added x_window_remove_icon().
+	* xwindow/x_screen.c (change_char_encoding): use change_im().
+
+	* inputmethod/uim/im_uim.c:
+	  - removed unnecessary #ifdef. (Thanks to Etsushi Kato)
+	  - code cleanup.
+
+	* inputmethod/iiimf/im_iiimf.c: fixed a segfault when using Wnn8.
+	* inputmethod/iiimf/keymap.c: added key mappings for auxiliary
+	functions (XK_F*) and keypad (XK_KP_*).
+
+	* tool/mlconfig/mc_im.c: minor code cleaup.
+
 2005-03-01 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/uim/im_uim.c:
-	  - applied a patch from Etsushi Kato. (for focuse problem)
+	  - applied a patch from Etsushi Kato. (for focus problem)
 	  - get rid of compiler warning.
 	  - allow to work with uim-0.3.8.
 
@@ -16,7 +31,7 @@
 
 	* contrib/scrollbar/extra/exsb_comon.c:
 	  - removed.
-	  - To avoid multiple definitions problem on Mac OX X, exsb_get_pixel()
+	  - To avoid multiple definitions problem on Mac OS X, exsb_get_pixel()
 	    was moved to exsb_comon.h as static function.
 
 	* contrib/scrollbar/extra/Makefile.in: removed exsb_common.o
