@@ -387,7 +387,6 @@ bidi_visual(
 	)
 {
 	int  row ;
-	u_int  cols_rest ;
 
 	if( logvis->is_visual)
 	{
@@ -398,8 +397,6 @@ bidi_visual(
 	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
 		logvis->cursor->char_index , logvis->cursor->col , logvis->cursor->row) ;
 #endif
-
-	ml_convert_col_to_char_index( CURSOR_LINE(logvis) , &cols_rest , logvis->cursor->col , 0) ;
 
 	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
 	{
@@ -417,8 +414,14 @@ bidi_visual(
 	logvis->cursor->char_index = ml_bidi_convert_logical_char_index_to_visual(
 					CURSOR_LINE(logvis) , logvis->cursor->char_index ,
 					&((bidi_logical_visual_t*)logvis)->ltr_rtl_meet_pos) ;
+	/*
+	 * XXX
+	 * col_in_char should not be plused to col, because the character pointed by
+	 * ml_bidi_convert_logical_char_index_to_visual() is not the same as the one
+	 * in logical order.
+	 */
 	logvis->cursor->col = ml_convert_char_index_to_col( CURSOR_LINE(logvis) ,
-					logvis->cursor->char_index , 0) + cols_rest ;
+					logvis->cursor->char_index , 0) + logvis->cursor->col_in_char ;
 
 #ifdef  CURSOR_DEBUG
 	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
@@ -572,7 +575,6 @@ comb_visual(
 	)
 {
 	int  row ;
-	u_int  cols_rest ;
 
 	if( logvis->is_visual)
 	{
@@ -582,8 +584,6 @@ comb_visual(
 	((comb_logical_visual_t*)logvis)->cursor_logical_char_index = logvis->cursor->char_index ;
 	((comb_logical_visual_t*)logvis)->cursor_logical_col = logvis->cursor->col ;
 	
-	ml_convert_col_to_char_index( CURSOR_LINE(logvis) , &cols_rest , logvis->cursor->col , 0) ;
-
 	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
 	{
 		ml_line_t *  line ;
@@ -643,7 +643,8 @@ comb_visual(
 			{
 				logvis->cursor->char_index = dst_pos - 1 ;
 				logvis->cursor->col = ml_convert_char_index_to_col( CURSOR_LINE(logvis) ,
-							logvis->cursor->char_index , 0) + cols_rest ;
+							logvis->cursor->char_index , 0) +
+							logvis->cursor->col_in_char ;
 			}
 
 			prev2 = prev ;
@@ -906,7 +907,6 @@ iscii_visual(
 	iscii_logical_visual_t *  iscii_logvis ;
 	ml_line_t *  line ;
 	int  row ;
-	int  cols_rest ;
 
 	if( logvis->is_visual)
 	{
@@ -969,8 +969,6 @@ iscii_visual(
 
 		iscii_logvis->logical_num_of_cols = logvis->model->num_of_cols ;
 	}
-	
-	ml_convert_col_to_char_index( CURSOR_LINE(logvis) , &cols_rest , logvis->cursor->col , 0) ;
 	
 	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
 	{
@@ -1043,7 +1041,7 @@ iscii_visual(
 	logvis->cursor->char_index = ml_iscii_convert_logical_char_index_to_visual(
 					CURSOR_LINE(logvis) , logvis->cursor->char_index) ;
 	logvis->cursor->col = ml_convert_char_index_to_col( CURSOR_LINE(logvis) ,
-				logvis->cursor->char_index , 0) + cols_rest ;
+				logvis->cursor->char_index , 0) + logvis->cursor->col_in_char ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d]\n" ,

@@ -1,3 +1,9 @@
+2002-11-07 Araki Ken <arakiken@users.sf.net>
+
+	* Default screen size is 80x24 instead of 80x30.
+	  (Thanks to Sato Seiichi san)
+	* Performance tuning of ml_edit.c.
+
 2002-11-06  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
 
 	* GBK parser became more robust againt invalid input.

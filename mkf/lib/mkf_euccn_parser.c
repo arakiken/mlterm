@@ -107,21 +107,25 @@ gbk_parser_next_char_intern(
 		}
 
 		ch->ch[0] = bytes[0] ;
-		if (*parser->str < 0x40) 
+		
+		if( *parser->str < 0x40) 
 		{
-			ch->cs = US_ASCII ;
-			ch->size = 1 ;
-		}
-		else
-		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG
+				" illegal GBK format. %.2x%.2x (maybe the 1st-2nd byte of GBK)"
+				" is discarded.\n" ,
+				bytes[0] , *parser->str) ;
+		#endif
 
-			ch->ch[1] = *parser->str ;
-			ch->size = 2 ;
-			ch->cs = GBK ;
-			mkf_parser_increment( parser) ;
+			return  0 ;
 		}
+		
+		ch->ch[1] = *parser->str ;
+		ch->size = 2 ;
+		ch->cs = GBK ;
 		ch->property = 0 ;
-
+		
+		mkf_parser_increment( parser) ;
 
 		return  1 ;
 
@@ -139,7 +143,8 @@ gbk_parser_next_char_intern(
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
-				" illegal GBK format. %.2x%.2x%.2x (maybe the 1-3 byte of GBK) is discarded.\n" ,
+				" illegal GBK format. %.2x%.2x%.2x (maybe the 1st-3th byte of GBK)"
+				" is discarded.\n" ,
 				bytes[0] , bytes[1] , *parser->str) ;
 		#endif
 

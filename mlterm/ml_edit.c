@@ -118,10 +118,10 @@ cursor_goto_intern(
 
 	edit->cursor.char_index = char_index ;
 	edit->cursor.row = row ;
-	
+	edit->cursor.col_in_char = cols_rest ;
 	edit->cursor.col =
 		ml_convert_char_index_to_col( CURSOR_LINE(edit) , edit->cursor.char_index , 0)
-		+ cols_rest ;
+		+ edit->cursor.col_in_char ;
 
 	return  1 ;
 }
@@ -178,7 +178,6 @@ insert_chars(
 	u_int  filled_len ;
 	u_int  filled_cols ;
 	u_int  last_index ;
-	u_int  cols_rest ;
 	u_int  cols_after ;
 	int  count ;
 	ml_line_t *  cursor_line ;
@@ -207,25 +206,24 @@ insert_chars(
 	 * before cursor(excluding cursor)
 	 */
 	 
-	ml_convert_col_to_char_index( cursor_line , &cols_rest , edit->cursor.col , 0) ;
-	if( cols_rest)
+	if( edit->cursor.col_in_char)
 	{
 	#ifdef  DEBUG
-		if( ml_char_cols( CURSOR_CHAR(edit)) <= cols_rest)
+		if( ml_char_cols( CURSOR_CHAR(edit)) <= edit->cursor.col_in_char)
 		{
-			kik_warn_printf( KIK_DEBUG_TAG " illegal cols_rest.\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " illegal col_in_char.\n") ;
 		}
 	#endif
 	
 		/*
 		 * padding spaces for former half of cursor.
 		 */
-		for( count = 0 ; count < cols_rest ; count ++)
+		for( count = 0 ; count < edit->cursor.col_in_char ; count ++)
 		{
 			ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
 		}
 
-		cols_after = ml_char_cols( CURSOR_CHAR(edit)) - cols_rest ;
+		cols_after = ml_char_cols( CURSOR_CHAR(edit)) - edit->cursor.col_in_char ;
 	}
 	else
 	{
@@ -328,9 +326,9 @@ line_full:
 		cursor_goto_by_char_index( edit , edit->cursor.char_index + last_index ,
 			edit->cursor.row , BREAK_BOUNDARY) ;
 	}
-	else if( cols_rest)
+	else if( edit->cursor.col_in_char)
 	{
-		cursor_goto_by_char_index( edit , edit->cursor.char_index + cols_rest ,
+		cursor_goto_by_char_index( edit , edit->cursor.char_index + edit->cursor.col_in_char ,
 			edit->cursor.row , BREAK_BOUNDARY) ;
 	}
 
@@ -349,7 +347,6 @@ clear_cols(
 	int  use_bce
 	)
 {
-	u_int  cols_rest ;
 	ml_line_t *  cursor_line ;
 	
 	if( edit->cursor.col + cols >= edit->model.num_of_cols)
@@ -366,11 +363,11 @@ clear_cols(
 
 	cursor_line = CURSOR_LINE(edit) ;
 
-	ml_convert_col_to_char_index( cursor_line , &cols_rest , edit->cursor.col , 0) ;
-	if( cols_rest)
+	if( edit->cursor.col_in_char)
 	{
-		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index , cols_rest) ;
-		edit->cursor.char_index += cols_rest ;
+		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
+			edit->cursor.col_in_char) ;
+		edit->cursor.char_index += edit->cursor.col_in_char ;
 	}
 
 	if( use_bce)
@@ -493,6 +490,7 @@ ml_edit_init(
 	edit->cursor.row = 0 ;
 	edit->cursor.char_index = 0 ;
 	edit->cursor.col = 0 ;
+	edit->cursor.col_in_char = 0 ;
 	edit->cursor.orig_fg = ML_BG_COLOR ;
 	edit->cursor.orig_bg = ML_FG_COLOR ;
 	edit->cursor.is_highlighted = 0 ;
@@ -663,7 +661,6 @@ ml_edit_overwrite_chars(
 	ml_char_t *  buffer ;
 	u_int  buf_len ;
 	u_int  filled_len ;
-	int  cols_rest ;
 	ml_line_t *  line ;
 	int  beg ;
 	u_int  cols ;
@@ -689,15 +686,14 @@ ml_edit_overwrite_chars(
 
 	/* before cursor(excluding cursor) */
 	
-	ml_convert_col_to_char_index( line , &cols_rest , edit->cursor.col , 0) ;
-	if( cols_rest)
+	if( edit->cursor.col_in_char)
 	{
 		int  count ;
 
 		/*
 		 * padding spaces before cursor.
 		 */
-		for( count = 0 ; count < cols_rest ; count ++)
+		for( count = 0 ; count < edit->cursor.col_in_char ; count ++)
 		{
 			ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
 		}
@@ -809,7 +805,6 @@ ml_edit_delete_cols(
 	ml_char_t *  buffer ;
 	u_int  buf_len ;
 	u_int  filled_len ;
-	int  cols_rest ;
 	ml_line_t *  cursor_line ;
 
 #ifdef  CURSOR_DEBUG
@@ -853,25 +848,24 @@ ml_edit_delete_cols(
 
 	/* before cursor(including cursor) */
 
-	ml_convert_col_to_char_index( cursor_line , &cols_rest , edit->cursor.col , 0) ;
-	if( cols_rest)
+	if( edit->cursor.col_in_char)
 	{
 		int  cols_after ;
 		int  count ;
 
 	#ifdef  DEBUG
-		if( ml_char_cols( CURSOR_CHAR(edit)) <= cols_rest)
+		if( ml_char_cols( CURSOR_CHAR(edit)) <= edit->cursor.col_in_char)
 		{
-			kik_warn_printf( KIK_DEBUG_TAG " illegal cols_rest.\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " illegal col_in_char.\n") ;
 		}
 	#endif
 	
-		cols_after = ml_char_cols( CURSOR_CHAR(edit)) - cols_rest ;
+		cols_after = ml_char_cols( CURSOR_CHAR(edit)) - edit->cursor.col_in_char ;
 		
 		/*
 		 * padding spaces before cursor.
 		 */
-		for( count = 0 ; count < cols_rest ; count ++)
+		for( count = 0 ; count < edit->cursor.col_in_char ; count ++)
 		{
 			ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
 		}
@@ -934,9 +928,9 @@ ml_edit_delete_cols(
 
 	ml_str_final( buffer , buf_len) ;
 
-	if( cols_rest)
+	if( edit->cursor.col_in_char)
 	{
-		cursor_goto_by_char_index( edit , edit->cursor.char_index + cols_rest ,
+		cursor_goto_by_char_index( edit , edit->cursor.char_index + edit->cursor.col_in_char ,
 			edit->cursor.row , BREAK_BOUNDARY) ;
 	}
 
@@ -1027,24 +1021,22 @@ ml_edit_clear_line_to_right(
 	ml_edit_t *  edit
 	)
 {
-	int  cols_rest ;
 	ml_line_t *  cursor_line ;
 
 	reset_wraparound_checker( edit) ;
 
 	cursor_line = CURSOR_LINE(edit) ;
 
-	ml_convert_col_to_char_index( cursor_line , &cols_rest , edit->cursor.col , 0) ;
-	if( cols_rest)
+	if( edit->cursor.col_in_char)
 	{
 		int  count ;
 
-		if( edit->cursor.char_index + cols_rest >= cursor_line->num_of_filled_chars)
+		if( edit->cursor.char_index + edit->cursor.col_in_char >= cursor_line->num_of_filled_chars)
 		{
 			u_int  size ;
 			u_int  actual_size ;
 
-			size = edit->cursor.char_index + cols_rest -
+			size = edit->cursor.char_index + edit->cursor.col_in_char -
 				cursor_line->num_of_filled_chars + 1 ;
 
 			actual_size = ml_line_break_boundary( cursor_line , size) ;
@@ -1054,13 +1046,13 @@ ml_edit_clear_line_to_right(
 				kik_warn_printf( KIK_DEBUG_TAG " ml_line_break_boundary() failed.\n") ;
 			#endif
 			
-				if( size - actual_size > cols_rest)
+				if( size - actual_size > edit->cursor.col_in_char)
 				{
-					cols_rest = 0 ;
+					edit->cursor.col_in_char = 0 ;
 				}
 				else
 				{
-					cols_rest -= (size - actual_size) ;
+					edit->cursor.col_in_char -= (size - actual_size) ;
 				}
 			}
 		}
@@ -1068,10 +1060,11 @@ ml_edit_clear_line_to_right(
 		/*
 		 * padding spaces.
 		 *
-		 * if cols_rest is over 1 , the next char of cursor is overwritten(cleared) by sp_ch ,
-		 * but in any event it will be cleared in ml_edit_clear_line() , so it doesn't do harm.
+		 * if edit->cursor.col_in_char is over 1 , the next char of cursor is
+		 * overwritten(cleared) by sp_ch, but in any event it will be cleared
+		 * in ml_edit_clear_line() , so it doesn't do harm.
 		 */
-		for( count = 0 ; count < cols_rest ; count ++)
+		for( count = 0 ; count < edit->cursor.col_in_char ; count ++)
 		{
 			ml_char_copy( CURSOR_CHAR(edit) , ml_sp_ch()) ;
 			edit->cursor.char_index ++ ;
@@ -1088,18 +1081,17 @@ ml_edit_clear_line_to_right_bce(
 {
 	int  cols ;
 	int  char_index ;
-	u_int  cols_rest ;
 	ml_line_t *  cursor_line ;
 
 	reset_wraparound_checker( edit) ;
 
 	cursor_line = CURSOR_LINE(edit) ;
 	
-	ml_convert_col_to_char_index( cursor_line , &cols_rest , edit->cursor.col , 0) ;
-	if( cols_rest)
+	if( edit->cursor.col_in_char)
 	{
-		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index , cols_rest) ;
-		edit->cursor.char_index += cols_rest ;
+		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
+			edit->cursor.col_in_char) ;
+		edit->cursor.char_index += edit->cursor.col_in_char ;
 	}
 
 	char_index = edit->cursor.char_index ;
@@ -1531,8 +1523,6 @@ ml_edit_go_forward(
 	int  flag		/* WARPAROUND | SCROLL | BREAK_BOUNDARY */
 	)
 {
-	int  cols_rest ;
-	
 #ifdef  CURSOR_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " going forward from char index %d col %d row %d, then ->" ,
 		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
@@ -1544,15 +1534,14 @@ ml_edit_go_forward(
 	 * full width char check.
 	 */
 
-	ml_convert_col_to_char_index( CURSOR_LINE(edit) , &cols_rest ,
-		K_MIN(edit->model.num_of_cols - 1,edit->cursor.col + 1) , flag & BREAK_BOUNDARY) ;
-	if( cols_rest)
+	if( edit->cursor.col_in_char + 1 < ml_char_cols( CURSOR_CHAR(edit)))
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " cursor is at 2nd byte of multi byte char.\n") ;
 	#endif
 
 		edit->cursor.col ++ ;
+		edit->cursor.col_in_char ++ ;
 
 		return  1 ;
 	}
@@ -1616,6 +1605,7 @@ ml_edit_go_forward(
 end:
 	edit->cursor.col =
 		ml_convert_char_index_to_col( CURSOR_LINE(edit) , edit->cursor.char_index , 0) ;
+	edit->cursor.col_in_char = 0 ;
 
 #ifdef  CURSOR_DEBUG
 	kik_msg_printf( "-> char index %d col %d row %d\n" ,
@@ -1631,8 +1621,6 @@ ml_edit_go_back(
 	int  flag		/* WRAPAROUND | SCROLL */
 	)
 {
-	int  cols_rest ;
-	
 #ifdef  CURSOR_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " going back from char index %d col %d row %d ->" ,
 		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
@@ -1653,14 +1641,14 @@ ml_edit_go_back(
 	 * full width char check.
 	 */
 	 
-	ml_convert_col_to_char_index( CURSOR_LINE(edit) , &cols_rest , edit->cursor.col , 0) ;
-	if( cols_rest)
+	if( edit->cursor.col_in_char)
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " cursor is at 2nd byte of multi byte char.\n") ;
 	#endif
 	
 		edit->cursor.col -- ;
+		edit->cursor.col_in_char -- ;
 
 		return  1 ;
 	}
@@ -1702,9 +1690,10 @@ ml_edit_go_back(
 		edit->cursor.char_index -- ;
 	}
 
+	edit->cursor.col_in_char = ml_char_cols( CURSOR_CHAR(edit)) - 1 ;
 	edit->cursor.col =
-		ml_convert_char_index_to_col( CURSOR_LINE(edit) , edit->cursor.char_index , 0) ;
-	edit->cursor.col += (ml_char_cols( CURSOR_CHAR(edit)) - 1) ;
+		ml_convert_char_index_to_col( CURSOR_LINE(edit) , edit->cursor.char_index , 0)
+		+ edit->cursor.col_in_char ;
 
 #ifdef  CURSOR_DEBUG
 	kik_msg_printf( " to char index %d col %d row %d\n" ,

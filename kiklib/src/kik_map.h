@@ -156,7 +156,11 @@ typedef struct  __ ## name ## _map \
 		else \
 		{ \
 			/* \
-			 * expanding map by DEFAULT_MAP_SIZE \
+			 * Expanding map by DEFAULT_MAP_SIZE \
+			 * \
+			 * XXX \
+			 * This processing makes the cost of kik_map_get() O(n) \
+			 * since a hash key of each map entry becomes inefficient. \
 			 */ \
 			\
 			u_int  new_size ; \
@@ -243,6 +247,10 @@ typedef struct  __ ## name ## _map \
 		{ \
 			/* \
 			 * shrinking map by DEFAULT_MAP_SIZE \
+			 * \
+			 * XXX \
+			 * This processing makes the cost of kik_map_get() O(n) \
+			 * since a hash key of each map entry becomes inefficient. \
 			 */ \
 			\
 			u_int  new_size ; \

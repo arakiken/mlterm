@@ -17,6 +17,7 @@ typedef struct  ml_cursor
 	int  row ;
 	int  char_index ;
 	int  col ;
+	int  col_in_char ;
 	
 	ml_color_t  orig_fg ;
 	ml_color_t  orig_bg ;

@@ -885,7 +885,7 @@ get_min_conf(
 	kik_conf_add_opt( conf , 'f' , "fg" , 0 , "fg_color" , 
 		"foreground color") ;
 	kik_conf_add_opt( conf , 'g' , "geometry" , 0 , "geometry" , 
-		"size (in characters) and position [80x30]") ;
+		"size (in characters) and position [80x24]") ;
 	kik_conf_add_opt( conf , 'k' , "meta" , 0 , "mod_meta_mode" , 
 		"mode in pressing meta key [none/esc/8bit]") ;
 	kik_conf_add_opt( conf , 'l' , "sl" , 0 , "logsize" , 
@@ -1117,7 +1117,7 @@ config_init(
 	main_config.x = 0 ;
 	main_config.y = 0 ;
 	main_config.cols = 80 ;
-	main_config.rows = 30 ;
+	main_config.rows = 24 ;
 	if( ( value = kik_conf_get_value( conf , "geometry")))
 	{
 		/* For each value not found, the argument is left unchanged.(see man XParseGeometry(3)) */
@@ -1129,7 +1129,7 @@ config_init(
 			kik_msg_printf( "geometry option %s is illegal.\n" , value) ;
 			
 			main_config.cols = 80 ;
-			main_config.rows = 30 ;
+			main_config.rows = 24 ;
 		}
 	}
 	else
