@@ -1,4 +1,9 @@
-2002-05-14  Araki Ken <arakiken@users.sf.net>
+2002-05-14 Araki Ken <arakiken@users.sf.net>
+
+        * change of fade ratio, fg color and bg color was not reflected soon. fixed.
+	* fg color and bg color are not highlighted by "\E[1m".
+ 
+2002-05-14 Araki Ken <arakiken@users.sf.net>
 
 	* vt100 core functions and GUI(x window system) functions are separated.
 	  (vt100 core functions doesn't depend on any UI)
