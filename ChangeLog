@@ -1,3 +1,11 @@
+[20011215]
+* ESC H (set tab) ESC [ 0 g (clear tab) ESC [ 3 g (clear all tabs) are supported.
+* Big5HKSCS encoding/charset is supported.
+* US ASCII font is not changed when encoding is changed to ISO8859 variant or UTF8. fixed.
+* huge memory leaks when window is resized. fixed.
+* input text is received in order of XmbLookupString => XLookupString => Xutf8LookupString.
+* UTF8 selection is received as it is.
+
 [20011214]
 * mlconfig is replaced by the new one designed by Kubota Tomohiro san(thanks)
 * mlconfig works asynchronous.
