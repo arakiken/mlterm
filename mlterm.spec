@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 2.0.0
+%define version 2.1.0
 %define release 1
 %define prefix /usr
 %define bindir /usr/X11R6/bin
@@ -32,7 +32,7 @@ and so on.
 Supported encodings are:
 ISO-8859-[1-10], ISO-8859-[13-16], TCVN5712, KOI8-R, KOI8-U, VISCII,
 EUC-JP, EUC-JISX0213, ISO-2022-JP[1-3], Shift_JIS, Shift_JISX0213,
-ISO-2022-KR, EUC-KR, UHC, JOHAB, GB2312 (EUC-CN), GBK, ISO-2022-CN, BIG5,
+ISO-2022-KR, EUC-KR, UHC, JOHAB, GB2312 (EUC-CN), GBK, ISO-2022-CN, BIG5, BIG5HKSCS
 EUC-TW, HZ, TIS-620, UTF-8, and GB18030.
 If you have already set locale (for example LANG variable;
 see locale(7) for detail) mlterm will automatically select
@@ -78,6 +78,9 @@ rm -rf $RPM_BUILD_ROOT
 %{mandir}/man1/mlterm.1*
 
 %changelog
+* Fri Dec 29 2001 Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
+- Source version 2.1.0
+
 * Thu Nov 29 2001 Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
 - Source version 2.0.0
 
