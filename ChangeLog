@@ -1,3 +1,11 @@
+[20020407]
+* PAGE_DOWN,SCROLL_DOWN shortcut keys are added.
+  (Thanks to Nobuyoshi Nakada)
+* ml_term_xxx.[ch] are cleaned up.
+* meta key is processed even when shift key, control key or so is pressed. fixed.
+  (Thanks to Nanashi san)
+* 2.3.1 => 2.4.0 in version.h, mlterm.spec
+
 [20020329]
 * memory leaks in ml_color_custom.c. fixed.
 
