@@ -47,6 +47,8 @@ typedef struct ml_term
 	 */
 	char *  win_name ;
 	char *  icon_name ;
+
+	int8_t  is_auto_encoding ;
 	
 	int8_t  is_mouse_pos_sending ;
 	int8_t  is_app_keypad ;
@@ -58,7 +60,7 @@ typedef struct ml_term
 
 
 ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  log_size ,
-	ml_char_encoding_t  encoding , ml_unicode_font_policy_t  policy ,
+	ml_char_encoding_t  encoding , int  is_auto_encoding , ml_unicode_font_policy_t  policy ,
 	int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
 	int  use_bce , int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode , ml_iscii_lang_type_t  iscii_lang_type) ;
@@ -80,6 +82,10 @@ int  ml_term_parse_vt100_sequence( ml_term_t *  term) ;
 int  ml_term_change_encoding( ml_term_t *  term , ml_char_encoding_t  encoding) ;
 
 ml_char_encoding_t  ml_term_get_encoding( ml_term_t *  term) ;
+
+int  ml_term_set_auto_encoding( ml_term_t *  term , int  is_auto_encoding) ;
+
+int  ml_term_is_auto_encoding( ml_term_t *  term) ;
 
 int  ml_term_set_unicode_font_policy( ml_term_t *  term , ml_unicode_font_policy_t  policy) ;
 

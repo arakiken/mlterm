@@ -4805,6 +4805,15 @@ set_config(
 			return ;
 		}
 
+		if( strcasecmp( value , "auto") == 0)
+		{
+			ml_term_set_auto_encoding( screen->term , 1) ;
+		}
+		else
+		{
+			ml_term_set_auto_encoding( screen->term , 0) ;
+		}
+
 		change_char_encoding( screen , encoding) ;
 	}
 	else if( strcmp( key , "iscii_lang") == 0)
@@ -5241,6 +5250,17 @@ get_config(
 	if( strcmp( key , "encoding") == 0)
 	{
 		value = ml_get_char_encoding_name( ml_term_get_encoding( term)) ;
+	}
+	else if( strcmp( key , "is_auto_encoding") == 0)
+	{
+		if( ml_term_is_auto_encoding( term))
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
 	}
 	else if( strcmp( key , "iscii_lang") == 0)
 	{

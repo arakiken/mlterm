@@ -1,5 +1,14 @@
 2003-05-25 Araki Ken <arakiken@users.sf.net>
 
+	* The free'd 'root' could be accessed at close_screen_intern() in x_term_manager.c. Fixed.
+	  (Thanks to Minami Hirokazu san)
+	* As soon as the child 'make' process exits, the parent one also exits.
+	  (Thanks to Minami Hirokazu san)
+	* Added 'is_auto_encoding' to doc/en/PROTOCOL.
+	  (Thanks to Kubota Tomohiro san)
+
+2003-05-25 Araki Ken <arakiken@users.sf.net>
+
 	* Cursor position could be illegal after a window resized. Fixed.
 
 2003-05-24 Tomohiro KUBOTA <kubota@debian.org>

@@ -55,6 +55,7 @@ typedef struct main_config
 	x_sb_mode_t  sb_mode ;
 	u_int  col_size_a ;
 	ml_char_encoding_t  encoding ;
+	int  is_auto_encoding ;
 	x_font_present_t  font_present ;
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bs_mode_t  bs_mode ;
@@ -188,7 +189,8 @@ create_term_intern(void)
 	
 	if( ( term = ml_create_term( main_config.cols , main_config.rows ,
 			main_config.tab_size , main_config.num_of_log_lines ,
-			main_config.encoding , main_config.unicode_font_policy ,
+			main_config.encoding , main_config.is_auto_encoding , 
+			main_config.unicode_font_policy ,
 			main_config.col_size_a , main_config.use_char_combining ,
 			main_config.use_multi_col_char , main_config.use_bidi ,
 			x_termcap_get_bool_field( main_config.tent , ML_BCE) ,
@@ -557,10 +559,17 @@ close_screen_intern(
 	root = x_get_root_window( &screen->window) ;
 	win_man = root->win_man ;
 	
-	x_window_manager_remove_root( win_man , root) ;
-	if( win_man->num_of_roots == 0)
+	if( win_man->num_of_roots == 1)
 	{
-		x_display_close_2( root->display) ;
+		Display *  display_to_close ;
+
+		display_to_close = root->display ;
+		x_window_manager_remove_root( win_man , root) ;
+		x_display_close_2( display_to_close) ;
+	}
+	else
+	{
+		x_window_manager_remove_root( win_man , root) ;
 	}
 
 	return  1 ;
@@ -1598,6 +1607,7 @@ config_init(
 		}
 	}
 
+	main_config.is_auto_encoding = 0 ;
 	if( ( value = kik_conf_get_value( conf , "ENCODING")))
 	{
 		if( ( main_config.encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
@@ -1607,11 +1617,13 @@ config_init(
 				value) ;
 				
 			main_config.encoding = ml_get_char_encoding( "auto") ;
+			main_config.is_auto_encoding = 1 ;
 		}
 	}
 	else
 	{
 		main_config.encoding = ml_get_char_encoding( "auto") ;
+		main_config.is_auto_encoding = 1 ;
 	}
 
 	if( main_config.encoding == ML_UNKNOWN_ENCODING)

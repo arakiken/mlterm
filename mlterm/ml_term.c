@@ -22,6 +22,7 @@ ml_term_new(
 	u_int  tab_size ,
 	u_int  log_size ,
 	ml_char_encoding_t  encoding ,
+	int  is_auto_encoding ,
 	ml_unicode_font_policy_t  policy ,
 	int  col_size_a ,
 	int  use_char_combining ,
@@ -82,6 +83,8 @@ ml_term_new(
 	term->vertical_mode = vertical_mode ;
 	term->use_bidi = use_bidi ;
 	term->use_dynamic_comb = use_dynamic_comb ;
+
+	term->is_auto_encoding = is_auto_encoding ;
 
 	term->win_name = NULL ;
 	term->icon_name = NULL ;
@@ -248,6 +251,25 @@ ml_term_get_encoding(
 	)
 {
 	return  ml_vt100_parser_get_encoding( term->parser) ;
+}
+
+int
+ml_term_set_auto_encoding(
+	ml_term_t *  term ,
+	int  is_auto_encoding
+	)
+{
+	term->is_auto_encoding = is_auto_encoding ;
+
+	return  1 ;
+}
+
+int
+ml_term_is_auto_encoding(
+	ml_term_t *  term
+	)
+{
+	return  term->is_auto_encoding ;
 }
 
 int

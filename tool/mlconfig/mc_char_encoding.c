@@ -180,10 +180,18 @@ encoding_selected(GtkWidget *widget, gpointer data)
 GtkWidget *
 mc_char_encoding_config_widget_new(void)
 {
-	int idx;
+	int isauto, idx;
+	char *encoding;
 	GtkWidget *widget;
 
-	idx = get_index(mc_get_str_value("encoding"));
+	isauto = mc_get_flag_value("is_auto_encoding");
+	encoding = mc_get_str_value("encoding");
+	if (isauto) {
+		static char autostr[256];
+		idx = 0;
+		sprintf(autostr, _("auto (currently %s)"), encoding);
+		encodings[0] = autostr;
+	} else idx = get_index(encoding);	
 
 	prepare_encodings_l10n();
 	widget = mc_combo_new(_("Encoding"), encodings_l10n,
