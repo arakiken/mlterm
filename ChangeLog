@@ -1,5 +1,9 @@
 2003-05-18 Araki Ken <arakiken@users.sf.net>
 
+	* Support cursor control characters possibly anywhere inside escape sequences.
+
+2003-05-18 Araki Ken <arakiken@users.sf.net>
+
 	* If bold font not found in anti-alias mode, pseudo bold processing enabled.
 	  (Thanks to >>619)
 

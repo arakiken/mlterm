@@ -571,6 +571,9 @@ clear_display_all(
 	ml_screen_clear_below( vt100_parser->screen) ;
 }
 
+/*
+ * For string outside escape sequences.
+ */
 static int
 increment_str(
 	u_char **  str ,
@@ -585,6 +588,66 @@ increment_str(
 	(*str) ++ ;
 
 	return  1 ;
+}
+
+/*
+ * For string inside escape sequences.
+ */
+static int
+inc_str_in_esc_seq(
+	ml_screen_t *  screen ,
+	u_char **  str_p ,
+	size_t *  left
+	)
+{
+	while( 1)
+	{
+		if( increment_str( str_p , left) == 0)
+		{
+			return  0 ;
+		}
+
+	#ifdef  ESCSEQ_DEBUG
+		if( **str_p < 0x20 || 0x7e < **str_p)
+		{
+			kik_msg_printf( " - 0x%x" , **str_p) ;
+		}
+		else
+		{
+			kik_msg_printf( " - %c" , **str_p) ;
+		}
+	#endif
+
+		if( **str_p < 0x20 || 0x7e < **str_p)
+		{
+			/*
+			 * cursor-control characters inside ESC sequences
+			 */
+			if( **str_p == CTLKEY_LF || **str_p == CTLKEY_VT)
+			{
+				ml_screen_line_feed( screen) ;
+			}
+			else if( **str_p == CTLKEY_CR)
+			{
+				ml_screen_goto_beg_of_line( screen) ;
+			}
+			else if( **str_p == CTLKEY_BS)
+			{
+				ml_screen_go_back( screen , 1) ;
+			}
+			else
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " Ignored 0x%x inside escape sequences.\n" ,
+					**str_p) ; 
+			#endif
+			}
+		}
+		else
+		{
+			return  1 ;
+		}
+	}
 }
 
 /*
@@ -819,26 +882,19 @@ parse_vt100_escape_sequence(
 	while( 1)
 	{
 		if( *str_p == CTLKEY_ESC)
-		{			
-			if( increment_str( &str_p , &left) == 0)
+		{
+		#ifdef  ESCSEQ_DEBUG
+			kik_msg_printf( "RECEIVED ESCAPE SEQUENCE: ESC") ;
+		#endif
+
+			if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 			{
 				return  0 ;
 			}
 
-		#ifdef  ESCSEQ_DEBUG
-			kik_msg_printf( "RECEIVED ESCAPE SEQUENCE: ESC - %c" , *str_p) ;
-		#endif
-
-			if( *str_p < 0x20 || 0x7e < *str_p)
+			if( *str_p == '#')
 			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " illegal escape sequence ESC - 0x%x.\n" , 
-					*str_p) ;
-			#endif
-			}
-			else if( *str_p == '#')
-			{
-				if( increment_str( &str_p , &left) == 0)
+				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 				{
 					return  0 ;
 				}
@@ -979,11 +1035,11 @@ parse_vt100_escape_sequence(
 				kik_msg_printf( " - ") ;
 			#endif
 
-				if( increment_str( &str_p , &left) == 0)
+				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 				{
 					return  0 ;
 				}
-
+				
 				if( *str_p == '?')
 				{
 				#ifdef  ESCSEQ_DEBUG
@@ -992,7 +1048,7 @@ parse_vt100_escape_sequence(
 				
 					is_dec_priv = 1 ;
 
-					if( increment_str( &str_p , &left) == 0)
+					if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 					{
 						return  0 ;
 					}
@@ -1014,7 +1070,8 @@ parse_vt100_escape_sequence(
 
 						for( count = 1 ; count < 19 ; count ++)
 						{
-							if( increment_str( &str_p , &left) == 0)
+							if( inc_str_in_esc_seq( vt100_parser->screen ,
+								&str_p , &left) == 0)
 							{
 								return  0 ;
 							}
@@ -1067,7 +1124,7 @@ parse_vt100_escape_sequence(
 					kik_msg_printf( "; - ") ;
 				#endif
 				
-					if( increment_str( &str_p , &left) == 0)
+					if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 					{
 						return  0 ;
 					}
@@ -1084,46 +1141,7 @@ parse_vt100_escape_sequence(
 					num = 0 ;
 				}
 
-			#ifdef  ESCSEQ_DEBUG
-				if( *str_p < 0x20 || 0x7e < *str_p)
-				{
-					kik_msg_printf( "<%x>" , *str_p) ;
-				}
-				else
-				{
-					kik_msg_printf( "%c" , *str_p) ;
-				}
-			#endif
-
-				/*
-				 * cursor-control characters inside ESC sequences
-				 */
-				if( *str_p == 0x8)
-				{
-					ml_screen_go_back( vt100_parser->screen , 1) ;
-					if( increment_str( &str_p , &left) == 0)
-					{
-						return  0 ;
-					}
-				}
-				
-				if( *str_p < 0x20 || 0x7e < *str_p)
-				{
-				#ifdef  DEBUG 
-					kik_warn_printf( KIK_DEBUG_TAG
-						" illegal csi sequence ESC - [ - 0x%x.\n" , 
-						*str_p) ; 
-				#endif
-					/*
-					 * XXX
-					 * hack for screen command (ESC [ 0xfa m).
-					 */
-					if( increment_str( &str_p , &left) == 0)
-					{
-						return  0 ;
-					}
-				}
-				else if( is_dec_priv)
+				if( is_dec_priv)
 				{
 					/* DEC private mode */
 
@@ -1460,7 +1478,7 @@ parse_vt100_escape_sequence(
 					else
 					{
 						kik_warn_printf( KIK_DEBUG_TAG
-							" receiving unknown csi sequence ESC - [ - ? - %c.\n"
+							" received unknown csi sequence ESC - [ - ? - %c.\n"
 							, *str_p) ;
 					}
 				#endif
@@ -1872,7 +1890,7 @@ parse_vt100_escape_sequence(
 					else
 					{
 						kik_warn_printf( KIK_DEBUG_TAG
-							" unknown csi sequence ESC - [ - 0x%x is received.\n" ,
+							" received unknown csi sequence ESC - [ - 0x%x.\n" ,
 							*str_p) ;
 					}
 				#endif
@@ -1885,7 +1903,7 @@ parse_vt100_escape_sequence(
 				int  ps ;
 				u_char *  pt ;
 
-				if( increment_str( &str_p , &left) == 0)
+				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 				{
 					return  0 ;
 				}
@@ -1895,7 +1913,7 @@ parse_vt100_escape_sequence(
 				{
 					digit[count++] = *str_p ;
 
-					if( increment_str( &str_p , &left) == 0)
+					if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 					{
 						return  0 ;
 					}
@@ -1909,10 +1927,10 @@ parse_vt100_escape_sequence(
 			#ifdef  ESCSEQ_DEBUG
 				kik_msg_printf( " - %d" , ps) ;
 			#endif
-			
+
 				if( *str_p == ';')
 				{
-					if( increment_str( &str_p , &left) == 0)
+					if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 					{
 						return  0 ;
 					}
@@ -1926,7 +1944,8 @@ parse_vt100_escape_sequence(
 							return  1 ;
 						}
 						
-						if( increment_str( &str_p , &left) == 0)
+						if( inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left) == 0)
 						{
 							return  0 ;
 						}
@@ -2113,7 +2132,7 @@ parse_vt100_escape_sequence(
 					return  1 ;
 				}
 
-				if( increment_str( &str_p , &left) == 0)
+				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 				{
 					return  0 ;
 				}
@@ -2156,7 +2175,7 @@ parse_vt100_escape_sequence(
 				 * ignored.
 				 */
 				 
-				if( increment_str( &str_p , &left) == 0)
+				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
 				{
 					return  0 ;
 				}
@@ -2285,13 +2304,13 @@ parse_vt100_escape_sequence(
 			return  1 ;
 		}
 
-		left -- ;
-		str_p ++ ;
-		
 	#ifdef  EDIT_DEBUG
 		ml_edit_dump( vt100_parser->screen->edit) ;
 	#endif
 
+		left -- ;
+		str_p ++ ;
+		
 		if( ( vt100_parser->left = left) == 0)
 		{
 			return  1 ;
