@@ -207,6 +207,7 @@ x_picdep_display_closed( Display *  display){
 Pixmap
 x_picdep_load_file( x_window_t *  win , char *  file_path , x_picture_modifier_t *  pic_mod){
 	GdkPixbuf *  img ;
+	GdkPixbuf *  scaled ;
 	Pixmap  pixmap ;
 	GC gc;
 
@@ -223,8 +224,14 @@ x_picdep_load_file( x_window_t *  win , char *  file_path , x_picture_modifier_t
 	
 	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 			DefaultDepth( win->display , win->screen)) ;
-	
 
+	scaled = gdk_pixbuf_scale_simple(img, ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+				GDK_INTERP_TILES); /* use one of _NEAREST, _TILES, _BILINEAR, _HYPER (speed<->quality) */
+
+	if (scaled){
+		gdk_pixbuf_unref( img );
+		img = scaled;
+	}
 	gc = XCreateGC( win->display, win->my_window, 0, 0 );
 	gdk_pixbuf_xlib_render_to_drawable( img , 
 					    pixmap,
