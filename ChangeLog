@@ -1,3 +1,9 @@
+2002-04-26 Tomohiro KUBOTA <kubota@debian.org>
+
+	* The manpage now mentions Sato-san's new scrollbar libraries.
+	* Added whitespace after commas and before open paretheses
+	  in the manpage.
+
 2002-04-25 Tomohiro KUBOTA <kubota@debian.org>
 
 	* "mlterm -Y" sometimes segfaulted, fixed.
