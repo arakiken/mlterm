@@ -1,5 +1,10 @@
 2003-09-14  Araki Ken  <arakiken@users.sf.net>
 
+	* tool/mlclient/Makefile.in: Added $(BINDIR) target which creates
+	  $(BINDIR) if it doesn't exist.
+
+2003-09-14  Araki Ken  <arakiken@users.sf.net>
+
 	* x_font_custom.c(x_get_all_custom_font_names): Returns fontname list
 	  separated by ','. (Illegal font name list returned before.)
 
