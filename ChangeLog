@@ -8,6 +8,8 @@
 	  (Thanks to Minami Hirokazu san)
 	* "encoding" of mlterm configuration protocol accepts "auto".
 	* Mlclient supports quoted string as arguments.
+	* Each pty has its own window/icon title name.
+	  (Thanks to Nanashi san)
 
 2003-03-01 Tomohiro KUBOTA <kubota@debian.org>
 
