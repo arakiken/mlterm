@@ -1,5 +1,10 @@
 2002-12-13 Araki Ken <arakiken@users.sf.net>
 
+	* Fixed arabic combining problem.
+	  (Thanks to Nadim Shaikli)
+
+2002-12-13 Araki Ken <arakiken@users.sf.net>
+
 	* Fixed a bug in ml_line_fill().
 	  (Thanks to Sato Seiichi san)
 

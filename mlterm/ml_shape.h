@@ -22,7 +22,7 @@ typedef struct  ml_shape
 
 ml_shape_t *  ml_arabic_shape_new(void) ;
 
-u_int16_t  ml_is_arabic_combining( ml_char_t *  prev2 , ml_char_t *  prev , ml_char_t *  ch) ;
+u_int16_t  ml_is_arabic_combining( ml_char_t *  prev3 , ml_char_t *  prev2 , ml_char_t *  prev , ml_char_t *  ch) ;
 
 ml_shape_t *  ml_iscii_shape_new( ml_iscii_state_t  iscii_state) ;
 

@@ -341,7 +341,7 @@ put_char(
 			prev2 = ml_screen_get_n_prev_char( vt100_parser->screen , ++n) ;
 		}
 		
-		if( ml_is_arabic_combining( prev2 , prev , cur))
+		if( ml_is_arabic_combining( NULL , prev2 , prev , cur))
 		{
 			if( vt100_parser->buffer.len >= 2)
 			{

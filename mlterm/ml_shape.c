@@ -223,7 +223,7 @@ shape_arabic(
 		}
 
 		if( ( comb = ml_get_combining_chars( cur , &size)) &&
-			( code = ml_is_arabic_combining( next , cur , comb)))
+			( code = ml_is_arabic_combining( next2, next , cur , comb)))
 		{
 			u_char  bytes[4] ;
 
@@ -247,7 +247,7 @@ shape_arabic(
 			{
 				if( (list[count + 1] && list[count + 1]->left_joining_present)
 				    && ! ( next && (comb = ml_get_combining_chars( next , &size)) &&
-					 ( code = ml_is_arabic_combining( next2 , next , comb))) )
+					 ( code = ml_is_arabic_combining( NULL, next2 , next , comb))) )
 				{
 					if( list[count]->both_joining_present)
 					{
@@ -277,7 +277,7 @@ shape_arabic(
 			}
 			else if( (list[count + 1] && list[count + 1]->left_joining_present)
 				 && ! ( next && ( comb = ml_get_combining_chars( next , &size)) &&
-				      ( code = ml_is_arabic_combining( next2 , next , comb))) )
+				      ( code = ml_is_arabic_combining( NULL, next2 , next , comb))) )
 			{
 				if( list[count]->right_joining_present)
 				{
@@ -473,45 +473,73 @@ ml_arabic_shape_new(void)
 
 u_int16_t
 ml_is_arabic_combining(
+	ml_char_t *  prev3 ,		/* can be NULL */
 	ml_char_t *  prev2 ,		/* can be NULL */
-	ml_char_t *  prev ,
-	ml_char_t *  ch
+	ml_char_t *  prev ,		/* must be ISO10646_UCS4_1 character */
+	ml_char_t *  ch			/* must be ISO10646_UCS4_1 character */
 	)
 {
-	ml_char_t *  target[2] ;
-	u_int16_t  ucs_str[2] ;
+	ml_char_t *  target[4] ;
+	u_int16_t  ucs_str[4] ;
 	int  count ;
-	arabic_present_t * prev2_present;
+	int  have_prev_comb = 0;
+	arabic_present_t * prev_present;
 	
 	target[0] = prev ;
 	target[1] = ch ;
+	target[2] = prev2 ;
+	target[3] = prev3 ;
 	
-	for( count = 0 ; count < 2 ; count ++)
+	for(count = 0 ; count < 4 ; count ++)
 	{
-		if( ml_char_cs( target[count]) == ISO10646_UCS4_1)
+		if( target[count] && ml_char_cs(target[count]) == ISO10646_UCS4_1)
 		{
-			ucs_str[count] = mkf_bytes_to_int( ml_char_bytes( target[count]) , 4) ;
+			ucs_str[count] = mkf_bytes_to_int(ml_char_bytes(target[count]), 4);
+		}
+		else if ( count < 2 )
+		{
+			/* Ignore the previous combinational/two characters */
+			
+			return  0;
 		}
 		else
 		{
-			return  0 ;
+			ucs_str[count] = 0 ;
 		}
 	}
 
-	for( count = 0 ; count < sizeof( arabic_comb_table) / sizeof( arabic_comb_table[0]) ;
-		count ++)
+	/* See if the current character was proceeded by combinational character */
+	for(count = 0;
+	    count < sizeof(arabic_comb_table) / sizeof(arabic_comb_table[0]);
+	    count ++)
+	{
+		if (prev3 &&
+			(prev_present = get_arabic_present(prev3)) &&
+			(ucs_str[2] == arabic_comb_table[count].first &&
+			ucs_str[3] == arabic_comb_table[count].second ))
+		{
+			have_prev_comb = 1;
+		}
+	}
+
+	/* Shape the current combinational character */
+	for(count = 0;
+	    count < sizeof(arabic_comb_table) / sizeof(arabic_comb_table[0]);
+	    count ++)
 	{
 		if( ucs_str[0] == arabic_comb_table[count].first &&
 			ucs_str[1] == arabic_comb_table[count].second)
 		{
-			if( prev2 && (prev2_present = get_arabic_present(prev2)) &&
-				prev2_present->left_joining_present)
+			if( !have_prev_comb &&
+				prev2 &&
+				(prev_present = get_arabic_present(prev2)) &&
+				prev_present->left_joining_present)
 			{
-				return  arabic_comb_table[count].comb_right ;
+				return  arabic_comb_table[count].comb_right;
 			}
 			else
 			{
-				return  arabic_comb_table[count].comb ;
+				return  arabic_comb_table[count].comb;
 			}
 		}
 	}
