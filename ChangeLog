@@ -1,3 +1,10 @@
+2003-09-15  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* x_term_manager.c:
+	 - dead mask for screens is now also stored in u_long like
+	the one for terms in ml_term_manager.c .
+	 - renamed MAX_TERMS to MAX_SCREENS .
+	
 2003-09-15  Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* x_font_manager.c (x_get_fontset): Fixed a compile error with

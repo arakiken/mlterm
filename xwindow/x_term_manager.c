@@ -34,9 +34,6 @@
 #include  "ml_term_manager.h"
 
 
-#define  MAX_TERMS  32		/* dead_mask is 32 bit */
-
-
 typedef struct main_config
 {
 	int  x ;
@@ -114,7 +111,9 @@ typedef struct main_config
 
 static x_screen_t **  screens ;
 static u_int  num_of_screens ;
-static u_int32_t  dead_mask ;
+static u_long  dead_mask ;
+#define  MAX_SCREENS  (8*sizeof(u_long))
+
 static u_int  num_of_startup_screens ;
 static u_int  num_of_startup_ptys ;
 
@@ -338,7 +337,7 @@ open_screen_intern(
 	sb_screen = NULL ;
 	root = NULL ;
 
-	if( MAX_TERMS <= num_of_screens)
+	if( MAX_SCREENS <= num_of_screens)
 	{
 		return  0 ;
 	}
@@ -2514,9 +2513,9 @@ x_term_manager_init(
 		}
 		else
 		{
-			if( n > MAX_TERMS)
+			if( n > MAX_SCREENS)
 			{
-				n = MAX_TERMS ;
+				n = MAX_SCREENS ;
 			}
 			
 			num_of_startup_screens = n ;
@@ -2541,9 +2540,9 @@ x_term_manager_init(
 			}
 			else
 			{
-				if( n > MAX_TERMS)
+				if( n > MAX_SCREENS)
 				{
-					n = MAX_TERMS ;
+					n = MAX_SCREENS ;
 				}
 
 				num_of_startup_ptys = n - num_of_startup_screens ;
