@@ -4,7 +4,7 @@
  */
 
 #include <math.h>                        /* pow */
-#include <sys/time.h>                    /* gettimeofdy */
+//#include <sys/time.h>                    /* gettimeofdy */
 #include <X11/Xatom.h>                   /* XInternAtom */
 #include <string.h>                      /* memcpy */
 #include <gdk-pixbuf/gdk-pixbuf.h>
@@ -21,7 +21,6 @@ typedef struct display_store_tag {
 	Pixmap root;      /**<Root pixmap !!! NOT owned by mlterm !!!*/
 	Pixmap cooked;    /**<Background pixmap cache*/
 	x_picture_modifier_t  pic_mod; /**<modification applied to "cooked"*/
-	struct timeval tval; /**<The time when this cache entry was created*/
 	struct display_store_tag *next;
 } display_store_t;
 
@@ -37,6 +36,52 @@ static int wp_cache_height = 0;
 static GdkPixbuf * wp_cache_scaled = NULL;
 
 /* --- static functions --- */
+
+/* Get background pixmap from _XROOTMAP_ID */
+static Pixmap
+root_pixmap(
+	x_window_t * win
+	)
+{
+	Atom id;
+
+	int act_format;
+	u_long nitems;
+	u_long bytes_after;
+	u_char * prop;
+			
+	id = XInternAtom( win->display , "_XROOTPMAP_ID" , True);
+
+	if(!id)
+		return None;
+
+	if( XGetWindowProperty( win->display , DefaultRootWindow(win->display) , id , 0 , 1 ,
+				False , XA_PIXMAP , &id , &act_format ,
+				&nitems , &bytes_after , &prop) == Success)
+	{
+		if( prop){
+			Pixmap root;
+			root = *((Drawable *)prop);
+			XFree( prop);
+			return root;
+		}
+	}
+	return None;
+}
+
+static display_store_t *
+seek_cache(
+	   Display * display
+	   )
+{
+	display_store_t * cache = display_store;	
+	while( cache){
+		if (cache->display == display)
+			break;
+		cache = cache->next;
+	}
+	return cache;
+}
 
 /**Remove a cache for the display
  *
@@ -890,16 +935,11 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 	Window src;
 	Atom id;
 	display_store_t * cache;
-	struct timeval tval;
-	struct timezone tz;
 	Pixmap pixmap;
+	Pixmap current_root;
 	GC gc;
-	cache = display_store;	
-	while( cache){
-		if (cache->display == win->display)
-			break;
-		cache = cache->next;
-	}
+
+	cache = seek_cache( win->display);	
 	if (!cache){
 		cache = malloc( sizeof( display_store_t));
 		if (!cache)
@@ -908,46 +948,30 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 		cache->root = None;
 		cache->cooked = None;
 		memset( &(cache->pic_mod), 0, sizeof(x_picture_modifier_t));
-		cache->tval.tv_sec = 0;
-		cache->tval.tv_usec = 0;
 		cache->next = display_store;
 		display_store = cache;
 	}
 	
 /* discard old cached root pixmap */
-	gettimeofday(&tval, &tz);
-	if ( (tval.tv_sec - cache->tval.tv_sec) > 500){
-		if (cache->root != None)
-			cache->root = None; /* pixmap should not be freed. (not owned by mlterm)*/
+	current_root =  root_pixmap( win);
+	if ( cache->root !=  current_root){
+		/* old pixmap should not be freed. (not owned by mlterm)*/
+		cache->root = current_root;
 		if (cache->cooked != None){
 			XFreePixmap( win->display, cache->cooked);
 			cache->cooked = None;
 		}
-		cache->tval.tv_sec = tval.tv_sec;
 	}
+	if (cache->root == None)
+		return None;
+
 	if( ! x_window_get_visible_geometry( win , &x , &y , &pix_x , &pix_y , &width , &height))
 		return None;
-	if (cache->root == None){
-		/* Get background pixmap from _XROOTMAP_ID */
-		id = XInternAtom( win->display , "_XROOTPMAP_ID" , True);
-		if( id){
-			Atom act_type;
-			int act_format;
-			u_long nitems;
-			u_long bytes_after;
-			u_char * prop;
-			if( XGetWindowProperty( win->display , DefaultRootWindow(win->display) , id , 0 , 1 ,
-						False , XA_PIXMAP , &act_type , &act_format ,
-						&nitems , &bytes_after , &prop) == Success){
-				if( prop){
-					cache->root = *((Drawable *)prop);
-					XFree( prop);
-				}
-			}
-		}
-	}
+
+
 	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 				DefaultDepth( win->display , win->screen));
+
 	gc = XCreateGC( win->display, win->my_window, 0, 0 );	
 	if (pic_mod){
 		if ( cache->cooked == None ){
