@@ -114,3 +114,13 @@ mc_update_wall_pic(void)
 		old_wall_pic = strdup( new_wall_pic) ;
 	}
 }
+
+void
+mc_wall_pic_none(void)
+{
+	free( old_wall_pic);
+	old_wall_pic = strdup( "none");
+
+	mc_set_str_value( "wall_picture" , "none") ;
+}
+

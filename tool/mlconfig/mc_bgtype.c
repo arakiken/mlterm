@@ -173,7 +173,7 @@ mc_update_bgtype(void)
 	if ( bgtype == MC_BG_COLOR) {
 	    if( is_changed) {
 		mc_set_flag_value("use_transbg", 0);
-		mc_set_str_value("wall_picture", "none");
+		mc_wall_pic_none();
 	    }
 	    mc_update_bg_color() ;
 	} else if ( bgtype == MC_BG_WALLPICTURE) {
@@ -184,7 +184,7 @@ mc_update_bgtype(void)
 	} else if ( bgtype == MC_BG_TRANSPARENT) {
 	    if( is_changed) {
 	        mc_set_flag_value("use_transbg", 1);
-		mc_set_str_value("wall_picture", "none");
+		mc_wall_pic_none();
 	    }
 	}
 }

@@ -4556,6 +4556,15 @@ change_wall_picture(
 	char *  file_path
 	)
 {
+	if( strcmp( file_path , "none") == 0)
+	{
+		if( screen->pic_file_path)
+		{
+			free( screen->pic_file_path) ;
+		}
+		screen->pic_file_path = NULL;
+		return ;
+	}
 	if( screen->pic_file_path)
 	{
 		if( strcmp( screen->pic_file_path , file_path) == 0)
