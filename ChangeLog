@@ -1,5 +1,9 @@
 2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* etc/uim: removed
+
+2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* man/mlterm.1:
 	- removed xim_open_in_startup.
 	- added input_method and --im.
