@@ -36,7 +36,11 @@ entry_color_t *entry_color_new(const char *key){
 	entry_color_t *entry;
 	
 	entry = malloc(sizeof(entry_color_t));
-	entry->initial = strdup(mlterm_get_param(key));
+	entry->initial = mlterm_get_param(key);
+	if (entry->initial)
+		entry->initial = strdup(entry->initial);
+	else
+		entry->initial = strdup("");
 	entry->current = strdup(entry->initial);
 	return entry;
 }
