@@ -1,4 +1,7 @@
-[20020113]
+[20020214]
+* some bygs around utmp are fixed. (Thanks to Mike Fabian)
+
+[20020213]
 * priv_fg and priv_bg cannot be customized. fixed. (Thanks to Nekoie san)
 * utmper is supported. (Thanks to Mike Fabian)
 
