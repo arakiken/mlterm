@@ -1,3 +1,9 @@
+2005-02-03 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* mlterm/ml_edit.c (ml_edit_go_back),
+	  mlterm/ml_vt100_parser.c (parse_vt100_escape_sequence):
+	  fixed #1048321 (autowrap test of vttest-2.7).
+
 2005-02-03 MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_screen.c:

@@ -1368,7 +1368,9 @@ ml_edit_go_back(
 	{
 		reset_wraparound_checker( edit) ;
 
+	#if 0 /* removed for sf.net BTS #1048321 -seiichi */
 		return  1 ;
+	#endif
 	}
 	
 	/*

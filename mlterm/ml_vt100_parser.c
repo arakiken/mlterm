@@ -1211,6 +1211,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 3)
 						{
+							clear_display_all( vt100_parser) ; /* XTERM compatibility [#1048321] */
 							if( HAS_XTERM_LISTENER(vt100_parser,resize_columns))
 							{
 								stop_vt100_cmd( vt100_parser) ;
@@ -1368,6 +1369,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 3)
 						{
+							clear_display_all( vt100_parser) ; /* XTERM compatibility [#1048321] */
 							if( HAS_XTERM_LISTENER(vt100_parser,resize_columns))
 							{
 								stop_vt100_cmd( vt100_parser) ;
