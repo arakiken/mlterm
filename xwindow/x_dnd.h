@@ -1,0 +1,25 @@
+/*
+ *	$Id$
+ */
+
+#define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
+#define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
+#define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
+
+/*
+ * Drag and Drop stuff.
+ */
+#define  XA_DND_DROP(display) (XInternAtom(display, "XdndDrop", False))
+#define  XA_DND_AWARE(display) (XInternAtom(display, "XdndAware", False))
+#define  XA_DND_ENTER(display) (XInternAtom(display, "XdndEnter", False))
+#define  XA_DND_TYPE_LIST(display) (XInternAtom(display, "XdndTypeList", False))
+#define  XA_DND_STATUS(display) (XInternAtom(display, "XdndStatus", False))
+#define  XA_DND_POSITION(display) (XInternAtom(display, "XdndPosition", False))
+#define  XA_DND_STORE(display) (XInternAtom(display, "MLTERM_DND", False))
+#define  XA_DND_ACTION_COPY(display) (XInternAtom(display, "XdndActionCopy", False))
+#define  XA_DND_SELECTION(display) (XInternAtom(display, "XdndSelection", False))
+#define  XA_DND_FINISH(display) (XInternAtom(display, "XdndFinished", False))
+#define  XA_DND_MIME_TEXT_PLAIN(display) (XInternAtom(display, "text/plain", False))
+#define  XA_DND_MIME_TEXT_UNICODE(display) (XInternAtom(display, "text/unicode", False))
+#define  XA_DND_MIME_TEXT_URL_LIST(display) (XInternAtom(display, "text/uri-list", False))
+

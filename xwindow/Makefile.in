@@ -24,7 +24,7 @@ OBJ = x_window_manager.o x_window.o x_screen.o x_xim.o x_xic.o x_color_manager.o
 	x_sb_view_factory.o x_simple_sb_view.o x_color.o x_decsp_font.o \
 	x_imagelib_@IMAGELIB_NAME@.o x_selection.o x_font_custom.o x_color_custom.o \
 	x_keymap.o x_bel_mode.o x_sb_mode.o x_mod_meta_mode.o main.o x_term_manager.o \
-	x_termcap.o x_display.o x_term.o
+	x_termcap.o x_display.o x_term.o x_dnd.o
 
 LKIK = @KIK_LIBS@
 LMKF = @MKF_LIBS@

@@ -22,7 +22,7 @@
 #include  "x_window_manager.h"
 #include  "ml_char_encoding.h"	/* x_convert_to_xft_ucs4 */
 #include  "x_imagelib.h"
-
+#include  "x_dnd.h"
 
 /*
  * Atom macros.
@@ -34,23 +34,7 @@
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
 #define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
-
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
-/*
- * Drag and Drop stuff.
- */
-#define  XA_DND_DROP(display) (XInternAtom(display, "XdndDrop", False))
-#define  XA_DND_AWARE(display) (XInternAtom(display, "XdndAware", False))
-#define  XA_DND_ENTER(display) (XInternAtom(display, "XdndEnter", False))
-#define  XA_DND_TYPE_LIST(display) (XInternAtom(display, "XdndTypeList", False))
-#define  XA_DND_STATUS(display) (XInternAtom(display, "XdndStatus", False))
-#define  XA_DND_POSITION(display) (XInternAtom(display, "XdndPosition", False))
-#define  XA_DND_STORE(display) (XInternAtom(display, "MLTERM_DND", False))
-#define  XA_DND_ACTION_COPY(display) (XInternAtom(display, "XdndActionCopy", False))
-#define  XA_DND_SELECTION(display) (XInternAtom(display, "XdndSelection", False))
-#define  XA_DND_FINISH(display) (XInternAtom(display, "XdndFinished", False))
-#define  XA_DND_MIME_TEXT_PLAIN(display) (XInternAtom(display, "text/plain", False))
-#define  XA_DND_MIME_TEXT_URL_LIST(display) (XInternAtom(display, "text/uri-list", False))
 
 /*
  * Extended Window Manager Hint support
@@ -76,158 +60,7 @@ enum
 #define  __DEBUG
 #endif
 
-
-/* --- static variables --- */
-
-static const u_char  DND_VERSION = 4 ;
-
-
 /* --- static functions --- */
-
-/* XXX XDND stuff should be moved into separete module */
-static void
-x_dnd_set_awareness(
-	x_window_t * win,
-	int flag
-	)
-{
-	if( flag)
-	{
-		XChangeProperty(win->display, win->my_window, XA_DND_AWARE(win->display),
-				XA_ATOM, 32, PropModeReplace, &DND_VERSION, 1) ;
-	}
-	else
-	{
-		XDeleteProperty(win->display, win->my_window, XA_DND_AWARE(win->display)) ;
-	}
-}
-
-static void
-x_dnd_finish(
-	x_window_t * win
-	)
-{
-	XClientMessageEvent reply_msg;
-
-	reply_msg.message_type = XA_DND_FINISH(win->display);
-	reply_msg.data.l[0] = win->my_window;
-	reply_msg.data.l[1] = 0;
-	reply_msg.type = ClientMessage;
-	reply_msg.format = 32;
-	reply_msg.window = win->dnd_source;
-	reply_msg.display = win->display;
-	
-	XSendEvent(win->display, win->dnd_source, False, 0,
-		   (XEvent*)&reply_msg);
-}
-
-static int
-x_dnd_parse(
-	x_window_t * win,
-	Atom atom,
-	char *src,
-	int len)
-{
-	/* COMPOUND_TEXT */
-	if( atom == XA_COMPOUND_TEXT(win->display))
-	{
-		if( !(win->xct_selection_notified))
-		{
-			return 0 ; /* needs ASCII capable parser*/
-		}
-		if( !src)
-		{
-			return 1 ; /* return success for judgment */
-		}
-		(*win->xct_selection_notified)( win , src , len) ;
-		return 1 ;
-	}
-	/* UTF8_STRING */
-	if( atom == XA_UTF8_STRING(win->display))
-	{
-		if( !(win->utf8_selection_notified))
-		{
-			return 0 ; /* needs ASCII capable parser*/
-		}
-		if( !src)
-		{
-			return 1 ; /* return success for judgment */
-		}
-		(*win->utf8_selection_notified)( win , src , len) ;
-		return 1 ;
-	}
-	/* XXX ASCII should be safely processed because it's subset of utf8. ISO8859-1 may be problematic...*/
-	/* text/plain */
-	if( atom == XA_DND_MIME_TEXT_PLAIN(win->display))
-	{
-		if( !(win->utf8_selection_notified))
-		{
-			return 0 ; /* needs ASCII capable parser*/
-		}
-		if( !src)
-		{
-			return 1 ; /* return success for judgment */
-		}
-		(*win->utf8_selection_notified)( win , src , len) ;
-		return 1 ;
-	}
-	/* text/url-list */
-	if( atom == XA_DND_MIME_TEXT_URL_LIST(win->display))
-	{
-		int pos ;
-		char *delim ;
-		if( !(win->utf8_selection_notified))
-		{
-			return 0 ; /* needs ASCII capable parser*/
-		}
-		if( !src)
-		{
-			return 1 ; /* return success for judgment */
-		}
-		pos = 0 ;
-		delim = src ;
-
-		while( pos < len){
-			delim = strchr( &(src[pos]), 13) ;
-			if( !delim)
-				return 0 ; /* parse error */
-			while( delim[1] != 10)
-			{
-				delim[0] = ' ' ; /* eliminate illegal 0x0Ds (they should not appear) */
-				delim = strchr( delim, 13) ;
-				if ( !delim)
-					return 0 ; /* parse error */
-			}
-			delim[0] = ' '; /* always output ' ' as separator */
-			if( strncmp( &(src[pos]), "file:",5) == 0)
-			{/* remove "file:". new length is (length - "file:" + " ")*/
-				(*win->utf8_selection_notified)( win , &(src[pos+5]) , (delim - src) - pos -4) ;
-			}
-			else
-			{/* as-is + " " */
-				(*win->utf8_selection_notified)( win , &(src[pos]) , (delim - src) - pos +1) ;
-			}
-			pos = (delim - src) +2 ; /* skip 0x0A */
-		}
-	}
-	return 0 ;
-}
-
-static Atom
-x_dnd_mime_type_acceptable(
-	x_window_t *  win ,
-	Atom atom)
-{
-	if( x_dnd_parse( win, atom, NULL, 0))
-	{
-		return atom;
-	}
-	
-#ifdef  DEBUG
-	kik_debug_printf("dropped unrecognized atom: %d\n", atom);
-#endif
-	return (Atom)0;/* it's illegal value for Atom */
-}
 
 static int
 set_transparent(
@@ -2259,33 +2092,13 @@ x_window_receive_event(
 				{
 					return 1;
 				}
-				
-				for( count = 0 ; count < nitems ; count++)
-				{
-					if( ( win->is_dnd_accepting =
-						x_dnd_mime_type_acceptable( win, dat[count])))
-					{
-						break; /* parsable atom is returned */
-					}
-				}
-				
+				win->is_dnd_accepting = x_dnd_preferable_atom( win , dat, nitems) ;
 				XFree(dat);
 			}
-			/* less than 3*/
-			else if( ( win->is_dnd_accepting =
-				x_dnd_mime_type_acceptable( win, event->xclient.data.l[2])))
+			else
 			{
-				/* do nothing (judge preference?)*/ ;
-			}
-			else if( ( win->is_dnd_accepting =
-				x_dnd_mime_type_acceptable( win, event->xclient.data.l[3])))
-			{
-				/* do nothing (judge preference?)*/ ;
-			}
-			else if( ( win->is_dnd_accepting =
-				x_dnd_mime_type_acceptable( win, event->xclient.data.l[4])))
-			{
-				/* do nothing (judge preference?)*/ ;
+				/* less than 3*/
+				win->is_dnd_accepting = x_dnd_preferable_atom( win , event->xclient.data.l +1 , 3);
 			}
 		}
 

@@ -1,3 +1,7 @@
+2002-11-12  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* XDND code cleanup/separation. added x_dnd.(c|h) .
+
 2002-11-11 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Updated config.guess and config.sub.(timestamp='2002-11-08')
