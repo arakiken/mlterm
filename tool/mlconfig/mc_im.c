@@ -342,7 +342,7 @@ uim_widget_new(const char *uim_engine)
 
 	return combo;
 #else
-	return gtk_label_new(_("uim is disabled"));
+	return gtk_label_new(_("uim is disabled."));
 #endif
 }
 
@@ -453,7 +453,7 @@ iiimf_widget_new(const char *iiimf_lang_id, const char *iiimf_le)
 	char *utf8 = NULL;
 
 	if (iiimcf_initialize(IIIMCF_ATTR_NULL) != IIIMF_STATUS_SUCCESS)
-		return gtk_label_new(_("IIIMCF initialization failed\n"));
+		return gtk_label_new(_("IIIMCF initialization failed."));
 
 	/*
 	 * TODO: cleanup!!
@@ -538,12 +538,12 @@ error:
 		free(items);
 	}
 
-	return gtk_label_new(_("Cound not create language list"));
+	return gtk_label_new(_("Cound not create language list."));
 #  else
-	return gtk_label_new(_("Language selector depends on glib 2.0 or later"));
+	return gtk_label_new(_("Language selector depends on glib-2.0 or later."));
 #  endif
 #else
-	return gtk_label_new(_("IIIMF is disabled"));
+	return gtk_label_new(_("IIIMF is disabled."));
 #endif
 }
 

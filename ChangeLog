@@ -1,5 +1,13 @@
 2004-09-13 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* tool/mlconfig/mc_im.c: cleaned up.
+
+	* tool/mlconfig/po/POTFILES.in: mc_xim -> mc_im.c.
+
+	* tool/mlconfig/po/mlconfig.pot, tool/mlconfig/po/ja.po: updated.
+
+2004-09-13 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* inputmethod/uim/im_uim.c(preedit_pushback): fixed a segfault in
 	encoding conversion.
 

@@ -5,7 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlconfig\n"
-"POT-Creation-Date: 2003-05-25 17:02+0900\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-09-13 16:24+0900\n"
 "PO-Revision-Date: 2003-02-09 21:26+0800\n"
 "Last-Translator: Ambrose Li <acli@ada.dhs.org>\n"
 "Language-Team: Chinese (Traditional) <zh-l10n@linux.org.tw>\n"
@@ -67,27 +68,27 @@ msgstr "mlterm 設定"
 msgid "Encoding"
 msgstr "編碼"
 
-#: tool/mlconfig/main.c:406
+#: tool/mlconfig/main.c:404
 msgid "Font"
 msgstr "字型"
 
-#: tool/mlconfig/main.c:424
+#: tool/mlconfig/main.c:422
 msgid "Screen ratio against font size"
 msgstr "視窗大小與字型大小間之比例"
 
-#: tool/mlconfig/main.c:473
+#: tool/mlconfig/main.c:471
 msgid "Background"
 msgstr "背景"
 
-#: tool/mlconfig/main.c:486
+#: tool/mlconfig/main.c:484
 msgid "Picture/Transparent"
 msgstr "圖案╱透明度選項"
 
-#: tool/mlconfig/main.c:521
+#: tool/mlconfig/main.c:519
 msgid "Scrollbar"
 msgstr ""
 
-#: tool/mlconfig/main.c:552
+#: tool/mlconfig/main.c:550
 msgid "Others"
 msgstr "其他"
 
@@ -97,6 +98,7 @@ msgstr "Bel 模式"
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
 #: tool/mlconfig/mc_sb.c:94 tool/mlconfig/mc_vertical.c:94
+#: tool/mlconfig/mc_im.c:711
 msgid "None"
 msgstr "無"
 
@@ -161,7 +163,8 @@ msgstr "--- 正體中文 ---"
 msgid "--- simplified Chinese ---"
 msgstr "--- 簡體中文 ---"
 
-#: tool/mlconfig/mc_char_encoding.c:194
+#: tool/mlconfig/mc_char_encoding.c:194 tool/mlconfig/mc_im.c:174
+#: tool/mlconfig/mc_im.c:227
 #, c-format
 msgid "auto (currently %s)"
 msgstr "自動 (目前為 %s)"
@@ -306,7 +309,7 @@ msgstr "左側"
 msgid "Right"
 msgstr "右側"
 
-#: tool/mlconfig/mc_sb_view.c:66
+#: tool/mlconfig/mc_sb_view.c:118
 msgid "View"
 msgstr "樣式"
 
@@ -334,11 +337,43 @@ msgstr "中日韓"
 msgid "Mongol"
 msgstr "蒙古"
 
-#: tool/mlconfig/mc_xim.c:212
+#: tool/mlconfig/mc_im.c:237
+msgid "XIM Server"
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:240
 msgid "XIM locale"
 msgstr "輸入法地域"
 
-#: tool/mlconfig/mc_xim.c:224
-msgid "X Input Method"
-msgstr "輸入法主程式"
+#: tool/mlconfig/mc_im.c:333
+msgid "Conversion engine"
+msgstr ""
 
+#: tool/mlconfig/mc_im.c:345
+msgid "uim is disabled."
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:456
+msgid "IIIMCF initialization failed."
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:510
+msgid "Language (Language engine)"
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:541
+msgid "Cound not create language list."
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:543
+msgid "Language selector depends on glib-2.0 or later."
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:546
+msgid "IIIMF is disabled."
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:670
+#, fuzzy
+msgid "Input Method"
+msgstr "輸入法主程式"

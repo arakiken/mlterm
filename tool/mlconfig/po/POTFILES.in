@@ -26,4 +26,4 @@ tool/mlconfig/mc_screen_ratio.c
 tool/mlconfig/mc_tabsize.c
 tool/mlconfig/mc_vertical.c
 tool/mlconfig/mc_wall_pic.c
-tool/mlconfig/mc_xim.c
+tool/mlconfig/mc_im.c

@@ -6,7 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
-"POT-Creation-Date: 2003-05-25 17:02+0900\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-09-13 16:24+0900\n"
 "PO-Revision-Date: 2002-11-25 19:24+0100\n"
 "Last-Translator: Tomohiro KUBOTA <kubota@debian.org>\n"
 "Language-Team: Japanese <mlterm-dev-ja@lists.sourceforge.net>\n"
@@ -66,27 +67,27 @@ msgstr "mltermの設定"
 msgid "Encoding"
 msgstr "エンコーディング"
 
-#: tool/mlconfig/main.c:406
+#: tool/mlconfig/main.c:404
 msgid "Font"
 msgstr "フォント"
 
-#: tool/mlconfig/main.c:424
+#: tool/mlconfig/main.c:422
 msgid "Screen ratio against font size"
 msgstr "スクリーンサイズとフォントサイズの割合"
 
-#: tool/mlconfig/main.c:473
+#: tool/mlconfig/main.c:471
 msgid "Background"
 msgstr "背景"
 
-#: tool/mlconfig/main.c:486
+#: tool/mlconfig/main.c:484
 msgid "Picture/Transparent"
 msgstr "壁紙/透明"
 
-#: tool/mlconfig/main.c:521
+#: tool/mlconfig/main.c:519
 msgid "Scrollbar"
 msgstr "スクロールバー"
 
-#: tool/mlconfig/main.c:552
+#: tool/mlconfig/main.c:550
 msgid "Others"
 msgstr "その他"
 
@@ -96,6 +97,7 @@ msgstr "ベル"
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
 #: tool/mlconfig/mc_sb.c:94 tool/mlconfig/mc_vertical.c:94
+#: tool/mlconfig/mc_im.c:711
 msgid "None"
 msgstr "なし"
 
@@ -159,7 +161,8 @@ msgstr "--- 中国語(繁体字) ---"
 msgid "--- simplified Chinese ---"
 msgstr "--- 中国語(簡体字) ---"
 
-#: tool/mlconfig/mc_char_encoding.c:194
+#: tool/mlconfig/mc_char_encoding.c:194 tool/mlconfig/mc_im.c:174
+#: tool/mlconfig/mc_im.c:227
 #, c-format
 msgid "auto (currently %s)"
 msgstr "自動 (現在 %s)"
@@ -300,7 +303,7 @@ msgstr "左"
 msgid "Right"
 msgstr "右"
 
-#: tool/mlconfig/mc_sb_view.c:66
+#: tool/mlconfig/mc_sb_view.c:118
 msgid "View"
 msgstr "見かけ"
 
@@ -328,13 +331,42 @@ msgstr "日中韓"
 msgid "Mongol"
 msgstr "モンゴル"
 
-#: tool/mlconfig/mc_xim.c:212
+#: tool/mlconfig/mc_im.c:237
+msgid "XIM Server"
+msgstr "XIMサーバ"
+
+#: tool/mlconfig/mc_im.c:240
 msgid "XIM locale"
 msgstr "入力ロケール"
 
-#: tool/mlconfig/mc_xim.c:224
-msgid "X Input Method"
-msgstr "漢字入力メソッド"
+#: tool/mlconfig/mc_im.c:333
+msgid "Conversion engine"
+msgstr "変換エンジン"
 
-#~ msgid "Font size"
-#~ msgstr "フォントサイズ"
+#: tool/mlconfig/mc_im.c:345
+msgid "uim is disabled."
+msgstr "uimは無効です。"
+
+#: tool/mlconfig/mc_im.c:456
+msgid "IIIMCF initialization failed."
+msgstr "IIIMCFの初期化に失敗しました。"
+
+#: tool/mlconfig/mc_im.c:510
+msgid "Language (Language engine)"
+msgstr "言語 (言語エンジン)"
+
+#: tool/mlconfig/mc_im.c:541
+msgid "Cound not create language list."
+msgstr "言語リストが作成できませんでした。"
+
+#: tool/mlconfig/mc_im.c:543
+msgid "Language selector depends on glib-2.0 or later."
+msgstr "言語の選択にはglib-2.0以降が必要です。"
+
+#: tool/mlconfig/mc_im.c:546
+msgid "IIIMF is disabled."
+msgstr "IIIMFは無効です。"
+
+#: tool/mlconfig/mc_im.c:670
+msgid "Input Method"
+msgstr "入力メソッド"

@@ -7,7 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2003-05-25 17:02+0900\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-09-13 16:24+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -67,27 +68,27 @@ msgstr ""
 msgid "Encoding"
 msgstr ""
 
-#: tool/mlconfig/main.c:406
+#: tool/mlconfig/main.c:404
 msgid "Font"
 msgstr ""
 
-#: tool/mlconfig/main.c:424
+#: tool/mlconfig/main.c:422
 msgid "Screen ratio against font size"
 msgstr ""
 
-#: tool/mlconfig/main.c:473
+#: tool/mlconfig/main.c:471
 msgid "Background"
 msgstr ""
 
-#: tool/mlconfig/main.c:486
+#: tool/mlconfig/main.c:484
 msgid "Picture/Transparent"
 msgstr ""
 
-#: tool/mlconfig/main.c:521
+#: tool/mlconfig/main.c:519
 msgid "Scrollbar"
 msgstr ""
 
-#: tool/mlconfig/main.c:552
+#: tool/mlconfig/main.c:550
 msgid "Others"
 msgstr ""
 
@@ -97,6 +98,7 @@ msgstr ""
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
 #: tool/mlconfig/mc_sb.c:94 tool/mlconfig/mc_vertical.c:94
+#: tool/mlconfig/mc_im.c:711
 msgid "None"
 msgstr ""
 
@@ -160,7 +162,8 @@ msgstr ""
 msgid "--- simplified Chinese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:194
+#: tool/mlconfig/mc_char_encoding.c:194 tool/mlconfig/mc_im.c:174
+#: tool/mlconfig/mc_im.c:227
 #, c-format
 msgid "auto (currently %s)"
 msgstr ""
@@ -301,7 +304,7 @@ msgstr ""
 msgid "Right"
 msgstr ""
 
-#: tool/mlconfig/mc_sb_view.c:66
+#: tool/mlconfig/mc_sb_view.c:118
 msgid "View"
 msgstr ""
 
@@ -329,10 +332,42 @@ msgstr ""
 msgid "Mongol"
 msgstr ""
 
-#: tool/mlconfig/mc_xim.c:212
+#: tool/mlconfig/mc_im.c:237
+msgid "XIM Server"
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:240
 msgid "XIM locale"
 msgstr ""
 
-#: tool/mlconfig/mc_xim.c:224
-msgid "X Input Method"
+#: tool/mlconfig/mc_im.c:333
+msgid "Conversion engine"
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:345
+msgid "uim is disabled."
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:456
+msgid "IIIMCF initialization failed."
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:510
+msgid "Language (Language engine)"
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:541
+msgid "Cound not create language list."
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:543
+msgid "Language selector depends on glib-2.0 or later."
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:546
+msgid "IIIMF is disabled."
+msgstr ""
+
+#: tool/mlconfig/mc_im.c:670
+msgid "Input Method"
 msgstr ""
