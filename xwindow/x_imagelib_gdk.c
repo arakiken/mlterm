@@ -514,8 +514,8 @@ pixbuf_to_ximage_truecolor(
 
 	XImage *  image = NULL;
 
-	width = gdk_pixbuf_get_width (pixbuf) ;
-	height = gdk_pixbuf_get_height (pixbuf) ;
+	width = gdk_pixbuf_get_width( pixbuf) ;
+	height = gdk_pixbuf_get_height( pixbuf) ;
 
 	r_mask = vinfo[0].red_mask ;
 	g_mask = vinfo[0].green_mask ;
@@ -542,10 +542,9 @@ pixbuf_to_ximage_truecolor(
 		image = XCreateImage( display, DefaultVisual( display, screen),
 				      DefaultDepth( display, screen), ZPixmap, 0,
 				      (char *)data,
-				      gdk_pixbuf_get_width( pixbuf),
-				      gdk_pixbuf_get_height( pixbuf),
+				      width, height,
 				      16,
-				      gdk_pixbuf_get_width( pixbuf) *  2);
+				      width *  2);
 		r_limit = 8 + r_offset - msb( r_mask) ;
 		g_limit = 8 + g_offset - msb( g_mask) ;
 		b_limit = 8 + b_offset - msb( b_mask) ;
@@ -575,10 +574,9 @@ pixbuf_to_ximage_truecolor(
 		image = XCreateImage( display, DefaultVisual( display, screen),
 				      DefaultDepth( display, screen), ZPixmap, 0,
 				      (char *)data,
-				      gdk_pixbuf_get_width( pixbuf),
-				      gdk_pixbuf_get_height( pixbuf),
+				      width, height,
 				      32,
-				      gdk_pixbuf_get_width( pixbuf) *  4) ;
+				      width * 4) ;
 		for( i = 0; i < height; i++){
 			pixel = line ;
 			for( j = 0; j < width; j++){
@@ -627,12 +625,12 @@ pixbuf_to_pixmap(
 	{
 	case TrueColor:
 	{
-		XFree( vinfolist) ;
 		image = pixbuf_to_ximage_truecolor( display,
 						    screen,
 						    pixbuf,
 						    DefaultDepth( display, screen),
 						    vinfolist) ;
+		XFree( vinfolist) ;
 		if( image)
 		{
 			XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
@@ -645,7 +643,6 @@ pixbuf_to_pixmap(
 	case PseudoColor:
 	{
 		XFree( vinfolist) ;
-
 		if( pixbuf_to_pixmap_pseudocolor( display, screen, pixbuf, pixmap) == -1)
 		{
 			return -1;
