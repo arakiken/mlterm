@@ -205,8 +205,14 @@ kik_pty_fork(
 	#ifdef VREPRINT
 		tio.c_cc[VREPRINT] = CRPRNT ;
 	#endif
+	#ifdef VRPRNT
+		tio.c_cc[VRPRNT] = CRPRNT ;
+	#endif
 	#ifdef VDISCRD
 		tio.c_cc[VDISCRD] = CFLUSH ;
+	#endif
+	#ifdef VFLUSHO
+		tio.c_cc[VFLUSHO] = CFLUSH ;
 	#endif
 	#ifdef VWERASE
 		tio.c_cc[VWERASE] = CWERASE ;

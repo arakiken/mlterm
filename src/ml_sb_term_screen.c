@@ -107,36 +107,52 @@ child_window_resized(
 
 	sb_termscr = (ml_sb_term_screen_t*) win ;
 
-	if( &sb_termscr->termscr->window != child)
+	if( &sb_termscr->termscr->window == child)
+	{
+		if( sb_termscr->sb_mode == SB_NONE)
+		{
+			actual_width = ACTUAL_WIDTH(child) ;
+		}
+		else
+		{
+			actual_width = ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_termscr->scrollbar.window) +
+					SEPARATOR_WIDTH ;
+		}
+
+		ml_window_resize_with_margin( &sb_termscr->window ,
+			actual_width , ACTUAL_HEIGHT(child) , NOTIFY_TO_NONE) ;
+
+		ml_window_resize_with_margin( &sb_termscr->scrollbar.window ,
+			ACTUAL_WIDTH( &sb_termscr->scrollbar.window) ,
+			ACTUAL_HEIGHT(child) , NOTIFY_TO_MYSELF) ;
+
+		if( sb_termscr->sb_mode == SB_RIGHT)
+		{
+			move_scrollbar( sb_termscr , 1) ;
+		}
+	}
+	else if( &sb_termscr->scrollbar.window == child)
+	{
+		if( sb_termscr->sb_mode == SB_NONE)
+		{
+			return ;
+		}
+
+		ml_window_resize_with_margin( &sb_termscr->window ,
+			ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_termscr->termscr->window) + SEPARATOR_WIDTH ,
+			ACTUAL_HEIGHT(child) , NOTIFY_TO_NONE) ;
+
+		if( sb_termscr->sb_mode == SB_LEFT)
+		{
+			move_term_screen( sb_termscr , 1) ;
+		}
+	}
+	else
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG
 			" illegal child. this event should be invoken only by termscr.\n") ;
 	#endif
-	
-		return ;
-	}
-
-	if( sb_termscr->sb_mode == SB_NONE)
-	{
-		actual_width = ACTUAL_WIDTH(child) ;
-	}
-	else
-	{
-		actual_width = ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_termscr->scrollbar.window) +
-				SEPARATOR_WIDTH ;
-	}
-	
-	ml_window_resize_with_margin( &sb_termscr->window ,
-		actual_width , ACTUAL_HEIGHT(child) , NOTIFY_TO_NONE) ;
-
-	ml_window_resize_with_margin( &sb_termscr->scrollbar.window ,
-		ACTUAL_WIDTH( &sb_termscr->scrollbar.window) ,
-		ACTUAL_HEIGHT(child) , NOTIFY_TO_MYSELF) ;
-
-	if( sb_termscr->sb_mode == SB_RIGHT)
-	{
-		move_scrollbar( sb_termscr , 1) ;
 	}
 }
 
@@ -321,6 +337,81 @@ line_height_changed(
 }
 
 static void
+change_fg_color(
+	void *  p ,
+	ml_color_t  color
+	)
+{
+	ml_sb_term_screen_t *  sb_termscr  ;
+
+	sb_termscr = p ;
+
+	ml_window_set_fg_color( &sb_termscr->scrollbar.window , color) ;
+}
+
+static ml_color_t
+get_fg_color(
+	void *  p
+	)
+{
+	ml_sb_term_screen_t *  sb_termscr  ;
+
+	sb_termscr = p ;
+
+	return  ml_window_get_fg_color( &sb_termscr->scrollbar.window) ;
+}
+
+static void
+change_bg_color(
+	void *  p ,
+	ml_color_t  color
+	)
+{
+	ml_sb_term_screen_t *  sb_termscr  ;
+
+	sb_termscr = p ;
+
+	ml_window_set_bg_color( &sb_termscr->scrollbar.window , color) ;
+}
+
+static ml_color_t
+get_bg_color(
+	void *  p
+	)
+{
+	ml_sb_term_screen_t *  sb_termscr  ;
+
+	sb_termscr = p ;
+
+	return  ml_window_get_bg_color( &sb_termscr->scrollbar.window) ;
+}
+
+static void
+change_view(
+	void *  p ,
+	char *  name
+	)
+{
+	ml_sb_term_screen_t *  sb_termscr  ;
+
+	sb_termscr = p ;
+
+	ml_scrollbar_change_view( &sb_termscr->scrollbar , name) ;
+}
+
+static char *
+get_view_name(
+	void *  p
+	)
+{
+	ml_sb_term_screen_t *  sb_termscr  ;
+
+	sb_termscr = p ;
+
+	return  sb_termscr->scrollbar.view_name ;
+}
+
+static void
 transparent_state_changed(
 	void *  p ,
 	int  is_transparent ,
@@ -464,6 +555,12 @@ ml_sb_term_screen_new(
 	sb_termscr->screen_scroll_listener.scrolled_downward = scrolled_downward ;
 	sb_termscr->screen_scroll_listener.log_size_changed = log_size_changed ;
 	sb_termscr->screen_scroll_listener.line_height_changed = line_height_changed ;
+	sb_termscr->screen_scroll_listener.change_fg_color = change_fg_color ;
+	sb_termscr->screen_scroll_listener.fg_color = get_fg_color ;
+	sb_termscr->screen_scroll_listener.change_bg_color = change_bg_color ;
+	sb_termscr->screen_scroll_listener.bg_color = get_bg_color ;
+	sb_termscr->screen_scroll_listener.change_view = change_view ;
+	sb_termscr->screen_scroll_listener.view_name = get_view_name ;
 	sb_termscr->screen_scroll_listener.transparent_state_changed = transparent_state_changed ;
 	sb_termscr->screen_scroll_listener.sb_mode = sb_mode ;
 	sb_termscr->screen_scroll_listener.change_sb_mode = change_sb_mode ;

@@ -846,6 +846,79 @@ ml_scrollbar_set_line_height(
 }
 
 int
+ml_scrollbar_change_view(
+	ml_scrollbar_t *  sb ,
+	char *  name
+	)
+{
+	ml_sb_view_t *  view ;
+	u_int  width ;
+	
+	if( strcmp( name , sb->view_name) == 0 || ( name = strdup( name)) == NULL)
+	{
+		return  0 ;
+	}
+
+	if( sb->window.is_transparent)
+	{
+		if( ( view = ml_transparent_scrollbar_view_new( name)) == NULL)
+		{
+			/* nothing is done */
+
+			free( name) ;
+
+			return  0 ;
+		}
+	}
+	else
+	{
+		if( ( view = ml_sb_view_new( name)) == NULL)
+		{
+			free( name) ;
+
+			return  0 ;
+		}
+	}
+
+	if( sb->view_name)
+	{
+		free( sb->view_name) ;
+	}
+
+	sb->view_name = name ;
+	
+	if( sb->view)
+	{
+		(*sb->view->delete)( sb->view) ;
+		ml_unload_prev_scrollbar_view() ;
+	}
+
+	sb->view = view ;
+
+	(*sb->view->get_geometry_hints)( sb->view , &width , &sb->top_margin , &sb->bottom_margin ,
+		&sb->up_button_y , &sb->up_button_height , &sb->down_button_y , &sb->down_button_height) ;
+
+	sb->bar_height = calculate_bar_height( sb) ;
+	sb->bar_top_y = calculate_bar_top_y(sb) ;
+
+	if( sb->view->realized)
+	{
+		(*sb->view->realized)( sb->view , sb->window.display , sb->window.screen ,
+			sb->window.my_window , sb->window.gc , sb->window.height) ;
+	}
+
+	if( sb->window.width != width)
+	{
+		ml_window_resize( &sb->window , width , sb->window.height , NOTIFY_TO_PARENT) ;
+	}
+	
+	draw_decoration( sb) ;
+	draw_scrollbar( sb) ;
+	
+	return  1 ;
+}
+
+int
 ml_scrollbar_set_transparent(
 	ml_scrollbar_t *  sb ,
 	ml_picture_modifier_t *  pic_mod ,

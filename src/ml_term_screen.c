@@ -1425,11 +1425,35 @@ config_menu(
 	int  global_y ;
 	Window  child ;
 	ml_sb_mode_t  sb_mode ;
+	char *  sb_view_name ;
+	ml_color_t  sb_fg_color ;
+	ml_color_t  sb_bg_color ;
+	char *  wall_pic ;
 
 	XTranslateCoordinates( termscr->window.display , termscr->window.my_window ,
 		DefaultRootWindow( termscr->window.display) , x , y ,
 		&global_x , &global_y , &child) ;
 
+	if( HAS_SCROLL_LISTENER(termscr,fg_color))
+	{
+		sb_fg_color = (*termscr->screen_scroll_listener->fg_color)(
+				termscr->screen_scroll_listener->self) ;
+	}
+	else
+	{
+		sb_fg_color = MLC_UNKNOWN_COLOR ;
+	}
+	
+	if( HAS_SCROLL_LISTENER(termscr,bg_color))
+	{
+		sb_bg_color = (*termscr->screen_scroll_listener->bg_color)(
+				termscr->screen_scroll_listener->self) ;
+	}
+	else
+	{
+		sb_bg_color = MLC_UNKNOWN_COLOR ;
+	}
+	
 	if( HAS_SCROLL_LISTENER(termscr,sb_mode))
 	{
 		sb_mode = (*termscr->screen_scroll_listener->sb_mode)(
@@ -1440,10 +1464,31 @@ config_menu(
 		sb_mode = SB_NONE ;
 	}
 	
+	if( HAS_SCROLL_LISTENER(termscr,view_name))
+	{
+		sb_view_name = (*termscr->screen_scroll_listener->view_name)(
+				termscr->screen_scroll_listener->self) ;
+	}
+	else
+	{
+		sb_view_name = "none" ;
+	}
+
+	if( termscr->pic_file_path)
+	{
+		wall_pic = termscr->pic_file_path ;
+	}
+	else
+	{
+		wall_pic = "none" ;
+	}
+
 	ml_config_menu_start( &termscr->config_menu , global_x , global_y ,
 		(*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) ,
-		termscr->iscii_lang , ml_window_get_fg_color( &termscr->window) ,
+		termscr->iscii_lang ,
+		ml_window_get_fg_color( &termscr->window) ,
 		ml_window_get_bg_color( &termscr->window) ,
+		sb_fg_color , sb_bg_color ,
 		termscr->image->tab_size , ml_get_log_size( &termscr->logs) ,
 		termscr->font_man->font_size ,
 		termscr->font_man->font_custom->min_font_size ,
@@ -1454,7 +1499,8 @@ config_menu(
 		ml_is_char_combining() , termscr->copy_paste_via_ucs ,
 		termscr->window.is_transparent , termscr->pic_mod.brightness , termscr->fade_ratio ,
 		termscr->font_present , termscr->font_man->use_multi_col_char , termscr->use_bidi ,
-		ml_xic_get_xim_name( &termscr->window) , kik_get_locale()) ;
+		sb_view_name , ml_xic_get_xim_name( &termscr->window) , kik_get_locale() ,
+		wall_pic) ;
 }
 
 static int
@@ -3133,6 +3179,23 @@ change_log_size(
 }
 
 static void
+change_sb_view(
+	void *  p ,
+	char *  name
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+
+	if( HAS_SCROLL_LISTENER(termscr,change_view))
+	{
+		(*termscr->screen_scroll_listener->change_view)(
+			termscr->screen_scroll_listener->self , name) ;
+	}
+}
+
+static void
 change_mod_meta_mode(
 	void *  p ,
 	ml_mod_meta_mode_t  mod_meta_mode
@@ -3295,6 +3358,40 @@ change_bg_color(
 }
 
 static void
+change_sb_fg_color(
+	void *  p ,
+	ml_color_t  color
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+
+	if( HAS_SCROLL_LISTENER(termscr,change_fg_color))
+	{
+		(*termscr->screen_scroll_listener->change_fg_color)(
+			termscr->screen_scroll_listener->self , color) ;
+	}
+}
+
+static void
+change_sb_bg_color(
+	void *  p ,
+	ml_color_t  color
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+
+	if( HAS_SCROLL_LISTENER(termscr,change_bg_color))
+	{
+		(*termscr->screen_scroll_listener->change_bg_color)(
+			termscr->screen_scroll_listener->self , color) ;
+	}
+}
+
+static void
 larger_font_size(
 	void *  p
 	)
@@ -3453,24 +3550,6 @@ change_wall_picture(
 	termscr->pic_file_path = strdup( file_path) ;
 
 	set_wall_picture( termscr) ;
-}
-
-static void
-unset_wall_picture(
-	void *  p
-	)
-{
-	ml_term_screen_t *  termscr ;
-
-	termscr = p ;
-
-	if( termscr->pic_file_path)
-	{
-		free( termscr->pic_file_path) ;
-		termscr->pic_file_path = NULL ;
-	}
-	
-	ml_window_unset_wall_picture( &termscr->window) ;
 }
 
 static void
@@ -4074,6 +4153,8 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_iscii_lang = change_iscii_lang ;
 	termscr->config_menu_listener.change_fg_color = change_fg_color ;
 	termscr->config_menu_listener.change_bg_color = change_bg_color ;
+	termscr->config_menu_listener.change_sb_fg_color = change_sb_fg_color ;
+	termscr->config_menu_listener.change_sb_bg_color = change_sb_bg_color ;
 	termscr->config_menu_listener.change_tab_size = change_tab_size ;
 	termscr->config_menu_listener.change_log_size = change_log_size ;
 	termscr->config_menu_listener.change_font_size = change_font_size ;
@@ -4092,11 +4173,11 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_font_present = change_font_present ;
 	termscr->config_menu_listener.change_multi_col_char_flag = change_multi_col_char_flag ;
 	termscr->config_menu_listener.change_bidi_flag = change_bidi_flag ;
+	termscr->config_menu_listener.change_sb_view = change_sb_view ;
 	termscr->config_menu_listener.change_xim = change_xim ;
 	termscr->config_menu_listener.larger_font_size = larger_font_size ;
 	termscr->config_menu_listener.smaller_font_size = smaller_font_size ;
 	termscr->config_menu_listener.change_wall_picture = change_wall_picture ;
-	termscr->config_menu_listener.unset_wall_picture = unset_wall_picture ;
 	termscr->config_menu_listener.full_reset = full_reset ;
 
 	if( ! ml_config_menu_init( &termscr->config_menu , conf_menu_path ,

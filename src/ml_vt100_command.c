@@ -749,6 +749,34 @@ ml_vt100_cmd_set_config(
 			(*termscr->config_menu_listener.change_bg_color)( termscr , color) ;
 		}
 	}
+	else if( strcmp( key , "sb_fg_color") == 0)
+	{
+		ml_color_t  color ;
+
+		if( ( color = ml_get_color( value)) == MLC_UNKNOWN_COLOR)
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_sb_fg_color)
+		{
+			(*termscr->config_menu_listener.change_sb_fg_color)( termscr , color) ;
+		}
+	}
+	else if( strcmp( key , "sb_bg_color") == 0)
+	{
+		ml_color_t  color ;
+
+		if( ( color = ml_get_color( value)) == MLC_UNKNOWN_COLOR)
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_sb_bg_color)
+		{
+			(*termscr->config_menu_listener.change_sb_bg_color)( termscr , color) ;
+		}
+	}
 	else if( strcmp( key , "tabsize") == 0)
 	{
 		u_int  tab_size ;
@@ -848,6 +876,14 @@ ml_vt100_cmd_set_config(
 		if( termscr->config_menu_listener.change_screen_height_ratio)
 		{
 			(*termscr->config_menu_listener.change_screen_height_ratio)( termscr , ratio) ;
+		}
+	}
+	else if( strcmp( key , "scrollbar_view_name") == 0)
+	{
+		if( termscr->config_menu_listener.change_sb_view)
+		{
+			(*termscr->config_menu_listener.change_sb_view)(
+				termscr , value) ;
 		}
 	}
 	else if( strcmp( key , "mod_meta_mode") == 0)
@@ -1136,6 +1172,30 @@ ml_vt100_cmd_get_config(
 	{
 		value = ml_get_color_name( ml_window_get_bg_color( &termscr->window)) ;
 	}
+	else if( strcmp( key , "sb_fg_color") == 0)
+	{
+		if( termscr->screen_scroll_listener && termscr->screen_scroll_listener->fg_color)
+		{
+			value = ml_get_color_name( (*termscr->screen_scroll_listener->fg_color)(
+					termscr->screen_scroll_listener->self)) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "sb_bg_color") == 0)
+	{
+		if( termscr->screen_scroll_listener && termscr->screen_scroll_listener->bg_color)
+		{
+			value = ml_get_color_name( (*termscr->screen_scroll_listener->bg_color)(
+					termscr->screen_scroll_listener->self)) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
+	}
 	else if( strcmp( key , "tabsize") == 0)
 	{
 		sprintf( digit , "%d" , termscr->image->tab_size) ;
@@ -1165,6 +1225,18 @@ ml_vt100_cmd_get_config(
 	{
 		sprintf( digit , "%d" , termscr->screen_height_ratio) ;
 		value = digit ;
+	}
+	else if( strcmp( key , "scrollbar_view_name") == 0)
+	{
+		if( termscr->screen_scroll_listener && termscr->screen_scroll_listener->view_name)
+		{
+			value = (*termscr->screen_scroll_listener->view_name)(
+					termscr->screen_scroll_listener->self) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
 	}
 	else if( strcmp( key , "mod_meta_mode") == 0)
 	{

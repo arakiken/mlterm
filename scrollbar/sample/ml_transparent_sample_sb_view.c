@@ -8,7 +8,7 @@
 #include  <ml_sb_view.h>
 
 #include  "ml_sample_sb_view_lib.h"
-#include  "ml_transparent_arrow_data.h"
+#include  "ml_arrow_data.h"
 
 
 #define  TOP_MARGIN     14

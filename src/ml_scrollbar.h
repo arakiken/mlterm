@@ -71,6 +71,8 @@ int  ml_scrollbar_set_num_of_log_lines( ml_scrollbar_t * sb , u_int  num_of_log_
 
 int  ml_scrollbar_set_line_height( ml_scrollbar_t *  sb , u_int  line_height) ;
 
+int  ml_scrollbar_change_view( ml_scrollbar_t *  sb , char *  name) ;
+
 int  ml_scrollbar_set_transparent( ml_scrollbar_t *  sb , ml_picture_modifier_t *  pic_mod ,
 	int  force) ;
 

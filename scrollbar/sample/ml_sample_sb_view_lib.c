@@ -12,13 +12,12 @@
 Pixmap
 ml_get_icon_pixmap(
 	ml_sb_view_t *  view ,
-	GC  gc_intern ,
+	GC  gc ,
 	char **  data ,
 	unsigned int  width ,
 	unsigned int  height
 	)
 {
-	GC  gc ;
 	Pixmap  pix ;
 	char  cur ;
 	int  x ;
@@ -36,19 +35,13 @@ ml_get_icon_pixmap(
 			{
 				if( data[y][x] == ' ')
 				{
-					XSetForeground( view->display , gc_intern ,
+					XSetForeground( view->display , gc ,
 						WhitePixel( view->display , view->screen)) ;
-					gc = gc_intern ;
 				}
 				else if( data[y][x] == '#')
 				{
-					XSetForeground( view->display , gc_intern ,
+					XSetForeground( view->display , gc ,
 						BlackPixel( view->display , view->screen)) ;
-					gc = gc_intern ;
-				}
-				else if( data[y][x] == '%')
-				{
-					gc = view->gc ;
 				}
 				else
 				{
@@ -58,7 +51,7 @@ ml_get_icon_pixmap(
 				cur = data[y][x] ;
 			}
 
-			XDrawPoint( view->display , pix , gc , x , y) ; 
+			XDrawPoint( view->display , pix , gc , x , y) ;
 		}
 
 		x = 0 ;

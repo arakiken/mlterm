@@ -128,16 +128,34 @@ draw_arrow_up_icon(
 {
 	sample_sb_view_t *  sample ;
 	Pixmap  arrow ;
+	int  x ;
+	int  y ;
+	char **  src ;
 
 	sample = (sample_sb_view_t*) view ;
 	
 	if( is_dent)
 	{
 		arrow = sample->arrow_up_dent ;
+		src = arrow_up_dent_src ;
 	}
 	else
 	{
 		arrow = sample->arrow_up ;
+		src = arrow_up_src ;
+	}
+	
+	for( y = 0 ; y < TOP_MARGIN ; y ++)
+	{
+		for( x = 0 ; x < WIDTH ; x ++)
+		{
+			if( src[y][x] == '-')
+			{
+				XDrawPoint( view->display , arrow , view->gc , x , y) ;
+			}
+		}
+
+		x = 0 ;
 	}
 	
 	XCopyArea( view->display , arrow , view->window , view->gc ,
@@ -152,16 +170,34 @@ draw_arrow_down_icon(
 {
 	sample_sb_view_t *  sample ;
 	Pixmap  arrow ;
+	int  x ;
+	int  y ;
+	char **  src ;
 
 	sample = (sample_sb_view_t*) view ;
 
 	if( is_dent)
 	{
 		arrow = sample->arrow_down_dent ;
+		src = arrow_down_dent_src ;
 	}
 	else
 	{
 		arrow = sample->arrow_down ;
+		src = arrow_down_src ;
+	}
+	
+	for( y = 0 ; y < BOTTOM_MARGIN ; y ++)
+	{
+		for( x = 0 ; x < WIDTH ; x ++)
+		{
+			if( src[y][x] == '-')
+			{
+				XDrawPoint( view->display , arrow , view->gc , x , y) ;
+			}
+		}
+
+		x = 0 ;
 	}
 	
 	XCopyArea( view->display , arrow , view->window , view->gc ,

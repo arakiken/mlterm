@@ -28,6 +28,8 @@
 #include  "mc_xim.h"
 #include  "mc_check.h"
 #include  "mc_iscii_lang.h"
+#include  "mc_sb_view.h"
+#include  "mc_wall_pic.h"
 
 
 #if  0
@@ -78,16 +80,21 @@ apply_clicked(
 	)
 {
 	/*
-	 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
-	 * [screen width ratio] [screen height ratio] [mod meta mode] [bel mode] [vertical mode] \
-	 * [sb mode] [combining char] [copy paste via ucs] [is transparent] [brightness] [fade ratio] \
-	 * [font present] [use multi col char] [use bidi] [xim] [locale][LF]
+	 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [sb fg color] [sb bg color] \
+	 * [tabsize] [logsize] [fontsize] [screen width ratio] [screen height ratio] [mod meta mode] \
+	 * [bel mode] [vertical mode] [sb mode] [combining char] [copy paste via ucs] [is transparent] \
+	 * [brightness] [fade ratio] [font present] [use multi col char] [use bidi] [sb view name] \
+	 * [xim] [locale] [wall pic][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( out ,
+		"CONFIG:"
+		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s %s %s\n" ,
 		mc_get_char_encoding() ,
 		mc_get_iscii_lang() ,
 		mc_get_fg_color() ,
 		mc_get_bg_color() ,
+		mc_get_sb_fg_color() ,
+		mc_get_sb_bg_color() ,
 		mc_get_tabsize() ,
 		mc_get_logsize() ,
 		mc_get_fontsize() ,
@@ -106,8 +113,10 @@ apply_clicked(
 		mc_get_font_present() ,
 		GTK_TOGGLE_BUTTON(use_multi_col_char_check)->active ,
 		GTK_TOGGLE_BUTTON(use_bidi_check)->active ,
+		mc_get_sb_view_name() ,
 		mc_get_xim_name() ,
-		mc_get_xim_locale()) ;
+		mc_get_xim_locale() ,
+		mc_get_wall_pic()) ;
 
 	gtk_main_quit() ;
 	
@@ -137,71 +146,6 @@ smaller_clicked(
 	
 	gtk_main_quit() ;
 	
-	return  FALSE ;
-}
-
-static gint
-file_sel_ok_clicked(
-	GtkObject *  object
-	)
-{
-	char *  file_path ;
-
-	file_path = gtk_file_selection_get_filename( GTK_FILE_SELECTION( object ) ) ;
-
-	if( strcmp( file_path , "") == 0)
-	{
-		return  TRUE ;
-	}
-	else
-	{
-		fprintf( out , "WALL_PIC:%s\n" , file_path) ;
-
-		gtk_main_quit() ;
-
-		return FALSE ;
-	}
-}
-
-static gint
-file_sel_cancel_clicked(
-	GtkObject *  object
-	)
-{
-	gtk_widget_destroy( GTK_WIDGET(object)) ;
-	
-	return  FALSE ;
-}
-
-static gint
-wall_pic_clicked(
-	GtkObject *  object
-	)
-{
-	GtkWidget *  file_sel ;
-
-	file_sel = gtk_file_selection_new( "Wall Picture") ;
-	gtk_widget_show( GTK_WIDGET(file_sel)) ;
-
-	gtk_signal_connect_object( GTK_OBJECT( GTK_FILE_SELECTION(file_sel)->ok_button ) ,
-		"clicked" , GTK_SIGNAL_FUNC(file_sel_ok_clicked) , GTK_OBJECT(file_sel)) ;
-
-	gtk_signal_connect_object( GTK_OBJECT( GTK_FILE_SELECTION(file_sel)->cancel_button ) ,
-		"clicked" , GTK_SIGNAL_FUNC(file_sel_cancel_clicked) , GTK_OBJECT(file_sel)) ;
-		
-	return  TRUE ;
-}
-
-static gint
-no_wall_pic_clicked(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
-{
-	fprintf( out , "WALL_PIC:off\n") ;
-
-	gtk_main_quit() ;
-
 	return  FALSE ;
 }
 
@@ -272,44 +216,13 @@ font_large_small(void)
 }
 
 static GtkWidget *
-wall_picture(
-	GtkWidget * window
-	)
-{
-	GtkWidget * frame;
-	GtkWidget * hbox;
-	GtkWidget * button;
-
-	frame = gtk_frame_new("Wall picture") ;
-	gtk_widget_show(frame) ;
-
-	hbox = gtk_hbox_new( FALSE , 5) ;
-	gtk_container_set_border_width(GTK_CONTAINER(hbox) , 5) ;
-	gtk_widget_show(hbox) ;
-	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
-
-	button = gtk_button_new_with_label( "Select") ;
-	gtk_widget_show(button) ;
-	gtk_signal_connect_object(GTK_OBJECT(button) ,
-		"clicked" , GTK_SIGNAL_FUNC(wall_pic_clicked) , GTK_OBJECT(window)) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
-
-	button = gtk_button_new_with_label( "Off") ;
-	gtk_widget_show(button) ;
-	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(no_wall_pic_clicked) , NULL) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
-
-	return frame;
-}
-
-static GtkWidget *
 full_reset(void)
 {
 	GtkWidget *  frame ;
 	GtkWidget *  hbox ;
 	GtkWidget *  button ;
 
-	frame = gtk_frame_new("Full reset") ;
+	frame = gtk_frame_new( "Full reset") ;
 	gtk_widget_show(frame) ;
 
 	hbox = gtk_hbox_new( FALSE , 5) ;
@@ -317,7 +230,7 @@ full_reset(void)
 	gtk_widget_show(hbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
 
-	button = gtk_button_new_with_label("Full reset") ;
+	button = gtk_button_new_with_label( "Full reset") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(full_reset_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
@@ -333,6 +246,8 @@ show(
 	ml_iscii_lang_t  iscii_lang ,
 	ml_color_t  fg_color ,
 	ml_color_t  bg_color ,
+	ml_color_t  sb_fg_color ,
+	ml_color_t  sb_bg_color ,
 	char *  tabsize ,
 	char *  logsize ,
 	char *  fontsize ,
@@ -353,8 +268,10 @@ show(
 	ml_font_present_t  font_present ,
 	int  use_multi_col_char ,
 	int  use_bidi ,
+	char *  sb_view_name ,
 	char *  xim ,
-	char *  locale
+	char *  locale ,
+	char *  wall_pic
 	)
 {
 	GtkWidget *  window ;
@@ -399,8 +316,6 @@ show(
 	gtk_widget_show( hbox) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 	frame = font_large_small();
-	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
-	frame = wall_picture( window);
 	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
 	frame = full_reset();
 	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
@@ -474,33 +389,18 @@ show(
 	gtk_widget_show( use_multi_col_char_check) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , use_multi_col_char_check , TRUE , TRUE , 0) ;
 
-
-	/* contents of the "Copy&paste" tab */
-
-	label = gtk_label_new( "Copy&paste") ;
-	gtk_widget_show( label) ;
-	
-	vbox = gtk_vbox_new( FALSE , 3) ;
-	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
-	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
-	gtk_widget_show( vbox) ;
-
-	frame = gtk_frame_new( "For unicode-subset encodings") ;
-	gtk_widget_show( frame) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , frame , FALSE , FALSE , 0) ;
-	
 	if( ! ( copy_paste_via_ucs_check = mc_check_config_widget_new(
 		"Process received strings via Unicode" , copy_paste_via_ucs)))
 	{
 		return  0 ;
 	}
 	gtk_widget_show( copy_paste_via_ucs_check) ;
-	gtk_container_add( GTK_CONTAINER(frame) , copy_paste_via_ucs_check) ;
-		
+	gtk_box_pack_start( GTK_BOX(vbox) , copy_paste_via_ucs_check , FALSE , FALSE , 0) ;
 
-	/* contents of the "Font" tab */
-	
-	label = gtk_label_new( "Font") ;
+
+	/* contents of the "Appearance" tab */
+
+	label = gtk_label_new( "Appearance") ;
 	gtk_widget_show( label) ;
 	vbox = gtk_vbox_new( FALSE , 3) ;
 	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
@@ -514,23 +414,6 @@ show(
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! ( config_widget = mc_font_present_config_widget_new( font_present)))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-
-	
-	/* contents of the "Appearance" tab */
-
-	label = gtk_label_new( "Appearance") ;
-	gtk_widget_show( label) ;
-	vbox = gtk_vbox_new( FALSE , 3) ;
-	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
-	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
-	gtk_widget_show( vbox) ;
-
 	if ( ! ( config_widget = mc_fg_color_config_widget_new( fg_color)))
 	{
 		return  0 ;
@@ -539,13 +422,6 @@ show(
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 	
 	if( ! ( config_widget = mc_bg_color_config_widget_new( bg_color)))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-	
-	if( ! ( config_widget = mc_line_space_config_widget_new( line_space)))
 	{
 		return  0 ;
 	}
@@ -566,6 +442,19 @@ show(
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
+	if( ! ( config_widget = mc_wall_pic_config_widget_new( wall_pic)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+
+	if( ! ( config_widget = mc_font_present_config_widget_new( font_present)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 	
 	hbox = gtk_hbox_new( TRUE , 5) ;
 	gtk_widget_show( hbox) ;
@@ -579,6 +468,44 @@ show(
 	gtk_box_pack_start( GTK_BOX(hbox) , is_tp_check , TRUE , TRUE , 0) ;
 
 
+	/* contents of the "Scrollbar" tab */
+	
+	label = gtk_label_new( "Scrollbar") ;
+	gtk_widget_show( label) ;
+	vbox = gtk_vbox_new( FALSE , 3) ;
+	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
+	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
+	gtk_widget_show( vbox) ;
+
+	if( ! ( config_widget = mc_sb_config_widget_new( sb_mode)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+
+	if( ! ( config_widget = mc_sb_view_config_widget_new( sb_view_name)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	
+	if( ! ( config_widget = mc_sb_fg_color_config_widget_new( sb_fg_color)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	
+	if( ! ( config_widget = mc_sb_bg_color_config_widget_new( sb_bg_color)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+		
+	
 	/* contents of the "Others" tab */
 
 	label = gtk_label_new( "Others") ;
@@ -596,6 +523,13 @@ show(
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 	
 	if( ! ( config_widget = mc_screen_height_ratio_config_widget_new( screen_height_ratio)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	
+	if( ! ( config_widget = mc_line_space_config_widget_new( line_space)))
 	{
 		return  0 ;
 	}
@@ -630,13 +564,6 @@ show(
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! ( config_widget = mc_sb_config_widget_new( sb_mode)))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-
 	gtk_main() ;
 
 	return  1 ;
@@ -660,6 +587,8 @@ start_application(
 	int  iscii_lang ;
 	int  fg_color ;
 	int  bg_color ;
+	int  sb_fg_color ;
+	int  sb_bg_color ;
 	char *  tabsize ;
 	char *  logsize ;
 	char *  fontsize ;
@@ -680,8 +609,10 @@ start_application(
 	int  font_present ;
 	int  use_multi_col_char ;
 	int  use_bidi ;
+	char *  sb_view_name ;
 	char *  locale ;
 	char *  xim ;
+	char *  wall_pic ;
 
 	if( ( in = fdopen( in_fd , "r")) == NULL)
 	{
@@ -711,10 +642,10 @@ start_application(
 	fclose( in) ;
 
 	/*
-	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
-	 * [min font size] [max font size] [line space] [mod meta mode] [bel mode] [vertical mode] \
-	 * [sb mode] [combining char] [copy paste via ucs] [is transparent] [font present] \
-	 * [use multi col char] [use bidi] [xim] [locale][LF]
+	 * [encoding] [iscii lang] [fg color] [bg color] [fg color] [bg color] [tabsize] [logsize] \
+	 * [fontsize] [min font size] [max font size] [line space] [mod meta mode] [bel mode] \
+	 * [vertical mode] [sb mode] [combining char] [copy paste via ucs] [is transparent] \
+	 * [font present] [use multi col char] [use bidi] [xim] [locale] [wall pic][LF]
 	 */
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &encoding , p))
@@ -736,6 +667,18 @@ start_application(
 	
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &bg_color , p))
+	{
+		return  0 ;
+	}
+	
+	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+		! kik_str_to_int( &sb_fg_color , p))
+	{
+		return  0 ;
+	}
+	
+	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+		! kik_str_to_int( &sb_bg_color , p))
 	{
 		return  0 ;
 	}
@@ -851,22 +794,33 @@ start_application(
 	{
 		return  0 ;
 	}
-	
+
+	if( ( sb_view_name = kik_str_sep( &input_line , " ")) == NULL)
+	{
+		return  0 ;
+	}
+		
 	if( ( xim = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}
 	
-	if( ( locale = input_line) == NULL)
+	if( ( locale = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}
 	
-	return  show( x , y , encoding , iscii_lang , fg_color , bg_color , tabsize ,
-		logsize , fontsize , min_fontsize , max_fontsize , line_space ,
+	if( ( wall_pic = input_line) == NULL)
+	{
+		return  0 ;
+	}
+	
+	return  show( x , y , encoding , iscii_lang , fg_color , bg_color , sb_fg_color , sb_bg_color ,
+		tabsize , logsize , fontsize , min_fontsize , max_fontsize , line_space ,
 		screen_width_ratio , screen_height_ratio , mod_meta_mode , bel_mode , vertical_mode ,
 		sb_mode , is_combining_char , copy_paste_via_ucs , is_transparent , brightness ,
-		fade_ratio , font_present , use_multi_col_char , use_bidi , xim , locale) ;
+		fade_ratio , font_present , use_multi_col_char , use_bidi , sb_view_name , xim ,
+		locale , wall_pic) ;
 }
 
 
@@ -891,7 +845,7 @@ main(
 		! kik_str_to_int( &in_fd , argv[3]) ||
 		! kik_str_to_int( &out_fd , argv[4]))
 	{
-		kik_msg_printf( "usage: (stdin 26) mlconfig [x] [y] [in] [out]\n") ;
+		kik_msg_printf( "usage: (stdin 30) mlconfig [x] [y] [in] [out]\n") ;
 		
 		return  0 ;
 	}

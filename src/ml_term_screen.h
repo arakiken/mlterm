@@ -62,6 +62,12 @@ typedef struct  ml_screen_scroll_event_listener
 	void  (*scrolled_downward)( void * , u_int) ;
 	void  (*log_size_changed)( void * , u_int) ;
 	void  (*line_height_changed)( void * , u_int) ;
+	void  (*change_fg_color)( void * , ml_color_t) ;
+	ml_color_t  (*fg_color)( void *) ;
+	void  (*change_bg_color)( void * , ml_color_t) ;
+	ml_color_t  (*bg_color)( void *) ;
+	void  (*change_view)( void * , char *) ;
+	char *  (*view_name)( void *) ;
 	void  (*transparent_state_changed)( void * , int , ml_picture_modifier_t *) ;
 	ml_sb_mode_t  (*sb_mode)( void *) ;
 	void  (*change_sb_mode)( void * , ml_sb_mode_t) ;

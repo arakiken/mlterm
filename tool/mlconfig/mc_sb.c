@@ -76,7 +76,7 @@ mc_sb_config_widget_new(
 
 	hbox = gtk_hbox_new(FALSE , 0) ;
 
-	label = gtk_label_new( " Scrollbar ") ;
+	label = gtk_label_new( "Position") ;
 	gtk_widget_show(label) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 0) ;
 	

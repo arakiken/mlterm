@@ -90,17 +90,19 @@ sig_child(
 	if( strcmp( command , "CONFIG") == 0)
 	{
 		/*
-		 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
-		 * [line space] [screen width ratio] [screen height ratio] [mod meta mode] [bel mode] \
-		 * [vertical mode] [sb mode] [combining char] [copy paste via ucs] [is transparent] \
-		 * [shade ratio] [fade ratio] [font present] [use multi col char] [use bidi] [xim] \
-		 * [locale][LF]
+		 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [sb fg color] [sb bg color] \
+		 * [tabsize] [logsize] [fontsize] [line space] [screen width ratio] [screen height ratio] \
+		 * [mod meta mode] [bel mode] [vertical mode] [sb mode] [combining char] \
+		 * [copy paste via ucs] [is transparent] [shade ratio] [fade ratio] [font present] \
+		 * [use multi col char] [use bidi] [sb view name] [xim] [locale] [wall pic][LF]
 		 */
 		 
 		int  encoding ;
 		int  iscii_lang ;
 		int  fg_color ;
 		int  bg_color ;
+		int  sb_fg_color ;
+		int  sb_bg_color ;
 		u_int  tabsize ;
 		u_int  logsize ;
 		u_int  fontsize ;
@@ -119,8 +121,10 @@ sig_child(
 		int  font_present ;
 		int  use_multi_col_char ;
 		int  use_bidi ;
+		char *  sb_view_name ;
 		char *  xim ;
 		char *  locale ;
+		char *  wall_pic ;
 
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 			! kik_str_to_int( (int*)&encoding , p))
@@ -141,11 +145,23 @@ sig_child(
 		}
 		
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_int( (int*)&bg_color , p))
+			! kik_str_to_int( &bg_color , p))
 		{
 			goto  end ;
 		}
 		
+		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+			! kik_str_to_int( &sb_fg_color , p))
+		{
+			goto  end ;
+		}
+		
+		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+			! kik_str_to_int( &sb_bg_color , p))
+		{
+			goto  end ;
+		}
+
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 			! kik_str_to_uint( &tabsize , p))
 		{
@@ -253,13 +269,23 @@ sig_child(
 		{
 			goto  end ;
 		}
+
+		if( ( sb_view_name = kik_str_sep( &input_line , " ")) == NULL)
+		{
+			goto  end ;
+		}
 		
 		if( ( xim = kik_str_sep( &input_line , " ")) == NULL)
 		{
 			goto  end ;
 		}
 		
-		if( ( locale = input_line) == NULL)
+		if( ( locale = kik_str_sep( &input_line , " ")) == NULL)
+		{
+			goto  end ;
+		}
+		
+		if( ( wall_pic = input_line) == NULL)
 		{
 			goto  end ;
 		}
@@ -297,6 +323,24 @@ sig_child(
 			{
 				(*config_menu->config_menu_listener->change_bg_color)(
 					config_menu->config_menu_listener->self , bg_color) ;
+			}
+		}
+		
+		if( sb_fg_color != config_menu->session->sb_fg_color)
+		{
+			if( config_menu->config_menu_listener->change_sb_fg_color)
+			{
+				(*config_menu->config_menu_listener->change_sb_fg_color)(
+					config_menu->config_menu_listener->self , sb_fg_color) ;
+			}
+		}
+
+		if( sb_bg_color != config_menu->session->sb_bg_color)
+		{
+			if( config_menu->config_menu_listener->change_sb_bg_color)
+			{
+				(*config_menu->config_menu_listener->change_sb_bg_color)(
+					config_menu->config_menu_listener->self , sb_bg_color) ;
 			}
 		}
 		
@@ -461,6 +505,15 @@ sig_child(
 					config_menu->config_menu_listener->self , use_bidi) ;
 			}
 		}
+
+		if( strcmp( sb_view_name , config_menu->session->sb_view_name) != 0)
+		{
+			if( config_menu->config_menu_listener->change_sb_view)
+			{
+				(*config_menu->config_menu_listener->change_sb_view)(
+					config_menu->config_menu_listener->self , sb_view_name) ;
+			}
+		}
 		
 		if( strcmp( xim , config_menu->session->xim) != 0)
 		{
@@ -473,6 +526,15 @@ sig_child(
 				
 				(*config_menu->config_menu_listener->change_xim)(
 					config_menu->config_menu_listener->self , xim , locale) ;
+			}
+		}
+
+		if( strcmp( wall_pic , config_menu->session->wall_pic) != 0)
+		{
+			if( config_menu->config_menu_listener->change_wall_picture)
+			{
+				(*config_menu->config_menu_listener->change_wall_picture)(
+					config_menu->config_menu_listener->self , wall_pic) ;
 			}
 		}
 	}
@@ -496,29 +558,6 @@ sig_child(
 			{
 				(*config_menu->config_menu_listener->smaller_font_size)(
 					config_menu->config_menu_listener->self) ;
-			}
-		}
-	}
-	else if( strcmp( command , "WALL_PIC") == 0 && input_line)
-	{
-		/*
-		 * WALL_PIC:(off|[pic file path])
-		 */
-		 
-		if( strcmp( input_line , "off") == 0)
-		{
-			if( config_menu->config_menu_listener->unset_wall_picture)
-			{
-				(*config_menu->config_menu_listener->unset_wall_picture)(
-					config_menu->config_menu_listener->self) ;
-			}
-		}
-		else
-		{
-			if( config_menu->config_menu_listener->change_wall_picture)
-			{
-				(*config_menu->config_menu_listener->change_wall_picture)(
-					config_menu->config_menu_listener->self , input_line) ;
 			}
 		}
 	}
@@ -598,6 +637,8 @@ ml_config_menu_start(
 	ml_iscii_lang_t  orig_iscii_lang ,
 	ml_color_t  orig_fg_color ,
 	ml_color_t  orig_bg_color ,
+	ml_color_t  orig_sb_fg_color ,
+	ml_color_t  orig_sb_bg_color ,
 	u_int  orig_tabsize ,
 	u_int  orig_logsize ,
 	u_int  orig_fontsize ,
@@ -618,8 +659,10 @@ ml_config_menu_start(
 	ml_font_present_t  orig_font_present ,
 	int  orig_use_multi_col_char ,
 	int  orig_use_bidi ,
+	char *  orig_sb_view_name ,
 	char *  orig_xim ,
-	char *  orig_locale
+	char *  orig_locale ,
+	char *  orig_wall_pic
 	)
 {
 	pid_t  pid ;
@@ -698,20 +741,24 @@ ml_config_menu_start(
 	}
 
 	/*
-	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [font size] \
-	 * [min font size] [max font size] [line space] [screen width ratio] [screen height ratio] \
-	 * [mod meta mode] [bel mode] [vertical mode] [sb mode] [is combining char] \
-	 * [copy paste via ucs] [is transparent] [shade ratio] [fade ratio] [font present] \
-	 * [use multi col char] [use bidi] [use multi col char] [xim] [locale][LF]
+	 * [encoding] [iscii lang] [fg color] [bg color] [sb fg color] [sb bg color] [tabsize] \
+	 * [logsize] [font size] [min font size] [max font size] [line space] [screen width ratio] \
+	 * [screen height ratio] [mod meta mode] [bel mode] [vertical mode] [sb mode] \
+	 * [is combining char] [copy paste via ucs] [is transparent] [shade ratio] [fade ratio] \
+	 * [font present] [use multi col char] [use bidi] [use multi col char] [sb view name] \
+	 * [xim] [locale] [wall pic][LF]
 	 */
-	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
-		orig_encoding , orig_iscii_lang , orig_fg_color , orig_bg_color , orig_tabsize ,
-		orig_logsize , orig_fontsize , min_fontsize , max_fontsize , orig_line_space ,
+	fprintf( fp ,
+		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d "
+		"%s %s %s %s\n" ,
+		orig_encoding , orig_iscii_lang , orig_fg_color , orig_bg_color ,
+		orig_sb_fg_color , orig_sb_bg_color , orig_tabsize , orig_logsize , orig_fontsize ,
+		min_fontsize , max_fontsize , orig_line_space ,
 		orig_screen_width_ratio , orig_screen_height_ratio ,
 		orig_mod_meta_mode , orig_bel_mode , orig_vertical_mode , orig_sb_mode ,
 		orig_is_combining_char , orig_copy_paste_via_ucs , orig_is_transparent ,
 		orig_brightness , orig_fade_ratio , orig_font_present , orig_use_multi_col_char ,
-		orig_use_bidi , orig_xim , orig_locale) ;
+		orig_use_bidi , orig_sb_view_name , orig_xim , orig_locale , orig_wall_pic) ;
 	fclose( fp) ;
 
 	/*
@@ -725,6 +772,8 @@ ml_config_menu_start(
 	config_menu->session->iscii_lang = orig_iscii_lang ;
 	config_menu->session->fg_color = orig_fg_color ;
 	config_menu->session->bg_color = orig_bg_color ;
+	config_menu->session->sb_fg_color = orig_sb_fg_color ;
+	config_menu->session->sb_bg_color = orig_sb_bg_color ;
 	config_menu->session->tabsize = orig_tabsize ;
 	config_menu->session->logsize = orig_logsize ;
 	config_menu->session->fontsize = orig_fontsize ;
@@ -743,8 +792,10 @@ ml_config_menu_start(
 	config_menu->session->font_present = orig_font_present ;
 	config_menu->session->use_multi_col_char = orig_use_multi_col_char ;
 	config_menu->session->use_bidi = orig_use_bidi ;
+	config_menu->session->sb_view_name = orig_sb_view_name ;
 	config_menu->session->xim = orig_xim ;
 	config_menu->session->locale = orig_locale ;
+	config_menu->session->wall_pic = orig_wall_pic ;
 
 	return  1 ;
 }

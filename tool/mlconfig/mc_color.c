@@ -41,6 +41,8 @@ static char *  colors[] =
 
 static ml_color_t  selected_fg_color ;
 static ml_color_t  selected_bg_color ;
+static ml_color_t  selected_sb_fg_color ;
+static ml_color_t  selected_sb_bg_color ;
 
 
 /* --- static functions --- */
@@ -93,6 +95,36 @@ bg_color_selected(
 	return  1 ;
 }
 
+static gint
+sb_fg_color_selected(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	selected_sb_fg_color = get_color( gtk_entry_get_text(GTK_ENTRY(widget))) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %d color is selected.\n" , selected_sb_fg_color) ;
+#endif
+
+	return  1 ;
+}
+
+static gint
+sb_bg_color_selected(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	selected_sb_bg_color = get_color( gtk_entry_get_text(GTK_ENTRY(widget))) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %d color is selected.\n" , selected_sb_bg_color) ;
+#endif
+
+	return  1 ;
+}
+
 static GtkWidget *
 config_widget_new(
 	char *  title ,
@@ -127,6 +159,26 @@ mc_bg_color_config_widget_new(
 	return  config_widget_new( "BG color" , color , bg_color_selected) ;
 }
 
+GtkWidget *
+mc_sb_fg_color_config_widget_new(
+	ml_color_t  color
+	)
+{
+	selected_sb_fg_color = color ;
+	
+	return  config_widget_new( "FG color" , color , sb_fg_color_selected) ;
+}
+
+GtkWidget *
+mc_sb_bg_color_config_widget_new(
+	ml_color_t  color
+	)
+{
+	selected_sb_bg_color = color ;
+	
+	return  config_widget_new( "BG color" , color , sb_bg_color_selected) ;
+}
+
 ml_color_t
 mc_get_fg_color(void)
 {
@@ -137,4 +189,16 @@ ml_color_t
 mc_get_bg_color(void)
 {
 	return  selected_bg_color ;
+}
+
+ml_color_t
+mc_get_sb_fg_color(void)
+{
+	return  selected_sb_fg_color ;
+}
+
+ml_color_t
+mc_get_sb_bg_color(void)
+{
+	return  selected_sb_bg_color ;
 }
