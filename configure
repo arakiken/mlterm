@@ -20,9 +20,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-ind            use libind to enable ISCII [disabled]"
 ac_help="$ac_help
-  --enable-gdk-pixbuf     use gdk-pixbuf for wallpaper [disabled]"
-ac_help="$ac_help
-  --enable-imlib          use imlib for wallpaper [disabled]"
+  --with-imagelib[=ARG]   image library [imlib, gdk-pixbuf2, gdk-pixbuf1]"
 ac_help="$ac_help
   --enable-anti-alias     use Xft to enable anti-alias [disabled]"
 ac_help="$ac_help
@@ -591,15 +589,9 @@ if test "${enable_ind+set}" = set; then
   :
 fi
 
-# Check whether --enable-gdk-pixbuf or --disable-gdk-pixbuf was given.
-if test "${enable_gdk_pixbuf+set}" = set; then
-  enableval="$enable_gdk_pixbuf"
-  :
-fi
-
-# Check whether --enable-imlib or --disable-imlib was given.
-if test "${enable_imlib+set}" = set; then
-  enableval="$enable_imlib"
+# Check whether --with-imagelib or --without-imagelib was given.
+if test "${with_imagelib+set}" = set; then
+  withval="$with_imagelib"
   :
 fi
 

@@ -15,10 +15,8 @@ AC_ARG_ENABLE(fribidi,
 	[  --enable-fribidi        use fribidi to enable BiDi [disabled]])
 AC_ARG_ENABLE(ind,
 	[  --enable-ind            use libind to enable ISCII [disabled]])
-AC_ARG_ENABLE(gdk-pixbuf,
-        [  --enable-gdk-pixbuf     use gdk-pixbuf for wallpaper [disabled]])
-AC_ARG_ENABLE(imlib,
-	[  --enable-imlib          use imlib for wallpaper [disabled]])
+AC_ARG_WITH(imagelib,
+	[  --with-imagelib[=ARG]   image library [imlib, gdk-pixbuf2, gdk-pixbuf1]])
 AC_ARG_ENABLE(anti_alias,
 	[  --enable-anti-alias     use Xft to enable anti-alias [disabled]])
 AC_ARG_ENABLE(utmp,
