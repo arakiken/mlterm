@@ -3505,6 +3505,7 @@ utf8_selection_notified(
 	write_to_pty( (x_screen_t*) win , str , len , ( (x_screen_t*) win)->utf8_parser) ;
 }
 
+#ifndef  DISABLE_XDND
 static void
 set_xdnd_config(
 	x_window_t *  win,
@@ -3522,7 +3523,7 @@ set_xdnd_config(
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
 }
-
+#endif
 
 /*
  * Functions related to selection.
@@ -6629,8 +6630,9 @@ x_screen_new(
 	screen->window.xct_selection_notified = xct_selection_notified ;
 	screen->window.utf8_selection_notified = utf8_selection_notified ;
 	screen->window.window_deleted = window_deleted ;
+#ifndef  DISABLE_XDND
 	screen->window.set_xdnd_config = set_xdnd_config ;
-
+#endif
 	if( use_transbg)
 	{
 		x_window_set_transparent( &screen->window , get_picture_modifier( screen)) ;

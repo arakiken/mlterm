@@ -30,7 +30,7 @@ error_handler(
 	XGetErrorText( display , event->error_code , buffer , 1024) ;
 
 	kik_error_printf( "%s\n" , buffer) ;
-	
+
 	abort() ;
 
 	return  1 ;
@@ -63,7 +63,7 @@ x_window_manager_init(
 
 	win_man->group_leader = XCreateSimpleWindow( win_man->display,
 						     win_man->my_window,
-						     0,0,1,1,0,0,0) ;
+						     0, 0, 1, 1, 0, 0, 0) ;
 	win_man->icon = None ;
 	win_man->mask = None ;
 	win_man->cardinal = 0 ;
@@ -91,15 +91,15 @@ x_window_manager_final(
 	{
 		XDestroyWindow( win_man->display, win_man->group_leader) ;
 	}
-	if( win_man->icon) 
+	if( win_man->icon)
 	{
 		XFreePixmap( win_man->display, win_man->icon) ;
 	}
-	if( win_man->mask) 
+	if( win_man->mask)
 	{
 		XFreePixmap( win_man->display, win_man->mask) ;
 	}
-	if( win_man->cardinal) 
+	if( win_man->cardinal)
 	{
 		free( win_man->cardinal) ;
 	}
@@ -134,7 +134,7 @@ x_window_manager_show_root(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
 	#endif
-	
+
 		return  0 ;
 	}
 
@@ -156,7 +156,7 @@ x_window_manager_show_root(
 	win_man->roots[win_man->num_of_roots++] = root ;
 
 	x_window_show( root , hint) ;
-	
+
 	return  1 ;
 }
 
@@ -167,7 +167,7 @@ x_window_manager_remove_root(
 	)
 {
 	int  count ;
-	
+
 	for( count = 0 ; count < win_man->num_of_roots ; count ++)
 	{
 		if( win_man->roots[count] == root)
@@ -176,14 +176,14 @@ x_window_manager_remove_root(
 			x_window_final( root) ;
 
 			win_man->num_of_roots -- ;
-			
+
 			if( count == win_man->num_of_roots)
 			{
 				memset( &win_man->roots[count] , 0 , sizeof( win_man->roots[0])) ;
 			}
 			else
 			{
-				memcpy( &win_man->roots[count] , 
+				memcpy( &win_man->roots[count] ,
 					&win_man->roots[win_man->num_of_roots] ,
 					sizeof( win_man->roots[0])) ;
 			}
@@ -221,12 +221,12 @@ x_window_manager_clear_selection(
 	{
 		return  0 ;
 	}
-	
+
 	if( win_man->selection_owner->selection_cleared)
 	{
 		(*win_man->selection_owner->selection_cleared)( win_man->selection_owner , NULL) ;
 	}
-	
+
 	win_man->selection_owner = NULL ;
 
 	return  1 ;
@@ -268,7 +268,7 @@ x_window_manager_receive_next_event(
 			}
 		}
 		while( XEventsQueued( win_man->display , QueuedAfterReading)) ;
-		
+
 		XFlush( win_man->display) ;
 
 		return  1 ;
@@ -279,7 +279,7 @@ x_window_manager_receive_next_event(
 		XFlush( win_man->display) ;
 
 		return  0 ;
-	}	
+	}
 }
 
 XID

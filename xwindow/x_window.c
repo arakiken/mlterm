@@ -128,7 +128,7 @@ update_pic_transparent(
 	{
 		return  0 ;
 	}
-	
+
 	if( ! x_picture_load_background( &pic))
 	{
 		x_picture_final( &pic) ;
@@ -139,7 +139,7 @@ update_pic_transparent(
 	set_transparent( win , pic.pixmap) ;
 
 	x_picture_final( &pic) ;
-	
+
 	return  1 ;
 }
 
@@ -174,7 +174,7 @@ notify_focus_out_to_children(
 	{
 		(*win->window_unfocused)( win) ;
 	}
-	
+
 	x_xic_unset_focus( win) ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -252,7 +252,7 @@ is_descendant_window(
 	)
 {
 	int  count ;
-	
+
 	if( win->my_window == window)
 	{
 		return  1 ;
@@ -287,7 +287,7 @@ total_min_width(
 	u_int  min_width ;
 
 	min_width = win->min_width + win->margin * 2 ;
-	
+
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		if( win->children[count]->is_mapped)
@@ -308,7 +308,7 @@ total_min_height(
 	u_int  min_height ;
 
 	min_height = win->min_height + win->margin * 2 ;
-	
+
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		if( win->children[count]->is_mapped)
@@ -329,7 +329,7 @@ total_base_width(
 	u_int  base_width ;
 
 	base_width = win->base_width + win->margin * 2 ;
-	
+
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		if( win->children[count]->is_mapped)
@@ -350,7 +350,7 @@ total_base_height(
 	u_int  base_height ;
 
 	base_height = win->base_height + win->margin * 2 ;
-	
+
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		if( win->children[count]->is_mapped)
@@ -371,7 +371,7 @@ total_width_inc(
 	u_int  width_inc ;
 
 	width_inc = win->width_inc ;
-	
+
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		if( win->children[count]->is_mapped)
@@ -401,7 +401,7 @@ total_height_inc(
 	u_int  height_inc ;
 
 	height_inc = win->height_inc ;
-	
+
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		if( win->children[count]->is_mapped)
@@ -441,16 +441,16 @@ x_window_init(
 	/*
 	 * these values are set later
 	 */
-	 
+
 	win->display = NULL ;
 	win->screen = 0 ;
-	
+
 	win->parent_window = None ;
 	win->my_window = None ;
-	
+
 	win->drawable = None ;
 	win->pixmap = None ;
-	
+
 #ifdef  ANTI_ALIAS
 	win->xft_draw = NULL ;
 #endif
@@ -460,7 +460,7 @@ x_window_init(
 
 	win->fg_color = 0 ;
 	win->bg_color = 0 ;
-	
+
 	win->parent = NULL ;
 	win->children = NULL ;
 	win->num_of_children = 0 ;
@@ -468,10 +468,10 @@ x_window_init(
 	win->use_pixmap = 0 ;
 
 	win->pic_mod = NULL ;
-	
+
 	win->wall_picture_is_set = 0 ;
 	win->is_transparent = 0 ;
-	
+
 	win->cursor_shape = 0 ;
 
 	win->event_mask = ExposureMask | VisibilityChangeMask | FocusChangeMask | PropertyChangeMask ;
@@ -501,9 +501,9 @@ x_window_init(
 	win->prev_clicked_button = -1 ;
 	win->click_num = 0 ;
 	win->button_is_pressing = 0 ;
-
+#ifndef  DISABLE_XDND
 	win->dnd = NULL ;
-
+#endif
 	win->app_name = "mlterm" ;
 
 	win->window_realized = NULL ;
@@ -523,9 +523,11 @@ x_window_init(
 	win->utf8_selection_requested = NULL ;
 	win->xct_selection_notified = NULL ;
 	win->utf8_selection_notified = NULL ;
-	win->set_xdnd_config = NULL ;
 	win->window_deleted = NULL ;
-	
+#ifndef  DISABLE_XDND
+	win->set_xdnd_config = NULL ;
+#endif
+
 	return	1 ;
 }
 
@@ -540,7 +542,7 @@ x_window_final(
 	kik_debug_printf( "[deleting child windows]\n") ;
 	x_window_dump_children( win) ;
 #endif
-	
+
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		x_window_final( win->children[count]) ;
@@ -550,9 +552,9 @@ x_window_final(
 	{
 		free( win->children) ;
 	}
-	
+
 	x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
-	
+
 	XFreeGC( win->display , win->gc) ;
 	XFreeGC( win->display , win->ch_gc) ;
 
@@ -564,11 +566,11 @@ x_window_final(
 #ifdef  ANTI_ALIAS
 	XftDrawDestroy( win->xft_draw) ;
 #endif
-	
+
 	XDestroyWindow( win->display , win->my_window) ;
 
 	x_xic_deactivate( win) ;
-	
+
 	if( win->window_finalized)
 	{
 		(*win->window_finalized)( win) ;
@@ -586,7 +588,7 @@ x_window_init_event_mask(
 	if( win->my_window)
 	{
 		/* this can be used before x_window_show() */
-		
+
 		return  0 ;
 	}
 
@@ -659,7 +661,7 @@ x_window_set_wall_picture(
 		/*
 		 * wall picture can not be used in double buffering mode.
 		 */
-		
+
 		return  0 ;
 	}
 
@@ -668,7 +670,7 @@ x_window_set_wall_picture(
 		/*
 		 * unset transparent before setting wall picture !
 		 */
-		 
+
 		return  0 ;
 	}
 
@@ -681,7 +683,7 @@ x_window_set_wall_picture(
 	}
 
 	XSetWindowBackgroundPixmap( win->display , win->my_window , pic) ;
-	
+
 	win->wall_picture_is_set = 1 ;
 
 	if( win->window_exposed)
@@ -703,14 +705,14 @@ x_window_unset_wall_picture(
 		/*
 		 * wall picture can not be used in double buffering mode.
 		 */
-		 
+
 		return  0 ;
 	}
 
 	if( ! win->wall_picture_is_set)
 	{
 		/* already unset */
-		
+
 		return  1 ;
 	}
 
@@ -720,7 +722,7 @@ x_window_unset_wall_picture(
 		 * transparent background is not a wall picture :)
 		 * this case is regarded as not using a wall picture.
 		 */
-	
+
 		return  1 ;
 	}
 
@@ -733,10 +735,10 @@ x_window_unset_wall_picture(
 		/* setting 0 in case the current status is VisibilityPartiallyObscured. */
 		win->is_scrollable = 0 ;
 	}
-	
+
 	XSetWindowBackgroundPixmap( win->display , win->my_window , None) ;
 	XSetWindowBackground( win->display , win->my_window , win->bg_color) ;
-	
+
 	win->wall_picture_is_set = 0 ;
 
 	if( win->window_exposed)
@@ -761,7 +763,7 @@ x_window_set_transparent(
 	int  count ;
 
 	win->pic_mod = pic_mod ;
-	
+
 	if( win->my_window == None)
 	{
 		/*
@@ -769,7 +771,7 @@ x_window_set_transparent(
 		 * ReparentNotify event will do transparent processing automatically after
 		 * x_window_show().
 		 */
-		 
+
 		win->is_transparent = 1 ;
 
 		goto  end ;
@@ -812,7 +814,7 @@ end:
 	{
 		x_window_set_transparent( win->children[count] , win->pic_mod) ;
 	}
-	
+
 	return  1 ;
 }
 
@@ -828,7 +830,7 @@ x_window_unset_transparent(
 	Window *  list ;
 	int  n ;
 #endif
-	
+
 	if( ! win->is_transparent)
 	{
 		/* already unset */
@@ -857,18 +859,18 @@ x_window_unset_transparent(
 		XSetWindowBackgroundPixmap( win->display , parent , None) ;
 	}
 #endif
-	
+
 	if( win->window_exposed)
 	{
 		x_window_clear_all( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
-	
+
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		x_window_unset_transparent( win->children[count]) ;
 	}
-	
+
 	return  1 ;
 }
 
@@ -881,7 +883,7 @@ x_window_use_pixmap(
 	)
 {
 	win->use_pixmap = 1 ;
-	
+
 	win->event_mask &= ~VisibilityChangeMask ;
 
 	/* always true */
@@ -941,14 +943,14 @@ x_window_add_child(
 	)
 {
 	void *  p ;
-	
+
 	if( ( p = realloc( win->children , sizeof( *win->children) * (win->num_of_children + 1)))
 		== NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
 	#endif
-	
+
 		return  0 ;
 	}
 
@@ -962,7 +964,7 @@ x_window_add_child(
 	child->x = x ;
 	child->y = y ;
 	child->is_mapped = map ;
-	
+
 	win->children[ win->num_of_children ++] = child ;
 
 	return  1 ;
@@ -993,7 +995,7 @@ x_window_show(
 	if( win->my_window)
 	{
 		/* already shown */
-		
+
 		return  0 ;
 	}
 
@@ -1062,7 +1064,7 @@ x_window_show(
 		int  argc = 1 ;
 		char *  argv[] = { "mlterm" , NULL , } ;
 		Atom  protocols[2] ;
-		
+
 		win->event_mask |= StructureNotifyMask ;
 
 		/*
@@ -1073,7 +1075,7 @@ x_window_show(
 		size_hints.y = win->y ;
 		size_hints.width = ACTUAL_WIDTH(win) ;
 		size_hints.height = ACTUAL_HEIGHT(win) ;
-		
+
 		size_hints.width_inc = total_width_inc( win) ;
 		size_hints.height_inc = total_height_inc( win) ;
 		size_hints.min_width = total_min_width( win) ;
@@ -1105,7 +1107,7 @@ x_window_show(
 		}
 
 		size_hints.flags = PSize | PMinSize | PResizeInc | PBaseSize | PWinGravity ;
-		
+
 		if( hint & (XValue | YValue))
 		{
 			size_hints.flags |= PPosition ;
@@ -1135,7 +1137,7 @@ x_window_show(
 
 		protocols[0] = XA_DELETE_WINDOW(win->display) ;
 		protocols[1] = XA_TAKE_FOCUS(win->display) ;
-		
+
 		XSetWMProtocols( win->display , win->my_window , protocols , 2) ;
 	}
 
@@ -1153,7 +1155,7 @@ x_window_show(
 #if  0
 	{
 		char *  locale ;
-		
+
 		if( ( locale = kik_get_locale()))
 		{
 			XChangeProperty( win->display , win->my_window ,
@@ -1176,11 +1178,11 @@ x_window_show(
 	/*
 	 * really visualized.
 	 */
-	 
+
 	if( win->is_mapped)
 	{
 		XMapWindow( win->display , win->my_window) ;
-		
+
 	#if  0
 		x_window_clear_all( win) ;
 	#endif
@@ -1214,7 +1216,7 @@ x_window_unmap(
 	{
 		return  1 ;
 	}
-	
+
 	XUnmapWindow( win->display , win->my_window) ;
 	win->is_mapped = 0 ;
 
@@ -1233,10 +1235,10 @@ x_window_resize(
 	{
 		return  0 ;
 	}
-	
+
 	win->width = width ;
 	win->height = height ;
-	
+
 	if( win->pixmap)
 	{
 		XFreePixmap( win->display , win->pixmap) ;
@@ -1254,9 +1256,9 @@ x_window_resize(
 	{
 		(*win->parent->child_window_resized)( win->parent , win) ;
 	}
-	
+
 	XResizeWindow( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-	
+
 	if( (flag & NOTIFY_TO_MYSELF) && win->window_resized)
 	{
 		(*win->window_resized)( win) ;
@@ -1316,7 +1318,7 @@ x_window_set_normal_hints(
 	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
 
 	XSetWMNormalHints( root->display , root->my_window , &size_hints) ;
-		
+
 	return  1 ;
 }
 
@@ -1349,7 +1351,7 @@ x_window_set_borderless_flag(
 		{
 			MWMHints_t  mwmhints = { MWM_HINTS_DECORATIONS, 0, 0, 0, 0 } ;
 
-			XChangeProperty( root->display, root->my_window, atom , atom , 32, 
+			XChangeProperty( root->display, root->my_window, atom , atom , 32,
 				PropModeReplace, (u_char *)&mwmhints, sizeof(MWMHints_t)/4) ;
 		}
 		else
@@ -1359,8 +1361,8 @@ x_window_set_borderless_flag(
 	}
 	else
 	{
-		/* fallback to override redirect */
-		
+		/* fall back to override redirect */
+
 		XSetWindowAttributes  s_attr ;
 		XWindowAttributes  g_attr ;
 
@@ -1437,7 +1439,7 @@ x_window_clear_margin_area(
 	if( win->drawable == win->pixmap)
 	{
 		XSetForeground( win->display , win->gc , win->bg_color) ;
-		
+
 		XFillRectangle( win->display , win->drawable , win->gc ,
 			0 , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
 		XFillRectangle( win->display , win->drawable , win->gc ,
@@ -1446,7 +1448,7 @@ x_window_clear_margin_area(
 			win->width + win->margin , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
 		XFillRectangle( win->display , win->drawable , win->gc ,
 			win->margin , win->height + win->margin , win->width , win->margin) ;
-		
+
 		XSetForeground( win->display , win->gc , win->fg_color) ;
 	}
 	else if( win->drawable == win->my_window)
@@ -1514,7 +1516,7 @@ x_window_fill_with(
 	{
 		XSetForeground( win->display , win->gc , color) ;
 	}
-	
+
 	XFillRectangle( win->display , win->drawable , win->gc , x + win->margin , y + win->margin ,
 		width , height) ;
 
@@ -1547,7 +1549,7 @@ x_window_fill_all_with(
 	{
 		XSetForeground( win->display , win->gc , color) ;
 	}
-	
+
 	XFillRectangle( win->display , win->drawable , win->gc ,
 		0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 
@@ -1595,7 +1597,7 @@ x_window_update_view(
 				" update size (y)%d (h)%d is overflowed.(screen height is %d)\n" ,
 				y , height , win->height) ;
 		#endif
-				
+
 			height = win->height - y ;
 
 		#ifdef  DEBUG
@@ -1629,7 +1631,7 @@ x_window_idling(
 	)
 {
 	int  count ;
-	
+
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		x_window_idling( win->children[count]) ;
@@ -1655,7 +1657,7 @@ x_window_receive_event(
 	)
 {
 	int  count ;
-	
+
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		if( x_window_receive_event( win->children[count] , event))
@@ -1696,13 +1698,13 @@ x_window_receive_event(
 
 		return  0 ;
 	}
-
+#ifndef  DISABLE_XDND
 	if( x_dnd_filter_event( event, win) != 0)
 	{
 		/* event was consumed by xdnd handlers */
 		return 1 ;
 	}
-
+#endif
 	if( event->type == KeyPress)
 	{
 		if( win->key_pressed)
@@ -1741,7 +1743,7 @@ x_window_receive_event(
 	else if( event->type == MotionNotify)
 	{
 		XEvent  ahead ;
-		
+
 		while( XEventsQueued(win->display , QueuedAfterReading))
 		{
 			XPeekEvent( win->display , &ahead) ;
@@ -1756,7 +1758,7 @@ x_window_receive_event(
 
 		event->xmotion.x -= win->margin ;
 		event->xmotion.y -= win->margin ;
-	
+
 		if( win->button_motion)
 		{
 			(*win->button_motion)( win , &event->xmotion) ;
@@ -1775,7 +1777,7 @@ x_window_receive_event(
 	{
 		event->xbutton.x -= win->margin ;
 		event->xbutton.y -= win->margin ;
-		
+
 		if( win->button_released)
 		{
 			(*win->button_released)( win , &event->xbutton) ;
@@ -1805,7 +1807,7 @@ x_window_receive_event(
 			win->prev_clicked_time = event->xbutton.time ;
 			win->prev_clicked_button = event->xbutton.button ;
 		}
-		
+
 		if( win->button_pressed)
 		{
 			(*win->button_pressed)( win , &event->xbutton , win->click_num) ;
@@ -1900,7 +1902,7 @@ x_window_receive_event(
 		}
 	}
 	else if( event->type == ConfigureNotify)
-	{		
+	{
 		int  is_changed ;
 		XEvent  next_ev ;
 
@@ -1914,8 +1916,8 @@ x_window_receive_event(
 			if( abs( event->xconfigure.x - win->x) % DisplayWidth(win->display , win->screen) != 0 ||
 				abs( event->xconfigure.y - win->y) % DisplayHeight(win->display , win->screen) != 0 ||
 				( event->xconfigure.x < 0 && event->xconfigure.x + (int)ACTUAL_WIDTH(win) > 0) ||
-				( event->xconfigure.x > 0 && 
-					event->xconfigure.x + (int)ACTUAL_WIDTH(win) 
+				( event->xconfigure.x > 0 &&
+					event->xconfigure.x + (int)ACTUAL_WIDTH(win)
 						> DisplayWidth( win->display , win->screen)) ||
 				( event->xconfigure.y < 0 && event->xconfigure.y + (int)ACTUAL_HEIGHT(win) > 0) ||
 				( event->xconfigure.y > 0 &&
@@ -1963,7 +1965,7 @@ x_window_receive_event(
 		/*
 		 * transparent processing.
 		 */
-		 
+
 		if( is_changed &&
 			XCheckMaskEvent( win->display , StructureNotifyMask , &next_ev))
 		{
@@ -1974,7 +1976,7 @@ x_window_receive_event(
 
 			XPutBackEvent( win->display , &next_ev) ;
 		}
-		
+
 		if( is_changed)
 		{
 			notify_configure_to_children( win) ;
@@ -2005,17 +2007,17 @@ x_window_receive_event(
 		Atom  xa_utf8_string ;
 		Atom  xa_compound_text ;
 		Atom  xa_text ;
-		
+
 		xa_compound_text = XA_COMPOUND_TEXT(win->display) ;
 		xa_text = XA_TEXT(win->display) ;
 		xa_utf8_string = XA_UTF8_STRING(win->display) ;
-		
+
 		if( event->xselectionrequest.target == XA_STRING)
 		{
 			if( win->xct_selection_requested)
 			{
 				(*win->xct_selection_requested)( win , &event->xselectionrequest ,
-					event->xselectionrequest.target) ; 
+					event->xselectionrequest.target) ;
 			}
 		}
 		else if( event->xselectionrequest.target == xa_text ||
@@ -2028,9 +2030,9 @@ x_window_receive_event(
 				 * wants it to be sent back with "COMPOUND_TEXT" atom.
 				 * why ?
 				 */
-				 
+
 				(*win->xct_selection_requested)( win , &event->xselectionrequest ,
-					xa_compound_text) ; 
+					xa_compound_text) ;
 			}
 		}
 		else if( event->xselectionrequest.target == xa_utf8_string)
@@ -2052,12 +2054,12 @@ x_window_receive_event(
 		Atom  xa_compound_text ;
 		Atom  xa_text ;
 		Atom  xa_selection ;
-		
+
 		xa_compound_text = XA_COMPOUND_TEXT(win->display) ;
 		xa_text = XA_TEXT(win->display) ;
 		xa_utf8_string = XA_UTF8_STRING(win->display) ;
 		xa_selection = XA_SELECTION(win->display) ;
-		
+
 		if( event->xselection.property == None)
 		{
 			/*
@@ -2080,7 +2082,7 @@ x_window_receive_event(
 				XConvertSelection( win->display , XA_PRIMARY , XA_STRING ,
 					xa_selection , win->my_window , CurrentTime) ;
 			}
-			
+
 			return  1 ;
 		}
 
@@ -2110,13 +2112,13 @@ x_window_receive_event(
 				{
 					break ;
 				}
-				
+
 				if( ct.value == NULL || ct.nitems == 0)
 				{
 					break ;
 				}
 
-				if( event->xselection.target == XA_STRING || 
+				if( event->xselection.target == XA_STRING ||
 					 event->xselection.target == xa_text ||
 					 event->xselection.target == xa_compound_text)
 				{
@@ -2136,22 +2138,22 @@ x_window_receive_event(
 				}
 
 				XFree( ct.value) ;
-				
+
 				if( bytes_after == 0)
 				{
 					break ;
 				}
 			}
-			
+
 		}
-		
+
 		XDeleteProperty( win->display, event->xselection.requestor,
 			event->xselection.property) ;
 	}
 	else if( event->type == VisibilityNotify)
 	{
 		/* this event is changeable in run time. */
-		
+
 		if( win->event_mask & VisibilityChangeMask)
 		{
 			if( event->xvisibility.state == VisibilityPartiallyObscured)
@@ -2220,7 +2222,7 @@ x_window_get_str(
 	{
 		return  len ;
 	}
-	 
+
 	if( ( len = XLookupString( event , seq , seq_len , keysym , NULL)) > 0)
 	{
 		*parser = NULL ;
@@ -2248,7 +2250,7 @@ x_window_is_scrollable(
  * Scroll functions.
  * The caller side should clear the scrolled area.
  */
- 
+
 int
 x_window_scroll_upward(
 	x_window_t *  win ,
@@ -2270,7 +2272,7 @@ x_window_scroll_upward_region(
 	{
 		return  0 ;
 	}
-	
+
 	if( boundary_start < 0 || boundary_end > win->height || boundary_end <= boundary_start + height)
 	{
 	#ifdef  DEBUG
@@ -2278,10 +2280,10 @@ x_window_scroll_upward_region(
 			" boundary start %d end %d height %d in window((h) %d (w) %d)\n" ,
 			boundary_start , boundary_end , height , win->height , win->width) ;
 	#endif
-	
+
 		return  0 ;
 	}
-	
+
 	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
 		win->margin , win->margin + boundary_start + height ,	/* src */
 		win->width , boundary_end - boundary_start - height ,	/* size */
@@ -2318,7 +2320,7 @@ x_window_scroll_downward_region(
 		kik_warn_printf( KIK_DEBUG_TAG " boundary start %d end %d height %d\n" ,
 			boundary_start , boundary_end , height) ;
 	#endif
-	
+
 		return  0 ;
 	}
 
@@ -2351,7 +2353,7 @@ x_window_scroll_leftward_region(
 	{
 		return  0 ;
 	}
-	
+
 	if( boundary_start < 0 || boundary_end > win->width || boundary_end <= boundary_start + width)
 	{
 	#ifdef  DEBUG
@@ -2359,10 +2361,10 @@ x_window_scroll_leftward_region(
 			" boundary start %d end %d width %d in window((h) %d (w) %d)\n" ,
 			boundary_start , boundary_end , width , win->height , win->width) ;
 	#endif
-	
+
 		return  0 ;
 	}
-	
+
 	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
 		win->margin + boundary_start + width , win->margin ,	/* src */
 		boundary_end - boundary_start - width , win->height ,	/* size */
@@ -2399,7 +2401,7 @@ x_window_scroll_rightward_region(
 		kik_warn_printf( KIK_DEBUG_TAG " boundary start %d end %d width %d\n" ,
 			boundary_start , boundary_end , width) ;
 	#endif
-	
+
 		return  0 ;
 	}
 
@@ -2409,7 +2411,7 @@ x_window_scroll_rightward_region(
 		win->margin + boundary_start + width , win->margin) ;
 
 	return  1 ;
-}	
+}
 
 int
 x_window_draw_decsp_string(
@@ -2558,7 +2560,7 @@ x_window_draw_image_string16(
 	XSetFont( win->display , win->ch_gc , font->xfont->fid) ;
 	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
 	XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
-	
+
 	XDrawImageString16( win->display , win->drawable , win->ch_gc ,
 		x + font->x_off + win->margin , y + win->margin , str , len) ;
 
@@ -2614,7 +2616,7 @@ x_window_xft_draw_string32(
 		XftDrawString32( win->xft_draw , fg_color , font->xft_font ,
 			x + win->margin + 1 , y + win->margin , str , len) ;
 	}
-	
+
 	return  1 ;
 }
 #endif
@@ -2643,7 +2645,7 @@ x_window_set_selection_owner(
 	)
 {
 	XSetSelectionOwner( win->display , XA_PRIMARY , win->my_window , time) ;
-	
+
 	if( win->my_window != XGetSelectionOwner( win->display , XA_PRIMARY))
 	{
 		return  0 ;
@@ -2707,7 +2709,7 @@ x_window_send_selection(
 			8 , PropModeReplace , sel_str , sel_len) ;
 		res_ev.xselection.property = req_ev->property ;
 	}
-	
+
 	XSendEvent( win->display , res_ev.xselection.requestor , False , 0 , &res_ev) ;
 
 	return  1 ;
@@ -2723,7 +2725,7 @@ x_set_window_name(
 	XTextProperty  prop ;
 
 	root = x_get_root_window( win) ;
-	
+
 	if( name == NULL)
 	{
 		name = root->app_name ;
@@ -2779,10 +2781,10 @@ x_set_icon_name(
 
 int
 x_window_set_icon(
- 	x_window_t *  win,
- 	Pixmap  icon,
- 	Pixmap  mask,
- 	u_int32_t *  cardinal	
+	x_window_t *  win,
+	Pixmap  icon,
+	Pixmap  mask,
+	u_int32_t *  cardinal
 	)
 {
 	XWMHints *hints ;
@@ -2795,11 +2797,11 @@ x_window_set_icon(
 				 XA_NET_WM_ICON( win->display),
 				 XA_CARDINAL, 32, PropModeReplace,
 				 (unsigned char *)(cardinal),
-				 /* (cardinal[0])*(cardinal[1]) 
+				 /* (cardinal[0])*(cardinal[1])
 				  *          = width * height */
-				 (cardinal[0])*(cardinal[1]) +2) ; 
+				 (cardinal[0])*(cardinal[1]) +2) ;
 	}
-	/* set old style window manager hint's icon */		
+	/* set old style window manager hint's icon */
 	hints = NULL ;
 	if (icon || mask)
 	{
@@ -2822,7 +2824,7 @@ x_window_set_icon(
 		hints->flags |= IconMaskHint ;
 		hints->icon_mask = mask ;
 	}
-	
+
 	XSetWMHints( win->display, win->my_window, hints) ;
 	XFree( hints) ;
 
@@ -2843,7 +2845,7 @@ x_window_get_visible_geometry(
 	Window  child ;
 	int screen_width ;
 	int screen_height ;
-	
+
 	XTranslateCoordinates( win->display , win->my_window ,
 		DefaultRootWindow( win->display) , 0 , 0 ,
 		x , y , &child) ;
@@ -2854,7 +2856,7 @@ x_window_get_visible_geometry(
 	if( *x >= screen_width || *y >= screen_height)
 	{
 		/* no visible window */
-		
+
 		return  0 ;
 	}
 
@@ -2863,12 +2865,12 @@ x_window_get_visible_geometry(
 		if( ACTUAL_WIDTH(win) <= abs(*x))
 		{
 			/* no visible window */
-			
+
 			return  0 ;
 		}
 
 		*my_x = abs(*x) ;
-		
+
 		*width = ACTUAL_WIDTH(win) - abs(*x) ;
 		*x = 0 ;
 	}
@@ -2883,7 +2885,7 @@ x_window_get_visible_geometry(
 		if( ACTUAL_HEIGHT(win) <= abs(*y))
 		{
 			/* no visible window */
-			
+
 			return  0 ;
 		}
 
@@ -2982,7 +2984,7 @@ x_window_dump_children(
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		kik_msg_printf( "%p(%li) " , win->children[count] ,
-			win->children[count]->my_window) ; 
+			win->children[count]->my_window) ;
 	}
 	kik_msg_printf( "\n") ;
 

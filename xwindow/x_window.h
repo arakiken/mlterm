@@ -52,7 +52,9 @@ typedef struct x_xic *  x_xic_ptr_t ;
 
 typedef struct x_xim *  x_xim_ptr_t ;
 
+#ifndef  DISABLE_XDND
 typedef struct x_dnd_context *  x_dnd_context_ptr_t ;
+#endif
 
 typedef struct  x_window
 {
@@ -155,9 +157,10 @@ typedef struct  x_window
 	void (*utf8_selection_requested)( struct x_window * , XSelectionRequestEvent * , Atom) ;
 	void (*xct_selection_notified)( struct x_window * , u_char * , size_t) ;
 	void (*utf8_selection_notified)( struct x_window * , u_char * , size_t) ;
+#ifndef  DISABLE_XDND
 	void (*set_xdnd_config)( struct x_window * , char * ,  char * , char * ) ;
+#endif
 	void (*window_deleted)( struct x_window *) ;
-
 } x_window_t ;
 
 

@@ -150,7 +150,7 @@ load_file(
 		height = gdk_pixbuf_get_height( data) ;
 
 	/* Old cached one became obsolete if width/height is changed */
-	if( ( width != gdk_pixbuf_get_width( data) ) ||
+	if( ( width != gdk_pixbuf_get_width( data)) ||
 	    ( height != gdk_pixbuf_get_height( data)))
 	{
 		if( scaled && gdk_pixbuf_get_width( scaled) == width && gdk_pixbuf_get_height( scaled) == height)
@@ -229,15 +229,15 @@ create_pixbuf_from_cardinals(
 	if( req_height == 0)
 		req_height = height ;
 
-	if( (req_width != width) || (req_height != height) )
+	if( (req_width != width) || (req_height != height))
 		scaled = gdk_pixbuf_scale_simple(pixbuf, req_width, req_height,
-						 GDK_INTERP_TILES);
+						 GDK_INTERP_TILES) ;
 	else
 		scaled = NULL ;
 
 	if( scaled)
 	{
-		gdk_pixbuf_unref( pixbuf);
+		gdk_pixbuf_unref( pixbuf) ;
 
 		return  scaled ;
 	}
@@ -295,7 +295,7 @@ create_cardinals_from_bixbuf(
 			line += rowstride;
 			for (j = 0; j < width; j++) {
 				/* all pixels are completely opaque (0xFF) */
-				(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8 )
+				(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8)
 								 + pixel[0]) << 8)
 							       + pixel[1]) << 8) + pixel[2] ;
 				pixel += 3 ;
@@ -401,7 +401,7 @@ pixbuf_to_pixmap_pseudocolor(
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 	gc = XCreateGC (display, pixmap, 0, &gcv) ;
 
-	for ( y = 0 ; y < height ; y++ )
+	for ( y = 0 ; y < height ; y++)
 	{
 		pixel = line ;
 #ifdef USE_FS
@@ -409,9 +409,9 @@ pixbuf_to_pixmap_pseudocolor(
 					       pixel[0] - diff_cur[0],
 					       pixel[1] - diff_cur[1],
 					       pixel[2] - diff_cur[2]) ;
-		diff_r = (color_list[closest].red   >>8 ) - pixel[0];
-		diff_g = (color_list[closest].green >>8 ) - pixel[1];
-		diff_b = (color_list[closest].blue  >>8 ) - pixel[2];
+		diff_r = (color_list[closest].red   >>8) - pixel[0];
+		diff_g = (color_list[closest].green >>8) - pixel[1];
+		diff_b = (color_list[closest].blue  >>8) - pixel[2];
 
 		diff_cur[3*1 + 0 ] += diff_r /2;
 		diff_cur[3*1 + 1 ] += diff_g /2;
@@ -436,16 +436,16 @@ pixbuf_to_pixmap_pseudocolor(
 		XDrawPoint( display, pixmap, gc, 0, y) ;
 		pixel += bytes_per_pixel ;
 
-		for ( x = 1 ; x < width -2 ; x++ )
+		for ( x = 1 ; x < width -2 ; x++)
 		{
 #ifdef USE_FS
 			closest = closest_color_index( display, screen, color_list, num_cells,
 						       pixel[0] - diff_cur[3*x +0],
 						       pixel[1] - diff_cur[3*x +1],
 						       pixel[2] - diff_cur[3*x +2]) ;
-			diff_r = (color_list[closest].red   >>8 ) - pixel[0];
-			diff_g = (color_list[closest].green >>8 ) - pixel[1];
-			diff_b = (color_list[closest].blue  >>8 ) - pixel[2];
+			diff_r = (color_list[closest].red   >>8) - pixel[0];
+			diff_g = (color_list[closest].green >>8) - pixel[1];
+			diff_b = (color_list[closest].blue  >>8) - pixel[2];
 
 			diff_cur[3*(x+1) + 0 ] += diff_r /2;
 			diff_cur[3*(x+1) + 1 ] += diff_g /2;
@@ -466,7 +466,7 @@ pixbuf_to_pixmap_pseudocolor(
 			closest = closest_color_index( display, screen, color_list, num_cells,
 						       pixel[0] ,
 						       pixel[1] ,
-						       pixel[2] ) ;
+						       pixel[2]) ;
 #endif /* USE_SF */
 
 			XSetForeground( display, gc, closest) ;
@@ -479,9 +479,9 @@ pixbuf_to_pixmap_pseudocolor(
 					       pixel[0] - diff_cur[3*x +0],
 					       pixel[1] - diff_cur[3*x +1],
 					       pixel[2] - diff_cur[3*x +2]) ;
-		diff_r = (color_list[closest].red   >>8 ) - pixel[0];
-		diff_g = (color_list[closest].green >>8 ) - pixel[1];
-		diff_b = (color_list[closest].blue  >>8 ) - pixel[2];
+		diff_r = (color_list[closest].red   >>8) - pixel[0];
+		diff_g = (color_list[closest].green >>8) - pixel[1];
+		diff_b = (color_list[closest].blue  >>8) - pixel[2];
 
 		diff_next[3*(x-1) +0] += diff_r /4;
 		diff_next[3*(x-1) +1] += diff_g /4;
@@ -540,7 +540,7 @@ tile_pixmap(
 
 	if ( force_copy ||
 	     aw < DisplayWidth( display, screen) ||
-	     ah < DisplayHeight( display, screen) )
+	     ah < DisplayHeight( display, screen))
 	{
 		/* Some WM needs tiling... sigh.*/
 		result = XCreatePixmap( display, pixmap,
@@ -696,10 +696,10 @@ is_picmod_eq(
 	x_picture_modifier_t *  b
 	)
 {
-	if( a == b )
+	if( a == b)
 		return  1 ;
 
-	if ( a == NULL )
+	if ( a == NULL)
 	{
 		a = b ;
 		b = NULL ;
@@ -834,7 +834,7 @@ pixbuf_to_ximage_truecolor(
 				XPutPixel( image, j, i,
 					   ( ( (pixel[0] >> r_limit) << r_offset) & r_mask) |
 					   ( ( (pixel[1] >> g_limit) << g_offset) & g_mask) |
-					   ( ( (pixel[2] >> b_limit) << b_offset) & b_mask) ) ;
+					   ( ( (pixel[2] >> b_limit) << b_offset) & b_mask)) ;
 				pixel += bytes_per_pixel ;
 			}
 			line += rowstride ;
@@ -989,9 +989,9 @@ compose_truecolor(
 			b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
 
 			XPutPixel( image, j, i,
-				   (r <<r_offset ) |
-				   (g <<g_offset ) |
-				   (b <<b_offset ) ) ;
+				   (r <<r_offset) |
+				   (g <<g_offset) |
+				   (b <<b_offset)) ;
 			pixel += 4 ;
 		}
 		line += rowstride ;
@@ -1049,7 +1049,7 @@ compose_pseudocolor(
 			XPutPixel( image, j, i,
 				   closest_color_index( display, screen,
 							color_list, num_cells,
-							r, g, b ) );
+							r, g, b)) ;
 			pixel += 4 ;
 		}
 		line += rowstride ;
@@ -1192,17 +1192,17 @@ value_table_refresh(
 
 	for( i = 0 ; i < 256 ; i++)
 	{
-		tmp = real_contrast * (255 * pow(((double)i + 0.5)/ 255, real_gamma) -128 )
+		tmp = real_contrast * (255 * pow(((double)i + 0.5)/ 255, real_gamma) -128)
 			+ 128 *  real_brightness ;
 		if( tmp >= 255)
 			break;
 
-		if( tmp < 0 )
+		if( tmp < 0)
 			value_table[i] = 0 ;
 		else
 			value_table[i] = tmp ;
 	}
-	for( ; i< 256 ; i++ )
+	for( ; i< 256 ; i++)
 		value_table[i] = 255 ;
 }
 
@@ -1217,7 +1217,7 @@ modify_image(
 	unsigned char *line ;
 	unsigned char *pixel ;
 
-	if ( !pixbuf )
+	if ( !pixbuf)
 		return  -1 ;
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
 	width = gdk_pixbuf_get_width (pixbuf) ;
@@ -1272,7 +1272,7 @@ modify_pixmap(
 	XVisualInfo *  vinfolist ;
 	XVisualInfo  vinfo ;
 
-	if ( !pixmap )
+	if ( !pixmap)
 		return  -1 ;
 
 	if( is_picmod_eq( pic_mod, NULL))
@@ -1368,7 +1368,7 @@ modify_pixmap(
 					XPutPixel( image, j, i,
 						   closest_color_index( display, screen,
 									color_list, num_cells,
-									r, g, b ) );
+									r, g, b)) ;
 				}
 
 			}
@@ -1448,7 +1448,7 @@ x_imagelib_load_file_for_background(
 	    && (is_picmod_eq( pic_mod, cached_mod))
 	    && ACTUAL_WIDTH(win) == gdk_pixbuf_get_width( cached_pixbuf)
 	    && ACTUAL_HEIGHT(win) == gdk_pixbuf_get_height( cached_pixbuf)
-	    && (strcmp( file_path, cached_pixbuf_file_path) == 0) )
+	    && (strcmp( file_path, cached_pixbuf_file_path) == 0))
 	{
 		/* use pixbuf in the cache */
 		pixbuf = cached_pixbuf ;
@@ -1471,7 +1471,7 @@ x_imagelib_load_file_for_background(
 			free(cached_pixbuf_file_path) ;
 		cached_pixbuf_file_path = strdup( file_path) ;
 
-		if( is_picmod_eq( pic_mod, NULL) )
+		if( is_picmod_eq( pic_mod, NULL))
 		{
 			cached_pixbuf = pixbuf ;
 		}
@@ -1495,7 +1495,7 @@ x_imagelib_load_file_for_background(
 		pixbuf = cached_pixbuf ;
 	}
 
-	if( gdk_pixbuf_get_has_alpha ( pixbuf) )
+	if( gdk_pixbuf_get_has_alpha ( pixbuf))
 	{
 		pixmap = x_imagelib_get_transparent_background( win, NULL) ;
 		if( compose_to_pixmap( win->display, win->screen,
@@ -1594,7 +1594,7 @@ x_imagelib_get_transparent_background(
 	pixmap = XCreatePixmap( win->display, win->my_window, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
 				DefaultDepth( win->display, win->screen)) ;
 
-	gc = XCreateGC( win->display, win->my_window, 0, 0 ) ;
+	gc = XCreateGC( win->display, win->my_window, 0, 0) ;
 
 	if ( !is_picmod_eq( cache->pic_mod, pic_mod))
 	{
@@ -1609,7 +1609,7 @@ x_imagelib_get_transparent_background(
 						     win->screen,
 						     gc,
 						     current_root
-						     ,1 ) ;
+						     ,1) ;
 			if(cache->pic_mod)
 				free(cache->pic_mod) ;
 			cache->pic_mod = malloc(sizeof(x_picture_modifier_t)) ;
@@ -1622,23 +1622,23 @@ x_imagelib_get_transparent_background(
 						     win->screen,
 						     gc,
 						     current_root,
-						     0 ) ;
+						     0) ;
 		}
 	}
 	else
 	{
-		if( cache->cooked == None )
+		if( cache->cooked == None)
 		{
 			cache->cooked = tile_pixmap( win->display,
 						     win->screen,
 						     gc,
 						     current_root,
-						     0 ) ;
+						     0) ;
 		}
 	}
 
 	XCopyArea( win->display, cache->cooked, pixmap, gc, x, y, width, height, pix_x, pix_y) ;
-	XFreeGC( win->display, gc ) ;
+	XFreeGC( win->display, gc) ;
 
 	return  pixmap ;
 }

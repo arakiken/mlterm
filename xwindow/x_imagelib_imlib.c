@@ -74,7 +74,7 @@ modify_image(
 		Imlib_get_image_modifier( imlib , img , &mod) ;
 		mod.brightness = ( mod.brightness * pic_mod->brightness) / 100 ;
 		mod.contrast = ( mod.contrast * pic_mod->contrast) / 100 ;
-		mod.gamma = pic_mod->gamma > 0 ? ( ( mod.gamma * 100) / pic_mod->gamma) : ( mod.gamma * 1000);
+		mod.gamma = pic_mod->gamma > 0 ? ( ( mod.gamma * 100) / pic_mod->gamma) : ( mod.gamma * 1000) ;
 		Imlib_set_image_modifier( imlib , img , &mod) ;
 	}
 	
@@ -514,7 +514,7 @@ int x_imagelib_load_file(
 		dst_height = *height ;
 	}
 
-	Imlib_render( imlib, img, dst_width, dst_height);
+	Imlib_render( imlib, img, dst_width, dst_height) ;
 	
 	if( pixmap)
 	{

@@ -226,7 +226,7 @@ parse_mlterm_config(
 		return  FAILURE ;
 	*value = 0 ;
 #ifdef  DEBUG
-	kik_debug_printf("conf key %s val %s\n",src, value);
+	kik_debug_printf("conf key %s val %s\n",src, value) ;
 #endif
 	(*win->set_xdnd_config)( win ,
 				 NULL, /* dev */
@@ -253,7 +253,7 @@ parse_app_color(
 #ifdef  DEBUG
 	kik_debug_printf( "bgcolor: %s\n" , buffer) ;
 #endif
-	parse_mlterm_config( win, buffer, 0);
+	parse_mlterm_config( win, buffer, 0) ;
 
 	return  SUCCESS ;
 }
@@ -307,7 +307,7 @@ parse_debug(
 	int  len)
 {
 	int i;
-	kik_debug_printf(src);
+	kik_debug_printf(src) ;
 	for( i = 0 ; i < 100 && i < len ; i++)
 		kik_debug_printf( "\n%d %x" ,i, src[i]) ;
 
@@ -391,7 +391,7 @@ finalize_context(
 	if( win->dnd->parser)
 		(win->dnd->parser->delete)(win->dnd->parser) ;
 
-	free( win->dnd);
+	free( win->dnd) ;
 	win->dnd = NULL ;
 
 	return  SUCCESS ;
@@ -445,7 +445,7 @@ reply(
 	}
 
 	set_badwin_handler(1) ;
-	XSendEvent(win->display, msg.window, False, 0, (XEvent*)&msg);
+	XSendEvent(win->display, msg.window, False, 0, (XEvent*)&msg) ;
 	set_badwin_handler(0) ;
 }
 
@@ -551,13 +551,13 @@ choose_atom(
 		i = is_pref( XInternAtom( win->display,
 					  proc_entry->atomname,
 					  False),
-			     atom_list, num);
+			     atom_list, num) ;
 
 	if( i < 0)
 		return (Atom)0  ;/* 0 would never be used for Atom */
 
 #ifdef  DEBUG
-	atom_name = XGetAtomName( win->display, atom_list[i]);
+	atom_name = XGetAtomName( win->display, atom_list[i]) ;
 	if( atom_name)
 	{
 		kik_debug_printf( KIK_DEBUG_TAG "accepted: %s(%d)\n",
@@ -581,12 +581,12 @@ awareness(
 	int version
 	)
 {
-	set_badwin_handler(1);
+	set_badwin_handler(1) ;
 	XChangeProperty( win->display, win->my_window,
 			 XInternAtom( win->display, "XdndAware", False),
 			 XA_ATOM, 32, PropModeReplace,
 			 (unsigned char *)(&version), 1) ;
-	set_badwin_handler(0);
+	set_badwin_handler(0) ;
 }
 
 static int
@@ -615,7 +615,7 @@ enter(
 					     0L, 1024L, False, XA_ATOM,
 					     &act_type,
 					     &act_format, &nitems, &left,
-					     (unsigned char **)(&dat));
+					     (unsigned char **)(&dat)) ;
 		set_badwin_handler(0) ;
 
 		if( result != Success)
@@ -629,12 +629,12 @@ enter(
 		{
 			to_wait = None ;
 		}
-		XFree( dat);
+		XFree( dat) ;
 	}
 	else
 	{
 		/* less than 3 candidates */
-		to_wait = choose_atom( win , (event->xclient.data.l)+2 , 3);
+		to_wait = choose_atom( win , (event->xclient.data.l)+2 , 3) ;
 	}
 
 	if( !(to_wait))
@@ -673,14 +673,14 @@ position(
 	if( win->dnd->source != event->xclient.data.l[0])
 	{
 #ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "WID mismatched.\n");
+		kik_debug_printf( KIK_DEBUG_TAG "WID mismatched.\n") ;
 #endif
 		finalize_context( win) ;
 
 		return  FAILURE ;
 	}
 
-	reply( win);
+	reply( win) ;
 
 	return  SUCCESS ;
 }
@@ -697,7 +697,7 @@ drop(
 	if( win->dnd->source != event->xclient.data.l[0])
 	{
 #ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "WID mismatched.\n");
+		kik_debug_printf( KIK_DEBUG_TAG "WID mismatched.\n") ;
 #endif
 		finalize_context( win) ;
 
@@ -711,7 +711,7 @@ drop(
 			   win->dnd->waiting_atom, /* mime type */
 			   XA_DND_STORE(win->display),
 			   win->my_window,
-			   event->xclient.data.l[2]);
+			   event->xclient.data.l[2]) ;
 	set_badwin_handler(0) ;
 
 	return  SUCCESS ;
@@ -747,7 +747,7 @@ incr(
 	if( ct.encoding != XA_INCR(win->display))
 	{
 #ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "ignored.\n");
+		kik_debug_printf( KIK_DEBUG_TAG "ignored.\n") ;
 #endif
 		if( ct.value)
 			XFree( ct.value) ;
@@ -818,7 +818,7 @@ selection(
 	if( result != Success)
 	{
 #ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "couldn't get property. \n");
+		kik_debug_printf( KIK_DEBUG_TAG "couldn't get property. \n") ;
 #endif
 		finalize_context( win) ;
 
