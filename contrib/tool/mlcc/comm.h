@@ -81,3 +81,4 @@ char * colorname_from_id(int colorid);
 int string_edit(window_t *window, char *src, char **result);
 int color_select(window_t *edit, int initial);
 #endif
+

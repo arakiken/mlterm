@@ -13,3 +13,4 @@ void entry_string_reset(entry_t *entry);
 void entry_string_display(window_t *window, entry_t *entry, int x, int y, int state);
 int entry_string_edit(window_t *window, entry_t *entry, int x, int y);
 
+

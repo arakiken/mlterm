@@ -50,3 +50,4 @@ window_t * entry_window_new(window_t * section);
 
 void section_free(section_t *section);
 #endif
+

@@ -39,11 +39,11 @@ int read_one(){
 	int count;
 	char buf[3] = {0,0,0};
 	count = read(STDIN_FILENO, buf, 3);
-	if (buf[0] != 27)  /* XXX sould check non-printable */
+	if (buf[0] != 27)  /* XXX should check non-printable */
 		return  buf[0];
 	if (buf[1] == 0)
 		return KEY_ESC; /* single esc */
-	if (buf[1] == 79)  /*coursor key?*/
+	if (buf[1] == 79)  /*cursor key?*/
 		switch(buf[2]){
 		case 65:
 			return KEY_UP;
@@ -54,7 +54,7 @@ int read_one(){
 		case 68:
 			return KEY_LEFT;
 		}
-	return -1; /* couldnn't processed */
+	return -1; /* couldn't processed */
 }
 
 
@@ -443,3 +443,4 @@ int string_edit(window_t *window, char *src, char **result){
 	free(work);
 	
 }
+

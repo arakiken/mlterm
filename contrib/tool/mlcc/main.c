@@ -24,7 +24,7 @@ typedef struct {
  *  global variables
  */
 
-/* must be global to be canged by signal handler */
+/* must be global to be changed by signal handler */
 static int _cols;
 static int _rows;
 static int _redraw_all = 0;
@@ -379,7 +379,7 @@ int main(int argc, char **argv){
 		switch(data.state){
 		case DS_SELECT:
 			if (select_entry(&data)){
-  				window_clear(win_entry);/* clear gabage */
+  				window_clear(win_entry);/* clear garbage */
 				display_section(win_section, &data);
 				display_entry(win_entry, &data);
 				flush_stdout();
@@ -387,7 +387,7 @@ int main(int argc, char **argv){
 			break;
 		case DS_EDIT:
 			if (edit_entry(win_entry, &data)){	
-				window_clear(win_entry); /* clear gabage */
+				window_clear(win_entry); /* clear garbage */
 				display_section(win_section, &data); /* change color */
 				display_entry(win_entry, &data);
 				flush_stdout();
@@ -415,3 +415,4 @@ int main(int argc, char **argv){
 	_finalize(); /*recover terminal setting*/
 	return 0;
 }
+

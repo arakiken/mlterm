@@ -79,3 +79,4 @@ int entry_bool_edit(window_t *window, entry_t *entry, int x, int y){
 }
 
 
+
