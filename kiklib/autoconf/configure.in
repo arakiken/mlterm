@@ -1,6 +1,12 @@
 AC_INIT()
 
-SRC_TOPDIR='${BUILD_TOPDIR}'/autoconf/${top_srcdir-$srcdir}/..
+is_abs=`echo ${top_srcdir-$srcdir} | sed -n 's/^\/.*/yes/p'`
+if test "$is_abs" = "" ; then
+	SRC_TOPDIR='${BUILD_TOPDIR}'/autoconf/${top_srcdir-$srcdir}/..
+else
+	SRC_TOPDIR=${top_srcdir-$srcdir}/..
+fi
+
 AC_SUBST(SRC_TOPDIR)
 
 AC_CONFIG_AUX_DIR(${top_srcdir-$srcdir})
