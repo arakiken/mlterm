@@ -5476,14 +5476,7 @@ set_config(
 
 		encoding = value ;
 		
-		if( ( p = strchr( value , ':')) == NULL)
-		{
-			return ;
-		}
-		
-		*(p ++) = '\0' ;
-
-		if( *p == '\0')
+		if( ( p = strchr( value , ':')) == NULL || *(p + 1) == '\0')
 		{
 			char *  tty ;
 
@@ -5501,6 +5494,8 @@ set_config(
 		}
 		else
 		{
+			*(p ++) = '\0' ;
+			
 			len = 7 + strlen( p) + 1 ;
 			if( ( file = alloca( len)) == NULL)
 			{

@@ -88,7 +88,7 @@ version 20030301
   select_pty = <pty dev name>
   pty_list = (<pty dev>:<active flag>;)*
   pty_name = <pty dev> | <pty title>
-  snapshot = <encoding name>:<file name>
+  snapshot = <encoding name>:<file name> | <none>
   gen_proto_challenge = <none>
 
 * Note
@@ -108,3 +108,5 @@ version 20030301
   o If /dev/... is specified with 'pty_name' key, <pty title> is returned.
     Otherwise, <pty dev> returned.
   o /dev/... in 5379,5382,5383 proto is ignored for now.
+  o If "snapshot" protocol issued without <file name> or with no value,
+    screen snapshot is output to ~/.mlterm/[tty].snp.
