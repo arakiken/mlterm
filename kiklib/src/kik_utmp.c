@@ -9,13 +9,17 @@
 
 #include  "kik_utmp_utmper.c"
 
-#elif  defined(HAVE_LOGIN)
+#elif  defined(HAVE_SETUTENT)
+
+#if  defined(HAVE_LOGIN)
 
 #include  "kik_utmp_login.c"
 
-#elif  defined(HAVE_SETUTENT)
+#else
 
 #include  "kik_utmp_sysv.c"
+
+#endif	/* HAVE_LOGIN */
 
 #else
 

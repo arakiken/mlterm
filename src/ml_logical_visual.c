@@ -474,12 +474,31 @@ bidi_visual_line(
 	ml_image_line_t *  line
 	)
 {
-#if  0
-	/* just to be sure */
-	ml_imgline_bidi_render( line) ;
-#endif
+	if( line->num_of_filled_chars > 0)
+	{
+		int  cols ;
 
-	ml_imgline_bidi_visual( line) ;
+		for( cols = ml_imgline_get_num_of_filled_cols( line) ;
+			cols < logvis->image->model.num_of_cols ; cols ++)
+		{
+			ml_char_copy( &line->chars[line->num_of_filled_chars++] ,
+				&logvis->image->sp_ch) ;
+		}
+	}
+
+	if( ! ml_imgline_is_using_bidi( line))
+	{
+		ml_imgline_use_bidi( line) ;
+	}
+
+	ml_imgline_bidi_render( line , -1) ;
+	
+	if( ! ml_imgline_bidi_visual( line))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_imgline_bidi_visual() failed.\n") ;
+	#endif
+	}
 
 	return  1 ;
 }
