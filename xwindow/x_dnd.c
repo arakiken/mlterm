@@ -1,6 +1,6 @@
 /** @file
  * @brief X Drag and Drop protocol support
- * 
+ *
  *	$Id$
  */
 
@@ -12,12 +12,11 @@
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
 
-/* XXX Should we create x_atom.h ?? */
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 
 typedef struct dnd_parser {
 	char *  atomname ;
-	int  (*parser)(x_window_t *, unsigned char *, int);
+	int  (*parser)(x_window_t *, unsigned char *, int) ;
 } dnd_parser_t ;
 
 static int
@@ -30,7 +29,7 @@ parse_text_unicode(
 	mkf_parser_t * parser ;
 	mkf_conv_t * conv ;
 	char conv_buf[512] = {0};
-	
+
 	if( !(win->utf8_selection_notified))
 		return 0 ;
 	if( !(conv = mkf_utf8_conv_new()))
@@ -40,25 +39,25 @@ parse_text_unicode(
 		(conv->delete)(conv) ;
 		return 0 ;
 	}
-	
+
 	(parser->init)( parser) ;
 	if ( (src[0] == 0xFF || src[0] == 0xFE)
 	     && (src[1] == 0xFF || src[1] == 0xFE)
 	     && (src[0] != src[1]))
-	{			
+	{
 		/* src sequence seems to have a valid BOM and *
 		 * should be processed correctly */
 	}
 	else
 	{
-		/* try to set parser state depending on 
+		/* try to set parser state depending on
 		   your machine's endianess by sending BOM */
 		u_int16_t BOM[] =  {0xFEFF};
-		
+
 		(parser->set_str)( parser , (char *)BOM , 2) ;
-		(parser->next_char)( parser , 0) ;	     
+		(parser->next_char)( parser , 0) ;
 	}
-	
+
 	(parser->set_str)( parser , src , len) ;
 	/* conversion from utf16 -> utf8. */
 	while( ! parser->is_eos)
@@ -67,15 +66,15 @@ parse_text_unicode(
 					      conv_buf,
 					      sizeof(conv_buf),
 					      parser) ;
-		if(filled_len ==0) 
+		if(filled_len ==0)
 			break ;
 		(*win->utf8_selection_notified)( win,
-						 conv_buf, 
+						 conv_buf,
 						 filled_len) ;
 	}
 	(conv->delete)( conv) ;
 	(parser->delete)( parser) ;
-	
+
 	return 1 ;
 }
 
@@ -87,7 +86,7 @@ parse_text_uri_list(
 {
 	int pos ;
 	unsigned char *delim ;
-	
+
 	if( !(win->utf8_selection_notified))
 		return 0 ;
 	pos = 0 ;
@@ -97,7 +96,7 @@ parse_text_uri_list(
 		if( delim )
 		{
 			/* output one ' ' as a separator */
-			*delim = ' ' ; 
+			*delim = ' ' ;
 		}
 		else
 		{
@@ -119,9 +118,9 @@ parse_text_uri_list(
 							 (delim - &(src[pos])) +1) ;
 		}
 		/* skip trailing 0x0A */
-		pos = (delim - src) +2 ; 
+		pos = (delim - src) +2 ;
 	}
-	
+
 	return 1;
 }
 
@@ -168,8 +167,8 @@ parse_mlterm_config(
 	unsigned char *  src,
 	int  len)
 {
-	char *  value ;	
-	
+	char *  value ;
+
 	if( !(win->set_xdnd_config))
 		return 0 ;
 	value = strchr( src, '=') ;
@@ -178,8 +177,8 @@ parse_mlterm_config(
 	*value = 0 ;
 #ifdef  DEBUG
 	kik_debug_printf("key %s val %s",src, value);
-#endif 
-	(*win->set_xdnd_config)( win , 
+#endif
+	(*win->set_xdnd_config)( win ,
 				 NULL, /* dev */
 				 src, /* key */
 				 value +1 /* value */) ;
@@ -195,7 +194,7 @@ parse_app_color(
 {
 	u_int16_t *r, *g, *b;
 	char buffer[25];
-	
+
 	r = (u_int16_t *)src ;
 	g = r + 1 ;
 	b = r + 2 ;
@@ -203,7 +202,7 @@ parse_app_color(
 	sprintf( buffer, "bg_color=#%04x%04x%04x", *r, *g, *b) ;
 #ifdef  DEBUG
 	kik_debug_printf( "%s\n" , buffer) ;
-#endif 
+#endif
 	parse_mlterm_config( win, buffer, 0);
 
 	return 1 ;
@@ -220,8 +219,8 @@ parse_prop_bgimage(
 		return 0 ;
 #ifdef  DEBUG
 	kik_debug_printf( "%s\n" , src +7) ;
-#endif 
-	(*win->set_xdnd_config)( win , 
+#endif
+	(*win->set_xdnd_config)( win ,
 				 NULL, /* dev */
 				 "wall_picture", /* key */
 				 src + 7 /* value */) ;
@@ -255,19 +254,16 @@ dnd_parser_t dnd_parsers[] ={
 	{"text/unicode"   , parse_text_unicode } ,
 	{"application/x-color"  , parse_app_color } ,
 	{"property/bgimage"  , parse_prop_bgimage } ,
-	{"x-special/gnome-reset-background"  , parse_prop_bgimage }, 
+	{"x-special/gnome-reset-background"  , parse_prop_bgimage },
+/*
 	{"GIMP_PATTERN"  , parse_utf8_string } ,
 	{"GIMP_BRUSH"  , parse_utf8_string } ,
 	{"GIMP_GRADIENT"  , parse_utf8_string } ,
 	{"GIMP_IMAGEFILE"  , parse_utf8_string } ,
+*/
 	{NULL, NULL}
 };
 
-/* --- static variables --- */
-
-
-
-/* --- static functions --- */
 static int
 ignore_badwin(
 	Display *  display,
@@ -279,7 +275,7 @@ ignore_badwin(
 	XGetErrorText( display , event->error_code , buffer , 1024) ;
 
 	kik_error_printf( "%s\n" , buffer) ;
-	
+
 	switch( event->error_code)
 	{
 	case BadWindow:
@@ -324,9 +320,9 @@ is_pref(
 	{
 #ifdef  DEBUG
 		kik_debug_printf("%d %d %d\n " , i, atom[i], type) ;
-#endif 
+#endif
 		if( atom[i] == type)
-			return i ;			
+			return i ;
 	}
 	return  -1 ;
 }
@@ -339,7 +335,7 @@ reply(
 	x_window_t * win
 	)
 {
-	XClientMessageEvent  msg ;	
+	XClientMessageEvent  msg ;
 
 	msg.type = ClientMessage ;
 	msg.display = win->display ;
@@ -362,28 +358,28 @@ reply(
 		msg.data.l[4] = 0 ;
 	}
 
-	set_badwin_handler(1) ;	
+	set_badwin_handler(1) ;
 	XSendEvent(win->display, msg.window, False, 0, (XEvent*)&msg);
 	set_badwin_handler(0) ;
 }
 
 /**send finish message to dnd sender
- *\param win mlterm window 
+ *\param win mlterm window
  */
 static void
 finish(
-	x_window_t *  win 
+	x_window_t *  win
 	)
 {
 	XClientMessageEvent msg ;
-	
+
 	if( !(win->dnd->source))
 		return ;
 
 	msg.message_type = XInternAtom( win->display, "XdndFinished", False) ;
 	msg.data.l[0] = win->my_window ;
 	/* setting bit 0 means success */
-	msg.data.l[1] = 1 ; 
+	msg.data.l[1] = 1 ;
 	msg.data.l[2] = XInternAtom( win->display, "XdndActionCopy", False) ;
 	msg.type = ClientMessage ;
 	msg.format = 32 ;
@@ -420,17 +416,17 @@ parse(
 	atom = win->dnd->waiting_atom ;
 	if( !atom)
 		return 1 ;
-	
+
 	for( proc_entry = dnd_parsers ; proc_entry->atomname ;proc_entry++)
 	{
 		if( atom == XInternAtom( win->display, proc_entry->atomname, False) )
-			break ;		    
+			break ;
 	}
-	
+
 	if( proc_entry->parser)
 		return  (proc_entry->parser)( win, src, len) ;
 
-	return 0 ; 
+	return 0 ;
 }
 
 
@@ -438,7 +434,7 @@ parse(
  * i = -1 means "nothing"
  *
  * returned value is the atom found and NOT THE INDEX
- * and 0 means "nothing" 
+ * and 0 means "nothing"
  */
 
 static Atom
@@ -450,7 +446,7 @@ choose_atom(
 {
 	dnd_parser_t *  proc_entry ;
 	int  i = -1 ;
-	
+
 	for( proc_entry = dnd_parsers ; i< 0 && proc_entry->atomname ;proc_entry++)
 		i = is_pref( XInternAtom( win->display, proc_entry->atomname, False), atom, num);
 
@@ -502,18 +498,18 @@ x_dnd_set_awareness(
 	set_badwin_handler(1);
 	XChangeProperty( win->display, win->my_window,
 			 XInternAtom( win->display, "XdndAware", False),
-			 XA_ATOM, 32, PropModeReplace, 
+			 XA_ATOM, 32, PropModeReplace,
 			 (unsigned char *)(&version), 1) ;
 	set_badwin_handler(0);
 }
 
-int 
+int
 x_dnd_process_enter(
 	x_window_t *  win,
 	XEvent *  event
 	)
 {
-	Atom  to_wait ;		
+	Atom  to_wait ;
 
 	/* more than 3 type is available? */
 	if (event->xclient.data.l[1] & 0x01)
@@ -523,7 +519,7 @@ x_dnd_process_enter(
 		unsigned long  nitems, left ;
 		Atom *  dat ;
 		int  result ;
-		
+
 		set_badwin_handler(1) ;
 		result = XGetWindowProperty( win->display, event->xclient.data.l[0],
 					     XInternAtom( win->display, "XdndTypeList", False), 0L, 1024L,
@@ -580,7 +576,7 @@ x_dnd_process_enter(
 	return 0 ;
 }
 
-int 
+int
 x_dnd_process_position(
 	x_window_t *  win,
 	XEvent *  event
@@ -606,11 +602,11 @@ x_dnd_process_position(
 	}
 
 	reply( win);
-	
+
 	return 0 ;
 }
 
-int 
+int
 x_dnd_process_drop(
 	x_window_t *  win,
 	XEvent *  event
@@ -635,7 +631,7 @@ x_dnd_process_drop(
 
 		return 1 ;
 	}
-	
+
 	/* data request */
 	set_badwin_handler(1) ;
 	XConvertSelection( win->display, XInternAtom( win->display, "XdndSelection", False),
@@ -648,7 +644,7 @@ x_dnd_process_drop(
 	return 0 ;
 }
 
-int 
+int
 x_dnd_process_incr(
 	x_window_t *  win,
 	XEvent *  event
@@ -674,13 +670,13 @@ x_dnd_process_incr(
 				     &ct.nitems , &bytes_after , &ct.value) ;
 	set_badwin_handler(0) ;
 	if( result != Success)
-		return  1 ; 	
+		return  1 ;
 
 	/* the event should be ignored */
 	if( ct.encoding == None)
 		return  1 ;
 
-	/* when ct.encoding != XA_INCR, 
+	/* when ct.encoding != XA_INCR,
 	   delete will be read when SelectionNotify would arrive  */
 	if( ct.encoding != XA_INCR(win->display))
 		return  1 ;
@@ -689,11 +685,11 @@ x_dnd_process_incr(
 	result = XGetWindowProperty( win->display , event->xproperty.window ,
 			    event->xproperty.atom , 0 , bytes_after , False ,
 			    AnyPropertyType , &ct.encoding , &ct.format ,
-			    &ct.nitems , &bytes_after , &ct.value) ; 
+			    &ct.nitems , &bytes_after , &ct.value) ;
 	set_badwin_handler(0) ;
 
 	if( result != Success)
-		return  1 ; 	
+		return  1 ;
 
 	if( ct.nitems > 0)
 	{
@@ -708,19 +704,19 @@ x_dnd_process_incr(
 		free( win->dnd);
 		win->dnd = NULL ;
 	}
-	
-	XFree( ct.value) ; 
+
+	XFree( ct.value) ;
 
 	/* This delete will trigger the next update*/
 	set_badwin_handler(1) ;
 	XDeleteProperty( win->display, event->xproperty.window,
-			 event->xproperty.atom) ;					
+			 event->xproperty.atom) ;
 	set_badwin_handler(0) ;
 
 	return 0 ;
 }
 
-int 
+int
 x_dnd_process_selection(
 	x_window_t *  win,
 	XEvent *  event
@@ -737,7 +733,7 @@ x_dnd_process_selection(
 #ifdef  DEBUG
 		kik_debug_printf("processing selection\n");
 #endif
-	/* dummy read to determine data length */	
+	/* dummy read to determine data length */
 	set_badwin_handler(1) ;
 	result = XGetWindowProperty( win->display , event->xselection.requestor ,
 				     event->xselection.property , 0 , 0 , False ,
@@ -753,7 +749,7 @@ x_dnd_process_selection(
 		free( win->dnd);
 		win->dnd = NULL ;
 
-		return 1 ;		
+		return 1 ;
 	}
 	if( ct.encoding == XA_INCR(win->display))
 		return 0 ;
@@ -769,12 +765,12 @@ x_dnd_process_selection(
 
 		if(result != Success)
 			break ;
-		parse( win, ct.value, ct.nitems) ;		
+		parse( win, ct.value, ct.nitems) ;
 		XFree( ct.value) ;
-		
+
 		seg += ct.nitems ;
 	}
-	
+
 	finish( win) ;
 
 #ifdef  DEBUG
