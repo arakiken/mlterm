@@ -16,7 +16,7 @@ VPATH = $(top_srcdir)/lib
 
 INCDIR_TMP = $(top_builddir)/include
 
-CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @TABLE_CFLAGS@ @CFLAGS@ -I/usr/local/include
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @TABLE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -I/usr/local/include
 LIBS = $(LIBS_LOCAL)
 
 PARSER_OBJ = mkf_parser.o mkf_iso2022_parser.o mkf_iso8859_parser.o mkf_xct_parser.o \

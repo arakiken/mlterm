@@ -1,5 +1,9 @@
 2003-06-04 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* Added $CPPFLAGS to CFLAGS.
+
+2003-06-04 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* Fixed a problem with occuring an incorrect size hint when changing
 	  scrollbar. (change the order of x_window_resize() and
 	  x_window_set_normal_hints() in x_scrollbar_change_view().)
