@@ -1,16 +1,19 @@
 /*
  *	$Id$
  */
-/* XXX XDND stuff should be moved into separete module */
 
 #include  "x_window.h"
 #include  "x_dnd.h"
 #include  <X11/Xatom.h>
-
-#define DEBUG
+#include  <mkf/mkf_utf8_conv.h>
+#include  <mkf/mkf_ucs4_parser.h>
 /* --- static variables --- */
 
 static const u_char  DND_VERSION = 4 ;
+
+
+
+/* --- static functuions --- */
 
 /* --- global functuions --- */
 
@@ -65,20 +68,59 @@ x_dnd_parse(
 	if( atom == XA_COMPOUND_TEXT(win->display))
 	{
 		if( !(win->xct_selection_notified))
-			return 0 ; /* needs ASCII capable parser*/
+			return 0 ;
 		(*win->xct_selection_notified)( win , src , len) ;
 		return 1 ;
 	}
 	/* UTF8_STRING */
-	if( atom == XA_UTF8_STRING(win->display) 
-	    || atom == XA_DND_MIME_TEXT_UNICODE(win->display))
+	if( atom == XA_UTF8_STRING(win->display) )
 	{
 		if( !(win->utf8_selection_notified))
-			return 0 ; /* needs ASCII capable parser*/
+			return 0 ;
 		(*win->utf8_selection_notified)( win , src , len) ;
 		return 1 ;
 	}
-	/* XXX ASCII should be safely processed because it's subset of utf8. ISO8859-1 may be problematic...*/
+	/* text/unicode !!!broken!!! */
+	if( atom == XA_DND_MIME_TEXT_UNICODE(win->display))
+	{
+		int filled_len;
+		mkf_parser_t *  parser ;
+		mkf_conv_t * conv ;
+		
+		char * conv_buf ;
+		
+		if( !(win->utf8_selection_notified))
+			return 0 ;
+		/* XXX */
+		if(! (conv_buf = malloc(len * 2)))
+			return 0;
+
+		if(! (conv = mkf_utf8_conv_new()))
+		{
+			free( conv_buf);
+			return 0;
+		}
+		if(! (parser = mkf_ucs4_parser_new()))
+		{
+			(conv->delete)(conv);
+			free( conv_buf);
+			return 0;
+		}
+		(parser->init)( parser) ;
+		(parser->set_str)( parser , src , len) ;
+
+		filled_len = (conv->convert)(
+			conv , conv_buf , len ,
+			parser);
+		    
+		(conv->delete)(conv);
+		(parser->delete)(parser);
+
+		(*win->utf8_selection_notified)( win , conv_buf , filled_len) ;
+
+		free(conv_buf);
+		return 1 ;
+	}
 	/* text/plain */
 	if( atom == XA_DND_MIME_TEXT_PLAIN(win->display))
 	{
@@ -94,7 +136,7 @@ x_dnd_parse(
 		char *delim ;
 
 		if( !(win->utf8_selection_notified))
-			return 0 ; /* needs ASCII capable parser*/
+			return 0 ;
 
 		pos = 0 ;
 		delim = src ;
