@@ -1,3 +1,11 @@
+[20020306]
+* core dump in processing _XROOTPMAP_ID. fixed.
+  (Thanks to Nanashi san)
+* strange format of man page is fixed.
+  (Thanks to Mike Fabian)
+* when line is wrapped around, characters at the end of line are swapped. fixed.
+  (Thanks to Mike Fabian)
+
 [20020304]
 * -q/--extkey use_extended_scroll_shortcut option , which enables scroll shortcutkey
   extension(scrolling by arrow keys, 'j' and 'k'), is added.(disabled by default)

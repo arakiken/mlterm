@@ -120,73 +120,9 @@ get_pos(
 	if( ml_imgline_get_num_of_filled_cols( &IMAGE_LINE(image,end_row)) == image->num_of_cols &&
 		*char_index > ml_imgline_end_char_index( &IMAGE_LINE(image,end_row)))
 	{
-		if( image->wraparound_ready_line == &IMAGE_LINE(image,end_row))
-		{
-			ml_imgline_set_continued_to_next( &IMAGE_LINE(image,*row)) ;
-			
-			if( *row == image->num_of_rows - 1)
-			{
-			#if  0
-				/*
-				 * XXX
-				 * This can cause unexpected behavior if scroll region
-				 * is too small.
-				 */
-				if( ! ml_imgscrl_scroll_upward( image , 1))
-			#else
-				if( ! ml_imgscrl_scroll_upward_in_all( image , 1))
-			#endif
-				{
-					return  0 ;
-				}
-
-				if( break_row_boundary( image , 1) != 1)
-				{
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" it failed to break_row_boundary.\n") ;
-				#endif
-
-					return  0 ;
-				}
-			}
-			else
-			{
-				if( ++ (*row) > END_ROW(image))
-				{
-					if( break_row_boundary( image , 1) != 1)
-					{
-					#ifdef  DEBUG
-						kik_warn_printf( KIK_DEBUG_TAG
-							" it failed to break_row_boundary.\n") ;
-					#endif
-
-						return  0 ;
-					}
-				}
-			}
-
-		#ifdef  __DEBUG
-			if( ml_char_font( &image->prev_recv_ch) == NULL)
-			{
-				kik_warn_printf( KIK_DEBUG_TAG " image->prev_recv_ch is NULL.\n") ;
-			}
-		#endif
-
-			ml_imgline_overwrite_chars( &IMAGE_LINE(image,*row) , 0 ,
-				&image->prev_recv_ch , 1 , ml_char_cols( &image->prev_recv_ch) ,
-				&image->sp_ch) ;
-
-			*char_index = 1 ;
-
-			reset_wraparound_checker( image) ;
-		}
-		else
-		{
-			*char_index = ml_imgline_end_char_index( &IMAGE_LINE(image,end_row)) ;
-			
-			image->wraparound_ready_line = &IMAGE_LINE(image,end_row) ;
-		}
+		*char_index = ml_imgline_end_char_index( &IMAGE_LINE(image,end_row)) ;
+		
+		image->wraparound_ready_line = &IMAGE_LINE(image,end_row) ;
 	}
 	else
 	{
@@ -555,7 +491,7 @@ insert_chars(
 #endif
 
 	buf_len = image->num_of_cols ;
-
+	
 	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -577,6 +513,11 @@ insert_chars(
 		filled_len += image->cursor.char_index ;
 	}
 
+	if( image->wraparound_ready_line)
+	{
+		ml_char_copy( &buffer[filled_len++] , &image->prev_recv_ch) ;
+	}
+	
 	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
 	if( cols_rest)
 	{
@@ -704,7 +645,7 @@ line_full:
 		image->cursor.row , cursor_index) ;
 
 	/* for wraparound line checking */
-	if( image->wraparound_ready_line != NULL)
+	if( image->wraparound_ready_line)
 	{
 		if( num_of_ins_chars == 1)
 		{
@@ -1033,6 +974,11 @@ ml_image_overwrite_chars(
 
 	buf_len = num_of_ow_chars + image->num_of_cols ;
 
+	if( image->wraparound_ready_line)
+	{
+		buf_len ++ ;
+	}
+	
 	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -1049,6 +995,11 @@ ml_image_overwrite_chars(
 	{
 		ml_str_copy( &buffer[filled_len] , CURSOR_LINE(image).chars , image->cursor.char_index) ;
 		filled_len += image->cursor.char_index ;
+	}
+	
+	if( image->wraparound_ready_line)
+	{
+		ml_char_copy( &buffer[filled_len++] , &image->prev_recv_ch) ;
 	}
 	
 	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;

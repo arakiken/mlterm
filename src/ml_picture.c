@@ -267,7 +267,7 @@ get_background_picture(
 					goto  found ;
 				}
 			}
-			else if( *prop)
+			else if( prop)
 			{
 				XFree( prop) ;
 			}
