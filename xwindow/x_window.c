@@ -33,7 +33,7 @@
 #define  XA_DND_STORE(display) (XInternAtom(display, "__STORE__", False))
 #define  XA_DND_ACTION_COPY(display) (XInternAtom(display, "XdndActionCopy", False))
 #define  XA_DND_SELECTION(display) (XInternAtom(display, "XdndSelection", False))
-#define  XA_DND_FINISH(display) (XInternAtom(display, "XdndFinish", False))
+#define  XA_DND_FINISH(display) (XInternAtom(display, "XdndFinished", False))
 #define  XA_DND_MIME_TEXT_PLAIN(display) (XInternAtom(display, "text/plain", False))
 
 #define  DOUBLE_CLICK_INTERVAL  1000	/* mili second */
