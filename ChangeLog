@@ -1,3 +1,4 @@
+[20020324]
 * strange cursor movement on bidi is fixed.
 * memory leak in ml_bidi.c:ml_bidi() is fixed.
 * -J/--dyncomb option can be dynamically changed.
