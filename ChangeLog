@@ -1,3 +1,7 @@
+[20020329]
+* all the colors defined in rgb.txt are available.
+* #RRGGBB format is supported for fg_color,bg_color,sb_fg_color,sb_bg_color.
+
 [20020328]
 * lines sometimes get left-aligned. fixed.
   (Thanks to Nadim Shaikli)
