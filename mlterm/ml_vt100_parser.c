@@ -1568,6 +1568,14 @@ parse_vt100_escape_sequence(
 								ps[0] - 1 , ps[1] - 1) ;
 						}
 					}
+					else if( *str_p == 's')
+					{
+						ml_screen_save_cursor( vt100_parser->screen) ;
+					}
+					else if( *str_p == 'u')
+					{
+						ml_screen_restore_cursor( vt100_parser->screen) ;
+					}
 					else if( *str_p == 'x')
 					{
 						/* request terminal parameters */
