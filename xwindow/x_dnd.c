@@ -185,6 +185,27 @@ parse_mlterm_config(
 
 	return 1 ;
 }
+static int
+parse_app_color(
+	x_window_t *  win,
+	unsigned char *  src,
+	int  len)
+{
+	u_int16_t *r, *g, *b;
+	char buffer[255];
+	
+	r = (u_int16_t *)src ;
+	g = r + 1 ;
+	b = r + 2 ;
+
+	sprintf( buffer, "bg_color=#%04x%04x%04x", *r, *g, *b) ;
+#ifdef  DEBUG
+	kik_debug_printf( "%s\n" , buffer) ;
+#endif 
+	parse_mlterm_config( win, buffer, 0);
+
+	return 1 ;
+}
 
 dnd_parser_t dnd_parsers[] ={
 	{"text/x-mlterm.config"  , parse_mlterm_config } ,
@@ -194,6 +215,11 @@ dnd_parser_t dnd_parsers[] ={
 	{"text/plain"   , parse_utf8_string } ,
 	{"TEXT"         , parse_text } ,
 	{"text/unicode"   , parse_text_unicode } ,
+	{"application/x-color"  , parse_app_color } ,
+	{"GIMP_PATTERN"  , parse_utf8_string } ,
+	{"GIMP_BRUSH"  , parse_utf8_string } ,
+	{"GIMP_GRADIENT"  , parse_utf8_string } ,
+	{"GIMP_IMAGEFILE"  , parse_utf8_string } ,
 	{NULL, NULL}
 };
 
