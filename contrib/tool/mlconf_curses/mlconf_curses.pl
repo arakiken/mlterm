@@ -9,21 +9,15 @@ use Curses;
 #
 my $VERSION="0.1-2.4.0";
 my $TITLE = "mlterm configurator on Curses v.$VERSION";
-my $TERM="mlterm" || $ENV{TERM}; ### XXX:drop support for other T.E.s ?
+my $TERM= $ENV{TERM} || "mlterm"; ### XXX:drop support for other T.E.s ?
 my $TTY = "/dev/tty"; ### XXX TBD:support remote control!
 
-my $FG_COLOR = 'white'; ## Used when displaying menu(s).
+my $FG_COLOR = 'white'; ## Used to display config menu(s).
 my $BG_COLOR = 'black'; ## NOT used for terminal param.
 my $EDIT_COLOR = 'red';
 my $SELECT_COLOR = 'green';
 
 my $MAGIC_ERROR = "error"; ## XXX
-
-my %vartical_enum=(
-		   'none' => 0,
-		   'cjk' => 1,
-		   'mongol' => 2,
-);
 
 my @LOGICAL_UP    = (KEY_UP,    KEY_RIGHT, KEY_LEFT);
 my @LOGICAL_DOWN  = (KEY_DOWN,  KEY_LEFT,  KEY_RIGHT);
@@ -145,7 +139,6 @@ $SIG{INT}=sub{
 # config
 ################################
 sub config_init_fg(){
-    return if ($TERM ne "mlterm");
     my $term_color;
     $term_color = comm_getparam_mlterm("Foreground");
     my $color;
@@ -158,7 +151,6 @@ sub config_init_fg(){
 
 
 sub config_init_bg(){
-    return if ($TERM ne "mlterm");
     my $term_color;
     $term_color = comm_getparam_mlterm("Background");
     my $color;
@@ -442,8 +434,12 @@ sub display_str(@){
     my $y = shift || 0;
     my $fgcolor = shift || $FG_COLOR;
     my $bgcolor = shift || $BG_COLOR;
+
+    my $mx;
+    my $my;
+    ($mx,$my) = display_window_size($window);
     display_set_color( $window, $fgcolor, $bgcolor);
-    $window->addstr( $y, $x, $text);
+    $window->addstr( $y, $x, $text . " " x ($mx - length($text) - $x -1) );
 }
 
 sub display_set_color(@){
@@ -1236,11 +1232,6 @@ sub comm_setparam_mlterm(@){
     my $key = $entry2key_mlterm{$entry};
 	printf STDERR "${key} ${data} ${entry}" ;
     if ( $key){
-###FixMe: 
-#	open (OUT,">$TTY");
-#	warn "tty $TTY";
-#	printf OUT "\x1b]5379;${key}=${data}\x07";
-#	close(OUT);
 	printf "\x1b]5379;${key}=${data}\x07";
 	printf STDERR "\x1b]5379;${key}=${data}\x07";
     }
