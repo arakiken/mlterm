@@ -1896,11 +1896,15 @@ ml_highlight_cursor(
 	}
 
 	edit->cursor.orig_fg = ml_char_fg_color( CURSOR_CHAR(edit)) ;
-	ml_char_set_fg_color( CURSOR_CHAR(edit) , ML_BG_COLOR) ;
-	
 	edit->cursor.orig_bg = ml_char_bg_color( CURSOR_CHAR(edit)) ;
+	
+#if  0
+	ml_char_set_fg_color( CURSOR_CHAR(edit) , ML_BG_COLOR) ;	
 	ml_char_set_bg_color( CURSOR_CHAR(edit) , ML_FG_COLOR) ;
-
+#else
+	ml_char_set_fg_color( CURSOR_CHAR(edit) , edit->cursor.orig_bg) ;
+	ml_char_set_bg_color( CURSOR_CHAR(edit) , edit->cursor.orig_fg) ;
+#endif
 	edit->cursor.is_highlighted = 1 ;
 
 	return  1 ;

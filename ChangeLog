@@ -1,3 +1,10 @@
+2002-12-10 Araki Ken <arakiken@users.sf.net>
+
+	* Fixed cursor highlight problem.
+	  (Thanks to Martin Horcicka)
+	* Added doc/en/FAQ.
+	  (Thanks to Nadim Shaikli)
+
 2002-12-6 Araki Ken <arakiken@users.sf.net>
 
 	* utemper wasn't checked correctly in configure. fixed.

@@ -1,0 +1,19 @@
+comment -*- mode: text -*-
+comment $Id$
+
+Frequently Asked Questions
+
+[Q1]
+I cannot copy&paste UTF-8 characters into the command-line.
+
+[A1]
+If you use bash, add the following two lines to your ~/.inputrc.
+
+set convert-meta off
+set output-meta  on
+
+If you use tcsh, all you have to do is
+
+set dspmbyte=utf8
+
+(Thanks to Nadim Shaikli)
