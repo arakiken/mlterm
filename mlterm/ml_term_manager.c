@@ -248,8 +248,8 @@ ml_get_pty_list(void)
 	
 	free( pty_list) ;
 
-	/* the length of "/dev/..." is mostly under 20. */
-	len = (20 + 2) * num_of_terms + 1 ;
+	/* The length of pty name is under 50. */
+	len = (50 + 2) * num_of_terms + 1 ;
 	
 	if( ( pty_list = malloc( len)) == NULL)
 	{
@@ -260,8 +260,15 @@ ml_get_pty_list(void)
 	
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
+	#if  1
 		kik_snprintf( p , len , "%s:%d;" ,
 			ml_term_get_slave_name( terms[count]) , ml_term_is_attached( terms[count])) ;
+	#else
+		kik_snprintf( p , len , "%s:%s:%d;" ,
+			ml_term_window_name( terms[count]) ? ml_term_window_name( terms[count]) : "" ,
+			ml_term_get_slave_name( terms[count]) , ml_term_is_attached( terms[count])) ;
+	#endif
+		len -= strlen( p) ;
 		p += strlen( p) ;
 	}
 

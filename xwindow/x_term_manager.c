@@ -66,7 +66,9 @@ typedef struct main_config
 	char *  term_type ;
 	char *  scrollbar_view_name ;
 	char *  pic_file_path ;
-	char *  conf_menu_path ;
+	char *  conf_menu_path_1 ;
+	char *  conf_menu_path_2 ;
+	char *  conf_menu_path_3 ;
 	char *  fg_color ;
 	char *  bg_color ;
 	char *  cursor_fg_color ;
@@ -425,7 +427,8 @@ open_term(
 			main_config.mod_meta_mode , main_config.bel_mode ,
 			main_config.receive_string_via_ucs , main_config.pic_file_path ,
 			main_config.use_transbg , main_config.use_vertical_cursor ,
-			main_config.big5_buggy , main_config.conf_menu_path ,
+			main_config.big5_buggy , main_config.conf_menu_path_1 ,
+			main_config.conf_menu_path_2 , main_config.conf_menu_path_3 ,
 			main_config.use_extended_scroll_shortcut , main_config.line_space)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -1019,7 +1022,7 @@ get_min_conf(
 		"specify meta key [none]") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell [false]") ;
-	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path" ,
+	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path_1" ,
 		"command path of mlconfig (GUI configurator)") ;
 	kik_conf_add_opt( conf , 'N' , "name" , 0 , "app_name" , 
 		"application name") ;
@@ -1154,12 +1157,16 @@ config_init(
 	{
 		main_config.icon_name = strdup( value) ;
 	}
-	
-	main_config.conf_menu_path = NULL ;
 
-	if( ( value = kik_conf_get_value( conf , "conf_menu_path")))
+	/*
+	 * conf_menu_path_[23] are set x_term_manager_init() once.
+	 * conf_menu_path_1 alone is changable.
+	 */	
+	main_config.conf_menu_path_1 = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "conf_menu_path_1")))
 	{
-		main_config.conf_menu_path = strdup( value) ;
+		main_config.conf_menu_path_1 = strdup( value) ;
 	}
 
 	/* use default value */
@@ -1502,7 +1509,7 @@ config_init(
 
 	if( ( value = kik_conf_get_value( conf , "wall_picture")))
 	{
-		if( strcmp( value , "none") != 0)
+		if( *value != '\0')
 		{
 			main_config.pic_file_path = strdup( value) ;
 		}
@@ -1807,7 +1814,9 @@ config_final(void)
 	free( main_config.title) ;
 	free( main_config.icon_name) ;
 	free( main_config.term_type) ;
-	free( main_config.conf_menu_path) ;
+	free( main_config.conf_menu_path_1) ;
+	free( main_config.conf_menu_path_2) ;
+	free( main_config.conf_menu_path_3) ;
 	free( main_config.pic_file_path) ;
 	free( main_config.scrollbar_view_name) ;
 	free( main_config.fg_color) ;
@@ -1974,7 +1983,7 @@ client_connected(void)
 	}
 parse_end:
 
-//#ifdef  __DEBUG
+#ifdef  __DEBUG
 	{
 		int  i ;
 
@@ -1983,7 +1992,7 @@ parse_end:
 			kik_msg_printf( "%s\n" , argv[i]) ;
 		}
 	}
-//#endif
+#endif
 
 	if( argc == 0)
 	{
@@ -2013,10 +2022,10 @@ parse_end:
 		main_config_t  orig_conf ;
 		char *  pty ;
 		
-		if( argc >= 2 && strncmp( argv[1] , "/dev" , 4) == 0)
+		if( argc >= 2 && *argv[1] != '-')
 		{
 			/*
-			 * mlclient /dev/... [optioins...]
+			 * mlclient [dev] [optioins...]
 			 */
 			 
 			pty = argv[1] ;
@@ -2331,6 +2340,40 @@ x_term_manager_init(
 		}
 	}
 
+	/*
+	 * conf_menu_path_1 is set config_init().
+	 * conf_menu_path_[23] aren't changable.
+	 */	
+	main_config.conf_menu_path_2 = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "conf_menu_path_2")))
+	{
+		main_config.conf_menu_path_2 = strdup( value) ;
+	}
+
+	main_config.conf_menu_path_3 = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "conf_menu_path_3")))
+	{
+		main_config.conf_menu_path_3 = strdup( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			x_compose_dec_special_font() ;
+		}
+	}
+
+#ifdef  ANTI_ALIAS
+	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")) == NULL ||
+		strcmp( value , "true") == 0)
+	{
+		ml_use_cp932_ucs_for_xft() ;
+	}
+#endif
+
 	if( ! x_font_custom_init( &normal_font_custom , min_font_size , max_font_size))
 	{
 	#ifdef  DEBUG
@@ -2483,22 +2526,6 @@ x_term_manager_init(
 	}
 #endif
 	
-	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			x_compose_dec_special_font() ;
-		}
-	}
-
-#ifdef  ANTI_ALIAS
-	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")) == NULL ||
-		strcmp( value , "true") == 0)
-	{
-		ml_use_cp932_ucs_for_xft() ;
-	}
-#endif
-
 	if( ! x_color_custom_init( &color_custom))
 	{
 	#ifdef  DEBUG

@@ -118,7 +118,9 @@ typedef struct  x_screen
 	char *  pic_file_path ;
 	x_picture_modifier_t  pic_mod ;
 
-	char *  conf_menu_path ;
+	char *  conf_menu_path_1 ;
+	char *  conf_menu_path_2 ;
+	char *  conf_menu_path_3 ;
 
 	u_int8_t  fade_ratio ;
 	int8_t  is_focused ;
@@ -138,7 +140,8 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	int  xim_open_in_startup , char *  mod_meta_key , x_mod_meta_mode_t  mod_meta_mode ,
 	x_bel_mode_t  bel_mode , int  receive_string_via_ucs , char *  pic_file_path ,
 	int  use_transbg , int  use_vertical_cursor , int  big5_buggy ,
-	char *  conf_menu_path , int  use_extended_scroll_shortcut , u_int  line_space) ;
+	char *  conf_menu_path_1 , char *  conf_menu_path_2 , char *  conf_menu_path_3 ,
+	int  use_extended_scroll_shortcut , u_int  line_space) ;
 
 int  x_screen_delete( x_screen_t *  screen) ;
 

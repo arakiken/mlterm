@@ -55,6 +55,14 @@
 #define  HAS_SCROLL_LISTENER(screen,function) \
 	((screen)->screen_scroll_listener && (screen)->screen_scroll_listener->function)
 
+#ifndef  LIBEXECDIR
+#define  MLCONFIG_PATH    "/usr/local/libexec/mlconfig"
+#define  MLTERMMENU_PATH  "/usr/local/libexec/mlterm-menu"
+#else
+#define  MLCONFIG_PATH    LIBEXECDIR "/mlconfig"
+#define  MLTERMMENU_PATH  LIBEXECDIR "/mlterm-menu"
+#endif
+
 
 #if  0
 #define  __DEBUG
@@ -1967,7 +1975,7 @@ set_wall_picture(
 
 	if( ! x_picture_load_file( &pic , screen->pic_file_path))
 	{
-		kik_msg_printf( " wall picture file %s is not found.\n" ,
+		kik_msg_printf( "Wall picture file %s is not found.\n" ,
 			screen->pic_file_path) ;
 
 		x_picture_final( &pic) ;
@@ -2372,7 +2380,8 @@ static void
 config_menu(
 	x_screen_t *  screen ,
 	int  x ,
-	int  y
+	int  y ,
+	char *  conf_menu_path
 	)
 {
 	int  global_x ;
@@ -2383,7 +2392,7 @@ config_menu(
 		DefaultRootWindow( screen->window.display) , x , y ,
 		&global_x , &global_y , &child) ;
 
-	ml_term_start_config_menu( screen->term , screen->conf_menu_path , global_x , global_y ,
+	ml_term_start_config_menu( screen->term , conf_menu_path , global_x , global_y ,
 		DisplayString(screen->window.display)) ;
 }
 
@@ -3845,9 +3854,34 @@ button_pressed(
 
 		selecting_line( screen , event->y , event->time) ;
 	}
+	else if( event->button == 1 && (event->state & ControlMask))
+	{
+		if( screen->conf_menu_path_1)
+		{
+			config_menu( screen , event->x , event->y , screen->conf_menu_path_1) ;
+		}
+		else
+		{
+			config_menu( screen , event->x , event->y , MLTERMMENU_PATH) ;
+		}
+	}
+	else if( event->button == 2 && (event->state & ControlMask))
+	{
+		if( screen->conf_menu_path_2)
+		{
+			config_menu( screen , event->x , event->y , screen->conf_menu_path_2) ;
+		}
+	}
 	else if( event->button == 3 && (event->state & ControlMask))
 	{
-		config_menu( screen , event->x , event->y) ;
+		if( screen->conf_menu_path_3)
+		{
+			config_menu( screen , event->x , event->y , screen->conf_menu_path_3) ;
+		}
+		else
+		{
+			config_menu( screen , event->x , event->y , MLCONFIG_PATH) ;
+		}
 	}
 	else if ( event->button == 4) 
 	{
@@ -4556,15 +4590,6 @@ change_wall_picture(
 	char *  file_path
 	)
 {
-	if( strcmp( file_path , "none") == 0)
-	{
-		if( screen->pic_file_path)
-		{
-			free( screen->pic_file_path) ;
-		}
-		screen->pic_file_path = NULL;
-		return ;
-	}
 	if( screen->pic_file_path)
 	{
 		if( strcmp( screen->pic_file_path , file_path) == 0)
@@ -4576,10 +4601,19 @@ change_wall_picture(
 		
 		free( screen->pic_file_path) ;
 	}
+	
+	if( *file_path == '\0')
+	{
+		screen->pic_file_path = NULL ;
+		
+		x_window_unset_wall_picture( &screen->window) ;
+	}
+	else
+	{
+		screen->pic_file_path = strdup( file_path) ;
 
-	screen->pic_file_path = strdup( file_path) ;
-
-	set_wall_picture( screen) ;
+		set_wall_picture( screen) ;
+	}
 }
 
 static void
@@ -6010,7 +6044,9 @@ x_screen_new(
 	int  use_transbg ,
 	int  use_vertical_cursor ,
 	int  big5_buggy ,
-	char *  conf_menu_path ,
+	char *  conf_menu_path_1 ,
+	char *  conf_menu_path_2 ,
+	char *  conf_menu_path_3 ,
 	int  use_extended_scroll_shortcut ,
 	u_int  line_space
 	)
@@ -6173,7 +6209,9 @@ x_screen_new(
 		screen->pic_file_path = NULL ;
 	}
 
-	screen->conf_menu_path = conf_menu_path ;
+	screen->conf_menu_path_1 = conf_menu_path_1 ;
+	screen->conf_menu_path_2 = conf_menu_path_2 ;
+	screen->conf_menu_path_3 = conf_menu_path_3 ;
 
 	screen->shortcut = shortcut ;
 	screen->termcap = termcap ;

@@ -13,12 +13,6 @@
 #include  <kiklib/kik_mem.h>	/* malloc */
 
 
-#ifndef  LIBEXECDIR
-#define  MLCONFIG_PATH  "/usr/local/libexec/mlconfig"
-#else
-#define  MLCONFIG_PATH  LIBEXECDIR "/mlconfig"
-#endif
-
 
 /* --- static functions --- */
 
@@ -101,12 +95,8 @@ ml_config_menu_start(
 		char *  args[6] ;
 		char  geom[2 + DIGIT_STR_LEN(int)*2 + 1] ;
 
-		if( cmd_path == NULL)
-		{
-			cmd_path = MLCONFIG_PATH ;
-		}
 		/* specified program name without path. */
-		else if( strchr( cmd_path , '/') == NULL)
+		if( strchr( cmd_path , '/') == NULL)
 		{
 			char *  p ;
 			char  dir[] = LIBEXECDIR ;
