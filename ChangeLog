@@ -1,3 +1,10 @@
+2003-06-29 Araki Ken <arakiken@users.sf.net>
+
+	* If a text was folded into multiple lines and one of them were ended with
+	  space character, the space character couldn't be selected in copy&paste.
+	  Fixed.
+	  (Thanks to Sakamoto Hironori san)
+
 2003-06-28 Araki Ken <arakiken@users.sf.net>
 
 	* Added description of -6,--stbs,static_backscroll_mode option to

@@ -925,7 +925,7 @@ ml_get_num_of_filled_chars_except_spaces(
 	{
 		return  0 ;
 	}
-	else if( ml_line_is_rtl( line))
+	else if( ml_line_is_rtl( line) || IS_CONTINUED_TO_NEXT(line->flag))
 	{
 		return  line->num_of_filled_chars ;
 	}
