@@ -1,3 +1,7 @@
+2003-07-05  Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* fixed a small bug in pixmap_engine.c
+
 2003-07-05  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* x_imagelib_gdk.c:x_imagelib_load_file() now retuens None as "mask"
