@@ -608,6 +608,16 @@ button.
 Full reset
 Reset internal status.
 .\" ********************************************************************
+.SH CONFIGURATABLE MENU
+Pushing control key and mouse button 1 invokes configuratable menu
+displayer (\fBmlterm-menu\fR).  It displays a menu with items such
+as "Larger Font" or "UTF-8 encoding".  Though a default menu definition
+is supplied, you can freely define menu items by writing a menu
+configuration file.  See \fBMenu Configuration File\fR section
+for detail.
+.PP
+Note this feature needs GTK+ 1.2.
+.\" ********************************************************************
 .SH MULTIPLE XIM
 \fBmlterm\fR can use multiple XIM (X Input Method) servers.  The current
 XIM is specified by the GUI configurator.  Using this feature you
@@ -800,6 +810,10 @@ into \fBmlterm\fR using ISO-2022 escape sequence.
 \fBmlterm\fR loads configuration files of "\fBmain\fR", "\fBfont\fR",
 "\fBvfont\fR", "\fBtfont\fR", "\fBaafont\fR", "\fBvaafont\fR", "\fBtaafont\fR",
 "\fBcolor\fR", "\fBkey\fR", "\fBtermcap\fR", and "\fBxim\fR" on start up.
+"\fBmenu\fR" configuration file is loaded by the configuratable menu
+displayer (\fBmlterm-menu\fR).  See the section of \fBCONFIGURATABLE
+MENU\fR for detail.
+.PP
 Configuration files for one user are to be located in
 "\fB~/.mlterm/\fR" directory, while location for configuration
 files for all users depends on the compilation option.
@@ -844,8 +858,13 @@ Define preset locales for X Input Methods which are shown
 in the GUI configurator.  Of course you can input XIM names
 and locales for the GUI configurator which are not listed
 in this configuration file.
+.TP
+\fBmenu\fR
+Define menu items which is displayed by configuratable menu
+displayer.
 .PP
-The contents of these configuration files consist of lines
+The contents of these configuration files (other than \fBmenu\fR)
+consist of lines
 of "\fIkey\fR=\fIvalue\fR" format.  Lines beginning with "\fB#\fR"
 are ignored.
 .PP
@@ -1255,6 +1274,11 @@ DEL code (0x7f).
 .TP
 \fB^A\fR, \fB^B\fR,...
 Corresponding control code (0x01 \- 0x1a).
+.\" ******************************************************
+.SS Menu Configuration File
+This configuration file defines the menu displayed by the
+configuratable menu displayer \fBmlterm-menu\fR.  See
+\fBCONFIGURATABLE MENU\fR section for detail.
 .\" ********************************************************************
 .SH SEE ALSO
 Manual pages of
@@ -1291,7 +1315,7 @@ by \fBmlterm\fR.
 .TP
 "\fImain\fR", "\fIfont\fR", "\fIvfont\fR", "\fItfont\fR", "\fIaafont\fR", \
 "\fIvaafont\fR", "\fItaafont\fR", "\fIcolor\fR", "\fIkey\fR", \
-"\fItermcap\fR", and "\fIxim\fR"
+"\fItermcap\fR", "\fIxim\fR", and "\fImenu\fR"
 Configuration files.
 .TP
 "\fImlconfig\fR"
