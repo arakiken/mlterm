@@ -684,18 +684,18 @@ comb_logical(
 	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
 		ml_line_t *  line ;
-		int  dst_pos ;
 		int  src_pos ;
+		u_int  src_len ;
 		ml_char_t *  c ;
 
 		line = ml_model_get_line( logvis->model , row) ;
 
 		ml_str_copy( buf , line->chars , line->num_of_filled_chars) ;
 
-		dst_pos = 0 ;
+		src_len = line->num_of_filled_chars ;
+		line->num_of_filled_chars = 0 ;
 		c = buf ;
-		for( src_pos = 0 ;
-			src_pos < line->num_of_filled_chars && dst_pos < line->num_of_chars ;
+		for( src_pos = 0 ; src_pos < src_len && line->num_of_filled_chars < line->num_of_chars ;
 			src_pos ++)
 		{
 			ml_char_t *  comb ;
@@ -705,11 +705,12 @@ comb_logical(
 			{
 				int  count ;
 
-				ml_char_copy( ml_char_at( line , dst_pos ++) , ml_get_base_char(c)) ;
+				ml_char_copy( ml_char_at( line , line->num_of_filled_chars ++) ,
+					ml_get_base_char(c)) ;
 
 				for( count = 0 ; count < size ; count ++)
 				{
-					if( dst_pos >= line->num_of_chars)
+					if( line->num_of_filled_chars >= line->num_of_chars)
 					{
 						break ;
 					}
@@ -743,20 +744,19 @@ comb_logical(
 					}
 				#endif
 
-					ml_char_copy( ml_char_at( line , dst_pos ++) , comb) ;
+					ml_char_copy( ml_char_at( line , line->num_of_filled_chars ++) ,
+						comb) ;
 
 					comb ++ ;
 				}
 			}
 			else
 			{
-				ml_char_copy( ml_char_at( line , dst_pos ++) , c) ;
+				ml_char_copy( ml_char_at( line , line->num_of_filled_chars ++) , c) ;
 			}
 
 			c ++ ;
 		}
-
-		line->num_of_filled_chars = dst_pos ;
 	}
 	
 	ml_str_final( buf , logvis->model->num_of_cols) ;

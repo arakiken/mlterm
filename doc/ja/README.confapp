@@ -13,10 +13,11 @@ comment $Id$
   さい。
   この場合、素直に、標準入出力を使用して、mlterm 本体と doc/en/PROTOCOL なやりと
   りを実装することになります。
+  なお、ESC ] 5380 プロトコルを使う場合は、最初に ~/.mlterm/challenge を読みこみ
+  (一度だけで良いです)、その値を ESC ] 5380 ; <challenge> ; <key> BEL の
+  <challenge> に設定してください。
 
-  !!!注意!!!
-  2.7.0 以降、doc/en/PROTOCOL の 5380 は、デフォルト使用禁止になりました。
-  よって、このタイプの設定プログラムの作成は推奨しません。
+  実装例) contrib/tool/mlcc
 
 * GUI 型設定プログラム
   mlterm 上で、Ctrl+Button1,Ctrl+Button2,Ctrl+Button3 で起動させるタイプの設定プ

@@ -1,5 +1,11 @@
 2003-09-21  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_logical_visual.c(comb_logical): Usage of ml_char_at() was wrong. Fixed.
+
+	* ml_char.c: IS_COMB(attr) used wrong mask. Fixed.
+
+2003-09-21  Araki Ken  <arakiken@users.sf.net>
+
 	* x_font_cache.c,x_font_custom.c: minor fixes.
 
 2003-09-21  Araki Ken  <arakiken@users.sf.net>

@@ -59,8 +59,8 @@ typedef struct ml_char
 		} ch ;
 
 		/*
-		 * 32(ILP32) or 64(LP64) bit.
-		 * Least 4 significant bits are considered 0.
+		 * 32 bits(on ILP32) or 64 bits(on LP64).
+		 * LSB(used for is_single_ch) is considered 0.
 		 */
 		struct ml_char *  multi_ch ;
 

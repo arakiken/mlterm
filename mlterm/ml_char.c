@@ -59,7 +59,7 @@
 
 #define  SET_COMB_SIZE(attr,size)  ((attr) = (((attr) & 0xffffffe3) | ((size) << 2)))
 
-#define  IS_COMB(attr)  (((attr) >> 1) & 0x2)
+#define  IS_COMB(attr)  (((attr) >> 1) & 0x1)
 
 #define  IS_SINGLE_CH(attr)  ((attr) & 0x1)
 
