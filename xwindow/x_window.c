@@ -17,11 +17,24 @@
 #include  "ml_char_encoding.h"	/* x_convert_to_xft_ucs4 */
 
 
+/* Drag and Drop stuff. not cached because Atom may differ on each display*/
 #define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
 #define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
 #define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
+
+#define  XA_DND_DROP(display) (XInternAtom(display, "XdndDrop", False))
+#define  XA_DND_AWARE(display) (XInternAtom(display, "XdndAware", False))
+#define  XA_DND_ENTER(display) (XInternAtom(display, "XdndEnter", False))
+#define  XA_DND_TYPE_LIST(display) (XInternAtom(display, "XdndTypeList", False))
+#define  XA_DND_STATUS(display) (XInternAtom(display, "XdndStatus", False))
+#define  XA_DND_POSITION(display) (XInternAtom(display, "XdndPosition", False))
+#define  XA_DND_STORE(display) (XInternAtom(display, "__STORE__", False))
+#define  XA_DND_ACTION_COPY(display) (XInternAtom(display, "XdndActionCopy", False))
+#define  XA_DND_SELECTION(display) (XInternAtom(display, "XdndSelection", False))
+#define  XA_DND_FINISH(display) (XInternAtom(display, "XdndFinish", False))
+#define  XA_DND_MIME_TEXT_PLAIN(display) (XInternAtom(display, "text/plain", False))
 
 #define  DOUBLE_CLICK_INTERVAL  1000	/* mili second */
 #define  MAX_CLICK  3			/* max is triple click */
@@ -29,6 +42,11 @@
 #if  0
 #define  __DEBUG
 #endif
+
+
+/* --- static variables --- */
+
+static const u_char  DND_VERSION = 4 ;
 
 
 /* --- static functions --- */
@@ -915,7 +933,10 @@ x_window_show(
 					DefaultVisual( win->display , win->screen) ,
 					DefaultColormap( win->display , win->screen)) ;
 #endif
-
+	/* accept XDND */
+	XChangeProperty(win->display, win->my_window, XA_DND_AWARE(win->display),
+			XA_ATOM, 32, PropModeReplace, &DND_VERSION, 1);
+	
 	/*
 	 * graphic context.
 	 */
@@ -1791,11 +1812,14 @@ x_window_receive_event(
 			return  1 ;
 		}
 
-		if( event->xselection.selection == XA_PRIMARY &&
-			( event->xselection.target == XA_STRING ||
-			event->xselection.target == xa_text ||
-			event->xselection.target == xa_compound_text ||
-			event->xselection.target == xa_utf8_string))
+		if( event->xselection.property == XA_DND_STORE(win->display) || /* XDND */
+			/* or SELECTION */
+			( event->xselection.selection == XA_PRIMARY &&
+				( event->xselection.property == xa_selection &&
+				( event->xselection.target == XA_STRING ||
+				event->xselection.target == xa_text ||
+				event->xselection.target == xa_compound_text ||
+				event->xselection.target == xa_utf8_string))))
 		{
 			u_long  bytes_after ;
 			XTextProperty  ct ;
@@ -1821,7 +1845,8 @@ x_window_receive_event(
 					break ;
 				}
 
-				if( event->xselection.target == XA_STRING ||
+				if( event->xselection.property == XA_DND_STORE(win->display) ||
+					event->xselection.target == XA_STRING ||
 					event->xselection.target == xa_text ||
 					event->xselection.target == xa_compound_text)
 				{
@@ -1847,9 +1872,25 @@ x_window_receive_event(
 					break ;
 				}
 			}
+
+			if( event->xselection.property == XA_DND_STORE(win->display))
+			{
+				XClientMessageEvent reply_msg;
+				
+				reply_msg.message_type = XA_DND_FINISH(win->display);
+				reply_msg.data.l[0] = win->my_window;
+				reply_msg.data.l[1] = 0;
+				reply_msg.type = ClientMessage;
+				reply_msg.format = 32;
+				reply_msg.window = win->dnd_source;
+				reply_msg.display = win->display;
+
+				XSendEvent(reply_msg.display, win->dnd_source, False, 0,
+					(XEvent*)&reply_msg);
+			}
 		}
 		
-		XDeleteProperty( win->display , event->xselection.requestor ,
+		XDeleteProperty( win->display, event->xselection.requestor,
 			event->xselection.property) ;
 	}
 	else if( event->type == VisibilityNotify)
@@ -1889,6 +1930,96 @@ x_window_receive_event(
 			{
 				exit(0) ;
 			}
+		}
+
+		/* DnD Enter */
+		if( event->xclient.format == 32 &&
+			event->xclient.message_type == XA_DND_ENTER( win->display))
+		{
+			win->is_dnd_accepting = 0;
+
+			/* more than 3 type ? */
+			if (event->xclient.data.l[1] & 0x01)
+			{
+				int  count;
+				Atom act_type;
+				int act_format;
+				unsigned long nitems,left;
+				Atom * dat;
+
+				XGetWindowProperty(win->display, event->xclient.data.l[0],
+					XA_DND_TYPE_LIST(win->display), 0L, 1024L,
+					False, XA_ATOM,
+					&act_type, &act_format, &nitems, &left,
+					(unsigned char **)&dat);
+
+				if( act_type == None)
+				{
+					return 1;
+				}
+				
+				for( count = 0 ; count < nitems ; count++)
+				{
+					if (dat[count] == XA_DND_MIME_TEXT_PLAIN(win->display))
+					{
+						win->is_dnd_accepting = 1;
+						break;
+					}
+				}
+				
+				XFree(dat);
+			}
+			/* less than 3*/
+			else if( event->xclient.data.l[2] == XA_DND_MIME_TEXT_PLAIN(win->display) ||
+				event->xclient.data.l[3] == XA_DND_MIME_TEXT_PLAIN(win->display) ||
+				event->xclient.data.l[4] == XA_DND_MIME_TEXT_PLAIN(win->display) )
+			{
+				win->is_dnd_accepting = 1;
+			}
+		}
+
+		/* DnD Position */
+		if( event->xclient.format == 32 &&
+			event->xclient.message_type == XA_DND_POSITION( win->display))
+		{
+			XClientMessageEvent reply_msg;
+
+			win->dnd_source = event->xclient.data.l[0];
+			
+			reply_msg.type = ClientMessage;
+			reply_msg.display = win->display;
+			reply_msg.format = 32;
+			reply_msg.window = win->dnd_source;
+			reply_msg.message_type = XA_DND_STATUS(win->display);
+			reply_msg.data.l[0] = win->my_window;
+			if (win->is_dnd_accepting)
+			{
+				reply_msg.data.l[1] = 0x1 | 0x2; /* accept the drop | use [2][3] */
+				reply_msg.data.l[2] = 0;
+				reply_msg.data.l[3] = 0;
+				reply_msg.data.l[4] = XA_DND_ACTION_COPY(win->display);
+			}
+			else
+			{
+				reply_msg.data.l[1] = 0;
+				reply_msg.data.l[2] = 0;
+				reply_msg.data.l[3] = 0;
+				reply_msg.data.l[4] = 0;
+			}
+			
+			XSendEvent(win->display, reply_msg.window, False, 0, (XEvent*)&reply_msg);
+		}
+
+		/*DnD Drop*/
+		if( event->xclient.format == 32 &&
+			event->xclient.message_type == XA_DND_DROP( win->display))
+		{
+			/* data request */
+			XConvertSelection(win->display, XA_DND_SELECTION(win->display),
+				  XA_DND_MIME_TEXT_PLAIN(win->display),
+				  XA_DND_STORE(win->display),
+				  win->my_window,
+				  event->xclient.data.l[2]);
 		}
 	}
 #ifdef  __DEBUG

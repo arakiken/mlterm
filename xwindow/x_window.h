@@ -114,6 +114,12 @@ typedef struct  x_window
 	x_picture_modifier_t *  pic_mod ;
 	
 	/*
+	 * XDND
+	 */
+	Window  dnd_source;
+	int8_t  is_dnd_accepting ;
+
+	/*
 	 * flags etc.
 	 */
 	 
