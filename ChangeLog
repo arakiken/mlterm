@@ -1,3 +1,8 @@
+2003-07-21  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* kik_dlfcn_dyld.c: Supported the Darwin dynamic module loading via
+	  dyld APIs.
+
 2003-07-18  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* x_dnd.c: tweaked mime-type preference order.
