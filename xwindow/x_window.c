@@ -2049,8 +2049,8 @@ int
 x_window_draw_decsp_string(
 	x_window_t *  win ,
 	x_font_t *  font ,
-	x_color_t *  fg_color ,
-	x_color_t *  bg_color ,
+	x_color_t *  fg_color ,		/* can be NULL */
+	x_color_t *  bg_color ,		/* can be NULL */
 	int  x ,
 	int  y ,
 	u_char *  str ,
@@ -2059,8 +2059,15 @@ x_window_draw_decsp_string(
 {
 	if( font->decsp_font)
 	{
-		XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
-		XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
+		if( fg_color)
+		{
+			XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
+		}
+
+		if( bg_color)
+		{
+			XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
+		}
 		
 		x_decsp_font_draw_string( font->decsp_font ,
 			win->display , win->drawable , win->ch_gc ,

@@ -1,6 +1,11 @@
+2002-06-16 Araki Ken <arakiken@users.sf.net>
+
+	* mlterm died if -Y option is specified with -A, -t or -P. fixed.
+	  (Thanks to Minami Hirokazu san)
+
 2002-06-15 Araki Ken <arakiken@users.sf.net>
 
-	* if -E iscii is specified, mlterm died. fixed.
+	* if -E iscii was specified, mlterm died. fixed.
 	* shaped characters were not shown correctly. fixed.
 
 2002-06-14 Araki Ken <arakiken@users.sf.net>
