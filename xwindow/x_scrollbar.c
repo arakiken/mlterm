@@ -534,7 +534,7 @@ x_scrollbar_init(
 	u_int  num_of_log_lines ,
 	int  use_transbg ,
 	x_picture_modifier_t *  pic_mod ,
-	x_sb_mode_t  mode
+	x_sb_mode_t  mode		/* XXX adhoc hack to fix incorrect sizehints bug */
 	)
 {
 	u_int  width ;
@@ -631,6 +631,7 @@ view_created:
 	sb->is_pressing_up_button = 0 ;
 	sb->is_pressing_down_button = 0 ;
 
+	/* XXX adhoc hack to fix incorrect sizehints bug */
 	if( mode == SB_NONE)
 	{
 		min_width = 0 ;
@@ -1000,7 +1001,9 @@ x_scrollbar_change_view(
 
 	if( sb->window.width != width)
 	{
+		/* XXX adhoc hack to fix incorrect sizehints bug */
 		sb->window.min_width = width ;
+		
 		x_window_resize( &sb->window , width , sb->window.height , NOTIFY_TO_PARENT) ;
 	}
 	

@@ -4201,6 +4201,7 @@ change_sb_view(
 		(*screen->screen_scroll_listener->change_view)(
 			screen->screen_scroll_listener->self , name) ;
 
+		/* XXX adhoc hack to fix incorrect sizehints bug */
 		x_window_set_normal_hints( &screen->window ,
 			x_col_width( screen) , x_line_height( screen) ,
 			x_col_width( screen) , x_line_height( screen)) ;
@@ -4313,6 +4314,7 @@ change_sb_mode(
 		(*screen->screen_scroll_listener->change_sb_mode)(
 			screen->screen_scroll_listener->self , sb_mode) ;
 
+		/* XXX adhoc hack to fix incorrect sizehints bug */
 		x_window_set_normal_hints( &screen->window , 0 , 0 ,
 			x_col_width( screen) , x_line_height( screen)) ;
 	}

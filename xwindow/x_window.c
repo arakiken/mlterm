@@ -2,6 +2,12 @@
  *	$Id$
  */
 
+/*
+ * Functions designed and implemeted by Minami Hirokazu(minami@chem.s.u-tokyo.ac.jp) are:
+ * - XDND support
+ * - Extended Window Manager Hint(Icon) support
+ */
+ 
 #include  "x_window.h"
 
 #include  <stdlib.h>		/* abs */
@@ -17,13 +23,20 @@
 #include  "ml_char_encoding.h"	/* x_convert_to_xft_ucs4 */
 
 
-/* Drag and Drop stuff. not cached because Atom may differ on each display*/
+/*
+ * Atom macros.
+ * Not cached because Atom may differ on each display
+ */
+
 #define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
 #define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
 #define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
 
+/*
+ * Drag and Drop stuff.
+ */
 #define  XA_DND_DROP(display) (XInternAtom(display, "XdndDrop", False))
 #define  XA_DND_AWARE(display) (XInternAtom(display, "XdndAware", False))
 #define  XA_DND_ENTER(display) (XInternAtom(display, "XdndEnter", False))
@@ -37,7 +50,9 @@
 #define  XA_DND_MIME_TEXT_PLAIN(display) (XInternAtom(display, "text/plain", False))
 #define  XA_DND_MIME_TEXT_URL_LIST(display) (XInternAtom(display, "text/uri-list", False))
 
-/* Extended WIndow Manager Hint support  */
+/*
+ * Extended Window Manager Hint support
+ */
 #define  XA_NET_WM_ICON(display) (XInternAtom(display, "_NET_WM_ICON", False))
 #define  XA_NET_WM_STATE(display) (XInternAtom(display, "_NET_WM_STATE", False))
 #define  XA_NET_WM_STATE_MAXIMIZED_VERT(display) (XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", False))
@@ -48,7 +63,7 @@
 
 enum
 {
-	STATE_FLAG_MAXIMIZED_VERT,
+	STATE_FLAG_MAXIMIZED_VERT ,
 	STATE_FLAG_MAXIMIZED_HORZ
 } ;
 
@@ -66,6 +81,7 @@ static const u_char  DND_VERSION = 4 ;
 
 
 /* --- static functions --- */
+
 static int
 xdnd_parse(
 	x_window_t * win,
@@ -140,9 +156,9 @@ is_dnd_mime_type_acceptable(
 		return atom;
 	}
 	
-	#ifdef  DEBUG
-       		kik_debug_printf("dropped unrecognized atom: %d\n", atom);
-	#endif
+#ifdef  DEBUG
+	kik_debug_printf("dropped unrecognized atom: %d\n", atom);
+#endif
 	return (Atom)0;/* it's illegal valur for Atom */
 }
 
@@ -2127,7 +2143,7 @@ x_window_receive_event(
 				exit(0) ;
 			}
 		}
-
+		
 		/* DnD Enter */
 		if( event->xclient.format == 32 &&
 			event->xclient.message_type == XA_DND_ENTER( win->display))
@@ -2725,6 +2741,11 @@ x_window_set_icon(
 	char * file_path
 	)
 {
+	/*
+	 * XXX
+	 * All about window icon are processed in x_picture_gdk.c for now.
+	 */
+	 
 	return x_picture_set_icon_from_file(x_get_root_window(win), file_path);
 }
 

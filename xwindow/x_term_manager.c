@@ -438,8 +438,9 @@ open_term(void)
 		}
 	}
 
-	if( main_config.icon_path){
-		x_window_set_icon( &screen->window, main_config.icon_path);
+	if( main_config.icon_path)
+	{
+		x_window_set_icon( &screen->window , main_config.icon_path);
 	}
 
 	if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
@@ -1571,6 +1572,7 @@ config_final(void)
 	free( main_config.bg_color) ;
 	free( main_config.sb_fg_color) ;
 	free( main_config.sb_bg_color) ;
+	free( main_config.icon_path) ;
 	free( main_config.mod_meta_key) ;
 	free( main_config.cmd_argv) ;
 

@@ -489,6 +489,7 @@ change_sb_mode(
 			ACTUAL_WIDTH( &sb_screen->screen->window) ,
 			ACTUAL_HEIGHT( &sb_screen->screen->window) , NOTIFY_TO_NONE) ;
 
+		/* XXX adhoc hack to fix incorrect sizehints bug */
 		sb_screen->window.min_width = 0 ;
 		sb_screen->scrollbar.window.min_width = 0 ;
 			
@@ -497,6 +498,7 @@ change_sb_mode(
 	}
 	else
 	{
+		/* XXX adhoc hack to fix incorrect sizehints bug */
 		sb_screen->window.min_width = SEPARATOR_WIDTH ;
 		sb_screen->scrollbar.window.min_width = sb_screen->scrollbar.window.width ;
 
@@ -604,16 +606,20 @@ x_sb_screen_new(
 	screen->screen_listener.line_scrolled_out = scrolled_out_line_received ;
 
 	sb_screen->sb_mode = mode ;
-	
+
 	if( sb_screen->sb_mode == SB_NONE)
 	{
 		actual_width = ACTUAL_WIDTH( &screen->window) ;
+		
+		/* XXX adhoc hack to fix incorrect sizehints bug */
 		min_width = 0 ;
 	}
 	else
 	{
 		actual_width = (ACTUAL_WIDTH( &screen->window) +
 				ACTUAL_WIDTH( &sb_screen->scrollbar.window) + SEPARATOR_WIDTH) ;
+
+		/* XXX adhoc hack to fix incorrect sizehints bug */
 		min_width = SEPARATOR_WIDTH ;
 	}
 

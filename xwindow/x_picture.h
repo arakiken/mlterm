@@ -46,6 +46,7 @@ int  x_picture_load_background( x_picture_t *  pic) ;
 
 int  x_picture_modifier_is_normal( x_picture_modifier_t *  pic_mod) ;
 
-int  x_picture_set_icon_from_file( x_window_ptr_t win, char *  file_path) ;
+int  x_picture_set_icon_from_file( x_window_ptr_t  win , char *  file_path) ;
+
 
 #endif

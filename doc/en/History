@@ -1,3 +1,14 @@
+ver 2.6.0
+* Window icon is supported and icon_path option is added.(Thanks to Minami Hirokazu san)
+* Fixed critical bugs around bce support.
+* Fixed incorrect size hints bug.(Thanks to Sato Seiichi san)
+* XDND is supported.(Thanks to Minami Hirokazu san)
+* mlconfig improved.(Thanks to Kubota Tomohiro san)
+* contrast/gamma options are supported.
+* HOME/END keys are supported.
+* metakey=[mod1-mod5,meta,alt,super,hyper] option is supported.
+* And many minor bugs are fixed.
+
 ver 2.5.0
 * gdk-pixbuf as well as imlib is supported.(Thanks to Minami Hirokazu san)
 * mlterm can be built in other directories than the source tree.
