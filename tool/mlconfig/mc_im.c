@@ -57,11 +57,13 @@ static u_int num_of_xims;
 static int is_changed = 0;
 
 static char xim_auto_str[STR_LEN] = "";
+static char iiimf_auto_str[STR_LEN] = "";
 static char current_locale_str[STR_LEN] = "";
 static char selected_xim_name[STR_LEN] = "";
 static char selected_xim_locale[STR_LEN] = "";
 static char selected_uim_engine[STR_LEN] = "";
 static char selected_iiimf_lang[STR_LEN] = "";
+static char original_iiimf_lang[STR_LEN] = "";
 
 /* --- static functions --- */
 
@@ -386,11 +388,13 @@ iiimf_selected(GtkWidget *widget, gpointer data)
 
 	snprintf(selected_iiimf_lang, STR_LEN, str);
 
-	/* "ja (CannaLE)" -> "ja:CannaLE" */
-	p = strstr(selected_iiimf_lang, " (");
-	snprintf(p, STR_LEN - 5, ":%s", p + 2);
-	p = strstr(selected_iiimf_lang, ")");
-	*p = '\0';
+	if (strcmp(selected_iiimf_lang, iiimf_auto_str)) {
+		/* "ja (CannaLE)" -> "ja:CannaLE" */
+		p = strstr(selected_iiimf_lang, " (");
+		snprintf(p, STR_LEN - 5, ":%s", p + 2);
+		p = strstr(selected_iiimf_lang, ")");
+		*p = '\0';
+	}
 
 	is_changed = 1;
 
@@ -530,8 +534,34 @@ iiimf_widget_new(const char *iiimf_lang_id, const char *iiimf_le, const char *cu
 						iiimf_lang_id, iiimf_le,
 						cur_locale);
 
+	if (iiimf_lang_id == NULL && iiimf_le == NULL) {
+		snprintf(iiimf_auto_str, STR_LEN, _("auto (currently %s)"),
+			 items[selected_index]);
+		iiimf_set_item(items, iiimf_auto_str, NULL, num_total);
+		selected_index = num_total;
+		snprintf(original_iiimf_lang, STR_LEN, "");
+	} else if (iiimf_lang_id == NULL) {
+		snprintf(iiimf_auto_str, STR_LEN, "  (%s)", iiimf_le);
+		iiimf_set_item(items, iiimf_auto_str, NULL, num_total);
+		selected_index = num_total;
+		snprintf(original_iiimf_lang, STR_LEN, "::%s", iiimf_le);
+	} else if (iiimf_le == NULL) {
+		snprintf(iiimf_auto_str, STR_LEN, "%s",
+			 iiimf_lang_id);
+		iiimf_set_item(items, iiimf_auto_str, NULL, num_total);
+		selected_index = num_total;
+		snprintf(original_iiimf_lang, STR_LEN, ":%s", iiimf_lang_id);
+	} else {
+		snprintf(iiimf_auto_str, STR_LEN, _("auto"), iiimf_lang_id);
+		iiimf_set_item(items, iiimf_auto_str, NULL, num_total);
+		selected_index = num_total;
+		snprintf(original_iiimf_lang, STR_LEN, ":%s:%s",
+			 iiimf_lang_id, iiimf_le);
+	}
+	num_total++;
+
 	combo = mc_combo_new(_("Language (Language engine)"), items, num_total,
-			     items[selected_index], 0, iiimf_selected, NULL);
+			     items[selected_index], 1, iiimf_selected, NULL);
 
 	iiimcf_destroy_handle(handle);
 	iiimcf_finalize();
@@ -814,12 +844,14 @@ mc_update_im(void)
 		}
 		break;
 	case IM_IIIMF:
-		if (strlen(selected_iiimf_lang)) {
+		if (strcmp(selected_iiimf_lang, iiimf_auto_str) == 0) {
+			len = 3 + 1 + strlen(original_iiimf_lang) + 1;
+			if(!(p = malloc(sizeof(char) * len))) return;
+			sprintf(p, "iiimf%s", original_iiimf_lang);
+		} else {
 			len = 5 + 1 + strlen(selected_iiimf_lang) + 1;
 			if(!(p = malloc(sizeof(char) * len))) return;
 			sprintf(p, "iiimf:%s", selected_iiimf_lang);
-		} else {
-			p = strdup("iiimf");
 		}
 		break;
 	case IM_NONE:
