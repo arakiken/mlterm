@@ -700,7 +700,7 @@ kik_conf_get_version(
 {
 	char *  ver ;
 
-	if( ( ver = malloc( 9 + DIGIT_STR_LEN(int) * 3 + 1)) == NULL)
+	if( ( ver = malloc( DIGIT_STR_LEN(int) * 3 + 1)) == NULL)
 	{
 		return  NULL ;
 	}
@@ -709,7 +709,7 @@ kik_conf_get_version(
 	 * XXX
 	 * Ignored patch level and version aux info.
 	 */
-	sprintf( ver , "MLTERM=%d.%d.%d" , conf->major_version , conf->minor_version , conf->revision) ;
+	sprintf( ver , "%d.%d.%d" , conf->major_version , conf->minor_version , conf->revision) ;
 
 	return  ver ;
 }

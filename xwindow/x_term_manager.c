@@ -231,14 +231,16 @@ open_pty_intern(
 	char *  env[5] ;	/* MLTERM,TERM,WINDOWID,DISPLAY,NULL */
 	char **  env_p ;
 	char  wid_env[9 + DIGIT_STR_LEN(Window) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
+	char *  ver_env ;
 	char *  disp_env ;
 	char *  term_env ;
 	
 	env_p = env ;
 
-	if( version)
+	if( version && ( ver_env = alloca( 7 + strlen( version) + 1)))
 	{
-		*(env_p ++) = version ;
+		sprintf( ver_env , "MLTERM=%s" , version) ;
+		*(env_p ++) = ver_env ;
 	}
 	
 	sprintf( wid_env , "WINDOWID=%ld" , window) ;

@@ -1,5 +1,10 @@
 2003-05-16 Araki Ken <arakiken@users.sf.net>
 
+	* The font color of selected region remained reversed
+	  when window was resized. Fixed.
+
+2003-05-16 Araki Ken <arakiken@users.sf.net>
+
 	* Cleaned up mlterm/ml_(edit|model|line).[ch].
 
 2003-05-16  MINAMI Hirokazu  <minami@mistfall.net>

@@ -2248,6 +2248,8 @@ window_resized(
 	screen = (x_screen_t *) win ;
 
 	/* This is necessary since ml_term_t size is changed. */
+	x_stop_selecting( &screen->sel) ;
+	restore_selected_region_color( screen) ;
 	exit_backscroll_mode( screen) ;
 
 	unhighlight_cursor( screen) ;
@@ -4209,6 +4211,7 @@ change_log_size(
 	/*
 	 * this is necesary since ml_logs_t size is changed.
 	 */
+	x_stop_selecting( &screen->sel) ;
 	restore_selected_region_color( screen) ;
 	exit_backscroll_mode( screen) ;
 	
@@ -5976,7 +5979,6 @@ xterm_set_mouse_report(
 	{
 		x_stop_selecting( &screen->sel) ;
 		restore_selected_region_color( screen) ;
-		
 		exit_backscroll_mode( screen) ;
 	}
 

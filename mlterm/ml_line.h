@@ -152,7 +152,11 @@ ml_line_t *  ml_line_shape( ml_line_t *  line , ml_shape_t *  shape) ;
 
 int  ml_line_unshape( ml_line_t *  line , ml_line_t *  orig) ;
 
+#ifdef  DEBUG
+
 void  ml_line_dump( ml_line_t *  line) ;
+
+#endif
 
 
 #endif
