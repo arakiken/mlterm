@@ -972,18 +972,6 @@ update_encoding_proper_aux(
 		
 			return  0 ;
 		}
-		
-		/*
-		 * ISCII needs variable column width and character combining.
-		 */
-		 
-		if( ! (termscr->font_present & FONT_VAR_WIDTH))
-		{
-			ml_font_manager_change_font_present( termscr->font_man ,
-				termscr->font_present |= FONT_VAR_WIDTH) ;
-		}
-		
-		ml_use_char_combining() ;
 	}
 	else
 	{
@@ -2648,6 +2636,22 @@ change_char_encoding(
 	
 	termscr = p ;
 
+	if( encoding == ML_ISCII)
+	{
+		/*
+		 * ISCII needs variable column width and character combining.
+		 * (similar processing is done in ml_set_encoding_listener)
+		 */
+
+		if( ! (termscr->font_present & FONT_VAR_WIDTH))
+		{
+			(*termscr->config_menu_listener.change_font_present)( termscr ,
+				termscr->font_present | FONT_VAR_WIDTH) ;
+		}
+
+		ml_use_char_combining() ;
+	}
+		
 	if( ( result = ml_font_manager_usascii_font_cs_changed( termscr->font_man ,
 		ml_get_usascii_font_cs( encoding))) == -1)
 	{
@@ -3801,7 +3805,26 @@ ml_set_encoding_listener(
 	termscr->encoding_listener = encoding_listener ;
 	
 	update_encoding_proper_aux( termscr) ;
-	
+
+	if( (*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) == ML_ISCII)
+	{
+		/*
+		 * ISCII needs variable column width and character combining.
+		 * (similar processing is done in change_char_encoding)
+		 */
+
+		if( ! (termscr->font_present & FONT_VAR_WIDTH))
+		{
+			if( ml_font_manager_change_font_present( termscr->font_man ,
+				termscr->font_present | FONT_VAR_WIDTH))
+			{
+				termscr->font_present |= FONT_VAR_WIDTH ;
+			}
+		}
+
+		ml_use_char_combining() ;
+	}
+		
 	return  1 ;
 }
 

@@ -1,4 +1,7 @@
 [20020128]
+* variable column width and character combining are turned on in ISCII encoding.
+
+[20020128]
 * doc/en/README.iscii is added.
 * fribidi-config is used to check libs and cflags for fribidi.
 * -h help messages are improved.(thanks to Kubota Tomohiro san)
