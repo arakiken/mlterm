@@ -344,8 +344,9 @@ uim_widget_new(const char *uim_engine, const char *cur_locale)
 
 	uim_quit();
 
-	combo = mc_combo_new(_("Conversion engine"), engines, num_of_engines,
-			     engines[selected_index], 1, uim_selected, NULL);
+	combo = mc_combo_new(_("Conversion engine"), engines,
+			     num_of_engines + 1, engines[selected_index],
+			     1, uim_selected, NULL);
 
 	return combo;
 #else
