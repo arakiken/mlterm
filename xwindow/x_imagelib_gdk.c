@@ -316,9 +316,7 @@ pixbuf_to_pixmap_truecolor(
 	case TrueColor:
 		r_mask = vinfolist[0].red_mask ;
 		g_mask = vinfolist[0].green_mask ;
-		b_mask = vinfolist[0].blue_mask ;
-		XFree(vinfolist) ;
-		
+		b_mask = vinfolist[0].blue_mask ;		
 		r_offset = lsb( r_mask) ;
 		g_offset = lsb( g_mask) ;
 		b_offset = lsb( b_mask) ;
@@ -392,7 +390,7 @@ pixbuf_to_pixmap_truecolor(
 	default:
 		break;
 	}
-
+	XFree(vinfolist) ;
 	if( image)
 	{
 		XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
@@ -454,60 +452,63 @@ compose_to_pixmap_truecolor(
 		return ;
 
 	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap) ;
-	r_mask = vinfolist[0].red_mask ;
-	g_mask = vinfolist[0].green_mask ;
-	b_mask = vinfolist[0].blue_mask ;
-	XFree(vinfolist) ;
-
-	r_offset = lsb( r_mask) ;
-	g_offset = lsb( g_mask) ;
-	b_offset = lsb( b_mask) ;
-	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
-	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
-       	line = gdk_pixbuf_get_pixels( pixbuf) ;
-
-	switch( depth)
+	switch( vinfolist[0].class)
 	{
-	case 24:
-	case 32:
-	{
-		u_int32_t *  data ;
-		data = (u_int32_t *)(image->data) ;
-		for( i = 0; i < height; i++){
-			pixel = line ;
-			for( j = 0; j < width; j++){
-				if(pixel[3] != 0)
-				{				
-					if (pixel[3] != 0xFF)
-					{
-						r = ((*data) >>r_offset) & 0xFF ;
-						g = ((*data) >>g_offset) & 0xFF ;
-						b = ((*data) >>b_offset) & 0xFF ;
+	case TrueColor:
+		r_mask = vinfolist[0].red_mask ;
+		g_mask = vinfolist[0].green_mask ;
+		b_mask = vinfolist[0].blue_mask ;
+		r_offset = lsb( r_mask) ;
+		g_offset = lsb( g_mask) ;
+		b_offset = lsb( b_mask) ;
+		bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
+		rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
+		line = gdk_pixbuf_get_pixels( pixbuf) ;
 
-						r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
-						g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
-						b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
+		switch( depth)
+		{
+		case 24:
+		case 32:
+		{
+			u_int32_t *  data ;
+			data = (u_int32_t *)(image->data) ;
+			for( i = 0; i < height; i++){
+				pixel = line ;
+				for( j = 0; j < width; j++){
+					if(pixel[3] != 0)
+					{				
+						if (pixel[3] != 0xFF)
+						{
+							r = ((*data) >>r_offset) & 0xFF ;
+							g = ((*data) >>g_offset) & 0xFF ;
+							b = ((*data) >>b_offset) & 0xFF ;
 
-						*data =	(r <<r_offset ) |
-							(g <<g_offset ) |
-							(b <<b_offset ) ;
+							r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
+							g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
+							b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
+
+							*data =	(r <<r_offset ) |
+								(g <<g_offset ) |
+								(b <<b_offset ) ;
+						}
+						else
+						{
+							*data =	(pixel[0] <<r_offset ) |
+								(pixel[1] <<g_offset ) |
+								(pixel[2] <<b_offset ) ;						
+						}				       					
 					}
-					else
-					{
-						*data =	(pixel[0] <<r_offset ) |
-							(pixel[1] <<g_offset ) |
-							(pixel[2] <<b_offset ) ;						
-					}				       					
+					data++ ;
+					pixel +=bytes_per_pixel ;
 				}
-				data++ ;
-				pixel +=bytes_per_pixel ;
+				line += rowstride ;
 			}
-			line += rowstride ;
+		}
+		default:
+			break;
 		}
 	}
-	default:
-		break;
-	}
+	XFree(vinfolist) ;
 	XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
 		   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
 	XDestroyImage( image) ;
@@ -730,124 +731,128 @@ modify_pixmap(
 
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
-
-	r_mask = vinfolist[0].red_mask ;
-	g_mask = vinfolist[0].green_mask ;
-	b_mask = vinfolist[0].blue_mask ;
-	XFree(vinfolist) ;
-	r_offset = lsb( r_mask) ;
-	g_offset = lsb( g_mask) ;
-	b_offset = lsb( b_mask) ;
-
-	switch( depth){
-	case 1:
-		/* XXX not yet supported */
-		break ;
-	case 8:
-		/* XXX not yet supported */
-		break ;
-	case 15:
-	case 16:
+	switch( vinfolist[0].class)
 	{
-		int r_limit, g_limit, b_limit ;
+	case TrueColor:
+		r_mask = vinfolist[0].red_mask ;
+		g_mask = vinfolist[0].green_mask ;
+		b_mask = vinfolist[0].blue_mask ;
 
-		r_limit = 8 + r_offset - msb( r_mask) ;
-		g_limit = 8 + g_offset - msb( g_mask) ;
-		b_limit = 8 + b_offset - msb( b_mask) ;
-		modify_bound( pic_mod);
-		if (pic_mod->gamma == 100){
-			u_int16_t *  data;
+		r_offset = lsb( r_mask) ;
+		g_offset = lsb( g_mask) ;
+		b_offset = lsb( b_mask) ;
+
+		switch( depth){
+		case 1:
+			/* XXX not yet supported */
+			break ;
+		case 8:
+			/* XXX not yet supported */
+			break ;
+		case 15:
+		case 16:
+		{
+			int r_limit, g_limit, b_limit ;
+
+			r_limit = 8 + r_offset - msb( r_mask) ;
+			g_limit = 8 + g_offset - msb( g_mask) ;
+			b_limit = 8 + b_offset - msb( b_mask) ;
+			modify_bound( pic_mod);
+			if (pic_mod->gamma == 100){
+				u_int16_t *  data;
 			
-			data = (u_int16_t *)(image->data) ;
-			for (i = 0; i < height; i++) {
-				for (j = 0; j < width; j++) {
-					r = ((*data & r_mask) >> r_offset)<<r_limit ;
-					g = ((*data & g_mask) >> g_offset)<<g_limit ;
-					b = ((*data & b_mask) >> b_offset)<<b_limit ;
+				data = (u_int16_t *)(image->data) ;
+				for (i = 0; i < height; i++) {
+					for (j = 0; j < width; j++) {
+						r = ((*data & r_mask) >> r_offset)<<r_limit ;
+						g = ((*data & g_mask) >> g_offset)<<g_limit ;
+						b = ((*data & b_mask) >> b_offset)<<b_limit ;
 
-					r = modify_color( r, pic_mod) ;
-					g = modify_color( g, pic_mod) ;
-					b = modify_color( b, pic_mod) ;
+						r = modify_color( r, pic_mod) ;
+						g = modify_color( g, pic_mod) ;
+						b = modify_color( b, pic_mod) ;
 
-					*data = (r >> r_limit) << r_offset |
-						(g >> g_limit) << g_offset |
-						(b >> b_limit) << b_offset ;
-					data++;
+						*data = (r >> r_limit) << r_offset |
+							(g >> g_limit) << g_offset |
+							(b >> b_limit) << b_offset ;
+						data++;
+					}
 				}
-			}
-		}else{
-			u_int16_t *  data;
+			}else{
+				u_int16_t *  data;
 			
-			data = (u_int16_t *)(image->data) ;
-			gamma_cache_refresh( pic_mod->gamma) ;
+				data = (u_int16_t *)(image->data) ;
+				gamma_cache_refresh( pic_mod->gamma) ;
 
-			for (i = 0; i < height; i++) {
-				for (j = 0; j < width; j++) {
-					r = ((*data & r_mask) >> r_offset)<<r_limit ;
-					g = ((*data & g_mask) >> g_offset)<<g_limit ;
-					b = ((*data & b_mask) >> b_offset)<<b_limit ;
+				for (i = 0; i < height; i++) {
+					for (j = 0; j < width; j++) {
+						r = ((*data & r_mask) >> r_offset)<<r_limit ;
+						g = ((*data & g_mask) >> g_offset)<<g_limit ;
+						b = ((*data & b_mask) >> b_offset)<<b_limit ;
 
-					r = gamma_cache[modify_color( r, pic_mod)] ;
-					g = gamma_cache[modify_color( g, pic_mod)] ;
-					b = gamma_cache[modify_color( b, pic_mod)] ;
+						r = gamma_cache[modify_color( r, pic_mod)] ;
+						g = gamma_cache[modify_color( g, pic_mod)] ;
+						b = gamma_cache[modify_color( b, pic_mod)] ;
 
-					*data = (r >> r_limit) << r_offset |
-						(g >> g_limit) << g_offset |
-						(b >> b_limit) << b_offset ;
+						*data = (r >> r_limit) << r_offset |
+							(g >> g_limit) << g_offset |
+							(b >> b_limit) << b_offset ;
+					}
 				}
 			}
+			XPutImage( display, pixmap, DefaultGC( display, screen),
+				   image, 0, 0, 0, 0, width, height) ;
+			break ;
 		}
-		XPutImage( display, pixmap, DefaultGC( display, screen),
-			   image, 0, 0, 0, 0, width, height) ;
-		break ;
-	}
-	case 24:
-	case 32:
-		modify_bound( pic_mod);
-		if (pic_mod->gamma == 100){
-			u_int32_t *  data ;
+		case 24:
+		case 32:
+			modify_bound( pic_mod);
+			if (pic_mod->gamma == 100){
+				u_int32_t *  data ;
 
-			data = (u_int32_t *)(image->data) ;
-			for (i = 0; i < height; i++) {
-				for (j = 0; j < width; j++) {
-					r = ((*data) >>r_offset) & 0xFF ;
-					g = ((*data) >>g_offset) & 0xFF ;
-					b = ((*data) >>b_offset) & 0xFF ;
+				data = (u_int32_t *)(image->data) ;
+				for (i = 0; i < height; i++) {
+					for (j = 0; j < width; j++) {
+						r = ((*data) >>r_offset) & 0xFF ;
+						g = ((*data) >>g_offset) & 0xFF ;
+						b = ((*data) >>b_offset) & 0xFF ;
 
-					r = modify_color( r, pic_mod) ;
-					g = modify_color( g, pic_mod) ;
-					b = modify_color( b, pic_mod) ;
+						r = modify_color( r, pic_mod) ;
+						g = modify_color( g, pic_mod) ;
+						b = modify_color( b, pic_mod) ;
 
-					*data = r << r_offset | g << g_offset | b << b_offset ;
-					data++ ;
+						*data = r << r_offset | g << g_offset | b << b_offset ;
+						data++ ;
+					}
+				}
+			}else{
+				u_int32_t *  data ;
+
+				data = (u_int32_t *)(image->data) ;
+				gamma_cache_refresh( pic_mod->gamma) ;
+				for (i = 0; i < height; i++) {
+					for (j = 0; j < width; j++) {
+						r = ((*data) >>r_offset) & 0xFF ;
+						g = ((*data) >>g_offset) & 0xFF ;
+						b = ((*data) >>b_offset) & 0xFF ;
+
+						r = gamma_cache[modify_color( r, pic_mod)] ;
+						g = gamma_cache[modify_color( g, pic_mod)] ;
+						b = gamma_cache[modify_color( b, pic_mod)] ;
+
+						*data = r << r_offset | g << g_offset | b << b_offset ;
+						data++ ;
+					}
 				}
 			}
-		}else{
-			u_int32_t *  data ;
-
-			data = (u_int32_t *)(image->data) ;
-			gamma_cache_refresh( pic_mod->gamma) ;
-			for (i = 0; i < height; i++) {
-				for (j = 0; j < width; j++) {
-					r = ((*data) >>r_offset) & 0xFF ;
-					g = ((*data) >>g_offset) & 0xFF ;
-					b = ((*data) >>b_offset) & 0xFF ;
-
-					r = gamma_cache[modify_color( r, pic_mod)] ;
-					g = gamma_cache[modify_color( g, pic_mod)] ;
-					b = gamma_cache[modify_color( b, pic_mod)] ;
-
-					*data = r << r_offset | g << g_offset | b << b_offset ;
-					data++ ;
-				}
-			}
+			XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
+				   width, height) ;
+			break ;
+		default:
+			break;
 		}
-		XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
-			   width, height) ;
-		break ;
-	default:
-		break;
 	}
+	XFree(vinfolist) ;
 	XDestroyImage( image) ;
 	return 1 ;
 }
