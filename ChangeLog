@@ -1,4 +1,10 @@
 [20020124]
+* use_cp932_ucs_for_xft option is true by default.
+* screen is corrupt when scrolled. fixed.
+* if font_size_range is not set , mlterm behaves unexpectedly. fixed.
+* mlconf_curses(2002/01/24 version) is added. (thanks to Minami Hirokazu san)
+
+[20020124]
 * NEC Gaiji couldn't be converted to UCS. fixed.
 * Japanese gaiji characters are converted to UCS.
 * if -w [fontsize] is too small or too large , mlterm may dump core. fixed.
