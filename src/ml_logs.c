@@ -5,7 +5,7 @@
 #include  "ml_logs.h"
 
 #include  <string.h>		/* memmove/memset */
-#include  <kiklib/kik_mem.h>	/* alloca */
+#include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>
 

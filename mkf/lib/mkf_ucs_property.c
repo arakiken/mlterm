@@ -32,26 +32,16 @@ typedef u_int16_t  mkf_ucs_property_intern_t ;
 
 mkf_ucs_property_t
 mkf_get_raw_ucs_property(
-	u_char *  ch ,
-	size_t  size
+	u_int32_t  ucs
 	)
 {
-	u_int32_t  ucs4 ;
 	mkf_ucs_property_intern_t  prop ;
 	
-	if( size != 4)
-	{
-		return  0 ;
-	}
-
-	ucs4 = ((ch[0] << 24) & 0xff000000) | ((ch[1] << 16) & 0xff0000) |
-		((ch[2] << 8) & 0xff00) | ch[3] ;
-
-	if( (prop = GET_UCS_ALPHABET_PROPERTY( ucs4)) ||
-		(prop = GET_UCS_EXTENSION_A_PROPERTY( ucs4)) ||
-		(prop = GET_UCS_CJK_PROPERTY(ucs4)) ||
-		(prop = GET_UCS_HANGUL_PROPERTY(ucs4)) ||
-		(prop = GET_UCS_COMPAT_PROPERTY(ucs4)) )
+	if( (prop = GET_UCS_ALPHABET_PROPERTY( ucs)) ||
+		(prop = GET_UCS_EXTENSION_A_PROPERTY( ucs)) ||
+		(prop = GET_UCS_CJK_PROPERTY(ucs)) ||
+		(prop = GET_UCS_HANGUL_PROPERTY(ucs)) ||
+		(prop = GET_UCS_COMPAT_PROPERTY(ucs)) )
 	{
 		return  (mkf_ucs_property_t)prop ;
 	}
@@ -61,13 +51,12 @@ mkf_get_raw_ucs_property(
 
 mkf_property_t
 mkf_get_ucs_property(
-	u_char *  ch ,
-	size_t  size
+	u_int32_t  ucs
 	)
 {
 	mkf_ucs_property_t  ucs_prop ;
 
-	if( ( ucs_prop = mkf_get_raw_ucs_property( ch , size)))
+	if( ( ucs_prop = mkf_get_raw_ucs_property( ucs)))
 	{
 		mkf_property_t  prop ;
 

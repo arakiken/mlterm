@@ -6,7 +6,7 @@
 #define  __MKF_UCS_PROPERTY_H__
 
 
-#include  <kiklib/kik_types.h>
+#include  <kiklib/kik_types.h>	/* u_int32_t */
 
 #include  "mkf_property.h"
 
@@ -138,9 +138,9 @@ typedef enum mkf_ucs_property
 } mkf_ucs_property_t ;
 
 
-mkf_ucs_property_t  mkf_get_raw_ucs_property( u_char *  ch , size_t  size) ;
+mkf_ucs_property_t  mkf_get_raw_ucs_property( u_int32_t  ucs) ;
 
-mkf_property_t  mkf_get_ucs_property( u_char *  ch , size_t  size) ;
+mkf_property_t  mkf_get_ucs_property( u_int32_t  ucs) ;
 
 
 #endif

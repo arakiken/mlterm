@@ -56,6 +56,14 @@ typedef struct  ml_term_manager
 	u_int  num_of_log_lines ;
 	u_int  font_size ;
 	u_int  tab_size ;
+	char *  scrollbar_view_name ;
+	char *  pic_file_path ;
+	char *  conf_menu_path ;
+	ml_mod_meta_mode_t  mod_meta_mode ;
+	ml_bel_mode_t  bel_mode ;
+	u_int  num_of_startup_terms ;
+	u_int  col_size_a ;
+	ml_char_encoding_t  encoding ;
 	
 	int8_t  use_scrollbar ;
 	int8_t  use_login_shell ;
@@ -70,17 +78,6 @@ typedef struct  ml_term_manager
 	int8_t  copy_paste_via_ucs ;
 	int8_t  use_transbg ;
 	
-	char *  scrollbar_view_name ;
-	char *  pic_file_path ;
-	char *  conf_menu_path ;
-	
-	ml_mod_meta_mode_t  mod_meta_mode ;
-	ml_bel_mode_t  bel_mode ;
-	
-	u_int  num_of_startup_terms ;
-	u_int  col_size_a ;
-	ml_char_encoding_t  encoding ;
-	
 	char *  cmd_path ;
 	char **  cmd_argv ;
 	
@@ -94,7 +91,7 @@ typedef struct  ml_term_manager
 
 
 int  ml_term_manager_init( ml_term_manager_t *  term_man , int  argc , char **  argv) ;
-	
+
 int  ml_term_manager_final( ml_term_manager_t *  term_man) ;
 
 void  ml_term_manager_event_loop( ml_term_manager_t *  term_man) ;

@@ -32,6 +32,12 @@ Note that \fIbool\fR is to be substituted by \fBtrue\fR or \fBfalse\fR.
 .TP
 \fB\-A\fR, \fB\-\-aa\fR(=\fIbool\fR)
 Use anti-aliased fonts using Xft.  The default is \fBfalse\fR.
+Note that if you \fBmlterm\fR encoding is not a subset of Unicode
+like ISO-2022-JP-2 or EUC-TW, characters which are regarded as
+a same character in Unicode are displayed with the same glyph and
+you cannot distinguish these characters.  This is because Xft
+library which is used for anti-alias font rendering is based on
+Unicode.
 .TP
 \fB\-B\fR, \fB\-\-sbbg\fR=\fIcolor\fR
 Specify background color of the scrollbar.
@@ -46,7 +52,7 @@ The default is same to the color specified by \fB\-b\fR option.
 \fB\-D\fR, \fB\-\-bi\fR(=\fIbool\fR)
 Use BiDi (bi-direction) rendering on UTF8 encoding
 to support RTL (right-to-left) languages such as
-Arab and Hebrew.  The default is \fBfalse\fR.
+Arab and Hebrew.  The default is \fBtrue\fR.
 .TP
 \fB\-E\fR, \fB\-\-km\fR=\fIencoding\fR
 Specify encoding.
@@ -198,7 +204,7 @@ for TIS-620, TCVN5712, and UTF-8).
 Note that fonts which contain combining characters which extend
 backward cannot be used, since \fBmlterm\fR does combine characters
 by controling the writing positions.
-The default is "\fBfalse\fR".
+The default is "\fBtrue\fR".
 .TP
 \fB\-n\fR, \fB\-\-noucsfont\fR(=\fIbool\fR)
 Use non-Unicode fonts even when \fBmlterm\fR encoding is UTF-8.
@@ -223,6 +229,12 @@ The default is "\fBfalse\fR".
 Use Unicode fonts even when \fBmlterm\fR encoding is not UTF-8.
 Useful when you have ISO10646 fonts but you don't have other fonts
 and want to use non-UTF-8 encodings.
+Note that if you \fBmlterm\fR encoding is not a subset of Unicode
+like ISO-2022-JP-2 or EUC-TW, characters which are regarded as
+a same character in Unicode are displayed with the same glyph and
+you cannot distinguish these characters.  Since Xft library which
+is used for anti-alias font rendering is based on Unicode, anti-alias
+has the same problem.
 The default is "\fBfalse\fR".
 .TP
 \fB\-v\fR, \fB\-\-version

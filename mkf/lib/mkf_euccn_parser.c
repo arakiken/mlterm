@@ -9,6 +9,7 @@
 
 #include  "mkf_iso2022_parser.h"
 #include  "mkf_gb18030_2000_intern.h"
+#include  "mkf_ucs_property.h"
 
 
 #if  0
@@ -37,6 +38,7 @@ gbk_parser_next_char_intern(
 		ch->ch[0] = *parser->str ;
 		ch->cs = US_ASCII ;
 		ch->size = 1 ;
+		ch->property = 0 ;
 
 		mkf_parser_increment( parser) ;
 
@@ -167,7 +169,7 @@ gbk_parser_next_char_intern(
 		memcpy( ch->ch , ucs4 , 4) ;
 		ch->size = 4 ;
 		ch->cs = ISO10646_UCS4_1 ;
-		ch->property = 0 ;
+		ch->property = mkf_get_ucs_property( mkf_bytes_to_int( ch->ch , ch->size)) ;
 
 		return  1 ;
 	}

@@ -5,12 +5,13 @@
 #include  "ml_xim.h"
 
 #include  <stdio.h>		/* sprintf */
-#include  <string.h>		/* strcmp */
+#include  <string.h>		/* strcmp/memset */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_map.h>
 #include  <kiklib/kik_locale.h>	/* kik_locale_init/kik_get_locale/kik_get_codeset */
+#include  <kiklib/kik_mem.h>	/* alloca */
 
 #include  "ml_xic.h"		/* refering mutually */
 

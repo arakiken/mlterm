@@ -6,6 +6,8 @@
 #define  __ML_SHAPING_H__
 
 
+#include  <kiklib/kik_types.h>	/* u_int */
+
 #include  "ml_char.h"
 
 

@@ -29,7 +29,14 @@ typedef struct  cs_info
 {
 	mkf_charset_t  cs ;
 	u_int  cols ;
-	char *   encoding_names[3] ;	/* default encoding. the last element must be NULL. */
+	
+	/* 
+	 * default encoding.
+	 *
+	 * !! Notice !!
+	 * the last element must be NULL.
+	 */
+	char *   encoding_names[3] ;
 	
 } cs_info_t ;
 
@@ -53,13 +60,15 @@ static cs_info_t  cs_info_table[] =
 	{ ISO8859_13_R , 1 , { "iso8859-13" , NULL , NULL , } , } ,
 	{ ISO8859_14_R , 1 , { "iso8859-14" , NULL , NULL , } , } ,
 	{ ISO8859_15_R , 1 , { "iso8859-15" , NULL , NULL , } , } ,
+	
 	/*
 	 * XXX
-	 * the encoding of TCVN font is iso8859-1 , and its font family is
+	 * The encoding of TCVN font is iso8859-1 , and its font family is
 	 * .VnTime or .VnTimeH ...
-	 * how to deal with it ?
+	 * How to deal with it ?
 	 */
 	{ TCVN5712_3_1993 , 1 , { NULL , NULL , NULL , } , } ,
+
 	{ VISCII , 1 , { "viscii-1" , NULL , NULL , } , } ,
 	{ KOI8_R , 1 , { "koi8-r" , NULL , NULL , } , } ,
 	{ KOI8_U , 1 , { "koi8-u" , NULL , NULL , } , } ,
@@ -72,8 +81,15 @@ static cs_info_t  cs_info_table[] =
 	{ JISX0213_2000_1 , 2 , { "jisx0213.2000-1" , NULL , NULL , } , } ,
 	{ JISX0213_2000_2 , 2 , { "jisx0213.2000-2" , NULL , NULL , } , } ,
 	{ KSC5601_1987 , 2 , { "ksc5601.1987-0" , "ksx1001.1997-0" , NULL , } , } ,
+	
+	/*
+	 * XXX
+	 * UHC and JOHAB fonts are not used at the present time.
+	 * see ml_vt100_parser.c:ml_parse_vt100_sequence().
+	 */
 	{ UHC , 2 , { NULL , NULL , NULL , } , } ,
 	{ JOHAB , 2 , { "johabsh-1" , /* "johabs-1" , */ "johab-1" , NULL , } , } ,
+
 	{ GB2312_80 , 2 , { "gb2312.1980-0" , NULL , NULL , } , } ,
 	{ GBK , 2 , { "gbk-0" , NULL , NULL , } , } ,
 	{ BIG5 , 2 , { "big5.eten-0" , "big5.hku-0" , NULL , } , } ,

@@ -15,11 +15,6 @@
 #endif
 
 
-/*
- * XXX
- * the following functions are not tested !!!
- */
-
 /* --- static functions --- */
 
 static int

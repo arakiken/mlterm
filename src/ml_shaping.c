@@ -4,6 +4,8 @@
 
 #include  "ml_shaping.h"
 
+#include  <kiklib/kik_mem.h>	/* alloca */
+
 
 typedef struct
 {

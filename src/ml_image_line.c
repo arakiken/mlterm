@@ -4,9 +4,10 @@
 
 #include  "ml_image_line.h"
 
-#include  <stdio.h>			/* fprintf */
-#include  <kiklib/kik_mem.h>
-#include  <kiklib/kik_str.h>		/* strdup */
+#include  <stdio.h>		/* fprintf */
+#include  <string.h>		/* memset */
+#include  <kiklib/kik_mem.h>	/* alloca */
+#include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>
 
@@ -117,6 +118,10 @@ ml_imgline_init(
 	return  1 ;
 }
 
+/*
+ * !! Notice !!
+ * cloning the very same including bidi parameters.
+ */
 int
 ml_imgline_clone(
 	ml_image_line_t *  clone ,
@@ -514,9 +519,6 @@ ml_imgline_get_num_of_redrawn_chars(
 	}
 }
 
-/*
- * used in ml_image/ml_image_scroll
- */
 int
 ml_convert_char_index_to_col(
 	ml_image_line_t *  line ,
@@ -588,9 +590,6 @@ ml_convert_char_index_to_col(
 	return  col ;
 }
 
-/*
- * used in ml_image.
- */
 int
 ml_convert_col_to_char_index(
 	ml_image_line_t *  line ,
@@ -605,7 +604,7 @@ ml_convert_col_to_char_index(
 	{
 		return  0 ;
 	}
-	
+
 #ifdef  DEBUG
 	if( col >= line->num_of_chars)
 	{
@@ -629,7 +628,7 @@ ml_convert_col_to_char_index(
 
 		col -= ml_char_cols( &line->chars[char_index]) ;
 	}
-
+	
 	if( col < ml_char_cols( &line->chars[char_index]))
 	{
 		goto  end ;
@@ -743,6 +742,11 @@ ml_imgline_restore_color(
 	return  1 ;
 }
 
+/*
+ * !! Notice !!
+ * this copys src parameters to dst if at all possible.
+ * if visual_order of dst is NULL , this ignores bidi related parameters.
+ */
 int
 ml_imgline_copy_line(
 	ml_image_line_t *  dst ,
@@ -752,7 +756,8 @@ ml_imgline_copy_line(
 	u_int  copy_len ;
 
 	copy_len = K_MIN(src->num_of_filled_chars,dst->num_of_chars) ;
-	
+
+	/* getting normalized str */
 	ml_imgline_copy_str( src , dst->chars , 0 , copy_len) ;
 
 	dst->num_of_filled_chars = copy_len ;
@@ -767,23 +772,20 @@ ml_imgline_copy_line(
 	}
 
 	dst->is_modified = src->is_modified ;
-	dst->change_beg_char_index = src->change_beg_char_index ;
-	dst->change_end_char_index = src->change_end_char_index ;
+	dst->change_beg_char_index = K_MIN(src->change_beg_char_index,dst->num_of_chars) ;
+	dst->change_end_char_index = K_MIN(src->change_end_char_index,dst->num_of_chars) ;
 	dst->is_cleared_to_end = src->is_cleared_to_end ;
 
 	dst->is_continued_to_next = src->is_continued_to_next ;
-	dst->is_bidi = src->is_bidi ;
+	dst->is_bidi = 0 ;
 
-	if( dst->visual_order)
+	if( ml_imgline_is_using_bidi( src) && ml_imgline_is_using_bidi( dst))
 	{
-		if( copy_len == src->num_of_filled_chars && src->visual_order)
+		ml_imgline_render_bidi( dst) ;
+
+		if( src->is_bidi)
 		{
-			memcpy( dst->visual_order , src->visual_order , sizeof( u_int16_t) * copy_len) ;
-			dst->visual_order_len = src->visual_order_len ;
-		}
-		else
-		{
-			ml_imgline_render_bidi( dst) ;
+			ml_imgline_start_bidi( dst) ;
 		}
 	}
 	else

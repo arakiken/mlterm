@@ -6,7 +6,6 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>
-#include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_str.h>	/* strdup */
 
 #ifdef  USE_IMLIB

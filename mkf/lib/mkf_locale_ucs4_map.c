@@ -75,6 +75,7 @@ get_map_ucs4_to_func_for_current_locale(void)
 	return  NULL ;
 }
 
+
 /* --- global functions --- */
 
 int

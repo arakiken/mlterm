@@ -4,6 +4,7 @@
 
 #include  "ml_font_custom.h"
 
+#include  <string.h>		/* memset */
 #include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_util.h>	/* K_MIN */

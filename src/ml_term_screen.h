@@ -43,8 +43,8 @@ typedef struct  ml_system_event_listener
 {
 	void *  self ;
 
-	void  (*new_pty)( void *) ;
-	void  (*delete_pty)( void * , ml_window_t *) ;
+	void  (*open_pty)( void *) ;
+	void  (*close_pty)( void * , ml_window_t *) ;
 	
 	/* for debug */
 	void  (*exit)( void * , int) ;

@@ -6,8 +6,8 @@
 #define  __MKF_CNS11643_1992_2_TO_UCS4_TABLE__
 
 
-#include  <stdio.h>
-#include  <kiklib/kik_types.h>
+#include  <stdio.h>			/* NULL */
+#include  <kiklib/kik_types.h>		/* u_xxx */
 
 
 static u_char  cns11643_1992_2_to_ucs4_bytes[4] ;

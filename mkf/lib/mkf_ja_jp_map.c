@@ -4,9 +4,6 @@
 
 #include  "mkf_ja_jp_map.h"
 
-#include  "table/mkf_sjis_ext.table"
-#include  "table/mkf_jisx0208_ext.table"
-
 #include  "mkf_ucs4_map.h"
 #include  "mkf_ucs4_usascii.h"
 #include  "mkf_ucs4_jisx0201.h"
@@ -14,6 +11,11 @@
 #include  "mkf_ucs4_jisx0212.h"
 #include  "mkf_ucs4_jisx0213.h"
 
+#include  "table/mkf_sjis_ext.table"
+#include  "table/mkf_jisx0208_ext.table"
+
+
+/* --- static variables --- */
 
 static mkf_map_ucs4_to_func_t  map_ucs4_to_funcs[] =
 {

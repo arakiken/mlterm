@@ -4,7 +4,8 @@
 
 #include  "ml_term_manager.h"
 
-#include  <stdio.h>		/* sprintf/sscanf */
+#include  <stdio.h>		/* sprintf */
+#include  <string.h>		/* memset */
 #include  <pwd.h>		/* getpwuid */
 #include  <sys/time.h>		/* timeval */
 #include  <unistd.h>		/* getpid/select */
@@ -17,7 +18,7 @@
 #include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect */
 #include  <kiklib/kik_conf.h>
 #include  <kiklib/kik_conf_io.h>
-#include  <kiklib/kik_locale.h>
+#include  <kiklib/kik_locale.h>	/* kik_get_codeset */
 #include  <mkf/mkf_charset.h>	/* mkf_charset_t */
 
 #include  "version.h"
@@ -73,34 +74,6 @@ get_font_size_range(
 	}
 
 	return  1 ;
-}
-
-/*
- * EXIT_PROGRAM shortcut calls this at last.
- * this is for debugging.
- */
-static void
-__exit(
-	void *  p ,
-	int  status
-	)
-{
-#ifdef  KIK_DEBUG
-	ml_term_manager_t *  term_man ;
-
-	term_man = p ;
-
-	ml_term_manager_final( term_man) ;
-	
-	kik_locale_final() ;
-
-	kik_alloca_garbage_collect() ;
-
-	kik_msg_printf( "reporting unfreed memories --->\n") ;
-	kik_mem_free_all() ;
-#endif
-	
-	exit(status) ;
 }
 
 static int
@@ -394,36 +367,6 @@ error:
 	return  0 ;
 }
 
-static void
-new_pty(
-	void *  p
-	)
-{
-	ml_term_manager_t *  term_man ;
-
-	term_man = p ;
-	
-	open_new_term( term_man) ;
-}
-
-static int
-init_terms(
-	ml_term_manager_t *  term_man
-	)
-{
-	int  counter ;
-
-	for( counter = 0 ; counter < term_man->num_of_startup_terms ; counter ++)
-	{
-		if( ! open_new_term( term_man))
-		{
-			return  0 ;
-		}
-	}
-
-	return  1 ;
-}
-
 static int
 delete_term(
 	ml_term_manager_t *  term_man ,
@@ -461,30 +404,8 @@ delete_term(
 	return  1 ;
 }
 
-static void
-delete_pty(
-	void *  p ,
-	ml_window_t *  root_window
-	)
-{
-	int  counter ;
-	ml_term_manager_t *  term_man ;
-
-	term_man = p ;
-		
-	FOREACH_TERMS(term_man,counter)
-	{
-		if( root_window == term_man->terms[counter].root_window)
-		{
-			kill( term_man->terms[counter].pty->child_pid , SIGKILL) ;
-
-			break ;
-		}
-	}
-}
-
 static int
-term_was_closed(
+term_closed(
 	ml_term_manager_t *  term_man
 	)
 {
@@ -517,6 +438,74 @@ term_was_closed(
 	
 	return  1 ;
 }
+
+
+/*
+ * callbacks of ml_system_event_listener_t
+ */
+ 
+/*
+ * EXIT_PROGRAM shortcut calls this at last.
+ * this is for debugging.
+ */
+static void
+__exit(
+	void *  p ,
+	int  status
+	)
+{
+#ifdef  KIK_DEBUG
+	ml_term_manager_t *  term_man ;
+
+	term_man = p ;
+
+	ml_term_manager_final( term_man) ;
+	
+	kik_locale_final() ;
+
+	kik_alloca_garbage_collect() ;
+
+	kik_msg_printf( "reporting unfreed memories --->\n") ;
+	kik_mem_free_all() ;
+#endif
+	
+	exit(status) ;
+}
+
+static void
+open_pty(
+	void *  p
+	)
+{
+	ml_term_manager_t *  term_man ;
+
+	term_man = p ;
+	
+	open_new_term( term_man) ;
+}
+
+static void
+close_pty(
+	void *  p ,
+	ml_window_t *  root_window
+	)
+{
+	int  counter ;
+	ml_term_manager_t *  term_man ;
+
+	term_man = p ;
+		
+	FOREACH_TERMS(term_man,counter)
+	{
+		if( root_window == term_man->terms[counter].root_window)
+		{
+			kill( term_man->terms[counter].pty->child_pid , SIGKILL) ;
+
+			break ;
+		}
+	}
+}
+
 
 static void
 sig_child(
@@ -1067,6 +1056,11 @@ ml_term_manager_init(
 			ml_use_char_combining() ;
 		}
 	}
+	else
+	{
+		/* combining is used as default */
+		ml_use_char_combining() ;
+	}
 
 	term_man->x = 0 ;
 	term_man->y = 0 ;
@@ -1288,13 +1282,13 @@ ml_term_manager_init(
 		}
 	}
 
-	term_man->use_bidi = 0 ;
+	term_man->use_bidi = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_bidi")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , "false") == 0)
 		{
-			term_man->use_bidi = 1 ;
+			term_man->use_bidi = 0 ;
 		}
 	}
 
@@ -1398,8 +1392,8 @@ ml_term_manager_init(
 
 	term_man->system_listener.self = term_man ;
 	term_man->system_listener.exit = __exit ;
-	term_man->system_listener.new_pty = new_pty ;
-	term_man->system_listener.delete_pty = delete_pty ;
+	term_man->system_listener.open_pty = open_pty ;
+	term_man->system_listener.close_pty = close_pty ;
 
 	signal( SIGHUP , signal_dispatcher) ;
 	signal( SIGINT , signal_dispatcher) ;
@@ -1458,13 +1452,18 @@ ml_term_manager_event_loop(
 	ml_term_manager_t *  term_man
 	)
 {
-	if( ! init_terms( term_man))
+	int  counter ;
+
+	for( counter = 0 ; counter < term_man->num_of_startup_terms ; counter ++)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " init_terms() failed.\n") ;
-	#endif
-	
-		return ;
+		if( ! open_new_term( term_man))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " open_new_term() failed.\n") ;
+		#endif
+
+			break ;
+		}
 	}
 
 	while( 1)
@@ -1475,7 +1474,7 @@ ml_term_manager_event_loop(
 
 		if( term_man->dead_mask)
 		{
-			term_was_closed( term_man) ;
+			term_closed( term_man) ;
 		}
 
 		kik_alloca_end_stack_frame() ;

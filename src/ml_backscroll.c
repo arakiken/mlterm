@@ -110,6 +110,7 @@ ml_bs_get_image_line_in_all(
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " row %d is at the end of screen.\n" , row) ;
 	#endif
+	
 		return  NULL ;
 	}
 
@@ -148,6 +149,7 @@ ml_bs_get_image_line_in_screen(
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " row %d is at the end of screen.\n") ;
 		#endif
+		
 			return  NULL ;
 		}
 

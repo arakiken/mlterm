@@ -20,6 +20,7 @@ static mkf_map_ucs4_to_func_t  map_ucs4_to_funcs[] =
 	mkf_map_ucs4_to_big5 ,
 	mkf_map_ucs4_to_cns11643_1992_1 ,
 	mkf_map_ucs4_to_cns11643_1992_2 ,
+	mkf_map_ucs4_to_cns11643_1992_3 ,
 } ;
 
 
@@ -35,6 +36,10 @@ mkf_map_ucs4_to_zh_tw(
 		sizeof( map_ucs4_to_funcs) / sizeof( map_ucs4_to_funcs[0])) ;
 }
 
+/*
+ * BIG5 <=> CNS11643_1992_[1-2]
+ */
+ 
 int
 mkf_map_big5_to_cns11643_1992(
 	mkf_char_t *  cns ,

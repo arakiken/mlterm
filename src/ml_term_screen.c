@@ -614,9 +614,9 @@ window_deleted(
 
 	termscr = (ml_term_screen_t*) win ;
 
-	if( HAS_SYSTEM_LISTENER(termscr,delete_pty))
+	if( HAS_SYSTEM_LISTENER(termscr,close_pty))
 	{
-		(*termscr->system_listener->delete_pty)( termscr->system_listener->self ,
+		(*termscr->system_listener->close_pty)( termscr->system_listener->self ,
 			ml_get_root_window( &termscr->window)) ;
 	}
 }
@@ -1088,7 +1088,7 @@ use_utf8_selection(
 	{
 		return  1 ;
 	}
-	else if( IS_UTF8_SUBSET_ENCODING(encoding) && termscr->copy_paste_via_ucs)
+	else if( IS_UCS_SUBSET_ENCODING(encoding) && termscr->copy_paste_via_ucs)
 	{
 		return  1 ;
 	}
@@ -1171,9 +1171,9 @@ key_pressed(
 	}
 	else if( ml_keymap_match( termscr->keymap , NEW_PTY , ksym , event->state))
 	{
-		if( HAS_SYSTEM_LISTENER(termscr,new_pty))
+		if( HAS_SYSTEM_LISTENER(termscr,open_pty))
 		{
-			termscr->system_listener->new_pty( termscr->system_listener->self) ;
+			termscr->system_listener->open_pty( termscr->system_listener->self) ;
 		}
 	}
 #ifdef  DEBUG
@@ -1613,7 +1613,7 @@ copy_paste_via_ucs(
 
 	encoding = (*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) ;
 
-	if( IS_UTF8_SUBSET_ENCODING(encoding) && termscr->copy_paste_via_ucs)
+	if( IS_UCS_SUBSET_ENCODING(encoding) && termscr->copy_paste_via_ucs)
 	{
 		return  1 ;
 	}

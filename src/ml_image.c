@@ -4,10 +4,7 @@
 
 #include  "ml_image.h"
 
-#ifdef  DEBUG
 #include  <stdio.h>		/* fprintf */
-#endif
-
 #include  <string.h>		/* memmove/memset */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
@@ -677,13 +674,18 @@ ml_image_init(
 	)
 {
 	int  counter ;
+
+	if( num_of_cols == 0 || num_of_rows == 0)
+	{
+		return  0 ;
+	}
 	
 	image->num_of_rows = num_of_rows ;
 	image->num_of_cols = num_of_cols ;
 
 	image->beg_line = 0 ;
 
-	if( ( image->lines = malloc( sizeof( ml_image_line_t) * num_of_rows)) == NULL)
+	if( ( image->lines = malloc( sizeof( ml_image_line_t) * image->num_of_rows)) == NULL)
 	{
 		return  0 ;
 	}
@@ -696,28 +698,22 @@ ml_image_init(
 		}
 	}
 
+	image->cursor.row = 0 ;
+	image->cursor.char_index = 0 ;
+	image->cursor.col = 0 ;
 	image->cursor.fg_color = MLC_BG_COLOR ;
 	image->cursor.bg_color = MLC_FG_COLOR ;
-	image->cursor.orig_fg = MLC_FG_COLOR ;
-	image->cursor.orig_bg = MLC_BG_COLOR ;
+	image->cursor.orig_fg = MLC_BG_COLOR ;
+	image->cursor.orig_bg = MLC_FG_COLOR ;
 	image->cursor.is_highlighted = 0 ;
 
-	image->cursor.char_index = 0 ;
-	image->cursor.row = 0 ;
-	image->cursor.col = 0 ;
-
-	image->saved_cursor = image->cursor ;
 	image->cursor_is_saved = 0 ;
 
 	ml_char_init( &image->sp_ch) ;
 	ml_char_copy( &image->sp_ch , &sp_ch) ;
 
-	/*
-	 * initializing the first line.
-	 */
-	ml_char_copy( &CURSOR_LINE(image).chars[0] , &image->sp_ch) ;
-	CURSOR_LINE(image).num_of_filled_chars = 1 ;
-	CURSOR_LINE(image).num_of_filled_cols = ml_char_cols( &image->sp_ch) ;
+	/* initializing the first line. */
+	ml_imgline_clear( &CURSOR_LINE(image) , 0 , &image->sp_ch) ;
 	image->num_of_filled_rows = 1 ;
 
 	image->is_logging = is_logging ;
@@ -909,6 +905,9 @@ ml_image_resize(
 	if( is_using_bidi)
 	{
 		ml_image_use_bidi( image) ;
+
+		/* bidi-rendering all lines. */
+		ml_image_render_bidi( image) ;
 	}
 
 #ifdef  __DEBUG
@@ -1163,7 +1162,7 @@ ml_image_overwrite_chars(
 	if( cols_rest)
 	{
 		int  counter ;
-		
+
 		/*
 		 * padding spaces before cursor.
 		 */

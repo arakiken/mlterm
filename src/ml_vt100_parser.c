@@ -8,7 +8,6 @@
 #include  <string.h>		/* memmove */
 #include  <stdlib.h>		/* atoi */
 #include  <kiklib/kik_debug.h>
-
 #include  <mkf/mkf_ucs4_map.h>	/* mkf_map_to_ucs4 */
 #include  <mkf/mkf_ucs_property.h>
 #include  <mkf/mkf_locale_ucs4_map.h>
@@ -249,7 +248,7 @@ put_char(
 	ml_font_attr_t  width_attr ;
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
-	
+
 	if( vt100_parser->buffer.len == PTYMSG_BUFFER_SIZE)
 	{
 		if( flush_buffer( vt100_parser))
@@ -1739,7 +1738,7 @@ ml_vt100_parser_new(
 	{
 		return  NULL ;
 	}
-	
+
 	vt100_parser->left = 0 ;
 	vt100_parser->len = 0 ;
 
@@ -1934,13 +1933,19 @@ ml_parse_vt100_sequence(
 					}
 				#endif
 				}
-				else if( vt100_parser->only_use_unicode_font && ch.cs != US_ASCII)
+				else if( ( vt100_parser->only_use_unicode_font && ch.cs != US_ASCII)
+				#if  0
+					/* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
+					|| ( vt100_parser->encoding == ML_GB18030 && ch.cs == GBK)
+				#endif
+					)
 				{
 					mkf_char_t  ucs ;
 
 					if( mkf_map_to_ucs4( &ucs , &ch))
 					{
-						ucs.property =  mkf_get_ucs_property( ucs.ch , ucs.size) ;
+						ucs.property = mkf_get_ucs_property(
+								mkf_bytes_to_int( ucs.ch , ucs.size)) ;
 						
 					#ifdef  USE_UCS4
 						ch = ucs ;

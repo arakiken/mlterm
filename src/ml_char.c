@@ -7,7 +7,6 @@
 #include  <stdio.h>		/* fprintf */
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_mem.h>
 #include  <mkf/mkf_ucs_property.h>
 
 #include  "ml_font.h"
@@ -689,7 +688,7 @@ ml_char_is_reversed(
 
 #ifdef  DEBUG
 
-#if  0
+#if  1
 #define  DUMP_HEX
 #endif
 

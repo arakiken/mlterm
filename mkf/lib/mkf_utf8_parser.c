@@ -175,7 +175,7 @@ utf8_parser_next_char(
 
 	ucs4_ch->size = 4 ;
 	ucs4_ch->cs = ISO10646_UCS4_1 ;
-	ucs4_ch->property = mkf_get_ucs_property( ucs4_ch->ch , ucs4_ch->size) ;
+	ucs4_ch->property = mkf_get_ucs_property( mkf_bytes_to_int( ucs4_ch->ch , ucs4_ch->size)) ;
 	
 	return  1 ;
 	

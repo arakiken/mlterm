@@ -4,7 +4,7 @@
 
 #include  "ml_font_manager.h"
 
-#include  <string.h>		/* strcat/memset */
+#include  <string.h>		/* strcat */
 #include  <stdio.h>		/* sprintf */
 #include  <kiklib/kik_mem.h>	/* malloc/alloca */
 #include  <kiklib/kik_str.h>	/* kik_str_dup */
