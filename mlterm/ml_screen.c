@@ -685,6 +685,7 @@ ml_screen_delete_logical_visual(
 		(*screen->logvis->logical)( screen->logvis) ;
 		(*screen->logvis->delete)( screen->logvis) ;
 		screen->logvis = NULL ;
+		screen->container_logvis = NULL ;
 	}
 
 	return  1 ;

@@ -1,3 +1,8 @@
+2002-06-13 Araki Ken <arakiken@users.sf.net>
+
+	* If use_dynamic_comb option was dynamically changed over twice, RTL lines
+	  were shown correctly and even worse mlterm died. fixed.
+
 2002-06-12 MINAMI Hirokazu <minami@chem.s.u-tokyo.ac.jp>
 
 	* mlcc (new console based config tool) is added.

@@ -471,6 +471,9 @@ ml_term_enable_special_visual(
 			goto  error ;
 		}
 
+		ml_screen_render( term->screen) ;
+		ml_screen_visual( term->screen) ;
+		
 		return  1 ;
 	}
 	else
@@ -529,6 +532,9 @@ ml_term_enable_special_visual(
 				goto  error ;
 			}
 		}
+		
+		ml_screen_render( term->screen) ;
+		ml_screen_visual( term->screen) ;
 		
 		return  1 ;
 	}
