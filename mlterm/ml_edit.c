@@ -1742,8 +1742,6 @@ ml_cursor_restore(
 		return  0 ;
 	}
 	
-	edit->cursor.is_saved = 0 ;
-
 	return  1 ;
 }
 

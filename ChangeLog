@@ -1,3 +1,7 @@
+2004-08-01 MINAMI Hirokazu <minami@mistfall.net>
+
+	* mlterm/ml_edit.c: allowed multiple restore cursor request.
+
 2004-08-01 Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* mlterm/ml_edit.c (ml_edit_overwrite_chars): fixed a wrap-around bug.
