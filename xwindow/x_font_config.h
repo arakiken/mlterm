@@ -42,10 +42,10 @@ x_font_config_t *  x_acquire_font_config( x_font_present_t  font_present) ;
 
 int  x_release_font_config( x_font_config_t *  font_config) ;
 
-int  x_configize_font_name( x_font_config_t *  font_config , ml_font_t  font ,
+int  x_customize_font_name( x_font_config_t *  font_config , ml_font_t  font ,
 	char *  fontname , u_int  font_size) ;
 
-int  x_configize_default_font_name( x_font_config_t *  font_config , ml_font_t  font ,
+int  x_customize_default_font_name( x_font_config_t *  font_config , ml_font_t  font ,
 	char *  fontname , u_int  font_size) ;
 
 char *  x_get_config_font_name( x_font_config_t *  font_config , u_int  font_size , ml_font_t  font) ;

@@ -1,8 +1,15 @@
 2003-10-12  Araki Ken  <arakiken@users.sf.net>
 
+	* x_font_config.[ch]: Renamed x_configize_... to x_customize_...
+
+	* version.h.in: Validated CVS_REVISION.
+
+2003-10-12  Araki Ken  <arakiken@users.sf.net>
+	
 	* Minor cleanups.
 
 2003-10-12  Araki Ken  <arakiken@users.sf.net>
+
 	* mlmenu/main.c: ~/.mlterm/menu couldn't be loaded correctly. Fixed.
 
 2003-10-11  Araki Ken  <arakiken@users.sf.net>

@@ -2147,7 +2147,7 @@ update_special_visual(
 				continue ;
 			}
 
-			x_configize_font_name( font_config , DEFAULT_FONT(ISCII) , font_name , font_size) ;
+			x_customize_font_name( font_config , DEFAULT_FONT(ISCII) , font_name , font_size) ;
 		}
 
 		x_activate_local_font_config( screen->font_man , font_config) ;

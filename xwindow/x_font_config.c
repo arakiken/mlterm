@@ -227,7 +227,7 @@ read_conf(
 					font , size , fontname) ;
 			#endif
 
-				x_configize_font_name( font_config , font , fontname , size) ;
+				x_customize_font_name( font_config , font , fontname , size) ;
 			}
 			else
 			{
@@ -236,7 +236,7 @@ read_conf(
 				 * [font name]
 				 */
 
-				x_configize_default_font_name( font_config , font , entry , size) ;
+				x_customize_default_font_name( font_config , font , entry , size) ;
 			}
 		}
 	}
@@ -507,7 +507,7 @@ x_font_config_delete(
 }
 
 int
-x_configize_font_name(
+x_customize_font_name(
 	x_font_config_t *  font_config ,
 	ml_font_t  font ,
 	char *  fontname ,
@@ -544,7 +544,7 @@ x_configize_font_name(
 }
 
 int
-x_configize_default_font_name(
+x_customize_default_font_name(
 	x_font_config_t *  font_config ,
 	ml_font_t  font ,
 	char *  fontname ,

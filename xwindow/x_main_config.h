@@ -15,6 +15,10 @@
 
 typedef struct x_main_config
 {
+	/*
+	 * Public (read only)
+	 */
+
 	int  x ;
 	int  y ;
 	int  geom_hint ;
