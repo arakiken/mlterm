@@ -1,5 +1,29 @@
 2003-07-17  Seiichi SATO  <ssato@sh.rim.or.jp>
 
+	* Started porting to MS Windows.
+
+	* kik_dlfcn.c: Removed.
+
+	* kik_dlfcn_dl.c: Taken from kik_dlfcn.c. (dlopen() in libdl)
+
+	* kik_dlfcn_dld.c: Taken from kik_dlfcn.c. (shl_load() of HP-UX)
+
+	* kik_dlfcn_dyld.c: Added for Mac OS X. (not written yet)
+
+	* kik_dlfcn_win32.c: Added for Windows. (native Win32 and Cygwin)
+
+	* kik_dlfcn_none.c: Dummy functions.
+
+	* kik_pty_win32.c: Dummy functions.
+
+	* kik_unistd.c (kik_usleep): Replaced usleep() with Sleep() in Win32API.
+
+	* kiklib/configure.in: Added AC_CANONICAL_TARGET and cleaned up.
+
+	* mkf/configure.in: Added AC_CANONICAL_HOST and AC_CANONICAL_TARGET.
+
+2003-07-17  Seiichi SATO  <ssato@sh.rim.or.jp>
+
 	* kik_pty_streams.c: slave -> *slave (line 243)
 
 2003-07-14  Seiichi SATO  <ssato@sh.rim.or.jp>
