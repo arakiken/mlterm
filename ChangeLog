@@ -1,3 +1,10 @@
+2003-05-17 Araki Ken <arakiken@users.sf.net>
+
+	* Removed -%/--class/app_class.
+	* Fixed the behaviors of --name,--title,--icon options.
+	  (Thanks to Gareth Jones)
+	* x_dnd_process_xxx() functions was declared as x_process_xxx() in x_dnd.h. fixed.
+
 2003-05-16 Araki Ken <arakiken@users.sf.net>
 
 	* The font color of selected region remained reversed
