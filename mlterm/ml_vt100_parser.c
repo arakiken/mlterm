@@ -44,6 +44,14 @@
 #define  ESCSEQ_DEBUG
 #endif
 
+#if  0
+#define  OUTPUT_DEBUG
+#endif
+
+#if  0
+#define  DUMP_HEX
+#endif
+
 
 /* --- static functions --- */
 
@@ -122,21 +130,19 @@ receive_bytes(
 
 		kik_debug_printf( KIK_DEBUG_TAG " pty msg (len %d) is received:" , vt100_parser->left) ;
 
-	#if  0
-		for( count = 0 ; count < vt100_parser->left ; count ++)
-		{
-			kik_msg_printf( "%c" , vt100_parser->seq[count]) ;
-		}
-		kik_msg_printf( "[END]\n") ;
-	#endif
-
-	#if  1
+	#ifdef  DUMP_HEX
 		for( count = 0 ; count < vt100_parser->left ; count ++)
 		{
 			kik_msg_printf( "[%.2x]" , vt100_parser->seq[count]) ;
 		}
-		kik_msg_printf( "[END]\n") ;
+	#else
+		for( count = 0 ; count < vt100_parser->left ; count ++)
+		{
+			kik_msg_printf( "%c" , vt100_parser->seq[count]) ;
+		}
 	#endif
+	
+		kik_msg_printf( "[END]\n") ;
 	}
 #endif
 
@@ -157,7 +163,7 @@ flush_buffer(
 		return  0 ;
 	}
 	
-#ifdef  __DEBUG
+#ifdef  OUTPUT_DEBUG
 	{
 		int  count ;
 
@@ -170,7 +176,7 @@ flush_buffer(
 			
 			if( ml_char_size( &buffer->chars[count]) == 2)
 			{
-			#if  0
+			#ifdef  DUMP_HEX
 				kik_msg_printf( "%x%x" , bytes[0] | 0x80 , bytes[1] | 0x80) ;
 			#else
 				kik_msg_printf( "%c%c" , bytes[0] | 0x80 , bytes[1] | 0x80) ;
@@ -178,7 +184,7 @@ flush_buffer(
 			}
 			else
 			{
-			#if  0
+			#ifdef  DUMP_HEX
 				kik_msg_printf( "%x" , bytes[0]) ;
 			#else
 				kik_msg_printf( "%c" , bytes[0]) ;
@@ -1609,7 +1615,7 @@ parse_vt100_escape_sequence(
 					{
 						kik_warn_printf( KIK_DEBUG_TAG
 							" unknown csi sequence ESC - [ - 0x%x is received.\n" ,
-							*str_p , *str_p) ;
+							*str_p) ;
 					}
 				#endif
 				}
@@ -1642,6 +1648,10 @@ parse_vt100_escape_sequence(
 				/* if digit is illegal , ps is set 0. */
 				ps = atoi( digit) ;
 
+			#ifdef  ESCSEQ_DEBUG
+				kik_msg_printf( " - %d" , ps) ;
+			#endif
+			
 				if( *str_p == ';')
 				{
 					if( increment_str( &str_p , &left) == 0)
@@ -1665,6 +1675,10 @@ parse_vt100_escape_sequence(
 					}
 
 					*str_p = '\0' ;
+
+				#ifdef  ESCSEQ_DEBUG
+					kik_msg_printf( " - %s - BEL\n" , pt) ;
+				#endif
 
 					if( ps == 0)
 					{
@@ -1815,7 +1829,22 @@ parse_vt100_escape_sequence(
 							start_vt100_cmd( vt100_parser) ;
 						}
 					}
+				#ifdef  DEBUG
+					else
+					{
+						kik_warn_printf( KIK_DEBUG_TAG
+							" unknown sequence ESC - ] - %d - ; - %s  is received.\n" ,
+							ps , pt) ;
+					}
+				#endif
 				}
+			#ifdef  DEBUG
+				else
+				{
+					kik_warn_printf( KIK_DEBUG_TAG
+						" unknown sequence ESC - ] - %c is received.\n" , *str_p) ;
+				}
+			#endif
 			}
 			else if( *str_p == '(')
 			{
@@ -1902,6 +1931,10 @@ parse_vt100_escape_sequence(
 			else
 			{
 				/* not VT100 control sequence. */
+
+			#ifdef  ESCSEQ_DEBUG
+				kik_msg_printf( "- %c => not VT100 control sequence.\n" , *str_p) ;
+			#endif
 
 				return  1 ;
 			}

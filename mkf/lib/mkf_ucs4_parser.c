@@ -64,6 +64,13 @@ ucs4_parser_next_char(
 {
 	mkf_ucs4_parser_t *  __ucs4_parser ;
 
+	if( ucs4_parser->is_eos)
+	{
+		return  0 ;
+	}
+
+	mkf_parser_mark( ucs4_parser) ;
+	
 	__ucs4_parser = (mkf_ucs4_parser_t*)ucs4_parser ;
 	
 	if( ucs4_parser->left < 4)

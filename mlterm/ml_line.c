@@ -1130,7 +1130,7 @@ ml_bidi_convert_logical_char_index_to_visual(
 	
 		return  char_index ;
 	}
-	
+
 	if( 0 <= char_index && char_index < line->bidi_state->size)
 	{
 		int  count ;

@@ -15,6 +15,10 @@ typedef struct ml_str_parser
 {
 	mkf_parser_t  parser ;
 
+	/*
+	 * !! Notice !!
+	 * mkf_parser_reset() and mkf_parser_mark() don't recognize these members.
+	 */
 	ml_char_t *  str ;
 	u_int  left ;
 	u_int  comb_left ;
@@ -36,12 +40,18 @@ next_char(
 
 	ml_str_parser = (ml_str_parser_t*) parser ;
 
+	/* hack for mkf_parser_reset */
+	ml_str_parser->str -= (parser->left - ml_str_parser->left) ;
+	ml_str_parser->left = parser->left ;
+
 	while( 1)
 	{
 		if( ml_str_parser->parser.is_eos)
 		{
-			return  0 ;
+			goto  err ;
 		}
+
+		mkf_parser_mark( parser) ;
 
 		/*
 		 * skipping NULL
@@ -73,7 +83,7 @@ next_char(
 			
 			ml_str_parser->comb_left = 0 ;
 
-			return  0 ;
+			goto  err ;
 		}
 		
 		ml_ch = &combs[ comb_size - ml_str_parser->comb_left] ;
@@ -105,7 +115,7 @@ next_char(
 	{
 		UNSET_MSB(ch->ch[0]) ;
 	}
-	
+
 	/* XXX */
 	ch->property = 0 ;
 
@@ -114,7 +124,16 @@ next_char(
 		ml_str_parser->parser.is_eos = 1 ;
 	}
 
+	/* hack for mkf_parser_reset */
+	parser->left = ml_str_parser->left ;
+
 	return  1 ;
+
+err:
+	/* hack for mkf_parser_reset */
+	parser->left = ml_str_parser->left ;
+
+	return  0 ;
 }
 
 static void
@@ -188,6 +207,7 @@ ml_str_parser_set_str(
 	ml_str_parser = (ml_str_parser_t*) mkf_parser ;
 
 	ml_str_parser->parser.is_eos = 0 ;
+	ml_str_parser->parser.left = size ;
 	
 	ml_str_parser->str = str ;
 	ml_str_parser->left = size ;

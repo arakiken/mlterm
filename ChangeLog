@@ -1,3 +1,9 @@
+2002-10-01 Araki Ken <arakiken@users.sf.net>
+
+	* If more than 512 bytes were copy&pasted within a window, the 513th byte
+	  was lost. fixed.
+	  (Thanks to Nanashi san)
+
 2002-09-29 Araki Ken <arakiken@users.sf.net>
 
 	* Character encoding parser is reset by ESC c sequence.

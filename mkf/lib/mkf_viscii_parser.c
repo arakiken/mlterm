@@ -23,6 +23,8 @@ viscii_parser_next_char(
 		return  0 ;
 	}
 
+	mkf_parser_mark( viscii_parser) ;
+
 	c = *viscii_parser->str ;
 
 	if( (/* 0x0 <= c && */ c <= 0x1f && c != 0x02 && c != 0x05 && c != 0x06 &&

@@ -91,8 +91,14 @@ mkf_parser_next_char(
 {
 	while( 1)
 	{
+	#if  0
+		/*
+		 * just to be sure...
+		 * mkf_parser_mark() should be called inside [encoding]_next_char() function.
+		 */
 		mkf_parser_mark( parser) ;
-
+	#endif
+	
 		if( (*parser->next_char)( parser , ch))
 		{
 			return  1 ;

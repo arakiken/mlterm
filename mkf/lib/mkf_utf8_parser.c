@@ -27,6 +27,8 @@ utf8_parser_next_char(
 		return  0 ;
 	}
 
+	mkf_parser_mark( utf8_parser) ;
+
 	utf8_ch = utf8_parser->str ;
 	
 	if( ( utf8_ch[0] & 0xc0) == 0x80)

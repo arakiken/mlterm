@@ -1882,23 +1882,26 @@ write_to_pty(
 	if( parser)
 	{
 		u_char  conv_buf[512] ;
+		u_char *  p ;
 		size_t  filled_len ;
+
+		p = conv_buf ;
+		
+	#ifdef  __DEBUG
+		{
+			int  i ;
+
+			kik_debug_printf( KIK_DEBUG_TAG " written str:\n") ;
+			for( i = 0 ; i < len ; i ++)
+			{
+				kik_msg_printf( "[%.2x]" , str[i]) ;
+			}
+			kik_msg_printf( "=>\n") ;
+		}
+	#endif
 
 		while( ! parser->is_eos)
 		{
-		#ifdef  __DEBUG
-			{
-				int  i ;
-
-				kik_debug_printf( KIK_DEBUG_TAG " written str:\n") ;
-				for( i = 0 ; i < len ; i ++)
-				{
-					kik_msg_printf( "[%.2x]" , str[i]) ;
-				}
-				kik_msg_printf( "=>\n") ;
-			}
-		#endif
-
 			if( ( filled_len = ml_term_convert_to( screen->term ,
 						conv_buf , sizeof( conv_buf) , parser)) == 0)
 			{
@@ -1913,7 +1916,6 @@ write_to_pty(
 				{
 					kik_msg_printf( "[%.2x]" , conv_buf[i]) ;
 				}
-				kik_msg_printf( "\n") ;
 			}
 		#endif
 
@@ -2511,7 +2513,7 @@ yank_event_received(
 		{
 			return  0 ;
 		}
-		
+
 		(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
 		ml_str_parser_set_str( screen->ml_str_parser ,
 			screen->sel.sel_str , screen->sel.sel_len) ;
@@ -3381,7 +3383,7 @@ xct_selection_notified(
 	}
 	else
 	{
-		/* XCOMPOUND TEXT -> UCS -> PTY ENCODING */
+		/* XCOMPOUND TEXT -> PTY ENCODING */
 		
 		write_to_pty( screen , str , len , screen->xct_parser) ;
 	}
