@@ -32,10 +32,8 @@ modify_gamma(unsigned char value, x_picture_modifier_t *  pic_mod){
 	if (value == 0)
 		return 0;
 
-	if (gamma_cache[value]){
-
+	if (gamma_cache[value])
 		return gamma_cache[value];
-	}
 	else 
 		return gamma_cache[value] = 255 * pow((double)value / 255, (double)pic_mod->gamma / 100);
 }
@@ -53,11 +51,7 @@ modify_color(unsigned char value, x_picture_modifier_t *  pic_mod){
 }
 
 static int
-modify_image(
-	GdkPixbuf *  pixbuf ,
-	x_picture_modifier_t *  pic_mod
-	)
-{
+modify_image( GdkPixbuf *  pixbuf, x_picture_modifier_t *  pic_mod){
 	int i, j;
 	int width, height, rowstride, bytes_per_pixel;
 	unsigned char *line;
@@ -76,8 +70,7 @@ modify_image(
 	
 	line = gdk_pixbuf_get_pixels (pixbuf);
 	if ((pic_mod->gamma != 100) &&
-	    (pic_mod->gamma != gamma_cache[0])
-		){
+	    (pic_mod->gamma != gamma_cache[0])){
 		memset(gamma_cache, 0, sizeof(gamma_cache));
 		gamma_cache[0] = pic_mod->gamma %256 ; /* corrision will never happen actually */
 	}
@@ -90,8 +83,7 @@ modify_image(
 			pixel[0] = modify_color(pixel[0], pic_mod); 
 			pixel[1] = modify_color(pixel[1], pic_mod);
 			pixel[2] = modify_color(pixel[2], pic_mod);
-			if (pic_mod->gamma != 100)
-			{
+			if (pic_mod->gamma != 100){
 				pixel[0] = modify_gamma(pixel[0], pic_mod); 
 				pixel[1] = modify_gamma(pixel[1], pic_mod);
 				pixel[2] = modify_gamma(pixel[2], pic_mod);
@@ -106,10 +98,7 @@ modify_image(
 /* --- global functions --- */
 
 int
-x_picdep_display_opened(
-	Display *  display
-	)
-{
+x_picdep_display_opened( Display *  display){
 	if (display_count == 0){
 #ifndef OLD_GDK_PIXBUF
 		g_type_init();
@@ -122,39 +111,27 @@ x_picdep_display_opened(
 }
 
 int
-x_picdep_display_closed(
-	Display *  display
-	)
-{
+x_picdep_display_closed( Display *  display){
 	display_count --;
 	return  1 ; 
 }
 
 Pixmap
-x_picdep_load_file( x_window_t *  win ,
-		     char *  file_path ,
-		     x_picture_modifier_t *  pic_mod)
-{
+x_picdep_load_file( x_window_t *  win , char *  file_path , x_picture_modifier_t *  pic_mod){
 	GdkPixbuf *  img ;
 	Pixmap  pixmap ;
 	GC gc;
 
 #ifndef OLD_GDK_PIXBUF
 	if( ( img = gdk_pixbuf_new_from_file( file_path , NULL )) == NULL)
-	{/* XXX error handling? */
 		return  None ;
-	}
 #else
 	if( ( img = gdk_pixbuf_new_from_file( file_path )) == NULL)
-	{
 		return  None ;
-	}
 #endif /*OLD_GDK_PIXBUF*/
 
 	if( pic_mod)
-	{
 		modify_image( img , pic_mod) ;
-	}
 	
 	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 			DefaultDepth( win->display , win->screen)) ;
@@ -169,32 +146,22 @@ x_picdep_load_file( x_window_t *  win ,
 					    ACTUAL_WIDTH(win) ,
 					    ACTUAL_HEIGHT(win) ,
 					    XLIB_RGB_DITHER_NORMAL , /* Dither */
-					    0 , 0 /* dither x,y */
-		) ;
+					    0 , 0 /* dither x,y */) ;
 	XFreeGC( win->display , gc );
 	gdk_pixbuf_unref( img );
 	return  pixmap ;
 }
 
 int
-x_picdep_root_pixmap_available(
-	Display *  display
-	)
-{
+x_picdep_root_pixmap_available( Display *  display){
 	if( XInternAtom( display , "_XROOTPMAP_ID" , True))
-	{
 		return  1 ;
-	}
 
 	return  0 ;
 }
 
 Pixmap
-x_picdep_load_background(
-	x_window_t *  win ,
-	x_picture_modifier_t *  pic_mod
-	)
-{
+x_picdep_load_background( x_window_t *  win , x_picture_modifier_t *  pic_mod){
 	int  x ;
 	int  y ;
 	int  pix_x ;
@@ -211,12 +178,9 @@ x_picdep_load_background(
 	Atom id ;
 	
 	if( ! x_window_get_visible_geometry( win , &x , &y , &pix_x , &pix_y , &width , &height))
-	{
 		return  None ;
-	}
 	
-	if( ( id = XInternAtom( win->display , "_XROOTPMAP_ID" , True)))
-	{
+	if( ( id = XInternAtom( win->display , "_XROOTPMAP_ID" , True))){
 		Atom act_type ;
 		int  act_format ;
 		u_long  nitems ;
@@ -224,11 +188,9 @@ x_picdep_load_background(
 		u_char *  prop ;
 		
 		if( XGetWindowProperty( win->display , DefaultRootWindow(win->display) , id , 0 , 1 ,
-			False , XA_PIXMAP , &act_type , &act_format , &nitems , &bytes_after , &prop)
-			== Success)
-		{
-			if( prop && *prop)
-			{
+					False , XA_PIXMAP , &act_type , &act_format ,
+					&nitems , &bytes_after , &prop) == Success){
+			if( prop && *prop) {
 			#ifdef  __DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG " root pixmap %d found.\n" , *prop) ;
 			#endif
@@ -243,14 +205,10 @@ x_picdep_load_background(
 				XFree( prop) ;
 				
 				if( img)
-				{
 					goto  found ;
-				}
 			}
 			else if( prop)
-			{
 				XFree( prop) ;
-			}
 		}
 	}
 
@@ -270,12 +228,10 @@ x_picdep_load_background(
 	XSync( win->display , False) ;
 
 	count = 0 ;
-	while( ! XCheckWindowEvent( win->display , src , ExposureMask, &event))
-	{
+	while( ! XCheckWindowEvent( win->display , src , ExposureMask, &event)){
 		kik_usleep( 50000) ;
 
-		if( ++ count >= 10)
-		{
+		if( ++ count >= 10){
 			XDestroyWindow( win->display , src) ;
 			XUngrabServer( win->display) ;
 
@@ -294,15 +250,11 @@ x_picdep_load_background(
 	XDestroyWindow( win->display , src) ;
 	XUngrabServer( win->display) ;
 	if( ! img)
-	{		
 		return  None ;
-	}
 
 found:
 	if( pic_mod)
-	{
 		modify_image( img , pic_mod) ;
-	}
 	
 	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 			DefaultDepth( win->display , win->screen)) ;
