@@ -8,10 +8,11 @@
 #include  <string.h>		/* memset/memcpy */
 #include  <pwd.h>		/* getpwuid */
 #include  <sys/time.h>		/* timeval */
-#include  <unistd.h>		/* getpid/select */
+#include  <unistd.h>		/* getpid/select/unlink */
 #include  <sys/wait.h>		/* wait */
 #include  <signal.h>		/* kill */
 #include  <stdlib.h>		/* getenv */
+#include  <fcntl.h>		/* creat */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/kik_str_alloca_dup */
 #include  <kiklib/kik_path.h>	/* kik_basename */
@@ -27,6 +28,11 @@
 #include  "ml_xim.h"
 #include  "ml_sb_term_screen.h"
 #include  "ml_sig_child.h"
+
+
+/* --- static variables --- */
+
+static char *  un_file ;
 
 
 /* --- static functions --- */
@@ -675,12 +681,26 @@ sig_child(
 }
 
 static void
-signal_dispatcher( int  sig)
+atexit_func(void)
+{
+	if( un_file)
+	{
+		unlink( un_file) ;
+	}
+}
+
+static void
+sig_fatal( int  sig)
 {
 #ifdef  DEBUG
 	kik_warn_printf( KIK_DEBUG_TAG "signal %d is received\n" , sig) ;
 #endif
-	
+
+	if( un_file)
+	{
+		unlink( un_file) ;
+	}
+
 	/* reset */
 	signal( sig , SIG_DFL) ;
 	
@@ -692,11 +712,23 @@ start_daemon(
 	ml_term_manager_t *  term_man
 	)
 {
+	int  fd ;
+	char *  path = "/tmp/mlterm.unix" ;
 	pid_t  pid ;
 	int  sock_fd ;
-	char *  path = "/tmp/mlterm.unix" ;
 	struct sockaddr_un  servaddr ;
 
+	if( ( fd = creat( path , 0600)) == -1)
+	{
+		/* already exits */
+
+		kik_msg_printf( "remove %s before starting daemon.\n" , path) ;
+
+		return  -1 ;
+	}
+
+	close( fd) ;
+	
 	pid = fork() ;
 
 	if( pid == -1)
@@ -753,13 +785,21 @@ start_daemon(
 
 	if( bind( sock_fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) < 0)
 	{
+		close( sock_fd) ;
+	
 		return  -1 ;
 	}
 	
 	if( listen( sock_fd , 1024) < 0)
 	{
+		close( sock_fd) ;
+		
 		return  -1 ;
 	}
+
+	un_file = path ;
+
+	atexit( atexit_func) ;
 
 	return  sock_fd ;
 }
@@ -1805,7 +1845,7 @@ ml_term_manager_init(
 		{
 			if( ( term_man->sock_fd = start_daemon( term_man)) < 0)
 			{
-				kik_msg_printf( "mlterm failed to be daemon.\n") ;
+				kik_msg_printf( "mlterm failed to become daemon.\n") ;
 			}
 			else
 			{
@@ -1816,7 +1856,7 @@ ml_term_manager_init(
 		{
 			if( ( term_man->sock_fd = start_daemon( term_man)) < 0)
 			{
-				kik_msg_printf( "mlterm failed to be daemon.\n") ;
+				kik_msg_printf( "mlterm failed to become daemon.\n") ;
 			}
 		}
 	#if  0
@@ -2163,10 +2203,10 @@ ml_term_manager_init(
 	term_man->system_listener.open_pty = open_pty ;
 	term_man->system_listener.close_pty = close_pty ;
 
-	signal( SIGHUP , signal_dispatcher) ;
-	signal( SIGINT , signal_dispatcher) ;
-	signal( SIGQUIT , signal_dispatcher) ;
-	signal( SIGTERM , signal_dispatcher) ;
+	signal( SIGHUP , sig_fatal) ;
+	signal( SIGINT , sig_fatal) ;
+	signal( SIGQUIT , sig_fatal) ;
+	signal( SIGTERM , sig_fatal) ;
 
 	ml_sig_child_init() ;
 	ml_add_sig_child_listener( term_man , sig_child) ;

@@ -280,7 +280,7 @@ comment $Id$
       o scrollbar_mode (none/*left*/right) (#)
         スクロールバーのつけ方
         
-      o scrollbar_view_name  (*simple*/sample/sample2)
+      o scrollbar_view_name  (*simple*/sample/sample2) (#)
         使いたいスクロールバーの名前
 
       o fg_color  (*black*) (#)
@@ -296,10 +296,10 @@ comment $Id$
       o bg_color  (*white*) (#)
         同背景色
         
-      o sb_fg_color  (*same as fg_color*)
+      o sb_fg_color  (#)
         スクロールバーの前景色
         
-      o sb_bg_color  (*same as bg_color*)
+      o sb_bg_color  (#)
         同背景色
         
       o wall_picture  (*なし*) (#)
