@@ -477,11 +477,7 @@ int x_imagelib_load_file(
 	}
 	
 	if( ( img = Imlib_load_image( imlib , path)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG , " Imlib_load_image() failed.\n") ;
-	#endif
-	
+	{		
 		return  0 ;
 	}
 
@@ -489,25 +485,25 @@ int x_imagelib_load_file(
 	{
 		*cardinal = NULL ;
 	}
+	
+	if( width == 0)
+	{
+		width = img->rgb_width;
+	}
+	if( height == 0)
+	{
+		height = img->rgb_height ;
+	}
 
+	Imlib_render( imlib, img, width, height);
+	
 	if( pixmap)
 	{
-		if( width == 0)
-		{
-			width = img->rgb_width;
-		}
-		if( height == 0)
-		{
-			height = img->rgb_height ;
-		}
-		*pixmap = XCreatePixmap( display , DefaultRootWindow( display) , width , height ,
-			DefaultDepth( display , DefaultScreen( display))) ;
-		Imlib_paste_image( imlib , img , *pixmap , 0 , 0 ,
-			width , height) ;
+		*pixmap = Imlib_move_image( imlib, img) ;
 	}
 	if( mask)
 	{
-		*mask = None ;
+		*mask = Imlib_move_mask( imlib, img) ;
 	}
 
 	Imlib_kill_image( imlib , img) ;

@@ -1,8 +1,9 @@
 2003-06-02  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* Removed obsoleted config tools(mlcc/mlconf_curses)
-	* xwindwo/x_dnd.c: code cleanup
-
+	* xwindow/x_dnd.c: code cleanup
+	* xwindow/x_imagelib_imlib.c: added mask support
+	
 2003-05-25 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Japanese translation for a new item in tool/mlconfig/po .
