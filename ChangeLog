@@ -1,3 +1,8 @@
+2003-03-28 Araki Ken <arakiken@users.sf.net>
+
+	* If a shell exited in the screen, the screen could be closed
+	  even if other background ptys left. Fixed.
+
 2003-03-26 Araki Ken <arakiken@users.sf.net>
 
 	* Mlterm died as soon as the shell exited while screen region being selected. Fixed.
