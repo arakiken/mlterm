@@ -1,3 +1,9 @@
+2004-11-25 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* mlterm.spec:
+	- fixed #1072304
+	- FHS compliance
+
 2004-11-21 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* doc/en/PLATFORM: updated supported platforms.

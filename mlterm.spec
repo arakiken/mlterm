@@ -2,10 +2,11 @@
 %define version 2.9.0
 %define release 1
 %define prefix /usr
-%define bindir /usr/X11R6/bin
+%define bindir /usr/bin
 %define libdir /usr/lib
-%define mandir /usr/man
-%define sysconfdir /etc/X11
+%define mandir /usr/share/man
+%define datadir /usr/share
+%define sysconfdir /etc
 %define libexecdir /usr/libexec/mlterm
 %define pixmapdir  /usr/share/pixmaps
 
@@ -42,6 +43,7 @@ CFLAGS="$RPM_OPT_FLAGS" \
 	    --libdir=%{libdir} \
 	    --mandir=%{mandir} \
 	    --libexecdir=%{libexecdir} \
+	    --datadir=%{datadir} \
 	    --sysconfdir=%{sysconfdir}\
 	    --with-imagelib=imlib # --enable-anti-alias
 make
@@ -71,8 +73,13 @@ rm -rf $RPM_BUILD_ROOT
 %{mandir}/man1/mlterm.1*
 %{mandir}/man1/mlclient.1*
 %{pixmapdir}/mlterm*
+%{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
 
 %changelog
+* Sun Nov 25 2004 Seiichi SATO <ssato@sh.rim.or.jp>
+- Fixed #1072304
+- FHS compliance
+
 * Sun Oct 24 2004 Seiichi SATO <ssato@sh.rim.or.jp>
 - Source version 2.9.0
 
