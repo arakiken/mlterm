@@ -3,10 +3,14 @@ $Id$
 This directory contains data for terminfo/termcap.
 
 * mlterm.ti : for terminfo
-* mlterm.tc : for termcap (converted from mlterm.ti using infotocap)
+* mlterm.tc : for termcap 
+	(converted from mlterm.ti using infotocap and
+	 dropped some useless entries)
 
 *NOTE*
-mlterm.tc is over 1K limit of some impremantation of termcap and
-considerd to be broken. We may have to remove some description.
-Your help is needed! 
+"mlterm.tc" still do not fit 1K limit of termcap and
+should be considered to be broken.
+You may have to remove some descriptions from the file 
+to make termcap work on your system. 
+
 

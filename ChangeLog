@@ -1,3 +1,7 @@
+2003-06-11  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* Don't free color cells even if mlterm was compiled with Xft.
+
 2003-06-09 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Changed parse_xft_font_name() to allow XftFont name to include

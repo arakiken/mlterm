@@ -223,8 +223,10 @@ x_unload_xcolor(
 	XftColor *  xcolor
 	)
 {
+#if 0
 	XftColorFree( display , DefaultVisual( display , screen) ,
 		DefaultColormap( display , screen) , xcolor) ;
+#endif
 
 	return  1 ;
 }
