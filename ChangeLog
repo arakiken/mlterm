@@ -1,3 +1,9 @@
+2002-07-01  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* Background of line characters did not drawn when 
+	  pseudo transparency is enabled. fixed.
+	  (Thanks to Tomohiro KUBOTA san)
+
 2002-06-30  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* Optimized drawing of line chars.

@@ -202,6 +202,10 @@ x_decsp_font_draw_string(
 			XFillRectangle(display , drawable , gc ,
 				       x , y  - font->height_to_baseline ,
 				       font->width , font->height);
+		}else{
+			XDrawRectangle(display , drawable , gc ,
+				       x , y  - font->height_to_baseline ,
+				       font->width-1 , font->height-1 );
 		}
 
 		x += font->width ;
@@ -209,6 +213,36 @@ x_decsp_font_draw_string(
 	}
 
 	XSetClipMask( display, gc, None);
+
+	return  1 ;
+}
+
+int
+x_decsp_font_draw_image_string(
+	x_decsp_font_t *  font ,
+	Display *  display ,
+	Drawable  drawable ,
+	GC  gc ,
+	int  x ,
+	int  y ,
+	u_char *  str ,
+	u_int  len
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < len ; count ++)
+	{
+		if( /* 0x00 <= *str && */ *str < 0x20 && font->glyphs[*str])
+		{
+			XCopyPlane( display, font->glyphs[*str], drawable,
+				    gc, 0,0,
+				    font->width , font->height,
+				    x , y - font->height_to_baseline, 1);		}
+
+		x += font->width ;
+		str ++ ;
+	}
 
 	return  1 ;
 }

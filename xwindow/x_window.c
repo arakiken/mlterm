@@ -2198,12 +2198,16 @@ x_window_draw_decsp_string(
 		if( bg_color)
 		{
 			XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
+			x_decsp_font_draw_image_string( font->decsp_font ,
+						  win->display , win->drawable , win->ch_gc ,
+						  x + win->margin , y + win->margin , str , len) ;
 		}
-		
-		x_decsp_font_draw_string( font->decsp_font ,
-			win->display , win->drawable , win->ch_gc ,
-			x + win->margin , y + win->margin , str , len) ;
-
+		else
+		{
+			x_decsp_font_draw_string( font->decsp_font ,
+						  win->display , win->drawable , win->ch_gc ,
+						  x + win->margin , y + win->margin , str , len) ;
+		}
 		return  1 ;
 	}
 	else if( font->xfont)
