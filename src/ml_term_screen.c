@@ -662,6 +662,26 @@ bs_page_downward(
 
 
 /*
+ * picture modifier
+ */
+ 
+static ml_picture_modifier_t *
+get_picture_modifier(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( termscr->pic_mod.brightness == 100)
+	{
+		return  NULL ;
+	}
+	else
+	{
+		return  &termscr->pic_mod ;
+	}
+}
+
+
+/*
  * !! Notice !!
  * don't call ml_restore_selected_region_color() directly.
  */
@@ -776,12 +796,12 @@ set_wall_picture(
 		return  0 ;
 	}
 	
-	if( ! ml_picture_init( &pic , &termscr->window))
+	if( ! ml_picture_init( &pic , &termscr->window , get_picture_modifier( termscr)))
 	{
 		goto  error ;
 	}
-	
-	if( ! ml_picture_load( &pic , termscr->pic_file_path , termscr->shade_ratio))
+
+	if( ! ml_picture_load_file( &pic , termscr->pic_file_path))
 	{
 		kik_msg_printf( " wall picture file %s is not found.\n" ,
 			termscr->pic_file_path) ;
@@ -1314,7 +1334,7 @@ config_menu(
 		termscr->screen_width_ratio , termscr->screen_height_ratio ,
 		termscr->mod_meta_mode , termscr->bel_mode , termscr->vertical_mode ,
 		ml_is_char_combining() , termscr->copy_paste_via_ucs ,
-		termscr->window.is_transparent , termscr->shade_ratio , termscr->fade_ratio ,
+		termscr->window.is_transparent , termscr->pic_mod.brightness , termscr->fade_ratio ,
 		termscr->font_present , termscr->use_bidi ,
 		ml_xic_get_xim_name( &termscr->window) , kik_get_locale()) ;
 }
@@ -3148,7 +3168,7 @@ change_transparent_flag(
 
 	if( is_transparent)
 	{
-		ml_window_set_transparent( &termscr->window) ;
+		ml_window_set_transparent( &termscr->window , get_picture_modifier( termscr)) ;
 	}
 	else
 	{
@@ -3158,7 +3178,8 @@ change_transparent_flag(
 	if( HAS_SCROLL_LISTENER(termscr,transparent_state_changed))
 	{
 		(*termscr->screen_scroll_listener->transparent_state_changed)(
-			termscr->screen_scroll_listener->self , is_transparent) ;
+			termscr->screen_scroll_listener->self , is_transparent ,
+			get_picture_modifier( termscr)) ;
 	}
 }
 
@@ -3251,23 +3272,33 @@ unset_wall_picture(
 }
 
 static void
-change_shade_ratio(
+change_brightness(
 	void *  p ,
-	u_int  shade_ratio
+	u_int  brightness
 	)
 {
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
 
-	if( termscr->shade_ratio == shade_ratio)
+	if( termscr->brightness == brightness)
 	{
 		return ;
 	}
-	
-	termscr->shade_ratio = shade_ratio ;
 
-	set_wall_picture( termscr) ;
+	termscr->pic_mod.brightness = brightness ;
+	
+	if( termscr->window.is_transparent)
+	{
+		if( termscr->config_menu_listener.change_transparent_flag)
+		{
+			(*termscr->config_menu_listener.change_transparent_flag)( termscr , 1) ;
+		}
+	}
+	else
+	{
+		set_wall_picture( termscr) ;
+	}
 }
 	
 static void
@@ -3602,7 +3633,7 @@ ml_term_screen_new(
 	u_int  rows ,
 	ml_font_manager_t *  font_man ,
 	ml_color_table_t  color_table ,
-	u_int  shade_ratio ,
+	u_int  brightness ,
 	u_int  fade_ratio ,
 	ml_keymap_t *  keymap ,
 	ml_termcap_t *  termcap ,
@@ -3757,7 +3788,7 @@ ml_term_screen_new(
 	ml_char_final( &sp_ch) ;
 	ml_char_final( &nl_ch) ;
 
-	termscr->shade_ratio = shade_ratio ;
+	termscr->pic_mod.brightness = brightness ;
 	
 	termscr->fade_ratio = fade_ratio ;
 	termscr->is_focused = 0 ;
@@ -3824,9 +3855,9 @@ ml_term_screen_new(
 
 	if( use_transbg)
 	{
-		ml_window_set_transparent( &termscr->window) ;
+		ml_window_set_transparent( &termscr->window , get_picture_modifier( termscr)) ;
 	}
-
+	
 	if( pic_file_path)
 	{
 		termscr->pic_file_path = strdup( pic_file_path) ;
@@ -3853,7 +3884,7 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_char_combining_flag = change_char_combining_flag ;
 	termscr->config_menu_listener.change_copy_paste_via_ucs_flag = change_copy_paste_via_ucs_flag ;
 	termscr->config_menu_listener.change_transparent_flag = change_transparent_flag ;
-	termscr->config_menu_listener.change_shade_ratio = change_shade_ratio ;
+	termscr->config_menu_listener.change_brightness = change_brightness ;
 	termscr->config_menu_listener.change_fade_ratio = change_fade_ratio ;
 	termscr->config_menu_listener.change_font_present = change_font_present ;
 	termscr->config_menu_listener.change_bidi_flag = change_bidi_flag ;
@@ -4234,6 +4265,14 @@ ml_term_screen_get_rows(
 	)
 {
 	return  LOGICAL_NUM_OF_ROWS(termscr) ;
+}
+
+ml_picture_modifier_t *
+ml_term_screen_get_picture_modifier(
+	ml_term_screen_t *  termscr
+	)
+{
+	return  get_picture_modifier( termscr) ;
 }
 
 

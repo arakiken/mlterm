@@ -1059,6 +1059,39 @@ update_bg_color(
 	return  1 ;
 }
 
+static int
+update_transparent(
+	ml_window_t *  win
+	)
+{
+	ml_picture_t  pic ;
+
+	if( ! win->pic_mod)
+	{
+		return  0 ;
+	}
+	
+	if( ml_picture_init( &pic , win , win->pic_mod) &&
+		ml_picture_load_background( &pic))
+	{
+		/*
+		 * !! Notice !!
+		 * this must be done before ml_window_set_wall_picture() because
+		 * ml_window_set_wall_picture() doesn't do anything if is_transparent
+		 * flag is on.
+		 */
+		win->is_transparent = 0 ;
+
+		ml_window_set_wall_picture( win , pic.pixmap) ;
+
+		win->is_transparent = 1 ;
+	}
+
+	ml_picture_final( &pic) ;
+
+	return  1 ;
+}
+
 static void
 notify_focus_in_to_children(
 	ml_window_t *  win
@@ -1106,12 +1139,19 @@ configure_notify_to_children(
 {
 	int  counter ;
 
-	if( win->is_transparent && win->window_exposed)
+	if( win->is_transparent)
 	{
-		ml_window_clear_all( win) ;
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		if( win->pic_mod)
+		{
+			update_transparent( win) ;
+		}
+		else if( win->window_exposed)
+		{
+			ml_window_clear_all( win) ;
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
 	}
-	
+			
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
 		configure_notify_to_children( win->children[counter].window) ;
@@ -1127,7 +1167,7 @@ reparent_notify_to_children(
 
 	if( win->is_transparent)
 	{
-		ml_window_set_transparent( win) ;
+		ml_window_set_transparent( win , win->pic_mod) ;
 	}
 
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
@@ -1208,6 +1248,8 @@ ml_window_init(
 
 	win->use_pixmap = 0 ;
 
+	win->pic_mod = NULL ;
+	
 	win->wall_picture_is_set = 0 ;
 	win->is_transparent = 0 ;
 	
@@ -1498,63 +1540,82 @@ ml_window_unset_wall_picture(
 
 int
 ml_window_set_transparent(
-	ml_window_t *  win
+	ml_window_t *  win ,
+	ml_picture_modifier_t *  pic_mod
 	)
 {
 	Window  parent ;
 	Window  root ;
 	Window *  list ;
 	u_int  n ;
+	int  counter ;
 
-	if( win->my_window == 0)
+	win->pic_mod = pic_mod ;
+	
+	if( win->my_window == None)
 	{
 		/*
-		 * Window is not still created.
+		 * If Window is not still created , actual drawing is delayed and
 		 * ReparentNotify event will do transparent processing automatically after
 		 * ml_window_show().
 		 */
 		 
 		win->is_transparent = 1 ;
 
-		return  1 ;
+		goto  end ;
 	}
 
-	/*
-	 * !! Notice !!
-	 * this must be done before ml_window_set_wall_picture() because
-	 * ml_window_set_wall_picture() doesn't do anything if is_transparent
-	 * flag is on.
-	 */
-	win->is_transparent = 0 ;
-	
-	if( ! ml_window_set_wall_picture( win , ParentRelative))
+	if( win->pic_mod)
 	{
-		return  0 ;
+		update_transparent( win) ;
 	}
-
-	win->is_transparent = 1 ;
-
-	parent = win->my_window ;
-
-	while( 1)
+	else
 	{
-		XQueryTree( win->display , parent , &root , &parent , &list , &n) ;
-		XFree(list) ;
+		/*
+		 * !! Notice !!
+		 * this must be done before ml_window_set_wall_picture() because
+		 * ml_window_set_wall_picture() doesn't do anything if is_transparent
+		 * flag is on.
+		 */
+		win->is_transparent = 0 ;
 
-		if( parent == DefaultRootWindow(win->display))
+		if( ! ml_window_set_wall_picture( win , ParentRelative))
 		{
-			break ;
+			return  0 ;
+		}
+	
+		win->is_transparent = 1 ;
+
+		XSetWindowBackgroundPixmap( win->display , win->my_window , ParentRelative) ;
+
+		parent = win->my_window ;
+
+		while( 1)
+		{
+			XQueryTree( win->display , parent , &root , &parent , &list , &n) ;
+			XFree(list) ;
+
+			if( parent == DefaultRootWindow(win->display))
+			{
+				break ;
+			}
+
+			XSetWindowBackgroundPixmap( win->display , parent , ParentRelative) ;
 		}
 
-		XSetWindowBackgroundPixmap( win->display , parent , ParentRelative) ;
+		if( win->window_exposed)
+		{
+			ml_window_clear_all( win) ;
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
 	}
 
-	if( win->window_exposed)
+end:
+	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		ml_window_clear_all( win) ;
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		ml_window_set_transparent( win->children[counter].window , pic_mod) ;
 	}
-
+	
 	return  1 ;
 }
 
@@ -1563,8 +1624,8 @@ ml_window_unset_transparent(
 	ml_window_t *  win
 	)
 {
-#if  0
 	int  counter ;
+#if  0
 	Window  parent ;
 	Window  root ;
 	Window *  list ;
@@ -1585,6 +1646,7 @@ ml_window_unset_transparent(
 	 * flag is on.
 	 */
 	win->is_transparent = 0 ;
+	win->pic_mod = NULL ;
 
 	if( ! ml_window_unset_wall_picture( win))
 	{
@@ -1615,6 +1677,11 @@ ml_window_unset_transparent(
 	{
 		ml_window_clear_all( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
+	
+	for( counter = 0 ; counter < win->num_of_children ; counter ++)
+	{
+		ml_window_unset_transparent( win->children[counter].window) ;
 	}
 	
 	return  1 ;

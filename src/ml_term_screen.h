@@ -65,7 +65,7 @@ typedef struct  ml_screen_scroll_event_listener
 	void  (*scrolled_downward)( void * , u_int) ;
 	void  (*log_size_changed)( void * , u_int) ;
 	void  (*line_height_changed)( void * , u_int) ;
-	void  (*transparent_state_changed)( void * , int) ;
+	void  (*transparent_state_changed)( void * , int , ml_picture_modifier_t *) ;
 
 } ml_screen_scroll_event_listener_t ;
 
@@ -132,8 +132,9 @@ typedef struct  ml_term_screen
 	int  scroll_cache_boundary_end ;
 
 	char *  pic_file_path ;
+	ml_picture_modifier_t  pic_mod ;
 
-	u_int8_t  shade_ratio ;
+	u_int8_t  brightness ;
 	u_int8_t  fade_ratio ;
 	int8_t  is_focused ;
 	int8_t  copy_paste_via_ucs ;
@@ -150,7 +151,7 @@ typedef struct  ml_term_screen
 
 ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 	ml_font_manager_t *  font_man , ml_color_table_t  color_table ,
-	u_int  shade_ratio , u_int  fade_ratio ,
+	u_int  brightness , u_int  fade_ratio ,
 	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
 	u_int  num_of_log_lines , u_int  tab_size ,
 	u_int  screen_width_ratio , u_int  screen_height_ratio ,
@@ -161,6 +162,8 @@ ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 	ml_iscii_lang_t  iscii_lang) ;
 
 int  ml_term_screen_delete( ml_term_screen_t *  termscr) ;
+
+ml_picture_modifier_t *  ml_term_screen_get_picture_modifier( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_set_pty( ml_term_screen_t *  termscr , ml_pty_t *  pty) ;
 

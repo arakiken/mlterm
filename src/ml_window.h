@@ -23,6 +23,7 @@
 #include  "ml_font.h"
 #include  "ml_color.h"
 #include  "ml_char.h"
+#include  "ml_picture.h"
 
 
 #define  ACTUAL_WIDTH(win)  ((win)->width + (win)->margin * 2)
@@ -122,6 +123,8 @@ typedef struct  ml_window
 	 * flags etc.
 	 */
 	 
+	ml_picture_modifier_t *  pic_mod ;
+	
 	int8_t  wall_picture_is_set ;
 	int8_t  is_transparent ;
 	
@@ -170,7 +173,7 @@ int  ml_window_set_wall_picture( ml_window_t *  win , Pixmap  pic) ;
 
 int  ml_window_unset_wall_picture( ml_window_t *  win) ;
 
-int  ml_window_set_transparent( ml_window_t *  win) ;
+int  ml_window_set_transparent( ml_window_t *  win , ml_picture_modifier_t *  pic_mod) ;
 
 int  ml_window_unset_transparent( ml_window_t *  win) ;
 

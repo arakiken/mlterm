@@ -528,7 +528,8 @@ ml_scrollbar_init(
 	u_int  height ,
 	u_int  line_height ,
 	u_int  num_of_log_lines ,
-	int  use_transbg
+	int  use_transbg ,
+	ml_picture_modifier_t *  pic_mod
 	)
 {
 	u_int  width ;
@@ -562,11 +563,11 @@ ml_scrollbar_init(
 		else
 		{
 			/* transparency is not used */
-			
+
 			use_transbg = 0 ;
 		}
 	}
-	
+
 	if( ( sb->view = ml_sb_view_new( sb->view_name)) == NULL)
 	{
 		free( sb->view_name) ;
@@ -658,7 +659,7 @@ view_created:
 
 	if( use_transbg)
 	{
-		ml_window_set_transparent( &sb->window) ;
+		ml_window_set_transparent( &sb->window , pic_mod) ;
 	}
 
 	/* default scrollbar cursor */	
@@ -845,12 +846,14 @@ ml_scrollbar_set_line_height(
 
 int
 ml_scrollbar_set_transparent(
-	ml_scrollbar_t *  sb
+	ml_scrollbar_t *  sb ,
+	ml_picture_modifier_t *  pic_mod ,
+	int  force
 	)
 {
 	ml_sb_view_t *  view ;
 
-	if( sb->window.is_transparent)
+	if( ! force && sb->window.is_transparent)
 	{
 		/* already set */
 		
@@ -881,8 +884,8 @@ ml_scrollbar_set_transparent(
 		(*sb->view->realized)( sb->view , sb->window.display , sb->window.screen ,
 			sb->window.my_window , sb->window.gc , sb->window.height) ;
 	}
-	
-	ml_window_set_transparent( &sb->window) ;
+
+	ml_window_set_transparent( &sb->window , pic_mod) ;
 
 	draw_decoration( sb) ;
 	draw_scrollbar( sb) ;
@@ -927,9 +930,9 @@ ml_scrollbar_unset_transparent(
 		(*sb->view->realized)( sb->view , sb->window.display , sb->window.screen ,
 			sb->window.my_window , sb->window.gc , sb->window.height) ;
 	}
-	
-	ml_window_unset_transparent( &sb->window) ;
 
+	ml_window_unset_transparent( &sb->window) ;
+	
 	draw_decoration( sb) ;
 	draw_scrollbar( sb) ;
 	

@@ -26,7 +26,8 @@ typedef struct  ml_sb_term_screen
 
 
 ml_sb_term_screen_t *  ml_sb_term_screen_new( ml_term_screen_t *  termscr ,
-	char *  view_name , ml_color_table_t  color_table , int  use_transbg) ;
+	char *  view_name , ml_color_table_t  color_table , int  use_transbg ,
+	ml_picture_modifier_t *  pic_mod) ;
 
 int  ml_sb_term_screen_delete( ml_sb_term_screen_t *  sb_termscr) ;
 

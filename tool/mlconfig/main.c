@@ -13,7 +13,7 @@
 
 #include  "mc_char_encoding.h"
 #include  "mc_color.h"
-#include  "mc_shade.h"
+#include  "mc_brightness.h"
 #include  "mc_fade.h"
 #include  "mc_tabsize.h"
 #include  "mc_logsize.h"
@@ -78,7 +78,7 @@ apply_clicked(
 	/*
 	 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
 	 * [screen width ratio] [screen height ratio] [mod meta mode] [bel mode] [vertical mode] \
-	 * [combining char] [copy paste via ucs] [is transparent] [shade ratio] [fade ratio] \
+	 * [combining char] [copy paste via ucs] [is transparent] [brightness] [fade ratio] \
 	 * [font present] [is bidi] [xim] [locale][LF]
 	 */
 	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
@@ -98,7 +98,7 @@ apply_clicked(
 		GTK_TOGGLE_BUTTON(is_comb_check)->active ,
 		GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active ,
 		GTK_TOGGLE_BUTTON(is_tp_check)->active ,
-		mc_get_shade_ratio() ,
+		mc_get_brightness() ,
 		mc_get_fade_ratio() ,
 		mc_get_font_present() ,
 		GTK_TOGGLE_BUTTON(use_bidi_check)->active ,
@@ -343,7 +343,7 @@ show(
 	int  is_combining_char ,
 	int  copy_paste_via_ucs ,
 	int  is_transparent ,
-	char *  shade_ratio ,
+	char *  brightness ,
 	char *  fade_ratio ,
 	ml_font_present_t  font_present ,
 	int  use_bidi ,
@@ -537,7 +537,7 @@ show(
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 	
-	if( ! ( config_widget = mc_shade_config_widget_new( shade_ratio)))
+	if( ! ( config_widget = mc_brightness_config_widget_new( brightness)))
 	{
 		return  0 ;
 	}
@@ -653,7 +653,7 @@ start_application(
 	int  is_combining_char ;
 	int  copy_paste_via_ucs ;
 	int  is_transparent ;
-	char *  shade_ratio ;
+	char *  brightness ;
 	char *  fade_ratio ;
 	int  font_present ;
 	int  use_bidi ;
@@ -795,7 +795,7 @@ start_application(
 		return  0 ;
 	}
 
-	if( ( shade_ratio = kik_str_sep( &input_line , " ")) == NULL)
+	if( ( brightness = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}
@@ -830,7 +830,7 @@ start_application(
 	return  show( x , y , encoding , iscii_lang , fg_color , bg_color , tabsize ,
 		logsize , fontsize , min_fontsize , max_fontsize , line_space ,
 		screen_width_ratio , screen_height_ratio , mod_meta_mode , bel_mode , vertical_mode ,
-		is_combining_char , copy_paste_via_ucs , is_transparent , shade_ratio , fade_ratio ,
+		is_combining_char , copy_paste_via_ucs , is_transparent , brightness , fade_ratio ,
 		font_present , use_bidi , xim , locale) ;
 }
 

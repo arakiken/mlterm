@@ -55,7 +55,7 @@ typedef struct  ml_scrollbar
 
 int  ml_scrollbar_init( ml_scrollbar_t *  sb , ml_scrollbar_event_listener_t *  sb_listener ,
 	char *  view_name , ml_color_table_t  color_table , u_int  height , u_int  line_height ,
-	u_int  num_of_log_lines , int  use_transbg) ;
+	u_int  num_of_log_lines , int  use_transbg , ml_picture_modifier_t *  pic_mod) ;
 
 int  ml_scrollbar_final( ml_scrollbar_t *  sb) ;
 
@@ -71,7 +71,8 @@ int  ml_scrollbar_set_num_of_log_lines( ml_scrollbar_t * sb , u_int  num_of_log_
 
 int  ml_scrollbar_set_line_height( ml_scrollbar_t *  sb , u_int  line_height) ;
 
-int  ml_scrollbar_set_transparent( ml_scrollbar_t *  sb) ;
+int  ml_scrollbar_set_transparent( ml_scrollbar_t *  sb , ml_picture_modifier_t *  pic_mod ,
+	int  force) ;
 
 int  ml_scrollbar_unset_transparent( ml_scrollbar_t *  sb) ;
 	

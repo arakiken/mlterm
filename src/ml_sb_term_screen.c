@@ -245,16 +245,17 @@ line_height_changed(
 static void
 transparent_state_changed(
 	void *  p ,
-	int  is_transparent
+	int  is_transparent ,
+	ml_picture_modifier_t *  pic_mod
 	)
 {
 	ml_sb_term_screen_t *  sb_termscr  ;
 
 	sb_termscr = p ;
 
-	if( is_transparent)
+	if( is_transparent == 1)
 	{
-		ml_scrollbar_set_transparent( &sb_termscr->scrollbar) ;
+		ml_scrollbar_set_transparent( &sb_termscr->scrollbar , pic_mod , 1) ;
 	}
 	else
 	{
@@ -270,7 +271,8 @@ ml_sb_term_screen_new(
 	ml_term_screen_t *  termscr ,
 	char *  view_name ,
 	ml_color_table_t  color_table ,
-	int  use_transbg
+	int  use_transbg ,
+	ml_picture_modifier_t *  pic_mod
 	)
 {
 	ml_sb_term_screen_t *  sb_termscr ;
@@ -291,7 +293,7 @@ ml_sb_term_screen_new(
 	if( ml_scrollbar_init( &sb_termscr->scrollbar , &sb_termscr->sb_listener ,
 		view_name , color_table , ACTUAL_HEIGHT( &termscr->window) ,
 		ml_line_height( termscr->font_man) , termscr->logs.num_of_rows ,
-		use_transbg) == 0)
+		use_transbg , pic_mod) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_scrollbar_init() failed.\n") ;

@@ -144,14 +144,15 @@ open_new_term(
 
 	if( ( termscr = ml_term_screen_new( term_man->cols , term_man->rows , font_man ,
 		ml_color_table_new( &term_man->color_man , term_man->fg_color , term_man->bg_color) ,
-		term_man->shade_ratio , term_man->fade_ratio , &term_man->keymap , &term_man->termcap ,
+		term_man->brightness , term_man->fade_ratio , &term_man->keymap , &term_man->termcap ,
 		term_man->num_of_log_lines , term_man->tab_size ,
 		term_man->screen_width_ratio , term_man->screen_height_ratio ,
 		term_man->use_xim , term_man->xim_open_in_startup ,
 		term_man->mod_meta_mode , term_man->bel_mode ,
-		term_man->copy_paste_via_ucs , term_man->pic_file_path , term_man->use_transbg ,
-		term_man->font_present , term_man->use_bidi , term_man->vertical_mode ,
-		term_man->big5_buggy , term_man->conf_menu_path , term_man->iscii_lang)) == NULL)
+		term_man->copy_paste_via_ucs , term_man->pic_file_path ,
+		term_man->use_transbg , term_man->font_present , term_man->use_bidi ,
+		term_man->vertical_mode , term_man->big5_buggy , term_man->conf_menu_path ,
+		term_man->iscii_lang)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_screen_new() failed.\n") ;
@@ -168,9 +169,10 @@ open_new_term(
 	if( term_man->use_scrollbar)
 	{
 		if( ( sb_termscr = ml_sb_term_screen_new( termscr , term_man->scrollbar_view_name ,
-			ml_color_table_new( &term_man->color_man ,
-				term_man->sb_fg_color , term_man->sb_bg_color) ,
-			term_man->use_transbg)) == NULL)
+					ml_color_table_new( &term_man->color_man ,
+						term_man->sb_fg_color , term_man->sb_bg_color) ,
+					term_man->use_transbg ,
+					ml_term_screen_get_picture_modifier( termscr))) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_sb_term_screen_new() failed.\n") ;
@@ -722,7 +724,7 @@ ml_term_manager_init(
 		"scrollbar fg color") ;
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
 		"scrollbar bg color") ;
-	kik_conf_add_opt( conf , 'H' , "shade" , 0 , "shade_ratio" ,
+	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
 		"shading ratio of background image") ;
 	kik_conf_add_opt( conf , 'r' , "fade" , 0 , "fade_ratio" , 
 		"fade ratio when window unfocued.") ;
@@ -1144,15 +1146,15 @@ ml_term_manager_init(
 		term_man->sb_bg_color = MLC_UNKNOWN_COLOR ;
 	}
 
-	term_man->shade_ratio = 100 ;
+	term_man->brightness = 100 ;
 
-	if( ( value = kik_conf_get_value( conf , "shade_ratio")))
+	if( ( value = kik_conf_get_value( conf , "brightness")))
 	{
-		u_int  shade_ratio ;
+		u_int  brightness ;
 		
-		if( kik_str_to_uint( &shade_ratio , value))
+		if( kik_str_to_uint( &brightness , value))
 		{
-			term_man->shade_ratio = shade_ratio ;
+			term_man->brightness = brightness ;
 		}
 		else
 		{

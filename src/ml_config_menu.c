@@ -112,7 +112,7 @@ sig_child(
 		int  is_combining_char ;
 		int  copy_paste_via_ucs ;
 		int  is_transparent ;
-		u_int  shade_ratio ;
+		u_int  brightness ;
 		u_int  fade_ratio ;
 		int  font_present ;
 		int  use_bidi ;
@@ -216,7 +216,7 @@ sig_child(
 		}
 
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_uint( &shade_ratio , p))
+			! kik_str_to_uint( &brightness , p))
 		{
 			goto  end ;
 		}
@@ -393,12 +393,12 @@ sig_child(
 			}
 		}
 
-		if( shade_ratio != config_menu->session->shade_ratio)
+		if( brightness != config_menu->session->brightness)
 		{
-			if( config_menu->config_menu_listener->change_shade_ratio)
+			if( config_menu->config_menu_listener->change_brightness)
 			{
-				(*config_menu->config_menu_listener->change_shade_ratio)(
-					config_menu->config_menu_listener->self , shade_ratio) ;
+				(*config_menu->config_menu_listener->change_brightness)(
+					config_menu->config_menu_listener->self , brightness) ;
 			}
 		}
 		
@@ -571,7 +571,7 @@ ml_config_menu_start(
 	int  orig_is_combining_char ,
 	int  orig_copy_paste_via_ucs ,
 	int  orig_is_transparent ,
-	u_int  orig_shade_ratio ,
+	u_int  orig_brightness ,
 	u_int  orig_fade_ratio ,
 	ml_font_present_t  orig_font_present ,
 	int  orig_use_bidi ,
@@ -665,7 +665,7 @@ ml_config_menu_start(
 		orig_logsize , orig_fontsize , min_fontsize , max_fontsize , orig_line_space ,
 		orig_screen_width_ratio , orig_screen_height_ratio ,
 		orig_mod_meta_mode , orig_bel_mode , orig_vertical_mode , orig_is_combining_char ,
-		orig_copy_paste_via_ucs , orig_is_transparent , orig_shade_ratio , orig_fade_ratio ,
+		orig_copy_paste_via_ucs , orig_is_transparent , orig_brightness , orig_fade_ratio ,
 		orig_font_present , orig_use_bidi , orig_xim , orig_locale) ;
 	fclose( fp) ;
 
@@ -692,7 +692,7 @@ ml_config_menu_start(
 	config_menu->session->is_combining_char = orig_is_combining_char ;
 	config_menu->session->copy_paste_via_ucs = orig_copy_paste_via_ucs ;
 	config_menu->session->is_transparent = orig_is_transparent ;
-	config_menu->session->shade_ratio = orig_shade_ratio ;
+	config_menu->session->brightness = orig_brightness ;
 	config_menu->session->fade_ratio = orig_fade_ratio ;
 	config_menu->session->font_present = orig_font_present ;
 	config_menu->session->use_bidi = orig_use_bidi ;
