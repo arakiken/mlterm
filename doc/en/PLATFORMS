@@ -1,14 +1,22 @@
 comment -*- mode: text -*-
 comment $Id$
 
+supported platforms (mlterm-2.8.0 post/cvs-1.744)
+
+* tested by Seiichi SATO <ssato@sh.rim.or.jp>
+
+  FreeBSD 4.10-BETA (x86), gcc-2.95.4 20020320
+    configure options: --with-type-engines=xcore --with-tools=mlclient,mlcc
+                       --with-scrollbars=sample,extra
+
+
 supported platforms (mlterm-2.8.0 post/cvs-1.740)
 
 * tested by Seiichi SATO <ssato@sh.rim.or.jp>
 
   HP-UX 11.11 (PA-RISC), gcc-3.4.1
     configure options: --with-type-engines=xcore --with-tools=mlclient,mlcc
-    Notes:
-    - compilation succeeded, but I don't know whether it works or not.
+    Notes: compilation succeeded, but I don't know whether it works or not.
 
   HP-UX 11.11 (PA-RISC), CC="cc -Dinline="
     configure options: --with-type-engines=xcore --with-tools=mlclient,mlcc
@@ -27,7 +35,7 @@ supported platforms (mlterm-2.8.0 post/cvs-1.740)
                        --with-tools=mlclient,mlcc
                        --with-scrollbars=sample,extra
     Notes:
-    - Multiple XIM seems to be buggy on Xsun with multiple displays.
+    - Using XIM with multiple displays is unstable on Xsun.
     - configure scripts could not find libiiimcf, (Solaris 8 doesn't have it?)
 
   Solaris 9 (Sparc), gcc-3.3.2
