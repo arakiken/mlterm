@@ -1,3 +1,8 @@
+2003-03-02 MINAMI Hirokazu <minami@mistfall.net>
+
+	* Code cleanup in the gdk-pixbuf module. 
+	 (gave up "correct" color conversion scheme for the sake of simplicity)
+
 2003-03-02 Araki Ken <arakiken@users.sf.net>
 
 	* Removed is_active[] array in ml_term_manager.c, and each ml_term_t has

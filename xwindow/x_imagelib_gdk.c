@@ -48,9 +48,8 @@ static cache_info_t misc ;
 
 static int  display_count = 0 ;
 
-static unsigned char  gamma_cache[256 +1] ;
-static int modify_ubound = 255 ;
-static int modify_lbound = 0 ;
+static unsigned char  value_table[256] ;
+static x_picture_modifier_t  value_table_mod ;
 
 /* --- static functions --- */
 static int
@@ -1169,71 +1168,43 @@ pixbuf_to_pixmap_and_mask(
 }
 
 static void
-modify_bound(
-	x_picture_modifier_t *  pic_mod
-	)
-{
-	if( pic_mod->contrast > 0)
-	{
-		modify_ubound =(256*100 - 128*pic_mod->brightness)/pic_mod->contrast + 128 ;
-		modify_lbound =(        - 128*pic_mod->brightness)/pic_mod->contrast + 128 ;
-
-		if (modify_ubound > 255)
-			modify_ubound = 255 ;
-		if (modify_ubound < 0)
-			modify_ubound = 0 ;
-	}
-}
-
-static unsigned char
-modify_color(
-	unsigned char  value,
-	x_picture_modifier_t *  pic_mod
-	)
-{
-	int result ;
-
-	if( value > modify_ubound)
-		return 255;
-	if( value < modify_lbound)
-		return 0;
-
-	result = pic_mod->contrast*(value - 128)/100 + 128 *  pic_mod->brightness/100 ;
-	return (unsigned char)(result) ;
-}
-
-static void
-gamma_cache_refresh(
-int gamma
+value_table_refresh(
+	x_picture_modifier_t *  mod
 	)
 {
 	int i ;
-	double real_gamma ;
+	double real_gamma , real_brightness, real_contrast;
 
-	if( gamma == gamma_cache[256])
+	if( is_picmod_eq(mod, &value_table_mod))
 		return ;
-	memset(gamma_cache, 0, sizeof(gamma_cache)) ;
-	gamma_cache[256] = gamma %256;
 
-	real_gamma = (double)gamma / 100 ;
+	value_table_mod.brightness = mod->brightness ;
+	value_table_mod.contrast = mod->contrast ;
+	value_table_mod.gamma = mod->gamma ;
+
+	memset(value_table, 0, sizeof(value_table)) ;
+
+	real_gamma = (double)(value_table_mod.gamma) / 100 ;
+	real_contrast = (double)(value_table_mod.contrast) / 100 ;
+	real_brightness = (double)(value_table_mod.brightness) / 100 ;
 	i = 128 ;
 	while( i > 0)
 	{
-		gamma_cache[i] = 255 *  pow((double)i/255, real_gamma) ;
-		if (gamma_cache[i--] == 0)
+		value_table[i] = real_contrast * (255 * pow((double)i / 255, real_gamma) -128 ) + 128 *  real_brightness ;
+		if (value_table[i--] == 0)
 			break ;
 	}
 	while( i >= 0)
-		gamma_cache[i--] = 0;
+		value_table[i--] = 0;
 	i = 128 ;
 	while( i < 254)
 	{
-		gamma_cache[i] = 255 *  pow((double)i / 255, real_gamma) ;
-		if (gamma_cache[i++] == 255)
+		value_table[i] = real_contrast * (255 * pow((double)i / 255, real_gamma) -128 ) + 128 *  real_brightness ;
+		if (value_table[i++] == 255)
 			break ;
 	}
 	while( i <= 255)
-		gamma_cache[i++] = 255 ;
+		value_table[i++] = 255 ;
 }
 
 static int
@@ -1258,8 +1229,11 @@ modify_image(
 		return -2 ;
 	if(pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100)
 		return SUCCESS ;
-	modify_bound( pic_mod);
+
        	line = gdk_pixbuf_get_pixels (pixbuf) ;
+
+	value_table_refresh( pic_mod) ;
+
 	for (i = 0; i < height; i++)
 	{
 		pixel = line ;
@@ -1268,31 +1242,14 @@ modify_image(
 		for (j = 0; j < width; j++)
 		{
 /* XXX keeps neither hue nor saturation. MUST be replaced by another better color model(CIE Yxy? lab?)*/
-			pixel[0] = modify_color(pixel[0], pic_mod) ;
-			pixel[1] = modify_color(pixel[1], pic_mod) ;
-			pixel[2] = modify_color(pixel[2], pic_mod) ;
+			pixel[0] = value_table[pixel[0]] ;
+			pixel[1] = value_table[pixel[1]] ;
+			pixel[2] = value_table[pixel[2]] ;
+			/* alpha plane is not changed */
 			pixel += bytes_per_pixel ;
 		}
 	}
 
-	if( pic_mod->gamma != 100)
-	{
-		gamma_cache_refresh( pic_mod->gamma) ;
-		line = gdk_pixbuf_get_pixels (pixbuf) ;
-		for (i = 0; i < height; i++)
-		{
-			pixel = line ;
-			line += rowstride ;
-			for (j = 0; j < width; j++)
-			{
-				pixel[0] = gamma_cache[pixel[0]] ;
-				pixel[1] = gamma_cache[pixel[1]] ;
-				pixel[2] = gamma_cache[pixel[2]] ;
-				/* alpha plane is not changed */
-				pixel += bytes_per_pixel ;
-			}
-		}
-	}
 	return SUCCESS ;
 }
 
@@ -1366,48 +1323,25 @@ modify_pixmap(
 			r_limit = 8 + r_offset - msb( r_mask) ;
 			g_limit = 8 + g_offset - msb( g_mask) ;
 			b_limit = 8 + b_offset - msb( b_mask) ;
-			modify_bound( pic_mod);
-			if (pic_mod->gamma == 100)
+
+			value_table_refresh( pic_mod) ;
+			for (i = 0; i < height; i++)
 			{
-				for (i = 0; i < height; i++)
+				for (j = 0; j < width; j++)
 				{
-					for (j = 0; j < width; j++)
-					{
-						r = ((*data & r_mask) >> r_offset)<<r_limit ;
-						g = ((*data & g_mask) >> g_offset)<<g_limit ;
-						b = ((*data & b_mask) >> b_offset)<<b_limit ;
+					r = ((*data & r_mask) >> r_offset)<<r_limit ;
+					g = ((*data & g_mask) >> g_offset)<<g_limit ;
+					b = ((*data & b_mask) >> b_offset)<<b_limit ;
+					
+					r = value_table[r] ;
+					g = value_table[g] ;
+					b = value_table[b] ;
 
-						r = modify_color( r, pic_mod) ;
-						g = modify_color( g, pic_mod) ;
-						b = modify_color( b, pic_mod) ;
-
-						*data = (r >> r_limit) << r_offset |
-							(g >> g_limit) << g_offset |
-							(b >> b_limit) << b_offset ;
-						data++;
-					}
-				}
-			}
-			else
-			{
-				gamma_cache_refresh( pic_mod->gamma) ;
-				for (i = 0; i < height; i++)
-				{
-					for (j = 0; j < width; j++)
-					{
-						r = ((*data & r_mask) >> r_offset)<<r_limit ;
-						g = ((*data & g_mask) >> g_offset)<<g_limit ;
-						b = ((*data & b_mask) >> b_offset)<<b_limit ;
-
-						r = gamma_cache[modify_color( r, pic_mod)] ;
-						g = gamma_cache[modify_color( g, pic_mod)] ;
-						b = gamma_cache[modify_color( b, pic_mod)] ;
-
-						*data = (r >> r_limit) << r_offset |
-							(g >> g_limit) << g_offset |
-							(b >> b_limit) << b_offset ;
-						data++;
-					}
+					
+					*data = (r >> r_limit) << r_offset |
+						(g >> g_limit) << g_offset |
+						(b >> b_limit) << b_offset ;
+					data++;
 				}
 			}
 			XPutImage( display, pixmap, DefaultGC( display, screen),
@@ -1420,46 +1354,25 @@ modify_pixmap(
 			u_int32_t *  data ;
 
 			data = (u_int32_t *)(image->data) ;
-			modify_bound( pic_mod);
-			if (pic_mod->gamma == 100)
+			value_table_refresh( pic_mod) ;
+			for (i = 0; i < height; i++)
 			{
-				for (i = 0; i < height; i++)
+				for (j = 0; j < width; j++)
 				{
-					for (j = 0; j < width; j++)
-					{
-						r = ((*data) >>r_offset) & 0xFF ;
-						g = ((*data) >>g_offset) & 0xFF ;
-						b = ((*data) >>b_offset) & 0xFF ;
+					r = ((*data) >>r_offset) & 0xFF ;
+					g = ((*data) >>g_offset) & 0xFF ;
+					b = ((*data) >>b_offset) & 0xFF ;
 
-						r = modify_color( r, pic_mod) ;
-						g = modify_color( g, pic_mod) ;
-						b = modify_color( b, pic_mod) ;
 
-						*data = r << r_offset | g << g_offset | b << b_offset ;
+					r = value_table[r] ;
+					g = value_table[g] ;
+					b = value_table[b] ;
+					
+					*data = r << r_offset | g << g_offset | b << b_offset ;
 						data++ ;
-					}
 				}
 			}
-			else
-			{
-				gamma_cache_refresh( pic_mod->gamma) ;
-				for (i = 0; i < height; i++)
-				{
-					for (j = 0; j < width; j++)
-					{
-						r = ((*data) >>r_offset) & 0xFF ;
-						g = ((*data) >>g_offset) & 0xFF ;
-						b = ((*data) >>b_offset) & 0xFF ;
 
-						r = gamma_cache[modify_color( r, pic_mod)] ;
-						g = gamma_cache[modify_color( g, pic_mod)] ;
-						b = gamma_cache[modify_color( b, pic_mod)] ;
-
-						*data = r << r_offset | g << g_offset | b << b_offset ;
-						data++ ;
-					}
-				}
-			}
 			XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
 				   width, height) ;
 			break ;
@@ -1482,50 +1395,32 @@ modify_pixmap(
 
 			data = (u_int8_t *)(image->data) ;
 
-			modify_bound( pic_mod);
-			if (pic_mod->gamma == 100)
+			value_table_refresh( pic_mod->gamma) ;
+			for (i = 0; i < height; i++)
 			{
-				for (i = 0; i < height; i++)
+				for (j = 0; j < width; j++)
 				{
-					for (j = 0; j < width; j++)
-					{
-						r = color_list[*data].red >>8 ;
-						g = color_list[*data].green >>8 ;
-						b = color_list[*data].blue >>8 ;
+					r = color_list[*data].red >>8 ;
+					g = color_list[*data].green >>8 ;
+					b = color_list[*data].blue >>8 ;
+					
 
-						r = modify_color( r, pic_mod) ;
-						g = modify_color( g, pic_mod) ;
-						b = modify_color( b, pic_mod) ;
+					r = value_table[r] ;
+					g = value_table[g] ;
+					b = value_table[b] ;
 
-						*data = closest_color_index( display, screen,
-									     color_list, num_cells,
-									     r, g, b ) ;
-						data++ ;
-					}
+					*data = closest_color_index( display, screen,
+								     color_list, num_cells,
+								     r, g, b ) ;
+					data++ ;
 				}
-			}
-			else
-			{
-				gamma_cache_refresh( pic_mod->gamma) ;
-				for (i = 0; i < height; i++)
-				{
-					for (j = 0; j < width; j++)
-					{
-						r = color_list[*data].red >>8 ;
-						g = color_list[*data].green >>8 ;
-						b = color_list[*data].blue >>8 ;
 
-						r = gamma_cache[modify_color( r, pic_mod)] ;
-						g = gamma_cache[modify_color( g, pic_mod)] ;
-						b = gamma_cache[modify_color( b, pic_mod)] ;
-
-						*data = closest_color_index( display, screen,
-									     color_list, num_cells,
-									     r, g, b ) ;
-						data++ ;
-					}
-				}
+				*data = closest_color_index( display, screen,
+							     color_list, num_cells,
+							     r, g, b ) ;
+				data++ ;
 			}
+
 			XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
 				   width, height) ;
 			free( color_list) ;
@@ -1553,8 +1448,10 @@ x_imagelib_display_opened(
 		g_type_init() ;
 #endif /*OLD_GDK_PIXBUF*/
 		for (i = 0; i < 256; i++)		
-			gamma_cache[i] = i ;		
-		gamma_cache[256] = 100 ;
+			value_table[i] = i ;		
+		value_table_mod.brightness = 100 ;
+		value_table_mod.contrast = 100 ;
+		value_table_mod.gamma = 100 ;
 	}
 	display_count ++ ;
 	return 1 ;
