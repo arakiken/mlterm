@@ -2,6 +2,7 @@
  *	$Id$
  */
 
+#include  <stdio.h>		/* sprintf */
 #include  <gtk/gtk.h>
 #include  <glib.h>
 #include  <kiklib/kik_debug.h>
@@ -92,8 +93,24 @@ update(void)
 	mc_set_str_value( "brightness" , mc_get_brightness()) ;
 	mc_set_str_value( "fade_ratio" , mc_get_fade_ratio()) ;
 	mc_set_str_value( "scrollbar_view_name" , mc_get_sb_view_name()) ;
-	mc_set_str_value( "xim_name" , mc_get_xim_name()) ;
-	mc_set_str_value( "xim_locale" , mc_get_xim_locale()) ;
+
+	{
+		char *  xim ;
+		char *  locale ;
+
+		if( ( xim = mc_get_xim_name()) && ( locale = mc_get_xim_locale()))
+		{
+			char *  val ;
+			
+			if( ( val = malloc( strlen( xim) + 1 + strlen( locale) + 1)))
+			{
+				sprintf( val , "%s:%s" , xim , locale) ;
+				mc_set_str_value( "xim" , val) ;
+				free( val) ;
+			}
+		}
+	}
+	
 	mc_set_str_value( "wall_picture" , mc_get_wall_pic()) ;
 	mc_set_flag_value( "use_anti_alias" , GTK_TOGGLE_BUTTON(use_aa_check)->active) ;
 	mc_set_flag_value( "use_variable_column_width" , GTK_TOGGLE_BUTTON(use_vcol_check)->active) ;

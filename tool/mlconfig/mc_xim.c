@@ -244,7 +244,7 @@ mc_get_xim_name(void)
 	
 	if( strcmp( selected_xim , "") == 0)
 	{
-		return  "unsed" ;
+		return  "unused" ;
 	}
 	else
 	{

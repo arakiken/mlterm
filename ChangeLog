@@ -1,3 +1,7 @@
+2002-06-11 Tomohiro KUBOTA <kubota@debian.org>
+
+	* XIM server could not be changed by using mlconfig; fixed.
+
 2002-06-09 Araki Ken <arakiken@users.sf.net>
 
 	* All characters in line were redrawn if it is modified even a little. fixed.
