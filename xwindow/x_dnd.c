@@ -18,6 +18,7 @@
 #define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 
+
 typedef struct x_dnd_context {
 	Window  source ;
 	Atom  waiting_atom ;
@@ -864,6 +865,7 @@ x_dnd_filter_event(
 {
 	switch( event->type )
 	{
+/*	case CreateNotify:*/
 	case MapNotify:
 		/* CreateNotifyEvent seems to be lost somewhere... */
 		awareness( win, 5) ;
@@ -925,6 +927,10 @@ x_dnd_filter_event(
 		process_incr( win, event) ;
 
 		break ;
+	case DestroyNotify:
+		finalize_context( win) ;
+
+		return 0 ;
 	default:
 		return 0 ;
 	}

@@ -1,3 +1,7 @@
+2003-08-20  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* x_dnd.c: added a handler for DestroyNotity.
+
 2003-08-18  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* x_window.c, x_dnd.h: code cleanup. 
