@@ -1852,31 +1852,6 @@ parse_vt100_escape_sequence(
 					{
 						if( HAS_CONFIG_LISTENER(vt100_parser,set))
 						{
-							/* edit commands */
-							char *  p ;
-
-							/* XXX discard all adjust./op. settings.*/
-							/* XXX may break multi-byte character string. */
-							if( ( p = strchr( pt , ';')))
-							{
-								*p = '\0';
-							}
-							if( ( p = strchr( pt , ':')))
-							{
-								*p = '\0';
-							}
-
-							if( *pt == '\0')
-							{
-								/*
-								 * Do not change current edit but alter
-								 * diaplay setting.
-								 * XXX nothing can be done for now.
-								 */
-
-								return  0 ;
-							}
-
 							stop_vt100_cmd( vt100_parser) ;
 							(*vt100_parser->config_listener->set)(
 								vt100_parser->config_listener->self ,
