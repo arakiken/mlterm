@@ -1,3 +1,15 @@
+2004-11-04 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/m17nlib/im_m17nlib.c:
+	- - fixed a bug that the last preedit text was not cleared when
+	    deactivating the input method. (Thanks to Ken'ichi HANDA)
+	    <http://sourceforge.net/mailarchive/message.php?msg_id=9913473>
+	  - changed the format in the status window.
+	  - minor cleanups.
+
+	* man/mlterm.1: added explanation for keyboard input method to
+	  'GUI CONFIGURATOR'.
+
 2004-10-29 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* tool/mlconfig/Makefile.in: -lmkf (required from libim-iiimf.so)
@@ -53,7 +65,7 @@
 	* inputmethod/m17nlib/im_m17nlib.c:
 	  - use EUC-JP instead of EUC-JISX0213 for the internal code convertion.
 	  - fixed a segfault with ISO-2022-JP[123].
-	  - show error messages if code convertion fail.
+	  - show error messages if code convertion failed.
 
 2004-10-26 Seiichi SATO <ssato@sh.rim.or.jp>
 

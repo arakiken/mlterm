@@ -302,6 +302,47 @@ find_input_method(
 }
 
 static void
+commit(
+	im_m17nlib_t *  m17nlib ,
+	MText *  text
+	)
+{
+	u_char *  buf = NULL ;
+	u_int  num_of_chars ;
+	int  filled_len ;
+
+	if( ( num_of_chars = mtext_len( text)))
+	{
+		if( ! ( buf = alloca( MAX_BYTES(num_of_chars))))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG , " alloca failed\n") ;
+		#endif
+		}
+	}
+
+	if( buf)
+	{
+		mconv_reset_converter( m17nlib->mconverter) ;
+		mconv_rebind_buffer(
+				m17nlib->mconverter , buf ,
+				MAX_BYTES(num_of_chars)) ;
+		filled_len = mconv_encode( m17nlib->mconverter , text) ;
+
+		if( filled_len == -1)
+		{
+			kik_error_printf( "Could not convert the committed string to terminal encoding. [%d]\n" , merror_code) ;
+		}
+		else
+		{
+			(*m17nlib->im.listener->write_to_term)(
+					m17nlib->im.listener->self ,
+					buf , filled_len) ;
+		}
+	}
+}
+
+static void
 set_candidate(
 	im_m17nlib_t *  m17nlib ,
 	MText *  candidate ,
@@ -332,7 +373,7 @@ set_candidate(
 
 	if( filled_len == -1)
 	{
-		kik_error_printf( "Could not convert the candidate string to terminal encoding\n") ;
+		kik_error_printf( "Could not convert the candidate string to terminal encoding. [%d]\n" , merror_code) ;
 		return ;
 	}
 
@@ -403,7 +444,7 @@ preedit_changed(
 
 	if( filled_len == -1)
 	{
-		kik_error_printf( "Could not convert the preedit string to terminal encoding\n") ;
+		kik_error_printf( "Could not convert the preedit string to terminal encoding. [%d]\n" , merror_code) ;
 		return ;
 	}
 
@@ -768,41 +809,11 @@ key_event(
 	if( minput_lookup( m17nlib->input_context ,
 			   Mnil , NULL , text) == 0)
 	{
-		u_char *  buf = NULL ;
-		u_int  num_of_chars ;
-		int  filled_len ;
-
-		if( ( num_of_chars = mtext_len( text)))
+		if( mtext_len( text))
 		{
-			if( ! ( buf = alloca( MAX_BYTES(num_of_chars))))
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG , " alloca failed\n") ;
-			#endif
-			}
+			commit( m17nlib , text) ;
+			ret = 0 ;
 		}
-
-		if( buf)
-		{
-			mconv_reset_converter( m17nlib->mconverter) ;
-			mconv_rebind_buffer(
-					m17nlib->mconverter , buf ,
-					MAX_BYTES(num_of_chars)) ;
-			filled_len = mconv_encode( m17nlib->mconverter , text) ;
-
-			if( filled_len == -1)
-			{
-				kik_error_printf( "Could not convert the committed string to terminal encoding\n") ;
-			}
-			else
-			{
-				(*m17nlib->im.listener->write_to_term)(
-						m17nlib->im.listener->self ,
-						buf , filled_len) ;
-			}
-		}
-
-		ret = 0 ;
 	}
 
 	m17n_object_unref( text) ;
@@ -821,16 +832,15 @@ switch_mode(
 
 	m17nlib = (im_m17nlib_t*) im ;
 
-	minput_toggle( m17nlib->input_context) ;
-
 	(*m17nlib->im.listener->get_spot)( m17nlib->im.listener->self ,
 					   m17nlib->im.preedit.chars ,
 					   m17nlib->im.preedit.segment_offset ,
 					   &x , &y) ;
 
-	if( m17nlib->input_context->active)
+	if( ! m17nlib->input_context->active)
 	{
 		u_char  buf[50] ;
+		u_int  filled_len ;
 
 		if( m17nlib->im.stat_screen == NULL)
 		{
@@ -849,21 +859,73 @@ switch_mode(
 			}
 		}
 
-		kik_snprintf( buf , sizeof( buf) , "m17nlib:%s:%s" ,
-			      msymbol_name(m17nlib->input_method->language) ,
-			      msymbol_name(m17nlib->input_method->name)) ;
+		mconv_reset_converter( m17nlib->mconverter) ;
+		mconv_rebind_buffer( m17nlib->mconverter , buf , sizeof( buf)) ;
+		filled_len = mconv_encode( m17nlib->mconverter ,
+					   m17nlib->input_context->status) ;
 
-		(*m17nlib->im.stat_screen->set)( m17nlib->im.stat_screen ,
-						 parser_ascii , buf) ;
+		if( filled_len == -1)
+		{
+			kik_error_printf( "Could not convert the status string to terminal encoding. [%d]\n" , merror_code) ;
+		}
+		else
+		{
+			buf[filled_len] = 0 ;
+			(*m17nlib->im.stat_screen->set)(
+						m17nlib->im.stat_screen ,
+						m17nlib->parser_term , buf) ;
+		}
 	}
 	else
 	{
+		/*
+		 * commit the last preedit before deactivating the input
+		 * method.
+		 */
+		if( mtext_len( m17nlib->input_context->preedit))
+		{
+			commit( m17nlib , m17nlib->input_context->preedit) ;
+		}
+
+		/*
+		 * initialize the state of MinputContext.
+		 * <http://sf.net/mailarchive/message.php?msg_id=9958816>
+		 */
+		minput_filter( m17nlib->input_context , Mnil , Mnil);
+
+
+		/*
+		 * clear saved preedit
+		 */
+
+		if( m17nlib->im.preedit.chars)
+		{
+			(*mlterm_syms->ml_str_delete)(
+						m17nlib->im.preedit.chars ,
+						m17nlib->im.preedit.num_of_chars) ;
+			m17nlib->im.preedit.chars = NULL ;
+		}
+
+		m17nlib->im.preedit.num_of_chars = 0 ;
+		m17nlib->im.preedit.filled_len = 0 ;
+		m17nlib->im.preedit.segment_offset = 0 ;
+		m17nlib->im.preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
+
+
 		if( m17nlib->im.stat_screen)
 		{
 			(*m17nlib->im.stat_screen->delete)( m17nlib->im.stat_screen) ;
 			m17nlib->im.stat_screen = NULL ;
 		}
+
+		if( m17nlib->im.cand_screen)
+		{
+			(*m17nlib->im.cand_screen->delete)( m17nlib->im.cand_screen) ;
+			m17nlib->im.cand_screen = NULL ;
+		}
 	}
+
+	minput_toggle( m17nlib->input_context) ;
 
 	return  1 ;
 }
