@@ -1708,7 +1708,7 @@ else
   if { (eval echo configure:1709: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
     for file in conftest.*; do
       case $file in
-      *.c | *.o | *.obj) ;;
+      *.$ac_ext | *.c | *.o | *.obj) ;;
       *) ac_cv_exeext=`echo $file | sed -e s/conftest//` ;;
       esac
     done
@@ -6197,8 +6197,8 @@ else
 fi
 
 	if test "$pkg_config" = "yes" ; then
-		IMAGELIB_CFLAGS="`pkg-config --cflags gdk-pixbuf-xlib-2.0` -DUSE_GDK_PIXBUF"
-		IMAGELIB_LIBS="`pkg-config --libs gdk-pixbuf-xlib-2.0`"
+		IMAGELIB_CFLAGS="`pkg-config --cflags gdk-pixbuf-2.0` -DUSE_GDK_PIXBUF"
+		IMAGELIB_LIBS="`pkg-config --libs gdk-pixbuf-2.0`"
 		IMAGELIB_NAME=gdk
 	fi
 	;;
@@ -6234,7 +6234,7 @@ fi
 
 	if test "$pkg_config" = "yes" ; then
 		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF -DOLD_GDK_PIXBUF"
-		IMAGELIB_LIBS="`gdk-pixbuf-config --libs` -lgdk_pixbuf_xlib"
+		IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
 		IMAGELIB_NAME=gdk
 	fi
 	;;

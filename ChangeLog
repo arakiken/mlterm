@@ -1,3 +1,8 @@
+2002-10-16  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
+
+	* Major rewrite of x_imagelib_gdk.c.
+	  Now it's only depends on gdk-pixbuf and not gdk-pixbuf-xlib.
+	  
 2002-10-11 Araki Ken <arakiken@users.sf.net>
 
 	* Transparency failed in some situations. fixed.

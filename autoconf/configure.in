@@ -93,8 +93,8 @@ imlib)
 gdk-pixbuf2)
 	AC_CHECK_PROG(pkg_config,pkg-config,yes)
 	if test "$pkg_config" = "yes" ; then
-		IMAGELIB_CFLAGS="`pkg-config --cflags gdk-pixbuf-xlib-2.0` -DUSE_GDK_PIXBUF"
-		IMAGELIB_LIBS="`pkg-config --libs gdk-pixbuf-xlib-2.0`"
+		IMAGELIB_CFLAGS="`pkg-config --cflags gdk-pixbuf-2.0` -DUSE_GDK_PIXBUF"
+		IMAGELIB_LIBS="`pkg-config --libs gdk-pixbuf-2.0`"
 		IMAGELIB_NAME=gdk
 	fi
 	;;
@@ -102,7 +102,7 @@ gdk-pixbuf1)
 	AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
 	if test "$pkg_config" = "yes" ; then
 		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF -DOLD_GDK_PIXBUF"
-		IMAGELIB_LIBS="`gdk-pixbuf-config --libs` -lgdk_pixbuf_xlib"
+		IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
 		IMAGELIB_NAME=gdk
 	fi
 	;;
