@@ -1,4 +1,10 @@
 [20011212]
+* garbages can be left on screen in scrolling. fixed.
+* The implementation of VT102 INS/DEL lines functions was buggy. fixed.
+* If XMODIFIERS's xim is executed after mlterm started , mlterm won't use it
+  even if XIM_OPEN key is pressed. fixed.
+
+[20011212]
 * the number of redrawing in bidi mode is reduced.
 * ml_image modules is cleaned up.
 * INDEX/RINDEX vt100 implementation was wrong. fixed.
