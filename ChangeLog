@@ -1,4 +1,8 @@
 [20020204]
+* cywin port patch is merged.(thanks to Tetsurou Okazaki san)
+* XRegisterIMInstantiateCallback is never called on sunos.
+
+[20020204]
 * When CapsLock or NumLock is on , control mask or shift mask etc is not recogized.
   fixed. (Thanks to K.Kawabata san)
 * cursor disappears when screen scrolled with scrollbar. fixed.
@@ -27,7 +31,8 @@
 * -H/--shade/shade_ratio option is added.
 
 [20020202]
-* if number of terminal rows is double as many as that of cols , mlterm dumps core. fixed.
+* if number of terminal rows is double as many as that of cols under vertical mode , 
+  mlterm dumps core. fixed.
 * mongol vertical mode is added.
 * "Font" Tab is added to mlconfig.
 
