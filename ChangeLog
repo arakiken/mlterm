@@ -1,3 +1,17 @@
+2004-10-24 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* xwindow/x_window.h (x_window_t):
+	  added following dummy members to keep the size of x_winodw_t.
+	  - void *  xft_draw; (used if USE_TYPE_XFT is undefined)
+	  - void *  dnd; (used if DISABLE_DND is defined)
+	  - void *  set_xdnd_config; (used if DISABLE_DND is defined)
+
+	* inputmethod/uim/Makefile.in:
+	* inputmethod/iiimf/Makefile.in:
+	* inputmethod/m17nlib/Makefile.in:
+	* inputmethod/kbd/Makefile.in:
+	  removed AA_CFLAGS and DND_CFLAGS.
+
 2004-10-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* README: fixed typo. (for X -> on X)

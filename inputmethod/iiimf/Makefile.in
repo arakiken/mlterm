@@ -13,11 +13,9 @@ VPATH = ${top_srcdir}/inputmethod/iiim
 IM_IIIMF_OBJ = im_iiimf.o
 
 CFLAGS = $(CFLAGS_LOCAL) 		\
-	 @AA_CFLAGS@ 			\
 	 @KIK_CFLAGS@			\
 	 @MKF_CFLAGS@			\
 	 @DEB_CFLAGS@			\
-	 @DND_CFLAGS@			\
 	 @X_CFLAGS@			\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\

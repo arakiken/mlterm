@@ -68,6 +68,8 @@ typedef struct  x_window
 
 #ifdef  USE_TYPE_XFT
 	XftDraw *  xft_draw ;
+#else
+	void *  xft_draw ; /* dummy to keep the size of x_window_t */
 #endif
 
 	GC  gc ;	/* for generic use */
@@ -117,6 +119,8 @@ typedef struct  x_window
 	 */
 #ifndef  DISABLE_XDND
 	x_dnd_context_ptr_t  dnd ;
+#else
+	void *  dnd ; /* dummy to keep the size of x_window_t */
 #endif
 
 	/*
@@ -157,6 +161,8 @@ typedef struct  x_window
 	void (*utf8_selection_notified)( struct x_window * , u_char * , size_t) ;
 #ifndef  DISABLE_XDND
 	void (*set_xdnd_config)( struct x_window * , char * ,  char * , char * ) ;
+#else
+	void *  set_xdnd_config ; /* dummy to the keep size of x_window_t */
 #endif
 	void (*window_deleted)( struct x_window *) ;
 	void (*mapping_notify)( struct x_window *) ;

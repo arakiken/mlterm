@@ -13,11 +13,9 @@ VPATH = ${top_srcdir}/inputmethod/m17nlib
 IM_M17NLIB_OBJ = im_m17nlib.o
 
 CFLAGS = $(CFLAGS_LOCAL) 		\
-	 @AA_CFLAGS@ 			\
 	 @KIK_CFLAGS@			\
 	 @MKF_CFLAGS@			\
 	 @DEB_CFLAGS@			\
-	 @DND_CFLAGS@			\
 	 @X_CFLAGS@			\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
