@@ -410,7 +410,7 @@ int x_picdep_set_icon_from_file(
 			gdk_pixbuf_unref(pixbuf);
 			return 0;
 		}
-/* {width, height, data...} */
+/* {width, height, ARGB[][]} */
 		data[0] = width;
 		data[1] = height;
 		for (i = 0 ; i < height ; i++) {
@@ -430,7 +430,7 @@ int x_picdep_set_icon_from_file(
 			(pixbuf,
 			 &pixmap_return,
 			 &mask_return,
-			 128);
+			 128); /* XXX too high ? */
 		gdk_pixbuf_unref(pixbuf);
 
 /* cache the reslut */
@@ -452,8 +452,8 @@ int x_picdep_set_icon_from_file(
 	hints->flags |= IconMaskHint;
 	hints->icon_mask = icon->mask;
 	hints->icon_pixmap = icon->icon;
-	/* old pixmaps are kept in the cache and can be freed later */
-	XSetWMHints(win->display, win->my_window,hints);
+	/* old pixmaps are kept in the cache and should be freed later */
+	XSetWMHints(win->display, win->my_window, hints);
 	XFree(hints);
 
 	return 1;

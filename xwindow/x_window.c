@@ -601,6 +601,7 @@ x_window_final(
 	x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
 	
 	XFreeGC( win->display , win->gc) ;
+	XFreeGC( win->display , win->ch_gc) ;
 
 	if( win->pixmap)
 	{
