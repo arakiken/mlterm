@@ -320,9 +320,6 @@ bidi_render(
 	ml_logical_visual_t *  logvis
 	)
 {
-#if  0
-	int  dummy_cursor ;
-#endif
 	ml_image_t *  image ;
 	ml_image_line_t *  line ;
 	int  row ;
@@ -334,18 +331,8 @@ bidi_render(
 
 	image = logvis->image ;
 
-#if  0
-	if( ml_char_cs( CURSOR_CHAR(image)) == US_ASCII &&
-		strcmp( ml_char_bytes( CURSOR_CHAR(image)) , " ") == 0)
-	{
-		ml_char_set_bytes( CURSOR_CHAR(image) , "a" , 1) ;
-		dummy_cursor = 1 ;
-	}
-	else
-	{
-		dummy_cursor = 0 ;
-	}
-#endif
+	ml_imgline_set_modified( CURSOR_LINE(image) , image->cursor.char_index ,
+		image->cursor.char_index , 0) ;
 	
 	/*
 	 * all lines(not only filled lines) should be rendered.
@@ -373,16 +360,17 @@ bidi_render(
 				ml_imgline_use_bidi( line) ;
 			}
 
-			ml_imgline_bidi_render( line) ;
+			if( row == image->cursor.row)
+			{
+				ml_imgline_bidi_render( line , image->cursor.char_index) ;
+			}
+			else
+			{
+				ml_imgline_bidi_render( line , -1) ;
+			}
 		}
 	}
 
-#if  0
-	if( dummy_cursor)
-	{
-		ml_char_set_bytes( CURSOR_CHAR(image) , " " , 1) ;
-	}
-#endif	
 	return  1 ;
 }
 
@@ -559,6 +547,11 @@ comb_visual(
 	{
 		return  0 ;
 	}
+
+	if( ! ml_is_char_combining())
+	{
+		return  0 ;
+	}
 	
 	image = logvis->image ;
 
@@ -596,19 +589,22 @@ comb_visual(
 			{
 				ml_combine_chars( &line->chars[dst_pos - 1] , cur) ;
 
-				/*
-				 * XXX
-				 * change_{beg|end}_char_index is private.
-				 * Don't access them directly.
-				 */
-				if( line->change_beg_char_index > dst_pos - 1)
+				if( ml_imgline_is_modified( line))
 				{
-					line->change_beg_char_index -- ;
-				}
+					/*
+					 * XXX
+					 * change_{beg|end}_char_index is private.
+					 * Don't access them directly.
+					 */
+					if( line->change_beg_char_index > dst_pos - 1)
+					{
+						line->change_beg_char_index -- ;
+					}
 
-				if( line->change_end_char_index > dst_pos - 1)
-				{
-					line->change_end_char_index -- ;
+					if( line->change_end_char_index > dst_pos - 1)
+					{
+						line->change_end_char_index -- ;
+					}
 				}
 			}
 			else
@@ -643,6 +639,11 @@ comb_logical(
 		return  0 ;
 	}
 	
+	if( ! ml_is_char_combining())
+	{
+		return  0 ;
+	}
+	
 	image = logvis->image ;
 
 	if( ( buf = ml_str_alloca( image->model.num_of_cols)) == NULL)
@@ -656,22 +657,19 @@ comb_logical(
 		int  dst_pos ;
 		int  src_pos ;
 		ml_char_t *  c ;
-		ml_char_t *  prev_c ;
 
 		line = ml_imgmdl_get_line( &image->model , row) ;
 
 		ml_str_copy( buf , line->chars , line->num_of_filled_chars) ;
 
 		dst_pos = 0 ;
-		prev_c = NULL ;
+		c = buf ;
 		for( src_pos = 0 ;
 			src_pos < line->num_of_filled_chars && dst_pos < line->num_of_chars ;
 			src_pos ++)
 		{
 			ml_char_t *  comb ;
 			u_int  size ;
-			
-			c = &buf[src_pos] ;
 
 			if( ( comb = ml_get_combining_chars( c , &size)))
 			{
@@ -690,19 +688,22 @@ comb_logical(
 						break ;
 					}
 
-					/*
-					 * XXX
-					 * change_{beg|end}_char_index is private.
-					 * Don't access them directly.
-					 */
-					if( line->change_beg_char_index > src_pos)
+					if( ml_imgline_is_modified( line))
 					{
-						line->change_beg_char_index ++ ;
-					}
+						/*
+						 * XXX
+						 * change_{beg|end}_char_index is private.
+						 * Don't access them directly.
+						 */
+						if( line->change_beg_char_index > src_pos)
+						{
+							line->change_beg_char_index ++ ;
+						}
 
-					if( line->change_end_char_index > src_pos)
-					{
-						line->change_end_char_index ++ ;
+						if( line->change_end_char_index > src_pos)
+						{
+							line->change_end_char_index ++ ;
+						}
 					}
 
 					ml_char_set( &line->chars[dst_pos ++] ,
@@ -716,10 +717,10 @@ comb_logical(
 			}
 			else
 			{
-				ml_char_copy( &line->chars[dst_pos ++] , &buf[src_pos]) ;
+				ml_char_copy( &line->chars[dst_pos ++] , c) ;
 			}
 
-			prev_c = c ;
+			c ++ ;
 		}
 
 		line->num_of_filled_chars = dst_pos ;
@@ -743,23 +744,29 @@ comb_visual_line(
 {
 	int  dst_pos ;
 	int  src_pos ;
+	ml_char_t *  cur ;
+	ml_char_t *  prev ;
+	ml_char_t *  prev2 ;
 
 	dst_pos = 0 ;
+	prev = NULL ;
+	prev2 = NULL ;
+	cur = line->chars ;
 	for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
 	{
-		if( src_pos > 1 &&
-			ml_is_arabic_combining( &line->chars[src_pos - 2] ,
-				&line->chars[src_pos - 1] , &line->chars[src_pos]))
+		if( ml_char_is_comb( cur) ||
+			(prev && ml_is_arabic_combining( prev2 , prev , cur)))
 		{
-			ml_char_t *  c ;
-
-			c = &line->chars[src_pos] ;
-			ml_combine_chars( &line->chars[dst_pos - 1] , c) ;
+			ml_combine_chars( &line->chars[dst_pos - 1] , cur) ;
 		}
 		else
 		{
-			ml_char_copy( &line->chars[dst_pos ++] , &line->chars[src_pos]) ;
+			ml_char_copy( &line->chars[dst_pos ++] , cur) ;
 		}
+
+		prev2 = prev ;
+		prev = cur ;
+		cur ++ ;
 	}
 
 	line->num_of_filled_chars = dst_pos ;

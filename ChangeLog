@@ -1,4 +1,10 @@
-[20020416]
+[20020316]
+* if the cursor is at the end of line under bidi mode, according to the previous
+  character whose property is STRONG and the base direction of the line, output of
+  fribidi_log2vis is modified for more natural cursor movement.
+* -J/--dyncomb couldn't be used without arguments. fixed.
+
+[20020316]
 * scrolling downward over the lowest filled line fails. fixed.
 * arabic combined characters are processed as the one which occupies one
   column, not two.

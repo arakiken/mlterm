@@ -893,7 +893,7 @@ get_min_conf(
 		"the amount of darkening or lightening background image") ;
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
-	kik_conf_add_opt( conf , 'J' , "dyncomb" , 0 , "use_dynamic_comb" ,
+	kik_conf_add_opt( conf , 'J' , "dyncomb" , 1 , "use_dynamic_comb" ,
 		"use dynamic combining") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell") ;

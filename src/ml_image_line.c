@@ -937,7 +937,8 @@ ml_imgline_unuse_bidi(
 
 int
 ml_imgline_bidi_render(
-	ml_image_line_t *  line
+	ml_image_line_t *  line ,
+	int  cursor_pos
 	)
 {
 	u_int  len ;
@@ -950,20 +951,12 @@ ml_imgline_bidi_render(
 
 		return  0 ;
 	}
-#if  0
-	else if( line->num_of_filled_chars == 0 ||
-		(len = ml_get_num_of_filled_chars_except_end_space( line)) == 0)
-	{
-		return  1 ;
-	}
-#else
 	else if( ( len = line->num_of_filled_chars) == 0)
 	{
 		return  1 ;
 	}
-#endif
 
-	if( ! ml_bidi( line->visual_order , line->chars , len))
+	if( ! ml_bidi( line->visual_order , line->chars , len , cursor_pos))
 	{
 		line->num_of_filled_visual_order = 0 ;
 		
@@ -1123,34 +1116,6 @@ ml_bidi_convert_logical_char_index_to_visual(
 	{
 		return  char_index ;
 	}
-}
-
-int
-ml_bidi_convert_visual_char_index_to_logical(
-	ml_image_line_t *  line ,
-	int  char_index
-	)
-{
-	u_int  counter ;
-
-	if( ! line->visual_order)
-	{
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " visual_order is NULL\n") ;
-	#endif
-	
-		return  char_index ;
-	}
-	
-	for( counter = 0 ; counter < line->num_of_filled_visual_order ; counter ++)
-	{
-		if( char_index == line->visual_order[counter])
-		{
-			return  counter ;
-		}
-	}
-
-	return  char_index ;
 }
 
 int
