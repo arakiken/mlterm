@@ -2215,7 +2215,12 @@ window_realized(
 	{
 		x_set_icon_name( &screen->window , name) ;
 	}
-	
+
+	if( screen->borderless)
+	{
+		x_window_set_borderless_flag( &screen->window , 1) ;
+	}
+
 	set_wall_picture( screen) ;
 }
 
@@ -4741,6 +4746,18 @@ change_bidi_flag(
 }
 
 static void
+change_borderless_flag(
+	x_screen_t *  screen ,
+	int  flag
+	)
+{
+	if( x_window_set_borderless_flag( &screen->window , flag))
+	{
+		screen->borderless = flag ;
+	}
+}
+
+static void
 change_wall_picture(
 	x_screen_t *  screen ,
 	char *  file_path
@@ -4912,6 +4929,8 @@ set_config(
 	)
 {
 	x_screen_t *  screen ;
+	char *  true = "true" ;
+	char *  false = "false" ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
@@ -5109,11 +5128,11 @@ set_config(
 	{
 		int  flag ;
 		
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
 		}
-		else if( strcmp( value , "false") == 0)
+		else if( strcmp( value , false) == 0)
 		{
 			flag = 0 ;
 		}
@@ -5128,11 +5147,11 @@ set_config(
 	{
 		int  flag ;
 		
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
 		}
-		else if( strcmp( value , "false") == 0)
+		else if( strcmp( value , false) == 0)
 		{
 			flag = 0 ;
 		}
@@ -5149,11 +5168,11 @@ set_config(
 	{
 		int  flag ;
 		
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
 		}
-		else if( strcmp( value , "false") == 0)
+		else if( strcmp( value , false) == 0)
 		{
 			flag = 0 ;
 		}
@@ -5168,11 +5187,11 @@ set_config(
 	{
 		int  flag ;
 		
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
 		}
-		else if( strcmp( value , "false") == 0)
+		else if( strcmp( value , false) == 0)
 		{
 			flag = 0 ;
 		}
@@ -5233,11 +5252,11 @@ set_config(
 
 		font_present = x_get_font_present( screen->font_man) ;
 		
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			font_present |= FONT_AA ;
 		}
-		else if( strcmp( value , "false") == 0)
+		else if( strcmp( value , false) == 0)
 		{
 			font_present &= ~FONT_AA ;
 		}
@@ -5254,11 +5273,11 @@ set_config(
 
 		font_present = x_get_font_present( screen->font_man) ;
 		
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			font_present |= FONT_VAR_WIDTH ;
 		}
-		else if( strcmp( value , "false") == 0)
+		else if( strcmp( value , false) == 0)
 		{
 			font_present &= ~FONT_VAR_WIDTH ;
 		}
@@ -5273,11 +5292,11 @@ set_config(
 	{
 		int  flag ;
 		
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
 		}
-		else if( strcmp( value , "false") == 0)
+		else if( strcmp( value , false) == 0)
 		{
 			flag = 0 ;
 		}
@@ -5292,11 +5311,11 @@ set_config(
 	{
 		int  flag ;
 		
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
 		}
-		else if( strcmp( value , "false") == 0)
+		else if( strcmp( value , false) == 0)
 		{
 			flag = 0 ;
 		}
@@ -5326,6 +5345,25 @@ set_config(
 		}
 
 		change_xim( screen , xim , locale) ;
+	}
+	else if( strcmp( key , "borderless") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , true) == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return ;
+		}
+
+		change_borderless_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "wall_picture") == 0)
 	{
@@ -5651,6 +5689,17 @@ get_config(
 	else if( strcmp( key , "locale") == 0)
 	{
 		value = kik_get_locale() ;
+	}
+	else if( strcmp( key , "borderless") == 0)
+	{
+		if( screen->borderless)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
 	}
 	else if( strcmp( key , "wall_picture") == 0)
 	{
@@ -6303,6 +6352,7 @@ x_screen_new(
 	char *  conf_menu_path_2 ,
 	char *  conf_menu_path_3 ,
 	int  use_extended_scroll_shortcut ,
+	int  override_recirect ,
 	u_int  line_space
 	)
 {
@@ -6487,6 +6537,8 @@ x_screen_new(
 	screen->bel_mode = bel_mode ;
 	
 	screen->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
+
+	screen->borderless = override_recirect ;
 
 	/*
 	 * for receiving selection.

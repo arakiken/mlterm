@@ -135,6 +135,7 @@ typedef struct  x_screen
 	int8_t  xim_open_in_startup ;
 	int8_t  use_vertical_cursor ;
 	int8_t  use_extended_scroll_shortcut ;
+	int8_t  borderless ;
 
 } x_screen_t ;
 
@@ -148,7 +149,7 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	x_bel_mode_t  bel_mode , int  receive_string_via_ucs , char *  pic_file_path ,
 	int  use_transbg , int  use_vertical_cursor , int  big5_buggy ,
 	char *  conf_menu_path_1 , char *  conf_menu_path_2 , char *  conf_menu_path_3 ,
-	int  use_extended_scroll_shortcut , u_int  line_space) ;
+	int  use_extended_scroll_shortcut , int  borderless , u_int  line_space) ;
 
 int  x_screen_delete( x_screen_t *  screen) ;
 

@@ -101,6 +101,7 @@ typedef struct main_config
 	int8_t  use_multi_col_char ;
 	int8_t  use_vertical_cursor ;
 	int8_t  use_extended_scroll_shortcut ;
+	int8_t  borderless ;
 	int8_t  use_dynamic_comb ;
 	int8_t  logging_vt_seq ;
 
@@ -421,7 +422,8 @@ open_screen_intern(
 			main_config.use_transbg , main_config.use_vertical_cursor ,
 			main_config.big5_buggy , main_config.conf_menu_path_1 ,
 			main_config.conf_menu_path_2 , main_config.conf_menu_path_3 ,
-			main_config.use_extended_scroll_shortcut , main_config.line_space)) == NULL)
+			main_config.use_extended_scroll_shortcut ,
+			main_config.borderless , main_config.line_space)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_screen_new() failed.\n") ;
@@ -1007,6 +1009,8 @@ get_min_conf(
 		"click interval(milisecond)[250]") ;
 	kik_conf_add_opt( conf , '%' , "logseq" , 1 , "logging_vt_seq" ,
 		"enable logging vt100 sequence") ;
+	kik_conf_add_opt( conf , '&' , "borderless" , 1 , "borderless" ,
+		"override redirect") ;
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
 		"screen width in percent against font width [default = 100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
@@ -1747,6 +1751,16 @@ config_init(
 		if( strcmp( value , "true") == 0)
 		{
 			main_config.use_extended_scroll_shortcut = 1 ;
+		}
+	}
+
+	main_config.borderless = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "borderless")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			main_config.borderless = 1 ;
 		}
 	}
 

@@ -1301,6 +1301,51 @@ x_window_set_normal_hints(
 }
 
 int
+x_window_set_borderless_flag(
+	x_window_t *  win ,
+	int  flag
+	)
+{
+	/*
+	 * XXX
+	 * Support borderless with _MOTIF_WM_HINTS.
+	 * (See Eterm/src/windows.c)
+	 */
+
+	x_window_t *  root ;
+	XSetWindowAttributes  s_attr ;
+	XWindowAttributes  g_attr ;
+
+	root = x_get_root_window(win) ;
+	
+	XGetWindowAttributes( root->display , root->my_window , &g_attr) ;
+
+	if( flag)
+	{
+		s_attr.override_redirect = True ;
+	}
+	else
+	{
+		s_attr.override_redirect = False ;
+	}
+
+	if( g_attr.override_redirect == s_attr.override_redirect)
+	{
+		return  1 ;
+	}
+	
+	XChangeWindowAttributes( root->display , root->my_window , CWOverrideRedirect , &s_attr) ;
+	
+	if( g_attr.map_state != IsUnmapped)
+	{
+		XUnmapWindow( root->display , root->my_window) ;
+		XMapWindow( root->display , root->my_window) ;
+	}
+
+	return  1 ;
+}
+
+int
 x_window_move(
 	x_window_t *  win ,
 	int  x ,

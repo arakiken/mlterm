@@ -307,16 +307,14 @@ x_get_font_name_list_for_fontset(
 		return  font_name_list ;
 	}
 
-	font_name_list = p ;
-
 	if( font_name_list)
 	{
-		sprintf( font_name_list , "%s,-*-*-medium-r-*--%d-*-*-*-*-*" ,
+		sprintf( p , "%s,-*-*-medium-r-*--%d-*-*-*-*-*" ,
 			font_name_list , font_cache->font_size) ;
 	}
 	else
 	{
-		sprintf( font_name_list , "-*-*-medium-r-*--%d-*-*-*-*-*" ,
+		sprintf( p , "-*-*-medium-r-*--%d-*-*-*-*-*" ,
 			font_cache->font_size) ;
 	}
 
