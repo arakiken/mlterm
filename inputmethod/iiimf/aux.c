@@ -1321,10 +1321,22 @@ service_register_X_filter(
 	XPointer  client_data
 	)
 {
+	filter_info_t *  filter_info ;
+
 #ifdef  AUX_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "\n") ;
 #endif
-	filter_info_t *  filter_info ;
+
+	for( filter_info = filter_info_list ; filter_info ; filter_info = filter_info->next)
+	{
+		if( filter_info->display == display &&
+		    filter_info->window == window &&
+		    filter_info->filter == filter &&
+		    filter_info->client_data == client_data)
+		{
+			return ;
+		}
+	}
 
 	if( ! ( filter_info = malloc( sizeof( filter_info_t))))
 	{
@@ -1354,10 +1366,11 @@ service_unregister_X_filter(
 	XPointer  client_data
 	)
 {
+	filter_info_t *  filter_info ;
+
 #ifdef  AUX_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "\n") ;
 #endif
-	filter_info_t *  filter_info ;
 
 	for( filter_info = filter_info_list ; filter_info ; filter_info = filter_info->next)
 	{
@@ -1859,15 +1872,14 @@ aux_quit( void)
 		iterator = kik_iterator_next( iterator) ;
 	}
 
-	if( module_info_list)
-	{
-		kik_list_delete( aux_module_info_t , module_info_list) ;
-	}
+	kik_list_delete( aux_module_info_t , module_info_list) ;
+	module_info_list = NULL ;
 
 
 	if( id_info_list)
 	{
 		kik_list_delete( aux_id_info_t , id_info_list) ;
+		id_info_list = NULL ;
 	}
 
 
@@ -1880,6 +1892,7 @@ aux_quit( void)
 
 		unload_module( unused) ;
 	}
+	module_list = NULL ;
 
 
 	for( filter_info = filter_info_list ; filter_info ; )
@@ -1900,11 +1913,13 @@ aux_quit( void)
 
 		free( unused) ;
 	}
+	filter_info_list = NULL ;
 
 
 	if( conv_iso88591)
 	{
 		(*conv_iso88591->delete)( conv_iso88591) ;
+		conv_iso88591 = NULL ;
 	}
 
 	initialized = 0 ;

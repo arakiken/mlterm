@@ -1,3 +1,14 @@
+2005-02-28 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/iiimf/im_iiimf.c: minor code cleanup.
+	* inputmethod/iiimf/aux.c: minor code cleanup.
+
+	* configure.in: IIIMF plugin cannot be used with --with-libltdl.
+
+	* xwindow/x_term_manager.c (client_connected):
+	  - argv[argc + 1] = NULL ;   --->   argv[argc] = NULL ;
+	  - "mlclient --foo=bar" does not work. fixed.
+
 2005-02-26 MINAMI Hirokazu <minami@mistfall.net>
 
 	* mlterm/ml_screen.h: reverted the last change.

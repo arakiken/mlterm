@@ -1108,10 +1108,10 @@ client_connected(void)
 		args_dup = p ;
 	}
 
-	/* NULL terminator (POSIX exec family style) */
-	argv[argc + 1] = NULL ;
-
 parse_end:
+
+	/* NULL terminator (POSIX exec family style) */
+	argv[argc] = NULL ;
 
 #ifdef  __DEBUG
 	{
@@ -1129,45 +1129,43 @@ parse_end:
 		goto  error ;
 	}
 
-	if( argc == 2)
+	if( argc == 2 &&
+		( strncmp( argv[1] , "-P" , 2) == 0 || strncmp( argv[1] , "--ptylist" , 9) == 0))
 	{
-		if( strncmp( argv[1] , "-P" , 2) == 0 || strncmp( argv[1] , "--ptylist" , 9) == 0)
-		{
-			/*
-			 * mlclient -P or mlclient --ptylist
-			 */
+		/*
+		 * mlclient -P or mlclient --ptylist
+		 */
 
-			ml_term_t **  terms ;
-			u_int  num ;
-			int  count ;
-		
-			num = ml_get_all_terms( &terms) ;
-			for( count = 0 ; count < num ; count ++)
-			{
-				fprintf( fp , "%s" , ml_term_get_slave_name( terms[count])) ;
-				if( ml_term_window_name( terms[count]))
-				{
-					fprintf( fp , "(whose title is %s)" , ml_term_window_name( terms[count])) ;
-				}
-				if( ml_term_is_attached( terms[count]))
-				{
-					fprintf( fp , " is active:)\n") ;
-				}
-				else
-				{
-					fprintf( fp , " is sleeping.zZ\n") ;
-				}
-			}
-		}
-		else if( strncmp( argv[1] , "--kill" , 6) == 0)
+		ml_term_t **  terms ;
+		u_int  num ;
+		int  count ;
+	
+		num = ml_get_all_terms( &terms) ;
+		for( count = 0 ; count < num ; count ++)
 		{
-			if( un_file)
+			fprintf( fp , "%s" , ml_term_get_slave_name( terms[count])) ;
+			if( ml_term_window_name( terms[count]))
 			{
-				unlink( un_file) ;
+				fprintf( fp , "(whose title is %s)" , ml_term_window_name( terms[count])) ;
 			}
-			fprintf( fp, "bye\n") ;
-			exit( 0) ;
+			if( ml_term_is_attached( terms[count]))
+			{
+				fprintf( fp , " is active:)\n") ;
+			}
+			else
+			{
+				fprintf( fp , " is sleeping.zZ\n") ;
+			}
 		}
+	}
+	else if( argc == 2 && strncmp( argv[1] , "--kill" , 6) == 0)
+	{
+		if( un_file)
+		{
+			unlink( un_file) ;
+		}
+		fprintf( fp, "bye\n") ;
+		exit( 0) ;
 	}
 	else
 	{

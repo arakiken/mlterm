@@ -1048,6 +1048,7 @@ delete(
 		if( parser_utf16)
 		{
 			(*parser_utf16->delete)( parser_utf16) ;
+			parser_utf16 = NULL ;
 		}
 
 		aux_quit() ;
