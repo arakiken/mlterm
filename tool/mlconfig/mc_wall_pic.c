@@ -73,9 +73,9 @@ mc_wall_pic_config_widget_new(
 	hbox = gtk_hbox_new( FALSE , 5) ;
 	gtk_widget_show(hbox) ;
  
-	label = gtk_label_new( "Wall picture") ;
+	label = gtk_label_new( " File ") ;
 	gtk_widget_show( label) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 2) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 2) ;
 	
 	entry = gtk_entry_new() ;
 	gtk_widget_show( entry) ;
@@ -85,7 +85,7 @@ mc_wall_pic_config_widget_new(
 	button = gtk_button_new_with_label( " Select ") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(button_clicked) , NULL) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;
 
 	return  hbox ;
 }

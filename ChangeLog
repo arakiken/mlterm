@@ -1,6 +1,7 @@
 2002-07-07  Tomohiro KUBOTA  <kubota@debian.org>
 
-	* manpage update for -M/-3/-4 command options.
+	* Update manpage for -M/-3/-4 command options.
+	* Update mlconfig to support Wallpaper contrast and gamma.
 
 2002-07-05  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 

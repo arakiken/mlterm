@@ -11,6 +11,8 @@
 #include  "mc_char_encoding.h"
 #include  "mc_color.h"
 #include  "mc_brightness.h"
+#include  "mc_contrast.h"
+#include  "mc_gamma.h"
 #include  "mc_fade.h"
 #include  "mc_tabsize.h"
 #include  "mc_logsize.h"
@@ -91,6 +93,8 @@ update(void)
 	mc_set_str_value( "vertical_mode" , mc_get_vertical_mode()) ;
 	mc_set_str_value( "scrollbar_mode" , mc_get_sb_mode()) ;
 	mc_set_str_value( "brightness" , mc_get_brightness()) ;
+	mc_set_str_value( "contrast" , mc_get_contrast()) ;
+	mc_set_str_value( "gamma" , mc_get_gamma()) ;
 	mc_set_str_value( "fade_ratio" , mc_get_fade_ratio()) ;
 	mc_set_str_value( "scrollbar_view_name" , mc_get_sb_view_name()) ;
 
@@ -267,6 +271,7 @@ show(void)
 {
 	GtkWidget *  window ;
 	GtkWidget *  vbox ;
+	GtkWidget *  vbox2 ;
 	GtkWidget *  hbox ;
 	GtkWidget *  notebook ;
 	GtkWidget *  frame ;
@@ -456,14 +461,33 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
+
+
+
+
+
+
+	frame = gtk_frame_new( "Wall picture") ;
+	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
+	gtk_widget_show(frame) ;
+
+	vbox2 = gtk_vbox_new(FALSE, 3);
+	gtk_container_set_border_width(GTK_CONTAINER(vbox2), 5);
+	gtk_widget_show(vbox2);
+	gtk_container_add(GTK_CONTAINER(frame) , vbox2) ;
+
 	if (!(config_widget = mc_wall_pic_config_widget_new(
 		   mc_get_str_value( "wall_picture")))) return 0;
 #if !defined(USE_IMLIB) && !defined(USE_GDK_PIXBUF)
 	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
 #endif
 	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox2), config_widget, FALSE, FALSE, 0);
 
+	hbox = gtk_hbox_new(FALSE, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox), 1);
+	gtk_widget_show(hbox);
+	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, FALSE, 0);
 
 	if (!(config_widget = mc_brightness_config_widget_new(
 		   mc_get_str_value( "brightness")))) return 0;
@@ -471,7 +495,23 @@ show(void)
 	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
 #endif
 	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
+
+	if (!(config_widget = mc_contrast_config_widget_new(
+		   mc_get_str_value( "contrast")))) return 0;
+#if !defined(USE_IMLIB) && !defined(USE_GDK_PIXBUF)
+	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
+#endif
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
+
+	if (!(config_widget = mc_gamma_config_widget_new(
+		   mc_get_str_value( "gamma")))) return 0;
+#if !defined(USE_IMLIB) && !defined(USE_GDK_PIXBUF)
+	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
+#endif
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
 
 
 	if (!(is_tp_check = mc_check_config_widget_new(
