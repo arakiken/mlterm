@@ -56,6 +56,7 @@ AC_CHECK_TYPE(int8_t,char)
 AC_CHECK_TYPE(int16_t,short)
 AC_CHECK_TYPE(int32_t,int)
 AC_CHECK_TYPE(int64_t,long)
+AC_CHECK_TYPE(ssize_t,int)
 
 AC_TYPE_MODE_T
 AC_TYPE_PID_T

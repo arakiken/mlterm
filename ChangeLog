@@ -1,3 +1,9 @@
+2003-11-24  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* kiklib/configure.in, kiklib/src/kik_config.h.in:
+	  Added AC_CHECK_TYPE(ssize_t,int), since mingw32 does not have ssize_t.
+	  (Does anybody know if this will work on Win64?)
+
 2003-11-03  Araki Ken  <arakiken@users.sf.net>
 
 	* Enbugged by [2003-10-31-2]. Fixed.

@@ -99,6 +99,8 @@
 
 #undef  int64_t
 
+#undef  ssize_t
+
 #undef  socklen_t
 
 #undef  mode_t
