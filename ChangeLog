@@ -1,3 +1,7 @@
+2004-07-07 Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* inputmethod/uim/Makefile.in: Added X_CFLAGS.
+
 2004-06-27  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window.c: Fixed a failure of compilation.
