@@ -203,7 +203,7 @@ pixbuf_to_pixmap_truecolor(
 	int  depth 
 	)
 {
-	XImage *  image ;
+	XImage *  image = NULL;
 
 	unsigned int  i, j ;
 	unsigned int  width, height, rowstride, bytes_per_pixel ;
@@ -303,10 +303,12 @@ pixbuf_to_pixmap_truecolor(
 	}
 	}
 
-	
-	XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
-		   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
-	XDestroyImage( image) ;
+	if( image)
+	{
+		XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
+			   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
+		XDestroyImage( image) ;
+	}
 }
 
 static void
