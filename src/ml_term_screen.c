@@ -61,10 +61,6 @@
 #define  __DEBUG
 #endif
 
-#if  0
-#define  XCOPYAREA_SCROLLING
-#endif
-
 
 /* --- static functions --- */
 
@@ -2430,56 +2426,95 @@ select_in_window(
  
 static int
 flush_scroll_cache(
-	ml_term_screen_t *  termscr
+	ml_term_screen_t *  termscr ,
+	int  scroll_actual_screen
 	)
 {
-	if( termscr->scroll_cache_rows)
-	{
-		if( ml_window_is_scrollable( &termscr->window))
-		{
-			int  start_y ;
-			int  end_y ;
-			u_int  scroll_height ;
-
-			scroll_height = ml_line_height((termscr)->font_man) *
-						abs( termscr->scroll_cache_rows) ;
-
-			if( scroll_height < termscr->window.height)
-			{
-				start_y = ml_convert_row_to_y( termscr ,
-					termscr->scroll_cache_boundary_start) ;
-				end_y = start_y +
-					ml_line_height((termscr)->font_man) *
-					(termscr->scroll_cache_boundary_end -
-					termscr->scroll_cache_boundary_start + 1) ;
-
-				if( termscr->scroll_cache_rows > 0)
-				{
-					ml_window_scroll_upward_region( &termscr->window ,
-						start_y , end_y , scroll_height) ;
-				}
-				else
-				{
-					ml_window_scroll_downward_region( &termscr->window ,
-						start_y , end_y , scroll_height) ;
-				}
-			}
-		#if  0
-			else
-			{
-				ml_window_clear_all( &termscr->window) ;
-			}
-		#endif
-		}
-
-		termscr->scroll_cache_rows = 0 ;
-		
-		return  1 ;
-	}
-	else
+	if( ! termscr->scroll_cache_rows)
 	{
 		return  0 ;
 	}
+	
+	if( scroll_actual_screen && ml_window_is_scrollable( &termscr->window))
+	{
+		int  start_y ;
+		int  end_y ;
+		u_int  scroll_height ;
+
+		scroll_height = ml_line_height((termscr)->font_man) *
+					abs( termscr->scroll_cache_rows) ;
+
+		if( scroll_height < termscr->window.height)
+		{
+			start_y = ml_convert_row_to_y( termscr ,
+				termscr->scroll_cache_boundary_start) ;
+			end_y = start_y +
+				ml_line_height((termscr)->font_man) *
+				(termscr->scroll_cache_boundary_end -
+				termscr->scroll_cache_boundary_start + 1) ;
+
+			if( termscr->scroll_cache_rows > 0)
+			{
+				ml_window_scroll_upward_region( &termscr->window ,
+					start_y , end_y , scroll_height) ;
+			}
+			else
+			{
+				ml_window_scroll_downward_region( &termscr->window ,
+					start_y , end_y , scroll_height) ;
+			}
+		}
+	#if  0
+		else
+		{
+			ml_window_clear_all( &termscr->window) ;
+		}
+	#endif
+	}
+	else
+	{
+		/*
+		 * setting modified mark to the lines within scroll region.
+		 */
+
+		int  row ;
+		ml_image_line_t *  line ;
+
+		if( termscr->scroll_cache_rows > 0)
+		{
+			/*
+			 * scrolling upward.
+			 */
+			for( row = termscr->scroll_cache_boundary_start ;
+				row <= termscr->scroll_cache_boundary_end - termscr->scroll_cache_rows ;
+				row ++)
+			{
+				if( ( line = ml_image_get_line( termscr->image , row)))
+				{
+					ml_imgline_set_modified_all( line) ;
+				}
+			}
+		}
+		else
+		{
+			/*
+			 * scrolling downward.
+			 */
+			for( row = termscr->scroll_cache_boundary_end ;
+				row >= termscr->scroll_cache_boundary_start - termscr->scroll_cache_rows ;
+				row --)
+			{
+				if( ( line = ml_image_get_line( termscr->image , row)))
+				{
+					ml_imgline_set_modified_all( line) ;
+				}
+			}
+		}
+	}
+
+	termscr->scroll_cache_rows = 0 ;
+
+	return  1 ;
 }
 
 static void
@@ -2489,10 +2524,11 @@ set_scroll_boundary(
 	int  boundary_end
 	)
 {
-	if( termscr->scroll_cache_boundary_start != boundary_start ||
-		termscr->scroll_cache_boundary_end != boundary_end)
+	if( termscr->scroll_cache_rows &&
+		(termscr->scroll_cache_boundary_start != boundary_start ||
+		termscr->scroll_cache_boundary_end != boundary_end))
 	{
-		flush_scroll_cache( termscr) ;
+		flush_scroll_cache( termscr , 0) ;
 	}
 
 	termscr->scroll_cache_boundary_start = boundary_start ;
@@ -2505,7 +2541,6 @@ window_scroll_upward(
 	u_int  size
 	)
 {
-#ifdef  XCOPYAREA_SCROLLING
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
@@ -2522,9 +2557,6 @@ window_scroll_upward(
 	termscr->scroll_cache_rows += size ;
 
 	return  1 ;
-#else
-	return  0 ;
-#endif
 }
 
 static int
@@ -2533,7 +2565,6 @@ window_scroll_downward(
 	u_int  size
 	)
 {
-#ifdef  XCOPYAREA_SCROLLING
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
@@ -2550,9 +2581,6 @@ window_scroll_downward(
 	termscr->scroll_cache_rows -= size ;
 
 	return  1 ;
-#else
-	return  0 ;
-#endif
 }
 
 static int
@@ -2563,7 +2591,6 @@ window_scroll_upward_region(
 	u_int  size
 	)
 {
-#ifdef  XCOPYAREA_SCROLLING
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
@@ -2580,9 +2607,6 @@ window_scroll_upward_region(
 	termscr->scroll_cache_rows += size ;
 
 	return  1 ;
-#else
-	return  0 ;
-#endif
 }
 
 static int
@@ -2593,7 +2617,6 @@ window_scroll_downward_region(
 	u_int  size
 	)
 {
-#ifdef  XCOPYAREA_SCROLLING
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
@@ -2610,9 +2633,6 @@ window_scroll_downward_region(
 	termscr->scroll_cache_rows -= size ;
 
 	return  1 ;
-#else
-	return  0 ;
-#endif
 }
 
 /*
@@ -3418,7 +3438,7 @@ ml_term_screen_redraw_image(
 	int  end_y ;
 	int  beg_y ;
 
-	flush_scroll_cache( termscr) ;
+	flush_scroll_cache( termscr , 1) ;
 
 	ml_term_screen_start_bidi( termscr) ;
 
@@ -3493,7 +3513,7 @@ ml_term_screen_highlight_cursor(
 		return  1 ;
 	}
 
-	flush_scroll_cache( termscr) ;
+	flush_scroll_cache( termscr , 1) ;
 
 	ml_term_screen_start_bidi( termscr) ;
 
@@ -3519,7 +3539,7 @@ ml_term_screen_unhighlight_cursor(
 		return  1 ;
 	}
 	
-	flush_scroll_cache( termscr) ;
+	flush_scroll_cache( termscr , 1) ;
 
 	ml_term_screen_start_bidi( termscr) ;
 
