@@ -1048,10 +1048,14 @@ x_window_show(
 		class_hint.res_name = win->app_name ;
 		class_hint.res_class = win->app_name ;
 
-		wm_hints.window_group = win->my_window ;
+		wm_hints.window_group = x_window_manager_get_group( win->win_man) ;
 		wm_hints.initial_state = NormalState ;	/* or IconicState */
 		wm_hints.input = True ;			/* wants FocusIn/FocusOut */
 		wm_hints.flags = WindowGroupHint | StateHint | InputHint ;
+		XChangeProperty( win->display, win->my_window,
+				 XInternAtom( win->display, "WM_CLIENT_LEADER", False),
+				 XA_WINDOW, 32, PropModeReplace,
+				 (unsigned char *)(&wm_hints.window_group), 1) ;
 
 		/* notify to window manager */
 	#if  1

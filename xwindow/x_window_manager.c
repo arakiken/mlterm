@@ -61,6 +61,9 @@ x_window_manager_init(
 	win_man->screen = DefaultScreen( win_man->display) ;
 	win_man->my_window = DefaultRootWindow( win_man->display) ;
 
+	win_man->group_leader = XCreateSimpleWindow( win_man->display,
+						     win_man->my_window,
+						     0,0,1,1,0,0,0) ;
 	win_man->icon = None ;
 	win_man->mask = None ;
 	win_man->cardinal = 0 ;
@@ -84,7 +87,10 @@ x_window_manager_final(
 	)
 {
 	int  count ;
-
+	if(  win_man->group_leader)
+	{
+		XDestroyWindow( win_man->display, win_man->group_leader) ;
+	}
 	if( win_man->icon) 
 	{
 		XFreePixmap( win_man->display, win_man->icon) ;
@@ -274,4 +280,12 @@ x_window_manager_receive_next_event(
 
 		return  0 ;
 	}	
+}
+
+XID
+x_window_manager_get_group(
+	x_window_manager_t *  win_man
+	)
+{
+	return  win_man->group_leader ;
 }

@@ -1,3 +1,7 @@
+2003-06-22  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* Added support of window group. 
+	
 2003-06-22 Araki Ken <arakiken@users.sf.net>
 
 	* 'make distclean' failed. Fixed.

@@ -477,12 +477,19 @@ open_screen_intern(
 	{
 		if( !(disp->win_man.icon) && !(disp->win_man.mask) && !(disp->win_man.cardinal))
 		{
+			x_window_t dummy;
 			x_imagelib_load_file( disp->display , main_config.icon_path,
 					      &(disp->win_man.cardinal),
 					      &(disp->win_man.icon),
 					      &(disp->win_man.mask),
 					      48 ,48) ;
 
+			dummy.my_window = disp->win_man.group_leader ;
+			dummy.display = disp->win_man.display ;
+			x_window_set_icon( &dummy,
+					   disp->win_man.icon,
+					   disp->win_man.mask,
+					   disp->win_man.cardinal) ;
 		}
 		x_window_set_icon( root,
 				   disp->win_man.icon,

@@ -17,6 +17,7 @@ typedef struct  x_window_manager
 	int  screen ;
 	Window  my_window ;
 
+	Window group_leader ;
 	Pixmap  icon ;
 	Pixmap  mask ;
 	u_int32_t *  cardinal ;
@@ -45,6 +46,8 @@ int  x_window_manager_clear_selection( x_window_manager_t *  win_man , x_window_
 void  x_window_manager_idling( x_window_manager_t *  win_man) ;
 
 int  x_window_manager_receive_next_event( x_window_manager_t *  win_man) ;
+
+XID  x_window_manager_get_group( x_window_manager_t *  win_man) ;
 
 
 #endif
