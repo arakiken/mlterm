@@ -1,5 +1,10 @@
 2003-03-02 Araki Ken <arakiken@users.sf.net>
 
+	* The point where column width changed is regarded as the boundary of words.
+	  (Now character set is not considered when the boundary of words is searched.)
+
+2003-03-02 Araki Ken <arakiken@users.sf.net>
+
 	* Unswitchable ptys were shown in PTY List of mlconfig. Fixed.
 
 2003-03-02 Tomohiro KUBOTA <kubota@debian.org>

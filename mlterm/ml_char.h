@@ -132,6 +132,8 @@ inline ml_font_t  ml_char_font( ml_char_t *  ch) ;
 
 inline u_int  ml_char_cols( ml_char_t *  ch) ;
 
+inline u_int  ml_char_is_biwidth( ml_char_t *  ch) ;
+
 inline ml_color_t  ml_char_fg_color( ml_char_t *  ch) ;
 
 inline int  ml_char_set_fg_color( ml_char_t *  ch , ml_color_t  color) ;

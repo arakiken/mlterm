@@ -680,7 +680,11 @@ config_protocol_save(
 				pt = "ENCODING" ;
 			}
 
-			kik_conf_io_write( conf , pt , val) ;
+			/* XXX */
+			if( strcmp( pt , "xim") != 0)
+			{
+				kik_conf_io_write( conf , pt , val) ;
+			}
 
 			pt = p ;
 		}

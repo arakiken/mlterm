@@ -604,8 +604,7 @@ ml_char_cols(
 	ml_char_t *  ch
 	)
 {
-	if( use_multi_col_char &&
-		(IS_BIWIDTH(ch->attr) || IS_BIWIDTH_CS( CHARSET(ch->attr))))
+	if( use_multi_col_char && ml_char_is_biwidth(ch))
 	{
 		return  2 ;
 	}
@@ -613,6 +612,17 @@ ml_char_cols(
 	{
 		return  1 ;
 	}
+}
+
+/*
+ * 'use_multi_col_char' not concerned.
+ */
+inline u_int
+ml_char_is_biwidth(
+	ml_char_t *  ch
+	)
+{
+	return  IS_BIWIDTH(ch->attr) || IS_BIWIDTH_CS( CHARSET(ch->attr)) ;
 }
 
 inline int

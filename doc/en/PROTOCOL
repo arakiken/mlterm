@@ -86,7 +86,7 @@ version 20030301
     case letters are used. But encoding names which are not regularized can be used in
     ESC ] 5379 ; encoding= <value> BEL sequence by secondary effect.
   o Adjusting and operation arguments of  ESC ] 20 ; pt BEL sequence are not used for now.
-  o if ESC ] 5379 ; xim= <value> BEL sequence doesn't contain ":" <locale name> ,
+  o If ESC ] 5379 ; xim= <value> BEL sequence doesn't contain ":" <locale name> ,
     current mlterm locale is used.
   o Return value of ESC ] 5380 ; xim BEL is <xim name> only , never <xim name> ":" <locale name>.
   o It is configuration programs themselves that search ~/.mlterm/xim and
