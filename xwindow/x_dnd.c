@@ -1,4 +1,6 @@
-/*
+/** @file
+ * @brief X Drag and Drop protocol support
+ * 
  *	$Id$
  */
 
@@ -11,13 +13,29 @@
 
 static const u_char  DND_VERSION = 4 ;
 
-
-#define DEBUG
 /* --- static functuions --- */
+
+static int
+is_pref(
+	Atom type,
+	Atom * atom,
+	int num
+	)
+{
+	int i ;
+	for( i = 0 ; i < num ; i++)
+		if( atom[i] == type)
+			return i ;
+	return 0 ;
+}
+
 
 /* --- global functuions --- */
 
-
+/**set/reset dnd awereness
+ *\param win mlterm window
+ *\param flag set aweaness when true
+ */
 void
 x_dnd_set_awareness(
 	x_window_t * win,
@@ -26,34 +44,50 @@ x_dnd_set_awareness(
 {
 	if( flag)
 	{
-		XChangeProperty(win->display, win->my_window, XA_DND_AWARE(win->display),
-				XA_ATOM, 32, PropModeReplace, &DND_VERSION, 1) ;
+		XChangeProperty(win->display, win->my_window,
+				XA_DND_AWARE(win->display),
+				XA_ATOM, 32, PropModeReplace, 
+				&DND_VERSION, 1) ;
 	}
 	else
 	{
-		XDeleteProperty(win->display, win->my_window, XA_DND_AWARE(win->display)) ;
+		XDeleteProperty(win->display, win->my_window,
+				XA_DND_AWARE(win->display)) ;
 	}
 }
 
+/**send finish message to dnd sender
+ *\param win mlterm window
+ */
 void
 x_dnd_finish(
 	x_window_t * win
 	)
 {
-	XClientMessageEvent reply_msg;
-
-	reply_msg.message_type = XA_DND_FINISH(win->display);
-	reply_msg.data.l[0] = win->my_window;
-	reply_msg.data.l[1] = 0;
-	reply_msg.type = ClientMessage;
-	reply_msg.format = 32;
-	reply_msg.window = win->dnd_source;
-	reply_msg.display = win->display;
+	XClientMessageEvent reply_msg ;
 	
-	XSendEvent(win->display, win->dnd_source, False, 0,
-		   (XEvent*)&reply_msg);
+	if( win->dnd_source)
+	{
+		reply_msg.message_type = XA_DND_FINISH(win->display) ;
+		reply_msg.data.l[0] = win->my_window ;
+		reply_msg.data.l[1] = 0 ;
+		reply_msg.type = ClientMessage ;
+		reply_msg.format = 32 ;
+		reply_msg.window = win->dnd_source ;
+		reply_msg.display = win->display ;
+		
+		XSendEvent(win->display, win->dnd_source, False, 0,
+			  (XEvent*)&reply_msg) ;
+		win->dnd_source = 0 ;
+	}
 }
 
+/**parse dnd data and sed them to terminal
+ *\param win mlterm window
+ *\param atom type of data
+ *\param src data from dnd
+ *\param len size of data in bytes
+ */
 int
 x_dnd_parse(
 	x_window_t * win,
@@ -83,8 +117,8 @@ x_dnd_parse(
 	/* text/unicode */
 	if( atom == XA_DND_MIME_TEXT_UNICODE(win->display))
 	{
-		int filled_len;
-		mkf_parser_t *  parser ;
+		int filled_len ;
+		mkf_parser_t * parser ;
 		mkf_conv_t * conv ;
 		
 		char conv_buf[512] ;
@@ -100,43 +134,49 @@ x_dnd_parse(
 		}
 		if( !(parser = mkf_ucs4_parser_new()))
 		{
-			(conv->delete)(conv);
-			return 0;
+			(conv->delete)(conv) ;
+			return 0 ;
 		}
 
 		/* XXX */
 		if( !(src_buf = malloc(len * 2)))
 		{
-			(conv->delete)(conv);
-			(parser->delete)(parser);
+			(conv->delete)(conv) ;
+			(parser->delete)(parser) ;
 			return 0 ;
 		}
 
-		/* ad-hoc conversin from UCS2 to UCS4 */
-		/* XXX ednianess? */
+		/* ad-hoc conversion from UCS2 to UCS4 */
+		/* XXX should be treated as UTF-16BE */
 		for( i = 0 ; i < len ; i = i +2)
 		{
-			src_buf[i*2] = 0;
-			src_buf[i*2+1] = 0;
-			src_buf[i*2+2] = src[i+1];
-			src_buf[i*2+3] = src[i];
+			src_buf[i*2] = 0 ;
+			src_buf[i*2+1] = 0 ;
+			src_buf[i*2+2] = src[i+1] ;
+			src_buf[i*2+3] = src[i] ;
 		}
 
 		(parser->init)( parser) ;
 		(parser->set_str)( parser , src_buf , len*2) ;
 		/* conversion from ucs4 -> utf8. */
-                while( ! parser->is_eos)
-                {
-			if( (filled_len = (conv->convert)(conv , conv_buf , sizeof(conv_buf) , parser)) == 0)
-                        {
-                                break ;
-                        }
-			(*win->utf8_selection_notified)( win , conv_buf , filled_len) ;
-                }
-		(conv->delete)(conv);
-		(parser->delete)(parser);
+		while( ! parser->is_eos)
+		{
+			
+			filled_len = (conv->convert)( conv,
+						      conv_buf,
+						      sizeof(conv_buf),
+						      parser) ;
+			if(filled_len ==0) 
+				break ;
 
-		free(src_buf);
+			(*win->utf8_selection_notified)( win,
+							 conv_buf, 
+							 filled_len) ;
+                }
+		(conv->delete)( conv) ;
+		(parser->delete)( parser) ;
+
+		free( src_buf) ;
 		return 1 ;
 	}
 	/* text/plain */
@@ -176,10 +216,13 @@ x_dnd_parse(
 				if ( !delim)
 					return 0 ; /* parse error */
 			}
-			delim[0] = ' '; /* always output ' ' as separator */
+			delim[0] = ' ' ; /* always output ' ' as separator */
 			if( strncmp( &(src[pos]), "file:",5) == 0)
 			{/* remove "file:". new length is (length - "file:" + " ")*/
-				(*win->utf8_selection_notified)( win , &(src[pos+5]) , (delim - src) - pos -4) ;
+				(*win->utf8_selection_notified)
+					( win ,
+					  &(src[pos+5]),
+					  (delim - src) - pos -4 ) ;
 			}
 			else
 			{/* as-is + " " */
@@ -188,20 +231,6 @@ x_dnd_parse(
 			pos = (delim - src) +2 ; /* skip 0x0A */
 		}
 	}
-	return 0 ;
-}
-
-static int
-is_pref(
-	Atom type,
-	Atom * atom,
-	int num
-	)
-{
-	int i ;
-	for( i = 0 ; i < num ; i++)
-		if( atom[i] == type)
-			return i ;
 	return 0 ;
 }
 
@@ -214,29 +243,39 @@ x_dnd_preferable_atom(
 {
 	int i = 0 ;
 
-	i = is_pref( XA_COMPOUND_TEXT( win->display), atom, num);
+	i = is_pref( XA_COMPOUND_TEXT( win->display), atom, num) ;
 	if(!i)
-		i = is_pref( XA_UTF8_STRING( win->display), atom, num);
+		i = is_pref( XA_UTF8_STRING( win->display), atom, num) ;
 	if(!i)
-		i = is_pref( XA_TEXT( win->display), atom, num);
+		i = is_pref( XA_TEXT( win->display), atom, num) ;
 	if(!i)
-		i = is_pref( XA_DND_MIME_TEXT_PLAIN( win->display), atom, num);
+		i = is_pref( XA_DND_MIME_TEXT_PLAIN( win->display), atom, num) ;
 	if(!i)
-		i = is_pref( XA_DND_MIME_TEXT_UNICODE( win->display), atom, num);
+		i = is_pref( XA_DND_MIME_TEXT_UNICODE( win->display), atom, num) ;
 	if(!i)
-		i = is_pref( XA_DND_MIME_TEXT_URL_LIST( win->display), atom, num);
+		i = is_pref( XA_DND_MIME_TEXT_URL_LIST( win->display), atom, num) ;
 		
 #ifdef  DEBUG
-	if(i)
-		kik_debug_printf("accepted as atom: %s(%d)\n", XGetAtomName( win->display, atom[i]), atom[i]);
+	if( i)
+	{
+		kik_debug_printf( "accepted as atom: %s(%d)\n",
+				  XGetAtomName( win->display, atom[i]),
+				  atom[i]) ;
+	}
 	else
+	{
 		for( i = 0 ; i < num ; i++)
 			if( atom[i])
-				kik_debug_printf("dropped unrecognized atom: %d\n", XGetAtomName( win->display, atom[i]));
+			{
+				kik_debug_printf("dropped atoms: %d\n",
+						 XGetAtomName( win->display,
+							       atom[i]) ) ;
+			}
+	}
 #endif
 	if( i)
-		return atom[i];
+		return atom[i] ;
 	else
-		return (Atom)0 ;/* it's illegal value for Atom */
+		return (Atom)0  ;/* it's illegal value for Atom */
 }
 
