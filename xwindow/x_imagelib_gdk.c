@@ -395,7 +395,7 @@ pixbuf_to_pixmap(
 		return ;
 	if ( !matched)
 	{
-		XFree( vinfolist)
+		XFree( vinfolist) ;
 		return ;
 	}
 	switch( vinfolist[0].class)
@@ -525,7 +525,7 @@ compose_to_pixmap(
 		return ;
 	if ( !matched)
 	{
-		XFree( vinfolist)
+		XFree( vinfolist) ;
 		return ;
 	}
 
@@ -749,11 +749,11 @@ modify_pixmap(
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
 	if( !vinfolist)
-		return ;
+		return 0;
 	if ( !matched)
 	{
-		XFree( vinfolist)
-		return ;
+		XFree( vinfolist) ;
+		return 0;
 	}
 
 	XGetGeometry( display, pixmap, &root, &x, &y,
