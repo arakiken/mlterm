@@ -903,7 +903,7 @@ x_window_set_transparent(
 end:
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
-		x_window_set_transparent( win->children[count] , pic_mod) ;
+		x_window_set_transparent( win->children[count] , win->pic_mod) ;
 	}
 	
 	return  1 ;

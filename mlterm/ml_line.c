@@ -349,7 +349,7 @@ ml_line_fill(
 	u_int  left_cols ;
 	u_int  copy_len ;
 
-	if( beg >= line->num_of_chars)
+	if( beg > line->num_of_filled_chars || beg >= line->num_of_chars)
 	{
 		return  0 ;
 	}
@@ -378,6 +378,17 @@ ml_line_fill(
 			else
 			{
 				copy_len = line->num_of_filled_chars - char_index - left_cols ;
+
+				if( beg + num + left_cols + copy_len > line->num_of_chars)
+				{
+					/*
+					 * line->num_of_chars is equal to or larger than
+					 * beg + num + left_cols since
+					 * 'if( beg + num + left_cols > line->num_of_chars)'
+					 * is already passed here.
+					 */
+					copy_len = line->num_of_chars - beg - num - left_cols ;
+				}
 			}
 			
 			char_index ++ ;
