@@ -55,7 +55,7 @@ MAJOR = 13
 MINOR = 0
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
-LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) -L${top_builddir}/kiklib/src/.libs
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 
@@ -71,7 +71,7 @@ $(LIBNAME).la : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(PREFIX)/lib \
 		-no-undefined \
 		-version-info $(MAJOR):$(MINOR):0 \
-		${top_builddir}/kiklib/src/libkik.la
+		-L${top_builddir}/kiklib/src -lkik
 
 $(INCDIR_TMP)/mkf :
 	mkdir -p $(INCDIR_TMP)/mkf
