@@ -1,3 +1,7 @@
+2003-04-02  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* xwindow/x_imagelib_gdk.c: fixed another color conversion bug...
+
 2003-04-01  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_imagelib_gdk.c:

@@ -1214,14 +1214,14 @@ value_table_refresh(
 	while( i >= 0)
 		value_table[i--] = 0;
 	i = 129 ;
-	while( i < 254)
+	while( i < 256)
 	{
 		tmp = real_contrast * (255 * pow((double)i / 255, real_gamma) -128 ) + 128 *  real_brightness ;
 		if (tmp > 255)
 			break ;
 		value_table[i++] = tmp ;
 	}
-	while( i <= 255)
+	while( i < 256)
 		value_table[i++] = 255 ;
 }
 
