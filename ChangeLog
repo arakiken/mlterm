@@ -1,4 +1,8 @@
 [20020213]
+* before starting daemon , whether /tmp/mlterm.unix is exists or not is checked.
+  and it is also unlinked when mlterm server exits.
+
+[20020213]
 * compilation failed in tool/mlclient/main.c. fixed. (Thanks to Okazaki Tetsurou san)
 * memory leaks when mlclient is connected. fixed.
 * transparent sample scrollbar is 1 dot wider than expected. fixed.
