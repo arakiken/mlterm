@@ -14,8 +14,8 @@
  * for VT100 commands
  *
  * !! Notice !!
- * these functions considers termscr->image not to be visual bidi order.
- * call ml_term_screen_stop_bidi() before using them.
+ * these functions considers termscr->image to be logical order.
+ * call ml_term_screen_start_vt100_cmd() before using them.
  */
 
 int
@@ -420,6 +420,13 @@ ml_vt100_cmd_resize_columns(
 	{
 		return  0 ;
 	}
+
+	/*
+	 * ml_term_screen_{start|stop}_vt100_cmd are necessary since
+	 * window is redrawn in window_resized().
+	 */
+	 
+	ml_term_screen_stop_vt100_cmd( termscr) ;
 	
 	ml_window_resize( &termscr->window , ml_col_width((termscr)->font_man) * cols ,
 		ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image) ,
@@ -436,6 +443,8 @@ ml_vt100_cmd_resize_columns(
 		(*termscr->window.window_resized)( &termscr->window) ;
 	}
 
+	ml_term_screen_stop_vt100_cmd( termscr) ;
+	
 	return  1 ;
 }
 
@@ -670,6 +679,41 @@ ml_vt100_cmd_fill_all_with_e(
 	ml_image_fill_all( termscr->image , &e_ch) ;
 
 	ml_char_final( &e_ch) ;
+
+	return  1 ;
+}
+
+int
+ml_vt100_cmd_change_wall_picture(
+	ml_term_screen_t * termscr ,
+	char * path
+	)
+{
+	if( *path == '\0')
+	{
+		/* Do not change current image but alter diaplay setting */
+		/* XXX nothing can be done for now */
+
+		return 0 ;
+	}
+
+	/*
+	 * XXX
+	 * trigger config_menu_event_listener.
+	 */
+	if( termscr->config_menu_listener.change_wall_picture)
+	{
+		/*
+		 * ml_term_screen_{start|stop}_vt100_cmd are necessary since
+		 * window is redrawn in chagne_wall_picture().
+		 */
+		
+		ml_term_screen_stop_vt100_cmd( termscr) ;
+		
+		(*termscr->config_menu_listener.change_wall_picture)( termscr , path) ;
+
+		ml_term_screen_start_vt100_cmd( termscr) ;
+	}
 
 	return  1 ;
 }

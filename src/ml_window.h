@@ -123,9 +123,6 @@ typedef struct  ml_window
 	
 	int8_t  is_scrollable ;
 
-	/* color */
-	u_int8_t  fade_ratio ;
-
 	/* used by ml_xim */
 	int8_t  use_xim ;
 
@@ -136,6 +133,8 @@ typedef struct  ml_window
 	void (*window_realized)( struct ml_window *) ;
 	void (*window_finalized)( struct ml_window *) ;
 	void (*window_exposed)( struct ml_window * , int , int , u_int , u_int) ;
+	void (*window_focused)( struct ml_window *) ;
+	void (*window_unfocused)( struct ml_window *) ;
 	void (*key_pressed)( struct ml_window * , XKeyEvent *) ;
 	void (*button_motion)( struct ml_window * , XMotionEvent *) ;
 	void (*button_released)( struct ml_window * , XButtonEvent *) ;
@@ -157,7 +156,7 @@ typedef struct  ml_window
 
 int  ml_window_init( ml_window_t *  win , ml_color_table_t  color_table ,
 	u_int  width , u_int  height , u_int  min_width , u_int  min_height ,
-	u_int  width_inc , u_int  height_inc , u_int  margin , u_int  fade_ratio) ;
+	u_int  width_inc , u_int  height_inc , u_int  margin) ;
 
 int  ml_window_init_atom( Display *  display) ;
 
@@ -182,6 +181,10 @@ int  ml_window_set_bg_color( ml_window_t *  win , ml_color_t  bg_color) ;
 int  ml_window_get_fg_color( ml_window_t *  win) ;
 
 int  ml_window_get_bg_color( ml_window_t *  win) ;
+
+int  ml_window_fade_bg_color( ml_window_t *  win , u_int8_t  fade_ratio) ;
+
+int  ml_window_unfade_bg_color( ml_window_t *  win) ;
 
 int  ml_window_add_child( ml_window_t *  win , ml_window_t *  child , int  x , int  y) ;
 
@@ -241,6 +244,8 @@ int  ml_window_draw_cursor( ml_window_t *  win , ml_char_t *  ch ,
 	
 int  ml_window_draw_str_to_eol( ml_window_t *  win , ml_char_t *  chars , u_int  num_of_chars ,
 	int  x , int  y , u_int  height , u_int  height_to_baseline) ;
+
+int  ml_window_draw_rect_frame( ml_window_t *  win , int  x1 , int  y1 , int  x2 , int  y2) ;
 
 int  ml_window_set_selection_owner( ml_window_t *  win , Time  time) ;
 	

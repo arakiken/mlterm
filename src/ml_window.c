@@ -223,6 +223,7 @@ xft_draw_str(
 	ml_font_decor_t	 decor ;
 	ml_char_t *  comb_chars ;
 	u_int  comb_size ;
+	int  is_reversed ;
 
 	size_t  next_ch_size ;
 	u_int  next_ch_width ;
@@ -342,6 +343,8 @@ xft_draw_str(
 
 		comb_chars = ml_get_combining_chars( &chars[counter] , &comb_size) ;
 
+		is_reversed = ml_char_is_reversed( &chars[counter]) ;
+
 		/*
 		 * next character.
 		 */
@@ -406,7 +409,7 @@ xft_draw_str(
 			/*
 			 * clearing background
 			 */
-			if( win->wall_picture_is_set)
+			if( win->wall_picture_is_set && ! is_reversed)
 			{
 				XClearArea( win->display , win->drawable ,
 					x , y , current_width - x , height , 0) ;
@@ -728,6 +731,7 @@ draw_str(
 	u_long  fg_color ;
 	u_long  bg_color ;
 	ml_font_decor_t	 decor ;
+	int  is_reversed ;
 
 	size_t  next_ch_size ;
 	u_int  next_ch_width ;
@@ -863,6 +867,7 @@ draw_str(
 
 		comb_chars = ml_get_combining_chars( &chars[counter] , &comb_size) ;
 
+		is_reversed = ml_char_is_reversed( &chars[counter]) ;
 
 		/*
 		 * next character.
@@ -926,7 +931,7 @@ draw_str(
 				height_to_baseline = std_height_to_baseline ;
 			}
 
-			if( win->wall_picture_is_set ||
+			if( ( win->wall_picture_is_set && ! is_reversed) ||
 				(win->font->is_proportional && ! win->font->is_var_col_width))
 			{
 				if( win->wall_picture_is_set)
@@ -1096,65 +1101,6 @@ set_bg_color(
 	return  1 ;
 }
 
-static int
-unfade_bg_color(
-	ml_window_t *  win
-	)
-{
-	if( win->fade_ratio >= 100 || win->orig_bg_xcolor == NULL)
-	{
-		return  0 ;
-	}
-	
-	win->color_table[MLC_BG_COLOR] = win->orig_bg_xcolor ;
-	win->orig_bg_xcolor = NULL ;
-
-	ml_unload_xcolor( win->display , win->screen , win->faded_xcolor) ;
-	free( win->faded_xcolor) ;
-
-	win->faded_xcolor = NULL ;
-
-	set_bg_color( win) ;
-
-	return  1 ;
-}
-
-static int
-fade_bg_color(
-	ml_window_t *  win
-	)
-{
-	u_short  red ;
-	u_short  green ;
-	u_short  blue ;
-	
-	if( win->fade_ratio >= 100 || win->faded_xcolor)
-	{
-		/* already faded */
-		
-		return  1 ;
-	}
-	
-	ml_get_xcolor_rgb( &red , &green , &blue , win->color_table[MLC_BG_COLOR]) ;
-
-	red = (red * win->fade_ratio) / 100 ;
-	green = (green * win->fade_ratio) / 100 ;
-	blue = (blue * win->fade_ratio) / 100 ;
-
-	if( ( win->faded_xcolor = malloc( sizeof( x_color_t))))
-	{
-		ml_load_rgb_xcolor( win->display , win->screen , win->faded_xcolor ,
-			red , green , blue) ;
-
-		win->orig_bg_xcolor = win->color_table[MLC_BG_COLOR] ;
-		win->color_table[MLC_BG_COLOR] = win->faded_xcolor ;
-
-		set_bg_color( win) ;
-	}
-
-	return  1 ;
-}
-
 static void
 notify_focus_in_to_children(
 	ml_window_t *  win
@@ -1162,10 +1108,13 @@ notify_focus_in_to_children(
 {
 	int  counter ;
 
+	if( win->window_focused)
+	{
+		(*win->window_focused)( win) ;
+	}
+	
 	ml_xic_set_focus( win) ;
-	
-	unfade_bg_color( win) ;
-	
+
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
 		notify_focus_in_to_children( win->children[counter].window) ;
@@ -1178,11 +1127,14 @@ notify_focus_out_to_children(
 	)
 {
 	int  counter ;
+
+	if( win->window_unfocused)
+	{
+		(*win->window_unfocused)( win) ;
+	}
 	
 	ml_xic_unset_focus( win) ;
 
-	fade_bg_color( win) ;
-	
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
 		notify_focus_out_to_children( win->children[counter].window) ;
@@ -1272,8 +1224,7 @@ ml_window_init(
 	u_int  min_height ,
 	u_int  width_inc ,
 	u_int  height_inc ,
-	u_int  margin ,
-	u_int  fade_ratio
+	u_int  margin
 	)
 {
 	/*
@@ -1322,7 +1273,6 @@ ml_window_init(
 	win->color_table = color_table ;
 	win->faded_xcolor = NULL ;
 	win->orig_bg_xcolor = NULL ;
-	win->fade_ratio = fade_ratio ;
 
 	win->use_xim = 0 ;
 	win->xic = NULL ;
@@ -1337,6 +1287,8 @@ ml_window_init(
 	win->window_realized = NULL ;
 	win->window_finalized = NULL ;
 	win->window_exposed = NULL ;
+	win->window_focused = NULL ;
+	win->window_unfocused = NULL ;
 	win->key_pressed = NULL ;
 	win->button_motion = NULL ;
 	win->button_released = NULL ;
@@ -1772,8 +1724,6 @@ ml_window_set_bg_color(
 		return  0 ;
 	}
 	
-	unfade_bg_color( win) ;
-
 	win->color_table[MLC_BG_COLOR] = win->color_table[bg_color] ;
 
 	if( win->drawable)
@@ -1818,6 +1768,64 @@ ml_window_get_bg_color(
 	}
 
 	return  MLC_UNKNOWN_COLOR ;
+}
+
+int
+ml_window_fade_bg_color(
+	ml_window_t *  win ,
+	u_int8_t  fade_ratio
+	)
+{
+	u_short  red ;
+	u_short  green ;
+	u_short  blue ;
+	
+	if( fade_ratio >= 100 || win->faded_xcolor || win->wall_picture_is_set)
+	{
+		return  1 ;
+	}
+	
+	ml_get_xcolor_rgb( &red , &green , &blue , win->color_table[MLC_BG_COLOR]) ;
+
+	red = (red * fade_ratio) / 100 ;
+	green = (green * fade_ratio) / 100 ;
+	blue = (blue * fade_ratio) / 100 ;
+
+	if( ( win->faded_xcolor = malloc( sizeof( x_color_t))))
+	{
+		ml_load_rgb_xcolor( win->display , win->screen , win->faded_xcolor ,
+			red , green , blue) ;
+
+		win->orig_bg_xcolor = win->color_table[MLC_BG_COLOR] ;
+		win->color_table[MLC_BG_COLOR] = win->faded_xcolor ;
+
+		set_bg_color( win) ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_window_unfade_bg_color(
+	ml_window_t *  win
+	)
+{
+	if( win->orig_bg_xcolor == NULL)
+	{
+		return  0 ;
+	}
+	
+	win->color_table[MLC_BG_COLOR] = win->orig_bg_xcolor ;
+	win->orig_bg_xcolor = NULL ;
+
+	ml_unload_xcolor( win->display , win->screen , win->faded_xcolor) ;
+	free( win->faded_xcolor) ;
+
+	win->faded_xcolor = NULL ;
+
+	set_bg_color( win) ;
+
+	return  1 ;
 }
 
 int
@@ -2914,6 +2922,23 @@ ml_window_draw_cursor(
 	}
 	
 	return  result ;	
+}
+
+int
+ml_window_draw_rect_frame(
+	ml_window_t *  win ,
+	int  x1 ,
+	int  y1 ,
+	int  x2 ,
+	int  y2
+	)
+{
+	XDrawLine( win->display , win->drawable , win->gc , x1 , y1 , x2 , y1) ;
+	XDrawLine( win->display , win->drawable , win->gc , x1 , y1 , x1 , y2) ;
+	XDrawLine( win->display , win->drawable , win->gc , x2 , y2 , x2 , y1) ;
+	XDrawLine( win->display , win->drawable , win->gc , x2 , y2 , x1 , y2) ;
+
+	return  1 ;
 }
 
 int

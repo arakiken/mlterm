@@ -601,7 +601,7 @@ view_created:
 	sb->is_pressing_up_button = 0 ;
 	sb->is_pressing_down_button = 0 ;
 
-	if( ml_window_init( &sb->window , color_table , width , height , 0 , 0 , 0 , 0 , 0 , 100) == 0)
+	if( ml_window_init( &sb->window , color_table , width , height , 0 , 0 , 0 , 0 , 0) == 0)
 	{
 		goto  error ;
 	}

@@ -255,9 +255,17 @@ draw_cursor(
 	}
 	else
 	{
-		ml_window_draw_cursor( &termscr->window , ch , x , y ,
-			ml_line_height( termscr->font_man) ,
-			ml_line_height_to_baseline( termscr->font_man)) ;
+		if( termscr->is_focused)
+		{
+			ml_window_draw_cursor( &termscr->window , ch , x , y ,
+				ml_line_height( termscr->font_man) ,
+				ml_line_height_to_baseline( termscr->font_man)) ;
+		}
+		else
+		{
+			ml_window_draw_rect_frame( &termscr->window ,
+				x + 2 , y + 2 , x + ml_char_width(ch) + 1 , y + ml_char_height(ch) + 1) ;
+		}
 	}
 
 	if( orig)
@@ -748,7 +756,7 @@ set_wall_picture(
 	
 	if( ! ml_picture_init( &pic , &termscr->window))
 	{
-		return  0 ;
+		goto  error ;
 	}
 	
 	if( ! ml_picture_load( &pic , termscr->pic_file_path))
@@ -756,16 +764,16 @@ set_wall_picture(
 		kik_msg_printf( " wall picture file %s is not found.\n" ,
 			termscr->pic_file_path) ;
 
-		return  0 ;
+		ml_picture_final( &pic) ;
+		
+		goto  error ;
 	}
 	
 	if( ! ml_window_set_wall_picture( &termscr->window , pic.pixmap))
 	{
-		kik_msg_printf( "a wall picture failed to be set.\n") ;
-
 		ml_picture_final( &pic) ;
-	
-		return  0 ;
+		
+		goto  error ;
 	}
 	else
 	{
@@ -773,6 +781,14 @@ set_wall_picture(
 
 		return  1 ;
 	}
+
+error:
+	free( termscr->pic_file_path) ;
+	termscr->pic_file_path = NULL ;
+
+	ml_window_unset_wall_picture( &termscr->window) ;
+
+	return  0 ;
 }
 
 static int
@@ -1108,6 +1124,42 @@ window_resized(
 	set_wall_picture( termscr) ;
 
 	redraw_image( termscr) ;
+
+	highlight_cursor( termscr) ;
+}
+
+static void
+window_focused(
+	ml_window_t *  win
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = (ml_term_screen_t *) win ;
+
+	unhighlight_cursor( termscr) ;
+
+	termscr->is_focused = 1 ;
+	
+	ml_window_unfade_bg_color( win) ;
+	
+	highlight_cursor( termscr) ;
+}
+
+static void
+window_unfocused(
+	ml_window_t *  win
+	)
+{
+	ml_term_screen_t *  termscr ;
+	
+	termscr = (ml_term_screen_t *) win ;
+	
+	unhighlight_cursor( termscr) ;
+	
+	termscr->is_focused = 0 ;
+	
+	ml_window_fade_bg_color( win , termscr->fade_ratio) ;
 
 	highlight_cursor( termscr) ;
 }
@@ -2736,6 +2788,7 @@ change_bg_color(
 
 	termscr = p ;
 
+	ml_window_unfade_bg_color( &termscr->window) ;
 	ml_window_set_bg_color( &termscr->window , color) ;
 	ml_xic_bg_color_changed( &termscr->window) ;
 }
@@ -3307,10 +3360,12 @@ ml_term_screen_new(
 	width = cols * ml_col_width( font_man) ;
 	height = rows * ml_line_height( font_man) ;
 
+	termscr->fade_ratio = fade_ratio ;
+	termscr->is_focused = 0 ;
+
 	if( ml_window_init( &termscr->window , color_table , width , height ,
 		ml_col_width((termscr)->font_man) , ml_line_height((termscr)->font_man) ,
-		ml_col_width((termscr)->font_man) , ml_line_height((termscr)->font_man) ,
-		2 , fade_ratio) == 0)
+		ml_col_width((termscr)->font_man) , ml_line_height((termscr)->font_man) , 2) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_window_init failed.\n") ;
@@ -3347,6 +3402,8 @@ ml_term_screen_new(
 	termscr->window.window_realized = window_realized ;
 	termscr->window.window_finalized = window_finalized ;
 	termscr->window.window_exposed = window_exposed ;
+	termscr->window.window_focused = window_focused ;
+	termscr->window.window_unfocused = window_unfocused ;
 	termscr->window.key_pressed = key_pressed ;
 	termscr->window.window_resized = window_resized ;
 	termscr->window.button_motion = button_motion ;

@@ -127,6 +127,8 @@ typedef struct  ml_term_screen
 
 	char *  pic_file_path ;
 
+	u_int8_t  fade_ratio ;
+	int8_t  is_focused ;
 	int8_t  copy_paste_via_ucs ;
 	int8_t  is_reverse ;
 	int8_t  is_cursor_visible ;
