@@ -78,8 +78,7 @@ static GtkWidget *im_opt_widget[MAX_IM_INFO];
 static int
 is_im_plugin(char *file_name)
 {
-	if (kik_dl_is_module(file_name) &&
-	    strstr(file_name, "im-") == 0)
+	if (kik_dl_is_module(file_name) && strstr(file_name, "im-"))
 	{
 		return 1;
 	}

@@ -1,3 +1,8 @@
+2004-10-16 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* tool/mlconfig/mc_im.c (is_im_plugin): fixed a stupid bug.
+	  (strstr() == 0 -> strstr())
+
 2004-10-15 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* tool/mlconfig/mc_im.c:
@@ -7,7 +12,7 @@
 
 	* configure.in:
 	  - fixed minor bugs in the configuration result message.
-	  - added USE_KDB into IM_CFLAGS.
+	  - added USE_KBD into IM_CFLAGS.
 
 2004-10-14 Seiichi SATO <ssato@sh.rim.or.jp>
 
