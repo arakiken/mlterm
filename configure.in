@@ -122,7 +122,7 @@ AC_ARG_ENABLE(anti_alias,
 	[  --enable-anti-alias     (obsoleted)anti alias[default=disabled]],
 	anti_alias=$enable_anti_alias)
 	
-AC_ARG_ENABLE(type_engines,
+AC_ARG_WITH(type_engines,
 	[  --with-type-engines     type engines[default=xcore]],
 	type_engines=$with_type_engines)
 

@@ -47,7 +47,9 @@ typedef struct x_font
 #ifdef  USE_TYPE_XFT
 	XftFont *  xft_font ;
 #endif
+#ifdef  USE_TYPE_XCORE
 	XFontStruct *  xfont ;
+#endif
 	x_decsp_font_t *  decsp_font ;
 
 	/*

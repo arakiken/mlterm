@@ -334,21 +334,36 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "type_engine")))
 	{
-	#ifdef  USE_TYPE_XFT
-		if( strcmp( value , "xft") == 0)
+		while( 1)
 		{
-			main_config->type_engine = TYPE_XFT ;
-		}
-		else
-	#endif
-		if( strcmp( value , "xcore") == 0)
-		{
-			main_config->type_engine = TYPE_XCORE ;
-		}
-		else
-		{
+			x_type_engine_t  default_engine ;
+			
+		#ifdef  USE_TYPE_XFT
+			if( strcmp( value , "xft") == 0)
+			{
+				main_config->type_engine = TYPE_XFT ;
+
+				break ;
+			}
+
+			default_engine = TYPE_XFT ;
+		#endif
+
+		#ifdef  USE_TYPE_XCORE
+			if( strcmp( value , "xcore") == 0)
+			{
+				main_config->type_engine = TYPE_XCORE ;
+
+				break ;
+			}
+
+			default_engine = TYPE_XCORE ;
+		#endif
+
 			kik_msg_printf( "%s is unsupported type engine.\n" , value) ;
-			main_config->type_engine = TYPE_XCORE ;
+			main_config->type_engine = default_engine ;
+
+			break ;
 		}
 	}
 

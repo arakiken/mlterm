@@ -1,3 +1,7 @@
+2003-12-30  Araki Ken  <arakiken@users.sf.net>
+
+	* Core X Font Subsystem can be removed by --with-type-engines=xft.
+
 2003-12-28  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_screen.c: reverted the last change.

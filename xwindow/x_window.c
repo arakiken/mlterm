@@ -2487,6 +2487,7 @@ x_window_draw_decsp_string(
 		}
 		return  1 ;
 	}
+#ifdef  USE_TYPE_XCORE
 	else if( font->xfont)
 	{
 		if( bg_color)
@@ -2499,12 +2500,14 @@ x_window_draw_decsp_string(
 			return  x_window_draw_string( win , font , fg_color , x , y , str , len) ;
 		}
 	}
+#endif
 	else
 	{
 		return  0 ;
 	}
 }
 
+#ifdef  USE_TYPE_XCORE
 int
 x_window_draw_string(
 	x_window_t *  win ,
@@ -2612,6 +2615,7 @@ x_window_draw_image_string16(
 
 	return  1 ;
 }
+#endif
 
 #ifdef  USE_TYPE_XFT
 int

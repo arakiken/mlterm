@@ -267,6 +267,7 @@ int  x_window_draw_decsp_string( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , x_color_t *  bg_color , int  x , int  y ,
 	u_char *  str , u_int  len) ;
 
+#ifdef  USE_TYPE_XCORE
 int  x_window_draw_string( x_window_t *  win , x_font_t *  font , x_color_t *  fg_color ,
 	int  x , int  y , u_char *  str , u_int  len) ;
 
@@ -280,6 +281,7 @@ int  x_window_draw_image_string( x_window_t *  win , x_font_t *  font ,
 int  x_window_draw_image_string16( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , x_color_t *  bg_color , int  x , int  y ,
 	XChar2b *  str , u_int  len) ;
+#endif
 
 #ifdef  USE_TYPE_XFT
 int  x_window_xft_draw_string8( x_window_t *  win , x_font_t *  font ,

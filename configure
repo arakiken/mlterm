@@ -1834,7 +1834,7 @@ else
   if { (eval echo configure:1835: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
     for file in conftest.*; do
       case $file in
-      *.$ac_ext | *.c | *.o | *.obj) ;;
+      *.c | *.o | *.obj) ;;
       *) ac_cv_exeext=`echo $file | sed -e s/conftest//` ;;
       esac
     done
@@ -6689,9 +6689,9 @@ if test "${enable_anti_alias+set}" = set; then
 fi
 
 	
-# Check whether --enable-type_engines or --disable-type_engines was given.
-if test "${enable_type_engines+set}" = set; then
-  enableval="$enable_type_engines"
+# Check whether --with-type_engines or --without-type_engines was given.
+if test "${with_type_engines+set}" = set; then
+  withval="$with_type_engines"
   type_engines=$with_type_engines
 fi
 
@@ -9635,7 +9635,7 @@ if test "$no_recursion" != yes; then
       fi
     fi
 
-    cd "$ac_popdir"
+    cd $ac_popdir
   done
 fi
 

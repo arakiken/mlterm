@@ -20,13 +20,13 @@ Options for configure
     Remove character property table
 
   --with-imagelib=(imlib|gdk-pixbuf2|gdk-pixbuf1)
-    Image library
+    Use specified image library for image processing
 
   --with-libltdl
     load modules with libltdl
 
-  --enable-anti-alias
-    Use FreeType for anti-alias of TrueType fonts
+  --with-type-engines=(xcore|xft)
+    Use specified type engines for rendering text
 
   --enable-fribidi
     Use Fribidi for BiDi rendering
@@ -44,10 +44,10 @@ Options for configure
     Optimize redrawing a line
 
   --with-scrollbars
-    Build specified scrollbars in a scrollbar/ or contrib/scrollbar/ directory.
+    Build specified scrollbars in scrollbar/ and contrib/scrollbar/ directories
 
   --with-tools
-    Build specified tools in a tool/ or contrib/tool/ directory.
+    Build specified tools in tool/ and contrib/tool/ directories
 
   --disable-shared
     Disable shared libraries

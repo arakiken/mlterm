@@ -497,6 +497,8 @@ xft_draw_str(
 
 #endif
 
+#ifdef  USE_TYPE_XCORE
+
 static int
 x_draw_combining_chars(
 	x_screen_t *  screen ,
@@ -919,6 +921,8 @@ x_draw_str(
 	return	1 ;
 }
 
+#endif
+
 static int
 draw_str(
 	x_screen_t *  screen ,
@@ -934,25 +938,34 @@ draw_str(
 {
 	u_int  updated_width ;
 
-#ifdef  USE_TYPE_XFT
-	if( x_get_type_engine( screen->font_man) & TYPE_XFT)
+	switch( x_get_type_engine( screen->font_man))
 	{
+	default:
+		return  0 ;
+
+#ifdef  USE_TYPE_XFT
+	case  TYPE_XFT:
 		if( ! xft_draw_str( screen , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))
 		{
 			return  0 ;
 		}
-	}
-	else
+
+		break ;
 #endif
-	{
+
+#ifdef  USE_TYPE_XCORE
+	case  TYPE_XCORE:
 		if( ! x_draw_str( screen , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))
 		{
 			return  0 ;
 		}
-	}
 
+		break ;
+#endif
+	}
+	
 	return  1 ;
 }
 
@@ -971,23 +984,32 @@ draw_str_to_eol(
 {
 	u_int  updated_width ;
 
-#ifdef  USE_TYPE_XFT
-	if( x_get_type_engine( screen->font_man) & TYPE_XFT)
+	switch( x_get_type_engine( screen->font_man))
 	{
+	default:
+		return  0 ;
+
+#ifdef  USE_TYPE_XFT
+	case  TYPE_XFT:
 		if( ! xft_draw_str( screen , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))
 		{
 			return  0 ;
 		}
-	}
-	else
+
+		break ;
 #endif
-	{
+
+#ifdef  USE_TYPE_XCORE
+	case  TYPE_XCORE:
 		if( ! x_draw_str( screen , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))
 		{
 			return	0 ;
 		}
+
+		break ;
+#endif
 	}
 
 	if( updated_width < screen->window.width)
