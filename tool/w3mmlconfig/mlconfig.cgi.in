@@ -130,7 +130,7 @@ sub make_section {
 	print <<EOF;
 <td align=left valign=top rowspan=$attr->{row}>
 <b>$attr->{title}</b>
-<table width=240>
+<table width="256">
 EOF
 	for $k (@{$attr->{key}}) {
 		&make_key($k);

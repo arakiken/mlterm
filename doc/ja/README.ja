@@ -166,6 +166,7 @@ comment $Id$
       o use_transbg    ... 背景透過する(true/*false*)
 
       o use_scrollbar       ... スクロールバーをつける(*true*/false)
+				以下の2つのオプションは、これが true の場合のみ有効です。
       o scrollbar_mode      ... スクロールバーのつけ方(none/*left*/right)
       o scrollbar_view_name ... 使いたいスクロールバーの名前(*simple*)
       

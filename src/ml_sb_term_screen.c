@@ -69,17 +69,27 @@ window_resized(
 	)
 {
 	ml_sb_term_screen_t *  sb_termscr ;
+	u_int  actual_width ;
 
 	sb_termscr = (ml_sb_term_screen_t*) win ;
 
+	if( sb_termscr->sb_mode == SB_NONE)
+	{
+		actual_width = ACTUAL_WIDTH(win) ;
+	}
+	else
+	{
+		actual_width = ACTUAL_WIDTH(win) - ACTUAL_WIDTH( &sb_termscr->scrollbar.window)
+				- SEPARATOR_WIDTH ;
+	}
+	
 	ml_window_resize_with_margin( &sb_termscr->termscr->window ,
-		ACTUAL_WIDTH(win) - sb_termscr->scrollbar.window.width - SEPARATOR_WIDTH ,
-		ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
+		actual_width , ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
 
 	ml_window_resize_with_margin( &sb_termscr->scrollbar.window ,
 		ACTUAL_WIDTH( &sb_termscr->scrollbar.window) ,
 		ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
-
+			
 	if( sb_termscr->sb_mode == SB_RIGHT)
 	{
 		move_scrollbar( sb_termscr , 1) ;
@@ -93,6 +103,7 @@ child_window_resized(
 	)
 {
 	ml_sb_term_screen_t *  sb_termscr ;
+	u_int  actual_width ;
 
 	sb_termscr = (ml_sb_term_screen_t*) win ;
 
@@ -105,15 +116,24 @@ child_window_resized(
 	
 		return ;
 	}
+
+	if( sb_termscr->sb_mode == SB_NONE)
+	{
+		actual_width = ACTUAL_WIDTH(child) ;
+	}
+	else
+	{
+		actual_width = ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_termscr->scrollbar.window) +
+				SEPARATOR_WIDTH ;
+	}
 	
 	ml_window_resize_with_margin( &sb_termscr->window ,
-		ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_termscr->scrollbar.window) + SEPARATOR_WIDTH ,
-		ACTUAL_HEIGHT(child) , NOTIFY_TO_NONE) ;
-	
+		actual_width , ACTUAL_HEIGHT(child) , NOTIFY_TO_NONE) ;
+
 	ml_window_resize_with_margin( &sb_termscr->scrollbar.window ,
 		ACTUAL_WIDTH( &sb_termscr->scrollbar.window) ,
 		ACTUAL_HEIGHT(child) , NOTIFY_TO_MYSELF) ;
-		
+
 	if( sb_termscr->sb_mode == SB_RIGHT)
 	{
 		move_scrollbar( sb_termscr , 1) ;
@@ -350,20 +370,25 @@ change_sb_mode(
 	
 	if( mode == SB_NONE)
 	{
+	#if  0
 		ml_window_unmap( &sb_termscr->scrollbar.window) ;
-
+	#endif
+	
 		ml_window_resize_with_margin( &sb_termscr->window ,
 			ACTUAL_WIDTH( &sb_termscr->termscr->window) ,
 			ACTUAL_HEIGHT( &sb_termscr->termscr->window) , NOTIFY_TO_NONE) ;
 
+		/* overlaying scrollbar window */
 		move_term_screen( sb_termscr , 0) ;
 	}
 	else
 	{
 		if( sb_termscr->sb_mode == SB_NONE) ;
 		{
+		#if  0
 			ml_window_map( &sb_termscr->scrollbar.window) ;
-				
+		#endif
+			
 			ml_window_resize_with_margin( &sb_termscr->window ,
 				ACTUAL_WIDTH( &sb_termscr->termscr->window)
 					+ ACTUAL_WIDTH( &sb_termscr->scrollbar.window)
@@ -399,8 +424,7 @@ ml_sb_term_screen_new(
 	)
 {
 	ml_sb_term_screen_t *  sb_termscr ;
-	u_int  width ;
-	u_int  height ;
+	u_int  actual_width ;
 	
 	if( ( sb_termscr = malloc( sizeof( ml_sb_term_screen_t))) == NULL)
 	{
@@ -456,18 +480,17 @@ ml_sb_term_screen_new(
 	
 	if( sb_termscr->sb_mode == SB_NONE)
 	{
-		width = ACTUAL_WIDTH( &termscr->window) - termscr->window.margin * 2 ;
-		height = ACTUAL_HEIGHT( &termscr->window) - termscr->window.margin * 2 ;
+		actual_width = ACTUAL_WIDTH( &termscr->window) ;
 	}
 	else
 	{
-		width = (ACTUAL_WIDTH( &termscr->window) + ACTUAL_WIDTH( &sb_termscr->scrollbar.window)
-				+ SEPARATOR_WIDTH) - termscr->window.margin * 2 ;
-		height = ACTUAL_HEIGHT( &termscr->window) - termscr->window.margin * 2 ;
+		actual_width = (ACTUAL_WIDTH( &termscr->window) +
+				ACTUAL_WIDTH( &sb_termscr->scrollbar.window) + SEPARATOR_WIDTH) ;
 	}
 	
 	if( ml_window_init( &sb_termscr->window , ml_color_table_dup( color_table) ,
-		width , height ,
+		actual_width - termscr->window.margin * 2 ,
+		ACTUAL_HEIGHT( &termscr->window) - termscr->window.margin * 2 ,
 		termscr->window.min_width , termscr->window.min_height ,
 		termscr->window.width_inc , termscr->window.height_inc ,
 		termscr->window.margin) == 0)
@@ -512,7 +535,8 @@ ml_sb_term_screen_new(
 		{
 			goto  error ;
 		}
-		
+
+		/* overlaying scrollbar window */
 		if( ml_window_add_child( &sb_termscr->window , &termscr->window , 0 , 0) == 0)
 		{
 			goto  error ;

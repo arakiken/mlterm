@@ -195,9 +195,11 @@ int  ml_window_remove_event_mask( ml_window_t *  win , long  event_mask) ;
 
 int  ml_window_show( ml_window_t *  win , int  hint) ;
 
+#if  0
 int  ml_window_map( ml_window_t *  win) ;
 
 int  ml_window_unmap( ml_window_t *  win) ;
+#endif
 
 int  ml_window_reset_font( ml_window_t *  win) ;
 

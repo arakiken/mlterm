@@ -2136,11 +2136,12 @@ ml_window_show(
 		ml_window_show( win->children[counter] , 0) ;
 	}
 
-	ml_window_map( win) ;
+	XMapWindow( win->display , win->my_window) ;
 
 	return  1 ;
 }
 
+#if  0
 int
 ml_window_map(
 	ml_window_t *  win
@@ -2160,6 +2161,7 @@ ml_window_unmap(
 
 	return  1 ;
 }
+#endif
 
 int
 ml_window_reset_font(
