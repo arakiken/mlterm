@@ -193,7 +193,7 @@ reverse_or_restore_color(
 	
 	while( ( line = ml_screen_get_line( screen , row)) == NULL || ml_line_is_empty( line))
 	{
-		if( abs(-- row) > ml_get_num_of_logged_lines( &screen->logs))
+		if( -- row < 0 && abs(row) > ml_get_num_of_logged_lines( &screen->logs))
 		{
 			return  0 ;
 		}
@@ -379,7 +379,7 @@ check_or_copy_region(
 	
 	while( ( line = ml_screen_get_line( screen , row)) == NULL || ml_line_is_empty( line))
 	{
-		if( abs(-- row) > ml_get_num_of_logged_lines( &screen->logs))
+		if( -- row < 0 && abs(row) > ml_get_num_of_logged_lines( &screen->logs))
 		{
 			return  0 ;
 		}
