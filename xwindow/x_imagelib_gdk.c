@@ -397,6 +397,7 @@ compose_to_pixmap_24t(
 	long r_mask, g_mask, b_mask;
 	long r, g, b;
 	int matched;
+	u_int32_t * data;
 	XVisualInfo *vinfolist;
 	XVisualInfo vinfo;
 
@@ -423,19 +424,21 @@ compose_to_pixmap_24t(
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3;
 	rowstride = gdk_pixbuf_get_rowstride (pixbuf);
        	line = gdk_pixbuf_get_pixels (pixbuf);
+	data = (u_int32_t *)image->data;
 	for( i = 0; i < height; i++){
 		pixel = line;
 		for( j = 0; j < width; j++){
-			r = ((((u_int32_t *)image->data)[ i*width + j]) & r_mask ) >>r_offset;
-			g = ((((u_int32_t *)image->data)[ i*width + j]) & g_mask ) >>g_offset;
-			b = ((((u_int32_t *)image->data)[ i*width + j]) & b_mask ) >>b_offset;
-			r = (r*(255 - pixel[3]) + pixel[0] * pixel[3])/255;
-			g = (g*(255 - pixel[3]) + pixel[1] * pixel[3])/255;
-			b = (b*(255 - pixel[3]) + pixel[2] * pixel[3])/255;
-			((u_int32_t *)image->data)[i*width +j ] = 
+			r = ((*data) & r_mask ) >>r_offset;
+			g = ((*data) & g_mask ) >>g_offset;
+			b = ((*data) & b_mask ) >>b_offset;
+			r = (r*(256 - pixel[3]) + pixel[0] * pixel[3])>>8;
+			g = (g*(256 - pixel[3]) + pixel[1] * pixel[3])>>8;
+			b = (b*(256 - pixel[3]) + pixel[2] * pixel[3])>>8;
+			*data = 
 				((r <<r_offset ) & r_mask) |
 				((g <<g_offset ) & g_mask) |
 				((b <<b_offset ) & b_mask);
+			data++;
 			pixel +=bytes_per_pixel;
 		}
 		line += rowstride;
@@ -820,6 +823,9 @@ x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_pic
 #endif /*OLD_GDK_PIXBUF*/
 		wp_cache_data = pixbuf;
 		wp_cache_name = strdup( file_path);
+
+		wp_cache_height = 0;
+		wp_cache_width = 0;
 	}
 	
 	pixmap = XCreatePixmap( win->display, win->my_window,
