@@ -169,10 +169,13 @@ load_file(
 /* create a pixbuf from an array of cardinals */
 static GdkPixbuf *
 create_pixbuf_from_cardinals(
-	u_int32_t *  cardinal
+	u_int32_t *  cardinal,
+	int  req_width,
+	int  req_height
 	)
 {
 	GdkPixbuf *  pixbuf ;
+	GdkPixbuf *  scaled ;
 	int  rowstride ;
 	unsigned char *  line ;
 	unsigned char *  pixel ;
@@ -188,6 +191,7 @@ create_pixbuf_from_cardinals(
 
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
+	cardinal += 2 ;
 
 	for( i = 0 ; i < width ; i++)
 	{
@@ -205,7 +209,29 @@ create_pixbuf_from_cardinals(
 		}
 		line += rowstride ;
 	}
-	return  pixbuf ;
+
+
+	if( req_width == 0)
+		req_width = width ;
+	if( req_height == 0)
+		req_height = height ;
+
+	if( (req_width != width) || (req_height != height) )
+		scaled = gdk_pixbuf_scale_simple(pixbuf, req_width, req_height,
+						 GDK_INTERP_TILES);
+	else
+		scaled = NULL ;
+
+	if( scaled)
+	{
+		gdk_pixbuf_unref( pixbuf);
+
+		return  scaled ;
+	}
+	else
+	{
+		return  pixbuf ;
+	}
 }
 
 /* create an CARDINAL array for_NET_WM_ICON data */
@@ -1669,8 +1695,6 @@ int x_imagelib_load_file(
 {
 	GdkPixbuf *  pixbuf ;
 
-	if( !path && !cardinal)
-		return  0 ;
 	if( path)
 	{
 		/* create a pixbuf from the file and create a cardinal array */
@@ -1686,10 +1710,10 @@ int x_imagelib_load_file(
 	}
 	else
 	{
-		if( !(*cardinal))
+		if( !cardinal || !(*cardinal))
 			return  0 ;
 		/* create a pixbuf from the cardinal array */
-		pixbuf = create_pixbuf_from_cardinals( *cardinal) ;
+		pixbuf = create_pixbuf_from_cardinals( *cardinal, width, height) ;
 		if( !pixbuf)
 			return  0 ;
 
