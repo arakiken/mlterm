@@ -177,6 +177,7 @@ insert_chars(
 	u_int  buf_len ;
 	u_int  filled_len ;
 	u_int  filled_cols ;
+	u_int  last_index ;
 	int  cols_rest ;
 	int  cols_after ;
 	int  count ;
@@ -251,7 +252,9 @@ insert_chars(
 		ml_char_copy( &buffer[filled_len ++] , &ins_chars[count]) ;
 		filled_cols += ml_char_cols( &ins_chars[count]) ;
 	}
-	
+
+	last_index = filled_len ;
+
 	if( filled_cols < edit->model.num_of_cols)
 	{
 		/*
@@ -322,7 +325,7 @@ line_full:
 
 	if( do_move_cursor)
 	{
-		cursor_goto_by_char_index( edit , edit->cursor.char_index + filled_len ,
+		cursor_goto_by_char_index( edit , edit->cursor.char_index + last_index ,
 			edit->cursor.row , BREAK_BOUNDARY) ;
 	}
 	else if( cols_rest)
