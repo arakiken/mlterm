@@ -108,7 +108,7 @@ load_file(
 	{
 		/* create new pixbuf */
 #ifdef DEBUG
-		kik_warn_printf(KIK_DEBUG_TAG "adding pixbuf to cache(%s/%s)\n", path);
+		kik_warn_printf(KIK_DEBUG_TAG "adding pixbuf to cache(%s)\n", path);
 #endif
 		/* get rid of old cache data */
 		if( misc.name)
