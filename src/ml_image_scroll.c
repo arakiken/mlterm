@@ -30,36 +30,38 @@ copy_lines(
 	)
 {
 	int  counter ;
+	ml_image_line_t *  src_line ;
+	ml_image_line_t *  dst_line ;
 	
 	if( size == 0 || dst_row == src_row)
 	{
 		return  1 ;
 	}
 
-	if( src_row + size > image->num_of_rows)
+	if( src_row + size > image->model.num_of_rows)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG
-			" copying %d lines from %d row is over image->num_of_rows(%d)" ,
-			size , src_row , image->num_of_rows) ;
+			" copying %d lines from %d row is over image->model.num_of_rows(%d)" ,
+			size , src_row , image->model.num_of_rows) ;
 	#endif
 
-		size = image->num_of_rows - src_row ;
+		size = image->model.num_of_rows - src_row ;
 
 	#ifdef  DEBUG
 		kik_msg_printf( " ... size modified -> %d.\n" , size) ;
 	#endif
 	}
 	
-	if( dst_row + size > image->num_of_rows)
+	if( dst_row + size > image->model.num_of_rows)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG
-			" copying %d lines to %d row is over image->num_of_rows(%d)" ,
-			size , dst_row , image->num_of_rows) ;
+			" copying %d lines to %d row is over image->model.num_of_rows(%d)" ,
+			size , dst_row , image->model.num_of_rows) ;
 	#endif
 
-		size = image->num_of_rows - dst_row ;
+		size = image->model.num_of_rows - dst_row ;
 
 	#ifdef  DEBUG
 		kik_msg_printf( " ... size modified -> %d.\n" , size) ;
@@ -70,14 +72,14 @@ copy_lines(
 	{
 		for( counter = 0 ; counter < size ; counter ++)
 		{
-			ml_imgline_copy_line( &IMAGE_LINE(image,dst_row + counter) ,
-				&IMAGE_LINE(image,src_row + counter)) ;
+			dst_line = ml_imgmdl_get_line( &image->model , dst_row + counter) ;
+			src_line = ml_imgmdl_get_line( &image->model , src_row + counter) ;
+			
+			ml_imgline_copy_line( dst_line , src_line) ;
 			if( mark_changed)
 			{
-				ml_imgline_set_modified(
-					&IMAGE_LINE(image,dst_row + counter) , 0 ,
-					ml_imgline_end_char_index( &IMAGE_LINE(image,dst_row + counter)) ,
-					1) ;
+				ml_imgline_set_modified( dst_line ,
+					0 , ml_imgline_end_char_index( dst_line) , 1) ;
 			}
 		}
 	}
@@ -85,14 +87,14 @@ copy_lines(
 	{
 		for( counter = size - 1 ; counter >= 0 ; counter --)
 		{
-			ml_imgline_copy_line( &IMAGE_LINE(image,dst_row + counter) ,
-				&IMAGE_LINE(image,src_row + counter)) ;
+			dst_line = ml_imgmdl_get_line( &image->model , dst_row + counter) ;
+			src_line = ml_imgmdl_get_line( &image->model , src_row + counter) ;
+			
+			ml_imgline_copy_line( dst_line , src_line) ;
 			if( mark_changed)
 			{
-				ml_imgline_set_modified(
-					&IMAGE_LINE(image,dst_row + counter) , 0 ,
-					ml_imgline_end_char_index( &IMAGE_LINE(image,dst_row + counter)) ,
-					1) ;
+				ml_imgline_set_modified( dst_line ,
+					0 , ml_imgline_end_char_index( dst_line) , 1) ;
 			}
 		}
 	}
@@ -110,11 +112,10 @@ scroll_upward_region(
 {
 	int  counter ;
 	int  window_is_scrolled ;
-	int  old_num_of_filled_rows ;
 
-	if( END_ROW(image) < boundary_end)
+	if( ml_imgmdl_end_row( &image->model) < boundary_end)
 	{
-		boundary_end = END_ROW(image) ;
+		boundary_end = ml_imgmdl_end_row( &image->model) ;
 	}
 
 	if( boundary_beg + size > boundary_end)
@@ -128,7 +129,8 @@ scroll_upward_region(
 			for( counter = boundary_beg ; counter < boundary_end ; counter ++)
 			{
 				(*image->scroll_listener->receive_upward_scrolled_out_line)(
-					image->scroll_listener->self , &IMAGE_LINE(image,counter)) ;
+					image->scroll_listener->self ,
+					ml_imgmdl_get_line( &image->model , counter)) ;
 			}
 		}
 
@@ -154,7 +156,8 @@ scroll_upward_region(
 		for( counter = boundary_beg ; counter < boundary_beg + size ; counter ++)
 		{
 			(*image->scroll_listener->receive_upward_scrolled_out_line)(
-				image->scroll_listener->self , &IMAGE_LINE(image,counter)) ;
+				image->scroll_listener->self ,
+				ml_imgmdl_get_line( &image->model , counter)) ;
 		}
 	}
 
@@ -180,75 +183,25 @@ scroll_upward_region(
 	 * scrolling up in image.
 	 */
 	 
-	old_num_of_filled_rows = image->num_of_filled_rows ;
-
-	if( boundary_beg > 0)
+	if( boundary_beg == 0 && boundary_end == image->model.num_of_rows - 1)
 	{
-		/*
-		 * this operation doesn't actually modify anything on screen ,
-		 * so mark_changed flag is set 0
-		 */
-		copy_lines( image , size , 0 , boundary_beg , 0) ;
-	}
-
-	/* sliding offset */
-	if( image->beg_row + size >= image->num_of_rows)
-	{
-		image->beg_row = (image->beg_row + size) - image->num_of_rows ;
+		ml_imgmdl_scroll_upward( &image->model , size) ;
 	}
 	else
 	{
-		image->beg_row += size ;
+		copy_lines( image , boundary_beg , boundary_beg + size ,
+			boundary_end - (boundary_beg + size) + 1 , 0) ;
 	}
-
-	if( boundary_end < END_ROW(image))
-	{
-		/*
-		 * this operation doesn't actually modify anything on screen ,
-		 * so mark_changed flag is set 0.
-		 */
-		copy_lines( image , boundary_end + 1 , boundary_end + 1 - size ,
-			END_ROW(image) - boundary_end , 0) ;
-
-		/* num_of_filled_rows value doesn't change */
-	}
-	else if( boundary_end == END_ROW(image))
-	{
-		image->num_of_filled_rows -= size ;
-	}
-
-	/*
-	 * clearing
-	 */
-
-	for( counter = boundary_end - size + 1 ; counter <= boundary_end  ; counter ++)
-	{
-		ml_imgline_clear( &IMAGE_LINE(image,counter) , 0 , &image->sp_ch) ;
-	}
-	 
-	for( counter = image->num_of_filled_rows ; counter < old_num_of_filled_rows ; counter ++)
-	{
-		ml_imgline_reset( &IMAGE_LINE(image,counter)) ;
-
-		/*
-		 * this is necessary because lines between old_num_of_filled_rows and
-		 * num_of_filled_rows are cleared above but not cleared in window.
-		 */
-		ml_imgline_set_modified_all( &IMAGE_LINE(image,counter)) ;
-	}
-
-	for( ; counter < image->num_of_rows ; counter ++)
-	{
-		ml_imgline_reset( &IMAGE_LINE(image,counter)) ;
-	}
-
+	
+	ml_image_clear_lines( image , boundary_end - size + 1 , size) ;
+	
 	if( ! window_is_scrolled)
 	{
 		int  counter ;
 
 		for( counter = boundary_beg ; counter <= boundary_end ; counter ++)
 		{
-			ml_imgline_set_modified_all( &IMAGE_LINE(image,counter)) ;
+			ml_imgline_set_modified_all( ml_imgmdl_get_line( &image->model , counter)) ;
 		}
 	}
 
@@ -263,12 +216,11 @@ scroll_downward_region(
 	u_int  size
 	)
 {
-	int  counter ;
 	int  window_is_scrolled ;
 
-	if( END_ROW(image) < boundary_end)
+	if( ml_imgmdl_end_row( &image->model) < boundary_end)
 	{
-		boundary_end = END_ROW(image) ;
+		boundary_end = ml_imgmdl_end_row( &image->model) ;
 	}
 	
 	if( boundary_beg + size > boundary_end)
@@ -310,62 +262,25 @@ scroll_downward_region(
 	/*
 	 * scrolling down in image.
 	 */
-	 
-	if( boundary_end < END_ROW(image))
+	if( boundary_beg == 0 && boundary_end == image->model.num_of_rows - 1)
 	{
-		/*
-		 * this operation doesn't actually modify anything on screen ,
-		 * so mark_changed flag is set 0
-		 */
-		copy_lines( image , boundary_end + 1 - size ,
-			boundary_end + 1 , END_ROW(image) - boundary_end , 0) ;
-
-		/* num_of_filled_rows value doesn't change */
-	}
-	else if( boundary_end == END_ROW(image))
-	{
-		image->num_of_filled_rows = K_MIN(image->num_of_filled_rows + size,image->num_of_rows) ;
-	}
-
-	if( image->beg_row < size)
-	{
-		image->beg_row = image->num_of_rows - (size - image->beg_row) ;
+		ml_imgmdl_scroll_downward( &image->model , size) ;
 	}
 	else
 	{
-		image->beg_row -= size ;
+		copy_lines( image , boundary_beg + size , boundary_beg ,
+			(boundary_end - size) - boundary_beg + 1 , 0) ;
 	}
-
-	if( boundary_beg > 0)
-	{
-		/*
-		 * this operation doesn't actually modify anything on screen ,
-		 * so mark_changed flag is set 0
-		 */
-		copy_lines( image , 0 , size , boundary_beg , 0) ;
-	}
-
-	/*
-	 * clearing
-	 */
 	
-	for( counter = boundary_beg ; counter < boundary_beg + size ; counter ++)
-	{
-		ml_imgline_clear( &IMAGE_LINE(image,counter) , 0 , &image->sp_ch) ;
-	}
-
-	for( counter = image->num_of_filled_rows ; counter < image->num_of_rows ; counter ++)
-	{
-		ml_imgline_reset( &IMAGE_LINE(image,counter)) ;
-	}
-
+	ml_image_clear_lines( image , boundary_beg , size) ;
+	
 	if( ! window_is_scrolled)
 	{	
 		int  counter ;
 		
 		for( counter = boundary_beg ; counter <= boundary_end ; counter ++)
 		{
-			ml_imgline_set_modified_all( &IMAGE_LINE(image,counter)) ;
+			ml_imgline_set_modified_all( ml_imgmdl_get_line( &image->model , counter)) ;
 		}
 	}
 
@@ -426,7 +341,7 @@ ml_imgscrl_scroll_upward_in_all(
 	u_int  size
 	)
 {
-	return  scroll_upward_region( image , 0 , image->num_of_rows - 1 , size) ;
+	return  scroll_upward_region( image , 0 , image->model.num_of_rows - 1 , size) ;
 }
 
 int
@@ -435,7 +350,7 @@ ml_imgscrl_scroll_downward_in_all(
 	u_int  size
 	)
 {
-	return  scroll_downward_region( image , 0 , image->num_of_rows - 1 , size) ;
+	return  scroll_downward_region( image , 0 , image->model.num_of_rows - 1 , size) ;
 }
 #endif
 
@@ -475,13 +390,13 @@ ml_imgscrl_insert_new_line(
 		start_row = image->cursor.row ;
 	}
 	
-	if( image->scroll_region_end < END_ROW(image))
+	if( image->scroll_region_end < ml_imgmdl_end_row( &image->model))
 	{
 		end_row = image->scroll_region_end ;
 	}
 	else
 	{
-		end_row = END_ROW(image) ;
+		end_row = ml_imgmdl_end_row( &image->model) ;
 	}
 
 	copy_rows = end_row - start_row + 1 ;
@@ -514,13 +429,13 @@ ml_imgscrl_delete_line(
 		start_row = image->cursor.row ;
 	}
 
-	if( image->scroll_region_end < END_ROW(image))
+	if( image->scroll_region_end < ml_imgmdl_end_row( &image->model))
 	{
 		end_row = image->scroll_region_end ;
 	}
 	else
 	{
-		end_row = END_ROW(image) ;
+		end_row = ml_imgmdl_end_row( &image->model) ;
 	}
 	
 	copy_lines( image , start_row , start_row + 1 , end_row - start_row , 1) ;

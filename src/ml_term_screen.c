@@ -4523,6 +4523,7 @@ ml_term_screen_delete(
 	 */
 	if( termscr->logvis)
 	{
+		(*termscr->logvis->logical)( termscr->logvis) ;
 		(*termscr->logvis->delete)( termscr->logvis) ;
 	}
 

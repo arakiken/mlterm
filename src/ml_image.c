@@ -23,60 +23,10 @@
 #define  CURSOR_DEBUG
 #endif
 
-#ifdef  DEBUG
-#define  LINE_TAB_STOPS_SIZE(image)  ((image)->num_of_cols == 0 ? 0 : ((image)->num_of_cols - 1) / 8 + 1)
-#else
-#define  LINE_TAB_STOPS_SIZE(image)  (((image)->num_of_cols - 1) / 8 + 1)
-#endif
+#define  LINE_TAB_STOPS_SIZE(image)  (((image)->model.num_of_cols - 1) / 8 + 1)
 
 
 /* --- static functions --- */
-
-/*
- * return: actually broken rows.
- */
-static u_int
-break_row_boundary(
-	ml_image_t *  image ,
-	u_int  size
-	)
-{
-	int  counter ;
-
-	if( image->num_of_filled_rows + size > image->num_of_rows)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " breaking from line %d by size %d failed." ,
-			END_ROW(image) , size) ;
-	#endif
-
-		size = image->num_of_rows - image->num_of_filled_rows ;
-
-	#ifdef  DEBUG
-		kik_msg_printf( " ... size is modified -> %d\n" , size) ;
-	#endif
-	}
-
-	if( size == 0)
-	{
-		/* nothing is done */
-		
-		return  0 ;
-	}
-
-	for( counter = image->num_of_filled_rows ; counter < image->num_of_filled_rows + size ; counter ++)
-	{
-		ml_imgline_clear( &IMAGE_LINE(image,counter) , 0 , &image->sp_ch) ;
-	}
-
-	image->num_of_filled_rows += size ;
-
-	/*
-	 * change char index is not updated , because space has no glyph.
-	 */
-	 
-	return  size ;
-}
 
 static void
 reset_wraparound_checker(
@@ -90,7 +40,7 @@ reset_wraparound_checker(
 }
 
 /*
- * if len is over IMAGE_LINE(image,end_row).num_of_filled_chars , *char_index points over it.
+ * if len is over num_of_filled_chars of end line, *char_index points over it.
  */
 static ml_image_line_t *
 get_pos(
@@ -103,24 +53,30 @@ get_pos(
 	u_int  len
 	)
 {
+	ml_image_line_t *  line ;
+
 	*char_index = start_char_index + len ;
 
 	for( *row = start_row ; *row < end_row ; (*row) ++)
 	{
-		if( *char_index < IMAGE_LINE(image,*row).num_of_filled_chars)
+		line = ml_imgmdl_get_line( &image->model , *row) ;
+		
+		if( *char_index < line->num_of_filled_chars)
 		{
 			return  NULL ;
 		}
 
-		*char_index -= IMAGE_LINE(image,*row).num_of_filled_chars ;
+		*char_index -= line->num_of_filled_chars ;
 	}
 
-	if( ml_imgline_get_num_of_filled_cols( &IMAGE_LINE(image,end_row)) == image->num_of_cols &&
-		*char_index > ml_imgline_end_char_index( &IMAGE_LINE(image,end_row)))
+	line = ml_imgmdl_get_line( &image->model , end_row) ;
+
+	if( ml_imgline_get_num_of_filled_cols( line) == image->model.num_of_cols &&
+		*char_index > ml_imgline_end_char_index( line))
 	{
-		*char_index = ml_imgline_end_char_index( &IMAGE_LINE(image,end_row)) ;
+		*char_index = ml_imgline_end_char_index( line) ;
 		
-		return  &IMAGE_LINE(image,end_row) ;
+		return  line ;
 	}
 
 	return  NULL ;
@@ -149,7 +105,7 @@ render_chars(
 	else
 	{
 		ml_line_hints_change_size( &image->line_hints ,
-			image->num_of_rows - image->scroll_region_end - 1) ;
+			image->model.num_of_rows - image->scroll_region_end - 1) ;
 	}
 	
 	ml_line_hints_reset( &image->line_hints) ;
@@ -161,22 +117,22 @@ render_chars(
 	line_cols = 0 ;	
 	while( 1)
 	{
-		if( line_cols + ml_char_cols( &chars[counter]) > image->num_of_cols)
+		if( line_cols + ml_char_cols( &chars[counter]) > image->model.num_of_cols)
 		{
 			/* wraparound line */
 
 			/* excluding this char */
 			line_len = counter - bol ;
 			
-			if( line_len > image->num_of_cols)
+			if( line_len > image->model.num_of_cols)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG 
 					" line len %d is over ml_image_t::num_of_cols %d" ,
-					line_len , image->num_of_cols) ;
+					line_len , image->model.num_of_cols) ;
 			#endif
 
-				line_len = image->num_of_cols ;
+				line_len = image->model.num_of_cols ;
 
 			#ifdef  DEBUG
 				kik_msg_printf( " ... modified -> %d\n" , line_len) ;
@@ -204,15 +160,15 @@ render_chars(
 			{
 				line_len = counter - bol ;
 				
-				if( line_len > image->num_of_cols)
+				if( line_len > image->model.num_of_cols)
 				{
 				#ifdef  DEBUG
 					kik_warn_printf( KIK_DEBUG_TAG 
 						" line len %d is over ml_image_t::num_of_chars %d" ,
-						line_len , image->num_of_cols) ;
+						line_len , image->model.num_of_cols) ;
 				#endif
 
-					line_len = image->num_of_cols ;
+					line_len = image->model.num_of_cols ;
 
 				#ifdef  DEBUG
 					kik_msg_printf( "... modified -> %d\n" , line_len) ;
@@ -223,7 +179,7 @@ render_chars(
 
 				ml_line_hints_add( &image->line_hints , bol , line_len , line_cols) ;
 
-				if( row >= image->num_of_rows)
+				if( row >= image->model.num_of_rows)
 				{
 					scroll_size ++ ;
 				}
@@ -265,12 +221,12 @@ overwrite_lines(
 	num_of_lines = ml_get_num_of_lines_by_hints( &image->line_hints) ;
 
 #ifdef  DEBUG
-	if( num_of_lines > image->num_of_rows)
+	if( num_of_lines > image->model.num_of_rows)
 	{
 		kik_warn_printf( KIK_DEBUG_TAG
 			" ml_get_num_of_lines_by_hints() returns too large value.\n") ;
 		
-		num_of_lines = image->num_of_rows ;
+		num_of_lines = image->model.num_of_rows ;
 	}
 #endif
 
@@ -306,7 +262,7 @@ overwrite_lines(
 			return  0 ;
 		}
 
-		line = &IMAGE_LINE(image,current_row) ;
+		line = ml_imgmdl_get_line( &image->model , current_row) ;
 		
 		if( ++ counter == num_of_lines)
 		{
@@ -328,9 +284,9 @@ overwrite_lines(
 		beg_char_index = 0 ;
 	}
 
-	if( current_row >= image->num_of_filled_rows)
+	if( current_row >= image->model.num_of_filled_rows)
 	{
-		image->num_of_filled_rows = current_row + 1 ;
+		image->model.num_of_filled_rows = current_row + 1 ;
 	}
 
 	return  1 ;
@@ -349,65 +305,68 @@ cursor_goto_intern(
 	u_int  actual ;
 	int  char_index ;
 	int  cols_rest ;
+	ml_image_line_t *  line ;
 
-	if( row > END_ROW(image))
+	if( row > ml_imgmdl_end_row( &image->model))
 	{
 		if( ! ( flag & BREAK_BOUNDARY))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot goto row %d(total lines are %d)\n" ,
-				row , image->num_of_filled_rows) ;
+				row , image->model.num_of_filled_rows) ;
 		#endif
 
 			return  0 ;
 		}
 
-		brk_size = row - END_ROW(image) ;
+		brk_size = row - ml_imgmdl_end_row( &image->model) ;
 		
-		if( ( actual = break_row_boundary( image , brk_size)) < brk_size)
+		if( ( actual = ml_imgmdl_break_boundary( &image->model , brk_size , &image->sp_ch))
+			< brk_size)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot goto row %d(total lines are %d)\n" ,
-				row , image->num_of_filled_rows) ;
+				row , image->model.num_of_filled_rows) ;
 		#endif
 
 			row -= (brk_size - actual) ;
 		}
 	}
 
+	line = ml_imgmdl_get_line( &image->model , row) ;
+	
 	if( is_col)
 	{
-		char_index = ml_convert_col_to_char_index( &IMAGE_LINE(image,row) , &cols_rest ,
-					col_or_indx , BREAK_BOUNDARY) ;
+		char_index = ml_convert_col_to_char_index( line , &cols_rest , col_or_indx ,
+				BREAK_BOUNDARY) ;
 	}
 	else
 	{
 		char_index = col_or_indx ;
 		cols_rest = 0 ;
 	}
-	
-	if( char_index > ml_imgline_end_char_index( &IMAGE_LINE(image,row)))
+
+	if( char_index > ml_imgline_end_char_index( line))
 	{
 		if( ! ( flag & BREAK_BOUNDARY))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf(
 				KIK_DEBUG_TAG " cursor cannot goto char_index %d(line length is %d)\n" ,
-				char_index , IMAGE_LINE(image,row).num_of_filled_chars) ;
+				char_index , line->num_of_filled_chars) ;
 		#endif
 		
 			return  0 ;
 		}
 
-		brk_size = char_index + cols_rest + 1 - IMAGE_LINE(image,row).num_of_filled_chars ;
+		brk_size = char_index + cols_rest + 1 - line->num_of_filled_chars ;
 		
-		if( ( actual = ml_imgline_break_boundary( &IMAGE_LINE(image,row) , brk_size , &image->sp_ch))
-			< brk_size)
+		if( ( actual = ml_imgline_break_boundary( line , brk_size , &image->sp_ch)) < brk_size)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf(
 				KIK_DEBUG_TAG " cursor cannot goto char index %d(line length is %d)\n" ,
-				char_index , IMAGE_LINE(image,row).num_of_filled_chars) ;
+				char_index , line->num_of_filled_chars) ;
 		#endif
 
 			char_index -= (brk_size - actual) ;
@@ -418,7 +377,7 @@ cursor_goto_intern(
 	image->cursor.row = row ;
 	
 	image->cursor.col =
-		ml_convert_char_index_to_col( &CURSOR_LINE(image) , image->cursor.char_index , 0)
+		ml_convert_char_index_to_col( CURSOR_LINE(image) , image->cursor.char_index , 0)
 		+ cols_rest ;
 
 	return  1 ;
@@ -443,14 +402,14 @@ cursor_goto_by_col(
 	int  flag		/* BREAK_BOUNDARY */
 	)
 {
-	if( col >= image->num_of_cols)
+	if( col >= image->model.num_of_cols)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " col(%d) is larger than num_of_cols(%d)" ,
-			col , image->num_of_cols) ;
+			col , image->model.num_of_cols) ;
 	#endif
 	
-		col = image->num_of_cols - 1 ;
+		col = image->model.num_of_cols - 1 ;
 		
 	#ifdef  DEBUG
 		kik_msg_printf( " ... col modified -> %d\n" , col) ;
@@ -488,7 +447,7 @@ insert_chars(
 		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
-	buf_len = image->num_of_cols ;
+	buf_len = image->model.num_of_cols ;
 	
 	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
 	{
@@ -507,7 +466,7 @@ insert_chars(
 	 
 	if( image->cursor.char_index > 0)
 	{
-		ml_str_copy( &buffer[filled_len] , CURSOR_LINE(image).chars , image->cursor.char_index) ;
+		ml_str_copy( &buffer[filled_len] , CURSOR_LINE(image)->chars , image->cursor.char_index) ;
 		filled_len += image->cursor.char_index ;
 	}
 
@@ -516,11 +475,11 @@ insert_chars(
 		ml_char_copy( &buffer[filled_len++] , &image->prev_recv_ch) ;
 	}
 	
-	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
+	ml_convert_col_to_char_index( CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
 	if( cols_rest)
 	{
 	#ifdef  DEBUG
-		if( ml_char_cols( &CURSOR_CHAR(image)) <= cols_rest)
+		if( ml_char_cols( CURSOR_CHAR(image)) <= cols_rest)
 		{
 			kik_warn_printf( KIK_DEBUG_TAG " illegal cols_rest.\n") ;
 		}
@@ -534,7 +493,7 @@ insert_chars(
 			ml_char_copy( &buffer[filled_len ++] , &image->sp_ch) ;
 		}
 		
-		cols_after = ml_char_cols( &CURSOR_CHAR(image)) - cols_rest ;
+		cols_after = ml_char_cols( CURSOR_CHAR(image)) - cols_rest ;
 	}
 	else
 	{
@@ -558,7 +517,7 @@ insert_chars(
 	
 	for( counter = 0 ; counter < num_of_ins_chars ; counter ++)
 	{
-		if( filled_cols + ml_char_cols( &ins_chars[counter]) > image->num_of_cols)
+		if( filled_cols + ml_char_cols( &ins_chars[counter]) > image->model.num_of_cols)
 		{
 			break ;
 		}
@@ -572,7 +531,7 @@ insert_chars(
 		cursor_index = filled_len ;
 	}
 	
-	if( filled_cols < image->num_of_cols)
+	if( filled_cols < image->model.num_of_cols)
 	{
 		/*
 		 * cursor char
@@ -585,7 +544,7 @@ insert_chars(
 			 */
 			for( counter = 0 ; counter < cols_after ; counter ++)
 			{
-				if( filled_cols + ml_char_cols( &image->sp_ch) > image->num_of_cols)
+				if( filled_cols + ml_char_cols( &image->sp_ch) > image->model.num_of_cols)
 				{
 					goto  line_full ;
 				}
@@ -596,13 +555,13 @@ insert_chars(
 		}
 		else
 		{
-			if( filled_cols + ml_char_cols( &CURSOR_CHAR(image)) > image->num_of_cols)
+			if( filled_cols + ml_char_cols( CURSOR_CHAR(image)) > image->model.num_of_cols)
 			{
 				goto  line_full ;
 			}
 
-			ml_char_copy( &buffer[filled_len++] , &CURSOR_CHAR(image)) ;
-			filled_cols += ml_char_cols( &CURSOR_CHAR(image)) ;
+			ml_char_copy( &buffer[filled_len++] , CURSOR_CHAR(image)) ;
+			filled_cols += ml_char_cols( CURSOR_CHAR(image)) ;
 		}
 
 		/*
@@ -610,17 +569,17 @@ insert_chars(
 		 */
 		 
 		for( counter = image->cursor.char_index + 1 ;
-			counter < CURSOR_LINE(image).num_of_filled_chars ;
+			counter < CURSOR_LINE(image)->num_of_filled_chars ;
 			counter ++)
 		{
-			if( filled_cols + ml_char_cols( &CURSOR_LINE(image).chars[counter]) >
-				image->num_of_cols)
+			if( filled_cols + ml_char_cols( &CURSOR_LINE(image)->chars[counter]) >
+				image->model.num_of_cols)
 			{
 				break ;
 			}
 
-			ml_char_copy( &buffer[filled_len ++] , &CURSOR_LINE(image).chars[counter]) ;
-			filled_cols += ml_char_cols( &CURSOR_LINE(image).chars[counter]) ;
+			ml_char_copy( &buffer[filled_len ++] , &CURSOR_LINE(image)->chars[counter]) ;
+			filled_cols += ml_char_cols( &CURSOR_LINE(image)->chars[counter]) ;
 		}
 	}
 
@@ -630,7 +589,7 @@ line_full:
 	 * overwriting.
 	 */
 
-	ml_imgline_overwrite_all( &CURSOR_LINE(image) , image->cursor.char_index , buffer ,
+	ml_imgline_overwrite_all( CURSOR_LINE(image) , image->cursor.char_index , buffer ,
 		filled_len , filled_cols) ;
 
 	ml_str_final( buffer , buf_len) ;
@@ -673,31 +632,21 @@ ml_image_init(
 	int  is_logging
 	)
 {
-	int  counter ;
-
 	if( num_of_cols == 0 || num_of_rows == 0)
 	{
 		return  0 ;
 	}
-	
-	image->num_of_rows = num_of_rows ;
-	image->num_of_cols = num_of_cols ;
 
-	image->beg_row = 0 ;
+	ml_char_init( &image->sp_ch) ;
+	ml_char_copy( &image->sp_ch , &sp_ch) ;
 
-	if( ( image->lines = malloc( sizeof( ml_image_line_t) * image->num_of_rows)) == NULL)
+	if( ! ml_imgmdl_init( &image->model , num_of_cols , num_of_rows))
 	{
 		return  0 ;
 	}
-
-	for( counter = 0 ; counter < image->num_of_rows ; counter ++)
-	{
-		if( ! ml_imgline_init( &image->lines[counter] , image->num_of_cols))
-		{
-			return  0 ;
-		}
-	}
-
+	
+	ml_imgmdl_break_boundary( &image->model , 1 , &image->sp_ch) ;
+	
 	image->cursor.row = 0 ;
 	image->cursor.char_index = 0 ;
 	image->cursor.col = 0 ;
@@ -709,28 +658,21 @@ ml_image_init(
 
 	image->cursor_is_saved = 0 ;
 
-	ml_char_init( &image->sp_ch) ;
-	ml_char_copy( &image->sp_ch , &sp_ch) ;
-
-	/* initializing the first line. */
-	ml_imgline_clear( &CURSOR_LINE(image) , 0 , &image->sp_ch) ;
-	image->num_of_filled_rows = 1 ;
-
 	image->is_logging = is_logging ;
 
 	reset_wraparound_checker( image) ;
 	
 	image->scroll_region_beg = 0 ;
-	image->scroll_region_end = image->num_of_rows - 1 ;
+	image->scroll_region_end = image->model.num_of_rows - 1 ;
 	image->scroll_listener = scroll_listener ;
 
-	if( ( image->tab_stops = malloc( image->num_of_rows * LINE_TAB_STOPS_SIZE(image))) == NULL)
+	if( ( image->tab_stops = malloc( image->model.num_of_rows * LINE_TAB_STOPS_SIZE(image))) == NULL)
 	{
 		return  0 ;
 	}
 	ml_image_set_tab_size( image , tab_size) ;
 
-	ml_line_hints_init( &image->line_hints , image->num_of_rows) ;
+	ml_line_hints_init( &image->line_hints , image->model.num_of_rows) ;
 
 	return  1 ;
 }
@@ -740,21 +682,11 @@ ml_image_final(
 	ml_image_t *  image
 	)
 {
-	int  counter ;
-	
-	for( counter = 0 ; counter < image->num_of_rows ; counter ++)
-	{
-		ml_imgline_final( &image->lines[counter]) ;
-	}
-	
-	free( image->lines) ;
-
-	ml_char_final( &image->sp_ch) ;
-	ml_char_final( &image->prev_recv_ch) ;
-
-	free( image->tab_stops) ;
+	ml_imgmdl_final( &image->model) ;
 
 	ml_line_hints_final( &image->line_hints) ;
+
+	free( image->tab_stops) ;
 
 	return  1 ;
 }
@@ -766,56 +698,25 @@ ml_image_resize(
 	u_int  num_of_rows
 	)
 {
-	int  old_row ;
-	int  new_row ;
-	int  counter ;
-	u_int  copy_rows ;
-	u_int  copy_len ;
-	ml_image_line_t *  lines_p ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " resizing to %d %d , char index %d row %d ->" ,
-		num_of_cols , num_of_rows , image->cursor.char_index , image->cursor.row) ;
-#endif
-
-	if( num_of_cols == image->num_of_cols && num_of_rows == image->num_of_rows)
+	if( num_of_cols == 0 || num_of_rows == 0)
 	{
-		/* not resized */
-		
-		return  0 ;
-	}
-
-	if( ( lines_p = malloc( sizeof( ml_image_line_t) * num_of_rows)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
-	#endif
-	
 		return  0 ;
 	}
 	
-	copy_len = K_MIN(num_of_cols , image->num_of_cols) ;
-
-	if( num_of_cols < image->num_of_cols)
+	if( num_of_cols < image->model.num_of_cols)
 	{
-		if( image->cursor.char_index >= num_of_cols)
+		if( image->cursor.col >= num_of_cols)
 		{
-			image->cursor.char_index = num_of_cols - 1 ;
+			image->cursor.col = num_of_cols - 1 ;
+			image->cursor.char_index =
+				ml_convert_col_to_char_index(
+					CURSOR_LINE(image) , NULL , image->cursor.col , 0) ;
 		}
 	}
 
-	new_row = 0 ;
-	if( num_of_rows >= image->num_of_filled_rows)
+	if( num_of_rows < image->model.num_of_filled_rows)
 	{
-		old_row = 0 ;
-		copy_rows = image->num_of_filled_rows ;
-	}
-	else
-	{
-		old_row = image->num_of_filled_rows - num_of_rows ;
-		copy_rows = num_of_rows ;
-
-		if( image->cursor.row < old_row)
+		if( image->cursor.row < image->model.num_of_filled_rows - num_of_rows)
 		{
 			image->cursor.row = 0 ;
 			image->cursor.char_index = 0 ;
@@ -823,76 +724,40 @@ ml_image_resize(
 		}
 		else
 		{
-			image->cursor.row -= old_row ;
+			image->cursor.row -= (image->model.num_of_filled_rows - num_of_rows) ;
 		}
 	}
 
-	/*
-	 * updating each line.
-	 */
-
-	for( new_row = 0 ; new_row < copy_rows ; new_row ++)
+	if( ! ml_imgmdl_resize( &image->model , num_of_cols , num_of_rows))
 	{
-		ml_imgline_init( &lines_p[new_row] , num_of_cols) ;
-
-		ml_imgline_copy_line( &lines_p[new_row] , &IMAGE_LINE(image,old_row)) ;
-		old_row ++ ;
-		
-		ml_imgline_set_modified_all( &lines_p[new_row]) ;
+		return  0 ;
 	}
-
-	image->num_of_filled_rows = new_row ;
-
-	for( ; new_row < num_of_rows ; new_row ++)
-	{
-		ml_imgline_init( &lines_p[new_row] , num_of_cols) ;
-
-		ml_imgline_set_modified_all( &lines_p[new_row]) ;
-	}
-
-	/*
-	 * freeing old data.
-	 */
-	 
-	for( counter = 0 ; counter < image->num_of_rows ; counter ++)
-	{
-		ml_imgline_final( &IMAGE_LINE(image,counter)) ;
-	}
-
-	free( image->lines) ;
 	
-	image->lines = lines_p ;
-
-	image->num_of_rows = num_of_rows ;
-	image->num_of_cols = num_of_cols ;
-
-	image->beg_row = 0 ;
-
 	image->wraparound_ready_line = NULL ;
 	
 	image->scroll_region_beg = 0 ;
-	image->scroll_region_end = image->num_of_rows - 1 ;
+	image->scroll_region_end = image->model.num_of_rows - 1 ;
 
 	free( image->tab_stops) ;
-	if( ( image->tab_stops = malloc( image->num_of_rows * LINE_TAB_STOPS_SIZE(image))) == NULL)
+	if( ( image->tab_stops = malloc( image->model.num_of_rows * LINE_TAB_STOPS_SIZE(image))) == NULL)
 	{
 		return  0 ;
 	}
 	ml_image_set_tab_size( image , image->tab_size) ;
 
-	ml_line_hints_change_size( &image->line_hints , image->num_of_rows) ;
+	ml_line_hints_change_size( &image->line_hints , image->model.num_of_rows) ;
 
-	if( image->cursor.row > image->num_of_rows)
+	if( image->cursor.row > image->model.num_of_rows)
 	{
-		image->cursor.row = END_ROW(image) ;
-		image->cursor.char_index = ml_imgline_end_char_index( &CURSOR_LINE(image)) ;
-		image->cursor.col = ml_convert_char_index_to_col( &CURSOR_LINE(image) ,
+		image->cursor.row = ml_imgmdl_end_row( &image->model) ;
+		image->cursor.char_index = ml_imgline_end_char_index( CURSOR_LINE(image)) ;
+		image->cursor.col = ml_convert_char_index_to_col( CURSOR_LINE(image) ,
 					image->cursor.char_index , 0) ;
 	}
-	else if( image->cursor.col > image->num_of_cols)
+	else if( image->cursor.col > image->model.num_of_cols)
 	{
-		image->cursor.char_index = ml_imgline_end_char_index( &CURSOR_LINE(image)) ;
-		image->cursor.col = ml_convert_char_index_to_col( &CURSOR_LINE(image) ,
+		image->cursor.char_index = ml_imgline_end_char_index( CURSOR_LINE(image)) ;
+		image->cursor.col = ml_convert_char_index_to_col( CURSOR_LINE(image) ,
 					image->cursor.char_index , 0) ;
 	}
 
@@ -964,7 +829,7 @@ ml_image_overwrite_chars(
 		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
-	buf_len = num_of_ow_chars + image->num_of_cols ;
+	buf_len = num_of_ow_chars + image->model.num_of_cols ;
 
 	if( image->wraparound_ready_line)
 	{
@@ -985,7 +850,7 @@ ml_image_overwrite_chars(
 	/* before cursor(excluding cursor) */
 	if( image->cursor.char_index > 0)
 	{
-		ml_str_copy( &buffer[filled_len] , CURSOR_LINE(image).chars , image->cursor.char_index) ;
+		ml_str_copy( &buffer[filled_len] , CURSOR_LINE(image)->chars , image->cursor.char_index) ;
 		filled_len += image->cursor.char_index ;
 	}
 	
@@ -994,7 +859,7 @@ ml_image_overwrite_chars(
 		ml_char_copy( &buffer[filled_len++] , &image->prev_recv_ch) ;
 	}
 	
-	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
+	ml_convert_col_to_char_index( CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
 	if( cols_rest)
 	{
 		int  counter ;
@@ -1071,8 +936,8 @@ ml_image_delete_cols(
 
 	reset_wraparound_checker( image) ;
 
-	if( image->cursor.row == END_ROW(image) &&
-		image->cursor.char_index == ml_imgline_end_char_index( &CURSOR_LINE(image)))
+	if( image->cursor.row == ml_imgmdl_end_row( &image->model) &&
+		image->cursor.char_index == ml_imgline_end_char_index( CURSOR_LINE(image)))
 	{
 		/* if you are in the end of image , nothing is deleted. */
 	#ifdef  DEBUG
@@ -1088,7 +953,7 @@ ml_image_delete_cols(
 	 * collecting chars after cursor line.
 	 */
 	 
-	buf_len = CURSOR_LINE(image).num_of_filled_chars ;
+	buf_len = CURSOR_LINE(image)->num_of_filled_chars ;
 
 	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
 	{
@@ -1104,24 +969,24 @@ ml_image_delete_cols(
 	/* before cursor(excluding cursor) */
 	if( image->cursor.char_index > 0)
 	{
-		ml_str_copy( &buffer[filled_len] , CURSOR_LINE(image).chars , image->cursor.char_index) ;
+		ml_str_copy( &buffer[filled_len] , CURSOR_LINE(image)->chars , image->cursor.char_index) ;
 		filled_len += image->cursor.char_index ;
 	}
 
-	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
+	ml_convert_col_to_char_index( CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
 	if( cols_rest)
 	{
 		int  cols_after ;
 		int  counter ;
 
 	#ifdef  DEBUG
-		if( ml_char_cols( &CURSOR_CHAR(image)) <= cols_rest)
+		if( ml_char_cols( CURSOR_CHAR(image)) <= cols_rest)
 		{
 			kik_warn_printf( KIK_DEBUG_TAG " illegal cols_rest.\n") ;
 		}
 	#endif
 	
-		cols_after = ml_char_cols( &CURSOR_CHAR(image)) - cols_rest ;
+		cols_after = ml_char_cols( CURSOR_CHAR(image)) - cols_rest ;
 		
 		/*
 		 * padding spaces before cursor.
@@ -1161,16 +1026,16 @@ ml_image_delete_cols(
 	
 	if( delete_cols)
 	{
-		cols = ml_char_cols( &CURSOR_LINE(image).chars[char_index++]) ;
-		while( cols < delete_cols && char_index <= ml_imgline_end_char_index( &CURSOR_LINE(image)))
+		cols = ml_char_cols( &CURSOR_LINE(image)->chars[char_index++]) ;
+		while( cols < delete_cols && char_index <= ml_imgline_end_char_index( CURSOR_LINE(image)))
 		{
-			cols += ml_char_cols( &CURSOR_LINE(image).chars[char_index++]) ;
+			cols += ml_char_cols( &CURSOR_LINE(image)->chars[char_index++]) ;
 		}
 	}
 
-	ml_str_copy( &buffer[filled_len] , &CURSOR_LINE(image).chars[char_index] ,
-		CURSOR_LINE(image).num_of_filled_chars - char_index) ;
-	filled_len += (CURSOR_LINE(image).num_of_filled_chars - char_index) ;
+	ml_str_copy( &buffer[filled_len] , &CURSOR_LINE(image)->chars[char_index] ,
+		CURSOR_LINE(image)->num_of_filled_chars - char_index) ;
+	filled_len += (CURSOR_LINE(image)->num_of_filled_chars - char_index) ;
 
 	if( filled_len > 0)
 	{
@@ -1178,12 +1043,12 @@ ml_image_delete_cols(
 		 * overwriting.
 		 */
 
-		ml_imgline_overwrite_all( &CURSOR_LINE(image) , image->cursor.char_index ,
+		ml_imgline_overwrite_all( CURSOR_LINE(image) , image->cursor.char_index ,
 			buffer , filled_len , ml_str_cols( buffer , filled_len)) ;
 	}
 	else
 	{
-		ml_imgline_clear( &CURSOR_LINE(image) , 0 , &image->sp_ch) ;
+		ml_imgline_clear( CURSOR_LINE(image) , 0 , &image->sp_ch) ;
 	}
 
 	ml_str_final( buffer , buf_len) ;
@@ -1223,20 +1088,20 @@ ml_image_clear_line_to_right(
 
 	reset_wraparound_checker( image) ;
 
-	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
+	ml_convert_col_to_char_index( CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
 	if( cols_rest)
 	{
 		int  counter ;
 
-		if( image->cursor.char_index + cols_rest >= CURSOR_LINE(image).num_of_filled_chars)
+		if( image->cursor.char_index + cols_rest >= CURSOR_LINE(image)->num_of_filled_chars)
 		{
 			u_int  size ;
 			u_int  actual_size ;
 
 			size = image->cursor.char_index + cols_rest -
-				CURSOR_LINE(image).num_of_filled_chars + 1 ;
+				CURSOR_LINE(image)->num_of_filled_chars + 1 ;
 
-			actual_size = ml_imgline_break_boundary( &CURSOR_LINE(image) , size ,
+			actual_size = ml_imgline_break_boundary( CURSOR_LINE(image) , size ,
 					&image->sp_ch) ;
 			if( actual_size < size)
 			{
@@ -1263,7 +1128,7 @@ ml_image_clear_line_to_right(
 		 */
 		for( counter = 0 ; counter < cols_rest ; counter ++)
 		{
-			ml_char_copy( &CURSOR_CHAR(image) , &image->sp_ch) ;
+			ml_char_copy( CURSOR_CHAR(image) , &image->sp_ch) ;
 			image->cursor.char_index ++ ;
 		}
 	}
@@ -1284,15 +1149,15 @@ ml_image_clear_line_to_left(
 	reset_wraparound_checker( image) ;
 
 	/* XXX cursor char will be cleared , is this ok? */
-	buf_size = CURSOR_LINE(image).num_of_filled_chars - (image->cursor.char_index + 1) ;
+	buf_size = CURSOR_LINE(image)->num_of_filled_chars - (image->cursor.char_index + 1) ;
 	if( buf_size > 0)
 	{
 		u_int  padding ;
 		u_int  filled ;
 		
-		if( ml_char_cols( &CURSOR_CHAR(image)) > 1)
+		if( ml_char_cols( CURSOR_CHAR(image)) > 1)
 		{
-			ml_convert_col_to_char_index( &CURSOR_LINE(image) , &padding ,
+			ml_convert_col_to_char_index( CURSOR_LINE(image) , &padding ,
 				image->cursor.col , 0) ;
 			buf_size += padding ;
 		}
@@ -1320,32 +1185,32 @@ ml_image_clear_line_to_left(
 		}
 
 		/* excluding cursor char */
-		ml_str_copy( &buf[filled] , &CURSOR_CHAR(image) + 1 , buf_size - padding) ;
+		ml_str_copy( &buf[filled] , CURSOR_CHAR(image) + 1 , buf_size - padding) ;
 	}
 
 	num_of_sp = image->cursor.col / ml_char_cols( &image->sp_ch) ;
 	image->cursor.col = 0 ;
 	for( counter = 0 ; counter < num_of_sp ; counter ++)
 	{
-		ml_char_copy( &CURSOR_LINE(image).chars[counter] , &image->sp_ch) ;
+		ml_char_copy( &CURSOR_LINE(image)->chars[counter] , &image->sp_ch) ;
 		image->cursor.col += ml_char_cols( &image->sp_ch) ;
 	}
 
 	image->cursor.char_index = counter ;
 
 	/* char on cursor */
-	ml_char_copy( &CURSOR_LINE(image).chars[counter++] , &image->sp_ch) ;
+	ml_char_copy( &CURSOR_LINE(image)->chars[counter++] , &image->sp_ch) ;
 
 	if( buf_size > 0)
 	{
-		ml_str_copy( &CURSOR_LINE(image).chars[counter] , buf , buf_size) ;
+		ml_str_copy( &CURSOR_LINE(image)->chars[counter] , buf , buf_size) ;
 		
-		CURSOR_LINE(image).num_of_filled_chars = counter + buf_size ;
+		CURSOR_LINE(image)->num_of_filled_chars = counter + buf_size ;
 
 		ml_str_delete( buf , buf_size) ;
 	}
 
-	ml_imgline_set_modified( &CURSOR_LINE(image) , 0 , image->cursor.char_index , 0) ;
+	ml_imgline_set_modified( CURSOR_LINE(image) , 0 , image->cursor.char_index , 0) ;
 
 	return  1 ;
 }
@@ -1359,7 +1224,7 @@ ml_image_clear_below(
 
 	if( ! ml_image_clear_line_to_right( image) ||
                 ! ml_image_clear_lines( image , image->cursor.row + 1 ,
-                    image->num_of_filled_rows - (image->cursor.row + 1)))
+                    image->model.num_of_filled_rows - (image->cursor.row + 1)))
 	{
 		return  0 ;
 	}
@@ -1394,18 +1259,18 @@ ml_image_set_scroll_region(
 	{
 		beg = 0 ;
 	}
-	else if( beg >= image->num_of_rows)
+	else if( beg >= image->model.num_of_rows)
 	{
-		beg = image->num_of_rows - 1 ;
+		beg = image->model.num_of_rows - 1 ;
 	}
 
 	if( 0 > end)
 	{
 		end = 0 ;
 	}
-	else if( end >= image->num_of_rows)
+	else if( end >= image->model.num_of_rows)
 	{
-		end = image->num_of_rows - 1 ;
+		end = image->model.num_of_rows - 1 ;
 	}
 
 	if( beg > end)
@@ -1482,7 +1347,7 @@ ml_image_vertical_tab(
 
 	tab_stops = &image->tab_stops[ image->cursor.row * LINE_TAB_STOPS_SIZE(image)] ;
 
-	for( col = image->cursor.col + 1 ; col < image->num_of_cols - 1 ; col ++)
+	for( col = image->cursor.col + 1 ; col < image->model.num_of_cols - 1 ; col ++)
 	{
 		if( tab_stops[col / 8] & ( 1 << (7 - col % 8)))
 		{
@@ -1518,7 +1383,7 @@ ml_image_set_tab_size(
 
 	tab_stops = image->tab_stops ;
 	
-	for( row = 0 ; row < image->num_of_rows ; row ++)
+	for( row = 0 ; row < image->model.num_of_rows ; row ++)
 	{
 		col = 0 ;
 		
@@ -1531,7 +1396,7 @@ ml_image_set_tab_size(
 
 			col ++ ;
 			
-			if( col >= image->num_of_cols)
+			if( col >= image->model.num_of_cols)
 			{
 				tab_stops ++ ;
 
@@ -1552,7 +1417,7 @@ ml_image_set_tab_size(
 
 		kik_debug_printf( KIK_DEBUG_TAG " tab stops\n") ;
 
-		for( i = 0 ; i < image->num_of_rows ; i ++)
+		for( i = 0 ; i < image->model.num_of_rows ; i ++)
 		{
 			tab_stops = &image->tab_stops[ i * LINE_TAB_STOPS_SIZE(image)] ;
 		
@@ -1598,7 +1463,7 @@ ml_image_clear_all_tab_stops(
 	ml_image_t *  image
 	)
 {
-	memset( image->tab_stops , 0 , image->num_of_rows * LINE_TAB_STOPS_SIZE(image)) ;
+	memset( image->tab_stops , 0 , image->model.num_of_rows * LINE_TAB_STOPS_SIZE(image)) ;
 	
 	return  1 ;
 }
@@ -1609,14 +1474,7 @@ ml_image_get_line(
 	int  row
 	)
 {
-	if( row < 0 || image->num_of_rows <= row)
-	{
-		return  NULL ;
-	}
-	else
-	{
-		return  &IMAGE_LINE(image,row) ;
-	}
+	return  ml_imgmdl_get_line( &image->model , row) ;
 }
 
 int
@@ -1632,7 +1490,7 @@ ml_cursor_is_end_of_line(
 	ml_image_t *  image
 	)
 {
-	return  (image->cursor.char_index == ml_imgline_end_char_index( &CURSOR_LINE(image))) ;
+	return  (image->cursor.char_index == ml_imgline_end_char_index( CURSOR_LINE(image))) ;
 }
 
 int
@@ -1655,9 +1513,9 @@ ml_cursor_goto_end_of_line(
 {
 	reset_wraparound_checker( image) ;
 	
-	image->cursor.char_index = ml_imgline_end_char_index( &CURSOR_LINE(image)) ;
+	image->cursor.char_index = ml_imgline_end_char_index( CURSOR_LINE(image)) ;
 	image->cursor.col =
-		ml_convert_char_index_to_col( &CURSOR_LINE(image) , image->cursor.char_index , 0) ;
+		ml_convert_char_index_to_col( CURSOR_LINE(image) , image->cursor.char_index , 0) ;
 
 	return  1 ;
 }
@@ -1683,10 +1541,10 @@ ml_cursor_goto_end(
 {
 	reset_wraparound_checker( image) ;
 	
-	image->cursor.char_index = ml_imgline_end_char_index( &END_LINE(image)) ;
-	image->cursor.row = END_ROW( image) ;
+	image->cursor.row = ml_imgmdl_end_row( &image->model) ;
+	image->cursor.char_index = ml_imgline_end_char_index( CURSOR_LINE(image)) ;
 	image->cursor.col =
-		ml_convert_char_index_to_col( &CURSOR_LINE(image) , image->cursor.char_index , 0) ;
+		ml_convert_char_index_to_col( CURSOR_LINE(image) , image->cursor.char_index , 0) ;
 
 	return  1 ;
 }
@@ -1710,8 +1568,8 @@ ml_cursor_go_forward(
 	 * full width char check.
 	 */
 
-	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest ,
-		K_MIN(image->num_of_cols - 1,image->cursor.col + 1) , flag & BREAK_BOUNDARY) ;
+	ml_convert_col_to_char_index( CURSOR_LINE(image) , &cols_rest ,
+		K_MIN(image->model.num_of_cols - 1,image->cursor.col + 1) , flag & BREAK_BOUNDARY) ;
 	if( cols_rest)
 	{
 	#ifdef  __DEBUG
@@ -1727,11 +1585,12 @@ ml_cursor_go_forward(
 	 * moving forward.
 	 */
 	 
-	if( image->cursor.char_index == ml_imgline_end_char_index( &CURSOR_LINE(image)))
+	if( image->cursor.char_index == ml_imgline_end_char_index( CURSOR_LINE(image)))
 	{
-		if( flag & BREAK_BOUNDARY)
+		if( ml_imgline_get_num_of_filled_cols( CURSOR_LINE(image)) < image->model.num_of_cols &&
+			flag & BREAK_BOUNDARY)
 		{
-			if( ml_imgline_break_boundary( &CURSOR_LINE(image) , 1 , &image->sp_ch))
+			if( ml_imgline_break_boundary( CURSOR_LINE(image) , 1 , &image->sp_ch))
 			{
 				image->cursor.char_index ++ ;
 
@@ -1757,14 +1616,14 @@ ml_cursor_go_forward(
 			}
 		}
 		
-		if( image->cursor.row == END_ROW(image))
+		if( image->cursor.row == ml_imgmdl_end_row( &image->model))
 		{
 			if( ! ( flag & BREAK_BOUNDARY))
 			{
 				return  0 ;
 			}
 
-			if( ! break_row_boundary( image , 1))
+			if( ! ml_imgmdl_break_boundary( &image->model , 1 , &image->sp_ch))
 			{
 				return  0 ;
 			}
@@ -1780,7 +1639,7 @@ ml_cursor_go_forward(
 
 end:
 	image->cursor.col =
-		ml_convert_char_index_to_col( &CURSOR_LINE(image) , image->cursor.char_index , 0) ;
+		ml_convert_char_index_to_col( CURSOR_LINE(image) , image->cursor.char_index , 0) ;
 
 #ifdef  CURSOR_DEBUG
 	kik_msg_printf( "-> char index %d col %d row %d\n" ,
@@ -1809,7 +1668,7 @@ ml_cursor_go_back(
 	 * full width char check.
 	 */
 	 
-	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
+	ml_convert_col_to_char_index( CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
 	if( cols_rest)
 	{
 	#ifdef  __DEBUG
@@ -1845,7 +1704,13 @@ ml_cursor_go_back(
 			}
 		}
 		
-		image->cursor.char_index = ml_imgline_end_char_index( &CURSOR_LINE( image)) ;
+		if( image->cursor.row == 0)
+		{
+			return  0 ;
+		}
+		
+		image->cursor.row -- ;
+		image->cursor.char_index = ml_imgline_end_char_index( CURSOR_LINE( image)) ;
 	}
 	else
 	{
@@ -1853,8 +1718,8 @@ ml_cursor_go_back(
 	}
 
 	image->cursor.col =
-		ml_convert_char_index_to_col( &CURSOR_LINE(image) , image->cursor.char_index , 0) ;
-	image->cursor.col += (ml_char_cols( &CURSOR_CHAR(image)) - 1) ;
+		ml_convert_char_index_to_col( CURSOR_LINE(image) , image->cursor.char_index , 0) ;
+	image->cursor.col += (ml_char_cols( CURSOR_CHAR(image)) - 1) ;
 
 #ifdef  CURSOR_DEBUG
 	kik_msg_printf( " to char index %d col %d row %d\n" ,
@@ -1963,28 +1828,28 @@ ml_cursor_goto(
 {
 	reset_wraparound_checker( image) ;
 
-	if( row < 0 || image->num_of_rows <= row)
+	if( row < 0 || image->model.num_of_rows <= row)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " row %d is over num_of_rows %d" ,
-			row , image->num_of_rows) ;
+			row , image->model.num_of_rows) ;
 	#endif
 
-		row = image->num_of_rows - 1 ;
+		row = image->model.num_of_rows - 1 ;
 
 	#ifdef  DEBUG
 		kik_msg_printf( " ... modified to %d.\n" , row) ;
 	#endif
 	}
 	
-	if( col < 0 || image->num_of_cols <= col)
+	if( col < 0 || image->model.num_of_cols <= col)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " col %d is over num_of_cols %d" ,
-			col , image->num_of_cols) ;
+			col , image->model.num_of_cols) ;
 	#endif
 
-		col = image->num_of_cols - 1 ;
+		col = image->model.num_of_cols - 1 ;
 
 	#ifdef  DEBUG
 		kik_msg_printf( " ... modified to %d.\n" , col) ;
@@ -2058,11 +1923,11 @@ ml_highlight_cursor(
 		return  0 ;
 	}
 
-	image->cursor.orig_fg = ml_char_fg_color( &CURSOR_CHAR(image)) ;
-	ml_char_set_fg_color( &CURSOR_CHAR(image) , image->cursor.fg_color) ;
+	image->cursor.orig_fg = ml_char_fg_color( CURSOR_CHAR(image)) ;
+	ml_char_set_fg_color( CURSOR_CHAR(image) , image->cursor.fg_color) ;
 	
-	image->cursor.orig_bg = ml_char_bg_color( &CURSOR_CHAR(image)) ;
-	ml_char_set_bg_color( &CURSOR_CHAR(image) , image->cursor.bg_color) ;
+	image->cursor.orig_bg = ml_char_bg_color( CURSOR_CHAR(image)) ;
+	ml_char_set_bg_color( CURSOR_CHAR(image) , image->cursor.bg_color) ;
 
 	image->cursor.is_highlighted = 1 ;
 
@@ -2081,8 +1946,8 @@ ml_unhighlight_cursor(
 		return  0 ;
 	}
 	
-	ml_char_set_fg_color( &CURSOR_CHAR(image) , image->cursor.orig_fg) ;
-	ml_char_set_bg_color( &CURSOR_CHAR(image) , image->cursor.orig_bg) ;
+	ml_char_set_fg_color( CURSOR_CHAR(image) , image->cursor.orig_fg) ;
+	ml_char_set_bg_color( CURSOR_CHAR(image) , image->cursor.orig_bg) ;
 
 	image->cursor.is_highlighted = 0 ;
 	
@@ -2120,9 +1985,9 @@ ml_image_set_modified_all(
 {
 	int  counter ;
 
-	for( counter = 0 ; counter < image->num_of_rows ; counter ++)
+	for( counter = 0 ; counter < image->model.num_of_rows ; counter ++)
 	{
-		ml_imgline_set_modified_all( &IMAGE_LINE(image,counter)) ;
+		ml_imgline_set_modified_all( ml_imgmdl_get_line( &image->model , counter)) ;
 	}
 }
 
@@ -2131,7 +1996,7 @@ ml_image_get_cols(
 	ml_image_t *  image
 	)
 {
-	return  image->num_of_cols ;
+	return  image->model.num_of_cols ;
 }
 
 u_int
@@ -2139,7 +2004,7 @@ ml_image_get_rows(
 	ml_image_t *  image
 	)
 {
-	return  image->num_of_rows ;
+	return  image->model.num_of_rows ;
 }
 
 int
@@ -2150,13 +2015,13 @@ ml_image_fill_all(
 {
 	int  row ;
 	
-	for( row = 0 ; row < image->num_of_rows ; row ++)
+	for( row = 0 ; row < image->model.num_of_rows ; row ++)
 	{
-		ml_imgline_fill_all( &IMAGE_LINE(image,row) , ch ,
-			image->num_of_cols / ml_char_cols(ch)) ;
+		ml_imgline_fill_all( ml_imgmdl_get_line( &image->model , row) , ch ,
+			image->model.num_of_cols / ml_char_cols(ch)) ;
 	}
 
-	image->num_of_filled_rows = image->num_of_rows ;
+	image->model.num_of_filled_rows = image->model.num_of_rows ;
 
 	return  1 ;
 }
@@ -2173,17 +2038,20 @@ ml_image_dump(
 	)
 {
 	int  row ;
+	ml_image_line_t *  line ;
 	
 	kik_debug_printf( KIK_DEBUG_TAG
 		" ===> dumping image...[(filled rows)%d] [cursor(index)%d (col)%d (row)%d]\n" ,
-		image->num_of_filled_rows , image->cursor.char_index , image->cursor.col ,
+		image->model.num_of_filled_rows , image->cursor.char_index , image->cursor.col ,
 		image->cursor.row) ;
 
-	for( row = 0 ; row < image->num_of_rows ; row++)
+	for( row = 0 ; row < image->model.num_of_rows ; row++)
 	{
 		int  char_index ;
 
-		if( ml_imgline_is_modified( &IMAGE_LINE(image,row)))
+		line = ml_imgmdl_get_line( &image->model , row) ;
+
+		if( ml_imgline_is_modified( line))
 		{
 			kik_msg_printf( "!") ;
 		}
@@ -2192,12 +2060,12 @@ ml_image_dump(
 			kik_msg_printf( " ") ;
 		}
 		
-		kik_msg_printf( "[%.2d %.2d]" , IMAGE_LINE(image,row).num_of_filled_chars ,
-			ml_imgline_get_num_of_filled_cols( &IMAGE_LINE(image,row))) ;
+		kik_msg_printf( "[%.2d %.2d]" , line->num_of_filled_chars ,
+			ml_imgline_get_num_of_filled_cols( line)) ;
 			
-		if( IMAGE_LINE(image,row).num_of_filled_chars > 0)
+		if( line->num_of_filled_chars > 0)
 		{
-			for( char_index = 0 ; char_index < IMAGE_LINE(image,row).num_of_filled_chars ;
+			for( char_index = 0 ; char_index < line->num_of_filled_chars ;
 				char_index ++)
 			{
 				if( image->cursor.row == row && image->cursor.char_index == char_index)
@@ -2205,7 +2073,7 @@ ml_image_dump(
 					kik_msg_printf( "**") ;
 				}
 
-				ml_char_dump( &IMAGE_LINE(image,row).chars[char_index]) ;
+				ml_char_dump( &line->chars[char_index]) ;
 
 				if( image->cursor.row == row && image->cursor.char_index == char_index)
 				{
@@ -2227,9 +2095,10 @@ ml_image_dump_updated(
 {
 	int  row ;
 
-	for( row = 0 ; row < image->num_of_filled_rows ; row ++)
+	for( row = 0 ; row < image->model.num_of_filled_rows ; row ++)
 	{
-		kik_msg_printf( "(%.2d)%d " , row , ml_imgline_is_modified( &IMAGE_LINE(image,row))) ;
+		kik_msg_printf( "(%.2d)%d " ,
+			row , ml_imgline_is_modified( ml_imgmdl_get_line( &image->model , row))) ;
 	}
 
 	kik_msg_printf( "\n") ;

@@ -398,7 +398,7 @@ ml_bs_copy_region(
 
 	/* u_int => int */
 	beg_row_in_all = - ( ml_get_num_of_logged_lines( ( bs_image)->logs)) ;
-	end_row_in_all = bs_image->image->num_of_filled_rows - 1 ;
+	end_row_in_all = ml_imgmdl_end_row( &bs_image->image->model) ;
 
 	if( beg_row < beg_row_in_all)
 	{
@@ -503,7 +503,7 @@ ml_bs_get_region_size(
 
 	/* u_int => int */
 	beg_row_in_all = -(ml_get_num_of_logged_lines((bs_image)->logs)) ;
-	end_row_in_all = bs_image->image->num_of_filled_rows - 1 ;
+	end_row_in_all = ml_imgmdl_end_row( &bs_image->image->model) ;
 
 	if( beg_row < beg_row_in_all)
 	{

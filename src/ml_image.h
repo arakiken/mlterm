@@ -11,6 +11,7 @@
 #include  "ml_char.h"
 #include  "ml_line_hints.h"
 #include  "ml_image_line.h"
+#include  "ml_image_model.h"
 
 
 typedef struct  ml_cursor
@@ -43,19 +44,11 @@ typedef struct ml_image_scroll_event_listener
 
 typedef struct  ml_image
 {
-	ml_image_line_t *  lines ;
-
-	u_int  num_of_rows ;
-	u_int  num_of_cols ;
-
-	u_int  num_of_filled_rows ;
+	ml_image_model_t  model ;
 
 	/* used for rendering image */
 	ml_line_hints_t  line_hints ;
 
-	/* used for scrolling */
-	int  beg_row ;
-	
 	/* public */
 	ml_cursor_t  cursor ;
 

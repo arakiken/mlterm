@@ -16,25 +16,28 @@ ml_image_clear_line(
 	int  char_index
 	)
 {
-	if( row > END_ROW(image))
+	ml_image_line_t *  line ;
+	
+	if( row > ml_imgmdl_end_row( &image->model))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " row %d is over END_ROW %d. nothing is cleared.\n" ,
-			row , END_ROW(image)) ;
+			row , ml_imgmdl_end_row( &image->model)) ;
 	#endif
 
 		return  1 ;
 	}
 
-	ml_imgline_clear( &IMAGE_LINE(image,row) , char_index , &image->sp_ch) ;
+	line = ml_imgmdl_get_line( &image->model , row) ;
+
+	ml_imgline_clear( line , char_index , &image->sp_ch) ;
 	
 	if( row == image->cursor.row)
 	{
 		if( image->cursor.char_index > char_index)
 		{
 			image->cursor.char_index = char_index ;
-			image->cursor.col = ml_convert_char_index_to_col( &IMAGE_LINE(image,row) ,
-						char_index , 0) ;
+			image->cursor.col = ml_convert_char_index_to_col( line , char_index , 0) ;
 		}
 	}
 
@@ -62,7 +65,7 @@ ml_image_clear_lines(
 		return  0 ;
 	}
 
-	if( beg_row > END_ROW(image))
+	if( beg_row > ml_imgmdl_end_row( &image->model))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " line %d is already empty.\n" , beg_row) ;
@@ -73,7 +76,7 @@ ml_image_clear_lines(
 
 	ml_image_clear_line( image , beg_row , 0) ;
 
-	if( beg_row + size < image->num_of_filled_rows)
+	if( beg_row + size < image->model.num_of_filled_rows)
 	{
 		/*
 		 * there will still be some lines after the cleared lines.
@@ -92,16 +95,7 @@ ml_image_clear_lines(
 	}
 	else
 	{
-		/*
-		 * all lines after beg_row will be cleared.
-		 */
-		 
-		for( counter = 1 ; counter < size ; counter ++)
-		{
-			ml_imgline_reset( &IMAGE_LINE(image,beg_row + counter)) ;
-		}
-
-		image->num_of_filled_rows = beg_row + 1 ;
+		ml_imgmdl_shrink_boundary( &image->model , image->model.num_of_filled_rows - beg_row - 1) ;
 	
 		if( image->cursor.row >= beg_row)
 		{
