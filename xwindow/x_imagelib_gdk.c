@@ -306,6 +306,104 @@ pixbuf_to_pixmap(
 }
 
 static void
+compose_to_pixmap_24t(
+	Display * display,
+	int screen,
+	GdkPixbuf * pixbuf,
+	Pixmap pixmap){
+
+	XImage * image;
+
+	unsigned int i, j;
+	unsigned int width, height, rowstride, bytes_per_pixel;
+	unsigned char *line;
+	unsigned char *pixel;
+	
+	int r_offset, g_offset, b_offset;	
+	long r_mask, g_mask, b_mask;
+	long r, g, b;
+	int matched;
+	XVisualInfo *vinfolist;
+	XVisualInfo vinfo;
+
+	if (!pixbuf)
+		return;
+	width = gdk_pixbuf_get_width (pixbuf);
+	height = gdk_pixbuf_get_height (pixbuf);
+
+	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap);
+	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display , screen));
+	if (!vinfo.visualid)
+		return;       
+	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched);
+	if ( (!matched) || (!vinfolist) ){
+		XDestroyImage( image);
+		return;
+	}
+	r_mask = vinfolist[0].red_mask;
+	g_mask = vinfolist[0].green_mask;
+	b_mask = vinfolist[0].blue_mask;
+	r_offset = lsb( r_mask);
+	g_offset = lsb( g_mask);
+	b_offset = lsb( b_mask);
+	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3;
+	rowstride = gdk_pixbuf_get_rowstride (pixbuf);
+       	line = gdk_pixbuf_get_pixels (pixbuf);
+	for( i = 0; i < height; i++){
+		pixel = line;
+		for( j = 0; j < width; j++){
+			r = ((((u_int32_t *)image->data)[ i*width + j]) & r_mask ) >>r_offset;
+			g = ((((u_int32_t *)image->data)[ i*width + j]) & g_mask ) >>g_offset;
+			b = ((((u_int32_t *)image->data)[ i*width + j]) & b_mask ) >>b_offset;
+			r = (r*(255 - pixel[3]) + pixel[0] * pixel[3])/255;
+			g = (g*(255 - pixel[3]) + pixel[1] * pixel[3])/255;
+			b = (b*(255 - pixel[3]) + pixel[2] * pixel[3])/255;
+			((u_int32_t *)image->data)[i*width +j ] = 
+				((r <<r_offset ) & r_mask) |
+				((g <<g_offset ) & g_mask) |
+				((b <<b_offset ) & b_mask);
+			pixel +=bytes_per_pixel;
+		}
+		line += rowstride;
+	}
+	XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
+		   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf));
+	XFree(vinfolist);
+	XDestroyImage( image);
+}
+
+static void
+compose_to_pixmap(
+	Display * display,
+	int screen,
+	GdkPixbuf * pixbuf ,
+	Pixmap pixmap){
+
+	switch (DefaultDepth( display , screen)){
+		
+	case 1:
+		/* XXX not yet supported */
+		break;
+	case 8:
+		/* XXX not yet supported */
+		break;
+	case 15:
+	case 16:
+		break;
+	case 24:
+		/*FALL THROUGH*/
+	case 32:
+		compose_to_pixmap_24t(
+			display,
+			screen,
+			pixbuf ,
+			pixmap);
+		break;
+	default:
+	}
+}
+
+static void
 pixbuf_to_pixmap_and_mask(
 	Display * display,
 	int screen,
@@ -631,9 +729,9 @@ x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_pic
 	if( ( pixbuf = gdk_pixbuf_new_from_file( file_path )) == NULL)
 		return None;
 #endif /*OLD_GDK_PIXBUF*/
-
-	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-			DefaultDepth( win->display , win->screen));
+	pixmap = XCreatePixmap( win->display, win->my_window,
+				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
+				DefaultDepth( win->display , win->screen));		
 
 	scaled = gdk_pixbuf_scale_simple(pixbuf, ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 				GDK_INTERP_TILES); /* use one of _NEAREST, _TILES, _BILINEAR, _HYPER (speed<->quality) */
@@ -645,12 +743,18 @@ x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_pic
 	if( pic_mod)
 		modify_image( pixbuf, pic_mod);
 
-	gc = XCreateGC( win->display, win->my_window, 0, 0 );
-	pixbuf_to_pixmap( win->display,
-			  win->screen,
-			  pixbuf ,
-			  pixmap);
-	XFreeGC( win->display , gc );
+	if( gdk_pixbuf_get_has_alpha ( pixbuf) ){
+		pixmap = x_imagelib_get_transparent_background( win , NULL);
+		compose_to_pixmap( win->display,
+				   win->screen,
+				   pixbuf,
+				   pixmap);
+	}else{
+		pixbuf_to_pixmap( win->display,
+				  win->screen,
+				  pixbuf,
+				  pixmap);
+	}
 	gdk_pixbuf_unref( pixbuf );
 	return pixmap;
 }
@@ -682,9 +786,6 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 	u_int width;
 	u_int height;
 	Window src;
-	XSetWindowAttributes attr;
-	XEvent event;
-	int count;
 	Atom id;
 	display_store_t * cache;
 	struct timeval tval;
