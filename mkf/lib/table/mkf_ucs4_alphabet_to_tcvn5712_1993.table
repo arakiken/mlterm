@@ -6,19 +6,13 @@
 #define  __MKF_UCS4_ALPHABET_TO_TCVN5712_1993_TABLE__
 
 
-#include  <stdio.h>
-#include  <kiklib/kik_types.h>
+#include  <kiklib/kik_types.h>		/* u_xxx */
 
-
-static u_char  ucs4_alphabet_to_tcvn5712_1993_bytes[1] ;
 
 #define  CONV_UCS4_ALPHABET_TO_TCVN5712_1993(ch) \
 	( (ch) < ucs4_alphabet_to_tcvn5712_1993_beg || ucs4_alphabet_to_tcvn5712_1993_end < (ch) ? \
-		NULL : \
-		ucs4_alphabet_to_tcvn5712_1993_table[ (ch) - ucs4_alphabet_to_tcvn5712_1993_beg] == 0 ? \
-			NULL : \
-			( mkf_int_to_bytes( ucs4_alphabet_to_tcvn5712_1993_bytes , 1 , \
-				ucs4_alphabet_to_tcvn5712_1993_table[ (ch) - ucs4_alphabet_to_tcvn5712_1993_beg])))
+		0 : ucs4_alphabet_to_tcvn5712_1993_table[ (ch) - ucs4_alphabet_to_tcvn5712_1993_beg])
+
 
 static u_int8_t  ucs4_alphabet_to_tcvn5712_1993_table[] = 
 {

@@ -20,11 +20,11 @@ mkf_map_ucs4_to_tcvn5712_1_1993(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int8_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_TCVN5712_1993(ucs4_code)))
 	{
-		non_ucs->ch[0] = c[0] ;
+		non_ucs->ch[0] = c ;
 	}
 	else if( 0x20 <= ucs4_code && ucs4_code <= 0x7f)
 	{
@@ -79,11 +79,11 @@ mkf_map_tcvn5712_1_1993_to_ucs4(
 	u_int16_t  tcvn_code
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 
 	if( ( c = CONV_TCVN5712_1993_TO_UCS4(tcvn_code)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 	}
 	else if( 0x20 <= tcvn_code && tcvn_code <= 0x7f)
 	{

@@ -37,7 +37,7 @@ mkf_map_big5_to_ucs4(
 	u_int16_t  big5
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 
 	if( IS_HKSCS_ONLY(big5))
 	{
@@ -46,7 +46,7 @@ mkf_map_big5_to_ucs4(
 	
 	if( ( c = CONV_BIG5_TO_UCS4(big5)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -63,11 +63,11 @@ mkf_map_hkscs_to_ucs4(
 	u_int16_t  hkscs
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 
 	if( ( c = CONV_BIG5_TO_UCS4(hkscs)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -84,23 +84,19 @@ mkf_map_ucs4_to_big5(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int16_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_BIG5(ucs4_code)) ||
 		( c = CONV_UCS4_CJK_TO_BIG5(ucs4_code)) ||
 		( c = CONV_UCS4_COMPAT_TO_BIG5(ucs4_code)) ||
 		( c = CONV_UCS4_PUA_TO_BIG5(ucs4_code)))
 	{
-		u_int16_t  big5_code ;
-
-		big5_code = mkf_bytes_to_int( c , 2) ;
-
-		if( IS_HKSCS_ONLY(big5_code))
+		if( IS_HKSCS_ONLY(c))
 		{
 			return  0 ;
 		}
-		
-		memcpy( big5->ch , c , 2) ;
+
+		mkf_int_to_bytes( big5->ch , 2 , c) ;
 		big5->size = 2 ;
 		big5->cs = BIG5 ;
 		big5->property = 0 ;
@@ -117,23 +113,19 @@ mkf_map_ucs4_to_hkscs(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int16_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_BIG5(ucs4_code)) ||
 		( c = CONV_UCS4_CJK_TO_BIG5(ucs4_code)) ||
 		( c = CONV_UCS4_COMPAT_TO_BIG5(ucs4_code)) ||
 		( c = CONV_UCS4_PUA_TO_BIG5(ucs4_code)))
 	{
-		u_int16_t  hkscs_code ;
-
-		hkscs_code = mkf_bytes_to_int( c , 2) ;
-
-		if( ! IS_HKSCS(hkscs_code))
+		if( ! IS_HKSCS(c))
 		{
 			return  0 ;
 		}
-		
-		memcpy( hkscs->ch , c , 2) ;
+
+		mkf_int_to_bytes( hkscs->ch , 2 , c) ;
 		hkscs->size = 2 ;
 		hkscs->cs = HKSCS ;
 		hkscs->property = 0 ;

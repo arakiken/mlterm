@@ -6,19 +6,13 @@
 #define  __MKF_UCS4_CJK_TO_JISX0213_2000_1_TABLE__
 
 
-#include  <stdio.h>
-#include  <kiklib/kik_types.h>
+#include  <kiklib/kik_types.h>		/* u_xxx */
 
-
-static u_char  ucs4_cjk_to_jisx0213_2000_1_bytes[2] ;
 
 #define  CONV_UCS4_CJK_TO_JISX0213_2000_1(ch) \
 	( (ch) < ucs4_cjk_to_jisx0213_2000_1_beg || ucs4_cjk_to_jisx0213_2000_1_end < (ch) ? \
-		NULL : \
-		ucs4_cjk_to_jisx0213_2000_1_table[ (ch) - ucs4_cjk_to_jisx0213_2000_1_beg] == 0 ? \
-			NULL : \
-			( mkf_int_to_bytes( ucs4_cjk_to_jisx0213_2000_1_bytes , 2 , \
-				ucs4_cjk_to_jisx0213_2000_1_table[ (ch) - ucs4_cjk_to_jisx0213_2000_1_beg])))
+		0 : ucs4_cjk_to_jisx0213_2000_1_table[ (ch) - ucs4_cjk_to_jisx0213_2000_1_beg])
+
 
 static u_int16_t  ucs4_cjk_to_jisx0213_2000_1_table[] = 
 {

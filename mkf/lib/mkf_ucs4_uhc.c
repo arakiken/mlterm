@@ -19,11 +19,11 @@ mkf_map_uhc_to_ucs4(
 	u_int16_t  ks
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 	
 	if( ( c = CONV_UHC_TO_UCS4(ks)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -40,14 +40,14 @@ mkf_map_ucs4_to_uhc(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int16_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_UHC(ucs4_code)) ||
 		( c = CONV_UCS4_UNIFIED_HANGUL_TO_UHC(ucs4_code)) ||
 		( c = CONV_UCS4_CJK_TO_UHC(ucs4_code)) ||
 		( c = CONV_UCS4_COMPAT_TO_UHC(ucs4_code)) )
 	{
-		memcpy( ks->ch , c , 2) ;
+		mkf_int_to_bytes( ks->ch , 2 , c) ;
 		ks->size = 2 ;
 		ks->cs = UHC ;
 		ks->property = 0 ;

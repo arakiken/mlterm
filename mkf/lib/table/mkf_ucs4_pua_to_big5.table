@@ -6,19 +6,13 @@
 #define  __MKF_UCS4_PUA_TO_BIG5_TABLE__
 
 
-#include  <stdio.h>			/* NULL */
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
-static u_char  ucs4_pua_to_big5_bytes[2] ;
-
 #define  CONV_UCS4_PUA_TO_BIG5(ch) \
 	( (ch) < ucs4_pua_to_big5_beg || ucs4_pua_to_big5_end < (ch) ? \
-		NULL : \
-		ucs4_pua_to_big5_table[ (ch) - ucs4_pua_to_big5_beg] == 0 ? \
-			NULL : \
-			( mkf_int_to_bytes( ucs4_pua_to_big5_bytes , 2 , \
-				ucs4_pua_to_big5_table[ (ch) - ucs4_pua_to_big5_beg])))
+		0 : ucs4_pua_to_big5_table[ (ch) - ucs4_pua_to_big5_beg])
+
 
 static u_int16_t  ucs4_pua_to_big5_table[] = 
 {

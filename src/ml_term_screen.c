@@ -4,10 +4,10 @@
 
 #include  "ml_term_screen.h"
 
+#include  <stdio.h>		/* sprintf */
 #include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_util.h>	/* K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
@@ -1979,7 +1979,7 @@ button_motion(
 	
 	termscr = (ml_term_screen_t*) win ;
 
-	if( termscr->is_mouse_pos_sending)
+	if( termscr->is_mouse_pos_sending && ! (event->state & ShiftMask))
 	{
 		return ;
 	}
@@ -2156,7 +2156,7 @@ button_pressed(
 	
 	ml_restore_selected_region_color( &termscr->sel) ;
 
-	if( termscr->is_mouse_pos_sending)
+	if( termscr->is_mouse_pos_sending && ! (event->state & ShiftMask))
 	{
 		report_mouse_tracking( termscr , event , 0) ;
 
@@ -2231,7 +2231,7 @@ button_released(
 
 	termscr = (ml_term_screen_t*) win ;
 
-	if( termscr->is_mouse_pos_sending)
+	if( termscr->is_mouse_pos_sending && ! (event->state & ShiftMask))
 	{
 		report_mouse_tracking( termscr , event , 1) ;
 

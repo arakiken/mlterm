@@ -6,19 +6,13 @@
 #define  __MKF_JOHAB_TO_UHC_TABLE__
 
 
-#include  <stdio.h>
-#include  <kiklib/kik_types.h>
+#include  <kiklib/kik_types.h>		/* u_xxx */
 
-
-static u_char  johab_to_uhc_bytes[2] ;
 
 #define  CONV_JOHAB_TO_UHC(ch) \
 	( (ch) < johab_to_uhc_beg || johab_to_uhc_end < (ch) ? \
-		NULL : \
-		johab_to_uhc_table[ (ch) - johab_to_uhc_beg] == 0 ? \
-			NULL : \
-			( mkf_int_to_bytes( johab_to_uhc_bytes , 2 , \
-				johab_to_uhc_table[ (ch) - johab_to_uhc_beg])))
+		0 : johab_to_uhc_table[ (ch) - johab_to_uhc_beg])
+
 
 static u_int16_t  johab_to_uhc_table[] = 
 {

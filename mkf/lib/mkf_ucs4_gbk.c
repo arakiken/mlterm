@@ -18,11 +18,11 @@ mkf_map_gbk_to_ucs4(
 	u_int16_t  gb
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 	
 	if( ( c = CONV_GBK_TO_UCS4(gb)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -39,13 +39,13 @@ mkf_map_ucs4_to_gbk(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int16_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_GBK(ucs4_code)) ||
 		( c = CONV_UCS4_CJK_TO_GBK(ucs4_code)) ||
 		( c = CONV_UCS4_COMPAT_TO_GBK(ucs4_code)))
 	{
-		memcpy( gb->ch , c , 2) ;
+		mkf_int_to_bytes( gb->ch , 2 , c) ;
 		gb->size = 2 ;
 		gb->cs = GBK ;
 		gb->property = 0 ;

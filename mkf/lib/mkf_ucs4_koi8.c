@@ -18,11 +18,11 @@ mkf_map_koi8_r_to_ucs4(
 	u_int16_t  koi8_code
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 
 	if( ( c = CONV_KOI8_R_TO_UCS4(koi8_code)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -89,11 +89,11 @@ mkf_map_ucs4_to_koi8_r(
 	)
 {
 #if  0
-	u_char *  c ;
+	u_int8_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_KOI8_R(ucs4_code)))
 	{
-		non_ucs->ch[0] = c[0] ;
+		non_ucs->ch[0] = c ;
 		non_ucs->size = 1 ;
 		non_ucs->cs = KOI8_R ;
 		non_ucs->property = 0 ;

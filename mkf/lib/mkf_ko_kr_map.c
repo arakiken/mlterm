@@ -83,13 +83,13 @@ mkf_map_johab_to_uhc(
 	)
 {
 	u_int16_t  johab_code ;
-	u_char *  c ;
+	u_int16_t  c ;
 
 	johab_code = mkf_char_to_int( johab) ;
 	
 	if( ( c = CONV_JOHAB_TO_UHC(johab_code)))
 	{
-		memcpy( uhc->ch , c , 2) ;
+		mkf_int_to_bytes( uhc->ch , 2 , c) ;
 		uhc->size = 2 ;
 		uhc->cs = UHC ;
 		
@@ -106,13 +106,13 @@ mkf_map_uhc_to_johab(
 	)
 {
 	u_int16_t  uhc_code ;
-	u_char *  c ;
+	u_int16_t  c ;
 
 	uhc_code = mkf_char_to_int( uhc) ;
 
 	if( ( c = CONV_UHC_TO_JOHAB(uhc_code)))
 	{
-		memcpy( johab->ch , c , 2) ;
+		mkf_int_to_bytes( johab->ch , 2 , c) ;
 		johab->size = 2 ;
 		johab->cs = JOHAB ;
 

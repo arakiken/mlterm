@@ -921,6 +921,8 @@ ml_imgline_start_bidi(
 		ml_char_copy( &line->chars[line->visual_order[counter]] , &src[counter]) ;
 	}
 
+	ml_str_final( src , line->visual_order_len) ;
+
 	if( line->is_modified)
 	{
 		ml_imgline_set_modified_all( line) ;

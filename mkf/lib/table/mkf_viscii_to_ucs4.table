@@ -6,19 +6,13 @@
 #define  __MKF_VISCII_TO_UCS4_TABLE__
 
 
-#include  <stdio.h>
-#include  <kiklib/kik_types.h>
+#include  <kiklib/kik_types.h>		/* u_xxx */
 
-
-static u_char  viscii_to_ucs4_bytes[4] ;
 
 #define  CONV_VISCII_TO_UCS4(ch) \
 	( (ch) < viscii_to_ucs4_beg || viscii_to_ucs4_end < (ch) ? \
-		NULL : \
-		viscii_to_ucs4_table[ (ch) - viscii_to_ucs4_beg] == 0 ? \
-			NULL : \
-			( mkf_int_to_bytes( viscii_to_ucs4_bytes , 4 , \
-				viscii_to_ucs4_table[ (ch) - viscii_to_ucs4_beg])))
+		0 : viscii_to_ucs4_table[ (ch) - viscii_to_ucs4_beg])
+
 
 static u_int16_t  viscii_to_ucs4_table[] = 
 {

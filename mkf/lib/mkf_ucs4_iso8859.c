@@ -94,11 +94,11 @@ mkf_map_ucs4_to_iso8859_2_r(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int8_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_2_R(ucs4_code)))
 	{
-		non_ucs->ch[0] = c[0] - 0x80 ;
+		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
 		non_ucs->cs = ISO8859_2_R ;
 		non_ucs->property = 0 ;
@@ -115,11 +115,11 @@ mkf_map_ucs4_to_iso8859_3_r(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int8_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_3_R(ucs4_code)))
 	{
-		non_ucs->ch[0] = c[0] - 0x80 ;
+		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
 		non_ucs->cs = ISO8859_3_R ;
 		non_ucs->property = 0 ;
@@ -136,11 +136,11 @@ mkf_map_ucs4_to_iso8859_4_r(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int8_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_4_R(ucs4_code)))
 	{
-		non_ucs->ch[0] = c[0] - 0x80 ;
+		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
 		non_ucs->cs = ISO8859_4_R ;
 		non_ucs->property = 0 ;
@@ -317,11 +317,11 @@ mkf_map_ucs4_to_iso8859_10_r(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int8_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_10_R(ucs4_code)))
 	{
-		non_ucs->ch[0] = c[0] - 0x80 ;
+		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
 		non_ucs->cs = ISO8859_10_R ;
 		non_ucs->property = 0 ;
@@ -370,11 +370,11 @@ mkf_map_ucs4_to_iso8859_13_r(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int8_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_13_R(ucs4_code)))
 	{
-		non_ucs->ch[0] = c[0] - 0x80 ;
+		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
 		non_ucs->cs = ISO8859_13_R ;
 		non_ucs->property = 0 ;
@@ -391,11 +391,11 @@ mkf_map_ucs4_to_iso8859_14_r(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int8_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_14_R(ucs4_code)))
 	{
-		non_ucs->ch[0] = c[0] - 0x80 ;
+		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
 		non_ucs->cs = ISO8859_14_R ;
 		non_ucs->property = 0 ;
@@ -458,11 +458,11 @@ mkf_map_ucs4_to_iso8859_16_r(
 	u_int32_t  ucs4_code
 	)
 {
-	u_char *  c ;
+	u_int8_t  c ;
 
 	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_16_R(ucs4_code)))
 	{
-		non_ucs->ch[0] = c[0] - 0x80 ;
+		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
 		non_ucs->cs = ISO8859_16_R ;
 		non_ucs->property = 0 ;
@@ -513,11 +513,11 @@ mkf_map_iso8859_2_r_to_ucs4(
 	u_int16_t  iso8859_code
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 
 	if( ( c = CONV_ISO8859_2_R_TO_UCS4(iso8859_code + 0x80)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -534,11 +534,11 @@ mkf_map_iso8859_3_r_to_ucs4(
 	u_int16_t  iso8859_code
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 
 	if( ( c = CONV_ISO8859_3_R_TO_UCS4(iso8859_code + 0x80)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -555,11 +555,11 @@ mkf_map_iso8859_4_r_to_ucs4(
 	u_int16_t  iso8859_code
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 
 	if( ( c = CONV_ISO8859_4_R_TO_UCS4(iso8859_code + 0x80)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -763,11 +763,11 @@ mkf_map_iso8859_10_r_to_ucs4(
 	u_int16_t  iso8859_code
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 
 	if( ( c = CONV_ISO8859_10_R_TO_UCS4(iso8859_code + 0x80)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -816,11 +816,11 @@ mkf_map_iso8859_13_r_to_ucs4(
 	u_int16_t  iso8859_code
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 
 	if( ( c = CONV_ISO8859_13_R_TO_UCS4(iso8859_code + 0x80)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -837,11 +837,11 @@ mkf_map_iso8859_14_r_to_ucs4(
 	u_int16_t  iso8859_code
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 
 	if( ( c = CONV_ISO8859_14_R_TO_UCS4(iso8859_code + 0x80)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -914,11 +914,11 @@ mkf_map_iso8859_16_r_to_ucs4(
 	u_int16_t  iso8859_code
 	)
 {
-	u_char *  c ;
+	u_int32_t  c ;
 
 	if( ( c = CONV_ISO8859_16_R_TO_UCS4(iso8859_code + 0x80)))
 	{
-		memcpy( ucs4->ch , c , 4) ;
+		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;

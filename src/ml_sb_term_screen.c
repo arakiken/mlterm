@@ -36,6 +36,7 @@ window_resized(
 		sb_termscr->window.width - sb_termscr->scrollbar.window.width ,
 		win->height , NOTIFY_TO_MYSELF) ;
 
+	/* srollbar window's margin is 0 , so ACTUAL_HEIGHT() is used. */
 	ml_window_resize( &sb_termscr->scrollbar.window , sb_termscr->scrollbar.window.width ,
 		ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
 }

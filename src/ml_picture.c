@@ -5,8 +5,6 @@
 #include  "ml_picture.h"
 
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_util.h>
-#include  <kiklib/kik_str.h>	/* strdup */
 
 #ifdef  USE_IMLIB
 #include  <Imlib.h>

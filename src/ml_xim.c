@@ -8,8 +8,6 @@
 #include  <string.h>		/* strcmp/memset */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup */
-#include  <kiklib/kik_conf_io.h>
-#include  <kiklib/kik_map.h>
 #include  <kiklib/kik_locale.h>	/* kik_locale_init/kik_get_locale/kik_get_codeset */
 #include  <kiklib/kik_mem.h>	/* alloca */
 
@@ -34,7 +32,7 @@ static u_int  num_of_xims ;
 
 /* --- static functions --- */
 
-/* refered in xim_closed */
+/* refered in xim_server_destroyed */
 static void  xim_server_instantiated( Display *  display , XPointer  client_data , XPointer  call_data) ;
 
 

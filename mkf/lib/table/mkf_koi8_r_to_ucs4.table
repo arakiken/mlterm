@@ -6,19 +6,13 @@
 #define  __MKF_KOI8_R_TO_UCS4_TABLE__
 
 
-#include  <stdio.h>
 #include  <kiklib/kik_types.h>
 
 
-static u_char  koi8_r_to_ucs4_bytes[4] ;
-
 #define  CONV_KOI8_R_TO_UCS4(ch) \
 	( (ch) < koi8_r_to_ucs4_beg || koi8_r_to_ucs4_end < (ch) ? \
-		NULL : \
-		koi8_r_to_ucs4_table[ (ch) - koi8_r_to_ucs4_beg] == 0 ? \
-			NULL : \
-			( mkf_int_to_bytes( koi8_r_to_ucs4_bytes , 4 , \
-				koi8_r_to_ucs4_table[ (ch) - koi8_r_to_ucs4_beg])))
+		0 : koi8_r_to_ucs4_table[ (ch) - koi8_r_to_ucs4_beg])
+
 
 /*
  * see rfc1489

@@ -6,8 +6,7 @@
 #define  __MKF_JISX0208_EXT_TABLE__
 
 
-#include  <stdio.h>	/* NULL */
-#include  <kiklib/kik_types.h>	/* u_char */
+#include  <kiklib/kik_types.h>	/* u_xxx */
 
 
 static u_int16_t  nec_ext_to_jisx0208_1983_table[] =

@@ -4,14 +4,14 @@
 
 #include  "ml_xic.h"
 
-#include  <X11/Xutil.h>		/* XLookupString */
+#include  <X11/Xutil.h>		/* X{mb|utf8}LookupString */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
 #include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <mkf/mkf_utf8_parser.h>
 
-#include  "ml_window_intern.h"
+#include  "ml_window_intern.h"	/* {FG|BG}_COLOR_PIXEL */
 #include  "ml_xim.h"		/* refering mutually */
 
 

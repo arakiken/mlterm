@@ -6,19 +6,13 @@
 #define  __MKF_CNS11643_1992_1_TO_UCS4_TABLE__
 
 
-#include  <stdio.h>			/* NULL */
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
-static u_char  cns11643_1992_1_to_ucs4_bytes[4] ;
-
 #define  CONV_CNS11643_1992_1_TO_UCS4(ch) \
 	( (ch) < cns11643_1992_1_to_ucs4_beg || cns11643_1992_1_to_ucs4_end < (ch) ? \
-		NULL : \
-		cns11643_1992_1_to_ucs4_table[ (ch) - cns11643_1992_1_to_ucs4_beg] == 0 ? \
-			NULL : \
-			( mkf_int_to_bytes( cns11643_1992_1_to_ucs4_bytes , 4 , \
-				cns11643_1992_1_to_ucs4_table[ (ch) - cns11643_1992_1_to_ucs4_beg])))
+		0 : cns11643_1992_1_to_ucs4_table[ (ch) - cns11643_1992_1_to_ucs4_beg])
+
 
 static u_int16_t  cns11643_1992_1_to_ucs4_table[] = 
 {

@@ -5,7 +5,7 @@
 #include  "ml_backscroll.h"
 
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_mem.h>	/* free */
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_util.h>
 

@@ -6,19 +6,13 @@
 #define  __MKF_ISO8859_4_R_TO_UCS4_TABLE__
 
 
-#include  <stdio.h>
-#include  <kiklib/kik_types.h>
+#include  <kiklib/kik_types.h>		/* u_xxx */
 
-
-static u_char  iso8859_4_r_to_ucs4_bytes[4] ;
 
 #define  CONV_ISO8859_4_R_TO_UCS4(ch) \
 	( (ch) < iso8859_4_r_to_ucs4_beg || iso8859_4_r_to_ucs4_end < (ch) ? \
-		NULL : \
-		iso8859_4_r_to_ucs4_table[ (ch) - iso8859_4_r_to_ucs4_beg] == 0 ? \
-			NULL : \
-			( mkf_int_to_bytes( iso8859_4_r_to_ucs4_bytes , 4 , \
-				iso8859_4_r_to_ucs4_table[ (ch) - iso8859_4_r_to_ucs4_beg])))
+		0 : iso8859_4_r_to_ucs4_table[ (ch) - iso8859_4_r_to_ucs4_beg])
+
 
 static u_int16_t  iso8859_4_r_to_ucs4_table[] = 
 {

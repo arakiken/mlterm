@@ -6,19 +6,13 @@
 #define  __MKF_UCS4_ALPHABET_TO_GBK_TABLE__
 
 
-#include  <stdio.h>
-#include  <kiklib/kik_types.h>
+#include  <kiklib/kik_types.h>		/* u_xxx */
 
-
-static u_char  ucs4_alphabet_to_gbk_bytes[2] ;
 
 #define  CONV_UCS4_ALPHABET_TO_GBK(ch) \
 	( (ch) < ucs4_alphabet_to_gbk_beg || ucs4_alphabet_to_gbk_end < (ch) ? \
-		NULL : \
-		ucs4_alphabet_to_gbk_table[ (ch) - ucs4_alphabet_to_gbk_beg] == 0 ? \
-			NULL : \
-			( mkf_int_to_bytes( ucs4_alphabet_to_gbk_bytes , 2 , \
-				ucs4_alphabet_to_gbk_table[ (ch) - ucs4_alphabet_to_gbk_beg])))
+		0 : ucs4_alphabet_to_gbk_table[ (ch) - ucs4_alphabet_to_gbk_beg])
+
 
 static u_int16_t  ucs4_alphabet_to_gbk_table[] = 
 {
