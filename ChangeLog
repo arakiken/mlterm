@@ -1,6 +1,9 @@
 2004-02-05  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* x_descsp_font.c: backgorund wasn't cleared in draw_image_string.
+	* x_descsp_font.c:
+	- backgorund wasn't cleared in draw_image_string.
+	- when xft is used for rendering, always compose dec special
+	chars since we can see nothing otherwise. (XXX to be fixed)
 
 2004-02-03  Araki Ken  <arakiken@users.sf.net>
 

@@ -558,7 +558,8 @@ font_found:
 	 * set_decsp_font() is called after dummy font is loaded to get font metrics.
 	 * Since dummy font encoding is "iso8859-1", loading rarely fails.
 	 */
-	if( compose_dec_special_font && FONT_CS(font->id) == DEC_SPECIAL)
+	/* XXX dec specials must always be composed for now */
+	if( /* compose_dec_special_font && */ FONT_CS(font->id) == DEC_SPECIAL)
 	{
 		return  set_decsp_font( font) ;
 	}
