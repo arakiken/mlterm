@@ -1997,9 +1997,10 @@ error:
 	return  0 ;
 }
 
-static int
+static u_int
 get_mod_meta_mask(
-	Display *  display
+	Display *  display ,
+	char *  mod_key
 	)
 {
 	int  mask_count ;
@@ -2007,10 +2008,24 @@ get_mod_meta_mask(
 	XModifierKeymap *  mod_map ;
 	KeyCode *  key_codes ;
 	KeySym  sym ;
-	int  mod_masks[] = { Mod1Mask , Mod2Mask , Mod3Mask , Mod4Mask , Mod5Mask } ;
+	char *  mod_keys[] = { "mod1" , "mod2" , "mod3" , "mod4" , "mod5" } ;
+	u_int  mod_masks[] = { Mod1Mask , Mod2Mask , Mod3Mask , Mod4Mask , Mod5Mask } ;
 
 	mod_map = XGetModifierMapping( display) ;
 	key_codes = mod_map->modifiermap ;
+
+	if( mod_key)
+	{
+		int  count ;
+		
+		for( count = 0 ; count < sizeof( mod_keys) / sizeof( mod_keys[0]) ; count ++)
+		{
+			if( strcmp( mod_key , mod_keys[count]) == 0)
+			{
+				return  mod_masks[count] ;
+			}
+		}
+	}
 	
 	for( mask_count = 0 ; mask_count < 6 ; mask_count++)
 	{
@@ -2035,10 +2050,14 @@ get_mod_meta_mask(
 
 			sym = XKeycodeToKeysym( display , key_codes[kc_count] , 0) ;
 
-			if( sym == XK_Meta_L || sym == XK_Meta_R ||
-				sym == XK_Alt_L || sym == XK_Alt_R ||
-				sym == XK_Super_L || sym == XK_Super_R ||
-				sym == XK_Hyper_L || sym == XK_Hyper_R)
+			if( ( ( mod_key == NULL || strcmp( mod_key , "meta") == 0) &&
+					( sym == XK_Meta_L || sym == XK_Meta_R)) ||
+				( ( mod_key == NULL || strcmp( mod_key , "alt") == 0) &&
+					( sym == XK_Alt_L || sym == XK_Alt_R)) ||
+				( ( mod_key == NULL || strcmp( mod_key , "super") == 0) &&
+					( sym == XK_Super_L || sym == XK_Super_R)) ||
+				( ( mod_key == NULL || strcmp( mod_key , "hyper") == 0) &&
+					( sym == XK_Hyper_L || sym == XK_Hyper_R)) )
 			{
 				XFreeModifiermap( mod_map) ;
 				
@@ -2050,6 +2069,10 @@ get_mod_meta_mask(
 	}
 	
 	XFreeModifiermap( mod_map) ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " No meta key is found.\n") ;
+#endif
 
 	return  0 ;
 }
@@ -2240,7 +2263,7 @@ window_realized(
 
 	screen = (x_screen_t*) win ;
 
-	screen->mod_meta_mask = get_mod_meta_mask( screen->window.display) ;
+	screen->mod_meta_mask = get_mod_meta_mask( screen->window.display , screen->mod_meta_key) ;
 
 	if( screen->xim_open_in_startup)
 	{
@@ -3875,9 +3898,6 @@ button_released(
 	}
 }
 
-/*
- * processing config menu events.
- */
 
 static void
 font_size_changed(
@@ -3912,14 +3932,10 @@ font_size_changed(
 
 static void
 change_font_size(
-	void *  p ,
+	x_screen_t *  screen ,
 	u_int  font_size
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( font_size == screen->font_man->font_size)
 	{
 		/* not changed */
@@ -3947,14 +3963,10 @@ change_font_size(
 
 static void
 change_line_space(
-	void *  p ,
+	x_screen_t *  screen ,
 	u_int  line_space
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	screen->line_space = line_space ;
 
 	font_size_changed( screen) ;
@@ -3962,14 +3974,10 @@ change_line_space(
 
 static void
 change_screen_width_ratio(
-	void *  p ,
+	x_screen_t *  screen ,
 	u_int  ratio
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( screen->screen_width_ratio == ratio)
 	{
 		return ;
@@ -3994,14 +4002,10 @@ change_screen_width_ratio(
 
 static void
 change_screen_height_ratio(
-	void *  p ,
+	x_screen_t *  screen ,
 	u_int  ratio
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( screen->screen_height_ratio == ratio)
 	{
 		return ;
@@ -4026,14 +4030,10 @@ change_screen_height_ratio(
 
 static void
 change_font_present(
-	void *  p ,
+	x_screen_t *  screen ,
 	x_font_present_t  font_present
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-	
 	if( screen->vertical_mode)
 	{
 		font_present &= ~FONT_VAR_WIDTH ;
@@ -4059,14 +4059,10 @@ change_font_present(
 
 static void
 change_char_encoding(
-	void *  p ,
+	x_screen_t *  screen ,
 	ml_char_encoding_t  encoding
 	)
 {
-	x_screen_t *  screen ;
-	
-	screen = p ;
-
 	if( ml_term_get_encoding( screen->term) == encoding)
 	{
 		/* not changed */
@@ -4111,14 +4107,10 @@ change_char_encoding(
 
 static void
 change_iscii_lang(
-	void *  p ,
+	x_screen_t *  screen ,
 	ml_iscii_lang_t  lang
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( screen->iscii_lang == lang)
 	{
 		/* not changed */
@@ -4137,27 +4129,19 @@ change_iscii_lang(
 
 static void
 change_tab_size(
-	void *  p ,
+	x_screen_t *  screen ,
 	u_int  tab_size
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	ml_term_set_tab_size( screen->term , tab_size) ;
 }
 
 static void
 change_log_size(
-	void *  p ,
+	x_screen_t *  screen ,
 	u_int  logsize
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( ml_term_get_log_size( screen->term) == logsize)
 	{
 		/* not changed */
@@ -4182,14 +4166,10 @@ change_log_size(
 
 static void
 change_sb_view(
-	void *  p ,
+	x_screen_t *  screen ,
 	char *  name
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( HAS_SCROLL_LISTENER(screen,change_view))
 	{
 		(*screen->screen_scroll_listener->change_view)(
@@ -4198,41 +4178,49 @@ change_sb_view(
 }
 
 static void
+change_mod_meta_key(
+	x_screen_t *  screen ,
+	char *  key
+	)
+{
+	free( screen->mod_meta_key) ;
+
+	if( strcmp( key , "none") == 0)
+	{
+		screen->mod_meta_key = NULL ;
+	}
+	else
+	{
+		screen->mod_meta_key = strdup( key) ;
+	}
+	
+	screen->mod_meta_mask = get_mod_meta_mask( screen->window.display , screen->mod_meta_key) ;
+}
+
+static void
 change_mod_meta_mode(
-	void *  p ,
+	x_screen_t *  screen ,
 	x_mod_meta_mode_t  mod_meta_mode
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-	
 	screen->mod_meta_mode = mod_meta_mode ;
 }
 
 static void
 change_bel_mode(
-	void *  p ,
+	x_screen_t *  screen ,
 	x_bel_mode_t  bel_mode
 	)
-{
-	x_screen_t *  screen ;
-
-	screen = p ;
-	
+{	
 	screen->bel_mode = bel_mode ;
 }
 
 static void
 change_vertical_mode(
-	void *  p ,
+	x_screen_t *  screen ,
 	ml_vertical_mode_t  vertical_mode
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( screen->vertical_mode == vertical_mode)
 	{
 		/* not changed */
@@ -4286,14 +4274,10 @@ change_vertical_mode(
 
 static void
 change_sb_mode(
-	void *  p ,
+	x_screen_t *  screen ,
 	x_sb_mode_t  sb_mode
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-	
 	if( HAS_SCROLL_LISTENER(screen,change_sb_mode))
 	{
 		(*screen->screen_scroll_listener->change_sb_mode)(
@@ -4303,27 +4287,19 @@ change_sb_mode(
 
 static void
 change_char_combining_flag(
-	void *  p ,
+	x_screen_t *  screen ,
 	int  flag
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-	
 	ml_term_set_char_combining_flag( screen->term , flag) ;
 }
 
 static void
 change_dynamic_comb_flag(
-	void *  p ,
+	x_screen_t *  screen ,
 	int  use_dynamic_comb
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( screen->use_dynamic_comb == use_dynamic_comb)
 	{
 		/* not changed */
@@ -4340,27 +4316,19 @@ change_dynamic_comb_flag(
 
 static void
 change_copy_paste_via_ucs_flag(
-	void *  p ,
+	x_screen_t *  screen ,
 	int  flag
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-	
 	screen->copy_paste_via_ucs = flag ;
 }
 
 static void
 change_fg_color(
-	void *  p ,
+	x_screen_t *  screen ,
 	char *  name
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( strcmp( name , x_get_fg_color_name( screen->color_man)) == 0)
 	{
 		return ;
@@ -4378,14 +4346,10 @@ change_fg_color(
 
 static void
 change_bg_color(
-	void *  p ,
+	x_screen_t *  screen ,
 	char *  name
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( strcmp( name , x_get_bg_color_name( screen->color_man)) == 0)
 	{
 		return ;
@@ -4403,14 +4367,10 @@ change_bg_color(
 
 static void
 change_sb_fg_color(
-	void *  p ,
+	x_screen_t *  screen ,
 	char *  name
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( HAS_SCROLL_LISTENER(screen,change_fg_color))
 	{
 		(*screen->screen_scroll_listener->change_fg_color)(
@@ -4420,14 +4380,10 @@ change_sb_fg_color(
 
 static void
 change_sb_bg_color(
-	void *  p ,
+	x_screen_t *  screen ,
 	char *  name
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( HAS_SCROLL_LISTENER(screen,change_bg_color))
 	{
 		(*screen->screen_scroll_listener->change_bg_color)(
@@ -4437,13 +4393,9 @@ change_sb_bg_color(
 
 static void
 larger_font_size(
-	void *  p
+	x_screen_t *  screen
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-	
 	x_larger_font( screen->font_man) ;
 
 	font_size_changed( screen) ;
@@ -4457,13 +4409,9 @@ larger_font_size(
 
 static void
 smaller_font_size(
-	void *  p
+	x_screen_t *  screen
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-	
 	x_smaller_font( screen->font_man) ;
 
 	font_size_changed( screen) ;
@@ -4479,14 +4427,10 @@ smaller_font_size(
 
 static void
 change_transparent_flag(
-	void *  p ,
+	x_screen_t *  screen ,
 	int  is_transparent
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( screen->window.is_transparent == is_transparent)
 	{
 		/* not changed */
@@ -4513,14 +4457,10 @@ change_transparent_flag(
 
 static void
 change_multi_col_char_flag(
-	void *  p ,
+	x_screen_t *  screen ,
 	int  flag
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( flag)
 	{
 		x_use_multi_col_char( screen->font_man) ;
@@ -4535,14 +4475,10 @@ change_multi_col_char_flag(
 
 static void
 change_bidi_flag(
-	void *  p ,
+	x_screen_t *  screen ,
 	int  use_bidi
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( screen->use_bidi == use_bidi)
 	{
 		/* not changed */
@@ -4559,14 +4495,10 @@ change_bidi_flag(
 
 static void
 change_wall_picture(
-	void *  p ,
+	x_screen_t *  screen ,
 	char *  file_path
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( screen->pic_file_path)
 	{
 		if( strcmp( screen->pic_file_path , file_path) == 0)
@@ -4586,14 +4518,10 @@ change_wall_picture(
 
 static void
 change_brightness(
-	void *  p ,
+	x_screen_t *  screen ,
 	u_int  brightness
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( screen->pic_mod.brightness == brightness)
 	{
 		/* not changed */
@@ -4621,14 +4549,10 @@ change_brightness(
 	
 static void
 change_fade_ratio(
-	void *  p ,
+	x_screen_t *  screen ,
 	u_int  fade_ratio
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	if( screen->fade_ratio == fade_ratio)
 	{
 		/* not changed */
@@ -4661,15 +4585,11 @@ change_fade_ratio(
 
 static void
 change_xim(
-	void *  p ,
+	x_screen_t *  screen ,
 	char *  xim ,
 	char *  locale
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-	
 	x_xic_deactivate( &screen->window) ;
 
 	x_xic_activate( &screen->window , xim , locale) ;
@@ -4677,29 +4597,11 @@ change_xim(
 
 static void
 full_reset(
-	void *  p
+	x_screen_t *  screen
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = p ;
-
 	ml_term_init_encoding_parser( screen->term) ;
 }
-
-static void
-config_updated(
-	void *  p
-	)
-{
-	x_screen_t *  screen ;
-
-	screen = p ;
-
-	redraw_screen( screen) ;
-	highlight_cursor( screen) ;
-}
-
 
 static void
 set_config(
@@ -4839,6 +4741,10 @@ set_config(
 	else if( strcmp( key , "scrollbar_view_name") == 0)
 	{
 		change_sb_view( screen , value) ;
+	}
+	else if( strcmp( key , "mod_meta_key") == 0)
+	{
+		change_mod_meta_key( screen , value) ;
 	}
 	else if( strcmp( key , "mod_meta_mode") == 0)
 	{
@@ -5063,9 +4969,8 @@ set_config(
 		full_reset( screen) ;
 	}
 
-	config_updated( screen) ;
-
-	return ;
+	redraw_screen( screen) ;
+	highlight_cursor( screen) ;
 }
 
 static void
@@ -5164,6 +5069,17 @@ get_config(
 		else
 		{
 			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "mod_meta_key") == 0)
+	{
+		if( screen->mod_meta_key == NULL)
+		{
+			value = "none" ;
+		}
+		else
+		{
+			value = screen->mod_meta_key ;
 		}
 	}
 	else if( strcmp( key , "mod_meta_mode") == 0)
@@ -5825,6 +5741,7 @@ x_screen_new(
 	u_int  screen_width_ratio ,
 	u_int  screen_height_ratio ,
 	int  xim_open_in_startup ,
+	char *  mod_meta_key ,
 	x_mod_meta_mode_t  mod_meta_mode ,
 	x_bel_mode_t  bel_mode ,
 	int  copy_paste_via_ucs ,
@@ -6005,9 +5922,18 @@ x_screen_new(
 
 	screen->keymap = keymap ;
 	screen->termcap = termcap ;
-	
-	screen->mod_meta_mask = 0 ;
+
+	if( mod_meta_key && strcmp( mod_meta_key , "none") != 0)
+	{
+		screen->mod_meta_key = strdup( mod_meta_key) ;
+	}
+	else
+	{
+		screen->mod_meta_key = NULL ;
+	}
 	screen->mod_meta_mode = mod_meta_mode ;
+	screen->mod_meta_mask = 0 ;		/* set later in get_mod_meta_mask() */
+
 	screen->bel_mode = bel_mode ;
 	
 	screen->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
@@ -6122,6 +6048,11 @@ x_screen_delete(
 	if( screen->iscii_state)
 	{
 		ml_iscii_delete( screen->iscii_state) ;
+	}
+
+	if( screen->mod_meta_key)
+	{
+		free( screen->mod_meta_key) ;
 	}
 
 	if( screen->pic_file_path)

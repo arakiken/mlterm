@@ -81,8 +81,9 @@ typedef struct  x_screen
 	ml_iscii_lang_t  iscii_lang ;
 	ml_iscii_state_t  iscii_state ;
 
-	u_int  mod_meta_mask ;
+	char *  mod_meta_key ;
 	x_mod_meta_mode_t  mod_meta_mode ;
+	u_int  mod_meta_mask ;
 
 	x_bel_mode_t  bel_mode ;
 
@@ -130,7 +131,7 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man , x_termcap_entry_t *  termcap ,
 	u_int  brightness , u_int  fade_ratio , x_keymap_t *  keymap ,
 	u_int  screen_width_ratio , u_int  screen_height_ratio ,
-	int  xim_open_in_startup , x_mod_meta_mode_t  mod_meta_mode ,
+	int  xim_open_in_startup , char *  mod_meta_key , x_mod_meta_mode_t  mod_meta_mode ,
 	x_bel_mode_t  bel_mode , int  prefer_utf8_selection , char *  pic_file_path ,
 	int  use_transbg , int  use_bidi , ml_vertical_mode_t  vertical_mode ,
 	int  use_vertical_cursor , int  big5_buggy ,

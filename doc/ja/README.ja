@@ -356,8 +356,11 @@ comment $Id$
 
         マウスのダブルクリックで、単語選択する際に使用されます。
 
+      o mod_meta_key (*none*/mod1/mod2/mod3/mod4/meta/alt/super/hyper)
+        Meta キーとして使用するキーを指定
+
       o mod_meta_mode  (*none*/esc/8bit) (#)
-        Metaキーを押下した時の挙動
+        Meta キーを押下した時の挙動
 
         esc の場合、"0x1b" を、8bit の場合は、入力文字の8ビット目をたてます。
         
@@ -613,6 +616,8 @@ comment $Id$
     -G/--vertical=value: 縦表示のスタイル
     -H/--bright=value  : 背景画像の輝度
     -I/--icon=value    : アイコン 名
+    -J/--dyncomb(=bool) : 結合文字を動的に合成する
+    -K/--metakey=value : Meta キーとして使用するキーを指定する
     -L/--ls(=bool)     : ログインシェルを使用
     -M/--menu=value     : mlconfig のパス
     -N/--name=value    : アプリケーション名

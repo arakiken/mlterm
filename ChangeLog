@@ -1,5 +1,10 @@
 2002-06-29 Araki Ken <arakiken@users.sf.net>
 
+	* -K,--metakey=[mod1-mod5,meta,alt,super,hyper] option is added.
+	  This option works the same as rxvt's -mod option.
+
+2002-06-29 Araki Ken <arakiken@users.sf.net>
+
 	* Background of line characters can be transparent when -Y option is specified.
 
 2002-06-28  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>

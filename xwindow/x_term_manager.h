@@ -73,6 +73,7 @@ typedef struct x_config
 	char *  bg_color ;
 	char *  sb_fg_color ;
 	char *  sb_bg_color ;
+	char *  mod_meta_key ;
 	char *  cmd_path ;
 	char **  cmd_argv ;
 	

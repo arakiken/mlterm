@@ -254,11 +254,11 @@ open_term(
 			term_man->conf.brightness ,
 			term_man->conf.fade_ratio , &term_man->keymap ,
 			term_man->conf.screen_width_ratio , term_man->conf.screen_height_ratio ,
-			term_man->conf.xim_open_in_startup , term_man->conf.mod_meta_mode ,
-			term_man->conf.bel_mode , term_man->conf.copy_paste_via_ucs ,
-			term_man->conf.pic_file_path , term_man->conf.use_transbg ,
-			term_man->conf.use_bidi , term_man->conf.vertical_mode ,
-			term_man->conf.use_vertical_cursor ,
+			term_man->conf.xim_open_in_startup , term_man->conf.mod_meta_key ,
+			term_man->conf.mod_meta_mode , term_man->conf.bel_mode ,
+			term_man->conf.copy_paste_via_ucs , term_man->conf.pic_file_path ,
+			term_man->conf.use_transbg , term_man->conf.use_bidi ,
+			term_man->conf.vertical_mode , term_man->conf.use_vertical_cursor ,
 			term_man->conf.big5_buggy , term_man->conf.conf_menu_path ,
 			term_man->conf.iscii_lang , term_man->conf.use_extended_scroll_shortcut ,
 			term_man->conf.use_dynamic_comb , term_man->conf.line_space)) == NULL)
@@ -831,6 +831,8 @@ get_min_conf(
 		"icon name") ;
 	kik_conf_add_opt( conf , 'J' , "dyncomb" , 1 , "use_dynamic_comb" ,
 		"use dynamic combining [false]") ;
+	kik_conf_add_opt( conf , 'K' , "metakey" , 0 , "mod_meta_key" ,
+		"specify meta key [none]") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell [false]") ;
 	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path" ,
@@ -1399,6 +1401,17 @@ config_init(
 		}
 	}
 
+	/* If value is "none" or not is also checked in x_screen.c */
+	if( ( value = kik_conf_get_value( conf , "mod_meta_key")) &&
+		strcmp( value , "none") != 0)
+	{
+		term_man->conf.mod_meta_key = strdup( value) ;
+	}
+	else
+	{
+		term_man->conf.mod_meta_key = NULL ;
+	}
+	
 	if( ( value = kik_conf_get_value( conf , "mod_meta_mode")))
 	{
 		term_man->conf.mod_meta_mode = x_get_mod_meta_mode( value) ;
@@ -1500,6 +1513,7 @@ config_final(
 	free( term_man->conf.bg_color) ;
 	free( term_man->conf.sb_fg_color) ;
 	free( term_man->conf.sb_bg_color) ;
+	free( term_man->conf.mod_meta_key) ;
 	free( term_man->conf.cmd_argv) ;
 
 	return  1 ;
