@@ -1,3 +1,10 @@
+2003-08-18  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* x_window.c, x_dnd.h: code cleanup. 
+	  XDnD subsystem is separated into x_dnd.c and should be easily
+	  disabled if it's desired.
+	* x_dnd.c: plugged tiny memory leaks.
+
 2003-08-14  Araki Ken  <arakiken@users.sf.net>
 
 	* Added tool/viewsfml/README,tool/viewsfml/Makefile.
@@ -14,8 +21,8 @@
 
 2003-08-12  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* x_dnd.c: for incremantal transfer, parser/converter 
-	  should be kept to remember its state(endianess/framgents etc.)
+	* x_dnd.c: for incremental transfer, parser/converter 
+	  should be kept to remember its state(endianess/fragments etc.)
 
 2003-08-10  MINAMI Hirokazu  <minami@mistfall.net>
 

@@ -12,6 +12,10 @@
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
 
+#define  XA_DND_STORE(display) (XInternAtom(display, "MLTERM_DND", False))
+
+/* following defines should match those of in x_window.c */
+#define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 
 typedef struct x_dnd_context {
@@ -27,6 +31,7 @@ typedef struct dnd_parser {
 	int  (*parser)(x_window_t *, unsigned char *, int) ;
 } dnd_parser_t ;
 
+/********************** parsers **********************************/
 static int
 parse_text_unicode(
 	x_window_t *  win,
@@ -55,7 +60,10 @@ parse_text_unicode(
 			return 1 ;
 		}
 #ifdef  DEBUG
-		kik_debug_printf("recycling parser/converter %d, %p, %p\n", win->dnd->is_incr, win->dnd->conv, win->dnd->parser ) ;
+		kik_debug_printf("recycling parser/converter %d, %p, %p\n", 
+				 win->dnd->is_incr,
+				 win->dnd->conv,
+				 win->dnd->parser ) ;
 #endif
 	}
 	else
@@ -272,7 +280,7 @@ parse_prop_bgimage(
 	}
 	else
 	{
-		/* other schemas may be supprted here */
+		/* other schemas may be supported here */
 	}
 #ifdef  DEBUG
         kik_debug_printf( "bgimage: %s\n" , src) ;
@@ -320,7 +328,7 @@ dnd_parser_t dnd_parsers[] ={
 */
 	{NULL, NULL}
 };
-
+/************************** static functions *************************/
 static int
 ignore_badwin(
 	Display *  display,
@@ -364,6 +372,21 @@ set_badwin_handler(
 	}
 }
 
+static int
+finalize_context(
+	x_window_t * win
+	)
+{
+	if( !win->dnd)	
+	{
+#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG "for %p\n", win) ;
+#endif
+		free( win->dnd);
+		win->dnd = NULL ;
+	}
+}
+
 /* seek atom array and return the index */
 static int
 is_pref(
@@ -376,7 +399,7 @@ is_pref(
 	for( i = 0 ; i < num ; i++)
 	{
 #if 0
-		kik_debug_printf("%d %d %d\n " , i, atom[i], type) ;
+		kik_debug_printf( KIK_DEBUG_TAG "%d: %d %d\n " , i, atom[i], type) ;
 #endif
 		if( atom[i] == type)
 			return i ;
@@ -430,8 +453,14 @@ finish(
 {
 	XClientMessageEvent msg ;
 
+	if( !(win->dnd))
+		return ;
 	if( !(win->dnd->source))
 		return ;
+
+#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG "saying good bye\n") ;
+#endif
 
 	msg.message_type = XInternAtom( win->display, "XdndFinished", False) ;
 	msg.data.l[0] = win->my_window ;
@@ -463,27 +492,25 @@ parse(
 	int len)
 {
 	dnd_parser_t *  proc_entry ;
-	Atom atom ;
 
 	if( !src)
 		return 1 ;
 	if( !(win->dnd))
 		return 1;
 
-	atom = win->dnd->waiting_atom ;
-	if( !atom)
+	if( !(win->dnd->waiting_atom))
 		return 1 ;
 
-	for( proc_entry = dnd_parsers ; proc_entry->atomname ;proc_entry++)
+	for( proc_entry = dnd_parsers ; proc_entry->atomname ; proc_entry++)
 	{
-		if( atom == XInternAtom( win->display, proc_entry->atomname, False) )
+		if( (win->dnd->waiting_atom) ==
+		    XInternAtom( win->display, proc_entry->atomname, False) )
 			break ;
 	}
 
 #ifdef  DEBUG
-		kik_debug_printf("parsing as %s\n", proc_entry->atomname) ;
+	kik_debug_printf( KIK_DEBUG_TAG "found %s\n", proc_entry->atomname) ;
 #endif
-
 	if( proc_entry->parser)
 		return  (proc_entry->parser)( win, src, len) ;
 
@@ -505,6 +532,9 @@ choose_atom(
 	int  num
 	)
 {
+#ifdef  DEBUG
+	char *  atom_name ;
+#endif
 	dnd_parser_t *  proc_entry ;
 	int  i = -1 ;
 
@@ -512,36 +542,19 @@ choose_atom(
 		i = is_pref( XInternAtom( win->display, proc_entry->atomname, False), atom, num);
 
 	if( i < 0)
-	{
-#ifdef  DEBUG
-		char *  p ;
-		for( i = 0 ; i < num ; i++)
-			if( atom[i])
-			{
-				p = XGetAtomName( win->display, atom[i]);
-				kik_debug_printf("dropped atoms: %s\n",
-						 XGetAtomName( win->display,
-							       atom[i])) ;
-				XFree( p) ;
-			}
-#endif
 		return (Atom)0  ;/* 0 would never be used for Atom */
-	}
-	else
-	{
+
 #ifdef  DEBUG
-		char *  p ;
-		p = XGetAtomName( win->display, atom[i]);
-		if( p)
-		{
-			kik_debug_printf( "accepted as atom: %s(%d)\n",
-					  p, atom[i]) ;
-			XFree( p) ;
-		}
+	atom_name = XGetAtomName( win->display, atom[i]);
+	if( atom_name)
+	{
+		kik_debug_printf( KIK_DEBUG_TAG "accepted: %s(%d)\n",
+				  atom_name, atom[i]) ;
+		XFree( atom_name) ;
+	}
 #endif
 
-		return atom[i] ;
-	}
+	return atom[i] ;
 }
 
 /* --- global functions --- */
@@ -550,8 +563,8 @@ choose_atom(
  *\param win mlterm window
  *\param flag awareness is set when true
  */
-void
-x_dnd_set_awareness(
+static void
+awareness(
 	x_window_t * win,
 	int version
 	)
@@ -564,8 +577,8 @@ x_dnd_set_awareness(
 	set_badwin_handler(0);
 }
 
-int
-x_dnd_process_enter(
+static int
+process_enter(
 	x_window_t *  win,
 	XEvent *  event
 	)
@@ -602,15 +615,12 @@ x_dnd_process_enter(
 	}
 	else
 	{
-		/* less than 3 candiates */
+		/* less than 3 candidates */
 		to_wait = choose_atom( win , (event->xclient.data.l)+2 , 3);
 	}
 
 	if( to_wait)
 	{
-#ifdef  DEBUG
-		kik_debug_printf("ENTER:preparing DND session for %d on %p \n", to_wait, win->dnd) ;
-#endif
 		if( !(win->dnd))
 			win->dnd = malloc( sizeof( x_dnd_context_t)) ;
 		if( !(win->dnd))
@@ -621,7 +631,8 @@ x_dnd_process_enter(
 		win->dnd->parser = NULL ;
 		win->dnd->conv = NULL ;
 #ifdef  DEBUG
-		kik_debug_printf("ENTER:prepared DND session as %p\n", win->dnd) ;
+		kik_debug_printf( KIK_DEBUG_TAG "choosed atom:%d  on %p\n",
+				  to_wait, win->dnd) ;
 #endif
 	}
 	else
@@ -629,10 +640,9 @@ x_dnd_process_enter(
 		if( win->dnd)
 		{
 #ifdef  DEBUG
-		kik_debug_printf("ENTER:terminating DND session\n") ;
+			kik_debug_printf( KIK_DEBUG_TAG "terminating.\n") ;
 #endif
-			free( win->dnd);
-			win->dnd = NULL ;
+			finalize_context( win) ;
 		}
 		return 1 ;
 	}
@@ -640,8 +650,8 @@ x_dnd_process_enter(
 	return 0 ;
 }
 
-int
-x_dnd_process_position(
+static int
+process_position(
 	x_window_t *  win,
 	XEvent *  event
 	)
@@ -649,7 +659,7 @@ x_dnd_process_position(
 	if( !(win->dnd))
 	{
 #ifdef  DEBUG
-		kik_debug_printf("POSITION:DND session nonexistent\n");
+		kik_debug_printf( KIK_DEBUG_TAG "session nonexistent.\n");
 #endif
 		return 1 ;
 	}
@@ -657,10 +667,9 @@ x_dnd_process_position(
 	if( win->dnd->source != event->xclient.data.l[0])
 	{
 #ifdef  DEBUG
-		kik_debug_printf("WID not matched. drop rejected. \n");
+		kik_debug_printf( KIK_DEBUG_TAG "WID not matched.\n");
 #endif
-		free( win->dnd);
-		win->dnd = NULL ;
+		finalize_context( win) ;
 
 		return 1 ;
 	}
@@ -670,8 +679,8 @@ x_dnd_process_position(
 	return 0 ;
 }
 
-int
-x_dnd_process_drop(
+static int
+process_drop(
 	x_window_t *  win,
 	XEvent *  event
 	)
@@ -680,7 +689,7 @@ x_dnd_process_drop(
 	if( !(win->dnd))
 	{
 #ifdef  DEBUG
-		kik_debug_printf("DROP:DND session nonexistent\n");
+		kik_debug_printf( KIK_DEBUG_TAG "session nonexistent.\n");
 #endif
 		return 1 ;
 	}
@@ -688,11 +697,10 @@ x_dnd_process_drop(
 	if( win->dnd->source != event->xclient.data.l[0])
 	{
 #ifdef  DEBUG
-		kik_debug_printf("WID not matched. drop rejected. \n");
+		kik_debug_printf( KIK_DEBUG_TAG "WID not matched.\n");
 #endif
-		free( win->dnd);
-		win->dnd = NULL ;
-
+		finalize_context( win) ;
+		
 		return 1 ;
 	}
 
@@ -708,8 +716,8 @@ x_dnd_process_drop(
 	return 0 ;
 }
 
-int
-x_dnd_process_incr(
+static int
+process_incr(
 	x_window_t *  win,
 	XEvent *  event
 	)
@@ -721,13 +729,10 @@ x_dnd_process_incr(
 	if( !(win->dnd))
 	{
 #ifdef  DEBUG
-		kik_debug_printf("INCR:DND session nonexistent\n");
+		kik_debug_printf( KIK_DEBUG_TAG "session nonexistent\n");
 #endif
 		return 1 ;
 	}
-#ifdef  DEBUG
-		kik_debug_printf("INCR:staring\n");
-#endif
 	/* remember that it's an incremental transfer */
 	win->dnd->is_incr = 1 ;
 	
@@ -741,17 +746,14 @@ x_dnd_process_incr(
 	if( result != Success)
 		return  1 ;
 
-	/* the event should be ignored */
-	if( ct.encoding == None)
-		return  1 ;
-
-	/* when ct.encoding != XA_INCR,
-	   delete will be read when SelectionNotify would arrive  */
+	/* ignore when ct.encoding != XA_INCR */
 	if( ct.encoding != XA_INCR(win->display))
 	{
 #ifdef  DEBUG
-		kik_debug_printf("INCR:ignored\n");
+		kik_debug_printf( KIK_DEBUG_TAG "ignored.\n");
 #endif
+		if( ct.value)
+			XFree( ct.value) ;
 		return  1 ;
 	}
 
@@ -766,21 +768,22 @@ x_dnd_process_incr(
 		return  1 ;
 
 #ifdef  DEBUG
-	kik_debug_printf("INCR: %d\n", ct.nitems) ;
+	kik_debug_printf( KIK_DEBUG_TAG "INCR: %d\n", ct.nitems) ;
 #endif
 	parse( win, ct.value, ct.nitems) ;
 
 	if( ct.nitems == 0)
 	{       /* all data have been received */
 #ifdef  DEBUG
-		kik_debug_printf("INCR: terminating DND session\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG "terminating.\n") ;
 #endif
+
 		finish( win) ;
-		free( win->dnd);
-		win->dnd = NULL ;
+		finalize_context( win) ;
 	}
 
-	XFree( ct.value) ;
+	if( ct.value)
+		XFree( ct.value) ;
 
 	/* This delete will trigger the next update*/
 	set_badwin_handler(1) ;
@@ -791,8 +794,8 @@ x_dnd_process_incr(
 	return 0 ;
 }
 
-int
-x_dnd_process_selection(
+static int
+process_selection(
 	x_window_t *  win,
 	XEvent *  event
 	)
@@ -805,9 +808,6 @@ x_dnd_process_selection(
 	if( !(win->dnd))
 		return 1 ;
 
-#ifdef  DEBUG
-		kik_debug_printf("processing selection\n");
-#endif
 	/* dummy read to determine data length */
 	set_badwin_handler(1) ;
 	result = XGetWindowProperty( win->display , event->xselection.requestor ,
@@ -819,15 +819,18 @@ x_dnd_process_selection(
 	if( result != Success)
 	{
 #ifdef  DEBUG
-		kik_debug_printf("couldn't get property. terminating DND session\n");
+		kik_debug_printf( KIK_DEBUG_TAG "couldn't get property. terminating.\n");
 #endif
-		free( win->dnd);
-		win->dnd = NULL ;
+		finalize_context( win) ;
 
 		return 1 ;
 	}
+	if( ct.value)
+		XFree( ct.value) ;
 	if( ct.encoding == XA_INCR(win->display))
+	{
 		return 0 ;
+	}
 
 	while( bytes_after > 0)
 	{
@@ -847,12 +850,85 @@ x_dnd_process_selection(
 	}
 
 	finish( win) ;
-
-#ifdef  DEBUG
-		kik_debug_printf("terminating DND session\n") ;
-#endif
-	free( win->dnd);
-	win->dnd = NULL ;
+	finalize_context( win) ;
 
 	return  0 ;
+}
+
+/* XFilterEvent(event, w) analogue */
+int
+x_dnd_filter_event(
+	XEvent *  event,
+	x_window_t *  win
+	)
+{
+	switch( event->type )
+	{
+	case MapNotify:
+		/* CreateNotifyEvent seems to be lost somewhere... */
+		awareness( win, 5) ;
+
+		break;
+
+	case SelectionNotify:
+		if( event->xselection.property != XA_DND_STORE(win->display))
+			return 0 ;
+		
+		process_selection( win, event) ;
+
+		set_badwin_handler(1) ;
+		XDeleteProperty( win->display, event->xselection.requestor,
+				 event->xselection.property) ;
+		set_badwin_handler(0) ;
+
+		break;
+		
+	case ClientMessage:
+		if( event->xclient.message_type == 
+		    XInternAtom( win->display, "XdndEnter", False))
+		{
+			process_enter( win, event) ;
+		}
+		else if( event->xclient.message_type == 
+			 XInternAtom( win->display, "XdndPosition", False))
+		{
+			process_position( win, event) ;
+		}
+		else if( event->xclient.message_type == 
+			 XInternAtom( win->display, "XdndDrop", False))
+		{	
+			process_drop( win, event) ;
+		}
+		else if ( event->xclient.data.l[0] ==
+			  XA_DELETE_WINDOW( win->display))
+		{
+			finalize_context( win) ;
+			/* the event should also be processed by mlterm main loop */
+			return 0 ;
+		}
+		else
+		{
+			return 0 ;
+		}
+
+		break ;
+
+	case PropertyNotify:
+		if( event->xproperty.atom != XA_DND_STORE( win->display))
+			return 0 ;
+		if( event->xproperty.state == PropertyDelete)
+		{
+			/* ignore delete notify */
+			return 1 ;
+		}
+
+		process_incr( win, event) ;
+
+		break ;
+	default:
+		return 0 ;
+	}
+
+	/* event processed */
+	return 1 ;
 }

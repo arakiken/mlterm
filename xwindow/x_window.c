@@ -1021,9 +1021,6 @@ x_window_show(
 					DefaultColormap( win->display , win->screen)) ;
 #endif
 
-	/* declare support XDND protocol */
-	x_dnd_set_awareness( win, 5) ;
-
 	/*
 	 * graphic context.
 	 */
@@ -1557,6 +1554,12 @@ x_window_receive_event(
 		return  0 ;
 	}
 
+	if( x_dnd_filter_event( event, win) != 0)
+	{
+		/* event was consumed by xdnd handlers */
+		return 1 ;
+	}
+
 	if( event->type == KeyPress)
 	{
 		if( win->key_pressed)
@@ -1991,12 +1994,6 @@ x_window_receive_event(
 			
 		}
 		
-		/* XDND */
-		if( event->xselection.property == XA_DND_STORE(win->display))
-		{
-			x_dnd_process_selection( win, event) ;
-		}
-		
 		XDeleteProperty( win->display, event->xselection.requestor,
 			event->xselection.property) ;
 	}
@@ -2037,37 +2034,7 @@ x_window_receive_event(
 			{
 				exit(0) ;
 			}
-		}
-		
-		/* DnD Enter */
-		if( event->xclient.format == 32 &&
-		    event->xclient.message_type == XA_DND_ENTER( win->display))
-		{
-			x_dnd_process_enter( win, event) ;
-		}
-
-		/* DnD Position */
-		if( event->xclient.format == 32 &&
-		    event->xclient.message_type == XA_DND_POSITION( win->display))
-		{
-			x_dnd_process_position( win, event) ;
-		}
-
-		/*DnD Drop*/
-		if( event->xclient.format == 32 &&
-		    event->xclient.message_type == XA_DND_DROP( win->display))
-		{
-			x_dnd_process_drop( win, event) ;
-		}
-	}
-	else if( event->type == PropertyNotify)
-	{
-		/* XXX paste using INCR also should be processed here */
-
-		if( event->xproperty.atom == XA_DND_STORE( win->display))
-                {			
-			x_dnd_process_incr( win, event) ;
-		}
+		}		
 	}
 #ifdef  __DEBUG
 	else
