@@ -1,3 +1,14 @@
+[20020304]
+* -q/--extkey use_extended_scroll_shortcut option , which enables scroll shortcutkey
+  extension(scrolling by arrow keys, 'j' and 'k'), is added.(disabled by default)
+* ISO8859_1 and ISO8859_1X in xxfont config files aren't distinguished. fixed.
+  (Thanks to Kubota Tomohiro san)
+* 0x1b is inserted when INSERT_SELECTION etc keys are pressed if they are assigned
+  to Mod + Foo.
+  (Thanks to Nobuyoshi Nakada san)
+* whether Xutf8LookupString exists or not is checked in configure.
+  (Thanks to Nobuyoshi Nakada san)
+
 [20020302]
 * whether libsocket exists or not is checked in configure.
   (Thanks to Nadim Shaikli)
