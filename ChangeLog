@@ -1,3 +1,7 @@
+2003-07-05  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* Changed API of the x_imagelib_load_file() function.
+
 2003-07-03 Araki Ken <arakiken@users.sf.net>
 
 	* Modified a little README,man/mlterm.1,doc/ja/README.ja

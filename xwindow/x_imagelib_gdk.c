@@ -1655,16 +1655,33 @@ int x_imagelib_load_file(
 	u_int32_t **  cardinal,
 	Pixmap *  pixmap,
 	Pixmap *  mask,
-	int  width,
-	int  height
+	int *  width,
+	int *  height
 	)
 {
 	GdkPixbuf *  pixbuf ;
-
+	int  dst_height, dst_width ;
+	if( !width)
+	{
+		dst_width = 0 ;
+	}
+	else
+	{
+		dst_width = *width ;
+	}
+	if( !height)
+	{
+		dst_height = 0 ;
+	}
+	else
+	{
+		dst_height = *height ;
+	}
+	
 	if( path)
 	{
 		/* create a pixbuf from the file and create a cardinal array */
-		if( !( pixbuf = load_file( path, width, height, GDK_INTERP_NEAREST)))
+		if( !( pixbuf = load_file( path, dst_width, dst_height, GDK_INTERP_NEAREST)))
 		{
 #ifdef DEBUG
 			kik_warn_printf(KIK_DEBUG_TAG "couldn't load pixbuf\n") ;
@@ -1672,18 +1689,22 @@ int x_imagelib_load_file(
 			return  0 ;
 		}
 		if ( cardinal)
-			create_cardinals_from_bixbuf( cardinal, width, height, pixbuf) ;
+			create_cardinals_from_bixbuf( cardinal, dst_width, dst_height, pixbuf) ;
 	}
 	else
 	{
 		if( !cardinal || !(*cardinal))
 			return  0 ;
 		/* create a pixbuf from the cardinal array */
-		pixbuf = create_pixbuf_from_cardinals( *cardinal, width, height) ;
+		pixbuf = create_pixbuf_from_cardinals( *cardinal, dst_width, dst_height) ;
 		if( !pixbuf)
 			return  0 ;
 
 	}
+	
+	dst_width = gdk_pixbuf_get_width( pixbuf) ;
+	dst_height = gdk_pixbuf_get_height( pixbuf) ;
+	
 	/* Create the Icon pixmap & mask to be used in WMHints.
 	 * Note that none as a result is acceptable.
 	 * Pixmaps can't be cached since the last pixmap may be freed by someone... */
@@ -1691,13 +1712,13 @@ int x_imagelib_load_file(
 	if( pixmap)
 	{
 		*pixmap = XCreatePixmap( display, DefaultRootWindow( display),
-					 width, height,
+					 dst_width, dst_height,
 					 DefaultDepth( display, DefaultScreen( display))) ;
 		if( mask)
 		{
 			*mask = XCreatePixmap( display,
 					       DefaultRootWindow( display),
-					       width, height, 1) ;
+					       dst_width, dst_height, 1) ;
 			if( pixbuf_to_pixmap_and_mask( display,
 						       DefaultScreen( display),
 						       pixbuf, *pixmap, *mask) != SUCCESS)
@@ -1724,6 +1745,15 @@ int x_imagelib_load_file(
 				return  0 ;
 			}
 		}
+	}
+	if( width && *width == 0)
+	{
+		*width = dst_width ;
+	}
+
+	if( height && *height == 0)
+	{
+		*height = dst_height ;
 	}
 
 	gdk_pixbuf_unref( pixbuf) ;

@@ -21,7 +21,7 @@ Pixmap  x_imagelib_load_file_for_background( x_window_t *  win , char *  file_pa
 Pixmap  x_imagelib_get_transparent_background( x_window_t *  win , x_picture_modifier_t *  pic_mod) ;
 
 int  x_imagelib_load_file( Display *  display, char *  path, u_int32_t **  cardinal, Pixmap *  pixmap, Pixmap *  mask,
-			   int  width, int  height) ;
+			   int *  width, int *   height) ;
 
 
 #endif

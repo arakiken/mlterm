@@ -464,12 +464,14 @@ int x_imagelib_load_file(
 	u_int32_t **  cardinal,
 	Pixmap *  pixmap,
 	Pixmap *  mask,
-	int  width,
-	int  height
+	int *  width,
+	int *  height
 	)
 {
 	ImlibData *  imlib ;
 	ImlibImage *  img ;
+
+	int  dst_width, dst_height ;
 
 	if( ! ( imlib = get_imlib( display)))
 	{
@@ -486,16 +488,34 @@ int x_imagelib_load_file(
 		*cardinal = NULL ;
 	}
 	
-	if( width == 0)
+	if( (!width) || *width == 0)
 	{
-		width = img->rgb_width;
+		dst_width = img->rgb_width;
+		if( width)
+		{
+			*width = dst_width ;
+		}
 	}
-	if( height == 0)
+	else
+	{
+		dst_width = *width ;
+	}
+
+	if( (!height) || *height == 0)
 	{
 		height = img->rgb_height ;
 	}
+	else
+	{
+		dst_height = *height ;
+		if( height)
+		{
+			*height = dst_height ;
+		}
+	}
 
-	Imlib_render( imlib, img, width, height);
+
+	Imlib_render( imlib, img, dst_width, dst_height);
 	
 	if( pixmap)
 	{
