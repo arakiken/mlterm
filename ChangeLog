@@ -1,3 +1,8 @@
+2003-09-16  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* ml_config_menu.c: call kik_remove_sig_child_listener()
+	  when the config menu is finalized.
+
 2003-09-15  Araki Ken  <arakiken@users.sf.net>
 
 	* mlterm-menu/Makefile.in: Added $(SYSCONFDIR) target.

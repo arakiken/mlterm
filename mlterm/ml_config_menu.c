@@ -58,6 +58,8 @@ ml_config_menu_final(
 	ml_config_menu_t *  config_menu
 	)
 {
+	kik_remove_sig_child_listener( config_menu , sig_child) ;
+
 	return  1 ;
 }
 
