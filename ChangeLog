@@ -1,3 +1,13 @@
+2004-06-21 Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* tool/mlconfig/mc_im.c (uim_read_conf): Renamed to ...
+	* tool/mlconfig/mc_im.c (read_uim_conf): ..this.
+
+	* tool/mlconfig/mc_im.c (xim_read_conf): Renamed to ...
+	* tool/mlconfig/mc_im.c (read_xim_conf): ..this.
+
+	* tool/mlconfig/mc_im.c (read_uim_conf): Fixed a minor bug.
+
 2004-06-20  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* x_im_candidate_screen.c(set_candidates): In encoding conversion, set

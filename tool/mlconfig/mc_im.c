@@ -108,7 +108,7 @@ xim_selected(GtkWidget *widget, gpointer data)
 }
 
 static int
-xim_read_conf(KIK_MAP(xim_locale) xim_locale_table, char *filename)
+read_xim_conf(KIK_MAP(xim_locale) xim_locale_table, char *filename)
 {
 	kik_file_t *from;
 	char *key;
@@ -177,12 +177,12 @@ xim_widget_new(const char *xim_name, const char *xim_locale)
 	kik_set_sys_conf_dir(CONFIG_PATH);
 	
 	if ((rcpath = kik_get_sys_rc_path("mlterm/xim"))) {
-		xim_read_conf(xim_locale_table, rcpath);
+		read_xim_conf(xim_locale_table, rcpath);
 		free(rcpath);
 	}
 
 	if ((rcpath = kik_get_user_rc_path("mlterm/xim"))) {
-		xim_read_conf(xim_locale_table, rcpath);
+		read_xim_conf(xim_locale_table, rcpath);
 		free(rcpath);
 	}
 
@@ -261,7 +261,7 @@ uim_selected(GtkWidget *widget, gpointer data)
 }
 
 char **
-uim_read_conf(char **engines, u_int *num_of_engines, char *path)
+read_uim_conf(char **engines, u_int *num_of_engines, char *path)
 {
 	kik_file_t *from;
 	char *line;
@@ -275,6 +275,9 @@ uim_read_conf(char **engines, u_int *num_of_engines, char *path)
 	}
 
 	while (1) {
+		int i;
+		int match = 0;
+
 		if (!(line = kik_file_get_line(from, &len))) {
 			break;
 		}
@@ -286,6 +289,15 @@ uim_read_conf(char **engines, u_int *num_of_engines, char *path)
 		line[len-1] = '\0';
 
 		line = kik_str_chop_spaces(line);
+
+		for (i = 0; i < *num_of_engines; i++) {
+			if (strcmp(line, engines[i]) == 0) {
+				match = 1;
+				break;
+			}
+		}
+
+		if (match) continue;
 
 		if (!(engines = realloc(engines, sizeof(char*) * (*num_of_engines+1)))) {
 			break;
@@ -310,12 +322,12 @@ uim_widget_new(const char *uim_engine)
 	int i;
 
 	if ((rcpath = kik_get_sys_rc_path("mlterm/uim"))) {
-		engines = uim_read_conf(engines, &num_of_engines, rcpath);
+		engines = read_uim_conf(engines, &num_of_engines, rcpath);
 		free(rcpath);
 	}
 
 	if ((rcpath = kik_get_user_rc_path("mlterm/uim"))) {
-		engines = uim_read_conf(engines, &num_of_engines, rcpath);
+		engines = read_uim_conf(engines, &num_of_engines, rcpath);
 		free(rcpath);
 	}
 
