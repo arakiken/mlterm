@@ -98,7 +98,7 @@ typedef struct  pixmap_sb_view
 
 /* declared in x_imagelib.h */
 int  x_imagelib_load_file( Display *  display, char *  path, u_int32_t **  cardinal,
-	Pixmap *  pixmap, Pixmap *  mask, int  width, int  height) ;
+	Pixmap *  pixmap, Pixmap *  mask, int *  width, int *  height) ;
 
 static void
 load_image(
@@ -107,14 +107,14 @@ load_image(
 	const char *  file ,
 	Pixmap *  pixmap ,
 	Pixmap *  mask ,
-	unsigned int  width ,
-	int  height
+	unsigned int *  width ,
+	unsigned int *  height
 	)
 {
 	char *  path ;
 	int  len ;
 
-	if( height <= 0)
+	if( height == NULL || width == NULL)
 	{
 		return  ;
 	}
@@ -123,16 +123,19 @@ load_image(
 	path = malloc( sizeof( char) * ( len + 1)) ;
 	sprintf( path , "%s/%s.png" , dir , file);
 
-#if 0
+#ifdef __DEBUG
 	if( ! x_imagelib_load_file( display , path , NULL , pixmap , mask ,
 				width , height))
 	{
-		/* XXX: warning or debug output */
+		printf("x_imagelib_load_file() failed\n");;
 	}
 #else
 	x_imagelib_load_file( display , path , NULL , pixmap , mask , width , height) ;
 #endif
 
+#ifdef __DEBUG
+	printf(" path: %s, width: %d, height: %d\n", path , *width, *height) ;
+#endif
 	free( path) ;
 
 	return  ;
@@ -189,8 +192,8 @@ create_bg_cache(
 		{
 			free_pixmap( d , ps->bg_body) ;
 			load_image( d , ps->dir , "bg_body" ,
-				&ps->bg_body , NULL , ps->width ,
-				cached_body_h) ;
+				&ps->bg_body , NULL , &ps->width ,
+				&cached_body_h) ;
 			XCopyArea( d , ps->bg_body , ps->bg_cache , gc ,
 				0 , 0 , ps->width , cached_body_h ,
 				0 , ps->bg_top_h) ;
@@ -257,8 +260,8 @@ resize_slider(
 			free_pixmap( d , ps->slider_body) ;
 			free_pixmap( d , ps->slider_body_mask) ;
 			load_image( d , ps->dir , "slider_body" ,
-				&ps->slider_body , &ps->slider_body_mask , ps->slider_width ,
-				body_height) ;
+				&ps->slider_body , &ps->slider_body_mask ,
+				&ps->slider_width , &body_height) ;
 		}
 	}
 }
@@ -305,6 +308,9 @@ get_geometry_hints(
 			break ;
 	}
 
+#ifdef __DEBUG
+	printf("[geometry] width: %d, top_margin: %d, bottom_margin: %d, up_button_y: %d, up_button_height: %d, down_button_y: %d, down_button_height: %d\n", *width, *top_margin, *bottom_margin, *up_button_y, *up_button_height, *down_button_y, *down_button_height) ;
+#endif
 }
 
 static void
@@ -355,45 +361,59 @@ realized(
 	{
 		load_image( display , ps->dir , "bg_top" ,
 				&ps->bg_top , NULL ,
-				ps->width , ps->bg_top_h) ;
+				&ps->width , &ps->bg_top_h) ;
 		load_image( display , ps->dir , "bg_body" ,
 				&ps->bg_body , NULL ,
-				ps->width , ps->bg_body_h) ;
+				&ps->width , &ps->bg_body_h) ;
 		load_image( display , ps->dir , "bg_bottom" ,
 				&ps->bg_bottom , NULL ,
-				ps->width , ps->bg_bottom_h) ;
+				&ps->width , &ps->bg_bottom_h) ;
 		create_bg_cache( ps) ;
 	}
 
 	/* up/down buttons */
 	load_image( display , ps->dir , "button_up" , &ps->btn_up ,
 			ps->btn_use_mask ? &ps->btn_up_mask : NULL ,
-			ps->width , ps->btn_up_h) ;
+			&ps->width , &ps->btn_up_h) ;
 	load_image( display , ps->dir , "button_down" , &ps->btn_dw ,
 			ps->btn_use_mask ? &ps->btn_dw_mask : NULL ,
-			ps->width , ps->btn_dw_h) ;
+			&ps->width , &ps->btn_dw_h) ;
 	load_image( display , ps->dir , "button_up_pressed" , &ps->btn_up_pressed ,
 			ps->btn_use_mask ? &ps->btn_up_pressed_mask : NULL ,
-			ps->width , ps->btn_up_h) ;
+			&ps->width , &ps->btn_up_h) ;
 	load_image( display , ps->dir , "button_down_pressed" , &ps->btn_dw_pressed ,
 			ps->btn_use_mask ? &ps->btn_dw_pressed_mask : NULL ,
-			ps->width , ps->btn_dw_h) ;
+			&ps->width , &ps->btn_dw_h) ;
 
 	/*
 	 * load slider images (separated three parts; top, body and bottom.)
 	 */
 	load_image( display , ps->dir , "slider_top" , &ps->slider_top ,
 		ps->slider_use_mask ? &ps->slider_top_mask : NULL ,
-		ps->slider_width , ps->slider_top_h) ;
+		&ps->slider_width , &ps->slider_top_h) ;
 	load_image( display , ps->dir , "slider_body" , &ps->slider_body ,
 		ps->slider_use_mask ? &ps->slider_body_mask : NULL ,
-		ps->slider_width , ps->slider_body_h) ;
+		&ps->slider_width , &ps->slider_body_h) ;
 	load_image( display , ps->dir , "slider_bottom" , &ps->slider_bottom ,
 		ps->slider_use_mask ? &ps->slider_bottom_mask : NULL ,
-		ps->slider_width , ps->slider_bottom_h) ;
+		&ps->slider_width , &ps->slider_bottom_h) ;
 	load_image( display , ps->dir , "slider_knob" , &ps->slider_knob ,
 		&ps->slider_knob_mask ,
-		ps->slider_width , ps->slider_knob_h) ;
+		&ps->slider_width , &ps->slider_knob_h) ;
+
+	/*
+	 * verify the size
+	 */
+	if( ps->width < ps->slider_width)
+	{
+		ps->slider_width = ps->width ;
+	}
+
+	if( ps->btn_layout == BTN_NONE && ( ps->btn_up_h || ps->btn_dw_h))
+	{
+		ps->btn_up_h = 0 ;
+		ps->btn_dw_h = 0 ;
+	}
 }
 
 static void
@@ -743,6 +763,18 @@ parse(
 		{
 			sscanf( p->value , "%d" , &ps->width) ;
 		}
+		else if( strcmp( p->key , "slider_width") == 0)
+		{
+			sscanf( p->value , "%d" , &ps->slider_width) ;
+		}
+		else if( strcmp( p->key , "button_up_height") == 0)
+		{
+			sscanf( p->value , "%d" , &ps->btn_up_h) ;
+		}
+		else if( strcmp( p->key , "button_down_height") == 0)
+		{
+			sscanf( p->value , "%d" , &ps->btn_dw_h) ;
+		}
 		else if( strcmp( p->key , "top_margin") == 0)
 		{
 			sscanf( p->value , "%d" , &ps->top_margin) ;
@@ -750,18 +782,6 @@ parse(
 		else if( strcmp( p->key , "bottom_margin") == 0)
 		{
 			sscanf( p->value , "%d" , &ps->bottom_margin) ;
-		}
-		else if( strcmp( p->key , "bg_top_height") == 0)
-		{
-			sscanf( p->value , "%d" , &ps->bg_top_h) ;
-		}
-		else if( strcmp( p->key , "bg_body_height") == 0)
-		{
-			sscanf( p->value , "%d" , &ps->bg_body_h) ;
-		}
-		else if( strcmp( p->key , "bg_bottom_height") == 0)
-		{
-			sscanf( p->value , "%d" , &ps->bg_bottom_h) ;
 		}
 		else if( strcmp( p->key , "bg_tile") == 0)
 		{
@@ -792,40 +812,12 @@ parse(
 				ps->btn_layout = BTN_SOUTHGRAVITY ;
 			}
 		}
-		else if( strcmp( p->key , "button_up_height") == 0)
-		{
-			sscanf( p->value , "%d" , &ps->btn_up_h) ;
-		}
-		else if( strcmp( p->key , "button_down_height") == 0)
-		{
-			sscanf( p->value , "%d" , &ps->btn_dw_h) ;
-		}
 		else if( strcmp( p->key , "button_use_mask") == 0)
 		{
 			if( strcmp( p->value , "true") == 0)
 			{
 				ps->btn_use_mask = 1 ;
 			}
-		}
-		else if( strcmp( p->key , "slider_width") == 0)
-		{
-			sscanf( p->value , "%d" , &ps->slider_width) ;
-		}
-		else if( strcmp( p->key , "slider_top_height") == 0)
-		{
-			sscanf( p->value , "%d" , &ps->slider_top_h) ;
-		}
-		else if( strcmp( p->key , "slider_body_height") == 0)
-		{
-			sscanf( p->value , "%d" , &ps->slider_body_h) ;
-		}
-		else if( strcmp( p->key , "slider_bottom_height") == 0)
-		{
-			sscanf( p->value , "%d" , &ps->slider_bottom_h) ;
-		}
-		else if( strcmp( p->key , "slider_knob_height") == 0)
-		{
-			sscanf( p->value , "%d" , &ps->slider_knob_h) ;
 		}
 		else if( strcmp( p->key , "slider_tile") == 0)
 		{
@@ -887,22 +879,6 @@ x_pixmap_engine_sb_engine_new(
 	{
 		free( ps) ;
 		return  NULL ;
-	}
-
-	/*
-	 * verify the values
-	 */
-	if( ps->width < ps->slider_width)
-	{
-		printf( "%s/rc: invalid value. slider_width[%d] is larger than width[%d]\n" , ps->dir , ps->width , ps->slider_width) ;
-		free( ps) ;
-		return  NULL ;
-	}
-
-	if( ps->btn_layout == BTN_NONE && ( ps->btn_up_h || ps->btn_dw_h))
-	{
-		ps->btn_up_h = 0 ;
-		ps->btn_dw_h = 0 ;
 	}
 
 	/* event handlers */

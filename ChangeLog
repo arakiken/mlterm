@@ -1,3 +1,7 @@
+2003-07-05  Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Updated pixmap_engine since x_imagelib_load_file() was changed.
+
 2003-07-05  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* Changed API of the x_imagelib_load_file() function.
@@ -60,7 +64,7 @@
 	  '-export-dynamic' to link option.
 	* Added 'pixmap_engine' scrollbar library.(depends on imlib or
 	  gdk-pixbuf)
-	* Added 'sample3' scrollbar to show the usages of pixmap_engine.
+	* Added 'sample3' scrollbar to show the usage of pixmap_engine.
 
 2003-06-29 Araki Ken <arakiken@users.sf.net>
 
