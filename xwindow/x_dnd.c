@@ -52,7 +52,7 @@ ignore_badwin(
 	}
 }
 
-static int
+static void
 set_badwin_handler(
 	int  flag
 	)

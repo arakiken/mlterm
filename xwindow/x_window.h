@@ -125,7 +125,6 @@ typedef struct  x_window
 	 * XClassHint
 	 */
 	char *  app_name ;
-	char *  app_class ;
 
 	/*
 	 * flags etc.

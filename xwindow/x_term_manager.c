@@ -62,7 +62,6 @@ typedef struct main_config
 
 	char *  disp_name ;
 	char *  app_name ;
-	char *  app_class ;
 	char *  title ;
 	char *  icon_name ;
 	char *  term_type ;
@@ -207,11 +206,6 @@ create_term_intern(void)
 	if( main_config.icon_name)
 	{
 		ml_term_set_icon_name( term , main_config.icon_name) ;
-	}
-	else if( main_config.title)
-	{
-		/* If icon name was not specified, title name is used. */
-		ml_term_set_icon_name( term , main_config.title);
 	}
 
 	return  term ;
@@ -467,8 +461,7 @@ open_screen_intern(
 	}
 
 	if( ! x_window_manager_show_root( &disp->win_man , root ,
-		main_config.x , main_config.y , main_config.geom_hint ,
-		main_config.app_name , main_config.app_class))
+		main_config.x , main_config.y , main_config.geom_hint , main_config.app_name))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_manager_show_root() failed.\n") ;
@@ -976,8 +969,6 @@ get_min_conf(
 		"initial string sent to pty") ;
 	kik_conf_add_opt( conf , '$' , "mc" , 0 , "click_interval" ,
 		"click interval(milisecond)[250]") ;
-	kik_conf_add_opt( conf , '%' , "class" , 0 , "app_class" , 
-		"application class") ;
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
 		"screen width in percent against font width [default = 100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
@@ -1152,13 +1143,6 @@ config_init(
 	if( ( value = kik_conf_get_value( conf , "app_name")))
 	{
 		main_config.app_name = strdup( value) ;
-	}
-
-	main_config.app_class = NULL ;
-
-	if( ( value = kik_conf_get_value( conf , "app_class")))
-	{
-		main_config.app_class = strdup( value) ;
 	}
 
 	main_config.title = NULL ;
@@ -1827,7 +1811,6 @@ config_final(void)
 {
 	free( main_config.disp_name) ;
 	free( main_config.app_name) ;
-	free( main_config.app_class) ;
 	free( main_config.title) ;
 	free( main_config.icon_name) ;
 	free( main_config.term_type) ;

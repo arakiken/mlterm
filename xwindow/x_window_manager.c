@@ -102,8 +102,7 @@ x_window_manager_show_root(
 	int  x ,
 	int  y ,
 	int  hint ,
-	char *  app_name ,
-	char *  app_class
+	char *  app_name
 	)
 {
 	void *  p ;
@@ -132,11 +131,6 @@ x_window_manager_show_root(
 		root->app_name = app_name ;
 	}
 
-	if( app_class)
-	{
-		root->app_class = app_class ;
-	}
-	
 	win_man->roots[win_man->num_of_roots++] = root ;
 
 	x_window_show( root , hint) ;

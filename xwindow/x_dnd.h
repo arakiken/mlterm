@@ -17,12 +17,12 @@ typedef struct x_dnd_context {
 
 void x_dnd_set_awareness( x_window_t * win, int version );
 
-Atom x_process_selection( x_window_t *  win , XEvent * event);
+int x_dnd_process_selection( x_window_t *  win , XEvent * event);
 
-Atom x_process_incr( x_window_t *  win , XEvent * event);
+int x_dnd_process_incr( x_window_t *  win , XEvent * event);
 
-Atom x_process_position( x_window_t *  win , XEvent * event);
+int x_dnd_process_position( x_window_t *  win , XEvent * event);
 
-Atom x_process_drop( x_window_t *  win , XEvent * event);
+int x_dnd_process_drop( x_window_t *  win , XEvent * event);
 
-Atom x_process_enter( x_window_t *  win , XEvent * event);
+int x_dnd_process_enter( x_window_t *  win , XEvent * event);

@@ -514,7 +514,6 @@ x_window_init(
 	win->mask = None ;
 
 	win->app_name = "mlterm" ;
-	win->app_class = "Mlterm" ;
 
 	win->window_realized = NULL ;
 	win->window_finalized = NULL ;
@@ -1137,7 +1136,7 @@ x_window_show(
 		}
 
 		class_hint.res_name = win->app_name ;
-		class_hint.res_class = win->app_class ;
+		class_hint.res_class = win->app_name ;
 
 		wm_hints.window_group = win->my_window ;
 		wm_hints.initial_state = NormalState ;	/* or IconicState */

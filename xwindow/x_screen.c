@@ -6461,6 +6461,10 @@ x_screen_attach(
 			ml_term_get_num_of_logged_lines( screen->term)) ;
 	}
 
+	/*
+	 * if ml_term_(icon|window)_name() returns NULL, screen->window.app_name
+	 * will be used in x_set_(icon|window)_name().
+	 */
 	x_set_window_name( &screen->window , ml_term_window_name( screen->term)) ;
 	x_set_icon_name( &screen->window , ml_term_icon_name( screen->term)) ;
 	
