@@ -45,13 +45,11 @@ static void reload_passwd(){
 	sprintf(local_buffer, "%s%s", getenv("HOME"), "/.mlterm/challenge");
 	file = fopen(local_buffer, "r");
 	if( !file){
-		fprintf( stderr, "creating\n" );
 		csi("]5379;gen_proto_challange\007");
 		sleep(1) ;
 		file = fopen(local_buffer, "r");
 	}
 	if( !file){
-		fprintf( stderr, "read failure\n" );
 		mlterm_pass[0] = 0 ;
 		return;
 	}	
