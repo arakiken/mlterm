@@ -1,3 +1,36 @@
+2004-06-13  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* xwindow/x_uim.c, xwindow/x_uim.h: moved to...
+	* inputmethod/uim/im_uim.c, inputmethod/uim/im_uim.h: this.
+
+	Uim related things have been implemented as plug-ins(pluggable
+	modules). This change enables mlterm to be compiled without -luim in
+	the case of either --enable-uim or --disable-uim, and libuim is
+	required from this module only.
+
+	* x_im.c, x_im.h: new file, used to load input method plug-ins.
+
+	* x_im_candidate_screen.c, x_im_candidate_screen.h: new file, used to 
+	show the candidates for conversion received from uim.
+
+	* x_window.c(x_window_set_override_redirect): new function, separated
+	from x_window_set_borderless_flag().
+
+	* x_screen.c(draw_str, draw_str_to_eol): moved to x_draw_str.c
+
+	* x_draw_str.c, x_draw_str.h: New files, separated from x_screen.c to
+	share draw_str() and draw_str_to_eol() with x_im_candidate_screen.c
+	and x_screen.c.
+
+	* x_main_config.c, x_main_config.h: remove 'uim_engine' and add
+	'input_method' option. (input_method=<input method>:<conversion engine>)
+
+	* x_term_manager.c, x_term_manager.h: removed 'use_uim' option.
+
+	* x_term_manager.c, x_term_manager.h (x_term_manager_add_fd,
+	x_term_manager_remove_fd): new functions, used to add/remove file
+	descriptors to/from the event source.
+
 2004-05-24 MINAMI Hirokazu <minami@mistfall.net>
 
 	* x_xic.c: type of event mask should be long.
