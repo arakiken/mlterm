@@ -681,15 +681,6 @@ sig_child(
 }
 
 static void
-atexit_func(void)
-{
-	if( un_file)
-	{
-		unlink( un_file) ;
-	}
-}
-
-static void
 sig_fatal( int  sig)
 {
 #ifdef  DEBUG
@@ -798,8 +789,6 @@ start_daemon(
 	}
 
 	un_file = path ;
-
-	atexit( atexit_func) ;
 
 	return  sock_fd ;
 }
