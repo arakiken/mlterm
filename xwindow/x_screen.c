@@ -3596,7 +3596,7 @@ button_press_continued(
 	screen = (x_screen_t*) win ;
 	
 	if( screen->sel.is_selecting &&
-		(event->y < 0 || win->height - x_line_height( screen) < event->y))
+		(event->y < 0 || win->height < event->y))
 	{
 		selecting_with_motion( screen , event->x , event->y , event->time) ;
 	}
