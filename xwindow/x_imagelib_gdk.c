@@ -268,23 +268,6 @@ closest_color_index(
 	unsigned long  min = 0xffffff ;
 	unsigned long  diff ;
 	int  diff_r, diff_g, diff_b ;
-/*
-	if( red   < 0)
-		red   = 0 ;
-	else
-		if( red   > 255)
-			red   = 255 ;
-	if( green < 0)
-		green = 0 ;
-	else
-		if( green > 255)
-			green = 255 ;
-	if( blue  < 0)
-		blue  = 0 ;
-	else
-		if( blue  > 255)
-			blue  = 255 ;
-*/
 
 	for( i = 0 ; i < len ; i ++)
 	{
@@ -1686,6 +1669,7 @@ x_imagelib_get_transparent_background(
 				XFreePixmap( win->display, cache->cooked) ;
 			}
 			cache->cooked = None ;
+			memset( &(cache->pic_mod), 0, sizeof(x_picture_modifier_t)) ;
 		}
 	}
 	else
@@ -1713,11 +1697,11 @@ x_imagelib_get_transparent_background(
 		/* re-creation */
 		if(pic_mod)
 		{
+			/* we need a copy of pixmap to modify */
 			cache->cooked = tile_pixmap( win->display,
 						     win->screen,
 						     gc,
-						     current_root
-						     /* we need a copy of pixmap to modify */
+						     current_root						     
 						     ,1 ) ;
 			memcpy( &(cache->pic_mod), pic_mod, sizeof(x_picture_modifier_t)) ;
 			modify_pixmap( win->display, win->screen, cache->cooked, pic_mod) ;

@@ -1,3 +1,9 @@
+2003-02-23  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* Modifications to the background image were not applied
+	  when the wallpaper had been changed. 
+	  (Thanks to KATO Kazuyoshi san)
+
 2003-02-18 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* mlclient failed to connect to the server. Fixed.
