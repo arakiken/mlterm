@@ -32,6 +32,15 @@ typedef struct iscii_kbd
 
 static u_char *  arabic_conv_tbl[] =
 {
+	"\x06\x37" ,	/* ' */
+	NULL ,		/* ( */
+	NULL ,		/* ) */
+	NULL ,		/* * */
+	NULL ,		/* + */
+	"\x06\x48" ,	/* , */
+	NULL ,		/* - */
+	"\x06\x32" ,	/* . */
+	"\x06\x38" ,	/* / */
 	"\x06\x60" ,	/* 0 */
 	"\x06\x61" ,	/* 1 */
 	"\x06\x62" ,	/* 2 */
@@ -43,7 +52,7 @@ static u_char *  arabic_conv_tbl[] =
 	"\x06\x68" ,	/* 8 */
 	"\x06\x69" ,	/* 9 */
 	NULL ,		/* : */
-	NULL ,		/* ; */
+	"\x06\x43" ,	/* ; */
 	"\x00\x2c" ,	/* < */
 	NULL ,		/* = */
 	"\x00\x2e" ,	/* > */
@@ -130,15 +139,25 @@ arabic_get_str(
 	size_t  len ;
 
 	len = x_window_get_str( kbd->window , seq , seq_len , parser , ksym , event) ;
-	
-	if( (event->state & ~ShiftMask) == 0 && len == 1 && 0x30 <= *seq && *seq <= 0x7e)
+
+	if( (event->state & ~ShiftMask) == 0 && len == 1 && 0x27 <= *seq && *seq <= 0x7e)
 	{
 		char *  c ;
 
-		if( ( c = arabic_conv_tbl[*seq - 0x30]))
+		if( ( c = arabic_conv_tbl[*seq - 0x27]))
 		{
-			len = strlen( c) ;
-			strncpy( seq , c , K_MIN(len,seq_len - 1)) ;
+			if( *c == 0x0)
+			{
+				/* "\x00\xNN" */
+				len = 1 + strlen( c + 1) ;
+			}
+			else
+			{
+				len = strlen( c) ;
+			}
+			
+			/* Don't use strcpy because c may include NULL character. */
+			memcpy( seq , c , K_MIN(len,seq_len - 1)) ;
 			*parser = kbd->parser ;
 			*ksym = 0 ;
 		}
