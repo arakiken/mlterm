@@ -9,15 +9,15 @@ use Data::Dumper;
 # global variables
 ###########
 #
-my $VERSION="0.1.1";
+my $VERSION="0.1.2";
 my $TITLE = "mlterm configulator on Curses v.$VERSION";
 my $TERM="mlterm" || $ENV{TERM}; ### XXX:drop support for other T.E.s ?
 my $TTY = "/dev/tty"; ### XXX TBD:support remote control!
 
 my $FG_COLOR = 'white'; ## Used when displaying menu(s).
 my $BG_COLOR = 'black'; ## NOT used for terminal param.
-my $EDIT_COLOR = 'red'; ## NOT used for terminal param.
-my $SELECT_COLOR = 'green'; ## NOT used for terminal param.
+my $EDIT_COLOR = 'red';
+my $SELECT_COLOR = 'green';
 
 my $MAGIC_ERROR = "error"; ## XXX
 
@@ -167,6 +167,21 @@ sub config_init_bg(){
     }
 }
 
+sub config_init_misc(){
+    return if ($TERM ne "mlterm");
+    my $colorid;
+    # ensure text is readable (possibly take care of wall paper?)
+    for  ($colorid = 0; (($EDIT_COLOR eq $FG_COLOR) ||
+			 ($EDIT_COLOR eq $BG_COLOR)); $colorid ++){
+	$EDIT_COLOR = $color_table_map[$colorid];
+    }
+    for  (; (($SELECT_COLOR eq $FG_COLOR) ||
+			 ($SELECT_COLOR eq $BG_COLOR) ||
+			 ($SELECT_COLOR eq $BG_COLOR)); $colorid ++){
+	$SELECT_COLOR = $color_table_map[$colorid];
+    }
+}
+
 sub config_entry_add(@){
     my $data_ref = shift;
     ###FixMe check data structure 
@@ -202,11 +217,11 @@ sub config_section_add(@){
     while( $name = shift){
 	unless ( $config_tree{ $name}){
 	    my $index = @config_section_list;
-	    $config_tree{ $name}=[ $name,  #                 #SECTION_NAME
-				   $index, #serial           #       _INDEX
-				   [],     #list of entires   #       _LIST
-				   0,      #selected entry   #       _SELECTED
-				   0       #length of entry  #       _ENTRYWIDTH
+	    $config_tree{ $name}=[ $name,  #                 #_NAME
+				   $index, #serial           #_INDEX
+				   [],     #list of entires  #_LIST
+				   0,      #selected entry   #_SELECTED
+				   0       #length of entry  #_ENTRYWIDTH
 				];
 	    $config_section_list[ $index] = $name;
 	    $config_section_width = length( $name)
@@ -274,7 +289,7 @@ sub config_entry_disp(@){
     my $oldvalue;
 
     $window_grab = $window_entry;
-    unless (defined $$entry[$ENTRY_INITIAL] || $$entry[$ENTRY_INITIAL] eq "error"){
+    unless (defined $$entry[$ENTRY_INITIAL] && $$entry[$ENTRY_INITIAL] ne $MAGIC_ERROR){
 	$$entry[$ENTRY_INITIAL] = &$get_func( $entry_name) ;
 	$$entry[$ENTRY_DATA] = $$entry[$ENTRY_INITIAL] ;
 	#$$entry[$ENTRY_INITIAL] =undef() if ($$entry[$ENTRY_INITIAL] eq "error");
@@ -305,7 +320,7 @@ sub config_apply_all(){
 }
 sub config_apply_section(){
 ## have to process per section for special combination 
-# such as xim:locale
+# such as xim:locale?
     my $section= shift || config_section_get_cur_name();
     my $entry;
     foreach $entry (@{$config_tree{$section}[2]}){
@@ -337,39 +352,39 @@ sub config_revert_section(@){
 ########################
 # display
 ########################
-sub display_main(@){
-    if( $display_state == $ST_SECT){
-	return display_section_select(); ## select section
-    }
-    if( $display_state == $ST_ENTRY){
-	return display_entry_select();
-    }
-    if( $display_state == $ST_MODIFY){
-	return display_entry_edit();
-    }
-}
-
-sub display_clear(@){
+### misc.
+sub display_window_size(@){
     my $window = shift;
     my ($x,$y);
     $window->getmaxyx($y,$x);
-    my $line;
-    foreach $line (0 .. $y){
-	display_str($window, " " x $x , 0, $line, $FG_COLOR, $BG_COLOR );
-    }
+    return ($x, $y);
 }
 
-sub display_final(){
-    $window_sect->delwin();
-    $window_entry->delwin();
-    $window_top->delwin();
-    %CURSES_COLOR_PAIR = {};
-    endwin();
+sub display_window_delete(@){
+    my $window = shift;
+    $window->delwin();
 }
 
 sub display_refresh(@){
     my $window = shift;
     $window->refresh();
+}
+
+sub display_final(){
+    display_window_delete($window_sect);
+    display_window_delete($window_entry);
+    display_window_delete($window_top);
+    %CURSES_COLOR_PAIR = ();
+    endwin();
+}
+
+sub display_clear(@){
+    my $window = shift;
+    my ($x,$y) = display_window_size($window);
+    my $line;
+    foreach $line (0 .. $y){
+	display_str($window, " " x $x , 0, $line, $FG_COLOR, $BG_COLOR );
+    }
 }
 
 sub display_init(){
@@ -382,28 +397,30 @@ sub display_init(){
     }
     $window_grab = $window_top;
     noecho();
-    $window_top->keypad(1);
+    $window_top->keypad(1);  ### XXX never used?
     $window_top->attrset(0); #reset all attributes
+
     config_init_fg(); ## getch needs a curses window.
-    display_clear($window_top);
-    config_init_bg(); ## getch needs a curses window.
+    display_clear($window_top); ### XXX nasty workaround
+    config_init_bg();
+    config_init_misc();
     display_set_color( $window_top , $FG_COLOR, $BG_COLOR);
     display_clear($window_top);
-    $window_top->addstr(0, 1, "$TITLE ");
-    $window_top->refresh();
+
+    display_str($window_top, " $TITLE ");
+    display_refresh($window_top);
     $window_sect = derwin( $window_top,
 			   $LINES - $MARGIN_TOP,
-			   config_section_get_width() + 3 + $MARGIN_SIDE ,
+			   config_section_get_width() + 3 + $MARGIN_SIDE , ## 3 = box line * 2 + marker *1
 			   1, 0);
     $window_sect->keypad(1);
     $window_entry = derwin( $window_top,
 			    $LINES - $MARGIN_TOP - 1,
-			    $COLS - config_section_get_width() - $MARGIN_SIDE - 3,
+			    $COLS - config_section_get_width() - $MARGIN_SIDE - 3, ## width of window_sect
 			    2 , config_section_get_width() + 4);
     $window_entry->keypad(1);
-    $window_sect->refresh;
-    $window_entry->refresh;
-    halfdelay(5);
+    display_refresh($window_sect);
+    display_refresh($window_entry);
 }
 
 sub display_str(@){
@@ -418,7 +435,7 @@ sub display_str(@){
 }
 
 sub display_set_color(@){
-
+### XXX rewrite to suppot misc. colors
     my $window = shift;
     my $fg = shift || $FG_COLOR;
     my $bg = shift || $BG_COLOR;
@@ -437,7 +454,21 @@ sub display_set_color(@){
 	}
     }
 }
-##########################################################
+### main loop #################################
+
+sub display_main(@){
+    if( $display_state == $ST_SECT){
+	return display_section_select(); ## select section
+    }
+    if( $display_state == $ST_ENTRY){
+	return display_entry_select();
+    }
+    if( $display_state == $ST_MODIFY){
+	return display_entry_edit();
+    }
+}
+
+### display section >>>###################################################
 sub display_section_all(@){ 
     my $dest_window = shift || $window_sect;
     my $section;
@@ -454,19 +485,17 @@ sub display_section_all(@){
 sub display_section(@){
     my $section_index = shift;
     my $dest_window = shift || $window_sect;
-    display_str( $dest_window, "     ",
-		 $MARGIN_SIDE, 
-		 $section_index * $SECTION_SPAN + $MARGIN_TOP +1 , $FG_COLOR);
+    my $title = $config_section_list[$section_index];
     if ($section_index != config_section_get_cur_index()){ ## selected section	
-	display_str( $dest_window, " $config_section_list[$section_index]",
+	display_str( $dest_window, " $title",
 		     $MARGIN_SIDE, 
 		     $section_index * $SECTION_SPAN + $MARGIN_TOP, $FG_COLOR);
     }elsif($display_state != $ST_SECT){
-	display_str( $dest_window, " $config_section_list[$section_index]",
+	display_str( $dest_window, " $title",
 		     $MARGIN_SIDE, $section_index * $SECTION_SPAN + $MARGIN_TOP,
 		     $SELECT_COLOR);	
     }else{
-	display_str( $dest_window, ">$config_section_list[$section_index]",
+	display_str( $dest_window, ">$title",
 		     $MARGIN_SIDE, $section_index * $SECTION_SPAN + $MARGIN_TOP,
 		     $EDIT_COLOR);	
     }
@@ -479,19 +508,19 @@ sub display_section_select(@){
     while(1){
 	display_section(config_section_get_cur_index());
 	$input= display_getch(0, $window_sect);
-	if( $input == KEY_RIGHT || $input == "\n"){ ## exit to state 1(select entry)
+	if( $input eq KEY_RIGHT || $input eq "\n"){ ## select entry
 	    $display_state = $ST_ENTRY;
 	    display_section(config_section_get_cur_index());
 	    display_refresh($window_sect);
 	    last;
-	}elsif( $input == KEY_UP){
+	}elsif( $input eq KEY_UP){
 	    if (config_section_get_cur_index() >0){
 		config_section_set_cur_index(config_section_get_cur_index() - 1);
 		display_entry_all();
 		display_refresh($window_entry);
 	    }
 	    display_section(config_section_get_cur_index() + 1); ## clear old one
-	}elsif( $input == KEY_DOWN){
+	}elsif( $input eq KEY_DOWN){
 	    if (config_section_get_cur_index() < @config_section_list -1){
 		config_section_set_cur_index(config_section_get_cur_index() + 1);
 		display_entry_all();
@@ -502,7 +531,8 @@ sub display_section_select(@){
     }
     return $display_state;
 }
-###########################################
+####<<< display section    ######################################
+####    disaply entry   >>>######################################
 sub display_entry_edit(){
     my $entry_index = config_entry_get_cur_index();
     $window_grab = $window_entry;
@@ -520,20 +550,20 @@ sub display_entry_select(){
     $window_grab = $window_entry;
     display_entry($entry_index);
     $input = display_getch(0, $window_entry);
-    if ( $input == KEY_LEFT){
+    if ( $input eq KEY_LEFT){
 	$display_state = $ST_SECT;
 	display_entry( $entry_index);
 	display_refresh($window_entry);
     }
-    if ( $input == KEY_UP && $entry_index > 0){
+    if ( $input eq KEY_UP && $entry_index > 0){
 	config_entry_set_cur_index( $entry_index -1);
 	display_entry($entry_index);
     }
-    if ( $input == KEY_DOWN && $entry_index < config_section_size() -1){
+    if ( $input eq KEY_DOWN && $entry_index < config_section_size() -1){
 	    config_entry_set_cur_index( $entry_index + 1);
 	    display_entry($entry_index );
 	}
-    if ( $input == '\n'){
+    if ( $input eq "\n"){
 	$display_state =  $ST_MODIFY;
     }
     return  $display_state;
@@ -560,10 +590,12 @@ sub display_entry_all(@){
 	display_entry($index);
     }
 }
+####<<< disaply entry ######################################
 
-#########################################################
+#### configulator internal >>>##############################
 sub config_entry_sel_color(@){
-## return the color for entry index
+## return the color for entry title
+# retuens STRING(COLOR_NAME)
     my $entry_index = shift;
     my $section_name = shift || config_section_get_cur_name();
     unless(config_entry_is_cur($entry_index)){
@@ -577,6 +609,7 @@ sub config_entry_sel_color(@){
 
 sub config_entry_data_color(@){
 ## return the color for entry contents
+# returns STRING(COLOR_NAME)
     my $entry_index = shift;
     my $section_name = shift || config_section_get_cur_name();
     unless(config_entry_is_cur($entry_index)){
@@ -590,12 +623,15 @@ sub config_entry_data_color(@){
 
 sub config_entry_is_cur(@){
 ## return the color for entry index
+# retuens BOOL
     my $entry_index = shift;
     my $section_name = shift || config_section_get_cur_name();
     return ($entry_index == config_entry_get_cur_index($section_name));
 }
 
 sub display_entry_text(){
+## disp./edit entry whose type is "text"
+# returns STRING
     my $window = shift || $window_entry;
     my $entry = shift;
     my $x = shift;
@@ -605,16 +641,12 @@ sub display_entry_text(){
     display_str( $window, $title , $x, $y, 
 		 config_entry_sel_color($$entry[$ENTRY_INDEX]));
     $x = tabpos( $x+ length($title));
-    ### FixMe width 25 is too much (can be value of CTXT?)
-    
-    my ($maxx, $maxy);
-    $window->getmaxyx($maxy, $maxx);
+
+    my ($maxx, $maxy) = display_window_size($window);
     $maxx = $maxx - $x - 1;
 
     if ($display_state == $ST_MODIFY){
 	display_refresh($window_entry);  ## make sure color is changed
-	 ### FixMe should support "cancel"
-	
 	return display_text_box( $window,
 				 config_entry_get_data($entry),
 				 $x, $y, $maxx,
@@ -680,31 +712,31 @@ sub display_entry_numeric(@){
 	    display_button($window, "OFF" , $x, $y, $FG_COLOR, $EDIT_COLOR);
 	}
 	$input = display_getch(0, $window);
-	if ( $input == KEY_LEFT){
+	if ( $input eq KEY_LEFT){
 	    if ($value != $errorval){
 		$value -= $step;
 	    }else{
 		$value = $max;
 	    }
-	}elsif ( $input == KEY_RIGHT){
+	}elsif ( $input eq KEY_RIGHT){
 	    if ($value != $errorval){
 		$value += $step;
 	    }else{
 		$value = $min;
 	    }
-	}elsif ( $input == KEY_UP){
+	}elsif ( $input eq KEY_UP){
 	    if ($value != $errorval){
 		$value += $step * 2;
 	    }else{
 		$value = $min;
 	    }
-	}elsif ( $input == KEY_DOWN){
+	}elsif ( $input eq KEY_DOWN){
 	    if ($value != $errorval){
 		$value -= $step * 2;
 	    }else{
 		$value = $max;
 	    }
-	}elsif ( $input == '\n'){
+	}elsif ( $input eq "\n"){
 	    last;
 	}
 	if ( $value < $min ){
@@ -751,7 +783,7 @@ sub display_entry_bool(){
 #	display_button();
 	display_button($window, $bool , $x, $y, $FG_COLOR, $EDIT_COLOR);		
 	$input = display_getch(0, $window);
-	if ( $input == '\n'){
+	if ( $input eq "\n"){
 	    last;
 	}elsif( $input != -1){ ### any char will change the state
 	    $bool = ( $bool eq "true" ) ? "false" : "true";
@@ -777,8 +809,7 @@ sub display_entry_list(){
     display_str( $parent, $data, $x, $y, $FG_COLOR);
     return $data unless ( $display_state == $ST_MODIFY);
 
-    my ($maxx, $maxy);
-    $parent->getmaxyx($maxy,$maxx);
+    my ($maxx, $maxy) = display_window_size($parent);
     if ($maxy -2 > @$array){
 	$maxy = @$array + 2;
 	$y -= @$array;
@@ -789,21 +820,21 @@ sub display_entry_list(){
     while(1){
 	display_button( $window, $data, $MARGIN_SIDE, $y, $SELECT_COLOR, $EDIT_COLOR);
 	$input = display_getch(0, $window);
-	if ( $input == '\n'){
+	if ( $input eq "\n"){
 	    last;
-	}elsif( $input == KEY_UP){
+	}elsif( $input eq KEY_UP){
 	    
-	}elsif( $input == KEY_UP){
+	}elsif( $input eq KEY_UP){
 
-	}elsif( $input == KEY_UP){
+	}elsif( $input eq KEY_UP){
 
-	}elsif( $input == KEY_UP){
+	}elsif( $input eq KEY_UP){
 
-	}elsif( $input == KEY_UP){
+	}elsif( $input eq KEY_UP){
 
-	}elsif( $input == KEY_UP){
+	}elsif( $input eq KEY_UP){
 
-	}elsif( $input == KEY_UP){
+	}elsif( $input eq KEY_UP){
 
 	}
     }
@@ -843,17 +874,17 @@ sub display_entry_radio(){
 	display_button( $window, $$list[$index],
 		     $xpos[$index] , $y, $SELECT_COLOR, $EDIT_COLOR);
 	$input = display_getch(0, $window);
-	if ( $input == KEY_LEFT){
+	if ( $input eq KEY_LEFT){
 	    display_button( $window, $$list[$index],
 			    $xpos[$index] , $y, $FG_COLOR);
 	    $index --;
 	    $index = @xpos -1 if ( $index < 0 );
-	}elsif ( $input == KEY_RIGHT){
+	}elsif ( $input eq KEY_RIGHT){
 	    display_button( $window, $$list[$index],
 			    $xpos[$index] , $y, $FG_COLOR);
 	    $index ++;
 	    $index = 0 if ( $index >= @xpos );
-	}elsif ( $input == '\n'){
+	}elsif ( $input eq "\n"){
 	    last;
 	}
     }
@@ -888,13 +919,13 @@ sub display_entry_system(@){
     my $x = shift;
     my $y = shift;
     my $rightside = shift || 0;
-    my ( $maxx, $maxy);
+
     my $title = "$$entry[$ENTRY_NAME]";
     my $msg = $$entry[$ENTRY_CTXT];
     my ( $key , $result);
     my $choice = 0;
 
-    $window->getmaxyx($maxy,$maxx);
+    my ( $maxx, $maxy)= display_window_size( $window);
     unless ($rightside){
 	display_str( $window, $title, $MARGIN_SIDE , $y,
 		     config_entry_sel_color($$entry[$ENTRY_INDEX]));
@@ -920,15 +951,15 @@ sub display_entry_system(@){
 	    display_str( $window_dlg, $right, length( $data) -length( $right) , 3,
 			(( $choice) ? $SELECT_COLOR : $FG_COLOR));
 	    $input = display_getch(0, $window_dlg);
-	    if ( $input == KEY_LEFT){
+	    if ( $input eq KEY_LEFT){
 		$choice = 1 - $choice;
-	    }elsif ( $input == KEY_RIGHT){
+	    }elsif ( $input eq KEY_RIGHT){
 		$choice = 1 - $choice;
-	    }elsif ( $input == '\n'){
+	    }elsif ( $input eq "\n"){
 		last;
 	    }
 	}
-	$window_dlg->delwin;
+	display_window_delete($window_dlg);
     }
     return $choice;
 }
@@ -1011,8 +1042,7 @@ sub display_color_selector(@){
     my $current = shift;
     my $i;
     my $color;
-    my ($maxx,$maxy);
-    $window->getmaxyx($maxy, $maxx);
+    my ($maxx,$maxy) = display_window_size($window);
     $i = $y + @color_table  +3 - $maxy ;
     $y -= $i  if ($i > 0);  ### FixMe also handle under flow
     my $window_dlg = derwin( $window, @color_table +2, 30,
@@ -1036,11 +1066,11 @@ sub display_color_selector(@){
 	}
 	
 	$input= display_getch(0, $window_dlg);
-	if ( $input == KEY_LEFT || $input == KEY_UP){
+	if ( $input eq KEY_LEFT || $input eq KEY_UP){
 	    $current -=1 if ( $current >0);
-	}elsif ( $input == KEY_RIGHT || $input == KEY_DOWN){
+	}elsif ( $input eq KEY_RIGHT || $input eq KEY_DOWN){
 	    $current +=1 if ( $current < @color_table -1);
-	}elsif ( $input == '\n'){
+	}elsif ( $input eq "\n"){
 	    last;
 	}
     }
@@ -1156,11 +1186,11 @@ sub comm_getparam_mlterm(@){
 	printf "\x1b]5380;${key}\x07";
 	### FixMe: support /dev/pts/n for remote control
 	while( $input ne '#'){
-	    $input = display_getch(1);
-	    goto ERR if ( $input == -1);
+	    $input = display_getch(1);### timeout for the case TERM != mlterm
+	    goto ERR if ( $input eq "-1");
 	}
 	while(( $input = display_getch(1)) ne '='){
-	    goto ERR if ( $input == -1);
+	    goto ERR if ( $input eq "-1");
 	    $ret .= $input;
 	    goto ERR if ( $ret eq "error"); ## FixMe handle error
 	    goto ERR if ( $input eq "\n"); ## FixMe handle error
@@ -1170,7 +1200,7 @@ sub comm_getparam_mlterm(@){
 	}
 	$ret = "";
 	while(( $input = display_getch(1)) ne "\n"){
-	    last if ( $input == -1);	
+	    last if ( $input eq "-1");	
 	    $ret .= $input;
 	}
 	return  $ret;

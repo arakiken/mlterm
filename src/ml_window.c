@@ -2396,10 +2396,11 @@ ml_window_receive_event(
 		kik_debug_printf( "FOCUS IN %p\n" , event->xany.window) ;
 	#endif
 
+	#if  1
+		/* root window event only */
 		if( win->parent == NULL)
+	#endif
 		{
-			/* root window event only */
-			
 			notify_focus_in_to_children( win) ;
 		}
 	}
@@ -2409,10 +2410,11 @@ ml_window_receive_event(
 		kik_debug_printf( "FOCUS OUT %p\n" , event->xany.window) ;
 	#endif
 
+	#if  1
+		/* root window event only */
 		if( win->parent == NULL)
+	#endif
 		{
-			/* root window event only */
-			
 			notify_focus_out_to_children( win) ;
 		}
 	}

@@ -1,3 +1,6 @@
+comment -*- mode: text -*-
+comment $Id$
+
 w3mmlconfig(tool/w3mmlconfig) is a configuration program using w3m local-CGI.
 
 * install

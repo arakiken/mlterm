@@ -11,19 +11,20 @@ mlterm \- Multi Lingual TERMinal emulator for X
 scratch, which supports various character sets and encodings
 in the world and complex characters such as doublewidth for East
 Asian, combining for Thai, Vietnamese, and so on, and bi-direction for
-Arab and Hebrew.  More complex Indic scripts are not supported yet.
+Arab and Hebrew.  Indic scripts in ISCII encoding are experimentally
+supported using libind library.
 It also supports various unique feature such
 as anti-alias using FreeType, multiple XIM, multiple windows,
 scrollbar API, scroll by mouse wheel, automatic selection of
 encoding, and so on.
 .PP
 Supported encodings are:
-ISO-8859-[1-10], ISO-8859-[13-16], TCVN5712, KOI8-R, KOI8-U, VISCII,
-EUC-JP, EUC-JISX0213, ISO-2022-JP[1-3], Shift_JIS, Shift_JISX0213,
-ISO-2022-KR, EUC-KR, UHC, JOHAB, GB2312 (EUC-CN), GBK, ISO-2022-CN, BIG5,
-BIG5HKSCS, EUC-TW, HZ, TIS-620, UTF-8, and GB18030.
+ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11), KOI8-R,
+KOI8-U, TCVN5712, VISCII, EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213, 
+ISO-2022-JP[1-3], EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK,
+GB18030, ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, and UTF-8.
 If you have already set locale (for example LANG variable;
-see \fBlocale\fR(7) for detail) mlterm will automatically select
+see \fBlocale\fR(7) for detail) \fBmlterm\fR will automatically select
 proper encoding.
 .PP
 .\" ********************************************************************
@@ -48,6 +49,22 @@ Valid values for \fIcolor\fR are
 See \fBCOLOR CONFIGURATION FILE\fR section for detail of
 \fBpriv_fg\fR and \fBpriv_bg\fR.
 The default is same to the color specified by \fB\-b\fR option.
+.TP
+\fB\-C\fR, \fB\-\-iscii\fR=\fIlanguage\fR
+Specify a language to be used in ISCII encoding.
+Valid names of \fIlanguage\fR are
+\fBAssamese\fR,
+\fBBengali\fR, 
+\fBGujarati\fR, 
+\fBHindi\fR, 
+\fBKannada\fR, 
+\fBMalayalam\fR, 
+\fBOriya\fR, 
+\fBPunjabi\fR, 
+\fBRoman\fR, 
+\fBTamil\fR, and
+\fBTelugu\fR.
+Please read documents of libind for detail.
 .TP
 \fB\-D\fR, \fB\-\-bi\fR(=\fIbool\fR)
 Use BiDi (bi-direction) rendering on UTF8 encoding
@@ -120,7 +137,9 @@ See \fBSELECTION\fR section below for detail.
 The default is "\fBfalse\fR".
 .TP
 \fB\-V\fR, \fB\-\-varwidth\fR(=\fIbool\fR)
-Each column width is variable.
+Using variable column width.  You may want to use this
+option when you use proportional fonts.  This option
+is automatically turned on when using ISCII encoding.
 The default is "\fBfalse\fR".
 .TP
 \fB\-W\fR, \fB\-\-sep\fR=\fIcharacterlist\fR
@@ -167,7 +186,29 @@ See \fBCOLOR CONFIGURATION FILE\fR section for detail of
 \fBpriv_fg\fR and \fBpriv_bg\fR.
 .TP
 \fB\-c\fR, \fB\-\-cp932\fR(=\fIbool\fR)
-Use conversion table between CP932 and Unicode to show JISX0208 characters with XFT.
+Use CP932 mapping table to convert from JIS X 0208 to Unicode
+when displaying JIS X 0208 characters using Unicode font in
+anti-alias (Xft) mode.  This is useful when you use proprietary
+Japanese truetype fonts which are intended to be used with Microsoft
+Windows, with \fBmlterm\fR with encodings (such as EUC-JP,
+Shift_JIS, ISO-2022-JP, and so on) which contain JIS X 0208 as
+a coded character set.
+
+The reason is, such proprietary fonts may have glyphs only for
+Unicode codepoints into which JIS X 0208 codepoints are converted using
+CP932 mapping table.  (CP932 is a name of mapping table which is
+used by Microsoft to convert from Shift_JIS [plus Microsoft private
+extended characters] into Unicode.  In Unicode's point of view,
+CP932 is a name of encoding which is similar to Shift_JIS and
+is used by Japanese version of Microsoft Windows.)
+If you use such fonts for
+encodings such as EUC-JP and Shift_JIS with JIS0208.TXT mapping
+table which \fBmlterm\fR adopts as the standard, a few characters
+are mapped into Unicode codepoints where the fonts don't have glyphs.
+
+Both of CP932.TXT and JIS0208.TXT mapping tables are supplied
+by Unicode Consortium, though they are regarded to be obsolete.
+
 The default is "\fBtrue\fR".
 .TP
 \fB\-d\fR, \fB\-\-display\fR=\fIstring\fR
@@ -227,6 +268,7 @@ Note that wallpaper cannot be used with transparent background.
 .TP
 \fB\-r\fR, \fB\-\-fade\fR=\fIratio\fR
 Specify fading ratio when window is unfocused.
+\fB100\fR means no fading and \fB0\fR means darkest.
 The default is "\fB100\fR"
 .TP
 \fB\-s\fR, \fB\-\-sb\fR(=\fIbool\fR)
@@ -264,7 +306,9 @@ Specify terminal type.  The default is "\fBxterm\fR" and you
 can specify "\fBkterm\fR" also.
 .TP
 \fB\-z\fR, \fB\-\-largesmall\fR=\fIsize\fR
-Specify changing size when font size becomes larger or smaller.
+Specify the step of change of font size in pixel when you pushed
+"Font size larger" or "Font size smaller" button on 
+GUI configurator.
 The default is \fB1\fR.
 .\" ********************************************************************
 .SH GUI CONFIGURATOR
@@ -695,14 +739,14 @@ Use variable column width.
 \fBfade_ratio=\fratio\fR (\-r, \-\-fade_ratio)
 Specify fading ratio when window is unfocused.
 .TP
-\fBfont_larger_smaller_size\fR (\-z, \-\-largesmall)
+\fBstep_in_changing_font_size\fR (\-z, \-\-largesmall)
 Specify changing size when font size becomes larger or smaller.
 .TP
 \fBENCODING=\fIencoding\fR (\-E, \-\-km)
 Specify encoding.
 .\" ******************************************************
 .SS Font Configuration File
-The font configuration files "\fBfont\fR", "\fBvfont\fR", "\fBaafont\fR" and
+The font configuration files "\fBfont\fR", "\fBvfont\fR", "\fBaafont\fR", and
 "\fBvaafont\fR" have the following keys.
 .PP
 .nf
@@ -841,6 +885,27 @@ Manual pages of
 \fBX\fR(7).
 .PP
 \fBREADME.sb\fR for development of scrollbar library.
+.PP
+Mapping tables between Unicode and local character sets
+(and encodings) are found at Unicode Consortium website
+(http://www.unicode.org/Public/MAPPINGS/).  Note that
+mapping tables for East Asian character sets and encodings
+are moved to OBSOLETE/EASTASIA directory of the site
+since August 2001.
+.PP
+For BIG5 and BIG5HKSCS encodings, mapping tables for Unicode
+is taken from ftp://xcin.linux.org.tw/pub/xcin/i18n/charset/.
+.PP
+\fBUnicode Standard Annex (UAX) #11 East Asian Width\fR,
+which explains East Asian Width properties, and
+\fBEastAsianWidth.txt\fR, which defines EastAsianAmbiguous
+characters in Unicode, are supplied by Unicode Consortium
+(http://www.unicode.org).
+.PP
+See the web page of "Linux Technology Development for Indian
+Languages" (http://www.cse.iitk.ac.in/~moona/isciig/) for
+libind library and related needed resouces for ISCII support
+by \fBmlterm\fR.
 .SH FILES
 .TP
 "\fImain\fR", "\fIfont\fR", "\fIvfont\fR", "\fIaafont\fR", "\fIvaafont\fR", 

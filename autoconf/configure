@@ -6100,49 +6100,39 @@ if test "${enable_fribidi+set}" = set; then
 fi
 
 if test "$fribidi" = "yes" ; then
-	echo $ac_n "checking for fribidi_log2vis in -lfribidi""... $ac_c" 1>&6
-echo "configure:6105: checking for fribidi_log2vis in -lfribidi" >&5
-ac_lib_var=`echo fribidi'_'fribidi_log2vis | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+	# Extract the first word of "fribidi-config", so it can be a program name with args.
+set dummy fribidi-config; ac_word=$2
+echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+echo "configure:6107: checking for $ac_word" >&5
+if eval "test \"`echo '$''{'ac_cv_prog_fribidi_config'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
-  ac_save_LIBS="$LIBS"
-LIBS="-lfribidi `glib-config --libs` $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 6113 "configure"
-#include "confdefs.h"
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char fribidi_log2vis();
-
-int main() {
-fribidi_log2vis()
-; return 0; }
-EOF
-if { (eval echo configure:6124: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
+  if test -n "$fribidi_config"; then
+  ac_cv_prog_fribidi_config="$fribidi_config" # Let the user override the test.
 else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
+  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
+  ac_dummy="$PATH"
+  for ac_dir in $ac_dummy; do
+    test -z "$ac_dir" && ac_dir=.
+    if test -f $ac_dir/$ac_word; then
+      ac_cv_prog_fribidi_config="yes"
+      break
+    fi
+  done
+  IFS="$ac_save_ifs"
 fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
-
 fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  
-		FRIBIDI_CFLAGS="`glib-config --cflags` -DUSE_FRIBIDI"
-		FRIBIDI_LIBS="`glib-config --libs` -lfribidi"
-		
+fribidi_config="$ac_cv_prog_fribidi_config"
+if test -n "$fribidi_config"; then
+  echo "$ac_t""$fribidi_config" 1>&6
 else
   echo "$ac_t""no" 1>&6
 fi
 
+	if test "$fribidi_config" = "yes" ; then
+		FRIBIDI_CFLAGS="`fribidi-config --cflags` -DUSE_FRIBIDI"
+		FRIBIDI_LIBS="`fribidi-config --libs`"
+	fi
 fi
 
 
@@ -6157,7 +6147,7 @@ if test "$imlib" = "yes" ; then
 	# Extract the first word of "imlib-config", so it can be a program name with args.
 set dummy imlib-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6161: checking for $ac_word" >&5
+echo "configure:6151: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_imlib_config'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6183,9 +6173,9 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-	if test "$imlib_config" != "" ; then
-		IMLIB_CFLAGS="-DUSE_IMLIB `imlib-config --cflags`"
-		IMLIB_LIBS='`imlib-config --libs`'
+	if test "$imlib_config" = "yes" ; then
+		IMLIB_CFLAGS="`imlib-config --cflags` -DUSE_IMLIB"
+		IMLIB_LIBS="`imlib-config --libs`"
 	fi
 fi
 
@@ -6213,7 +6203,7 @@ fi
 
 if test "$enable_ind" = "yes" ; then
 	echo $ac_n "checking for indian_init in -lind""... $ac_c" 1>&6
-echo "configure:6217: checking for indian_init in -lind" >&5
+echo "configure:6207: checking for indian_init in -lind" >&5
 ac_lib_var=`echo ind'_'indian_init | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -6221,7 +6211,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lind  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 6225 "configure"
+#line 6215 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -6232,7 +6222,7 @@ int main() {
 indian_init()
 ; return 0; }
 EOF
-if { (eval echo configure:6236: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:6226: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -6273,7 +6263,7 @@ fi
 # Extract the first word of "gtk-config", so it can be a program name with args.
 set dummy gtk-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6277: checking for $ac_word" >&5
+echo "configure:6267: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_gtk_config'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6303,7 +6293,7 @@ if test "$gtk_config" = "yes" ; then
 	# Extract the first word of "gtk-config", so it can be a program name with args.
 set dummy gtk-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6307: checking for $ac_word" >&5
+echo "configure:6297: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_GTK_CONFIG'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6342,7 +6332,7 @@ else
 	# Extract the first word of "gtk12-config", so it can be a program name with args.
 set dummy gtk12-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6346: checking for $ac_word" >&5
+echo "configure:6336: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_gtk_config'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6372,7 +6362,7 @@ fi
 		# Extract the first word of "gtk12-config", so it can be a program name with args.
 set dummy gtk12-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6376: checking for $ac_word" >&5
+echo "configure:6366: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_GTK_CONFIG'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6594,6 +6584,7 @@ s%@X_EXTRA_LIBS@%$X_EXTRA_LIBS%g
 s%@PTY_CFLAGS@%$PTY_CFLAGS%g
 s%@DEB_CFLAGS@%$DEB_CFLAGS%g
 s%@OPT_CFLAGS@%$OPT_CFLAGS%g
+s%@fribidi_config@%$fribidi_config%g
 s%@FRIBIDI_CFLAGS@%$FRIBIDI_CFLAGS%g
 s%@FRIBIDI_LIBS@%$FRIBIDI_LIBS%g
 s%@imlib_config@%$imlib_config%g

@@ -55,7 +55,7 @@ comment $Id$
     o HP-UX
       CC="cc -Ae" ./configure
 
-* 機能
+* 主な機能
   o アンチエイリアス
     mltermは、フォントのアンチエイリアス表示をサポートしています。
     これには、XのXrender extensionに対応したXftを利用しています。
@@ -156,7 +156,8 @@ comment $Id$
       o only_use_unicode_font   ... すべての文字を UNICODE フォントだけを使って表示する(true/*false*)
       o iso88591_font_for_usascii ... US_ASCII の表示には、必ず ISO8859-1 フォントを使用する(true/*false*)
       o col_size_of_width_a     ... UNICODE の EastAsianWidth.txt の A プロパティのコラム数(*1*/2)
-      o use_cp932_ucs_for_xft   ... JISX0208 => UCS 変換に、CP932 の変換テーブルを使用する(*true*/false)
+      o use_cp932_ucs_for_xft   ... アンチエイリアス(Xft)時、JISX0208 => UCS 変換に CP932 の変換
+				    テーブルを使う (*true*/false)
 
       o fg_color       ... 端末画面の前景色(*black*)
       o bg_color       ... 同背景色(*white*)
@@ -177,7 +178,7 @@ comment $Id$
 
         e.g.) 10-24
               10から24
-      o font_larger_smaller_size ... larger/smaller ボタンで、フォントサイズがどれだけ変わるか(*1*)
+      o step_in_changing_font_size ... larger/smaller ボタンでのフォントサイズの変化量(*1*)
 
       o ENCODING       ... エンコーディングの指定(*auto*)
         サポートしているエンコーディング
@@ -374,6 +375,9 @@ comment $Id$
   o 引数オプション
     -h/--help(=bool)   : ヘルプ
     -v/--version(=bool) : バージョン情報(あまり信用できない:D)
+    -5/--big5bug(=bool): XFree86-4.1.0 以前の Big5 CTEXT のバグに対応する
+    -7/--bel=value     : BEL(0x7)を受け取った時の挙動
+    -8/--88591(=bool)  : USASCIIの表示に、必ずISO8859-1フォントを使用する
     -A/--aa(=bool)     : アンチエイリアスフォントの使用
     -B/--sbbg=value    : スクロールバーの背景色
     -D/--bi(=bool)     : BiDi レンダリングを行う
@@ -389,12 +393,9 @@ comment $Id$
     -U/--viaucs=value  : 受け取ったXCOMPOUND TEXTを一度UCSに変換する
     -V/--varwidth(=bool): 可変長コラム幅を使用する。
     -X/--openim(=bool) : 起動時に、XIMをOpenする
-    -8/--88591(=bool)  : USASCIIの表示に、必ずISO8859-1フォントを使用する
-    -7/--bel=value     : BEL(0x7)を受け取った時の挙動
-    -5/--big5bug(=bool): Big5 CTEXT のバグに対応する
     -a/--ac=value      : EastAsianWidth.txtのAプロパティ文字のコラム数
     -b/--bg=value      : 背景色
-    -c/--cp932(=bool)  : JISX0208 => UCS 変換に、CP932 の変換テーブルを使う。
+    -c/--cp932(=bool)  : アンチエイリアス(Xft)時、JISX0208 => UCS 変換に CP932 の変換テーブルを使う
     -d/--display       : DISPLAYを指定
     -f/--fg=value      : 前景色
     -g/--geometry=value : 表示座標位置
@@ -402,15 +403,15 @@ comment $Id$
     -k/--meta(=value)  : Meta キーを押した時の動作
     -l/--sl=value      : ログサイズ
     -m/--comb(=bool)   : 結合文字を使う
-    -n/--noucsfont(=bool) : UNICODEフォントを一切使わずに表示する。
-    -u/--onlyucsfont(=bool) : 常にUNICODEフォントを使って表示する。
+    -n/--noucsfont(=bool) : UNICODEフォントを一切使わずに表示する
+    -u/--onlyucsfont(=bool) : 常にUNICODEフォントを使って表示する
     -p/--pic=value     : 背景画像のパス
     -s/--sb(=bool)     : スクロールバーを使う
-    -t/--transbg(=bool) : 背景透過する。
+    -t/--transbg(=bool) : 背景透過する
     -y/--term=value    : 端末タイプ
     -w/--fontsize=value : フォントサイズ
     -x/--tw=value      : タブサイズ
-    -z/--largesmall=value : larger/smaller ボタンで、フォントサイズがどれだけ変わるか
+    -z/--largesmall=value : larger/smaller ボタンでのフォントサイズの変化量
 
     -e ... : 指定したコマンドを起動
 

@@ -14,7 +14,7 @@ INSTALL_SCRIPT  = $(INSTALL) -m 755
 all: $(TARGETS)
 
 $(TARGETS): $(SRC)
-	$(PERL) -pe 's#/usr/bin/perl#$(PERL)#' $< > $@
+	$(PERL) -pe 's#/usr/bin/perl#$(PERL)#' $? > $@
 
 install: all
 	-$(MKDIR) $(DESTDIR)$(BINDIR)
@@ -22,4 +22,7 @@ install: all
 	do      \
 		$(INSTALL_SCRIPT) $$file $(DESTDIR)$(BINDIR);  \
         done
+
+clean:
+	rm -rf $(TARGETS)
 

@@ -77,11 +77,11 @@ AC_ARG_ENABLE(fribidi,
 	[  --enable-fribidi           bidi[disabled]],
 	fribidi=$enable_fribidi)
 if test "$fribidi" = "yes" ; then
-	AC_CHECK_LIB(fribidi,fribidi_log2vis,
-		[
-		FRIBIDI_CFLAGS="`glib-config --cflags` -DUSE_FRIBIDI"
-		FRIBIDI_LIBS="`glib-config --libs` -lfribidi"
-		],,`glib-config --libs`)
+	AC_CHECK_PROG(fribidi_config,fribidi-config,yes)
+	if test "$fribidi_config" = "yes" ; then
+		FRIBIDI_CFLAGS="`fribidi-config --cflags` -DUSE_FRIBIDI"
+		FRIBIDI_LIBS="`fribidi-config --libs`"
+	fi
 fi
 AC_SUBST(FRIBIDI_CFLAGS)
 AC_SUBST(FRIBIDI_LIBS)
@@ -91,9 +91,9 @@ AC_ARG_ENABLE(imlib,
 	imlib=$enable_imlib)
 if test "$imlib" = "yes" ; then
 	AC_CHECK_PROG(imlib_config,imlib-config,yes)
-	if test "$imlib_config" != "" ; then
-		IMLIB_CFLAGS="-DUSE_IMLIB `imlib-config --cflags`"
-		IMLIB_LIBS='`imlib-config --libs`'
+	if test "$imlib_config" = "yes" ; then
+		IMLIB_CFLAGS="`imlib-config --cflags` -DUSE_IMLIB"
+		IMLIB_LIBS="`imlib-config --libs`"
 	fi
 fi
 AC_SUBST(IMLIB_CFLAGS)

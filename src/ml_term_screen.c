@@ -972,6 +972,18 @@ update_encoding_proper_aux(
 		
 			return  0 ;
 		}
+		
+		/*
+		 * ISCII needs variable column width and character combining.
+		 */
+		 
+		if( ! (termscr->font_present & FONT_VAR_WIDTH))
+		{
+			ml_font_manager_change_font_present( termscr->font_man ,
+				termscr->font_present |= FONT_VAR_WIDTH) ;
+		}
+		
+		ml_use_char_combining() ;
 	}
 	else
 	{

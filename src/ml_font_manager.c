@@ -272,7 +272,7 @@ ml_font_manager_new(
 	u_int  font_size ,
 	mkf_charset_t  usascii_font_cs ,
 	int  usascii_font_cs_changable ,
-	int  larger_smaller_size
+	int  step_in_changing_font_size
 	)
 {
 	ml_font_manager_t *  font_man ;
@@ -308,7 +308,7 @@ ml_font_manager_new(
 
 	font_man->set_xfont = ml_font_set_xfont ;
 
-	font_man->larger_smaller_size = larger_smaller_size ;
+	font_man->step_in_changing_font_size = step_in_changing_font_size ;
 
 	return  font_man ;
 }
@@ -775,7 +775,7 @@ ml_larger_font(
 	
 	while( 1)
 	{
-		if( size + font_man->larger_smaller_size > font_man->font_custom->max_font_size)
+		if( size + font_man->step_in_changing_font_size > font_man->font_custom->max_font_size)
 		{
 			if( font_man->font_custom->min_font_size == beg_size)
 			{
@@ -786,12 +786,12 @@ ml_larger_font(
 		}
 		else
 		{
-			if( size < beg_size && beg_size <= size + font_man->larger_smaller_size)
+			if( size < beg_size && beg_size <= size + font_man->step_in_changing_font_size)
 			{
 				return  0 ;
 			}
 
-			size += font_man->larger_smaller_size ;
+			size += font_man->step_in_changing_font_size ;
 		}
 		
 		if( ml_change_font_size( font_man , size))
@@ -825,12 +825,12 @@ ml_smaller_font(
 		}
 		else
 		{
-			if( size - font_man->larger_smaller_size <= beg_size && beg_size < size)
+			if( size - font_man->step_in_changing_font_size <= beg_size && beg_size < size)
 			{
 				return  0 ;
 			}
 			
-			size -= font_man->larger_smaller_size ;
+			size -= font_man->step_in_changing_font_size ;
 		}
 		
 		if( ml_change_font_size( font_man , size))

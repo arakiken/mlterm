@@ -1,5 +1,6 @@
 ver 2.2.0()
 * variable length column is supported.
+* ISCII support codes are imported(but is not still supported formally).
 * fribidi 0.10.0 is supported.
 * Full Reset button is added to mlconfig.
 * color fading is supported.

@@ -1,0 +1,44 @@
+comment -*- mode: text -*-
+comment $Id$
+
+mlterm ISCII support
+
+mlterm 2.2.0 doesn't support ISCII formally , but includes all the codes of processing ISCII.
+Followings are the instruction of setting up mlterm ISCII support.
+
+* Requirement
+  mlterm depends on libind.tar.gz and truetype.tar.gz at
+  http://www.tenet.res.in/Donlab/Indlinux/X-Windows/download.html , and xfstt.
+  So install and setup them in advance.
+  Don't forget to install indian.h to where cc can find(e.g. /usr/local/include).
+
+* Installation
+  $ ./configure --enable-ind
+  ...
+  checking for indian_init in -lind... yes
+  ...
+  $ make
+  $ make install
+
+* Usage
+  $ LIBIND_PATH=[LIBIND_PATH] mlterm -X=false -E iscii -w 16 -m -V -C Malayalam
+
+  o -X=false is necessary if you use X Input Method(e.g. kinput2) which conflicts with
+    xfstt.(recommended)
+  o -V option enables variable width column.
+    This option is automatically turned on in ISCII encoding.(optional)
+  o -m option enables character combining , which is necessary since mlterm diverts characters
+    combining framework for rendering ISCII glyph internally.
+    This option is automatically turned on in ISCII encoding.(optional)
+  o -C [lang] enables [lang] glyph of ISCII. Without -C option , Malayalam is used by default.
+    (optional)
+  o -w [font size] specifies font size you want to use.(optional)
+
+  Pressing Alt_R lets you use ISCII inputting.
+  F1 key swithes Inscript <=> Phonetic keyboard(?).
+
+* Note
+  I am not a native speaker and mlterm ISCII support itself may be still unstable.
+  So if you find something strange or wrong about it , please report it without reservation to
+  me (j00v0112@ip.media.kyoto-u.ac.jp) or
+  Mlterm-dev-en(http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en).

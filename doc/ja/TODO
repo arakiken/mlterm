@@ -7,7 +7,8 @@ comment $Id$
 
 * 文字コード変換テーブルを外してコンパイルできるようにする。
 
-* DEC_SPECIALは、XDrawLineを使い、フォントは使用せずに表示する。
+* DEC_SPECIAL相当の罫線文字は、Pixmap に XDrawLine で描画して作り、
+  iso8859-1 フォントは使用しなくてもよいようにする。
   (でないと、anti alias 時に問題)
 
 * JISX0213_2000 <=> JISX0208/JISX0212をちゃんと実装する。
@@ -20,3 +21,5 @@ comment $Id$
 * utmp に対応
 
 * 縦表示対応
+
+* 行間隔を指定できるようにする。
