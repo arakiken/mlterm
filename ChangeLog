@@ -1,5 +1,12 @@
 2002-04-27 Araki Ken <arakiken@users.sf.net>
 
+	* ml_term_model_t is dynamically plugged in ml_term_screen_t from outside,
+	  instead of being internally created.
+	* ml_sb_view_factory manages reference counter of each library so as not
+	  to unload a library which is used by other terminals.
+
+2002-04-27 Araki Ken <arakiken@users.sf.net>
+
 	* -3,--bce,use_bce=(true|false) option which enables or disables BCE support
 	  is added.
 
