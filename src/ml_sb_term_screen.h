@@ -25,8 +25,6 @@ typedef struct  ml_sb_term_screen
 
 	ml_sb_mode_t  sb_mode ;
 	
-	void (*receive_upward_scrolled_out_line)( void * , ml_image_line_t *) ;
-	
 } ml_sb_term_screen_t ;
 
 

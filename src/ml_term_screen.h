@@ -9,12 +9,9 @@
 #include  <mkf/mkf_parser.h>
 #include  <kiklib/kik_types.h>		/* u_int/int8_t/size_t */
 
-#include  "ml_image.h"
-#include  "ml_logical_visual.h"
 #include  "ml_window.h"
-#include  "ml_logs.h"
+#include  "ml_term_model.h"
 #include  "ml_selection.h"
-#include  "ml_backscroll.h"
 #include  "ml_char_encoding.h"
 #include  "ml_font_manager.h"
 #include  "ml_color_manager.h"
@@ -77,21 +74,15 @@ typedef struct  ml_screen_scroll_event_listener
 typedef struct  ml_term_screen
 {
 	ml_window_t  window ;
-	
-	ml_image_t *  image ;
 
-	ml_image_t  normal_image ;
-	ml_image_t  alt_image ;
+	ml_term_model_t *  model ;
 	
-	ml_logs_t  logs ;
 	ml_selection_t  sel ;
-	ml_bs_image_t  bs_image ;
 	ml_config_menu_t  config_menu ;
 
+	ml_term_model_event_listener_t  termmdl_listener ;
 	ml_sel_event_listener_t  sel_listener ;
-	ml_image_scroll_event_listener_t  image_scroll_listener ;
 	ml_xim_event_listener_t  xim_listener ;
-	ml_bs_event_listener_t  bs_listener ;
 	ml_config_menu_event_listener_t  config_menu_listener ;
 
 	ml_pty_t *  pty ;
@@ -105,7 +96,6 @@ typedef struct  ml_term_screen
 	/*
 	 * encoding proper aux
 	 */
-	ml_logical_visual_t *  logvis ;
 	ml_shape_t *  shape ;
 	ml_iscii_lang_t  iscii_lang ;
 	ml_iscii_state_t  iscii_state ;
@@ -173,8 +163,6 @@ ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 
 int  ml_term_screen_delete( ml_term_screen_t *  termscr) ;
 
-ml_picture_modifier_t *  ml_term_screen_get_picture_modifier( ml_term_screen_t *  termscr) ;
-
 int  ml_term_screen_set_pty( ml_term_screen_t *  termscr , ml_pty_t *  pty) ;
 
 int  ml_set_system_listener( ml_term_screen_t *  termscr ,
@@ -194,18 +182,58 @@ int  ml_term_screen_scroll_downward( ml_term_screen_t *  termscr , u_int  size) 
 int  ml_term_screen_scroll_to( ml_term_screen_t *  termscr , int  row) ;
 
 
-u_int  ml_term_screen_get_cols( ml_term_screen_t *  termscr) ;
+ml_picture_modifier_t *  ml_term_screen_get_picture_modifier( ml_term_screen_t *  termscr) ;
 
-u_int  ml_term_screen_get_rows( ml_term_screen_t *  termscr) ;
+
+ml_font_t *  ml_term_screen_get_font( ml_term_screen_t *  termscr , ml_font_attr_t  attr) ;
+
+ml_color_t  ml_term_screen_get_color( ml_term_screen_t *  termscr , char *  name) ;
 
 
 int  ml_term_screen_start_vt100_cmd( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_stop_vt100_cmd( ml_term_screen_t *  termscr) ;
 
-ml_font_t *  ml_term_screen_get_font( ml_term_screen_t *  termscr , ml_font_attr_t  attr) ;
 
-ml_color_t  ml_term_screen_get_color( ml_term_screen_t *  termscr , char *  name) ;
+int  ml_term_screen_bel( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_resize_columns( ml_term_screen_t *  termscr , u_int  cols) ;
+
+int  ml_term_screen_reverse_video( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_restore_video( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_set_app_keypad( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_set_normal_keypad( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_set_app_cursor_keys( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_set_normal_cursor_keys( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_cursor_visible( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_cursor_invisible( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_set_mouse_pos_sending( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_unset_mouse_pos_sending( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_send_device_attr( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_report_device_status( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_report_cursor_position( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_set_window_name( ml_term_screen_t *  termscr , u_char *  name) ;
+
+int  ml_term_screen_set_icon_name( ml_term_screen_t *  termscr , u_char *  name) ;
+
+int  ml_term_screen_fill_all_with_e( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_set_config( ml_term_screen_t *  termscr , char *  key , char *  value) ;
+
+int  ml_term_screen_get_config( ml_term_screen_t *  termscr , char *  key) ;
 
 
 #endif

@@ -201,16 +201,13 @@ window_deleted(
  */
  
 static void
-receive_scrolled_out_line(
-	void *  p ,		/* must be ml_term_screen_t(, or child of ml_sb_term_screen_t) */
-	ml_image_line_t *  line
+scrolled_out_line_received(
+	void *  p		/* must be ml_term_screen_t(, or child of ml_sb_term_screen_t) */
 	)
 {
 	ml_sb_term_screen_t *  sb_termscr ;
 
 	sb_termscr = (ml_sb_term_screen_t*)((ml_window_t*)p)->parent ;
-
-	(*sb_termscr->receive_upward_scrolled_out_line)( p , line) ;
 
 	ml_scrollbar_line_is_added( &sb_termscr->scrollbar) ;
 
@@ -535,7 +532,7 @@ ml_sb_term_screen_new(
 
 	if( ml_scrollbar_init( &sb_termscr->scrollbar , &sb_termscr->sb_listener ,
 		view_name , color_man , fg_color , bg_color , ACTUAL_HEIGHT( &termscr->window) ,
-		ml_line_height( termscr->font_man) , termscr->logs.num_of_rows ,
+		ml_line_height( termscr->font_man) , ml_term_model_get_log_size( termscr->model) ,
 		termscr->window.is_transparent ,
 		ml_term_screen_get_picture_modifier( termscr)) == 0)
 	{
@@ -570,11 +567,7 @@ ml_sb_term_screen_new(
 
 	ml_set_screen_scroll_listener( termscr , &sb_termscr->screen_scroll_listener) ;
 	
-	/* override */
-	sb_termscr->receive_upward_scrolled_out_line =
-		termscr->image_scroll_listener.receive_upward_scrolled_out_line ;
-	termscr->image_scroll_listener.receive_upward_scrolled_out_line =
-		receive_scrolled_out_line ;
+	termscr->termmdl_listener.scrolled_out_line_received = scrolled_out_line_received ;
 
 	sb_termscr->sb_mode = mode ;
 	

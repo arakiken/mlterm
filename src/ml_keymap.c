@@ -34,7 +34,9 @@ static key_func_table_t  key_func_table[] =
 	{ "XIM_CLOSE" , XIM_CLOSE , } ,
 	{ "NEW_PTY" , NEW_PTY , } ,
 	{ "PAGE_UP" , PAGE_UP , } ,
+	{ "PAGE_DOWN" , PAGE_DOWN , } ,
 	{ "SCROLL_UP" , SCROLL_UP , } ,
+	{ "SCROLL_DOWN" , SCROLL_DOWN , } ,
 	{ "INSERT_SELECTION" , INSERT_SELECTION , } ,
 	{ "EXIT_PROGRAM" , EXIT_PROGRAM , } ,
 } ;
@@ -61,8 +63,14 @@ ml_keymap_init(
 		/* PAGE_UP(compatible with kterm) */
 		{ XK_Prior , ShiftMask , 1 , } ,
 
+		/* PAGE_DOWN(compatible with kterm) */
+		{ XK_Next , ShiftMask , 1 , } ,
+
 		/* SCROLL_UP */
 		{ XK_Up , ShiftMask , 1 , } ,
+
+		/* SCROLL_DOWN */
+		{ XK_Down , ShiftMask , 1 , } ,
 
 		/* INSERT_SELECTION */
 		{ XK_Insert , ShiftMask , 1 , } ,

@@ -387,9 +387,9 @@ open_term(
 		root = &termscr->window ;
 	}
 
-	if( ( vt100_parser = ml_vt100_parser_new( termscr , term_man->conf.encoding ,
-		term_man->conf.not_use_unicode_font , term_man->conf.only_use_unicode_font ,
-		term_man->conf.col_size_a)) == NULL)
+	if( ( vt100_parser = ml_vt100_parser_new( termscr , termscr->model ,
+		term_man->conf.encoding , term_man->conf.not_use_unicode_font ,
+		term_man->conf.only_use_unicode_font , term_man->conf.col_size_a)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_vt100_parser_new() failed.\n") ;
@@ -457,8 +457,8 @@ open_term(
 	if( term_man->conf.cmd_path && term_man->conf.cmd_argv)
 	{
 		if( ( pty = ml_pty_new( term_man->conf.cmd_path , term_man->conf.cmd_argv ,
-				env , disp_str , ml_term_screen_get_cols( termscr) ,
-				ml_term_screen_get_rows( termscr))) == NULL)
+				env , disp_str , ml_term_model_get_cols( termscr->model) ,
+				ml_term_model_get_rows( termscr->model))) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new() failed.\n") ;
@@ -515,8 +515,8 @@ open_term(
 		cmd_argv[1] = NULL ;
 
 		if( ( pty = ml_pty_new( cmd_path , cmd_argv , env , disp_str ,
-			ml_term_screen_get_cols( termscr) ,
-			ml_term_screen_get_rows( termscr))) == NULL)
+			ml_term_model_get_cols( termscr->model) ,
+			ml_term_model_get_rows( termscr->model))) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new() failed.\n") ;

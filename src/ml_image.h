@@ -35,7 +35,6 @@ typedef struct ml_image_scroll_event_listener
 	void *  self ;
 
 	void (*receive_upward_scrolled_out_line)( void * , ml_image_line_t *) ;
-	void (*receive_downward_scrolled_out_line)( void * , ml_image_line_t *) ;
 	
 	int  (*window_scroll_upward_region)( void * , int , int , u_int) ;
 	int  (*window_scroll_downward_region)( void * , int , int , u_int) ;
@@ -75,7 +74,7 @@ typedef struct  ml_image
 
 
 int  ml_image_init( ml_image_t *  image , ml_image_scroll_event_listener_t *  scroll_listener ,
-	u_int  num_of_cols , u_int  num_of_rows , ml_char_t  sp_ch , u_int  tab_size , int  is_logging) ;
+	u_int  num_of_cols , u_int  num_of_rows , ml_char_t *  sp_ch , u_int  tab_size , int  is_logging) ;
 
 int  ml_image_final( ml_image_t *  image) ;
 

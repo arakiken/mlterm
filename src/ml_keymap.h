@@ -20,7 +20,9 @@ typedef enum  ml_key_func
 	XIM_CLOSE ,
 	NEW_PTY ,
 	PAGE_UP ,
+	PAGE_DOWN ,
 	SCROLL_UP ,
+	SCROLL_DOWN ,
 	INSERT_SELECTION ,
 	EXIT_PROGRAM ,
 	

@@ -4,6 +4,9 @@
 
 #include  "ml_term_screen.h"
 
+#include  <stdio.h>		/* sprintf */
+#include  <unistd.h>            /* getcwd */
+#include  <limits.h>            /* PATH_MAX */
 #include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
@@ -62,36 +65,6 @@
 
 
 /* --- static functions --- */
-
-static u_int
-logical_num_of_cols(
-	ml_term_screen_t *  termscr
-	)
-{
-	if( termscr->logvis)
-	{
-		return  (*termscr->logvis->logical_cols)( termscr->logvis) ;
-	}
-	else
-	{
-		return  ml_image_get_cols( termscr->image) ;
-	}
-}
-
-static u_int
-logical_num_of_rows(
-	ml_term_screen_t *  termscr
-	)
-{
-	if( termscr->logvis)
-	{
-		return  (*termscr->logvis->logical_rows)( termscr->logvis) ;
-	}
-	else
-	{
-		return  ml_image_get_rows( termscr->image) ;
-	}
-}
 
 static int
 convert_row_to_y(
@@ -179,11 +152,13 @@ screen_width(
 	 
 	if( termscr->vertical_mode)
 	{
-		width = logical_num_of_rows(termscr) * ml_col_width( termscr->font_man) ;
+		width = ml_term_model_get_logical_rows( termscr->model) *
+				ml_col_width( termscr->font_man) ;
 	}
 	else
 	{
-		width = logical_num_of_cols(termscr) * ml_col_width( termscr->font_man) ;
+		width = ml_term_model_get_logical_cols( termscr->model) *
+				ml_col_width( termscr->font_man) ;
 	}
 	
 	return  (width * termscr->screen_width_ratio) / 100 ;
@@ -202,11 +177,13 @@ screen_height(
 	 
 	if( termscr->vertical_mode)
 	{
-		height = logical_num_of_cols(termscr) * ml_line_height( termscr->font_man) ;
+		height = ml_term_model_get_logical_cols( termscr->model) *
+				ml_line_height( termscr->font_man) ;
 	}
 	else
 	{
-		height = logical_num_of_rows(termscr) * ml_line_height( termscr->font_man) ;
+		height = ml_term_model_get_logical_rows( termscr->model) *
+				ml_line_height( termscr->font_man) ;
 	}
 
 	return  (height * termscr->screen_height_ratio) / 100 ;
@@ -305,19 +282,18 @@ draw_cursor(
 	ml_image_line_t *  orig ;
 	ml_char_t *  ch ;
 
-	if( ( row = ml_convert_row_to_scr_row( &termscr->bs_image , ml_cursor_row( termscr->image))) == -1)
+	if( ( row = ml_convert_row_to_scr_row( termscr->model , ml_term_model_cursor_row( termscr->model)))
+		== -1)
 	{
 		return  0 ;
 	}
 	
 	y = convert_row_to_y( termscr , row) ;
 	
-	if( ( line = ml_image_get_line( termscr->image , ml_cursor_row( termscr->image))) == NULL ||
-		ml_imgline_is_empty( line))
+	if( ( line = ml_term_model_cursor_line( termscr->model)) == NULL || ml_imgline_is_empty( line))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " cursor line %d doesn't exist.\n" ,
-			ml_cursor_row( termscr->image)) ;
+		kik_warn_printf( KIK_DEBUG_TAG " cursor line doesn't exist.\n") ;
 	#endif
 
 		return  0 ;
@@ -336,9 +312,9 @@ draw_cursor(
 	}
 	
 	/* 3rd argument is NULL since line is already shaped */
-	x = ml_convert_char_index_to_x( line , ml_cursor_char_index( termscr->image) , NULL) ;
+	x = ml_convert_char_index_to_x( line , ml_term_model_cursor_char_index( termscr->model) , NULL) ;
 	
-	ch = &line->chars[ ml_cursor_char_index( termscr->image)] ;
+	ch = &line->chars[ ml_term_model_cursor_char_index( termscr->model)] ;
 
 	if( restore)
 	{
@@ -433,7 +409,7 @@ flush_scroll_cache(
 				row <= termscr->scroll_cache_boundary_end - termscr->scroll_cache_rows ;
 				row ++)
 			{
-				if( ( line = ml_image_get_line( termscr->image , row)))
+				if( ( line = ml_term_model_get_line( termscr->model , row)))
 				{
 					ml_imgline_set_modified_all( line) ;
 				}
@@ -448,7 +424,7 @@ flush_scroll_cache(
 				row >= termscr->scroll_cache_boundary_start - termscr->scroll_cache_rows ;
 				row --)
 			{
-				if( ( line = ml_image_get_line( termscr->image , row)))
+				if( ( line = ml_term_model_get_line( termscr->model , row)))
 				{
 					ml_imgline_set_modified_all( line) ;
 				}
@@ -495,7 +471,7 @@ redraw_image(
 	counter = 0 ;
 	while(1)
 	{
-		if( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , counter)) == NULL)
+		if( ( line = ml_term_model_get_line_in_screen( termscr->model , counter)) == NULL)
 		{
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " nothing is redrawn.\n") ;
@@ -525,7 +501,7 @@ redraw_image(
 	y += ml_line_height( termscr->font_man) ;
 	end_y = y ;
 
-	while( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , counter)) != NULL)
+	while( ( line = ml_term_model_get_line_in_screen( termscr->model , counter)) != NULL)
 	{
 		if( ml_imgline_is_modified( line))
 		{
@@ -562,12 +538,12 @@ highlight_cursor(
 
 	flush_scroll_cache( termscr , 1) ;
 
-	ml_highlight_cursor( termscr->image) ;
+	ml_term_model_highlight_cursor( termscr->model) ;
 
 	draw_cursor( termscr , 0) ;
 
 	/* restoring color as soon as highlighted cursor is drawn. */
-	ml_unhighlight_cursor( termscr->image) ;
+	ml_term_model_unhighlight_cursor( termscr->model) ;
 
 	ml_xic_set_spot( &termscr->window) ;
 
@@ -603,12 +579,12 @@ enter_backscroll_mode(
 	ml_term_screen_t *  termscr
 	)
 {
-	if( ml_is_backscroll_mode( &termscr->bs_image))
+	if( ml_is_backscroll_mode( termscr->model))
 	{
 		return ;
 	}
 	
-	ml_set_backscroll_mode( &termscr->bs_image) ;
+	ml_set_backscroll_mode( termscr->model) ;
 
 	if( HAS_SCROLL_LISTENER(termscr,bs_mode_entered))
 	{
@@ -622,13 +598,14 @@ exit_backscroll_mode(
 	ml_term_screen_t *  termscr
 	)
 {
-	if( ! ml_is_backscroll_mode( &termscr->bs_image))
+	if( ! ml_is_backscroll_mode( termscr->model))
 	{
 		return ;
 	}
 	
-	ml_unset_backscroll_mode( &termscr->bs_image) ;
-	ml_image_set_modified_all( termscr->image) ;
+	ml_unset_backscroll_mode( termscr->model) ;
+	
+	ml_term_model_set_modified_all( termscr->model) ;
 	
 	if( HAS_SCROLL_LISTENER(termscr,bs_mode_exited))
 	{
@@ -644,7 +621,7 @@ bs_scroll_upward(
 {
 	unhighlight_cursor( termscr) ;
 	
-	if( ml_bs_scroll_upward( &termscr->bs_image , 1))
+	if( ml_term_model_backscroll_upward( termscr->model , 1))
 	{
 		redraw_image( termscr) ;
 		
@@ -665,7 +642,7 @@ bs_scroll_downward(
 {
 	unhighlight_cursor( termscr) ;
 	
-	if( ml_bs_scroll_downward( &termscr->bs_image , 1))
+	if( ml_term_model_backscroll_downward( termscr->model , 1))
 	{
 		redraw_image( termscr) ;
 		
@@ -686,7 +663,7 @@ bs_half_page_upward(
 {
 	unhighlight_cursor( termscr) ;
 	
-	if( ml_bs_scroll_upward( &termscr->bs_image , ml_image_get_rows( termscr->image) / 2))
+	if( ml_term_model_backscroll_upward( termscr->model , ml_term_model_get_rows( termscr->model) / 2))
 	{
 		redraw_image( termscr) ;
 		
@@ -694,7 +671,7 @@ bs_half_page_upward(
 		{
 			(*termscr->screen_scroll_listener->scrolled_upward)(
 				termscr->screen_scroll_listener->self ,
-				ml_image_get_rows( termscr->image) / 2) ;
+				ml_term_model_get_rows( termscr->model) / 2) ;
 		}
 	}
 	
@@ -708,7 +685,7 @@ bs_half_page_downward(
 {
 	unhighlight_cursor( termscr) ;
 	
-	if( ml_bs_scroll_downward( &termscr->bs_image , ml_image_get_rows( termscr->image) / 2))
+	if( ml_term_model_backscroll_downward( termscr->model , ml_term_model_get_rows( termscr->model) / 2))
 	{
 		redraw_image( termscr) ;
 		
@@ -716,7 +693,7 @@ bs_half_page_downward(
 		{
 			(*termscr->screen_scroll_listener->scrolled_downward)(
 				termscr->screen_scroll_listener->self ,
-				ml_image_get_rows( termscr->image) / 2) ;
+				ml_term_model_get_rows( termscr->model) / 2) ;
 		}
 	}
 	
@@ -730,7 +707,7 @@ bs_page_upward(
 {
 	unhighlight_cursor( termscr) ;
 	
-	if( ml_bs_scroll_upward( &termscr->bs_image , ml_image_get_rows( termscr->image)))
+	if( ml_term_model_backscroll_upward( termscr->model , ml_term_model_get_rows( termscr->model)))
 	{
 		redraw_image( termscr) ;
 		
@@ -738,7 +715,7 @@ bs_page_upward(
 		{
 			(*termscr->screen_scroll_listener->scrolled_upward)(
 				termscr->screen_scroll_listener->self ,
-				ml_image_get_rows( termscr->image)) ;
+				ml_term_model_get_rows( termscr->model)) ;
 		}
 	}
 	
@@ -752,7 +729,7 @@ bs_page_downward(
 {
 	unhighlight_cursor( termscr) ;
 	
-	if( ml_bs_scroll_downward( &termscr->bs_image , ml_image_get_rows( termscr->image)))
+	if( ml_term_model_backscroll_downward( termscr->model , ml_term_model_get_rows( termscr->model)))
 	{
 		redraw_image( termscr) ;
 		
@@ -760,7 +737,7 @@ bs_page_downward(
 		{
 			(*termscr->screen_scroll_listener->scrolled_downward)(
 				termscr->screen_scroll_listener->self ,
-				ml_image_get_rows( termscr->image)) ;
+				ml_term_model_get_rows( termscr->model)) ;
 		}
 	}
 	
@@ -1056,12 +1033,9 @@ update_encoding_proper_aux(
 	int  is_visual
 	)
 {
-	if( termscr->logvis)
-	{
-		(*termscr->logvis->logical)( termscr->logvis) ;
-		(*termscr->logvis->delete)( termscr->logvis) ;
-		termscr->logvis = NULL ;
-	}
+	ml_logical_visual_t *  logvis ;
+
+	ml_term_model_delete_logical_visual( termscr->model) ;
 	
 	if( termscr->shape)
 	{
@@ -1096,8 +1070,7 @@ update_encoding_proper_aux(
 			}
 		}
 		
-		if( ( termscr->logvis = ml_logvis_iscii_new(
-						termscr->image , termscr->iscii_state)) == NULL)
+		if( ( logvis = ml_logvis_iscii_new( termscr->model->image , termscr->iscii_state)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_iscii_new() failed.\n") ;
@@ -1105,7 +1078,12 @@ update_encoding_proper_aux(
 
 			goto  iscii_error ;
 		}
-		
+
+		if( ! ml_term_model_add_logical_visual( termscr->model , logvis))
+		{
+			goto  iscii_error ;
+		}
+
 		if( ( termscr->shape = ml_iscii_shape_new( termscr->iscii_state)) == NULL)
 		{
 		#ifdef  DEBUG
@@ -1118,27 +1096,20 @@ update_encoding_proper_aux(
 		goto  success ;
 
 	iscii_error:
+		ml_term_model_delete_logical_visual( termscr->model) ;
+	
 		if( termscr->iscii_state)
 		{
 			ml_iscii_delete( termscr->iscii_state) ;
 			termscr->iscii_state = NULL ;
 		}
 
-		if( termscr->logvis)
-		{		
-			(*termscr->logvis->delete)( termscr->logvis) ;
-			termscr->logvis = NULL ;
-		}
-
 		return  0 ;
 	}
 	else
 	{
-		ml_logical_visual_t *  container ;
-		ml_logical_visual_t *  logvis ;
 		ml_shape_t *  shape ;
 
-		container = logvis = NULL ;
 		shape = NULL ;
 
 		if( termscr->iscii_state)
@@ -1149,23 +1120,17 @@ update_encoding_proper_aux(
 
 		if( termscr->use_dynamic_comb)
 		{
-			if( logvis)
-			{
-				if( container == NULL &&
-					( container = ml_logvis_container_new( termscr->image)) == NULL)
-				{
-					goto  error ;
-				}
-
-				ml_logvis_container_add( container , logvis) ;
-			}
-			
-			if( ( logvis = ml_logvis_comb_new( termscr->image)) == NULL)
+			if( ( logvis = ml_logvis_comb_new( termscr->model->image)) == NULL)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_comb_new() failed.\n") ;
 			#endif
 
+				goto  error ;
+			}
+
+			if( ! ml_term_model_add_logical_visual( termscr->model , logvis))
+			{
 				goto  error ;
 			}
 		}
@@ -1174,18 +1139,7 @@ update_encoding_proper_aux(
 			(*termscr->encoding_listener->encoding)(
 				termscr->encoding_listener->self) == ML_UTF8)
 		{
-			if( logvis)
-			{
-				if( container == NULL &&
-					( container = ml_logvis_container_new( termscr->image)) == NULL)
-				{
-					goto  error ;
-				}
-
-				ml_logvis_container_add( container , logvis) ;
-			}
-		
-			if( ( logvis = ml_logvis_bidi_new( termscr->image)) == NULL)
+			if( ( logvis = ml_logvis_bidi_new( termscr->model->image)) == NULL)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_bidi_new() failed.\n") ;
@@ -1194,6 +1148,11 @@ update_encoding_proper_aux(
 				goto  error ;
 			}
 
+			if( ! ml_term_model_add_logical_visual( termscr->model , logvis))
+			{
+				goto  error ;
+			}
+			
 			if( ( shape = ml_arabic_shape_new()) == NULL)
 			{
 			#ifdef  DEBUG
@@ -1206,18 +1165,7 @@ update_encoding_proper_aux(
 
 		if( termscr->vertical_mode)
 		{
-			if( logvis)
-			{
-				if( container == NULL &&
-					( container = ml_logvis_container_new( termscr->image)) == NULL)
-				{
-					goto  error ;
-				}
-
-				ml_logvis_container_add( container , logvis) ;
-			}
-			
-			if( ( logvis = ml_logvis_vert_new( termscr->image , termscr->vertical_mode))
+			if( ( logvis = ml_logvis_vert_new( termscr->model->image , termscr->vertical_mode))
 					== NULL)
 			{
 			#ifdef  DEBUG
@@ -1227,6 +1175,11 @@ update_encoding_proper_aux(
 				goto  error ;
 			}
 
+			if( ! ml_term_model_add_logical_visual( termscr->model , logvis))
+			{
+				goto  error ;
+			}
+			
 			if( shape)
 			{
 				/*
@@ -1238,40 +1191,12 @@ update_encoding_proper_aux(
 			}
 		}
 		
-		if( logvis && container)
-		{
-			ml_logvis_container_add( container , logvis) ;
-		}
-
-		if( container)
-		{
-			termscr->logvis = container ;
-		}
-		else
-		{
-			termscr->logvis = logvis ;
-		}
-
 		termscr->shape = shape ;
-
-		if( is_visual && termscr->logvis)
-		{
-			(*termscr->logvis->render)( termscr->logvis) ;
-			(*termscr->logvis->visual)( termscr->logvis) ;
-		}
 
 		goto  success ;
 		
 	error:
-		if( container)
-		{
-			(*container->delete)( container) ;
-		}
-
-		if( logvis)
-		{
-			(*logvis->delete)( logvis) ;
-		}
+		ml_term_model_delete_logical_visual( termscr->model) ;
 		
 		if( shape)
 		{
@@ -1282,10 +1207,10 @@ update_encoding_proper_aux(
 	}
 	
 success:
-	if( is_visual && termscr->logvis)
+	if( is_visual)
 	{
-		(*termscr->logvis->render)( termscr->logvis) ;
-		(*termscr->logvis->visual)( termscr->logvis) ;
+		ml_term_model_render( termscr->model) ;
+		ml_term_model_visual( termscr->model) ;
 	}
 
 	return  1 ;
@@ -1342,7 +1267,7 @@ window_exposed(
 	
 	for( counter = beg_row ; counter <= end_row ; counter ++)
 	{
-		if( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , counter)) == NULL)
+		if( ( line = ml_term_model_get_line_in_screen( termscr->model , counter)) == NULL)
 		{
 			break ;
 		}
@@ -1352,8 +1277,10 @@ window_exposed(
 	
 	redraw_image( termscr) ;
 
-	if( ml_convert_row_to_bs_row( &termscr->bs_image , beg_row) <= ml_cursor_row( termscr->image) &&
-		ml_cursor_row( termscr->image) <= ml_convert_row_to_bs_row( &termscr->bs_image , end_row))
+	if( ml_convert_row_to_abs_row( termscr->model , beg_row) <=
+			ml_term_model_cursor_row( termscr->model) &&
+		ml_term_model_cursor_row( termscr->model) <=
+			ml_convert_row_to_abs_row( termscr->model , end_row))
 	{
 		highlight_cursor( termscr) ;
 	}
@@ -1390,10 +1317,7 @@ window_resized(
 	 * ml_image_resize() modifies screen image that visual to logical should be done
 	 * before ml_image_resize() is called.
 	 */
-	if( termscr->logvis)
-	{
-		(*termscr->logvis->logical)( termscr->logvis) ;
-	}
+	ml_term_model_logical( termscr->model) ;
 
 	/*
 	 * visual width/height => logical cols/rows
@@ -1413,19 +1337,15 @@ window_resized(
 		rows = height / ml_line_height( termscr->font_man) ;
 	}
 
-	ml_image_resize( &termscr->normal_image , cols , rows) ;
-	ml_image_resize( &termscr->alt_image , cols , rows) ;
+	ml_term_model_resize( termscr->model , cols , rows) ;
 
 	if( termscr->pty)
 	{
 		ml_set_pty_winsize( termscr->pty , cols , rows) ;
 	}
 
-	if( termscr->logvis)
-	{
-		(*termscr->logvis->render)( termscr->logvis) ;
-		(*termscr->logvis->visual)( termscr->logvis) ;
-	}
+	ml_term_model_render( termscr->model) ;
+	ml_term_model_visual( termscr->model) ;
 	
 	set_wall_picture( termscr) ;
 
@@ -1585,7 +1505,7 @@ config_menu(
 		ml_get_color_name( termscr->color_man , ml_window_get_bg_color( &termscr->window)) ,
 		ml_get_color_name( termscr->color_man , sb_fg_color) ,
 		ml_get_color_name( termscr->color_man , sb_bg_color) ,
-		termscr->image->tab_size , ml_get_log_size( &termscr->logs) ,
+		ml_term_model_get_tab_size( termscr->model) , ml_term_model_get_log_size( termscr->model) ,
 		termscr->font_man->font_size ,
 		termscr->font_man->font_custom->min_font_size ,
 		termscr->font_man->font_custom->max_font_size ,
@@ -1755,9 +1675,25 @@ key_pressed(
 	}
 #endif
 
-	if( ml_is_backscroll_mode( &termscr->bs_image))
+	if( ml_is_backscroll_mode( termscr->model))
 	{
-		if( ksym == XK_Prior)
+		if( ml_keymap_match( termscr->keymap , PAGE_UP , ksym , event->state))
+		{
+			bs_half_page_downward( termscr) ;
+		}
+		else if( ml_keymap_match( termscr->keymap , PAGE_DOWN , ksym , event->state))
+		{
+			bs_half_page_upward( termscr) ;
+		}
+		else if( ml_keymap_match( termscr->keymap , SCROLL_UP , ksym , event->state))
+		{
+			bs_scroll_downward( termscr) ;
+		}
+		else if( ml_keymap_match( termscr->keymap , SCROLL_DOWN , ksym , event->state))
+		{
+			bs_scroll_upward( termscr) ;
+		}
+		else if( ksym == XK_Prior)
 		{
 			if( event->state & ShiftMask)
 			{
@@ -1816,11 +1752,20 @@ key_pressed(
 		enter_backscroll_mode( termscr) ;
 		bs_half_page_downward( termscr) ;
 	}
+	else if( ml_keymap_match( termscr->keymap , PAGE_DOWN , ksym , event->state))
+	{
+		enter_backscroll_mode( termscr) ;
+	}
 	else if( termscr->use_extended_scroll_shortcut &&
 		ml_keymap_match( termscr->keymap , SCROLL_UP , ksym , event->state))
 	{
 		enter_backscroll_mode( termscr) ;
 		bs_scroll_downward( termscr) ;
+	}
+	else if( termscr->use_extended_scroll_shortcut &&
+		ml_keymap_match( termscr->keymap , SCROLL_DOWN , ksym , event->state))
+	{
+		enter_backscroll_mode( termscr) ;
 	}
 	else if( ml_keymap_match( termscr->keymap , INSERT_SELECTION , ksym , event->state))
 	{
@@ -1882,21 +1827,6 @@ key_pressed(
 			}
 		}
 
-		if( termscr->mod_meta_mask & event->state)
-		{
-			if( termscr->mod_meta_mode == MOD_META_OUTPUT_ESC)
-			{
-				write_to_pty( termscr , "\x1b" , 1 , NULL) ;
-			}
-			else if( termscr->mod_meta_mode == MOD_META_SET_MSB)
-			{
-				if( 0x20 <= *seq && *seq <= 0x7e)
-				{
-					(*seq) |= 0x80 ;
-				}
-			}
-		}
-
 		if( ksym == XK_Delete && size == 1)
 		{
 			buf = ml_termcap_get_sequence( termscr->termcap , MLT_DELETE) ;
@@ -1907,15 +1837,13 @@ key_pressed(
 		}
 		else if( size > 0)
 		{
+			buf = NULL ;
+			
 			if( termscr->iscii_state)
 			{
 				size = ml_convert_ascii_to_iscii(
 					termscr->iscii_state , seq , size , seq , size) ;
 			}
-
-			write_to_pty( termscr , seq , size , parser) ;
-
-			return ;
 		}
 		/*
 		 * following ksym is processed only if no sequence string is received(size == 0)
@@ -2187,7 +2115,34 @@ key_pressed(
 			return ;
 		}
 
-		write_to_pty( termscr , buf , strlen(buf) , NULL) ;
+		if( termscr->mod_meta_mask & event->state)
+		{
+			if( termscr->mod_meta_mode == MOD_META_OUTPUT_ESC)
+			{
+				write_to_pty( termscr , "\x1b" , 1 , NULL) ;
+			}
+			else if( termscr->mod_meta_mode == MOD_META_SET_MSB)
+			{
+				int  counter ;
+
+				for( counter = 0 ; counter < size ; counter ++)
+				{
+					if( 0x20 <= seq[counter] && seq[counter] <= 0x7e)
+					{
+						seq[counter] |= 0x80 ;
+					}
+				}
+			}
+		}
+
+		if( buf)
+		{
+			write_to_pty( termscr , buf , strlen(buf) , NULL) ;
+		}
+		else
+		{
+			write_to_pty( termscr , seq , size , parser) ;
+		}
 	}
 }
 
@@ -2474,7 +2429,7 @@ start_selection(
 	{
 		ml_image_line_t *  line ;
 		
-		if( ( line = ml_bs_get_image_line_in_all( &termscr->bs_image , row_r - 1))
+		if( ( line = ml_term_model_get_line_in_all( termscr->model , row_r - 1))
 			== NULL || ml_imgline_is_empty( line))
 		{
 			col_l = col_r ;
@@ -2504,7 +2459,7 @@ selecting_with_motion(
 	)
 {
 	int  char_index ;
-	int  bs_row ;
+	int  abs_row ;
 	int  x_is_minus ;
 	u_int  x_rest ;
 	ml_image_line_t *  line ;
@@ -2522,9 +2477,9 @@ selecting_with_motion(
 	
 	if( y < 0)
 	{
-		if( ml_get_num_of_logged_lines( &termscr->logs) > 0)
+		if( ml_term_model_get_num_of_logged_lines( termscr->model) > 0)
 		{
-			if( ! ml_is_backscroll_mode( &termscr->bs_image))
+			if( ! ml_is_backscroll_mode( termscr->model))
 			{
 				enter_backscroll_mode( termscr) ;
 			}
@@ -2536,7 +2491,7 @@ selecting_with_motion(
 	}
 	else if( y > termscr->window.height - ml_line_height( termscr->font_man))
 	{
-		if( ml_is_backscroll_mode( &termscr->bs_image))
+		if( ml_is_backscroll_mode( termscr->model))
 		{
 			bs_scroll_upward( termscr) ;
 		}
@@ -2544,14 +2499,13 @@ selecting_with_motion(
 		y = termscr->window.height - ml_line_height( termscr->font_man) ;
 	}
 
-	bs_row = ml_convert_row_to_bs_row( &termscr->bs_image ,
-		convert_y_to_row( termscr , NULL , y)) ;
+	abs_row = ml_convert_row_to_abs_row( termscr->model , convert_y_to_row( termscr , NULL , y)) ;
 
-	if( ( line = ml_bs_get_image_line_in_all( &termscr->bs_image , bs_row)) == NULL ||
+	if( ( line = ml_term_model_get_line_in_all( termscr->model , abs_row)) == NULL ||
 		ml_imgline_is_empty( line))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " image line(%d) not found.\n" , bs_row) ;
+		kik_warn_printf( KIK_DEBUG_TAG " image line(%d) not found.\n" , abs_row) ;
 	#endif
 
 		return ;
@@ -2581,18 +2535,18 @@ selecting_with_motion(
 			}
 		}
 
-		start_selection( termscr , char_index , bs_row) ;
+		start_selection( termscr , char_index , abs_row) ;
 	}
 	else
 	{
-		if( ml_is_after_sel_right_base_pos( &termscr->sel , char_index , bs_row))
+		if( ml_is_after_sel_right_base_pos( &termscr->sel , char_index , abs_row))
 		{
 			if( char_index > 0)
 			{
 				char_index -- ;
 			}
 		}
-		else if( ml_is_before_sel_left_base_pos( &termscr->sel , char_index , bs_row))
+		else if( ml_is_before_sel_left_base_pos( &termscr->sel , char_index , abs_row))
 		{
 			if( ! x_is_minus && char_index < line->num_of_filled_chars - 1)
 			{
@@ -2600,9 +2554,9 @@ selecting_with_motion(
 			}
 		}
 		
-		if( ml_selected_region_is_changed( &termscr->sel , char_index , bs_row , 1))
+		if( ml_selected_region_is_changed( &termscr->sel , char_index , abs_row , 1))
 		{
-			ml_selecting( &termscr->sel , char_index , bs_row) ;
+			ml_selecting( &termscr->sel , char_index , abs_row) ;
 		}
 	}
 }
@@ -2659,9 +2613,9 @@ selecting_word(
 	int  end_char_index ;
 	ml_image_line_t *  line ;
 
-	row = ml_convert_row_to_bs_row( &termscr->bs_image , convert_y_to_row( termscr , NULL , y)) ;
+	row = ml_convert_row_to_abs_row( termscr->model , convert_y_to_row( termscr , NULL , y)) ;
 
-	if( ( line = ml_bs_get_image_line_in_all( &termscr->bs_image , row)) == NULL ||
+	if( ( line = ml_term_model_get_line_in_all( termscr->model , row)) == NULL ||
 		ml_imgline_is_empty( line))
 	{
 		return ;
@@ -2676,7 +2630,7 @@ selecting_word(
 		return ;
 	}
 
-	if( ml_bs_get_word_region( &termscr->bs_image , &beg_char_index , &beg_row , &end_char_index ,
+	if( ml_term_model_get_word_region( termscr->model , &beg_char_index , &beg_row , &end_char_index ,
 		&end_row , char_index , row) == 0)
 	{
 		return ;
@@ -2712,9 +2666,10 @@ selecting_line(
 	int  end_char_index ;
 	int  end_row ;
 
-	row = ml_convert_row_to_bs_row( &termscr->bs_image , convert_y_to_row( termscr , NULL , y)) ;
+	row = ml_convert_row_to_abs_row( termscr->model , convert_y_to_row( termscr , NULL , y)) ;
 
-	if( ml_bs_get_line_region( &termscr->bs_image , &beg_row , &end_char_index , &end_row , row) == 0)
+	if( ml_term_model_get_line_region( termscr->model , &beg_row , &end_char_index , &end_row , row)
+		== 0)
 	{
 		return ;
 	}
@@ -2784,7 +2739,7 @@ report_mouse_tracking(
 		}
 	#endif
 	
-		if( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , col)) == NULL)
+		if( ( line = ml_term_model_get_line_in_screen( termscr->model , col)) == NULL)
 		{
 			return  0 ;
 		}
@@ -2794,7 +2749,7 @@ report_mouse_tracking(
 			
 		if( termscr->vertical_mode & VERT_RTL)
 		{
-			row = ml_image_get_cols( termscr->image) - row - 1 ;
+			row = ml_term_model_get_cols( termscr->model) - row - 1 ;
 		}
 		
 	#if  0
@@ -2811,7 +2766,7 @@ report_mouse_tracking(
 	{
 		row = convert_y_to_row( termscr , NULL , event->y) ;
 		
-		if( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , row)) == NULL)
+		if( ( line = ml_term_model_get_line_in_screen( termscr->model , row)) == NULL)
 		{
 			return  0 ;
 		}
@@ -2956,7 +2911,7 @@ reverse_or_restore_color(
 	ml_image_line_t *  line ;
 	u_int  size_except_end_space ;
 
-	if( ( line = ml_bs_get_image_line_in_all( &termscr->bs_image , beg_row)) == NULL ||
+	if( ( line = ml_term_model_get_line_in_all( termscr->model , beg_row)) == NULL ||
 		ml_imgline_is_empty( line))
 	{
 		return ;
@@ -2982,7 +2937,7 @@ reverse_or_restore_color(
 
 		for( row ++ ; row < end_row ; row ++)
 		{
-			if( ( line = ml_bs_get_image_line_in_all( &termscr->bs_image , row)) == NULL ||
+			if( ( line = ml_term_model_get_line_in_all( termscr->model , row)) == NULL ||
 				ml_imgline_is_empty( line))
 			{
 				goto  end ;
@@ -2996,7 +2951,7 @@ reverse_or_restore_color(
 			}
 		}
 		
-		if( ( line = ml_bs_get_image_line_in_all( &termscr->bs_image , row)) == NULL ||
+		if( ( line = ml_term_model_get_line_in_all( termscr->model , row)) == NULL ||
 			ml_imgline_is_empty( line))
 		{
 			goto  end ;
@@ -3082,7 +3037,7 @@ change_font_size(
 	}
 	
 	/* redrawing all lines with new fonts. */
-	ml_image_set_modified_all( termscr->image) ;
+	ml_term_model_set_modified_all( termscr->model) ;
 
 	font_size_changed( termscr) ;
 
@@ -3234,7 +3189,7 @@ change_char_encoding(
 	
 	update_encoding_proper_aux( termscr , 1) ;
 	
-	ml_image_set_modified_all( termscr->image) ;
+	ml_term_model_set_modified_all( termscr->model) ;
 }
 
 static void
@@ -3258,20 +3213,10 @@ change_iscii_lang(
 	
 	if( termscr->iscii_state)
 	{
-		if( termscr->logvis == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " termscr->logvis is NULL under ISCII encoding.\n") ;
-		#endif
-
-			return ;
-		}
-
-		(*termscr->logvis->logical)( termscr->logvis) ;
+		ml_term_model_logical( termscr->model) ;
 		select_iscii_lang( termscr) ;
-		(*termscr->logvis->visual)( termscr->logvis) ;
-		
-		ml_image_set_modified_all( termscr->image) ;
+		ml_term_model_visual( termscr->model) ;
+		ml_term_model_set_modified_all( termscr->model) ;
 	}
 }
 
@@ -3285,7 +3230,7 @@ change_tab_size(
 
 	termscr = p ;
 
-	ml_image_set_tab_size( termscr->image , tab_size) ;
+	ml_term_model_set_tab_size( termscr->model , tab_size) ;
 }
 
 static void
@@ -3298,7 +3243,7 @@ change_log_size(
 
 	termscr = p ;
 
-	if( ml_get_log_size( &termscr->logs) == logsize)
+	if( ml_term_model_get_log_size( termscr->model) == logsize)
 	{
 		/* not changed */
 		
@@ -3311,7 +3256,7 @@ change_log_size(
 	restore_selected_region_color( termscr) ;
 	exit_backscroll_mode( termscr) ;
 	
-	ml_change_log_size( &termscr->logs , logsize) ;
+	ml_term_model_change_log_size( termscr->model , logsize) ;
 
 	if( HAS_SCROLL_LISTENER(termscr,log_size_changed))
 	{
@@ -3406,7 +3351,7 @@ change_vertical_mode(
 	update_encoding_proper_aux( termscr , 1) ;
 	
 	/* redrawing under new vertical mode. */
-	ml_image_set_modified_all( termscr->image) ;
+	ml_term_model_set_modified_all( termscr->model) ;
 	
 	ml_window_resize( &termscr->window , screen_width(termscr) , screen_height(termscr) ,
 		NOTIFY_TO_PARENT) ;
@@ -3475,7 +3420,7 @@ change_dynamic_comb_flag(
 
 	termscr->use_dynamic_comb = use_dynamic_comb ;
 
-	ml_image_set_modified_all( termscr->image) ;
+	ml_term_model_set_modified_all( termscr->model) ;
 
 	update_encoding_proper_aux( termscr , 1) ;
 }
@@ -3614,7 +3559,7 @@ larger_font_size(
 	ml_xic_font_set_changed( &termscr->window) ;
 
 	/* redrawing all lines with new fonts. */
-	ml_image_set_modified_all( termscr->image) ;
+	ml_term_model_set_modified_all( termscr->model) ;
 		
 	return ;
 }
@@ -3636,7 +3581,7 @@ smaller_font_size(
 	ml_xic_font_set_changed( &termscr->window) ;
 
 	/* redrawing all lines with new fonts. */
-	ml_image_set_modified_all( termscr->image) ;
+	ml_term_model_set_modified_all( termscr->model) ;
 	
 	return ;
 }
@@ -3705,7 +3650,7 @@ change_font_present(
 	font_size_changed( termscr) ;
 	
 	/* redrawing all lines with new fonts. */
-	ml_image_set_modified_all( termscr->image) ;
+	ml_term_model_set_modified_all( termscr->model) ;
 	
 	termscr->font_present = font_present ;
 }
@@ -3749,7 +3694,7 @@ change_bidi_flag(
 
 	termscr->use_bidi = use_bidi ;
 	
-	ml_image_set_modified_all( termscr->image) ;
+	ml_term_model_set_modified_all( termscr->model) ;
 
 	update_encoding_proper_aux( termscr , 1) ;
 }
@@ -3937,8 +3882,8 @@ select_in_window(
 
 	termscr = p ;
 
-	if( ( size = ml_bs_get_region_size( &termscr->bs_image , beg_char_index , beg_row ,
-		end_char_index , end_row)) == 0)
+	if( ( size = ml_term_model_get_region_size( termscr->model , beg_char_index , beg_row ,
+			end_char_index , end_row)) == 0)
 	{
 		return  0 ;
 	}
@@ -3948,14 +3893,14 @@ select_in_window(
 		return  0 ;
 	}
 
-	*len = ml_bs_copy_region( &termscr->bs_image , buf , size , beg_char_index ,
+	*len = ml_term_model_copy_region( termscr->model , buf , size , beg_char_index ,
 		beg_row , end_char_index , end_row) ;
 
 #ifdef  DEBUG
 	if( size != *len)
 	{
 		kik_warn_printf( KIK_DEBUG_TAG
-			" ml_bs_get_region_size() == %d and ml_bs_copy_region() == %d"
+			" ml_term_model_get_region_size() == %d and ml_term_model_copy_region() == %d"
 			" are not the same size !\n" ,
 			size , *len) ;
 	}
@@ -3975,59 +3920,7 @@ select_in_window(
 
 
 /*
- * callbacks of ml_bs_event_listener_t events.
- */
- 
-static int
-window_scroll_upward(
-	void *  p ,
-	u_int  size
-	)
-{
-	ml_term_screen_t *  termscr ;
-
-	termscr = p ;
-
-	if( ! ml_window_is_scrollable( &termscr->window))
-	{
-		return  0 ;
-	}
-
-	set_scroll_boundary( termscr , 0 , ml_image_get_rows( termscr->image) - 1) ;
-	
-	termscr->scroll_cache_rows += size ;
-
-	return  1 ;
-}
-
-static int
-window_scroll_downward(
-	void *  p ,
-	u_int  size
-	)
-{
-	ml_term_screen_t *  termscr ;
-
-	termscr = p ;
-	
-	if( ! ml_window_is_scrollable( &termscr->window))
-	{
-		return  0 ;
-	}
-
-	set_scroll_boundary( termscr , 0 , ml_image_get_rows( termscr->image) - 1) ;
-	
-	termscr->scroll_cache_rows -= size ;
-
-	return  1 ;
-}
-
-
-/*
- * callbacks of ml_image_scroll events
- *
- * !! Notice !!
- * this is called under logical order context.
+ * callbacks of ml_term_model_event_listener_t events.
  */
  
 static int
@@ -4050,7 +3943,7 @@ window_scroll_upward_region(
 	set_scroll_boundary( termscr , beg_row , end_row) ;
 	
 	termscr->scroll_cache_rows += size ;
-
+	
 	return  1 ;
 }
 
@@ -4079,28 +3972,6 @@ window_scroll_downward_region(
 }
 
 /*
- * ml_sb_term_screen will override this function.
- */
-static void
-receive_scrolled_out_line(
-	void *  p ,
-	ml_image_line_t *  line
-	)
-{
-	ml_term_screen_t *  termscr ;
-
-	termscr = p ;
-
-	if( termscr->logvis)
-	{
-		(*termscr->logvis->visual_line)( termscr->logvis , line) ;
-	}
-	
-	ml_log_add( &termscr->logs , line) ;
-}
-
-
-/*
  * callbacks of ml_xim events.
  */
  
@@ -4119,7 +3990,7 @@ get_spot(
 
 	termscr = p ;
 	
-	if( ( line = ml_image_get_line( termscr->image , ml_cursor_row( termscr->image))) == NULL ||
+	if( ( line = ml_term_model_cursor_line( termscr->model)) == NULL ||
 		ml_imgline_is_empty( line))
 	{
 	#ifdef  DEBUG
@@ -4129,10 +4000,10 @@ get_spot(
 		return  0 ;
 	}
 	
-	*y = convert_row_to_y( termscr , ml_cursor_row( termscr->image)) +
+	*y = convert_row_to_y( termscr , ml_term_model_cursor_row( termscr->model)) +
 		ml_line_height( termscr->font_man) ;
 	
-	*x = convert_char_index_to_x( termscr , line , ml_cursor_char_index( termscr->image)) ;
+	*x = convert_char_index_to_x( termscr , line , ml_term_model_cursor_char_index( termscr->model)) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " xim spot => x %d y %d\n" , *x , *y) ;
@@ -4203,6 +4074,7 @@ ml_term_screen_new(
 	}
 
 	/* allocated dynamically */
+	termscr->model = NULL ;
 	termscr->utf8_parser = NULL ;
 	termscr->xct_parser = NULL ;
 	termscr->ml_str_parser = NULL ;
@@ -4211,7 +4083,6 @@ ml_term_screen_new(
 	
 	termscr->pty = NULL ;
 	
-	termscr->logvis = NULL ;
 	termscr->iscii_lang = iscii_lang ;
 	termscr->iscii_state = NULL ;
 	termscr->shape = NULL ;
@@ -4255,35 +4126,6 @@ ml_term_screen_new(
 	ml_char_set( &nl_ch , "\n" , 1 , ml_get_usascii_font( termscr->font_man) ,
 		0 , ML_FG_COLOR , ML_BG_COLOR , 0) ;
 
-	termscr->image_scroll_listener.self = termscr ;
-	/* this may be overwritten */
-	termscr->image_scroll_listener.receive_upward_scrolled_out_line = receive_scrolled_out_line ;
-	termscr->image_scroll_listener.receive_downward_scrolled_out_line = NULL ;
-	termscr->image_scroll_listener.window_scroll_upward_region = window_scroll_upward_region ;
-	termscr->image_scroll_listener.window_scroll_downward_region = window_scroll_downward_region ;
-	
-	if( ! ml_image_init( &termscr->normal_image , &termscr->image_scroll_listener ,
-		cols , rows , sp_ch , tab_size , 1))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_image_init failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	if( ! ml_image_init( &termscr->alt_image , &termscr->image_scroll_listener ,
-		cols , rows , sp_ch , tab_size , 0))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_image_init failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	termscr->image = &termscr->normal_image ;
-
 	termscr->sel_listener.self = termscr ;
 	termscr->sel_listener.select_in_window = select_in_window ;
 	termscr->sel_listener.reverse_color = reverse_color ;
@@ -4298,24 +4140,16 @@ ml_term_screen_new(
 		goto  error ;
 	}
 
-	if( ! ml_log_init( &termscr->logs , cols , num_of_log_lines))
+	termscr->termmdl_listener.self = termscr ;
+	termscr->termmdl_listener.window_scroll_upward_region = window_scroll_upward_region ;
+	termscr->termmdl_listener.window_scroll_downward_region = window_scroll_downward_region ;
+	termscr->termmdl_listener.scrolled_out_line_received = NULL ;
+
+	if( ! ( termscr->model = ml_term_model_new( &termscr->termmdl_listener ,
+					cols , rows , &sp_ch , &nl_ch , tab_size , num_of_log_lines)))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_log_init failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	termscr->bs_listener.self = termscr ;
-	termscr->bs_listener.window_scroll_upward = window_scroll_upward ;
-	termscr->bs_listener.window_scroll_downward = window_scroll_downward ;
-
-	if( ! ml_bs_init( &termscr->bs_image , termscr->image , &termscr->logs ,
-		&termscr->bs_listener , &nl_ch))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_bs_init failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " ml_term_model_new failed.\n") ;
 	#endif
 	
 		goto  error ;
@@ -4507,6 +4341,11 @@ ml_term_screen_new(
 	return  termscr ;
 
 error:
+	if( termscr->model)
+	{
+		ml_term_model_delete( termscr->model) ;
+	}
+	
 	if( termscr->utf8_parser)
 	{
 		(*termscr->utf8_parser->delete)( termscr->utf8_parser) ;
@@ -4545,22 +4384,8 @@ ml_term_screen_delete(
 	ml_term_screen_t *  termscr
 	)
 {
-	/*
-	 * this should be done before ml_image_final() since termscr->logvis refers
-	 * to ml_image_t and may have some data structure for it.
-	 */
-	if( termscr->logvis)
-	{
-		(*termscr->logvis->logical)( termscr->logvis) ;
-		(*termscr->logvis->delete)( termscr->logvis) ;
-	}
-
-	ml_image_final( &termscr->normal_image) ;
-	ml_image_final( &termscr->alt_image) ;
-
-	ml_log_final( &termscr->logs) ;
+	ml_term_model_delete( termscr->model) ;
 	ml_sel_final( &termscr->sel) ;
-	ml_bs_final( &termscr->bs_image) ;
 	ml_config_menu_final( &termscr->config_menu) ;
 
 	if( termscr->shape)
@@ -4735,12 +4560,12 @@ ml_term_screen_scroll_upward(
 {
 	unhighlight_cursor( termscr) ;
 	
-	if( ! ml_is_backscroll_mode( &termscr->bs_image))
+	if( ! ml_is_backscroll_mode( termscr->model))
 	{
 		enter_backscroll_mode( termscr) ;
 	}
 
-	ml_bs_scroll_upward( &termscr->bs_image , size) ;
+	ml_term_model_backscroll_upward( termscr->model , size) ;
 	
 	redraw_image( termscr) ;
 	highlight_cursor( termscr) ;
@@ -4756,12 +4581,12 @@ ml_term_screen_scroll_downward(
 {
 	unhighlight_cursor( termscr) ;
 	
-	if( ! ml_is_backscroll_mode( &termscr->bs_image))
+	if( ! ml_is_backscroll_mode( termscr->model))
 	{
 		enter_backscroll_mode( termscr) ;
 	}
 
-	ml_bs_scroll_downward( &termscr->bs_image , size) ;
+	ml_term_model_backscroll_downward( termscr->model , size) ;
 
 	redraw_image( termscr) ;
 	highlight_cursor( termscr) ;
@@ -4777,12 +4602,12 @@ ml_term_screen_scroll_to(
 {
 	unhighlight_cursor( termscr) ;
 
-	if( ! ml_is_backscroll_mode( &termscr->bs_image))
+	if( ! ml_is_backscroll_mode( termscr->model))
 	{
 		enter_backscroll_mode( termscr) ;
 	}
 	
-	ml_bs_scroll_to( &termscr->bs_image , row) ;
+	ml_term_model_backscroll_to( termscr->model , row) ;
 
 	redraw_image( termscr) ;
 	highlight_cursor( termscr) ;
@@ -4790,26 +4615,6 @@ ml_term_screen_scroll_to(
 	return  1 ;
 }
 
-
-/*
- * for ml_term_manager
- */
-
-u_int
-ml_term_screen_get_cols(
-	ml_term_screen_t *  termscr
-	)
-{
-	return  logical_num_of_cols(termscr) ;
-}
-
-u_int
-ml_term_screen_get_rows(
-	ml_term_screen_t *  termscr
-	)
-{
-	return  logical_num_of_rows(termscr) ;
-}
 
 ml_picture_modifier_t *
 ml_term_screen_get_picture_modifier(
@@ -4835,10 +4640,7 @@ ml_term_screen_start_vt100_cmd(
 
 	unhighlight_cursor( termscr) ;
 
-	if( termscr->logvis)
-	{
-		(*termscr->logvis->logical)( termscr->logvis) ;
-	}
+	ml_term_model_logical( termscr->model) ;
 
 	return  1 ;
 }
@@ -4848,11 +4650,8 @@ ml_term_screen_stop_vt100_cmd(
 	ml_term_screen_t *  termscr
 	)
 {
-	if( termscr->logvis)
-	{
-		(*termscr->logvis->render)( termscr->logvis) ;
-		(*termscr->logvis->visual)( termscr->logvis) ;
-	}
+	ml_term_model_render( termscr->model) ;
+	ml_term_model_visual( termscr->model) ;
 	
 	redraw_image( termscr) ;
 	highlight_cursor( termscr) ;
@@ -4860,6 +4659,11 @@ ml_term_screen_stop_vt100_cmd(
 	return  1 ;
 }
 
+
+/*
+ * VT100 commands
+ */
+ 
 ml_font_t *
 ml_term_screen_get_font(
 	ml_term_screen_t *  termscr ,
@@ -4898,4 +4702,998 @@ ml_term_screen_get_color(
 	)
 {
 	return  ml_get_color( termscr->color_man , name) ;
+}
+
+int
+ml_term_screen_bel(
+	ml_term_screen_t *  termscr
+	)
+{	
+	if( termscr->bel_mode == BEL_SOUND)
+	{
+		XBell( termscr->window.display , 0) ;
+	}
+	else if( termscr->bel_mode == BEL_VISUAL)
+	{
+		ml_window_fill_all( &termscr->window) ;
+
+		XFlush( termscr->window.display) ;
+
+		ml_window_clear_all( &termscr->window) ;
+		ml_term_model_set_modified_all( termscr->model) ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_term_screen_resize_columns(
+	ml_term_screen_t *  termscr ,
+	u_int  cols
+	)
+{
+	if( cols == ml_term_model_get_cols( termscr->model))
+	{
+		return  0 ;
+	}
+
+	/*
+	 * ml_term_screen_{start|stop}_term_screen are necessary since
+	 * window is redrawn in window_resized().
+	 */
+	 
+	ml_term_screen_stop_vt100_cmd( termscr) ;
+	
+	ml_window_resize( &termscr->window , ml_col_width((termscr)->font_man) * cols ,
+		ml_line_height((termscr)->font_man) * ml_term_model_get_rows( termscr->model) ,
+		NOTIFY_TO_PARENT) ;
+
+	/*
+	 * !! Notice !!
+	 * ml_window_resize() will invoke ConfigureNotify event but window_resized() won't be
+	 * called , since xconfigure.width , xconfigure.height are the same as the already
+	 * resized window.
+	 */
+	if( termscr->window.window_resized)
+	{
+		(*termscr->window.window_resized)( &termscr->window) ;
+	}
+
+	ml_term_screen_start_vt100_cmd( termscr) ;
+	
+	return  1 ;
+}
+
+int
+ml_term_screen_reverse_video(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( termscr->is_reverse == 1)
+	{
+		return  0 ;
+	}
+
+	ml_window_reverse_video( &termscr->window) ;
+	
+	ml_term_model_set_modified_all( termscr->model) ;
+
+	termscr->is_reverse = 1 ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_restore_video(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( termscr->is_reverse == 0)
+	{
+		return  0 ;
+	}
+	
+	ml_window_reverse_video( &termscr->window) ;
+	
+	ml_term_model_set_modified_all( termscr->model) ;
+	
+	termscr->is_reverse = 0 ;
+
+	return  0 ;
+}
+
+int
+ml_term_screen_set_app_keypad(
+	ml_term_screen_t *  termscr
+	)
+{
+	termscr->is_app_keypad = 1 ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_set_normal_keypad(
+	ml_term_screen_t *  termscr
+	)
+{
+	termscr->is_app_keypad = 0 ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_set_app_cursor_keys(
+	ml_term_screen_t *  termscr
+	)
+{
+	termscr->is_app_cursor_keys = 1 ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_set_normal_cursor_keys(
+	ml_term_screen_t *  termscr
+	)
+{
+	termscr->is_app_cursor_keys = 0 ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_cursor_visible(
+	ml_term_screen_t *  termscr
+	)
+{
+	termscr->is_cursor_visible = 1 ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_cursor_invisible(
+	ml_term_screen_t *  termscr
+	)
+{
+	termscr->is_cursor_visible = 0 ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_set_mouse_pos_sending(
+	ml_term_screen_t *  termscr
+	)
+{
+	termscr->is_mouse_pos_sending = 1 ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_unset_mouse_pos_sending(
+	ml_term_screen_t *  termscr
+	)
+{
+	termscr->is_mouse_pos_sending = 0 ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_send_device_attr(
+	ml_term_screen_t *  termscr
+	)
+{
+	/* vt100 answerback */
+	char  seq[] = "\x1b[?1;2c" ;
+
+	ml_write_to_pty( termscr->pty , seq , strlen( seq)) ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_report_device_status(
+	ml_term_screen_t *  termscr
+	)
+{
+	ml_write_to_pty( termscr->pty , "\x1b[0n" , 4) ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_report_cursor_position(
+	ml_term_screen_t *  termscr
+	)
+{
+	char  seq[4 + DIGIT_STR_LEN(u_int) + 1] ;
+
+	sprintf( seq , "\x1b[%d;%dR" ,
+		ml_term_model_cursor_row( termscr->model) + 1 ,
+		ml_term_model_cursor_col( termscr->model) + 1) ;
+
+	ml_write_to_pty( termscr->pty , seq , strlen( seq)) ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_set_window_name(
+	ml_term_screen_t *  termscr ,
+	u_char *  name
+	)
+{
+	return  ml_set_window_name( &termscr->window , name) ;
+}
+
+int
+ml_term_screen_set_icon_name(
+	ml_term_screen_t *  termscr ,
+	u_char *  name
+	)
+{
+	return  ml_set_icon_name( &termscr->window , name) ;
+}
+
+int
+ml_term_screen_fill_all_with_e(
+	ml_term_screen_t *  termscr
+	)
+{
+	ml_char_t  e_ch ;
+
+	ml_char_init( &e_ch) ;
+	ml_char_set( &e_ch , "E" , 1 , ml_get_usascii_font( termscr->font_man) ,
+		0 , ML_FG_COLOR , ML_BG_COLOR , 0) ;
+
+	ml_term_model_fill_all( termscr->model , &e_ch) ;
+
+	ml_char_final( &e_ch) ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_set_config(
+	ml_term_screen_t *  termscr ,
+	char *  key ,
+	char *  value
+	)
+{
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
+#endif
+
+	/*
+	 * ml_term_screen_{start|stop}_term_screen are necessary since
+	 * window is redrawn in chagne_wall_picture().
+	 */
+
+	ml_term_screen_stop_vt100_cmd( termscr) ;
+
+	if( strcmp( key , "encoding") == 0)
+	{
+		ml_char_encoding_t  encoding ;
+
+		if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_char_encoding)
+		{
+			(*termscr->config_menu_listener.change_char_encoding)( termscr , encoding) ;
+		}
+	}
+	else if( strcmp( key , "iscii_lang") == 0)
+	{
+		ml_iscii_lang_t  lang ;
+
+		if( ( lang = ml_iscii_get_lang( value)) == ISCIILANG_UNKNOWN)
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_iscii_lang)
+		{
+			(*termscr->config_menu_listener.change_iscii_lang)( termscr , lang) ;
+		}
+	}
+	else if( strcmp( key , "fg_color") == 0)
+	{
+		if( termscr->config_menu_listener.change_fg_color)
+		{
+			(*termscr->config_menu_listener.change_fg_color)( termscr , value) ;
+		}
+	}
+	else if( strcmp( key , "bg_color") == 0)
+	{
+		if( termscr->config_menu_listener.change_bg_color)
+		{
+			(*termscr->config_menu_listener.change_bg_color)( termscr , value) ;
+		}
+	}
+	else if( strcmp( key , "sb_fg_color") == 0)
+	{
+		if( termscr->config_menu_listener.change_sb_fg_color)
+		{
+			(*termscr->config_menu_listener.change_sb_fg_color)( termscr , value) ;
+		}
+	}
+	else if( strcmp( key , "sb_bg_color") == 0)
+	{
+		if( termscr->config_menu_listener.change_sb_bg_color)
+		{
+			(*termscr->config_menu_listener.change_sb_bg_color)( termscr , value) ;
+		}
+	}
+	else if( strcmp( key , "tabsize") == 0)
+	{
+		u_int  tab_size ;
+
+		if( ! kik_str_to_uint( &tab_size , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_tab_size)
+		{
+			(*termscr->config_menu_listener.change_tab_size)( termscr , tab_size) ;
+		}
+	}
+	else if( strcmp( key , "logsize") == 0)
+	{
+		u_int  log_size ;
+
+		if( ! kik_str_to_uint( &log_size , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_log_size)
+		{
+			(*termscr->config_menu_listener.change_log_size)( termscr , log_size) ;
+		}
+	}
+	else if( strcmp( key , "fontsize") == 0)
+	{
+		u_int  font_size ;
+
+		if( strcmp( value , "larger") == 0)
+		{
+			if( termscr->config_menu_listener.larger_font_size)
+			{
+				(*termscr->config_menu_listener.larger_font_size)( termscr) ;
+			}
+		}
+		else if( strcmp( value , "smaller") == 0)
+		{
+			if( termscr->config_menu_listener.smaller_font_size)
+			{
+				(*termscr->config_menu_listener.smaller_font_size)( termscr) ;
+			}
+		}
+		else
+		{
+			if( ! kik_str_to_uint( &font_size , value))
+			{
+				return  0 ;
+			}
+
+			if( termscr->config_menu_listener.change_font_size)
+			{
+				(*termscr->config_menu_listener.change_font_size)( termscr , font_size) ;
+			}
+		}
+	}
+	else if( strcmp( key , "line_space") == 0)
+	{
+		u_int  line_space ;
+
+		if( ! kik_str_to_uint( &line_space , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_line_space)
+		{
+			(*termscr->config_menu_listener.change_line_space)( termscr , line_space) ;
+		}
+	}
+	else if( strcmp( key , "screen_width_ratio") == 0)
+	{
+		u_int  ratio ;
+
+		if( ! kik_str_to_uint( &ratio , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_screen_width_ratio)
+		{
+			(*termscr->config_menu_listener.change_screen_width_ratio)( termscr , ratio) ;
+		}
+	}
+	else if( strcmp( key , "screen_height_ratio") == 0)
+	{
+		u_int  ratio ;
+
+		if( ! kik_str_to_uint( &ratio , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_screen_height_ratio)
+		{
+			(*termscr->config_menu_listener.change_screen_height_ratio)( termscr , ratio) ;
+		}
+	}
+	else if( strcmp( key , "scrollbar_view_name") == 0)
+	{
+		if( termscr->config_menu_listener.change_sb_view)
+		{
+			(*termscr->config_menu_listener.change_sb_view)(
+				termscr , value) ;
+		}
+	}
+	else if( strcmp( key , "mod_meta_mode") == 0)
+	{
+		if( termscr->config_menu_listener.change_mod_meta_mode)
+		{
+			(*termscr->config_menu_listener.change_mod_meta_mode)(
+				termscr , ml_get_mod_meta_mode( value)) ;
+		}
+	}
+	else if( strcmp( key , "bel_mode") == 0)
+	{
+		if( termscr->config_menu_listener.change_bel_mode)
+		{
+			(*termscr->config_menu_listener.change_bel_mode)(
+				termscr , ml_get_bel_mode( value)) ;
+		}
+	}
+	else if( strcmp( key , "vertical_mode") == 0)
+	{
+		if( termscr->config_menu_listener.change_vertical_mode)
+		{
+			(*termscr->config_menu_listener.change_vertical_mode)(
+				termscr , ml_get_vertical_mode( value)) ;
+		}
+	}
+	else if( strcmp( key , "scrollbar_mode") == 0)
+	{
+		if( termscr->config_menu_listener.change_sb_mode)
+		{
+			(*termscr->config_menu_listener.change_sb_mode)(
+				termscr , ml_get_sb_mode( value)) ;
+		}
+	}
+	else if( strcmp( key , "use_combining") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_char_combining_flag)
+		{
+			(*termscr->config_menu_listener.change_char_combining_flag)( termscr , flag) ;
+		}
+	}
+	else if( strcmp( key , "use_dynamic_comb") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_dynamic_comb_flag)
+		{
+			(*termscr->config_menu_listener.change_dynamic_comb_flag)( termscr , flag) ;
+		}
+	}
+	else if( strcmp( key , "copy_paste_via_ucs") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_copy_paste_via_ucs_flag)
+		{
+			(*termscr->config_menu_listener.change_copy_paste_via_ucs_flag)( termscr , flag) ;
+		}
+	}
+	else if( strcmp( key , "use_transbg") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_transparent_flag)
+		{
+			(*termscr->config_menu_listener.change_transparent_flag)( termscr , flag) ;
+		}
+	}
+	else if( strcmp( key , "brightness") == 0)
+	{
+		u_int  brightness ;
+
+		if( ! kik_str_to_uint( &brightness , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_brightness)
+		{
+			(*termscr->config_menu_listener.change_brightness)( termscr , brightness) ;
+		}
+	}
+	else if( strcmp( key , "fade_ratio") == 0)
+	{
+		u_int  fade_ratio ;
+
+		if( ! kik_str_to_uint( &fade_ratio , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_fade_ratio)
+		{
+			(*termscr->config_menu_listener.change_fade_ratio)( termscr , fade_ratio) ;
+		}
+	}
+	else if( strcmp( key , "use_anti_alias") == 0)
+	{
+		ml_font_present_t  font_present ;
+
+		font_present = termscr->font_present ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			font_present |= FONT_AA ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			font_present &= ~FONT_AA ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_font_present)
+		{
+			(*termscr->config_menu_listener.change_font_present)( termscr , font_present) ;
+		}
+	}
+	else if( strcmp( key , "use_variable_column_width") == 0)
+	{
+		ml_font_present_t  font_present ;
+
+		font_present = termscr->font_present ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			font_present |= FONT_VAR_WIDTH ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			font_present &= ~FONT_VAR_WIDTH ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_font_present)
+		{
+			(*termscr->config_menu_listener.change_font_present)( termscr , font_present) ;
+		}
+	}
+	else if( strcmp( key , "use_multi_column_char") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_multi_col_char_flag)
+		{
+			(*termscr->config_menu_listener.change_multi_col_char_flag)( termscr , flag) ;
+		}
+	}
+	else if( strcmp( key , "use_bidi") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_bidi_flag)
+		{
+			(*termscr->config_menu_listener.change_bidi_flag)( termscr , flag) ;
+		}
+	}
+	else if( strcmp( key , "xim") == 0)
+	{
+		char *  xim ;
+		char *  locale ;
+		char *  p ;
+
+		xim = value ;
+
+		if( ( p = strchr( value , ':')) == NULL)
+		{
+			locale = "" ;
+		}
+		else
+		{
+			*p = '\0' ;
+			locale = p + 1 ;
+		}
+
+		if( termscr->config_menu_listener.change_xim)
+		{
+			(*termscr->config_menu_listener.change_xim)( termscr , xim , locale) ;
+		}
+	}
+	else if( strcmp( key , "wall_picture") == 0)
+	{
+		if( termscr->config_menu_listener.change_wall_picture)
+		{
+			(*termscr->config_menu_listener.change_wall_picture)( termscr , value) ;
+		}
+	}
+	else if( strcmp( key , "full_reset") == 0)
+	{
+		if( termscr->config_menu_listener.full_reset)
+		{
+			(*termscr->config_menu_listener.full_reset)( termscr) ;
+		}
+	}
+	
+	ml_term_screen_start_vt100_cmd( termscr) ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_get_config(
+	ml_term_screen_t *  termscr ,
+	char *  key
+	)
+{
+	char *  value ;
+	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
+	char *  true = "true" ;
+	char *  false = "false" ;
+	char  cwd[PATH_MAX] ;
+		
+	if( strcmp( key , "encoding") == 0)
+	{
+		value = ml_get_char_encoding_name( (*termscr->encoding_listener->encoding)(
+				termscr->encoding_listener->self)) ;
+	}
+	else if( strcmp( key , "iscii_lang") == 0)
+	{
+		value = ml_iscii_get_lang_name( termscr->iscii_lang) ;
+	}
+	else if( strcmp( key , "fg_color") == 0)
+	{
+		value = ml_get_color_name( termscr->color_man , ml_window_get_fg_color( &termscr->window)) ;
+	}
+	else if( strcmp( key , "bg_color") == 0)
+	{
+		value = ml_get_color_name( termscr->color_man , ml_window_get_bg_color( &termscr->window)) ;
+	}
+	else if( strcmp( key , "sb_fg_color") == 0)
+	{
+		if( termscr->screen_scroll_listener && termscr->screen_scroll_listener->fg_color)
+		{
+			value = ml_get_color_name( termscr->color_man ,
+					(*termscr->screen_scroll_listener->fg_color)(
+					termscr->screen_scroll_listener->self)) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "sb_bg_color") == 0)
+	{
+		if( termscr->screen_scroll_listener && termscr->screen_scroll_listener->bg_color)
+		{
+			value = ml_get_color_name( termscr->color_man ,
+					(*termscr->screen_scroll_listener->bg_color)(
+					termscr->screen_scroll_listener->self)) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "tabsize") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_model_get_tab_size( termscr->model)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "logsize") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_model_get_log_size( termscr->model)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "fontsize") == 0)
+	{
+		sprintf( digit , "%d" , termscr->font_man->font_size) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "line_space") == 0)
+	{
+		sprintf( digit , "%d" , termscr->font_man->line_space) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "screen_width_ratio") == 0)
+	{
+		sprintf( digit , "%d" , termscr->screen_width_ratio) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "screen_height_ratio") == 0)
+	{
+		sprintf( digit , "%d" , termscr->screen_height_ratio) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "scrollbar_view_name") == 0)
+	{
+		if( termscr->screen_scroll_listener && termscr->screen_scroll_listener->view_name)
+		{
+			value = (*termscr->screen_scroll_listener->view_name)(
+					termscr->screen_scroll_listener->self) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "mod_meta_mode") == 0)
+	{
+		value = ml_get_mod_meta_mode_name( termscr->mod_meta_mode) ;
+	}
+	else if( strcmp( key , "bel_mode") == 0)
+	{
+		value = ml_get_bel_mode_name( termscr->bel_mode) ;
+	}
+	else if( strcmp( key , "vertical_mode") == 0)
+	{
+		value = ml_get_vertical_mode_name( termscr->vertical_mode) ;
+	}
+	else if( strcmp( key , "scrollbar_mode") == 0)
+	{
+		if( termscr->screen_scroll_listener &&
+			termscr->screen_scroll_listener->sb_mode)
+		{
+			value = ml_get_sb_mode_name( (*termscr->screen_scroll_listener->sb_mode)(
+				termscr->screen_scroll_listener->self)) ;
+		}
+		else
+		{
+			value = ml_get_sb_mode_name( SB_NONE) ;
+		}
+	}
+	else if( strcmp( key , "use_combining") == 0)
+	{
+		if( ml_is_using_char_combining())
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_dynamic_comb") == 0)
+	{
+		if( termscr->use_dynamic_comb)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "copy_paste_via_ucs") == 0)
+	{
+		if( termscr->copy_paste_via_ucs)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_transbg") == 0)
+	{
+		if( termscr->window.is_transparent)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "brightness") == 0)
+	{
+		sprintf( digit , "%d" , termscr->pic_mod.brightness) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "fade_ratio") == 0)
+	{
+		sprintf( digit , "%d" , termscr->fade_ratio) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "use_anti_alias") == 0)
+	{
+		if( termscr->font_present & FONT_AA)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_variable_column_width") == 0)
+	{
+		if( termscr->font_present & FONT_VAR_WIDTH)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_multi_column_char") == 0)
+	{
+		if( termscr->font_man->use_multi_col_char)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_bidi") == 0)
+	{
+		if( termscr->use_bidi)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "xim") == 0)
+	{
+		value = ml_xic_get_xim_name( &termscr->window) ;
+	}
+	else if( strcmp( key , "locale") == 0)
+	{
+		value = kik_get_locale() ;
+	}
+	else if( strcmp( key , "wall_picture") == 0)
+	{
+		if( termscr->pic_file_path)
+		{
+			value = termscr->pic_file_path ;
+		}
+		else
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "pwd") == 0)
+	{
+		value = getcwd( cwd , PATH_MAX) ;
+	}
+	else
+	{
+		goto  error ;
+	}
+
+	if( value == NULL)
+	{
+		goto  error ;
+	}
+
+	ml_write_to_pty( termscr->pty , "#" , 1) ;
+	ml_write_to_pty( termscr->pty , key , strlen( key)) ;
+	ml_write_to_pty( termscr->pty , "=" , 1) ;
+	ml_write_to_pty( termscr->pty , value , strlen( value)) ;
+	ml_write_to_pty( termscr->pty , "\n" , 1) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
+#endif
+
+	return  1 ;
+
+error:
+	ml_write_to_pty( termscr->pty , "#error\n" , 7) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " #error\n") ;
+#endif
+
+	return  0 ;
 }

@@ -48,7 +48,6 @@ get_log_line(
 int
 ml_log_init(
 	ml_logs_t *  logs ,
-	u_int  num_of_chars ,
 	u_int  num_of_rows
 	)
 {
@@ -73,7 +72,6 @@ ml_log_init(
 		return  0 ;
 	}
 
-	logs->num_of_chars = num_of_chars ;
 	logs->num_of_rows = num_of_rows ;
 
 	return  1 ;

@@ -22,9 +22,13 @@ ml_imgmdl_init(
 	
 	model->num_of_rows = num_of_rows ;
 	model->num_of_cols = num_of_cols ;
-	
+
 	if( ( model->lines = malloc( sizeof( ml_image_line_t) * model->num_of_rows)) == NULL)
 	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+	#endif
+	
 		return  0 ;
 	}
 	

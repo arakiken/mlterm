@@ -14,7 +14,6 @@
 
 #include  "ml_color.h"
 #include  "ml_iscii.h"
-#include  "ml_vt100_command.h"
 
 
 #define  CTLKEY_BEL	0x07
@@ -172,7 +171,7 @@ flush_buffer(
 	}
 #endif
 
-	(*buffer->output_func)( vt100_parser->termscr , buffer->chars , buffer->len) ;
+	(*buffer->output_func)( vt100_parser->termmdl , buffer->chars , buffer->len) ;
 
 	/* buffer is cleared */
 	vt100_parser->buffer.len = 0 ;
@@ -272,7 +271,7 @@ put_char(
 	{
 		if( vt100_parser->buffer.len == 0)
 		{
-			if( ml_vt100_cmd_combine_with_prev_char( vt100_parser->termscr ,
+			if( ml_term_model_combine_with_prev_char( vt100_parser->termmdl ,
 				ch , len , vt100_parser->font , vt100_parser->font_decor ,
 				vt100_parser->fg_color , vt100_parser->bg_color , is_comb))
 			{
@@ -314,7 +313,7 @@ put_char(
 		}
 		else
 		{
-			if( ( prev = ml_vt100_cmd_get_n_prev_char( vt100_parser->termscr , ++n)) == NULL)
+			if( ( prev = ml_term_model_get_n_prev_char( vt100_parser->termmdl , ++n)) == NULL)
 			{
 				return ;
 			}
@@ -327,7 +326,7 @@ put_char(
 		else
 		{
 			/* possibly NULL */
-			prev2 = ml_vt100_cmd_get_n_prev_char( vt100_parser->termscr , ++n) ;
+			prev2 = ml_term_model_get_n_prev_char( vt100_parser->termmdl , ++n) ;
 		}
 		
 		if( ml_is_arabic_combining( prev2 , prev , cur))
@@ -343,7 +342,7 @@ put_char(
 			}
 			else
 			{
-				if( ml_vt100_cmd_combine_with_prev_char( vt100_parser->termscr ,
+				if( ml_term_model_combine_with_prev_char( vt100_parser->termmdl ,
 					ch , len , vt100_parser->font , vt100_parser->font_decor ,
 					vt100_parser->fg_color , vt100_parser->bg_color , is_comb))
 				{
@@ -526,8 +525,8 @@ clear_line_all(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	ml_vt100_cmd_goto_beg_of_line( vt100_parser->termscr) ;
-	ml_vt100_cmd_clear_line_to_right( vt100_parser->termscr) ;
+	ml_term_model_goto_beg_of_line( vt100_parser->termmdl) ;
+	ml_term_model_clear_line_to_right( vt100_parser->termmdl) ;
 }
 
 static void
@@ -535,8 +534,8 @@ clear_display_all(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	ml_vt100_cmd_goto_home( vt100_parser->termscr) ;
-	ml_vt100_cmd_clear_below( vt100_parser->termscr) ;
+	ml_term_model_goto_home( vt100_parser->termmdl) ;
+	ml_term_model_clear_below( vt100_parser->termmdl) ;
 }
 
 static int
@@ -602,7 +601,7 @@ parse_vt100_escape_sequence(
 
 				if( *str_p == '8')
 				{
-					ml_vt100_cmd_fill_all_with_e( vt100_parser->termscr) ;
+					ml_term_screen_fill_all_with_e( vt100_parser->termscr) ;
 				}
 			}
 			else if( *str_p == '7')
@@ -625,7 +624,7 @@ parse_vt100_escape_sequence(
 				 * of vttest fails.
 				 */
 
-				ml_vt100_cmd_save_cursor( vt100_parser->termscr) ;
+				ml_term_model_save_cursor( vt100_parser->termmdl) ;
 				vt100_parser->saved_decor = vt100_parser->font_decor ;
 				vt100_parser->saved_attr = vt100_parser->font_attr ;
 			}
@@ -633,7 +632,7 @@ parse_vt100_escape_sequence(
 			{
 				/* restore cursor */
 				
-				if( ml_vt100_cmd_restore_cursor( vt100_parser->termscr))
+				if( ml_term_model_restore_cursor( vt100_parser->termmdl))
 				{
 					/* if restore failed , this won't be done. */
 					vt100_parser->font_decor = vt100_parser->saved_decor ;
@@ -646,26 +645,26 @@ parse_vt100_escape_sequence(
 			{
 				/* application keypad */
 
-				ml_vt100_cmd_set_app_keypad( vt100_parser->termscr) ;
+				ml_term_screen_set_app_keypad( vt100_parser->termscr) ;
 			}
 			else if( *str_p == '>')
 			{
 				/* normal keypad */
 
-				ml_vt100_cmd_set_normal_keypad( vt100_parser->termscr) ;
+				ml_term_screen_set_normal_keypad( vt100_parser->termscr) ;
 			}
 			else if( *str_p == 'D')
 			{
 				/* index(scroll up) */
 
-				ml_vt100_cmd_scroll_upward( vt100_parser->termscr , 1) ;
+				ml_term_model_scroll_upward( vt100_parser->termmdl , 1) ;
 			}
 			else if( *str_p == 'E')
 			{
 				/* next line */
 				
-				ml_vt100_cmd_line_feed( vt100_parser->termscr) ;
-				ml_vt100_cmd_goto_beg_of_line( vt100_parser->termscr) ;
+				ml_term_model_line_feed( vt100_parser->termmdl) ;
+				ml_term_model_goto_beg_of_line( vt100_parser->termmdl) ;
 			}
 			else if( *str_p == 'F')
 			{
@@ -680,13 +679,13 @@ parse_vt100_escape_sequence(
 			{
 				/* set tab */
 
-				ml_vt100_cmd_set_tab_stop( vt100_parser->termscr) ;
+				ml_term_model_set_tab_stop( vt100_parser->termmdl) ;
 			}
 			else if( *str_p == 'M')
 			{
 				/* reverse index(scroll down) */
 
-				ml_vt100_cmd_scroll_downward( vt100_parser->termscr , 1) ;
+				ml_term_model_scroll_downward( vt100_parser->termmdl , 1) ;
 			}
 			else if( *str_p == 'Z')
 			{
@@ -853,7 +852,7 @@ parse_vt100_escape_sequence(
 				 */
 				if( *str_p == 0x8)
 				{
-					ml_vt100_cmd_go_back( vt100_parser->termscr , 1) ;
+					ml_term_model_go_back( vt100_parser->termmdl , 1) ;
 					if( increment_str( &str_p , &left) == 0)
 					{
 						return  0 ;
@@ -886,7 +885,7 @@ parse_vt100_escape_sequence(
 
 						if( ps[0] == 1)
 						{
-							ml_vt100_cmd_set_app_cursor_keys(
+							ml_term_screen_set_app_cursor_keys(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -897,7 +896,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 3)
 						{
-							ml_vt100_cmd_resize_columns(
+							ml_term_screen_resize_columns(
 								vt100_parser->termscr , 132) ;
 						}
 					#if  0
@@ -908,7 +907,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 5)
 						{
-							ml_vt100_cmd_reverse_video(
+							ml_term_screen_reverse_video(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -937,7 +936,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 25)
 						{
-							ml_vt100_cmd_cursor_visible(
+							ml_term_screen_cursor_visible(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -956,8 +955,8 @@ parse_vt100_escape_sequence(
 						{
 							/* Use Alternate Screen Buffer */
 
-							ml_vt100_cmd_use_alternative_image(
-								vt100_parser->termscr) ;
+							ml_term_model_use_alternative_image(
+								vt100_parser->termmdl) ;
 						}
 					#if  0
 						else if( ps[0] == 66)
@@ -973,7 +972,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 1000)
 						{
-							ml_vt100_cmd_set_mouse_pos_sending(
+							ml_term_screen_set_mouse_pos_sending(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1021,7 +1020,7 @@ parse_vt100_escape_sequence(
 
 						if( ps[0] == 1)
 						{
-							ml_vt100_cmd_set_normal_cursor_keys(
+							ml_term_screen_set_normal_cursor_keys(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1032,7 +1031,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 3)
 						{
-							ml_vt100_cmd_resize_columns(
+							ml_term_screen_resize_columns(
 								vt100_parser->termscr , 80) ;
 						}
 					#if  0
@@ -1043,7 +1042,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 5)
 						{
-							ml_vt100_cmd_restore_video(
+							ml_term_screen_restore_video(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1072,7 +1071,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 25)
 						{
-							ml_vt100_cmd_cursor_invisible(
+							ml_term_screen_cursor_invisible(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1090,8 +1089,8 @@ parse_vt100_escape_sequence(
 						else if( ps[0] == 47)
 						{
 							/* Use Normal Screen Buffer */
-							ml_vt100_cmd_use_normal_image(
-								vt100_parser->termscr) ;
+							ml_term_model_use_normal_image(
+								vt100_parser->termmdl) ;
 						}
 					#if  0
 						else if( ps[0] == 66)
@@ -1107,7 +1106,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 1000)
 						{
-							ml_vt100_cmd_unset_mouse_pos_sending(
+							ml_term_screen_unset_mouse_pos_sending(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1191,7 +1190,7 @@ parse_vt100_escape_sequence(
 						 * inserting ps[0] blank characters.
 						 */
 						 
-						ml_vt100_cmd_insert_blank_chars( vt100_parser->termscr ,
+						ml_term_model_insert_blank_chars( vt100_parser->termmdl ,
 							ps[0]) ;
 					}
 					else if( *str_p == 'A' || *str_p == 'e')
@@ -1201,7 +1200,7 @@ parse_vt100_escape_sequence(
 							ps[0] = 1 ;
 						}
 
-						ml_vt100_cmd_go_upward( vt100_parser->termscr , ps[0]) ;
+						ml_term_model_go_upward( vt100_parser->termmdl , ps[0]) ;
 					}
 					else if( *str_p == 'B')
 					{
@@ -1210,7 +1209,7 @@ parse_vt100_escape_sequence(
 							ps[0] = 1 ;
 						}
 
-						ml_vt100_cmd_go_downward( vt100_parser->termscr , ps[0]) ;
+						ml_term_model_go_downward( vt100_parser->termmdl , ps[0]) ;
 					}
 					else if( *str_p == 'C' || *str_p == 'a')
 					{
@@ -1219,7 +1218,7 @@ parse_vt100_escape_sequence(
 							ps[0] = 1 ;
 						}
 
-						ml_vt100_cmd_go_forward( vt100_parser->termscr , ps[0]) ;
+						ml_term_model_go_forward( vt100_parser->termmdl , ps[0]) ;
 					}
 					else if( *str_p == 'D')
 					{
@@ -1228,7 +1227,7 @@ parse_vt100_escape_sequence(
 							ps[0] = 1 ;
 						}
 
-						ml_vt100_cmd_go_back( vt100_parser->termscr , ps[0]) ;
+						ml_term_model_go_back( vt100_parser->termmdl , ps[0]) ;
 					}
 					else if( *str_p == 'E')
 					{
@@ -1239,8 +1238,8 @@ parse_vt100_escape_sequence(
 							ps[0] = 1 ;
 						}
 
-						ml_vt100_cmd_go_downward( vt100_parser->termscr , ps[0]) ;
-						ml_vt100_cmd_goto_beg_of_line( vt100_parser->termscr) ;
+						ml_term_model_go_downward( vt100_parser->termmdl , ps[0]) ;
+						ml_term_model_goto_beg_of_line( vt100_parser->termmdl) ;
 					}
 					else if( *str_p == 'F')
 					{
@@ -1251,8 +1250,8 @@ parse_vt100_escape_sequence(
 							ps[0] = 1 ;
 						}
 
-						ml_vt100_cmd_go_upward( vt100_parser->termscr , ps[0]) ;
-						ml_vt100_cmd_goto_beg_of_line( vt100_parser->termscr) ;
+						ml_term_model_go_upward( vt100_parser->termmdl , ps[0]) ;
+						ml_term_model_goto_beg_of_line( vt100_parser->termmdl) ;
 					}
 					else if( *str_p == 'G' || *str_p == '`')
 					{
@@ -1263,7 +1262,7 @@ parse_vt100_escape_sequence(
 							ps[0] = 1 ;
 						}
 
-						ml_vt100_cmd_go_horizontally( vt100_parser->termscr ,
+						ml_term_model_go_horizontally( vt100_parser->termmdl ,
 							ps[0] - 1) ;
 					}
 					else if( *str_p == 'H' || *str_p == 'f')
@@ -1289,7 +1288,7 @@ parse_vt100_escape_sequence(
 							}
 						}
 
-						ml_vt100_cmd_goto( vt100_parser->termscr ,
+						ml_term_model_goto( vt100_parser->termmdl ,
 							ps[1] - 1 , ps[0] - 1) ;
 					}
 					else if( *str_p == 'I')
@@ -1305,11 +1304,11 @@ parse_vt100_escape_sequence(
 
 						if( num == 0 || ps[0] == 0)
 						{
-							ml_vt100_cmd_clear_below( vt100_parser->termscr) ;
+							ml_term_model_clear_below( vt100_parser->termmdl) ;
 						}
 						else if( ps[0] == 1)
 						{
-							ml_vt100_cmd_clear_above( vt100_parser->termscr) ;
+							ml_term_model_clear_above( vt100_parser->termmdl) ;
 						}
 						else if( ps[0] == 2)
 						{
@@ -1322,13 +1321,13 @@ parse_vt100_escape_sequence(
 
 						if( num == 0 || ps[0] == 0)
 						{
-							ml_vt100_cmd_clear_line_to_right(
-								vt100_parser->termscr) ;
+							ml_term_model_clear_line_to_right(
+								vt100_parser->termmdl) ;
 						}
 						else if( ps[0] == 1)
 						{
-							ml_vt100_cmd_clear_line_to_left(
-								vt100_parser->termscr) ;
+							ml_term_model_clear_line_to_left(
+								vt100_parser->termmdl) ;
 						}
 						else if( ps[0] == 2)
 						{
@@ -1342,8 +1341,8 @@ parse_vt100_escape_sequence(
 							ps[0] = 1 ;
 						}
 
-						ml_vt100_cmd_insert_new_lines(
-							vt100_parser->termscr , ps[0]) ;
+						ml_term_model_insert_new_lines(
+							vt100_parser->termmdl , ps[0]) ;
 					}
 					else if( *str_p == 'M')
 					{
@@ -1352,8 +1351,8 @@ parse_vt100_escape_sequence(
 							ps[0] = 1 ;
 						}
 
-						ml_vt100_cmd_delete_lines(
-							vt100_parser->termscr , ps[0]) ;
+						ml_term_model_delete_lines(
+							vt100_parser->termmdl , ps[0]) ;
 					}
 					else if( *str_p == 'P')
 					{
@@ -1364,7 +1363,7 @@ parse_vt100_escape_sequence(
 							ps[0] = 1 ;
 						}
 
-						ml_vt100_cmd_delete_cols( vt100_parser->termscr , ps[0]) ;
+						ml_term_model_delete_cols( vt100_parser->termmdl , ps[0]) ;
 					}
 					else if( *str_p == 'S')
 					{
@@ -1393,7 +1392,7 @@ parse_vt100_escape_sequence(
 					{
 						/* send device attributes */
 
-						ml_vt100_cmd_send_device_attr( vt100_parser->termscr) ;
+						ml_term_screen_send_device_attr( vt100_parser->termscr) ;
 					}
 					else if( *str_p == 'd')
 					{
@@ -1404,7 +1403,7 @@ parse_vt100_escape_sequence(
 							ps[0] = 1 ;
 						}
 
-						ml_vt100_cmd_go_vertically( vt100_parser->termscr ,
+						ml_term_model_go_vertically( vt100_parser->termmdl ,
 							ps[0] - 1) ;
 					}
 					else if( *str_p == 'g')
@@ -1413,13 +1412,13 @@ parse_vt100_escape_sequence(
 
 						if( num == 0)
 						{
-							ml_vt100_cmd_clear_tab_stop(
-								vt100_parser->termscr) ;
+							ml_term_model_clear_tab_stop(
+								vt100_parser->termmdl) ;
 						}
 						else if( num == 1 && ps[0] == 3)
 						{
-							ml_vt100_cmd_clear_all_tab_stops(
-								vt100_parser->termscr) ;
+							ml_term_model_clear_all_tab_stops(
+								vt100_parser->termmdl) ;
 						}
 					}
 					else if( *str_p == 'l')
@@ -1431,7 +1430,7 @@ parse_vt100_escape_sequence(
 								/* replace mode */
 
 								vt100_parser->buffer.output_func =
-									ml_vt100_cmd_overwrite_chars ;
+									ml_term_model_overwrite_chars ;
 							}
 						}
 					}
@@ -1444,7 +1443,7 @@ parse_vt100_escape_sequence(
 								/* insert mode */
 
 								vt100_parser->buffer.output_func =
-									ml_vt100_cmd_insert_chars ;
+									ml_term_model_insert_chars ;
 							}
 						}
 					}
@@ -1471,12 +1470,12 @@ parse_vt100_escape_sequence(
 						{
 							if( ps[0] == 5)
 							{
-								ml_vt100_cmd_report_device_status(
+								ml_term_screen_report_device_status(
 									vt100_parser->termscr) ;
 							}
 							else if( ps[0] == 6)
 							{
-								ml_vt100_cmd_report_cursor_position(
+								ml_term_screen_report_cursor_position(
 									vt100_parser->termscr) ;
 							}
 						}
@@ -1499,8 +1498,8 @@ parse_vt100_escape_sequence(
 								ps[1] = 1 ;
 							}
 
-							ml_vt100_cmd_set_scroll_region(
-								vt100_parser->termscr ,
+							ml_term_model_set_scroll_region(
+								vt100_parser->termmdl ,
 								ps[0] - 1 , ps[1] - 1) ;
 						}
 					}
@@ -1578,21 +1577,21 @@ parse_vt100_escape_sequence(
 					if( ps == 0)
 					{
 						/* change icon name and window title */
-						ml_vt100_cmd_set_window_name( vt100_parser->termscr ,
+						ml_term_screen_set_window_name( vt100_parser->termscr ,
 							pt) ;
-						ml_vt100_cmd_set_icon_name( vt100_parser->termscr ,
+						ml_term_screen_set_icon_name( vt100_parser->termscr ,
 							pt) ;
 					}
 					else if( ps == 1)
 					{
 						/* change icon name */
-						ml_vt100_cmd_set_icon_name( vt100_parser->termscr ,
+						ml_term_screen_set_icon_name( vt100_parser->termscr ,
 							pt) ;
 					}
 					else if( ps == 2)
 					{
 						/* change window title */
-						ml_vt100_cmd_set_window_name( vt100_parser->termscr ,
+						ml_term_screen_set_window_name( vt100_parser->termscr ,
 							pt) ;
 					}
 					else if( ps == 20)
@@ -1622,17 +1621,17 @@ parse_vt100_escape_sequence(
 							return  0 ;
 						}
 
-						ml_vt100_cmd_set_config( vt100_parser->termscr ,
+						ml_term_screen_set_config( vt100_parser->termscr ,
 							"wall_picture" , pt) ;
 					}
 					else if( ps == 39)
 					{
-						ml_vt100_cmd_set_config( vt100_parser->termscr ,
+						ml_term_screen_set_config( vt100_parser->termscr ,
 							"fg_color" , pt) ;
 					}
 					else if( ps == 40)
 					{
-						ml_vt100_cmd_set_config( vt100_parser->termscr ,
+						ml_term_screen_set_config( vt100_parser->termscr ,
 							"bg_color" , pt) ;
 					}
 					else if( ps == 46)
@@ -1651,13 +1650,13 @@ parse_vt100_escape_sequence(
 						{
 							*(p ++) = '\0' ;
 							
-							ml_vt100_cmd_set_config( vt100_parser->termscr ,
+							ml_term_screen_set_config( vt100_parser->termscr ,
 								pt , p) ;
 						}
 					}
 					else if( ps == 5380)
 					{
-						ml_vt100_cmd_get_config( vt100_parser->termscr , pt) ;
+						ml_term_screen_get_config( vt100_parser->termscr , pt) ;
 					}
 				}
 			}
@@ -1792,7 +1791,7 @@ parse_vt100_escape_sequence(
 			kik_debug_printf( KIK_DEBUG_TAG " receiving LF\n") ;
 		#endif
 
-			ml_vt100_cmd_line_feed( vt100_parser->termscr) ;
+			ml_term_model_line_feed( vt100_parser->termmdl) ;
 		}
 		else if( *str_p == CTLKEY_CR)
 		{
@@ -1800,7 +1799,7 @@ parse_vt100_escape_sequence(
 			kik_debug_printf( KIK_DEBUG_TAG " receiving CR\n") ;
 		#endif
 
-			ml_vt100_cmd_goto_beg_of_line( vt100_parser->termscr) ;
+			ml_term_model_goto_beg_of_line( vt100_parser->termmdl) ;
 		}
 		else if( *str_p == CTLKEY_TAB)
 		{
@@ -1808,7 +1807,7 @@ parse_vt100_escape_sequence(
 			kik_debug_printf( KIK_DEBUG_TAG " receiving TAB\n") ;
 		#endif
 
-			ml_vt100_cmd_vertical_tab( vt100_parser->termscr) ;
+			ml_term_model_vertical_tab( vt100_parser->termmdl) ;
 		}
 		else if( *str_p == CTLKEY_BS)
 		{
@@ -1816,7 +1815,7 @@ parse_vt100_escape_sequence(
 			kik_debug_printf( KIK_DEBUG_TAG " receiving BS\n") ;
 		#endif
 
-			ml_vt100_cmd_go_back( vt100_parser->termscr , 1) ;
+			ml_term_model_go_back( vt100_parser->termmdl , 1) ;
 		}
 		else if( *str_p == CTLKEY_BEL)
 		{
@@ -1824,7 +1823,7 @@ parse_vt100_escape_sequence(
 			kik_debug_printf( KIK_DEBUG_TAG " receiving BEL\n") ;
 		#endif
 
-			ml_vt100_cmd_bel( vt100_parser->termscr) ;
+			ml_term_screen_bel( vt100_parser->termscr) ;
 		}
 		else
 		{
@@ -1986,6 +1985,7 @@ init_pty_encoding(
 ml_vt100_parser_t *
 ml_vt100_parser_new(
 	ml_term_screen_t *  termscr ,
+	ml_term_model_t *  termmdl ,
 	ml_char_encoding_t  encoding ,
 	int  not_use_unicode_font ,
 	int  only_use_unicode_font ,
@@ -2004,11 +2004,12 @@ ml_vt100_parser_new(
 
 	ml_str_init( vt100_parser->buffer.chars , PTYMSG_BUFFER_SIZE) ;	
 	vt100_parser->buffer.len = 0 ;
-	vt100_parser->buffer.output_func = ml_vt100_cmd_overwrite_chars ;
+	vt100_parser->buffer.output_func = ml_term_model_overwrite_chars ;
 
 	vt100_parser->pty = NULL ;
 	
 	vt100_parser->termscr = termscr ;
+	vt100_parser->termmdl = termmdl ;
 	
 	vt100_parser->font_attr = DEFAULT_FONT_ATTR(0) ;
 	vt100_parser->font_decor = 0 ;

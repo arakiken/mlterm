@@ -8,11 +8,6 @@
 #include  <kiklib/kik_mem.h>
 
 
-/* --- static variables --- */
-
-static char *  color_name_table[MAX_ACTUAL_COLORS] ;
-
-
 /* --- global functions --- */
 
 ml_color_table_t

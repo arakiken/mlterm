@@ -15,18 +15,13 @@
 typedef struct  ml_logs
 {
 	ml_image_line_t *  lines ;
-
 	kik_cycle_index_t *  index ;
-
-	u_int  num_of_chars ;
 	u_int  num_of_rows ;
-
-	ml_char_t   nl_ch ;
 
 } ml_logs_t ;
 
 
-int  ml_log_init( ml_logs_t *  logs , u_int  num_of_chars , u_int  num_of_rows) ;
+int  ml_log_init( ml_logs_t *  logs , u_int  num_of_rows) ;
 
 int  ml_log_final( ml_logs_t *  logs) ;
 

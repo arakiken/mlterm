@@ -18,13 +18,12 @@ LIBEXECDIR = $(libexecdir)
 OBJ = ml_window_manager.o ml_window.o ml_char.o ml_image.o ml_logs.o ml_line_hints.o \
 	ml_vt100_parser.o ml_pty.o ml_image_intern.o ml_image_scroll.o \
 	ml_selection.o ml_term_screen.o ml_xim.o ml_xic.o ml_color_manager.o \
-	ml_backscroll.o ml_image_line.o main.o ml_font_manager.o ml_scrollbar.o \
+	ml_term_model.o ml_image_line.o main.o ml_font_manager.o ml_scrollbar.o \
 	ml_sb_term_screen.o ml_picture.o ml_keymap.o ml_font.o ml_config_menu.o \
 	ml_term_manager.o ml_char_encoding.o ml_font_custom.o ml_sb_view_factory.o \
 	ml_simple_sb_view.o ml_color.o ml_termcap.o ml_bidi.o ml_shaping.o \
-	ml_str_parser.o ml_sig_child.o ml_iscii.o ml_vt100_command.o ml_logical_visual.o \
-	ml_mod_meta_mode.o ml_bel_mode.o ml_sb_mode.o ml_decsp_font.o ml_color_custom.o \
-	ml_image_model.o
+	ml_str_parser.o ml_sig_child.o ml_iscii.o ml_logical_visual.o ml_mod_meta_mode.o \
+	ml_bel_mode.o ml_sb_mode.o ml_decsp_font.o ml_color_custom.o ml_image_model.o
 
 LKIK = @KIK_LIBS@
 LMKF = @MKF_LIBS@

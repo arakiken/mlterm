@@ -351,9 +351,16 @@ ml_xim_init(
 int
 ml_xim_final(void)
 {
+	int  counter ;
+	
 	if( ! use_xim)
 	{
 		return  0 ;
+	}
+
+	for( counter = 0 ; counter < num_of_xims ; counter ++)
+	{
+		close_xim( &xims[counter]) ;
 	}
 	
 	if( default_xim_name)
@@ -401,7 +408,7 @@ ml_xim_display_closed(
 	counter = 0 ;
 	while( counter < num_of_xims)
 	{
-		if( XDisplayOfIM( xims[counter].im) == display)
+		if( xims[counter].im && XDisplayOfIM( xims[counter].im) == display)
 		{
 			close_xim( &xims[counter]) ;
 			xims[counter] = xims[-- num_of_xims] ;

@@ -12,6 +12,7 @@
 
 #include  "ml_pty.h"
 #include  "ml_term_screen.h"
+#include  "ml_term_model.h"
 #include  "ml_char_encoding.h"
 
 
@@ -24,7 +25,7 @@ typedef struct  ml_char_buffer
 	ml_char_t  chars[PTYMSG_BUFFER_SIZE] ;
 	
 	u_int  len ;
-	int (*output_func)(ml_term_screen_t * , ml_char_t *  chars , u_int) ;
+	int (*output_func)( ml_term_model_t * , ml_char_t *  chars , u_int) ;
 
 }  ml_char_buffer_t ;
 
@@ -67,13 +68,14 @@ typedef struct  ml_vt100_parser
 	int8_t  is_usascii_font_for_missing ;
 
 	ml_term_screen_t *  termscr ;
+	ml_term_model_t *  termmdl ;
 
 	ml_pty_encoding_event_listener_t  encoding_listener ;
 
 } ml_vt100_parser_t ;
 
 
-ml_vt100_parser_t *  ml_vt100_parser_new( ml_term_screen_t *  term_window ,
+ml_vt100_parser_t *  ml_vt100_parser_new( ml_term_screen_t *  termscr , ml_term_model_t *  termmdl ,
 	ml_char_encoding_t  type , int  not_use_unicode_font , int  only_use_unicode_font ,
 	u_int  col_size_a) ;
 

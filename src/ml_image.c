@@ -574,7 +574,7 @@ ml_image_init(
 	ml_image_scroll_event_listener_t *  scroll_listener ,
 	u_int  num_of_cols ,
 	u_int  num_of_rows ,
-	ml_char_t   sp_ch ,
+	ml_char_t *  sp_ch ,
 	u_int  tab_size ,
 	int  is_logging
 	)
@@ -585,7 +585,7 @@ ml_image_init(
 	}
 
 	ml_char_init( &image->sp_ch) ;
-	ml_char_copy( &image->sp_ch , &sp_ch) ;
+	ml_char_copy( &image->sp_ch , sp_ch) ;
 
 	if( ! ml_imgmdl_init( &image->model , num_of_cols , num_of_rows))
 	{
