@@ -1,5 +1,10 @@
 2003-11-24  Seiichi SATO  <ssato@sh.rim.or.jp>
 
+	* configure.in, mlterm/Makefile: Added AC_CANONICAL_HOST,
+	  AC_CANONICAL_TARGET and mingw32-dependent stuff.
+
+2003-11-24  Seiichi SATO  <ssato@sh.rim.or.jp>
+
 	* kiklib/configure.in, kiklib/src/kik_config.h.in:
 	  Added AC_CHECK_TYPE(ssize_t,int), since mingw32 does not have ssize_t.
 	  (Does anybody know if this will work on Win64?)
