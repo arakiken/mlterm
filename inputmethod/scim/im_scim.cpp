@@ -920,7 +920,11 @@ im_scim_preedit_char_attr(
 		start = attr->get_start() ;
 		end = attr->get_end() ;
 
+	#if 0 // XXX
 		if( index < start || end < index)
+	#else
+		if( index < start || end <= index)
+	#endif
 		{
 			continue ;
 		}

@@ -1,5 +1,9 @@
 2005-01-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/scim/im_scim.cpp: minor bug fix.
+
+2005-01-23 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* inputmethod/scim/im_scim.cpp: impremented property.
 
 2005-01-23 MINAMI Hirokazu <minami@mistfall.net>
