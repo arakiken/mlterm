@@ -1,3 +1,8 @@
+2004-04-18 MINAMI Hirokazu <minami@mistfall.net>
+
+	* x_shortcut.c: before assigning new function to a key,
+	clear already registered function.
+
 2004-04-18  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* x_screen.c: Moved all callbacks for uim inside #ifdef USE_UIM.

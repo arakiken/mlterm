@@ -98,10 +98,24 @@ parse(
 		return  0 ;
 	}
 
+	for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ; count ++)
+	{
+		x_key_t *  map_entry ;
+
+		map_entry = shortcut->map + key_func_table[count].func ;
+		if( (map_entry->ksym == ksym) &&
+		    (map_entry->state = state))
+		{
+			map_entry->is_used = 0 ;
+		}
+	}
+
+
 	if( *oper == '"')
 	{
 		char *  str ;
 		char *  p ;
+		x_str_key_t *  str_map ;
 
 		if( ( str = malloc( strlen( oper))) == NULL)
 		{
@@ -166,30 +180,22 @@ parse(
 
 		*p = '\0' ;
 
-		if( ( shortcut->str_map = realloc( shortcut->str_map ,
-				sizeof( x_str_key_t) * (shortcut->str_map_size + 1))) == NULL)
+		str_map = realloc( shortcut->str_map ,
+				   sizeof( x_str_key_t) * (shortcut->str_map_size + 1)) ;
+
+		if( str_map == NULL)
 		{
 			free( str) ;
 
 			return  0 ;
 		}
 
-		shortcut->str_map[shortcut->str_map_size].ksym = ksym ;
-		shortcut->str_map[shortcut->str_map_size].state = state ;
-		shortcut->str_map[shortcut->str_map_size].str = str ;
+		str_map[shortcut->str_map_size].ksym = ksym ;
+		str_map[shortcut->str_map_size].state = state ;
+		str_map[shortcut->str_map_size].str = str ;
+
 		shortcut->str_map_size ++ ;
-
-		for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ; count ++)
-		{
-			x_key_t *  map_entry ;
-
-			map_entry = shortcut->map + key_func_table[count].func ;
-			if( (map_entry->ksym == ksym) &&
-			    (map_entry->state = state))
-			{
-				map_entry->is_used = 0 ;
-			}
-		}
+		shortcut->str_map = str_map ;
 
 		return  1 ;
 	}
