@@ -1486,6 +1486,22 @@ ml_screen_delete_cols(
 }
 
 int
+ml_screen_clear_cols(
+	ml_screen_t *  screen ,
+	u_int  cols
+	)
+{
+	if( screen->use_bce)
+	{
+		return  ml_edit_clear_cols_bce( screen->edit , cols) ;
+	}
+	else
+	{
+		return  ml_edit_clear_cols( screen->edit , cols) ;
+	}
+}
+
+int
 ml_screen_delete_lines(
 	ml_screen_t *  screen ,
 	u_int  size

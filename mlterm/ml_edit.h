@@ -89,6 +89,10 @@ int  ml_edit_delete_cols( ml_edit_t *  edit , u_int  delete_cols) ;
 
 int  ml_edit_delete_cols_bce( ml_edit_t *  edit , u_int  delete_cols) ;
 
+int  ml_edit_clear_cols( ml_edit_t *  edit , u_int  cols) ;
+
+int  ml_edit_clear_cols_bce( ml_edit_t *  edit , u_int  cols) ;
+
 int  ml_edit_insert_new_line( ml_edit_t *  edit) ;
 
 int  ml_edit_delete_line( ml_edit_t *  edit) ;

@@ -1435,10 +1435,14 @@ parse_vt100_escape_sequence(
 					}
 					else if( *str_p == 'X')
 					{
-					#ifdef  DEBUG
-						kik_warn_printf( KIK_DEBUG_TAG
-							" ESC - [ - X is not implemented.\n") ;
-					#endif
+						/* erase characters */
+
+						if( num == 0)
+						{
+							ps[0] = 1 ;
+						}
+
+						ml_screen_clear_cols( vt100_parser->screen , ps[0]) ;
 					}
 					else if( *str_p == 'c')
 					{

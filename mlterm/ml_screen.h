@@ -185,6 +185,8 @@ int  ml_screen_delete_cols( ml_screen_t *  screen , u_int  len) ;
 
 int  ml_screen_delete_lines( ml_screen_t *  screen , u_int  size) ;
 
+int  ml_screen_clear_cols( ml_screen_t *  screen , u_int  cols) ;
+
 int  ml_screen_clear_line_to_right( ml_screen_t *  screen) ;
 
 int  ml_screen_clear_line_to_left( ml_screen_t *  screen) ;

@@ -1,3 +1,10 @@
+2002-06-08 Araki Ken <arakiken@users.sf.net>
+
+	* Garbage could be left on the right side of screen.
+	  (specially when ut is defined in termcap)
+	  fixed.
+	* "ESC [ Ps X VT100" sequence is supported.
+
 2002-06-08 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Removed command options from mlconfig which are not

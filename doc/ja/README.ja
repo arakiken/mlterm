@@ -509,12 +509,10 @@ comment $Id$
       新しい色名を定義したり、または、既存の色名の RGB 値を変更することができます。
       フォーマットは以下のとおり。
 
-      color_name = [red]-[green]-[blue]
-      [red],[green],[blue]は、それぞれ 16 bit 16 進数表記です。
+      color_name = [red]-[green]-[blue] ([red],[green],[blue]は、それぞれ 16 bit 16 進数表記です)
+      color_name = #RRGGBB (RR,GG,BB は、それぞれ 8 bit 16 進数表記です)
 
-      e.g.)
-      priv_fg=ffff-ffff-0
-      priv_bg=0-0-ffff
+      色名の先頭に hl_ を付けると、16 色対応における強調色の RGB 値を指定できます。
 
     o xim
       mlterm では、複数の XIM の動的切替えをサポートしています。

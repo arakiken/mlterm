@@ -52,7 +52,7 @@ all: $(PROG)
 debug:	
 	$(MAKE) LKIK="$(LKIK_DEB)" LMKF="$(LMKF_DEB)" all
 
-$(PROG): $(OBJ)
+$(PROG): $(OBJ) $(LMLTERM)
 	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) $(OBJ) $(LIBS)
 
 .SUFFIXES: .c .o

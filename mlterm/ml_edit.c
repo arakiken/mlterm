@@ -213,7 +213,7 @@ overwrite_lines(
 		
 		if( ++ count == num_of_lines)
 		{
-			ml_line_overwrite_chars( line , beg_char_index ,
+			ml_line_overwrite( line , beg_char_index ,
 				&chars[beg_of_line] , len , cols , &edit->sp_ch) ;
 			ml_line_unset_continued_to_next( line) ;
 
@@ -380,7 +380,7 @@ insert_chars(
 	int  cursor_index ;
 	int  new_char_index ;
 	int  new_row ;
-	ml_char_t *  model ;
+	ml_char_t *  buffer ;
 	u_int  buf_len ;
 	u_int  filled_len ;
 	u_int  filled_cols ;
@@ -396,7 +396,7 @@ insert_chars(
 
 	buf_len = edit->model.num_of_cols ;
 	
-	if( ( model = ml_str_alloca( buf_len)) == NULL)
+	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
@@ -413,13 +413,13 @@ insert_chars(
 	 
 	if( edit->cursor.char_index > 0)
 	{
-		ml_str_copy( &model[filled_len] , CURSOR_LINE(edit)->chars , edit->cursor.char_index) ;
+		ml_str_copy( &buffer[filled_len] , CURSOR_LINE(edit)->chars , edit->cursor.char_index) ;
 		filled_len += edit->cursor.char_index ;
 	}
 
 	if( edit->wraparound_ready_line)
 	{
-		ml_char_copy( &model[filled_len++] , &edit->prev_recv_ch) ;
+		ml_char_copy( &buffer[filled_len++] , &edit->prev_recv_ch) ;
 	}
 	
 	ml_convert_col_to_char_index( CURSOR_LINE(edit) , &cols_rest , edit->cursor.col , 0) ;
@@ -437,7 +437,7 @@ insert_chars(
 		 */
 		for( count = 0 ; count < cols_rest ; count ++)
 		{
-			ml_char_copy( &model[filled_len ++] , &edit->sp_ch) ;
+			ml_char_copy( &buffer[filled_len ++] , &edit->sp_ch) ;
 		}
 		
 		cols_after = ml_char_cols( CURSOR_CHAR(edit)) - cols_rest ;
@@ -460,7 +460,7 @@ insert_chars(
 	 * inserted chars
 	 */
 	
-	filled_cols = ml_str_cols( model , filled_len) ;
+	filled_cols = ml_str_cols( buffer , filled_len) ;
 	
 	for( count = 0 ; count < num_of_ins_chars ; count ++)
 	{
@@ -469,7 +469,7 @@ insert_chars(
 			break ;
 		}
 
-		ml_char_copy( &model[filled_len ++] , &ins_chars[count]) ;
+		ml_char_copy( &buffer[filled_len ++] , &ins_chars[count]) ;
 		filled_cols += ml_char_cols( &ins_chars[count]) ;
 	}
 
@@ -496,7 +496,7 @@ insert_chars(
 					goto  line_full ;
 				}
 
-				ml_char_copy( &model[filled_len++] , &edit->sp_ch) ;
+				ml_char_copy( &buffer[filled_len++] , &edit->sp_ch) ;
 				filled_cols += ml_char_cols( &edit->sp_ch) ;
 			}
 		}
@@ -507,7 +507,7 @@ insert_chars(
 				goto  line_full ;
 			}
 
-			ml_char_copy( &model[filled_len++] , CURSOR_CHAR(edit)) ;
+			ml_char_copy( &buffer[filled_len++] , CURSOR_CHAR(edit)) ;
 			filled_cols += ml_char_cols( CURSOR_CHAR(edit)) ;
 		}
 
@@ -525,7 +525,7 @@ insert_chars(
 				break ;
 			}
 
-			ml_char_copy( &model[filled_len ++] , &CURSOR_LINE(edit)->chars[count]) ;
+			ml_char_copy( &buffer[filled_len ++] , &CURSOR_LINE(edit)->chars[count]) ;
 			filled_cols += ml_char_cols( &CURSOR_LINE(edit)->chars[count]) ;
 		}
 	}
@@ -536,10 +536,10 @@ line_full:
 	 * overwriting.
 	 */
 
-	ml_line_overwrite_all( CURSOR_LINE(edit) , edit->cursor.char_index , model ,
+	ml_line_overwrite_all( CURSOR_LINE(edit) , edit->cursor.char_index , buffer ,
 		filled_len , filled_cols) ;
 
-	ml_str_final( model , buf_len) ;
+	ml_str_final( buffer , buf_len) ;
 
 	reset_wraparound_checker( edit) ;
 
@@ -561,6 +561,131 @@ line_full:
 	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
 		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
 #endif
+
+	return  1 ;
+}
+
+static int
+clear_cols(
+	ml_edit_t *  edit ,
+	u_int  cols ,
+	int  use_bce
+	)
+{
+	ml_line_t *  line ;
+	
+	if( edit->cursor.col + cols >= edit->model.num_of_cols)
+	{
+		if( use_bce)
+		{
+			return  ml_edit_clear_line_to_right_bce( edit) ;
+		}
+		else
+		{
+			return  ml_edit_clear_line_to_right( edit) ;
+		}
+	}
+
+	line = CURSOR_LINE(edit) ;
+
+	if( use_bce)
+	{
+		ml_line_fill( line , &edit->bce_ch , edit->cursor.char_index , cols , &edit->bce_ch) ;
+	}
+	else
+	{
+		ml_line_fill( line , &edit->sp_ch , edit->cursor.char_index , cols , &edit->sp_ch) ;
+	}
+
+	return  1 ;
+}
+
+static int
+clear_line_to_left(
+	ml_edit_t *  edit ,
+	int  use_bce
+	)
+{
+	ml_char_t *  sp_ch ;
+	int  count ;
+	u_int  num_of_sp ;
+	ml_char_t *  buf ;
+	u_int  buf_size ;
+
+	reset_wraparound_checker( edit) ;
+
+	if( use_bce)
+	{
+		sp_ch = &edit->bce_ch ;
+	}
+	else
+	{
+		sp_ch = &edit->sp_ch ;
+	}
+
+	/* XXX cursor char will be cleared , is this ok? */
+	buf_size = CURSOR_LINE(edit)->num_of_filled_chars - (edit->cursor.char_index + 1) ;
+	if( buf_size > 0)
+	{
+		u_int  padding ;
+		u_int  filled ;
+		
+		if( ml_char_cols( CURSOR_CHAR(edit)) > 1)
+		{
+			ml_convert_col_to_char_index( CURSOR_LINE(edit) , &padding ,
+				edit->cursor.col , 0) ;
+			buf_size += padding ;
+		}
+		else
+		{
+			padding = 0 ;
+		}
+
+		if( ( buf = ml_str_new( buf_size)) == NULL)
+		{
+			return  0 ;
+		}
+
+		filled = 0 ;
+
+		if( padding)
+		{
+			/*
+			 * padding spaces.
+			 */
+			for( count = 0 ; count < padding ; count ++)
+			{
+				ml_char_copy( &buf[filled++] , sp_ch) ;
+			}
+		}
+
+		/* excluding cursor char */
+		ml_str_copy( &buf[filled] , CURSOR_CHAR(edit) + 1 , buf_size - padding) ;
+	}
+
+	num_of_sp = edit->cursor.col / ml_char_cols( sp_ch) ;
+	edit->cursor.col = 0 ;
+	for( count = 0 ; count < num_of_sp ; count ++)
+	{
+		ml_char_copy( &CURSOR_LINE(edit)->chars[count] , sp_ch) ;
+		edit->cursor.col += ml_char_cols( sp_ch) ;
+	}
+
+	edit->cursor.char_index = count ;
+
+	/* char on cursor */
+	ml_char_copy( &CURSOR_LINE(edit)->chars[count++] , sp_ch) ;
+
+	if( buf_size > 0)
+	{
+		ml_str_copy( &CURSOR_LINE(edit)->chars[count] , buf , buf_size) ;
+		
+		CURSOR_LINE(edit)->num_of_filled_chars = count + buf_size ;
+
+		ml_str_delete( buf , buf_size) ;
+	}
+
+	ml_line_set_modified( CURSOR_LINE(edit) , 0 , edit->cursor.char_index , 0) ;
 
 	return  1 ;
 }
@@ -772,7 +897,7 @@ ml_edit_overwrite_chars(
 	int  cursor_index ;
 	int  new_char_index ;
 	int  new_row ;
-	ml_char_t *  model ;
+	ml_char_t *  buffer ;
 	u_int  buf_len ;
 	u_int  filled_len ;
 	int  cols_rest ;
@@ -790,7 +915,7 @@ ml_edit_overwrite_chars(
 		buf_len ++ ;
 	}
 	
-	if( ( model = ml_str_alloca( buf_len)) == NULL)
+	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
@@ -804,13 +929,13 @@ ml_edit_overwrite_chars(
 	/* before cursor(excluding cursor) */
 	if( edit->cursor.char_index > 0)
 	{
-		ml_str_copy( &model[filled_len] , CURSOR_LINE(edit)->chars , edit->cursor.char_index) ;
+		ml_str_copy( &buffer[filled_len] , CURSOR_LINE(edit)->chars , edit->cursor.char_index) ;
 		filled_len += edit->cursor.char_index ;
 	}
 	
 	if( edit->wraparound_ready_line)
 	{
-		ml_char_copy( &model[filled_len++] , &edit->prev_recv_ch) ;
+		ml_char_copy( &buffer[filled_len++] , &edit->prev_recv_ch) ;
 	}
 	
 	ml_convert_col_to_char_index( CURSOR_LINE(edit) , &cols_rest , edit->cursor.col , 0) ;
@@ -823,12 +948,12 @@ ml_edit_overwrite_chars(
 		 */
 		for( count = 0 ; count < cols_rest ; count ++)
 		{
-			ml_char_copy( &model[filled_len ++] , &edit->sp_ch) ;
+			ml_char_copy( &buffer[filled_len ++] , &edit->sp_ch) ;
 		}
 	}
 	
 	/* appending overwriting chars */
-	ml_str_copy( &model[filled_len] , ow_chars , num_of_ow_chars) ;
+	ml_str_copy( &buffer[filled_len] , ow_chars , num_of_ow_chars) ;
 	filled_len += num_of_ow_chars ;
 	
 	cursor_index = filled_len ;
@@ -838,9 +963,9 @@ ml_edit_overwrite_chars(
 	 */
 
 	/* overwriting lines with scrolling */
-	overwrite_lines( edit , &cursor_index , model , filled_len) ;
+	overwrite_lines( edit , &cursor_index , buffer , filled_len) ;
 
-	ml_str_final( model , buf_len) ;
+	ml_str_final( buffer , buf_len) ;
 
 	reset_wraparound_checker( edit) ;
 
@@ -877,7 +1002,7 @@ ml_edit_delete_cols(
 {
 	int  char_index ;
 	int  cursor_char_index ;
-	ml_char_t *  model ;
+	ml_char_t *  buffer ;
 	u_int  buf_len ;
 	u_int  filled_len ;
 	u_int  cols ;
@@ -909,7 +1034,7 @@ ml_edit_delete_cols(
 	 
 	buf_len = CURSOR_LINE(edit)->num_of_filled_chars ;
 
-	if( ( model = ml_str_alloca( buf_len)) == NULL)
+	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
@@ -923,7 +1048,7 @@ ml_edit_delete_cols(
 	/* before cursor(excluding cursor) */
 	if( edit->cursor.char_index > 0)
 	{
-		ml_str_copy( &model[filled_len] , CURSOR_LINE(edit)->chars , edit->cursor.char_index) ;
+		ml_str_copy( &buffer[filled_len] , CURSOR_LINE(edit)->chars , edit->cursor.char_index) ;
 		filled_len += edit->cursor.char_index ;
 	}
 
@@ -947,7 +1072,7 @@ ml_edit_delete_cols(
 		 */
 		for( count = 0 ; count < cols_rest ; count ++)
 		{
-			ml_char_copy( &model[filled_len ++] , &edit->sp_ch) ;
+			ml_char_copy( &buffer[filled_len ++] , &edit->sp_ch) ;
 		}
 
 		cursor_char_index = filled_len ;
@@ -965,7 +1090,7 @@ ml_edit_delete_cols(
 			 */
 			for( count = 0 ; count < cols_after - delete_cols ; count ++)
 			{
-				ml_char_copy( &model[filled_len ++] , &edit->sp_ch) ;
+				ml_char_copy( &buffer[filled_len ++] , &edit->sp_ch) ;
 			}
 		}
 	}
@@ -987,7 +1112,7 @@ ml_edit_delete_cols(
 		}
 	}
 
-	ml_str_copy( &model[filled_len] , &CURSOR_LINE(edit)->chars[char_index] ,
+	ml_str_copy( &buffer[filled_len] , &CURSOR_LINE(edit)->chars[char_index] ,
 		CURSOR_LINE(edit)->num_of_filled_chars - char_index) ;
 	filled_len += (CURSOR_LINE(edit)->num_of_filled_chars - char_index) ;
 
@@ -998,14 +1123,14 @@ ml_edit_delete_cols(
 		 */
 
 		ml_line_overwrite_all( CURSOR_LINE(edit) , edit->cursor.char_index ,
-			model , filled_len , ml_str_cols( model , filled_len)) ;
+			buffer , filled_len , ml_str_cols( buffer , filled_len)) ;
 	}
 	else
 	{
 		ml_line_clear( CURSOR_LINE(edit) , 0 , &edit->sp_ch) ;
 	}
 
-	ml_str_final( model , buf_len) ;
+	ml_str_final( buffer , buf_len) ;
 
 	cursor_goto_by_char_index( edit , cursor_char_index , edit->cursor.row , BREAK_BOUNDARY) ;
 
@@ -1042,8 +1167,28 @@ ml_edit_delete_cols_bce(
 	}
 
 	line->num_of_filled_chars = char_index ;
+
+	ml_line_set_modified( line , edit->cursor.char_index , ml_line_end_char_index( line) , 0) ;
 	
 	return  1 ;
+}
+
+int
+ml_edit_clear_cols(
+	ml_edit_t *  edit ,
+	u_int  cols
+	)
+{
+	return  clear_cols( edit , cols , 0) ;
+}
+
+int
+ml_edit_clear_cols_bce(
+	ml_edit_t *  edit ,
+	u_int  cols
+	)
+{
+	return  clear_cols( edit , cols , 1) ;
 }
 
 int
@@ -1125,23 +1270,20 @@ ml_edit_clear_line_to_right_bce(
 	)
 {
 	int  cols ;
-	int  count ;
+	int  char_index ;
 	ml_line_t *  line ;
 
 	reset_wraparound_checker( edit) ;
 
-	count = edit->cursor.char_index ;
+	char_index = edit->cursor.char_index ;
 	line = CURSOR_LINE(edit) ;
 	
 	for( cols = edit->cursor.col ; cols < edit->model.num_of_cols ; cols ++)
 	{
-		ml_char_copy( &line->chars[count++] , &edit->bce_ch) ;
+		ml_char_copy( &line->chars[char_index++] , &edit->bce_ch) ;
 	}
 
-	if( count > line->num_of_filled_chars)
-	{
-		line->num_of_filled_chars = count ;
-	}
+	line->num_of_filled_chars = char_index ;
 
 	ml_line_set_modified( line , edit->cursor.char_index , ml_line_end_char_index( line) , 0) ;
 	
@@ -1153,78 +1295,7 @@ ml_edit_clear_line_to_left(
 	ml_edit_t *  edit
 	)
 {
-	int  count ;
-	u_int  num_of_sp ;
-	ml_char_t *  buf ;
-	u_int  buf_size ;
-
-	reset_wraparound_checker( edit) ;
-
-	/* XXX cursor char will be cleared , is this ok? */
-	buf_size = CURSOR_LINE(edit)->num_of_filled_chars - (edit->cursor.char_index + 1) ;
-	if( buf_size > 0)
-	{
-		u_int  padding ;
-		u_int  filled ;
-		
-		if( ml_char_cols( CURSOR_CHAR(edit)) > 1)
-		{
-			ml_convert_col_to_char_index( CURSOR_LINE(edit) , &padding ,
-				edit->cursor.col , 0) ;
-			buf_size += padding ;
-		}
-		else
-		{
-			padding = 0 ;
-		}
-
-		if( ( buf = ml_str_new( buf_size)) == NULL)
-		{
-			return  0 ;
-		}
-
-		filled = 0 ;
-
-		if( padding)
-		{
-			/*
-			 * padding spaces.
-			 */
-			for( count = 0 ; count < padding ; count ++)
-			{
-				ml_char_copy( &buf[filled++] , &edit->sp_ch) ;
-			}
-		}
-
-		/* excluding cursor char */
-		ml_str_copy( &buf[filled] , CURSOR_CHAR(edit) + 1 , buf_size - padding) ;
-	}
-
-	num_of_sp = edit->cursor.col / ml_char_cols( &edit->sp_ch) ;
-	edit->cursor.col = 0 ;
-	for( count = 0 ; count < num_of_sp ; count ++)
-	{
-		ml_char_copy( &CURSOR_LINE(edit)->chars[count] , &edit->sp_ch) ;
-		edit->cursor.col += ml_char_cols( &edit->sp_ch) ;
-	}
-
-	edit->cursor.char_index = count ;
-
-	/* char on cursor */
-	ml_char_copy( &CURSOR_LINE(edit)->chars[count++] , &edit->sp_ch) ;
-
-	if( buf_size > 0)
-	{
-		ml_str_copy( &CURSOR_LINE(edit)->chars[count] , buf , buf_size) ;
-		
-		CURSOR_LINE(edit)->num_of_filled_chars = count + buf_size ;
-
-		ml_str_delete( buf , buf_size) ;
-	}
-
-	ml_line_set_modified( CURSOR_LINE(edit) , 0 , edit->cursor.char_index , 0) ;
-
-	return  1 ;
+	return  clear_line_to_left( edit , 0) ;
 }
 
 int
@@ -1232,31 +1303,7 @@ ml_edit_clear_line_to_left_bce(
 	ml_edit_t *  edit
 	)
 {
-	int  count ;
-	ml_line_t *  line ;
-
-	reset_wraparound_checker( edit) ;
-
-	line = CURSOR_LINE(edit) ;
-
-	if( edit->cursor.col > edit->cursor.char_index)
-	{
-		ml_str_copy( &line->chars[edit->cursor.col + 1] ,
-			&line->chars[edit->cursor.char_index + 1] ,
-			line->num_of_filled_chars - edit->cursor.char_index - 1) ;
-
-		line->num_of_filled_chars += (edit->cursor.col - edit->cursor.char_index) ;
-		edit->cursor.char_index = edit->cursor.col ;
-	}
-	
-	for( count = 0 ; count <= edit->cursor.char_index ; count ++)
-	{
-		ml_char_copy( &line->chars[count] , &edit->bce_ch) ;
-	}
-	
-	ml_line_set_modified( line , 0 , edit->cursor.char_index , 0) ;
-	
-	return  1 ;
+	return  clear_line_to_left( edit , 1) ;
 }
 
 int
@@ -1292,20 +1339,11 @@ ml_edit_clear_below_bce(
 
 	for( row = edit->cursor.row + 1 ; row < edit->model.num_of_rows ; row ++)
 	{
-		int  count ;
-		ml_line_t *  line ;
-
-		line = ml_model_get_line( &edit->model , row) ;
-
-		for( count = 0 ; count < edit->model.num_of_cols ; count ++)
-		{
-			ml_char_copy( &line->chars[count] , &edit->bce_ch) ;
-		}
-
-		line->num_of_filled_chars = count ;
-		
-		ml_line_set_modified_all( line) ;
+		ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
+			edit->model.num_of_cols / ml_char_cols(&edit->bce_ch) , &edit->bce_ch) ;
 	}
+
+	edit->model.num_of_filled_rows = edit->model.num_of_rows ;
 
 	return  1 ;
 }
@@ -1342,19 +1380,8 @@ ml_edit_clear_above_bce(
 
 	for( row = 0 ; row <= edit->cursor.row - 1 ; row ++)
 	{
-		int  count ;
-		ml_line_t *  line ;
-
-		line = ml_model_get_line( &edit->model , row) ;
-
-		for( count = 0 ; count < edit->model.num_of_cols ; count ++)
-		{
-			ml_char_copy( &line->chars[count] , &edit->bce_ch) ;
-		}
-
-		line->num_of_filled_chars = count ;
-
-		ml_line_set_modified_all( line) ;
+		ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
+			edit->model.num_of_cols / ml_char_cols(&edit->bce_ch) , &edit->bce_ch) ;
 	}
 
 	return  1 ;
@@ -2092,8 +2119,8 @@ ml_edit_fill_all(
 	
 	for( row = 0 ; row < edit->model.num_of_rows ; row ++)
 	{
-		ml_line_fill_all( ml_model_get_line( &edit->model , row) , ch ,
-			edit->model.num_of_cols / ml_char_cols(ch)) ;
+		ml_line_fill( ml_model_get_line( &edit->model , row) , ch , 0 ,
+			edit->model.num_of_cols / ml_char_cols(ch) , ch) ;
 	}
 
 	edit->model.num_of_filled_rows = edit->model.num_of_rows ;
@@ -2128,11 +2155,12 @@ ml_edit_dump(
 
 		if( ml_line_is_modified( line))
 		{
-			kik_msg_printf( "!") ;
+			kik_msg_printf( "!%.2d-%.2d" ,
+				line->change_beg_char_index , line->change_end_char_index) ;
 		}
 		else
 		{
-			kik_msg_printf( " ") ;
+			kik_msg_printf( "      ") ;
 		}
 		
 		kik_msg_printf( "[%.2d %.2d]" , line->num_of_filled_chars ,

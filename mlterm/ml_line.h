@@ -65,13 +65,13 @@ int  ml_line_reset( ml_line_t *  line) ;
 
 int  ml_line_clear( ml_line_t *  line , int  char_index , ml_char_t *  sp_ch) ;
 
-int  ml_line_overwrite_chars( ml_line_t *  line , int  change_char_index ,
+int  ml_line_overwrite( ml_line_t *  line , int  change_char_index ,
 	ml_char_t *  chars , u_int  len , u_int  cols , ml_char_t *  sp_ch) ;
 
 int  ml_line_overwrite_all( ml_line_t *  line , int  change_char_index ,
 	ml_char_t *  chars , int  len , u_int  cols) ;
 
-int  ml_line_fill_all( ml_line_t *  line , ml_char_t *  ch , u_int  num) ;
+int  ml_line_fill( ml_line_t *  line , ml_char_t *  ch , int  beg , u_int  num , ml_char_t *  sp_ch) ;
 
 ml_char_t *  ml_line_get_char( ml_line_t *  line , int  char_index) ;
 

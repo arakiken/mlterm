@@ -205,7 +205,7 @@ ml_line_clear(
 }
 
 int
-ml_line_overwrite_chars(
+ml_line_overwrite(
 	ml_line_t *  line ,
 	int  change_char_index ,
 	ml_char_t *  chars ,
@@ -275,7 +275,13 @@ ml_line_overwrite_chars(
 	#endif
 	}
 
-	ml_str_copy( &line->chars[len + padding] , &line->chars[char_index] , copy_len) ;
+	if( copy_len > 0)
+	{
+		/* making space */
+		ml_str_copy( &line->chars[len + padding] , &line->chars[char_index] , copy_len) ;
+		ml_line_set_modified( line , line->change_beg_char_index ,
+			line->change_end_char_index + copy_len , 0) ;
+	}
 
 	for( count = 0 ; count < padding ; count ++)
 	{
@@ -329,27 +335,77 @@ ml_line_overwrite_all(
 }
 
 int
-ml_line_fill_all(
+ml_line_fill(
 	ml_line_t *  line ,
 	ml_char_t *  ch ,
-	u_int  num
+	int  beg ,
+	u_int  num ,
+	ml_char_t *  sp_ch
 	)
 {
+	int  count ;
 	int  char_index ;
-	int  cols ;
+	u_int  left_cols ;
+	u_int  copy_len ;
 
-	num = K_MIN(num,line->num_of_chars) ;
-
-	cols = 0 ;
-	for( char_index = 0 ; char_index < num ; char_index ++)
+	if( beg >= line->num_of_chars)
 	{
-		ml_char_copy( &line->chars[char_index] , ch) ;
-		cols += ml_char_cols( ch) ;
+		return  0 ;
 	}
 
-	line->num_of_filled_chars = char_index ;
+	num = K_MIN(num,line->num_of_chars - beg) ;
 
-	ml_line_set_modified_all( line) ;
+	char_index = beg ;
+	left_cols = num * ml_char_cols( ch) ;
+
+	while( 1)
+	{
+		if( char_index >= line->num_of_filled_chars)
+		{
+			left_cols = 0 ;
+			
+			break ;
+		}
+		else if( left_cols < ml_char_cols( &line->chars[char_index]))
+		{
+			if( left_cols > 0)
+			{
+				char_index ++ ;
+			}
+
+			break ;
+		}
+		else
+		{
+			left_cols -= ml_char_cols( &line->chars[char_index]) ;
+			char_index ++ ;
+		}
+	}
+
+	if( ( copy_len = line->num_of_filled_chars - char_index) > 0)
+	{
+		/* making space */
+		ml_str_copy( &line->chars[beg + num + left_cols] , &line->chars[char_index] , copy_len) ;
+		ml_line_set_modified( line , line->change_beg_char_index ,
+			line->change_end_char_index + copy_len , 0) ;
+	}
+
+
+	char_index = beg ;
+	
+	for( count = 0 ; count < num ; count ++)
+	{
+		ml_char_copy( &line->chars[char_index++] , ch) ;
+	}
+
+	for( count = 0 ; count < left_cols ; count ++)
+	{
+		ml_char_copy( &line->chars[char_index++] , sp_ch) ;
+	}
+	
+	line->num_of_filled_chars = char_index + copy_len ;
+
+	ml_line_set_modified( line , beg , END_CHAR_INDEX(line) , 0) ;
 
 	return  1 ;
 }
