@@ -1,3 +1,9 @@
+[20020221]
+* compilation fails on platforms where snprintf doesn't exist. fixed.
+* ISCII rendering fails. fixed.
+* Without fribidi or libind , extra processing under utf8 + bidi mode or iscii mode , 
+  which can cause core dump , is removed. (Thanks to Takahasi Tamotsu san)
+
 [20020220]
 * utmp,wtmp operation by login,logout,logwtmp is supported on both 
   Linux/glibc2 and *BSD. (Thanks to Minami Hirokazu san)
