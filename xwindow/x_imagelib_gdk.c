@@ -15,8 +15,6 @@
 
 #include "x_imagelib.h"
 
-#define NOT_USING_WINDOWMAKER
-
 /** Pixmap cache per display. */
 typedef struct display_store_tag {
 	Display *  display; /**<Display */
@@ -57,7 +55,6 @@ tile_pixmap(
 	int ax,ay ;
 	unsigned int aw, ah;
 	unsigned int bw, depth;
-
 	Pixmap result;
 
 	XGetGeometry( display, pixmap, &dummy, &ax, &ay,
@@ -71,7 +68,6 @@ tile_pixmap(
 					       DisplayWidth( display, screen),
 					       DisplayHeight( display, screen),
 					       depth) ;
-
 		XSetTile( display, gc, pixmap) ;
 		XSetTSOrigin( display, gc, 0, 0) ;
 		XSetFillStyle( display, gc, FillTiled) ;
@@ -80,10 +76,7 @@ tile_pixmap(
 				DisplayHeight( display, screen)) ;
 		return result ;
 	}
-	else
-	{
-		return pixmap ;
-	}
+	return pixmap ;
 }
 
 static Pixmap
@@ -123,6 +116,7 @@ cache_seek(
 	   )
 {
 	display_store_t *  cache = display_store ;
+
 	while( cache)
 	{
 		if( cache->display == display)
@@ -138,6 +132,7 @@ cache_add(
 	   )
 {
 	display_store_t *  cache ;
+
 	cache = malloc( sizeof( display_store_t)) ;
 	if (!cache)
 		return NULL ;
@@ -170,19 +165,17 @@ cache_delete(
 	{
 		if ( cache->display == display)
 		{
+			if ((cache->cooked) && (cache->root != cache->cooked))
+				XFreePixmap( display, cache->cooked) ;
 			if ( o == NULL)
 			{
 				display_store = cache->next ;
-				if ((cache->cooked) && (cache->root != cache->cooked))
-					XFreePixmap( display, cache->cooked) ;
 				free( cache) ;
 				cache = display_store ;
 			}
 			else
 			{
 				o->next = cache->next ;
-				if (cache->cooked)
-					XFreePixmap( display, cache->cooked) ;
 				free( cache) ;
 				cache = o->next;
 			}
@@ -263,9 +256,8 @@ msb(
 		return 0 ;
 	nth = lsb( val) +1 ;
 	while(val & (1 << nth))
-	{
 		nth++ ;
-	}
+
 	return nth ;
 }
 
@@ -288,15 +280,14 @@ pixbuf_to_pixmap_truecolor(
 	XVisualInfo * vinfo
 	)
 {
-	XImage *  image = NULL;
-
 	unsigned int  i, j ;
 	unsigned int  width, height, rowstride, bytes_per_pixel ;
 	unsigned char *  line ;
 	unsigned char *  pixel ;
-
 	long  r_mask, g_mask, b_mask ;
 	int  r_offset, g_offset, b_offset;
+
+	XImage *  image = NULL;
 
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
@@ -369,7 +360,7 @@ pixbuf_to_pixmap_truecolor(
 				data[i*width +j ] = pixel[0] <<r_offset | pixel[1] <<g_offset | pixel[2]<<b_offset ;
 				pixel +=bytes_per_pixel ;
 			}
-				line += rowstride ;
+			line += rowstride ;
 		}
 		break ;
 	}
@@ -427,7 +418,7 @@ pixbuf_to_pixmap(
 }
 
 static XImage *
-compose_to_pixmap_truecolor(
+compose__truecolor(
 	Display *  display,
 	int  screen,
 	GdkPixbuf *  pixbuf,
@@ -439,7 +430,7 @@ compose_to_pixmap_truecolor(
 	XImage *  image ;
 
 	unsigned int i, j ;
-	unsigned int width, height, rowstride, bytes_per_pixel ;
+	unsigned int width, height, rowstride ;
 	unsigned char *line ;
 	unsigned char *pixel ;
 
@@ -457,7 +448,7 @@ compose_to_pixmap_truecolor(
 	r_offset = lsb( r_mask) ;
 	g_offset = lsb( g_mask) ;
 	b_offset = lsb( b_mask) ;
-	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
+
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
@@ -495,7 +486,7 @@ compose_to_pixmap_truecolor(
 					}				       
 				}
 				data++ ;
-				pixel +=bytes_per_pixel ;
+				pixel += 4 ;
 			}
 			line += rowstride ;
 		}
@@ -503,7 +494,6 @@ compose_to_pixmap_truecolor(
 	default:
 		break;
 	}
-
 
 	return image ;
 }
@@ -532,7 +522,7 @@ compose_to_pixmap(
 	switch( vinfolist[0].class)
 	{
 	case TrueColor:
-		image = compose_to_pixmap_truecolor( display,
+		image = compose__truecolor( display,
 					     screen,
 					     pixbuf,
 					     pixmap,
