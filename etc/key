@@ -1,6 +1,7 @@
 # Shift+space=XIM_OPEN
 # UNUSED=XIM_CLOSE
-# Control+F1=NEW_PTY
+# Control+F1=OPEN_SCREEN
+# UNUSED=OPEN_PTY
 # Shift+Prior=PAGE_UP
 # Shift+Up=SCROLL_UP
 # Shift+Insert=INSERT_SELECTION

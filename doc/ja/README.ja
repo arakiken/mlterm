@@ -549,8 +549,12 @@ comment $Id$
         xim_open_in_startup が true に設定されている場合は、最初から Open されています
         ので、使われません。
       o XIM_CLOSE(UNUSED)
+      o OPEN_SCREEN(Ctrl+F1)
+        新しいPTYを、新しい画面上に開きます。
       o NEW_PTY(Ctrl+F1)
-        新しいPTYを起動します。
+        OPEN_SCREEN と同じ。2.6.0 以降 obsoleted.
+      o OPEN_PTY(UNUSED)
+        新しいPTYを、現在の画面上に開きます。
       o PAGE_UP(Shift+Prior)
         ページアップ
       o SCROLL_UP(Shift+Up)

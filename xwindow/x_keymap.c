@@ -190,7 +190,7 @@ x_keymap_init(
 		{ XK_F1 , ControlMask , 1 , } ,
 
 		/* OPEN PTY */
-		{ XK_F2 , ControlMask , 1 , } ,
+		{ 0 , 0 , 0 , } ,
 
 		/* PAGE_UP(compatible with kterm) */
 		{ XK_Prior , ShiftMask , 1 , } ,

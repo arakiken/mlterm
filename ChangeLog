@@ -1,5 +1,11 @@
 2002-09-03 Araki Ken <arakiken@users.sf.net>
 
+	* Even if imlib used, screen gets darker as gamma value greater like gdk-pixbuf.
+	  (Thanks to Nobuyoshi Nakada san)
+	* Documentation around OPEN_SCREEN,OPEN_PTY updated.
+
+2002-09-03 Araki Ken <arakiken@users.sf.net>
+
 	* ml_edit* module cleaned up.
 	* some warnings in x_term_manager.c and x_window.c are suppressed.
 

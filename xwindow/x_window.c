@@ -45,11 +45,12 @@
 #define  _NET_WM_STATE_REMOVE 0
 #define  _NET_WM_STATE_ADD 1
 #define  _NET_WM_STATE_TOGGLE 2
-enum {
+
+enum
+{
 	STATE_FLAG_MAXIMIZED_VERT,
 	STATE_FLAG_MAXIMIZED_HORZ
-};
-
+} ;
 
 #define  DOUBLE_CLICK_INTERVAL  1000	/* mili second */
 #define  MAX_CLICK  3			/* max is triple click */
