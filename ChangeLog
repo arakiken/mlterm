@@ -1,3 +1,8 @@
+[20020126]
+* big5_buggy option didn't work(is always true). fixed.
+* XIM fg/bg color may be faded. fixed.
+* man/mlterm.1 manual is updated.
+
 [20020125]
 * mlconf_curses is updated(20020125 version) and LICENCE,Makefile,mlcc.html
   files are added. (thanks to Minami Hirokazu san)
