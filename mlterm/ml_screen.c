@@ -1514,11 +1514,21 @@ ml_screen_insert_blank_chars(
 }
 
 int
-ml_screen_vertical_tab(
-	ml_screen_t *  screen
+ml_screen_vertical_forward_tabs(
+	ml_screen_t *  screen ,
+	u_int  num
 	)
 {
-	return  ml_edit_vertical_tab( screen->edit) ;
+	return  ml_edit_vertical_forward_tabs( screen->edit , num) ;
+}
+
+int
+ml_screen_vertical_backward_tabs(
+	ml_screen_t *  screen ,
+	u_int  num
+	)
+{
+	return  ml_edit_vertical_backward_tabs( screen->edit , num) ;
 }
 
 int

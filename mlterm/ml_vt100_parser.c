@@ -1345,10 +1345,15 @@ parse_vt100_escape_sequence(
 					}
 					else if( *str_p == 'I')
 					{
-					#ifdef  DEBUG
-						kik_warn_printf( KIK_DEBUG_TAG
-							" ESC - [ - I is not implemented.\n") ;
-					#endif
+						/* cursor forward tabulation */
+						
+						if( num == 0)
+						{
+							ps[0] = 1 ;
+						}
+						
+						ml_screen_vertical_forward_tabs(
+							vt100_parser->screen , ps[0]) ;
 					}
 					else if( *str_p == 'J')
 					{
@@ -1443,6 +1448,18 @@ parse_vt100_escape_sequence(
 						}
 
 						ml_screen_clear_cols( vt100_parser->screen , ps[0]) ;
+					}
+					else if( *str_p == 'Z')
+					{
+						/* cursor backward tabulation */
+
+						if( num == 0)
+						{
+							ps[0] = 1 ;
+						}
+						
+						ml_screen_vertical_backward_tabs(
+							vt100_parser->screen , ps[0]) ;
 					}
 					else if( *str_p == 'c')
 					{
@@ -1945,7 +1962,7 @@ parse_vt100_escape_sequence(
 			kik_debug_printf( KIK_DEBUG_TAG " receiving TAB\n") ;
 		#endif
 
-			ml_screen_vertical_tab( vt100_parser->screen) ;
+			ml_screen_vertical_forward_tabs( vt100_parser->screen , 1) ;
 		}
 		else if( *str_p == CTLKEY_BS)
 		{

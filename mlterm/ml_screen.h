@@ -171,7 +171,9 @@ int  ml_screen_insert_chars( ml_screen_t *  screen , ml_char_t *  chars , u_int 
 
 int  ml_screen_insert_blank_chars( ml_screen_t *  screen , u_int  len) ;
 
-int  ml_screen_vertical_tab( ml_screen_t *  screen) ;
+int  ml_screen_vertical_forward_tabs( ml_screen_t *  screen , u_int  num) ;
+
+int  ml_screen_vertical_backward_tabs( ml_screen_t *  screen , u_int  num) ;
 
 int  ml_screen_set_tab_stop( ml_screen_t *  screen) ;
 

@@ -96,7 +96,9 @@ int  ml_edit_scroll_upward( ml_edit_t *  edit , u_int  size) ;
 
 int  ml_edit_scroll_downward( ml_edit_t *  edit , u_int  size) ;
 
-int  ml_edit_vertical_tab( ml_edit_t *  edit) ;
+int  ml_edit_vertical_forward_tabs( ml_edit_t *  edit , u_int  num) ;
+
+int  ml_edit_vertical_backward_tabs( ml_edit_t *  edit , u_int  num) ;
 
 int  ml_edit_set_tab_size( ml_edit_t *  edit , u_int  tab_size) ;
 

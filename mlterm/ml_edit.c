@@ -476,6 +476,56 @@ clear_line_to_left(
 	return  1 ;
 }
 
+static int
+vertical_tabs(
+	ml_edit_t *  edit ,
+	u_int  num ,
+	int  is_forward
+	)
+{
+	int  col ;
+	int  count ;
+	
+	reset_wraparound_checker( edit) ;
+
+	col = edit->cursor.col ;
+	
+	for( count = 0 ; count < num ; count ++)
+	{
+		while( 1)
+		{
+			if( is_forward)
+			{
+				if( col >= edit->model.num_of_cols - 1)
+				{
+					goto  end ;
+				}
+
+				col ++ ;
+			}
+			else
+			{
+				if( col <= 0)
+				{
+					goto  end ;
+				}
+
+				col -- ;
+			}
+
+			if( edit->tab_stops[col / 8] & ( 1 << (7 - col % 8)))
+			{
+				break ;
+			}
+		}
+	}
+
+end:
+	cursor_goto_by_col( edit , col , edit->cursor.row , BREAK_BOUNDARY) ;
+	
+	return  1 ;
+}
+
 
 /* --- global functions --- */
 
@@ -1329,25 +1379,21 @@ ml_edit_scroll_downward(
 }
 
 int
-ml_edit_vertical_tab(
-	ml_edit_t *  edit
+ml_edit_vertical_forward_tabs(
+	ml_edit_t *  edit ,
+	u_int  num
 	)
 {
-	int  col ;
-	
-	reset_wraparound_checker( edit) ;
+	return  vertical_tabs( edit , num , 1) ;
+}
 
-	for( col = edit->cursor.col + 1 ; col < edit->model.num_of_cols - 1 ; col ++)
-	{
-		if( edit->tab_stops[col / 8] & ( 1 << (7 - col % 8)))
-		{
-			break ;
-		}
-	}
-
-	cursor_goto_by_col( edit , col , edit->cursor.row , BREAK_BOUNDARY) ;
-	
-	return  1 ;
+int
+ml_edit_vertical_backward_tabs(
+	ml_edit_t *  edit ,
+	u_int  num
+	)
+{
+	return  vertical_tabs( edit , num , 0) ;
 }
 
 int
