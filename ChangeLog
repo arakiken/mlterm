@@ -1,3 +1,9 @@
+2003-05-25 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Japanese translation for a new item in tool/mlconfig/po .
+	* Current automatic (locale-sensible) encoding is now shown
+	  like "ISO-8859-15" instead of "ISO885915" on mlconfig.
+
 2003-05-25 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Added a search path to kiklib/src/.libs/libkik.* for -lkik to

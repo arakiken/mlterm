@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlconfig\n"
-"POT-Creation-Date: 2003-04-01 08:29+0900\n"
+"POT-Creation-Date: 2003-05-25 17:02+0900\n"
 "PO-Revision-Date: 2003-02-09 21:26+0800\n"
 "Last-Translator: Yuan-Chen Cheng <ycheng@slat.org>\n"
 "Language-Team: Chinese (Traditional) <zh-l10n@linux.org.tw>\n"
@@ -63,7 +63,7 @@ msgstr ""
 msgid "mlterm configuration"
 msgstr ""
 
-#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:187
+#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:200
 msgid "Encoding"
 msgstr "½s½X"
 
@@ -128,36 +128,41 @@ msgstr "³z©ú"
 msgid "Brightness"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:31
+#: tool/mlconfig/mc_char_encoding.c:32
 msgid "auto"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:33
+#: tool/mlconfig/mc_char_encoding.c:34
 msgid "--- Unicode ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:36
+#: tool/mlconfig/mc_char_encoding.c:37
 msgid "--- ISO 8859 encodings ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:53
+#: tool/mlconfig/mc_char_encoding.c:54
 msgid "--- Other 8bit ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:62
+#: tool/mlconfig/mc_char_encoding.c:65
 msgid "--- Japanese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:71
+#: tool/mlconfig/mc_char_encoding.c:74
 msgid "--- Korean ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:77
+#: tool/mlconfig/mc_char_encoding.c:80
 msgid "--- traditional Chinese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:82
+#: tool/mlconfig/mc_char_encoding.c:85
 msgid "--- simplified Chinese ---"
+msgstr ""
+
+#: tool/mlconfig/mc_char_encoding.c:194
+#, c-format
+msgid "auto (currently %s)"
 msgstr ""
 
 #: tool/mlconfig/mc_color.c:39 tool/mlconfig/mc_color.c:41

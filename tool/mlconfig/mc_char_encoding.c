@@ -4,6 +4,7 @@
 
 #include  "mc_char_encoding.h"
 
+#include  <stdio.h>
 #include  <string.h>
 #include  <stdlib.h>		/* free */
 #include  <ctype.h>
@@ -188,8 +189,10 @@ mc_char_encoding_config_widget_new(void)
 	encoding = mc_get_str_value("encoding");
 	if (isauto) {
 		static char autostr[256];
+
 		idx = 0;
-		sprintf(autostr, _("auto (currently %s)"), encoding);
+		sprintf(autostr, _("auto (currently %s)"),
+			savename(get_index(encoding)));
 		encodings[0] = autostr;
 	} else idx = get_index(encoding);	
 

@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
-"POT-Creation-Date: 2003-04-01 08:29+0900\n"
+"POT-Creation-Date: 2003-05-25 17:02+0900\n"
 "PO-Revision-Date: 2003-03-24 17:32+0100\n"
 "Last-Translator: Mike Fabian <mfabian@suse.de>\n"
 "Language-Team: German <suse-i18n@suse.de>\n"
@@ -63,7 +63,7 @@ msgstr " Auswahl "
 msgid "mlterm configuration"
 msgstr "mlterm Konfiguration"
 
-#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:187
+#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:200
 msgid "Encoding"
 msgstr "Kodierung"
 
@@ -128,37 +128,42 @@ msgstr "transparent"
 msgid "Brightness"
 msgstr "Helligkeit"
 
-#: tool/mlconfig/mc_char_encoding.c:31
+#: tool/mlconfig/mc_char_encoding.c:32
 msgid "auto"
 msgstr "Auto"
 
-#: tool/mlconfig/mc_char_encoding.c:33
+#: tool/mlconfig/mc_char_encoding.c:34
 msgid "--- Unicode ---"
 msgstr "--- Unicode ---"
 
-#: tool/mlconfig/mc_char_encoding.c:36
+#: tool/mlconfig/mc_char_encoding.c:37
 msgid "--- ISO 8859 encodings ---"
 msgstr "--- ISO 8859 Kodierungen ---"
 
-#: tool/mlconfig/mc_char_encoding.c:53
+#: tool/mlconfig/mc_char_encoding.c:54
 msgid "--- Other 8bit ---"
 msgstr "--- Sonstige 8bit Kodierungen ---"
 
-#: tool/mlconfig/mc_char_encoding.c:62
+#: tool/mlconfig/mc_char_encoding.c:65
 msgid "--- Japanese ---"
 msgstr "--- Japanisch ---"
 
-#: tool/mlconfig/mc_char_encoding.c:71
+#: tool/mlconfig/mc_char_encoding.c:74
 msgid "--- Korean ---"
 msgstr "--- Koreanisch ---"
 
-#: tool/mlconfig/mc_char_encoding.c:77
+#: tool/mlconfig/mc_char_encoding.c:80
 msgid "--- traditional Chinese ---"
 msgstr "--- traditionelles Chinesisch ---"
 
-#: tool/mlconfig/mc_char_encoding.c:82
+#: tool/mlconfig/mc_char_encoding.c:85
 msgid "--- simplified Chinese ---"
 msgstr "--- vereinfachtes Chinesisch ---"
+
+#: tool/mlconfig/mc_char_encoding.c:194
+#, c-format
+msgid "auto (currently %s)"
+msgstr ""
 
 #: tool/mlconfig/mc_color.c:39 tool/mlconfig/mc_color.c:41
 msgid "Foreground color"
