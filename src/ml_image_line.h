@@ -131,7 +131,7 @@ int  ml_imgline_use_bidi( ml_image_line_t *  line) ;
 
 int  ml_imgline_unuse_bidi( ml_image_line_t *  line) ;
 
-int  ml_imgline_bidi_render( ml_image_line_t *  line , int  base_dir_is_rtl) ;
+int  ml_imgline_bidi_render( ml_image_line_t *  line) ;
 
 int  ml_imgline_bidi_visual( ml_image_line_t *  line) ;
 

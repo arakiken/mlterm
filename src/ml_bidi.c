@@ -29,8 +29,7 @@ int
 ml_bidi(
 	u_int16_t *  order ,
 	ml_char_t *  src ,
-	u_int  size ,
-	int  base_dir_is_rtl
+	u_int  size
 	)
 {
 	FriBidiChar *  fri_src ;
@@ -98,15 +97,7 @@ ml_bidi(
 	kik_msg_printf( "\n") ;
 #endif
 
-	/* initial state */
-	if( base_dir_is_rtl)
-	{
-		fri_type = FRIBIDI_TYPE_RTL ;
-	}
-	else
-	{
-		fri_type = FRIBIDI_TYPE_LTR ;
-	}
+	fri_type = FRIBIDI_TYPE_ON ;
 
 	fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
 
@@ -164,8 +155,7 @@ int
 ml_bidi(
 	u_int16_t *  order ,
 	ml_char_t *  src ,
-	u_int  size ,
-	int  base_dir_is_rtl
+	u_int  size
 	)
 {
 	return  0 ;

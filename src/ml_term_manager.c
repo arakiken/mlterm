@@ -28,7 +28,6 @@
 #include  "ml_xim.h"
 #include  "ml_sb_term_screen.h"
 #include  "ml_sig_child.h"
-#include  "ml_bidi.h"		/* ml_bidi_set_base_dir */
 
 
 /* --- static variables --- */
@@ -315,8 +314,7 @@ open_term(
 		term_man->conf.font_present , term_man->conf.use_bidi ,
 		term_man->conf.vertical_mode , term_man->conf.use_vertical_cursor ,
 		term_man->conf.big5_buggy , term_man->conf.conf_menu_path ,
-		term_man->conf.iscii_lang , term_man->conf.use_extended_scroll_shortcut ,
-		term_man->conf.bidi_base_dir_is_rtl)) == NULL)
+		term_man->conf.iscii_lang , term_man->conf.use_extended_scroll_shortcut)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_screen_new() failed.\n") ;
@@ -894,8 +892,6 @@ get_min_conf(
 		"the amount of darkening or lightening background image") ;
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
-	kik_conf_add_opt( conf , 'J' , "rtl" , 1 , "bidi_base_direction_rtl" ,
-		"base direction of bidi is rtl") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell") ;
 	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path" ,
@@ -1376,16 +1372,6 @@ config_init(
 		else
 		{
 			kik_msg_printf( "col size of width a %s is not valid.\n" , value) ;
-		}
-	}
-
-	term_man->conf.bidi_base_dir_is_rtl = 0 ;
-	
-	if( ( value = kik_conf_get_value( conf , "bidi_base_direction_rtl")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->conf.bidi_base_dir_is_rtl = 1 ;
 		}
 	}
 

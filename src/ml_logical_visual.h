@@ -52,7 +52,7 @@ ml_logical_visual_t *  ml_logvis_container_new( ml_image_t *  image) ;
 
 int  ml_logvis_container_add( ml_logical_visual_t *  logvis , ml_logical_visual_t *  child) ;
 
-ml_logical_visual_t *  ml_logvis_bidi_new( ml_image_t *  image , int  base_dir_is_rtl) ;
+ml_logical_visual_t *  ml_logvis_bidi_new( ml_image_t *  image) ;
 
 ml_logical_visual_t *  ml_logvis_comb_new( ml_image_t *  image) ;
 

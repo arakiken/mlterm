@@ -937,8 +937,7 @@ ml_imgline_unuse_bidi(
 
 int
 ml_imgline_bidi_render(
-	ml_image_line_t *  line ,
-	int  base_dir_is_rtl
+	ml_image_line_t *  line
 	)
 {
 	u_int  len ;
@@ -964,7 +963,7 @@ ml_imgline_bidi_render(
 	}
 #endif
 
-	if( ! ml_bidi( line->visual_order , line->chars , len , base_dir_is_rtl))
+	if( ! ml_bidi( line->visual_order , line->chars , len))
 	{
 		line->num_of_filled_visual_order = 0 ;
 		

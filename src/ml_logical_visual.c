@@ -31,8 +31,6 @@ typedef struct  bidi_logical_visual
 	int  cursor_logical_char_index ;
 	int  cursor_logical_col ;
 
-	int  base_dir_is_rtl ;
-
 } bidi_logical_visual_t ;
 
 typedef struct  comb_logical_visual
@@ -375,7 +373,7 @@ bidi_render(
 				ml_imgline_use_bidi( line) ;
 			}
 
-			ml_imgline_bidi_render( line , ((bidi_logical_visual_t*)logvis)->base_dir_is_rtl) ;
+			ml_imgline_bidi_render( line) ;
 		}
 	}
 
@@ -1385,8 +1383,7 @@ ml_logvis_container_add(
 
 ml_logical_visual_t *
 ml_logvis_bidi_new(
-	ml_image_t *  image ,
-	int  base_dir_is_rtl
+	ml_image_t *  image
 	)
 {
 	bidi_logical_visual_t *  bidi_logvis ;
@@ -1398,7 +1395,6 @@ ml_logvis_bidi_new(
 	
 	bidi_logvis->cursor_logical_char_index = 0 ;
 	bidi_logvis->cursor_logical_col = 0 ;
-	bidi_logvis->base_dir_is_rtl = base_dir_is_rtl ;
 
 	bidi_logvis->logvis.image = image ;
 	bidi_logvis->logvis.is_visual = 0 ;

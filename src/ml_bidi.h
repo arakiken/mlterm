@@ -13,7 +13,7 @@
 
 int  ml_bidi_support_level(void) ;
 
-int  ml_bidi( u_int16_t *  order , ml_char_t *  src , u_int  size , int  base_dir_is_rtl) ;
+int  ml_bidi( u_int16_t *  order , ml_char_t *  src , u_int  size) ;
 
 
 #endif

@@ -1184,8 +1184,7 @@ update_encoding_proper_aux(
 				ml_logvis_container_add( container , logvis) ;
 			}
 			
-			if( ( logvis = ml_logvis_bidi_new( termscr->image , termscr->bidi_base_dir_is_rtl))
-				== NULL)
+			if( ( logvis = ml_logvis_bidi_new( termscr->image)) == NULL)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_bidi_new() failed.\n") ;
@@ -1594,8 +1593,7 @@ config_menu(
 		ml_is_char_combining() , termscr->copy_paste_via_ucs ,
 		termscr->window.is_transparent , termscr->pic_mod.brightness , termscr->fade_ratio ,
 		termscr->font_present , termscr->font_man->use_multi_col_char , termscr->use_bidi ,
-		termscr->bidi_base_dir_is_rtl , sb_view_name , ml_xic_get_xim_name( &termscr->window) ,
-		kik_get_locale() , wall_pic) ;
+		sb_view_name , ml_xic_get_xim_name( &termscr->window) , kik_get_locale() , wall_pic) ;
 }
 
 static int
@@ -3707,30 +3705,6 @@ change_bidi_flag(
 }
 
 static void
-change_bidi_base_dir(
-	void *  p ,
-	int  is_rtl
-	)
-{
-	ml_term_screen_t *  termscr ;
-
-	termscr = p ;
-
-	if( termscr->bidi_base_dir_is_rtl == is_rtl)
-	{
-		/* not changed */
-		
-		return ;
-	}
-	
-	termscr->bidi_base_dir_is_rtl = is_rtl ;
-
-	ml_image_set_modified_all( termscr->image) ;
-	
-	update_encoding_proper_aux( termscr , 1) ;
-}
-
-static void
 change_wall_picture(
 	void *  p ,
 	char *  file_path
@@ -4159,8 +4133,7 @@ ml_term_screen_new(
 	int  big5_buggy ,
 	char *  conf_menu_path ,
 	ml_iscii_lang_t  iscii_lang ,
-	int  use_extended_scroll_shortcut ,
-	int  bidi_base_dir_is_rtl
+	int  use_extended_scroll_shortcut
 	)
 {
 	ml_term_screen_t *  termscr ;
@@ -4392,7 +4365,6 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_font_present = change_font_present ;
 	termscr->config_menu_listener.change_multi_col_char_flag = change_multi_col_char_flag ;
 	termscr->config_menu_listener.change_bidi_flag = change_bidi_flag ;
-	termscr->config_menu_listener.change_bidi_base_dir = change_bidi_base_dir ;
 	termscr->config_menu_listener.change_sb_view = change_sb_view ;
 	termscr->config_menu_listener.change_xim = change_xim ;
 	termscr->config_menu_listener.larger_font_size = larger_font_size ;
@@ -4418,7 +4390,6 @@ ml_term_screen_new(
 	termscr->bel_mode = bel_mode ;
 	
 	termscr->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
-	termscr->bidi_base_dir_is_rtl = bidi_base_dir_is_rtl ;
 
 	/*
 	 * for receiving selection.

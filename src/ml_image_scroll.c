@@ -134,6 +134,10 @@ scroll_upward_region(
 			}
 		}
 
+		image->cursor.row = boundary_beg ;
+		image->cursor.col = 0 ;
+		image->cursor.char_index = 0 ;
+
 		return  ml_image_clear_lines( image , boundary_beg , boundary_end - boundary_beg + 1) ;
 	}
 	
@@ -229,6 +233,10 @@ scroll_downward_region(
 		 * all lines within boundary are scrolled out.
 		 */
 
+		image->cursor.row = boundary_end ;
+		image->cursor.col = 0 ;
+		image->cursor.char_index = 0 ;
+		
 		return  ml_image_clear_lines( image , boundary_beg , boundary_end - boundary_beg + 1) ;
 	}
 

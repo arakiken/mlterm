@@ -93,7 +93,6 @@ typedef struct ml_config
 	int8_t  use_multi_col_char ;
 	int8_t  use_vertical_cursor ;
 	int8_t  use_extended_scroll_shortcut ;
-	int8_t  bidi_base_dir_is_rtl ;
 
 } ml_config_t ;
 

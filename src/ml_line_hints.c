@@ -111,9 +111,20 @@ ml_line_hints_at(
 		return  0 ;
 	}
 
-	*beg_of_line = hints->lines[at].beg_of_line ;
-	*len = hints->lines[at].len ;
-	*width = hints->lines[at].width ;
+	if( beg_of_line)
+	{
+		*beg_of_line = hints->lines[at].beg_of_line ;
+	}
+
+	if( len)
+	{
+		*len = hints->lines[at].len ;
+	}
+
+	if( width)
+	{
+		*width = hints->lines[at].width ;
+	}
 
 	return  1 ;
 }

@@ -92,7 +92,6 @@ render_chars(
 {
 	int  bol ;		/* index of the beginning of line */
 	u_int  row ;
-	u_int  line_len ;
 	u_int  line_cols ;
 	int  counter ;
 	u_int  scroll_size ;
@@ -117,86 +116,44 @@ render_chars(
 	line_cols = 0 ;	
 	while( 1)
 	{
-		if( line_cols + ml_char_cols( &chars[counter]) > image->model.num_of_cols)
+		if( counter > bol &&
+			line_cols + ml_char_cols( &chars[counter]) > image->model.num_of_cols)
 		{
-			/* wraparound line */
+			/*
+			 * line length is 'counter - bol' for the character at 'counter'
+			 * position to be excluded.
+			 */
+			ml_line_hints_add( &image->line_hints , bol , counter - bol , line_cols) ;
 
-			/* excluding this char */
-			line_len = counter - bol ;
-			
-			if( line_len > image->model.num_of_cols)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG 
-					" line len %d is over ml_image_t::num_of_cols %d" ,
-					line_len , image->model.num_of_cols) ;
-			#endif
-
-				line_len = image->model.num_of_cols ;
-
-			#ifdef  DEBUG
-				kik_msg_printf( " ... modified -> %d\n" , line_len) ;
-			#endif
-			}
-			
-			ml_line_hints_add( &image->line_hints , bol , line_len , line_cols) ;
-
-			if( row > image->scroll_region_end)
+			if( row ++ >= image->scroll_region_end)
 			{
 				scroll_size ++ ;
 			}
-
-			row ++ ;
 			
 			bol = counter ;
 			line_cols = 0 ;
 		}
-		
-		line_cols += ml_char_cols( &chars[counter]) ;
-		
-		if( ++ counter >= num_of_chars)
+		else
 		{
-			if( counter > bol)
+			line_cols += ml_char_cols( &chars[counter]) ;
+
+			if( ++ counter >= num_of_chars)
 			{
-				line_len = counter - bol ;
-				
-				if( line_len > image->model.num_of_cols)
+				ml_line_hints_add( &image->line_hints , bol , counter - bol , line_cols) ;
+
+				if( scroll_size)
 				{
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG 
-						" line len %d is over ml_image_t::num_of_chars %d" ,
-						line_len , image->model.num_of_cols) ;
-				#endif
-
-					line_len = image->model.num_of_cols ;
-
-				#ifdef  DEBUG
-					kik_msg_printf( "... modified -> %d\n" , line_len) ;
-				#endif
+					if( ! ml_imgscrl_scroll_upward( image , scroll_size))
+					{
+					#ifdef  DEBUG
+						kik_warn_printf( KIK_DEBUG_TAG
+							" ml_imgscrl_scroll_upward failed.\n") ;
+					#endif
+					}
 				}
-				
-				/* last line is not completely filled */
 
-				ml_line_hints_add( &image->line_hints , bol , line_len , line_cols) ;
-
-				if( row >= image->model.num_of_rows)
-				{
-					scroll_size ++ ;
-				}
+				return  1 ;
 			}
-
-			if( scroll_size)
-			{
-				if( ! ml_imgscrl_scroll_upward( image , scroll_size))
-				{
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" ml_imgscrl_scroll_upward failed.\n") ;
-				#endif
-				}
-			}
-			
-			return  1 ;
 		}
 	}
 }
@@ -204,6 +161,7 @@ render_chars(
 static int
 overwrite_lines(
 	ml_image_t *  image ,
+	int *  cursor_index ,
 	ml_char_t *  chars ,
 	u_int  num_of_chars
 	)
@@ -212,6 +170,10 @@ overwrite_lines(
 	int  current_row ;
 	int  beg_char_index ;
 	u_int  num_of_lines ;
+	ml_image_line_t *  line ;
+	int  beg_of_line ;
+	u_int  len ;
+	u_int  cols ;
 	
 	if( ! render_chars( image , image->cursor.row , chars , num_of_chars))
 	{
@@ -236,30 +198,15 @@ overwrite_lines(
 	/* all changes should happen after cursor */
 	beg_char_index = image->cursor.char_index ;
 
-	while( 1)
+	while( ml_line_hints_at( &image->line_hints , &beg_of_line , &len , &cols , counter))
 	{
-		ml_image_line_t *  line ;
-		int  beg_of_line ;
-		u_int  len ;
-		u_int  cols ;
-
-		if( ! ml_line_hints_at( &image->line_hints , &beg_of_line , &len , &cols , counter))
+		if( counter == 0)
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_line_hints_at(%d) failed.\n" , counter) ;
-		#endif
-			
-			continue ;
-		}
-
-		if( beg_of_line >= num_of_chars)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " beg_of_line %d is over num_of_chars %d.\n" ,
-				beg_of_line , num_of_chars) ;
-		#endif
-			
-			return  0 ;
+			/*
+			 * adjusting cursor_index
+			 * excluding scrolled out characters.
+			 */
+			*cursor_index -= beg_of_line ;
 		}
 
 		line = ml_imgmdl_get_line( &image->model , current_row) ;
@@ -884,7 +831,7 @@ ml_image_overwrite_chars(
 	 */
 
 	/* overwriting lines with scrolling */
-	overwrite_lines( image , buffer , filled_len) ;
+	overwrite_lines( image , &cursor_index , buffer , filled_len) ;
 
 	ml_str_final( buffer , buf_len) ;
 

@@ -21,7 +21,7 @@ typedef struct  ml_line_hints
 	} *  lines ;
 
 	kik_cycle_index_t *  index ;
-	
+
 } ml_line_hints_t ;
 
 
