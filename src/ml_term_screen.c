@@ -2420,10 +2420,6 @@ select_in_window(
 }
 
 
-/*
- * callbacks of ml_image_scroll events
- */
- 
 static int
 flush_scroll_cache(
 	ml_term_screen_t *  termscr ,
@@ -2535,6 +2531,10 @@ set_scroll_boundary(
 	termscr->scroll_cache_boundary_end = boundary_end ;
 }
 
+/*
+ * callbacks of ml_bs_event_listener_t events.
+ */
+ 
 static int
 window_scroll_upward(
 	void *  p ,
@@ -2549,8 +2549,6 @@ window_scroll_upward(
 	{
 		return  0 ;
 	}
-
-	ml_restore_selected_region_color( &termscr->sel) ;
 
 	set_scroll_boundary( termscr , 0 , ml_image_get_rows( termscr->image) - 1) ;
 	
@@ -2574,8 +2572,6 @@ window_scroll_downward(
 		return  0 ;
 	}
 
-	ml_restore_selected_region_color( &termscr->sel) ;
-	
 	set_scroll_boundary( termscr , 0 , ml_image_get_rows( termscr->image) - 1) ;
 	
 	termscr->scroll_cache_rows -= size ;
@@ -2583,6 +2579,11 @@ window_scroll_downward(
 	return  1 ;
 }
 
+
+/*
+ * callbacks of ml_image_scroll events
+ */
+ 
 static int
 window_scroll_upward_region(
 	void *  p ,
