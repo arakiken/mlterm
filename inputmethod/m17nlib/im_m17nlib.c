@@ -244,7 +244,7 @@ find_input_method(
 	if( ! ( im_list = mdatabase_list( msymbol( "input-method") ,
 					  Mnil , Mnil , Mnil)))
 	{
-		kik_error_printf( "Could not get available input method from m17n database.\n") ;
+		kik_error_printf( "There are no available input methods.\n") ;
 		return  0 ;
 	}
 
@@ -331,7 +331,7 @@ commit(
 
 		if( filled_len == -1)
 		{
-			kik_error_printf( "Could not convert the committed string to terminal encoding. [%d]\n" , merror_code) ;
+			kik_error_printf( "Could not convert the encoding of committed characters. [error code: %d]\n" , merror_code) ;
 		}
 		else
 		{
@@ -373,7 +373,7 @@ set_candidate(
 
 	if( filled_len == -1)
 	{
-		kik_error_printf( "Could not convert the candidate string to terminal encoding. [%d]\n" , merror_code) ;
+		kik_error_printf( "Could not convert the encoding of characters in candidates. [error code: %d]\n" , merror_code) ;
 		return ;
 	}
 
@@ -474,10 +474,8 @@ preedit_changed(
 					  (u_char*) buf ,
 					  filled_len) ;
 
-	m17nlib->im.preedit.segment_offset =
-					m17nlib->input_context->candidate_from ;
-	m17nlib->im.preedit.cursor_offset =
-					m17nlib->input_context->cursor_pos ;
+	m17nlib->im.preedit.segment_offset = m17nlib->input_context->candidate_from ;
+	m17nlib->im.preedit.cursor_offset = m17nlib->input_context->cursor_pos ;
 
 	while( (*m17nlib->parser_term->next_char)( m17nlib->parser_term , &ch))
 	{
@@ -550,11 +548,10 @@ preedit_changed(
 
 draw:
 
-	(*m17nlib->im.listener->draw_preedit_str)(
-					m17nlib->im.listener->self ,
-					m17nlib->im.preedit.chars ,
-					m17nlib->im.preedit.filled_len ,
-					m17nlib->im.preedit.cursor_offset) ;
+	(*m17nlib->im.listener->draw_preedit_str)( m17nlib->im.listener->self ,
+						   m17nlib->im.preedit.chars ,
+						   m17nlib->im.preedit.filled_len ,
+						   m17nlib->im.preedit.cursor_offset) ;
 }
 
 static void
@@ -578,15 +575,13 @@ candidates_changed(
 	{
 		if( m17nlib->im.cand_screen)
 		{
-			(*m17nlib->im.cand_screen->delete)(
-						m17nlib->im.cand_screen) ;
+			(*m17nlib->im.cand_screen->delete)( m17nlib->im.cand_screen) ;
 			m17nlib->im.cand_screen = NULL ;
 		}
 
 		if( m17nlib->im.stat_screen)
 		{
-			(*m17nlib->im.stat_screen->show)(
-						m17nlib->im.stat_screen) ;
+			(*m17nlib->im.stat_screen->show)( m17nlib->im.stat_screen) ;
 		}
 
 		return ;
@@ -610,11 +605,10 @@ candidates_changed(
 	kik_debug_printf( KIK_DEBUG_TAG " number of candidates: %d\n", num_of_candidates) ;
 #endif
 
-	(*m17nlib->im.listener->get_spot)(
-				m17nlib->im.listener->self ,
-				m17nlib->im.preedit.chars ,
-				m17nlib->im.preedit.segment_offset ,
-				&x , &y) ;
+	(*m17nlib->im.listener->get_spot)( m17nlib->im.listener->self ,
+					   m17nlib->im.preedit.chars ,
+					   m17nlib->im.preedit.segment_offset ,
+					   &x , &y) ;
 
 	if( m17nlib->im.cand_screen == NULL)
 	{
@@ -667,8 +661,7 @@ candidates_changed(
 			{
 				MText *  text ;
 				text = mtext() ;
-				mtext_cat_char( text ,
-						mtext_ref_char( mplist_value( group) , i)) ;
+				mtext_cat_char( text , mtext_ref_char( mplist_value( group) , i)) ;
 				set_candidate( m17nlib , text , idx) ;
 				m17n_object_unref( text) ;
 				idx++ ;
@@ -677,9 +670,7 @@ candidates_changed(
 	}
 	else
 	{
-		for( idx = 0 ;
-		     mplist_key( group) != Mnil ;
-		     group = mplist_next( group))
+		for( idx = 0 ; mplist_key( group) != Mnil ; group = mplist_next( group))
 		{
 			for( candidate = mplist_value( group) ;
 			     mplist_key( candidate) != Mnil ;
@@ -692,16 +683,14 @@ candidates_changed(
 		}
 	}
 
-	(*m17nlib->im.cand_screen->select)(
-				m17nlib->im.cand_screen ,
-				m17nlib->input_context->candidate_index) ;
+	(*m17nlib->im.cand_screen->select)( m17nlib->im.cand_screen ,
+					    m17nlib->input_context->candidate_index) ;
 
 	(*m17nlib->im.cand_screen->set_spot)( m17nlib->im.cand_screen , x , y) ;
 
 	if( m17nlib->im.stat_screen)
 	{
-		(*m17nlib->im.stat_screen->hide)(
-					m17nlib->im.stat_screen) ;
+		(*m17nlib->im.stat_screen->hide)( m17nlib->im.stat_screen) ;
 	}
 }
 
@@ -868,14 +857,13 @@ switch_mode(
 
 		if( filled_len == -1)
 		{
-			kik_error_printf( "Could not convert the status string to terminal encoding. [%d]\n" , merror_code) ;
+			kik_error_printf( "Could not convert the encoding of characters for status. [%d]\n" , merror_code) ;
 		}
 		else
 		{
 			buf[filled_len] = 0 ;
-			(*m17nlib->im.stat_screen->set)(
-						m17nlib->im.stat_screen ,
-						m17nlib->parser_term , buf) ;
+			(*m17nlib->im.stat_screen->set)( m17nlib->im.stat_screen ,
+							 m17nlib->parser_term , buf) ;
 		}
 	}
 	else
@@ -938,7 +926,7 @@ focused(
 {
 	im_m17nlib_t *  m17nlib ;
 
-	m17nlib =  (im_m17nlib_t*) im ;
+	m17nlib = (im_m17nlib_t*) im ;
 
 	if( m17nlib->im.cand_screen)
 	{
@@ -1063,9 +1051,7 @@ im_m17nlib_new(
 		goto  error ;
 	}
 
-	if( ! ( m17nlib->input_context = minput_create_ic(
-							m17nlib->input_method ,
-							NULL)))
+	if( ! ( m17nlib->input_context = minput_create_ic( m17nlib->input_method , NULL)))
 	{
 		kik_error_printf( "Could not crate context for %s\n", param) ;
 		goto  error ;
@@ -1089,8 +1075,7 @@ im_m17nlib_new(
 		goto  error ;
 	}
 
-	if( ! ( m17nlib->mconverter = mconv_buffer_converter( encoding_sym ,
-							      NULL , 0)))
+	if( ! ( m17nlib->mconverter = mconv_buffer_converter( encoding_sym , NULL , 0)))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " Could not create MConverter\n") ;
