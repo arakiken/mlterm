@@ -1,4 +1,7 @@
 [20020122]
+* -c/--cp932/use_cp932_ucs_for_xft option is added.
+
+[20020122]
 * aafont file format is changed. ([Font Family]-[Font Encoding](:[Percentage]))
 * font or vfont is used when XIM fontset is created under AA mode.
 
