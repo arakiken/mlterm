@@ -208,37 +208,64 @@ reverse_or_restore_color(
 	int  row ;
 	ml_line_t *  line ;
 	u_int  size_except_spaces ;
-	int  beg_except_spaces ;
-
-	if( ( line = ml_screen_get_line( screen , beg_row)) == NULL || ml_line_is_empty( line))
-	{
-		return  0 ;
-	}
-
-	size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
-	beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
+	int  beg_regarding_rtl ;
 
 	row = beg_row ;
-	if( beg_row == end_row)
+	
+	while( ( line = ml_screen_get_line( screen , row)) == NULL || ml_line_is_empty( line))
 	{
-		for( char_index = K_MAX(beg_char_index,beg_except_spaces) ;
-			char_index < K_MIN(end_char_index + 1,size_except_spaces) ; char_index ++)
+		if( ++ row > end_row)
 		{
-			(*func)( line , char_index) ;
+			return  0 ;
 		}
 	}
-	else if( beg_row < end_row)
+	
+	size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+	beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
+
+	if( row > beg_row)
 	{
 		if( ml_line_is_rtl( line))
 		{
-			for( char_index = beg_except_spaces ; char_index <= beg_char_index ; char_index ++)
+			beg_char_index = K_MAX(size_except_spaces,1) - 1 ;
+		}
+		else
+		{
+			beg_char_index = beg_regarding_rtl ;
+		}
+	}
+
+	if( row == end_row)
+	{
+		if( ml_line_is_rtl( line))
+		{
+			for( char_index = K_MAX(end_char_index,beg_regarding_rtl) ;
+				char_index < K_MIN(beg_char_index + 1,size_except_spaces) ; char_index ++)
 			{
 				(*func)( line , char_index) ;
 			}
 		}
 		else
 		{
-			for( char_index = K_MAX(beg_char_index,beg_except_spaces) ;
+			for( char_index = K_MAX(beg_char_index,beg_regarding_rtl) ;
+				char_index < K_MIN(end_char_index + 1,size_except_spaces) ; char_index ++)
+			{
+				(*func)( line , char_index) ;
+			}
+		}
+	}
+	else if( row < end_row)
+	{
+		if( ml_line_is_rtl( line))
+		{
+			for( char_index = beg_regarding_rtl ; char_index <= beg_char_index ; char_index ++)
+			{
+				(*func)( line , char_index) ;
+			}
+		}
+		else
+		{
+			for( char_index = K_MAX(beg_char_index,beg_regarding_rtl) ;
 				char_index < size_except_spaces ; char_index ++)
 			{
 				(*func)( line , char_index) ;
@@ -250,13 +277,13 @@ reverse_or_restore_color(
 			if( ( line = ml_screen_get_line( screen , row)) == NULL ||
 				ml_line_is_empty( line))
 			{
-				return  0 ;
+				continue ;
 			}
 
 			size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
-			beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
+			beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
 			
-			for( char_index = beg_except_spaces ;
+			for( char_index = beg_regarding_rtl ;
 				char_index < size_except_spaces ; char_index ++)
 			{
 				(*func)( line , char_index) ;
@@ -266,15 +293,15 @@ reverse_or_restore_color(
 		if( ( line = ml_screen_get_line( screen , row)) == NULL ||
 			ml_line_is_empty( line))
 		{
-			return  0 ;
+			return  1 ;
 		}
 
 		size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
-		beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
+		beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
 
 		if( ml_line_is_rtl( line))
 		{
-			for( char_index = K_MAX(end_char_index,beg_except_spaces) ;
+			for( char_index = K_MAX(end_char_index,beg_regarding_rtl) ;
 				char_index < size_except_spaces ; char_index ++)
 			{
 				(*func)( line , char_index) ;
@@ -282,7 +309,7 @@ reverse_or_restore_color(
 		}
 		else
 		{
-			for( char_index = beg_except_spaces ;
+			for( char_index = beg_regarding_rtl ;
 				char_index < K_MIN(end_char_index + 1,size_except_spaces) ; char_index ++)
 			{
 				(*func)( line , char_index) ;
@@ -307,77 +334,68 @@ check_or_copy_region(
 	ml_line_t *  line ;
 	int  count ;
 	u_int  size_except_spaces ;
-	int  beg_except_spaces ;
-	int  beg_limit ;
-	int  end_limit ;
+	int  beg_regarding_rtl ;
+	int  row ;
 
-	/* u_int => int */
-	beg_limit = - ( ml_get_num_of_logged_lines( &screen->logs)) ;
-	end_limit = ml_model_end_row( &screen->edit->model) ;
-
-	if( beg_row < beg_limit)
-	{
-		beg_row = beg_limit ;
-	}
+	row = beg_row ;
 	
-	if( end_row > end_limit)
+	while( ( line = ml_screen_get_line( screen , row)) == NULL || ml_line_is_empty( line))
 	{
-		end_row = end_limit ;
-	}
-	
-	if( ( line = ml_screen_get_line( screen , beg_row)) == NULL)
-	{
-		return  0 ;
-	}
-
-	if( beg_char_index >= (size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line)))
-	{
-		do
+		if( ++ row > end_row)
 		{
-			if( ++ beg_row > end_row ||
-				( line = ml_screen_get_line( screen , beg_row)) == NULL)
-			{
-				return  0 ;
-			}
+			return  0 ;
 		}
-		while( ( size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line)) == 0) ;
+	}
+	
+	size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+	beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
 
+	if( row > beg_row)
+	{
 		if( ml_line_is_rtl( line))
 		{
-			beg_char_index = size_except_spaces - 1 ;
+			beg_char_index = K_MAX(size_except_spaces,1) - 1 ;
 		}
 		else
 		{
-			beg_char_index = 0 ;
+			beg_char_index = beg_regarding_rtl ;
 		}
 	}
 
-	beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
-
-	if( beg_row == end_row)
+	if( row == end_row)
 	{
-		count = K_MIN(end_char_index + 1,size_except_spaces) -
-				K_MAX(beg_char_index,beg_except_spaces) ;
-		if( chars)
-		{
-			ml_line_copy_str( line , chars , beg_char_index , count) ;
-		}
-	}
-	else if( beg_row < end_row)
-	{
-		int  row ;
-
 		if( ml_line_is_rtl( line))
 		{
-			count = (K_MAX(beg_char_index,beg_except_spaces) - beg_except_spaces + 1) ;
+			count = K_MIN(beg_char_index + 1,size_except_spaces) -
+					K_MAX(end_char_index,beg_regarding_rtl) ;
 			if( chars)
 			{
-				ml_line_copy_str( line , chars , beg_except_spaces , count) ;
+				ml_line_copy_str( line , chars , end_char_index , count) ;
 			}
 		}
 		else
 		{
-			count = (size_except_spaces - K_MAX(beg_char_index,beg_except_spaces)) ;
+			count = K_MIN(end_char_index + 1,size_except_spaces) -
+					K_MAX(beg_char_index,beg_regarding_rtl) ;
+			if( chars)
+			{
+				ml_line_copy_str( line , chars , beg_char_index , count) ;
+			}
+		}
+	}
+	else if( row < end_row)
+	{
+		if( ml_line_is_rtl( line))
+		{
+			count = (K_MAX(beg_char_index,beg_regarding_rtl) - beg_regarding_rtl + 1) ;
+			if( chars)
+			{
+				ml_line_copy_str( line , chars , beg_regarding_rtl , count) ;
+			}
+		}
+		else
+		{
+			count = (size_except_spaces - K_MAX(beg_char_index,beg_regarding_rtl)) ;
 			if( chars)
 			{
 				ml_line_copy_str( line , chars , beg_char_index , count) ;
@@ -393,19 +411,19 @@ check_or_copy_region(
 			count ++ ;
 		}
 
-		for( row = beg_row + 1 ; row < end_row ; row ++)
+		for( row ++ ; row < end_row ; row ++)
 		{
 			line = ml_screen_get_line( screen , row) ;
 
 			size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
-			beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
+			beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
 
 			if( chars)
 			{
-				ml_line_copy_str( line , &chars[count] , beg_except_spaces ,
-					size_except_spaces - beg_except_spaces) ;
+				ml_line_copy_str( line , &chars[count] , beg_regarding_rtl ,
+					size_except_spaces - beg_regarding_rtl) ;
 			}
-			count += (size_except_spaces - beg_except_spaces) ;
+			count += (size_except_spaces - beg_regarding_rtl) ;
 
 			if( ! ml_line_is_continued_to_next( line))
 			{
@@ -420,23 +438,23 @@ check_or_copy_region(
 		line = ml_screen_get_line( screen , row) ;
 
 		size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
-		beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
+		beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
 
 		if( ml_line_is_rtl( line))
 		{
 			if( chars)
 			{
 				ml_line_copy_str( line , &chars[count] ,
-					K_MAX(end_char_index,beg_except_spaces) ,
-					size_except_spaces - K_MAX(end_char_index,beg_except_spaces)) ;
+					K_MAX(end_char_index,beg_regarding_rtl) ,
+					size_except_spaces - K_MAX(end_char_index,beg_regarding_rtl)) ;
 			}
-			count += (size_except_spaces - K_MAX(end_char_index,beg_except_spaces)) ;
+			count += (size_except_spaces - K_MAX(end_char_index,beg_regarding_rtl)) ;
 		}
 		else
 		{
 			if( chars)
 			{
-				ml_line_copy_str( line , &chars[count] , beg_except_spaces ,
+				ml_line_copy_str( line , &chars[count] , beg_regarding_rtl ,
 					K_MIN(end_char_index + 1,size_except_spaces)) ;
 			}
 			count += K_MIN(end_char_index + 1,size_except_spaces) ;

@@ -3583,11 +3583,21 @@ selecting_with_motion(
 
 	row = ml_term_convert_scr_row_to_abs( screen->term , convert_y_to_row( screen , NULL , y)) ;
 
-	if( ( line = ml_term_get_line( screen->term , row)) == NULL || ml_line_is_empty( line))
+	if( ( line = ml_term_get_line( screen->term , row)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " line(%d) not found.\n" , row) ;
 	#endif
+
+		return ;
+	}
+
+	if( ml_line_is_empty( line))
+	{
+		if( x_selected_region_is_changed( &screen->sel , 0 , row , 1))
+		{
+			selecting( screen , 0 , row) ;
+		}
 
 		return ;
 	}
@@ -5675,15 +5685,11 @@ reverse_color(
 	beg_char_index = abs( beg_char_index) ;
 	end_char_index = abs( end_char_index) ;
 
-	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)) && beg_row == end_row)
-	{
-		int  buf ;
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " reversing region %d %d %d %d.\n" ,
+		beg_char_index , beg_row , end_char_index , end_row) ;
+#endif
 
-		buf = beg_char_index ;
-		beg_char_index = end_char_index ;
-		end_char_index = buf ;
-	}
-	
 	ml_term_reverse_color( screen->term , beg_char_index , beg_row ,
 		end_char_index , end_row) ;
 }
@@ -5703,15 +5709,6 @@ restore_color(
 	
 	beg_char_index = abs( beg_char_index) ;
 	end_char_index = abs( end_char_index) ;
-
-	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)) && beg_row == end_row)
-	{
-		int  buf ;
-
-		buf = beg_char_index ;
-		beg_char_index = end_char_index ;
-		end_char_index = buf ;
-	}
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " restoring region %d %d %d %d.\n" ,
@@ -5741,15 +5738,6 @@ select_in_window(
 
 	beg_char_index = abs( beg_char_index) ;
 	end_char_index = abs( end_char_index) ;
-
-	if( ml_line_is_rtl( ml_term_get_line( screen->term , beg_row)) && beg_row == end_row)
-	{
-		int  buf ;
-
-		buf = beg_char_index ;
-		beg_char_index = end_char_index ;
-		end_char_index = buf ;
-	}
 
 	if( ( size = ml_term_get_region_size( screen->term , beg_char_index , beg_row ,
 			end_char_index , end_row)) == 0)
