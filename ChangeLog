@@ -1,4 +1,4 @@
-2004-10-09  Araki Ken  <arakiken@users.sf.net>
+2004-10-09 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* ml_cursor.h: added missig #endif.
 
