@@ -1,3 +1,9 @@
+2005-01-01 MINAMI Hirokazu <minami@Mistfall.net>
+
+	* xwindow/x_screen.c: BackSpace/Delete couldn't be used
+	as a shortcut key. 
+	(Thanks to Yusuke Sakai)
+
 2004-12-29 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* configure.in: applied a patch from Ken'ichi Handa.

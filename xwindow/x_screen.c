@@ -2064,20 +2064,7 @@ key_pressed(
 			}
 		}
 
-		if( ( ksym == XK_Delete && size == 1) || ksym == XK_KP_Delete)
-		{
-			buf = x_termcap_get_str_field( screen->termcap , ML_DELETE) ;
-		}
-		/*
-		 * XXX
-		 * In some environment, if backspace(1) -> 0-9 or space(2) pressed continuously,
-		 * ksym in (2) as well as (1) is XK_BackSpace.
-		 */
-		else if( ksym == XK_BackSpace && size == 1 && seq[0] == 0x8)
-		{
-			buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE) ;
-		}
-		else if( ( buf = x_shortcut_str( screen->shortcut , ksym , masked_state)))
+		if( ( buf = x_shortcut_str( screen->shortcut , ksym , masked_state)))
 		{
 			if( strncmp( buf , "proto:" , 6) == 0)
 			{
@@ -2134,6 +2121,20 @@ key_pressed(
 				return  ;
 			}
 		}
+		else if( ( ksym == XK_Delete && size == 1) || ksym == XK_KP_Delete)
+		{
+			buf = x_termcap_get_str_field( screen->termcap , ML_DELETE) ;
+		}
+		/*
+		 * XXX
+		 * In some environment, if backspace(1) -> 0-9 or space(2) pressed continuously,
+		 * ksym in (2) as well as (1) is XK_BackSpace.
+		 */
+		else if( ksym == XK_BackSpace && size == 1 && seq[0] == 0x8)
+		{
+			buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE) ;
+		}
+
 		else if( size > 0)
 		{
 			buf = NULL ;
