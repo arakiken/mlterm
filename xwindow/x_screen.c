@@ -5315,6 +5315,16 @@ get_config(
 	{
 		value = getcwd( cwd , PATH_MAX) ;
 	}
+	else if( strcmp( key , "rows") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_rows( screen->term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "cols") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_cols( screen->term)) ;
+		value = digit ;
+	}
 	else
 	{
 		goto  error ;

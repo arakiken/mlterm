@@ -1,3 +1,7 @@
+2002-06-12 Araki Ken <arakiken@users.sf.net>
+
+	* "rows" and "cols" are added to ESC ] 5380 configuration protocol.
+
 2002-06-11 Tomohiro KUBOTA <kubota@debian.org>
 
 	* XIM server could not be changed by using mlconfig; fixed.
