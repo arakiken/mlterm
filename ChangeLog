@@ -1,4 +1,8 @@
 [20020217]
+* mlclient with invalid options causes mlterm process to exit. fixed.
+* typo in LICENCE file is fixed. (Thanks to Fumitake Taniguchi san)
+
+[20020217]
 * iscii_lang is added to mlterm configuration protocol.
 * mlclient --help or --version causes mlterm process to exit. fixed.
   (Thanks to Ikezoe Hiroyuki san)
