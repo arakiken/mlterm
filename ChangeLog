@@ -1,3 +1,7 @@
+2003-06-02  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* Removed obsoleted config tools(mlcc/mlconf_curses)
+
 2003-05-25 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Japanese translation for a new item in tool/mlconfig/po .

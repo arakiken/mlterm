@@ -210,12 +210,6 @@ mlclient)
 w3mmlconfig)
 	MAKE_DIRS="tool/w3mmlconfig ${MAKE_DIRS}"
 	;;
-mlcc)
-	MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
-	;;
-mlconf_curses)
-	MAKE_DIRS="contrib/tool/mlconf_curses ${MAKE_DIRS}"
-	;;
 *)
 	echo "${tool} is unknown tool."
 	;;

@@ -14,7 +14,8 @@ comment $Id$
   この場合、素直に、標準入出力を使用して、mlterm 本体と doc/en/PROTOCOL
   なやりとりを実装することになります。
 
-  実装例) contrib/tool/mlconf_curses,contrib/tool/mlcc
+  標準入出力を経由する設定の取得はセキュリティ面で問題となるため、
+  無効化されています。
 
 * GUI 型設定プログラム
   mlterm 上で、Ctrl+Button3 で起動させるタイプの設定プログラムです。
