@@ -120,6 +120,10 @@ typedef struct  x_screen
 	char *  pic_file_path ;
 	x_picture_modifier_t  pic_mod ;
 
+	/*
+	 * These members mustn't be changed by mlterm configuration protocol,
+	 * since they can be executed.
+	 */
 	char *  conf_menu_path_1 ;
 	char *  conf_menu_path_2 ;
 	char *  conf_menu_path_3 ;

@@ -26,7 +26,7 @@ version 20030301
                      screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
                      use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | rows | cols | cursor_fg_color | cursor_bg_color |
-                     pty_list
+                     pty_list | pty_name
   value            = <values for each key>
 
 * compatible with other terminals
@@ -81,7 +81,8 @@ version 20030301
   open_pty = <none>
   open_screen = <none>
   select_pty = <pty dev name>
-  pty_list = <[pty dev]BEL[pty name]BEL[pty_list]EOT>*
+  pty_list = (<pty dev>:<active flag>;)*
+  pty_name = <pty dev> | <pty title>
 
 * note
   o Encoding names are regularized , that is , `-' , `-' are removed , and only upper
@@ -93,3 +94,5 @@ version 20030301
   o Return value of ESC ] 5380 ; xim BEL is <xim name> only , never <xim name> ":" <locale name>.
   o It is configuration programs themselves that search ~/.mlterm/xim and
     ${SYSCONFDIR}/mlterm/xim files for pairs of xim name and its preferable locale.
+  o If /dev/... specified with 'pty_name' key, <pty title> is returned.
+    Otherwise, <pty dev> returned.

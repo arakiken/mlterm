@@ -77,7 +77,6 @@ mc_pty_config_widget_new(void)
 	char *  my_pty ;
 	char *  pty_list ;
 	char *  ptys[MAX_TERMS];
-	char *title, *name;
 	int num;
 
 	my_pty = mc_get_str_value( "pty_name") ;

@@ -8,6 +8,7 @@
 
 #include  "kik_config.h"	/* socklen_t */
 
+#include  <sys/types.h>
 #include  <sys/socket.h>	
 #include  <sys/un.h>
 

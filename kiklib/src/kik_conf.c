@@ -626,7 +626,7 @@ kik_conf_read(
 		entry->value = value ;
 	}
 
-	kik_file_delete( from) ;
+	kik_file_close( from) ;
 
 	return  1 ;
 }
