@@ -1,0 +1,24 @@
+# Process this file with autoconf to produce a configure script.
+AC_INIT(mlcc, 0.1, "minami@chem.s.u-tokyo.ac.jp")
+AC_CONFIG_SRCDIR([main.c])
+AC_CONFIG_HEADER([config.h])
+
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+
+# Checks for libraries.
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([stdlib.h string.h termios.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([memmove memset strcasecmp strchr strdup strncasecmp strrchr])
+
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
