@@ -6,7 +6,7 @@
 #define  __C_INTL_H__
 
 
-#include "config.h"
+#include "c_config.h"
 
 #define _(arg) gettext(arg) 
 #define const
