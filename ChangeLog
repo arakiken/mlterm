@@ -3,6 +3,17 @@
 	* "-p"/"--pic" option was not enabled when using gdk-pixbuf2.
 	  Fixed.
 
+2004-03-03  Araki Ken  <arakiken@users.sf.net>
+
+	* Moved ml_line_copy_color_reversed_flag() to ml_logical_visual.c
+	  from ml_line.c.
+
+	* Added ml_char_copy_color_revsered_flag()
+	  Removed ml_char_is_color_reversed()
+
+	* Crossed over line->chars array boundary in shape_iscii(ml_shape.c) and
+	  ml_iscii_convert_logical_char_index_to_visual(). Fixed. 
+
 2004-03-01  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* mlterm/ml_vt100_parser.c: ignore leading zeroes in numeric
