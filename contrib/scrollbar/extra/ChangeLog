@@ -1,3 +1,7 @@
+2002-05-05 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* mozmodern.c: added a cache for pixel values.
+
 2002-05-01 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* exsb_common.c: fixed minor bug in get_closest_xcolor_pseudo()
@@ -9,7 +13,8 @@
 
 2002-04-30 Seiichi SATO <ssato@sh.rim.or.jp>
 
-	* LICENCE: This file, initial import.
+	* ChangeLog: This file, initial import.
+	* LICENCE: Initial import.
 	* fixed some bugs related to destroy pixmaps and/or graphic contexts.
 	* added initialization for graphic contexts
 	* exsb_common.c: Initial import, common functions to manipulate color

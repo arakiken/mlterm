@@ -12,6 +12,7 @@
 
 #define  WIDTH      15
 #define  MARGIN     15
+#define  NR_COLOR   18
 
 typedef struct  mozmod_sb_view
 {
@@ -24,6 +25,8 @@ typedef struct  mozmod_sb_view
 	Pixmap  arrow_up_pressed ;
 	Pixmap  arrow_down ;
 	Pixmap  arrow_down_pressed ;
+
+	unsigned long pixels[NR_COLOR] ; /* cache */
 
 } mozmod_sb_view_t ;
 
@@ -40,20 +43,29 @@ static char *color_name[] =
 	"rgb:93/9f/ad",  /* 8  ',' */
 	"rgb:70/80/92",  /* 9  '-' */
 	"rgb:92/9e/ac",  /* 10 '~' */
-	"rgb:87/95/a4"   /* 11 ';" */
+	"rgb:87/95/a4",  /* 11 ';" */
+	"rgb:98/9e/a6",  /* 12     */
+	"rgb:79/81/8c",  /* 13     */
+	"rgb:6d/80/94",  /* 14     */
+	"rgb:d7/df/e6",  /* 15     */
+	"rgb:8d/95/9f",  /* 16     */
+	"rgb:a0/a8/ae"   /* 17     */
 } ;
 
 
 /* --- static functions --- */
 
-unsigned long
+static unsigned long
 get_pixel_by_symbol(
 	ml_sb_view_t *  view ,
 	char symbol
 	)
 {
+	mozmod_sb_view_t *  mozmod_sb ;
 	int  index ;
-	
+
+	mozmod_sb = (mozmod_sb_view_t*) view ;
+
 	switch (symbol)
 	{
 		case '#':
@@ -96,7 +108,7 @@ get_pixel_by_symbol(
 			index = 0 ;
 			break ;
 	}
-	return  exsb_get_pixel( view->display , view->screen , color_name[index]) ;
+	return mozmod_sb->pixels[index] ;
 }
 
 static Pixmap
@@ -112,7 +124,7 @@ get_pixmap(
 	char  cur ;
 	int  x ;
 	int  y ;
-	
+
 	pix = XCreatePixmap( view->display , view->window , width , height ,
 		DefaultDepth( view->display , view->screen)) ;
 	cur = '\0' ;
@@ -174,15 +186,14 @@ ml_create_sb_bg_pixmap(
 	)
 {
 	Pixmap  pix ;
-	mozmod_sb_view_t * mozmod_sb ;
+	mozmod_sb_view_t *  mozmod_sb ;
 
 	mozmod_sb = (mozmod_sb_view_t*) view ;
 
 	pix = XCreatePixmap( view->display , view->window , width , height ,
 		DefaultDepth( view->display , view->screen)) ;
 
-	XSetForeground( view->display , mozmod_sb->gc ,
-		exsb_get_pixel( view->display , view->screen , "rgb:98/9e/a6")) ;
+	XSetForeground( view->display , mozmod_sb->gc , mozmod_sb->pixels[12]) ;
 	XFillRectangle( view->display , pix , mozmod_sb->gc ,
 		1 , 0 , width - 2 , height);
 
@@ -193,18 +204,15 @@ ml_create_sb_bg_pixmap(
 	XDrawLine( view->display , pix , mozmod_sb->gc ,
 		width - 1 , 0 , width - 1 , height - 1) ;
 
-	XSetForeground( view->display , mozmod_sb->gc ,
-		exsb_get_pixel( view->display , view->screen , "rgb:79/81/8c")) ;
+	XSetForeground( view->display , mozmod_sb->gc , mozmod_sb->pixels[13]) ;
 	XDrawLine( view->display , pix , mozmod_sb->gc ,
 		1 , 0 , 1 , height - 1) ;
 
-	XSetForeground( view->display , mozmod_sb->gc ,
-		exsb_get_pixel( view->display , view->screen , "rgb:8d/95/9f")) ;
+	XSetForeground( view->display , mozmod_sb->gc , mozmod_sb->pixels[16]) ;
 	XDrawLine( view->display , pix , mozmod_sb->gc ,
 		2 , 0 , 2 , height - 1) ;
 
-	XSetForeground( view->display , mozmod_sb->gc ,
-		exsb_get_pixel( view->display , view->screen , "rgb:a0/a8/ae")) ;
+	XSetForeground( view->display , mozmod_sb->gc , mozmod_sb->pixels[17]) ;
 	XDrawLine( view->display , pix , mozmod_sb->gc ,
 		width - 2 , 0 , width - 2 , height - 1) ;
 
@@ -224,6 +232,7 @@ realized(
 {
 	mozmod_sb_view_t *  mozmod_sb ;
 	XGCValues  gc_value ;
+	int  i ;
 
 	mozmod_sb = (mozmod_sb_view_t*) view ;
 	
@@ -232,6 +241,13 @@ realized(
 	view->window = window ;
 	view->gc = gc ;
 	view->height = height ;
+
+	for( i = 0 ; i < NR_COLOR ; i ++)
+	{
+		mozmod_sb->pixels[i] = exsb_get_pixel( view->display ,
+						       view->screen ,
+						       color_name[i]) ;
+	}
 
 	XDefineCursor( view->display , view->window ,
 		XCreateFontCursor( view->display , XC_left_ptr)) ;
@@ -247,17 +263,13 @@ realized(
 	mozmod_sb->background = ml_create_sb_bg_pixmap( view ,
 		WIDTH , view->height - MARGIN * 2);
 	mozmod_sb->arrow_up = get_pixmap( view , mozmod_sb->gc ,
-				arrow_up_src ,
-				WIDTH , MARGIN) ;
+				arrow_up_src , WIDTH , MARGIN) ;
 	mozmod_sb->arrow_down = get_pixmap( view , mozmod_sb->gc ,
-				arrow_down_src ,
-				WIDTH , MARGIN) ;
+				arrow_down_src , WIDTH , MARGIN) ;
 	mozmod_sb->arrow_up_pressed = get_pixmap( view , mozmod_sb->gc ,
-				arrow_up_pressed_src ,
-				WIDTH , MARGIN) ;
+				arrow_up_pressed_src , WIDTH , MARGIN) ;
 	mozmod_sb->arrow_down_pressed = get_pixmap( view , mozmod_sb->gc ,
-				arrow_down_pressed_src ,
-				WIDTH , MARGIN) ;
+				arrow_down_pressed_src , WIDTH , MARGIN) ;
 
 	XCopyArea( view->display , mozmod_sb->background ,
 		view->window , view->gc ,
@@ -295,7 +307,7 @@ delete(
 
 	mozmod_sb = (mozmod_sb_view_t*) view ;
 
-	if (mozmod_sb)
+	if( mozmod_sb)
 	{
 		XFreePixmap( view->display , mozmod_sb->background) ;
 		XFreePixmap( view->display , mozmod_sb->arrow_up) ;
@@ -416,7 +428,7 @@ draw_scrollbar_common(
 	if (bar_height < 6) /* can't draw shade, since too small */
 	{
 		XSetForeground( view->display , mozmod_sb->gc ,
-			get_pixel_by_symbol( view , ':')) ;
+			mozmod_sb->pixels[3]) ;
 		XFillRectangle( view->display , view->window , mozmod_sb->gc ,
 			0 , bar_top_y ,
 			WIDTH , bar_height) ;
@@ -428,14 +440,12 @@ draw_scrollbar_common(
 		return ;
 	}
 
-	XSetForeground( view->display , mozmod_sb->gc ,
-		get_pixel_by_symbol( view , ':')) ;
+	XSetForeground( view->display , mozmod_sb->gc , mozmod_sb->pixels[3]) ;
 	XFillRectangle( view->display , view->window , mozmod_sb->gc ,
 		1 , bar_top_y + 1 ,
 		WIDTH - 2 , bar_height - 2) ;
 
-	XSetForeground( view->display , mozmod_sb->gc ,
-			get_pixel_by_symbol( view , '+')) ;
+	XSetForeground( view->display , mozmod_sb->gc , mozmod_sb->pixels[5]) ;
 	line[0].x1 = WIDTH - 2 ;
 	line[0].y1 = bar_top_y + 1 ;
 	line[0].x2 = WIDTH - 2 ;
@@ -444,11 +454,9 @@ draw_scrollbar_common(
 	line[1].y1 = bar_top_y + bar_height - 2 ;
 	line[1].x2 = WIDTH - 3 ;
 	line[1].y2 = bar_top_y + bar_height - 2 ;
-	XDrawSegments( view->display , view->window , mozmod_sb->gc ,
-			line , 2) ;
+	XDrawSegments( view->display , view->window , mozmod_sb->gc , line , 2) ;
 
-	XSetForeground( view->display , mozmod_sb->gc ,
-			get_pixel_by_symbol( view , '$')) ;
+	XSetForeground( view->display , mozmod_sb->gc , mozmod_sb->pixels[4]) ;
 	line[0].x1 = WIDTH - 3 ;
 	line[0].y1 = bar_top_y + 2 ;
 	line[0].x2 = WIDTH - 3 ;
@@ -457,10 +465,9 @@ draw_scrollbar_common(
 	line[1].y1 = bar_top_y + bar_height - 3 ;
 	line[1].x2 = WIDTH - 4 ;
 	line[1].y2 = bar_top_y + bar_height - 3 ;
-	XDrawSegments( view->display , view->window , mozmod_sb->gc ,
-			line , 2) ;
+	XDrawSegments( view->display , view->window , mozmod_sb->gc , line , 2) ;
 
-	XSetForeground( view->display , mozmod_sb->gc , get_pixel_by_symbol( view , ' ')) ;
+	XSetForeground( view->display , mozmod_sb->gc , mozmod_sb->pixels[1]) ;
 	line[0].x1 = 1 ;
 	line[0].y1 = bar_top_y + 1 ;
 	line[0].x2 = 1 ;
@@ -469,10 +476,9 @@ draw_scrollbar_common(
 	line[1].y1 = bar_top_y + 1 ;
 	line[1].x2 = WIDTH - 3 ;
 	line[1].y2 = bar_top_y + 1 ;
-	XDrawSegments( view->display , view->window , mozmod_sb->gc ,
-			line , 2) ;
+	XDrawSegments( view->display , view->window , mozmod_sb->gc , line , 2) ;
 
-	XSetForeground( view->display , mozmod_sb->gc , get_pixel_by_symbol( view , '.')) ;
+	XSetForeground( view->display , mozmod_sb->gc ,mozmod_sb->pixels[2]) ;
 	line[0].x1 = 2 ;
 	line[0].y1 = bar_top_y + 2 ;
 	line[0].x2 = 2 ;
@@ -481,8 +487,7 @@ draw_scrollbar_common(
 	line[1].y1 = bar_top_y + 2 ;
 	line[1].x2 = WIDTH - 4 ;
 	line[1].y2 = bar_top_y + 2 ;
-	XDrawSegments( view->display , view->window , mozmod_sb->gc ,
-			line , 2) ;
+	XDrawSegments( view->display , view->window , mozmod_sb->gc , line , 2) ;
 
 	XSetForeground( view->display , mozmod_sb->gc ,
 		BlackPixel( view->display , view->screen)) ;
@@ -505,9 +510,9 @@ draw_scrollbar_common(
 			i ++ ;
 		}
 		XSetForeground( view->display , mozmod_sb->gc ,
-			exsb_get_pixel( view->display , view->screen , "rgb:6d/80/94")) ;
+				mozmod_sb->pixels[14]) ;
 		XDrawSegments( view->display , view->window , mozmod_sb->gc ,
-				line , i) ;
+			       line , i) ;
 
 		i = 0 ;
 		for ( y = bar_mid_y - 3 ; y < bar_mid_y + 6 ; y += 4)
@@ -519,9 +524,9 @@ draw_scrollbar_common(
 			i ++ ;
 		}
 		XSetForeground( view->display , mozmod_sb->gc ,
-			exsb_get_pixel( view->display , view->screen , "rgb:d7/df/e6")) ;
+				mozmod_sb->pixels[15]) ;
 		XDrawSegments( view->display , view->window , mozmod_sb->gc ,
-				line , i) ;
+			       line , i) ;
 	}
 
 }
@@ -585,7 +590,7 @@ ml_sb_view_t *
 ml_mozmodern_sb_view_new(void)
 {
 	mozmod_sb_view_t *  mozmod_sb ;
-	
+
 	if( ( mozmod_sb = malloc( sizeof( mozmod_sb_view_t))) == NULL)
 	{
 		return  NULL ;
@@ -620,7 +625,7 @@ ml_sb_view_t *
 ml_mozmodern_transparent_sb_view_new(void)
 {
 	mozmod_sb_view_t *  mozmod_sb ;
-	
+
 	if( ( mozmod_sb = malloc( sizeof( mozmod_sb_view_t))) == NULL)
 	{
 		return  NULL ;
