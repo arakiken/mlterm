@@ -5,7 +5,7 @@
 #include  "mc_wall_pic.h"
 
 #include  <glib.h>
-#include  <ml_intl.h>
+#include  <c_intl.h>
 
 
 /* --- static functions --- */

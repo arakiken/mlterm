@@ -10,7 +10,7 @@
 #include  <kiklib/kik_map.h>
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <glib.h>
-#include  <ml_intl.h>
+#include  <c_intl.h>
 
 #include  "mc_combo.h"
 

@@ -8,7 +8,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>
 
-#include  <ml_intl.h>
+#include  <c_intl.h>
 
 #include  "mc_char_encoding.h"
 #include  "mc_color.h"

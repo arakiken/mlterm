@@ -6,7 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
-#include  <ml_intl.h>
+#include  <c_intl.h>
 
 
 #if  0
