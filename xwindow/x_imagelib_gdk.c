@@ -297,8 +297,9 @@ closest_color_index(
 		{
 			min = diff ;
 			closest = i ;
-			if ( diff < 3)
-				goto enough:
+			/* no one may notice the difference */
+			if ( diff < 3) 
+				goto enough ;
 		}
 	}
 enough:
