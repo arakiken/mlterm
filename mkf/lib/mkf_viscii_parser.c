@@ -27,12 +27,9 @@ viscii_parser_next_char(
 
 	c = *viscii_parser->str ;
 
-	if( (/* 0x0 <= c && */ c <= 0x1f && c != 0x02 && c != 0x05 && c != 0x06 &&
-		c != 0x14 && c != 0x19 && c != 0x1e) ||
-		c == 0x7f)
+	if( /* 0x0 <= c && */ c <= 0x7f && c != 0x02 && c != 0x05 && c != 0x06 &&
+		c != 0x14 && c != 0x19 && c != 0x1e)
 	{
-		/* C0 */
-
 		ch->cs = US_ASCII ;
 	}
 	else

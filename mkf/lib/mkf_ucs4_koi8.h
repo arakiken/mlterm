@@ -15,9 +15,13 @@ int  mkf_map_koi8_r_to_ucs4( mkf_char_t *  ucs4 , u_int16_t  koi8_code) ;
 
 int  mkf_map_koi8_u_to_ucs4( mkf_char_t *  ucs4 , u_int16_t  koi8_code) ;
 
+int  mkf_map_koi8_t_to_ucs4( mkf_char_t *  ucs4 , u_int16_t  koi8_code) ;
+
 int  mkf_map_ucs4_to_koi8_r( mkf_char_t *  non_ucs , u_int32_t  ucs4_code) ;
 
 int  mkf_map_ucs4_to_koi8_u( mkf_char_t *  non_ucs , u_int32_t  ucs4_code) ;
+
+int  mkf_map_ucs4_to_koi8_t( mkf_char_t *  non_ucs , u_int32_t  ucs4_code) ;
 
 
 #endif

@@ -53,6 +53,9 @@ static encoding_to_cs_table_t  usascii_font_cs_table[] =
 	{ ML_VISCII , VISCII } ,
 	{ ML_KOI8_R , KOI8_R } ,
 	{ ML_KOI8_U , KOI8_U } ,
+	{ ML_KOI8_T , KOI8_T } ,
+	{ ML_GEORGIAN_PS , GEORGIAN_PS } ,
+	
 	{ ML_UTF8 , ISO10646_UCS4_1 } ,
 	
 } ;

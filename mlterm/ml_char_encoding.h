@@ -40,6 +40,8 @@ typedef enum  ml_char_encoding
 	ML_VISCII ,
 	ML_KOI8_R ,
 	ML_KOI8_U ,
+	ML_KOI8_T ,
+	ML_GEORGIAN_PS ,
 	
 	ML_UTF8 ,
 

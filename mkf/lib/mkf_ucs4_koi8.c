@@ -4,10 +4,14 @@
 
 #include  "mkf_ucs4_koi8.h"
 
-/* not still implemented */
-/* #include  "table/mkf_ucs4_alphabet_to_koi8_r.table" */
-
 #include  "table/mkf_koi8_r_to_ucs4.table"
+#if  0
+/* Not implemented yet */
+#include  "table/mkf_ucs4_alphabet_to_koi8_r.table"
+#endif
+
+#include  "table/mkf_koi8_t_to_ucs4.table"
+#include  "table/mkf_ucs4_alphabet_to_koi8_t.table"
 
 
 /* --- global functions --- */
@@ -23,6 +27,18 @@ mkf_map_koi8_r_to_ucs4(
 	if( ( c = CONV_KOI8_R_TO_UCS4(koi8_code)))
 	{
 		mkf_int_to_bytes( ucs4->ch , 4 , c) ;
+		ucs4->size = 4 ;
+		ucs4->cs = ISO10646_UCS4_1 ;
+		ucs4->property = 0 ;
+
+		return  1 ;
+	}
+	else if( /* 0x00 <= koi8_code && */ koi8_code <= 0x7f)
+	{
+		ucs4->ch[0] = 0x0 ;
+		ucs4->ch[1] = 0x0 ;
+		ucs4->ch[2] = 0x0 ;
+		ucs4->ch[3] = koi8_code ;
 		ucs4->size = 4 ;
 		ucs4->cs = ISO10646_UCS4_1 ;
 		ucs4->property = 0 ;
@@ -83,28 +99,44 @@ mkf_map_koi8_u_to_ucs4(
 }
 
 int
+mkf_map_koi8_t_to_ucs4(
+	mkf_char_t *  ucs4 ,
+	u_int16_t  koi8_code
+	)
+{
+	u_int32_t  c ;
+
+	if( ( c = CONV_KOI8_T_TO_UCS4(koi8_code)))
+	{
+		mkf_int_to_bytes( ucs4->ch , 4, c) ;
+		ucs4->size = 4 ;
+		ucs4->cs = ISO10646_UCS4_1 ;
+		ucs4->property = 0 ;
+
+		return  1 ;
+	}
+	else if( /* 0x00 <= koi8_code && */ koi8_code <= 0x7f)
+	{
+		ucs4->ch[0] = 0x0 ;
+		ucs4->ch[1] = 0x0 ;
+		ucs4->ch[2] = 0x0 ;
+		ucs4->ch[3] = koi8_code ;
+		ucs4->size = 4 ;
+		ucs4->cs = ISO10646_UCS4_1 ;
+		ucs4->property = 0 ;
+
+		return  1 ;
+	}
+
+	return  0 ;
+}
+
+int
 mkf_map_ucs4_to_koi8_r(
 	mkf_char_t *  non_ucs ,
 	u_int32_t  ucs4_code
 	)
 {
-#if  0
-	u_int8_t  c ;
-
-	if( ( c = CONV_UCS4_ALPHABET_TO_KOI8_R(ucs4_code)))
-	{
-		non_ucs->ch[0] = c ;
-		non_ucs->size = 1 ;
-		non_ucs->cs = KOI8_R ;
-		non_ucs->property = 0 ;
-
-		return  1 ;
-	}
-#else
-	/*
-	 * XXX
-	 * do implement koi8_r -> ucs4 table.
-	 */
 	u_int8_t  offset ;
 	
 	for( offset = 0 ; offset <= koi8_r_to_ucs4_end - koi8_r_to_ucs4_beg ; offset ++)
@@ -119,7 +151,6 @@ mkf_map_ucs4_to_koi8_r(
 			return  1 ;
 		}
 	}
-#endif
 	
 	return  0 ;
 }
@@ -169,4 +200,25 @@ mkf_map_ucs4_to_koi8_u(
 	non_ucs->property = 0 ;
 
 	return  1 ;
+}
+
+int
+mkf_map_ucs4_to_koi8_t(
+	mkf_char_t *  non_ucs ,
+	u_int32_t  ucs4_code
+	)
+{
+	u_int8_t  c ;
+
+	if( ( c = CONV_UCS4_ALPHABET_TO_KOI8_T(ucs4_code)))
+	{
+		non_ucs->ch[0] = c ;
+		non_ucs->size = 1 ;
+		non_ucs->cs = KOI8_T ;
+		non_ucs->property = 0 ;
+
+		return  1 ;
+	}
+	
+	return  0 ;
 }

@@ -16,6 +16,8 @@
 #include  "mkf_ko_kr_map.h"
 #include  "mkf_viet_map.h"
 #include  "mkf_ru_map.h"
+#include  "mkf_uk_map.h"
+#include  "mkf_tg_map.h"
 
 
 typedef int (*map_func_t)( mkf_char_t *  , mkf_char_t *) ;
@@ -42,6 +44,8 @@ static map_ucs4_to_func_table_t  map_ucs4_to_func_table[] =
 	{ "ja" , mkf_map_ucs4_to_ja_jp } ,
 	{ "ko" , mkf_map_ucs4_to_ko_kr } ,
 	{ "ru" , mkf_map_ucs4_to_ru } ,
+	{ "uk" , mkf_map_ucs4_to_uk } ,
+	{ "tg" , mkf_map_ucs4_to_tg } ,
 	{ "vi" , mkf_map_ucs4_to_viet } ,
 	{ "zh_CN" , mkf_map_ucs4_to_zh_cn } ,
 	{ "zh_TW" , mkf_map_ucs4_to_zh_tw } ,
@@ -87,7 +91,7 @@ mkf_map_locale_ucs4_to(
 	map_func_t  func ;
 
 	if( ( func = get_map_ucs4_to_func_for_current_locale()) == NULL ||
-		(*func)( non_ucs4 , ucs4) == 0)
+		! (*func)( non_ucs4 , ucs4))
 	{
 		return  mkf_map_ucs4_to( non_ucs4 , ucs4) ;
 	}

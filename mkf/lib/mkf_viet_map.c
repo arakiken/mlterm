@@ -43,12 +43,3 @@ mkf_map_viscii_to_tcvn5712_3_1993(
 {
 	return  mkf_map_via_ucs( tcvn , viscii , TCVN5712_3_1993) ;
 }
-
-int
-mkf_map_tcvn5712_3_1993_to_viscii(
-	mkf_char_t *  viscii ,
-	mkf_char_t *  tcvn
-	)
-{
-	return  mkf_map_via_ucs( viscii , tcvn , VISCII) ;
-}

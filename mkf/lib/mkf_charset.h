@@ -50,8 +50,8 @@
 
 
 /*
- * these enumeration numbers are based on iso2022 Ft(0x30-0x7e).
- * total range is -1 <-> 0x7fff(int16)
+ * These enumeration numbers are based on iso2022 Ft(0x30-0x7e).
+ * Total range is -1 <-> 0x7fff(int16).
  */
 typedef enum  mkf_charset
 {
@@ -112,13 +112,13 @@ typedef enum  mkf_charset
 	/* NOT ISO2022 - class 2 (ESC 2/5 2/15 Ft) */
 	XCT_NON_ISO2022_CS_1 = NON_ISO2022_2_ID('1') ,	/* CTEXT */
 	XCT_NON_ISO2022_CS_2 = NON_ISO2022_2_ID('2') ,	/* CTEXT */
-	ISO10646_UCS2_1 = NON_ISO2022_2_ID('@') ,
-	ISO10646_UCS4_1 = NON_ISO2022_2_ID('A') ,
+	ISO10646_UCS2_1 = NON_ISO2022_2_ID('@') ,	/* Including US_ASCII(0x0-0x7f) */
+	ISO10646_UCS4_1 = NON_ISO2022_2_ID('A') ,	/* Including US_ASCII(0x0-0x7f) */
 
-	/* followings are mkf original classifications */
+	/* Followings are mkf original classifications */
 	
 	/*
-	 * those who are not ISO2022 registed characterset but confirm to ISO2022.
+	 * Those who are not ISO2022 registed characterset but confirm to ISO2022.
 	 * 0x200 - 0x2ff
 	 */
 	JISC6226_1978_NEC_EXT = 0x200 ,
@@ -126,8 +126,8 @@ typedef enum  mkf_charset
 	JISX0208_1983_MAC_EXT = 0x202 ,
 
 	/*
-	 * those who are not ISO2022 registed characterset and do not confirm to ISO2022.
-	 * 0x300 - 0x3ff
+	 * Those who are not ISO2022 registed characterset or do not confirm to ISO2022.
+	 * 0x300 - 0x3ff.
 	 */
 	SJIS_IBM_EXT = 0x300 ,
 	UHC = 0x301 ,
@@ -135,14 +135,18 @@ typedef enum  mkf_charset
 	CNS11643_1992_EUCTW_G2 = 0x303 ,
 	GBK = 0x304 ,
 	JOHAB = 0x305 ,
-	VISCII = 0x306 ,
-	TCVN5712_1_1993 = 0x307 ,
-	KOI8_R = 0x308 ,
-	KOI8_U = 0x309 ,
+	VISCII = 0x306 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	TCVN5712_1_1993 = 0x307 ,	/* ISO2022 compat */
+	KOI8_R = 0x308 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	KOI8_U = 0x309 ,		/* Excluding US_ASCII(0x0-0x7f) */
 	HKSCS = 0x310 ,
 	ISCII = 0x311 ,
+	KOI8_T = 0x312 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	GEORGIAN_PS = 0x313 ,		/* Excluding US_ASCII(0x0-0x7f) */
 
-	/* followings are ISO2022 charsets of rev 1 */
+	/* Followings are ISO2022 based charsets with revisions. */
+
+	/* Revision 1 */
 	JISX0208_1990 = CS_REVISION_1( CS94MB_ID('B')) ,
 	
 	MAX_CHARSET = 0x7ff ,

@@ -7,7 +7,7 @@
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 
-#include  "mkf_viet_map.h"
+#include  "mkf_ucs4_map.h"
 
 
 #if  0
@@ -24,28 +24,21 @@ remap_unsupported_charset(
 {
 	mkf_char_t  c ;
 
-	if( ch->cs == ISO10646_UCS4_1)
+	if( ch->cs == VISCII)
 	{
-		if( mkf_map_ucs4_to_viet( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
-	
-	if( ch->cs == TCVN5712_3_1993)
-	{
-		if( mkf_map_tcvn5712_3_1993_to_viscii( &c , ch))
-		{
-			*ch = c ;
-		}
+		/* do nothing */
 	}
 	else if( ch->cs == US_ASCII)
 	{
-		if( ch->ch[0] != 0x02 && ch->ch[0] != 0x05 && ch->ch[0] != 0x06 &&
-			ch->ch[0] != 0x14 && ch->ch[0] != 0x19 && ch->ch[0] != 0x1e)
+		if( ch->ch[0] == 0x02 || ch->ch[0] == 0x05 || ch->ch[0] == 0x06 ||
+			ch->ch[0] == 0x14 || ch->ch[0] == 0x19 || ch->ch[0] == 0x1e)
 		{
 			ch->cs = VISCII ;
 		}
+	}
+	else if( mkf_map_via_ucs( &c , ch , VISCII))
+	{
+		*ch = c ;
 	}
 }
 

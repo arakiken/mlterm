@@ -71,6 +71,8 @@ static cs_info_t  cs_info_table[] =
 	{ VISCII , { "viscii-1" , NULL , NULL , } , } ,
 	{ KOI8_R , { "koi8-r" , NULL , NULL , } , } ,
 	{ KOI8_U , { "koi8-u" , NULL , NULL , } , } ,
+	{ KOI8_T , { "koi8-t" , NULL , NULL , } , } ,
+	{ GEORGIAN_PS , { NULL , NULL , NULL , } , } ,
 	{ JISX0201_KATA , { "jisx0201.1976-0" , NULL , NULL , } , } ,
 	{ JISX0201_ROMAN , { "jisx0201.1976-0" , NULL , NULL , } , } ,
 	{ JISC6226_1978 , { "jisx0208.1978-0" , "jisx0208.1983-0" , NULL , } , } ,

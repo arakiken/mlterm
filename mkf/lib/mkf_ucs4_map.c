@@ -11,6 +11,7 @@
 #include  "mkf_ucs4_iso8859.h"
 #include  "mkf_ucs4_viscii.h"
 #include  "mkf_ucs4_koi8.h"
+#include  "mkf_ucs4_georgian_ps.h"
 #include  "mkf_ucs4_jisx0201.h"
 #include  "mkf_ucs4_jisx0208.h"
 #include  "mkf_ucs4_jisx0212.h"
@@ -58,6 +59,8 @@ static map_t  map_table[] =
 	{ VISCII , mkf_map_ucs4_to_viscii , mkf_map_viscii_to_ucs4 } ,
 	{ KOI8_R , mkf_map_ucs4_to_koi8_r , mkf_map_koi8_r_to_ucs4 } ,
 	{ KOI8_U , mkf_map_ucs4_to_koi8_u , mkf_map_koi8_u_to_ucs4 } ,
+	{ KOI8_T , mkf_map_ucs4_to_koi8_t , mkf_map_koi8_t_to_ucs4 } ,
+	{ GEORGIAN_PS , mkf_map_ucs4_to_georgian_ps , mkf_map_georgian_ps_to_ucs4 } ,
 	
 	{ JISX0201_ROMAN , mkf_map_ucs4_to_jisx0201_roman , mkf_map_jisx0201_roman_to_ucs4 } ,
 	{ JISX0201_KATA , mkf_map_ucs4_to_jisx0201_kata , mkf_map_jisx0201_kata_to_ucs4 } ,

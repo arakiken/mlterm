@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "mkf_ucs4_conv.h"
+#include  "mkf_utf32_conv.h"
 
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
@@ -10,33 +10,33 @@
 #include  "mkf_ucs4_map.h"
 
 
-typedef struct  mkf_ucs4_conv
+typedef struct  mkf_utf32_conv
 {
 	mkf_conv_t  conv ;
 	int  is_bof ;		/* beginning of file */
 
-}  mkf_ucs4_conv_t ;
+}  mkf_utf32_conv_t ;
 
 
 /* --- static functions --- */
 
 static size_t
-convert_to_ucs4(
+convert_to_utf32(
 	mkf_conv_t *  conv ,
 	u_char *  dst ,
 	size_t  dst_size ,
 	mkf_parser_t *  parser
 	)
 {
-	mkf_ucs4_conv_t *  ucs4_conv ;
+	mkf_utf32_conv_t *  utf32_conv ;
 	size_t  filled_size ;
 	mkf_char_t  ch ;
 
-	ucs4_conv = (mkf_ucs4_conv_t*) conv ;
+	utf32_conv = (mkf_utf32_conv_t*) conv ;
 
 	filled_size = 0 ;
 
-	if( ucs4_conv->is_bof)
+	if( utf32_conv->is_bof)
 	{
 		if( dst_size < 4)
 		{
@@ -54,7 +54,7 @@ convert_to_ucs4(
 
 		filled_size += 4 ;
 
-		ucs4_conv->is_bof = 0 ;
+		utf32_conv->is_bof = 0 ;
 	}
 	
 	while( filled_size + 4 <= dst_size)
@@ -117,11 +117,11 @@ conv_init(
 	mkf_conv_t *  conv
 	)
 {
-	mkf_ucs4_conv_t *  ucs4_conv ;
+	mkf_utf32_conv_t *  utf32_conv ;
 
-	ucs4_conv = (mkf_ucs4_conv_t*) conv ;
+	utf32_conv = (mkf_utf32_conv_t*) conv ;
 
-	ucs4_conv->is_bof = 1 ;
+	utf32_conv->is_bof = 1 ;
 }
 
 static void
@@ -136,27 +136,21 @@ conv_delete(
 /* --- global functions --- */
 
 mkf_conv_t *
-mkf_ucs4_conv_new(void)
+mkf_utf32_conv_new(void)
 {
-	mkf_ucs4_conv_t *  ucs4_conv ;
+	mkf_utf32_conv_t *  utf32_conv ;
 
-	if( ( ucs4_conv = malloc( sizeof( mkf_ucs4_conv_t))) == NULL)
+	if( ( utf32_conv = malloc( sizeof( mkf_utf32_conv_t))) == NULL)
 	{
 		return  NULL ;
 	}
 
-	ucs4_conv->conv.convert = convert_to_ucs4 ;
-	ucs4_conv->conv.init = conv_init ;
-	ucs4_conv->conv.delete = conv_delete ;
-	ucs4_conv->conv.illegal_char = NULL ;
+	utf32_conv->conv.convert = convert_to_utf32 ;
+	utf32_conv->conv.init = conv_init ;
+	utf32_conv->conv.delete = conv_delete ;
+	utf32_conv->conv.illegal_char = NULL ;
 	
-	ucs4_conv->is_bof = 1 ;
+	utf32_conv->is_bof = 1 ;
 
-	return  (mkf_conv_t*)ucs4_conv ;
-}
-
-mkf_conv_t *
-mkf_utf32_conv_new(void)
-{
-	return  mkf_ucs4_conv_new() ;
+	return  (mkf_conv_t*)utf32_conv ;
 }

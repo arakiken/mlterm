@@ -12,7 +12,7 @@
 #include  <mkf/mkf_iso8859_parser.h>
 #include  <mkf/mkf_viscii_parser.h>
 #include  <mkf/mkf_iscii_parser.h>
-#include  <mkf/mkf_koi8_parser.h>
+#include  <mkf/mkf_8bit_parser.h>
 #include  <mkf/mkf_eucjp_parser.h>
 #include  <mkf/mkf_euckr_parser.h>
 #include  <mkf/mkf_euccn_parser.h>
@@ -29,7 +29,7 @@
 #include  <mkf/mkf_iso8859_conv.h>
 #include  <mkf/mkf_viscii_conv.h>
 #include  <mkf/mkf_iscii_conv.h>
-#include  <mkf/mkf_koi8_conv.h>
+#include  <mkf/mkf_8bit_conv.h>
 #include  <mkf/mkf_eucjp_conv.h>
 #include  <mkf/mkf_euckr_conv.h>
 #include  <mkf/mkf_euccn_conv.h>
@@ -43,8 +43,7 @@
 #include  <mkf/mkf_hz_conv.h>
 #include  <mkf/mkf_utf8_conv.h>
 
-#include  <mkf/mkf_ucs4_conv.h>
-#include  <mkf/mkf_iso2022_conv.h>
+#include  <mkf/mkf_iso2022_conv.h>	/* mkf_iso2022_illegal_char */
 
 #include  <mkf/mkf_ucs4_map.h>
 
@@ -88,6 +87,8 @@ static encoding_table_t  encoding_table[] =
 	{ ML_VISCII , "VISCII" , mkf_viscii_parser_new , mkf_viscii_conv_new , } ,
 	{ ML_KOI8_R , "KOI8R" , mkf_koi8_r_parser_new , mkf_koi8_r_conv_new , } ,
 	{ ML_KOI8_U , "KOI8U" , mkf_koi8_u_parser_new , mkf_koi8_u_conv_new , } ,
+	{ ML_KOI8_T , "KOI8T" , mkf_koi8_t_parser_new , mkf_koi8_t_conv_new , } ,
+	{ ML_GEORGIAN_PS , "GEORGIANPS" , mkf_georgian_ps_parser_new , mkf_georgian_ps_conv_new , } ,
 
 	{ ML_UTF8 , "UTF8" , mkf_utf8_parser_new , mkf_utf8_conv_new , } ,
 	

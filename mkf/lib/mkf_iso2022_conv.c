@@ -10,6 +10,8 @@
 #include  "mkf_ko_kr_map.h"
 #include  "mkf_viet_map.h"
 #include  "mkf_ru_map.h"
+#include  "mkf_uk_map.h"
+#include  "mkf_tg_map.h"
 #include  "mkf_ucs4_map.h"
 
 
@@ -253,91 +255,86 @@ mkf_iso2022_remap_unsupported_charset(
 	
 	if( IS_CS_BASED_ON_ISO2022(ch->cs))
 	{
-		return ;
+		/* do nothing */
 	}
-	
-	if( ch->cs == ISO10646_UCS4_1)
+	else if( ch->cs == ISO10646_UCS4_1)
 	{
-		if( ! mkf_map_ucs4_to_iso2022cs( &c , ch))
+		if( mkf_map_ucs4_to_iso2022cs( &c , ch))
 		{
-			return ;
+			*ch = c ;
 		}
-		
-		*ch = c ;
 	}
-	
-	if( ch->cs == VISCII)
+	else if( ch->cs == VISCII)
 	{
 		if( mkf_map_viscii_to_tcvn5712_3_1993( &c , ch))
 		{
 			*ch = c ;
 		}
-
-		return ;
 	}
-
-	if( ch->cs == KOI8_R)
+	else if( ch->cs == KOI8_R)
 	{
 		if( mkf_map_koi8_r_to_iso8859_5_r( &c , ch))
 		{
 			*ch = c ;
 		}
-
-		return ;
 	}
-
-	if( ch->cs == KOI8_U)
+	else if( ch->cs == KOI8_U)
 	{
 		if( mkf_map_koi8_u_to_iso8859_5_r( &c , ch))
 		{
 			*ch = c ;
 		}
-
-		return ;
 	}
-
-	if( ch->cs == JOHAB)
+	else if( ch->cs == KOI8_T)
 	{
-		if( ! mkf_map_johab_to_uhc( &c , ch))
-		{
-			return ;
-		}
-		
-		*ch = c ;
-	}
-	
-	if( ch->cs == UHC)
-	{
-		if( mkf_map_uhc_to_ksc5601_1987( &c , ch))
+		if( mkf_map_koi8_t_to_iso8859_5_r( &c , ch))
 		{
 			*ch = c ;
 		}
-
-		return ;
 	}
-
-	if( ch->cs == GBK)
+	else if( ch->cs == GBK)
 	{
 		if( mkf_map_gbk_to_gb2312_80( &c , ch))
 		{
 			*ch = c ;
 		}
-
-		return ;
 	}
-	
-	if( ch->cs == HKSCS)
+	else
 	{
-		ch->cs = BIG5 ;
-	}
-
-	if( ch->cs == BIG5)
-	{
-		if( mkf_map_big5_to_cns11643_1992( &c , ch))
+		if( ch->cs == JOHAB)
 		{
+			if( ! mkf_map_johab_to_uhc( &c , ch))
+			{
+				return ;
+			}
+
 			*ch = c ;
 		}
 
-		return ;
+		if( ch->cs == UHC)
+		{
+			if( mkf_map_uhc_to_ksc5601_1987( &c , ch))
+			{
+				*ch = c ;
+			}
+
+			return ;
+		}
+
+		/* HKSCS includes BIG5 */
+		if( ch->cs == HKSCS)
+		{
+			ch->cs = BIG5 ;
+		}
+
+		if( ch->cs == BIG5)
+		{
+			if( mkf_map_big5_to_cns11643_1992( &c , ch))
+			{
+				*ch = c ;
+			}
+
+			return ;
+		}
 	}
 }
