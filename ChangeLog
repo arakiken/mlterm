@@ -1,5 +1,9 @@
 2004-10-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* man/mlterm.1: fixed typo. (for X -> on X)
+
+2004-10-23 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* xwindow/x_term_manager.c (open_pty_intern): set COLORFGBG
 	  environment variable to "default;default" (hardcorded).
 
