@@ -49,14 +49,20 @@ Options for configure
   --with-tools
     Build specified tools in tool/ and contrib/tool/ directories
 
-  --enable-dnd
-    support XDnD.
+  --disable-dnd
+    Disable XDnD.
+
+  --disable-kbd
+    Disable kbd input method for Arabic and Indic.
 
   --enable-uim
-    support uim(Universal? Input Method) if available.
+    Support uim(Universal? Input Method) if available.
 
   --enable-iiimf
-    support IIIMF(Internet/Intranet Input Method Framework) if available.
+    Support IIIMF(Internet/Intranet Input Method Framework) if available.
+
+  --enable-m17nlib
+    Support m17n library if available.
 
   --disable-shared
     Disable shared libraries

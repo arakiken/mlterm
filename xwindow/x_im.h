@@ -37,6 +37,9 @@ typedef struct x_im_event_listener
 	int (*is_vertical)( void *) ;
 	int (*draw_preedit_str)( void * , ml_char_t * , u_int , int) ;
 	void (*im_changed)( void * , u_char *) ;
+	int (*compare_key_state_with_modmap)( void * , u_int , int * , int * ,
+					      int * , int * , int * , int * ,
+					      int *) ;
 	void (*write_to_term)( void * , u_char * , size_t) ;
 
 	x_window_manager_t * (*get_win_man)( void *) ;
@@ -61,6 +64,10 @@ typedef struct x_im_export_syms
 	char * (*ml_get_char_encoding_name)( ml_char_encoding_t) ;
 	int (*ml_get_char_encoding)( char *) ;
 	int (*ml_is_msb_set)( mkf_charset_t  cs) ;
+	ml_iscii_keymap_t (*ml_iscii_keymap_new)( int) ;
+	int (*ml_iscii_keymap_delete)( ml_iscii_keymap_t) ;
+	size_t (*ml_convert_ascii_to_iscii)( ml_iscii_keymap_t , u_char * ,
+					     size_t , u_char * , size_t) ;
 	mkf_parser_t * (*ml_parser_new)( ml_char_encoding_t) ;
 	mkf_conv_t * (*ml_conv_new)( ml_char_encoding_t) ;
 	x_im_candidate_screen_t *  (*x_im_candidate_screen_new)(
@@ -94,7 +101,8 @@ typedef struct x_im
 
 	/* methods */
 	int (*delete)( struct x_im *) ;
-	int (*key_event)( struct x_im * , KeySym , XKeyEvent *) ;
+	int (*key_event)( struct x_im * , u_char , KeySym , XKeyEvent *) ;
+	int (*switch_mode)( struct x_im *) ;
 	void (*focused)( struct x_im *) ;
 	void (*unfocused)( struct x_im *) ;
 

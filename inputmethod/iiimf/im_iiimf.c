@@ -95,7 +95,6 @@ static IIIMCF_handle  handle = NULL ;
 /* mlterm internal symbols */
 static x_im_export_syms_t *  mlterm_syms = NULL ;
 
-
 /* --- static functions --- */
 
 static size_t
@@ -1308,6 +1307,7 @@ delete(
 static int
 key_event(
 	x_im_t *  im ,
+	u_char  key_char ,
 	KeySym  ksym ,
 	XKeyEvent *  xevent
 	)
@@ -1318,20 +1318,31 @@ key_event(
 	IIIMF_status  status ;
 	int  ret ;
 
+	int  is_shift ;
+	int  is_lock ;
+	int  is_ctl ;
+	int  is_alt ;
+	int  is_meta ;
+	int  is_super ;
+	int  is_hyper ;
+
 	iiimf = (im_iiimf_t*) im ;
 
 	key.keycode = 0 ;
 	key.keychar = 0 ;
 	key.modifier = 0 ;
 
-	if( xevent->state & ShiftMask)
-		key.modifier |= IIIMF_SHIFT_MODIFIER ;
-	if( xevent->state & ControlMask)
-		key.modifier |= IIIMF_CONTROL_MODIFIER ;
-	if( xevent->state & Mod1Mask)
-		key.modifier |= IIIMF_ALT_MODIFIER ; /* XXX */
-	if( xevent->state & Mod3Mask)
-		key.modifier |= IIIMF_META_MODIFIER ; /* XXX */
+	(*iiimf->im.listener->compare_key_state_with_modmap)(
+						iiimf->im.listener->self ,
+						xevent->state ,
+						&is_shift , &is_lock , &is_ctl ,
+						&is_alt , &is_meta , &is_super ,
+						&is_hyper) ;
+
+	if( is_shift) key.modifier |= IIIMF_SHIFT_MODIFIER ;
+	if( is_ctl)   key.modifier |= IIIMF_CONTROL_MODIFIER ;
+	if( is_alt)   key.modifier |= IIIMF_ALT_MODIFIER ;
+	if( is_meta)  key.modifier |= IIIMF_META_MODIFIER ;
 
 	xksym_to_iiimfkey( ksym , &key.keychar , &key.keycode) ;
 
@@ -1423,6 +1434,26 @@ dispatch:
 	return  ret ;
 }
 
+static int
+switch_mode(
+	x_im_t *  im
+	)
+{
+#if  0
+	XKeyEvent  event ;
+
+	event.state = ControlMask ;
+	event.time = 0 ;	/* XXX */
+
+	if( ! (key_event( im , 0x20 , XK_space , &event)))
+	{
+		return  1 ;
+	}
+
+	return  0 ;
+#endif
+}
+
 static void
 focused(
 	x_im_t *  im
@@ -1446,6 +1477,16 @@ focused(
 		{
 			kik_error_printf( "Cound not forward focus event to IIIMS [status = %d]\n", status) ;
 		}
+	}
+
+	if( iiimf->im.stat_screen)
+	{
+		(*iiimf->im.stat_screen->show)( iiimf->im.stat_screen) ;
+	}
+
+	if( iiimf->im.cand_screen)
+	{
+		(*iiimf->im.cand_screen->show)( iiimf->im.cand_screen) ;
 	}
 }
 
@@ -1472,6 +1513,16 @@ unfocused(
 		{
 			kik_error_printf( "Cound not forward unfocus event to IIIMS [status = %d]\n", status) ;
 		}
+	}
+
+	if( iiimf->im.stat_screen)
+	{
+		(*iiimf->im.stat_screen->hide)( iiimf->im.stat_screen) ;
+	}
+
+	if( iiimf->im.cand_screen)
+	{
+		(*iiimf->im.cand_screen->hide)( iiimf->im.cand_screen) ;
 	}
 }
 
@@ -1565,6 +1616,7 @@ im_new(
 	 */
 	iiimf->im.delete = delete ;
 	iiimf->im.key_event = key_event ;
+	iiimf->im.switch_mode = switch_mode ;
 	iiimf->im.focused = focused ;
 	iiimf->im.unfocused = unfocused ;
 
@@ -1681,7 +1733,10 @@ error:
 /* --- API for external tools --- */
 
 im_info_t *
-im_get_info( char *  locale)
+im_get_info(
+	char *  locale ,
+	char *  encoding
+	)
 {
 	im_info_t *  result = NULL ;
 	IIIMCF_input_method *  input_methods ;

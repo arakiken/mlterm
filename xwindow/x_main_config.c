@@ -176,7 +176,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
 		"step in changing font size in GUI configurator [1]") ;
 	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
-		"input method (xim/uim/iiimf/none) [xim]") ;
+		"input method (xim/kbd/uim/iiimf/m17nlib/none) [xim]") ;
 
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;

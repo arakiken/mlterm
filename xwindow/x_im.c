@@ -7,6 +7,8 @@
 #include  "x_im.h"
 #include  "x_term_manager.h"
 
+#ifdef  USE_IM_PLUGIN
+
 #ifndef  LIBDIR
 #define  IM_DIR  "/usr/local/lib/mlterm/"
 #else
@@ -31,6 +33,9 @@ static  x_im_export_syms_t  im_export_syms =
 	ml_get_char_encoding_name ,
 	ml_get_char_encoding ,
 	ml_is_msb_set ,
+	ml_iscii_keymap_new ,
+	ml_iscii_keymap_delete ,
+	ml_convert_ascii_to_iscii ,
 	ml_parser_new ,
 	ml_conv_new ,
 	x_im_candidate_screen_new ,
@@ -234,4 +239,33 @@ x_im_redraw_preedit(
 		}
 	}
 }
+
+#else  /* ! USE_IM_PLUGIN */
+
+x_im_t *
+x_im_new(
+	ml_char_encoding_t  term_encoding ,
+	x_im_event_listener_t *  im_listener ,
+	char *  input_method
+	)
+{
+	return  NULL ;
+}
+
+void
+x_im_delete(
+	x_im_t *  im
+	)
+{
+}
+
+void
+x_im_redraw_preedit(
+	x_im_t *  im ,
+	int  is_focused
+	)
+{
+}
+
+#endif
 

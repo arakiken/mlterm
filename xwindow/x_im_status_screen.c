@@ -4,6 +4,8 @@
 
 #include  "x_im_status_screen.h"
 
+#ifdef  USE_IM_PLUGIN
+
 #include  "ml_str.h"
 #include  "x_draw_str.h"
 
@@ -54,7 +56,7 @@ draw_screen(
 	 */
 	x_window_draw_rect_frame( &stat_screen->window , 0 , 0 ,
 				  width + MARGIN*2 - 1 ,
-				  xfont->height + MARGIN*2 - 1);
+				  xfont->height + LINE_SPACE + MARGIN*2 - 1);
 
 	x_draw_str_to_eol( &stat_screen->window ,
 			   stat_screen->font_man ,
@@ -169,8 +171,6 @@ set(
 
 		return  0 ;
 	}
-
-	stat_screen->num_of_chars = count ;
 
 	/*
 	 * u_char -> ml_char_t
@@ -391,3 +391,19 @@ error:
 	return  NULL ;
 }
 
+#else /* ! USE_IM_PLUGIN */
+
+x_im_status_screen_t *
+x_im_status_screen_new(
+	x_window_manager_t *  win_man ,
+	x_font_manager_t *  font_man ,
+	x_color_manager_t *  color_man ,
+	int  is_vertical ,
+	int  x ,
+	int  y
+	)
+{
+	return  NULL ;
+}
+
+#endif

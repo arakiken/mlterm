@@ -67,6 +67,7 @@ typedef struct im_m17nlib
 
 static int  ref_count = 0 ;
 static int  initialized = 0 ;
+static mkf_parser_t *  parser_ascii = NULL ;
 /* mlterm internal symbols */
 static x_im_export_syms_t *  mlterm_syms = NULL ;
 
@@ -106,6 +107,7 @@ show_available_ims( void)
 
 static MSymbol
 xksym_to_msymbol(
+	im_m17nlib_t *  m17nlib ,
 	KeySym  ksym ,
 	u_int  state
 	)
@@ -116,10 +118,25 @@ xksym_to_msymbol(
 	int  filled_len = 0 ;
 	size_t  len ;
 
+	int  is_shift ;
+	int  is_lock ;
+	int  is_ctl ;
+	int  is_alt ;
+	int  is_meta ;
+	int  is_super ;
+	int  is_hyper ;
+
 	if( XK_Shift_L <= ksym && ksym <= XK_Hyper_R)
 	{
 		return  Mnil ;
 	}
+
+	(*m17nlib->im.listener->compare_key_state_with_modmap)(
+						m17nlib->im.listener->self ,
+						state ,
+						&is_shift , &is_lock , &is_ctl ,
+						&is_alt , &is_meta , &is_super ,
+						&is_hyper) ;
 
 	/* Latin 1 */
 	if( XK_space <= ksym && ksym <= XK_asciitilde)
@@ -127,35 +144,42 @@ xksym_to_msymbol(
 		char  buf[2] = " ";
 		buf[0] = ksym ;
 
-		if( ( state & ShiftMask) &&
-		    ( 'a' <= buf[0] && buf[0] <= 'z'))
+		if( is_shift && ( 'a' <= buf[0] && buf[0] <= 'z'))
 		{
 			buf[0] += ( 'A' - 'a') ;
 		}
-	
+
 		return  msymbol( buf) ;
 	}
+
+	if( is_shift)
+		filled_len += kik_snprintf( &mod[filled_len] ,
+				    sizeof(mod) - filled_len ,
+				    "S-") ;
+	if( is_ctl)
+		filled_len += kik_snprintf( &mod[filled_len] ,
+					    sizeof(mod) - filled_len ,
+					    "C-") ;
+	if( is_alt)
+		filled_len += kik_snprintf( &mod[filled_len] ,
+					    sizeof(mod) - filled_len ,
+					    "A-") ;
+	if( is_meta)
+		filled_len += kik_snprintf( &mod[filled_len] ,
+					    sizeof(mod) - filled_len ,
+					    "M-") ;
+	if( is_super)
+		filled_len += kik_snprintf( &mod[filled_len] ,
+					    sizeof(mod) - filled_len ,
+					    "s-") ;
+	if( is_hyper)
+		filled_len += kik_snprintf( &mod[filled_len] ,
+					    sizeof(mod) - filled_len ,
+					    "H-") ;
 
 	if( ! ( key = XKeysymToString( ksym)))
 	{
 		return  Mnil ;
-	}
-
-	/* XXX */
-	if( state)
-	{
-		if( state & ShiftMask)
-		{
-			filled_len += kik_snprintf( &mod[filled_len] ,
-						    sizeof(mod) - filled_len ,
-						    "S-") ;
-		}
-		if( state & ControlMask)
-		{
-			filled_len += kik_snprintf( &mod[filled_len] ,
-						    sizeof(mod) - filled_len ,
-						    "C-") ;
-		}
 	}
 
 	len = strlen( mod) + strlen(key) + 1 ;
@@ -509,6 +533,12 @@ candidates_changed(
 			m17nlib->im.cand_screen = NULL ;
 		}
 
+		if( m17nlib->im.stat_screen)
+		{
+			(*m17nlib->im.stat_screen->show)(
+						m17nlib->im.stat_screen) ;
+		}
+
 		return ;
 	}
 
@@ -612,6 +642,12 @@ candidates_changed(
 	(*m17nlib->im.cand_screen->select)(
 				m17nlib->im.cand_screen ,
 				m17nlib->input_context->candidate_index) ;
+
+	if( m17nlib->im.stat_screen)
+	{
+		(*m17nlib->im.stat_screen->hide)(
+					m17nlib->im.stat_screen) ;
+	}
 }
 
 /*
@@ -658,6 +694,16 @@ delete(
 		(*m17nlib->conv->delete)( m17nlib->conv) ;
 	}
 
+	if( m17nlib->im.cand_screen)
+	{
+		(*m17nlib->im.cand_screen->delete)( m17nlib->im.cand_screen) ;
+	}
+
+	if( m17nlib->im.stat_screen)
+	{
+		(*m17nlib->im.stat_screen->delete)( m17nlib->im.stat_screen) ;
+	}
+
 	free( m17nlib) ;
 
 	if( ref_count == 0 && initialized)
@@ -665,6 +711,12 @@ delete(
 		M17N_FINI() ;
 
 		initialized = 0 ;
+
+		if( ! parser_ascii)
+		{
+			(*parser_ascii->delete)( parser_ascii) ;
+			parser_ascii = NULL ;
+		}
 	}
 
 	return  ref_count ;
@@ -673,6 +725,7 @@ delete(
 static int
 key_event(
 	x_im_t *  im ,
+	u_char  key_char ,
 	KeySym  ksym ,
 	XKeyEvent *  event
 	)
@@ -684,18 +737,12 @@ key_event(
 
 	m17nlib = (im_m17nlib_t*) im ;
 
-	if( ( event->state & ShiftMask) && ( ksym == XK_space))
-	{
-		minput_toggle( m17nlib->input_context) ;
-		return  1 ;
-	}
-
 	if( ! m17nlib->input_context->active)
 	{
 		return  1 ;
 	}
 
-	mkey = xksym_to_msymbol( ksym , event->state) ;
+	mkey = xksym_to_msymbol( m17nlib , ksym , event->state) ;
 
 	if( minput_filter( m17nlib->input_context , mkey , Mnil))
 	{
@@ -754,6 +801,64 @@ key_event(
 	return  ret ;
 }
 
+static int
+switch_mode(
+	x_im_t *  im
+	)
+{
+	im_m17nlib_t *  m17nlib ;
+	int  x ;
+	int  y ;
+
+	m17nlib = (im_m17nlib_t*) im ;
+
+	minput_toggle( m17nlib->input_context) ;
+
+	(*m17nlib->im.listener->get_spot)( m17nlib->im.listener->self ,
+					   m17nlib->im.preedit.chars ,
+					   m17nlib->im.preedit.segment_offset ,
+					   &x , &y) ;
+
+	if( m17nlib->input_context->active)
+	{
+		u_char  buf[50] ;
+
+		if( m17nlib->im.stat_screen == NULL)
+		{
+			if( ! ( m17nlib->im.stat_screen = (*mlterm_syms->x_im_status_screen_new)(
+					(*m17nlib->im.listener->get_win_man)(m17nlib->im.listener->self) ,
+					(*m17nlib->im.listener->get_font_man)(m17nlib->im.listener->self) ,
+					(*m17nlib->im.listener->get_color_man)(m17nlib->im.listener->self) ,
+					(*m17nlib->im.listener->is_vertical)(m17nlib->im.listener->self) ,
+					x , y)))
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " x_im_satus_screen_new() failed.\n") ;
+			#endif
+
+				return  1 ;
+			}
+		}
+
+		kik_snprintf( buf , sizeof( buf) , "m17nlib:%s:%s" ,
+			      msymbol_name(m17nlib->input_method->language) ,
+			      msymbol_name(m17nlib->input_method->name)) ;
+
+		(*m17nlib->im.stat_screen->set)( m17nlib->im.stat_screen ,
+						 parser_ascii , buf) ;
+	}
+	else
+	{
+		if( m17nlib->im.stat_screen)
+		{
+			(*m17nlib->im.stat_screen->delete)( m17nlib->im.stat_screen) ;
+			m17nlib->im.stat_screen = NULL ;
+		}
+	}
+
+	return  1 ;
+}
+
 static void
 focused(
 	x_im_t *  im
@@ -767,6 +872,10 @@ focused(
 	{
 		(*m17nlib->im.cand_screen->show)( m17nlib->im.cand_screen) ;
 	}
+	else if( m17nlib->im.stat_screen)
+	{
+		(*m17nlib->im.stat_screen->show)( m17nlib->im.stat_screen) ;
+	}
 }
 
 static void
@@ -777,6 +886,11 @@ unfocused(
 	im_m17nlib_t *  m17nlib ;
 
 	m17nlib = (im_m17nlib_t*) im ;
+
+	if( m17nlib->im.stat_screen)
+	{
+		(*m17nlib->im.stat_screen->hide)( m17nlib->im.stat_screen) ;
+	}
 
 	if( m17nlib->im.cand_screen)
 	{
@@ -825,6 +939,10 @@ im_new(
 
 		initialized = 1 ;
 
+		if( ! ( parser_ascii = (*mlterm_syms->ml_parser_new)( ML_ISO8859_1)))
+		{
+			goto  error ;
+		}
 	}
 
 #ifdef  IM_M17NLIB_DEBUG
@@ -895,6 +1013,7 @@ im_new(
 	 */
 	m17nlib->im.delete = delete ;
 	m17nlib->im.key_event = key_event ;
+	m17nlib->im.switch_mode = switch_mode ;
 	m17nlib->im.focused = focused ;
 	m17nlib->im.unfocused = unfocused ;
 
@@ -941,6 +1060,12 @@ error:
 	{
 		M17N_FINI() ;
 
+		if( parser_ascii)
+		{
+			(*parser_ascii->delete)( parser_ascii) ;
+			parser_ascii = NULL ;
+		}
+
 		initialized = 0 ;
 	}
 
@@ -951,7 +1076,10 @@ error:
 /* --- API for external tools --- */
 
 im_info_t *
-im_get_info( char *  locale)
+im_get_info(
+	char *  locale ,
+	char *  encoding
+	)
 {
 	im_info_t *  result = NULL ;
 	MPlist *  im_list ;
@@ -1052,6 +1180,12 @@ error:
 	if( result)
 	{
 		free( result) ;
+	}
+
+	if( parser_ascii)
+	{
+		(*parser_ascii->delete)( parser_ascii) ;
+		parser_ascii = NULL ;
 	}
 
 	return  NULL ;

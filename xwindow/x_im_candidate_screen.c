@@ -4,6 +4,8 @@
 
 #include  "x_im_candidate_screen.h"
 
+#ifdef  USE_IM_PLUGIN
+
 #include  "ml_str.h"
 #include  "x_draw_str.h"
 
@@ -880,3 +882,20 @@ error:
 	return  NULL ;
 }
 
+#else  /* ! USE_IM_PLUGIN */
+
+x_im_candidate_screen_t *
+x_im_candidate_screen_new(
+	x_window_manager_t *  win_man ,
+	x_font_manager_t *  font_man ,
+	x_color_manager_t *  color_man ,
+	int  is_vertical ,
+	u_int  line_height_of_screen ,
+	int  x ,
+	int  y
+	)
+{
+	return  NULL ;
+}
+
+#endif

@@ -47,7 +47,7 @@ typedef enum im_type {
 	IM_OTHER,
 } im_type_t ;
 
-typedef im_info_t* (*im_get_info_func_t)(char *);
+typedef im_info_t* (*im_get_info_func_t)(char *, char *);
 
 #define MAX_IM_INFO 5
 
@@ -88,7 +88,7 @@ is_im_plugin(char *file_name)
 }
 
 static int
-get_im_info(char *locale)
+get_im_info(char *locale, char *encoding)
 {
 	DIR *dir;
 	struct dirent *d;
@@ -120,7 +120,7 @@ get_im_info(char *locale)
 			continue;
 		}
 
-		info = (*func)(locale);
+		info = (*func)(locale, encoding);
 
 		if(info) {
 			im_info_table[num_of_info] = info ;
@@ -346,6 +346,7 @@ im_selected(GtkWidget *widget, gpointer data)
 static GtkWidget *
 im_widget_new(int nth_im, const char *value, char *locale)
 {
+	GtkWidget *combo;
 	im_info_t *info;
 	int i;
 	int selected = 0;
@@ -382,9 +383,9 @@ im_widget_new(int nth_im, const char *value, char *locale)
 		info->readable_args[0] = strdup(value);
 	}
 
-	return mc_combo_new(_("Option"), info->readable_args,
-			    info->num_of_args, info->readable_args[selected],
-			    1, im_selected, NULL);
+	combo = mc_combo_new(_("Option"), info->readable_args,
+			     info->num_of_args, info->readable_args[selected],
+			     1, im_selected, NULL);
 }
 
 /*
@@ -441,6 +442,7 @@ GtkWidget *
 mc_im_config_widget_new(void)
 {
 	char *cur_locale = NULL;
+	char *encoding = NULL;
 	char *xim_name = NULL;
 	char *xim_locale = NULL;
 	char *value;
@@ -455,8 +457,9 @@ mc_im_config_widget_new(void)
 	GSList *group;
 
 	cur_locale = mc_get_str_value("locale");
+	encoding = mc_get_str_value("encoding");
 
-	get_im_info(cur_locale);
+	get_im_info(cur_locale , encoding);
 
 	/*
 	 * XXX: textdomain() are called in libuim with uim's domain name.
@@ -494,6 +497,7 @@ mc_im_config_widget_new(void)
 	}
 
 	free(cur_locale);
+	free(encoding);
 
 	free(p);
 

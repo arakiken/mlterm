@@ -32,9 +32,8 @@ typedef struct  key_func_table
 
 static key_func_table_t  key_func_table[] =
 {
-	{ "XIM_OPEN" , XIM_OPEN , } ,
-	{ "XIM_CLOSE" , XIM_CLOSE , } ,
-	{ "EXT_KBD" , EXT_KBD } ,
+	{ "IM_HOTKEY" , IM_HOTKEY , } ,
+	{ "EXT_KBD" , EXT_KBD , } ,
 	{ "OPEN_SCREEN" , OPEN_SCREEN , } ,
 	{ "OPEN_PTY" , OPEN_PTY , } ,
 	{ "NEXT_PTY" , NEXT_PTY , } ,
@@ -233,13 +232,10 @@ x_shortcut_init(
 {
 	x_key_t  default_key_map[] =
 	{
-		/* XIM_OPEN */
-		{ XK_space , ShiftMask , 1 , } ,
-
-		/* XIM_CLOSE(not used) */
+		/* IM_HOTKEY */
 		{ 0 , 0 , 0 , } ,
 
-		/* EXT_KBD(not used) */
+		/* EXT_KBD(obsolete) */
 		{ 0 , 0 , 0 , } ,
 		
 		/* OPEN_SCREEN */
@@ -319,6 +315,17 @@ x_read_shortcut_config(
 
 	while( kik_conf_io_read( from , &key , &value))
 	{
+		/*
+		 * XIM_OPEN and XIM_CLOSE are removed.
+		 */
+		if( strcmp( value, "XIM_OPEN") == 0 ||
+		    strcmp( value, "XIM_CLOSE") == 0)
+		{
+			/* This warning will be removed. */
+			kik_warn_printf( "%s in %s is no longer supported\n",
+					 value , filename);
+		}
+
 		/*
 		 * [shortcut key]=[operation]
 		 */

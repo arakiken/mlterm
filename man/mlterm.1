@@ -477,6 +477,9 @@ Use XIM with Ami on the system locale.
 --im=xim:kinput2:ja_JP.EUC-JP
 Use XIM with kinput2 on ja_JP.EUC-JP locale.
 .TP
+--im=kbd
+Use keyboard mapping input method for Arabic or Indic.
+.TP
 --im=uim
 Use uim with the default conversion engine.
 .TP
@@ -1272,8 +1275,7 @@ command or searching keysym macros from
 file in your X11 include directory) and omit the prefix \fBXK_\fR.
 Double quatation maks are not needed.
 .PP
-\fIFEATURE\fR is one of \fBXIM_OPEN\fR,
-\fBXIM_CLOSE\fR,
+\fIFEATURE\fR is one of \fBIM_HOTKEY\fR,
 \fBEXT_KBD\fR,
 \fBOPEN_SCREEN\fR,
 \fBNEW_PTY\fR,
@@ -1286,17 +1288,12 @@ Double quatation maks are not needed.
 \fB"\fISTRING\fB"\fR,
 or \fB"proto:\fISTRING\fB"\fR.
 .TP
-\fBXIM_OPEN\fR
-Open the current XIM.  This is not used
-if \fBxim_open_in_startup\fR is enabled
-because it is opened automatically at startup
-(default \fBShift+space\fR).
-.TP
-\fBXIM_CLOSE\fR
-Close the XIM (default \fBUNUSED\fR).
+\fBIM_HOTKEY\fR
+Switch conversion mode of m17n library and kdb input methods
 .TP
 \fBEXT_KBD\fR
-Activate or deactivate arabic or iscii input method.
+Activate or deactivate kbd input method.
+(This feature is obsolete. IM_HOTKEY is recommended now.)
 .TP
 \fBOPEN_SCREEN\fR
 Open new pty in new screen (default \fBCtrl+F1\fR)

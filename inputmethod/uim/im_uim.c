@@ -976,6 +976,7 @@ delete(
 static int
 key_event(
 	x_im_t *  im ,
+	u_char  key_char ,
 	KeySym  ksym ,
 	XKeyEvent *  event
 	)
@@ -985,25 +986,30 @@ key_event(
 	int  state = 0 ;
 	int  ret ;
 
+	int  is_shift ;
+	int  is_lock ;
+	int  is_ctl ;
+	int  is_alt ;
+	int  is_meta ;
+	int  is_super ;
+	int  is_hyper ;
+
 	uim = (im_uim_t*) im ;
 
-	/* XXX */
-	if( event->state & ShiftMask)
-		state |= UKey_Shift;
-	if( event->state & LockMask)
-		;
-	if( event->state & ControlMask)
-		state |= UKey_Control;
-	if( event->state & Mod1Mask)
-		state |= UMod_Alt ;
-	if( event->state & Mod2Mask)
-		state |= UMod_Meta ;
-	if( event->state & Mod3Mask)
-		state |= UMod_Super ;
-	if( event->state & Mod4Mask)
-		state |= UMod_Hyper ;
-	if( event->state & Mod5Mask)
-		;
+	(*uim->im.listener->compare_key_state_with_modmap)(
+							uim->im.listener->self ,
+							event->state ,
+							&is_shift , &is_lock ,
+							&is_ctl , &is_alt ,
+							&is_meta , &is_super ,
+							&is_hyper) ;
+
+	if( is_shift) state |= UKey_Shift;
+	if( is_ctl)   state |= UKey_Control;
+	if( is_alt)   state |= UMod_Alt ;
+	if( is_meta)  state |= UMod_Meta ;
+	if( is_super) state |= UMod_Super ;
+	if( is_hyper) state |= UMod_Hyper ;
 
 	key = xksym_to_ukey(ksym) ;
 
@@ -1011,6 +1017,14 @@ key_event(
 	uim_release_key( uim->context , key , state) ;
 
 	return  ret;
+}
+
+static int
+switch_mode(
+	x_im_t *  im
+	)
+{
+	return  0 ;
 }
 
 static void
@@ -1151,8 +1165,6 @@ helper_send_imlist(
 
 #endif
 }
-
-x_im_t * im_new( u_int64_t , ml_char_encoding_t , x_im_export_syms_t * , char *) ;
 
 static void
 helper_im_changed(
@@ -1303,8 +1315,8 @@ im_new(
 	{
 	#if  0
 		/*
-		 * Workaround for incorrect calling of setlocale() in
-		 * uim(intl.c). This problem was fixed at r1368.
+		 * Workaround against setlocale() in uim(intl.c).
+		 * The problem has been fixed at r1368.
 		 */
 		char *  cur_locale ;
 		cur_locale = kik_str_alloca_dup( kik_get_locale()) ;
@@ -1455,6 +1467,7 @@ im_new(
 	 */
 	uim->im.delete = delete ;
 	uim->im.key_event = key_event ;
+	uim->im.switch_mode = switch_mode ;
 	uim->im.focused = focused ;
 	uim->im.unfocused = unfocused ;
 
@@ -1519,7 +1532,10 @@ error:
 /* --- API for external tools --- */
 
 im_info_t *
-im_get_info( char *  locale)
+im_get_info(
+	char *  locale ,
+	char *  encoding
+	)
 {
 	im_info_t *  result ;
 	uim_context  u ;

@@ -16,6 +16,7 @@
 
 typedef enum  x_key_func
 {
+	IM_HOTKEY ,
 	XIM_OPEN ,
 	XIM_CLOSE ,
 	EXT_KBD ,

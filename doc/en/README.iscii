@@ -7,7 +7,8 @@ Following is a instruction of setting up mlterm ISCII support.
 
 * Requirement
   mlterm depends on libind.tar.gz and truetype.tar.gz at
-  http://www.tenet.res.in/Donlab/Indlinux/X-Windows/download.html , and xfstt.
+  http://www.tenet.res.in/Donlab/Indlinux/X-Windows/download.html , and xfstt
+  or XFree86-4.x with truetype backend.
   So install and setup them in advance.
   Don't forget to install indian.h to where cc can find(e.g /usr/local/include).
 
@@ -20,10 +21,8 @@ Following is a instruction of setting up mlterm ISCII support.
   $ make install
 
 * Usage
-  $ LIBIND_PATH=[LIBIND_PATH] mlterm -X=false -E iscii -w 16 -m -V -C Malayalam
+  $ LIBIND_PATH=[LIBIND_PATH] mlterm -E iscii -w 16 -m -V -C Malayalam --im=kbd
 
-  o -X=false is necessary if you use X Input Method (e.g. kinput2) which
-    conflicts with xfstt. (recommended)
   o -V option enables variable width column.
     This option is automatically turned on in ISCII encoding. (optional)
   o -m option enables character combining, which is necessary since mlterm
@@ -34,14 +33,17 @@ Following is a instruction of setting up mlterm ISCII support.
     used by default.
     (optional)
   o -w [font size] specifies font size you want to use. (optional)
+  o --im option specifies input method to be used. For ISCII use kbd input
+    method.
 
-  Pressing the key defined as EXT_KBD in ~/.mlterm/key lets you use ISCII
+  Pressing the key defined as IM_HOTKEY in ~/.mlterm/key lets you use ISCII
   inputting.
-  EXT_KBD switches the loop Inscript => Phonetic => US ASCII => Inscript ...
+  IM_HOTKEY switches the loop Inscript => Phonetic => US ASCII => Inscript ...
 
 * Note
-  I am not a native speaker and mlterm ISCII support itself may be still
+  We are not a native speaker and mlterm ISCII support itself may be still
   unstable.
   So if you find something strange or wrong about it, please report it without
-  reservation to me (arakiken@users.sourceforge.net) or Mlterm-dev-en
-  (http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en).
+  reservation to Mlterm-dev-en.
+  (http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en)
+

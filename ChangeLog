@@ -1,3 +1,44 @@
+2004-10-10 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* configure.in:
+	  - --disable-kbd.
+	  - --enable-dnd -> --disable-dnd
+	  - USE_IM_PLUGIN in IM_CFLAGS.
+	
+	* README.iscii, README.ja, man/mlterm.1, etc/key, x_screen.c,
+	  x_screen.c, x_shortcut.c, x_shortcut.h:
+	  - removed screen->kbd.
+	  - removed XIM_OPEN and XIM_CLOSE.
+	  - added IM_HOTKEY.
+
+	* x_screen.h (compare_key_state_with_modmap): new function for
+	  callback of input methods.
+
+	* inputmethod/iiimf/im_iiimf.c, inputmethod/uim/im_uim.c,
+	  inputmethod/m17nlib/im_m17nlib.c (switch_mode): new functions for
+	  IM_HOTKEY.
+
+	* inputmethod/m17nlib/im_m17nlib.c: added status window.
+
+	* inputmethod/iiimf/im_iiimf.c, inputmethod/uim/im_uim.c,
+	  inputmethod/m17nlib/im_m17nlib.c (im_get_info):
+	* tool/mlconfig/mc_im.c (get_im_info):
+	  added 'encoding' argument.
+
+	* x_kbd.c, x_kbd.h: moved to ..
+	* inputmethod/kdb/im_kbd.c: this.
+
+	* inputmethod/kdb/Makefile.in: new file.
+
+	* xwindow/Makefile.in:
+	  - removed x_kbd.o.
+	  - added IM_CFLAGS.
+
+	* x_im.h, x_im.h: added ml_iscii_keymap_new, ml_iscii_keymap_delete and
+	  ml_convert_ascii_to_iscii into x_im_export_syms_t.
+
+	* x_main_config.c: minor cleanup.
+
 2004-10-09 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* ml_cursor.h: added missig #endif.

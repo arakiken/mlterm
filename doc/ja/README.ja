@@ -74,8 +74,11 @@ comment $Id$
       scrollbar/ か contrib/scrollbar/ 以下の指定されたスクロールバーをビルドし
       ます。
 
-    --enable-dnd
-      XDnD プロトコルによるドラッグアンドドロップをサポートします。
+    --disable-dnd
+      XDnD プロトコルによるドラッグアンドドロップサポートを無効にします。
+
+    --disable-kdb
+      kbd(アラビア語とインド諸語用インプットメソッド)を無効にします。
 
     --enable-uim
       uim をサポートします。libuim が必要です。
@@ -83,6 +86,10 @@ comment $Id$
     --enable-iiimf
       IIIMF (Internet/Intranet Input Method Framework) をサポートします。
       libiiimcf が必要です。
+
+    --enable-m17nlib
+      m17n library が提供するインプットメソッドをサポートします。
+      m17n-lib と m17n-db が必要です。
 
     --with-tools
       tool/ か contrib/tool/ 以下の指定されたツールをビルドします。
@@ -99,10 +106,11 @@ comment $Id$
     o Examples
       (最重量版)
       ./configure --with-imagelib=gdk-pixbuf --enable-anti-alias \
-      --enable-fribidi --enable-ind --enable-utmp 
+      --enable-fribidi --enable-ind --enable-utmp
 
       (最軽量版)
-      ./configure --without-map-table --without-prop-table --disable-shared
+      ./configure --without-map-table --without-prop-table --disable-shared \
+      --disable-dnd
 
 * 主な機能
   o アンチエイリアス
@@ -123,7 +131,7 @@ comment $Id$
     imlib または gdk-pixbuf がインストールされている環境で、いずれかを組み込んで
     ビルドした mlterm には、壁紙をはり付けることができます。
     背景透過も可能です。imlib または gdk-pixbuf がリンクされていれば、透過した背
-    景の輝度を調節することもできます。
+    景の輝度/コントラスト/ガンマを調節することもできます。
 
   o マルチPTY
     単一プロセス中から、最大 32 個の pty セッションを立ち上げることができます。
@@ -145,10 +153,9 @@ comment $Id$
     (see doc/ja/README.xim)
 
   o インプットメソッド プラグイン
-    モダンなインプットメソッド(多言語でウインドウシステム非依存)である IIIMF と
-    uim に対応しています。プラグインになっていますので、使う時だけロードされ動
-    的に変更が可能です。端末のエンコーディングに依存しないのはマルチXIMと同様
-    です。
+    IIIMF、uim、m17n library に対応しています。プラグインとして、使用時だけロー
+    ドされます。マルチXIMと同様、動的変更が可能で端末のエンコーディングに依存
+    しません。
 
   o プロポーショナルフォント
     プロポーショナルフォントも使用できます。
@@ -373,7 +380,7 @@ comment $Id$
       o scrollbar_mode (none/*left*/right) (#)
         スクロールバーのつけ方
 
-      o scrollbar_view_name  (*simple*/sample/sample2/sample3/next/motif/athena/mozmodern) (#)
+      o scrollbar_view_name (*simple*/sample/sample2/sample3/next/motif/athena/mozmodern) (#)
         使いたいスクロールバーの名前
 
       o fg_color  (*black*) (#)
@@ -682,13 +689,11 @@ comment $Id$
 
       OPERATION は以下の通り
 
-      o XIM_OPEN(Shift+space)
-        XIM メソッドを Open します。
-        xim_open_in_startup が true に設定されている場合は、最初から Open され
-        ていますので、使われません。
-      o XIM_CLOSE(UNUSED)
+      o IM_HOTKEY
+        m17nlib, kbd(アラビア語とインド諸語の入力メソッド)の入力モード切替え。
       o EXT_KBD(UNUSED)
         アラビア語、インド諸語の mlterm 内蔵入力メソッドを起動、終了します。
+        (mlterm 2.8.0 以前 との互換オペレーション)
       o NEW_PTY(Ctrl+F1)
         OPEN_SCREEN と同じ。2.6.0 以降 obsoleted.
       o OPEN_SCREEN(Ctrl+F1)
@@ -712,6 +717,14 @@ comment $Id$
       o "" で囲まれた文字列
         文字列の出力
 
+      以下のオペレーションは 2.9.0 で廃止されました。
+
+      o XIM_OPEN(Shift+space)
+        XIM メソッドを Open します。
+        xim_open_in_startup が true に設定されている場合は、最初から Open され
+        ていますので、使われません。
+      o XIM_CLOSE(UNUSED)
+
       SHORTCUT_KEY のフォーマットは以下の通り
 
       (MASK+)KEY
@@ -726,8 +739,8 @@ comment $Id$
       の 3 つが使用できます。
 
       e.g.)
-      Control+backslash=XIM_OPEN
-      Control+backslash を押下すると、XIM サーバに接続します。
+      Control+n=OPEN_SCREEN
+      Control+n を押下すると、新しい端末用ウィンドウを開きます。
 
       "" で囲まれた文字列としては、'\x'から始まる16進数、'\n','\r','\e','\t'
       が使えます。

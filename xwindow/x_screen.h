@@ -16,7 +16,6 @@
 #include  "x_mod_meta_mode.h"
 #include  "x_bel_mode.h"
 #include  "x_sb_mode.h"
-#include  "x_kbd.h"
 #include  "x_im.h"
 
 typedef struct x_screen *  x_screen_ptr_t ;
@@ -92,8 +91,6 @@ typedef struct  x_screen
 
 	x_shortcut_t *  shortcut ;
 	x_termcap_entry_t *  termcap ;
-
-	x_kbd_t *  kbd ;
 
 	char *  input_method ;
 	x_im_t *  im ;

@@ -1392,7 +1392,7 @@ window_realized(
 
 	if( screen->input_method)
 	{
-		/* XIM? or other input method? */
+		/* XIM or other input methods? */
 		if( strncmp( screen->input_method , "xim" , 3) == 0)
 		{
 			activate_xic( screen) ;
@@ -1779,6 +1779,8 @@ receive_string_via_ucs(
 
 /* referred in key_pressed and set_xdnd_config. */
 static void set_config( void *  p , char *  dev , char *  key , char *  value) ;
+/* referred in key_pressed. */
+static void change_im( x_screen_t * , char *) ;
 
 static void
 key_pressed(
@@ -1795,18 +1797,37 @@ key_pressed(
 
 	screen = (x_screen_t *) win ;
 
-	if( screen->kbd)
-	{
-		size = (*screen->kbd->get_str)( screen->kbd , seq , sizeof(seq) , &parser , &ksym , event) ;
-	}
-	else
-	{
-		size = x_window_get_str( win , seq , sizeof(seq) , &parser , &ksym , event) ;
-	}
+	masked_state = event->state & screen->mod_ignore_mask ;
+
+	size = x_window_get_str( win , seq , sizeof(seq) , &parser , &ksym , event) ;
 
 	if( screen->im)
 	{
-		if( ! (*screen->im->key_event)( screen->im , ksym , event))
+		u_char  kchar = 0 ;
+
+		if( x_shortcut_match( screen->shortcut , IM_HOTKEY , ksym , masked_state))
+		{
+			if( (*screen->im->switch_mode)( screen->im))
+			{
+				return ;
+			}
+		}
+
+		/* for backward compatibility */
+		if( x_shortcut_match( screen->shortcut , EXT_KBD , ksym , masked_state))
+		{
+			if( (*screen->im->switch_mode)( screen->im))
+			{
+				return ;
+			}
+		}
+
+		if( size == 1)
+		{
+			kchar = seq[0] ;
+		}
+
+		if( ! (*screen->im->key_event)( screen->im , kchar , ksym , event))
 		{
 			if( ml_term_is_backscrolling( screen->term))
 			{
@@ -1830,50 +1851,8 @@ key_pressed(
 		kik_msg_printf( "\n") ;
 	}
 #endif
-	masked_state = event->state & screen->mod_ignore_mask ;
 
-	if( x_shortcut_match( screen->shortcut , XIM_OPEN , ksym , masked_state))
-	{
-		x_xic_activate( &screen->window , "" , "") ;
-
-		return ;
-	}
-	else if( x_shortcut_match( screen->shortcut , XIM_CLOSE , ksym , masked_state))
-	{
-		x_xic_deactivate( &screen->window) ;
-
-		return ;
-	}
-	else if( x_shortcut_match( screen->shortcut , EXT_KBD , ksym , masked_state))
-	{
-		if( screen->kbd)
-		{
-			if( screen->kbd->type == KBD_ISCII_INSCRIPT)
-			{
-				(*screen->kbd->delete)( screen->kbd) ;
-				screen->kbd = x_iscii_phonetic_kbd_new( &screen->window) ;
-			}
-			else
-			{
-				(*screen->kbd->delete)( screen->kbd) ;
-				screen->kbd = NULL ;
-			}
-		}
-		else
-		{
-			if( ml_term_get_encoding( screen->term) == ML_ISCII)
-			{
-				screen->kbd = x_iscii_inscript_kbd_new( &screen->window) ;
-			}
-			else
-			{
-				screen->kbd = x_arabic_kbd_new( &screen->window) ;
-			}
-		}
-
-		return ;
-	}
-	else if( x_shortcut_match( screen->shortcut , OPEN_SCREEN , ksym , masked_state))
+	if( x_shortcut_match( screen->shortcut , OPEN_SCREEN , ksym , masked_state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_screen))
 		{
@@ -1907,6 +1886,13 @@ key_pressed(
 		{
 			(*screen->system_listener->prev_pty)( screen->system_listener->self , screen) ;
 		}
+
+		return ;
+	}
+	/* for backward compatibility */
+	else if( x_shortcut_match( screen->shortcut , EXT_KBD , ksym , masked_state))
+	{
+		change_im( screen , "kbd") ;
 
 		return ;
 	}
@@ -5957,6 +5943,96 @@ im_changed(
 	screen->im = new ;
 }
 
+static int
+compare_key_state_with_modmap(
+	void *  p ,
+	u_int  state ,
+	int *  is_shift ,
+	int *  is_lock ,
+	int *  is_ctl ,
+	int *  is_alt ,
+	int *  is_meta ,
+	int *  is_super ,
+	int *  is_hyper
+	)
+{
+	x_screen_t *  screen ;
+	XModifierKeymap *  mod_map ;
+	u_int  mod_mask[] = { Mod1Mask , Mod2Mask , Mod3Mask , Mod4Mask , Mod5Mask} ;
+	int  i ;
+
+	screen = p ;
+
+	mod_map = x_window_get_modifier_mapping( x_get_root_window( &screen->window)) ;
+
+	*is_shift = *is_lock = *is_ctl = *is_alt = *is_meta = *is_super = *is_hyper = 0 ;
+
+	if( state & ShiftMask)
+	{
+		*is_shift = 1 ;
+	}
+
+	if( state & LockMask)
+	{
+		*is_lock = 1 ;
+	}
+
+	if( state & ControlMask)
+	{
+		*is_ctl = 1 ;
+	}
+
+	for( i = 0 ; i < 5 ; i++)
+	{
+		KeySym  sym ;
+		int  index ;
+		int  mod1_index ;
+
+		if( ! (state & mod_mask[i]))
+		{
+			continue ;
+		}
+
+		/* skip shift/lock/control */
+		mod1_index = mod_map->max_keypermod * 3;
+
+		for( index = mod1_index + (mod_map->max_keypermod * i) ;
+		     index < mod1_index + (mod_map->max_keypermod * (i + 1)) ;
+		     index ++)
+		{
+			KeySym  sym ;
+
+			sym = XKeycodeToKeysym( screen->window.display ,
+						mod_map->modifiermap[index] ,
+						0) ;
+
+			switch (sym)
+			{
+			case  XK_Meta_R:
+			case  XK_Meta_L:
+				*is_meta = 1 ;
+				break ;
+			case  XK_Alt_R:
+			case  XK_Alt_L:
+				*is_alt = 1 ;
+				break ;
+			case  XK_Super_R:
+			case  XK_Super_L:
+				*is_super = 1 ;
+				break ;
+			case  XK_Hyper_R:
+			case  XK_Hyper_L:
+				*is_hyper = 1 ;
+				break ;
+			default:
+				break ;
+			}
+		}
+	}
+
+	return  0 ;
+}
+
 static void
 write_to_term(
 	void *  p ,
@@ -6324,8 +6400,6 @@ x_screen_new(
 	screen->utf8_conv = NULL ;
 	screen->xct_conv = NULL ;
 
-	screen->kbd = NULL ;
-
 	screen->use_vertical_cursor = use_vertical_cursor ;
 
 	screen->font_man = font_man ;
@@ -6408,6 +6482,7 @@ x_screen_new(
 	screen->im_listener.is_vertical = is_vertical ;
 	screen->im_listener.draw_preedit_str = draw_preedit_str ;
 	screen->im_listener.im_changed = im_changed ;
+	screen->im_listener.compare_key_state_with_modmap = compare_key_state_with_modmap ;
 	screen->im_listener.write_to_term = write_to_term ;
 	screen->im_listener.get_win_man = get_win_man ;
 	screen->im_listener.get_font_man = get_font_man ;
@@ -6637,11 +6712,6 @@ x_screen_delete(
 	}
 
 	x_sel_final( &screen->sel) ;
-
-	if( screen->kbd)
-	{
-		(*screen->kbd->delete)( screen->kbd) ;
-	}
 
 	if( screen->mod_meta_key)
 	{
