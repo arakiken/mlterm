@@ -19,10 +19,12 @@
 
 
 #ifdef  ANTI_ALIAS
-typedef XftColor **  ml_color_table_t ;
+typedef XftColor  x_color_t ;
 #else
-typedef XColor **  ml_color_table_t ;
+typedef XColor  x_color_t ;
 #endif
+
+typedef x_color_t **  ml_color_table_t ;
 
 
 typedef enum  ml_color
@@ -63,6 +65,15 @@ ml_color_table_t  ml_color_table_dup( ml_color_table_t  color_table) ;
 char *  ml_get_color_name( ml_color_t  color) ;
 
 ml_color_t  ml_get_color( char *  name) ;
+
+int  ml_load_named_xcolor( Display *  display , int  screen , x_color_t *  xcolor , char *  name) ;
+
+int  ml_load_rgb_xcolor( Display *  display , int  screen , x_color_t *  xcolor ,
+	u_short  red , u_short  green , u_short  blue) ;
+
+int  ml_unload_xcolor( Display *  display , int  screen , x_color_t *  xcolor) ;
+
+int  ml_get_xcolor_rgb( u_short *  red , u_short *  green , u_short *  blue , x_color_t *  xcolor) ;
 
 
 #endif

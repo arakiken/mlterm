@@ -326,7 +326,7 @@ ml_sb_term_screen_new(
 		termscr->window.height ,
 		termscr->window.min_width , termscr->window.min_height ,
 		termscr->window.width_inc , termscr->window.height_inc ,
-		termscr->window.margin) == 0)
+		termscr->window.margin , 100) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_window_init() failed.\n") ;

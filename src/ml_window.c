@@ -1075,14 +1075,96 @@ draw_str(
 	return	1 ;
 }
 
+static int
+set_bg_color(
+	ml_window_t *  win
+	)
+{
+	XSetBackground( win->display , win->gc , BG_COLOR_PIXEL(win)) ;
+
+	if( ! win->is_transparent && ! win->wall_picture_is_set)
+	{
+		XSetWindowBackground( win->display , win->my_window , BG_COLOR_PIXEL(win)) ;
+	}
+
+	if( win->window_exposed)
+	{
+		ml_window_clear_all( win) ;
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
+
+	return  1 ;
+}
+
+static int
+unfade_bg_color(
+	ml_window_t *  win
+	)
+{
+	if( win->fade_ratio >= 100 || win->orig_bg_xcolor == NULL)
+	{
+		return  0 ;
+	}
+	
+	win->color_table[MLC_BG_COLOR] = win->orig_bg_xcolor ;
+	win->orig_bg_xcolor = NULL ;
+
+	ml_unload_xcolor( win->display , win->screen , win->faded_xcolor) ;
+	free( win->faded_xcolor) ;
+
+	win->faded_xcolor = NULL ;
+
+	set_bg_color( win) ;
+
+	return  1 ;
+}
+
+static int
+fade_bg_color(
+	ml_window_t *  win
+	)
+{
+	u_short  red ;
+	u_short  green ;
+	u_short  blue ;
+	
+	if( win->fade_ratio >= 100 || win->faded_xcolor)
+	{
+		/* already faded */
+		
+		return  1 ;
+	}
+	
+	ml_get_xcolor_rgb( &red , &green , &blue , win->color_table[MLC_BG_COLOR]) ;
+
+	red = (red * win->fade_ratio) / 100 ;
+	green = (green * win->fade_ratio) / 100 ;
+	blue = (blue * win->fade_ratio) / 100 ;
+
+	if( ( win->faded_xcolor = malloc( sizeof( x_color_t))))
+	{
+		ml_load_rgb_xcolor( win->display , win->screen , win->faded_xcolor ,
+			red , green , blue) ;
+
+		win->orig_bg_xcolor = win->color_table[MLC_BG_COLOR] ;
+		win->color_table[MLC_BG_COLOR] = win->faded_xcolor ;
+
+		set_bg_color( win) ;
+	}
+
+	return  1 ;
+}
+
 static void
 notify_focus_in_to_children(
 	ml_window_t *  win
 	)
 {
 	int  counter ;
-	
+
 	ml_xic_set_focus( win) ;
+	
+	unfade_bg_color( win) ;
 	
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
@@ -1098,6 +1180,8 @@ notify_focus_out_to_children(
 	int  counter ;
 	
 	ml_xic_unset_focus( win) ;
+
+	fade_bg_color( win) ;
 	
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
@@ -1188,7 +1272,8 @@ ml_window_init(
 	u_int  min_height ,
 	u_int  width_inc ,
 	u_int  height_inc ,
-	u_int  margin
+	u_int  margin ,
+	u_int  fade_ratio
 	)
 {
 	/*
@@ -1209,16 +1294,7 @@ ml_window_init(
 #endif
 
 	win->parent = NULL ;
-	if( ( win->children = malloc( sizeof( *win->children) * MAX_CHILDS)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
-	#endif
-
-		return  0 ;
-	}
-	memset( win->children , 0 , sizeof( *win->children) * MAX_CHILDS) ;
-
+	memset( win->children , 0 , sizeof( *win->children) * MAX_CHILD_WINDOWS) ;
 	win->num_of_children = 0 ;
 
 	win->use_pixmap = 0 ;
@@ -1244,6 +1320,9 @@ ml_window_init(
 	win->margin = margin ;
 
 	win->color_table = color_table ;
+	win->faded_xcolor = NULL ;
+	win->orig_bg_xcolor = NULL ;
+	win->fade_ratio = fade_ratio ;
 
 	win->use_xim = 0 ;
 	win->xic = NULL ;
@@ -1294,9 +1373,13 @@ ml_window_final(
 		ml_window_final( win->children[counter].window) ;
 	}
 	
-	free( win->children) ;
-
 	free( win->color_table) ;
+
+	if( win->faded_xcolor)
+	{
+		ml_unload_xcolor( win->display , win->screen , win->faded_xcolor) ;
+		free( win->faded_xcolor) ;
+	}
 	
 	ml_window_manager_clear_selection( ml_get_root_window( win)->win_man , win) ;
 	XFreeGC( win->display , win->gc) ;
@@ -1689,22 +1772,13 @@ ml_window_set_bg_color(
 		return  0 ;
 	}
 	
+	unfade_bg_color( win) ;
+
 	win->color_table[MLC_BG_COLOR] = win->color_table[bg_color] ;
 
 	if( win->drawable)
 	{
-		XSetBackground( win->display , win->gc , BG_COLOR_PIXEL(win)) ;
-
-		if( ! win->is_transparent && ! win->wall_picture_is_set)
-		{
-			XSetWindowBackground( win->display , win->my_window , BG_COLOR_PIXEL(win)) ;
-		}
-
-		if( win->window_exposed)
-		{
-			ml_window_clear_all( win) ;
-			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-		}
+		set_bg_color( win) ;
 	}
 
 	return  1 ;
@@ -1754,7 +1828,7 @@ ml_window_add_child(
 	int  y
 	)
 {
-	if( win->num_of_children == MAX_CHILDS)
+	if( win->num_of_children == MAX_CHILD_WINDOWS)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG

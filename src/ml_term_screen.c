@@ -3219,6 +3219,7 @@ ml_term_screen_new(
 	u_int  rows ,
 	ml_font_manager_t *  font_man ,
 	ml_color_table_t  color_table ,
+	u_int  fade_ratio ,
 	ml_keymap_t *  keymap ,
 	ml_termcap_t *  termcap ,
 	u_int  num_of_log_lines ,
@@ -3308,7 +3309,8 @@ ml_term_screen_new(
 
 	if( ml_window_init( &termscr->window , color_table , width , height ,
 		ml_col_width((termscr)->font_man) , ml_line_height((termscr)->font_man) ,
-		ml_col_width((termscr)->font_man) , ml_line_height((termscr)->font_man) , 2) == 0)
+		ml_col_width((termscr)->font_man) , ml_line_height((termscr)->font_man) ,
+		2 , fade_ratio) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_window_init failed.\n") ;

@@ -13,135 +13,6 @@
 
 /* --- static functions --- */
 
-#ifdef  ANTI_ALIAS
-
-static int
-load_named_xcolor_intern(
-	ml_color_manager_t *  color_man ,
-	XftColor *  xcolor ,
-	char *  name
-	)
-{
-	if( ! XftColorAllocName( color_man->display ,
-		DefaultVisual( color_man->display , color_man->screen) ,
-		DefaultColormap( color_man->display , color_man->screen) ,
-		name , xcolor))
-	{
-		return  0 ;
-	}
-	else
-	{
-		return  1 ;
-	}
-}
-
-static int
-load_rgb_xcolor_intern(
-	ml_color_manager_t *  color_man ,
-	XftColor *  xcolor ,
-	u_short  red ,
-	u_short  green ,
-	u_short  blue
-	)
-{
-	XRenderColor  rend_color ;
-	
-	rend_color.red = red ;
-	rend_color.green = green ;
-	rend_color.blue = blue ;
-	rend_color.alpha = 0xffff ;
-
-	if( ! XftColorAllocValue( color_man->display ,
-		DefaultVisual( color_man->display , color_man->screen) ,
-		DefaultColormap( color_man->display , color_man->screen) ,
-		&rend_color , xcolor))
-	{
-		return  0 ;
-	}
-
-	return  1 ;
-}
-
-static int
-unload_xcolor_intern(
-	ml_color_manager_t *  color_man ,
-	XftColor *  xcolor
-	)
-{
-	XftColorFree( color_man->display ,
-		DefaultVisual( color_man->display , color_man->screen) ,
-		DefaultColormap( color_man->display , color_man->screen) ,
-		xcolor) ;
-
-	return  1 ;
-}
-
-#else
-
-static int
-load_named_xcolor_intern(
-	ml_color_manager_t *  color_man ,
-	XColor *  xcolor ,
-	char *  name
-	)
-{
-	XColor  exact ;
-
-	if( ! XAllocNamedColor( color_man->display ,
-		DefaultColormap( color_man->display , color_man->screen) ,
-		name , xcolor , &exact))
-	{
-		return  0 ;
-	}
-	else
-	{
-		return  1 ;
-	}
-}
-
-static int
-load_rgb_xcolor_intern(
-	ml_color_manager_t *  color_man ,
-	XColor *  xcolor ,
-	u_short  red ,
-	u_short  green ,
-	u_short  blue
-	)
-{
-	xcolor->red = red ;
-	xcolor->green = green ;
-	xcolor->blue = blue ;
-	xcolor->flags = 0 ;
-
-	if( ! XAllocColor( color_man->display ,
-		DefaultColormap( color_man->display , color_man->screen) ,
-		xcolor))
-	{
-		return  0 ;
-	}
-
-	return  1 ;
-}
-
-static int
-unload_xcolor_intern(
-	ml_color_manager_t *  color_man ,
-	XColor *  xcolor
-	)
-{
-	u_long  pixel[1] ;
-
-	pixel[0] = xcolor->pixel ;
-	
-	/* XXX planes argument 0 is ok ? */
-	XFreeColors( color_man->display , DefaultColormap( color_man->display , color_man->screen) ,
-		pixel , 1 , 0) ;
-
-	return  1 ;
-}
-
-#endif
-
 static int
 load_named_xcolor(
 	ml_color_manager_t *  color_man ,
@@ -154,7 +25,7 @@ load_named_xcolor(
 		return  0 ;
 	}
 	
-	if( load_named_xcolor_intern( color_man , &xcolor->xcolor , name))
+	if( ml_load_named_xcolor( color_man->display , color_man->screen , &xcolor->xcolor , name))
 	{
 		xcolor->is_loaded = 1 ;
 
@@ -180,7 +51,8 @@ load_rgb_xcolor(
 		return  0 ;
 	}
 	
-	if( load_rgb_xcolor_intern( color_man , &xcolor->xcolor , red , green , blue))
+	if( ml_load_rgb_xcolor( color_man->display , color_man->screen , &xcolor->xcolor ,
+		red , green , blue))
 	{
 		xcolor->is_loaded = 1 ;
 
@@ -203,7 +75,7 @@ unload_xcolor(
 		return  0 ;
 	}
 	
-	if( unload_xcolor_intern( color_man , &xcolor->xcolor))
+	if( ml_unload_xcolor( color_man->display , color_man->screen , &xcolor->xcolor))
 	{
 		xcolor->is_loaded = 0 ;
 
@@ -443,11 +315,7 @@ ml_color_table_new(
 	int  counter ;
 	ml_color_table_t  color_table ;
 
-#ifdef  ANTI_ALIAS
-	if( ( color_table = malloc( sizeof( XftColor *) * MAX_COLORS)) == NULL)
-#else
-	if( ( color_table = malloc( sizeof( XColor *) * MAX_COLORS)) == NULL)
-#endif
+	if( ( color_table = malloc( sizeof( x_color_t *) * MAX_COLORS)) == NULL)
 	{
 		return  NULL ;
 	}
@@ -487,15 +355,5 @@ ml_get_color_rgb(
 	ml_color_t  color
 	)
 {
-#ifdef  ANTI_ALIAS
-	*red = color_man->xcolors[color].xcolor.color.red ;
-	*blue = color_man->xcolors[color].xcolor.color.blue ;
-	*green = color_man->xcolors[color].xcolor.color.green ;
-#else
-	*red = color_man->xcolors[color].xcolor.red ;
-	*blue = color_man->xcolors[color].xcolor.blue ;
-	*green = color_man->xcolors[color].xcolor.green ;
-#endif
-
-	return  1 ;
+	return  ml_get_xcolor_rgb( red , green , blue , &color_man->xcolors[color].xcolor) ;
 }

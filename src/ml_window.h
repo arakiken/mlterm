@@ -17,12 +17,14 @@
 #include  <mkf/mkf_parser.h>
 
 #include  "ml_font.h"
-#include  "ml_color_manager.h"
+#include  "ml_color.h"
 #include  "ml_char.h"
 
 
 #define  ACTUAL_WIDTH(win)  ((win)->width + (win)->margin * 2)
 #define  ACTUAL_HEIGHT(win)  ((win)->height + (win)->margin * 2)
+
+#define  MAX_CHILD_WINDOWS  2
 
 
 typedef enum  ml_event_dispatch
@@ -67,25 +69,20 @@ typedef struct  ml_window
 
 	GC  gc ;
 
-	struct ml_window *  parent ;
-
 	ml_window_manager_ptr_t  win_man ;
 	
+	struct ml_window *  parent ;
+
 	struct
 	{
 		struct ml_window *  window ;
 		int  x ;
 		int  y ;
 		
-	} *  children ;
+	} children[MAX_CHILD_WINDOWS] ;
 
 	u_int  num_of_children ;
 	
-	int8_t  wall_picture_is_set ;
-	int8_t  is_transparent ;
-	
-	int8_t  is_scrollable ;
-
 	u_int  cursor_shape ;
 
 	long  event_mask ;
@@ -102,19 +99,39 @@ typedef struct  ml_window
 	/* actual window size is +margin on north/south/east/west */
 	u_int  margin ;
 
+	/* color */
 	ml_color_table_t  color_table ;
+	x_color_t *  faded_xcolor ;
+	x_color_t *  orig_bg_xcolor ;
 
 	/* used by ml_xim */
-	int8_t  use_xim ;
 	ml_xic_ptr_t  xic ;
 	ml_xim_ptr_t  xim ;
 	ml_xim_event_listener_t *  xim_listener ;
 
+	/* button */
 	Time  prev_clicked_time ;
 	int  prev_clicked_button ;
 	XButtonEvent  prev_button_press_event ;
-	int  click_num ;
+
+	/*
+	 * flags etc.
+	 */
+	 
+	int8_t  wall_picture_is_set ;
+	int8_t  is_transparent ;
+	
+	int8_t  is_scrollable ;
+
+	/* color */
+	u_int8_t  fade_ratio ;
+
+	/* used by ml_xim */
+	int8_t  use_xim ;
+
+	/* button */
 	int8_t  button_is_pressing ;
+	int8_t  click_num ;
 
 	void (*window_realized)( struct ml_window *) ;
 	void (*window_finalized)( struct ml_window *) ;
@@ -140,7 +157,7 @@ typedef struct  ml_window
 
 int  ml_window_init( ml_window_t *  win , ml_color_table_t  color_table ,
 	u_int  width , u_int  height , u_int  min_width , u_int  min_height ,
-	u_int  width_inc , u_int  height_inc , u_int  margin) ;
+	u_int  width_inc , u_int  height_inc , u_int  margin , u_int  fade_ratio) ;
 
 int  ml_window_init_atom( Display *  display) ;
 

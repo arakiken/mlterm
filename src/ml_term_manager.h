@@ -68,7 +68,8 @@ typedef struct  ml_term_manager
 	u_int  col_size_a ;
 	ml_char_encoding_t  encoding ;
 	ml_font_present_t  font_present ;
-	
+
+	int8_t  fade_ratio ;
 	int8_t  use_scrollbar ;
 	int8_t  use_login_shell ;
 	int8_t  use_xim ;

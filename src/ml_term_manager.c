@@ -143,7 +143,7 @@ open_new_term(
 
 	if( ( termscr = ml_term_screen_new( term_man->cols , term_man->rows , font_man ,
 		ml_color_table_new( &term_man->color_man , term_man->fg_color , term_man->bg_color) ,
-		&term_man->keymap , &term_man->termcap ,
+		term_man->fade_ratio , &term_man->keymap , &term_man->termcap ,
 		term_man->num_of_log_lines , term_man->tab_size ,
 		term_man->use_xim , term_man->xim_open_in_startup ,
 		term_man->mod_meta_mode , term_man->bel_mode ,
@@ -698,6 +698,7 @@ ml_term_manager_init(
 	kik_conf_add_opt( conf , 'b' , "bg" , 0 , "bg_color" , "bg color") ;
 	kik_conf_add_opt( conf , 'F' , "sbfg" , 0 , "sb_fg_color" , "scrollbar fg color") ;
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , "scrollbar bg color") ;
+	kik_conf_add_opt( conf , 'r' , "fade" , 0 , "fade_ratio" , "fade ratio when window unfocued.") ;
 	kik_conf_add_opt( conf , 'p' , "pic" , 0 , "wall_picture" , "wall picture path") ;
 	kik_conf_add_opt( conf , 'a' , "ac" , 0 , "col_size_of_width_a" ,
 		"col size of a ucs char with east asian width a property") ;
@@ -980,6 +981,16 @@ ml_term_manager_init(
 		term_man->sb_bg_color = MLC_UNKNOWN_COLOR ;
 	}
 
+	term_man->fade_ratio = 100 ;
+	if( ( value = kik_conf_get_value( conf , "fade_ratio")))
+	{
+		u_int  fade_ratio ;
+		
+		if( kik_str_to_int( &fade_ratio , value))
+		{
+			term_man->fade_ratio = fade_ratio ;
+		}
+	}
 
 	/*
 	 * keymap and termcap

@@ -1689,6 +1689,12 @@ parse_vt100_escape_sequence(
 					pt = str_p ;
 					while( *str_p != CTLKEY_BEL)
 					{
+						if( *str_p == CTLKEY_LF)
+						{
+							/* stop to parse as escape seq. */
+							return  1 ;
+						}
+						
 						if( increment_str( &str_p , &left) == 0)
 						{
 							return  0 ;

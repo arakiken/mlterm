@@ -140,7 +140,7 @@ typedef struct  ml_term_screen
 
 
 ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
-	ml_font_manager_t *  font_man , ml_color_table_t  color_table ,
+	ml_font_manager_t *  font_man , ml_color_table_t  color_table , u_int  fade_ratio ,
 	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
 	u_int  num_of_log_lines , u_int  tab_size , int  use_xim ,
 	int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode , ml_bel_mode_t  bel_mode ,

@@ -6,9 +6,6 @@
 #define  __ML_WINDOW_INTERN_H__
 
 
-#define  MAX_CHILDS  2
-
-
 #ifdef  ANTI_ALIAS
 
 #define  XFT_COLOR(win,color)  ((win)->color_table[(color)])

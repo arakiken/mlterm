@@ -21,11 +21,7 @@ typedef struct  ml_rgb
 
 typedef struct  ml_xcolor
 {
-#ifdef  ANTI_ALIAS
-	XftColor  xcolor ;
-#else
-	XColor  xcolor ;
-#endif
+	x_color_t  xcolor ;
 
 	int8_t  is_loaded ;
 	
