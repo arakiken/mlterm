@@ -17,9 +17,14 @@ void entry_numeric_apply(entry_t *entry){
 
 entry_numeric_t *entry_numeric_new(const char *key, int max, int min, const char *unit){
 	entry_numeric_t *entry;
-	
+	char * tmp;
+
+	tmp = mlterm_get_param(key);
 	entry = malloc(sizeof(entry_numeric_t));
-	entry->initial = atoi(strdup(mlterm_get_param(key)));
+	if(tmp)
+		entry->initial = atoi(strdup(tmp));
+	else
+		entry->initial = 0;
 	entry->current = entry->initial;
 	entry->unit = unit;
 	entry->max = max;
