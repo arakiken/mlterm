@@ -1,5 +1,9 @@
 2003-09-14  Araki Ken  <arakiken@users.sf.net>
 
+	* x_font.c(x_font_new): Surrounded xft_font by #ifdef  ANTI_ALIAS - #endif.
+
+2003-09-14  Araki Ken  <arakiken@users.sf.net>
+
 	* Added mlterm/API.
 
 	* ml_screen.c(ml_screen_set_modified_all): Removed '== NULL'.

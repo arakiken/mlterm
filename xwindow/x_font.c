@@ -1204,7 +1204,9 @@ x_font_new(
 	}
 	
 	font->xfont = NULL ;
+#ifdef  ANTI_ALIAS
 	font->xft_font = NULL ;
+#endif
 	font->decsp_font = NULL ;
 
 	if( font_present & FONT_AA)
