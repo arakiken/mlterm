@@ -3,5 +3,8 @@ encoding	select:upper	auto	0	Encoding
 iscii_lang	select:lower	malayalam	0	ISCII lang
 xim		text		-	0	X Input Method
 locale		text		-	0	XIM locale
+vertical_mode	radio:lower	none	0	Vertical mode
 use_bidi	checkbox	true	0	Bidi (UTF8 only)
 use_combining	checkbox	true	1	Combining
+use_multi_column_char	checkbox	true	0	Process multiple column character
+copy_paste_via_ucs	checkbox	false	0	Process received strings via Unicode

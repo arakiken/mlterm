@@ -157,8 +157,6 @@ draw_arrow_up_icon(
 					1 , 1 , x , y) ;
 			}
 		}
-
-		x = 0 ;
 	}
 
 	XCopyArea( view->display , arrow , view->window , view->gc ,
@@ -201,8 +199,6 @@ draw_arrow_down_icon(
 					1 , 1 , x , y) ;
 			}
 		}
-
-		x = 0 ;
 	}
 
 	XCopyArea( view->display , arrow , view->window , view->gc ,

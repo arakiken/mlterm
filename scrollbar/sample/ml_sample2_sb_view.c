@@ -155,8 +155,6 @@ draw_arrow_up_icon(
 				XDrawPoint( view->display , arrow , view->gc , x , y) ;
 			}
 		}
-
-		x = 0 ;
 	}
 	
 	XCopyArea( view->display , arrow , view->window , view->gc ,
@@ -197,8 +195,6 @@ draw_arrow_down_icon(
 				XDrawPoint( view->display , arrow , view->gc , x , y) ;
 			}
 		}
-
-		x = 0 ;
 	}
 	
 	XCopyArea( view->display , arrow , view->window , view->gc ,

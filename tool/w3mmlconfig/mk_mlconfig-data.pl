@@ -2,7 +2,7 @@
 while(<>) {
 	/^#/ && next;
 	chop;
-	($s, $c, $r, $t) = split(" ", $_, 4);
+	(($s, $c, $r, $t) = split(" ", $_, 4)) >= 4 || next;
 	push(@section, $s);
 	$section_attr->{$s} = {
 		col => $c,

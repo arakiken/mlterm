@@ -1,7 +1,5 @@
 # id		col	row	title
 encoding	0	1	Encoding
-appearance	1	2	Appearance
-copy_paste	0	2	Copy&amp;paste
-others		0	2	Others
-font		0	1	Font
-wall_picture	-1	-1
+appearance	1	1	Appearance
+scrollbar	0	1	Scrollbar
+others		1	1	Others

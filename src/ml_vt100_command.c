@@ -1074,7 +1074,7 @@ ml_vt100_cmd_set_config(
 			(*termscr->config_menu_listener.change_font_present)( termscr , font_present) ;
 		}
 	}
-	else if( strcmp( key , "use_multi_col_char") == 0)
+	else if( strcmp( key , "use_multi_column_char") == 0)
 	{
 		int  flag ;
 		
@@ -1346,7 +1346,7 @@ ml_vt100_cmd_get_config(
 			value = false ;
 		}
 	}
-	else if( strcmp( key , "use_multi_col_char") == 0)
+	else if( strcmp( key , "use_multi_column_char") == 0)
 	{
 		if( termscr->font_man->use_multi_col_char)
 		{

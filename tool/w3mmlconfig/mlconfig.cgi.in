@@ -38,9 +38,9 @@ if ($method) {
 		} elsif ($value->{fontsize_smaller}) {
 			&set_config({ fontsize => 'smaller' });
 			&get_config([ 'fontsize' ]);
-		} elsif ($value->{wall_picture_off}) {
-			&set_config({ wall_picture => '' });
-			&get_config([ 'wall_picture' ]);
+#		} elsif ($value->{wall_picture_off}) {
+#			&set_config({ wall_picture => '' });
+#			&get_config([ 'wall_picture' ]);
 		}
 	}
 } else {
@@ -77,9 +77,9 @@ sub make_html {
 <body>
 <form action="$CGI" method=POST>
 <input type=hidden name="QUIT" value="$value->{QUIT}">
-<h1 align=center>mlterm configuration</h1>
 <center>
 <table border=1>
+<caption><b>mlterm configuration</b></caption>
 EOF
 	for $s (@section) {
 		&make_section($s);
@@ -97,15 +97,17 @@ EOF
 <tr><td>Font size<br>
 <input type=submit name="fontsize_larger" value="Larger">
 <input type=submit name="fontsize_smaller" value="Smaller">
-<td>Wall picture<br>
 EOF
-	$k = 'wall_picture';
-	print "<input type=text name=\"$k\" value=\"",
-			&html_quote($value->{$k}), "\">\n";
-	print "<input type=hidden name=\"default-$k\" value=\"",
-			&html_quote($value->{$k}), "\">\n";
+#<td>Wall picture<br>
+#EOF
+#	$k = 'wall_picture';
+#	print "<input type=text name=\"$k\" value=\"",
+#			&html_quote($value->{$k}), "\">\n";
+#	print "<input type=hidden name=\"default-$k\" value=\"",
+#			&html_quote($value->{$k}), "\">\n";
+#	print <<EOF;
+#<input type=submit name="wall_picture_off" value="Off">
 	print <<EOF;
-<input type=submit name="wall_picture_off" value="Off">
 <td>Full Reset<br>
 <input type=submit name="full_reset" value="Full Reset">
 </table>
@@ -130,7 +132,7 @@ sub make_section {
 	print <<EOF;
 <td align=left valign=top rowspan=$attr->{row}>
 <b>$attr->{title}</b>
-<table width="256">
+<table>
 EOF
 	for $k (@{$attr->{key}}) {
 		&make_key($k);
