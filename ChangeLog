@@ -1,3 +1,7 @@
+2004-09-16 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* ml_edit.c (delete_cols): fixed a bug. (#1028815)
+
 2004-09-15 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* tool/mlconfig/mc_im.c (uim_widget_new): minor bug fix.

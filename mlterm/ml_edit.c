@@ -299,10 +299,11 @@ delete_cols(
 
 	cursor_line = CURSOR_LINE(edit) ;
 
-	if( edit->cursor.char_index + 1 == cursor_line->num_of_filled_chars)
+	if( edit->cursor.char_index + del_cols == cursor_line->num_of_filled_chars)
 	{
-		/* if you are in the end of edit , nothing is deleted. */
-		
+		/* no need to overwrite */
+		ml_line_clear( cursor_line , edit->cursor.char_index) ;
+
 		return  1 ;
 	}
 	
