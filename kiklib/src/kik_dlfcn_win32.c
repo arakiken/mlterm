@@ -39,7 +39,7 @@ kik_dl_open(
 	sprintf( path , "%slib%s.dll" , dirpath , name) ;
 #endif
 
-	if( ( module == LoadLibrary( path)))
+	if( ( module = LoadLibrary( path)))
 	{
 		return  ( kik_dl_handle_t)module ;
 	}
@@ -52,7 +52,7 @@ kik_dl_open(
 	sprintf( path , "%s%s.dll" , dirpath , name) ;
 #endif
 
-	if( ( module == LoadLibrary( path)))
+	if( ( module = LoadLibrary( path)))
 	{
 		return  ( kik_dl_handle_t)module ;
 	}
