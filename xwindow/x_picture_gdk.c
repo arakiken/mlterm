@@ -59,7 +59,7 @@ modify_image(
 	unsigned char *line;
 	unsigned char *pixel;
 
-	if( pic_mod->brightness == 100 && pic_mod->brightness == 100 && pic_mod->gamma == 100)
+	if( pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100)
 		return 0;
 
         if ( !pixbuf )
