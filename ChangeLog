@@ -1,3 +1,7 @@
+[20020321]
+* cursor doesn't move correctly before the meeting point of LTR and RTL characters. fixed.
+* the line cursor is previously located should be redrawn even if it is not modified.
+
 [20020320]
 * cursor movement policy before the meeting point of LTR and RTL characters is changed.
 * character set designated to G1 is unexpectedly changed if enacs=\E)0,smacs=^N,rmacs=^O.
