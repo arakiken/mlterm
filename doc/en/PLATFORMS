@@ -1,6 +1,33 @@
 comment -*- mode: text -*-
 comment $Id$
 
+supported platforms (mlterm-2.9.1 pre/cvs-1.778)
+
+* tested by Seiichi SATO <ssato@sh.rim.or.jp>
+
+  MS Windows NT 4.0/Cygwin-1.5.12 with x-org 6.8.1.0-3 (x86)
+    configure options: --with-type-engines=xft,xcore
+                       --with-scrollbars=sample,extra
+                       --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
+
+  Solaris 8 (x86), gcc-3.4.2
+    configure options: --with-type-engines=xcore
+                       --with-tools=mlclient,mlcc
+                       --with-scrollbars=sample,extra
+                       --enable-utmp
+    Notes:
+    - Using XIM with multiple displays is unstable on Xsun.
+    - configure scripts could not find libiiimcf, (Solaris 8 doesn't have it?)
+    - utmp support is unstable yet.
+
+  OpenBSD 3.5, gcc-2.95.3 (x86)
+    configure options: --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
+                       --with-scrollbars=sample,extra,pixmap_engine
+                       --with-type-engines=xcore,xft
+                       --with-imagelib=gdk-pixbuf
+                       --enable-utmp
+
+
 supported platforms (mlterm-2.9.0 post/cvs-1.758)
 
 * tested by Seiichi SATO <ssato@sh.rim.or.jp>

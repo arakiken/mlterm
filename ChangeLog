@@ -1,5 +1,9 @@
 2004-11-17 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* doc/en/PLATFORM: updated supported platforms.
+
+2004-11-17 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* xwindow/version.h.in: 2.9.0 post -> 2.9.1 pre
 
 2004-11-17 MINAMI Hirokazu <minami@mistfall.net>
