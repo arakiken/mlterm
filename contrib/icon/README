@@ -1,0 +1,43 @@
+mlterm icon collection
+======================
+
+
+- mlterm-icon-fvwm.png
+
+    I made this icon from scratch for FVWM window manager. GPL applies it.
+
+
+- mlterm-icon-gnome.png, mlterm-icon-gnome2.png
+
+    These icons, designed for GNOME / GNOME 2.0, are based on GPLed icons.
+    (gnome-globe.png, gnome-term.png, gnome-terminal.png)
+
+
+- mlterm-icon-wmaker.png
+
+    This icon is based on linuxterm.tiff in the Window Maker source
+    distribution. The WindowMaker/Icons/README file said...
+
+    "The icons listed in the end of this file and their correspondent xpm
+    versions were made by Marco van Hylckama Vlieg. They may be distributed
+    freely and/or modified as long as the original Author is mentioned!
+    marco@windowmaker.org"
+
+
+- mlterm-icon-kde.png
+
+    This is designed for KDE and based on GPLed icons. (hi48-app-konsole.png,
+    hi32-app-konqueror.png)
+
+
+- mlterm-icon-twm.png
+
+    This icon has been changed to monochromatic color for twm window manager
+    from an icon which was made by Tomohiro KUBOTA san. (mlterm_48x48.xpm)
+
+
+comments, suggestions are welcome.
+
+--
+Seiichi SATO <ssato@sh.rim.or.jp>
+
