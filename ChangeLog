@@ -1,3 +1,7 @@
+2003-09-15  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: Added --enable-optimize-redrawing option.
+
 2003-09-15  KATO Kazuyoshi  <kzys@users.sf.net>
 
 	* xwindow/x_screen.c (button_pressed): Ctrl+Middle button don't launches external program. Fixed.
