@@ -1,5 +1,9 @@
 2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* man/mlterm.1: fixed typo.
+
+2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* x_im.c, x_main_config.c, x_screen.c, tool/mlconfig/mc_im.c:
 	allowed "input_method=none".
 
