@@ -1,6 +1,8 @@
 2003-06-03  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* xwindow/x_imagelib_gdk.c: support MSBFirst screen
+	* xwindow/x_imagelib_gdk.c: 
+	 - support MSBFirst screen
+	 - fixed bugs in PseudoColor visual
 
 2003-06-02  MINAMI Hirokazu  <minami@mistfall.net>
 

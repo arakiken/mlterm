@@ -318,14 +318,14 @@ closest_color_index(
 	int blue
 	)
 {
-	static int  closest = 0 ;
+	int  closest ;
 	int  i ;
 	unsigned long  min = 0xffffff ;
 	unsigned long  diff ;
 	int  diff_r, diff_g, diff_b ;
 
 	/* start seeking from the color last used */
-	for( i = closest ; i < len ; i++)
+	for( i = 0 ; i < len ; i++)
 	{
 		/* lazy color-space conversion*/
 		diff_r = red - (color_list[i].red >> 8) ;
@@ -335,28 +335,13 @@ closest_color_index(
 		if ( diff < min)
 		{
 			min = diff ;
-			/* no one may notice the difference */
-			if ( diff < 31)
-				goto enough ;
-		}
-	}
-	for( i = closest -1 ; i > 0 ; i--)
-	{
-		/* lazy color-space conversion*/
-		diff_r = red - (color_list[i].red >> 8) ;
-		diff_g = green - (color_list[i].green >> 8) ;
-		diff_b = blue - (color_list[i].blue >> 8) ;
-		diff = diff_r * diff_r *9 + diff_g * diff_g * 30 + diff_b * diff_b ;
-		if ( diff < min)
-		{
-			min = diff ;
+			closest = i ;
 			/* no one may notice the difference */
 			if ( diff < 31)
 				goto enough ;
 		}
 	}
 enough:
-	closest = i ;
 	return  closest ;
 }
 
@@ -1356,33 +1341,31 @@ modify_pixmap(
 		{
 			XColor *  color_list ;
 			int num_cells ;
-			u_int8_t *  data ;
+			long  data ;
 			unsigned char  r, g, b ;
-
 			num_cells = fetch_colormap( display, screen, &color_list) ;
 			if( !num_cells)
 				return  -7 ;
-
-			data = (u_int8_t *)(image->data) ;
 
 			value_table_refresh( pic_mod) ;
 			for (i = 0; i < height; i++)
 			{
 				for (j = 0; j < width; j++)
 				{
-					r = color_list[*data].red >>8 ;
-					g = color_list[*data].green >>8 ;
-					b = color_list[*data].blue >>8 ;
-
+					data = XGetPixel( image, j, i) ;
+					
+					r = (color_list[data].red >>8)  ;
+					g = (color_list[data].green >>8)  ;
+					b = (color_list[data].blue >>8)  ;
 
 					r = value_table[r] ;
 					g = value_table[g] ;
 					b = value_table[b] ;
 
-					*data = closest_color_index( display, screen,
-								     color_list, num_cells,
-								     r, g, b ) ;
-					data++ ;
+					XPutPixel( image, j, i, 
+						   closest_color_index( display, screen,
+									color_list, num_cells,
+									r, g, b ) );
 				}
 
 			}
