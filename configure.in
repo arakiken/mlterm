@@ -77,7 +77,7 @@ AC_SUBST(FRIBIDI_LIBS)
 # default value
 IMAGELIB_NAME=none
 AC_ARG_WITH(imagelib,
-	[  --with-imagelib[=ARG]   image library (imlib|gdk-pixbuf2|gdk-pixbuf1)],
+	[  --with-imagelib[=ARG]   image library (imlib|gdk-pixbuf)],
 	imagelib=$with_imagelib)
 case ${imagelib} in
 imlib)
