@@ -54,6 +54,100 @@ static int modify_lbound = 0 ;
 
 /* --- static functions --- */
 
+static 
+GdkPixbuf * 
+load_file(
+	cache_info_t *  cache,
+	char *  path, 	
+	int  width,
+	int  height,
+	GdkInterpType scale_type 
+	)       
+{
+	GdkPixbuf *  pixbuf ;
+
+	pixbuf = NULL ;
+
+	if( misc.name && (strcmp( misc.name, path) == 0))
+	{
+#ifdef DEBUG
+		kik_warn_printf(KIK_DEBUG_TAG "used pixbuf from cache\n");
+#endif
+		pixbuf = misc.data ;
+	}
+	else
+	{
+#ifdef DEBUG
+		kik_warn_printf(KIK_DEBUG_TAG "adding pixbuf to cache(%s/%s)\n", path);
+#endif
+		if( misc.name)
+			free( misc.name);
+		misc.name = strdup( path) ;
+
+		if( misc.data)
+			gdk_pixbuf_unref( misc.data) ;
+
+		if( misc.scaled)
+		{
+			gdk_pixbuf_unref( misc.scaled) ;
+			misc.scaled = 0 ;
+		}
+#ifndef OLD_GDK_PIXBUF
+		pixbuf = gdk_pixbuf_new_from_file( path, NULL) ;
+#else
+		pixbuf = gdk_pixbuf_new_from_file( path) ;
+#endif /*OLD_GDK_PIXBUF*/
+		
+		misc.data = pixbuf ;
+		misc.width = gdk_pixbuf_get_width( pixbuf) ;
+		misc.height = gdk_pixbuf_get_height( pixbuf) ;
+
+	}
+	
+	if( !pixbuf)
+		return  NULL ;
+
+/* scaling is done here */
+	if( width == 0)
+		width = gdk_pixbuf_get_width( pixbuf) ;
+	if( height == 0)
+		height = gdk_pixbuf_get_height( pixbuf) ;
+
+	if( ( width != gdk_pixbuf_get_width( pixbuf) ) ||
+	    ( height != gdk_pixbuf_get_height( pixbuf)))
+	{
+		GdkPixbuf * scaled;
+
+		if( misc.width == width && misc.height == height && misc.scaled)
+		{
+#ifdef DEBUG
+			kik_warn_printf(KIK_DEBUG_TAG "scaled pixbuf from cache\n");
+#endif
+			scaled = misc.scaled ;
+		}
+		else
+		{
+			if( misc.scaled)
+				gdk_pixbuf_unref( misc.scaled) ;
+#ifdef DEBUG
+			kik_warn_printf(KIK_DEBUG_TAG "creating scaled  pixbuf\n");
+#endif
+			scaled = gdk_pixbuf_scale_simple(pixbuf, width, height,
+							 scale_type);
+			if( scaled)
+			{
+				misc.width = width ;
+				misc.height = height ;
+				misc.scaled = scaled ;
+			}
+		}
+		if( scaled)
+			pixbuf = scaled ;
+	}
+
+	return  pixbuf ;
+}
+
 static int
 create_cardinals(
 	u_int32_t **  cardinal,
@@ -1442,57 +1536,16 @@ x_imagelib_load_file_for_background(
 	if(!file_path)
 		return None ;
 	/* XXX have to compare pic_mod */
-	if( wp.name && (strcmp( wp.name, file_path) == 0) && wp.data && (!pic_mod))
+	if( !( pixbuf = load_file( &wp, file_path,
+				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
+				   GDK_INTERP_TILES)))
 	{
-		pixbuf = wp.data ;
-	}
-	else
-	{
-		if ( wp.data)
-		{
-			gdk_pixbuf_unref( wp.data ) ;
-			wp.data = NULL ;
-		}
-		if ( wp.scaled)
-		{
-			gdk_pixbuf_unref( wp.scaled ) ;
-			wp.scaled = NULL ;
-		}
-		if ( wp.name)
-		{
-			free( wp.name) ;
-			wp.name = NULL ;
-		}
-#ifndef OLD_GDK_PIXBUF
-		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path, NULL )) == NULL)
-			return None ;
-#else
-		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path )) == NULL)
-			return None ;
-#endif /*OLD_GDK_PIXBUF*/
-
-		wp.name = strdup( file_path) ;
-		wp.data = pixbuf ;
-		/* below values are for scaled--it's null at this stage */
-		wp.height = 0 ;
-		wp.width = 0 ;
+		return None ;
 	}
 
-	if (wp.width != ACTUAL_WIDTH(win) || ACTUAL_HEIGHT(win) != wp.height)
-	{
-		/* use one of _NEAREST, _TILES, _BILINEAR, _HYPER (speed<->quality) */
-		pixbuf = gdk_pixbuf_scale_simple(pixbuf, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
-						 GDK_INTERP_TILES); 
-		if( pic_mod)
-			modify_image( pixbuf, pic_mod) ;
-		wp.scaled = pixbuf ;
-		wp.width = ACTUAL_WIDTH(win) ;
-		wp.height = ACTUAL_HEIGHT(win) ;
-	}
-	else
-	{
-		pixbuf = wp.scaled ;
-	}
+	if( pic_mod)
+		modify_image( pixbuf, pic_mod) ;
+
 	if( gdk_pixbuf_get_has_alpha ( pixbuf) )
 	{
 		pixmap = x_imagelib_get_transparent_background( win, NULL) ;
@@ -1657,84 +1710,32 @@ int x_imagelib_load_file(
 {
 	GdkPixbuf *  pixbuf ;
 
-	if( !path)
-		return 0 ;
-	if( misc.name && (strcmp( misc.name, path) == 0))
+	if( !path && !cardinal)
+		return 0 ;	
+	if( path)
 	{
+		/* create a pixbuf from the file and create a cardianl array */
+		if( !( pixbuf = load_file( &misc, path, width, height, GDK_INTERP_NEAREST)))
+		{
 #ifdef DEBUG
-		kik_warn_printf(KIK_DEBUG_TAG "used pixbuf from cache\n");
-#endif
-		pixbuf = misc.data ;
+		kik_warn_printf(KIK_DEBUG_TAG "couldn't load pixbuf\n");
+#endif			
+			return 0 ;
+		}
+
+		if ( cardinal)
+			create_cardinals( cardinal, width, height, pixbuf) ;
 	}
 	else
 	{
-#ifdef DEBUG
-		kik_warn_printf(KIK_DEBUG_TAG "adding pixbuf to cache(%s/%s)\n", path);
-#endif
-		if( misc.name)
-			free( misc.name);
-		misc.name = strdup( path) ;
-
-		if( misc.data)
-			gdk_pixbuf_unref( misc.data) ;
-
-		if( misc.scaled)
-		{
-			gdk_pixbuf_unref( misc.scaled) ;
-			misc.scaled = 0 ;
-		}
-#ifndef OLD_GDK_PIXBUF
-		pixbuf = gdk_pixbuf_new_from_file( path, NULL) ;
-#else
-		pixbuf = gdk_pixbuf_new_from_file( path) ;
-#endif /*OLD_GDK_PIXBUF*/
+		/* create a pixbuf from the cardianl array */		
+		pixbuf = gdk_pixbuf_new( GDK_COLORSPACE_RGB,
+					 TRUE, 8, width, height) ;
+		if( !pixbuf)
+			return 0 ;
 		
-		misc.data = pixbuf ;
+
 	}
-	if ( !pixbuf )
-		return 0 ;
-
-/* scaling is done here */
-	if( width == 0)
-		width = gdk_pixbuf_get_width( pixbuf) ;
-	if( height == 0)
-		height = gdk_pixbuf_get_height( pixbuf) ;
-
-	if( ( width != gdk_pixbuf_get_width( pixbuf) ) ||
-	    ( height != gdk_pixbuf_get_height( pixbuf)))
-	{
-		GdkPixbuf * scaled;
-
-		if( misc.width == width && misc.height == height && misc.scaled)
-		{
-#ifdef DEBUG
-			kik_warn_printf(KIK_DEBUG_TAG "scaled pixbuf from cache\n");
-#endif
-			scaled = misc.scaled ;
-		}
-		else
-		{
-			if( misc.scaled)
-				gdk_pixbuf_unref( misc.scaled) ;
-#ifdef DEBUG
-			kik_warn_printf(KIK_DEBUG_TAG "creating scaled  pixbuf\n");
-#endif
-			scaled = gdk_pixbuf_scale_simple(pixbuf, width, height,
-							 GDK_INTERP_NEAREST);
-			if( scaled)
-			{
-				misc.width = width ;
-				misc.height = height ;
-				misc.scaled = scaled ;
-			}
-		}
-		if( scaled)
-			pixbuf = scaled ;
-	}
-
-	if ( cardinal)
-		create_cardinals( cardinal, width, height, pixbuf) ;
-
 /* Create the Icon pixmap & mask to be used in WMHints.
  * Note that none as a result is acceptable.
  * Pixmaps can't be cached since the last pixmap may be freed by someone... */
