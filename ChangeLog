@@ -1,3 +1,8 @@
+2002-11-21 Araki Ken <arakiken@users.sf.net>
+
+	* ml_cursor_t::col_in_char was wrong in some situations. fixed.
+	  (Thanks to Wang WenRui)
+
 2002-11-16 Araki Ken <arakiken@users.sf.net>
 
 	* Added mkf_utf16_conv.[ch] which generates UTF16 sequence.

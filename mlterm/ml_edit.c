@@ -367,7 +367,9 @@ clear_cols(
 	{
 		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
 			edit->cursor.col_in_char) ;
+			
 		edit->cursor.char_index += edit->cursor.col_in_char ;
+		edit->cursor.col_in_char = 0 ;
 	}
 
 	if( use_bce)
@@ -403,7 +405,7 @@ clear_line_to_left(
 	}
 
 	edit->cursor.char_index = edit->cursor.col ;
-		
+	
 	ml_line_fill( cursor_line , sp_ch , 0 , edit->cursor.char_index + 1) ;
 
 	return  1 ;
@@ -1069,6 +1071,8 @@ ml_edit_clear_line_to_right(
 			ml_char_copy( CURSOR_CHAR(edit) , ml_sp_ch()) ;
 			edit->cursor.char_index ++ ;
 		}
+
+		edit->cursor.col_in_char = 0 ;
 	}
 	
 	return  ml_edit_clear_line( edit , edit->cursor.row , edit->cursor.char_index) ;
@@ -1091,7 +1095,9 @@ ml_edit_clear_line_to_right_bce(
 	{
 		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
 			edit->cursor.col_in_char) ;
+		
 		edit->cursor.char_index += edit->cursor.col_in_char ;
+		edit->cursor.col_in_char = 0 ;
 	}
 
 	char_index = edit->cursor.char_index ;
@@ -1485,6 +1491,7 @@ ml_edit_goto_beg_of_line(
 	
 	edit->cursor.char_index = 0 ;
 	edit->cursor.col = 0 ;
+	edit->cursor.col_in_char = 0 ;
 
 	return  1 ;
 }
@@ -1496,9 +1503,10 @@ ml_edit_goto_home(
 {
 	reset_wraparound_checker( edit) ;
 	
+	edit->cursor.row = 0 ;
 	edit->cursor.char_index = 0 ;
 	edit->cursor.col = 0 ;
-	edit->cursor.row = 0 ;
+	edit->cursor.col_in_char = 0 ;
 
 	return  1 ;
 }
@@ -1509,10 +1517,13 @@ ml_edit_goto_end(
 	)
 {
 	reset_wraparound_checker( edit) ;
-	
+
 	edit->cursor.row = ml_model_end_row( &edit->model) ;
+	
+	/* XXX */
 	edit->cursor.char_index = 0 ;
 	edit->cursor.col = 0 ;
+	edit->cursor.col_in_char = 0 ;
 
 	return  1 ;
 }
@@ -1834,8 +1845,6 @@ ml_edit_goto(
 	{
 		return  0 ;
 	}
-
-	edit->cursor.col = col ;
 
 	return  1 ;
 }
