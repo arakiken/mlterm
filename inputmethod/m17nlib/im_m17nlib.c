@@ -809,8 +809,7 @@ key_event(
 
 	text = mtext() ;
 
-	if( minput_lookup( m17nlib->input_context ,
-			   Mnil , NULL , text) == 0)
+	if( minput_lookup( m17nlib->input_context , Mnil , NULL , text) == 0)
 	{
 		if( mtext_len( text))
 		{
