@@ -30,7 +30,9 @@
 
 #define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
 #define  XA_TARGETS(display)  (XInternAtom(display , "TARGETS" , False))
+#ifdef  DEBUG
 #define  XA_MULTIPLE(display)  (XInternAtom(display , "MULTIPLE" , False))
+#endif
 #define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
@@ -2032,7 +2034,9 @@ x_window_receive_event(
 
 		xa_compound_text = XA_COMPOUND_TEXT(win->display) ;
 		xa_targets = XA_TARGETS(win->display) ;
+#ifdef  DEBUG
 		xa_multiple = XA_MULTIPLE(win->display) ;
+#endif
 		xa_text = XA_TEXT(win->display) ;
 		xa_utf8_string = XA_UTF8_STRING(win->display) ;
 
@@ -2224,14 +2228,14 @@ x_window_receive_event(
 				exit(0) ;
 			}
 		}
+		#ifdef  DEBUG
 		if( event->xclient.format == 32 &&
 			event->xclient.data.l[0] == XA_TAKE_FOCUS( win->display))
 		{
-		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
 				" TakeFocus message is received.\n") ;
-		#endif
 		}
+		#endif
 	}
 #ifdef  __DEBUG
 	else
