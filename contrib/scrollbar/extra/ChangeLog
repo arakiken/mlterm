@@ -1,3 +1,7 @@
+2002-09-07 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* next.c: fixed memory leak in create_bg().
+
 2002-05-05 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* mozmodern.c: added a cache for pixel values.

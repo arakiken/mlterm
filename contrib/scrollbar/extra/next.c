@@ -200,11 +200,14 @@ create_bg(
 			xpoint[i].y = y ;
 			i ++ ;
 		}
-		for( x = 2 ; x < width - 1 ; x += 2)
+		if ( y + 1 < height)
 		{
-			xpoint[i].x = x ;
-			xpoint[i].y = y + 1 ;
-			i ++ ;
+			for( x = 2 ; x < width - 1 ; x += 2)
+			{
+				xpoint[i].x = x ;
+				xpoint[i].y = y + 1 ;
+				i ++ ;
+			}
 		}
 	}
 	XDrawPoints( view->display , pix , next_sb->gc ,
