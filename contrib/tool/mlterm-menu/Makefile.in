@@ -14,7 +14,7 @@ INSTALL = @INSTALL@
 
 DESTDIR =
 LIBEXECDIR = $(DESTDIR)$(libexecdir)
-SYSCONFDIR = $(DESTDIR)$(sysconfdir)
+SYSCONFDIR = $(DESTDIR)$(sysconfdir)/mlterm
 
 LKIK = @KIK_LIBS@
 
@@ -41,13 +41,13 @@ debug:
 
 mlterm-menu: $(OBJS)
 	$(LIBTOOL_LINK) $(OBJS) $(CFLAGS) -o mlterm-menu $(LIBS)
-	$(INSTALL) -m 644 menu $(SYSCONFDIR)
 
 .c.o:
 	$(CC) $(DEFS) $(CFLAGS) -c $<
 
 install: $(LIBEXECDIR)
 	$(LIBTOOL_INSTALL) -m 755 mlterm-menu $(LIBEXECDIR)
+	$(INSTALL) -m 644 menu $(SYSCONFDIR)
 
 $(LIBEXECDIR):
 	mkdir -p $(LIBEXECDIR)

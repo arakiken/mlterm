@@ -1,3 +1,10 @@
+2003-06-26 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Fixed a installation path for mlterm-menu.
+	  ($(DESTDIR)$(sysconfdir) -> $(DESTDIR)$(sysconfdir)/mlterm)
+	* Moved "$(INSTALL) -m 644 menu $(SYSCONFDIR)" to install target
+	  from mlterm-menu target in Makefile.in.
+
 2003-06-23  Araki Ken <arakiken@users.sf.net>
 
 	* Added authorization mechanism by ~/.mlterm/challenge and
