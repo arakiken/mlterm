@@ -433,7 +433,7 @@ draw_screen_horizontal(
 		 *  ^^
 		 */
 		NUM_OF_DIGITS( num_of_digits , (i - top + 1)) ;
-		snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i." , i - top + 1) ;
+		kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i." , i - top + 1) ;
 
 		for( j = 0 ; j < num_of_digits + 1 ; j++)
 		{

@@ -1,3 +1,8 @@
+2005-01-28 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* xwindow/x_im_candidate_screen.c (draw_screen_vertical):
+	  snprintf() -> kik_snprintf
+
 2005-01-27 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* contrib/scrollbar/pixmap_engine/HOWTO.html,
