@@ -504,7 +504,8 @@ im_new(
 	u_int64_t  magic ,
 	ml_char_encoding_t  term_encoding ,
 	x_im_export_syms_t *  export_syms ,
-	char *  opts
+	char *  opts ,
+	u_int  mod_ignore_mask
 	)
 {
 	im_kbd_t *  kbd ;

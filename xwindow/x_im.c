@@ -19,7 +19,8 @@
 typedef  x_im_t * (*x_im_new_func_t)( u_int64_t  magic ,
 				      ml_char_encoding_t  term_encoding ,
 				      x_im_export_syms_t *  syms ,
-				      char *  engine) ;
+				      char *  engine ,
+				      u_int  mod_ignore_mask) ;
 
 
 /* --- static variables --- */
@@ -100,7 +101,8 @@ x_im_t *
 x_im_new(
 	ml_char_encoding_t  term_encoding ,
 	x_im_event_listener_t *  im_listener ,
-	char *  input_method
+	char *  input_method ,
+	u_int  mod_ignore_mask
 	)
 {
 	x_im_t *  im ;
@@ -157,7 +159,7 @@ x_im_new(
 	}
 
 	if( ( im = (*func)( IM_API_COMPAT_CHECK_MAGIC , term_encoding ,
-			    &im_export_syms , im_attr)))
+			    &im_export_syms , im_attr , mod_ignore_mask)))
 	{
 		/*
 		 * initializations for x_im_t
@@ -294,7 +296,8 @@ x_im_t *
 x_im_new(
 	ml_char_encoding_t  term_encoding ,
 	x_im_event_listener_t *  im_listener ,
-	char *  input_method
+	char *  input_method ,
+	u_int  mod_ignore_mask
 	)
 {
 	return  NULL ;

@@ -1539,7 +1539,8 @@ im_new(
 	u_int64_t  magic ,
 	ml_char_encoding_t  term_encoding ,
 	x_im_export_syms_t *  export_syms ,
-	char *  lang	/* <language id(rfc1766)>:<language engine> */
+	char *  lang ,	/* <language id(rfc1766)>:<language engine> */
+	u_int  mod_ignore_mask
 	)
 {
 	im_iiimf_t *  iiimf = NULL ;

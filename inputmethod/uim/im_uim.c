@@ -49,6 +49,10 @@
 #include  "../im_info.h"
 
 #if  0
+#define  MOD_KEY_DEBUG 1
+#endif
+
+#if  0
 #define IM_UIM_DEBUG 1
 #endif
 
@@ -82,7 +86,8 @@ typedef struct im_uim
 	mkf_parser_t *  parser_term ;	/* for term encoding  */
 	mkf_conv_t *  conv ;
 
-	int  pressing_mod_key ;
+	u_int  pressing_mod_key ;
+	u_int  mod_ignore_mask ;
 
 }  im_uim_t ;
 
@@ -998,7 +1003,14 @@ key_event(
 
 	uim = (im_uim_t*) im ;
 
-	if( event->state == 0)
+#ifdef  MOD_KEY_DEBUG
+	kik_debug_printf( ">>--------------------------------\n") ;
+	kik_debug_printf( ">>event->state    : %.8x\n" , event->state) ;
+	kik_debug_printf( ">>mod_ignore_mask : %.8x\n" , uim->mod_ignore_mask) ;
+	kik_debug_printf( ">>ksym            : %.8x\n" , ksym) ;
+#endif
+
+	if( ! ( event->state & uim->mod_ignore_mask))
 	{
 		uim->pressing_mod_key = 0 ;
 	}
@@ -1033,6 +1045,10 @@ key_event(
 		break ;
 	}
 
+#ifdef  MOD_KEY_DEBUG
+	kik_debug_printf( ">>pressing_mod_key: %.8x\n" , uim->pressing_mod_key) ;
+#endif
+
 	(*uim->im.listener->compare_key_state_with_modmap)(
 							uim->im.listener->self ,
 							event->state ,
@@ -1065,6 +1081,11 @@ key_event(
 	{
 		state |= UMod_Hyper ;
 	}
+
+#ifdef  MOD_KEY_DEBUG
+	kik_debug_printf( ">>state           : %.8x\n" , state) ;
+	kik_debug_printf( ">>--------------------------------\n") ;
+#endif
 
 	key = xksym_to_ukey(ksym) ;
 
@@ -1102,6 +1123,8 @@ focused(
 	{
 		(*uim->im.cand_screen->show)( uim->im.cand_screen) ;
 	}
+
+	uim->pressing_mod_key = 0 ;
 }
 
 static void
@@ -1119,6 +1142,8 @@ unfocused(
 	{
 		(*uim->im.cand_screen->hide)( uim->im.cand_screen) ;
 	}
+
+	uim->pressing_mod_key = 0 ;
 }
 
 
@@ -1349,7 +1374,8 @@ im_new(
 	u_int64_t  magic ,
 	ml_char_encoding_t  term_encoding ,
 	x_im_export_syms_t *  export_syms ,
-	char *  engine
+	char *  engine ,
+	u_int  mod_ignore_mask
 	)
 {
 	im_uim_t *  uim ;
@@ -1467,6 +1493,8 @@ im_new(
 	uim->parser_uim = NULL ;
 	uim->parser_term = NULL ;
 	uim->conv = NULL ;
+	uim->pressing_mod_key = 0 ;
+	uim->mod_ignore_mask =  mod_ignore_mask ;
 
 	if( uim->term_encoding != encoding)
 	{

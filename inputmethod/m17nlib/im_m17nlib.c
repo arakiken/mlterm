@@ -911,7 +911,8 @@ im_new(
 	u_int64_t  magic ,
 	ml_char_encoding_t  term_encoding ,
 	x_im_export_syms_t *  export_syms ,
-	char *  param	/* <language>:<input method> */
+	char *  param ,	/* <language>:<input method> */
+	u_int  mod_ignore_mask
 	)
 {
 	im_m17nlib_t *  m17nlib ;

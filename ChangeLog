@@ -1,3 +1,15 @@
+2004-10-27 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* xwindow/x_screen.c, xwindow/x_im.c, xwindow/x_im.h,
+	  inputmethod/m17nlib/im_m17nlib.c, inputmethod/iiimf/im_iiimf.c,
+	  inputmethod/kbd/im_kbd.c:
+	  added parameter 'mod_ignore_mask' to x_im_new().
+
+	* inputmethod/uim/im_uim.c: clear pressing_mod_key in focused() and
+	  unfocused().
+
+	* xwindow/x_im.h: increased IM_API_VERSION.
+
 2004-10-26 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/m17nlib/im_m17nlib.c:

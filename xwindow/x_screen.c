@@ -1409,7 +1409,8 @@ window_realized(
 			if( ! ( screen->im = x_im_new(
 					ml_term_get_encoding( screen->term) ,
 					&screen->im_listener ,
-					screen->input_method)))
+					screen->input_method ,
+					screen->mod_ignore_mask)))
 			{
 				free( screen->input_method) ;
 				screen->input_method = strdup( "none") ;
@@ -3595,7 +3596,8 @@ change_char_encoding(
 		x_im_delete( screen->im) ;
 
 		screen->im = x_im_new( encoding , &screen->im_listener ,
-				screen->input_method) ;
+				       screen->input_method ,
+				       screen->mod_ignore_mask) ;
 	}
 }
 
@@ -4204,7 +4206,8 @@ change_im(
 		if( ( screen->im = x_im_new(
 				ml_term_get_encoding( screen->term) ,
 				&screen->im_listener ,
-				screen->input_method)))
+				screen->input_method ,
+				screen->mod_ignore_mask)))
 		{
 			if(screen->is_focused)
 			{
@@ -5932,7 +5935,7 @@ im_changed(
 
 	if( ! ( new = x_im_new( ml_term_get_encoding( screen->term) ,
 				&screen->im_listener ,
-				input_method)))
+				input_method , screen->mod_ignore_mask)))
 	{
 		return ;
 	}
@@ -6846,7 +6849,8 @@ x_screen_attach(
 
 		x_im_delete( screen->im) ;
 		screen->im = x_im_new( ml_term_get_encoding(term) ,
-				&screen->im_listener , screen->input_method) ;
+				&screen->im_listener , screen->input_method ,
+				screen->mod_ignore_mask) ;
 	}
 
 	redraw_screen( screen) ;
