@@ -10,6 +10,8 @@ PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)/mlterm
 DATADIR = $(DESTDIR)$(datadir)/mlterm
 
+VPATH = ${top_srcdir}/contrib/scrollbar/pixmap_engine
+
 SAMPLES = sample3
 PIXMAP_ENGINE_OBJ = pixmap_engine.o
 

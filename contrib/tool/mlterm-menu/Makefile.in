@@ -47,7 +47,7 @@ mlterm-menu: $(OBJS)
 
 install: $(LIBEXECDIR)
 	$(LIBTOOL_INSTALL) -m 755 mlterm-menu $(LIBEXECDIR)
-	$(INSTALL) -m 644 menu $(SYSCONFDIR)
+	$(INSTALL) -m 644 ${top_srcdir}/contrib/tool/mlterm-menu/menu $(SYSCONFDIR)
 
 $(LIBEXECDIR):
 	mkdir -p $(LIBEXECDIR)

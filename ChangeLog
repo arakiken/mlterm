@@ -1,5 +1,11 @@
 2003-06-29 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* Fixed segfault with scrollbar rcfile which does not specify engine.
+	* Added VPATH to Makefile.in of pixmap_engine
+	* Minor bugfix of Makefile.in of mlterm-menu.
+
+2003-06-29 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* Extended an API of scrollbar plugin to load new style scrollbar
 	  which has an rcfile.
 	* To use x_imagelib_load_file() from plugin side, added

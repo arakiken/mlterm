@@ -263,6 +263,13 @@ register_new_view_conf(
 		}
 	}
 
+	if( conf->engine_name == NULL)
+	{
+		free_conf( conf) ;
+		
+		return  NULL ;
+	}
+
 #ifdef __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "%s has been registered as new view. [dir: %s]\n" , conf->sb_name , conf->dir);
 #endif
