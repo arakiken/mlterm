@@ -1,3 +1,9 @@
+2004-05-16  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* ml_screen.c(ml_screen_is_cursor_visible): new function
+	* ml_term.c(ml_term_is_cursor_visible): new function
+	* x_screen.c(draw_cursor): Don't draw cursor if cursor is unvisible.
+
 2004-05-16  MINAMI Hirokazu <minami@mistfall.net>
 
 	* x_window.c: pasting text using incremental transfer

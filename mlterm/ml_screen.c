@@ -2094,6 +2094,14 @@ ml_screen_cursor_invisible(
 }
 
 int
+ml_screen_is_cursor_visible(
+	ml_screen_t *  screen
+	)
+{
+	return screen->is_cursor_visible ;
+}
+
+int
 ml_screen_use_normal_edit(
 	ml_screen_t *  screen
 	)

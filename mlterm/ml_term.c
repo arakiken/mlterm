@@ -561,6 +561,14 @@ ml_term_get_cursor_line(
 	return  ml_screen_get_cursor_line( term->screen) ;
 }
 
+int
+ml_term_is_cursor_visible(
+	ml_term_t *  term
+	)
+{
+	return  ml_screen_is_cursor_visible( term->screen) ;
+}
+
 /*
  * Not implemented yet.
  */

@@ -1415,6 +1415,11 @@ draw_cursor(
 	}
 #endif
 
+	if( ! ml_term_is_cursor_visible( screen->term))
+	{
+		return  1 ;
+	}
+
 	if( ( row = ml_term_cursor_row_in_screen( screen->term)) == -1)
 	{
 		return  0 ;

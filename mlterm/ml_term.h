@@ -147,6 +147,8 @@ ml_line_t *  ml_term_get_line_in_screen( ml_term_t *  term , int  row) ;
 
 ml_line_t *  ml_term_get_cursor_line( ml_term_t *  term) ;
 
+int  ml_term_is_cursor_visible( ml_term_t *  term) ;
+
 #if  0
 int  ml_term_set_modified_region( ml_term_t *  term ,
 	int  beg_char_index , int  beg_row , u_int  nchars , u_int  nrows) ;
