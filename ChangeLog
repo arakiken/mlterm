@@ -1,5 +1,11 @@
 [20020407]
-* PAGE_DOWN,SCROLL_DOWN shortcut keys are added.
+* backscroll_rows and is_backscroll_mode variables are not initialized. fixed.
+* PAGE_DOWN,PAGE_UP,SCROLL_DOWN,SCROLL_UP shortcut keys are processed twice per
+  one press. fixed.
+
+[20020407]
+* PAGE_DOWN,SCROLL_DOWN shortcut keys are added, and PAGE_DOWN,PAGE_UP,SCROLL_DOWN,
+  SCROLL_UP shortcut keys are available under backscroll mode.
   (Thanks to Nobuyoshi Nakada)
 * ml_term_xxx.[ch] are cleaned up.
 * meta key is processed even when shift key, control key or so is pressed. fixed.
