@@ -9,6 +9,8 @@
 #include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_util.h>	/* KIK_DIGIT_STR */
 
+#include  "ml_config_proto.h"
+
 
 /*
  * max_ptys is 32 , which is the limit of dead_mask(32bit).
