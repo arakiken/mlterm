@@ -8,13 +8,13 @@
 
 /* --- static functions --- */
 
-void
+static void
 get_closest_xcolor_pseudo(
-	Display * display ,
-	int screen ,
-	Colormap cmap ,
-	XColor * color ,
-	XColor * closest_color
+	Display *  display ,
+	int  screen ,
+	Colormap  cmap ,
+	XColor *  color ,
+	XColor *  closest_color
 	)
 {
 	XColor *  all_colors ;
@@ -57,24 +57,9 @@ get_closest_xcolor_pseudo(
 
 	free( all_colors) ;
 
-	if (XAllocColor( display , cmap , closest_color) == 0)
+	if ( XAllocColor( display , cmap , closest_color) == 0)
 	{
-		unsigned long sum = 0;
-		sum = (color->red + color->green + color->blue) >> 8 ;
-		if (sum > 384) /* 0xff * 3 / 2 */
-		{
-			closest_color->red = 0xffff ;
-			closest_color->green = 0xffff ;
-			closest_color->blue = 0xffff ;
-			closest_color->pixel = WhitePixel( display , screen) ;
-		}
-		else
-		{
-			closest_color->red = 0 ;
-			closest_color->green = 0 ;
-			closest_color->blue = 0 ;
-			closest_color->pixel = BlackPixel( display , screen) ;
-		}
+		closest_color->pixel = BlackPixel( display , screen) ;
 	}
 }
 
