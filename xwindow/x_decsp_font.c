@@ -199,15 +199,16 @@ x_decsp_font_draw_string(
 		{
 			XSetClipOrigin( display, gc, x , y - font->height_to_baseline);
 			XSetClipMask( display, gc, font->glyphs[*str]);
-			XCopyPlane( display , font->glyphs[*str] , drawable , gc ,
-				0 , 0 , font->width , font->height ,
-				x , y - font->height_to_baseline , 1) ;
-			XSetClipMask( display, gc, None);
+			XFillRectangle(display , drawable , gc ,
+				       x , y  - font->height_to_baseline ,
+				       font->width , font->height);
 		}
 
 		x += font->width ;
 		str ++ ;
 	}
+
+	XSetClipMask( display, gc, None);
 
 	return  1 ;
 }
