@@ -1,7 +1,12 @@
 2002-10-06 Araki Ken <arakiken@users.sf.net>
 
+	* ESC [ x sequence is supported.
+
+2002-10-06 Araki Ken <arakiken@users.sf.net>
+
 	* 2002-10-02 fix is discarded.
 	  Scrollbar gets never smaller than the maximum possible height / 20.
+	  (Thanks to Murase Masaki san)
 
 2002-10-06 Araki Ken <arakiken@users.sf.net>
 

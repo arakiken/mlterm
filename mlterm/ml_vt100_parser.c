@@ -1622,10 +1622,23 @@ parse_vt100_escape_sequence(
 					{
 						/* request terminal parameters */
 
-					#ifdef  DEBUG
-						kik_warn_printf( KIK_DEBUG_TAG
-							" ESC - [ - x is not implemented.\n") ;
-					#endif
+						/* XXX the same as rxvt */
+
+						if( num == 0)
+						{
+							ps[0] = 0 ;
+						}
+						
+						if( ps[0] == 0 || ps[0] == 1)
+						{
+							char seq[] = "\x1b[X;1;1;112;112;1;0x" ;
+
+							/* '+ 0x30' lets int to char */
+							seq[2] = ps[0] + 2 + 0x30 ;
+							
+							ml_write_to_pty( vt100_parser->pty ,
+								seq , sizeof( seq)) ;
+						}
 					}
 				#ifdef  DEBUG
 					else
