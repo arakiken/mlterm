@@ -40,7 +40,7 @@ all: im-uim
 im-uim: $(IM_UIM_OBJ)
 	$(LIBTOOL_LINK) -o libim-uim.la $(IM_UIM_OBJ:.o=.lo) -rpath $(LIBDIR) \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ \
-	$(LIBS_LOCAL) @KIK_LIBS@ @UIM_LIBS@
+	$(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @UIM_LIBS@
 
 .c.o:
 	$(LIBTOOL_CC) -c $<

@@ -56,14 +56,14 @@ AC_MSG_CHECKING([for undefined symbol])
 if test "x$allow_undefined_flag" = "xunsupported" ; then
 	AC_MSG_RESULT([not supported])
 	NO_UNDEFINED_FLAG="-no-undefined"
-	KIK_LDFLAGS='-L${top_builddir}/kiklib/src/ ${top_builddir}/kiklib/src/libkik.la'
+	KIK_LIBS='-L${top_builddir}/kiklib/src/ ${top_builddir}/kiklib/src/libkik.la'
 else
 	AC_MSG_RESULT(supported)
 	NO_UNDEFINED_FLAG=""
-	KIK_LDFLAGS=""
+	KIK_LIBS=""
 fi
 AC_SUBST(NO_UNDEFINED_FLAG)
-AC_SUBST(KIK_LDFLAGS)
+AC_SUBST(KIK_LIBS)
 
 # This should be uncommented if mkf and kiklib alone are distributed in a package.
 #if test "${SUBDIRS}" != "" ; then

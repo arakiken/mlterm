@@ -1,5 +1,19 @@
 2004-10-29 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	Removed -lkik and -lmkf from linker flag of modules.
+	Note: Both libraries are linked if the platform does not support
+	undefined symblos such as Cygwin and AIX.
+
+	* configure.in: added MKF_LIBS_FOR_MODULE and KIK_LIBS_FOR_MODULE.
+
+	* inputmethod/kbd/Makefile.in, inputmethod/iiimf/Makefile.in,
+	  inputmethod/uim/Makefile.in, inputmethod/m17nlib/Makefile.in:
+	  KIK_LIBS -> KIK_LIBS_FOR_MODULE, MKF_LIBS -> MKF_LIBS_FOR_MODULE
+
+	* mkf/configure.in, mkf/lib/Makefile.in: KIK_LDFLAGS -> KIK_LIBS
+
+2004-10-29 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* doc/ja/README.ja: added description about kbd and m17nlib.
 
 	* configure.in: discontinue if imlib-config is not available.

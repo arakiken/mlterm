@@ -562,11 +562,17 @@ AC_MSG_CHECKING([for undefined symbol])
 if test "x$allow_undefined_flag" = "xunsupported" ; then
 	AC_MSG_RESULT([not supported])
 	NO_UNDEFINED_FLAG="-no-undefined"
+	KIK_LIBS_FOR_MODULE='-L${top_builddir}/kiklib/src/ ${top_builddir}/kiklib/src/libkik.la'
+	MKF_LIBS_FOR_MODULE='-L${top_builddir}/mkf/lib ${top_builddir}/mkf/lib/libmkf.la'
 else
 	AC_MSG_RESULT(supported)
 	NO_UNDEFINED_FLAG=""
+	KIK_LIBS_FOR_MODULE=""
+	MKF_LIBS_FOR_MODULE=""
 fi
 AC_SUBST(NO_UNDEFINED_FLAG)
+AC_SUBST(KIK_LIBS_FOR_MODULE)
+AC_SUBST(MKF_LIBS_FOR_MODULE)
 
 # CVS revision
 CVS_REVISION=`tail -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^.Id: .* \(.*\) .* .* .* Exp .$/\1/p'`

@@ -40,7 +40,7 @@ all: im-iiimf
 im-iiimf: $(IM_IIIMF_OBJ)
 	$(LIBTOOL_LINK) -o libim-iiimf.la $(IM_IIIMF_OBJ:.o=.lo)	\
 	-rpath $(LIBDIR) -module -avoid-version @NO_UNDEFINED_FLAG@	\
-	$(LIBS_LOCAL) @KIK_LIBS@ @MKF_LIBS@ @IIIMF_LIBS@
+	$(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @IIIMF_LIBS@
 
 .c.o:
 	$(LIBTOOL_CC) -c $<
