@@ -21,7 +21,7 @@ typedef struct  mkf_utf16_conv
 /* --- static functions --- */
 
 static size_t
-convert_to_utf16_intern(
+convert_to_utf16(
 	mkf_conv_t *  conv ,
 	u_char *  dst ,
 	size_t  dst_size ,
