@@ -1,3 +1,10 @@
+2003-06-29 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Renamed entry function name of scrollbar engine to x_*_sb_engine_new.
+	* '-export-dynamic' is only used when you specify 
+	  -with-scrollbars=pixmap_engine.
+	* Fixed a description for --with-scrollbars.
+
 2003-06-29  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* re-introduced "mlcc" for as a sample of a configurator

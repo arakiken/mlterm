@@ -855,8 +855,10 @@ parse(
 }
 
 
-static x_sb_view_t *
-pixmap_sb_view_new(
+/* --- global functions --- */
+
+x_sb_view_t *
+x_pixmap_engine_sb_engine_new(
 	x_sb_view_conf_t *  conf ,
 	int  is_transparent
 	)
@@ -924,21 +926,4 @@ pixmap_sb_view_new(
 	return  (x_sb_view_t*) ps ;
 }
 
-/* --- global functions --- */
-
-x_sb_view_t *
-x_pixmap_engine_sb_view_new(
-	x_sb_view_conf_t *  conf
-	)
-{
-	return  pixmap_sb_view_new( conf , 0) ;
-}
-
-x_sb_view_t *
-x_pixmap_engine_transparent_sb_view_new(
-	x_sb_view_conf_t *  conf
-	)
-{
-	return  pixmap_sb_view_new( conf , 1) ;
-}
 

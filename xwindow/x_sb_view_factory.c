@@ -145,6 +145,67 @@ dlsym_sb_view_new_func(
 	return  func ;
 }
 
+static x_sb_engine_new_func_t
+dlsym_sb_engine_new_func(
+	char *  name
+	)
+{
+	x_sb_engine_new_func_t  func ;
+	kik_dl_handle_t  handle ;
+	char *  symbol ;
+	u_int  len ;
+	lib_ref_t *  lib_ref ;
+
+	if( ( lib_ref = search_lib_ref( name)))
+	{
+		handle = lib_ref->handle ;
+		lib_ref->count ++ ;
+	}
+	else
+	{
+		void *  p ;
+
+		if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL)
+		{
+			return  NULL ;
+		}
+		
+		if( ( p = realloc( lib_ref_table , sizeof( lib_ref_t) * (lib_ref_table_size + 1)))
+			== NULL)
+		{
+			kik_dl_close( handle) ;
+			
+			return  NULL ;
+		}
+
+		lib_ref_table = p ;
+		lib_ref = &lib_ref_table[lib_ref_table_size ++] ;
+
+		lib_ref->name = strdup( name) ;
+		lib_ref->handle = handle ;
+		lib_ref->count = 1 ;
+	}
+
+	len = 16 + strlen( name) + 1 ;
+	if( ( symbol = alloca( len)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	sprintf( symbol , "x_%s_sb_engine_new" , name) ;
+	
+	if( ( func = (x_sb_engine_new_func_t) kik_dl_func_symbol( handle , symbol)) == NULL)
+	{
+		return  NULL ;
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s %d\n" , lib_ref->name , lib_ref->count) ;
+#endif
+
+	return  func ;
+}
+
 static x_sb_view_conf_t *
 search_view_conf(
 	char *  sb_name
@@ -367,8 +428,14 @@ x_sb_view_new(
 	/* new style plugin ? (requires rcfile and engine library) */
 	if( ( conf = find_view_rcfile( name)))
 	{
-		/* lib@name@.so -> lib@engine_name@.so */
-		name = conf->engine_name ;
+		x_sb_engine_new_func_t  func_engine ;
+		
+		if( ( func_engine = dlsym_sb_engine_new_func( conf->engine_name)) == NULL)
+		{
+			return  NULL ;
+		}
+		
+		return  (*func_engine)( conf , 0) ;
 	}
 
 	if( strcmp( name , "simple") == 0)
@@ -380,19 +447,6 @@ x_sb_view_new(
 		return  NULL ;
 	}
 
-	if( conf)
-	{
-		/*
-		 * if loaded library is new style,
-		 * you need argument (x_sb_view_conf_t *)
-		 */
-		x_sb_view_new_func_with_arg_t  func_with_arg ;
-		
-		func_with_arg = (x_sb_view_new_func_with_arg_t)func ;
-		
-		return  (*func_with_arg)( conf) ;
-	}
-	
 	return  (*func)() ;
 }
 
@@ -404,11 +458,17 @@ x_transparent_scrollbar_view_new(
 	x_sb_view_new_func_t  func ;
 	x_sb_view_conf_t *  conf ;
 
-	/* new style plugin? (requires a rcfile and an engine library) */
+	/* new style plugin? (requires an rcfile and an engine library) */
 	if( ( conf = find_view_rcfile( name)))
 	{
-		/* lib@name@.so -> lib@engine_name@.so */
-		name = conf->engine_name ;
+		x_sb_engine_new_func_t  func_engine ;
+		
+		if( ( func_engine = dlsym_sb_engine_new_func( conf->engine_name)) == NULL)
+		{
+			return  NULL ;
+		}
+		
+		return  (*func_engine)( conf , 1) ;
 	}
 
 	if( strcmp( name , "simple") == 0)
@@ -425,19 +485,6 @@ x_transparent_scrollbar_view_new(
 		return  NULL ;
 	}
 
-	if( conf)
-	{
-		/*
-		 * if loaded library is new style,
-		 * you need argument (x_sb_view_conf_t *)
-		 */
-		x_sb_view_new_func_with_arg_t  func_with_arg ;
-		
-		func_with_arg = (x_sb_view_new_func_with_arg_t)func ;
-		
-		return  (*func_with_arg)( conf) ;
-	}
-
 	return  (*func)() ;
 }
 
@@ -450,7 +497,7 @@ x_unload_scrollbar_view_lib(
 	int  count ;
 	int  ret = 0 ;
 
-	/* new style plugin? (requires a rcfile and an engine library) */
+	/* new style plugin? (requires an rcfile and an engine library) */
 	if( ( conf = search_view_conf( name)))
 	{
 		/* lib@name@.so -> lib@engine_name@.so */
