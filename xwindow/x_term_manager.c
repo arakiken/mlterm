@@ -200,7 +200,7 @@ create_term_intern(void)
 	if( main_config.app_name)
 	{
 		ml_term_set_window_name( term , main_config.app_name) ;
-		ml_term_set_icon_name( term , main_config.icon_name) ;
+		ml_term_set_icon_name( term , main_config.app_name) ;
 	}
 	else
 	{
