@@ -1,3 +1,7 @@
+2004-01-25  KATO Kazuyoshi  <kzys@users.sf.net>
+
+	* tool/mlmenu/Makefile.in: Fixed a installation path.
+
 2004-01-21  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* made font size range specification options work again.
