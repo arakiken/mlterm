@@ -160,13 +160,11 @@ x_display_close_2(
 int
 x_display_close_all(void)
 {
-	int  count ;
-	
-	for( count = 0 ; count < num_of_displays ; count ++)
+	while( num_of_displays >0 )
 	{
-		x_display_close( displays[count]) ;
+		close_display( displays[-- num_of_displays]) ;
 	}
-	
+
 	free( displays) ;
 
 	displays = NULL ;
