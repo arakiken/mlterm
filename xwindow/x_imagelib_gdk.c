@@ -52,8 +52,12 @@ fetch_colormap(
 	num_cells = DisplayCells( display , screen) ;
 	*color_list = malloc( num_cells * sizeof(XColor)) ;
 	if( !*color_list)
+	{
+#ifdef DEBUG
+		kik_warn_printf(KIK_DEBUG_TAG "couldn't allocate color table\n") ;
+#endif
 		return  0 ;
-
+	}
 	for( i = 0 ; i < num_cells ; i ++)	
 		((*color_list)[i]).pixel = i ;
 
@@ -63,10 +67,10 @@ fetch_colormap(
 }
 
 /* create GdkPixbuf from the specified file path.
- * don't modify returned pixbuf since the pixbuf
- * is stored in the cache and may be reused.
  *
  * The returned pixbuf shouled be unrefed by the caller
+ * don't modify returned pixbuf since the pixbuf
+ * is stored in the cache and may be reused.
  */
 static
 GdkPixbuf *
@@ -89,7 +93,7 @@ load_file(
 	if( name && (strcmp( name, path) == 0))
 	{
 #ifdef DEBUG
-		kik_warn_printf(KIK_DEBUG_TAG "used pixbuf from cache\n") ;
+		kik_warn_printf(KIK_DEBUG_TAG "returning cached pixbuf\n") ;
 #endif
 		pixbuf = data ;
 	}
@@ -109,40 +113,35 @@ load_file(
 
 		if( scaled) /* scaled one is not vaild now */
 			gdk_pixbuf_unref( scaled) ;
-		scaled = 0 ;
+		scaled = NULL ;
 
 #ifndef OLD_GDK_PIXBUF
-		pixbuf = gdk_pixbuf_new_from_file( path, NULL) ;
+		data = gdk_pixbuf_new_from_file( path, NULL) ;
 #else
-		pixbuf = gdk_pixbuf_new_from_file( path) ;
+		data = gdk_pixbuf_new_from_file( path) ;
 #endif /*OLD_GDK_PIXBUF*/
 
-		data = pixbuf ;
+		pixbuf = data ;
 
 	}
 	/* loading from file/cache ends here */
 
-	if( !pixbuf)
+	if( !data)
 		return  NULL ;
 
 	if( width == 0)
-		width = gdk_pixbuf_get_width( pixbuf) ;
+		width = gdk_pixbuf_get_width( data) ;
 	if( height == 0)
-		height = gdk_pixbuf_get_height( pixbuf) ;
+		height = gdk_pixbuf_get_height( data) ;
 
 	/* Old cached one became obsolete if width/height is changed */
-	if( ( width != gdk_pixbuf_get_width( pixbuf) ) ||
-	    ( height != gdk_pixbuf_get_height( pixbuf)))
+	if( ( width != gdk_pixbuf_get_width( data) ) ||
+	    ( height != gdk_pixbuf_get_height( data)))
 	{
-#ifdef DEBUG
-		if(scaled)
-			kik_warn_printf(KIK_DEBUG_TAG "scaled pixbuf(%d x %d)\n", gdk_pixbuf_get_width( scaled), gdk_pixbuf_get_height( scaled)) ;
-#endif
-
 		if( scaled && gdk_pixbuf_get_width( scaled) == width && gdk_pixbuf_get_height( scaled) == height)
 		{
 #ifdef DEBUG
-			kik_warn_printf(KIK_DEBUG_TAG "using the scaled pixbuf from cache\n") ;
+			kik_warn_printf(KIK_DEBUG_TAG "using the scaled pixbuf( %d x %d) from cache\n", width, height) ;
 #endif
 			pixbuf = scaled ;
 		}
@@ -151,15 +150,14 @@ load_file(
 			if( scaled)
 				gdk_pixbuf_unref( scaled) ;
 #ifdef DEBUG
-			kik_warn_printf(KIK_DEBUG_TAG "creating a scaled pixbuf(%d x %d)\n", width, height) ;
+			kik_warn_printf(KIK_DEBUG_TAG "creating a scaled pixbuf(%d x %d) from %d %d \n", width, height) ;
 #endif
-			scaled = gdk_pixbuf_scale_simple(pixbuf, width, height,
-							 scale_type) ;
-			if( scaled)
-				pixbuf = scaled ;
+			scaled = gdk_pixbuf_scale_simple( data, width, height,
+							  scale_type) ;
+			pixbuf = scaled ;
 		}
 	}
-	/* scaling of the pixbuf ends here */
+	/* scaling ends here */
 
 	gdk_pixbuf_ref( pixbuf) ;
 
@@ -1516,7 +1514,7 @@ x_imagelib_load_file_for_background(
 		/* re-generate cache */
 		if( !( pixbuf = load_file( file_path,
 					   ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
-					   GDK_INTERP_TILES)))
+					   GDK_INTERP_NEAREST)))
 		{
 			return  None ;
 		}
@@ -1765,9 +1763,9 @@ int x_imagelib_load_file(
 			{
 				gdk_pixbuf_unref( pixbuf) ;
 				XFreePixmap( display, *pixmap) ;
-				*pixmap = 0 ;
+				*pixmap = None ;
 				XFreePixmap( display, *mask) ;
-				*mask = 0 ;
+				*mask = None ;
 
 				return  0 ;
 			}
@@ -1780,7 +1778,7 @@ int x_imagelib_load_file(
 			{
 				gdk_pixbuf_unref( pixbuf) ;
 				XFreePixmap( display, *pixmap) ;
-				*pixmap = 0 ;
+				*pixmap = None ;
 
 				return  0 ;
 			}
