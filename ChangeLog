@@ -1,3 +1,7 @@
+2003-09-01  Araki Ken  <arakiken@users.sf.net>
+
+	* Dumped core in selecting region in some situations. Fixed.
+
 2003-08-29  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* x_dnd.c:

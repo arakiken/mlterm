@@ -3607,6 +3607,16 @@ selecting_with_motion(
 	if( x_rest > 0)
 	{
 		x_is_outside = 1 ;
+
+		/* Inform ml_screen that the mouse position is outside of the line. */
+		if( ml_line_is_rtl( line))
+		{
+			char_index -- ;
+		}
+		else
+		{
+			char_index ++ ;
+		}
 	}
 
 	if( ml_line_is_rtl( line))
@@ -3630,18 +3640,21 @@ selecting_with_motion(
 	}
 	else
 	{
-		if( x_is_after_sel_right_base_pos( &screen->sel , char_index , row))
+		if( ! x_is_outside)
 		{
-			if( ! x_is_outside && abs( char_index) > 0)
+			if( x_is_after_sel_right_base_pos( &screen->sel , char_index , row))
 			{
-				char_index -- ;
+				if( abs( char_index) > 0)
+				{
+					char_index -- ;
+				}
 			}
-		}
-		else if( x_is_before_sel_left_base_pos( &screen->sel , char_index , row))
-		{
-			if( ! x_is_outside && abs( char_index) < ml_line_end_char_index( line))
+			else if( x_is_before_sel_left_base_pos( &screen->sel , char_index , row))
 			{
-				char_index ++ ;
+				if( abs( char_index) < ml_line_end_char_index( line))
+				{
+					char_index ++ ;
+				}
 			}
 		}
 		
@@ -5679,11 +5692,23 @@ reverse_color(
 	)
 {
 	x_screen_t *  screen ;
+	ml_line_t *  line ;
 
 	screen = (x_screen_t*)p ;
+
+	/*
+	 * Char index -1 has special meaning in rtl lines, so don't use abs() here.
+	 */
 	
-	beg_char_index = abs( beg_char_index) ;
-	end_char_index = abs( end_char_index) ;
+	if( ( line = ml_term_get_line( screen->term , beg_row)) && ml_line_is_rtl( line))
+	{
+		beg_char_index = -beg_char_index ;
+	}
+
+	if( ( line = ml_term_get_line( screen->term , end_row)) && ml_line_is_rtl( line))
+	{
+		end_char_index = -end_char_index ;
+	}
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " reversing region %d %d %d %d.\n" ,
@@ -5704,11 +5729,23 @@ restore_color(
 	)
 {
 	x_screen_t *  screen ;
+	ml_line_t *  line ;
 
 	screen = (x_screen_t*)p ;
 	
-	beg_char_index = abs( beg_char_index) ;
-	end_char_index = abs( end_char_index) ;
+	/*
+	 * Char index -1 has special meaning in rtl lines, so don't use abs() here.
+	 */
+	 
+	if( ( line = ml_term_get_line( screen->term , beg_row)) && ml_line_is_rtl( line))
+	{
+		beg_char_index = -beg_char_index ;
+	}
+
+	if( ( line = ml_term_get_line( screen->term , end_row)) && ml_line_is_rtl( line))
+	{
+		end_char_index = -end_char_index ;
+	}
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " restoring region %d %d %d %d.\n" ,
@@ -5731,13 +5768,24 @@ select_in_window(
 	)
 {
 	x_screen_t *  screen ;
+	ml_line_t *  line ;
 	u_int  size ;
-	ml_char_t *  buf ;
 
 	screen = p ;
 
-	beg_char_index = abs( beg_char_index) ;
-	end_char_index = abs( end_char_index) ;
+	/*
+	 * Char index -1 has special meaning in rtl lines, so don't use abs() here.
+	 */
+	 
+	if( ( line = ml_term_get_line( screen->term , beg_row)) && ml_line_is_rtl( line))
+	{
+		beg_char_index = -beg_char_index ;
+	}
+
+	if( ( line = ml_term_get_line( screen->term , end_row)) && ml_line_is_rtl( line))
+	{
+		end_char_index = -end_char_index ;
+	}
 
 	if( ( size = ml_term_get_region_size( screen->term , beg_char_index , beg_row ,
 			end_char_index , end_row)) == 0)
@@ -5745,12 +5793,12 @@ select_in_window(
 		return  0 ;
 	}
 
-	if( ( buf = ml_str_alloca( size)) == NULL)
+	if( ( *chars = ml_str_new( size)) == NULL)
 	{
 		return  0 ;
 	}
 
-	*len = ml_term_copy_region( screen->term , buf , size , beg_char_index ,
+	*len = ml_term_copy_region( screen->term , *chars , size , beg_char_index ,
 		beg_row , end_char_index , end_row) ;
 
 #ifdef  DEBUG
@@ -5763,15 +5811,6 @@ select_in_window(
 	}
 #endif
 
-	if( (*chars = ml_str_new( size)) == NULL)
-	{
-		return  0 ;
-	}
-
-	ml_str_copy( *chars , buf , size) ;
-
-	ml_str_final( buf , size) ;
-	
 	return  1 ;
 }
 
