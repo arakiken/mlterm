@@ -3279,6 +3279,8 @@ key_pressed(
 						seq[count] |= 0x80 ;
 					}
 				}
+				/* shouldn't try to parse the modified sequence */
+				parser = NULL ;
 			}
 		}
 
