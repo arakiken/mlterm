@@ -334,22 +334,21 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "type_engine")))
 	{
+	#ifdef  USE_TYPE_XFT
 		if( strcmp( value , "xft") == 0)
 		{
 			main_config->type_engine = TYPE_XFT ;
 		}
-		else if( strcmp( value , "stsf") == 0)
-		{
-			kik_msg_printf( "stsf is not supported for now.\n") ;
-			main_config->type_engine = TYPE_XCORE ;
-		}
-		else if( strcmp( value , "xcore") == 0)
+		else
+	#endif
+		if( strcmp( value , "xcore") == 0)
 		{
 			main_config->type_engine = TYPE_XCORE ;
 		}
 		else
 		{
 			kik_msg_printf( "%s is unsupported type engine.\n" , value) ;
+			main_config->type_engine = TYPE_XCORE ;
 		}
 	}
 
