@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h> /* memset, strchr */
 #include <stdlib.h> /* atoi */
 #include <termios.h> /* tcgetattr/tcsetattr */
@@ -7,6 +8,7 @@
 static char _buffer[512];
 
 #define COLORID_DEFAULT 9
+
 static int _choosed_color = 2;
 static int _pointed_color = 1;
 static const char *  color_name_table[] =
@@ -29,18 +31,35 @@ struct termios _oldtio;
  */
 
 static void _csi(char *str){
-	printf("\033%s", str);
+	write(STDOUT_FILENO, "\033",1);
+	write(STDOUT_FILENO, str, strlen(str));
 }
 
 int read_one(){
-	int i;
-	i = fgetc( stdin);
-	return  i;
+	int count;
+	char buf[3] = {0,0,0};
+	count = read(STDIN_FILENO, buf, 3);
+	if (buf[0] != 27)  /* XXX sould check non-printable */
+		return  buf[0];
+	if (buf[1] == 0)
+		return KEY_ESC; /* single esc */
+	if (buf[1] == 79)  /*coursor key?*/
+		switch(buf[2]){
+		case 65:
+			return KEY_UP;
+		case 66:
+			return KEY_DOWN;
+		case 67:
+			return KEY_RIGHT;
+		case 68:
+			return KEY_LEFT;
+		}
+	return -1; /* couldnn't processed */
 }
 
 
 void flush_stdout(){
-	fflush(stdout);
+	fsync(STDOUT_FILENO);
 }
 
 void dec_char(){
@@ -272,7 +291,7 @@ void window_addstr(window_t * window, int x, int y, char *str){
 	}else{
 		set_cursor_pos(window, x, y);
 	}
-	printf(str);
+	write(STDOUT_FILENO, str, strlen(str));
 }
 
 int window_width(window_t *window){
@@ -297,7 +316,7 @@ void window_clear(window_t * window){
 
 	for (y = 1; y < window->bottom - window->top; y++){
 		set_cursor_pos(window, 0, y);
-		printf(_buffer);
+		write(STDOUT_FILENO, _buffer, strlen(_buffer));
 	}
 
 	if (window->framed){
@@ -306,13 +325,13 @@ void window_clear(window_t * window){
 		_buffer[width -1] = 'k';        /* upper right*/
 	}
 	set_cursor_pos(window, 0, 0);
-	printf(_buffer);
+	write(STDOUT_FILENO, _buffer, strlen(_buffer));
 	if (window->framed){
 		_buffer[0] = 'm';               /* lower left*/
 		_buffer[width -1] = 'j';        /* lower right*/
 	}
 	set_cursor_pos(window, 0, window->bottom - window->top);
-	printf(_buffer);
+	write(STDOUT_FILENO, _buffer, strlen(_buffer));
 	if (window->framed)
 		normal_char();
 
@@ -325,7 +344,7 @@ int termios_init(){
 	newtio = _oldtio;
 	newtio.c_lflag &= ~ICANON;
 	newtio.c_lflag &= ~ECHO;
-	newtio.c_cc[VMIN] = 0;
+	newtio.c_cc[VMIN] = 1;
 	newtio.c_cc[VTIME] = 0; /* have to break with some intervals to distinguish ESC/Right*/
 	tcsetattr(0, TCSAFLUSH, &newtio);
 	return 0;
@@ -377,42 +396,34 @@ int string_edit(window_t *window, char *src, char **result){
 			*result = buffer;
 			cursor_hide();
   			return 1;
-		case 27:/*esc seq*/
-			input = read_one();
-			if( input != 79){ /* cursor key or ESC ? */
-				/* ESC */
-				cursor_hide();
- 				free(work);
-				return 0; /* discard */
-			}
-			input = read_one();
-			switch(input){
-			case 67: /* RIGHT */
-				if (cur_pos > strlen(buffer))
-					break;
-				cur_pos++;
-				flag = 1;
-				if (cur_pos > offset + width -2)
-					offset++;
+		case KEY_ESC:
+			cursor_hide();
+			free(work);
+			return 0; /* discard */
+		case KEY_DOWN:
+		case KEY_RIGHT:
+			if (cur_pos > strlen(buffer))
 				break;
-			case 68: /* LEFT */
-				if (cur_pos <= 0)
-					break;
-				cur_pos--;
-				flag = 1;
-				if ( cur_pos < offset)
-					offset--;
+			cur_pos++;
+			flag = 1;
+			if (cur_pos > offset + width -2)
+				offset++;
+			break;
+		case KEY_UP:
+		case KEY_LEFT:
+			if (cur_pos <= 0)
 				break;
-			default: /*XXX support home/end? */
-				/* ignore */
-			}
+			cur_pos--;
+			flag = 1;
+			if ( cur_pos < offset)
+				offset--;
 			break;
 		case 127: /* DEL */
 			if ((cur_pos >0) && (cur_pos <= strlen(buffer)))
 				memmove(buffer + cur_pos -1, buffer + cur_pos , strlen(buffer) - cur_pos +2);
 			flag = 1;
 			break;			
-		case -1: /* timeout */
+		case -1: /* ignore */
 			break;			
 		default:/*discard non-printable chars?*/
 			if (cur_pos > 0){
@@ -432,56 +443,3 @@ int string_edit(window_t *window, char *src, char **result){
 	free(work);
 	
 }
-
-int color_select(window_t *edit, int initial){
-	int ind, i, flag = 1;
-	int buffer;
-
-	window_clear(edit);
-	ind = initial;
-
-	while(1){
-		if (flag){
-			window_clear(edit);
-			for(i = 0; i < 8; i++){				
-				if (i == ind)
-					window_addstr(edit, 0, i, (char *)">");
-				set_fg_color(i);
-				window_addstr(edit, 1, i, colorname_from_id(i));
-				set_fg_color_default();
-			}
-			flush_stdout();
-			flag = 0;
-		}
-		buffer = read_one();
-		switch(buffer){
-		case 27:
-			buffer = read_one();
-			if( buffer != 79){ /* cursor key or ESC ? */
-				/* ESC */
- 				return initial;
-			}
-			buffer = read_one();
-			switch(buffer){
-			case 65: /* UP */
-				if (ind > 0){
-					ind--;
-					flag = 1;
-				}
-				break;
-			case 66: /* DOWN */
-				if (ind < 8){
-					ind++;
-					flag = 1;
-				}
-				break;
-			default:
-				/* ignore */
-			}
-			break;
-		case 10: /* ret */
-  			return ind;
-		}
-	}
-}
-

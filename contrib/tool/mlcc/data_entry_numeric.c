@@ -57,46 +57,34 @@ int entry_numeric_edit(window_t *window, entry_t *entry, int x, int y){
 	data = entry->data;
 	buffer = read_one();
 	switch(buffer){
-	case 27:
-		buffer = read_one();
-		if( buffer != 79){ /* cursor key or ESC ? */
-			/* ESC */
-			return -1;
-		}
-		buffer = read_one();
-		switch(buffer){
-		case 65: /* UP */
-			data->current *= 2;
-			if ((data->max != -1) && (data->current > data->max))
-				data->current = data->max;
+	case KEY_ESC:
+		return -1;
+	case KEY_UP:
+		data->current *= 2;
+		if ((data->max != -1) && (data->current > data->max))
+			data->current = data->max;
+		entry->modified = 1;
+		return 1; /* redraw */
+	case KEY_DOWN:
+		data->current /= 2;
+		if ((data->min != -1) && (data->current < data->min))
+			data->current = data->min;
+		entry->modified = 1;
+		return 1; /* redraw */
+	case KEY_RIGHT:
+		if ((data->max == -1) || (data->current < data->max)){
+			data->current++;
 			entry->modified = 1;
-			break;
-		case 66: /* DOWN */
-			data->current /= 2;
-			if ((data->min != -1) && (data->current < data->min))
-				data->current = data->min;
-			entry->modified = 1;
-			break;
-		case 67: /* RIGHT */
-			if ((data->max == -1) || (data->current < data->max)){
-				data->current++;
-				entry->modified = 1;
-			}
-			break;
-		case 68: /* LEFT */
-			if ((data->min == -1) || (data->current > data->min)){
-				entry->modified = 1;
-				data->current--;
-			}
-			break;
-			default:
-				/* ignore */
-				return 0;
 		}
 		return 1; /* redraw */
-	
+	case KEY_LEFT:
+		if ((data->min == -1) || (data->current > data->min)){
+			entry->modified = 1;
+			data->current--;
+		}
+		return 1; /* redraw */
 	default:
-		break;
+		/* ignore */
+		return 0;
 	}
-	return 0; /* don't redraw*/
 }

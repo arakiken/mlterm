@@ -207,44 +207,35 @@ int select_entry(config_data_t *data){
 	int buffer;
 
 	section_t  *cur;
+	cur = current_section(data);
 	buffer = read_one();
 	switch(buffer){
-	case 27:
-		buffer = read_one();
-		if( buffer != 79){ /* cursor key or ESC ? */
-			/* ESC */
-			data->state = DS_CANCEL;
-			return 1;
-		}
-		cur = current_section(data);
-		buffer = read_one();
-		switch(buffer){
-		case 65: /* UP */
-			if (cur->selected > 0)
-				cur->selected--;
-			break;
-		case 66: /* DOWN */
-			if (cur->selected < cur->size -1)
-				cur->selected++;
-			break;
-		case 67: /* RIGHT */
-			if (data->selected < data->filled -1)
-				data->selected++;
-			break;
-		case 68: /* LEFT */
-			if (data->selected >0)
-					data->selected--;
-			break;
-		default:
-			/* ignore */
-			return 0;
-			}
-		return 1; /* redraw */		
+	case KEY_ESC:
+		data->state = DS_CANCEL;
+		return 1; /* redraw */
+	case KEY_UP:
+		if (cur->selected > 0)
+			cur->selected--;
+		return 1; /* redraw */
+	case KEY_DOWN: /* DOWN */
+		if (cur->selected < cur->size -1)
+			cur->selected++;
+		return 1; /* redraw */
+	case KEY_RIGHT: /* RIGHT */
+		if (data->selected < data->filled -1)
+			data->selected++;
+		return 1; /* redraw */
+	case KEY_LEFT: /* LEFT */
+		if (data->selected >0)
+			data->selected--;
+		return 1; /* redraw */
 	case 10: /* ret */
 		data->state = DS_EDIT;
-		return 1;
+		return 1; /* redraw */
+	default:
+		/* ignore */
+		return 0; /* don't redraw*/
 	}
-	return 0; /* don't redraw*/
 }
 
 int query_exit(window_t *parent){
@@ -273,30 +264,21 @@ int query_exit(window_t *parent){
 		}
 		buffer = read_one();
 		switch(buffer){
-		case 27:/* cursor key or ESC */
-			buffer = read_one();
-			if( buffer != 79){ 
-				/* ESC */
-				window_free(query);
- 				return -1;
-			}
-			buffer = read_one();
-			switch(buffer){
-			case 65: /* UP */
-				state = 0;
-				flag = 1;
-				break;
-			case 66: /* DOWN */
-				state = 1;
-				flag = 1;
-				break;
-			default:
-				/* ignore */
-			}
+		case KEY_ESC:/* cursor key or ESC */
+			window_free(query);
+			return -1;
+		case KEY_UP:
+		case KEY_DOWN:
+		case KEY_RIGHT:
+		case KEY_LEFT:
+			state = 1-state;
+			flag = 1;
 			break;
 		case 10: /* ret */
 			window_free(query);
   			return state;
+		default:
+			break;
 		}
 	}
 }

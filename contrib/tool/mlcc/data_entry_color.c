@@ -71,3 +71,48 @@ void entry_color_display(window_t *window, entry_t *entry, int x, int y, int sta
   	display_str(window, x+2, y, data->current, DC_NORMAL);
 }
 
+int color_select(window_t *edit, int initial){
+	int ind, i, flag = 1;
+	int buffer;
+
+	window_clear(edit);
+	ind = initial;
+
+	while(1){
+		if (flag){
+			window_clear(edit);
+			for(i = 0; i < 8; i++){				
+				if (i == ind)
+					window_addstr(edit, 0, i, (char *)">");
+				set_fg_color(i);
+				window_addstr(edit, 1, i, colorname_from_id(i));
+				set_fg_color_default();
+			}
+			flush_stdout();
+			flag = 0;
+		}
+		buffer = read_one();
+		switch(buffer){
+		case 27:
+			return initial;
+			break;
+		case KEY_UP:
+		case KEY_LEFT:
+			ind--;
+			if (ind < 0)
+				ind = 8;
+			flag = 1;
+			break;
+		case KEY_DOWN:
+		case KEY_RIGHT:
+			ind++;
+			if (ind > 8)
+				ind = 0;
+			flag = 1;			
+			break;
+		case 10: /* ret */
+  			return ind;
+		}
+	}
+}
+

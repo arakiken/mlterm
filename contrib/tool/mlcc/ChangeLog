@@ -1,3 +1,7 @@
+2002-06-14  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* rewrite input handling to lower CPU load.
+
 2002-06-13  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* modified comm.c for compatibility 

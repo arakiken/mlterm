@@ -16,6 +16,13 @@ typedef enum decor {
 	DC_POINTED
 } decor_t;
 
+enum {
+	KEY_UP = 256, /* char max +1 */
+	KEY_DOWN,
+	KEY_RIGHT,
+	KEY_LEFT,
+	KEY_ESC
+};
 /*
  *  control terminal
  */

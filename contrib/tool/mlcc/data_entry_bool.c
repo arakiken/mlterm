@@ -60,29 +60,20 @@ int entry_bool_edit(window_t *window, entry_t *entry, int x, int y){
 	data = entry->data;
 	buffer = read_one();
 	switch(buffer){
-	case 27:
-		buffer = read_one();
-		if( buffer != 79){ /* cursor key or ESC ? */
-			/* ESC */
-			return -1;
-		}
-		buffer = read_one();
-		switch(buffer){
-		case 67: /* RIGHT */
-			data->current = 1 - data->current;
-			entry->modified = 1;
-			break;
-		case 68: /* LEFT */
-			data->current = 1 - data->current;
-			entry->modified = 1;
-			break;
-		default:
+	case KEY_ESC:
+		return -1;
+	case KEY_RIGHT:
+	case KEY_LEFT:
+	case KEY_UP:
+	case KEY_DOWN:
+		data->current = 1 - data->current;
+		entry->modified = 1;
+		return 1; /* redraw */
+		break;
+	default:
 			/* ignore */
 			return 0;
-		}
-		return 1; /* redraw */
 	}
-	return 0; /* don't redraw*/
 }
 
 

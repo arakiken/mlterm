@@ -4,39 +4,33 @@
 #include "comm.h"
 #include "data.h"
 #include "data_entry_radio.h"
+
 int entry_radio_edit(window_t *window, entry_t *entry, int x, int y){
 	entry_radio_t *data;
 	int buffer;
 	data = entry->data;
 	buffer = read_one();
 	switch(buffer){
-	case 27:
-		buffer = read_one();
-		if( buffer != 79){ /* cursor key or ESC ? */
-			/* ESC */
-			return -1;
-		}
-		buffer = read_one();
-		switch(buffer){
-		case 67: /* RIGHT */
-			if (data->current < data->num){
-				data->current++;
-				entry->modified = 1;
-			}
-			break;
-		case 68: /* LEFT */
-			if (data->current >0){
-				data->current--;
-				entry->modified = 1;
-			}
-			break;
-		default:
-				/* ignore */
-			return 0;
+	case KEY_ESC:
+		return -1;
+	case KEY_RIGHT:
+	case KEY_DOWN:
+		if (data->current < data->num){
+			data->current++;
+			entry->modified = 1;
 		}
 		return 1; /* redraw */
+	case KEY_LEFT:
+	case KEY_UP:
+		if (data->current >0){
+			data->current--;
+			entry->modified = 1;
+		}
+		return 1; /* redraw */
+	default:
+		/* ignore */
+		return 0;
 	}
-	return 0;
 }
 
 static int _which_one(char *str, char **terms){
