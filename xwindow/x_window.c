@@ -2245,6 +2245,62 @@ x_window_receive_event(
 		}
 #endif
 	}
+	else if( event->type == PropertyNotify)
+	{
+
+		if( event->xproperty.atom == XA_SELECTION( win->display) &&
+		    event->xproperty.state == PropertyNewValue)
+		{
+			XTextProperty  ct ;
+			u_long  bytes_after ;
+
+			XGetWindowProperty( win->display, event->xproperty.window,
+					    event->xproperty.atom, 0, 0, False,
+					    AnyPropertyType, &ct.encoding, &ct.format,
+					    &ct.nitems, &bytes_after, &ct.value) ;
+			if( ct.value)
+			{
+				XFree( ct.value) ;
+			}
+
+			if( ct.encoding == XA_INCR(win->display)
+			    || bytes_after == 0)
+			{
+				XDeleteProperty( win->display, event->xproperty.window,
+						 ct.encoding) ;
+			}
+			else
+			{
+				XGetWindowProperty( win->display , event->xproperty.window ,
+						    event->xproperty.atom , 0 , bytes_after , True ,
+						    AnyPropertyType , &ct.encoding , &ct.format ,
+						    &ct.nitems , &bytes_after , &ct.value) ;
+				if(ct.encoding == XA_STRING ||
+				   ct.encoding == XA_TEXT(win->display) ||
+				   ct.encoding == XA_COMPOUND_TEXT(win->display))
+				{
+					if( win->xct_selection_notified)
+					{
+						(*win->xct_selection_notified)(
+							win , ct.value , ct.nitems) ;
+					}
+				}
+				else if(ct.encoding == XA_UTF8_STRING(win->display))
+				{
+					if( win->utf8_selection_notified)
+					{
+						(*win->utf8_selection_notified)(
+							win , ct.value , ct.nitems) ;
+					}
+				}
+
+				if( ct.value)
+				{
+					XFree( ct.value) ;
+				}
+			}
+		}
+	}
 #ifdef  __DEBUG
 	else
 	{

@@ -1,3 +1,8 @@
+2004-05-16  MINAMI Hirokazu <minami@mistfall.net>
+
+	* x_window.c: pasting text using incremental transfer
+	is supported.  
+
 2004-05-07  MINAMI Hirokazu <minami@mistfall.net>
 
 	* x_imagelib_gdk.c: gdk_pixbuf_ref() was deprecated and 
