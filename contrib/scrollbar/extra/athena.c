@@ -160,7 +160,7 @@ draw_scrollbar(
 /* --- global functions --- */
 
 x_sb_view_t *
-ml_athena_sb_view_new(void)
+x_athena_sb_view_new(void)
 {
 	athena_sb_view_t *  athena_sb ;
 	
@@ -189,7 +189,7 @@ ml_athena_sb_view_new(void)
 }
 
 x_sb_view_t *
-ml_athena_transparent_sb_view_new(void)
+x_athena_transparent_sb_view_new(void)
 {
 	athena_sb_view_t *  athena_sb ;
 	

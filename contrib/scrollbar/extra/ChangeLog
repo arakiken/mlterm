@@ -1,3 +1,10 @@
+2003-02-02 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* next.c, mozmodern.c, athena.c, motif.c:
+	  replaced the old plugin-interface (ml_*_sb_view_new()) with the new
+	  interface (x_*_sb_view_new()) which has been supported since
+	  version 2.4.0
+
 2002-09-15 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* next.c: minor cleanup

@@ -673,7 +673,7 @@ down_button_released(
 /* --- global functions --- */
 
 x_sb_view_t *
-ml_next_sb_view_new(void)
+x_next_sb_view_new(void)
 {
 	next_sb_view_t *  next_sb ;
 	
@@ -712,7 +712,7 @@ ml_next_sb_view_new(void)
 }
 
 x_sb_view_t *
-ml_next_transparent_sb_view_new(void)
+x_next_transparent_sb_view_new(void)
 {
 	next_sb_view_t *  next_sb ;
 	

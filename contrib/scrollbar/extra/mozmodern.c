@@ -587,7 +587,7 @@ down_button_released(
 /* --- global functions --- */
 
 x_sb_view_t *
-ml_mozmodern_sb_view_new(void)
+x_mozmodern_sb_view_new(void)
 {
 	mozmod_sb_view_t *  mozmod_sb ;
 
@@ -622,7 +622,7 @@ ml_mozmodern_sb_view_new(void)
 }
 
 x_sb_view_t *
-ml_mozmodern_transparent_sb_view_new(void)
+x_mozmodern_transparent_sb_view_new(void)
 {
 	mozmod_sb_view_t *  mozmod_sb ;
 
