@@ -1031,10 +1031,10 @@ x_scrollbar_change_view(
 
 	if( sb->window.width != width)
 	{
-		x_window_resize( &sb->window , width , sb->window.height , NOTIFY_TO_PARENT) ;
-		
 		x_window_set_normal_hints( &sb->window ,
 			width , sb->window.min_height , 0 , 0) ;
+
+		x_window_resize( &sb->window , width , sb->window.height , NOTIFY_TO_PARENT) ;
 	}
 	
 	draw_decoration( sb) ;
