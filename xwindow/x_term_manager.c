@@ -328,7 +328,11 @@ open_term(
 	}
 	else
 	{
+	#if  0
 		if( ( term = ml_get_term( NULL)) == NULL && ( term = create_term_intern()) == NULL)
+	#else
+		if( ( term = create_term_intern()) == NULL)
+	#endif
 		{
 			return  0 ;
 		}

@@ -76,7 +76,7 @@ static encoding_table_t  encoding_table[] =
 	{ ML_ISO8859_8 , "ISO88598" , mkf_iso8859_8_parser_new , mkf_iso8859_8_conv_new , } ,
 	{ ML_ISO8859_9 , "ISO88599" , mkf_iso8859_9_parser_new , mkf_iso8859_9_conv_new , } ,
 	{ ML_ISO8859_10 , "ISO885910" , mkf_iso8859_10_parser_new , mkf_iso8859_10_conv_new , } ,
-	{ ML_TIS620 , "TIS620" , mkf_tis620_2533_parser_new , mkf_tis620_2533_conv_new , } ,
+	{ ML_TIS620 , "ISO885911" , mkf_tis620_2533_parser_new , mkf_tis620_2533_conv_new , } ,
 	{ ML_ISO8859_13 , "ISO885913" , mkf_iso8859_13_parser_new , mkf_iso8859_13_conv_new , } ,
 	{ ML_ISO8859_14 , "ISO885914" , mkf_iso8859_14_parser_new , mkf_iso8859_14_conv_new , } ,
 	{ ML_ISO8859_15 , "ISO885915" , mkf_iso8859_15_parser_new , mkf_iso8859_15_conv_new , } ,
@@ -122,7 +122,7 @@ static encoding_table_t  encoding_table[] =
 	 * not necessary.
 	 */
 
-	{ ML_TIS620 , "ISO885911" , } ,
+	{ ML_TIS620 , "TIS620" , } ,
 	
 #if  0
 	/* XXX necessary ? */

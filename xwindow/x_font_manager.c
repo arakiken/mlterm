@@ -420,11 +420,11 @@ search_usascii_font(
 
 			if( font_man->font_size == beg_size)
 			{
-				kik_msg_printf( "a font for displaying us ascii chars "
-					"is not found.\n") ;
-
-/* useless?				x_font_manager_delete( font_man) ;*/
-				
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					"a font for displaying us ascii chars is not found.\n") ;
+			#endif
+			
 				return  NULL ;
 			}
 
@@ -499,7 +499,14 @@ x_font_manager_new(
 
 	set_font_present( font_man , font_present) ;
 
-	font_man->usascii_font = search_usascii_font( font_man) ;
+	if( ( font_man->usascii_font = search_usascii_font( font_man)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " Not found usascii font. Bye...\n") ;
+	#endif
+
+		exit(1) ;
+	}
 	
 	return  font_man ;
 }
@@ -730,7 +737,7 @@ x_font_manager_usascii_font_cs_changed(
 		return  0 ;
 	}
 	else
-	{	
+	{
 		font_man->usascii_font = font ;
 
 		return  1 ;

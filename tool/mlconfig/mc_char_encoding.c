@@ -72,8 +72,97 @@ static char *  encodings[] =
 	"ISO-2022-CN" ,
 } ;
 
+static char *  regularized_encodings[] =
+{
+	"ISO88591" ,
+	"ISO88592" ,
+	"ISO88593" ,
+	"ISO88594" ,
+	"ISO88595" ,
+	"ISO88596" ,
+	"ISO88597" ,
+	"ISO88598" ,
+	"ISO88599" ,
+	"ISO885910" ,
+	"ISO885911" ,
+	"ISO885913" ,
+	"ISO885914" ,
+	"ISO885915" ,
+	"ISO885916" ,
+	"TCVN5712" ,
+
+	"ISCII" ,
+	"VISCII" ,
+	"KOI8R" ,
+	"KOI8U" ,
+
+	"UTF8" ,
+
+	"EUCJP" ,
+	"EUCJISX0213" ,
+	"ISO2022JP" ,
+	"ISO2022JP2" ,
+	"ISO2022JP3" ,
+	"SJIS" ,
+	"SJISX0213" ,
+
+	"EUCKR" ,
+	"UHC" ,
+	"JOHAB" ,
+	"ISO2022KR" ,
+
+	"BIG5" ,
+	"EUCTW" ,
+
+	"BIG5HKSCS" ,
+
+	"EUCCN" ,
+	"GBK" ,
+	"GB18030" ,
+	"HZ" ,
+
+	"ISO2022CN" ,
+} ;
+
 
 /* --- static functions --- */
+
+static char *
+regularize(
+	char *  encoding
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < sizeof( encodings) / sizeof( encodings[0]) ; count ++)
+	{
+		if( strcmp( encodings[count] , encoding) == 0)
+		{
+			return  regularized_encodings[count] ;
+		}
+	}
+
+	return  "UNKNOWN" ;
+}
+
+static char *
+unregularize(
+	char *  encoding
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < sizeof( regularized_encodings) / sizeof( regularized_encodings[0]) ;
+		count ++)
+	{
+		if( strcmp( regularized_encodings[count] , encoding) == 0)
+		{
+			return  encodings[count] ;
+		}
+	}
+
+	return  "UNKNOWN" ;
+}
 
 static gint
 encoding_selected(
@@ -81,7 +170,7 @@ encoding_selected(
 	gpointer  data
 	)
 {
-	selected_encoding = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	selected_encoding = regularize( gtk_entry_get_text(GTK_ENTRY(widget))) ;
 	is_changed = 1 ;
 
 #ifdef  __DEBUG
@@ -89,75 +178,6 @@ encoding_selected(
 #endif
 
 	return  1 ;
-}
-
-static char *
-unregularized(
-	char *  encoding
-	)
-{
-	int  count ;
-	char *  regularized[] =
-	{
-		"ISO88591" ,
-		"ISO88592" ,
-		"ISO88593" ,
-		"ISO88594" ,
-		"ISO88595" ,
-		"ISO88596" ,
-		"ISO88597" ,
-		"ISO88598" ,
-		"ISO88599" ,
-		"ISO885910" ,
-		"ISO885911" ,
-		"ISO885913" ,
-		"ISO885914" ,
-		"ISO885915" ,
-		"ISO885916" ,
-		"TCVN5712" ,
-
-		"ISCII" ,
-		"VISCII" ,
-		"KOI8R" ,
-		"KOI8U" ,
-
-		"UTF8" ,
-
-		"EUCJP" ,
-		"EUCJISX0213" ,
-		"ISO2022JP" ,
-		"ISO2022JP2" ,
-		"ISO2022JP3" ,
-		"SJIS" ,
-		"SJISX0213" ,
-
-		"EUCKR" ,
-		"UHC" ,
-		"JOHAB" ,
-		"ISO2022KR" ,
-
-		"BIG5" ,
-		"EUCTW" ,
-
-		"BIG5HKSCS" ,
-
-		"EUCCN" ,
-		"GBK" ,
-		"GB18030" ,
-		"HZ" ,
-
-		"ISO2022CN" ,
-	} ;
-
-	for( count = 0 ; count < sizeof( regularized) / sizeof( regularized[0]) ; count ++)
-	{
-		if( strcmp( regularized[count] , encoding) == 0)
-		{
-			return  encodings[count] ;
-		}
-	}
-
-	return  "UNKNOWN" ;
 }
 
 
@@ -168,7 +188,7 @@ mc_char_encoding_config_widget_new(
 	char *  encoding
 	)
 {
-	selected_encoding = unregularized( encoding) ;
+	selected_encoding = unregularize( encoding) ;
 
 	return  mc_combo_new(_("Encoding"), encodings,
 			     sizeof(encodings) / sizeof(encodings[0]),
@@ -184,6 +204,6 @@ mc_get_char_encoding(void)
 	}
 	
 	is_changed = 0 ;
-	
+
 	return  selected_encoding ;
 }

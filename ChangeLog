@@ -1,3 +1,8 @@
+2003-02-15 Araki Ken <arakiken@users.sf.net>
+
+	* Mlconfig didn't deal with ISO8859-11(TIS620) correctly. Fixed.
+	* Mlterm exit(1) if us ascii for the specified encoding not found.
+
 2003-02-12  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* Added a cache to x_imagelib_load_file in x_imagelib_gdk.c 

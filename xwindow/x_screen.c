@@ -4,6 +4,7 @@
 
 #include  "x_screen.h"
 
+#include  <signal.h>
 #include  <stdio.h>		/* sprintf */
 #include  <unistd.h>            /* getcwd */
 #include  <limits.h>            /* PATH_MAX */
@@ -6442,7 +6443,7 @@ x_screen_detach(
 		return  NULL ;
 	}
 
-#if  1	
+#if  1
 	exit_backscroll_mode( screen) ;
 #endif
 
