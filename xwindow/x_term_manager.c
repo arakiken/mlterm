@@ -1603,22 +1603,25 @@ config_init(
 		}
 	}
 
-	main_config.encoding = ML_ISO8859_1 ;
-	
 	if( ( value = kik_conf_get_value( conf , "ENCODING")))
 	{
-		ml_char_encoding_t  encoding ;
-
-		if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
+		if( ( main_config.encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
 		{
 			kik_msg_printf(
 				"%s encoding is not supported. Auto detected encoding is used.\n" ,
 				value) ;
+				
+			main_config.encoding = ml_get_char_encoding( "auto") ;
 		}
-		else
-		{
-			main_config.encoding = encoding ;
-		}
+	}
+	else
+	{
+		main_config.encoding = ml_get_char_encoding( "auto") ;
+	}
+
+	if( main_config.encoding == ML_UNKNOWN_ENCODING)
+	{
+		main_config.encoding = ML_ISO8859_1 ;
 	}
 
 	main_config.xim_open_in_startup = 1 ;

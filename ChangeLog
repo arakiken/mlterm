@@ -1,3 +1,8 @@
+2003-03-02 Araki Ken <arakiken@users.sf.net>
+
+	* If ENCODING option is not set, character encoding wasn't detected automatically. Fixed.
+	  (Thanks to Kubota Tomohiro san)
+
 2003-03-02 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Fixed tools/mlconfig/mc_flags.[ch] and tools/mlconfig/po/POTFILES.in
