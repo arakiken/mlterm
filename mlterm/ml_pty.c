@@ -31,14 +31,13 @@ ml_pty_new(
 {
 	ml_pty_t *  pty ;
 	pid_t  pid ;
-	char *  slave ;
 
 	if( ( pty = malloc( sizeof( ml_pty_t))) == NULL)
 	{
 		return  NULL ;
 	}
 	
-	pid = kik_pty_fork( &pty->master , &pty->slave , &slave) ;
+	pid = kik_pty_fork( &pty->master , &pty->slave , &pty->slave_name) ;
 
 	if( pid == -1)
 	{
@@ -104,15 +103,13 @@ ml_pty_new(
 	/* parent process */
 
 #ifdef  USE_UTMP
-	if( ( pty->utmp = kik_utmp_new( slave , host , pty->master)) == NULL)
+	if( ( pty->utmp = kik_utmp_new( pty->slave_name , host , pty->master)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG "utmp failed.\n") ;
 	#endif
 	}
 #endif
-
-	free( slave) ;
 
 	pty->child_pid = pid ;
 	pty->buf = NULL ;
@@ -146,6 +143,7 @@ ml_pty_delete(
 
 	close( pty->master) ;
 	close( pty->slave) ;
+	free( pty->slave_name) ;
 		
 	free( pty) ;
 

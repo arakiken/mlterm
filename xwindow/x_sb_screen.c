@@ -98,7 +98,7 @@ window_resized(
 	x_window_resize_with_margin( &sb_screen->scrollbar.window ,
 		ACTUAL_WIDTH( &sb_screen->scrollbar.window) ,
 		ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
-			
+		
 	if( sb_screen->sb_mode == SB_RIGHT)
 	{
 		move_scrollbar( sb_screen , 1) ;
@@ -560,6 +560,21 @@ change_sb_mode(
 	sb_screen->sb_mode = mode ;
 }
 
+static void
+term_changed(
+	void *  p ,
+	u_int  log_size ,
+	u_int  logged_lines
+	)
+{
+	x_sb_screen_t *  sb_screen  ;
+
+	sb_screen = p ;
+
+	x_scrollbar_set_num_of_log_lines( &sb_screen->scrollbar , log_size) ;
+	x_scrollbar_set_num_of_filled_log_lines( &sb_screen->scrollbar , logged_lines) ;
+}
+
 
 /* --- global functions --- */
 
@@ -593,6 +608,7 @@ x_sb_screen_new(
 	if( x_scrollbar_init( &sb_screen->scrollbar , &sb_screen->sb_listener ,
 		view_name , fg_color , bg_color , ACTUAL_HEIGHT( &screen->window) ,
 		x_line_height( screen) , ml_term_get_log_size( screen->term) ,
+		ml_term_get_num_of_logged_lines( screen->term) ,
 		screen->window.is_transparent ,
 		x_screen_get_picture_modifier( screen)) == 0)
 	{
@@ -601,12 +617,6 @@ x_sb_screen_new(
 	#endif
 
 		goto  error ;
-	}
-
-	if( ml_term_get_num_of_logged_lines( screen->term) > 0)
-	{
-		x_scrollbar_set_logged_lines( &sb_screen->scrollbar ,
-			ml_term_get_num_of_logged_lines( screen->term)) ;
 	}
 
 	sb_screen->screen = screen ;
@@ -630,6 +640,7 @@ x_sb_screen_new(
 	sb_screen->screen_scroll_listener.transparent_state_changed = transparent_state_changed ;
 	sb_screen->screen_scroll_listener.sb_mode = sb_mode ;
 	sb_screen->screen_scroll_listener.change_sb_mode = change_sb_mode ;
+	sb_screen->screen_scroll_listener.term_changed = term_changed ;
 
 	x_set_screen_scroll_listener( screen , &sb_screen->screen_scroll_listener) ;
 

@@ -32,6 +32,7 @@
 #include  "mc_sb_view.h"
 #include  "mc_wall_pic.h"
 #include  "mc_io.h"
+#include  "mc_pty.h"
 
 
 #if  0
@@ -210,6 +211,19 @@ full_reset_clicked(
 	return  1 ;
 }
 
+static gint
+pty_button_clicked(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	mc_set_str_value( "select_pty" , mc_get_pty_dev() , 0) ;
+	
+	gtk_main_quit() ;
+	
+	return  1 ;
+}	
+
 static GtkWidget *
 apply_cancel_button(
 	void
@@ -291,6 +305,35 @@ full_reset(void)
 	return frame;
 }
 
+static GtkWidget *
+pty_list(void)
+{
+	GtkWidget *  frame ;
+	GtkWidget *  hbox ;
+	GtkWidget *  button ;
+	GtkWidget *  config_widget ;
+
+	frame = gtk_frame_new( _("PTY List")) ;
+	gtk_widget_show(frame) ;
+
+	hbox = gtk_hbox_new( FALSE , 5) ;
+	gtk_container_set_border_width(GTK_CONTAINER(hbox) , 5) ;
+	gtk_widget_show(hbox) ;
+	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
+	
+	button = gtk_button_new_with_label( "Select") ;
+	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(pty_button_clicked) , NULL) ;
+	gtk_widget_show(button) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;
+	
+	config_widget = mc_pty_config_widget_new( mc_get_str_value( "pty_name") ,
+				mc_get_str_value( "pty_list")) ;
+	gtk_widget_show(config_widget) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
+
+	return  frame ;
+}
+
 static int
 show(void)
 {
@@ -339,8 +382,10 @@ show(void)
 	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
 	frame = full_reset();
 	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
-
-
+	
+	frame = pty_list() ;
+	gtk_box_pack_start( GTK_BOX(vbox) , frame , FALSE , FALSE , 0) ;
+	
 	/* contents of the "Encoding" tab */
 
 	label = gtk_label_new(_("Encoding"));

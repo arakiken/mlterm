@@ -1,3 +1,11 @@
+2003-2-11 Araki Ken <arakiken@users.sf.net>
+
+	* Renamed -P/--ptys/ptys option to -@/--screens/startup_screens, and
+	  added -P/--ptys/startup_ptys option.
+	* Added ESC [ 5379 ; select_pty = <dev name> ; BEL and
+	  ESC [ 5380 ; pty_list = <dev name> ; BEL
+	* Added PTY selection menu to mlconfig.
+
 2003-2-9 Araki Ken <arakiken@users.sf.net>
 
 	* Added zh_TW locale messages to mlconfig.

@@ -27,12 +27,15 @@ typedef struct x_system_event_listener
 	void *  self ;
 
 	void  (*open_screen)( void *) ;
-	void  (*close_screen)( void * , x_window_t *) ;
+	void  (*close_screen)( void * , x_screen_ptr_t) ;
 	
-	void  (*open_pty)( void * , x_screen_ptr_t) ;
+	void  (*open_pty)( void * , x_screen_ptr_t , char *) ;
+	void  (*next_pty)( void * , x_screen_ptr_t) ;
 	void  (*close_pty)( void * , x_screen_ptr_t) ;
 	
 	void  (*pty_closed)( void * , x_screen_ptr_t) ;
+
+	char *  (*pty_list)( void *) ;
 	
 	/* for debug */
 	void  (*exit)( void * , int) ;
@@ -58,6 +61,7 @@ typedef struct  x_screen_scroll_event_listener
 	void  (*transparent_state_changed)( void * , int , x_picture_modifier_t *) ;
 	x_sb_mode_t  (*sb_mode)( void *) ;
 	void  (*change_sb_mode)( void * , x_sb_mode_t) ;
+	void  (*term_changed)( void * , u_int , u_int) ;
 
 } x_screen_scroll_event_listener_t ;
 
@@ -83,13 +87,7 @@ typedef struct  x_screen
 	x_shortcut_t *  shortcut ;
 	x_termcap_entry_t *  termcap ;
 
-	/*
-	 * encoding proper aux
-	 */
-	ml_shape_t *  shape ;
 	x_kbd_t *  kbd ;
-
-	ml_iscii_lang_type_t  iscii_lang_type ;
 
 	char *  mod_meta_key ;
 	x_mod_meta_mode_t  mod_meta_mode ;
@@ -99,8 +97,6 @@ typedef struct  x_screen
 
 	u_int  line_space ;
 
-	ml_vertical_mode_t  vertical_mode ;
-	
 	u_int  screen_width_ratio ;
 	u_int  screen_height_ratio ;
 
@@ -124,14 +120,19 @@ typedef struct  x_screen
 	u_int8_t  fade_ratio ;
 	int8_t  is_focused ;
 	int8_t  receive_string_via_ucs ;
-	int8_t  is_reverse ;
-	int8_t  is_app_keypad ;
-	int8_t  is_app_cursor_keys ;
-	int8_t  is_mouse_pos_sending ;
 	int8_t  xim_open_in_startup ;
-	int8_t  use_bidi ;
 	int8_t  use_vertical_cursor ;
 	int8_t  use_extended_scroll_shortcut ;
+
+	/*
+	 * XXX should be moved to ml_term_t
+	 */
+
+	ml_shape_t *  shape ;
+	ml_iscii_lang_type_t  iscii_lang_type ;
+	ml_vertical_mode_t  vertical_mode ;
+	
+	int8_t  use_bidi ;
 	int8_t  use_dynamic_comb ;
 	
 } x_screen_t ;
@@ -153,7 +154,7 @@ int  x_screen_delete( x_screen_t *  screen) ;
 
 int  x_screen_attach( x_screen_t *  screen , ml_term_t *  term) ;
 
-int  x_screen_detach( x_screen_t *  screen) ;
+ml_term_t *  x_screen_detach( x_screen_t *  screen) ;
 
 int  x_set_system_listener( x_screen_t *  screen ,
 	x_system_event_listener_t *  system_listener) ;

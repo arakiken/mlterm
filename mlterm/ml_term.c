@@ -73,6 +73,10 @@ ml_term_new(
 		goto  error ;
 	}
 
+	term->is_mouse_pos_sending = 0 ;
+	term->is_app_keypad = 0 ;
+	term->is_app_cursor_keys = 0 ;
+	
 	return  term ;
 
 error:
@@ -229,6 +233,19 @@ ml_term_get_pty_fd(
 	}
 	 
 	return  term->pty->master ;
+}
+
+char *
+ml_term_get_slave_name(
+	ml_term_t *  term
+	)
+{
+	if( term->pty == NULL)
+	{
+		return  NULL ;
+	}
+
+	return  term->pty->slave_name ;
 }
 
 pid_t
@@ -744,6 +761,63 @@ ml_term_is_using_multi_col_char(
 	)
 {
 	return  term->parser->use_multi_col_char ;
+}
+
+int
+ml_term_set_mouse_report(
+	ml_term_t *  term ,
+	int  flag
+	)
+{
+	term->is_mouse_pos_sending = flag ;
+
+	return  1 ;
+}
+
+int
+ml_term_is_mouse_pos_sending(
+	ml_term_t *  term
+	)
+{
+	return  term->is_mouse_pos_sending ;
+}
+
+int
+ml_term_set_app_keypad(
+	ml_term_t *  term ,
+	int  flag
+	)
+{
+	term->is_app_keypad = flag ;
+
+	return  1 ;
+}
+
+int
+ml_term_is_app_keypad(
+	ml_term_t *  term
+	)
+{
+	return  term->is_app_keypad ;
+}
+
+int
+ml_term_set_app_cursor_keys(
+	ml_term_t *  term ,
+	int  flag
+	)
+{
+	term->is_app_cursor_keys = flag ;
+
+	return  1 ;
+}
+
+int
+ml_term_is_app_cursor_keys(
+	ml_term_t *  term
+	)
+{
+	return  term->is_app_cursor_keys ;
 }
 
 int

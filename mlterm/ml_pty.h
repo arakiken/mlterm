@@ -17,6 +17,7 @@ typedef struct  ml_pty
 {
 	int  master ;		/* master pty fd */
 	int  slave ;
+	char *  slave_name ;
 	pid_t  child_pid ;
 
 #ifdef  USE_UTMP

@@ -37,6 +37,10 @@ typedef struct ml_term
 	ml_screen_t *  screen ;
 	ml_config_menu_t  config_menu ;
 
+	int8_t  is_mouse_pos_sending ;
+	int8_t  is_app_keypad ;
+	int8_t  is_app_cursor_keys ;
+
 } ml_term_t ;
 
 
@@ -67,6 +71,8 @@ int  ml_term_init_encoding_parser( ml_term_t *  term) ;
 int  ml_term_init_encoding_conv( ml_term_t *  term) ;
 
 int  ml_term_get_pty_fd( ml_term_t *  term) ;
+
+char *  ml_term_get_slave_name( ml_term_t *  term) ;
 
 pid_t  ml_term_get_child_pid( ml_term_t *  term) ;
 
@@ -157,6 +163,18 @@ int  ml_term_is_using_char_combining( ml_term_t *  term) ;
 int  ml_term_set_multi_col_char_flag( ml_term_t *  term , int  flag) ;
 
 int  ml_term_is_using_multi_col_char( ml_term_t *  term) ;
+
+int  ml_term_set_mouse_report( ml_term_t *  term , int  flag) ;
+
+int  ml_term_is_mouse_pos_sending( ml_term_t *  term) ;
+
+int  ml_term_set_app_keypad( ml_term_t *  term , int  flag) ;
+
+int  ml_term_is_app_keypad( ml_term_t *  term) ;
+
+int  ml_term_set_app_cursor_keys( ml_term_t *  term , int  flag) ;
+
+int  ml_term_is_app_cursor_keys( ml_term_t *  term) ;
 
 int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path , int  x , int  y) ;
 

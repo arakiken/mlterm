@@ -37,6 +37,7 @@ static key_func_table_t  key_func_table[] =
 	{ "EXT_KBD" , EXT_KBD } ,
 	{ "OPEN_SCREEN" , OPEN_SCREEN , } ,
 	{ "OPEN_PTY" , OPEN_PTY , } ,
+	{ "NEXT_PTY" , NEXT_PTY , } ,
 	{ "PAGE_UP" , PAGE_UP , } ,
 	{ "PAGE_DOWN" , PAGE_DOWN , } ,
 	{ "SCROLL_UP" , SCROLL_UP , } ,
@@ -190,10 +191,13 @@ x_shortcut_init(
 		/* EXT_KBD(not used) */
 		{ 0 , 0 , 0 , } ,
 		
-		/* OPEN SCREEN */
+		/* OPEN_SCREEN */
 		{ XK_F1 , ControlMask , 1 , } ,
 
-		/* OPEN PTY */
+		/* OPEN_PTY */
+		{ 0 , 0 , 0 , } ,
+
+		/* NEXT_PTY */
 		{ 0 , 0 , 0 , } ,
 
 		/* PAGE_UP(compatible with kterm) */

@@ -27,9 +27,10 @@
 
 #include  "version.h"
 #include  "x_xim.h"
-#include  "x_term.h"
 #include  "x_sb_screen.h"
+#include  "x_display.h"
 #include  "x_termcap.h"
+#include  "ml_term_manager.h"
 
 
 #define  MAX_TERMS  32		/* dead_mask is 32 bit */
@@ -98,15 +99,19 @@ typedef struct main_config
 	int8_t  use_extended_scroll_shortcut ;
 	int8_t  use_dynamic_comb ;
 
+	/* cache */
+	x_termcap_entry_t *  tent ;
+	
 } main_config_t ;
 
 
 /* --- static variables --- */
 
-static x_term_t *  xterms ;
-static u_int  num_of_xterms ;
+static x_screen_t **  screens ;
+static u_int  num_of_screens ;
 static u_int32_t  dead_mask ;
-static u_int  num_of_startup_xterms ;
+static u_int  num_of_startup_screens ;
+static u_int  num_of_startup_ptys ;
 
 static x_system_event_listener_t  system_listener ;
 
@@ -172,6 +177,17 @@ get_font_size_range(
 	}
 
 	return  1 ;
+}
+
+static ml_term_t *
+create_term_intern(void)
+{
+	return  ml_create_term( main_config.cols , main_config.rows ,
+			main_config.tab_size , main_config.num_of_log_lines ,
+			main_config.encoding , main_config.not_use_unicode_font ,
+			main_config.only_use_unicode_font , main_config.col_size_a ,
+			main_config.use_char_combining , main_config.use_multi_col_char ,
+			x_termcap_get_bool_field( main_config.tent , ML_BCE) , main_config.bs_mode) ;
 }
 
 static int
@@ -270,7 +286,7 @@ open_pty_intern(
 
 	return  ml_term_open_pty( term , cmd_path , cmd_argv , env , display) ;
 }
-	
+
 static int
 open_term(void)
 {
@@ -283,43 +299,35 @@ open_term(void)
 	x_window_t *  root ;
 	mkf_charset_t  usascii_font_cs ;
 	int  usascii_font_cs_changable ;
-	x_termcap_entry_t *  tent ;
 	void *  p ;
 	
 	/*
 	 * these are dynamically allocated.
 	 */
+	term = NULL ;
 	disp = NULL ;
 	font_man = NULL ;
 	color_man = NULL ;
 	screen = NULL ;
 	sb_screen = NULL ;
-	term = NULL ;
 
-	if( MAX_TERMS <= num_of_xterms)
+	if( MAX_TERMS <= num_of_screens)
 	{
 		return  0 ;
 	}
 
-	tent = x_termcap_get_entry( &termcap , main_config.term_type) ;
-
-	if( ( term = ml_pop_term( main_config.cols , main_config.rows ,
-			main_config.tab_size , main_config.num_of_log_lines ,
-			main_config.encoding , main_config.not_use_unicode_font ,
-			main_config.only_use_unicode_font , main_config.col_size_a ,
-			main_config.use_char_combining , main_config.use_multi_col_char ,
-			x_termcap_get_bool_field( tent , ML_BCE) , main_config.bs_mode)) == NULL)
+	if( ( term = create_term_intern()) == NULL)
 	{
 		return  0 ;
 	}
-	
+
 	if( ( disp = x_display_open( main_config.disp_name)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_display_open failed.\n") ;
 	#endif
 	
-		return  0 ;
+		goto  error ;
 	}
 
 	if( main_config.not_use_unicode_font || main_config.iso88591_font_for_usascii)
@@ -365,7 +373,7 @@ open_term(void)
 		goto  error ;
 	}
 
-	if( ( screen = x_screen_new( term , font_man , color_man , tent ,
+	if( ( screen = x_screen_new( term , font_man , color_man , main_config.tent ,
 			main_config.brightness , main_config.contrast , main_config.gamma ,
 			main_config.fade_ratio , &shortcut ,
 			main_config.screen_width_ratio , main_config.screen_height_ratio ,
@@ -452,24 +460,22 @@ open_term(void)
 		goto  error ;
 	}
 
-	if( ( p = realloc( xterms , sizeof( x_term_t) * (num_of_xterms + 1))) == NULL)
+	if( ( p = realloc( screens , sizeof( x_screen_t*) * (num_of_screens + 1))) == NULL)
 	{
 		goto  error ;
 	}
 
-	xterms = p ;
-	
-	if( ! x_term_init( &xterms[num_of_xterms] ,
-		disp , root , font_man , color_man , term))
-	{
-		goto  error ;
-	}
-
-	num_of_xterms ++ ;
+	screens = p ;
+	screens[num_of_screens++] = screen ;
 	
 	return  1 ;
 	
 error:
+	if( term)
+	{
+		ml_put_back_term( term) ;
+	}
+
 	if( disp)
 	{
 		x_display_close( disp) ;
@@ -495,12 +501,36 @@ error:
 		x_sb_screen_delete( sb_screen) ;
 	}
 
-	if( term)
+	return  0 ;
+}
+
+static int
+close_term(
+	x_screen_t *  screen
+	)
+{
+	ml_term_t *  term ;
+	x_window_t *  root ;
+	x_window_manager_t *  win_man ;
+
+	if( ( term = x_screen_detach( screen)))
 	{
 		ml_put_back_term( term) ;
 	}
+	
+	x_font_manager_delete( screen->font_man) ;
+	x_color_manager_delete( screen->color_man) ;
 
-	return  0 ;
+	root = x_get_root_window( &screen->window) ;
+	win_man = root->win_man ;
+	
+	x_window_manager_remove_root( win_man , root) ;
+	if( win_man->num_of_roots == 0)
+	{
+		x_display_close_2( root->display) ;
+	}
+
+	return  1 ;
 }
 
 
@@ -540,70 +570,107 @@ __exit(
 static void
 open_pty(
 	void *  p ,
-	x_screen_t *  screen
+	x_screen_t *  screen ,
+	char *  dev
 	)
 {
-	x_window_t *  root ;
 	int  count ;
-	
-	root = x_get_root_window( &screen->window) ;
-	
-	for( count = 0 ; count < num_of_xterms ; count ++)
-	{
-		if( root == xterms[count].root_window)
-		{
-			ml_term_t *  new ;
-			
-			if( ( new = ml_pop_term( main_config.cols , main_config.rows ,
-				main_config.tab_size , main_config.num_of_log_lines ,
-				main_config.encoding , main_config.not_use_unicode_font ,
-				main_config.only_use_unicode_font , main_config.col_size_a ,
-				main_config.use_char_combining , main_config.use_multi_col_char ,
-				0 , main_config.bs_mode))
-				== NULL)
-			{
-				return  ;
-			}
-			
-			if( ! open_pty_intern( new , main_config.cmd_path , main_config.cmd_argv ,
-				XDisplayString( screen->window.display) ,
-				x_get_root_window( &screen->window)->my_window ,
-				main_config.term_type , main_config.use_login_shell))
-			{
-				return ;
-			}
-			
-			ml_put_back_term( xterms[count].term) ;
-			x_screen_detach( screen) ;
-			
-			xterms[count].term = new ;
-			x_screen_attach( screen , new) ;
 
+	for( count = 0 ; count < num_of_screens ; count ++)
+	{
+		if( screen == screens[count])
+		{
+			ml_term_t *  old ;
+			ml_term_t *  new ;
+
+			if( dev)
+			{
+				if( ( new = ml_get_term( dev)) == NULL)
+				{
+					return ;
+				}
+			}
+			else
+			{
+				if( ( new = create_term_intern()) == NULL)
+				{
+					return ;
+				}
+
+				if( ! open_pty_intern( new , main_config.cmd_path , main_config.cmd_argv ,
+					XDisplayString( screen->window.display) ,
+					x_get_root_window( &screen->window)->my_window ,
+					main_config.term_type , main_config.use_login_shell))
+				{
+					return ;
+				}
+			}
+			
+			if( ( old = x_screen_detach( screen)))
+			{
+				ml_put_back_term( old) ;
+			}
+
+			x_screen_attach( screen , new) ;
+			
 			return ;
 		}
 	}
+
+	return ;
 }
 
 static void
-pty_closed(
+next_pty(
 	void *  p ,
 	x_screen_t *  screen
 	)
 {
 	int  count ;
-	x_window_t *  root ;
-
-	root = x_get_root_window( &screen->window) ;
-
-	for( count = num_of_xterms - 1 ; count >= 0 ; count --)
+	
+	for( count = 0 ; count < num_of_screens ; count ++)
 	{
-		if( root == xterms[count].root_window)
+		if( screen == screens[count])
 		{
-			/* ml_term_t is already deleted */
-			xterms[count].term = NULL ;
-			x_term_final( &xterms[count]) ;
+			ml_term_t *  old ;
+			ml_term_t *  new ;
 
-			xterms[count] = xterms[--num_of_xterms] ;
+			if( ( old = x_screen_detach( screen)) == NULL)
+			{
+				return ;
+			}
+			
+			if( ( new = ml_next_term( old)) == NULL)
+			{
+				x_screen_attach( screen , old) ;
+			}
+			else
+			{
+				x_screen_attach( screen , new) ;
+			}
+			
+			return ;
+		}
+	}
+
+	return ;
+}
+	
+static void
+pty_closed(
+	void *  p ,
+	x_screen_t *  screen	/* screen->term was already deleted. */
+	)
+{
+	int  count ;
+
+	for( count = num_of_screens - 1 ; count >= 0 ; count --)
+	{
+		if( screen == screens[count])
+		{
+			close_term( screens[count]) ;
+			
+			screens[count] = screens[--num_of_screens] ;
 
 			return ;
 		}
@@ -626,20 +693,28 @@ open_screen(
 static void
 close_screen(
 	void *  p ,
-	x_window_t *  root_window
+	x_screen_t *  screen
 	)
 {
 	int  count ;
 	
-	for( count = 0 ; count < num_of_xterms ; count ++)
+	for( count = 0 ; count < num_of_screens ; count ++)
 	{
-		if( root_window == xterms[count].root_window)
+		if( screen == screens[count])
 		{
 			dead_mask |= (1 << count) ;
 			
 			return ;
 		}
 	}
+}
+
+static char *
+pty_list(
+	void *  p
+	)
+{
+	return  ml_get_pty_list() ;
 }
 
 
@@ -1137,7 +1212,9 @@ config_init(
 	{
 		main_config.term_type = strdup( "xterm") ;
 	}
-
+	
+	main_config.tent = x_termcap_get_entry( &termcap , main_config.term_type) ;
+	
 	main_config.x = 0 ;
 	main_config.y = 0 ;
 	main_config.cols = 80 ;
@@ -1692,6 +1769,11 @@ client_connected(void)
 		}
 	}
 
+	if( argc == 0)
+	{
+		return ;
+	}
+	
 	if( ( conf = get_min_conf( argc , argv)) == NULL)
 	{
 		return ;
@@ -1880,12 +1962,14 @@ x_term_manager_init(
 		return  0 ;
 	}
 
+	kik_conf_add_opt( conf , '@' , "screens" , 0 , "startup_screens" ,
+		"number of screens to open in start up [1]") ;
 	kik_conf_add_opt( conf , 'h' , "help" , 1 , "help" ,
 		"show this help message") ;
 	kik_conf_add_opt( conf , 'v' , "version" , 1 , "version" ,
 		"show version message") ;
-	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "ptys" , 
-		"number of ptys to use in start up [1]") ;
+	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "startup_ptys" ,
+		"number of ptys to open in start up [1]") ;
 	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
 		"font size range for GUI configurator [6-30]") ;
 	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
@@ -2213,24 +2297,56 @@ x_term_manager_init(
 	 * others
 	 */
 
-	num_of_startup_xterms = 1 ;
+	num_of_startup_screens = 1 ;
 	
+#if  0
 	if( ( value = kik_conf_get_value( conf , "ptys")))
+#else
+	if( ( value = kik_conf_get_value( conf , "startup_screens")))
+#endif
 	{
-		u_int  ptys ;
+		u_int  n ;
 		
-		if( ! kik_str_to_uint( &ptys , value) || ( ! is_genuine_daemon && ptys == 0))
+		if( ! kik_str_to_uint( &n , value) || ( ! is_genuine_daemon && n == 0))
 		{
-			kik_msg_printf( "ptys %s is not valid.\n" , value) ;
+			kik_msg_printf( "startup_screens %s is not valid.\n" , value) ;
 		}
 		else
 		{
-			if( ptys > MAX_TERMS)
+			if( n > MAX_TERMS)
 			{
-				ptys = MAX_TERMS ;
+				n = MAX_TERMS ;
 			}
 			
-			num_of_startup_xterms = ptys ;
+			num_of_startup_screens = n ;
+		}
+	}
+	
+	num_of_startup_ptys = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "startup_ptys")))
+	{
+		u_int  n ;
+		
+		if( ! kik_str_to_uint( &n , value) || ( ! is_genuine_daemon && n == 0))
+		{
+			kik_msg_printf( "startup_ptys %s is not valid.\n" , value) ;
+		}
+		else
+		{
+			if( n <= num_of_startup_screens)
+			{
+				num_of_startup_ptys = 0 ;
+			}
+			else
+			{
+				if( n > MAX_TERMS)
+				{
+					n = MAX_TERMS ;
+				}
+
+				num_of_startup_ptys = n - num_of_startup_screens ;
+			}
 		}
 	}
 
@@ -2270,8 +2386,10 @@ x_term_manager_init(
 	system_listener.open_screen = open_screen ;
 	system_listener.close_screen = close_screen ;
 	system_listener.open_pty = open_pty ;
+	system_listener.next_pty = next_pty ;
 	system_listener.close_pty = NULL ;
 	system_listener.pty_closed = pty_closed ;
+	system_listener.pty_list = pty_list ;
 
 	signal( SIGHUP , sig_fatal) ;
 	signal( SIGINT , sig_fatal) ;
@@ -2296,12 +2414,12 @@ x_term_manager_final(void)
 	
 	ml_free_word_separators() ;
 	
-	for( count = 0 ; count < num_of_xterms ; count ++)
+	for( count = 0 ; count < num_of_screens ; count ++)
 	{
-		x_term_final( &xterms[count]) ;
+		close_term( screens[count]) ;
 	}
 
-	free( xterms) ;
+	free( screens) ;
 
 	ml_term_manager_final() ;
 
@@ -2333,7 +2451,7 @@ x_term_manager_event_loop(void)
 {
 	int  count ;
 
-	for( count = 0 ; count < num_of_startup_xterms ; count ++)
+	for( count = 0 ; count < num_of_startup_screens ; count ++)
 	{
 		if( ! open_term())
 		{
@@ -2354,6 +2472,24 @@ x_term_manager_event_loop(void)
 		}
 	}
 
+	for( count = 0 ; count < num_of_startup_ptys ; count ++)
+	{
+		ml_term_t *  term ;
+
+		if( ( term = create_term_intern()) == NULL)
+		{
+			break ;
+		}
+
+		if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
+			":0.0" , 0 , main_config.term_type , main_config.use_login_shell))
+		{
+			return ;
+		}
+		
+		ml_put_back_term( term) ;
+	}
+	
 	while( 1)
 	{
 		int  count ;
@@ -2370,15 +2506,16 @@ x_term_manager_event_loop(void)
 			{
 				if( dead_mask & (0x1 << count))
 				{
-					x_term_final( &xterms[count]) ;
-					xterms[count] = xterms[--num_of_xterms] ;
+					close_term( screens[count]) ;
+					
+					screens[count] = screens[--num_of_screens] ;
 				}
 			}
 
 			dead_mask = 0 ;
 		}
 		
-		if( num_of_xterms == 0 && ! is_genuine_daemon)
+		if( num_of_screens == 0 && ! is_genuine_daemon)
 		{
 			if( un_file)
 			{

@@ -553,6 +553,7 @@ x_scrollbar_init(
 	u_int  height ,
 	u_int  line_height ,
 	u_int  num_of_log_lines ,
+	u_int  num_of_filled_log_lines ,
 	int  use_transbg ,
 	x_picture_modifier_t *  pic_mod
 	)
@@ -673,7 +674,7 @@ view_created:
 	}
 
 	sb->num_of_log_lines = num_of_log_lines ;
-	sb->num_of_filled_log_lines = 0 ;
+	sb->num_of_filled_log_lines = num_of_filled_log_lines ;
 	sb->bar_top_y = 0 ;
 	sb->y_on_bar = 0 ;
 	sb->current_row = 0 ;
@@ -743,7 +744,34 @@ x_scrollbar_final(
 }
 
 int
-x_scrollbar_set_logged_lines(
+x_scrollbar_set_num_of_log_lines(
+	x_scrollbar_t *  sb ,
+	u_int  num_of_log_lines
+	)
+{
+	if( sb->num_of_log_lines == num_of_log_lines)
+	{
+		return  1 ;
+	}
+	
+	sb->num_of_log_lines = num_of_log_lines ;
+
+	if( sb->num_of_filled_log_lines > sb->num_of_log_lines)
+	{
+		sb->num_of_filled_log_lines = sb->num_of_log_lines ;
+	}
+
+	sb->bar_height = calculate_bar_height( sb) ;
+
+	sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
+	
+	draw_scrollbar( sb) ;
+
+	return  1 ;
+}
+
+int
+x_scrollbar_set_num_of_filled_log_lines(
 	x_scrollbar_t *  sb ,
 	u_int  lines
 	)
@@ -764,6 +792,8 @@ x_scrollbar_set_logged_lines(
 	
 	sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
 			
+	draw_scrollbar( sb) ;
+
 	return  1 ;
 }
 
@@ -876,28 +906,6 @@ x_scrollbar_move_downward(
 	}
 	
 	sb->bar_top_y = calculate_bar_top_y(sb) ;
-	
-	draw_scrollbar( sb) ;
-
-	return  1 ;
-}
-
-int
-x_scrollbar_set_num_of_log_lines(
-	x_scrollbar_t *  sb ,
-	u_int  num_of_log_lines
-	)
-{
-	sb->num_of_log_lines = num_of_log_lines ;
-
-	if( sb->num_of_filled_log_lines > sb->num_of_log_lines)
-	{
-		sb->num_of_filled_log_lines = sb->num_of_log_lines ;
-	}
-
-	sb->bar_height = calculate_bar_height( sb) ;
-
-	sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
 	
 	draw_scrollbar( sb) ;
 

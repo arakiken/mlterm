@@ -2406,8 +2406,7 @@ window_deleted(
 
 	if( HAS_SYSTEM_LISTENER(screen,close_screen))
 	{
-		(*screen->system_listener->close_screen)( screen->system_listener->self ,
-			x_get_root_window( &screen->window)) ;
+		(*screen->system_listener->close_screen)( screen->system_listener->self , screen) ;
 	}
 }
 
@@ -2613,7 +2612,17 @@ key_pressed(
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_pty))
 		{
-			(*screen->system_listener->open_pty)( screen->system_listener->self , screen) ;
+			(*screen->system_listener->open_pty)(
+				screen->system_listener->self , screen , NULL) ;
+		}
+
+		return ;
+	}
+	else if( x_shortcut_match( screen->shortcut , NEXT_PTY , ksym , event->state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,next_pty))
+		{
+			(*screen->system_listener->next_pty)( screen->system_listener->self , screen) ;
 		}
 
 		return ;
@@ -2730,6 +2739,11 @@ key_pressed(
 	else
 	{
 		char *  buf ;
+		int  is_app_keypad ;
+		int  is_app_cursor_keys ;
+
+		is_app_keypad = ml_term_is_app_keypad( screen->term) ;
+		is_app_cursor_keys = ml_term_is_app_cursor_keys( screen->term) ;
 
 		if( screen->use_vertical_cursor)
 		{
@@ -2794,7 +2808,7 @@ key_pressed(
 		 */
 		else if( ksym == XK_Up)
 		{
-			if( screen->is_app_cursor_keys)
+			if( is_app_cursor_keys)
 			{
 				buf = "\x1bOA" ;
 			}
@@ -2805,7 +2819,7 @@ key_pressed(
 		}
 		else if( ksym == XK_Down)
 		{
-			if( screen->is_app_cursor_keys)
+			if( is_app_cursor_keys)
 			{
 				buf = "\x1bOB" ;
 			}
@@ -2816,7 +2830,7 @@ key_pressed(
 		}
 		else if( ksym == XK_Right)
 		{
-			if( screen->is_app_cursor_keys)
+			if( is_app_cursor_keys)
 			{
 				buf = "\x1bOC" ;
 			}
@@ -2827,7 +2841,7 @@ key_pressed(
 		}
 		else if( ksym == XK_Left)
 		{
-			if( screen->is_app_cursor_keys)
+			if( is_app_cursor_keys)
 			{
 				buf = "\x1bOD" ;
 			}
@@ -2929,136 +2943,136 @@ key_pressed(
 			buf = x_termcap_get_str_field( screen->termcap , ML_END) ;
 		}
 	#if  0
-		else if( screen->is_app_keypad && ksym == XK_KP_Home)
+		else if( is_app_keypad && ksym == XK_KP_Home)
 		{
 			buf = "\x1bOw" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Up)
+		else if( is_app_keypad && ksym == XK_KP_Up)
 		{
 			buf = "\x1bOx" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Down)
+		else if( is_app_keypad && ksym == XK_KP_Down)
 		{
 			buf = "\x1bOw" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Right)
+		else if( is_app_keypad && ksym == XK_KP_Right)
 		{
 			buf = "\x1bOv" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Left)
+		else if( is_app_keypad && ksym == XK_KP_Left)
 		{
 			buf = "\x1bOt" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Prior)
+		else if( is_app_keypad && ksym == XK_KP_Prior)
 		{
 			buf = "\x1bOy" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Next)
+		else if( is_app_keypad && ksym == XK_KP_Next)
 		{
 			buf = "\x1bOs" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_End)
+		else if( is_app_keypad && ksym == XK_KP_End)
 		{
 			buf = "\x1bOq" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Enter)
+		else if( is_app_keypad && ksym == XK_KP_Enter)
 		{
 			buf = "\x1bOM" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Begin)
+		else if( is_app_keypad && ksym == XK_KP_Begin)
 		{
 			buf = "\x1bOu" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Insert)
+		else if( is_app_keypad && ksym == XK_KP_Insert)
 		{
 			buf = "\x1bOp" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Begin)
+		else if( is_app_keypad && ksym == XK_KP_Begin)
 		{
 			buf = "\x1bOu" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Delete)
+		else if( is_app_keypad && ksym == XK_KP_Delete)
 		{
 			buf = "\x1bOn" ;
 		}
 	#endif
-		else if( screen->is_app_keypad && ksym == XK_KP_F1)
+		else if( is_app_keypad && ksym == XK_KP_F1)
 		{
 			buf = "\x1bOP" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_F2)
+		else if( is_app_keypad && ksym == XK_KP_F2)
 		{
 			buf = "\x1bOQ" ;
 		}		
-		else if( screen->is_app_keypad && ksym == XK_KP_F3)
+		else if( is_app_keypad && ksym == XK_KP_F3)
 		{
 			buf = "\x1bOR" ;
 		}		
-		else if( screen->is_app_keypad && ksym == XK_KP_F4)
+		else if( is_app_keypad && ksym == XK_KP_F4)
 		{
 			buf = "\x1bOS" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Multiply)
+		else if( is_app_keypad && ksym == XK_KP_Multiply)
 		{
 			buf = "\x1bOj" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Add)
+		else if( is_app_keypad && ksym == XK_KP_Add)
 		{
 			buf = "\x1bOk" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Separator)
+		else if( is_app_keypad && ksym == XK_KP_Separator)
 		{
 			buf = "\x1bOl" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Subtract)
+		else if( is_app_keypad && ksym == XK_KP_Subtract)
 		{
 			buf = "\x1bOm" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Decimal)
+		else if( is_app_keypad && ksym == XK_KP_Decimal)
 		{
 			buf = "\x1bOn" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_Divide)
+		else if( is_app_keypad && ksym == XK_KP_Divide)
 		{
 			buf = "\x1bOo" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_0)
+		else if( is_app_keypad && ksym == XK_KP_0)
 		{
 			buf = "\x1bOp" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_1)
+		else if( is_app_keypad && ksym == XK_KP_1)
 		{
 			buf = "\x1bOq" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_2)
+		else if( is_app_keypad && ksym == XK_KP_2)
 		{
 			buf = "\x1bOr" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_3)
+		else if( is_app_keypad && ksym == XK_KP_3)
 		{
 			buf = "\x1bOs" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_4)
+		else if( is_app_keypad && ksym == XK_KP_4)
 		{
 			buf = "\x1bOt" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_5)
+		else if( is_app_keypad && ksym == XK_KP_5)
 		{
 			buf = "\x1bOu" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_6)
+		else if( is_app_keypad && ksym == XK_KP_6)
 		{
 			buf = "\x1bOv" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_7)
+		else if( is_app_keypad && ksym == XK_KP_7)
 		{
 			buf = "\x1bOw" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_8)
+		else if( is_app_keypad && ksym == XK_KP_8)
 		{
 			buf = "\x1bOx" ;
 		}
-		else if( screen->is_app_keypad && ksym == XK_KP_9)
+		else if( is_app_keypad && ksym == XK_KP_9)
 		{
 			buf = "\x1bOy" ;
 		}
@@ -3577,7 +3591,7 @@ button_motion(
 	
 	screen = (x_screen_t*) win ;
 
-	if( screen->is_mouse_pos_sending && ! (event->state & ShiftMask))
+	if( ml_term_is_mouse_pos_sending( screen->term) && ! (event->state & ShiftMask))
 	{
 		return ;
 	}
@@ -3831,7 +3845,7 @@ button_pressed(
 
 	screen = (x_screen_t*)win ;
 
-	if( screen->is_mouse_pos_sending && ! (event->state & (ShiftMask | ControlMask)))
+	if( ml_term_is_mouse_pos_sending( screen->term) && ! (event->state & (ShiftMask | ControlMask)))
 	{
 		restore_selected_region_color( screen) ;
 		
@@ -3914,7 +3928,7 @@ button_released(
 
 	screen = (x_screen_t*) win ;
 
-	if( screen->is_mouse_pos_sending && ! (event->state & ShiftMask))
+	if( ml_term_is_mouse_pos_sending( screen->term) && ! (event->state & ShiftMask))
 	{
 		report_mouse_tracking( screen , event , 1) ;
 	}
@@ -5136,6 +5150,14 @@ set_config(
 	{
 		full_reset( screen) ;
 	}
+	else if( strcmp( key , "select_pty") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,open_pty))
+		{
+			(*screen->system_listener->open_pty)( screen->system_listener->self , screen ,
+				value) ;
+		}
+	}
 
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
@@ -5431,6 +5453,17 @@ get_config(
 	{
 		sprintf( digit , "%d" , ml_term_get_cols( screen->term)) ;
 		value = digit ;
+	}
+	else if( strcmp( key , "pty_list") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,pty_list))
+		{
+			value = (*screen->system_listener->pty_list)( screen->system_listener->self) ;
+		}
+	}
+	else if( strcmp( key , "pty_name") == 0)
+	{
+		value = ml_term_get_slave_name( screen->term) ;
 	}
 	else
 	{
@@ -5794,27 +5827,27 @@ stop_vt100_cmd(
 static void
 xterm_set_app_keypad(
 	void *  p ,
-	int  do_set
+	int  flag
 	)
 {
 	x_screen_t *  screen ;
 
 	screen = p ;
-	
-	screen->is_app_keypad = do_set ;
+
+	ml_term_set_app_keypad( screen->term , flag) ;
 }
 
 static void
 xterm_set_app_cursor_keys(
 	void *  p ,
-	int  do_set
+	int  flag
 	)
 {
 	x_screen_t *  screen ;
 
 	screen = p ;
-	
-	screen->is_app_cursor_keys = do_set ;
+
+	ml_term_set_app_cursor_keys( screen->term , flag) ;
 }
 
 static void
@@ -5891,20 +5924,22 @@ xterm_reverse_video(
 static void
 xterm_set_mouse_report(
 	void *  p ,
-	int  do_report
+	int  flag
 	)
 {
 	x_screen_t *  screen ;
 
 	screen = p ;
 	
-	if( ( screen->is_mouse_pos_sending = do_report))
+	if( flag)
 	{
 		x_stop_selecting( &screen->sel) ;
 		restore_selected_region_color( screen) ;
 		
 		exit_backscroll_mode( screen) ;
 	}
+
+	ml_term_set_mouse_report( screen->term , flag) ;
 }
 
 static void
@@ -5972,6 +6007,7 @@ pty_closed(
 
 	screen = p ;
 
+	screen->term = NULL ;
 	(*screen->system_listener->pty_closed)( screen->system_listener->self , screen) ;
 }
 
@@ -6241,11 +6277,6 @@ x_screen_new(
 	screen->scroll_cache_boundary_start = 0 ;
 	screen->scroll_cache_boundary_end = 0 ;
 
-	screen->is_reverse = 0 ;
-	screen->is_app_keypad = 0 ;
-	screen->is_app_cursor_keys = 0 ;
-	screen->is_mouse_pos_sending = 0 ;
-
 	update_special_visual( screen) ;
 
 	return  screen ;
@@ -6289,8 +6320,11 @@ x_screen_delete(
 	x_screen_t *  screen
 	)
 {
-	ml_term_set_listener( screen->term , NULL , NULL , NULL , NULL) ;
-
+	if( screen->term)
+	{
+		ml_term_set_listener( screen->term , NULL , NULL , NULL , NULL) ;
+	}
+	
 	x_sel_final( &screen->sel) ;
 
 	if( screen->shape)
@@ -6381,28 +6415,44 @@ x_screen_attach(
 		ml_term_set_modified_all( screen->term) ;
 	}
 
+	if( HAS_SCROLL_LISTENER(screen,term_changed))
+	{
+		(*screen->screen_scroll_listener->term_changed)(
+			screen->screen_scroll_listener->self ,
+			ml_term_get_log_size( screen->term) ,
+			ml_term_get_num_of_logged_lines( screen->term)) ;
+	}
+
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
 	
 	return  1 ;
 }
 
-int
+ml_term_t *
 x_screen_detach(
 	x_screen_t *  screen
 	)
 {
+	ml_term_t *  term ;
+	
 	if( screen->term == NULL)
 	{
-		return  0 ;
+		return  NULL ;
 	}
-	
+
+#if  1	
+	exit_backscroll_mode( screen) ;
+#endif
+
 	ml_term_set_listener( screen->term , NULL , NULL , NULL , NULL) ;
+
+	term = screen->term ;
 	screen->term = NULL ;
 
 	x_window_clear_all( &screen->window) ;
 
-	return  1 ;
+	return  term ;
 }
 
 int

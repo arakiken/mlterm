@@ -182,7 +182,6 @@ mc_get_bgtype(
 	)
 {
 	char *picture;
-	int trans;
 	
 	if (mc_get_flag_value("use_transbg")) return strdup("transparent");
 

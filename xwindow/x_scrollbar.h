@@ -64,12 +64,14 @@ typedef struct  x_scrollbar
 
 int  x_scrollbar_init( x_scrollbar_t *  sb , x_scrollbar_event_listener_t *  sb_listener ,
 	char *  view_name , char *  fg_color , char *  bg_color ,
-	u_int  height , u_int  line_height , u_int  num_of_log_lines ,
+	u_int  height , u_int  line_height , u_int  num_of_log_lines , u_int  num_of_filled_log_lines ,
 	int  use_transbg , x_picture_modifier_t *  pic_mod) ;
 
 int  x_scrollbar_final( x_scrollbar_t *  sb) ;
 
-int  x_scrollbar_set_logged_lines( x_scrollbar_t *  sb , u_int  lines) ;
+int  x_scrollbar_set_num_of_log_lines( x_scrollbar_t * sb , u_int  num_of_log_lines) ;
+
+int  x_scrollbar_set_num_of_filled_log_lines( x_scrollbar_t *  sb , u_int  num_of_filled_log_lines) ;
 
 int  x_scrollbar_line_is_added( x_scrollbar_t *  sb) ;
 
@@ -78,8 +80,6 @@ int  x_scrollbar_reset( x_scrollbar_t *  sb) ;
 int  x_scrollbar_move_upward( x_scrollbar_t *  sb , u_int  size) ;
 
 int  x_scrollbar_move_downward( x_scrollbar_t *  sb , u_int  size) ;
-
-int  x_scrollbar_set_num_of_log_lines( x_scrollbar_t * sb , u_int  num_of_log_lines) ;
 
 int  x_scrollbar_set_line_height( x_scrollbar_t *  sb , u_int  line_height) ;
 

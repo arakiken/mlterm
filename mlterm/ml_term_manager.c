@@ -4,22 +4,16 @@
 
 #include  "ml_term_manager.h"
 
+#include  <kiklib/kik_str.h>	/* kik_snprintf */
 #include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_sig_child.h>
+#include  <kiklib/kik_util.h>	/* KIK_DIGIT_STR */
 
 
 /*
  * max_ptys is 32 , which is the limit of dead_mask(32bit).
  */
 #define  MAX_TERMS  32
-
-
-typedef struct  term_wrapper
-{
-	ml_term_t *  term ;
-	int8_t  is_active ;
-	
-} term_wrapper_t ;
 
 
 /* --- static variables --- */
@@ -29,6 +23,7 @@ static u_int32_t  dead_mask ;
 static ml_term_t *  terms[MAX_TERMS] ;
 static int8_t  is_active[MAX_TERMS] ;
 static u_int  num_of_terms ;
+static char *  pty_list ;
 
 
 /* --- static functions --- */
@@ -75,11 +70,13 @@ ml_term_manager_final(void)
 		ml_term_delete( terms[count]) ;
 	}
 
+	free( pty_list) ;
+
 	return  1 ;
 }
 
 ml_term_t *
-ml_pop_term(
+ml_create_term(
 	u_int  cols ,
 	u_int  rows ,
 	u_int  tab_size ,
@@ -94,28 +91,6 @@ ml_pop_term(
 	ml_bs_mode_t  bs_mode
 	)
 {
-	int  count ;
-
-	for( count = 0 ; count < num_of_terms ; count ++)
-	{
-		if( ! is_active[count])
-		{
-		#if  0
-			ml_term_resize( terms[count] , cols , rows) ;
-			ml_term_change_log_size( terms[count] , log_size) ;
-		#endif
-		#if  0
-			ml_term_change_encoding( terms[count] , encoding) ;
-			ml_term_set_char_combining_flag( terms[count] , use_char_combining) ;
-			ml_term_set_multi_col_char_flag( terms[count] , use_multi_col_char) ;
-		#endif
-		
-			is_active[count] = 1 ;
-
-			return  terms[count] ;
-		}
-	}
-
 	if( num_of_terms == MAX_TERMS)
 	{
 		return  NULL ;
@@ -131,6 +106,70 @@ ml_pop_term(
 	is_active[num_of_terms] = 1 ;
 
 	return  terms[num_of_terms++] ;
+}
+
+ml_term_t *
+ml_get_term(
+	char *  dev
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < num_of_terms ; count ++)
+	{
+		if( strcmp( dev , ml_term_get_slave_name( terms[count])) == 0 && ! is_active[count])
+		{
+			is_active[count] = 1 ;
+			
+			return  terms[count] ;
+		}
+	}
+
+	return  NULL ;
+}
+
+ml_term_t *
+ml_next_term(
+	ml_term_t *  term	/* is detached */
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < num_of_terms ; count ++)
+	{
+		if( terms[count] == term)
+		{
+			int  old ;
+			
+			old = count ;
+
+			for( ; count < num_of_terms ; count ++)
+			{
+				if( ! is_active[count])
+				{
+					goto  found ;
+				}
+			}
+
+			for( count = 0 ; count < old ; count ++)
+			{
+				if( ! is_active[count])
+				{
+					goto  found ;
+				}
+			}
+
+			return  NULL ;
+			
+		found:
+			is_active[count] = 1 ;
+			is_active[old] = 0 ;
+
+			return  terms[count] ;
+		}
+	}
+	
+	return  NULL ;
 }
 
 int
@@ -186,4 +225,33 @@ ml_close_dead_terms(void)
 	}
 	
 	return  1 ;
+}
+
+char *
+ml_get_pty_list(void)
+{
+	int  count ;
+	char *  p ;
+	size_t  len ;
+	
+	free( pty_list) ;
+
+	/* the length of "/dev/..." is mostly under 20. */
+	len = (20 + 2) * num_of_terms + 1 ;
+	
+	if( ( pty_list = malloc( len)) == NULL)
+	{
+		return  "" ;
+	}
+
+	p = pty_list ;
+	
+	for( count = 0 ; count < num_of_terms ; count ++)
+	{
+		kik_snprintf( p , len , "%s:%d;" ,
+			ml_term_get_slave_name( terms[count]) , is_active[count]) ;
+		p += strlen( p) ;
+	}
+
+	return  pty_list ;
 }

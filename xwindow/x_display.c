@@ -129,13 +129,21 @@ x_display_close(
 	x_display_t *  disp
 	)
 {
+	return  x_display_close_2( disp->display) ;
+}
+
+int
+x_display_close_2(
+	Display *  display
+	)
+{
 	int  count ;
 
 	for( count = 0 ; count < num_of_displays ; count ++)
 	{
-		if( displays[count] == disp)
+		if( displays[count]->display == display)
 		{
-			close_display( disp) ;
+			close_display( displays[count]) ;
 			displays[count] = displays[-- num_of_displays] ;
 
 		#ifdef  DEBUG

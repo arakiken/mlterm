@@ -69,7 +69,6 @@ mc_wall_pic_config_widget_new(
 {
 	GtkWidget *  hbox ;
 	GtkWidget *  button ;
-	GtkWidget *  label ;
 	
 	hbox = gtk_hbox_new( FALSE , 5) ;
 	gtk_widget_show(hbox) ;
