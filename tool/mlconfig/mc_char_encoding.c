@@ -21,8 +21,8 @@
 
 /* --- static variables --- */
 
-static char *  new_encoding ;
-static char *  old_encoding ;
+static int new_encoding_idx;
+static int old_encoding_idx;
 static int is_changed;
 
 static char *  encodings[] =
@@ -71,118 +71,64 @@ static char *  encodings[] =
 
 	"BIG5HKSCS" ,
 
-	"EUC-CN" ,
+	"EUC-CN (GB2312)" ,
 	"GBK" ,
 	"GB18030" ,
 	"HZ" ,
 
 	"ISO-2022-CN" ,
+	NULL
 } ;
 
 
 /* --- static functions --- */
 
-static char *
-regularize(
-	char *  encoding
-	)
+/* compare two encoding names */
+static int compare(char *e1, char *e2)
 {
-	if( strcmp( encoding , "ISO-8859-11 (TIS-620)") == 0)
-	{
-		return  strdup("ISO-8859-11") ;
-	}
-	else
-	{
-		return  strdup(encoding) ;
+	while(1) {
+		if (*e1 == '_' || *e1 == '-') {e1++; continue;}
+		if (*e2 == '_' || *e2 == '-') {e2++; continue;}
+		if ((*e1 == 0 || *e1 == ' ') && (*e2 == 0 || *e2 == ' '))
+			return 1;
+		if (toupper(*e1) != toupper(*e2)) return 0;
+		e1++; e2++;
 	}
 }
 
-static char *
-unregularize(
-	char *  encoding
-	)
+static int get_index(char *encoding)
 {
-	char *  regularized_encodings[] =
-	{
-		"auto" ,
-		
-		"ISO88591" ,
-		"ISO88592" ,
-		"ISO88593" ,
-		"ISO88594" ,
-		"ISO88595" ,
-		"ISO88596" ,
-		"ISO88597" ,
-		"ISO88598" ,
-		"ISO88599" ,
-		"ISO885910" ,
-		"ISO885911" ,
-		"ISO885913" ,
-		"ISO885914" ,
-		"ISO885915" ,
-		"ISO885916" ,
-		"TCVN5712" ,
+	int j;
+	for(j=0; encodings[j]; j++)
+		if (compare(encodings[j], encoding)) return j;
+	return -1;
+}
 
-		"ISCII" ,
-		"VISCII" ,
-		"KOI8R" ,
-		"KOI8U" ,
+static char *savename(int index)
+{
+	static char buf[256];
+	char *p;
 
-		"UTF8" ,
+	if (index == -1) return "UNKNOWN";
 
-		"EUCJP" ,
-		"EUCJISX0213" ,
-		"ISO2022JP" ,
-		"ISO2022JP2" ,
-		"ISO2022JP3" ,
-		"SJIS" ,
-		"SJISX0213" ,
+	strncpy(buf, encodings[index], 255);
+	buf[255] = 0;
+	p = strchr(buf, ' ');
+	if (p) *p = 0;
 
-		"EUCKR" ,
-		"UHC" ,
-		"JOHAB" ,
-		"ISO2022KR" ,
-
-		"BIG5" ,
-		"EUCTW" ,
-
-		"BIG5HKSCS" ,
-
-		"EUCCN" ,
-		"GBK" ,
-		"GB18030" ,
-		"HZ" ,
-
-		"ISO2022CN" ,
-	} ;
-
-	int  count ;
-
-	for( count = 0 ; count < sizeof( regularized_encodings) / sizeof( regularized_encodings[0]) ;
-		count ++)
-	{
-		if( strcmp( regularized_encodings[count] , encoding) == 0)
-		{
-			return  encodings[count] ;
-		}
-	}
-
-	return  "UNKNOWN" ;
+	return buf;
 }
 
 static gint
-encoding_selected(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
+encoding_selected(GtkWidget *widget, gpointer data)
 {
-	new_encoding = regularize( gtk_entry_get_text(GTK_ENTRY(widget))) ;
+	new_encoding_idx = get_index(gtk_entry_get_text(GTK_ENTRY(widget)));
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s encoding is selected.\n" , new_encoding) ;
 #endif
 
-	return  1 ;
+	return 1;
 }
 
 
@@ -191,33 +137,29 @@ encoding_selected(
 GtkWidget *
 mc_char_encoding_config_widget_new(void)
 {
-	char *  encoding ;
-	GtkWidget *  widget ;
+	int idx;
+	GtkWidget *widget;
 
-	encoding = unregularize( mc_get_str_value( "encoding")) ;
+	idx = get_index(mc_get_str_value("encoding"));
 
-	if( ( widget = mc_combo_new(_("Encoding"), encodings,
-			sizeof(encodings) / sizeof(encodings[0]),
-			encoding, 1, encoding_selected, NULL)) == NULL)
-	{
-		return  NULL ;
-	}
+	widget = mc_combo_new(_("Encoding"), encodings,
+		sizeof(encodings) / sizeof(encodings[0]) - 1,
+		encodings[idx], 1, encoding_selected, NULL);
+	if (widget == NULL) return NULL;
 
-	new_encoding = old_encoding = regularize( encoding) ;
+	new_encoding_idx = old_encoding_idx = idx;
 	is_changed = 0;
 
-	return  widget ;
+	return widget;
 }
 
 void
 mc_update_char_encoding(void)
 {
-	if (strcmp(new_encoding, old_encoding)) is_changed = 1;
+	if (new_encoding_idx != old_encoding_idx) is_changed = 1;
 
-	if (is_changed)
-	{
-		mc_set_str_value( "encoding" , new_encoding) ;
-		free( old_encoding) ;
-		old_encoding = strdup( new_encoding) ;
+	if (is_changed) {
+		mc_set_str_value("encoding" , savename(new_encoding_idx));
+		old_encoding_idx = new_encoding_idx;
 	}
 }
