@@ -1,3 +1,7 @@
+2003-06-03 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Update man/mlterm.1 (The default of --sb is "true".)
+
 2003-06-03 Araki Ken <arakiken@users.sf.net>
 
 	* Renamed 'ut.name' to 'ut.user' in kik_utmp_sysv.c.
