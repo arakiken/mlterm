@@ -8,6 +8,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_str.h>	/* strdup */
 
 
 /* --- global functions --- */
@@ -68,7 +69,11 @@ ml_color_custom_set_rgb(
 	}
 	else
 	{
-		kik_map_set( result , color_custom->color_rgb_table , strdup( color) , rgb) ;
+		char *  _color ;
+
+		_color = strdup( color) ;
+		
+		kik_map_set( result , color_custom->color_rgb_table , _color , rgb) ;
 	}
 
 	return  1 ;

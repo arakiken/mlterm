@@ -7,6 +7,7 @@
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_str.h>	/* strdup */
 
 
 /* --- global functions --- */

@@ -368,16 +368,20 @@ change_font_attr(
 	)
 {
 	ml_font_attr_t  attr ;
+	ml_color_t  fg_color ;
+	ml_color_t  bg_color ;
 
 	attr = vt100_parser->font_attr ;
+	fg_color = vt100_parser->fg_color ;
+	bg_color = vt100_parser->bg_color ;
 
 	if( flag == 0)
 	{
 		/* Normal */
 		vt100_parser->font_decor = 0 ;
 		attr = DEFAULT_FONT_ATTR(0) ;
-		vt100_parser->fg_color = ML_FG_COLOR ;
-		vt100_parser->bg_color = ML_BG_COLOR ;
+		fg_color = ML_FG_COLOR ;
+		bg_color = ML_BG_COLOR ;
 		vt100_parser->is_reversed = 0 ;
 	}
 	else if( flag == 1)
@@ -419,78 +423,78 @@ change_font_attr(
 	}
 	else if( flag == 30)
 	{
-		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "black") ;
+		fg_color = ml_term_screen_get_color( vt100_parser->termscr , "black") ;
 	}
 	else if( flag == 31)
 	{
-		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "red") ;
+		fg_color = ml_term_screen_get_color( vt100_parser->termscr , "red") ;
 	}
 	else if( flag == 32)
 	{
-		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "green") ;
+		fg_color = ml_term_screen_get_color( vt100_parser->termscr , "green") ;
 	}
 	else if( flag == 33)
 	{
-		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "yellow") ;
+		fg_color = ml_term_screen_get_color( vt100_parser->termscr , "yellow") ;
 	}
 	else if( flag == 34)
 	{
-		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "blue") ;
+		fg_color = ml_term_screen_get_color( vt100_parser->termscr , "blue") ;
 	}
 	else if( flag == 35)
 	{
-		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "magenta") ;
+		fg_color = ml_term_screen_get_color( vt100_parser->termscr , "magenta") ;
 	}
 	else if( flag == 36)
 	{
-		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "cyan") ;
+		fg_color = ml_term_screen_get_color( vt100_parser->termscr , "cyan") ;
 	}
 	else if( flag == 37)
 	{
-		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "white") ;
+		fg_color = ml_term_screen_get_color( vt100_parser->termscr , "white") ;
 	}
 	else if( flag == 39)
 	{
 		/* default fg */
 		
-		vt100_parser->fg_color = ML_FG_COLOR ;
+		fg_color = ML_FG_COLOR ;
 		vt100_parser->is_reversed = 0 ;
 	}
 	else if( flag == 40)
 	{
-		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "black") ;
+		bg_color = ml_term_screen_get_color( vt100_parser->termscr , "black") ;
 	}
 	else if( flag == 41)
 	{
-		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "red") ;
+		bg_color = ml_term_screen_get_color( vt100_parser->termscr , "red") ;
 	}
 	else if( flag == 42)
 	{
-		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "green") ;
+		bg_color = ml_term_screen_get_color( vt100_parser->termscr , "green") ;
 	}
 	else if( flag == 43)
 	{
-		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "yellow") ;
+		bg_color = ml_term_screen_get_color( vt100_parser->termscr , "yellow") ;
 	}
 	else if( flag == 44)
 	{
-		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "blue") ;
+		bg_color = ml_term_screen_get_color( vt100_parser->termscr , "blue") ;
 	}
 	else if( flag == 45)
 	{
-		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "magenta") ;
+		bg_color = ml_term_screen_get_color( vt100_parser->termscr , "magenta") ;
 	}
 	else if( flag == 46)
 	{
-		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "cyan") ;
+		bg_color = ml_term_screen_get_color( vt100_parser->termscr , "cyan") ;
 	}
 	else if( flag == 47)
 	{
-		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "white") ;
+		bg_color = ml_term_screen_get_color( vt100_parser->termscr , "white") ;
 	}
 	else if( flag == 49)
 	{
-		vt100_parser->bg_color = ML_BG_COLOR ;
+		bg_color = ML_BG_COLOR ;
 		vt100_parser->is_reversed = 0 ;
 	}
 #ifdef  DEBUG
@@ -504,6 +508,16 @@ change_font_attr(
 	{
 		vt100_parser->font_attr = attr ;
 		change_font( vt100_parser) ;
+	}
+
+	if( fg_color != ML_UNKNOWN_COLOR && fg_color != vt100_parser->fg_color)
+	{
+		vt100_parser->fg_color = fg_color ;
+	}
+
+	if( bg_color != ML_UNKNOWN_COLOR && bg_color != vt100_parser->bg_color)
+	{
+		vt100_parser->bg_color = bg_color ;
 	}
 }
 
