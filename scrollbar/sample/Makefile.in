@@ -26,10 +26,14 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all: sample sample2
 sample: $(SAMPLE_OBJ)
-	$(LIBTOOL_LINK) -o libsample.la $(SAMPLE_OBJ:.o=.lo) -rpath $(LIBDIR)
+	$(LIBTOOL_LINK) -o libsample.la $(SAMPLE_OBJ:.o=.lo) -rpath $(LIBDIR) \
+	-module -avoid-version -no-undefined \
+	-L/usr/X11R6/lib -lX11
 
 sample2: $(SAMPLE2_OBJ)
-	$(LIBTOOL_LINK) -o libsample2.la $(SAMPLE2_OBJ:.o=.lo) -rpath $(LIBDIR)
+	$(LIBTOOL_LINK) -o libsample2.la $(SAMPLE2_OBJ:.o=.lo) -rpath $(LIBDIR) \
+	-module -avoid-version -no-undefined \
+	-L/usr/X11R6/lib -lX11
 
 .c.o:
 	$(LIBTOOL_CC) -c $<

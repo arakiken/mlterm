@@ -28,7 +28,7 @@ $(PROG): $(OBJ)
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f $(OBJ) $(PROG) $(PROG).core
+	rm -f $(OBJ) $(PROG) $(PROG).exe $(PROG).core
 
 distclean: clean
 	rm -f Makefile

@@ -69,7 +69,9 @@ $(LIBNAME).a : $(OBJ)
 
 $(LIBNAME).la : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(PREFIX)/lib \
-		-version-info $(MAJOR):$(MINOR):0
+		-no-undefined \
+		-version-info $(MAJOR):$(MINOR):0 \
+		${top_builddir}/kiklib/src/libkik.la
 
 $(INCDIR_TMP)/mkf :
 	mkdir -p $(INCDIR_TMP)/mkf

@@ -86,7 +86,11 @@ dlsym_sb_view_new_func(
 			return  NULL ;
 		}
 
+#ifndef __CYGWIN__
 		sprintf( libpath , "%slib%s" , dir , name) ;
+#else
+		sprintf( libpath , "%scyg%s" , dir , name) ;
+#endif
 
 		if( ( handle = kik_dl_open( libpath)) == NULL)
 		{

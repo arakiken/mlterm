@@ -65,7 +65,7 @@ $(LIBEXECDIR):
 	mkdir -p $(LIBEXECDIR)
 
 clean:
-	rm -rf $(OBJ) mlconfig *.core .libs
+	rm -rf $(OBJ) mlconfig mlconfig.exe *.core .libs
 	cd po ; $(MAKE) clean
 
 distclean: clean

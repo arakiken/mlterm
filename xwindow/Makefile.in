@@ -71,7 +71,7 @@ wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 
 clean:
-	rm -rf $(PROG) *.core $(OBJ) .libs
+	rm -rf $(PROG) $(PROG).exe *.core $(OBJ) .libs
 
 distclean: clean
 	rm -f Makefile

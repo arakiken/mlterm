@@ -64,12 +64,16 @@ kik_dl_open(
 {
 	char *  _path ;
 	
-	if( ( _path = alloca( strlen( path) + 4)) == NULL)
+	if( ( _path = alloca( strlen( path) + 5)) == NULL)
 	{
 		return  NULL ;
 	}
 
+#ifndef __CYGWIN__
 	sprintf( _path , "%s.so" , path) ;
+#else
+	sprintf( _path , "%s.dll" , path) ;
+#endif
 	
 	return  dlopen( _path , RTLD_LAZY) ;
 }

@@ -52,7 +52,7 @@ $(LIBEXECDIR):
 	mkdir -p $(LIBEXECDIR)
 
 clean:
-	rm -rf $(OBJS) mlterm-menu *.core .libs
+	rm -rf $(OBJS) mlterm-menu mlterm-menu.exe *.core .libs
 
 distclean: clean
 	rm -f Makefile

@@ -41,7 +41,7 @@ all : $(LIBNAME).a
 debug : $(LIBNAME).a
 
 $(LIBNAME).a : $(OBJ)
-	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ) $(LIBS)
+	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ:.o=.lo) $(LIBS)
 
 install :
 

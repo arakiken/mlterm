@@ -82,6 +82,7 @@ wc :
 
 $(LIBNAME).la : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(PREFIX)/lib \
+		-no-undefined \
 		-version-info $(MAJOR):$(MINOR):0
 
 $(LIBNAME).a : $(OBJ)

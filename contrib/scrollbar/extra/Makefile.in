@@ -29,17 +29,24 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all: athena motif mozmodern next
 athena: $(ATHENA_OBJ)
-	$(LIBTOOL_LINK) -o libathena.la $(ATHENA_OBJ:.o=.lo) -rpath $(LIBDIR)
+	$(LIBTOOL_LINK) -o libathena.la $(ATHENA_OBJ:.o=.lo) -rpath $(LIBDIR) \
+	-module -avoid-version -no-undefined \
+	-L/usr/X11R6/lib -lX11
 
 motif: $(MOTIF_OBJ)
-	$(LIBTOOL_LINK) -o libmotif.la $(MOTIF_OBJ:.o=.lo) -rpath $(LIBDIR)
+	$(LIBTOOL_LINK) -o libmotif.la $(MOTIF_OBJ:.o=.lo) -rpath $(LIBDIR) \
+	-module -avoid-version -no-undefined \
+	-L/usr/X11R6/lib -lX11
 
 mozmodern: $(MOZMODERN_OBJ)
-	$(LIBTOOL_LINK) -o libmozmodern.la $(MOZMODERN_OBJ:.o=.lo) -rpath $(LIBDIR)
+	$(LIBTOOL_LINK) -o libmozmodern.la $(MOZMODERN_OBJ:.o=.lo) -rpath $(LIBDIR) \
+	-module -avoid-version -no-undefined \
+	-L/usr/X11R6/lib -lX11
 
 next: $(NEXT_OBJ)
-	$(LIBTOOL_LINK) -o libnext.la $(NEXT_OBJ:.o=.lo) -rpath $(LIBDIR)
-
+	$(LIBTOOL_LINK) -o libnext.la $(NEXT_OBJ:.o=.lo) -rpath $(LIBDIR) \
+	-module -avoid-version -no-undefined \
+	-L/usr/X11R6/lib -lX11
 
 .c.o:
 	$(LIBTOOL_CC) -c $<

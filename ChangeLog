@@ -1,3 +1,20 @@
+2003-04-10 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* mkf/lib/Makefile.in, contrib/scrollbar/extra/Makefile.in,
+	  contrib/tool/mlterm-menu/Makefile.in, kiklib/src/Makefile.in,
+	  kiklib/src/kik_dlfcn.c, mlterm/Makefile.in,
+	  scrollbar/sample/Makefile.in, tool/mlclient/Makefile.in,
+	  tool/mlconfig/Makefile.in, xwindow/Makefile.in,
+	  xwindow/x_sb_view_factory.c:
+	  - To compile DLL on Cygwin environment, added "-no-undefined" to
+	    libtool option.
+	  - Added ".exe" suffix in "clean" target in Makefile.
+	  - In the case of Cygwin, the dynamic library name is "cygfoo.dll".
+	    It's supported now.
+	  (Thanks to Sakai Masahiro san)
+	  NOTE: To compile mlterm with DLL support on Cygwin, recent libtool is
+	  recommended. (--with-libtool=/usr/autotool/devel/bin/libtool)
+
 2003-04-06 Tomohiro KUBOTA <kubota@debian.org>
 
 	* kiklib/src/kik_conf_io.c kik_conf_write_open(): Could not
