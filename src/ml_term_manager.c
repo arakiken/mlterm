@@ -213,6 +213,7 @@ open_term(
 	)
 {
 	ml_display_t *  disp ;
+	ml_term_model_t *  termmdl ;
 	ml_term_screen_t *  termscr ;
 	ml_sb_term_screen_t *  sb_termscr ;
 	ml_font_manager_t *  font_man ;
@@ -222,6 +223,8 @@ open_term(
 	mkf_charset_t  usascii_font_cs ;
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
+	ml_char_t  sp_ch ;
+	ml_char_t  nl_ch ;
 	int  usascii_font_cs_changable ;
 	char *  env[4] ;
 	char **  env_p ;
@@ -246,6 +249,7 @@ open_term(
 	 */
 	disp = NULL ;
 	font_man = NULL ;
+	termmdl = NULL ;
 	termscr = NULL ;
 	sb_termscr = NULL ;
 	vt100_parser = NULL ;
@@ -317,11 +321,27 @@ open_term(
 		kik_msg_printf( " Foreground and background colors are the same.\n") ;
 	}
 
-	if( ( termscr = ml_term_screen_new( term_man->conf.cols , term_man->conf.rows , font_man ,
-		&disp->color_man , fg_color , bg_color ,
-		term_man->conf.brightness , term_man->conf.fade_ratio ,
-		&term_man->keymap , &term_man->termcap ,
-		term_man->conf.num_of_log_lines , term_man->conf.tab_size ,
+	ml_char_init( &sp_ch) ;
+	ml_char_init( &nl_ch) ;
+	
+	ml_char_set( &sp_ch , " " , 1 , ml_get_usascii_font( font_man) ,
+		0 , ML_FG_COLOR , ML_BG_COLOR , 0) ;
+	ml_char_set( &nl_ch , "\n" , 1 , ml_get_usascii_font( font_man) ,
+		0 , ML_FG_COLOR , ML_BG_COLOR , 0) ;
+
+	if( ( termmdl = ml_term_model_new( term_man->conf.cols , term_man->conf.rows ,
+				&sp_ch , &nl_ch , term_man->conf.tab_size ,
+				term_man->conf.num_of_log_lines , term_man->conf.use_bce)) == NULL)
+	{
+		goto  error ;
+	}
+
+	ml_char_final( &sp_ch) ;
+	ml_char_final( &nl_ch) ;
+
+	if( ( termscr = ml_term_screen_new( termmdl , font_man , &disp->color_man ,
+		fg_color , bg_color , term_man->conf.brightness ,
+		term_man->conf.fade_ratio , &term_man->keymap , &term_man->termcap ,
 		term_man->conf.screen_width_ratio , term_man->conf.screen_height_ratio ,
 		term_man->conf.xim_open_in_startup , term_man->conf.mod_meta_mode ,
 		term_man->conf.bel_mode , term_man->conf.copy_paste_via_ucs ,
@@ -330,7 +350,7 @@ open_term(
 		term_man->conf.vertical_mode , term_man->conf.use_vertical_cursor ,
 		term_man->conf.big5_buggy , term_man->conf.conf_menu_path ,
 		term_man->conf.iscii_lang , term_man->conf.use_extended_scroll_shortcut ,
-		term_man->conf.use_dynamic_comb , term_man->conf.use_bce)) == NULL)
+		term_man->conf.use_dynamic_comb)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_screen_new() failed.\n") ;
@@ -541,6 +561,7 @@ open_term(
 	term_man->terms[term_man->num_of_terms].root_window = root ;
 	term_man->terms[term_man->num_of_terms].vt100_parser = vt100_parser ;
 	term_man->terms[term_man->num_of_terms].font_man = font_man ;
+	term_man->terms[term_man->num_of_terms].model = termmdl ;
 
 	term_man->num_of_terms ++ ;
 
@@ -555,6 +576,11 @@ error:
 	if( font_man)
 	{
 		ml_font_manager_delete( font_man) ;
+	}
+
+	if( termmdl)
+	{
+		ml_term_model_delete( termmdl) ;
 	}
 
 	if( termscr)
@@ -590,6 +616,8 @@ delete_term(
 	ml_pty_delete( term->pty) ;
 
 	ml_font_manager_delete( term->font_man) ;
+
+	ml_term_model_delete( term->model) ;
 
 	ml_window_manager_remove_root( &term->display->win_man , term->root_window) ;
 	

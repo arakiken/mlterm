@@ -59,11 +59,15 @@ int  ml_set_word_separators( char *  seps) ;
 int  ml_free_word_separators(void) ;
 
 
-ml_term_model_t *  ml_term_model_new( ml_term_model_event_listener_t *  termmdl_listener ,
-	u_int  cols , u_int  rows , ml_char_t *  sp_ch , ml_char_t *  nl_ch ,
-	u_int  tab_size , u_int  num_of_log_lines , int  use_bce) ;
-	
+ml_term_model_t *  ml_term_model_new( u_int  cols , u_int  rows , ml_char_t *  sp_ch ,
+	ml_char_t *  nl_ch , u_int  tab_size , u_int  num_of_log_lines , int  use_bce) ;
+
 int  ml_term_model_delete( ml_term_model_t *  termmdl) ;
+
+int  ml_term_model_set_listener( ml_term_model_t *  termmdl ,
+	ml_term_model_event_listener_t *  termmdl_listener) ;
+
+int  ml_term_model_unset_listener( ml_term_model_t *  termmdl) ;
 
 int  ml_term_model_resize( ml_term_model_t *  termmdl , u_int  cols , u_int  rows) ;
 

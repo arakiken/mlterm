@@ -16,7 +16,7 @@ ml_sb_view_t *  ml_sb_view_new( char *  name) ;
 
 ml_sb_view_t *  ml_transparent_scrollbar_view_new( char *  name) ;
 
-int  ml_unload_prev_scrollbar_view(void) ;
+int  ml_unload_scrollbar_view_lib( char *  name) ;
 
 
 #endif

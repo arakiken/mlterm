@@ -147,19 +147,18 @@ typedef struct  ml_term_screen
 } ml_term_screen_t ;
 
 
-ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
+ml_term_screen_t *  ml_term_screen_new( ml_term_model_t *  model ,
 	ml_font_manager_t *  font_man , ml_color_manager_t *  color_man ,
 	ml_color_t  fg_color , ml_color_t  bg_color ,
 	u_int  brightness , u_int  fade_ratio ,
 	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
-	u_int  num_of_log_lines , u_int  tab_size ,
 	u_int  screen_width_ratio , u_int  screen_height_ratio ,
 	int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode ,
 	ml_bel_mode_t  bel_mode , int  prefer_utf8_selection , char *  pic_file_path ,
 	int  use_transbg , ml_font_present_t  font_present , int  use_bidi ,
 	ml_vertical_mode_t  vertical_mode , int  use_vertical_cursor , int  big5_buggy ,
 	char *  conf_menu_path , ml_iscii_lang_t  iscii_lang , int  use_extended_scroll_shortcut ,
-	int  use_dynamic_comb , int  use_bce) ;
+	int  use_dynamic_comb) ;
 
 int  ml_term_screen_delete( ml_term_screen_t *  termscr) ;
 

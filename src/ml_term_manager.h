@@ -37,6 +37,7 @@ typedef struct ml_term
 	ml_window_t *  root_window ;
 	ml_vt100_parser_t *  vt100_parser ;
 	ml_font_manager_t *  font_man ;
+	ml_term_model_t *  model ;
 
 } ml_term_t ;
 

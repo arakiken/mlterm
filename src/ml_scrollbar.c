@@ -691,8 +691,9 @@ ml_scrollbar_final(
 	ml_scrollbar_t *  sb
 	)
 {
-	free( sb->view_name) ;
 	(*sb->view->delete)( sb->view) ;
+	ml_unload_scrollbar_view_lib( sb->view_name) ;
+	free( sb->view_name) ;
 	
 	return  1 ;
 }
@@ -872,21 +873,22 @@ ml_scrollbar_change_view(
 		}
 	}
 
+	if( sb->view)
+	{
+		(*sb->view->delete)( sb->view) ;
+		ml_unload_scrollbar_view_lib( sb->view_name) ;
+	}
+
+	sb->view = view ;
+
 	if( sb->view_name)
 	{
 		free( sb->view_name) ;
 	}
 
+	/* name is dynamically allocated above */
 	sb->view_name = name ;
 	
-	if( sb->view)
-	{
-		(*sb->view->delete)( sb->view) ;
-		ml_unload_prev_scrollbar_view() ;
-	}
-
-	sb->view = view ;
-
 	(*sb->view->get_geometry_hints)( sb->view , &width , &sb->top_margin , &sb->bottom_margin ,
 		&sb->up_button_y , &sb->up_button_height , &sb->down_button_y , &sb->down_button_height) ;
 
@@ -936,7 +938,6 @@ ml_scrollbar_set_transparent(
 	if( sb->view)
 	{
 		(*sb->view->delete)( sb->view) ;
-		ml_unload_prev_scrollbar_view() ;
 	}
 
 	sb->view = view ;

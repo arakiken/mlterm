@@ -1,6 +1,3 @@
-* if TERM is not kterm but xterm , applications which depends on curses sometimes 
-  fail to paint colors.
-
 * X Input Method(e.g. kinput2) cannot be used in HP-UX 10.20 (reported by Sakamoto Hironori san)
 
 * vttest items not passed.

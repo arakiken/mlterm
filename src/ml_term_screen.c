@@ -4034,8 +4034,7 @@ get_fontset(
 
 ml_term_screen_t *
 ml_term_screen_new(
-	u_int  cols ,
-	u_int  rows ,
+	ml_term_model_t *  model ,
 	ml_font_manager_t *  font_man ,
 	ml_color_manager_t *  color_man ,
 	ml_color_t  fg_color ,
@@ -4044,8 +4043,6 @@ ml_term_screen_new(
 	u_int  fade_ratio ,
 	ml_keymap_t *  keymap ,
 	ml_termcap_t *  termcap ,
-	u_int  num_of_log_lines ,
-	u_int  tab_size ,
 	u_int  screen_width_ratio ,
 	u_int  screen_height_ratio ,
 	int  xim_open_in_startup ,
@@ -4062,14 +4059,11 @@ ml_term_screen_new(
 	char *  conf_menu_path ,
 	ml_iscii_lang_t  iscii_lang ,
 	int  use_extended_scroll_shortcut ,
-	int  use_dynamic_comb ,
-	int  use_bce
+	int  use_dynamic_comb
 	)
 {
 	ml_term_screen_t *  termscr ;
-	ml_char_t  sp_ch ;
-	ml_char_t  nl_ch ;
-
+	
 	if( ( termscr = malloc( sizeof( ml_term_screen_t))) == NULL)
 	{
 	#ifdef  DEBUG
@@ -4124,14 +4118,6 @@ ml_term_screen_new(
 
 	termscr->use_bidi = use_bidi ;
 	
-	ml_char_init( &sp_ch) ;
-	ml_char_init( &nl_ch) ;
-	
-	ml_char_set( &sp_ch , " " , 1 , ml_get_usascii_font( termscr->font_man) ,
-		0 , ML_FG_COLOR , ML_BG_COLOR , 0) ;
-	ml_char_set( &nl_ch , "\n" , 1 , ml_get_usascii_font( termscr->font_man) ,
-		0 , ML_FG_COLOR , ML_BG_COLOR , 0) ;
-
 	termscr->sel_listener.self = termscr ;
 	termscr->sel_listener.select_in_window = select_in_window ;
 	termscr->sel_listener.reverse_color = reverse_color ;
@@ -4146,24 +4132,14 @@ ml_term_screen_new(
 		goto  error ;
 	}
 
+	termscr->model = model ;
+	
 	termscr->termmdl_listener.self = termscr ;
 	termscr->termmdl_listener.window_scroll_upward_region = window_scroll_upward_region ;
 	termscr->termmdl_listener.window_scroll_downward_region = window_scroll_downward_region ;
 	termscr->termmdl_listener.scrolled_out_line_received = NULL ;
 
-	if( ! ( termscr->model = ml_term_model_new( &termscr->termmdl_listener ,
-					cols , rows , &sp_ch , &nl_ch , tab_size ,
-					num_of_log_lines , use_bce)))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_term_model_new failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	ml_char_final( &sp_ch) ;
-	ml_char_final( &nl_ch) ;
+	ml_term_model_set_listener( termscr->model , &termscr->termmdl_listener) ;
 
 	termscr->pic_mod.brightness = brightness ;
 	
@@ -4348,11 +4324,6 @@ ml_term_screen_new(
 	return  termscr ;
 
 error:
-	if( termscr->model)
-	{
-		ml_term_model_delete( termscr->model) ;
-	}
-	
 	if( termscr->utf8_parser)
 	{
 		(*termscr->utf8_parser->delete)( termscr->utf8_parser) ;
@@ -4391,7 +4362,8 @@ ml_term_screen_delete(
 	ml_term_screen_t *  termscr
 	)
 {
-	ml_term_model_delete( termscr->model) ;
+	ml_term_model_unset_listener( termscr->model) ;
+
 	ml_sel_final( &termscr->sel) ;
 	ml_config_menu_final( &termscr->config_menu) ;
 

@@ -7,6 +7,8 @@
 #include  <stdio.h>		/* sprintf */
 #include  <kiklib/kik_dlfcn.h>
 #include  <kiklib/kik_mem.h>	/* alloca */
+#include  <kiklib/kik_str.h>	/* strdup */
+#include  <kiklib/kik_debug.h>
 
 #include  "ml_simple_sb_view.h"
 
@@ -18,13 +20,40 @@
 #endif
 
 
+typedef struct  lib_ref
+{
+	char *  name ;
+	kik_dl_handle_t  handle ;
+	u_int  count ;
+
+} lib_ref_t ;
+
+
 /* --- static variables --- */
 
-static kik_dl_handle_t  prev_shlib_handle = NULL ;
-static kik_dl_handle_t  cur_shlib_handle = NULL ;
+static lib_ref_t *  lib_ref_table ;
+static u_int  lib_ref_table_size ;
 
 
 /* --- static functions --- */
+
+static lib_ref_t *
+search_lib_ref(
+	char *  name
+	)
+{
+	int  counter ;
+	
+	for( counter = 0 ; counter < lib_ref_table_size ; counter ++)
+	{
+		if( strcmp( lib_ref_table[counter].name , name) == 0)
+		{
+			return  &lib_ref_table[counter] ;
+		}
+	}
+
+	return  NULL ;
+}
 
 static ml_sb_view_new_func_t
 dlsym_sb_view_new_func(
@@ -35,23 +64,49 @@ dlsym_sb_view_new_func(
 	char *  dir ;
 	ml_sb_view_new_func_t  func ;
 	kik_dl_handle_t  handle ;
-	char *  libpath ;
 	char *  symbol ;
 	u_int  len ;
+	lib_ref_t *  lib_ref ;
 
-	dir = SBLIB_DIR ;
-
-	len = strlen( dir) + 3 + strlen( name) + 1 ;
-	if( ( libpath = alloca( len)) == NULL)
+	if( ( lib_ref = search_lib_ref( name)))
 	{
-		return  NULL ;
+		handle = lib_ref->handle ;
+		lib_ref->count ++ ;
 	}
-	
-	sprintf( libpath , "%slib%s" , dir , name) ;
-	
-	if( ( handle = kik_dl_open( libpath)) == NULL)
+	else
 	{
-		return  NULL ;
+		void *  p ;
+		char *  libpath ;
+
+		dir = SBLIB_DIR ;
+
+		len = strlen( dir) + 3 + strlen( name) + 1 ;
+		if( ( libpath = alloca( len)) == NULL)
+		{
+			return  NULL ;
+		}
+
+		sprintf( libpath , "%slib%s" , dir , name) ;
+
+		if( ( handle = kik_dl_open( libpath)) == NULL)
+		{
+			return  NULL ;
+		}
+		
+		if( ( p = realloc( lib_ref_table , sizeof( lib_ref_t) * (lib_ref_table_size + 1)))
+			== NULL)
+		{
+			kik_dl_close( handle) ;
+			
+			return  NULL ;
+		}
+
+		lib_ref_table = p ;
+		lib_ref = &lib_ref_table[lib_ref_table_size ++] ;
+
+		lib_ref->name = strdup( name) ;
+		lib_ref->handle = handle ;
+		lib_ref->count = 1 ;
 	}
 
 	len = 27 + strlen( name) + 1 ;
@@ -71,13 +126,12 @@ dlsym_sb_view_new_func(
 	
 	if( ( func = (ml_sb_view_new_func_t) kik_dl_func_symbol( handle , symbol)) == NULL)
 	{
-		kik_dl_close( handle) ;
-
 		return  NULL ;
 	}
 
-	prev_shlib_handle = cur_shlib_handle ;
-	cur_shlib_handle = handle ;
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s %d\n" , lib_ref->name , lib_ref->count) ;
+#endif
 
 	return  func ;
 }
@@ -129,14 +183,39 @@ ml_transparent_scrollbar_view_new(
 }
 
 int
-ml_unload_prev_scrollbar_view(void)
+ml_unload_scrollbar_view_lib(
+	char *  name
+	)
 {
-	if( prev_shlib_handle)
+	int  counter ;
+	
+	for( counter = 0 ; counter < lib_ref_table_size ; counter ++)
 	{
-		kik_dl_close( prev_shlib_handle) ;
+		if( strcmp( lib_ref_table[counter].name , name) == 0)
+		{
+			if( -- lib_ref_table[counter].count == 0)
+			{
+			#ifdef  __DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " %s unloaded.\n" , name) ;
+			#endif
+			
+				kik_dl_close( lib_ref_table[counter].handle) ;
+				free( lib_ref_table[counter].name) ;
 
-		prev_shlib_handle = NULL ;
+				if( -- lib_ref_table_size == 0)
+				{
+					free( lib_ref_table) ;
+					lib_ref_table = NULL ;
+				}
+				else
+				{
+					lib_ref_table[counter] = lib_ref_table[lib_ref_table_size] ;
+				}
+				
+				return  1 ;
+			}
+		}
 	}
 
-	return  1 ;
+	return  NULL ;
 }

@@ -139,7 +139,7 @@ receive_scrolled_out_line(
 	
 	ml_log_add( &termmdl->logs , line) ;
 
-	if( termmdl->termmdl_listener->scrolled_out_line_received)
+	if( termmdl->termmdl_listener && termmdl->termmdl_listener->scrolled_out_line_received)
 	{
 		(*termmdl->termmdl_listener->scrolled_out_line_received)(
 			termmdl->termmdl_listener->self) ;
@@ -158,6 +158,11 @@ window_scroll_upward_region(
 
 	termmdl = p ;
 
+	if( ! termmdl->termmdl_listener)
+	{
+		return  0 ;
+	}
+	
 	return  (*termmdl->termmdl_listener->window_scroll_upward_region)(
 			termmdl->termmdl_listener->self , beg_row , end_row , size) ;
 }
@@ -173,6 +178,11 @@ window_scroll_downward_region(
 	ml_term_model_t *  termmdl ;
 
 	termmdl = p ;
+
+	if( ! termmdl->termmdl_listener)
+	{
+		return  0 ;
+	}
 
 	return  (*termmdl->termmdl_listener->window_scroll_downward_region)(
 			termmdl->termmdl_listener->self , beg_row , end_row , size) ;
@@ -215,7 +225,6 @@ ml_free_word_separators(void)
 
 ml_term_model_t *
 ml_term_model_new(
-	ml_term_model_event_listener_t *  termmdl_listener ,
 	u_int  cols ,
 	u_int  rows ,
 	ml_char_t *  sp_ch ,
@@ -232,7 +241,7 @@ ml_term_model_new(
 		return  NULL ;
 	}
 	
-	termmdl->termmdl_listener = termmdl_listener ;
+	termmdl->termmdl_listener = NULL ;
 	
 	termmdl->logvis = termmdl->container_logvis = NULL ;
 
@@ -315,6 +324,27 @@ ml_term_model_delete(
 	ml_char_final( &termmdl->nl_ch) ;
 
 	free( termmdl) ;
+
+	return  1 ;
+}
+
+int
+ml_term_model_set_listener(
+	ml_term_model_t *  termmdl ,
+	ml_term_model_event_listener_t *  termmdl_listener
+	)
+{
+	termmdl->termmdl_listener = termmdl_listener ;
+
+	return  1 ;
+}
+
+int
+ml_term_model_unset_listener(
+	ml_term_model_t *  termmdl
+	)
+{
+	termmdl->termmdl_listener = NULL ;
 
 	return  1 ;
 }
@@ -743,7 +773,8 @@ ml_term_model_backscroll_upward(
 
 	termmdl->backscroll_rows -= size ;
 
-	if( ! (*termmdl->termmdl_listener->window_scroll_upward_region)(
+	if( ! termmdl->termmdl_listener ||
+		! (*termmdl->termmdl_listener->window_scroll_upward_region)(
 			termmdl->termmdl_listener->self ,
 			0 , ml_image_get_rows( termmdl->image) - 1 , size))
 	{
@@ -793,9 +824,10 @@ ml_term_model_backscroll_downward(
 
 	termmdl->backscroll_rows += size ;
 
-	if( ! (*termmdl->termmdl_listener->window_scroll_downward_region)(
-		termmdl->termmdl_listener->self ,
-		0 , ml_image_get_rows( termmdl->image) - 1 , size))
+	if( !termmdl->termmdl_listener ||
+		! (*termmdl->termmdl_listener->window_scroll_downward_region)(
+			termmdl->termmdl_listener->self ,
+			0 , ml_image_get_rows( termmdl->image) - 1 , size))
 	{
 		for( counter = size ; counter < ml_image_get_rows( termmdl->image) ; counter++)
 		{
