@@ -1,3 +1,8 @@
+2003-04-14  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* xwindow/x_imagelib_gdk.c: 
+	 - power of zero was used for color conversion. fixed. 
+
 2003-04-13 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* x_term_manager.c: changed to be more compatible with xterm/rxvt.
