@@ -43,10 +43,10 @@ static u_int  num_of_imlibs ;
 static int
 get_visible_window_geometry(
 	ml_window_t *  win ,
-	int *  x ,
-	int *  y ,
-	int *  in_x ,
-	int *  in_y ,
+	int *  x ,		/* x relative to parent window */
+	int *  y ,		/* y relative to parent window */
+	int *  my_x ,		/* x relative to my window */
+	int *  my_y ,		/* y relative to my window */
 	u_int *  width ,
 	u_int *  height
 	)
@@ -66,14 +66,14 @@ get_visible_window_geometry(
 			return  0 ;
 		}
 
-		*in_x = abs(*x) ;
+		*my_x = abs(*x) ;
 		
 		*width = ACTUAL_WIDTH(win) - abs(*x) ;
 		*x = 0 ;
 	}
 	else
 	{
-		*in_x = 0 ;
+		*my_x = 0 ;
 		*width = ACTUAL_WIDTH(win) ;
 	}
 
@@ -86,14 +86,14 @@ get_visible_window_geometry(
 			return  0 ;
 		}
 
-		*in_y = abs(*y) ;
+		*my_y = abs(*y) ;
 
 		*height = ACTUAL_HEIGHT(win) - abs(*y) ;
 		*y = 0 ;
 	}
 	else
 	{
-		*in_y = 0 ;
+		*my_y = 0 ;
 		*height = ACTUAL_HEIGHT(win) ;
 	}
 
@@ -208,11 +208,10 @@ get_background_picture(
 {
 	int  x ;
 	int  y ;
-	u_int  width ;
-	u_int  height ;
 	int  pix_x ;
 	int  pix_y ;
-	Window  child ;
+	u_int  width ;
+	u_int  height ;
 	Window  src ;
 	Pixmap  pixmap ;
 	XSetWindowAttributes attr ;
@@ -343,10 +342,10 @@ get_background_picture(
 	Atom id ;
 	int  x ;
 	int  y ;
+	int  _x ;
+	int  _y ;
 	u_int  width ;
 	u_int  height ;
-	int  pix_x ;
-	int  pix_y ;
 	Pixmap  pixmap ;
 	Atom act_type ;
 	int  act_format ;
@@ -358,7 +357,7 @@ get_background_picture(
 	{
 		/*
 		 * XXX
-		 * image modification is completely depends on Imlib.
+		 * image is never modified without Imlib.
 		 */
 		
 		return  None ;
@@ -369,7 +368,7 @@ get_background_picture(
 		return  None ;
 	}
 	
-	if( ! get_visible_window_geometry( win , &x , &y , &pix_x , &pix_y , &width , &height))
+	if( ! get_visible_window_geometry( win , &x , &y , &_x , &_y , &width , &height))
 	{
 		return  None ;
 	}
@@ -396,7 +395,7 @@ get_background_picture(
 			DefaultDepth( win->display , win->screen)) ;
 
 	XCopyArea( win->display , (*(Drawable*)prop) , pixmap , win->gc ,
-		x + pix_x , y + pix_y , width , height , 0 , 0) ;
+		x , y , width , height , _x , _y) ;
 
 	return  pixmap ;
 }

@@ -1,5 +1,9 @@
 [20020222]
-* transparent by _XROOTPMAP_ID is also supported without Imlib.
+* transparency by _XROOTPMAP_ID hehaves strangely if Window is moved to outside of
+  Display. fixed.
+
+[20020222]
+* transparency by _XROOTPMAP_ID is also supported without Imlib.
 * w3mmlconfig/section/scrollbar is lost. fixed.
   (Thanks to Sakamoto Hironori san)
 
