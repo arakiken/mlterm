@@ -22,19 +22,20 @@ kik_dl_open(
 	char *  path ;
 	void *  ret ;
 
-	if( ( path = alloca( strlen( dirpath) + strlen( name) + 8)) == NULL)
+	if( ( path = alloca( strlen( dirpath) + strlen( name) + 7)) == NULL)
 	{
 		return  NULL ;
 	}
 
 	sprintf( path , "%slib%s.so" , dirpath , name) ;
 
-	if( ( ret = dlopen( path , RTLD_LAZY)) == NULL)
+	if( ( ret == dlopen( path , RTLD_LAZY)) == NULL)
 	{
-		sprintf( path , "%scyg%s.dll" , dirpath , name) ;
+		/* HP-UX libfoo.sl */
+		sprintf( path , "%slib%s.sl" , dirpath , name) ;
 		ret = dlopen( path , RTLD_LAZY) ;
 	}
-	
+
 	return  ret ;
 }
 

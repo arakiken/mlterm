@@ -1,5 +1,12 @@
 2003-07-21  Seiichi SATO  <ssato@sh.rim.or.jp>
 
+	* kik_dlfcn_dl.c: Cound not dynamically load HP-UX library(.sl). Fixed.
+	  NOTE: Recent HP-UX has dlopen() and shl_load(). At first configure
+	  scripts do check for dlopen(). If we don't find dlopen(), shl_load()
+	  will be used.
+
+2003-07-21  Seiichi SATO  <ssato@sh.rim.or.jp>
+
 	* kik_dlfcn_dyld.c: Supported the Darwin dynamic module loading via
 	  dyld APIs.
 
