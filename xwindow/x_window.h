@@ -31,7 +31,7 @@ typedef enum  x_event_dispatch
 	NOTIFY_TO_NONE = 0x0 ,
 	NOTIFY_TO_CHILDREN = 0x01 ,
 	NOTIFY_TO_PARENT = 0x02 ,
-	NOTIFY_TO_MYSELF = 0x04 ,
+	NOTIFY_TO_MYSELF = 0x04
 
 } x_event_dispatch_t ;
 

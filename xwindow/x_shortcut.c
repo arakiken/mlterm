@@ -127,7 +127,7 @@ parse(
 
 		while( *oper != '"' && *oper != '\0')
 		{
-			int  digit ;
+			u_int  digit ;
 
 			if( sscanf( oper , "\\x%2x" , &digit) == 1)
 			{
@@ -159,7 +159,7 @@ parse(
 					}
 					else if( *oper == 'e')
 					{
-						*p = '\e' ;
+						*p = '\033' ;
 					}
 					else
 					{

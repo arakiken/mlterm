@@ -907,7 +907,7 @@ x_main_config_init(
 					}
 					else if( *p1 == 'e')
 					{
-						*(p2 ++) = '\e' ;
+						*(p2 ++) = '\033' ;
 					}
 					else
 					{

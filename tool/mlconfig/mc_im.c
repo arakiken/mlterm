@@ -45,6 +45,9 @@ typedef enum im_type {
 	IM_XIM,
 	IM_NONE,
 	IM_OTHER,
+	
+	IM_TYPE_MAX
+
 } im_type_t ;
 
 typedef im_info_t* (*im_get_info_func_t)(char *, char *);
@@ -94,7 +97,7 @@ get_im_info(char *locale, char *encoding)
 
 	if (!(dir = opendir(IM_DIR))) return 0;
 
-	while (d = readdir(dir)) {
+	while ( (d = readdir(dir)) ) {
 		kik_dl_handle_t handle;
 		im_get_info_func_t func ;
 		im_info_t *info;
@@ -127,6 +130,8 @@ get_im_info(char *locale, char *encoding)
 
 		kik_dl_close(handle);
 	}
+
+	return 0;
 }
 
 
@@ -369,7 +374,7 @@ im_widget_new(int nth_im, const char *value, char *locale)
 		len = strlen(_("auto (currently %s)")) +
 		      strlen(info->readable_args[0]) + 1;
 
-		if (auto_str = malloc(len))
+		if ( (auto_str = malloc(len)))
 		{
 			snprintf(auto_str, len, _("auto (currently %s)"),
 				 info->readable_args[0]);

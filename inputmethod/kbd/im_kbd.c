@@ -53,6 +53,8 @@ typedef enum  kbd_type
 	KBD_TYPE_ARABIC ,
 	KBD_TYPE_ISCII ,
 
+	KBD_TYPE_MAX
+
 }  kbd_type_t ;
 
 typedef enum  kbd_mode
@@ -62,6 +64,8 @@ typedef enum  kbd_mode
 	KBD_MODE_ISCII_INSCRIPT ,
 	KBD_MODE_ISCII_PHONETIC ,
 
+	KBD_MODE_MAX
+	
 }  kbd_mode_t ;
 
 typedef struct im_kbd
@@ -509,7 +513,6 @@ im_new(
 	)
 {
 	im_kbd_t *  kbd ;
-	void * hold_handler;
 
 	if( magic != (u_int64_t) IM_API_COMPAT_CHECK_MAGIC)
 	{
@@ -618,7 +621,6 @@ im_get_info(
 )
 {
 	im_info_t *  result ;
-	int  i ;
 
 	if( ! ( result = malloc( sizeof( im_info_t))))
 	{

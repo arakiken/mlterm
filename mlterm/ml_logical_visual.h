@@ -20,6 +20,8 @@ typedef enum  ml_vertical_mode
 	VERT_LTR = 0x1 ,
 	VERT_RTL = 0x2 ,
 
+	VERT_MODE_MAX
+
 } ml_vertical_mode_t ;
 
 typedef struct  ml_logical_visual

@@ -12,6 +12,8 @@ typedef enum  x_sb_mode
 	SB_LEFT ,
 	SB_RIGHT ,
 
+	SB_MODE_MAX
+
 } x_sb_mode_t ;
 
 

@@ -12,6 +12,8 @@ typedef enum  x_mod_meta_mode
 	MOD_META_OUTPUT_ESC ,
 	MOD_META_SET_MSB ,
 	
+	MOD_META_MODE_MAX
+
 } x_mod_meta_mode_t ;
 
 

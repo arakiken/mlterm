@@ -123,9 +123,9 @@ is_rgb_color_name(
 {
 	if( *name == '#')
 	{
-		int  _red ;
-		int  _green ;
-		int  _blue ;
+		u_int  _red ;
+		u_int  _green ;
+		u_int  _blue ;
 		
 		if( strlen( name + 1) == 6 &&
 			sscanf( name + 1 , "%2x%2x%2x" , &_red , &_green , &_blue) == 3)

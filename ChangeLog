@@ -1,5 +1,9 @@
 2004-12-09 MINAMI Hirokazu <minami@mistfall.net>
 
+	*  minor code cleanup.
+
+2004-12-09 MINAMI Hirokazu <minami@mistfall.net>
+
 	*  mkf/lib/, kiklib/src/kik_debug.c: minor code cleanup.
 	
 2004-12-09 Seiichi SATO <ssato@sh.rim.or.jp>

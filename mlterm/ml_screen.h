@@ -30,6 +30,8 @@ typedef enum  ml_bs_mode
 	BSM_VOLATILE ,
 	BSM_STATIC ,
 
+	BSM_MAX
+
 } ml_bs_mode_t ;
 
 typedef struct  ml_screen

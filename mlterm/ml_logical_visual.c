@@ -7,7 +7,7 @@
 #include  <kiklib/kik_mem.h>		/* realloc/free */
 #include  <kiklib/kik_util.h>		/* K_MIN */
 #include  <kiklib/kik_debug.h>		/* kik_msg_printf */
-
+#include  <kiklib/kik_str.h>            /* strcmp */
 
 #define  CURSOR_LINE(logvis)  (ml_model_get_line((logvis)->model,(logvis)->cursor->row))
 

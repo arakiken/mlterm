@@ -16,7 +16,7 @@ typedef enum  x_termcap_str_field
 	ML_HOME ,
 	ML_END ,
 	
-	MAX_TERMCAP_STR_FIELDS ,
+	MAX_TERMCAP_STR_FIELDS
 
 } x_termcap_str_field_t ;
 
@@ -24,7 +24,7 @@ typedef enum  x_termcap_bool_field
 {
 	ML_BCE ,
 
-	MAX_TERMCAP_BOOL_FIELDS ,
+	MAX_TERMCAP_BOOL_FIELDS
 
 } x_termcap_bool_field_t ;
 

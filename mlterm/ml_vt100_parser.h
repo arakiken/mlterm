@@ -25,6 +25,8 @@ typedef enum  ml_unicode_font_policy
 	NOT_USE_UNICODE_FONT ,
 	ONLY_USE_UNICODE_FONT ,
 	
+	UNICODE_FONT_POLICY_MAX
+
 } ml_unicode_font_policy_t ;
 
 typedef struct  ml_char_buffer

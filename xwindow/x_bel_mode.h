@@ -12,6 +12,8 @@ typedef enum  x_bel_mode
 	BEL_SOUND ,
 	BEL_VISUAL ,
 	
+	BEL_MODE_MAX
+	
 } x_bel_mode_t ;
 
 

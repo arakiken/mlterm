@@ -173,7 +173,6 @@ draw_screen_vertical(
 	u_int  num_of_digits ;
 	u_int  win_width ;
 	u_int  win_height ;
-	int  n ;
 
 	if( cand_screen->num_of_candidates > cand_screen->num_per_window)
 	{
@@ -263,7 +262,7 @@ draw_screen_vertical(
 		 * |1 cand0   |
 		 *  ^
 		 */
-		snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i    " , i - top + 1) ;
+		kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i    " , i - top + 1) ;
 
 		for( j = 0 ; j < num_of_digits + 1 ; j++)
 		{
@@ -339,7 +338,7 @@ draw_screen_vertical(
 		size_t  len ;
 		int  x ;
 
-		len = snprintf( navi , MAX_NUM_OF_DIGITS * 2 + 2 , "%d/%d",
+		len = kik_snprintf( navi , MAX_NUM_OF_DIGITS * 2 + 2 , "%d/%d",
 				cand_screen->index + 1 ,
 				cand_screen->num_of_candidates) ;
 

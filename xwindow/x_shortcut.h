@@ -29,7 +29,7 @@ typedef enum  x_key_func
 	INSERT_SELECTION ,
 	EXIT_PROGRAM ,
 	
-	MAX_KEY_MAPS ,
+	MAX_KEY_MAPS
 
 } x_key_func_t ;
 

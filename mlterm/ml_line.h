@@ -15,7 +15,7 @@ enum
 {
 	WRAPAROUND     = 0x01 ,
 	BREAK_BOUNDARY = 0x02 ,
-	SCROLL         = 0x04 ,
+	SCROLL         = 0x04
 } ;
 
 
