@@ -3171,20 +3171,6 @@ key_pressed(
 }
 
 static void
-utf8_selection_request_failed(
-	x_window_t *  win ,
-	XSelectionEvent *  event
-	)
-{
-	x_screen_t *  screen ;
-
-	screen = (x_screen_t*) win ;
-	
-	/* UTF8_STRING selection request failed. retrying with XCOMPOUND_TEXT */
-	x_window_xct_selection_request( &screen->window , event->time) ;
-}
-
-static void
 selection_cleared(
 	x_window_t *  win ,
 	XSelectionClearEvent *  event
@@ -6063,8 +6049,6 @@ x_screen_new(
 	screen->window.utf8_selection_requested = utf8_selection_requested ;
 	screen->window.xct_selection_notified = xct_selection_notified ;
 	screen->window.utf8_selection_notified = utf8_selection_notified ;
-	screen->window.xct_selection_request_failed = NULL ;
-	screen->window.utf8_selection_request_failed = utf8_selection_request_failed ;
 	screen->window.window_deleted = window_deleted ;
 
 	if( use_transbg)

@@ -502,8 +502,6 @@ x_window_init(
 	win->utf8_selection_requested = NULL ;
 	win->xct_selection_notified = NULL ;
 	win->utf8_selection_notified = NULL ;
-	win->xct_selection_request_failed = NULL ;
-	win->utf8_selection_request_failed = NULL ;
 	win->window_deleted = NULL ;
 	
 	return	1 ;
@@ -1920,15 +1918,14 @@ x_window_receive_event(
 		if( event->xselection.property == None)
 		{
 			/*
-			 * trying with xa_compound_text => xa_text => XA_STRING
+			 * Selection request failed.
+			 * Retrying with xa_compound_text => xa_text => XA_STRING
 			 */
 
 			if( event->xselection.target == xa_utf8_string)
 			{
-				if( win->utf8_selection_request_failed)
-				{
-					(*win->utf8_selection_request_failed)( win , &event->xselection) ;
-				}
+				XConvertSelection( win->display , XA_PRIMARY , xa_compound_text ,
+					xa_selection , win->my_window , CurrentTime) ;
 			}
 			else if( event->xselection.target == xa_compound_text)
 			{
@@ -1939,10 +1936,6 @@ x_window_receive_event(
 			{
 				XConvertSelection( win->display , XA_PRIMARY , XA_STRING ,
 					xa_selection , win->my_window , CurrentTime) ;
-			}
-			else if( win->xct_selection_request_failed)
-			{
-				(*win->xct_selection_request_failed)( win , &event->xselection) ;
 			}
 			
 			return  1 ;
@@ -2076,7 +2069,6 @@ x_window_receive_event(
 			/* more than 3 type ? */
 			if (event->xclient.data.l[1] & 0x01)
 			{
-				int  count;
 				Atom act_type;
 				int act_format;
 				unsigned long nitems,left;
