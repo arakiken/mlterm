@@ -140,8 +140,9 @@ ml_bidi(
 	if( cursor_pos >= 0)
 	{
 		int  pos ;
+		FriBidiCharType  prev_type ;
 
-		for( pos = cursor_pos + 1 ; pos < size ; pos ++)
+		for( pos = cursor_pos ; pos < size ; pos ++)
 		{
 			if( fri_src[pos] != 0x20)
 			{
@@ -149,35 +150,29 @@ ml_bidi(
 			}
 		}
 		
-		if( fribidi_get_type( fri_src[cursor_pos]) &
-			(FRIBIDI_MASK_WEAK | FRIBIDI_MASK_NEUTRAL))
+		prev_type = 0 ;
+		for( pos = cursor_pos + 1 ; pos >= 0 ; pos --)
 		{
-			FriBidiCharType  prev_type ;
-
-			prev_type = 0 ;
-			for( pos = cursor_pos ; pos >= 0 ; pos --)
+			if( ( prev_type = fribidi_get_type( fri_src[pos])) & FRIBIDI_MASK_STRONG)
 			{
-				if( ( prev_type = fribidi_get_type( fri_src[pos])) & FRIBIDI_MASK_STRONG)
-				{
-					break ;
-				}
+				break ;
 			}
-
-			if( ! ( prev_type & FRIBIDI_MASK_RTL) && fri_type == FRIBIDI_TYPE_RTL)
-			{
-				fri_src[cursor_pos] = 0x61 ;
-			}
-			else if( ( prev_type & FRIBIDI_MASK_RTL) && fri_type & FRIBIDI_TYPE_LTR)
-			{
-				fri_src[cursor_pos] = 0x0621 ;
-			}
-			else
-			{
-				goto  end ;
-			}
-			
-			fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
 		}
+
+		if( ! ( prev_type & FRIBIDI_MASK_RTL) && fri_type == FRIBIDI_TYPE_RTL)
+		{
+			fri_src[cursor_pos] = 0x61 ;
+		}
+		else if( ( prev_type & FRIBIDI_MASK_RTL) && fri_type & FRIBIDI_TYPE_LTR)
+		{
+			fri_src[cursor_pos] = 0x0621 ;
+		}
+		else
+		{
+			goto  end ;
+		}
+
+		fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
 	}
 
 end:

@@ -382,6 +382,7 @@ bidi_visual(
 	ml_image_t *  image ;
 	int  row ;
 	u_int  cols_rest ;
+	int  correct_pos ;
 
 	if( logvis->is_visual)
 	{
@@ -397,6 +398,8 @@ bidi_visual(
 
 	ml_convert_col_to_char_index( CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
 
+	correct_pos = ml_char_bytes_is( CURSOR_CHAR(image) , " " , 1 , US_ASCII) ;
+
 	for( row = 0 ; row < image->model.num_of_filled_rows ; row ++)
 	{
 		if( ! ml_imgline_bidi_visual( ml_imgmdl_get_line( &image->model , row)))
@@ -411,7 +414,7 @@ bidi_visual(
 	((bidi_logical_visual_t*)logvis)->cursor_logical_col = image->cursor.col ;
 
 	image->cursor.char_index = ml_bidi_convert_logical_char_index_to_visual(
-					CURSOR_LINE(image) , image->cursor.char_index) ;
+					CURSOR_LINE(image) , image->cursor.char_index , correct_pos) ;
 	image->cursor.col = ml_convert_char_index_to_col( CURSOR_LINE(image) ,
 					image->cursor.char_index , 0) + cols_rest ;
 

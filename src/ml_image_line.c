@@ -1049,7 +1049,8 @@ ml_imgline_bidi_logical(
 int
 ml_bidi_convert_logical_char_index_to_visual(
 	ml_image_line_t *  line ,
-	int  char_index
+	int  char_index ,
+	int  correct_pos
 	)
 {
 	if( ! line->bidi_state)
@@ -1063,7 +1064,7 @@ ml_bidi_convert_logical_char_index_to_visual(
 	
 	if( 0 <= char_index && char_index < line->bidi_state->size)
 	{
-		if( ml_char_bytes_is( &line->chars[char_index] , " " , 1 , US_ASCII))
+		if( correct_pos)
 		{
 			if( ! line->bidi_state->base_is_rtl && char_index >= 2 &&
 				line->bidi_state->visual_order[char_index - 1] + 1 <
