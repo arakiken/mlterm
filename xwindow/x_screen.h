@@ -13,6 +13,7 @@
 #include  "x_window.h"
 #include  "x_selection.h"
 #include  "x_keymap.h"
+#include  "x_termcap.h"
 #include  "x_config_menu.h"
 #include  "x_mod_meta_mode.h"
 #include  "x_bel_mode.h"
@@ -74,6 +75,7 @@ typedef struct  x_screen
 	x_config_menu_event_listener_t  config_menu_listener ;
 
 	x_keymap_t *  keymap ;
+	x_termcap_entry_t *  termcap ;
 
 	/*
 	 * encoding proper aux
@@ -128,8 +130,9 @@ typedef struct  x_screen
 
 
 x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
-	x_color_manager_t *  color_man , u_int  brightness , u_int  fade_ratio ,
-	x_keymap_t *  keymap , u_int  screen_width_ratio , u_int  screen_height_ratio ,
+	x_color_manager_t *  color_man , x_termcap_entry_t *  termcap ,
+	u_int  brightness , u_int  fade_ratio , x_keymap_t *  keymap ,
+	u_int  screen_width_ratio , u_int  screen_height_ratio ,
 	int  xim_open_in_startup , x_mod_meta_mode_t  mod_meta_mode ,
 	x_bel_mode_t  bel_mode , int  prefer_utf8_selection , char *  pic_file_path ,
 	int  use_transbg , int  use_bidi , ml_vertical_mode_t  vertical_mode ,

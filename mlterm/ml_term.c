@@ -18,7 +18,6 @@ ml_term_t *
 ml_term_new(
 	u_int  cols ,
 	u_int  rows ,
-	ml_termcap_t *  termcap ,	/* can be NULL */
 	u_int  tab_size ,
 	u_int  log_size ,
 	ml_char_encoding_t  encoding ,
@@ -26,11 +25,11 @@ ml_term_new(
 	int  only_use_unicode_font ,
 	int  col_size_a ,
 	int  use_char_combining ,
-	int  use_multi_col_char
+	int  use_multi_col_char ,
+	int  use_bce
 	)
 {
 	ml_term_t *  term ;
-	int  use_bce ;
 
 	if( ( term = malloc( sizeof( ml_term_t))) == NULL)
 	{
@@ -43,15 +42,6 @@ ml_term_new(
 
 	memset( term , 0 , sizeof( ml_term_t)) ;
 
-	if( ( term->termcap = termcap))
-	{
-		use_bce = ml_termcap_get_bool_field( termcap , ML_BCE) ;
-	}
-	else
-	{
-		use_bce = 0 ;
-	}
-	
 	if( ( term->screen = ml_screen_new( cols , rows , tab_size , log_size , use_bce)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -245,20 +235,6 @@ ml_term_write(
 		return  0 ;
 	}
 	
-	if( term->termcap)
-	{
-		if( len == 1 && *buf == '\x7f')
-		{
-			buf = ml_termcap_get_str_field( term->termcap , ML_DELETE) ;
-			len = strlen( buf) ;
-		}
-		else if( len == 1 && *buf == '\x08')
-		{
-			buf = ml_termcap_get_str_field( term->termcap , ML_BACKSPACE) ;
-			len = strlen( buf) ;
-		}
-	}
-
 	return  ml_write_to_pty( term->pty , buf , len) ;
 }
 

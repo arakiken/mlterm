@@ -2686,7 +2686,15 @@ key_pressed(
 			}
 		}
 
-		if( size > 0)
+		if( ksym == XK_Delete && size == 1)
+		{
+			buf = x_termcap_get_str_field( screen->termcap , ML_DELETE) ;
+		}
+		else if( ksym == XK_BackSpace && size == 1)
+		{
+			buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE) ;
+		}
+		else if( size > 0)
 		{
 			buf = NULL ;
 			
@@ -5796,6 +5804,7 @@ x_screen_new(
 	ml_term_t *  term ,
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
+	x_termcap_entry_t *  termcap ,
 	u_int  brightness ,
 	u_int  fade_ratio ,
 	x_keymap_t *  keymap ,
@@ -6024,6 +6033,7 @@ x_screen_new(
 	}
 
 	screen->keymap = keymap ;
+	screen->termcap = termcap ;
 	
 	screen->mod_meta_mask = 0 ;
 	screen->mod_meta_mode = mod_meta_mode ;

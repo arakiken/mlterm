@@ -9,7 +9,6 @@
 #include  "ml_pty.h"
 #include  "ml_vt100_parser.h"
 #include  "ml_screen.h"
-#include  "ml_termcap.h"
 
 
 typedef enum  ml_special_visual
@@ -26,15 +25,14 @@ typedef struct ml_term
 	ml_pty_t *  pty ;
 	ml_vt100_parser_t *  parser ;
 	ml_screen_t *  screen ;
-	ml_termcap_t *  termcap ;
 
 } ml_term_t ;
 
 
-ml_term_t *  ml_term_new( u_int  cols , u_int  rows , ml_termcap_t *  termcap ,
+ml_term_t *  ml_term_new( u_int  cols , u_int  rows ,
 	u_int  tab_size , u_int  log_size , ml_char_encoding_t  encoding ,
 	int  not_use_unicode_font , int  only_use_unicode_font , int  col_size_a ,
-	int  use_char_combining , int  use_multi_col_char) ;
+	int  use_char_combining , int  use_multi_col_char , int  use_bce) ;
 
 int  ml_term_delete( ml_term_t *  term) ;
 

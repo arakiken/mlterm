@@ -15,14 +15,14 @@
 typedef struct  str_field_table
 {
 	char *  name ;
-	ml_termcap_str_field_t  field ;
+	x_termcap_str_field_t  field ;
 	
 } str_field_table_t ;
 
 typedef struct  bool_field_table
 {
 	char *  name ;
-	ml_termcap_bool_field_t  field ;
+	x_termcap_bool_field_t  field ;
 	
 } bool_field_table_t ;
 
@@ -108,7 +108,7 @@ parse_str_field_value(
 
 static int
 entry_init(
-	ml_termcap_t *  entry ,
+	x_termcap_entry_t *  entry ,
 	char *  name
 	)
 {
@@ -128,7 +128,7 @@ entry_init(
 
 static int
 entry_final(
-	ml_termcap_t *  entry
+	x_termcap_entry_t *  entry
 	)
 {
 	int  count ;
@@ -145,7 +145,7 @@ entry_final(
 
 static int
 parse_entry_db(
-	ml_termcap_t *  entry ,
+	x_termcap_entry_t *  entry ,
 	char *  entry_db
 	)
 {
@@ -192,7 +192,7 @@ parse_entry_db(
 	return  1 ;
 }
 
-static ml_termcap_t *
+static x_termcap_entry_t *
 search_entry(
 	x_termcap_t *  termcap ,
 	char *  name
@@ -244,7 +244,7 @@ x_termcap_init(
 	x_termcap_t *  termcap
 	)
 {
-	if( ( termcap->entries = malloc( sizeof( ml_termcap_t))) == NULL)
+	if( ( termcap->entries = malloc( sizeof( x_termcap_entry_t))) == NULL)
 	{
 		return  0 ;
 	}
@@ -338,7 +338,7 @@ x_termcap_read_conf(
 		}
 		else
 		{
-			ml_termcap_t *  entry ;
+			x_termcap_entry_t *  entry ;
 			char *  field ;
 			char *  db_p ;
 			
@@ -354,7 +354,7 @@ x_termcap_read_conf(
 					parse_entry_db( entry , db_p) ;
 				}
 				else if( ( p = realloc( termcap->entries ,
-					sizeof( ml_termcap_t) * (termcap->num_of_entries + 1))))
+					sizeof( x_termcap_entry_t) * (termcap->num_of_entries + 1))))
 				{
 					termcap->entries = p ;
 					entry = &termcap->entries[termcap->num_of_entries] ;
@@ -378,13 +378,13 @@ x_termcap_read_conf(
 	return  1 ;
 }
 
-ml_termcap_t *
+x_termcap_entry_t *
 x_termcap_get_entry(
 	x_termcap_t *  termcap ,
 	char *  name
 	)
 {
-	ml_termcap_t *  entry ;
+	x_termcap_entry_t *  entry ;
 	
 	if( ( entry = search_entry( termcap , name)))
 	{
@@ -393,4 +393,36 @@ x_termcap_get_entry(
 
 	/* '*' */
 	return  termcap->entries ;
+}
+
+char *
+x_termcap_get_str_field(
+	x_termcap_entry_t *  entry ,
+	x_termcap_str_field_t  field
+	)
+{
+	if( 0 <= field && field < MAX_TERMCAP_STR_FIELDS)
+	{
+		return  entry->str_fields[field] ;
+	}
+	else
+	{
+		return  NULL ;
+	}
+}
+
+int
+x_termcap_get_bool_field(
+	x_termcap_entry_t *  entry ,
+	x_termcap_bool_field_t  field
+	)
+{
+	if( 0 <= field && field < MAX_TERMCAP_BOOL_FIELDS)
+	{
+		return  entry->bool_fields[field] ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }

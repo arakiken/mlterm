@@ -152,8 +152,8 @@ open_term(
 	x_color_manager_t *  color_man ;
 	x_window_t *  root ;
 	mkf_charset_t  usascii_font_cs ;
-	ml_termcap_t *  termcap ;
 	int  usascii_font_cs_changable ;
+	x_termcap_entry_t *  termcap ;
 
 	ml_term_t *  term ;
 	char *  env[4] ;
@@ -186,20 +186,20 @@ open_term(
 	sb_screen = NULL ;
 	term = NULL ;
 
+	termcap = x_termcap_get_entry( &term_man->termcap , term_man->conf.term_type) ;
+	
 	if( term_man->num_of_stray_terms)
 	{
 		term = term_man->stray_terms[-- term_man->num_of_stray_terms] ;
 	}
 	else
 	{
-		termcap = x_termcap_get_entry( &term_man->termcap , term_man->conf.term_type) ;
-
-		if( ( term = ml_term_new( term_man->conf.cols , term_man->conf.rows , termcap , 
+		if( ( term = ml_term_new( term_man->conf.cols , term_man->conf.rows ,
 				term_man->conf.tab_size , term_man->conf.num_of_log_lines ,
 				term_man->conf.encoding , term_man->conf.not_use_unicode_font ,
 				term_man->conf.only_use_unicode_font , term_man->conf.col_size_a ,
-				term_man->conf.use_char_combining , term_man->conf.use_multi_col_char))
-				== NULL)
+				term_man->conf.use_char_combining , term_man->conf.use_multi_col_char ,
+				x_termcap_get_bool_field( termcap , ML_BCE))) == NULL)
 		{
 			goto  error ;
 		}
@@ -256,7 +256,8 @@ open_term(
 		goto  error ;
 	}
 
-	if( ( screen = x_screen_new( term , font_man , color_man , term_man->conf.brightness ,
+	if( ( screen = x_screen_new( term , font_man , color_man , termcap ,
+			term_man->conf.brightness ,
 			term_man->conf.fade_ratio , &term_man->keymap ,
 			term_man->conf.screen_width_ratio , term_man->conf.screen_height_ratio ,
 			term_man->conf.xim_open_in_startup , term_man->conf.mod_meta_mode ,
