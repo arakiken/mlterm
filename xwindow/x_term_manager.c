@@ -288,7 +288,9 @@ open_pty_intern(
 }
 
 static int
-open_term(void)
+open_term(
+	char *  pty
+	)
 {
 	ml_term_t *  term ;
 	x_display_t *  disp ;
@@ -316,9 +318,19 @@ open_term(void)
 		return  0 ;
 	}
 
-	if( ( term = create_term_intern()) == NULL)
+	if( pty)
 	{
-		return  0 ;
+		if( ( term = ml_get_term( pty)) == NULL)
+		{
+			return  0 ;
+		}
+	}
+	else
+	{
+		if( ( term = ml_get_term( NULL)) == NULL && ( term = create_term_intern()) == NULL)
+		{
+			return  0 ;
+		}
 	}
 
 	if( ( disp = x_display_open( main_config.disp_name)) == NULL)
@@ -682,7 +694,7 @@ open_screen(
 	void *  p
 	)
 {
-	if( ! open_term())
+	if( ! open_term(NULL))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " open_term failed.\n") ;
@@ -1705,9 +1717,9 @@ client_connected(void)
 	char *  args ;
 	char **  argv ;
 	int  argc ;
-	kik_conf_t *  conf ;
-	main_config_t  orig_conf ;
 
+	fp = NULL ;
+	
 	if( ( fd = accept( sock_fd , (struct sockaddr *) &addr , &sock_len)) < 0)
 	{
 	#ifdef  DEBUG
@@ -1719,38 +1731,34 @@ client_connected(void)
 
 	if( ( fp = fdopen( fd , "r")) == NULL)
 	{
-		close( fd) ;
-		
-		return ;
+		goto  error ;
 	}
 
 	if( ( from = kik_file_new( fp)) == NULL)
 	{
-		fclose( fp) ;
-	
-		return ;
+		goto  error ;
 	}
 
 	if( ( line = kik_file_get_line( from , &line_len)) == NULL)
 	{
 		kik_file_delete( from) ;
-		fclose( fp) ;
-
-		return ;
+		
+		goto  error ;
 	}
 
 	if( ( args = alloca( line_len)) == NULL)
 	{
-		return ;
+		kik_file_delete( from) ;
+
+		goto  error ;
 	}
 
 	strncpy( args , line , line_len - 1) ;
 	args[line_len - 1] = '\0' ;
 
 	kik_file_delete( from) ;
-	fclose( fp) ;
-
-
+	
+	
 	/*
 	 * parsing options.
 	 */
@@ -1758,7 +1766,7 @@ client_connected(void)
 	argc = 0 ;
 	if( ( argv = alloca( sizeof( char*) * line_len)) == NULL)
 	{
-		return ;
+		goto  error ;
 	}
 
 	while( ( argv[argc] = kik_str_sep( &args , " \t")))
@@ -1767,16 +1775,6 @@ client_connected(void)
 		{
 			argc ++ ;
 		}
-	}
-
-	if( argc == 0)
-	{
-		return ;
-	}
-	
-	if( ( conf = get_min_conf( argc , argv)) == NULL)
-	{
-		return ;
 	}
 
 #ifdef  __DEBUG
@@ -1790,29 +1788,89 @@ client_connected(void)
 	}
 #endif
 
-	if( ! kik_conf_parse_args( conf , &argc , &argv))
+	if( argc == 0)
 	{
+		goto  error ;
+	}
+
+	if( argc >= 2 && strncmp( argv[1] , "pty_list" , 4) == 0)
+	{
+		char *  list ;
+
+		if( ( list = ml_get_pty_list()) == NULL)
+		{
+			goto  error ;
+		}
+
+		write( fd , list , strlen( list)) ;
+		write( fd , "\n" , 1) ;
+	}
+	else
+	{
+		kik_conf_t *  conf ;
+		main_config_t  orig_conf ;
+		char *  pty ;
+		
+		if( argc >= 2 && strncmp( argv[1] , "/dev" , 4) == 0)
+		{
+			pty = argv[1] ;
+			argv[1] = argv[0] ;
+			argc -- ;
+		}
+		else
+		{
+			pty = NULL ;
+		}
+
+		if( ( conf = get_min_conf( argc , argv)) == NULL)
+		{
+			goto  error ;
+		}
+
+		if( ! kik_conf_parse_args( conf , &argc , &argv))
+		{
+			kik_conf_delete( conf) ;
+
+			goto  error ;
+		}
+
+		orig_conf = main_config ;
+
+		config_init( conf , argc , argv) ;
+
 		kik_conf_delete( conf) ;
 
-		return ;
+		if( ! open_term( pty))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " open_term() failed.\n") ;
+		#endif
+		}
+		
+		config_final() ;
+
+		main_config = orig_conf ;
 	}
-	
-	orig_conf = main_config ;
 
-	config_init( conf , argc , argv) ;
+	fclose( fp) ;
+		
+	return ;
 
-	kik_conf_delete( conf) ;
-	
-	if( ! open_term())
+error:
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " open_term() failed.\n") ;
-	#endif
+		char  msg[] = "Error happened.\n" ;
+		
+		write( fd , msg , sizeof( msg)) ;
+
+		if( fp)
+		{
+			fclose( fp) ;
+		}
+		else
+		{
+			close( fd) ;
+		}
 	}
-
-	config_final() ;
-
-	main_config = orig_conf ;
 }
 
 static void
@@ -2453,7 +2511,7 @@ x_term_manager_event_loop(void)
 
 	for( count = 0 ; count < num_of_startup_screens ; count ++)
 	{
-		if( ! open_term())
+		if( ! open_term(NULL))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " open_term() failed.\n") ;

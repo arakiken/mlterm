@@ -58,6 +58,8 @@ main(
 	int  sock_fd ;
 	struct sockaddr_un  servaddr ;
 	int  count ;
+	char  buf[256] ;
+	size_t  len ;
 
 	for( count = 0 ; count < argc ; count ++)
 	{
@@ -82,6 +84,8 @@ main(
 
 	if( ( sock_fd = socket( AF_LOCAL , SOCK_STREAM , 0)) < 0)
 	{
+		fprintf( stderr , "Mlterm server dead.\n") ;
+		
 		return  1 ;
 	}
 	
@@ -91,8 +95,18 @@ main(
 	
 	if( connect( sock_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) < 0)
 	{
+		fprintf( stderr , "Mlterm server dead.\n") ;
+
 		return  1 ;
 	}
+
+#if  0
+	/* Extract program name. */
+	if( ( p = strrchr( argv[0] , '/')))
+	{
+		argv[0] = p + 1 ;
+	}
+#endif
 
 	count = 0 ;
 	while( 1)
@@ -110,6 +124,13 @@ main(
 			break ;
 		}
 	}
+
+	while( ( len = read( sock_fd , buf , sizeof( buf))) > 0)
+	{
+		write( STDOUT_FILENO , buf , len) ;
+	}
+	
+	close( sock_fd) ;
 
 	return  0 ;
 }

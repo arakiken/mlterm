@@ -117,7 +117,8 @@ ml_get_term(
 
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
-		if( strcmp( dev , ml_term_get_slave_name( terms[count])) == 0 && ! is_active[count])
+		if( ( dev == NULL || strcmp( dev , ml_term_get_slave_name( terms[count])) == 0) &&
+			! is_active[count])
 		{
 			is_active[count] = 1 ;
 			
