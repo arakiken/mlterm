@@ -1,0 +1,260 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+
+<head>
+	<title>How to create a pixmap scrollbar</title>
+	<meta http-equiv="Content-type" content="text/html; charset=ISO-8859-1">
+	<style type="text/css">
+		.fig {
+			text-align:center;
+		}
+		table {
+			border-width: 1px;
+			border-style: solid;
+			width:100%;
+		}
+		th {
+			border-width: 1px;
+			border-style: solid;
+			text-align: left;
+		}
+		tr {
+			border-width: 1px;
+			border-style: solid;
+		}
+		td {
+			border-width: 1px;
+			border-style: solid;
+		}
+		.footer {
+			border-width: 1px 0 0 0;
+			border-style: solid;
+			text-align: right;
+		}
+	</style>
+</head>
+
+<h1>How to create a pixmap scrollbar for mlterm</h1>
+
+<h2>1. Introduction</h2>
+
+This document provide a simple guide for creating pixmap scrollbar for mlterm
+using a pixmap_engine plugin. The pixmap_engine has been a part of mlterm
+since version 2.8.0.
+
+<h2>2. Image file</h2>
+
+<p>
+To create the pixmap scrollbar, you will need making images which construct a
+scrollbar as the below figure. The images must be formatted as PNG, and you
+must not change the file name. You need not make all images. For
+example, in case of the below figure, there are not bg_top.png and
+bg_bottom.png.
+</p>
+
+<div class="fig">
+<img src="./HOWTO.images/fig1.png">
+</div>
+
+<h2>3. Location and 'rc' file</h2>
+
+<p>
+The pixmap scrollbar location is
+$PREFIX/share/mlterm/scrollbars/[scrollbar_name]/ or
+$HOME/.mlterm/scrollbars/[scrollbar_name]/. The first thing you will need to do
+is to put the file called 'rc' into the [scrollbar_name] directory.  The 'rc'
+file is a simple text file. It has some parameters which configure how the
+pixmap scrollbar is shown. In the 'rc' file, lines starting with '#' are
+ignored and the first line must be the following line:
+</p>
+
+<pre>
+engine = pixmap_engine
+</pre>
+
+<h2>4. Parameter</h2>
+
+<p>
+For minimum configuration, you need the following parameters:
+</p>
+
+<table>
+	<tr>
+		<th>
+		key
+		</th>
+		<th>
+		type
+		</th>
+		<th>
+		default
+		</th>
+		<th>
+		description
+		</th>
+	</tr>
+	<tr>
+		<td>
+		witdh
+		</td>
+		<td>
+		decimal number
+		</td>
+		<td>
+		0
+		</td>
+		<td>
+		width of scrollbar (pixel)
+		</td>
+	</tr>
+	<tr>
+		<td>
+		button_up_height
+		</td>
+		<td>
+		decimal number
+		</td>
+		<td>
+		0
+		</td>
+		<td>
+		height of button_up.png (pixel)
+		</td>
+	</tr>
+	<tr>
+		<td>
+		button_down_height
+		</td>
+		<td>
+		decimal number
+		</td>
+		<td>
+		0
+		</td>
+		<td>
+		height of button_down.png (pixel)
+		</td>
+	</tr>
+	<tr>
+		<td>
+		top_margin
+		</td>
+		<td>
+		decimal number
+		</td>
+		<td>
+		0
+		</td>
+		<td>
+		top margin for movable area of scrollbar (pixel)
+		</td>
+	</tr>
+	<tr>
+		<td>
+		bottom_margin
+		</td>
+		<td>
+		decimal number
+		</td>
+		<td>
+		0
+		</td>
+		<td>
+		bottom margin for movable area of scrollbar (pixel)
+		</td>
+	</tr>
+</table>
+
+<div class="fig">
+<img src="./HOWTO.images/fig2.png">
+<img src="./HOWTO.images/fig3.png">
+</div>
+
+<p>
+Also, for more flexible design, optional parameters are available.
+</p>
+
+<table>
+	<tr>
+		<th>
+		key
+		</th>
+		<th>
+		type
+		</th>
+		<th>
+		default
+		</th>
+		<th>
+		description
+		</th>
+	</tr>
+	<tr>
+		<td>
+		button_layout
+		</td>
+		<td>
+		string
+		</td>
+		<td>
+		"none"
+		</td>
+		<td>
+		layout of button ("none", "northgravity", "southgravity")
+		</td>
+	</tr>
+	<tr>
+		<td>
+		bg_tile
+		</td>
+		<td>
+		string
+		</td>
+		<td>
+		"true"
+		</td>
+		<td>
+		bg_body.png is tiled or scaled ("true", "false")
+		</td>
+	</tr>
+	<tr>
+		<td>
+		slider_tile
+		</td>
+		<td>
+		string
+		</td>
+		<td>
+		"false"
+		</td>
+		<td>
+		slider_body.png is tiled or scaled ("true", "false")
+		</td>
+	</tr>
+	<tr>
+		<td>
+		bg_enable_trans
+		</td>
+		<td>
+		string
+		</td>
+		<td>
+		"false"
+		</td>
+		<td>
+		use transparent background ("true", "false")
+		</td>
+	</tr>
+</table>
+
+<div class="fig">
+<img src="./HOWTO.images/fig4.png">
+</div>
+
+<div class="footer">
+revision: $Id$
+</div>
+
+</body>
+</html>
+

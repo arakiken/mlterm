@@ -57,7 +57,7 @@ AC_MSG_CHECKING([for undefined symbol])
 if test "x$allow_undefined_flag" = "xunsupported" ; then
 	AC_MSG_RESULT([not supported])
 	NO_UNDEFINED_FLAG="-no-undefined"
-	KIK_LIBS='-L${top_builddir}/kiklib/src/ ${top_builddir}/kiklib/src/libkik.la'
+	KIK_LIBS='-L${top_builddir}/kiklib/src -lkik'
 else
 	AC_MSG_RESULT(supported)
 	NO_UNDEFINED_FLAG=""

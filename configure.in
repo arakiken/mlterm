@@ -580,10 +580,10 @@ fi
 
 case "${host_os}" in
 mingw32*)
-#	MAKE_DIRS="mlterm win32"
-	MAKE_DIRS="mlterm"
-#	OUTPUT_FILES="Makefile mlterm/Makefile win32/Makefile etc/Makefile"
+	MAKE_DIRS="mlterm ${MAKE_DIRS}"
+#	MAKE_DIRS="${MAKE_DIRS} win32"
 	OUTPUT_FILES="Makefile mlterm/Makefile etc/Makefile"
+#	OUTPUT_FILES="${OUTPUT_FILES} win32/Makefile"
 	ML_PTY_OBJ="ml_pty_win32.o"
 	PLATFORM_LIB_LDFLAGS="-no-undefined"
 	;;
@@ -622,8 +622,8 @@ AC_MSG_CHECKING([for undefined symbol])
 if test "x$allow_undefined_flag" = "xunsupported" ; then
 	AC_MSG_RESULT([not supported])
 	NO_UNDEFINED_FLAG="-no-undefined"
-	KIK_LIBS_FOR_MODULE='-L${top_builddir}/kiklib/src/ ${top_builddir}/kiklib/src/libkik.la'
-	MKF_LIBS_FOR_MODULE='-L${top_builddir}/mkf/lib ${top_builddir}/mkf/lib/libmkf.la'
+	KIK_LIBS_FOR_MODULE='-L${top_builddir}/kiklib/src -lkik'
+	MKF_LIBS_FOR_MODULE='-L${top_builddir}/mkf/lib -lmkf'
 else
 	AC_MSG_RESULT(supported)
 	NO_UNDEFINED_FLAG=""

@@ -67,7 +67,7 @@ $(LIBNAME).a : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ)
 
 $(LIBNAME).la : $(OBJ)
-	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(PREFIX)/lib \
+	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(LIBDIR) \
 		@NO_UNDEFINED_FLAG@ -version-info $(MAJOR):$(MINOR):0 @KIK_LIBS@
 
 $(INCDIR_TMP)/mkf :

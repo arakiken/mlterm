@@ -1,3 +1,19 @@
+2005-01-27 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* contrib/scrollbar/pixmap_engine/HOWTO.html,
+	  contrib/scrollbar/pixmap_engine/HOWTO.images/fig*.png: new files.
+
+	The following changes are made to fix compilation errors on mingw32.
+	* kiklib/src/Makefile.in, mkf/lib/Makefile.in:
+	  -rpath $(PREFIX)/lib  --->  -rpath $(LIBDIR)
+	* mkf/configure.in:
+	  KIK_LIBS='-L${top_builddir}/kiklib/src -lkik'
+	* configure.in:
+	  KIK_LIBS_FOR_MODULE='-L${top_builddir}/kiklib/src -lkik'
+	  MKF_LIBS_FOR_MODULE='-L${top_builddir}/mkf/lib -lmkf'
+
+	* inputmethod/scim/im_scim_mod_if.c: fixed typo.
+
 2005-01-26 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/scim/im_scim.cpp, inputmethod/scim/im_scim_mod_if.c.

@@ -754,11 +754,10 @@ im_scim_get_info(
 	)
 {
 	im_info_t *  result ;
-	int  i ;
 
 	if( ! ( result = malloc( sizeof( im_info_t))))
 	{
-		goto  NULL ;
+		return  NULL ;
 	}
 
 	result->id = strdup( "scim") ;
