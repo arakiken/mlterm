@@ -244,7 +244,9 @@ draw_line(
 			if( ! ml_window_draw_str_to_eol( &termscr->window , &line->chars[beg_char_index] ,
 				num_of_redrawn , beg_x , y ,
 				ml_line_height( termscr->font_man) ,
-				ml_line_height_to_baseline( termscr->font_man)))
+				ml_line_height_to_baseline( termscr->font_man) ,
+				ml_line_top_margin( termscr->font_man) ,
+				ml_line_bottom_margin( termscr->font_man)))
 			{
 				return  0 ;
 			}
@@ -254,7 +256,9 @@ draw_line(
 			if( ! ml_window_draw_str( &termscr->window , &line->chars[beg_char_index] ,
 				num_of_redrawn , beg_x , y ,
 				ml_line_height( termscr->font_man) ,
-				ml_line_height_to_baseline( termscr->font_man)))
+				ml_line_height_to_baseline( termscr->font_man) ,
+				ml_line_top_margin( termscr->font_man) ,
+				ml_line_bottom_margin( termscr->font_man)))
 			{
 				return  0 ;
 			}
@@ -320,7 +324,9 @@ draw_cursor(
 	{
 		ml_window_draw_str( &termscr->window , ch , 1 , x , y ,
 			ml_line_height( termscr->font_man) ,
-			ml_line_height_to_baseline( termscr->font_man)) ;
+			ml_line_height_to_baseline( termscr->font_man) ,
+			ml_line_top_margin( termscr->font_man) ,
+			ml_line_bottom_margin( termscr->font_man)) ;
 	}
 	else
 	{
@@ -333,7 +339,10 @@ draw_cursor(
 		else
 		{
 			ml_window_draw_rect_frame( &termscr->window ,
-				x + 2 , y + 2 , x + ml_char_width(ch) + 1 , y + ml_char_height(ch) + 1) ;
+				x + 2 ,
+				y + ml_line_top_margin( termscr->font_man) + 2 ,
+				x + ml_char_width(ch) + 1 ,
+				y + ml_line_top_margin( termscr->font_man) + ml_char_height(ch) + 1) ;
 		}
 	}
 
@@ -4677,17 +4686,17 @@ ml_term_screen_get_font(
 	}
 
 #ifdef  DEBUG
-	if( ml_line_height( termscr->font_man) < font->height)
+	if( termscr->font_man->usascii_font->height < font->height)
 	{
 		kik_warn_printf( KIK_DEBUG_TAG
 			" font(cs %x) height %d is larger than the basic line height %d.\n" ,
-			ml_font_cs(font) , font->height , ml_line_height( termscr->font_man)) ;
+			ml_font_cs(font) , font->height , termscr->font_man->usascii_font->height) ;
 	}
-	else if( ml_line_height( termscr->font_man) > font->height)
+	else if( termscr->font_man->usascii_font->height > font->height)
 	{
 		kik_warn_printf( KIK_DEBUG_TAG
 			" font(cs %x) height %d is smaller than the basic line height %d.\n" ,
-			ml_font_cs(font) , font->height , ml_line_height( termscr->font_man)) ;
+			ml_font_cs(font) , font->height , termscr->font_man->usascii_font->height) ;
 	}
 #endif
 

@@ -1,0 +1,35 @@
+#ISO8859_1=Courier 10 Pitch-iso10646-1;
+#ISO8859_2=Thryomanes-iso10646-1;
+#ISO8859_3=Thryomanes-iso10646-1;
+#ISO8859_4=Thryomanes-iso10646-1;
+#ISO8859_5=Thryomanes-iso10646-1;
+#ISO8859_7=Thryomanes-iso10646-1;
+#ISO8859_9=Thryomanes-iso10646-1;
+#ISO8859_10=Thryomanes-iso10646-1;
+#ISO8859_13=Thryomanes-iso10646-1;
+#ISO8859_14=Thryomanes-iso10646-1;
+#ISO8859_15=Thryomanes-iso10646-1;
+#KOI8_R=Nimbus Mono L-iso10646-1;
+#KOI8_U=Nimbus Mono L-iso10646-1;
+#JISX0208_1978=Kochi Gothic-iso10646-1;
+#JISX0208_1983=Kochi Gothic-iso10646-1;
+#JISX0208_1990=Kochi Gothic-iso10646-1;
+#KSX1001_1997=dotum-iso10646-1;
+#BIG5=AR PL Mingti2L Big5-iso10646-1;
+#GB2312_80=AR PL SungtiL GB-iso10646-1;
+#GBK=AR PL SungtiL GB-iso10646-1;
+
+#ISO10646_UCS2_1=Courier 10 Pitch-iso10646-1;
+#ISO10646_UCS2_1=Thryomanes-iso10646-1;
+
+# Japanese speakers may want to enable the following setting.
+#ISO10646_UCS2_1_BIWIDTH=Kochi Gothic-iso10646-1;
+
+# Korean speakers may want to enable the following setting.
+#ISO10646_UCS2_1_BIWIDTH=dotum-iso10646-1;
+
+# Traditional Chinese speakers may want to enable the following setting.
+#ISO10646_UCS2_1_BIWIDTH=AR PL Mingti2L Big5-iso10646-1;
+
+# Simplified Chinese speakers may want to enable the following setting.
+#ISO10646_UCS2_1_BIWIDTH=AR PL SungtiL GB-iso10646-1;

@@ -84,6 +84,10 @@ u_int  ml_line_height( ml_font_manager_t *  font_man) ;
 
 u_int  ml_line_height_to_baseline( ml_font_manager_t *  font_man) ;
 
+u_int  ml_line_top_margin( ml_font_manager_t *  font_man) ;
+
+u_int  ml_line_bottom_margin( ml_font_manager_t *  font_man) ;
+
 int  ml_font_manager_usascii_font_cs_changed( ml_font_manager_t *  font_man ,
 	mkf_charset_t  usascii_font_cs) ;
 

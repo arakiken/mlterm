@@ -746,6 +746,22 @@ ml_line_height_to_baseline(
 	return  usascii_font->height_to_baseline + font_man->line_space / 2 ;
 }
 
+u_int
+ml_line_top_margin(
+	ml_font_manager_t *  font_man
+	)
+{
+	return  font_man->line_space / 2 ;
+}
+
+u_int
+ml_line_bottom_margin(
+	ml_font_manager_t *  font_man
+	)
+{
+	return  font_man->line_space / 2 ;
+}
+
 int
 ml_font_manager_usascii_font_cs_changed(
 	ml_font_manager_t *  font_man ,

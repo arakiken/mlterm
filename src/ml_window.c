@@ -141,11 +141,13 @@ xft_draw_str(
 	ml_window_t *  win ,
 	u_int *  updated_width ,
 	ml_char_t *  chars ,
-	u_int	num_of_chars ,
+	u_int  num_of_chars ,
 	int  x ,
 	int  y ,
-	u_int	height ,
-	u_int	std_height_to_baseline
+	u_int  height ,
+	u_int  std_height_to_baseline ,
+	u_int  top_margin ,
+	u_int  bottom_margin
 	)
 {
 	int  counter ;
@@ -382,7 +384,7 @@ xft_draw_str(
 			#else
 				XSetForeground( win->display , win->gc , bg_color->pixel) ;
 				XFillRectangle( win->display , win->drawable , win->gc ,
-					x  , y  , current_width - x , height) ;
+					x , y , current_width - x , height) ;
 				XSetForeground( win->display , win->gc , FG_COLOR_PIXEL(win)) ;
 			#endif
 			}
@@ -436,7 +438,7 @@ xft_draw_str(
 			if( decor & FONT_UNDERLINE)
 			{
 				XFillRectangle( win->display , win->drawable , win->gc ,
-					x , y + height - 1 , current_width - x , 1) ;
+					x , y + height - bottom_margin - 1 , current_width - x , 1) ;
 			}
 
 			if( decor & FONT_LEFTLINE)
@@ -673,11 +675,13 @@ draw_str(
 	ml_window_t *  win ,
 	u_int *  updated_width ,
 	ml_char_t *  chars ,
-	u_int	num_of_chars ,
+	u_int  num_of_chars ,
 	int  x ,
 	int  y ,
-	u_int	height ,
-	u_int	std_height_to_baseline
+	u_int  height ,
+	u_int  std_height_to_baseline ,
+	u_int  top_margin ,
+	u_int  bottom_margin
 	)
 {
 	int  counter ;
@@ -748,7 +752,7 @@ draw_str(
 	if( font->xft_font)
 	{
 		return  xft_draw_str( win , updated_width , chars , num_of_chars ,
-				x , y , height , std_height_to_baseline) ;
+				x , y , height , std_height_to_baseline , top_margin , bottom_margin) ;
 	}
 #endif
 
@@ -977,7 +981,7 @@ draw_str(
 			if( decor & FONT_UNDERLINE)
 			{
 				XFillRectangle( win->display , win->drawable , win->gc ,
-					x , y + height - 1 , current_width - x , 1) ;
+					x , y + height - bottom_margin - 1 , current_width - x , 1) ;
 			}
 
 			if( decor & FONT_LEFTLINE)
@@ -3300,14 +3304,16 @@ ml_window_draw_str(
 	u_int	num_of_chars ,
 	int  x ,
 	int  y ,
-	u_int	height ,
-	u_int	height_to_baseline
+	u_int  height ,
+	u_int  height_to_baseline ,
+	u_int  top_margin ,
+	u_int  bottom_margin
 	)
 {
 	u_int  updated_width ;
 	
 	if( ! draw_str( win , &updated_width , chars , num_of_chars ,
-		x , y , height , height_to_baseline))
+		x , y , height , height_to_baseline , top_margin , bottom_margin))
 	{
 		return  0 ;
 	}
@@ -3331,17 +3337,19 @@ int
 ml_window_draw_str_to_eol(
 	ml_window_t *  win ,
 	ml_char_t *  chars ,
-	u_int	num_of_chars ,
+	u_int  num_of_chars ,
 	int  x ,
 	int  y ,
-	u_int	height ,
-	u_int	height_to_baseline
+	u_int  height ,
+	u_int  height_to_baseline ,
+	u_int  top_margin ,
+	u_int  bottom_margin
 	)
 {
 	u_int  updated_width ;
 
 	if( ! draw_str( win , &updated_width , chars , num_of_chars ,
-		x , y , height , height_to_baseline))
+		x , y , height , height_to_baseline , top_margin , bottom_margin))
 	{
 		return	0 ;
 	}
@@ -3376,15 +3384,15 @@ ml_window_draw_cursor(
 	if( win->wall_picture_is_set)
 	{
 		win->wall_picture_is_set = 0 ;
-		result = draw_str( win , NULL , ch , 1 , x , y , height , height_to_baseline) ;
+		result = draw_str( win , NULL , ch , 1 , x , y , height , height_to_baseline , 0 , 0) ;
 		win->wall_picture_is_set = 1 ;
 	}
 	else
 	{
-		result = draw_str( win , NULL , ch , 1 , x , y , height , height_to_baseline) ;
+		result = draw_str( win , NULL , ch , 1 , x , y , height , height_to_baseline , 0 , 0) ;
 	}
 	
-	return  result ;	
+	return  result ;
 }
 
 int
@@ -3524,6 +3532,76 @@ ml_set_icon_name(
 	{
 		/* XXX which is better , doing this or return 0 without doing anything ? */
 		XSetIconName( win->display , ml_get_root_window( win)->my_window , name) ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_window_get_visible_geometry(
+	ml_window_t *  win ,
+	int *  x ,		/* x relative to parent window */
+	int *  y ,		/* y relative to parent window */
+	int *  my_x ,		/* x relative to my window */
+	int *  my_y ,		/* y relative to my window */
+	u_int *  width ,
+	u_int *  height
+	)
+{
+	Window  child ;
+	
+	XTranslateCoordinates( win->display , win->my_window ,
+		DefaultRootWindow( win->display) , 0 , 0 ,
+		x , y , &child) ;
+
+	if( *x < 0)
+	{
+		if( ACTUAL_WIDTH(win) <= abs(*x))
+		{
+			/* no visible window */
+			
+			return  0 ;
+		}
+
+		*my_x = abs(*x) ;
+		
+		*width = ACTUAL_WIDTH(win) - abs(*x) ;
+		*x = 0 ;
+	}
+	else
+	{
+		*my_x = 0 ;
+		*width = ACTUAL_WIDTH(win) ;
+	}
+
+	if( *y < 0)
+	{
+		if( ACTUAL_HEIGHT(win) <= abs(*y))
+		{
+			/* no visible window */
+			
+			return  0 ;
+		}
+
+		*my_y = abs(*y) ;
+
+		*height = ACTUAL_HEIGHT(win) - abs(*y) ;
+		*y = 0 ;
+	}
+	else
+	{
+		*my_y = 0 ;
+		*height = ACTUAL_HEIGHT(win) ;
+	}
+
+	if( *x + *width > DisplayWidth( win->display , win->screen))
+	{
+		*width = DisplayWidth( win->display , win->screen) - *x ;
+	}
+
+	if( *y + *height > DisplayHeight( win->display , win->screen))
+	{
+		*height = DisplayHeight( win->display , win->screen) - *y ;
 	}
 
 	return  1 ;

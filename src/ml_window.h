@@ -241,10 +241,12 @@ int  ml_window_scroll_downward( ml_window_t *  win , u_int  height) ;
 int  ml_window_scroll_downward_region( ml_window_t *  win , int  start_y , int  end_y , u_int  height) ;
 
 int  ml_window_draw_str( ml_window_t *  win , ml_char_t *  chars , u_int  num_of_chars ,
-	int  x , int  y , u_int  height , u_int  height_to_baseline) ;
+	int  x , int  y , u_int  height , u_int  height_to_baseline ,
+	u_int  top_margin , u_int  bottom_margin) ;
 
 int  ml_window_draw_str_to_eol( ml_window_t *  win , ml_char_t *  chars , u_int  num_of_chars ,
-	int  x , int  y , u_int  height , u_int  height_to_baseline) ;
+	int  x , int  y , u_int  height , u_int  height_to_baseline ,
+	u_int  top_margin , u_int  bottom_margin) ;
 
 int  ml_window_draw_cursor( ml_window_t *  win , ml_char_t *  ch ,
 	int  x , int  y , u_int  height , u_int  height_to_baseline) ;
@@ -266,6 +268,8 @@ int  ml_set_window_name( ml_window_t *  win , u_char *  name) ;
 
 int  ml_set_icon_name( ml_window_t *  win , u_char *  name) ;
 
+int  ml_window_get_visible_geometry( ml_window_t *  win ,
+	int *  x , int *  y , int *  my_x , int *  my_y , u_int *  width , u_int *  height) ;
 
 #if  0
 /* not used */

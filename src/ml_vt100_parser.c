@@ -2358,7 +2358,7 @@ ml_parse_vt100_sequence(
 				break ;
 			}
 		}
-
+		
 		ml_term_screen_stop_vt100_cmd( vt100_parser->termscr) ;
 	}
 
