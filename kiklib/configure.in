@@ -15,6 +15,7 @@ dnl
 dnl --- libtool ---
 dnl
 AC_LIBTOOL_WIN32_DLL
+AC_LIBTOOL_DLOPEN
 AC_ARG_WITH(libtool,
 	[  --with-libtool          libtool path[without]],
 	libtool=$with_libtool)
@@ -27,14 +28,14 @@ fi
 AC_SUBST(LIBTOOL)
 
 dnl
-dnl --- header checks ---
+dnl --- Checks for header files ---
 dnl
 dnl NOTE: if --with-libtool is specified, stdc header isn't detected.
 AC_HEADER_STDC
 AC_CHECK_HEADERS(langinfo.h dlfcn.h dl.h stropts.h sys/stropts.h)
 
 dnl
-dnl --- check for library functions ---
+dnl --- Checks for library functions ---
 dnl
 AC_CHECK_FUNCS(strsep fgetln basename isastream seteuid setegid geteuid getegid snprintf usleep unsetenv flock)
 AC_FUNC_ALLOCA
@@ -62,11 +63,11 @@ AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 
 dnl
-dnl --- platform dependent stuff ---
+dnl --- Platform dependent stuff ---
 dnl
 kik_cv_cygwin=no
 kik_cv_mingw32=no
-case "${target_os}" in
+case "${host_os}" in
 cygwin*)
 	kik_cv_cygwin=yes
 	;;
@@ -74,12 +75,9 @@ mingw32*)
 	kik_cv_mingw32=yes
 	AC_DEFINE(USE_WIN32API)
 	;;
-darwin*|rhapsody*)
-	;;
 *)
 	;;
 esac
-
 
 dnl
 dnl --- socklen_t ---
@@ -111,68 +109,78 @@ fi
 
 
 dnl
-dnl --- libxpg4 check (for FreeBSD) ---
+dnl --- Check for libxpg4 (for FreeBSD) ---
 dnl
 AC_CHECK_LIB(xpg4, setlocale, XPG4_LIBS=-lxpg4)
 AC_SUBST(XPG4_LIBS)
 
 
 dnl
-dnl --- dynamic linking loader checks ---
+dnl --- Checks for dynamic linking loader ---
 dnl
-DL_MODULE=none
+DL_LOADER=none
 DL_LIBS=
-dnl LoadLibrary()  (Windows)
-if test "$kik_cv_mingw32" = yes -o "$kik_cv_cygwin" = yes ; then
-	DL_MODULE=win32
-	DL_LIBS=
-fi
-dnl dlopen()
-if test "$DL_MODULE" = none ; then
-	AC_CHECK_FUNC(dlopen,
+DL_CFLAGS=
+dnl lt_dlopenext in libltdl
+AC_ARG_WITH(libltdl,
+	[  --with-libltdl[=PREFIX] load modules with libltdl[without]],,
+	[with_libltdl=no])
+if test "x$with_libltdl" != "xno" ; then
+	if test "x$with_libltdl" != "xyes"; then
+		DL_CFLAGS="-I$with_libltdl/include"
+		kik_libltdl_libdir="-L$with_libltdl/lib"
+	fi
+	kik_ldflags_save="$LDFLAGS"
+	LDFLAGS="$LDFLAGS $kik_libltdl_libdir"
+	AC_CHECK_LIB(ltdl, lt_dlopenext,
 			[
-			DL_MODULE=dl
-			DL_LIBS=
-			], [])
+			DL_LOADER=ltdl
+			DL_LIBS="$kik_libltdl_libdir -lltdl"
+			],[
+			echo ""
+			echo "Could not find libltdl"
+			echo ""
+			exit 1])
+	LDFLAGS="$kik_ldflags_save"
 fi
-dnl dlopen() in libdl
-if test "$DL_MODULE" = none ; then
-	AC_CHECK_LIB(dl, dlopen,
-			[
-			DL_MODULE=dl
-			DL_LIBS=-ldl
-			], [])
-fi
-dnl shl_load()
-if test "$DL_MODULE" = none ; then
-	AC_CHECK_FUNC(shl_load,
-			[
-			DL_MODULE=dld
-			DL_LIBS=
-			], [])
-fi
-dnl shl_load() in lildld
-if test "$DL_MODULE" = none ; then
-	AC_CHECK_LIB(dld, shl_load,
-			[
-			DL_MODULE=dld
-			DL_LIBS=-ldld
-			], [])
-fi
-dnl Darwin NSLinkModule
-if test "$DL_MODULE" = none ; then
+dnl lt_cv_dlopen is set by AC_LIBTOOL_DLOPEN
+if test "$DL_LOADER" = none ; then
+	case "${lt_cv_dlopen}" in
+	dnl LoadLibrary  (Windows)
+	LoadLibrary)
+		DL_LOADER=win32
+		;;
+	dnl shl_load (HP-UX)
+	shl_load)
+		DL_LOADER=dld
+		;;
+	dnl dlopen (UNIX98)
+	dlopen)
+		DL_LOADER=dl
+		;;
+	dnl What is dld_link? Does anybody know?
+	dld_link)
+		DL_LOADER=none
+		;;
+	*)
+		DL_LOADER=none
+		;;
+	esac
+	DL_LIBS="${DL_LIBS} ${lt_cv_dlopen_libs}"
+	dnl NSLinkModule (darwin)
 	AC_CHECK_FUNC(NSLinkModule,
 			[
-			DL_MODULE=dyld
+			DL_LOADER=dyld
 			DL_LIBS=
 			], [])
 fi
-AC_SUBST(DL_MODULE)
+AC_SUBST(DL_LOADER)
 AC_SUBST(DL_LIBS)
+AC_SUBST(DL_CFLAGS)
 
 
 dnl
-dnl --- utmp checks ---
+dnl --- checks for utmp ---
 dnl
 UTMP_NAME=
 UTMP_LIBS=
@@ -244,6 +252,5 @@ if test "$debug" = yes ; then
 	DEB_CFLAGS="-DDEBUG -DKIK_DEBUG"
 fi
 AC_SUBST(DEB_CFLAGS)
-
 
 AC_OUTPUT(Makefile src/Makefile)

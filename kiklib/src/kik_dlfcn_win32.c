@@ -46,11 +46,7 @@ kik_dl_close(
 	kik_dl_handle_t  handle
 	)
 {
-	HINSTANCE  hinstance ;
-
-	hinstance = ( HINSTANCE)handle ;
-
-	return  FreeLibrary( hinstance) ;
+	return  FreeLibrary( (HINSTANCE)handle) ;
 }
 
 void *
@@ -59,10 +55,6 @@ kik_dl_func_symbol(
 	char *  symbol
 	)
 {
-	HINSTANCE  hinstance ;
-
-	hinstance = ( HINSTANCE)handle ;
-
-	return  GetProcAddress( hinstance , symbol) ;
+	return  GetProcAddress( (HINSTANCE)handle , symbol) ;
 }
 

@@ -25,6 +25,7 @@ AC_PROG_CC
 AC_PROG_INSTALL
 
 AC_LIBTOOL_WIN32_DLL
+AC_LIBTOOL_DLOPEN
 AC_ARG_WITH(libtool,
 	[  --with-libtool          libtool path[without]],
 	libtool=$with_libtool)
@@ -220,7 +221,28 @@ mlcc)
 esac
 done
 
-scrollbars="sample,extra,pixmap_engine"
+dnl
+dnl --- libltdl ---
+dnl
+AC_ARG_WITH(libltdl,
+	[  --with-libltdl[=PREFIX] load modules with libltdl[without]],,
+	[with_libltdl=no])
+# We don't check here wheter libltdl is installed. (See kiklib/src/configure.in)
+
+dnl
+dnl --- scrollbar plugins ---
+dnl
+dnl defaut settings
+DL_LIBS=
+DL_SELF=
+if test "x$allow_undefined_flag" = "xunsupported" ; then
+	# pixmap_engine has the undefined symbol. But some platforms, such as
+	# AIX, do not allow it.
+	scrollbars="sample,extra"
+else
+	scrollbars="sample,extra,pixmap_engine"
+fi
+
 AC_ARG_WITH(scrollbars,
 	[  --with-scrollbars[=ARG] scrollbar plugins [sample,extra,pixmap_engine]],
 	[
@@ -237,17 +259,38 @@ case ${scrollbar} in
 sample)
 	MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
 	OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
+	if test "x$with_libltdl" != "xno" ; then
+		for name in sample sample2 ; do
+			DL_LIBS="-dlopen \$(top_builddir)/scrollbar/sample/lib$name.la ${MODULES}"
+		done
+	fi
 	;;
 extra)
 	MAKE_DIRS="contrib/scrollbar/extra ${MAKE_DIRS}"
 	OUTPUT_FILES="contrib/scrollbar/extra/Makefile ${OUTPUT_FILES}"
+	if test "x$with_libltdl" != "xno" ; then
+		for name in athena next motif mozmodern ; do
+			DL_LIBS="-dlopen \$(top_builddir)/contrib/scrollbar/extra/lib$name.la ${MODULES}"
+		done
+	fi
 	;;
 pixmap_engine)
+	if test "x$allow_undefined_flag" = "xunsupported" ; then
+		echo ""
+		echo "pixmap_engine has undefined symbol. $host_os does NOT allow it. Please retry"
+		echo "to run configure scripts without pixmap_engine"
+		echo "(e.g.  --with-scrllbars=sample,extra)"
+		echo ""
+		exit 1
+	fi
 	if test "$IMAGELIB_NAME" = "gdk" -o "$IMAGELIB_NAME" = "imlib" ; then
 		MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"
-		PLUGIN_LDFLAGS="-export-dynamic"
-		AC_SUBST(PLUGIN_LDFLAGS)
+		if test "x$with_libltdl" != "xno" ; then
+			DL_LIBS="-dlopen \$(top_builddir)/contrib/scrollbar/pixmap_engine/libpixmap_engine.la ${MODULES}"
+		else
+			DL_LIBS="-export-dynamic"
+		fi
 	else
 		echo ""
 		echo "To use pixmap_engine for scrollbar. you will need the image library such as"
@@ -260,9 +303,15 @@ pixmap_engine)
 	echo "${scrollbar} is unknown scrollbar."
 	;;
 esac
-done
+done # for scrollbar in ${scrollbars}
 
-MAKE_DIRS="mlterm xwindow man etc ${MAKE_DIRS}"
+if test "x$with_libltdl" != "xno" ; then
+	DL_SELF="-dlopen self"
+fi
+AC_SUBST(DL_LIBS)
+AC_SUBST(DL_SELF)
+
+MAKE_DIRS="mlterm ${MAKE_DIRS} xwindow man etc"
 OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
 
 AC_SUBST(MAKE_DIRS)

@@ -36,11 +36,7 @@ kik_dl_close(
 	kik_dl_handle_t  handle
 	)
 {
-	shl_t shl_handle ;
-
-	shl_handle = (shl_t)handle ;
-
-	return  shl_unload( shl_handle) ;
+	return  shl_unload( (shl_t)handle) ;
 }
 
 void *
@@ -50,11 +46,8 @@ kik_dl_func_symbol(
 	)
 {
 	void *  func ;
-	shl_t shl_handle ;
 
-	shl_handle = (shl_t)handle ;
-
-	if( shl_findsym( &handle , symbol , TYPE_PROCEDURE , &func) == -1)
+	if( shl_findsym( (shl_t*)&handle , symbol , TYPE_PROCEDURE , &func) == -1)
 	{
 		return  NULL ;
 	}
