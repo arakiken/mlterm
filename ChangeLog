@@ -8,7 +8,7 @@
 	* Added conf_menu_path_1,conf_menu_path_2,conf_menu_path3 options.
 	* Ctrl+Left button launches mlterm-menu by default.
 
-2003-03-09 Tomohiro KUBOTA <kubota@debian.org>
+2003-03-08 Tomohiro KUBOTA <kubota@debian.org>
 
 	* "wall_picture = none" in "main" configuration file now means
 	  that the user doesn't use wall picture.  Previously, the same
