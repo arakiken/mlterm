@@ -1,6 +1,17 @@
 comment -*- mode: text -*-
 comment $Id$
 
+supported platforms (mlterm-2.9.1 pre/cvs-1.784)
+
+  Fedora Core 2 (x86)
+    configure options: --with-type-engines=xft,xcore
+                       --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
+                       --with-imagelib=imlib
+                       --with-scrollbars=sample,extra,pixmap_engine
+                       --enable-iiimf
+                       --enable-m17nlib
+
+
 supported platforms (mlterm-2.9.1 pre/cvs-1.783)
 
 * tested by Seiichi SATO <ssato@sh.rim.or.jp>
