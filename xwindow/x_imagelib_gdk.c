@@ -53,6 +53,30 @@ static int modify_ubound = 255 ;
 static int modify_lbound = 0 ;
 
 /* --- static functions --- */
+static int
+fetch_colormap(
+	Display *  display,
+	int  screen,
+	XColor **  color_list
+	)
+{
+	int  num_cells, i ;
+	Colormap  cmap = DefaultColormap( display, screen) ;
+	
+	num_cells = DisplayCells( display , screen) ;
+	*color_list = malloc( num_cells * sizeof(XColor)) ;
+	if( !*color_list)
+		return 0 ;
+
+	for( i = 0 ; i < num_cells ; i ++)
+	{
+		((*color_list)[i]).pixel = i ;
+	}
+
+	XQueryColors( display , cmap , *color_list, num_cells) ;
+
+	return num_cells ;
+}
 
 /* create GdkPixbuf from the specified file path. 
  * don't modify returned pixbuf since the pixbuf
@@ -275,13 +299,13 @@ closest_color_index(
 		diff_r = red - (color_list[i].red >> 8) ;
 		diff_g = green - (color_list[i].green >> 8) ;
 		diff_b = blue - (color_list[i].blue >> 8) ;
-		diff = diff_r * diff_r *4 + diff_g * diff_g * 3 + diff_b * diff_b * 2;
+		diff = diff_r * diff_r *9 + diff_g * diff_g * 30 + diff_b * diff_b ;
 		if ( diff < min)
 		{
 			min = diff ;
 			closest = i ;
 			/* no one may notice the difference */
-			if ( diff < 3) 
+			if ( diff < 31) 
 				goto enough ;
 		}
 	}
@@ -311,21 +335,15 @@ pixbuf_to_pixmap_pseudocolor(
 	unsigned char *  line;
 	unsigned char *  pixel;
 	XColor *  color_list ;
-	int  closest, i ;
+	int  closest ;
 	GC  gc;
 	XGCValues  gcv ;
 	int  diff_r, diff_g, diff_b ;
 
-	Colormap  cmap = DefaultColormap( display, screen) ;
-
-	num_cells = DisplayCells( display , screen) ;
-	color_list = malloc( num_cells * sizeof(XColor)) ;
-	for( i = 0 ; i < num_cells ; i ++)
-	{
-		color_list[i].pixel = i ;
-	}
-
-	XQueryColors( display , cmap , color_list, num_cells) ;
+	num_cells = fetch_colormap( display, screen, &color_list) ;
+	
+	if( !num_cells)
+		return -8 ;
 
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
@@ -972,14 +990,10 @@ compose_pseudocolor(
 	unsigned char *pixel ;
 	XColor *  color_list ;
 
-	Colormap  cmap = DefaultColormap( display, screen) ;
+	num_cells = fetch_colormap( display, screen, &color_list) ;
 
-	num_cells = DisplayCells( display , screen) ;
-	color_list = malloc( num_cells * sizeof(XColor)) ;
-	for( i = 0 ; i < num_cells ; i ++)
-		color_list[i].pixel = i ;
-
-	XQueryColors( display , cmap , color_list, num_cells) ;
+	if( !num_cells)
+		return NULL ;
 
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
@@ -1461,19 +1475,12 @@ modify_pixmap(
 			XColor *  color_list ;
 			int num_cells ;
 			u_int8_t *  data ;
-			Colormap  cmap = DefaultColormap( display, screen) ;
+
+			num_cells = fetch_colormap( display, screen, &color_list) ;
+			if( !num_cells)
+				return -7 ;
 
 			data = (u_int8_t *)(image->data) ;
-			num_cells = DisplayCells( display , screen) ;
-			color_list = malloc( num_cells * sizeof(XColor)) ;
-			if( !color_list)
-			{
-				XFree(vinfolist) ;
-				return -5;
-			}
-			for( i = 0 ; i < num_cells ; i ++)
-				color_list[i].pixel = i ;
-			XQueryColors( display , cmap , color_list, num_cells) ;
 
 			modify_bound( pic_mod);
 			if (pic_mod->gamma == 100)
