@@ -72,7 +72,8 @@ kik_utmp_new(
 	 * but glibc2 also defines ut_name as an alias of ut_user for backward
 	 * compatibility.
 	 */
-	strncpy( ut.ut_name , pw_name , K_MIN(sizeof( ut.ut_name),strlen(pw_name))) ;
+	strncpy( ut.ut_name, pw_name, K_MIN(sizeof( ut.ut_name)-2, strlen(pw_name))) ;
+	ut.ut_name[sizeof( ut.ut_name)-1] = 0;
 	
 	if( strncmp( tty, "/dev/", K_MIN(5,strlen(tty))) == 0)
 	{
