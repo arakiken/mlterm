@@ -90,6 +90,12 @@ kik_pty_fork(
 	}
 	if( ( ttydev = ptsname(*master)) == NULL)
 	{
+		/*
+		 * TODO: removing this message.
+		 * if ptsname() fails, we should try to use bsd stlye pty
+		 * device. -- seiichi
+		 */
+		kik_msg_printf( "Unable to open slave pseudo-terminal device\n") ;
 		return  -1;
 	}
 

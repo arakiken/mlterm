@@ -1,5 +1,9 @@
 2004-01-31  Seiichi SATO  <ssato@sh.rim.or.jp>
 
+	* kik_pty_stream.c: If ptsname() fails, show an error message.
+
+2004-01-31  Seiichi SATO  <ssato@sh.rim.or.jp>
+
 	* mlterm/ml_edit.c(ml_edit_resize): Clear char_index of cursor, when
 	the cursor position was reset. This change fixes a bug that caused a
 	segfaul when resizing window over and over.
