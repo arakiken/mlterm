@@ -24,8 +24,8 @@
 #include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
 #include  <kiklib/kik_types.h>	/* u_int */
 #include  <kiklib/kik_sig_child.h>
+#include  <version.h>
 
-#include  "version.h"
 #include  "x_xim.h"
 #include  "x_sb_screen.h"
 #include  "x_display.h"
@@ -920,7 +920,7 @@ get_min_conf(
 	char *  rcpath ;
 	
 	if( ( conf = kik_conf_new( "mlterm" ,
-		MAJOR_VERSION , MINOR_VERSION , REVISION , PATCH_LEVEL)) == NULL)
+		MAJOR_VERSION , MINOR_VERSION , REVISION , PATCH_LEVEL , CVS_REVISION)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " kik_conf_new() failed.\n") ;

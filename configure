@@ -8523,6 +8523,11 @@ fi
 fi
 
 
+# CVS revision
+CVS_REVISION=`tail -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^\$Id$$/\1/p`
+
+OUTPUT_FILES="xwindow/version.h ${OUTPUT_FILES}"
+
 if test "${SUBDIRS}" != "" ; then
 	subdirs="${SUBDIRS}"
 
@@ -8750,6 +8755,7 @@ s%@LIBINTL@%$LIBINTL%g
 s%@LTLIBINTL@%$LTLIBINTL%g
 s%@POSUB@%$POSUB%g
 s%@INTL_LIBS@%$INTL_LIBS%g
+s%@CVS_REVISION@%$CVS_REVISION%g
 s%@subdirs@%$subdirs%g
 
 CEOF

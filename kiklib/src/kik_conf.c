@@ -39,18 +39,20 @@ version(
 	kik_conf_t *  conf
 	)
 {
+	printf( "%s version %d.%d.%d" ,
+		conf->prog_name , conf->major_version , conf->minor_version , conf->revision) ;
+
 	if( conf->patch_level > 0)
 	{
-		printf( "%s version %d.%d.%d patch level %d\n" ,
-			conf->prog_name , conf->major_version , conf->minor_version ,
-				conf->revision , conf->patch_level) ;
+		printf( " patch level %d" , conf->patch_level) ;
 	}
-	else
+
+	if( conf->version_aux_info)
 	{
-		printf( "%s version %d.%d.%d\n" ,
-			conf->prog_name , conf->major_version , conf->minor_version ,
-				conf->revision) ;
+		printf( " %s" , conf->version_aux_info) ;
 	}
+
+	printf( "\n") ;
 }
 
 static void
@@ -214,7 +216,8 @@ kik_conf_new(
 	int  major_version ,
 	int  minor_version ,
 	int  revision ,
-	int  patch_level
+	int  patch_level ,
+	char *  version_aux_info
 	)
 {
 	kik_conf_t *  conf ;
@@ -234,6 +237,7 @@ kik_conf_new(
 	conf->minor_version = minor_version ;
 	conf->revision = revision ;
 	conf->patch_level = patch_level ;
+	conf->version_aux_info = version_aux_info ;
 
 	conf->num_of_opts = 0x60 ;
 
@@ -700,7 +704,11 @@ kik_conf_get_version(
 	{
 		return  NULL ;
 	}
-	
+
+	/*
+	 * XXX
+	 * Ignored patch level and version aux info.
+	 */
 	sprintf( ver , "MLTERM=%d.%d.%d" , conf->major_version , conf->minor_version , conf->revision) ;
 
 	return  ver ;

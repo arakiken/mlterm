@@ -36,7 +36,7 @@ CFLAGS=$(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @FRIBI
        @IMAGELIB_CFLAGS@ @XUTF8_CFLAGS@ @CFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-DLIBEXECDIR=\"$(LIBEXECDIR)\" \
-	-I$(top_srcdir)/mlterm -I/usr/X11R6/include -I/usr/local/include
+	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/X11R6/include -I/usr/local/include
 
 LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @X_EXTRA_LIBS@ \
 	-lX11 $(LMLTERM) $(LMKF) $(LKIK) \

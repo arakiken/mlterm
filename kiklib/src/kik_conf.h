@@ -43,6 +43,7 @@ typedef struct  kik_conf
 	int  minor_version ;
 	int  revision ;
 	int  patch_level ;
+	char *  version_aux_info ;
 
 	kik_arg_opt_t **  arg_opts ;	/* 0x20 - 0x7f */
 	int  num_of_opts ;
@@ -54,7 +55,7 @@ typedef struct  kik_conf
 
 
 kik_conf_t *  kik_conf_new( char *  prog_name , int  major_version ,
-	int  minor_version , int  revision , int  patch_level) ;
+	int  minor_version , int  revision , int  patch_level , char *  version_aux_info) ;
 
 int  kik_conf_delete( kik_conf_t *  conf) ;
 
