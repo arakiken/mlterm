@@ -5,6 +5,7 @@ sysconfdir = @sysconfdir@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 libdir = @libdir@
+libexecdir = @libexecdir@
 
 CC = @CC@
 LIBTOOL = @LIBTOOL@
@@ -14,6 +15,7 @@ PREFIX = $(DESTDIR)$(prefix)
 BINDIR = $(DESTDIR)$(bindir)
 LIBDIR = $(DESTDIR)$(libdir)
 SYSCONFDIR = $(sysconfdir)
+LIBEXECDIR = $(libexecdir)
 
 VPATH = $(top_srcdir)/xwindow
 
@@ -33,6 +35,7 @@ LMKF_DEB = -lmkf_deb
 CFLAGS=$(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ \
        @IMAGELIB_CFLAGS@ @XUTF8_CFLAGS@ @CFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
+	-DLIBEXECDIR=\"$(LIBEXECDIR)\" \
 	-I$(top_srcdir)/mlterm -I/usr/X11R6/include -I/usr/local/include
 
 LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @X_EXTRA_LIBS@ \
