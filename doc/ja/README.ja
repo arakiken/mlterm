@@ -1,0 +1,432 @@
+comment -*- mode: text -*-
+comment $Id$
+
+* mltermとは
+  Multi Lingual TERMinal の略です。
+
+* コンパイル方法
+  $ ./configure
+  $ make
+
+  o 必要なもの
+    基本的な機能は、libc / Xlibがあれば動きます。
+    多言語処理機能の多くは、自前でもってますので、OS のサポートがなくても、ほと
+    んどの機能は使えます。
+    (たとえば、libc に ja_JP.UTF-8 ローケールがなくても、ja_JP.eucJP ローケール
+    があれば、UTF-8 エンコーディングの端末に日本語入力できる、など)
+
+    設定画面は、gtk+ で作られてますので、動的に設定を変えたい場合は、gtk+ (1.2.x ?)
+    が必要となります。
+    (mlterm 本体にはリンクしません)
+
+    アンチエイリアスフォントを利用する場合は、さらに
+    XFree86 4.0.2 以上
+    freetype 2.0.2 以上
+    が必要です。
+
+    壁紙を貼るには、imlib (1.9.x ?)が必要です。
+
+    これらは、すべて、configure 時に有無をチェックします。
+     
+  o configure オプション
+    --prefix
+      インストールプレフィクス
+
+    --enable-imlib
+      imlibを使って、壁紙を貼れるようにします。
+
+    --enable-anti-alias
+      TrueTypeフォントをantialisします。
+
+    --enable-debug
+      デバッグバージョンをビルドします。
+
+    --enable-ucs4
+      UCS4を使うようにします。(非推奨)
+      デフォルトでは、UCS2。
+      現在のところ、メモリ消費量が増えるだけで、あんまし(全然)、意味ないです。
+
+    --disable-static
+      staticリンク用のライブラリを構築しません(推奨)
+
+    --with-libtool=[path]
+      libtool を自動生成せず、システムのlibtoolを使うよう指定します。
+
+  o 環境依存の対処
+    o HP-UX
+      CC="cc -Ae" ./configure
+
+* 機能
+  o アンチエイリアス
+    mltermは、フォントのアンチエイリアス表示をサポートしています。
+    これには、XのXrender extensionに対応したXftを利用しています。
+
+    アンチエイリアスフォントと、通常の X フォントのどちらを使うかは動的に切替え可
+    能です。
+
+    KDE(Qt)と同じ設定でアンチエイリアスを使用できるようになりますので、Xftの設定の詳細
+    については、KDEユーザ会のwebページなどを参照して下さい。
+
+  o 壁紙
+    imlibがインストールされている環境で、imlibを組み込んでビルドしたmltermには、壁紙を
+    はり付けることができます。
+
+  o マルチPTY
+    mltermでは、単一プロセス中から、最大5つまでptyウィンドウを起動できます。
+    起動時に、-Pオプションを指定すると、そこで指定した数だけのptyウィンドウが同時に起動します。
+    また、起動後は、Ctrl+F1(デフォルト)で、新しいptyウィンドウが起動します。
+
+  o マルチXIM
+    mltermでは、複数のXIMを動的に切替えて使用することができます。
+    たとえば、端末側がUTF8エンコーディングで、kinput2とAmiを切替えながら、日本語/ハングル
+    混在の文章を入力できます。
+    詳細については、「設定」の項を参照
+
+  o スクロールバー
+    使用したいスクロールバーは、以下のように指定して下さい。
+
+    $ mlterm -S sample
+
+    現在、simple,sampe,sample2 の3つのタイプがあります。
+
+    設定ファイルで指定することもできます。
+
+* 設定
+  o 設定ファイル(~/.mlterm/以下)
+    main: 引数オプションで上書き可能な、プリミティブな設定
+    font: フォント設定
+    aafoont: Xft用フォント設定
+    color: 色定義
+    key: ショートカットキー定義
+    termcap: termcapもどき
+    xim: XIM ローケール指定
+
+    また、設定のうちのいくつかは、コントロールキー＋右クリックメニューで動的変更が可能です。
+
+    o main
+      KEY=VALUE
+
+      行頭の # で、その行をコメントアウトできます。
+
+      **で囲まれている方のがデフォルト値です。
+
+      KEY LIST
+      o tabsize        ... タブ幅(*8*)
+      o logsize        ... ログの行数(*128*)
+
+      o use_loing_shell ... ログインシェルを使うかどうか(true/*false*)
+      o app_name       ... application name(*mlterm*)
+      o title          ... title(*mlterm*)
+      o icon_name      ... icon name(*mlterm*)
+      o termtype       ... 端末タイプ(*xterm*/kterm)
+      o ptys           ... 起動時に立ち上げるptyウィンドウの数(*1*)
+
+      o word_separators ... 単語の区切り文字を指定(*" ,.:;/@"*)
+
+      o mod_meta_mode  ... Metaキーを押下した時の挙動(*none*/esc/8bit)
+                           esc の場合、"0x1b" を、8bit の場合は、入力文字の8ビット目
+                           をたてます。
+
+      o scrollbar_view_name ... 使いたいスクロールバーの名前(*simple*)
+      o conf_menu_path ... mlconfig(GUI設定コマンド)のパス(*/usr/local/libexec/mlconfig*)
+
+      o use_anti_alias ... アンチエイリアスフォントを使用する(true/*false*)
+      o use_xim        ... XIMを使う(*true*/false)
+      o xim_open_in_startup ... 起動時にXIMをopenする(*true*/false)
+      o use_scrollbar  ... スクロールバーをつける(true/*false*)
+      o use_combining  ... 結合文字を動的合成する(true/*false*)
+      o use_transbg    ... 背景透過する(true/*false*)
+
+      o unicode_to_other_cs     ... UNICODE文字をUNICODE以外の適当な文字集合に変換する(true/*false*)
+      o all_cs_to_unicode       ... US_ASCII以外のすべての文字をUNICODEに変換する(true/*false*)
+      o conv_to_generic_iso2022 ... ISO2022準拠のencoding使用時、ペーストする文字列が、厳密に
+                                    そのencodingに変換できなくても、できるだけ柔軟に変換する
+                                    (true/*false*)
+      o pre_conv_xct_to_ucs     ... ペーストされたXCOMPOUND TEXTを一旦UCSにmappingしてから、
+                    現在のエンコーディングに変換する。(true/*false*)
+
+      o col_size_of_width_a     ... UNICODEのEastAsianWidth.txtのAプロパティのコラム数(*1*/2)
+
+      o fg_color       ... 端末画面の前景色(*black*)
+      o bg_color       ... 同背景色(*white*)
+      o sb_fg_color    ... スクロールバーの前景色(*same as fg_color*)
+      o sb_bg_color    ... 同背景色(*same as bg_color*)
+        fg_color/bg_colorに指定できる値
+        white/black/red/green/yellow/blue/magenta/cyan/gray/lightgray/priv_fg/priv_bg
+
+        priv_{fg|bg} は、ユーザ定義前景、背景色です。
+        color ファイルで、priv_fg/priv_bg(デフォルト値は白)を定義してください。
+
+      o wall_picture   ... 壁紙にする画像ファイルのパス(*なし*)
+
+      o fontsize       ... デフォルトフォントサイズ(*16*)
+
+      o font_size_range  ... 使用するフォントサイズの範囲(*10-24*)
+        フォーマットは以下のとおり。
+        [min]-[max]
+
+        e.g.) 10-24
+              10から24
+
+      o ENCODING       ... エンコーディングの指定(*auto*)
+        サポートしているエンコーディング
+        ISO-8859-[1-11],ISO-8859-[13-16],TCVN5712,KOI8-R,KOI8-U,VISCII,
+        EUC-JP,EUC-JISX0213,ISO-2022-JP[1-3],Shift_JIS,Shift_JISX0213,
+        ISO-2022-KR,EUC-KR,UHC,JOHAB,GB2312(EUC-CN),GBK,ISO-2022-CN,BIG5,
+        EUC-TW,HZ,UTF8,GB18030,AUTO
+        '-' , '_' および、大文字小文字は無視されます。
+
+        (注)
+        o ptyから流れてくる文字列のエンコーディングを自動認識することはできません。
+        o TIS620、TCVN5712,JISX0213の合成用ダイアクリティカルマーク、
+          およびUNICODEの結合クラス結合文字については、結合文字を動的合成できます
+          ので、それらを使う場合は、-m オプションをつけて、結合文字サポートを有効
+          にしてください。
+        o AUTOを指定した場合、nl_langinfo -> LC_ALL -> LC_TYPE -> LANGを順番に調
+          べ、適当なエンコーディングを選択します。
+          ENCODING指定を行なわなかった場合も同様です。
+
+    o font/aafont
+      o DEC_SPECIAL        ... 罫線文字用のフォント
+      o ISO8859_N          ... ISO8859_Nフォント
+      o TIS620             ... TIS 620 フォント
+      o VISCII             ... VISCII フォント
+      o KOI8_R             ... KOI8_R フォント
+      o KOI8_U             ... KOI8_U フォント
+      o TCVN5712           ... TCVN5712 フォント
+      o JISX0201_ROMAN     ... JISX0201左面フォント
+      o JISX0201_KATA      ... JISX0201右面フォント
+      o JISX0208_1978      ... JISX0208フォント(JISC6226_1978も可)
+      o JISX0208_1983      ... JISX0208フォント
+      o JISX0208_1990      ... JISX0208フォント
+      o JISX0212_1990      ... JISX0212(補助漢字)フォント
+      o JISX0213_2000_1    ... JISX0213_1フォント
+      o JISX0213_2000_2    ... JISX0213_2フォント
+      o KSX1001_1997       ... KSC5601_1987フォント(KSC5601_1987も可)
+      o UHC                ... UHCフォント(使用されません。UHCの表示にはKSX1001が使われます)
+      o JOHAB              ... JOHABフォント(使用されません。JOHABの表示にはKSX1001が使われます)
+      o GB2312_80          ... GB2312_80フォント
+      o GBK                ... GBKフォント
+      o BIG5               ... BIG5フォント
+      o CNS11643_1992_N    ... CNS11643_1992_Nフォント
+      o ISO10646_UCS2_1    ... UNICODEフォント(1カラム用)
+      o ISO10646_UCS2_1_BIWIDTH ... UNICODEフォント(2カラム用)
+
+        それぞれのボールド体のフォントを指定したい場合には、
+        ISO8859_1_BOLD
+        のように、"_BOLD"をつけた名前で指定して下さい。
+
+        フォーマットは、font(通常のXフォント)と、aafont(Xft用フォント)で異なります。
+        o font
+          [font size],[font name];[font size],[font name];...
+
+          [font name]は、XLFD、もしくは、fonts.aliasで定義している省略記法
+
+        o aafont
+          [font name];([font size],[font name];...)
+
+          [font name]は、[font family]-[font encoding]となります。
+
+          e.g.)
+          JISX0208_1983 = Hoge-iso10646-1;
+
+        フォントが指定されていない文字については、mltermが適当に判断して表示
+        します。
+        ただし、TCVN5712フォントについては、自動検索しませんので、font/aafontに
+        て指定するようにしてください。
+        ボールド体が指定されていない場合は、mediumフォントとして指定れたフォン
+        ト、もしくは、mltermが適当に見つけ出したmediumフォントを重ね打ちして、
+        それっぽくみせます。
+        ボールド体フォントとして、mediumフォントを指定してやれば、重ねうちはし
+        ません。
+        また、アンチエイリアスフォントについては、いずれにせよ、重ねうちはしま
+        せん。
+
+    o color
+      各色のRGBを具体的に指定することができます。
+      フォーマットは以下のとおり。
+
+      color_name = [red]-[green]-[blue]
+
+      e.g.)
+      priv_fg=ffff-ffff-0;
+      priv_bg=0-0-ffff;
+
+    o xim
+      mlterm では、複数の XIM の動的切替えをサポートしています。
+      ここでは、そのために、各 XIM ごとのローケールを指定します。
+      ここでの設定は、設定画面に即座に反映されます。
+
+      たとえば、
+
+      kinput2 = ja_JP.eucJP
+      Ami = ko_KR.eucKR
+
+      このように指定することで、mlterm 自体が、zh_TW.Big5 ローケールで動いている
+      場合でも、Ami を ko_KR.eucKR で、kinput2 を ja_JP.eucJP ローケールで動かす
+      ことができるようになります。(つまり、それぞれの言語で入力できるようになる)
+
+    o key
+      ショートカットキーの定義
+
+      FUNCTION=KEY_BINDING
+
+      FUNCTION LIST
+      o XIM_OPEN(Shift+space)
+        XIMメソッドをOpenします。xim_open_in_startupがtrueに設定されている場合は、
+        最初からOpenされていますので、使われません。
+      o XIM_CLOSE(UNUSED)
+      o NEW_PTY(Ctrl+F1)
+        新しいPTYを起動します。
+      o PAGE_UP(Shift+Prior)
+        ページアップ開始
+      o SCROLL_UP(Shift+Up)
+        スクロール開始
+      o INSERT_SELECTION(Shift+Insert)
+        セレクションのペースト
+
+      KEY_BINDINGのフォーマットは以下の通り
+      (MASK+)KEY
+      キー割り当てしない場合は
+      UNUSED
+
+      o マスク指定
+        Control
+        Shift
+        Mod(*)
+
+        (*) Mod は、Mod1Mask - Mod5Mask まですべてにマッチします。
+
+      e.g) XIM_OPEN=Control+backslash
+           XIM_OPENを、Control+backslashキーに割り当てます。
+
+    o termcap
+      termcapデータベースもどき。
+      キーを押下したときに吐き出すシーケンスを指定することができます。
+      `\E' , `^A' などが使えます。
+      `\' のあとに8進数を指定する記法はサポートしていません。
+
+      o kD
+        delete キーを押下したときのシーケンス
+        デフォルトでは、`^?'
+      o kb
+        バックスペースキーを押下したときのシーケンス
+        デフォルトでは、`^H'
+
+  o 引数オプション
+    -h/--help(=bool)   : ヘルプ
+    -v/--version(=bool) : バージョン情報(あまり信用できない:D)
+    -A/--aa(=bool)     : アンチエイリアスフォントの使用
+    -B/--sbbg=value    : スクロールバーの背景色
+    -E/--km=value      : 文字エンコーディングの指定
+    -F/--sbfg=value    : スクロールバーの前景色
+    -L/--ls(=bool)     : ログインシェルを使う
+    -N/--name=value    : application name設定
+    -T/--title=value   : title設定
+    -I/--icon=value    : icon name設定
+    -M/--menu=value    : mlconfigのパス
+    -P/--ptys=value    : 起動時に立ち上げるptyウィンドウの数
+    -S/--sbview=value  : 使いたいスクロールバーの名前
+    -X/--openim(=bool) : 起動時に、XIMをOpenする
+    -a/--ac=value      : EastAsianWidth.txtのAプロパティ文字のコラム数
+    -f/--fg=value      : 前景色
+    -b/--bg=value      : 背景色
+    -c/--conv2022(=bool) : ペーストの際、柔軟なISO2022変換を行なう。
+    -d/--db            : double buffering 表示
+    -g/--geometry=value : 表示座標位置
+    -i/--xim(=bool)    : ximを使う
+    -k/--meta(=value)  : Meta キーを押した時の動作
+    -l/--sl=value      : ログサイズ
+    -m/--comb(=bool)   : 結合文字を使う
+    -n/--ucshater(=bool) : UTF8で入力された文字をすべて他の適当な文字集合に変換して表示する。
+    -u/--ucslover(=bool) : すべての文字をUNICODEに変換して表示する。
+    -C/--xct2ucs(=bool) : ペーストされたXCOMPOUND TEXTを、一旦UCSに変換する。
+    -p/--pic=value     : 背景画像のパス
+    -s/--sb(=bool)     : スクロールバーを使う
+    -t/--transbg(=bool) : 背景透過する。
+    -y/--term=value    : 端末タイプ
+    -w/--fontsize=value : フォントサイズ
+    -x/--tw=value      : タブサイズ
+
+    -e ... : 指定したコマンドを起動
+
+    o オプションは、以下のフォーマットを受け付けます。
+      (-E/--km,-X/--openimを例に)
+
+      -E=euc-jp
+      -E euc-jp
+      -km=euc-jp
+      -km euc-jp
+      --km euc-jp
+      --km=euc-jp
+
+      -X  (-X=trueと同じ)
+      -X=true
+      -X=false
+      -X true
+      -X false
+      -openim  (-openim=trueと同じ)
+      -openim=true
+      -openim=false
+      -openim true
+      -openim false
+      --openim  (-openim=trueと同じ)
+      --openim=true
+      --openim=false
+      --openim true
+      --openim false
+
+* 操作方法
+  o キーボード
+    [通常モード]
+    Shift-↑ ... バックスクロールモードへ移行しつつ上スクロール
+    Shift-PageUp ... バックスクロールモードへ移行しつつページアップ
+    Button2 ... ペースト
+    Shift-space  ... xim 初期化
+    Shift-insert ... ペースト
+    Ctrl+F1 ... 新しいptyウィンドウを起動
+
+    [バックスクロールモード]
+    j/↓      ... 下スクロール
+    k/↑      ... 上スクロール
+    u/PageUP  ... ページアップ
+    d/PageDown ... ページダウン
+    Shift-space  ... xim 初期化
+    Ctrl+F1 ... 新しいptyウィンドウを起動
+    それ以外  ... バックスクロールモードから通常モードへの復帰
+
+  o マウス
+    ドラッグすれば領域選択できます。
+    また、そのまま、スクロールすることもできます。
+    コントロールキー＋右クリック(ボタン3)で、設定画面がでます。
+
+    スクロールバーは、マウスでドラッグすれば、スクロールされます。(see BUG)
+
+
+* 連絡先
+  荒木 賢(Araki Ken)
+  j00v0113@ip.media.kyoto-u.ac.jp
+
+* 利用に際しての条件
+  BSDライセンスとします。詳細は附属のLICENCEファイルを参照。
+
+* 履歴
+  o 2001/05/12
+    開発開始
+    
+  o 2001/05/30
+    alpha/beta test こっそり配布開始 (0.x系列 ver 0.1a - 0.6.2)
+
+  o 2001/06/16
+    alpha/beta test 配布終了
+    pre release ちょっとおおっぴらに配布開始 (1.x系列 ver 0.9.0 - 0.9.6)
+
+  o 2001/06/25
+    pre release 配布終了
+    正式配布開始 (2.0.x系列 ver 1.9.0 - )
+
+  o 2001/07/31
+    1.9.12リリース後、やる気をなくす。
+
+  o 2001/9/15
+    1.9.13リリース。またいじりはじめる。

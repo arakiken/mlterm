@@ -1,0 +1,80 @@
+/*
+ *	update: <2001/11/26(02:44:05)>
+ *	$Id$
+ */
+
+#include  "mkf_parser.h"
+
+#include  <stdio.h>	/* NULL */
+
+
+/* --- global functions --- */
+
+void
+mkf_parser_init(
+	mkf_parser_t *  parser
+	)
+{
+	parser->str = NULL ;
+	parser->marked_left = 0 ;
+	parser->left = 0 ;
+	parser->is_eos = 0 ;
+}
+
+inline size_t
+__mkf_parser_increment(
+	mkf_parser_t *  parser
+	)
+{
+	if( parser->left <= 1)
+	{
+		parser->str += parser->left ;
+		parser->left = 0 ;
+		parser->is_eos = 1 ;
+	}
+	else
+	{
+		parser->str ++ ;
+		parser->left -- ;
+	}
+
+	return  parser->left ;
+}
+
+inline size_t
+__mkf_parser_n_increment(
+	mkf_parser_t *  parser ,
+	size_t  n
+	)
+{
+	if( parser->left <= n)
+	{
+		parser->str += parser->left ;
+		parser->left = 0 ;
+		parser->is_eos = 1 ;
+	}
+	else
+	{
+		parser->str += n ;
+		parser->left -= n ;
+	}
+
+	return  parser->left ;
+}
+
+inline void
+__mkf_parser_mark(
+	mkf_parser_t *  parser
+	)
+{
+	parser->marked_left = parser->left ;
+}
+
+inline void
+__mkf_parser_reset(
+	mkf_parser_t *  parser
+	)
+{
+	parser->str -= (parser->marked_left - parser->left) ;
+	parser->left = parser->marked_left ;
+}

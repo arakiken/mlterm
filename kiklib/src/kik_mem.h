@@ -1,0 +1,99 @@
+/*
+ *	update: <2001/11/11(23:02:07)>
+ *	$Id$
+ */
+
+#ifndef  __KIK_MEM_H__
+#define  __KIK_MEM_H__
+
+
+#include  <stdlib.h>
+
+#include  "kik_def.h"
+#include  "kik_types.h"	/* size_t */
+#include  "kik_config.h"
+
+
+#ifdef  KIK_DEBUG
+
+#define  malloc( size)  kik_mem_malloc( size , __FILE__ , __LINE__ , __FUNCTION__)
+
+#define  calloc( number , size)  kik_mem_calloc( number , size , __FILE__ , __LINE__ , __FUNCTION__)
+
+#define  realloc( ptr , size)  kik_mem_realloc( ptr , size , __FILE__ , __LINE__ , __FUNCTION__)
+
+#define  free( ptr)  kik_mem_free( ptr , __FILE__ , __LINE__ , __FUNCTION__)
+
+#endif
+
+
+void *  kik_mem_malloc( size_t  size , const char *  file , int  line , const char *  func) ;
+
+void *  kik_mem_calloc( size_t  number , size_t  size , const char *  file , int  line , const char *  func) ;
+
+void *  kik_mem_realloc( void *  ptr , size_t  size , const char *  file , int  line , const char *  func) ;
+
+void   kik_mem_free( void *  ptr , const char *  file , int  line , const char *  func) ;
+
+#ifdef  KIK_DEBUG
+
+int  kik_mem_free_all(void) ;
+
+#else
+
+#define  kik_mem_free_all()
+
+#endif
+
+
+#ifndef  HAVE_ALLOCA
+
+#define alloca(size)  kik_alloca(size)
+
+void *  kik_alloca( size_t  size) ;
+
+int  kik_alloca_begin_stack_frame(void) ;
+
+int  kik_alloca_end_stack_frame(void) ;
+
+int  kik_alloca_garbage_collect(void) ;
+
+
+#else	/* HAVE_ALLOCA */
+
+
+#define  kik_alloca_begin_stack_frame()  1
+
+#define  kik_alloca_end_stack_frame()  1
+
+#define  kik_alloca_garbage_collect()  1
+
+/* AIX requires this to be the first thing in the file.  */
+#ifndef __GNUC__
+
+#ifdef  HAVE_ALLOCA_H
+
+#include <alloca.h>
+
+#else	/* HAVE_ALLOCA_H */
+
+#ifdef _AIX
+#pragma alloca
+
+#else	/* _AIX */
+
+/* predefined by HP cc +Olibcalls */
+#ifndef alloca
+char *  alloca () ;
+#endif
+
+#endif	/* _AIX */
+
+#endif	/* HAVE_ALLOCA_H */
+
+#endif	/* __GNUC__ */
+
+#endif	/* HAVE_ALLOCA */
+
+
+#endif

@@ -1,0 +1,6 @@
+* mlterm <=> rxvt間で、koi8r 文字列をcopy&pasteできない。
+  (mltermは、koi8-rをiso8859-5にmappingして送るため? rxvt は、koi8-r を、
+  ESC % /で送るため?)
+
+* less でページ移動する際に画面にゴミが残る(再現性乏し)
+  man で、マニュアル閲覧中に先頭ページにジャンプすると発生することが多い。

@@ -1,0 +1,58 @@
+MLTERM - Multi Lingual TERMinal emulator for X
+
+
+COMPILATION
+===========
+
+  $ ./configure
+  $ make
+
+Options for configure
+---------------------
+
+  --prefix
+    installation prefix
+
+  --enable-imlib
+    background image (aka wallpaper) using imlib
+
+  --enable-anti-alias
+    use FreeType for anti-alias of TrueType fonts
+
+  --enable-debug
+    build debug version
+
+  --enable-ucs4
+    Use UCS4 instead of UCS2 for internal encoding (not recommended).
+    No merits so far.
+
+What you need for compilation
+-----------------------------
+
+  All you need for basic compilation is libc and Xlib.  You don't need
+  internationalization support of OS because mlterm has own i18n code.
+
+  XFree86 4.0.2 or above and FreeType 2.0.2 or above are needed for
+  anti-alias.
+
+  Imlib (1.9.x ?) for background image.
+
+  Gtk+ (1.2.x ?) for GUI configurator "mlconfig".
+
+
+USAGE
+=====
+
+  Read the manpage for detail.
+
+
+AUTHOR
+======
+
+  Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
+
+
+COPYRIGHT AND LICENSE
+=====================
+
+  Modified BSD-style license.  See LICENCE file for detail.

@@ -1,0 +1,27 @@
+comment -*- mode: text -*-
+comment $Id$
+
+* hantermが、johab(s(h))-1フォントをどう扱っているのか調べる
+
+* 中東アラブ系言語(BIDI) xtermの実装を調べる
+
+* reverse wraparound機能を実装 (需要ある?)
+
+* DEC PrivateMode Restore/Save (何これ?)
+
+* 文字コード変換テーブルを外してコンパイルできるようにする。
+
+* DEC_SPECIALは、XDrawLineを使い、フォントは使用せずに表示する。
+  (ml_font_tとしてこの処理を隠蔽)
+
+* JISX0213_2000 <=> JISX0208/JISX0212をちゃんと実装する。
+
+* JISX0213_2000 <=> UCS と、JISX0208 <=> UCS テーブルを統合する。
+
+* ISO2022の、ESC % / 指示に対応(...したくない)
+  (XCOMPOUND_TEXTのBig5/koi8-rなどに対応)
+
+* Xtで設定画面を作る(gtkなくても設定を動的に変えられるように)
+
+* XInternAtom( display , "_XROOTPMAP_ID" , True) で取得される atom を使って、
+  Root Pixmap の取得し、背景画像を表示する方法を実装

@@ -1,0 +1,8 @@
+# XIM_OPEN=Control+backslash
+# XIM_OPEN=Shift+space
+# XIM_CLOSE=UNUSED
+# NEW_PTY=Control+F1
+# PAGE_UP=Shift+Prior
+# SCROLL_UP=Shift+Up
+# INSERT_SELECTION=Shift+Insert
+# EXIT_PROGRAM=UNUSED

@@ -1,0 +1,514 @@
+.\" mlterm.1   -*- nroff -*-
+.TH MLTERM 1 "2001-11-28"
+.SH NAME
+mlterm \- Multi Lingual TERMinal emultator for X
+.SH SYNOPSIS
+.B mlterm
+.RB [-\fIoptions\fP]
+.\" ********************************************************************
+.SH DESCRIPTION
+\fImlterm\fP is a multi-lingual terminal emulator written from
+scratch, which supports various character sets and encodings
+in the world.  It also supports various unique feature such as
+anti-alias using FreeType, multiple XIM, multiple windows,
+scrollbar API, scroll by mouse wheel, automatic selection of
+encoding, and so on.
+.PP
+Supported encodings are:
+ISO-8859-[1-10], ISO-8859-[13-16], TCVN5712, KOI8-R, KOI8-U, VISCII,
+EUC-JP, EUC-JISX0213, ISO-2022-JP[1-3], Shift_JIS, Shift_JISX0213,
+ISO-2022-KR, EUC-KR, UHC, JOHAB, GB2312 (EUC-CN), GBK, ISO-2022-CN, BIG5,
+EUC-TW, HZ, TIS-620, UTF-8, and GB18030.
+If you have already set locale (for example LANG variable;
+see \fBlocale\fR(7) for detail) mlterm will automatically select
+proper encoding.
+.PP
+.\" ********************************************************************
+.SH OPTIONS
+Note that \fIbool\fR is to be substituted by \fBtrue\fR or \fBfalse\fR.
+.TP
+\fB\-A\fR, \fB\-\-aa\fR=\fIbool\fR
+Use anti-aliased fonts using Xft.
+.TP
+\fB\-B\fR, \fB\-\-sbbg\fR=\fIcolor\fR
+Specify background color of the scrollbar.
+.TP
+\fB\-C\fR, \fB\-\-xct2ucs\fR(=\fIbool\fR)
+Pre-converting COMPOUND_TEXT to Unicode on pasting selection.
+.TP
+\fB\-E\fR, \fB\-\-km\fR=\fIencoding\fR
+Specify encoding.
+Valid encodings were shown above already.
+.TP
+\fB\-F\fR, \fB\-\-sbfg\fR=\fIcolor\fR
+Specify foreground color of the scrollbar.
+.TP
+\fB\-I\fR, \fB\-\-icon\fR=\fIname\fR
+Specify icon name.
+.TP
+\fB\-L\fR, \fB\-\-ls\fR(=\fIbool\fR)
+Use login shell.
+.TP
+\fB\-M\fR, \fB\-\-menu\fR=\fIpath\fR
+Specify path name for the configurator command.
+.TP
+\fB\-N\fR, \fB\-\-name\fR=\fIname\fR
+Specify application name.
+.TP
+\fB\-P\fR, \fB\-\-ptys\fR=\fIvalue\fR
+Specify number of ptys to use in start up.
+.TP
+\fB\-S\fR, \fB\-\-sbview\fR=\fIname\fR
+Specify name of scrollbar.
+.TP
+\fB\-T\fR, \fB\-\-title\fR=\fIname\fR
+Specify title name.
+.TP
+\fB\-W\fR, \fB\-\-sep\fR=\fIcharacterlist\fR
+Delimiter characters used for word selection.
+.TP
+\fB\-X\fR, \fB\-\-openim\fR(=\fIbool\fR)
+Open XIM on startup.
+.TP
+\fB\-a\fR, \fB\-\-ac\fR=\fIvalue\fR
+Specify number of columns of Unicode characters with
+EastAsianAmbiguous property.
+.TP
+\fB\-b\fR, \fB\-\-bg\fR=\fIcolor\fR
+Specify background color.
+.TP
+\fB\-c\fR, \fB\-\-conv2022\fR(=\fIbool\fR)
+Try to convert charsets on pasting characters so that
+as wide range of characters as possible can be pasted.
+.TP
+\fB\-d\fR, \fB\-\-display\fR=\fIstring\fR
+Specify X display.
+.TP
+\fB\-e\fR \fIprogram\fR \fB[\fR \fIarguments\fR \fB... ]\fR
+Invoke the command in the \fBmlterm\fR window.  This option
+must be the last option on the command line.
+.TP
+\fB\-f\fR, \fB\-\-fg\fR=\fIcolor\fR
+Specify foreground color.
+.TP
+\fB\-g\fR, \fB\-\-geometry\fR=\fIgeometry\fR
+Specify size and position of the window; see \fBX\fR(7).
+.TP
+\fB\-h\fR, \fB\-\-help\fR(=\fIbool\fR)
+Show help messages.
+.TP
+\fB\-i\fR, \fB\-\-xim\fR(=\fIbool\fR)
+Whether to use XIM (X Input Method).
+.TP
+\fB\-k\fR, \fB\-\-meta\fR(=\fImode\fR)
+Behavior of META key.  \fBesc\fR for sending ESC
+and \fB8bit\fR for turning on the most significant bit.
+.TP
+\fB\-l\fR, \fB\-\-sl\fR=\fIvalue\fR
+Specify number of lines of backlog.
+.TP
+\fB\-m\fR, \fB\-\-comb\fR(=\fIbool\fR)
+Enable combining characters (recommended for TIS 620 and UTF-8).
+.TP
+\fB\-n\fR, \fB\-\-ucshater\fR(=\fIbool\fR)
+Convert Unicode characters to other appropriate character sets.
+.TP
+\fB\-p\fR, \fB\-\-pic\fR=\fIpath\fR
+Path for wallpaper (background) image.
+.TP
+\fB\-s\fR, \fB\-\-sb\fR(=\fIbool\fR)
+Whether to use scrollbar.
+.TP
+\fB\-t\fR, \fB\-\-transbg\fR(=\fIbool\fR)
+Whether to use transparent background.
+.TP
+\fB\-u\fR, \fB\-\-ucslover\fR(=\fIbool\fR)
+Convert all characters (except for ASCII) to Unicode.
+.TP
+\fB\-v\fR, \fB\-\-version
+Show version message
+.TP
+\fB\-w\fR, \fB\-\-fontsize\fR=\fIvalue\fR
+Specify font size
+.TP
+\fB\-x\fR, \fB\-\-tw\fR=\fIvalue\fR
+Specify tab width
+.TP
+\fB\-y\fR, \fB\-\-term\fR=\fIstring\fR
+Specify terminal type.
+.\" ********************************************************************
+.SH GUI CONFIGURATOR
+Pushing control key and mouse button 3 invokes GUI configurator
+(\fBmlconfig\fR).  It can modify encoding, foreground and background
+color, tab size, backlog size, font size, usage of combining character,
+and so on.
+.PP
+Note this feature needs GTK+ 1.2.
+.\" ********************************************************************
+.SH MULTIPLE XIM
+\fBmlterm\fR can use multiple XIM (X Input Methods).  The current
+XIM is specified by the GUI configurator.  Using this feature you
+can input multiple complex languages such as Japanse and Korean.
+Locale to be used for comminucation with XIM can also be specified
+for each XIM.
+.\" ********************************************************************
+.SH SCROLLBAR
+\fBmlterm\fR supports scrollbar API so that users can develop
+scrollbar libraries with arbitrary look and feel.
+The scrollbar libraries can be used by putting the libraries at
+the specified directory (determined on the compilation process)
+and invoke \fBmlterm\fR with \fB\-s \-S \fIname\fR option.
+A sample scrollbar library named "\fBsample\fR" is supplied.
+.\" ********************************************************************
+.SH ANTI\-ALIAS
+\fBmlterm\fR can use TrueType fonts using \-A option via FreeType
+library when it has been compiled with anti\-alias option.
+.PP
+Note this feature needs XFree86 4.0.2 or above and FreeType 2.0.2
+or above.
+.\" ********************************************************************
+.SH WALLPAPER
+\fBmlterm\fR can use background image (as known as wallpaper),
+by using \fB\-p\fR option.
+.PP
+Note this feature needs imlib.
+.\" ********************************************************************
+.SH MULITPLE PTY
+This is one of most unique features of \fBmlterm\fR.
+The number of windows can be specified using \-P option.
+Typing control + F1 opens another window which shares the same process.
+The maximum number of windows is five.
+.\" ********************************************************************
+.SH BACKSCROLL MODE
+\fBmlterm\fR enters into backscroll mode by typing
+Shift + up or Shift + PageUp key.  In the mode,
+you can use the following keys
+.TP
+\fBj\fR or \fBDown\fR
+Scroll down one line.
+.TP
+\fBk\fR or \fBUp\fR
+Scroll up one line.
+.TP
+\fBd\fR or \fBPageDown\fR
+Scroll down one page.
+.TP
+\fBu\fR or \fBPageUp\fR
+Scroll up one page.
+.TP
+\fBShift\fR + \fBspace\fR
+Initialize XIM.
+.TP
+\fBShift\fR + \fBInsert\fR
+Insert selection.
+.TP
+\fBControl\fR + \fBF1\fR
+Open a new pty window.
+.TP
+other keys
+Exit from the backscroll mode.
+.\" ********************************************************************
+.SH CONFIGURATION
+\fBmlterm\fR loads configuration files of "\fBmain\fR", "\fBfont\fR",
+"\fBaafont\fR", "\fBcolor\fR", "\fBkey\fR", "\fBtermcap\fR", and
+"\fBxim\fR" on start up.
+Configuration files for one user are to be located in
+"\fB~/.mlterm/\fR" directory, while location for configuration
+files for all users depends on the compilation option.
+Possible locations are "\fB/etc/\fR", "\fB/etc/X11/\fR", 
+"\fB/usr/X11R6/lib/X11/mlterm/\fR", and so on.
+.PP
+The names and the roles of configuration files are:
+.TP
+\fBmain\fR
+Main configuration items which can be overrided by command line options.
+.TP
+\fBfont\fR
+Configurations for ordinary X fonts.
+.TP
+\fBaafont\fR
+Configurations for anti-alias Xft fonts.
+.TP
+\fBcolor\fR
+Designate concrete RGB values for color names.
+.TP
+\fBkey\fR
+Key definitions for special features of \fBmlterm\fR.
+.TP
+\fBtermcap\fR
+Define string sequences to be inputed by pressing control keys.
+.TP
+\fBxim\fR
+Define preset locales for X Input Methods which are shown
+in the GUI configurator.  Of course you can input XIM names
+and locales for the GUI configurator which are not listed
+in this configuration file.
+.PP
+The contents of these configuration files consist of lines
+of "\fIkey\fR=\fIvalue\fR" format.  Lines beginning with "\fB#\fR"
+are ignored.
+.PP
+Note that the configuration files are changed since
+version 1.9.44.
+.\" ******************************************************
+.SS Main Configuration File
+The main configuration file "\fBmain\fR" has the following keys.
+.TP
+\fBtabsize=\fIvalue\fR
+Specify tab width (default 8).
+.TP
+\fBlogsize=\fIvalue\fR
+Specify number of lines of backlog  (default 128).
+.TP
+\fBuse_login_shell=\fIbool\fR
+Whether to use login shell or not (default \fIfalse\fR).
+.TP
+\fBapp_name=\fIname\fR
+Application name (default \fImlterm\fR).
+.TP
+\fBtitle=\fIname\fR
+Title name (default \fImlterm\fR).
+.TP
+\fBicon_name=\fIname\fR
+Icon name (default \fImlterm\fR).
+.TP
+\fBtermtype=\fIstring\fR
+Terminal type (\fIxterm\fR or \fIkterm\fR, default \fIxterm\fR).
+.TP
+\fBptys=\fIvalue\fR
+Number of pty windows to be opened on start up (default 1).
+.TP
+\fBword_separators=\fIcharacterlist\fR
+Delimiter characters used for word selection (default "\fI ,.:;/@\fR")
+.TP
+\fBmod_meta_mode=\fImode\fR
+Behavior of META key.  \fBesc\fR for sending ESC
+and \fB8bit\fR for turning on the most significant bit.
+.TP
+\fBscrollbar_view_name=\fIname\fR
+Name of scrollbar library to be used.
+"\fIsimple\fR" means built-in simple scrollbar
+(default \fIsimple\fR).
+.TP
+\fBconf_menu_path=\fIpath\fR
+Path for \fBmlconfig\fR GUI configurator
+(default depends on compilation or \fI/usr/local/libexec/mlconfig\fR).
+.TP
+\fBuse_xim=\fIbool\fR
+Use XIM (X Input Method) (default \fItrue\fR).
+.TP
+\fBxim_open_in_startup=\fIbool\fR
+Open XIM on startup (default \fItrue\fR).
+.TP
+\fBuse_scrollbar=\fIbool\fR
+Use scrollbar (default \fIfalse\fR).
+.TP
+\fBuse_combining=\fIbool\fR
+Enable combining characters (default \fIfalse\fR).
+.TP
+\fBuse_transbg=\fIbool\fR
+Use transparent background (default \fIfalse\fR).
+.TP
+\fBunicode_to_other_cs=\fIbool\fR
+Convert Unicode characters to other appropriate character sets
+(default \fIfalse\fR).
+.TP
+\fBall_cs_to_unicode=\fIbool\fR
+Convert all characters (except for ASCII) to Unicode
+(default \fIfalse\fR).
+.TP
+\fBconv_to_generic_iso2022=\fIbool\fR
+Try to convert charsets on pasting characters so that
+as wide range of characters as possible can be pasted
+(default \fIfalse\fR).
+.TP
+\fBpre_conv_xct_to_ucs=\fIbool\fR
+Convert pasted COMPOUND_TEXT to Unicode and then to the
+current encoding (default \fIfalse\fR).
+.TP
+\fBcol_size_of_width_a=\fIvalue\fR
+Number of columns of Unicode characters with
+EastAsianAmbiguous property (default 1).
+.TP
+\fBfg_color=\fIcolor\fR
+Foreground color (default \fIblack\fR).
+Valid value for \fIcolor\fR are
+\fIwhite\fR,
+\fIblack\fR,
+\fIred\fR,
+\fIgreen\fR,
+\fIyellow\fR,
+\fIblue\fR,
+\fImagenta\fR,
+\fIcyan\fR,
+\fIgray\fR,
+\fIlightgray\fR,
+\fIpriv_fg\fR, and
+\fIpriv_bg\fR.
+.TP
+\fBbg_color=\fIcolor\fR
+Background color (default \fIwhite\fR).
+.TP
+\fBsb_fg_color=\fIcolor\fR
+Foreground color for scrollbar (default same as \fBfg_color\fR).
+.TP
+\fBsb_bg_color=\fIcolor\fR
+Background color for scrollbar (default same as \fBbg_color\fR).
+.TP
+\fBwall_picture=\fIpath\fR
+Path for wallpaper image (default none).
+.TP
+\fBfontsize=\fIvalue\fR
+Font size in pixel (default 16).
+.TP
+\fBfont_size_range=\fIrange\fR
+Range of size of usable fonts.  The format is "\fIminsize\fR-\fImaxsize\fR",
+where \fIminsize\fR and \fImaxsize\fR are font sizes in pixel
+(default 10-24).
+.TP
+\fBENCODING=\fIencoding\fR
+Specify encoding.  Valid names of encodings were
+shown at the top of this manpage.
+"\fIAUTO\fR" means that encoding is determined properly
+by using locale information (default \fIAUTO\fR).
+.\" ******************************************************
+.SS Font Configuration File
+The font configuration files "\fBfont\fR" and "\fBaafont\fR"
+have the following keys.
+.PP
+.nf
+\fBDEC_SPECIAL=\fIfonts\fR
+\fBISO8859_\fIn\fB=\fIfonts\fR
+\fBTIS620=\fIfonts\fR
+\fBVISCII=\fIfonts\fR
+\fBKOI8_R=\fIfonts\fR
+\fBKOI8_U=\fIfonts\fR
+\fBTCVN5712=\fIfonts\fR
+\fBJISX0201_ROMAN=\fIfonts\fR
+\fBJISX0201_KANA=\fIfonts\fR
+\fBJISX0208_1978=\fIfonts\fR
+\fBJISX0208_1983=\fIfonts\fR
+\fBJISX0208_1990=\fIfonts\fR
+\fBJISX0213_2000_1=\fIfonts\fR
+\fBJISX0213_2000_2=\fIfonts\fR
+\fBKSX1001_1997=\fIfonts\fR
+\fBUHC=\fIfonts\fR(not used)
+\fBJOHAB=\fIfonts\fR(not used)
+\fBGB2312_80=\fIfonts\fR
+\fBGBK=\fIfonts\fR
+\fBBIG5=\fIfonts\fR
+\fBCNS11643_1992_\fIn\fB=\fIfonts\fR
+\fBISO10646_UCS2_1=\fIfonts\fR
+\fBISO10646_UCS2_1_BIWIDTH=\fIfonts\fR
+.fi
+.RS
+Specify fonts for corresponding charsets.  The format is
+different between "\fBfont\fR" and "\fBaafont\fR" files.
+.PP
+In "\fBfont\fR" file, "\fIfont\fR" is specified in
+"\fISIZE\fR,\fINAME\fR;\fISIZE\fR,\fINAME\fR;\fI...\fR"
+format where "\fISIZE\fR" is font size in pixel
+and "\fINAME\fR" is XLFD or alias names of X fonts.
+.PP
+In "\fBaafont\fR" file, "\fIfont\fR" is specified in
+"\fIFAMILY\fR-\fIENCODING\fR;\fISIZE\fR,\fIFAMILY\fR-\fIENCODING\fR;\fI...\fR"
+format.  The first pair of \fIFAMILY\fR and \fIENCODING\fR specifies
+the default font and the others with \fISIZE\fR are for specific sizes.
+.RE
+.TP
+\fIencoding\fB_BOLD=\fIfonts\fR
+Specify boldface fonts.
+.\" ******************************************************
+.SS Color Configuration File
+The color configuration file "\fBcolor\fR" has the following key.
+.TP
+\fBcolor_rgb=\fIcolor\fR , \fIRGB\fR
+Assign a concrete color for the name \fIcolor\fR, where
+\fIRGB\fR is \fIRED\fR\-\fIGREEN\fR\-\fIBLUE\fR, where
+\fIRED\fR,
+\fIGREEN\fR, and
+\fIBLUE\fR are hexadigimal value from 0 to ffff.
+.\" ******************************************************
+.SS XIM Configuration File
+The X Input Methods configuration file "\fBxim\fR" has the following
+format
+.PP
+\fIXIM\fR=\fIlocale\fR
+.PP
+where \fIXIM\fR is XIM name and \fIlocale\fR is locale name used
+for communication with the XIM server.  For example,
+.nf
+kinput2=ja_JP.eucJP
+Ami=ko_KR.eucKR
+xcin-zh_CN.GB2312=zh_CN.GB2312
+.fi
+These settings are used for choices of XIM in the GUI configurator.
+You can use XIMs which are not listed in this configuration file.
+.\" ******************************************************
+.SS Feature Key Configuration File
+The feature key configuration file "\fBkey\fR" has the following keys.
+.TP
+\fBXIM_OPEN=\fIkey\fR
+Specify key to open XIM.  This is not used
+if \fBxim_open_in_startup\fR is enabled
+(default \fIShift+space\fR).
+.TP
+\fBXIM_CLOSE=\fIkey\fR
+Specify key to close XIM (default \fIUNUSED\fR).
+.TP
+\fBNEW_PTY=\fIkey\fR
+Specify key to open new pty (default \fICtrl+F1\fR).
+.TP
+\fBPAGE_UP=\fIkey\fR
+Specify key to start backscroll mode and scroll up one page
+(default \fIShift+prior\fR).
+.TP
+\fBSCROLL_UP=\fIkey\fR
+Specify key to start backscroll mode and scroll up one line
+(default \fIShift+up\fR).
+.TP
+\fBINSERT_SELECTION=\fIkey\fR
+Specify key to insert selection (default \fIShift+Insert\fR).
+.PP
+The format for \fIkey\fR is "\fI(MASK+)KEY\fR",
+where \fIMASK\fR is one of \fBControl\fR, \fBShift\fR, and
+\fBMod\fR.
+.\" ******************************************************
+.SS Control Key Configuration File
+The feature key configuration file "\fBtermcap\fR" has the following keys.
+.TP
+\fBkD=\fIsequence\fR
+Specify sequence to be outputed when Delete key is pushed
+(default \fI^?\fR).
+.TP
+\fBkb=\fIsequence\fR
+Specify sequence to be outputed when BackSpace key is pushed
+(default \fI^H\fR).
+.PP
+The following special characters can be used to specify \fIsequence\fR.
+.TP
+\fB\\E\fR
+ESC code (0x1b).
+.TP
+\fB^?\fR
+DEL code (0x7f).
+.TP
+\fB^A\fR, \fB^B\fR,...
+Corrsponding control code (0x01 \- 0x1a).
+.\" ********************************************************************
+.SH SEE ALSO
+Manual pages of
+\fBlocale\fR(7),
+\fBcharsets\fR(7), and
+\fBUTF-8\fR(7).
+.PP
+\fBREADME.sb\fR for development of scrollbar library.
+.SH FILES
+.TP
+"\fImain\fR", "\fIfont\fR", "\fIaafont\fR", "\fIcolor\fR", "\fIkey\fR", "\fItermcap\fR", and "\fIxim\fR"
+Configuration files.
+.TP
+"\fImlconfig\fR"
+GUI configurator.
+.SH AUTHOR
+Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>

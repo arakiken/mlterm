@@ -1,0 +1,69 @@
+prefix = @prefix@
+sysconfdir = @sysconfdir@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+libdir = @libdir@
+libexecdir = @libexecdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+PREFIX = $(DESTDIR)$(prefix)
+BINDIR = $(DESTDIR)$(bindir)
+LIBDIR = $(DESTDIR)$(libdir)
+SYSCONFDIR = $(sysconfdir)
+LIBEXECDIR = $(libexecdir)
+
+OBJ = ml_window_manager.o ml_window.o ml_char.o ml_image.o ml_logs.o ml_line_hints.o \
+	ml_vt100_parser.o ml_pty_fork.o ml_pty.o ml_image_intern.o ml_image_scroll.o \
+	ml_selection.o ml_term_screen.o ml_xcompound_text.o ml_utf8_string.o ml_xim.o ml_xic.o \
+	ml_color_manager.o ml_backscroll.o ml_image_line.o main.o ml_font_manager.o \
+	ml_scrollbar.o ml_sb_term_screen.o ml_picture.o ml_keymap.o ml_font.o \
+	ml_config_menu.o ml_locale.o ml_term_manager.o ml_encoding.o ml_font_custom.o \
+	ml_sb_view_factory.o ml_simple_sb_view.o ml_color.o ml_termcap.o
+
+LKIK = @KIK_LIBS@
+LMKF = @MKF_LIBS@
+LKIK_DEB = -lkik_deb
+LMKF_DEB = -lmkf_deb
+
+CFLAGS=$(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @IMLIB_CFLAGS@ \
+	@AA_CFLAGS@ @UCS4_CFLAGS@ @PTY_CFLAGS@ @CFLAGS@ \
+	-DLIBDIR=\"$(LIBDIR)\" -DLIBEXECDIR=\"$(LIBEXECDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
+	-I/usr/X11R6/include -I/usr/local/include
+LIBS=$(CFLAGS_LOCAL) \
+	@X_EXTRA_LIBS@ @XPG4_LIBS@ @DL_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ \
+	$(LKIK) $(LMKF) -lX11 \
+	-L/usr/X11R6/lib -L/usr/local/lib
+
+PROG = mlterm
+
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+all: $(PROG)
+
+debug:	
+	$(MAKE) LKIK="$(LKIK_DEB)" LMKF="$(LMKF_DEB)" all
+
+$(PROG): $(OBJ)
+	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) $(OBJ) $(LIBS)
+
+.SUFFIXES: .c .o
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
+install : $(BINDIR)
+	$(LIBTOOL_INSTALL) -m 755 $(PROG) $(BINDIR)
+
+wc :
+	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
+
+clean:
+	rm -rf $(PROG) *.core $(OBJ) .libs
+

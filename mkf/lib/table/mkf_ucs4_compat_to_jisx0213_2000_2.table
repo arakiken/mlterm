@@ -1,0 +1,53 @@
+/*
+ *	mkf_ucs4_compat_to_jisx0213_2000_2.table
+ */
+
+#ifndef  __MKF_UCS4_COMPAT_TO_JISX0213_2000_2_TABLE__
+#define  __MKF_UCS4_COMPAT_TO_JISX0213_2000_2_TABLE__
+
+
+#include  <stdio.h>
+#include  <kiklib/kik_types.h>
+
+
+static u_char  ucs4_compat_to_jisx0213_2000_2_bytes[2] ;
+
+#define  CONV_UCS4_COMPAT_TO_JISX0213_2000_2(ch) \
+	( (ch) < ucs4_compat_to_jisx0213_2000_2_beg || ucs4_compat_to_jisx0213_2000_2_end < (ch) ? \
+		NULL : \
+		ucs4_compat_to_jisx0213_2000_2_table[ (ch) - ucs4_compat_to_jisx0213_2000_2_beg] == 0 ? \
+			NULL : \
+			( mkf_int_to_bytes( ucs4_compat_to_jisx0213_2000_2_bytes , 2 , \
+				ucs4_compat_to_jisx0213_2000_2_table[ (ch) - ucs4_compat_to_jisx0213_2000_2_beg])))
+
+static u_int16_t  ucs4_compat_to_jisx0213_2000_2_table[] = 
+{
+	/* 0xfa13 */
+	0x2e79 ,
+	0x00 ,
+	0x00 ,
+	0x00 ,
+	0x00 ,
+	0x00 ,
+	0x00 ,
+	0x00 ,
+	0x00 ,
+	0x00 ,
+	0x00 ,
+	0x00 ,
+	0x00 ,
+	0x7738 ,
+	0x7745 ,
+	0x00 ,
+
+	/* 0xfa23 */
+	0x00 ,
+	0x796e ,
+} ;
+
+static u_int  ucs4_compat_to_jisx0213_2000_2_beg = 0xfa13 ;
+
+static u_int  ucs4_compat_to_jisx0213_2000_2_end = 0xfa24 ;
+
+
+#endif

@@ -1,0 +1,105 @@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+
+TOPDIR = @TOPDIR@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+DESTDIR =
+PREFIX = $(DESTDIR)$(prefix)
+LIBDIR = $(DESTDIR)$(libdir)
+INCDIR = $(DESTDIR)$(PREFIX)/include
+
+INCDIR_TMP = $(TOPDIR)/include
+SRCDIR = $(TOPDIR)/lib
+BUILDDIR = $(TOPDIR)/build
+
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @CFLAGS@ -I/usr/local/include
+LIBS = $(LIBS_LOCAL)
+
+PARSER_OBJ = mkf_parser.o mkf_iso2022_parser.o mkf_iso8859_parser.o mkf_eucjp_parser.o \
+	mkf_euckr_parser.o mkf_euccn_parser.o mkf_iso2022jp_parser.o mkf_iso2022kr_parser.o \
+	mkf_sjis_parser.o mkf_big5_parser.o mkf_euctw_parser.o mkf_ucs4_parser.o \
+	mkf_iso2022cn_parser.o mkf_hz_parser.o mkf_utf8_parser.o mkf_johab_parser.o \
+	mkf_viscii_parser.o mkf_koi8_parser.o
+
+CONV_OBJ = mkf_iso8859_conv.o mkf_iso2022_conv.o mkf_iso2022jp_conv.o mkf_iso2022kr_conv.o \
+	mkf_sjis_conv.o mkf_utf8_conv.o mkf_big5_conv.o mkf_euctw_conv.o mkf_iso2022cn_conv.o \
+	mkf_hz_conv.o mkf_ucs4_conv.o mkf_eucjp_conv.o mkf_euckr_conv.o mkf_euccn_conv.o \
+	mkf_johab_conv.o mkf_viscii_conv.o mkf_koi8_conv.o
+
+MAP_OBJ = mkf_ucs4_map.o mkf_zh_cn_map.o mkf_zh_tw_map.o mkf_ko_kr_map.o mkf_viet_map.o \
+	mkf_ja_jp_map.o mkf_ru_map.o
+
+PROP_OBJ = mkf_ucs_property.o mkf_jisx0208_1983_property.o mkf_jisx0213_2000_property.o
+
+UCS_TABLE_OBJ = mkf_ucs4_usascii.o mkf_ucs4_iso8859.o mkf_ucs4_viscii.o mkf_ucs4_tcvn5712_1.o \
+	mkf_ucs4_koi8.o mkf_ucs4_jisx0201.o mkf_ucs4_jisx0208.o mkf_ucs4_jisx0212.o \
+	mkf_ucs4_jisx0213.o mkf_ucs4_ksc5601.o mkf_ucs4_uhc.o mkf_ucs4_johab.o \
+	mkf_ucs4_gb2312.o mkf_ucs4_gbk.o mkf_ucs4_big5.o mkf_ucs4_cns11643.o \
+	mkf_gb18030_2000_intern.o
+
+OBJ = $(PARSER_OBJ) $(CONV_OBJ) $(MAP_OBJ) mkf_char.o mkf_sjis_env.o $(PROP_OBJ) $(UCS_TABLE_OBJ)
+
+INC = $(PARSER_OBJ:.o=.h) $(CONV_OBJ:.o=.h) $(MAP_OBJ:.o=.h) mkf_char.h mkf_sjis_env.h \
+	mkf_ucs_property.h mkf_property.h \
+	mkf_charset.h mkf_conv.h mkf_xct_parser.h mkf_xct_conv.h
+
+LIBNAME = libmkf
+LIBNAME_DEB = libmkf_deb
+MAJOR = 9
+MINOR = 0
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+
+all : la_lib ar_lib collect-headers
+
+debug :
+	$(MAKE) LIBNAME=$(LIBNAME_DEB) ar_lib
+
+ar_lib : $(OBJ)
+	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ)
+
+la_lib : $(OBJ)
+	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(PREFIX)/lib \
+		-version-info $(MAJOR):$(MINOR):0
+
+$(INCDIR_TMP)/mkf :
+	mkdir -p $(INCDIR_TMP)/mkf
+
+collect-headers : $(INCDIR_TMP)/mkf
+	cp $(INC) $(INCDIR_TMP)/mkf
+
+install: install-inc install-la install-ar
+
+install-deb : $(LIBDIR)
+	$(MAKE) LIBNAME=$(LIBNAME_DEB) install-ar
+
+install-inc : $(INCDIR)/mkf
+	cp $(INC) $(INCDIR)/mkf
+
+install-la :
+	$(LIBTOOL_INSTALL) *.la $(LIBDIR)
+
+install-ar :
+	$(LIBTOOL_INSTALL) *.a $(LIBDIR)
+
+$(INCDIR)/mkf :
+	mkdir -p $(INCDIR)/mkf
+
+$(LIBDIR) :
+	mkdir -p $(LIBDIR)
+
+clean :
+	rm -rf $(OBJ) $(OBJ:.o=.lo) .libs *.la *.a $(INCDIR_TMP)
+
+.SUFFIXES : .c.o
+
+.c.o :
+	$(LIBTOOL_CC) -c $<

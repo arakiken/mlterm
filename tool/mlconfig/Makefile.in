@@ -1,0 +1,51 @@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libexecdir = @libexecdir@
+sysconfdir = @sysconfdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+DESTDIR =
+LIBEXECDIR = $(DESTDIR)$(libexecdir)
+SYSCONFDIR = $(DESTDIR)$(sysconfdir)
+
+LKIK = @KIK_LIBS@
+
+GTK_CONFIG=@GTK_CONFIG@
+CFLAGS = `$(GTK_CONFIG) --cflags` $(CFLAGS_LOCAL) \
+	@DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @CFLAGS@ \
+	-I../../src -I/usr/X11R6/include -I/usr/local/include \
+	-DSYSCONFDIR=\"$(SYSCONFDIR)\"
+LIBS = `$(GTK_CONFIG) --libs` $(LIBS_LOCAL) $(LKIK) \
+	-L/usr/X11R6/lib -L/usr/local/lib
+
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+OBJ = main.o mc_combo.o mc_encoding.o mc_xim.o mc_tabsize.o mc_logsize.o \
+	mc_fontsize.o mc_char_combining.o mc_pre_conv.o mc_transparent.o mc_aa.o mc_color.o \
+	mc_fg_color.o mc_bg_color.o mc_mod_meta.o
+
+LKIK_DEB=-lkik_deb
+
+all: mlconfig
+
+debug:
+	$(MAKE) LKIK="$(LKIK_DEB)" all
+
+mlconfig: $(OBJ)
+	$(LIBTOOL_LINK) $(OBJ) $(CFLAGS) -o mlconfig $(LIBS)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+install: $(LIBEXECDIR)
+	$(LIBTOOL_INSTALL) -m 755 mlconfig $(LIBEXECDIR)
+
+$(LIBEXECDIR):
+	mkdir -p $(LIBEXECDIR)
+	
+clean:
+	rm -rf $(OBJ) mlconfig *.core .libs

@@ -1,0 +1,15 @@
+# logsize=128
+# fontsize=16
+# tabsize=8
+# use_xim=true
+# open_xim_in_startup=true
+# use_scrollbar=true
+# use_combining=false
+# unicode_to_other_cs=false
+# all_cs_to_unicode=false
+# conv_to_generic_iso2022=false
+# fg_color=black
+# bg_color=white
+scrollbar_view_name=sample
+# font_range_list=10-24
+# ENCODING=auto

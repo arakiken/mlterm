@@ -1,0 +1,18 @@
+prefix=@prefix@
+sysconfdir=@sysconfdir@
+
+DESTDIR=
+SYSCONFDIR=$(DESTDIR)$(sysconfdir)/mlterm
+
+RCFILES = main aafont font color termcap key xim
+
+INSTALL=@INSTALL@
+
+all .DEFAULT:
+	@echo "no such a target"
+
+$(SYSCONFDIR):
+	mkdir -p $(SYSCONFDIR)
+
+install: $(SYSCONFDIR)
+	for file in $(RCFILES) ; do $(INSTALL) -m 644 $${file} $(SYSCONFDIR)/$${file} ; done
