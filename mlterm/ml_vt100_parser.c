@@ -583,9 +583,7 @@ change_char_attr(
 	else if( flag == 39)
 	{
 		/* default fg */
-
 		fg_color = ML_FG_COLOR ;
-		vt100_parser->is_reversed = 0 ;
 	}
 	else if( flag == 40)
 	{
@@ -622,7 +620,6 @@ change_char_attr(
 	else if( flag == 49)
 	{
 		bg_color = ML_BG_COLOR ;
-		vt100_parser->is_reversed = 0 ;
 	}
 #ifdef  DEBUG
 	else

@@ -1,3 +1,8 @@
+2004-09-19 meiichi SATO <ssato@sh.rim.or.jp>
+
+	* mlterm/ml_vt100_parser.c (change_char_attr): kept is_reversed when
+	  'ESC [ 39 m' or 'ESC [ 49 m' was received.
+
 2004-09-19 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* x_im.h: increased IM_API_VERSION.
