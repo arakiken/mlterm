@@ -1,0 +1,53 @@
+top_builddir = ../../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libexecdir = @libexecdir@
+sysconfdir = @sysconfdir@
+datadir = @datadir@
+
+VPATH = ${top_srcdir}/contrib/tool/mlterm-zoom
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+DESTDIR =
+LIBEXECDIR = $(DESTDIR)$(libexecdir)
+SYSCONFDIR = $(DESTDIR)$(sysconfdir)
+
+CFLAGS = $(CFLAGS_LOCAL) \
+	@CFLAGS@ @CPPFLAGS@ \
+	-DSYSCONFDIR=\"$(SYSCONFDIR)\"
+LIBS = $(LIBS_LOCAL) -L/usr/X11R6/lib -lX11 @DL_SELF@
+
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
+OBJS = mlterm-zoom.o
+
+all: mlterm-zoom
+
+mlterm-zoom: $(OBJS)
+	$(LIBTOOL_LINK) $(OBJS) $(CFLAGS) -o mlterm-zoom $(LIBS)
+
+.c.o:
+	$(CC) $(DEFS) $(CFLAGS) -c $<
+
+install: $(LIBEXECDIR) $(SYSCONFDIR)/mlterm
+	$(LIBTOOL_INSTALL) -m 755 mlterm-zoom $(LIBEXECDIR)
+
+$(LIBEXECDIR):
+	mkdir -p $(LIBEXECDIR)
+
+$(SYSCONFDIR)/mlterm:
+	mkdir -p $(SYSCONFDIR)/mlterm
+
+clean:
+	rm -rf $(OBJS) mlterm-zoom mlterm-zoom.exe *.core .libs
+
+distclean: clean
+	rm -f Makefile

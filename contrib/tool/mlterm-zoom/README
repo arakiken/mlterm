@@ -1,0 +1,26 @@
+mlterm-zoom - Change MLTerm Font Size with the Mouse Wheel
+
+
+Installation
+============
+  % ./configure ... --with-tools=mlterm-zoom,...
+  % make
+  % su
+  # make install
+  % echo 'conf_menu_path_2 = mlterm-zoom' >> ~/.mlterm/main
+
+
+How To Use
+==========
+Click mouse wheel with CTRL key, mlterm-zoom displays a small white
+window. Scrolling the wheel up or down on the white window, you can
+increase or decrease font size.
+
+If you finish adjusting font size, Click mouse button or focus out on
+the white window.
+
+
+License
+=======
+BSD license (modified or no `advertising clause')
+See "LICENCE" file for details.
