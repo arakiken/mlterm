@@ -366,7 +366,7 @@ int
 x_xim_final(void)
 {
 	int  count ;
-	
+
 	if( ! use_xim)
 	{
 		return  0 ;
@@ -376,11 +376,8 @@ x_xim_final(void)
 	{
 		close_xim( &xims[count]) ;
 	}
-	
-	if( default_xim_name)
-	{
-		free( default_xim_name) ;
-	}
+
+	free( default_xim_name) ;
 
 	return  1 ;
 }

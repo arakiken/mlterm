@@ -754,10 +754,7 @@ x_sb_screen_new(
 	return  sb_screen ;
 
 error:
-	if( sb_screen)
-	{
-		free( sb_screen) ;
-	}
+	free( sb_screen) ;
 
 	return  NULL ;
 }

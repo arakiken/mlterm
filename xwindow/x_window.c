@@ -513,6 +513,10 @@ x_window_init(
 #endif
 	win->app_name = "mlterm" ;
 
+	win->icon_pix = None;
+	win->icon_mask = None;
+	win->icon_card = NULL;
+	
 	win->window_realized = NULL ;
 	win->window_finalized = NULL ;
 	win->window_exposed = NULL ;
@@ -556,10 +560,7 @@ x_window_final(
 		x_window_final( win->children[count]) ;
 	}
 
-	if( win->children)
-	{
-		free( win->children) ;
-	}
+	free( win->children) ;
 
 	x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
 
@@ -577,6 +578,14 @@ x_window_final(
 
 	XDestroyWindow( win->display , win->my_window) ;
 
+	if( win->icon_pix){
+		XFreePixmap( win->display , win->icon_pix) ;
+	}
+	if( win->icon_mask){
+		XFreePixmap( win->display , win->icon_mask) ;
+	}
+	free( win->icon_card) ;
+	
 	x_xic_deactivate( win) ;
 
 	if( win->window_finalized)
@@ -2031,9 +2040,7 @@ x_window_receive_event(
 	}
 	else if( event->type == MapNotify)
 	{
-		if( win->is_transparent){
-			notify_reparent_to_children( win) ;
-		}
+		notify_reparent_to_children( win) ;
 	}
 	else if( event->type == SelectionClear)
 	{

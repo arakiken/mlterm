@@ -470,34 +470,65 @@ open_screen_intern(
 
 	if( main_config.icon_path)
 	{
-		if( !(disp->win_man.icon) && !(disp->win_man.mask) && !(disp->win_man.cardinal))
+		int  icon_size = 48 ;
+		if( disp->win_man.icon_path)
 		{
-			x_window_t  dummy ;
-			int  icon_size = 48 ;
-			x_imagelib_load_file( disp->display , main_config.icon_path,
-					      &(disp->win_man.cardinal),
-					      &(disp->win_man.icon),
-					      &(disp->win_man.mask),
-					      &icon_size ,&icon_size) ;
-
-			dummy.my_window = disp->win_man.group_leader ;
-			dummy.display = disp->win_man.display ;
-			x_window_set_icon( &dummy,
-					   disp->win_man.icon,
-					   disp->win_man.mask,
-					   disp->win_man.cardinal) ;
+			if( strcmp( disp->win_man.icon_path,
+				    main_config.icon_path) == 0)
+			{
+				x_window_set_icon( root,
+						   disp->win_man.icon,
+						   disp->win_man.mask,
+						   disp->win_man.cardinal) ;
+			}
+			else
+			{
+				if ( x_imagelib_load_file( disp->display ,
+							   main_config.icon_path,
+							   &(root->icon_card),
+							   &(root->icon_pix),
+							   &(root->icon_mask),
+							   &icon_size ,&icon_size))
+				{
+					x_window_set_icon( root,
+							   root->icon_pix,
+							   root->icon_mask,
+							   root->icon_card) ;
+				}
+			}
 		}
-		x_window_set_icon( root,
-				   disp->win_man.icon,
-				   disp->win_man.mask,
-				   disp->win_man.cardinal) ;
+		else
+		{
+			if( disp->win_man.icon_path = strdup( main_config.icon_path))
+			{
+				if( x_imagelib_load_file( disp->display ,
+							  main_config.icon_path,
+							  &(disp->win_man.cardinal),
+							  &(disp->win_man.icon),
+							  &(disp->win_man.mask),
+							  &icon_size ,&icon_size))
 
+				{
+					x_window_t  dummy ;
+					
+					dummy.my_window = disp->win_man.group_leader ;
+					dummy.display = disp->win_man.display ;
+					x_window_set_icon( &dummy,
+							   disp->win_man.icon,
+							   disp->win_man.mask,
+							   disp->win_man.cardinal) ;
+					x_window_set_icon( root,
+							   disp->win_man.icon,
+							   disp->win_man.mask,
+							   disp->win_man.cardinal) ;
+				}
+			}
+		}
 	}
 
 	if( pty && main_config.cmd_argv)
 	{
 		int  count ;
-		
 		for( count = 0 ; main_config.cmd_argv[count] ; count ++)
 		{
 			ml_term_write( term , main_config.cmd_argv[count] ,

@@ -3,6 +3,14 @@
 	* doc/term/mlterm.tc: revived.
 
 2005-02-10 MINAMI Hirokazu <minami@mistfall.net>
+
+	* xwindow/x_term_manager.c,
+	xwindow/x_window_manager.[ch]: mlclient now accepts --iconpath option
+	and the value is used as a icon of the newly created window.
+
+	* minor code cleanup.
+
+2005-02-10 MINAMI Hirokazu <minami@mistfall.net>
 	
 	* man/mlterm.1: updated many out-of-date descriptions.
 

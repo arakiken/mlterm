@@ -707,21 +707,10 @@ view_created:
 	return  1 ;
 
 error:
-	if( sb->fg_color)
-	{
-		free( sb->fg_color) ;
-	}
-	
-	if( sb->bg_color)
-	{
-		free( sb->bg_color) ;
-	}
-	
-	if( sb->view_name)
-	{
-		free( sb->view_name) ;
-	}
-	
+	free( sb->fg_color) ;
+	free( sb->bg_color) ;
+	free( sb->view_name) ;
+
 	if( sb->view)
 	{
 		(*sb->view->delete)(sb->view) ;
@@ -936,7 +925,7 @@ x_scrollbar_set_line_height(
 
 	draw_decoration( sb) ;
 	draw_scrollbar( sb) ;
-	
+
 	return  1 ;
 }
 
@@ -948,11 +937,11 @@ x_scrollbar_set_fg_color(
 {
 	free( sb->fg_color) ;
 	x_unload_xcolor( sb->window.display , sb->window.screen , &sb->fg_xcolor) ;
-	
+
 	sb->fg_color = strdup( fg_color) ;
 	x_load_named_xcolor( sb->window.display , sb->window.screen , &sb->fg_xcolor , sb->fg_color) ;
 	x_window_set_fg_color( &sb->window , sb->fg_xcolor.pixel) ;
-	
+
 	draw_decoration( sb) ;
 	draw_scrollbar( sb) ;
 
@@ -967,7 +956,7 @@ x_scrollbar_set_bg_color(
 {
 	free( sb->bg_color) ;
 	x_unload_xcolor( sb->window.display , sb->window.screen , &sb->bg_xcolor) ;
-	
+
 	sb->bg_color = strdup( bg_color) ;
 	x_load_named_xcolor( sb->window.display , sb->window.screen , &sb->bg_xcolor , sb->bg_color) ;
 	x_window_set_bg_color( &sb->window , sb->bg_xcolor.pixel) ;
@@ -1021,10 +1010,7 @@ x_scrollbar_change_view(
 
 	sb->view = view ;
 
-	if( sb->view_name)
-	{
-		free( sb->view_name) ;
-	}
+	free( sb->view_name) ;
 
 	/* name is dynamically allocated above */
 	sb->view_name = name ;

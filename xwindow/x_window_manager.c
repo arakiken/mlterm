@@ -85,6 +85,7 @@ x_window_manager_init(
 	win_man->group_leader = XCreateSimpleWindow( win_man->display,
 						     win_man->my_window,
 						     0, 0, 1, 1, 0, 0, 0) ;
+	win_man->icon_path = NULL;
 	win_man->icon = None ;
 	win_man->mask = None ;
 	win_man->cardinal = NULL ;
@@ -117,6 +118,9 @@ x_window_manager_final(
 	{
 		XDestroyWindow( win_man->display, win_man->group_leader) ;
 	}
+
+	free(  win_man->icon_path);
+
 	if( win_man->icon)
 	{
 		XFreePixmap( win_man->display, win_man->icon) ;
@@ -125,20 +129,16 @@ x_window_manager_final(
 	{
 		XFreePixmap( win_man->display, win_man->mask) ;
 	}
-	if( win_man->cardinal)
-	{
-		free( win_man->cardinal) ;
-	}
+
+	free( win_man->cardinal) ;
+
 	for( count = 0 ; count < win_man->num_of_roots ; count ++)
 	{
 		x_window_unmap( win_man->roots[count]) ;
 		x_window_final( win_man->roots[count]) ;
 	}
 
-	if( win_man->roots)
-	{
-		free( win_man->roots) ;
-	}
+	free( win_man->roots) ;
 
 	return  1 ;
 }

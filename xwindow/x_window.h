@@ -128,6 +128,14 @@ typedef struct  x_window
 	 */
 	char *  app_name ;
 
+	
+	/*
+	 * per-window icon
+	 */
+	Pixmap icon_pix;
+	Pixmap icon_mask;
+	u_int32_t *  icon_card;
+	
 	/*
 	 * flags etc.
 	 */

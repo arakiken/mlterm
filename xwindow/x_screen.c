@@ -4225,11 +4225,8 @@ change_im(
 		screen->im = NULL ;
 	}
 
-	if( screen->input_method)
-	{
-		free( screen->input_method) ;
-		screen->input_method = NULL ;
-	}
+	free( screen->input_method) ;
+	screen->input_method = NULL ;
 
 	if( ! input_method)
 	{
@@ -5972,23 +5969,23 @@ im_changed(
 
 	screen = p ;
 
-	if( ! ( new = x_im_new( ml_term_get_encoding( screen->term) ,
+	if( !( input_method = strdup( input_method)))
+	{
+		return;
+	}
+
+	if( !( new = x_im_new( ml_term_get_encoding( screen->term) ,
 				&screen->im_listener ,
 				input_method , screen->mod_ignore_mask)))
 	{
+		free( input_method);
 		return ;
 	}
 
-	if( screen->input_method)
-	{
-		free( screen->input_method) ;
-		screen->input_method = NULL ;
-	}
-
-	screen->input_method = strdup( input_method) ;
+	free( screen->input_method) ;
+	screen->input_method = input_method ; /* strdup'ed one */
 
 	x_im_delete( screen->im) ;
-
 	screen->im = new ;
 }
 
@@ -6711,40 +6708,13 @@ error:
 		(*screen->xct_conv->delete)( screen->xct_conv) ;
 	}
 
-	if( screen->pic_file_path)
-	{
-		free( screen->pic_file_path) ;
-	}
-
-	if( screen->conf_menu_path_1)
-	{
-		free( screen->conf_menu_path_1) ;
-	}
-
-	if( screen->conf_menu_path_2)
-	{
-		free( screen->conf_menu_path_2) ;
-	}
-
-	if( screen->conf_menu_path_3)
-	{
-		free( screen->conf_menu_path_3) ;
-	}
-
-	if( screen->mod_meta_key)
-	{
-		free( screen->mod_meta_key) ;
-	}
-
-	if( screen->input_method)
-	{
-		free( screen->input_method) ;
-	}
-
-	if( screen)
-	{
-		free( screen) ;
-	}
+	free( screen->pic_file_path) ;
+	free( screen->conf_menu_path_1) ;
+	free( screen->conf_menu_path_2) ;
+	free( screen->conf_menu_path_3) ;
+	free( screen->mod_meta_key) ;
+	free( screen->input_method) ;
+	free( screen) ;
 
 	return  NULL ;
 }
@@ -6761,30 +6731,11 @@ x_screen_delete(
 
 	x_sel_final( &screen->sel) ;
 
-	if( screen->mod_meta_key)
-	{
-		free( screen->mod_meta_key) ;
-	}
-
-	if( screen->pic_file_path)
-	{
-		free( screen->pic_file_path) ;
-	}
-
-	if( screen->conf_menu_path_1)
-	{
-		free( screen->conf_menu_path_1) ;
-	}
-
-	if( screen->conf_menu_path_2)
-	{
-		free( screen->conf_menu_path_2) ;
-	}
-
-	if( screen->conf_menu_path_3)
-	{
-		free( screen->conf_menu_path_3) ;
-	}
+	free( screen->mod_meta_key) ;
+	free( screen->pic_file_path) ;
+	free( screen->conf_menu_path_1) ;
+	free( screen->conf_menu_path_2) ;
+	free( screen->conf_menu_path_3) ;
 
 	if( screen->utf8_parser)
 	{
@@ -6811,10 +6762,7 @@ x_screen_delete(
 		(*screen->xct_conv->delete)( screen->xct_conv) ;
 	}
 
-	if( screen->input_method)
-	{
-		free( screen->input_method) ;
-	}
+	free( screen->input_method) ;
 
 	if( screen->im)
 	{

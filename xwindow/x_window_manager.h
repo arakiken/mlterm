@@ -25,6 +25,7 @@ typedef struct  x_window_manager
 	Window  my_window ;
 
 	Window group_leader ;
+	char *icon_path;
 	Pixmap  icon ;
 	Pixmap  mask ;
 	u_int32_t *  cardinal ;

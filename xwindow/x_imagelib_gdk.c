@@ -127,10 +127,8 @@ load_file(
 		kik_warn_printf(KIK_DEBUG_TAG "adding pixbuf to cache(%s)\n", path) ;
 #endif
 		/* get rid of old cache data */
-		if( name) /* may be NULL */
-			free( name) ;
+		free( name) ;
 		name = strdup( path) ;
-
 		if( data)
 		{
 #if GDK_PIXBUF_MAJOR >= 2
@@ -1508,10 +1506,10 @@ x_imagelib_load_file_for_background(
 			gdk_pixbuf_unref( cached_pixbuf) ;
 #endif /*GDK_PIXBUF_MAJOR*/
 		}
-		if( cached_mod)
-			free(cached_mod) ;
-		if( cached_pixbuf_file_path)
-			free(cached_pixbuf_file_path) ;
+
+		free(cached_mod) ;
+		free(cached_pixbuf_file_path) ;
+
 		cached_pixbuf_file_path = strdup( file_path) ;
 
 		if( is_picmod_eq( pic_mod, NULL))
@@ -1620,9 +1618,10 @@ x_imagelib_get_transparent_background(
 			if((cache->cooked != None) && (cache->cooked != cache->root))
 				XFreePixmap( win->display, cache->cooked) ;
 			cache->root = current_root ;
+
 			cache->cooked = None ;
-			if ( cache->pic_mod)
-				free(cache->pic_mod) ;
+
+			free(cache->pic_mod) ;
 			cache->pic_mod = NULL ;
 		}
 	}
@@ -1657,8 +1656,7 @@ x_imagelib_get_transparent_background(
 						     gc,
 						     current_root
 						     ,1) ;
-			if(cache->pic_mod)
-				free(cache->pic_mod) ;
+			free(cache->pic_mod) ;
 			cache->pic_mod = malloc(sizeof(x_picture_modifier_t)) ;
 			memcpy( cache->pic_mod, pic_mod, sizeof(x_picture_modifier_t)) ;
 			modify_pixmap( win->display, win->screen, cache->cooked, pic_mod) ;
