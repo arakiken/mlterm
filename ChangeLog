@@ -1,3 +1,8 @@
+2002-05-20 Araki Ken <arakiken@users.sf.net>
+
+	* VPATH was wrong in mlterm/Makefile.in xwindow/Makefile.in. fixed.
+	  (Thanks to Nakada Nobuyoshi san)
+
 2002-05-19 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* x_color.c: alloc_closest_xcolor_pseudo() doesn't free the memory space

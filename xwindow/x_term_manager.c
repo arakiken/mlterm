@@ -156,7 +156,7 @@ open_term(
 	int  usascii_font_cs_changable ;
 	x_termcap_entry_t *  termcap ;
 	ml_term_t *  term ;
-	char *  env[5] ;	/* MLTERM,TERM,WINDOWID,DISPLAY */
+	char *  env[5] ;	/* MLTERM,TERM,WINDOWID,DISPLAY,NULL */
 	char **  env_p ;
 	char  wid_env[9 + DIGIT_STR_LEN(Window) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
 	char *  disp_env ;
@@ -1732,19 +1732,6 @@ receive_next_event(
 	{
 		if( FD_ISSET( x_display_fd( term_man->displays[count]) , &read_fds))
 		{
-		#if  0
-			char *  env ;
-			char *  disp ;
-
-			disp = DisplayString( term_man->displays[count]->display) ;
-
-			if( ( env = malloc( 9 + strlen( disp))))
-			{
-				sprintf( env , "DISPLAY=%s" , disp) ;
-				putenv( env) ;
-			}
-		#endif
-			
 			x_window_manager_receive_next_event( &term_man->displays[count]->win_man) ;
 		}
 	}

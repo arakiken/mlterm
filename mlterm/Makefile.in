@@ -14,7 +14,7 @@ PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)
 INCDIR = $(DESTDIR)$(PREFIX)/include
 
-VPATH = $(SRC_TOPDIR)/lib
+VPATH = $(SRC_TOPDIR)/mlterm
 
 INCDIR_TMP = $(BUILD_TOPDIR)/include
 
