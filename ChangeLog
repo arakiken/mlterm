@@ -1,3 +1,11 @@
+2003-08-14  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit.c(ml_edit_clear_line_to_right,ml_edit_clear_line_to_right_bce):
+	  Garbage could be left even if line is cleared by ESC [ K. Fixed.
+	  (Thanks to Kubota Tomohiro san)
+
+	* Added tool/viewsfml.sh.
+
 2003-08-12  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* x_dnd.c: for incremantal transfer, parser/converter 

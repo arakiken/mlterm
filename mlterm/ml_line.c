@@ -342,7 +342,7 @@ ml_line_overwrite(
 		
 		char_index = ml_convert_col_to_char_index( line , &cols_rest , cols_to_beg + cols , 0) ;
 
-		if( 1 <= cols_rest && cols_rest < ml_char_cols( line->chars + char_index))
+		if( 0 < cols_rest && cols_rest < ml_char_cols( line->chars + char_index))
 		{
 			padding = ml_char_cols( line->chars + char_index) - cols_rest ;
 			char_index ++ ;

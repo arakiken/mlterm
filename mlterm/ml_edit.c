@@ -960,14 +960,9 @@ ml_edit_clear_line_to_right(
 
 	if( edit->cursor.col_in_char)
 	{
-		int  count ;
-
-		for( count = 0 ; count < edit->cursor.col_in_char ; count ++)
-		{
-			ml_char_copy( CURSOR_CHAR(edit) , ml_sp_ch()) ;
-			edit->cursor.char_index ++ ;
-		}
-		
+		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
+			edit->cursor.col_in_char) ;
+		edit->cursor.char_index += edit->cursor.col_in_char ;
 		edit->cursor.col_in_char = 0 ;
 	}
 	
@@ -989,14 +984,9 @@ ml_edit_clear_line_to_right_bce(
 	
 	if( edit->cursor.col_in_char)
 	{
-		int  count ;
-
-		for( count = 0 ; count < edit->cursor.col_in_char ; count ++)
-		{
-			ml_char_copy( CURSOR_CHAR(edit) , ml_sp_ch()) ;
-			edit->cursor.char_index ++ ;
-		}
-		
+		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
+			edit->cursor.col_in_char) ;
+		edit->cursor.char_index += edit->cursor.col_in_char ;
 		edit->cursor.col_in_char = 0 ;
 	}
 
