@@ -23,33 +23,33 @@ ml_log_init(
 	u_int  num_of_rows
 	)
 {
+	logs->lines = NULL ;
+	logs->index = NULL ;
+	logs->num_of_rows = 0;
+	
 	if( num_of_rows == 0)
 	{
-		logs->lines = NULL ;
-		logs->index = NULL ;
+		return  1 ;
 	}
-	else
+		
+	if( ( logs->lines = calloc(  sizeof( ml_line_t), num_of_rows)) == NULL)
 	{
-		if( ( logs->lines = malloc( sizeof( ml_line_t) * num_of_rows)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
-		#endif
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " calloc() failed.\n") ;
+	#endif
+		return  0 ;
+	}
 
-			return  0 ;
-		}
-		memset( logs->lines , 0 , sizeof( ml_line_t) * num_of_rows) ;
+	if( ( logs->index = kik_cycle_index_new( num_of_rows)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " kik_cycle_index_new() failed.\n") ;
+	#endif
 
-		if( ( logs->index = kik_cycle_index_new( num_of_rows)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " kik_cycle_index_new() failed.\n") ;
-		#endif
+		free( log->lines) ;
+		log->lines= NULL ;
 
-			free( logs->lines) ;
-
-			return  0 ;
-		}
+		return  0 ;
 	}
 
 	logs->num_of_rows = num_of_rows ;
@@ -110,7 +110,10 @@ ml_change_log_size(
 	else if( new_num_of_rows > logs->num_of_rows)
 	{
 		ml_line_t *  new_lines ;
-		
+		if(  sizeof( ml_line_t) * new_num_of_rows <  sizeof( ml_line_t) * logs->num_of_rows){
+			/* integer overflow */
+			return  0 ;
+		}
 		if( ( new_lines = realloc( logs->lines , sizeof( ml_line_t) * new_num_of_rows))
 			== NULL)
 		{
@@ -133,16 +136,16 @@ ml_change_log_size(
 		int  count ;
 		int  start ;
 
-		if( ( new_lines = malloc( sizeof( ml_line_t) * new_num_of_rows)) == NULL)
+		if( ( new_lines = calloc( sizeof( ml_line_t), new_num_of_rows)) == NULL)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " calloc() failed.\n") ;
 		#endif
 
 			return  0 ;
 		}
-
-		memset( new_lines , 0 , sizeof( ml_line_t) * new_num_of_rows) ;
+		
+		num_of_filled_rows = ml_get_num_of_logged_lines( logs) ;
 		
 		if( new_num_of_rows >= num_of_filled_rows)
 		{

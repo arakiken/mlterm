@@ -53,7 +53,7 @@ typedef struct ml_term
 	 */
 	char *  win_name ;
 	char *  icon_name ;
-
+	char *  icon_path ;
 	int8_t  is_auto_encoding ;
 	
 	int8_t  is_mouse_pos_sending ;
@@ -227,9 +227,13 @@ int  ml_term_set_window_name( ml_term_t *  term , char *  name) ;
 
 int  ml_term_set_icon_name( ml_term_t *  term , char *  name) ;
 
+int  ml_term_set_icon_path( ml_term_t *  term , char *  path) ;
+
 char *  ml_term_window_name( ml_term_t *  term) ;
 
 char *  ml_term_icon_name( ml_term_t *  term) ;
+
+char *  ml_term_icon_path( ml_term_t *  term) ;
 
 int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path , int  x , int  y , char *  display) ;
 

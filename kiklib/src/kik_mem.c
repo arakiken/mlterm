@@ -142,13 +142,24 @@ kik_mem_calloc(
 	)
 {
 	void *  ptr = NULL ;
-
-	if( ( ptr = kik_mem_malloc( number * size , file , line , func)) == NULL)
+	size_t  totol_size ;
+	
+	total_size =  number * size ;
+	if( number && size && !total_size){
+		/* integer overflow */
+		return NULL ;
+	}
+	if( total_size && (total_size / number != size))
+	{
+		/* integer overflow */
+		return NULL ;
+	}
+	if( ( ptr = kik_mem_malloc( total_size , file , line , func)) == NULL)
 	{
 		return  NULL ;
 	}
 
-	memset( ptr , 0 , number * size) ;
+	memset( ptr , 0 , total_size) ;
 
 	return  ptr ;
 }

@@ -88,6 +88,7 @@ ml_term_new(
 
 	term->win_name = NULL ;
 	term->icon_name = NULL ;
+	term->icon_path = NULL ;
 	term->is_mouse_pos_sending = 0 ;
 	term->is_app_keypad = 0 ;
 	term->is_app_cursor_keys = 0 ;
@@ -1148,6 +1149,16 @@ ml_term_set_icon_name(
 	return  1 ;
 }
 
+int
+ml_term_set_icon_path(
+	ml_term_t *  term ,
+	char *  path
+	)
+{
+	free( term->icon_path) ;
+	term->icon_path = path ;
+}
+
 char *
 ml_term_window_name(
 	ml_term_t *  term
@@ -1162,6 +1173,14 @@ ml_term_icon_name(
 	)
 {
 	return  term->icon_name ;
+}
+
+char *
+ml_term_icon_path(
+	ml_term_t *  term
+	)
+{
+	return term->icon_path ;
 }
 
 int

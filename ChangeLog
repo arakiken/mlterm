@@ -1,3 +1,10 @@
+2005-02-17 MINAMI Hirokazu <minami@mistfall.net>
+
+	* mlterm/ml_logs.c: use calloc to fail when integer overflow.
+	* kiklib/src/kik_mem.c: detect integer overflow in calloc()  while debugging.
+	* mlterm/ml_term.[ch]: added a new member "icon_path" to ml_term_t for
+	furture expansion.
+	
 2005-02-15 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/uim/im_uim.c, configure.in: uim_prop_update_custrom()
