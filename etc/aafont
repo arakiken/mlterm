@@ -19,17 +19,17 @@
 #GB2312_80=AR PL SungtiL GB-iso10646-1;
 #GBK=AR PL SungtiL GB-iso10646-1;
 
-#ISO10646_UCS2_1=Courier 10 Pitch-iso10646-1;
-#ISO10646_UCS2_1=Thryomanes-iso10646-1;
+#ISO10646_UCS4_1=Courier 10 Pitch-iso10646-1;
+#ISO10646_UCS4_1=Thryomanes-iso10646-1;
 
 # Japanese speakers may want to enable the following setting.
-#ISO10646_UCS2_1_BIWIDTH=Kochi Gothic-iso10646-1;
+#ISO10646_UCS4_1_BIWIDTH=Kochi Gothic-iso10646-1;
 
 # Korean speakers may want to enable the following setting.
-#ISO10646_UCS2_1_BIWIDTH=dotum-iso10646-1;
+#ISO10646_UCS4_1_BIWIDTH=dotum-iso10646-1;
 
 # Traditional Chinese speakers may want to enable the following setting.
-#ISO10646_UCS2_1_BIWIDTH=AR PL Mingti2L Big5-iso10646-1;
+#ISO10646_UCS4_1_BIWIDTH=AR PL Mingti2L Big5-iso10646-1;
 
 # Simplified Chinese speakers may want to enable the following setting.
-#ISO10646_UCS2_1_BIWIDTH=AR PL SungtiL GB-iso10646-1;
+#ISO10646_UCS4_1_BIWIDTH=AR PL SungtiL GB-iso10646-1;

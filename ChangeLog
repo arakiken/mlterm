@@ -1,3 +1,7 @@
+2003-10-01  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
+
+	* etc/*aafont: UCS2->UCS4
+
 2003-09-30  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screenc.c(window_exposed): Consider vertical mode.
