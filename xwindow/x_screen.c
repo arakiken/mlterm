@@ -5901,7 +5901,9 @@ xterm_set_mouse_report(
 	if( ( screen->is_mouse_pos_sending = do_report))
 	{
 		x_stop_selecting( &screen->sel) ;
-		highlight_cursor( screen) ;
+		restore_selected_region_color( screen) ;
+		
+		exit_backscroll_mode( screen) ;
 	}
 }
 
