@@ -1,3 +1,6 @@
+[20020110]
+* big5 unstandard characters can be converted to and from ucs4.
+
 [20020109]
 * -r/--fade/fade_ratio option is added.
 * infinite loop owing to malformed escape sequence like "ESC ] ;"
