@@ -95,7 +95,7 @@ See \fBMULTIPLE PTY\fR section for detail.
 \fB\-R\fR, \fB\-\-fsrange\fR=\fIrange\fR
 Range of size of usable fonts.  The format is
 "\fIminsize\fR-\fImaxsize\fR", where \fIminsize\fR and
-\fImaxsize\fR are font sizes in pixel (default \fB10-24\fR).
+\fImaxsize\fR are font sizes in pixel (default \fB6-30\fR).
 You cannot choose font sizes in GUI configurator against
 this range.
 .TP
@@ -117,6 +117,10 @@ then to the current mlterm encoding, in order to identify
 equivalent characters (i.e., characters which share the same
 codepoint in Unicode) from various character sets.
 See \fBSELECTION\fR section below for detail.
+The default is "\fBfalse\fR".
+.TP
+\fB\-V\fR, \fB\-\-varwidth\fR(=\fIbool\fR)
+Each column width is variable.
 The default is "\fBfalse\fR".
 .TP
 \fB\-W\fR, \fB\-\-sep\fR=\fIcharacterlist\fR
@@ -161,6 +165,10 @@ Valid values for \fIcolor\fR are
 \fBpink\fR, \fBbrown\fR, \fBpriv_fg\fR, and \fBpriv_bg\fR.
 See \fBCOLOR CONFIGURATION FILE\fR section for detail of
 \fBpriv_fg\fR and \fBpriv_bg\fR.
+.TP
+\fB\-c\fR, \fB\-\-cp932\fR(=\fIbool\fR)
+Use conversion table between CP932 and Unicode to show JISX0208 characters with XFT.
+The default is "\fBtrue\fR".
 .TP
 \fB\-d\fR, \fB\-\-display\fR=\fIstring\fR
 Specify X display to connect with.
@@ -217,6 +225,10 @@ The default is "\fBfalse\fR".
 Path for wallpaper (background) image.
 Note that wallpaper cannot be used with transparent background.
 .TP
+\fB\-r\fR, \fB\-\-fade\fR=\fIratio\fR
+Specify fading ratio when window is unfocused.
+The default is "\fB100\fR"
+.TP
 \fB\-s\fR, \fB\-\-sb\fR(=\fIbool\fR)
 Whether to use scrollbar.
 The default is "\fBfalse\fR".
@@ -250,6 +262,10 @@ Specify tab width.  The default is \fB8\fR.
 \fB\-y\fR, \fB\-\-term\fR=\fIstring\fR
 Specify terminal type.  The default is "\fBxterm\fR" and you
 can specify "\fBkterm\fR" also.
+.TP
+\fB\-z\fR, \fB\-\-largesmall\fR=\fIsize\fR
+Specify changing size when font size becomes larger or smaller.
+The default is \fB1\fR.
 .\" ********************************************************************
 .SH GUI CONFIGURATOR
 Pushing control key and mouse button 3 invokes GUI configurator
@@ -343,6 +359,9 @@ Change font size.
 .TP
 Wall picture (Select and Off)
 Specify the image file to be used for background image.
+.TP
+Full reset
+Reset internal status.
 .\" ********************************************************************
 .SH MULTIPLE XIM
 \fBmlterm\fR can use multiple XIM (X Input Method) servers.  The current
@@ -513,8 +532,8 @@ into \fBmlterm\fR using ISO-2022 escape sequence.
 .\" ********************************************************************
 .SH CONFIGURATION
 \fBmlterm\fR loads configuration files of "\fBmain\fR", "\fBfont\fR",
-"\fBaafont\fR", "\fBcolor\fR", "\fBkey\fR", "\fBtermcap\fR", and
-"\fBxim\fR" on start up.
+"\fBvfont\fR", "\fBaafont\fR", "\fBvaafont\fR", "\fBcolor\fR", "\fBkey\fR",
+"\fBtermcap\fR", and "\fBxim\fR" on start up.
 Configuration files for one user are to be located in
 "\fB~/.mlterm/\fR" directory, while location for configuration
 files for all users depends on the compilation option.
@@ -529,8 +548,14 @@ Main configuration items which can be overrided by command line options.
 \fBfont\fR
 Configurations for ordinary X fonts.
 .TP
+\fBvfont\fR
+Configurations for ordinary X fonts of variable column width.
+.TP
 \fBaafont\fR
 Configurations for anti-alias Xft fonts.
+.TP
+\fBvaafont\fR
+Configurations for anti-alias Xft fonts of variable column width.
 .TP
 \fBcolor\fR
 Designate concrete RGB values for color names.
@@ -664,12 +689,21 @@ Font size in pixel.
 \fBfont_size_range=\fIrange\fR (\-R, \-\-fsrange)
 Range of size of usable fonts.
 .TP
+\fBuse_variable_column_width=\fIbool\fR (\-V, \-\-varwidth)
+Use variable column width.
+.TP
+\fBfade_ratio=\fratio\fR (\-r, \-\-fade_ratio)
+Specify fading ratio when window is unfocused.
+.TP
+\fBfont_larger_smaller_size\fR (\-z, \-\-largesmall)
+Specify changing size when font size becomes larger or smaller.
+.TP
 \fBENCODING=\fIencoding\fR (\-E, \-\-km)
 Specify encoding.
 .\" ******************************************************
 .SS Font Configuration File
-The font configuration files "\fBfont\fR" and "\fBaafont\fR"
-have the following keys.
+The font configuration files "\fBfont\fR", "\fBvfont\fR", "\fBaafont\fR" and
+"\fBvaafont\fR" have the following keys.
 .PP
 .nf
 \fBDEC_SPECIAL=\fIfonts\fR
@@ -699,17 +733,24 @@ have the following keys.
 .fi
 .RS
 Specify fonts for corresponding charsets.  The format is
-different between "\fBfont\fR" and "\fBaafont\fR" files.
+different between "\fBfont\fR", "\fBvfont\fR" files and "\fBaafont\fR" ,
+"\fBvaafont\fR" files.
 .PP
-In "\fBfont\fR" file, "\fIfont\fR" is specified in
-"\fISIZE\fR,\fINAME\fR;\fISIZE\fR,\fINAME\fR;\fI...\fR"
-format where "\fISIZE\fR" is font size in pixel
+In "\fBfont\fR" and "\fBvfont\fR" files, "\fIfont\fR" is specified in
+"\fINAME\fR:\fIPERCENT\fR;\fISIZE\fR,\fINAME\fR:\fIPERCENT\fR;\fISIZE\fR,\fINAME\fR:\fIPERCENT\fR;\fI...\fR"
+format where "\fISIZE\fR" is font size in pixel,
 and "\fINAME\fR" is XLFD or alias names of X fonts.
+If the first "\fINAME\fR" contains "%d", it is replaced by an apropriate font size number.
+":\fIPERCENT\fR" is multiplied by font size and decides character width of a font.
+If ":\fIPERCENT\fR" is omitted, max font width is used for it.
 .PP
-In "\fBaafont\fR" file, "\fIfont\fR" is specified in
-"\fIFAMILY\fR-\fIENCODING\fR;\fISIZE\fR,\fIFAMILY\fR-\fIENCODING\fR;\fI...\fR"
+In "\fBaafont\fR" and "\fBvaafont\fR" files, "\fIfont\fR" is specified in
+"\fIFAMILY\fR-\fIENCODING\fR:\fIPERCENT\fR;\fISIZE\fR,\fIFAMILY\fR-\fIENCODING\fR:\fIPERCENT\fR;\fISIZE\fR,\fIFAMILY\fR-\fIENCODING\fR:\fIPERCENT\fR;\fI...\fR"
 format.  The first pair of \fIFAMILY\fR and \fIENCODING\fR specifies
 the default font and the others with \fISIZE\fR are for specific sizes.
+":\fIPERCENT\fR" is multiplied by font size and decides character width of a font.
+If ":\fIPERCENT\fR" is omitted, 'W' width is used for it.
+.PP
 .RE
 .TP
 \fIencoding\fB_BOLD=\fIfonts\fR
@@ -802,7 +843,8 @@ Manual pages of
 \fBREADME.sb\fR for development of scrollbar library.
 .SH FILES
 .TP
-"\fImain\fR", "\fIfont\fR", "\fIaafont\fR", "\fIcolor\fR", "\fIkey\fR", "\fItermcap\fR", and "\fIxim\fR"
+"\fImain\fR", "\fIfont\fR", "\fIvfont\fR", "\fIaafont\fR", "\fIvaafont\fR", 
+"\fIcolor\fR", "\fIkey\fR", "\fItermcap\fR", and "\fIxim\fR"
 Configuration files.
 .TP
 "\fImlconfig\fR"

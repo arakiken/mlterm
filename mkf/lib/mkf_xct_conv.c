@@ -357,7 +357,7 @@ convert_to_xct(
 	mkf_parser_t *  parser
 	)
 {
-	return  convert_to_xct_intern( conv , dst , dst_size , parser , 1) ;
+	return  convert_to_xct_intern( conv , dst , dst_size , parser , 0) ;
 }
 
 static size_t

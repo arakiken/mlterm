@@ -150,7 +150,8 @@ create_xic(
 		}
 
 		if( ( preedit_attr = XVaCreateNestedList( 0 , XNArea , &rect , XNSpotLocation, &spot,
-			XNForeground , FG_COLOR_PIXEL(win) , XNBackground , BG_COLOR_PIXEL(win) ,
+			XNForeground , UNFADE_FG_COLOR_PIXEL(win) ,
+			XNBackground , UNFADE_BG_COLOR_PIXEL(win) ,
 			XNFontSet , fontset , NULL)) == NULL)
 		{
 		#ifdef  DEBUG
@@ -332,7 +333,8 @@ ml_xic_fg_color_changed(
 		return  0 ;
 	}
 
-	if( ( preedit_attr = XVaCreateNestedList( 0 , XNForeground , FG_COLOR_PIXEL(win) , NULL)) == NULL)
+	if( ( preedit_attr = XVaCreateNestedList( 0 , XNForeground , UNFADE_FG_COLOR_PIXEL(win) , NULL))
+		== NULL)
 	{
 		return  0 ;
 	}
@@ -356,7 +358,8 @@ ml_xic_bg_color_changed(
 		return  0 ;
 	}
 
-	if( ( preedit_attr = XVaCreateNestedList( 0 , XNBackground , BG_COLOR_PIXEL(win) , NULL)) == NULL)
+	if( ( preedit_attr = XVaCreateNestedList( 0 , XNBackground , UNFADE_BG_COLOR_PIXEL(win) , NULL))
+		== NULL)
 	{
 		return  0 ;
 	}

@@ -289,6 +289,13 @@ comment $Id$
         1-byte char => US_ASCII , 2-byte char => GBK , 4-byte char => Unicode
         フォントを使用します。
 
+        CP932 の外字(NEC特殊文字、NEC選定IBM拡張文字、IBM拡張文字)については、
+        Unicode に変換して、Unicode フォントを使用します。
+        この場合、記号文字など半角全角のあいまいな文字については、-ac 2 オプ
+        ションをつけて mlterm を起動し、かつ、ISO10646_UCS2_1 or ISO10646_UCS4_1
+        に、記号文字が全角になっている Unicode フォントを指定すると綺麗に表示さ
+        れると思います。
+
 	X Input Method のフォントは、なるべく端末画面で使用されているそれと同じ
 	ものが使用されます。
 	アンチエイリアス中は、font , vfont から適当なフォントを探します。

@@ -117,9 +117,16 @@ ml_bidi(
 	{
 		if( order[counter] >= size)
 		{
-			kik_debug_printf( KIK_DEBUG_TAG
-				" visual order(%d) of %d is illegal.\n" ,
+			kik_warn_printf( KIK_DEBUG_TAG " visual order(%d) of %d is illegal.\n" ,
 				order[counter] , counter) ;
+
+			kik_msg_printf( "returned order => ") ;
+			for( counter = 0 ; counter < size ; counter ++)
+			{
+				kik_msg_printf( "%d " , order[counter]) ;
+			}
+			kik_msg_printf( "\n") ;
+			
 			abort() ;
 		}
 

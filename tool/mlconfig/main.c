@@ -297,7 +297,7 @@ full_reset(void)
 	GtkWidget *  hbox ;
 	GtkWidget *  button ;
 
-	frame = gtk_frame_new("Full Reset") ;
+	frame = gtk_frame_new("Full reset") ;
 	gtk_widget_show(frame) ;
 
 	hbox = gtk_hbox_new( FALSE , 5) ;
@@ -305,7 +305,7 @@ full_reset(void)
 	gtk_widget_show(hbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
 
-	button = gtk_button_new_with_label("Full Reset") ;
+	button = gtk_button_new_with_label("Full reset") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(full_reset_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;

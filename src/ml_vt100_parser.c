@@ -112,7 +112,7 @@ change_font(
 				DEFAULT_FONT_ATTR(US_ASCII))) == NULL)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " this should never happen(unrecoverable error).\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " US-ASCII font not found.\n") ;
 			
 			abort() ;
 		#endif

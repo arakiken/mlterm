@@ -241,19 +241,19 @@ ml_imgline_overwrite_chars(
 		kik_warn_printf(
 			KIK_DEBUG_TAG " line length %d(ow %d copy %d) after overwriting is overflowed\n" ,
 			new_len , len , copy_len) ;
-	#endif
-		
-		new_len = line->num_of_chars ;
 
-	#ifdef  DEBUG
-		if( new_len < padding + copy_len)
+		if( line->num_of_chars < padding + copy_len)
 		{
-			kik_error_printf( KIK_DEBUG_TAG "\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG
+				" padding(%d) + copy_len(%d) is over max chars(%d).\n" ,
+				padding , copy_len , line->num_of_chars) ;
 
 			abort() ;
 		}
 	#endif
 		
+		new_len = line->num_of_chars ;
+
 		len = new_len - padding - copy_len ;
 
 	#ifdef  DEBUG
@@ -959,7 +959,7 @@ ml_imgline_bidi_visual(
 	#ifdef  DEBUG
 		if( line->visual_order[counter] >= line->num_of_filled_visual_order)
 		{
-			kik_debug_printf( KIK_DEBUG_TAG
+			kik_warn_printf( KIK_DEBUG_TAG
 				" visual order(%d) of %d is illegal.\n" ,
 				line->visual_order[counter] , counter) ;
 				
@@ -1018,7 +1018,7 @@ ml_imgline_bidi_logical(
 	#ifdef  DEBUG
 		if( line->visual_order[counter] >= line->num_of_filled_visual_order)
 		{
-			kik_debug_printf( KIK_DEBUG_TAG
+			kik_warn_printf( KIK_DEBUG_TAG
 				" visual order(%d) of %d is illegal.\n" ,
 				line->visual_order[counter] , counter) ;
 
