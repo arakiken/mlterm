@@ -38,6 +38,8 @@ int  ml_picture_final( ml_picture_t *  pic) ;
 
 int  ml_picture_load_file( ml_picture_t *  pic , char *  file_path) ;
 
+int  ml_root_pixmap_available( Display *  display) ;
+
 int  ml_picture_load_background( ml_picture_t *  pic) ;
 
 

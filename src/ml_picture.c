@@ -447,6 +447,21 @@ ml_picture_load_file(
 }
 
 int
+ml_root_pixmap_available(
+	Display *  display
+	)
+{
+#ifdef  USE_IMLIB
+	if( XInternAtom( display , "_XROOTPMAP_ID" , True))
+	{
+		return  1 ;
+	}
+#endif
+
+	return  0 ;
+}
+	
+int
 ml_picture_load_background(
 	ml_picture_t *  pic
 	)

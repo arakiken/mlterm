@@ -1124,11 +1124,17 @@ update_pic_transparent(
 {
 	ml_picture_t  pic ;
 
-	if( ml_picture_init( &pic , win , win->pic_mod) &&
-		ml_picture_load_background( &pic))
+	if( ! ml_picture_init( &pic , win , win->pic_mod))
 	{
-		set_transparent( win , pic.pixmap) ;
+		return  0 ;
 	}
+	
+	if( ! ml_picture_load_background( &pic))
+	{
+		return  0 ;
+	}
+	
+	set_transparent( win , pic.pixmap) ;
 
 	ml_picture_final( &pic) ;
 	
@@ -1184,7 +1190,7 @@ notify_configure_to_children(
 
 	if( win->is_transparent)
 	{
-		if( win->pic_mod || XInternAtom( win->display , "_XROOTPMAP_ID" , True))
+		if( win->pic_mod || ml_root_pixmap_available( win->display))
 		{
 			update_pic_transparent( win) ;
 		}
@@ -1701,7 +1707,7 @@ ml_window_set_transparent(
 		goto  end ;
 	}
 
-	if( win->pic_mod || XInternAtom( win->display , "_XROOTPMAP_ID" , True))
+	if( win->pic_mod || ml_root_pixmap_available( win->display))
 	{
 		update_pic_transparent( win) ;
 	}
