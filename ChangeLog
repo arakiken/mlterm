@@ -1,3 +1,10 @@
+[20020111]
+* cursor form is changed when window is focused or unfocused.
+* when a character whose color is reversed is drawn under wall paper or tranparent mode ,
+  not background image but the background color of the charcter is used.
+  (thanks to Masao Uebayashi san)
+* ESC ] 20 ; pt BEL sequence is supported.(thanks to Minami Hirokazu san)
+
 [20020110]
 * big5 unstandard characters can be converted to and from ucs4.
 
