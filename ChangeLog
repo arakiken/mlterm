@@ -4,7 +4,7 @@
 	  And if its value is true, strings from XIM as well as from X Selection are 
 	  converted to UCS once.
 	* Even if the value of fade_ratio option was 100, screen was completely redrawn
-	  when window focus is switched.
+	  when window focus is switched. fixed.
 
 2002-10-05 Araki Ken <arakiken@users.sf.net>
 
