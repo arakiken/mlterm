@@ -1,4 +1,8 @@
 [20020207]
+* window increment/decrement size and minimum window width and height can be wrong. fixed.
+  (Thanks to Minami Hirokazu san)
+
+[20020207]
 * underline is drawn on the left side of character under vertical mode.
 
 [20020207]
