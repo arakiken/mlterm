@@ -1,3 +1,6 @@
+[20020414]
+* 2.4.0 release
+
 [20020413]
 * each line had its tab stop list and "\x1bH" didn't work as expected. fixed.
 * doc/ja/README.comb is added.
