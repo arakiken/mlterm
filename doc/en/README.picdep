@@ -90,7 +90,7 @@ to understand what is going on.
      pic_mod:   image modifier.
 
     Get an image which looks like root window (it' a pseudo translucency).
-    Crop the image to fit the window's geometry (if necessary).
+    Crop the image to fit the image to the window's geometry (if necessary).
     (There are ACTUAL_WIDTH(win)&ACTUAL_HEIGHT(win) macro to help this process)
     Post processing should be done according to pic_mod contents.
     The resulting image should be renderd to a newly allocated X Pixmap.
@@ -106,4 +106,4 @@ to understand what is going on.
      file_path:   path of the image file
 
     Returns 1 in success. Retuens 0 in failure.
-!!this function is ad-hoc solution. It will be removed in next release!!
+!!this function is ad-hoc solution. It will be removed in the next release!!
