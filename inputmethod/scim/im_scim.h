@@ -30,12 +30,10 @@ typedef struct  im_scim_callbacks
 
 }  im_scim_callbacks_t ;
 
-int  im_scim_initialize( void) ;
+int  im_scim_initialize( char *  locale) ;
 int  im_scim_finalize( void) ;
 
-im_scim_context_t  im_scim_create_context( char *  factory ,
-					   char *  locale ,
-					   void *  self ,
+im_scim_context_t  im_scim_create_context( void *  self ,
 					   im_scim_callbacks_t *  callbacks) ;
 
 int  im_scim_destroy_context(  im_scim_context_t  context) ;

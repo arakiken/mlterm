@@ -556,32 +556,6 @@ candidate_hide(
 	}
 }
 
-static void
-im_changed(
-	void *  ptr ,
-	char *  factory_name
-	)
-{
-	im_scim_t *  scim ;
-	char *  buf ;
-	size_t  len ;
-
-	scim = (im_scim_t *)  ptr ;
-
-	len = strlen(factory_name) + 6 ;
-
-	if( ! ( buf = alloca( len)))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " alloca failed\n");
-	#endif
-		return ;
-	}
-
-	kik_snprintf( buf , len , "scim:%s" , factory_name) ;
-
-	(*scim->im.listener->im_changed)( scim->im.listener->self , buf) ;
-}
 
 static im_scim_callbacks_t callbacks = {
 	commit ,
@@ -589,7 +563,7 @@ static im_scim_callbacks_t callbacks = {
 	candidate_update ,
 	candidate_show ,
 	candidate_hide ,
-	im_changed
+	NULL
 } ;
 
 
@@ -615,7 +589,7 @@ im_scim_new(
 	u_int64_t  magic ,
 	ml_char_encoding_t  term_encoding ,
 	x_im_export_syms_t *  export_syms ,
-	char *  factory ,
+	char *  unused ,
 	u_int  mod_ignore_mask
 	)
 {
@@ -634,14 +608,17 @@ im_scim_new(
 
 	if( ! initialized)
 	{
+		char *  cur_locale ;
+
 	#ifdef  RESTORE_LOCALE
 		/*
 		 * Workaround against make_locale() of m17nlib.
 		 */
-		char *  cur_locale ;
 		cur_locale = kik_str_alloca_dup( kik_get_locale()) ;
+	#else
+		cur_locale = kik_get_locale() ;
 	#endif
-		if( ! im_scim_initialize())
+		if( ! im_scim_initialize( cur_locale))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " failed to initialize SCIM.") ;
@@ -702,10 +679,7 @@ im_scim_new(
 		goto  error ;
 	}
 
-	if( ! ( scim->context = im_scim_create_context( factory ,
-							kik_get_locale() ,
-							scim ,
-							&callbacks)))
+	if( ! ( scim->context = im_scim_create_context( scim , &callbacks)))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " im_scim_create_context failed.\n") ;
@@ -782,11 +756,6 @@ im_scim_get_info(
 	im_info_t *  result ;
 	int  i ;
 
-	if( im_scim_initialize())
-	{
-		initialized = 1 ;
-	}
-
 	if( ! ( result = malloc( sizeof( im_info_t))))
 	{
 		goto  error ;
@@ -797,11 +766,6 @@ im_scim_get_info(
 	result->num_of_args = 1;
 	result->args = NULL ;
 	result->readable_args = NULL ;
-
-	if( initialized)
-	{
-		result->num_of_args += im_scim_get_number_of_factory() ;
-	}
 
 	if( ! ( result->args = malloc( sizeof(char*) * result->num_of_args)))
 	{
@@ -815,43 +779,7 @@ im_scim_get_info(
 	}
 
 	result->args[0] = strdup( "") ;
-	if( initialized)
-	{
-		result->readable_args[0] = strdup( im_scim_get_default_factory_name( locale)) ;
-	}
-	else
-	{
-		result->readable_args[0] = strdup( "unknown") ;
-	}
-
-	for( i = 1 ; i < result->num_of_args; i ++)
-	{
-		char *  factory_name ;
-		char *  lang ;
-		size_t  len ;
-
-		factory_name = im_scim_get_factory_name( i - 1) ;
-		lang = im_scim_get_language( i - 1) ;
-
-		result->args[i] = strdup( factory_name);
-
-		len = strlen( factory_name) + strlen( lang) + 4 ;
-
-		if( ( result->readable_args[i] = malloc(len)))
-		{
-			kik_snprintf( result->readable_args[i] , len ,
-				      "%s (%s)" , factory_name , lang) ;
-		}
-		else
-		{
-			result->readable_args[i] = strdup( "error") ;
-		}
-	}
-
-	if( initialized)
-	{
-		im_scim_finalize() ;
-	}
+	result->readable_args[0] = strdup( "unknown") ;
 
 	return  result ;
 
@@ -872,6 +800,6 @@ error:
 		free( result) ;
 	}
 
-	im_scim_finalize() ;
+	return  NULL ;
 }
 

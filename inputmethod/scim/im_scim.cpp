@@ -92,6 +92,8 @@ do {							\
 
 static std::vector <im_scim_context_private_t*>  context_table ;
 
+static String  lang ;
+
 static ConfigModule *  config_module = NULL ;
 static ConfigPointer  config = NULL ;
 
@@ -194,64 +196,6 @@ instance_to_context(
 	return  NULL ;
 }
 
-static bool
-find_factory(
-	String &  factory ,
-	char *  factory_name ,
-	char *  locale
-	)
-{
-	String  lang ;
-	size_t  i ;
-
-	lang = scim_get_locale_language( String( locale)) ;
-
-	if( factory_name)
-	{
-		for( i = 0 ; i < factories.size() ; i++)
-		{
-			if( String( factory_name) ==
-					utf8_wcstombs( be->get_factory_name( factories[i])))
-			{
-				factory = factories[i] ;
-				goto  found ;
-			}
-		}
-
-		kik_error_printf( "Could not found %s\n" , factory_name) ;
-		return  false ;
-	}
-
-	factory = factories[0] ;
-
-	for( i = 0 ; i < factories.size() ; i++)
-	{
-		if( be->get_factory_language( factories[i]) == lang)
-		{
-			factory = factories[i] ;
-		}
-	}
-
-	factory = scim_global_config_read(
-			String( SCIM_GLOBAL_CONFIG_DEFAULT_IMENGINE_FACTORY) +
-				String( "/") + lang ,
-			factory) ;
-
-	if( std::find( factories.begin() , factories.end() , factory)
-							== factories.end())
-	{
-		factory = factories[0] ;
-	}
-
-found:
-
-	scim_global_config_write(
-			String( SCIM_GLOBAL_CONFIG_DEFAULT_IMENGINE_FACTORY) +
-				String( "/") + lang ,
-			factory) ;
-
-	return  true ;
-}
 
 static void
 send_factory_menu_item(
@@ -281,28 +225,6 @@ send_help_description(
 	sock.put_command( SCIM_TRANS_CMD_PANEL_SHOW_HELP);
 	sock.put_data( String( "not implemented yet.\n")) ;
 	sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
-}
-
-static void
-change_factory(
-	int  instance ,
-	const String &  factory
-	)
-{
-	im_scim_context_private_t *  context ;
-
-	if( ! ( context = instance_to_context( instance)))
-	{
-		return ;
-	}
-
-	if( ! context->on)
-	{
-		return ;
-	}
-
-	(context->cb->im_changed)( context->self,
-				   C_STR( be->get_factory_name( factory))) ;
 }
 
 
@@ -528,7 +450,7 @@ cb_prop_update(
 // --- global functions ---
 
 int
-im_scim_initialize(void)
+im_scim_initialize( char *  locale)
 {
 	SocketAddress  sock_addr;
 	SocketClient  sock_client;
@@ -536,6 +458,8 @@ im_scim_initialize(void)
 	std::vector<String>  imengines ;
 	std::vector<String>  config_modules ;
 	String  config_mod_name ;
+
+	lang = scim_get_locale_language( String( locale)) ;
 
 	sock_addr.set_address( scim_get_default_socket_frontend_address());
 	if( ! sock_client.connect(sock_addr) &&
@@ -694,23 +618,34 @@ im_scim_finalize( void)
 
 im_scim_context_t
 im_scim_create_context(
-	char *  factory_name ,
-	char *  locale ,
 	void *  self ,
 	im_scim_callbacks_t *  callbacks)
 {
 	im_scim_context_private_t *  context = NULL ;
 	String  factory ;
-	String  lang ;
-	int  i ;
+	size_t  i ;
 
 	context = new im_scim_context_private_t ;
 
 	context->instance = -1 ;
 
-	if( ! find_factory( factory , factory_name , locale))
+	for( i = 0 , factory = factories[0] ; i < factories.size() ; i++)
 	{
-		return  NULL ;
+		if( be->get_factory_language( factories[i]) == lang)
+		{
+			factory = factories[i] ;
+		}
+	}
+
+	factory = scim_global_config_read(
+			String( SCIM_GLOBAL_CONFIG_DEFAULT_IMENGINE_FACTORY) +
+				String( "/") + lang ,
+			factory) ;
+
+	if( std::find( factories.begin() , factories.end() , factory)
+							== factories.end())
+	{
+		factory = factories[0] ;
 	}
 
 	if( ( context->instance = be->new_instance( factory , "UTF-8")) < 0)
@@ -720,7 +655,7 @@ im_scim_create_context(
 	}
 	if( context->instance > 0xffffffff)	// FIXME
 	{
-		kik_error_printf( "An instance %d is too big.\n") ;
+		kik_error_printf( "An instance %d is too big.\n", context->instance) ;
 		return  NULL ;
 	}
 
@@ -730,14 +665,6 @@ im_scim_create_context(
 	context->focused = 0 ;
 	context->self = self ;
 	context->cb = callbacks ;
-
-	// workaround for switching factory via panel
-	transaction_init( context->instance) ;
-	sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
-	sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_OFF) ;
-	sock.put_command( SCIM_TRANS_CMD_FOCUS_OUT) ;
-	sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
-	be->focus_out( context->instance) ;
 
 	return  (im_scim_context_t) context ;
 }
@@ -1026,7 +953,19 @@ im_scim_receive_panel_event( void)
 		break ;
 	case SCIM_TRANS_CMD_PANEL_CHANGE_FACTORY:
 		sock.get_data( string) ;
-		change_factory( instance , string) ;
+		be->replace_instance( instance , string) ;
+		transaction_init( instance) ;
+		sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
+		sock.put_command( SCIM_TRANS_CMD_PANEL_UPDATE_FACTORY_INFO);
+		sock.put_data( utf8_wcstombs( be->get_instance_name( instance))) ;
+		sock.put_data( be->get_instance_icon_file( instance));
+		//sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_ON) ;
+		sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
+		be->focus_in( instance) ;
+		scim_global_config_write(
+			String( SCIM_GLOBAL_CONFIG_DEFAULT_IMENGINE_FACTORY) +
+				String( "/") + lang ,
+			string) ;
 		break ;
 	case SCIM_TRANS_CMD_PANEL_REQUEST_HELP:
 		send_help_description( instance) ;
@@ -1041,43 +980,4 @@ im_scim_receive_panel_event( void)
 
 	return  1 ;
 }
-
-
-// --- functions for external tools ---
-
-u_int
-im_scim_get_number_of_factory(void)
-{
-	return  (u_int) factories.size() ;
-}
-
-char *
-im_scim_get_default_factory_name(
-	char *  locale
-	)
-{
-	String  factory ;
-
-	if( find_factory( factory , NULL , locale))
-	{
-		return  C_STR(be->get_factory_name( factory)) ;
-	}
-}
-
-char *
-im_scim_get_factory_name(
-	int  index
-	)
-{
-	return  C_STR( be->get_factory_name( factories[index])) ;
-}
-
-char *
-im_scim_get_language(
-	int  index
-	)
-{
-	return  (char*) be->get_factory_language( factories[index]).c_str() ;
-}
-
 
