@@ -56,7 +56,8 @@ mkf_map_koi8_u_to_ucs4(
 	)
 {
 	/*
-	 * about KOI8-R <-> KOI8-U uncompatibility , see rfc2319.
+	 * about KOI8-R <-> KOI8-U incompatibility , see rfc2319.
+	 * note that the appendix A of rfc2319 is broken.  
 	 */
 	if( koi8_code == 0xa4 || koi8_code == 0xa6 || koi8_code == 0xa7)
 	{
@@ -72,7 +73,7 @@ mkf_map_koi8_u_to_ucs4(
 	}
 	else if( koi8_code == 0xb4)
 	{
-		ucs4->ch[3] = 0x03 ;
+		ucs4->ch[3] = 0x04 ;
 	}
 	else if( koi8_code == 0xbd)
 	{
@@ -162,7 +163,8 @@ mkf_map_ucs4_to_koi8_u(
 	)
 {
 	/*
-	 * about KOI8-R <-> KOI8-U uncompatibility , see rfc2319.
+	 * about KOI8-R <-> KOI8-U incompatibility , see rfc2319.
+	 * note that the appendix A of rfc2319 is broken. 
 	 */
 	if( ucs4_code == 0x454 || ucs4_code == 0x456 || ucs4_code == 0x457)
 	{
@@ -176,7 +178,7 @@ mkf_map_ucs4_to_koi8_u(
 	{
 		non_ucs->ch[0] = 0xad ;
 	}
-	else if( ucs4_code == 0x403)
+	else if( ucs4_code == 0x404)
 	{
 		non_ucs->ch[0] = 0xb4 ;
 	}

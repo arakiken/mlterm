@@ -1,3 +1,7 @@
+2004-09-19 MINAMI Hirokazu <minami@mistfall.net>
+	* mkf_ucs4_koi8.c: fixed mapping for cyryllic capital letter
+	ukrainian ie. Thanks to Eugeniy Meshcheryakov(Debian BTS #267631).
+
 2004-09-17 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* tool/mlconfig/mc_im.c (uim_widget_new): added workaround for htt
