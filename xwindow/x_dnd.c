@@ -8,7 +8,7 @@
 #include  "x_dnd.h"
 #include  <X11/Xatom.h>
 #include  <mkf/mkf_utf8_conv.h>
-#include  <mkf/mkf_ucs4_parser.h>
+#include  <mkf/mkf_utf16_parser.h>
 /* --- static variables --- */
 
 static const u_char  DND_VERSION = 4 ;
@@ -92,7 +92,7 @@ int
 x_dnd_parse(
 	x_window_t * win,
 	Atom atom,
-	char *src,
+	unsigned char *src,
 	int len)
 {
 	if(!src)
@@ -120,10 +120,7 @@ x_dnd_parse(
 		int filled_len ;
 		mkf_parser_t * parser ;
 		mkf_conv_t * conv ;
-		
-		char conv_buf[512] ;
-		char * src_buf ;
-		int i ;
+		char conv_buf[512] = {0};
 
 		if( !(win->utf8_selection_notified))
 			return 0 ;
@@ -132,43 +129,38 @@ x_dnd_parse(
 		{
 			return 0 ;
 		}
-		if( !(parser = mkf_ucs4_parser_new()))
+		if( !(parser = mkf_utf16_parser_new()))
 		{
 			(conv->delete)(conv) ;
 			return 0 ;
-		}
-
-		/* XXX */
-		if( !(src_buf = malloc(len * 2)))
-		{
-			(conv->delete)(conv) ;
-			(parser->delete)(parser) ;
-			return 0 ;
-		}
-
-		/* ad-hoc conversion from UCS2 to UCS4 */
-		/* XXX should be treated as UTF-16BE */
-		for( i = 0 ; i < len ; i = i +2)
-		{
-			src_buf[i*2] = 0 ;
-			src_buf[i*2+1] = 0 ;
-			src_buf[i*2+2] = src[i+1] ;
-			src_buf[i*2+3] = src[i] ;
 		}
 
 		(parser->init)( parser) ;
-		(parser->set_str)( parser , src_buf , len*2) ;
-		/* conversion from ucs4 -> utf8. */
+		if ( (src[0] == 0xFF || src[0] == 0xFE)
+		     && (src[1] == 0xFF || src[1] == 0xFE)
+		     && (src[0] != src[1]))
+		{			
+			/* src sequence seems to have a vaild BOM*/
+		}
+		else
+		{
+			/* some stupid apps(mozilla at el.) sends UTF-16LE without BOM */
+			/* force parser to be LE by sending BOM */
+			/* XXX this may cause problems on LE processor */
+			(parser->set_str)( parser , "\xFF\xFE" , 2) ;
+			(parser->next_char)( parser , 0) ;	     
+		}
+
+		(parser->set_str)( parser , src , len) ;
+		/* conversion from utf16 -> utf8. */
 		while( ! parser->is_eos)
 		{
-			
 			filled_len = (conv->convert)( conv,
 						      conv_buf,
 						      sizeof(conv_buf),
 						      parser) ;
 			if(filled_len ==0) 
 				break ;
-
 			(*win->utf8_selection_notified)( win,
 							 conv_buf, 
 							 filled_len) ;
@@ -176,7 +168,6 @@ x_dnd_parse(
 		(conv->delete)( conv) ;
 		(parser->delete)( parser) ;
 
-		free( src_buf) ;
 		return 1 ;
 	}
 	/* text/plain */
@@ -199,7 +190,7 @@ x_dnd_parse(
 	if( atom == XA_DND_MIME_TEXT_URL_LIST(win->display))
 	{
 		int pos ;
-		char *delim ;
+		unsigned char *delim ;
 
 		if( !(win->utf8_selection_notified))
 			return 0 ;
