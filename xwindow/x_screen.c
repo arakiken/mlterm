@@ -5389,7 +5389,6 @@ set_config(
 
 		change_fade_ratio( screen , fade_ratio) ;
 	}
-#ifdef  USE_TYPE_XFT
 	else if( strcmp( key , "use_anti_alias") == 0)
 	{
 		x_font_present_t  font_present ;
@@ -5411,7 +5410,6 @@ set_config(
 
 		change_font_present( screen , font_present) ;
 	}
-#endif
 	else if( strcmp( key , "use_variable_column_width") == 0)
 	{
 		x_font_present_t  font_present ;
