@@ -2,6 +2,7 @@
  *	$Id$
  */
 
+#include  <string.h>
 #include  "x_sb_mode.h"
 
 

@@ -1,8 +1,13 @@
+2004-01-12  Tomohiro KUBOTA  <kubota@debian.org>
+
+	* Include <string.h> in xwindow/x_sb_mode.c for usage of
+	  strcmp().
+
 2004-01-08  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* kiklib/src/kik_pty_streams.c: #defined _XOPEN_SOURCE as 500
 	to make features defined in UNIX98 pty available.
-	(sould fix debian Bug#226654. Thanks to lamont for reporting)
+	(should fix debian Bug#226654. Thanks to lamont for reporting)
 
 2004-01-07  MINAMI Hirokazu  <minami@mistfall.net>
 
