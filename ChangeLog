@@ -1,4 +1,7 @@
 [20020203]
+* If --xim=false is specified , XRegisterIMInstatiateCallback is not done.
+
+[20020203]
 * mlterm dumps core under cjk vertical mode. fixed.
 * doc/ja/README.ja doc/ja/FAQ doc/en/PROTOCOL are updated.
 
