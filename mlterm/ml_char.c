@@ -124,10 +124,19 @@ ml_char_init(
 	ml_char_t *  ch
 	)
 {
-	memset( ch , 0 , sizeof( ml_char_t)) ;
-	
-	/* u.ch.is_single_ch is true */
-	ch->u.ch.attr = 0x1 ;
+	if( sizeof( ml_char_t *) != sizeof( ml_char_t))
+	{
+		/*ILP32*/
+		memset( ch , 0 , sizeof( ml_char_t)) ;
+		/* set u.ch.is_single_ch */
+		ch->u.ch.attr = 0x1 ;
+	}
+	else
+	{
+		/*LP64*/
+		/* LSB of multi_ch must be "is_single_ch"  */
+		ch->u.multi_ch =(ml_char_t *)0x1 ;
+	}
 
 	return  1 ;
 }

@@ -52,9 +52,7 @@ typedef struct x_xic *  x_xic_ptr_t ;
 
 typedef struct x_xim *  x_xim_ptr_t ;
 
-#ifndef  DISABLE_XDND
 typedef struct x_dnd_context *  x_dnd_context_ptr_t ;
-#endif
 
 typedef struct  x_window
 {
@@ -114,10 +112,10 @@ typedef struct  x_window
 
 	x_picture_modifier_t *  pic_mod ;
 
-#ifndef  DISABLE_XDND
 	/*
 	 * XDND
 	 */
+#ifndef  DISABLE_XDND
 	x_dnd_context_ptr_t  dnd ;
 #endif
 

@@ -850,17 +850,14 @@ ml_edit_overwrite_chars(
 				edit->cursor.row ++ ;
 			}
 
-			/* next char is too wide for current column number */
 			if(cols == 0)
 			{
+				/* next char is too wide. giving up. */
 				break ;
 			}
-			else
-			{
-				beg = count ;
-				cols = 0 ;
-			}
 
+			beg = count ;
+			cols = 0 ;
 			line = CURSOR_LINE(edit) ;
 		}
 		else

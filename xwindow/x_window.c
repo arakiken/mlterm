@@ -20,8 +20,10 @@
 #include  "x_xic.h"
 #include  "x_window_manager.h"
 #include  "x_imagelib.h"
-#include  "x_dnd.h"
 
+#ifndef  DISABLE_XDND
+#include  "x_dnd.h"
+#endif
 
 /*
  * Atom macros.

@@ -223,6 +223,7 @@ xct_selection_notified(
 		buf , len) ;
 }
 
+#ifndef  DISABLE_XDND
 static void
 set_xdnd_config(
 	x_window_t *  win ,
@@ -239,6 +240,7 @@ set_xdnd_config(
 	(*sb_screen->screen->window.set_xdnd_config)( &sb_screen->screen->window ,
 		dev, buf , value) ;
 }
+#endif
 
 static void
 window_deleted(
@@ -746,8 +748,9 @@ x_sb_screen_new(
 	sb_screen->window.utf8_selection_notified = utf8_selection_notified ;
 	sb_screen->window.xct_selection_notified = xct_selection_notified ;
 	sb_screen->window.window_deleted = window_deleted ;
+#ifndef  DISABLE_XDND
 	sb_screen->window.set_xdnd_config = set_xdnd_config ;
-
+#endif
 	return  sb_screen ;
 
 error:

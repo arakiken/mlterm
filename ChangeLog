@@ -1,3 +1,9 @@
+2004-03-05  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* added --enable-dnd configure option[default=yes].
+	* mlterm/m_char.c: ml_char_t can be initialized single movq
+	on LP64 systems and call to memset() is not neccesary.
+
 2004-03-04  Tomohiro KUBOTA  <kubota@debian.org>
 
 	* "-p"/"--pic" option was not enabled when using gdk-pixbuf2.
