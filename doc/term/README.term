@@ -1,16 +1,14 @@
 $Id$
 
-This directory contains data for terminfo/termcap.
-
-* mlterm.ti : for terminfo
-* mlterm.tc : for termcap 
-	(converted from mlterm.ti using infotocap and
-	 dropped some useless entries)
+mlterm.ti is an exprinemtal terminfo data for mlterm.
+To install, see tic(1).
 
 *NOTE*
-"mlterm.tc" still does not fit 1K limit of termcap and
-should be considered to be broken.
-You may have to remove some descriptions from the file 
-to make termcap work on your system. 
+The corresponding data for termcap named "mlterm.tc" had been 
+also placed this directory.
+The file was removed because 
+- making a entry for mlterm which does not over 
+  termcap's entry size limit is a painful job. 
+- nobody seemes to be using the data anyway.
 
 

@@ -1,3 +1,8 @@
+2004-10-17 MINAMI Hirokazu <minami@mistfall.net>
+
+	* doc/term/mlterm.tc: removed.
+	* doc/term/README.term: updated.
+
 2004-10-16 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* README, doc/en/PLATFORM: updated supported platforms.
