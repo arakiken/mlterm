@@ -57,9 +57,9 @@ int  ml_vt100_cmd_clear_above( ml_term_screen_t *  termscr) ;
 
 int  ml_vt100_cmd_set_scroll_region( ml_term_screen_t *  termscr , int  beg , int  end) ;
 
-int  ml_vt100_cmd_scroll_image_upward( ml_term_screen_t *  termscr , u_int  size) ;
+int  ml_vt100_cmd_scroll_upward( ml_term_screen_t *  termscr , u_int  size) ;
 
-int  ml_vt100_cmd_scroll_image_downward( ml_term_screen_t *  termscr , u_int  size) ;
+int  ml_vt100_cmd_scroll_downward( ml_term_screen_t *  termscr , u_int  size) ;
 
 int  ml_vt100_cmd_go_forward( ml_term_screen_t *  termscr , u_int  size) ;
 

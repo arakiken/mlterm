@@ -3,8 +3,7 @@ comment $Id$
 
 mlterm ISCII support
 
-mlterm 2.2.0 doesn't support ISCII formally , but includes all the codes of processing ISCII.
-Followings are the instruction of setting up mlterm ISCII support.
+Following is a instruction of setting up mlterm ISCII support.
 
 * Requirement
   mlterm depends on libind.tar.gz and truetype.tar.gz at

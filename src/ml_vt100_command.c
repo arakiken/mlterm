@@ -225,7 +225,7 @@ ml_vt100_cmd_set_scroll_region(
 }
 
 int
-ml_vt100_cmd_scroll_image_upward(
+ml_vt100_cmd_scroll_upward(
 	ml_term_screen_t *  termscr ,
 	u_int  size
 	)
@@ -234,7 +234,7 @@ ml_vt100_cmd_scroll_image_upward(
 }
 
 int
-ml_vt100_cmd_scroll_image_downward(
+ml_vt100_cmd_scroll_downward(
 	ml_term_screen_t *  termscr ,
 	u_int  size
 	)

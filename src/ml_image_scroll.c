@@ -105,6 +105,7 @@ scroll_upward_region(
 	)
 {
 	int  counter ;
+	int  window_is_scrolled ;
 	int  old_num_of_filled_rows ;
 
 	if( END_ROW(image) < boundary_end)
@@ -130,6 +131,16 @@ scroll_upward_region(
 		return  ml_image_clear_lines( image , boundary_beg , boundary_end - boundary_beg + 1) ;
 	}
 	
+	/*
+	 * scrolling up in window.
+	 *
+	 * !! Notice !!
+	 * This should be done before ml_image_t data structure is chanegd
+	 * for the listener object to clear existing cache.
+	 */
+	window_is_scrolled = (*image->scroll_listener->window_scroll_upward_region)(
+				image->scroll_listener->self , boundary_beg , boundary_end , size) ;
+	 
 	/*
 	 * handing over scrolled out lines , and calculating scrolling beg/end y positions.
 	 */
@@ -227,12 +238,7 @@ scroll_upward_region(
 		ml_imgline_reset( &IMAGE_LINE(image,counter)) ;
 	}
 
-	/*
-	 * scrolling up in window.
-	 */
-
-	if( ! (*image->scroll_listener->window_scroll_upward_region)( image->scroll_listener->self ,
-		boundary_beg , boundary_end , size))
+	if( ! window_is_scrolled)
 	{
 		int  counter ;
 
@@ -254,7 +260,8 @@ scroll_downward_region(
 	)
 {
 	int  counter ;
-	
+	int  window_is_scrolled ;
+
 	if( END_ROW(image) < boundary_end)
 	{
 		boundary_end = END_ROW(image) ;
@@ -269,6 +276,16 @@ scroll_downward_region(
 		return  ml_image_clear_lines( image , boundary_beg , boundary_end - boundary_beg + 1) ;
 	}
 
+	/*
+	 * scrolling down in window.
+	 *
+	 * !! Notice !!
+	 * This should be done before ml_image_t data structure is chanegd
+	 * for the listener object to clear existing cache.
+	 */
+	window_is_scrolled = (*image->scroll_listener->window_scroll_downward_region)(
+				image->scroll_listener->self , boundary_beg , boundary_end , size) ;
+	
 	/*
 	 * resetting cursor position.
 	 */
@@ -337,14 +354,9 @@ scroll_downward_region(
 	{
 		ml_imgline_reset( &IMAGE_LINE(image,counter)) ;
 	}
-	
-	/*
-	 * scrolling down in window.
-	 */
 
-	if( ! (*image->scroll_listener->window_scroll_downward_region)( image->scroll_listener->self ,
-		boundary_beg , boundary_end , size))
-	{
+	if( ! window_is_scrolled)
+	{	
 		int  counter ;
 		
 		for( counter = boundary_beg ; counter <= boundary_end ; counter ++)

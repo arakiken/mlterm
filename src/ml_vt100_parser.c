@@ -607,7 +607,7 @@ scroll_down(
 {
 	flush_buffer( vt100_parser) ;
 	
-	ml_vt100_cmd_scroll_image_downward( vt100_parser->termscr , 1) ;
+	ml_vt100_cmd_scroll_downward( vt100_parser->termscr , 1) ;
 }
 
 static void
@@ -617,7 +617,7 @@ scroll_up(
 {
 	flush_buffer( vt100_parser) ;
 
-	ml_vt100_cmd_scroll_image_upward( vt100_parser->termscr , 1) ;
+	ml_vt100_cmd_scroll_upward( vt100_parser->termscr , 1) ;
 }
 
 static int

@@ -957,9 +957,15 @@ ml_imgline_bidi_render(
 		return  1 ;
 	}
 
-	line->num_of_filled_visual_order = len ;
-	ml_bidi( line->visual_order , line->chars , line->num_of_filled_visual_order) ;
+	if( ! ml_bidi( line->visual_order , line->chars , len))
+	{
+		line->num_of_filled_visual_order = 0 ;
+		
+		return  0 ;
+	}
 
+	line->num_of_filled_visual_order = len ;
+	
 	return  1 ;
 }
 
@@ -1016,7 +1022,7 @@ ml_imgline_bidi_visual(
 
 	if( IS_MODIFIED(line->flag))
 	{
-		ml_imgline_set_modified_all( line) ;
+		ml_imgline_set_modified( line , 0 , END_CHAR_INDEX(line) , IS_CLEARED_TO_END(line->flag)) ;
 	}
 
 	return  1 ;

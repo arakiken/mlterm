@@ -1,0 +1,29 @@
+comment -*- mode: text -*-
+comment $Id$
+
+mlterm BIDI support
+
+Following is a instruction of setting up mlterm BIDI support.
+
+* Requirement
+  mlterm depends on FriBidi(http://fribidi.sf.net) for BIDI rendering , so
+  install fribidi ahead.
+
+* Installation
+  $ ./configure --enable-fribidi
+  ...
+  checking for fribidi-config... yes
+  ...
+  $ make
+  $ make install
+
+* Usage
+  All you have to do is specify -E utf8 option , that enables bidi by default.
+  If your system locale is xx_XX.UTF-8 where UTF-8 encoding is automatically
+  selected , you don't have to do anything to enable bidi support.
+  
+* Note
+  mlterm also supports arabic shaping , but not a few unicode fonts has no
+  glyphs for it.
+  So you may have to add fonts with arabic presentation glyphs to "font"
+  configuration file explicitly.

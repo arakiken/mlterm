@@ -2172,6 +2172,15 @@ ml_image_dump(
 	{
 		int  char_index ;
 
+		if( ml_imgline_is_modified( &IMAGE_LINE(image,row)))
+		{
+			kik_msg_printf( "!") ;
+		}
+		else
+		{
+			kik_msg_printf( " ") ;
+		}
+		
 		kik_msg_printf( "[%.2d %.2d]" , IMAGE_LINE(image,row).num_of_filled_chars ,
 			ml_imgline_get_num_of_filled_cols( &IMAGE_LINE(image,row))) ;
 			

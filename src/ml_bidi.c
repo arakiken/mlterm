@@ -148,14 +148,7 @@ ml_bidi(
 	u_int  size
 	)
 {
-	int  counter ;
-
-	for( counter = 0 ; counter < size ; counter ++)
-	{
-		order[counter] = counter ;
-	}
-	
-	return  1 ;
+	return  0 ;
 }
 
 
