@@ -572,10 +572,16 @@ comb_visual(
 		ml_image_line_t *  line ;
 		int  dst_pos ;
 		int  src_pos ;
+		ml_char_t *  cur ;
+		ml_char_t *  prev ;
+		ml_char_t *  prev2 ;
 
 		line = ml_imgmdl_get_line( &image->model , row) ;
 		
 		dst_pos = 0 ;
+		prev = NULL ;
+		prev2 = NULL ;
+		cur = line->chars ;
 		for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
 		{
 			if( row == image->cursor.row && src_pos == image->cursor.char_index)
@@ -585,21 +591,36 @@ comb_visual(
 							image->cursor.char_index , 0) + cols_rest ;
 			}
 
-			if( src_pos > 0 &&
-				ml_is_arabic_combining( &line->chars[src_pos - 1] , &line->chars[src_pos]))
+			if( prev && ml_is_arabic_combining( prev2 , prev , cur))
 			{
-				ml_char_t *  c ;
-
-				c = &line->chars[src_pos] ;
 				ml_char_combine( &line->chars[dst_pos - 1] ,
-					ml_char_bytes( c) , ml_char_size( c) ,
-					ml_char_font( c) , ml_char_font_decor( c) ,
-					ml_char_fg_color( c) , ml_char_bg_color( c)) ;
+					ml_char_bytes( cur) , ml_char_size( cur) ,
+					ml_char_font( cur) , ml_char_font_decor( cur) ,
+					ml_char_fg_color( cur) , ml_char_bg_color( cur)) ;
+
+				/*
+				 * XXX
+				 * change_{beg|end}_char_index is private.
+				 * Don't access them directly.
+				 */
+				if( line->change_beg_char_index > dst_pos - 1)
+				{
+					line->change_beg_char_index -- ;
+				}
+
+				if( line->change_end_char_index > dst_pos - 1)
+				{
+					line->change_end_char_index -- ;
+				}
 			}
 			else
 			{
-				ml_char_copy( &line->chars[dst_pos ++] , &line->chars[src_pos]) ;
+				ml_char_copy( &line->chars[dst_pos ++] , cur) ;
 			}
+
+			prev2 = prev ;
+			prev = cur ;
+			cur ++ ;
 		}
 
 		line->num_of_filled_chars = dst_pos ;
@@ -636,24 +657,27 @@ comb_logical(
 		ml_image_line_t *  line ;
 		int  dst_pos ;
 		int  src_pos ;
+		ml_char_t *  c ;
+		ml_char_t *  prev_c ;
 
 		line = ml_imgmdl_get_line( &image->model , row) ;
 
 		ml_str_copy( buf , line->chars , line->num_of_filled_chars) ;
 
 		dst_pos = 0 ;
+		prev_c = NULL ;
 		for( src_pos = 0 ;
 			src_pos < line->num_of_filled_chars && dst_pos < line->num_of_chars ;
 			src_pos ++)
 		{
-			ml_char_t *  c ;
 			ml_char_t *  comb ;
 			u_int  size ;
-
+			
 			c = &buf[src_pos] ;
 
-			if( ( comb = ml_get_combining_chars( c , &size)) &&
-				ml_is_arabic_combining( c , comb))
+			if( prev_c &&
+				( (comb = ml_get_combining_chars( c , &size)) &&
+				ml_is_arabic_combining( prev_c , c , comb) ) )
 			{
 				int  counter ;
 				
@@ -669,6 +693,21 @@ comb_logical(
 						break ;
 					}
 
+					/*
+					 * XXX
+					 * change_{beg|end}_char_index is private.
+					 * Don't access them directly.
+					 */
+					if( line->change_beg_char_index > src_pos)
+					{
+						line->change_beg_char_index ++ ;
+					}
+
+					if( line->change_end_char_index > src_pos)
+					{
+						line->change_end_char_index ++ ;
+					}
+
 					ml_char_set( &line->chars[dst_pos ++] ,
 						ml_char_bytes( comb) , ml_char_size( comb) ,
 						ml_char_font( comb) , ml_char_font_decor( comb) ,
@@ -681,6 +720,8 @@ comb_logical(
 			{
 				ml_char_copy( &line->chars[dst_pos ++] , &buf[src_pos]) ;
 			}
+
+			prev_c = c ;
 		}
 
 		line->num_of_filled_chars = dst_pos ;
@@ -708,8 +749,8 @@ comb_visual_line(
 	dst_pos = 0 ;
 	for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
 	{
-		if( src_pos > 0 &&
-			ml_is_arabic_combining( &line->chars[src_pos - 1] , &line->chars[src_pos]))
+		if( src_pos > 1 &&
+			ml_is_arabic_combining( &line->chars[src_pos - 2], &line->chars[src_pos - 1] , &line->chars[src_pos]))
 		{
 			ml_char_t *  c ;
 

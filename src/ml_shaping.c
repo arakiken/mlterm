@@ -28,6 +28,7 @@ typedef struct arabic_comb
 	u_int16_t  first ;
 	u_int16_t  second ;
 	u_int16_t  comb ;
+	u_int16_t  comb_right ;
 
 } arabic_comb_t ;
 
@@ -123,7 +124,10 @@ static arabic_present_t  arabic_present_table[] =
 
 static arabic_comb_t  arabic_comb_table[] =
 {
-	{ 0x0644 , 0x0627 , 0xFEFB , } ,
+	{ 0x0644 , 0x0622 , 0xFEF5 , 0xFEF6 , } ,
+	{ 0x0644 , 0x0623 , 0xFEF7 , 0xFEF8 , } ,
+	{ 0x0644 , 0x0625 , 0xFEF9 , 0xFEFA , } ,
+	{ 0x0644 , 0x0627 , 0xFEFB , 0xFEFC , } ,
 	
 } ;
 
@@ -181,6 +185,9 @@ shape_arabic(
 	u_int16_t  code ;
 	u_char *  bytes ;
 	ml_char_t *  comb ;
+	ml_char_t *  cur ;
+	ml_char_t *  next ;
+	ml_char_t *  next2 ;
 	u_int  size ;
 
 	if( ( list = alloca( sizeof( arabic_present_t*) * (src_len + 2))) == NULL)
@@ -188,6 +195,7 @@ shape_arabic(
 		return  0 ;
 	}
 
+	/* head is NULL */
 	*(list ++) = NULL ;
 
 	for( counter = 0 ; counter < src_len ; counter ++)
@@ -195,30 +203,53 @@ shape_arabic(
 		list[counter] = get_arabic_present( &src[counter]) ;
 	}
 
+	/* tail is NULL */
 	list[counter] = NULL ;
+
+	cur = src ;
+	
+	if( src_len <= 1)
+	{
+		next = NULL ;
+	}
+	else
+	{
+		next = cur + 1 ;
+	}
 
 	for( counter = 0 ; counter < src_len && counter < dst_len ; counter ++)
 	{
-		if( ( comb = ml_get_combining_chars( &src[counter] , &size)) &&
-			( code = ml_is_arabic_combining( &src[counter] , comb)))
+		if( counter + 2 == src_len)
+		{
+			next2 = NULL ;
+		}
+		else
+		{
+			next2 = cur + 2 ;
+		}
+
+		if( ( comb = ml_get_combining_chars( cur , &size)) &&
+			( code = ml_is_arabic_combining( next , cur , comb)))
 		{
 			u_char  bytes[4] ;
 
 			ml_char_set( &dst[counter] ,
-				mkf_int_to_bytes( bytes , ml_char_size( &src[counter]) , code) ,
-				ml_char_size( &src[counter]) , ml_char_font( &src[counter]) ,
-				ml_char_font_decor( &src[counter]) ,
-				ml_char_fg_color( &src[counter]) , ml_char_bg_color( &src[counter])) ;
+				mkf_int_to_bytes( bytes , ml_char_size( cur) , code) ,
+				ml_char_size( cur) , ml_char_font( cur) ,
+				ml_char_font_decor( cur) ,
+				ml_char_fg_color( cur) , ml_char_bg_color( cur)) ;
 		}
 		else
 		{
-			ml_char_copy( &dst[counter] , &src[counter]) ;
+			ml_char_copy( &dst[counter] , cur) ;
 
 			if( list[counter])
 			{
 				if( list[counter - 1] && list[counter - 1]->right_joining_present)
 				{
-					if( list[counter + 1] && list[counter + 1]->left_joining_present)
+					if( (list[counter + 1] && list[counter + 1]->left_joining_present)
+					    && ! ( next && (comb = ml_get_combining_chars( next , &size)) &&
+						 ( code = ml_is_arabic_combining( next2 , next , comb))) )
 					{
 						if( list[counter]->both_joining_present)
 						{
@@ -246,7 +277,9 @@ shape_arabic(
 						code = list[counter]->no_joining_present ;
 					}
 				}
-				else if( list[counter + 1] && list[counter + 1]->left_joining_present)
+				else if( (list[counter + 1] && list[counter + 1]->left_joining_present)
+					 && ! ( next && ( comb = ml_get_combining_chars( next , &size)) &&
+					      ( code = ml_is_arabic_combining( next2 , next , comb))) )
 				{
 					if( list[counter]->right_joining_present)
 					{
@@ -281,6 +314,9 @@ shape_arabic(
 				}
 			}
 		}
+
+		cur = next ;
+		next = next2 ;
 	}
 
 	return  counter ;
@@ -448,6 +484,7 @@ ml_arabic_shape_new(void)
 
 u_int16_t
 ml_is_arabic_combining(
+	ml_char_t *  prev2 ,		/* can be NULL */
 	ml_char_t *  prev ,
 	ml_char_t *  ch
 	)
@@ -455,6 +492,7 @@ ml_is_arabic_combining(
 	ml_char_t *  target[2] ;
 	u_int16_t  ucs_str[2] ;
 	int  counter ;
+	arabic_present_t * prev2_present;
 	
 	target[0] = prev ;
 	target[1] = ch ;
@@ -481,7 +519,15 @@ ml_is_arabic_combining(
 		if( ucs_str[0] == arabic_comb_table[counter].first &&
 			ucs_str[1] == arabic_comb_table[counter].second)
 		{
-			return  arabic_comb_table[counter].comb ;
+			if( prev2 && (prev2_present = get_arabic_present(prev2)) &&
+				prev2_present->left_joining_present)
+			{
+				return  arabic_comb_table[counter].comb_right ;
+			}
+			else
+			{
+				return  arabic_comb_table[counter].comb ;
+			}
 		}
 	}
 

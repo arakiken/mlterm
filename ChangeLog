@@ -1,3 +1,9 @@
+[20020315]
+* some bugs in man/mlterm.1 are fixed. (Thanks to Nadim Shaikli)
+* arabic shaping errors are fixed. (Thanks to Nadim Shaikli)
+* redrawn region under bidi mode is optimized.
+
+[20020314]
 * ml_char_copy() frees necessary memory area if src and dst is equal. fixed.
   (Thanks to Sakamoto Hironori san)
 * -J/--rtl, bidi_base_dir_is_rtl option is removed.

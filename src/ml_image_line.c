@@ -982,6 +982,7 @@ ml_imgline_bidi_visual(
 {
 	int  counter ;
 	ml_char_t *  src ;
+	int  has_rtl ;
 	
 	if( ! line->visual_order)
 	{
@@ -1008,6 +1009,7 @@ ml_imgline_bidi_visual(
 
 	ml_str_copy( src , line->chars , line->num_of_filled_visual_order) ;
 
+	has_rtl = 0 ;
 	for( counter = 0 ; counter < line->num_of_filled_visual_order ; counter ++)
 	{
 	#ifdef  DEBUG
@@ -1021,12 +1023,17 @@ ml_imgline_bidi_visual(
 		}
 	#endif
 
+		if( counter != line->visual_order[counter])
+		{
+			has_rtl = 1 ;
+		}
+
 		ml_char_copy( &line->chars[line->visual_order[counter]] , &src[counter]) ;
 	}
 
 	ml_str_final( src , line->num_of_filled_visual_order) ;
 
-	if( IS_MODIFIED(line->flag))
+	if( has_rtl && IS_MODIFIED(line->flag))
 	{
 		ml_imgline_set_modified( line , 0 , END_CHAR_INDEX(line) , IS_CLEARED_TO_END(line->flag)) ;
 	}
