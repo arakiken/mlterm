@@ -452,10 +452,10 @@ preedit_changed(
 	 * allocate im.preedit.chars
 	 */
 
-	if( ! ( m17nlib->im.preedit.chars = malloc( sizeof(ml_char_t) * num_of_chars)))
+	if( ! ( m17nlib->im.preedit.chars = calloc( num_of_chars , sizeof(ml_char_t))))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG , " malloc failed\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG , " calloc failed\n") ;
 	#endif
 		return ;
 	}
@@ -500,7 +500,8 @@ preedit_changed(
 			}
 		}
 
-		if( m17nlib->input_context->candidate_from <= pos &&
+		if( m17nlib->input_context->candidate_list &&
+		    m17nlib->input_context->candidate_from <= pos &&
 		    m17nlib->input_context->candidate_to > pos)
 		{
 			fg_color = ML_BG_COLOR ;
@@ -554,8 +555,6 @@ draw:
 					m17nlib->im.preedit.chars ,
 					m17nlib->im.preedit.filled_len ,
 					m17nlib->im.preedit.cursor_offset) ;
-
-	m17nlib->input_context->candidate_to = 0 ; /* XXX: bug of m17n-lib? */
 }
 
 static void
@@ -1213,12 +1212,12 @@ im_m17nlib_get_info(
 	result->id = strdup( "m17nlib") ;
 	result->name = strdup( "m17n library") ;
 	result->num_of_args = num_of_ims + 1;
-	if( ! ( result->args = malloc( sizeof(char*) * result->num_of_args)))
+	if( ! ( result->args = calloc( result->num_of_args , sizeof(char*))))
 	{
 		goto  error ;
 	}
 
-	if( ! ( result->readable_args = malloc( sizeof(char*) * result->num_of_args)))
+	if( ! ( result->readable_args = calloc( result->num_of_args , sizeof(char*))))
 	{
 		free( result->args) ;
 		goto  error ;

@@ -1,5 +1,7 @@
 2005-02-24 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/m17nlib/im_m17nlib.c: minor code cleanup.
+
 	* configure.in:
 	  - fixed typo. (scim=$enable_m17nlib)
 	  - added -DSCIM_1_2_0. (beginning of #ifdef hell)
