@@ -12,15 +12,10 @@
 #include  "ml_config_proto.h"
 
 
-/*
- * max_ptys is 32 , which is the limit of dead_mask(32bit).
- */
-#define  MAX_TERMS  32
-
-
 /* --- static variables --- */
 
-static u_int32_t  dead_mask ;
+static u_long  dead_mask ;
+#define  MAX_TERMS  (8*sizeof(dead_mask))
 
 static ml_term_t *  terms[MAX_TERMS] ;
 static u_int  num_of_terms ;

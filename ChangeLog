@@ -1,5 +1,11 @@
 2003-09-10  MINAMI Hirokazu  <minami@mistfall.net>
 
+	* ml_term_manager.c: dead_mask is now u_long instead of u_int32.
+	 Up to 64 pty (not window) may be opened on 64-bit systems.
+
+	* x_term_manager.c: stopped to check whether unused screen
+	should be closed.
+
 	* contrib/tool/dnd: Added smaple.c to show how to configure mlterm
 	using X Drad and Drop protocol.
 

@@ -2878,7 +2878,7 @@ x_term_manager_event_loop(void)
 
 		if( dead_mask)
 		{
-			for( count = 0 ; count < MAX_TERMS ; count ++)
+			for( count = 0 ; count < num_of_screens ; count ++)
 			{
 				if( dead_mask & (0x1 << count))
 				{
