@@ -26,21 +26,6 @@ char *  __kik_str_sep( char **  strp , const char *  delim) ;
 #endif
 
 
-#ifdef  HAVE_BASENAME
-
-#include  <libgen.h>
-
-#define  kik_basename( path)  basename( path)
-
-#else
-
-#define  kik_basename( path)  __kik_basename( path)
-
-char *  __kik_basename( char *  path) ;
-
-#endif
-
-
 #ifdef  KIK_DEBUG
 
 #define  strdup( str)  kik_str_dup( str , __FILE__ , __LINE__ , __FUNCTION__)

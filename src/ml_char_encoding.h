@@ -99,5 +99,7 @@ mkf_conv_t *  ml_conv_new( ml_char_encoding_t  encoding) ;
 
 mkf_charset_t  ml_get_usascii_font_cs( ml_char_encoding_t  encoding) ;
 
+int  ml_is_msb_set( mkf_charset_t  cs) ;
+
 
 #endif

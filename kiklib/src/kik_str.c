@@ -64,38 +64,6 @@ __kik_str_sep(
 
 #endif
 
-#ifndef  HAVE_BASENAME
-
-char *
-__kik_basename(
-	char *  path
-	)
-{
-	char *  p ;
-
-	if( path == NULL || *path == '\0')
-	{
-		return "." ;
-	}
-
-	p = path + strlen(path) - 1 ;
-	while( *p == '/' && p != path)
-	{
-		*p-- = '\0' ;
-	}
-
-	if( ( p = strrchr( path , '/')) == NULL || p[1] == '\0')
-	{
-		return  path ;
-	}
-	else
-	{
-		return  p + 1 ;
-	}
-}
-
-#endif
-
 char *
 kik_str_dup(
 	const char *  str ,

@@ -1,5 +1,5 @@
 mlterm configuration protocol
-version 20020114
+version 20020115
 
 * mlterm proper
   set              = "\x1b" "]" "5379" ";" <set key> "=" <value> "\x07"
@@ -12,8 +12,8 @@ version 20020114
   get key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
-		     locale | wall_picture
-  value            = error | <values for each key>
+		     locale | wall_picture | pwd
+  value            = #error | <values for each key>
 
 * compatible with other terminals
   set fg color     = "\x1b" "]" "39" ";" <color name> "\x07"

@@ -179,11 +179,36 @@ static encoding_to_cs_table_t  usascii_font_cs_table[] =
 	
 } ;
 
-static void (*iso2022kr_conv_init)( mkf_conv_t *) ;
-static void (*iso2022kr_parser_init)( mkf_parser_t *) ;
+/*
+ * MSB of these charsets are not set , but must be set manually for X font.
+ */
+static mkf_charset_t  msb_set_cs_table[] =
+{
+	JISX0201_KATA ,
+	ISO8859_1_R ,
+	ISO8859_2_R ,
+	ISO8859_3_R ,
+	ISO8859_4_R ,
+	ISO8859_5_R ,
+	ISO8859_6_R ,
+	ISO8859_7_R ,
+	ISO8859_8_R ,
+	ISO8859_9_R ,
+	ISO8859_10_R ,
+	TIS620_2533 ,
+	ISO8859_13_R ,
+	ISO8859_14_R ,
+	ISO8859_15_R ,
+	ISO8859_16_R ,
+	TCVN5712_3_1993 ,
+
+} ;
 
 
 /* --- static functions --- */
+
+static void (*iso2022kr_conv_init)( mkf_conv_t *) ;
+static void (*iso2022kr_parser_init)( mkf_parser_t *) ;
 
 static void
 ovrd_iso2022kr_conv_init(
@@ -409,4 +434,22 @@ ml_get_usascii_font_cs(
 	
 		return  usascii_font_cs_table[encoding].cs ;
 	}
+}
+
+int
+ml_is_msb_set(
+	mkf_charset_t  cs
+	)
+{
+	int  counter ;
+
+	for( counter = 0 ; counter < sizeof( msb_set_cs_table) / sizeof( msb_set_cs_table[0]) ; counter ++)
+	{
+		if( msb_set_cs_table[counter] == cs)
+		{
+			return  1 ;
+		}
+	}
+
+	return  0 ;
 }

@@ -39,53 +39,7 @@
 #endif
 
 
-/* --- static variables --- */
-
-/*
- * MSB of these charsets are not set , but must be set manually for X font.
- */
-static mkf_charset_t  msb_set_cs_table[] =
-{
-	JISX0201_KATA ,
-	ISO8859_1_R ,
-	ISO8859_2_R ,
-	ISO8859_3_R ,
-	ISO8859_4_R ,
-	ISO8859_5_R ,
-	ISO8859_6_R ,
-	ISO8859_7_R ,
-	ISO8859_8_R ,
-	ISO8859_9_R ,
-	ISO8859_10_R ,
-	TIS620_2533 ,
-	ISO8859_13_R ,
-	ISO8859_14_R ,
-	ISO8859_15_R ,
-	ISO8859_16_R ,
-	TCVN5712_3_1993 ,
-
-} ;
-
-
 /* --- static functions --- */
-
-static int
-is_msb_set(
-	mkf_charset_t  cs
-	)
-{
-	int  counter ;
-
-	for( counter = 0 ; counter < sizeof( msb_set_cs_table) / sizeof( msb_set_cs_table[0]) ; counter ++)
-	{
-		if( msb_set_cs_table[counter] == cs)
-		{
-			return  1 ;
-		}
-	}
-
-	return  0 ;
-}
 
 static size_t
 receive_bytes(
@@ -2422,7 +2376,7 @@ ml_parse_vt100_sequence(
 				{
 					vt100_parser->left = vt100_parser->cc_parser->left ;
 
-					if( is_msb_set( ch.cs))
+					if( ml_is_msb_set( ch.cs))
 					{
 						SET_MSB( ch.ch[0]) ;
 					}

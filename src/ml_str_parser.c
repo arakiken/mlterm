@@ -98,6 +98,11 @@ next_char(
 	ch->size = ml_char_size( ml_ch) ;
 	memcpy( ch->ch , ml_char_bytes( ml_ch) , ch->size) ;
 	ch->cs = ml_char_cs( ml_ch) ;
+
+	if( ml_is_msb_set( ch->cs))
+	{
+		UNSET_MSB(ch->ch[0]) ;
+	}
 	
 	/* XXX */
 	ch->property = 0 ;

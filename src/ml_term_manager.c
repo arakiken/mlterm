@@ -13,7 +13,8 @@
 #include  <signal.h>		/* kill */
 #include  <stdlib.h>		/* getenv() */
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_str.h>	/* kik_str_sep/kik_basename/kik_str_to_int/kik_str_alloca_dup */
+#include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/kik_str_alloca_dup */
+#include  <kiklib/kik_path.h>	/* kik_basename */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 #include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect */
 #include  <kiklib/kik_conf.h>

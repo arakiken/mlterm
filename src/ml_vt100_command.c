@@ -5,6 +5,8 @@
 #include  "ml_vt100_command.h"
 
 #include  <stdio.h>		/* sprintf */
+#include  <unistd.h>		/* getcwd */
+#include  <limits.h>		/* PATH_MAX */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 #include  <kiklib/kik_str.h>	/* kik_str_to_int */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
@@ -1025,7 +1027,8 @@ ml_vt100_cmd_get_config(
 	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
 	char *  true = "true" ;
 	char *  false = "false" ;
-	
+	char  cwd[PATH_MAX] ;
+		
 	if( strcmp( key , "encoding") == 0)
 	{
 		value = ml_get_char_encoding_name( (*termscr->encoding_listener->encoding)(
@@ -1145,14 +1148,18 @@ ml_vt100_cmd_get_config(
 	{
 		value = termscr->pic_file_path ;
 	}
+	else if( strcmp( key , "pwd") == 0)
+	{
+		value = getcwd( cwd , PATH_MAX) ;
+	}
 	else
 	{
-		value = "error" ;
+		value = "#error" ;
 	}
 
 	if( value == NULL)
 	{
-		value = "error" ;
+		value = "#error" ;
 	}
 
 	ml_write_to_pty( termscr->pty , "#" , 1) ;
