@@ -204,6 +204,8 @@ find_factory(
 	String  lang ;
 	size_t  i ;
 
+	lang = scim_get_locale_language( String( locale)) ;
+
 	if( factory_name)
 	{
 		for( i = 0 ; i < factories.size() ; i++)
@@ -212,7 +214,8 @@ find_factory(
 					utf8_wcstombs( be->get_factory_name( factories[i])))
 			{
 				factory = factories[i] ;
-				return  true ;
+				printf("found %s\n", factory_name);
+				goto  found ;
 			}
 		}
 
@@ -220,14 +223,13 @@ find_factory(
 		return  false ;
 	}
 
-	lang = scim_get_locale_language( String( locale)) ;
+	factory = factories[0] ;
 
-	for( i = 0 , factory = factories[0] ; i < factories.size() ; i++)
+	for( i = 0 ; i < factories.size() ; i++)
 	{
 		if( be->get_factory_language( factories[i]) == lang)
 		{
 			factory = factories[i] ;
-			break ;
 		}
 	}
 
@@ -241,6 +243,13 @@ find_factory(
 	{
 		factory = factories[0] ;
 	}
+
+found:
+
+	scim_global_config_write(
+			String( SCIM_GLOBAL_CONFIG_DEFAULT_IMENGINE_FACTORY) +
+				String( "/") + lang ,
+			factory) ;
 
 	return  true ;
 }
@@ -395,7 +404,6 @@ cb_preedit_caret(
 	(*context->cb->preedit_update)( context->self ,
 					C_STR( context->preedit_str) ,
 					caret) ;
-
 }
 
 static void
@@ -1055,8 +1063,6 @@ im_scim_get_default_factory_name(
 	{
 		return  C_STR(be->get_factory_name( factory)) ;
 	}
-
-	return "unknown" ;
 }
 
 char *
@@ -1074,4 +1080,5 @@ im_scim_get_language(
 {
 	return  (char*) be->get_factory_language( factories[index]).c_str() ;
 }
+
 

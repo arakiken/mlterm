@@ -10,6 +10,9 @@
 	* xwindow/x_im.c (x_im_new): cleaned up error messages.
 	* inputmethod/im_uim.c (im_uim_new): cleaned up error messages.
 
+	* inputmethod/scim/im_scim.cpp (find_factory): saved selected factory to
+	  SCIM_GLOBAL_CONFIG_DEFAULT_IMENGINE_FACTORY
+
 2005-01-24 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/iiimf/im_iiimf.c (show_available_gui_objects):
