@@ -455,7 +455,7 @@ show(void)
 	
 	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_AA)))
 	    return 0;
-#ifndef ANTI_ALIAS
+#ifndef USE_TYPE_XFT
 	gtk_widget_set_sensitive(config_widget, 0);
 #endif
 	gtk_widget_show(config_widget);
