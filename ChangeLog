@@ -1,3 +1,7 @@
+2004-08-30 Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* man/mlterm.1: fixed a typo.
+
 2004-08-29 Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* inputmethod/uim/im_uim.c: converted X modify key to uim key.
