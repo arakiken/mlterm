@@ -1,3 +1,9 @@
+2003-09-21  Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* x_window.c(x_window_receive_event): Fixed incorrect width and/or
+	  height of the exposed area. For example, at event->expose.height = 1
+	  and event->expose.y = 0, height should be 0 not -1.
+
 2003-09-21  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_logical_visual.c(comb_logical): Usage of ml_char_at() was wrong. Fixed.

@@ -1697,6 +1697,10 @@ x_window_receive_event(
 			{
 				width = win->width ;
 			}
+			else if( event->xexpose.width < (win->margin - event->xexpose.x))
+			{
+				width = 0 ;
+			}
 			else
 			{
 				width = event->xexpose.width - (win->margin - event->xexpose.x) ;
@@ -1723,6 +1727,10 @@ x_window_receive_event(
 			if( y + event->xexpose.height > win->height)
 			{
 				height = win->height ;
+			}
+			else if( event->xexpose.height < (win->margin - event->xexpose.y))
+			{
+				height = 0 ;
 			}
 			else
 			{
