@@ -343,7 +343,6 @@ bidi_render(
 	 */
 	for( row = 0 ; row < edit->model.num_of_rows ; row ++)
 	{
-		int  cols ;
 		int  need_render ;
 
 		line = ml_model_get_line( &edit->model , row) ;
@@ -352,14 +351,10 @@ bidi_render(
 		
 		if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align && line->num_of_filled_chars > 0)
 		{
-			for( cols = ml_line_get_num_of_filled_cols( line) ;
-				cols < edit->model.num_of_cols ; cols ++)
-			{
-				ml_char_copy( &line->chars[line->num_of_filled_chars++] ,
-					&edit->sp_ch) ;
-
-				need_render = 1 ;
-			}
+			ml_line_fill( line , &edit->sp_ch , line->num_of_filled_chars ,
+				edit->model.num_of_cols - ml_line_get_num_of_filled_cols( line) ,
+				&edit->sp_ch) ;
+			need_render = 1 ;
 		}
 
 		if( ! ml_line_is_using_bidi( line))
@@ -490,16 +485,10 @@ bidi_visual_line(
 	
 	if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align && line->num_of_filled_chars > 0)
 	{
-		int  cols ;
-
-		for( cols = ml_line_get_num_of_filled_cols( line) ;
-			cols < logvis->edit->model.num_of_cols ; cols ++)
-		{
-			ml_char_copy( &line->chars[line->num_of_filled_chars++] ,
-				&logvis->edit->sp_ch) ;
-
-			need_render = 1 ;
-		}
+		ml_line_fill( line , &logvis->edit->sp_ch , line->num_of_filled_chars ,
+			logvis->edit->model.num_of_cols - ml_line_get_num_of_filled_cols( line) ,
+			&logvis->edit->sp_ch) ;
+		need_render = 1 ;
 	}
 
 	if( ! ml_line_is_using_bidi( line))
