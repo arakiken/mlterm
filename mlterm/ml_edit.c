@@ -1172,7 +1172,7 @@ ml_edit_clear_below_bce(
 	for( row = edit->cursor.row + 1 ; row < edit->model.num_of_rows ; row ++)
 	{
 		ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
-			edit->model.num_of_cols / ml_char_cols(&edit->bce_ch)) ;
+			edit->model.num_of_cols) ;
 	}
 
 	edit->model.num_of_filled_rows = edit->model.num_of_rows ;
@@ -1210,10 +1210,10 @@ ml_edit_clear_above_bce(
 		return  0 ;
 	}
 
-	for( row = 0 ; row <= edit->cursor.row - 1 ; row ++)
+	for( row = 0 ; row < edit->cursor.row ; row ++)
 	{
 		ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
-			edit->model.num_of_cols / ml_char_cols(&edit->bce_ch)) ;
+			edit->model.num_of_cols) ;
 	}
 
 	return  1 ;

@@ -1,3 +1,9 @@
+2002-10-07 Araki Ken <arakiken@users.sf.net>
+
+	* There was some interval between the time when Focus events available and when
+	  window really mapped. fixed.
+	  (Thanks to Nanashi san)
+
 2002-10-06 Araki Ken <arakiken@users.sf.net>
 
 	* Fixed a bug in deleting multi-byte characters by ESC [ P.

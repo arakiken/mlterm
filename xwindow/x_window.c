@@ -1147,27 +1147,9 @@ x_window_show(
 	win->ch_gc = XCreateGC( win->display , win->my_window ,
 			GCGraphicsExposures , &gc_value) ;
 
-#if  0
-	x_window_clear_all( win) ;
-#endif
-	
 	if( win->window_realized)
 	{
 		(*win->window_realized)( win) ;
-	}
-
-	/*
-	 * showing child windows.
-	 */
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		x_window_show( win->children[count] , 0) ;
-	}
-
-	if( win->is_mapped)
-	{
-		XMapWindow( win->display , win->my_window) ;
 	}
 
 	if( win->parent == NULL)
@@ -1253,6 +1235,28 @@ x_window_show(
 	}
 
 	XSelectInput( win->display , win->my_window , win->event_mask) ;
+
+	/*
+	 * showing child windows.
+	 */
+
+	for( count = 0 ; count < win->num_of_children ; count ++)
+	{
+		x_window_show( win->children[count] , 0) ;
+	}
+
+	/*
+	 * really visualized.
+	 */
+	 
+	if( win->is_mapped)
+	{
+		XMapWindow( win->display , win->my_window) ;
+		
+	#if  0
+		x_window_clear_all( win) ;
+	#endif
+	}
 
 	return  1 ;
 }
