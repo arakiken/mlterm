@@ -1,6 +1,7 @@
 [20011230]
 * cursor doesn't move correctly on full width characters(critical bug!). fixed.
 * XCopyArea() is not used when screen is scrolled.
+* mistake of mlterm.spec is fixed.
 * 2.1.1 is released.
 
 [20011229]

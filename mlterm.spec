@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 2.1.0
+%define version 2.1.1
 %define release 1
 %define prefix /usr
 %define bindir /usr/X11R6/bin
@@ -14,8 +14,8 @@ Version:     %{version}
 Release:     %{release}
 License:     Modified BSD-style license
 Group:	     User Interface/X
-URL:         http://mlterm.dnsalias.net/ken/mlterm/mlterm.shtml
-Source0:     http://mlterm.dnsalias.net/ken/mlterm/mlterm-%{version}.tar.gz
+URL:         http://mlterm.sourceforge.net/
+Source0:     http://prdownloads.sourceforge.net/mlterm/mlterm-%{version}.tar.gz
 Packager:    Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
 Requires:    imlib, gtk+
 BuildRoot:   /var/tmp/%{name}-%{version}-root
@@ -78,7 +78,10 @@ rm -rf $RPM_BUILD_ROOT
 %{mandir}/man1/mlterm.1*
 
 %changelog
-* Fri Dec 29 2001 Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
+* Sun Dec 30 2001 Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
+- Source version 2.1.1
+
+* Sat Dec 29 2001 Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
 - Source version 2.1.0
 
 * Thu Nov 29 2001 Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
