@@ -108,8 +108,10 @@ mc_bgtype_config_widget_new(void)
 
 	bgtype = get_bgtype() ;
 
-	if( ( bg_color = mc_bg_color_config_widget_new()) == NULL) return NULL ;
-	if( ( wall_picture = mc_wall_pic_config_widget_new()) == NULL) return NULL ;
+	if( ( bg_color = mc_color_config_widget_new(MC_COLOR_BG)) == NULL)
+		return NULL ;
+	if( ( wall_picture = mc_wall_pic_config_widget_new()) == NULL)
+		return NULL ;
 	
     group = NULL;
 
@@ -175,7 +177,7 @@ mc_update_bgtype(void)
 		mc_set_flag_value("use_transbg", 0);
 		mc_wall_pic_none();
 	    }
-	    mc_update_bg_color() ;
+	    mc_update_color(MC_COLOR_BG) ;
 	} else if ( bgtype == MC_BG_WALLPICTURE) {
 	    if( is_changed) {
 	        mc_set_flag_value("use_transbg", 0);

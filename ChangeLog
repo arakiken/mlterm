@@ -1,3 +1,11 @@
+2003-03-21 Tomohiro KUBOTA <kubota@debian.org>
+
+	* tool/mlconfig/mc_color.[ch] simplification.
+	* Color names are now translatable in mlconfig.
+	* Japanese translation of above new translatable items.
+	* Encoding change in tool/mlconfig/po/ja.po from UTF-8
+	  to EUC-JP for easier editing.
+
 2003-03-20  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
 
 	* fixed a pixmap cache corruption bug with gdk-pixbuf

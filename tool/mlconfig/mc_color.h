@@ -8,22 +8,14 @@
 
 #include  <gtk/gtk.h>
 
+#define MC_COLOR_MODES 4
 
-GtkWidget *  mc_fg_color_config_widget_new( void) ;
+#define MC_COLOR_FG 0
+#define MC_COLOR_BG 1
+#define MC_COLOR_SBFG 2
+#define MC_COLOR_SBBG 3
 
-GtkWidget *  mc_bg_color_config_widget_new( void) ;
-
-GtkWidget *  mc_sb_fg_color_config_widget_new( void) ;
-
-GtkWidget *  mc_sb_bg_color_config_widget_new( void) ;
-
-void  mc_update_fg_color(void) ;
-
-void  mc_update_bg_color(void) ;
-
-void  mc_update_sb_fg_color(void) ;
-
-void  mc_update_sb_bg_color(void) ;
-
+GtkWidget *mc_color_config_widget_new(int id);
+void mc_update_color(int id);
 
 #endif

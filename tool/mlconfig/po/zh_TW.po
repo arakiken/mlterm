@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlconfig\n"
-"POT-Creation-Date: 2003-03-19 20:20+0900\n"
+"POT-Creation-Date: 2003-03-22 21:17+0900\n"
 "PO-Revision-Date: 2003-02-09 21:26+0800\n"
 "Last-Translator: Yuan-Chen Cheng <ycheng@slat.org>\n"
 "Language-Team: Chinese (Traditional) <zh-l10n@linux.org.tw>\n"
@@ -13,80 +13,80 @@ msgstr ""
 "Content-Type: text/plain; charset=Big5\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: tool/mlconfig/main.c:221
+#: tool/mlconfig/main.c:220
 msgid "Save&Exit"
 msgstr ""
 
-#: tool/mlconfig/main.c:222
+#: tool/mlconfig/main.c:221
 #, fuzzy
 msgid "Apply&Exit"
 msgstr "套用"
 
-#: tool/mlconfig/main.c:223
+#: tool/mlconfig/main.c:222
 msgid "Apply"
 msgstr "套用"
 
-#: tool/mlconfig/main.c:224
+#: tool/mlconfig/main.c:223
 msgid "Cancel"
 msgstr "取消"
 
-#: tool/mlconfig/main.c:236
+#: tool/mlconfig/main.c:234
 msgid "Font size"
 msgstr "字型大小"
 
-#: tool/mlconfig/main.c:244
+#: tool/mlconfig/main.c:242
 msgid "Larger"
 msgstr "大一點"
 
-#: tool/mlconfig/main.c:245
+#: tool/mlconfig/main.c:243
 msgid "Smaller"
 msgstr "小一點"
 
-#: tool/mlconfig/main.c:257 tool/mlconfig/main.c:265
+#: tool/mlconfig/main.c:254 tool/mlconfig/main.c:262
 msgid "Full reset"
 msgstr ""
 
-#: tool/mlconfig/main.c:284
+#: tool/mlconfig/main.c:280
 msgid "PTY List"
 msgstr ""
 
-#: tool/mlconfig/main.c:292
+#: tool/mlconfig/main.c:288
 msgid " New "
 msgstr ""
 
-#: tool/mlconfig/main.c:293 tool/mlconfig/mc_wall_pic.c:91
+#: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
 msgid " Select "
 msgstr ""
 
-#: tool/mlconfig/main.c:320
+#: tool/mlconfig/main.c:316
 msgid "mlterm configuration"
 msgstr ""
 
-#: tool/mlconfig/main.c:356 tool/mlconfig/mc_char_encoding.c:185
+#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:185
 msgid "Encoding"
 msgstr "編碼"
 
-#: tool/mlconfig/main.c:410
+#: tool/mlconfig/main.c:406
 msgid "Font"
 msgstr "字型"
 
-#: tool/mlconfig/main.c:428
+#: tool/mlconfig/main.c:424
 msgid "Screen ratio against font size"
 msgstr ""
 
-#: tool/mlconfig/main.c:476
+#: tool/mlconfig/main.c:473
 msgid "Background"
 msgstr "背景"
 
-#: tool/mlconfig/main.c:489
+#: tool/mlconfig/main.c:486
 msgid "Picture/Transparent"
 msgstr ""
 
-#: tool/mlconfig/main.c:524
+#: tool/mlconfig/main.c:521
 msgid "Scrollbar"
 msgstr ""
 
-#: tool/mlconfig/main.c:553
+#: tool/mlconfig/main.c:552
 msgid "Others"
 msgstr ""
 
@@ -107,19 +107,19 @@ msgstr ""
 msgid "Visual"
 msgstr ""
 
-#: tool/mlconfig/mc_bgtype.c:116
+#: tool/mlconfig/mc_bgtype.c:118
 msgid "Background type"
 msgstr "背景類型"
 
-#: tool/mlconfig/mc_bgtype.c:123
+#: tool/mlconfig/mc_bgtype.c:125
 msgid "Color"
 msgstr "顏色"
 
-#: tool/mlconfig/mc_bgtype.c:137 tool/mlconfig/mc_wall_pic.c:81
+#: tool/mlconfig/mc_bgtype.c:139 tool/mlconfig/mc_wall_pic.c:81
 msgid "Picture"
 msgstr "圖案"
 
-#: tool/mlconfig/mc_bgtype.c:154
+#: tool/mlconfig/mc_bgtype.c:156
 msgid "Transparent"
 msgstr "透明"
 
@@ -159,14 +159,62 @@ msgstr ""
 msgid "--- simplified Chinese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:137 tool/mlconfig/mc_color.c:155
+#: tool/mlconfig/mc_color.c:36 tool/mlconfig/mc_color.c:38
 msgid "Foreground color"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:146 tool/mlconfig/mc_color.c:164
+#: tool/mlconfig/mc_color.c:37 tool/mlconfig/mc_color.c:39
 #, fuzzy
 msgid "Background color"
 msgstr "背景"
+
+#: tool/mlconfig/mc_color.c:43
+msgid "black"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:44
+msgid "red"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:45
+msgid "green"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:46
+msgid "yellow"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:47
+msgid "blue"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:48
+msgid "magenta"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:49
+msgid "cyan"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:50
+msgid "white"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:51
+msgid "gray"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:52
+msgid "lightgray"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:53
+msgid "pink"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:54
+msgid "brown"
+msgstr ""
 
 #: tool/mlconfig/mc_contrast.c:69
 msgid "Contrast"

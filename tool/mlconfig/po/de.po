@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.2\n"
-"POT-Creation-Date: 2003-03-19 20:20+0900\n"
+"POT-Creation-Date: 2003-03-22 21:17+0900\n"
 "PO-Revision-Date: 2002-11-25 19:25+0100\n"
 "Last-Translator: Mike Fabian <mfabian@suse.de>\n"
 "Language-Team: German <suse-i18n@suse.de>\n"
@@ -14,80 +14,80 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: tool/mlconfig/main.c:221
+#: tool/mlconfig/main.c:220
 msgid "Save&Exit"
 msgstr ""
 
-#: tool/mlconfig/main.c:222
+#: tool/mlconfig/main.c:221
 #, fuzzy
 msgid "Apply&Exit"
 msgstr "Anwenden"
 
-#: tool/mlconfig/main.c:223
+#: tool/mlconfig/main.c:222
 msgid "Apply"
 msgstr "Anwenden"
 
-#: tool/mlconfig/main.c:224
+#: tool/mlconfig/main.c:223
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: tool/mlconfig/main.c:236
+#: tool/mlconfig/main.c:234
 msgid "Font size"
 msgstr "Font Größe"
 
-#: tool/mlconfig/main.c:244
+#: tool/mlconfig/main.c:242
 msgid "Larger"
 msgstr "Größer"
 
-#: tool/mlconfig/main.c:245
+#: tool/mlconfig/main.c:243
 msgid "Smaller"
 msgstr "Kleiner"
 
-#: tool/mlconfig/main.c:257 tool/mlconfig/main.c:265
+#: tool/mlconfig/main.c:254 tool/mlconfig/main.c:262
 msgid "Full reset"
 msgstr "Alles Zurücksetzen"
 
-#: tool/mlconfig/main.c:284
+#: tool/mlconfig/main.c:280
 msgid "PTY List"
 msgstr ""
 
-#: tool/mlconfig/main.c:292
+#: tool/mlconfig/main.c:288
 msgid " New "
 msgstr ""
 
-#: tool/mlconfig/main.c:293 tool/mlconfig/mc_wall_pic.c:91
+#: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
 msgid " Select "
 msgstr "Auswahl"
 
-#: tool/mlconfig/main.c:320
+#: tool/mlconfig/main.c:316
 msgid "mlterm configuration"
 msgstr "mlterm Konfiguration"
 
-#: tool/mlconfig/main.c:356 tool/mlconfig/mc_char_encoding.c:185
+#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:185
 msgid "Encoding"
 msgstr "Kodierung"
 
-#: tool/mlconfig/main.c:410
+#: tool/mlconfig/main.c:406
 msgid "Font"
 msgstr "Font"
 
-#: tool/mlconfig/main.c:428
+#: tool/mlconfig/main.c:424
 msgid "Screen ratio against font size"
 msgstr "Bildschirmgröße relativ zur Fontgröße"
 
-#: tool/mlconfig/main.c:476
+#: tool/mlconfig/main.c:473
 msgid "Background"
 msgstr "Hintergrund"
 
-#: tool/mlconfig/main.c:489
+#: tool/mlconfig/main.c:486
 msgid "Picture/Transparent"
 msgstr "Bild/Transparenz"
 
-#: tool/mlconfig/main.c:524
+#: tool/mlconfig/main.c:521
 msgid "Scrollbar"
 msgstr "Scrollbalken"
 
-#: tool/mlconfig/main.c:553
+#: tool/mlconfig/main.c:552
 msgid "Others"
 msgstr "Sonstiges"
 
@@ -108,19 +108,19 @@ msgstr "akustisch"
 msgid "Visual"
 msgstr "visuell"
 
-#: tool/mlconfig/mc_bgtype.c:116
+#: tool/mlconfig/mc_bgtype.c:118
 msgid "Background type"
 msgstr "Hintergrundtyp"
 
-#: tool/mlconfig/mc_bgtype.c:123
+#: tool/mlconfig/mc_bgtype.c:125
 msgid "Color"
 msgstr "Farbe"
 
-#: tool/mlconfig/mc_bgtype.c:137 tool/mlconfig/mc_wall_pic.c:81
+#: tool/mlconfig/mc_bgtype.c:139 tool/mlconfig/mc_wall_pic.c:81
 msgid "Picture"
 msgstr "Bild"
 
-#: tool/mlconfig/mc_bgtype.c:154
+#: tool/mlconfig/mc_bgtype.c:156
 msgid "Transparent"
 msgstr "transparent"
 
@@ -160,13 +160,61 @@ msgstr ""
 msgid "--- simplified Chinese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:137 tool/mlconfig/mc_color.c:155
+#: tool/mlconfig/mc_color.c:36 tool/mlconfig/mc_color.c:38
 msgid "Foreground color"
 msgstr "Vordergrundfarbe"
 
-#: tool/mlconfig/mc_color.c:146 tool/mlconfig/mc_color.c:164
+#: tool/mlconfig/mc_color.c:37 tool/mlconfig/mc_color.c:39
 msgid "Background color"
 msgstr "Hintergrundfarbe"
+
+#: tool/mlconfig/mc_color.c:43
+msgid "black"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:44
+msgid "red"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:45
+msgid "green"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:46
+msgid "yellow"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:47
+msgid "blue"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:48
+msgid "magenta"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:49
+msgid "cyan"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:50
+msgid "white"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:51
+msgid "gray"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:52
+msgid "lightgray"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:53
+msgid "pink"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:54
+msgid "brown"
+msgstr ""
 
 #: tool/mlconfig/mc_contrast.c:69
 msgid "Contrast"

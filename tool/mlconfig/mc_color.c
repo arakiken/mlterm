@@ -21,197 +21,101 @@
 
 /* --- static variables --- */
 
-static char *  new_fg_color ;
-static char *  new_bg_color ;
-static char *  new_sb_fg_color ;
-static char *  new_sb_bg_color ;
-static char *  old_fg_color ;
-static char *  old_bg_color ;
-static char *  old_sb_fg_color ;
-static char *  old_sb_bg_color ;
-static int is_changed_fg;
-static int is_changed_bg;
-static int is_changed_sb_fg;
-static int is_changed_sb_bg;
+static int new_color[MC_COLOR_MODES];
+static int old_color[MC_COLOR_MODES];
+static int is_changed[MC_COLOR_MODES];
 
+static char *configname[MC_COLOR_MODES] = {
+	"fg_color",
+	"bg_color",
+	"sb_fg_color",
+	"sb_bg_color"
+};
+
+static char *label[MC_COLOR_MODES] = {
+	N_("Foreground color"),
+	N_("Background color"),
+	N_("Foreground color"),
+	N_("Background color")
+};
+
+static char *colors[] = {
+	N_("black"),
+	N_("red"),
+	N_("green"),
+	N_("yellow"),
+	N_("blue"),
+	N_("magenta"),
+	N_("cyan"),
+	N_("white"),
+	N_("gray"),
+	N_("lightgray"),
+	N_("pink"),
+	N_("brown")
+};
+
+/* initialized by init_i18ncolors() */
+static char *i18ncolors[sizeof(colors)/sizeof(colors[0])] = {NULL};
 
 /* --- static functions --- */
 
-static gint
-fg_color_selected(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
+static void init_i18ncolors(void)
 {
-	new_fg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
+	int j;
+
+	if (i18ncolors[0] != NULL) return;
+	for (j=0; j<sizeof(colors)/sizeof(colors[0]); j++)
+		i18ncolors[j] = _(colors[j]);
+	return;
+}
+
+static int get_index(char *color)
+{
+	int j;
+
+	for(j=0; j<sizeof(colors)/sizeof(colors[0]); j++) {
+		if (strcmp(colors[j], color) == 0) return j;
+		if (strcmp(i18ncolors[j], color) == 0) return j;
+	}
+	return -1;
+}
+
+static int color_selected(GtkWidget *widget, gpointer data)
+{
+	/* data: pointer for new_color[n] */
+
+	*(int *)data = get_index(gtk_entry_get_text(GTK_ENTRY(widget)));
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , new_fg_color) ;
+	kik_debug_printf(KIK_DEBUG_TAG " %s color is selected.\n", *(int *)data);
 #endif
 
-	return  1 ;
+	return 1;
 }
-
-static gint
-bg_color_selected(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
-{
-	new_bg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , new_bg_color) ;
-#endif
-
-	return  1 ;
-}
-
-static gint
-sb_fg_color_selected(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
-{
-	new_sb_fg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , new_sb_fg_color) ;
-#endif
-
-	return  1 ;
-}
-
-static gint
-sb_bg_color_selected(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
-{
-	new_sb_bg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , new_sb_bg_color) ;
-#endif
-
-	return  1 ;
-}
-
-static GtkWidget *
-config_widget_new(
-	char *  title ,
-	char *  color ,
-	gint (*color_selected)(GtkWidget *,gpointer)
-	)
-{
-	char *  colors[] =
-	{
-		"black" ,
-		"red" ,
-		"green" ,
-		"yellow" ,
-		"blue" ,
-		"magenta" ,
-		"cyan" ,
-		"white" ,
-		"gray" ,
-		"lightgray" ,
-		"pink" ,
-		"brown" ,
-
-	} ;
-	
-	return  mc_combo_new( title , colors , sizeof(colors) / sizeof(colors[0]) ,
-			color , 0 , color_selected , NULL) ;
-}
-
 
 /* --- global functions --- */
 
 GtkWidget *
-mc_fg_color_config_widget_new(void)
+mc_color_config_widget_new(int id)
 {
-	new_fg_color = old_fg_color = mc_get_str_value( "fg_color") ;
-	is_changed_fg = 0;
-	
-	return  config_widget_new( _("Foreground color") , new_fg_color , fg_color_selected) ;
-}
+	init_i18ncolors();
+	new_color[id] = old_color[id] =
+		get_index(mc_get_str_value(configname[id]));
+	is_changed[id] = 0;
 
-GtkWidget *
-mc_bg_color_config_widget_new(void)
-{
-	new_bg_color = old_bg_color = mc_get_str_value( "bg_color") ;
-	is_changed_bg = 0;
-	
-	return  config_widget_new(_("Background color") , new_bg_color , bg_color_selected) ;
-}
-
-GtkWidget *
-mc_sb_fg_color_config_widget_new(void)
-{
-	new_sb_fg_color = old_sb_fg_color = mc_get_str_value( "sb_fg_color") ;
-	is_changed_sb_fg = 0;
-	
-	return  config_widget_new( _("Foreground color") , new_sb_fg_color , sb_fg_color_selected) ;
-}
-
-GtkWidget *
-mc_sb_bg_color_config_widget_new(void)
-{
-	new_sb_bg_color = old_sb_bg_color = mc_get_str_value( "sb_bg_color") ;
-	is_changed_sb_bg = 0;
-	
-	return  config_widget_new( _("Background color") , new_sb_bg_color , sb_bg_color_selected) ;
+	return mc_combo_new(_(label[id]), i18ncolors,
+			    sizeof(colors)/sizeof(colors[0]),
+			    i18ncolors[new_color[id]], 0, color_selected,
+			    (gpointer)(new_color+id));
 }
 
 void
-mc_update_fg_color(void)
+mc_update_color(int id)
 {
-	if (strcmp(new_fg_color, old_fg_color)) is_changed_fg = 1;
+	if (new_color[id] != old_color[id]) is_changed[id] = 1;
 
-	if (is_changed_fg)
-	{
-		mc_set_str_value( "fg_color" , new_fg_color) ;
-		free( old_fg_color) ;
-		old_fg_color = strdup( new_fg_color) ;
-	}
-}
-
-void
-mc_update_bg_color(void)
-{
-	if (strcmp(new_bg_color, old_bg_color)) is_changed_bg = 1;
-
-	if (is_changed_bg)
-	{
-		mc_set_str_value( "bg_color" , new_bg_color) ;
-		free( old_bg_color) ;
-		old_bg_color = strdup( new_bg_color) ;
-	}
-}
-
-void
-mc_update_sb_fg_color(void)
-{
-	if (strcmp(new_sb_fg_color, old_sb_fg_color)) is_changed_sb_fg = 1;
-
-	if (is_changed_sb_fg)
-	{
-		mc_set_str_value( "sb_fg_color" , new_sb_fg_color) ;
-		free( old_sb_fg_color) ;
-		old_sb_fg_color = strdup( new_sb_fg_color) ;
-	}
-}
-
-void
-mc_update_sb_bg_color(void)
-{
-	if (strcmp(new_sb_bg_color, old_sb_bg_color)) is_changed_sb_bg = 1;
-
-	if (is_changed_sb_bg)
-	{
-		mc_set_str_value( "sb_bg_color" , new_sb_bg_color) ;
-		free( old_sb_bg_color) ;
-		old_sb_bg_color = strdup( new_sb_bg_color) ;
+	if (is_changed[id]) {
+		mc_set_str_value(configname[id], colors[new_color[id]]);
+		old_color[id] = new_color[id];
 	}
 }

@@ -6,130 +6,130 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
-"POT-Creation-Date: 2003-03-19 20:20+0900\n"
+"POT-Creation-Date: 2003-03-22 21:17+0900\n"
 "PO-Revision-Date: 2002-11-25 19:24+0100\n"
 "Last-Translator: Tomohiro KUBOTA <kubota@debian.org>\n"
 "Language-Team: Japanese <mlterm-dev-ja@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=euc-jp\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: tool/mlconfig/main.c:221
+#: tool/mlconfig/main.c:220
 msgid "Save&Exit"
-msgstr "ä¿å­˜&çµ‚äº†"
+msgstr "ÊİÂ¸&½ªÎ»"
+
+#: tool/mlconfig/main.c:221
+msgid "Apply&Exit"
+msgstr "Å¬ÍÑ&½ªÎ»"
 
 #: tool/mlconfig/main.c:222
-msgid "Apply&Exit"
-msgstr "é©ç”¨&çµ‚äº†"
+msgid "Apply"
+msgstr "Å¬ÍÑ"
 
 #: tool/mlconfig/main.c:223
-msgid "Apply"
-msgstr "é©ç”¨"
-
-#: tool/mlconfig/main.c:224
 msgid "Cancel"
-msgstr "ã‚­ãƒ£ãƒ³ã‚»ãƒ«"
+msgstr "¥­¥ã¥ó¥»¥ë"
 
-#: tool/mlconfig/main.c:236
+#: tool/mlconfig/main.c:234
 msgid "Font size"
-msgstr "ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚º"
+msgstr "¥Õ¥©¥ó¥È¥µ¥¤¥º"
 
-#: tool/mlconfig/main.c:244
+#: tool/mlconfig/main.c:242
 msgid "Larger"
-msgstr "å¤§ãã"
+msgstr "Âç¤­¤¯"
 
-#: tool/mlconfig/main.c:245
+#: tool/mlconfig/main.c:243
 msgid "Smaller"
-msgstr "å°ã•ã"
+msgstr "¾®¤µ¤¯"
 
-#: tool/mlconfig/main.c:257 tool/mlconfig/main.c:265
+#: tool/mlconfig/main.c:254 tool/mlconfig/main.c:262
 msgid "Full reset"
-msgstr "å…¨ãƒªã‚»ãƒƒãƒˆ"
+msgstr "Á´¥ê¥»¥Ã¥È"
 
-#: tool/mlconfig/main.c:284
+#: tool/mlconfig/main.c:280
 msgid "PTY List"
-msgstr "ä»®æƒ³ç«¯æœ«ä¸€è¦§"
+msgstr "²¾ÁÛÃ¼Ëö°ìÍ÷"
 
-#: tool/mlconfig/main.c:292
+#: tool/mlconfig/main.c:288
 msgid " New "
-msgstr "æ–°è¦"
+msgstr "¿·µ¬"
 
-#: tool/mlconfig/main.c:293 tool/mlconfig/mc_wall_pic.c:91
+#: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
 msgid " Select "
-msgstr "é¸æŠ"
+msgstr "ÁªÂò"
 
-#: tool/mlconfig/main.c:320
+#: tool/mlconfig/main.c:316
 msgid "mlterm configuration"
-msgstr "mltermã®è¨­å®š"
+msgstr "mlterm¤ÎÀßÄê"
 
-#: tool/mlconfig/main.c:356 tool/mlconfig/mc_char_encoding.c:185
+#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:185
 msgid "Encoding"
-msgstr "ã‚¨ãƒ³ã‚³ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°"
+msgstr "¥¨¥ó¥³¡¼¥Ç¥£¥ó¥°"
 
-#: tool/mlconfig/main.c:410
+#: tool/mlconfig/main.c:406
 msgid "Font"
-msgstr "ãƒ•ã‚©ãƒ³ãƒˆ"
+msgstr "¥Õ¥©¥ó¥È"
 
-#: tool/mlconfig/main.c:428
+#: tool/mlconfig/main.c:424
 msgid "Screen ratio against font size"
-msgstr "ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚µã‚¤ã‚ºã¨ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºã®å‰²åˆ"
+msgstr "¥¹¥¯¥ê¡¼¥ó¥µ¥¤¥º¤È¥Õ¥©¥ó¥È¥µ¥¤¥º¤Î³ä¹ç"
 
-#: tool/mlconfig/main.c:476
+#: tool/mlconfig/main.c:473
 msgid "Background"
-msgstr "èƒŒæ™¯"
+msgstr "ÇØ·Ê"
 
-#: tool/mlconfig/main.c:489
+#: tool/mlconfig/main.c:486
 msgid "Picture/Transparent"
-msgstr "å£ç´™/é€æ˜"
+msgstr "ÊÉ»æ/Æ©ÌÀ"
 
-#: tool/mlconfig/main.c:524
+#: tool/mlconfig/main.c:521
 msgid "Scrollbar"
-msgstr "ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ãƒãƒ¼"
+msgstr "¥¹¥¯¥í¡¼¥ë¥Ğ¡¼"
 
-#: tool/mlconfig/main.c:553
+#: tool/mlconfig/main.c:552
 msgid "Others"
-msgstr "ãã®ä»–"
+msgstr "¤½¤ÎÂ¾"
 
 #: tool/mlconfig/mc_bel.c:87
 msgid " Bel mode "
-msgstr "ãƒ™ãƒ«"
+msgstr "¥Ù¥ë"
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
 #: tool/mlconfig/mc_sb.c:94 tool/mlconfig/mc_vertical.c:94
 msgid "None"
-msgstr "ãªã—"
+msgstr "¤Ê¤·"
 
 #: tool/mlconfig/mc_bel.c:104
 msgid "Sound"
-msgstr "éŸ³"
+msgstr "²»"
 
 #: tool/mlconfig/mc_bel.c:115
 msgid "Visual"
-msgstr "è¡¨ç¤º"
+msgstr "É½¼¨"
 
-#: tool/mlconfig/mc_bgtype.c:116
+#: tool/mlconfig/mc_bgtype.c:118
 msgid "Background type"
-msgstr "èƒŒæ™¯ã®ã‚¿ã‚¤ãƒ—"
+msgstr "ÇØ·Ê¤Î¥¿¥¤¥×"
 
-#: tool/mlconfig/mc_bgtype.c:123
+#: tool/mlconfig/mc_bgtype.c:125
 msgid "Color"
-msgstr "è‰²"
+msgstr "¿§"
 
-#: tool/mlconfig/mc_bgtype.c:137 tool/mlconfig/mc_wall_pic.c:81
+#: tool/mlconfig/mc_bgtype.c:139 tool/mlconfig/mc_wall_pic.c:81
 msgid "Picture"
-msgstr "å£ç´™"
+msgstr "ÊÉ»æ"
 
-#: tool/mlconfig/mc_bgtype.c:154
+#: tool/mlconfig/mc_bgtype.c:156
 msgid "Transparent"
-msgstr "é€æ˜"
+msgstr "Æ©ÌÀ"
 
 #: tool/mlconfig/mc_brightness.c:71
 msgid "Brightness"
-msgstr "è¼åº¦"
+msgstr "µ±ÅÙ"
 
 #: tool/mlconfig/mc_char_encoding.c:31
 msgid "auto"
-msgstr "è‡ªå‹•"
+msgstr "¼«Æ°"
 
 #: tool/mlconfig/mc_char_encoding.c:33
 msgid "--- Unicode ---"
@@ -137,95 +137,143 @@ msgstr "--- Unicode ---"
 
 #: tool/mlconfig/mc_char_encoding.c:36
 msgid "--- ISO 8859 encodings ---"
-msgstr "--- ISO 8859 ã‚¨ãƒ³ã‚³ãƒ¼ãƒ‡ã‚£ãƒ³ã‚° ---"
+msgstr "--- ISO 8859 ¥¨¥ó¥³¡¼¥Ç¥£¥ó¥° ---"
 
 #: tool/mlconfig/mc_char_encoding.c:53
 msgid "--- Other 8bit ---"
-msgstr "-- ãã®ä»–8ãƒ“ãƒƒãƒˆ ---"
+msgstr "-- ¤½¤ÎÂ¾8¥Ó¥Ã¥È ---"
 
 #: tool/mlconfig/mc_char_encoding.c:60
 msgid "--- Japanese ---"
-msgstr "--- æ—¥æœ¬èª ---"
+msgstr "--- ÆüËÜ¸ì ---"
 
 #: tool/mlconfig/mc_char_encoding.c:69
 msgid "--- Korean ---"
-msgstr "--- éŸ“å›½èª ---"
+msgstr "--- ´Ú¹ñ¸ì ---"
 
 #: tool/mlconfig/mc_char_encoding.c:75
 msgid "--- traditional Chinese ---"
-msgstr "--- ä¸­å›½èª(ç¹ä½“å­—) ---"
+msgstr "--- Ãæ¹ñ¸ì(ÈËÂÎ»ú) ---"
 
 #: tool/mlconfig/mc_char_encoding.c:80
 msgid "--- simplified Chinese ---"
-msgstr "--- ä¸­å›½èª(ç°¡ä½“å­—) ---"
+msgstr "--- Ãæ¹ñ¸ì(´ÊÂÎ»ú) ---"
 
-#: tool/mlconfig/mc_color.c:137 tool/mlconfig/mc_color.c:155
+#: tool/mlconfig/mc_color.c:36 tool/mlconfig/mc_color.c:38
 msgid "Foreground color"
-msgstr "å‰æ™¯è‰²"
+msgstr "Á°·Ê¿§"
 
-#: tool/mlconfig/mc_color.c:146 tool/mlconfig/mc_color.c:164
+#: tool/mlconfig/mc_color.c:37 tool/mlconfig/mc_color.c:39
 msgid "Background color"
-msgstr "èƒŒæ™¯è‰²"
+msgstr "ÇØ·Ê¿§"
+
+#: tool/mlconfig/mc_color.c:43
+msgid "black"
+msgstr "¹õ"
+
+#: tool/mlconfig/mc_color.c:44
+msgid "red"
+msgstr "ÀÖ"
+
+#: tool/mlconfig/mc_color.c:45
+msgid "green"
+msgstr "ÎĞ"
+
+#: tool/mlconfig/mc_color.c:46
+msgid "yellow"
+msgstr "²«"
+
+#: tool/mlconfig/mc_color.c:47
+msgid "blue"
+msgstr "ÀÄ"
+
+#: tool/mlconfig/mc_color.c:48
+msgid "magenta"
+msgstr "»ç"
+
+#: tool/mlconfig/mc_color.c:49
+msgid "cyan"
+msgstr "¿å¿§"
+
+#: tool/mlconfig/mc_color.c:50
+msgid "white"
+msgstr "Çò"
+
+#: tool/mlconfig/mc_color.c:51
+msgid "gray"
+msgstr "³¥¿§"
+
+#: tool/mlconfig/mc_color.c:52
+msgid "lightgray"
+msgstr "ÌÀ¤ë¤¤³¥¿§"
+
+#: tool/mlconfig/mc_color.c:53
+msgid "pink"
+msgstr "¥Ô¥ó¥¯"
+
+#: tool/mlconfig/mc_color.c:54
+msgid "brown"
+msgstr "Ãã¿§"
 
 #: tool/mlconfig/mc_contrast.c:69
 msgid "Contrast"
-msgstr "ã‚³ãƒ³ãƒˆãƒ©ã‚¹ãƒˆ"
+msgstr "¥³¥ó¥È¥é¥¹¥È"
 
 #: tool/mlconfig/mc_fade.c:69
 msgid "Fade ratio on unfocus"
-msgstr "FocusãŒãªã„ã¨ãã®è¼åº¦"
+msgstr "Focus¤¬¤Ê¤¤¤È¤­¤Îµ±ÅÙ"
 
 #: tool/mlconfig/mc_flags.c:35
 msgid "Anti Alias"
-msgstr "ã‚¢ãƒ³ãƒã‚¨ã‚¤ãƒªã‚¢ã‚¹"
+msgstr "¥¢¥ó¥Á¥¨¥¤¥ê¥¢¥¹"
 
 #: tool/mlconfig/mc_flags.c:36
 msgid "Variable column width"
-msgstr "å¯å¤‰é•·ã‚³ãƒ©ãƒ å¹…"
+msgstr "²ÄÊÑÄ¹¥³¥é¥àÉı"
 
 #: tool/mlconfig/mc_flags.c:37
 msgid "Combining"
-msgstr "çµåˆæ–‡å­—å‡¦ç†"
+msgstr "·ë¹çÊ¸»ú½èÍı"
 
 #: tool/mlconfig/mc_flags.c:38
 msgid "Combining = 1 (or 0) logical column(s)"
-msgstr "çµåˆæ–‡å­—ã®è«–ç†å¹…ã‚’(0ã§ã¯ãªã)1ã«ã™ã‚‹"
+msgstr "·ë¹çÊ¸»ú¤ÎÏÀÍıÉı¤ò(0¤Ç¤Ï¤Ê¤¯)1¤Ë¤¹¤ë"
 
 #: tool/mlconfig/mc_flags.c:39
 msgid "Process received strings via Unicode"
-msgstr "UnicodeçµŒç”±ã§ãƒšãƒ¼ã‚¹ãƒˆã‚’å‡¦ç†ã™ã‚‹"
+msgstr "Unicode·ĞÍ³¤Ç¥Ú¡¼¥¹¥È¤ò½èÍı¤¹¤ë"
 
 #: tool/mlconfig/mc_flags.c:40
 msgid "Fullwidth = 2 (or 1) logical column(s)"
-msgstr "å…¨è§’æ–‡å­—ã®è«–ç†å¹…ã‚’(1ã§ã¯ãªã)2ã«ã™ã‚‹"
+msgstr "Á´³ÑÊ¸»ú¤ÎÏÀÍıÉı¤ò(1¤Ç¤Ï¤Ê¤¯)2¤Ë¤¹¤ë"
 
 #: tool/mlconfig/mc_flags.c:41
 msgid "Bidi (UTF8 only)"
-msgstr "Bidi (UTF8ã®ã¿)"
+msgstr "Bidi (UTF8¤Î¤ß)"
 
 #: tool/mlconfig/mc_fontsize.c:62
 msgid "Font size (pixels)"
-msgstr "ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚º(ãƒ”ã‚¯ã‚»ãƒ«)"
+msgstr "¥Õ¥©¥ó¥È¥µ¥¤¥º(¥Ô¥¯¥»¥ë)"
 
 #: tool/mlconfig/mc_gamma.c:69
 msgid "Gamma"
-msgstr "ã‚¬ãƒ³ãƒ"
+msgstr "¥¬¥ó¥Ş"
 
 #: tool/mlconfig/mc_iscii_lang.c:71
 msgid "ISCII language"
-msgstr "ISCIIè¨€èª"
+msgstr "ISCII¸À¸ì"
 
 #: tool/mlconfig/mc_line_space.c:65
 msgid "Line space (pixels)"
-msgstr "è¡Œé–“éš”(ãƒ”ã‚¯ã‚»ãƒ«)"
+msgstr "¹Ô´Ö³Ö(¥Ô¥¯¥»¥ë)"
 
 #: tool/mlconfig/mc_logsize.c:63
 msgid "Backlog size (lines)"
-msgstr "ãƒ­ã‚°ã‚µã‚¤ã‚º(è¡Œ)"
+msgstr "¥í¥°¥µ¥¤¥º(¹Ô)"
 
 #: tool/mlconfig/mc_mod_meta.c:88
 msgid "Meta key outputs:"
-msgstr "ãƒ¡ã‚¿ã‚­ãƒ¼"
+msgstr "¥á¥¿¥­¡¼"
 
 #: tool/mlconfig/mc_mod_meta.c:105
 msgid "Esc"
@@ -233,55 +281,53 @@ msgstr "Esc"
 
 #: tool/mlconfig/mc_mod_meta.c:116
 msgid "8bit"
-msgstr "8ãƒ“ãƒƒãƒˆ"
+msgstr "8¥Ó¥Ã¥È"
 
 #: tool/mlconfig/mc_sb.c:88
 msgid "Position"
-msgstr "å ´æ‰€"
+msgstr "¾ì½ê"
 
 #: tool/mlconfig/mc_sb.c:105
 msgid "Left"
-msgstr "å·¦"
+msgstr "º¸"
 
 #: tool/mlconfig/mc_sb.c:116
 msgid "Right"
-msgstr "å³"
+msgstr "±¦"
 
 #: tool/mlconfig/mc_sb_view.c:66
 msgid "View"
-msgstr "è¦‹ã‹ã‘"
+msgstr "¸«¤«¤±"
 
 #: tool/mlconfig/mc_screen_ratio.c:101
 msgid "Width"
-msgstr "å¹…"
+msgstr "Éı"
 
 #: tool/mlconfig/mc_screen_ratio.c:110
 msgid "Height"
-msgstr "é«˜ã•"
+msgstr "¹â¤µ"
 
 #: tool/mlconfig/mc_tabsize.c:62
 msgid "Tab width (columns)"
-msgstr "ã‚¿ãƒ–å¹…(æ–‡å­—)"
+msgstr "¥¿¥ÖÉı(Ê¸»ú)"
 
 #: tool/mlconfig/mc_vertical.c:88
 msgid " Vertical mode "
-msgstr "ç¸¦æ›¸ã"
+msgstr "½Ä½ñ¤­"
 
 #: tool/mlconfig/mc_vertical.c:105
 msgid "CJK"
-msgstr "æ—¥ä¸­éŸ“"
+msgstr "ÆüÃæ´Ú"
 
 #: tool/mlconfig/mc_vertical.c:116
 msgid "Mongol"
-msgstr "ãƒ¢ãƒ³ã‚´ãƒ«"
+msgstr "¥â¥ó¥´¥ë"
 
 #: tool/mlconfig/mc_xim.c:212
 msgid "XIM locale"
-msgstr "å…¥åŠ›ãƒ­ã‚±ãƒ¼ãƒ«"
+msgstr "ÆşÎÏ¥í¥±¡¼¥ë"
 
 #: tool/mlconfig/mc_xim.c:224
 msgid "X Input Method"
-msgstr "æ¼¢å­—å…¥åŠ›ãƒ¡ã‚½ãƒƒãƒ‰"
+msgstr "´Á»úÆşÎÏ¥á¥½¥Ã¥É"
 
-#~ msgid "OK"
-#~ msgstr "OK"

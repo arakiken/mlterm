@@ -68,10 +68,10 @@ update(
 {
     mc_update_char_encoding() ;
     mc_update_iscii_lang() ;
-    mc_update_fg_color() ;
+    mc_update_color(MC_COLOR_FG) ;
     mc_update_bgtype() ;
-    mc_update_sb_fg_color() ;
-    mc_update_sb_bg_color() ;
+    mc_update_color(MC_COLOR_SBFG) ;
+    mc_update_color(MC_COLOR_SBBG) ;
     mc_update_tabsize() ;
     mc_update_logsize() ;
     mc_update_fontsize() ;
@@ -212,7 +212,6 @@ apply_cancel_button(
 	void
 	)
 {
-	GtkWidget * button ;
 	GtkWidget * hbox ;
 
 	hbox = gtk_hbox_new(FALSE , 5) ;
@@ -231,7 +230,6 @@ font_large_small(void)
 {
 	GtkWidget * frame;
 	GtkWidget * hbox;
-	GtkWidget * button;
 
 	frame = gtk_frame_new(_("Font size")) ;
 	gtk_widget_show(frame) ;
@@ -252,7 +250,6 @@ full_reset(void)
 {
 	GtkWidget *  frame ;
 	GtkWidget *  hbox ;
-	GtkWidget *  button ;
 
 	frame = gtk_frame_new( _("Full reset")) ;
 	gtk_widget_show(frame) ;
@@ -272,7 +269,6 @@ pty_list(void)
 {
 	GtkWidget *  frame ;
 	GtkWidget *  hbox ;
-	GtkWidget *  button ;
 	GtkWidget *  config_widget ;
 
 	if( ( config_widget = mc_pty_config_widget_new()) == NULL)
@@ -442,7 +438,8 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
 
 
-	if (!(config_widget = mc_fg_color_config_widget_new())) return 0;
+	if (!(config_widget = mc_color_config_widget_new(MC_COLOR_FG)))
+		return 0;
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
@@ -539,11 +536,13 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
-	if (!(config_widget = mc_sb_fg_color_config_widget_new())) return 0;
+	if (!(config_widget = mc_color_config_widget_new(MC_COLOR_SBFG)))
+		return 0;
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 	
-	if (!(config_widget = mc_sb_bg_color_config_widget_new())) return 0;
+	if (!(config_widget = mc_color_config_widget_new(MC_COLOR_SBBG)))
+		return 0;
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 		
