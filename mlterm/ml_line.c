@@ -1630,7 +1630,7 @@ end:
 }
 
 /*
- * this should be called after ml_line_iscii_visaul()
+ * This should be called after ml_line_iscii_visaul()
  */
 int
 ml_iscii_convert_logical_char_index_to_visual(

@@ -1,3 +1,9 @@
+2003-12-27  Araki Ken  <arakiken@users.sf.net>
+
+	* Added --type-engines option to configure and obsoleted --anti-alias option.
+	* Added -*,--type,type_engine option to mlterm.
+	  You can specify which engine you use, xcore or xft.
+
 2003-12-27  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* mlterm/ml_pty_win32.c: cleaned up error handling.
