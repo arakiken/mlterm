@@ -1,5 +1,8 @@
 2002-06-13  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
+	* modified comm.c for compatibility 
+	(now VMIN=0, VTIME=0. Does this works under NetBSD?)
+
 	* added contrib/tool/LICENE, contrib/tool/Changelog
 
 2002-06-12 20:41  h_minami

@@ -325,8 +325,8 @@ int termios_init(){
 	newtio = _oldtio;
 	newtio.c_lflag &= ~ICANON;
 	newtio.c_lflag &= ~ECHO;
-	newtio.c_cc[VMIN] = 1;
-	newtio.c_cc[VTIME] = 1; /* have to break with some intervals to distinguish ESC/Right*/
+	newtio.c_cc[VMIN] = 0;
+	newtio.c_cc[VTIME] = 0; /* have to break with some intervals to distinguish ESC/Right*/
 	tcsetattr(0, TCSAFLUSH, &newtio);
 	return 0;
 }
