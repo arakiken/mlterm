@@ -600,9 +600,6 @@ x_font_set_xft_font(
 		return  0 ;
 	}
 
-	/* font->is_double_drawing always 0 because Xft must show any bold font. */
-	font->is_double_drawing = 0 ;
-
 	if( font->id & FONT_BOLD)
 	{
 		weight = XFT_WEIGHT_BOLD ;
@@ -764,6 +761,17 @@ x_font_set_xft_font(
 	return  0 ;
 
 font_found:
+
+	if( weight == XFT_WEIGHT_BOLD &&
+		XftPatternGetInteger( xfont->pattern , XFT_WEIGHT , 0 , &weight) == XftResultMatch &&
+		weight != XFT_WEIGHT_BOLD)
+	{
+		font->is_double_drawing = 1 ;
+	}
+	else
+	{
+		font->is_double_drawing = 0 ;
+	}
 
 	unset_xfont( font) ;
 

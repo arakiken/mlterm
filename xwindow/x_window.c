@@ -2462,6 +2462,12 @@ x_window_xft_draw_string8(
 	XftDrawString8( win->xft_draw , fg_color , font->xft_font ,
 		x + win->margin , y + win->margin , str , len) ;
 
+	if( font->is_double_drawing)
+	{
+		XftDrawString8( win->xft_draw , fg_color , font->xft_font ,
+			x + win->margin + 1 , y + win->margin , str , len) ;
+	}
+
 	return  1 ;
 }
 
@@ -2479,6 +2485,12 @@ x_window_xft_draw_string32(
 	XftDrawString32( win->xft_draw , fg_color , font->xft_font ,
 		x + win->margin , y + win->margin , str , len) ;
 
+	if( font->is_double_drawing)
+	{
+		XftDrawString32( win->xft_draw , fg_color , font->xft_font ,
+			x + win->margin + 1 , y + win->margin , str , len) ;
+	}
+	
 	return  1 ;
 }
 #endif

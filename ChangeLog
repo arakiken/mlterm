@@ -1,5 +1,10 @@
 2003-05-18 Araki Ken <arakiken@users.sf.net>
 
+	* If bold font not found in anti-alias mode, pseudo bold processing enabled.
+	  (Thanks to >>619)
+
+2003-05-18 Araki Ken <arakiken@users.sf.net>
+
 	* Set adhoc_right_align of bidi_logical_visual off.
 
 2003-05-17  MINAMI Hirokazu  <minami@mistfall.net>
