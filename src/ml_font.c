@@ -107,6 +107,8 @@ static cs_info_t  cs_info_table[] =
 	
 } ;
 
+static int  compose_dec_special_font ;
+
 
 /* --- static functions --- */
 
@@ -132,7 +134,6 @@ get_cs_info(
 
 	return  NULL ;
 }
-
 
 #ifdef  ANTI_ALIAS
 
@@ -325,10 +326,17 @@ unset_xfont(
 	}
 	else
 #endif
+
 	if( font->xfont)
 	{
 		XFreeFont( font->display , font->xfont) ;
 		font->xfont = NULL ;
+	}
+
+	if( font->decsp_font)
+	{
+		ml_decsp_font_delete( font->decsp_font , font->display) ;
+		font->decsp_font = NULL ;
 	}
 
 	return  1 ;
@@ -441,8 +449,31 @@ get_xft_col_width(
 
 #endif
 
+static int
+set_decsp_font(
+	ml_font_t *  font
+	)
+{
+	if( ( font->decsp_font = ml_decsp_font_new( font->display , font->width , font->height ,
+					font->height_to_baseline)) == NULL)
+	{
+		return  0 ;
+	}
+
+	return  1 ;
+}
+
 
 /* --- global functions --- */
+
+int
+ml_compose_dec_special_font(void)
+{
+	compose_dec_special_font = 1 ;
+
+	return  1 ;
+}
+
 
 ml_font_t *
 ml_font_new(
@@ -745,6 +776,11 @@ font_found:
 	{
 		/* XXX this may be inaccurate. */
 		font->height_to_baseline = fontsize ;
+	}
+
+	if( compose_dec_special_font && FONT_CS(font->attr) == DEC_SPECIAL)
+	{
+		return  set_decsp_font( font) ;
 	}
 
 	return  1 ;
@@ -1186,6 +1222,11 @@ font_found:
 		font->height_to_baseline = fontsize ;
 	}
 
+	if( compose_dec_special_font && FONT_CS(font->attr) == DEC_SPECIAL)
+	{
+		return  set_decsp_font( font) ;
+	}
+	
 	return  1 ;
 }
 

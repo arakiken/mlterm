@@ -403,8 +403,17 @@ xft_draw_str(
 			}
 			else
 			{
-				XftDrawString8( win->xft_draw , fg_color , win->font->xft_font ,
-					x , y + height_to_baseline , str8 , str_len) ;
+				if( win->font->decsp_font)
+				{
+					ml_decsp_font_draw_string( win->font->decsp_font ,
+						win->display , win->drawable , win->gc ,
+						x , y + height_to_baseline , str8 , str_len) ;
+				}
+				else
+				{
+					XftDrawString8( win->xft_draw , fg_color , win->font->xft_font ,
+						x , y + height_to_baseline , str8 , str_len) ;
+				}
 			}
 
 			if( comb_chars)
@@ -504,14 +513,15 @@ x_draw_string(
 	int  x ,
 	int  y ,
 	u_char *  str ,
-	int  len
+	u_int  len
 	)
 {
 	XDrawString( win->display , win->drawable , win->gc , x + font->x_off , y , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString( win->display , win->drawable , win->gc , x + font->x_off + 1 , y , str , len) ;
+		XDrawString( win->display , win->drawable , win->gc ,
+			x + font->x_off + 1 , y , str , len) ;
 	}
 }
 
@@ -522,7 +532,7 @@ x_draw_string16(
 	int  x ,
 	int  y ,
 	XChar2b *  str ,
-	int  len
+	u_int  len
 	)
 {
 	XDrawString16( win->display , win->drawable , win->gc , x + font->x_off , y , str , len) ;
@@ -541,14 +551,15 @@ x_draw_image_string(
 	int  x ,
 	int  y ,
 	u_char *  str ,
-	int  len
+	u_int  len
 	)
 {
 	XDrawImageString( win->display , win->drawable , win->gc , x + font->x_off , y , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString( win->display , win->drawable , win->gc , x + font->x_off + 1 , y , str , len) ;
+		XDrawString( win->display , win->drawable , win->gc ,
+			x + font->x_off + 1 , y , str , len) ;
 	}
 }
 
@@ -559,7 +570,7 @@ x_draw_image_string16(
 	int  x ,
 	int  y ,
 	XChar2b *  str ,
-	int  len
+	u_int  len
 	)
 {
 	XDrawImageString16( win->display , win->drawable , win->gc , x + font->x_off , y , str , len) ;
@@ -616,7 +627,7 @@ draw_combining_chars(
 			cur_bg = next_bg ;
 		}
 
-		if( next_font && next_font != cur_font)
+		if( next_font->xfont->fid != cur_font->xfont->fid)
 		{
 			XSetFont( win->display , win->gc , next_font->xfont->fid) ;
 			cur_font = next_font ;
@@ -650,7 +661,7 @@ draw_combining_chars(
 		XSetBackground( win->display , win->gc , bg_color) ;
 	}
 
-	if( cur_font != win->font)
+	if( cur_font->xfont->fid != win->font->xfont->fid)
 	{
 		XSetFont( win->display , win->gc , win->font->xfont->fid) ;
 	}
@@ -726,24 +737,24 @@ draw_str(
 
 	counter = 0 ;
 	
-	if( ( font = ml_char_font( &chars[counter])) == NULL || font->xfont == NULL)
+	if( ( font = ml_char_font( &chars[counter])) == NULL)
 	{
-	#ifdef  ANTI_ALIAS
-		if( font->xft_font)
-		{
-			return  xft_draw_str( win , updated_width , chars , num_of_chars ,
-					x , y , height , std_height_to_baseline) ;
-		}
-	#endif
-
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " the font of char is lost.\n") ;
 	#endif
 	
 		return  0 ;
 	}
+	
+#ifdef  ANTI_ALIAS
+	if( font->xft_font)
+	{
+		return  xft_draw_str( win , updated_width , chars , num_of_chars ,
+				x , y , height , std_height_to_baseline) ;
+	}
+#endif
 
-	if( font != win->font)
+	if( win->font == NULL || font->xfont->fid != win->font->xfont->fid)
 	{
 		XSetFont( win->display , win->gc , font->xfont->fid) ;
 		win->font = font ;
@@ -893,9 +904,10 @@ draw_str(
 			}
 
 			if( ( win->wall_picture_is_set && ! is_reversed) ||
-				(win->font->is_proportional && ! win->font->is_var_col_width))
+				(win->font->is_proportional && ! win->font->is_var_col_width) ||
+				win->font->decsp_font)
 			{
-				if( win->wall_picture_is_set)
+				if( win->wall_picture_is_set && ! is_reversed)
 				{
 					XClearArea( win->display , win->drawable ,
 						x , y , current_width - x , height , 0) ;
@@ -919,8 +931,21 @@ draw_str(
 				}
 				else
 				{
-					x_draw_string( win , win->font , x , y + height_to_baseline ,
-						str , str_len) ;
+					if( win->font->decsp_font)
+					{
+						/*
+						 * font->x_off is ignored.
+						 */
+						ml_decsp_font_draw_string( font->decsp_font , win->display ,
+							win->drawable , win->gc ,
+							x , y + height_to_baseline ,
+							str , str_len) ;
+					}
+					else
+					{
+						x_draw_string( win , win->font , x , y + height_to_baseline ,
+							str , str_len) ;
+					}
 				}
 			}
 			else
@@ -993,7 +1018,7 @@ draw_str(
 			return  0 ;
 		}
 		
-		if( next_font != win->font)
+		if( next_font->xfont->fid != win->font->xfont->fid)
 		{
 		#ifdef	__DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " font changed...\n") ;

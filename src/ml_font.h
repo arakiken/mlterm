@@ -18,6 +18,8 @@
 #include  <X11/Xft/Xft.h>
 #endif
 
+#include  "ml_decsp_font.h"
+
 
 #define  RESET_FONT_THICKNESS(cs)  ((cs) &= ~(FONT_MEDIUM | FONT_BOLD))
 #define  RESET_FONT_SLANT(cs)      ((cs) &= ~(FONT_ROMAN | FONT_ITALIC))
@@ -56,17 +58,32 @@ typedef enum ml_font_attr
 
 typedef struct  ml_font
 {
-	/* private */
+	/*
+	 * private
+	 */
 	Display *  display ;
 
-	/* public */
+	/*
+	 * public(readonly)
+	 */
+	ml_font_attr_t  attr ;
+
+	int8_t  is_var_col_width ;
 	
+	/*
+	 * private
+	 */
+	int8_t  is_vertical ;
+
+
+	/*
+	 * public(readonly)
+	 */
 #ifdef  ANTI_ALIAS
 	XftFont *  xft_font ;
 #endif
 	XFontStruct *  xfont ;
-
-	ml_font_attr_t  attr ;
+	ml_decsp_font_t *  decsp_font ;
 
 	/*
 	 * these members are never zero.
@@ -79,19 +96,13 @@ typedef struct  ml_font
 	/* this is not zero only when is_proportional is true and xfont is set. */
 	int  x_off ;
 
-	/*
-	 * private
-	 */
-	int8_t  is_vertical ;
-	
-	/*
-	 * public(readonly)
-	 */
 	int8_t  is_double_drawing ;
 	int8_t  is_proportional ;
-	int8_t  is_var_col_width ;
-
+	
 } ml_font_t ;
+
+
+int  ml_compose_dec_special_font(void) ;
 
 
 ml_font_t *  ml_font_new( Display *  display , ml_font_attr_t  attr) ;

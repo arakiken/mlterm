@@ -730,7 +730,9 @@ ml_term_manager_init(
 	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
 		"word separator characters") ;
 	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" , 
-		"open xim in starting up.") ;
+		"open xim in starting up") ;
+	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
+		"compose dec special font") ;
 	kik_conf_add_opt( conf , 'Z' , "multicol" , 1 , "use_multi_column_char" ,
 		"use multiple column character") ;
 	kik_conf_add_opt( conf , 'a' , "ac" , 0 , "col_size_of_width_a" ,
@@ -1000,30 +1002,39 @@ ml_term_manager_init(
 		}
 	}
 
-	term_man->use_multi_col_char = 1 ;
-
-	if( ( value = kik_conf_get_value( conf , "use_multi_column_char")))
+	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
 	{
-		if( strcmp( value , "false") == 0)
+		if( strcmp( value , "true") == 0)
 		{
-			term_man->use_multi_col_char = 0 ;
+			ml_compose_dec_special_font() ;
 		}
 	}
 
-	term_man->line_space = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "line_space")))
+	if( ( value = kik_conf_get_value( conf , "fontsize")) == NULL)
 	{
-		u_int  size ;
+		term_man->font_size = 16 ;
+	}
+	else if( ! kik_str_to_uint( &term_man->font_size , value))
+	{
+		kik_msg_printf( "font size %s is not valid.\n" , value) ;
 
-		if( kik_str_to_uint( &size , value))
-		{
-			term_man->line_space = size ;
-		}
-		else
-		{
-			kik_msg_printf( "line space %s is not valid.\n" , value) ;
-		}
+		/* default value is used. */
+		term_man->font_size = 16 ;
+	}
+
+	if( term_man->font_size > max_font_size)
+	{
+		kik_msg_printf( "font size %d is too large. %d is used.\n" ,
+			term_man->font_size , max_font_size) ;
+		
+		term_man->font_size = max_font_size ;
+	}
+	else if( term_man->font_size < min_font_size)
+	{
+		kik_msg_printf( "font size %d is too small. %d is used.\n" ,
+			term_man->font_size , min_font_size) ;
+			
+		term_man->font_size = min_font_size ;
 	}
 
 	term_man->step_in_changing_font_size = 1 ;
@@ -1328,31 +1339,30 @@ ml_term_manager_init(
 		}
 	}
 	
-	if( ( value = kik_conf_get_value( conf , "fontsize")) == NULL)
-	{
-		term_man->font_size = 16 ;
-	}
-	else if( ! kik_str_to_uint( &term_man->font_size , value))
-	{
-		kik_msg_printf( "font size %s is not valid.\n" , value) ;
+	term_man->use_multi_col_char = 1 ;
 
-		/* default value is used. */
-		term_man->font_size = 16 ;
+	if( ( value = kik_conf_get_value( conf , "use_multi_column_char")))
+	{
+		if( strcmp( value , "false") == 0)
+		{
+			term_man->use_multi_col_char = 0 ;
+		}
 	}
 
-	if( term_man->font_size > max_font_size)
+	term_man->line_space = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "line_space")))
 	{
-		kik_msg_printf( "font size %d is too large. %d is used.\n" ,
-			term_man->font_size , max_font_size) ;
-		
-		term_man->font_size = max_font_size ;
-	}
-	else if( term_man->font_size < min_font_size)
-	{
-		kik_msg_printf( "font size %d is too small. %d is used.\n" ,
-			term_man->font_size , min_font_size) ;
-			
-		term_man->font_size = min_font_size ;
+		u_int  size ;
+
+		if( kik_str_to_uint( &size , value))
+		{
+			term_man->line_space = size ;
+		}
+		else
+		{
+			kik_msg_printf( "line space %s is not valid.\n" , value) ;
+		}
 	}
 
 	if( ( value = kik_conf_get_value( conf , "logsize")) == NULL)
