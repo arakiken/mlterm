@@ -1,3 +1,8 @@
+2003-09-10  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* contrib/tool/dnd: Added smaple.c to show how to configure mlterm
+	using X Drad and Drop protocol.
+
 2003-09-08  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_custom.[ch]: Added default_font_name_table to x_font_custom_t.
