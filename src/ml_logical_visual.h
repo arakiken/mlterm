@@ -33,8 +33,9 @@ typedef struct  ml_logical_visual
 	int  (*delete)( struct ml_logical_visual *) ;
 	
 	int  (*change_image)( struct ml_logical_visual * , ml_image_t *) ;
-	int  (*logical_cols)( struct ml_logical_visual *) ;
-	int  (*logical_rows)( struct ml_logical_visual *) ;
+	
+	u_int  (*logical_cols)( struct ml_logical_visual *) ;
+	u_int  (*logical_rows)( struct ml_logical_visual *) ;
 
 	/*
 	 * !! Notice !!
@@ -44,6 +45,7 @@ typedef struct  ml_logical_visual
 	int  (*render)( struct ml_logical_visual *) ;
 	int  (*visual)( struct ml_logical_visual *) ;
 	int  (*logical)( struct ml_logical_visual *) ;
+	
 	int  (*visual_line)( struct ml_logical_visual * , ml_image_line_t *  line) ;
 	
 } ml_logical_visual_t ;

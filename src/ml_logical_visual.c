@@ -48,12 +48,14 @@ typedef struct  iscii_logical_visual
 
 } iscii_logical_visual_t ;
 
-typedef struct  cjk_vert_logical_visual
+typedef struct  vert_logical_visual
 {
 	ml_logical_visual_t  logvis ;
 	
 	ml_image_line_t *  logical_lines ;
 	ml_image_line_t *  visual_lines ;
+
+	int  logical_beg_row ;
 	
 	u_int  logical_num_of_cols ;
 	u_int  logical_num_of_rows ;
@@ -63,7 +65,7 @@ typedef struct  cjk_vert_logical_visual
 	int  cursor_logical_col ;
 	u_int  cursor_logical_row ;
 
-} cjk_vert_logical_visual_t ;
+} vert_logical_visual_t ;
 
 
 /* --- static functions --- */
@@ -112,7 +114,7 @@ container_change_image(
 	return  1 ;
 }
 
-static int
+static u_int
 container_logical_cols(
 	ml_logical_visual_t *  logvis
 	)
@@ -132,7 +134,7 @@ container_logical_cols(
 	}
 }
 
-static int
+static u_int
 container_logical_rows(
 	ml_logical_visual_t *  logvis
 	)
@@ -290,7 +292,7 @@ bidi_change_image(
 	return  1 ;
 }
 
-static int
+static u_int
 bidi_logical_cols(
 	ml_logical_visual_t *  logvis
 	)
@@ -298,7 +300,7 @@ bidi_logical_cols(
 	return  ml_image_get_cols( logvis->image) ;
 }
 
-static int
+static u_int
 bidi_logical_rows(
 	ml_logical_visual_t *  logvis
 	)
@@ -496,7 +498,7 @@ iscii_change_image(
 	return  1 ;
 }
 
-static int
+static u_int
 iscii_logical_cols(
 	ml_logical_visual_t *  logvis
 	)
@@ -504,7 +506,7 @@ iscii_logical_cols(
 	return  ml_image_get_cols( logvis->image) ;
 }
 
-static int
+static u_int
 iscii_logical_rows(
 	ml_logical_visual_t *  logvis
 	)
@@ -760,14 +762,14 @@ iscii_visual_line(
  */
  
 static int
-cjk_vert_delete(
+vert_delete(
 	ml_logical_visual_t *  logvis
 	)
 {
-	cjk_vert_logical_visual_t *  vert_logvis ;
+	vert_logical_visual_t *  vert_logvis ;
 	int  row ;
 
-	vert_logvis = (cjk_vert_logical_visual_t*) logvis ;
+	vert_logvis = (vert_logical_visual_t*) logvis ;
 
 	if( logvis->is_visual)
 	{
@@ -787,7 +789,7 @@ cjk_vert_delete(
 }
 
 static int
-cjk_vert_change_image(
+vert_change_image(
 	ml_logical_visual_t *  logvis ,
 	ml_image_t *  image
 	)
@@ -797,14 +799,14 @@ cjk_vert_change_image(
 	return  1 ;
 }
 
-static int
-cjk_vert_logical_cols(
+static u_int
+vert_logical_cols(
 	ml_logical_visual_t *  logvis
 	)
 {
 	if( logvis->is_visual)
 	{
-		return  ((cjk_vert_logical_visual_t*)logvis)->logical_num_of_cols ;
+		return  ((vert_logical_visual_t*)logvis)->logical_num_of_cols ;
 	}
 	else
 	{
@@ -812,14 +814,14 @@ cjk_vert_logical_cols(
 	}
 }
 
-static int
-cjk_vert_logical_rows(
+static u_int
+vert_logical_rows(
 	ml_logical_visual_t *  logvis
 	)
 {
 	if( logvis->is_visual)
 	{
-		return  ((cjk_vert_logical_visual_t*)logvis)->logical_num_of_rows ;
+		return  ((vert_logical_visual_t*)logvis)->logical_num_of_rows ;
 	}
 	else
 	{
@@ -828,7 +830,7 @@ cjk_vert_logical_rows(
 }
 
 static int
-cjk_vert_render(
+vert_render(
 	ml_logical_visual_t *  logvis
 	)
 {
@@ -840,7 +842,7 @@ cjk_vert_visual(
 	ml_logical_visual_t *  logvis
 	)
 {
-	cjk_vert_logical_visual_t *  vert_logvis ;
+	vert_logical_visual_t *  vert_logvis ;
 	ml_image_t *  image ;
 	int  row ;
 	int  counter ;
@@ -861,7 +863,7 @@ cjk_vert_visual(
 		image->cursor.col , image->cursor.char_index , image->cursor.row) ;
 #endif
 
-	vert_logvis = (cjk_vert_logical_visual_t*) logvis ;
+	vert_logvis = (vert_logical_visual_t*) logvis ;
 
 	if( vert_logvis->logical_num_of_rows != image->num_of_rows ||
 		vert_logvis->logical_num_of_cols != image->num_of_cols)
@@ -905,6 +907,9 @@ cjk_vert_visual(
 
 	vert_logvis->logical_num_of_filled_rows = image->num_of_filled_rows ;
 
+	vert_logvis->logical_beg_row = image->beg_row ;
+	image->beg_row = 0 ;
+
 	image->num_of_rows = vert_logvis->logical_num_of_cols ;
 	image->num_of_filled_rows = vert_logvis->logical_num_of_cols ;
 	image->num_of_cols = vert_logvis->logical_num_of_rows * 2 ;
@@ -916,24 +921,22 @@ cjk_vert_visual(
 	{
 		ml_image_line_t *  line ;
 
-		if( counter + image->beg_line >= vert_logvis->logical_num_of_rows)
+		if( counter + vert_logvis->logical_beg_row >= vert_logvis->logical_num_of_rows)
 		{
 			line = &vert_logvis->logical_lines[
-				image->beg_line + counter - vert_logvis->logical_num_of_rows] ;
+				vert_logvis->logical_beg_row + counter - vert_logvis->logical_num_of_rows] ;
 		}
 		else
 		{
-			line = &vert_logvis->logical_lines[ image->beg_line + counter] ;
+			line = &vert_logvis->logical_lines[ vert_logvis->logical_beg_row + counter] ;
 		}
 
-		row = 0 ;
-		while( 1)
+		for( row = 0 ; row < line->num_of_filled_chars ; row ++)
 		{
-			if( row >= line->num_of_filled_chars ||
-				IMAGE_LINE(image,row).num_of_filled_chars + 2 >
+			if( IMAGE_LINE(image,row).num_of_filled_chars + 2 >
 				IMAGE_LINE(image,row).num_of_chars)
 			{
-				break ;
+				continue ;
 			}
 
 			ml_char_copy( &IMAGE_LINE(image,row).chars[
@@ -966,8 +969,6 @@ cjk_vert_visual(
 						IMAGE_LINE(image,row).num_of_filled_chars - 1 , 0) ;
 				}
 			}
-			
-			row ++ ;
 		}
 
 		for( ; row < image->num_of_rows ; row ++)
@@ -975,7 +976,7 @@ cjk_vert_visual(
 			if( IMAGE_LINE(image,row).num_of_filled_chars + 2 >
 				IMAGE_LINE(image,row).num_of_chars)
 			{
-				break ;
+				continue ;
 			}
 			
 			ml_char_copy( &IMAGE_LINE(image,row).chars[
@@ -1023,11 +1024,168 @@ cjk_vert_visual(
 }
 
 static int
-cjk_vert_logical(
+mongol_vert_visual(
 	ml_logical_visual_t *  logvis
 	)
 {
-	cjk_vert_logical_visual_t *  vert_logvis ;
+	vert_logical_visual_t *  vert_logvis ;
+	ml_image_t *  image ;
+	int  row ;
+	int  counter ;
+
+	if( logvis->is_visual)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " is called continuously.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
+	image = logvis->image ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d row %d]\n" ,
+		image->cursor.col , image->cursor.char_index , image->cursor.row) ;
+#endif
+
+	vert_logvis = (vert_logical_visual_t*) logvis ;
+
+	if( vert_logvis->logical_num_of_rows != image->num_of_rows ||
+		vert_logvis->logical_num_of_cols != image->num_of_cols)
+	{
+		/* ml_image_t is resized */
+		
+		if( vert_logvis->logical_num_of_cols != image->num_of_cols)
+		{
+			if( vert_logvis->visual_lines)
+			{
+				for( row = 0 ; row < vert_logvis->logical_num_of_cols ; row ++)
+				{
+					ml_imgline_final( &vert_logvis->visual_lines[row]) ;
+				}
+			}
+
+			if( ( vert_logvis->visual_lines = realloc( vert_logvis->visual_lines ,
+					sizeof( ml_image_line_t) * image->num_of_cols)) == NULL)
+			{
+				return  0 ;
+			}
+
+			vert_logvis->logical_num_of_cols = image->num_of_cols ;
+		}
+		
+		for( row = 0 ; row < vert_logvis->logical_num_of_cols ; row ++)
+		{
+			ml_imgline_init( &vert_logvis->visual_lines[row] , image->num_of_rows) ;
+		}
+
+		vert_logvis->logical_num_of_rows = image->num_of_rows ;
+	}
+	else
+	{
+		for( row = 0 ; row < vert_logvis->logical_num_of_cols ; row ++)
+		{
+			ml_imgline_reset( &vert_logvis->visual_lines[row]) ;
+			ml_imgline_is_updated( &vert_logvis->visual_lines[row]) ;
+		}
+	}
+
+	vert_logvis->logical_num_of_filled_rows = image->num_of_filled_rows ;
+
+	vert_logvis->logical_beg_row = image->beg_row ;
+	image->beg_row = 0 ;
+	
+	image->num_of_rows = vert_logvis->logical_num_of_cols ;
+	image->num_of_filled_rows = vert_logvis->logical_num_of_cols ;
+	image->num_of_cols = vert_logvis->logical_num_of_rows ;
+	
+	vert_logvis->logical_lines = image->lines ;
+	image->lines = vert_logvis->visual_lines ;
+
+	for( counter = 0 ; counter < vert_logvis->logical_num_of_rows ; counter ++)
+	{
+		ml_image_line_t *  line ;
+
+		if( counter + vert_logvis->logical_beg_row >= vert_logvis->logical_num_of_rows)
+		{
+			line = &vert_logvis->logical_lines[
+				vert_logvis->logical_beg_row + counter - vert_logvis->logical_num_of_rows] ;
+		}
+		else
+		{
+			line = &vert_logvis->logical_lines[ vert_logvis->logical_beg_row + counter] ;
+		}
+
+		for( row = 0 ; row < line->num_of_filled_chars ; row ++)
+		{
+			if( IMAGE_LINE(image,row).num_of_filled_chars + 1 >
+				IMAGE_LINE(image,row).num_of_chars)
+			{
+				continue ;
+			}
+
+			ml_char_copy( &IMAGE_LINE(image,row).chars[
+				IMAGE_LINE(image,row).num_of_filled_chars ++] , &line->chars[row]) ;
+			
+			if( line->is_modified)
+			{
+				ml_imgline_set_modified( &IMAGE_LINE(image,row) ,
+					IMAGE_LINE(image,row).num_of_filled_chars - 1 ,
+					IMAGE_LINE(image,row).num_of_filled_chars - 1 , 0) ;
+			}
+		}
+
+		for( ; row < image->num_of_rows ; row ++)
+		{
+			if( IMAGE_LINE(image,row).num_of_filled_chars + 1 >
+				IMAGE_LINE(image,row).num_of_chars)
+			{
+				continue ;
+			}
+			
+			ml_char_copy( &IMAGE_LINE(image,row).chars[
+				IMAGE_LINE(image,row).num_of_filled_chars ++] , &image->sp_ch) ;
+				
+			if( line->is_modified)
+			{
+				ml_imgline_set_modified( &IMAGE_LINE(image,row) ,
+					IMAGE_LINE(image,row).num_of_filled_chars - 1 ,
+					IMAGE_LINE(image,row).num_of_filled_chars - 1 , 0) ;
+			}
+		}
+		
+		ml_imgline_is_updated( line) ;
+	}
+
+	vert_logvis->cursor_logical_char_index = image->cursor.char_index ;
+	vert_logvis->cursor_logical_col = image->cursor.col ;
+	vert_logvis->cursor_logical_row = image->cursor.row ;
+
+	image->cursor.row = vert_logvis->cursor_logical_char_index ;
+	image->cursor.char_index = image->cursor.col = 0 ;
+	for( counter = 0 ; counter < vert_logvis->cursor_logical_row ; counter ++)
+	{
+		image->cursor.col += ml_char_cols( &CURSOR_CHAR(image)) ;
+		image->cursor.char_index ++ ;
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d row %d]\n" ,
+		image->cursor.col , image->cursor.char_index , image->cursor.row) ;
+#endif
+
+	logvis->is_visual = 1 ;
+	
+	return  1 ;
+}
+
+static int
+vert_logical(
+	ml_logical_visual_t *  logvis
+	)
+{
+	vert_logical_visual_t *  vert_logvis ;
 	ml_image_t *  image ;
 
 	if( ! logvis->is_visual)
@@ -1041,10 +1199,12 @@ cjk_vert_logical(
 	
 	image = logvis->image ;
 	
-	vert_logvis = (cjk_vert_logical_visual_t*) logvis ;
+	vert_logvis = (vert_logical_visual_t*) logvis ;
 	
 	image->lines = vert_logvis->logical_lines ;
-	
+
+	image->beg_row = vert_logvis->logical_beg_row ;
+		
 	image->num_of_rows = vert_logvis->logical_num_of_rows ;
 	image->num_of_filled_rows = vert_logvis->logical_num_of_filled_rows ;
 	image->num_of_cols = vert_logvis->logical_num_of_cols ;
@@ -1064,7 +1224,7 @@ cjk_vert_logical(
 }
 
 static int
-cjk_vert_visual_line(
+vert_visual_line(
 	ml_logical_visual_t *  logvis ,
 	ml_image_line_t *  line
 	)
@@ -1197,46 +1357,57 @@ ml_logvis_vert_new(
 	ml_vertical_mode_t  vertical_mode
 	)
 {
-	cjk_vert_logical_visual_t *  vert_logvis ;
+	vert_logical_visual_t *  vert_logvis ;
+
+	if( vertical_mode != (VERT_RTL | VERT_FULL_WIDTH) &&
+		vertical_mode != (VERT_LTR | VERT_HALF_WIDTH))
+	{
+		return  NULL ;
+	}
+
+	if( ( vert_logvis = malloc( sizeof( vert_logical_visual_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	vert_logvis->visual_lines = NULL ;
+	vert_logvis->logical_lines = NULL ;
+	vert_logvis->logical_num_of_cols = 0 ;
+	vert_logvis->logical_num_of_rows = 0 ;
+	vert_logvis->logical_num_of_filled_rows = 0 ;
+	vert_logvis->cursor_logical_char_index = 0 ;
+	vert_logvis->cursor_logical_col = 0 ;
+	vert_logvis->cursor_logical_row = 0 ;
+
+	vert_logvis->logvis.is_visual = 0 ;
+	vert_logvis->logvis.image = image ;
+
+	vert_logvis->logvis.delete = vert_delete ;
+	vert_logvis->logvis.change_image = vert_change_image ;
+	vert_logvis->logvis.logical_cols = vert_logical_cols ;
+	vert_logvis->logvis.logical_rows = vert_logical_rows ;
+	vert_logvis->logvis.render = vert_render ;
+	vert_logvis->logvis.logical = vert_logical ;
+	vert_logvis->logvis.visual_line = vert_visual_line ;
 
 	if( vertical_mode == (VERT_RTL | VERT_FULL_WIDTH))
 	{
 		/*
 		 * CJK type vertical view
 		 */
-		 
-		if( ( vert_logvis = malloc( sizeof( cjk_vert_logical_visual_t))) == NULL)
-		{
-			return  NULL ;
-		}
 
-		vert_logvis->visual_lines = NULL ;
-		vert_logvis->logical_lines = NULL ;
-		vert_logvis->logical_num_of_cols = 0 ;
-		vert_logvis->logical_num_of_rows = 0 ;
-		vert_logvis->logical_num_of_filled_rows = 0 ;
-		vert_logvis->cursor_logical_char_index = 0 ;
-		vert_logvis->cursor_logical_col = 0 ;
-		vert_logvis->cursor_logical_row = 0 ;
-
-		vert_logvis->logvis.is_visual = 0 ;
-		vert_logvis->logvis.image = image ;
-
-		vert_logvis->logvis.delete = cjk_vert_delete ;
-		vert_logvis->logvis.change_image = cjk_vert_change_image ;
-		vert_logvis->logvis.logical_cols = cjk_vert_logical_cols ;
-		vert_logvis->logvis.logical_rows = cjk_vert_logical_rows ;
-		vert_logvis->logvis.render = cjk_vert_render ;
 		vert_logvis->logvis.visual = cjk_vert_visual ;
-		vert_logvis->logvis.logical = cjk_vert_logical ;
-		vert_logvis->logvis.visual_line = cjk_vert_visual_line ;
-
-		return  (ml_logical_visual_t*) vert_logvis ;
 	}
-	else
+	else /* if( vertical_mode == (VERT_LTR | VERT_HALF_WIDTH)) */
 	{
-		return  NULL ;
+		/*
+		 * mongol type vertical view
+		 */
+		 
+		vert_logvis->logvis.visual = mongol_vert_visual ;
 	}
+
+	return  (ml_logical_visual_t*) vert_logvis ;
 }
 
 ml_vertical_mode_t

@@ -13,9 +13,9 @@
 
 #define  IMAGE_LINE_INTERN(image,row) \
 	((image)->lines[(\
-		(image)->beg_line + (row) >= (image)->num_of_rows ? \
-			((image)->beg_line + (row)) - (image)->num_of_rows : \
-			(image)->beg_line + (row) \
+		(image)->beg_row + (row) >= (image)->num_of_rows ? \
+			((image)->beg_row + (row)) - (image)->num_of_rows : \
+			(image)->beg_row + (row) \
 		)])
 		
 

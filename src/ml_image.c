@@ -728,7 +728,7 @@ ml_image_init(
 	image->num_of_rows = num_of_rows ;
 	image->num_of_cols = num_of_cols ;
 
-	image->beg_line = 0 ;
+	image->beg_row = 0 ;
 
 	if( ( image->lines = malloc( sizeof( ml_image_line_t) * image->num_of_rows)) == NULL)
 	{
@@ -911,7 +911,7 @@ ml_image_resize(
 	image->num_of_rows = num_of_rows ;
 	image->num_of_cols = num_of_cols ;
 
-	image->beg_line = 0 ;
+	image->beg_row = 0 ;
 
 	image->wraparound_ready_line = NULL ;
 	

@@ -54,7 +54,7 @@ typedef struct  ml_image
 	ml_line_hints_t  line_hints ;
 
 	/* used for scrolling */
-	int  beg_line ;
+	int  beg_row ;
 	
 	/* public */
 	ml_cursor_t  cursor ;

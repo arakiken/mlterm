@@ -178,13 +178,13 @@ scroll_upward_region(
 	}
 
 	/* sliding offset */
-	if( image->beg_line + size >= image->num_of_rows)
+	if( image->beg_row + size >= image->num_of_rows)
 	{
-		image->beg_line = (image->beg_line + size) - image->num_of_rows ;
+		image->beg_row = (image->beg_row + size) - image->num_of_rows ;
 	}
 	else
 	{
-		image->beg_line += size ;
+		image->beg_row += size ;
 	}
 
 	if( boundary_end < END_ROW(image))
@@ -307,13 +307,13 @@ scroll_downward_region(
 		image->num_of_filled_rows = K_MIN(image->num_of_filled_rows + size,image->num_of_rows) ;
 	}
 
-	if( image->beg_line < size)
+	if( image->beg_row < size)
 	{
-		image->beg_line = image->num_of_rows - (size - image->beg_line) ;
+		image->beg_row = image->num_of_rows - (size - image->beg_row) ;
 	}
 	else
 	{
-		image->beg_line -= size ;
+		image->beg_row -= size ;
 	}
 
 	if( boundary_beg > 0)

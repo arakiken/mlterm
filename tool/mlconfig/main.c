@@ -11,8 +11,6 @@
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_str.h>
 
-#include  <ml_logical_visual.h>		/* ml_vertical_mode_t */
-
 #include  "mc_char_encoding.h"
 #include  "mc_color.h"
 #include  "mc_fade.h"
@@ -27,6 +25,7 @@
 #include  "mc_xim.h"
 #include  "mc_check.h"
 #include  "mc_iscii_lang.h"
+#include  "mc_vertical.h"
 
 
 #if  0
@@ -42,7 +41,6 @@ static GtkWidget *  is_comb_check ;
 static GtkWidget *  use_bidi_check ;
 static GtkWidget *  copy_paste_via_ucs_check ;
 static GtkWidget *  is_tp_check ;
-static GtkWidget *  is_vertical ;
 
 
 /* --- static functions --- */
@@ -95,7 +93,7 @@ apply_clicked(
 		mc_get_screen_height_ratio() ,
 		mc_get_mod_meta_mode() ,
 		mc_get_bel_mode() ,
-		GTK_TOGGLE_BUTTON(is_vertical)->active ? (VERT_RTL | VERT_FULL_WIDTH) : 0 ,
+		mc_get_vertical_mode() ,
 		GTK_TOGGLE_BUTTON(is_comb_check)->active ,
 		GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active ,
 		GTK_TOGGLE_BUTTON(is_tp_check)->active ,
@@ -429,6 +427,13 @@ show(
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
+	if( ! ( config_widget = mc_vertical_config_widget_new( vertical_mode)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+
 	hbox = gtk_hbox_new( TRUE , 5) ;
 	gtk_widget_show( hbox) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;	
@@ -450,14 +455,6 @@ show(
 	hbox = gtk_hbox_new( TRUE , 5) ;
 	gtk_widget_show( hbox) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;	
-
-	if( ! ( is_vertical = mc_check_config_widget_new( "Vertical(CJK)" ,
-				vertical_mode == (VERT_RTL | VERT_FULL_WIDTH))) )
-	{
-		return  0 ;
-	}
-	gtk_widget_show( is_vertical) ;
-	gtk_box_pack_start( GTK_BOX(hbox) , is_vertical , TRUE , TRUE , 0) ;
 
 
 	/* contents of the "Copy&paste" tab */
@@ -482,6 +479,30 @@ show(
 	gtk_widget_show( copy_paste_via_ucs_check) ;
 	gtk_container_add( GTK_CONTAINER(frame) , copy_paste_via_ucs_check) ;
 		
+
+	/* contents of the "Font" tab */
+	
+	label = gtk_label_new( "Font") ;
+	gtk_widget_show( label) ;
+	vbox = gtk_vbox_new( FALSE , 3) ;
+	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
+	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
+	gtk_widget_show( vbox) ;
+
+	if( ! ( config_widget = mc_fontsize_config_widget_new( fontsize , min_fontsize , max_fontsize)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+
+	if( ! ( config_widget = mc_font_present_config_widget_new( font_present)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+
 	
 	/* contents of the "Appearance" tab */
 
@@ -506,13 +527,6 @@ show(
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 	
-	if( ! ( config_widget = mc_fontsize_config_widget_new( fontsize , min_fontsize , max_fontsize)))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-
 	if( ! ( config_widget = mc_line_space_config_widget_new( line_space)))
 	{
 		return  0 ;
@@ -526,13 +540,6 @@ show(
 	}
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-
-	if( ! ( config_widget = mc_font_present_config_widget_new( font_present)))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , TRUE , TRUE , 0) ;
 
 	
 	hbox = gtk_hbox_new( TRUE , 5) ;
