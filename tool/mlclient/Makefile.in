@@ -3,7 +3,7 @@ exec_prefix = @exec_prefix@
 bindir = @bindir@
 
 CC = @CC@
-CFLAGS = @CFLAGS@
+CFLAGS = @KIK_CFLAGS@ @CFLAGS@
 INSTALL = @INSTALL@
 
 BINDIR = $(DESTDIR)$(bindir)

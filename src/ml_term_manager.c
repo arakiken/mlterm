@@ -1565,6 +1565,10 @@ client_connected(
 
 	if( ( fd = accept( term_man->sock_fd , (struct sockaddr *) &addr , &sock_len)) < 0)
 	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " accept failed.\n") ;
+	#endif
+	
 		return ;
 	}
 
@@ -1639,6 +1643,8 @@ client_connected(
 	orig_conf = term_man->conf ;
 	
 	config_init( term_man , conf , argc , argv) ;
+
+	kik_conf_delete( conf) ;
 
 	open_term( term_man) ;
 
