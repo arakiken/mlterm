@@ -1,0 +1,8 @@
+2002-04-26 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* next.c: bugfix in flag initialization in ml_*_sb_view_new()
+
+2002-04-25 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Makefile.in, athena.c, motif.c, motif_data.h, mozmodern.c,
+	  mozmodern_data.h, next.c, next_data.h : Initial import
