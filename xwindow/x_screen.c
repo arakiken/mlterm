@@ -805,6 +805,7 @@ x_draw_str(
 			}
 
 			if( ( screen->window.wall_picture_is_set && bg_color == ML_BG_COLOR) ||
+				screen->line_space > 0 ||
 				( xfont->is_proportional && ! xfont->is_var_col_width))
 			{
 				if( screen->window.wall_picture_is_set && bg_color == ML_BG_COLOR)
