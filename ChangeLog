@@ -1,5 +1,13 @@
 2003-10-12  Araki Ken  <arakiken@users.sf.net>
 
+	* mlmenu/main.c: Fixed a critical bug.
+
+	* mlmenu/Makefile: Removed.
+
+	* configure.in: mlmenu can be specified as a value of --with-tools option.
+
+2003-10-12  Araki Ken  <arakiken@users.sf.net>
+
 	* x_font_config.[ch]: Renamed x_configize_... to x_customize_...
 
 	* version.h.in: Validated CVS_REVISION.

@@ -215,6 +215,10 @@ mlcc)
 	MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
 	OUTPUT_FILES="contrib/tool/mlcc/Makefile ${OUTPUT_FILES}"
 	;;
+mlmenu)
+	MAKE_DIRS="tool/mlmenu ${MAKE_DIRS}"
+	OUTPUT_FILES="tool/mlmenu/Makefile ${OUTPUT_FILES}"
+	;;
 *)
 	echo "${tool} is unknown tool."
 	;;

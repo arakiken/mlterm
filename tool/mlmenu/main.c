@@ -395,8 +395,14 @@ update_screen(
 	
 	if( n < 0)
 	{
+		/* n == -1 */
+		
 		start = 0 ;
 		end = n_ent - 1 ;
+	}
+	else if( n >= n_ent)
+	{
+		return  0 ;
 	}
 	else
 	{

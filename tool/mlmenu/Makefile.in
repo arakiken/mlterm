@@ -1,10 +1,8 @@
-top_builddir = ../../..
+top_builddir = ../..
 top_srcdir = @top_srcdir@
 prefix = @prefix@
-exec_prefix = @exec_prefix@
 libexecdir = @libexecdir@
 sysconfdir = @sysconfdir@
-datadir = @datadir@
 
 VPATH = ${top_srcdir}/tool/mlmenu
 
@@ -16,10 +14,8 @@ DESTDIR =
 LIBEXECDIR = $(DESTDIR)$(libexecdir)
 SYSCONFDIR = $(DESTDIR)$(sysconfdir)/mlterm
 
-LKIK = @KIK_LIBS@
-
 CFLAGS = $(CFLAGS_LOCAL) @CFLAGS@ @CPPFLAGS@ -DSYSCONFDIR=\"$(SYSCONFDIR)\"
-LIBS = $(LIBS_LOCAL) $(LKIK)
+LIBS = $(LIBS_LOCAL) -lX11
 
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
@@ -39,7 +35,6 @@ mlmenu: $(OBJS)
 
 install: $(LIBEXECDIR)
 	$(LIBTOOL_INSTALL) -m 755 mlmenu $(LIBEXECDIR)
-	$(INSTALL) -m 644 ${top_srcdir}/tool/mlmenu/menu $(SYSCONFDIR)
 
 $(LIBEXECDIR):
 	mkdir -p $(LIBEXECDIR)
