@@ -1577,9 +1577,13 @@ x_imagelib_load_file_for_background(
 	x_picture_modifier_t *  pic_mod
 	)
 {
+	static x_picture_modifier_t *  cached_mod = NULL ;
+	static Pixmap  cached_pixmap = None ;  
+	static GdkPixbuf *  cached_pixbuf = NULL ;  
+
 	GdkPixbuf *  pixbuf ;
 	Pixmap pixmap ;
-	int  dup_flag = 0;
+	int  dup_flag = 0;	
 
 	if(!file_path)
 		return None ;
@@ -1591,10 +1595,18 @@ x_imagelib_load_file_for_background(
 		return None ;
 	}
 
-	if( pic_mod)
+	if( !is_picmod_eq( pic_mod, cached_mod))
 	{
-		pixbuf = gdk_pixbuf_copy(pixbuf);
-		modify_image( pixbuf, pic_mod) ;
+		if( cached_mod)
+		{
+			free(cached_mod) ;
+			gdk_pixbuf_unref( cached_pixbuf) ;
+		}
+		cached_pixbuf = gdk_pixbuf_copy(pixbuf);
+		modify_image( cached_pixbuf, pic_mod) ;
+		cached_mod = malloc(sizeof(x_picture_modifier_t)) ;
+		memcpy( cached_mod, pic_mod, sizeof(x_picture_modifier_t)) ;		
+		pixbuf = cached_pixbuf ;
 		dup_flag = 1 ;
 	}
 	if( gdk_pixbuf_get_has_alpha ( pixbuf) )
@@ -1680,7 +1692,9 @@ x_imagelib_get_transparent_background(
 				XFreePixmap( win->display, cache->cooked) ;
 			}
 			cache->cooked = None ;
-			memset( &(cache->pic_mod), 0, sizeof(x_picture_modifier_t)) ;
+			if ( cache->pic_mod)
+				free(cache->pic_mod) ;
+			cache->pic_mod = NULL ;
 		}
 	}
 	else
