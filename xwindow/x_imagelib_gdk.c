@@ -1665,8 +1665,12 @@ int x_imagelib_load_file(
 #endif
 			scaled = gdk_pixbuf_scale_simple(pixbuf, width, height,
 							 GDK_INTERP_NEAREST); 
-			misc.width = width ;
-			misc.height = height ;
+			if( scaled)
+			{
+				misc.width = width ;
+				misc.height = height ;
+				misc.scaled = scaled ;
+			}
 		}
 		if( scaled)
 		{
