@@ -40,7 +40,7 @@ x_color_manager_t *
 x_color_manager_new(
 	Display *  display ,
 	int  screen ,
-	x_color_custom_t *  color_custom ,
+	x_color_config_t *  color_config ,
 	char *  fg_color ,
 	char *  bg_color ,
 	char *  cursor_fg_color ,
@@ -59,7 +59,7 @@ x_color_manager_new(
 	color_man->display = display ;
 	color_man->screen = screen ;
 
-	color_man->color_custom = color_custom ;
+	color_man->color_config = color_config ;
 	color_man->fade_ratio = 100 ;
 	color_man->is_reversed = 0 ;
 
@@ -325,7 +325,7 @@ x_get_color(
 		tag = name ;
 	}
 	
-	if( x_color_custom_get_rgb( color_man->color_custom , &red , &green , &blue , tag))
+	if( x_color_config_get_rgb( color_man->color_config , &red , &green , &blue , tag))
 	{
 		if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
 			&color_man->xcolors[color] , red , green , blue))

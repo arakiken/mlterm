@@ -24,8 +24,8 @@ typedef struct  x_font_manager
 		
 	} prev_cache ;
 
-	x_font_custom_t *  font_custom ;
-	int8_t  is_local_font_custom ;
+	x_font_config_t *  font_config ;
+	int8_t  is_local_font_config ;
 
 	int8_t  usascii_font_cs_changable ;
 	u_int8_t  step_in_changing_font_size ;
@@ -67,9 +67,9 @@ XFontSet  x_get_fontset( x_font_manager_t *  font_man) ;
 
 mkf_charset_t  x_get_usascii_font_cs( ml_char_encoding_t  encoding) ;
 
-int  x_activate_local_font_custom( x_font_manager_t *  font_man , x_font_custom_t *  font_custom) ;
+int  x_activate_local_font_config( x_font_manager_t *  font_man , x_font_config_t *  font_config) ;
 
-int  x_deactivate_local_font_custom( x_font_manager_t *  font_man) ;
+int  x_deactivate_local_font_config( x_font_manager_t *  font_man) ;
 
 
 #endif

@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "x_color_custom.h"
+#include  "x_color_config.h"
 
 #include  <stdio.h>		/* sscanf */
 #include  <kiklib/kik_mem.h>
@@ -15,40 +15,40 @@
 /* --- global functions --- */
 
 int
-x_color_custom_init(
-	x_color_custom_t *  color_custom
+x_color_config_init(
+	x_color_config_t *  color_config
 	)
 {
-	kik_map_new_with_size( char * , x_rgb_t , color_custom->color_rgb_table ,
+	kik_map_new_with_size( char * , x_rgb_t , color_config->color_rgb_table ,
 		kik_map_hash_str , kik_map_compare_str , 16) ;
 	
 	return  1 ;
 }
 
 int
-x_color_custom_final(
-	x_color_custom_t *  color_custom
+x_color_config_final(
+	x_color_config_t *  color_config
 	)
 {
 	int  count ;
 	KIK_PAIR( x_color_rgb) *  array ;
 	u_int  size ;
 	
-	kik_map_get_pairs_array( color_custom->color_rgb_table , array , size) ;
+	kik_map_get_pairs_array( color_config->color_rgb_table , array , size) ;
 	
 	for( count = 0 ; count < size ; count ++)
 	{
 		free( array[count]->key) ;
 	}
 	
-	kik_map_delete( color_custom->color_rgb_table) ;
+	kik_map_delete( color_config->color_rgb_table) ;
 
 	return  1 ;
 }
 
 int
-x_color_custom_set_rgb(
-	x_color_custom_t *  color_custom ,
+x_color_config_set_rgb(
+	x_color_config_t *  color_config ,
 	char *  color ,
 	u_short  red ,
 	u_short  green ,
@@ -63,7 +63,7 @@ x_color_custom_set_rgb(
 	rgb.green = green ;
 	rgb.blue = blue ;
 	
-	kik_map_get( result , color_custom->color_rgb_table , color , pair) ;
+	kik_map_get( result , color_config->color_rgb_table , color , pair) ;
 	if( result)
 	{
 		pair->value = rgb ;
@@ -74,15 +74,15 @@ x_color_custom_set_rgb(
 
 		_color = strdup( color) ;
 
-		kik_map_set( result , color_custom->color_rgb_table , _color , rgb) ;
+		kik_map_set( result , color_config->color_rgb_table , _color , rgb) ;
 	}
 
 	return  1 ;
 }
 
 int
-x_color_custom_get_rgb(
-	x_color_custom_t *  color_custom ,
+x_color_config_get_rgb(
+	x_color_config_t *  color_config ,
 	u_short *  red ,
 	u_short *  green ,
 	u_short *  blue ,
@@ -92,7 +92,7 @@ x_color_custom_get_rgb(
 	KIK_PAIR( x_color_rgb)  pair ;
 	int  result ;
 
-	kik_map_get( result , color_custom->color_rgb_table , color , pair) ;
+	kik_map_get( result , color_config->color_rgb_table , color , pair) ;
 	if( ! result)
 	{
 		return  0 ;
@@ -106,8 +106,8 @@ x_color_custom_get_rgb(
 }
 
 int
-x_color_custom_read_conf(
-	x_color_custom_t *  color_custom ,
+x_read_color_config(
+	x_color_config_t *  color_config ,
 	char *  filename
 	)
 {
@@ -162,7 +162,7 @@ x_color_custom_read_conf(
 		kik_debug_printf( "%s = red %x green %x blue %x\n" , color , red , green , blue) ;
 	#endif
 
-		x_color_custom_set_rgb( color_custom , color , red , green , blue) ;
+		x_color_config_set_rgb( color_config , color , red , green , blue) ;
 	}
 
 	kik_file_close( from) ;

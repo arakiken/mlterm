@@ -10,7 +10,7 @@
 #include  <ml_color.h>
 
 #include  "x_color.h"
-#include  "x_color_custom.h"
+#include  "x_color_config.h"
 
 
 typedef struct  x_color_manager
@@ -35,7 +35,7 @@ typedef struct  x_color_manager
 		
 	} cursor_colors[2] ;
 
-	x_color_custom_t *  color_custom ;
+	x_color_config_t *  color_config ;
 
 	u_int8_t  fade_ratio ;
 	int8_t  is_reversed ;
@@ -44,7 +44,7 @@ typedef struct  x_color_manager
 
 
 x_color_manager_t *  x_color_manager_new( Display *  display , int  screen ,
-	x_color_custom_t *  color_custom , char *  fg_color , char *  bg_color ,
+	x_color_config_t *  color_config , char *  fg_color , char *  bg_color ,
 	char *  cursor_fg_color , char *  cursor_bg_color) ;
 
 int  x_color_manager_delete( x_color_manager_t *  color_man) ;

@@ -1,6 +1,12 @@
 2003-10-11  Araki Ken  <arakiken@users.sf.net>
 
-	* After options saved by 5382 or 5383 protocol, terminals start
+	* Renamed font_custom and color_custom to font_config and font_custom.
+
+	* Added x_main_config.[ch] pulled out from x_term_manager.c
+
+2003-10-11  Araki Ken  <arakiken@users.sf.net>
+
+	* After options saved by 5382 or 5383 protocol, new terminals start
 	  with the new options.
 
 2003-10-11  Araki Ken  <arakiken@users.sf.net>

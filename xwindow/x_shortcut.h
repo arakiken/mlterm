@@ -63,7 +63,7 @@ int  x_shortcut_init( x_shortcut_t *  shortcut) ;
 
 int  x_shortcut_final( x_shortcut_t *  shortcut) ;
 
-int  x_shortcut_read_conf( x_shortcut_t *  shortcut , char *  filename) ;
+int  x_read_shortcut_config( x_shortcut_t *  shortcut , char *  filename) ;
 
 int  x_shortcut_match( x_shortcut_t *  shortcut , x_key_func_t  func , KeySym  sym , u_int  state) ;
 

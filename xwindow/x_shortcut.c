@@ -281,7 +281,7 @@ x_shortcut_final(
 }
 
 int
-x_shortcut_read_conf(
+x_read_shortcut_config(
 	x_shortcut_t *  shortcut ,
 	char *  filename
 	)

@@ -21,23 +21,23 @@ typedef struct x_rgb
 
 KIK_MAP_TYPEDEF( x_color_rgb , char * , x_rgb_t) ;
 
-typedef struct x_color_custom
+typedef struct x_color_config
 {
 	KIK_MAP( x_color_rgb)  color_rgb_table ;
 	
-} x_color_custom_t ;
+} x_color_config_t ;
 
 
-int  x_color_custom_init( x_color_custom_t *  color_custom) ;
+int  x_color_config_init( x_color_config_t *  color_config) ;
 
-int  x_color_custom_final( x_color_custom_t *  color_custom) ;
+int  x_color_config_final( x_color_config_t *  color_config) ;
 
-int  x_color_custom_read_conf( x_color_custom_t *  color_custom , char *  filename) ;
+int  x_read_color_config( x_color_config_t *  color_config , char *  filename) ;
 
-int  x_color_custom_set_rgb( x_color_custom_t *  color_custom , char *  color ,
+int  x_color_config_set_rgb( x_color_config_t *  color_config , char *  color ,
 	u_short  red , u_short  green , u_short  blue) ;
 
-int  x_color_custom_get_rgb( x_color_custom_t *  color_custom ,
+int  x_color_config_get_rgb( x_color_config_t *  color_config ,
 	u_short *  red , u_short *  green , u_short *  blue , char *  color) ;
 
 

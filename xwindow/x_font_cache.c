@@ -66,7 +66,7 @@ x_acquire_font_cache(
 	Display *  display ,
 	u_int  font_size ,
 	mkf_charset_t  usascii_font_cs ,
-	x_font_custom_t *  font_custom ,
+	x_font_config_t *  font_config ,
 	int  use_multi_col_char
 	)
 {
@@ -80,7 +80,7 @@ x_acquire_font_cache(
 		if( font_caches[count]->display == display &&
 			font_caches[count]->font_size == font_size &&
 			font_caches[count]->usascii_font_cs == usascii_font_cs &&
-			font_caches[count]->font_custom == font_custom &&
+			font_caches[count]->font_config == font_config &&
 			font_caches[count]->use_multi_col_char == use_multi_col_char)
 		{
 			font_caches[count]->ref_count ++ ;
@@ -101,7 +101,7 @@ x_acquire_font_cache(
 		return  NULL ;
 	}
 
-	font_cache->font_custom = font_custom ;
+	font_cache->font_config = font_config ;
 
 	kik_map_new( ml_font_t , x_font_t * , font_cache->xfont_table , font_hash , font_compare) ;
 	
@@ -219,12 +219,12 @@ x_font_cache_get_xfont(
 
 	use_medium_for_bold = 0 ;
 	
-	if( ( fontname = x_get_custom_font_name( font_cache->font_custom , font_cache->font_size , font))
+	if( ( fontname = x_get_config_font_name( font_cache->font_config , font_cache->font_size , font))
 		== NULL)
 	{
 		if( font & FONT_BOLD)
 		{
-			if( ( fontname = x_get_custom_font_name( font_cache->font_custom ,
+			if( ( fontname = x_get_config_font_name( font_cache->font_config ,
 						font_cache->font_size , font & ~FONT_BOLD)))
 			{
 				use_medium_for_bold = 1 ;
@@ -232,7 +232,7 @@ x_font_cache_get_xfont(
 		}
 	}
 
-	if( ( xfont = x_font_new( font_cache->display , font , font_cache->font_custom->font_present ,
+	if( ( xfont = x_font_new( font_cache->display , font , font_cache->font_config->font_present ,
 			fontname , font_cache->font_size , col_width , use_medium_for_bold)))
 	{
 		if( ! font_cache->use_multi_col_char)
@@ -270,25 +270,25 @@ x_get_font_name_list_for_fontset(
 	char *  p ;
 	size_t  list_len ;
 	
-	if( font_cache->font_custom->font_present & FONT_AA)
+	if( font_cache->font_config->font_present & FONT_AA)
 	{
-		x_font_custom_t *  font_custom ;
+		x_font_config_t *  font_config ;
 
-		if( ( font_custom = x_acquire_font_custom(
-					font_cache->font_custom->font_present & ~FONT_AA)) == NULL)
+		if( ( font_config = x_acquire_font_config(
+					font_cache->font_config->font_present & ~FONT_AA)) == NULL)
 		{
 			font_name_list = NULL ;
 		}
 		else
 		{
-			font_name_list = x_get_all_custom_font_names( font_custom , font_cache->font_size) ;
+			font_name_list = x_get_all_config_font_names( font_config , font_cache->font_size) ;
 
-			x_release_font_custom( font_custom) ;
+			x_release_font_config( font_config) ;
 		}
 	}
 	else
 	{
-		font_name_list = x_get_all_custom_font_names( font_cache->font_custom ,
+		font_name_list = x_get_all_config_font_names( font_cache->font_config ,
 					font_cache->font_size) ;
 	}
 

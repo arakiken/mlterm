@@ -281,7 +281,7 @@ x_termcap_final(
 }
 
 int
-x_termcap_read_conf(
+x_read_termcap_config(
 	x_termcap_t *  termcap ,
 	char *  filename
 	)

@@ -11,7 +11,7 @@
 #include  <kiklib/kik_types.h>
 #include  <mkf/mkf_charset.h>
 
-#include  "x_font_custom.h"
+#include  "x_font_config.h"
 
 
 KIK_MAP_TYPEDEF( x_font , ml_font_t , x_font_t *) ;
@@ -24,7 +24,7 @@ typedef struct  x_font_cache
 	Display *  display ;
 	u_int  font_size ;
 	mkf_charset_t  usascii_font_cs ;
-	x_font_custom_t *  font_custom ;
+	x_font_config_t *  font_config ;
 	int8_t  use_multi_col_char ;
 
 	x_font_t *  usascii_font ;
@@ -39,7 +39,7 @@ typedef struct  x_font_cache
 
 
 x_font_cache_t *  x_acquire_font_cache( Display *  display , u_int  font_size ,
-	mkf_charset_t  usascii_font_cs , x_font_custom_t *  font_custom , int  use_multi_col_char) ;
+	mkf_charset_t  usascii_font_cs , x_font_config_t *  font_config , int  use_multi_col_char) ;
 
 int  x_release_font_cache( x_font_cache_t *  font_cache) ;
 

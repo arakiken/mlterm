@@ -2125,13 +2125,13 @@ update_special_visual(
 	{
 		u_int  font_size ;
 		char *  font_name ;
-		x_font_custom_t *  font_custom ;
+		x_font_config_t *  font_config ;
 
 		/*
 		 * XXX
 		 * anti alias ISCII font is not supported.
 		 */
-		if( ( font_custom = x_font_custom_new(
+		if( ( font_config = x_font_config_new(
 					x_get_font_present( screen->font_man) & ~FONT_AA)) == NULL)
 		{
 			return  0 ;
@@ -2147,14 +2147,14 @@ update_special_visual(
 				continue ;
 			}
 
-			x_customize_font_name( font_custom , DEFAULT_FONT(ISCII) , font_name , font_size) ;
+			x_configize_font_name( font_config , DEFAULT_FONT(ISCII) , font_name , font_size) ;
 		}
 
-		x_activate_local_font_custom( screen->font_man , font_custom) ;
+		x_activate_local_font_config( screen->font_man , font_config) ;
 	}
 	else
 	{
-		x_deactivate_local_font_custom( screen->font_man) ;
+		x_deactivate_local_font_config( screen->font_man) ;
 	}
 
 	/*
