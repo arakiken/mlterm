@@ -526,6 +526,7 @@ x_window_init(
 	win->xct_selection_notified = NULL ;
 	win->utf8_selection_notified = NULL ;
 	win->window_deleted = NULL ;
+	win->mapping_notify = NULL ;
 #ifndef  DISABLE_XDND
 	win->set_xdnd_config = NULL ;
 #endif
@@ -1667,7 +1668,6 @@ x_window_receive_event(
 			return  1 ;
 		}
 	}
-
 	if( win->my_window != event->xany.window)
 	{
 		/*
@@ -1698,6 +1698,24 @@ x_window_receive_event(
 			return  1 ;
 		}
 
+		if( event->type == MappingNotify && event->xmapping.request != MappingPointer)
+		{
+			if( win->win_man)
+			{
+#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+						 " MappingNotify serial #%d\n", event->xmapping.serial) ;
+#endif
+				XRefreshKeyboardMapping( &(event->xmapping));
+				x_window_manager_update_modifier_mapping( win->win_man, event->xmapping.serial) ;
+				/* have to  rocess only once */
+				return 1 ;
+			}
+
+			if( win->mapping_notify){
+				(*win->mapping_notify)( win);
+			}
+		}
 		return  0 ;
 	}
 #ifndef  DISABLE_XDND
@@ -2943,6 +2961,14 @@ x_set_click_interval(
 	click_interval = interval ;
 
 	return  1 ;
+}
+
+XModifierKeymap *
+x_window_get_modifier_mapping(
+	x_window_t *  win
+	)
+{
+	return  x_window_manager_get_modifier_mapping( win->win_man) ;
 }
 
 #if  0

@@ -98,6 +98,7 @@ typedef struct  x_screen
 	char *  mod_meta_key ;
 	x_mod_meta_mode_t  mod_meta_mode ;
 	u_int  mod_meta_mask ;
+	u_int  mod_ignore_mask ;
 
 	x_bel_mode_t  bel_mode ;
 

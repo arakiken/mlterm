@@ -161,6 +161,7 @@ typedef struct  x_window
 	void (*set_xdnd_config)( struct x_window * , char * ,  char * , char * ) ;
 #endif
 	void (*window_deleted)( struct x_window *) ;
+	void (*mapping_notify)( struct x_window *) ;
 } x_window_t ;
 
 
@@ -311,6 +312,8 @@ int  x_window_get_visible_geometry( x_window_t *  win ,
 	int *  x , int *  y , int *  my_x , int *  my_y , u_int *  width , u_int *  height) ;
 
 int  x_set_click_interval( int  interval) ;
+
+XModifierKeymap *  x_window_get_modifier_mapping( x_window_t *  win) ;
 
 #if  0
 /* not used */

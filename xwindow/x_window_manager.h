@@ -11,6 +11,13 @@
 #include  "x_window.h"
 
 
+typedef struct  x_modifier_mapping
+{
+	u_long  serial ;
+	XModifierKeymap *  map ;
+
+} x_modifier_mapping_t ;
+
 typedef struct  x_window_manager
 {
 	Display *  display ;
@@ -26,7 +33,8 @@ typedef struct  x_window_manager
 	u_int  num_of_roots ;
 
 	x_window_t *  selection_owner ;
-	
+	x_modifier_mapping_t  modmap ;
+
 } x_window_manager_t ;
 
 
@@ -49,5 +57,7 @@ int  x_window_manager_receive_next_event( x_window_manager_t *  win_man) ;
 
 XID  x_window_manager_get_group( x_window_manager_t *  win_man) ;
 
+XModifierKeymap *  x_window_manager_get_modifier_mapping( x_window_manager_t *  win_man) ;
 
+void  x_window_manager_update_modifier_mapping( x_window_manager_t *  win_man ,	u_int  serial) ;
 #endif

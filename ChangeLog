@@ -1,3 +1,9 @@
+2003-12-25  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* Re-mapping of keys using xmodmap now should be handled properly.
+	* Keys that can be locked(Num_Lock/Scroll_Lock/ISO-Level3_Lock)
+	 are no longer regarded as a valid modifier key.
+
 2003-12-24  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* contrib/scrollbar/pixmap_engine/pixmap_engine.c: fixed a problem when

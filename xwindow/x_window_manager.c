@@ -48,6 +48,27 @@ ioerror_handler(
 }
 #endif
 
+static void
+modmap_init(
+	Display *  display ,
+	x_modifier_mapping_t *  modmap
+	)
+{
+	modmap->serial = 0 ;
+	modmap->map = XGetModifierMapping( display) ;
+}
+
+static void
+modmap_final(
+	x_modifier_mapping_t *  modmap
+	)
+{
+	if( modmap->map)
+	{
+		XFreeModifiermap( modmap->map);
+	}
+}
+
 
 /* --- global functions --- */
 
@@ -73,6 +94,8 @@ x_window_manager_init(
 
 	win_man->selection_owner = NULL ;
 
+	modmap_init( display, &(win_man->modmap)) ;
+
 #ifdef  __DEBUG
 	XSetErrorHandler( error_handler) ;
 	XSetIOErrorHandler( ioerror_handler) ;
@@ -87,6 +110,9 @@ x_window_manager_final(
 	)
 {
 	int  count ;
+
+	modmap_final( &(win_man->modmap)) ;
+
 	if(  win_man->group_leader)
 	{
 		XDestroyWindow( win_man->display, win_man->group_leader) ;
@@ -288,4 +314,27 @@ x_window_manager_get_group(
 	)
 {
 	return  win_man->group_leader ;
+}
+
+
+XModifierKeymap *
+x_window_manager_get_modifier_mapping(
+	x_window_manager_t *  win_man
+	)
+{
+	return  win_man->modmap.map ;
+}
+
+void
+x_window_manager_update_modifier_mapping(
+	x_window_manager_t *  win_man ,
+	u_int  serial
+	)
+{
+	if( serial != win_man->modmap.serial)
+	{
+		modmap_final( &(win_man->modmap)) ;
+		win_man->modmap.map = XGetModifierMapping( win_man->display) ;
+		win_man->modmap.serial = serial ;
+	}
 }

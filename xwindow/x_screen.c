@@ -2030,8 +2030,63 @@ error:
 }
 
 static u_int
+get_mod_ignore_mask(
+	x_window_t *  win ,
+	KeySym *  keysyms
+	)
+{
+	XModifierKeymap *  mod_map ;
+	int  count ;
+	u_int  ignore ;
+	u_int  masks[] = { Mod1Mask , Mod2Mask , Mod3Mask , Mod4Mask , Mod5Mask } ;
+	KeySym default_keysyms[] = { XK_Num_Lock, XK_Scroll_Lock, XK_ISO_Level3_Lock,
+				     NoSymbol} ;
+
+	if( !keysyms)
+	{
+		keysyms = default_keysyms ;
+	}
+	mod_map = x_window_get_modifier_mapping( x_get_root_window( win)) ;
+	ignore = 0 ;
+
+	count = 0 ;
+	while( keysyms[count] != NoSymbol)
+	{
+		int  ks_count ;
+		KeyCode  kc ;
+
+		kc = XKeysymToKeycode( win->display, keysyms[count]);
+		for( ks_count = 0; ks_count < sizeof(masks)/sizeof(masks[0]); ks_count++)
+		{
+			int  kc_count ;
+			KeyCode *  key_codes ;
+
+			key_codes = &(mod_map->modifiermap[(ks_count+3)*mod_map->max_keypermod]) ;
+			for( kc_count = 0; kc_count < mod_map->max_keypermod; kc_count++)
+			{
+				if( key_codes[kc_count] == 0)
+				{
+					break ;
+				}
+				if( key_codes[kc_count] == kc)
+				{
+#ifdef  DEBUG
+					kik_debug_printf("keycode = %d, mod%d  idx %d  (by %s)\n", kc,  ks_count+1, kc_count+1, XKeysymToString(keysyms[count]));
+#endif
+					ignore |= masks[ks_count] ;
+					break ;
+				}
+			}
+		}
+		count++ ;
+	}
+
+	return  ~ignore ;
+}
+
+static u_int
 get_mod_meta_mask(
-	Display *  display ,
+	x_window_t *  win ,
 	char *  mod_key
 	)
 {
@@ -2042,10 +2097,6 @@ get_mod_meta_mask(
 	KeySym  sym ;
 	char *  mod_keys[] = { "mod1" , "mod2" , "mod3" , "mod4" , "mod5" } ;
 	u_int  mod_masks[] = { Mod1Mask , Mod2Mask , Mod3Mask , Mod4Mask , Mod5Mask } ;
-
-	mod_map = XGetModifierMapping( display) ;
-	key_codes = mod_map->modifiermap ;
-
 	if( mod_key)
 	{
 		int  count ;
@@ -2059,7 +2110,10 @@ get_mod_meta_mask(
 		}
 	}
 
-	for( mask_count = 0 ; mask_count < 5 ; mask_count++)
+	mod_map = x_window_get_modifier_mapping( x_get_root_window( win)) ;
+	key_codes = mod_map->modifiermap ;
+
+	for( mask_count = 0 ; mask_count < sizeof(mod_masks)/sizeof(mod_masks[0]) ; mask_count++)
 	{
 		int  count ;
 
@@ -2080,7 +2134,7 @@ get_mod_meta_mask(
 				break ;
 			}
 
-			sym = XKeycodeToKeysym( display , key_codes[kc_count] , 0) ;
+			sym = XKeycodeToKeysym( win->display , key_codes[kc_count] , 0) ;
 
 			if( ( ( mod_key == NULL || strcmp( mod_key , "meta") == 0) &&
 					( sym == XK_Meta_L || sym == XK_Meta_R)) ||
@@ -2091,19 +2145,14 @@ get_mod_meta_mask(
 				( ( mod_key == NULL || strcmp( mod_key , "hyper") == 0) &&
 					( sym == XK_Hyper_L || sym == XK_Hyper_R)) )
 			{
-				XFreeModifiermap( mod_map) ;
-
 				return  mod_masks[mask_count] ;
 			}
 
 			kc_count ++ ;
 		}
 	}
-
-	XFreeModifiermap( mod_map) ;
-
 #ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " No meta key is found.\n") ;
+	kik_debug_printf( KIK_DEBUG_TAG " No meta key was found.\n") ;
 #endif
 
 	return  0 ;
@@ -2197,7 +2246,8 @@ window_realized(
 
 	screen = (x_screen_t*) win ;
 
-	screen->mod_meta_mask = get_mod_meta_mask( screen->window.display , screen->mod_meta_key) ;
+	screen->mod_meta_mask = get_mod_meta_mask( win, screen->mod_meta_key) ;
+	screen->mod_ignore_mask = get_mod_ignore_mask( win, NULL) ;
 
 	if( screen->xim_open_in_startup)
 	{
@@ -2431,6 +2481,18 @@ window_deleted(
 }
 
 static void
+mapping_notify(
+	x_window_t *  win
+	)
+{
+	x_screen_t *  screen ;
+	screen = (x_screen_t*) win ;
+
+	screen->mod_meta_mask = get_mod_meta_mask( win, screen->mod_meta_key) ;
+	screen->mod_ignore_mask = get_mod_ignore_mask( win, NULL) ;
+}
+
+static void
 config_menu(
 	x_screen_t *  screen ,
 	int  x ,
@@ -2561,6 +2623,7 @@ key_pressed(
 	u_char  seq[KEY_BUF_SIZE] ;
 	KeySym  ksym ;
 	mkf_parser_t *  parser ;
+	u_int  masked_state ;
 
 	screen = (x_screen_t *) win ;
 
@@ -2585,20 +2648,21 @@ key_pressed(
 		kik_msg_printf( "\n") ;
 	}
 #endif
+	masked_state = event->state & screen->mod_ignore_mask ;
 
-	if( x_shortcut_match( screen->shortcut , XIM_OPEN , ksym , event->state))
+	if( x_shortcut_match( screen->shortcut , XIM_OPEN , ksym , masked_state))
 	{
 		x_xic_activate( &screen->window , "" , "") ;
 
 		return ;
 	}
-	else if( x_shortcut_match( screen->shortcut , XIM_CLOSE , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , XIM_CLOSE , ksym , masked_state))
 	{
 		x_xic_deactivate( &screen->window) ;
 
 		return ;
 	}
-	else if( x_shortcut_match( screen->shortcut , EXT_KBD , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , EXT_KBD , ksym , masked_state))
 	{
 		if( screen->kbd)
 		{
@@ -2627,7 +2691,7 @@ key_pressed(
 
 		return ;
 	}
-	else if( x_shortcut_match( screen->shortcut , OPEN_SCREEN , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , OPEN_SCREEN , ksym , masked_state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_screen))
 		{
@@ -2636,7 +2700,7 @@ key_pressed(
 
 		return ;
 	}
-	else if( x_shortcut_match( screen->shortcut , OPEN_PTY , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , OPEN_PTY , ksym , masked_state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_pty))
 		{
@@ -2646,7 +2710,7 @@ key_pressed(
 
 		return ;
 	}
-	else if( x_shortcut_match( screen->shortcut , NEXT_PTY , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , NEXT_PTY , ksym , masked_state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,next_pty))
 		{
@@ -2655,7 +2719,7 @@ key_pressed(
 
 		return ;
 	}
-	else if( x_shortcut_match( screen->shortcut , PREV_PTY , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , PREV_PTY , ksym , masked_state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,prev_pty))
 		{
@@ -2665,7 +2729,7 @@ key_pressed(
 		return ;
 	}
 #ifdef  DEBUG
-	else if( x_shortcut_match( screen->shortcut , EXIT_PROGRAM , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , EXIT_PROGRAM , ksym , masked_state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,exit))
 		{
@@ -2680,13 +2744,13 @@ key_pressed(
 	{
 		if( screen->use_extended_scroll_shortcut)
 		{
-			if( x_shortcut_match( screen->shortcut , SCROLL_UP , ksym , event->state))
+			if( x_shortcut_match( screen->shortcut , SCROLL_UP , ksym , masked_state))
 			{
 				bs_scroll_downward( screen) ;
 
 				return ;
 			}
-			else if( x_shortcut_match( screen->shortcut , SCROLL_DOWN , ksym , event->state))
+			else if( x_shortcut_match( screen->shortcut , SCROLL_DOWN , ksym , masked_state))
 			{
 				bs_scroll_upward( screen) ;
 
@@ -2720,13 +2784,13 @@ key_pressed(
 		#endif
 		}
 
-		if( x_shortcut_match( screen->shortcut , PAGE_UP , ksym , event->state))
+		if( x_shortcut_match( screen->shortcut , PAGE_UP , ksym , masked_state))
 		{
 			bs_half_page_downward( screen) ;
 
 			return ;
 		}
-		else if( x_shortcut_match( screen->shortcut , PAGE_DOWN , ksym , event->state))
+		else if( x_shortcut_match( screen->shortcut , PAGE_DOWN , ksym , masked_state))
 		{
 			bs_half_page_upward( screen) ;
 
@@ -2749,17 +2813,17 @@ key_pressed(
 	}
 
 	if( screen->use_extended_scroll_shortcut &&
-		x_shortcut_match( screen->shortcut , SCROLL_UP , ksym , event->state))
+		x_shortcut_match( screen->shortcut , SCROLL_UP , ksym , masked_state))
 	{
 		enter_backscroll_mode( screen) ;
 		bs_scroll_downward( screen) ;
 	}
-	else if( x_shortcut_match( screen->shortcut , PAGE_UP , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , PAGE_UP , ksym , masked_state))
 	{
 		enter_backscroll_mode( screen) ;
 		bs_half_page_downward( screen) ;
 	}
-	else if( x_shortcut_match( screen->shortcut , INSERT_SELECTION , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , INSERT_SELECTION , ksym , masked_state))
 	{
 		yank_event_received( screen , CurrentTime) ;
 	}
@@ -2837,7 +2901,7 @@ key_pressed(
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE) ;
 		}
-		else if( ( buf = x_shortcut_str( screen->shortcut , ksym , event->state)))
+		else if( ( buf = x_shortcut_str( screen->shortcut , ksym , masked_state)))
 		{
 			if( strncmp( buf , "proto:" , 6) == 0)
 			{
@@ -4423,7 +4487,7 @@ change_mod_meta_key(
 		screen->mod_meta_key = strdup( key) ;
 	}
 
-	screen->mod_meta_mask = get_mod_meta_mask( screen->window.display , screen->mod_meta_key) ;
+	screen->mod_meta_mask = get_mod_meta_mask( &(screen->window) , screen->mod_meta_key) ;
 }
 
 static void
@@ -6630,6 +6694,7 @@ x_screen_new(
 	screen->window.xct_selection_notified = xct_selection_notified ;
 	screen->window.utf8_selection_notified = utf8_selection_notified ;
 	screen->window.window_deleted = window_deleted ;
+	screen->window.mapping_notify = mapping_notify ;
 #ifndef  DISABLE_XDND
 	screen->window.set_xdnd_config = set_xdnd_config ;
 #endif
@@ -6664,6 +6729,7 @@ x_screen_new(
 	}
 	screen->mod_meta_mode = mod_meta_mode ;
 	screen->mod_meta_mask = 0 ;		/* set later in get_mod_meta_mask() */
+	screen->mod_ignore_mask = ~0 ;		/* set later in get_mod_ignore_mask() */
 
 	screen->bel_mode = bel_mode ;
 
