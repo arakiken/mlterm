@@ -1,4 +1,7 @@
 [20020215]
+* cleanup
+
+[20020215]
 * ImlibData is created and managed for each Display.
 * exsiting test of socklen_t fails because of my typo. fixed. (Thanks to Sakamoto Hironori san)
 
