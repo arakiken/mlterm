@@ -33,22 +33,18 @@ proper encoding.
 Note that \fIbool\fR is to be substituted by \fBtrue\fR or \fBfalse\fR.
 .TP
 \fB\-A\fR, \fB\-\-aa\fR(=\fIbool\fR)
-Use anti-aliased fonts by using Xft.  The default is \fBfalse\fR.
-Note that if \fBmlterm\fR encoding is not a subset of Unicode
-like ISO-2022-JP-2 or EUC-TW, characters which are regarded as
-a same character in Unicode are displayed with the same glyph and
-you cannot distinguish these characters.  This is because Xft
-library which is used for anti-alias font rendering is based on
-Unicode.
+Use anti-aliased fonts. This option works only with Xft for now.
+The default is \fBfalse\fR.
 .TP
 \fB\-B\fR, \fB\-\-sbbg\fR=\fIcolor\fR
 Specify background color of the scrollbar.
-Valid values for \fIcolor\fR are color names defined in rgb.txt and "\fBcolor\fR" 
-configuration file and color rgb string whose format is "#RRGGBB".
+A valid value for \fIcolor\fR is a color name or a RGB value.
+The color name should be defined in rgb.txt or "\fBcolor\fR" configuration file.
+The RGB value's format should be "#RRGGBB".
 .TP
 \fB\-C\fR, \fB\-\-iscii\fR=\fIlanguage\fR
 Specify a language to be used in ISCII encoding.
-Valid names of \fIlanguage\fR are
+Valid names for \fIlanguage\fR are
 \fBAssamese\fR,
 \fBBengali\fR, 
 \fBGujarati\fR, 
@@ -63,13 +59,13 @@ Valid names of \fIlanguage\fR are
 Please read documents of libind for detail.
 .TP
 \fB\-D\fR, \fB\-\-bi\fR(=\fIbool\fR)
-Use BiDi (bi-direction) rendering on UTF8 encoding
+Use BiDi (bi-directional) rendering on UTF8 encoding
 to support RTL (right-to-left) languages such as
 Arabic and Hebrew.  The default is \fBtrue\fR.
 .TP
 \fB\-E\fR, \fB\-\-km\fR=\fIencoding\fR
 Specify encoding.
-Valid encodings were shown in \fBDESCRIPTION\fR section
+Valid encodings are listed in \fBDESCRIPTION\fR section
 above in this man page.
 \fBAUTO\fR means that encoding is determined properly
 by using locale information (default \fBAUTO\fR).
@@ -89,33 +85,30 @@ Brightness of background image in percent.
 You can specify values either above 100 (lightening) or
 below 100 (darkening).
 See \fB\-p\fR option for detail of background image.
-The default is \fB100\fR.
+The default is \fB100\fR (keep original).
 .TP
 \fB\-I\fR, \fB\-\-icon\fR=\fIname\fR
-Specify icon name.
+Specify a name to be used for mlterm's icon.
 The default is "\fBmlterm\fR".
 .TP
 \fB\-J\fR, \fB\-\-dyncomb\fR(=\fIbool\fR)
 Enable dynamic character combining.
-Dynamic combining means that combining characters are processed
-as if they are not combining characters and that they are combined
-only when they are displayed.  This affects calculation of column
-position, i.e., a pair of base character and combining character
+Dynamic combining means that combining characters are stored
+without combining but they are displayed using combined form.
+This affects calculation of column position,
+i.e., a pair of base character and combining character
 is counted to be two columns in this mode, while it is counted
-to be one column in the normal mode.  This treatment establishes
-one-to-one correspondence between (logical) column and character
+to be one column in the normal mode.  Under this option, 
+a (logical) column number and a character one-to-one correspondence.
 even for combining characters (though not for fullwidth characters;
-see \fB\-Z\fR/\fB\-\-multicol\fR option for fullwidth characters).
+see \fB\-Z\fR/\fB\-\-multicol\fR option for handling of fullwidth characters).
 Thus, this mode enables you to use combining characters with
 softwares which do not support combining characters.
-When specifying this option, please do not forget to 
-enable  \fB\-m\fR/\fB\-\-comb\fR option together.
+When specifying this option, \fB\-m\fR/\fB\-\-comb\fR option should be used together.
 The default is \fBfalse\fR.
-
-See \fBMULTIPLE PTY\fR section for detail.
 .TP
 \fB\-K\fR, \fB\-\-metakey\fR=\fIvalue\fR
-Specify a key to be regarded as META.
+Specify a key to be regarded as a META key.
 Valid \fIvalue\fRs are: \fBalt\fR, \fBmeta\fR, \fBhyper\fR,
 \fBsuper\fR, \fBmod1\fR, \fBmod2\fR, \fBmod3\fR, \fBmod4\fR,
 and \fBnone\fR.   The default is \fBnone\fR.
@@ -126,8 +119,10 @@ See \fB\-k\fR option also.
 Whether to use login shell or not.  The default is \fBfalse\fR.
 .TP
 \fB\-M\fR, \fB\-\-menu\fR=\fIpath\fR
-Specify path name for the GUI configurator command.
-The default depends on compilation or "\fB/usr/local/libexec/mlconfig\fR".
+Specify path name of the GUI configurator command.
+The default varies depending on compile-time options.
+By default, the path should be "\fB/usr/local/libexec/mlconfig\fR".
+
 See \fBGUI CONFIGURATOR\fR section for detail.
 .TP
 \fB\-N\fR, \fB\-\-name\fR=\fIname\fR
@@ -135,20 +130,22 @@ Specify application name.
 The default is "\fBmlterm\fR".
 .TP
 \fB\-O\fR, \fB\-\-sbmod\fR=\fIvalue\fR
-Specify scrollbar position.
+Specify the side to show a scrollbar.
 \fBleft\fR for left side and \fBright\fR for right side.
 The default is \fBnone\fR which turns off scrollbar.
 .TP
 \fB\-P\fR, \fB\-\-ptys\fR=\fIvalue\fR
-Specify number of ptys (sessions) to be used in start up.
+Specify number of ptys (sessions) to be opened at start up.
 The default is \fB1\fR.
-These sessions share one screen and can be switched using
-the GUI Configurator, while \fB\-@\fR/\fB\-\-screens\fR
-option opens one window for each session.
+If multiple sessions were started, they share one screen(window)
+and can be switched using the GUI Configurator.
+To open a window foe each session, use \fB\-@\fR/\fB\-\-screens\fR
+option instead.
+
 See \fBMULTIPLE PTY\fR section for detail.
 .TP
 \fB\-Q\fR, \fB\-\-vcur\fR(=\fIbool\fR)
-Use cursor movement natural for vertical writing.
+Interpret cursor key to be natural on vertical writing.
 This means that up and down arrow keys are treated as
 backward (left arrow in horizontal LTR) and forward
 (right arrow in horizontal LTR), respectively.
@@ -167,15 +164,15 @@ You cannot choose font sizes in GUI configurator against
 this range.
 .TP
 \fB\-S\fR, \fB\-\-sbview\fR=\fIname\fR
-Specify name of scrollbar.  See \fBSCROLLBAR\fR section below
+Select a scrollbar.  See \fBSCROLLBAR\fR section below
 for detail.  The default is "\fBsimple\fR" which means the
-built-in simple scrollbar.  Scrollbars are supplied as libraries
-and this version of \fBmlterm\fR contains following scrollbar libraries:
+built-in simple scrollbar.  Scrollbars can be supplied as external libraries
+and this version of \fBmlterm\fR shipped with following scrollbar libraries:
 "\fBsample\fR", "\fBsample2\fR", "\fBsample3\fR", "\fBathena\fR", "\fBmotif\fR",
 "\fBmozmodern\fR", and "\fBnext\fR".
 .TP
 \fB\-T\fR, \fB\-\-title\fR=\fIname\fR
-Specify title name.
+Specify a window's title name.
 The default is "\fBmlterm\fR".
 .TP
 \fB\-U\fR, \fB\-\-viaucs\fR(=\fIbool\fR)
@@ -205,7 +202,7 @@ This overrides DEC_SPECIAL in "font" configuration file.
 The default is \fBfalse\fR.
 .TP
 \fB\-Z\fR, \fB\-\-multicol\fR(=\fIbool\fR)
-Treat fullwidth characters (east Asicn characters in most cases;
+Treat fullwidth characters (east Asian characters in most cases;
 which occupies two columns on the screen) as they occupy two logical
 columns.  This is same as the de-facto standard handling of
 fullwidth characters in east Asian terminal emulators such as
@@ -224,7 +221,7 @@ configuration file and color rgb string whose format is "#RRGGBB".
 Specify actual window width, by percentage against 
 calculated value by multiplying font width by column number.
 This is useful when you use a proportional font which includes
-some glyphs with excepsionally large width, i.e., much
+some glyphs with exceptionally large width, i.e., much
 larger "maximum width" than your expectation.
 The default is \fB100\fR.
 .TP
@@ -244,7 +241,7 @@ See \fB\-p\fR option for detail of background image.
 The default is \fB100\fR.
 .TP
 \fB\-5\fR, \fB\-\-big5bug\fR(=\fIbool\fR)
-Support Big5 CTEXT bugs (which exist in XFree86 4.1.0 or before).
+Enable a workaround for Big5 CTEXT bugs (which had been existed until XFree86 4.1.0).
 This affects Big5 selections (i.e., copy-and-paste strings) in
 COMPOUND_TEXT format which \fBmlterm\fR sends.
 The default is \fBfalse\fR.
@@ -276,7 +273,7 @@ not be able to resize the window. You probably want to use \fB\-\-geometry\fR
 as well.
 The default is \fBfalse\fR.
 .TP
-\fB\-@\fR, \fB\-\-screenss\fR=\fIvalue\fR
+\fB\-@\fR, \fB\-\-screens\fR=\fIvalue\fR
 Specify number of screens (sessions) to be used in start up.
 The default is \fB1\fR.
 Even when a part of these screens are closed, sessions which
@@ -288,7 +285,7 @@ See \fBMULTIPLE PTY\fR section for detail.
 Specify the rendering engine to be used to draw fonts.
 \fBxcore\fR is conventional X11 core font mechanism and \fBxft\fR
 means Xft mechanism.
-The default is \fBxcore\fR.  
+The default is \fBxcore\fR. 
 .TP
 \fB\-a\fR, \fB\-\-ac\fR=\fIvalue\fR
 Specify number of columns of Unicode characters with
@@ -363,7 +360,7 @@ The default is \fBnone\fR.
 .TP
 \fB\-k\fR, \fB\-\-meta\fR=\fImode\fR
 Behavior of META key.  \fBesc\fR for sending ESC
-and \fBnone\fR for ignoreing META key.
+and \fBnone\fR for ignoring META key.
 The default is \fB8bit\fR which sets the most significant bit.
 
 See \fB\-K\fR option also.
@@ -397,7 +394,7 @@ Note that wallpaper cannot be used with transparent background.
 Enable extended keys for backscroll mode.
 The default is \fBfalse\fR.
 Extended scroll keys are
-\fBSCROLL_UP\fR, up arrow, and "k" (for scrolling one line backword) and
+\fBSCROLL_UP\fR, up arrow, and "k" (for scrolling one line backward) and
 \fBSCROLL_DOWN\fR, down arrow, and "j" (for scrolling one line forward).
 Please note that concrete keys for symbols of
 \fBSCROLL_UP\fR and \fBSCROLL_DOWN\fR are specified in 
@@ -451,7 +448,7 @@ If your system doesn't have any terminfo/termcap entries
 which fits the behavior of \fBmlterm\fR or if you want to
 use specific value of \fBTERM\fR which doesn't fit the
 behavior of \fBmlterm\fR, you may want to edit the \fBtermcap\fR
-file to configurate the behavior of \fBmlterm\fR.
+file to configure the behavior of \fBmlterm\fR.
 Please consult the chapter of \fBCONFIGURATION\fR for detail.
 The default is \fBxterm\fR.
 .TP
@@ -665,7 +662,7 @@ Other configurations are located in this page.
 Tab size
 Column number of tab. (\fB\-x\fR, \fB\-\-tw\fR) 
 .TP
-Backog size
+Backlog size
 Number of lines of backlog. (\fB\-l\fR, \fB\-\-sl\fR) 
 .TP
 Meta key outputs
@@ -1292,13 +1289,15 @@ You can search spellings of \fIKEY\fR by using \fBxev\fR(1)
 command or searching keysym macros from
 \fB/usr/X11R6/include/X11/keysymdefs.h\fR (or the equivalent
 file in your X11 include directory) and omit the prefix \fBXK_\fR.
-Double quatation maks are not needed.
+Double quotation marks are not needed.
 .PP
 \fIFEATURE\fR is one of \fBIM_HOTKEY\fR,
 \fBEXT_KBD\fR,
 \fBOPEN_SCREEN\fR,
 \fBNEW_PTY\fR,
 \fBOPEN_PTY\fR,
+\fBNEXT_PTY\fR,
+\fBPREV_PTY\fR,
 \fBPAGE_UP\fR,
 \fBPAGE_DOWN\fR,
 \fBSCROLL_UP\fR,
@@ -1308,37 +1307,43 @@ Double quatation maks are not needed.
 or \fB"proto:\fISTRING\fB"\fR.
 .TP
 \fBIM_HOTKEY\fR
-Switch conversion mode of m17n library and kdb input methods
+Switch conversion mode of m17n library and kdb input methods. (default \fBUNUSED\fR)
 .TP
 \fBEXT_KBD\fR
 Activate or deactivate kbd input method.
-(This feature is obsolete. IM_HOTKEY is recommended now.)
+(This feature was obsoleted by IM_HOTKEY)
 .TP
 \fBOPEN_SCREEN\fR
-Open new pty in new screen (default \fBCtrl+F1\fR)
+Open new pty in new screen (default \fBCtrl+F1\fR).
 .TP
 \fBNEW_PTY\fR
-Same as OPEN_SCREEN (obsoleted)
+Same as OPEN_SCREEN (obsoleted).
 .TP
 \fBOPEN_PTY\fR
-Open new pty in current screen (default \fBUNUSED\fR)
+Open new pty in current screen (default \fBCtrl+F2\fR).
+.TP
+\fBNEXT_PTY\fR
+Switch to a next free pty (default \fBCtrl+F3\fR).
+.TP
+\fBPREV_PTY\fR
+Switch to a previous free pty (default \fBCtrl+F4\fR).
 .TP
 \fBPAGE_UP\fR
 Start backscroll mode and scroll up one page
-(default \fBShift+prior\fR).
+(default \fBShift+Prior\fR).
 .TP
 \fBPAGE_DOWN\fR
 Scroll down one page.
-(default \fBShift+next\fR).
+(default \fBShift+Next\fR).
 .TP
 \fBSCROLL_UP\fR
-Start backscroll mode and scroll up one line
-(default \fBShift+up\fR).  Note this key is enabled only when
+Start backscroll mode and scroll up by one line
+(default \fBShift+Up\fR).  Note this key is enabled only when
 \fB\-q\fR/\fB\-\-extkey\fR option is used.
 .TP
 \fBSCROLL_DOWN\fR
 Scroll down one line
-(default \fBShift+down\fR).  Note this key is enabled only when
+(default \fBShift+Down\fR).  Note this key is enabled only when
 \fB\-q\fR/\fB\-\-extkey\fR option is used.
 .TP
 \fBINSERT_SELECTION\fR
@@ -1346,33 +1351,32 @@ Insert selection (default \fBShift+Insert\fR).
 .TP
 \fB"\fISTRING\fB"\fR
 The specified string is issued when the \fIKEY\fR key is pressed.
-Double quatation marks are required around the \fISTRING\fR.
-Note that you usually cannot control the status of the terminal by
-writing terminal control codes such as \fB"\\x1b]5379;encoding=utf8\\x0a"\fR
-because this behaves just as if you type the string on your shell.
-In such a case, please use the following \fB"proto:\fISTRING\fB"\fR
+Double quotation marks are required around the \fISTRING\fR.
+Note that you cannot control the status of mlterm by
+sending terminal control codes such as \fB"\\x1b]5379;encoding=utf8\\x0a"\fR
+because the code sequence will be caught by your shell (or something running on it).
+To deliver control sequences to mlterm directly, use \fB"proto:\fISTRING\fB"\fR
 instead.
 .TP
 \fB"proto:\fISTRING\fB"\fR
 The specified string is assumed to \fBmlterm\fR's original control
-sequence.  The sequence is described in \fBdoc/en/PROTOCOL\fR file of
-\fBmlterm\fR distribution.  For example, \fB"proto:encoding=utf8"\fR
+sequence. A list of sequences should be found in \fBdoc/en/PROTOCOL\fR.
+For example, \fB"proto:encoding=utf8"\fR
 means changing the current character encoding to UTF-8.
 .\" ******************************************************
 .SS Terminal Behavior Configuration File
 This configuration file determines the behaviors of \fBmlterm\fR
-which affect the definition of terminfo and termcap.  In principle,
-this file should not be edited and, instead, you should use a
-proper value of \fBTERM\fR variable (i.e., proper terminfo/termcap
-definition) which meets \fBmterml\fR's behavior.
-(Since \fBmlterm\fR's behavior is generally similar to kterm,
-\fBTERM=kterm\fR will be usually OK.)
-However, there are some reasons why you may want not to edit
-your terminfo and termcap, for example, when you use some
-softwares which don't consult terminfo and termcap database
-and do consult \fBTERM\fR variable,
-when one terminfo/termcap entry is shared by several terminal
-emulators, and so on.  In such cases, you can configure \fBmlterm\fR
+that should match the definition of terminfo and termcap.  In principle,
+this file should not be edited and, instead, you should choose a
+proper value for \fBTERM\fR variable (i.e., proper terminfo/termcap
+definition) which meets \fBmlterm\fR's behavior.
+(Since \fBmlterm\fR' can behave as a xterm/kterm to some extent,
+\fBTERM=kterm\fR / \fBTERM=xterm\fR should give acceptable results.)
+However, sometimes you may not want to edit your terminfo and termcap.
+Your software may don't understand terminfo nor termcap, or your
+terminfo/termcap entry is shared by several terminal emulators
+and changing it will break other terminals.
+In such cases, you can configure \fBmlterm\fR
 so that it works well on existing terminfo/termcap definitions
 on your systems.  This is also useful for distributors of
 operating systems (like Debian) with strict policy of terminal
@@ -1385,9 +1389,9 @@ value of \fBTERM\fR variable by \fB\-y\fR option.  You can also specify
 the default behavior when \fBTERM\fR variable is different from all
 of specified TERM names in the \fBtermcap\fR file.
 .PP
-The grammer of this configuration file is resemble to the grammer
+The grammar of this configuration file is resemble to the grammar
 of termcap entries.  First, one or more name(s) of TERM is written.
-Multiple names are connected with virtical line character '|'.
+Multiple names are connected with vertical line character '|'.
 Special name '*' is for default.
 Then colon ':' comes, and keys are written separated by colons.
 Configuration(s) for other TERM will follow after new line.
@@ -1480,3 +1484,5 @@ GUI configurator.
 .SH CONTACT
 Subscribe mlterm-dev-en ML
 (http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en).
+
+\"  LocalWords:  stbs backscroll bel crfg mc

@@ -1,3 +1,8 @@
+2005-02-04 MINAMI Hirokazu <minami@mistfall.net>
+
+	* man/mlterm.1: added description for PREV/NEXT_PTY. 
+	(SF#1110868. Thanks to John Foerch)
+
 2005-02-03 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* mlterm/ml_edit.c (ml_edit_go_back),
