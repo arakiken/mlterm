@@ -2728,14 +2728,26 @@ x_window_set_icon(
 		hints = XAllocWMHints() ;
 	}
 	if (!hints){ /* can be NULL*/
-		XFreePixmap( win->display, icon) ;
-		XFreePixmap( win->display, mask) ;
+		if( icon)
+		{
+			XFreePixmap( win->display, icon) ;
+		}
+		if( mask)
+		{
+			XFreePixmap( win->display, mask) ;
+		}
 		return 0 ;
 	}
-	hints->flags |= IconPixmapHint ;
-	hints->flags |= IconMaskHint ;
-	hints->icon_mask = mask ;
-	hints->icon_pixmap = icon ;
+	if( icon)
+	{
+		hints->flags |= IconPixmapHint ;
+		hints->icon_pixmap = icon ;
+	}
+	if( mask)
+	{
+		hints->flags |= IconMaskHint ;
+		hints->icon_mask = mask ;
+	}
 	
 	XSetWMHints( win->display, win->my_window, hints) ;
 	XFree( hints) ;
