@@ -1,3 +1,7 @@
+2002-05-05 MINAMI Hirokazu <minami@chem.s.u-tokyo.ac.jp>
+
+	* dithering support for PseudoColor (src/ml_picture_gdk.c). 
+
 2002-05-04 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Added a mechanism to find the closest color when visual class is

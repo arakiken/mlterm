@@ -7,7 +7,7 @@
 #endif
 
 #include <X11/Xatom.h>
-#include <gdk-pixbuf/gdk-pixbuf.h>
+#include <gdk-pixbuf/gdk-pixbuf-xlib.h>
 #include <kiklib/kik_unistd.h>
 
 #include "ml_picture_dep.h"
@@ -139,7 +139,7 @@ ml_picdep_load_file( ml_window_t *  win ,
 					    0 , 0 , /* dest */
 					    ACTUAL_WIDTH(win) ,
 					    ACTUAL_HEIGHT(win) ,
-					    0 , /* Dither */
+					    XLIB_RGB_DITHER_NORMAL , /* Dither */
 					    0 , 0 /* dither x,y */
 		) ;
 	XFreeGC( win->display , gc );
@@ -288,9 +288,8 @@ found:
 					    pix_x , pix_y , /* dest */
 					    width ,
 					    height ,
-					    0 , /* Dither */
-					    0 , 0 /* dither x,y */
-		) ;
+					    XLIB_RGB_DITHER_NORMAL,
+					    0 , 0 /* dither x,y */ ) ;
 	XFreeGC( win->display , gc );
 	gdk_pixbuf_unref( img ) ;
 
@@ -423,7 +422,8 @@ ml_picdep_load_background(
 					    0 , 0 , pix_x , pix_y ,
 					    ACTUAL_WIDTH(win) ,
 					    ACTUAL_HEIGHT(win) ,
-					    0 , 0 , 0) ;
+					    XLIB_RGB_DITHER_NORMAL,
+					    0 , 0) ;
 
 	gdk_pixbuf_unref( img) ;
 
