@@ -1,0 +1,58 @@
+top_builddir = ../../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libexecdir = @libexecdir@
+sysconfdir = @sysconfdir@
+datadir = @datadir@
+
+VPATH = ${top_srcdir}/contrib/tool/mlterm-menu
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+DESTDIR =
+LIBEXECDIR = $(DESTDIR)$(libexecdir)
+SYSCONFDIR = $(DESTDIR)$(sysconfdir)
+
+LKIK = @KIK_LIBS@
+
+GTK_CONFIG=@GTK_CONFIG@
+CFLAGS = `$(GTK_CONFIG) --cflags` $(CFLAGS_LOCAL) \
+	@KIK_CFLAGS@ @CFLAGS@ \
+	-DSYSCONFDIR=\"$(SYSCONFDIR)\"
+LIBS = `$(GTK_CONFIG) --libs` $(LIBS_LOCAL) $(LKIK)
+
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
+OBJS = mlterm-menu.o
+
+LKIK_DEB=-lkik_deb
+
+all: mlterm-menu
+
+debug:
+	$(MAKE) LKIK="$(LKIK_DEB)" all
+
+mlterm-menu: $(OBJS)
+	$(LIBTOOL_LINK) $(OBJS) $(CFLAGS) -o mlterm-menu $(LIBS)
+
+.c.o:
+	$(CC) $(DEFS) $(CFLAGS) -c $<
+
+install: $(LIBEXECDIR)
+	$(LIBTOOL_INSTALL) -m 755 mlterm-menu $(LIBEXECDIR)
+
+$(LIBEXECDIR):
+	mkdir -p $(LIBEXECDIR)
+
+clean:
+	rm -rf $(OBJS) mlterm-menu *.core .libs
+
+distclean: clean
+	rm -f Makefile
