@@ -3,8 +3,9 @@ comment $Id$
 
 How to debug mlterm?
 
-If you find something strange and try to send me a report, please
-send log message by --logseq option to mlterm-dev-en list.
+If you find something strange and try to send me a report,
+please send log messages by --logseq option (which are outputed
+to ~/.mlterm/[device].log files) to mlterm-dev-en list.
 
 Following options can be more helpful.
 

@@ -122,21 +122,32 @@ ml_model_resize(
 	
 	copy_len = K_MIN(num_of_cols , model->num_of_cols) ;
 
-	for( count = model->num_of_rows - 1 ; count >= 0 ; count --)
+	count = model->num_of_rows - 1 ;
+	while( 1)
 	{
+		if( count < 0)
+		{
+			/* All lines are empty, which is impossible. */
+			
+			return  0 ;
+		}
 	#if  0
 		/*
 		 * This is problematic, since the value of 'slide' can be incorrect when
 		 * cursor is located at the line which contains white spaces alone.
 		 */
-		if( ml_get_num_of_filled_chars_except_spaces( ml_model_get_line( model , count)) > 0)
+		else if( ml_get_num_of_filled_chars_except_spaces( ml_model_get_line( model , count)) > 0)
 	#else
-		if( ! ml_line_is_empty( ml_model_get_line( model , count)))
+		else if( ! ml_line_is_empty( ml_model_get_line( model , count)))
 	#endif
 		{
 			filled_rows = count + 1 ;
 			
 			break ;
+		}
+		else
+		{
+			count -- ;
 		}
 	}
 

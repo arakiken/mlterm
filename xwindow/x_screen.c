@@ -3544,7 +3544,6 @@ selecting_with_motion(
 	u_int  x_rest ;
 	ml_line_t *  line ;
 
-	x_is_outside = 0 ;
 	if( x < 0)
 	{
 		x = 0 ;
@@ -3554,6 +3553,10 @@ selecting_with_motion(
 	{
 		x = screen->window.width ;
 		x_is_outside = 1 ;
+	}
+	else
+	{
+		x_is_outside = 0 ;
 	}
 	
 	if( y < 0)
@@ -3592,6 +3595,11 @@ selecting_with_motion(
 	}
 	
 	char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
+
+	if( x_rest > 0)
+	{
+		x_is_outside = 1 ;
+	}
 
 	if( ml_line_is_rtl( line))
 	{

@@ -446,6 +446,9 @@ comment $Id$
       o static_backscroll_mode (true/*false*)
         バックスクロール時に端末出力があっても画面が流れないようにする。
 
+      o logging_vt_seq (true/*false*)
+        pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
+
     o font/vfont/aafont/vaafont/tfont/taafont
       o DEC_SPECIAL        ... 罫線文字用のフォント
       o ISO8859_N          ... ISO8859_Nフォント
@@ -693,6 +696,7 @@ comment $Id$
     -v/--version(=bool) : バージョン情報(あまり信用できない:D) (X)
    
     -#/--initstr=value : pty をオープンしたときに、端末に送られる初期化文字列
+    -%/--logseq        : pty から流れてくる VT sequence を記録する
     -$/--mc=value      : ダブルクリックの間隔(ミリ秒)
     -0/--crbg=value    : カーソルの背景色
     -1/--wscr=value    : 実スクリーンの横幅

@@ -1,3 +1,8 @@
+2003-07-14  Araki Ken  <arakiken@users.sf.net>
+
+	* The end characters of lines in backward-scrolled area couldn't
+	  be selected. Fixed.
+
 2003-07-13  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* Aedded "lang" and "country" into map_ucs4_to_func_table struct instead
