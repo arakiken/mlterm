@@ -411,6 +411,7 @@ show(
 	{
 		return  0 ;
 	}
+	gtk_widget_show( use_aa_check) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , use_aa_check , TRUE , TRUE , 0) ;
 	
 	if( ! ( use_vcol_check = mc_check_config_widget_new(
@@ -418,6 +419,7 @@ show(
 	{
 		return  0 ;
 	}
+	gtk_widget_show( use_vcol_check) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , use_vcol_check , TRUE , TRUE , 0) ;
 	
 #ifndef ANTI_ALIAS
