@@ -1,5 +1,9 @@
 [20020225]
 * -e option fails on Linux etc. fixed.
+* 2.3.1 released.
+
+[20020223]
+* 2.3.0 released.
 
 [20020222]
 * scroll fails ?
