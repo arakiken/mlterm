@@ -235,10 +235,11 @@ draw_scrollbar(
 	unsigned int  bar_height
 	)
 {
-	/* drawing bar */
-	XClearArea( view->display , view->window , 1 , TOP_MARGIN , WIDTH - 1 ,
+	XClearArea( view->display , view->window , 0 , TOP_MARGIN , WIDTH ,
 		view->height - HEIGHT_MARGIN , 0) ;
 
+	/* drawing bar */
+	
 	/* left side shade */
 	XSetForeground( view->display , gc_intern , WhitePixel( view->display , view->screen)) ;
 	XDrawLine( view->display , view->window , gc_intern ,

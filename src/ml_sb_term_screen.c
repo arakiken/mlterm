@@ -84,6 +84,21 @@ child_window_resized(
 }
 
 static void
+window_exposed(
+	ml_window_t *  win ,
+	int  x ,
+	int  y ,
+	u_int  width ,
+	u_int  height
+	)
+{
+	/*
+	 * x/y/width/height are the length without margin.
+	 */
+	ml_window_fill( win , x , y - win->margin , width , height + win->margin * 2) ;
+}
+
+static void
 key_pressed(
 	ml_window_t *  win ,
 	XKeyEvent *  event
@@ -349,7 +364,7 @@ ml_sb_term_screen_new(
 	}
 
 	/* seperator color of ml_scrollbar_t and ml_term_screen_t */
-	ml_window_set_bg_color( &sb_termscr->window , MLC_BLACK) ;
+	ml_window_set_fg_color( &sb_termscr->window , MLC_BLACK) ;
 
 	/*
 	 * event call backs.
@@ -358,6 +373,7 @@ ml_sb_term_screen_new(
 	sb_termscr->window.window_finalized = window_finalized ;
 	sb_termscr->window.window_resized = window_resized ;
 	sb_termscr->window.child_window_resized = child_window_resized ;
+	sb_termscr->window.window_exposed = window_exposed ;
 	sb_termscr->window.key_pressed = key_pressed ;
 	sb_termscr->window.window_deleted = window_deleted ;
 
