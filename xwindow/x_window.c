@@ -1336,11 +1336,10 @@ x_window_set_override_redirect(
 	)
 {
 	x_window_t *  root ;
-
-	root = x_get_root_window(win) ;
-
 	XSetWindowAttributes  s_attr ;
 	XWindowAttributes  g_attr ;
+
+	root = x_get_root_window(win) ;
 
 	XGetWindowAttributes( root->display , root->my_window , &g_attr) ;
 	if( flag)
@@ -1365,6 +1364,8 @@ x_window_set_override_redirect(
 		XUnmapWindow( root->display , root->my_window) ;
 		XMapWindow( root->display , root->my_window) ;
 	}
+
+	return  1 ;
 }
 
 int
@@ -2042,7 +2043,9 @@ x_window_receive_event(
 	{
 		Atom  xa_utf8_string ;
 		Atom  xa_compound_text ;
+	#ifdef  DEBUG
 		Atom  xa_multiple ;
+	#endif
 		Atom  xa_targets ;
 		Atom  xa_text ;
 

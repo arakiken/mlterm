@@ -1,3 +1,7 @@
+2004-06-27  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window.c: Fixed a failure of compilation.
+
 2004-06-21 Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* tool/mlconfig/mc_im.c (uim_read_conf): Renamed to ...
