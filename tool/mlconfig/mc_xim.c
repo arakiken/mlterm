@@ -9,10 +9,12 @@
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_map.h>
 #include  <kiklib/kik_str.h>	/* strdup */
+#include  <kiklib/kik_mem.h>	/* alloca */
 #include  <glib.h>
 #include  <c_intl.h>
 
 #include  "mc_combo.h"
+#include  "mc_io.h"
 
 
 #if  0
@@ -35,11 +37,11 @@ static char **  xims ;
 static char **  locales ;
 static u_int  num_of_xims ;
 
-static char *  selected_xim ;
-static char *  selected_locale ;
+static char *  new_xim ;
+static char *  old_xim ;
+static char *  new_locale ;
+static char *  old_locale ;
 static char *  cur_locale ;
-static int  xim_is_changed ;
-static int  locale_is_changed ;
 
 
 /* --- static functions --- */
@@ -50,8 +52,7 @@ locale_changed(
 	gpointer  data
 	)
 {
-	selected_locale = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	locale_is_changed = 1 ;
+	new_locale = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
 	return  1 ;
 }
@@ -65,7 +66,7 @@ get_xim_locale(
 	
 	for( count = 0 ; count < num_of_xims ; count ++)
 	{
-		if( strcmp( xims[count] , selected_xim) == 0)
+		if( strcmp( xims[count] , new_xim) == 0)
 		{
 			return  locales[count] ;
 		}
@@ -84,12 +85,11 @@ xim_selected(
 
 	locale_entry = (GtkWidget*)data ;
 	
-	selected_xim = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	xim_is_changed = 1 ;
+	new_xim = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
-	if( ( selected_locale = get_xim_locale( selected_xim)))
+	if( ( new_locale = get_xim_locale( new_xim)))
 	{
-		gtk_entry_set_text(GTK_ENTRY(locale_entry) , selected_locale) ;
+		gtk_entry_set_text(GTK_ENTRY(locale_entry) , new_locale) ;
 
 		return  1 ;
 	}
@@ -148,10 +148,7 @@ read_conf(
 /* --- global functions --- */
 
 GtkWidget *
-mc_xim_config_widget_new(
-	char *  xim ,
-	char *  locale
-	)
+mc_xim_config_widget_new(void)
 {
 	char *  rcpath ;
 	KIK_MAP(xim_locale)  xim_locale_table ;
@@ -163,9 +160,10 @@ mc_xim_config_widget_new(
 	GtkWidget *  label ;
 	GtkWidget *  combo ;
 	GtkWidget *  entry ;
+
+	old_xim = new_xim = mc_get_str_value( "xim") ;
+	cur_locale = mc_get_str_value( "locale") ;
 	
-	cur_locale = strdup( locale) ;
-		
 	kik_map_new(char *, char *, xim_locale_table, kik_map_hash_str,
 		    kik_map_compare_str);
 
@@ -200,14 +198,13 @@ mc_xim_config_widget_new(
 
 	kik_map_delete(xim_locale_table);
 
-	selected_xim = xim;
-
-	if ((selected_locale = get_xim_locale(selected_xim)) == NULL) {
-	    selected_locale = cur_locale ;
+	if ((new_locale = get_xim_locale(new_xim)) == NULL) {
+	    new_locale = cur_locale ;
 	}
+	old_locale = new_locale ;
 
 	vbox = gtk_vbox_new(FALSE, 5);
-	
+
 	hbox = gtk_hbox_new(FALSE, 5);
 
 	label = gtk_label_new(_("XIM locale"));
@@ -217,13 +214,13 @@ mc_xim_config_widget_new(
 	entry = gtk_entry_new();
 	gtk_widget_show(entry);
 	gtk_box_pack_start(GTK_BOX(hbox), entry, TRUE, TRUE, 0);
-	gtk_entry_set_text(GTK_ENTRY(entry), selected_locale);
+	gtk_entry_set_text(GTK_ENTRY(entry), new_locale);
 
 	gtk_signal_connect(GTK_OBJECT(entry), "changed",
 			   GTK_SIGNAL_FUNC(locale_changed), NULL);
 
 	combo = mc_combo_new(_("X Input Method"), xims, num_of_xims,
-		selected_xim, 0, xim_selected, entry);
+		new_xim, 0, xim_selected, entry);
 	gtk_widget_show(combo);
 	gtk_box_pack_start(GTK_BOX(vbox), combo, TRUE, TRUE, 0);
 
@@ -233,42 +230,36 @@ mc_xim_config_widget_new(
 	return vbox;
 }
 
-char *
-mc_get_xim_name(void)
+void
+mc_update_xim(
+	int  save
+	)
 {
-	if( ! xim_is_changed)
-	{
-		return  NULL ;
-	}
-	
-	xim_is_changed = 0 ;
-	
-	if( strcmp( selected_xim , "") == 0)
-	{
-		return  "unused" ;
-	}
-	else
-	{
-		return  selected_xim ;
-	}
-}
+	char *  p ;
 
-char *
-mc_get_xim_locale(void)
-{
-	if( ! locale_is_changed)
+	if( strcmp( new_xim , "") == 0)
 	{
-		return  NULL ;
+		new_xim = "unused" ;
 	}
 	
-	locale_is_changed = 0 ;
-	
-	if( selected_locale == NULL || strcmp( selected_locale , "") == 0)
+	if( ( p = alloca( strlen( new_xim) + 1 + strlen( new_locale) + 1)) == NULL)
 	{
-		return  "NULL" ;
+		return ;
+	}
+
+	sprintf( p , "%s:%s" , new_xim , new_locale) ;
+
+	if( save)
+	{
+		mc_set_str_value( "xim" , p , save) ;
 	}
 	else
 	{
-		return  selected_locale ;
+		if( strcmp( new_xim , old_xim) != 0 || strcmp( new_locale , old_locale) != 0)
+		{
+			mc_set_str_value( "xim" , p , save) ;
+			old_xim = new_xim ;
+			old_locale = new_locale ;
+		}
 	}
 }

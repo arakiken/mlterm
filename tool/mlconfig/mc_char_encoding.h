@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_char_encoding_config_widget_new( char *  encoding) ;
+GtkWidget *  mc_char_encoding_config_widget_new(void) ;
 
-char *  mc_get_char_encoding(void) ;
+void  mc_update_char_encoding( int  save) ;
 
 
 #endif

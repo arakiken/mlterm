@@ -9,13 +9,13 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_screen_width_ratio_config_widget_new( char *  ratio) ;
+GtkWidget *  mc_screen_width_ratio_config_widget_new(void) ;
 
-GtkWidget *  mc_screen_height_ratio_config_widget_new( char *  ratio) ;
+GtkWidget *  mc_screen_height_ratio_config_widget_new(void) ;
 
-char *  mc_get_screen_width_ratio(void) ;
+void  mc_update_screen_width_ratio( int  save) ;
 
-char *  mc_get_screen_height_ratio(void) ;
+void  mc_update_screen_height_ratio( int  save) ;
 
 
 #endif

@@ -9,6 +9,8 @@
 #include  <c_intl.h>
 
 #include  "mc_combo.h"
+#include  "mc_io.h"
+
 
 #if  0
 #define  __DEBUG
@@ -17,8 +19,8 @@
 
 /* --- static variables --- */
 
-static char *  selected_encoding ;
-static int  is_changed ;
+static char *  new_encoding ;
+static char *  old_encoding ;
 
 static char *  encodings[] =
 {
@@ -72,58 +74,6 @@ static char *  encodings[] =
 	"ISO-2022-CN" ,
 } ;
 
-static char *  regularized_encodings[] =
-{
-	"ISO88591" ,
-	"ISO88592" ,
-	"ISO88593" ,
-	"ISO88594" ,
-	"ISO88595" ,
-	"ISO88596" ,
-	"ISO88597" ,
-	"ISO88598" ,
-	"ISO88599" ,
-	"ISO885910" ,
-	"ISO885911" ,
-	"ISO885913" ,
-	"ISO885914" ,
-	"ISO885915" ,
-	"ISO885916" ,
-	"TCVN5712" ,
-
-	"ISCII" ,
-	"VISCII" ,
-	"KOI8R" ,
-	"KOI8U" ,
-
-	"UTF8" ,
-
-	"EUCJP" ,
-	"EUCJISX0213" ,
-	"ISO2022JP" ,
-	"ISO2022JP2" ,
-	"ISO2022JP3" ,
-	"SJIS" ,
-	"SJISX0213" ,
-
-	"EUCKR" ,
-	"UHC" ,
-	"JOHAB" ,
-	"ISO2022KR" ,
-
-	"BIG5" ,
-	"EUCTW" ,
-
-	"BIG5HKSCS" ,
-
-	"EUCCN" ,
-	"GBK" ,
-	"GB18030" ,
-	"HZ" ,
-
-	"ISO2022CN" ,
-} ;
-
 
 /* --- static functions --- */
 
@@ -132,17 +82,14 @@ regularize(
 	char *  encoding
 	)
 {
-	int  count ;
-
-	for( count = 0 ; count < sizeof( encodings) / sizeof( encodings[0]) ; count ++)
+	if( strcmp( encoding , "ISO-8859-11 (TIS-620)") == 0)
 	{
-		if( strcmp( encodings[count] , encoding) == 0)
-		{
-			return  regularized_encodings[count] ;
-		}
+		return  "ISO-8859-11" ;
 	}
-
-	return  "UNKNOWN" ;
+	else
+	{
+		return  encoding ;
+	}
 }
 
 static char *
@@ -150,6 +97,58 @@ unregularize(
 	char *  encoding
 	)
 {
+	char *  regularized_encodings[] =
+	{
+		"ISO88591" ,
+		"ISO88592" ,
+		"ISO88593" ,
+		"ISO88594" ,
+		"ISO88595" ,
+		"ISO88596" ,
+		"ISO88597" ,
+		"ISO88598" ,
+		"ISO88599" ,
+		"ISO885910" ,
+		"ISO885911" ,
+		"ISO885913" ,
+		"ISO885914" ,
+		"ISO885915" ,
+		"ISO885916" ,
+		"TCVN5712" ,
+
+		"ISCII" ,
+		"VISCII" ,
+		"KOI8R" ,
+		"KOI8U" ,
+
+		"UTF8" ,
+
+		"EUCJP" ,
+		"EUCJISX0213" ,
+		"ISO2022JP" ,
+		"ISO2022JP2" ,
+		"ISO2022JP3" ,
+		"SJIS" ,
+		"SJISX0213" ,
+
+		"EUCKR" ,
+		"UHC" ,
+		"JOHAB" ,
+		"ISO2022KR" ,
+
+		"BIG5" ,
+		"EUCTW" ,
+
+		"BIG5HKSCS" ,
+
+		"EUCCN" ,
+		"GBK" ,
+		"GB18030" ,
+		"HZ" ,
+
+		"ISO2022CN" ,
+	} ;
+
 	int  count ;
 
 	for( count = 0 ; count < sizeof( regularized_encodings) / sizeof( regularized_encodings[0]) ;
@@ -170,11 +169,10 @@ encoding_selected(
 	gpointer  data
 	)
 {
-	selected_encoding = regularize( gtk_entry_get_text(GTK_ENTRY(widget))) ;
-	is_changed = 1 ;
+	new_encoding = regularize( gtk_entry_get_text(GTK_ENTRY(widget))) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s encoding is selected.\n" , selected_encoding) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s encoding is selected.\n" , new_encoding) ;
 #endif
 
 	return  1 ;
@@ -184,26 +182,40 @@ encoding_selected(
 /* -- global functions --- */
 
 GtkWidget *
-mc_char_encoding_config_widget_new(
-	char *  encoding
-	)
+mc_char_encoding_config_widget_new(void)
 {
-	selected_encoding = unregularize( encoding) ;
+	char *  encoding ;
+	GtkWidget *  widget ;
 
-	return  mc_combo_new(_("Encoding"), encodings,
-			     sizeof(encodings) / sizeof(encodings[0]),
-			     selected_encoding, 1, encoding_selected, NULL);
-}
+	encoding = unregularize( mc_get_str_value( "encoding")) ;
 
-char *
-mc_get_char_encoding(void)
-{
-	if( ! is_changed)
+	if( ( widget = mc_combo_new(_("Encoding"), encodings,
+			sizeof(encodings) / sizeof(encodings[0]),
+			encoding, 1, encoding_selected, NULL)) == NULL)
 	{
 		return  NULL ;
 	}
-	
-	is_changed = 0 ;
 
-	return  selected_encoding ;
+	new_encoding = old_encoding = regularize( encoding) ;
+
+	return  widget ;
+}
+
+void
+mc_update_char_encoding(
+	int  save
+	)
+{
+	if( save)
+	{
+		mc_set_str_value( "encoding" , new_encoding , save) ;
+	}
+	else
+	{
+		if( strcmp( new_encoding , old_encoding) != 0)
+		{
+			mc_set_str_value( "encoding" , new_encoding , save) ;
+			old_encoding = new_encoding ;
+		}
+	}
 }

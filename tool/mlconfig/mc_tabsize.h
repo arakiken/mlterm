@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_tabsize_config_widget_new( char *  tabsize) ;
+GtkWidget *  mc_tabsize_config_widget_new(void) ;
 
-char *  mc_get_tabsize(void) ;
+void  mc_update_tabsize( int  save) ;
 
 
 #endif

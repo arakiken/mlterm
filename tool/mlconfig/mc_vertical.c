@@ -8,6 +8,9 @@
 #include  <glib.h>
 #include  <c_intl.h>
 
+#include  "mc_io.h"
+
+
 #if  0
 #define  __DEBUG
 #endif
@@ -16,7 +19,7 @@
 /* --- static variables --- */
 
 static char *  new_vertical_mode ;
-static int  is_changed ;
+static char *  old_vertical_mode ;
 
 
 /* --- static functions --- */
@@ -30,7 +33,6 @@ button_none_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_vertical_mode = "none" ;
-		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -45,7 +47,6 @@ button_cjk_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_vertical_mode = "cjk" ;
-		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -60,7 +61,6 @@ button_mongol_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_vertical_mode = "mongol" ;
-		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -70,14 +70,15 @@ button_mongol_checked(
 /* --- global functions --- */
 
 GtkWidget *
-mc_vertical_config_widget_new(
-	char *  vertical_mode
-	)
+mc_vertical_config_widget_new(void)
 {
 	GtkWidget *  label ;
 	GtkWidget *  hbox ;
 	GtkWidget *  radio ;
 	GSList *  group ;
+	char *  vertical_mode ;
+
+	vertical_mode = mc_get_str_value( "vertical_mode") ;
 
 	hbox = gtk_hbox_new(FALSE , 0) ;
 
@@ -120,20 +121,26 @@ mc_vertical_config_widget_new(
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 
-	new_vertical_mode = vertical_mode ;
+	new_vertical_mode = old_vertical_mode = vertical_mode ;
 	
 	return  hbox ;
 }
 
-char *
-mc_get_vertical_mode(void)
+void
+mc_update_vertical_mode(
+	int  save
+	)
 {
-	if( ! is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "vertical_mode" , new_vertical_mode , save) ;
 	}
-	
-	is_changed = 0 ;
-	
-	return  new_vertical_mode ;
+	else
+	{
+		if( strcmp( new_vertical_mode , old_vertical_mode) != 0)
+		{
+			mc_set_str_value( "vertical_mode" , new_vertical_mode , save) ;
+			old_vertical_mode = new_vertical_mode ;
+		}
+	}
 }

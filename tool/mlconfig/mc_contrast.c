@@ -9,6 +9,7 @@
 #include  <c_intl.h>
 
 #include  "mc_combo.h"
+#include  "mc_io.h"
 
 
 #if  0
@@ -18,8 +19,8 @@
 
 /* --- static variables --- */
 
-static char *  selected_contrast ;
-static int  is_changed ;
+static char *  new_contrast ;
+static char *  old_contrast ;
 
 
 /* --- static functions --- */
@@ -30,11 +31,10 @@ contrast_selected(
 	gpointer  data
 	)
 {
-	selected_contrast = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	is_changed = 1 ;
+	new_contrast = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 	
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s contrast is selected.\n" , selected_contrast) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s contrast is selected.\n" , new_contrast) ;
 #endif
 
 	return  1 ;
@@ -44,9 +44,7 @@ contrast_selected(
 /* --- global functions --- */
 
 GtkWidget *
-mc_contrast_config_widget_new(
-	char *  contrast
-	)
+mc_contrast_config_widget_new(void)
 {
 	char *  contrasts[] =
 	{
@@ -62,22 +60,28 @@ mc_contrast_config_widget_new(
 		"10" ,
 	} ;
 
-	selected_contrast = contrast ;
+	new_contrast = old_contrast = mc_get_str_value( "contrast") ;
 
 	return  mc_combo_new_with_width(_("Contrast"), contrasts,
 		sizeof(contrasts) / sizeof(contrasts[0]), 
-		selected_contrast, 0, contrast_selected , NULL , 50);
+		new_contrast, 0, contrast_selected , NULL , 50);
 }
 
-char *
-mc_get_contrast(void)
+void
+mc_update_contrast(
+	int  save
+	)
 {
-	if( ! is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "contrast" , new_contrast , save) ;
 	}
-	
-	is_changed = 0 ;
-	
-	return  selected_contrast ;
+	else
+	{
+		if( strcmp( new_contrast , old_contrast) != 0)
+		{
+			mc_set_str_value( "contrast" , new_contrast , save) ;
+			old_contrast = new_contrast ;
+		}
+	}
 }

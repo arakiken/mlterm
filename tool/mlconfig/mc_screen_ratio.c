@@ -9,6 +9,7 @@
 #include  <c_intl.h>
 
 #include  "mc_combo.h"
+#include  "mc_io.h"
 
 
 #if  0
@@ -18,10 +19,10 @@
 
 /* --- static variables --- */
 
-static char *  selected_screen_width_ratio ;
-static char *  selected_screen_height_ratio ;
-static int  width_is_changed ;
-static int  height_is_changed ;
+static char *  new_screen_width_ratio ;
+static char *  new_screen_height_ratio ;
+static char *  old_screen_width_ratio ;
+static char *  old_screen_height_ratio ;
 
 
 /* --- static functions --- */
@@ -32,12 +33,11 @@ screen_width_ratio_selected(
 	gpointer  data
 	)
 {
-	selected_screen_width_ratio = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	width_is_changed = 1 ;
+	new_screen_width_ratio = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s screen_width_ratio is selected.\n" ,
-		selected_screen_width_ratio) ;
+		new_screen_width_ratio) ;
 #endif
 
 	return  1 ;
@@ -49,12 +49,11 @@ screen_height_ratio_selected(
 	gpointer  data
 	)
 {
-	selected_screen_height_ratio = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	height_is_changed = 1 ;
+	new_screen_height_ratio = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s screen_height_ratio is selected.\n" ,
-		selected_screen_height_ratio) ;
+		new_screen_height_ratio) ;
 #endif
 
 	return  1 ;
@@ -90,47 +89,55 @@ config_widget_new(
 /* --- global functions --- */
 
 GtkWidget *
-mc_screen_width_ratio_config_widget_new(
-	char *  ratio
-	)
+mc_screen_width_ratio_config_widget_new(void)
 {
-	selected_screen_width_ratio = ratio ;
+	new_screen_width_ratio = old_screen_width_ratio = mc_get_str_value( "screen_width_ratio") ;
 
-	return  config_widget_new(_("Width") , ratio , screen_width_ratio_selected) ;
+	return  config_widget_new(_("Width") , new_screen_width_ratio , screen_width_ratio_selected) ;
 }
 
 GtkWidget *
-mc_screen_height_ratio_config_widget_new(
-	char *  ratio
+mc_screen_height_ratio_config_widget_new(void)
+{
+	new_screen_height_ratio = old_screen_height_ratio = mc_get_str_value( "screen_height_ratio") ;
+
+	return  config_widget_new(_("Height") , new_screen_height_ratio , screen_height_ratio_selected) ;
+}
+
+void
+mc_update_screen_width_ratio(
+	int  save
 	)
 {
-	selected_screen_height_ratio = ratio ;
-
-	return  config_widget_new(_("Height") , ratio , screen_height_ratio_selected) ;
+	if( save)
+	{
+		mc_set_str_value( "screen_width_ratio" , new_screen_width_ratio , save) ;
+	}
+	else
+	{
+		if( strcmp( new_screen_width_ratio , old_screen_width_ratio) != 0)
+		{
+			mc_set_str_value( "screen_width_ratio" , new_screen_width_ratio , save) ;
+			old_screen_width_ratio = new_screen_width_ratio ;
+		}
+	}
 }
 
-char *
-mc_get_screen_width_ratio(void)
+void
+mc_update_screen_height_ratio(
+	int  save
+	)
 {
-	if( ! width_is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "screen_height_ratio" , new_screen_height_ratio , save) ;
 	}
-	
-	width_is_changed = 0 ;
-	
-	return  selected_screen_width_ratio ;
-}
-
-char *
-mc_get_screen_height_ratio(void)
-{
-	if( ! height_is_changed)
+	else
 	{
-		return  NULL ;
+		if( strcmp( new_screen_height_ratio , old_screen_height_ratio) != 0)
+		{
+			mc_set_str_value( "screen_height_ratio" , new_screen_height_ratio , save) ;
+			old_screen_height_ratio = new_screen_height_ratio ;
+		}
 	}
-	
-	height_is_changed = 0 ;
-	
-	return  selected_screen_height_ratio ;
 }

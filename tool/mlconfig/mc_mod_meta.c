@@ -8,6 +8,8 @@
 #include  <glib.h>
 #include  <c_intl.h>
 
+#include  "mc_io.h"
+
 
 #if  0
 #define  __DEBUG
@@ -17,7 +19,7 @@
 /* --- static variables --- */
 
 static char *  new_mod_meta_mode ;
-static int  is_changed ;
+static char *  old_mod_meta_mode ;
 
 
 /* --- static functions --- */
@@ -31,7 +33,6 @@ button_none_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_mod_meta_mode = "none" ;
-		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -46,7 +47,6 @@ button_esc_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_mod_meta_mode = "esc" ;
-		is_changed = 1 ;
 	}
 		
 	return  1 ;
@@ -61,7 +61,6 @@ button_8bit_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_mod_meta_mode = "8bit" ;
-		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -71,14 +70,15 @@ button_8bit_checked(
 /* --- global functions --- */
 
 GtkWidget *
-mc_mod_meta_config_widget_new(
-	char *  mod_meta_mode
-	)
+mc_mod_meta_config_widget_new(void)
 {
 	GtkWidget *  label ;
 	GtkWidget *  hbox ;
 	GtkWidget *  radio ;
 	GSList *  group ;
+	char *  mod_meta_mode ;
+
+	mod_meta_mode = mc_get_str_value( "mod_meta_mode") ;
 
 	hbox = gtk_hbox_new(FALSE , 0) ;
 
@@ -121,21 +121,26 @@ mc_mod_meta_config_widget_new(
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 
-	new_mod_meta_mode = mod_meta_mode ;
-	is_changed = 0 ;
+	new_mod_meta_mode = old_mod_meta_mode = mod_meta_mode ;
 	
 	return  hbox ;
 }
 
-char *
-mc_get_mod_meta_mode(void)
+void
+mc_update_mod_meta_mode(
+	int  save
+	)
 {
-	if( ! is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "mod_meta_mode" , new_mod_meta_mode , save) ;
 	}
-	
-	is_changed = 0 ;
-	
-	return  new_mod_meta_mode ;
+	else
+	{
+		if( strcmp( new_mod_meta_mode , old_mod_meta_mode) != 0)
+		{
+			mc_set_str_value( "mod_meta_mode" , new_mod_meta_mode , save) ;
+			old_mod_meta_mode = new_mod_meta_mode ;
+		}
+	}
 }

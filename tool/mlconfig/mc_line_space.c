@@ -9,6 +9,7 @@
 #include  <c_intl.h>
 
 #include  "mc_combo.h"
+#include  "mc_io.h"
 
 
 #if  0
@@ -18,8 +19,8 @@
 
 /* --- static variables --- */
 
-static char *  selected_line_space ;
-static int  is_changed ;
+static char *  new_line_space ;
+static char *  old_line_space ;
 
 
 /* --- static functions --- */
@@ -30,11 +31,10 @@ line_space_selected(
 	gpointer  data
 	)
 {
-	selected_line_space = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	is_changed = 1 ;
+	new_line_space = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 	
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s line_space is selected.\n" , selected_line_space) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s line_space is selected.\n" , new_line_space) ;
 #endif
 
 	return  1 ;
@@ -44,9 +44,7 @@ line_space_selected(
 /* --- global functions --- */
 
 GtkWidget *
-mc_line_space_config_widget_new(
-	char *  line_space
-	)
+mc_line_space_config_widget_new(void)
 {
 	char *  line_spaces[] =
 	{
@@ -58,22 +56,28 @@ mc_line_space_config_widget_new(
 		"0" ,
 	} ;
 
-	selected_line_space = line_space ;
+	new_line_space = old_line_space = mc_get_str_value( "line_space") ;
 
 	return  mc_combo_new_with_width(_("Line space (pixels)"), line_spaces,
 		sizeof(line_spaces) / sizeof(line_spaces[0]),
-		selected_line_space, 0, line_space_selected, NULL , 80);
+		new_line_space, 0, line_space_selected, NULL , 80);
 }
 
-char *
-mc_get_line_space(void)
+void
+mc_update_line_space(
+	int  save
+	)
 {
-	if( ! is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "line_space" , new_line_space , save) ;
 	}
-	
-	is_changed = 0 ;
-	
-	return  selected_line_space ;
+	else
+	{
+		if( strcmp( new_line_space , old_line_space) != 0)
+		{
+			mc_set_str_value( "line_space" , new_line_space , save) ;
+			old_line_space = new_line_space ;
+		}
+	}
 }

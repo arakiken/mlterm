@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_mod_meta_config_widget_new( char *  mod_meta_mode) ;
+GtkWidget *  mc_mod_meta_config_widget_new( void) ;
 
-char *  mc_get_mod_meta_mode(void) ;
+void  mc_update_mod_meta_mode( int  save) ;
 
 
 #endif

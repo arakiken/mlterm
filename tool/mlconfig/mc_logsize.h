@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_logsize_config_widget_new( char *  logsize) ;
+GtkWidget *  mc_logsize_config_widget_new(void) ;
 
-char *  mc_get_logsize(void) ;
+void  mc_update_logsize( int  save) ;
 
 
 #endif

@@ -8,9 +8,50 @@
 #include  <unistd.h>		/* STDIN_FILENO */
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_mem.h>	/* malloc */
+
+
+/* --- static variables --- */
+
+char *  save_str ;
+char *  set_str ;
 
 
 /* --- static functions --- */
+
+static int
+append_value(
+	char **  str ,	/* save_str or set_str */
+	char *  key ,
+	char *  value
+	)
+{
+	if( *str == NULL)
+	{
+		if( ( *str = malloc( strlen( key) + 1 + strlen( value) + 1)) == NULL)
+		{
+			return  0 ;
+		}
+
+		sprintf( *str , "%s=%s" , key , value) ;
+	}
+	else
+	{
+		void *  p ;
+		
+		if( ( p = realloc( *str , strlen( *str) + 1 + strlen( key) + 1 + strlen( value) + 1))
+				== NULL)
+		{
+			return  0 ;
+		}
+
+		*str = p ;
+		
+		sprintf( *str , "%s;%s=%s" , *str , key , value) ;
+	}
+
+	return  1 ;
+}
 
 static char *
 get_value(
@@ -79,55 +120,78 @@ mc_set_str_value(
 
 	if( save)
 	{
-		printf( "\x1b]5383;%s=%s\x07" , key , value) ;
+		if( strcmp( key , "encoding") == 0)
+		{
+			key = "ENCODING" ;
+		}
+		
+		return  append_value( &save_str , key , value) ;
 	}
 	else
 	{
-		printf( "\x1b]5379;%s=%s\x07" , key , value) ;
+		return  append_value( &set_str , key , value) ;
 	}
-	
-	fflush( stdout) ;
-
-	return  1 ;
 }
 
 int
 mc_set_flag_value(
 	char *  key ,
-	int  value ,
+	int  flag_val ,
 	int  save
 	)
 {
-#if  0
-	if( value == -1)
+	char *  value ;
+
+	if( flag_val)
 	{
-		return  0 ;
+		value = "true" ;
 	}
+	else
+	{
+		value = "false" ;
+	}
+
+#ifdef __DEBUG
+	kik_debug_printf( "%s=%s\n" , key , value) ;
 #endif
 
 	if( save)
 	{
-		if( value)
-		{
-			printf( "\x1b]5383;%s=true\x07" , key) ;
-		}
-		else
-		{
-			printf( "\x1b]5383;%s=false\x07" , key) ;
-		}
+		return  append_value( &save_str , key , value) ;
 	}
 	else
 	{
-		if( value)
-		{
-			printf( "\x1b]5379;%s=true\x07" , key) ;
-		}
-		else
-		{
-			printf( "\x1b]5379;%s=false\x07" , key) ;
-		}
+		return  append_value( &set_str , key , value) ;
+	}
+}
+
+int
+mc_flush(void)
+{
+	if( save_str)
+	{
+		printf( "\x1b]5382;%s\x07" , save_str) ;
+
+	#if  0
+		fprintf( stderr , "%s\n" , save_str) ;
+	#endif
+	
+		free( save_str) ;
+		save_str = NULL ;
 	}
 	
+	if( set_str)
+	{
+		printf( "\x1b]5379;%s\x07" , set_str) ;
+
+	#if  0
+		fprintf( stderr , "%s\n" , set_str) ;
+	#endif
+
+		free( set_str) ;
+		set_str = NULL ;
+	}
+
 	fflush( stdout) ;
 
 	return  1 ;
@@ -175,19 +239,3 @@ mc_get_flag_value(
 		return  0 ;
 	}
 }
-
-char *
-mc_get_bgtype(
-	void
-	)
-{
-	char *picture;
-	
-	if (mc_get_flag_value("use_transbg")) return strdup("transparent");
-
-	picture = mc_get_str_value("wall_picture");
-	if (picture && strlen(picture)>0) return strdup("picture");
-
-	return strdup("color");
-}
-

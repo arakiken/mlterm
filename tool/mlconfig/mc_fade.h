@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_fade_config_widget_new( char *  fade_ratio) ;
+GtkWidget *  mc_fade_config_widget_new( void) ;
 
-char *  mc_get_fade_ratio(void) ;
+void  mc_update_fade_ratio( int  save) ;
 
 
 #endif

@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_line_space_config_widget_new( char *  line_space) ;
+GtkWidget *  mc_line_space_config_widget_new(void) ;
 
-char *  mc_get_line_space(void) ;
+void  mc_update_line_space( int  save) ;
 
 
 #endif

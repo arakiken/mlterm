@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_fontsize_config_widget_new( char * fontsize) ;
+GtkWidget *  mc_fontsize_config_widget_new(void) ;
 
-char *  mc_get_fontsize(void) ;
+void  mc_update_fontsize( int  save) ;
 
 
 #endif

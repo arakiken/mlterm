@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_sb_config_widget_new( char *  sb_mode) ;
+GtkWidget *  mc_sb_config_widget_new(void) ;
 
-char *  mc_get_sb_mode(void) ;
+void  mc_update_sb_mode( int  save) ;
 
 
 #endif

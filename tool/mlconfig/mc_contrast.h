@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_contrast_config_widget_new( char *  contrast) ;
+GtkWidget *  mc_contrast_config_widget_new(void) ;
 
-char *  mc_get_contrast(void) ;
+void  mc_update_contrast( int  save) ;
 
 
 #endif

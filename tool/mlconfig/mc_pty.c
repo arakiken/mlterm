@@ -4,14 +4,18 @@
 
 #include  "mc_pty.h"
 
+#include  <stdio.h>
 #include  <kiklib/kik_str.h>
+#include  <kiklib/kik_mem.h>	/* alloca */
+
+#include  "mc_io.h"
 
 
 /* --- static variables --- */
 
-static char *  selected_dev ;
+static char *  new_pty ;
+static char *  old_pty ;
 
-#include  <stdio.h>
 
 /* --- static functions --- */
 
@@ -23,7 +27,7 @@ button_toggled(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-		selected_dev = (char *)data ;
+		new_pty = (char *)data ;
 	}
 
 	return  1 ;
@@ -33,15 +37,17 @@ button_toggled(
 /* --- global functions --- */
 
 GtkWidget *
-mc_pty_config_widget_new(
-	char *  my_pty ,
-	char *  pty_list
-	)
+mc_pty_config_widget_new(void)
 {
 	GtkWidget *  hbox ;
 	GtkWidget *  radio ;
 	GSList *  group ;
+	char *  my_pty ;
+	char *  pty_list ;
 	char *  dev ;
+
+	my_pty = mc_get_str_value( "pty_name") ;
+	pty_list = mc_get_str_value( "pty_list") ;
 
 	if( my_pty == NULL || ( dev = kik_str_sep( &my_pty , ":")) == NULL || strlen( dev) <= 5)
 	{
@@ -60,7 +66,7 @@ mc_pty_config_widget_new(
 	gtk_widget_show(radio) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , FALSE , FALSE , 0) ;
 	
-	selected_dev = dev ;
+	new_pty = old_pty = dev ;
 
 	while( pty_list && ( dev = kik_str_sep( &pty_list , ":")) && pty_list)
 	{
@@ -81,17 +87,22 @@ mc_pty_config_widget_new(
 	return  hbox ;
 }
 
-char *
-mc_get_pty_dev(void)
+void
+mc_select_pty(void)
 {
-	char *  dev ;
-
-	if( ( dev = malloc( 5 + strlen( selected_dev) + 1)) == NULL)
+	if( strcmp( new_pty , old_pty) != 0)
 	{
-		return  NULL ;
+		char *  dev ;
+
+		if( ( dev = alloca( 5 + strlen( new_pty) + 1)) == NULL)
+		{
+			return ;
+		}
+
+		sprintf( dev , "/dev/%s" , new_pty) ;
+
+		mc_set_str_value( "select_pty" , dev , 0) ;
+
+		old_pty = new_pty ;
 	}
-
-	sprintf( dev , "/dev/%s" , selected_dev) ;
-
-	return  dev ;
 }

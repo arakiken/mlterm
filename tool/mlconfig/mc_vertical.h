@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_vertical_config_widget_new( char *  vertical_mode) ;
+GtkWidget *  mc_vertical_config_widget_new(void) ;
 
-char *  mc_get_vertical_mode(void) ;
+void  mc_update_vertical_mode( int  save) ;
 
 
 #endif

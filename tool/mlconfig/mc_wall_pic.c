@@ -7,11 +7,13 @@
 #include  <glib.h>
 #include  <c_intl.h>
 
+#include  "mc_io.h"
+
 
 /* --- static functions --- */
 
 static GtkWidget *  entry ;
-static int  is_changed ;
+static char *  old_wall_pic ;
 
 
 /* --- static functions --- */
@@ -35,8 +37,6 @@ file_sel_ok_clicked(
 		gtk_file_selection_get_filename( GTK_FILE_SELECTION( object))) ;
 	gtk_widget_destroy( GTK_WIDGET(object)) ;
 
-	is_changed = 1 ;
-	
 	return  TRUE ;
 }
 
@@ -47,7 +47,7 @@ button_clicked(
 {
 	GtkWidget *  file_sel ;
 
-	file_sel = gtk_file_selection_new( "Wallpaper") ;
+	file_sel = gtk_file_selection_new( "Wall Paper") ;
 	gtk_widget_show( GTK_WIDGET(file_sel)) ;
 
 	gtk_signal_connect_object( GTK_OBJECT( GTK_FILE_SELECTION(file_sel)->ok_button) ,
@@ -63,12 +63,13 @@ button_clicked(
 /* --- global functions --- */
 
 GtkWidget *
-mc_wall_pic_config_widget_new(
-	char *  wall_pic
-	)
+mc_wall_pic_config_widget_new(void)
 {
 	GtkWidget *  hbox ;
 	GtkWidget *  button ;
+	char *  wall_pic ;
+
+	wall_pic = mc_get_str_value( "wall_picture") ;
 	
 	hbox = gtk_hbox_new( FALSE , 5) ;
 	gtk_widget_show(hbox) ;
@@ -89,22 +90,33 @@ mc_wall_pic_config_widget_new(
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(button_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;
 
+	old_wall_pic = wall_pic ;
+
 	return  hbox ;
 }
 
-int
-mc_wall_pic_ischanged(void)
+void
+mc_update_wall_pic(
+	int  save
+	)
 {
-    return is_changed;
-}
+	char *  new_wall_pic ;
 
-char *
-mc_get_wall_pic(void)
-{
-    char *  wall_pic ;
+	if( *( new_wall_pic = gtk_entry_get_text( GTK_ENTRY(entry))) == '\0')
+	{
+		new_wall_pic = "none" ;
+	}
 
-    if( *( wall_pic = gtk_entry_get_text( GTK_ENTRY(entry))) == '\0')
-	wall_pic = "none" ;
-    is_changed = 0 ;
-    return  wall_pic ;
+	if( save)
+	{
+		mc_set_str_value( "wall_picture" , new_wall_pic , save) ;
+	}
+	else
+	{
+		if( strcmp( old_wall_pic , new_wall_pic) != 0)
+		{
+			mc_set_str_value( "wall_picture" , new_wall_pic , save) ;
+			old_wall_pic = new_wall_pic ;
+		}
+	}
 }

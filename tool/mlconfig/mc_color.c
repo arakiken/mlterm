@@ -9,6 +9,7 @@
 #include  <c_intl.h>
 
 #include  "mc_combo.h"
+#include  "mc_io.h"
 
 
 #if  0
@@ -18,14 +19,14 @@
 
 /* --- static variables --- */
 
-static char *  selected_fg_color ;
-static char *  selected_bg_color ;
-static char *  selected_sb_fg_color ;
-static char *  selected_sb_bg_color ;
-static int  fg_is_changed ;
-static int  bg_is_changed ;
-static int  sb_fg_is_changed ;
-static int  sb_bg_is_changed ;
+static char *  new_fg_color ;
+static char *  new_bg_color ;
+static char *  new_sb_fg_color ;
+static char *  new_sb_bg_color ;
+static char *  old_fg_color ;
+static char *  old_bg_color ;
+static char *  old_sb_fg_color ;
+static char *  old_sb_bg_color ;
 
 
 /* --- static functions --- */
@@ -36,11 +37,10 @@ fg_color_selected(
 	gpointer  data
 	)
 {
-	selected_fg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	fg_is_changed = 1 ;
+	new_fg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_fg_color) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , new_fg_color) ;
 #endif
 
 	return  1 ;
@@ -52,11 +52,10 @@ bg_color_selected(
 	gpointer  data
 	)
 {
-	selected_bg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	bg_is_changed = 1 ;
+	new_bg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_bg_color) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , new_bg_color) ;
 #endif
 
 	return  1 ;
@@ -68,11 +67,10 @@ sb_fg_color_selected(
 	gpointer  data
 	)
 {
-	selected_sb_fg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	sb_fg_is_changed = 1 ;
+	new_sb_fg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_sb_fg_color) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , new_sb_fg_color) ;
 #endif
 
 	return  1 ;
@@ -84,11 +82,10 @@ sb_bg_color_selected(
 	gpointer  data
 	)
 {
-	selected_sb_bg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	sb_bg_is_changed = 1 ;
+	new_sb_bg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_sb_bg_color) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , new_sb_bg_color) ;
 #endif
 
 	return  1 ;
@@ -97,7 +94,7 @@ sb_bg_color_selected(
 static GtkWidget *
 config_widget_new(
 	char *  title ,
-	char *  selected_color ,
+	char *  color ,
 	gint (*color_selected)(GtkWidget *,gpointer)
 	)
 {
@@ -119,100 +116,116 @@ config_widget_new(
 	} ;
 	
 	return  mc_combo_new( title , colors , sizeof(colors) / sizeof(colors[0]) ,
-			selected_color , 0 , color_selected , NULL) ;
+			color , 0 , color_selected , NULL) ;
 }
 
 
 /* --- global functions --- */
 
 GtkWidget *
-mc_fg_color_config_widget_new(
-	char *  color
-	)
+mc_fg_color_config_widget_new(void)
 {
-	selected_fg_color = color ;
+	new_fg_color = old_fg_color = mc_get_str_value( "fg_color") ;
 	
-	return  config_widget_new( _("Foreground color") , color , fg_color_selected) ;
+	return  config_widget_new( _("Foreground color") , new_fg_color , fg_color_selected) ;
 }
 
 GtkWidget *
-mc_bg_color_config_widget_new(
-	char *  color
-	)
+mc_bg_color_config_widget_new(void)
 {
-	selected_bg_color = color ;
+	new_bg_color = old_bg_color = mc_get_str_value( "bg_color") ;
 	
-	return  config_widget_new(_("Background color") , color , bg_color_selected) ;
+	return  config_widget_new(_("Background color") , new_bg_color , bg_color_selected) ;
 }
 
 GtkWidget *
-mc_sb_fg_color_config_widget_new(
-	char *  color
-	)
+mc_sb_fg_color_config_widget_new(void)
 {
-	selected_sb_fg_color = color ;
+	new_sb_fg_color = old_sb_fg_color = mc_get_str_value( "sb_fg_color") ;
 	
-	return  config_widget_new( _("Foreground color") , color , sb_fg_color_selected) ;
+	return  config_widget_new( _("Foreground color") , new_sb_fg_color , sb_fg_color_selected) ;
 }
 
 GtkWidget *
-mc_sb_bg_color_config_widget_new(
-	char *  color
+mc_sb_bg_color_config_widget_new(void)
+{
+	new_sb_bg_color = old_sb_bg_color = mc_get_str_value( "sb_bg_color") ;
+	
+	return  config_widget_new( _("Background color") , new_sb_bg_color , sb_bg_color_selected) ;
+}
+
+void
+mc_update_fg_color(
+	int  save
 	)
 {
-	selected_sb_bg_color = color ;
-	
-	return  config_widget_new( _("Background color") , color , sb_bg_color_selected) ;
-}
-
-char *
-mc_get_fg_color(void)
-{
-	if( ! fg_is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "fg_color" , new_fg_color , save) ;
 	}
-	
-	fg_is_changed = 0 ;
-	
-	return  selected_fg_color ;
-}
-
-int mc_bg_color_ischanged(void)
-{
-    return bg_is_changed;
-}
-
-char *
-mc_get_bg_color(void)
-{
-	bg_is_changed = 0 ;
-	
-	return  selected_bg_color ;
-}
-
-char *
-mc_get_sb_fg_color(void)
-{
-	if( ! sb_fg_is_changed)
+	else
 	{
-		return  NULL ;
+		old_fg_color = new_fg_color ;
+		if( strcmp( new_fg_color , old_fg_color) != 0)
+		{
+			mc_set_str_value( "fg_color" , new_fg_color , save) ;
+		}
 	}
-	
-	sb_fg_is_changed = 0 ;
-	
-	return  selected_sb_fg_color ;
 }
 
-char *
-mc_get_sb_bg_color(void)
+void
+mc_update_bg_color(
+	int  save
+	)
 {
-	if( ! sb_bg_is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "bg_color" , new_bg_color , save) ;
 	}
-	
-	sb_bg_is_changed = 0 ;
-	
-	return  selected_sb_bg_color ;
+	else
+	{
+		old_bg_color = new_bg_color ;
+		if( strcmp( new_bg_color , old_bg_color) != 0)
+		{
+			mc_set_str_value( "bg_color" , new_bg_color , save) ;
+		}
+	}
+}
+
+void
+mc_update_sb_fg_color(
+	int  save
+	)
+{
+	if( save)
+	{
+		mc_set_str_value( "sb_fg_color" , new_sb_fg_color , save) ;
+	}
+	else
+	{
+		old_sb_fg_color = new_sb_fg_color ;
+		if( strcmp( new_sb_fg_color , old_sb_fg_color) != 0)
+		{
+			mc_set_str_value( "sb_fg_color" , new_sb_fg_color , save) ;
+		}
+	}
+}
+
+void
+mc_update_sb_bg_color(
+	int  save
+	)
+{
+	if( save)
+	{
+		mc_set_str_value( "sb_bg_color" , new_sb_bg_color , save) ;
+	}
+	else
+	{
+		if( strcmp( new_sb_bg_color , old_sb_bg_color) != 0)
+		{
+			mc_set_str_value( "sb_bg_color" , new_sb_bg_color , save) ;
+			old_sb_bg_color = new_sb_bg_color ;
+		}
+	}
 }

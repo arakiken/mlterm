@@ -9,6 +9,7 @@
 #include  <c_intl.h>
 
 #include  "mc_combo.h"
+#include  "mc_io.h"
 
 
 #if  0
@@ -18,8 +19,8 @@
 
 /* --- static variables --- */
 
-static char *  selected_tabsize ;
-static int  is_changed ;
+static char *  new_tabsize ;
+static char *  old_tabsize ;
 
 
 /* --- static functions --- */
@@ -30,11 +31,10 @@ tabsize_selected(
 	gpointer  data
 	)
 {
-	selected_tabsize = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	is_changed = 1 ;
+	new_tabsize = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 	
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s tabsize is selected.\n" , selected_tabsize) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s tabsize is selected.\n" , new_tabsize) ;
 #endif
 
 	return  1 ;
@@ -44,9 +44,7 @@ tabsize_selected(
 /* --- global functions --- */
 
 GtkWidget *
-mc_tabsize_config_widget_new(
-	char *  tabsize
-	)
+mc_tabsize_config_widget_new(void)
 {
 	char *  tabsizes[] =
 	{
@@ -55,22 +53,28 @@ mc_tabsize_config_widget_new(
 		"2" ,
 	} ;
 
-	selected_tabsize = tabsize ;
+	new_tabsize = old_tabsize = mc_get_str_value( "tabsize") ;
 
 	return  mc_combo_new_with_width( _("Tab width (columns)"), tabsizes,
 		sizeof(tabsizes) / sizeof(tabsizes[0]),
-		selected_tabsize, 0, tabsize_selected, NULL, 80);
+		new_tabsize, 0, tabsize_selected, NULL, 80);
 }
 
-char *
-mc_get_tabsize(void)
+void
+mc_update_tabsize(
+	int  save
+	)
 {
-	if( ! is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "tabsize" , new_tabsize , save) ;
 	}
-	
-	is_changed = 0 ;
-	
-	return  selected_tabsize ;
+	else
+	{
+		if( strcmp( new_tabsize , old_tabsize) != 0)
+		{
+			mc_set_str_value( "tabsize" , new_tabsize , save) ;
+			old_tabsize = new_tabsize ;
+		}
+	}
 }

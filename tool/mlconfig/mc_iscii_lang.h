@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_iscii_lang_config_widget_new( char *  iscii_lang) ;
+GtkWidget *  mc_iscii_lang_config_widget_new( void) ;
 
-char *  mc_get_iscii_lang(void) ;
+void  mc_update_iscii_lang( int  save) ;
 
 
 #endif

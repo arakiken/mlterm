@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_sb_view_config_widget_new( char *  sb_view_name) ;
+GtkWidget *  mc_sb_view_config_widget_new(void) ;
 
-char *  mc_get_sb_view_name(void) ;
+void  mc_update_sb_view_name( int  save) ;
 
 
 #endif

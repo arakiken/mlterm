@@ -7,6 +7,10 @@
 #include  <glib.h>
 #include  <c_intl.h>
 
+#include  "mc_color.h"
+#include  "mc_wall_pic.h"
+#include  "mc_io.h"
+
 
 #if  0
 #define  __DEBUG
@@ -15,25 +19,36 @@
 
 /* --- static variables --- */
 
-static char *  new_bgtype ;
+static char *  bgtype ;
 static int  is_changed ;
-static GtkWidget *color, *picture;
+static GtkWidget *  bg_color ;
+static GtkWidget *  wall_picture ;
 
 
 /* --- static functions --- */
 
+static char *
+get_bgtype(void)
+{
+	char *  val;
+	
+	if (mc_get_flag_value("use_transbg")) return "transparent" ;
+	else if ((val = mc_get_str_value("wall_picture")) && *val != '\0') return "picture" ;
+	else return  "color" ;
+}
+
 static void
 set_sensitive(void)
 {
-    if (!strcmp(new_bgtype, "color")) {
-	gtk_widget_set_sensitive(color, 1);
-	gtk_widget_set_sensitive(picture, 0);
-    } else if (!strcmp(new_bgtype, "picture")) {
-	gtk_widget_set_sensitive(color, 0);
-	gtk_widget_set_sensitive(picture, 1);
+    if (!strcmp(bgtype, "color")) {
+	gtk_widget_set_sensitive(bg_color, 1);
+	gtk_widget_set_sensitive(wall_picture, 0);
+    } else if (!strcmp(bgtype, "picture")) {
+	gtk_widget_set_sensitive(bg_color, 0);
+	gtk_widget_set_sensitive(wall_picture, 1);
     } else {
-	gtk_widget_set_sensitive(color, 0);
-	gtk_widget_set_sensitive(picture, 0);
+	gtk_widget_set_sensitive(bg_color, 0);
+	gtk_widget_set_sensitive(wall_picture, 0);
     }
 }
 
@@ -44,7 +59,7 @@ button_color_checked(
 	)
 {
     if (GTK_TOGGLE_BUTTON(widget)->active) {
-	new_bgtype = "color"; is_changed = 1;
+	bgtype = "color"; is_changed = 1;
 	set_sensitive();
     }
     return  1 ;
@@ -57,7 +72,7 @@ button_transparent_checked(
 	)
 {
     if (GTK_TOGGLE_BUTTON(widget)->active) {
-	new_bgtype = "transparent"; is_changed = 1;
+	bgtype = "transparent"; is_changed = 1;
 	set_sensitive();
     }
     return  1 ;
@@ -70,7 +85,7 @@ button_picture_checked(
 	)
 {
     if (GTK_TOGGLE_BUTTON(widget)->active) {
-	new_bgtype = "picture"; is_changed = 1;
+	bgtype = "picture"; is_changed = 1;
 	set_sensitive();
     }
     return  1 ;
@@ -80,11 +95,7 @@ button_picture_checked(
 /* --- global functions --- */
 
 GtkWidget *
-mc_bgtype_config_widget_new(
-	char *  bgtype,
-	GtkWidget * bgcolor,
-	GtkWidget * bgpicture
-	)
+mc_bgtype_config_widget_new(void)
 {
     GtkWidget *frame;
     GtkWidget *vbox;
@@ -92,8 +103,11 @@ mc_bgtype_config_widget_new(
     GtkWidget *radio;
     GSList *group ;
 
-    color = bgcolor;
-    picture = bgpicture;
+	bgtype = get_bgtype() ;
+
+	if( ( bg_color = mc_bg_color_config_widget_new()) == NULL) return NULL ;
+	if( ( wall_picture = mc_wall_pic_config_widget_new()) == NULL) return NULL ;
+	
     group = NULL;
 
     frame = gtk_frame_new(_("Background type"));
@@ -114,7 +128,7 @@ mc_bgtype_config_widget_new(
     gtk_widget_show(hbox);
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(hbox), color, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), bg_color, TRUE, TRUE, 0);
 
     /* picture button */
     radio = gtk_radio_button_new_with_label(group, _("Picture"));
@@ -128,7 +142,7 @@ mc_bgtype_config_widget_new(
     gtk_widget_show(hbox);
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(hbox), picture, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), wall_picture, TRUE, TRUE, 0);
 #if !defined(USE_IMLIB) && !defined(USE_GDK_PIXBUF)
     gtk_widget_set_sensitive(radio, 0);
 #endif
@@ -146,20 +160,25 @@ mc_bgtype_config_widget_new(
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
 
-    new_bgtype = bgtype;
     set_sensitive();
     return frame;
 }
 
-int
-mc_bgtype_ischanged(void)
+void
+mc_update_bgtype(
+	int  save
+	)
 {
-    return is_changed;
-}
-
-char *
-mc_get_bgtype_mode(void)
-{
-    is_changed = 0;
-    return new_bgtype;
+	if( is_changed) {
+		if ( ! strcmp( bgtype, "color")) {
+		    mc_set_flag_value("use_transbg", 0, save);
+		    mc_set_str_value("wall_picture", "none", save);
+		    mc_update_bg_color( save) ;
+		} else if (!strcmp( bgtype, "picture")) {
+		    mc_set_flag_value("use_transbg", 0, save);
+		    mc_update_wall_pic( save) ;
+		} else if (!strcmp( bgtype, "transparent")) {
+		    mc_set_flag_value("use_transbg", 1, save);
+		}
+	}
 }

@@ -7,6 +7,8 @@
 #include  <glib.h>
 #include  <c_intl.h>
 
+#include  "mc_io.h"
+
 
 #if  0
 #define  __DEBUG
@@ -15,8 +17,8 @@
 
 /* --- static variables --- */
 
+static char *  old_bel_mode ;
 static char *  new_bel_mode ;
-static int  is_changed ;
 
 
 /* --- static functions --- */
@@ -30,7 +32,6 @@ button_none_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_bel_mode = "none" ;
-		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -45,7 +46,6 @@ button_visual_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_bel_mode = "visual" ;
-		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -60,7 +60,6 @@ button_sound_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_bel_mode = "sound" ;
-		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -70,14 +69,15 @@ button_sound_checked(
 /* --- global functions --- */
 
 GtkWidget *
-mc_bel_config_widget_new(
-	char *  bel_mode
-	)
+mc_bel_config_widget_new(void)
 {
 	GtkWidget *  label ;
 	GtkWidget *  hbox ;
 	GtkWidget *  radio ;
 	GSList *  group ;
+	char *  bel_mode ;
+
+	bel_mode = mc_get_str_value( "bel_mode") ;
 
 	hbox = gtk_hbox_new(FALSE , 0) ;
 
@@ -120,20 +120,26 @@ mc_bel_config_widget_new(
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 
-	new_bel_mode = bel_mode ;
+	old_bel_mode = new_bel_mode = bel_mode ;
 	
 	return  hbox ;
 }
 
-char *
-mc_get_bel_mode(void)
+void
+mc_update_bel_mode(
+	int  save
+	)
 {
-	if( ! is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "bel_mode" , new_bel_mode , save) ;
 	}
-
-	is_changed = 0 ;
-		
-	return  new_bel_mode ;
+	else
+	{
+		if( strcmp( old_bel_mode , new_bel_mode) != 0)
+		{
+			mc_set_str_value( "bel_mode" , new_bel_mode , save) ;
+			old_bel_mode = new_bel_mode ;
+		}
+	}
 }

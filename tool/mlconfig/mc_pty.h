@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_pty_config_widget_new( char *  my_pty , char *  pty_list) ;
+GtkWidget *  mc_pty_config_widget_new( void) ;
 
-char *  mc_get_pty_dev(void) ;
+void  mc_select_pty(void) ;
 
 
 #endif

@@ -9,6 +9,7 @@
 #include  <c_intl.h>
 
 #include  "mc_combo.h"
+#include  "mc_io.h"
 
 
 #if  0
@@ -18,8 +19,8 @@
 
 /* --- static variables --- */
 
-static char *  selected_iscii_lang ;
-static int  is_changed ;
+static char *  new_iscii_lang ;
+static char *  old_iscii_lang ;
 
 
 /* --- static functions --- */
@@ -30,11 +31,10 @@ iscii_lang_selected(
 	gpointer  data
 	)
 {
-	selected_iscii_lang = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	is_changed = 1 ;
+	new_iscii_lang = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s iscii_lang is selected.\n" , selected_iscii_lang) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s iscii_lang is selected.\n" , new_iscii_lang) ;
 #endif
 
 	return  1 ;
@@ -44,9 +44,7 @@ iscii_lang_selected(
 /* --- global functions --- */
 
 GtkWidget *
-mc_iscii_lang_config_widget_new(
-	char *  iscii_lang
-	)
+mc_iscii_lang_config_widget_new(void)
 {
 	char *  iscii_langs[] =
 	{
@@ -64,21 +62,28 @@ mc_iscii_lang_config_widget_new(
 
 	} ;
 	
-	selected_iscii_lang = iscii_lang ;
+	new_iscii_lang = old_iscii_lang = mc_get_str_value( "iscii_lang") ;
 
-	return  mc_combo_new( _("ISCII language") , iscii_langs , sizeof(iscii_langs) / sizeof(iscii_langs[0]) ,
-		selected_iscii_lang , 1 , iscii_lang_selected , NULL) ;
+	return  mc_combo_new( _("ISCII language") , iscii_langs ,
+		sizeof(iscii_langs) / sizeof(iscii_langs[0]) ,
+		new_iscii_lang , 1 , iscii_lang_selected , NULL) ;
 }
 
-char *
-mc_get_iscii_lang(void)
+void
+mc_update_iscii_lang(
+	int  save
+	)
 {
-	if( ! is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "iscii_lang" , new_iscii_lang , save) ;
 	}
-	
-	is_changed = 0 ;
-	
-	return  selected_iscii_lang ;
+	else
+	{
+		if( strcmp( new_iscii_lang , old_iscii_lang) != 0)
+		{
+			mc_set_str_value( "iscii_lang" , new_iscii_lang , save) ;
+			old_iscii_lang = new_iscii_lang ;
+		}
+	}
 }

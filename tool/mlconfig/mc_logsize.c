@@ -9,6 +9,7 @@
 #include  <c_intl.h>
 
 #include  "mc_combo.h"
+#include  "mc_io.h"
 
 
 #if  0
@@ -18,8 +19,8 @@
 
 /* --- static variables --- */
 
-static char *  selected_logsize ;
-static int  is_changed ;
+static char *  new_logsize ;
+static char *  old_logsize ;
 
 
 /* --- static functions --- */
@@ -30,11 +31,10 @@ logsize_selected(
 	gpointer  data
 	)
 {
-	selected_logsize = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	is_changed = 1 ;
+	new_logsize = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 	
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s logsize is selected.\n" , selected_logsize) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s logsize is selected.\n" , new_logsize) ;
 #endif
 
 	return  1 ;
@@ -44,9 +44,7 @@ logsize_selected(
 /* --- global functions --- */
 
 GtkWidget *
-mc_logsize_config_widget_new(
-	char *  logsize
-	)
+mc_logsize_config_widget_new(void)
 {
 	char *  logsizes[] =
 	{
@@ -56,22 +54,28 @@ mc_logsize_config_widget_new(
 		"1024" ,
 	} ;
 
-	selected_logsize = logsize ;
+	new_logsize = old_logsize = mc_get_str_value( "logsize") ;
 
 	return  mc_combo_new_with_width(_("Backlog size (lines)"), logsizes,
 		sizeof(logsizes) / sizeof(logsizes[0]),
-		selected_logsize, 0, logsize_selected, NULL, 80);
+		new_logsize, 0, logsize_selected, NULL, 80);
 }
 
-char *
-mc_get_logsize(void)
+void
+mc_update_logsize(
+	int  save
+	)
 {
-	if( ! is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "logsize" , new_logsize , save) ;
 	}
-	
-	is_changed = 0 ;
-	
-	return  selected_logsize ;
+	else
+	{
+		if( strcmp( new_logsize , old_logsize) != 0)
+		{
+			mc_set_str_value( "logsize" , new_logsize , save) ;
+			old_logsize = new_logsize ;
+		}
+	}
 }

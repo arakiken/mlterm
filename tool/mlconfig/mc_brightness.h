@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_brightness_config_widget_new( char *  brightness) ;
+GtkWidget *  mc_brightness_config_widget_new( void) ;
 
-char *  mc_get_brightness(void) ;
+void  mc_update_brightness( int  save) ;
 
 
 #endif

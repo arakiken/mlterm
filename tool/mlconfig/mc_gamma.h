@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_gamma_config_widget_new( char *  gamma) ;
+GtkWidget *  mc_gamma_config_widget_new(void) ;
 
-char *  mc_get_gamma(void) ;
+void  mc_update_gamma( int  save) ;
 
 
 #endif

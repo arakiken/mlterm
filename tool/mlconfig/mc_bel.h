@@ -9,9 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_bel_config_widget_new( char *  bel_mode) ;
+GtkWidget *  mc_bel_config_widget_new( void) ;
 
-char *  mc_get_bel_mode(void) ;
+void  mc_update_bel_mode( int  save) ;
 
 
 #endif

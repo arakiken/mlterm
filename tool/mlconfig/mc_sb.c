@@ -8,6 +8,8 @@
 #include  <glib.h>
 #include  <c_intl.h>
 
+#include  "mc_io.h"
+
 
 #if  0
 #define  __DEBUG
@@ -17,7 +19,7 @@
 /* --- static variables --- */
 
 static char *  new_sb_mode ;
-static int  is_changed ;
+static char *  old_sb_mode ;
 
 
 /* --- static functions --- */
@@ -31,7 +33,6 @@ button_none_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_sb_mode = "none" ;
-		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -46,7 +47,6 @@ button_left_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_sb_mode = "left" ;
-		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -61,7 +61,6 @@ button_right_checked(
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		new_sb_mode = "right" ;
-		is_changed = 1 ;
 	}
 	
 	return  1 ;
@@ -71,15 +70,16 @@ button_right_checked(
 /* --- global functions --- */
 
 GtkWidget *
-mc_sb_config_widget_new(
-	char *  sb_mode
-	)
+mc_sb_config_widget_new(void)
 {
 	GtkWidget *  label ;
 	GtkWidget *  hbox ;
 	GtkWidget *  radio ;
 	GSList *  group ;
+	char *  sb_mode ;
 
+	sb_mode = mc_get_str_value( "scrollbar_mode") ;
+	
 	hbox = gtk_hbox_new(FALSE , 0) ;
 
 	label = gtk_label_new( _("Position")) ;
@@ -121,21 +121,26 @@ mc_sb_config_widget_new(
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 
-	new_sb_mode = sb_mode ;
-	is_changed = 0 ;
+	new_sb_mode = old_sb_mode = sb_mode ;
 	
 	return  hbox ;
 }
 
-char *
-mc_get_sb_mode(void)
+void
+mc_update_sb_mode(
+	int  save
+	)
 {
-	if( ! is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "scrollbar_mode" , new_sb_mode , save) ;
 	}
-
-	is_changed = 0 ;
-	
-	return  new_sb_mode ;
+	else
+	{
+		if( strcmp( new_sb_mode , old_sb_mode) != 0)
+		{
+			mc_set_str_value( "scrollbar_mode" , new_sb_mode , save) ;
+			old_sb_mode = new_sb_mode ;
+		}
+	}
 }

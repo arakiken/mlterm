@@ -9,11 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *mc_bgtype_config_widget_new(char *, GtkWidget *, GtkWidget *);
+GtkWidget *  mc_bgtype_config_widget_new(void) ;
 
-int mc_bgtype_ischanged(void);
-
-char *mc_get_bgtype_mode(void);
+void  mc_update_bgtype( int  save) ;
 
 
 #endif

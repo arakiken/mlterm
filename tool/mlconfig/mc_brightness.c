@@ -9,6 +9,7 @@
 #include  <c_intl.h>
 
 #include  "mc_combo.h"
+#include  "mc_io.h"
 
 
 #if  0
@@ -18,8 +19,8 @@
 
 /* --- static variables --- */
 
-static char *  selected_brightness ;
-static int  is_changed ;
+static char *  new_brightness ;
+static char *  old_brightness ;
 
 
 /* --- static functions --- */
@@ -30,11 +31,10 @@ brightness_selected(
 	gpointer  data
 	)
 {
-	selected_brightness = gtk_entry_get_text(GTK_ENTRY(widget)) ;
-	is_changed = 1 ;
+	new_brightness = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 	
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s brightness is selected.\n" , selected_brightness) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s brightness is selected.\n" , new_brightness) ;
 #endif
 
 	return  1 ;
@@ -45,10 +45,10 @@ brightness_selected(
 
 GtkWidget *
 mc_brightness_config_widget_new(
-	char *  brightness
+	
 	)
 {
-	char *  brightnesss[] =
+	char *  brightnesses[] =
 	{
 		"100" ,
 		"90" ,
@@ -62,22 +62,28 @@ mc_brightness_config_widget_new(
 		"10" ,
 	} ;
 
-	selected_brightness = brightness ;
-
-	return  mc_combo_new_with_width(_("Brightness"), brightnesss,
-		sizeof(brightnesss) / sizeof(brightnesss[0]), 
-		selected_brightness, 0,	brightness_selected , NULL , 50);
+	old_brightness = new_brightness = mc_get_str_value( "brightness") ;
+	
+	return  mc_combo_new_with_width(_("Brightness"), brightnesses,
+		sizeof(brightnesses) / sizeof(brightnesses[0]), 
+		new_brightness, 0,	brightness_selected , NULL , 50);
 }
 
-char *
-mc_get_brightness(void)
+void
+mc_update_brightness(
+	int  save
+	)
 {
-	if( ! is_changed)
+	if( save)
 	{
-		return  NULL ;
+		mc_set_str_value( "brightness" , new_brightness , save) ;
 	}
-	
-	is_changed = 0 ;
-	
-	return  selected_brightness ;
+	else
+	{
+		if( strcmp( old_brightness , new_brightness) != 0)
+		{
+			mc_set_str_value( "brightness" , new_brightness , save) ;
+			old_brightness = new_brightness ;
+		}
+	}
 }

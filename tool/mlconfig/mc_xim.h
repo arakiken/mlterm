@@ -9,11 +9,9 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_xim_config_widget_new( char *  xim , char *  locale) ;
+GtkWidget *  mc_xim_config_widget_new(void) ;
 
-char *  mc_get_xim_name(void) ;
-
-char *  mc_get_xim_locale(void) ;
+void  mc_update_xim( int  save) ;
 
 
 #endif

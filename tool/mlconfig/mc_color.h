@@ -9,23 +9,21 @@
 #include  <gtk/gtk.h>
 
 
-GtkWidget *  mc_fg_color_config_widget_new( char *  color) ;
+GtkWidget *  mc_fg_color_config_widget_new( void) ;
 
-GtkWidget *  mc_bg_color_config_widget_new( char *  color) ;
+GtkWidget *  mc_bg_color_config_widget_new( void) ;
 
-GtkWidget *  mc_sb_fg_color_config_widget_new( char *  color) ;
+GtkWidget *  mc_sb_fg_color_config_widget_new( void) ;
 
-GtkWidget *  mc_sb_bg_color_config_widget_new( char *  color) ;
+GtkWidget *  mc_sb_bg_color_config_widget_new( void) ;
 
-char *  mc_get_fg_color(void) ;
+void  mc_update_fg_color( int  save) ;
 
-int mc_bg_color_ischanged();
+void  mc_update_bg_color( int  save) ;
 
-char *  mc_get_bg_color(void) ;
+void  mc_update_sb_fg_color( int  save) ;
 
-char *  mc_get_sb_fg_color(void) ;
-
-char *  mc_get_sb_bg_color(void) ;
+void  mc_update_sb_bg_color( int  save) ;
 
 
 #endif
