@@ -1265,6 +1265,11 @@ get_mod_meta_mask(
 		 * Mod4[max_keypermod] Mod5[max_keypermod]
 		 */
 
+		/*
+		 * this modmap handling is tested with Xsun and XFree86-4.x
+		 * it works fine on both X servers. (2004-10-19 seiichi)
+		 */
+
 		/* skip shift/lock/control */
 		kc_count = (mask_count + 3) * mod_map->max_keypermod ;
 
