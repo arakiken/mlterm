@@ -19,6 +19,9 @@ Options for configure
   --enable-anti-alias
     use FreeType for anti-alias of TrueType fonts
 
+  --enable-fribidi
+    use Fribidi for BiDi rendering.
+
   --enable-debug
     build debug version
 
