@@ -45,6 +45,9 @@ typedef struct ml_term
 	/*
 	 * private
 	 */
+	char *  win_name ;
+	char *  icon_name ;
+	
 	int8_t  is_mouse_pos_sending ;
 	int8_t  is_app_keypad ;
 	int8_t  is_app_cursor_keys ;
@@ -180,6 +183,14 @@ int  ml_term_is_app_keypad( ml_term_t *  term) ;
 int  ml_term_set_app_cursor_keys( ml_term_t *  term , int  flag) ;
 
 int  ml_term_is_app_cursor_keys( ml_term_t *  term) ;
+
+int  ml_term_set_window_name( ml_term_t *  term , char *  name) ;
+
+int  ml_term_set_icon_name( ml_term_t *  term , char *  name) ;
+
+char *  ml_term_window_name( ml_term_t *  term) ;
+
+char *  ml_term_icon_name( ml_term_t *  term) ;
 
 int  ml_term_start_config_menu( ml_term_t *  term ,
 	char *  cmd_path , int  x , int  y , char *  display) ;

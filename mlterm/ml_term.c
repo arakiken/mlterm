@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_mem.h>	/* malloc/free */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_str.h>	/* strdup */
 
 #include  "ml_pty.h"
 #include  "ml_vt100_parser.h"
@@ -83,6 +84,9 @@ ml_term_new(
 	term->vertical_mode = vertical_mode ;
 	term->use_bidi = use_bidi ;
 	term->use_dynamic_comb = use_dynamic_comb ;
+
+	term->win_name = NULL ;
+	term->icon_name = NULL ;
 	term->is_mouse_pos_sending = 0 ;
 	term->is_app_keypad = 0 ;
 	term->is_app_cursor_keys = 0 ;
@@ -129,6 +133,9 @@ ml_term_delete(
 	{
 		ml_iscii_lang_delete( term->iscii_lang) ;
 	}
+
+	free( term->win_name) ;
+	free( term->icon_name) ;
 
 	ml_screen_delete( term->screen) ;
 	ml_vt100_parser_delete( term->parser) ;
@@ -891,4 +898,44 @@ ml_term_start_config_menu(
 	ml_config_menu_start( &term->config_menu , cmd_path , x , y , display, term->pty->slave) ;
 	
 	return  1 ;
+}
+
+int
+ml_term_set_window_name(
+	ml_term_t *  term ,
+	char *  name
+	)
+{
+	free( term->win_name) ;
+	term->win_name = strdup( name) ;
+
+	return  1 ;
+}
+
+int
+ml_term_set_icon_name(
+	ml_term_t *  term ,
+	char *  name
+	)
+{
+	free( term->icon_name) ;
+	term->icon_name = strdup( name) ;
+
+	return  1 ;
+}
+
+char *
+ml_term_window_name(
+	ml_term_t *  term
+	)
+{
+	return  term->win_name ;
+}
+
+char *
+ml_term_icon_name(
+	ml_term_t *  term
+	)
+{
+	return  term->icon_name ;
 }

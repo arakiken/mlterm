@@ -2155,6 +2155,7 @@ window_realized(
 	)
 {
 	x_screen_t *  screen ;
+	char *  name ;
 
 	screen = (x_screen_t*) win ;
 
@@ -2168,6 +2169,16 @@ window_realized(
 	x_window_set_fg_color( win , x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
 	x_window_set_bg_color( win , x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
+	if( ( name = ml_term_window_name( screen->term)))
+	{
+		x_set_window_name( &screen->window , name) ;
+	}
+
+	if( ( name = ml_term_icon_name( screen->term)))
+	{
+		x_set_icon_name( &screen->window , name) ;
+	}
+	
 	set_wall_picture( screen) ;
 }
 
@@ -5891,6 +5902,7 @@ xterm_set_window_name(
 	screen = p ;
 	
 	x_set_window_name( &screen->window , name) ;
+	ml_term_set_window_name( screen->term , name) ;
 }
 
 static void
@@ -5904,6 +5916,7 @@ xterm_set_icon_name(
 	screen = p ;
 	
 	x_set_icon_name( &screen->window , name) ;
+	ml_term_set_icon_name( screen->term , name) ;
 }
 
 static void
@@ -6307,6 +6320,8 @@ x_screen_attach(
 	ml_term_t *  term
 	)
 {
+	char *  name ;
+	
 	if( screen->term)
 	{
 		return  0 ;
@@ -6347,6 +6362,9 @@ x_screen_attach(
 			ml_term_get_num_of_logged_lines( screen->term)) ;
 	}
 
+	x_set_window_name( &screen->window , ml_term_window_name( screen->term)) ;
+	x_set_icon_name( &screen->window , ml_term_icon_name( screen->term)) ;
+	
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
 	

@@ -183,14 +183,39 @@ get_font_size_range(
 static ml_term_t *
 create_term_intern(void)
 {
-	return  ml_create_term( main_config.cols , main_config.rows ,
+	ml_term_t *  term ;
+	
+	if( ( term = ml_create_term( main_config.cols , main_config.rows ,
 			main_config.tab_size , main_config.num_of_log_lines ,
 			main_config.encoding , main_config.not_use_unicode_font ,
 			main_config.only_use_unicode_font , main_config.col_size_a ,
 			main_config.use_char_combining , main_config.use_multi_col_char ,
 			main_config.use_bidi , x_termcap_get_bool_field( main_config.tent , ML_BCE) ,
 			main_config.use_dynamic_comb , main_config.bs_mode , main_config.vertical_mode ,
-			main_config.iscii_lang_type) ;
+			main_config.iscii_lang_type)) == NULL)
+	{
+		return  NULL ;
+	}
+	
+	if( main_config.app_name)
+	{
+		ml_term_set_window_name( term , main_config.app_name) ;
+		ml_term_set_icon_name( term , main_config.icon_name) ;
+	}
+	else
+	{
+		if( main_config.title)
+		{
+			ml_term_set_window_name( term , main_config.title) ;
+		}
+		
+		if( main_config.icon_name)
+		{
+			ml_term_set_icon_name( term , main_config.icon_name) ;
+		}
+	}
+
+	return  term ;
 }
 
 static int
@@ -445,24 +470,6 @@ open_term(
 	#endif
 	
 		goto  error ;
-	}
-
-	if( main_config.app_name)
-	{
-		x_set_window_name( &screen->window , main_config.app_name) ;
-		x_set_icon_name( &screen->window , main_config.icon_name) ;
-	}
-	else
-	{
-		if( main_config.title)
-		{
-			x_set_window_name( &screen->window , main_config.title) ;
-		}
-		
-		if( main_config.icon_name)
-		{
-			x_set_icon_name( &screen->window , main_config.icon_name) ;
-		}
 	}
 
 	if( main_config.icon_path)

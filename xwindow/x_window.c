@@ -22,6 +22,10 @@
 #include  "x_imagelib.h"
 #include  "x_dnd.h"
 
+
+#define  WINDOW_NAME  "mlterm"
+#define  ICON_NAME  "mlterm"
+
 /*
  * Atom macros.
  * Not cached because Atom may differ on each display
@@ -1139,10 +1143,10 @@ x_window_show(
 
 		/* notify to window manager */
 	#if  1
-		XmbSetWMProperties( win->display , win->my_window , "mlterm" , "mlterm" ,
+		XmbSetWMProperties( win->display , win->my_window , WINDOW_NAME , ICON_NAME ,
 			argv , argc , &size_hints , &wm_hints , &class_hint) ;
 	#else
-		XmbSetWMProperties( win->display , win->my_window , "mlterm" , "mlterm" ,
+		XmbSetWMProperties( win->display , win->my_window , WINDOW_NAME , ICON_NAME ,
 			argv , argc , &size_hints , &wm_hints , NULL) ;
 	#endif
 
@@ -2653,6 +2657,11 @@ x_set_window_name(
 {
 	XTextProperty  prop ;
 
+	if( name == NULL)
+	{
+		name = WINDOW_NAME ;
+	}
+
 	if( XmbTextListToTextProperty( win->display , (char**)&name , 1 , XStdICCTextStyle , &prop)
 		>= Success)
 	{
@@ -2676,6 +2685,11 @@ x_set_icon_name(
 	)
 {
 	XTextProperty  prop ;
+
+	if( name == NULL)
+	{
+		name = ICON_NAME ;
+	}
 
 	if( XmbTextListToTextProperty( win->display , (char**)&name , 1 , XStdICCTextStyle , &prop)
 		>= Success)
