@@ -35,6 +35,8 @@ int entry_radio_edit(window_t *window, entry_t *entry, int x, int y){
 
 static int _which_one(char *str, char **terms){
 	int i = 0;
+	if (!str)
+		return 0;
 	while(strcasecmp(str, terms[i])){
 		i++;
 		if (!terms[i])
