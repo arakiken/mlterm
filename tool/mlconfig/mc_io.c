@@ -62,6 +62,7 @@ get_value(
 	int  count ;
 	char  ret[RET_SIZE] ;
 	char  c ;
+	char *p;
 
 	printf( "\x1b]%d;%s\x07" , mc_io_get, key) ;
 	fflush( stdout) ;
@@ -76,15 +77,7 @@ get_value(
 			}
 			else
 			{
-				ret[count] = '\0' ;
-
-				if( count < 2 + strlen( key) || strcmp( ret , "#error") == 0)
-				{
-					return  NULL ;
-				}
-
-				/* #key=value */
-				return  strdup( ret + 2 + strlen( key)) ;
+				break;
 			}
 		}
 		else
@@ -97,7 +90,17 @@ get_value(
 		}
 	}
 
-	return  NULL ;
+	if( count == RET_SIZE) return NULL;
+
+	ret[count] = '\0' ;
+
+	p = strchr(ret, '=');
+	if( p == NULL || strcmp( ret , "#error") == 0)
+		return  NULL ;
+
+	/* #key=value */
+	return  strdup( p + 1) ;
+
 #undef RET_SIZE
 }
 
