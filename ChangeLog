@@ -1,6 +1,6 @@
 [20020115]
 * calculating width of anti alias font was somewhat wrong. fixed.
-* variable column width anti alias fonts , which are specified in ~/.mlterm/etc/vaafont ,
+* variable column width anti alias fonts , which are specified in ~/.mlterm/vaafont ,
   are supported.
 * #error instead of #<key>=#error is returned.
 * ESC]5380;wall_pictureBEL returns #wall_picture= instead of #error when no wall picture
