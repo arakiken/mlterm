@@ -5,6 +5,12 @@
 #include  "mkf_iso2022_conv.h"
 
 #include  "mkf_iso2022_intern.h"
+#include  "mkf_zh_cn_map.h"
+#include  "mkf_zh_tw_map.h"
+#include  "mkf_ko_kr_map.h"
+#include  "mkf_viet_map.h"
+#include  "mkf_ru_map.h"
+#include  "mkf_ucs4_map.h"
 
 
 /* --- static functions --- */
@@ -236,4 +242,102 @@ mkf_iso2022_illegal_char(
 	}
 
 	return  filled_size + size ;
+}
+
+void
+mkf_iso2022_remap_unsupported_charset(
+	mkf_char_t *  ch
+	)
+{
+	mkf_char_t   c ;
+	
+	if( IS_CS_BASED_ON_ISO2022(ch->cs))
+	{
+		return ;
+	}
+	
+	if( ch->cs == ISO10646_UCS4_1)
+	{
+		if( ! mkf_map_ucs4_to_iso2022cs( &c , ch))
+		{
+			return ;
+		}
+		
+		*ch = c ;
+	}
+	
+	if( ch->cs == VISCII)
+	{
+		if( mkf_map_viscii_to_tcvn5712_3_1993( &c , ch))
+		{
+			*ch = c ;
+		}
+
+		return ;
+	}
+
+	if( ch->cs == KOI8_R)
+	{
+		if( mkf_map_koi8_r_to_iso8859_5_r( &c , ch))
+		{
+			*ch = c ;
+		}
+
+		return ;
+	}
+
+	if( ch->cs == KOI8_U)
+	{
+		if( mkf_map_koi8_u_to_iso8859_5_r( &c , ch))
+		{
+			*ch = c ;
+		}
+
+		return ;
+	}
+
+	if( ch->cs == JOHAB)
+	{
+		if( ! mkf_map_johab_to_uhc( &c , ch))
+		{
+			return ;
+		}
+		
+		*ch = c ;
+	}
+	
+	if( ch->cs == UHC)
+	{
+		if( mkf_map_uhc_to_ksc5601_1987( &c , ch))
+		{
+			*ch = c ;
+		}
+
+		return ;
+	}
+
+	if( ch->cs == GBK)
+	{
+		if( mkf_map_gbk_to_gb2312_80( &c , ch))
+		{
+			*ch = c ;
+		}
+
+		return ;
+	}
+	
+	if( ch->cs == HKSCS)
+	{
+		ch->cs = BIG5 ;
+	}
+
+	if( ch->cs == BIG5)
+	{
+		if( mkf_map_big5_to_cns11643_1992( &c , ch))
+		{
+			*ch = c ;
+		}
+
+		return ;
+	}
 }

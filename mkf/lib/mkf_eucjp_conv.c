@@ -26,13 +26,13 @@ remap_unsupported_charset(
 
 	if( ch->cs == ISO10646_UCS4_1)
 	{
-		if( ! mkf_map_ucs4_to_ja_jp( &c , ch) && ! mkf_map_ucs4_to_iso2022cs( &c , ch))
+		if( mkf_map_ucs4_to_ja_jp( &c , ch))
 		{
-			return ;
+			*ch = c ;
 		}
-		
-		*ch = c ;
 	}
+
+	mkf_iso2022_remap_unsupported_charset( ch) ;
 	
 	/*
 	 * various private chars -> jis

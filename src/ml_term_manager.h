@@ -64,8 +64,9 @@ typedef struct  ml_term_manager
 	int8_t  xim_open_in_startup ;
 	int8_t  use_bidi ;
 	int8_t  big5_buggy ;
-	int8_t  unicode_to_other_cs ;
-	int8_t  all_cs_to_unicode ;
+	int8_t  iso88591_font_for_usascii ;
+	int8_t  not_use_unicode_font ;
+	int8_t  only_use_unicode_font ;
 	int8_t  copy_paste_via_ucs ;
 	int8_t  use_transbg ;
 	

@@ -88,5 +88,7 @@ mkf_parser_t *  ml_parser_new( ml_char_encoding_t  encoding) ;
 
 mkf_conv_t *  ml_conv_new( ml_char_encoding_t  encoding) ;
 
+mkf_charset_t  ml_get_usascii_font_cs( ml_char_encoding_t  encoding) ;
+
 
 #endif

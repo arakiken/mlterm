@@ -25,19 +25,19 @@ remap_unsupported_charset(
 
 	if( ch->cs == ISO10646_UCS4_1)
 	{
-		if( ! mkf_map_ucs4_to_ja_jp( &c , ch) && ! mkf_map_ucs4_to_iso2022cs( &c , ch))
+		if( mkf_map_ucs4_to_ja_jp( &c , ch))
 		{
-			return ;
+			*ch = c ;
 		}
-		
-		*ch = c ;
 	}
+
+	mkf_iso2022_remap_unsupported_charset( ch) ;
 	
 	if( ch->cs == SJIS_IBM_EXT)
 	{
 		/*
 		 * IBM extension characters is cannot be mapped as jisc6226 1978 gaiji
-		 * (which is iso2022 based 94n charset) , so we managed to remap here.
+		 * (which is based on iso2022 94n charset) , so we managed to remap here.
 		 */
 		 
 		if( mkf_map_ibm_ext_to_jisx0208_1983( &c , ch))
@@ -49,46 +49,11 @@ remap_unsupported_charset(
 			*ch = c ;
 		}
 	}
-#if  0
 	/*
-	 * NEC special characters , NEC selected IBM characters and MAC extension charcters
-	 * are exactly in gaiji area of jisc6226_1978 , so we do not remap these.
+	 * NEC special characters and NEC selected IBM characters are exactly in gaiji area
+	 * of jisc6226_1978 , and MAC extension charcters are also in gaiji area of
+	 * jisx0208_1983 , so we do not remap these.
 	 */
-	 
-	else if( ch->cs == JISC6226_1978_NEC_EXT)
-	{
-		if( mkf_map_nec_ext_to_jisx0208_1983( &c , ch))
-		{
-			*ch = c ;
-		}
-		else if( mkf_map_nec_ext_to_jisx0212_1990( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
-	else if( ch->cs == JISC6226_1978_NECIBM_EXT)
-	{
-		if( mkf_map_necibm_ext_to_jisx0208_1983( &c , ch))
-		{
-			*ch = c ;
-		}
-		else if( mkf_map_necibm_ext_to_jisx0212_1990( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
-	else if( ch->cs == JISX0208_1983_MAC_EXT)
-	{
-		if( mkf_map_mac_ext_to_jisx0208_1983( &c , ch))
-		{
-			*ch = c ;
-		}
-		else if( mkf_map_mac_ext_to_jisx0212_1990( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
-#else
 	else if( ch->cs == JISC6226_1978_NEC_EXT || ch->cs == JISC6226_1978_NECIBM_EXT)
 	{
 		ch->cs = JISC6226_1978 ;
@@ -97,7 +62,6 @@ remap_unsupported_charset(
 	{
 		ch->cs = JISX0208_1983 ;
 	}
-#endif
 }
 
 static size_t

@@ -27,5 +27,7 @@ typedef struct  mkf_iso2022_conv
 size_t  mkf_iso2022_illegal_char( mkf_conv_t *  conv , u_char *  dst , size_t  dst_size , int *  is_full ,
 		mkf_char_t *  ch) ;
 
+void  mkf_iso2022_remap_unsupported_charset( mkf_char_t *  ch) ;
+
 
 #endif

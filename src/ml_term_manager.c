@@ -114,6 +114,8 @@ open_new_term(
 	ml_vt100_parser_t *  vt100_parser = NULL ;
 	ml_pty_t *  pty = NULL ;
 	ml_window_t *  root ;
+	mkf_charset_t  usascii_font_cs ;
+	int  usascii_font_cs_changable ;
 	char *  env[4] ;
 	char **  env_p ;
 	char  wid_env[9 + DIGIT_STR_LEN(4) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
@@ -131,6 +133,22 @@ open_new_term(
 	
 		return  0 ;
 	}
+
+	if( term_man->not_use_unicode_font || term_man->iso88591_font_for_usascii)
+	{
+		usascii_font_cs = ml_get_usascii_font_cs( ML_ISO8859_1) ;
+		usascii_font_cs_changable = 0 ;
+	}
+	else if( term_man->only_use_unicode_font)
+	{
+		usascii_font_cs = ml_get_usascii_font_cs( ML_UTF8) ;
+		usascii_font_cs_changable = 0 ;
+	}
+	else
+	{
+		usascii_font_cs = ml_get_usascii_font_cs( term_man->encoding) ;
+		usascii_font_cs_changable = 1 ;
+	}
 	
 	if( ( font_man = ml_font_manager_new( term_man->win_man.display ,
 		&term_man->normal_font_custom ,
@@ -139,7 +157,7 @@ open_new_term(
 	#else
 		NULL ,
 	#endif
-		term_man->font_size , term_man->encoding)) == NULL)
+		term_man->font_size , usascii_font_cs , usascii_font_cs_changable)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_new() failed.\n") ;
@@ -193,7 +211,7 @@ open_new_term(
 	}
 
 	if( ( vt100_parser = ml_vt100_parser_new( termscr , term_man->encoding ,
-		term_man->unicode_to_other_cs , term_man->all_cs_to_unicode ,
+		term_man->not_use_unicode_font , term_man->only_use_unicode_font ,
 		term_man->col_size_a)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -703,14 +721,16 @@ ml_term_manager_init(
 	kik_conf_add_opt( conf , 't' , "transbg" , 1 , "use_transbg" , "use transparent background.") ;
 	kik_conf_add_opt( conf , 's' , "sb" , 1 , "use_scrollbar" , "use scrollbar") ;
 	kik_conf_add_opt( conf , 'm' , "comb" , 1 , "use_combining" , "combining chars") ;
-	kik_conf_add_opt( conf , 'n' , "ucs2other" , 1 , "unicode_to_other_cs" ,
-		"converting unicode to other cs") ;
-	kik_conf_add_opt( conf , 'u' , "all2ucs" , 1 , "all_cs_to_unicode" ,
-		"converting all cs to unicode.") ;
+	kik_conf_add_opt( conf , '8' , "88591" , 1 , "iso88591_font_for_usascii" ,
+				"iso8859-1 font is used for us ascii characters.") ;
+	kik_conf_add_opt( conf , 'n' , "noucsfont" , 1 , "not_use_unicode_font" ,
+				"not use unicode font") ;
+	kik_conf_add_opt( conf , 'u' , "onlyucsfont" , 1 , "only_use_unicode_font" ,
+				"only use unicode font") ;
 	kik_conf_add_opt( conf , 'U' , "viaucs" , 1 , "copy_paste_via_ucs" ,
-		"process received strings via ucs.") ;
+				"process received strings via ucs.") ;
 	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" ,
-		"opening xim in starting up.") ;
+				"opening xim in starting up.") ;
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , "use bidi") ;
 	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" , "supporting buggy Big5 CTEXT") ;
 #ifdef  ANTI_ALIAS
@@ -1137,34 +1157,45 @@ ml_term_manager_init(
 		}
 	}
 
-	term_man->unicode_to_other_cs = 0 ;
+	term_man->iso88591_font_for_usascii = 0 ;
 
-	if( ( value = kik_conf_get_value( conf , "unicode_to_other_cs")))
+	if( ( value = kik_conf_get_value( conf , "iso88591_font_for_usascii")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			term_man->unicode_to_other_cs = 1 ;
+			term_man->iso88591_font_for_usascii = 1 ;
 		}
 	}
 
-	term_man->all_cs_to_unicode = 0 ;
+	term_man->not_use_unicode_font = 0 ;
 
-	if( ( value = kik_conf_get_value( conf , "all_cs_to_unicode")))
+	if( ( value = kik_conf_get_value( conf , "not_use_unicode_font")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			term_man->all_cs_to_unicode = 1 ;
+			term_man->not_use_unicode_font = 1 ;
 		}
 	}
 
-	if( term_man->unicode_to_other_cs && term_man->all_cs_to_unicode)
+	term_man->only_use_unicode_font = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "only_use_unicode_font")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->only_use_unicode_font = 1 ;
+		}
+	}
+
+	if( term_man->only_use_unicode_font && term_man->not_use_unicode_font)
 	{
 		kik_msg_printf(
-		"unicode_to_other_cs and all_cs_to_unicode options cannot be set at the same time.\n") ;
+			"only_use_unicode_font and not_use_unicode_font options cannot be used "
+			"at the same time.\n") ;
 
 		/* default values are used */
-		term_man->unicode_to_other_cs = 0 ;
-		term_man->all_cs_to_unicode = 0 ;
+		term_man->only_use_unicode_font = 0 ;
+		term_man->not_use_unicode_font = 0 ;
 	}
 
 	term_man->copy_paste_via_ucs = 0 ;

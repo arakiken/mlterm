@@ -83,6 +83,16 @@ next_char(
 	/* XXX */
 	ch->property = 0 ;
 
+	if( ch->cs == ISO10646_UCS2_1)
+	{
+		ch->ch[2] = ch->ch[0] ;
+		ch->ch[3] = ch->ch[1] ;
+		ch->ch[0] = 0x0 ;
+		ch->ch[1] = 0x0 ;
+		ch->cs = ISO10646_UCS4_1 ;
+		ch->size = 4 ;
+	}
+	
 	if( ml_str_parser->left == 0)
 	{
 		ml_str_parser->parser.is_eos = 1 ;

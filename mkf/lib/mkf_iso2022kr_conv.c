@@ -32,31 +32,13 @@ remap_unsupported_charset(
 
 	if( ch->cs == ISO10646_UCS4_1)
 	{
-		if( ! mkf_map_ucs4_to_ko_kr( &c , ch) && ! mkf_map_ucs4_to_iso2022cs( &c , ch))
-		{
-			return ;
-		}
-		
-		*ch = c ;
-	}
-	
-	if( ch->cs == JOHAB)
-	{
-		if( mkf_map_johab_to_uhc( &c , ch))
-		{
-			return ;
-		}
-		
-		*ch = c ;
-	}
-	
-	if( ch->cs == UHC)
-	{
-		if( mkf_map_uhc_to_ksc5601_1987( &c , ch))
+		if( mkf_map_ucs4_to_ko_kr( &c , ch))
 		{
 			*ch = c ;
 		}
 	}
+
+	mkf_iso2022_remap_unsupported_charset( ch) ;
 }
 
 static size_t

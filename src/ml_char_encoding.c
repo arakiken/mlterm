@@ -53,6 +53,13 @@ typedef struct  encoding_table
 
 } encoding_table_t ;
 
+typedef struct encoding_to_cs_table
+{
+	ml_char_encoding_t  encoding ;
+	mkf_charset_t  cs ;
+
+} encoding_to_cs_table_t ;
+
 
 /* --- static variables --- */
 
@@ -126,6 +133,40 @@ static encoding_table_t  encoding_table[] =
 	{ ML_EUCCN , "GB2312" } ,
 	
 	{ ML_HZ , "HZGB2312" } ,
+} ;
+
+/*
+ * !!! Notice !!!
+ * the order should be the same as ml_char_encoding_t.
+ */
+static encoding_to_cs_table_t  usascii_font_cs_table[] =
+{
+	{ ML_ISO8859_1 , ISO8859_1_R } ,
+	{ ML_ISO8859_2 , ISO8859_2_R } ,
+	{ ML_ISO8859_3 , ISO8859_3_R } ,
+	{ ML_ISO8859_4 , ISO8859_4_R } ,
+	{ ML_ISO8859_5 , ISO8859_5_R } ,
+	{ ML_ISO8859_6 , ISO8859_6_R } ,
+	{ ML_ISO8859_7 , ISO8859_7_R } ,
+	{ ML_ISO8859_8 , ISO8859_8_R } ,
+	{ ML_ISO8859_9 , ISO8859_9_R } ,
+	{ ML_ISO8859_10 , ISO8859_10_R } ,
+	{ ML_TIS620 , TIS620_2533 } ,
+	{ ML_ISO8859_13 , ISO8859_13_R } ,
+	{ ML_ISO8859_14 , ISO8859_14_R } ,
+	{ ML_ISO8859_15 , ISO8859_15_R } ,
+	{ ML_ISO8859_16 , ISO8859_16_R } ,
+	{ ML_TCVN5712 , TCVN5712_3_1993 } ,
+	
+	{ ML_VISCII , VISCII } ,
+	{ ML_KOI8_R , KOI8_R } ,
+	{ ML_KOI8_U , KOI8_U } ,
+#ifdef  USE_UCS4
+	{ ML_UTF8 , ISO10646_UCS4_1 } ,
+#else
+	{ ML_UTF8 , ISO10646_UCS2_1 } ,
+#endif
+	
 } ;
 
 static void (*iso2022kr_conv_init)( mkf_conv_t *) ;
@@ -314,4 +355,33 @@ ml_conv_new(
 	}
 	
 	return  conv ;
+}
+
+mkf_charset_t
+ml_get_usascii_font_cs(
+	ml_char_encoding_t  encoding
+	)
+{
+	if( encoding < 0 ||
+		sizeof( usascii_font_cs_table) / sizeof( usascii_font_cs_table[0]) <= encoding)
+	{
+		return  ISO8859_1_R ;
+	}
+#ifdef  DEBUG
+	else if( encoding != usascii_font_cs_table[encoding].encoding)
+	{
+		kik_warn_printf( KIK_DEBUG_TAG " %x is illegal encoding.\n" , encoding) ;
+
+		return  ISO8859_1_R ;
+	}
+#endif
+	else
+	{
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " us ascii font is %x cs\n" ,
+			usascii_font_cs_table[encoding].cs) ;
+	#endif
+	
+		return  usascii_font_cs_table[encoding].cs ;
+	}
 }

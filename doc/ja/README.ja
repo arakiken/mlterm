@@ -145,8 +145,10 @@ comment $Id$
       o copy_paste_via_ucs      ... copy and paste で受け取った XCOMPOUND TEXT を一度 UCS を
                                     経由してから、端末エンコーディングに変換する(true/*false*)
       o big5_buggy              ... Big5 CTEXT のバグ(XFree86 4.1.0 以前)に対応する(true/*false*)
-      o unicode_to_other_cs     ... UNICODE文字をUNICODE以外の適当な文字集合に変換する(true/*false*)
-      o all_cs_to_unicode       ... US_ASCII以外のすべての文字をUNICODEに変換する(true/*false*)
+      o not_use_unicode_font    ... UCSを適当な文字集合にmapして、UNICODEフォントを使わずに表示
+                                    する(true/*false*)
+      o only_use_unicode_font   ... すべての文字をUNICODEフォントだけを使って表示する(true/*false*)
+      o iso88591_font_for_usascii ... US_ASCIIの表示には、必ず ISO8859-1 フォントを使用する(true/*false*)
       o col_size_of_width_a     ... UNICODEのEastAsianWidth.txtのAプロパティのコラム数(*1*/2)
 
       o fg_color       ... 端末画面の前景色(*black*)

@@ -20,51 +20,6 @@
 #endif
 
 
-typedef struct encoding_to_cs_table
-{
-	ml_char_encoding_t  encoding ;
-	mkf_charset_t  cs ;
-
-} encoding_to_cs_table_t ;
-
-
-/* --- static variables --- */
-
-/*
- * !!! Notice !!!
- * the order should be the same as ml_char_encoding_t in ml_char_encoding.h
- */
-static encoding_to_cs_table_t  usascii_font_cs_table[] =
-{
-	{ ML_ISO8859_1 , ISO8859_1_R } ,
-	{ ML_ISO8859_2 , ISO8859_2_R } ,
-	{ ML_ISO8859_3 , ISO8859_3_R } ,
-	{ ML_ISO8859_4 , ISO8859_4_R } ,
-	{ ML_ISO8859_5 , ISO8859_5_R } ,
-	{ ML_ISO8859_6 , ISO8859_6_R } ,
-	{ ML_ISO8859_7 , ISO8859_7_R } ,
-	{ ML_ISO8859_8 , ISO8859_8_R } ,
-	{ ML_ISO8859_9 , ISO8859_9_R } ,
-	{ ML_ISO8859_10 , ISO8859_10_R } ,
-	{ ML_TIS620 , TIS620_2533 } ,
-	{ ML_ISO8859_13 , ISO8859_13_R } ,
-	{ ML_ISO8859_14 , ISO8859_14_R } ,
-	{ ML_ISO8859_15 , ISO8859_15_R } ,
-	{ ML_ISO8859_16 , ISO8859_16_R } ,
-	{ ML_TCVN5712 , TCVN5712_3_1993 } ,
-	
-	{ ML_VISCII , VISCII } ,
-	{ ML_KOI8_R , KOI8_R } ,
-	{ ML_KOI8_U , KOI8_U } ,
-#ifdef  USE_UCS4
-	{ ML_UTF8 , ISO10646_UCS4_1 } ,
-#else
-	{ ML_UTF8 , ISO10646_UCS2_1 } ,
-#endif
-	
-} ;
-
-
 /* --- static functions --- */
 
 #ifdef  DEBUG
@@ -119,34 +74,6 @@ fontattr_compare(
 	return  (key1 == key2) ;
 }
 
-static mkf_charset_t
-get_usascii_font_cs(
-	ml_char_encoding_t  encoding
-	)
-{
-	if( encoding < 0 || sizeof( usascii_font_cs_table) / sizeof( usascii_font_cs_table[0]) <= encoding)
-	{
-		return  ISO8859_1_R ;
-	}
-	else if( encoding != usascii_font_cs_table[encoding].encoding)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " %x is illegal encoding.\n") ;
-	#endif
-
-		return  ISO8859_1_R ;
-	}
-	else
-	{
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " us ascii font is %x cs\n" ,
-			usascii_font_cs_table[encoding].cs) ;
-	#endif
-	
-		return  usascii_font_cs_table[encoding].cs ;
-	}
-}
-
 static int
 set_usascii_xfont(
 	ml_font_manager_t *  font_man ,
@@ -158,7 +85,7 @@ set_usascii_xfont(
 	ml_font_attr_t  attr ;
 	ml_font_attr_t  orig_attr ;
 
-	attr = DEFAULT_FONT_ATTR(get_usascii_font_cs(font_man->encoding)) ;
+	attr = DEFAULT_FONT_ATTR( font_man->usascii_font_cs) ;
 
 	fontname = ml_get_font_name_for_attr( font_man->font_custom , font_man->font_size , attr) ;
 
@@ -198,7 +125,7 @@ get_font_intern(
 	if( FONT_CS(fontattr) == US_ASCII)
 	{
 		fontattr &= ~US_ASCII ;
-		fontattr |= get_usascii_font_cs( font_man->encoding) ;
+		fontattr |= font_man->usascii_font_cs ;
 		col_width = 0 ;
 	}
 	else
@@ -279,7 +206,8 @@ ml_font_manager_new(
 	ml_font_custom_t *  normal_font_custom ,
 	ml_font_custom_t *  aa_font_custom ,
 	u_int  font_size ,
-	ml_char_encoding_t  encoding
+	mkf_charset_t  usascii_font_cs ,
+	int  usascii_font_cs_changable
 	)
 {
 	ml_font_manager_t *  font_man ;
@@ -306,7 +234,8 @@ ml_font_manager_new(
 	font_man->display = display ;
 
 	font_man->usascii_font = NULL ;
-	font_man->encoding = encoding ;
+	font_man->usascii_font_cs = usascii_font_cs ;
+	font_man->usascii_font_cs_changable = usascii_font_cs_changable ;
 
 	font_man->set_xfont = ml_font_set_xfont ;
 
@@ -491,18 +420,17 @@ ml_line_height_to_baseline(
 }
 
 int
-ml_font_manager_change_encoding(
+ml_font_manager_usascii_font_cs_changed(
 	ml_font_manager_t *  font_man ,
-	ml_char_encoding_t  encoding
+	mkf_charset_t  usascii_font_cs
 	)
 {
-	mkf_charset_t  cs ;
 	ml_font_t *  usascii_font ;
 	ml_font_attr_t  orig_attr ;
-	ml_char_encoding_t  orig_encoding ;
+	mkf_charset_t  orig_usascii_font_cs ;
 	int  result ;
-	
-	if( ( cs = get_usascii_font_cs( encoding)) == get_usascii_font_cs( font_man->encoding))
+
+	if( ! font_man->usascii_font_cs_changable || usascii_font_cs == font_man->usascii_font_cs)
 	{
 		/* usascii font size never changed */
 		
@@ -516,11 +444,11 @@ ml_font_manager_change_encoding(
 		return  0 ;
 	}
 	
-	orig_encoding = font_man->encoding ;
-	font_man->encoding = encoding ;
+	orig_usascii_font_cs = font_man->usascii_font_cs ;
+	font_man->usascii_font_cs = usascii_font_cs ;
 
 	orig_attr = usascii_font->attr ;
-	ml_change_font_cs( usascii_font , get_usascii_font_cs( encoding)) ;
+	ml_change_font_cs( usascii_font , font_man->usascii_font_cs) ;
 
 	while( ! set_usascii_xfont( font_man , usascii_font , 0))
 	{
@@ -532,7 +460,7 @@ ml_font_manager_change_encoding(
 		{
 			/* failed */
 
-			font_man->encoding = orig_encoding ;
+			font_man->usascii_font_cs = orig_usascii_font_cs ;
 			usascii_font->attr = orig_attr ;
 
 			return  -1 ;
@@ -641,7 +569,7 @@ ml_change_font_size(
 			array[counter]->value = font ;
 		}
 
-		if( attr == DEFAULT_FONT_ATTR(get_usascii_font_cs( font_man->encoding)))
+		if( attr == DEFAULT_FONT_ATTR(font_man->usascii_font_cs))
 		{
 			/* usascii default font is already loaded. */
 			

@@ -697,8 +697,9 @@ change_encoding(
 	int  result ;
 	
 	termscr = p ;
-	
-	if( ( result = ml_font_manager_change_encoding( termscr->font_man , encoding)) == -1)
+
+	if( ( result = ml_font_manager_usascii_font_cs_changed( termscr->font_man ,
+		ml_get_usascii_font_cs( encoding))) == -1)
 	{
 		/* failed */
 
@@ -1105,7 +1106,7 @@ yank_event_received(
 {
 	if( termscr->sel.is_owner)
 	{
-		if( termscr->sel.sel_len == 0)
+		if( termscr->sel.sel_str == NULL || termscr->sel.sel_len == 0)
 		{
 			return  0 ;
 		}
@@ -1723,7 +1724,7 @@ xct_selection_requested(
 
 	termscr = (ml_term_screen_t*) win ;
 
-	if( termscr->sel.sel_str == NULL)
+	if( termscr->sel.sel_str == NULL || termscr->sel.sel_len == 0)
 	{
 		ml_window_send_selection( win , event , NULL , 0 , 0) ;
 	}
@@ -1757,7 +1758,11 @@ utf8_selection_requested(
 
 	termscr = (ml_term_screen_t*) win ;
 
-	if( termscr->sel.sel_str)
+	if( termscr->sel.sel_str == NULL || termscr->sel.sel_len == 0)
+	{		
+		ml_window_send_selection( win , event , NULL , 0 , 0) ;
+	}
+	else
 	{
 		u_char *  utf8_str ;
 		size_t  utf8_len ;
@@ -1773,12 +1778,6 @@ utf8_selection_requested(
 		filled_len = convert_selection_to_utf8( termscr , utf8_str , utf8_len) ;
 
 		ml_window_send_selection( win , event , utf8_str , filled_len , type) ;
-	}
-	else
-	{
-		/* rejecting */
-		
-		ml_window_send_selection( win , event , NULL , 0 , 0) ;
 	}
 }
 

@@ -9,7 +9,9 @@
 #include  <stdlib.h>		/* atoi */
 #include  <kiklib/kik_debug.h>
 
-#include  <mkf/mkf_ucs4_map.h>
+#include  <mkf/mkf_ucs4_map.h>	/* mkf_map_to_ucs4 */
+#include  <mkf/mkf_ucs_property.h>
+#include  <mkf/mkf_locale_ucs4_map.h>
 #include  <mkf/mkf_ko_kr_map.h>
 
 #include  "ml_color.h"
@@ -1944,7 +1946,7 @@ ml_parse_vt100_sequence(
 
 						mkf_char_t  non_ucs ;
 
-						if( mkf_map_ucs4_to( &non_ucs , &ch) == 0)
+						if( mkf_map_locale_ucs4_to( &non_ucs , &ch) == 0)
 						{
 						#ifdef  DEBUG
 							kik_warn_printf( KIK_DEBUG_TAG
@@ -1974,6 +1976,8 @@ ml_parse_vt100_sequence(
 
 					if( mkf_map_to_ucs4( &ucs , &ch))
 					{
+						ucs.property =  mkf_get_ucs_property( ucs.ch , ucs.size) ;
+						
 					#ifdef  USE_UCS4
 						ch = ucs ;
 					#else

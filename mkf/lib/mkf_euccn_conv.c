@@ -35,27 +35,23 @@ remap_unsupported_charset(
 
 	if( ch->cs == ISO10646_UCS4_1)
 	{
-		if( ! mkf_map_ucs4_to_zh_cn( &c , ch) &&
-			( encoding == EUCCN_NORMAL && ! mkf_map_ucs4_to_iso2022cs( &c , ch)))
+		if( mkf_map_ucs4_to_zh_cn( &c , ch))
 		{
-			return ;
+			*ch = c ;
 		}
-		
-		*ch = c ;
 	}
 
 	if( encoding == EUCCN_NORMAL)
 	{
-		if( ch->cs == GBK)
-		{
-			if( mkf_map_gbk_to_gb2312_80( &c , ch))
-			{
-				*ch = c ;
-			}
-		}
+		mkf_iso2022_remap_unsupported_charset( ch) ;
 	}
-	else if( encoding == EUCCN_GBK || encoding == EUCCN_GB18030_2000)
+	else
 	{
+		if( ch->cs == ISO10646_UCS4_1)
+		{
+			return ;
+		}
+
 		if( ch->cs == GB2312_80)
 		{
 			if( mkf_map_gb2312_80_to_gbk( &c , ch))
@@ -82,7 +78,7 @@ convert_to_euccn_intern(
 	while( mkf_parser_next_char( parser , &ch))
 	{
 		remap_unsupported_charset( &ch , encoding) ;
-
+		
 		if( ch.cs == US_ASCII)
 		{
 			if( filled_size >= dst_size)

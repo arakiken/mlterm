@@ -33,35 +33,9 @@ remap_unsupported_charset(
 		{
 			*ch = c ;
 		}
-		else if( mkf_map_ucs4_to_iso2022cs( &c , ch))
-		{
-			*ch = c ;
-		}
-		else
-		{
-			return ;
-		}
 	}
 
-	if( ch->cs == HKSCS)
-	{
-		ch->cs = BIG5 ;
-	}
-	
-	if( ch->cs == BIG5)
-	{
-		if( mkf_map_big5_to_cns11643_1992( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
-	else if( ch->cs == GBK)
-	{
-		if( mkf_map_gbk_to_gb2312_80( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
+	mkf_iso2022_remap_unsupported_charset( ch) ;
 }
 
 static size_t

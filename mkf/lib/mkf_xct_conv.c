@@ -4,80 +4,20 @@
 
 #include  "mkf_xct_conv.h"
 
-#include  <string.h>		/* strncmp */
+#include  <string.h>		/* strcasecmp */
 #include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_locale.h>	/* kik_get_codeset() */
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_locale.h>
-#include  <kiklib/kik_util.h>	/* K_MIN */
 
+#include  "mkf_locale_ucs4_map.h"
 #include  "mkf_ucs4_map.h"
-#include  "mkf_ucs4_map.h"
-#include  "mkf_ja_jp_map.h"
 #include  "mkf_zh_tw_map.h"
 #include  "mkf_zh_cn_map.h"
-#include  "mkf_zh_hk_map.h"
-#include  "mkf_ko_kr_map.h"
-#include  "mkf_viet_map.h"
-#include  "mkf_ru_map.h"
 #include  "mkf_iso2022_conv.h"
 #include  "mkf_iso2022_intern.h"
 
 
-typedef int (*map_func_t)( mkf_char_t *  , mkf_char_t *) ;
-
-typedef struct  map_ucs4_to_func_table
-{
-	char *  locale ;
-	map_func_t  func ;
-
-} map_ucs4_to_func_table_t ;
-
-
-/* --- static variables --- */
-
-/*
- * XXX
- * in the future , mkf_map_ucs4_to_[locale]_iso2022cs() should be implemented.
- *
- * XXX
- * other languages(especially ISO8859 variants) are not supported yet.
- */
-static map_ucs4_to_func_table_t  map_ucs4_to_func_table[] =
-{
-	{ "ja" , mkf_map_ucs4_to_ja_jp } ,
-	{ "ko" , mkf_map_ucs4_to_ko_kr } ,
-	{ "ru" , mkf_map_ucs4_to_ru } ,
-	{ "vi" , mkf_map_ucs4_to_viet } ,
-	{ "zh_CN" , mkf_map_ucs4_to_zh_cn } ,
-	{ "zh_TW" , mkf_map_ucs4_to_zh_tw } ,
-	{ "zh_HK" , mkf_map_ucs4_to_zh_hk } ,
-} ;
-
-
 /* --- static functions --- */
-
-static map_func_t
-get_map_ucs4_to_func_for_current_locale(void)
-{
-	int  counter ;
-	char *  locale ;
-
-	locale = kik_get_locale() ;
-
-	for( counter = 0 ;
-		counter < sizeof( map_ucs4_to_func_table) / sizeof( map_ucs4_to_func_table[0]) ;
-		counter ++)
-	{
-		if( strncmp( map_ucs4_to_func_table[counter].locale , locale ,
-				K_MIN( strlen( map_ucs4_to_func_table[counter].locale) ,
-					strlen( locale))) == 0)
-		{
-			return  map_ucs4_to_func_table[counter].func ;
-		}
-	}
-
-	return  NULL ;
-}
 
 static void
 remap_unsupported_charset(
@@ -86,88 +26,93 @@ remap_unsupported_charset(
 {
 	mkf_char_t  c ;
 
-	/*
-	 * UCS => Any Other CS
-	 */
-	 
-	if( ch->cs == ISO10646_UCS2_1)
-	{
-		ch->ch[2] = ch->ch[0] ;
-		ch->ch[3] = ch->ch[1] ;
-		ch->ch[0] = 0x0 ;
-		ch->ch[1] = 0x0 ;
-		ch->cs = ISO10646_UCS4_1 ;
-		ch->size = 4 ;
-	}
-	
 	if( ch->cs == ISO10646_UCS4_1)
 	{
-		map_func_t  func ;
-
-		/* UCS => other cs conforming to current locale. */
-		if( ( func = get_map_ucs4_to_func_for_current_locale()) == NULL ||
-			(*func)( &c , ch) == 0)
+		if( ! mkf_map_locale_ucs4_to( &c , ch))
 		{
-			if( mkf_map_ucs4_to_iso2022cs( &c , ch) == 0)
-			{
-				return ;
-			}
+			return ;
 		}
 		
 		*ch = c ;
 	}
 
-	/*
-	 * NON ISO2022 CS -> ISO2022 CS
-	 */
-	 
-	if( ch->cs == UHC)
+	if( strcasecmp( kik_get_codeset() , "GBK") == 0)
 	{
-		if( mkf_map_uhc_to_ksc5601_1987( &c , ch))
+		if( ch->cs == GB2312_80)
 		{
-			*ch = c ;
+			if( mkf_map_gb2312_80_to_gbk( &c , ch))
+			{
+				*ch = c ;
+			}
+
+			return ;
+		}
+		else if( ch->cs == GBK)
+		{
+			return ;
 		}
 	}
-	else if( ch->cs == GB2312_80 && strcasecmp( kik_get_codeset() , "GBK") == 0)
+	else
 	{
-		if( mkf_map_gb2312_80_to_gbk( &c , ch))
+		if( ch->cs == GBK)
 		{
-			*ch = c ;
+			if( mkf_map_gbk_to_gb2312_80( &c , ch))
+			{
+				*ch = c ;
+			}
+
+			return ;
 		}
-	}
-	else if( ch->cs == GBK && strcasecmp( kik_get_codeset() , "GBK") != 0)
-	{
-		if( mkf_map_gbk_to_gb2312_80( &c , ch))
+		else if( ch->cs == GB2312_80)
 		{
-			*ch = c ;
-		}
-	}
-	else if( ch->cs == CNS11643_1992_1 && strcasecmp( kik_get_codeset() , "BIG5") == 0)
-	{
-		if( mkf_map_cns11643_1992_1_to_big5( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
-	else if( ch->cs == CNS11643_1992_2 && strcasecmp( kik_get_codeset() , "BIG5") == 0)
-	{
-		if( mkf_map_cns11643_1992_2_to_big5( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
-	else if( ch->cs == BIG5 && strcasecmp( kik_get_codeset() , "BIG5") != 0)
-	{
-		if( mkf_map_big5_to_cns11643_1992( &c , ch))
-		{
-			*ch = c ;
+			return ;
 		}
 	}
 	
-	/*
-	 * XXX
-	 * KOI8-R , KOI8-U , HKSCS ...
-	 */
+	if( strcasecmp( kik_get_codeset() , "BIG5") == 0 ||
+			strcasecmp( kik_get_codeset() , "BIG5HKSCS") == 0)
+	{
+		if( ch->cs == CNS11643_1992_1)
+		{
+			if( mkf_map_cns11643_1992_1_to_big5( &c , ch))
+			{
+				*ch = c ;
+			}
+
+			return ;
+		}
+		else if( ch->cs == CNS11643_1992_2)
+		{
+			if( mkf_map_cns11643_1992_2_to_big5( &c , ch))
+			{
+				*ch = c ;
+			}
+
+			return ;
+		}
+		else if( ch->cs == BIG5)
+		{
+			return ;
+		}
+	}
+	else
+	{
+		if( ch->cs == BIG5)
+		{
+			if( mkf_map_big5_to_cns11643_1992( &c , ch))
+			{
+				*ch = c ;
+			}
+
+			return ;
+		}
+		else if( ch->cs == CNS11643_1992_1 || ch->cs == CNS11643_1992_2)
+		{
+			return ;
+		}
+	}
+	
+	mkf_iso2022_remap_unsupported_charset( ch) ;
 }
 
 static size_t

@@ -18,45 +18,44 @@
 static void
 remap_unsupported_charset(
 	mkf_char_t *  ch ,
-	int  to_uhc
+	int  is_uhc
 	)
 {
 	mkf_char_t  c ;
 
 	if( ch->cs == ISO10646_UCS4_1)
 	{
-		if( ! mkf_map_ucs4_to_ko_kr( &c , ch) &&
-			( ! to_uhc && ! mkf_map_ucs4_to_iso2022cs( &c , ch)))
+		if( mkf_map_ucs4_to_ko_kr( &c , ch))
 		{
-			return ;
+			*ch = c ;
 		}
-		
-		*ch = c ;
-	}
-
-	if( ch->cs == JOHAB)
-	{
-		if( ! mkf_map_johab_to_uhc( &c , ch))
-		{
-			return ;
-		}
-		
-		*ch = c ;
 	}
 	
-	if( to_uhc && ch->cs == KSC5601_1987)
+	if( is_uhc)
 	{
+		if( ch->cs == ISO10646_UCS4_1)
+		{
+			return ;
+		}
+
+		if( ch->cs == JOHAB)
+		{
+			if( ! mkf_map_johab_to_uhc( &c , ch))
+			{
+				return ;
+			}
+
+			*ch = c ;
+		}
+
 		if( mkf_map_ksc5601_1987_to_uhc( &c , ch))
 		{
 			*ch = c ;
 		}
 	}
-	else if( (! to_uhc) && ch->cs == UHC)
+	else
 	{
-		if( mkf_map_uhc_to_ksc5601_1987( &c , ch))
-		{
-			*ch = c ;
-		}
+		mkf_iso2022_remap_unsupported_charset( ch) ;
 	}
 }
 
@@ -75,14 +74,7 @@ convert_to_euckr_intern(
 	filled_size = 0 ;
 	while( mkf_parser_next_char( parser , &ch))
 	{
-		if( is_uhc)
-		{
-			remap_unsupported_charset( &ch , 1) ;
-		}
-		else
-		{
-			remap_unsupported_charset( &ch , 0) ;
-		}
+		remap_unsupported_charset( &ch , is_uhc) ;
 		
 		if( ch.cs == US_ASCII)
 		{

@@ -29,56 +29,16 @@ remap_unsupported_charset(
 
 	if( ch->cs == ISO10646_UCS4_1)
 	{
-		if( mkf_map_ucs4_to_us_ascii( &c , mkf_char_to_int( ch)))
+		if( mkf_map_ucs4_to_us_ascii( &c , mkf_char_to_int( ch)) ||
+			mkf_map_ucs4_to_cs( &c , ch , gr_cs))
 		{
 			*ch = c ;
 
 			return ;
 		}
-		
-		if( gr_cs == ISO8859_5_R)
-		{
-			if( ! mkf_map_ucs4_to_ru( &c , ch) && ! mkf_map_ucs4_to_iso2022cs( &c , ch))
-			{
-				return ;
-			}
-		}
-		else if( gr_cs == TCVN5712_3_1993)
-		{
-			if( ! mkf_map_ucs4_to_viet( &c , ch) && ! mkf_map_ucs4_to_iso2022cs( &c , ch))
-			{
-				return ;
-			}
-		}
-		else if( ! mkf_map_ucs4_to_cs( &c , ch , gr_cs) && ! mkf_map_ucs4_to_iso2022cs( &c , ch))
-		{
-			return ;
-		}
+	}
 
-		*ch = c ;
-	}
-	
-	if( gr_cs == TCVN5712_3_1993 && ch->cs == VISCII)
-	{
-		if( mkf_map_viscii_to_tcvn5712_3_1993( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
-	else if( gr_cs == ISO8859_5_R && ch->cs == KOI8_R)
-	{
-		if( mkf_map_koi8_r_to_iso8859_5_r( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
-	else if( gr_cs == ISO8859_5_R && ch->cs == KOI8_U)
-	{
-		if( mkf_map_koi8_u_to_iso8859_5_r( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
+	mkf_iso2022_remap_unsupported_charset( ch) ;
 }
 
 static size_t
