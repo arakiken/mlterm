@@ -23,7 +23,8 @@ LKIK = @KIK_LIBS@
 
 GTK_CONFIG=@GTK_CONFIG@
 CFLAGS = `$(GTK_CONFIG) --cflags` $(CFLAGS_LOCAL) \
-	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @AA_CFLAGS@ @IMAGELIB_CFLAGS@ @UIM_CFLAGS@ \
+	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @AA_CFLAGS@ @IMAGELIB_CFLAGS@ \
+	@UIM_CFLAGS@ @IIIMF_CFLAGS@ \
 	@DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-I${top_srcdir}/xwindow -I${top_srcdir}/mlterm \
 	-I${top_builddir}/common -I${top_srcdir}/common \
@@ -31,7 +32,7 @@ CFLAGS = `$(GTK_CONFIG) --cflags` $(CFLAGS_LOCAL) \
 	-DSYSCONFDIR=\"$(SYSCONFDIR)\" -DLOCALEDIR=\"$(LOCALEDIR)\" \
 	-DDATADIR=\"$(DATADIR)\"	
 LIBS = @INTL_LIBS@ @DL_SELF@ `$(GTK_CONFIG) --libs` $(LIBS_LOCAL) $(LKIK) \
-	-L/usr/local/lib -R/usr/local/lib
+	@UIM_LIBS@ @IIIMF_LIBS@ -L/usr/local/lib -R/usr/local/lib
 
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)

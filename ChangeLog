@@ -1,5 +1,14 @@
 2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* tool/mlconfig/mc_im.c, tool/mlconfig/Makefile.in:
+	- get available conversion engines from libuim directory.
+	- added IIIMF support.
+
+	* man/mlterm.1: added IIIMF related things into 'GUI CONFIGURATOR'
+	section.
+
+2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* etc/uim: removed
 
 2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
