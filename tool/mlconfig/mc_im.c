@@ -52,7 +52,7 @@ typedef enum im_type {
 
 typedef im_info_t* (*im_get_info_func_t)(char *, char *);
 
-#define MAX_IM_INFO 5
+#define MAX_IM_INFO 6
 
 /* --- static variables --- */
 

@@ -1,3 +1,7 @@
+2005-01-23 MINAMI Hirokazu <minami@mistfall.net>
+
+	* tool/mlconfig/mc_im.c: increased MAX_IM_INFO to make room for scim.
+
 2005-01-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/scim/im_scim.cpp (im_scim_create_context): moved
