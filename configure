@@ -544,17 +544,13 @@ fi
 
 
 
-PWD=`pwd`
-if test ! -d "mkf/kiklib" ; then
-	(cd mkf ; ln -s ../kiklib kiklib)
-fi
-
-if test ! -f "install-sh" ; then
-	ln -s autoconf/install-sh install-sh
-fi
+for dir in mkf kiklib tool scrollbar ; do 
+	mkdir -p ${dir}
+done
+ln -sf ../kiklib mkf/kiklib
 
 ac_aux_dir=
-for ac_dir in ${PWD} $srcdir/${PWD}; do
+for ac_dir in autoconf $srcdir/autoconf; do
   if test -f $ac_dir/install-sh; then
     ac_aux_dir=$ac_dir
     ac_install_sh="$ac_aux_dir/install-sh -c"
@@ -566,13 +562,12 @@ for ac_dir in ${PWD} $srcdir/${PWD}; do
   fi
 done
 if test -z "$ac_aux_dir"; then
-  { echo "configure: error: can not find install-sh or install.sh in ${PWD} $srcdir/${PWD}" 1>&2; exit 1; }
+  { echo "configure: error: can not find install-sh or install.sh in autoconf $srcdir/autoconf" 1>&2; exit 1; }
 fi
 ac_config_guess=$ac_aux_dir/config.guess
 ac_config_sub=$ac_aux_dir/config.sub
 ac_configure=$ac_aux_dir/configure # This should be Cygnus configure.
 
-cache_file=${PWD}/config.cache
 
 # Check whether --with-libtool or --without-libtool was given.
 if test "${with_libtool+set}" = set; then
@@ -756,7 +751,7 @@ done
 
 ac_given_srcdir=$srcdir
 
-trap 'rm -fr `echo "" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+trap 'rm -fr `echo "Makefile" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -830,7 +825,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-""}
+CONFIG_FILES=\${CONFIG_FILES-"Makefile"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then

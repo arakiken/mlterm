@@ -1,16 +1,11 @@
 AC_INIT()
 
-PWD=`pwd`
-if test ! -d "mkf/kiklib" ; then
-	(cd mkf ; ln -s ../kiklib kiklib)
-fi
+for dir in mkf kiklib tool scrollbar ; do 
+	mkdir -p ${dir}
+done
+ln -sf ../kiklib mkf/kiklib
 
-if test ! -f "install-sh" ; then
-	ln -s autoconf/install-sh install-sh
-fi
-
-AC_CONFIG_AUX_DIR(${PWD})
-cache_file=${PWD}/config.cache
+AC_CONFIG_AUX_DIR(autoconf)
 
 AC_ARG_WITH(libtool,
 	[  --with-libtool          libtool path[without]])
@@ -37,4 +32,4 @@ AC_ARG_ENABLE(static,
 
 AC_CONFIG_SUBDIRS(kiklib/autoconf mkf/autoconf autoconf)
 
-AC_OUTPUT()
+AC_OUTPUT(Makefile)

@@ -1,3 +1,5 @@
+BUILD_TOPDIR = .
+
 all .DEFAULT:
 	cd kiklib/autoconf ; $(MAKE) $@
 	cd mkf/autoconf ; $(MAKE) $@
@@ -12,4 +14,4 @@ distclean:
 	-cd kiklib/autoconf ; $(MAKE) $@
 	-cd mkf/autoconf ; $(MAKE) $@
 	-cd autoconf ; $(MAKE) $@
-	rm -f config.log config.cache config.status install-sh mkf/kiklib
+	rm -f Makefile config.log config.cache config.status mkf/kiklib
