@@ -39,10 +39,12 @@
 	((color) = ((color) == ML_FG_COLOR ? 0x8 : \
 		(color) == ML_BG_COLOR ? 0x9 : (color) & ~ML_BOLD_COLOR_MASK))
 
+#define  IS_VALID_INTERN_COLOR(color) ((ML_BLACK <=color) && (color <=0x9))
+
 #define  EXTERN_COLOR(color) \
 	((color) = ((color) == 0x8 ? ML_FG_COLOR : \
 		(color) == 0x9 ? ML_BG_COLOR : (color)))
-	
+
 #define  FG_COLOR(attr)  (((attr) >> 11) & 0xf)
 
 #define  SET_FG_COLOR(attr,color)  ((attr) = (((attr) & 0xffff87ff) | ((color) << 11)))
@@ -175,7 +177,42 @@ ml_char_set(
 
 	INTERN_COLOR(fg_color) ;
 	INTERN_COLOR(bg_color) ;
-	
+
+#ifdef  DEBUG
+	if( size > MAX_CHAR_SIZE)
+	{
+		kik_warn_printf(KIK_DEBUG_TAG "size(%d) too large\n", size) ;
+	}
+	if( cs >= MAX_CHARSET)
+	{
+		kik_warn_printf(KIK_DEBUG_TAG "charset(%x) is out of range\n", cs) ;
+	}
+	if( is_biwidth > 1 || is_biwidth < 0)
+	{
+		kik_warn_printf(KIK_DEBUG_TAG "is_biwidth should be 0/1\n") ;
+	}
+	if( is_comb > 1 || is_comb < 0)
+	{
+		kik_warn_printf(KIK_DEBUG_TAG "is_comb should be 0/1\n") ;
+	}
+	if( !IS_VALID_INTERN_COLOR(fg_color))
+	{
+		kik_warn_printf(KIK_DEBUG_TAG "fg_color is not valid\n") ;
+	}
+	if( !IS_VALID_INTERN_COLOR(bg_color))
+	{
+		kik_warn_printf(KIK_DEBUG_TAG "bg_color is not valid\n") ;
+	}
+	if( is_bold > 1 || is_bold < 0)
+	{
+		kik_warn_printf(KIK_DEBUG_TAG "is_bold should be 0/1\n") ;
+	}
+	if( is_underlined > 1 || is_underlined < 0)
+	{
+		kik_warn_printf(KIK_DEBUG_TAG "is_underlined should be 0/1\n") ;
+	}
+#endif
+
 	ch->u.ch.attr =
 		COMPOUND_ATTR(size,cs,is_biwidth,fg_color,bg_color,is_bold,is_underlined,is_comb) ;
 
