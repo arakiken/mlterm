@@ -5,9 +5,9 @@
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: mlterm 2.6.2\n"
+"Project-Id-Version: mlterm 2.6.3\n"
 "POT-Creation-Date: 2003-03-22 21:17+0900\n"
-"PO-Revision-Date: 2002-11-25 19:25+0100\n"
+"PO-Revision-Date: 2003-03-24 17:32+0100\n"
 "Last-Translator: Mike Fabian <mfabian@suse.de>\n"
 "Language-Team: German <suse-i18n@suse.de>\n"
 "MIME-Version: 1.0\n"
@@ -16,12 +16,11 @@ msgstr ""
 
 #: tool/mlconfig/main.c:220
 msgid "Save&Exit"
-msgstr ""
+msgstr "Speichern & Beenden"
 
 #: tool/mlconfig/main.c:221
-#, fuzzy
 msgid "Apply&Exit"
-msgstr "Anwenden"
+msgstr "Anwenden & Beenden"
 
 #: tool/mlconfig/main.c:222
 msgid "Apply"
@@ -49,15 +48,15 @@ msgstr "Alles Zurücksetzen"
 
 #: tool/mlconfig/main.c:280
 msgid "PTY List"
-msgstr ""
+msgstr "PTY Liste"
 
 #: tool/mlconfig/main.c:288
 msgid " New "
-msgstr ""
+msgstr " Neu "
 
 #: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
 msgid " Select "
-msgstr "Auswahl"
+msgstr " Auswahl "
 
 #: tool/mlconfig/main.c:316
 msgid "mlterm configuration"
@@ -130,35 +129,35 @@ msgstr "Helligkeit"
 
 #: tool/mlconfig/mc_char_encoding.c:31
 msgid "auto"
-msgstr ""
+msgstr "Auto"
 
 #: tool/mlconfig/mc_char_encoding.c:33
 msgid "--- Unicode ---"
-msgstr ""
+msgstr "--- Unicode ---"
 
 #: tool/mlconfig/mc_char_encoding.c:36
 msgid "--- ISO 8859 encodings ---"
-msgstr ""
+msgstr "--- ISO 8859 Kodierungen ---"
 
 #: tool/mlconfig/mc_char_encoding.c:53
 msgid "--- Other 8bit ---"
-msgstr ""
+msgstr "--- Sonstige 8bit Kodierungen ---"
 
 #: tool/mlconfig/mc_char_encoding.c:60
 msgid "--- Japanese ---"
-msgstr ""
+msgstr "--- Japanisch ---"
 
 #: tool/mlconfig/mc_char_encoding.c:69
 msgid "--- Korean ---"
-msgstr ""
+msgstr "--- Koreanisch ---"
 
 #: tool/mlconfig/mc_char_encoding.c:75
 msgid "--- traditional Chinese ---"
-msgstr ""
+msgstr "--- traditionelles Chinesisch ---"
 
 #: tool/mlconfig/mc_char_encoding.c:80
 msgid "--- simplified Chinese ---"
-msgstr ""
+msgstr "--- vereinfachtes Chinesisch ---"
 
 #: tool/mlconfig/mc_color.c:36 tool/mlconfig/mc_color.c:38
 msgid "Foreground color"
@@ -170,51 +169,51 @@ msgstr "Hintergrundfarbe"
 
 #: tool/mlconfig/mc_color.c:43
 msgid "black"
-msgstr ""
+msgstr "Schwarz"
 
 #: tool/mlconfig/mc_color.c:44
 msgid "red"
-msgstr ""
+msgstr "Rot"
 
 #: tool/mlconfig/mc_color.c:45
 msgid "green"
-msgstr ""
+msgstr "Grün"
 
 #: tool/mlconfig/mc_color.c:46
 msgid "yellow"
-msgstr ""
+msgstr "Gelb"
 
 #: tool/mlconfig/mc_color.c:47
 msgid "blue"
-msgstr ""
+msgstr "Blau"
 
 #: tool/mlconfig/mc_color.c:48
 msgid "magenta"
-msgstr ""
+msgstr "Magenta"
 
 #: tool/mlconfig/mc_color.c:49
 msgid "cyan"
-msgstr ""
+msgstr "Cyan"
 
 #: tool/mlconfig/mc_color.c:50
 msgid "white"
-msgstr ""
+msgstr "Weiss"
 
 #: tool/mlconfig/mc_color.c:51
 msgid "gray"
-msgstr ""
+msgstr "Grau"
 
 #: tool/mlconfig/mc_color.c:52
 msgid "lightgray"
-msgstr ""
+msgstr "Hellgrau"
 
 #: tool/mlconfig/mc_color.c:53
 msgid "pink"
-msgstr ""
+msgstr "Pink"
 
 #: tool/mlconfig/mc_color.c:54
 msgid "brown"
-msgstr ""
+msgstr "Braun"
 
 #: tool/mlconfig/mc_contrast.c:69
 msgid "Contrast"
@@ -331,6 +330,3 @@ msgstr "XIM Locale"
 #: tool/mlconfig/mc_xim.c:224
 msgid "X Input Method"
 msgstr "X Input Methode"
-
-#~ msgid "OK"
-#~ msgstr "OK"

@@ -1,3 +1,8 @@
+2003-03-26 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Updated tool/mlconfig/po/de.po
+	  (Thanks to Mike Fabian).
+
 2003-03-25 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Fixed a bug that non-listed colors are not available.
