@@ -361,7 +361,10 @@ total_min_width(
 	
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
-		min_width += total_min_width( win->children[count]) ;
+		if( win->children[count]->is_mapped)
+		{
+			min_width += total_min_width( win->children[count]) ;
+		}
 	}
 
 	return  min_width ;
@@ -379,7 +382,10 @@ total_min_height(
 	
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
-		min_height += total_min_height( win->children[count]) ;
+		if( win->children[count]->is_mapped)
+		{
+			min_height += total_min_height( win->children[count]) ;
+		}
 	}
 
 	return  min_height ;
@@ -397,15 +403,18 @@ total_width_inc(
 	
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
-		u_int  sub_inc ;
-
-		/*
-		 * XXX
-		 * we should calculate least common multiple of width_inc and sub_inc.
-		 */
-		if( ( sub_inc = total_width_inc( win->children[count])) > width_inc)
+		if( win->children[count]->is_mapped)
 		{
-			width_inc = sub_inc ;
+			u_int  sub_inc ;
+
+			/*
+			 * XXX
+			 * we should calculate least common multiple of width_inc and sub_inc.
+			 */
+			if( ( sub_inc = total_width_inc( win->children[count])) > width_inc)
+			{
+				width_inc = sub_inc ;
+			}
 		}
 	}
 
@@ -424,15 +433,18 @@ total_height_inc(
 	
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
-		u_int  sub_inc ;
-		
-		/*
-		 * XXX
-		 * we should calculate least common multiple of width_inc and sub_inc.
-		 */
-		if( ( sub_inc = total_height_inc( win->children[count])) > height_inc)
+		if( win->children[count]->is_mapped)
 		{
-			height_inc = sub_inc ;
+			u_int  sub_inc ;
+
+			/*
+			 * XXX
+			 * we should calculate least common multiple of width_inc and sub_inc.
+			 */
+			if( ( sub_inc = total_height_inc( win->children[count])) > height_inc)
+			{
+				height_inc = sub_inc ;
+			}
 		}
 	}
 
@@ -549,6 +561,8 @@ x_window_init(
 
 	/* if visibility is partially obsucured , scrollable will be 0. */
 	win->is_scrollable = 1 ;
+
+	win->is_mapped = 1 ;
 
 	win->x = 0 ;
 	win->y = 0 ;
@@ -1012,7 +1026,8 @@ x_window_add_child(
 	x_window_t *  win ,
 	x_window_t *  child ,
 	int  x ,
-	int  y
+	int  y ,
+	int  map
 	)
 {
 	void *  p ;
@@ -1036,6 +1051,7 @@ x_window_add_child(
 	child->parent = win ;
 	child->x = x ;
 	child->y = y ;
+	child->is_mapped = map ;
 	
 	win->children[ win->num_of_children ++] = child ;
 
@@ -1131,6 +1147,29 @@ x_window_show(
 	win->ch_gc = XCreateGC( win->display , win->my_window ,
 			GCGraphicsExposures , &gc_value) ;
 
+#if  0
+	x_window_clear_all( win) ;
+#endif
+	
+	if( win->window_realized)
+	{
+		(*win->window_realized)( win) ;
+	}
+
+	/*
+	 * showing child windows.
+	 */
+
+	for( count = 0 ; count < win->num_of_children ; count ++)
+	{
+		x_window_show( win->children[count] , 0) ;
+	}
+
+	if( win->is_mapped)
+	{
+		XMapWindow( win->display , win->my_window) ;
+	}
+
 	if( win->parent == NULL)
 	{
 		XSizeHints  size_hints ;
@@ -1215,26 +1254,6 @@ x_window_show(
 
 	XSelectInput( win->display , win->my_window , win->event_mask) ;
 
-#if  0
-	x_window_clear_all( win) ;
-#endif
-	
-	if( win->window_realized)
-	{
-		(*win->window_realized)( win) ;
-	}
-
-	/*
-	 * showing child windows.
-	 */
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		x_window_show( win->children[count] , 0) ;
-	}
-
-	XMapWindow( win->display , win->my_window) ;
-
 	return  1 ;
 }
 
@@ -1243,7 +1262,13 @@ x_window_map(
 	x_window_t *  win
 	)
 {
+	if( win->is_mapped)
+	{
+		return  1 ;
+	}
+
 	XMapWindow( win->display , win->my_window) ;
+	win->is_mapped = 1 ;
 
 	return  1 ;
 }
@@ -1253,27 +1278,13 @@ x_window_unmap(
 	x_window_t *  win
 	)
 {
-	XSizeHints  size_hints ;
-
-	XUnmapWindow( win->display , win->my_window) ;
-
-	/*
-	 * XXX
-	 * x/y/width/height are obsoleted. (see XSizeHints(3))
-	 */
-	size_hints.x = win->x ;
-	size_hints.y = win->y ;
-	size_hints.width = ACTUAL_WIDTH(win) ;
-	size_hints.height = ACTUAL_HEIGHT(win) ;
-
-	size_hints.width_inc = total_width_inc( win) ;
-	size_hints.height_inc = total_height_inc( win) ;
-	size_hints.base_width = size_hints.min_width = total_min_width( win) ;
-	size_hints.base_height = size_hints.min_height = total_min_height( win) ;
-
-	size_hints.flags = PSize | PMinSize | PResizeInc | PBaseSize | PPosition ;
+	if( ! win->is_mapped)
+	{
+		return  1 ;
+	}
 	
-	XSetWMNormalHints( win->display , win->my_window , &size_hints) ;
+	XUnmapWindow( win->display , win->my_window) ;
+	win->is_mapped = 0 ;
 
 	return  1 ;
 }
@@ -1403,9 +1414,9 @@ x_window_set_normal_hints(
 	size_hints.base_width = size_hints.min_width = total_min_width( root) ;
 	size_hints.base_height = size_hints.min_height = total_min_height( root) ;
 	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
-	
+
 	XSetWMNormalHints( root->display , root->my_window , &size_hints) ;
-	
+		
 	return  1 ;
 }
 

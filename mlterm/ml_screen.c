@@ -120,8 +120,9 @@ is_word_separator(
 }
 
 /*
- * mlx_sb_term_screen will override this function.
+ * callbacks of ml_edit_scroll_event_listener_t.
  */
+ 
 static void
 receive_scrolled_out_line(
 	void *  p ,

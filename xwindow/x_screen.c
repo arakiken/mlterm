@@ -2333,7 +2333,7 @@ window_resized(
 	screen = (x_screen_t *) win ;
 
 	/*
-	 * this is necessary since x_image_t size is changed.
+	 * this is necessary since x_edit_t size is changed.
 	 */
 	restore_selected_region_color( screen) ;
 	exit_backscroll_mode( screen) ;
@@ -4198,11 +4198,6 @@ change_sb_view(
 	{
 		(*screen->screen_scroll_listener->change_view)(
 			screen->screen_scroll_listener->self , name) ;
-
-		/* XXX adhoc hack to fix incorrect sizehints bug */
-		x_window_set_normal_hints( &screen->window ,
-			x_col_width( screen) , x_line_height( screen) ,
-			x_col_width( screen) , x_line_height( screen)) ;
 	}
 }
 
@@ -4311,10 +4306,6 @@ change_sb_mode(
 	{
 		(*screen->screen_scroll_listener->change_sb_mode)(
 			screen->screen_scroll_listener->self , sb_mode) ;
-
-		/* XXX adhoc hack to fix incorrect sizehints bug */
-		x_window_set_normal_hints( &screen->window , 0 , 0 ,
-			x_col_width( screen) , x_line_height( screen)) ;
 	}
 }
 

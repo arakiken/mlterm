@@ -133,6 +133,7 @@ typedef struct  x_window
 	int8_t  wall_picture_is_set ;
 	int8_t  is_transparent ;
 	int8_t  is_scrollable ;
+	int8_t  is_mapped ;
 
 	/* button */
 	int8_t  button_is_pressing ;
@@ -184,7 +185,7 @@ int  x_window_set_fg_color( x_window_t *  win , u_long  fg_color) ;
 
 int  x_window_set_bg_color( x_window_t *  win , u_long  bg_color) ;
 
-int  x_window_add_child( x_window_t *  win , x_window_t *  child , int  x , int  y) ;
+int  x_window_add_child( x_window_t *  win , x_window_t *  child , int  x , int  y , int  map) ;
 
 x_window_t *  x_get_root_window( x_window_t *  win) ;
 

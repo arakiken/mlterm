@@ -535,12 +535,10 @@ x_scrollbar_init(
 	u_int  line_height ,
 	u_int  num_of_log_lines ,
 	int  use_transbg ,
-	x_picture_modifier_t *  pic_mod ,
-	x_sb_mode_t  mode		/* XXX adhoc hack to fix incorrect sizehints bug */
+	x_picture_modifier_t *  pic_mod
 	)
 {
 	u_int  width ;
-	u_int  min_width ;
 
 	/* dynamically allocated */
 	sb->view_name = NULL ;
@@ -633,17 +631,7 @@ view_created:
 	sb->is_pressing_up_button = 0 ;
 	sb->is_pressing_down_button = 0 ;
 
-	/* XXX adhoc hack to fix incorrect sizehints bug */
-	if( mode == SB_NONE)
-	{
-		min_width = 0 ;
-	}
-	else
-	{
-		min_width = width ;
-	}
-
-	if( x_window_init( &sb->window , width , height , min_width , 0 , 0 , 0 , 0) == 0)
+	if( x_window_init( &sb->window , width , height , width , 0 , 0 , 0 , 0) == 0)
 	{
 		goto  error ;
 	}
@@ -1024,10 +1012,10 @@ x_scrollbar_change_view(
 
 	if( sb->window.width != width)
 	{
-		/* XXX adhoc hack to fix incorrect sizehints bug */
-		sb->window.min_width = width ;
-		
 		x_window_resize( &sb->window , width , sb->window.height , NOTIFY_TO_PARENT) ;
+		
+		x_window_set_normal_hints( &sb->window ,
+			width , sb->window.min_height , 0 , 0) ;
 	}
 	
 	draw_decoration( sb) ;

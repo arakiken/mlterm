@@ -805,7 +805,14 @@ ml_edit_overwrite_chars(
 				#endif
 				}
 
-				edit->cursor.row ++ ;
+				/*
+				 * If edit->cursor.row == edit->scroll_region_end in this situation,
+				 * scroll_region_beg == scroll_region_end.
+				 */
+				if( edit->cursor.row + 1 <= edit->scroll_region_end)
+				{
+					edit->cursor.row ++ ;
+				}
 			}
 			else
 			{

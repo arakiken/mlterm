@@ -481,32 +481,22 @@ change_sb_mode(
 	
 	if( mode == SB_NONE)
 	{
-	#if  0
 		x_window_unmap( &sb_screen->scrollbar.window) ;
-	#endif
 	
 		x_window_resize_with_margin( &sb_screen->window ,
 			ACTUAL_WIDTH( &sb_screen->screen->window) ,
 			ACTUAL_HEIGHT( &sb_screen->screen->window) , NOTIFY_TO_NONE) ;
 
-		/* XXX adhoc hack to fix incorrect sizehints bug */
-		sb_screen->window.min_width = 0 ;
-		sb_screen->scrollbar.window.min_width = 0 ;
+		x_window_set_normal_hints( &sb_screen->window , 0 , 0 , 0 , 0) ;
 			
 		/* overlaying scrollbar window */
 		move_term_screen( sb_screen , 0) ;
 	}
 	else
 	{
-		/* XXX adhoc hack to fix incorrect sizehints bug */
-		sb_screen->window.min_width = SEPARATOR_WIDTH ;
-		sb_screen->scrollbar.window.min_width = sb_screen->scrollbar.window.width ;
-
 		if( sb_screen->sb_mode == SB_NONE) ;
 		{
-		#if  0
 			x_window_map( &sb_screen->scrollbar.window) ;
-		#endif
 			
 			x_window_resize_with_margin( &sb_screen->window ,
 				ACTUAL_WIDTH( &sb_screen->screen->window)
@@ -514,6 +504,9 @@ change_sb_mode(
 					+ SEPARATOR_WIDTH ,
 				ACTUAL_HEIGHT( &sb_screen->screen->window) ,
 				NOTIFY_TO_NONE) ;
+				
+			x_window_set_normal_hints( &sb_screen->window ,
+				SEPARATOR_WIDTH , sb_screen->window.min_height , 0 , 0) ;
 		}
 		
 		if( mode == SB_LEFT)
@@ -564,7 +557,7 @@ x_sb_screen_new(
 		view_name , fg_color , bg_color , ACTUAL_HEIGHT( &screen->window) ,
 		x_line_height( screen) , ml_term_get_log_size( screen->term) ,
 		screen->window.is_transparent ,
-		x_screen_get_picture_modifier( screen) , mode) == 0)
+		x_screen_get_picture_modifier( screen)) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_scrollbar_init() failed.\n") ;
@@ -611,7 +604,6 @@ x_sb_screen_new(
 	{
 		actual_width = ACTUAL_WIDTH( &screen->window) ;
 		
-		/* XXX adhoc hack to fix incorrect sizehints bug */
 		min_width = 0 ;
 	}
 	else
@@ -619,7 +611,6 @@ x_sb_screen_new(
 		actual_width = (ACTUAL_WIDTH( &screen->window) +
 				ACTUAL_WIDTH( &sb_screen->scrollbar.window) + SEPARATOR_WIDTH) ;
 
-		/* XXX adhoc hack to fix incorrect sizehints bug */
 		min_width = SEPARATOR_WIDTH ;
 	}
 
@@ -637,39 +628,39 @@ x_sb_screen_new(
 	if( sb_screen->sb_mode == SB_RIGHT)
 	{
 		if( x_window_add_child( &sb_screen->window , &screen->window ,
-			0 , 0) == 0)
+			0 , 0 , 1) == 0)
 		{
 			goto  error ;
 		}
 
 		if( x_window_add_child( &sb_screen->window , &sb_screen->scrollbar.window ,
-			ACTUAL_WIDTH( &screen->window) + SEPARATOR_WIDTH , 0) == 0)
+			ACTUAL_WIDTH( &screen->window) + SEPARATOR_WIDTH , 0 , 1) == 0)
 		{
 			goto  error ;
 		}
 	}
 	else if( sb_screen->sb_mode == SB_LEFT)
 	{
-		if( x_window_add_child( &sb_screen->window , &sb_screen->scrollbar.window , 0 , 0) == 0)
+		if( x_window_add_child( &sb_screen->window , &sb_screen->scrollbar.window , 0 , 0 , 1) == 0)
 		{
 			goto  error ;
 		}
 		
 		if( x_window_add_child( &sb_screen->window , &screen->window ,
-			ACTUAL_WIDTH( &sb_screen->scrollbar.window) + SEPARATOR_WIDTH , 0) == 0)
+			ACTUAL_WIDTH( &sb_screen->scrollbar.window) + SEPARATOR_WIDTH , 0 , 1) == 0)
 		{
 			goto  error ;
 		}
 	}
 	else /* if( sb_screen->sb_mode == SB_NONE) */
 	{
-		if( x_window_add_child( &sb_screen->window , &sb_screen->scrollbar.window , 0 , 0) == 0)
+		if( x_window_add_child( &sb_screen->window , &sb_screen->scrollbar.window , 0 , 0 , 0) == 0)
 		{
 			goto  error ;
 		}
 
 		/* overlaying scrollbar window */
-		if( x_window_add_child( &sb_screen->window , &screen->window , 0 , 0) == 0)
+		if( x_window_add_child( &sb_screen->window , &screen->window , 0 , 0 , 1) == 0)
 		{
 			goto  error ;
 		}

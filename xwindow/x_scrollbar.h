@@ -64,8 +64,7 @@ typedef struct  x_scrollbar
 int  x_scrollbar_init( x_scrollbar_t *  sb , x_scrollbar_event_listener_t *  sb_listener ,
 	char *  view_name , char *  fg_color , char *  bg_color ,
 	u_int  height , u_int  line_height , u_int  num_of_log_lines ,
-	int  use_transbg , x_picture_modifier_t *  pic_mod ,
-	x_sb_mode_t  mode) ;
+	int  use_transbg , x_picture_modifier_t *  pic_mod) ;
 
 int  x_scrollbar_final( x_scrollbar_t *  sb) ;
 
