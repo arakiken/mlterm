@@ -3150,7 +3150,7 @@ key_pressed(
 
 				(*screen->utf8_conv->init)( screen->utf8_conv) ;
 
-				while( ! screen->xct_parser->is_eos)
+				while( ! parser->is_eos)
 				{
 					if( ( filled_len = (*screen->utf8_conv->convert)(
 						screen->utf8_conv , conv_buf , sizeof( conv_buf) ,
