@@ -72,7 +72,7 @@ rm -rf $RPM_BUILD_ROOT
 %{pixmapdir}/mlterm*
 
 %changelog
-* XXX XXX NN 2003 Araki Ken <arakiken@users.sf.net>
+* Sat Jun 14 2003 Araki Ken <arakiken@users.sf.net>
 - Source version 2.7.0
 
 * Sun Jan 12 2003 Araki Ken <arakiken@users.sf.net>

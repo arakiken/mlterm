@@ -1,3 +1,14 @@
+ver 2.7.0
+* Supported pty switching in the same window.(see doc/ja/README.ja in detail for the Japanese.)
+* Supported koi8-t,georgian-ps,cp1251 and cp1255. 
+* Gettextized mlconfig.
+* Improved 'apply','cancel' etc buttons in mlconfig.
+* Mlconfig now can save configuration changes to ~/.mlterm/main.
+* Added mlterm-menu which starts by Ctrl+Right.
+* Forbidden 5380 protocol(doc/en/PROTOCOL) for some security issues, 
+  and removed mlcc, mlconf_curses and w3mmlconfig as a result of it.
+* Fixed many bugs, cleaned many codes, and updated documentations.
+
 ver 2.6.0
 * Window icon is supported and icon_path option is added.(Thanks to Minami Hirokazu san)
 * Fixed critical bugs around bce support.
