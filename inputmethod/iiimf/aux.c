@@ -71,11 +71,11 @@
 #include  "../im_common.h"
 
 #if  0
-#define  AUX_DEBUG 1
+#define  AUX_DEBUG  1
 #endif
 
 #if  1
-#define  ATOK12_HACK
+#define  ATOK12_HACK  1
 #endif
 
 #ifdef  __sparcv9
@@ -222,7 +222,11 @@ is_conf_file(
 		return  0 ;
 	}
 
-	/* must have ".conf" suffix */
+
+	/*
+	 * must have ".conf" suffix
+	 */
+
 	if( (len = strlen( file_name)) < 6)
 	{
 		return  0 ;
@@ -600,6 +604,37 @@ error:
 	return  NULL ;
 }
 
+#ifdef  ATOK12_HACK
+#define  ATOK12_SO "./locale/ja/atokserver/atok12aux.so"
+static void
+register_atok12_module( void)
+{
+	aux_module_t *  module ;
+	aux_entry_t *  e ;
+	int  i ;
+
+	if( ! ( module = load_module( ATOK12_SO)))
+	{
+		return ;
+	}
+
+	for( i = 0 , e = module->entries ; i < module->num_of_entries ;
+	     i ++ , e ++)
+	{
+		u_char *  str = NULL;
+
+		PARSER_INIT_WITH_BOM( parser_utf16) ;
+		im_convert_encoding( parser_utf16 , conv_iso88591 ,
+				     (u_char*)e->dir.name.utf16str ,
+				     &str , e->dir.name.len + 1) ;
+		register_module_info( str , ATOK12_SO) ;
+		free( str) ;
+	}
+
+	unload_module( module) ;
+}
+#endif
+
 
 /*
  * X aux service
@@ -665,7 +700,7 @@ create_composed_from_event(
 		for( i = 0 ; i < num_of_str ; i ++ )
 		{
 			pstring_len[i] = strlen_utf16( str_array[i]) / 2  ;
-			n += (pstring_len[i] + 1) * sizeof(IIIMP_card16) ;
+			n += (pstring_len[i] + 1) * sizeof( IIIMP_card16) ;
 		}
 	}
 	if( ! ( p = calloc( 1 , n)))
@@ -692,8 +727,8 @@ create_composed_from_event(
 
 	data->aux_index = class_index ;
 	data->aux_name = p + aux_name_n ;
-	memcpy( data->aux_name , aux_name , (aux_name_len + 1) * sizeof(IIIMP_card16)) ;
-	data->aux_name_length = aux_name_len * sizeof(IIIMP_card16) ;
+	memcpy( data->aux_name , aux_name , (aux_name_len + 1) * sizeof( IIIMP_card16)) ;
+	data->aux_name_length = aux_name_len * sizeof( IIIMP_card16) ;
 
 	data->integer_count = num_of_int ;
 	if( num_of_int > 0)
@@ -713,9 +748,9 @@ create_composed_from_event(
 		p += string_n ;
 		for( i = 0 ; i < num_of_str ; i ++ , pas ++)
 		{
-			pas->len = pstring_len[i] * sizeof(IIIMP_card16) ;
+			pas->len = pstring_len[i] * sizeof( IIIMP_card16) ;
 			pas->ptr = p ;
-			n = (pstring_len[i] + 1) * sizeof(IIIMP_card16) ;
+			n = (pstring_len[i] + 1) * sizeof( IIIMP_card16) ;
 			memcpy( p , str_array[i] , n) ;
 			p += n ;
 		}
@@ -781,7 +816,7 @@ create_composed_from_aux_data(
 	{
 		data2->integer_list = (int*)(p + integer_list_n) ;
 		memcpy(data2->integer_list , data->integer_list,
-		       sizeof(int) * data->integer_count) ;
+		       sizeof( int) * data->integer_count) ;
 	}
 	else
 	{
@@ -1040,7 +1075,11 @@ service_data_set(
 	kik_debug_printf( KIK_DEBUG_TAG "\n") ;
 #endif
 
+#if  0 /* XXX */
 	for( im_data = aux->im_data ; im_data ; im_data = im_data->next)
+#else
+	for( im_data = aux->im_data_list ; im_data ; im_data = im_data->next)
+#endif
 	{
 		if( im_data->im_id == im_id)
 		{
@@ -1063,7 +1102,11 @@ service_data_get(
 	kik_debug_printf( KIK_DEBUG_TAG "\n") ;
 #endif
 
+#if  0 /* XXX */
 	for( im_data = aux->im_data ; im_data ; im_data = im_data->next)
+#else
+	for( im_data = aux->im_data_list ; im_data ; im_data = im_data->next)
+#endif
 	{
 		if( im_data->im_id == im_id)
 		{
@@ -1128,11 +1171,10 @@ service_point(
 		return  point ;
 	}
 
-	(*aux->iiimf->im.listener->get_spot)(
-					aux->iiimf->im.listener->self ,
-					aux->iiimf->im.preedit.chars ,
-					aux->iiimf->im.preedit.segment_offset ,
-					&x , &y) ;
+	(*aux->iiimf->im.listener->get_spot)( aux->iiimf->im.listener->self ,
+					      aux->iiimf->im.preedit.chars ,
+					      aux->iiimf->im.preedit.segment_offset ,
+					      &x , &y) ;
 
 	x -= ((x_window_t *)aux->iiimf->im.listener->self)->x ;
 	y -= ((x_window_t *)aux->iiimf->im.listener->self)->y ;
@@ -1275,7 +1317,7 @@ service_register_X_filter(
 	Window  window ,
 	int  start_type ,
 	int  end_type ,
-	Bool (* filter)( Display * , Window , XEvent * , XPointer),
+	Bool (* filter)( Display * , Window , XEvent * , XPointer) ,
 	XPointer  client_data
 	)
 {
@@ -1637,8 +1679,8 @@ aux_init(
 		return ;
 	}
 
-	bin_objdesc_list = alloca( sizeof(IIIMCF_object_descriptor*) * num_of_objs) ;
-	objs = alloca( sizeof(IIIMCF_downloaded_object) * num_of_objs) ;
+	bin_objdesc_list = alloca( sizeof( IIIMCF_object_descriptor*) * num_of_objs) ;
+	objs = alloca( sizeof( IIIMCF_downloaded_object) * num_of_objs) ;
 
 	if( ! bin_objdesc_list || ! objs)
 	{
@@ -1665,25 +1707,9 @@ aux_init(
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG "iiimcf_get_downloaded_objects failed\n");
 	#endif
-#ifdef  ATOK12_HACK
-	{
-		aux_module_info_t *  module ;
-
-		if( ( module = load_module( "./locale/ja/atokserver/atok12aux.so")))
-		{
-			register_module_info(
-				"jp.co.justsystem.atok12.AtokPaletteAux" ,
-				"./locale/ja/atokserver/atok12aux.so") ;
-			register_module_info(
-				"jp.co.justsystem.atok12.SystemLineAux" ,
-				"./locale/ja/atokserver/atok12aux.so") ;
-			register_module_info(
-				"jp.co.justsystem.atok12.LookupAux" ,
-				"./locale/ja/atokserver/atok12aux.so") ;
-			unload_module( module) ;
-		}
-	}
-#endif
+	#ifdef  ATOK12_HACK
+		register_atok12_module() ;
+	#endif
 		return ;
 	}
 

@@ -1,3 +1,25 @@
+2005-02-25 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/iiimf/im_iimf.c: minor code cleanup.
+	* inputmethod/iiimf/aux.c: minor code cleanup.
+
+	* inputmethod/uim/im_uim.c: minor code cleanup.
+	* inputmethod/uim/LICENCE: new file
+
+	* inputmethod/m17nlib/LICENCE: new file
+
+	* inputmethod/kbd/LICENCE: new file
+
+	* configure.in: removed -DSCIM_1_2_0
+	* inputmethod/scim/im_scim_1.0.cpp: renamed from im_scim.cpp
+	* inputmethod/scim/im_scim_1.2.cpp: new file
+	* inputmethod/scim/Makefile.in: added im_scim_@SCIM_VERSION@.o
+	* inputmethod/scim/im_scim_mod_if.c: code cleanup
+	* inputmethod/scim/LICENCE: new file
+
+	Note: In the next release, SCIM plugin will be distributed under LGPL.
+	      See inputmethod/scim/LICENCE for more detail.
+
 2005-02-24 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/m17nlib/im_m17nlib.c: minor code cleanup.

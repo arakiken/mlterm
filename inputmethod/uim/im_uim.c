@@ -1685,12 +1685,12 @@ im_uim_get_info(
 	result->id = strdup( "uim") ;
 	result->name = strdup( "uim") ;
 	result->num_of_args = uim_get_nr_im( u) + 1;
-	if( ! ( result->args = malloc( sizeof(char*) * result->num_of_args)))
+	if( ! ( result->args = calloc( result->num_of_args , sizeof( char*))))
 	{
 		goto  error ;
 	}
 
-	if( ! ( result->readable_args = malloc( sizeof(char*) * result->num_of_args)))
+	if( ! ( result->readable_args = calloc( result->num_of_args , sizeof( char*))))
 	{
 		free( result->args) ;
 		goto  error ;

@@ -1,7 +1,7 @@
 /*
  * im_iiimf.c - iiimf plugin for mlterm
  *
- * Copyright (C) 2004 Seiichi SATO <ssato@sh.rim.or.jp>
+ * Copyright (C) 2004 2005 Seiichi SATO <ssato@sh.rim.or.jp>
  *
  * $Id$
  */

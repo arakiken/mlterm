@@ -1,34 +1,30 @@
 //
-// im_scim.cpp - SCIM plugin for mlterm (c++ part)
+// im_scim_1.2.cpp - SCIM plugin for mlterm (c++ part)
 //
 // Copyright (C) 2005 Seiichi SATO <ssato@sh.rim.or.jp>
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions
-// are met:
-// 1. Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-// 2. Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-// 3. The name of any author may not be used to endorse or promote
-//    products derived from this software without their specific prior
-//    written permission.
-// 
-// THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
-// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-// OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-// SUCH DAMAGE.
-//
-//
 //	$Id$
+//
+
+// This file is partially based on gtkimcontextscim.cpp of SCIM
+//
+// Copyright (C) 2002-2005 James Su <suzhe@tsinghua.org.cn>
+//
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the
+// Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+// Boston, MA  02111-1307  USA
 //
 
 #include  <iostream>
@@ -41,19 +37,26 @@
 #define  Uses_SCIM_IMENGINE_MODULE
 #define  Uses_SCIM_BACKEND
 #define  Uses_SCIM_PANEL
-#define  Uses_SCIM_SOCKET_TRANSACTION
+#define  Uses_SCIM_TRANSACTION
+#define  Uses_SCIM_HOTKEY
 #include  <scim.h>
 
 #define  SCIM_TRANS_MAGIC 0x4d494353
 
 #define  TIMEOUT  5000	// msec
 
+const int  KEY_TRIGGER = 1 ;
+const int  KEY_MENU = 2 ;
+const int  KEY_NEXT_FACTORY = 3 ;
+const int  KEY_PRE_FACTORY = 4 ;
+
 using namespace scim ;
 
 typedef struct  im_scim_context_private
 {
-	String  factory ;
-	int  instance ;
+	IMEngineFactoryPointer  factory ;
+	IMEngineInstancePointer  instance ;
+	int  id ;
 
 	int  on ;
 	int  focused ;
@@ -67,26 +70,20 @@ typedef struct  im_scim_context_private
 
 }  im_scim_context_private_t ;
 
-#define transaction_init(instance)			\
+#define transaction_init(id)				\
 do {							\
 	int  cmd ;					\
 	uint32  data ;					\
 	sock.clear() ;					\
 	sock.put_command( SCIM_TRANS_CMD_REQUEST) ;	\
 	sock.put_data( panel_key) ;			\
-	sock.put_data( (uint32)(instance)) ;		\
+	sock.put_data( (uint32)(id)) ;			\
 	sock.get_command( cmd) ;			\
 	sock.get_data( data) ;				\
 	sock.get_data( data) ;				\
 }  while(0)
 
 #define C_STR(s) (char*) ( utf8_wcstombs((s)).c_str())
-
-#define  KEY_OTHER		0
-#define  KEY_TRIGER		1
-#define  KEY_FACTORY_MENU	2
-#define  KEY_FACTORY_NEXT	3
-#define  KEY_FACTORY_PREV	4
 
 // --- static variables ---
 
@@ -97,89 +94,46 @@ static String  lang ;
 static ConfigModule *  config_module = NULL ;
 static ConfigPointer  config = NULL ;
 
-static BackEndPointer be = NULL ;
-static std::vector<String>  factories ;
+static BackEndPointer  be = NULL ;
+
+static HotkeyMatcher  keymatcher_frontend ;
+static IMEngineHotkeyMatcher  keymatcher_imengine ;
 
 static SocketClient  panel ;
 static uint32  panel_key ;
 
-static SocketTransaction  sock ;
-
-static KeyEventList  key_list_trigger ;
-static KeyEventList  key_list_factory_menu ;
-static KeyEventList  key_list_factory_menu_next ;
-static KeyEventList  key_list_factory_menu_prev ;
+static Transaction  sock ;
 
 static bool  is_vertical_lookup ;
 
+static int  id = 0 ; /* XXX */
+
 // --- static functions ---
-
-static int
-kind_of_key( KeySym  ksym , unsigned int mask)
-{
-	std::vector <KeyEvent>::const_iterator  key ;
-
-	for( key = key_list_trigger.begin() ;
-	     key != key_list_trigger.end() ;
-	     key ++)
-	{
-		if( ksym == key->code && mask == key->mask)
-		{
-			return KEY_TRIGER ;
-		}
-	}
-
-	for( key = key_list_factory_menu.begin() ;
-	     key != key_list_factory_menu.end() ;
-	     key ++)
-	{
-		if( ksym == key->code && mask == key->mask)
-		{
-			return KEY_FACTORY_MENU ;
-		}
-	}
-
-	for( key = key_list_factory_menu_next.begin() ;
-	     key != key_list_factory_menu_next.end() ;
-	     key ++)
-	{
-		if( ksym == key->code && mask == key->mask)
-		{
-			return KEY_FACTORY_NEXT ;
-		}
-	}
-
-	for( key = key_list_factory_menu_prev.begin() ;
-	     key != key_list_factory_menu_prev.end() ;
-	     key ++)
-	{
-		if( ksym == key->code && mask == key->mask)
-		{
-			return KEY_FACTORY_PREV ;
-		}
-	}
-
-	return  KEY_OTHER ;
-}
 
 static void
 load_config( const ConfigPointer &  config)
 {
-	scim_string_to_key_list( key_list_trigger , config->read( String( SCIM_CONFIG_FRONTEND_KEYS_TRIGGER) , String( "Control+space"))) ;
+	static KeyEventList  key ;
 
-	scim_string_to_key_list( key_list_factory_menu , config->read( String( SCIM_CONFIG_FRONTEND_KEYS_SHOW_FACTORY_MENU) , String( "Control+Alt+l,Control+Alt+m,Control+Alt+s,Control+Alt+Right"))) ;
+	scim_string_to_key_list( key , config->read( String( SCIM_CONFIG_HOTKEYS_FRONTEND_TRIGGER) , String( "Control+space"))) ;
+	keymatcher_frontend.add_hotkeys( key , KEY_TRIGGER) ;
 
-	scim_string_to_key_list( key_list_factory_menu_next , config->read( String( SCIM_CONFIG_FRONTEND_KEYS_NEXT_FACTORY) , String( "Control+Alt+Down,Control+Shift_R,Control+Shift_L"))) ;
+	scim_string_to_key_list( key , config->read( String( SCIM_CONFIG_HOTKEYS_FRONTEND_SHOW_FACTORY_MENU) , String( "Control+Alt+l,Control+Alt+m,Control+Alt+s,Control+Alt+Right"))) ;
+	keymatcher_frontend.add_hotkeys( key , KEY_MENU) ;
 
-	scim_string_to_key_list( key_list_factory_menu_prev , config->read( String( SCIM_CONFIG_FRONTEND_KEYS_PREVIOUS_FACTORY) , String( "Control+Alt+Up,Shift+Control_R,Shift+Control_L"))) ;
+	scim_string_to_key_list( key , config->read( String( SCIM_CONFIG_HOTKEYS_FRONTEND_NEXT_FACTORY) , String( "Control+Alt+Down,Control+Shift_R,Control+Shift_L"))) ;
+	keymatcher_frontend.add_hotkeys( key , KEY_NEXT_FACTORY) ;
+
+	scim_string_to_key_list( key , config->read( String( SCIM_CONFIG_HOTKEYS_FRONTEND_PREVIOUS_FACTORY) , String( "Control+Alt+Up,Shift+Control_R,Shift+Control_L"))) ;
+	keymatcher_frontend.add_hotkeys( key , KEY_PRE_FACTORY) ;
 
 	// hack
 	is_vertical_lookup = config->read( String( "/Panel/Gtk/LookupTableVertical") , false) ;
 }
 
 static im_scim_context_private_t *
-instance_to_context(
-	int  instance
+id_to_context(
+	int  id
 	)
 {
 	im_scim_context_private_t *  context = NULL ;
@@ -187,7 +141,7 @@ instance_to_context(
 
 	for( i = 0 ; i < context_table.size() ; i++)
 	{
-		if( context_table[i]->instance == instance)
+		if( context_table[i]->id == id)
 		{
 			return  context_table[i] ;
 		}
@@ -199,59 +153,45 @@ instance_to_context(
 
 static void
 send_factory_menu_item(
-	int instance
+	im_scim_context_private_t *  context
 	)
 {
+	std::vector<IMEngineFactoryPointer>  factories ;
 	size_t  i ;
 
-	transaction_init( instance) ;
+	be->get_factories_for_encoding( factories , "UTF-8") ;
+
+	transaction_init( context->id) ;
 	sock.put_command( SCIM_TRANS_CMD_PANEL_SHOW_FACTORY_MENU) ;
 	for( i = 0 ; i < factories.size() ; i++)
 	{
-		sock.put_data( factories[i]) ;
-		sock.put_data( utf8_wcstombs( be->get_factory_name( factories[i])));
-		sock.put_data( be->get_factory_language( factories[i]));
-		sock.put_data( be->get_factory_icon_file( factories[i]));
+		sock.put_data( factories[i]->get_uuid()) ;
+		sock.put_data( utf8_wcstombs( factories[i]->get_name()));
+		sock.put_data( factories[i]->get_language());
+		sock.put_data( factories[i]->get_icon_file());
 	}
 	sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
 }
 
 static void
 send_help_description(
-	int  instance
+	im_scim_context_private_t *  context
 	)
 {
 	String  desc ;
 	String  str ;
 
-	desc = String( "Hot keys\n\n") ;
-
-	scim_key_list_to_string( str , key_list_trigger) ;
-	desc += String( "  ") + str +
-		String( ":\n    open/close the input method.\n\n") ;
-	scim_key_list_to_string( str , key_list_factory_menu) ;
-	desc += String( "  ") + str +
-		String( ":\n    show the factory menu.\n\n") ;
-	scim_key_list_to_string( str , key_list_factory_menu_next) ;
-	desc += String( "  ") + str +
-		String( ":\n    switch to the next input method.\n\n") ;
-	scim_key_list_to_string( str , key_list_factory_menu_prev) ;
-	desc += String( "  ") + str +
-		String( ":\n    switch to the previous input method.\n\n\n") ;
-
-	desc += utf8_wcstombs( be->get_instance_name( instance)) +
+	desc += utf8_wcstombs( context->factory->get_name()) +
+		String( ":\n\n");
+	desc += utf8_wcstombs( context->factory->get_authors()) +
 		String( "\n\n");
-	desc += String( "  Authors:\n    ") +
-		utf8_wcstombs( be->get_instance_authors( instance)) +
-		String( "\n");
 	desc += String( "  Help:\n    ") +
-		utf8_wcstombs( be->get_instance_help( instance)) +
-		String( "\n");
-	desc += String( "  Credits:\n    ") +
-		utf8_wcstombs( be->get_instance_credits( instance)) +
+		utf8_wcstombs( context->factory->get_help()) +
+		String( "\n\n");
+	desc += utf8_wcstombs( context->factory->get_credits()) +
 		String( "\n\n");
 
-	transaction_init( instance) ;
+	transaction_init( context->id) ;
 	sock.put_command( SCIM_TRANS_CMD_PANEL_SHOW_HELP);
 	sock.put_data( desc) ;
 	sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
@@ -264,13 +204,15 @@ send_help_description(
 
 static void
 cb_commit(
-	int instance ,
+	IMEngineInstanceBase *  instance ,
 	const WideString &  wstr
 	)
 {
-	im_scim_context_private_t *  context = NULL ;
+	im_scim_context_private_t *  context ;
 
-	if( ! ( context = instance_to_context( instance)))
+	context = static_cast <im_scim_context_private_t *> (instance->get_frontend_data()) ;
+
+	if( ! context)
 	{
 		return ;
 	}
@@ -288,14 +230,16 @@ cb_commit(
 
 static void
 cb_preedit_update(
-	int  instance ,
+	IMEngineInstanceBase *  instance ,
 	const  WideString &  wstr ,
 	const AttributeList &  attr
 	)
 {
-	im_scim_context_private_t *  context = NULL ;
+	im_scim_context_private_t *  context ;
 
-	if( ! ( context = instance_to_context( instance)))
+	context = static_cast <im_scim_context_private_t *> (instance->get_frontend_data()) ;
+
+	if( ! context)
 	{
 		return ;
 	}
@@ -311,12 +255,14 @@ cb_preedit_update(
 
 static void
 cb_preedit_hide(
-	int  instance
+	IMEngineInstanceBase *  instance
 	)
 {
-	im_scim_context_private_t *  context = NULL ;
+	im_scim_context_private_t *  context ;
 
-	if( ! ( context = instance_to_context( instance)))
+	context = static_cast <im_scim_context_private_t *> (instance->get_frontend_data()) ;
+
+	if( ! context)
 	{
 		return ;
 	}
@@ -334,13 +280,15 @@ cb_preedit_hide(
 
 static void
 cb_preedit_caret(
-	int  instance ,
+	IMEngineInstanceBase *  instance ,
 	int  caret
 	)
 {
-	im_scim_context_private_t *  context = NULL ;
+	im_scim_context_private_t *  context ;
 
-	if( ! ( context = instance_to_context( instance)))
+	context = static_cast <im_scim_context_private_t *> (instance->get_frontend_data()) ;
+
+	if( ! context)
 	{
 		return ;
 	}
@@ -359,17 +307,19 @@ cb_preedit_caret(
 
 static void
 cb_lookup_update(
-	int  instance ,
+	IMEngineInstanceBase *  instance ,
 	const  LookupTable &  table
 	)
 {
-	im_scim_context_private_t *  context = NULL ;
+	im_scim_context_private_t *  context ;
 	u_int  num_of_candiate ;
 	int  index ;
 	char **  str ;
 	int  i ;
 
-	if( ! ( context = instance_to_context( instance)))
+	context = static_cast <im_scim_context_private_t *> (instance->get_frontend_data()) ;
+
+	if( ! context)
 	{
 		return ;
 	}
@@ -404,12 +354,14 @@ cb_lookup_update(
 
 static void
 cb_lookup_show(
-	int  instance
+	IMEngineInstanceBase *  instance
 	)
 {
-	im_scim_context_private_t *  context = NULL ;
+	im_scim_context_private_t *  context ;
 
-	if( ! ( context = instance_to_context( instance)))
+	context = static_cast <im_scim_context_private_t *> (instance->get_frontend_data()) ;
+
+	if( ! context)
 	{
 		return ;
 	}
@@ -424,12 +376,14 @@ cb_lookup_show(
 
 static void
 cb_lookup_hide(
-	int  instance
+	IMEngineInstanceBase *  instance
 	)
 {
-	im_scim_context_private_t *  context = NULL ;
+	im_scim_context_private_t *  context ;
 
-	if( ! ( context = instance_to_context( instance)))
+	context = static_cast <im_scim_context_private_t *> (instance->get_frontend_data()) ;
+
+	if( ! context)
 	{
 		return ;
 	}
@@ -444,16 +398,25 @@ cb_lookup_hide(
 
 static void
 cb_prop_register(
-	int  instance ,
+	IMEngineInstanceBase *  instance ,
 	const PropertyList &  props
 	)
 {
+	im_scim_context_private_t *  context ;
+
+	context = static_cast <im_scim_context_private_t *> (instance->get_frontend_data()) ;
+
+	if( ! context)
+	{
+		return ;
+	}
+
 	if( ! panel.is_connected())
 	{
 		return ;
 	}
 
-	transaction_init( instance) ;
+	transaction_init( context->id) ;
 	sock.put_command( SCIM_TRANS_CMD_REGISTER_PROPERTIES) ;
 	sock.put_data( props) ;
 	sock.write_to_socket( panel , SCIM_TRANS_MAGIC);
@@ -461,19 +424,46 @@ cb_prop_register(
 
 static void
 cb_prop_update(
-	int  instance ,
+	IMEngineInstanceBase *  instance ,
 	const Property &  prop
 	)
 {
+	im_scim_context_private_t *  context ;
+
+	context = static_cast <im_scim_context_private_t *> (instance->get_frontend_data()) ;
+
+	if( ! context)
+	{
+		return ;
+	}
+
 	if( ! panel.is_connected())
 	{
 		return ;
 	}
 
-	transaction_init( instance) ;
+	transaction_init( context->id) ;
 	sock.put_command( SCIM_TRANS_CMD_UPDATE_PROPERTY) ;
 	sock.put_data( prop) ;
 	sock.write_to_socket( panel , SCIM_TRANS_MAGIC);
+}
+
+static void
+set_callbacks(
+	im_scim_context_private_t *  context
+	)
+{
+	context->instance->signal_connect_commit_string( slot( cb_commit)) ;
+	context->instance->signal_connect_update_preedit_string( slot( cb_preedit_update)) ;
+	context->instance->signal_connect_hide_preedit_string( slot( cb_preedit_hide)) ;
+	context->instance->signal_connect_update_preedit_caret( slot( cb_preedit_caret)) ;
+	context->instance->signal_connect_update_lookup_table( slot( cb_lookup_update)) ;
+	context->instance->signal_connect_show_lookup_table( slot( cb_lookup_show)) ;
+	context->instance->signal_connect_hide_lookup_table( slot( cb_lookup_hide)) ;
+	context->instance->signal_connect_register_properties( slot( cb_prop_register)) ;
+	context->instance->signal_connect_update_property( slot( cb_prop_update)) ;
+
+	context->instance->set_frontend_data( static_cast <void*> (context)) ;
 }
 
 
@@ -493,11 +483,11 @@ im_scim_initialize( char *  locale)
 
 	sock_addr.set_address( scim_get_default_socket_frontend_address());
 	if( ! sock_client.connect(sock_addr) &&
-	    ! scim_socket_trans_open_connection( key ,
-						 String( "ConnectionTester") ,
-						 String( "SocketFrontEnd") ,
-						 sock_client ,
-						 TIMEOUT))
+	    ! scim_socket_open_connection( key ,
+					   String( "ConnectionTester") ,
+					   String( "SocketFrontEnd") ,
+					   sock_client ,
+					   TIMEOUT))
 	{
 		kik_error_printf( "Unable to connect to the socket frontend.\n") ;
 		return  0 ;
@@ -533,7 +523,7 @@ im_scim_initialize( char *  locale)
 		       config_modules.end() ,
 		       config_mod_name) == config_modules.end())
 	{
-		// failback
+		// fallback
 		config_mod_name = config_modules[0] ;
 	}
 
@@ -548,7 +538,7 @@ im_scim_initialize( char *  locale)
 
 	if( config.null())
 	{
-		// TODO failback to DummyConfig
+		// TODO fallback DummyConfig
 		kik_error_printf( "create_config failed.\n") ;
 		return  0 ;
 	}
@@ -560,39 +550,21 @@ im_scim_initialize( char *  locale)
 		return  0 ;
 	}
 
-	if( be->number_of_factories() == 0)
-	{
-		kik_error_printf( "No factory\n");
-		return  0 ;
-	}
-
-	be->get_factory_list( factories) ;
-
-	sock_addr.set_address( scim_get_default_panel_socket_address()) ;
+	sock_addr.set_address( scim_get_default_panel_socket_address( getenv( "DISPLAY"))) ; // FIXME
 	if( panel.connect( sock_addr))
 	{
-		if( ! scim_socket_trans_open_connection( panel_key ,
-							 String( "FrontEnd") ,
-							 String( "Panel") ,
-							 panel ,
-							 TIMEOUT))
+		if( ! scim_socket_open_connection( panel_key ,
+						   String( "FrontEnd") ,
+						   String( "Panel") ,
+						   panel ,
+						   TIMEOUT))
 		{
 			panel.close() ;
 		}
 	}
 
 	load_config( config) ;
-	config->signal_connect_reload( slot( load_config)) ;
-
-	be->signal_connect_commit_string( slot( cb_commit)) ;
-	be->signal_connect_update_preedit_string( slot( cb_preedit_update)) ;
-	be->signal_connect_hide_preedit_string( slot( cb_preedit_hide)) ;
-	be->signal_connect_update_preedit_caret( slot( cb_preedit_caret)) ;
-	be->signal_connect_update_lookup_table( slot( cb_lookup_update)) ;
-	be->signal_connect_show_lookup_table( slot( cb_lookup_show)) ;
-	be->signal_connect_hide_lookup_table( slot( cb_lookup_hide)) ;
-	be->signal_connect_register_properties( slot( cb_prop_register)) ;
-	be->signal_connect_update_property( slot( cb_prop_update)) ;
+	config->signal_connect_reload( slot(load_config)) ;
 
 	context_table.clear() ;
 
@@ -628,7 +600,6 @@ im_scim_finalize( void)
 
 	if( ! be.null())
 	{
-		be->delete_all_instances() ;
 		be.reset() ;
 	}
 
@@ -652,49 +623,30 @@ im_scim_create_context(
 	im_scim_callbacks_t *  callbacks)
 {
 	im_scim_context_private_t *  context = NULL ;
-	String  factory ;
 	size_t  i ;
 
 	context = new im_scim_context_private_t ;
 
-	context->instance = -1 ;
+	context->factory = be->get_default_factory( lang , String( "UTF-8")) ;
 
-	for( i = 0 , factory = factories[0] ; i < factories.size() ; i++)
-	{
-		if( be->get_factory_language( factories[i]) == lang)
-		{
-			factory = factories[i] ;
-		}
-	}
-
-	factory = scim_global_config_read(
-			String( SCIM_GLOBAL_CONFIG_DEFAULT_IMENGINE_FACTORY) +
-				String( "/") + lang ,
-			factory) ;
-
-	if( std::find( factories.begin() , factories.end() , factory)
-							== factories.end())
-	{
-		factory = factories[0] ;
-	}
-
-	if( ( context->instance = be->new_instance( factory , "UTF-8")) < 0)
+	if( ! ( context->instance = context->factory->create_instance( String( "UTF-8") ,
+							      id)))
 	{
 		kik_error_printf( "Could not create new instance.\n") ;
-		return  NULL ;
-	}
-	if( context->instance > 0xffffffff)	// FIXME
-	{
-		kik_error_printf( "An instance %d is too big.\n", context->instance) ;
 		return  NULL ;
 	}
 
 	context_table.push_back( context) ;
 
+	context->id = id ;
 	context->on = 0 ;
 	context->focused = 0 ;
 	context->self = self ;
 	context->cb = callbacks ;
+
+	set_callbacks( context) ;
+
+	id ++ ;
 
 	return  (im_scim_context_t) context ;
 }
@@ -708,7 +660,7 @@ im_scim_destroy_context(
 
 	context = (im_scim_context_private_t *) _context ;
 
-	be->delete_instance( context->instance) ;
+	context->instance.reset() ;
 
 	context_table.erase( std::find( context_table.begin() ,
 					context_table.end() ,
@@ -730,13 +682,16 @@ im_scim_focused(
 
 	if( panel.is_connected())
 	{
-		transaction_init( context->instance) ;
+		transaction_init( context->id) ;
 		sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
+		sock.put_data( context->instance->get_factory_uuid()) ;
 		if( context->on)
 		{
 			sock.put_command( SCIM_TRANS_CMD_PANEL_UPDATE_FACTORY_INFO);
-			sock.put_data( utf8_wcstombs( be->get_instance_name( context->instance))) ;
-			sock.put_data( be->get_instance_icon_file( context->instance));
+			sock.put_data( context->factory->get_uuid()) ;
+			sock.put_data( utf8_wcstombs( context->factory->get_name()));
+			sock.put_data( context->factory->get_language()) ;
+			sock.put_data( context->factory->get_icon_file()) ;
 			sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_ON) ;
 		}
 		else
@@ -746,7 +701,7 @@ im_scim_focused(
 		sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
 	}
 
-	be->focus_in( context->instance) ;
+	context->instance->focus_in() ;
 
 	(*context->cb->candidate_show)( context->self) ;
 
@@ -764,14 +719,14 @@ im_scim_unfocused(
 
 	if( panel.is_connected())
 	{
-		transaction_init( context->instance) ;
+		transaction_init( context->id) ;
 		sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
 		sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_OFF);
 		sock.put_command( SCIM_TRANS_CMD_FOCUS_OUT) ;
 		sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
 	}
 
-	be->focus_out( context->instance) ;
+	context->instance->focus_out() ;
 
 	(*context->cb->candidate_hide)( context->self) ;
 
@@ -787,15 +742,25 @@ im_scim_key_event(
 	)
 {
 	im_scim_context_private_t *  context ;
+	int  key_type ;
 	KeyEvent  scim_key ;
 
 	context = (im_scim_context_private_t *) _context ;
 
-	switch( kind_of_key( ksym , event->state))
+	scim_key.mask = event->state & ~SCIM_KEY_ReleaseMask;
+	scim_key.code = ksym ;
+
+	keymatcher_frontend.push_key_event( scim_key) ;
+	keymatcher_imengine.push_key_event( scim_key) ;
+
+	key_type = keymatcher_frontend.get_match_result() ;
+
+	switch( key_type)
 	{
-	case KEY_TRIGER:
-		transaction_init( context->instance) ;
+	case KEY_TRIGGER:
+		transaction_init( context->id) ;
 		sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
+		sock.put_data( context->instance->get_factory_uuid()) ;
 		if( context->on)
 		{
 			if( panel.is_connected())
@@ -809,7 +774,7 @@ im_scim_key_event(
 							NULL , 0) ;
 			(*context->cb->candidate_hide)( context->self) ;
 
-			be->focus_out( context->instance) ;
+			context->instance->focus_out() ;
 
 			context->on = 0 ;
 		}
@@ -818,8 +783,10 @@ im_scim_key_event(
 			if( panel.is_connected())
 			{
 				sock.put_command( SCIM_TRANS_CMD_PANEL_UPDATE_FACTORY_INFO);
-				sock.put_data( utf8_wcstombs( be->get_instance_name( context->instance))) ;
-				sock.put_data( be->get_instance_icon_file( context->instance));
+				sock.put_data( context->factory->get_uuid()) ;
+				sock.put_data( utf8_wcstombs( context->factory->get_name())) ;
+				sock.put_data( context->factory->get_language()) ;
+				sock.put_data( context->factory->get_icon_file()) ;
 				sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_ON) ;
 				sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
 				sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
@@ -831,17 +798,16 @@ im_scim_key_event(
 						context->preedit_caret) ;
 			(*context->cb->candidate_show)( context->self) ;
 
-			be->focus_in( context->instance) ;
+			context->instance->focus_in() ;
 
 			context->on = 1 ;
 		}
 		return  0 ;
-	case KEY_FACTORY_MENU:
-	case KEY_FACTORY_NEXT:
-	case KEY_FACTORY_PREV:
+	case KEY_MENU:
+	case KEY_NEXT_FACTORY:
+	case KEY_PRE_FACTORY:
 		// not implemented yet
 		return  0 ;
-	case KEY_OTHER:
 	default:
 		break ;
 	}
@@ -851,10 +817,7 @@ im_scim_key_event(
 		return  1 ;
 	}
 
-	scim_key.mask = event->state & ~SCIM_KEY_ReleaseMask;
-	scim_key.code = ksym ;
-
-	if( be->process_key_event( context->instance , scim_key))
+	if( context->instance->process_key_event( scim_key))
 	{
 		sock.write_to_socket( panel , SCIM_TRANS_MAGIC);
 		return  0 ;
@@ -935,11 +898,12 @@ im_scim_get_panel_fd( void)
 int
 im_scim_receive_panel_event( void)
 {
+	im_scim_context_private_t *  context ;
 	int  command ;
-	SocketTransactionDataType  type ;
+	TransactionDataType  type ;
 	String  string ;
 	uint32  data_uint32 ;
-	int  instance ;
+	int  id ;
 
 	if( ! sock.read_from_socket( panel , TIMEOUT))
 	{
@@ -973,36 +937,49 @@ im_scim_receive_panel_event( void)
 	}
 
 	sock.get_data( data_uint32) ;
-	instance = (int) data_uint32 ;
+	id = (int) data_uint32 ;
+
+	context = id_to_context( id) ;
 
 	sock.get_command( command) ;
 	switch( command)
 	{
 	case SCIM_TRANS_CMD_PANEL_REQUEST_FACTORY_MENU:
-		send_factory_menu_item( instance) ;
+		send_factory_menu_item( context) ;
 		break ;
 	case SCIM_TRANS_CMD_PANEL_CHANGE_FACTORY:
 		sock.get_data( string) ;
-		be->replace_instance( instance , string) ;
-		transaction_init( instance) ;
+		transaction_init( context->id) ;
 		sock.put_command( SCIM_TRANS_CMD_FOCUS_IN) ;
+		sock.put_data( context->instance->get_factory_uuid()) ;
+		if( string.length() == 0)
+		{
+			sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_OFF) ;
+			sock.put_command( SCIM_TRANS_CMD_FOCUS_OUT) ;
+			sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
+			context->on = 0 ;
+			return  1 ;
+		}
+		context->factory = be->get_factory( string) ;
+		context->instance->focus_out() ;
+		be->set_default_factory( lang , context->factory->get_uuid()) ;
+		context->instance = context->factory->create_instance( String( "UTF-8") , context->id) ;
+		set_callbacks( context) ;
 		sock.put_command( SCIM_TRANS_CMD_PANEL_UPDATE_FACTORY_INFO);
-		sock.put_data( utf8_wcstombs( be->get_instance_name( instance))) ;
-		sock.put_data( be->get_instance_icon_file( instance));
-		//sock.put_command( SCIM_TRANS_CMD_PANEL_TURN_ON) ;
+		sock.put_data( context->factory->get_uuid());
+		sock.put_data( utf8_wcstombs(context->factory->get_name()));
+		sock.put_data( context->factory->get_language()) ;
+		sock.put_data( context->factory->get_icon_file()) ;
 		sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
-		be->focus_in( instance) ;
-		scim_global_config_write(
-			String( SCIM_GLOBAL_CONFIG_DEFAULT_IMENGINE_FACTORY) +
-				String( "/") + lang ,
-			string) ;
+		context->instance->focus_in() ;
+
 		break ;
 	case SCIM_TRANS_CMD_PANEL_REQUEST_HELP:
-		send_help_description( instance) ;
+		send_help_description( context) ;
 		break ;
 	case SCIM_TRANS_CMD_TRIGGER_PROPERTY:
 		sock.get_data( string) ;
-		be->trigger_property( instance , string) ;
+		context->instance->trigger_property( string) ;
 		break;
 	default:
 		break ;
