@@ -60,6 +60,7 @@ int append_menu_from_scanner(GtkMenu* menu, GScanner* scanner, int level);
 int append_pty_list(GtkMenu* menu);
 
 void activate_callback(GtkWidget* widget, gpointer data);
+void toggled_callback(GtkWidget* widget, gpointer data);
 char* get_value(char* key);
 
 int main(int argc, char* argv[])
@@ -225,9 +226,11 @@ int append_pty_list(GtkMenu* menu)
 
         item = gtk_radio_menu_item_new_with_label(group, pty);
         group = gtk_radio_menu_item_group(GTK_RADIO_MENU_ITEM(item));
-        gtk_signal_connect(GTK_OBJECT(item), "activate",
-                           GTK_SIGNAL_FUNC(activate_callback),
+
+        gtk_signal_connect(GTK_OBJECT(item), "toggled",
+                           GTK_SIGNAL_FUNC(toggled_callback),
                            (gpointer) command);
+
         gtk_menu_append(menu, item);
         if (is_active) {
             gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item),
@@ -244,6 +247,16 @@ void activate_callback(GtkWidget* widget, gpointer data)
     char* command = data;
 
     printf("\x1b]5379;%s\x07", command);
+}
+
+
+void toggled_callback(GtkWidget* widget, gpointer data)
+{
+    char* command = data;
+
+    if(GTK_CHECK_MENU_ITEM(widget)->active) {
+      printf("\x1b]5379;%s\x07", command);
+    }
 }
 
 
