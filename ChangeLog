@@ -1,3 +1,7 @@
+2003-02-16 Araki Ken <arakiken@users.sf.net>
+
+	* Mlconfig couldn't apply configuration changes more than once. Fixed.
+
 2003-02-16 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Update manpage (man/mlterm.1) for -0/-9/-@ options.

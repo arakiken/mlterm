@@ -4,6 +4,8 @@
 
 #include  "mc_vertical.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -140,7 +142,8 @@ mc_update_vertical_mode(
 		if( strcmp( new_vertical_mode , old_vertical_mode) != 0)
 		{
 			mc_set_str_value( "vertical_mode" , new_vertical_mode , save) ;
-			old_vertical_mode = new_vertical_mode ;
+			free( old_vertical_mode) ;
+			old_vertical_mode = strdup( new_vertical_mode) ;
 		}
 	}
 }

@@ -4,6 +4,8 @@
 
 #include  "mc_iscii_lang.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -83,7 +85,8 @@ mc_update_iscii_lang(
 		if( strcmp( new_iscii_lang , old_iscii_lang) != 0)
 		{
 			mc_set_str_value( "iscii_lang" , new_iscii_lang , save) ;
-			old_iscii_lang = new_iscii_lang ;
+			free( old_iscii_lang) ;
+			old_iscii_lang = strdup( new_iscii_lang) ;
 		}
 	}
 }

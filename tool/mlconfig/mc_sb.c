@@ -4,6 +4,8 @@
 
 #include  "mc_sb.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -140,7 +142,8 @@ mc_update_sb_mode(
 		if( strcmp( new_sb_mode , old_sb_mode) != 0)
 		{
 			mc_set_str_value( "scrollbar_mode" , new_sb_mode , save) ;
-			old_sb_mode = new_sb_mode ;
+			free( new_sb_mode) ;
+			old_sb_mode = strdup( new_sb_mode) ;
 		}
 	}
 }

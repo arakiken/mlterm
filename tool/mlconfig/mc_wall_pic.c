@@ -4,6 +4,8 @@
 
 #include  "mc_wall_pic.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <glib.h>
 #include  <c_intl.h>
 
@@ -116,7 +118,8 @@ mc_update_wall_pic(
 		if( strcmp( old_wall_pic , new_wall_pic) != 0)
 		{
 			mc_set_str_value( "wall_picture" , new_wall_pic , save) ;
-			old_wall_pic = new_wall_pic ;
+			free( old_wall_pic) ;
+			old_wall_pic = strdup( new_wall_pic) ;
 		}
 	}
 }

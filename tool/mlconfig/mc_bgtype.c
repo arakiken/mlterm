@@ -169,16 +169,20 @@ mc_update_bgtype(
 	int  save
 	)
 {
-	if( is_changed) {
-		if ( ! strcmp( bgtype, "color")) {
-		    mc_set_flag_value("use_transbg", 0, save);
-		    mc_set_str_value("wall_picture", "none", save);
-		    mc_update_bg_color( save) ;
-		} else if (!strcmp( bgtype, "picture")) {
-		    mc_set_flag_value("use_transbg", 0, save);
-		    mc_update_wall_pic( save) ;
-		} else if (!strcmp( bgtype, "transparent")) {
-		    mc_set_flag_value("use_transbg", 1, save);
-		}
+	if ( ! strcmp( bgtype, "color")) {
+	    if( is_changed) {
+		mc_set_flag_value("use_transbg", 0, save);
+		mc_set_str_value("wall_picture", "none", save);
+	    }
+	    mc_update_bg_color( save) ;
+	} else if (!strcmp( bgtype, "picture")) {
+	    if( is_changed) {
+	        mc_set_flag_value("use_transbg", 0, save);
+	    }
+	    mc_update_wall_pic( save) ;
+	} else if (!strcmp( bgtype, "transparent")) {
+	    if( is_changed) {
+	        mc_set_flag_value("use_transbg", 1, save);
+	    }
 	}
 }

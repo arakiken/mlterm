@@ -4,6 +4,8 @@
 
 #include  "mc_brightness.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -83,7 +85,8 @@ mc_update_brightness(
 		if( strcmp( old_brightness , new_brightness) != 0)
 		{
 			mc_set_str_value( "brightness" , new_brightness , save) ;
-			old_brightness = new_brightness ;
+			free( old_brightness) ;
+			old_brightness = strdup( new_brightness) ;
 		}
 	}
 }

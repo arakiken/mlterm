@@ -4,12 +4,12 @@
 
 #include  "mc_xim.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_map.h>
-#include  <kiklib/kik_str.h>	/* strdup */
-#include  <kiklib/kik_mem.h>	/* alloca */
 #include  <glib.h>
 #include  <c_intl.h>
 
@@ -201,7 +201,7 @@ mc_xim_config_widget_new(void)
 	if ((new_locale = get_xim_locale(new_xim)) == NULL) {
 	    new_locale = cur_locale ;
 	}
-	old_locale = new_locale ;
+	old_locale = strdup( new_locale) ;
 
 	vbox = gtk_vbox_new(FALSE, 5);
 
@@ -242,7 +242,7 @@ mc_update_xim(
 		new_xim = "unused" ;
 	}
 	
-	if( ( p = alloca( strlen( new_xim) + 1 + strlen( new_locale) + 1)) == NULL)
+	if( ( p = malloc( strlen( new_xim) + 1 + strlen( new_locale) + 1)) == NULL)
 	{
 		return ;
 	}
@@ -258,8 +258,14 @@ mc_update_xim(
 		if( strcmp( new_xim , old_xim) != 0 || strcmp( new_locale , old_locale) != 0)
 		{
 			mc_set_str_value( "xim" , p , save) ;
-			old_xim = new_xim ;
-			old_locale = new_locale ;
+
+			free( old_xim) ;
+			old_xim = strdup( new_xim) ;
+
+			free( old_locale) ;			
+			old_locale = strdup( new_locale) ;
 		}
 	}
+
+	free( p) ;
 }

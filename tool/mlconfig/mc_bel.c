@@ -4,6 +4,8 @@
 
 #include  "mc_bel.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <glib.h>
 #include  <c_intl.h>
 
@@ -139,7 +141,8 @@ mc_update_bel_mode(
 		if( strcmp( old_bel_mode , new_bel_mode) != 0)
 		{
 			mc_set_str_value( "bel_mode" , new_bel_mode , save) ;
-			old_bel_mode = new_bel_mode ;
+			free( old_bel_mode) ;
+			old_bel_mode = strdup( new_bel_mode) ;
 		}
 	}
 }

@@ -4,6 +4,8 @@
 
 #include  "mc_fontsize.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -74,7 +76,8 @@ mc_update_fontsize(
 		if( strcmp( new_fontsize , old_fontsize) != 0)
 		{
 			mc_set_str_value( "fontsize" , new_fontsize , save) ;
-			old_fontsize = new_fontsize ;
+			free( old_fontsize) ;
+			old_fontsize = strdup( new_fontsize) ;
 		}
 	}
 }

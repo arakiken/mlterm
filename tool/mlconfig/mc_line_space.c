@@ -4,6 +4,8 @@
 
 #include  "mc_line_space.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -77,7 +79,8 @@ mc_update_line_space(
 		if( strcmp( new_line_space , old_line_space) != 0)
 		{
 			mc_set_str_value( "line_space" , new_line_space , save) ;
-			old_line_space = new_line_space ;
+			free( old_line_space) ;
+			old_line_space = strdup( new_line_space) ;
 		}
 	}
 }

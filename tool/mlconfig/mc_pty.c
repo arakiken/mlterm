@@ -5,8 +5,9 @@
 #include  "mc_pty.h"
 
 #include  <stdio.h>
-#include  <kiklib/kik_str.h>
-#include  <kiklib/kik_mem.h>	/* alloca */
+#include  <string.h>
+#include  <stdlib.h>	/* malloc */
+#include  <kiklib/kik_str.h>	/* kik_str_sep */
 
 #include  "mc_io.h"
 
@@ -94,7 +95,7 @@ mc_select_pty(void)
 	{
 		char *  dev ;
 
-		if( ( dev = alloca( 5 + strlen( new_pty) + 1)) == NULL)
+		if( ( dev = malloc( 5 + strlen( new_pty) + 1)) == NULL)
 		{
 			return ;
 		}
@@ -103,6 +104,9 @@ mc_select_pty(void)
 
 		mc_set_str_value( "select_pty" , dev , 0) ;
 
-		old_pty = new_pty ;
+		free( dev) ;
+
+		free( old_pty) ;
+		old_pty = strdup( new_pty) ;
 	}
 }

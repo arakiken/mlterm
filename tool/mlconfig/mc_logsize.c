@@ -4,6 +4,8 @@
 
 #include  "mc_logsize.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -75,7 +77,8 @@ mc_update_logsize(
 		if( strcmp( new_logsize , old_logsize) != 0)
 		{
 			mc_set_str_value( "logsize" , new_logsize , save) ;
-			old_logsize = new_logsize ;
+			free( old_logsize) ;
+			old_logsize = strdup( new_logsize) ;
 		}
 	}
 }

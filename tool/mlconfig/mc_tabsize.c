@@ -4,6 +4,8 @@
 
 #include  "mc_tabsize.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -74,7 +76,8 @@ mc_update_tabsize(
 		if( strcmp( new_tabsize , old_tabsize) != 0)
 		{
 			mc_set_str_value( "tabsize" , new_tabsize , save) ;
-			old_tabsize = new_tabsize ;
+			free( old_tabsize) ;
+			old_tabsize = strdup( new_tabsize) ;
 		}
 	}
 }

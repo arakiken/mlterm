@@ -4,6 +4,8 @@
 
 #include  "mc_char_encoding.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -215,7 +217,8 @@ mc_update_char_encoding(
 		if( strcmp( new_encoding , old_encoding) != 0)
 		{
 			mc_set_str_value( "encoding" , new_encoding , save) ;
-			old_encoding = new_encoding ;
+			free( old_encoding) ;
+			old_encoding = strdup( new_encoding) ;
 		}
 	}
 }

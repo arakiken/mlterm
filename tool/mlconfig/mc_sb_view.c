@@ -4,6 +4,8 @@
 
 #include  "mc_sb_view.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -78,7 +80,8 @@ mc_update_sb_view_name(
 		if( strcmp( new_sb_view_name , old_sb_view_name) != 0)
 		{
 			mc_set_str_value( "scrollbar_view_name" , new_sb_view_name , save) ;
-			old_sb_view_name = new_sb_view_name ;
+			free( old_sb_view_name) ;
+			old_sb_view_name = strdup( new_sb_view_name) ;
 		}
 	}
 }

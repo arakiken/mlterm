@@ -4,6 +4,8 @@
 
 #include  "mc_color.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -165,10 +167,11 @@ mc_update_fg_color(
 	}
 	else
 	{
-		old_fg_color = new_fg_color ;
 		if( strcmp( new_fg_color , old_fg_color) != 0)
 		{
 			mc_set_str_value( "fg_color" , new_fg_color , save) ;
+			free( old_fg_color) ;
+			old_fg_color = strdup( new_fg_color) ;
 		}
 	}
 }
@@ -184,10 +187,11 @@ mc_update_bg_color(
 	}
 	else
 	{
-		old_bg_color = new_bg_color ;
 		if( strcmp( new_bg_color , old_bg_color) != 0)
 		{
 			mc_set_str_value( "bg_color" , new_bg_color , save) ;
+			free( old_bg_color) ;
+			old_bg_color = strdup( new_bg_color) ;
 		}
 	}
 }
@@ -203,10 +207,11 @@ mc_update_sb_fg_color(
 	}
 	else
 	{
-		old_sb_fg_color = new_sb_fg_color ;
 		if( strcmp( new_sb_fg_color , old_sb_fg_color) != 0)
 		{
 			mc_set_str_value( "sb_fg_color" , new_sb_fg_color , save) ;
+			free( old_sb_fg_color) ;
+			old_sb_fg_color = strdup( new_sb_fg_color) ;
 		}
 	}
 }
@@ -225,7 +230,8 @@ mc_update_sb_bg_color(
 		if( strcmp( new_sb_bg_color , old_sb_bg_color) != 0)
 		{
 			mc_set_str_value( "sb_bg_color" , new_sb_bg_color , save) ;
-			old_sb_bg_color = new_sb_bg_color ;
+			free( old_sb_bg_color) ;
+			old_sb_bg_color = strdup( new_sb_bg_color) ;
 		}
 	}
 }

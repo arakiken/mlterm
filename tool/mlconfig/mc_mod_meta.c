@@ -4,6 +4,8 @@
 
 #include  "mc_mod_meta.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -140,7 +142,8 @@ mc_update_mod_meta_mode(
 		if( strcmp( new_mod_meta_mode , old_mod_meta_mode) != 0)
 		{
 			mc_set_str_value( "mod_meta_mode" , new_mod_meta_mode , save) ;
-			old_mod_meta_mode = new_mod_meta_mode ;
+			free( old_mod_meta_mode) ;
+			old_mod_meta_mode = strdup( new_mod_meta_mode) ;
 		}
 	}
 }

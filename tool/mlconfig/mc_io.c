@@ -5,10 +5,10 @@
 #include  "mc_io.h"
 
 #include  <stdio.h>
+#include  <string.h>		/* strdup */
+#include  <stdlib.h>		/* malloc */
 #include  <unistd.h>		/* STDIN_FILENO */
-#include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_mem.h>	/* malloc */
 
 
 /* --- static variables --- */

@@ -4,6 +4,8 @@
 
 #include  "mc_fade.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -81,7 +83,8 @@ mc_update_fade_ratio(
 		if( strcmp( new_fade_ratio , old_fade_ratio) != 0)
 		{
 			mc_set_str_value( "fade_ratio" , new_fade_ratio , save) ;
-			old_fade_ratio = new_fade_ratio ;
+			free( old_fade_ratio) ;
+			old_fade_ratio = strdup( new_fade_ratio) ;
 		}
 	}
 }

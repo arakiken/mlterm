@@ -4,6 +4,8 @@
 
 #include  "mc_contrast.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -81,7 +83,8 @@ mc_update_contrast(
 		if( strcmp( new_contrast , old_contrast) != 0)
 		{
 			mc_set_str_value( "contrast" , new_contrast , save) ;
-			old_contrast = new_contrast ;
+			free( old_contrast) ;
+			old_contrast = strdup( new_contrast) ;
 		}
 	}
 }

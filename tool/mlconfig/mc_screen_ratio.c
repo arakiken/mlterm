@@ -4,6 +4,8 @@
 
 #include  "mc_screen_ratio.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -118,7 +120,8 @@ mc_update_screen_width_ratio(
 		if( strcmp( new_screen_width_ratio , old_screen_width_ratio) != 0)
 		{
 			mc_set_str_value( "screen_width_ratio" , new_screen_width_ratio , save) ;
-			old_screen_width_ratio = new_screen_width_ratio ;
+			free( old_screen_width_ratio) ;
+			old_screen_width_ratio = strdup( new_screen_width_ratio) ;
 		}
 	}
 }
@@ -137,7 +140,8 @@ mc_update_screen_height_ratio(
 		if( strcmp( new_screen_height_ratio , old_screen_height_ratio) != 0)
 		{
 			mc_set_str_value( "screen_height_ratio" , new_screen_height_ratio , save) ;
-			old_screen_height_ratio = new_screen_height_ratio ;
+			free( old_screen_height_ratio) ;
+			old_screen_height_ratio = strdup( new_screen_height_ratio) ;
 		}
 	}
 }

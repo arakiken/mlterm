@@ -4,6 +4,8 @@
 
 #include  "mc_gamma.h"
 
+#include  <string.h>
+#include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
 #include  <c_intl.h>
@@ -81,7 +83,8 @@ mc_update_gamma(
 		if( strcmp( new_gamma , old_gamma) != 0)
 		{
 			mc_set_str_value( "gamma" , new_gamma , save) ;
-			old_gamma = new_gamma ;
+			free( old_gamma) ;
+			old_gamma = strdup( new_gamma) ;
 		}
 	}
 }
