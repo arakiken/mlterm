@@ -1,3 +1,8 @@
+2004-05-16 MINAMI Hirokazu <minami@mistfall.net>
+
+	* x_window.c: use ct.encoding insted of xselection.property 
+	to reject garbage data. 
+
 2004-05-16  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* ml_screen.c(ml_screen_is_cursor_visible): new function

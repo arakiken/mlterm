@@ -2170,9 +2170,9 @@ x_window_receive_event(
 					break ;
 				}
 
-				if( event->xselection.target == XA_STRING ||
-					 event->xselection.target == xa_text ||
-					 event->xselection.target == xa_compound_text)
+				if( ct.encoding == XA_STRING ||
+					 ct.encoding == xa_text ||
+					 ct.encoding == xa_compound_text)
 				{
 					if( win->xct_selection_notified)
 					{
@@ -2180,7 +2180,7 @@ x_window_receive_event(
 							win , ct.value , ct.nitems) ;
 					}
 				}
-				else if( event->xselection.target == xa_utf8_string)
+				else if( ct.encoding == xa_utf8_string)
 				{
 					if( win->utf8_selection_notified)
 					{
