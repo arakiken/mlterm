@@ -86,7 +86,7 @@ start_vt100_cmd(
 	{
 		ml_unuse_char_combining() ;
 	}
-	
+
 	if( vt100_parser->use_multi_col_char)
 	{
 		ml_use_multi_col_char() ;
@@ -166,7 +166,7 @@ receive_bytes(
 
 				p ++ ;
 			}
-			
+
 			if( ( path = kik_get_user_rc_path( path)) == NULL)
 			{
 				goto  end ;
@@ -176,7 +176,7 @@ receive_bytes(
 				open( path , O_CREAT | O_TRUNC | O_WRONLY , 0600)) == -1)
 			{
 				free( path) ;
-				
+
 				goto  end ;
 			}
 
@@ -206,7 +206,7 @@ end:
 			kik_msg_printf( "%c" , vt100_parser->seq[count]) ;
 		#endif
 		}
-	
+
 		kik_msg_printf( "[END]\n") ;
 	}
 #endif
@@ -238,7 +238,7 @@ flush_buffer(
 			char *  bytes ;
 
 			bytes = ml_char_bytes( &buffer->chars[count]) ;
-			
+
 			if( ml_char_size( &buffer->chars[count]) == 2)
 			{
 			#ifdef  DUMP_HEX
@@ -456,11 +456,40 @@ put_char(
 	}
 }
 
+static void
+save_cursor(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	vt100_parser->is_saved = 1 ;
+	vt100_parser->saved_fg_color = vt100_parser->fg_color ;
+	vt100_parser->saved_bg_color = vt100_parser->bg_color ;
+	vt100_parser->saved_is_bold = vt100_parser->is_bold ;
+	vt100_parser->saved_is_underlined = vt100_parser->is_underlined ;
+	vt100_parser->saved_is_reversed = vt100_parser->is_reversed ;
+
+	ml_screen_save_cursor( vt100_parser->screen) ;
+}
+
+static void
+restore_cursor(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	if( vt100_parser->is_saved){
+		vt100_parser->fg_color = vt100_parser->saved_fg_color ;
+		vt100_parser->bg_color = vt100_parser->saved_bg_color ;
+		vt100_parser->is_bold = vt100_parser->saved_is_bold ;
+		vt100_parser->is_underlined = vt100_parser->saved_is_underlined ;
+		vt100_parser->is_reversed = vt100_parser->saved_is_reversed ;
+	}
+	ml_screen_restore_cursor( vt100_parser->screen) ;
+}
 
 /*
  * VT100_PARSER Escape Sequence Commands.
  */
- 
+
 static void
 change_char_attr(
 	ml_vt100_parser_t *  vt100_parser ,
@@ -499,7 +528,7 @@ change_char_attr(
 	else if( flag == 7)
 	{
 		/* Inverse */
-		
+
 		vt100_parser->is_reversed = 1 ;
 	}
 	else if( flag == 22)
@@ -554,7 +583,7 @@ change_char_attr(
 	else if( flag == 39)
 	{
 		/* default fg */
-		
+
 		fg_color = ML_FG_COLOR ;
 		vt100_parser->is_reversed = 0 ;
 	}
@@ -716,7 +745,7 @@ inc_str_in_esc_seq(
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " Ignored 0x%x inside escape sequences.\n" ,
-					**str_p) ; 
+					**str_p) ;
 			#endif
 			}
 		}
@@ -753,7 +782,7 @@ config_protocol_set(
 			{
 				break ;
 			}
-			
+
 			if( strcmp( key , "gen_proto_challenge") == 0)
 			{
 				ml_gen_proto_challenge() ;
@@ -763,7 +792,7 @@ config_protocol_set(
 				(*vt100_parser->config_listener->set)(
 					vt100_parser->config_listener->self , dev , key , val) ;
 			}
-			
+
 			/* XXX */
 			if( vt100_parser->config_listener == NULL)
 			{
@@ -817,7 +846,7 @@ config_protocol_save(
 		{
 			break ;
 		}
-		
+
 		/* XXX */
 		if( strcmp( key , "encoding") == 0)
 		{
@@ -869,7 +898,7 @@ config_protocol_get(
 		else if( ret == -1)
 		{
 			/* to_menu is necessarily 0, so it is pty that msg should be returned to. */
-			
+
 			char  msg[] = "#forbidden\n" ;
 
 			ml_write_to_pty( vt100_parser->pty , msg , sizeof( msg) - 1) ;
@@ -896,7 +925,7 @@ parse_vt100_escape_sequence(
 	if( vt100_parser->left == 0)
 	{
 		/* end of string */
-		
+
 		return  1 ;
 	}
 
@@ -942,18 +971,18 @@ parse_vt100_escape_sequence(
 				 *   col,row,fg_color,bg_color(in ml_cursor_t),
 				 * in other words , "char" is not saved , but maybe it works.
 				 *
-				 * BTW , owing to this behavior , 
+				 * BTW , owing to this behavior ,
 				 * "2. Test of screen features" - "Test of the SAVE/RESTORE CURSOR feature"
 				 * of vttest fails.
 				 */
 
-				ml_screen_save_cursor( vt100_parser->screen) ;
+				save_cursor( vt100_parser) ;
 			}
 			else if( *str_p == '8')
 			{
 				/* restore cursor */
-				
-				ml_screen_restore_cursor( vt100_parser->screen) ;
+
+				restore_cursor( vt100_parser) ;
 			}
 			else if( *str_p == '=')
 			{
@@ -988,7 +1017,7 @@ parse_vt100_escape_sequence(
 			else if( *str_p == 'E')
 			{
 				/* next line */
-				
+
 				ml_screen_line_feed( vt100_parser->screen) ;
 				ml_screen_goto_beg_of_line( vt100_parser->screen) ;
 			}
@@ -1881,11 +1910,11 @@ parse_vt100_escape_sequence(
 					}
 					else if( *str_p == 's')
 					{
-						ml_screen_save_cursor( vt100_parser->screen) ;
+						save_cursor( vt100_parser) ;
 					}
 					else if( *str_p == 'u')
 					{
-						ml_screen_restore_cursor( vt100_parser->screen) ;
+						restore_cursor( vt100_parser) ;
 					}
 					else if( *str_p == 'x')
 					{
@@ -2405,6 +2434,8 @@ ml_vt100_parser_new(
 	
 		vt100_parser->col_size_of_east_asian_width_a = 1 ;
 	}
+
+	vt100_parser->is_saved = 0 ;
 
 	return  vt100_parser ;
 

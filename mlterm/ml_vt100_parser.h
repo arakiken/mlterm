@@ -109,6 +109,13 @@ typedef struct  ml_vt100_parser
 	int8_t  use_multi_col_char ;
 	int8_t  logging_vt_seq ;
 	
+	int is_saved;
+	ml_color_t  saved_fg_color ;
+	ml_color_t  saved_bg_color ;
+	int8_t  saved_is_bold ;
+	int8_t  saved_is_underlined ;
+	int8_t  saved_is_reversed ;
+
 } ml_vt100_parser_t ;
 
 

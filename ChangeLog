@@ -1,3 +1,8 @@
+2004-08-06 MINAMI Hirokazu <minami@mistfall.net>
+
+	* mlter/ml_vt100_parser.* : enhanced support for "save/restore cursor"
+	escape sequence. 
+
 2004-08-01 Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* kik_pty_streams.c (kik_pty_fork): more verbose error message for
