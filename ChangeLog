@@ -1,5 +1,9 @@
 2002-04-23 Araki Ken <arakiken@users.sf.net>
 
+	* if ${srcdir} is absolute path, configure fails. fixed. 
+
+2002-04-23 Araki Ken <arakiken@users.sf.net>
+
 	* "configure ; make ; make install" process is possible in any directories
 	  other than mlterm source directory.
 	  (Thanks to Nobuyoshi Nakada san)
