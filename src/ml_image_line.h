@@ -35,7 +35,7 @@ typedef struct  ml_image_line
 	u_int16_t *  visual_order ;		/* for bidi rendering */
 
 	/* private */
-	u_int16_t  visual_order_len ;		/* for bidi rendering (0 - 65536) */
+	u_int16_t  num_of_filled_visual_order ;	/* for bidi rendering (0 - 65536) */
 	
 	/* public(readonly) */
 	u_int16_t  num_of_chars ;		/* 0 - 65536 */
@@ -134,11 +134,7 @@ int  ml_imgline_copy_str( ml_image_line_t *  line , ml_char_t *  dst , int  beg 
 
 int  ml_imgline_iscii_visual( ml_image_line_t *  line , ml_iscii_state_t  iscii_state) ;
 
-int  ml_imgline_iscii_logical( ml_image_line_t *  line) ;
-
 int  ml_iscii_convert_logical_char_index_to_visual( ml_image_line_t *  line , int  logical_char_index) ;
-
-int  ml_iscii_convert_visual_char_index_to_logical( ml_image_line_t *  line , int  visual_char_index) ;
 
 
 ml_image_line_t *  ml_imgline_shape( ml_image_line_t *  line , ml_shape_t *  shape) ;

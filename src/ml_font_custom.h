@@ -30,8 +30,6 @@ int  ml_font_custom_final( ml_font_custom_t *  font_custom) ;
 
 int  ml_font_custom_read_conf( ml_font_custom_t *  font_custom , char *  filename) ;
 
-int  ml_font_custom_read_aa_conf( ml_font_custom_t *  font_custom , char *  filename) ;
-
 int  ml_set_font_name( ml_font_custom_t *  font_custom , ml_font_attr_t  fontattr ,
 	char *  fontname , u_int  font_size) ;
 

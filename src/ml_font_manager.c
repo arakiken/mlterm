@@ -845,7 +845,7 @@ ml_get_fontset(
 		return  NULL ;
 	}
 
-	sprintf( default_font_name , "-*-*-*-*-*--%d-*-*-*-*-*" , font_man->font_size) ;
+	sprintf( default_font_name , "-*-*-medium-r-*--%d-*-*-*-*-*" , font_man->font_size) ;
 
 	list_str_len = strlen( default_font_name) ;
 

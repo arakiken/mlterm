@@ -214,8 +214,12 @@ ml_iscii_get_font_name(
 	u_int  font_size
 	)
 {
+	/*
+	 * XXX
+	 * font_size + 2 seems appropriate.
+	 */
 	sprintf( iscii_state->font_name , "%s%d%s" ,
-		iscii_state->font_name_prefix , font_size , iscii_state->font_name_suffix) ;
+		iscii_state->font_name_prefix , font_size + 2 , iscii_state->font_name_suffix) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s\n" , iscii_state->font_name) ;

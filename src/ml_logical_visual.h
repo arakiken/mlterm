@@ -13,13 +13,18 @@
 typedef struct  ml_logical_visual
 {
 	ml_image_t *  image ;
+	int  cursor_logical_char_index ;
+	int  cursor_logical_col ;
+
+	int  is_visual ;
 
 	int  (*delete)( struct ml_logical_visual *) ;
 	int  (*change_image)( struct ml_logical_visual * , ml_image_t *) ;
 
 	/*
 	 * !! Notice !!
-	 * ml_image_t should not be modified between render/viaul <=> logical.
+	 * ml_image_t should not be modified from render/viaul until logical.
+	 * Any modification is done from logical until render/visual.
 	 */
 	int  (*render)( struct ml_logical_visual *) ;
 	int  (*visual)( struct ml_logical_visual *) ;

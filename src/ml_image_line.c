@@ -151,7 +151,7 @@ ml_imgline_reset(
 
 	line->num_of_filled_chars = 0 ;
 	line->num_of_filled_cols = 0 ;
-	line->visual_order_len = 0 ;
+	line->num_of_filled_visual_order = 0 ;
 	line->is_continued_to_next = 0 ;
 
 	return 1 ;
@@ -751,13 +751,13 @@ ml_imgline_copy_line(
 	{
 		ml_imgline_use_bidi( dst) ;
 
-		if( src->visual_order_len > 0)
+		if( src->num_of_filled_visual_order > 0)
 		{
 			if( src->num_of_filled_chars == dst->num_of_filled_chars)
 			{
 				memcpy( dst->visual_order , src->visual_order ,
-					sizeof( u_int16_t) * src->visual_order_len) ;
-				dst->visual_order_len = src->visual_order_len ;
+					sizeof( u_int16_t) * src->num_of_filled_visual_order) ;
+				dst->num_of_filled_visual_order = src->num_of_filled_visual_order ;
 			}
 			else
 			{
@@ -767,7 +767,7 @@ ml_imgline_copy_line(
 	}
 	else
 	{
-		dst->visual_order_len = 0 ;
+		dst->num_of_filled_visual_order = 0 ;
 	}
 
 	return  1 ;
@@ -784,7 +784,7 @@ ml_imgline_share(
 	dst->num_of_filled_cols = src->num_of_filled_cols ;
 	
 	dst->visual_order = src->visual_order ;
-	dst->visual_order_len = src->visual_order_len ;
+	dst->num_of_filled_visual_order = src->num_of_filled_visual_order ;
 
 	dst->change_beg_char_index = src->change_beg_char_index ;
 	dst->change_end_char_index = src->change_end_char_index ;
@@ -877,7 +877,7 @@ ml_imgline_use_bidi(
 		return  0 ;
 	}
 
-	line->visual_order_len = 0 ;
+	line->num_of_filled_visual_order = 0 ;
 
 	return  1 ;
 }
@@ -889,7 +889,7 @@ ml_imgline_unuse_bidi(
 {
 	free( line->visual_order) ;
 	line->visual_order = NULL ;
-	line->visual_order_len = 0 ;
+	line->num_of_filled_visual_order = 0 ;
 
 	return  1 ;
 }
@@ -915,8 +915,8 @@ ml_imgline_bidi_render(
 		return  1 ;
 	}
 
-	line->visual_order_len = len ;
-	ml_bidi( line->visual_order , line->chars , line->visual_order_len) ;
+	line->num_of_filled_visual_order = len ;
+	ml_bidi( line->visual_order , line->chars , line->num_of_filled_visual_order) ;
 
 	return  1 ;
 }
@@ -938,7 +938,7 @@ ml_imgline_bidi_visual(
 		return  0 ;
 	}
 
-	if( line->visual_order_len == 0)
+	if( line->num_of_filled_visual_order == 0)
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " not rendered yet.\n") ;
@@ -947,17 +947,17 @@ ml_imgline_bidi_visual(
 		return  0 ;
 	}
 
-	if( ( src = ml_str_alloca( line->visual_order_len)) == NULL)
+	if( ( src = ml_str_alloca( line->num_of_filled_visual_order)) == NULL)
 	{
 		return  0 ;
 	}
 
-	ml_str_copy( src , line->chars , line->visual_order_len) ;
+	ml_str_copy( src , line->chars , line->num_of_filled_visual_order) ;
 
-	for( counter = 0 ; counter < line->visual_order_len ; counter ++)
+	for( counter = 0 ; counter < line->num_of_filled_visual_order ; counter ++)
 	{
 	#ifdef  DEBUG
-		if( line->visual_order[counter] >= line->visual_order_len)
+		if( line->visual_order[counter] >= line->num_of_filled_visual_order)
 		{
 			kik_debug_printf( KIK_DEBUG_TAG
 				" visual order(%d) of %d is illegal.\n" ,
@@ -970,7 +970,7 @@ ml_imgline_bidi_visual(
 		ml_char_copy( &line->chars[line->visual_order[counter]] , &src[counter]) ;
 	}
 
-	ml_str_final( src , line->visual_order_len) ;
+	ml_str_final( src , line->num_of_filled_visual_order) ;
 
 	if( line->is_modified)
 	{
@@ -997,7 +997,7 @@ ml_imgline_bidi_logical(
 		return  0 ;
 	}
 
-	if( line->visual_order_len == 0)
+	if( line->num_of_filled_visual_order == 0)
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " not rendered yet.\n") ;
@@ -1006,17 +1006,17 @@ ml_imgline_bidi_logical(
 		return  0 ;
 	}
 
-	if( ( src = ml_str_alloca( line->visual_order_len)) == NULL)
+	if( ( src = ml_str_alloca( line->num_of_filled_visual_order)) == NULL)
 	{
 		return  0 ;
 	}
 
-	ml_str_copy( src , line->chars , line->visual_order_len) ;
+	ml_str_copy( src , line->chars , line->num_of_filled_visual_order) ;
 
-	for( counter = 0 ; counter < line->visual_order_len ; counter ++)
+	for( counter = 0 ; counter < line->num_of_filled_visual_order ; counter ++)
 	{
 	#ifdef  DEBUG
-		if( line->visual_order[counter] >= line->visual_order_len)
+		if( line->visual_order[counter] >= line->num_of_filled_visual_order)
 		{
 			kik_debug_printf( KIK_DEBUG_TAG
 				" visual order(%d) of %d is illegal.\n" ,
@@ -1029,7 +1029,7 @@ ml_imgline_bidi_logical(
 		ml_char_copy( &line->chars[counter] , &src[line->visual_order[counter]]) ;
 	}
 
-	ml_str_final( src , line->visual_order_len) ;
+	ml_str_final( src , line->num_of_filled_visual_order) ;
 
 	/*
 	 * !! Notice !!
@@ -1054,7 +1054,7 @@ ml_bidi_convert_logical_char_index_to_visual(
 		return  char_index ;
 	}
 	
-	if( 0 <= char_index && char_index < line->visual_order_len)
+	if( 0 <= char_index && char_index < line->num_of_filled_visual_order)
 	{
 		return  line->visual_order[char_index] ;
 	}
@@ -1081,7 +1081,7 @@ ml_bidi_convert_visual_char_index_to_logical(
 		return  char_index ;
 	}
 	
-	for( counter = 0 ; counter < line->visual_order_len ; counter ++)
+	for( counter = 0 ; counter < line->num_of_filled_visual_order ; counter ++)
 	{
 		if( char_index == line->visual_order[counter])
 		{
@@ -1100,7 +1100,7 @@ ml_imgline_copy_str(
 	u_int  len
 	)
 {
-	if( line->visual_order_len == 0)
+	if( line->num_of_filled_visual_order == 0)
 	{
 		return  ml_str_copy( dst , &line->chars[beg] , len) ;
 	}
@@ -1115,16 +1115,16 @@ ml_imgline_copy_str(
 		int  norm_pos ;
 		int  dst_pos ;
 
-		if( ( flags = alloca( sizeof( int) * line->visual_order_len)) == NULL)
+		if( ( flags = alloca( sizeof( int) * line->num_of_filled_visual_order)) == NULL)
 		{
 			return  0 ;
 		}
 
-		memset( flags , 0 , sizeof( int) * line->visual_order_len) ;
+		memset( flags , 0 , sizeof( int) * line->num_of_filled_visual_order) ;
 
 		for( bidi_pos = beg ; bidi_pos < beg + len ; bidi_pos ++)
 		{
-			for( norm_pos = 0 ; norm_pos < line->visual_order_len ; norm_pos ++)
+			for( norm_pos = 0 ; norm_pos < line->num_of_filled_visual_order ; norm_pos ++)
 			{
 				if( line->visual_order[norm_pos] == bidi_pos)
 				{
@@ -1133,7 +1133,7 @@ ml_imgline_copy_str(
 			}
 		}
 
-		for( dst_pos = norm_pos = 0 ; norm_pos < line->visual_order_len ; norm_pos ++)
+		for( dst_pos = norm_pos = 0 ; norm_pos < line->num_of_filled_visual_order ; norm_pos ++)
 		{
 			if( flags[norm_pos])
 			{
@@ -1353,150 +1353,8 @@ end:
 	return  1 ;
 }
 
-int
-ml_imgline_iscii_logical(
-	ml_image_line_t *  line
-	)
-{
-	ml_char_t *  src ;
-	u_int  src_len ;
-	ml_char_t *  dst ;
-	u_int  dst_len ;
-	int  dst_pos ;
-	int  src_pos ;
-	u_int  comb_size ;
-	ml_char_t *  comb ;
-	int  comb_pos ;
-	ml_char_t *  ch ;
-
-	/*
-	 * char combining is necessary for rendering ISCII glyphs
-	 */
-	if( ! ml_is_char_combining())
-	{
-		return  0 ;
-	}
-
-	src_len = line->num_of_filled_chars ;
-	if( ( src = ml_str_alloca( src_len)) == NULL)
-	{
-		return  0 ;
-	}
-	
-	ml_str_copy( src , line->chars , line->num_of_filled_chars) ;
-
-	dst = line->chars ;
-	dst_len = line->num_of_chars ;
-
-	dst_pos = 0 ;
-	for( src_pos = 0 ; src_pos < src_len ; src_pos ++)
-	{
-		ch = &src[src_pos] ;
-
-		if( ml_char_is_null( ch))
-		{
-			continue ;
-		}
-
-		if( ml_font_cs( ml_char_font( ch)) == ISCII)
-		{
-			comb = ml_get_combining_chars( ch , &comb_size) ;
-
-			comb_pos = 0 ;
-			while( 1)
-			{
-				ml_char_set( &dst[dst_pos ++] ,
-					ml_char_bytes( ch) , ml_char_size( ch) ,
-					ml_char_font( ch) , ml_char_font_decor( ch) ,
-					ml_char_fg_color( ch) , ml_char_bg_color( ch)) ;
-
-				if( dst_pos >= dst_len)
-				{
-					break ;
-				}
-
-				if( comb_pos >= comb_size)
-				{
-					break ;
-				}
-
-				ch = &comb[comb_pos ++] ;
-			}
-		}
-		else
-		{
-			ml_char_copy( &dst[dst_pos ++] , ch) ;
-		}
-	}
-
-	line->num_of_filled_chars = dst_pos ;
-	ml_str_final( src , src_len) ;
-
-	if( line->is_modified)
-	{
-		ml_imgline_set_modified_all( line) ;
-	}
-	
-	return  1 ;
-}
-
 /*
- * this should be called before ml_imgline_stop_visual_indian()
- */
-int
-ml_iscii_convert_visual_char_index_to_logical(
-	ml_image_line_t *  line ,
-	int  visual_char_index
-	)
-{
-	int  counter ;
-	int  logical_char_index ;
-	u_int  comb_size ;
-
-	/*
-	 * char combining is necessary for rendering ISCII glyphs
-	 */
-	if( ! ml_is_char_combining())
-	{
-		return  visual_char_index ;
-	}
-	
-	logical_char_index = 0 ;
-
-	for( counter = 0 ; counter < visual_char_index ; counter ++)
-	{
-		if( ml_font_cs( ml_char_font( &line->chars[counter])) == ISCII)
-		{
-			if( ml_char_is_null( &line->chars[counter]))
-			{
-				continue ;
-			}
-
-			if( ml_get_combining_chars( &line->chars[counter] , &comb_size))
-			{
-				logical_char_index += comb_size ;
-			}
-		}
-		
-		logical_char_index ++ ;
-	}
-
-#ifdef  DEBUG
-	if( logical_char_index >= line->num_of_chars)
-	{
-		kik_warn_printf( KIK_DEBUG_TAG
-			" logical_char_index %d (of visual %d) is over num_of_chars %d\n" ,
-			logical_char_index , visual_char_index , line->num_of_chars) ;
-			
-		abort() ;
-	}
-#endif
-
-	return  logical_char_index ;
-}
-
-/*
- * this should be called after ml_imgline_start_visual_indian()
+ * this should be called after ml_imgline_iscii_visaul()
  */
 int
 ml_iscii_convert_logical_char_index_to_visual(
@@ -1518,7 +1376,7 @@ ml_iscii_convert_logical_char_index_to_visual(
 	
 	visual_char_index = 0 ;
 
-	for( counter = 0 ; counter < logical_char_index ; counter ++)
+	for( counter = 0 ; counter < logical_char_index && counter < END_CHAR_INDEX(line) ; counter ++)
 	{
 		if( ml_font_cs( ml_char_font( &line->chars[counter])) == ISCII)
 		{
@@ -1532,11 +1390,7 @@ ml_iscii_convert_logical_char_index_to_visual(
 					goto  end ;
 				}
 
-				if( ++ logical_char_index >= line->num_of_filled_chars)
-				{
-					goto  end ;
-				}
-				
+				logical_char_index ++ ;
 				visual_char_index ++ ;
 			}
 
@@ -1573,7 +1427,6 @@ end:
 
 	return  visual_char_index ;
 }
-
 
 ml_image_line_t *
 ml_imgline_shape(

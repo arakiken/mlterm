@@ -222,8 +222,8 @@ ml_font_custom_read_conf(
 	{
 		mkf_charset_t  cs ;
 		ml_font_attr_t  attr ;
-		char *  size_str ;
 		size_t  key_len ;
+		char *  entry ;
 
 		key_len = strlen( key) ;
 		
@@ -259,143 +259,75 @@ ml_font_custom_read_conf(
 				attr |= FONT_BOLD ;
 			}
 		}
-		
-		while( value != NULL && ( size_str = kik_str_sep( &value , ",")) != NULL)
+
+		/*
+		 * [entry];[entry];[entry];....
+		 */
+		while( value != NULL && ( entry = kik_str_sep( &value , ";")) != NULL)
 		{
+			char *  fontname ;
 			u_int  size ;
-			char *  fontname ;
 
-			if( value == NULL || ( fontname = kik_str_sep( &value , ";")) == NULL)
+			if( *entry == '\0')
 			{
-				break ;
+				continue ;
 			}
-
-			if( *fontname != '\0')
+			else if( strchr( entry , ','))
 			{
+				/*
+				 * for each size.
+				 * [size],[font name]
+				 */
+				 
+				char *  size_str ;
+				
+				if( ( size_str = kik_str_sep( &entry , ",")) == NULL ||
+					( fontname = entry) == NULL)
+				{
+					continue ;
+				}
+				
 				if( ! kik_str_to_int( &size , size_str))
 				{
 					kik_msg_printf( "a font size %s is not digit.\n" , size_str) ;
+
+					continue ;
 				}
-				else
+				
+			#ifdef  __DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					" setting font [attr %x size %d name %s]\n" ,
+					attr , size , fontname) ;
+			#endif
+
+				ml_set_font_name( font_custom , attr , fontname , size) ;
+			}
+			else
+			{
+				/*
+				 * default font.
+				 * [font name]
+				 */
+
+				/* -2 is for "%d" */
+				if( ( fontname = alloca( strlen( entry) - 2 + DIGIT_STR_LEN(size) + 1))
+					== NULL)
 				{
+					continue ;
+				}
+				
+				for( size = font_custom->min_font_size ;
+					size <= font_custom->max_font_size ;
+					size ++)
+				{
+					sprintf( fontname , entry , size) ;
+					
 				#ifdef  __DEBUG
 					kik_debug_printf( KIK_DEBUG_TAG
-						" setting font [attr %x size %s name %s]\n" ,
-						attr , size_str , fontname) ;
+						" setting font [attr %x size %d name %s]\n" ,
+						attr , size , fontname) ;
 				#endif
-
-					ml_set_font_name( font_custom , attr , fontname , size) ;
-				}
-			}
-		}
-	}
-	
-	kik_file_close( from) ;
-	
-	return  1 ;
-}
-
-int
-ml_font_custom_read_aa_conf(
-	ml_font_custom_t *  font_custom ,
-	char *  filename
-	)
-{
-	kik_file_t *  from ;
-	char *  key ;
-	char *  value ;
-	int  counter ;
-
-	if( ! ( from = kik_file_open( filename , "r")))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " %s couldn't be opened.\n" , filename) ;
-	#endif
-	
-		return  0 ;
-	}
-
-	while( kik_conf_io_read( from , &key , &value))
-	{
-		mkf_charset_t  cs ;
-		ml_font_attr_t  attr ;
-		char *  size_str ;
-		u_int  size ;
-		size_t  key_len ;
-		char *  default_fontname ;
-
-		key_len = strlen( key) ;
-		
-		counter = 0 ;
-		for( counter = 0 ; counter < sizeof( cs_table) / sizeof( cs_table[0]) ; counter ++)
-		{
-			if( strncmp( cs_table[counter].name , key ,
-				K_MIN( strlen( cs_table[counter].name) , key_len)) == 0)
-			{
-				cs = cs_table[counter].cs ;
-
-				break ;
-			}
-		}
-
-		if( counter == sizeof( cs_table) / sizeof( cs_table[0]))
-		{
-			continue ;
-		}
-
-		attr = DEFAULT_FONT_ATTR(cs) ;
-		
-		if( key)
-		{
-			if( key_len >= 8 && strstr( key , "_BIWIDTH"))
-			{
-				attr |= FONT_BIWIDTH ;
-			}
-
-			if( key_len >= 5 && strstr( key , "_BOLD"))
-			{
-				attr &= ~FONT_MEDIUM ;
-				attr |= FONT_BOLD ;
-			}
-		}
-
-		if( ( default_fontname = kik_str_sep( &value , ";")) == NULL)
-		{
-			continue ;
-		}
-
-		if( *default_fontname != '\0')
-		{
-			for( size = font_custom->min_font_size ; size <= font_custom->max_font_size ;
-				size ++)
-			{
-				ml_set_font_name( font_custom , attr , default_fontname , size) ;
-			}
-		}
-		
-		while( value != NULL && ( size_str = kik_str_sep( &value , ",")) != NULL)
-		{
-			char *  fontname ;
-
-			if( value == NULL || ( fontname = kik_str_sep( &value , ";")) == NULL)
-			{
-				break ;
-			}
-
-			if( *fontname != '\0')
-			{
-				if( ! kik_str_to_int( &size , size_str))
-				{
-					kik_msg_printf( "a font size %s is not digit.\n" , size_str) ;
-				}
-				else
-				{
-				#ifdef  __DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG
-						" setting font [attr %x size %s name %s]\n" ,
-						attr , size_str , fontname) ;
-				#endif
-
+				
 					ml_set_font_name( font_custom , attr , fontname , size) ;
 				}
 			}

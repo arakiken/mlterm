@@ -227,27 +227,32 @@ comment $Id$
         ISO8859_1_BOLD
         のように、"_BOLD"をつけた名前で指定して下さい。
 
-        フォーマットは、font/vfont(通常のXフォント)と、aafont/vaafont(Xft用フォント)で異なります。
+        フォーマットは、以下のようになります。
+        [default font name];[font size],[font name];[font size],[font name];...
+
+        [default font name]で、デフォルトのフォントを指定し、サイズごとにデフォル
+        トと異なるフォントを指定できます。
+        
+        [default font name]に %d を含めておくと、そこにフォントサイズが入ります。
+
+        font name は、font/vfont(通常のXフォント)と、aafont/vaafont(Xft用フォント)
+        で異なります。
         o font/vfont
-          [font size],[font name];[font size],[font name];...
-
-          [font name]は、XLFD、もしくは、fonts.aliasで定義している省略記法
-
+          XLFD、もしくは、fonts.aliasで定義している省略記法。
+          
         o aafont/vaafont
-          [font name];([font size],[font name];...)
-
-          [font name]は、[font family]-[font encoding](:[percentage])となります。
+          [font family]-[font encoding](:[percentage])
 
           percentage は、フォントサイズに対して何パーセントの幅のフォントを表示する
-	  かを指定します。
-	  例えば、フォントサイズが12の場合に、percentage として 100 を指定すると、
-	  半角文字なら幅 6 , 全角文字なら幅 12 になります。
-	  percentage 指定がない場合、'W' の文字幅が収まるだけの幅が取られます。
+          かを指定します。
+          例えば、フォントサイズが12の場合に、percentage として 100 を指定すると、
+          半角文字なら幅 6 , 全角文字なら幅 12 になります。
+          percentage 指定がない場合、'W' の文字幅が収まるだけの幅が取られます。
 
-	  percentage は、微妙に大きさの異なるフォントを組み合わせる場合の微調整や、
-	  'W' が大きすぎるプロポーショナルフォントを使用する場合などに使います。
-	  とくに、Dynalab フォントのように、'W' が全角幅で収められているフォントを
-	  使用する場合は、必ず適切な指定を行なってください。
+          percentage は、微妙に大きさの異なるフォントを組み合わせる場合の微調整や、
+          'W' が大きすぎるプロポーショナルフォントを使用する場合などに使います。
+          とくに、Dynalab フォントのように、'W' が全角幅で収められているフォントを
+          使用する場合は、必ず適切な指定を行なってください。
 
           e.g.)
           JISX0208_1983 = Hoge-iso10646-1:100;
