@@ -367,7 +367,7 @@ x_dnd_preferable_atom(
 			if( atom[i])
 			{
 				p = XGetAtomName( win->display, atom[i]);
-				kik_debug_printf("dropped atoms: %d\n",
+				kik_debug_printf("dropped atoms: %s\n",
 						 XGetAtomName( win->display,
 							       atom[i])) ;
 				XFree( p) ;
