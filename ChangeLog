@@ -1,3 +1,8 @@
+2004-01-05  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* mlterm/ml_edit.c (cursor_goto_intern): If requested row is larger
+	than terminal size, round it to end of row.
+
 2004-01-03  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_main.config.c: type_engine was not initialized when
@@ -29,7 +34,7 @@
 2003-12-27  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* If confiugre detects that pkg-config and xft2 library are available,
-	  USE_TYPE_XFT will be defined.
+	  define USE_TYPE_XFT.
 
 2003-12-27  Araki Ken  <arakiken@users.sf.net>
 

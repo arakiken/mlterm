@@ -48,11 +48,17 @@ cursor_goto_intern(
 	int  cols_rest ;
 	ml_line_t *  line ;
 
+	if( row > ml_model_end_row( &edit->model))
+	{
+		/* round row to end of row */
+		row = ml_model_end_row( &edit->model) ;
+	}
+
 	if( ( line = ml_model_get_line( &edit->model , row)) == NULL)
 	{
 		return  0 ;
 	}
-	
+
 	if( is_col)
 	{
 		char_index = ml_convert_col_to_char_index( line , &cols_rest , col_or_idx , BREAK_BOUNDARY) ;
