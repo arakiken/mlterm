@@ -1134,6 +1134,20 @@ x_window_show(
 
 	XSelectInput( win->display , win->my_window , win->event_mask) ;
 
+#if  0
+	{
+		char *  locale ;
+		
+		if( ( locale = kik_get_locale()))
+		{
+			XChangeProperty( win->display , win->my_window ,
+				XInternAtom( win->display , "WM_LOCALE_NAME" , False) ,
+				XA_STRING , 8 , PropModeReplace ,
+				locale , strlen( locale)) ;
+		}
+	}
+#endif
+
 	/*
 	 * showing child windows.
 	 */

@@ -1,3 +1,10 @@
+2002-12-6 Araki Ken <arakiken@users.sf.net>
+
+	* utemper wasn't checked correctly in configure. fixed.
+	  (Thanks to Mike Fabian)
+	* dead key and multi key didn't work. fixed.
+	  (Thanks to Martin Horcicka)
+
 2002-11-26 Araki Ken <arakiken@users.sf.net>
 
 	* Improved kik_map.

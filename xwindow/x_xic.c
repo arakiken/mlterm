@@ -203,7 +203,7 @@ create_xic(
 		
 		fontset = NULL ;
 	}
-	
+
 	if( ( win->xic = malloc( sizeof( x_xic_t))) == NULL)
 	{
 	#ifdef  DEBUG

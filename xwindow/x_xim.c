@@ -156,8 +156,6 @@ open_xim(
 
 	if( XSetLocaleModifiers(xmod) && ( xim->im = XOpenIM( display , NULL , NULL , NULL)))
 	{
-		XIMCallback  callback = { NULL , xim_server_destroyed } ;
-
 		if( ( xim->encoding = ml_get_char_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING ||
 			( xim->parser = ml_parser_new( xim->encoding)) == NULL)
 		{
@@ -165,6 +163,8 @@ open_xim(
 		}
 		else
 		{
+			XIMCallback  callback = { NULL , xim_server_destroyed } ;
+
 			XSetIMValues( xim->im , XNDestroyCallback , &callback , NULL) ;
 
 			/* succeeded */
@@ -194,7 +194,7 @@ activate_xim(
 	{
 		return  0 ;
 	}
-	
+
 	for( count = 0 ; count < xim->num_of_xic_wins ; count ++)
 	{
 		x_xim_activated( xim->xic_wins[count]) ;
@@ -583,9 +583,14 @@ x_xim_get_style(
 	XIMStyle  root_styles[] =
 	{
 		XIMPreeditNothing | XIMStatusNothing ,
+	#if  0
+		/*
+		 * These styles doesn't support character composing(XK_dead_xxx,XK_Multi_key...).
+		 */
 		XIMPreeditNothing | XIMStatusNone ,
 		XIMPreeditNone | XIMStatusNothing ,
 		XIMPreeditNone | XIMStatusNone ,
+	#endif
 	} ;
 
 	XIMStyle  selected_style ;

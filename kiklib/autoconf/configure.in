@@ -88,13 +88,6 @@ AC_SUBST(XPG4_LIBS)
 AC_CHECK_LIB(dl,dlopen,DL_LIBS=-ldl)
 AC_SUBST(DL_LIBS)
 
-AC_CHECK_LIB(utempter,addToUtmp,
-[
-UTMPER_LIBS="-lutempter -lutil"
-AC_SUBST(UTMPER_LIBS)
-kik_cv_utmp=utmper
-])
-
 AC_CHECK_LIB(util,logout,
 [
 LOGIN_LIBS="-lutil"
@@ -112,6 +105,14 @@ elif test -z "$kik_cv_utmp" ; then
 		kik_cv_utmp=bsd
 	fi
 fi
+
+AC_CHECK_LIB(utempter,addToUtmp,
+[
+UTMPER_LIBS="-lutempter -lutil"
+AC_SUBST(UTMPER_LIBS)
+kik_cv_utmp=utmper
+])
+
 UTMP_NAME=$kik_cv_utmp
 AC_SUBST(UTMP_NAME)
 

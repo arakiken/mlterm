@@ -6393,53 +6393,8 @@ fi
 
 
 
-echo $ac_n "checking for addToUtmp in -lutempter""... $ac_c" 1>&6
-echo "configure:6398: checking for addToUtmp in -lutempter" >&5
-ac_lib_var=`echo utempter'_'addToUtmp | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  ac_save_LIBS="$LIBS"
-LIBS="-lutempter  $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 6406 "configure"
-#include "confdefs.h"
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char addToUtmp();
-
-int main() {
-addToUtmp()
-; return 0; }
-EOF
-if { (eval echo configure:6417: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
-fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
-
-fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  
-UTMPER_LIBS="-lutempter -lutil"
-
-kik_cv_utmp=utmper
-
-else
-  echo "$ac_t""no" 1>&6
-fi
-
-
 echo $ac_n "checking for logout in -lutil""... $ac_c" 1>&6
-echo "configure:6443: checking for logout in -lutil" >&5
+echo "configure:6398: checking for logout in -lutil" >&5
 ac_lib_var=`echo util'_'logout | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -6447,7 +6402,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lutil  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 6451 "configure"
+#line 6406 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -6458,7 +6413,7 @@ int main() {
 logout()
 ; return 0; }
 EOF
-if { (eval echo configure:6462: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:6417: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -6484,12 +6439,12 @@ fi
 
 
 echo $ac_n "checking for Cygwin environment""... $ac_c" 1>&6
-echo "configure:6488: checking for Cygwin environment" >&5
+echo "configure:6443: checking for Cygwin environment" >&5
 if eval "test \"`echo '$''{'ac_cv_cygwin'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 6493 "configure"
+#line 6448 "configure"
 #include "confdefs.h"
 
 int main() {
@@ -6500,7 +6455,7 @@ int main() {
 return __CYGWIN__;
 ; return 0; }
 EOF
-if { (eval echo configure:6504: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:6459: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_cygwin=yes
 else
@@ -6525,11 +6480,57 @@ elif test -z "$kik_cv_utmp" ; then
 		kik_cv_utmp=bsd
 	fi
 fi
+
+echo $ac_n "checking for addToUtmp in -lutempter""... $ac_c" 1>&6
+echo "configure:6486: checking for addToUtmp in -lutempter" >&5
+ac_lib_var=`echo utempter'_'addToUtmp | sed 'y%./+-%__p_%'`
+if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  ac_save_LIBS="$LIBS"
+LIBS="-lutempter  $LIBS"
+cat > conftest.$ac_ext <<EOF
+#line 6494 "configure"
+#include "confdefs.h"
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char addToUtmp();
+
+int main() {
+addToUtmp()
+; return 0; }
+EOF
+if { (eval echo configure:6505: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=no"
+fi
+rm -f conftest*
+LIBS="$ac_save_LIBS"
+
+fi
+if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+  
+UTMPER_LIBS="-lutempter -lutil"
+
+kik_cv_utmp=utmper
+
+else
+  echo "$ac_t""no" 1>&6
+fi
+
+
 UTMP_NAME=$kik_cv_utmp
 
 
 echo $ac_n "checking for pty/tty type""... $ac_c" 1>&6
-echo "configure:6533: checking for pty/tty type" >&5
+echo "configure:6534: checking for pty/tty type" >&5
 if eval "test \"`echo '$''{'kik_cv_pty'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6716,8 +6717,8 @@ s%@LIBTOOL@%$LIBTOOL%g
 s%@ALLOCA@%$ALLOCA%g
 s%@XPG4_LIBS@%$XPG4_LIBS%g
 s%@DL_LIBS@%$DL_LIBS%g
-s%@UTMPER_LIBS@%$UTMPER_LIBS%g
 s%@LOGIN_LIBS@%$LOGIN_LIBS%g
+s%@UTMPER_LIBS@%$UTMPER_LIBS%g
 s%@UTMP_NAME@%$UTMP_NAME%g
 s%@PTY_NAME@%$PTY_NAME%g
 s%@DEB_CFLAGS@%$DEB_CFLAGS%g

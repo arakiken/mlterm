@@ -5,24 +5,24 @@ mlterm configuration protocol
 version 20020206
 
 * mlterm proper
-  set              = "\x1b" "]" "5379" ";" <set key> [ "=" <value> ] "\x07"
-  get(pty)         = "\x1b" "]" "5380" ";" <get key> "\x07"
-  get(GUI menu)    = "\x1b" "]" "5381" ";" <get key> "\x07"
+  set              = "\x1b" "]" "5379" ";" <key> [ "=" <value> ] "\x07"
+  get(pty)         = "\x1b" "]" "5380" ";" <key> "\x07"
+  get(GUI menu)    = "\x1b" "]" "5381" ";" <key> "\x07"
   return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a"
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_key | mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | receive_string_via_ucs | xim |
                      wall_picture | full_reset | brightness | gamma | contrast | line_space |
-		     screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
-		     use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
-		     iscii_lang | use_dynamic_comb
+                     screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
+                     use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
+                     iscii_lang | use_dynamic_comb
   get key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_key | mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | receive_string_via_ucs | xim |
                      locale | wall_picture | pwd | brightness | gamma | contrast | line_space | 
-		     screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
-		     use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
-		     iscii_lang | use_dynamic_comb | rows | cols
+                     screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
+                     use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
+                     iscii_lang | use_dynamic_comb | rows | cols
   value            = <values for each key>
 
 * compatible with other terminals
