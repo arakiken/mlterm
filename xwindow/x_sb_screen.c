@@ -540,7 +540,7 @@ change_sb_mode(
 			ACTUAL_WIDTH( &sb_screen->screen->window) ,
 			ACTUAL_HEIGHT( &sb_screen->screen->window) , NOTIFY_TO_NONE) ;
 
-		x_window_set_normal_hints( &sb_screen->window , 0 , 0 , 0 , 0) ;
+		x_window_set_normal_hints( &sb_screen->window , 0 , 0 , 0 , 0 , 0 , 0) ;
 			
 		/* overlaying scrollbar window */
 		move_term_screen( sb_screen , 0) ;
@@ -559,6 +559,7 @@ change_sb_mode(
 				NOTIFY_TO_NONE) ;
 				
 			x_window_set_normal_hints( &sb_screen->window ,
+				SEPARATOR_WIDTH , sb_screen->window.min_height ,
 				SEPARATOR_WIDTH , sb_screen->window.min_height , 0 , 0) ;
 		}
 		

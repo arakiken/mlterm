@@ -4031,7 +4031,7 @@ font_size_changed(
 			screen->screen_scroll_listener->self , x_line_height( screen)) ;
 	}
 
-	x_window_set_normal_hints( &screen->window , 0 , 0 ,
+	x_window_set_normal_hints( &screen->window , x_col_width( screen) , x_line_height( screen) , 0 , 0 ,
 		x_col_width( screen) , x_line_height( screen)) ;
 
 	/* screen will redrawn in window_resized() */

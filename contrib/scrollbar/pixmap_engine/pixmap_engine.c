@@ -86,7 +86,6 @@ typedef struct  pixmap_sb_view
 	Pixmap  btn_dw_mask ;
 	Pixmap  btn_up_pressed_mask ;
 	Pixmap  btn_dw_pressed_mask ;
-	int  btn_use_mask ;
 
 	/* slider */
 	unsigned int  slider_width ;
@@ -105,7 +104,6 @@ typedef struct  pixmap_sb_view
 	Pixmap  slider_tiled_cache ;
 	Pixmap  slider_tiled_cache_mask ;
 	int  slider_tile ;
-	int  slider_use_mask ;
 
 } pixmap_sb_view_t ;
 
@@ -387,33 +385,25 @@ realized(
 
 	/* up/down buttons */
 	load_image( display , ps->dir , "button_up" , &ps->btn_up ,
-			ps->btn_use_mask ? &ps->btn_up_mask : NULL ,
-			&ps->width , &ps->btn_up_h) ;
+			&ps->btn_up_mask , &ps->width , &ps->btn_up_h) ;
 	load_image( display , ps->dir , "button_down" , &ps->btn_dw ,
-			ps->btn_use_mask ? &ps->btn_dw_mask : NULL ,
-			&ps->width , &ps->btn_dw_h) ;
+			&ps->btn_dw_mask , &ps->width , &ps->btn_dw_h) ;
 	load_image( display , ps->dir , "button_up_pressed" , &ps->btn_up_pressed ,
-			ps->btn_use_mask ? &ps->btn_up_pressed_mask : NULL ,
-			&ps->width , &ps->btn_up_h) ;
+			&ps->btn_up_pressed_mask , &ps->width , &ps->btn_up_h) ;
 	load_image( display , ps->dir , "button_down_pressed" , &ps->btn_dw_pressed ,
-			ps->btn_use_mask ? &ps->btn_dw_pressed_mask : NULL ,
-			&ps->width , &ps->btn_dw_h) ;
+			&ps->btn_dw_pressed_mask , &ps->width , &ps->btn_dw_h) ;
 
 	/*
 	 * load slider images (separated three parts; top, body and bottom.)
 	 */
 	load_image( display , ps->dir , "slider_top" , &ps->slider_top ,
-		ps->slider_use_mask ? &ps->slider_top_mask : NULL ,
-		&ps->slider_width , &ps->slider_top_h) ;
+		&ps->slider_top_mask , &ps->slider_width , &ps->slider_top_h) ;
 	load_image( display , ps->dir , "slider_body" , &ps->slider_body ,
-		ps->slider_use_mask ? &ps->slider_body_mask : NULL ,
-		&ps->slider_width , &ps->slider_body_h) ;
+		&ps->slider_body_mask , &ps->slider_width , &ps->slider_body_h) ;
 	load_image( display , ps->dir , "slider_bottom" , &ps->slider_bottom ,
-		ps->slider_use_mask ? &ps->slider_bottom_mask : NULL ,
-		&ps->slider_width , &ps->slider_bottom_h) ;
+		&ps->slider_bottom_mask , &ps->slider_width , &ps->slider_bottom_h) ;
 	load_image( display , ps->dir , "slider_knob" , &ps->slider_knob ,
-		&ps->slider_knob_mask ,
-		&ps->slider_width , &ps->slider_knob_h) ;
+		&ps->slider_knob_mask , &ps->slider_width , &ps->slider_knob_h) ;
 
 	/*
 	 * verify the size
@@ -567,18 +557,13 @@ draw_button(
 		return ;
 	}
 
-	if( ps->btn_use_mask && mask)
+	if( mask)
 	{
 		XSetClipMask( d , gc , mask) ;
 		XSetClipOrigin( d , gc , 0 , y) ;
 	}
-
 	XCopyArea( d , src , w , gc , 0 , 0 , ps->width , h , 0 , y) ;
-
-	if( ps->btn_use_mask)
-	{
-		XSetClipMask(d , gc , None) ;
-	}
+	XSetClipMask(d , gc , None) ;
 
 }
 
@@ -816,25 +801,11 @@ parse(
 				ps->btn_layout = BTN_SOUTHGRAVITY ;
 			}
 		}
-		else if( strcmp( p->key , "button_use_mask") == 0)
-		{
-			if( strcmp( p->value , "true") == 0)
-			{
-				ps->btn_use_mask = 1 ;
-			}
-		}
 		else if( strcmp( p->key , "slider_tile") == 0)
 		{
 			if( strcmp( p->value , "false") == 0)
 			{
 				ps->slider_tile = 0 ;
-			}
-		}
-		else if( strcmp( p->key , "slider_use_mask") == 0)
-		{
-			if( strcmp( p->value , "true") == 0)
-			{
-				ps->slider_use_mask = 1 ;
 			}
 		}
 #ifdef __DEBUG

@@ -3,23 +3,57 @@
 # Copylight (c) 2003 Seiichi SATO <ssato@sh.rim.or.jp>
 # license: Modified BSD-style license
 
+
 engine = pixmap_engine
 
+
+############
+# geometry #
+############
+
+# width of scrollbar
 width = 12
+
+# upper limit of slider's movable range.
 top_margin = 13
+
+# lower limit of slider's movable range.
 bottom_margin = 13
 
-# background
+
+##############
+# background #
+##############
+
+# how to draw bg_body.png.
+# "true" is tiled image, "false" is scaled image.
+# default is true.
 bg_tile = true
+
+# pseudo-transparent window. default is false.
 bg_enable_trans = true
 
-# up/down botton
-button_layout = normal
-button_up_height = 11
-button_down_height = 11
-button_use_mask = true
 
-# slider
+##################
+# up/down botton #
+##################
+
+# layout of button.
+# normal, none, northgravity or southgravity (default is normal)
+button_layout = normal
+
+# height of up button
+button_up_height = 11
+
+# height of down button
+button_down_height = 11
+
+
+##########
+# slider #
+##########
+# how to draw slider_body.png.
+# "true" is tiled image, "false" is scaled image
+# default is true.
 slider_tile = true
-slider_use_mask = true
 

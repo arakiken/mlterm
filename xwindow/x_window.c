@@ -1266,6 +1266,8 @@ x_window_set_normal_hints(
 	x_window_t *  win ,
 	u_int  min_width ,
 	u_int  min_height ,
+	u_int  base_width ,
+	u_int  base_height ,
 	u_int  width_inc ,
 	u_int  height_inc
 	)
@@ -1275,6 +1277,8 @@ x_window_set_normal_hints(
 
 	win->min_width = min_width ;
 	win->min_height = min_height  ;
+	win->base_width = base_width ;
+	win->base_height = base_height  ;
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
 

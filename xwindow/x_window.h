@@ -205,7 +205,7 @@ int  x_window_resize_with_margin( x_window_t *  win , u_int  width , u_int  heig
 	x_event_dispatch_t  flag) ;
 
 int  x_window_set_normal_hints( x_window_t *  win , u_int  min_width , u_int  min_height ,
-	u_int  width_inc , u_int  height_inc) ;
+	u_int  base_width , u_int  base_height , u_int  width_inc , u_int  height_inc) ;
 
 int  x_window_move( x_window_t *  win , int  x , int  y) ;
 

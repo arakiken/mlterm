@@ -1,5 +1,12 @@
 2003-07-08  Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* Previous fix for sizehint bug still had a problem in
+	  x_window_set_normal_hints(). Fixed.
+	* Now pixmap_engine does not require *_use_mask key in rc file.
+	  (Thanks to Minami Hirokazu san)
+
+2003-07-08  Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* x_imagelib_imlib.c: fixed a small bug in x_imagelib_load_file().
 
 2003-07-08  Seiichi SATO <ssato@sh.rim.or.jp>
