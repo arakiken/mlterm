@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/26(22:50:20)>
  *	$Id$
  */
 
@@ -23,6 +22,7 @@
 #include  "mc_transparent.h"
 #include  "mc_aa.h"
 #include  "mc_mod_meta.h"
+#include  "mc_bel.h"
 #include  "mc_xim.h"
 
 
@@ -58,9 +58,9 @@ apply_clicked(
 {
 	/*
 	 * CONFIG:[encoding] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
-	 * [combining char] [pre conv xct to ucs] [is transparent] [is aa] [xim] [locale][LF]
+	 * [bel mode] [combining char] [pre conv xct to ucs] [is transparent] [is aa] [xim] [locale][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %s %d %d %d %d %d %s %s\n" ,
+	fprintf( out , "CONFIG:%d %d %d %d %d %s %d %d %d %d %d %d %s %s\n" ,
 		mc_get_encoding() ,
 		mc_get_fg_color() ,
 		mc_get_bg_color() ,
@@ -68,6 +68,7 @@ apply_clicked(
 		mc_get_logsize() ,
 		mc_get_fontsize() ,
 		mc_get_mod_meta_mode() ,
+		mc_get_bel_mode() ,
 		mc_is_combining_char() ,
 		mc_is_pre_conv_xct_to_ucs() ,
 		mc_is_transparent() ,
@@ -184,6 +185,7 @@ show(
 	u_int  min_fontsize ,
 	u_int  max_fontsize ,
 	ml_mod_meta_mode_t  mod_meta_mode ,
+	ml_bel_mode_t  bel_mode ,
 	int  is_combining_char ,
 	int  pre_conv_xct_to_ucs ,
 	int  is_transparent ,
@@ -280,6 +282,14 @@ show(
 
 	
 	if( ( config_widget = mc_mod_meta_config_widget_new(mod_meta_mode)) == NULL)
+	{
+		return  0 ;
+	}
+	gtk_widget_show(config_widget) ;
+	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , TRUE , TRUE , 0) ;
+
+	
+	if( ( config_widget = mc_bel_config_widget_new(bel_mode)) == NULL)
 	{
 		return  0 ;
 	}
@@ -416,6 +426,7 @@ start_application(
 	u_int  min_fontsize ;
 	u_int  max_fontsize ;
 	int  cur_mod_meta_mode ;
+	int  cur_bel_mode ;
 	int  is_combining_char ;
 	int  pre_conv_xct_to_ucs ;
 	int  is_transparent ;
@@ -509,6 +520,12 @@ start_application(
 	}
 
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+		! kik_str_to_int( &cur_bel_mode , p))
+	{
+		return  0 ;
+	}
+
+	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &is_combining_char , p))
 	{
 		return  0 ;
@@ -543,9 +560,9 @@ start_application(
 	}
 	
 	return  show( x , y , cur_encoding , cur_fg_color , cur_bg_color , cur_tabsize ,
-		cur_logsize , cur_fontsize , min_fontsize , max_fontsize , cur_mod_meta_mode ,
-		is_combining_char , pre_conv_xct_to_ucs , is_transparent , is_aa ,
-		cur_xim , cur_locale) ;
+		cur_logsize , cur_fontsize , min_fontsize , max_fontsize ,
+		cur_mod_meta_mode , cur_bel_mode , is_combining_char , pre_conv_xct_to_ucs ,
+		is_transparent , is_aa , cur_xim , cur_locale) ;
 }
 
 

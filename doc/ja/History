@@ -1,7 +1,7 @@
 ver 2.0.0(2001/11/29)
 * ドキュメントを若干追加。
-* --enable-ucs4 したときに aafont で、ISO10646_UCS4_1 と指定したフォントが有効にならない
-  バグを修正
+* --enable-ucs4 したときに font/aafont で、ISO10646_UCS4_1 と指定したフォントが有効になら
+  ないバグを修正
 
 ver 2.0.0pre2(2001/11/28)
 * doc,doc-ja => doc/en doc/ja に変更

@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/26(17:06:50)>
  *	$Id$
  */
 
@@ -30,6 +29,8 @@ static color_table_t  color_table[] =
 	{ "white" , MLC_WHITE } ,
 	{ "gray" , MLC_GRAY } ,
 	{ "lightgray" , MLC_LIGHTGRAY } ,
+	{ "pink" , MLC_PINK } ,
+	{ "brown" , MLC_BROWN } ,
 	{ "priv_fg" , MLC_PRIVATE_FG_COLOR } ,
 	{ "priv_bg" , MLC_PRIVATE_BG_COLOR } ,
 	

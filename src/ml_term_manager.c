@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/28(21:01:31)>
  *	$Id$
  */
 
@@ -119,7 +118,7 @@ open_new_term(
 	ml_font_manager_t *  font_man = NULL ;
 	ml_vt100_parser_t *  vt100_parser = NULL ;
 	ml_pty_t *  pty = NULL ;
-	ml_window_t *  child ;
+	ml_window_t *  root ;
 	char *  env[4] ;
 	char **  env_p ;
 	char  wid_env[9 + DIGIT_STR_LEN(4) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
@@ -154,7 +153,8 @@ open_new_term(
 		ml_color_table_new( &term_man->color_man , term_man->fg_color , term_man->bg_color) ,
 		&term_man->keymap , &term_man->termcap ,
 		term_man->num_of_log_lines , term_man->tab_size ,
-		term_man->use_xim , term_man->xim_open_in_startup , term_man->mod_meta_mode ,
+		term_man->use_xim , term_man->xim_open_in_startup ,
+		term_man->mod_meta_mode , term_man->bel_mode ,
 		term_man->pre_conv_xct_to_ucs , term_man->pic_file_path ,
 		term_man->use_transbg , term_man->is_aa , term_man->conf_menu_path)) == NULL)
 	{
@@ -184,12 +184,12 @@ open_new_term(
 			goto  error ;
 		}
 
-		child = &sb_termscr->window ;
+		root = &sb_termscr->window ;
 	}
 	else
 	{
 		sb_termscr = NULL ;
-		child = &termscr->window ;
+		root = &termscr->window ;
 	}
 
 	if( ( vt100_parser = ml_vt100_parser_new( termscr , term_man->encoding ,
@@ -203,7 +203,7 @@ open_new_term(
 		goto  error ;
 	}
 	
-	if( ! ml_window_manager_show_root( &term_man->win_man , child , term_man->x , term_man->y))
+	if( ! ml_window_manager_show_root( &term_man->win_man , root , term_man->x , term_man->y))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_window_manager_show_root() failed.\n") ;
@@ -232,7 +232,7 @@ open_new_term(
 
 	env_p = env ;
 	
-	sprintf( wid_env , "WINDOWID=%ld" , termscr->window.my_window) ;
+	sprintf( wid_env , "WINDOWID=%ld" , root->my_window) ;
 	*(env_p ++) = wid_env ;
 	
 	disp_str = XDisplayString( term_man->win_man.display) ;
@@ -339,7 +339,7 @@ open_new_term(
 	}
 
 	term_man->terms[term_man->num_of_terms].pty = pty ;
-	term_man->terms[term_man->num_of_terms].root_window = child ;
+	term_man->terms[term_man->num_of_terms].root_window = root ;
 	term_man->terms[term_man->num_of_terms].vt100_parser = vt100_parser ;
 	term_man->terms[term_man->num_of_terms].font_man = font_man ;
 
@@ -704,6 +704,7 @@ ml_term_manager_init(
 	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "ptys" , "num of ptys to use in start up") ;
 	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , "word separator characters") ;
 	kik_conf_add_opt( conf , 'k' , "meta" , 0 , "mod_meta_mode" , "mode in pressing meta key") ;
+	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , "bel(0x07) mode") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , "turning on login shell") ;
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , "use xim") ;
 	kik_conf_add_opt( conf , 't' , "transbg" , 1 , "use_transbg" , "use transparent background.") ;
@@ -1279,6 +1280,26 @@ ml_term_manager_init(
 		else if( strcmp( value , "none") == 0)
 		{
 			term_man->mod_meta_mode = MOD_META_NONE ;
+		}
+	#endif
+	}
+
+	term_man->bel_mode = BEL_SOUND ;
+
+	if( ( value = kik_conf_get_value( conf , "bel_mode")))
+	{
+		if( strcmp( value , "visual") == 0)
+		{
+			term_man->bel_mode = BEL_VISUAL ;
+		}
+		else if( strcmp( value , "none") == 0)
+		{
+			term_man->bel_mode = BEL_NONE ;
+		}
+	#if  0
+		else if( strcmp( value , "sound") == 0)
+		{
+			term_man->bel_mode = BEL_SOUND ;
 		}
 	#endif
 	}

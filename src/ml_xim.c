@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/26(22:46:17)>
  *	$Id$
  */
 
@@ -147,13 +146,17 @@ open_xim(
 		ml_xim_t *  xim ;
 		XIMCallback  callback = { NULL , xim_server_destroyed } ;
 
-		xim = &xims[num_of_xims++] ;
+		xim = &xims[num_of_xims] ;
 
 		memset( xim , 0 , sizeof( ml_xim_t)) ;
 
 		xim->im = im ;
 		xim->num_of_xic_wins = 0 ;
-		xim->encoding = ml_get_encoding( ml_get_codeset()) ;
+
+		if( ( xim->encoding = ml_get_encoding( ml_get_codeset())) == ML_UNKNOWN_ENCODING)
+		{
+			goto  error ;
+		}
 		
 		if( ( xim->parser = ml_parser_new( xim->encoding)) == NULL)
 		{
@@ -172,6 +175,8 @@ open_xim(
 
 		XSetIMValues( im , XNDestroyCallback , &callback , NULL) ;
 
+		num_of_xims ++ ;
+
 		return  xim ;
 
 	error:
@@ -189,6 +194,8 @@ open_xim(
 		{
 			free( xim->locale) ;
 		}
+
+		XCloseIM( xim->im) ;
 	}
 
 	return  NULL ;

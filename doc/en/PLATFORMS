@@ -15,10 +15,12 @@ This list is whether mlterm 2.0.0 can be compiled and work fine or not.
   EWS4800 (UX/4800 R11.7) + X11R6 (CC=/usr/abiccs/bin/cc)
   EWS4800 (UX/4800 R13.5, 64bit) (CC=/usr/ccs64/bin/cc)
 
+* tested by Daichi Goto san
+  FreeBSd 4.4R
+
 * tested by Kiyoshi Nisizawa san(1.9.47)
   Kondara MNU/Linux 1.2, i586
   Kondara MNU/Linux 2.0, i586
 
 * tested by Tomohiro Kubota san(1.9.47)
   Debian GNU/Linux Sid, GNU libc 2.2.4
-  

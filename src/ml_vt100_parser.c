@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/26(22:46:00)>
  *	$Id$
  */
 
@@ -1528,8 +1527,8 @@ parse_vt100_escape_sequence(
 		#ifdef  ESCSEQ_DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " receiving BEL\n") ;
 		#endif
-		
-			/* ingored */
+
+			ml_term_screen_bel( vt100_parser->termscr) ;
 		}
 		else
 		{

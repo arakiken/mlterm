@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/23(19:47:23)>
  *	$Id$
  */
 
@@ -25,6 +24,7 @@
 #include  "ml_termcap.h"
 #include  "ml_config_menu.h"
 #include  "ml_mod_meta_mode.h"
+#include  "ml_bel_mode.h"
 #include  "ml_pty.h"
 
 
@@ -93,6 +93,8 @@ typedef struct  ml_term_screen
 
 	u_int  mod_meta_mask ;
 	ml_mod_meta_mode_t  mod_meta_mode ;
+
+	ml_bel_mode_t  bel_mode ;
 	
 	ml_encoding_event_listener_t *  encoding_listener ;
 	ml_system_event_listener_t *  system_listener ;
@@ -127,8 +129,8 @@ ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
 	u_int  num_of_log_lines , u_int  tab_size , int  use_xim ,
 	int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode ,
-	int  pre_conv_xct_to_ucs , char *  pic_file_path , int  use_transbg ,
-	int  is_aa , char *  conf_menu_path) ;
+	ml_bel_mode_t  bel_mode , int  pre_conv_xct_to_ucs , char *  pic_file_path ,
+	int  use_transbg , int  is_aa , char *  conf_menu_path) ;
 
 int  ml_term_screen_delete( ml_term_screen_t *  termscr) ;
 
@@ -236,6 +238,8 @@ int  ml_term_screen_is_end_of_line( ml_term_screen_t *  termscr) ;
 u_int ml_term_screen_get_cols( ml_term_screen_t *  termscr) ;
 
 u_int ml_term_screen_get_rows( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_bel( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_set_app_keypad( ml_term_screen_t *  termscr) ;
 

@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/26(17:06:59)>
  *	$Id$
  */
 
@@ -31,8 +30,8 @@ typedef enum  ml_color
 	MLC_UNKNOWN_COLOR = -1 ,
 
 	/*
-	 * 11 colors are registered.
-	 * max color must be under 0xf.(see ml_char.h)
+	 * max color must be 0xf.
+	 * no more colors cannot be used.(see ml_char.h)
 	 */
 	 
 	MLC_BLACK = 0 ,
@@ -45,12 +44,14 @@ typedef enum  ml_color
 	MLC_WHITE ,
 	MLC_GRAY ,
 	MLC_LIGHTGRAY ,
+	MLC_PINK ,
+	MLC_BROWN ,
 	MLC_PRIVATE_FG_COLOR ,
 	MLC_PRIVATE_BG_COLOR ,
 
 	/* extra */
 	MLC_FG_COLOR ,
-	MLC_BG_COLOR ,
+	MLC_BG_COLOR ,	/* 0xf */
 
 	MAX_COLORS ,
 

@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/26(02:33:36)>
  *	$Id$
  */
 
@@ -191,8 +190,8 @@ ml_pty_fork(
 	#ifdef VDISCRD
 		tio.c_cc[VDISCRD] = CFLUSH ;
 	#endif
-	#ifdef VWERSE
-		tio.c_cc[VWERSE] = CWERASE ;
+	#ifdef VWERASE
+		tio.c_cc[VWERASE] = CWERASE ;
 	#endif
 	#ifdef VLNEXT
 		tio.c_cc[VLNEXT] = CLNEXT ;

@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/24(18:33:07)>
  *	$Id$
  */
 
@@ -68,6 +67,7 @@ ml_config_menu_start(
 	u_int  min_fontsize ,
 	u_int  max_fontsize ,
 	ml_mod_meta_mode_t  orig_mod_meta_mode ,
+	ml_bel_mode_t  orig_bel_mode ,
 	int  orig_is_combining_char ,
 	int  orig_pre_conv_xct_to_ucs ,
 	int  orig_is_transparent ,
@@ -143,12 +143,12 @@ ml_config_menu_start(
 	/*
 	 * output format
 	 * [encoding] [fg color] [bg color] [tabsize] [logsize] [font size] [min font size] \
-	 * [max font size] [mod meta mode] [is combining char] [pre conv xct to ucs]
+	 * [max font size] [mod meta mode] [bel mode] [is combining char] [pre conv xct to ucs]
 	 * [is transparent] [is aa] [xim] [locale][LF]
 	 */
-	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" , orig_encoding , orig_fg_color ,
+	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" , orig_encoding , orig_fg_color ,
 		orig_bg_color , orig_tabsize , orig_logsize , orig_fontsize , min_fontsize ,
-		max_fontsize , orig_mod_meta_mode , orig_is_combining_char ,
+		max_fontsize , orig_mod_meta_mode , orig_bel_mode , orig_is_combining_char ,
 		orig_pre_conv_xct_to_ucs , orig_is_transparent , orig_is_aa , orig_xim , orig_locale) ;
 	fclose( fp) ;
 	
@@ -206,6 +206,7 @@ ml_config_menu_start(
 		u_int  logsize ;
 		u_int  fontsize ;
 		int  mod_meta_mode ;
+		int  bel_mode ;
 		int  is_combining_char ;
 		int  pre_conv_xct_to_ucs ;
 		int  is_transparent ;
@@ -257,6 +258,12 @@ ml_config_menu_start(
 
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 			! kik_str_to_int( &mod_meta_mode , p))
+		{
+			return  0 ;
+		}
+		
+		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+			! kik_str_to_int( &bel_mode , p))
 		{
 			return  0 ;
 		}
@@ -355,6 +362,15 @@ ml_config_menu_start(
 			{
 				(*config_menu->config_menu_listener->change_mod_meta_mode)(
 					config_menu->config_menu_listener->self , mod_meta_mode) ;
+			}
+		}
+
+		if( bel_mode != orig_bel_mode)
+		{
+			if( config_menu->config_menu_listener->change_bel_mode)
+			{
+				(*config_menu->config_menu_listener->change_bel_mode)(
+					config_menu->config_menu_listener->self , bel_mode) ;
 			}
 		}
 

@@ -27,9 +27,8 @@ mltermでは、オリジナルのスクロールバーを比較的簡単に実装するためのフレームワーク
 
   o void (*get_default_color)( struct ml_sb_view * , char **  fg_color , char **  bg_color) ;
     デフォルトの前景背景色を渡すイベント
-    前景背景色に使える名前は、
-    white/black/red/green/yellow/blue/magenta/cyan/gray/lightgray/priv_fg/priv_bg
-    です。文字列は、呼び出し側では解放しませんので、内部で処理して下さい。
+    前景背景色に使える名前は、{fg|bg}_color 設定で使えるものと同じです。
+    文字列は、呼び出し側では解放しませんので、内部で処理して下さい。
     (推奨)
     
   o void (*realized)( struct  ml_sb_view *  , Display * , int , Window , GC , unsigned int  win_height) ;

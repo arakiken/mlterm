@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/8(09:14:10)>
  *	$Id$
  */
 
@@ -108,6 +107,7 @@ static encoding_table_t  encoding_table[] =
 	/*
 	 * alternative names.(these are not used in ml_{parser|conv}_new)
 	 */
+
 #if  0
 	/* XXX necessary ? */
 	{ ML_EUCJP , "EXTENDEDUNIXCODEPACKEDFORMATFORJAPANESE" } , /* MIME */
@@ -191,7 +191,7 @@ ml_parser_new(
 		encoding_table[encoding].encoding != encoding)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( "%x is illegal encoding.\n" , encoding) ;
+		kik_warn_printf( KIK_DEBUG_TAG "%x is illegal encoding.\n" , encoding) ;
 	#endif
 	
 		return  NULL ;
@@ -209,7 +209,7 @@ ml_conv_new(
 		encoding_table[encoding].encoding != encoding)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( "%x is illegal encoding.\n" , encoding) ;
+		kik_warn_printf( KIK_DEBUG_TAG "%x is illegal encoding.\n" , encoding) ;
 	#endif
 	
 		return  NULL ;

@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/16(14:21:55)>
  *	$Id$
  */
 
@@ -64,6 +63,7 @@ typedef struct  ml_term_manager
 	int  is_aa ;
 	int  xim_open_in_startup ;
 	ml_mod_meta_mode_t  mod_meta_mode ;
+	ml_bel_mode_t  bel_mode ;
 	int  unicode_to_other_cs ;
 	int  all_cs_to_unicode ;
 	int  conv_to_generic_iso2022 ;

@@ -1,0 +1,7 @@
+[20011202]
+* BEL(0x7) is supported and bel_mode option(none/visual/sound) is added.
+* VWERSE typo is fixed.(ml_pty_fork_{streams|bsd}.c)
+* LC_CTYPE=C mlterm and pressing Shift + Space causes segmentation fault. fixed.
+* WINDOWID env var doesn't set that of VT100 Window but Top Window.
+* pink and brown colors are added.
+* "update: ..." lines of all files are removed.

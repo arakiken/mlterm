@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/26(22:51:23)>
  *	$Id$
  */
 
@@ -33,6 +32,8 @@ static char *  colors[] =
 	"WHITE" ,
 	"GRAY" ,
 	"LIGHTGRAY" ,
+	"PINK" ,
+	"BROWN" ,
 	"PRIVATE_FG" ,
 	"PRIVATE_BG" ,
 	

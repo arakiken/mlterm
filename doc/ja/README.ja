@@ -126,6 +126,8 @@ comment $Id$
       o mod_meta_mode  ... Metaキーを押下した時の挙動(*none*/esc/8bit)
                            esc の場合、"0x1b" を、8bit の場合は、入力文字の8ビット目
                            をたてます。
+      o bel_mode ... BEL(0x7)を受け取った時の挙動(none/*sound*/visual)
+                     soundの場合はビープ音で、visualの場合は画面ブランクでBELを通知します。
 
       o scrollbar_view_name ... 使いたいスクロールバーの名前(*simple*)
       o conf_menu_path ... mlconfig(GUI設定コマンド)のパス(*/usr/local/libexec/mlconfig*)
@@ -152,7 +154,7 @@ comment $Id$
       o sb_fg_color    ... スクロールバーの前景色(*same as fg_color*)
       o sb_bg_color    ... 同背景色(*same as bg_color*)
         fg_color/bg_colorに指定できる値
-        white/black/red/green/yellow/blue/magenta/cyan/gray/lightgray/priv_fg/priv_bg
+        white/black/red/green/yellow/blue/magenta/cyan/gray/lightgray/pink/brown/priv_fg/priv_bg
 
         priv_{fg|bg} は、ユーザ定義前景、背景色です。
         color ファイルで、priv_fg/priv_bg(デフォルト値は白)を定義してください。

@@ -1,5 +1,4 @@
 /*
- *	update: <2001/11/27(03:58:16)>
  *	$Id$
  */
 
@@ -419,8 +418,6 @@ font_size_changed(
 
 	ml_restore_selected_region_color( &termscr->sel) ;
 	exit_backscroll_mode( termscr) ;
-	
-	ml_term_screen_unhighlight_cursor( termscr) ;
 
 	new_width = ml_col_width((termscr)->font_man) * ml_image_get_cols( termscr->image) ;
 	new_height = ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image) ;
@@ -431,17 +428,15 @@ font_size_changed(
 			termscr->screen_scroll_listener->self , ml_line_height(termscr->font_man)) ;
 	}
 
+	/* screen is redrawn */
 	ml_window_resize( &termscr->window , new_width , new_height , NOTIFY_TO_PARENT) ;
+	
 	ml_window_set_normal_hints( &termscr->window ,
 		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man) ,
 		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man)) ;
 	ml_window_reset_font( &termscr->window) ;
 
 	set_wall_picture( termscr) ;
-
-	ml_term_screen_redraw_image( termscr) ;
-
-	ml_term_screen_highlight_cursor( termscr) ;
 }
 
 static int
@@ -739,6 +734,19 @@ change_mod_meta_mode(
 }
 
 static void
+change_bel_mode(
+	void *  p ,
+	ml_bel_mode_t  bel_mode
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+	
+	termscr->bel_mode = bel_mode ;
+}
+
+static void
 change_char_combining_flag(
 	void *  p ,
 	int  is_combining_char
@@ -985,7 +993,8 @@ config_menu(
 		termscr->image->tab_cols , termscr->logs.num_of_rows , termscr->font_man->font_size ,
 		termscr->font_man->font_custom->min_font_size ,
 		termscr->font_man->font_custom->max_font_size ,
-		termscr->mod_meta_mode , ml_is_char_combining() , termscr->pre_conv_xct_to_ucs ,
+		termscr->mod_meta_mode , termscr->bel_mode ,
+		ml_is_char_combining() , termscr->pre_conv_xct_to_ucs ,
 		termscr->window.is_transparent , termscr->is_aa ,
 		ml_xic_get_xim_name( &termscr->window) , ml_get_locale()) ;
 }
@@ -2658,6 +2667,7 @@ ml_term_screen_new(
 	int  use_xim ,
 	int  xim_open_in_startup ,
 	ml_mod_meta_mode_t  mod_meta_mode ,
+	ml_bel_mode_t  bel_mode ,
 	int  pre_conv_xct_to_ucs ,
 	char *  pic_file_path ,
 	int  use_transbg ,
@@ -2860,6 +2870,7 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_log_size = change_log_size ;
 	termscr->config_menu_listener.change_font_size = change_font_size ;
 	termscr->config_menu_listener.change_mod_meta_mode = change_mod_meta_mode ;
+	termscr->config_menu_listener.change_bel_mode = change_bel_mode ;
 	termscr->config_menu_listener.change_char_combining_flag = change_char_combining_flag ;
 	termscr->config_menu_listener.change_pre_conv_xct_to_ucs_flag = change_pre_conv_xct_to_ucs_flag ;
 	termscr->config_menu_listener.change_transparent_flag = change_transparent_flag ;
@@ -2885,6 +2896,8 @@ ml_term_screen_new(
 	
 	termscr->mod_meta_mask = 0 ;
 	termscr->mod_meta_mode = mod_meta_mode ;
+
+	termscr->bel_mode = bel_mode ;
 
 	if( pre_conv_xct_to_ucs)
 	{
@@ -3847,6 +3860,29 @@ ml_term_screen_get_rows(
 	)
 {
 	return  ml_image_get_rows( termscr->image) ;
+}
+
+int
+ml_term_screen_bel(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( termscr->bel_mode == BEL_SOUND)
+	{
+		XBell( termscr->window.display , 0) ;
+	}
+	else if( termscr->bel_mode == BEL_VISUAL)
+	{
+		ml_window_fill_all( &termscr->window) ;
+
+		XFlush( termscr->window.display) ;
+
+		ml_window_clear_all( &termscr->window) ;
+		ml_image_all_modified( termscr->image) ;
+		ml_term_screen_redraw_image( termscr) ;
+	}
+
+	return  1 ;
 }
 
 int

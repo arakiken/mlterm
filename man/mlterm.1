@@ -70,6 +70,10 @@ Delimiter characters used for word selection.
 \fB\-X\fR, \fB\-\-openim\fR(=\fIbool\fR)
 Open XIM on startup.
 .TP
+\fB\-7\fR, \fB\-\-bel\fR(=\fImode\fR)
+Behavior when BEL(0x07) is received. \fBsound\fR for beep
+and \fBvisual\fR for blanking screen.
+.TP
 \fB\-a\fR, \fB\-\-ac\fR=\fIvalue\fR
 Specify number of columns of Unicode characters with
 EastAsianAmbiguous property.
@@ -285,6 +289,10 @@ Delimiter characters used for word selection (default "\fI ,.:;/@\fR")
 Behavior of META key.  \fBesc\fR for sending ESC
 and \fB8bit\fR for turning on the most significant bit.
 .TP
+\fBbel_mode=\fImode\fR
+Behavior when BEL(0x07) is received. \fBsound\fR for beep
+and \fBvisual\fR for blanking screen.
+.TP
 \fBscrollbar_view_name=\fIname\fR
 Name of scrollbar library to be used.
 "\fIsimple\fR" means built-in simple scrollbar
@@ -343,6 +351,8 @@ Valid value for \fIcolor\fR are
 \fIcyan\fR,
 \fIgray\fR,
 \fIlightgray\fR,
+\fIpink\fR,
+\fIbrown\fR,
 \fIpriv_fg\fR, and
 \fIpriv_bg\fR.
 .TP
