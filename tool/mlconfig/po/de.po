@@ -31,9 +31,8 @@ msgid "Cancel"
 msgstr "Abbrechen"
 
 #: tool/mlconfig/main.c:234
-#, fuzzy
 msgid "Font size (temporal)"
-msgstr "Fontgröße (Pixel)"
+msgstr "Fontgröße (temporär)"
 
 #: tool/mlconfig/main.c:242
 msgid "Larger"
@@ -163,7 +162,7 @@ msgstr "--- vereinfachtes Chinesisch ---"
 #: tool/mlconfig/mc_char_encoding.c:194
 #, c-format
 msgid "auto (currently %s)"
-msgstr ""
+msgstr "automatisch (aktuell: %s)"
 
 #: tool/mlconfig/mc_color.c:39 tool/mlconfig/mc_color.c:41
 msgid "Foreground color"
@@ -336,6 +335,3 @@ msgstr "XIM Locale"
 #: tool/mlconfig/mc_xim.c:224
 msgid "X Input Method"
 msgstr "X Input Methode"
-
-#~ msgid "Font size"
-#~ msgstr "Font Größe"
