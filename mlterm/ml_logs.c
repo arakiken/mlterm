@@ -46,8 +46,8 @@ ml_log_init(
 		kik_warn_printf( KIK_DEBUG_TAG " kik_cycle_index_new() failed.\n") ;
 	#endif
 
-		free( log->lines) ;
-		log->lines= NULL ;
+		free( logs->lines) ;
+		logs->lines= NULL ;
 
 		return  0 ;
 	}
