@@ -1,5 +1,10 @@
 2004-10-21 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* kiklib/src/kik_net.h: defined PF_LOCAL as PF_UNIX on the system which
+	  doesn't have PF_LOCAL.
+
+2004-10-21 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* configure.in: removed "echo -n" for portability.
 
 	* doc/ja/BUGS: updated.

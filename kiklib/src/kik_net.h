@@ -17,5 +17,8 @@
 #define  AF_LOCAL  AF_UNIX
 #endif
 
+#ifndef  PF_LOCAL
+#define  PF_LOCAL  PF_UNIX
+#endif
 
 #endif
