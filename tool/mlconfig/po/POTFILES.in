@@ -12,6 +12,7 @@ tool/mlconfig/mc_color.c
 tool/mlconfig/mc_combo.c
 tool/mlconfig/mc_contrast.c
 tool/mlconfig/mc_fade.c
+tool/mlconfig/mc_flags.c
 tool/mlconfig/mc_fontsize.c
 tool/mlconfig/mc_gamma.c
 tool/mlconfig/mc_io.c

@@ -22,23 +22,23 @@
 static int old_flag_mode[MC_FLAG_MODES], new_flag_mode[MC_FLAG_MODES];
 static int is_changed[MC_FLAG_MODES];
 static char *configname[MC_FLAG_MODES] = {
-	MC_FLAG_CONFIG0,
-	MC_FLAG_CONFIG1,
-	MC_FLAG_CONFIG2,
-	MC_FLAG_CONFIG3,
-	MC_FLAG_CONFIG4,
-	MC_FLAG_CONFIG5,
-	MC_FLAG_CONFIG6
+	"use_anti_alias",
+	"use_variable_column_width",
+	"use_combining",
+	"use_dynamic_comb",
+	"receive_string_via_ucs",
+	"use_multi_column_char",
+	"use_bidi"
 };
 
 static char *label[MC_FLAG_MODES] = {
-	MC_FLAG_LABEL0,
-	MC_FLAG_LABEL1,
-	MC_FLAG_LABEL2,
-	MC_FLAG_LABEL3,
-	MC_FLAG_LABEL4,
-	MC_FLAG_LABEL5,
-	MC_FLAG_LABEL6
+	N_("Anti Alias"),
+	N_("Variable column width"),
+	N_("Combining"),
+	N_("Combining = 1 (or 0) logical column(s)"),
+	N_("Process received strings via Unicode"),
+	N_("Fullwidth = 2 (or 1) logical column(s)"),
+	N_("Bidi (UTF8 only)")
 };
 
 static GtkWidget *widget[MC_FLAG_MODES];
