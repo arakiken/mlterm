@@ -1,3 +1,8 @@
+2003-12-22  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* x_window.c: selection conversion request type "TARGETS"
+	 is now supported( clipboard now should work with KDE klipper).
+
 2003-12-21  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* mlterm/ml_pty_win32.c: Added:-)

@@ -29,6 +29,8 @@
  */
 
 #define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
+#define  XA_TARGETS(display)  (XInternAtom(display , "TARGETS" , False))
+#define  XA_MULTIPLE(display)  (XInternAtom(display , "MULTIPLE" , False))
 #define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
@@ -2006,9 +2008,13 @@ x_window_receive_event(
 	{
 		Atom  xa_utf8_string ;
 		Atom  xa_compound_text ;
+		Atom  xa_multiple ;
+		Atom  xa_targets ;
 		Atom  xa_text ;
 
 		xa_compound_text = XA_COMPOUND_TEXT(win->display) ;
+		xa_targets = XA_TARGETS(win->display) ;
+		xa_multiple = XA_MULTIPLE(win->display) ;
 		xa_text = XA_TEXT(win->display) ;
 		xa_utf8_string = XA_UTF8_STRING(win->display) ;
 
@@ -2043,6 +2049,22 @@ x_window_receive_event(
 					xa_utf8_string) ;
 			}
 		}
+		else if( event->xselectionrequest.target == xa_targets)
+		{
+			Atom  targets[4] ;
+
+			targets[0] =XA_STRING ;
+			targets[1] =xa_text ;
+			targets[2] =xa_compound_text ;
+			targets[3] =xa_utf8_string ;
+			x_window_send_selection( win , &event->xselectionrequest , (u_char *)(&targets) , sizeof(targets) , XA_ATOM) ;
+		}
+#ifdef  DEBUG
+		else if( event->xselectionrequest.target == xa_multiple)
+		{
+			kik_debug_printf("MULTIPLE requested(not yet implemented)\n") ;
+		}
+#endif
 		else
 		{
 			x_window_send_selection( win , &event->xselectionrequest , NULL , 0 , 0) ;
