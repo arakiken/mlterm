@@ -946,15 +946,23 @@ cjk_vert_visual(
 
 		for( row = 0 ; row < line->num_of_filled_chars ; row ++)
 		{
+			ml_char_t *  ch ;
+			
 			if( IMAGE_LINE(image,row).num_of_filled_chars + 2 >
 				IMAGE_LINE(image,row).num_of_chars)
 			{
 				continue ;
 			}
 
-			ml_char_copy( &IMAGE_LINE(image,row).chars[
-				IMAGE_LINE(image,row).num_of_filled_chars ++] , &line->chars[row]) ;
+			ch = &IMAGE_LINE(image,row).chars[ IMAGE_LINE(image,row).num_of_filled_chars ++] ;
 
+			ml_char_copy( ch , &line->chars[row]) ;
+			
+			if( ml_char_font_decor( ch) == FONT_UNDERLINE)
+			{
+				ml_char_set_font_decor( ch , FONT_LEFTLINE) ;
+			}
+			
 			if( ml_char_default_cols( &line->chars[row]) == 1)
 			{
 				ml_char_set( &IMAGE_LINE(image,row).chars[
@@ -962,9 +970,9 @@ cjk_vert_visual(
 					ml_char_bytes( &image->sp_ch) ,
 					ml_char_size( &image->sp_ch) ,
 					ml_char_font( &image->sp_ch) ,
-					ml_char_font_decor( &line->chars[row]) ,
-					ml_char_fg_color( &line->chars[row]) ,
-					ml_char_bg_color( &line->chars[row])) ;
+					ml_char_font_decor( &image->sp_ch) ,
+					ml_char_fg_color( ch) ,
+					ml_char_bg_color( ch)) ;
 				
 				if( ml_imgline_is_modified( line))
 				{

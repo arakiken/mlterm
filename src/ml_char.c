@@ -683,12 +683,31 @@ ml_char_set_bg_color(
 	return  1 ;
 }
 
-inline ml_color_t
+inline ml_font_decor_t
 ml_char_font_decor(
 	ml_char_t *  ch
 	)
 {
 	return  FONT_DECOR(ch->attr) ;
+}
+
+inline int
+ml_char_set_font_decor(
+	ml_char_t *  ch ,
+	ml_font_decor_t  font_decor
+	)
+{
+	int  counter ;
+
+	for( counter = 0 ; counter < COMB_SIZE(ch->attr) ; counter ++)
+	{
+		ml_char_set_font_decor( &ch->u.multi_ch[counter + 1] , font_decor) ;
+	}
+	
+	ch->attr = COMPOUND_ATTR(SIZE(ch->attr),COMB_SIZE(ch->attr),IS_REVERSED(ch->attr),
+		FG_COLOR(ch->attr),BG_COLOR(ch->attr),font_decor) ;
+		
+	return  1 ;
 }
 
 inline size_t

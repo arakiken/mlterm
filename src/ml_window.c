@@ -328,6 +328,7 @@ xft_draw_str(
 				|| fg_color != next_fg_color
 				|| bg_color != next_bg_color
 				|| next_decor != decor
+				|| (decor & FONT_LEFTLINE)
 				|| comb_chars != NULL
 				|| ch_size != next_ch_size
 				|| (next_font->is_proportional && ! next_font->is_var_col_width)
@@ -425,10 +426,10 @@ xft_draw_str(
 					x , y + height - 1 , current_width - x , 1) ;
 			}
 
-			if( decor & FONT_OVERLINE)
+			if( decor & FONT_LEFTLINE)
 			{
 				XFillRectangle( win->display , win->drawable , win->gc ,
-					x , y , current_width - x , 1) ;
+					x , y , 1 , height) ;
 			}
 
 			start_draw = 0 ;
@@ -852,6 +853,7 @@ draw_str(
 				|| fg_color != next_fg_color
 				|| bg_color != next_bg_color
 				|| next_decor != decor
+				|| (decor & FONT_LEFTLINE)
 				|| comb_chars != NULL
 				|| (is_mb == 1 && next_ch_size == 1)
 				|| (is_mb == 0 && next_ch_size > 1)
@@ -952,10 +954,10 @@ draw_str(
 					x , y + height - 1 , current_width - x , 1) ;
 			}
 
-			if( decor & FONT_OVERLINE)
+			if( decor & FONT_LEFTLINE)
 			{
-				XFillRectangle( win->display , win->drawable , win->gc , x , y ,
-							current_width - x , 1) ;
+				XFillRectangle( win->display , win->drawable , win->gc ,
+					x , y , 1 , height) ;
 			}
 
 			start_draw = 0 ;

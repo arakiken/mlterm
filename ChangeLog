@@ -1,4 +1,7 @@
 [20020207]
+* underline is drawn on the left side of character under vertical mode.
+
+[20020207]
 * strange mouse position is reported under vertical mode. fixed.
 
 [20020207]

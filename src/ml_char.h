@@ -22,12 +22,12 @@
 
 
 /*
- * max value of ml_font_decor_t is FONT_UNDERLINE | FONT_OVERLINE = 0x3
+ * max value of ml_font_decor_t is FONT_UNDERLINE | FONT_LEFTLINE = 0x3
  */
 typedef enum  ml_font_decor
 {
 	FONT_UNDERLINE = 0x1u ,
-	FONT_OVERLINE = 0x2u ,
+	FONT_LEFTLINE = 0x2u ,
 
 } ml_font_decor_t ;
 
@@ -147,7 +147,9 @@ inline ml_color_t  ml_char_bg_color( ml_char_t *  ch) ;
 
 inline int  ml_char_set_bg_color( ml_char_t *  ch , ml_color_t  bg_color) ;
 
-inline ml_color_t  ml_char_font_decor( ml_char_t *  ch) ;
+inline ml_font_decor_t  ml_char_font_decor( ml_char_t *  ch) ;
+
+inline int  ml_char_set_font_decor( ml_char_t *  ch , ml_font_decor_t  font_decor) ;
 
 inline size_t  ml_char_size( ml_char_t *  ch) ;
 
