@@ -1,5 +1,9 @@
 2003-12-27  Seiichi SATO  <ssato@sh.rim.or.jp>
 
+	* tool/mlconfig/main.c: ANTI_ALIAS -> USE_TYPE_XFT
+
+2003-12-27  Seiichi SATO  <ssato@sh.rim.or.jp>
+
 	* If confiugre detects that pkg-config and xft2 library are available,
 	  USE_TYPE_XFT will be defined.
 
