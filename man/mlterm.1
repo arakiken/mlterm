@@ -139,8 +139,11 @@ Specify scrollbar position.
 The default is \fBnone\fR which turns off scrollbar.
 .TP
 \fB\-P\fR, \fB\-\-ptys\fR=\fIvalue\fR
-Specify number of ptys to be used in start up.
+Specify number of ptys (sessions) to be used in start up.
 The default is \fB1\fR.
+These sessions share one screen and can be switched using
+the GUI Configurator, while \fB\-@\fR/\fB\-\-screens\fR
+option opens one window for each session.
 See \fBMULTIPLE PTY\fR section for detail.
 .TP
 \fB\-Q\fR, \fB\-\-vcur\fR(=\fIbool\fR)
@@ -219,6 +222,11 @@ fullwidth characters are treated as one column
 while they occupy two columns on the screen.
 The default is \fBtrue\fR.
 .TP
+\fB\-0\fR, \fB\-\-crbg\fR=\fIcolor\fR
+Specify background color for cursor (default is same to foreground color).
+Valid values for \fIcolor\fR are color names defined in rgb.txt and "\fBcolor\fR"
+configuration file and color rgb string whose format is "#RRGGBB".
+.TP
 \fB\-1\fR, \fB\-\-wscr\fR=\fIvalue\fR
 Specify actual window width, by percentage against 
 calculated value by multiplying font width by column number.
@@ -255,6 +263,19 @@ The default is \fBnone\fR which ignores BEL.
 .TP
 \fB\-8\fR, \fB\-\-88591\fR(=\fIbool\fR)
 Use ISO8859-1 fonts for US-ASCII part of various encodings.
+.TP
+\fB\-9\fR, \fB\-\-crfg\fR=\fIcolor\fR
+Specify foreground color for cursor (default is same to background color).
+Valid values for \fIcolor\fR are color names defined in rgb.txt and "\fBcolor\fR"
+configuration file and color rgb string whose format is "#RRGGBB".
+.TP
+\fB\-@\fR, \fB\-\-screenss\fR=\fIvalue\fR
+Specify number of screens (sessions) to be used in start up.
+The default is \fB1\fR.
+Even when a part of these screens are closed, sessions which
+were connected to the screens continue to live.  You can use
+such sessions by using GUI Configurator from remaining screens.
+See \fBMULTIPLE PTY\fR section for detail.
 .TP
 \fB\-a\fR, \fB\-\-ac\fR=\fIvalue\fR
 Specify number of columns of Unicode characters with
@@ -321,8 +342,8 @@ standard way (i.e., \fBXMODIFIERS\fR environmental variable).
 .TP
 \fB\-j\fR, \fB\-\-daemon\fR=\fIvalue\fR
 Start as a daemon process.
-If \fBblend\fR is specified , mlterm exits as soon as the last terminal
-window is closed , but \fBgenuine\fR specified , it works with no terminal
+If \fBblend\fR is specified, mlterm exits as soon as the last terminal
+window is closed, but \fBgenuine\fR specified, it works with no terminal
 windows and even without X server.
 Please read the chapter of \fBDAEMON MODE\fR for detail.
 The default is \fBnone\fR.
@@ -563,8 +584,26 @@ since it occupies two columns on the screen.
 .SS Buttons
 There are buttons which is independent from OK/Apply/Cancel buttons.
 .TP
+OK/Apply/Cancel
+OK button applies the modified configuration to the current mlterm
+session, saves it to "\fB~/.mlterm/main\fR" configuration file,
+and quits the GUI Configurator.
+Apply button just applies the modified configuration to the current
+\fBmlterm\fR session.
+.TP
 Font size (Larger and Smaller)
 Change font size.
+.TP
+PTY List
+One process of \fBmlterm\fR may have multiple sessions and screens.
+The sessions may or may not have corresponding screen, i.e.,
+the number of sessions can be more than the number of screens.
+Such situation can be achieved by using \fB\-P\fR/\fB\-\-ptys\fR
+option or closing a part of multiple screens from \fB\-@\fR/\fB\-\-screens\fR
+option.
+In such case, the screen-less session can be designated to one of
+screens by choosing the session (pty) from this list and push "select"
+button.
 .TP
 Full reset
 Reset internal status.
