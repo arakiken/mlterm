@@ -1,8 +1,17 @@
 comment -*- mode: text -*-
 comment $Id$
 
+supported platforms (mlterm-2.8.0 post/cvs-1.737)
+
+* tested by Seiichi SATO <ssato@sh.rim.or.jp>
+  NetBSD 1.6.2 (i386)
+    configure options: --with-type-engines=xcore, --with-tools=mlclient,mlcc
+    termtype: xterm
+
+
 supported platforms (mlterm-2.8.0 post/cvs-1.735)
 
+* tested by Seiichi SATO <ssato@sh.rim.or.jp>
   Fedora Core 2 (i386)
     configure options: --with-type-engines=xft,xcore
                        --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
