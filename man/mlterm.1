@@ -329,8 +329,8 @@ The default is \fBnone\fR.
 .TP
 \fB\-k\fR, \fB\-\-meta\fR=\fImode\fR
 Behavior of META key.  \fBesc\fR for sending ESC
-and \fB8bit\fR for turning on the most significant bit.
-The default is \fBnone\fR which ignores META key.
+and \fBnone\fR for ignoreing META key.
+The default is \fB8bit\fR which sets the most significant bit.
 
 See \fB\-K\fR option also.
 .TP
@@ -1181,19 +1181,19 @@ Followings are available keys for each TERM value.
 .TP
 \fBkD=\fIsequence\fR
 Specify sequence to be outputted when Delete key is pushed
-(default \fB^?\fR).
+(default \fB\\E[3~\fR).
 .TP
 \fBkb=\fIsequence\fR
 Specify sequence to be outputted when BackSpace key is pushed
-(default \fB^H\fR).
+(default \fB^?\fR).
 .TP
 \fBkh=\fIsequence\fR
 Specify sequence to be outputted when HOME key is pushed
-(nothig is outputted by default).
+(default \fB\\EOH\fR).
 .TP
 \fB@7=\fIsequence\fR
 Specify sequence to be outputted when END key is pushed
-(nothig is outputted by default).
+(default \fB\\EOF\fR).
 .TP
 \fBut\fR
 Specify the way how the screen is erased by control codes.

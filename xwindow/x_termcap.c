@@ -117,10 +117,10 @@ entry_init(
 	int  count ;
 
 	entry->name = strdup( name) ;
-	entry->str_fields[ML_DELETE] = strdup( "\x7f") ;
-	entry->str_fields[ML_BACKSPACE] = strdup( "\x08") ;
-	entry->str_fields[ML_HOME] = strdup( "") ;
-	entry->str_fields[ML_END] = strdup( "") ;
+	entry->str_fields[ML_DELETE] = strdup( "\x1b[3~") ;
+	entry->str_fields[ML_BACKSPACE] = strdup( "\x7f") ;
+	entry->str_fields[ML_HOME] = strdup( "\x1bOH") ;
+	entry->str_fields[ML_END] = strdup( "\x1bOF") ;
 
 	for( count = 0 ; count < MAX_TERMCAP_BOOL_FIELDS ; count ++)
 	{

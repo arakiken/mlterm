@@ -1470,7 +1470,7 @@ config_init(
 	}
 	else
 	{
-		main_config.mod_meta_mode = MOD_META_NONE ;
+		main_config.mod_meta_mode = MOD_META_SET_MSB ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "bel_mode")))

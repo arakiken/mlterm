@@ -362,7 +362,7 @@ comment $Id$
       o mod_meta_key (*none*/mod1/mod2/mod3/mod4/meta/alt/super/hyper)
         Meta キーとして使用するキーを指定
 
-      o mod_meta_mode  (*none*/esc/8bit) (#)
+      o mod_meta_mode  (none/esc/*8bit*) (#)
         Meta キーを押下した時の挙動
 
         esc の場合、"0x1b" を、8bit の場合は、入力文字の8ビット目をたてます。
@@ -595,16 +595,16 @@ comment $Id$
 
       o kD
         delete キーを押下したときのシーケンス
-        デフォルトでは、`^?'
+        デフォルトでは、`\E[3~'
       o kb
         バックスペースキーを押下したときのシーケンス
-        デフォルトでは、`^H'
+        デフォルトでは、`^?'
       o kh
         HOME キーを押下したときのシーケンス
-        デフォルトでは何も送られません。
+        デフォルトでは \EOH
       o @7
         END キーを押下したときのシーケンス
-        デフォルトでは何も送られません。
+        デフォルトでは \EOF
       o ut
         BCE を有効にするかどうかを指定します。
         デフォルトでは、無効
