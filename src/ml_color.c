@@ -7,6 +7,103 @@
 #include  <string.h>		/* memcpy */
 #include  <kiklib/kik_mem.h>
 
+/* --- static functions --- */
+
+static int
+alloc_closest_xcolor_pseudo(
+	Display *  display ,
+	int  screen ,
+	unsigned short  red ,		/* 0 to 0xffff */
+	unsigned short  green ,		/* 0 to 0xffff */
+	unsigned short  blue ,		/* 0 to 0xffff */
+#ifdef ANTI_ALIAS
+	XftColor *  ret_xcolor
+#else
+	XColor *  ret_xcolor
+#endif
+	)
+{
+	Visual *  visual = DefaultVisual( display , screen) ;
+	XColor *  all_colors ;	/* colors exist in the shared color map */
+	XColor  closest_color ;
+
+	Colormap  cmap = DefaultColormap( display , screen) ;
+
+	int  closest_index = -1 ;
+	unsigned long  min_diff = 0xffffffff ;
+	unsigned long  diff ;
+	unsigned long  diff_r = 0 , diff_g = 0 , diff_b = 0 ;
+	int  ncells = DisplayCells( display , screen) ;
+	int  i ;
+
+	/* FIXME: When visual class is StaticColor, should not be return? */
+	if ( ! visual->class == PseudoColor && ! visual->class == GrayScale)
+	{
+		return  0 ;
+	}
+
+	if( ( all_colors = malloc( ncells * sizeof( XColor))) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+	#endif
+
+		return  0 ;
+	}
+
+	/* get all colors from default colormap */
+	for( i = 0 ; i < ncells ; i ++)
+	{
+		all_colors[i].pixel = i ;
+	}
+	XQueryColors( display , cmap , all_colors, ncells) ;
+
+	/* find the closest color */
+	for( i = 0 ; i < ncells ; i ++)
+	{
+		diff_r = (red - all_colors[i].red) >> 8 ;
+		diff_g = (green - all_colors[i].green) >> 8 ;
+		diff_r = (blue - all_colors[i].blue) >> 8 ;
+
+		diff = diff_r * diff_r + diff_g * diff_g + diff_b * diff_b ;
+
+		if ( diff < min_diff) /* closest ? */
+		{
+			min_diff = diff ;
+			closest_index = i ;
+		}
+	}
+
+	if( closest_index == -1)	/* unable to find closest color */
+	{
+		return  0 ;
+	}
+
+	closest_color.red = all_colors[closest_index].red ;
+	closest_color.green = all_colors[closest_index].green ;
+	closest_color.blue = all_colors[closest_index].blue ;
+	closest_color.flags = DoRed | DoGreen | DoBlue;
+
+	if ( ! XAllocColor( display , cmap , &closest_color))
+	{
+		return 0 ;
+	}
+
+#ifdef ANTI_ALIAS
+	ret_xcolor->pixel = closest_color.pixel ;
+	ret_xcolor->color.red = closest_color.red ;
+	ret_xcolor->color.green = closest_color.green ;
+	ret_xcolor->color.blue = closest_color.blue ;
+	ret_xcolor->color.alpha = 0xffff ;
+#else
+	ret_xcolor->pixel = closest_color.pixel ;
+	ret_xcolor->red = closest_color.red ;
+	ret_xcolor->green = closest_color.green ;
+	ret_xcolor->blue = closest_color.blue ;
+#endif
+	return 1 ;
+}
+
 
 /* --- global functions --- */
 
@@ -40,12 +137,22 @@ ml_load_named_xcolor(
 	if( ! XftColorAllocName( display , DefaultVisual( display , screen) ,
 		DefaultColormap( display , screen) , name , xcolor))
 	{
-		return  0 ;
+		XColor  exact ;
+
+		/* try to find closest color */
+		if( XParseColor( display , DefaultColormap( display , screen) ,
+				name , &exact))
+		{
+			return  alloc_closest_xcolor_pseudo( display , screen ,
+					exact.red , exact.green , exact.blue ,
+					xcolor) ;
+		}
+
+		return 0 ;
 	}
-	else
-	{
-		return  1 ;
-	}
+
+	return  1 ;
+
 }
 
 int
@@ -68,7 +175,9 @@ ml_load_rgb_xcolor(
 	if( ! XftColorAllocValue( display , DefaultVisual( display , screen) ,
 		DefaultColormap( display , screen) , &rend_color , xcolor))
 	{
-		return  0 ;
+		/* try to find closest color */
+		return  alloc_closest_xcolor_pseudo( display , screen ,
+				red , green , blue , xcolor);
 	}
 
 	return  1 ;
@@ -116,12 +225,22 @@ ml_load_named_xcolor(
 
 	if( ! XAllocNamedColor( display , DefaultColormap( display , screen) , name , xcolor , &exact))
 	{
+		XColor  exact ;
+
+		/* try to find closest color */
+		if( XParseColor( display , DefaultColormap( display , screen) ,
+				name , &exact))
+		{
+			return  alloc_closest_xcolor_pseudo( display , screen ,
+					exact.red , exact.green , exact.blue ,
+					xcolor) ;
+		}
+
 		return  0 ;
 	}
-	else
-	{
-		return  1 ;
-	}
+
+	return  1 ;
+
 }
 
 int
@@ -141,7 +260,9 @@ ml_load_rgb_xcolor(
 
 	if( ! XAllocColor( display , DefaultColormap( display , screen) , xcolor))
 	{
-		return  0 ;
+		/* try to find closest color */
+		return  alloc_closest_xcolor_pseudo( display , screen ,
+				red , green , blue , xcolor);
 	}
 
 	return  1 ;

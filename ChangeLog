@@ -1,3 +1,8 @@
+2002-05-04 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Added a mechanism to find the closest color when visual class is
+	  PseudoColor or GrayScale. (src/ml_color.c)
+
 2002-05-02 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Fixed segfault when destroying a scrollbar in PseudoColor visual.
