@@ -3,4 +3,6 @@ line_space	text:digit	0	0	Line space (pixels)
 screen_width_ratio	text:digit	100	0	Width ratio
 screen_height_ratio	text:digit	100	0	Height ratio
 use_anti_alias	checkbox	false	0	Anti Alias
-use_variable_column_width	checkbox	false	0	Variable column width
+use_variable_column_width	checkbox	false	1	Variable column width
+none		none		-	0	&nbsp;
+none		none		-	0	&nbsp;

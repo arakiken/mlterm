@@ -102,6 +102,11 @@ AC_SUBST(LOGIN_LIBS)
 AC_DEFINE(HAVE_LOGIN)
 ])
 
+AC_CYGWIN
+if test "$CYGWIN" = "yes" ; then
+	AC_DEFINE(UTMP_NONE)
+fi
+
 AC_MSG_CHECKING(for pty/tty type)
 AC_CACHE_VAL(kik_cv_pty,[
 if test -c /dev/ptmx ; then

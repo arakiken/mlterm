@@ -4,8 +4,11 @@
 
 #include  "kik_config.h"
 
+#if  defined(UTMP_NONE)
 
-#if  defined(HAVE_UTMPER)
+#include  "kik_utmp_none.c"
+
+#elif  defined(have_utmper)
 
 #include  "kik_utmp_utmper.c"
 

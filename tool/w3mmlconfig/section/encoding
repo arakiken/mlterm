@@ -6,3 +6,4 @@ locale		text		-	0	XIM locale
 use_bidi	checkbox	true	0	Bidi (UTF8 only)
 use_combining	checkbox	true	1	Combining
 copy_paste_via_ucs	checkbox	false	0	Process received strings via Unicode
+none		none		-	0	&nbsp;

@@ -6489,8 +6489,48 @@ else
 fi
 
 
+echo $ac_n "checking for Cygwin environment""... $ac_c" 1>&6
+echo "configure:6494: checking for Cygwin environment" >&5
+if eval "test \"`echo '$''{'ac_cv_cygwin'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 6499 "configure"
+#include "confdefs.h"
+
+int main() {
+
+#ifndef __CYGWIN__
+#define __CYGWIN__ __CYGWIN32__
+#endif
+return __CYGWIN__;
+; return 0; }
+EOF
+if { (eval echo configure:6510: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  ac_cv_cygwin=yes
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  ac_cv_cygwin=no
+fi
+rm -f conftest*
+rm -f conftest*
+fi
+
+echo "$ac_t""$ac_cv_cygwin" 1>&6
+CYGWIN=
+test "$ac_cv_cygwin" = yes && CYGWIN=yes
+if test "$CYGWIN" = "yes" ; then
+	cat >> confdefs.h <<\EOF
+#define UTMP_NONE 1
+EOF
+
+fi
+
 echo $ac_n "checking for pty/tty type""... $ac_c" 1>&6
-echo "configure:6494: checking for pty/tty type" >&5
+echo "configure:6534: checking for pty/tty type" >&5
 if eval "test \"`echo '$''{'kik_cv_pty'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else

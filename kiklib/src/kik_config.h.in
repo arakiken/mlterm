@@ -46,6 +46,8 @@
 
 #undef  HAVE_LOGIN
 
+#undef  UTMP_NONE
+
 #undef  HAVE_USLEEP
 
 #undef  HAVE_UNSETENV

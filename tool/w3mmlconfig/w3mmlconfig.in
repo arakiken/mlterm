@@ -1,3 +1,13 @@
 #!/bin/sh
 
-w3m -o cgi_bin=@CGI_BIN@ file:/cgi-bin/mlconfig.cgi
+query=""
+case "$1" in
+-a) query="?SECTION=appearance" ;;
+-c) query="?SECTION=color" ;;
+-e) query="?SECTION=encoding" ;;
+-o) query="?SECTION=others" ;;
+-s) query="?SECTION=scrollbar" ;;
+-h) echo "$0 [-a|-c|-e|-o|-s]" ; exit ;;
+esac
+
+w3m -o cgi_bin=@CGI_BIN@ "file:/cgi-bin/mlconfig.cgi$query"

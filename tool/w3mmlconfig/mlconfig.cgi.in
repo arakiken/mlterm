@@ -4,11 +4,13 @@ $DEBUG = 1;
 
 require 'mlconfig-data.pl';
 
+$config_file = "$ENV{HOME}/.mlterm/main";
 $CGI = $ENV{SCRIPT_NAME} || $0;
 $CGI = &html_quote($CGI);
+$local_cookie = $ENV{LOCAL_COOKIE};
 $method = ($ENV{REQUEST_METHOD} eq 'POST');
 if ($method) {
-	$query = <>;
+	sysread(STDIN, $query, $ENV{CONTENT_LENGTH});
 } else {
 	$query = $ENV{QUERY_STRING};
 }
@@ -16,7 +18,17 @@ for (split('&', $query)) {
 	s/^([^=]*)=//;
 	$value->{$1} = &form_decode($_);
 }
+if ($local_cookie ne $value->{COOKIE}) {
+	$method = 0;
+}
 if ($method) {
+	if ($value->{SAVE}) {
+		if ($value->{SAVE} eq 'Yes') {
+			&save_config();
+		}
+		&make_header(0, $method);
+		exit;
+	}
 	if ($value->{SUBMIT} eq 'Cancel') {
 		&make_header(1, $method);
 		exit;
@@ -26,7 +38,11 @@ if ($method) {
 		&check_value();
 	} else {
 		&check_value();
-		if ($value->{SUBMIT} eq 'OK') {
+		if ($value->{SUBMIT} eq 'Save') {
+			&load_config();
+			&make_save_config();
+			exit;
+		} elsif ($value->{SUBMIT} eq 'OK') {
 			&set_config();
 			&make_header(1, $method);
 			exit;
@@ -38,9 +54,6 @@ if ($method) {
 		} elsif ($value->{fontsize_smaller}) {
 			&set_config({ fontsize => 'smaller' });
 			&get_config([ 'fontsize' ]);
-#		} elsif ($value->{wall_picture_off}) {
-#			&set_config({ wall_picture => '' });
-#			&get_config([ 'wall_picture' ]);
 		}
 	}
 } else {
@@ -54,14 +67,21 @@ if ($method) {
 sub make_header {
 	local($quit, $method) = @_;
 
-	if ($quit) {
-		if ($value->{QUIT} eq 'no') {
-			print "w3m-control: DELETE_PREVBUF\n";
-		} else {
-			print "w3m-control: EXIT\n";
-		}
-	} elsif ($method) {
+	if ($value->{SAVE}) {
 		print "w3m-control: DELETE_PREVBUF\n";
+		print "w3m-control: BACK\n";
+	} elsif ($quit && $value->{QUIT} ne 'no') {
+		print "w3m-control: EXIT\n";
+	} else {
+		if ($value->{SUBMIT} eq 'Apply') {
+			print "w3m-control: GOTO #apply\n";
+		} else {
+			print "w3m-control: GOTO #pos\n";
+		}
+		print "w3m-control: DELETE_PREVBUF\n";
+		if ($quit || $method) {
+			print "w3m-control: DELETE_PREVBUF\n";
+		}
 	}
 	print "Content-Type: text/html\n\n";
 }
@@ -76,40 +96,41 @@ sub make_html {
 </head>
 <body>
 <form action="$CGI" method=POST>
+<input type=hidden name="COOKIE" value="$local_cookie">
 <input type=hidden name="QUIT" value="$value->{QUIT}">
 <center>
-<table border=1>
-<caption><b>mlterm configuration</b></caption>
+<b>mlterm configuration</b>
+<table border=1 width=200>
 EOF
-	for $s (@section) {
-		&make_section($s);
+	$value->{SECTION} ||= $value->{"default-SECTION"};
+	$value->{SECTION} =~ tr/A-Z/a-z/;
+	if (!defined($section_attr->{$value->{SECTION}})) {
+		$value->{SECTION} = $section[0];
 	}
+	&make_section($value->{SECTION});
 	print <<EOF;
-</table>
+<tr><td colspan=2 align=center><nobr>
 <input type=submit name="SUBMIT" value="OK">
 &nbsp;
-<input type=submit name="SUBMIT" value="Apply">
+<a name="apply"><input type=submit name="SUBMIT" value="Apply"></a>
 &nbsp;
 <input type=submit name="SUBMIT" value="Cancel">
 &nbsp;
 <input type=reset value="Reset">
-<table border=1>
+&nbsp;
+<input type=submit name="SUBMIT" value="Save">
+</nobr>
+<tr align=center><td width=50%>
+<table>
 <tr><td>Font size<br>
 <input type=submit name="fontsize_larger" value="Larger">
 <input type=submit name="fontsize_smaller" value="Smaller">
-EOF
-#<td>Wall picture<br>
-#EOF
-#	$k = 'wall_picture';
-#	print "<input type=text name=\"$k\" value=\"",
-#			&html_quote($value->{$k}), "\">\n";
-#	print "<input type=hidden name=\"default-$k\" value=\"",
-#			&html_quote($value->{$k}), "\">\n";
-#	print <<EOF;
-#<input type=submit name="wall_picture_off" value="Off">
-	print <<EOF;
-<td>Full Reset<br>
+</table>
+<td width=50%>
+<table>
+<tr><td>Full Reset<br>
 <input type=submit name="full_reset" value="Full Reset">
+</table>
 </table>
 </center>
 </form>
@@ -121,17 +142,23 @@ EOF
 sub make_section {
 	local($s) = @_;
 	local($attr) = $section_attr->{$s};
-	local($k);
+	local($k, $s2);
 
-	if ($attr->{col} < 0) {
-		return;
-	}
-	if (! $attr->{col}) {
-		print "<tr>";
+	print <<EOF;
+<tr><td colspan=2 align=center><nobr>
+<input type=hidden name="default-SECTION" value="$s">
+EOF
+	for $s2 (@section) {
+		if ($s eq $s2) {
+			print "<b>[<a name=\"pos\">$section_attr->{$s}{title}</a>]</b>\n";
+		} else {
+			print "<input type=submit name=\"SECTION\"",
+				" value=\"$section_attr->{$s2}{title}\">\n";
+		}
 	}
 	print <<EOF;
-<td align=left valign=top rowspan=$attr->{row}>
-<b>$attr->{title}</b>
+</nobr>
+<tr><td colspan=2 align=center>
 <table>
 EOF
 	for $k (@{$attr->{key}}) {
@@ -140,6 +167,16 @@ EOF
 	print <<EOF;
 </table>
 EOF
+	for $s2 (@section) {
+		$s eq $s2 && next;
+		$attr = $section_attr->{$s2};
+		for $k (@{$attr->{key}}) {
+			print "<input type=hidden name=\"$k\" value=\"",
+				&html_quote($value->{$k}), "\">\n";
+			print "<input type=hidden name=\"default-$k\" value=\"",
+				&html_quote($value->{"default-$k"}), "\">\n";
+		}
+	}
 }
 
 sub make_key {
@@ -163,7 +200,7 @@ sub make_key {
 	}
 	if ($type =~ /^text/) {
 		print "<input type=text name=\"$k\" value=\"",
-			&html_quote($value->{$k}), "\" size=15>\n";
+			&html_quote($value->{$k}), "\">\n";
 	} elsif ($type =~ /^select/) {
 		print "<select name=\"$k\">\n";
 		for $i (@{$attr->{item}}) {
@@ -177,11 +214,11 @@ sub make_key {
 		print "</select>\n";
 	} elsif ($type =~ /^radio/) {
 		for $i (@{$attr->{item}}) {
-			print "<input type=radio name=\"$k\" value=\"$i\"";
+			print "&nbsp;<input type=radio name=\"$k\" value=\"$i\"";
 			if ($value->{$k} eq "$i") {
 				print " checked";
 			}
-			print ">$item_attr->{$k}{$i}\n";
+			print "> $item_attr->{$k}{$i}\n";
 		}
 		print "</nobr>\n";
 	} elsif ($type =~ /^checkbox/) {
@@ -196,7 +233,7 @@ sub make_key {
 		return;
 	}
 	print "<input type=hidden name=\"default-$k\" value=\"",
-		&html_quote($value->{$k}), "\">\n";
+		&html_quote($value->{"default-$k"}), "\">\n";
 }
 
 sub check_value {
@@ -229,9 +266,14 @@ sub check_value {
 				$ok = 0;
 			}
 		}
-		$ok && next;
-		$value->{$k} = defined($value->{"default-$k"})
-			? $value->{"default-$k"} : $attr->{default};
+		if ($ok) {
+			if (!defined($value->{"default-$k"})) {
+				$value->{"default-$k"} = $value->{"$k"};
+			}
+		} else {
+			$value->{$k} = defined($value->{"default-$k"})
+				? $value->{"default-$k"} : $attr->{default};
+		}
 	}
 }
 
@@ -251,6 +293,7 @@ $DEBUG && print "DEBUG: get $_";
 		s/^\#${k}=// || next;
 		chop;
 		$value->{$k} = $_;
+		$value->{"default-$k"} = $_;
 	}
 	close(TTY);
 }
@@ -272,8 +315,96 @@ sub set_config {
 		$val->{$k} eq $value->{"default-$k"} && next;
 $DEBUG && print "DEBUG: set $k=$val->{$k}\n";
 		print TTY "\033]5379;$k=$val->{$k}\007";
+		$value->{"default-$k"} = $val->{$k};
 	}
 	close(TTY);
+}
+
+sub load_config {
+	local($_, $k);
+
+	open(F, "<$config_file") || return;
+	while (<F>) {
+		s/^(\w+)\s*=\s*// || next;
+		$k = $1;
+		$k =~ tr/A-Z/a-z/;
+		chomp;
+		$config->{$k} = $_;
+	}
+	close(F);
+}
+
+sub save_config {
+	local($k);
+	local($dir) = $config_file;
+
+	$dir =~ s@[^/]+$@@;
+	if (-d $dir) {
+		if (-f $config_file) {
+			rename($config_file, "$config_file.bak") || return;
+		}
+	} else {
+		mkdir($dir, 0700) || return;
+	}
+	open(F, ">$config_file") || return;
+	for $k (split(" ", $value->{KEYS})) {
+		print F "$k=$value->{$k}\n";
+	}
+	close(F);
+}
+
+sub make_save_config {
+	local($s, $attr, $k, $v, @ks);
+
+	print "Content-Type: text/html\n\n";
+	print <<EOF;
+<html>
+<head>
+<title>mlterm configuration</title>
+</head>
+<body>
+<center>
+<b>mlterm configuration</b>
+</center>
+<form action="$CGI" method=POST>
+<input type=hidden name="COOKIE" value="$local_cookie">
+<p>
+Do you save the configuration to $config_file ?
+<br>
+<input type=submit name="SAVE" value="Yes">
+<input type=submit name="SAVE" value="No">
+<hr>
+EOF
+	@ks = ();
+	for $s (@section) {
+		$attr = $section_attr->{$s};
+		for $k (@{$attr->{key}}) {
+			defined($config->{$k}) && delete $config->{$k};
+			$v = $value->{$k};
+			if ($key_attr->{$k}{type} eq 'none'
+				|| $key_attr->{$k}{default} eq '-'
+				|| $v eq $key_attr->{$k}{default}
+				|| $v eq '') {
+				next;
+			}
+			$v = &html_quote($v);
+			print "$k=$v<br>\n";
+			print "<input type=hidden name=\"$k\" value=\"$v\">\n";
+			push(@ks, $k);
+		}
+	}
+	for $k (sort keys %{$config}) {
+		$v = &html_quote($config->{$k});
+		print "$k=$v<br>\n";
+		print "<input type=hidden name=\"$k\" value=\"$v\">\n";
+		push(@ks, $k);
+	}
+	print <<EOF;
+<input type=hidden name=\"KEYS\" value=\"@ks\">
+</form>
+</body>
+</html>
+EOF
 }
 
 sub html_quote {

@@ -1,6 +1,6 @@
-# id		col	row	title
-encoding	0	2	Encoding
-color		1	1	Color
-scrollbar	0	1	Scrollbar
-appearance	0	1	Appearance
-others		1	1	Others
+# id		title
+encoding	Encoding
+color		Color
+scrollbar	Scrollbar
+appearance	Appearance
+others		Others

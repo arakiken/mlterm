@@ -3,5 +3,5 @@ logsize		text:digit	128	0	Backlog size (lines)
 mod_meta_mode	radio:lower	none	0	Meta key outputs:
 vertical_mode	radio:lower	none	0	Vertical mode
 bel_mode	radio:lower	sound	0	Bel mode
-use_dynamic_comb	checkbox	false	0	Combining=1(or 0) logical column(s)
-use_multi_column_char	checkbox	true	0	Fullwidth=2(or 1) logical column(s)
+use_dynamic_comb	checkbox	false	0	Combining = 1 (or 0) logical column(s)
+use_multi_column_char	checkbox	true	0	Fullwidth = 2 (or 1) logical column(s)

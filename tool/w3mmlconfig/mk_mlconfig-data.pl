@@ -2,11 +2,9 @@
 while(<>) {
 	/^#/ && next;
 	chop;
-	(($s, $c, $r, $t) = split(" ", $_, 4)) >= 4 || next;
+	(($s, $t) = split(" ", $_, 2)) >= 2 || next;
 	push(@section, $s);
 	$section_attr->{$s} = {
-		col => $c,
-		row => $r,
 		title => $t,
 		key => [],
 	};
@@ -21,8 +19,6 @@ print ");\n";
 print "\$section_attr = {\n";
 for $s (@section) {
 	print "\t$s => {\n";
-	print "\t\tcol => $section_attr->{$s}{col},\n";
-	print "\t\trow => $section_attr->{$s}{row},\n";
 	print "\t\ttitle => '$section_attr->{$s}{title}',\n";
 	print "\t\tkey => [\n";
 	for $k (@{$section_attr->{$s}{key}}) {

@@ -1,4 +1,7 @@
 scrollbar_mode	radio:lower	left	0	Position
 scrollbar_view_name	text	simple	0	View
-sb_fg_color	select:lower	black	0	Foreground color
-sb_bg_color	select:lower	white	0	Background color
+sb_fg_color	text:lower	black	0	Foreground color
+sb_bg_color	text:lower	white	0	Background color
+none		none		-	0	&nbsp;
+none		none		-	0	&nbsp;
+none		none		-	0	&nbsp;
