@@ -42,6 +42,7 @@ AC_FUNC_ALLOCA
 
 AC_C_INLINE
 AC_C_CONST
+AC_C_BIGENDIAN
 
 AC_CHECK_TYPE(u_char,unsigned char)
 AC_CHECK_TYPE(u_short,unsigned short)

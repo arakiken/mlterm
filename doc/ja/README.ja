@@ -67,6 +67,9 @@ comment $Id$
     --enable-debug
       デバッグバージョンをビルドします。
 
+    --enable-optimize-redrawing
+      行の再描画処理を高速化します。(但し、w3m-img で副作用が出ます)
+
     --disable-shared
       共有ライブラリを構築しません。
 
@@ -138,7 +141,7 @@ comment $Id$
   o mlterm configuration protocol
     設定変更のための専用シーケンスを定義しています。
     それを使うことによっても、設定の動的変更が可能です。
-    (see doc/en/PROTOCOL)
+    (see doc/en/PROTOCOL,doc/ja/README.confapp)
 
   o mlterm server
     mlterm は daemon process として動作することができます。
@@ -822,7 +825,6 @@ comment $Id$
 
 * 連絡先
   mlterm-dev-ja ML(http://lists.sourceforge.net/lists/listinfo/mlterm-dev-ja)
-  までお願いします。
 
 * 利用に際しての条件
   BSDライセンスとします。詳細は附属のLICENCEファイルを参照。

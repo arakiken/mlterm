@@ -7,6 +7,7 @@
 
 
 #include  <kiklib/kik_types.h>
+#include  <kiklib/kik_def.h>	/* WORDS_BIGENDIAN */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <mkf/mkf_charset.h>	/* mkf_charset_t */
 
@@ -35,6 +36,7 @@ typedef struct ml_char
 	{
 		struct
 		{
+		#ifdef  WORDS_BIGENDIAN
 			/* 32 bit */
 			u_char  bytes[MAX_CHAR_SIZE] ;
 			
@@ -55,7 +57,10 @@ typedef struct ml_char
 			 * 1 bit : is_single_ch(0 or 1)
 			 */
 			u_int32_t  attr ;
-
+		#else
+			u_int32_t  attr ;
+			u_char  bytes[MAX_CHAR_SIZE] ;
+		#endif
 		} ch ;
 
 		/*

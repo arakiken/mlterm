@@ -2,6 +2,11 @@
  *	$Id$
  */
 
+/*
+ * Don't include directly this header.
+ * Include kik_def.h, kik_types.h etc...
+ */
+ 
 #ifndef  __KIK_CONFIG_H__
 #define  __KIK_CONFIG_H__
 
@@ -11,6 +16,8 @@
 #undef  HAVE_DL_H
 
 #undef  HAVE_DLFCN_H
+
+#undef  WORDS_BIGENDIAN
 
 #undef  HAVE_STRSEP
 

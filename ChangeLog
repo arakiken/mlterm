@@ -1,3 +1,7 @@
+2003-09-25  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_char.[ch]: Supported little endian machines in 64bit.
+
 2003-09-21  Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* x_window.c(x_window_receive_event): Fixed incorrect width and/or
