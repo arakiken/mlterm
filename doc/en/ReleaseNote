@@ -1,3 +1,14 @@
+ver 2.8.0(rc1)
+* Added contrib/scrollbar/pixmap_engine, which eases adding your original scrollbars
+  to mlterm.
+* Shrunk used memory if many font names specified in ~/.mlterm/*font files.
+* Added tool/viewsfml.
+* Garbage characters were often left in a screen. Fixed.
+* Partially ported kiklib to MS Windows.
+* Added -%,--logseq,logging_vt_seq option.
+* Revivied mlterm configuration protocol 5380, added mlcc and w3mmlconfig again.
+* Supported window grouping.
+
 ver 2.7.0
 * Supported pty switching in the same window.(see doc/ja/README.ja in detail for the Japanese.)
 * Supported koi8-t,georgian-ps,cp1251 and cp1255. 
