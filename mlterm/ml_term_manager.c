@@ -12,11 +12,12 @@
 #include  "ml_config_proto.h"
 
 
+#define  MAX_TERMS  (8*sizeof(dead_mask))
+
+
 /* --- static variables --- */
 
 static u_long  dead_mask ;
-#define  MAX_TERMS  (8*sizeof(dead_mask))
-
 static ml_term_t *  terms[MAX_TERMS] ;
 static u_int  num_of_terms ;
 static char *  pty_list ;

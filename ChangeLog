@@ -1,3 +1,9 @@
+2003-09-15  Araki Ken  <arakiken@users.sf.net>
+
+	* x_term_manager.c(start_daemon,client_connected): If multiple mlterms
+	  started with -j {genuine|blend} option, both of or either of them
+	  could die. Fixed.
+
 2003-09-15  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* x_term_manager.c:

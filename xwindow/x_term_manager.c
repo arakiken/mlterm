@@ -34,6 +34,9 @@
 #include  "ml_term_manager.h"
 
 
+#define  MAX_SCREENS  (8*sizeof(dead_mask))
+
+
 typedef struct main_config
 {
 	int  x ;
@@ -112,7 +115,6 @@ typedef struct main_config
 static x_screen_t **  screens ;
 static u_int  num_of_screens ;
 static u_long  dead_mask ;
-#define  MAX_SCREENS  (8*sizeof(u_long))
 
 static u_int  num_of_startup_screens ;
 static u_int  num_of_startup_ptys ;
@@ -871,19 +873,28 @@ start_daemon(void)
 		{
 			if( connect( sock_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
 			{
+				close( sock_fd) ;
+				
 				kik_msg_printf( "daemon is already running.\n") ;
+				
 				return  -1 ;
 			}
 
 			kik_msg_printf( "removing stale lock file %s.\n" , path) ;
-			if( unlink( path) == 0) continue ;
+			
+			if( unlink( path) == 0)
+			{
+				continue ;
+			}
 		}
+		else
+		{
+			close( sock_fd) ;
 
-		close( sock_fd) ;
+			kik_msg_printf( "failed to lock file %s: %s\n" , path , strerror(errno)) ;
 
-		kik_msg_printf( "failed to lock file %s: %s\n" , path , strerror(errno)) ;
-
-		return  -1 ;
+			return  -1 ;
+		}
 	}
 
 	pid = fork() ;
@@ -1914,19 +1925,19 @@ client_connected(void)
 
 	if( ( fp = fdopen( fd , "r+")) == NULL)
 	{
-		goto  error ;
+		goto  crit_error ;
 	}
 
 	if( ( from = kik_file_new( fp)) == NULL)
 	{
-		goto  error ;
+		goto  crit_error ;
 	}
 
 	if( ( line = kik_file_get_line( from , &line_len)) == NULL)
 	{
 		kik_file_delete( from) ;
 		
-		goto  error ;
+		goto  crit_error ;
 	}
 
 	if( ( args = alloca( line_len)) == NULL)
@@ -2130,17 +2141,19 @@ parse_end:
 error:
 	{
 		char  msg[] = "Error happened.\n" ;
-		
-		write( fd , msg , sizeof( msg)) ;
 
-		if( fp)
-		{
-			fclose( fp) ;
-		}
-		else
-		{
-			close( fd) ;
-		}
+		write( fd , msg , sizeof( msg)) ;
+	}
+
+	/* If fd may be invalid, jump to here directly. */
+crit_error:
+	if( fp)
+	{
+		fclose( fp) ;
+	}
+	else
+	{
+		close( fd) ;
 	}
 }
 
