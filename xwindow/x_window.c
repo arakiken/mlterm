@@ -208,12 +208,6 @@ notify_configure_to_children(
 			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 		}
 	}
-#ifdef  USE_UIM /* FIXME */
-	else
-	{
-		(*win->window_exposed)( win , 0 , 0 , 0 , 0) ;
-	}
-#endif
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -1336,6 +1330,44 @@ x_window_set_normal_hints(
 }
 
 int
+x_window_set_override_redirect(
+	x_window_t *  win ,
+	int  flag
+	)
+{
+	x_window_t *  root ;
+
+	root = x_get_root_window(win) ;
+
+	XSetWindowAttributes  s_attr ;
+	XWindowAttributes  g_attr ;
+
+	XGetWindowAttributes( root->display , root->my_window , &g_attr) ;
+	if( flag)
+	{
+		s_attr.override_redirect = True ;
+	}
+	else
+	{
+		s_attr.override_redirect = False ;
+	}
+
+	if( g_attr.override_redirect == s_attr.override_redirect)
+	{
+		return  1 ;
+	}
+
+	XChangeWindowAttributes( root->display , root->my_window ,
+				 CWOverrideRedirect , &s_attr) ;
+
+	if( g_attr.map_state != IsUnmapped)
+	{
+		XUnmapWindow( root->display , root->my_window) ;
+		XMapWindow( root->display , root->my_window) ;
+	}
+}
+
+int
 x_window_set_borderless_flag(
 	x_window_t *  win ,
 	int  flag
@@ -1375,33 +1407,7 @@ x_window_set_borderless_flag(
 	else
 	{
 		/* fall back to override redirect */
-
-		XSetWindowAttributes  s_attr ;
-		XWindowAttributes  g_attr ;
-
-		XGetWindowAttributes( root->display , root->my_window , &g_attr) ;
-		if( flag)
-		{
-			s_attr.override_redirect = True ;
-		}
-		else
-		{
-			s_attr.override_redirect = False ;
-		}
-
-		if( g_attr.override_redirect == s_attr.override_redirect)
-		{
-			return  1 ;
-		}
-
-		XChangeWindowAttributes( root->display , root->my_window ,
-					 CWOverrideRedirect , &s_attr) ;
-
-		if( g_attr.map_state != IsUnmapped)
-		{
-			XUnmapWindow( root->display , root->my_window) ;
-			XMapWindow( root->display , root->my_window) ;
-		}
+		x_window_set_override_redirect( win , flag) ;
 	}
 
 	return  1 ;

@@ -34,12 +34,11 @@
 #include  "x_display.h"
 #include  "x_termcap.h"
 #include  "x_imagelib.h"
-#ifdef  USE_UIM
-#include "x_uim.h"
-#endif
+#include  "x_im_candidate_screen.h"
 
 #define  MAX_SCREENS  (8*sizeof(dead_mask))
 
+#define MAX_ADDTIONAL_FDS  3
 
 /* --- static variables --- */
 
@@ -64,6 +63,12 @@ static int  sock_fd ;
 static char *  un_file ;
 static int8_t  is_genuine_daemon ;
 
+static struct
+{
+	int  fd ;
+	void (*handler)( void) ;
+
+} additional_fds[MAX_ADDTIONAL_FDS] ;
 
 /* --- static functions --- */
 
@@ -412,7 +417,7 @@ open_screen_intern(
 			main_config.conf_menu_path_2 , main_config.conf_menu_path_3 ,
 			main_config.use_extended_scroll_shortcut ,
 			main_config.borderless , main_config.line_space ,
-			main_config.uim_engine)) == NULL)
+			main_config.input_method)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_screen_new() failed.\n") ;
@@ -1245,15 +1250,13 @@ receive_next_event(void)
 	int  ptyfd ;
 	int  maxfd ;
 	int  ret ;
+	int  i ;
 	fd_set  read_fds ;
 	struct timeval  tval ;
 	x_display_t **  displays ;
 	u_int  num_of_displays ;
 	ml_term_t **  terms ;
 	u_int  num_of_terms ;
-#ifdef  USE_UIM
-	int  uim_sock_fd ;
-#endif
 
 	num_of_terms = ml_get_all_terms( &terms) ;
 	
@@ -1316,17 +1319,18 @@ receive_next_event(void)
 			}
 		}
 
-	#ifdef  USE_UIM
-		if( ( uim_sock_fd = x_uim_get_helper_fd()) >= 0)
+		for( i = 0 ; i < MAX_ADDTIONAL_FDS ; i++)
 		{
-			FD_SET( uim_sock_fd , &read_fds) ;
-			
-			if( uim_sock_fd > maxfd)
+			if( additional_fds[i].fd >= 0)
 			{
-				maxfd = uim_sock_fd ;
+				FD_SET( additional_fds[i].fd , &read_fds) ;
+				
+				if( additional_fds[i].fd > maxfd)
+				{
+					maxfd = additional_fds[i].fd ;
+				}
 			}
 		}
-	#endif
 
 		if( ( ret = select( maxfd + 1 , &read_fds , NULL , NULL , &tval)) != 0)
 		{
@@ -1349,7 +1353,7 @@ receive_next_event(void)
 	/*
 	 * Processing order should be as follows.
 	 *
-	 * PTY -> X WINDOW -> Socket
+	 * PTY -> X WINDOW -> Socket -> additional_fds
 	 */
 	 
 	for( count = 0 ; count < num_of_terms ; count ++)
@@ -1376,15 +1380,18 @@ receive_next_event(void)
 		}
 	}
 
-#ifdef  USE_UIM
-	if( uim_sock_fd >= 0)
+	for( i = 0 ; i < MAX_ADDTIONAL_FDS ; i++)
 	{
-		if( FD_ISSET( uim_sock_fd , &read_fds))
+		if( additional_fds[i].fd >= 0)
 		{
-			x_uim_parse_helper_messege() ;
+			if( FD_ISSET( additional_fds[i].fd , &read_fds))
+			{
+				(*additional_fds[i].handler)() ;
+
+				break ;
+			}
 		}
 	}
-#endif
 }
 
 
@@ -1402,9 +1409,7 @@ x_term_manager_init(
 	u_int  min_font_size ;
 	u_int  max_font_size ;
 	char *  rcpath ;
-#ifdef  USE_UIM
-	int  use_uim ;
-#endif
+	int  i ;
 
 	if( ! x_color_config_init( &color_config))
 	{
@@ -1497,10 +1502,6 @@ x_term_manager_init(
 #endif
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
 		"use XIM (X Input Method) [true]") ;
-#ifdef  USE_UIM
-	kik_conf_add_opt( conf , '\0' , "uim" , 1 , "use_uim" , 
-		"use uim [false]") ;
-#endif
 	kik_conf_add_opt( conf , 'j' , "daemon" , 0 , "daemon_mode" ,
 		"start as a daemon [none/blend/genuine]") ;
 
@@ -1574,20 +1575,6 @@ x_term_manager_init(
 	}
 
 	x_xim_init( use_xim) ;
-
-#ifdef  USE_UIM
-	use_uim = 0 ;
-	
-	if( ( value = kik_conf_get_value( conf , "use_uim")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			use_uim = 1 ;
-		}
-	}
-	
-	x_uim_init( use_uim) ;
-#endif
 
 	if( ( value = kik_conf_get_value( conf , "click_interval")))
 	{
@@ -1716,6 +1703,12 @@ x_term_manager_init(
 	
 	kik_alloca_garbage_collect() ;
 	
+	for( i = 0 ; i < MAX_ADDTIONAL_FDS ; i++)
+	{
+		additional_fds[i].fd = -1 ;
+		additional_fds[i].handler = NULL ;
+	}
+
 	return  1 ;
 }
 
@@ -1833,3 +1826,50 @@ x_term_manager_event_loop(void)
 		kik_alloca_end_stack_frame() ;
 	}
 }
+
+int
+x_term_manager_add_fd(
+	int fd ,
+	void (*handler)(void)
+	)
+{
+	int  i ;
+
+	if( ! handler)
+	{
+		return  1 ;
+	}
+
+	for( i = 0 ; i < MAX_ADDTIONAL_FDS ; i++)
+	{
+		if( additional_fds[i].fd == -1)
+		{
+			additional_fds[i].fd = fd ;
+			additional_fds[i].handler = handler ;
+
+			return  0 ;
+		}
+	}
+
+	return  1 ;
+}
+
+int
+x_term_manager_remove_fd( int fd)
+{
+	int  i ;
+
+	for( i = 0 ; i < MAX_ADDTIONAL_FDS ; i++)
+	{
+		if( additional_fds[i].fd == fd)
+		{
+			additional_fds[i].fd = -1 ;
+			additional_fds[i].handler = NULL ;
+
+			return  0 ;
+		}
+	}
+
+	return  1 ;
+}
+

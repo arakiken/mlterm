@@ -17,10 +17,7 @@
 #include  "x_bel_mode.h"
 #include  "x_sb_mode.h"
 #include  "x_kbd.h"
-
-#ifdef  USE_UIM
-#include  "x_uim.h"
-#endif
+#include  "x_im.h"
 
 typedef struct x_screen *  x_screen_ptr_t ;
 
@@ -91,19 +88,18 @@ typedef struct  x_screen
 
 	x_sel_event_listener_t  sel_listener ;
 	x_xim_event_listener_t  xim_listener ;
-#ifdef USE_UIM
-	x_uim_event_listener_t  uim_listener ;
-#endif
+	x_im_event_listener_t  im_listener ;
 
 	x_shortcut_t *  shortcut ;
 	x_termcap_entry_t *  termcap ;
 
 	x_kbd_t *  kbd ;
-#ifdef USE_UIM
-	x_uim_t *  uim ;
-	char *  uim_engine ;
-	u_int  uim_saved_preedit_len ;
-#endif
+
+	char *  input_method ;
+	x_im_t *  im ;
+	int  is_preediting ;
+	u_int  im_preedit_beg_row ;
+	u_int  im_preedit_end_row ;
 
 	char *  mod_meta_key ;
 	x_mod_meta_mode_t  mod_meta_mode ;
@@ -163,7 +159,7 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	int  use_transbg , int  use_vertical_cursor , int  big5_buggy ,
 	char *  conf_menu_path_1 , char *  conf_menu_path_2 , char *  conf_menu_path_3 ,
 	int  use_extended_scroll_shortcut , int  borderless , u_int  line_space ,
-	char *  uim_engine) ;
+	char *  input_method) ;
 
 int  x_screen_delete( x_screen_t *  screen) ;
 

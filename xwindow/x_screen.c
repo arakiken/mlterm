@@ -23,10 +23,7 @@
 #include  "ml_str_parser.h"
 #include  "x_xic.h"
 #include  "x_picture.h"
-
-#ifdef  USE_UIM
-#include  "x_uim.h"
-#endif
+#include  "x_draw_str.h"
 
 /*
  * XXX
@@ -72,958 +69,12 @@
 #define  __DEBUG
 #endif
 
-#if  0
-#define  PERF_DEBUG
-#endif
-
 #if  1
 #define  NL_TO_CR_IN_PAST_TEXT
 #endif
 
 
 /* --- static functions --- */
-
-/*
- * Not used for now.
- */
-#if  0
-static int
-char_combining_is_supported(
-	mkf_charset_t  cs
-	)
-{
-	/*
-	 * some thai fonts (e.g. -thai-fixed-medium-r-normal--14-100-100-100-m-70-tis620.2529-1
-	 * distributed by ZzzThai(http://zzzthai.fedu.uec.ac.jp/ZzzThai/))
-	 * automatically draws combining chars ...
-	 */
-	if( cs == TIS620_2533)
-	{
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-#else
-#define  char_combining_is_supported(cs)  0
-#endif
-
-
-/*
- * drawing string
- */
-
-#ifdef  USE_TYPE_XFT
-
-static int
-xft_draw_combining_chars(
-	x_screen_t *  screen ,
-	ml_char_t *  chars ,
-	u_int  size ,
-	int  x ,
-	int  y
-	)
-{
-	int  count ;
-	u_char *  ch_bytes ;
-	size_t  ch_size ;
-	mkf_charset_t  ch_cs ;
-
-	for( count = 0 ; count < size ; count ++)
-	{
-		ch_bytes = ml_char_bytes( &chars[count]) ;
-		ch_size = ml_char_size( &chars[count]) ;
-		ch_cs = ml_char_cs( &chars[count]) ;
-
-		if( ch_cs == DEC_SPECIAL)
-		{
-			x_window_draw_decsp_string( &screen->window ,
-				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
-				x_get_color( screen->color_man , ml_char_fg_color( &chars[count])) ,
-				NULL , x , y , ch_bytes , ch_size) ;
-		}
-		else if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
-		{
-			x_window_xft_draw_string8( &screen->window ,
-				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
-				x_get_color( screen->color_man , ml_char_fg_color( &chars[count])) ,
-				x , y , ch_bytes , ch_size) ;
-		}
-		else
-		{
-			XftChar32  xch ;
-
-			char  ucs4_bytes[4] ;
-
-			if( ! ml_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
-			{
-				return  0 ;
-			}
-
-			xch = ((ucs4_bytes[0] << 24) & 0xff000000) |
-				((ucs4_bytes[1] << 16) & 0xff0000) |
-				((ucs4_bytes[2] << 8) & 0xff00) |
-				(ucs4_bytes[3] & 0xff) ;
-
-			x_window_xft_draw_string32( &screen->window ,
-				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
-				x_get_color( screen->color_man , ml_char_fg_color( &chars[count])) ,
-				x , y , &xch , 1) ;
-		}
-	}
-
-	return  1 ;
-}
-
-static int
-xft_draw_str(
-	x_screen_t *  screen ,
-	u_int *  updated_width ,
-	ml_char_t *  chars ,
-	u_int  num_of_chars ,
-	int  x ,
-	int  y ,
-	u_int  height ,
-	u_int  std_height_to_baseline ,
-	u_int  top_margin ,
-	u_int  bottom_margin
-	)
-{
-	int  count ;
-	int  start_draw ;
-	int  end_of_str ;
-	u_int  height_to_baseline ;
-	u_int	current_width ;
-	XftChar8 *  str8 ;
-	XftChar32 *  str32 ;
-	u_int	str_len ;
-	int  state ;
-	int  next_state ;
-
-	u_char *  ch_bytes ;
-	size_t  ch_size ;
-	u_int  ch_width ;
-	mkf_charset_t  ch_cs ;
-	x_font_t *  xfont ;
-	ml_color_t  fg_color ;
-	ml_color_t  bg_color ;
-	int  is_underlined ;
-	ml_char_t *  comb_chars ;
-	u_int  comb_size ;
-
-	x_font_t *  next_xfont ;
-	ml_color_t  next_fg_color ;
-	ml_color_t  next_bg_color ;
-	int  next_is_underlined ;
-	u_int  next_ch_width ;
-
-#ifdef  PERF_DEBUG
-	int  draw_count = 0 ;
-#endif
-
-	if( x > screen->window.width || y + height > screen->window.height)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " drawing string in overflowed area.(x %d y %d h %d)\n" ,
-			x , y , height) ;
-	#endif
-
-		return  0 ;
-	}
-
-	if( num_of_chars == 0)
-	{
-	#ifdef	__DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " input chars length is 0(x_window_draw_str).\n") ;
-	#endif
-
-		return	1 ;
-	}
-
-	start_draw = 0 ;
-	end_of_str = 0 ;
-
-	x = x ;
-	y = y ;
-
-	count = 0 ;
-
-	ch_bytes = ml_char_bytes( &chars[count]) ;
-	ch_size = ml_char_size( &chars[count]) ;
-	ch_cs = ml_char_cs( &chars[count]) ;
-
-	if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
-	{
-		state = 0 ;
-	}
-	else if( ch_cs == DEC_SPECIAL)
-	{
-		state = 1 ;
-	}
-	else
-	{
-		state = 2 ;
-	}
-
-	xfont = x_get_font( screen->font_man , ml_char_font( &chars[count])) ;
-
-	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
-	current_width = x + ch_width ;
-
-	fg_color = ml_char_fg_color( &chars[count]) ;
-	bg_color = ml_char_bg_color( &chars[count]) ;
-
-	is_underlined = ml_char_is_underlined( &chars[count]) ;
-
-	if( ( str8 = alloca( sizeof( XftChar8) * num_of_chars)) == NULL)
-	{
-		return	0 ;
-	}
-
-	if( ( str32 = alloca( sizeof( XftChar32) * num_of_chars)) == NULL)
-	{
-		return  0 ;
-	}
-
-	str_len = 0 ;
-
-	while( 1)
-	{
-		if( state == 0)
-		{
-			str8[str_len++] = ch_bytes[0] ;
-		}
-		else if( state == 1)
-		{
-			str8[str_len++] = ch_bytes[0] ;
-		}
-		else /* if( state == 2) */
-		{
-			char  ucs4_bytes[4] ;
-
-			if( ! ml_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " strange character , ignored.\n") ;
-			#endif
-
-				ucs4_bytes[0] = 0 ;
-				ucs4_bytes[1] = 0 ;
-				ucs4_bytes[2] = 0 ;
-				ucs4_bytes[3] = 0x20 ;
-			}
-
-			str32[str_len++] = ((ucs4_bytes[0] << 24) & 0xff000000) |
-				((ucs4_bytes[1] << 16) & 0xff0000) | ((ucs4_bytes[2] << 8) & 0xff00) |
-				(ucs4_bytes[3] & 0xff) ;
-		}
-
-		comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
-
-		/*
-		 * next character.
-		 */
-
-		count ++ ;
-
-		if( count >= num_of_chars)
-		{
-			start_draw = 1 ;
-			end_of_str = 1 ;
-		}
-		else
-		{
-			ch_bytes = ml_char_bytes( &chars[count]) ;
-			ch_size = ml_char_size( &chars[count]) ;
-			ch_cs = ml_char_cs( &chars[count]) ;
-			next_fg_color = ml_char_fg_color( &chars[count]) ;
-			next_bg_color = ml_char_bg_color( &chars[count]) ;
-			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
-			next_xfont = x_get_font( screen->font_man , ml_char_font( &chars[count])) ;
-
-			if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
-			{
-				next_state = 0 ;
-			}
-			else if( ch_cs == DEC_SPECIAL)
-			{
-				next_state = 1 ;
-			}
-			else
-			{
-				next_state = 2 ;
-			}
-
-			next_ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
-
-			if( current_width + next_ch_width > screen->window.width)
-			{
-				start_draw = 1 ;
-				end_of_str = 1 ;
-			}
-			/*
-			 * !! Notice !!
-			 * next_xfont != xfont doesn't necessarily detect change of 'state'
-			 * (for example, same Unicode font is used for both US_ASCII/ISO8859_1
-			 * and other half-width unicode characters), 'next_state' is necessary.
-			 */
-			else if( next_xfont != xfont
-				|| next_fg_color != fg_color
-				|| next_bg_color != bg_color
-				|| next_is_underlined != is_underlined
-				|| (is_underlined && xfont->is_vertical)
-				|| (next_is_underlined && xfont->is_vertical)
-				|| comb_chars != NULL
-				|| state != next_state
-				|| (next_xfont->is_proportional && ! next_xfont->is_var_col_width)
-				|| (xfont->is_proportional && ! xfont->is_var_col_width))
-			{
-				start_draw = 1 ;
-			}
-			else
-			{
-				start_draw = 0 ;
-			}
-		}
-
-		if( start_draw)
-		{
-			/*
-			 * status is changed.
-			 */
-
-		#ifdef  PERF_DEBUG
-			draw_count ++ ;
-		#endif
-
-			if( height == xfont->height)
-			{
-				height_to_baseline = xfont->height_to_baseline ;
-			}
-			else
-			{
-				height_to_baseline = std_height_to_baseline ;
-			}
-
-			/*
-			 * clearing background
-			 */
-			if( screen->window.wall_picture_is_set && bg_color == ML_BG_COLOR)
-			{
-				x_window_clear( &screen->window ,
-					x , y , current_width - x , height) ;
-			}
-			else
-			{
-				x_window_fill_with( &screen->window ,
-					x_get_color( screen->color_man , bg_color)->pixel ,
-					x , y , current_width - x , height) ;
-			}
-
-			/*
-			 * drawing string
-			 */
-			if( state == 0)
-			{
-				x_window_xft_draw_string8( &screen->window ,
-					xfont , x_get_color( screen->color_man , fg_color) ,
-					x , y + height_to_baseline , str8 , str_len) ;
-			}
-			else if( state == 1)
-			{
-				x_window_draw_decsp_string( &screen->window , xfont ,
-					x_get_color( screen->color_man , fg_color) , NULL ,
-					x , y + height_to_baseline , str8 , str_len) ;
-			}
-			else /* if( state == 2) */
-			{
-				x_window_xft_draw_string32( &screen->window ,
-					xfont , x_get_color( screen->color_man , fg_color) ,
-					x , y + height_to_baseline , str32 , str_len) ;
-			}
-
-			if( comb_chars)
-			{
-				xft_draw_combining_chars( screen , comb_chars , comb_size ,
-					current_width - ch_width , y + height_to_baseline) ;
-			}
-
-			if( is_underlined)
-			{
-				if( xfont->is_vertical)
-				{
-					x_window_fill_with( &screen->window ,
-						x_get_color( screen->color_man , fg_color)->pixel ,
-						x , y , (ch_width>>4) + 1 , height) ;
-				}
-				else
-				{
-					x_window_fill_with( &screen->window ,
-						x_get_color( screen->color_man , fg_color)->pixel ,
-						x , y + height_to_baseline ,
-						current_width - x , ((height_to_baseline - bottom_margin)>>4) +1 ) ;
-				}
-			}
-
-			start_draw = 0 ;
-
-			x = current_width ;
-			str_len = 0 ;
-		}
-
-		if( end_of_str)
-		{
-			break ;
-		}
-
-		is_underlined = next_is_underlined ;
-		xfont = next_xfont ;
-		fg_color = next_fg_color ;
-		bg_color = next_bg_color ;
-		state = next_state ;
-		current_width += (ch_width = next_ch_width) ;
-	}
-
-	if( updated_width != NULL)
-	{
-		*updated_width = current_width ;
-	}
-
-#ifdef  PERF_DEBUG
-	kik_debug_printf( " drawing %d times in a line.\n" , draw_count) ;
-#endif
-
-	return	1 ;
-}
-
-#endif
-
-#ifdef  USE_TYPE_XCORE
-
-static int
-x_draw_combining_chars(
-	x_screen_t *  screen ,
-	ml_char_t *  chars ,
-	u_int  size ,
-	int  x ,
-	int  y
-	)
-{
-	int  count ;
-	u_char *  ch_bytes ;
-	size_t  ch_size ;
-
-	for( count = 0 ; count < size ; count ++)
-	{
-		ch_bytes = ml_char_bytes( &chars[count]) ;
-		ch_size = ml_char_size( &chars[count]) ;
-
-		if( ml_char_cs( &chars[count]) == DEC_SPECIAL)
-		{
-			x_window_draw_decsp_string( &screen->window ,
-				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
-				x_get_color( screen->color_man , ml_char_fg_color( &chars[count])) ,
-				NULL , x , y , ch_bytes , 1) ;
-		}
-		else if( ch_size == 1)
-		{
-			x_window_draw_string( &screen->window ,
-				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
-				x_get_color( screen->color_man , ml_char_fg_color( &chars[count])) ,
-				x , y , ch_bytes , 1) ;
-		}
-		else if( ch_size == 2)
-		{
-			XChar2b  xch ;
-
-			xch.byte1 = ch_bytes[0] ;
-			xch.byte2 = ch_bytes[1] ;
-
-			x_window_draw_string16( &screen->window ,
-				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
-				x_get_color( screen->color_man , ml_char_fg_color( &chars[count])) ,
-				x , y , &xch , 1) ;
-		}
-		else if( ch_size == 4 && ch_bytes[0] == '\0' && ch_bytes[1] == '\0')
-		{
-			/* UCS4 */
-
-			XChar2b  xch ;
-
-			xch.byte1 = ch_bytes[2] ;
-			xch.byte2 = ch_bytes[3] ;
-
-			x_window_draw_string16( &screen->window ,
-				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
-				x_get_color( screen->color_man , ml_char_fg_color( &chars[count])) ,
-				x , y , &xch , 1) ;
-		}
-	#ifdef  DEBUG
-		else
-		{
-			kik_warn_printf( KIK_DEBUG_TAG " strange character , ignored.\n") ;
-		}
-	#endif
-	}
-
-	return  1 ;
-}
-
-static int
-x_draw_str(
-	x_screen_t *  screen ,
-	u_int *  updated_width ,
-	ml_char_t *  chars ,
-	u_int  num_of_chars ,
-	int  x ,
-	int  y ,
-	u_int  height ,
-	u_int  std_height_to_baseline ,
-	u_int  top_margin ,
-	u_int  bottom_margin
-	)
-{
-	int  count ;
-	int  start_draw ;
-	int  end_of_str ;
-	u_int  height_to_baseline ;
-	u_int	current_width ;
-	u_char *  str ;
-	XChar2b *  str2b ;
-	u_int	str_len ;
-	int  state ;			/* 0(8bit),1(decsp),2(16bit) */
-	int  next_state ;
-	ml_char_t *  comb_chars ;
-	u_int  comb_size ;
-
-	u_char *  ch_bytes ;
-	size_t  ch_size ;
-	mkf_charset_t  ch_cs ;
-	u_int  ch_width ;
-	x_font_t *  xfont ;
-	ml_color_t  fg_color ;
-	ml_color_t  bg_color ;
-	int  is_underlined ;
-
-	u_int  next_ch_width ;
-	x_font_t *  next_xfont ;
-	ml_color_t  next_fg_color ;
-	ml_color_t  next_bg_color ;
-	int  next_is_underlined ;
-
-#ifdef  PERF_DEBUG
-	int  draw_count = 0 ;
-#endif
-
-	if( x > screen->window.width || y + height > screen->window.height)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " drawing string in overflowed area.(x %d y %d h %d)\n" ,
-			x , y , height) ;
-	#endif
-
-		return  0 ;
-	}
-
-	if( num_of_chars == 0)
-	{
-	#ifdef	__DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " input chars length is 0(x_window_draw_str).\n") ;
-	#endif
-
-		return	1 ;
-	}
-
-	count = 0 ;
-
-	start_draw = 0 ;
-	end_of_str = 0 ;
-
-	x = x ;
-	y = y ;
-
-	ch_bytes = ml_char_bytes( &chars[count]) ;
-	ch_size = ml_char_size( &chars[count]) ;
-	ch_cs = ml_char_cs( &chars[count]) ;
-
-	if( ch_cs == DEC_SPECIAL)
-	{
-		state = 1 ;
-	}
-	else if( ch_size == 1)
-	{
-		state = 0 ;
-	}
-	else /* if( ch_size == 2 || ch_size == 4) */
-	{
-		state = 2 ;
-	}
-
-	xfont = x_get_font( screen->font_man , ml_char_font( &chars[count])) ;
-
-	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
-	current_width = x + ch_width ;
-
-	fg_color = ml_char_fg_color( &chars[count]) ;
-	bg_color = ml_char_bg_color( &chars[count]) ;
-	is_underlined = ml_char_is_underlined( &chars[count]) ;
-
-	if( ( str = alloca( sizeof( char) * num_of_chars)) == NULL)
-	{
-		return	0 ;
-	}
-
-	if( ( str2b = alloca( sizeof( XChar2b) * num_of_chars)) == NULL)
-	{
-		return	0 ;
-	}
-
-	str_len = 0 ;
-
-	while( 1)
-	{
-		if( ch_size == 1)
-		{
-			str[str_len++] = ch_bytes[0] ;
-		}
-		else if( ch_size == 2)
-		{
-			str2b[str_len].byte1 = ch_bytes[0] ;
-			str2b[str_len].byte2 = ch_bytes[1] ;
-			str_len ++ ;
-		}
-		else if( ch_size == 4 && ch_bytes[0] == '\0' && ch_bytes[1] == '\0')
-		{
-			/* UCS4 */
-
-			str2b[str_len].byte1 = ch_bytes[2] ;
-			str2b[str_len].byte2 = ch_bytes[3] ;
-			str_len ++ ;
-		}
-		else
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " strange character , ignored.\n") ;
-		#endif
-
-			if( state)
-			{
-				str2b[str_len].byte1 = '\x20' ;
-				str2b[str_len].byte2 = '\x20' ;
-				str_len ++ ;
-			}
-			else /* if( ch_size == 1) */
-			{
-				str[str_len++] = '\x20' ;
-			}
-		}
-
-		comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
-
-		/*
-		 * next character.
-		 */
-
-		count ++ ;
-
-		if( count >= num_of_chars)
-		{
-			start_draw = 1 ;
-			end_of_str = 1 ;
-		}
-		else
-		{
-			ch_bytes = ml_char_bytes( &chars[count]) ;
-			ch_size = ml_char_size( &chars[count]) ;
-			ch_cs = ml_char_cs( &chars[count]) ;
-			next_fg_color = ml_char_fg_color( &chars[count]) ;
-			next_bg_color = ml_char_bg_color( &chars[count]) ;
-			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
-			next_xfont = x_get_font( screen->font_man ,  ml_char_font( &chars[count])) ;
-
-			if( ch_cs == DEC_SPECIAL)
-			{
-				next_state = 1 ;
-			}
-			else if( ch_size == 1)
-			{
-				next_state = 0 ;
-			}
-			else /* if( ch_size == 2 || ch_size == 4) */
-			{
-				next_state = 2 ;
-			}
-
-			next_ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
-
-			if( current_width + next_ch_width > screen->window.width)
-			{
-				start_draw = 1 ;
-				end_of_str = 1 ;
-			}
-			/*
-			 * !! Notice !!
-			 * next_xfont != xfont doesn't necessarily detect change of 'state'
-			 * (for example, same Unicode font is used for both US_ASCII/ISO8859_1
-			 * and other half-width unicode characters), 'next_state' is necessary.
-			 */
-			else if( next_xfont != xfont
-				|| next_fg_color != fg_color
-				|| next_bg_color != bg_color
-				|| next_is_underlined != is_underlined
-				|| (is_underlined && xfont->is_vertical)
-				|| (next_is_underlined && xfont->is_vertical)
-				|| next_state != state
-				|| comb_chars != NULL
-				|| (next_xfont->is_proportional && ! next_xfont->is_var_col_width)
-				|| (xfont->is_proportional && ! xfont->is_var_col_width))
-			{
-				start_draw = 1 ;
-			}
-			else
-			{
-				start_draw = 0 ;
-			}
-		}
-
-		if( start_draw)
-		{
-			/*
-			 * status is changed.
-			 */
-
-		#ifdef  PERF_DEBUG
-			draw_count ++ ;
-		#endif
-
-			if( xfont->height == height)
-			{
-				height_to_baseline = xfont->height_to_baseline ;
-			}
-			else
-			{
-				height_to_baseline = std_height_to_baseline ;
-			}
-
-			if( ( screen->window.wall_picture_is_set && bg_color == ML_BG_COLOR) ||
-				screen->line_space > 0 ||
-				( xfont->is_proportional && ! xfont->is_var_col_width))
-			{
-				if( screen->window.wall_picture_is_set && bg_color == ML_BG_COLOR)
-				{
-					x_window_clear( &screen->window ,
-						x , y , current_width - x , height) ;
-				}
-				else
-				{
-				#ifdef  __DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG "prop font is used.\n") ;
-				#endif
-
-					x_window_fill_with( &screen->window ,
-						x_get_color( screen->color_man , bg_color)->pixel ,
-						x , y , current_width - x , height) ;
-				}
-
-				if( state == 2)
-				{
-					x_window_draw_string16( &screen->window , xfont ,
-						x_get_color( screen->color_man , fg_color) ,
-						x , y + height_to_baseline , str2b , str_len) ;
-				}
-				else if( state == 1)
-				{
-					x_window_draw_decsp_string( &screen->window , xfont ,
-						x_get_color( screen->color_man , fg_color) , NULL ,
-						x , y + height_to_baseline , str , str_len) ;
-				}
-				else /* if( state == 0) */
-				{
-					x_window_draw_string( &screen->window , xfont ,
-						x_get_color( screen->color_man , fg_color) ,
-						x , y + height_to_baseline , str , str_len) ;
-				}
-			}
-			else
-			{
-				if( state == 2)
-				{
-					x_window_draw_image_string16( &screen->window , xfont ,
-						x_get_color( screen->color_man , fg_color) ,
-						x_get_color( screen->color_man , bg_color) ,
-						x , y + height_to_baseline , str2b , str_len) ;
-				}
-				else if( state == 1)
-				{
-					x_window_draw_decsp_string( &screen->window , xfont ,
-						x_get_color( screen->color_man , fg_color) ,
-						x_get_color( screen->color_man , bg_color) ,
-						x , y + height_to_baseline , str , str_len) ;
-				}
-				else /* if( state == 0) */
-				{
-					x_window_draw_image_string( &screen->window , xfont ,
-						x_get_color( screen->color_man , fg_color) ,
-						x_get_color( screen->color_man , bg_color) ,
-						x , y + height_to_baseline , str , str_len) ;
-				}
-			}
-
-			if( comb_chars)
-			{
-				x_draw_combining_chars( screen , comb_chars , comb_size ,
-					current_width - ch_width , y + height_to_baseline) ;
-			}
-
-			if( is_underlined)
-			{
-				if( xfont->is_vertical)
-				{
-					x_window_fill_with( &screen->window ,
-						x_get_color( screen->color_man , fg_color)->pixel ,
-						x , y , (ch_width>>4) + 1 , height) ;
-				}
-				else
-				{
-					x_window_fill_with( &screen->window ,
-						x_get_color( screen->color_man , fg_color)->pixel ,
-						x , y + height_to_baseline,
-						current_width - x , ((height_to_baseline - bottom_margin)>>4) +1 ) ;
-				}
-			}
-
-			start_draw = 0 ;
-
-			x = current_width ;
-			str_len = 0 ;
-		}
-
-		if( end_of_str)
-		{
-			break ;
-		}
-
-		xfont = next_xfont ;
-		fg_color = next_fg_color ;
-		bg_color = next_bg_color ;
-		is_underlined = next_is_underlined ;
-		state = next_state ;
-		current_width += (ch_width = next_ch_width) ;
-	}
-
-	if( updated_width != NULL)
-	{
-		*updated_width = current_width ;
-	}
-
-#ifdef  PERF_DEBUG
-	kik_debug_printf( " drawing %d times in a line.\n" , draw_count) ;
-#endif
-
-	return	1 ;
-}
-
-#endif
-
-static int
-draw_str(
-	x_screen_t *  screen ,
-	ml_char_t *  chars ,
-	u_int	num_of_chars ,
-	int  x ,
-	int  y ,
-	u_int  height ,
-	u_int  height_to_baseline ,
-	u_int  top_margin ,
-	u_int  bottom_margin
-	)
-{
-	u_int  updated_width ;
-
-	switch( x_get_type_engine( screen->font_man))
-	{
-	default:
-		return  0 ;
-
-#ifdef  USE_TYPE_XFT
-	case  TYPE_XFT:
-		if( ! xft_draw_str( screen , &updated_width , chars , num_of_chars ,
-			x , y , height , height_to_baseline , top_margin , bottom_margin))
-		{
-			return  0 ;
-		}
-
-		break ;
-#endif
-
-#ifdef  USE_TYPE_XCORE
-	case  TYPE_XCORE:
-		if( ! x_draw_str( screen , &updated_width , chars , num_of_chars ,
-			x , y , height , height_to_baseline , top_margin , bottom_margin))
-		{
-			return  0 ;
-		}
-
-		break ;
-#endif
-	}
-	
-	return  1 ;
-}
-
-static int
-draw_str_to_eol(
-	x_screen_t *  screen ,
-	ml_char_t *  chars ,
-	u_int  num_of_chars ,
-	int  x ,
-	int  y ,
-	u_int  height ,
-	u_int  height_to_baseline ,
-	u_int  top_margin ,
-	u_int  bottom_margin
-	)
-{
-	u_int  updated_width ;
-
-	switch( x_get_type_engine( screen->font_man))
-	{
-	default:
-		return  0 ;
-
-#ifdef  USE_TYPE_XFT
-	case  TYPE_XFT:
-		if( ! xft_draw_str( screen , &updated_width , chars , num_of_chars ,
-			x , y , height , height_to_baseline , top_margin , bottom_margin))
-		{
-			return  0 ;
-		}
-
-		break ;
-#endif
-
-#ifdef  USE_TYPE_XCORE
-	case  TYPE_XCORE:
-		if( ! x_draw_str( screen , &updated_width , chars , num_of_chars ,
-			x , y , height , height_to_baseline , top_margin , bottom_margin))
-		{
-			return	0 ;
-		}
-
-		break ;
-#endif
-	}
-
-	if( updated_width < screen->window.width)
-	{
-		x_window_clear( &screen->window , updated_width , y ,
-			screen->window.width - updated_width , height) ;
-	}
-
-	return	1 ;
-}
 
 static int
 convert_row_to_y(
@@ -1351,7 +402,9 @@ draw_line(
 			{
 				x_window_clear( &screen->window , 0 , y , beg_x , x_line_height( screen)) ;
 
-				if( ! draw_str( screen , ml_char_at( line , beg_char_index) ,
+				if( ! x_draw_str( &screen->window ,
+					screen->font_man , screen->color_man ,
+					ml_char_at( line , beg_char_index) ,
 					num_of_redrawn , beg_x , y ,
 					x_line_height( screen) ,
 					x_line_height_to_baseline( screen) ,
@@ -1363,7 +416,9 @@ draw_line(
 			}
 			else
 			{
-				if( ! draw_str_to_eol( screen , ml_char_at( line , beg_char_index) ,
+				if( ! x_draw_str_to_eol( &screen->window ,
+					screen->font_man , screen->color_man ,
+					ml_char_at( line , beg_char_index) ,
 					num_of_redrawn , beg_x , y ,
 					x_line_height( screen) ,
 					x_line_height_to_baseline( screen) ,
@@ -1376,7 +431,9 @@ draw_line(
 		}
 		else
 		{
-			if( ! draw_str( screen , ml_char_at( line , beg_char_index) ,
+			if( ! x_draw_str( &screen->window ,
+				screen->font_man , screen->color_man ,
+				ml_char_at( line , beg_char_index) ,
 				num_of_redrawn , beg_x , y ,
 				x_line_height( screen) ,
 				x_line_height_to_baseline( screen) ,
@@ -1408,12 +465,10 @@ draw_cursor(
 	ml_line_t *  orig ;
 	ml_char_t  ch ;
 
-#ifdef  USE_UIM
-	if( screen->uim_saved_preedit_len)
+	if( screen->is_preediting)
 	{
 		return  1 ;
 	}
-#endif
 
 	if( ! ml_term_is_cursor_visible( screen->term))
 	{
@@ -1465,7 +520,8 @@ draw_cursor(
 	if( screen->window.wall_picture_is_set)
 	{
 		screen->window.wall_picture_is_set = 0 ;
-		draw_str( screen , &ch , 1 , x , y ,
+		x_draw_str( &screen->window , screen->font_man ,
+			screen->color_man , &ch , 1 , x , y ,
 			x_line_height( screen) ,
 			x_line_height_to_baseline( screen) ,
 			x_line_top_margin( screen) ,
@@ -1474,7 +530,8 @@ draw_cursor(
 	}
 	else
 	{
-		draw_str( screen , &ch , 1 , x , y ,
+		x_draw_str( &screen->window , screen->font_man ,
+			screen->color_man , &ch , 1 , x , y ,
 			x_line_height( screen) ,
 			x_line_height_to_baseline( screen) ,
 			x_line_top_margin( screen) ,
@@ -1713,12 +770,10 @@ redraw_screen(
 
 	ml_term_updated_all( screen->term) ;
 
-#ifdef  USE_UIM
-	if( screen->uim)
+	if( screen->im)
 	{
-		x_uim_redraw_preedit( screen->uim) ;
+		(*screen->im->draw_preedit)( screen->im , screen->is_focused) ;
 	}
-#endif
 
 	return  1 ;
 }
@@ -2303,6 +1358,46 @@ window_realized(
 		x_xic_activate( &screen->window , "" , "") ;
 	}
 
+	if( screen->input_method)
+	{
+#if 0
+		if( strncmp( screen->input_method , "xim" , 3) == 0)
+		{
+			char *  xim_name ;
+			char *  xim_locale ;
+			char *  restore ;
+			
+			xim_name = xim_locale = restore = NULL ;
+
+			if( ( xim_name = strchr( screen->input_method , ':')))
+			{
+				xim_name++ ;
+
+				if( ( xim_locale = strchr( xim_name , ':')))
+				{
+					restore = xim_locale ;
+					*xim_locale = '\0' ;
+					xim_locale++ ;
+				}
+			}
+
+			x_xic_activate( &screen->window ,
+					xim_name ? xim_name : "" ,
+					xim_locale ? xim_locale : "") ;
+
+			if( restore)
+			{
+				*restore = ':' ;
+			}
+		}
+		else
+#endif
+		{
+			screen->im = x_im_new( ml_term_get_encoding( screen->term) ,
+					&screen->im_listener , screen->input_method) ;
+		}
+	}
+
 	x_window_set_fg_color( win , x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
 	x_window_set_bg_color( win , x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
@@ -2468,12 +1563,10 @@ window_focused(
 
 	highlight_cursor( screen) ;
 
-#ifdef  USE_UIM
-	if( screen->uim)
+	if( screen->im)
 	{
-		x_uim_focused( screen->uim) ;
+		(*screen->im->focused)( screen->im) ;
 	}
-#endif
 }
 
 static void
@@ -2507,12 +1600,10 @@ window_unfocused(
 
 	highlight_cursor( screen) ;
 
-#ifdef  USE_UIM
-	if( screen->uim)
+	if( screen->im)
 	{
-		x_uim_unfocused( screen->uim) ;
+		(*screen->im->unfocused)( screen->im) ;
 	}
-#endif
 }
 
 /*
@@ -2699,10 +1790,9 @@ key_pressed(
 		size = x_window_get_str( win , seq , sizeof(seq) , &parser , &ksym , event) ;
 	}
 
-#ifdef  USE_UIM
-	if( screen->uim)
+	if( screen->im)
 	{
-		if( ! x_uim_filter_key_event( screen->uim , ksym , event))
+		if( ! (*screen->im->key_event)( screen->im , ksym , event))
 		{
 			if( ml_term_is_backscrolling( screen->term))
 			{
@@ -2713,7 +1803,6 @@ key_pressed(
 			return ;
 		}
 	}
-#endif
 
 #ifdef  __DEBUG
 	{
@@ -4494,13 +3583,13 @@ change_char_encoding(
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 
-#ifdef  USE_UIM
-	if( screen->uim)
+	if( screen->im)
 	{
-		x_uim_delete( screen->uim) ;
-		screen->uim = x_uim_new( encoding , &screen->uim_listener , screen->uim_engine) ;
+		screen->im->delete( screen->im) ;
+
+		screen->im = x_im_new( encoding , &screen->im_listener ,
+				screen->input_method) ;
 	}
-#endif
 }
 
 static void
@@ -5169,48 +4258,41 @@ snapshot(
 }
 
 static void
-change_uim(
+change_im(
 	x_screen_t *  screen ,
-	char *  engine
+	char *  input_method
 	)
 {
-#ifdef  USE_UIM
-	if( engine == NULL)
+	if( screen->im)
 	{
-		return ;
+		screen->im->delete( screen->im) ;
+		screen->im = NULL ;
 	}
 
-	if( screen->uim)
+	if( input_method)
 	{
-		x_uim_delete( screen->uim) ;
-		screen->uim = NULL ;
+		screen->im = x_im_new( ml_term_get_encoding( screen->term) ,
+				&screen->im_listener , input_method) ;
 	}
 
-	if( strcmp( engine , "none"))
+	if( screen->input_method)
 	{
-		screen->uim = x_uim_new( ml_term_get_encoding( screen->term) ,
-					 &screen->uim_listener , engine) ;
+		free( screen->input_method) ;
 	}
 
-	if( screen->uim_engine)
+	if( screen->im == NULL)
 	{
-		free( screen->uim_engine) ;
-	}
-
-	if( screen->uim == NULL)
-	{
-		screen->uim_engine = NULL ;
+		screen->input_method = NULL ;
 
 		return ;
 	}
 
-	screen->uim_engine = strdup( engine) ;
+	screen->input_method = strdup( input_method) ;
 
 	if( screen->is_focused)
 	{
-		x_uim_focused( screen->uim) ;
+		screen->im->focused( screen->im) ;
 	}
-#endif
 }
 
 static void
@@ -5724,9 +4806,9 @@ set_config(
 
 		snapshot( screen , ml_get_char_encoding( encoding) , file) ;
 	}
-	else if( strcmp( key , "uim_engine") == 0)
+	else if( strcmp( key , "input_method") == 0)
 	{
-		change_uim( screen , value) ;
+		change_im( screen , value) ;
 	}
 }
 
@@ -6079,13 +5161,16 @@ get_config(
 			value = ml_term_get_slave_name( term) ;
 		}
 	}
-	else if( strcmp( key , "uim_engine") == 0)
+	else if( strcmp( key , "input_method") == 0)
 	{
-#ifdef  USE_UIM
-		value = screen->uim_engine ;
-#else
-		value = NULL ;
-#endif
+		if( screen->input_method)
+		{
+			value = screen->input_method ;
+		}
+		else
+		{
+			value = "" ;
+		}
 	}
 	else
 	{
@@ -6437,15 +5522,14 @@ get_bg_color(
 }
 
 /*
- * callbacks of x_uim events.
+ * callbacks of x_im events.
  */
 
-#ifdef  USE_UIM
 static int
-get_segment_spot(
+get_im_spot(
 	void *  p ,
 	ml_char_t *  chars ,
-	u_int  segment_offset ,
+	int  segment_offset ,
 	int *  x ,
 	int *  y
 	)
@@ -6460,6 +5544,8 @@ get_segment_spot(
 	Window  unused ;
 
 	screen = p ;
+
+	*x = *y = 0 ;
 
 	if( ( line = ml_term_get_cursor_line( screen->term)) == NULL ||
 		ml_line_is_empty( line))
@@ -6483,7 +5569,7 @@ get_segment_spot(
 		*x = convert_char_index_to_x_with_shape( screen , line ,
 				ml_term_cursor_char_index( screen->term)) ;
 		*y = convert_row_to_y( screen , row) ;
-		*y += x_line_height( screen) + 3 ;
+		*y += x_line_height( screen) ;
 	}
 	else
 	{
@@ -6491,7 +5577,7 @@ get_segment_spot(
 				ml_term_cursor_char_index( screen->term)) ;
 		*y = convert_row_to_y( screen ,
 				ml_term_cursor_row( screen->term)) ;
-		*x += x_col_width( screen) + 3 ;
+		*x += x_col_width( screen) ;
 	}
 
 
@@ -6502,8 +5588,7 @@ get_segment_spot(
 			u_int  width ;
 
 			width = x_calculate_char_width(
-					x_get_font( screen->font_man ,
-						    ml_char_font( &chars[i])) ,
+					x_get_font( screen->font_man , ml_char_font( &chars[i])) ,
 					ml_char_bytes( &chars[i]) ,
 					ml_char_size( &chars[i]) ,
 					ml_char_cs( &chars[i])) ;
@@ -6516,8 +5601,7 @@ get_segment_spot(
 			*x += width ;
 
 			/* not count combining characters */
-			comb_chars = ml_get_combining_chars( &chars[i] ,
-							     &comb_size) ;
+			comb_chars = ml_get_combining_chars( &chars[i] , &comb_size) ;
 			if( comb_chars)
 			{
 				i += comb_size ;
@@ -6548,8 +5632,7 @@ get_segment_spot(
 			}
 
 			/* not count combining characters */
-			comb_chars = ml_get_combining_chars( &chars[i] ,
-							     &comb_size) ;
+			comb_chars = ml_get_combining_chars( &chars[i] , &comb_size) ;
 			if( comb_chars)
 			{
 				i += comb_size ;
@@ -6558,18 +5641,39 @@ get_segment_spot(
 	}
 
 	XTranslateCoordinates( screen->window.display ,
-			       screen->window.my_window ,
-			       DefaultRootWindow( screen->window.display) ,
-			       0 , 0 , &win_x , &win_y , &unused) ;
+			screen->window.my_window ,
+			DefaultRootWindow( screen->window.display) , 0 , 0 ,
+			&win_x , &win_y , &unused) ;
 
-	*x += win_x ;
-	*y += win_y ;
+	*x += win_x + screen->window.margin ;
+	*y += win_y + screen->window.margin ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " uim spot => x %d y %d\n" , *x , *y) ;
+	kik_debug_printf( KIK_DEBUG_TAG " im spot => x %d y %d\n" , *x , *y) ;
 #endif
 
 	return  1 ;
+}
+
+static u_int
+get_line_height(
+	void *  p
+	)
+{
+	return  x_line_height( (x_screen_t*) p) ;
+}
+
+static int
+is_vertical(
+	void *  p
+	)
+{
+	if( ( (x_screen_t *) p)->term->vertical_mode)
+	{
+		return  1 ;
+	}
+
+	return  0 ;
 }
 
 static int
@@ -6577,34 +5681,51 @@ draw_preedit_str(
 	void *  p ,
 	ml_char_t *  chars ,
 	u_int  num_of_chars ,
-	int  preedit_cursor_offset)
+	int  cursor_offset)
 {
 	x_screen_t *  screen ;
 	ml_line_t *  line ;
-	ml_char_t *  comb_chars ;
-	u_int  comb_size ;
 	x_font_t *  xfont ;
 	int  x ;
 	int  y ;
-	int  i ;
+	u_int  total_width ;
+	u_int  i ;
+	u_int  start ;
 	u_int  beg_row ;
 	u_int  end_row ;
+	u_int  row ;
 	int  preedit_cursor_x ;
 	int  preedit_cursor_y ;
 
 	screen = p ;
 
-	if( screen->uim_saved_preedit_len > num_of_chars ||
-	    preedit_cursor_offset < num_of_chars)
+	if( screen->is_preediting)
 	{
-		redraw_screen( screen) ;
+		if( ! screen->term->vertical_mode)
+		{
+			for( row = screen->im_preedit_beg_row ; row <= screen->im_preedit_end_row ; row++)
+			{
+				if( ( line = ml_term_get_line_in_screen( screen->term , row)))
+				{
+					y = convert_row_to_y( screen , row) ;
+					draw_line( screen , line , y) ;
+				}
+			}
+		}
+		else
+		{
+			redraw_screen( screen) ;
+		}
 	}
-	screen->uim_saved_preedit_len = num_of_chars ;
 
 	if( ! num_of_chars)
 	{
+		screen->is_preediting = 0 ;
+
 		return  0 ;
 	}
+
+	screen->is_preediting = 1 ;
 
 	if( ( line = ml_term_get_cursor_line( screen->term)) == NULL ||
 		ml_line_is_empty( line))
@@ -6647,109 +5768,163 @@ draw_preedit_str(
 				ml_term_cursor_char_index( screen->term)) ;
 	y = convert_row_to_y( screen , ml_term_cursor_row_in_screen( screen->term)) ;
 
-	for( i = 0 ; i < num_of_chars ; i++)
-	{
-		u_int width ;
+	preedit_cursor_x = x ;
+	preedit_cursor_y = y ;
 
-		xfont = x_get_font( screen->font_man ,
-				    ml_char_font( &chars[i])) ;
+	total_width = 0 ;
+
+	for( i = 0 , start = 0 ; i < num_of_chars ; i++)
+	{
+		u_int  width ;
+		int  need_wraparound = 0 ;
+		int  _x ;
+		int  _y ;
+
+		xfont = x_get_font( screen->font_man , ml_char_font( &chars[i])) ;
 		width = x_calculate_char_width( xfont ,
 						ml_char_bytes( &chars[i]) ,
 						ml_char_size( &chars[i]) ,
 						ml_char_cs( &chars[i])) ;
 
+		total_width += width ;
+
 		if( ! screen->term->vertical_mode)
 		{
-			if( x + width > screen->window.width)
+			if( x + total_width > screen->window.width)
 			{
-				x = 0 ;
-				y += x_line_height( screen) ;
+				need_wraparound = 1 ;
+				_x = 0 ;
+				_y = y + x_line_height( screen) ;
 				end_row++ ;
 			}
 		}
 		else if( screen->term->vertical_mode == VERT_RTL)
 		{
-			if( y + x_line_height( screen) > screen->window.height)
+			need_wraparound = 1 ;
+			_x = x ;
+			_y = y + x_line_height( screen) ;
+			start = i ;
+
+			if( _y > screen->window.height)
 			{
 				y = 0 ;
-				x -= x_line_height(screen) ;
+				_y = x_line_height( screen) ;
+				_x = x = x - x_line_height( screen) ;
 				end_row++ ;
 			}
 		}
 		else /* VERT_LTR */
 		{
-			if( y + x_line_height( screen) > screen->window.height)
+			need_wraparound = 1 ;
+			_x = x ;
+			_y = y + x_line_height( screen) ;
+			start = i ;
+			
+			if( _y > screen->window.height)
 			{
 				y = 0 ;
-				x += x_line_height(screen) ;
+				_y = x_line_height( screen) ;
+				_x = x = x + x_line_height( screen) ;
 				end_row++ ;
 			}
 		}
 
-		if( ! draw_str( screen , &chars[i] , 1 , x , y ,
-				x_line_height( screen) ,
-				x_line_height_to_baseline( screen) ,
-				x_line_top_margin( screen) ,
-				x_line_bottom_margin( screen)))
+		if( i == cursor_offset - 1)
 		{
-			return  0 ;
+			if ( ! screen->term->vertical_mode)
+			{
+				preedit_cursor_x = x + total_width ;
+				preedit_cursor_y = y ;
+			}
+			else
+			{
+				preedit_cursor_x = x ;
+				preedit_cursor_y = _y ;
+			}
 		}
 
-		if( i == preedit_cursor_offset)
+		if( need_wraparound)
+		{
+			if( ! x_draw_str( &screen->window , screen->font_man ,
+					screen->color_man , &chars[start] ,
+					i - start + 1 , x , y ,
+					x_line_height( screen) ,
+					x_line_height_to_baseline( screen) ,
+					x_line_top_margin( screen) ,
+					x_line_bottom_margin( screen)))
+			{
+				return  0 ;
+			}
+
+			x = _x ;
+			y = _y ;
+			start = i;
+			total_width = width ;
+		}
+
+		if( screen->term->vertical_mode)
+		{
+			continue ;
+		}
+
+		if( i == num_of_chars - 1) /* last? */
+		{
+			if( ! x_draw_str( &screen->window , screen->font_man ,
+					screen->color_man , &chars[start] ,
+					i - start + 1 , x , y ,
+					x_line_height( screen) ,
+					x_line_height_to_baseline( screen) ,
+					x_line_top_margin( screen) ,
+					x_line_bottom_margin( screen)))
+			{
+				return  0 ;
+			}
+		}
+
+	}
+
+	if( cursor_offset == num_of_chars)
+	{
+		if ( ! screen->term->vertical_mode)
+		{
+			preedit_cursor_x = x + total_width;
+			preedit_cursor_y = y ;
+		}
+		else
 		{
 			preedit_cursor_x = x ;
 			preedit_cursor_y = y ;
 		}
-
-		comb_chars = ml_get_combining_chars( &chars[i] , &comb_size) ;
-		if( comb_chars)
-		{
-			i += comb_size ;
-		}
-
-		if( ! screen->term->vertical_mode)
-		{
-			x += width ;
-		}
-		else
-		{
-			y += x_line_height( screen) ;
-		}
 	}
 
-	if( preedit_cursor_offset == num_of_chars)
-	{
-		preedit_cursor_x = x ;
-		preedit_cursor_y = y ;
-	}
-
-	if( preedit_cursor_offset >= 0)
+	if( cursor_offset >= 0)
 	{
 		if( ! screen->term->vertical_mode)
 		{
 			XDrawLine( screen->window.display ,
-				   screen->window.drawable ,
-				   screen->window.gc ,
-				   preedit_cursor_x + 2 ,
-				   preedit_cursor_y + x_line_top_margin( screen) + 2 ,
-				   preedit_cursor_x + 2,
-				   preedit_cursor_y + x_line_height( screen)) ;
+				screen->window.drawable ,
+				screen->window.gc ,
+				preedit_cursor_x + 1 ,
+				preedit_cursor_y + x_line_top_margin( screen) + 2 ,
+				preedit_cursor_x + 1,
+				preedit_cursor_y + x_line_height( screen)) ;
 		}
 		else
 		{
 			XDrawLine( screen->window.display ,
-				   screen->window.drawable ,
-				   screen->window.gc ,
-				   preedit_cursor_x + x_line_top_margin( screen) + 2 ,
-				   preedit_cursor_y + 2 ,
-				   preedit_cursor_x + x_line_top_margin(screen) + xfont->height + 1 ,
-				   preedit_cursor_y + 2 ) ;
+				screen->window.drawable ,
+				screen->window.gc ,
+				preedit_cursor_x + x_line_top_margin( screen) + 2 ,
+				preedit_cursor_y + 2 ,
+				preedit_cursor_x + x_line_top_margin( screen) + xfont->height ,
+				preedit_cursor_y + 2 ) ;
 		}
 	}
 
-	ml_term_set_modified_lines_in_screen( screen->term ,
-					      beg_row ,
-					      end_row) ;
+	ml_term_set_modified_lines_in_screen( screen->term , beg_row , end_row) ;
+
+	screen->im_preedit_beg_row = beg_row ;
+	screen->im_preedit_end_row = end_row ;
 
 	return  1 ;
 }
@@ -6757,7 +5932,7 @@ draw_preedit_str(
 static void
 write_to_term(
 	void *  p ,
-	u_char *  str ,		/* must be same as pty encoding */
+	u_char *  str ,		/* must be same as term encoding */
 	size_t  len
 	)
 {
@@ -6765,13 +5940,37 @@ write_to_term(
 
 	screen = p ;
 
-#ifdef  UIM_DEBUG
+#ifdef  DEBUG
 	kik_debug_printf("written str: %s\n", str);
 #endif
 
 	ml_term_write( screen->term , str , len , 0) ;
 }
-#endif  /* USE_UIM */
+
+static x_window_manager_t *
+get_win_man(
+	void *  p
+	)
+{
+	return x_get_root_window( &((x_screen_t *)p)->window)->win_man ;
+}
+
+static x_font_manager_t *
+get_font_man(
+	void *  p
+	)
+{
+	return((x_screen_t *)p)->font_man ;
+}
+
+static x_color_manager_t *
+get_color_man(
+	void *  p
+	)
+{
+	return((x_screen_t *)p)->color_man ;
+}
+
 
 /*
  * callbacks of ml_xterm_event_listener_t
@@ -7045,7 +6244,7 @@ x_screen_new(
 	int  use_extended_scroll_shortcut ,
 	int  override_redirect ,
 	u_int  line_space ,
-	char *  uim_engine
+	char *  input_method
 	)
 {
 	x_screen_t *  screen ;
@@ -7099,10 +6298,6 @@ x_screen_new(
 	screen->xct_conv = NULL ;
 
 	screen->kbd = NULL ;
-#ifdef  USE_UIM
-	screen->uim = NULL ;
-	screen->uim_saved_preedit_len = 0 ;
-#endif
 
 	screen->use_vertical_cursor = use_vertical_cursor ;
 
@@ -7171,21 +6366,23 @@ x_screen_new(
 
 	screen->xim_open_in_startup = xim_open_in_startup ;
 
-#ifdef  USE_UIM
-	screen->uim_engine = NULL ;
+	screen->input_method = input_method ;
 
-	screen->uim_listener.self = screen ;
-	screen->uim_listener.get_spot = get_segment_spot ;
-	screen->uim_listener.draw_preedit_str = draw_preedit_str ;
-	screen->uim_listener.write_to_term = write_to_term ;
+	screen->im = NULL ;
 
-	screen->uim = x_uim_new( ml_term_get_encoding(term) , &screen->uim_listener , uim_engine) ;
+	screen->im_listener.self = screen ;
+	screen->im_listener.get_spot = get_im_spot ;
+	screen->im_listener.get_line_height = get_line_height ;
+	screen->im_listener.is_vertical = is_vertical ;
+	screen->im_listener.draw_preedit_str = draw_preedit_str ;
+	screen->im_listener.write_to_term = write_to_term ;
+	screen->im_listener.get_win_man = get_win_man ;
+	screen->im_listener.get_font_man = get_font_man ;
+	screen->im_listener.get_color_man = get_color_man ;
 
-	if( screen->uim)
-	{
-		screen->uim_engine = strdup( uim_engine) ;
-	}
-#endif
+	screen->is_preediting = 0 ;
+	screen->im_preedit_beg_row = 0 ;
+	screen->im_preedit_end_row = 0 ;
 
 	x_window_set_cursor( &screen->window , XC_xterm) ;
 
@@ -7335,12 +6532,10 @@ error:
 		(*screen->xct_conv->delete)( screen->xct_conv) ;
 	}
 
-#ifdef  USE_UIM
-	if( screen->uim)
+	if( screen->im)
 	{
-		x_uim_delete( screen->uim) ;
+		(*screen->im->delete)( screen->im) ;
 	}
-#endif
 
 	if( screen)
 	{
@@ -7402,17 +6597,10 @@ x_screen_delete(
 		(*screen->xct_conv->delete)( screen->xct_conv) ;
 	}
 
-#ifdef  USE_UIM
-	if( screen->uim)
+	if( screen->im)
 	{
-		x_uim_delete( screen->uim) ;
+		(*screen->im->delete)( screen->im) ;
 	}
-
-	if( screen->uim_engine)
-	{
-		free( screen->uim_engine) ;
-	}
-#endif
 
 	free( screen) ;
 
@@ -7472,13 +6660,16 @@ x_screen_attach(
 	x_set_window_name( &screen->window , ml_term_window_name( screen->term)) ;
 	x_set_icon_name( &screen->window , ml_term_icon_name( screen->term)) ;
 
-#ifdef  USE_UIM
-	if( screen->uim)
+	if( screen->im)
 	{
-		x_uim_delete( screen->uim) ;
-		screen->uim = x_uim_new( ml_term_get_encoding(term) , &screen->uim_listener , screen->uim_engine) ;
+		x_window_t *  root ;
+
+		root = x_get_root_window( &screen->window) ;
+
+		screen->im->delete( screen->im) ;
+		screen->im = x_im_new( ml_term_get_encoding(term) ,
+				&screen->im_listener , screen->input_method) ;
 	}
-#endif
 
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
