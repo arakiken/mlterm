@@ -79,7 +79,7 @@ fetch_colormap(
 
 /* create GdkPixbuf from the specified file path. 
  * don't modify returned pixbuf since the pixbuf
- * is cached and may br reused.
+ * is cached and may be reused.
  */
 static 
 GdkPixbuf * 
@@ -179,7 +179,7 @@ load_file(
 	return  pixbuf ;
 }
 
-/* create a pixbuf from an array of cardnals */
+/* create a pixbuf from an array of cardinals */
 static GdkPixbuf *
 create_pixbuf_from_cardinals(
 	u_int32_t *  cardinal
@@ -1691,7 +1691,7 @@ int x_imagelib_load_file(
 		return 0 ;	
 	if( path)
 	{
-		/* create a pixbuf from the file and create a cardianl array */
+		/* create a pixbuf from the file and create a cardinal array */
 		if( !( pixbuf = load_file( &misc, path, width, height, GDK_INTERP_NEAREST)))
 		{
 #ifdef DEBUG
@@ -1707,7 +1707,7 @@ int x_imagelib_load_file(
 	{
 		if( !(*cardinal))
 			return 0 ;
-		/* create a pixbuf from the cardianl array */		
+		/* create a pixbuf from the cardinal array */		
 		pixbuf = create_pixbuf_from_cardinals( *cardinal) ;
 		if( !pixbuf)
 			return 0 ;
