@@ -339,15 +339,17 @@ static int
 parse_xft_font_name(
 	char **  font_family ,
 	char **  font_encoding ,
+	char **  percent ,
 	char *  font_name
 	)
 {
 	/*
 	 * XftFont format.
-	 * [Font Family]-[Font Encoding]
+	 * [Font Family]-[Font Encoding](:[Percentage])
 	 */
 
-	if( ( *font_family = kik_str_sep( &font_name , "-")) == NULL)
+	if( ( *font_family = kik_str_sep( &font_name , "-")) == NULL ||
+		font_name == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " illegal true type font name(%s).\n" ,
@@ -357,7 +359,7 @@ parse_xft_font_name(
 		return  0 ;
 	}
 
-	if( ( *font_encoding = font_name) == NULL)
+	if( ( *font_encoding = kik_str_sep( &font_name , ":")) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " illegal true type font name(%s).\n" ,
@@ -366,6 +368,9 @@ parse_xft_font_name(
 
 		return  0 ;
 	}
+
+	/* may be NULL */
+	*percent = font_name ;
 
 	return  1 ;
 }
@@ -389,29 +394,12 @@ get_xft_col_width(
 		XFT_ENCODING , XftTypeString , "iso8859-1" ,
 		XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
 	{
-		u_int  l_width ;
 		u_int  w_width ;
-
-		l_width = xft_calculate_char_width( font->display , xfont , "l" , 1) ;
 		
-		if( 0 < l_width && l_width < fontsize)
-		{
-			w_width = xft_calculate_char_width( font->display , xfont , "W" , 1) ;
-		}
-		else
-		{
-			/*
-			 * XXX
-			 * I don't know why but XftTextExtents() returns full width extents for
-			 * half width characters of some fonts (e.g. Dynalab Font) , which are
-			 * excluded.
-			 */
-
-			w_width = 0 ;
-		}
+		w_width = xft_calculate_char_width( font->display , xfont , "W" , 1) ;
 		
 		XftFontClose( font->display , xfont) ;
-
+		
 		if( w_width > 0)
 		{
 			return  w_width ;
@@ -479,6 +467,8 @@ set_xft_font(
 		char *  p ;
 		char *  font_family ;
 		char *  font_encoding ;
+		char *  percent_str ;
+		u_int  percent ;
 
 		if( ( p = kik_str_alloca_dup( fontname)) == NULL)
 		{
@@ -489,16 +479,31 @@ set_xft_font(
 			return  0 ;
 		}
 
-		if( parse_xft_font_name( &font_family , &font_encoding , p))
+		if( parse_xft_font_name( &font_family , &font_encoding , &percent_str , p))
 		{
-			if( col_width == 0)
+			if( percent_str == NULL || ! kik_str_to_int( &percent , percent_str))
 			{
-				/* basic font (e.g. usascii) width */
-				ch_width = get_xft_col_width( font , font_family , fontsize) * cols ;
+				if( col_width == 0)
+				{
+					/* basic font (e.g. usascii) width */
+					ch_width = get_xft_col_width( font , font_family , fontsize) * cols ;
+				}
+				else
+				{
+					ch_width = col_width * cols ;
+				}
 			}
 			else
 			{
-				ch_width = col_width * cols ;
+				if( col_width == 0)
+				{
+					/* basic font (e.g. usascii) width */
+					ch_width = (fontsize * percent) / 200 ;
+				}
+				else
+				{
+					ch_width = (col_width * cols * percent) / 100 ;
+				}
 			}
 
 			if( is_proportional)

@@ -236,10 +236,21 @@ comment $Id$
         o aafont/vaafont
           [font name];([font size],[font name];...)
 
-          [font name]は、[font family]-[font encoding]となります。
+          [font name]は、[font family]-[font encoding](:[percentage])となります。
+
+          percentage は、フォントサイズに対して何パーセントの幅のフォントを表示する
+	  かを指定します。
+	  例えば、フォントサイズが12の場合に、percentage として 100 を指定すると、
+	  半角文字なら幅 6 , 全角文字なら幅 12 になります。
+	  percentage 指定がない場合、'W' の文字幅が収まるだけの幅が取られます。
+
+	  percentage は、微妙に大きさの異なるフォントを組み合わせる場合の微調整や、
+	  'W' が大きすぎるプロポーショナルフォントを使用する場合などに使います。
+	  とくに、Dynalab フォントのように、'W' が全角幅で収められているフォントを
+	  使用する場合は、必ず適切な指定を行なってください。
 
           e.g.)
-          JISX0208_1983 = Hoge-iso10646-1;
+          JISX0208_1983 = Hoge-iso10646-1:100;
 
         フォントが指定されていない文字については、mltermが適当に判断して表示
         します。

@@ -270,19 +270,22 @@ ml_font_custom_read_conf(
 				break ;
 			}
 
-			if( ! kik_str_to_int( &size , size_str))
+			if( *fontname != '\0')
 			{
-				kik_msg_printf( "a font size %s is not digit.\n" , size_str) ;
-			}
-			else
-			{
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" setting font [attr %x size %s name %s]\n" ,
-					attr , size_str , fontname) ;
-			#endif
+				if( ! kik_str_to_int( &size , size_str))
+				{
+					kik_msg_printf( "a font size %s is not digit.\n" , size_str) ;
+				}
+				else
+				{
+				#ifdef  __DEBUG
+					kik_debug_printf( KIK_DEBUG_TAG
+						" setting font [attr %x size %s name %s]\n" ,
+						attr , size_str , fontname) ;
+				#endif
 
-				ml_set_font_name( font_custom , attr , fontname , size) ;
+					ml_set_font_name( font_custom , attr , fontname , size) ;
+				}
 			}
 		}
 	}
@@ -361,9 +364,13 @@ ml_font_custom_read_aa_conf(
 			continue ;
 		}
 
-		for( size = font_custom->min_font_size ; size <= font_custom->max_font_size ; size ++)
+		if( *default_fontname != '\0')
 		{
-			ml_set_font_name( font_custom , attr , default_fontname , size) ;
+			for( size = font_custom->min_font_size ; size <= font_custom->max_font_size ;
+				size ++)
+			{
+				ml_set_font_name( font_custom , attr , default_fontname , size) ;
+			}
 		}
 		
 		while( value != NULL && ( size_str = kik_str_sep( &value , ",")) != NULL)
@@ -375,19 +382,22 @@ ml_font_custom_read_aa_conf(
 				break ;
 			}
 
-			if( ! kik_str_to_int( &size , size_str))
+			if( *fontname != '\0')
 			{
-				kik_msg_printf( "a font size %s is not digit.\n" , size_str) ;
-			}
-			else
-			{
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" setting font [attr %x size %s name %s]\n" ,
-					attr , size_str , fontname) ;
-			#endif
+				if( ! kik_str_to_int( &size , size_str))
+				{
+					kik_msg_printf( "a font size %s is not digit.\n" , size_str) ;
+				}
+				else
+				{
+				#ifdef  __DEBUG
+					kik_debug_printf( KIK_DEBUG_TAG
+						" setting font [attr %x size %s name %s]\n" ,
+						attr , size_str , fontname) ;
+				#endif
 
-				ml_set_font_name( font_custom , attr , fontname , size) ;
+					ml_set_font_name( font_custom , attr , fontname , size) ;
+				}
 			}
 		}
 	}

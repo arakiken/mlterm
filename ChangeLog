@@ -1,3 +1,7 @@
+[20020122]
+* aafont file format is changed. ([Font Family]-[Font Encoding](:[Percentage]))
+* font or vfont is used when XIM fontset is created under AA mode.
+
 [20020120]
 * many codes are cleaned up.
 * 'l' instead of 'i' is checked for DynaFont problem.

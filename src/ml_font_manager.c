@@ -849,20 +849,28 @@ ml_get_fontset(
 
 	list_str_len = strlen( default_font_name) ;
 
-	if( ! is_aa( font_man))
+	if( is_aa( font_man))
 	{
-		if( ( size = ml_get_all_font_names( font_man->font_custom , 
-			&fontnames , font_man->font_size)) > 0)
+		if( is_var_col_width( font_man))
 		{
-			for( counter = 0 ; counter < size ; counter ++)
-			{
-				list_str_len += (1 + strlen( fontnames[counter])) ;
-			}
+			size = ml_get_all_font_names( font_man->v_font_custom ,
+				&fontnames , font_man->font_size) ;
+		}
+		else
+		{
+			size = ml_get_all_font_names( font_man->normal_font_custom ,
+				&fontnames , font_man->font_size) ;
 		}
 	}
 	else
 	{
-		size = 0 ;
+		size = ml_get_all_font_names( font_man->font_custom ,  &fontnames ,
+			font_man->font_size) ;
+	}
+	
+	for( counter = 0 ; counter < size ; counter ++)
+	{
+		list_str_len += (1 + strlen( fontnames[counter])) ;
 	}
 	
 	if( ( list_str = alloca( sizeof( char) * list_str_len)) == NULL)

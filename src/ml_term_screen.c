@@ -458,15 +458,12 @@ redraw_image(
 	return  1 ;
 }
 
-/*
- * this doesn't consider backscroll mode.
- */
 static int
 highlight_cursor(
 	ml_term_screen_t *  termscr
 	)
 {
-	if( ! termscr->is_cursor_visible)
+	if( ! termscr->is_cursor_visible || ml_is_backscroll_mode( &termscr->bs_image))
 	{
 		return  1 ;
 	}
@@ -493,7 +490,7 @@ unhighlight_cursor(
 	ml_term_screen_t *  termscr
 	)
 {
-	if( ! termscr->is_cursor_visible)
+	if( ! termscr->is_cursor_visible || ml_is_backscroll_mode( &termscr->bs_image))
 	{
 		return  1 ;
 	}
@@ -541,7 +538,7 @@ exit_backscroll_mode(
 	
 	ml_unset_backscroll_mode( &termscr->bs_image) ;
 	ml_image_set_modified_all( termscr->image) ;
-
+	
 	if( HAS_SCROLL_LISTENER(termscr,bs_mode_exited))
 	{
 		(*termscr->screen_scroll_listener->bs_mode_exited)(
@@ -1040,22 +1037,22 @@ window_exposed(
 	)
 {
 	int  counter ;
-	int  start_row ;
+	int  beg_row ;
 	int  end_row ;
 	ml_term_screen_t *  termscr ;
 	ml_image_line_t *  line ;
 	
 	termscr = (ml_term_screen_t *) win ;
 
-	start_row = convert_y_to_row( termscr , NULL , y) ;
+	beg_row = convert_y_to_row( termscr , NULL , y) ;
 	end_row = convert_y_to_row( termscr , NULL , y + height) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " exposed [row] from %d to %d [y] from %d to %d\n" ,
-		start_row , end_row , y , y + height) ;
+		beg_row , end_row , y , y + height) ;
 #endif
 	
-	for( counter = start_row ; counter <= end_row ; counter ++)
+	for( counter = beg_row ; counter <= end_row ; counter ++)
 	{
 		if( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , counter)) == NULL)
 		{
@@ -1067,7 +1064,7 @@ window_exposed(
 	
 	redraw_image( termscr) ;
 
-	if( ml_convert_row_to_bs_row( &termscr->bs_image , start_row) <= ml_cursor_row( termscr->image) &&
+	if( ml_convert_row_to_bs_row( &termscr->bs_image , beg_row) <= ml_cursor_row( termscr->image) &&
 		ml_cursor_row( termscr->image) <= ml_convert_row_to_bs_row( &termscr->bs_image , end_row))
 	{
 		highlight_cursor( termscr) ;
@@ -1138,6 +1135,11 @@ window_focused(
 
 	termscr = (ml_term_screen_t *) win ;
 
+	if( termscr->is_focused)
+	{
+		return ;
+	}
+	
 	unhighlight_cursor( termscr) ;
 
 	termscr->is_focused = 1 ;
@@ -1155,6 +1157,11 @@ window_unfocused(
 	ml_term_screen_t *  termscr ;
 	
 	termscr = (ml_term_screen_t *) win ;
+
+	if( ! termscr->is_focused)
+	{
+		return ;
+	}
 	
 	unhighlight_cursor( termscr) ;
 	
@@ -3030,6 +3037,10 @@ restore_color(
 	int  end_row
 	)
 {
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+	
 	reverse_or_restore_color( (ml_term_screen_t*)p , beg_char_index , beg_row ,
 		end_char_index , end_row , ml_imgline_restore_color) ;
 }
