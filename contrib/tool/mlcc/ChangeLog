@@ -1,0 +1,42 @@
+2003-06-29  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* re-introduced mlcc
+	 - adopted new configuration scheme.
+
+2002-09-04  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* lots of minor fix/enhancements. 2.6.0 ready.
+
+2002-07-08  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* gamma/contrast are now supported.
+
+2002-06-24  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* code cleanup & bugfix (wall paper support was broken).
+
+2002-06-14  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* rewrite input handling to lower CPU load.
+
+2002-06-13  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* modified comm.c for compatibility 
+	(now VMIN=0, VTIME=0. Does this works under NetBSD?)
+
+	* added contrib/tool/LICENE, contrib/tool/Changelog
+
+2002-06-12 20:41  h_minami
+
+	* main.c: removed SA_SIGINFO which is not compatible with
+	sa_handler.
+
+2002-06-12 20:36  h_minami
+
+	* Makefile.in, comm.c, comm.h, config.h.in, configure,
+	configure.in, data.c, data.h, data_entry_bool.c, data_entry_bool.h,
+	data_entry_color.c, data_entry_color.h, data_entry_numeric.c,
+	data_entry_numeric.h, data_entry_radio.c, data_entry_radio.h,
+	data_entry_string.c, data_entry_string.h, install-sh, main.c: mlcc
+	(console based config tool) is added.
+
