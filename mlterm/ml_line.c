@@ -991,6 +991,32 @@ ml_line_copy_line(
 }
 
 int
+ml_line_copy_color_reversed_flag(
+	ml_line_t *  dst ,
+	ml_line_t *  src
+	)
+{
+	int  col ;
+	u_int  copy_len ;
+	
+	copy_len = K_MIN(src->num_of_filled_chars,dst->num_of_filled_chars) ;
+
+	for( col = 0 ; col < copy_len ; col ++)
+	{
+		if( ml_char_is_color_reversed( src->chars + col))
+		{
+			ml_char_reverse_color( dst->chars + col) ;
+		}
+		else
+		{
+			ml_char_restore_color( dst->chars + col) ;
+		}
+	}
+
+	return  1 ;
+}
+
+int
 ml_line_share(
 	ml_line_t *  dst ,
 	ml_line_t *  src

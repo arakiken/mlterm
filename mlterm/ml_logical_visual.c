@@ -11,6 +11,14 @@
 
 #define  CURSOR_LINE(logvis)  (ml_model_get_line((logvis)->model,(logvis)->cursor->row))
 
+#if  0
+#define  __DEBUG
+#endif
+
+#if  0
+#define  CURSOR_DEBUG
+#endif
+
 
 typedef struct  container_logical_visual
 {
@@ -881,7 +889,7 @@ search_same_line(
 	for( row = search_beg ; row < num_of_lines ; row ++)
 	{
 		if( lines[row].num_of_filled_chars == line->num_of_filled_chars &&
-			ml_str_bytes_equal( lines[row].chars , line->chars , line->num_of_filled_chars))
+			ml_str_equal( lines[row].chars , line->chars , line->num_of_filled_chars))
 		{
 			return  row ;
 		}
@@ -890,7 +898,7 @@ search_same_line(
 	for( row = 0 ; row < search_beg ; row ++)
 	{
 		if( lines[row].num_of_filled_chars == line->num_of_filled_chars &&
-			ml_str_bytes_equal( lines[row].chars , line->chars , line->num_of_filled_chars))
+			ml_str_equal( lines[row].chars , line->chars , line->num_of_filled_chars))
 		{
 			return  row ;
 		}
@@ -908,6 +916,11 @@ iscii_visual(
 	iscii_logical_visual_t *  iscii_logvis ;
 	ml_line_t *  line ;
 	int  row ;
+#ifdef  __DEBUG
+	int  __hit_num = 0 ;
+	int  __mod_num = 0 ;
+	int  __miss_num = 0 ;
+#endif
 
 	if( logvis->is_visual)
 	{
@@ -982,19 +995,31 @@ iscii_visual(
 		{
 			continue ;
 		}
-		
+
 		if( ( hit_row = search_same_line( iscii_logvis->logical_lines ,
 			iscii_logvis->logical_num_of_rows , row , line)) == -1)
 		{
+		#ifdef  __DEBUG
+			__miss_num ++ ;
+		#endif
+		
 			is_cache_active = 0 ;
 		}
 		else
 		{
+		#ifdef  __DEBUG
+			__hit_num ++ ;
+		#endif
+
 			if( ml_line_is_modified( line))
 			{
 				int  beg ;
 				int  end ;
 
+			#ifdef  __DEBUG
+				__mod_num ++ ;
+			#endif
+			
 				beg = ml_iscii_convert_logical_char_index_to_visual(
 						&iscii_logvis->visual_lines[hit_row] ,
 						ml_line_get_beg_of_modified(line)) ;
@@ -1013,14 +1038,14 @@ iscii_visual(
 				ml_line_updated( &iscii_logvis->visual_lines[hit_row]) ;
 				ml_line_set_modified( &iscii_logvis->visual_lines[hit_row] , beg , end) ;
 			}
-			
+
 			if( hit_row != row)
 			{
 				ml_line_copy_line( &iscii_logvis->logical_lines[row] , line) ;
 				ml_line_copy_line( &iscii_logvis->visual_lines[row] ,
 					&iscii_logvis->visual_lines[hit_row]) ;
 			}
-						
+			
 			is_cache_active = 1 ;
 		}
 		
@@ -1031,10 +1056,6 @@ iscii_visual(
 		}
 		else
 		{
-		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " iscii rendering.\n") ;
-		#endif
-
 			/* caching */
 			ml_line_copy_line( &iscii_logvis->logical_lines[row] , line) ;
 
@@ -1056,6 +1077,8 @@ iscii_visual(
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d]\n" ,
 		logvis->cursor->col , logvis->cursor->char_index) ;
+	kik_debug_printf( KIK_DEBUG_TAG " search hit: %d(mod: %d), miss: %d\n" ,
+		__hit_num , __mod_num , __miss_num) ;
 #endif
 
 	logvis->is_visual = 1 ;
@@ -1080,8 +1103,13 @@ iscii_logical(
 	
 	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
-		ml_line_copy_line( ml_model_get_line( logvis->model , row) ,
-			&iscii_logvis->logical_lines[row]) ;
+		ml_line_t *  vis_line ;
+
+		vis_line = ml_model_get_line( logvis->model , row) ;
+		
+		ml_line_copy_color_reversed_flag( &iscii_logvis->logical_lines[row] , vis_line) ;
+		ml_line_copy_color_reversed_flag( &iscii_logvis->visual_lines[row] , vis_line) ;
+		ml_line_copy_line( vis_line , &iscii_logvis->logical_lines[row]) ;
 	}
 
 	logvis->cursor->char_index = iscii_logvis->cursor_logical_char_index ;

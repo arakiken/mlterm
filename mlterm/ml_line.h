@@ -109,6 +109,8 @@ int  ml_line_restore_color( ml_line_t *  line , int  char_index) ;
 
 int  ml_line_copy_line( ml_line_t *  dst , ml_line_t *  src) ;
 
+int  ml_line_copy_color_reversed_flag( ml_line_t *  dst , ml_line_t *  src) ;
+
 int  ml_line_share( ml_line_t *  dst , ml_line_t *  src) ;
 
 int  ml_line_is_empty( ml_line_t *  line) ;

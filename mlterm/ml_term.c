@@ -876,6 +876,14 @@ ml_term_enter_backscroll_mode(
 	ml_term_t *  term
 	)
 {
+	/* XXX */
+	if( term->vertical_mode)
+	{
+		kik_msg_printf( "Not supported backscrolling in vertical mode.\n") ;
+		
+		return  0 ;
+	}
+	
 	return  ml_enter_backscroll_mode( term->screen) ;
 }
 
@@ -941,7 +949,7 @@ ml_term_reverse_color(
 	)
 {
 	return  ml_screen_reverse_color( term->screen , beg_char_index , beg_row ,
-		end_char_index , end_row) ;
+			end_char_index , end_row) ;
 }
 
 int
@@ -954,7 +962,7 @@ ml_term_restore_color(
 	)
 {
 	return  ml_screen_restore_color( term->screen , beg_char_index , beg_row ,
-		end_char_index , end_row) ;
+			end_char_index , end_row) ;
 }
 
 u_int

@@ -1070,7 +1070,7 @@ ml_screen_visual(
 	}
 	else
 	{
-		return  0 ;
+		return  1 ;
 	}
 }
 
@@ -1085,7 +1085,7 @@ ml_screen_logical(
 	}
 	else
 	{
-		return  0 ;
+		return  1 ;
 	}
 }
 

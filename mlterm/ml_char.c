@@ -920,7 +920,23 @@ ml_char_restore_color(
 	}
 }
 
-int
+inline int
+ml_char_is_color_reversed(
+	ml_char_t *  ch
+	)
+{
+	if( IS_SINGLE_CH(ch->u.ch.attr))
+	{
+		return  IS_REVERSED(ch->u.ch.attr) ;
+	}
+	else
+	{
+		/* See the first character */
+		return  IS_REVERSED(ch->u.multi_ch->u.ch.attr) ;
+	}
+}
+
+inline int
 ml_char_is_null(
 	ml_char_t *  ch
 	)
@@ -1023,7 +1039,7 @@ ml_char_bytes_equal(
 	return  1 ;
 }
 
-ml_char_t *
+inline ml_char_t *
 ml_sp_ch(void)
 {
 	if( sp_ch.u.ch.attr == 0)
@@ -1035,7 +1051,7 @@ ml_sp_ch(void)
 	return  &sp_ch ;
 }
 
-ml_char_t *
+inline ml_char_t *
 ml_nl_ch(void)
 {
 	if( nl_ch.u.ch.attr == 0)

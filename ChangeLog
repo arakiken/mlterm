@@ -1,3 +1,10 @@
+2004-02-11  Araki Ken  <arakiken@users.sf.net>
+
+	* Region selection and backscrolling are disabled in
+	  vertical mode.
+
+	* Color was not reversed in selecting in ISCII mode. Fixed.
+
 2004-02-11  Tomohiro KUBOTA  <kubota@debian.org>
 
 	* xwindow/xfont.c, xwindow/xfont.h, xwindow/x_term_manager.c:

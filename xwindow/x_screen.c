@@ -3629,6 +3629,14 @@ start_selection(
 	int  row_l ;
 	ml_line_t *  line ;
 
+	/* XXX */
+	if( screen->term->vertical_mode)
+	{
+		kik_msg_printf( "Not supported selection in vertical mode.\n") ;
+
+		return ;
+	}
+
 	if( ( line = ml_term_get_line( screen->term , row_r)) == NULL || ml_line_is_empty( line))
 	{
 		return ;
@@ -3676,6 +3684,14 @@ selecting(
 	int  row
 	)
 {
+	/* XXX */
+	if( screen->term->vertical_mode)
+	{
+		kik_msg_printf( "Not supported selection in vertical mode.\n") ;
+
+		return ;
+	}
+	
 	if( x_selecting( &screen->sel , char_index , row))
 	{
 		redraw_screen( screen) ;

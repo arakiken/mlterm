@@ -164,7 +164,9 @@ inline int  ml_char_reverse_color( ml_char_t *  ch) ;
 
 inline int  ml_char_restore_color( ml_char_t *  ch) ;
 
-int  ml_char_is_null( ml_char_t *  ch) ;
+inline int  ml_char_is_color_reversed( ml_char_t *  ch) ;
+
+inline int  ml_char_is_null( ml_char_t *  ch) ;
 
 inline int  ml_char_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
 
@@ -172,9 +174,9 @@ inline int  ml_char_bytes_is( ml_char_t *  ch , char *  bytes , size_t  size , m
 
 inline int  ml_char_bytes_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
 
-ml_char_t *  ml_sp_ch(void) ;
+inline ml_char_t *  ml_sp_ch(void) ;
 
-ml_char_t *  ml_nl_ch(void) ;
+inline ml_char_t *  ml_nl_ch(void) ;
 
 #ifdef  DEBUG
 
