@@ -61,6 +61,7 @@ typedef struct x_main_config
 	char *  sb_bg_color ;
 	char *  mod_meta_key ;
 	char *  icon_path ;
+	char *  uim_engine ;
 	char *  init_str ;
 	char *  cmd_path ;
 	char **  cmd_argv ;

@@ -24,6 +24,9 @@
 #include  "x_xic.h"
 #include  "x_picture.h"
 
+#ifdef  USE_UIM
+#include  "x_uim.h"
+#endif
 
 /*
  * XXX
@@ -1405,6 +1408,13 @@ draw_cursor(
 	ml_line_t *  orig ;
 	ml_char_t  ch ;
 
+#ifdef  USE_UIM
+	if( screen->uim_saved_preedit_len)
+	{
+		return  1 ;
+	}
+#endif
+
 	if( ( row = ml_term_cursor_row_in_screen( screen->term)) == -1)
 	{
 		return  0 ;
@@ -1693,6 +1703,13 @@ redraw_screen(
 	x_window_clear_margin_area( &screen->window) ;
 
 	ml_term_updated_all( screen->term) ;
+
+#ifdef  USE_UIM
+	if( screen->uim)
+	{
+		x_uim_redraw_preedit( screen->uim) ;
+	}
+#endif
 
 	return  1 ;
 }
@@ -2441,6 +2458,13 @@ window_focused(
 	}
 
 	highlight_cursor( screen) ;
+
+#ifdef  USE_UIM
+	if( screen->uim)
+	{
+		x_uim_focused( screen->uim) ;
+	}
+#endif
 }
 
 static void
@@ -2473,6 +2497,13 @@ window_unfocused(
 	}
 
 	highlight_cursor( screen) ;
+
+#ifdef  USE_UIM
+	if( screen->uim)
+	{
+		x_uim_unfocused( screen->uim) ;
+	}
+#endif
 }
 
 /*
@@ -2658,6 +2689,16 @@ key_pressed(
 	{
 		size = x_window_get_str( win , seq , sizeof(seq) , &parser , &ksym , event) ;
 	}
+
+#ifdef  USE_UIM
+	if( screen->uim)
+	{
+		if( ! x_uim_filter_key_event( screen->uim , ksym , event))
+		{
+			return ;
+		}
+	}
+#endif
 
 #ifdef  __DEBUG
 	{
@@ -4437,6 +4478,14 @@ change_char_encoding(
 	{
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
+
+#ifdef  USE_UIM
+	if( screen->uim)
+	{
+		x_uim_delete( screen->uim) ;
+		screen->uim = x_uim_new( encoding , &screen->uim_listener , screen->uim_engine) ;
+	}
+#endif
 }
 
 static void
@@ -5105,6 +5154,51 @@ snapshot(
 }
 
 static void
+change_uim(
+	x_screen_t *  screen ,
+	char *  engine
+	)
+{
+#ifdef  USE_UIM
+	if( engine == NULL)
+	{
+		return ;
+	}
+
+	if( screen->uim)
+	{
+		x_uim_delete( screen->uim) ;
+		screen->uim = NULL ;
+	}
+
+	if( strcmp( engine , "none"))
+	{
+		screen->uim = x_uim_new( ml_term_get_encoding( screen->term) ,
+					 &screen->uim_listener , engine) ;
+	}
+
+	if( screen->uim_engine)
+	{
+		free( screen->uim_engine) ;
+	}
+
+	if( screen->uim == NULL)
+	{
+		screen->uim_engine = NULL ;
+
+		return ;
+	}
+
+	screen->uim_engine = strdup( engine) ;
+
+	if( screen->is_focused)
+	{
+		x_uim_focused( screen->uim) ;
+	}
+#endif
+}
+
+static void
 set_config(
 	void *  p ,
 	char *  dev ,		/* can be NULL */
@@ -5615,6 +5709,10 @@ set_config(
 
 		snapshot( screen , ml_get_char_encoding( encoding) , file) ;
 	}
+	else if( strcmp( key , "uim_engine") == 0)
+	{
+		change_uim( screen , value) ;
+	}
 }
 
 static void
@@ -5966,6 +6064,14 @@ get_config(
 			value = ml_term_get_slave_name( term) ;
 		}
 	}
+	else if( strcmp( key , "uim_engine") == 0)
+	{
+#ifdef  USE_UIM
+		value = screen->uim_engine ;
+#else
+		value = NULL ;
+#endif
+	}
 	else
 	{
 		goto  error ;
@@ -6316,6 +6422,332 @@ get_bg_color(
 }
 
 /*
+ * callbacks of x_uim events.
+ */
+
+static int
+get_segment_spot(
+	void *  p ,
+	ml_char_t *  chars ,
+	u_int  segment_offset ,
+	int *  x ,
+	int *  y
+	)
+{
+	x_screen_t *  screen ;
+	ml_line_t *  line ;
+	ml_char_t *  comb_chars ;
+	u_int  comb_size ;
+	int  i ;
+	int  win_x ;
+	int  win_y ;
+	Window  unused ;
+
+	screen = p ;
+
+	if( ( line = ml_term_get_cursor_line( screen->term)) == NULL ||
+		ml_line_is_empty( line))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " cursor line doesn't exist ?.\n") ;
+	#endif
+
+		return  0 ;
+	}
+
+	if( ! screen->term->vertical_mode)
+	{
+		*x = convert_char_index_to_x_with_shape( screen , line ,
+				ml_term_cursor_char_index( screen->term)) ;
+		*y = convert_row_to_y( screen ,
+				ml_term_cursor_row( screen->term)) ;
+		*y += x_line_height( screen) + 3 ;
+	}
+	else
+	{
+		*x = convert_char_index_to_x_with_shape( screen , line ,
+				ml_term_cursor_char_index( screen->term)) ;
+		*y = convert_row_to_y( screen ,
+				ml_term_cursor_row( screen->term)) ;
+		*x += x_col_width( screen) + 3 ;
+	}
+
+
+	if( ! screen->term->vertical_mode)
+	{
+		for( i = 0 ; i < segment_offset ; i++)
+		{
+			u_int  width ;
+
+			width = x_calculate_char_width(
+					x_get_font( screen->font_man ,
+						    ml_char_font( &chars[i])) ,
+					ml_char_bytes( &chars[i]) ,
+					ml_char_size( &chars[i]) ,
+					ml_char_cs( &chars[i])) ;
+
+			if( *x + width > screen->window.width)
+			{
+				*x = 0 ;
+				*y += x_line_height( screen) ;
+			}
+			*x += width ;
+
+			/* not count combining characters */
+			comb_chars = ml_get_combining_chars( &chars[i] ,
+							     &comb_size) ;
+			if( comb_chars)
+			{
+				i += comb_size ;
+			}
+		}
+	}
+	else /* vertical_mode */
+	{
+		int  width ;
+		u_int  height ;
+		int  sign = 1 ;
+
+		if( screen->term->vertical_mode == VERT_RTL)
+		{
+			sign = -1;
+		}
+
+		width = x_col_width( screen) ;
+		height = x_line_height( screen) ;
+
+		for( i = 0 ; i < segment_offset ; i++)
+		{
+			*y += height ;
+			if( *y >= screen->window.height)
+			{
+				*x += width * sign;
+				*y = 0 ;
+			}
+
+			/* not count combining characters */
+			comb_chars = ml_get_combining_chars( &chars[i] ,
+							     &comb_size) ;
+			if( comb_chars)
+			{
+				i += comb_size ;
+			}
+		}
+	}
+
+	XTranslateCoordinates( screen->window.display ,
+			       screen->window.my_window ,
+			       DefaultRootWindow( screen->window.display) ,
+			       0 , 0 , &win_x , &win_y , &unused) ;
+
+	*x += win_x ;
+	*y += win_y ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " uim spot => x %d y %d\n" , *x , *y) ;
+#endif
+
+	return  1 ;
+}
+
+static int
+draw_preedit_str(
+	void *  p ,
+	ml_char_t *  chars ,
+	u_int  num_of_chars ,
+	int  preedit_cursor_offset)
+{
+	x_screen_t *  screen ;
+	ml_line_t *  line ;
+	ml_char_t *  comb_chars ;
+	u_int  comb_size ;
+	x_font_t *  xfont ;
+	int  x ;
+	int  y ;
+	int  i ;
+	u_int  beg_row ;
+	u_int  end_row ;
+	int  preedit_cursor_x ;
+	int  preedit_cursor_y ;
+
+	screen = p ;
+
+	if( screen->uim_saved_preedit_len > num_of_chars ||
+	    preedit_cursor_offset < num_of_chars)
+	{
+		redraw_screen( screen) ;
+	}
+	screen->uim_saved_preedit_len = num_of_chars ;
+
+	if( ! num_of_chars)
+	{
+		return  0 ;
+	}
+
+	if( ml_term_is_backscrolling( screen->term))
+	{
+		return  0 ;
+	}
+
+	if( ( line = ml_term_get_cursor_line( screen->term)) == NULL ||
+		ml_line_is_empty( line))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " cursor line doesn't exist ?.\n") ;
+	#endif
+
+		return  0 ;
+	}
+
+	if( ! screen->term->vertical_mode)
+	{
+		beg_row = ml_term_cursor_row( screen->term) ;
+	}
+	else if( screen->term->vertical_mode == VERT_RTL)
+	{
+		u_int  ncols ;
+
+		ncols = ml_term_get_cols( screen->term) ;
+		beg_row = ml_term_cursor_col( screen->term) ;
+		beg_row = ncols - beg_row - 1;
+	}
+	else /* VERT_LTR */
+	{
+		beg_row = ml_term_cursor_col( screen->term) ;
+	}
+	end_row = beg_row ;
+
+	x = convert_char_index_to_x_with_shape( screen , line ,
+				ml_term_cursor_char_index( screen->term)) ;
+	y = convert_row_to_y( screen , ml_term_cursor_row( screen->term)) ;
+
+	for( i = 0 ; i < num_of_chars ; i++)
+	{
+		u_int width ;
+
+		xfont = x_get_font( screen->font_man ,
+				    ml_char_font( &chars[i])) ;
+		width = x_calculate_char_width( xfont ,
+						ml_char_bytes( &chars[i]) ,
+						ml_char_size( &chars[i]) ,
+						ml_char_cs( &chars[i])) ;
+
+		if( ! screen->term->vertical_mode)
+		{
+			if( x + width > screen->window.width)
+			{
+				x = 0 ;
+				y += x_line_height( screen) ;
+				end_row++ ;
+			}
+		}
+		else if( screen->term->vertical_mode == VERT_RTL)
+		{
+			if( y + x_line_height( screen) > screen->window.height)
+			{
+				y = 0 ;
+				x -= x_line_height(screen) ;
+				end_row++ ;
+			}
+		}
+		else /* VERT_LTR */
+		{
+			if( y + x_line_height( screen) > screen->window.height)
+			{
+				y = 0 ;
+				x += x_line_height(screen) ;
+				end_row++ ;
+			}
+		}
+
+		if( ! draw_str( screen , &chars[i] , 1 , x , y ,
+				x_line_height( screen) ,
+				x_line_height_to_baseline( screen) ,
+				x_line_top_margin( screen) ,
+				x_line_bottom_margin( screen)))
+		{
+			return  0 ;
+		}
+
+		if( i == preedit_cursor_offset)
+		{
+			preedit_cursor_x = x ;
+			preedit_cursor_y = y ;
+		}
+
+		comb_chars = ml_get_combining_chars( &chars[i] , &comb_size) ;
+		if( comb_chars)
+		{
+			i += comb_size ;
+		}
+
+		if( ! screen->term->vertical_mode)
+		{
+			x += width ;
+		}
+		else
+		{
+			y += x_line_height( screen) ;
+		}
+	}
+
+	if( preedit_cursor_offset == num_of_chars)
+	{
+		preedit_cursor_x = x ;
+		preedit_cursor_y = y ;
+	}
+
+	if( preedit_cursor_offset >= 0)
+	{
+		if( ! screen->term->vertical_mode)
+		{
+			XDrawLine( screen->window.display ,
+				   screen->window.drawable ,
+				   screen->window.gc ,
+				   preedit_cursor_x + 2 ,
+				   preedit_cursor_y + x_line_top_margin( screen) + 2 ,
+				   preedit_cursor_x + 2,
+				   preedit_cursor_y + x_line_height( screen)) ;
+		}
+		else
+		{
+			XDrawLine( screen->window.display ,
+				   screen->window.drawable ,
+				   screen->window.gc ,
+				   preedit_cursor_x + x_line_top_margin( screen) + 2 ,
+				   preedit_cursor_y + 2 ,
+				   preedit_cursor_x + x_line_top_margin(screen) + xfont->height + 1 ,
+				   preedit_cursor_y + 2 ) ;
+		}
+	}
+
+	ml_term_set_modified_lines_in_screen( screen->term ,
+					      beg_row ,
+					      end_row) ;
+
+	return  1 ;
+}
+
+static void
+write_to_term(
+	void *  p ,
+	u_char *  str ,		/* must be same as pty encoding */
+	size_t  len
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+#ifdef  UIM_DEBUG
+	kik_debug_printf("written str: %s\n", str);
+#endif
+
+	ml_term_write( screen->term , str , len , 0) ;
+}
+
+
+/*
  * callbacks of ml_xterm_event_listener_t
  */
 
@@ -6557,7 +6989,6 @@ pty_closed(
 	(*screen->system_listener->pty_closed)( screen->system_listener->self , screen) ;
 }
 
-
 /* --- global functions --- */
 
 x_screen_t *
@@ -6587,7 +7018,8 @@ x_screen_new(
 	char *  conf_menu_path_3 ,
 	int  use_extended_scroll_shortcut ,
 	int  override_redirect ,
-	u_int  line_space
+	u_int  line_space ,
+	char *  uim_engine
 	)
 {
 	x_screen_t *  screen ;
@@ -6641,6 +7073,10 @@ x_screen_new(
 	screen->xct_conv = NULL ;
 
 	screen->kbd = NULL ;
+#ifdef  USE_UIM
+	screen->uim = NULL ;
+	screen->uim_saved_preedit_len = 0 ;
+#endif
 
 	screen->use_vertical_cursor = use_vertical_cursor ;
 
@@ -6708,6 +7144,22 @@ x_screen_new(
 	screen->window.xim_listener = &screen->xim_listener ;
 
 	screen->xim_open_in_startup = xim_open_in_startup ;
+
+#ifdef  USE_UIM
+	screen->uim_engine = NULL ;
+
+	screen->uim_listener.self = screen ;
+	screen->uim_listener.get_spot = get_segment_spot ;
+	screen->uim_listener.draw_preedit_str = draw_preedit_str ;
+	screen->uim_listener.write_to_term = write_to_term ;
+
+	screen->uim = x_uim_new( ml_term_get_encoding(term) , &screen->uim_listener , uim_engine) ;
+
+	if( screen->uim)
+	{
+		screen->uim_engine = strdup( uim_engine) ;
+	}
+#endif
 
 	x_window_set_cursor( &screen->window , XC_xterm) ;
 
@@ -6857,6 +7309,13 @@ error:
 		(*screen->xct_conv->delete)( screen->xct_conv) ;
 	}
 
+#ifdef  USE_UIM
+	if( screen->uim)
+	{
+		x_uim_delete( screen->uim) ;
+	}
+#endif
+
 	if( screen)
 	{
 		free( screen) ;
@@ -6917,6 +7376,18 @@ x_screen_delete(
 		(*screen->xct_conv->delete)( screen->xct_conv) ;
 	}
 
+#ifdef  USE_UIM
+	if( screen->uim)
+	{
+		x_uim_delete( screen->uim) ;
+	}
+
+	if( screen->uim_engine)
+	{
+		free( screen->uim_engine) ;
+	}
+#endif
+
 	free( screen) ;
 
 	return  1 ;
@@ -6974,6 +7445,14 @@ x_screen_attach(
 	 */
 	x_set_window_name( &screen->window , ml_term_window_name( screen->term)) ;
 	x_set_icon_name( &screen->window , ml_term_icon_name( screen->term)) ;
+
+#ifdef  USE_UIM
+	if( screen->uim)
+	{
+		x_uim_delete( screen->uim) ;
+		screen->uim = x_uim_new( ml_term_get_encoding(term) , &screen->uim_listener , screen->uim_engine) ;
+	}
+#endif
 
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;

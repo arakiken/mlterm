@@ -208,6 +208,12 @@ notify_configure_to_children(
 			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 		}
 	}
+#ifdef  USE_UIM /* FIXME */
+	else
+	{
+		(*win->window_exposed)( win , 0 , 0 , 0 , 0) ;
+	}
+#endif
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{

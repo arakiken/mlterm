@@ -5,7 +5,6 @@
 #ifndef  __X_SCREEN_H__
 #define  __X_SCREEN_H__
 
-
 #include  <mkf/mkf_parser.h>
 #include  <kiklib/kik_types.h>		/* u_int/int8_t/size_t */
 #include  <ml_term.h>
@@ -19,6 +18,9 @@
 #include  "x_sb_mode.h"
 #include  "x_kbd.h"
 
+#ifdef  USE_UIM
+#include  "x_uim.h"
+#endif
 
 typedef struct x_screen *  x_screen_ptr_t ;
 
@@ -89,11 +91,19 @@ typedef struct  x_screen
 
 	x_sel_event_listener_t  sel_listener ;
 	x_xim_event_listener_t  xim_listener ;
+#ifdef USE_UIM
+	x_uim_event_listener_t  uim_listener ;
+#endif
 
 	x_shortcut_t *  shortcut ;
 	x_termcap_entry_t *  termcap ;
 
 	x_kbd_t *  kbd ;
+#ifdef USE_UIM
+	x_uim_t *  uim ;
+	char *  uim_engine ;
+	u_int  uim_saved_preedit_len ;
+#endif
 
 	char *  mod_meta_key ;
 	x_mod_meta_mode_t  mod_meta_mode ;
@@ -152,7 +162,8 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	x_bel_mode_t  bel_mode , int  receive_string_via_ucs , char *  pic_file_path ,
 	int  use_transbg , int  use_vertical_cursor , int  big5_buggy ,
 	char *  conf_menu_path_1 , char *  conf_menu_path_2 , char *  conf_menu_path_3 ,
-	int  use_extended_scroll_shortcut , int  borderless , u_int  line_space) ;
+	int  use_extended_scroll_shortcut , int  borderless , u_int  line_space ,
+	char *  uim_engine) ;
 
 int  x_screen_delete( x_screen_t *  screen) ;
 

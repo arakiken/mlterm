@@ -177,6 +177,10 @@ x_prepare_for_main_config(
 		"terminal type for TERM variable [xterm]") ;
 	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
 		"step in changing font size in GUI configurator [1]") ;
+#ifdef  USE_UIM
+	kik_conf_add_opt( conf , '\0' , "uimengine" , 0 , "uim_engine" ,
+		"uim conversion engine [none/anthy/py/hangul2/viqr/...]") ;
+#endif
 
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
@@ -873,6 +877,17 @@ x_main_config_init(
 		main_config->icon_path = NULL ;
 	}
 
+	main_config->uim_engine = NULL ;
+#ifdef  USE_UIM
+	if( ( value = kik_conf_get_value( conf , "uim_engine")))
+	{
+		if( strcmp( value , "none"))
+		{
+			main_config->uim_engine = strdup( value) ;
+		}
+	}
+#endif
+
 	if( ( value = kik_conf_get_value( conf , "init_str")))
 	{
 		if( ( main_config->init_str = malloc( strlen( value) + 1)))
@@ -987,6 +1002,7 @@ x_main_config_final(
 	free( main_config->sb_bg_color) ;
 	free( main_config->icon_path) ;
 	free( main_config->mod_meta_key) ;
+	free( main_config->uim_engine) ;
 	free( main_config->init_str) ;
 	free( main_config->cmd_argv) ;
 

@@ -314,6 +314,23 @@ AC_SUBST(DND_CFLAGS)
 AC_SUBST(DND_LIBS)
 
 #
+# --- uim ---
+#
+AC_ARG_ENABLE(uim,
+	[  --enable-uim           uim[default=disabled]],,enable_uim=yes)
+if test "$enable_uim" = yes ; then
+	PKG_CHECK_MODULES(UIM, uim, have_uim=yes, have_uim=no)
+	if test "$have_uim" = yes ; then
+		UIM_OBJ="x_uim.o"
+		UIM_CFLAGS="-DUSE_UIM `pkg-config uim --cflags`"
+		UIM_LIBS=`pkg-config uim --libs`
+	fi
+fi
+AC_SUBST(UIM_OBJ)
+AC_SUBST(UIM_CFLAGS)
+AC_SUBST(UIM_LIBS)
+
+#
 # --- scrollbar plugins ---
 #
 # defaut settings

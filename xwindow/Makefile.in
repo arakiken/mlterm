@@ -26,7 +26,7 @@ OBJ = x_window_manager.o x_window.o x_screen.o x_xim.o x_xic.o x_color_manager.o
 	x_sb_view_factory.o x_simple_sb_view.o x_color.o x_decsp_font.o \
 	x_imagelib_@IMAGELIB_NAME@.o x_selection.o x_font_config.o x_color_config.o \
 	x_shortcut.o x_bel_mode.o x_sb_mode.o x_mod_meta_mode.o main.o x_term_manager.o \
-	x_termcap.o x_display.o @DND_LIBS@ x_kbd.o x_font_cache.o x_main_config.o
+	x_termcap.o x_display.o @DND_LIBS@ x_kbd.o x_font_cache.o x_main_config.o @UIM_OBJ@
 
 LKIK = @KIK_LIBS@
 LMKF = @MKF_LIBS@
@@ -35,14 +35,14 @@ LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
 
 CFLAGS=$(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ \
-       @IMAGELIB_CFLAGS@ @X_CFLAGS@ @XUTF8_CFLAGS@ @DND_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+       @IMAGELIB_CFLAGS@ @X_CFLAGS@ @XUTF8_CFLAGS@ @DND_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @UIM_CFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-DLIBEXECDIR=\"$(LIBEXECDIR)\" -DDATADIR=\"$(DATADIR)\"\
 	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/local/include
 
 LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS@ \
 	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@ $(LMLTERM) $(LMKF) $(LKIK) \
-	-L/usr/local/lib -R/usr/local/lib
+	@UIM_LIBS@ -L/usr/local/lib -R/usr/local/lib
 
 PROG = mlterm
 INSTALL_OPT = @INSTALL_OPT@
