@@ -1,4 +1,7 @@
 [20020329]
+* memory leaks in ml_color_custom.c. fixed.
+
+[20020329]
 * all the colors defined in rgb.txt are available.
 * #RRGGBB format is supported for fg_color,bg_color,sb_fg_color,sb_bg_color.
 
