@@ -2,14 +2,12 @@
 
 use strict;
 use Curses;
-#use Data::Dumper;
-
 
 ###########
 # global variables
 ###########
 #
-my $VERSION="0.1-2.4.0pre1";
+my $VERSION="0.1-2.4.0";
 my $TITLE = "mlterm configurator on Curses v.$VERSION";
 my $TERM="mlterm" || $ENV{TERM}; ### XXX:drop support for other T.E.s ?
 my $TTY = "/dev/tty"; ### XXX TBD:support remote control!
@@ -399,8 +397,10 @@ sub display_clear(@){
     my ($x,$y) = display_window_size($window);
     my $line;
     $window->clear();
-    foreach $line (0 .. $y){
-	display_str($window, " " x $x , 0, $line, $FG_COLOR, $BG_COLOR );
+    if ($TERM ne "xterm"){
+	foreach $line (0 .. $y){
+	    display_str($window, " " x $x , 0, $line, $FG_COLOR, $BG_COLOR );
+	}
     }
 }
 
@@ -1234,6 +1234,7 @@ sub comm_setparam_mlterm(@){
     my $entry = shift;
     my $data = shift;
     my $key = $entry2key_mlterm{$entry};
+	printf STDERR "${key} ${data} ${entry}" ;
     if ( $key){
 ###FixMe: 
 #	open (OUT,">$TTY");
@@ -1241,6 +1242,7 @@ sub comm_setparam_mlterm(@){
 #	printf OUT "\x1b]5379;${key}=${data}\x07";
 #	close(OUT);
 	printf "\x1b]5379;${key}=${data}\x07";
+	printf STDERR "\x1b]5379;${key}=${data}\x07";
     }
 }
 
