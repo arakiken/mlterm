@@ -5,6 +5,7 @@
 #include  "ml_picture.h"
 
 #include  <stdlib.h>			/* abs */
+#include  <X11/Xatom.h>			/* XA_PIXMAP */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>		/* realloc/free */
 
@@ -24,14 +25,92 @@ typedef struct  imlib
 
 } imlib_t ;
 
+#endif
+
 
 /* --- static variables --- */
+
+#ifdef  USE_IMLIB
 
 static imlib_t *  imlibs ;
 static u_int  num_of_imlibs ;
 
+#endif
+
 
 /* --- static functions --- */
+
+static int
+get_visible_window_geometry(
+	ml_window_t *  win ,
+	int *  x ,
+	int *  y ,
+	int *  in_x ,
+	int *  in_y ,
+	u_int *  width ,
+	u_int *  height
+	)
+{
+	Window  child ;
+	
+	XTranslateCoordinates( win->display , win->my_window ,
+		DefaultRootWindow( win->display) , 0 , 0 ,
+		x , y , &child) ;
+
+	if( *x < 0)
+	{
+		if( ACTUAL_WIDTH(win) <= abs(*x))
+		{
+			/* no visible window */
+			
+			return  0 ;
+		}
+
+		*in_x = abs(*x) ;
+		
+		*width = ACTUAL_WIDTH(win) - abs(*x) ;
+		*x = 0 ;
+	}
+	else
+	{
+		*in_x = 0 ;
+		*width = ACTUAL_WIDTH(win) ;
+	}
+
+	if( *y < 0)
+	{
+		if( ACTUAL_HEIGHT(win) <= abs(*y))
+		{
+			/* no visible window */
+			
+			return  0 ;
+		}
+
+		*in_y = abs(*y) ;
+
+		*height = ACTUAL_HEIGHT(win) - abs(*y) ;
+		*y = 0 ;
+	}
+	else
+	{
+		*in_y = 0 ;
+		*height = ACTUAL_HEIGHT(win) ;
+	}
+
+	if( *x + *width > DisplayWidth( win->display , win->screen))
+	{
+		*width = DisplayWidth( win->display , win->screen) - *x ;
+	}
+
+	if( *y + *height > DisplayHeight( win->display , win->screen))
+	{
+		*height = DisplayHeight( win->display , win->screen) - *y ;
+	}
+
+	return  1 ;
+}
+
+#ifdef  USE_IMLIB
 
 static ImlibData *
 get_imlib(
@@ -148,61 +227,11 @@ get_background_picture(
 		return  None ;
 	}
 
-	XTranslateCoordinates( win->display , win->my_window ,
-		DefaultRootWindow( win->display) , 0 , 0 ,
-		&x , &y , &child) ;
-
-	attr.background_pixmap = ParentRelative ;
-	attr.backing_store = Always ;
-	attr.event_mask = ExposureMask ;
-	attr.override_redirect = True ;
+	if( ! get_visible_window_geometry( win , &x , &y , &pix_x , &pix_y , &width , &height))
+	{
+		return  None ;
+	}
 	
-	if( x < 0)
-	{
-		if( ACTUAL_WIDTH(win) <= abs(x))
-		{
-			return  None ;
-		}
-
-		pix_x = abs(x) ;
-		
-		width = ACTUAL_WIDTH(win) - abs(x) ;
-		x = 0 ;
-	}
-	else
-	{
-		pix_x = 0 ;
-		width = ACTUAL_WIDTH(win) ;
-	}
-
-	if( y < 0)
-	{
-		if( ACTUAL_HEIGHT(win) <= abs(y))
-		{
-			return  None ;
-		}
-
-		pix_y = abs(y) ;
-
-		height = ACTUAL_HEIGHT(win) - abs(y) ;
-		y = 0 ;
-	}
-	else
-	{
-		pix_y = 0 ;
-		height = ACTUAL_HEIGHT(win) ;
-	}
-
-	if( x + width > DisplayWidth( win->display , win->screen))
-	{
-		width = DisplayWidth( win->display , win->screen) - x ;
-	}
-
-	if( y + height > DisplayHeight( win->display , win->screen))
-	{
-		height = DisplayHeight( win->display , win->screen) - y ;
-	}
-
 	if( ( id = XInternAtom( win->display , "_XROOTPMAP_ID" , True)))
 	{
 		Atom act_type ;
@@ -224,16 +253,25 @@ get_background_picture(
 				img = Imlib_create_image_from_drawable( imlib , *((Drawable *) prop) ,
 					AllPlanes , x , y , width , height) ;
 					
-				XFree(prop) ;
+				XFree( prop) ;
 				
 				if( img)
 				{
 					goto  found ;
 				}
 			}
+			else if( *prop)
+			{
+				XFree( prop) ;
+			}
 		}
 	}
 
+	attr.background_pixmap = ParentRelative ;
+	attr.backing_store = Always ;
+	attr.event_mask = ExposureMask ;
+	attr.override_redirect = True ;
+	
 	src = XCreateWindow( win->display , DefaultRootWindow( win->display) ,
 			x , y , width , height , 0 ,
 			CopyFromParent, CopyFromParent, CopyFromParent ,
@@ -286,9 +324,6 @@ found:
 
 #else
 
-/*
- * only Bitmap picture.
- */
 static Pixmap
 load_picture(
 	ml_window_t *  win ,
@@ -305,7 +340,65 @@ get_background_picture(
 	ml_picture_modifier_t *  pic_mod
 	)
 {
-	return  None ;
+	Atom id ;
+	int  x ;
+	int  y ;
+	u_int  width ;
+	u_int  height ;
+	int  pix_x ;
+	int  pix_y ;
+	Pixmap  pixmap ;
+	Atom act_type ;
+	int  act_format ;
+	u_long  nitems ;
+	u_long  bytes_after ;
+	u_char *  prop ;
+
+	if( pic_mod && pic_mod->brightness != 100)
+	{
+		/*
+		 * XXX
+		 * image modification is completely depends on Imlib.
+		 */
+		
+		return  None ;
+	}
+	
+	if( ( id = XInternAtom( win->display , "_XROOTPMAP_ID" , True)) == None)
+	{
+		return  None ;
+	}
+	
+	if( ! get_visible_window_geometry( win , &x , &y , &pix_x , &pix_y , &width , &height))
+	{
+		return  None ;
+	}
+	
+	if( XGetWindowProperty( win->display , DefaultRootWindow(win->display) , id , 0 , 1 , False ,
+		XA_PIXMAP , &act_type , &act_format , &nitems , &bytes_after , &prop) != Success ||
+		prop == NULL)
+	{
+		return  None ;
+	}
+	
+	if( ! *prop)
+	{
+		XFree( prop) ;
+
+		return  None ;
+	}
+	
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " root pixmap %d found.\n" , *prop) ;
+#endif
+
+	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+			DefaultDepth( win->display , win->screen)) ;
+
+	XCopyArea( win->display , (*(Drawable*)prop) , pixmap , win->gc ,
+		x + pix_x , y + pix_y , width , height , 0 , 0) ;
+
+	return  pixmap ;
 }
 
 #endif
@@ -451,12 +544,10 @@ ml_root_pixmap_available(
 	Display *  display
 	)
 {
-#ifdef  USE_IMLIB
 	if( XInternAtom( display , "_XROOTPMAP_ID" , True))
 	{
 		return  1 ;
 	}
-#endif
 
 	return  0 ;
 }

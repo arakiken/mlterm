@@ -1,0 +1,4 @@
+scrollbar_mode	radio:lower	left	0	Position
+scrollbar_view_name	text	simple	0	View
+sb_fg_color	select:lower	black	0	FG color
+sb_bg_color	select:lower	white	0	BG color

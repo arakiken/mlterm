@@ -4,13 +4,14 @@ ver 2.3.0
 * Most settings of scrollbar(position,type,color etc) can be dynamically changed.
 * Number of extra dots between lines can be specified.
 * Brightness of wall picture and transparent background can be adjustied.
-* mlterm can work as a daemon process , and mlclient which is a front end of mlterm
+* Mlterm can work as a daemon process , and mlclient which is a front end of mlterm
   server is added.
-* mlterm can handle multiple display connections.
+* Mlterm can handle multiple display connections.
 * utmp,wtmp is supported by utemper , login/logout functions , or directly 
   operating BSD style utmp,wtmp files.
   (utemper support is contributed by Mike Fabian , and login/logout one is by
   Minami Hirokazu san. Thanks!)
+* Transparent background by _XROOTPMAP_ID(on kwin,icewm etc) is supported.
 * and many minor bugs are fixed.
 
 ver 2.2.0(2002/01/29)
