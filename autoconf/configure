@@ -1708,7 +1708,7 @@ else
   if { (eval echo configure:1709: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
     for file in conftest.*; do
       case $file in
-      *.c | *.o | *.obj) ;;
+      *.$ac_ext | *.c | *.o | *.obj) ;;
       *) ac_cv_exeext=`echo $file | sed -e s/conftest//` ;;
       esac
     done
@@ -6258,8 +6258,47 @@ if test "${enable_anti_alias+set}" = set; then
 fi
 
 if test "$anti_alias" = "yes" ; then
-	AA_CFLAGS="-DANTI_ALIAS"
-	AA_LIBS="-lXft"
+	# Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+echo "configure:6265: checking for $ac_word" >&5
+if eval "test \"`echo '$''{'ac_cv_prog_pkg_config'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  if test -n "$pkg_config"; then
+  ac_cv_prog_pkg_config="$pkg_config" # Let the user override the test.
+else
+  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
+  ac_dummy="$PATH"
+  for ac_dir in $ac_dummy; do
+    test -z "$ac_dir" && ac_dir=.
+    if test -f $ac_dir/$ac_word; then
+      ac_cv_prog_pkg_config="yes"
+      break
+    fi
+  done
+  IFS="$ac_save_ifs"
+fi
+fi
+pkg_config="$ac_cv_prog_pkg_config"
+if test -n "$pkg_config"; then
+  echo "$ac_t""$pkg_config" 1>&6
+else
+  echo "$ac_t""no" 1>&6
+fi
+
+	if test "$pkg_config" = "yes" ; then
+		if `pkg-config --exists xft` ; then
+			AA_CFLAGS="`pkg-config --cflags xft` -DANTI_ALIAS"
+			AA_LIBS="`pkg-config --libs xft`"
+		else
+			AA_CFLAGS="-DANTI_ALIAS"
+			AA_LIBS="-lXft"
+		fi
+	else
+		AA_CFLAGS="-DANTI_ALIAS"
+		AA_LIBS="-lXft"
+	fi
 fi
 
 
@@ -6273,7 +6312,7 @@ fi
 
 if test "$enable_ind" = "yes" ; then
 	echo $ac_n "checking for indian_init in -lind""... $ac_c" 1>&6
-echo "configure:6277: checking for indian_init in -lind" >&5
+echo "configure:6316: checking for indian_init in -lind" >&5
 ac_lib_var=`echo ind'_'indian_init | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -6281,7 +6320,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lind  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 6285 "configure"
+#line 6324 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -6292,7 +6331,7 @@ int main() {
 indian_init()
 ; return 0; }
 EOF
-if { (eval echo configure:6296: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:6335: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -6342,7 +6381,7 @@ fi
 # Extract the first word of "gtk-config", so it can be a program name with args.
 set dummy gtk-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6346: checking for $ac_word" >&5
+echo "configure:6385: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_gtk_config'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6372,7 +6411,7 @@ if test "$gtk_config" = "yes" ; then
 	# Extract the first word of "gtk-config", so it can be a program name with args.
 set dummy gtk-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6376: checking for $ac_word" >&5
+echo "configure:6415: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_GTK_CONFIG'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6411,7 +6450,7 @@ else
 	# Extract the first word of "gtk12-config", so it can be a program name with args.
 set dummy gtk12-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6415: checking for $ac_word" >&5
+echo "configure:6454: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_gtk_config'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6441,7 +6480,7 @@ fi
 		# Extract the first word of "gtk12-config", so it can be a program name with args.
 set dummy gtk12-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6445: checking for $ac_word" >&5
+echo "configure:6484: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_GTK_CONFIG'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else

@@ -1,3 +1,7 @@
+2002-12-16 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Applied Minami-san's Xft2 support patch.
+
 2002-12-15 Araki Ken <arakiken@users.sf.net>
 
 	* 2002-12-14 fix was incomplete, that is, copy&paste in the same window failed. fixed.
