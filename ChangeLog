@@ -1,3 +1,9 @@
+[20020118]
+* XftTextExtents returns full width extents for DynaFont "W" , which makes space between
+  characters too wide. fixed(there is still room for improvement).
+  (thanks to Asaki Takumi san)
+* not only background color but foreground color is faded.
+
 [20020115]
 * calculating width of anti alias font was somewhat wrong. fixed.
 * variable column width anti alias fonts , which are specified in ~/.mlterm/vaafont ,
