@@ -16,12 +16,13 @@
 
 #include "x_imagelib.h"
 
+/// Pixmap cache per display.
 typedef struct display_store_tag {
-	Display *display;
-	Pixmap root;
-	Pixmap cooked;
-	x_picture_modifier_t  pic_mod;
-	struct timeval tval;
+	Display *display; ///<Display (primary key)
+	Pixmap root;      ///<Root pixmap !NOT owned by mlterm!
+	Pixmap cooked;    ///<Background pixmap cache
+	x_picture_modifier_t  pic_mod; ///<modification applied to "cooked"
+	struct timeval tval; ///<The time cache when cache was created
 	struct display_store_tag *next;
 } display_store_t;
 
@@ -32,6 +33,11 @@ static unsigned char gamma_cache[256 +1];
 static display_store_t * display_store = NULL;
 
 /* --- static functions --- */
+
+/**\fn void cache_delete(Display * display)
+ *\brief Remove a cache for the display.
+ *\param display The display to remove cache.
+ */
 static void
 cache_delete(Display * display){
 	display_store_t * cache;
@@ -365,7 +371,7 @@ gamma_cache_refresh(int gamma){
 		gamma_cache[i++] = 255;
 }
 
-/*
+/** modify GdkPixbuf according to pic_mod
  * GdkPixbuf is a client side resource and it's not efficient
  * to render an GdkPixbuf to Pixmap and convert Pixmap to XImage
  * and edit XImage's data and XPutImage() them.
@@ -620,6 +626,11 @@ x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_pic
 	return pixmap;
 }
 
+/** Answer whether pseudo transparency is avilable
+ *\param display connection to X server.
+ * 
+ *\return Success => 1, Failure => 0
+ */
 int
 x_imagelib_root_pixmap_available( Display * display){
 	if( XInternAtom( display , "_XROOTPMAP_ID" , True))
@@ -627,6 +638,12 @@ x_imagelib_root_pixmap_available( Display * display){
 	return 0;
 }
 
+/** Create an pixmap from root window
+ *\param win window structure
+ *\param pic_mod picture modifier
+ * 
+ *\return Newly allocated Pixmap (or None in the case of failure)
+ */
 Pixmap
 x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t * pic_mod){
 	int x;
@@ -729,6 +746,15 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 	return pixmap;
 }
 
+/** Load an image from the specified file. 
+ *\param display connection to X server.
+ *\param path File full path.
+ *\param cardinal Returns pointer to a data structur for the extended WM hint spec.
+ *\param cardinal Returns image pixmap for the old WM hint.
+ *\param cardinal Returns mask bitmap for the old WM hint.
+ * 
+ *\return Success => 1, Failure => 0
+ */
 int x_imagelib_load_file(
 	Display * display,
 	char * path,
