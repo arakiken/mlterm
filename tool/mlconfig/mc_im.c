@@ -56,12 +56,12 @@ static u_int num_of_xims;
 
 static int is_changed = 0;
 
-static char xim_auto_str[STR_LEN];
-static char current_locale_str[STR_LEN];
-static char selected_xim_name[STR_LEN];
-static char selected_xim_locale[STR_LEN];
-static char selected_uim_engine[STR_LEN];
-static char selected_iiimf_lang[STR_LEN];
+static char xim_auto_str[STR_LEN] = "";
+static char current_locale_str[STR_LEN] = "";
+static char selected_xim_name[STR_LEN] = "";
+static char selected_xim_locale[STR_LEN] = "";
+static char selected_uim_engine[STR_LEN] = "";
+static char selected_iiimf_lang[STR_LEN] = "";
 
 /* --- static functions --- */
 
@@ -349,18 +349,25 @@ uim_widget_new(const char *uim_engine)
 
 #ifdef USE_IIIMF
 static void
-iiimf_set_item(char **items, char *lang_id, char* le_name, int index)
+iiimf_set_item(char **items, char *str1, char* str2, int index)
 {
 	size_t len;
 
-	len = strlen(lang_id) + strlen(le_name) + 4;
-
-	if ((items[index] = malloc(sizeof(char) * len)) == NULL) {
-		items[index] = NULL;
-		return;
+	if (str2) { /* "str1 (str2)" */
+		len = strlen(str1) + strlen(str2) + 4;
+		if ((items[index] = malloc(sizeof(char) * len)) == NULL) {
+			items[index] = NULL;
+			return;
+		}
+		snprintf(items[index], len, "%s (%s)", str1, str2);
+	} else { /* "str1" */
+		len = strlen(str1) + 1;
+		if ((items[index] = malloc(sizeof(char) * len)) == NULL) {
+			items[index] = NULL;
+			return;
+		}
+		snprintf(items[index], len, str1);
 	}
-
-	snprintf(items[index], len, "%s (%s)", lang_id, le_name);
 
 	return;
 }
@@ -404,9 +411,6 @@ iiimf_best_match_index(const char **items,
 
 	snprintf(buf, STR_LEN, cur_locale);
 
-	if (lang_id && strlen(lang_id) == 0) lang_id = NULL;
-	if (le_name && strlen(le_name) == 0) le_name = NULL;
-
 	if (lang_id == NULL && le_name == NULL) {
 		char *p;
 		if (!(p = strstr(buf, ".")))
@@ -420,12 +424,15 @@ iiimf_best_match_index(const char **items,
 
 		if (!items[i]) continue;
 
-		if (lang_id && strlen(lang_id) >= 2) {
-			if (strncmp(items[i], lang_id, 2) == 0)
+		if (lang_id) {
+			if (strlen(lang_id) >= 2 &&
+			    strncmp(items[i], lang_id, 2) == 0)
 				score++;
-			if (strncmp(items[i], lang_id, 5) == 0)
+			if (strlen(lang_id) >= 5 &&
+			    strncmp(items[i], lang_id, 5) == 0)
 				score++;
-			if (strncmp(items[i], lang_id, 11) == 0)
+			if (strlen(lang_id) >= 11 &&
+			    strncmp(items[i], lang_id, 11) == 0)
 				score++;
 		}
 
@@ -438,8 +445,10 @@ iiimf_best_match_index(const char **items,
 			}
 		}
 
-		if (score > best_score)
+		if (score > best_score) {
+			best_score = score;
 			result = i;
+		}
 	}
 
 	return result;
@@ -460,6 +469,11 @@ iiimf_widget_new(const char *iiimf_lang_id, const char *iiimf_le, const char *cu
 	int selected_index;
 	int i, j;
 	char *utf8 = NULL;
+
+	if (iiimf_lang_id && strlen(iiimf_lang_id) == 0)
+		iiimf_lang_id = NULL;
+	if (iiimf_le && strlen(iiimf_le) == 0)
+		iiimf_le = NULL;
 
 	if (iiimcf_initialize(IIIMCF_ATTR_NULL) != IIIMF_STATUS_SUCCESS)
 		return gtk_label_new(_("IIIMCF initialization failed."));
@@ -513,15 +527,14 @@ iiimf_widget_new(const char *iiimf_lang_id, const char *iiimf_le, const char *cu
 	}
 
 	selected_index = iiimf_best_match_index(items, num_total,
-					        iiimf_lang_id, 
-						iiimf_le,
+						iiimf_lang_id, iiimf_le,
 						cur_locale);
 
 	combo = mc_combo_new(_("Language (Language engine)"), items, num_total,
 			     items[selected_index], 0, iiimf_selected, NULL);
 
 	iiimcf_destroy_handle(handle);
-	iiimcf_finalize() ;
+	iiimcf_finalize();
 
 	if (items) {
 		for (i = 0; i < num_total; i++) {
@@ -792,7 +805,7 @@ mc_update_im(void)
 		}
 		break;
 	case IM_UIM:
-		if (strcmp(selected_uim_engine, "default") == 0) {
+		if (strcmp(selected_uim_engine, "default (*)") == 0) {
 			p = strdup("uim");
 		} else {
 			len = 3 + 1 + strlen(selected_uim_engine) + 1;
@@ -801,9 +814,13 @@ mc_update_im(void)
 		}
 		break;
 	case IM_IIIMF:
-		len = 5 + 1 + strlen(selected_iiimf_lang) + 1;
-		if(!(p = malloc(sizeof(char) * len))) return;
-		sprintf(p, "iiimf:%s", selected_iiimf_lang);
+		if (strlen(selected_iiimf_lang)) {
+			len = 5 + 1 + strlen(selected_iiimf_lang) + 1;
+			if(!(p = malloc(sizeof(char) * len))) return;
+			sprintf(p, "iiimf:%s", selected_iiimf_lang);
+		} else {
+			p = strdup("iiimf");
+		}
 		break;
 	case IM_NONE:
 		p = strdup("none");
