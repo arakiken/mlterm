@@ -6,7 +6,6 @@
 #define  __ML_TERMCAP_H__
 
 
-
 typedef enum  ml_termcap_field
 {
 	MLT_DELETE ,

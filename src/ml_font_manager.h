@@ -17,7 +17,6 @@
 
 KIK_MAP_TYPEDEF( ml_font , ml_font_attr_t , ml_font_t *) ;
 
-
 typedef struct  ml_font_manager
 {
 	Display *  display ;
@@ -26,11 +25,11 @@ typedef struct  ml_font_manager
 
 	/* for fixed column width */
 	ml_font_custom_t *  normal_font_custom ;
-	ml_font_custom_t *  aa_font_custom ;
-
+	ml_font_custom_t *  aa_font_custom ;		/* may be NULL */
+	
 	/* for variable column width */
 	ml_font_custom_t *  v_font_custom ;
-	ml_font_custom_t *  vaa_font_custom ;
+	ml_font_custom_t *  vaa_font_custom ;		/* may be NULL */
 
 	/* this ml_font_manager_t object local customization */
 	ml_font_custom_t *  local_font_custom ;

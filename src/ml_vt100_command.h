@@ -6,6 +6,8 @@
 #define  __ML_VT100_COMMAND_H__
 
 
+#include  <kiklib/kik_types.h>		/* u_int */
+
 #include  "ml_term_screen.h"
 
 

@@ -6,6 +6,7 @@
 #define  __ML_CHAR_ENCODING_H__
 
 
+#include  <kiklib/kik_types.h>	/* u_char */
 #include  <mkf/mkf_parser.h>
 #include  <mkf/mkf_conv.h>
 
@@ -88,6 +89,7 @@ typedef enum  ml_char_encoding
 #define  IS_STATEFUL_ENCODING(encoding) \
 	( (encoding) == ML_ISO2022JP || (encoding) == ML_ISO2022JP2 || (encoding) == ML_ISO2022JP3 || \
 		(encoding) == ML_ISO2022KR || (encoding) == ML_ISO2022CN || (encoding) == ML_HZ )
+
 
 char *  ml_get_char_encoding_name( ml_char_encoding_t  encoding) ;
 

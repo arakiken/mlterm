@@ -6,6 +6,8 @@
 #define  __ML_SELECTION_H__
 
 
+#include  <kiklib/kik_types.h>		/* u_int */
+
 #include  "ml_image.h"
 
 
@@ -17,7 +19,6 @@ typedef struct  ml_sel_event_listener
 	void  (*restore_color)( void * , int , int , int , int) ;
 
 } ml_sel_event_listener_t ;
-
 
 typedef struct  ml_selection
 {

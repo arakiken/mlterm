@@ -4,6 +4,8 @@
 
 #include  "ml_sb_term_screen.h"
 
+#include  <kiklib/kik_types.h>		/* u_int */
+
 
 /* --- static functions --- */
 

@@ -292,8 +292,6 @@ ml_font_custom_read_conf(
 	return  1 ;
 }
 
-#ifdef  ANTI_ALIAS
-
 int
 ml_font_custom_read_aa_conf(
 	ml_font_custom_t *  font_custom ,
@@ -398,8 +396,6 @@ ml_font_custom_read_aa_conf(
 	
 	return  1 ;
 }
-
-#endif
 
 int
 ml_set_font_name(

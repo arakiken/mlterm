@@ -6,6 +6,8 @@
 #define  __ML_SCROLLBAR_H__
 
 
+#include  <kiklib/kik_types.h>		/* u_int */
+
 #include  "ml_window.h"
 #include  "ml_sb_view.h"
 

@@ -2,6 +2,10 @@
  *	$Id$
  */
 
+/*
+ * ANTI_ALIAS macro should be concerned.
+ */
+
 #ifndef  __ML_FONT_H__
 #define  __ML_FONT_H__
 
@@ -93,11 +97,18 @@ int  ml_font_set_xfont( ml_font_t *  font , char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold) ;
 
 #ifdef  ANTI_ALIAS
+
 int  ml_font_set_xft_font( ml_font_t *  font , char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold) ;
 	
 int  ml_font_set_xft_pfont( ml_font_t *  font , char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold) ;
+
+#else
+
+#define  ml_font_set_xft_font  ml_font_set_xfont
+#define  ml_font_set_xft_pfont  ml_font_set_xfont
+
 #endif
 
 mkf_charset_t  ml_font_cs( ml_font_t *  font) ;
@@ -105,6 +116,10 @@ mkf_charset_t  ml_font_cs( ml_font_t *  font) ;
 int  ml_change_font_cs( ml_font_t *  font , mkf_charset_t  cs) ;
 
 u_int  ml_calculate_char_width( ml_font_t *  font , u_char *  ch , size_t  len , mkf_charset_t  cs) ;
+
+#ifdef  DEBUG
+int  ml_font_dump( ml_font_t *  font) ;
+#endif
 
 
 #endif

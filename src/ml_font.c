@@ -389,12 +389,12 @@ get_xft_col_width(
 		XFT_ENCODING , XftTypeString , "iso8859-1" ,
 		XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
 	{
-		u_int  i_width ;
+		u_int  l_width ;
 		u_int  w_width ;
 
-		i_width = xft_calculate_char_width( font->display , xfont , "i" , 1) ;
+		l_width = xft_calculate_char_width( font->display , xfont , "l" , 1) ;
 		
-		if( 0 < i_width && i_width < fontsize)
+		if( 0 < l_width && l_width < fontsize)
 		{
 			w_width = xft_calculate_char_width( font->display , xfont , "W" , 1) ;
 		}
@@ -1064,3 +1064,21 @@ ml_calculate_char_width(
 		}
 	}
 }
+
+#ifdef  DEBUG
+
+int
+ml_font_dump(
+	ml_font_t *  font
+	)
+{
+	kik_msg_printf( "  attr %x: XFont %p" , font->attr , font->xfont) ;
+#ifdef  ANTI_ALIAS
+	kik_msg_printf( " XftFont %p" , font->attr , font->xft_font) ;
+#endif
+	kik_msg_printf( "\n") ;
+
+	return  1 ;
+}
+
+#endif

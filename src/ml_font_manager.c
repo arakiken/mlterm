@@ -31,23 +31,17 @@ dump_cached_fonts(
 	u_int  size ;
 	KIK_PAIR( ml_font) *  f_array ;
 	
-	fprintf( stderr , "these fonts are cached ->\n") ;
-#ifdef  ANTI_ALIAS
-	fprintf( stderr , "  usascii: XftFont %p\n" , font_man->usascii_font->xft_font) ;
-#endif
-	fprintf( stderr , "  usascii: XFont %p\n" , font_man->usascii_font->xfont) ;
-	
+	kik_warn_printf( KIK_DEBUG_TAG " cached fonts info\n") ;
+	kik_msg_printf( " usascii:\n") ;
+	ml_font_dump( font_man->usascii_font) ;
+
+	kik_msg_printf( " others:\n") ;
 	kik_map_get_pairs_array( font_man->font_cache_table , f_array , size) ;
 	for( counter = 0 ; counter < size ; counter++)
 	{
 		if( f_array[counter]->value != NULL)
 		{
-		#ifdef  ANTI_ALIAS
-			fprintf( stderr , "  attr %x: XftFont %p\n" , f_array[counter]->value->attr ,
-				f_array[counter]->value->xft_font) ;
-		#endif
-			fprintf( stderr , "  attr %x: XFont %p\n" , f_array[counter]->value->attr ,
-				f_array[counter]->value->xfont) ;
+			ml_font_dump( f_array[counter]->value) ;
 		}
 	}
 }
@@ -364,7 +358,6 @@ ml_font_manager_change_font_present(
 		font_man->set_xfont = ml_font_set_xfont ;
 		font_man->font_custom = font_man->v_font_custom ;
 	}
-#ifdef  ANTI_ALIAS
 	else if( font_present == FONT_AA)
 	{
 		if( font_man->aa_font_custom == NULL ||
@@ -387,7 +380,6 @@ ml_font_manager_change_font_present(
 		font_man->set_xfont = ml_font_set_xft_pfont ;
 		font_man->font_custom = font_man->vaa_font_custom ;
 	}
-#endif
 	else
 	{
 		if( font_man->font_custom == font_man->normal_font_custom)
@@ -908,10 +900,6 @@ ml_get_fontset(
 #ifdef  DEBUG
 	if( miss_num)
 	{
-	#ifdef  ANTI_ALIAS
-		int  counter ;
-	#endif
-	
 		kik_warn_printf( KIK_DEBUG_TAG " missing these fonts ...\n") ;
 		for( counter = 0 ; counter < miss_num ; counter ++)
 		{

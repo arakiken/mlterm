@@ -6,7 +6,7 @@
 #define  __ML_ISCII_H__
 
 
-#include  <kiklib/kik_types.h>
+#include  <kiklib/kik_types.h>		/* u_int/u_char */
 
 
 typedef struct ml_iscii_state *  ml_iscii_state_t ;

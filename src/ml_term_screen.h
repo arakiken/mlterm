@@ -11,6 +11,7 @@
 
 
 #include  <mkf/mkf_parser.h>
+#include  <kiklib/kik_types.h>		/* u_int/int8_t/size_t */
 
 #include  "ml_image.h"
 #include  "ml_logical_visual.h"

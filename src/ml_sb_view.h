@@ -2,16 +2,15 @@
  *	$Id$
  */
 
-#ifndef  __ML_SB_VIEW_H__
-#define  __ML_SB_VIEW_H__
-
-
 /*
  * !! Notice !!
  * this file must be kept as independent to specific systems as possible.
  * so u_xxx which may not defined must not be used.
  */
  
+#ifndef  __ML_SB_VIEW_H__
+#define  __ML_SB_VIEW_H__
+
 
 #include  <X11/Xlib.h>
 

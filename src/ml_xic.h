@@ -7,6 +7,7 @@
 
 
 #include  <X11/Xlib.h>
+#include  <kiklib/kik_types.h>		/* size_t */
 
 #include  "ml_window.h"
 

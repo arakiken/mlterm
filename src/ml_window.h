@@ -2,6 +2,10 @@
  *	$Id$
  */
 
+/*
+ * ANTI_ALIAS macro should be concerned.
+ */
+
 #ifndef  __ML_WINDOW_H__
 #define  __ML_WINDOW_H__
 

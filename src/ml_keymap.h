@@ -3,7 +3,6 @@
  */
 
 /*
- * [description]
  * this manages short-cut keys of ml_term_screen key events.
  */
  
@@ -13,13 +12,6 @@
 
 #include  <X11/Xlib.h>
 #include  <kiklib/kik_types.h>
-
-
-/*
- * !! Notice !!
- * these don't be distinguished.
- */
-#define  ModMask  (Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask)
 
 
 typedef enum  ml_key_func
@@ -35,7 +27,6 @@ typedef enum  ml_key_func
 	MAX_KEY_MAPS ,
 
 } ml_key_func_t ;
-
 
 typedef struct  ml_key
 {

@@ -19,6 +19,13 @@ typedef struct  key_func_table
 } key_func_table_t ;
 
 
+/*
+ * !! Notice !!
+ * these are not distinguished.
+ */
+#define  ModMask  (Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask)
+
+
 /* --- static functions --- */
 
 static key_func_table_t  key_func_table[] =
