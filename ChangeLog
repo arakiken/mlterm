@@ -1,3 +1,8 @@
+2004-09-13 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/uim/im_uim.c(preedit_pushback): fixed a segfault in
+	encoding conversion.
+
 2004-09-12 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/iiimf/im_iiimf.c, inputmethod/uim/im_uim.c, x_im.c:

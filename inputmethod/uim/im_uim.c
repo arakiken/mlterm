@@ -552,7 +552,7 @@ preedit_pushback(
 		(*uim->parser_uim->init)( uim->parser_uim) ;
 		if( ! (im_convert_encoding( uim->parser_uim , uim->conv ,
 					    (u_char*)_str , &str ,
-					    strlen( str))))
+					    strlen( _str))))
 		{
 			return ;
 		}
