@@ -98,7 +98,7 @@ static int  initialized = 0 ;
 static int  helper_fd = -1 ;
 static im_uim_t *  last_focused_uim = NULL ;
 static x_im_export_syms_t *  syms = NULL ; /* mlterm internal symbols */
-static mod_key_debug = 0 ;
+static int mod_key_debug = 0 ;
 
 
 /* --- static functions --- */
@@ -346,10 +346,6 @@ xksym_to_ukey(
 static void
 helper_disconnected( void)
 {
-#ifdef  IM_UIM_DEBUG
-	kik_debug_printf("helper was disconnected\n");
-#endif
-
 	(*syms->x_term_manager_remove_fd)( helper_fd) ;
 
 	helper_fd = -1 ;
@@ -377,6 +373,11 @@ prop_list_update(
 		uim = (im_uim_t*) last_focused_uim ;
 	}
 #endif
+
+	if( last_focused_uim != uim)
+	{
+		return ;
+	}
 
 #define  PROP_LIST_FORMAT  "prop_list_update\ncharset=%s\n%s"
 
@@ -422,6 +423,11 @@ prop_label_update(
 		uim = (im_uim_t*) last_focused_uim ;
 	}
 #endif
+
+	if( last_focused_uim != uim)
+	{
+		return ;
+	}
 
 #define  PROP_LABEL_FORMAT "prop_label_update\ncharset=%s\n%s"
 
@@ -503,7 +509,6 @@ preedit_clear(
 	)
 {
 	im_uim_t *  uim ;
-	int  i ;
 
 #ifdef  IM_UIM_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "\n") ;
@@ -767,9 +772,6 @@ candidate_activate(
 
 	if( uim->im.cand_screen == NULL)
 	{
-		int  is_vertical ;
-		u_int  line_height ;
-
 		(*uim->im.listener->get_spot)( uim->im.listener->self ,
 					       uim->im.preedit.chars ,
 					       uim->im.preedit.segment_offset ,
@@ -1134,12 +1136,12 @@ focused(
 
 	uim =  (im_uim_t*)  im ;
 
+	uim_helper_client_focus_in( uim->context) ;
+
 	last_focused_uim = uim ;
 
 	uim_prop_list_update( uim->context) ;
 	uim_prop_label_update( uim->context) ;
-
-	uim_helper_client_focus_in( uim->context) ;
 
 	if( uim->im.cand_screen)
 	{
@@ -1174,12 +1176,9 @@ unfocused(
  */
 
 static void
-helper_send_imlist(
-	im_uim_t *  last_focused_uim
-	)
+helper_send_imlist(void)
 {
 #ifdef  UIM_0_4_4_OR_LATER
-	im_uim_t *  uim ;
 	const char *  selected_name ;
 	const char *  name ;
 	const char *  lang ;
@@ -1189,38 +1188,24 @@ helper_send_imlist(
 	u_int  len = 0 ;
 	u_int  filled_len = 0 ;
 
-	if( last_focused_uim)
+	if( ! last_focused_uim)
 	{
-		uim = last_focused_uim ;
-	}
-	else
-	{
-		KIK_ITERATOR( im_uim_t)  iterator = NULL ;
-
-		if( uim_list == NULL)
-		{
-			return ;
-		}
-
-		if( ! (iterator = kik_list_first( uim_list)))
-		{
-			uim = kik_iterator_indirect( iterator) ;
-		}
+		return ;
 	}
 
 #define  HEADER_FORMAT  "im_list\ncharset=%s\n"
 
-	len += strlen( HEADER_FORMAT) + strlen( uim->encoding_name) ;
+	len += strlen( HEADER_FORMAT) + strlen( last_focused_uim->encoding_name) ;
 
-	selected_name = uim_get_current_im_name( uim->context) ;
+	selected_name = uim_get_current_im_name( last_focused_uim->context) ;
 	len += strlen( selected_name) ;
 	len += strlen( "selected") ;
 
-	for( i = 0 ; i < uim_get_nr_im( uim->context) ; i++)
+	for( i = 0 ; i < uim_get_nr_im( last_focused_uim->context) ; i++)
 	{
-		name = uim_get_im_name( uim->context , i) ;
-		lang = uim_get_im_language( uim->context , i) ;
-		dsc = uim_get_im_short_desc( uim->context , i) ;
+		name = uim_get_im_name( last_focused_uim->context , i) ;
+		lang = uim_get_im_language( last_focused_uim->context , i) ;
+		dsc = uim_get_im_short_desc( last_focused_uim->context , i) ;
 
 		len += name ? strlen( name) : 0 ;
 		len += lang ? strlen( lang) : 0 ;
@@ -1238,16 +1223,16 @@ helper_send_imlist(
 		return ;
 	}
 
-	filled_len = kik_snprintf( buf , len ,
-				   HEADER_FORMAT , uim->encoding_name) ;
+	filled_len = kik_snprintf( buf , len , HEADER_FORMAT ,
+				   last_focused_uim->encoding_name) ;
 
 #undef  HEADER_FORMAT
 
-	for( i = 0 ; i < uim_get_nr_im( uim->context) ; i++)
+	for( i = 0 ; i < uim_get_nr_im( last_focused_uim->context) ; i++)
 	{
-		name = uim_get_im_name( uim->context , i) ;
-		lang = uim_get_im_language( uim->context , i) ;
-		dsc = uim_get_im_short_desc( uim->context , i) ;
+		name = uim_get_im_name( last_focused_uim->context , i) ;
+		lang = uim_get_im_language( last_focused_uim->context , i) ;
+		dsc = uim_get_im_short_desc( last_focused_uim->context , i) ;
 
 		filled_len += kik_snprintf( &buf[filled_len] ,
 					    len - filled_len ,
@@ -1270,7 +1255,6 @@ helper_send_imlist(
 
 static void
 helper_im_changed(
-	im_uim_t *  last_focused_uim ,
 	char *  request ,
 	char *  engine_name
 	)
@@ -1308,7 +1292,6 @@ helper_im_changed(
 	else if( strcmp( request , "im_change_whole_desktop") == 0 ||
 		 strcmp( request , "im_change_this_application_only") == 0)
 	{
-		im_uim_t *  uim ;
 		KIK_ITERATOR( im_uim_t)  iterator = NULL ;
 
 		iterator = kik_list_first( uim_list) ;
@@ -1323,9 +1306,11 @@ helper_im_changed(
 			}
 			else
 			{
+				im_uim_t *  uim ;
 				uim = kik_iterator_indirect( iterator) ;
 				(*uim->im.listener->im_changed)(
-						uim->im.listener->self , buf) ;
+							uim->im.listener->self ,
+							buf) ;
 			}
 
 			iterator = kik_iterator_next( iterator) ;
@@ -1336,18 +1321,96 @@ helper_im_changed(
 
 static void
 helper_update_custom(
-	im_uim_t *  last_focused_uim ,
 	char *  custom ,
 	char *  value
 	)
 {
 #ifdef  UIM_0_4_6_OR_LATER
-	if( last_focused_uim)
+	KIK_ITERATOR( im_uim_t)  iterator = NULL ;
+
+	iterator = kik_list_first( uim_list) ;
+
+	while( iterator)
 	{
-		uim_prop_update_custom( last_focused_uim->context ,
-					custom , value) ;
+		if( kik_iterator_indirect( iterator) == NULL)
+		{
+			kik_error_printf(
+				"iterator found, but it has no logs. "
+				"don't you cross over memory "
+				"boundaries anywhere?\n") ;
+		}
+		else
+		{
+			im_uim_t *  uim ;
+
+			uim = kik_iterator_indirect( iterator) ;
+			uim_prop_update_custom( uim->context , custom , value) ;
+		}
+
+		iterator = kik_iterator_next( iterator) ;
 	}
+
 #endif  /* UIM_0_4_6_OR_LATER */
+}
+
+static void
+helper_commit_string(
+	u_char *  str
+	)
+{
+	mkf_parser_t *  parser_utf8 ;
+	mkf_conv_t *  conv ;
+	u_char  conv_buf[256] ;
+	size_t  filled_len ;
+
+	if( ! last_focused_uim)
+	{
+		return ;
+	}
+
+	if( last_focused_uim->term_encoding == ML_UTF8)
+	{
+		(*last_focused_uim->im.listener->write_to_term)(
+					last_focused_uim->im.listener->self ,
+					str , strlen( str)) ;
+		return ;
+	}
+
+	if( ! ( conv = (*syms->ml_conv_new)( last_focused_uim->term_encoding)))
+	{
+		return ;
+	}
+
+	if( ! ( parser_utf8 = (*syms->ml_parser_new)( ML_UTF8)))
+	{
+		(*conv->delete)( conv) ;
+		return ;
+	}
+
+	(*parser_utf8->init)( parser_utf8) ;
+	(*parser_utf8->set_str)( parser_utf8 , str , strlen( str)) ;
+
+	(*conv->init)( conv) ;
+
+	while( ! parser_utf8->is_eos)
+	{
+		filled_len = (*conv->convert)( conv , conv_buf ,
+					       sizeof( conv_buf) ,
+					       parser_utf8) ;
+
+		if( filled_len == 0)
+		{
+			/* finished converting */
+			break ;
+		}
+
+		(*last_focused_uim->im.listener->write_to_term)(
+					last_focused_uim->im.listener->self ,
+					conv_buf , filled_len) ;
+	}
+
+	(*parser_utf8->delete)( parser_utf8) ;
+	(*conv->delete)( conv) ;
 }
 
 static void
@@ -1355,7 +1418,7 @@ helper_read_handler( void)
 {
 	char *  message ;
 
-	uim_helper_read_proc(helper_fd);
+	uim_helper_read_proc( helper_fd);
 
 	while( ( message = uim_helper_get_message()))
 	{
@@ -1371,7 +1434,6 @@ helper_read_handler( void)
 			if( strcmp( first_line , "prop_activate") == 0)
 			{
 				second_line = kik_str_sep( &message , "\n") ;
-
 				if( second_line && last_focused_uim)
 				{
 					uim_prop_activate(
@@ -1381,31 +1443,33 @@ helper_read_handler( void)
 			}
 			else if( strcmp( first_line , "im_list_get") == 0)
 			{
-				if( last_focused_uim)
-				{
-					helper_send_imlist( last_focused_uim) ;
-				}
+				helper_send_imlist() ;
 			}
 			else if( strncmp( first_line , "im_change_" , 10) == 0)
 			{
-				second_line = kik_str_sep( &message , "\n") ;
-
-				if( second_line && last_focused_uim)
+				if( ( second_line = kik_str_sep( &message , "\n")))
 				{
-					helper_im_changed( last_focused_uim ,
-							   first_line ,
+					helper_im_changed( first_line ,
 							   second_line) ;
 				}
 			}
 			else if( strcmp( first_line , "prop_update_custom") == 0)
 			{
-				second_line = kik_str_sep( &message , "\n") ;
-
-				if( second_line && last_focused_uim)
+				if( ( second_line = kik_str_sep( &message , "\n")))
 				{
-					helper_update_custom( last_focused_uim ,
-							      second_line ,
+					helper_update_custom( second_line ,
 							      message) ;
+				}
+			}
+			else if( strcmp( first_line , "focus_in") == 0)
+			{
+				last_focused_uim = NULL ;
+			}
+			else if( strcmp( first_line , "commit_string") == 0)
+			{
+				if( ( second_line = kik_str_sep( &message , "\n")))
+				{
+					helper_commit_string( second_line) ;
 				}
 			}
 
@@ -1658,7 +1722,7 @@ im_uim_get_info(
 	char *  encoding
 	)
 {
-	im_info_t *  result ;
+	im_info_t *  result = NULL ;
 	uim_context  u ;
 	int  i ;
 
