@@ -63,9 +63,9 @@ mc_fade_config_widget_new(
 
 	selected_fade_ratio = fade_ratio ;
 
-	return  mc_combo_new_with_width( "Fade ratio on unfocus" , fade_ratios ,
-		sizeof(fade_ratios) / sizeof(fade_ratios[0]) ,
-		selected_fade_ratio , 0 , fade_ratio_selected , NULL , 3 , 4) ;
+	return  mc_combo_new_with_width("Fade ratio on unfocus", fade_ratios,
+		sizeof(fade_ratios) / sizeof(fade_ratios[0]),
+		selected_fade_ratio, 0, fade_ratio_selected, NULL, 80);
 }
 
 char *

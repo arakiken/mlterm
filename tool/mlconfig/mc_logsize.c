@@ -57,9 +57,9 @@ mc_logsize_config_widget_new(
 
 	selected_logsize = logsize ;
 
-	return  mc_combo_new_with_width( "Backlog size (lines)" , logsizes ,
-		sizeof(logsizes) / sizeof(logsizes[0]) ,
-		selected_logsize , 0 , logsize_selected , NULL , 3 , 4) ;
+	return  mc_combo_new_with_width("Backlog size (lines)", logsizes,
+		sizeof(logsizes) / sizeof(logsizes[0]),
+		selected_logsize, 0, logsize_selected, NULL, 80);
 }
 
 char *

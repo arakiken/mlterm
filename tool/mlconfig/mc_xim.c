@@ -158,92 +158,78 @@ mc_xim_config_widget_new(
 	u_int  size ;
 	int  count ;
 	GtkWidget *  vbox ;
-	GtkWidget *  table ;
+	GtkWidget *  hbox ;
 	GtkWidget *  label ;
 	GtkWidget *  combo ;
 	GtkWidget *  entry ;
 	
 	cur_locale = strdup( locale) ;
 		
-	kik_map_new( char * , char * , xim_locale_table , kik_map_hash_str , kik_map_compare_str) ;
+	kik_map_new(char *, char *, xim_locale_table, kik_map_hash_str,
+		    kik_map_compare_str);
 
-	kik_set_sys_conf_dir( CONFIG_PATH) ;
+	kik_set_sys_conf_dir(CONFIG_PATH);
 	
-	if( ( rcpath = kik_get_sys_rc_path( "mlterm/xim")))
-	{
-		read_conf( xim_locale_table , rcpath) ;
-
-		free( rcpath) ;
+	if ((rcpath = kik_get_sys_rc_path("mlterm/xim"))) {
+		read_conf(xim_locale_table, rcpath) ;
+		free(rcpath) ;
 	}
 
-	if( ( rcpath = kik_get_user_rc_path( "mlterm/xim")))
-	{
-		read_conf( xim_locale_table , rcpath) ;
-
-		free( rcpath) ;
+	if ((rcpath = kik_get_user_rc_path("mlterm/xim"))) {
+		read_conf(xim_locale_table, rcpath) ;
+		free(rcpath) ;
 	}
 
-	kik_map_get_pairs_array( xim_locale_table , array , size) ;
+	kik_map_get_pairs_array(xim_locale_table, array, size) ;
 
-	if( ( xims = malloc( sizeof( char*) * (size + 1))) == NULL)
-	{
-		return  NULL ;
-	}
+	if ((xims = malloc(sizeof(char*) * (size + 1))) == NULL) return NULL;
 
-	if( ( locales = malloc( sizeof( char*) * (size + 1))) == NULL)
-	{
-		return  NULL ;
-	}
+	if ((locales = malloc(sizeof(char*) * (size + 1))) == NULL)
+	    return  NULL ;
 
-	for( count = 0 ; count < size ; count ++)
-	{
-		xims[count] = array[count]->key ;
-		locales[count] = array[count]->value ;
+	for (count = 0; count < size; count ++) {
+	    xims[count] = array[count]->key;
+	    locales[count] = array[count]->value;
 	}
 	
-	xims[count] = strdup( "unused") ;
-	locales[count] = NULL ;
+	xims[count] = strdup("unused");
+	locales[count] = NULL;
 	
-	num_of_xims = size + 1 ;
+	num_of_xims = size + 1;
 
-	kik_map_delete( xim_locale_table) ;
+	kik_map_delete(xim_locale_table);
 
-	selected_xim = xim ;
+	selected_xim = xim;
 
-	if( ( selected_locale = get_xim_locale( selected_xim)) == NULL)
-	{
-		selected_locale = cur_locale ;
+	if ((selected_locale = get_xim_locale(selected_xim)) == NULL) {
+	    selected_locale = cur_locale ;
 	}
 
+	vbox = gtk_vbox_new(FALSE, 5);
 	
-	vbox = gtk_vbox_new(FALSE , 5) ;
-	
-	table = gtk_table_new(1 , MC_COMBO_TOTAL_WIDTH , TRUE) ;
+	hbox = gtk_hbox_new(FALSE, 5);
 
-	label = gtk_label_new( "XIM locale") ;
-	gtk_widget_show( label) ;
-	gtk_table_attach(GTK_TABLE(table) , label , 0 , MC_COMBO_LABEL_WIDTH ,
-			 0 , 1 , GTK_FILL|GTK_EXPAND , 0 , 2 , 0);
+	label = gtk_label_new("XIM locale");
+	gtk_widget_show(label);
+	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 10);
 	
-	entry = gtk_entry_new() ;
-	gtk_widget_show( entry) ;
-	gtk_table_attach(GTK_TABLE(table) , entry , MC_COMBO_LABEL_WIDTH ,
-			 MC_COMBO_TOTAL_WIDTH , 0 , 1 ,
-			 GTK_FILL|GTK_EXPAND , 0 , 2 , 0);
-	gtk_entry_set_text( GTK_ENTRY(entry) , selected_locale) ;
-	
-	gtk_signal_connect(GTK_OBJECT(entry) , "changed" , GTK_SIGNAL_FUNC(locale_changed) , NULL) ;
+	entry = gtk_entry_new();
+	gtk_widget_show(entry);
+	gtk_box_pack_start(GTK_BOX(hbox), entry, TRUE, TRUE, 0);
+	gtk_entry_set_text(GTK_ENTRY(entry), selected_locale);
 
-	combo = mc_combo_new( "X Input Method" , xims , num_of_xims ,
-		selected_xim , 0 , xim_selected , entry) ;
-		
-	gtk_widget_show( combo) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , combo , TRUE , TRUE , 0) ;	
-	
-	gtk_widget_show(table) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , table , TRUE , TRUE , 0) ;
-	
-	return  vbox ;
+	gtk_signal_connect(GTK_OBJECT(entry), "changed",
+			   GTK_SIGNAL_FUNC(locale_changed), NULL);
+
+	combo = mc_combo_new("X Input Method", xims, num_of_xims,
+		selected_xim, 0, xim_selected, entry);
+	gtk_widget_show(combo);
+	gtk_box_pack_start(GTK_BOX(vbox), combo, TRUE, TRUE, 0);
+
+	gtk_widget_show(hbox);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
+
+	return vbox;
 }
 
 char *

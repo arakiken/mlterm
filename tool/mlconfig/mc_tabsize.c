@@ -56,9 +56,9 @@ mc_tabsize_config_widget_new(
 
 	selected_tabsize = tabsize ;
 
-	return  mc_combo_new_with_width( "Tab width (columns)" , tabsizes ,
-		sizeof(tabsizes) / sizeof(tabsizes[0]) ,
-		selected_tabsize , 0 , tabsize_selected , NULL , 3 , 4) ;
+	return  mc_combo_new_with_width( "Tab width (columns)", tabsizes,
+		sizeof(tabsizes) / sizeof(tabsizes[0]),
+		selected_tabsize, 0, tabsize_selected, NULL, 80);
 }
 
 char *

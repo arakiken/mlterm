@@ -63,9 +63,9 @@ mc_brightness_config_widget_new(
 
 	selected_brightness = brightness ;
 
-	return  mc_combo_new_with_width( "Wall picture brightness" , brightnesss ,
-		sizeof(brightnesss) / sizeof(brightnesss[0]) , selected_brightness , 0 ,
-		brightness_selected , NULL , 3 , 4) ;
+	return  mc_combo_new_with_width("Wall picture brightness", brightnesss,
+		sizeof(brightnesss) / sizeof(brightnesss[0]), 
+		selected_brightness, 0,	brightness_selected , NULL , 80);
 }
 
 char *

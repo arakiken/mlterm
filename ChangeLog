@@ -1,3 +1,7 @@
+2002-06-05 Tomohiro KUBOTA <kubota@debian.org>
+
+	* renewal of mlconfig.
+
 2002-06-04 Araki Ken <arakiken@users.sf.net>
 
 	* mlterm version number is set as the value of "MLTERM" environmental variable.

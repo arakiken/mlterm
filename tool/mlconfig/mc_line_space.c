@@ -59,9 +59,9 @@ mc_line_space_config_widget_new(
 
 	selected_line_space = line_space ;
 
-	return  mc_combo_new_with_width( "Line space (pixels)" , line_spaces ,
-		sizeof(line_spaces) / sizeof(line_spaces[0]) ,
-		selected_line_space , 0 , line_space_selected , NULL , 3 , 4) ;
+	return  mc_combo_new_with_width("Line space (pixels)", line_spaces,
+		sizeof(line_spaces) / sizeof(line_spaces[0]),
+		selected_line_space, 0, line_space_selected, NULL , 80);
 }
 
 char *

@@ -170,8 +170,9 @@ mc_char_encoding_config_widget_new(
 {
 	selected_encoding = unregularized( encoding) ;
 
-	return  mc_combo_new_with_width( "Encoding" , encodings , sizeof(encodings) / sizeof(encodings[0]) ,
-		selected_encoding , 1 , encoding_selected , NULL , 1 , 3) ;
+	return  mc_combo_new("Encoding", encodings,
+			     sizeof(encodings) / sizeof(encodings[0]),
+			     selected_encoding, 1, encoding_selected, NULL);
 }
 
 char *

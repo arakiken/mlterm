@@ -80,9 +80,9 @@ config_widget_new(
 		"10" ,
 	} ;
 
-	return  mc_combo_new_with_width( title , screen_ratios ,
-		sizeof(screen_ratios) / sizeof(screen_ratios[0]) ,
-		ratio , 0 , ratio_selected , NULL , 3 , 4) ;
+	return  mc_combo_new_with_width(title ,screen_ratios,
+		sizeof(screen_ratios) / sizeof(screen_ratios[0]),
+		ratio, 0, ratio_selected, NULL, 80);
 }
 
 

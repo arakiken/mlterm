@@ -265,9 +265,6 @@ show(
 		GTK_SIGNAL_FUNC(end_application) , NULL) ;
 	gtk_window_set_title( GTK_WINDOW(window) , "mlterm configuration") ;
 	gtk_container_set_border_width( GTK_CONTAINER(window) , 0) ;
-	gtk_widget_show( window) ;
-	gdk_window_move( window->window , x , y) ;
-	gtk_window_set_policy( GTK_WINDOW(window) , 0 , 0 , 0) ;
 
 	vbox = gtk_vbox_new( FALSE , 10) ;
 	gtk_widget_show( vbox) ;
@@ -300,294 +297,271 @@ show(
 
 	/* contents of the "Encoding" tab */
 
-	label = gtk_label_new( "Encoding") ;
-	gtk_widget_show( label) ;
+	label = gtk_label_new("Encoding");
+	gtk_widget_show(label);
+	vbox = gtk_vbox_new(FALSE, 3);
+	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
+	gtk_widget_show(vbox);
 
-	vbox = gtk_vbox_new( FALSE , 3) ;
-	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
-	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
-	gtk_widget_show( vbox) ;
 
-	if( ! ( config_widget = mc_char_encoding_config_widget_new( mc_get_str_value( "encoding"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	if (!(config_widget = mc_char_encoding_config_widget_new( 
+		   mc_get_str_value("encoding")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-	if( ! ( config_widget = mc_iscii_lang_config_widget_new( mc_get_str_value( "iscii_lang"))))
-	{
-		return  0 ;
-	}
+
+	if (!(config_widget = mc_iscii_lang_config_widget_new(
+		   mc_get_str_value( "iscii_lang")))) return 0;
 #ifndef USE_IND
 	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
 #endif
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-	if( ! ( config_widget = mc_xim_config_widget_new(
-				mc_get_str_value( "xim") , mc_get_str_value( "locale"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	hbox = gtk_hbox_new( TRUE , 5) ;
-	gtk_widget_show( hbox) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;	
+	if (!(config_widget = mc_xim_config_widget_new(
+		   mc_get_str_value("xim"), mc_get_str_value("locale"))))
+	    return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-	if( ! ( use_bidi_check = mc_check_config_widget_new(
-					"Bidi (UTF8 only)" , mc_get_flag_value( "use_bidi"))))
-	{
-		return  0 ;
-	}
+
+	hbox = gtk_hbox_new(TRUE, 5);
+	gtk_widget_show(hbox);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);	
+
+
+	if (!(use_bidi_check = mc_check_config_widget_new(
+		   "Bidi (UTF8 only)", mc_get_flag_value( "use_bidi"))))
+	    return 0;
 #ifndef USE_FRIBIDI
 	GTK_WIDGET_UNSET_FLAGS(use_bidi_check, GTK_SENSITIVE);
 #endif
-	gtk_widget_show( use_bidi_check) ;
-	gtk_box_pack_start( GTK_BOX(hbox) , use_bidi_check , TRUE , TRUE , 0) ;
+	gtk_widget_show(use_bidi_check);
+	gtk_box_pack_start(GTK_BOX(hbox), use_bidi_check, TRUE, TRUE, 0);
 
-	if( ! ( use_comb_check = mc_check_config_widget_new(
-					"Combining" , mc_get_flag_value( "use_combining"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( use_comb_check) ;
-	gtk_box_pack_start( GTK_BOX(hbox) , use_comb_check , TRUE , TRUE , 0) ;
 
-	if( ! ( copy_paste_via_ucs_check = mc_check_config_widget_new(
-		"Process received strings via Unicode" , mc_get_flag_value( "copy_paste_via_ucs"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( copy_paste_via_ucs_check) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , copy_paste_via_ucs_check , FALSE , FALSE , 0) ;
+	if(!(use_comb_check = mc_check_config_widget_new(
+		  "Combining", mc_get_flag_value("use_combining"))))
+	    return 0;
+	gtk_widget_show(use_comb_check);
+	gtk_box_pack_start(GTK_BOX(hbox), use_comb_check, TRUE, TRUE , 0);
+
+
+	if (!(copy_paste_via_ucs_check = mc_check_config_widget_new(
+		   "Process received strings via Unicode" , 
+		   mc_get_flag_value( "copy_paste_via_ucs"))))
+	    return 0;
+	gtk_widget_show(copy_paste_via_ucs_check);
+	gtk_box_pack_start(GTK_BOX(vbox), copy_paste_via_ucs_check,
+			   FALSE, FALSE, 0);
 
 
 	/* contents of the "Appearance" tab */
 
-	label = gtk_label_new( "Appearance") ;
-	gtk_widget_show( label) ;
-	vbox = gtk_vbox_new( FALSE , 3) ;
-	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
-	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
-	gtk_widget_show( vbox) ;
+	label = gtk_label_new("Appearance");
+	gtk_widget_show(label);
+	vbox = gtk_vbox_new(FALSE, 3);
+	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
+	gtk_widget_show(vbox);
 
-	if( ! ( config_widget = mc_fontsize_config_widget_new( mc_get_str_value( "fontsize"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! ( config_widget = mc_line_space_config_widget_new( mc_get_str_value( "line_space"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-	
-	if( ! ( config_widget = mc_screen_width_ratio_config_widget_new(
-				mc_get_str_value( "screen_width_ratio"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-	
-	if( ! ( config_widget = mc_screen_height_ratio_config_widget_new(
-				mc_get_str_value( "screen_height_ratio"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	if (!(config_widget = mc_fontsize_config_widget_new(
+		   mc_get_str_value("fontsize")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+
+	if (!(config_widget = mc_line_space_config_widget_new(
+		   mc_get_str_value("line_space")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+
+	if (!(config_widget = mc_screen_width_ratio_config_widget_new(
+		   mc_get_str_value("screen_width_ratio")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+
+	if (!(config_widget = mc_screen_height_ratio_config_widget_new(
+		   mc_get_str_value( "screen_height_ratio")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
 
 	hbox = gtk_hbox_new( FALSE , 0) ;
+	gtk_widget_show(hbox);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);	
 	
-	if( ! ( use_aa_check = mc_check_config_widget_new(
-				"Anti Alias" , mc_get_flag_value( "use_anti_alias"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( use_aa_check) ;
-	gtk_box_pack_start( GTK_BOX(hbox) , use_aa_check , TRUE , TRUE , 0) ;
-	
-	if( ! ( use_vcol_check = mc_check_config_widget_new(
-				"Variable column width" , mc_get_flag_value( "use_variable_column_width"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( use_vcol_check) ;
-	gtk_box_pack_start( GTK_BOX(hbox) , use_vcol_check , TRUE , TRUE , 0) ;
-	
+
+	if (!(use_aa_check = mc_check_config_widget_new(
+		   "Anti Alias", mc_get_flag_value("use_anti_alias"))))
+	    return 0;
 #ifndef ANTI_ALIAS
-	GTK_WIDGET_UNSET_FLAGS(hbox, GTK_SENSITIVE);
+	GTK_WIDGET_UNSET_FLAGS(use_aa_check, GTK_SENSITIVE);
 #endif
-	gtk_widget_show(hbox) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
-	
+	gtk_widget_show(use_aa_check);
+	gtk_box_pack_start(GTK_BOX(hbox), use_aa_check, TRUE, TRUE, 0) ;
+
+
+	if (!(use_vcol_check = mc_check_config_widget_new(
+		   "Variable column width" , 
+		   mc_get_flag_value( "use_variable_column_width"))))
+	    return 0;
+	gtk_widget_show(use_vcol_check);
+	gtk_box_pack_start(GTK_BOX(hbox), use_vcol_check, TRUE, TRUE, 0);
+
+
 	/* contents of the "Color" tab */
 	
-	label = gtk_label_new( "Color") ;
-	gtk_widget_show( label) ;
-	vbox = gtk_vbox_new( FALSE , 3) ;
-	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
-	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
-	gtk_widget_show( vbox) ;
+	label = gtk_label_new("Color");
+	gtk_widget_show(label);
+	vbox = gtk_vbox_new(FALSE, 3);
+	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
+	gtk_widget_show(vbox);
 
-	if ( ! ( config_widget = mc_fg_color_config_widget_new( mc_get_str_value( "fg_color"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-	
-	if( ! ( config_widget = mc_bg_color_config_widget_new( mc_get_str_value( "bg_color"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-	
-	if( ! ( config_widget = mc_fade_config_widget_new( mc_get_str_value( "fade_ratio"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	if (!(config_widget = mc_fg_color_config_widget_new(
+		   mc_get_str_value( "fg_color")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-	if( ! ( config_widget = mc_wall_pic_config_widget_new( mc_get_str_value( "wall_picture"))))
-	{
-		return  0 ;
-	}
+
+	if (!(config_widget = mc_bg_color_config_widget_new(
+		   mc_get_str_value( "bg_color")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+
+	if (!(config_widget = mc_fade_config_widget_new(
+		   mc_get_str_value( "fade_ratio")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+
+	if (!(config_widget = mc_wall_pic_config_widget_new(
+		   mc_get_str_value( "wall_picture")))) return 0;
 #if !defined(USE_IMLIB) && !defined(USE_GDK_PIXBUF)
 	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
 #endif
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-	if( ! ( config_widget = mc_brightness_config_widget_new( mc_get_str_value( "brightness"))))
-	{
-		return  0 ;
-	}
+
+	if (!(config_widget = mc_brightness_config_widget_new(
+		   mc_get_str_value( "brightness")))) return 0;
 #if !defined(USE_IMLIB) && !defined(USE_GDK_PIXBUF)
 	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
 #endif
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-	
-	if( ! ( is_tp_check = mc_check_config_widget_new(
-				"Transparent background" , mc_get_flag_value( "use_transbg"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( is_tp_check) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , is_tp_check , FALSE , FALSE , 0) ;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+
+	if (!(is_tp_check = mc_check_config_widget_new(
+		   "Transparent background",
+		   mc_get_flag_value( "use_transbg")))) return 0;
+	gtk_widget_show(is_tp_check);
+	gtk_box_pack_start(GTK_BOX(vbox), is_tp_check, FALSE, FALSE, 0);
 
 
 	/* contents of the "Scrollbar" tab */
 	
-	label = gtk_label_new( "Scrollbar") ;
-	gtk_widget_show( label) ;
-	vbox = gtk_vbox_new( FALSE , 3) ;
-	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
-	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
-	gtk_widget_show( vbox) ;
+	label = gtk_label_new("Scrollbar");
+	gtk_widget_show(label);
+	vbox = gtk_vbox_new(FALSE, 3);
+	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
+	gtk_widget_show(vbox);
 
-	if( ! ( config_widget = mc_sb_config_widget_new( mc_get_str_value( "scrollbar_mode"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! ( config_widget = mc_sb_view_config_widget_new( mc_get_str_value( "scrollbar_view_name"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	if (!(config_widget = mc_sb_config_widget_new(
+		   mc_get_str_value( "scrollbar_mode")))) return 0;
+	gtk_widget_show(config_widget) ;
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+
+	if (!(config_widget = mc_sb_view_config_widget_new(
+		   mc_get_str_value( "scrollbar_view_name")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+
+	if (!(config_widget = mc_sb_fg_color_config_widget_new(
+		   mc_get_str_value( "sb_fg_color")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 	
-	if( ! ( config_widget = mc_sb_fg_color_config_widget_new( mc_get_str_value( "sb_fg_color"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
-	
-	if( ! ( config_widget = mc_sb_bg_color_config_widget_new( mc_get_str_value( "sb_bg_color"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	if (!(config_widget = mc_sb_bg_color_config_widget_new(
+		   mc_get_str_value("sb_bg_color")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 		
 	
 	/* contents of the "Others" tab */
 
-	label = gtk_label_new( "Others") ;
-	gtk_widget_show( label) ;
-	vbox = gtk_vbox_new( FALSE , 3) ;
-	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
-	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
-	gtk_widget_show( vbox) ;
+	label = gtk_label_new("Others");
+	gtk_widget_show(label);
+	vbox = gtk_vbox_new(FALSE, 3);
+	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
+	gtk_widget_show(vbox);
 
-	if( ! ( config_widget = mc_tabsize_config_widget_new( mc_get_str_value( "tabsize"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	if (!(config_widget = mc_tabsize_config_widget_new(
+		   mc_get_str_value("tabsize")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-	if( ! (config_widget = mc_logsize_config_widget_new( mc_get_str_value( "logsize"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! (config_widget = mc_mod_meta_config_widget_new( mc_get_str_value( "mod_meta_mode"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	if (!(config_widget = mc_logsize_config_widget_new(
+		   mc_get_str_value("logsize")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-	if( ! ( config_widget = mc_vertical_config_widget_new( mc_get_str_value( "vertical_mode"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! ( config_widget = mc_bel_config_widget_new( mc_get_str_value( "bel_mode"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( config_widget) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	if (!(config_widget = mc_mod_meta_config_widget_new(
+		   mc_get_str_value("mod_meta_mode")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-	if( ! ( use_dynamic_comb_check = mc_check_config_widget_new(
-		"Combining = 1 (or 0) logical column(s)" , mc_get_flag_value( "use_dynamic_comb"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( use_dynamic_comb_check) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , use_dynamic_comb_check , FALSE , FALSE , 0) ;
 
-	if( ! ( use_multi_col_char_check = mc_check_config_widget_new(
-		"Fullwidth = 2 (or 1) logical column(s)" , mc_get_flag_value( "use_multi_column_char"))))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( use_multi_col_char_check) ;
-	gtk_box_pack_start( GTK_BOX(vbox) , use_multi_col_char_check , FALSE , FALSE , 0) ;
+	if (!(config_widget = mc_vertical_config_widget_new(
+		   mc_get_str_value("vertical_mode")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-	gtk_main() ;
 
-	return  1 ;
+	if (!(config_widget = mc_bel_config_widget_new(
+		   mc_get_str_value("bel_mode")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+
+	if (!(use_dynamic_comb_check = mc_check_config_widget_new(
+		   "Combining = 1 (or 0) logical column(s)",
+		   mc_get_flag_value("use_dynamic_comb")))) return 0;
+	gtk_widget_show(use_dynamic_comb_check);
+	gtk_box_pack_start(GTK_BOX(vbox), use_dynamic_comb_check,
+			   FALSE, FALSE, 0);
+
+
+	if (!(use_multi_col_char_check = mc_check_config_widget_new(
+		   "Fullwidth = 2 (or 1) logical column(s)",
+		   mc_get_flag_value("use_multi_column_char")))) return 0;
+	gtk_widget_show(use_multi_col_char_check);
+	gtk_box_pack_start(GTK_BOX(vbox), use_multi_col_char_check,
+			   FALSE, FALSE, 0);
+
+
+	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_MOUSE);
+	gtk_window_set_policy(GTK_WINDOW(window), 0, 0, 0);
+	gtk_widget_show(window);
+
+	gtk_main();
+
+	return  1;
 }
 
 
