@@ -1,3 +1,7 @@
+2002-11-13  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* In XDND, drop via UCS2 (as "text/unicode") is supported. 
+
 2002-11-12  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* XDND code cleanup/separation. added x_dnd.(c|h) .

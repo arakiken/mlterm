@@ -12,7 +12,7 @@
 static const u_char  DND_VERSION = 4 ;
 
 
-
+#define DEBUG
 /* --- static functuions --- */
 
 /* --- global functuions --- */
@@ -80,7 +80,7 @@ x_dnd_parse(
 		(*win->utf8_selection_notified)( win , src , len) ;
 		return 1 ;
 	}
-	/* text/unicode !!!broken!!! */
+	/* text/unicode */
 	if( atom == XA_DND_MIME_TEXT_UNICODE(win->display))
 	{
 		int filled_len;
@@ -93,22 +93,27 @@ x_dnd_parse(
 
 		if( !(win->utf8_selection_notified))
 			return 0 ;
-		/* XXX */
-		if(! (src_buf = malloc(len * 2)))
-			return 0;
 
-		if(! (conv = mkf_utf8_conv_new()))
+		if( !(conv = mkf_utf8_conv_new()))
 		{
-			free( src_buf);
-			return 0;
+			return 0 ;
 		}
-		if(! (parser = mkf_ucs4_parser_new()))
+		if( !(parser = mkf_ucs4_parser_new()))
 		{
 			(conv->delete)(conv);
-			free( src_buf);
 			return 0;
 		}
 
+		/* XXX */
+		if( !(src_buf = malloc(len * 2)))
+		{
+			(conv->delete)(conv);
+			(parser->delete)(parser);
+			return 0 ;
+		}
+
+		/* ad-hoc conversin from UCS2 to UCS4 */
+		/* XXX ednianess? */
 		for( i = 0 ; i < len ; i = i +2)
 		{
 			src_buf[i*2] = 0;
@@ -119,14 +124,14 @@ x_dnd_parse(
 
 		(parser->init)( parser) ;
 		(parser->set_str)( parser , src_buf , len*2) ;
-
+		/* conversion from ucs4 -> utf8. */
                 while( ! parser->is_eos)
                 {
 			if( (filled_len = (conv->convert)(conv , conv_buf , sizeof(conv_buf) , parser)) == 0)
                         {
                                 break ;
                         }
-			     (*win->utf8_selection_notified)( win , conv_buf , filled_len) ;
+			(*win->utf8_selection_notified)( win , conv_buf , filled_len) ;
                 }
 		(conv->delete)(conv);
 		(parser->delete)(parser);
@@ -142,6 +147,14 @@ x_dnd_parse(
 		(*win->utf8_selection_notified)( win , src , len) ;
 		return 1 ;
 	}
+	/* TEXT */
+	if( atom == XA_TEXT(win->display) )
+	{
+		if( !(win->utf8_selection_notified))
+			return 0 ;
+		(*win->utf8_selection_notified)( win , src , len) ;
+		return 1 ;
+	}
 	/* text/url-list */
 	if( atom == XA_DND_MIME_TEXT_URL_LIST(win->display))
 	{
@@ -150,10 +163,8 @@ x_dnd_parse(
 
 		if( !(win->utf8_selection_notified))
 			return 0 ;
-
 		pos = 0 ;
 		delim = src ;
-
 		while( pos < len){
 			delim = strchr( &(src[pos]), 13) ;
 			if( !delim)
