@@ -1,5 +1,9 @@
 2003-09-15  Araki Ken  <arakiken@users.sf.net>
 
+	* ml_char.[ch]: ml_char_t is 64bit in LP64 system.
+
+2003-09-15  Araki Ken  <arakiken@users.sf.net>
+
 	* x_term_manager.c(start_daemon,client_connected): If multiple mlterms
 	  started with -j {genuine|blend} option, both of or either of them
 	  could die. Fixed.
