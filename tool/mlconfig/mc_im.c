@@ -336,6 +336,7 @@ uim_widget_new(const char *uim_engine, const char *cur_locale)
 			  "default (*)");
 	#endif
 		selected_index = 0;
+		snprintf(selected_uim_engine, STR_LEN, uim_auto_str);
 	} else {
 		snprintf( uim_auto_str, STR_LEN, _("auto"));
 	}

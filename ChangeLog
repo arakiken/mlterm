@@ -1,5 +1,9 @@
 2004-09-15 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* tool/mlconfig/mc_im.c (uim_widget_new): minor bug fix.
+
+2004-09-15 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* inputmethod/uim/im_uim.c (im_new),
 	  tool/mlconfig/mc_im.c:
 	  - use uim_get_default_im_name() if available.
