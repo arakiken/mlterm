@@ -27,7 +27,7 @@ typedef enum  ml_color
 	ML_BOLD_COLOR_MASK = 0x8 ,
 	
 	ML_FG_COLOR = 0x10 ,
-	ML_BG_COLOR = 0x11 ,
+	ML_BG_COLOR = 0x11
 
 } ml_color_t ;
 

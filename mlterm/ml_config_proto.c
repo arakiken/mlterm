@@ -122,7 +122,7 @@ ml_gen_proto_challenge(void)
 		return  0 ;
 	}
 
-	srand( (u_int)(time(NULL) + challenge)) ;
+	srand( (u_int)(time(NULL) + (int)challenge)) ;
 	sprintf( challenge , "%d" , rand()) ;
 
 	write( fd , challenge , strlen(challenge)) ;

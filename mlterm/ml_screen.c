@@ -558,12 +558,13 @@ check_or_copy_region(
 			count += K_MIN(end_char_index + 1,size_except_spaces) ;
 		}
 	}
-	#ifdef  DEBUG
 	else
 	{
+		count = 0;
+	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " copy region is illegal. nothing is copyed.\n") ;
-	}
 	#endif
+	}
 
 	return  count ;
 }

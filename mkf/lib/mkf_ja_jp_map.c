@@ -2,6 +2,8 @@
  *	$Id$
  */
 
+#include  <string.h>            /* memcpy */
+
 #include  "mkf_ja_jp_map.h"
 
 #include  "mkf_ucs4_map.h"

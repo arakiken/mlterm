@@ -18,7 +18,6 @@ typedef struct  ml_cursor
 	 */
 
 	/*
-	/*
 	 * public (readonly)
 	 */
 	int  row ;

@@ -72,7 +72,7 @@ typedef enum  ml_char_encoding
 
 	ML_ISO2022CN ,
 	
-	MAX_CHAR_ENCODINGS ,
+	MAX_CHAR_ENCODINGS
 	
 }  ml_char_encoding_t ;
 

@@ -252,7 +252,7 @@ ml_char_combine(
 			return  0 ;
 		}
 
-		if( sizeof( multi_ch) >= 8 && ((int)( multi_ch) & 0x1) != 0)
+		if( sizeof( multi_ch) >= 8 && ((long)( multi_ch) & 0x1UL) != 0)
 		{
 			kik_msg_printf( "Your malloc() doesn't return 2 byte aligned address."
 			                "Character combining is not supported.\n") ;
@@ -284,7 +284,7 @@ ml_char_combine(
 			return  0 ;
 		}
 
-		if( sizeof( multi_ch) >= 8 && ((int)( multi_ch) & 0x1) != 0)
+		if( sizeof( multi_ch) >= 8 && ((long)( multi_ch) & 0x1UL) != 0)
 		{
 			kik_msg_printf( "Your malloc() doesn't return 2 bytes aligned address."
 			                "Character combining is not supported.\n") ;

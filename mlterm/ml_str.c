@@ -2,6 +2,8 @@
  *	$Id$
  */
 
+#include  <string.h>
+
 #include  "ml_str.h"
 
 #include  <kiklib/kik_debug.h>
