@@ -77,29 +77,30 @@ cancel_clicked(
 }
 
 static int
-update(void)
+update(
+	int  save
+	)
 {
-    char *bgtype;
-    mc_set_str_value("encoding", mc_get_char_encoding());
-    mc_set_str_value("iscii_lang", mc_get_iscii_lang());
-    mc_set_str_value("fg_color", mc_get_fg_color());
-    mc_set_str_value("sb_fg_color", mc_get_sb_fg_color());
-    mc_set_str_value("sb_bg_color", mc_get_sb_bg_color());
-    mc_set_str_value("tabsize", mc_get_tabsize());
-    mc_set_str_value("logsize", mc_get_logsize());
-    mc_set_str_value("fontsize", mc_get_fontsize());
-    mc_set_str_value("line_space", mc_get_line_space());
-    mc_set_str_value("screen_width_ratio", mc_get_screen_width_ratio());
-    mc_set_str_value("screen_height_ratio", mc_get_screen_height_ratio());
-    mc_set_str_value("mod_meta_mode", mc_get_mod_meta_mode());
-    mc_set_str_value("bel_mode", mc_get_bel_mode());
-    mc_set_str_value("vertical_mode", mc_get_vertical_mode());
-    mc_set_str_value("scrollbar_mode", mc_get_sb_mode());
-    mc_set_str_value("brightness", mc_get_brightness());
-    mc_set_str_value("contrast", mc_get_contrast());
-    mc_set_str_value("gamma", mc_get_gamma());
-    mc_set_str_value("fade_ratio", mc_get_fade_ratio());
-    mc_set_str_value("scrollbar_view_name", mc_get_sb_view_name());
+    mc_set_str_value("encoding", mc_get_char_encoding(), save);
+    mc_set_str_value("iscii_lang", mc_get_iscii_lang(), save);
+    mc_set_str_value("fg_color", mc_get_fg_color(), save);
+    mc_set_str_value("sb_fg_color", mc_get_sb_fg_color(), save);
+    mc_set_str_value("sb_bg_color", mc_get_sb_bg_color(), save);
+    mc_set_str_value("tabsize", mc_get_tabsize(), save);
+    mc_set_str_value("logsize", mc_get_logsize(), save);
+    mc_set_str_value("fontsize", mc_get_fontsize(), save);
+    mc_set_str_value("line_space", mc_get_line_space(), save);
+    mc_set_str_value("screen_width_ratio", mc_get_screen_width_ratio(), save);
+    mc_set_str_value("screen_height_ratio", mc_get_screen_height_ratio(), save);
+    mc_set_str_value("mod_meta_mode", mc_get_mod_meta_mode(), save);
+    mc_set_str_value("bel_mode", mc_get_bel_mode(), save);
+    mc_set_str_value("vertical_mode", mc_get_vertical_mode(), save);
+    mc_set_str_value("scrollbar_mode", mc_get_sb_mode(), save);
+    mc_set_str_value("brightness", mc_get_brightness(), save);
+    mc_set_str_value("contrast", mc_get_contrast(), save);
+    mc_set_str_value("gamma", mc_get_gamma(), save);
+    mc_set_str_value("fade_ratio", mc_get_fade_ratio(), save);
+    mc_set_str_value("scrollbar_view_name", mc_get_sb_view_name(), save);
 
     {
 	char *  xim ;
@@ -112,7 +113,7 @@ update(void)
 	    if ((val = malloc(strlen(xim) + 1 + strlen(locale) + 1)))
 	    {
 		sprintf(val, "%s:%s", xim, locale);
-		mc_set_str_value("xim", val);
+		mc_set_str_value("xim", val, save);
 		free( val) ;
 	    }
 	}
@@ -125,29 +126,29 @@ update(void)
 	    ;
 	} else if (!strcmp(bgtype, "color")) {
 	    if (bgtype_ischanged) {
-		mc_set_flag_value("use_transbg", 0);
-		mc_set_str_value("wall_picture", "none");
+		mc_set_flag_value("use_transbg", 0, save);
+		mc_set_str_value("wall_picture", "none", save);
 	    }
 	    if (bgtype_ischanged || mc_bg_color_ischanged())
-		mc_set_str_value("bg_color", mc_get_bg_color());
+		mc_set_str_value("bg_color", mc_get_bg_color(), save);
 	} else if (!strcmp(bgtype, "picture")) {
 	    if (bgtype_ischanged)
-		mc_set_flag_value("use_transbg", 0);
+		mc_set_flag_value("use_transbg", 0, save);
 	    if (bgtype_ischanged || mc_wall_pic_ischanged()) 
-		mc_set_str_value("wall_picture", mc_get_wall_pic());
+		mc_set_str_value("wall_picture", mc_get_wall_pic(), save);
 	} else if (!strcmp(bgtype, "transparent")) {
 	    if (bgtype_ischanged)
-		mc_set_flag_value("use_transbg", 1);
+		mc_set_flag_value("use_transbg", 1, save);
 	}
     }
 
-    mc_set_flag_value("use_anti_alias", GTK_TOGGLE_BUTTON(use_aa_check)->active);
-    mc_set_flag_value("use_variable_column_width", GTK_TOGGLE_BUTTON(use_vcol_check)->active);
-    mc_set_flag_value("use_combining", GTK_TOGGLE_BUTTON(use_comb_check)->active);
-    mc_set_flag_value("use_dynamic_comb", GTK_TOGGLE_BUTTON(use_dynamic_comb_check)->active);
-    mc_set_flag_value("receive_string_via_ucs", GTK_TOGGLE_BUTTON(receive_string_via_ucs_check)->active);
-    mc_set_flag_value("use_multi_column_char", GTK_TOGGLE_BUTTON(use_multi_col_char_check)->active);
-    mc_set_flag_value("use_bidi", GTK_TOGGLE_BUTTON(use_bidi_check)->active);
+    mc_set_flag_value("use_anti_alias", GTK_TOGGLE_BUTTON(use_aa_check)->active, save);
+    mc_set_flag_value("use_variable_column_width", GTK_TOGGLE_BUTTON(use_vcol_check)->active, save);
+    mc_set_flag_value("use_combining", GTK_TOGGLE_BUTTON(use_comb_check)->active, save);
+    mc_set_flag_value("use_dynamic_comb", GTK_TOGGLE_BUTTON(use_dynamic_comb_check)->active, save);
+    mc_set_flag_value("receive_string_via_ucs", GTK_TOGGLE_BUTTON(receive_string_via_ucs_check)->active, save);
+    mc_set_flag_value("use_multi_column_char", GTK_TOGGLE_BUTTON(use_multi_col_char_check)->active, save);
+    mc_set_flag_value("use_bidi", GTK_TOGGLE_BUTTON(use_bidi_check)->active, save);
 
 	return  1 ;
 }
@@ -158,7 +159,7 @@ apply_clicked(
 	gpointer  data
 	)
 {
-	update() ;
+	update( 0) ;
 	
 	return  1 ;
 }
@@ -169,7 +170,7 @@ ok_clicked(
 	gpointer  data
 	)
 {
-	update() ;
+	update( 1) ;
 
 	gtk_main_quit() ;
 	
@@ -182,7 +183,7 @@ larger_clicked(
 	gpointer  data
 	)
 {
-	mc_set_str_value( "fontsize" , "larger") ;
+	mc_set_str_value( "fontsize" , "larger" , 0) ;
 	
 	return  1 ;
 }
@@ -193,7 +194,7 @@ smaller_clicked(
 	gpointer  data
 	)
 {
-	mc_set_str_value( "fontsize" , "smaller") ;
+	mc_set_str_value( "fontsize" , "smaller" , 0) ;
 		
 	return  1 ;
 }
@@ -204,7 +205,7 @@ full_reset_clicked(
 	gpointer  data
 	)
 {
-	mc_set_str_value( "full_reset" , "") ;
+	mc_set_str_value( "full_reset" , "" , 0) ;
 
 	return  1 ;
 }
@@ -304,7 +305,6 @@ show(void)
 	GtkWidget *  separator ;
 	GtkWidget *  bgcolor ;
 	GtkWidget *  bgpicture ;
-	GtkWidget *  bgtransparent ;
 	
 	window = gtk_window_new( GTK_WINDOW_TOPLEVEL) ;
 	gtk_signal_connect( GTK_OBJECT(window) , "delete_event" ,

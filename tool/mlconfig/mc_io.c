@@ -64,7 +64,8 @@ get_value(
 int
 mc_set_str_value(
 	char *  key ,
-	char *  value
+	char *  value ,
+	int  save
 	)
 {
 	if( value == NULL)
@@ -75,8 +76,16 @@ mc_set_str_value(
 #ifdef __DEBUG
 	kik_debug_printf( "%s=%s\n" , key , value) ;
 #endif
+
+	if( save)
+	{
+		printf( "\x1b]5383;%s=%s\x07" , key , value) ;
+	}
+	else
+	{
+		printf( "\x1b]5379;%s=%s\x07" , key , value) ;
+	}
 	
-	printf( "\x1b]5379;%s=%s\x07" , key , value) ;
 	fflush( stdout) ;
 
 	return  1 ;
@@ -85,7 +94,8 @@ mc_set_str_value(
 int
 mc_set_flag_value(
 	char *  key ,
-	int  value
+	int  value ,
+	int  save
 	)
 {
 #if  0
@@ -95,13 +105,27 @@ mc_set_flag_value(
 	}
 #endif
 
-	if( value)
+	if( save)
 	{
-		printf( "\x1b]5379;%s=true\x07" , key) ;
+		if( value)
+		{
+			printf( "\x1b]5383;%s=true\x07" , key) ;
+		}
+		else
+		{
+			printf( "\x1b]5383;%s=false\x07" , key) ;
+		}
 	}
 	else
 	{
-		printf( "\x1b]5379;%s=false\x07" , key) ;
+		if( value)
+		{
+			printf( "\x1b]5379;%s=true\x07" , key) ;
+		}
+		else
+		{
+			printf( "\x1b]5379;%s=false\x07" , key) ;
+		}
 	}
 	
 	fflush( stdout) ;
