@@ -17,6 +17,9 @@
 typedef struct x_dnd_context {
 	Window  source ;
 	Atom  waiting_atom ;
+	int  is_incr ;
+	mkf_parser_t * parser ;
+	mkf_conv_t * conv ;
 } x_dnd_context_t ;
 
 typedef struct dnd_parser {
@@ -37,30 +40,50 @@ parse_text_unicode(
 
 	if( !(win->utf8_selection_notified))
 		return 0 ;
-	if( !(conv = mkf_utf8_conv_new()))
-		return 0 ;
-	if( !(parser = mkf_utf16_parser_new()))
-	{
-		(conv->delete)(conv) ;
-		return 0 ;
-	}
 
-	(parser->init)( parser) ;
-	if ( (src[0] == 0xFF || src[0] == 0xFE)
-	     && (src[1] == 0xFF || src[1] == 0xFE)
-	     && (src[0] != src[1]))
+	if( (win->dnd->conv) && (win->dnd->parser))
 	{
-		/* src sequence seems to have a valid BOM and *
-		 * should be processed correctly */
+		if( len == 0)
+		{
+			/* the incr session was finished */
+			(conv->delete)( conv) ;
+			(parser->delete)( parser) ;			
+#ifdef  DEBUG
+		kik_debug_printf("freed parser/converter\n" ) ;
+#endif
+
+			return 1 ;
+		}
+#ifdef  DEBUG
+		kik_debug_printf("recycling parser/converter %d, %p, %p\n", win->dnd->is_incr, win->dnd->conv, win->dnd->parser ) ;
+#endif
 	}
 	else
 	{
-		/* try to set parser state depending on
-		   your machine's endianess by sending BOM */
-		u_int16_t BOM[] =  {0xFEFF};
-
-		(parser->set_str)( parser , (char *)BOM , 2) ;
-		(parser->next_char)( parser , 0) ;
+		if( !(conv = mkf_utf8_conv_new()))
+			return 0 ;
+		if( !(parser = mkf_utf16_parser_new()))
+		{
+			(conv->delete)(conv) ;
+			return 0 ;
+		}
+		(parser->init)( parser) ;
+		if ( (src[0] == 0xFF || src[0] == 0xFE)
+		     && (src[1] == 0xFF || src[1] == 0xFE)
+		     && (src[0] != src[1]))
+		{
+			/* src sequence seems to have a valid BOM and *
+			 * should be processed correctly */
+		}
+		else
+		{
+			/* try to set parser state depending on
+			   your machine's endianess by sending BOM */
+			u_int16_t BOM[] =  {0xFEFF};
+			
+			(parser->set_str)( parser , (char *)BOM , 2) ;
+			(parser->next_char)( parser , 0) ;
+		}
 	}
 
 	(parser->set_str)( parser , src , len) ;
@@ -77,8 +100,16 @@ parse_text_unicode(
 						 conv_buf,
 						 filled_len) ;
 	}
-	(conv->delete)( conv) ;
-	(parser->delete)( parser) ;
+	if( win->dnd->is_incr)
+	{
+		win->dnd->parser = parser ;
+		win->dnd->conv = conv ;
+	}
+	else
+	{
+		(conv->delete)( conv) ;
+		(parser->delete)( parser) ;
+	}
 
 	return 1 ;
 }
@@ -344,7 +375,7 @@ is_pref(
 	int i ;
 	for( i = 0 ; i < num ; i++)
 	{
-#ifdef  DEBUG
+#if 0
 		kik_debug_printf("%d %d %d\n " , i, atom[i], type) ;
 #endif
 		if( atom[i] == type)
@@ -448,6 +479,10 @@ parse(
 		if( atom == XInternAtom( win->display, proc_entry->atomname, False) )
 			break ;
 	}
+
+#ifdef  DEBUG
+		kik_debug_printf("parsing as %s\n", proc_entry->atomname) ;
+#endif
 
 	if( proc_entry->parser)
 		return  (proc_entry->parser)( win, src, len) ;
@@ -574,7 +609,7 @@ x_dnd_process_enter(
 	if( to_wait)
 	{
 #ifdef  DEBUG
-		kik_debug_printf("preparing DND session for %d on %p \n", to_wait, win->dnd) ;
+		kik_debug_printf("ENTER:preparing DND session for %d on %p \n", to_wait, win->dnd) ;
 #endif
 		if( !(win->dnd))
 			win->dnd = malloc( sizeof( x_dnd_context_t)) ;
@@ -582,8 +617,11 @@ x_dnd_process_enter(
 			return 1 ;
 		win->dnd->source = event->xclient.data.l[0];
 		win->dnd->waiting_atom = to_wait;
+		win->dnd->is_incr = 0 ;
+		win->dnd->parser = NULL ;
+		win->dnd->conv = NULL ;
 #ifdef  DEBUG
-		kik_debug_printf("prepared DND session as %p\n", win->dnd) ;
+		kik_debug_printf("ENTER:prepared DND session as %p\n", win->dnd) ;
 #endif
 	}
 	else
@@ -591,7 +629,7 @@ x_dnd_process_enter(
 		if( win->dnd)
 		{
 #ifdef  DEBUG
-		kik_debug_printf("terminating DND session\n") ;
+		kik_debug_printf("ENTER:terminating DND session\n") ;
 #endif
 			free( win->dnd);
 			win->dnd = NULL ;
@@ -687,7 +725,12 @@ x_dnd_process_incr(
 #endif
 		return 1 ;
 	}
-
+#ifdef  DEBUG
+		kik_debug_printf("INCR:staring\n");
+#endif
+	/* remember that it's an incremental transfer */
+	win->dnd->is_incr = 1 ;
+	
 	/* dummy read to determine data length */
 	set_badwin_handler(1) ;
 	result = XGetWindowProperty( win->display , event->xproperty.window ,
@@ -705,7 +748,12 @@ x_dnd_process_incr(
 	/* when ct.encoding != XA_INCR,
 	   delete will be read when SelectionNotify would arrive  */
 	if( ct.encoding != XA_INCR(win->display))
+	{
+#ifdef  DEBUG
+		kik_debug_printf("INCR:ignored\n");
+#endif
 		return  1 ;
+	}
 
 	set_badwin_handler(1) ;
 	result = XGetWindowProperty( win->display , event->xproperty.window ,
@@ -717,14 +765,15 @@ x_dnd_process_incr(
 	if( result != Success)
 		return  1 ;
 
-	if( ct.nitems > 0)
-	{
-		parse( win, ct.value, ct.nitems) ;
-	}
-	else
+#ifdef  DEBUG
+	kik_debug_printf("INCR: %d\n", ct.nitems) ;
+#endif
+	parse( win, ct.value, ct.nitems) ;
+
+	if( ct.nitems == 0)
 	{       /* all data have been received */
 #ifdef  DEBUG
-		kik_debug_printf("terminating DND session\n") ;
+		kik_debug_printf("INCR: terminating DND session\n") ;
 #endif
 		finish( win) ;
 		free( win->dnd);

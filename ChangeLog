@@ -1,8 +1,13 @@
+2003-08-12  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* x_dnd.c: for incremantal transfer, parser/converter 
+	  should be kept to remember its state(endianess/framgents etc.)
+
 2003-08-10  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* x_xim.c:
 	- xim->im should be cleared when im was closed due to an error.
-	- Default XIM name sis now "none", not "@im=none".
+	- Default XIM name is now "none", not "@im=none".
 
 2003-08-10  Araki Ken  <arakiken@users.sf.net>
 
