@@ -1,5 +1,7 @@
 2003-09-15  Araki Ken  <arakiken@users.sf.net>
 
+	* mlterm-menu/Makefile.in: Added $(SYSCONFDIR) target.
+
 	* x_font_cache.c(x_get_font_name_list_for_fontset): Load "-*-*-medium-r-*--%d-*-*-*-*-*"
 	  font by default for FontSet.
 
