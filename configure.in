@@ -303,7 +303,7 @@ AC_ARG_WITH(libltdl,
 # --- Xdnd ---
 #
 AC_ARG_ENABLE(dnd,
-	[  --enable-dnd           dnd[default=enabled]],
+	[  --enable-dnd            dnd [default=enabled]],
 	dnd=$enable_dnd)
 if test "$dnd" = "no" ; then
 	DND_CFLAGS="-DDISABLE_XDND"
@@ -317,7 +317,7 @@ AC_SUBST(DND_LIBS)
 # --- uim ---
 #
 AC_ARG_ENABLE(uim,
-	[  --enable-uim           uim[default=disabled]],
+	[  --enable-uim            uim [default=disabled]],
 	uim=$enable_uim)
 if test "$enable_uim" = yes ; then
 	PKG_CHECK_MODULES(UIM, uim, have_uim=yes, have_uim=no)
@@ -330,6 +330,24 @@ if test "$enable_uim" = yes ; then
 fi
 AC_SUBST(UIM_CFLAGS)
 AC_SUBST(UIM_LIBS)
+
+#
+# --- iiimf ---
+#
+AC_ARG_ENABLE(iiimf,
+	[  --enable-iiimf          IIIMF [default=disabled]],
+	iiimf=$enable_iiimf)
+if test "$enable_iiimf" = yes ; then
+	AC_CHECK_LIB(iiimcf, iiimcf_create_context,
+		[
+		IIIMF_CFLAGS="-DUSE_IIIMF"
+		IIIMF_LIBS="-liiimcf"
+		MAKE_DIRS="inputmethod/iiimf ${MAKE_DIRS}"
+		OUTPUT_FILES="inputmethod/iiimf/Makefile ${OUTPUT_FILES}"
+		])
+fi
+AC_SUBST(IIIMF_CFLAGS)
+AC_SUBST(IIIMF_LIBS)
 
 #
 # --- scrollbar plugins ---

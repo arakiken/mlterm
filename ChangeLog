@@ -5,6 +5,7 @@
 	* configure.in: added '--enable-iiimf'.
 
 	* inputmethod/iiimf/im_iiimf.c: new file
+	* inputmethod/iiimf/im_iiimf_keymap.h: new file
 	* inputmethod/iiimf/Makefile.in: new file
 
 	How to use:

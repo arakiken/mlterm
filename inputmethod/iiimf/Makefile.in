@@ -1,0 +1,59 @@
+top_builddir = ../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+
+DESTDIR =
+PREFIX = $(DESTDIR)$(prefix)
+LIBDIR = $(DESTDIR)$(libdir)/mlterm
+
+VPATH = ${top_srcdir}/inputmethod/iiim
+
+IM_IIIMF_OBJ = im_iiimf.o
+
+CFLAGS = $(CFLAGS_LOCAL) 		\
+	 @AA_CFLAGS@ 			\
+	 @KIK_CFLAGS@			\
+	 @MKF_CFLAGS@			\
+	 @DND_CFLAGS@			\
+	 @X_CFLAGS@			\
+	 @CFLAGS@			\
+	 @CPPFLAGS@			\
+	 @IIIMF_CFLAGS@			\
+	 -I$(top_srcdir)/mlterm		\
+	 -I${top_builddir}/xwindow	\
+	 -I/usr/include/include
+
+CC      = @CC@
+INSTALL = @INSTALL@
+LIBTOOL = @LIBTOOL@
+
+LIBTOOL_CC      = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK    = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+.SUFFIXES: .o .c
+
+all: im-iiimf
+
+im-iiimf: $(IM_IIIMF_OBJ)
+	$(LIBTOOL_LINK) -o libim-iiimf.la $(IM_IIIMF_OBJ:.o=.lo)	\
+	-rpath $(LIBDIR) -module -avoid-version @NO_UNDEFINED_FLAG@	\
+	@KIK_LIBS@ @MKF_LIBS@ @IIIMF_LIBS@
+
+.c.o:
+	$(LIBTOOL_CC) -c $<
+
+$(LIBDIR):
+	mkdir -p $(LIBDIR)
+
+install: $(LIBDIR)
+	$(LIBTOOL_INSTALL) libim-iiimf.la $(LIBDIR)
+
+clean:
+	rm -rf $(IM_IIIMF_OBJ) $(IM_IIIMF_OBJ:.o=.lo) libim-iiimf.la *.core .libs
+
+distclean: clean
+	rm -f Makefile
+
