@@ -79,13 +79,19 @@ alloc_closest_xcolor_pseudo(
 
 	if( closest_index == -1)	/* unable to find closest color */
 	{
-		return  0 ;
+		closest_color.red = 0 ;
+		closest_color.green = 0 ;
+		closest_color.blue = 0 ;
+	}
+	else
+	{
+		closest_color.red = all_colors[closest_index].red ;
+		closest_color.green = all_colors[closest_index].green ;
+		closest_color.blue = all_colors[closest_index].blue ;
 	}
 
-	closest_color.red = all_colors[closest_index].red ;
-	closest_color.green = all_colors[closest_index].green ;
-	closest_color.blue = all_colors[closest_index].blue ;
 	closest_color.flags = DoRed | DoGreen | DoBlue;
+	free( all_colors) ;
 
 	if ( ! XAllocColor( display , cmap , &closest_color))
 	{

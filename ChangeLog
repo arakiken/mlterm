@@ -1,3 +1,8 @@
+2002-05-19 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* x_color.c: alloc_closest_xcolor_pseudo() doesn't free the memory space
+	  pointed to by all_colors. fixed.
+
 2002-05-19 Araki Ken <arakiken@users.sf.net>
 
 	* auto pointer was passed to putenv(). fixed.
