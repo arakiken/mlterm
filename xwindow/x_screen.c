@@ -3599,7 +3599,7 @@ change_char_encoding(
 
 	if( screen->im)
 	{
-		screen->im->delete( screen->im) ;
+		x_im_delete( screen->im) ;
 
 		screen->im = x_im_new( encoding , &screen->im_listener ,
 				screen->input_method) ;
@@ -4184,7 +4184,7 @@ change_im(
 
 	if( screen->im)
 	{
-		screen->im->delete( screen->im) ;
+		x_im_delete( screen->im) ;
 		screen->im = NULL ;
 	}
 
@@ -5925,6 +5925,38 @@ draw_preedit_str(
 	return  1 ;
 }
 
+/* used for changing IM from plugin side */
+static void
+im_changed(
+	void *  p ,
+	u_char *  input_method
+	)
+{
+	x_screen_t *  screen ;
+	x_im_t *  new ;
+
+	screen = p ;
+
+	if( ! ( new = x_im_new( ml_term_get_encoding( screen->term) ,
+				&screen->im_listener ,
+				input_method)))
+	{
+		return ;
+	}
+
+	if( screen->input_method)
+	{
+		free( screen->input_method) ;
+		screen->input_method = NULL ;
+	}
+
+	screen->input_method = strdup( input_method) ;
+
+	x_im_delete( screen->im) ;
+
+	screen->im = new ;
+}
+
 static void
 write_to_term(
 	void *  p ,
@@ -6375,6 +6407,7 @@ x_screen_new(
 	screen->im_listener.get_line_height = get_line_height ;
 	screen->im_listener.is_vertical = is_vertical ;
 	screen->im_listener.draw_preedit_str = draw_preedit_str ;
+	screen->im_listener.im_changed = im_changed ;
 	screen->im_listener.write_to_term = write_to_term ;
 	screen->im_listener.get_win_man = get_win_man ;
 	screen->im_listener.get_font_man = get_font_man ;
@@ -6667,7 +6700,7 @@ x_screen_delete(
 
 	if( screen->im)
 	{
-		(*screen->im->delete)( screen->im) ;
+		x_im_delete( screen->im) ;
 	}
 
 	free( screen) ;
@@ -6734,7 +6767,7 @@ x_screen_attach(
 
 		root = x_get_root_window( &screen->window) ;
 
-		screen->im->delete( screen->im) ;
+		x_im_delete( screen->im) ;
 		screen->im = x_im_new( ml_term_get_encoding(term) ,
 				&screen->im_listener , screen->input_method) ;
 	}

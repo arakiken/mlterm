@@ -9,22 +9,17 @@
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_file.h>
 #include <kiklib/kik_conf_io.h>
+#include <kiklib/kik_dlfcn.h>
 #include <kiklib/kik_map.h>
 #include <kiklib/kik_str.h>
 #include <glib.h>
 #include <c_intl.h>
-
-#ifdef USE_UIM
-#include <uim.h>
-#endif
-
-#ifdef USE_IIIMF
-#define HAVE_STDINT_H 1	/* FIXME */
-#include <iiimcf.h>
-#endif
+#include <dirent.h>
+#include <im_info.h>
 
 #include "mc_combo.h"
 #include "mc_io.h"
+
 
 #if 0
 #define __DEBUG
@@ -36,18 +31,29 @@
 #define CONFIG_PATH SYSCONFDIR
 #endif
 
+#ifndef LIBDIR
+#define  IM_DIR "/usr/local/lib/mlterm/"
+#else
+#define  IM_DIR LIBDIR "/mlterm/"
+#endif
+
 #define STR_LEN 256
 
 KIK_MAP_TYPEDEF(xim_locale, char*, char*);
 
+typedef enum im_type {
+	IM_XIM,
+	IM_NONE,
+	IM_OTHER,
+} im_type_t ;
+
+typedef im_info_t* (*im_get_info_func_t)(char *);
+
+#define MAX_IM_INFO 5
+
 /* --- static variables --- */
 
-static enum {
-	IM_XIM ,
-	IM_UIM ,
-	IM_IIIMF ,
-	IM_NONE ,
-} im_type = IM_NONE;
+static im_type_t im_type ;
 
 static char **xims;
 static char **locales;
@@ -56,16 +62,75 @@ static u_int num_of_xims;
 static int is_changed = 0;
 
 static char xim_auto_str[STR_LEN] = "";
-static char uim_auto_str[STR_LEN] = "";
-static char iiimf_auto_str[STR_LEN] = "";
 static char current_locale_str[STR_LEN] = "";
 static char selected_xim_name[STR_LEN] = "";
 static char selected_xim_locale[STR_LEN] = "";
-static char selected_uim_engine[STR_LEN] = "";
-static char selected_iiimf_lang[STR_LEN] = "";
-static char original_iiimf_lang[STR_LEN] = "";
+
+static im_info_t *im_info_table[MAX_IM_INFO];
+static u_int  num_of_info = 0;
+static im_info_t *selected_im = NULL;
+static int selected_im_arg = 0;
+
+static GtkWidget *im_opt_widget[MAX_IM_INFO];
 
 /* --- static functions --- */
+
+static int
+is_im_plugin(char *file_name)
+{
+	if (kik_dl_is_module(file_name) &&
+	    strncmp(file_name, "libim-", 6) == 0)
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+static int
+get_im_info(char *locale)
+{
+	DIR *dir;
+	struct dirent *d;
+	int num = 0;
+
+	if (!(dir = opendir(IM_DIR))) return 0;
+
+	while (d = readdir(dir)) {
+		kik_dl_handle_t handle;
+		im_get_info_func_t func ;
+		im_info_t *info;
+		char *p ;
+
+		if (d->d_name[0] == '.' || !is_im_plugin(d->d_name)) continue;
+
+		/* libim-foo.so -> libim-foo */
+		if (!(p = strchr(d->d_name, '.'))) continue;
+		*p = '\0' ;
+
+		/* libim-foo -> im-foo */
+		if (!(p = strstr(d->d_name, "im-"))) continue;
+
+		if (!(handle = kik_dl_open(IM_DIR , p))) continue;
+
+		func = (im_get_info_func_t)kik_dl_func_symbol(handle ,
+							      "im_get_info");
+		if (!func) {
+			kik_dl_close(handle);
+			continue;
+		}
+
+		info = (*func)(locale);
+
+		if(info) {
+			im_info_table[num_of_info] = info ;
+			num_of_info++;
+		}
+
+		kik_dl_close(handle);
+	}
+}
+
 
 /*
  * XIM
@@ -87,8 +152,8 @@ get_xim_locale(char *xim)
 {
 	int count;
 	
-	for(count = 0; count < num_of_xims; count ++) {
-		if( strcmp(xims[count], xim) == 0) {
+	for (count = 0; count < num_of_xims; count ++) {
+		if (strcmp(xims[count], xim) == 0) {
 			return  locales[count];
 		}
 	}
@@ -129,8 +194,8 @@ read_xim_conf(KIK_MAP(xim_locale) xim_locale_table, char *filename)
 
 	if (!(from = kik_file_open(filename, "r"))) {
 #ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " %s couldn't be opened.\n",
-				 filename);
+		kik_warn_printf(KIK_DEBUG_TAG " %s couldn't be opened.\n",
+				filename);
 #endif
 	
 		return 0;
@@ -255,370 +320,78 @@ xim_widget_new(const char *xim_name, const char *xim_locale, const char *cur_loc
 
 
 /*
- * uim
+ * pluggable ims
  */
-#ifdef USE_UIM
+
 static gint
-uim_selected(GtkWidget *widget, gpointer data)
+im_selected(GtkWidget *widget, gpointer data)
 {
 	const char *str;
-	char *engine_name;
-	char *p;
-
-	str = (const char*)gtk_entry_get_text(GTK_ENTRY(widget));
-
-	snprintf(selected_uim_engine, STR_LEN, str);
-
-	if (strcmp(selected_uim_engine, uim_auto_str)) {
-		/* "anthy (ja)" -> "anthy" */
-		p = strstr(selected_uim_engine, " (");
-		if(p) *p = '\0';
-	}
-
-	is_changed = 1;
-
-	return 1;
-}
-#endif
-
-static GtkWidget *
-uim_widget_new(const char *uim_engine, const char *cur_locale)
-{
-#ifdef USE_UIM
-	GtkWidget *combo;
-	uim_context context;
-	char **engines = NULL;
-	int num_of_engines;
 	int i;
-	int selected_index = -1;
 
-	uim_init();
-
-	context = uim_create_context(NULL, "UTF-8", NULL, NULL, NULL, NULL);
-
-	if (context) {
-		const char *engine_name;
-		const char *language;
-		size_t len;
-
-		num_of_engines = uim_get_nr_im(context);
-
-		engines = alloca(sizeof(char*) * num_of_engines + 1);
-
-		for (i = 0; i < num_of_engines && engines; i++) {
-
-			engine_name = uim_get_im_name(context, i);
-			language = uim_get_im_language(context, i);
-
-			/* format: "engine_name (language)" */
-			len = strlen(engine_name) + strlen(language) + 3 + 1;
-
-			engines[i + 1] = alloca(sizeof(char) * len);
-
-			snprintf(engines[i + 1], len, "%s (%s)",
-				 engine_name, language);
-
-			if (uim_engine) {
-				if (strcmp(engine_name, uim_engine) == 0) {
-					selected_index = i + 1;
-					snprintf(selected_uim_engine, STR_LEN,
-						 engine_name);
-				}
-			}
-		}
-	}
-
-	if (selected_index == -1) {
-		snprintf(uim_auto_str, STR_LEN, _("auto (currently %s)"),
-	#ifdef UIM_CAN_GET_DEFAULT_IM
-			  uim_get_default_im_name(cur_locale));
-	#else
-			  "default (*)");
-	#endif
-		selected_index = 0;
-		snprintf(selected_uim_engine, STR_LEN, uim_auto_str);
-	} else {
-		snprintf( uim_auto_str, STR_LEN, _("auto"));
-	}
-	engines[0] = strdup(uim_auto_str);
-
-	uim_quit();
-
-	combo = mc_combo_new(_("Conversion engine"), engines,
-			     num_of_engines + 1, engines[selected_index],
-			     1, uim_selected, NULL);
-
-	return combo;
-#else
-	return gtk_label_new(_("uim is disabled."));
-#endif
-}
-
-/*
- * IIIMF
- */
-
-#ifdef USE_IIIMF
-static void
-iiimf_set_item(char **items, char *str1, char* str2, int index)
-{
-	size_t len;
-
-	if (str2) { /* "str1 (str2)" */
-		len = strlen(str1) + strlen(str2) + 4;
-		if ((items[index] = malloc(sizeof(char) * len)) == NULL) {
-			items[index] = NULL;
-			return;
-		}
-		snprintf(items[index], len, "%s (%s)", str1, str2);
-	} else { /* "str1" */
-		len = strlen(str1) + 1;
-		if ((items[index] = malloc(sizeof(char) * len)) == NULL) {
-			items[index] = NULL;
-			return;
-		}
-		snprintf(items[index], len, str1);
-	}
-
-	return;
-}
-
-static gint
-iiimf_selected(GtkWidget *widget, gpointer data)
-{
-	const char *str;
-	char *engine_name;
-	char *p;
-
-	str = (const char*)gtk_entry_get_text(GTK_ENTRY(widget));
-
-	if (!strlen(str))
+	if (selected_im == NULL)
 		return 1;
 
-	snprintf(selected_iiimf_lang, STR_LEN, str);
+	str = (const char*)gtk_entry_get_text(GTK_ENTRY(widget));
 
-	if (strcmp(selected_iiimf_lang, iiimf_auto_str)) {
-		/* "ja (CannaLE)" -> "ja:CannaLE" */
-		p = strstr(selected_iiimf_lang, " (");
-		snprintf(p, STR_LEN - 5, ":%s", p + 2);
-		p = strstr(selected_iiimf_lang, ")");
-		*p = '\0';
-	}
+	for (i = 0; i < selected_im->num_of_args; i++)
+		if (strcmp(selected_im->readable_args[i], str) == 0)
+			selected_im_arg = i;
 
 	is_changed = 1;
 
 	return 1;
 }
 
-static int
-iiimf_best_match_index(const char **items,
-		       int num,
-		       const char *lang_id,
-		       const char *le_name,
-		       const char *cur_locale)
+static GtkWidget *
+im_widget_new(int nth_im, const char *value, char *locale)
 {
-	char buf[STR_LEN];
+	im_info_t *info;
 	int i;
-	int result = 0;
-	int best_score = 0;
+	int selected = 0;
+	size_t len;
 
-	snprintf(buf, STR_LEN, cur_locale);
+	info = im_info_table[nth_im];
 
-	if (lang_id == NULL && le_name == NULL) {
-		char *p;
-		if (!(p = strstr(buf, ".")))
-			return 0;
-		*p = '\0';
-		lang_id = buf;
-	}
-
-	for (i = 0; i < num; i++) {
-		int score = 0;
-
-		if (!items[i]) continue;
-
-		if (lang_id) {
-			if (strlen(lang_id) >= 2 &&
-			    strncmp(items[i], lang_id, 2) == 0)
-				score++;
-			if (strlen(lang_id) >= 5 &&
-			    strncmp(items[i], lang_id, 5) == 0)
-				score++;
-			if (strlen(lang_id) >= 11 &&
-			    strncmp(items[i], lang_id, 11) == 0)
-				score++;
-		}
-
-		if (le_name && strlen(le_name)) {
-			char *p;
-			if ((p = strstr(items[i], " ("))) {
-				p+=2;
-				if (strncmp(p, le_name, strlen(le_name)) == 0)
-					score++;
+	if (value) {
+		for (i = 1; i < info->num_of_args; i++) {
+			if (strcmp(info->args[i], value) == 0) {
+				selected = i;
 			}
 		}
-
-		if (score > best_score) {
-			best_score = score;
-			result = i;
-		}
 	}
 
-	return result;
-}
-#endif
+	if (!value || (value && selected)) {
+		char *auto_str;
 
-static GtkWidget *
-iiimf_widget_new(const char *iiimf_lang_id, const char *iiimf_le, const char *cur_locale)
-{
-#ifdef USE_IIIMF
-#  if GLIB_MAJOR_VERSION >= 2
-	GtkWidget *combo;
-	const char **items = NULL;
-	IIIMCF_handle handle = NULL ;
-	IIIMCF_input_method *input_methods;
-	IIIMCF_language *langs;
-	int num_im, num_lang, num_total = 0;
-	int selected_index;
-	int i, j;
-	char *utf8 = NULL;
+		/*
+		 * replace gettextized string
+		 */
+		len = strlen(_("auto (currently %s)")) +
+		      strlen(info->readable_args[0]) + 1;
 
-	if (iiimf_lang_id && strlen(iiimf_lang_id) == 0)
-		iiimf_lang_id = NULL;
-	if (iiimf_le && strlen(iiimf_le) == 0)
-		iiimf_le = NULL;
-
-	if (iiimcf_initialize(IIIMCF_ATTR_NULL) != IIIMF_STATUS_SUCCESS)
-		return gtk_label_new(_("IIIMCF initialization failed."));
-
-	/*
-	 * TODO: cleanup!!
-	 */
-	if (iiimcf_create_handle(IIIMCF_ATTR_NULL,
-				 &handle) != IIIMF_STATUS_SUCCESS)
-		goto error;
-
-	if (iiimcf_get_supported_input_methods(
-					handle,
-					&num_im,
-					&input_methods) != IIIMF_STATUS_SUCCESS)
-		goto error;
-
-	/* XXX: workaround for atokx's htt */
-	if ( num_im == 0) goto error;
-
-	for (i = 0; i < num_im; i++) {
-		const IIIMP_card16 *im_id, *im_hrn, *im_domain;
-		char **p;
-
-		if (iiimcf_get_input_method_desc(
-					input_methods[i],
-					&im_id, &im_hrn, &im_domain)
-						!= IIIMF_STATUS_SUCCESS)
-			goto error;
-
-		if (iiimcf_get_input_method_languages(
-						input_methods[i],
-						&num_lang, &langs)
-							!= IIIMF_STATUS_SUCCESS)
-			goto error;
-
-		p = realloc(items, sizeof(char*) * (num_total + num_lang));
-		if (!p) goto error;
-
-		items = p;
-
-		utf8 = g_utf16_to_utf8(im_id, -1, NULL, NULL, NULL);
-		if (!utf8) goto error;
-
-		for (j = 0; j < num_lang; j++) {
-			const char *lang_id;
-			iiimcf_get_language_id(langs[j], &lang_id);
-			iiimf_set_item(items, lang_id, utf8, i + j);
-			num_total++;
+		if (auto_str = malloc(len))
+		{
+			snprintf(auto_str, len, _("auto (currently %s)"),
+				 info->readable_args[0]);
+			free(info->readable_args[0]);
+			info->readable_args[0] = auto_str;
 		}
-
-		free(utf8);
-		utf8 = NULL;
-	}
-
-	selected_index = iiimf_best_match_index(items, num_total,
-						iiimf_lang_id, iiimf_le,
-						cur_locale);
-
-	if (iiimf_lang_id == NULL && iiimf_le == NULL) {
-		snprintf(iiimf_auto_str, STR_LEN, _("auto (currently %s)"),
-			 items[selected_index]);
-		iiimf_set_item(items, iiimf_auto_str, NULL, num_total);
-		selected_index = num_total;
-		snprintf(original_iiimf_lang, STR_LEN, "");
-	} else if (iiimf_lang_id == NULL) {
-		snprintf(iiimf_auto_str, STR_LEN, "  (%s)", iiimf_le);
-		iiimf_set_item(items, iiimf_auto_str, NULL, num_total);
-		selected_index = num_total;
-		snprintf(original_iiimf_lang, STR_LEN, "::%s", iiimf_le);
-	} else if (iiimf_le == NULL) {
-		snprintf(iiimf_auto_str, STR_LEN, "%s",
-			 iiimf_lang_id);
-		iiimf_set_item(items, iiimf_auto_str, NULL, num_total);
-		selected_index = num_total;
-		snprintf(original_iiimf_lang, STR_LEN, ":%s", iiimf_lang_id);
 	} else {
-		snprintf(iiimf_auto_str, STR_LEN, _("auto"), iiimf_lang_id);
-		iiimf_set_item(items, iiimf_auto_str, NULL, num_total);
-		snprintf(original_iiimf_lang, STR_LEN, ":%s:%s",
-			 iiimf_lang_id, iiimf_le);
-	}
-	num_total++;
-
-	combo = mc_combo_new(_("Language (Language engine)"), items, num_total,
-			     items[selected_index], 1, iiimf_selected, NULL);
-
-	iiimcf_destroy_handle(handle);
-	iiimcf_finalize();
-
-	if (items) {
-		for (i = 0; i < num_total; i++) {
-			if (items[i]) free(items[i]);
-		}
-		free(items);
+		free(info->readable_args[0]);
+		info->readable_args[0] = strdup(value);
 	}
 
-	return combo;
-
-error:
-	if (utf8)
-		free(utf8);
-
-	if (handle)
-		iiimcf_destroy_handle(handle);
-
-	iiimcf_finalize();
-
-	if (items) {
-		for (i = 0; i < num_total; i++) {
-			if (items[i]) free(items[i]);
-		}
-		free(items);
-	}
-
-	return gtk_label_new(_("Cound not create language list."));
-#  else
-	return gtk_label_new(_("Language selector depends on glib-2.0 or later."));
-#  endif
-#else
-	return gtk_label_new(_("IIIMF is disabled."));
-#endif
+	return mc_combo_new(_("Option"), info->readable_args,
+			    info->num_of_args, info->readable_args[selected],
+			    1, im_selected, NULL);
 }
 
 /*
  * callbacks for radio buttons of im type.
  */
 static gint
-button_xim_checked(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
+button_xim_checked(GtkWidget *widget, gpointer data)
 {
 	if(GTK_TOGGLE_BUTTON(widget)->active) {
 		gtk_widget_show(GTK_WIDGET(data));
@@ -633,16 +406,27 @@ button_xim_checked(
 }
 
 static gint
-button_uim_checked(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
+button_im_checked(GtkWidget *widget, gpointer  data)
 {
-	if(GTK_TOGGLE_BUTTON(widget)->active) {
-		gtk_widget_show(GTK_WIDGET(data));
-		im_type = IM_UIM;
+	int i;
+	int idx;
+
+	if (data == NULL) {
+		if (GTK_TOGGLE_BUTTON(widget)->active) {
+			im_type = IM_NONE;
+		}
 	} else {
-		gtk_widget_hide(GTK_WIDGET(data));
+		for (i = 0; i < num_of_info; i++)
+			if (im_info_table[i] == data)
+				idx = i;
+
+		if (GTK_TOGGLE_BUTTON(widget)->active) {
+			im_type = IM_OTHER;
+			selected_im = data;
+			gtk_widget_show(GTK_WIDGET(im_opt_widget[idx]));
+		} else {
+			gtk_widget_hide(GTK_WIDGET(im_opt_widget[idx]));
+		}
 	}
 
 	is_changed = 1;
@@ -650,37 +434,6 @@ button_uim_checked(
 	return 1;
 }
 
-static gint
-button_iiimf_checked(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
-{
-	if(GTK_TOGGLE_BUTTON(widget)->active) {
-		gtk_widget_show(GTK_WIDGET(data));
-		im_type = IM_IIIMF;
-	} else {
-		gtk_widget_hide(GTK_WIDGET(data));
-	}
-
-	is_changed = 1;
-
-	return 1;
-}
-
-static gint
-button_none_checked(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
-{
-	if(GTK_TOGGLE_BUTTON(widget)->active)
-		im_type = IM_NONE;
-
-	is_changed = 1;
-
-	return 1;
-}
 
 /* --- global functions --- */
 
@@ -690,20 +443,26 @@ mc_im_config_widget_new(void)
 	char *cur_locale = NULL;
 	char *xim_name = NULL;
 	char *xim_locale = NULL;
-	char *uim_engine = NULL;
-	char *iiimf_lang_id = NULL;
-	char *iiimf_le = NULL;
 	char *value;
 	char *p;
+	int i;
+	int index;
 	GtkWidget *xim;
-	GtkWidget *uim;
-	GtkWidget *iiimf;
 	GtkWidget *frame;
 	GtkWidget *vbox;
 	GtkWidget *hbox;
-	GtkWidget *label;
 	GtkWidget *radio;
 	GSList *group;
+
+	cur_locale = mc_get_str_value("locale");
+
+	get_im_info(cur_locale);
+
+	/*
+	 * XXX: textdomain() are called in libuim with uim's domain name.
+	 * we need to overwrite mlconfig's domain name.
+	 */
+	textdomain("mlconfig");
 
 	value = mc_get_str_value("input_method");
 
@@ -713,24 +472,26 @@ mc_im_config_widget_new(void)
 		im_type = IM_XIM;
 		xim_name = kik_str_sep(&value, ":");
 		xim_locale = kik_str_sep(&value, ":");
-	} else if (strncmp(p, "uim", 3) == 0) {
-		im_type = IM_UIM;
-		uim_engine = value;
-	} else if (strncmp(p, "iiimf", 5) == 0) {
-		im_type = IM_IIIMF;
-		iiimf_lang_id = kik_str_sep(&value, ":");
-		iiimf_le = kik_str_sep(&value, ":");
 	} else if (strncmp(p, "none", 4) == 0) {
 		im_type = IM_NONE;
 	} else {
 		im_type = IM_NONE;
+		for (i = 0; i < num_of_info; i++) {
+			if (strcmp(p, im_info_table[i]->id) == 0) {
+				index = i;
+				im_type = IM_OTHER;
+				break;
+			}
+		}
 	}
 
-	cur_locale = mc_get_str_value("locale");
-
 	xim = xim_widget_new(xim_name, xim_locale, cur_locale);
-	uim = uim_widget_new(uim_engine, cur_locale);
-	iiimf = iiimf_widget_new(iiimf_lang_id, iiimf_le, cur_locale);
+	for (i = 0; i < num_of_info; i++) {
+		if (index == i)
+			im_opt_widget[i] = im_widget_new(i, value, cur_locale);
+		else
+			im_opt_widget[i] = im_widget_new(i, NULL, cur_locale);
+	}
 
 	free(cur_locale);
 
@@ -750,36 +511,24 @@ mc_im_config_widget_new(void)
 	if (im_type == IM_XIM)
 		gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio) , TRUE);
 
-	group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
-	radio = gtk_radio_button_new_with_label(group, "uim");
-	gtk_signal_connect(GTK_OBJECT(radio), "toggled",
-			   GTK_SIGNAL_FUNC(button_uim_checked), uim);
-	gtk_widget_show(GTK_WIDGET(radio));
-	gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
-#ifndef USE_UIM
-	gtk_widget_set_sensitive(radio, 0);
-	gtk_widget_set_sensitive(uim, 0);
-#endif
-	if (im_type == IM_UIM)
-		gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio) , TRUE);
+	for (i = 0; i < num_of_info; i++) {
+		group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
+		radio = gtk_radio_button_new_with_label(group,
+							im_info_table[i]->name);
+		gtk_signal_connect(GTK_OBJECT(radio), "toggled",
+				   GTK_SIGNAL_FUNC(button_im_checked),
+				   im_info_table[i]);
+		gtk_widget_show(GTK_WIDGET(radio));
+		gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
+		if (im_type == IM_OTHER && index == i)
+			gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio) ,
+						    TRUE);
+	}
 
 	group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
-	radio = gtk_radio_button_new_with_label(group, "IIIMF");
+	radio = gtk_radio_button_new_with_label(group, "None");
 	gtk_signal_connect(GTK_OBJECT(radio), "toggled",
-			   GTK_SIGNAL_FUNC(button_iiimf_checked), iiimf);
-	gtk_widget_show(GTK_WIDGET(radio));
-	gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
-#ifndef USE_IIIMF
-	gtk_widget_set_sensitive(radio, 0);
-	gtk_widget_set_sensitive(iiimf, 0);
-#endif
-	if (im_type == IM_IIIMF)
-		gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio) , TRUE);
-
-	group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
-	radio = gtk_radio_button_new_with_label(group, _("None"));
-	gtk_signal_connect(GTK_OBJECT(radio), "toggled",
-			   GTK_SIGNAL_FUNC(button_none_checked), NULL);
+			   GTK_SIGNAL_FUNC(button_im_checked), NULL);
 	gtk_widget_show(GTK_WIDGET(radio));
 	gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
 	if (im_type == IM_NONE)
@@ -791,31 +540,30 @@ mc_im_config_widget_new(void)
 	switch (im_type) {
 	case IM_XIM:
 		gtk_widget_show(xim);
-		gtk_widget_hide(uim);
-		gtk_widget_hide(iiimf);
-		break;
-	case IM_UIM:
-		gtk_widget_hide(xim);
-		gtk_widget_show(uim);
-		gtk_widget_hide(iiimf);
-		break;
-	case IM_IIIMF:
-		gtk_widget_hide(xim);
-		gtk_widget_hide(uim);
-		gtk_widget_show(iiimf);
+		for (i = 0; i < num_of_info; i++)
+			gtk_widget_hide(im_opt_widget[i]);
 		break;
 	case IM_NONE:
 		gtk_widget_hide(xim);
-		gtk_widget_hide(uim);
-		gtk_widget_hide(iiimf);
+		for (i = 0; i < num_of_info; i++)
+			gtk_widget_hide(im_opt_widget[i]);
+		break;
+	case IM_OTHER:
+		gtk_widget_hide(xim);
+		for (i = 0; i < num_of_info; i++) {
+			if (i == index)
+				gtk_widget_show(im_opt_widget[i]);
+			else
+				gtk_widget_hide(im_opt_widget[i]);
+		}
 		break;
 	default:
 		break;
 	}
 
 	gtk_box_pack_start(GTK_BOX(vbox), xim, TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), uim, TRUE, TRUE, 0);
-	gtk_box_pack_start(GTK_BOX(vbox), iiimf, TRUE, TRUE, 0);
+	for (i = 0; i < num_of_info; i++)
+		gtk_box_pack_start(GTK_BOX(vbox), im_opt_widget[i], TRUE, TRUE, 0);
 
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
@@ -845,29 +593,20 @@ mc_update_im(void)
 			sprintf(p, "xim:%s:%s", selected_xim_name, selected_xim_locale);
 		}
 		break;
-	case IM_UIM:
-		if (strcmp(selected_uim_engine, uim_auto_str) == 0) {
-			p = strdup("uim");
-		} else {
-			len = 3 + 1 + strlen(selected_uim_engine) + 1;
-			if(!(p = malloc(sizeof(char) * len))) return;
-			sprintf(p, "uim:%s", selected_uim_engine);
-		}
-		break;
-	case IM_IIIMF:
-		if (strcmp(selected_iiimf_lang, iiimf_auto_str) == 0) {
-			len = 3 + 1 + strlen(original_iiimf_lang) + 1;
-			if(!(p = malloc(sizeof(char) * len))) return;
-			sprintf(p, "iiimf%s", original_iiimf_lang);
-		} else {
-			len = 5 + 1 + strlen(selected_iiimf_lang) + 1;
-			if(!(p = malloc(sizeof(char) * len))) return;
-			sprintf(p, "iiimf:%s", selected_iiimf_lang);
-		}
-		break;
 	case IM_NONE:
 		p = strdup("none");
 		break;
+	case IM_OTHER:
+		if (selected_im == NULL) return;
+		if (selected_im_arg == 0) { /* auto */
+			p = strdup(selected_im->id);
+		} else {
+			len = strlen(selected_im->id) +
+			      strlen(selected_im->args[selected_im_arg]) + 2;
+			if(!(p = malloc(len))) return;
+			sprintf(p, "%s:%s", selected_im->id ,
+				selected_im->args[selected_im_arg]);
+		}
 	default:
 		break;
 	}

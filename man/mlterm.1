@@ -492,6 +492,12 @@ Use IIIMF in Arabic.
 --im=iiimf:ja:CannaLE
 Use IIIMF in Japanese using CannaLE language engine.
 .TP
+--im=m17nlib:ru
+Use m17n library in Russian.
+.TP
+--im=m17nlib:or:itrans
+Use m17n library in Oriya using ITRANS method.
+.TP
 --im=none
 Don't use input method.
 .RE
@@ -540,17 +546,30 @@ You can also input the locale name from your keyboard.
 .PP
 .B uim:
 .TP
-Conversion engine
-Specify the name of the conversion engine to be used.
+Option
+Specify the name of the conversion engine to be used. If you choose auto,
+the conversion engine will be automatically selected according to the current
+locale.
 .PP
 Note this feature needs uim library.
 .PP
 .B IIIMF:
 .TP
-Language (Language engine)
-Specify the language id (RFC1766) and the language engine to be used.
+Option
+Specify the language id (RFC1766) and the language engine to be used. If you
+choose auto, the language id/engine will be automatically selected according
+to the current locale.
 .PP
 Note this feature needs IIIMCF library.
+.PP
+.B m17n library:
+.TP
+Option
+Specify the language and the input method to be used. If you choose auto, the
+language and input method will be automatically selected according to the
+current locale.
+.PP
+Note this feature needs m17n library and m17n-db.
 .RE
 .TP
 Bidi (UTF-8 only)

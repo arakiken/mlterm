@@ -56,3 +56,29 @@ kik_dl_func_symbol(
 	return  dlsym( handle , symbol) ;
 }
 
+int
+kik_dl_is_module(
+	char * name
+	)
+{
+	size_t  len ;
+
+	if ( ! name)
+	{
+		return  0 ;
+	}
+
+	if( ( len = strlen( name)) < 3)
+	{
+		return  0 ;
+	}
+
+	if( strcmp( &name[len - 3] , ".so") == 0 ||
+	    strcmp( &name[len - 3] , ".sl") == 0)
+	{
+		return  1 ;
+	}
+
+	return  0 ;
+}
+

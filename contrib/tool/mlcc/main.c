@@ -296,8 +296,7 @@ int init_data(config_data_t *data){
 
 	section = section_add(data, "Encoding");
 	entry_string_add(section, "Encoding" , "encoding");
-	entry_string_add(section, "X Input Method", "xim");
-	entry_string_add(section, "XIM locale", "locale");
+	entry_string_add(section, "Input Method", "input_method");
 	entry_bool_add(section, "Bidi", "use_bidi");
 	entry_bool_add(section, "Combining", "use_combining");
 	entry_bool_add(section, "Process via unicode", "copy_paste_via_ucs");

@@ -42,3 +42,11 @@ kik_dl_func_symbol(
 	return  NULL ;
 }
 
+int
+kik_dl_is_module(
+	char * name
+	)
+{
+	return  0 ;
+}
+

@@ -144,7 +144,14 @@ draw_screen(
 		      cand_screen->index ,
 		      top , last) ;
 
-	NUM_OF_DIGITS( num_of_digits , last - top + 1) ;
+	if( cand_screen->num_of_candidates > cand_screen->num_per_window)
+	{
+		NUM_OF_DIGITS( num_of_digits , cand_screen->num_per_window) ;
+	}
+	else
+	{
+		NUM_OF_DIGITS( num_of_digits , last) ;
+	}
 
 	/*
 	 * resize window
@@ -264,7 +271,7 @@ draw_screen(
 				   xfont->width * (num_of_digits + 1) ,
 				   (xfont->height + LINE_SPACE) * (i - top) ,
 				   xfont->height + LINE_SPACE ,
-				    xfont->height_to_baseline + LINE_SPACE / 2 ,
+				   xfont->height_to_baseline + LINE_SPACE / 2 ,
 				   LINE_SPACE / 2 ,
 				   LINE_SPACE / 2 + LINE_SPACE % 2) ;
 	}
@@ -340,7 +347,6 @@ adjust_window_position(
 	int *  y
 	)
 {
-	u_int  dw ;
 	u_int  dh ;
 	u_int  top ;
 	u_int  last ;
@@ -351,7 +357,14 @@ adjust_window_position(
 		       cand_screen->index ,
 		       top , last) ;
 
-	NUM_OF_DIGITS( num_of_digits , last - top + 1) ;
+	if( cand_screen->num_of_candidates > cand_screen->num_per_window)
+	{
+		NUM_OF_DIGITS( num_of_digits , cand_screen->num_per_window) ;
+	}
+	else
+	{
+		NUM_OF_DIGITS( num_of_digits , last) ;
+	}
 
 	if( cand_screen->is_vertical)
 	{
@@ -605,10 +618,6 @@ select_candidate(
 	)
 {
 	x_im_candidate_t *  cand ;
-	u_int  top ;
-	u_int  last ;
-	int  num_of_digits ;
-	int  prev_num_of_digits ;
 	int  i ;
 
 	if( index >= cand_screen->num_of_candidates)
@@ -640,31 +649,6 @@ select_candidate(
 			ml_char_set_fg_color( &cand->chars[i] , ML_BG_COLOR) ;
 			ml_char_set_bg_color( &cand->chars[i] , ML_FG_COLOR) ;
 		}
-	}
-
-	VISIBLE_INDEX( cand_screen->num_of_candidates ,
-		       cand_screen->num_per_window ,
-		       cand_screen->index ,
-		       top , last) ;
-
-	NUM_OF_DIGITS( prev_num_of_digits , last - top + 1) ;
-
-	VISIBLE_INDEX( cand_screen->num_of_candidates ,
-		       cand_screen->num_per_window ,
-		       index , top , last) ;
-
-	NUM_OF_DIGITS( num_of_digits , last - top + 1) ;
-
-	if( ! cand_screen->is_vertical && prev_num_of_digits != num_of_digits)
-	{
-		int  diff ;
-
-		diff = x_get_usascii_font( cand_screen->font_man)->width *
-		       ( num_of_digits - prev_num_of_digits) ;
-
-		x_window_move( &cand_screen->window ,
-			       cand_screen->window.x - diff ,
-			       cand_screen->window.y) ;
 	}
 
 	cand_screen->index = index ;

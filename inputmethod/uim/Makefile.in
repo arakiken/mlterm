@@ -20,6 +20,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @X_CFLAGS@			\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
+	 @IM_CFLAGS@			\
 	 @UIM_CFLAGS@			\
 	 -I$(top_srcdir)/mlterm		\
 	 -I${top_builddir}/xwindow	\

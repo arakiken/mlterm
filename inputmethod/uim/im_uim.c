@@ -35,24 +35,27 @@
 #include  <uim-helper.h>
 
 #include  <X11/keysym.h>	/* XK_xxx */
-#include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep kik_snprintf */
+#include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep kik_snprintf*/
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
+#include  <kiklib/kik_list.h>
 #include  <signal.h>
 
 #include  <x_im.h>
 #include  "../im_common.h"
+#include  "../im_info.h"
 
 #if  0
 #define IM_UIM_DEBUG 1
 #endif
 
-#if  1	/* XXX: should be removed? */
-#define IM_UIM_COMPAT_0_3_8 1
+#ifndef  UIM_0_4_4_OR_LATER
+#define  IM_UIM_COMPAT_0_3_8 1
 /* see http://www.freedesktop.org/pipermail/uim/2004-June/000383.html */
 #endif
 
+
 /*
- * When uim encoding is same as term, parser_uim and conv are NULL,
+ * When uim encoding is the same as terminal, parser_uim and conv are NULL,
  * so recived string encoding will not be converted.
  */
 #define  NEED_TO_CONV(uim)  ((uim)->parser_uim && (uim)->conv)
@@ -63,6 +66,8 @@ typedef struct im_uim
 	x_im_t  im ;
 
 	uim_context  context ;
+
+	ml_char_encoding_t  term_encoding ;
 
 	/* native encoding of conversion engine */
 	char *  encoding_name ;
@@ -75,8 +80,12 @@ typedef struct im_uim
 
 }  im_uim_t ;
 
+KIK_LIST_TYPEDEF( im_uim_t) ;
+
 
 /* --- static variables --- */
+
+static KIK_LIST( im_uim_t)  uim_list = NULL ;
 
 static int  ref_count = 0 ;
 static int  initialized = 0 ;
@@ -890,7 +899,7 @@ candidate_deactivate(
  * methods of x_im_t
  */
 
-static void
+static int
 delete(
 	x_im_t *  im
 	)
@@ -934,6 +943,8 @@ delete(
 	kik_debug_printf( KIK_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count) ;
 #endif
 
+	kik_list_search_and_remove( im_uim_t , uim_list , uim) ;
+
 	free( uim) ;
 
 	if( ref_count == 0 && initialized)
@@ -942,10 +953,24 @@ delete(
 		(*mlterm_syms->x_term_manager_remove_fd)( helper_fd) ;
 		helper_fd = -1 ;
 
+	#ifndef  USE_M17NLIB /* FIXME */
 		uim_quit() ;
+	#endif
+
+		if( ! kik_list_is_empty( uim_list))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " uim list is not empty.\n") ;
+		#endif
+		}
+
+		kik_list_delete( im_uim_t , uim_list) ;
+		uim_list = NULL ;
 
 		initialized = 0 ;
 	}
+
+	return  ref_count ;
 }
 
 static int
@@ -1027,6 +1052,175 @@ unfocused(
 	}
 }
 
+
+/*
+ * helper
+ */
+
+static void
+helper_send_imlist(
+	im_uim_t *  last_focused_uim
+	)
+{
+#ifdef  UIM_0_4_4_OR_LATER
+	im_uim_t *  uim ;
+	const char *  selected_name ;
+	const char *  name ;
+	const char *  lang ;
+	const char *  dsc ;
+	char *  buf = NULL ;
+	int  i ;
+	u_int  len = 0 ;
+	u_int  filled_len = 0 ;
+
+	if( last_focused_uim)
+	{
+		uim = last_focused_uim ;
+	}
+	else
+	{
+		KIK_ITERATOR( im_uim_t)  iterator = NULL ;
+
+		if( uim_list == NULL)
+		{
+			return ;
+		}
+
+		if( ! (iterator = kik_list_first( uim_list)))
+		{
+			uim = kik_iterator_indirect( iterator) ;
+		}
+	}
+
+#define  HEADER_FORMAT  "im_list\ncharset=%s\n"
+
+	len += strlen( HEADER_FORMAT) + strlen( uim->encoding_name) ;
+
+	selected_name = uim_get_current_im_name( uim->context) ;
+	len += strlen( selected_name) ;
+	len += strlen( "selected") ;
+
+	for( i = 0 ; i < uim_get_nr_im( uim->context) ; i++)
+	{
+		name = uim_get_im_name( uim->context , i) ;
+		lang = uim_get_im_language( uim->context , i) ;
+		dsc = uim_get_im_short_desc( uim->context , i) ;
+
+		len += name ? strlen( name) : 0 ;
+		len += lang ? strlen( lang) : 0 ;
+		len += dsc ? strlen( dsc) : 0 ;
+		len += strlen( "\t\t\t\n") ;
+	}
+
+	len++ ;
+
+	if( ! (buf = alloca( sizeof(char) * len )))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " alloca failed\n") ;
+	#endif
+		return ;
+	}
+
+	filled_len = kik_snprintf( buf , len ,
+				   HEADER_FORMAT , uim->encoding_name) ;
+
+#undef  HEADER_FORMAT
+
+	for( i = 0 ; i < uim_get_nr_im( uim->context) ; i++)
+	{
+		name = uim_get_im_name( uim->context , i) ;
+		lang = uim_get_im_language( uim->context , i) ;
+		dsc = uim_get_im_short_desc( uim->context , i) ;
+
+		filled_len += kik_snprintf( &buf[filled_len] ,
+					    len - filled_len ,
+					    "%s\t%s\t%s\t%s\n" ,
+					    name ? name : "" ,
+					    lang ? lang : "" ,
+					    dsc ? dsc : "" ,
+					    strcmp( name , selected_name) == 0 ?
+							"selected" : "") ;
+	}
+
+#ifdef  IM_UIM_DEBUG
+	kik_debug_printf( "----\n%s----\n" , buf) ;
+#endif
+
+	uim_helper_send_message( helper_fd , buf) ;
+
+#endif
+}
+
+x_im_t * im_new( u_int64_t , ml_char_encoding_t , x_im_export_syms_t * , char *) ;
+
+static void
+helper_im_changed(
+	im_uim_t *  last_focused_uim ,
+	char *  request ,
+	char *  engine_name
+	)
+{
+#ifdef  UIM_0_4_4_OR_LATER
+	char *  buf ;
+	size_t  len ;
+
+	len = strlen(engine_name) + 5 ;
+
+	if( ! ( buf = alloca( len)))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " alloca failed\n");
+	#endif
+		return ;
+	}
+
+	kik_snprintf( buf , len , "uim:%s" , engine_name) ;
+
+	/*
+	 * we don't use uim_change_input_method_engine(), since it cannot
+	 * specify encoding.
+	 */
+
+	if( strcmp( request , "im_change_this_text_area_only") == 0)
+	{
+		if( last_focused_uim)
+		{
+			(*last_focused_uim->im.listener->im_changed)(
+					last_focused_uim->im.listener->self ,
+					buf) ;
+		}
+	}
+	else if( strcmp( request , "im_change_whole_desktop") == 0 ||
+		 strcmp( request , "im_change_this_application_only") == 0)
+	{
+		im_uim_t *  uim ;
+		KIK_ITERATOR( im_uim_t)  iterator = NULL ;
+
+		iterator = kik_list_first( uim_list) ;
+		while( iterator)
+		{
+			if( kik_iterator_indirect( iterator) == NULL)
+			{
+				kik_error_printf(
+					"iterator found, but it has no logs. "
+					"don't you cross over memory "
+					"boundaries anywhere?\n") ;
+			}
+			else
+			{
+				uim = kik_iterator_indirect( iterator) ;
+				(*uim->im.listener->im_changed)(
+						uim->im.listener->self , buf) ;
+			}
+
+			iterator = kik_iterator_next( iterator) ;
+		}
+	}
+
+#endif
+}
+
 static void
 helper_read_handler( void)
 {
@@ -1040,7 +1234,7 @@ helper_read_handler( void)
 		char *  second_line ;
 
 	#ifdef  IM_UIM_DEBUG
-		kik_debug_printf("message recieved from helper: %s\n" , first_line);
+		kik_debug_printf( "message recieved from helper: %s\n" , message);
 	#endif
 
 		if( ( first_line = kik_str_sep( &message , "\n")))
@@ -1054,6 +1248,24 @@ helper_read_handler( void)
 					uim_prop_activate(
 						last_focused_uim->context ,
 						second_line) ;
+				}
+			}
+			else if( strcmp( first_line , "im_list_get") == 0)
+			{
+				if( last_focused_uim)
+				{
+					helper_send_imlist( last_focused_uim) ;
+				}
+			}
+			else if( strncmp( first_line , "im_change_" , 10) == 0)
+			{
+				second_line = kik_str_sep( &message , "\n") ;
+
+				if( second_line && last_focused_uim)
+				{
+					helper_im_changed( last_focused_uim ,
+							   first_line ,
+							   second_line) ;
 				}
 			}
 		}
@@ -1089,8 +1301,14 @@ im_new(
 
 	if( ! initialized)
 	{
+	#if  0
+		/*
+		 * Workaround for incorrect calling of setlocale() in
+		 * uim(intl.c). This problem was fixed at r1368.
+		 */
 		char *  cur_locale ;
 		cur_locale = kik_str_alloca_dup( kik_get_locale()) ;
+	#endif
 
 		if( uim_init() == -1)
 		{
@@ -1101,10 +1319,14 @@ im_new(
 			return  NULL ;
 		}
 
+	#if  0
 		/* restoring */
 		kik_locale_init( cur_locale) ;
+	#endif
 
 		mlterm_syms = export_syms ;
+
+		kik_list_new( im_uim_t , uim_list) ;
 
 		initialized = 1 ;
 	}
@@ -1130,8 +1352,8 @@ im_new(
 
 	if( engine == NULL)
 	{
-	#ifdef UIM_CAN_GET_DEFAULT_IM
-		engine = (char*)uim_get_default_im_name(kik_get_locale()) ;
+	#ifdef  UIM_0_4_4_OR_LATER
+		engine = (char*)uim_get_default_im_name( kik_get_locale()) ;
 	#else
 		engine = "default" ;
 	#endif
@@ -1162,13 +1384,14 @@ im_new(
 		goto  error ;
 	}
 
+	uim->term_encoding = term_encoding ;
 	uim->encoding_name = encoding_name ;
 	uim->engine_name = strdup( engine) ;
 	uim->parser_uim = NULL ;
 	uim->parser_term = NULL ;
 	uim->conv = NULL ;
 
-	if( term_encoding != encoding)
+	if( uim->term_encoding != encoding)
 	{
 		if( ! ( uim->parser_uim = (*mlterm_syms->ml_parser_new)( encoding)))
 		{
@@ -1235,10 +1458,12 @@ im_new(
 	uim->im.focused = focused ;
 	uim->im.unfocused = unfocused ;
 
+	kik_list_insert_head( im_uim_t , uim_list , uim) ;
+
 	ref_count++;
 
 #ifdef  IM_UIM_DEBUG
-	kik_debug_printf("New object was created. ref_count is %d.\n", ref_count);
+	kik_debug_printf("New object was created. ref_count is %d.\n", ref_count) ;
 #endif
 
 	return  (x_im_t*) uim ;
@@ -1255,7 +1480,9 @@ error:
 
 	if( initialized && ref_count == 0)
 	{
+	#ifndef  USE_M17NLIB
 		uim_quit() ;
+	#endif
 
 		initialized = 0 ;
 	}
@@ -1283,6 +1510,104 @@ error:
 		}
 
 		free( uim) ;
+	}
+
+	return  NULL ;
+}
+
+
+/* --- API for external tools --- */
+
+im_info_t *
+im_get_info( char *  locale)
+{
+	im_info_t *  result ;
+	uim_context  u ;
+	int  i ;
+
+	if( uim_init() == -1)
+	{
+	#ifdef  debug
+		kik_warn_printf( kik_debug_tag " failed to initialize uim.") ;
+	#endif
+
+		return  NULL ;
+	}
+
+	if( ! ( u = uim_create_context( NULL , "UTF-8" , NULL , NULL ,
+					NULL , NULL)))
+	{
+		goto  error ;
+	}
+
+	if( ! ( result = malloc( sizeof( im_info_t))))
+	{
+		goto  error ;
+	}
+
+	result->id = strdup( "uim") ;
+	result->name = strdup( "uim") ;
+	result->num_of_args = uim_get_nr_im( u) + 1;
+	if( ! ( result->args = malloc( sizeof(char*) * result->num_of_args)))
+	{
+		goto  error ;
+	}
+
+	if( ! ( result->readable_args = malloc( sizeof(char*) * result->num_of_args)))
+	{
+		free( result->args) ;
+		goto  error ;
+	}
+
+	result->args[0] = strdup( "") ;
+#ifdef  UIM_0_4_4_OR_LATER
+	result->readable_args[0] = strdup( uim_get_default_im_name( locale)) ;
+#else
+	result->readable_args[0] = strdup( "default") ;
+#endif
+
+	for( i = 1 ; i < result->num_of_args; i++)
+	{
+		const char *  im_name ;
+		const char *  lang_id ;
+		size_t  len ;
+
+		im_name = uim_get_im_name( u , i - 1) ;
+		lang_id = uim_get_im_language( u , i - 1) ;
+
+		result->args[i] = strdup( im_name) ;
+
+		len = strlen( im_name) + strlen( lang_id) + 4 ;
+
+		if( ( result->readable_args[i] = malloc(len)))
+		{
+			kik_snprintf( result->readable_args[i] , len ,
+				      "%s (%s)" , im_name , lang_id) ;
+		}
+		else
+		{
+			result->readable_args[i] = strdup( "error") ;
+		}
+	}
+
+	uim_release_context( u) ;
+
+	uim_quit() ;
+
+	return  result ;
+
+error:
+
+	if( u)
+	{
+		uim_release_context( u) ;
+	}
+
+	uim_quit() ;
+
+	if( result)
+	{
+		free( result) ;
 	}
 
 	return  NULL ;

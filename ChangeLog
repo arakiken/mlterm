@@ -1,3 +1,108 @@
+2004-10-06 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* configure.in:
+	  - removed test for uim_get_im_short_desc().
+	  - -DUIM_CAN_GET_DEFAULT_IM -> -DUIM_0_4_4_OR_LATER
+	  - defined USE_UIM, USE_IIIMF and USE_M17NLIB in IM_CFLAGS.
+	  - --enable-m17nlib.
+	  - added /usr/lib/im/ to the library search paths for libiiimcf.
+	  - minor cleanups.
+
+	m17n library support:
+	* inputmethod/m17nlib/Makefile.in: new file.
+	* inputmethod/m17nlib/im_m17nlib.c: new file.
+
+	* inputmethod/uim/Makefile.in, inputmethod/iiimf/Makefile.in: added
+	  IM_CFLAGS into CFLAGS.
+
+	* inputmethod/iiimf/im_iiimf.c:
+	  - fixed a segfault when moving the cursor in pre-editing.
+	  - minor cleanups.
+
+	* inputmethod/iiimf/im_iiimf.c (status_start, status_change,
+	  status_done): new functions to handle status events.
+
+	* inputmethod/iiimf/im_iiimf.c (dispatch): removed
+	  IIIMCF_EVENT_TYPE_AUX_GETVALUES to avoid compilation error on FC2.
+
+	* inputmethod/iiimf/im_iiimf.c (delete):
+	  - return reference count.
+	  - added finalization for status window.
+	
+	* inputmethod/iiimf/im_iiimf.c (im_get_info): new function to provide
+	  information of IM plugins to external tools.
+
+	* inputmethod/im_info.h: new file used for im_get_info() API.
+
+	* inputmethod/uim/im_uim.c:
+	  - disabled IM_UIM_COMPAT_0_3_8 under uim-0.4.4 or later.
+	  - added uim_list to manage all im_uim_t objects.
+	  - minor cleanups.
+	  - hold terminal encoding name in im_uim_t.
+	  - fixed an invalid memery read detected by valgrind.
+
+	* inputmethod/uim/im_uim.c (delete):
+	  - return reference count.
+	  - removed im_uim_t from uim_list.
+	  - don't call uim_quit(), when m17nlib is enabled.
+
+	* inputmethod/uim/im_uim.c (helper_send_imlist, helper_im_changed):
+	  new functions to handle "im_*" messages from helper.
+
+	* inputmethod/uim/im_uim.c (im_new): inserted newly-created im_uim_t
+	  object into uim_list.
+
+	* inputmethod/uim/im_uim.c (im_get_info): new function to provide
+	  information of IM plugins to external tools.
+
+	* kiklib/src/Makefile.in: increased MAJOR version. (9->10)
+
+	* kik_dlfcn.h, kik_dlfcn_dl.c, kik_dlfcn_dld.c, kik_dlfcn_dyld.c,
+	  kik_dlfcn_ltdl.c, kik_dlfcn_none.c, kik_dlfcn_win32.c
+	  (kik_dl_is_module): new functions to check if a file name has
+	  module suffix such as ".so", ".sl" and ".dll".
+
+	* man/mlterm.1: updated --im option.
+
+	* tool/mlconfig/Makefile.in:
+	  - added LIBDIR for loading module.
+	  - removed @UIM_LIBS@ and @IIIMF_LIBS@. now mlconfig is not linked to
+	    libuim and libiiimcf.
+
+	* tool/mlconfig/mc_im.c:
+	  - added IM_OTHER intended to unify functions for pluggable IMs.
+	  - get IM specific information from plugins.
+
+	* tool/mlconfig/mc_im.c (is_im_plugin, get_im_info): new functions.
+
+	* tool/mlconfig/mc_im.c (uim_selected, uim_widget_new, iiimf_set_item,
+	  iiimf_selected, iiimf_best_match_index, iiimf_widget_new,
+	  button_uim_checked, button_iiimf_checked, button_none_checked):
+	  - removed. (unified to below functions)
+
+	* tool/mlconfig/mc_im.c (im_selected, im_widget_new,
+	  button_im_checked): new functions for pluggable IMs.
+
+	* x_im.h:
+	  - added ml_get_char_encoding_name and x_im_status_screen_new
+	    into x_im_export_syms_t.
+	  - added im_changed callback into x_im_event_listener_t.
+	  - increased IM_API_VERSION.
+
+	* x_im.c (dlsym_im_new_func): return module handle.
+
+	* x_im.c (x_im_delete): new function to be used for deleting IM objects
+	  and unloading modules.
+
+	* x_im_candidate_screen.c: minor cleanups.
+
+	* x_im_status_screen.c, x_im_status_screen.h: new files for status
+	window of input methods.
+
+	* x_screen.c (im_changed): new function for im-switcher.
+
+	* xwindow/Makeile: added x_im_status_screen.o.
+
 2004-09-26 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* tool/mlconfig/mc_im.c: fixed a minor bug.

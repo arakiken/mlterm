@@ -8,9 +8,9 @@ DESTDIR =
 PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
-VPATH = ${top_srcdir}/inputmethod/iiim
+VPATH = ${top_srcdir}/inputmethod/m17nlib
 
-IM_IIIMF_OBJ = im_iiimf.o
+IM_M17NLIB_OBJ = im_m17nlib.o
 
 CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @AA_CFLAGS@ 			\
@@ -21,7 +21,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
 	 @IM_CFLAGS@			\
-	 @IIIMF_CFLAGS@			\
+	 @M17NLIB_CFLAGS@		\
 	 -I$(top_srcdir)/mlterm		\
 	 -I${top_builddir}/xwindow	\
 	 -I/usr/local/include
@@ -36,12 +36,13 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 .SUFFIXES: .o .c
 
-all: im-iiimf
+all: im-m17nlib
 
-im-iiimf: $(IM_IIIMF_OBJ)
-	$(LIBTOOL_LINK) -o libim-iiimf.la $(IM_IIIMF_OBJ:.o=.lo)	\
-	-rpath $(LIBDIR) -module -avoid-version @NO_UNDEFINED_FLAG@	\
-	$(LIBS_LOCAL) @KIK_LIBS@ @MKF_LIBS@ @IIIMF_LIBS@
+im-m17nlib: $(IM_M17NLIB_OBJ)
+	$(LIBTOOL_LINK) -o libim-m17nlib.la $(IM_M17NLIB_OBJ:.o=.lo) -rpath $(LIBDIR) \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ \
+	$(LIBS_LOCAL) @KIK_LIBS@ @M17NLIB_LIBS@ \
+	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 
 .c.o:
 	$(LIBTOOL_CC) -c $<
@@ -50,10 +51,10 @@ $(LIBDIR):
 	mkdir -p $(LIBDIR)
 
 install: $(LIBDIR)
-	$(LIBTOOL_INSTALL) libim-iiimf.la $(LIBDIR)
+	$(LIBTOOL_INSTALL) libim-m17nlib.la $(LIBDIR)
 
 clean:
-	rm -rf $(IM_IIIMF_OBJ) $(IM_IIIMF_OBJ:.o=.lo) libim-iiimf.la *.core .libs
+	rm -rf $(IM_M17NLIB_OBJ) $(IM_M17NLIB_OBJ:.o=.lo) libim-m17nlib.la *.core .libs
 
 distclean: clean
 	rm -f Makefile

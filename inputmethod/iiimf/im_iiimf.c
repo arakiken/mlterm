@@ -39,10 +39,12 @@
 #include  <kiklib/kik_locale.h>	/* kik_get_lang */
 #include  <kiklib/kik_debug.h>
 #include  <mkf/mkf_utf16_parser.h>
+#include  <mkf/mkf_iso8859_conv.h>
 
 #include  <x_im.h>
 #include  "im_iiimf_keymap.h"
 #include  "../im_common.h"
+#include  "../im_info.h"
 
 #if  0
 #define  IM_IIIMF_DEBUG 1
@@ -54,7 +56,7 @@
 
 /*
  * taken from Minami-san's hack in x_dnd.c
- * Note: The byte order is same as client.
+ * Note: The byte order is the same as client.
  *       (see lib/iiimp/data/im-connect.c:iiimp_connect_new())
  */
 #define PARSER_INIT_WITH_BOM(parser)				\
@@ -235,20 +237,14 @@ find_language_engine(
 			{
 				size_t  len ;
 				u_int  filled_len ;
-				u_char  buf[256] ;
+				u_char *  str ;
 
-				len = strlen_utf16( id) ;
 				PARSER_INIT_WITH_BOM( parser_utf16) ;
-				(*parser_utf16->set_str)( parser_utf16 ,
-							  (u_char*) id ,
-							  len) ;
-				filled_len = (*conv->convert)( conv ,
-							       buf ,
-							       sizeof(buf) - 1 ,
-							       parser_utf16) ;
-				buf[filled_len] = '\0' ;
+				im_convert_encoding( parser_utf16 , conv ,
+						     (u_char*) id , &str ,
+						     strlen_utf16( id)) ;
 
-				if( strncmp( le_name , buf , filled_len) == 0)
+				if( strcmp( le_name , str) == 0)
 				{
 				#ifdef  IM_IIIMF_DEBUG
 					kik_debug_printf( KIK_DEBUG_TAG " found le [%s].\n", le_name) ;
@@ -256,6 +252,8 @@ find_language_engine(
 
 					result = array[i] ;
 				}
+
+				free(str);
 			}
 		}
 	}
@@ -333,7 +331,7 @@ commit(
 	if( iiimcf_get_committed_text( iiimf->context , &iiimcf_text) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not get committed text\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Cound not get committed text.\n") ;
 	#endif
 		return ;
 	}
@@ -341,7 +339,7 @@ commit(
 	if( iiimcf_get_text_utf16string( iiimcf_text , &utf16str) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not get utf16 string\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Cound not get utf16 string.\n") ;
 	#endif
 		return ;
 	}
@@ -447,6 +445,8 @@ preedit_change(
 			iiimf->im.preedit.chars = NULL ;
 			iiimf->im.preedit.num_of_chars = 0 ;
 			iiimf->im.preedit.filled_len = 0 ;
+			iiimf->im.preedit.segment_offset = 0 ;
+			iiimf->im.preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
 		}
 
 		return  ;
@@ -481,6 +481,8 @@ preedit_change(
 		iiimf->im.preedit.chars = NULL ;
 		iiimf->im.preedit.num_of_chars = 0 ;
 		iiimf->im.preedit.filled_len = 0 ;
+		iiimf->im.preedit.segment_offset = 0 ;
+		iiimf->im.preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
 	}
 
 	if( ! ( iiimf->im.preedit.chars = malloc( sizeof(ml_char_t) * count)))
@@ -658,6 +660,8 @@ preedit_done(
 		iiimf->im.preedit.chars = NULL ;
 		iiimf->im.preedit.num_of_chars = 0 ;
 		iiimf->im.preedit.filled_len = 0 ;
+		iiimf->im.preedit.segment_offset = 0 ;
+		iiimf->im.preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
 	}
 
 	(*iiimf->im.listener->draw_preedit_str)(
@@ -1075,6 +1079,95 @@ aux_dump(
 }
 
 static void
+status_start(
+	im_iiimf_t *  iiimf
+	)
+{
+}
+
+static void
+status_change(
+	im_iiimf_t *  iiimf
+	)
+{
+	IIIMCF_text  iiimcf_text ;
+	const IIIMP_card16  *utf16str ;
+	u_char *  str ;
+	int  x ;
+	int  y ;
+
+#ifdef  IM_IIIMF_DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG "\n");
+#endif
+
+	if( iiimcf_get_status_text( iiimf->context , &iiimcf_text) != IIIMF_STATUS_SUCCESS)
+	{
+		if( iiimf->im.stat_screen)
+		{
+			(*iiimf->im.stat_screen->delete)( iiimf->im.stat_screen) ;
+			iiimf->im.stat_screen = NULL ;
+		}
+
+		return ;
+	}
+
+	(*iiimf->im.listener->get_spot)( iiimf->im.listener->self ,
+					 iiimf->im.preedit.chars ,
+					 iiimf->im.preedit.segment_offset ,
+					 &x , &y) ;
+
+	if( iiimf->im.stat_screen == NULL)
+	{
+		if( ! ( iiimf->im.stat_screen = (*mlterm_syms->x_im_status_screen_new)(
+
+				(*iiimf->im.listener->get_win_man)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->get_color_man)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->is_vertical)(iiimf->im.listener->self) ,
+				x , y)))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " x_im_satus_screen_new() failed.\n") ;
+		#endif
+			
+			return ;
+		}
+	}
+
+	if( iiimcf_get_text_utf16string( iiimcf_text , &utf16str) != IIIMF_STATUS_SUCCESS)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " Cound not get utf16 string.\n") ;
+	#endif
+		return ;
+	}
+
+	PARSER_INIT_WITH_BOM( parser_utf16) ;
+	if( im_convert_encoding( parser_utf16 , iiimf->conv ,
+				 (u_char*)utf16str , &str ,
+				 strlen_utf16( utf16str)))
+	{
+		(*iiimf->im.stat_screen->set)( iiimf->im.stat_screen ,
+					       iiimf->parser_term ,
+					       str) ;
+		free( str) ;
+	}
+}
+
+static void
+status_done(
+	im_iiimf_t *  iiimf
+	)
+{
+	if( iiimf->im.stat_screen)
+	{
+		(*iiimf->im.stat_screen->delete)( iiimf->im.stat_screen) ;
+		iiimf->im.stat_screen = NULL ;
+	}
+}
+
+
+static void
 dispatch(
 	im_iiimf_t *  iiimf ,
 	IIIMCF_event  event ,
@@ -1115,10 +1208,14 @@ dispatch(
 		lookup_choice_done( iiimf) ;
 		break ;
 	case IIIMCF_EVENT_TYPE_UI_STATUS_START:
+		status_start( iiimf) ;
+		break ;
 	case IIIMCF_EVENT_TYPE_UI_STATUS_CHANGE:
+		status_change( iiimf) ;
+		break ;
 	case IIIMCF_EVENT_TYPE_UI_STATUS_DONE:
-		/* not implemented yet */
-		break;
+		status_done( iiimf) ;
+		break ;
 	case IIIMCF_EVENT_TYPE_UI_COMMIT:
 		commit( iiimf);
 		break;
@@ -1131,17 +1228,17 @@ dispatch(
 		atokx_lookup( iiimf , event) ;
 	#endif
 		break;
-#if 0   /* XXX: Fedora Core 2 */
 	case IIIMCF_EVENT_TYPE_AUX_SETVALUES:
 		aux_dump( "setvalues" , iiimf, event);
 		break ;
-#endif
 	case IIIMCF_EVENT_TYPE_AUX_DONE:
 		aux_dump( "done" , iiimf, event);
 		break;
+#if 0   /* XXX: Fedora Core 2 */
 	case IIIMCF_EVENT_TYPE_AUX_GETVALUES:
 		aux_dump( "getvalues" , iiimf, event);
 		break;
+#endif
 	default:
 		break ;
 	}
@@ -1152,7 +1249,7 @@ dispatch(
  * methods of x_im_t
  */
 
-static void
+static int
 delete(
 	x_im_t *  im
 	)
@@ -1174,6 +1271,11 @@ delete(
 	if( iiimf->im.cand_screen)
 	{
 		(*iiimf->im.cand_screen->delete)( iiimf->im.cand_screen) ;
+	}
+
+	if( iiimf->im.stat_screen)
+	{
+		(*iiimf->im.stat_screen->delete)( iiimf->im.stat_screen) ;
 	}
 
 	if( iiimf->context)
@@ -1199,6 +1301,8 @@ delete(
 
 		initialized = 0 ;
 	}
+
+	return  ref_count ;
 }
 
 static int
@@ -1568,6 +1672,237 @@ error:
 		}
 
 		free( iiimf) ;
+	}
+
+	return  NULL ;
+}
+
+
+/* --- API for external tools --- */
+
+im_info_t *
+im_get_info( char *  locale)
+{
+	im_info_t *  result = NULL ;
+	IIIMCF_input_method *  input_methods ;
+	IIIMCF_language *  langs ;
+	mkf_conv_t *  conv = NULL ;
+	int  num_of_ims ;
+	int  num_of_langs ;
+	int  total = 0 ;
+	int  idx ;
+	int  auto_idx = 0 ;
+	int  i ;
+	int  j ;
+
+	if( iiimcf_initialize(IIIMCF_ATTR_NULL) != IIIMF_STATUS_SUCCESS)
+	{
+		return  NULL ;
+	}
+
+	if ( iiimcf_create_handle( IIIMCF_ATTR_NULL,
+				   &handle) != IIIMF_STATUS_SUCCESS)
+	{
+		iiimcf_finalize() ;
+		return  NULL ;
+	}
+
+	if( iiimcf_get_supported_input_methods(
+				handle,
+				&num_of_ims,
+				&input_methods) != IIIMF_STATUS_SUCCESS)
+	{
+		goto  error ;
+	}
+
+	/* XXX: workaround for atokx's htt */
+	if ( num_of_ims == 0)
+	{
+		goto  error;
+	}
+
+	for( i = 0 ; i < num_of_ims ; i++)
+	{
+		if( iiimcf_get_input_method_languages(
+					input_methods[i] ,
+					&num_of_langs ,
+					&langs) != IIIMF_STATUS_SUCCESS)
+		{
+			goto  error ;
+		}
+
+		total += num_of_langs ;
+	}
+
+	if( ! ( parser_utf16 = mkf_utf16_parser_new()))
+	{
+		goto  error ;
+	}
+
+	if( ! ( conv = mkf_iso8859_1_conv_new()))
+	{
+		goto  error ;
+	}
+
+	if( ! ( result = malloc( sizeof( im_info_t))))
+	{
+		goto  error ;
+	}
+
+	result->id = strdup( "iiimf") ;
+	result->name = strdup( "IIIMF") ;
+	result->num_of_args = total + 1;
+	result->args = NULL ;
+	result->readable_args = NULL ;
+
+	if( ! ( result->args = malloc( sizeof(char*) * result->num_of_args)))
+	{
+		goto  error ;
+	}
+
+	if( ! ( result->readable_args = malloc( sizeof(char*) * result->num_of_args)))
+	{
+		goto  error ;
+	}
+
+	idx = 1 ;
+
+	for( i = 0 ; i < num_of_ims ; i++)
+	{
+		const  IIIMP_card16 *  im_id ;
+		const  IIIMP_card16 *  im_hrn ;
+		const  IIIMP_card16 *  im_domain ;
+		char *  im ;
+
+		if( iiimcf_get_input_method_desc(
+					input_methods[i],
+					&im_id,
+					&im_hrn,
+					&im_domain) != IIIMF_STATUS_SUCCESS)
+		{
+			continue ;
+		}
+
+		if( iiimcf_get_input_method_languages(
+					input_methods[i] ,
+					&num_of_langs ,
+					&langs) != IIIMF_STATUS_SUCCESS)
+		{
+			continue ;
+		}
+
+		PARSER_INIT_WITH_BOM( parser_utf16) ;
+		im_convert_encoding( parser_utf16 , conv , (u_char*)im_id  ,
+				     (u_char**)&im , strlen_utf16( im_id)) ;
+
+		for( j = 0 ; j < num_of_langs ; j++)
+		{
+			const char *  lang_id ;
+			size_t  len ;
+
+			iiimcf_get_language_id(langs[j], &lang_id);
+
+			if( strncmp( lang_id , locale , 2) == 0 &&
+			    auto_idx == 0)
+			{
+				auto_idx = idx ;
+			}
+
+			len = strlen( im) + strlen( lang_id) + 4 ;
+
+			if( ( result->args[idx] = malloc(len)))
+			{
+				kik_snprintf( result->args[idx] , len ,
+					      "%s:%s" , lang_id , im) ;
+			}
+			else
+			{
+				result->args[idx] = strdup( "error") ;
+			}
+
+			if( ( result->readable_args[idx] = malloc(len)))
+			{
+				kik_snprintf( result->readable_args[idx] , len ,
+					      "%s (%s)" , lang_id , im) ;
+			}
+			else
+			{
+				result->readable_args[i] = strdup( "error") ;
+			}
+
+			idx ++ ;
+		}
+
+		free( im) ;
+	}
+
+	result->args[0] = strdup( "") ;
+	if( auto_idx)
+	{
+		result->readable_args[0] = strdup( result->readable_args[auto_idx]) ;
+	}
+	else
+	{
+		result->readable_args[0] = strdup( "unknown") ;
+	}
+
+	if( total != idx - 1)
+	{
+		free( result->id) ;
+		free( result->name) ;
+
+		for( i = 0 ; i < idx - 1; i++)
+		{
+			free( result->args[i]) ;
+			free( result->readable_args[i]) ;
+		}
+
+		free( result->args) ;
+		free( result->readable_args) ;
+
+		free( result) ;
+
+		result = NULL ;
+	}
+
+	iiimcf_destroy_handle(handle);
+
+	iiimcf_finalize() ;
+
+	return  result ;
+
+error:
+
+	if( parser_utf16)
+	{
+		(*parser_utf16->delete)( parser_utf16) ;
+	}
+
+	if( conv)
+	{
+		(*conv->delete)( conv) ;
+	}
+
+	if( handle)
+	{
+		iiimcf_destroy_handle(handle);
+	}
+
+	iiimcf_finalize() ;
+
+	if( result->args)
+	{
+		free( result->args) ;
+	}
+
+	if( result->readable_args)
+	{
+		free( result->readable_args) ;
+	}
+
+	if( result)
+	{
+		free( result) ;
 	}
 
 	return  NULL ;

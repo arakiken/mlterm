@@ -2,7 +2,6 @@
  *	$Id$
  */
 
-#include  <kiklib/kik_dlfcn.h>
 #include  <kiklib/kik_str.h>	/* kik_str_sep, kik_snprintf */
 
 #include  "x_im.h"
@@ -29,11 +28,13 @@ static  x_im_export_syms_t  im_export_syms =
 	ml_str_delete ,
 	ml_char_combine ,
 	ml_char_set ,
+	ml_get_char_encoding_name ,
 	ml_get_char_encoding ,
 	ml_is_msb_set ,
 	ml_parser_new ,
 	ml_conv_new ,
 	x_im_candidate_screen_new ,
+	x_im_status_screen_new ,
 	x_term_manager_add_fd ,
 	x_term_manager_remove_fd
 
@@ -41,36 +42,45 @@ static  x_im_export_syms_t  im_export_syms =
 
 /* --- static functions --- */
 
-static x_im_new_func_t
+static int
 dlsym_im_new_func(
-	char *  im_name
+	char *  im_name ,
+	x_im_new_func_t *  func ,
+	kik_dl_handle_t *  handle
 	)
 {
-	kik_dl_handle_t  handle ;
 	char * libname ;
 
 	if( ! im_name)
 	{
-		return  NULL ;
+		return  0 ;
 	}
 
-	if( ! ( libname = alloca( sizeof(char) * (strlen( im_name) + 4))))
+	if( ! ( libname = alloca( strlen( im_name) + 4)))
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
 	#endif
 
-		return  NULL ;
+		return  0 ;
 	}
 
 	sprintf( libname , "im-%s" , im_name) ;
 
-	if( ! ( handle = kik_dl_open( IM_DIR , libname)))
+	if( ! ( *handle = kik_dl_open( IM_DIR , libname)))
 	{
-		return  NULL ;
+		return  0 ;
 	}
 
-	return  (x_im_new_func_t) kik_dl_func_symbol( handle , "im_new") ;
+	if( ! ( *func = (x_im_new_func_t) kik_dl_func_symbol( *handle ,
+							      "im_new")))
+	{
+		kik_dl_close( *handle) ;
+
+		return  0 ;
+	}
+
+	return  1 ;
 }
 
 
@@ -85,6 +95,7 @@ x_im_new(
 {
 	x_im_t *  im ;
 	x_im_new_func_t  func ;
+	kik_dl_handle_t  handle ;
 	char *  im_name ;
 	char *  im_attr ;
 
@@ -112,7 +123,7 @@ x_im_new(
 		im_attr = NULL ;
 	}
 
-	if ( ! ( func = dlsym_im_new_func( im_name)))
+	if ( ! dlsym_im_new_func( im_name , &func , &handle))
 	{
 		free( im_name) ;
 
@@ -125,8 +136,10 @@ x_im_new(
 		/*
 		 * initializations for x_im_t
 		 */
+		im->handle = handle ;
 		im->listener = im_listener ;
 		im->cand_screen = NULL ;
+		im->stat_screen = NULL ;
 		im->preedit.chars = NULL ;
 		im->preedit.num_of_chars = 0 ;
 		im->preedit.filled_len = 0 ;
@@ -138,11 +151,27 @@ x_im_new(
 	{
 		kik_error_printf( "Cound not open specified "
 				  "input method(%s).\n" , im_name) ;
+
+		kik_dl_close( handle) ;
 	}
 
 	free( im_name) ;
 
 	return  im ;
+}
+
+void
+x_im_delete(
+	x_im_t *  im
+	)
+{
+	kik_dl_handle_t  handle ;
+
+	handle = im->handle ;
+
+	(*im->delete)( im) ;
+
+	kik_dl_close( handle) ;
 }
 
 void
@@ -156,7 +185,7 @@ x_im_redraw_preedit(
 					   im->preedit.filled_len ,
 					   im->preedit.cursor_offset) ;
 
-	if( ! im->cand_screen)
+	if( ! im->cand_screen && ! im->stat_screen)
 	{
 		return ;
 	}
@@ -171,13 +200,38 @@ x_im_redraw_preedit(
 					       im->preedit.segment_offset ,
 					       &x , &y))
 		{
-			(*im->cand_screen->show)( im->cand_screen) ;
-			(*im->cand_screen->set_spot)( im->cand_screen , x , y) ;
+			if( im->stat_screen && im->cand_screen)
+			{
+				(*im->stat_screen->hide)( im->stat_screen) ;
+				(*im->cand_screen->show)( im->cand_screen) ;
+				(*im->cand_screen->set_spot)( im->cand_screen ,
+							      x , y) ;
+			}
+			else if( im->stat_screen)
+			{
+				(*im->stat_screen->show)( im->stat_screen) ;
+				(*im->stat_screen->set_spot)( im->stat_screen ,
+							      x , y) ;
+			}
+			else if( im->cand_screen)
+			{
+				(*im->cand_screen->show)( im->cand_screen) ;
+				(*im->cand_screen->set_spot)( im->cand_screen ,
+							      x , y) ;
+			}
 		}
 	}
 	else
 	{
-		(*im->cand_screen->hide)( im->cand_screen) ;
+		if( im->cand_screen)
+		{
+			(*im->cand_screen->hide)( im->cand_screen) ;
+		}
+
+		if( im->stat_screen)
+		{
+			(*im->stat_screen->hide)( im->stat_screen) ;
+		}
 	}
 }
 

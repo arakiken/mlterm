@@ -69,3 +69,18 @@ kik_dl_func_symbol(
 	return  lt_dlsym( (lt_dlhandle)handle , symbol) ;
 }
 
+int
+kik_dl_is_module(
+	char * name
+	)
+{
+	size_t  len ;
+
+	if ( ! name)
+	{
+		return  0 ;
+	}
+
+	return  1 ;
+}
+
