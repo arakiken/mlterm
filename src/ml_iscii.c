@@ -19,17 +19,17 @@
 
 static char *  iscii_langs[] =
 {
-	"assamese" ,
-	"bengali",
-	"gujarati",
-	"hindi",
-	"kannada",
-	"malayalam",
-	"oriya",
-	"punjabi",
-	"roman",
-	"tamil",
-	"telugu",
+	"Assamese" ,
+	"Bengali",
+	"Gujarati",
+	"Hindi",
+	"Kannada",
+	"Malayalam",
+	"Oriya",
+	"Punjabi",
+	"Roman",
+	"Tamil",
+	"Telugu",
 	
 } ;
 
@@ -72,9 +72,9 @@ ml_iscii_get_lang_name(
 
 #ifdef  USE_IND
 
-#include  <stdio.h>		/* snprintf */
 #include  <ctype.h>		/* isdigit */
 #include  <indian.h>
+#include  <kiklib/kik_str.h>	/* kik_snprintf */
 
 
 struct  ml_iscii_state
@@ -329,14 +329,14 @@ ml_convert_ascii_to_iscii(
 
 		if( iscii_state->keyb == ISCIIKEYB_INSCRIPT)
 		{
-			snprintf( iscii , ascii_len + 1 , "%s" ,
+			kik_snprintf( iscii , ascii_len + 1 , "%s" ,
 				ins2iscii( iscii_state->a2i_map , dup , iscii_state->a2i_map_size)) ;
 		}
 		else /* if( keyb->keyb == ISCIIKEYB_IITKEYB) */
 		{
 			iitk2iscii( iscii_state->a2i_map , dup ,
 				iscii_state->prev_key , iscii_state->a2i_map_size) ;
-			snprintf( iscii , strlen( dup) + 1 , "%s" , dup) ;
+			kik_snprintf( iscii , strlen( dup) + 1 , "%s" , dup) ;
 
 			iscii_state->prev_key[0] = ascii[0] ;
 			iscii_state->prev_key[1] = '\0' ;
@@ -355,28 +355,12 @@ no_conv:
 #else  /* USE_IND */
 
 
-struct  ml_iscii_state
-{
-	ml_iscii_lang_t  lang ;
-	ml_iscii_keyb_t  keyb ;
-} ;
-
-
 /* --- global functions --- */
 
 ml_iscii_state_t
 ml_iscii_new(void)
 {
-	ml_iscii_state_t  iscii_state ;
-
-	if( ( iscii_state = malloc( sizeof( struct ml_iscii_state))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	memset( iscii_state , 0 , sizeof( struct ml_iscii_state)) ;
-
-	return  iscii_state ;
+	return  NULL ;
 }
 
 int
@@ -384,9 +368,7 @@ ml_iscii_delete(
 	ml_iscii_state_t  iscii_state
 	)
 {
-	free( iscii_state) ;
-
-	return  1 ;
+	return  0 ;
 }
 
 int
@@ -395,9 +377,7 @@ ml_iscii_select_lang(
 	ml_iscii_lang_t  lang
 	)
 {
-	iscii_state->lang = lang ;
-
-	return  1 ;
+	return  0 ;
 }
 
 char *
@@ -417,13 +397,7 @@ ml_iscii_shape(
 	u_char *  src
 	)
 {
-	size_t  len ;
-
-	len = K_MIN(dst_size,strlen(src)) ;
-
-	memcpy( dst , src , len) ;
-
-	return  len ;
+	return   0 ;
 }
 
 int
@@ -432,9 +406,7 @@ ml_iscii_select_keyb(
 	ml_iscii_keyb_t  keyb
 	)
 {
-	iscii_state->keyb = keyb ;
-
-	return  1 ;
+	return  0 ;
 }
 
 ml_iscii_keyb_t
@@ -442,7 +414,7 @@ ml_iscii_current_keyb(
 	ml_iscii_state_t  iscii_state
 	)
 {
-	return  iscii_state->keyb ;
+	return  ISCIIKEYB_UNKNOWN ;
 }
 
 size_t
@@ -454,13 +426,7 @@ ml_convert_ascii_to_iscii(
 	size_t  ascii_len
 	)
 {
-	size_t  len ;
-
-	len = K_MIN(iscii_len,ascii_len) ;
-	
-	memcpy( iscii , ascii , len) ;
-
-	return  len ;
+	return  0 ;
 }
 
 

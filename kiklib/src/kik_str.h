@@ -26,6 +26,12 @@ char *  __kik_str_sep( char **  strp , const char *  delim) ;
 #endif
 
 
+/*
+ * cpp doesn't necessarily process variable number of arguments.
+ */
+int  kik_snprintf( char *  str , size_t  size , char *  format , ...) ;
+
+
 #ifdef  KIK_DEBUG
 
 #define  strdup( str)  kik_str_dup( str , __FILE__ , __LINE__ , __FUNCTION__)
@@ -48,6 +54,7 @@ size_t  kik_str_tabify( u_char *  dst , size_t  dst_len ,
 	u_char *  src , size_t  src_len , size_t  tab_len) ;
 
 char *  kik_str_chop_spaces( char *  str) ;
+
 
 int  kik_str_n_to_uint( u_int *  i , char *  s , size_t  n) ;
 

@@ -1,6 +1,12 @@
 comment -*- mode: text -*-
 comment $Id$
 
+supported platforms (mlterm-2.2.0pl1)
+* tested by Okazaki Tetsurou san
+  cygwin-1.3.9-1 with Cygwin/XFree86 4.2.0
+  cygwin-1.3.9-1 with Cygwin/XFree86 4.1.0
+
+
 supported platforms (mlterm-2.1.0)
 
 * tested by Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>

@@ -4,9 +4,9 @@
 
 #include  "ml_font.h"
 
-#include  <stdio.h>		/* snprintf */
 #include  <string.h>		/* memset/strncasecmp */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_str.h>	/* kik_snprintf */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN/K_MIN */
@@ -253,7 +253,7 @@ load_xfont(
 		return  0 ;
 	}
 
-	snprintf( fontname , max_len , "-*-%s-%s-%s-%s--%d-*-*-*-%s-*-%s" ,
+	kik_snprintf( fontname , max_len , "-*-%s-%s-%s-%s--%d-*-*-*-%s-*-%s" ,
 		family , weight , slant , width , fontsize , spacing , encoding) ;
 
 #ifdef  __DEBUG
@@ -269,7 +269,7 @@ load_xfont(
 	{
 		/* XFree86 Unicode font */
 		
-		snprintf( fontname , max_len , "-*-*-%s-%s-%s-%s-%d-*-*-*-%s-*-%s" ,
+		kik_snprintf( fontname , max_len , "-*-*-%s-%s-%s-%s-%d-*-*-*-%s-*-%s" ,
 			weight , slant , width , kik_get_lang() , fontsize , spacing , encoding) ;
 
 	#ifdef  __DEBUG
@@ -283,7 +283,7 @@ load_xfont(
 
 		if( strcmp( kik_get_lang() , "ja") != 0)
 		{
-			snprintf( fontname , max_len , "-*-*-%s-%s-%s-ja-%d-*-*-*-%s-*-%s" ,
+			kik_snprintf( fontname , max_len , "-*-*-%s-%s-%s-ja-%d-*-*-*-%s-*-%s" ,
 				weight , slant , width , fontsize , spacing , encoding) ;
 
 		#ifdef  __DEBUG
@@ -298,7 +298,7 @@ load_xfont(
 
 		/* GNU Unifont */
 		
-		snprintf( fontname , max_len , "-gnu-unifont-%s-%s-%s--%d-*-*-*-%s-*-%s" ,
+		kik_snprintf( fontname , max_len , "-gnu-unifont-%s-%s-%s--%d-*-*-*-%s-*-%s" ,
 			weight , slant , width , fontsize , spacing , encoding) ;
 
 	#ifdef  __DEBUG

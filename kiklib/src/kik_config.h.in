@@ -38,6 +38,8 @@
 
 #undef  HAVE_GETEGID
 
+#undef  HAVE_SNPRINTF
+
 #undef  HAVE_FUNCTION
 
 #undef  HAVE_UTMPER

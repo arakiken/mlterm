@@ -53,7 +53,7 @@ ml_decsp_font_new(
 	for( counter = 1 ; counter < sizeof( font->glyphs) / sizeof( font->glyphs[0]) ; counter ++)
 	{
 		/*
-		 * Glyps map
+		 * Glyph map
 		 *
 		 * None , Used , Used , None , None , None , None , None ,
 		 * None , None , None , Used , Used , Used , Used , Used ,

@@ -1462,16 +1462,25 @@ ml_iscii_convert_logical_char_index_to_visual(
 	}
 
 end:
-#ifdef  DEBUG
 	if( visual_char_index >= line->num_of_filled_chars)
 	{
+	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG
 			" visual_char_index %d (of logical %d) is over num_of_filled_chars %d\n" ,
 			visual_char_index , logical_char_index , line->num_of_filled_chars) ;
-			
+	#endif
+
+	#ifdef  __DEBUG
+		/*
+		 * XXX
+		 * This must never happens that abort() should be done here.
+		 * But this happens not a few times ....
+		 */
 		abort() ;
+	#endif
+	
+		visual_char_index = END_CHAR_INDEX(line) ;
 	}
-#endif
 
 	return  visual_char_index ;
 }

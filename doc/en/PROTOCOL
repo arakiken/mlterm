@@ -63,8 +63,8 @@ version 20020206
   scrollbar_view_name = <name>
   sb_fg_color = <color name>
   sb_bg_color = <color name>
-  iscii_lang = assamese | bengali | gujarati | hindi | kannada | malayalam | oriya | punjabi |
-                roman | tamil | telugu
+  iscii_lang = Assamese | Bengali | Gujarati | Hindi | Kannada | Malayalam | Oriya | Punjabi |
+                Roman | Tamil | Telugu
 
 * note
   o Encoding names are regularized , that is , `-' , `-' are removed , and only upper

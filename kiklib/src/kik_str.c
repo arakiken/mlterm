@@ -4,6 +4,8 @@
 
 #include  "kik_str.h"
 
+#include  <stdio.h>		/* sprintf */
+#include  <stdarg.h>		/* va_list */
 #include  <ctype.h>		/* isdigit */
 
 #include  "kik_debug.h"
@@ -63,6 +65,34 @@ __kik_str_sep(
 }
 
 #endif
+
+/*
+ * !! Notice !!
+ * It is a caller that is responsible to check buffer overrun.
+ */
+int
+kik_snprintf(
+	char *  str ,
+	size_t  size ,
+	char *  format ,
+	...
+	)
+{
+	va_list  arg_list ;
+
+	va_start( arg_list , format) ;
+
+#ifdef  HAVE_SNPRINTF
+	return  vsnprintf( str , size , format , arg_list) ;
+#else
+	/*
+	 * XXX
+	 * this may cause buffer overrun.
+	 */
+
+	return  vsprintf( str , format , arg_list) ;
+#endif
+}
 
 char *
 kik_str_dup(

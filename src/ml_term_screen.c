@@ -18,6 +18,7 @@
 #include  "ml_str_parser.h"
 #include  "ml_xic.h"
 #include  "ml_picture.h"
+#include  "ml_bidi.h"		/* ml_bidi_support_level */
 
 
 /*
@@ -1120,7 +1121,9 @@ update_encoding_proper_aux(
 		}
 		
 		if( termscr->use_bidi &&
-			(*termscr->encoding_listener->encoding)(termscr->encoding_listener->self) == ML_UTF8)
+			(*termscr->encoding_listener->encoding)(
+				termscr->encoding_listener->self) == ML_UTF8 &&
+			ml_bidi_support_level() > 0)
 		{
 			if( ( termscr->logvis = ml_logvis_bidi_new( termscr->image)) == NULL)
 			{

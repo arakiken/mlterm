@@ -4,9 +4,6 @@
 
 #include  "ml_bidi.h"
 
-#include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_mem.h>	/* alloca */
-
 
 #if  0
 #define  __DEBUG
@@ -15,10 +12,18 @@
 
 #ifdef  USE_FRIBIDI
 
+#include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_mem.h>	/* alloca */
 #include  <fribidi/fribidi.h>
 
 
 /* --- global functions --- */
+
+int
+ml_bidi_support_level(void)
+{
+	return  1 ;
+}
 
 int
 ml_bidi(
@@ -140,6 +145,12 @@ ml_bidi(
 
 
 /* --- global functions --- */
+
+int
+ml_bidi_support_level(void)
+{
+	return  0 ;
+}
 
 int
 ml_bidi(
