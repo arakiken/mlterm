@@ -3944,9 +3944,16 @@ button_pressed(
 
 	if( event->button == 2)
 	{
-		restore_selected_region_color( screen) ;
-		
-		yank_event_received( screen , event->time) ;
+		if( (event->state & ControlMask) && screen->conf_menu_path_2)
+		{
+			config_menu( screen , event->x , event->y , screen->conf_menu_path_2) ;
+		}
+		else
+		{
+			restore_selected_region_color( screen) ;
+
+			yank_event_received( screen , event->time) ;
+		}
 	}
 	else if( click_num == 2 && event->button == 1)
 	{
@@ -3969,13 +3976,6 @@ button_pressed(
 		else
 		{
 			config_menu( screen , event->x , event->y , MLTERMMENU_PATH) ;
-		}
-	}
-	else if( event->button == 2 && (event->state & ControlMask))
-	{
-		if( screen->conf_menu_path_2)
-		{
-			config_menu( screen , event->x , event->y , screen->conf_menu_path_2) ;
 		}
 	}
 	else if( event->button == 3 && (event->state & ControlMask))
