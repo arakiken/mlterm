@@ -1338,8 +1338,6 @@ parse_vt100_escape_sequence(
 						{
 							// if( !titeInhibit)
 							save_cursor( vt100_parser) ;
-							ml_screen_user_alternate_edit(
-								vt100_parser->screen) ;
 							//
 						}
 						else if( ps[0] == 1049)
@@ -1508,9 +1506,6 @@ parse_vt100_escape_sequence(
 						else if( ps[0] == 1048)
 						{
 							// if( !titeInhibit)
-							clear_display_all( vt100_parser) ;
-							ml_screen_user_normal_edit(
-								vt100_parser->screen) ;
 							restore_cursor( vt100_parser) ;
 							//
 						}
