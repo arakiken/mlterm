@@ -1337,6 +1337,7 @@ ml_screen_get_word_region(
 	ml_line_t *  line ;
 	ml_line_t *  base_line ;
 	ml_char_t *  ch ;
+	mkf_charset_t  cs ;
 
 	if( ( base_line = ml_screen_get_line( screen , base_row)) == NULL ||
 		ml_line_is_empty( base_line))
@@ -1353,6 +1354,8 @@ ml_screen_get_word_region(
 
 		return  1 ;
 	}
+
+	cs = ml_char_cs(&base_line->chars[base_char_index]) ;
 	
 	/*
 	 * search the beg of word
@@ -1383,7 +1386,7 @@ ml_screen_get_word_region(
 		
 		ch = &line->chars[char_index] ;
 
-		if( is_word_separator(ch))
+		if( is_word_separator(ch) || cs != ml_char_cs( ch))
 		{
 			*beg_char_index = char_index + 1 ;
 			
@@ -1423,7 +1426,7 @@ ml_screen_get_word_region(
 		
 		ch = &line->chars[char_index] ;
 
-		if( is_word_separator(ch))
+		if( is_word_separator(ch) || cs != ml_char_cs( ch))
 		{
 			*end_char_index = char_index - 1 ;
 
