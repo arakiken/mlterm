@@ -193,7 +193,7 @@ find_language(
 
 static IIIMCF_input_method
 find_language_engine(
-	char *  le_name
+	char *  lang
        )
 {
 	IIIMCF_input_method *  array ;
@@ -203,12 +203,12 @@ find_language_engine(
 	int  num ;
 	int  i ;
 
-	if( ! le_name)
+	if( ! lang)
 	{
 		return  NULL ;
 	}
 
-	if( ! ( le_name = strstr( le_name , ":")))
+	if( ! ( le_name = strstr( lang , ":")))
 	{
 		return  NULL ;
 	}
@@ -252,7 +252,7 @@ find_language_engine(
 				if( strncmp( le_name , buf , filled_len) == 0)
 				{
 				#ifdef  IM_IIIMF_DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG " found %s.\n", le_name) ;
+					kik_debug_printf( KIK_DEBUG_TAG " found %s.\n", le_name) ;
 				#endif
 
 					result = array[i] ;
@@ -332,7 +332,7 @@ preedit_start(
 	)
 {
 #ifdef  IM_IIIMF_DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG "\n");
+	kik_debug_printf( KIK_DEBUG_TAG "\n");
 #endif
 
 	if( iiimf->im.preedit.chars)
@@ -363,7 +363,7 @@ preedit_change(
 	int  in_reverse = 0 ;
 
 #ifdef  IM_IIIMF_DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG "\n");
+	kik_debug_printf( KIK_DEBUG_TAG "\n");
 #endif
 
 	/*
@@ -603,7 +603,7 @@ preedit_done(
 	)
 {
 #ifdef  IM_IIIMF_DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG "\n");
+	kik_debug_printf( KIK_DEBUG_TAG "\n");
 #endif
 
 	if( iiimf->im.preedit.chars)
@@ -769,12 +769,72 @@ lookup_choice_done(
 }
 
 static void
-dispatch(
+aux_dump(
+	char *  tag ,
 	im_iiimf_t *  iiimf ,
-	IIIMCF_event_type  type
+	IIIMCF_event  event
 	)
 {
-	switch( type)
+#ifdef  IM_IIIMF_DEBUG
+	const IIIMP_card16 *  aux_name ;
+	IIIMP_card32  class_index ;
+	const IIIMP_card32 *  array_val_int ;
+	const IIIMP_card16 **  array_val_str ;
+	int  num_of_int ;
+	int  num_of_str ;
+	int  i ;
+	u_char *  str = NULL ;
+
+	kik_debug_printf( "%s\n", tag) ;
+
+	if( iiimcf_get_aux_event_value( event ,
+					&aux_name ,
+					&class_index ,
+					&num_of_int ,
+					&array_val_int ,
+					&num_of_str ,
+					&array_val_str) != IIIMF_STATUS_SUCCESS)
+	{
+		/* XXX */
+		kik_debug_printf("iiimcf_get_aux_event_value() failed\n");
+		return ;
+	}
+
+	PARSER_INIT_WITH_BOM( parser_utf16) ;
+	im_convert_encoding( parser_utf16, iiimf->conv ,
+			     (u_char*)aux_name, &str,
+			     strlen_utf16( aux_name)) ;
+	kik_debug_printf( "aux_name: %s\n" , str) ;
+	free( str) ;
+	str = NULL ;
+
+	kik_debug_printf( "class_index: %d, int: %d, str: %d\n",
+			  class_index , num_of_int, num_of_str);
+
+	for( i = 0 ; i < num_of_int ; i++)
+	{
+		kik_debug_printf( "int[%d]: %d\n", i, array_val_int[i]);
+	}
+	for( i = 0 ; i < num_of_str ; i++)
+	{
+		PARSER_INIT_WITH_BOM( parser_utf16) ;
+		im_convert_encoding( parser_utf16, iiimf->conv ,
+				     (u_char*)array_val_str[i], &str,
+				     strlen_utf16( array_val_str[i])) ;
+		kik_debug_printf( "str[%d]: %s\n" , i , str) ;
+		free( str) ;
+	}
+#endif
+}
+
+static void
+dispatch(
+	im_iiimf_t *  iiimf ,
+	IIIMCF_event  event ,
+	IIIMCF_event_type  event_type
+	)
+{
+	switch( event_type)
 	{
 	case IIIMCF_EVENT_TYPE_DESTROY:
 	case IIIMCF_EVENT_TYPE_RESET:
@@ -816,13 +876,22 @@ dispatch(
 		commit( iiimf);
 		break;
 	case IIIMCF_EVENT_TYPE_AUX_START:
+		aux_dump( "start" , iiimf, event);
+		break;
 	case IIIMCF_EVENT_TYPE_AUX_DRAW:
+		aux_dump( "draw" , iiimf, event);
+		break;
 #if 0   /* XXX: for Fedora Core 2 */
 	case IIIMCF_EVENT_TYPE_AUX_SETVALUES:
+		aux_dump( "setvalues" , iiimf, event);
+		kik_debug_printf("IIIMCF_EVENT_TYPE_AUX_SETVALUES\n");
+		break ;
 #endif
 	case IIIMCF_EVENT_TYPE_AUX_DONE:
+		aux_dump( "done" , iiimf, event);
+		break;
 	case IIIMCF_EVENT_TYPE_AUX_GETVALUES:
-		/* not implemented yet */
+		aux_dump( "getvalues" , iiimf, event);
 		break;
 	default:
 		break ;
@@ -867,7 +936,7 @@ delete(
 	ref_count-- ;
 
 #ifdef  IM_IIIMF_DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count) ;
+	kik_debug_printf( KIK_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count) ;
 #endif
 
 	if( ref_count == 0 && initialized)
@@ -969,7 +1038,7 @@ dispatch:
 		}
 		else
 		{
-			dispatch( iiimf , type) ;
+			dispatch( iiimf , received_event, type) ;
 			ret = 0 ; /* key event was swallowed by IIIMSF */
 		}
 
@@ -1203,7 +1272,7 @@ im_new(
 	ref_count++ ;
 
 #ifdef  IM_IIIMF_DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " New object was created. ref_count is %d.\n" , ref_count);
+	kik_debug_printf( KIK_DEBUG_TAG " New object was created. ref_count is %d.\n" , ref_count);
 #endif
 
 	return  (x_im_t*) iiimf ;

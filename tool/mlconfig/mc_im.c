@@ -503,6 +503,9 @@ iiimf_widget_new(const char *iiimf_lang_id, const char *iiimf_le, const char *cu
 					&input_methods) != IIIMF_STATUS_SUCCESS)
 		goto error;
 
+	/* XXX: workaround for atokx's htt */
+	if ( num_im == 0) goto error;
+
 	for (i = 0; i < num_im; i++) {
 		const IIIMP_card16 *im_id, *im_hrn, *im_domain;
 		char **p;
