@@ -1060,37 +1060,29 @@ update_bg_color(
 }
 
 static int
-update_transparent(
+update_pic_transparent(
 	ml_window_t *  win
 	)
 {
 	ml_picture_t  pic ;
 
-	if( win->pic_mod)
+	if( ml_picture_init( &pic , win , win->pic_mod) &&
+		ml_picture_load_background( &pic))
 	{
-		if( ml_picture_init( &pic , win , win->pic_mod) &&
-			ml_picture_load_background( &pic))
-		{
-			/*
-			 * !! Notice !!
-			 * this must be done before ml_window_set_wall_picture() because
-			 * ml_window_set_wall_picture() doesn't do anything if is_transparent
-			 * flag is on.
-			 */
-			win->is_transparent = 0 ;
+		/*
+		 * !! Notice !!
+		 * this must be done before ml_window_set_wall_picture() because
+		 * ml_window_set_wall_picture() doesn't do anything if is_transparent
+		 * flag is on.
+		 */
+		win->is_transparent = 0 ;
 
-			ml_window_set_wall_picture( win , pic.pixmap) ;
+		ml_window_set_wall_picture( win , pic.pixmap) ;
 
-			win->is_transparent = 1 ;
-		}
-
-		ml_picture_final( &pic) ;
+		win->is_transparent = 1 ;
 	}
-	else
-	{
-		ml_window_clear_all( win) ;
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-	}
+
+	ml_picture_final( &pic) ;
 	
 	return  1 ;
 }
@@ -1144,7 +1136,15 @@ notify_configure_to_children(
 
 	if( win->is_transparent)
 	{
-		update_transparent( win) ;
+		if( win->pic_mod)
+		{
+			update_pic_transparent( win) ;
+		}
+		else
+		{
+			ml_window_clear_all( win) ;
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
 	}
 
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
@@ -1568,7 +1568,7 @@ ml_window_set_transparent(
 
 	if( win->pic_mod)
 	{
-		update_transparent( win) ;
+		update_pic_transparent( win) ;
 	}
 	else
 	{
@@ -2052,7 +2052,6 @@ ml_window_show(
 	if( win->parent == NULL)
 	{
 		XSizeHints  size_hints ;
-		XClassHint  class_hint ;
 		XWMHints  wm_hints ;
 		int  argc = 1 ;
 		char *  argv[] = { "mlterm" , NULL , } ;
@@ -2105,9 +2104,6 @@ ml_window_show(
 			size_hints.flags |= PPosition ;
 		}
 
-		class_hint.res_name = "mlterm" ;
-		class_hint.res_class = "XTerm" ;
-
 		wm_hints.window_group = win->my_window ;
 		wm_hints.initial_state = NormalState ;	/* or IconicState */
 		wm_hints.input = True ;			/* wants FocusIn/FocusOut */
@@ -2115,7 +2111,7 @@ ml_window_show(
 		
 		/* notify to window manager */
 		XmbSetWMProperties( win->display , win->my_window , "mlterm" , "mlterm" ,
-			argv , argc , &size_hints , &wm_hints , &class_hint) ;
+			argv , argc , &size_hints , &wm_hints , NULL) ;
 			
 		XSetWMProtocols( win->display , win->my_window , &xa_delete_window , 1) ;
 	}
@@ -2160,7 +2156,7 @@ ml_window_resize(
 	ml_window_t *  win ,
 	u_int  width ,		/* excluding margin */
 	u_int  height ,		/* excluding margin */
-	ml_event_dispatch_t  flag
+	ml_event_dispatch_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
 	if( win->width == width && win->height == height)
@@ -2655,17 +2651,17 @@ ml_window_receive_event(
 	}
 	else if( event->type == ConfigureNotify)
 	{
-		ml_event_dispatch_t  dispatch ;
+		int  is_changed ;
 		XEvent  next_ev ;
 
-		dispatch = NOTIFY_TO_NONE ;
+		is_changed = 0 ;
 		
 		if( event->xconfigure.x != win->x || event->xconfigure.y != win->y)
 		{
 			win->x = event->xconfigure.x ;
 			win->y = event->xconfigure.y ;
-			
-			dispatch = NOTIFY_TO_CHILDREN ;
+
+			is_changed = 1 ;
 		}
 		
 		if( event->xconfigure.width != ACTUAL_WIDTH(win) ||
@@ -2696,29 +2692,25 @@ ml_window_receive_event(
 
 			ml_xic_resized( win) ;
 
-			dispatch = NOTIFY_TO_CHILDREN ;
+			is_changed = 1 ;
 		}
 
 		/*
 		 * transparent processing.
 		 */
 		 
-		if( dispatch != NOTIFY_TO_NONE &&
+		if( is_changed &&
 			XCheckMaskEvent( win->display , StructureNotifyMask , &next_ev))
 		{
 			if( next_ev.type == ConfigureNotify)
 			{
-				dispatch = NOTIFY_TO_NONE ;
+				is_changed = 0 ;
 			}
 
 			XPutBackEvent( win->display , &next_ev) ;
 		}
 		
-		if( dispatch == NOTIFY_TO_MYSELF)
-		{
-			update_transparent( win) ;
-		}
-		else if( dispatch == NOTIFY_TO_CHILDREN)
+		if( is_changed)
 		{
 			notify_configure_to_children( win) ;
 		}

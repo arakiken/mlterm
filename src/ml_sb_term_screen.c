@@ -38,12 +38,15 @@ window_resized(
 	sb_termscr = (ml_sb_term_screen_t*) win ;
 
 	ml_window_resize( &sb_termscr->termscr->window ,
-		sb_termscr->window.width - sb_termscr->scrollbar.window.width - SEPARATOR_WIDTH ,
-		win->height , NOTIFY_TO_MYSELF) ;
+		ACTUAL_WIDTH(win) - sb_termscr->termscr->window.margin * 2
+			- sb_termscr->scrollbar.window.width - SEPARATOR_WIDTH ,
+		ACTUAL_HEIGHT(win) - sb_termscr->termscr->window.margin * 2 ,
+		NOTIFY_TO_MYSELF) ;
 
-	/* srollbar window's margin is 0 , so ACTUAL_HEIGHT() is used. */
-	ml_window_resize( &sb_termscr->scrollbar.window , sb_termscr->scrollbar.window.width ,
-		ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
+	ml_window_resize( &sb_termscr->scrollbar.window ,
+		sb_termscr->scrollbar.window.width ,
+		ACTUAL_HEIGHT(win) - sb_termscr->scrollbar.window.margin * 2 ,
+		NOTIFY_TO_MYSELF) ;
 
 	if( sb_termscr->is_right_sb)
 	{
@@ -59,10 +62,8 @@ child_window_resized(
 	)
 {
 	ml_sb_term_screen_t *  sb_termscr ;
-	ml_term_screen_t *  termscr ;
 
 	sb_termscr = (ml_sb_term_screen_t*) win ;
-	termscr = (ml_term_screen_t*) child ;
 
 	if( &sb_termscr->termscr->window != child)
 	{
@@ -73,14 +74,23 @@ child_window_resized(
 	
 		return ;
 	}
-
+	
 	ml_window_resize( &sb_termscr->window ,
-		termscr->window.width + sb_termscr->scrollbar.window.width ,
-		termscr->window.height , 0) ;
+		ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_termscr->scrollbar.window)
+			+ SEPARATOR_WIDTH ,
+		ACTUAL_HEIGHT(child) ,
+		NOTIFY_TO_NONE) ;
 	
 	ml_window_resize( &sb_termscr->scrollbar.window ,
 		sb_termscr->scrollbar.window.width ,
-		ACTUAL_HEIGHT(&sb_termscr->window) , NOTIFY_TO_MYSELF) ;
+		ACTUAL_HEIGHT(child) - sb_termscr->scrollbar.window.margin * 2 ,
+		NOTIFY_TO_MYSELF) ;
+		
+	if( sb_termscr->is_right_sb)
+	{
+		ml_window_move( &sb_termscr->scrollbar.window ,
+			ACTUAL_WIDTH( &sb_termscr->termscr->window) + SEPARATOR_WIDTH , 0) ;
+	}
 }
 
 static void
@@ -92,10 +102,7 @@ window_exposed(
 	u_int  height
 	)
 {
-	/*
-	 * x/y/width/height are the length without margin.
-	 */
-	ml_window_fill( win , x , y - win->margin , width , height + win->margin * 2) ;
+	ml_window_fill( win , x , y , width , height) ;
 }
 
 static void
@@ -350,11 +357,11 @@ ml_sb_term_screen_new(
 
 
 	if( ml_window_init( &sb_termscr->window , ml_color_table_dup( color_table) ,
-		termscr->window.width + sb_termscr->scrollbar.window.width + SEPARATOR_WIDTH ,
-		termscr->window.height ,
+		ACTUAL_WIDTH( &termscr->window) + ACTUAL_WIDTH( &sb_termscr->scrollbar.window)
+			+ SEPARATOR_WIDTH ,
+		ACTUAL_HEIGHT( &termscr->window) ,
 		termscr->window.min_width , termscr->window.min_height ,
-		termscr->window.width_inc , termscr->window.height_inc ,
-		termscr->window.margin) == 0)
+		termscr->window.width_inc , termscr->window.height_inc , 0) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_window_init() failed.\n") ;
