@@ -160,6 +160,7 @@ open_xim(
 			( xim->parser = ml_parser_new( xim->encoding)) == NULL)
 		{
 			XCloseIM( xim->im) ;
+			xim->im = NULL ;
 		}
 		else
 		{
@@ -337,7 +338,7 @@ x_xim_init(
 	#if  0
 		default_xim_name = NULL ;
 	#else
-		default_xim_name = "@im=none" ;
+		default_xim_name = "none" ;
 	#endif
 	}
 	else

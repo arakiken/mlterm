@@ -1,3 +1,9 @@
+2003-08-10  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* x_xim.c:
+	- xim->im should be cleared when im was closed due to an error.
+	- Default XIM name sis now "none", not "@im=none".
+
 2003-08-10  Araki Ken  <arakiken@users.sf.net>
 
 	* Cursor wasn't redrawn under vertical writing mode.
