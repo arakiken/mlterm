@@ -1,0 +1,101 @@
+comment -*- mode: text -*-
+comment $Id$
+
+* Memorandum about picture processing in mlterm
+
+At present, Imlib or gdk-pixbuf is used by mlterm for getting/modifying
+background images.
+
+However, the interface is determined considering the possibility of 
+using other graphics libraries (such as Imlib2).
+
+By tweaking this part, you may be able to add support for new file format
+and/or more better post-processing of background images.
+
+Current spec for background image processing part of mlterm will be 
+briefly described below.
+
+! This spec is still in alpha and may have a lot of room for expansion.
+
+* related files
+
+ - ml_picture_dep.h     := definition of interface (don't touch)
+ - ml_picture_dep.c     := (only #include appropriate ml_picture_*.c)
+ - ml_picture_*.c       := implements graphics library dependent part
+
+and These files contain informations which will help you
+to understand what is going on.
+
+ - ml_window.h          :ml_window_t (type of win) is defined here
+ - ml_picture.h         :ml_picture_modifier_t (type of pic_mod) is defined 
+
+* In ml_picture_*.c, following five global function should be defined.
+
+ int ml_picdep_display_opened( Display *  display)
+
+    Called when mlterm opens a new display.
+
+    Argument is
+     display: the newly created display
+
+    Do the graphics library specific initialization here.
+
+    Return a non-zero value if successful.
+
+ int ml_picdep_display_closed( Display *  display)
+
+    Called when mlterm closes a display .
+     (i.e. last window on the display is closed) 
+
+    Argument is
+     display: the display which no longer have mlterm window
+
+    Free resources that may allocated display_open.
+    Pixmaps returned from ml_picdep_load_* is freed in common part and
+    it should not done here.
+    
+    Return a non-zero value if successful.
+
+ int ml_picdep_root_pixmap_available(Display *  display)
+
+    Called to query whether pseudo-translucency is available.
+
+    Argument is
+     display: the display where the window to be translucent.
+    
+    Return a non-zero value if translucency is available.
+
+ Pixmap ml_picdep_load_file( ml_window_t *  win , 
+                            char *  file_path ,
+                            ml_picture_modifier_t *  pic_mod)
+			
+    Called to a load background image.
+
+    Arguments are
+     win:       the window to have background.
+     file_path: a path of the image file.
+     pic_mod:   image modifier.
+
+    Load an image from "file_path" and adjust it to fit the window's geometry.
+    (There are ACTUAL_WIDTH(win)&ACTUAL_HEIGHT(win) macro to help this process)
+    Post processing should be done according to pic_mod contents.
+    The resulting image should be renderd to a newly allocated X Pixmap.
+
+    Return the Pixmap (or None if failed).
+
+ Pixmap ml_picdep_load_background( ml_window_t *  win , ml_picture_modifier_t *  pic_mod)
+
+    Called to get background image which gives translucent look.
+
+    Arguments are
+     win:       the window to have background.
+     pic_mod:   image modifier.
+
+    Get an image which looks like root window (it' a pseudo translucency).
+    Crop the image to fit the window's geometry (if necessary).
+    (There are ACTUAL_WIDTH(win)&ACTUAL_HEIGHT(win) macro to help this process)
+    Post processing should be done according to pic_mod contents.
+    The resulting image should be renderd to a newly allocated X Pixmap.
+
+    Return the Pixmap (or None if failed).
+
