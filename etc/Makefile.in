@@ -6,7 +6,8 @@ sysconfdir = @sysconfdir@
 DESTDIR=
 SYSCONFDIR=$(DESTDIR)$(sysconfdir)/mlterm
 
-RCFILES = main font vfont tfont aafont vaafont taafont color termcap key xim
+RCFILES = font vfont tfont aafont vaafont taafont color termcap key xim
+GEN_RCFILES = main
 
 INSTALL=@INSTALL@
 
@@ -18,6 +19,7 @@ $(SYSCONFDIR):
 
 install: $(SYSCONFDIR)
 	for file in $(RCFILES) ; do $(INSTALL) -m 644 $(top_srcdir)/etc/$${file} $(SYSCONFDIR)/$${file} ; done
+	for file in $(GEN_RCFILES) ; do $(INSTALL) -m 644 $(top_builddir)/etc/$${file} $(SYSCONFDIR)/$${file} ; done
 
 distclean:
 	rm -f Makefile

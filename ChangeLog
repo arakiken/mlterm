@@ -1,3 +1,9 @@
+2003-03-08 Araki Ken <arakiken@users.sf.net>
+
+	* Added --with-conf-menu option.
+	* If Ctrl+F1 pressed continuously on FreeBSD, mlterm died. Fixed.
+	  (Thanks to Konosuke Watanabe san)
+
 2003-03-05 Tomohiro KUBOTA <kubota@debian.org>
 
 	* The default BEL mode is "sound", not "none", at the help message.

@@ -5,10 +5,12 @@
 #include  "ml_config_menu.h"
 
 #include  <stdio.h>		/* sprintf */
+#include  <string.h>		/* strchr */
 #include  <unistd.h>		/* fork */
 #include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
+#include  <kiklib/kik_mem.h>	/* malloc */
 
 
 #ifndef  LIBEXECDIR
@@ -102,6 +104,21 @@ ml_config_menu_start(
 		if( cmd_path == NULL)
 		{
 			cmd_path = MLCONFIG_PATH ;
+		}
+		/* specified program name without path. */
+		else if( strchr( cmd_path , '/') == NULL)
+		{
+			char *  p ;
+			char  dir[] = LIBEXECDIR ;
+
+			/* not freed, since this process soon execv() */
+			if( ( p = malloc( strlen( cmd_path) + sizeof(dir) + 2)) == NULL)
+			{
+				exit(1) ;
+			}
+			
+			sprintf( p , "%s/%s" , dir , cmd_path) ;
+			cmd_path = p ;
 		}
 
 		args[0] = cmd_path ;

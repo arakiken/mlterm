@@ -26,6 +26,29 @@
 #define  VDISABLE 255
 #endif
 
+/*
+ * FreeBSD
+ *  /dev/pty[p-sP-S][0-9a-v]   master pseudo terminals
+ *  /dev/tty[p-sP-S][0-9a-v]   slave pseudo terminals
+ * NetBSD
+ *  /dev/pty[p-zP-T][0-9a-zA-Z]   master pseudo terminals
+ *  /dev/tty[p-zP-T][0-9a-zA-Z]   slave pseudo terminals
+ */
+
+#if defined(__FreeBSD__)
+#define PTYCHAR1  "pqrsPQRS"
+#else
+#define PTYCHAR1  "pqrstuvwxyzPQRST"
+#endif
+
+#if defined(__FreeBSD__)
+#define PTYCHAR2  "0123456789abcdefghijklmnopqrstuv"
+#elif defined(__NetBSD__)
+#define PTYCHAR2  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#else
+#define PTYCHAR2  "0123456789abcdef"
+#endif
+
 
 /* --- static functions --- */
 
@@ -75,11 +98,11 @@ open_pty(
 		ttygid = (gid_t) -1 ;
 	}
 
-	for( p1 = "pqrstuvwxyzPQRST" ; *p1 ; p1++)
+	for( p1 = PTYCHAR1 ; *p1 ; p1++)
 	{
 		name[8] = *p1 ;
 		
-		for( p2 = "0123456789abcdef" ; *p2 ; p2++)
+		for( p2 = PTYCHAR2 ; *p2 ; p2++)
 		{
 			name[5] = 'p';
 			name[9] = *p2 ;
