@@ -30,7 +30,7 @@ int  x_window_manager_init( x_window_manager_t *  win_man , Display *  display) 
 int  x_window_manager_final( x_window_manager_t *  win_man) ;
 
 int  x_window_manager_show_root( x_window_manager_t *  win_man , x_window_t *  root ,
-	int  x , int  y , int  hint) ;
+	int  x , int  y , int  hint , char *  app_name , char *  app_class) ;
 
 int  x_window_manager_remove_root( x_window_manager_t *  win_man , x_window_t *  root) ;
 

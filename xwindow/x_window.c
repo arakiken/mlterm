@@ -23,9 +23,6 @@
 #include  "x_dnd.h"
 
 
-#define  WINDOW_NAME  "mlterm"
-#define  ICON_NAME  "mlterm"
-
 /*
  * Atom macros.
  * Not cached because Atom may differ on each display
@@ -513,6 +510,9 @@ x_window_init(
 
 	win->icon = 0 ;
 	win->mask = 0 ;
+
+	win->app_name = "mlterm" ;
+	win->app_class = "Mlterm" ;
 
 	win->window_realized = NULL ;
 	win->window_finalized = NULL ;
@@ -1081,9 +1081,7 @@ x_window_show(
 	if( win->parent == NULL)
 	{
 		XSizeHints  size_hints ;
-	#if  1
 		XClassHint  class_hint ;
-	#endif
 		XWMHints  wm_hints ;
 		int  argc = 1 ;
 		char *  argv[] = { "mlterm" , NULL , } ;
@@ -1136,11 +1134,9 @@ x_window_show(
 			size_hints.flags |= USPosition ;
 		}
 
-	#if  1
-		class_hint.res_name = "mlterm" ;
-		class_hint.res_class = "mlterm" ;
-	#endif
-	
+		class_hint.res_name = win->app_name ;
+		class_hint.res_class = win->app_class ;
+
 		wm_hints.window_group = win->my_window ;
 		wm_hints.initial_state = NormalState ;	/* or IconicState */
 		wm_hints.input = True ;			/* wants FocusIn/FocusOut */
@@ -1148,10 +1144,10 @@ x_window_show(
 
 		/* notify to window manager */
 	#if  1
-		XmbSetWMProperties( win->display , win->my_window , WINDOW_NAME , ICON_NAME ,
+		XmbSetWMProperties( win->display , win->my_window , win->app_name , win->app_name ,
 			argv , argc , &size_hints , &wm_hints , &class_hint) ;
 	#else
-		XmbSetWMProperties( win->display , win->my_window , WINDOW_NAME , ICON_NAME ,
+		XmbSetWMProperties( win->display , win->my_window , win->app_name , win->app_name ,
 			argv , argc , &size_hints , &wm_hints , NULL) ;
 	#endif
 
@@ -1236,8 +1232,8 @@ x_window_unmap(
 int
 x_window_resize(
 	x_window_t *  win ,
-	u_int  width ,		/* excluding margin */
-	u_int  height ,		/* excluding margin */
+	u_int  width ,			/* excluding margin */
+	u_int  height ,			/* excluding margin */
 	x_event_dispatch_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
@@ -2666,7 +2662,7 @@ x_set_window_name(
 
 	if( name == NULL)
 	{
-		name = WINDOW_NAME ;
+		name = win->app_name ;
 	}
 
 	if( XmbTextListToTextProperty( win->display , (char**)&name , 1 , XStdICCTextStyle , &prop)
@@ -2695,7 +2691,7 @@ x_set_icon_name(
 
 	if( name == NULL)
 	{
-		name = ICON_NAME ;
+		name = win->app_name ;
 	}
 
 	if( XmbTextListToTextProperty( win->display , (char**)&name , 1 , XStdICCTextStyle , &prop)

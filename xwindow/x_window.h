@@ -125,6 +125,12 @@ typedef struct  x_window
 	Pixmap mask ;
 
 	/*
+	 * XClassHint
+	 */
+	char *  app_name ;
+	char *  app_class ;
+
+	/*
 	 * flags etc.
 	 */
 	 
