@@ -1,3 +1,11 @@
+2004-01-17  Tomohiro KUBOTA  <kubota@debian.org>
+
+	* When "configure --with-type-engines=xcore,xft" or "configure
+	  --enable-anti-alias", xcore was not enabled.  Fixed.
+	* "mlterm --help" says the default of --type-engine is always
+	  xcore regardless of the real default (which depends on the
+	  compilation option).  Fixed.
+
 2004-01-15  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* x_imagelib_gdk.c: When gtk2 is choosed(-with-imagelib=gdk-pixbuf2),

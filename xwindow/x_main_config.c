@@ -54,8 +54,15 @@ x_prepare_for_main_config(
 		"enable logging vt100 sequence [false]") ;
 	kik_conf_add_opt( conf , '&' , "borderless" , 1 , "borderless" ,
 		"override redirect [false]") ;
+#ifdef  USE_TYPE_XCORE
+	main_config->type_engine = TYPE_XCORE ;
 	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
 		"type engine [xcore]") ;
+#else
+	main_config->type_engine = TYPE_XFT ;
+	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
+		"type engine [xft]") ;
+#endif
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
 		"screen width in percent against font width [default = 100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
@@ -332,11 +339,6 @@ x_main_config_init(
 		}
 	}
 
-#ifdef  USE_TYPE_XFT
-	main_config->type_engine = TYPE_XFT ;
-#else
-	main_config->type_engine = TYPE_XCORE ;
-#endif
 	if( ( value = kik_conf_get_value( conf , "type_engine")))
 	{
 	#ifdef  USE_TYPE_XFT

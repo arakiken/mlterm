@@ -141,7 +141,7 @@ xft)
 	AC_CHECK_PROG(pkg_config,pkg-config,yes)
 	if test "$pkg_config" = "yes" ; then
 		if `pkg-config --exists xft` ; then
-			AA_CFLAGS="`pkg-config --cflags xft` -DUSE_TYPE_XFT"
+			AA_CFLAGS="`pkg-config --cflags xft` -DUSE_TYPE_XFT ${AA_CFLAGS}"
 			AA_LIBS="`pkg-config --libs xft`"
 		else
 			AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
