@@ -1,3 +1,8 @@
+2003-04-05 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Clean up mlterm/ml_vt100_parser.c config_protocol_save(),
+	  removed a possibility of free(NULL).
+
 2003-04-02  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_imagelib_gdk.c: fixed another color conversion bug...

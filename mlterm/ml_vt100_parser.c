@@ -674,67 +674,69 @@ config_protocol_save(
 	char *  p ;
 
 	file = kik_get_user_rc_path( "mlterm/main") ;
-	if( file && ( conf = kik_conf_write_open( file)))
+	if( file == NULL)  return  0 ;
+
+	conf = kik_conf_write_open( file) ;
+	if( conf == NULL)  return  0 ;
+
+	/*
+	 * accept multiple key=value pairs.
+	 */
+	while( pt)
 	{
-		/*
-		 * accept multiple key=value pairs.
-		 */
-		while( pt)
+		if( ( p = strchr( pt , ';')))
 		{
-			if( ( p = strchr( pt , ';')))
-			{
-				*(p ++) = '\0' ;
-			}
-
-			/*
-			 * In case "/dev/..." specified in set&save protocol.
-			 * Not used 'dev' var.
-			 */
-			if( strncmp( pt , "/dev" , 4) == 0)
-			{
-				dev = pt ;
-				
-				if( ( pt = strchr( pt , ':')) == NULL)
-				{
-					/* Illegal format */
-
-					goto  next ;
-				}
-
-				pt ++ ;
-			}
-			else
-			{
-				dev = NULL ;
-			}
-
-			if( ( val = strchr( pt , '=')))
-			{
-				*(val ++) = '\0' ;
-			}
-			else
-			{
-				val = "" ;
-			}
-
-			/* XXX */
-			if( strcmp( pt , "encoding") == 0)
-			{
-				pt = "ENCODING" ;
-			}
-
-			/* XXX */
-			if( strcmp( pt , "xim") != 0)
-			{
-				kik_conf_io_write( conf , pt , val) ;
-			}
-
-		next:
-			pt = p ;
+			*(p ++) = '\0' ;
 		}
 
-		kik_conf_write_close( conf) ;
+		/*
+		 * In case "/dev/..." specified in set&save protocol.
+		 * Not used 'dev' var.
+		 */
+		if( strncmp( pt , "/dev" , 4) == 0)
+		{
+			dev = pt ;
+
+			if( ( pt = strchr( pt , ':')) == NULL)
+			{
+				/* Illegal format */
+
+				goto  next ;
+			}
+
+			pt ++ ;
+		}
+		else
+		{
+			dev = NULL ;
+		}
+
+		if( ( val = strchr( pt , '=')))
+		{
+			*(val ++) = '\0' ;
+		}
+		else
+		{
+			val = "" ;
+		}
+
+		/* XXX */
+		if( strcmp( pt , "encoding") == 0)
+		{
+			pt = "ENCODING" ;
+		}
+
+		/* XXX */
+		if( strcmp( pt , "xim") != 0)
+		{
+			kik_conf_io_write( conf , pt , val) ;
+		}
+
+	next:
+		pt = p ;
 	}
+
+	kik_conf_write_close( conf) ;
 	free( file) ;
 
 	return  1 ;
