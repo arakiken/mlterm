@@ -1,3 +1,8 @@
+[20020312]
+* if USE_FRIBIDI is not defined, compilation fails in ml_bidi() because of shortage of arguments.
+  (Thanks to Nanashi san)
+* primitive data structure around ml_image* is changed.
+
 [20020310]
 * compilation fails in ml_term_manager.c by configure --disable-fribidi because of
   undefined reference to ml_bidi_set_base_dir().
