@@ -75,7 +75,7 @@ $(INCDIR_TMP)/mkf :
 collect-headers : $(INCDIR_TMP)/mkf
 	cp $(INC) $(INCDIR_TMP)/mkf
 
-install: install-inc install-la install-ar
+install: install-inc install-la
 
 install-deb : $(LIBDIR)
 	$(MAKE) LIBNAME=$(LIBNAME_DEB) install-ar

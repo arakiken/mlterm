@@ -77,19 +77,16 @@ ml_imgline_final(
 	ml_image_line_t *  line
 	)
 {
+	if( line->bidi_state)
+	{
+		ml_imgline_unuse_bidi( line) ;
+	}
+
 	if( line->chars)
 	{
 		ml_str_delete( line->chars , line->num_of_chars) ;
 	}
-
-	/*
-	 * just to be sure...
-	 */
-	if( line->visual_order)
-	{
-		free( line->visual_order) ;
-	}
-
+	
 	return  1 ;
 }
 
@@ -155,9 +152,14 @@ ml_imgline_reset(
 	}
 
 	line->num_of_filled_chars = 0 ;
-	line->num_of_filled_visual_order = 0 ;
-	UNSET_CONTINUED_TO_NEXT(line->flag) ;
 
+	if( line->bidi_state)
+	{
+		ml_bidi_reset( line->bidi_state) ;
+	}
+
+	UNSET_CONTINUED_TO_NEXT(line->flag) ;
+	
 	return 1 ;
 }
 
@@ -793,24 +795,11 @@ ml_imgline_copy_line(
 	if( ml_imgline_is_using_bidi( src))
 	{
 		ml_imgline_use_bidi( dst) ;
-
-		if( src->num_of_filled_visual_order > 0)
-		{
-			if( src->num_of_filled_chars == dst->num_of_filled_chars)
-			{
-				memcpy( dst->visual_order , src->visual_order ,
-					sizeof( u_int16_t) * src->num_of_filled_visual_order) ;
-				dst->num_of_filled_visual_order = src->num_of_filled_visual_order ;
-			}
-			else
-			{
-				SET_MODIFIED(dst->flag) ;
-			}
-		}
+		ml_imgline_bidi_render( dst , -1) ;
 	}
 	else
 	{
-		dst->num_of_filled_visual_order = 0 ;
+		ml_imgline_unuse_bidi( dst) ;
 	}
 
 	return  1 ;
@@ -825,8 +814,7 @@ ml_imgline_share(
 	dst->chars = src->chars ;
 	dst->num_of_filled_chars = src->num_of_filled_chars ;
 	
-	dst->visual_order = src->visual_order ;
-	dst->num_of_filled_visual_order = src->num_of_filled_visual_order ;
+	dst->bidi_state = src->bidi_state ;
 
 	dst->change_beg_char_index = src->change_beg_char_index ;
 	dst->change_end_char_index = src->change_end_char_index ;
@@ -893,7 +881,7 @@ ml_imgline_is_using_bidi(
 	ml_image_line_t *  line
 	)
 {
-	if( line->visual_order)
+	if( line->bidi_state)
 	{
 		return  1 ;
 	}
@@ -908,17 +896,15 @@ ml_imgline_use_bidi(
 	ml_image_line_t *  line
 	)
 {
-	if( line->visual_order)
+	if( line->bidi_state)
 	{
 		return  1 ;
 	}
 
-	if( ( line->visual_order = malloc( sizeof( u_int16_t) * line->num_of_chars)) == NULL)
+	if( ( line->bidi_state = ml_bidi_new()) == NULL)
 	{
 		return  0 ;
 	}
-
-	line->num_of_filled_visual_order = 0 ;
 
 	return  1 ;
 }
@@ -928,9 +914,11 @@ ml_imgline_unuse_bidi(
         ml_image_line_t *  line
         )
 {
-	free( line->visual_order) ;
-	line->visual_order = NULL ;
-	line->num_of_filled_visual_order = 0 ;
+	if( line->bidi_state)
+	{
+		ml_bidi_delete( line->bidi_state) ;
+		line->bidi_state = NULL ;
+	}
 
 	return  1 ;
 }
@@ -941,31 +929,18 @@ ml_imgline_bidi_render(
 	int  cursor_pos
 	)
 {
-	u_int  len ;
-
-	if( ! line->visual_order)
+	if( ! line->bidi_state)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " render failed. visual_order is NULL\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " render failed. bidi_state is NULL\n") ;
 	#endif
 
 		return  0 ;
 	}
-	else if( ( len = line->num_of_filled_chars) == 0)
+	else
 	{
-		return  1 ;
+		return  ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars , cursor_pos) ;
 	}
-
-	if( ! ml_bidi( line->visual_order , line->chars , len , cursor_pos))
-	{
-		line->num_of_filled_visual_order = 0 ;
-		
-		return  0 ;
-	}
-
-	line->num_of_filled_visual_order = len ;
-	
-	return  1 ;
 }
 
 int
@@ -977,16 +952,16 @@ ml_imgline_bidi_visual(
 	ml_char_t *  src ;
 	int  has_rtl ;
 	
-	if( ! line->visual_order)
+	if( ! line->bidi_state)
 	{
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " visual_order is NULL\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " bidi_state is NULL\n") ;
 	#endif
 
 		return  0 ;
 	}
 
-	if( line->num_of_filled_visual_order == 0)
+	if( line->bidi_state->size == 0)
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " not rendered yet.\n") ;
@@ -995,36 +970,25 @@ ml_imgline_bidi_visual(
 		return  0 ;
 	}
 
-	if( ( src = ml_str_alloca( line->num_of_filled_visual_order)) == NULL)
+	if( ( src = ml_str_alloca( line->bidi_state->size)) == NULL)
 	{
 		return  0 ;
 	}
 
-	ml_str_copy( src , line->chars , line->num_of_filled_visual_order) ;
+	ml_str_copy( src , line->chars , line->bidi_state->size) ;
 
 	has_rtl = 0 ;
-	for( counter = 0 ; counter < line->num_of_filled_visual_order ; counter ++)
+	for( counter = 0 ; counter < line->bidi_state->size ; counter ++)
 	{
-	#ifdef  DEBUG
-		if( line->visual_order[counter] >= line->num_of_filled_visual_order)
-		{
-			kik_warn_printf( KIK_DEBUG_TAG
-				" visual order(%d) of %d is illegal.\n" ,
-				line->visual_order[counter] , counter) ;
-				
-			abort() ;
-		}
-	#endif
-
-		if( counter != line->visual_order[counter])
+		if( counter != line->bidi_state->visual_order[counter])
 		{
 			has_rtl = 1 ;
 		}
 
-		ml_char_copy( &line->chars[line->visual_order[counter]] , &src[counter]) ;
+		ml_char_copy( &line->chars[line->bidi_state->visual_order[counter]] , &src[counter]) ;
 	}
 
-	ml_str_final( src , line->num_of_filled_visual_order) ;
+	ml_str_final( src , line->bidi_state->size) ;
 
 	if( has_rtl && IS_MODIFIED(line->flag))
 	{
@@ -1042,16 +1006,16 @@ ml_imgline_bidi_logical(
 	int  counter ;
 	ml_char_t *  src ;
 	
-	if( ! line->visual_order)
+	if( ! line->bidi_state)
 	{
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " visual_order is NULL\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " bidi_state is NULL\n") ;
 	#endif
 
 		return  0 ;
 	}
 
-	if( line->num_of_filled_visual_order == 0)
+	if( line->bidi_state->size == 0)
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " not rendered yet.\n") ;
@@ -1060,30 +1024,19 @@ ml_imgline_bidi_logical(
 		return  0 ;
 	}
 
-	if( ( src = ml_str_alloca( line->num_of_filled_visual_order)) == NULL)
+	if( ( src = ml_str_alloca( line->bidi_state->size)) == NULL)
 	{
 		return  0 ;
 	}
 	
-	ml_str_copy( src , line->chars , line->num_of_filled_visual_order) ;
+	ml_str_copy( src , line->chars , line->bidi_state->size) ;
 
-	for( counter = 0 ; counter < line->num_of_filled_visual_order ; counter ++)
+	for( counter = 0 ; counter < line->bidi_state->size ; counter ++)
 	{
-	#ifdef  DEBUG
-		if( line->visual_order[counter] >= line->num_of_filled_visual_order)
-		{
-			kik_warn_printf( KIK_DEBUG_TAG
-				" visual order(%d) of %d is illegal.\n" ,
-				line->visual_order[counter] , counter) ;
-
-			abort() ;
-		}
-	#endif
-		
-		ml_char_copy( &line->chars[counter] , &src[line->visual_order[counter]]) ;
+		ml_char_copy( &line->chars[counter] , &src[line->bidi_state->visual_order[counter]]) ;
 	}
 
-	ml_str_final( src , line->num_of_filled_visual_order) ;
+	ml_str_final( src , line->bidi_state->size) ;
 
 	/*
 	 * !! Notice !!
@@ -1099,18 +1052,64 @@ ml_bidi_convert_logical_char_index_to_visual(
 	int  char_index
 	)
 {
-	if( ! line->visual_order)
+	if( ! line->bidi_state)
 	{
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " visual_order is NULL\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " bidi_state is NULL\n") ;
 	#endif
 	
 		return  char_index ;
 	}
 	
-	if( 0 <= char_index && char_index < line->num_of_filled_visual_order)
+	if( 0 <= char_index && char_index < line->bidi_state->size)
 	{
-		return  line->visual_order[char_index] ;
+		if( ml_char_bytes_is( &line->chars[char_index] , " " , 1 , US_ASCII))
+		{
+			if( ! line->bidi_state->base_is_rtl && char_index >= 2 &&
+				line->bidi_state->visual_order[char_index - 1] + 1 <
+					line->bidi_state->visual_order[char_index])
+			{
+				int  counter ;
+
+				counter = char_index - 2 ;
+
+				if( line->bidi_state->visual_order[counter] ==
+					line->bidi_state->visual_order[counter + 1] + 1)
+				{
+					for( counter -- ; counter >= 0 ; counter --)
+					{
+						if( line->bidi_state->visual_order[counter] <
+							line->bidi_state->visual_order[counter + 1])
+						{
+							return  line->bidi_state->visual_order[counter] ;
+						}
+					}
+				}
+			}
+			else if( line->bidi_state->base_is_rtl && char_index >= 2 &&
+				line->bidi_state->visual_order[char_index - 1] >
+					line->bidi_state->visual_order[char_index] + 1)
+			{
+				int  counter ;
+
+				counter = char_index - 2 ;
+
+				if( line->bidi_state->visual_order[counter] + 1 ==
+					line->bidi_state->visual_order[counter + 1])
+				{
+					for( counter -- ; counter >= 0 ; counter --)
+					{
+						if( line->bidi_state->visual_order[counter] >
+							line->bidi_state->visual_order[counter + 1])
+						{
+							return  line->bidi_state->visual_order[counter] ;
+						}
+					}
+				}
+			}
+		}
+				
+		return  line->bidi_state->visual_order[char_index] ;
 	}
 	else
 	{
@@ -1126,14 +1125,15 @@ ml_imgline_copy_str(
 	u_int  len
 	)
 {
-	if( line->num_of_filled_visual_order == 0)
+	if( line->bidi_state == NULL || line->bidi_state->size == 0)
 	{
 		return  ml_str_copy( dst , &line->chars[beg] , len) ;
 	}
 	else
 	{
 		/*
-		 * XXX  adhoc !
+		 * XXX
+		 * adhoc implementation.
 		 */
 		 
 		int *  flags ;
@@ -1141,30 +1141,30 @@ ml_imgline_copy_str(
 		int  norm_pos ;
 		int  dst_pos ;
 
-		if( ( flags = alloca( sizeof( int) * line->num_of_filled_visual_order)) == NULL)
+		if( ( flags = alloca( sizeof( int) * line->bidi_state->size)) == NULL)
 		{
 			return  0 ;
 		}
 
-		memset( flags , 0 , sizeof( int) * line->num_of_filled_visual_order) ;
+		memset( flags , 0 , sizeof( int) * line->bidi_state->size) ;
 
 		for( bidi_pos = beg ; bidi_pos < beg + len ; bidi_pos ++)
 		{
-			for( norm_pos = 0 ; norm_pos < line->num_of_filled_visual_order ; norm_pos ++)
+			for( norm_pos = 0 ; norm_pos < line->bidi_state->size ; norm_pos ++)
 			{
-				if( line->visual_order[norm_pos] == bidi_pos)
+				if( line->bidi_state->visual_order[norm_pos] == bidi_pos)
 				{
 					flags[norm_pos] = 1 ;
 				}
 			}
 		}
 
-		for( dst_pos = norm_pos = 0 ; norm_pos < line->num_of_filled_visual_order ; norm_pos ++)
+		for( dst_pos = norm_pos = 0 ; norm_pos < line->bidi_state->size ; norm_pos ++)
 		{
 			if( flags[norm_pos])
 			{
 				ml_char_copy( &dst[dst_pos ++] ,
-					&line->chars[line->visual_order[norm_pos]]) ;
+					&line->chars[line->bidi_state->visual_order[norm_pos]]) ;
 			}
 		}
 

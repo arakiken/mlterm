@@ -6,6 +6,7 @@
 
 #include  <string.h>		/* memset/memcpy */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_util.h>	/* K_MIN */
 
 
 /*
@@ -784,6 +785,30 @@ ml_char_is_comb(
 	)
 {
 	return  IS_COMB(ch->attr) ;
+}
+
+inline int
+ml_char_bytes_is(
+	ml_char_t *  ch ,
+	char *  bytes ,
+	size_t  size ,
+	mkf_charset_t  cs
+	)
+{
+	size_t  ch_size ;
+
+	ch_size = SIZE( ch->attr) ;
+
+	if( ml_char_cs( ch) == cs &&
+		ch_size == size &&
+		memcmp( ml_char_bytes( ch) , bytes , K_MIN(size,ch_size)) == 0)
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }
 
 inline int

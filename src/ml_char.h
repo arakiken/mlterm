@@ -160,6 +160,8 @@ inline int  ml_char_restore_color( ml_char_t *  ch) ;
 
 inline int  ml_char_is_comb( ml_char_t *  ch) ;
 
+inline int  ml_char_bytes_is( ml_char_t *  ch , char *  bytes , size_t  size , mkf_charset_t  cs) ;
+
 inline int  ml_char_bytes_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
 
 #ifdef  DEBUG

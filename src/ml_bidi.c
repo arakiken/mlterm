@@ -19,15 +19,47 @@
 
 /* --- global functions --- */
 
-int
-ml_bidi_support_level(void)
+ml_bidi_state_t *
+ml_bidi_new(void)
 {
+	ml_bidi_state_t *  state ;
+
+	if( ( state = malloc( sizeof( ml_bidi_state_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	state->visual_order = NULL ;
+	state->size = 0 ;
+	state->base_is_rtl = 0 ;
+
+	return  state ;
+}
+
+int
+ml_bidi_delete(
+	ml_bidi_state_t *  state
+	)
+{
+	free( state->visual_order) ;
+	free( state) ;
+
+	return  1 ;
+}
+
+int
+ml_bidi_reset(
+	ml_bidi_state_t *  state
+	)
+{
+	state->size = 0 ;
+
 	return  1 ;
 }
 
 int
 ml_bidi(
-	u_int16_t *  order ,
+	ml_bidi_state_t *  state ,
 	ml_char_t *  src ,
 	u_int  size ,
 	int  cursor_pos
@@ -41,6 +73,9 @@ ml_bidi(
 
 	if( size == 0)
 	{
+		state->size = 0 ;
+		state->base_is_rtl = 0 ;
+		
 		return  1 ;
 	}
 
@@ -146,16 +181,35 @@ ml_bidi(
 	}
 
 end:
+	if( state->size != size)
+	{
+		if( ( state->visual_order = malloc( sizeof( u_int16_t) * size)) == NULL)
+		{
+			return  0 ;
+		}
+
+		state->size = size ;
+	}
+
 	for( counter = 0 ; counter < size ; counter ++)
 	{
-		order[counter] = fri_order[counter] ;
+		state->visual_order[counter] = fri_order[counter] ;
+	}
+
+	if( fri_type == FRIBIDI_TYPE_RTL)
+	{
+		state->base_is_rtl = 1 ;
+	}
+	else
+	{
+		state->base_is_rtl = 0 ;
 	}
 	
 #ifdef  __DEBUG
 	kik_msg_printf( "visual order => ") ;
 	for( counter = 0 ; counter < size ; counter ++)
 	{
-		kik_msg_printf( "%.2d " , order[counter]) ;
+		kik_msg_printf( "%.2d " , state->visual_order[counter]) ;
 	}
 	kik_msg_printf( "\n") ;
 #endif
@@ -163,15 +217,15 @@ end:
 #ifdef  DEBUG
 	for( counter = 0 ; counter < size ; counter ++)
 	{
-		if( order[counter] >= size)
+		if( state->visual_order[counter] >= size)
 		{
 			kik_warn_printf( KIK_DEBUG_TAG " visual order(%d) of %d is illegal.\n" ,
-				order[counter] , counter) ;
+				state->visual_order[counter] , counter) ;
 
 			kik_msg_printf( "returned order => ") ;
 			for( counter = 0 ; counter < size ; counter ++)
 			{
-				kik_msg_printf( "%d " , order[counter]) ;
+				kik_msg_printf( "%d " , state->visual_order[counter]) ;
 			}
 			kik_msg_printf( "\n") ;
 			
@@ -190,15 +244,31 @@ end:
 
 /* --- global functions --- */
 
+ml_bidi_state_t *
+ml_bidi_new(void)
+{
+	return  NULL ;
+}
+
 int
-ml_bidi_support_level(void)
+ml_bidi_delete(
+	ml_bidi_state_t *  state
+	)
+{
+	return  0 ;
+}
+
+int
+ml_bidi_reset(
+	ml_bidi_state_t *  state
+	)
 {
 	return  0 ;
 }
 
 int
 ml_bidi(
-	u_int16_t *  order ,
+	ml_bidi_state_t *  state ,
 	ml_char_t *  src ,
 	u_int  size ,
 	int  cursor_pos

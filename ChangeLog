@@ -1,3 +1,8 @@
+[20020320]
+* cursor movement policy before the meeting point of LTR and RTL characters is changed.
+* character set designated to G1 is unexpectedly changed if enacs=\E)0,smacs=^N,rmacs=^O.
+  fixed.
+
 [20020317]
 * some scrolled out lines aren't bidi rendered. fixed. (Thanks to Nadim Shaikli)
 * login,logout are not used for utmp operations on *BSD.

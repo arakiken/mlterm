@@ -29,15 +29,12 @@ typedef struct  ml_image_line
 	ml_char_t *  chars ;
 
 	/* private */
-	u_int16_t *  visual_order ;		/* for bidi rendering */
+	ml_bidi_state_t *  bidi_state ;
 
 	/* public(readonly) */
 	u_int16_t  num_of_chars ;		/* 0 - 65536 */
 	u_int16_t  num_of_filled_chars ;	/* 0 - 65536 */
 
-	/* private */
-	u_int16_t  num_of_filled_visual_order ;	/* for bidi rendering (0 - 65536) */
-	
 	/* private */
 	u_int16_t  change_beg_char_index ;	/* 0 - 65536 */
 	u_int16_t  change_end_char_index ;	/* 0 - 65536 */

@@ -11,6 +11,11 @@
 #include  "mkf_parser.h"
 
 
+#if  1
+#define  DECSP_HACK
+#endif
+
+
 typedef struct  mkf_iso2022_parser
 {
 	mkf_parser_t  parser ;
@@ -25,7 +30,11 @@ typedef struct  mkf_iso2022_parser
 
 	mkf_charset_t  non_iso2022_cs ;
 
-	int  is_single_shifted ;
+#ifdef  DECSP_HACK
+	int8_t  g1_is_decsp ;
+#endif
+
+	int8_t  is_single_shifted ;
 
 	int  (*non_iso2022_is_started)( struct mkf_iso2022_parser *) ;
 	int  (*next_non_iso2022_byte)( struct mkf_iso2022_parser * , mkf_char_t *) ;

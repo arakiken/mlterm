@@ -487,9 +487,9 @@ bidi_visual_line(
 		{
 			ml_char_copy( &line->chars[line->num_of_filled_chars++] ,
 				&logvis->image->sp_ch) ;
-		}
 
-		need_render = 1 ;
+			need_render = 1 ;
+		}
 	}
 
 	if( ! ml_imgline_is_using_bidi( line))
