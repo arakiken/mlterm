@@ -1,0 +1,29 @@
+.\" mlcc.1   -*- nroff -*-
+.TH MLCC 1 "2004-11-22"
+.SH NAME
+mlcc \- simple configurator for mlterm
+.SH SYNOPSIS
+.B mlcc \fIkey\fR \fIvalue\fR
+.\" ********************************************************************
+.SH DESCRIPTION
+\fBmlcc\fR is a helper to configure \fBmlterm\fR(1) by sending special escape sequences.
+
+.\" ********************************************************************
+.SH ARGUMENTS
+.IP \fIkey\fP 1i
+Specifies the property to set.
+.IP \fIvalue\fP 1i
+Specifies the value for the property.
+.PP
+The valid keys and corresponding values should be listed in doc/en/PROTOCOL.
+
+.SH EXAMPLE
+mlcc fg_color blue
+.\" ********************************************************************
+.SH SEE ALSO
+\fBmlterm\fR(1),
+.\" ********************************************************************
+.SH CONTACT
+Subscribe mlterm-dev-en ML
+(http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en).
+

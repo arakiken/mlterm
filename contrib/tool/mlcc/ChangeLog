@@ -1,4 +1,8 @@
-2003-06-29  MINAMI Hirokazu  <minami@mistfall.net>
+2004-11-21  MINAMI Hirokazu  <minami@mistfall.net>
+
+        * added a dummy manpage (mlcc.1).
+
+2004-11-21  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* added non-interactive mode.
 	ex)
