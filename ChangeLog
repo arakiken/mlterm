@@ -1,5 +1,9 @@
 2004-10-18 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* man/mlterm.1: conf_menu_path -> conf_menu_path_[123].
+
+2004-10-18 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* README, doc/en/PLATFORM: updated supported platforms.
 
 2004-10-18 Seiichi SATO <ssato@sh.rim.or.jp>
