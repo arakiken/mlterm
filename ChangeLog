@@ -1,10 +1,22 @@
 2003-09-14  Araki Ken  <arakiken@users.sf.net>
 
+	* Added mlterm/API.
+
+	* ml_screen.c(ml_screen_set_modified_all): Removed '== NULL'.
+
+	* x_screen.c(flush_scroll_cache): The second and third arguments
+	  of ml_set_modified_lines() if screen->scroll_cache_rows < 0 was reversed.
+	  Fixed.
+	
+	* x_screen.c: Don't use ml_line_updated(). Use ml_term_updated_all() instead.
+
+2003-09-14  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_logical_visual.c(iscii_visual): cleaned and tuned up.
 
 	* ml_term.c, x_screen.c: ml_model_t and ml_logs_t states must not be
 	  modified by x_screen.c, in other words, functions in ml_term.c must
-	  not modify them unless unless these are logicalized in advance.
+	  not modify them unless these are logicalized in advance.
 	  But it was not complied. Fixed.
 
 2003-09-13  Araki Ken  <arakiken@users.sf.net>

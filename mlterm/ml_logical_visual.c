@@ -990,34 +990,37 @@ iscii_visual(
 		}
 		else
 		{
-			int  beg ;
-			int  end ;
-
-			beg = ml_iscii_convert_logical_char_index_to_visual(
-					&iscii_logvis->visual_lines[hit_row] ,
-					ml_line_get_beg_of_modified(line)) ;
-			
-			if( ml_line_is_cleared_to_end( line))
+			if( ml_line_is_modified( line))
 			{
-				end = iscii_logvis->visual_lines[hit_row].num_of_filled_chars ;
-			}
-			else
-			{
-				end = ml_iscii_convert_logical_char_index_to_visual(
-					&iscii_logvis->visual_lines[hit_row] ,
-					ml_line_get_end_of_modified(line)) ;
+				int  beg ;
+				int  end ;
+
+				beg = ml_iscii_convert_logical_char_index_to_visual(
+						&iscii_logvis->visual_lines[hit_row] ,
+						ml_line_get_beg_of_modified(line)) ;
+
+				if( ml_line_is_cleared_to_end( line))
+				{
+					end = iscii_logvis->visual_lines[hit_row].num_of_filled_chars ;
+				}
+				else
+				{
+					end = ml_iscii_convert_logical_char_index_to_visual(
+						&iscii_logvis->visual_lines[hit_row] ,
+						ml_line_get_end_of_modified(line)) ;
+				}
+
+				ml_line_updated( &iscii_logvis->visual_lines[hit_row]) ;
+				ml_line_set_modified( &iscii_logvis->visual_lines[hit_row] , beg , end) ;
 			}
 			
-			ml_line_updated( &iscii_logvis->visual_lines[hit_row]) ;
-			ml_line_set_modified( &iscii_logvis->visual_lines[hit_row] , beg , end) ;
-
 			if( hit_row != row)
 			{
 				ml_line_copy_line( &iscii_logvis->logical_lines[row] , line) ;
 				ml_line_copy_line( &iscii_logvis->visual_lines[row] ,
 					&iscii_logvis->visual_lines[hit_row]) ;
 			}
-			
+						
 			is_cache_active = 1 ;
 		}
 		

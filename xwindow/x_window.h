@@ -234,11 +234,23 @@ int  x_window_is_scrollable( x_window_t *  win) ;
 
 int  x_window_scroll_upward( x_window_t *  win , u_int  height) ;
 
-int  x_window_scroll_upward_region( x_window_t *  win , int  start_y , int  end_y , u_int  height) ;
+int  x_window_scroll_upward_region( x_window_t *  win , int  boundary_start , int  boundary_end ,
+	u_int  height) ;
 
 int  x_window_scroll_downward( x_window_t *  win , u_int  height) ;
 
-int  x_window_scroll_downward_region( x_window_t *  win , int  start_y , int  end_y , u_int  height) ;
+int  x_window_scroll_downward_region( x_window_t *  win , int  boundary_start , int  boundary_end ,
+	u_int  height) ;
+
+int  x_window_scroll_leftward( x_window_t *  win , u_int  width) ;
+	
+int  x_window_scroll_leftward_region( x_window_t *  win , int  boundary_start , int  boundary_end ,
+	u_int  width) ;
+
+int  x_window_scroll_rightward_region( x_window_t *  win , int  boundary_start , int  boundary_end ,
+	u_int  width) ;
+
+int  x_window_scroll_rightward( x_window_t *  win , u_int  width) ;
 
 int  x_window_draw_decsp_string( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , x_color_t *  bg_color , int  x , int  y ,

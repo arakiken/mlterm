@@ -153,6 +153,8 @@ int  ml_term_set_modified_lines( ml_term_t *  term , u_int  beg , u_int  end) ;
 
 int  ml_term_set_modified_all( ml_term_t *  term) ;
 
+int  ml_term_updated_all( ml_term_t *  term) ;
+
 int  ml_term_update_special_visual( ml_term_t *  term) ;
 
 ml_bs_mode_t  ml_term_is_backscrolling( ml_term_t *  term) ;

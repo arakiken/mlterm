@@ -853,6 +853,9 @@ x_window_unset_transparent(
 	return  1 ;
 }
 
+/*
+ * Double buffering.
+ */
 int
 x_window_use_pixmap(
 	x_window_t *  win
@@ -2003,10 +2006,6 @@ x_window_receive_event(
 		
 		if( win->event_mask & VisibilityChangeMask)
 		{
-			/*
-			 * this event is only received if use_pixmap flag is not set in x_window_init.
-			 */
-
 			if( event->xvisibility.state == VisibilityPartiallyObscured)
 			{
 				win->is_scrollable = 0 ;
@@ -2090,31 +2089,25 @@ x_window_is_scrollable(
 }
 
 /*
- * the caller side should clear the scrolled area.
+ * Scroll functions.
+ * The caller side should clear the scrolled area.
  */
+ 
 int
 x_window_scroll_upward(
 	x_window_t *  win ,
-	u_int	height
+	u_int  height
 	)
 {
-	if( ! win->is_scrollable)
-	{
-		return  0 ;
-	}
-	
 	return  x_window_scroll_upward_region( win , 0 , win->height , height) ;
 }
 
-/*
- * the caller side should clear the scrolled out area.
- */
 int
 x_window_scroll_upward_region(
 	x_window_t *  win ,
 	int  boundary_start ,
 	int  boundary_end ,
-	u_int	height
+	u_int  height
 	)
 {
 	if( ! win->is_scrollable)
@@ -2141,32 +2134,21 @@ x_window_scroll_upward_region(
 	return  1 ;
 }
 
-/*
- * the caller side should clear the scrolled out area.
- */
 int
 x_window_scroll_downward(
 	x_window_t *  win ,
-	u_int	height
+	u_int  height
 	)
 {
-	if( ! win->is_scrollable)
-	{
-		return  0 ;
-	}
-	
 	return  x_window_scroll_downward_region( win , 0 , win->height , height) ;
 }
 
-/*
- * the caller side should clear the scrolled out area.
- */
 int
 x_window_scroll_downward_region(
 	x_window_t *  win ,
 	int  boundary_start ,
 	int  boundary_end ,
-	u_int	height
+	u_int  height
 	)
 {
 	if( ! win->is_scrollable)
@@ -2191,6 +2173,87 @@ x_window_scroll_downward_region(
 
 	return  1 ;
 }
+
+int
+x_window_scroll_leftward(
+	x_window_t *  win ,
+	u_int  width
+	)
+{
+	return  x_window_scroll_leftward_region( win , 0 , win->width , width) ;
+}
+
+int
+x_window_scroll_leftward_region(
+	x_window_t *  win ,
+	int  boundary_start ,
+	int  boundary_end ,
+	u_int  width
+	)
+{
+	if( ! win->is_scrollable)
+	{
+		return  0 ;
+	}
+	
+	if( boundary_start < 0 || boundary_end > win->width || boundary_end <= boundary_start + width)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" boundary start %d end %d width %d in window((h) %d (w) %d)\n" ,
+			boundary_start , boundary_end , width , win->height , win->width) ;
+	#endif
+	
+		return  0 ;
+	}
+	
+	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
+		win->margin + boundary_start + width , win->margin ,	/* src */
+		boundary_end - boundary_start - width , win->height ,	/* size */
+		win->margin + boundary_start , win->margin) ;		/* dst */
+
+	return  1 ;
+}
+
+int
+x_window_scroll_rightward(
+	x_window_t *  win ,
+	u_int  width
+	)
+{
+	return  x_window_scroll_rightward_region( win , 0 , win->width , width) ;
+}
+
+int
+x_window_scroll_rightward_region(
+	x_window_t *  win ,
+	int  boundary_start ,
+	int  boundary_end ,
+	u_int  width
+	)
+{
+	if( ! win->is_scrollable)
+	{
+		return  0 ;
+	}
+
+	if( boundary_start < 0 || boundary_end > win->width || boundary_end <= boundary_start + width)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " boundary start %d end %d width %d\n" ,
+			boundary_start , boundary_end , width) ;
+	#endif
+	
+		return  0 ;
+	}
+
+	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
+		win->margin + boundary_start , win->margin ,
+		boundary_end - boundary_start - width , win->height ,
+		win->margin + boundary_start + width , win->margin) ;
+
+	return  1 ;
+}	
 
 int
 x_window_draw_decsp_string(

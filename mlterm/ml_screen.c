@@ -937,12 +937,10 @@ ml_screen_set_modified_all(
 
 	for( row = 0 ; row < ml_edit_get_rows( screen->edit) ; row ++)
 	{
-		if( ( line = ml_screen_get_line_in_screen( screen , row)) == NULL)
+		if( ( line = ml_screen_get_line_in_screen( screen , row)))
 		{
-			return  0 ;
+			ml_line_set_modified_all( line) ;
 		}
-		
-		ml_line_set_modified_all( line) ;
 	}
 
 	return  1 ;

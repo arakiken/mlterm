@@ -627,6 +627,30 @@ ml_term_set_modified_all(
 }
 
 int
+ml_term_updated_all(
+	ml_term_t *  term
+	)
+{
+	int  row ;
+	ml_line_t *  line ;
+
+	ml_screen_logical( term->screen) ;
+
+	for( row = 0 ; row < ml_edit_get_rows( term->screen->edit) ; row ++)
+	{
+		if( ( line = ml_screen_get_line_in_screen( term->screen , row)))
+		{
+			ml_line_updated( line) ;
+		}
+	}
+
+	/* ml_screen_render( term->screen) ; */
+	ml_screen_visual( term->screen) ;
+
+	return  1 ;
+}
+
+int
 ml_term_update_special_visual(
 	ml_term_t *  term
 	)

@@ -1457,36 +1457,79 @@ flush_scroll_cache(
 	
 	if( scroll_actual_screen && x_window_is_scrollable( &screen->window))
 	{
-		int  beg_y ;
-		int  end_y ;
-		u_int  scroll_height ;
-
-		scroll_height = x_line_height( screen) * abs( screen->scroll_cache_rows) ;
-
-		if( scroll_height < screen->window.height)
+		if( ! screen->term->vertical_mode)
 		{
-			beg_y = convert_row_to_y( screen , screen->scroll_cache_boundary_start) ;
-			end_y = beg_y + x_line_height( screen) *
-					(screen->scroll_cache_boundary_end -
-					screen->scroll_cache_boundary_start + 1) ;
+			int  beg_y ;
+			int  end_y ;
+			u_int  scroll_height ;
 
-			if( screen->scroll_cache_rows > 0)
+			scroll_height = x_line_height( screen) * abs( screen->scroll_cache_rows) ;
+
+			if( scroll_height < screen->window.height)
 			{
-				x_window_scroll_upward_region( &screen->window ,
-					beg_y , end_y , scroll_height) ;
+				beg_y = convert_row_to_y( screen , screen->scroll_cache_boundary_start) ;
+				end_y = beg_y + x_line_height( screen) *
+						(screen->scroll_cache_boundary_end -
+						screen->scroll_cache_boundary_start + 1) ;
+
+				if( screen->scroll_cache_rows > 0)
+				{
+					x_window_scroll_upward_region( &screen->window ,
+						beg_y , end_y , scroll_height) ;
+				}
+				else
+				{
+					x_window_scroll_downward_region( &screen->window ,
+						beg_y , end_y , scroll_height) ;
+				}
 			}
+		#if  0
 			else
 			{
-				x_window_scroll_downward_region( &screen->window ,
-					beg_y , end_y , scroll_height) ;
+				x_window_clear_all( &screen->window) ;
 			}
+		#endif
 		}
-	#if  0
 		else
 		{
-			x_window_clear_all( &screen->window) ;
+			int  beg_x ;
+			int  end_x ;
+			u_int  scroll_width ;
+
+			scroll_width = x_col_width( screen) * abs( screen->scroll_cache_rows) ;
+
+			if( scroll_width < screen->window.width)
+			{
+				beg_x = x_col_width( screen) * screen->scroll_cache_boundary_start ;
+				end_x = beg_x + x_col_width( screen) *
+						(screen->scroll_cache_boundary_end -
+						screen->scroll_cache_boundary_start + 1) ;
+						
+				if( screen->term->vertical_mode & VERT_RTL)
+				{
+					end_x = screen->window.width - beg_x ;
+					beg_x = screen->window.width - end_x ;
+					screen->scroll_cache_rows = -(screen->scroll_cache_rows) ;
+				}
+				
+				if( screen->scroll_cache_rows > 0)
+				{
+					x_window_scroll_leftward_region( &screen->window ,
+						beg_x , end_x , scroll_width) ;
+				}
+				else
+				{
+					x_window_scroll_rightward_region( &screen->window ,
+						beg_x , end_x , scroll_width) ;
+				}
+			}
+		#if  0
+			else
+			{
+				x_window_clear_all( &screen->window) ;
+			}
+		#endif
 		}
-	#endif
 	}
 	else
 	{
@@ -1507,8 +1550,9 @@ flush_scroll_cache(
 			/*
 			 * scrolling downward.
 			 */
-			ml_term_set_modified_lines( screen->term , screen->scroll_cache_boundary_end ,
-				screen->scroll_cache_boundary_start - screen->scroll_cache_rows) ;
+			ml_term_set_modified_lines( screen->term ,
+				screen->scroll_cache_boundary_start - screen->scroll_cache_rows ,
+				screen->scroll_cache_boundary_end) ;
 		}
 	}
 
@@ -1575,7 +1619,6 @@ redraw_screen(
 	beg_y = end_y = y = convert_row_to_y( screen , count) ;
 
 	draw_line( screen , line , y) ;
-	ml_line_updated( line) ;
 
 	count ++ ;
 	y += x_line_height( screen) ;
@@ -1590,7 +1633,6 @@ redraw_screen(
 		#endif
 
 			draw_line( screen , line , y) ;
-			ml_line_updated( line) ;
 
 			y += x_line_height( screen) ;
 			end_y = y ;
@@ -1604,6 +1646,8 @@ redraw_screen(
 	}
 
 	x_window_clear_margin_area( &screen->window) ;
+
+	ml_term_updated_all( screen->term) ;
 
 	return  1 ;
 }
@@ -4024,18 +4068,19 @@ font_size_changed(
 		x_col_width( screen) , x_line_height( screen)) ;
 
 	/* screen will redrawn in window_resized() */
-	x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
-		NOTIFY_TO_PARENT) ;
-
-	/*
-	 * !! Notice !!
-	 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
-	 * called , since xconfigure.width , xconfigure.height are the same as the already
-	 * resized window.
-	 */
-	if( screen->window.window_resized)
+	if( x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
+		NOTIFY_TO_PARENT))
 	{
-		(*screen->window.window_resized)( &screen->window) ;
+		/*
+		 * !! Notice !!
+		 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
+		 * called , since xconfigure.width , xconfigure.height are the same as the already
+		 * resized window.
+		 */
+		if( screen->window.window_resized)
+		{
+			(*screen->window.window_resized)( &screen->window) ;
+		}
 	}
 }
 
@@ -4094,18 +4139,19 @@ change_screen_width_ratio(
 	
 	screen->screen_width_ratio = ratio ;
 
-	x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
-		NOTIFY_TO_PARENT) ;
-
-	/*
-	 * !! Notice !!
-	 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
-	 * called , since xconfigure.width , xconfigure.height are the same as the already
-	 * resized window.
-	 */
-	if( screen->window.window_resized)
+	if( x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
+		NOTIFY_TO_PARENT))
 	{
-		(*screen->window.window_resized)( &screen->window) ;
+		/*
+		 * !! Notice !!
+		 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
+		 * called , since xconfigure.width , xconfigure.height are the same as the already
+		 * resized window.
+		 */
+		if( screen->window.window_resized)
+		{
+			(*screen->window.window_resized)( &screen->window) ;
+		}
 	}
 }
 
@@ -4122,18 +4168,19 @@ change_screen_height_ratio(
 	
 	screen->screen_height_ratio = ratio ;
 
-	x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
-		NOTIFY_TO_PARENT) ;
-
-	/*
-	 * !! Notice !!
-	 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
-	 * called , since xconfigure.width , xconfigure.height are the same as the already
-	 * resized window.
-	 */
-	if( screen->window.window_resized)
+	if( x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
+		NOTIFY_TO_PARENT))
 	{
-		(*screen->window.window_resized)( &screen->window) ;
+		/*
+		 * !! Notice !!
+		 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
+		 * called , since xconfigure.width , xconfigure.height are the same as the already
+		 * resized window.
+		 */
+		if( screen->window.window_resized)
+		{
+			(*screen->window.window_resized)( &screen->window) ;
+		}
 	}
 }
 
@@ -4357,18 +4404,19 @@ change_vertical_mode(
 		ml_term_set_modified_all( screen->term) ;
 	}
 	
-	x_window_resize( &screen->window , screen_width(screen) , screen_height(screen) ,
-		NOTIFY_TO_PARENT) ;
-
-	/*
-	 * !! Notice !!
-	 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
-	 * called , since xconfigure.width , xconfigure.height are the same as the already
-	 * resized window.
-	 */
-	if( screen->window.window_resized)
+	if( x_window_resize( &screen->window , screen_width(screen) , screen_height(screen) ,
+		NOTIFY_TO_PARENT))
 	{
-		(*screen->window.window_resized)( &screen->window) ;
+		/*
+		 * !! Notice !!
+		 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
+		 * called , since xconfigure.width , xconfigure.height are the same as the already
+		 * resized window.
+		 */
+		if( screen->window.window_resized)
+		{
+			(*screen->window.window_resized)( &screen->window) ;
+		}
 	}
 }
 
@@ -5782,7 +5830,7 @@ window_scroll_upward_region(
 
 	screen = p ;
 
-	if( screen->term->vertical_mode || ! x_window_is_scrollable( &screen->window))
+	if( ! x_window_is_scrollable( &screen->window))
 	{
 		return  0 ;
 	}
@@ -5806,7 +5854,7 @@ window_scroll_downward_region(
 
 	screen = p ;
 
-	if( screen->term->vertical_mode || ! x_window_is_scrollable( &screen->window))
+	if( ! x_window_is_scrollable( &screen->window))
 	{
 		return  0 ;
 	}
@@ -6027,19 +6075,20 @@ xterm_resize_columns(
 	 * window is redrawn in window_resized().
 	 */
 	
-	x_window_resize( &screen->window , x_col_width(screen) * cols ,
+	if( x_window_resize( &screen->window , x_col_width(screen) * cols ,
 		x_line_height(screen) * ml_term_get_rows(screen->term) ,
-		NOTIFY_TO_PARENT) ;
-
-	/*
-	 * !! Notice !!
-	 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
-	 * called , since xconfigure.width , xconfigure.height are the same as the already
-	 * resized window.
-	 */
-	if( screen->window.window_resized)
+		NOTIFY_TO_PARENT))
 	{
-		(*screen->window.window_resized)( &screen->window) ;
+		/*
+		 * !! Notice !!
+		 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
+		 * called , since xconfigure.width , xconfigure.height are the same as the already
+		 * resized window.
+		 */
+		if( screen->window.window_resized)
+		{
+			(*screen->window.window_resized)( &screen->window) ;
+		}
 	}
 }
 
