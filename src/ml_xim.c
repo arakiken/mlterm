@@ -244,7 +244,7 @@ ml_get_xim(
 	char *  xmod ;
 	char *  cur_locale ;
 
-	if( strcmp( xim_locale , "C") == 0)
+	if( xim_locale != NULL && strcmp( xim_locale , "C") == 0)
 	{
 		return  NULL ;
 	}
