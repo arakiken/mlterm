@@ -88,7 +88,7 @@ version 20030301
   pty_name = <pty dev> | <pty title>
 
 * Note
-  o Encoding names are regularized , that is , `-' , `-' are removed , and only
+  o Encoding names are regularized , that is , `-' , `_' are removed , and only
     upper case letters are used. But encoding names which are not regularized
     can be used in ESC ] 5379 ; encoding= <value> BEL sequence by secondary
     effect.
@@ -101,5 +101,5 @@ version 20030301
   o It is configuration programs themselves that search ~/.mlterm/xim and
     ${SYSCONFDIR}/mlterm/xim files for pairs of xim name and its preferable
     locale.
-  o If /dev/... specified with 'pty_name' key, <pty title> is returned.
+  o If /dev/... is specified with 'pty_name' key, <pty title> is returned.
     Otherwise, <pty dev> returned.
