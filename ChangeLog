@@ -1,3 +1,10 @@
+2003-03-01 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Changed the way how to choose pty in mlconfig
+	  from button array to combobox, in order to avoid
+	  extremely wide mlconfig window when many ptys are
+	  opened.
+
 2003-02-27 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Added mc_flush() for buttons of font larger/smaller,

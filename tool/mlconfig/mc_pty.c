@@ -9,8 +9,10 @@
 #include  <stdlib.h>	/* malloc */
 #include  <kiklib/kik_str.h>	/* kik_str_sep */
 
+#include  "mc_combo.h"
 #include  "mc_io.h"
 
+#define MAX_TERMS 32 /* this must coincide with xwindow/x_term_manager.c */
 
 /* --- static variables --- */
 
@@ -21,15 +23,12 @@ static char *  old_pty ;
 /* --- static functions --- */
 
 static gint
-button_toggled(
+selected(
 	GtkWidget *  widget ,
 	gpointer  data
 	)
 {
-	if( GTK_TOGGLE_BUTTON(widget)->active)
-	{
-		new_pty = (char *)data ;
-	}
+	new_pty = gtk_entry_get_text(GTK_ENTRY(widget));
 
 	return  1 ;
 }
@@ -40,52 +39,29 @@ button_toggled(
 GtkWidget *
 mc_pty_config_widget_new(void)
 {
-	GtkWidget *  hbox ;
-	GtkWidget *  radio ;
-	GSList *  group ;
 	char *  my_pty ;
 	char *  pty_list ;
 	char *  dev ;
+	char *  ptys[MAX_TERMS];
+	int num;
 
 	my_pty = mc_get_str_value( "pty_name") ;
 	pty_list = mc_get_str_value( "pty_list") ;
 
-	if( my_pty == NULL || ( dev = kik_str_sep( &my_pty , ":")) == NULL || strlen( dev) <= 5)
-	{
-		return  NULL ;
+	if (my_pty == NULL) return NULL;
+	if (strlen(my_pty) <= 5) return NULL;
+
+	for (num = 0; pty_list; num++) {
+		ptys[num] = pty_list + 5;
+		pty_list = strchr(pty_list, ':');
+		if (pty_list) *pty_list = 0; else break;
+		pty_list = strchr(pty_list + 1, ';');
+		if (pty_list) pty_list++;
 	}
 
-	dev = strdup( dev + 5) ;
-	
-	hbox = gtk_hbox_new( FALSE , 0) ;
-	group = NULL ;
+	new_pty = old_pty = strdup(my_pty + 5);
 
-	radio = gtk_radio_button_new_with_label( group , dev) ;
-	group = gtk_radio_button_group( GTK_RADIO_BUTTON(radio)) ;
-	gtk_signal_connect(GTK_OBJECT(radio) , "toggled" ,
-		GTK_SIGNAL_FUNC(button_toggled) , dev) ;
-	gtk_widget_show(radio) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , radio , FALSE , FALSE , 0) ;
-	
-	new_pty = old_pty = dev ;
-
-	while( pty_list && ( dev = kik_str_sep( &pty_list , ":")) && pty_list)
-	{
-		if( *pty_list == '0' && strlen( dev) > 5)
-		{
-			dev = strdup( dev + 5) ;
-			radio = gtk_radio_button_new_with_label( group , dev) ;
-			group = gtk_radio_button_group( GTK_RADIO_BUTTON(radio)) ;
-			gtk_signal_connect(GTK_OBJECT(radio) , "toggled" ,
-				GTK_SIGNAL_FUNC(button_toggled) , dev) ;
-			gtk_widget_show(radio) ;
-			gtk_box_pack_start(GTK_BOX(hbox) , radio , FALSE , FALSE , 0) ;
-		}
-
-		pty_list += 2 ;
-	}
-
-	return  hbox ;
+	return mc_combo_new("", ptys, num, new_pty, 1, selected, NULL);
 }
 
 void
