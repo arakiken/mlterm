@@ -1,3 +1,9 @@
+[20020421]
+* ml_picture_dep.[ch], where graphic library dependent codes are implements, is separated 
+  from ml_picture.c.
+* if larger number than 0 is specified for --lsp, underlines cannot be cleared. fixed.
+  (Thanks to Nanashi san)
+
 [20020414]
 * 2.4.0 release
 

@@ -20,6 +20,8 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-ind            libind[disabled]"
 ac_help="$ac_help
+  --enable-gdk-pixbuf     gdk-pixbuf[disabled]"
+ac_help="$ac_help
   --enable-imlib          imlib[disabled]"
 ac_help="$ac_help
   --enable-anti-alias     anti alias[disabled]"
@@ -593,6 +595,12 @@ fi
 # Check whether --enable-ind or --disable-ind was given.
 if test "${enable_ind+set}" = set; then
   enableval="$enable_ind"
+  :
+fi
+
+# Check whether --enable-gdk-pixbuf or --disable-gdk-pixbuf was given.
+if test "${enable_gdk_pixbuf+set}" = set; then
+  enableval="$enable_gdk_pixbuf"
   :
 fi
 
