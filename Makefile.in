@@ -1,17 +1,18 @@
-BUILD_TOPDIR = .
+MAKE_DIRS=@MAKE_DIRS@
 
 all .DEFAULT:
-	cd kiklib/autoconf ; $(MAKE) $@
-	cd mkf/autoconf ; $(MAKE) $@
-	cd autoconf ; $(MAKE) $@
+	if [ -d kiklib ]; then cd kiklib ; $(MAKE) $@ ; fi
+	if [ -d mkf ]; then cd mkf ; $(MAKE) $@ ; fi
+	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) ; done
 
 install:
-	cd kiklib/autoconf ; $(MAKE) install-la
-	cd mkf/autoconf ; $(MAKE) install-la
-	cd autoconf ; $(MAKE) install
+	if [ -d kiklib ]; then cd kiklib ; $(MAKE) install-la ; fi
+	if [ -d mkf ]; then cd mkf ; $(MAKE) install-la ; fi
+	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) ; done
 
-distclean:
-	-cd kiklib/autoconf ; $(MAKE) $@
-	-cd mkf/autoconf ; $(MAKE) $@
-	-cd autoconf ; $(MAKE) $@
-	rm -f Makefile config.log config.cache config.status mkf/kiklib
+distclean: clean
+	rm -f config.log config.cache config.status libtool Makefile common/config.h
+
+	if [ -d kiklib ]; then cd kiklib ; $(MAKE) $@ ; fi
+	if [ -d mkf ]; then cd mkf ; $(MAKE) $@ ; fi
+	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) ; done

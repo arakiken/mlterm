@@ -1,20 +1,18 @@
-BUILD_TOPDIR = ../..
-
+top_builddir = ../..
+top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
-
-SRC_TOPDIR = @SRC_TOPDIR@
 
 DESTDIR = 
 PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
-VPATH = ${SRC_TOPDIR}/scrollbar/sample
+VPATH = ${top_srcdir}/scrollbar/sample
 
 SAMPLE_OBJ = x_sample_sb_view.o x_transparent_sample_sb_view.o x_sample_sb_view_lib.o 
 SAMPLE2_OBJ = x_sample2_sb_view.o x_transparent_sample2_sb_view.o x_sample_sb_view_lib.o
-CFLAGS = $(CFLAGS_LOCAL) -I$(SRC_TOPDIR)/xwindow @CFLAGS@ -I/usr/X11R6/include -I/usr/include/include
+CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @CFLAGS@ -I/usr/X11R6/include -I/usr/include/include
 
 CC = @CC@
 INSTALL = @INSTALL@
@@ -45,3 +43,6 @@ install: $(LIBDIR)
 clean:
 	rm -rf $(SAMPLE_OBJ) $(SAMPLE_OBJ:.o=.lo) $(SAMPLE2_OBJ) $(SAMPLE2_OBJ:.o=.lo) \
 		libsample.la libsample2.la *.core .libs
+
+distclean: clean
+	rm -f Makefile

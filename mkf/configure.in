@@ -1,14 +1,6 @@
 AC_INIT()
 
-is_abs=`echo ${top_srcdir-$srcdir} | sed -n 's/^\/.*/yes/p'`
-if test "$is_abs" = "" ; then
-	SRC_TOPDIR='${BUILD_TOPDIR}'/autoconf/${top_srcdir-$srcdir}/..
-else
-	SRC_TOPDIR=${top_srcdir-$srcdir}/..
-fi
-AC_SUBST(SRC_TOPDIR)
-
-AC_CONFIG_AUX_DIR(${top_srcdir-$srcdir})
+AC_CONFIG_AUX_DIR(script)
 
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -20,12 +12,13 @@ if test "${libtool}" != "" ; then
 	LIBTOOL=${libtool}
 else
 	AM_PROG_LIBTOOL
-	LIBTOOL='${BUILD_TOPDIR}/autoconf/libtool'
+	LIBTOOL='${top_builddir}/libtool'
 fi
 AC_SUBST(LIBTOOL)
 
-if test -d ../kiklib ; then
-	KIK_CFLAGS='-I${BUILD_TOPDIR}/kiklib/include'
+if test -d ${top_srcdir-$srcdir}/kiklib ; then
+	KIK_CFLAGS='-I${top_builddir}/kiklib/include'
+	SUBDIRS="kiklib"
 fi
 AC_SUBST(KIK_CFLAGS)
 
@@ -37,4 +30,9 @@ if test "$debug" = "yes" ; then
 fi
 AC_SUBST(DEB_CFLAGS)
 
-AC_OUTPUT(Makefile ../lib/Makefile)
+# This should be uncommented if mkf and kiklib alone are distributed in a package.
+#if test "${SUBDIRS}" != "" ; then
+#	AC_CONFIG_SUBDIRS(${SUBDIRS})
+#fi
+
+AC_OUTPUT(Makefile lib/Makefile)

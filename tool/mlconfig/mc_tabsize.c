@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -56,7 +57,7 @@ mc_tabsize_config_widget_new(
 
 	selected_tabsize = tabsize ;
 
-	return  mc_combo_new_with_width( "Tab width (columns)", tabsizes,
+	return  mc_combo_new_with_width( _("Tab width (columns)"), tabsizes,
 		sizeof(tabsizes) / sizeof(tabsizes[0]),
 		selected_tabsize, 0, tabsize_selected, NULL, 80);
 }

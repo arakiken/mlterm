@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -59,7 +60,7 @@ mc_line_space_config_widget_new(
 
 	selected_line_space = line_space ;
 
-	return  mc_combo_new_with_width("Line space (pixels)", line_spaces,
+	return  mc_combo_new_with_width(_("Line space (pixels)"), line_spaces,
 		sizeof(line_spaces) / sizeof(line_spaces[0]),
 		selected_line_space, 0, line_space_selected, NULL , 80);
 }

@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -63,7 +64,7 @@ mc_fontsize_config_widget_new(
 		selected_fontsize = fontsize ;
 	}
 
-	return  mc_combo_new_with_width("Font size (pixels)", fontlist,
+	return  mc_combo_new_with_width(_("Font size (pixels)"), fontlist,
 		sizeof(fontlist) / sizeof(fontlist[0]), fontsize, 1,
 		fontsize_selected, NULL, 80) ;
 }

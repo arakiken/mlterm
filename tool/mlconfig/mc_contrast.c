@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -63,7 +64,7 @@ mc_contrast_config_widget_new(
 
 	selected_contrast = contrast ;
 
-	return  mc_combo_new_with_width("Contrast", contrasts,
+	return  mc_combo_new_with_width(_("Contrast"), contrasts,
 		sizeof(contrasts) / sizeof(contrasts[0]), 
 		selected_contrast, 0, contrast_selected , NULL , 50);
 }

@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -95,7 +96,7 @@ mc_screen_width_ratio_config_widget_new(
 {
 	selected_screen_width_ratio = ratio ;
 
-	return  config_widget_new( "Width" , ratio , screen_width_ratio_selected) ;
+	return  config_widget_new(_("Width") , ratio , screen_width_ratio_selected) ;
 }
 
 GtkWidget *
@@ -105,7 +106,7 @@ mc_screen_height_ratio_config_widget_new(
 {
 	selected_screen_height_ratio = ratio ;
 
-	return  config_widget_new( "Height" , ratio , screen_height_ratio_selected) ;
+	return  config_widget_new(_("Height") , ratio , screen_height_ratio_selected) ;
 }
 
 char *

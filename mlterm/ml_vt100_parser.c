@@ -277,6 +277,10 @@ put_char(
 	{
 		if( vt100_parser->buffer.len == 0)
 		{
+			/*
+			 * ml_line_set_modified() is done in ml_screen_combine_with_prev_char()
+			 * internally.
+			 */
 			if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
 				ch , len , vt100_parser->cs , is_biwidth , is_comb ,
 				fg_color , bg_color ,
@@ -310,7 +314,7 @@ put_char(
 		/*
 		 * Arabic combining
 		 */
-		 
+
 		ml_char_t *  prev2 ;
 		ml_char_t *  prev ;
 		ml_char_t *  cur ;
@@ -341,7 +345,7 @@ put_char(
 			prev2 = ml_screen_get_n_prev_char( vt100_parser->screen , ++n) ;
 		}
 		
-		if( ml_is_arabic_combining( NULL , prev2 , prev , cur))
+		if( ml_is_arabic_combining( prev2 , prev , cur))
 		{
 			if( vt100_parser->buffer.len >= 2)
 			{
@@ -355,6 +359,10 @@ put_char(
 			}
 			else
 			{
+				/*
+				 * ml_line_set_modified() is done in ml_screen_combine_with_prev_char()
+				 * internally.
+				 */
 				if( ml_screen_combine_with_prev_char( vt100_parser->screen ,
 					ch , len , vt100_parser->cs , is_biwidth , is_comb ,
 					fg_color , bg_color ,
@@ -365,8 +373,6 @@ put_char(
 			}
 		}
 	}
-	
-	return ;
 }
 
 

@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -65,7 +66,7 @@ mc_iscii_lang_config_widget_new(
 	
 	selected_iscii_lang = iscii_lang ;
 
-	return  mc_combo_new( "ISCII language" , iscii_langs , sizeof(iscii_langs) / sizeof(iscii_langs[0]) ,
+	return  mc_combo_new( _("ISCII language") , iscii_langs , sizeof(iscii_langs) / sizeof(iscii_langs[0]) ,
 		selected_iscii_lang , 1 , iscii_lang_selected , NULL) ;
 }
 

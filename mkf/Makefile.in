@@ -1,0 +1,7 @@
+BUILD_TOPDIR = ..
+
+all .DEFAULT:
+	cd lib ; $(MAKE) $@
+
+distclean : clean
+	rm -f Makefile config.log config.cache config.status libtool config.mk lib/Makefile

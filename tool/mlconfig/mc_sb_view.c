@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -60,7 +61,7 @@ mc_sb_view_config_widget_new(
 
 	selected_sb_view_name = sb_view_name ;
 
-	return  mc_combo_new( "View" , sb_view_names ,
+	return  mc_combo_new( _("View") , sb_view_names ,
 		sizeof(sb_view_names) / sizeof(sb_view_names[0]) ,
 		selected_sb_view_name , 0 , sb_view_name_selected , NULL) ;
 }

@@ -1,17 +1,7 @@
 AC_INIT()
 
-AC_CONFIG_HEADER(../src/kik_config.h)
-
-is_abs=`echo ${top_srcdir-$srcdir} | sed -n 's/^\/.*/yes/p'`
-if test "$is_abs" = "" ; then
-	SRC_TOPDIR='${BUILD_TOPDIR}'/autoconf/${top_srcdir-$srcdir}/..
-else
-	SRC_TOPDIR=${top_srcdir-$srcdir}/..
-fi
-
-AC_SUBST(SRC_TOPDIR)
-
-AC_CONFIG_AUX_DIR(${top_srcdir-$srcdir})
+AC_CONFIG_HEADER(src/kik_config.h)
+AC_CONFIG_AUX_DIR(script)
 
 AC_PROG_CC
 # if --with-libtool is specified, cpp isn't detected.
@@ -25,7 +15,7 @@ if test "${libtool}" != "" ; then
 	LIBTOOL=${libtool}
 else
 	AM_PROG_LIBTOOL
-	LIBTOOL='${BUILD_TOPDIR}/autoconf/libtool'
+	LIBTOOL='${top_builddir}/libtool'
 fi
 AC_SUBST(LIBTOOL)
 
@@ -136,4 +126,4 @@ if test "$debug" = "yes" ; then
 fi
 AC_SUBST(DEB_CFLAGS)
 
-AC_OUTPUT(Makefile ../src/Makefile)
+AC_OUTPUT(Makefile src/Makefile)

@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -57,7 +58,7 @@ mc_logsize_config_widget_new(
 
 	selected_logsize = logsize ;
 
-	return  mc_combo_new_with_width("Backlog size (lines)", logsizes,
+	return  mc_combo_new_with_width(_("Backlog size (lines)"), logsizes,
 		sizeof(logsizes) / sizeof(logsizes[0]),
 		selected_logsize, 0, logsize_selected, NULL, 80);
 }

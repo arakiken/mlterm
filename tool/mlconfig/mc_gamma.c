@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -63,7 +64,7 @@ mc_gamma_config_widget_new(
 
 	selected_gamma = gamma ;
 
-	return  mc_combo_new_with_width("Gamma", gammas,
+	return  mc_combo_new_with_width(_("Gamma"), gammas,
 		sizeof(gammas) / sizeof(gammas[0]), 
 		selected_gamma, 0, gamma_selected , NULL , 50);
 }

@@ -1,12 +1,10 @@
-BUILD_TOPDIR = ../..
-
+top_builddir = ../..
+top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 
-SRC_TOPDIR = @SRC_TOPDIR@
-
-VPATH = ${SRC_TOPDIR}/tool/mlclient
+VPATH = ${top_srcdir}/tool/mlclient
 
 CC = @CC@
 CFLAGS = @KIK_CFLAGS@ @CFLAGS@
@@ -31,6 +29,9 @@ $(PROG): $(OBJ)
 
 clean:
 	rm -f $(OBJ) $(PROG) $(PROG).core
+
+distclean: clean
+	rm -f Makefile
 
 install:
 	$(INSTALL) -m 755 $(PROG) $(BINDIR)

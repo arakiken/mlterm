@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -131,7 +132,7 @@ mc_fg_color_config_widget_new(
 {
 	selected_fg_color = color ;
 	
-	return  config_widget_new( "Foreground color" , color , fg_color_selected) ;
+	return  config_widget_new( _("Foreground color") , color , fg_color_selected) ;
 }
 
 GtkWidget *
@@ -141,7 +142,7 @@ mc_bg_color_config_widget_new(
 {
 	selected_bg_color = color ;
 	
-	return  config_widget_new( "" , color , bg_color_selected) ;
+	return  config_widget_new(_("Background color") , color , bg_color_selected) ;
 }
 
 GtkWidget *
@@ -151,7 +152,7 @@ mc_sb_fg_color_config_widget_new(
 {
 	selected_sb_fg_color = color ;
 	
-	return  config_widget_new( "Foreground color" , color , sb_fg_color_selected) ;
+	return  config_widget_new( _("Foreground color") , color , sb_fg_color_selected) ;
 }
 
 GtkWidget *
@@ -161,7 +162,7 @@ mc_sb_bg_color_config_widget_new(
 {
 	selected_sb_bg_color = color ;
 	
-	return  config_widget_new( "Background color" , color , sb_bg_color_selected) ;
+	return  config_widget_new( _("Background color") , color , sb_bg_color_selected) ;
 }
 
 char *

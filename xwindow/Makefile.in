@@ -1,12 +1,10 @@
-BUILD_TOPDIR = ..
-
+top_builddir = ..
+top_srcdir = @top_srcdir@
 prefix = @prefix@
 sysconfdir = @sysconfdir@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 libdir = @libdir@
-
-SRC_TOPDIR = @SRC_TOPDIR@
 
 CC = @CC@
 LIBTOOL = @LIBTOOL@
@@ -17,7 +15,7 @@ BINDIR = $(DESTDIR)$(bindir)
 LIBDIR = $(DESTDIR)$(libdir)
 SYSCONFDIR = $(sysconfdir)
 
-VPATH = $(SRC_TOPDIR)/xwindow
+VPATH = $(top_srcdir)/xwindow
 
 OBJ = x_window_manager.o x_window.o x_screen.o x_xim.o x_xic.o x_color_manager.o \
 	x_font_manager.o x_scrollbar.o x_sb_screen.o x_picture.o x_font.o \
@@ -35,7 +33,7 @@ LMKF_DEB = -lmkf_deb
 CFLAGS=$(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ \
        @IMAGELIB_CFLAGS@ @XUTF8_CFLAGS@ @CFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
-	-I$(SRC_TOPDIR)/mlterm -I/usr/X11R6/include -I/usr/local/include
+	-I$(top_srcdir)/mlterm -I/usr/X11R6/include -I/usr/local/include
 
 LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @X_EXTRA_LIBS@ \
 	-lX11 $(LMLTERM) $(LMKF) $(LKIK) \
@@ -72,3 +70,5 @@ wc :
 clean:
 	rm -rf $(PROG) *.core $(OBJ) .libs
 
+distclean: clean
+	rm -f Makefile

@@ -5,6 +5,7 @@
 #include  "mc_bgtype.h"
 
 #include  <glib.h>
+#include  <ml_intl.h>
 
 
 #if  0
@@ -95,14 +96,14 @@ mc_bgtype_config_widget_new(
     picture = bgpicture;
     group = NULL;
 
-    frame = gtk_frame_new("Background type");
+    frame = gtk_frame_new(_("Background type"));
     vbox = gtk_vbox_new(TRUE, 2);
     gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
     gtk_container_add(GTK_CONTAINER(frame), vbox);
     gtk_widget_show(vbox);
 
     /* color button */
-    radio = gtk_radio_button_new_with_label(group, "Color");
+    radio = gtk_radio_button_new_with_label(group, _("Color"));
     group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
     gtk_signal_connect(GTK_OBJECT(radio), "toggled",
 		       GTK_SIGNAL_FUNC(button_color_checked), NULL);
@@ -116,7 +117,7 @@ mc_bgtype_config_widget_new(
     gtk_box_pack_start(GTK_BOX(hbox), color, TRUE, TRUE, 0);
 
     /* picture button */
-    radio = gtk_radio_button_new_with_label(group, "Picture");
+    radio = gtk_radio_button_new_with_label(group, _("Picture"));
     group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
     gtk_signal_connect(GTK_OBJECT(radio), "toggled", 
 		       GTK_SIGNAL_FUNC(button_picture_checked), NULL);
@@ -133,7 +134,7 @@ mc_bgtype_config_widget_new(
 #endif
 
     /* transparent button */
-    radio = gtk_radio_button_new_with_label(group, "Transparent");
+    radio = gtk_radio_button_new_with_label(group, _("Transparent"));
     group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
     gtk_signal_connect(GTK_OBJECT(radio), "toggled",
 		       GTK_SIGNAL_FUNC(button_transparent_checked), NULL);

@@ -6,9 +6,9 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
-
 
 #if  0
 #define  __DEBUG
@@ -170,7 +170,7 @@ mc_char_encoding_config_widget_new(
 {
 	selected_encoding = unregularized( encoding) ;
 
-	return  mc_combo_new("Encoding", encodings,
+	return  mc_combo_new(_("Encoding"), encodings,
 			     sizeof(encodings) / sizeof(encodings[0]),
 			     selected_encoding, 1, encoding_selected, NULL);
 }

@@ -5,6 +5,7 @@
 #include  "mc_bel.h"
 
 #include  <glib.h>
+#include  <ml_intl.h>
 
 
 #if  0
@@ -80,13 +81,13 @@ mc_bel_config_widget_new(
 
 	hbox = gtk_hbox_new(FALSE , 0) ;
 
-	label = gtk_label_new( " Bel mode ") ;
+	label = gtk_label_new( _(" Bel mode ")) ;
 	gtk_widget_show(label) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 0) ;
 	
 	group = NULL ;
 
-	radio = gtk_radio_button_new_with_label( group , "None") ;
+	radio = gtk_radio_button_new_with_label( group , _("None")) ;
 	group = gtk_radio_button_group( GTK_RADIO_BUTTON(radio)) ;
 	gtk_signal_connect(GTK_OBJECT(radio) , "toggled" , GTK_SIGNAL_FUNC(button_none_checked) , NULL) ;
 	gtk_widget_show(GTK_WIDGET(radio)) ;
@@ -97,7 +98,7 @@ mc_bel_config_widget_new(
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 
-	radio = gtk_radio_button_new_with_label( group , "Sound") ;
+	radio = gtk_radio_button_new_with_label( group , _("Sound")) ;
 	group = gtk_radio_button_group( GTK_RADIO_BUTTON(radio)) ;
 	gtk_signal_connect(GTK_OBJECT(radio) , "toggled" , GTK_SIGNAL_FUNC(button_sound_checked) , NULL) ;
 	gtk_widget_show(GTK_WIDGET(radio)) ;
@@ -108,7 +109,7 @@ mc_bel_config_widget_new(
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 	
-	radio = gtk_radio_button_new_with_label( group , "Visual") ;
+	radio = gtk_radio_button_new_with_label( group , _("Visual")) ;
 	group = gtk_radio_button_group( GTK_RADIO_BUTTON(radio)) ;
 	gtk_signal_connect(GTK_OBJECT(radio) , "toggled" , GTK_SIGNAL_FUNC(button_visual_checked) , NULL) ;
 	gtk_widget_show(GTK_WIDGET(radio)) ;

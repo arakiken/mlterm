@@ -8,6 +8,8 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>
 
+#include  <ml_intl.h>
+
 #include  "mc_char_encoding.h"
 #include  "mc_color.h"
 #include  "mc_bgtype.h"
@@ -218,17 +220,17 @@ apply_cancel_button(
 	hbox = gtk_hbox_new(FALSE , 5) ;
 	gtk_widget_show(hbox) ;
 
-	button = gtk_button_new_with_label("OK") ;
+	button = gtk_button_new_with_label(_("OK")) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(ok_clicked) , NULL) ;
 	gtk_widget_show(button) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
 
-	button = gtk_button_new_with_label("Apply") ;
+	button = gtk_button_new_with_label(_("Apply")) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(apply_clicked) , NULL) ;
 	gtk_widget_show(button) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
 
-	button = gtk_button_new_with_label("Cancel") ;
+	button = gtk_button_new_with_label(_("Cancel")) ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(cancel_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
@@ -244,7 +246,7 @@ font_large_small(void)
 	GtkWidget * hbox;
 	GtkWidget * button;
 
-	frame = gtk_frame_new("Font size") ;
+	frame = gtk_frame_new(_("Font size")) ;
 	gtk_widget_show(frame) ;
 
 	hbox = gtk_hbox_new( FALSE , 5) ;
@@ -252,12 +254,12 @@ font_large_small(void)
 	gtk_widget_show(hbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
 
-	button = gtk_button_new_with_label("Larger") ;
+	button = gtk_button_new_with_label(_("Larger")) ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(larger_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
 
-	button = gtk_button_new_with_label("Smaller") ;
+	button = gtk_button_new_with_label(_("Smaller")) ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(smaller_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
@@ -272,7 +274,7 @@ full_reset(void)
 	GtkWidget *  hbox ;
 	GtkWidget *  button ;
 
-	frame = gtk_frame_new( "Full reset") ;
+	frame = gtk_frame_new( _("Full reset")) ;
 	gtk_widget_show(frame) ;
 
 	hbox = gtk_hbox_new( FALSE , 5) ;
@@ -280,7 +282,7 @@ full_reset(void)
 	gtk_widget_show(hbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
 
-	button = gtk_button_new_with_label( "Full reset") ;
+	button = gtk_button_new_with_label( _("Full reset")) ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(full_reset_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
@@ -307,7 +309,7 @@ show(void)
 	window = gtk_window_new( GTK_WINDOW_TOPLEVEL) ;
 	gtk_signal_connect( GTK_OBJECT(window) , "delete_event" ,
 		GTK_SIGNAL_FUNC(end_application) , NULL) ;
-	gtk_window_set_title( GTK_WINDOW(window) , "mlterm configuration") ;
+	gtk_window_set_title( GTK_WINDOW(window) , _("mlterm configuration")) ;
 	gtk_container_set_border_width( GTK_CONTAINER(window) , 0) ;
 
 	vbox = gtk_vbox_new( FALSE , 10) ;
@@ -341,7 +343,7 @@ show(void)
 
 	/* contents of the "Encoding" tab */
 
-	label = gtk_label_new("Encoding");
+	label = gtk_label_new(_("Encoding"));
 	gtk_widget_show(label);
 	vbox = gtk_vbox_new(FALSE, 3);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
@@ -377,7 +379,7 @@ show(void)
 
 
 	if (!(use_bidi_check = mc_check_config_widget_new(
-		   "Bidi (UTF8 only)", mc_get_flag_value( "use_bidi"))))
+		   _("Bidi (UTF8 only)"), mc_get_flag_value( "use_bidi"))))
 	    return 0;
 #ifndef USE_FRIBIDI
 	gtk_widget_set_sensitive(use_bidi_check, 0);
@@ -387,14 +389,14 @@ show(void)
 
 
 	if(!(use_comb_check = mc_check_config_widget_new(
-		  "Combining", mc_get_flag_value("use_combining"))))
+		  _("Combining"), mc_get_flag_value("use_combining"))))
 	    return 0;
 	gtk_widget_show(use_comb_check);
 	gtk_box_pack_start(GTK_BOX(hbox), use_comb_check, TRUE, TRUE , 0);
 
 
 	if (!(receive_string_via_ucs_check = mc_check_config_widget_new(
-		   "Process received strings via Unicode" , 
+		   _("Process received strings via Unicode") , 
 		   mc_get_flag_value( "receive_string_via_ucs"))))
 	    return 0;
 	gtk_widget_show(receive_string_via_ucs_check);
@@ -404,7 +406,7 @@ show(void)
 
 	/* contents of the "Font" tab */
 
-	label = gtk_label_new("Font");
+	label = gtk_label_new(_("Font"));
 	gtk_widget_show(label);
 	vbox = gtk_vbox_new(FALSE, 3);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
@@ -424,7 +426,7 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
-	frame = gtk_frame_new("Screen ratio against font size");
+	frame = gtk_frame_new(_("Screen ratio against font size"));
 	gtk_widget_show(frame);
 	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
 	hbox = gtk_hbox_new(FALSE, 5);
@@ -460,7 +462,7 @@ show(void)
 	
 
 	if (!(use_aa_check = mc_check_config_widget_new(
-		   "Anti Alias", mc_get_flag_value("use_anti_alias"))))
+		   _("Anti Alias"), mc_get_flag_value("use_anti_alias"))))
 	    return 0;
 #ifndef ANTI_ALIAS
 	gtk_widget_set_sensitive(use_aa_check, 0);
@@ -470,7 +472,7 @@ show(void)
 
 
 	if (!(use_vcol_check = mc_check_config_widget_new(
-		   "Variable column width" , 
+		   _("Variable column width") , 
 		   mc_get_flag_value( "use_variable_column_width"))))
 	    return 0;
 	gtk_widget_show(use_vcol_check);
@@ -479,7 +481,7 @@ show(void)
 
 	/* contents of the "Background" tab */
 	
-	label = gtk_label_new("Background");
+	label = gtk_label_new(_("Background"));
 	gtk_widget_show(label);
 	vbox = gtk_vbox_new(FALSE, 3);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
@@ -503,7 +505,7 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
-	frame = gtk_frame_new("Picture/Transparent");
+	frame = gtk_frame_new(_("Picture/Transparent"));
 	gtk_widget_show(frame);
 	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
 	vbox2 = gtk_vbox_new(FALSE, 3);
@@ -541,7 +543,7 @@ show(void)
 
 	/* contents of the "Scrollbar" tab */
 	
-	label = gtk_label_new("Scrollbar");
+	label = gtk_label_new(_("Scrollbar"));
 	gtk_widget_show(label);
 	vbox = gtk_vbox_new(FALSE, 3);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
@@ -574,7 +576,7 @@ show(void)
 	
 	/* contents of the "Others" tab */
 
-	label = gtk_label_new("Others");
+	label = gtk_label_new(_("Others"));
 	gtk_widget_show(label);
 	vbox = gtk_vbox_new(FALSE, 3);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
@@ -612,7 +614,7 @@ show(void)
 
 
 	if (!(use_dynamic_comb_check = mc_check_config_widget_new(
-		   "Combining = 1 (or 0) logical column(s)",
+		   _("Combining = 1 (or 0) logical column(s)"),
 		   mc_get_flag_value("use_dynamic_comb")))) return 0;
 	gtk_widget_show(use_dynamic_comb_check);
 	gtk_box_pack_start(GTK_BOX(vbox), use_dynamic_comb_check,
@@ -620,7 +622,7 @@ show(void)
 
 
 	if (!(use_multi_col_char_check = mc_check_config_widget_new(
-		   "Fullwidth = 2 (or 1) logical column(s)",
+		   _("Fullwidth = 2 (or 1) logical column(s)"),
 		   mc_get_flag_value("use_multi_column_char")))) return 0;
 	gtk_widget_show(use_multi_col_char_check);
 	gtk_box_pack_start(GTK_BOX(vbox), use_multi_col_char_check,
@@ -645,9 +647,14 @@ main(
 	char **  argv
 	)
 {
+	gtk_set_locale ();
+
+	bindtextdomain( "mlconfig" , LOCALEDIR) ;
+	textdomain( "mlconfig") ;
+
 	gtk_init( &argc , &argv) ;
 
-	if( show() == 0)
+ 	if( show() == 0)
 	{
 		kik_msg_printf( "Starting mlconfig failed.\n") ;
 		

@@ -5,6 +5,7 @@
 #include  "mc_wall_pic.h"
 
 #include  <glib.h>
+#include  <ml_intl.h>
 
 
 /* --- static functions --- */
@@ -74,7 +75,7 @@ mc_wall_pic_config_widget_new(
 	gtk_widget_show(hbox) ;
  
 #if 0
-	label = gtk_label_new( "Picture") ;
+	label = gtk_label_new(_("Picture")) ;
 	gtk_widget_show( label) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 5) ;
 #endif
@@ -84,7 +85,7 @@ mc_wall_pic_config_widget_new(
 	gtk_box_pack_start( GTK_BOX(hbox) , entry , TRUE , TRUE , 2) ;
 	gtk_entry_set_text( GTK_ENTRY(entry) , wall_pic) ;
 	
-	button = gtk_button_new_with_label( " Select ") ;
+	button = gtk_button_new_with_label( _(" Select ")) ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(button_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;

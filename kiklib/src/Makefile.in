@@ -1,18 +1,16 @@
-BUILD_TOPDIR = ..
-
+top_builddir = ..
+top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
-
-SRC_TOPDIR = @SRC_TOPDIR@
 
 PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)
 INCDIR = $(DESTDIR)$(prefix)/include
 
-VPATH = $(SRC_TOPDIR)/src
+VPATH = $(top_srcdir)/src
 
-INCDIR_TMP = $(BUILD_TOPDIR)/include
+INCDIR_TMP = $(top_builddir)/include
 
 CC = @CC@
 INSTALL = @INSTALL@
@@ -71,7 +69,7 @@ $(INCDIR_TMP)/kiklib :
 	mkdir -p $(INCDIR_TMP)/kiklib
 
 collect-headers: $(INCDIR_TMP)/kiklib
-	for file in $(INC) ; do cp $(SRC_TOPDIR)/src/$${file} $(INCDIR_TMP)/kiklib ; done
+	for file in $(INC) ; do cp $(top_srcdir)/src/$${file} $(INCDIR_TMP)/kiklib ; done
 	cp kik_config.h $(INCDIR_TMP)/kiklib
 
 wc :

@@ -590,20 +590,17 @@ comb_visual(
 		int  dst_pos ;
 		int  src_pos ;
 		ml_char_t *  cur ;
-		ml_char_t *  prev ;
-		ml_char_t *  prev2 ;
 
 		line = ml_model_get_line( logvis->model , row) ;
 		
 		dst_pos = 0 ;
-		prev = NULL ;
-		prev2 = NULL ;
 		cur = line->chars ;
 		for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
 		{
-			if( prev && (ml_char_is_comb( cur) || ml_is_arabic_combining( NULL, prev2 , prev , cur)))
+			if( dst_pos > 0 && (ml_char_is_comb( cur) ||
+				ml_is_arabic_combining( dst_pos >= 2 ? &line->chars[dst_pos - 2] : NULL ,
+					&line->chars[dst_pos - 1] , cur)))
 			{
-				/* dst_pos must be over 0 since 'prev' is not NULL */
 				ml_combine_chars( &line->chars[dst_pos - 1] , cur) ;
 
 			#if  0
@@ -646,9 +643,7 @@ comb_visual(
 							logvis->cursor->char_index , 0) +
 							logvis->cursor->col_in_char ;
 			}
-
-			prev2 = prev ;
-			prev = cur ;
+			
 			cur ++ ;
 		}
 
@@ -782,18 +777,15 @@ comb_visual_line(
 	int  dst_pos ;
 	int  src_pos ;
 	ml_char_t *  cur ;
-	ml_char_t *  prev ;
-	ml_char_t *  prev2 ;
 
 	dst_pos = 0 ;
-	prev = NULL ;
-	prev2 = NULL ;
 	cur = line->chars ;
 	for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
 	{
-		if( prev && (ml_char_is_comb( cur) || ml_is_arabic_combining( NULL, prev2 , prev , cur)))
+		if( dst_pos > 0 && (ml_char_is_comb( cur) ||
+			ml_is_arabic_combining( dst_pos >= 2 ? &line->chars[dst_pos - 2] : NULL ,
+				&line->chars[dst_pos - 1] , cur)))
 		{
-			/* dst_pos must be over 0 since 'prev' is not NULL */
 			ml_combine_chars( &line->chars[dst_pos - 1] , cur) ;
 		}
 		else
@@ -801,8 +793,6 @@ comb_visual_line(
 			ml_char_copy( &line->chars[dst_pos ++] , cur) ;
 		}
 
-		prev2 = prev ;
-		prev = cur ;
 		cur ++ ;
 	}
 

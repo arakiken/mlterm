@@ -1,0 +1,28 @@
+# List of source files containing translatable strings.
+# Copyright (C) 2002 Turbolinux Inc.
+
+# mlconfig - configuration tool
+tool/mlconfig/main.c
+tool/mlconfig/mc_bel.c
+tool/mlconfig/mc_bgtype.c
+tool/mlconfig/mc_brightness.c
+tool/mlconfig/mc_char_encoding.c
+tool/mlconfig/mc_check.c
+tool/mlconfig/mc_color.c
+tool/mlconfig/mc_combo.c
+tool/mlconfig/mc_contrast.c
+tool/mlconfig/mc_fade.c
+tool/mlconfig/mc_fontsize.c
+tool/mlconfig/mc_gamma.c
+tool/mlconfig/mc_io.c
+tool/mlconfig/mc_iscii_lang.c
+tool/mlconfig/mc_line_space.c
+tool/mlconfig/mc_logsize.c
+tool/mlconfig/mc_mod_meta.c
+tool/mlconfig/mc_sb.c
+tool/mlconfig/mc_sb_view.c
+tool/mlconfig/mc_screen_ratio.c
+tool/mlconfig/mc_tabsize.c
+tool/mlconfig/mc_vertical.c
+tool/mlconfig/mc_wall_pic.c
+tool/mlconfig/mc_xim.c

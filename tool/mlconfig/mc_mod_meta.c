@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 
 #if  0
@@ -81,13 +82,13 @@ mc_mod_meta_config_widget_new(
 
 	hbox = gtk_hbox_new(FALSE , 0) ;
 
-	label = gtk_label_new( "Meta key outputs:") ;
+	label = gtk_label_new( _("Meta key outputs:")) ;
 	gtk_widget_show(label) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 0) ;
 	
 	group = NULL ;
 
-	radio = gtk_radio_button_new_with_label( group , "None") ;
+	radio = gtk_radio_button_new_with_label( group , _("None")) ;
 	group = gtk_radio_button_group( GTK_RADIO_BUTTON(radio)) ;
 	gtk_signal_connect(GTK_OBJECT(radio) , "toggled" , GTK_SIGNAL_FUNC(button_none_checked) , NULL) ;
 	gtk_widget_show(GTK_WIDGET(radio)) ;
@@ -98,7 +99,7 @@ mc_mod_meta_config_widget_new(
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 
-	radio = gtk_radio_button_new_with_label( group , "Esc") ;
+	radio = gtk_radio_button_new_with_label( group , _("Esc")) ;
 	group = gtk_radio_button_group( GTK_RADIO_BUTTON(radio)) ;
 	gtk_signal_connect(GTK_OBJECT(radio) , "toggled" , GTK_SIGNAL_FUNC(button_esc_checked) , NULL) ;
 	gtk_widget_show(GTK_WIDGET(radio)) ;
@@ -109,7 +110,7 @@ mc_mod_meta_config_widget_new(
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 	
-	radio = gtk_radio_button_new_with_label( group , "8bit") ;
+	radio = gtk_radio_button_new_with_label( group , _("8bit")) ;
 	group = gtk_radio_button_group( GTK_RADIO_BUTTON(radio)) ;
 	gtk_signal_connect(GTK_OBJECT(radio) , "toggled" , GTK_SIGNAL_FUNC(button_8bit_checked) , NULL) ;
 	gtk_widget_show(GTK_WIDGET(radio)) ;

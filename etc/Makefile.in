@@ -1,9 +1,7 @@
-BUILD_TOPDIR = ..
-
-prefix=@prefix@
-sysconfdir=@sysconfdir@
-
-SRC_TOPDIR = @SRC_TOPDIR@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+sysconfdir = @sysconfdir@
 
 DESTDIR=
 SYSCONFDIR=$(DESTDIR)$(sysconfdir)/mlterm
@@ -19,4 +17,4 @@ $(SYSCONFDIR):
 	mkdir -p $(SYSCONFDIR)
 
 install: $(SYSCONFDIR)
-	for file in $(RCFILES) ; do $(INSTALL) -m 644 $(SRC_TOPDIR)/etc/$${file} $(SYSCONFDIR)/$${file} ; done
+	for file in $(RCFILES) ; do $(INSTALL) -m 644 $(top_srcdir)/etc/$${file} $(SYSCONFDIR)/$${file} ; done

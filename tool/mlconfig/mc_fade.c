@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -63,7 +64,7 @@ mc_fade_config_widget_new(
 
 	selected_fade_ratio = fade_ratio ;
 
-	return  mc_combo_new_with_width("Fade ratio on unfocus", fade_ratios,
+	return  mc_combo_new_with_width(_("Fade ratio on unfocus"), fade_ratios,
 		sizeof(fade_ratios) / sizeof(fade_ratios[0]),
 		selected_fade_ratio, 0, fade_ratio_selected, NULL, 80);
 }

@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
+#include  <ml_intl.h>
 
 #include  "mc_combo.h"
 
@@ -63,7 +64,7 @@ mc_brightness_config_widget_new(
 
 	selected_brightness = brightness ;
 
-	return  mc_combo_new_with_width("Brightness", brightnesss,
+	return  mc_combo_new_with_width(_("Brightness"), brightnesss,
 		sizeof(brightnesss) / sizeof(brightnesss[0]), 
 		selected_brightness, 0,	brightness_selected , NULL , 50);
 }

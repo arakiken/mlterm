@@ -1,10 +1,8 @@
-BUILD_TOPDIR = ..
-
+top_builddir = ..
+top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
-
-SRC_TOPDIR = @SRC_TOPDIR@
 
 CC = @CC@
 LIBTOOL = @LIBTOOL@
@@ -14,9 +12,9 @@ PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)
 INCDIR = $(DESTDIR)$(prefix)/include
 
-VPATH = $(SRC_TOPDIR)/lib
+VPATH = $(top_srcdir)/lib
 
-INCDIR_TMP = $(BUILD_TOPDIR)/include
+INCDIR_TMP = $(top_builddir)/include
 
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @CFLAGS@ -I/usr/local/include
 LIBS = $(LIBS_LOCAL)
@@ -76,7 +74,7 @@ $(INCDIR_TMP)/mkf :
 	mkdir -p $(INCDIR_TMP)/mkf
 
 collect-headers : $(INCDIR_TMP)/mkf
-	for file in $(INC) ; do cp $(SRC_TOPDIR)/lib/$${file} $(INCDIR_TMP)/mkf ; done
+	for file in $(INC) ; do cp $(top_srcdir)/lib/$${file} $(INCDIR_TMP)/mkf ; done
 
 install: install-inc install-la
 

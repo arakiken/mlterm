@@ -1,11 +1,9 @@
-BUILD_TOPDIR = ..
-
+top_builddir = ..
+top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
 libexecdir = @libexecdir@
-
-SRC_TOPDIR = @SRC_TOPDIR@
 
 CC = @CC@
 LIBTOOL = @LIBTOOL@
@@ -16,9 +14,7 @@ LIBDIR = $(DESTDIR)$(libdir)
 INCDIR = $(DESTDIR)$(PREFIX)/include
 LIBEXECDIR = $(libexecdir)
 
-VPATH = $(SRC_TOPDIR)/mlterm
-
-INCDIR_TMP = $(BUILD_TOPDIR)/include
+VPATH = $(top_srcdir)/mlterm
 
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ \
 	@UTMP_CFLAGS@ @CFLAGS@ -I/usr/local/include -DLIBEXECDIR=\"$(LIBEXECDIR)\"
@@ -51,6 +47,9 @@ install :
 
 clean :
 	rm -rf $(OBJ) $(OBJ:.o=.lo) .libs *.a
+
+distclean: clean
+	rm -f Makefile
 
 wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
