@@ -1,3 +1,7 @@
+[20020220]
+* utmp,wtmp operation by login,logout,logwtmp is supported on both 
+  Linux/glibc2 and *BSD. (Thanks to Minami Hirokazu san)
+
 [20020219]
 * performance of utf8 + bidi mode without fribidi is improved.
 * if scroll region is changed multiple times , scroll can fail. fixed.
@@ -5,8 +9,8 @@
 
 [20020218]
 * mlclient appends extra white space for ipc message. fixed.
-* character background color under transparent mode is drawn if it is different
-  from Window background color.(Thanks to KATO Kazuyoshi san)
+* character background color which is different from Window background one
+  is not drawn under transparent mode. fixed. (Thanks to KATO Kazuyoshi san)
 * mlconf_curses is updated (2002/02/18 version). 
   (Thanks to Minami Hirokazu san)
 
@@ -21,18 +25,17 @@
 
 [20020216]
 * typo fixed. (Thanks to Mike Fabian)
-* cleanup
 
 [20020215]
 * New documents(doc/ja/README.server,doc/ja/README.tate) are added and doc/ja/README.ja
-  doc/en/PROTOCOL doc/en/History is updated.
+  doc/en/PROTOCOL doc/en/History are updated.
 
 [20020215]
-* cleanup
+* code clean up
 
 [20020215]
 * ImlibData is created and managed for each Display.
-* exsiting test of socklen_t fails because of my typo. fixed. (Thanks to Sakamoto Hironori san)
+* existing test of socklen_t fails because of my typo. fixed. (Thanks to Sakamoto Hironori san)
 
 [20020214]
 * some bugs around utmp are fixed. (Thanks to Mike Fabian)
@@ -42,7 +45,7 @@
 * utmper is supported. (Thanks to Mike Fabian)
 
 [20020213]
-* before starting daemon , whether /tmp/mlterm.unix is exists or not is checked.
+* before starting daemon , whether /tmp/mlterm.unix exists or not is checked.
   and it is also unlinked when mlterm server exits.
 
 [20020213]
@@ -56,7 +59,7 @@
 * -e option fails for memory allocation. fixed. (Thanks to Nekoie san)
 * mlterm with -j and -P 0 options can start without X.
 * mlterm can manage multiple display connections.
-* compilation failed around socket on HP-UX 10.20. fixed.
+* compilation fails around socket on HP-UX 10.20. fixed.
 
 [20020211]
 * daemon mode is supported and -j/--daemon/daemon_mode option is added.
