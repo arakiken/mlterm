@@ -180,6 +180,9 @@ ml_keymap_match(
 	
 	if( keymap->map[func].state != 0)
 	{
+		/* ingoring except ModMask / ControlMask / ShiftMask */
+		state &= (ModMask | ControlMask | ShiftMask) ;
+	
 		if( state & ModMask)
 		{
 			/* all ModNMasks are set. */

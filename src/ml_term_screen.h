@@ -2,10 +2,6 @@
  *	$Id$
  */
 
-/*
- * Managing Terminal Window.
- */
-
 #ifndef  __ML_TERM_SCREEN_H__
 #define  __ML_TERM_SCREEN_H__
 

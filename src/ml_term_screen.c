@@ -540,6 +540,8 @@ unhighlight_cursor(
 
 /*
  * {enter|exit}_backscroll_mode() and bs_XXX() functions provides backscroll operations.
+ *
+ * Similar processing is done in ml_term_screen_scroll_{upward|downward|to}().
  */
  
 static void
@@ -760,6 +762,12 @@ write_to_pty(
 	{
 		return ;
 	}
+
+	/*
+	 * this is necessary since ml_image_t or ml_logs_t is changed.
+	 */
+	restore_selected_region_color( termscr) ;
+	exit_backscroll_mode( termscr) ;
 	
 	if( parser && str)
 	{
@@ -1224,6 +1232,9 @@ window_resized(
 	
 	termscr = (ml_term_screen_t *) win ;
 
+	/*
+	 * this is necessary since ml_image_t size is changed.
+	 */
 	restore_selected_region_color( termscr) ;
 	exit_backscroll_mode( termscr) ;
 
@@ -1542,7 +1553,7 @@ key_pressed(
 	{
 		if( ksym == XK_Prior)
 		{
-			if( event->state == ShiftMask)
+			if( event->state & ShiftMask)
 			{
 				bs_half_page_downward( termscr) ;
 			}
@@ -1553,7 +1564,7 @@ key_pressed(
 		}
 		else if( ksym == XK_Next)
 		{
-			if( event->state == ShiftMask)
+			if( event->state & ShiftMask)
 			{
 				bs_half_page_upward( termscr) ;
 			}
@@ -1578,9 +1589,7 @@ key_pressed(
 		{
 			/* any string except Modifiers(X11/keysymdefs.h) */
 
-			restore_selected_region_color( termscr) ;
 			exit_backscroll_mode( termscr) ;
-
 			redraw_image( termscr) ;
 
 			if( size > 0)
@@ -1591,8 +1600,6 @@ key_pressed(
 	}
 	else
 	{
-		restore_selected_region_color( termscr) ;
-
 		if( termscr->mod_meta_mask & event->state)
 		{
 			if( termscr->mod_meta_mode == MOD_META_OUTPUT_ESC)
@@ -2554,7 +2561,7 @@ button_pressed(
 
 		selecting_line( termscr , event->y , event->time) ;
 	}
-	else if( event->button == 3 && event->state == ControlMask)
+	else if( event->button == 3 && (event->state & ControlMask))
 	{
 		config_menu( termscr , event->x , event->y) ;
 	}
@@ -2563,11 +2570,11 @@ button_pressed(
 		/* wheel mouse */
 		
 		enter_backscroll_mode(termscr) ;
-		if( event->state == ShiftMask)
+		if( event->state & ShiftMask)
 		{
 			bs_scroll_downward(termscr) ;
 		}
-		else if( event->state == ControlMask)
+		else if( event->state & ControlMask)
 		{
 			bs_page_downward(termscr) ;
 		} 
@@ -2581,11 +2588,11 @@ button_pressed(
 		/* wheel mouse */
 		
 		enter_backscroll_mode(termscr) ;
-		if( event->state == ShiftMask)
+		if( event->state & ShiftMask)
 		{
 			bs_scroll_upward(termscr) ;
 		}
-		else if( event->state == ControlMask)
+		else if( event->state & ControlMask)
 		{
 			bs_page_upward(termscr) ;
 		} 
@@ -2761,9 +2768,6 @@ font_size_changed(
 	ml_term_screen_t *  termscr
 	)
 {
-	restore_selected_region_color( termscr) ;
-	exit_backscroll_mode( termscr) ;
-
 	if( HAS_SCROLL_LISTENER(termscr,line_height_changed))
 	{
 		(*termscr->screen_scroll_listener->line_height_changed)(
@@ -3009,6 +3013,9 @@ change_log_size(
 
 	termscr = p ;
 
+	/*
+	 * this is necesary since ml_logs_t size is changed.
+	 */
 	restore_selected_region_color( termscr) ;
 	exit_backscroll_mode( termscr) ;
 	
@@ -4228,6 +4235,8 @@ ml_set_screen_scroll_listener(
 
 /*
  * for scrollbar scroll.
+ *
+ * Similar processing is done in bs_xxx().
  */
  
 int
@@ -4236,16 +4245,18 @@ ml_term_screen_scroll_upward(
 	u_int  size
 	)
 {
-	restore_selected_region_color( termscr) ;
-
+	unhighlight_cursor( termscr) ;
+	
 	if( ! ml_is_backscroll_mode( &termscr->bs_image))
 	{
 		enter_backscroll_mode( termscr) ;
 	}
 
 	ml_bs_scroll_upward( &termscr->bs_image , size) ;
+	
 	redraw_image( termscr) ;
-
+	highlight_cursor( termscr) ;
+	
 	return  1 ;
 }
 
@@ -4255,15 +4266,17 @@ ml_term_screen_scroll_downward(
 	u_int  size
 	)
 {
-	restore_selected_region_color( termscr) ;
-
+	unhighlight_cursor( termscr) ;
+	
 	if( ! ml_is_backscroll_mode( &termscr->bs_image))
 	{
 		enter_backscroll_mode( termscr) ;
 	}
 
 	ml_bs_scroll_downward( &termscr->bs_image , size) ;
+
 	redraw_image( termscr) ;
+	highlight_cursor( termscr) ;
 
 	return  1 ;
 }
@@ -4274,7 +4287,7 @@ ml_term_screen_scroll_to(
 	int  row
 	)
 {
-	restore_selected_region_color( termscr) ;
+	unhighlight_cursor( termscr) ;
 
 	if( ! ml_is_backscroll_mode( &termscr->bs_image))
 	{
@@ -4282,7 +4295,9 @@ ml_term_screen_scroll_to(
 	}
 	
 	ml_bs_scroll_to( &termscr->bs_image , row) ;
+
 	redraw_image( termscr) ;
+	highlight_cursor( termscr) ;
 
 	return  1 ;
 }

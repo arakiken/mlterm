@@ -91,6 +91,8 @@ EOF
 <input type=submit name="SUBMIT" value="Apply">
 &nbsp;
 <input type=submit name="SUBMIT" value="Cancel">
+&nbsp;
+<input type=reset value="Reset">
 <table border=1>
 <tr><td>Font size<br>
 <input type=submit name="fontsize_larger" value="Larger">
@@ -126,9 +128,9 @@ sub make_section {
 		print "<tr>";
 	}
 	print <<EOF;
-<td align=center valign=top width="50%">
+<td align=left valign=top rowspan=$attr->{row}>
 <b>$attr->{title}</b>
-<table>
+<table width=240>
 EOF
 	for $k (@{$attr->{key}}) {
 		&make_key($k);
@@ -148,6 +150,8 @@ sub make_key {
 		print "<tr>";
 		if ($type =~ /^checkbox/ || $type =~ /^none/) {
 			print "<td colspan=2>\n";
+		} elsif ($type =~ /^radio/) {
+			print "<td colspan=2><nobr>$attr->{title}\n";
 		} else {
 			print "<td><nobr>$attr->{title}</nobr>\n";
 			print "<td>";
@@ -171,12 +175,13 @@ sub make_key {
 		print "</select>\n";
 	} elsif ($type =~ /^radio/) {
 		for $i (@{$attr->{item}}) {
-			print "<nobr><input type=radio name=\"$k\" value=\"$i\"";
+			print "<input type=radio name=\"$k\" value=\"$i\"";
 			if ($value->{$k} eq "$i") {
 				print " checked";
 			}
-			print ">$item_attr->{$k}{$i}</nobr>\n";
+			print ">$item_attr->{$k}{$i}\n";
 		}
+		print "</nobr>\n";
 	} elsif ($type =~ /^checkbox/) {
 		print "<input type=checkbox name=\"$k\" value=\"true\"";
 		if ($value->{$k} eq "true") {

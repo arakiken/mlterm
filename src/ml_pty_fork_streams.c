@@ -201,6 +201,9 @@ ml_pty_fork(
 			close(slave) ;
 		}
 
+		cfsetispeed( &tio , B9600) ;
+		cfsetospeed( &tio , B9600) ;
+
 		if( tcsetattr(STDIN_FILENO, TCSANOW , &tio) < 0)
 		{
 		#ifdef  DEBUG

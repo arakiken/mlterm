@@ -1,0 +1,3 @@
+fontsize	text:digit	16	0	Font size
+use_variable_column_width	checkbox	false	0	Variable column width
+use_anti_alias	checkbox	false	0	Anti Alias

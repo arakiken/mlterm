@@ -1,3 +1,5 @@
+screen_width_ratio	text:digit	100	0	Width ratio
+screen_height_ratio	text:digit	100	0	Height ratio
 tabsize		text:digit	8	0	Tab size
 logsize		text:digit	128	0	Log size
 mod_meta_mode	radio:lower	none	0	Mod Meta mode

@@ -243,6 +243,9 @@ ml_pty_fork(
 		}
 	}
 
+	cfsetispeed( &tio , B9600) ;
+	cfsetospeed( &tio , B9600) ;
+
 	if( tcsetattr( *master , TCSANOW , &tio) < 0)
 	{
 	#ifdef  DEBUG
