@@ -2787,7 +2787,7 @@ x_window_set_icon(
 		return 0 ;
 	}
 
-	if (! x_picture_load_icon( win ,
+	if (! x_picdep_load_icon( win ,
 				   file_path,
 				   &cardinal,
 				   &icon,

@@ -119,13 +119,3 @@ x_picture_modifier_is_normal(
 		return  0 ;
 	}
 }
-
-int x_picture_load_icon(
-	x_window_t * win,
-	char * path,
-	u_int32_t **cardinal,
-	Pixmap *pixmap,
-	Pixmap *mask)
-{
-	return x_picdep_load_icon( win, path, cardinal, pixmap, mask) ;
-}
