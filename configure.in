@@ -248,12 +248,22 @@ mlconfig)
 	if test "${gtk_config}" = "yes" ; then
 		MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
 		OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
+	else
+		echo ""
+		echo "** WARNING  **"
+		echo " couldn't compile mlconfig since headers/libraries of GTK are missing."
+		echo ""
 	fi
 	;;
 mlterm-menu)
 	if test "${gtk_config}" = "yes" ; then
 		MAKE_DIRS="contrib/tool/mlterm-menu ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
+	else
+		echo ""
+		echo "** WARNING  **"
+		echo " couldn't compile mlterm-menu since headers/libraries of GTK are missing."
+		echo ""
 	fi
 	;;
 mlclient)

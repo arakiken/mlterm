@@ -1,3 +1,14 @@
+2004-03-12  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* tools/mltconfig/po/Makevars:
+	set subdir to the correct relative path.
+	(SF#906977. Thanks to Min Sik Kim )
+
+2004-03-09  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* configure.in: warn if some tools cannot be compiled
+	due to the lack of gtk headers.
+
 2004-03-05  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* added --enable-dnd configure option[default=yes].
