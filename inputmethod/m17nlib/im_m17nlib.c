@@ -151,6 +151,7 @@ xksym_to_msymbol(
 		if( is_shift && ( 'a' <= buf[0] && buf[0] <= 'z'))
 		{
 			buf[0] += ( 'A' - 'a') ;
+			is_shift = 0 ;
 		}
 
 		return  msymbol( buf) ;
@@ -742,7 +743,10 @@ key_event(
 		return  1 ;
 	}
 
-	mkey = xksym_to_msymbol( m17nlib , ksym , event->state) ;
+	if( ( mkey = xksym_to_msymbol( m17nlib , ksym , event->state)) == Mnil)
+	{
+		return  1 ;
+	}
 
 	if( minput_filter( m17nlib->input_context , mkey , Mnil))
 	{

@@ -1,5 +1,11 @@
 2004-10-27 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/m17nlib/im_m17nlib.c (key_event): ingore invalid
+	key event. Thanks to Kenichi Handa for report.
+	<http://sourceforge.net/mailarchive/message.php?msg_id=9893670>
+
+2004-10-27 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* xwindow/x_screen.c, xwindow/x_im.c, xwindow/x_im.h,
 	  inputmethod/m17nlib/im_m17nlib.c, inputmethod/iiimf/im_iiimf.c,
 	  inputmethod/kbd/im_kbd.c:
