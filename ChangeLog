@@ -1,3 +1,8 @@
+2002-04-29 MINAMI Hirokazu <minami@chem.s.u-tokyo.ac.jp>
+
+	* Added documentations for background picture processing.
+	  (doc/*/README.picdep)
+
 2002-04-28 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Fixed several typos in the manpage.
