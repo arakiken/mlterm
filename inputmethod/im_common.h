@@ -26,7 +26,7 @@ im_convert_encoding(
 
 #define  UNIT__ 32
 
-	while( ! parser->is_eos)
+	while( 1)
 	{
 		u_char *  p ;
 
@@ -46,7 +46,9 @@ im_convert_encoding(
 
 		*to = p ;
 
-		p = *to + len ;
+		p += len ;
+
+		parser->is_eos = 0 ;
 
 		filled_len = (*conv->convert)( conv , p , UNIT__ , parser) ;
 

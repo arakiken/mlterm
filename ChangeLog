@@ -1,5 +1,11 @@
 2004-10-17 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/iiimf/im_iiimf.c: minor cleanups.
+
+	* inputmethod/im_common.h: fixed a minor bug.
+
+2004-10-17 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* inputmethod/iiimf/im_iiimf.c: hide a status window when conversion
 	  mode is off.
 

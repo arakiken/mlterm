@@ -103,7 +103,7 @@ strlen_utf16(
 	const IIIMP_card16 *  str
 	)
 {
-	int  len = 0 ;
+	size_t  len = 0 ;
 
 	if( ! str)
 	{
@@ -120,7 +120,7 @@ strlen_utf16(
 		}
 	}
 
-	return  (size_t) len ;
+	return  len ;
 }
 
 static IIIMCF_language
