@@ -1,5 +1,12 @@
 2004-10-14 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* x_xim.c: fixed a segfault.
+	  how to reproduce:
+	  $ LANG=UNSUPPORTED_LOCALE mlterm --im=foo
+	  switch input method
+
+2004-10-14 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* inputmethod/m17nlib/im_m17nlib.c (im_new):
 	  - fixed a segfault with an invalid parameter.
 	    (e.g., --im=m17nlib:non_supported_lang)

@@ -233,10 +233,16 @@ search_xim(
 
 	for( count = 0 ; count < num_of_xims ; count ++)
 	{
-		if( strcmp( xims[count].name , xim_name) == 0 &&
-		    XDisplayOfIM( xims[count].im) == display)
+		if( strcmp( xims[count].name , xim_name) == 0)
 		{
-			return  &xims[count] ;
+			if( ! xims[count].im)
+			{
+				return  &xims[count] ;
+			}
+			else if( XDisplayOfIM( xims[count].im) == display)
+			{
+				return  &xims[count] ;
+			}
 		}
 	}
 
