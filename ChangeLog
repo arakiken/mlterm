@@ -4,6 +4,10 @@
 
 2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* man/mlterm.1: fixed typo.
+
+2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* x_im.c, x_main_config.c, x_screen.c, tool/mlconfig/mc_im.c:
 	allowed "input_method=none".
 
@@ -12,7 +16,7 @@
 2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* tool/mlconfig/mc_im.c, tool/mlconfig/Makefile.in:
-	- get available conversion engines from libuim directory.
+	- get available conversion engines from libuim directly.
 	- added IIIMF support.
 
 	* man/mlterm.1: added IIIMF related things into 'GUI CONFIGURATOR'
@@ -90,9 +94,9 @@
 	* inputmethod/iiimf/Makefile.in: new file
 
 	How to use:
-	--im=iiimf .............  use IIIMF with the default language.
-	--im=iiimf:ar ..........  use IIIMF with Arabic.
-	--im=iiimf:ja:CannaLE ..  use IIIMF with Japanese using CannaLE
+	--im=iiimf .............  use IIIMF in the default language.
+	--im=iiimf:ar ..........  use IIIMF in Arabic.
+	--im=iiimf:ja:CannaLE ..  use IIIMF in Japanese using CannaLE
 	                          languages engine.
 
 	about IIIMF:
