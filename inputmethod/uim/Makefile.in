@@ -8,7 +8,7 @@ DESTDIR =
 PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
-VPATH = ${top_srcdir}/xwindow/im/uim
+VPATH = ${top_srcdir}/inputmethod/uim
 
 IM_UIM_OBJ = im_uim.o
 

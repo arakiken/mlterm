@@ -38,7 +38,7 @@ typedef struct im_uim
 
 	mkf_parser_t *  parser_uim ;	/* for uim encoding  */
 	mkf_parser_t *  parser_term ;	/* for term encoding  */
-	mkf_conv_t *  conv ;		/* uim -> term */
+	mkf_conv_t *  conv ;
 
 }  im_uim_t ;
 
@@ -594,7 +594,7 @@ preedit_pushback(
 	}
 	else
 	{
-		str = _str ;
+		str = (u_char*)_str ;
 	}
 
 	/*
@@ -1141,7 +1141,7 @@ im_new(
 	char *  encoding_name ;
 	ml_char_encoding_t  encoding ;
 
-	if( magic != (u_int32_t) IM_API_COMPAT_CHECK_MAGIC)
+	if( magic != (u_int64_t) IM_API_COMPAT_CHECK_MAGIC)
 	{
 		kik_error_printf( "Incompatible input method API.\n") ;
 

@@ -1,3 +1,11 @@
+2004-09-08 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/uim/im_uim.c (im_new):
+	- u_int32_t -> u_int64_t
+	- minor cleanups.
+
+	* inputmethod/uim/Makefile.in: fixed incorrect VPATH.
+
 2004-09-07 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	some improvements around input method:
