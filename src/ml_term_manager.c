@@ -645,7 +645,12 @@ open_pty(
 
 	term_man = p ;
 	
-	open_term( term_man) ;
+	if( ! open_term( term_man))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " open_term() failed.\n") ;
+	#endif
+	}
 }
 
 static void
@@ -1705,7 +1710,12 @@ client_connected(
 
 	kik_conf_delete( conf) ;
 	
-	open_term( term_man) ;
+	if( ! open_term( term_man))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " open_term() failed.\n") ;
+	#endif
+	}
 
 	config_final( term_man) ;
 
@@ -2325,7 +2335,16 @@ ml_term_manager_event_loop(
 			kik_warn_printf( KIK_DEBUG_TAG " open_term() failed.\n") ;
 		#endif
 
-			break ;
+			if( counter == 0 && ! term_man->is_genuine_daemon)
+			{
+				kik_msg_printf( "Unable to start - open_term() failed.\n") ;
+
+				exit(1) ;
+			}
+			else
+			{
+				break ;
+			}
 		}
 	}
 
