@@ -3065,7 +3065,7 @@ selecting_word(
 
 	char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
 
-	if( ml_line_end_char_index( line) == char_index && x_rest)
+	if( ml_line_end_char_index( line) == char_index && x_rest > 0)
 	{
 		/* over end of line */
 
@@ -3242,6 +3242,8 @@ report_mouse_tracking(
 	}
 	else
 	{
+		int x_rest;
+		int width;
 		row = convert_y_to_row( screen , NULL , event->y) ;
 
 		if( 0x20 + row + 1 > 0xff){
@@ -3252,10 +3254,16 @@ report_mouse_tracking(
 		{
 			return  0 ;
 		}
-
 		col = ml_convert_char_index_to_col( line ,
-			convert_x_to_char_index_with_shape( screen , line , NULL , event->x) , 0) ;
-                if( 0x20 + col + 1 > 0xff){
+			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) , 0) ;
+
+		width = x_calculate_char_width(
+			x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,
+			ml_char_bytes( ml_sp_ch()) , 1 , US_ASCII);
+		if( x_rest > width){
+			col += x_rest / width ;
+		}
+		if( 0x20 + col + 1 > 0xff){
 			return  0 ;
 		}
 	}

@@ -1,4 +1,11 @@
 2005-02-04 MINAMI Hirokazu <minami@mistfall.net>
+	
+	* xwindow/x_screen.c: During mouse tracking,
+	try to report sane location even if there was no character
+	under clicked column.
+	(This is not perfect when varible-width font is used, though)
+
+2005-02-04 MINAMI Hirokazu <minami@mistfall.net>
 
 	* man/mlterm.1: added description for PREV/NEXT_PTY. 
 	(SF#1110868. Thanks to John Foerch)
