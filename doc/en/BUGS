@@ -8,3 +8,7 @@
     [cause] "ESC [ ? 6 l" , "ESC [ ? 6 h" are not supported.
   o Test of the SAVE/RESTORE CURSOR feature
     [cause] save/restore cursor functions don't save/restore cursor character.
+
+* Drag & drop from mozilla between hosts fails when those host's endianess are not same.
+    [cause] It's a mozilla's bug and nothing can be done in mlterm side at present.
+    (see http://bugzilla.mozilla.org/show_bug.cgi?id=40608)
