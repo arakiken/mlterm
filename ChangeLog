@@ -1,3 +1,8 @@
+2003-10-16  Araki Ken  <arakiken@users.sf.net>
+
+	* A snapshot file name must not contain ".." and its suffix is
+	  always ".snp" for security issues.
+
 2003-10-12  Araki Ken  <arakiken@users.sf.net>
 
 	* 'snapshot' protocol allows no value.

@@ -4925,9 +4925,10 @@ static void
 snapshot(
 	x_screen_t *  screen ,
 	ml_char_encoding_t  encoding ,
-	char *  path
+	char *  file_name
 	)
 {
+	char *  path ;
 	int  beg ;
 	int  end ;
 	ml_char_t *  buf ;
@@ -4936,10 +4937,17 @@ snapshot(
 	u_char  conv_buf[512] ;
 	mkf_conv_t *  conv ;
 
+	if( ( path = kik_get_user_rc_path( file_name)) == NULL)
+	{
+		return ;
+	}
+
 	if( ( file = fopen( path , "w")) == NULL)
 	{
 		return ;
 	}
+
+	free( path) ;
 
 	beg = - ml_term_get_num_of_logged_lines( screen->term) ;
 	end = ml_term_get_rows( screen->term) ;
@@ -5470,48 +5478,36 @@ set_config(
 	{
 		char *  encoding ;
 		char *  file ;
-		size_t  len ;
-		char *  path ;
 		char *  p ;
 
 		encoding = value ;
 		
 		if( ( p = strchr( value , ':')) == NULL || *(p + 1) == '\0')
 		{
-			char *  tty ;
-
 			/* skip /dev/ */
-			tty = ml_term_get_slave_name( screen->term) + 5 ;
-			
-			len = 7 + strlen( tty) + 4 + 1 ;
-			if( ( file = alloca( len)) == NULL)
-			{
-				return ;
-			}
-			sprintf( file , "mlterm/%s.snp" , tty) ;
-
-			path = kik_get_user_rc_path( file) ;
+			p = ml_term_get_slave_name( screen->term) + 5 ;
 		}
 		else
 		{
 			*(p ++) = '\0' ;
-			
-			len = 7 + strlen( p) + 1 ;
-			if( ( file = alloca( len)) == NULL)
+
+			if( strstr( p , "..") != NULL)
 			{
+				/* unsecure file name */
+
+				kik_msg_printf( "%s is unsecure file name.\n") ;
+
 				return ;
 			}
-			sprintf( file , "mlterm/%s" , p) ;
-			
-			path = kik_get_user_rc_path( file) ;
 		}
-
-		if( path == NULL)
+		
+		if( ( file = alloca( 7 + strlen( p) + 4 + 1)) == NULL)
 		{
 			return ;
 		}
-
-		snapshot( screen , ml_get_char_encoding( encoding) , path) ;
+		sprintf( file , "mlterm/%s.snp" , p) ;
+		
+		snapshot( screen , ml_get_char_encoding( encoding) , file) ;
 	}
 }
 

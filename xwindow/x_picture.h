@@ -7,7 +7,7 @@
 
 
 #include  <X11/Xlib.h>
-#include  <kiklib/kik_types.h>		/* u_int8_t */
+#include  <kiklib/kik_types.h>		/* u_int16_t */
 
 
 /* stub */
