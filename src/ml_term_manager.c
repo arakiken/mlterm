@@ -1298,7 +1298,7 @@ ml_term_manager_init(
 		term_man->use_transbg = 0 ;
 	}
 
-	if( ( term_man->encoding = ml_get_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING)
+	if( ( term_man->encoding = ml_get_char_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING)
 	{
 		term_man->encoding = ML_ISO8859_1 ;
 	}
@@ -1309,7 +1309,7 @@ ml_term_manager_init(
 
 		if( strcasecmp( value , "AUTO") != 0)
 		{
-			if( ( encoding = ml_get_encoding( value)) == ML_UNKNOWN_ENCODING)
+			if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
 			{
 				kik_msg_printf(
 					"%s encoding is not supported. Auto detected encoding is used.\n" ,
@@ -1349,44 +1349,22 @@ ml_term_manager_init(
 		}
 	}
 
-	term_man->mod_meta_mode = MOD_META_NONE ;
-	
 	if( ( value = kik_conf_get_value( conf , "mod_meta_mode")))
 	{
-		if( strcmp( value , "esc") == 0)
-		{
-			term_man->mod_meta_mode = MOD_META_OUTPUT_ESC ;
-		}
-		else if( strcmp( value , "8bit") == 0)
-		{
-			term_man->mod_meta_mode = MOD_META_SET_MSB ;
-		}
-	#if  0
-		else if( strcmp( value , "none") == 0)
-		{
-			term_man->mod_meta_mode = MOD_META_NONE ;
-		}
-	#endif
+		term_man->mod_meta_mode = ml_get_mod_meta_mode( value) ;
 	}
-
-	term_man->bel_mode = BEL_SOUND ;
+	else
+	{
+		term_man->mod_meta_mode = MOD_META_NONE ;
+	}
 
 	if( ( value = kik_conf_get_value( conf , "bel_mode")))
 	{
-		if( strcmp( value , "visual") == 0)
-		{
-			term_man->bel_mode = BEL_VISUAL ;
-		}
-		else if( strcmp( value , "none") == 0)
-		{
-			term_man->bel_mode = BEL_NONE ;
-		}
-	#if  0
-		else if( strcmp( value , "sound") == 0)
-		{
-			term_man->bel_mode = BEL_SOUND ;
-		}
-	#endif
+		term_man->bel_mode = ml_get_bel_mode( value) ;
+	}
+	else
+	{
+		term_man->bel_mode = BEL_SOUND ;
 	}
 
 	term_man->num_of_startup_terms = 1 ;

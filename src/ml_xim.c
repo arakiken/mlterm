@@ -139,7 +139,7 @@ open_xim(
 	{
 		XIMCallback  callback = { NULL , xim_server_destroyed } ;
 
-		if( ( xim->encoding = ml_get_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING ||
+		if( ( xim->encoding = ml_get_char_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING ||
 			( xim->parser = ml_parser_new( xim->encoding)) == NULL)
 		{
 			XCloseIM( xim->im) ;

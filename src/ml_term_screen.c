@@ -477,6 +477,9 @@ highlight_cursor(
 
 	draw_cursor( termscr , 0) ;
 
+	/* restoring color as soon as highlighted cursor is drawn. */
+	ml_unhighlight_cursor( termscr->image) ;
+
 	ml_xic_set_spot( &termscr->window) ;
 
 	return  1 ;
@@ -496,8 +499,6 @@ unhighlight_cursor(
 	}
 	
 	flush_scroll_cache( termscr , 1) ;
-
-	ml_unhighlight_cursor( termscr->image) ;
 
 	draw_cursor( termscr , 1) ;
 	
@@ -2602,7 +2603,7 @@ change_font_size(
 }
 
 static void
-change_encoding(
+change_char_encoding(
 	void *  p ,
 	ml_char_encoding_t  encoding
 	)
@@ -2628,7 +2629,7 @@ change_encoding(
 
 		/*
 		 * this is because font_man->font_set may have changed in
-		 * ml_font_manager_change_encoding()
+		 * ml_font_manager_usascii_font_cs_changed()
 		 */
 		ml_xic_font_set_changed( &termscr->window) ;
 	}
@@ -3513,7 +3514,7 @@ ml_term_screen_new(
 	ml_char_final( &nl_ch) ;
 
 	termscr->config_menu_listener.self = termscr ;
-	termscr->config_menu_listener.change_encoding = change_encoding ;
+	termscr->config_menu_listener.change_char_encoding = change_char_encoding ;
 	termscr->config_menu_listener.change_iscii_lang = change_iscii_lang ;
 	termscr->config_menu_listener.change_fg_color = change_fg_color ;
 	termscr->config_menu_listener.change_bg_color = change_bg_color ;

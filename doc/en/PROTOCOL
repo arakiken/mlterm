@@ -1,0 +1,54 @@
+mlterm configuration protocol
+version 20020113
+
+* mlterm proper
+  set              = "\x1b" "]" "5379" ";" <set key> "=" <value> "\x07"
+  get              = "\x1b" "]" "5380" ";" <get key> "\x07"
+  return value     = "#" <key> "=" <value> "\x0a"
+  set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |
+                     mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
+                     use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
+                     wall_picture | full_reset
+  get key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |
+                     mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
+                     use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim | locale
+  value            = error | <values for each key>
+
+* compatible with other terminals
+  set fg color     = "\x1b" "]" "39" ";" <color name> "\x07"
+  set bg color     = "\x1b" "]" "49" ";" <color name> "\x07"
+  color name       = white | black | red | green | yellow | blue | magenta | cyan |
+                     gray | lightgray | pink | brown | priv_fg | priv_bg
+  set wall picture = "\x1b" "]" "20" ";" <path> "[" ";" <adjusting> "]" "[" ":" <operation> "]" "\x07"
+
+* values for each key
+  encoding = ISO8859[1-11] | ISO8859[13-16] | TCVN5712 | KOI8R | KOI8U | VISCII |
+           EUCJP | EUCJISX0213 | ISO2022JP[1-3] | SJIS | SJISX0213 | ISO2022KR |
+           EUCKR | UHC | JOHAB | EUCCN | GBK | ISO2022CN | BIG5 | BIG5HKSCS |
+           EUCTW | HZ | UTF8 | GB18030
+  tabsize = <any ASCII decimal digit>
+  logsize = <any ASCII decimal digit>
+  fontsize = <any ASCII decimal digit> | larger | smaller
+  mod_meta_mode = none | esc | 8bit
+  bel_mode = none | sound | visual
+  use_anti_alias = true | false
+  use_variable_column_width = true | false
+  use_combining = true | false
+  use_transbg = true | false
+  use_bidi = true | false
+  copy_paste_via_ucs = true | false
+  xim = <xim name> ":" <locale name> | <xim name>
+  locale = <locale name>
+  wall_picture = <file path>
+  full_reset = <none>
+
+* note
+  o Encoding names are regularized , that is , `-' , `-' are removed , and only upper
+    case letters are used. But encoding names which are not regularized can be used in
+    ESC ] 5379 ; encoding= <value> BEL sequence by secondary effect.
+  o Adjusting and operation arguments of  ESC ] 20 ; pt BEL sequence are not used for now.
+  o if ESC ] 5379 ; xim= <value> BEL sequence doesn't contain ":" <locale name> ,
+    current mlterm locale is used.
+  o Return value of ESC ] 5380 ; xim BEL is <xim name> only , never <xim name> ":" <locale name>.
+  o It is configuration programs themselves that search ~/.mlterm/xim and
+    ${SYSCONFDIR}/mlterm/xim files for Pairs of xim name and its preferable locale.

@@ -46,7 +46,7 @@ typedef struct  ml_config_menu_event_listener
 {
 	void *  self ;
 	
-	void (*change_encoding)( void * , ml_char_encoding_t) ;
+	void (*change_char_encoding)( void * , ml_char_encoding_t) ;
 	void (*change_iscii_lang)( void * , ml_iscii_lang_t) ;
 	void (*change_fg_color)( void * , ml_color_t) ;
 	void (*change_bg_color)( void * , ml_color_t) ;

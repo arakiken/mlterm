@@ -89,7 +89,9 @@ typedef enum  ml_char_encoding
 	( (encoding) == ML_ISO2022JP || (encoding) == ML_ISO2022JP2 || (encoding) == ML_ISO2022JP3 || \
 		(encoding) == ML_ISO2022KR || (encoding) == ML_ISO2022CN || (encoding) == ML_HZ )
 
-ml_char_encoding_t  ml_get_encoding( char *  name) ;
+char *  ml_get_char_encoding_name( ml_char_encoding_t  encoding) ;
+
+ml_char_encoding_t  ml_get_char_encoding( char *  name) ;
 
 mkf_parser_t *  ml_parser_new( ml_char_encoding_t  encoding) ;
 

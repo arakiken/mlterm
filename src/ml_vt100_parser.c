@@ -1726,18 +1726,31 @@ parse_vt100_escape_sequence(
 					else if( ps == 20)
 					{
 						/* image commands */
-						char * index_p;
+						char *  p ;
 						
 						/* XXX discard all adjust./op. settings.*/
 						/* XXX may break multi-byte character string. */
-						if( ( index_p = strchr(pt, ';'))) {
-							*index_p = '\0';
+						if( ( p = strchr( pt , ';')))
+						{
+							*p = '\0';
 						}
-						if( ( index_p = strchr(pt, ':'))) {
-							*index_p = '\0';
+						if( ( p = strchr( pt , ':')))
+						{
+							*p = '\0';
 						}
 
-						ml_vt100_cmd_change_wall_picture( vt100_parser->termscr , pt);
+						ml_vt100_cmd_set_config( vt100_parser->termscr ,
+							"wall_picture" , pt) ;
+					}
+					else if( ps == 39)
+					{
+						ml_vt100_cmd_set_config( vt100_parser->termscr ,
+							"fg_color" , pt) ;
+					}
+					else if( ps == 40)
+					{
+						ml_vt100_cmd_set_config( vt100_parser->termscr ,
+							"bg_color" , pt) ;
 					}
 					else if( ps == 46)
 					{
@@ -1746,6 +1759,22 @@ parse_vt100_escape_sequence(
 					else if( ps == 50)
 					{
 						/* set font */
+					}
+					else if( ps == 5379)
+					{
+						char *  p ;
+
+						if( ( p = strchr( pt , '=')))
+						{
+							*(p ++) = '\0' ;
+							
+							ml_vt100_cmd_set_config( vt100_parser->termscr ,
+								pt , p) ;
+						}
+					}
+					else if( ps == 5380)
+					{
+						ml_vt100_cmd_get_config( vt100_parser->termscr , pt) ;
 					}
 				}
 			}

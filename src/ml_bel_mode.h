@@ -15,4 +15,9 @@ typedef enum  ml_bel_mode
 } ml_bel_mode_t ;
 
 
+ml_bel_mode_t  ml_get_bel_mode( char *  name) ;
+
+char *  ml_get_bel_mode_name( ml_bel_mode_t  mode) ;
+
+
 #endif

@@ -208,9 +208,9 @@ sig_child(
 
 		if( encoding != config_menu->session->encoding)
 		{
-			if( config_menu->config_menu_listener->change_encoding)
+			if( config_menu->config_menu_listener->change_char_encoding)
 			{
-				(*config_menu->config_menu_listener->change_encoding)(
+				(*config_menu->config_menu_listener->change_char_encoding)(
 					config_menu->config_menu_listener->self , encoding) ;
 			}
 		}

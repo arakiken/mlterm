@@ -123,7 +123,9 @@ int  ml_vt100_cmd_set_icon_name( ml_term_screen_t *  termscr , u_char *  name) ;
 
 int  ml_vt100_cmd_fill_all_with_e( ml_term_screen_t *  termscr) ;
 
-int  ml_vt100_cmd_change_wall_picture( ml_term_screen_t *  termscr , char * path) ;
+int  ml_vt100_cmd_set_config( ml_term_screen_t *  termscr , char *  key , char *  value) ;
+
+int  ml_vt100_cmd_get_config( ml_term_screen_t *  termscr , char *  key) ;
 
 
 #endif

@@ -1112,7 +1112,7 @@ notify_focus_in_to_children(
 	{
 		(*win->window_focused)( win) ;
 	}
-	
+
 	ml_xic_set_focus( win) ;
 
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
@@ -2368,10 +2368,18 @@ ml_window_receive_event(
 	}
 	else if( event->type == FocusIn)
 	{
+	#ifdef  __DEBUG
+		kik_debug_printf( "FOCUS IN %p\n" , event->xany.window) ;
+	#endif
+
 		notify_focus_in_to_children( win) ;
 	}
 	else if( event->type == FocusOut)
 	{
+	#ifdef  __DEBUG
+		kik_debug_printf( "FOCUS OUT %p\n" , event->xany.window) ;
+	#endif
+		
 		notify_focus_out_to_children( win) ;
 	}
 	else if( event->type == MotionNotify)

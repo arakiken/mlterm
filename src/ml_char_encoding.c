@@ -236,8 +236,23 @@ ovrd_iso2022kr_parser_init(
 
 /* --- global functions --- */
 
+char *
+ml_get_char_encoding_name(
+	ml_char_encoding_t  encoding
+	)
+{
+	if( encoding < 0 || MAX_CHAR_ENCODINGS <= encoding)
+	{
+		return  "ISO88591" ;
+	}
+	else
+	{
+		return  encoding_table[encoding].name ;
+	}
+}
+
 ml_char_encoding_t
-ml_get_encoding(
+ml_get_char_encoding(
 	char *  name		/* '_' and '-' are ignored. */
 	)
 {

@@ -6,6 +6,10 @@
 
 #include  <stdio.h>		/* sprintf */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
+#include  <kiklib/kik_str.h>	/* kik_str_to_int */
+#include  <kiklib/kik_locale.h>	/* kik_get_locale */
+
+#include  "ml_xic.h"		/* ml_xic_get_xim_name */
 
 
 /* --- global functions --- */
@@ -615,7 +619,7 @@ ml_vt100_cmd_send_device_attr(
 	)
 {
 	/* vt100 answerback */
-	char  seq[] = "\1b[?1;2c" ;
+	char  seq[] = "\x1b[?1;2c" ;
 
 	ml_write_to_pty( termscr->pty , seq , strlen( seq)) ;
 
@@ -684,36 +688,467 @@ ml_vt100_cmd_fill_all_with_e(
 }
 
 int
-ml_vt100_cmd_change_wall_picture(
-	ml_term_screen_t * termscr ,
-	char * path
+ml_vt100_cmd_set_config(
+	ml_term_screen_t *  termscr ,
+	char *  key ,
+	char *  value
 	)
 {
-	if( *path == '\0')
-	{
-		/* Do not change current image but alter diaplay setting */
-		/* XXX nothing can be done for now */
-
-		return 0 ;
-	}
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
+#endif
 
 	/*
-	 * XXX
-	 * trigger config_menu_event_listener.
+	 * ml_term_screen_{start|stop}_vt100_cmd are necessary since
+	 * window is redrawn in chagne_wall_picture().
 	 */
-	if( termscr->config_menu_listener.change_wall_picture)
-	{
-		/*
-		 * ml_term_screen_{start|stop}_vt100_cmd are necessary since
-		 * window is redrawn in chagne_wall_picture().
-		 */
-		
-		ml_term_screen_stop_vt100_cmd( termscr) ;
-		
-		(*termscr->config_menu_listener.change_wall_picture)( termscr , path) ;
 
-		ml_term_screen_start_vt100_cmd( termscr) ;
+	ml_term_screen_stop_vt100_cmd( termscr) ;
+
+	if( strcmp( key , "encoding") == 0)
+	{
+		ml_char_encoding_t  encoding ;
+
+		if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_char_encoding)
+		{
+			(*termscr->config_menu_listener.change_char_encoding)( termscr , encoding) ;
+		}
 	}
+	else if( strcmp( key , "fg_color") == 0)
+	{
+		ml_color_t  color ;
+
+		if( ( color = ml_get_color( value)) == MLC_UNKNOWN_COLOR)
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_fg_color)
+		{
+			(*termscr->config_menu_listener.change_fg_color)( termscr , color) ;
+		}
+	}
+	else if( strcmp( key , "bg_color") == 0)
+	{
+		ml_color_t  color ;
+
+		if( ( color = ml_get_color( value)) == MLC_UNKNOWN_COLOR)
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_bg_color)
+		{
+			(*termscr->config_menu_listener.change_bg_color)( termscr , color) ;
+		}
+	}
+	else if( strcmp( key , "tabsize") == 0)
+	{
+		u_int  tab_size ;
+
+		if( ! kik_str_to_int( &tab_size , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_tab_size)
+		{
+			(*termscr->config_menu_listener.change_tab_size)( termscr , tab_size) ;
+		}
+	}
+	else if( strcmp( key , "logsize") == 0)
+	{
+		u_int  log_size ;
+
+		if( ! kik_str_to_int( &log_size , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_log_size)
+		{
+			(*termscr->config_menu_listener.change_log_size)( termscr , log_size) ;
+		}
+	}
+	else if( strcmp( key , "fontsize") == 0)
+	{
+		u_int  font_size ;
+
+		if( strcmp( value , "larger") == 0)
+		{
+			if( termscr->config_menu_listener.larger_font_size)
+			{
+				(*termscr->config_menu_listener.larger_font_size)( termscr) ;
+			}
+		}
+		else if( strcmp( value , "smaller") == 0)
+		{
+			if( termscr->config_menu_listener.smaller_font_size)
+			{
+				(*termscr->config_menu_listener.smaller_font_size)( termscr) ;
+			}
+		}
+		else
+		{
+			if( ! kik_str_to_int( &font_size , value))
+			{
+				return  0 ;
+			}
+
+			if( termscr->config_menu_listener.change_font_size)
+			{
+				(*termscr->config_menu_listener.change_font_size)( termscr , font_size) ;
+			}
+		}
+	}
+	else if( strcmp( key , "mod_meta_mode") == 0)
+	{
+		if( termscr->config_menu_listener.change_mod_meta_mode)
+		{
+			(*termscr->config_menu_listener.change_mod_meta_mode)(
+				termscr , ml_get_mod_meta_mode( value)) ;
+		}
+	}
+	else if( strcmp( key , "bel_mode") == 0)
+	{
+		if( termscr->config_menu_listener.change_bel_mode)
+		{
+			(*termscr->config_menu_listener.change_bel_mode)(
+				termscr , ml_get_bel_mode( value)) ;
+		}
+	}
+	else if( strcmp( key , "use_combining") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_char_combining_flag)
+		{
+			(*termscr->config_menu_listener.change_char_combining_flag)( termscr , flag) ;
+		}
+	}
+	else if( strcmp( key , "copy_paste_via_ucs") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_copy_paste_via_ucs_flag)
+		{
+			(*termscr->config_menu_listener.change_copy_paste_via_ucs_flag)( termscr , flag) ;
+		}
+	}
+	else if( strcmp( key , "use_transbg") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_transparent_flag)
+		{
+			(*termscr->config_menu_listener.change_transparent_flag)( termscr , flag) ;
+		}
+	}
+	else if( strcmp( key , "use_anti_alias") == 0)
+	{
+		ml_font_present_t  font_present ;
+
+		font_present = termscr->font_present ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			font_present |= FONT_AA ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			font_present &= ~FONT_AA ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_font_present)
+		{
+			(*termscr->config_menu_listener.change_font_present)( termscr , font_present) ;
+		}
+	}
+	else if( strcmp( key , "use_variable_column_width") == 0)
+	{
+		ml_font_present_t  font_present ;
+
+		font_present = termscr->font_present ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			font_present |= FONT_VAR_WIDTH ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			font_present &= ~FONT_VAR_WIDTH ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_font_present)
+		{
+			(*termscr->config_menu_listener.change_font_present)( termscr , font_present) ;
+		}
+	}
+	else if( strcmp( key , "use_bidi") == 0)
+	{
+		int  flag ;
+		
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_bidi_flag)
+		{
+			(*termscr->config_menu_listener.change_bidi_flag)( termscr , flag) ;
+		}
+	}
+	else if( strcmp( key , "xim") == 0)
+	{
+		char *  xim ;
+		char *  locale ;
+		char *  p ;
+
+		xim = value ;
+
+		if( ( p = strchr( value , ':')) == NULL)
+		{
+			locale = "" ;
+		}
+		else
+		{
+			*p = '\0' ;
+			locale = p + 1 ;
+		}
+
+		if( termscr->config_menu_listener.change_xim)
+		{
+			(*termscr->config_menu_listener.change_xim)( termscr , xim , locale) ;
+		}
+	}
+	else if( strcmp( key , "wall_picture") == 0)
+	{
+		if( *value == '\0')
+		{
+			/* Do not change current image but alter diaplay setting */
+			/* XXX nothing can be done for now */
+
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_wall_picture)
+		{
+			(*termscr->config_menu_listener.change_wall_picture)( termscr , value) ;
+		}
+	}
+	else if( strcmp( key , "full_reset") == 0)
+	{
+		if( termscr->config_menu_listener.full_reset)
+		{
+			(*termscr->config_menu_listener.full_reset)( termscr) ;
+		}
+	}
+	
+	ml_term_screen_start_vt100_cmd( termscr) ;
+
+	return  1 ;
+}
+
+int
+ml_vt100_cmd_get_config(
+	ml_term_screen_t *  termscr ,
+	char *  key
+	)
+{
+	char *  value ;
+	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
+	char *  true = "true" ;
+	char *  false = "false" ;
+	
+	if( strcmp( key , "encoding") == 0)
+	{
+		value = ml_get_char_encoding_name( (*termscr->encoding_listener->encoding)(
+				termscr->encoding_listener->self)) ;
+	}
+	else if( strcmp( key , "fg_color") == 0)
+	{
+		value = ml_get_color_name( ml_window_get_fg_color( &termscr->window)) ;
+	}
+	else if( strcmp( key , "bg_color") == 0)
+	{
+		value = ml_get_color_name( ml_window_get_bg_color( &termscr->window)) ;
+	}
+	else if( strcmp( key , "tabsize") == 0)
+	{
+		sprintf( digit , "%d" , termscr->image->tab_size) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "logsize") == 0)
+	{
+		sprintf( digit , "%d" , ml_get_log_size( &termscr->logs)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "fontsize") == 0)
+	{
+		sprintf( digit , "%d" , termscr->font_man->font_size) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "mod_meta_mode") == 0)
+	{
+		value = ml_get_mod_meta_mode_name( termscr->mod_meta_mode) ;
+	}
+	else if( strcmp( key , "bel_mode") == 0)
+	{
+		value = ml_get_bel_mode_name( termscr->bel_mode) ;
+	}
+	else if( strcmp( key , "use_combining") == 0)
+	{
+		if( ml_is_char_combining())
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "copy_paste_via_ucs") == 0)
+	{
+		if( termscr->copy_paste_via_ucs)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_transbg") == 0)
+	{
+		if( termscr->window.is_transparent)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_anti_alias") == 0)
+	{
+		if( termscr->font_present & FONT_AA)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_variable_column_width") == 0)
+	{
+		if( termscr->font_present & FONT_VAR_WIDTH)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_bidi") == 0)
+	{
+		if( termscr->use_bidi)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "xim") == 0)
+	{
+		value = ml_xic_get_xim_name( &termscr->window) ;
+	}
+	else if( strcmp( key , "locale") == 0)
+	{
+		value = kik_get_locale() ;
+	}
+	else
+	{
+		value = "error" ;
+	}
+
+	if( value == NULL)
+	{
+		value = "error" ;
+	}
+
+	ml_write_to_pty( termscr->pty , "#" , 1) ;
+	ml_write_to_pty( termscr->pty , key , strlen( key)) ;
+	ml_write_to_pty( termscr->pty , "=" , 1) ;
+	ml_write_to_pty( termscr->pty , value , strlen( value)) ;
+	ml_write_to_pty( termscr->pty , "\n" , 1) ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
+#endif
 
 	return  1 ;
 }

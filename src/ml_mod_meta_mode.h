@@ -15,4 +15,9 @@ typedef enum  ml_mod_meta_mode
 } ml_mod_meta_mode_t ;
 
 
+ml_mod_meta_mode_t  ml_get_mod_meta_mode( char *  name) ;
+
+char *  ml_get_mod_meta_mode_name( ml_mod_meta_mode_t  mode) ;
+
+
 #endif
