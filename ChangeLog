@@ -1,5 +1,12 @@
 2004-09-10 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/im_common.h: new file
+
+	* xwindow/x_im.h (x_im_convert_encoding): moved to..
+	* inputmethod/im_common.h (im_convert_encoding): ..this
+
+2004-09-10 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	IIIMF (Internet Intranet Input Method Framework) support:
 
 	* configure.in: added '--enable-iiimf'.

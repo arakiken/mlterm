@@ -40,8 +40,9 @@
 #include  <kiklib/kik_debug.h>
 #include  <mkf/mkf_utf16_parser.h>
 
-#include  "x_im.h"
+#include  <x_im.h>
 #include  "im_iiimf_keymap.h"
+#include  "../im_common.h"
 
 #if  0
 #define IM_IIIMF_DEBUG 1
@@ -407,9 +408,9 @@ preedit_change(
 
 	/* utf16 -> term encoding */
 	PARSER_INIT_WITH_BOM( parser_utf16) ;
-	x_im_convert_encoding( parser_utf16 , iiimf->conv ,
-			       (u_char*) utf16str , &str ,
-			       strlen_utf16( utf16str)) ;
+	im_convert_encoding( parser_utf16 , iiimf->conv ,
+			     (u_char*) utf16str , &str ,
+			     strlen_utf16( utf16str)) ;
 
 	/*
 	 * count number of characters to re-allocate im.preedit.chars
@@ -738,9 +739,9 @@ lookup_choice_change(
 		}
 
 		PARSER_INIT_WITH_BOM( parser_utf16) ;
-		if( x_im_convert_encoding( parser_utf16 , iiimf->conv ,
-					   (u_char*)utf16str , &str ,
-					   strlen_utf16( utf16str)))
+		if( im_convert_encoding( parser_utf16 , iiimf->conv ,
+					 (u_char*)utf16str , &str ,
+					 strlen_utf16( utf16str)))
 		{
 			(*iiimf->im.cand_screen->set)(
 						iiimf->im.cand_screen ,

@@ -38,7 +38,8 @@
 #include  <kiklib/kik_str.h>	/* kik_str_sep, kik_snprintf */
 #include  <signal.h>
 
-#include  "x_im.h"
+#include  <x_im.h>
+#include  "../im_common.h"
 
 #if  0
 #define IM_UIM_DEBUG 1
@@ -549,9 +550,9 @@ preedit_pushback(
 	{
 		/* uim encoding -> term encoding */
 		(*uim->parser_uim->init)( uim->parser_uim) ;
-		if( ! (x_im_convert_encoding( uim->parser_uim , uim->conv ,
-					      (u_char*)_str , &str ,
-					      strlen( str))))
+		if( ! (im_convert_encoding( uim->parser_uim , uim->conv ,
+					    (u_char*)_str , &str ,
+					    strlen( str))))
 		{
 			return ;
 		}
@@ -792,8 +793,8 @@ candidate_activate(
 		if( NEED_TO_CONV( uim))
 		{
 			(*uim->parser_uim->init)( uim->parser_uim) ;
-			if( x_im_convert_encoding( uim->parser_uim , uim->conv ,
-						   _p , &p , strlen( _p)))
+			if( im_convert_encoding( uim->parser_uim , uim->conv ,
+						 _p , &p , strlen( _p)))
 			{
 				(*uim->im.cand_screen->set)(
 							uim->im.cand_screen ,
