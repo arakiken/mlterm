@@ -1,5 +1,7 @@
 AC_INIT()
 
+AC_CONFIG_HEADER(../src/kik_config.h)
+
 is_abs=`echo ${top_srcdir-$srcdir} | sed -n 's/^\/.*/yes/p'`
 if test "$is_abs" = "" ; then
 	SRC_TOPDIR='${BUILD_TOPDIR}'/autoconf/${top_srcdir-$srcdir}/..
@@ -29,8 +31,6 @@ AC_SUBST(LIBTOOL)
 
 # if --with-libtool is specified, stdc header isn't detected.
 AC_HEADER_STDC
-
-AC_CONFIG_HEADER(../src/kik_config.h) 
 
 AC_CHECK_HEADERS(langinfo.h dlfcn.h dl.h stropts.h sys/stropts.h)
 
