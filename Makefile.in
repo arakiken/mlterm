@@ -10,10 +10,8 @@ install:
 	if [ -d mkf ]; then cd mkf ; $(MAKE) install-la ; fi
 	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 
-distclean: clean
-	rm -f config.log config.cache config.status libtool Makefile common/config.h
-
+distclean:
 	if [ -d kiklib ]; then cd kiklib ; $(MAKE) $@ ; fi
 	if [ -d mkf ]; then cd mkf ; $(MAKE) $@ ; fi
 	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
-
+	rm -f config.log config.cache config.status libtool Makefile common/config.h

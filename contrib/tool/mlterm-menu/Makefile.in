@@ -41,6 +41,7 @@ debug:
 
 mlterm-menu: $(OBJS)
 	$(LIBTOOL_LINK) $(OBJS) $(CFLAGS) -o mlterm-menu $(LIBS)
+	$(INSTALL) -m 644 menu $(SYSCONFDIR)
 
 .c.o:
 	$(CC) $(DEFS) $(CFLAGS) -c $<
