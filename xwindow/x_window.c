@@ -1170,6 +1170,7 @@ x_window_show(
 		if( hint & (XValue | YValue))
 		{
 			size_hints.flags |= PPosition ;
+			size_hints.flags |= USPosition ;
 		}
 
 	#if  1

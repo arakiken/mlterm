@@ -1,3 +1,9 @@
+2002-09-07 Araki Ken <arakiken@users.sf.net>
+
+	* Added --with-imagelib=[imlib,gdk-pixbuf1,gdk-pixbuf2]
+	  Removed --enable-imlib, --enable-gdk-pixbuf
+	* USPosition bit is set in XSizeHints.flags.
+
 2002-09-07  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* mlterm.tc is now non-shrinked version.

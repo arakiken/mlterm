@@ -13,11 +13,8 @@ Options for configure
   --prefix
     Installation prefix
 
-  --enable-imlib
-    Background image (aka wallpaper) using imlib
-
-  --enable-gdk-pixbuf
-    Background image (aka wallpaper) using imlib
+  --with-imagelib=[imlib,gdk-pixbuf2,gdk-pixbuf1]
+    Image library
 
   --enable-anti-alias
     Use FreeType for anti-alias of TrueType fonts
