@@ -474,7 +474,7 @@ x_main_config_init(
 	{
 		u_int  ratio ;
 
-		if( kik_str_to_uint( &ratio , value))
+		if( kik_str_to_uint( &ratio , value) && ratio)
 		{
 			main_config->screen_width_ratio = ratio ;
 		}
@@ -486,7 +486,7 @@ x_main_config_init(
 	{
 		u_int  ratio ;
 
-		if( kik_str_to_uint( &ratio , value))
+		if( kik_str_to_uint( &ratio , value) && ratio)
 		{
 			main_config->screen_height_ratio = ratio ;
 		}
