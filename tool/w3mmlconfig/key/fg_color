@@ -1,0 +1,14 @@
+black		BLACK
+red		RED
+green		GREEN
+yellow		YELLOW
+blue		BLUE
+magenta		MAGENTA
+cyan		CYAN
+white		WHITE
+gray		GRAY
+lightgray	LIGHTGRAY
+pink		PINK
+brown		BROWN
+priv_fg		PRIVATE_FG
+priv_bg		PRIVATE_BG

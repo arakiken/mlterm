@@ -1,0 +1,289 @@
+#!@PERL@
+
+$DEBUG = 1;
+
+require 'mlconfig-data.pl';
+
+$CGI = $ENV{SCRIPT_NAME} || $0;
+$CGI = &html_quote($CGI);
+$method = ($ENV{REQUEST_METHOD} eq 'POST');
+if ($method) {
+	$query = <>;
+} else {
+	$query = $ENV{QUERY_STRING};
+}
+for (split('&', $query)) {
+	s/^([^=]*)=//;
+	$value->{$1} = &form_decode($_);
+}
+if ($method) {
+	if ($value->{SUBMIT} eq 'Cancel') {
+		&make_header(1, $method);
+		exit;
+	} elsif ($value->{full_reset}) {
+		&set_config({ full_reset => '' });
+		&get_config();
+		&check_value();
+	} else {
+		&check_value();
+		if ($value->{SUBMIT} eq 'OK') {
+			&set_config();
+			&make_header(1, $method);
+			exit;
+		} elsif ($value->{SUBMIT} eq 'Apply') {
+			&set_config();
+		} elsif ($value->{fontsize_larger}) {
+			&set_config({ fontsize => 'larger' });
+			&get_config([ 'fontsize' ]);
+		} elsif ($value->{fontsize_smaller}) {
+			&set_config({ fontsize => 'smaller' });
+			&get_config([ 'fontsize' ]);
+		} elsif ($value->{wall_picture_off}) {
+			&set_config({ wall_picture => '' });
+			&get_config([ 'wall_picture' ]);
+		}
+	}
+} else {
+	&get_config();
+	&check_value();
+}
+
+&make_header(0, $method);
+&make_html();
+
+sub make_header {
+	local($quit, $method) = @_;
+
+	if ($quit) {
+		if ($value->{QUIT} eq 'no') {
+			print "w3m-control: DELETE_PREVBUF\n";
+		} else {
+			print "w3m-control: EXIT\n";
+		}
+	} elsif ($method) {
+		print "w3m-control: DELETE_PREVBUF\n";
+	}
+	print "Content-Type: text/html\n\n";
+}
+
+sub make_html {
+	local($s);
+
+	print <<EOF;
+<html>
+<head>
+<title>mlterm configuration</title>
+</head>
+<body>
+<form action="$CGI" method=POST>
+<input type=hidden name="QUIT" value="$value->{QUIT}">
+<h1 align=center>mlterm configuration</h1>
+<center>
+<table border=1>
+EOF
+	for $s (@section) {
+		&make_section($s);
+	}
+	print <<EOF;
+</table>
+<input type=submit name="SUBMIT" value="OK">
+&nbsp;
+<input type=submit name="SUBMIT" value="Apply">
+&nbsp;
+<input type=submit name="SUBMIT" value="Cancel">
+<table border=1>
+<tr><td>Font size<br>
+<input type=submit name="fontsize_larger" value="Larger">
+<input type=submit name="fontsize_smaller" value="Smaller">
+<td>Wall picture<br>
+EOF
+	$k = 'wall_picture';
+	print "<input type=text name=\"$k\" value=\"",
+			&html_quote($value->{$k}), "\">\n";
+	print "<input type=hidden name=\"default-$k\" value=\"",
+			&html_quote($value->{$k}), "\">\n";
+	print <<EOF;
+<input type=submit name="wall_picture_off" value="Off">
+<td>Full Reset<br>
+<input type=submit name="full_reset" value="Full Reset">
+</table>
+</center>
+</form>
+</body>
+</html>
+EOF
+}
+
+sub make_section {
+	local($s) = @_;
+	local($attr) = $section_attr->{$s};
+	local($k);
+
+	if ($attr->{col} < 0) {
+		return;
+	}
+	if (! $attr->{col}) {
+		print "<tr>";
+	}
+	print <<EOF;
+<td align=center valign=top width="50%">
+<b>$attr->{title}</b>
+<table>
+EOF
+	for $k (@{$attr->{key}}) {
+		&make_key($k);
+	}
+	print <<EOF;
+</table>
+EOF
+}
+
+sub make_key {
+	local($k) = @_;
+	local($attr) = $key_attr->{$k};
+	local($type) = $attr->{type};
+	local($i);
+
+	if (! $attr->{col}) {
+		print "<tr>";
+		if ($type =~ /^checkbox/ || $type =~ /^none/) {
+			print "<td colspan=2>\n";
+		} else {
+			print "<td><nobr>$attr->{title}</nobr>\n";
+			print "<td>";
+		}
+	} else {
+		print "&nbsp;\n";
+	}
+	if ($type =~ /^text/) {
+		print "<input type=text name=\"$k\" value=\"",
+			&html_quote($value->{$k}), "\">\n";
+	} elsif ($type =~ /^select/) {
+		print "<select name=\"$k\">\n";
+		for $i (@{$attr->{item}}) {
+			print "<option value=\"$i\"";
+			if ($value->{$k} eq "$i") {
+				print " selected";
+			}
+			print ">";
+			print "$item_attr->{$k}{$i}\n";
+		}
+		print "</select>\n";
+	} elsif ($type =~ /^radio/) {
+		for $i (@{$attr->{item}}) {
+			print "<nobr><input type=radio name=\"$k\" value=\"$i\"";
+			if ($value->{$k} eq "$i") {
+				print " checked";
+			}
+			print ">$item_attr->{$k}{$i}</nobr>\n";
+		}
+	} elsif ($type =~ /^checkbox/) {
+		print "<input type=checkbox name=\"$k\" value=\"true\"";
+		if ($value->{$k} eq "true") {
+			print " checked";
+		}
+		print ">\n";
+		print "$attr->{title}\n";
+	} elsif ($type =~ /^none/) {
+		print "$attr->{title}\n";
+		return;
+	}
+	print "<input type=hidden name=\"default-$k\" value=\"",
+		&html_quote($value->{$k}), "\">\n";
+}
+
+sub check_value {
+	local($k, $attr, $_, $ok);
+
+	for $k (keys %{$key_attr}) {
+		$k =~ /^_/ && next;
+		$attr = $key_attr->{$k};
+		$ok = 1;
+		if ($attr->{type} =~ /^text:digit/) {
+			if ($value->{$k} !~ /^\d+$/) {
+				$ok = 0;
+			}
+		} elsif ($attr->{type} =~ /^(select|radio):lower/) {
+			$value->{$k} =~ tr/A-Z/a-z/;
+			if (! defined($item_attr->{$k}{$value->{$k}})) {
+				$ok = 0;
+			}
+		} elsif ($attr->{type} =~ /^(select|radio):upper/) {
+			$value->{$k} =~ tr/a-z/A-Z/;
+			if (! defined($item_attr->{$k}{$value->{$k}})) {
+				$ok = 0;
+			}
+		} elsif ($attr->{type} =~ /^checkbox/) {
+			$value->{$k} =~ tr/A-Z/a-z/;
+			if (! defined($value->{$k}) || $value->{$k} eq '') {
+				$value->{$k} = 'false';
+			} elsif (! ($value->{$k} eq 'true' ||
+				 $value->{$k} eq 'false')) {
+				$ok = 0;
+			}
+		}
+		$ok && next;
+		$value->{$k} = defined($value->{"default-$k"})
+			? $value->{"default-$k"} : $attr->{default};
+	}
+}
+
+sub get_config {
+	local($key) = @_;
+	local($k, $_);
+
+	if (! $key) {
+		$key = [ keys %{$key_attr} ];
+	}
+	open(TTY, "+>/dev/tty");
+	for $k (@{$key}) {
+		$k =~ /^_/ && next;
+		print TTY "\033]5380;$k\007";
+		$_ = <TTY>;
+$DEBUG && print "DEBUG: get $_";
+		s/^\#${k}=// || next;
+		chop;
+		$value->{$k} = $_;
+	}
+	close(TTY);
+}
+
+sub set_config {
+	local($val) = @_;
+	local(@key, $k, $_);
+
+	if ($val) {
+		@key = keys %{$val};
+	} else {
+		@key = keys %{$key_attr};
+		$val = $value;
+	}
+
+	open(TTY, ">/dev/tty");
+	for $k (@key) {
+		$k =~ /^_/ && next;
+		$val->{$k} eq $value->{"default-$k"} && next;
+$DEBUG && print "DEBUG: set $k=$val->{$k}\n";
+		print TTY "\033]5379;$k=$val->{$k}\007";
+	}
+	close(TTY);
+}
+
+sub html_quote {
+	local($_) = @_;
+	local(%QUOTE) = (
+		'<', '&lt;',
+		'>', '&gt;',
+		'&', '&amp;',
+		'"', '&quot;',
+	);
+	s/[<>&"]/$QUOTE{$&}/g;
+	return $_;
+}
+
+sub form_decode {
+	local($_) = @_;
+	s/\+/ /g;
+	s/%([\da-f][\da-f])/pack('c', hex($1))/egi;
+	return $_;
+}

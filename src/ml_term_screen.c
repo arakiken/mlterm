@@ -652,6 +652,22 @@ bs_page_downward(
 }
 
 
+/*
+ * !! Notice !!
+ * don't call ml_restore_selected_region_color() directly.
+ */
+static void
+restore_selected_region_color(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( ml_restore_selected_region_color( &termscr->sel))
+	{
+		highlight_cursor( termscr) ;
+	}
+}
+
+
 static void
 write_to_pty(
 	ml_term_screen_t *  termscr ,
@@ -1083,7 +1099,7 @@ window_resized(
 	
 	termscr = (ml_term_screen_t *) win ;
 
-	ml_restore_selected_region_color( &termscr->sel) ;
+	restore_selected_region_color( termscr) ;
 	exit_backscroll_mode( termscr) ;
 
 	unhighlight_cursor( termscr) ;
@@ -1417,8 +1433,8 @@ key_pressed(
 			ksym != XK_Hyper_L && ksym != XK_Hyper_R && ksym != XK_Escape)
 		{
 			/* any string except Modifiers(X11/keysymdefs.h) */
-			
-			ml_restore_selected_region_color( &termscr->sel) ;
+
+			restore_selected_region_color( termscr) ;
 			exit_backscroll_mode( termscr) ;
 
 			redraw_image( termscr) ;
@@ -1431,7 +1447,7 @@ key_pressed(
 	}
 	else
 	{
-		ml_restore_selected_region_color( &termscr->sel) ;
+		restore_selected_region_color( termscr) ;
 
 		if( termscr->mod_meta_mask & event->state)
 		{
@@ -1800,7 +1816,7 @@ selection_cleared(
 		ml_sel_clear( &termscr->sel) ;
 	}
 
-	ml_restore_selected_region_color( &termscr->sel) ;
+	restore_selected_region_color( termscr) ;
 }
 
 static int
@@ -2148,7 +2164,7 @@ selecting_with_motion(
 
 	if( ! termscr->sel.is_selecting)
 	{
-		ml_restore_selected_region_color( &termscr->sel) ;
+		restore_selected_region_color( termscr) ;
 		
 		if( ! termscr->sel.is_owner)
 		{
@@ -2261,7 +2277,7 @@ selecting_word(
 
 	if( ! termscr->sel.is_selecting)
 	{
-		ml_restore_selected_region_color( &termscr->sel) ;
+		restore_selected_region_color( termscr) ;
 		
 		if( ! termscr->sel.is_owner)
 		{
@@ -2298,7 +2314,7 @@ selecting_line(
 	
 	if( ! termscr->sel.is_selecting)
 	{
-		ml_restore_selected_region_color( &termscr->sel) ;
+		restore_selected_region_color( termscr) ;
 		
 		if( ! termscr->sel.is_owner)
 		{
@@ -2369,7 +2385,7 @@ button_pressed(
 
 	termscr = (ml_term_screen_t*)win ;
 	
-	ml_restore_selected_region_color( &termscr->sel) ;
+	restore_selected_region_color( termscr) ;
 
 	if( termscr->is_mouse_pos_sending && ! (event->state & ShiftMask))
 	{
@@ -2550,7 +2566,7 @@ font_size_changed(
 	ml_term_screen_t *  termscr
 	)
 {
-	ml_restore_selected_region_color( &termscr->sel) ;
+	restore_selected_region_color( termscr) ;
 	exit_backscroll_mode( termscr) ;
 
 	if( HAS_SCROLL_LISTENER(termscr,line_height_changed))
@@ -2705,7 +2721,7 @@ change_log_size(
 
 	termscr = p ;
 
-	ml_restore_selected_region_color( &termscr->sel) ;
+	restore_selected_region_color( termscr) ;
 	exit_backscroll_mode( termscr) ;
 	
 	ml_change_log_size( &termscr->logs , logsize) ;
@@ -3149,6 +3165,9 @@ window_scroll_downward(
 
 /*
  * callbacks of ml_image_scroll events
+ *
+ * !! Notice !!
+ * this is called under logical order context.
  */
  
 static int
@@ -3167,8 +3186,6 @@ window_scroll_upward_region(
 	{
 		return  0 ;
 	}
-	
-	ml_restore_selected_region_color( &termscr->sel) ;
 
 	set_scroll_boundary( termscr , beg_row , end_row) ;
 	
@@ -3193,8 +3210,6 @@ window_scroll_downward_region(
 	{
 		return  0 ;
 	}
-	
-	ml_restore_selected_region_color( &termscr->sel) ;
 
 	set_scroll_boundary( termscr , beg_row , end_row) ;
 	
@@ -3806,7 +3821,7 @@ ml_term_screen_scroll_upward(
 	u_int  size
 	)
 {
-	ml_restore_selected_region_color( &termscr->sel) ;
+	restore_selected_region_color( termscr) ;
 
 	if( ! ml_is_backscroll_mode( &termscr->bs_image))
 	{
@@ -3825,7 +3840,7 @@ ml_term_screen_scroll_downward(
 	u_int  size
 	)
 {
-	ml_restore_selected_region_color( &termscr->sel) ;
+	restore_selected_region_color( termscr) ;
 
 	if( ! ml_is_backscroll_mode( &termscr->bs_image))
 	{
@@ -3844,7 +3859,7 @@ ml_term_screen_scroll_to(
 	int  row
 	)
 {
-	ml_restore_selected_region_color( &termscr->sel) ;
+	restore_selected_region_color( termscr) ;
 
 	if( ! ml_is_backscroll_mode( &termscr->bs_image))
 	{
@@ -3889,7 +3904,7 @@ ml_term_screen_start_vt100_cmd(
 	ml_term_screen_t *  termscr
 	)
 {
-	ml_restore_selected_region_color( &termscr->sel) ;
+	restore_selected_region_color( termscr) ;
 	exit_backscroll_mode( termscr) ;
 
 	unhighlight_cursor( termscr) ;

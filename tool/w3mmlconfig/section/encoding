@@ -1,0 +1,7 @@
+# key		type		default	col	title
+encoding	select:upper	auto	0	Encoding
+iscii_lang	select:lower	malayalam	0	ISCII lang
+xim		text		-	0	X Input Method
+locale		text		-	0	XIM locale
+use_bidi	checkbox	true	0	Bidi (UTF8 only)
+use_combining	checkbox	true	1	Combining

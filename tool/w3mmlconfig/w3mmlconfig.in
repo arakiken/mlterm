@@ -1,0 +1,3 @@
+#!/bin/sh
+
+w3m -o cgi_bin=@CGI_BIN@ file:/cgi-bin/mlconfig.cgi

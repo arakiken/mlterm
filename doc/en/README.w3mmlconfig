@@ -1,0 +1,13 @@
+w3mmlconfig(tool/w3mmlconfig) is a configuration program using w3m local-CGI.
+
+* install
+  edit prefix and PERL in Makefile
+  
+  $ make
+  $ make install
+
+* usage
+  $ w3mmlconfig
+
+* Thanks
+  w3mmlconfig is originally written by Sakamoto Hironori san.

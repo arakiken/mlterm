@@ -1,0 +1,7 @@
+fg_color	select:lower	black	0	FG color
+bg_color	select:lower	white	0	BG color
+fontsize	text:digit	16	0	Font size
+fade_ratio	text:digit	100	0	Fade ratio
+use_variable_column_width	checkbox	false	0	Variable column width
+use_anti_alias	checkbox	false	0	Anti Alias
+use_transbg	checkbox	false	1	Transparent

@@ -156,6 +156,7 @@ comment $Id$
       o only_use_unicode_font   ... すべての文字を UNICODE フォントだけを使って表示する(true/*false*)
       o iso88591_font_for_usascii ... US_ASCII の表示には、必ず ISO8859-1 フォントを使用する(true/*false*)
       o col_size_of_width_a     ... UNICODE の EastAsianWidth.txt の A プロパティのコラム数(*1*/2)
+      o use_cp932_ucs_for_xft   ... JISX0208 => UCS 変換に、CP932 の変換テーブルを使用する(true/*false*)
 
       o fg_color       ... 端末画面の前景色(*black*)
       o bg_color       ... 同背景色(*white*)
@@ -368,6 +369,7 @@ comment $Id$
     -5/--big5bug(=bool): Big5 CTEXT のバグに対応する
     -a/--ac=value      : EastAsianWidth.txtのAプロパティ文字のコラム数
     -b/--bg=value      : 背景色
+    -c/--cp932(=bool)  : JISX0208 => UCS 変換に、CP932 の変換テーブルを使う。
     -d/--display       : DISPLAYを指定
     -f/--fg=value      : 前景色
     -g/--geometry=value : 表示座標位置
