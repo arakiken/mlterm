@@ -1,5 +1,10 @@
 2003-2-9 Araki Ken <arakiken@users.sf.net>
 
+	* Added zh_TW locale messages to mlconfig.
+	  (Thanks to Yaun-Chen Cheng)
+
+2003-2-9 Araki Ken <arakiken@users.sf.net>
+
 	* If you pressed 'U' and 'Z' with arabic kbd, nothing output. Fixed.
 
 2003-2-8 Araki Ken <arakiken@users.sf.net>

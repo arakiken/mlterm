@@ -1,0 +1,138 @@
+# Chinese Translation of mlconfig
+# Copyright (C) 2003 Free Software Foundation, Inc.
+# Yuan-Chen Cheng <ycheng@slat.org>, 2003.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: mlconfig\n"
+"POT-Creation-Date: 2003-02-09 21:08+0800\n"
+"PO-Revision-Date: 2003-02-09 21:26+0800\n"
+"Last-Translator: Yuan-Chen Cheng <ycheng@slat.org>\n"
+"Language-Team: Chinese (Traditional) <zh-l10n@linux.org.tw>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=Big5\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: main.c:223
+msgid "OK"
+msgstr "確定"
+
+#: main.c:228
+msgid "Apply"
+msgstr "套用"
+
+#: main.c:233
+msgid "Cancel"
+msgstr "取消"
+
+#: main.c:249
+msgid "Font size"
+msgstr "字型大小"
+
+#: main.c:257
+msgid "Larger"
+msgstr "大一點"
+
+#: main.c:262
+msgid "Smaller"
+msgstr "小一點"
+
+#: main.c:277 main.c:285
+msgid "Full reset"
+msgstr ""
+
+#: main.c:346 mc_char_encoding.c:174
+msgid "Encoding"
+msgstr "編碼"
+
+#: main.c:382
+msgid "Bidi (UTF8 only)"
+msgstr ""
+
+#: main.c:392
+msgid "Combining"
+msgstr ""
+
+#: main.c:399
+msgid "Process received strings via Unicode"
+msgstr ""
+
+#: main.c:409
+msgid "Font"
+msgstr "字型"
+
+#: main.c:429
+msgid "Screen ratio against font size"
+msgstr ""
+
+#: main.c:449
+msgid "fg_color"
+msgstr ""
+
+#: main.c:465
+msgid "Anti Alias"
+msgstr ""
+
+#: main.c:475
+msgid "Variable column width"
+msgstr ""
+
+#: main.c:484
+msgid "Background"
+msgstr "背景"
+
+#: main.c:508
+msgid "Picture/Transparent"
+msgstr ""
+
+#: main.c:546
+msgid "Scrollbar"
+msgstr ""
+
+#: main.c:579
+msgid "Others"
+msgstr ""
+
+#: main.c:655
+msgid "test"
+msgstr "測試"
+
+#: main.c:662
+msgid "Starting mlconfig failed.\n"
+msgstr ""
+
+#: mc_bel.c:84
+msgid " Bel mode "
+msgstr ""
+
+#: mc_bel.c:101
+msgid "Sound"
+msgstr ""
+
+#: mc_bel.c:112
+msgid "Visual"
+msgstr ""
+
+#: mc_bgtype.c:96
+msgid "Background type"
+msgstr "背景類型"
+
+#: mc_bgtype.c:103
+msgid "Color"
+msgstr "顏色"
+
+#: mc_bgtype.c:117
+msgid "Picture"
+msgstr "圖案"
+
+#: mc_bgtype.c:134
+msgid "Transparent"
+msgstr "透明"
+
+#: mc_xim.c:213
+msgid "XIM locale"
+msgstr "輸入法地域"
+
+#: mc_xim.c:225
+msgid "X Input Method"
+msgstr "輸入法主程式"
