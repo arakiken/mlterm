@@ -80,15 +80,16 @@ AC_ARG_ENABLE(gdk-pixbuf,
 	[  --enable-gdk-pixbuf          gdk-pixbuf[disabled]],
 	gdk_pixbuf=$enable_gdk_pixbuf)
 if test "$gdk_pixbuf" = "yes" ; then
-	AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
+	AC_CHECK_PROG(pkg_config,pkg-config,yes)
 	if test "$pkg_config" = "yes" ; then
-		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF -DOLD_GDK_PIXBUF"
-		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs` -lgdk_pixbuf_xlib"
+		GDK_PIXBUF_CFLAGS="`pkg-config --cflags gdk-pixbuf-xlib-2.0` -DUSE_GDK_PIXBUF"
+		GDK_PIXBUF_LIBS="`pkg-config --libs gdk-pixbuf-xlib-2.0`"
 	else	
-		AC_CHECK_PROG(pkg_config,pkg-config,yes)
+# fallback to old gdk-pixbuf 
+		AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
 		if test "$pkg_config" = "yes" ; then
-			GDK_PIXBUF_CFLAGS="`pkg-config --cflags gdk-pixbuf-xlib-2.0` -DUSE_GDK_PIXBUF"
-			GDK_PIXBUF_LIBS="`pkg-config --libs gdk-pixbuf-xlib-2.0`"
+			GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF -DOLD_GDK_PIXBUF"
+			GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs` -lgdk_pixbuf_xlib"
 		fi
 	fi
 fi

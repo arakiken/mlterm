@@ -8,7 +8,11 @@
 
 #include <math.h>
 #include <X11/Xatom.h>                   /* XInternAtom */
+#ifdef OLD_GDK_PIXBUF
 #include <gdk-pixbuf/gdk-pixbuf-xlib.h>  
+#else
+#include <gdk-pixbuf-xlib/gdk-pixbuf-xlib.h>  
+#endif
 #include <kiklib/kik_unistd.h>
 
 #include "x_picture_dep.h"
