@@ -1991,7 +1991,7 @@ ml_highlight_cursor(
 {
 	if( edit->cursor.is_highlighted)
 	{
-		/* already highlited */
+		/* already highlighted */
 		
 		return  0 ;
 	}
@@ -2014,7 +2014,7 @@ ml_unhighlight_cursor(
 {
 	if( ! edit->cursor.is_highlighted)
 	{
-		/* already highlited */
+		/* already highlighted */
 		
 		return  0 ;
 	}
