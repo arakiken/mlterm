@@ -666,7 +666,7 @@ x_get_all_custom_font_names(
 		*(p ++) = ',' ;
 	}
 
-	*p = '\0' ;
+	*(p - 1) = '\0' ;
 
 	return  font_name_list ;
 }

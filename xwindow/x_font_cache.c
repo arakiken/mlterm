@@ -301,19 +301,23 @@ x_get_font_name_list_for_fontset(
 		list_len = 0 ;
 	}
 
-	if( ( p = realloc( font_name_list , list_len + 27 + DIGIT_STR_LEN(font_cache->font_size) + 1))
+	if( ( p = realloc( font_name_list , list_len + 28 + DIGIT_STR_LEN(font_cache->font_size) + 1))
 			== NULL)
 	{
 		return  font_name_list ;
 	}
 
+	font_name_list = p ;
+
 	if( font_name_list)
 	{
-		sprintf( p , "%s-*-*-medium-r-*--%d-*-*-*-*-*" , font_name_list , font_cache->font_size) ;
+		sprintf( font_name_list , "%s,-*-*-medium-r-*--%d-*-*-*-*-*" ,
+			font_name_list , font_cache->font_size) ;
 	}
 	else
 	{
-		sprintf( p , "-*-*-medium-r-*--%d-*-*-*-*-*" , font_cache->font_size) ;
+		sprintf( font_name_list , "-*-*-medium-r-*--%d-*-*-*-*-*" ,
+			font_cache->font_size) ;
 	}
 
 	return  p ;
