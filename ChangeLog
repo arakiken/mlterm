@@ -1,3 +1,10 @@
+[20020218]
+* mlclient appends extra white space for ipc message. fixed.(committed)
+* character background color under transparent mode is drawn if it is different
+  from Window background color.(Thanks to KATO Kazuyoshi san)
+* mlconf_curses is updated (2002/02/18 version). 
+  (Thanks to Minami Hirokazu san)
+
 [20020217]
 * mlclient with invalid options causes mlterm process to exit. fixed.
 * typo in LICENCE file is fixed. (Thanks to Fumitake Taniguchi san)
