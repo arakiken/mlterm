@@ -39,7 +39,9 @@ copy_lines(
 	if( src_row + size > image->num_of_rows)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " lines are copyed over image->num_of_rows") ;
+		kik_warn_printf( KIK_DEBUG_TAG
+			" copying %d lines from %d row is over image->num_of_rows(%d)" ,
+			size , src_row , image->num_of_rows) ;
 	#endif
 
 		size = image->num_of_rows - src_row ;
@@ -52,7 +54,9 @@ copy_lines(
 	if( dst_row + size > image->num_of_rows)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " lines are copyed over image->num_of_rows") ;
+		kik_warn_printf( KIK_DEBUG_TAG
+			" copying %d lines to %d row is over image->num_of_rows(%d)" ,
+			size , dst_row , image->num_of_rows) ;
 	#endif
 
 		size = image->num_of_rows - dst_row ;
@@ -201,7 +205,7 @@ scroll_upward_region(
 	{
 		/*
 		 * this operation doesn't actually modify anything on screen ,
-		 * so mark_changed flag is set 0
+		 * so mark_changed flag is set 0.
 		 */
 		copy_lines( image , boundary_end + 1 , boundary_end + 1 - size ,
 			END_ROW(image) - boundary_end , 0) ;
@@ -377,7 +381,21 @@ ml_imgscrl_scroll_upward(
 	u_int  size
 	)
 {
+	if( image->scroll_region_beg > image->cursor.row || image->cursor.row > image->scroll_region_end)
+	{
+		return  0 ;
+	}
+
 	return  scroll_upward_region( image , image->scroll_region_beg , image->scroll_region_end , size) ;
+}
+
+int
+ml_imgscrl_scroll_upward_in_all(
+	ml_image_t *  image ,
+	u_int  size
+	)
+{
+	return  scroll_upward_region( image , 0 , image->num_of_rows - 1 , size) ;
 }
 
 int
@@ -386,7 +404,21 @@ ml_imgscrl_scroll_downward(
 	u_int  size
 	)
 {
+	if( image->scroll_region_beg > image->cursor.row || image->cursor.row > image->scroll_region_end)
+	{
+		return  0 ;
+	}
+	
 	return  scroll_downward_region( image , image->scroll_region_beg , image->scroll_region_end , size) ;
+}
+
+int
+ml_imgscrl_scroll_downward_in_all(
+	ml_image_t *  image ,
+	u_int  size
+	)
+{
+	return  scroll_downward_region( image , 0 , image->num_of_rows - 1 , size) ;
 }
 
 int

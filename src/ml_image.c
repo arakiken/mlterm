@@ -46,7 +46,7 @@ break_row_boundary(
 	if( image->num_of_filled_rows + size > image->num_of_rows)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " it failed to break from line %d by size %d." ,
+		kik_warn_printf( KIK_DEBUG_TAG " breaking from line %d by size %d failed." ,
 			END_ROW(image) , size) ;
 	#endif
 
@@ -126,7 +126,10 @@ get_pos(
 			
 			if( *row == image->num_of_rows - 1)
 			{
-				ml_imgscrl_scroll_upward( image , 1) ;
+				if( ! ml_imgscrl_scroll_upward( image , 1))
+				{
+					ml_imgscrl_scroll_upward_in_all( image , 1) ;
+				}
 
 				if( break_row_boundary( image , 1) != 1)
 				{
@@ -277,9 +280,12 @@ render_chars(
 
 			if( scroll_size)
 			{
-				ml_imgscrl_scroll_upward( image , scroll_size) ;
+				if( ! ml_imgscrl_scroll_upward( image , scroll_size))
+				{
+					ml_imgscrl_scroll_upward_in_all( image , scroll_size) ;
+				}
 			}
-
+			
 			return  1 ;
 		}
 	}
@@ -1435,7 +1441,11 @@ ml_image_scroll_upward(
 	cursor_row = image->cursor.row ;
 	cursor_col = image->cursor.col ;
 	
-	ml_imgscrl_scroll_upward( image , size) ;
+	if( ! ml_imgscrl_scroll_upward( image , size))
+	{
+		return  0 ;
+	}
+	
 	cursor_goto_by_col( image , cursor_col , cursor_row , BREAK_BOUNDARY) ;
 
 	return  1 ;
@@ -1453,7 +1463,11 @@ ml_image_scroll_downward(
 	cursor_row = image->cursor.row ;
 	cursor_col = image->cursor.col ;
 
-	ml_imgscrl_scroll_downward( image , size) ;
+	if( ! ml_imgscrl_scroll_downward( image , size))
+	{
+		return  0 ;
+	}
+	
 	cursor_goto_by_col( image , cursor_col , cursor_row , BREAK_BOUNDARY) ;
 
 	return  1 ;

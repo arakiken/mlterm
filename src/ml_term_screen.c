@@ -317,7 +317,8 @@ draw_cursor(
 		ml_imgline_is_empty( line))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " cursor line doesn't exist.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " cursor line %d doesn't exist.\n" ,
+			ml_cursor_row( termscr->image)) ;
 	#endif
 
 		return  0 ;

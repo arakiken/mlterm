@@ -111,7 +111,7 @@ ml_imgline_break_boundary(
 		/* over line length */
 
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " it failed to break from col %d by size %d" ,
+		kik_warn_printf( KIK_DEBUG_TAG " breakin from col %d by size %d failed." ,
 			END_CHAR_INDEX(line) , size) ;
 	#endif
 
