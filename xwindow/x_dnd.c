@@ -5,13 +5,21 @@
  */
 
 #include  "x_window.h"
-#include  "x_dnd.h"
+
 #include  <X11/Xatom.h>
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
+
+#include  "x_dnd.h"
+
+#define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
+#define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
+#define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
+#define  XA_INCR(display) (XInternAtom(display, "INCR", False))
+
 /* --- static variables --- */
 
-static const u_char  DND_VERSION = 4 ;
+
 
 /* --- static functuions --- */
 
@@ -42,6 +50,8 @@ x_dnd_set_awareness(
 	int flag
 	)
 {
+	u_char  DND_VERSION = 4 ;
+
 	if( flag)
 	{
 		XChangeProperty(win->display, win->my_window,
@@ -54,6 +64,39 @@ x_dnd_set_awareness(
 		XDeleteProperty(win->display, win->my_window,
 				XA_DND_AWARE(win->display)) ;
 	}
+}
+/**send accept/reject message to dnd sender
+ *\param win mlterm window
+ */
+void
+x_dnd_reply(
+	x_window_t * win
+	)
+{
+	XClientMessageEvent reply_msg;
+	
+	reply_msg.type = ClientMessage;
+	reply_msg.display = win->display;
+	reply_msg.format = 32;
+	reply_msg.window = win->dnd_source;
+	reply_msg.message_type = XA_DND_STATUS(win->display);
+	reply_msg.data.l[0] = win->my_window;
+	if (win->is_dnd_accepting)
+	{
+		reply_msg.data.l[1] = 0x1 | 0x2; /* accept the drop | use [2][3] */
+		reply_msg.data.l[2] = 0;
+		reply_msg.data.l[3] = 0;
+		reply_msg.data.l[4] = XA_DND_ACTION_COPY(win->display);
+	}
+	else
+	{
+		reply_msg.data.l[1] = 0;
+		reply_msg.data.l[2] = 0;
+		reply_msg.data.l[3] = 0;
+		reply_msg.data.l[4] = 0;
+	}
+	
+	XSendEvent(win->display, reply_msg.window, False, 0, (XEvent*)&reply_msg);
 }
 
 /**send finish message to dnd sender
@@ -147,7 +190,9 @@ x_dnd_parse(
 			/* some stupid apps(mozilla at el.) sends UTF-16LE without BOM */
 			/* force parser to be LE by sending BOM */
 			/* XXX this may cause problems on LE processor */
-			(parser->set_str)( parser , "\xFF\xFE" , 2) ;
+			u_int16_t BOM[] =  {0xFEFF};
+
+			(parser->set_str)( parser , (char *)BOM , 2) ;
 			(parser->next_char)( parser , 0) ;	     
 		}
 

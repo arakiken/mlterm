@@ -2,10 +2,6 @@
  *	$Id$
  */
 
-#define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
-#define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
-#define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
-
 /*
  * Drag and Drop stuff.
  */
@@ -28,6 +24,8 @@ void x_dnd_set_awareness( x_window_t * win, int flag );
 int x_dnd_parse( x_window_t * win, Atom atom, unsigned char *src, int len);
 
 void x_dnd_finish( x_window_t *  win) ;
+
+void x_dnd_reply( x_window_t *  win) ;
 
 Atom x_dnd_preferable_atom( x_window_t *  win , Atom *atom, int num);
 

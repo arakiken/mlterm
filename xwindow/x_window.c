@@ -2098,32 +2098,8 @@ x_window_receive_event(
 		if( event->xclient.format == 32 &&
 			event->xclient.message_type == XA_DND_POSITION( win->display))
 		{
-			XClientMessageEvent reply_msg;
-
 			win->dnd_source = event->xclient.data.l[0];
-			
-			reply_msg.type = ClientMessage;
-			reply_msg.display = win->display;
-			reply_msg.format = 32;
-			reply_msg.window = win->dnd_source;
-			reply_msg.message_type = XA_DND_STATUS(win->display);
-			reply_msg.data.l[0] = win->my_window;
-			if (win->is_dnd_accepting)
-			{
-				reply_msg.data.l[1] = 0x1 | 0x2; /* accept the drop | use [2][3] */
-				reply_msg.data.l[2] = 0;
-				reply_msg.data.l[3] = 0;
-				reply_msg.data.l[4] = XA_DND_ACTION_COPY(win->display);
-			}
-			else
-			{
-				reply_msg.data.l[1] = 0;
-				reply_msg.data.l[2] = 0;
-				reply_msg.data.l[3] = 0;
-				reply_msg.data.l[4] = 0;
-			}
-			
-			XSendEvent(win->display, reply_msg.window, False, 0, (XEvent*)&reply_msg);
+			x_dnd_reply( win);
 		}
 
 		/*DnD Drop*/
