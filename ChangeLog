@@ -1,6 +1,8 @@
 2004-01-07  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_main_config.c: minor bugfix.
+	* xwindow/x_font_manager.c: fixed segv when changing font size
+	using escape sequence.
 
 2004-01-06  MINAMI Hirokazu  <minami@mistfall.net>
 

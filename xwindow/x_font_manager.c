@@ -175,7 +175,7 @@ x_get_font(
 {
 	x_font_t *  xfont ;
 
-	if( font_man->prev_cache.font == font)
+	if( font && (font_man->prev_cache.font == font))
 	{
 		return  font_man->prev_cache.xfont ;
 	}
@@ -184,7 +184,7 @@ x_get_font(
 	{
 		font_man->prev_cache.font = font ;
 		font_man->prev_cache.xfont = xfont ;
-		
+
 		return  xfont ;
 	}
 	else
