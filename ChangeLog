@@ -2,6 +2,7 @@
 
 	* XIM server could not be changed by using mlconfig; fixed.
 	* manpage update for mlconfig.
+	* a new sample color configuration file.
 
 2002-06-09 Araki Ken <arakiken@users.sf.net>
 
