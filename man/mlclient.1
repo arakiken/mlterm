@@ -1,0 +1,40 @@
+.\" mlclient.1   -*- nroff -*-
+.TH MLTERM 1 "2002-05-19"
+.SH NAME
+mlclient \- client for mlterm
+.SH SYNOPSIS
+.B mlterm
+.RB [\fIoptions\fP]
+.\" ********************************************************************
+.SH DESCRIPTION
+\fBmlclient\fR is a client for \fBmlterm\fR(1) server (daemon).
+\fBmlterm\fR(1), an X terminal emulator, can be invoked
+in daemon process which holds sessions (shell process and other
+informations like backlog).  \fBmlclient\fR creats new sessions
+or recalls existing sessions which were disconnected from
+\fBmlclient\fR processes because the processes were killed.
+.\" ********************************************************************
+.SH OPTIONS
+Options of
+\fB\-K\fR/\fB\-\-maxptys\fR,
+\fB\-P\fR/\fB\-\-ptys\fR,
+\fB\-R\fR/\fB\-\-fsrange\fR,
+\fB\-W\fR/\fB\-\-sep\fR,
+\fB\-Y\fR/\fB\-\-decsp\fR,
+\fB\-c\fR/\fB\-\-cp932\fR,
+\fB\-i\fR/\fB\-\-xim\fR, and
+\fB\-j\fR/\fB\-\-daemon\fR
+are available.  Please read \fBmlterm\fR(1) for
+detail of these options.
+.\" ********************************************************************
+.SH SEE ALSO
+\fBmlterm\fR(1),
+\fBlocale\fR(7),
+\fBcharsets\fR(7),
+\fBUTF-8\fR(7), and
+\fBX\fR(7).
+.\" ********************************************************************
+.SH AUTHOR
+Araki Ken <arakiken@users.sourceforge.net>
+
+

@@ -19,3 +19,4 @@ $(MAN1DIR):
 
 install: $(MAN1DIR)
 	$(INSTALL) -m 644 $(SRC_TOPDIR)/man/mlterm.1 $(MAN1DIR)
+	$(INSTALL) -m 644 $(SRC_TOPDIR)/man/mlclient.1 $(MAN1DIR)

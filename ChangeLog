@@ -1,3 +1,11 @@
+2002-05-19 Tomohiro KUBOTA <kubota@debian.org>
+
+	* manpage update: explanations for -H, -J, -Q, -Z, and -q are
+	  vastly modified.  Added a chapter of DAEMON MODE.  Keys which
+	  are available only in -q mode are noted.
+	* Added a new manpage of mlclient.1 .  (man/Makefile.in is also
+	  modified to install this new page.)
+
 2002-05-19 Araki Ken <arakiken@users.sf.net>
 
 	* DEC_SPECIAL characters were not shown with -Y,--decsp option. fixed.
