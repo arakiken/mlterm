@@ -21,38 +21,42 @@
 
 /* --- static variables --- */
 
-static int new_encoding_idx;
+static int new_encoding_idx;  /* remember encoding as index in encodings[] */
 static int old_encoding_idx;
 static int is_changed;
 
 static char *  encodings[] =
 {
-	"auto" ,
-	
-	"ISO-8859-1" ,
-	"ISO-8859-2" ,
-	"ISO-8859-3" ,
-	"ISO-8859-4" ,
-	"ISO-8859-5" ,
-	"ISO-8859-6" ,
-	"ISO-8859-7" ,
-	"ISO-8859-8" ,
-	"ISO-8859-9" ,
-	"ISO-8859-10" ,
-	"ISO-8859-11 (TIS-620)" ,
-	"ISO-8859-13" ,
-	"ISO-8859-14" ,
-	"ISO-8859-15" ,
-	"ISO-8859-16" ,
-	"TCVN5712" ,
+	N_("auto") ,
 
-	"ISCII" ,
-	"VISCII" ,
-	"KOI8-R" ,
-	"KOI8-U" ,
-
+	N_("--- Unicode ---"),
 	"UTF-8" ,
 
+	N_("--- ISO 8859 encodings ---"),
+	"ISO-8859-1 (Latin-1)" ,
+	"ISO-8859-2 (Latin-2)" ,
+	"ISO-8859-3 (Latin-3)" ,
+	"ISO-8859-4 (Latin-4)" ,
+	"ISO-8859-5 (Latin/Cyrillic)" ,
+	"ISO-8859-6 (Latin/Arabic)" ,
+	"ISO-8859-7 (Latin/Greek)" ,
+	"ISO-8859-8 (Latin/Hebrew)" ,
+	"ISO-8859-9 (Latin-5)" ,
+	"ISO-8859-10 (Latin-6)" ,
+	"ISO-8859-11 (TIS-620 Thai)" ,
+	"ISO-8859-13 (Latin-7)" ,
+	"ISO-8859-14 (Latin-8)" ,
+	"ISO-8859-15 (Latin-9)" ,
+	"ISO-8859-16 (Latin-10)" ,
+
+	N_("--- Other 8bit ---"),
+	"KOI8-R (Russian)" ,
+	"KOI8-U (Ukrainian)" ,
+	"TCVN5712 (Vietnamese)" ,
+	"VISCII (Vietnamese)" ,
+	"ISCII (Indics)" ,
+
+	N_("--- Japanese ---"),
 	"EUC-JP" ,
 	"EUC-JISX0213" ,
 	"ISO-2022-JP" ,
@@ -61,29 +65,55 @@ static char *  encodings[] =
 	"SJIS" ,
 	"SJISX0213" ,
 
+	N_("--- Korean ---"),
 	"EUC-KR" ,
 	"UHC" ,
 	"JOHAB" ,
 	"ISO-2022-KR" ,
 
+	N_("--- traditional Chinese ---"),
 	"BIG-5" ,
 	"EUC-TW" ,
-
 	"BIG5HKSCS" ,
 
+	N_("--- simplified Chinese ---"),
 	"EUC-CN (GB2312)" ,
 	"GBK" ,
 	"GB18030" ,
 	"HZ" ,
-
 	"ISO-2022-CN" ,
 	NULL
 } ;
 
+static char *encodings_l10n[sizeof(encodings)/sizeof(encodings[0])];
 
 /* --- static functions --- */
 
-/* compare two encoding names */
+/* translate combobox items (encodings)
+ *   - the top item ("auto") and
+ *   - items which start with "-" (explanations)
+ */
+static void prepare_encodings_l10n(void)
+{
+	int j;
+
+	encodings_l10n[0] = strdup(_(encodings[0]));
+	for(j=1; encodings[j]; j++) {
+		if (encodings[j][0] == '-') {
+			encodings_l10n[j] = strdup(_(encodings[j]));
+			if (encodings_l10n[j][0] != '-') {
+				free(encodings_l10n[j]);
+				encodings_l10n[j] = encodings[j];
+			}
+		} else {
+			encodings_l10n[j] = encodings[j];
+		}
+	}
+	encodings_l10n[j] = NULL;
+}
+
+/* compare two encoding names, returns non-zero if equal
+ */
 static int compare(char *e1, char *e2)
 {
 	while(1) {
@@ -101,7 +131,11 @@ static int get_index(char *encoding)
 	int j;
 	for(j=0; encodings[j]; j++)
 		if (compare(encodings[j], encoding)) return j;
-	return -1;
+
+	/* Returns "auto" for unknown encoding names.
+	 * Also, there is a possibility of translated "auto".
+	 */
+	return 0;
 }
 
 static char *savename(int index)
@@ -122,7 +156,11 @@ static char *savename(int index)
 static gint
 encoding_selected(GtkWidget *widget, gpointer data)
 {
-	new_encoding_idx = get_index(gtk_entry_get_text(GTK_ENTRY(widget)));
+	char *p;
+
+	p = gtk_entry_get_text(GTK_ENTRY(widget));
+	if (*p == '-') return 1;
+	new_encoding_idx = get_index(p);
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s encoding is selected.\n" , new_encoding) ;
@@ -142,9 +180,10 @@ mc_char_encoding_config_widget_new(void)
 
 	idx = get_index(mc_get_str_value("encoding"));
 
-	widget = mc_combo_new(_("Encoding"), encodings,
+	prepare_encodings_l10n();
+	widget = mc_combo_new(_("Encoding"), encodings_l10n,
 		sizeof(encodings) / sizeof(encodings[0]) - 1,
-		encodings[idx], 1, encoding_selected, NULL);
+		encodings_l10n[idx], 1, encoding_selected, NULL);
 	if (widget == NULL) return NULL;
 
 	new_encoding_idx = old_encoding_idx = idx;

@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.2\n"
-"POT-Creation-Date: 2003-03-02 23:30+0900\n"
+"POT-Creation-Date: 2003-03-04 22:51+0900\n"
 "PO-Revision-Date: 2002-11-25 19:25+0100\n"
 "Last-Translator: Mike Fabian <mfabian@suse.de>\n"
 "Language-Team: German <suse-i18n@suse.de>\n"
@@ -58,7 +58,7 @@ msgstr "Auswahl"
 msgid "mlterm configuration"
 msgstr "mlterm Konfiguration"
 
-#: tool/mlconfig/main.c:372 tool/mlconfig/mc_char_encoding.c:199
+#: tool/mlconfig/main.c:372 tool/mlconfig/mc_char_encoding.c:187
 msgid "Encoding"
 msgstr "Kodierung"
 
@@ -122,6 +122,38 @@ msgstr "transparent"
 #: tool/mlconfig/mc_brightness.c:71
 msgid "Brightness"
 msgstr "Helligkeit"
+
+#: tool/mlconfig/mc_char_encoding.c:30
+msgid "auto"
+msgstr ""
+
+#: tool/mlconfig/mc_char_encoding.c:33
+msgid "--- Unicode ---"
+msgstr ""
+
+#: tool/mlconfig/mc_char_encoding.c:37
+msgid "--- ISO 8859 encodings ---"
+msgstr ""
+
+#: tool/mlconfig/mc_char_encoding.c:55
+msgid "--- Other 8bit ---"
+msgstr ""
+
+#: tool/mlconfig/mc_char_encoding.c:63
+msgid "--- Japanese ---"
+msgstr ""
+
+#: tool/mlconfig/mc_char_encoding.c:73
+msgid "--- Korean ---"
+msgstr ""
+
+#: tool/mlconfig/mc_char_encoding.c:80
+msgid "--- traditional Chinese ---"
+msgstr ""
+
+#: tool/mlconfig/mc_char_encoding.c:86
+msgid "--- simplified Chinese ---"
+msgstr ""
 
 #: tool/mlconfig/mc_color.c:137 tool/mlconfig/mc_color.c:155
 msgid "Foreground color"

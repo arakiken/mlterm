@@ -1,3 +1,11 @@
+2003-03-04 Tomohiro KUBOTA <kubota@debian.org>
+
+	* mlconfig outputs "wall_picture = none" when background type
+	  is transparent.
+	* Added comments for "encoding" items of mlconfig and make these
+	  comments and "auto" translatable.
+	* Japanese translation of these translatable items.
+
 2003-03-02 Araki Ken <arakiken@users.sf.net>
 
 	* grantpt() could behave unexpectedly because SIGCHLD installed when

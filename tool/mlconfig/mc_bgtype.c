@@ -181,6 +181,7 @@ mc_update_bgtype(void)
 	} else if (!strcmp( bgtype, "transparent")) {
 	    if( is_changed) {
 	        mc_set_flag_value("use_transbg", 1);
+		mc_set_str_value("wall_picture", "none");
 	    }
 	}
 }
