@@ -127,7 +127,7 @@ parse(
 				if( *oper == '\\')
 				{
 					oper ++ ;
-					
+
 					if( *oper == '\0')
 					{
 						break ;
@@ -179,9 +179,21 @@ parse(
 		shortcut->str_map[shortcut->str_map_size].str = str ;
 		shortcut->str_map_size ++ ;
 
+		for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ; count ++)
+		{
+			x_key_t *  map_entry ;
+
+			map_entry = shortcut->map + key_func_table[count].func ;
+			if( (map_entry->ksym == ksym) &&
+			    (map_entry->state = state))
+			{
+				map_entry->is_used = 0 ;
+			}
+		}
+
 		return  1 ;
 	}
-	
+
 	for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ; count ++)
 	{
 		if( strcmp( oper , key_func_table[count].name) == 0)

@@ -1,3 +1,8 @@
+2004-03-28  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* xwnidow/x_shortcut.c: default shortcut should be disabled
+	if some string is assigned to the key combination.
+
 2004-03-23  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* mlterm/ml_char.c: ml_char_set() now checks its input values
