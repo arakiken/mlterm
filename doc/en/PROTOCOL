@@ -15,8 +15,8 @@ version 20030301
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi |
-                     receive_string_via_ucs | xim | wall_picture | full_reset |
-                     brightness | gamma | contrast | line_space |
+                     receive_string_via_ucs | input_method | wall_picture |
+                     full_reset | brightness | gamma | contrast | line_space |
                      screen_width_ratio | screen_height_ratio | vertical_mode |
                      scrollbar_mode | use_multi_column_char |
                      scrollbar_view_name | sb_fg_color | sb_bg_color |
@@ -59,7 +59,7 @@ version 20030301
   use_transbg = true | false
   use_bidi = true | false
   receive_string_via_ucs = true | false
-  xim = <xim name> ":" <locale name> | <xim name>
+  input_method = <input method> ":" <input method specific options> ...
   locale = <locale name>
   wall_picture = <file path>
   full_reset = <none>
@@ -98,8 +98,6 @@ version 20030301
     effect.
   o Adjusting and operation arguments of  ESC ] 20 ; pt BEL sequence are not
     used for now.
-  o If ESC ] 5379 ; xim= <value> BEL sequence doesn't contain ":" <locale name>
-    , current mlterm locale is used.
   o Return value of ESC ] 5380 ; xim BEL is <xim name> only , never <xim name>
     ":" <locale name>.
   o It is configuration programs themselves that search ~/.mlterm/xim and
