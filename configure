@@ -18,7 +18,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-fribidi        fribidi[disabled]"
 ac_help="$ac_help
-  --enable-iscii          iscii[disabled]"
+  --enable-ind            ind[disabled]"
 ac_help="$ac_help
   --enable-imlib          imlib[disabled]"
 ac_help="$ac_help
@@ -584,9 +584,9 @@ if test "${enable_fribidi+set}" = set; then
   :
 fi
 
-# Check whether --enable-iscii or --disable-iscii was given.
-if test "${enable_iscii+set}" = set; then
-  enableval="$enable_iscii"
+# Check whether --enable-ind or --disable-ind was given.
+if test "${enable_ind+set}" = set; then
+  enableval="$enable_ind"
   :
 fi
 

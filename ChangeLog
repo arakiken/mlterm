@@ -1,3 +1,15 @@
+[20020108]
+* mlterm with --enable-debug option can dump core owing to failure of 
+  list operations. fixed. (thanks to Karl Koehler)
+* ISCII / Bidi codes are more shared.
+* mlterm.spec is updated (thanks to Kiyoshi Nishizawa san)
+* ISCII characters in backscroll logs cannot be selected(and copyed) correctly.
+  fixed.
+* Window is not resized when font size is changed. fixed.
+* -g option accepts minus x/y position.
+* vertical tab sometimes fails. fixed.(thanks to nekoie san)
+* default font size range is 6 - 30.
+
 [20020106]
 * ISCII support codes are added. (still unstable)
 * INIT_PARSER short cut key is removed and "Full Rest" button is added to mlconfig. 
