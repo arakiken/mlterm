@@ -286,8 +286,13 @@ is_pref(
 {
 	int i ;
 	for( i = 0 ; i < num ; i++)
+	{
 		if( atom[i] == type)
+		{
 			return i ;			
+		}
+
+	}
 	return  -1 ;
 }
 
@@ -408,10 +413,9 @@ choose_atom(
 	dnd_parser_t *  proc_entry ;
 	int  i = -1 ;
 	
-	for( proc_entry = dnd_parsers ; proc_entry->atomname ;proc_entry++)
-		if( (i = is_pref( XInternAtom( win->display, proc_entry->atomname, False), atom, num) > 0))
-			break ;	
-	
+	for( proc_entry = dnd_parsers ; i< 0 && proc_entry->atomname ;proc_entry++)
+		i = is_pref( XInternAtom( win->display, proc_entry->atomname, False), atom, num);
+
 	if( i < 0)
 	{
 #ifdef  DEBUG
