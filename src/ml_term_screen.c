@@ -2798,6 +2798,8 @@ change_fg_color(
 
 	termscr = p ;
 
+	ml_window_unfade( &termscr->window) ;
+	
 	ml_window_set_fg_color( &termscr->window , color) ;
 	ml_xic_fg_color_changed( &termscr->window) ;
 }
@@ -2813,6 +2815,7 @@ change_bg_color(
 	termscr = p ;
 
 	ml_window_unfade( &termscr->window) ;
+
 	ml_window_set_bg_color( &termscr->window , color) ;
 	ml_xic_bg_color_changed( &termscr->window) ;
 }

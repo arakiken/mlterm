@@ -332,6 +332,33 @@ unset_xfont(
 	return  1 ;
 }
 
+static int
+parse_xfont_name(
+	char **  font_xlfd ,
+	char **  percent ,
+	char *  font_name
+	)
+{
+	/*
+	 * XftFont format.
+	 * [Font XLFD](:[Percentage])
+	 */
+
+	if( ( *font_xlfd = kik_str_sep( &font_name , ":")) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " illegal true type font name(%s).\n" ,
+			font_name) ;
+	#endif
+
+		return  0 ;
+	}
+
+	/* may be NULL */
+	*percent = font_name ;
+
+	return  1 ;
+}
 
 #ifdef  ANTI_ALIAS
 
@@ -481,29 +508,23 @@ set_xft_font(
 
 		if( parse_xft_font_name( &font_family , &font_encoding , &percent_str , p))
 		{
-			if( percent_str == NULL || ! kik_str_to_int( &percent , percent_str))
+			if( col_width == 0)
 			{
-				if( col_width == 0)
+				if( percent_str == NULL || ! kik_str_to_int( &percent , percent_str) ||
+					percent == 0)
 				{
 					/* basic font (e.g. usascii) width */
 					ch_width = get_xft_col_width( font , font_family , fontsize) * cols ;
 				}
 				else
 				{
-					ch_width = col_width * cols ;
+					/* basic font (e.g. usascii) width */
+					ch_width = (fontsize * cols * percent) / 200 ;
 				}
 			}
 			else
 			{
-				if( col_width == 0)
-				{
-					/* basic font (e.g. usascii) width */
-					ch_width = (fontsize * percent) / 200 ;
-				}
-				else
-				{
-					ch_width = (col_width * cols * percent) / 100 ;
-				}
+				ch_width = col_width * cols ;
 			}
 
 			if( is_proportional)
@@ -703,6 +724,7 @@ ml_font_set_xfont(
 	char *  family ;
 	cs_info_t *  csinfo ;
 	char **  font_encoding_p ;
+	u_int  percent ;
 
 	if( ( csinfo = get_cs_info( FONT_CS(font->attr))) == NULL)
 	{
@@ -725,19 +747,42 @@ ml_font_set_xfont(
 
 	if( fontname != NULL)
 	{
-	#ifdef __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " loading %s font.\n" , fontname) ;
-	#endif
-	
-		if( ( xfont = XLoadQueryFont( font->display , fontname)))
+		char *  p ;
+		char *  font_xlfd ;
+		char *  percent_str ;
+		
+		if( ( p = kik_str_alloca_dup( fontname)) == NULL)
 		{
-			goto  font_found ;
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
+		#endif
+		
+			return  0 ;
 		}
+		
+		if( parse_xfont_name( &font_xlfd , &percent_str , p))
+		{
+		#ifdef __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " loading %s font.\n" , font_xlfd) ;
+		#endif
 
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " %s font couln't be loaded.\n" , fontname) ;
-	#endif
+			if( ( xfont = XLoadQueryFont( font->display , font_xlfd)))
+			{
+				if( percent_str == NULL || ! kik_str_to_int( &percent , percent_str))
+				{
+					percent = 0 ;
+				}
+
+				goto  font_found ;
+			}
+
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " %s font couln't be loaded.\n" , font_xlfd) ;
+		#endif
+		}
 	}
+	
+	percent = 0 ;
 	
 	/*
 	 * searching apropriate font by using font_attr info.
@@ -967,14 +1012,32 @@ font_found:
 		font->width = xfont->max_bounds.width ;
 	}
 
-	/*
-	 * XXX hack
-	 * forcibly conforming non standard font width to standard font width.
-	 */
-	if( col_width != 0)
+	if( col_width == 0)
+	{
+		/* standard(usascii) font */
+		
+		if( percent > 0)
+		{
+			u_int  ch_width ;
+
+			ch_width = (fontsize * font->cols * percent) / 200 ;
+
+			if( font->width != ch_width)
+			{
+				font->is_proportional = 1 ;
+				font->width = ch_width ;
+			}
+		}
+	}
+	else
 	{
 		/* not a standard(usascii) font */
 
+		/*
+		 * XXX hack
+		 * forcibly conforming non standard font width to standard font width.
+		 */
+		
 		if( font->width != col_width * font->cols)
 		{
 			font->is_proportional = 1 ;

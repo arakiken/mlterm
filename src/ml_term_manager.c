@@ -1178,6 +1178,21 @@ ml_term_manager_init(
 		term_man->font_size = 16 ;
 	}
 
+	if( term_man->font_size > max_font_size)
+	{
+		kik_msg_printf( "font size %d is too large. %d is used.\n" ,
+			term_man->font_size , max_font_size) ;
+		
+		term_man->font_size = max_font_size ;
+	}
+	else if( term_man->font_size < min_font_size)
+	{
+		kik_msg_printf( "font size %d is too small. %d is used.\n" ,
+			term_man->font_size , min_font_size) ;
+			
+		term_man->font_size = min_font_size ;
+	}
+
 	if( ( value = kik_conf_get_value( conf , "logsize")) == NULL)
 	{
 		term_man->num_of_log_lines = 128 ;

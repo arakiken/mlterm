@@ -59,10 +59,12 @@ typedef struct  ml_vt100_parser
 	
 	u_long  fg_color ;
 	u_long  bg_color ;
-	int8_t  is_reversed ;
 	
 	mkf_charset_t  cs ;
 	ml_font_t *  font ;
+	
+	int8_t  is_reversed ;
+	int8_t  is_usascii_font_for_missing ;
 
 	ml_term_screen_t *  termscr ;
 

@@ -44,7 +44,7 @@ mkf_map_nec_ext_to_ucs4(
 {
 	u_int16_t  c ;
 
-	if( 0x2d21 <= nec_ext && nec_ext <= 0x2d7c)
+	if( nec_ext < 0x2d21 || 0x2d7c < nec_ext)
 	{
 		return  0 ;
 	}

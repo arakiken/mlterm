@@ -106,14 +106,6 @@ change_font(
 			vt100_parser->font_attr | vt100_parser->cs) ;
 	#endif
 
-		/*
-		 * using US_ASCII font instead.
-		 *
-		 * XXX
-		 * better algorithm should be used to search alternative font...
-		 * e.g.) choose another 2 bytes font for non-existing 2 bytes font.
-		 */
-		 
 		if( ( vt100_parser->font = ml_term_screen_get_font( vt100_parser->termscr ,
 				vt100_parser->font_attr | US_ASCII)) == NULL &&
 			( vt100_parser->font = ml_term_screen_get_font( vt100_parser->termscr ,
@@ -121,10 +113,16 @@ change_font(
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " this should never happen(unrecoverable error).\n") ;
+			
+			abort() ;
 		#endif
-		
-			return ;
 		}
+
+		vt100_parser->is_usascii_font_for_missing = 1 ;
+	}
+	else
+	{
+		vt100_parser->is_usascii_font_for_missing = 0 ;
 	}
 }
 
@@ -246,6 +244,16 @@ put_char(
 		vt100_parser->font_attr |= width_attr ;
 
 		change_font( vt100_parser) ;
+	}
+
+	if( vt100_parser->is_usascii_font_for_missing)
+	{
+		/* using space(0x20) instead */
+		
+		ch[0] = 0x20 ;
+		len = 1 ;
+		cs = US_ASCII ;
+		prop = 0 ;
 	}
 
 	if( vt100_parser->is_reversed)
@@ -2104,6 +2112,7 @@ ml_vt100_parser_new(
 	vt100_parser->is_reversed = 0 ;
 	vt100_parser->font = NULL ;
 	vt100_parser->cs = UNKNOWN_CS ;
+	vt100_parser->is_usascii_font_for_missing = 0 ;
 
 	vt100_parser->not_use_unicode_font = not_use_unicode_font ;
 	vt100_parser->only_use_unicode_font = only_use_unicode_font ;
@@ -2264,7 +2273,7 @@ ml_parse_vt100_sequence(
 						{
 						#ifdef  DEBUG
 							kik_warn_printf( KIK_DEBUG_TAG
-							" failed to convert ucs4 to other cs , ignored.\n") ;
+							" failed to convert ucs4 to other cs.\n") ;
 						#endif
 							continue ;
 						}
@@ -2289,6 +2298,14 @@ ml_parse_vt100_sequence(
 					/* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
 					|| ( vt100_parser->encoding == ML_GB18030 && ch.cs == GBK)
 				#endif
+					/*
+					 * XXX
+					 * converting japanese gaiji to ucs.
+					 */
+					|| ch.cs == JISC6226_1978_NEC_EXT
+					|| ch.cs == JISC6226_1978_NECIBM_EXT
+					|| ch.cs == JISX0208_1983_MAC_EXT
+					|| ch.cs == SJIS_IBM_EXT
 					)
 				{
 					mkf_char_t  ucs ;
@@ -2312,7 +2329,7 @@ ml_parse_vt100_sequence(
 					else
 					{
 						kik_warn_printf( KIK_DEBUG_TAG
-							" mkf_convert_to_ucs4_char() failed, ignored.\n") ;
+							" mkf_convert_to_ucs4_char() failed.\n") ;
 					}
 				#endif
 				}

@@ -119,5 +119,4 @@ static u_int16_t  nec_ext_to_ucs4_table[] =
 } ;
 
 
-
 #endif
