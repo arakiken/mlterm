@@ -1,3 +1,9 @@
+2004-01-13  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* tool/mlclient/main.c: arguments specified by -e option were able to
+	estimate(e.g., mlclient -e w3m -v). fixed.
+	(Thanks to Murano Naoki san for sending a patch)
+
 2004-01-12  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* kiklib/src/kik_pty_streams.c: #defined _BSD_SOURCE to

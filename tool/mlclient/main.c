@@ -91,6 +91,11 @@ main(
 
 				exit(0) ;
 			}
+			else if( strcmp( p , "e") == 0)
+			{
+				/* argvs after -e are NOT options for mlterm */
+				break ;
+			}
 		}
 	}
 
