@@ -1,5 +1,5 @@
 [20020221]
-* garbage is left on upward arrow image of scrollbar. fixed.
+* garbage is left on arrow images of scrollbar. fixed.
 * w3mmlconfig is updated.
   (Thanks to Sakamoto Hironori san)
 
