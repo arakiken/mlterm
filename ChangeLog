@@ -1,10 +1,18 @@
+2002-05-16 Araki Ken <arakiken@users.sf.net>
+
+	* change of scrollbar foreground and background colors etc is not reflected 
+	  immediately. fixed.(2002-05-14 fix was incomplete)
+        * #RRGGBB format is accepted in "color" config file.
+	* ECHOE and ECHOCTL are added to termios.c_lflag. 
+	  (Thanks to Kitagawa Takurou san and Minami Hirokazu san)
+
 2002-05-15 Araki Ken <arakiken@users.sf.net>
 
 	* Ctrl-H as well as backspace key invokes ML_BACKSPACE shortcut key. fixed.
 
 2002-05-14 Araki Ken <arakiken@users.sf.net>
 
-        * change of fade ratio, fg color and bg color was not reflected soon. fixed.
+        * change of fade ratio, fg color and bg color was not reflected immediately. fixed.
 	* fg color and bg color are not highlighted by "\E[1m".
  
 2002-05-14 Araki Ken <arakiken@users.sf.net>
