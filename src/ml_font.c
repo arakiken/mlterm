@@ -241,14 +241,14 @@ load_xfont(
 {
 	XFontStruct *  xfont ;
 	char *  fontname ;
-	size_t  name_len ;
+	size_t  max_len ;
 
 	/* "+ 20" means the num of '-' , '*'(19byte) and null chars. */
-	name_len = 3 /* gnu */ + strlen(family) + 7 /* unifont */ + strlen( weight) +
+	max_len = 3 /* gnu */ + strlen(family) + 7 /* unifont */ + strlen( weight) +
 		strlen( slant) + strlen( width) + 2 /* lang */ + DIGIT_STR_LEN(fontsize) +
 		strlen( spacing) + strlen( encoding) + 20 ;
 	
-	if( ( fontname = alloca( name_len)) == NULL)
+	if( ( fontname = alloca( max_len)) == NULL)
 	{
 		return  0 ;
 	}
@@ -759,7 +759,7 @@ font_found:
 #else
 
 int
-ml_font_set_xft_font
+ml_font_set_xft_font(
 	ml_font_t *  font ,
 	char *  fontname ,
 	u_int  fontsize ,

@@ -1,4 +1,7 @@
 [20020208]
+* if --enable-anti-alias is not specified , compilation fails. fixed.
+
+[20020208]
 * processing half width character in vertical view is improved.
 * XLFD font name to query internally is strange. fixed. (Thanks to Karl Koehler)
 * when fade_ratio is set 100 from mlconfig , screen is not completely cleared. fixed.

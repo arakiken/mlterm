@@ -11,8 +11,8 @@
 
 
 /*
- * LTR | HALF_WIDTH ... e.g. Mongolian
- * RTL | FULL_WIDTH ... e.g. CJK
+ * LTR ... e.g. Mongolian
+ * RTL ... e.g. CJK
  */
 typedef enum  ml_vertical_mode
 {

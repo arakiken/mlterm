@@ -85,6 +85,33 @@ is_aa(
 		(font_man->font_custom == font_man->taa_font_custom) ;
 }
 
+static ml_font_present_t
+get_font_present(
+	ml_font_manager_t *  font_man
+	)
+{
+	ml_font_present_t  font_present ;
+
+	font_present = 0 ;
+	
+	if( is_aa( font_man))
+	{
+		font_present |= FONT_AA ;
+	}
+
+	if( is_var_col_width( font_man))
+	{
+		font_present |= FONT_VAR_WIDTH ;
+	}
+	
+	if( is_vertical( font_man))
+	{
+		font_present |= FONT_VERTICAL ;
+	}
+
+	return  font_present ;	
+}
+
 static int
 is_vertical(
 	ml_font_manager_t *  font_man
@@ -156,26 +183,7 @@ set_xfont(
 	int  use_medium_for_bold
 	)
 {
-	ml_font_present_t  font_present ;
-
-	font_present = 0 ;
-	
-	if( is_aa( font_man))
-	{
-		font_present |= FONT_AA ;
-	}
-
-	if( is_var_col_width( font_man))
-	{
-		font_present |= FONT_VAR_WIDTH ;
-	}
-	
-	if( is_vertical( font_man))
-	{
-		font_present |= FONT_VERTICAL ;
-	}
-	
-	ml_font_set_font_present( font , font_present) ;
+	ml_font_set_font_present( font , get_font_present( font_man)) ;
 	
 	if( ! (*font_man->set_xfont)( font , fontname , fontsize , col_width , use_medium_for_bold))
 	{
