@@ -127,7 +127,7 @@ ml_color_custom_get_rgb(
 	ml_color_t  color
 	)
 {
-	if( 0 <= color && color < MLC_PRIVATE_FG_COLOR && color_custom->rgbs[color])
+	if( 0 <= color && color < MLC_FG_COLOR && color_custom->rgbs[color])
 	{
 		*red = color_custom->rgbs[color]->red ;
 		*blue = color_custom->rgbs[color]->blue ;
