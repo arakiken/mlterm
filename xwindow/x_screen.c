@@ -1413,7 +1413,7 @@ window_realized(
 					screen->mod_ignore_mask)))
 			{
 				free( screen->input_method) ;
-				screen->input_method = strdup( "none") ;
+				screen->input_method = NULL ;
 			}
 		}
 	}
@@ -4186,6 +4186,7 @@ change_im(
 	if( screen->input_method)
 	{
 		free( screen->input_method) ;
+		screen->input_method = NULL ;
 	}
 
 	if( ! input_method)
@@ -4217,7 +4218,7 @@ change_im(
 		else
 		{
 			free( screen->input_method) ;
-			screen->input_method = strdup( "none") ;
+			screen->input_method = NULL ;
 		}
 	}
 }
@@ -5096,7 +5097,7 @@ get_config(
 		}
 		else
 		{
-			value = "" ;
+			value = "none" ;
 		}
 	}
 	else if( strcmp( key , "default_xim_name") == 0)

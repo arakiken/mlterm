@@ -111,7 +111,7 @@ x_im_new(
 	char *  im_name ;
 	char *  im_attr ;
 
-	if( strcmp( input_method , "none") == 0)
+	if( input_method == NULL)
 	{
 		return  NULL ;
 	}

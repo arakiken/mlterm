@@ -5,7 +5,8 @@
 	* xwindow/x_term_manager.c (client_connected): argv[argc] = NULL.
 	(POSIX exec family style)
 
-	* configure, mkf/configure: synchronized with configure.in.
+	* xwindow/x_screen.c, xwindow/x_im.c:
+	screen->input_method=strdup("none"); -> screen->input_method=NULL;
 
 2004-11-19 Seiichi SATO <ssato@sh.rim.or.jp>
 
@@ -25,6 +26,8 @@
 	< TAB >@FOO@ @BAR@                           < TAB >foo
 
 	* doc/en/PLATFORM: updated supported platforms.
+
+	* configure, mkf/configure: synchronized with configure.in.
 
 2004-11-18 Seiichi SATO <ssato@sh.rim.or.jp>
 
