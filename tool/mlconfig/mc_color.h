@@ -19,6 +19,8 @@ GtkWidget *  mc_sb_bg_color_config_widget_new( char *  color) ;
 
 char *  mc_get_fg_color(void) ;
 
+int mc_bg_color_ischanged();
+
 char *  mc_get_bg_color(void) ;
 
 char *  mc_get_sb_fg_color(void) ;

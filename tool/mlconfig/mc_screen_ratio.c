@@ -95,7 +95,7 @@ mc_screen_width_ratio_config_widget_new(
 {
 	selected_screen_width_ratio = ratio ;
 
-	return  config_widget_new( "Width ratio" , ratio , screen_width_ratio_selected) ;
+	return  config_widget_new( "Width" , ratio , screen_width_ratio_selected) ;
 }
 
 GtkWidget *
@@ -105,7 +105,7 @@ mc_screen_height_ratio_config_widget_new(
 {
 	selected_screen_height_ratio = ratio ;
 
-	return  config_widget_new( "Height ratio" , ratio , screen_height_ratio_selected) ;
+	return  config_widget_new( "Height" , ratio , screen_height_ratio_selected) ;
 }
 
 char *

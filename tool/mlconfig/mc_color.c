@@ -141,7 +141,7 @@ mc_bg_color_config_widget_new(
 {
 	selected_bg_color = color ;
 	
-	return  config_widget_new( "Background color" , color , bg_color_selected) ;
+	return  config_widget_new( "" , color , bg_color_selected) ;
 }
 
 GtkWidget *
@@ -177,14 +177,14 @@ mc_get_fg_color(void)
 	return  selected_fg_color ;
 }
 
+int mc_bg_color_ischanged(void)
+{
+    return bg_is_changed;
+}
+
 char *
 mc_get_bg_color(void)
 {
-	if( ! bg_is_changed)
-	{
-		return  NULL ;
-	}
-	
 	bg_is_changed = 0 ;
 	
 	return  selected_bg_color ;

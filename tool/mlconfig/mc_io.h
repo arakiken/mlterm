@@ -14,5 +14,7 @@ char *  mc_get_str_value( char *  key) ;
 
 int  mc_get_flag_value( char *  key) ;
 
+char *  mc_get_bgtype(void) ;
+
 
 #endif

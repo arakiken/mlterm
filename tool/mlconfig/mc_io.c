@@ -151,3 +151,20 @@ mc_get_flag_value(
 		return  0 ;
 	}
 }
+
+char *
+mc_get_bgtype(
+	void
+	)
+{
+	char *picture;
+	int trans;
+	
+	if (mc_get_flag_value("use_transbg")) return strdup("transparent");
+
+	picture = mc_get_str_value("wall_picture");
+	if (picture && strlen(picture)>0) return strdup("picture");
+
+	return strdup("color");
+}
+

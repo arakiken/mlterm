@@ -10,6 +10,7 @@
 
 #include  "mc_char_encoding.h"
 #include  "mc_color.h"
+#include  "mc_bgtype.h"
 #include  "mc_brightness.h"
 #include  "mc_contrast.h"
 #include  "mc_gamma.h"
@@ -76,54 +77,75 @@ cancel_clicked(
 static int
 update(void)
 {
-	mc_set_str_value( "encoding" , mc_get_char_encoding()) ;
-	mc_set_str_value( "iscii_lang" , mc_get_iscii_lang()) ;
-	mc_set_str_value( "fg_color" , mc_get_fg_color()) ;
-	mc_set_str_value( "bg_color" , mc_get_bg_color()) ;
-	mc_set_str_value( "sb_fg_color" , mc_get_sb_fg_color()) ;
-	mc_set_str_value( "sb_bg_color" , mc_get_sb_bg_color()) ;
-	mc_set_str_value( "tabsize" , mc_get_tabsize()) ;
-	mc_set_str_value( "logsize" , mc_get_logsize()) ;
-	mc_set_str_value( "fontsize" , mc_get_fontsize()) ;
-	mc_set_str_value( "line_space" , mc_get_line_space()) ;
-	mc_set_str_value( "screen_width_ratio" , mc_get_screen_width_ratio()) ;
-	mc_set_str_value( "screen_height_ratio" , mc_get_screen_height_ratio()) ;
-	mc_set_str_value( "mod_meta_mode" , mc_get_mod_meta_mode()) ;
-	mc_set_str_value( "bel_mode" , mc_get_bel_mode()) ;
-	mc_set_str_value( "vertical_mode" , mc_get_vertical_mode()) ;
-	mc_set_str_value( "scrollbar_mode" , mc_get_sb_mode()) ;
-	mc_set_str_value( "brightness" , mc_get_brightness()) ;
-	mc_set_str_value( "contrast" , mc_get_contrast()) ;
-	mc_set_str_value( "gamma" , mc_get_gamma()) ;
-	mc_set_str_value( "fade_ratio" , mc_get_fade_ratio()) ;
-	mc_set_str_value( "scrollbar_view_name" , mc_get_sb_view_name()) ;
+    char *bgtype;
+    mc_set_str_value("encoding", mc_get_char_encoding());
+    mc_set_str_value("iscii_lang", mc_get_iscii_lang());
+    mc_set_str_value("fg_color", mc_get_fg_color());
+    mc_set_str_value("sb_fg_color", mc_get_sb_fg_color());
+    mc_set_str_value("sb_bg_color", mc_get_sb_bg_color());
+    mc_set_str_value("tabsize", mc_get_tabsize());
+    mc_set_str_value("logsize", mc_get_logsize());
+    mc_set_str_value("fontsize", mc_get_fontsize());
+    mc_set_str_value("line_space", mc_get_line_space());
+    mc_set_str_value("screen_width_ratio", mc_get_screen_width_ratio());
+    mc_set_str_value("screen_height_ratio", mc_get_screen_height_ratio());
+    mc_set_str_value("mod_meta_mode", mc_get_mod_meta_mode());
+    mc_set_str_value("bel_mode", mc_get_bel_mode());
+    mc_set_str_value("vertical_mode", mc_get_vertical_mode());
+    mc_set_str_value("scrollbar_mode", mc_get_sb_mode());
+    mc_set_str_value("brightness", mc_get_brightness());
+    mc_set_str_value("contrast", mc_get_contrast());
+    mc_set_str_value("gamma", mc_get_gamma());
+    mc_set_str_value("fade_ratio", mc_get_fade_ratio());
+    mc_set_str_value("scrollbar_view_name", mc_get_sb_view_name());
 
+    {
+	char *  xim ;
+	char *  locale ;
+
+	if ((xim = mc_get_xim_name()) && (locale = mc_get_xim_locale()))
 	{
-		char *  xim ;
-		char *  locale ;
+	    char *  val ;
 
-		if( ( xim = mc_get_xim_name()) && ( locale = mc_get_xim_locale()))
-		{
-			char *  val ;
-			
-			if( ( val = malloc( strlen( xim) + 1 + strlen( locale) + 1)))
-			{
-				sprintf( val , "%s:%s" , xim , locale) ;
-				mc_set_str_value( "xim" , val) ;
-				free( val) ;
-			}
-		}
+	    if ((val = malloc(strlen(xim) + 1 + strlen(locale) + 1)))
+	    {
+		sprintf(val, "%s:%s", xim, locale);
+		mc_set_str_value("xim", val);
+		free( val) ;
+	    }
 	}
-	
-	mc_set_str_value( "wall_picture" , mc_get_wall_pic()) ;
-	mc_set_flag_value( "use_anti_alias" , GTK_TOGGLE_BUTTON(use_aa_check)->active) ;
-	mc_set_flag_value( "use_variable_column_width" , GTK_TOGGLE_BUTTON(use_vcol_check)->active) ;
-	mc_set_flag_value( "use_combining" , GTK_TOGGLE_BUTTON(use_comb_check)->active) ;
-	mc_set_flag_value( "use_dynamic_comb" , GTK_TOGGLE_BUTTON(use_dynamic_comb_check)->active) ;
-	mc_set_flag_value( "copy_paste_via_ucs" , GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active) ;
-	mc_set_flag_value( "use_transbg" , GTK_TOGGLE_BUTTON(is_tp_check)->active) ;
-	mc_set_flag_value( "use_multi_column_char" , GTK_TOGGLE_BUTTON(use_multi_col_char_check)->active) ;
-	mc_set_flag_value( "use_bidi" , GTK_TOGGLE_BUTTON(use_bidi_check)->active) ;
+    }
+
+    {
+	int bgtype_ischanged = mc_bgtype_ischanged();
+	char *bgtype = mc_get_bgtype_mode();
+	if (bgtype == NULL) {
+	    ;
+	} else if (!strcmp(bgtype, "color")) {
+	    if (bgtype_ischanged) {
+		mc_set_flag_value("use_transbg", 0);
+		mc_set_str_value("wall_picture", "none");
+	    }
+	    if (bgtype_ischanged || mc_bg_color_ischanged())
+		mc_set_str_value("bg_color", mc_get_bg_color());
+	} else if (!strcmp(bgtype, "picture")) {
+	    if (bgtype_ischanged)
+		mc_set_flag_value("use_transbg", 0);
+	    if (bgtype_ischanged || mc_wall_pic_ischanged()) 
+		mc_set_str_value("wall_picture", mc_get_wall_pic());
+	} else if (!strcmp(bgtype, "transparent")) {
+	    if (bgtype_ischanged)
+		mc_set_flag_value("use_transbg", 1);
+	}
+    }
+
+    mc_set_flag_value("use_anti_alias", GTK_TOGGLE_BUTTON(use_aa_check)->active);
+    mc_set_flag_value("use_variable_column_width", GTK_TOGGLE_BUTTON(use_vcol_check)->active);
+    mc_set_flag_value("use_combining", GTK_TOGGLE_BUTTON(use_comb_check)->active);
+    mc_set_flag_value("use_dynamic_comb", GTK_TOGGLE_BUTTON(use_dynamic_comb_check)->active);
+    mc_set_flag_value("copy_paste_via_ucs", GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active);
+    mc_set_flag_value("use_multi_column_char", GTK_TOGGLE_BUTTON(use_multi_col_char_check)->active);
+    mc_set_flag_value("use_bidi", GTK_TOGGLE_BUTTON(use_bidi_check)->active);
 
 	return  1 ;
 }
@@ -278,6 +300,9 @@ show(void)
 	GtkWidget *  label ;
 	GtkWidget *  config_widget ;
 	GtkWidget *  separator ;
+	GtkWidget *  bgcolor ;
+	GtkWidget *  bgpicture ;
+	GtkWidget *  bgtransparent ;
 	
 	window = gtk_window_new( GTK_WINDOW_TOPLEVEL) ;
 	gtk_signal_connect( GTK_OBJECT(window) , "delete_event" ,
@@ -333,7 +358,7 @@ show(void)
 	if (!(config_widget = mc_iscii_lang_config_widget_new(
 		   mc_get_str_value( "iscii_lang")))) return 0;
 #ifndef USE_IND
-	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
+	gtk_widget_set_sensitive(config_widget, 0);
 #endif
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
@@ -355,7 +380,7 @@ show(void)
 		   "Bidi (UTF8 only)", mc_get_flag_value( "use_bidi"))))
 	    return 0;
 #ifndef USE_FRIBIDI
-	GTK_WIDGET_UNSET_FLAGS(use_bidi_check, GTK_SENSITIVE);
+	gtk_widget_set_sensitive(use_bidi_check, 0);
 #endif
 	gtk_widget_show(use_bidi_check);
 	gtk_box_pack_start(GTK_BOX(hbox), use_bidi_check, TRUE, TRUE, 0);
@@ -377,9 +402,9 @@ show(void)
 			   FALSE, FALSE, 0);
 
 
-	/* contents of the "Appearance" tab */
+	/* contents of the "Font" tab */
 
-	label = gtk_label_new("Appearance");
+	label = gtk_label_new("Font");
 	gtk_widget_show(label);
 	vbox = gtk_vbox_new(FALSE, 3);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
@@ -399,14 +424,32 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
+	frame = gtk_frame_new("Screen ratio against font size");
+	gtk_widget_show(frame);
+	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
+	hbox = gtk_hbox_new(FALSE, 5);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox) , 5) ;
+	gtk_widget_show(hbox);
+	gtk_container_add(GTK_CONTAINER(frame), hbox) ;
+
 	if (!(config_widget = mc_screen_width_ratio_config_widget_new(
 		   mc_get_str_value("screen_width_ratio")))) return 0;
 	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
-
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
 
 	if (!(config_widget = mc_screen_height_ratio_config_widget_new(
 		   mc_get_str_value( "screen_height_ratio")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
+
+
+	if (!(config_widget = mc_fg_color_config_widget_new(
+		   mc_get_str_value( "fg_color")))) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+	if (!(config_widget = mc_fade_config_widget_new(
+		   mc_get_str_value( "fade_ratio")))) return 0;
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
@@ -420,7 +463,7 @@ show(void)
 		   "Anti Alias", mc_get_flag_value("use_anti_alias"))))
 	    return 0;
 #ifndef ANTI_ALIAS
-	GTK_WIDGET_UNSET_FLAGS(use_aa_check, GTK_SENSITIVE);
+	gtk_widget_set_sensitive(use_aa_check, 0);
 #endif
 	gtk_widget_show(use_aa_check);
 	gtk_box_pack_start(GTK_BOX(hbox), use_aa_check, TRUE, TRUE, 0) ;
@@ -434,65 +477,47 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(hbox), use_vcol_check, TRUE, TRUE, 0);
 
 
-	/* contents of the "Color" tab */
+	/* contents of the "Background" tab */
 	
-	label = gtk_label_new("Color");
+	label = gtk_label_new("Background");
 	gtk_widget_show(label);
 	vbox = gtk_vbox_new(FALSE, 3);
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, label);
 	gtk_widget_show(vbox);
 
-	if (!(config_widget = mc_fg_color_config_widget_new(
-		   mc_get_str_value( "fg_color")))) return 0;
-	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
-
-	if (!(config_widget = mc_bg_color_config_widget_new(
+	/* prepare bg_color and wall_picture but pack later */
+	if (!(bgcolor = mc_bg_color_config_widget_new(
 		   mc_get_str_value( "bg_color")))) return 0;
-	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+	gtk_widget_show(bgcolor);
 
-
-	if (!(config_widget = mc_fade_config_widget_new(
-		   mc_get_str_value( "fade_ratio")))) return 0;
-	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
-
-
-
-
-
-
-
-
-	frame = gtk_frame_new( "Wall picture") ;
-	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
-	gtk_widget_show(frame) ;
-
-	vbox2 = gtk_vbox_new(FALSE, 3);
-	gtk_container_set_border_width(GTK_CONTAINER(vbox2), 5);
-	gtk_widget_show(vbox2);
-	gtk_container_add(GTK_CONTAINER(frame) , vbox2) ;
-
-	if (!(config_widget = mc_wall_pic_config_widget_new(
+	if (!(bgpicture = mc_wall_pic_config_widget_new(
 		   mc_get_str_value( "wall_picture")))) return 0;
-#if !defined(USE_IMLIB) && !defined(USE_GDK_PIXBUF)
-	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
-#endif
-	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox2), config_widget, FALSE, FALSE, 0);
+	gtk_widget_show(bgpicture);
 
-	hbox = gtk_hbox_new(FALSE, 0);
-	gtk_container_set_border_width(GTK_CONTAINER(hbox), 1);
+	if (!(config_widget = mc_bgtype_config_widget_new(
+		  mc_get_bgtype(), bgcolor, bgpicture)))
+	    return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+
+	frame = gtk_frame_new("Picture/Transparent");
+	gtk_widget_show(frame);
+	gtk_box_pack_start(GTK_BOX(vbox), frame, FALSE, FALSE, 0);
+	vbox2 = gtk_vbox_new(FALSE, 3);
+	gtk_widget_show(vbox2);
+	gtk_container_add(GTK_CONTAINER(frame), vbox2) ;
+	hbox = gtk_hbox_new(FALSE, 5);
+	gtk_container_set_border_width(GTK_CONTAINER(hbox), 2);
 	gtk_widget_show(hbox);
 	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, FALSE, 0);
 
 	if (!(config_widget = mc_brightness_config_widget_new(
 		   mc_get_str_value( "brightness")))) return 0;
 #if !defined(USE_IMLIB) && !defined(USE_GDK_PIXBUF)
-	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
+	gtk_widget_set_sensitive(config_widget, 0);
 #endif
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
@@ -500,7 +525,7 @@ show(void)
 	if (!(config_widget = mc_contrast_config_widget_new(
 		   mc_get_str_value( "contrast")))) return 0;
 #if !defined(USE_IMLIB) && !defined(USE_GDK_PIXBUF)
-	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
+	gtk_widget_set_sensitive(config_widget, 0);
 #endif
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
@@ -508,17 +533,10 @@ show(void)
 	if (!(config_widget = mc_gamma_config_widget_new(
 		   mc_get_str_value( "gamma")))) return 0;
 #if !defined(USE_IMLIB) && !defined(USE_GDK_PIXBUF)
-	GTK_WIDGET_UNSET_FLAGS(config_widget, GTK_SENSITIVE);
+	gtk_widget_set_sensitive(config_widget, 0);
 #endif
 	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
-
-
-	if (!(is_tp_check = mc_check_config_widget_new(
-		   "Transparent background",
-		   mc_get_flag_value( "use_transbg")))) return 0;
-	gtk_widget_show(is_tp_check);
-	gtk_box_pack_start(GTK_BOX(vbox), is_tp_check, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(vbox2), config_widget, FALSE, FALSE, 0);
 
 
 	/* contents of the "Scrollbar" tab */

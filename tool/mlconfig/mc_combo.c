@@ -47,7 +47,7 @@ mc_combo_new_with_width(
 
 	label = gtk_label_new(label_name) ;
 	gtk_widget_show(label) ;
-	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 10);
+	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 5);
 
 	items = NULL;
 	item_found = 0;

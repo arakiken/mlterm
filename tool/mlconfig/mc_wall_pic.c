@@ -73,9 +73,11 @@ mc_wall_pic_config_widget_new(
 	hbox = gtk_hbox_new( FALSE , 5) ;
 	gtk_widget_show(hbox) ;
  
-	label = gtk_label_new( " File ") ;
+#if 0
+	label = gtk_label_new( "Picture") ;
 	gtk_widget_show( label) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 2) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 5) ;
+#endif
 	
 	entry = gtk_entry_new() ;
 	gtk_widget_show( entry) ;
@@ -90,22 +92,19 @@ mc_wall_pic_config_widget_new(
 	return  hbox ;
 }
 
+int
+mc_wall_pic_ischanged(void)
+{
+    return is_changed;
+}
+
 char *
 mc_get_wall_pic(void)
 {
-	char *  wall_pic ;
+    char *  wall_pic ;
 
-	if( ! is_changed)
-	{
-		return  NULL ;
-	}
-	
-	if( *( wall_pic = gtk_entry_get_text( GTK_ENTRY(entry))) == '\0')
-	{
-		wall_pic = "none" ;
-	}
-
-	is_changed = 0 ;
-	
-	return  wall_pic ;
+    if( *( wall_pic = gtk_entry_get_text( GTK_ENTRY(entry))) == '\0')
+	wall_pic = "none" ;
+    is_changed = 0 ;
+    return  wall_pic ;
 }
