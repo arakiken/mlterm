@@ -338,9 +338,8 @@ int init_data(config_data_t *data){
 }
 
 int main(int argc, char **argv){
-	struct sigaction act;
-	config_data_t data;
-	
+	static config_data_t data;
+	struct sigaction act;	
 	window_t *win_root =0, *win_section = 0, *win_entry = 0;
 
 	sigemptyset(&(act.sa_mask));
