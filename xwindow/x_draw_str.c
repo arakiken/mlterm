@@ -862,6 +862,7 @@ xcore_draw_str(
 	return	1 ;
 }
 
+#endif
 
 /* --- global functions --- */
 
@@ -967,5 +968,3 @@ x_draw_str_to_eol(
 	return	1 ;
 }
 
-
-#endif
