@@ -1,3 +1,7 @@
+2002-04-26 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Added stuff for new scrollbar libraries to configure script.
+
 2002-04-26 Tomohiro KUBOTA <kubota@debian.org>
 
 	* The manpage now mentions Sato-san's new scrollbar libraries.
