@@ -2,6 +2,8 @@
 
 	* configure.in : Disabled pixmap_engine by default.
 
+	* README, README.ja, README.sb: Updated.
+
 2003-09-16  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* ml_config_menu.c: call kik_remove_sig_child_listener()
