@@ -102,6 +102,7 @@ typedef struct main_config
 	int8_t  use_vertical_cursor ;
 	int8_t  use_extended_scroll_shortcut ;
 	int8_t  use_dynamic_comb ;
+	int8_t  logging_vt_seq ;
 
 	/* cache */
 	x_termcap_entry_t *  tent ;
@@ -209,6 +210,11 @@ create_term_intern(void)
 	if( main_config.icon_name)
 	{
 		ml_term_set_icon_name( term , main_config.icon_name) ;
+	}
+
+	if( main_config.logging_vt_seq)
+	{
+		ml_term_enable_logging_vt_seq( term) ;
 	}
 
 	return  term ;
@@ -1007,6 +1013,8 @@ get_min_conf(
 		"initial string sent to pty") ;
 	kik_conf_add_opt( conf , '$' , "mc" , 0 , "click_interval" ,
 		"click interval(milisecond)[250]") ;
+	kik_conf_add_opt( conf , '%' , "logseq" , 1 , "logging_vt_seq" ,
+		"enable logging vt100 sequence") ;
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
 		"screen width in percent against font width [default = 100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
@@ -1232,6 +1240,15 @@ config_init(
 		if( strcmp( value , "true") == 0)
 		{
 			main_config.use_dynamic_comb = 1 ;
+		}
+	}
+
+	main_config.logging_vt_seq = 0 ;
+	if( ( value = kik_conf_get_value( conf , "logging_vt_seq")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			main_config.logging_vt_seq = 1 ;
 		}
 	}
 

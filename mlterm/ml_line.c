@@ -1022,7 +1022,7 @@ ml_line_beg_char_index_except_spaces(
 	{
 		for( char_index = 0 ; char_index < line->num_of_filled_chars ; char_index ++)
 		{
-			if( ! ml_char_bytes_is( &line->chars[char_index] , " " , 1 , US_ASCII))
+			if( ! ml_char_equal( &line->chars[char_index] , ml_sp_ch()))
 			{
 				return  char_index ;
 			}
@@ -1051,7 +1051,7 @@ ml_get_num_of_filled_chars_except_spaces(
 	{
 		for( char_index = END_CHAR_INDEX(line) ; char_index >= 0 ; char_index --)
 		{
-			if( ! ml_char_bytes_is( &line->chars[char_index] , " " , 1 , US_ASCII))
+			if( ! ml_char_equal( &line->chars[char_index] , ml_sp_ch()))
 			{
 				return  char_index + 1 ;
 			}

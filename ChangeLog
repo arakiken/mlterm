@@ -1,3 +1,9 @@
+2003-07-09  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: Enabled IGNORE_SPACE_FG_COLOR.
+	  (redrawing optimized)
+	* Added -%,--logseq,logging_vt_seq option.
+
 2003-07-07  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* fixed a compilation error.

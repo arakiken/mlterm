@@ -89,6 +89,8 @@ typedef struct  ml_vt100_parser
 	ml_xterm_event_listener_t *  xterm_listener ;
 	ml_config_event_listener_t *  config_listener ;
 
+	int  log_file ;
+
 	int8_t  is_dec_special_in_gl ;
 	int8_t  is_so ;
 	int8_t  is_dec_special_in_g0 ;
@@ -104,6 +106,7 @@ typedef struct  ml_vt100_parser
 	int8_t  is_reversed ;
 	int8_t  use_char_combining ;
 	int8_t  use_multi_col_char ;
+	int8_t  logging_vt_seq ;
 	
 } ml_vt100_parser_t ;
 
@@ -137,6 +140,8 @@ size_t  ml_vt100_parser_convert_to( ml_vt100_parser_t *  vt100_parser ,
 int  ml_init_encoding_parser( ml_vt100_parser_t *  vt100_parser) ;
 
 int  ml_init_encoding_conv( ml_vt100_parser_t *  vt100_parser) ;
+
+int  ml_vt100_parser_enable_logging_vt_seq( ml_vt100_parser_t *  vt100_parser) ;
 
 
 #endif

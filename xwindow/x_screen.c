@@ -5846,6 +5846,28 @@ line_scrolled_out(
 	x_sel_line_scrolled_out( &screen->sel , -((int)ml_term_get_log_size( screen->term))) ;
 }
 
+#ifdef  WINDOW_CLEAR
+static void
+window_clear(
+	void *  p ,
+	int  row ,
+	u_int  num
+	)
+{
+	x_screen_t *  screen ;
+	int  y ;
+	u_int  height ;
+	
+	screen = p ;
+	
+	y = row * x_line_height( screen) ;
+	height = num * x_line_height( screen) ;
+
+	x_window_clear( &screen->window , 0 , y , screen->window.width , height) ;
+}
+#endif
+
+
 /*
  * callbacks of x_xim events.
  */

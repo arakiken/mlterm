@@ -3,12 +3,14 @@ comment $Id$
 
 How to debug mlterm?
 
-If you find something strange and try to send me a report, following options
-will be helpful for me (and maybe for you, too).
+If you find something strange and try to send me a report, please
+send log message by --logseq option to mlterm-dev-en list.
+
+Following options can be more helpful.
 
 * --enable-debug (configure option)
   mlterm outputs general debug messages.
 
-* __DEBUG and ESCSEQ_DEBUG in ml_vt100_parser.c
+* EDIT_DEBUG, OUTPUT_DEBUG and ESCSEQ_DEBUG in ml_vt100_parser.c
   mlterm outputs huge messages which indicate how mlterm processes each escape
   sequence.

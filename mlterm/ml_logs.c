@@ -231,7 +231,8 @@ ml_log_add(
 	ml_line_final( &logs->lines[at]) ;
 
 	/* logs->lines[at] becomes completely the same one as line */
-	ml_line_clone( &logs->lines[at] , line , line->num_of_filled_chars) ;
+	ml_line_clone( &logs->lines[at] , line ,
+		ml_get_num_of_filled_chars_except_spaces( line)) ;
 
 	ml_line_updated( &logs->lines[at]) ;
 

@@ -309,6 +309,14 @@ ml_term_init_encoding_conv(
 }
 
 int
+ml_term_enable_logging_vt_seq(
+	ml_term_t *  term
+	)
+{
+	return  ml_vt100_parser_enable_logging_vt_seq( term->parser) ;
+}
+
+int
 ml_term_get_pty_fd(
 	ml_term_t *  term
 	)

@@ -1669,14 +1669,38 @@ int
 ml_screen_clear_below(
 	ml_screen_t *  screen
 	)
-{	
+{
 	if( screen->use_bce)
 	{
 		return  ml_edit_clear_below_bce( screen->edit) ;
 	}
 	else
 	{
+	#ifndef  WINDOW_CLEAR
 		return  ml_edit_clear_below( screen->edit) ;
+	#else
+		if( screen->screen_listener && screen->screen_listener->window_clear)
+		{
+			int  row ;
+
+			row = ml_cursor_row( screen->edit) ;
+			if( ml_cursor_char_index( screen->edit) > 0)
+			{
+				row ++ ;
+			}
+			
+			(*screen->screen_listener->window_clear)(
+				screen->screen_listener->self ,
+					row , ml_edit_get_rows( screen->edit) - row) ;
+
+			for( ; row < ml_edit_get_rows( screen->edit) ; row ++)
+			{
+				ml_line_updated( ml_edit_get_line( screen->edit , row)) ;
+			}
+		}
+
+		return  1 ;
+	#endif
 	}
 }
 

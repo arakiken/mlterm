@@ -7,6 +7,8 @@
 #include  <stdio.h>		/* sprintf */
 #include  <string.h>		/* memmove */
 #include  <stdlib.h>		/* atoi */
+#include  <fcntl.h>		/* open */
+#include  <unistd.h>		/* write */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* malloc/free */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
@@ -63,8 +65,7 @@
 #define  DUMP_HEX
 #endif
 
-/* This causes w3m-img to fail to erase images. */
-#if  0
+#if  1
 #define  IGNORE_SPACE_FG_COLOR
 #endif
 
@@ -138,6 +139,54 @@ receive_bytes(
 		return  0 ;
 	}
 
+	if( vt100_parser->logging_vt_seq)
+	{
+		if( vt100_parser->log_file == -1)
+		{
+			char *  path ;
+			char *  p ;
+
+			if( ( path = alloca( 11 + strlen( vt100_parser->pty->slave_name + 5) + 1))
+				== NULL)
+			{
+				goto  end ;
+			}
+
+			/* +5 removes "/dev/" */
+			sprintf( path , "mlterm/%s.log" , vt100_parser->pty->slave_name + 5) ;
+
+			p = path + 7 ;
+			while( *p)
+			{
+				if( *p == '/')
+				{
+					*p = '_' ;
+				}
+
+				p ++ ;
+			}
+			
+			if( ( path = kik_get_user_rc_path( path)) == NULL)
+			{
+				goto  end ;
+			}
+
+			if( ( vt100_parser->log_file =
+				open( path , O_CREAT | O_TRUNC | O_WRONLY , 0600)) == -1)
+			{
+				goto  end ;
+			}
+
+			free( path) ;
+		}
+
+		write( vt100_parser->log_file , &vt100_parser->seq[vt100_parser->left] , ret) ;
+	#if  1
+		fsync( vt100_parser->log_file) ;
+	#endif
+	}
+
+end:
 	vt100_parser->len = ( vt100_parser->left += ret) ;
 
 #ifdef  INPUT_DEBUG
@@ -2294,7 +2343,9 @@ ml_vt100_parser_new(
 
 	vt100_parser->xterm_listener = NULL ;
 	vt100_parser->config_listener = NULL ;
-	
+
+	vt100_parser->log_file = -1 ;
+		
 	vt100_parser->cs = UNKNOWN_CS ;
 	vt100_parser->fg_color = ML_FG_COLOR ;
 	vt100_parser->bg_color = ML_BG_COLOR ;
@@ -2303,6 +2354,7 @@ ml_vt100_parser_new(
 	vt100_parser->is_reversed = 0 ;
 	vt100_parser->use_char_combining = use_char_combining ;
 	vt100_parser->use_multi_col_char = use_multi_col_char ;
+	vt100_parser->logging_vt_seq = 0 ;
 
 	vt100_parser->unicode_font_policy = policy ;
 
@@ -2739,6 +2791,16 @@ ml_init_encoding_conv(
 		vt100_parser->is_dec_special_in_g0 = 0 ;
 		vt100_parser->is_dec_special_in_g1 = 1 ;
 	}
+
+	return  1 ;
+}
+
+int
+ml_vt100_parser_enable_logging_vt_seq(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	vt100_parser->logging_vt_seq = 1 ;
 
 	return  1 ;
 }

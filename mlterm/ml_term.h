@@ -95,6 +95,8 @@ int  ml_term_init_encoding_parser( ml_term_t *  term) ;
 
 int  ml_term_init_encoding_conv( ml_term_t *  term) ;
 
+int  ml_term_enable_logging_vt_seq( ml_term_t *  term) ;
+
 int  ml_term_get_pty_fd( ml_term_t *  term) ;
 
 char *  ml_term_get_slave_name( ml_term_t *  term) ;
