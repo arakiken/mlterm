@@ -1,5 +1,14 @@
 2002-10-06 Araki Ken <arakiken@users.sf.net>
 
+	* 2002-10-02 fix is discarded.
+	  Scrollbar gets never smaller than the maximum possible height / 20.
+
+2002-10-06 Araki Ken <arakiken@users.sf.net>
+
+	* ESC [ S, ESC [ T sequences are supported.
+
+2002-10-06 Araki Ken <arakiken@users.sf.net>
+
 	* If screen was resized too small, it disappeared once, but resized smaller, 
 	  it appeared again drawn corruptly. fixed.
 
