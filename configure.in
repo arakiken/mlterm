@@ -312,7 +312,7 @@ AC_SUBST(DL_LIBS)
 AC_SUBST(DL_SELF)
 
 AC_ARG_ENABLE(optimize_redrawing,
-	[  --enable-optimize-redrawing            optimize redrawing a line[disabled]],
+	[  --enable-optimize-redrawing optimize redrawing a line[disabled]],
 	optimize_redrawing=$enable_optimize_redrawing)
 if test "$optimize_redrawing" = "yes" ; then
 	CFLAGS="$CFLAGS -DOPTIMIZE_REDRAWING"

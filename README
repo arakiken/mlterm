@@ -37,6 +37,9 @@ Options for configure
   --enable-debug
     Build debug version
 
+  --enable-optimize-redrawing
+    Optimize redrawing a line
+
   --disable-shared
     Disable shared libraries
 

@@ -205,7 +205,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-scrollbars[=ARG] scrollbar plugins [sample,extra,pixmap_engine]"
 ac_help="$ac_help
-  --enable-optimize-redrawing            optimize redrawing a line[disabled]"
+  --enable-optimize-redrawing optimize redrawing a line[disabled]"
 ac_help="$ac_help
   --disable-dependency-tracking Speeds up one-time builds
   --enable-dependency-tracking  Do not reject slow dependency extractors"
