@@ -1059,7 +1059,7 @@ Open XIM on startup.
 \fBicon_path=\fIpath\fR
 Path for the image file to be used as window icon. This option only works with gdk-pibuf support for now.
 .\" ******************************************************
-.SS Font Configuration File
+.SS Font Configuration Files
 The font configuration files "\fBfont\fR", "\fBvfont\fR", "\fBtfont\fR",
 "\fBaafont\fR", "\fBvaafont\fR", and "\fBtaafont\fR" have the following keys.
 .PP
@@ -1158,57 +1158,89 @@ These settings are used for choices of XIM in the GUI configurator.
 You can use XIMs which are not listed in this configuration file.
 .\" ******************************************************
 .SS Feature Key Configuration File
-The feature key configuration file "\fBkey\fR" has the following keys.
+The feature key configuration file "\fBkey\fR" has the following format.
+.PP
+\fIKEY\fR=\fIFEATURE\fR
+.PP
+Here, the format for \fIKEY\fR is "\fI(MASK\fB+\fI)KEY\fR",
+where \fIMASK\fR is one of \fBControl\fR, \fBShift\fR, and
+\fBMod\fR.  You can specify multiple "\fIMASK\fB+\fR"s.
+You can search spellings of \fIKEY\fR by using \fBxev\fR(1)
+command or searching keysym macros from
+\fB/usr/X11R6/include/X11/keysymdefs.h\fR (or the equivalent
+file in your X11 include directory) and omit the prefix \fBXK_\fR.
+Double quatation maks are not needed.
+.PP
+\fIFEATURE\fR is one of \fBXIM_OPEN\fR,
+\fBXIM_CLOSE\fR,
+\fBEXT_KBD\fR,
+\fBOPEN_SCREEN\fR,
+\fBNEW_PTY\fR,
+\fBOPEN_PTY\fR,
+\fBPAGE_UP\fR,
+\fBPAGE_DOWN\fR,
+\fBSCROLL_UP\fR,
+\fBSCROLL_DOWN\fR,
+\fBINSERT_SELECTION\fR,
+\fB"\fISTRING\fB"\fR,
+or \fB"proto:\fISTRING\fB"\fR.
 .TP
-\fBXIM_OPEN=\fIkey\fR
-Specify key to open XIM.  This is not used
+\fBXIM_OPEN\fR
+Open the current XIM.  This is not used
 if \fBxim_open_in_startup\fR is enabled
+because it is opened automatically at startup
 (default \fBShift+space\fR).
 .TP
-\fBXIM_CLOSE=\fIkey\fR
-Specify key to close XIM (default \fBUNUSED\fR).
+\fBXIM_CLOSE\fR
+Close the XIM (default \fBUNUSED\fR).
 .TP
-\fBEXT_KBD=\fIkey\fR
-Specify key to activate or deactivate arabic or iscii input method.
+\fBEXT_KBD\fR
+Activate or deactivate arabic or iscii input method.
 .TP
-\fBOPEN_SCREEN=\fIkey\fR
-Specify key to open new pty in new screen (default \fBCtrl+F1\fR)
+\fBOPEN_SCREEN\fR
+Open new pty in new screen (default \fBCtrl+F1\fR)
 .TP
-\fBNEW_PTY=\fIkey\fR
+\fBNEW_PTY\fR
 Same as OPEN_SCREEN (obsoleted)
 .TP
-\fBOPEN_PTY=\fIkey\fR
-Specify key to open new pty in current screen (default \fBUNUSED\fR)
+\fBOPEN_PTY\fR
+Open new pty in current screen (default \fBUNUSED\fR)
 .TP
-\fBPAGE_UP=\fIkey\fR
-Specify key to start backscroll mode and scroll up one page
+\fBPAGE_UP\fR
+Start backscroll mode and scroll up one page
 (default \fBShift+prior\fR).
 .TP
-\fBPAGE_DOWN=\fIkey\fR
-Specify key to scroll down one page.
+\fBPAGE_DOWN\fR
+Scroll down one page.
 (default \fBShift+next\fR).
 .TP
-\fBSCROLL_UP=\fIkey\fR
-Specify key to start backscroll mode and scroll up one line
+\fBSCROLL_UP\fR
+Start backscroll mode and scroll up one line
 (default \fBShift+up\fR).  Note this key is enabled only when
 \fB\-q\fR/\fB\-\-extkey\fR option is used.
 .TP
-\fBSCROLL_DOWN=\fIkey\fR
-Specify key to scroll down one line
+\fBSCROLL_DOWN\fR
+Scroll down one line
 (default \fBShift+down\fR).  Note this key is enabled only when
 \fB\-q\fR/\fB\-\-extkey\fR option is used.
 .TP
-\fBINSERT_SELECTION=\fIkey\fR
-Specify key to insert selection (default \fBShift+Insert\fR).
+\fBINSERT_SELECTION\fR
+Insert selection (default \fBShift+Insert\fR).
 .TP
-\fIKEY\fB="\fISTRING\fB"\fR
-Character (or string) to be issued on pressing \fIKEY\fR key
-is changed to \fISTRING\fR.  Note that double quotation marks
-are required around \fISTRING\fR.
-.PP
-The format for \fIkey\fR is "\fI(MASK+)KEY\fR",
-where \fIMASK\fR is one of \fBControl\fR, \fBShift\fR, and
-\fBMod\fR.
+\fB"\fISTRING\fB"\fR
+The specified string is issued when the \fIKEY\fR key is pressed.
+Double quatation marks are required around the \fISTRING\fR.
+Note that you usually cannot control the status of the terminal by
+writing terminal control codes such as \fB"\\x1b]5379;encoding=utf8\\x0a"\fR
+because this behaves just as if you type the string on your shell.
+In such a case, please use the following \fB"proto:\fISTRING\fB"\fR
+instead.
+.TP
+\fB"proto:\fISTRING\fB"\fR
+The specified string is assumed to \fBmlterm\fR's original control
+sequence.  The sequence is described in \fBdoc/en/PROTOCOL\fR file of
+\fBmlterm\fR distribution.  For example, \fB"proto:encoding=utf8"\fR
+means changing the current character encoding to UTF-8.
 .\" ******************************************************
 .SS Terminal Behavior Configuration File
 This configuration file determines the behaviors of \fBmlterm\fR
@@ -1294,6 +1326,8 @@ Manual pages of
 \fBX\fR(7).
 .PP
 \fBREADME.sb\fR for development of scrollbar library.
+.PP
+\fBPROTOCOL\fR for mlterm's original control escape sequences.
 .PP
 Mapping tables between Unicode and local character sets
 (and encodings) are found at Unicode Consortium web site

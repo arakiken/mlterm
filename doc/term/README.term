@@ -8,7 +8,7 @@ This directory contains data for terminfo/termcap.
 	 dropped some useless entries)
 
 *NOTE*
-"mlterm.tc" still do not fit 1K limit of termcap and
+"mlterm.tc" still does not fit 1K limit of termcap and
 should be considered to be broken.
 You may have to remove some descriptions from the file 
 to make termcap work on your system. 
