@@ -1,3 +1,9 @@
+2003-06-29 Araki Ken <arakiken@users.sf.net>
+
+	* If 5380 request is denied as a result of challenge failure,
+	  #forbidden is returned.
+	* Set "@im=none" as the value of XMODIFIERS by default.
+
 2003-06-29 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Renamed entry function name of scrollbar engine to x_*_sb_engine_new.
