@@ -22,7 +22,7 @@ int  ml_vt100_cmd_stop( ml_term_screen_t *  termscr) ;
 
 int  ml_vt100_cmd_combine_with_prev_char( ml_term_screen_t *  termscr , u_char *  bytes ,
 	size_t  ch_size , ml_font_t *  font , ml_font_decor_t  font_decor ,
-	ml_color_t  fg_color , ml_color_t  bg_color) ;
+	ml_color_t  fg_color , ml_color_t  bg_color , int  is_comb) ;
 
 int  ml_vt100_cmd_insert_chars( ml_term_screen_t *  termscr , ml_char_t *  chars , u_int  num_of_chars) ;
 

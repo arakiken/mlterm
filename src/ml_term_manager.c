@@ -314,7 +314,8 @@ open_term(
 		term_man->conf.font_present , term_man->conf.use_bidi ,
 		term_man->conf.vertical_mode , term_man->conf.use_vertical_cursor ,
 		term_man->conf.big5_buggy , term_man->conf.conf_menu_path ,
-		term_man->conf.iscii_lang , term_man->conf.use_extended_scroll_shortcut)) == NULL)
+		term_man->conf.iscii_lang , term_man->conf.use_extended_scroll_shortcut ,
+		term_man->conf.use_dynamic_comb)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_screen_new() failed.\n") ;
@@ -892,6 +893,8 @@ get_min_conf(
 		"the amount of darkening or lightening background image") ;
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
+	kik_conf_add_opt( conf , 'J' , "dyncomb" , 0 , "use_dynamic_comb" ,
+		"use dynamic combining") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell") ;
 	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path" ,
@@ -1057,6 +1060,15 @@ config_init(
 	{
 		/* combining is used as default */
 		ml_use_char_combining() ;
+	}
+
+	term_man->conf.use_dynamic_comb = 0 ;
+	if( ( value = kik_conf_get_value( conf , "use_dynamic_comb")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.use_dynamic_comb = 1 ;
+		}
 	}
 
 	term_man->conf.font_present = 0 ;

@@ -50,9 +50,13 @@ utf8_parser_next_char(
 			return  0 ;
 		}
 
+		if( utf8_ch[1] < 0x80)
+		{
+			goto  utf8_err ;
+		}
+
 		ucs4_int = (((utf8_ch[0] & 0x1f) << 6) & 0xffffffc0) |
 			(utf8_ch[1] & 0x3f) ;
-
 
 		if( ucs4_int < 0x80)
 		{
@@ -69,6 +73,11 @@ utf8_parser_next_char(
 			return  0 ;
 		}
 
+		if( utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80)
+		{
+			goto  utf8_err ;
+		}
+		
 		ucs4_int = (((utf8_ch[0] & 0x0f) << 12) & 0xffff000) |
 			(((utf8_ch[1] & 0x3f) << 6) & 0xffffffc0) |
 			(utf8_ch[2] & 0x3f) ;
@@ -86,6 +95,11 @@ utf8_parser_next_char(
 			utf8_parser->is_eos = 1 ;
 
 			return  0 ;
+		}
+
+		if( utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80 || utf8_ch[3] < 0x80)
+		{
+			goto  utf8_err ;
 		}
 
 		ucs4_int = (((utf8_ch[0] & 0x07) << 18) & 0xfffc0000) |
@@ -108,6 +122,11 @@ utf8_parser_next_char(
 			return  0 ;
 		}
 
+		if( utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80 || utf8_ch[3] < 0x80 || utf8_ch[4] < 0x80)
+		{
+			goto  utf8_err ;
+		}
+		
 		ucs4_int = (((utf8_ch[0] & 0x03) << 24) & 0xff000000) |
 			(((utf8_ch[1] & 0x3f) << 18) & 0xfffc0000) |
 			(((utf8_ch[2] & 0x3f) << 12) & 0xffff000) |
@@ -129,6 +148,12 @@ utf8_parser_next_char(
 			return  0 ;
 		}
 
+		if( utf8_ch[1] < 0x80 || utf8_ch[2] < 0x80 || utf8_ch[3] < 0x80 || utf8_ch[4] < 0x80 ||
+			utf8_ch[5] < 0x80)
+		{
+			goto  utf8_err ;
+		}
+		
 		ucs4_int = (((utf8_ch[0] & 0x01 << 30) & 0xc0000000)) |
 			(((utf8_ch[1] & 0x3f) << 24) & 0xff000000) |
 			(((utf8_ch[2] & 0x3f) << 18) & 0xfffc0000) |

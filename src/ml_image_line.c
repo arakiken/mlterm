@@ -1311,10 +1311,7 @@ ml_imgline_iscii_visual(
 							 */
 							ml_char_copy( &dst[dst_pos] , c) ;
 						}
-						else if( ! ml_char_combine( &dst[dst_pos] ,
-							ml_char_bytes( c) , ml_char_size( c) ,
-							ml_char_font( c) , ml_char_font_decor( c) ,
-							ml_char_fg_color( c) , ml_char_bg_color( c)))
+						else if( ! ml_combine_chars( &dst[dst_pos] , c))
 						{
 						#ifdef  DEBUG
 							kik_warn_printf( KIK_DEBUG_TAG
@@ -1345,10 +1342,7 @@ ml_imgline_iscii_visual(
 					 */
 					ml_char_copy( &dst[dst_pos] , ch) ;
 				}
-				else if( ! ml_char_combine( &dst[dst_pos] ,
-					ml_char_bytes( ch) , ml_char_size( ch) ,
-					ml_char_font( ch) , ml_char_font_decor( ch) ,
-					ml_char_fg_color( ch) , ml_char_bg_color( ch)))
+				else if( ! ml_combine_chars( &dst[dst_pos] , ch))
 				{
 				#ifdef  DEBUG
 					kik_warn_printf( KIK_DEBUG_TAG

@@ -1147,6 +1147,29 @@ update_encoding_proper_aux(
 			ml_iscii_delete( termscr->iscii_state) ;
 			termscr->iscii_state = NULL ;
 		}
+
+		if( termscr->use_dynamic_comb)
+		{
+			if( logvis)
+			{
+				if( container == NULL &&
+					( container = ml_logvis_container_new( termscr->image)) == NULL)
+				{
+					goto  error ;
+				}
+
+				ml_logvis_container_add( container , logvis) ;
+			}
+			
+			if( ( logvis = ml_logvis_comb_new( termscr->image)) == NULL)
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_comb_new() failed.\n") ;
+			#endif
+
+				goto  error ;
+			}
+		}
 		
 		if( termscr->use_bidi &&
 			(*termscr->encoding_listener->encoding)(
@@ -1163,27 +1186,7 @@ update_encoding_proper_aux(
 
 				ml_logvis_container_add( container , logvis) ;
 			}
-			
-			if( ( logvis = ml_logvis_comb_new( termscr->image)) == NULL)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_bidi_new() failed.\n") ;
-			#endif
-
-				goto  error ;
-			}
-			
-			if( logvis)
-			{
-				if( container == NULL &&
-					( container = ml_logvis_container_new( termscr->image)) == NULL)
-				{
-					goto  error ;
-				}
-
-				ml_logvis_container_add( container , logvis) ;
-			}
-			
+		
 			if( ( logvis = ml_logvis_bidi_new( termscr->image)) == NULL)
 			{
 			#ifdef  DEBUG
@@ -4133,7 +4136,8 @@ ml_term_screen_new(
 	int  big5_buggy ,
 	char *  conf_menu_path ,
 	ml_iscii_lang_t  iscii_lang ,
-	int  use_extended_scroll_shortcut
+	int  use_extended_scroll_shortcut ,
+	int  use_dynamic_comb
 	)
 {
 	ml_term_screen_t *  termscr ;
@@ -4197,9 +4201,9 @@ ml_term_screen_new(
 	ml_char_init( &nl_ch) ;
 	
 	ml_char_set( &sp_ch , " " , 1 , ml_get_usascii_font( termscr->font_man) ,
-		0 , MLC_FG_COLOR , MLC_BG_COLOR) ;
+		0 , MLC_FG_COLOR , MLC_BG_COLOR , 0) ;
 	ml_char_set( &nl_ch , "\n" , 1 , ml_get_usascii_font( termscr->font_man) ,
-		0 , MLC_FG_COLOR , MLC_BG_COLOR) ;
+		0 , MLC_FG_COLOR , MLC_BG_COLOR , 0) ;
 
 	termscr->image_scroll_listener.self = termscr ;
 	/* this may be overwritten */
@@ -4390,6 +4394,7 @@ ml_term_screen_new(
 	termscr->bel_mode = bel_mode ;
 	
 	termscr->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
+	termscr->use_dynamic_comb = use_dynamic_comb ;
 
 	/*
 	 * for receiving selection.

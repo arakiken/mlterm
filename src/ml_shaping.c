@@ -237,7 +237,8 @@ shape_arabic(
 				mkf_int_to_bytes( bytes , ml_char_size( cur) , code) ,
 				ml_char_size( cur) , ml_char_font( cur) ,
 				ml_char_font_decor( cur) ,
-				ml_char_fg_color( cur) , ml_char_bg_color( cur)) ;
+				ml_char_fg_color( cur) , ml_char_bg_color( cur) ,
+				ml_char_is_comb( cur)) ;
 		}
 		else
 		{
@@ -388,7 +389,7 @@ shape_iscii(
 
 			ml_char_set( &dst[dst_filled ++] , ml_char_bytes(ch) , ml_char_size(ch) ,
 				ml_char_font(ch) , ml_char_font_decor(ch) , ml_char_fg_color(ch) ,
-				ml_char_bg_color(ch)) ;
+				ml_char_bg_color(ch) , ml_char_is_comb(ch)) ;
 
 			if( dst_filled >= dst_len)
 			{

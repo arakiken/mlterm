@@ -35,13 +35,17 @@
 
 #define  SET_BG_COLOR(attr,color)  ( (attr) = (((attr) & 0xff87) | ((color) << 3)) )
 
-#define  FONT_DECOR(attr)  ((attr) & 0x7)
+#define  FONT_DECOR(attr)  (((attr) >> 1) & 0x3)
 
-#define  SET_FONT_DECOR(attr,decor)  ( (attr) = (((attr) & 0xfff8) | (decor)) )
+#define  SET_FONT_DECOR(attr,decor)  ( (attr) = (((attr) & 0xfff9) | ((decor) << 1)) )
 
-#define  COMPOUND_ATTR(size,comb_size,is_reversed,fg_color,bg_color,decor) \
+#define  IS_COMB(attr)  ((attr) & 0x1)
+
+#define  SET_COMB_FLAG(attr,flag)  ((attr) = ((attr) & 0xfffe) | (flag))
+
+#define  COMPOUND_ATTR(size,comb_size,is_reversed,fg_color,bg_color,decor,is_comb) \
 	( ((size - 1) << 14) | ((comb_size) << 12) | ((is_reversed) << 11) | \
-	 ((fg_color) << 7) | ((bg_color) << 3) | (decor) )
+	 ((fg_color) << 7) | ((bg_color) << 3) | ((decor) << 1) | (is_comb) )
 
 
 /* --- static variables --- */
@@ -304,7 +308,8 @@ ml_char_set(
 	ml_font_t *  font ,
 	ml_font_decor_t  font_decor ,
 	ml_color_t  fg_color ,
-	ml_color_t  bg_color
+	ml_color_t  bg_color ,
+	int  is_comb
 	)
 {
 	ml_char_final( ch) ;
@@ -313,7 +318,7 @@ ml_char_set(
 
 	memcpy( ch->bytes , bytes , size) ;
 
-	ch->attr = COMPOUND_ATTR(size,0,0,fg_color,bg_color,font_decor) ;
+	ch->attr = COMPOUND_ATTR(size,0,0,fg_color,bg_color,font_decor,is_comb) ;
 
 	return  1 ;
 }
@@ -334,7 +339,8 @@ ml_char_combine(
 	ml_font_t *  font ,
 	ml_font_decor_t  font_decor ,
 	ml_color_t  fg_color ,
-	ml_color_t  bg_color
+	ml_color_t  bg_color ,
+	int  is_comb
 	)
 {
 	ml_char_t *  multi_ch ;
@@ -361,7 +367,7 @@ ml_char_combine(
 		ml_char_copy( &multi_ch[0] , ch) ;
 
 		if( ml_char_set( &multi_ch[1] , bytes , size , font , font_decor ,
-			fg_color , bg_color) == 0)
+			fg_color , bg_color , is_comb) == 0)
 		{
 			return  0 ;
 		}
@@ -381,7 +387,7 @@ ml_char_combine(
 		ml_char_init( &multi_ch[comb_size + 1]) ;
 
 		if( ml_char_set( &multi_ch[comb_size + 1] , bytes , size ,
-			font , font_decor , fg_color , bg_color) == 0)
+			font , font_decor , fg_color , bg_color , is_comb) == 0)
 		{
 			return  0 ;
 		}
@@ -394,6 +400,17 @@ ml_char_combine(
 	SET_COMB_SIZE(ch->attr,comb_size) ;
 
 	return  1 ;
+}
+
+inline int
+ml_combine_chars(
+	ml_char_t *  ch ,
+	ml_char_t *  comb
+	)
+{
+	return  ml_char_combine( ch , ml_char_bytes( comb) , SIZE(comb->attr) , ml_char_font( comb) ,
+			FONT_DECOR(comb->attr) , FG_COLOR(comb->attr) , BG_COLOR(comb->attr) ,
+			IS_COMB(comb->attr)) ;
 }
 
 inline ml_char_t *
@@ -759,6 +776,14 @@ ml_char_restore_color(
 	RESTORE_COLOR(ch->attr) ;
 	
 	return  1 ;
+}
+
+inline int
+ml_char_is_comb(
+	ml_char_t *  ch
+	)
+{
+	return  IS_COMB(ch->attr) ;
 }
 
 inline int

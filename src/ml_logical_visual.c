@@ -591,12 +591,10 @@ comb_visual(
 							image->cursor.char_index , 0) + cols_rest ;
 			}
 
-			if( prev && ml_is_arabic_combining( prev2 , prev , cur))
+			if( ml_char_is_comb( cur) ||
+				(prev && ml_is_arabic_combining( prev2 , prev , cur)))
 			{
-				ml_char_combine( &line->chars[dst_pos - 1] ,
-					ml_char_bytes( cur) , ml_char_size( cur) ,
-					ml_char_font( cur) , ml_char_font_decor( cur) ,
-					ml_char_fg_color( cur) , ml_char_bg_color( cur)) ;
+				ml_combine_chars( &line->chars[dst_pos - 1] , cur) ;
 
 				/*
 				 * XXX
@@ -675,16 +673,15 @@ comb_logical(
 			
 			c = &buf[src_pos] ;
 
-			if( prev_c &&
-				( (comb = ml_get_combining_chars( c , &size)) &&
-				ml_is_arabic_combining( prev_c , comb , c) ) )
+			if( ( comb = ml_get_combining_chars( c , &size)))
 			{
 				int  counter ;
-				
+
 				ml_char_set( &line->chars[dst_pos ++] ,
 					ml_char_bytes( c) , ml_char_size( c) ,
 					ml_char_font( c) , ml_char_font_decor( c) ,
-					ml_char_fg_color( c) , ml_char_bg_color( c)) ;
+					ml_char_fg_color( c) , ml_char_bg_color( c) ,
+					ml_char_is_comb( c)) ;
 
 				for( counter = 0 ; counter < size ; counter ++)
 				{
@@ -711,7 +708,8 @@ comb_logical(
 					ml_char_set( &line->chars[dst_pos ++] ,
 						ml_char_bytes( comb) , ml_char_size( comb) ,
 						ml_char_font( comb) , ml_char_font_decor( comb) ,
-						ml_char_fg_color( comb) , ml_char_bg_color( comb)) ;
+						ml_char_fg_color( comb) , ml_char_bg_color( comb) ,
+						ml_char_is_comb( comb)) ;
 
 					comb ++ ;
 				}
@@ -750,15 +748,13 @@ comb_visual_line(
 	for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
 	{
 		if( src_pos > 1 &&
-			ml_is_arabic_combining( &line->chars[src_pos - 2], &line->chars[src_pos - 1] , &line->chars[src_pos]))
+			ml_is_arabic_combining( &line->chars[src_pos - 2] ,
+				&line->chars[src_pos - 1] , &line->chars[src_pos]))
 		{
 			ml_char_t *  c ;
 
 			c = &line->chars[src_pos] ;
-			ml_char_combine( &line->chars[dst_pos - 1] ,
-				ml_char_bytes( c) , ml_char_size( c) ,
-				ml_char_font( c) , ml_char_font_decor( c) ,
-				ml_char_fg_color( c) , ml_char_bg_color( c)) ;
+			ml_combine_chars( &line->chars[dst_pos - 1] , c) ;
 		}
 		else
 		{

@@ -113,11 +113,6 @@ scroll_upward_region(
 	int  counter ;
 	int  window_is_scrolled ;
 
-	if( ml_imgmdl_end_row( &image->model) < boundary_end)
-	{
-		boundary_end = ml_imgmdl_end_row( &image->model) ;
-	}
-
 	if( boundary_beg + size > boundary_end)
 	{
 		/*
@@ -222,11 +217,6 @@ scroll_downward_region(
 {
 	int  window_is_scrolled ;
 
-	if( ml_imgmdl_end_row( &image->model) < boundary_end)
-	{
-		boundary_end = ml_imgmdl_end_row( &image->model) ;
-	}
-	
 	if( boundary_beg + size > boundary_end)
 	{
 		/*
@@ -270,6 +260,22 @@ scroll_downward_region(
 	/*
 	 * scrolling down in image.
 	 */
+	if( ml_imgmdl_end_row( &image->model) < boundary_end)
+	{
+		u_int  brk_size ;
+
+		if( ml_imgmdl_end_row( &image->model) + size > boundary_end)
+		{
+			brk_size = ml_imgmdl_end_row( &image->model) - boundary_end ;
+		}
+		else
+		{
+			brk_size = size ;
+		}
+
+		ml_imgmdl_reserve_boundary( &image->model , brk_size) ;
+	}
+		
 	if( boundary_beg == 0 && boundary_end == image->model.num_of_rows - 1)
 	{
 		ml_imgmdl_scroll_downward( &image->model , size) ;

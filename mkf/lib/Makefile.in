@@ -57,15 +57,15 @@ LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 
-all : la_lib ar_lib collect-headers
+all : $(LIBNAME).la collect-headers
 
 debug :
-	$(MAKE) LIBNAME=$(LIBNAME_DEB) ar_lib
+	$(MAKE) LIBNAME=$(LIBNAME_DEB) $(LIBNAME_DEB).a
 
-ar_lib : $(OBJ)
+$(LIBNAME).a : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ)
 
-la_lib : $(OBJ)
+$(LIBNAME).la : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(PREFIX)/lib \
 		-version-info $(MAJOR):$(MINOR):0
 

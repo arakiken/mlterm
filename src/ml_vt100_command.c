@@ -32,7 +32,8 @@ ml_vt100_cmd_combine_with_prev_char(
 	ml_font_t *  font ,
 	ml_font_decor_t  font_decor ,
 	ml_color_t  fg_color ,
-	ml_color_t  bg_color
+	ml_color_t  bg_color ,
+	int  is_comb
 	)
 {
 	ml_char_t *  ch ;
@@ -52,7 +53,7 @@ ml_vt100_cmd_combine_with_prev_char(
 	ch = &line->chars[ ml_cursor_char_index( termscr->image)] ;
 	
 	if( ( result = ml_char_combine( ch , bytes , ch_size , font , font_decor ,
-		fg_color , bg_color)))
+		fg_color , bg_color , is_comb)))
 	{
 		ml_imgline_set_modified( line ,
 			ml_cursor_char_index( termscr->image) ,
@@ -680,7 +681,7 @@ ml_vt100_cmd_fill_all_with_e(
 
 	ml_char_init( &e_ch) ;
 	ml_char_set( &e_ch , "E" , 1 , ml_get_usascii_font( termscr->font_man) ,
-		0 , MLC_FG_COLOR , MLC_BG_COLOR) ;
+		0 , MLC_FG_COLOR , MLC_BG_COLOR , 0) ;
 
 	ml_image_fill_all( termscr->image , &e_ch) ;
 

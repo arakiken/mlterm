@@ -62,7 +62,8 @@ typedef struct ml_char
 	 * 1 bit : is_reversed flag(0 or 1)
 	 * 4 bit : fg_color(0x0 - 0xf)
 	 * 4 bit : bg_color(0x0 - 0xf)
-	 * 3 bit : font_decor(0x0 - 0x7)
+	 * 2 bit : font_decor(0x0 - 0x7)
+	 * 1 bit : is_comb(0x0 - 0x1)
 	 */
 	u_int16_t  attr ;
 
@@ -107,14 +108,16 @@ inline int  ml_char_final( ml_char_t *  ch) ;
 
 inline int  ml_char_set( ml_char_t *  ch , u_char *  bytes , size_t  ch_size ,
 	ml_font_t *  font , ml_font_decor_t  font_decor ,
-	ml_color_t  fg_color , ml_color_t  bg_color) ;
+	ml_color_t  fg_color , ml_color_t  bg_color , int  is_comb) ;
 
 int  ml_char_is_null( ml_char_t *  ch) ;
 
 inline int  ml_char_combine( ml_char_t *  ch , u_char *  bytes , size_t  ch_size ,
 	ml_font_t *  font , ml_font_decor_t  font_decor ,
-	ml_color_t  fg_color , ml_color_t  bg_color) ;
+	ml_color_t  fg_color , ml_color_t  bg_color , int  is_comb) ;
 	
+inline int  ml_combine_chars( ml_char_t *  ch , ml_char_t *  comb) ;
+
 inline int  ml_remove_combining_char( ml_char_t *  ch) ;
 
 inline ml_char_t *  ml_get_combining_chars( ml_char_t *  ch , u_int *  size) ;
@@ -154,6 +157,8 @@ inline size_t  ml_char_size( ml_char_t *  ch) ;
 inline int  ml_char_reverse_color( ml_char_t *  ch) ;
 
 inline int  ml_char_restore_color( ml_char_t *  ch) ;
+
+inline int  ml_char_is_comb( ml_char_t *  ch) ;
 
 inline int  ml_char_bytes_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
 

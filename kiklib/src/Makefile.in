@@ -37,10 +37,10 @@ MINOR = 0
 SUBDIRS = config util io collection sys i18n
 
 
-all : la_lib collect-headers
+all : $(LIBNAME).la collect-headers
 
 debug :
-	$(MAKE) LIBNAME=$(LIBNAME_DEB) ar_lib
+	$(MAKE) LIBNAME=$(LIBNAME_DEB) $(LIBNAME_DEB).a
 
 install : install-inc install-la
 
@@ -76,11 +76,11 @@ wc :
 .c.o:
 	$(LIBTOOL_CC) -c $<
 
-la_lib: $(OBJ)
+$(LIBNAME).la : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(PREFIX)/lib \
 		-version-info $(MAJOR):$(MINOR):0
 
-ar_lib: $(OBJ)
+$(LIBNAME).a : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ)
 	
 clean :
