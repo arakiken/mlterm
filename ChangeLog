@@ -1,3 +1,8 @@
+2004-01-29  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* mlterm/ml_edit.c: Fixed infinite loop when the number of columns
+	needed to display a character is greater than screen width.
+
 2004-01-26  Tomohiro KUBOTA  <kubota@debian.org>
 
 	* Added an explanation for -*/--type option for man/mlterm.1.

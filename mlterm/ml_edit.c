@@ -814,14 +814,20 @@ ml_edit_overwrite_chars(
 			(edit->wraparound_ready_line &&
 			edit->cursor.col + cols + ml_char_cols( &buffer[count]) == edit->model.num_of_cols))
 		{
+			/* next char is too wide for current column number */
+			if(cols == 0)
+			{
+				break ;
+			}
+
 			ml_line_overwrite( line , edit->cursor.char_index , &buffer[beg] ,
 				count - beg , cols) ;
-			
+
 			if( ! edit->is_auto_wrap)
 			{
 				break ;
 			}
-			
+
 			ml_line_set_continued_to_next( line) ;
 
 			beg = count ;
