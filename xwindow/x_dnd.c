@@ -6,37 +6,18 @@
 
 #include  "x_window.h"
 #include  "x_dnd.h"
-/*
-#include  <ctype.h>
-*/
 #include  <X11/Xatom.h>
 #include  <X11/Xutil.h>
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
 
 /* XXX Should we create x_atom.h ?? */
-#define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
-#define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
-#define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 
 typedef struct dnd_parser {
 	char *  atomname ;
 	int  (*parser)(x_window_t *, unsigned char *, int);
 } dnd_parser_t ;
-
-static int
-parse_text_plain(
-	x_window_t *  win,
-	unsigned char *  src,
-	int  len)
-{
-	if( !(win->utf8_selection_notified))
-		return 0 ; /* needs ASCII capable parser*/
-	(*win->utf8_selection_notified)( win , src , len) ;
-
-	return 1 ;
-}
 
 static int
 parse_text_unicode(
@@ -204,13 +185,13 @@ parse_mlterm_config(
 }
 
 dnd_parser_t dnd_parsers[] ={
-	{"text/plain"   , parse_text_plain } ,
-	{"text/unicode"   , parse_text_unicode } ,
-	{"text/uri-list", parse_text_uri_list } ,
-	{"COMPOUND_TEXT", parse_compound_text } ,
-	{"TEXT"         , parse_text } ,
-	{"UTF8_STRING"  , parse_utf8_string } ,
 	{"text/x-mlterm.config"  , parse_mlterm_config } ,
+	{"UTF8_STRING"  , parse_utf8_string } ,
+	{"COMPOUND_TEXT", parse_compound_text } ,
+	{"text/uri-list", parse_text_uri_list } ,
+	{"text/plain"   , parse_utf8_string } ,
+	{"TEXT"         , parse_text } ,
+	{"text/unicode"   , parse_text_unicode } ,
 	{NULL, NULL}
 };
 
@@ -251,10 +232,6 @@ set_badwin_handler(
 	{
 		if( !old)
 			old = XSetErrorHandler( ignore_badwin) ;
-#ifdef  DEBUG
-		else
-			kik_debug_printf("handler aready istalled\n") ;
-#endif
 	}
 	else
 	{
@@ -263,12 +240,6 @@ set_badwin_handler(
 			XSetErrorHandler( old) ;
 			old = NULL ;
 		}
-#ifdef  DEBUG
-		else
-		{
-			kik_debug_printf("no handler had been stored\n") ;
-		}
-#endif
 	}
 }
 
@@ -282,13 +253,8 @@ is_pref(
 {
 	int i ;
 	for( i = 0 ; i < num ; i++)
-	{
 		if( atom[i] == type)
-		{
 			return i ;			
-		}
-
-	}
 	return  -1 ;
 }
 
@@ -373,12 +339,14 @@ parse(
 	dnd_parser_t *  proc_entry ;
 	Atom atom ;
 
-	atom = win->dnd->waiting_atom ;
 	if( !src)
 		return 1 ;
 	if( !(win->dnd))
 		return 1;
-	    
+	atom = win->dnd->waiting_atom ;
+	if( !atom)
+		return 1 ;
+	
 	for( proc_entry = dnd_parsers ; proc_entry->atomname ;proc_entry++)
 	{
 		if( atom == XInternAtom( win->display, proc_entry->atomname, False) )
@@ -510,13 +478,9 @@ x_dnd_process_enter(
 	if( to_wait)
 	{
 		if( !(win->dnd))
-		{
 			win->dnd = malloc( sizeof( x_dnd_context_t)) ;
-		}
 		if( !(win->dnd))
-		{
 			return 1 ;
-		}
 		win->dnd->source = event->xclient.data.l[0];
 		win->dnd->waiting_atom = to_wait;
 	}
