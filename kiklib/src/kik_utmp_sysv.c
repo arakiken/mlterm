@@ -180,7 +180,7 @@ kik_utmp_delete(
 	  K_MIN(sizeof(ut.ut_id), strlen(utmp->ut_pos)) );
   memcpy( ut.ut_line, utmp->ut_line,
 	  K_MIN(sizeof(ut.ut_line), strlen(utmp->ut_line)) );
-  memset( ut.ut_user, 0, sizeof(ut.ut_name));
+  memset( ut.ut_user, 0, sizeof(ut.ut_user));
 
   ut.ut_pid	= getpid();
   ut.ut_type	= DEAD_PROCESS;

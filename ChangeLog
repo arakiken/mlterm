@@ -1,5 +1,11 @@
 2003-06-03 Araki Ken <arakiken@users.sf.net>
 
+	* Renamed 'ut.name' to 'ut.user' in kik_utmp_sysv.c.
+	* Fixed typo in kik_dlfcn.c.
+	  (Thanks to Sakamoto Hironori san)
+
+2003-06-03 Araki Ken <arakiken@users.sf.net>
+
 	* Added doc/ja/README.pty
 	* Updated doc/ja/README.ja
 	* Ctrl+[F2-F4] are assigned to OPEN_PTY,NEXT_PTY,PREV_PTY shortcut by default.

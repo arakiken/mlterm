@@ -22,7 +22,7 @@ kik_dl_open(
 {
 	char *  path ;
 
-	if( ( _path = alloca( strlen( dirpath) + strlen( LIB_PREFIX) + strlen( name) + 4)) == NULL)
+	if( ( path = alloca( strlen( dirpath) + strlen( LIB_PREFIX) + strlen( name) + 4)) == NULL)
 	{
 		return  NULL ;
 	}
