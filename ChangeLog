@@ -1,3 +1,7 @@
+[20020206]
+* when font size is changed with right scrollbar , scrollbar is placed
+  in strange position. fixed.
+
 [20020205]
 * -O/--sbpos/scrollbar_position option is added.
 * processing brightness adjustment under transparent mode is tuned.
