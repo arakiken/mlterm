@@ -99,10 +99,12 @@ int string_edit(window_t *window, char *src, char **result){
 
 	width = window_width(window);
 	work = malloc(width  *(sizeof(char) ));
-	if (src)
-		strcpy(buffer, src);
-	else
+	if (src){
+		strncpy(buffer, src, sizeof(buffer));
+		buffer[255] = 0;
+	}else
 		buffer[0]=0;
+	
 
 	cursor_show();	
 	while(1){
