@@ -1,3 +1,7 @@
+2003-03-05 Tomohiro KUBOTA <kubota@debian.org>
+
+	* The default BEL mode is "sound", not "none", at the help message.
+
 2003-03-04 Tomohiro KUBOTA <kubota@debian.org>
 
 	* mlconfig outputs "wall_picture = none" when background type

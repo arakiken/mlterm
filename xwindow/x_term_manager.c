@@ -980,7 +980,7 @@ get_min_conf(
 	kik_conf_add_opt( conf , '6' , "stbs" , 1 , "static_backscroll_mode" ,
 		"screen is static under backscroll mode [false]") ;
 	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , 
-		"bel (0x07) mode [none/sound/visual, default = none]") ;
+		"bel (0x07) mode [none/sound/visual, default = sound]") ;
 	kik_conf_add_opt( conf , '8' , "88591" , 1 , "iso88591_font_for_usascii" ,
 		"use ISO-8859-1 font for ASCII part of any encoding [false]") ;
 	kik_conf_add_opt( conf , '9' , "crfg" , 0 , "cursor_fg_color" ,
