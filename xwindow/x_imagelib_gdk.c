@@ -531,11 +531,20 @@ tile_pixmap(
 	unsigned int bw, depth;
 	Pixmap result;
 
-	XGetGeometry( display, pixmap, &dummy, &ax, &ay,
-		      &aw, &ah, &bw, &depth) ;
-	if ( force_copy ||
-	     ( aw < DisplayWidth( display, screen)) ||
-	     ( ah < DisplayHeight( display, screen)))
+	if( force_copy)
+	{
+		/* force tiling */
+		aw = 0 ;
+	}
+	else
+	{
+		/* border width is not used */
+		XGetGeometry( display, pixmap, &dummy, &ax, &ay,
+			      &aw, &ah, &bw, &depth) ;
+	}
+
+	if ( ( aw < DisplayWidth( display, screen)) ||
+	     ( ah < DisplayHeight( display, screen)) )
 	{
 		/* Some WM needs tiling... sigh.*/
 		result = XCreatePixmap( display, pixmap,
@@ -738,11 +747,13 @@ lsb(
 
 	if( val == 0)
 		return  0 ;
+
 	while((val & 1) == 0)
 	{
 		val = val >>1 ;
 		nth ++ ;
 	}
+
 	return  nth ;
 }
 
@@ -760,7 +771,9 @@ msb(
 
 	if( val == 0)
 		return  0 ;
+
 	nth = lsb( val) +1 ;
+
 	while(val & (1 << nth))
 		nth++ ;
 
@@ -768,14 +781,6 @@ msb(
 }
 
 
-/**convert a pixbuf into a pixmap
- *
- *\param display
- *\param screen
- *\param pixbuf source
- *\param pixmap where an image is rendered(should be created before calling this function)
- *
- */
 static XImage *
 pixbuf_to_ximage_truecolor(
 	Display *  display,
@@ -833,10 +838,10 @@ pixbuf_to_ximage_truecolor(
 			pixel = line ;
 			for (j = 0; j < width; j++)
 			{
-				data[i*width +j ] =
-					(((pixel[0] >> r_limit) << r_offset) & r_mask) |
-					(((pixel[1] >> g_limit) << g_offset) & g_mask) |
-					(((pixel[2] >> b_limit) << b_offset) & b_mask) ;
+				*data = ( ( (pixel[0] >> r_limit) << r_offset) & r_mask) |
+					( ( (pixel[1] >> g_limit) << g_offset) & g_mask) |
+					( ( (pixel[2] >> b_limit) << b_offset) & b_mask) ;
+				data ++ ;
 				pixel += bytes_per_pixel ;
 			}
 			line += rowstride ;
@@ -862,7 +867,8 @@ pixbuf_to_ximage_truecolor(
 			pixel = line ;
 			for( j = 0; j < width; j++)
 			{
-				data[i*width +j ] = pixel[0] <<r_offset | pixel[1] <<g_offset | pixel[2]<<b_offset ;
+				*data = pixel[0] <<r_offset | pixel[1] <<g_offset | pixel[2]<<b_offset ;
+				data ++ ;
 				pixel +=bytes_per_pixel ;
 			}
 			line += rowstride ;
