@@ -1,5 +1,10 @@
 2004-06-13  Seiichi SATO  <ssato@sh.rim.or.jp>
 
+	* x_screen.c(x_screen_new, x_screen_delete): duplicated
+	conf_menu_path_[1-3] and input_method.
+
+2004-06-13  Seiichi SATO  <ssato@sh.rim.or.jp>
+
 	* xwindow/x_uim.c, xwindow/x_uim.h: moved to...
 	* inputmethod/uim/im_uim.c, inputmethod/uim/im_uim.h: this.
 

@@ -6366,7 +6366,14 @@ x_screen_new(
 
 	screen->xim_open_in_startup = xim_open_in_startup ;
 
-	screen->input_method = input_method ;
+	if( input_method)
+	{
+		screen->input_method = strdup( input_method) ;
+	}
+	else
+	{
+		screen->input_method = NULL ;
+	}
 
 	screen->im = NULL ;
 
@@ -6428,9 +6435,32 @@ x_screen_new(
 		screen->pic_file_path = NULL ;
 	}
 
-	screen->conf_menu_path_1 = conf_menu_path_1 ;
-	screen->conf_menu_path_2 = conf_menu_path_2 ;
-	screen->conf_menu_path_3 = conf_menu_path_3 ;
+	if( conf_menu_path_1)
+	{
+		screen->conf_menu_path_1 = strdup( conf_menu_path_1) ;
+	}
+	else
+	{
+		screen->conf_menu_path_1 = NULL ;
+	}
+
+	if( conf_menu_path_2)
+	{
+		screen->conf_menu_path_2 = strdup( conf_menu_path_2) ;
+	}
+	else
+	{
+		screen->conf_menu_path_2 = NULL ;
+	}
+
+	if( conf_menu_path_3)
+	{
+		screen->conf_menu_path_3 = strdup( conf_menu_path_3) ;
+	}
+	else
+	{
+		screen->conf_menu_path_3 = NULL ;
+	}
 
 	screen->shortcut = shortcut ;
 	screen->termcap = termcap ;
@@ -6532,9 +6562,34 @@ error:
 		(*screen->xct_conv->delete)( screen->xct_conv) ;
 	}
 
-	if( screen->im)
+	if( screen->pic_file_path)
 	{
-		(*screen->im->delete)( screen->im) ;
+		free( screen->pic_file_path) ;
+	}
+
+	if( screen->conf_menu_path_1)
+	{
+		free( screen->conf_menu_path_1) ;
+	}
+
+	if( screen->conf_menu_path_2)
+	{
+		free( screen->conf_menu_path_2) ;
+	}
+
+	if( screen->conf_menu_path_3)
+	{
+		free( screen->conf_menu_path_3) ;
+	}
+
+	if( screen->mod_meta_key)
+	{
+		free( screen->mod_meta_key) ;
+	}
+
+	if( screen->input_method)
+	{
+		free( screen->input_method) ;
 	}
 
 	if( screen)
@@ -6572,6 +6627,21 @@ x_screen_delete(
 		free( screen->pic_file_path) ;
 	}
 
+	if( screen->conf_menu_path_1)
+	{
+		free( screen->conf_menu_path_1) ;
+	}
+
+	if( screen->conf_menu_path_2)
+	{
+		free( screen->conf_menu_path_2) ;
+	}
+
+	if( screen->conf_menu_path_3)
+	{
+		free( screen->conf_menu_path_3) ;
+	}
+
 	if( screen->utf8_parser)
 	{
 		(*screen->utf8_parser->delete)( screen->utf8_parser) ;
@@ -6595,6 +6665,11 @@ x_screen_delete(
 	if( screen->xct_conv)
 	{
 		(*screen->xct_conv->delete)( screen->xct_conv) ;
+	}
+
+	if( screen->input_method)
+	{
+		free( screen->input_method) ;
 	}
 
 	if( screen->im)
