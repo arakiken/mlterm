@@ -360,7 +360,7 @@ int main(int argc, char **argv){
 
 	sigemptyset(&(act.sa_mask));
 	sigaddset(&act.sa_mask,SIGINT | SIGWINCH);
-	act.sa_flags = SA_SIGINFO | SA_RESTART; /* XXX */
+	act.sa_flags = SA_RESTART;
 
 	act.sa_handler = _signal_int;
 	sigaction(SIGINT, &act, 0);
