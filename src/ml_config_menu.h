@@ -13,6 +13,7 @@
 #include  "ml_mod_meta_mode.h"
 #include  "ml_bel_mode.h"
 #include  "ml_font.h"
+#include  "ml_iscii.h"
 
 
 typedef struct  ml_config_menu_session
@@ -21,6 +22,7 @@ typedef struct  ml_config_menu_session
 	int  fd ;
 	
 	ml_char_encoding_t  encoding ;
+	ml_iscii_lang_t  iscii_lang ;
 	ml_color_t  fg_color ;
 	ml_color_t  bg_color ;
 	u_int  tabsize ;
@@ -45,6 +47,7 @@ typedef struct  ml_config_menu_event_listener
 	void *  self ;
 	
 	void (*change_encoding)( void * , ml_char_encoding_t) ;
+	void (*change_iscii_lang)( void * , ml_iscii_lang_t) ;
 	void (*change_fg_color)( void * , ml_color_t) ;
 	void (*change_bg_color)( void * , ml_color_t) ;
 	void (*change_tab_size)( void * , u_int) ;
@@ -65,6 +68,8 @@ typedef struct  ml_config_menu_event_listener
 	void (*change_wall_picture)( void * , char *) ;
 	void (*unset_wall_picture)( void *) ;
 
+	void (*full_reset)( void *) ;
+
 } ml_config_menu_event_listener_t ;
 
 typedef struct  ml_config_menu
@@ -82,7 +87,8 @@ int  ml_config_menu_init( ml_config_menu_t *  config_menu , char *  command_path
 int  ml_config_menu_final( ml_config_menu_t *  config_menu) ;
 
 int  ml_config_menu_start( ml_config_menu_t *  config_menu , int  x , int  y ,
-	ml_char_encoding_t  orig_encoding , ml_color_t  orig_fg_color , ml_color_t  orig_bg_color ,
+	ml_char_encoding_t  orig_encoding , ml_iscii_lang_t  orig_iscii_lang ,
+	ml_color_t  orig_fg_color , ml_color_t  orig_bg_color ,
 	u_int  orig_tabsize , u_int  orig_logsize , u_int  orig_fontsize , u_int  orig_min_fontsize ,
 	u_int  orig_max_fontsize , ml_mod_meta_mode_t  orig_mod_meta_mode , ml_bel_mode_t  orig_bel_mode ,
 	int  orig_is_combining_char , int  orig_copy_paste_via_ucs , int  orig_is_transparent ,

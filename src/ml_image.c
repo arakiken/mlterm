@@ -1061,7 +1061,7 @@ ml_image_start_bidi(
 		ml_imgline_start_bidi( &image->lines[row]) ;
 	}
 
-	image->cursor.char_index = ml_convert_char_index_normal_to_bidi(
+	image->cursor.char_index = ml_bidi_convert_logical_char_index_to_visual(
 					&CURSOR_LINE(image) , image->cursor.char_index) ;
 	image->cursor.col = ml_convert_char_index_to_col( &CURSOR_LINE(image) ,
 					image->cursor.char_index , 0) + cols_rest ;
@@ -1106,7 +1106,7 @@ ml_image_stop_bidi(
 		ml_imgline_stop_bidi( &image->lines[row]) ;
 	}
 
-	image->cursor.char_index = ml_convert_char_index_bidi_to_normal(
+	image->cursor.char_index = ml_bidi_convert_visual_char_index_to_logical(
 					&CURSOR_LINE(image) , image->cursor.char_index) ;
 	image->cursor.col = ml_convert_char_index_to_col( &CURSOR_LINE(image) ,
 					image->cursor.char_index , 0) + cols_rest ;
@@ -1116,6 +1116,65 @@ ml_image_stop_bidi(
 		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 	
+	return  1 ;
+}
+
+int
+ml_image_start_visual_indian(
+	ml_image_t *  image ,
+	ml_iscii_state_t  iscii_state
+	)
+{
+	int  row ;
+	int  cols_rest ;
+
+	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
+	
+	for( row = 0 ; row < image->num_of_filled_rows ; row ++)
+	{
+		ml_imgline_start_visual_indian( &IMAGE_LINE(image,row) , iscii_state) ;
+	}
+
+	image->cursor.char_index = ml_iscii_convert_logical_char_index_to_visual(
+					&CURSOR_LINE(image) , image->cursor.char_index) ;
+
+	image->cursor.col = ml_convert_char_index_to_col( &CURSOR_LINE(image) ,
+				image->cursor.char_index , 0) + cols_rest ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d]\n" ,
+		image->cursor.col , image->cursor.char_index) ;
+#endif
+
+	return  1 ;
+}
+
+int
+ml_image_stop_visual_indian(
+	ml_image_t *  image
+	)
+{
+	int  row ;
+	int  cols_rest ;
+
+	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
+	
+	image->cursor.char_index = ml_iscii_convert_visual_char_index_to_logical(
+					&CURSOR_LINE(image) , image->cursor.char_index) ;
+	
+	for( row = 0 ; row < image->num_of_filled_rows ; row ++)
+	{
+		ml_imgline_stop_visual_indian( &IMAGE_LINE(image,row)) ;
+	}
+
+	image->cursor.col = ml_convert_char_index_to_col( &CURSOR_LINE(image) ,
+				image->cursor.char_index , 0) + cols_rest ;
+	
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d]\n" ,
+		image->cursor.col , image->cursor.char_index) ;
+#endif
+
 	return  1 ;
 }
 

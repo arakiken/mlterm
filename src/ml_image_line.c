@@ -11,6 +11,7 @@
 #include  <kiklib/kik_util.h>
 
 #include  "ml_bidi.h"
+#include  "ml_iscii.h"
 
 
 #ifdef  DEBUG
@@ -585,15 +586,31 @@ end:
 int
 ml_convert_char_index_to_x(
 	ml_image_line_t *  line ,
-	int  char_index
+	int  char_index ,
+	ml_shape_t *  shape
 	)
 {
 	int  counter ;
 	int  x ;
+	ml_image_line_t *  orig ;
 
 	if( char_index > END_CHAR_INDEX(line))
 	{
 		char_index = END_CHAR_INDEX(line) ;
+	}
+
+	if( shape)
+	{
+		if( ( orig = ml_imgline_shape( line , shape)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_imgline_shape() failed.\n") ;
+		#endif
+		}
+	}
+	else
+	{
+		orig = NULL ;
 	}
 
 	/*
@@ -604,6 +621,11 @@ ml_convert_char_index_to_x(
 	{
 		x += ml_char_width( &line->chars[counter]) ;
 	}
+	
+	if( orig)
+	{
+		ml_imgline_unshape( line , orig) ;
+	}
 
 	return  x ;
 }
@@ -612,10 +634,26 @@ int
 ml_convert_x_to_char_index(
 	ml_image_line_t *  line ,
 	u_int *  x_rest ,
-	int  x
+	int  x ,
+	ml_shape_t *  shape
 	)
 {
 	int  counter ;
+	ml_image_line_t *  orig ;
+		
+	if( shape)
+	{
+		if( ( orig = ml_imgline_shape( line , shape)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_imgline_shape() failed.\n") ;
+		#endif
+		}
+	}
+	else
+	{
+		orig = NULL ;
+	}
 	
 	for( counter = 0 ; counter < END_CHAR_INDEX(line) ; counter ++)
 	{
@@ -632,6 +670,11 @@ ml_convert_x_to_char_index(
 		*x_rest = x ;
 	}
 
+	if( orig)
+	{
+		ml_imgline_unshape( line , orig) ;
+	}
+	
 	return  counter ;
 }
 
@@ -989,7 +1032,7 @@ ml_imgline_stop_bidi(
 }
 
 int
-ml_convert_char_index_normal_to_bidi(
+ml_bidi_convert_logical_char_index_to_visual(
 	ml_image_line_t *  line ,
 	int  char_index
 	)
@@ -1014,7 +1057,7 @@ ml_convert_char_index_normal_to_bidi(
 }
 
 int
-ml_convert_char_index_bidi_to_normal(
+ml_bidi_convert_visual_char_index_to_logical(
 	ml_image_line_t *  line ,
 	int  char_index
 	)
@@ -1093,4 +1136,475 @@ ml_imgline_copy_str(
 
 		return  1 ;
 	}
+}
+
+ml_image_line_t *
+ml_imgline_shape(
+	ml_image_line_t *  line ,
+	ml_shape_t *  shape
+	)
+{
+	ml_image_line_t *  orig ;
+	ml_char_t *  shaped ;
+
+	if( ( orig = malloc( sizeof( ml_image_line_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	ml_imgline_share( orig , line) ;
+	
+	if( ( shaped = ml_str_new( line->num_of_chars)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	line->num_of_filled_chars = (*shape->shape)( shape , shaped , line->num_of_chars ,
+					line->chars , line->num_of_filled_chars) ;
+	line->chars = shaped ;
+
+	return  orig ;
+}
+
+int
+ml_imgline_unshape(
+	ml_image_line_t *  line ,
+	ml_image_line_t *  orig
+	)
+{
+	ml_str_delete( line->chars , line->num_of_chars) ;
+	
+	line->chars = orig->chars ;
+	line->num_of_filled_chars = orig->num_of_filled_chars ;
+
+	free( orig) ;
+
+	return  1 ;
+}
+
+int
+ml_imgline_start_visual_indian(
+	ml_image_line_t *  line ,
+	ml_iscii_state_t  iscii_state
+	)
+{
+	ml_char_t *  src ;
+	u_int  src_len ;
+	ml_char_t *  dst ;
+	u_int  dst_len ;
+	int  dst_pos ;
+	int  src_pos ;
+	ml_char_t *  ch ;
+	u_char *  iscii_buf ;
+	u_int  iscii_buf_len ;
+	u_char *  font_buf ;
+	u_int  font_buf_len ;
+	u_int  prev_font_filled ;
+	u_int  iscii_filled ;
+	int  counter ;
+
+	/*
+	 * char combining is necessary for rendering ISCII glyphs
+	 */
+	if( ! ml_is_char_combining())
+	{
+		return  0 ;
+	}
+
+	iscii_buf_len = line->num_of_filled_chars * 4 + 1 ;
+	if( ( iscii_buf = alloca( iscii_buf_len)) == NULL)
+	{
+		return  0 ;
+	}
+
+	font_buf_len = line->num_of_chars * 4 + 1 ;
+	if( ( font_buf = alloca( font_buf_len)) == NULL)
+	{
+		return  0 ;
+	}
+
+	src_len = line->num_of_filled_chars ;
+	if( ( src = ml_str_alloca( src_len)) == NULL)
+	{
+		return  0 ;
+	}
+	
+	ml_str_copy( src , line->chars , line->num_of_filled_chars) ;
+
+	dst = line->chars ;
+	dst_len = line->num_of_chars ;
+	
+	dst_pos = -1 ;
+	prev_font_filled = 0 ;
+	iscii_filled = 0 ;
+	for( src_pos = 0 ; src_pos < src_len ; src_pos ++)
+	{
+		ch = &src[src_pos] ;
+		
+		if( ml_font_cs( ml_char_font( ch)) == ISCII)
+		{
+			u_int  font_filled ;
+			
+			iscii_buf[iscii_filled ++] = ml_char_bytes( ch)[0] ;
+			iscii_buf[iscii_filled] = '\0' ;
+			font_filled = ml_iscii_shape( iscii_state , font_buf , font_buf_len , iscii_buf) ;
+
+			if( font_filled < prev_font_filled)
+			{
+				ml_char_t *  c ;
+				ml_char_t *  comb ;
+				u_int  comb_size ;
+
+				if( prev_font_filled - font_filled > dst_pos)
+				{
+					font_filled = prev_font_filled - dst_pos ;
+				}
+				
+				dst_pos -= (prev_font_filled - font_filled) ;
+				
+				for( counter = 1 ; counter <= prev_font_filled - font_filled ; counter ++)
+				{
+					int  comb_pos ;
+					
+					c = &dst[dst_pos + counter] ;
+
+					if( ml_char_is_null( c))
+					{
+						continue ;
+					}
+					
+					comb = ml_get_combining_chars( c , &comb_size) ;
+
+					comb_pos = 0 ;
+					while( 1)
+					{
+						if( ml_char_is_null( &dst[dst_pos]))
+						{
+							/*
+							 * combining is forbidden if base character is null
+							 */
+							ml_char_copy( &dst[dst_pos] , c) ;
+						}
+						else if( ! ml_char_combine( &dst[dst_pos] ,
+							ml_char_bytes( c) , ml_char_size( c) ,
+							ml_char_font( c) , ml_char_font_decor( c) ,
+							ml_char_fg_color( c) , ml_char_bg_color( c)))
+						{
+						#ifdef  DEBUG
+							kik_warn_printf( KIK_DEBUG_TAG
+								" combining failed.\n") ;
+						#endif
+						
+							break ;
+						}
+
+						if( comb_pos >= comb_size)
+						{
+							break ;
+						}
+
+						c = &comb[comb_pos++] ;
+					}
+				}
+
+				prev_font_filled = font_filled ;
+			}
+
+			if( dst_pos >= 0 && font_filled == prev_font_filled)
+			{
+				if( ml_char_is_null( &dst[dst_pos]))
+				{
+					/*
+					 * combining is forbidden if base character is null
+					 */
+					ml_char_copy( &dst[dst_pos] , ch) ;
+				}
+				else if( ! ml_char_combine( &dst[dst_pos] ,
+					ml_char_bytes( ch) , ml_char_size( ch) ,
+					ml_char_font( ch) , ml_char_font_decor( ch) ,
+					ml_char_fg_color( ch) , ml_char_bg_color( ch)))
+				{
+				#ifdef  DEBUG
+					kik_warn_printf( KIK_DEBUG_TAG
+						" combining failed.\n") ;
+				#endif
+				}
+			}
+			else
+			{
+				if( ++ dst_pos >= dst_len)
+				{
+					goto  end ;
+				}
+
+				ml_char_copy( &dst[dst_pos] , ch) ;
+				
+				if( font_filled > prev_font_filled + 1)
+				{
+					for( counter = 0 ; counter < font_filled - prev_font_filled - 1 ;
+						counter ++)
+					{
+						if( ++ dst_pos >= dst_len)
+						{
+							goto  end ;
+						}
+
+						ml_char_copy( &dst[dst_pos] , ch) ;
+						
+						/* NULL */
+						ml_char_set_bytes( &dst[dst_pos] , "\x0" , 1) ;
+					}
+				}
+			}
+
+			prev_font_filled = font_filled ;
+		}
+		else
+		{
+			if( ++ dst_pos >= dst_len)
+			{
+				goto  end ;
+			}
+			
+			ml_char_copy( &dst[dst_pos] , ch) ;
+
+			prev_font_filled = 0 ;
+			iscii_filled = 0 ;
+		}
+	}
+
+	dst_pos ++ ;
+
+end:
+	ml_str_final( src , src_len) ;
+
+	line->num_of_filled_chars = dst_pos ;
+
+	if( line->is_modified)
+	{
+		ml_imgline_set_modified_all( line) ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_imgline_stop_visual_indian(
+	ml_image_line_t *  line
+	)
+{
+	ml_char_t *  src ;
+	u_int  src_len ;
+	ml_char_t *  dst ;
+	u_int  dst_len ;
+	int  dst_pos ;
+	int  src_pos ;
+	u_int  comb_size ;
+	ml_char_t *  comb ;
+	int  comb_pos ;
+	ml_char_t *  ch ;
+
+	/*
+	 * char combining is necessary for rendering ISCII glyphs
+	 */
+	if( ! ml_is_char_combining())
+	{
+		return  0 ;
+	}
+
+	src_len = line->num_of_filled_chars ;
+	if( ( src = ml_str_alloca( src_len)) == NULL)
+	{
+		return  0 ;
+	}
+	
+	ml_str_copy( src , line->chars , line->num_of_filled_chars) ;
+
+	dst = line->chars ;
+	dst_len = line->num_of_chars ;
+
+	dst_pos = 0 ;
+	for( src_pos = 0 ; src_pos < src_len ; src_pos ++)
+	{
+		ch = &src[src_pos] ;
+
+		if( ml_char_is_null( ch))
+		{
+			continue ;
+		}
+
+		if( ml_font_cs( ml_char_font( ch)) == ISCII)
+		{
+			comb = ml_get_combining_chars( ch , &comb_size) ;
+
+			comb_pos = 0 ;
+			while( 1)
+			{
+				ml_char_set( &dst[dst_pos ++] ,
+					ml_char_bytes( ch) , ml_char_size( ch) ,
+					ml_char_font( ch) , ml_char_font_decor( ch) ,
+					ml_char_fg_color( ch) , ml_char_bg_color( ch)) ;
+
+				if( dst_pos >= dst_len)
+				{
+					break ;
+				}
+
+				if( comb_pos >= comb_size)
+				{
+					break ;
+				}
+
+				ch = &comb[comb_pos ++] ;
+			}
+		}
+		else
+		{
+			ml_char_copy( &dst[dst_pos ++] , ch) ;
+		}
+	}
+
+	line->num_of_filled_chars = dst_pos ;
+	ml_str_final( src , src_len) ;
+
+	if( line->is_modified)
+	{
+		ml_imgline_set_modified_all( line) ;
+	}
+	
+	return  1 ;
+}
+
+/*
+ * this should be called before ml_imgline_stop_visual_indian()
+ */
+int
+ml_iscii_convert_visual_char_index_to_logical(
+	ml_image_line_t *  line ,
+	int  visual_char_index
+	)
+{
+	int  counter ;
+	int  logical_char_index ;
+	u_int  comb_size ;
+
+	/*
+	 * char combining is necessary for rendering ISCII glyphs
+	 */
+	if( ! ml_is_char_combining())
+	{
+		return  visual_char_index ;
+	}
+	
+	logical_char_index = 0 ;
+
+	for( counter = 0 ; counter < visual_char_index ; counter ++)
+	{
+		if( ml_font_cs( ml_char_font( &line->chars[counter])) == ISCII)
+		{
+			if( ml_char_is_null( &line->chars[counter]))
+			{
+				continue ;
+			}
+
+			if( ml_get_combining_chars( &line->chars[counter] , &comb_size))
+			{
+				logical_char_index += comb_size ;
+			}
+		}
+		
+		logical_char_index ++ ;
+	}
+
+#ifdef  DEBUG
+	if( logical_char_index >= line->num_of_chars)
+	{
+		kik_warn_printf( KIK_DEBUG_TAG
+			" logical_char_index %d (of visual %d) is over num_of_chars %d\n" ,
+			logical_char_index , visual_char_index , line->num_of_chars) ;
+			
+		abort() ;
+	}
+#endif
+
+	return  logical_char_index ;
+}
+
+/*
+ * this should be called after ml_imgline_start_visual_indian()
+ */
+int
+ml_iscii_convert_logical_char_index_to_visual(
+	ml_image_line_t *  line ,
+	int  logical_char_index
+	)
+{
+	int  counter ;
+	int  visual_char_index ;
+	u_int  comb_size ;
+
+	/*
+	 * char combining is necessary for rendering ISCII glyphs
+	 */
+	if( ! ml_is_char_combining())
+	{
+		return  logical_char_index ;
+	}
+	
+	visual_char_index = 0 ;
+
+	for( counter = 0 ; counter < logical_char_index ; counter ++)
+	{
+		if( ml_font_cs( ml_char_font( &line->chars[counter])) == ISCII)
+		{
+			/*
+			 * skipping trailing null characters of previous character.
+			 */
+			while( ml_char_is_null( &line->chars[counter]))
+			{
+				if( ++ counter >= line->num_of_filled_chars)
+				{
+					goto  end ;
+				}
+
+				if( ++ logical_char_index >= line->num_of_filled_chars)
+				{
+					goto  end ;
+				}
+				
+				visual_char_index ++ ;
+			}
+
+			if( ml_get_combining_chars( &line->chars[counter] , &comb_size))
+			{
+				logical_char_index -= comb_size ;
+			}
+		}
+		
+		visual_char_index ++ ;
+	}
+
+	while( ml_char_is_null( &line->chars[counter]))
+	{
+		if( ++ counter >= line->num_of_filled_chars)
+		{
+			break ;
+		}
+		
+		visual_char_index ++ ;
+	}
+
+end:
+#ifdef  DEBUG
+	if( visual_char_index >= line->num_of_filled_chars)
+	{
+		kik_warn_printf( KIK_DEBUG_TAG
+			" visual_char_index %d (of logical %d) is over num_of_filled_chars %d\n" ,
+			visual_char_index , logical_char_index , line->num_of_filled_chars) ;
+			
+		abort() ;
+	}
+#endif
+
+	return  visual_char_index ;
 }

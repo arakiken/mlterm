@@ -33,7 +33,7 @@ typedef struct  ml_term_manager
 	ml_window_manager_t  win_man ;
 	ml_color_manager_t  color_man ;
 	ml_font_custom_t  normal_font_custom ;
-	ml_font_custom_t  p_font_custom ;
+	ml_font_custom_t  v_font_custom ;
 #ifdef  ANTI_ALIAS
 	ml_font_custom_t  aa_font_custom ;
 #endif
@@ -60,6 +60,7 @@ typedef struct  ml_term_manager
 	char *  scrollbar_view_name ;
 	char *  pic_file_path ;
 	char *  conf_menu_path ;
+	ml_iscii_lang_t  iscii_lang ;
 	ml_mod_meta_mode_t  mod_meta_mode ;
 	ml_bel_mode_t  bel_mode ;
 	u_int  num_of_startup_terms ;

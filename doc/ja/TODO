@@ -20,3 +20,6 @@ comment $Id$
   Root Pixmap の取得し、背景画像を表示する方法を実装
 
 * utmp に対応
+
+* mlconfig に OK / Apply(終了しない) / Cancel の 3 つの選択肢を用意する
+  (mlterm-dev-ja <20020103220529.WAJUC0A82633.10625183@mth.biglobe.ne.jp>)

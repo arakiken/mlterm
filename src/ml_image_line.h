@@ -7,6 +7,7 @@
 
 
 #include  "ml_char.h"
+#include  "ml_shaping.h"
 
 
 enum
@@ -44,7 +45,7 @@ typedef struct  ml_image_line
 	/* private */
 	u_int16_t  change_beg_char_index ;	/* 0 - 65536 */
 	u_int16_t  change_end_char_index ;	/* 0 - 65536 */
-
+	
 	/* public(read only) */
 	int8_t  is_cleared_to_end ;
 	int8_t  is_modified ;
@@ -91,9 +92,9 @@ int  ml_convert_char_index_to_col( ml_image_line_t *  line , int  char_index , i
 
 int  ml_convert_col_to_char_index( ml_image_line_t *  line , int *  cols_rest , int  col , int  flag) ;
 	
-int  ml_convert_char_index_to_x( ml_image_line_t *  line , int  char_index) ;
+int  ml_convert_char_index_to_x( ml_image_line_t *  line , int  char_index , ml_shape_t *  shape) ;
 
-int  ml_convert_x_to_char_index( ml_image_line_t *  line , u_int *  x_rest , int  x) ;
+int  ml_convert_x_to_char_index( ml_image_line_t *  line , u_int *  x_rest , int  x , ml_shape_t *  shape) ;
 
 int  ml_imgline_reverse_color( ml_image_line_t *  line , int  char_index) ;
 
@@ -104,7 +105,7 @@ int  ml_imgline_copy_line( ml_image_line_t *  dst , ml_image_line_t *  src) ;
 int  ml_imgline_share( ml_image_line_t *  dst , ml_image_line_t *  src) ;
 
 inline int  ml_imgline_end_char_index( ml_image_line_t *  line) ;
-	
+
 int  ml_imgline_is_empty( ml_image_line_t *  line) ;
 
 u_int  ml_get_num_of_filled_chars_except_end_space( ml_image_line_t *  line) ;
@@ -124,11 +125,23 @@ int  ml_imgline_start_bidi( ml_image_line_t *  line) ;
 
 int  ml_imgline_stop_bidi( ml_image_line_t *  line) ;
 
-int  ml_convert_char_index_normal_to_bidi( ml_image_line_t *  line , int  char_index) ;
+int  ml_bidi_convert_logical_char_index_to_visual( ml_image_line_t *  line , int  char_index) ;
 
-int  ml_convert_char_index_bidi_to_normal( ml_image_line_t *  line , int  char_index) ;
+int  ml_bidi_convert_visual_char_index_to_logical( ml_image_line_t *  line , int  char_index) ;
 
 int  ml_imgline_copy_str( ml_image_line_t *  line , ml_char_t *  dst , int  beg , u_int  len) ;
+
+ml_image_line_t *  ml_imgline_shape( ml_image_line_t *  line , ml_shape_t *  shape) ;
+
+int  ml_imgline_unshape( ml_image_line_t *  line , ml_image_line_t *  orig) ;
+
+int  ml_imgline_start_visual_indian( ml_image_line_t *  line , ml_iscii_state_t  iscii_state) ;
+
+int  ml_imgline_stop_visual_indian( ml_image_line_t *  line) ;
+
+int  ml_iscii_convert_logical_char_index_to_visual( ml_image_line_t *  line , int  logical_char_index) ;
+
+int  ml_iscii_convert_visual_char_index_to_logical( ml_image_line_t *  line , int  visual_char_index) ;
 
 
 #endif

@@ -56,6 +56,7 @@ static cs_info_t  cs_info_table[] =
 	{ ISO8859_8_R , 1 , { "iso8859-8" , NULL , NULL , } , } ,
 	{ ISO8859_9_R , 1 , { "iso8859-9" , NULL , NULL , } , } ,
 	{ ISO8859_10_R , 1 , { "iso8859-10" , NULL , NULL , } , } ,
+	{ ISCII , 1 , { NULL , NULL , NULL , } , } ,
 	{ TIS620_2533 , 1 , { "tis620.2533-1" , "tis620.2529-1" , NULL , } , } ,
 	{ ISO8859_13_R , 1 , { "iso8859-13" , NULL , NULL , } , } ,
 	{ ISO8859_14_R , 1 , { "iso8859-14" , NULL , NULL , } , } ,

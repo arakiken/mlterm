@@ -279,6 +279,14 @@ ml_char_set(
 	return  1 ;
 }
 
+int
+ml_char_is_null(
+	ml_char_t *  ch
+	)
+{
+	return  (SIZE(ch->attr) == 1 && ch->bytes[0] == '\0') ;
+}
+
 inline int
 ml_char_combine(
 	ml_char_t *  ch ,
@@ -513,7 +521,7 @@ ml_char_width(
 		return  1 ;
 	}
 
-	if( font->col_is_var_len)
+	if( font->is_var_col_width)
 	{
 		return  ml_calculate_char_width( font , ml_char_bytes( ch) , ml_char_size( ch)) ;
 	}
@@ -696,7 +704,7 @@ ml_char_is_reversed(
 
 #ifdef  DEBUG
 
-#if  0
+#if  1
 #define  DUMP_HEX
 #endif
 

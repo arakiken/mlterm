@@ -24,17 +24,16 @@ typedef struct  ml_font_manager
 
 	ml_font_custom_t *  font_custom ;
 
-	/*
-	 * for fixed length column
-	 */
+	/* for fixed column width */
 	ml_font_custom_t *  normal_font_custom ;
 	ml_font_custom_t *  aa_font_custom ;
 
-	/*
-	 * for variable length column
-	 */
-	ml_font_custom_t *  vl_font_custom ;
-	
+	/* for variable column width */
+	ml_font_custom_t *  v_font_custom ;
+
+	/* this ml_font_manager_t object local customization */
+	ml_font_custom_t *  local_font_custom ;
+
 	u_int  font_size ;
 
 	KIK_MAP( ml_font)  font_cache_table ;
@@ -50,7 +49,7 @@ typedef struct  ml_font_manager
 
 
 ml_font_manager_t *  ml_font_manager_new( Display *  display ,
-	ml_font_custom_t *  normal_font_custom , ml_font_custom_t *  vl_font_custom ,
+	ml_font_custom_t *  normal_font_custom , ml_font_custom_t *  v_font_custom ,
 	ml_font_custom_t *  aa_font_custom ,
 	u_int  font_size , mkf_charset_t  usascii_font_cs , int  usascii_font_cs_changable) ;
 	
@@ -58,15 +57,18 @@ int  ml_font_manager_delete( ml_font_manager_t *  font_man) ;
 
 int  ml_font_manager_use_normal( ml_font_manager_t *  font_man) ;
 
-int  ml_font_manager_use_var_len_col( ml_font_manager_t *  font_man) ;
+int  ml_font_manager_use_var_col_width( ml_font_manager_t *  font_man) ;
 
 int  ml_font_manager_use_aa( ml_font_manager_t *  font_man) ;
 
-int  ml_col_is_var_len( ml_font_manager_t *  font_man) ;
+int  ml_font_manager_set_local_font_name( ml_font_manager_t *  font_man ,
+	ml_font_attr_t  font_attr , char *  font_name , u_int  font_size) ;
 
 ml_font_t *  ml_get_font( ml_font_manager_t *  font_man , ml_font_attr_t  fontattr) ;
 
 ml_font_t *  ml_get_usascii_font( ml_font_manager_t *  font_man) ;
+
+int  ml_font_manager_reload( ml_font_manager_t *  font_man) ;
 
 u_int  ml_col_width( ml_font_manager_t *  font_man) ;
 

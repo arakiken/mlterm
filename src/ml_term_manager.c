@@ -25,6 +25,7 @@
 #include  "ml_sb_term_screen.h"
 #include  "ml_term_screen.h"
 #include  "ml_sig_child.h"
+#include  "ml_iscii.h"
 
 
 #define  MAX_TERMS(term_man)  sizeof( (term_man)->terms) / sizeof( (term_man)->terms[0])
@@ -91,7 +92,7 @@ open_new_term(
 	int  usascii_font_cs_changable ;
 	char *  env[4] ;
 	char **  env_p ;
-	char  wid_env[9 + DIGIT_STR_LEN(4) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
+	char  wid_env[9 + DIGIT_STR_LEN(Window) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
 	char *  disp_env ;
 	char *  disp_str ;
 	char *  term ;
@@ -125,7 +126,7 @@ open_new_term(
 	
 	if( ( font_man = ml_font_manager_new( term_man->win_man.display ,
 		&term_man->normal_font_custom ,
-		&term_man->p_font_custom ,
+		&term_man->v_font_custom ,
 	#ifdef  ANTI_ALIAS
 		&term_man->aa_font_custom ,
 	#else
@@ -148,7 +149,7 @@ open_new_term(
 		term_man->mod_meta_mode , term_man->bel_mode ,
 		term_man->copy_paste_via_ucs , term_man->pic_file_path , term_man->use_transbg ,
 		term_man->font_present , term_man->use_bidi , term_man->big5_buggy ,
-		term_man->conf_menu_path)) == NULL)
+		term_man->conf_menu_path , term_man->iscii_lang)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_screen_new() failed.\n") ;
@@ -206,19 +207,19 @@ open_new_term(
 
 	if( term_man->app_name)
 	{
-		ml_term_screen_set_window_name( termscr , term_man->app_name) ;
-		ml_term_screen_set_icon_name( termscr , term_man->icon_name) ;
+		ml_set_window_name( &termscr->window , term_man->app_name) ;
+		ml_set_icon_name( &termscr->window , term_man->icon_name) ;
 	}
 	else
 	{
 		if( term_man->title)
 		{
-			ml_term_screen_set_window_name( termscr , term_man->title) ;
+			ml_set_window_name( &termscr->window , term_man->title) ;
 		}
 		
 		if( term_man->icon_name)
 		{
-			ml_term_screen_set_icon_name( termscr , term_man->icon_name) ;
+			ml_set_icon_name( &termscr->window , term_man->icon_name) ;
 		}
 	}
 
@@ -706,6 +707,7 @@ ml_term_manager_init(
 	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , "word separator characters") ;
 	kik_conf_add_opt( conf , 'k' , "meta" , 0 , "mod_meta_mode" , "mode in pressing meta key") ;
 	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , "bel(0x07) mode") ;
+	kik_conf_add_opt( conf , 'C' , "iscii" , 0 , "iscii_lang" , "which iscii lang you want to use?") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , "turning on login shell") ;
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , "use xim") ;
 	kik_conf_add_opt( conf , 't' , "transbg" , 1 , "use_transbg" , "use transparent background.") ;
@@ -723,7 +725,7 @@ ml_term_manager_init(
 				"opening xim in starting up.") ;
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , "use bidi") ;
 	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" , "supporting buggy Big5 CTEXT") ;
-	kik_conf_add_opt( conf , 'V' , "varlen" , 1 , "use_variable_length_column" ,
+	kik_conf_add_opt( conf , 'V' , "varwidth" , 1 , "use_variable_column_width" ,
 				"column width is variable") ;
 #ifdef  ANTI_ALIAS
 	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , "using anti alias font") ;
@@ -802,7 +804,7 @@ ml_term_manager_init(
 		free( rcpath) ;
 	}
 
-	if( ! ml_font_custom_init( &term_man->p_font_custom , min_font_size , max_font_size))
+	if( ! ml_font_custom_init( &term_man->v_font_custom , min_font_size , max_font_size))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_font_custom_init failed.\n") ;
@@ -811,18 +813,18 @@ ml_term_manager_init(
 		return  0 ;
 	}
 
-	font_rcfile = "mlterm/vlfont" ;
+	font_rcfile = "mlterm/vfont" ;
 	
 	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
 	{
-		ml_font_custom_read_conf( &term_man->p_font_custom , rcpath) ;
+		ml_font_custom_read_conf( &term_man->v_font_custom , rcpath) ;
 
 		free( rcpath) ;
 	}
 
 	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
 	{
-		ml_font_custom_read_conf( &term_man->p_font_custom , rcpath) ;
+		ml_font_custom_read_conf( &term_man->v_font_custom , rcpath) ;
 
 		free( rcpath) ;
 	}
@@ -856,11 +858,11 @@ ml_term_manager_init(
 		
 	term_man->font_present = 0 ;
 
-	if( ( value = kik_conf_get_value( conf , "use_variable_length_column")))
+	if( ( value = kik_conf_get_value( conf , "use_variable_column_width")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			term_man->font_present |= FONT_VARLEN ;
+			term_man->font_present |= FONT_VAR_WIDTH ;
 		}
 	}
 
@@ -1145,7 +1147,6 @@ ml_term_manager_init(
 		/* 0 means the default tab size(see ml_image.c) */
 		term_man->tab_size = 0 ;
 	}
-
 	
 	term_man->use_login_shell = 0 ;
 	
@@ -1397,6 +1398,18 @@ ml_term_manager_init(
 		ml_set_word_separators( value) ;
 	}
 
+	term_man->iscii_lang = ISCIILANG_MALAYALAM ;
+	
+	if( ( value = kik_conf_get_value( conf , "iscii_lang")))
+	{
+		ml_iscii_lang_t  lang ;
+		
+		if( ( lang = ml_iscii_get_lang( strdup( value))) != ISCIILANG_UNKNOWN)
+		{
+			term_man->iscii_lang = lang ;
+		}
+	}
+
 	term_man->cmd_path = NULL ;
 	term_man->cmd_argv = NULL ;
 
@@ -1471,6 +1484,7 @@ ml_term_manager_final(
 	ml_window_manager_final( &term_man->win_man) ;
 	ml_color_manager_final( &term_man->color_man) ;
 	ml_font_custom_final( &term_man->normal_font_custom) ;
+	ml_font_custom_final( &term_man->v_font_custom) ;
 #ifdef  ANTI_ALIAS
 	ml_font_custom_final( &term_man->aa_font_custom) ;
 #endif

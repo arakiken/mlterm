@@ -47,6 +47,7 @@ static cs_table_t  cs_table[] =
 	{ "ISO8859_15" , ISO8859_15_R } ,
 	{ "ISO8859_16" , ISO8859_16_R } ,
 	{ "TCVN5712" , TCVN5712_3_1993 } ,
+	{ "ISCII" , ISCII } ,
 	{ "VISCII" , VISCII } ,
 	{ "KOI8_R" , KOI8_R } ,
 	{ "KOI8_U" , KOI8_U } ,

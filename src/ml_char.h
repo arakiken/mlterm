@@ -107,10 +107,14 @@ inline int  ml_char_set( ml_char_t *  ch , u_char *  bytes , size_t  ch_size ,
 	ml_font_t *  font , ml_font_decor_t  font_decor ,
 	ml_color_t  fg_color , ml_color_t  bg_color) ;
 
+int  ml_char_is_null( ml_char_t *  ch) ;
+
 inline int  ml_char_combine( ml_char_t *  ch , u_char *  bytes , size_t  ch_size ,
 	ml_font_t *  font , ml_font_decor_t  font_decor ,
 	ml_color_t  fg_color , ml_color_t  bg_color) ;
 	
+inline int  ml_remove_combining_char( ml_char_t *  ch) ;
+
 inline ml_char_t *  ml_get_combining_chars( ml_char_t *  ch , u_int *  size) ;
 
 inline int  ml_char_copy( ml_char_t *  dst , ml_char_t *  src) ;

@@ -14,6 +14,8 @@
 #include  <mkf/mkf_ko_kr_map.h>
 
 #include  "ml_color.h"
+#include  "ml_iscii.h"
+#include  "ml_vt100_command.h"
 
 
 #define  CTLKEY_BEL	0x07
@@ -172,6 +174,7 @@ change_font(
 	}
 }
 
+
 static void
 clear_buffer(
 	ml_vt100_parser_t *  vt100_parser
@@ -253,10 +256,7 @@ put_char(
 
 	if( vt100_parser->buffer.len == PTYMSG_BUFFER_SIZE)
 	{
-		if( flush_buffer( vt100_parser))
-		{
-			ml_term_screen_redraw_image( vt100_parser->termscr) ;
-		}
+		flush_buffer( vt100_parser) ;
 	}
 
 	if( cs == ISO10646_UCS2_1 || cs == ISO10646_UCS4_1)
@@ -309,7 +309,7 @@ put_char(
 	{
 		if( vt100_parser->buffer.len == 0)
 		{
-			if( ml_term_screen_combine_with_prev_char( vt100_parser->termscr ,
+			if( ml_vt100_cmd_combine_with_prev_char( vt100_parser->termscr ,
 				ch , len , vt100_parser->font , vt100_parser->font_decor ,
 				vt100_parser->fg_color , vt100_parser->bg_color))
 			{
@@ -495,8 +495,8 @@ clear_display_all(
 {
 	clear_buffer( vt100_parser) ;
 	
-	ml_term_screen_goto_home( vt100_parser->termscr) ;
-	ml_term_screen_clear_below( vt100_parser->termscr) ;
+	ml_vt100_cmd_goto_home( vt100_parser->termscr) ;
+	ml_vt100_cmd_clear_below( vt100_parser->termscr) ;
 }
 
 static void
@@ -506,7 +506,7 @@ clear_display_below(
 {
 	flush_buffer( vt100_parser) ;
 	
-	ml_term_screen_clear_below( vt100_parser->termscr) ;
+	ml_vt100_cmd_clear_below( vt100_parser->termscr) ;
 }
 
 static void
@@ -516,7 +516,7 @@ clear_display_above(
 {
 	flush_buffer( vt100_parser) ;
 
-	ml_term_screen_clear_above( vt100_parser->termscr) ;
+	ml_vt100_cmd_clear_above( vt100_parser->termscr) ;
 }
 
 static void
@@ -526,8 +526,8 @@ clear_line_all(
 {
 	flush_buffer( vt100_parser) ;
 	
-	ml_term_screen_goto_beg_of_line( vt100_parser->termscr) ;
-	ml_term_screen_clear_line_to_right( vt100_parser->termscr) ;
+	ml_vt100_cmd_goto_beg_of_line( vt100_parser->termscr) ;
+	ml_vt100_cmd_clear_line_to_right( vt100_parser->termscr) ;
 }
 
 static void
@@ -537,7 +537,7 @@ clear_line_to_right(
 {
 	flush_buffer( vt100_parser) ;
 
-	ml_term_screen_clear_line_to_right( vt100_parser->termscr) ;
+	ml_vt100_cmd_clear_line_to_right( vt100_parser->termscr) ;
 }
 
 static void
@@ -547,7 +547,7 @@ clear_line_to_left(
 {
 	flush_buffer( vt100_parser) ;
 
-	ml_term_screen_clear_line_to_left( vt100_parser->termscr) ;
+	ml_vt100_cmd_clear_line_to_left( vt100_parser->termscr) ;
 }
 
 static void
@@ -558,7 +558,7 @@ cursor_up(
 {
 	flush_buffer( vt100_parser) ;
 	
-	ml_term_screen_go_upward( vt100_parser->termscr , size) ;
+	ml_vt100_cmd_go_upward( vt100_parser->termscr , size) ;
 }
 
 static void
@@ -569,7 +569,7 @@ cursor_down(
 {
 	flush_buffer( vt100_parser) ;
 	
-	ml_term_screen_go_downward( vt100_parser->termscr , size) ;
+	ml_vt100_cmd_go_downward( vt100_parser->termscr , size) ;
 }
 
 static void
@@ -580,7 +580,7 @@ cursor_forward(
 {
 	flush_buffer( vt100_parser) ;
 	
-	ml_term_screen_go_forward( vt100_parser->termscr , size) ;
+	ml_vt100_cmd_go_forward( vt100_parser->termscr , size) ;
 }
 
 static void
@@ -591,7 +591,7 @@ cursor_back(
 {
 	flush_buffer( vt100_parser) ;
 	
-	ml_term_screen_go_back( vt100_parser->termscr , size) ;
+	ml_vt100_cmd_go_back( vt100_parser->termscr , size) ;
 }
 
 static void
@@ -602,7 +602,7 @@ cursor_go_horizontally(
 {
 	flush_buffer( vt100_parser) ;
 	
-	ml_term_screen_go_horizontally( vt100_parser->termscr , col) ;
+	ml_vt100_cmd_go_horizontally( vt100_parser->termscr , col) ;
 }
 
 static void
@@ -613,7 +613,7 @@ cursor_go_vertically(
 {
 	flush_buffer( vt100_parser) ;
 
-	ml_term_screen_go_vertically( vt100_parser->termscr , col) ;
+	ml_vt100_cmd_go_vertically( vt100_parser->termscr , col) ;
 }
 
 static void
@@ -625,7 +625,7 @@ cursor_goto(
 {
 	flush_buffer( vt100_parser) ;
 
-	ml_term_screen_goto( vt100_parser->termscr , col , row) ;
+	ml_vt100_cmd_goto( vt100_parser->termscr , col , row) ;
 }
 
 static void
@@ -636,7 +636,7 @@ delete_cols(
 {
 	flush_buffer( vt100_parser) ;
 	
-	ml_term_screen_delete_cols( vt100_parser->termscr , len) ;
+	ml_vt100_cmd_delete_cols( vt100_parser->termscr , len) ;
 }
 
 static void
@@ -646,7 +646,7 @@ scroll_down(
 {
 	flush_buffer( vt100_parser) ;
 	
-	ml_term_screen_scroll_image_downward( vt100_parser->termscr , 1) ;
+	ml_vt100_cmd_scroll_image_downward( vt100_parser->termscr , 1) ;
 }
 
 static void
@@ -656,7 +656,7 @@ scroll_up(
 {
 	flush_buffer( vt100_parser) ;
 
-	ml_term_screen_scroll_image_upward( vt100_parser->termscr , 1) ;
+	ml_vt100_cmd_scroll_image_upward( vt100_parser->termscr , 1) ;
 }
 
 static int
@@ -722,7 +722,7 @@ parse_vt100_escape_sequence(
 
 				if( *str_p == '8')
 				{
-					ml_term_screen_fill_all_with_e( vt100_parser->termscr) ;
+					ml_vt100_cmd_fill_all_with_e( vt100_parser->termscr) ;
 				}
 			}
 			else if( *str_p == '7')
@@ -748,7 +748,7 @@ parse_vt100_escape_sequence(
 				/* cursor position should be determined before save_cursor */
 				flush_buffer( vt100_parser) ;
 				
-				ml_term_screen_save_cursor( vt100_parser->termscr) ;
+				ml_vt100_cmd_save_cursor( vt100_parser->termscr) ;
 				vt100_parser->saved_decor = vt100_parser->font_decor ;
 				vt100_parser->saved_attr = vt100_parser->font_attr ;
 			}
@@ -758,7 +758,7 @@ parse_vt100_escape_sequence(
 
 				flush_buffer( vt100_parser) ;
 
-				if( ml_term_screen_restore_cursor( vt100_parser->termscr))
+				if( ml_vt100_cmd_restore_cursor( vt100_parser->termscr))
 				{
 					/* if restore failed , this won't be done. */
 					vt100_parser->font_decor = vt100_parser->saved_decor ;
@@ -771,13 +771,13 @@ parse_vt100_escape_sequence(
 			{
 				/* application keypad */
 
-				ml_term_screen_set_app_keypad( vt100_parser->termscr) ;
+				ml_vt100_cmd_set_app_keypad( vt100_parser->termscr) ;
 			}
 			else if( *str_p == '>')
 			{
 				/* normal keypad */
 
-				ml_term_screen_set_normal_keypad( vt100_parser->termscr) ;
+				ml_vt100_cmd_set_normal_keypad( vt100_parser->termscr) ;
 			}
 			else if( *str_p == 'D')
 			{
@@ -790,8 +790,8 @@ parse_vt100_escape_sequence(
 				/* next line */
 				
 				flush_buffer( vt100_parser) ;
-				ml_term_screen_line_feed( vt100_parser->termscr) ;
-				ml_term_screen_goto_beg_of_line( vt100_parser->termscr) ;
+				ml_vt100_cmd_line_feed( vt100_parser->termscr) ;
+				ml_vt100_cmd_goto_beg_of_line( vt100_parser->termscr) ;
 			}
 			else if( *str_p == 'F')
 			{
@@ -806,7 +806,7 @@ parse_vt100_escape_sequence(
 			{
 				/* set tab */
 
-				ml_term_screen_set_tab_stop( vt100_parser->termscr) ;
+				ml_vt100_cmd_set_tab_stop( vt100_parser->termscr) ;
 			}
 			else if( *str_p == 'M')
 			{
@@ -1012,7 +1012,7 @@ parse_vt100_escape_sequence(
 
 						if( ps[0] == 1)
 						{
-							ml_term_screen_set_app_cursor_keys(
+							ml_vt100_cmd_set_app_cursor_keys(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1023,7 +1023,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 3)
 						{
-							ml_term_screen_resize_columns(
+							ml_vt100_cmd_resize_columns(
 								vt100_parser->termscr , 132) ;
 						}
 					#if  0
@@ -1034,7 +1034,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 5)
 						{
-							ml_term_screen_reverse_video(
+							ml_vt100_cmd_reverse_video(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1063,7 +1063,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 25)
 						{
-							ml_term_screen_cursor_visible(
+							ml_vt100_cmd_cursor_visible(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1082,7 +1082,7 @@ parse_vt100_escape_sequence(
 						{
 							/* Use Alternate Screen Buffer */
 
-							ml_term_screen_use_alternative_image(
+							ml_vt100_cmd_use_alternative_image(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1099,7 +1099,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 1000)
 						{
-							ml_term_screen_set_mouse_pos_sending(
+							ml_vt100_cmd_set_mouse_pos_sending(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1147,7 +1147,7 @@ parse_vt100_escape_sequence(
 
 						if( ps[0] == 1)
 						{
-							ml_term_screen_set_normal_cursor_keys(
+							ml_vt100_cmd_set_normal_cursor_keys(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1158,7 +1158,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 3)
 						{
-							ml_term_screen_resize_columns(
+							ml_vt100_cmd_resize_columns(
 								vt100_parser->termscr , 80) ;
 						}
 					#if  0
@@ -1169,7 +1169,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 5)
 						{
-							ml_term_screen_restore_video(
+							ml_vt100_cmd_restore_video(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1198,7 +1198,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 25)
 						{
-							ml_term_screen_cursor_invisible(
+							ml_vt100_cmd_cursor_invisible(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1216,7 +1216,7 @@ parse_vt100_escape_sequence(
 						else if( ps[0] == 47)
 						{
 							/* Use Normal Screen Buffer */
-							ml_term_screen_use_normal_image(
+							ml_vt100_cmd_use_normal_image(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1233,7 +1233,7 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 1000)
 						{
-							ml_term_screen_unset_mouse_pos_sending(
+							ml_vt100_cmd_unset_mouse_pos_sending(
 								vt100_parser->termscr) ;
 						}
 					#if  0
@@ -1319,7 +1319,7 @@ parse_vt100_escape_sequence(
 						 
 						flush_buffer( vt100_parser) ;
 
-						ml_term_screen_insert_blank_chars( vt100_parser->termscr ,
+						ml_vt100_cmd_insert_blank_chars( vt100_parser->termscr ,
 							ps[0]) ;
 					}
 					else if( *str_p == 'A' || *str_p == 'e')
@@ -1368,7 +1368,7 @@ parse_vt100_escape_sequence(
 						}
 
 						cursor_down( vt100_parser , ps[0]) ;
-						ml_term_screen_goto_beg_of_line( vt100_parser->termscr) ;
+						ml_vt100_cmd_goto_beg_of_line( vt100_parser->termscr) ;
 					}
 					else if( *str_p == 'F')
 					{
@@ -1380,7 +1380,7 @@ parse_vt100_escape_sequence(
 						}
 
 						cursor_up( vt100_parser , ps[0]) ;
-						ml_term_screen_goto_beg_of_line( vt100_parser->termscr) ;
+						ml_vt100_cmd_goto_beg_of_line( vt100_parser->termscr) ;
 					}
 					else if( *str_p == 'G' || *str_p == '`')
 					{
@@ -1468,7 +1468,7 @@ parse_vt100_escape_sequence(
 
 						flush_buffer( vt100_parser) ;
 
-						ml_term_screen_insert_new_lines(
+						ml_vt100_cmd_insert_new_lines(
 							vt100_parser->termscr , ps[0]) ;
 					}
 					else if( *str_p == 'M')
@@ -1479,7 +1479,7 @@ parse_vt100_escape_sequence(
 						}
 
 						flush_buffer( vt100_parser) ;
-						ml_term_screen_delete_lines(
+						ml_vt100_cmd_delete_lines(
 							vt100_parser->termscr , ps[0]) ;
 					}
 					else if( *str_p == 'P')
@@ -1520,7 +1520,7 @@ parse_vt100_escape_sequence(
 					{
 						/* send device attributes */
 
-						ml_term_screen_send_device_attr( vt100_parser->termscr) ;
+						ml_vt100_cmd_send_device_attr( vt100_parser->termscr) ;
 					}
 					else if( *str_p == 'd')
 					{
@@ -1539,12 +1539,12 @@ parse_vt100_escape_sequence(
 
 						if( num == 0)
 						{
-							ml_term_screen_clear_tab_stop(
+							ml_vt100_cmd_clear_tab_stop(
 								vt100_parser->termscr) ;
 						}
 						else if( num == 1 && ps[0] == 3)
 						{
-							ml_term_screen_clear_all_tab_stops(
+							ml_vt100_cmd_clear_all_tab_stops(
 								vt100_parser->termscr) ;
 						}
 					}
@@ -1558,7 +1558,7 @@ parse_vt100_escape_sequence(
 
 								flush_buffer( vt100_parser) ;
 								vt100_parser->buffer.output_func =
-									ml_term_screen_overwrite_chars ;
+									ml_vt100_cmd_overwrite_chars ;
 							}
 						}
 					}
@@ -1572,7 +1572,7 @@ parse_vt100_escape_sequence(
 
 								flush_buffer( vt100_parser) ;
 								vt100_parser->buffer.output_func =
-									ml_term_screen_insert_chars ;
+									ml_vt100_cmd_insert_chars ;
 							}
 						}
 					}
@@ -1599,12 +1599,12 @@ parse_vt100_escape_sequence(
 						{
 							if( ps[0] == 5)
 							{
-								ml_term_screen_report_device_status(
+								ml_vt100_cmd_report_device_status(
 									vt100_parser->termscr) ;
 							}
 							else if( ps[0] == 6)
 							{
-								ml_term_screen_report_cursor_position(
+								ml_vt100_cmd_report_cursor_position(
 									vt100_parser->termscr) ;
 							}
 						}
@@ -1627,7 +1627,7 @@ parse_vt100_escape_sequence(
 								ps[1] = 1 ;
 							}
 							
-							ml_term_screen_set_scroll_region(
+							ml_vt100_cmd_set_scroll_region(
 								vt100_parser->termscr ,
 								ps[0] - 1 , ps[1] - 1) ;
 						}
@@ -1700,21 +1700,21 @@ parse_vt100_escape_sequence(
 					if( ps == 0)
 					{
 						/* change icon name and window title */
-						ml_term_screen_set_window_name( vt100_parser->termscr ,
+						ml_vt100_cmd_set_window_name( vt100_parser->termscr ,
 							pt) ;
-						ml_term_screen_set_icon_name( vt100_parser->termscr ,
+						ml_vt100_cmd_set_icon_name( vt100_parser->termscr ,
 							pt) ;
 					}
 					else if( ps == 1)
 					{
 						/* change icon name */
-						ml_term_screen_set_icon_name( vt100_parser->termscr ,
+						ml_vt100_cmd_set_icon_name( vt100_parser->termscr ,
 							pt) ;
 					}
 					else if( ps == 2)
 					{
 						/* change window title */
-						ml_term_screen_set_window_name( vt100_parser->termscr ,
+						ml_vt100_cmd_set_window_name( vt100_parser->termscr ,
 							pt) ;
 					}
 					else if( ps == 46)
@@ -1859,7 +1859,7 @@ parse_vt100_escape_sequence(
 		#endif
 
 			flush_buffer( vt100_parser) ;
-			ml_term_screen_line_feed( vt100_parser->termscr) ;
+			ml_vt100_cmd_line_feed( vt100_parser->termscr) ;
 		}
 		else if( *str_p == CTLKEY_CR)
 		{
@@ -1868,7 +1868,7 @@ parse_vt100_escape_sequence(
 		#endif
 
 			flush_buffer( vt100_parser) ;
-			ml_term_screen_goto_beg_of_line( vt100_parser->termscr) ;
+			ml_vt100_cmd_goto_beg_of_line( vt100_parser->termscr) ;
 		}
 		else if( *str_p == CTLKEY_TAB)
 		{
@@ -1877,7 +1877,7 @@ parse_vt100_escape_sequence(
 		#endif
 
 			flush_buffer( vt100_parser) ;
-			ml_term_screen_vertical_tab( vt100_parser->termscr) ;
+			ml_vt100_cmd_vertical_tab( vt100_parser->termscr) ;
 		}
 		else if( *str_p == CTLKEY_BS)
 		{
@@ -1893,7 +1893,7 @@ parse_vt100_escape_sequence(
 			kik_debug_printf( KIK_DEBUG_TAG " receiving BEL\n") ;
 		#endif
 
-			ml_term_screen_bel( vt100_parser->termscr) ;
+			ml_vt100_cmd_bel( vt100_parser->termscr) ;
 		}
 		else
 		{
@@ -2073,20 +2073,9 @@ ml_vt100_parser_new(
 
 	ml_str_init( vt100_parser->buffer.chars , PTYMSG_BUFFER_SIZE) ;	
 	vt100_parser->buffer.len = 0 ;
-	vt100_parser->buffer.output_func = ml_term_screen_overwrite_chars ;
+	vt100_parser->buffer.output_func = ml_vt100_cmd_overwrite_chars ;
 
 	vt100_parser->pty = NULL ;
-	
-	vt100_parser->encoding_listener.self = vt100_parser ;
-	vt100_parser->encoding_listener.encoding_changed = encoding_changed ;
-	vt100_parser->encoding_listener.encoding = pty_encoding ;
-	vt100_parser->encoding_listener.convert = convert_to_pty_encoding ;
-	vt100_parser->encoding_listener.init = init_pty_encoding ;
-
-	if( ! ml_set_encoding_listener( termscr , &vt100_parser->encoding_listener))
-	{
-		goto error ;
-	}
 	
 	vt100_parser->termscr = termscr ;
 	
@@ -2141,6 +2130,22 @@ ml_vt100_parser_new(
 		vt100_parser->col_size_of_east_asian_width_a = 1 ;
 	}
 
+
+	/*
+	 * encoding listener
+	 */
+	 
+	vt100_parser->encoding_listener.self = vt100_parser ;
+	vt100_parser->encoding_listener.encoding_changed = encoding_changed ;
+	vt100_parser->encoding_listener.encoding = pty_encoding ;
+	vt100_parser->encoding_listener.convert = convert_to_pty_encoding ;
+	vt100_parser->encoding_listener.init = init_pty_encoding ;
+
+	if( ! ml_set_encoding_listener( termscr , &vt100_parser->encoding_listener))
+	{
+		goto error ;
+	}
+	
 	return  vt100_parser ;
 
 error:
@@ -2198,14 +2203,12 @@ ml_parse_vt100_sequence(
 		return  0 ;
 	}
 
-	ml_term_screen_unhighlight_cursor( vt100_parser->termscr) ;
-
 	while( receive_bytes( vt100_parser))
 	{
-		ml_term_screen_stop_bidi( vt100_parser->termscr) ;
+		ml_term_screen_start_vt100_cmd( vt100_parser->termscr) ;
 
 		/*
-		 * bidi is always stopped from here.
+		 * bidi and visual-indian is always stopped from here.
 		 */
 		 
 		while( 1)
@@ -2377,7 +2380,7 @@ ml_parse_vt100_sequence(
 						ch.cs = DEC_SPECIAL ;
 						ch.property = 0 ;
 					}
-					
+
 					put_char( vt100_parser , ch.ch , ch.size , ch.cs ,
 						ch.property) ;
 				}
@@ -2417,23 +2420,11 @@ ml_parse_vt100_sequence(
 				break ;
 			}
 		}
-		
+
 		flush_buffer( vt100_parser) ;
 
-		ml_term_screen_render_bidi( vt100_parser->termscr) ;
-		
-		/*
-		 * bidi is always stopped until here.
-		 */
-
-		ml_term_screen_start_bidi( vt100_parser->termscr) ;
-		
-		ml_term_screen_redraw_image( vt100_parser->termscr) ;
+		ml_term_screen_stop_vt100_cmd( vt100_parser->termscr) ;
 	}
-
-	ml_term_screen_highlight_cursor( vt100_parser->termscr) ;
-	
-	ml_term_screen_start_bidi( vt100_parser->termscr) ;
 
 	return  1 ;
 }

@@ -24,7 +24,7 @@
 
 typedef enum ml_font_present
 {
-	FONT_VARLEN = 0x01 ,
+	FONT_VAR_WIDTH = 0x01 ,
 	FONT_AA = 0x02 ,
 
 } ml_font_present_t ;
@@ -80,7 +80,7 @@ typedef struct  ml_font
 	/*
 	 * public
 	 */
-	int8_t  col_is_var_len ;
+	int8_t  is_var_col_width ;
 
 } ml_font_t ;
 
@@ -92,13 +92,9 @@ int  ml_font_delete( ml_font_t *  font) ;
 int  ml_font_set_xfont( ml_font_t *  font , char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold) ;
 
-int  ml_font_unset_xfont( ml_font_t *  font) ;
-
 #ifdef  ANTI_ALIAS
 int  ml_font_set_xft_font( ml_font_t *  font , char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold) ;
-
-int  ml_font_unset_xft_font( ml_font_t *  font) ;
 #endif
 
 mkf_charset_t  ml_font_cs( ml_font_t *  font) ;

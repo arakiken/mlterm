@@ -273,7 +273,7 @@ convert_to_xct_intern(
 					prefix = "\x1b\x25\x2f\x32\x80\x89" "big5-0" "\x02" ;
 				}
 			}
-			else
+			else /* if( ch.cs == GBK) */
 			{
 				prefix = "\x1b\x25\x2f\x32\x80\x88" "gbk-0" "\x02" ;
 			}
@@ -293,11 +293,15 @@ convert_to_xct_intern(
 
 			filled_size += ( strlen( prefix) + 2) ;
 		}
-		else if( ch.cs == KOI8_R || ch.cs == KOI8_U || ch.cs == VISCII)
+		else if( ch.cs == ISCII || ch.cs == KOI8_R || ch.cs == KOI8_U || ch.cs == VISCII)
 		{
 			char *  prefix ;
-			
-			if( ch.cs == KOI8_R)
+
+			if( ch.cs == ISCII)
+			{
+				prefix = "\x1b\x25\x2f\x31\x80\x8b" "iscii-dev" "\x02" ;
+			}
+			else if( ch.cs == KOI8_R)
 			{
 				prefix = "\x1b\x25\x2f\x31\x80\x88" "koi8-r" "\x02" ;
 			}

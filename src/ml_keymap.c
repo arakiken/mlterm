@@ -29,7 +29,6 @@ static key_func_table_t  key_func_table[] =
 	{ "PAGE_UP" , PAGE_UP , } ,
 	{ "SCROLL_UP" , SCROLL_UP , } ,
 	{ "INSERT_SELECTION" , INSERT_SELECTION , } ,
-	{ "INIT_PARSER" , INIT_PARSER } ,
 	{ "EXIT_PROGRAM" , EXIT_PROGRAM , } ,
 } ;
 
@@ -60,9 +59,6 @@ ml_keymap_init(
 
 		/* INSERT_SELECTION */
 		{ XK_Insert , ShiftMask , 1 , } ,
-
-		/* INIT_PARSER(not used) */
-		{ 0 , 0 , 0 } ,
 
 		/* EXIT PROGRAM(only for debug) */
 		{ XK_F1 , ControlMask | ShiftMask , 1 , } ,

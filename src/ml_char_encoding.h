@@ -17,6 +17,7 @@
 typedef enum  ml_char_encoding
 {
 	ML_UNKNOWN_ENCODING = -1 ,
+	
 	ML_ISO8859_1 = 0 ,
 	ML_ISO8859_2 ,
 	ML_ISO8859_3 ,
@@ -33,7 +34,8 @@ typedef enum  ml_char_encoding
 	ML_ISO8859_15 ,
 	ML_ISO8859_16 ,
 	ML_TCVN5712 ,
-	
+
+	ML_ISCII ,	
 	ML_VISCII ,
 	ML_KOI8_R ,
 	ML_KOI8_U ,

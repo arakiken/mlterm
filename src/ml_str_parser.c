@@ -34,9 +34,28 @@ next_char(
 
 	ml_str_parser = (ml_str_parser_t*) parser ;
 
-	if( ml_str_parser->parser.is_eos)
+	while( 1)
 	{
-		return  0 ;
+		if( ml_str_parser->parser.is_eos)
+		{
+			return  0 ;
+		}
+
+		/*
+		 * skipping NULL
+		 */
+		if( ! ml_char_is_null( ml_str_parser->str))
+		{
+			break ;
+		}
+
+		ml_str_parser->left -- ;
+		ml_str_parser->str ++ ;
+
+		if( ml_str_parser->left == 0)
+		{
+			ml_str_parser->parser.is_eos = 1 ;
+		}
 	}
 
 	ml_ch = ml_str_parser->str ;

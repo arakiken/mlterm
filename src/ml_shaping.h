@@ -9,9 +9,20 @@
 #include  <kiklib/kik_types.h>	/* u_int */
 
 #include  "ml_char.h"
+#include  "ml_iscii.h"
 
 
-int  ml_str_shape_arabic( ml_char_t *  dst , ml_char_t *  src , u_int  len) ;
+typedef struct  ml_shape
+{
+	u_int (*shape)( struct ml_shape * , ml_char_t * , u_int , ml_char_t * , u_int) ;
+	int  (*delete)( struct ml_shape *) ;
+
+} ml_shape_t ;
+
+
+ml_shape_t *  ml_arabic_shape_new(void) ;
+
+ml_shape_t *  ml_iscii_shape_new( ml_iscii_state_t  iscii_state) ;
 
 
 #endif

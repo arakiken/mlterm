@@ -4,10 +4,12 @@
 
 #include  "ml_shaping.h"
 
+#include  <stdio.h>		/* fprintf */
+#include  <string.h>		/* strncpy */
 #include  <kiklib/kik_mem.h>	/* alloca */
 
 
-typedef struct
+typedef struct arabic_present
 {
 	u_int16_t  base_arabic ;
 
@@ -18,6 +20,13 @@ typedef struct
 	u_int16_t  both_joining_present ;
 	
 } arabic_present_t ;
+
+typedef struct iscii_shape
+{
+	ml_shape_t  shape ;
+	ml_iscii_state_t  iscii_state ;
+
+} iscii_shape_t ;
 
 
 /* --- static variables --- */
@@ -142,14 +151,13 @@ get_arabic_present(
 	return  NULL ;
 }
 
-
-/* --- global functions --- */
-
-int
-ml_str_shape_arabic(
+static u_int
+shape_arabic(
+	ml_shape_t *  shape ,
 	ml_char_t *  dst ,
+	u_int  dst_len ,
 	ml_char_t *  src ,
-	u_int  len
+	u_int  src_len
 	)
 {
 	int  counter ;
@@ -157,21 +165,21 @@ ml_str_shape_arabic(
 	u_int16_t  code ;
 	u_char *  bytes ;
 
-	if( ( list = alloca( sizeof( arabic_present_t*) * (len + 2))) == NULL)
+	if( ( list = alloca( sizeof( arabic_present_t*) * (src_len + 2))) == NULL)
 	{
 		return  0 ;
 	}
 
 	*(list ++) = NULL ;
 
-	for( counter = 0 ; counter < len ; counter ++)
+	for( counter = 0 ; counter < src_len ; counter ++)
 	{
 		list[counter] = get_arabic_present( &src[counter]) ;
 	}
 
 	list[counter] = NULL ;
 
-	for( counter = 0 ; counter < len ; counter ++)
+	for( counter = 0 ; counter < src_len && counter < dst_len ; counter ++)
 	{
 		ml_char_copy( &dst[counter] , &src[counter]) ;
 		
@@ -247,5 +255,184 @@ ml_str_shape_arabic(
 		}
 	}
 
+	return  counter ;
+}
+
+static u_int
+shape_iscii(
+	ml_shape_t *  shape ,
+	ml_char_t *  dst ,
+	u_int  dst_len ,
+	ml_char_t *  src ,
+	u_int  src_len
+	)
+{
+	iscii_shape_t *  iscii_shape ;
+	int  src_pos ;
+	u_int  dst_filled ;
+	u_char *  iscii_buf ;
+	u_int  iscii_filled ;
+	u_char *  font_buf ;
+	u_int  font_filled ;
+	ml_char_t *  ch ;
+	ml_char_t *  dst_shaped ;
+	int  counter ;
+
+	iscii_shape = (iscii_shape_t*) shape ;
+
+	/*
+	 * x4 is for combining chars.
+	 */
+	 
+	if( ( iscii_buf = alloca( src_len * 4)) == NULL)
+	{
+		return  0 ;
+	}
+	
+	if( ( font_buf = alloca( dst_len * 4)) == NULL)
+	{
+		return  0 ;
+	}
+
+	dst_filled = 0 ;
+	iscii_filled = 0 ;
+	dst_shaped = NULL ;
+	for( src_pos = 0 ; src_pos < src_len ; src_pos ++)
+	{
+		ch = &src[src_pos] ;
+		
+		if( ml_font_cs( ml_char_font( ch)) == ISCII)
+		{
+			ml_char_t *  comb ;
+			u_int  comb_size ;
+			
+			if( dst_shaped == NULL)
+			{
+				dst_shaped = &dst[dst_filled] ;
+			}
+
+			if( ! ml_char_is_null( ch))
+			{
+				iscii_buf[iscii_filled ++] = ml_char_bytes( ch)[0] ;
+			
+				comb = ml_get_combining_chars( ch , &comb_size) ;
+				for( counter = 0 ; counter < comb_size ; counter ++)
+				{
+					iscii_buf[iscii_filled ++] = ml_char_bytes( &comb[counter])[0] ;
+				}
+			}
+
+			ml_char_set( &dst[dst_filled ++] , ml_char_bytes(ch) , ml_char_size(ch) ,
+				ml_char_font(ch) , ml_char_font_decor(ch) , ml_char_fg_color(ch) ,
+				ml_char_bg_color(ch)) ;
+
+			if( dst_filled >= dst_len)
+			{
+				break ;
+			}
+		}
+		else
+		{
+			if( iscii_filled)
+			{
+				iscii_buf[iscii_filled] = '\0' ;
+				font_filled = ml_iscii_shape( iscii_shape->iscii_state ,
+						font_buf , dst_len , iscii_buf) ;
+
+			#ifdef  __DEBUG
+				{
+					int  i ;
+					
+					for( i = 0 ; i < iscii_filled ; i ++)
+					{
+						fprintf( stderr , "%.2x " , iscii_buf[i]) ;
+					}
+					fprintf( stderr , "=>\n") ;
+					
+					for( i = 0 ; i < font_filled ; i ++)
+					{
+						fprintf( stderr , "%.2x " , font_buf[i]) ;
+					}
+					fprintf( stderr , "\n") ;
+				}
+			#endif
+				
+				for( counter = 0 ; counter < font_filled ; counter ++)
+				{
+					ml_char_set_bytes( &dst_shaped[counter] , &font_buf[counter] , 1) ;
+				}
+
+				iscii_filled = 0 ;
+				dst_shaped = NULL ;
+			}
+
+			ml_char_copy( &dst[dst_filled ++] , ch) ;
+
+			if( dst_filled >= dst_len)
+			{
+				return  dst_filled ;
+			}
+		}
+	}
+
+	if( iscii_filled)
+	{
+		iscii_buf[iscii_filled] = '\0' ;
+		font_filled = ml_iscii_shape( iscii_shape->iscii_state , font_buf , dst_len , iscii_buf) ;
+				
+		for( counter = 0 ; counter < font_filled ; counter ++)
+		{
+			ml_char_set_bytes( &dst_shaped[counter] , &font_buf[counter] , 1) ;
+		}
+	}
+
+	return  dst_filled ;
+}
+
+static int
+delete(
+	ml_shape_t *  shape
+	)
+{
+	free( shape) ;
+
 	return  1 ;
+}
+
+
+/* --- global functions --- */
+
+ml_shape_t *
+ml_arabic_shape_new(void)
+{
+	ml_shape_t *  shape ;
+	
+	if( ( shape = malloc( sizeof( ml_shape_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	shape->shape = shape_arabic ;
+	shape->delete = delete ;
+
+	return  shape ;
+}
+
+ml_shape_t *
+ml_iscii_shape_new(
+	ml_iscii_state_t  iscii_state
+	)
+{
+	iscii_shape_t *  iscii_shape ;
+	
+	if( ( iscii_shape = malloc( sizeof( iscii_shape_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	iscii_shape->shape.shape = shape_iscii ;
+	iscii_shape->shape.delete = delete ;
+	iscii_shape->iscii_state = iscii_state ;
+
+	return  (ml_shape_t*) iscii_shape ;
 }

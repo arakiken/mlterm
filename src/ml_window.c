@@ -373,8 +373,8 @@ xft_draw_str(
 				|| next_decor != decor
 				|| comb_chars != NULL
 				|| ch_size != next_ch_size
-				|| (next_font->is_proportional && ! next_font->col_is_var_len)
-				|| (win->font->is_proportional && ! win->font->col_is_var_len))
+				|| (next_font->is_proportional && ! next_font->is_var_col_width)
+				|| (win->font->is_proportional && ! win->font->is_var_col_width))
 			{
 				start_draw = 1 ;
 			}
@@ -413,7 +413,7 @@ xft_draw_str(
 			}
 			else
 			{
-			#if 0
+			#if  0
 				/* XXX  I don't know why but bg_color is blured ... */
 				XftDrawRect( win->xft_draw , bg_color ,
 					x , y , current_width - x , height) ;
@@ -896,8 +896,8 @@ draw_str(
 				|| comb_chars != NULL
 				|| (is_mb == 1 && next_ch_size == 1)
 				|| (is_mb == 0 && next_ch_size > 1)
-				|| (next_font->is_proportional && ! next_font->col_is_var_len)
-				|| (win->font->is_proportional && ! win->font->col_is_var_len))
+				|| (next_font->is_proportional && ! next_font->is_var_col_width)
+				|| (win->font->is_proportional && ! win->font->is_var_col_width))
 			{
 				start_draw = 1 ;
 			}
@@ -927,7 +927,7 @@ draw_str(
 			}
 
 			if( win->wall_picture_is_set ||
-				(win->font->is_proportional && ! win->font->col_is_var_len))
+				(win->font->is_proportional && ! win->font->is_var_col_width))
 			{
 				if( win->wall_picture_is_set)
 				{

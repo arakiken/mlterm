@@ -140,6 +140,7 @@ typedef enum  mkf_charset
 	KOI8_R = 0x308 ,
 	KOI8_U = 0x309 ,
 	HKSCS = 0x310 ,
+	ISCII = 0x311 ,
 
 	/* followings are ISO2022 charsets of rev 1 */
 	JISX0208_1990 = CS_REVISION_1( CS94MB_ID('B')) ,

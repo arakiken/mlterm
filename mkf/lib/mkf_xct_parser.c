@@ -101,7 +101,11 @@ xct_non_iso2022_is_started(
 
 	if( xct_parser->iso2022_parser.non_iso2022_cs == XCT_NON_ISO2022_CS_1)
 	{
-		if( cs_len == 6 && strncmp( cs_str , "koi8-r" , cs_len) == 0)
+		if( cs_len == 9 && strncmp( cs_str , "iscii-dev" , cs_len) == 0)
+		{
+			xct_parser->cs = ISCII ;
+		}
+		else if( cs_len == 6 && strncmp( cs_str , "koi8-r" , cs_len) == 0)
 		{
 			xct_parser->cs = KOI8_R ;
 		}

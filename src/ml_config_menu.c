@@ -90,12 +90,13 @@ sig_child(
 	if( strcmp( command , "CONFIG") == 0)
 	{
 		/*
-		 * CONFIG:[encoding] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
-		 * [bel mode] [combining char] [copy paste via ucs] [is transparent] [font present] \
-		 * [is bidi] [xim] [locale][LF]
+		 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
+		 * [mod meta mode] [bel mode] [combining char] [copy paste via ucs] [is transparent] \
+		 * [font present] [is bidi] [xim] [locale][LF]
 		 */
 		 
 		int  encoding ;
+		int  iscii_lang ;
 		int  fg_color ;
 		int  bg_color ;
 		u_int  tabsize ;
@@ -117,6 +118,12 @@ sig_child(
 			goto  end ;
 		}
 
+		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+			! kik_str_to_int( (int*)&iscii_lang , p))
+		{
+			goto  end ;
+		}
+		
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 			! kik_str_to_int( (int*)&fg_color , p))
 		{
@@ -205,6 +212,15 @@ sig_child(
 			{
 				(*config_menu->config_menu_listener->change_encoding)(
 					config_menu->config_menu_listener->self , encoding) ;
+			}
+		}
+
+		if( encoding != config_menu->session->iscii_lang)
+		{
+			if( config_menu->config_menu_listener->change_iscii_lang)
+			{
+				(*config_menu->config_menu_listener->change_iscii_lang)(
+					config_menu->config_menu_listener->self , iscii_lang) ;
 			}
 		}
 
@@ -372,6 +388,14 @@ sig_child(
 			}
 		}
 	}
+	else if( strcmp( command , "FULL_RESET") == 0)
+	{
+		if( config_menu->config_menu_listener->full_reset)
+		{
+			(*config_menu->config_menu_listener->full_reset)(
+				config_menu->config_menu_listener->self) ;
+		}
+	}
 #ifdef  DEBUG
 	else
 	{
@@ -433,6 +457,7 @@ ml_config_menu_start(
 	int  x ,
 	int  y ,
 	ml_char_encoding_t  orig_encoding ,
+	ml_iscii_lang_t  orig_iscii_lang ,
 	ml_color_t  orig_fg_color ,
 	ml_color_t  orig_bg_color ,
 	u_int  orig_tabsize ,
@@ -527,12 +552,12 @@ ml_config_menu_start(
 	}
 
 	/*
-	 * [encoding] [fg color] [bg color] [tabsize] [logsize] [font size] [min font size] \
-	 * [max font size] [mod meta mode] [bel mode] [is combining char] [copy paste via ucs] \
-	 * [is transparent] [font present] [use bidi] [xim] [locale][LF]
+	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [font size] \
+	 * [min font size] [max font size] [mod meta mode] [bel mode] [is combining char] \
+	 * [copy paste via ucs] [is transparent] [font present] [use bidi] [xim] [locale][LF]
 	 */
-	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
-		orig_encoding , orig_fg_color , orig_bg_color , orig_tabsize ,
+	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+		orig_encoding , orig_iscii_lang , orig_fg_color , orig_bg_color , orig_tabsize ,
 		orig_logsize , orig_fontsize , min_fontsize , max_fontsize ,
 		orig_mod_meta_mode , orig_bel_mode , orig_is_combining_char ,
 		orig_copy_paste_via_ucs , orig_is_transparent , orig_font_present ,
@@ -547,6 +572,7 @@ ml_config_menu_start(
 	config_menu->session->fd = fds[0] ;
 	
 	config_menu->session->encoding = orig_encoding ;
+	config_menu->session->iscii_lang = orig_iscii_lang ;
 	config_menu->session->fg_color = orig_fg_color ;
 	config_menu->session->bg_color = orig_bg_color ;
 	config_menu->session->tabsize = orig_tabsize ;

@@ -11,7 +11,7 @@
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_str.h>
 
-#include  "mc_encoding.h"
+#include  "mc_char_encoding.h"
 #include  "mc_fg_color.h"
 #include  "mc_bg_color.h"
 #include  "mc_tabsize.h"
@@ -22,6 +22,7 @@
 #include  "mc_font_present.h"
 #include  "mc_xim.h"
 #include  "mc_check.h"
+#include  "mc_iscii_lang.h"
 
 
 #if  0
@@ -55,18 +56,30 @@ end_application(
 }
 
 static gint
+cancel_clicked(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	gtk_main_quit() ;
+
+	return  FALSE ;
+}
+
+static gint
 apply_clicked(
 	GtkWidget *  widget ,
 	gpointer  data
 	)
 {
 	/*
-	 * CONFIG:[encoding] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
-	 * [bel mode] [combining char] [copy paste via ucs] [is transparent] [font present] [is bidi] \
-	 * [xim] [locale][LF]
+	 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
+	 * [mod meta mode] [bel mode] [combining char] [copy paste via ucs] [is transparent] \
+	 * [font present] [is bidi] [xim] [locale][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %s %d %d %d %d %d %d %d %s %s\n" ,
-		mc_get_encoding() ,
+	fprintf( out , "CONFIG:%d %d %d %d %d %d %s %d %d %d %d %d %d %d %s %s\n" ,
+		mc_get_char_encoding() ,
+		mc_get_iscii_lang() ,
 		mc_get_fg_color() ,
 		mc_get_bg_color() ,
 		mc_get_tabsize() ,
@@ -178,6 +191,19 @@ no_wall_pic_clicked(
 	return  FALSE ;
 }
 
+static gint
+full_reset_clicked(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	fprintf( out , "FULL_RESET\n") ;
+
+	gtk_main_quit() ;
+
+	return  FALSE ;
+}
+
 static GtkWidget *
 apply_cancel_button(
 	void
@@ -196,7 +222,7 @@ apply_cancel_button(
 
 	button = gtk_button_new_with_label("Cancel") ;
 	gtk_widget_show(button) ;
-	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(end_application) , NULL) ;
+	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(cancel_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
 
 
@@ -204,9 +230,7 @@ apply_cancel_button(
 }
 
 static GtkWidget *
-font_large_small(
-	void
-	)
+font_large_small(void)
 {
 	GtkWidget * frame;
 	GtkWidget * hbox;
@@ -264,11 +288,35 @@ wall_picture(
 	return frame;
 }
 
+static GtkWidget *
+full_reset(void)
+{
+	GtkWidget *  frame ;
+	GtkWidget *  hbox ;
+	GtkWidget *  button ;
+
+	frame = gtk_frame_new("Full Reset") ;
+	gtk_widget_show(frame) ;
+
+	hbox = gtk_hbox_new( FALSE , 5) ;
+	gtk_container_set_border_width(GTK_CONTAINER(hbox) , 5) ;
+	gtk_widget_show(hbox) ;
+	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
+
+	button = gtk_button_new_with_label("Full Reset") ;
+	gtk_widget_show(button) ;
+	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(full_reset_clicked) , NULL) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
+	
+	return frame;
+}
+
 static int
 show(
 	int  x ,
 	int  y ,
 	ml_char_encoding_t  encoding ,
+	ml_iscii_lang_t  iscii_lang ,
 	ml_color_t  fg_color ,
 	ml_color_t  bg_color ,
 	char *  tabsize ,
@@ -332,6 +380,8 @@ show(
 	gtk_box_pack_start(GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
 	frame = wall_picture(window);
 	gtk_box_pack_start(GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
+	frame = full_reset();
+	gtk_box_pack_start(GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
 
 	/* contents of the "Encoding" tab */
 
@@ -343,7 +393,14 @@ show(
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
 	gtk_widget_show(vbox) ;
 
-	if( ! ( config_widget = mc_encoding_config_widget_new(encoding)))
+	if( ! ( config_widget = mc_char_encoding_config_widget_new(encoding)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show(config_widget) ;
+	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+
+	if( ! ( config_widget = mc_iscii_lang_config_widget_new(iscii_lang)))
 	{
 		return  0 ;
 	}
@@ -507,6 +564,7 @@ start_application(
 	char *  input_line ;
 	
 	int  encoding ;
+	int  iscii_lang ;
 	int  fg_color ;
 	int  bg_color ;
 	char *  tabsize ;
@@ -552,12 +610,18 @@ start_application(
 	fclose( in) ;
 
 	/*
-	 * [encoding] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
+	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
 	 * [bel mode] [combining char] [copy paste via ucs] [is transparent] [font present] \
 	 * [is bidi] [xim] [locale][LF]
 	 */
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &encoding , p))
+	{
+		return  0 ;
+	}
+
+	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+		! kik_str_to_int( &iscii_lang , p))
 	{
 		return  0 ;
 	}
@@ -653,7 +717,7 @@ start_application(
 		return  0 ;
 	}
 	
-	return  show( x , y , encoding , fg_color , bg_color , tabsize ,
+	return  show( x , y , encoding , iscii_lang , fg_color , bg_color , tabsize ,
 		logsize , fontsize , min_fontsize , max_fontsize ,
 		mod_meta_mode , bel_mode , is_combining_char , copy_paste_via_ucs ,
 		is_transparent , font_present , use_bidi , xim , locale) ;
@@ -681,7 +745,7 @@ main(
 		! kik_str_to_int( &in_fd , argv[3]) ||
 		! kik_str_to_int( &out_fd , argv[4]))
 	{
-		kik_msg_printf( "usage: (stdin 17) mlconfig [x] [y] [in] [out]\n") ;
+		kik_msg_printf( "usage: (stdin 18) mlconfig [x] [y] [in] [out]\n") ;
 		
 		return  0 ;
 	}

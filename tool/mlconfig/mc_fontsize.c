@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "mc_encoding.h"
+#include  "mc_fontsize.h"
 
 #include  <stdio.h>
 #include  <kiklib/kik_debug.h>

@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "mc_encoding.h"
+#include  "mc_char_encoding.h"
 
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>
@@ -22,53 +22,54 @@
  */
 static char *  encodings[] =
 {
-	"ISO88591" ,
-	"ISO88592" ,
-	"ISO88593" ,
-	"ISO88594" ,
-	"ISO88595" ,
-	"ISO88596" ,
-	"ISO88597" ,
-	"ISO88598" ,
-	"ISO88599" ,
-	"ISO885910" ,
-	"TIS620" ,
-	"ISO885913" ,
-	"ISO885914" ,
-	"ISO885915" ,
-	"ISO885916" ,
+	"ISO-8859-1" ,
+	"ISO-8859-2" ,
+	"ISO-8859-3" ,
+	"ISO-8859-4" ,
+	"ISO-8859-5" ,
+	"ISO-8859-6" ,
+	"ISO-8859-7" ,
+	"ISO-8859-8" ,
+	"ISO-8859-9" ,
+	"ISO-8859-10" ,
+	"ISO-8859-11 (TIS-620)" ,
+	"ISO-8859-13" ,
+	"ISO-8859-14" ,
+	"ISO-8859-15" ,
+	"ISO-8859-16" ,
 	"TCVN5712" ,
 
+	"ISCII" ,
 	"VISCII" ,
-	"KOI8R" ,
-	"KOI8U" ,
+	"KOI8-R" ,
+	"KOI8-U" ,
 
-	"UTF8" ,
+	"UTF-8" ,
 
-	"EUCJP" ,
-	"EUCJISX0213" ,
-	"ISO2022JP" ,
-	"ISO2022JP2" ,
-	"ISO2022JP3" ,
+	"EUC-JP" ,
+	"EUC-JISX0213" ,
+	"ISO-2022-JP" ,
+	"ISO-2022-JP2" ,
+	"ISO-2022-JP3" ,
 	"SJIS" ,
 	"SJISX0213" ,
 
-	"EUCKR" ,
+	"EUC-KR" ,
 	"UHC" ,
 	"JOHAB" ,
-	"ISO2022KR" ,
+	"ISO-2022-KR" ,
 
-	"BIG5" ,
-	"EUCTW" ,
+	"BIG-5" ,
+	"EUC-TW" ,
 
 	"BIG5HKSCS" ,
 
-	"EUCCN" ,
+	"EUC-CN" ,
 	"GBK" ,
 	"GB18030" ,
 	"HZ" ,
 
-	"ISO2022CN" ,
+	"ISO-2022-CN" ,
 } ;
 
 static ml_char_encoding_t  selected_encoding = 0 ;
@@ -108,7 +109,7 @@ encoding_selected(
 /* --- global functions --- */
 
 GtkWidget *
-mc_encoding_config_widget_new(
+mc_char_encoding_config_widget_new(
 	ml_char_encoding_t  encoding
 	)
 {
@@ -119,7 +120,7 @@ mc_encoding_config_widget_new(
 }
 
 ml_char_encoding_t
-mc_get_encoding(void)
+mc_get_char_encoding(void)
 {
 	return  selected_encoding ;
 }

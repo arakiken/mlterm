@@ -10,6 +10,7 @@
 
 #include  <mkf/mkf_iso8859_parser.h>
 #include  <mkf/mkf_viscii_parser.h>
+#include  <mkf/mkf_iscii_parser.h>
 #include  <mkf/mkf_koi8_parser.h>
 #include  <mkf/mkf_eucjp_parser.h>
 #include  <mkf/mkf_euckr_parser.h>
@@ -26,6 +27,7 @@
 
 #include  <mkf/mkf_iso8859_conv.h>
 #include  <mkf/mkf_viscii_conv.h>
+#include  <mkf/mkf_iscii_conv.h>
 #include  <mkf/mkf_koi8_conv.h>
 #include  <mkf/mkf_eucjp_conv.h>
 #include  <mkf/mkf_euckr_conv.h>
@@ -85,6 +87,8 @@ static encoding_table_t  encoding_table[] =
 	{ ML_ISO8859_15 , "ISO885915" , mkf_iso8859_15_parser_new , mkf_iso8859_15_conv_new , } ,
 	{ ML_ISO8859_16 , "ISO885916" , mkf_iso8859_16_parser_new , mkf_iso8859_16_conv_new , } ,
 	{ ML_TCVN5712 , "TCVN5712" , mkf_tcvn5712_3_1993_parser_new , mkf_tcvn5712_3_1993_conv_new , } ,
+
+	{ ML_ISCII , "ISCII" , mkf_iscii_parser_new , mkf_iscii_conv_new , } ,	
 	{ ML_VISCII , "VISCII" , mkf_viscii_parser_new , mkf_viscii_conv_new , } ,
 	{ ML_KOI8_R , "KOI8R" , mkf_koi8_r_parser_new , mkf_koi8_r_conv_new , } ,
 	{ ML_KOI8_U , "KOI8U" , mkf_koi8_u_parser_new , mkf_koi8_u_conv_new , } ,
@@ -121,6 +125,8 @@ static encoding_table_t  encoding_table[] =
 	 * alternative names.(these are not used in ml_{parser|conv}_new)
 	 */
 
+	{ ML_TIS620 , "ISO885911" , mkf_tis620_2533_parser_new , mkf_tis620_2533_conv_new , } ,
+	
 #if  0
 	/* XXX necessary ? */
 	{ ML_EUCJP , "EXTENDEDUNIXCODEPACKEDFORMATFORJAPANESE" } , /* MIME */
@@ -158,6 +164,7 @@ static encoding_to_cs_table_t  usascii_font_cs_table[] =
 	{ ML_ISO8859_16 , ISO8859_16_R } ,
 	{ ML_TCVN5712 , TCVN5712_3_1993 } ,
 	
+	{ ML_ISCII , ISO8859_1_R } ,
 	{ ML_VISCII , VISCII } ,
 	{ ML_KOI8_R , KOI8_R } ,
 	{ ML_KOI8_U , KOI8_U } ,

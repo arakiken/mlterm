@@ -49,7 +49,7 @@ load_rgb_xcolor_intern(
 	rend_color.red = red ;
 	rend_color.green = green ;
 	rend_color.blue = blue ;
-	rend_color.alpha = 0 ;
+	rend_color.alpha = 0xffff ;
 
 	if( ! XftColorAllocValue( color_man->display ,
 		DefaultVisual( color_man->display , color_man->screen) ,
