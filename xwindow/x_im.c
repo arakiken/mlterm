@@ -89,6 +89,11 @@ x_im_new(
 	char *  im_name ;
 	char *  im_attr ;
 
+	if( strcmp( input_method , "none") == 0)
+	{
+		return  NULL ;
+	}
+
 	if( strchr( input_method , ':'))
 	{
 		im_attr = strdup( input_method) ;

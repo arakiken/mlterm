@@ -1407,7 +1407,7 @@ window_realized(
 					screen->input_method)))
 			{
 				free( screen->input_method) ;
-				screen->input_method = NULL ;
+				screen->input_method = strdup( "none") ;
 			}
 		}
 	}
@@ -4218,8 +4218,12 @@ change_im(
 				screen->im->focused( screen->im) ;
 			}
 		}
+		else
+		{
+			free( screen->input_method) ;
+			screen->input_method = strdup( "none") ;
+		}
 	}
-
 }
 
 static void

@@ -1,5 +1,12 @@
 2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* x_im.c, x_main_config.c, x_screen.c, tool/mlconfig/mc_im.c:
+	allowed "input_method=none".
+
+	* man/mlterm.1: updated. (--im=none)
+
+2004-09-11 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* tool/mlconfig/mc_im.c, tool/mlconfig/Makefile.in:
 	- get available conversion engines from libuim directory.
 	- added IIIMF support.

@@ -47,7 +47,8 @@ static enum {
 	IM_XIM ,
 	IM_UIM ,
 	IM_IIIMF ,
-} im_type = IM_XIM;
+	IM_NONE ,
+} im_type = IM_NONE;
 
 static char **xims;
 static char **locales;
@@ -603,6 +604,20 @@ button_iiimf_checked(
 	return 1;
 }
 
+static gint
+button_none_checked(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	if(GTK_TOGGLE_BUTTON(widget)->active)
+		im_type = IM_NONE;
+
+	is_changed = 1;
+
+	return 1;
+}
+
 /* --- global functions --- */
 
 GtkWidget *
@@ -640,8 +655,10 @@ mc_im_config_widget_new(void)
 		im_type = IM_IIIMF;
 		iiimf_lang_id = kik_str_sep(&value, ":");
 		iiimf_le = kik_str_sep(&value, ":");
+	} else if (strncmp(p, "none", 4) == 0) {
+		im_type = IM_NONE;
 	} else {
-		im_type = IM_XIM;
+		im_type = IM_NONE;
 	}
 
 	xim = xim_widget_new(xim_name, xim_locale);
@@ -690,6 +707,15 @@ mc_im_config_widget_new(void)
 	if (im_type == IM_IIIMF)
 		gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio) , TRUE);
 
+	group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
+	radio = gtk_radio_button_new_with_label(group, _("None"));
+	gtk_signal_connect(GTK_OBJECT(radio), "toggled",
+			   GTK_SIGNAL_FUNC(button_none_checked), NULL);
+	gtk_widget_show(GTK_WIDGET(radio));
+	gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
+	if (im_type == IM_NONE)
+		gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio) , TRUE);
+
 	gtk_widget_show(GTK_WIDGET(hbox));
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
 
@@ -708,6 +734,10 @@ mc_im_config_widget_new(void)
 		gtk_widget_hide(xim);
 		gtk_widget_hide(uim);
 		gtk_widget_show(iiimf);
+	case IM_NONE:
+		gtk_widget_hide(xim);
+		gtk_widget_hide(uim);
+		gtk_widget_hide(iiimf);
 	default:
 		break;
 	}
@@ -757,6 +787,9 @@ mc_update_im(void)
 		len = 5 + 1 + strlen(selected_iiimf_lang) + 1;
 		if(!(p = malloc(sizeof(char) * len))) return;
 		sprintf(p, "iiimf:%s", selected_iiimf_lang);
+		break;
+	case IM_NONE:
+		p = strdup("none");
 		break;
 	default:
 		break;
