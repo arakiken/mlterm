@@ -138,7 +138,7 @@ mc_bgtype_config_widget_new(
     gtk_signal_connect(GTK_OBJECT(radio), "toggled",
 		       GTK_SIGNAL_FUNC(button_transparent_checked), NULL);
     gtk_widget_show(GTK_WIDGET(radio));
-    if (strcmp(bgtype, "trasparent") == 0)
+    if (strcmp(bgtype, "transparent") == 0)
 	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio), TRUE);
     hbox = gtk_hbox_new(FALSE, 2);
     gtk_widget_show(hbox);
