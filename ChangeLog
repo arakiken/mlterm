@@ -1,3 +1,7 @@
+2003-1-27 Araki Ken <arakiken@users.sf.net>
+
+	* Mouse position reporting is enabled, selecting region is forced to stop.
+
 2003-1-26 Araki Ken <arakiken@users.sf.net>
 
 	* Each user can start his/her own mlterm server.

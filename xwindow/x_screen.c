@@ -5878,7 +5878,10 @@ xterm_set_mouse_report(
 
 	screen = p ;
 	
-	screen->is_mouse_pos_sending = do_report ;
+	if( ( screen->is_mouse_pos_sending = do_report))
+	{
+		x_stop_selecting( &screen->sel) ;
+	}
 }
 
 static void
