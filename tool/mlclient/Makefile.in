@@ -23,7 +23,7 @@ $(PROG): $(OBJ)
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f $(OBJ) $(PROG)
+	rm -f $(OBJ) $(PROG) $(PROG).core
 
 install:
 	$(INSTALL) -m 755 $(PROG) $(BINDIR)

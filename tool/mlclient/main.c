@@ -94,12 +94,22 @@ main(
 		return  1 ;
 	}
 
-	for( counter = 0 ; counter < argc ; counter ++)
+	counter = 0 ;
+	while( 1)
 	{
 		write( sock_fd , argv[counter] , strlen( argv[counter])) ;
-		write( sock_fd , " " , 1) ;
+
+		if( ++ counter < argc)
+		{
+			write( sock_fd , " " , 1) ;
+		}
+		else
+		{
+			write( sock_fd , "\n" , 1) ;
+
+			break ;
+		}
 	}
-	write( sock_fd , "\n" , 1) ;
 
 	return  0 ;
 }
