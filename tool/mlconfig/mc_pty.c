@@ -48,11 +48,11 @@ mc_pty_config_widget_new(void)
 	pty_list = mc_get_str_value( "pty_list") ;
 
 	if (my_pty == NULL) return NULL;
-	if (strlen(my_pty) <= 5) return NULL;
 
 	ptys[0] = my_pty + 5;
 	num = 1;
 	while( pty_list) {
+		if (strlen(my_pty) <= 5) break;
 		ptys[num] = pty_list + 5;
 		pty_list = strchr(pty_list, ':');
 		if (pty_list) *pty_list = 0; else break;
