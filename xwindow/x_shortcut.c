@@ -270,12 +270,12 @@ x_shortcut_final(
 {
 	int  count ;
 	
-	free( shortcut->str_map) ;
-
 	for( count = 0 ; count < shortcut->str_map_size ; count ++)
 	{
 		free( shortcut->str_map[count].str) ;
 	}
+
+	free( shortcut->str_map) ;
 
 	return  1 ;
 }

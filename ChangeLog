@@ -1,3 +1,8 @@
+2003-06-13 Araki Ken <arakiken@users.sf.net>
+
+	* If pty device not opened, mlterm died. Fixed.
+	  (Thanks to Minami Hirokazu san)
+
 2003-06-11  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* Don't free color cells even if mlterm was compiled with Xft.

@@ -338,6 +338,7 @@ open_screen_intern(
 	color_man = NULL ;
 	screen = NULL ;
 	sb_screen = NULL ;
+	root = NULL ;
 
 	if( MAX_TERMS <= num_of_screens)
 	{
@@ -459,7 +460,6 @@ open_screen_intern(
 	}
 	else
 	{
-		sb_screen = NULL ;
 		root = &screen->window ;
 	}
 
@@ -530,11 +530,6 @@ open_screen_intern(
 	return  1 ;
 	
 error:
-	if( disp)
-	{
-		x_display_close( disp) ;
-	}
-	
 	if( font_man)
 	{
 		x_font_manager_delete( font_man) ;
@@ -545,14 +540,26 @@ error:
 		x_color_manager_delete( color_man) ;
 	}
 
-	if( screen)
+	if( ! root || ! x_window_manager_remove_root( &disp->win_man , root))
 	{
-		x_screen_delete( screen) ;
+		/*
+		 * If root is still NULL or is not registered to win_man yet.
+		 */
+		 
+		if( screen)
+		{
+			x_screen_delete( screen) ;
+		}
+
+		if( sb_screen)
+		{
+			x_sb_screen_delete( sb_screen) ;
+		}
 	}
 
-	if( sb_screen)
+	if( disp)
 	{
-		x_sb_screen_delete( sb_screen) ;
+		x_display_close( disp) ;
 	}
 
 	return  0 ;
