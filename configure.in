@@ -1,6 +1,6 @@
 AC_INIT()
 
-AC_CONFIG_HEADER(common/config.h)
+AC_CONFIG_HEADER(common/c_config.h)
 AC_CONFIG_AUX_DIR(script)
 
 if test -d ${top_srcdir-$srcdir}/mkf -a -d ${top_srcdir-$srcdir}/kiklib ; then

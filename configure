@@ -8429,7 +8429,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "Makefile mlterm/Makefile xwindow/Makefile tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in tool/mlclient/Makefile man/Makefile etc/Makefile scrollbar/sample/Makefile contrib/scrollbar/extra/Makefile common/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+trap 'rm -fr `echo "Makefile mlterm/Makefile xwindow/Makefile tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in tool/mlclient/Makefile man/Makefile etc/Makefile scrollbar/sample/Makefile contrib/scrollbar/extra/Makefile common/c_config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -8668,7 +8668,7 @@ ac_eD='%g'
 if test "${CONFIG_HEADERS+set}" != set; then
 EOF
 cat >> $CONFIG_STATUS <<EOF
-  CONFIG_HEADERS="common/config.h"
+  CONFIG_HEADERS="common/c_config.h"
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 fi
