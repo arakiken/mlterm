@@ -791,6 +791,22 @@ ml_term_manager_init(
 		return  0 ;
 	}
 	
+	font_rcfile = "mlterm/font" ;
+	
+	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
+	{
+		ml_font_custom_read_conf( &term_man->normal_font_custom , rcpath) ;
+
+		free( rcpath) ;
+	}
+
+	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
+	{
+		ml_font_custom_read_conf( &term_man->normal_font_custom , rcpath) ;
+
+		free( rcpath) ;
+	}
+	
 	if( ! ml_font_custom_init( &term_man->v_font_custom , min_font_size , max_font_size))
 	{
 	#ifdef  DEBUG
@@ -800,25 +816,6 @@ ml_term_manager_init(
 		return  0 ;
 	}
 
-	font_rcfile = "mlterm/font" ;
-	
-	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
-	{
-		ml_font_custom_read_conf( &term_man->normal_font_custom , rcpath) ;
-		ml_font_custom_read_conf( &term_man->v_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
-	{
-		ml_font_custom_read_conf( &term_man->normal_font_custom , rcpath) ;
-		ml_font_custom_read_conf( &term_man->v_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-	
-	/* overriding mlterm/font */
 	font_rcfile = "mlterm/vfont" ;
 	
 	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
@@ -846,6 +843,22 @@ ml_term_manager_init(
 		return  0 ;
 	}
 
+	font_rcfile = "mlterm/aafont" ;
+	
+	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
+	{
+		ml_font_custom_read_aa_conf( &term_man->aa_font_custom , rcpath) ;
+
+		free( rcpath) ;
+	}
+
+	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
+	{
+		ml_font_custom_read_aa_conf( &term_man->aa_font_custom , rcpath) ;
+
+		free( rcpath) ;
+	}
+
 	if( ! ml_font_custom_init( &term_man->vaa_font_custom , min_font_size , max_font_size))
 	{
 	#ifdef  DEBUG
@@ -855,25 +868,6 @@ ml_term_manager_init(
 		return  0 ;
 	}
 
-	font_rcfile = "mlterm/aafont" ;
-	
-	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
-	{
-		ml_font_custom_read_aa_conf( &term_man->aa_font_custom , rcpath) ;
-		ml_font_custom_read_aa_conf( &term_man->vaa_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
-	{
-		ml_font_custom_read_aa_conf( &term_man->aa_font_custom , rcpath) ;
-		ml_font_custom_read_aa_conf( &term_man->vaa_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-	/* overriding mlterm/aafont */	
 	font_rcfile = "mlterm/vaafont" ;
 	
 	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))

@@ -114,13 +114,26 @@ get_font_name_for_attr(
 	if( is_var_col_width( font_man))
 	{
 		/*
-		 * searching ~/.mlterm/vfont -> ~/.mlterm/font
+		 * searching
+		 *  ~/.mlterm/vfont -> ~/.mlterm/font
+		 *  ~/.mlterm/vaafont -> ~/.mlterm/aafont
 		 */
-		 
-		if( ( font_name = ml_get_font_name_for_attr( font_man->normal_font_custom ,
-				font_man->font_size , font_attr)))
+		if( is_aa( font_man))
 		{
-			return  font_name ;
+			if( font_man->aa_font_custom &&
+				( font_name = ml_get_font_name_for_attr( font_man->aa_font_custom ,
+					font_man->font_size , font_attr)))
+			{
+				return  font_name ;
+			}
+		}
+		else
+		{
+			if( ( font_name = ml_get_font_name_for_attr( font_man->normal_font_custom ,
+					font_man->font_size , font_attr)))
+			{
+				return  font_name ;
+			}
 		}
 	}
 
@@ -140,7 +153,7 @@ set_usascii_xfont(
 
 	attr = DEFAULT_FONT_ATTR( font_man->usascii_font_cs) ;
 
-	fontname = ml_get_font_name_for_attr( font_man->font_custom , font_man->font_size , attr) ;
+	fontname = get_font_name_for_attr( font_man , attr) ;
 
 	orig_attr = font->attr ;
 	font->attr = attr ;
