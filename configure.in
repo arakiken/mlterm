@@ -176,13 +176,81 @@ else
 fi
 AC_SUBST(GTK_CONFIG)
 
-if test "${gtk_config}" = "yes" ; then
-	MAKE_DIRS="tool/mlconfig contrib/tool/mlterm-menu ${MAKE_DIRS}"
-	OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
-fi
+tools="mlclient,mlconfig,mlterm-menu"
+AC_ARG_WITH(tools,
+	[  --with-tools[=ARG]      external tools [mlclient,mlconfig,mlterm-menu]],
+	[
+	# If given --without-tools or --with-tools with no args.
+	if test "${with_tools}" = "no" -o "${with_tools}" = "yes" ; then
+		tools=""
+	else
+		tools=${with_tools}
+	fi
+	])
+tools=`echo ${tools} | sed 's/,/ /g'`
+for tool in ${tools} ; do
+case ${tool} in
+mlconfig)
+	if test "${gtk_config}" = "yes" ; then
+		MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
+		OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
+	fi
+	;;
+mlterm-menu)
+	if test "${gtk_config}" = "yes" ; then
+		MAKE_DIRS="contrib/tool/mlterm-menu ${MAKE_DIRS}"
+		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
+	fi
+	;;
+mlclient)
+	MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
+	OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
+	;;
+w3mmlconfig)
+	MAKE_DIRS="tool/w3mmlconfig ${MAKE_DIRS}"
+	;;
+mlcc)
+	MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
+	;;
+mlconf_curses)
+	MAKE_DIRS="contrib/tool/mlconf_curses ${MAKE_DIRS}"
+	;;
+*)
+	echo "${tool} is unknown tool."
+	;;
+esac
+done
 
-MAKE_DIRS="mlterm xwindow tool/mlclient man etc scrollbar/sample contrib/scrollbar/extra ${MAKE_DIRS}"
-OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile tool/mlclient/Makefile man/Makefile etc/Makefile scrollbar/sample/Makefile contrib/scrollbar/extra/Makefile ${OUTPUT_FILES}"
+scrollbars="sample,extra"
+AC_ARG_WITH(scrollbars,
+	[  --with-scrollbars[=ARG] scrollbar plugins [sample,extra]],
+	[
+	# If given --without-scrollbars or --with-scrollbars with no args.
+	if test "${with_scrollbars}" = "no" -o "${with_scrollbars}" = "yes" ; then
+		scrollbars=""
+	else
+		scrollbars=${with_scrollbars}
+	fi
+	])
+scrollbars=`echo ${scrollbars} | sed 's/,/ /g'`
+for scrollbar in ${scrollbars} ; do
+case ${scrollbar} in
+sample)
+	MAKE_DIRS="scrollbar/sample ${MAKE_DIRS}"
+	OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
+	;;
+extra)
+	MAKE_DIRS="contrib/scrollbar/extra ${MAKE_DIRS}"
+	OUTPUT_FILES="contrib/scrollbar/extra/Makefile ${OUTPUT_FILES}"
+	;;
+*)
+	echo "${scrollbar} is unknown scrollbar."
+	;;
+esac
+done
+
+MAKE_DIRS="mlterm xwindow man etc ${MAKE_DIRS}"
+OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
 
 AC_SUBST(MAKE_DIRS)
 AC_SUBST(OUTPUT_FILES)
