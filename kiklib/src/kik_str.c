@@ -288,10 +288,27 @@ kik_str_n_to_int(
 {
 	int  digit ;
 	int  _i ;
+	int  is_minus ;
 
-	if( *s == '\0')
+	if( n == 0 || *s == '\0')
 	{
 		return  0 ;
+	}
+
+	if( *s == '-')
+	{
+		if( -- n == 0)
+		{
+			return  0 ;
+		}
+
+		s ++ ;
+		
+		is_minus = 1 ;
+	}
+	else
+	{
+		is_minus = 0 ;
 	}
 	
 	_i = 0 ;
@@ -306,7 +323,14 @@ kik_str_n_to_int(
 		_i += (s[digit] - 0x30) ;
 	}
 
-	*i = _i ;
+	if( is_minus)
+	{
+		*i = -(_i) ;
+	}
+	else
+	{
+		*i = _i ;
+	}
 
 	return  1 ;
 }
@@ -318,10 +342,25 @@ kik_str_to_int(
 	)
 {
 	int  _i ;
+	int  is_minus ;
 
 	if( *s == '\0')
 	{
 		return  0 ;
+	}
+	
+	if( *s == '-')
+	{
+		if( *(++ s) == '\0')
+		{
+			return  0 ;
+		}
+		
+		is_minus = 1 ;
+	}
+	else
+	{
+		is_minus = 0 ;
 	}
 	
 	_i = 0 ;
@@ -338,7 +377,14 @@ kik_str_to_int(
 		s ++ ;
 	}
 
-	*i = _i ;
+	if( is_minus)
+	{
+		*i = -(_i) ;
+	}
+	else
+	{
+		*i = _i ;
+	}
 
 	return  1 ;
 }
