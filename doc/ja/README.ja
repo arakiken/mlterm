@@ -23,8 +23,8 @@ comment $Id$
     freetype 2.0.2 以上
     が必要です。
 
-    壁紙を貼るには、imlib (1.9.x ?) または gdk-pixbuf (0.16 以上) または
-    GTK+ (2.0.1 以上) が必要です。
+    壁紙を貼るには、imlib (1.9.x ?) または gdk-pixbuf (0.16 以上 または
+    GTK+ 2.0.1 以上) が必要です。
 
     Unicode の Bidi レンダリングには、Fribidi 0.9.x 以上(?) が必要です。
 
@@ -36,11 +36,9 @@ comment $Id$
     --prefix
       インストールプレフィクス
 
-    --enable-imlib
-      imlibを使って、壁紙を貼れるようにします。
-
-    --enable-gdk-pixbuf
-      gdk-pixbufを使って、壁紙を貼れるようにします。
+    --with-imagelib=[imlib, gdk-pixbuf2, gdk-pixbuf1]
+      imlib/gdk-pixbuf(gtk2附属)/gdk-pixbuf(0.1x) を使って、
+      壁紙を貼れるようにします。
 
     --enable-anti-alias
       TrueTypeフォントをantialisします。
