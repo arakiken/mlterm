@@ -90,6 +90,14 @@ char *  alloca () ;
 
 #endif	/* HAVE_ALLOCA_H */
 
+#else   /* __GNUC__ */
+
+#ifdef  HAVE_ALLOCA_H
+
+#include <alloca.h>
+
+#endif   /* HAVE_ALLOCA_H */
+
 #endif	/* __GNUC__ */
 
 #endif	/* HAVE_ALLOCA */

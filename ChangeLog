@@ -1,3 +1,9 @@
+2004-12-21 MINAMI Hirokazu <minami@mistfall.net>
+
+        * kiklib/src/kik_mem.h: When HAVE_ALLOCA_H was defined,
+	alloca.h should be always #include'ed even if __GNUC__ was defined.
+	(alloca() may remain undefined otherwise). 
+	
 2004-12-17 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* doc/en/PROTOCOL: updated. (#1084176)
