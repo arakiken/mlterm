@@ -1,5 +1,9 @@
+[20020215]
+* ImlibData is created and managed for each Display.
+* exsiting test of socklen_t fails because of my typo. fixed. (Thanks to Sakamoto Hironori san)
+
 [20020214]
-* some bygs around utmp are fixed. (Thanks to Mike Fabian)
+* some bugs around utmp are fixed. (Thanks to Mike Fabian)
 
 [20020213]
 * priv_fg and priv_bg cannot be customized. fixed. (Thanks to Nekoie san)
