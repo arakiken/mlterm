@@ -21,8 +21,11 @@
 
 /* --- static variables --- */
 
-static int new_color[MC_COLOR_MODES];
-static int old_color[MC_COLOR_MODES];
+#define MC_COLOR_LEN 256
+
+/* colors are stored in untranslated forms */
+static char new_color[MC_COLOR_MODES][MC_COLOR_LEN];
+static char old_color[MC_COLOR_MODES][MC_COLOR_LEN];
 static int is_changed[MC_COLOR_MODES];
 
 static char *configname[MC_COLOR_MODES] = {
@@ -69,25 +72,42 @@ static void init_i18ncolors(void)
 	return;
 }
 
-static int get_index(char *color)
+static char *untranslate(char *color)
 {
 	int j;
 
 	for(j=0; j<sizeof(colors)/sizeof(colors[0]); j++) {
-		if (strcmp(colors[j], color) == 0) return j;
-		if (strcmp(i18ncolors[j], color) == 0) return j;
+		if (strcmp(i18ncolors[j], color) == 0) return colors[j];
 	}
-	return -1;
+	return color;
+}
+
+static char *translate(char *color)
+{
+	int j;
+
+	for(j=0; j<sizeof(colors)/sizeof(colors[0]); j++) {
+		if (strcmp(colors[j], color) == 0) return i18ncolors[j];
+	}
+	return color;
+}
+
+static char *color_strncpy(char *dst, char *src)
+{
+	strncpy(dst, src, MC_COLOR_LEN);
+	dst[MC_COLOR_LEN-1] = 0;
+	return dst;
 }
 
 static int color_selected(GtkWidget *widget, gpointer data)
 {
 	/* data: pointer for new_color[n] */
 
-	*(int *)data = get_index(gtk_entry_get_text(GTK_ENTRY(widget)));
+	color_strncpy((char *)data,
+		      untranslate(gtk_entry_get_text(GTK_ENTRY(widget))));
 
 #ifdef  __DEBUG
-	kik_debug_printf(KIK_DEBUG_TAG " %s color is selected.\n", *(int *)data);
+	kik_debug_printf(KIK_DEBUG_TAG " %s color is selected.\n", (char *)data);
 #endif
 
 	return 1;
@@ -99,23 +119,23 @@ GtkWidget *
 mc_color_config_widget_new(int id)
 {
 	init_i18ncolors();
-	new_color[id] = old_color[id] =
-		get_index(mc_get_str_value(configname[id]));
+	color_strncpy(new_color[id], mc_get_str_value(configname[id]));
+	color_strncpy(old_color[id], mc_get_str_value(configname[id]));
 	is_changed[id] = 0;
 
 	return mc_combo_new(_(label[id]), i18ncolors,
 			    sizeof(colors)/sizeof(colors[0]),
-			    i18ncolors[new_color[id]], 0, color_selected,
+			    translate(new_color[id]), 0, color_selected,
 			    (gpointer)(new_color+id));
 }
 
 void
 mc_update_color(int id)
 {
-	if (new_color[id] != old_color[id]) is_changed[id] = 1;
+	if (strcmp(new_color[id], old_color[id]) != 0) is_changed[id] = 1;
 
 	if (is_changed[id]) {
-		mc_set_str_value(configname[id], colors[new_color[id]]);
-		old_color[id] = new_color[id];
+		mc_set_str_value(configname[id], new_color[id]);
+		strcpy(old_color[id], new_color[id]);
 	}
 }
