@@ -35,7 +35,7 @@ typedef struct  ml_pty_encoding_event_listener
 	int  (*encoding_changed)( void * , ml_char_encoding_t) ;
 	ml_char_encoding_t  (*encoding)( void *) ;
 	size_t  (*convert)( void * , u_char *  dst , size_t  len , mkf_parser_t *) ;
-	int  (*init)( void *) ;
+	int  (*init)( void * , int) ;
 	
 } ml_pty_encoding_event_listener_t ;
 

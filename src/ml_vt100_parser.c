@@ -22,6 +22,8 @@
 #define  CTLKEY_LF	0x0a
 #define  CTLKEY_VT	0x0b
 #define  CTLKEY_CR	0x0d
+#define  CTLKEY_SI      0x0e
+#define  CTLKEY_SO      0x0f
 #define  CTLKEY_ESC	0x1b
 
 #define  CURRENT_STR_P(vt100_parser)  (&vt100_parser->seq[(vt100_parser)->len - (vt100_parser)->left])
@@ -1009,21 +1011,69 @@ parse_vt100_escape_sequence(
 							ml_term_screen_set_app_cursor_keys(
 								vt100_parser->termscr) ;
 						}
+					#if  0
+						else if( ps[0] == 2)
+						{
+							/* reset charsets to USASCII */
+						}
+					#endif
 						else if( ps[0] == 3)
 						{
 							ml_term_screen_resize_columns(
 								vt100_parser->termscr , 132) ;
 						}
+					#if  0
+						else if( ps[0] == 4)
+						{
+							/* smooth scrolling */
+						}
+					#endif
 						else if( ps[0] == 5)
 						{
 							ml_term_screen_reverse_video(
 								vt100_parser->termscr) ;
 						}
+					#if  0
+						else if( ps[0] == 6)
+						{
+							/* relative absolute origins */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 7)
+						{
+							/* auto wrap */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 8)
+						{
+							/* auto repeat */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 9)
+						{
+							/* X10 mouse reporting */
+						}
+					#endif
 						else if( ps[0] == 25)
 						{
 							ml_term_screen_cursor_visible(
 								vt100_parser->termscr) ;
 						}
+					#if  0
+						else if( ps[0] == 35)
+						{
+							/* shift keys */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 40)
+						{
+							/* 80 <-> 132 */
+						}
+					#endif
 						else if( ps[0] == 47)
 						{
 							/* Use Alternate Screen Buffer */
@@ -1031,6 +1081,18 @@ parse_vt100_escape_sequence(
 							ml_term_screen_use_alternative_image(
 								vt100_parser->termscr) ;
 						}
+					#if  0
+						else if( ps[0] == 66)
+						{
+							/* application key pad */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 67)
+						{
+							/* have back space */
+						}
+					#endif
 						else if( ps[0] == 1000)
 						{
 							ml_term_screen_set_mouse_pos_sending(
@@ -1040,6 +1102,30 @@ parse_vt100_escape_sequence(
 						else if( ps[0] == 1001)
 						{
 							/* X11 mouse highlighting */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 1010)
+						{
+							/* scroll to bottom on tty output inhibit */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 1011)
+						{
+							/* scroll to bottom on key press */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 1047)
+						{
+							/* secondary screen w/ clearing */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 1048)
+						{
+							/* alternative cursor save */
 						}
 					#endif
 						else
@@ -1060,32 +1146,122 @@ parse_vt100_escape_sequence(
 							ml_term_screen_set_normal_cursor_keys(
 								vt100_parser->termscr) ;
 						}
+					#if  0
+						else if( ps[0] == 2)
+						{
+							/* reset charsets to USASCII */
+						}
+					#endif
 						else if( ps[0] == 3)
 						{
 							ml_term_screen_resize_columns(
 								vt100_parser->termscr , 80) ;
 						}
+					#if  0
+						else if( ps[0] == 4)
+						{
+							/* smooth scrolling */
+						}
+					#endif
 						else if( ps[0] == 5)
 						{
 							ml_term_screen_restore_video(
 								vt100_parser->termscr) ;
 						}
+					#if  0
+						else if( ps[0] == 6)
+						{
+							/* relative absolute origins */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 7)
+						{
+							/* auto wrap */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 8)
+						{
+							/* auto repeat */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 9)
+						{
+							/* X10 mouse reporting */
+						}
+					#endif
 						else if( ps[0] == 25)
 						{
 							ml_term_screen_cursor_invisible(
 								vt100_parser->termscr) ;
 						}
+					#if  0
+						else if( ps[0] == 35)
+						{
+							/* shift keys */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 40)
+						{
+							/* 80 <-> 132 */
+						}
+					#endif
 						else if( ps[0] == 47)
 						{
 							/* Use Normal Screen Buffer */
 							ml_term_screen_use_normal_image(
 								vt100_parser->termscr) ;
 						}
+					#if  0
+						else if( ps[0] == 66)
+						{
+							/* application key pad */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 67)
+						{
+							/* have back space */
+						}
+					#endif
 						else if( ps[0] == 1000)
 						{
 							ml_term_screen_unset_mouse_pos_sending(
 								vt100_parser->termscr) ;
 						}
+					#if  0
+						else if( ps[0] == 1001)
+						{
+							/* X11 mouse highlighting */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 1010)
+						{
+							/* scroll to bottom on tty output inhibit */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 1011)
+						{
+							/* scroll to bottom on key press */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 1047)
+						{
+							/* secondary screen w/ clearing */
+						}
+					#endif
+					#if  0
+						else if( ps[0] == 1048)
+						{
+							/* alternative cursor save */
+						}
+					#endif
 						else
 						{
 						#ifdef  DEBUG
@@ -1547,22 +1723,29 @@ parse_vt100_escape_sequence(
 					}
 				}
 			}
-			else if( *str_p == '(' && IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding) == 0)
+			else if( *str_p == '(')
 			{
+				if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+				{
+					/* not VT100 control sequence */
+
+					return  1 ;
+				}
+				
 				/*
-				 * this is for the case that vt100_parser->cc_parser is not compatible
-				 * with ISO2022.
+				 * this is for the case that vt100_parser->cc_parser is
+				 * not compatible with ISO2022.
 				 */
-				 
+
 				if( increment_str( &str_p , &left) == 0)
 				{
 					return  0 ;
 				}
-				
+
 			#ifdef  ESCSEQ_DEBUG
 				fprintf( stderr , " - %c" , *str_p) ;
 			#endif
-			
+
 				if( *str_p == '0')
 				{
 					vt100_parser->is_graphic_char_in_gl = 1 ;
@@ -1588,6 +1771,32 @@ parse_vt100_escape_sequence(
 		#ifdef  ESCSEQ_DEBUG
 			fprintf( stderr , "\n") ;
 		#endif
+		}
+		else if( *str_p == CTLKEY_SI)
+		{
+			if( ! IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+			{
+				vt100_parser->is_graphic_char_in_gl = 1 ;
+			}
+			else
+			{
+				/* not VT100 control sequence */
+				
+				return  1 ;
+			}
+		}
+		else if( *str_p == CTLKEY_SO)
+		{
+			if( ! IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+			{
+				vt100_parser->is_graphic_char_in_gl = 0 ;
+			}
+			else
+			{
+				/* not VT100 control sequence */
+
+				return  1 ;
+			}
 		}
 		else if( *str_p == CTLKEY_LF || *str_p == CTLKEY_VT)
 		{
@@ -1738,25 +1947,42 @@ convert_to_pty_encoding(
 
 static int
 init_pty_encoding(
-	void *  p
+	void *  p ,
+	int  which	/* conv == 0 / parser == 1 */
 	)
 {
 	ml_vt100_parser_t *  vt100_parser ;
 
 	vt100_parser = p ;
 
-	(*vt100_parser->cc_conv->init)( vt100_parser->cc_conv) ;
-	
-	if( IS_STATEFUL_ENCODING(vt100_parser->encoding))
+	if( which == 1)
 	{
+		(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
+		vt100_parser->is_graphic_char_in_gl = 0 ;
+	}
+	else if( which == 0)
+	{
+		(*vt100_parser->cc_conv->init)( vt100_parser->cc_conv) ;
+		
 		/*
 		 * XXX
 		 * this causes unexpected behaviors in some applications(e.g. biew) ,
-		 * but this is necessary since 0x0 - 0x7f is not necessarily US-ASCII
-		 * in these encodings.
+		 * but this is necessary , since 0x00 - 0x7f is not necessarily US-ASCII
+		 * in these encodings but key input or selection paste assumes that
+		 * 0x00 - 0x7f should be US-ASCII at the initial state.
 		 */
-		(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
+		if( IS_STATEFUL_ENCODING(vt100_parser->encoding))
+		{
+			(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
+			vt100_parser->is_graphic_char_in_gl = 0 ;
+		}
 	}
+#ifdef  DEBUG
+	else
+	{
+		kik_warn_printf( KIK_DEBUG_TAG " illegal which value.\n") ;
+	}
+#endif
 
 	return  1 ;
 }
@@ -2114,7 +2340,8 @@ ml_parse_vt100_sequence(
 			{
 			#ifdef  DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG
-					" unrecognized sequence is received , ignored...\n") ;
+					" unrecognized sequence[%.2x] is received , ignored...\n" ,
+					*CURRENT_STR_P(vt100_parser)) ;
 			#endif
 
 				vt100_parser->left -- ;

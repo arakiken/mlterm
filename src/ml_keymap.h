@@ -30,6 +30,7 @@ typedef enum  ml_key_func
 	PAGE_UP ,
 	SCROLL_UP ,
 	INSERT_SELECTION ,
+	INIT_PARSER ,
 	EXIT_PROGRAM ,
 	
 	MAX_KEY_MAPS ,

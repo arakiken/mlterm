@@ -32,7 +32,7 @@ Note that \fIbool\fR is to be substituted by \fBtrue\fR or \fBfalse\fR.
 .TP
 \fB\-A\fR, \fB\-\-aa\fR(=\fIbool\fR)
 Use anti-aliased fonts using Xft.  The default is \fBfalse\fR.
-Note that if you \fBmlterm\fR encoding is not a subset of Unicode
+Note that if \fBmlterm\fR encoding is not a subset of Unicode
 like ISO-2022-JP-2 or EUC-TW, characters which are regarded as
 a same character in Unicode are displayed with the same glyph and
 you cannot distinguish these characters.  This is because Xft
@@ -230,7 +230,7 @@ The default is "\fBfalse\fR".
 Use Unicode fonts even when \fBmlterm\fR encoding is not UTF-8.
 Useful when you have ISO10646 fonts but you don't have other fonts
 and want to use non-UTF-8 encodings.
-Note that if you \fBmlterm\fR encoding is not a subset of Unicode
+Note that if \fBmlterm\fR encoding is not a subset of Unicode
 like ISO-2022-JP-2 or EUC-TW, characters which are regarded as
 a same character in Unicode are displayed with the same glyph and
 you cannot distinguish these characters.  Since Xft library which
@@ -747,24 +747,28 @@ The feature key configuration file "\fBkey\fR" has the following keys.
 \fBXIM_OPEN=\fIkey\fR
 Specify key to open XIM.  This is not used
 if \fBxim_open_in_startup\fR is enabled
-(default \fIShift+space\fR).
+(default \fBShift+space\fR).
 .TP
 \fBXIM_CLOSE=\fIkey\fR
-Specify key to close XIM (default \fIUNUSED\fR).
+Specify key to close XIM (default \fBUNUSED\fR).
 .TP
 \fBNEW_PTY=\fIkey\fR
-Specify key to open new pty (default \fICtrl+F1\fR).
+Specify key to open new pty (default \fBCtrl+F1\fR).
 .TP
 \fBPAGE_UP=\fIkey\fR
 Specify key to start backscroll mode and scroll up one page
-(default \fIShift+prior\fR).
+(default \fBShift+prior\fR).
 .TP
 \fBSCROLL_UP=\fIkey\fR
 Specify key to start backscroll mode and scroll up one line
-(default \fIShift+up\fR).
+(default \fBShift+up\fR).
 .TP
 \fBINSERT_SELECTION=\fIkey\fR
-Specify key to insert selection (default \fIShift+Insert\fR).
+Specify key to insert selection (default \fBShift+Insert\fR).
+.TP
+\fBINIT_PARSER=\fIkey\fR
+Specify key to initialize the parser state of the current mlterm encoding
+(default \fBUNUSED\fR).
 .PP
 The format for \fIkey\fR is "\fI(MASK+)KEY\fR",
 where \fIMASK\fR is one of \fBControl\fR, \fBShift\fR, and
@@ -775,11 +779,11 @@ The feature key configuration file "\fBtermcap\fR" has the following keys.
 .TP
 \fBkD=\fIsequence\fR
 Specify sequence to be outputted when Delete key is pushed
-(default \fI^?\fR).
+(default \fB^?\fR).
 .TP
 \fBkb=\fIsequence\fR
 Specify sequence to be outputted when BackSpace key is pushed
-(default \fI^H\fR).
+(default \fB^H\fR).
 .PP
 The following special characters can be used to specify \fIsequence\fR.
 .TP

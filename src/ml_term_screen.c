@@ -284,7 +284,7 @@ write_to_pty(
 		(*parser->set_str)( parser , str , len) ;
 	}
 
-	(*termscr->encoding_listener->init)( termscr->encoding_listener->self) ;
+	(*termscr->encoding_listener->init)( termscr->encoding_listener->self , 0) ;
 
 	if( parser)
 	{
@@ -1181,6 +1181,10 @@ key_pressed(
 		{
 			termscr->system_listener->open_pty( termscr->system_listener->self) ;
 		}
+	}
+	else if( ml_keymap_match( termscr->keymap , INIT_PARSER , ksym , event->state))
+	{
+		(*termscr->encoding_listener->init)( termscr->encoding_listener->self , 1) ;
 	}
 #ifdef  DEBUG
 	else if( ml_keymap_match( termscr->keymap , EXIT_PROGRAM , ksym , event->state))

@@ -294,6 +294,9 @@ comment $Id$
         スクロール開始
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
+      o INIT_PARSER(UNUSED)
+        端末文字コードパーサを初期化する。
+        (文字化け発生時に使用)
 
       KEY_BINDINGのフォーマットは以下の通り
       (MASK+)KEY
