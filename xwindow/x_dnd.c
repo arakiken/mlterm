@@ -377,10 +377,10 @@ finalize_context(
 	x_window_t * win
 	)
 {
-	if( !win->dnd)	
+	if( win->dnd)	
 	{
 #ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "for %p\n", win) ;
+		kik_debug_printf( KIK_DEBUG_TAG "for %p\n", win->dnd) ;
 #endif
 		free( win->dnd);
 		win->dnd = NULL ;
@@ -867,8 +867,8 @@ x_dnd_filter_event(
 	case MapNotify:
 		/* CreateNotifyEvent seems to be lost somewhere... */
 		awareness( win, 5) ;
-
-		break;
+		
+		return 0 ;
 
 	case SelectionNotify:
 		if( event->xselection.property != XA_DND_STORE(win->display))
