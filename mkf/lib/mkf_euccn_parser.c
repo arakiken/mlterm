@@ -107,12 +107,21 @@ gbk_parser_next_char_intern(
 		}
 
 		ch->ch[0] = bytes[0] ;
-		ch->ch[1] = *parser->str ;
-		ch->size = 2 ;
-		ch->cs = GBK ;
+		if (*parser->str < 0x40) 
+		{
+			ch->cs = US_ASCII ;
+			ch->size = 1 ;
+		}
+		else
+		{
+
+			ch->ch[1] = *parser->str ;
+			ch->size = 2 ;
+			ch->cs = GBK ;
+			mkf_parser_increment( parser) ;
+		}
 		ch->property = 0 ;
 
-		mkf_parser_increment( parser) ;
 
 		return  1 ;
 
