@@ -1,5 +1,9 @@
 2003-02-15 Araki Ken <arakiken@users.sf.net>
 
+	* '\n','\t','\e' special characters can be specified in the value of init_str option.
+
+2003-02-15 Araki Ken <arakiken@users.sf.net>
+
 	* Added -#/--initstr/init_str option.
 	  The string specified as this option's value is initially sent to pty.
 	* Renamed mlclient prefix option "pty_list" to "-P" / "--ptylist".

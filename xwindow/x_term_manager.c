@@ -1685,7 +1685,51 @@ config_init(
 
 	if( ( value = kik_conf_get_value( conf , "init_str")))
 	{
-		main_config.init_str = strdup( value) ;
+		if( ( main_config.init_str = malloc( strlen( value) + 1)))
+		{
+			char *  p1 ;
+			char *  p2 ;
+
+			p1 = value ;
+			p2 = main_config.init_str ;
+
+			while( *p1)
+			{
+				if( *p1 == '\\')
+				{
+					p1 ++ ;
+					
+					if( *p1 == '\0')
+					{
+						break ;
+					}
+					else if( *p1 == 'n')
+					{
+						*(p2 ++) = '\n' ;
+					}
+					else if( *p1 == 't')
+					{
+						*(p2 ++) = '\t' ;
+					}
+					else if( *p1 == 'e')
+					{
+						*(p2 ++) = '\e' ;
+					}
+					else
+					{
+						*(p2 ++) = *p1 ;
+					}
+				}
+				else
+				{
+					*(p2 ++) = *p1 ;
+				}
+
+				p1 ++ ;
+			}
+
+			*p2 = '\0' ;
+		}
 	}
 	else
 	{
