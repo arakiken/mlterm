@@ -1161,7 +1161,7 @@ pixbuf_to_pixmap_and_mask(
 
 		for (i = 0; i < height; i++)
 		{
-			pixel = line[3];
+			pixel = line + 3;
 			for (j = 0; j < width; j++)
 			{
 				if( *pixel > 127)
