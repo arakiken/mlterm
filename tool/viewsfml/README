@@ -1,0 +1,15 @@
+comment -*- mode: text -*-
+comment $Id$
+
+* viewsfml.sh とは?
+  sourceforge の ML アーカイブのメールを、文字化けを修正して取得します。
+
+* 使い方
+  $ viewsfml.sh [thread id]
+
+  [thread id] には、sourceforge の ML アーカイブのスレッド番号を指定してくださ
+  い。
+  取得されたメールは、~/.mlterm/[thread id].html として保存されます。
+
+* 問題点
+  ブラウザによっては、&<> の 3 文字が正しく表示されない可能性があります。
