@@ -1,5 +1,7 @@
 2005-02-05 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* doc/en/PLATFORM: updated.
+
 	* configure.in: if scim is enabled, try to detect c++ compiler. if not,
 	do nothing.
 
