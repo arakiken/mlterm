@@ -1,6 +1,7 @@
 /*
  *	$Id$
  */
+
 #if  1
 #define  PSEUDO_TRANSPARENT
 #endif
@@ -18,40 +19,43 @@
 /* gdk-pixbuf does not need a black magic using static variables */
 
 /* --- static functions --- */
+
+
 static unsigned char
-illuminate(unsigned char value, float luminosity){
+illuminate(unsigned char value, int luminosity){
 	
-	if (luminosity >1)  
-		return 255 - (255 - value)/luminosity;
-	if (luminosity ==1)  
+	if (luminosity >100)  
+		return 255 - (255 - value)*100/luminosity;
+	if (luminosity ==100)  
 		return value;
 	if (luminosity >0)  
-		return luminosity*value;
+		return luminosity*value/100;
 	if (luminosity ==0)  
 		return 0;
-	if (luminosity > -1)  
-		return (-1-luminosity)*value ;
+	if (luminosity > -100)  
+		return (-100-luminosity)*value/100;
 	/* XXX who cares? */
 		return 0 ;
 }
 
-static void
-saturate_and_illuminate(const GdkPixbuf *pixbuf,
-			float saturation, /* is dummy for now. */
-                                 float luminosity)
+static int
+modify_image(
+	GdkPixbuf *  pixbuf ,
+	ml_picture_modifier_t *  pic_mod
+	)
 {
 	int i, j;
 	int width, height, rowstride, bytes_per_pixel;
 	unsigned char *line;
 	unsigned char *pixel;
-	float x, y, z ;
+
+	if( pic_mod->brightness == 100)
+		return 0;
+
         if ( !pixbuf )
-		return;
+		return 0;
   
-        if (/* saturation == 1.0 &&*/ luminosity == 1.0) {
-		return;
-        } 
-	bytes_per_pixel = gdk_pixbuf_get_has_alpha (pixbuf) ? 4 : 3;
+	bytes_per_pixel = gdk_pixbuf_get_has_alpha (pixbuf) ? 4 : 3; /* alpha may supported someday  */
 	width = gdk_pixbuf_get_width (pixbuf);
 	height = gdk_pixbuf_get_height (pixbuf);
 	rowstride = gdk_pixbuf_get_rowstride (pixbuf);
@@ -64,30 +68,14 @@ saturate_and_illuminate(const GdkPixbuf *pixbuf,
 		
 		for (j = 0 ; j < width ; j++) {
 /* XXX keeps neither hue nor saturation. MUST be replaced using better color model(CIE Yxy? lab?)*/
-			pixel[0] = illuminate(pixel[0], luminosity); 
-			pixel[1] = illuminate(pixel[1], luminosity);
-			pixel[2] = illuminate(pixel[2], luminosity);
+			pixel[0] = illuminate(pixel[0], pic_mod->brightness); 
+			pixel[1] = illuminate(pixel[1], pic_mod->brightness);
+			pixel[2] = illuminate(pixel[2], pic_mod->brightness);
+			/* alpha is not changed */
 			pixel += bytes_per_pixel;
 		}
 	}
-}
-
-static int
-modify_image(
-	GdkPixbuf *  img ,
-	ml_picture_modifier_t *  pic_mod
-	)
-{
-	if( pic_mod->brightness != 100)
-	{
-		saturate_and_illuminate
-			(img,
-			 1.0,
-			 (float)(pic_mod->brightness) / 100
-			 );	
-	}
-	
-	return  1 ;
+	return 1;
 }
 
 /* --- global functions --- */
