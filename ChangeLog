@@ -1,5 +1,10 @@
+[20020219]
+* performance of utf8 + bidi mode without fribidi is improved.
+* if scroll region is changed multiple times , scroll can fail. fixed.
+* README.bidi is added.
+
 [20020218]
-* mlclient appends extra white space for ipc message. fixed.(committed)
+* mlclient appends extra white space for ipc message. fixed.
 * character background color under transparent mode is drawn if it is different
   from Window background color.(Thanks to KATO Kazuyoshi san)
 * mlconf_curses is updated (2002/02/18 version). 
