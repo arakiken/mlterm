@@ -1,0 +1,217 @@
+#
+# main にコピーして使用してください。
+#
+
+# -- Window 関連 --
+
+# X の DISPLAY を指定
+# display =
+
+# 表示位置を指定
+# geometry =
+
+# アプリケーション名
+# app_name = mlterm
+  
+# タイトル名
+# title = mlterm
+  
+# アイコン名
+# icon_name = mlterm
+
+# アイコンのファイル名
+# icon_path =
+
+# 実スクリーンの横幅(百分率)
+# screen_width_ratio = 100
+
+# 実スクリーンの縦幅(百分率)
+# screen_height_ratio = 100
+
+# -- Terminal 関連 --
+# ログインシェルを使うかどうか
+# use_loing_shell = false
+
+# 端末タイプ(xterm,mlterm,kterm)
+# termtype = xterm
+
+# 起動時に立ち上げる pty の数
+# startup_ptys = 1
+
+# 起動時に立ち上げるウィンドウの数
+# startup_screens = 1
+
+# -- Encoding 関連 --
+# エンコーディングの指定
+# (ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11),
+#  KOI8-[RUT], ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP1251, CP1255,
+#  EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213, ISO-2022-JP[1-3],
+#  EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK, GB18030,
+#  ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO)
+# ENCODING = auto
+
+# BiDi レンダリングを行う
+# use_bidi = true
+
+# 結合文字を処理する  
+# use_combining = true
+
+# 結合文字を動的に合成する
+# use_dynamic_comb = false
+
+# ISCII にて、使用する言語を指定する
+# (assamese,bengali,gujarati,hindi,kannada,malayalam,oriya,punjabi,roman,tamil,telugu) (#)
+# iscii_lang = malayalam
+
+# Big5 CTEXT のバグ (XFree86 4.1.0 以前) に対応する
+# big5_buggy = false
+
+# UNICODE の EastAsianWidth.txt の A プロパティのコラム数
+# col_size_of_width_a = 1
+
+# 縦表示のスタイルを指定 (none,cjk,mongol)
+# vertical_mode = none
+
+# 縦書き用カーソル
+# use_vertical_cursor = false
+
+# 1 文字で複数コラムを占有する文字の処理を行なう
+# use_multi_column_char = false
+
+# copy and paste で受け取った XCOMPOUND TEXT や、XIM から入力された文字列
+# を、一旦 UNICODE を経由してから端末エンコーディングに変換する 
+# receive_string_via_ucs = false
+
+# -- Font 関連 --
+# デフォルトフォントサイズ
+# fontsize = 16
+
+# 変更可能なフォントサイズの範囲
+# font_size_range = 6-30
+
+# larger,smaller ボタンでのフォントサイズの変化量(*1*)      
+# step_in_changing_font_size = 1
+  
+# 可変長コラム幅を使用する
+# use_variable_column_width = false 
+
+# アンチエイリアスフォントを使用する
+# use_anti_alias = false
+
+# アンチエイリアス(Xft)時、JISX0208 の Unicode 変換に CP932 の変換テーブル
+# を使う
+# use_cp932_ucs_for_xft = true
+
+# UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに表示する
+# not_use_unicode_font = false
+
+# すべての文字を UNICODE フォントだけを使って表示する
+# only_use_unicode_font = false
+
+# US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
+# iso88591_font_for_usascii = false
+
+# DEC_SPECIAL フォントの罫線文字のグリフを動的に合成
+# compose_dec_special_font = false
+
+# -- Appearance 関連 --
+# 背景透過する
+# use_transbg = false
+  
+# スクロールバーをつける
+# use_scrollbar = true
+
+# スクロールバーのつけ方
+# scrollbar_mode = left
+
+# 使いたいスクロールバーの名前
+# (simple,sample,sample2,sample3,next,motif,athena,mozmodern)
+# scrollbar_view_name = simple
+
+# 端末画面の前景色
+# fg_color = black
+
+# 同背景色
+# bg_color = white
+
+# スクロールバーの前景色
+# sb_fg_color =
+
+# 同背景色
+# sb_bg_color =
+
+# カーソルの前景色
+# cursor_fg_color = 
+
+# 同背景色
+# cursor_bg_color =
+
+# 壁紙にする画像ファイルのパス
+# wall_picture =
+
+# Focus から外れたときの前景/背景色の Fade 率(百分率)
+# fade_ratio = 100
+
+# 背景画像(透過処理含む)の輝度調整(百分率)
+# brightness = 100
+
+# 背景画像(透過処理含む)のコントラスト(百分率)
+# contrast = 100
+
+# 背景画像(透過処理含む)のガンマ値(百分率)
+# gamma = 100
+
+# 行間の広さ
+# line_space = 0
+
+# -- その他 --
+# XIM を使う
+# use_xim = true
+  
+# 起動時に XIM を open する
+# xim_open_in_startup = true
+  
+# タブ幅
+# tabsize = 8
+
+# ログの行数 
+# logsize = 128
+
+# 単語の区切り文字を指定
+# word_separators = " ,.:;/@"
+
+# Meta キーとして使用するキーを指定
+# (none,mod1,mod2,mod3,mod4,meta,alt,super,hyper)
+# mod_meta_key = none
+
+# Meta キーを押下した時の挙動
+# (none,esc,8bit)
+# mod_meta_mode = none
+
+# BEL(0x7)を受け取った時の挙動(none,sound,visual)
+# bel_mode = sound
+  
+# GUI 設定コマンドのパス
+# conf_menu_path_1
+# conf_menu_path_2
+# conf_menu_path_3
+
+# daemon process となるかどうか(none,blend,genuine)
+# daemon_mode = none
+
+# スクロールのショートカットキーとして、PAGE_UP,PAGE_DOWN ショートカット以
+# 外に、Up,Down,j,k,Prior,Next キー及び、SCROLL_UP,SCROLL_DOWN ショートカ
+# ットを有効にするかどうか
+# use_extended_scroll_shortcut = false
+
+# pty をオープンしたときに、端末に送られる初期化文字列を指定する。
+# init_str =
+
+# ダブルクリックの間隔(ミリ秒)
+# click_interval = 250
+  
+# バックスクロール時に端末出力があっても画面が流れないようにする。
+# static_backscroll_mode = false
+
+# pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
+# logging_vt_seq = false

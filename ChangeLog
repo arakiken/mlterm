@@ -1,3 +1,7 @@
+2003-09-26  Araki Ken  <arakiken@users.sf.net>
+
+	* Added font.ja and main.ja
+
 2003-09-25  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c(draw_line): RTL lines shown incorrectly when variable fonts

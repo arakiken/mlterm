@@ -219,11 +219,13 @@ comment $Id$
         エンコーディングの指定
         
         サポートしているエンコーディングは、以下の通りです。
+	
         ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11),
         KOI8-[RUT], ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP1251, CP1255,
         EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213, ISO-2022-JP[1-3],
         EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK, GB18030,
         ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO
+	
         '-' , '_' および、大文字小文字は無視されます。
 
         (注)
@@ -462,7 +464,6 @@ comment $Id$
       o VISCII             ... VISCII フォント
       o TCVN5712_3_1993    ... TCVN5712_3_1993 フォント
       o ISCII              ... ISCII フォント
-      o VISCII             ... VISCII フォント
       o KOI8_R             ... KOI8_R フォント
       o KOI8_U             ... KOI8_U フォント
       o JISX0201_ROMAN     ... JISX0201左面フォント
@@ -474,10 +475,6 @@ comment $Id$
       o JISX0213_2000_1    ... JISX0213_1フォント
       o JISX0213_2000_2    ... JISX0213_2フォント
       o KSX1001_1997       ... KSC5601_1987フォント(KSC5601_1987も可)
-      o UHC                ... UHCフォント(現在のところ使用されません。
-                               UHCの表示にはKSX1001が使われます)
-      o JOHAB              ... JOHABフォント(現在のところ使用されません。
-                               JOHABの表示にはKSX1001が使われます)
       o GB2312_80          ... GB2312_80フォント
       o GBK                ... GBKフォント
       o BIG5               ... BIG5フォント
@@ -485,6 +482,9 @@ comment $Id$
       o CNS11643_1992_N    ... CNS11643_1992_Nフォント
       o ISO10646_UCS4_1    ... UNICODEフォント(1カラム用)
       o ISO10646_UCS4_1_BIWIDTH ... UNICODEフォント(2カラム用)
+
+      (*) KOI8_T,GEORGIAN_PS,CP1251,CP1255 は Unicode フォントが、
+          UHC,JOHAB は KSX1001 フォントが使用されます。
 
         それぞれのボールド体のフォントを指定したい場合には、
         ISO8859_1_BOLD

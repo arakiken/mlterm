@@ -1,0 +1,68 @@
+#
+# font,vfont,tfont,aafont,vaafont,taafont にコピーして
+# 使用してください。
+#
+
+# 罫線文字フォント
+# DEC_SPECIAL =
+
+# ISO8859_1 = 
+# ISO8859_2 = 
+# ISO8859_3 = 
+# ISO8859_4 = 
+# ISO8859_5 = 
+# ISO8859_6 = 
+# ISO8859_7 = 
+# ISO8859_8 = 
+# ISO8859_9 = 
+# ISO8859_10 = 
+# ISO8859_13 = 
+# ISO8859_14 = 
+# ISO8859_15 =
+# ISO8859_16 =
+
+# タイ
+# TIS620 =
+
+# ベトナム
+# VISCII =
+# TCVN5712_3_1993 =
+
+# インド諸語
+# ISCII =
+
+# ロシア
+# KOI8_R =
+
+# ウクライナ
+# KOI8_U =
+
+# 日本
+# JISX0201左面フォント
+# JISX0201_ROMAN =
+# JISX0201右面フォント
+# JISX0201_KATA =
+# JISX0208_1978 =
+# JISX0208_1983 =
+# JISX0208_1990 =
+# JISX0212_1990 =
+# JISX0213_2000_1 =
+# JISX0213_2000_2 =
+
+# ハングル
+# KSX1001_1997 =
+
+# 中国
+# GB2312_80 =
+# GBK =
+
+# 台湾
+# BIG5 =
+# CNS11643_1992_N =
+
+# 香港
+# HKSCS =
+
+# Unicode
+# ISO10646_UCS4_1 =
+# ISO10646_UCS4_1_BIWIDTH =
