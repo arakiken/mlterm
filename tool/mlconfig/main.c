@@ -148,6 +148,7 @@ larger_clicked(
 	)
 {
 	mc_set_str_value( "fontsize" , "larger" , 0) ;
+	mc_flush();
 	
 	return  1 ;
 }
@@ -159,6 +160,7 @@ smaller_clicked(
 	)
 {
 	mc_set_str_value( "fontsize" , "smaller" , 0) ;
+	mc_flush();
 		
 	return  1 ;
 }
@@ -170,6 +172,7 @@ full_reset_clicked(
 	)
 {
 	mc_set_str_value( "full_reset" , "" , 0) ;
+	mc_flush();
 
 	return  1 ;
 }
@@ -181,6 +184,7 @@ pty_button_clicked(
 	)
 {
 	mc_select_pty() ;
+	mc_flush();
 	
 	gtk_main_quit() ;
 	

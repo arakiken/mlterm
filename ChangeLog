@@ -1,3 +1,9 @@
+2003-02-27 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Added mc_flush() for buttons of font larger/smaller,
+	  full reset, and pty select for mlconfig, so that the
+	  change of the configuration is immediately accepted.
+
 2003-02-23  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* REALLY fix the caching bug.
