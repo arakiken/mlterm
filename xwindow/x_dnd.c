@@ -20,7 +20,7 @@
 
 /* --- static variables --- */
 
-/* --- static functuions --- */
+/* --- static functions --- */
 static int
 charset_name2code(
 	char *charset
@@ -52,11 +52,11 @@ is_pref(
 }
 
 
-/* --- global functuions --- */
+/* --- global functions --- */
 
-/**set/reset the window's dnd awereness
+/**set/reset the window's dnd awareness
  *\param win mlterm window
- *\param flag aweaness is set when true
+ *\param flag awareness is set when true
  */
 void
 x_dnd_set_awareness(
@@ -231,7 +231,7 @@ x_dnd_parse(
 		     && (src[1] == 0xFF || src[1] == 0xFE)
 		     && (src[0] != src[1]))
 		{			
-			/* src sequence seems to have a vaild BOM*/
+			/* src sequence seems to have a valid BOM*/
 		}
 		else
 		{
