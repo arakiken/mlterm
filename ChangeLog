@@ -1,6 +1,10 @@
 2003-03-02 Araki Ken <arakiken@users.sf.net>
 
-	* Word selection stops if character set changed.
+	* Compilation failed in mc_flags.c(static char * label[]). Fixed(Removed _N()).
+
+2003-03-02 Araki Ken <arakiken@users.sf.net>
+
+	* Characters whose character sets are the same alone are regarded as one word.
 
 2003-03-02 Araki Ken <arakiken@users.sf.net>
 

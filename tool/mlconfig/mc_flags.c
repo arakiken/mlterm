@@ -32,13 +32,13 @@ static char *configname[MC_FLAG_MODES] = {
 };
 
 static char *label[MC_FLAG_MODES] = {
-	N_("Anti Alias"),
-	N_("Variable column width"),
-	N_("Combining"),
-	N_("Combining = 1 (or 0) logical column(s)"),
-	N_("Process received strings via Unicode"),
-	N_("Fullwidth = 2 (or 1) logical column(s)"),
-	N_("Bidi (UTF8 only)")
+	"Anti Alias",
+	"Variable column width",
+	"Combining",
+	"Combining = 1 (or 0) logical column(s)",
+	"Process received strings via Unicode",
+	"Fullwidth = 2 (or 1) logical column(s)",
+	"Bidi (UTF8 only)"
 };
 
 static GtkWidget *widget[MC_FLAG_MODES];
