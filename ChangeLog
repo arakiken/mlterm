@@ -1,3 +1,8 @@
+2003-02-18 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* mlclient failed to connect to the server. Fixed.
+	  (Thanks to Nanashi san)
+
 2003-02-16 Araki Ken <arakiken@users.sf.net>
 
 	* Mlconfig couldn't apply configuration changes more than once. Fixed.

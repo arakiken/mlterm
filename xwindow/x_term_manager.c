@@ -1810,7 +1810,9 @@ client_connected(void)
 	int  argc ;
 
 	fp = NULL ;
-	
+
+	sock_len = sizeof( addr) ;
+
 	if( ( fd = accept( sock_fd , (struct sockaddr *) &addr , &sock_len)) < 0)
 	{
 	#ifdef  DEBUG
