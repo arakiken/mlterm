@@ -6701,7 +6701,7 @@ cat > conftest.$ac_ext <<EOF
 
 int main() {
 
-char * p = "[" __FUNCTION__ "]";
+char * p = "[" __FUNCTION__ "]" ;
  
 ; return 0; }
 EOF
