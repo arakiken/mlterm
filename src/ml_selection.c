@@ -67,7 +67,6 @@ update_sel_region(
 		if( sel->end_row > sel->base_row_r ||
 			(sel->end_row == sel->base_row_r && sel->end_col >= sel->base_col_r))
 		{
-			kik_debug_printf( "HELO\n") ;
 			rs_beg_col = sel->base_col_r ;
 			rs_beg_row = sel->base_row_r ;
 			rs_end_col = sel->end_col ;
