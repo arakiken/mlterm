@@ -159,7 +159,7 @@ ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 	int  use_transbg , ml_font_present_t  font_present , int  use_bidi ,
 	ml_vertical_mode_t  vertical_mode , int  use_vertical_cursor , int  big5_buggy ,
 	char *  conf_menu_path , ml_iscii_lang_t  iscii_lang , int  use_extended_scroll_shortcut ,
-	int  use_dynamic_comb) ;
+	int  use_dynamic_comb , int  use_bce) ;
 
 int  ml_term_screen_delete( ml_term_screen_t *  termscr) ;
 

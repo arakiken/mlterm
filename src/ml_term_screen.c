@@ -4062,7 +4062,8 @@ ml_term_screen_new(
 	char *  conf_menu_path ,
 	ml_iscii_lang_t  iscii_lang ,
 	int  use_extended_scroll_shortcut ,
-	int  use_dynamic_comb
+	int  use_dynamic_comb ,
+	int  use_bce
 	)
 {
 	ml_term_screen_t *  termscr ;
@@ -4151,7 +4152,8 @@ ml_term_screen_new(
 	termscr->termmdl_listener.scrolled_out_line_received = NULL ;
 
 	if( ! ( termscr->model = ml_term_model_new( &termscr->termmdl_listener ,
-					cols , rows , &sp_ch , &nl_ch , tab_size , num_of_log_lines)))
+					cols , rows , &sp_ch , &nl_ch , tab_size ,
+					num_of_log_lines , use_bce)))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_model_new failed.\n") ;

@@ -587,6 +587,9 @@ ml_image_init(
 	ml_char_init( &image->sp_ch) ;
 	ml_char_copy( &image->sp_ch , sp_ch) ;
 
+	ml_char_init( &image->bce_ch) ;
+	ml_char_copy( &image->bce_ch , sp_ch) ;
+
 	if( ! ml_imgmdl_init( &image->model , num_of_cols , num_of_rows))
 	{
 		return  0 ;
@@ -634,6 +637,9 @@ ml_image_final(
 	ml_line_hints_final( &image->line_hints) ;
 
 	free( image->tab_stops) ;
+
+	ml_char_final( &image->sp_ch) ;
+	ml_char_final( &image->bce_ch) ;
 
 	return  1 ;
 }
@@ -1084,6 +1090,36 @@ ml_image_clear_line_to_right(
 }
 
 int
+ml_image_clear_line_to_right_bce(
+	ml_image_t *  image
+	)
+{
+	int  cols ;
+	int  counter ;
+	ml_image_line_t *  line ;
+
+	reset_wraparound_checker( image) ;
+
+	counter = image->cursor.char_index ;
+	line = CURSOR_LINE(image) ;
+	
+	for( cols = image->cursor.col ; cols < image->model.num_of_cols ; cols ++)
+	{
+		ml_char_copy( &line->chars[counter++] , &image->bce_ch) ;
+	}
+
+	if( counter > line->num_of_filled_chars)
+	{
+		line->num_of_filled_chars = counter ;
+	}
+
+	ml_imgline_set_modified( line , image->cursor.char_index ,
+		ml_imgline_end_char_index( line) , 0) ;
+	
+	return  1 ;
+}
+
+int
 ml_image_clear_line_to_left(
 	ml_image_t *  image
 	)
@@ -1163,6 +1199,38 @@ ml_image_clear_line_to_left(
 }
 
 int
+ml_image_clear_line_to_left_bce(
+	ml_image_t *  image
+	)
+{
+	int  counter ;
+	ml_image_line_t *  line ;
+
+	reset_wraparound_checker( image) ;
+
+	line = CURSOR_LINE(image) ;
+
+	if( image->cursor.col > image->cursor.char_index)
+	{
+		ml_str_copy( &line->chars[image->cursor.col + 1] ,
+			&line->chars[image->cursor.char_index + 1] ,
+			line->num_of_filled_chars - image->cursor.char_index - 1) ;
+
+		line->num_of_filled_chars += (image->cursor.col - image->cursor.char_index) ;
+		image->cursor.char_index = image->cursor.col ;
+	}
+	
+	for( counter = 0 ; counter <= image->cursor.char_index ; counter ++)
+	{
+		ml_char_copy( &line->chars[counter] , &image->bce_ch) ;
+	}
+	
+	ml_imgline_set_modified( line , 0 , image->cursor.char_index , 0) ;
+	
+	return  1 ;
+}
+
+int
 ml_image_clear_below(
 	ml_image_t *  image
 	)
@@ -1170,10 +1238,44 @@ ml_image_clear_below(
 	reset_wraparound_checker( image) ;
 
 	if( ! ml_image_clear_line_to_right( image) ||
-                ! ml_image_clear_lines( image , image->cursor.row + 1 ,
-                    image->model.num_of_filled_rows - (image->cursor.row + 1)))
+		! ml_image_clear_lines( image , image->cursor.row + 1 ,
+			image->model.num_of_filled_rows - (image->cursor.row + 1)))
 	{
 		return  0 ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_image_clear_below_bce(
+	ml_image_t *  image
+	)
+{
+	int  row ;
+	
+	reset_wraparound_checker( image) ;
+
+	if( ! ml_image_clear_line_to_right_bce( image))
+	{
+		return  0 ;
+	}
+
+	for( row = image->cursor.row + 1 ; row < image->model.num_of_rows ; row ++)
+	{
+		int  counter ;
+		ml_image_line_t *  line ;
+
+		line = ml_imgmdl_get_line( &image->model , row) ;
+
+		for( counter = 0 ; counter < image->model.num_of_cols ; counter ++)
+		{
+			ml_char_copy( &line->chars[counter] , &image->bce_ch) ;
+		}
+
+		line->num_of_filled_chars = counter ;
+		
+		ml_imgline_set_modified_all( line) ;
 	}
 
 	return  1 ;
@@ -1190,6 +1292,40 @@ ml_image_clear_above(
 		! ml_image_clear_line_to_left( image))
 	{
 		return  0 ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_image_clear_above_bce(
+	ml_image_t *  image
+	)
+{
+	int  row ;
+	
+	reset_wraparound_checker( image) ;
+
+	if( ! ml_image_clear_line_to_left_bce( image))
+	{
+		return  0 ;
+	}
+
+	for( row = 0 ; row <= image->cursor.row - 1 ; row ++)
+	{
+		int  counter ;
+		ml_image_line_t *  line ;
+
+		line = ml_imgmdl_get_line( &image->model , row) ;
+
+		for( counter = 0 ; counter < image->model.num_of_cols ; counter ++)
+		{
+			ml_char_copy( &line->chars[counter] , &image->bce_ch) ;
+		}
+
+		line->num_of_filled_chars = counter ;
+
+		ml_imgline_set_modified_all( line) ;
 	}
 
 	return  1 ;

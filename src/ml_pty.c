@@ -62,9 +62,6 @@ ml_pty_new(
 			env ++ ;
 		}
 
-		/* for slang */
-		kik_unsetenv( "COLORTERM_BCE") ;
-		
 		/* reset signals and spin off the command interpreter */
 		signal(SIGINT, SIG_DFL) ;
 		signal(SIGQUIT, SIG_DFL) ;

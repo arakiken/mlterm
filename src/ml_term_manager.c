@@ -330,7 +330,7 @@ open_term(
 		term_man->conf.vertical_mode , term_man->conf.use_vertical_cursor ,
 		term_man->conf.big5_buggy , term_man->conf.conf_menu_path ,
 		term_man->conf.iscii_lang , term_man->conf.use_extended_scroll_shortcut ,
-		term_man->conf.use_dynamic_comb)) == NULL)
+		term_man->conf.use_dynamic_comb , term_man->conf.use_bce)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_screen_new() failed.\n") ;
@@ -907,6 +907,8 @@ get_min_conf(
 		"screen width ratio") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
 		"screen height ratio") ;
+	kik_conf_add_opt( conf , '3' , "bce" , 1 , "use_bce" ,
+		"use bce") ;
 	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" ,
 		"support buggy Big5 CTEXT in XFree86 4.1 or earlier") ;
 	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , 
@@ -1198,6 +1200,15 @@ config_init(
 	else
 	{
 		term_man->conf.term_type = xterm ;
+	}
+
+	term_man->conf.use_bce = 0 ;
+	if( ( value = kik_conf_get_value( conf , "use_bce")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.use_bce = 1 ;
+		}
 	}
 	
 	term_man->conf.x = 0 ;

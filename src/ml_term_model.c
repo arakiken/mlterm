@@ -221,7 +221,8 @@ ml_term_model_new(
 	ml_char_t *  sp_ch ,
 	ml_char_t *  nl_ch ,
 	u_int  tab_size ,
-	u_int  num_of_log_lines
+	u_int  num_of_log_lines ,
+	int  use_bce
 	)
 {
 	ml_term_model_t *  termmdl ;
@@ -277,6 +278,8 @@ ml_term_model_new(
 	termmdl->backscroll_rows = 0 ;
 	termmdl->is_backscroll_mode = 0 ;
 
+	termmdl->use_bce = use_bce ;
+
 	return  termmdl ;
 
 error3:
@@ -309,6 +312,8 @@ ml_term_model_delete(
 
 	ml_log_final( &termmdl->logs) ;
 
+	ml_char_final( &termmdl->nl_ch) ;
+
 	free( termmdl) ;
 
 	return  1 ;
@@ -326,7 +331,45 @@ ml_term_model_resize(
 
 	return  1 ;
 }
-	
+
+int
+ml_term_model_use_bce(
+	ml_term_model_t *  termmdl
+	)
+{
+	termmdl->use_bce = 1 ;
+
+	return  1 ;
+}
+
+int
+ml_term_model_unuse_bce(
+	ml_term_model_t *  termmdl
+	)
+{
+	termmdl->use_bce = 0 ;
+
+	return  1 ;
+}
+
+int
+ml_term_model_set_bce_fg_color(
+	ml_term_model_t *  termmdl ,
+	ml_color_t  fg_color
+	)
+{
+	return  ml_char_set_fg_color( &termmdl->image->bce_ch , fg_color) ;
+}
+
+int
+ml_term_model_set_bce_bg_color(
+	ml_term_model_t *  termmdl ,
+	ml_color_t  bg_color
+	)
+{
+	return  ml_char_set_bg_color( &termmdl->image->bce_ch , bg_color) ;
+}
+
 u_int
 ml_term_model_get_cols(
 	ml_term_model_t *  termmdl
@@ -1362,8 +1405,15 @@ int
 ml_term_model_clear_line_to_right(
 	ml_term_model_t *  termmdl
 	)
-{	
-	return  ml_image_clear_line_to_right( termmdl->image) ;
+{
+	if( termmdl->use_bce)
+	{
+		return  ml_image_clear_line_to_right_bce( termmdl->image) ;
+	}
+	else
+	{
+		return  ml_image_clear_line_to_right( termmdl->image) ;
+	}
 }
 
 int
@@ -1371,7 +1421,14 @@ ml_term_model_clear_line_to_left(
 	ml_term_model_t *  termmdl
 	)
 {
-	return  ml_image_clear_line_to_left( termmdl->image) ;
+	if( termmdl->use_bce)
+	{
+		return  ml_image_clear_line_to_left_bce( termmdl->image) ;
+	}
+	else
+	{
+		return  ml_image_clear_line_to_left( termmdl->image) ;
+	}
 }
 
 int
@@ -1379,7 +1436,14 @@ ml_term_model_clear_below(
 	ml_term_model_t *  termmdl
 	)
 {	
-	return  ml_image_clear_below( termmdl->image) ;
+	if( termmdl->use_bce)
+	{
+		return  ml_image_clear_below_bce( termmdl->image) ;
+	}
+	else
+	{
+		return  ml_image_clear_below( termmdl->image) ;
+	}
 }
 
 int
@@ -1387,7 +1451,14 @@ ml_term_model_clear_above(
 	ml_term_model_t *  termmdl
 	)
 {
-	return  ml_image_clear_above( termmdl->image) ;
+	if( termmdl->use_bce)
+	{
+		return  ml_image_clear_above_bce( termmdl->image) ;
+	}
+	else
+	{
+		return  ml_image_clear_above( termmdl->image) ;
+	}
 }
 
 int

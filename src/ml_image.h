@@ -60,6 +60,7 @@ typedef struct  ml_image
 	u_int  tab_size ;
 
 	ml_char_t  sp_ch ;
+	ml_char_t  bce_ch ;
 
 	/* used for line overlapping */
 	ml_image_line_t *  wraparound_ready_line ;
@@ -94,11 +95,19 @@ int  ml_image_delete_line( ml_image_t *  image) ;
 
 int  ml_image_clear_line_to_right( ml_image_t *  image) ;
 
+int  ml_image_clear_line_to_right_bce( ml_image_t *  image) ;
+
 int  ml_image_clear_line_to_left( ml_image_t *  image) ;
+
+int  ml_image_clear_line_to_left_bce( ml_image_t *  image) ;
 
 int  ml_image_clear_below( ml_image_t *  image) ;
 
+int  ml_image_clear_below_bce( ml_image_t *  image) ;
+
 int  ml_image_clear_above( ml_image_t *  image) ;
+
+int  ml_image_clear_above_bce( ml_image_t *  image) ;
 
 int  ml_image_set_scroll_region( ml_image_t *  image , int  beg , int  end) ;
 

@@ -49,6 +49,8 @@ typedef struct  ml_term_model
 	u_int  backscroll_rows ;
 	int8_t  is_backscroll_mode ;
 
+	int8_t  use_bce ;
+
 } ml_term_model_t ;
 
 
@@ -59,11 +61,19 @@ int  ml_free_word_separators(void) ;
 
 ml_term_model_t *  ml_term_model_new( ml_term_model_event_listener_t *  termmdl_listener ,
 	u_int  cols , u_int  rows , ml_char_t *  sp_ch , ml_char_t *  nl_ch ,
-	u_int  tab_size , u_int  num_of_log_lines) ;
+	u_int  tab_size , u_int  num_of_log_lines , int  use_bce) ;
 	
 int  ml_term_model_delete( ml_term_model_t *  termmdl) ;
 
 int  ml_term_model_resize( ml_term_model_t *  termmdl , u_int  cols , u_int  rows) ;
+
+int  ml_term_model_use_bce( ml_term_model_t *  termmdl) ;
+
+int  ml_term_model_unuse_bce( ml_term_model_t *  termmdl) ;
+
+int  ml_term_model_set_bce_fg_color( ml_term_model_t *  termmdl , ml_color_t  fg_color) ;
+
+int  ml_term_model_set_bce_bg_color( ml_term_model_t *  termmdl , ml_color_t  bg_color) ;
 
 u_int  ml_term_model_get_cols( ml_term_model_t *  termmdl) ;
 

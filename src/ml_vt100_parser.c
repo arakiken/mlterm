@@ -512,11 +512,13 @@ change_font_attr(
 	if( fg_color != ML_UNKNOWN_COLOR && fg_color != vt100_parser->fg_color)
 	{
 		vt100_parser->fg_color = fg_color ;
+		ml_term_model_set_bce_fg_color( vt100_parser->termmdl , fg_color) ;
 	}
 
 	if( bg_color != ML_UNKNOWN_COLOR && bg_color != vt100_parser->bg_color)
 	{
 		vt100_parser->bg_color = bg_color ;
+		ml_term_model_set_bce_bg_color( vt100_parser->termmdl , bg_color) ;
 	}
 }
 
@@ -525,6 +527,10 @@ clear_line_all(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
+	/*
+	 * XXX
+	 * cursor position should be restored.
+	 */
 	ml_term_model_goto_beg_of_line( vt100_parser->termmdl) ;
 	ml_term_model_clear_line_to_right( vt100_parser->termmdl) ;
 }
@@ -534,6 +540,10 @@ clear_display_all(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
+	/*
+	 * XXX
+	 * cursor position should be restored.
+	 */
 	ml_term_model_goto_home( vt100_parser->termmdl) ;
 	ml_term_model_clear_below( vt100_parser->termmdl) ;
 }
