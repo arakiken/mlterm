@@ -183,8 +183,7 @@ msb(
 }
 
 
-static void
-/**convert pixbuf into depth 16 pixmap
+/**convert a pixbuf into a pixmap
  *
  *\param display
  *\param screen
@@ -192,56 +191,40 @@ static void
  *\param pixmap where image is rendered(should be created before calling this function)
  *
  */
-pixbuf_to_pixmap_16t(
+static void
+pixbuf_to_pixmap_truecolor(
 	Display *  display,
 	int screen,
 	GdkPixbuf *  pixbuf,
-	Pixmap pixmap
+	Pixmap  pixmap,
+	int  depth 
 	)
 {
-
-	u_int16_t *data ;
 	XImage *  image ;
 
-	unsigned int i, j ;
-	unsigned int width, height, rowstride, bytes_per_pixel ;
-	unsigned char *line ;
-	unsigned char *pixel ;
+	unsigned int  i, j ;
+	unsigned int  width, height, rowstride, bytes_per_pixel ;
+	unsigned char *  line ;
+	unsigned char *  pixel ;
 
-	int r_offset, g_offset, b_offset ;
-	int r_limit, g_limit, b_limit ;
-	long r_mask, g_mask, b_mask ;
-	int matched ;
-	XVisualInfo *vinfolist ;
-	XVisualInfo vinfo ;
+	long  r_mask, g_mask, b_mask ;
+	int  r_offset, g_offset, b_offset;
+	int  matched ;
+	XVisualInfo *  vinfolist ;
+	XVisualInfo  vinfo ;
 
-	if (!pixbuf)
+	if( !pixbuf)
 		return ;
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
 
-	data = (u_int16_t *)malloc( width *  height *  sizeof(long)) ;
-	if( !data)
-		return ;
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
 	if (!vinfo.visualid)
-	{
-		free( data) ;
 		return ;
-	}
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
 	if ( (!matched) || (!vinfolist) )
-	{
-		free( data) ;
 		return ;
-	}
-	image = XCreateImage( display, DefaultVisual( display, screen),
-			      DefaultDepth( display, screen), ZPixmap, 0,
-			      (char *)data,
-			      gdk_pixbuf_get_width( pixbuf),
-			      gdk_pixbuf_get_height( pixbuf),
-			      16,
-			      gdk_pixbuf_get_width( pixbuf) *  2);
+
 	r_mask = vinfolist[0].red_mask ;
 	g_mask = vinfolist[0].green_mask ;
 	b_mask = vinfolist[0].blue_mask ;
@@ -250,96 +233,76 @@ pixbuf_to_pixmap_16t(
 	r_offset = lsb( r_mask) ;
 	g_offset = lsb( g_mask) ;
 	b_offset = lsb( b_mask) ;
-	r_limit = 8 + r_offset - msb( r_mask) ;
-	g_limit = 8 + g_offset - msb( g_mask) ;
-	b_limit = 8 + b_offset - msb( b_mask) ;
+
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
 	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
        	line = gdk_pixbuf_get_pixels (pixbuf) ;
-	for (i = 0; i < height; i++)
+
+	switch ( depth)
 	{
-		pixel = line ;
-		for (j = 0; j < width; j++)
+	case 15:
+	case 16:
+	{		
+		int r_limit, g_limit, b_limit ;
+		u_int16_t *data ;
+
+		data = (u_int16_t *)malloc( width *  height * 2) ;
+		if( !data)
+			return;
+		image = XCreateImage( display, DefaultVisual( display, screen),
+				      DefaultDepth( display, screen), ZPixmap, 0,
+				      (char *)data,
+				      gdk_pixbuf_get_width( pixbuf),
+				      gdk_pixbuf_get_height( pixbuf),
+				      16,
+				      gdk_pixbuf_get_width( pixbuf) *  2);
+		r_limit = 8 + r_offset - msb( r_mask) ;
+		g_limit = 8 + g_offset - msb( g_mask) ;
+		b_limit = 8 + b_offset - msb( b_mask) ;
+		for (i = 0; i < height; i++)
 		{
-			data[i*width +j ] =
-				(((pixel[0] >> r_limit) << r_offset) & r_mask) |
-				(((pixel[1] >> g_limit) << g_offset) & g_mask) |
-				(((pixel[2] >> b_limit) << b_offset) & b_mask) ;
-			pixel += bytes_per_pixel ;
+			pixel = line ;
+			for (j = 0; j < width; j++)
+			{
+				data[i*width +j ] =
+					(((pixel[0] >> r_limit) << r_offset) & r_mask) |
+					(((pixel[1] >> g_limit) << g_offset) & g_mask) |
+					(((pixel[2] >> b_limit) << b_offset) & b_mask) ;
+				pixel += bytes_per_pixel ;
+			}
+			line += rowstride ;
 		}
-		line += rowstride ;
+	}
+	break;
+	case 24:
+	case 32:
+	{
+		u_int32_t *  data ;
+		data = (u_int32_t *)malloc( width *  height * 4) ;
+
+		if( !data)
+			return ;
+		image = XCreateImage( display, DefaultVisual( display, screen),
+				      DefaultDepth( display, screen), ZPixmap, 0,
+				      (char *)data,
+				      gdk_pixbuf_get_width( pixbuf),
+				      gdk_pixbuf_get_height( pixbuf),
+				      32,
+				      gdk_pixbuf_get_width( pixbuf) *  4) ;
+		for( i = 0; i < height; i++){
+			pixel = line ;
+			for( j = 0; j < width; j++){
+				data[i*width +j ] = pixel[0] <<r_offset | pixel[1] <<g_offset | pixel[2]<<b_offset ;
+				pixel +=bytes_per_pixel ;
+			}
+			line += rowstride ;
+		}
+	}
 	}
 
+	
 	XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
 		   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
-
-	XDestroyImage( image) ;
-}
-
-static void
-pixbuf_to_pixmap_24t(
-	Display *  display,
-	int screen,
-	GdkPixbuf *  pixbuf,
-	Pixmap pixmap
-	)
-{
-	u_int32_t *data ;
-	XImage *  image ;
-
-	unsigned int i, j ;
-	unsigned int width, height, rowstride, bytes_per_pixel ;
-	unsigned char *line ;
-	unsigned char *pixel ;
-
-	int r_offset, g_offset, b_offset;
-	int matched ;
-	XVisualInfo *vinfolist ;
-	XVisualInfo vinfo ;
-
-	if (!pixbuf)
-		return ;
-	width = gdk_pixbuf_get_width (pixbuf) ;
-	height = gdk_pixbuf_get_height (pixbuf) ;
-	data = (u_int32_t *)malloc( width *  height *  sizeof(long) ) ;
-	if( !data)
-		return ;
-	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
-	if (!vinfo.visualid)
-	{
-		free( data) ;
-		return ;
-	}
-	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
-	if ( (!matched) || (!vinfolist) )
-	{
-		free( data) ;
-		return ;
-	}
-	image = XCreateImage( display, DefaultVisual( display, screen),
-			      DefaultDepth( display, screen), ZPixmap, 0,
-			      (char *)data,
-			      gdk_pixbuf_get_width( pixbuf),
-			      gdk_pixbuf_get_height( pixbuf),
-			      32,
-			      gdk_pixbuf_get_width( pixbuf) *  4) ;
-	r_offset = lsb( vinfolist[0].red_mask) ;
-	g_offset = lsb( vinfolist[0].green_mask) ;
-	b_offset = lsb( vinfolist[0].blue_mask) ;
-	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
-	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
-       	line = gdk_pixbuf_get_pixels (pixbuf) ;
-	for( i = 0; i < height; i++){
-		pixel = line ;
-		for( j = 0; j < width; j++){
-			data[i*width +j ] = pixel[0] <<r_offset | pixel[1] <<g_offset | pixel[2]<<b_offset ;
-			pixel +=bytes_per_pixel ;
-		}
-		line += rowstride ;
-	}
-	XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
-		   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
-	XFree(vinfolist) ;
 	XDestroyImage( image) ;
 }
 
@@ -351,120 +314,21 @@ pixbuf_to_pixmap(
 	Pixmap pixmap
 	)
 {
-
-	switch (DefaultDepth( display, screen))
-	{
-	case 1:
-		/* XXX not yet supported */
-		break ;
-	case 8:
-		/* XXX not yet supported */
-		break ;
-	case 15:
-	case 16:
-		pixbuf_to_pixmap_16t(
-			display,
-			screen,
-			pixbuf,
-			pixmap) ;
-		break ;
-	case 24:
-		/*FALL THROUGH*/
-	case 32:
-		pixbuf_to_pixmap_24t(
-			display,
-			screen,
-			pixbuf,
-			pixmap) ;
-		break ;
-	default:
-	}
+	pixbuf_to_pixmap_truecolor(
+		display,
+		screen,
+		pixbuf,
+		pixmap,
+		DefaultDepth( display, screen)) ;
 }
 
 static void
-compose_to_pixmap_16t(
+compose_to_pixmap_truecolor(
 	Display *  display,
-	int screen,
+	int  screen,
 	GdkPixbuf *  pixbuf,
-	Pixmap pixmap
-	)
-{
-
-	XImage *  image ;
-
-	unsigned int i, j ;
-	unsigned int width, height, rowstride, bytes_per_pixel ;
-	unsigned char *line ;
-	unsigned char *pixel ;
-
-	int r_offset, g_offset, b_offset;
-	int r_limit, g_limit, b_limit ;
-	long r_mask, g_mask, b_mask ;
-	long r, g, b ;
-	int matched ;
-	XVisualInfo *vinfolist ;
-	XVisualInfo vinfo ;
-	u_int32_t *  data ;
-
-	if (!pixbuf)
-		return ;
-	width = gdk_pixbuf_get_width (pixbuf) ;
-	height = gdk_pixbuf_get_height (pixbuf) ;
-
-
-	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
-	if (!vinfo.visualid)
-		return;
-	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
-	if ( (!matched) || (!vinfolist) )
-		return ;
-
-	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap) ;
-	r_mask = vinfolist[0].red_mask ;
-	g_mask = vinfolist[0].green_mask ;
-	b_mask = vinfolist[0].blue_mask ;
-	XFree( vinfolist) ;
-	r_offset = lsb( r_mask) ;
-	g_offset = lsb( g_mask) ;
-	b_offset = lsb( b_mask) ;
-	r_limit = 8 + r_offset - msb( r_mask) ;
-	g_limit = 8 + g_offset - msb( g_mask) ;
-	b_limit = 8 + b_offset - msb( b_mask) ;
-	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
-	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
-       	line = gdk_pixbuf_get_pixels (pixbuf) ;
-	data = (u_int32_t *)image->data ;
-	for( i = 0; i < height; i++)
-	{
-		pixel = line ;
-		for( j = 0; j < width; j++)
-		{
-			r = ((*data) & r_mask ) >>r_offset ;
-			g = ((*data) & g_mask ) >>g_offset ;
-			b = ((*data) & b_mask ) >>b_offset ;
-			r = (r*(256 - pixel[3]) + ((pixel[0] *  pixel[3])>>r_limit))>>8 ;
-			g = (g*(256 - pixel[3]) + ((pixel[1] *  pixel[3])>>g_limit))>>8 ;
-			b = (b*(256 - pixel[3]) + ((pixel[2] *  pixel[3])>>b_limit))>>8 ;
-			(*data) =
-				((r <<r_offset ) & r_mask) |
-				((g <<g_offset ) & g_mask) |
-				((b <<b_offset ) & b_mask) ;
-			data++ ;
-			pixel += bytes_per_pixel ;
-		}
-		line += rowstride ;
-	}
-	XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
-		   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
-	XDestroyImage( image) ;
-}
-
-static void
-compose_to_pixmap_24t(
-	Display *  display,
-	int screen,
-	GdkPixbuf *  pixbuf,
-	Pixmap pixmap
+	Pixmap  pixmap,
+	int  depth
 	)
 {
 	XImage *  image ;
@@ -478,7 +342,7 @@ compose_to_pixmap_24t(
 	long r_mask, g_mask, b_mask ;
 	long r, g, b ;
 	int matched ;
-	u_int32_t *  data ;
+
 	XVisualInfo *vinfolist ;
 	XVisualInfo vinfo ;
 
@@ -486,7 +350,6 @@ compose_to_pixmap_24t(
 		return ;
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
-
 
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
 	if (!vinfo.visualid)
@@ -500,30 +363,42 @@ compose_to_pixmap_24t(
 	g_mask = vinfolist[0].green_mask ;
 	b_mask = vinfolist[0].blue_mask ;
 	XFree(vinfolist) ;
+
 	r_offset = lsb( r_mask) ;
 	g_offset = lsb( g_mask) ;
 	b_offset = lsb( b_mask) ;
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
        	line = gdk_pixbuf_get_pixels( pixbuf) ;
-	data = (u_int32_t *)(image->data) ;
-	for( i = 0; i < height; i++){
-		pixel = line ;
-		for( j = 0; j < width; j++){
-			r = ((*data) & r_mask ) >>r_offset ;
-			g = ((*data) & g_mask ) >>g_offset ;
-			b = ((*data) & b_mask ) >>b_offset ;
-			r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
-			g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
-			b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
-			*data =
-				((r <<r_offset ) & r_mask) |
-				((g <<g_offset ) & g_mask) |
-				((b <<b_offset ) & b_mask) ;
-			data++ ;
-			pixel +=bytes_per_pixel ;
+
+	switch( depth)
+	{
+	case 24:
+	case 32:
+	{
+		u_int32_t *  data ;
+		data = (u_int32_t *)(image->data) ;
+		for( i = 0; i < height; i++){
+			pixel = line ;
+			for( j = 0; j < width; j++){
+				r = ((*data) & r_mask ) >>r_offset ;
+				g = ((*data) & g_mask ) >>g_offset ;
+				b = ((*data) & b_mask ) >>b_offset ;
+				r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
+				g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
+				b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
+				*data =
+					((r <<r_offset ) & r_mask) |
+					((g <<g_offset ) & g_mask) |
+					((b <<b_offset ) & b_mask) ;
+				data++ ;
+				pixel +=bytes_per_pixel ;
+			}
+			line += rowstride ;
 		}
-		line += rowstride ;
+	}
+	default:
+		break;
 	}
 	XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
 		   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
@@ -535,35 +410,14 @@ compose_to_pixmap(
 	Display *  display,
 	int screen,
 	GdkPixbuf *  pixbuf,
-	Pixmap pixmap){
-
-	switch (DefaultDepth( display, screen)){
-
-	case 1:
-		/* XXX not yet supported */
-		break ;
-	case 8:
-		/* XXX not yet supported */
-		break ;
-	case 15:
-	case 16:
-		compose_to_pixmap_16t(
-			display,
-			screen,
-			pixbuf,
-			pixmap) ;
-		break ;
-	case 24:
-		/*FALL THROUGH*/
-	case 32:
-		compose_to_pixmap_24t(
-			display,
-			screen,
-			pixbuf,
-			pixmap) ;
-		break ;
-	default:
-	}
+	Pixmap pixmap)
+{
+	compose_to_pixmap_truecolor(
+		display,
+		screen,
+		pixbuf,
+		pixmap,
+		DefaultDepth( display, screen)) ;
 }
 
 static void
