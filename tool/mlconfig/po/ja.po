@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
-"POT-Creation-Date: 2003-03-04 22:51+0900\n"
+"POT-Creation-Date: 2003-03-19 20:20+0900\n"
 "PO-Revision-Date: 2002-11-25 19:24+0100\n"
 "Last-Translator: Tomohiro KUBOTA <kubota@debian.org>\n"
 "Language-Team: Japanese <mlterm-dev-ja@lists.sourceforge.net>\n"
@@ -14,75 +14,79 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: tool/mlconfig/main.c:213
-msgid "OK"
-msgstr "OK"
+#: tool/mlconfig/main.c:221
+msgid "Save&Exit"
+msgstr "保存&終了"
 
-#: tool/mlconfig/main.c:218
+#: tool/mlconfig/main.c:222
+msgid "Apply&Exit"
+msgstr "適用&終了"
+
+#: tool/mlconfig/main.c:223
 msgid "Apply"
 msgstr "適用"
 
-#: tool/mlconfig/main.c:223
+#: tool/mlconfig/main.c:224
 msgid "Cancel"
 msgstr "キャンセル"
 
-#: tool/mlconfig/main.c:239
+#: tool/mlconfig/main.c:236
 msgid "Font size"
 msgstr "フォントサイズ"
 
-#: tool/mlconfig/main.c:247
+#: tool/mlconfig/main.c:244
 msgid "Larger"
 msgstr "大きく"
 
-#: tool/mlconfig/main.c:252
+#: tool/mlconfig/main.c:245
 msgid "Smaller"
 msgstr "小さく"
 
-#: tool/mlconfig/main.c:267 tool/mlconfig/main.c:275
+#: tool/mlconfig/main.c:257 tool/mlconfig/main.c:265
 msgid "Full reset"
 msgstr "全リセット"
 
-#: tool/mlconfig/main.c:297
+#: tool/mlconfig/main.c:284
 msgid "PTY List"
 msgstr "仮想端末一覧"
 
-#: tool/mlconfig/main.c:305
+#: tool/mlconfig/main.c:292
 msgid " New "
 msgstr "新規"
 
-#: tool/mlconfig/main.c:310 tool/mlconfig/mc_wall_pic.c:90
+#: tool/mlconfig/main.c:293 tool/mlconfig/mc_wall_pic.c:91
 msgid " Select "
 msgstr "選択"
 
-#: tool/mlconfig/main.c:336
+#: tool/mlconfig/main.c:320
 msgid "mlterm configuration"
 msgstr "mltermの設定"
 
-#: tool/mlconfig/main.c:372 tool/mlconfig/mc_char_encoding.c:187
+#: tool/mlconfig/main.c:356 tool/mlconfig/mc_char_encoding.c:185
 msgid "Encoding"
 msgstr "エンコーディング"
 
-#: tool/mlconfig/main.c:426
+#: tool/mlconfig/main.c:410
 msgid "Font"
 msgstr "フォント"
 
-#: tool/mlconfig/main.c:444
+#: tool/mlconfig/main.c:428
 msgid "Screen ratio against font size"
 msgstr "スクリーンサイズとフォントサイズの割合"
 
-#: tool/mlconfig/main.c:492
+#: tool/mlconfig/main.c:476
 msgid "Background"
 msgstr "背景"
 
-#: tool/mlconfig/main.c:505
+#: tool/mlconfig/main.c:489
 msgid "Picture/Transparent"
 msgstr "壁紙/透明"
 
-#: tool/mlconfig/main.c:540
+#: tool/mlconfig/main.c:524
 msgid "Scrollbar"
 msgstr "スクロールバー"
 
-#: tool/mlconfig/main.c:569
+#: tool/mlconfig/main.c:553
 msgid "Others"
 msgstr "その他"
 
@@ -103,19 +107,19 @@ msgstr "音"
 msgid "Visual"
 msgstr "表示"
 
-#: tool/mlconfig/mc_bgtype.c:113
+#: tool/mlconfig/mc_bgtype.c:116
 msgid "Background type"
 msgstr "背景のタイプ"
 
-#: tool/mlconfig/mc_bgtype.c:120
+#: tool/mlconfig/mc_bgtype.c:123
 msgid "Color"
 msgstr "色"
 
-#: tool/mlconfig/mc_bgtype.c:134 tool/mlconfig/mc_wall_pic.c:80
+#: tool/mlconfig/mc_bgtype.c:137 tool/mlconfig/mc_wall_pic.c:81
 msgid "Picture"
 msgstr "壁紙"
 
-#: tool/mlconfig/mc_bgtype.c:151
+#: tool/mlconfig/mc_bgtype.c:154
 msgid "Transparent"
 msgstr "透明"
 
@@ -123,35 +127,35 @@ msgstr "透明"
 msgid "Brightness"
 msgstr "輝度"
 
-#: tool/mlconfig/mc_char_encoding.c:30
+#: tool/mlconfig/mc_char_encoding.c:31
 msgid "auto"
 msgstr "自動"
 
 #: tool/mlconfig/mc_char_encoding.c:33
 msgid "--- Unicode ---"
-msgstr ""
+msgstr "--- Unicode ---"
 
-#: tool/mlconfig/mc_char_encoding.c:37
+#: tool/mlconfig/mc_char_encoding.c:36
 msgid "--- ISO 8859 encodings ---"
 msgstr "--- ISO 8859 エンコーディング ---"
 
-#: tool/mlconfig/mc_char_encoding.c:55
+#: tool/mlconfig/mc_char_encoding.c:53
 msgid "--- Other 8bit ---"
 msgstr "-- その他8ビット ---"
 
-#: tool/mlconfig/mc_char_encoding.c:63
+#: tool/mlconfig/mc_char_encoding.c:60
 msgid "--- Japanese ---"
 msgstr "--- 日本語 ---"
 
-#: tool/mlconfig/mc_char_encoding.c:73
+#: tool/mlconfig/mc_char_encoding.c:69
 msgid "--- Korean ---"
 msgstr "--- 韓国語 ---"
 
-#: tool/mlconfig/mc_char_encoding.c:80
+#: tool/mlconfig/mc_char_encoding.c:75
 msgid "--- traditional Chinese ---"
 msgstr "--- 中国語(繁体字) ---"
 
-#: tool/mlconfig/mc_char_encoding.c:86
+#: tool/mlconfig/mc_char_encoding.c:80
 msgid "--- simplified Chinese ---"
 msgstr "--- 中国語(簡体字) ---"
 
@@ -278,3 +282,6 @@ msgstr "入力ロケール"
 #: tool/mlconfig/mc_xim.c:224
 msgid "X Input Method"
 msgstr "漢字入力メソッド"
+
+#~ msgid "OK"
+#~ msgstr "OK"

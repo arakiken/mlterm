@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.2\n"
-"POT-Creation-Date: 2003-03-04 22:51+0900\n"
+"POT-Creation-Date: 2003-03-19 20:20+0900\n"
 "PO-Revision-Date: 2002-11-25 19:25+0100\n"
 "Last-Translator: Mike Fabian <mfabian@suse.de>\n"
 "Language-Team: German <suse-i18n@suse.de>\n"
@@ -14,75 +14,80 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: tool/mlconfig/main.c:213
-msgid "OK"
-msgstr "OK"
+#: tool/mlconfig/main.c:221
+msgid "Save&Exit"
+msgstr ""
 
-#: tool/mlconfig/main.c:218
-msgid "Apply"
+#: tool/mlconfig/main.c:222
+#, fuzzy
+msgid "Apply&Exit"
 msgstr "Anwenden"
 
 #: tool/mlconfig/main.c:223
+msgid "Apply"
+msgstr "Anwenden"
+
+#: tool/mlconfig/main.c:224
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: tool/mlconfig/main.c:239
+#: tool/mlconfig/main.c:236
 msgid "Font size"
 msgstr "Font Größe"
 
-#: tool/mlconfig/main.c:247
+#: tool/mlconfig/main.c:244
 msgid "Larger"
 msgstr "Größer"
 
-#: tool/mlconfig/main.c:252
+#: tool/mlconfig/main.c:245
 msgid "Smaller"
 msgstr "Kleiner"
 
-#: tool/mlconfig/main.c:267 tool/mlconfig/main.c:275
+#: tool/mlconfig/main.c:257 tool/mlconfig/main.c:265
 msgid "Full reset"
 msgstr "Alles Zurücksetzen"
 
-#: tool/mlconfig/main.c:297
+#: tool/mlconfig/main.c:284
 msgid "PTY List"
 msgstr ""
 
-#: tool/mlconfig/main.c:305
+#: tool/mlconfig/main.c:292
 msgid " New "
 msgstr ""
 
-#: tool/mlconfig/main.c:310 tool/mlconfig/mc_wall_pic.c:90
+#: tool/mlconfig/main.c:293 tool/mlconfig/mc_wall_pic.c:91
 msgid " Select "
 msgstr "Auswahl"
 
-#: tool/mlconfig/main.c:336
+#: tool/mlconfig/main.c:320
 msgid "mlterm configuration"
 msgstr "mlterm Konfiguration"
 
-#: tool/mlconfig/main.c:372 tool/mlconfig/mc_char_encoding.c:187
+#: tool/mlconfig/main.c:356 tool/mlconfig/mc_char_encoding.c:185
 msgid "Encoding"
 msgstr "Kodierung"
 
-#: tool/mlconfig/main.c:426
+#: tool/mlconfig/main.c:410
 msgid "Font"
 msgstr "Font"
 
-#: tool/mlconfig/main.c:444
+#: tool/mlconfig/main.c:428
 msgid "Screen ratio against font size"
 msgstr "Bildschirmgröße relativ zur Fontgröße"
 
-#: tool/mlconfig/main.c:492
+#: tool/mlconfig/main.c:476
 msgid "Background"
 msgstr "Hintergrund"
 
-#: tool/mlconfig/main.c:505
+#: tool/mlconfig/main.c:489
 msgid "Picture/Transparent"
 msgstr "Bild/Transparenz"
 
-#: tool/mlconfig/main.c:540
+#: tool/mlconfig/main.c:524
 msgid "Scrollbar"
 msgstr "Scrollbalken"
 
-#: tool/mlconfig/main.c:569
+#: tool/mlconfig/main.c:553
 msgid "Others"
 msgstr "Sonstiges"
 
@@ -103,19 +108,19 @@ msgstr "akustisch"
 msgid "Visual"
 msgstr "visuell"
 
-#: tool/mlconfig/mc_bgtype.c:113
+#: tool/mlconfig/mc_bgtype.c:116
 msgid "Background type"
 msgstr "Hintergrundtyp"
 
-#: tool/mlconfig/mc_bgtype.c:120
+#: tool/mlconfig/mc_bgtype.c:123
 msgid "Color"
 msgstr "Farbe"
 
-#: tool/mlconfig/mc_bgtype.c:134 tool/mlconfig/mc_wall_pic.c:80
+#: tool/mlconfig/mc_bgtype.c:137 tool/mlconfig/mc_wall_pic.c:81
 msgid "Picture"
 msgstr "Bild"
 
-#: tool/mlconfig/mc_bgtype.c:151
+#: tool/mlconfig/mc_bgtype.c:154
 msgid "Transparent"
 msgstr "transparent"
 
@@ -123,7 +128,7 @@ msgstr "transparent"
 msgid "Brightness"
 msgstr "Helligkeit"
 
-#: tool/mlconfig/mc_char_encoding.c:30
+#: tool/mlconfig/mc_char_encoding.c:31
 msgid "auto"
 msgstr ""
 
@@ -131,27 +136,27 @@ msgstr ""
 msgid "--- Unicode ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:37
+#: tool/mlconfig/mc_char_encoding.c:36
 msgid "--- ISO 8859 encodings ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:55
+#: tool/mlconfig/mc_char_encoding.c:53
 msgid "--- Other 8bit ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:63
+#: tool/mlconfig/mc_char_encoding.c:60
 msgid "--- Japanese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:73
+#: tool/mlconfig/mc_char_encoding.c:69
 msgid "--- Korean ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:80
+#: tool/mlconfig/mc_char_encoding.c:75
 msgid "--- traditional Chinese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:86
+#: tool/mlconfig/mc_char_encoding.c:80
 msgid "--- simplified Chinese ---"
 msgstr ""
 
@@ -278,3 +283,6 @@ msgstr "XIM Locale"
 #: tool/mlconfig/mc_xim.c:224
 msgid "X Input Method"
 msgstr "X Input Methode"
+
+#~ msgid "OK"
+#~ msgstr "OK"

@@ -1,3 +1,10 @@
+2003-03-19 Tomohiro KUBOTA <kubota@debian.org>
+
+	* mlconfig to have "save&exit", "apply&exit", "apply", and "cancel"
+	  buttons instead of "OK", "apply", and "cancel" buttons.
+	  (Thanks to "Nanashi"-san.)
+	* Updated "po" (gettext) files for the above modification.
+
 2003-03-16 Tomohiro KUBOTA <kubota@debian.org>
 
 	* mlconfig shows window title of each ptys in pty list.

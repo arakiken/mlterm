@@ -57,16 +57,9 @@ end_application(
 	return  FALSE ;
 }
 
-static gint
-cancel_clicked(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
-{
-	gtk_main_quit() ;
-
-	return  FALSE ;
-}
+/*
+ *  ********  procedures when buttons are clicked  ********
+ */
 
 static int
 update(
@@ -110,27 +103,27 @@ update(
 }
 
 static gint
-apply_clicked(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
+cancel_clicked(GtkWidget *widget, gpointer data)
 {
-	update(mc_io_set);
-	
-	return  1 ;
+	gtk_main_quit(); return FALSE;
 }
 
 static gint
-ok_clicked(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
+apply_clicked(GtkWidget *widget, gpointer data)
 {
-	update(mc_io_set_save);
+	update(mc_io_set); return 1;
+}
 
-	gtk_main_quit() ;
-	
-	return  1 ;
+static gint
+saveexit_clicked(GtkWidget *widget, gpointer data)
+{
+	update(mc_io_set_save); gtk_main_quit(); return 1;
+}
+
+static gint
+applyexit_clicked(GtkWidget * widget, gpointer data)
+{
+	update(mc_io_set); gtk_main_quit(); return 1;
 }
 
 static gint
@@ -199,6 +192,21 @@ pty_button_clicked(
 	return  1 ;
 }	
 
+/*
+ *  ********  Building GUI (lower part, independent buttons)  ********
+ */
+
+static void
+addbutton(char *label, gint (func)(), GtkWidget *box)
+{
+	GtkWidget *button;
+	button = gtk_button_new_with_label(label);
+	gtk_signal_connect(GTK_OBJECT(button), "clicked",
+			   GTK_SIGNAL_FUNC(func), NULL);
+	gtk_widget_show(button);
+	gtk_box_pack_start(GTK_BOX(box), button, TRUE, TRUE, 0);
+}
+
 static GtkWidget *
 apply_cancel_button(
 	void
@@ -210,21 +218,10 @@ apply_cancel_button(
 	hbox = gtk_hbox_new(FALSE , 5) ;
 	gtk_widget_show(hbox) ;
 
-	button = gtk_button_new_with_label(_("OK")) ;
-	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(ok_clicked) , NULL) ;
-	gtk_widget_show(button) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
-
-	button = gtk_button_new_with_label(_("Apply")) ;
-	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(apply_clicked) , NULL) ;
-	gtk_widget_show(button) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
-
-	button = gtk_button_new_with_label(_("Cancel")) ;
-	gtk_widget_show(button) ;
-	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(cancel_clicked) , NULL) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
-
+	addbutton(_("Save&Exit"),  saveexit_clicked,  hbox);
+	addbutton(_("Apply&Exit"), applyexit_clicked, hbox);
+	addbutton(_("Apply"),      apply_clicked,     hbox);
+	addbutton(_("Cancel"),     cancel_clicked,    hbox);
 
 	return hbox;
 }
@@ -244,15 +241,8 @@ font_large_small(void)
 	gtk_widget_show(hbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
 
-	button = gtk_button_new_with_label(_("Larger")) ;
-	gtk_widget_show(button) ;
-	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(larger_clicked) , NULL) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
-
-	button = gtk_button_new_with_label(_("Smaller")) ;
-	gtk_widget_show(button) ;
-	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(smaller_clicked) , NULL) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
+	addbutton(_("Larger"),  larger_clicked,  hbox);
+	addbutton(_("Smaller"), smaller_clicked, hbox);
 
 	return frame;
 }
@@ -272,10 +262,7 @@ full_reset(void)
 	gtk_widget_show(hbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
 
-	button = gtk_button_new_with_label( _("Full reset")) ;
-	gtk_widget_show(button) ;
-	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(full_reset_clicked) , NULL) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
+	addbutton(_("Full reset"), full_reset_clicked, hbox);
 	
 	return frame;
 }
@@ -301,21 +288,18 @@ pty_list(void)
 	gtk_container_set_border_width(GTK_CONTAINER(hbox) , 5) ;
 	gtk_widget_show(hbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
-	
-	button = gtk_button_new_with_label( _(" New ")) ;
-	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(pty_new_button_clicked) , NULL) ;
-	gtk_widget_show(button) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;
-	
-	button = gtk_button_new_with_label( _(" Select ")) ;
-	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(pty_button_clicked) , NULL) ;
-	gtk_widget_show(button) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;
+
+	addbutton(_(" New "),    pty_new_button_clicked, hbox);
+	addbutton(_(" Select "), pty_button_clicked,     hbox);
 	
 	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , TRUE , TRUE , 0) ;
 
 	return  frame ;
 }
+
+/*
+ *  ********  Building GUI (main part, page (tab)-separated widgets)  ********
+ */
 
 static int
 show(void)

@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlconfig\n"
-"POT-Creation-Date: 2003-03-04 22:51+0900\n"
+"POT-Creation-Date: 2003-03-19 20:20+0900\n"
 "PO-Revision-Date: 2003-02-09 21:26+0800\n"
 "Last-Translator: Yuan-Chen Cheng <ycheng@slat.org>\n"
 "Language-Team: Chinese (Traditional) <zh-l10n@linux.org.tw>\n"
@@ -13,75 +13,80 @@ msgstr ""
 "Content-Type: text/plain; charset=Big5\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: tool/mlconfig/main.c:213
-msgid "OK"
-msgstr "確定"
+#: tool/mlconfig/main.c:221
+msgid "Save&Exit"
+msgstr ""
 
-#: tool/mlconfig/main.c:218
-msgid "Apply"
+#: tool/mlconfig/main.c:222
+#, fuzzy
+msgid "Apply&Exit"
 msgstr "套用"
 
 #: tool/mlconfig/main.c:223
+msgid "Apply"
+msgstr "套用"
+
+#: tool/mlconfig/main.c:224
 msgid "Cancel"
 msgstr "取消"
 
-#: tool/mlconfig/main.c:239
+#: tool/mlconfig/main.c:236
 msgid "Font size"
 msgstr "字型大小"
 
-#: tool/mlconfig/main.c:247
+#: tool/mlconfig/main.c:244
 msgid "Larger"
 msgstr "大一點"
 
-#: tool/mlconfig/main.c:252
+#: tool/mlconfig/main.c:245
 msgid "Smaller"
 msgstr "小一點"
 
-#: tool/mlconfig/main.c:267 tool/mlconfig/main.c:275
+#: tool/mlconfig/main.c:257 tool/mlconfig/main.c:265
 msgid "Full reset"
 msgstr ""
 
-#: tool/mlconfig/main.c:297
+#: tool/mlconfig/main.c:284
 msgid "PTY List"
 msgstr ""
 
-#: tool/mlconfig/main.c:305
+#: tool/mlconfig/main.c:292
 msgid " New "
 msgstr ""
 
-#: tool/mlconfig/main.c:310 tool/mlconfig/mc_wall_pic.c:90
+#: tool/mlconfig/main.c:293 tool/mlconfig/mc_wall_pic.c:91
 msgid " Select "
 msgstr ""
 
-#: tool/mlconfig/main.c:336
+#: tool/mlconfig/main.c:320
 msgid "mlterm configuration"
 msgstr ""
 
-#: tool/mlconfig/main.c:372 tool/mlconfig/mc_char_encoding.c:187
+#: tool/mlconfig/main.c:356 tool/mlconfig/mc_char_encoding.c:185
 msgid "Encoding"
 msgstr "編碼"
 
-#: tool/mlconfig/main.c:426
+#: tool/mlconfig/main.c:410
 msgid "Font"
 msgstr "字型"
 
-#: tool/mlconfig/main.c:444
+#: tool/mlconfig/main.c:428
 msgid "Screen ratio against font size"
 msgstr ""
 
-#: tool/mlconfig/main.c:492
+#: tool/mlconfig/main.c:476
 msgid "Background"
 msgstr "背景"
 
-#: tool/mlconfig/main.c:505
+#: tool/mlconfig/main.c:489
 msgid "Picture/Transparent"
 msgstr ""
 
-#: tool/mlconfig/main.c:540
+#: tool/mlconfig/main.c:524
 msgid "Scrollbar"
 msgstr ""
 
-#: tool/mlconfig/main.c:569
+#: tool/mlconfig/main.c:553
 msgid "Others"
 msgstr ""
 
@@ -102,19 +107,19 @@ msgstr ""
 msgid "Visual"
 msgstr ""
 
-#: tool/mlconfig/mc_bgtype.c:113
+#: tool/mlconfig/mc_bgtype.c:116
 msgid "Background type"
 msgstr "背景類型"
 
-#: tool/mlconfig/mc_bgtype.c:120
+#: tool/mlconfig/mc_bgtype.c:123
 msgid "Color"
 msgstr "顏色"
 
-#: tool/mlconfig/mc_bgtype.c:134 tool/mlconfig/mc_wall_pic.c:80
+#: tool/mlconfig/mc_bgtype.c:137 tool/mlconfig/mc_wall_pic.c:81
 msgid "Picture"
 msgstr "圖案"
 
-#: tool/mlconfig/mc_bgtype.c:151
+#: tool/mlconfig/mc_bgtype.c:154
 msgid "Transparent"
 msgstr "透明"
 
@@ -122,7 +127,7 @@ msgstr "透明"
 msgid "Brightness"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:30
+#: tool/mlconfig/mc_char_encoding.c:31
 msgid "auto"
 msgstr ""
 
@@ -130,27 +135,27 @@ msgstr ""
 msgid "--- Unicode ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:37
+#: tool/mlconfig/mc_char_encoding.c:36
 msgid "--- ISO 8859 encodings ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:55
+#: tool/mlconfig/mc_char_encoding.c:53
 msgid "--- Other 8bit ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:63
+#: tool/mlconfig/mc_char_encoding.c:60
 msgid "--- Japanese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:73
+#: tool/mlconfig/mc_char_encoding.c:69
 msgid "--- Korean ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:80
+#: tool/mlconfig/mc_char_encoding.c:75
 msgid "--- traditional Chinese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:86
+#: tool/mlconfig/mc_char_encoding.c:80
 msgid "--- simplified Chinese ---"
 msgstr ""
 
@@ -279,6 +284,9 @@ msgstr "輸入法地域"
 #: tool/mlconfig/mc_xim.c:224
 msgid "X Input Method"
 msgstr "輸入法主程式"
+
+#~ msgid "OK"
+#~ msgstr "確定"
 
 #~ msgid "test"
 #~ msgstr "測試"
