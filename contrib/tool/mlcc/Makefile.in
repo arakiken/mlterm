@@ -30,10 +30,10 @@ clean:
 	rm -f $(OBJECTS) $(PROG) core core.* $(PROG).core 
 
 install:
-	$(INSTALL) -m 755 $(PROG) $(BINDIR)
+	$(INSTALL) -m 755 $(PROG) $(bindir)
 
 uninstall:
-	rm -f $(BINDIR)/$(PROG)
+	rm -f $(bindir)/$(PROG)
 
 mostlyclean:
 	rm -f $(OBJECTS) core core.* $(PROG).core 
