@@ -56,6 +56,7 @@ static void _finalize(void){
 	termios_final();
 	unset_altscr();	
 	unset_keypad();	
+	normal_char();
 	cursor_show();
 	exit(0);
 }
