@@ -125,7 +125,7 @@ max_candidate_width(
 
 #define  MAX_NUM_OF_DIGITS 4 /* max is 9999. enough? */
 
-static int
+static void
 draw_screen(
 	x_im_candidate_screen_t *  cand_screen
 	)
