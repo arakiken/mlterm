@@ -1004,11 +1004,6 @@ x_window_show(
 	win->ch_gc = XCreateGC( win->display , win->my_window ,
 			GCGraphicsExposures , &gc_value) ;
 
-	if( win->window_realized)
-	{
-		(*win->window_realized)( win) ;
-	}
-
 	if( win->parent == NULL)
 	{
 		XSizeHints  size_hints ;
@@ -1085,6 +1080,15 @@ x_window_show(
 		protocols[0] = XA_DELETE_WINDOW(win->display) ;
 		
 		XSetWMProtocols( win->display , win->my_window , protocols , 1) ;
+	}
+
+	/*
+	 * This should be called after Window Manager settings, because
+	 * x_set_{window|icon}_name() can be called in win->window_realized().
+	 */
+	if( win->window_realized)
+	{
+		(*win->window_realized)( win) ;
 	}
 
 	XSelectInput( win->display , win->my_window , win->event_mask) ;
@@ -2486,24 +2490,27 @@ x_set_window_name(
 	u_char *  name
 	)
 {
+	x_window_t *  root ;
 	XTextProperty  prop ;
 
+	root = x_get_root_window( win) ;
+	
 	if( name == NULL)
 	{
-		name = win->app_name ;
+		name = root->app_name ;
 	}
 
-	if( XmbTextListToTextProperty( win->display , (char**)&name , 1 , XStdICCTextStyle , &prop)
+	if( XmbTextListToTextProperty( root->display , (char**)&name , 1 , XStdICCTextStyle , &prop)
 		>= Success)
 	{
-		XSetWMName( win->display , x_get_root_window( win)->my_window , &prop) ;
+		XSetWMName( root->display , root->my_window , &prop) ;
 
 		XFree( prop.value) ;
 	}
 	else
 	{
 		/* XXX which is better , doing this or return 0 without doing anything ? */
-		XStoreName( win->display , x_get_root_window( win)->my_window , name) ;
+		XStoreName( root->display , root->my_window , name) ;
 	}
 
 	return  1 ;
@@ -2515,24 +2522,27 @@ x_set_icon_name(
 	u_char *  name
 	)
 {
+	x_window_t *  root ;
 	XTextProperty  prop ;
+
+	root = x_get_root_window( win) ;
 
 	if( name == NULL)
 	{
-		name = win->app_name ;
+		name = root->app_name ;
 	}
 
-	if( XmbTextListToTextProperty( win->display , (char**)&name , 1 , XStdICCTextStyle , &prop)
+	if( XmbTextListToTextProperty( root->display , (char**)&name , 1 , XStdICCTextStyle , &prop)
 		>= Success)
 	{
-		XSetWMIconName( win->display , x_get_root_window( win)->my_window , &prop) ;
+		XSetWMIconName( root->display , root->my_window , &prop) ;
 
 		XFree( prop.value) ;
 	}
 	else
 	{
 		/* XXX which is better , doing this or return 0 without doing anything ? */
-		XSetIconName( win->display , x_get_root_window( win)->my_window , name) ;
+		XSetIconName( root->display , root->my_window , name) ;
 	}
 
 	return  1 ;

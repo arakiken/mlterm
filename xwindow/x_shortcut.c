@@ -196,13 +196,13 @@ x_shortcut_init(
 		{ XK_F1 , ControlMask , 1 , } ,
 
 		/* OPEN_PTY */
-		{ 0 , 0 , 0 , } ,
+		{ XK_F2 , ControlMask , 1 , } ,
 
 		/* NEXT_PTY */
-		{ 0 , 0 , 0 , } ,
+		{ XK_F3 , ControlMask , 1 , } ,
 
 		/* PREV_PTY */
-		{ 0 , 0 , 0 , } ,
+		{ XK_F4 , ControlMask , 1 , } ,
 
 		/* PAGE_UP(compatible with kterm) */
 		{ XK_Prior , ShiftMask , 1 , } ,

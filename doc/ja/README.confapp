@@ -14,19 +14,21 @@ comment $Id$
   この場合、素直に、標準入出力を使用して、mlterm 本体と doc/en/PROTOCOL
   なやりとりを実装することになります。
 
-  標準入出力を経由する設定の取得はセキュリティ面で問題となるため、
-  無効化されています。
+  !!!注意!!!
+  2.7.0 以降、doc/en/PROTOCOL の 5380 は、デフォルト使用禁止になりました。
+  よって、このタイプの設定プログラムの作成は推奨しません。
 
 * GUI 型設定プログラム
-  mlterm 上で、Ctrl+Button3 で起動させるタイプの設定プログラムです。
+  mlterm 上で、Ctrl+Button1,Ctrl+Button2,Ctrl+Button3 で起動させるタイ
+  プの設定プログラムです。
   main() 関数から始まる、通常のスタンドアロンアプリケーションとして設計
   してください。
-  起動させる設定プログラムは、~/.mlterm/main の conf_menu_path オプション
-  で指定できます。(see README.ja)
-  Ctrl+Button3 で起動されたプログラムには、mlterm 本体側で推奨する表示座標
-  が渡されます。
-  その後の mlterm 本体との通信は、標準入出力を介した doc/en/PROTOCOL なや
-  りとりになります。
+  起動させる設定プログラムは、~/.mlterm/main の conf_menu_path_[1-3] オ
+  プションで指定できます。(see README.ja)
+  Ctrl+Button[1-3] で起動されたプログラムには、mlterm 本体側で推奨する
+  表示座標が渡されます。
+  その後の mlterm 本体との通信は、標準入出力を介した doc/en/PROTOCOL 
+  なやりとりになります。
   また、GUI を実装する際に使用する Tookit は問いません。
 
-  実装例) tool/mlconfig
+  実装例) tool/mlconfig contrib/tool/mlterm-menu

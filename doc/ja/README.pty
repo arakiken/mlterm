@@ -1,0 +1,57 @@
+comment -*- mode: text -*-
+comment $Id$
+
+マルチ PTY の使い方について
+
+* 新しい pty セッションの開始
+  ショートカットキー OPEN_PTY(デフォルトでは Ctrl+F2) で、現在表示されて
+  いるウィンドウ内に新しい pty セッションを開始します。
+  ショートカットキー OPEN_SCREEN(デフォルトでは Ctrl+F1) で、新しい ウィン
+  ドウを立ち上げ、その中で新しい pty セッションを開始します。
+
+* Foreground と background の遷移
+  まず、pty が foreground にあるとは、その pty が、いずれかのウィンドウで
+  表示されていることを意味します。
+  逆に background にあるとは、その pty はオープンされていて、その中でなん
+  らかのコンソールアプリケーションが動作しているものの、どのウィンドウにも
+  表示されていないことを意味します。
+
+  Background にある pty を表示するには、ショートカットキー NEXT_PTY(デフォ
+  ルトでは Ctrl+F3)、PREV_PTY(デフォルトでは Ctrl+F4) を使用します。
+
+  なお、Ctrl+左クリックで起動する mlterm-menu により、background にある pty
+  の一覧が表示されます。この中から適当な pty を選択することにより、その pty
+  を表示することができます。
+
+* mlclient からの利用
+  o 現在開いている pty の情報を取得するには
+
+    $ mlclient -P
+    /dev/ttyp0 is active:)
+    /dev/ttyp1 is sleeping.zZ
+
+    /dev/ttyp1 が background に置かれていることを意味しています。
+
+  o Background にある pty を、フォントサイズ 12 で表示するには
+    $ mlclient /dev/ttyp1 -w 12
+	       ^^^^^^^^^^-> background の pty
+
+* pty の名前
+  pty は、/dev/ttyp0 のように pty の slave デバイス名で特定されます。
+  しかし、
+
+  echo -e "\x1b]0;unique_name\x07"
+  echo -e "\x1b]2;unique_name\x07"
+
+  により、その pty の window title を指定してやることにより、わかりや
+  すい名前をつけてやることができます。
+  この名前は、mlterm-menu や mlconfig で表示されます。
+
+* pty セッションの終了
+  その pty で動作しているコンソールアプリケーションを終了(shell であれば、
+  exit) により、pty セッションが終了します。
+  なお、ウィンドウマネージャの [X] ボタンを押下した場合、そこに表示されて
+  いた pty は background に遷移するだけで、セッションは終了しません。
+  また、すべての pty セッションが終了した場合、--daemon=blend or --daemon=none
+  の場合、mlterm プロセスも終了しますが、--daemon=genuine の場合は、mlterm
+  プロセスは終了せず、mlclient に再び pty セッションを開始することができます。

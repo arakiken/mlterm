@@ -90,9 +90,10 @@ comment $Id$
 
     KDE(Qt) と同じ設定でアンチエイリアスを使用できるようになりますので、Xft の設定
     の詳細については、KDE ユーザ会の web ページなどを参照して下さい。
+    (http://www.KDE.gr.jp/~kom/aa.html)
     
     また、KDE(Qt) で発生する不具合は、mlterm でもほぼ同様に再現します。
-    問題が発生した場合は、KDE と同じように対処してください。
+    問題が発生した場合は、KDE(Qt) と同じように対処してください。
 
   o 壁紙、背景透過
     imlib または gdk-pixbuf がインストールされている環境で、いずれかを組み込ん
@@ -101,15 +102,22 @@ comment $Id$
     背景の輝度を調節することもできます。
 
   o マルチPTY
-    単一プロセス中から、最大 32 個まで、pty ウィンドウを起動できます。
-    -P オプションを指定すると、そこで指定した数だけの pty ウィンドウが同時に起動
-    します。
-    また、起動後は、Ctrl+F1(デフォルト)で、新しい pty ウィンドウが起動します。
+    単一プロセス中から、最大 32 個の pty セッションを立ち上げることができます。
+    -P オプションで、mlterm 起動時に立ち上げる pty セッションの数を指定できます。
+    Ctrl+F2(デフォルト)で、新しい pty セッションを立ち上げることができます。
+    -@ オプションで、mlterm 起動時に立ち上げる ウィンドウの数を指定できます。
+    Ctrl+F1(デフォルト)で、新しいウィンドウを立ち上げることができます。
+    Ctrl+F3(NEXT)、Ctrl+F4(PREV)で、ウィンドウ上で表示する pty セッションを切り
+    替えることができます。
+    Ctrl+左ボタン(デフォルト)では、mlterm-menu が起動し、現在 background にある
+    pty に切り替えることができます。
+    (see doc/ja/README.pty)
 
   o マルチXIM
     複数の XIM を動的に切替えて使用することができます。
     たとえば、端末側が UTF8 エンコーディングで、kinput2 と Ami を切替えながら、
     日本語ハングル混在の文章を入力できます。
+    (see doc/ja/README.xim)
 
   o プロポーショナルフォント
     プロポーショナルフォントも使用できます。
@@ -118,15 +126,22 @@ comment $Id$
     プロポーショナルフォントをコラム幅固定で使用する場合、一文字ずつ描画して無理
     矢理隙間を埋めますので、描画パフォーマンスが低下します。
 
+  o 縦書き表示
+    右から左、左から右の縦書き表示をサポートしています。
+    通常日本語の縦書き表示をするためには、-G cjk オプションを指定してください。
+    (see doc/ja/README.tate)
+
   o mlterm configuration protocol
-    設定変更のための専用シーケンスを定義しています(see doc/en/PROTOCOL)
+    設定変更のための専用シーケンスを定義しています。
     それを使うことによっても、設定の動的変更が可能です。
+    (see doc/en/PROTOCOL)
 
   o mlterm server
     mlterm は daemon process として動作することができます。
     その場合、X なしでの起動や、複数のディスプレイ接続が可能です。
     mlterm server が起動していれば、mlclient をフロントエンドとして使用することで、
     端末ウィンドウを開けます。
+    (see doc/ja/README.server)
 
 * 設定
   o 設定ファイル
@@ -181,31 +196,37 @@ comment $Id$
       -- Terminal 関連 --
       o use_loing_shell  (true/*false*)
         ログインシェルを使うかどうか
-        
+       
       o termtype (*xterm*)
         端末タイプ
         デフォルトは xterm だが、mlterm とすることを推奨。
         
-      o ptys  (*1*)
-        起動時に立ち上げるptyウィンドウの数
+      o startup_ptys  (*1*)
+        起動時に立ち上げる pty の数
+
+      o startup_screens (*1*)
+	起動時に立ち上げるウィンドウの数
 
       -- Encoding 関連 --
       o ENCODING  (*auto*) (#)
         エンコーディングの指定
         
         サポートしているエンコーディングは、以下の通りです。
-        ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11), KOI8-R,
-        KOI8-U, TCVN5712, VISCII, EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213, 
-        ISO-2022-JP[1-3], EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK,
-        GB18030, ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO
+        ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11), KOI8-[RUT],
+        ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP1251, CP1255, EUC-JP, EUC-JISX0213,
+	Shift_JIS, Shift_JISX0213, ISO-2022-JP[1-3], EUC-KR, UHC, JOHAB, ISO-2022-KR,
+	GB2312 (EUC-CN), GBK, GB18030, ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, 
+	UTF-8, AUTO
         '-' , '_' および、大文字小文字は無視されます。
 
         (注)
         o pty から流れてくる文字列のエンコーディングを自動認識することはできません。
-        o TIS620、TCVN5712,JISX0213 の合成用ダイアクリティカルマーク、および
+        o TIS620,TCVN5712,JISX0213 の合成用ダイアクリティカルマーク、および
           UNICODE の結合クラス結合文字については、結合文字を動的合成できますので、
           それらを使う場合は、-m オプションをつけて、結合文字サポートを有効にし
           てください。
+	o KOI8_T, GEORGIAN_PS, CP1251, CP1255 については、専用のフォントは存在せず、
+	  Unicode 経由でしか利用できないため、必ず -u オプションを併用してください。
         o AUTO を指定した場合、nl_langinfo -> LC_ALL -> LC_TYPE -> LANGを順番に調
           べ、適当なエンコーディングを選択します。
           ENCODING 指定を行なわなかった場合も同様です。
@@ -300,9 +321,7 @@ comment $Id$
       o compose_dec_special_font (true/*false*)
         DEC_SPECIAL フォントの罫線文字のグリフを動的に合成
 
-       背景透過や壁紙を使用する場合、または、DEC_SPECIAL フォントの特殊文字を
-       使用する場合は、問題が生じますが、それ以外の使い方をされる方は、true に
-       設定することを推奨します。
+        ただし、DEC_SPECIAL フォントの特殊文字は、表示されません。
 
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)
@@ -334,12 +353,18 @@ comment $Id$
       o bg_color  (*white*) (#)
         同背景色
         
-      o sb_fg_color  (#)
+      o sb_fg_color (#)
         スクロールバーの前景色
         
-      o sb_bg_color  (#)
+      o sb_bg_color (#)
         同背景色
-        
+      
+      o cursor_fg_color (#)
+        カーソルの前景色
+
+      o cursor_bg_color (#)
+        同背景色
+
       o wall_picture  (*なし*) (#)
         壁紙にする画像ファイルのパス
 
@@ -348,6 +373,12 @@ comment $Id$
         
       o brightness  (*100*) (#)
         背景画像(透過処理含む)の輝度調整(百分率)
+
+      o contrast (*100*) (#)
+        背景画像(透過処理含む)のコントラスト(百分率)
+
+      o gamma (*100*) (#)
+        背景画像(透過処理含む)のガンマ値(百分率)
 
       o line_space  (*0*) (#)
         行間の広さ
@@ -385,8 +416,10 @@ comment $Id$
 
         soundの場合はビープ音で、visualの場合は画面ブランクでBELを通知します。
         
-      o conf_menu_path  (*/usr/local/libexec/mlconfig*)
-        mlconfig(GUI設定コマンド)のパス
+      o conf_menu_path_[1-3]
+        GUI 設定コマンドのパス
+	conf_menu_path_1 は Ctrl+Button1、conf_menu_path_2 は Ctrl+Button2、
+	conf_menu_path_3 は Ctrl+Button3 により起動されます。
 
       o daemon_mode (*none*/blend/genuine)
         daemon process となるかどうか
@@ -401,14 +434,25 @@ comment $Id$
         以外に、Up,Down,j,k,Prior,Next キー及び、SCROLL_UP,SCROLL_DOWN ショート
         カットを有効にするかどうか
 
+      o init_str
+        pty をオープンしたときに、端末に送られる初期化文字列を指定する。
+
+      o click_interval (*250*)
+        ダブルクリックの間隔(ミリ秒)
+
+      o static_backscroll_mode (true/*false*)
+        バックスクロール時に端末出力があっても画面が流れないようにする。
+
     o font/vfont/aafont/vaafont/tfont/taafont
       o DEC_SPECIAL        ... 罫線文字用のフォント
       o ISO8859_N          ... ISO8859_Nフォント
       o TIS620             ... TIS 620 フォント
       o VISCII             ... VISCII フォント
+      o TCVN5712_3_1993    ... TCVN5712_3_1993 フォント
+      o ISCII              ... ISCII フォント
+      o VISCII             ... VISCII フォント
       o KOI8_R             ... KOI8_R フォント
       o KOI8_U             ... KOI8_U フォント
-      o TCVN5712           ... TCVN5712 フォント
       o JISX0201_ROMAN     ... JISX0201左面フォント
       o JISX0201_KATA      ... JISX0201右面フォント
       o JISX0208_1978      ... JISX0208フォント(JISC6226_1978も可)
@@ -564,12 +608,16 @@ comment $Id$
       o XIM_CLOSE(UNUSED)
       o EXT_KBD(UNUSED)
 	アラビア語、インド諸語の mlterm 内蔵入力メソッドを起動、終了します。
-      o OPEN_SCREEN(Ctrl+F1)
-        新しいPTYを、新しい画面上に開きます。
       o NEW_PTY(Ctrl+F1)
         OPEN_SCREEN と同じ。2.6.0 以降 obsoleted.
-      o OPEN_PTY(UNUSED)
+      o OPEN_SCREEN(Ctrl+F1)
+        新しいPTYを、新しい画面上に開きます。
+      o OPEN_PTY(Ctrl+F2)
         新しいPTYを、現在の画面上に開きます。
+      o NEXT_PTY(Ctrl+F3)
+        Background の PTY を現在の画面上に表示します。
+      o PREV_PTY(Ctrl+F4)
+        Background の PTY を現在の画面上に表示します。
       o PAGE_UP(Shift+Prior)
         ページアップ
       o SCROLL_UP(Shift+Up)
@@ -629,12 +677,20 @@ comment $Id$
     
     -h/--help(=bool)   : ヘルプ (X)
     -v/--version(=bool) : バージョン情報(あまり信用できない:D) (X)
-    
+   
+    -#/--initstr=value : pty をオープンしたときに、端末に送られる初期化文字列
+    -$/--mc=value      : ダブルクリックの間隔(ミリ秒)
+    -0/--crbg=value    : カーソルの背景色
     -1/--wscr=value    : 実スクリーンの横幅
     -2/--hscr=value    : 実スクリーンの縦幅
+    -3/--contrast=value: 背景画像のコントラスト
+    -4/--gamma=value   : 背景画像のガンマ値
     -5/--big5bug(=bool): XFree86-4.1.0 以前の Big5 CTEXT のバグに対応
+    -6/--stbs(=bool)   : バックスクロール時に端末出力があっても画面が流れない
     -7/--bel=value     : BEL(0x7) を受け取った時の挙動
     -8/--88591(=bool)  : USASCII の表示に必ず ISO8859-1 フォントを使用
+    -9/--crfg=value    : カーソルの前景色
+    -@/--screens=value : 起動時に開くウィンドウ数
     -A/--aa(=bool)     : アンチ エイリアスフォントの使用
     -B/--sbbg=value    : スクロールバーの背景色
     -C/--iscii=value   : ISCII にて使用する言語
@@ -647,10 +703,10 @@ comment $Id$
     -J/--dyncomb(=bool) : 結合文字を動的に合成する
     -K/--metakey=value : Meta キーとして使用するキーを指定する
     -L/--ls(=bool)     : ログインシェルを使用
-    -M/--menu=value     : mlconfig のパス
+    -M/--menu=value    : Ctrl+Button3 で起動するコマンドのパス
     -N/--name=value    : アプリケーション名
     -O/--sbmod=value   : スクロールバーのつけ方
-    -P/--ptys=value    : 起動時に立ちあげる pty window の数 (X)
+    -P/--ptys=value    : 起動時に立ちあげる pty の数 (X)
     -Q/--vcur(=bool)   : 縦用カーソルキーを使用
     -R/--fsrange=value : フォントサイズの範囲 (X)
     -S/--sbview=value  : 使いたいスクロールバーの名前
@@ -718,19 +774,16 @@ comment $Id$
     [通常モード]
     Shift-↑     ... バックスクロールモードへ移行しつつ上スクロール
     Shift-PageUp ... バックスクロールモードへ移行しつつページアップ
-    Button2      ... ペースト
-    Shift-space  ... xim 初期化
-    Shift-insert ... ペースト
-    Ctrl+F1      ... 新しいptyウィンドウを起動
 
     [バックスクロールモード]
-    j/↓         ... 下スクロール(use_
-    k/↑         ... 上スクロール
-    u/PageUP     ... ページアップ
-    d/PageDown   ... ページダウン
-    Shift-space  ... xim 初期化
-    Ctrl+F1      ... 新しいptyウィンドウを起動
-    それ以外     ... バックスクロールモードから通常モードへの復帰
+    j/↓         ... 下スクロール(use_extended_scroll_shortcut が true のとき)
+    k/↑         ... 上スクロール(use_extended_scroll_shortcut が true のとき)
+    u/PageUP     ... ページアップ(use_extended_scroll_shortcut が true のとき)
+    d/PageDown   ... ページダウン(use_extended_scroll_shortcut が true のとき)
+    Shift-↑     ... 上スクロール
+    Shift+PageUp ... ページアップ
+    Shift+PageDown ... ページダウン
+    その他のキー入力 ... バックスクロールモードから通常モードへの復帰
 
   o マウス
     ドラッグすれば領域選択できます。
@@ -738,8 +791,9 @@ comment $Id$
     
     コンソールアプリケーションがマウスイベントを横取りしている場合は、Shift + Button
     で領域選択できます。
-    
-    コントロールキー＋右クリック(ボタン3)で、設定画面がでます。
+   
+    Ctrl+左ボタン(ボタン1)で、メニューがでます。 
+    Ctrl+右ボタン(ボタン3)で、設定画面がでます。
 
     スクロールバーは、マウスでドラッグすれば、スクロールされます。
 
