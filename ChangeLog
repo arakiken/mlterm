@@ -1,3 +1,8 @@
+2004-03-01  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* mlterm/ml_vt100_parser.c: ignore leading zeroes in numeric
+	arguments of escape sequences to pass vttest.
+
 2004-02-29  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* documentation updates.

@@ -1078,6 +1078,14 @@ parse_vt100_escape_sequence(
 				num = 0 ;
 				while( num < 5)
 				{
+					while( '0' == *str_p)
+					{
+						if( inc_str_in_esc_seq( vt100_parser->screen ,
+									&str_p , &left , 0) == 0)
+						{
+							return  0 ;
+						}
+					}
 					if( '0' <= *str_p && *str_p <= '9')
 					{
 						u_char  digit[DIGIT_STR_LEN(int)] ;
