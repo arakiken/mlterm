@@ -574,6 +574,9 @@ iscii_visual(
 		
 		if( iscii_logvis->logical_num_of_rows != image->num_of_rows)
 		{
+			void *  p1 ;
+			void *  p2 ;
+			
 			if( iscii_logvis->visual_lines)
 			{
 				for( row = 0 ; row < iscii_logvis->logical_num_of_rows ; row ++)
@@ -590,20 +593,22 @@ iscii_visual(
 				}
 			}
 			
-			if( ( iscii_logvis->visual_lines = realloc( iscii_logvis->visual_lines ,
-					sizeof( ml_image_line_t) * image->num_of_rows)) == NULL)
-			{
-				return  0 ;
-			}
-
-			if( ( iscii_logvis->logical_lines = realloc( iscii_logvis->logical_lines ,
+			if( ( p1 = realloc( iscii_logvis->visual_lines ,
+					sizeof( ml_image_line_t) * image->num_of_rows)) == NULL ||
+				( p2 = realloc( iscii_logvis->logical_lines ,
 					sizeof( ml_image_line_t) * image->num_of_rows)) == NULL)
 			{
 				free( iscii_logvis->visual_lines) ;
 				iscii_logvis->visual_lines = NULL ;
 				
+				free( iscii_logvis->logical_lines) ;
+				iscii_logvis->logical_lines = NULL ;
+				
 				return  0 ;
 			}
+
+			iscii_logvis->visual_lines = p1 ;
+			iscii_logvis->logical_lines = p2 ;
 			
 			iscii_logvis->logical_num_of_rows = image->num_of_rows ;
 		}
@@ -872,6 +877,8 @@ cjk_vert_visual(
 		
 		if( vert_logvis->logical_num_of_cols != image->num_of_cols)
 		{
+			void *  p ;
+			
 			if( vert_logvis->visual_lines)
 			{
 				for( row = 0 ; row < vert_logvis->logical_num_of_cols ; row ++)
@@ -880,9 +887,12 @@ cjk_vert_visual(
 				}
 			}
 
-			if( ( vert_logvis->visual_lines = realloc( vert_logvis->visual_lines ,
+			if( ( p = realloc( vert_logvis->visual_lines ,
 					sizeof( ml_image_line_t) * image->num_of_cols)) == NULL)
 			{
+				free( vert_logvis->visual_lines) ;
+				vert_logvis->visual_lines = NULL ;
+				
 				return  0 ;
 			}
 
@@ -1058,6 +1068,8 @@ mongol_vert_visual(
 		
 		if( vert_logvis->logical_num_of_cols != image->num_of_cols)
 		{
+			void *  p ;
+			
 			if( vert_logvis->visual_lines)
 			{
 				for( row = 0 ; row < vert_logvis->logical_num_of_cols ; row ++)
@@ -1066,11 +1078,16 @@ mongol_vert_visual(
 				}
 			}
 
-			if( ( vert_logvis->visual_lines = realloc( vert_logvis->visual_lines ,
+			if( ( p = realloc( vert_logvis->visual_lines ,
 					sizeof( ml_image_line_t) * image->num_of_cols)) == NULL)
 			{
+				free( vert_logvis->visual_lines) ;
+				vert_logvis->visual_lines = NULL ;
+				
 				return  0 ;
 			}
+
+			vert_logvis->visual_lines = p ;
 
 			vert_logvis->logical_num_of_cols = image->num_of_cols ;
 		}

@@ -9,9 +9,7 @@
 #include  <sys/wait.h>
 #include  <signal.h>
 #include  <kiklib/kik_debug.h>
-
-
-#define  MAX_LISTENERS  10
+#include  <kiklib/kik_mem.h>	/* realloc/free */
 
 
 typedef struct  sig_child_event_listener
@@ -24,7 +22,7 @@ typedef struct  sig_child_event_listener
 
 /* --- static variables --- */
 
-static sig_child_event_listener_t  listeners[MAX_LISTENERS] ;
+static sig_child_event_listener_t *  listeners ;
 static u_int  num_of_listeners ;
 
 
@@ -70,6 +68,11 @@ ml_sig_child_init(void)
 int
 ml_sig_child_final(void)
 {
+	if( listeners)
+	{
+		free( listeners) ;
+	}
+	
 	return  1 ;
 }
 
@@ -79,15 +82,19 @@ ml_add_sig_child_listener(
 	void (*exited)( void * , pid_t)
 	)
 {
-	if( num_of_listeners == MAX_LISTENERS)
+	void *  p ;
+	
+	if( ( p = realloc( listeners , sizeof( *listeners) * (num_of_listeners + 1))) == NULL)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " full of SIG_CHILD listeners.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
 	#endif
 	
 		return  0 ;
 	}
 
+	listeners = p ;
+	
 	listeners[num_of_listeners].self = self ;
 	listeners[num_of_listeners].exited = exited ;
 	
@@ -108,6 +115,10 @@ ml_remove_sig_child_listener(
 		if( listeners[counter].self == self)
 		{
 			listeners[counter] = listeners[-- num_of_listeners] ;
+
+			/*
+			 * memory area of listener is not shrunk.
+			 */
 
 			return  1 ;
 		}

@@ -9,7 +9,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_locale.h>	/* kik_locale_init/kik_get_locale/kik_get_codeset */
-#include  <kiklib/kik_mem.h>	/* alloca */
+#include  <kiklib/kik_mem.h>	/* alloca/realloc */
 
 #include  "ml_xic.h"		/* refering mutually */
 
@@ -53,6 +53,8 @@ close_xim(
 		
 	free( xim->name) ;
 	free( xim->locale) ;
+
+	free( xim->xic_wins) ;
 	
 	return  1 ;
 }
@@ -356,6 +358,8 @@ ml_add_xim_listener(
 	char *  xim_locale
 	)
 {
+	void *  p ;
+	
 	if( strcmp( xim_locale , "C") == 0 ||
 		strcmp( xim_name , "unused") == 0)
 	{
@@ -400,6 +404,18 @@ ml_add_xim_listener(
 	{
 		return  0 ;
 	}
+
+	if( ( p = realloc( win->xim->xic_wins ,
+			sizeof( ml_window_t*) * (win->xim->num_of_xic_wins + 1))) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
+	win->xim->xic_wins = p ;
 	
 	win->xim->xic_wins[ win->xim->num_of_xic_wins ++] = win ;
 	
@@ -425,6 +441,10 @@ ml_remove_xim_listener(
 			win->xim->xic_wins[counter] = win->xim->xic_wins[-- win->xim->num_of_xic_wins] ;
 			win->xim = NULL ;
 
+			/*
+			 * memory area of win->xim->xic_wins is not shrunk.
+			 */
+			
 			return  1 ;
 		}
 	}

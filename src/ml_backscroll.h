@@ -54,6 +54,8 @@ void  ml_unset_backscroll_mode( ml_bs_image_t *  bs_image) ;
 
 int  ml_convert_row_to_bs_row( ml_bs_image_t *  bs_image , int  row) ;
 
+int  ml_convert_row_to_scr_row( ml_bs_image_t *  bs_image , int  row) ;
+
 ml_image_line_t *  ml_bs_get_image_line_in_all( ml_bs_image_t *  bs_image , int  row) ;
 
 ml_image_line_t *  ml_bs_get_image_line_in_screen( ml_bs_image_t *  bs_image , int  row) ;

@@ -14,8 +14,6 @@
 #include  "ml_xim.h"
 
 
-#define  MAX_ROOTS(win_man)  (sizeof((win_man)->roots) / sizeof((win_man)->roots[0]))
-
 #define  FOREACH_ROOTS(win_man,counter) \
 	for( (counter) = 0 ; (counter) < (win_man)->num_of_roots ; (counter) ++)
 
@@ -62,6 +60,11 @@ ml_window_manager_final(
 		ml_window_final( win_man->roots[counter]) ;
 	}
 
+	if( win_man->roots)
+	{
+		free( win_man->roots) ;
+	}
+
 	ml_xim_final() ;
 
 	XCloseDisplay( win_man->display) ;
@@ -78,14 +81,18 @@ ml_window_manager_show_root(
 	int  hint
 	)
 {
-	if( win_man->num_of_roots == MAX_ROOTS(win_man))
+	void *  p ;
+
+	if( ( p = realloc( win_man->roots , sizeof( ml_window_t*) * (win_man->num_of_roots + 1))) == NULL)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " full of root windows.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
 	#endif
 	
 		return  0 ;
 	}
+
+	win_man->roots = p ;
 
 	root->win_man = win_man ;
 	root->parent = NULL ;

@@ -98,11 +98,12 @@ typedef struct  ml_term_manager
 	char *  cmd_path ;
 	char **  cmd_argv ;
 	
-	ml_term_t  terms[5] ;
+	ml_term_t *  terms ;
+	u_int  max_terms ;
 	u_int  num_of_terms ;
 	
-	/* lower 5 bits are used */
-	int  dead_mask ;
+	/* 32 is the very max of terminals */
+	u_int32_t  dead_mask ;
 
 } ml_term_manager_t ;
 

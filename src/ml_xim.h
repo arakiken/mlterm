@@ -12,9 +12,6 @@
 #include  "ml_window.h"
 
 
-#define  MAX_XICS_PER_XIM  5
-
-
 typedef struct  ml_xim
 {
 	XIM  im ;
@@ -25,7 +22,7 @@ typedef struct  ml_xim
 	mkf_parser_t *  parser ;
 	ml_char_encoding_t  encoding ;
 
-	ml_window_t *  xic_wins[MAX_XICS_PER_XIM] ;
+	ml_window_t **  xic_wins ;
 	u_int  num_of_xic_wins ;
 	
 } ml_xim_t ;

@@ -164,7 +164,26 @@ ml_convert_row_to_bs_row(
 	int  row
 	)
 {
-	return row - bs_image->backscroll_rows ;
+	return  row - bs_image->backscroll_rows ;
+}
+
+int
+ml_convert_row_to_scr_row(
+	ml_bs_image_t *  bs_image ,
+	int  row
+	)
+{
+	if( bs_image->backscroll_rows > 0)
+	{
+		row += bs_image->backscroll_rows ;
+		
+		if( row >= ml_image_get_rows( bs_image->image))
+		{
+			return  -1 ;
+		}
+	}
+
+	return  row ;
 }
 
 ml_image_line_t *

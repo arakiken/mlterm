@@ -184,6 +184,7 @@ ml_write_to_pty(
 	u_char *  w_buf ;
 	size_t  w_buf_size ;
 	int  written_size ;
+	void *  p ;
 
 	if( ( w_buf_size = pty->left + len) == 0)
 	{
@@ -240,8 +241,18 @@ ml_write_to_pty(
 	}
 
 	pty->left = w_buf_size - written_size ;
-	pty->buf = realloc( pty->buf , pty->left) ;
 
+	if( ( p = realloc( pty->buf , pty->left)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
+	pty->buf = p ;
+	
 	memcpy( pty->buf , &w_buf[written_size] , pty->left) ;
 
 	return  pty->left ;

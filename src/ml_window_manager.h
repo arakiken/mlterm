@@ -17,7 +17,7 @@ typedef struct  ml_window_manager
 	int  screen ;
 	Window  my_window ;
 
-	ml_window_t *  roots[5] ;
+	ml_window_t **  roots ;
 	u_int  num_of_roots ;
 
 	ml_window_t *  selection_owner ;

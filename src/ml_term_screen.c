@@ -56,21 +56,42 @@
 	((termscr)->screen_scroll_listener && (termscr)->screen_scroll_listener->function)
 
 
-#define  LOGICAL_NUM_OF_COLS(termscr) \
-	( (termscr)->logvis ? (*(termscr)->logvis->logical_cols)( (termscr)->logvis) : \
-		ml_image_get_cols( (termscr)->image))
-		
-#define  LOGICAL_NUM_OF_ROWS(termscr) \
-	( (termscr)->logvis ? (*(termscr)->logvis->logical_rows)( (termscr)->logvis) : \
-		ml_image_get_rows( (termscr)->image))
-
-
 #if  0
 #define  __DEBUG
 #endif
 
 
 /* --- static functions --- */
+
+static u_int
+logical_num_of_cols(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( termscr->logvis)
+	{
+		return  (*termscr->logvis->logical_cols)( termscr->logvis) ;
+	}
+	else
+	{
+		return  ml_image_get_cols( termscr->image) ;
+	}
+}
+
+static u_int
+logical_num_of_rows(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( termscr->logvis)
+	{
+		return  (*termscr->logvis->logical_rows)( termscr->logvis) ;
+	}
+	else
+	{
+		return  ml_image_get_rows( termscr->image) ;
+	}
+}
 
 static int
 convert_row_to_y(
@@ -221,13 +242,19 @@ draw_cursor(
 	int  restore
 	)
 {
+	int  row ;
 	int  x ;
 	int  y ;
 	ml_image_line_t *  line ;
 	ml_image_line_t *  orig ;
 	ml_char_t *  ch ;
 
-	y = convert_row_to_y( termscr , ml_cursor_row( termscr->image)) ;
+	if( ( row = ml_convert_row_to_scr_row( &termscr->bs_image , ml_cursor_row( termscr->image))) == -1)
+	{
+		return  0 ;
+	}
+	
+	y = convert_row_to_y( termscr , row) ;
 	
 	if( ( line = ml_image_get_line( termscr->image , ml_cursor_row( termscr->image))) == NULL ||
 		ml_imgline_is_empty( line))
@@ -471,7 +498,7 @@ highlight_cursor(
 	ml_term_screen_t *  termscr
 	)
 {
-	if( ! termscr->is_cursor_visible || ml_is_backscroll_mode( &termscr->bs_image))
+	if( ! termscr->is_cursor_visible)
 	{
 		return  1 ;
 	}
@@ -498,7 +525,7 @@ unhighlight_cursor(
 	ml_term_screen_t *  termscr
 	)
 {
-	if( ! termscr->is_cursor_visible || ml_is_backscroll_mode( &termscr->bs_image))
+	if( ! termscr->is_cursor_visible)
 	{
 		return  1 ;
 	}
@@ -559,6 +586,8 @@ bs_scroll_upward(
 	ml_term_screen_t *  termscr
 	)
 {
+	unhighlight_cursor( termscr) ;
+	
 	if( ml_bs_scroll_upward( &termscr->bs_image , 1))
 	{
 		redraw_image( termscr) ;
@@ -568,7 +597,9 @@ bs_scroll_upward(
 			(*termscr->screen_scroll_listener->scrolled_upward)(
 				termscr->screen_scroll_listener->self , 1) ;
 		}
-	}	
+	}
+	
+	highlight_cursor( termscr) ;
 }
 
 static void
@@ -576,6 +607,8 @@ bs_scroll_downward(
 	ml_term_screen_t *  termscr
 	)
 {
+	unhighlight_cursor( termscr) ;
+	
 	if( ml_bs_scroll_downward( &termscr->bs_image , 1))
 	{
 		redraw_image( termscr) ;
@@ -586,6 +619,8 @@ bs_scroll_downward(
 				termscr->screen_scroll_listener->self , 1) ;
 		}
 	}
+	
+	highlight_cursor( termscr) ;
 }
 
 static void
@@ -593,6 +628,8 @@ bs_half_page_upward(
 	ml_term_screen_t *  termscr
 	)
 {
+	unhighlight_cursor( termscr) ;
+	
 	if( ml_bs_scroll_upward( &termscr->bs_image , ml_image_get_rows( termscr->image) / 2))
 	{
 		redraw_image( termscr) ;
@@ -604,6 +641,8 @@ bs_half_page_upward(
 				ml_image_get_rows( termscr->image) / 2) ;
 		}
 	}
+	
+	highlight_cursor( termscr) ;
 }
 
 static void
@@ -611,6 +650,8 @@ bs_half_page_downward(
 	ml_term_screen_t *  termscr
 	)
 {
+	unhighlight_cursor( termscr) ;
+	
 	if( ml_bs_scroll_downward( &termscr->bs_image , ml_image_get_rows( termscr->image) / 2))
 	{
 		redraw_image( termscr) ;
@@ -621,7 +662,9 @@ bs_half_page_downward(
 				termscr->screen_scroll_listener->self ,
 				ml_image_get_rows( termscr->image) / 2) ;
 		}
-	}	
+	}
+	
+	highlight_cursor( termscr) ;
 }
 
 static void
@@ -629,6 +672,8 @@ bs_page_upward(
 	ml_term_screen_t *  termscr
 	)
 {
+	unhighlight_cursor( termscr) ;
+	
 	if( ml_bs_scroll_upward( &termscr->bs_image , ml_image_get_rows( termscr->image)))
 	{
 		redraw_image( termscr) ;
@@ -640,6 +685,8 @@ bs_page_upward(
 				ml_image_get_rows( termscr->image)) ;
 		}
 	}
+	
+	highlight_cursor( termscr) ;
 }
 
 static void
@@ -647,6 +694,8 @@ bs_page_downward(
 	ml_term_screen_t *  termscr
 	)
 {
+	unhighlight_cursor( termscr) ;
+	
 	if( ml_bs_scroll_downward( &termscr->bs_image , ml_image_get_rows( termscr->image)))
 	{
 		redraw_image( termscr) ;
@@ -657,7 +706,9 @@ bs_page_downward(
 				termscr->screen_scroll_listener->self ,
 				ml_image_get_rows( termscr->image)) ;
 		}
-	}	
+	}
+	
+	highlight_cursor( termscr) ;
 }
 
 
@@ -2667,11 +2718,11 @@ screen_width(
 	 
 	if( termscr->vertical_mode)
 	{
-		width = LOGICAL_NUM_OF_ROWS(termscr) * ml_col_width( termscr->font_man) ;
+		width = logical_num_of_rows(termscr) * ml_col_width( termscr->font_man) ;
 	}
 	else
 	{
-		width = LOGICAL_NUM_OF_COLS(termscr) * ml_col_width( termscr->font_man) ;
+		width = logical_num_of_cols(termscr) * ml_col_width( termscr->font_man) ;
 	}
 
 	if( termscr->vertical_mode & VERT_FULL_WIDTH)
@@ -2695,11 +2746,11 @@ screen_height(
 	 
 	if( termscr->vertical_mode)
 	{
-		height = LOGICAL_NUM_OF_COLS(termscr) * ml_line_height( termscr->font_man) ;
+		height = logical_num_of_cols(termscr) * ml_line_height( termscr->font_man) ;
 	}
 	else
 	{
-		height = LOGICAL_NUM_OF_ROWS(termscr) * ml_line_height( termscr->font_man) ;
+		height = logical_num_of_rows(termscr) * ml_line_height( termscr->font_man) ;
 	}
 
 	return  (height * termscr->screen_height_ratio) / 100 ;
@@ -4256,7 +4307,7 @@ ml_term_screen_get_cols(
 	ml_term_screen_t *  termscr
 	)
 {
-	return  LOGICAL_NUM_OF_COLS(termscr) ;
+	return  logical_num_of_cols(termscr) ;
 }
 
 u_int
@@ -4264,7 +4315,7 @@ ml_term_screen_get_rows(
 	ml_term_screen_t *  termscr
 	)
 {
-	return  LOGICAL_NUM_OF_ROWS(termscr) ;
+	return  logical_num_of_rows(termscr) ;
 }
 
 ml_picture_modifier_t *

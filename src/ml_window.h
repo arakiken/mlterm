@@ -29,8 +29,6 @@
 #define  ACTUAL_WIDTH(win)  ((win)->width + (win)->margin * 2)
 #define  ACTUAL_HEIGHT(win)  ((win)->height + (win)->margin * 2)
 
-#define  MAX_CHILD_WINDOWS  2
-
 
 typedef enum  ml_event_dispatch
 {
@@ -84,7 +82,7 @@ typedef struct  ml_window
 		int  x ;
 		int  y ;
 		
-	} children[MAX_CHILD_WINDOWS] ;
+	} * children ;
 
 	u_int  num_of_children ;
 	

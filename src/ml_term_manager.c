@@ -16,7 +16,7 @@
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/kik_str_alloca_dup */
 #include  <kiklib/kik_path.h>	/* kik_basename */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
-#include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect */
+#include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect/malloc */
 #include  <kiklib/kik_conf.h>
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_locale.h>	/* kik_get_codeset */
@@ -28,8 +28,6 @@
 #include  "ml_sig_child.h"
 #include  "ml_iscii.h"
 
-
-#define  MAX_TERMS(term_man)  sizeof( (term_man)->terms) / sizeof( (term_man)->terms[0])
 
 #define  FOREACH_TERMS(term_man,counter) \
 	for( (counter) = 0 ; (counter) < (term_man)->num_of_terms ; (counter) ++)
@@ -98,12 +96,12 @@ open_new_term(
 	char *  disp_str ;
 	char *  term ;
 
-	if( term_man->num_of_terms == MAX_TERMS(term_man)
+	if( term_man->num_of_terms == term_man->max_terms
 		/* block until dead_mask is cleared */
 		|| term_man->dead_mask)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " full of terms.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " failed.\n") ;
 	#endif
 	
 		return  0 ;
@@ -396,16 +394,13 @@ delete_term(
 	{
 		exit( 0) ;
 	}
-
+	
 	term_man->num_of_terms -- ;
 
-	if( idx == term_man->num_of_terms)
+	if( idx < term_man->num_of_terms)
 	{
-		memset( term , 0 , sizeof( *term)) ;
-	}
-	else
-	{
-		memcpy( term , &term_man->terms[term_man->num_of_terms] , sizeof( *term)) ;
+		memcpy( &term_man->terms[idx] , &term_man->terms[term_man->num_of_terms] ,
+			sizeof( *term)) ;
 	}
 
 	return  1 ;
@@ -416,29 +411,14 @@ term_closed(
 	ml_term_manager_t *  term_man
 	)
 {
-	if( term_man->dead_mask & 0x1)
+	int  counter ;
+	
+	for( counter = 0 ; counter < term_man->max_terms ; counter ++)
 	{
-		delete_term( term_man , 0) ;
-	}
-
-	if( term_man->dead_mask & 0x2)
-	{
-		delete_term( term_man , 1) ;
-	}
-
-	if( term_man->dead_mask & 0x4)
-	{
-		delete_term( term_man , 2) ;
-	}
-
-	if( term_man->dead_mask & 0x8)
-	{
-		delete_term( term_man , 3) ;
-	}
-
-	if( term_man->dead_mask & 0x10)
-	{
-		delete_term( term_man , 4) ;
+		if( term_man->dead_mask & (0x1 << counter))
+		{
+			delete_term( term_man , counter) ;
+		}
 	}
 	
 	term_man->dead_mask = 0 ;
@@ -501,7 +481,7 @@ close_pty(
 	ml_term_manager_t *  term_man ;
 
 	term_man = p ;
-		
+	
 	FOREACH_TERMS(term_man,counter)
 	{
 		if( root_window == term_man->terms[counter].root_window)
@@ -687,7 +667,7 @@ ml_term_manager_init(
 
 		free( rcpath) ;
 	}
-	
+
 	kik_conf_add_opt( conf , 'd' , "display" , 0 , "display" , 
 		"X server to connect") ;
 	kik_conf_add_opt( conf , 'g' , "geometry" , 0 , "geometry" , 
@@ -738,6 +718,8 @@ ml_term_manager_init(
 		"scrollbar view name") ;
 	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path" ,
 		"command path of mlconfig (GUI configurator)") ;
+	kik_conf_add_opt( conf , 'K' , "maxptys" , 0 , "max_ptys" ,
+		"max ptys to use") ;
 	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "ptys" , 
 		"num of ptys to use in start up") ;
 	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
@@ -1607,27 +1589,39 @@ ml_term_manager_init(
 		term_man->vertical_mode = ml_get_vertical_mode( value) ;
 	}
 
+	term_man->max_terms = 5 ;
+
+	if( ( value = kik_conf_get_value( conf , "max_ptys")))
+	{
+		u_int  max ;
+
+		/*
+		 * max_ptys are 1 - 32.
+		 * 32 is the limit of dead_mask(32bit).
+		 */
+		if( ! kik_str_to_uint( &max , value) || max == 0 || max > 32)
+		{
+			kik_msg_printf( "max ptys %s is not valid.\n" , value) ;
+		}
+		else
+		{
+			term_man->max_terms = max ;
+		}
+	}
+
 	term_man->num_of_startup_terms = 1 ;
 	
 	if( ( value = kik_conf_get_value( conf , "ptys")))
 	{
 		u_int  ptys ;
 		
-		if( ! kik_str_to_uint( &ptys , value))
+		if( ! kik_str_to_uint( &ptys , value) || ptys > term_man->max_terms)
 		{
 			kik_msg_printf( "ptys %s is not valid.\n" , value) ;
 		}
 		else
 		{
 			term_man->num_of_startup_terms = ptys ;
-		}
-		
-		if( term_man->num_of_startup_terms > MAX_TERMS(term_man))
-		{
-			kik_msg_printf( "you cannot open more than %d ptys at the same time.\n" ,
-				MAX_TERMS(term_man)) ;
-
-			term_man->num_of_startup_terms = MAX_TERMS(term_man) ;
 		}
 	}
 
@@ -1673,7 +1667,15 @@ ml_term_manager_init(
 	
 	kik_conf_delete( conf) ;
 
-	memset( &term_man->terms , 0 , sizeof( term_man->terms)) ;
+	if( ( term_man->terms = malloc( sizeof( ml_term_t) * term_man->max_terms)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
+	#endif
+		
+		return  0 ;
+	}
+
 	term_man->num_of_terms = 0 ;
 	term_man->dead_mask = 0 ;
 
@@ -1718,6 +1720,8 @@ ml_term_manager_final(
 		ml_pty_delete( term_man->terms[counter].pty) ;
 		ml_font_manager_delete( term_man->terms[counter].font_man) ;
 	}
+
+	free( term_man->terms) ;
 	
 	ml_window_manager_final( &term_man->win_man) ;
 	ml_color_manager_final( &term_man->color_man) ;

@@ -12,7 +12,7 @@
 #include  <X11/Xutil.h>		/* for XSizeHints */
 #include  <X11/Xatom.h>
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_mem.h>	/* alloca */
+#include  <kiklib/kik_mem.h>	/* alloca/realloc */
 #include  <mkf/mkf_charset.h>	/* mkf_charset */
 
 #include  "ml_xic.h"
@@ -1243,7 +1243,7 @@ ml_window_init(
 #endif
 
 	win->parent = NULL ;
-	memset( win->children , 0 , sizeof( *win->children) * MAX_CHILD_WINDOWS) ;
+	win->children = NULL ;
 	win->num_of_children = 0 ;
 
 	win->use_pixmap = 0 ;
@@ -1323,6 +1323,11 @@ ml_window_final(
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
 		ml_window_final( win->children[counter].window) ;
+	}
+
+	if( win->children)
+	{
+		free( win->children) ;
 	}
 	
 	if( win->orig_fg_xcolor)
@@ -1927,15 +1932,18 @@ ml_window_add_child(
 	int  y
 	)
 {
-	if( win->num_of_children == MAX_CHILD_WINDOWS)
+	void *  p ;
+	
+	if( ( p = realloc( win->children , sizeof( *win->children) * (win->num_of_children + 1))) == NULL)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" this ml_window_t , full of children , cannot be added more children to.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
 	#endif
 	
 		return  0 ;
 	}
+
+	win->children = p ;
 
 	/*
 	 * on the contrary , the root window does not have the ref of parent , but that of win_man.
