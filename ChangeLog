@@ -1,9 +1,15 @@
 2002-04-27 Araki Ken <arakiken@users.sf.net>
 
+	* kik_utmp_sysv.c patch is merged.
+	  (Thanks to Nadim Shaikli)
+
+2002-04-27 Araki Ken <arakiken@users.sf.net>
+
 	* ml_term_model_t is dynamically plugged in ml_term_screen_t from outside,
 	  instead of being internally created.
 	* ml_sb_view_factory manages reference counter of each library so as not
 	  to unload a library which is used by other terminals.
+	  (Thanks to Sato Seiichi san)
 
 2002-04-27 Araki Ken <arakiken@users.sf.net>
 
