@@ -1,3 +1,8 @@
+2003-10-04  Araki Ken  <arakiken@users.sf.net>
+
+	* Added --with-tools and --with-scrollbars description to README and
+	  README.ja.
+
 2003-10-01  Araki Ken  <arakiken@users.sf.net>
 
 	* Modified some documents.

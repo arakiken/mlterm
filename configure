@@ -12,7 +12,7 @@ ac_help=
 ac_default_prefix=/usr/local
 # Any additions from configure.in:
 ac_help="$ac_help
-  --with-libtool          libtool path[without]"
+  --with-libtool          libtool path[default=without]"
 ac_help="$ac_help
   --enable-shared[=PKGS]  build shared libraries [default=yes]"
 ac_help="$ac_help
@@ -187,25 +187,25 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-x                use the X Window System"
 ac_help="$ac_help
-  --enable-debug          debug[disabled]"
+  --enable-debug          debug[default=disabled]"
 ac_help="$ac_help
-  --enable-fribidi        bidi[disabled]"
+  --enable-fribidi        bidi[default=disabled]"
 ac_help="$ac_help
   --with-imagelib[=ARG]   image library (imlib|gdk-pixbuf2|gdk-pixbuf1)"
 ac_help="$ac_help
-  --enable-anti-alias     anti alias[disabled]"
+  --enable-anti-alias     anti alias[default=disabled]"
 ac_help="$ac_help
-  --enable-ind            libind[disabled]"
+  --enable-ind            libind[default=disabled]"
 ac_help="$ac_help
-  --enable-utmp           utmp[disabled]"
+  --enable-utmp           utmp[default=disabled]"
 ac_help="$ac_help
-  --with-tools[=ARG]      external tools [mlclient,mlconfig,mlterm-menu,mlcc]"
+  --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlterm-menu,mlcc]"
 ac_help="$ac_help
-  --with-libltdl[=PREFIX] load modules with libltdl[without]"
+  --with-libltdl[=PREFIX] load modules with libltdl[default=without]"
 ac_help="$ac_help
-  --with-scrollbars[=ARG] scrollbar plugins [sample,extra]"
+  --with-scrollbars[=ARG] scrollbar plugins [default=sample,extra]"
 ac_help="$ac_help
-  --enable-optimize-redrawing optimize redrawing a line[disabled]"
+  --enable-optimize-redrawing optimize redrawing a line[default=disabled]"
 ac_help="$ac_help
   --disable-dependency-tracking Speeds up one-time builds
   --enable-dependency-tracking  Do not reject slow dependency extractors"

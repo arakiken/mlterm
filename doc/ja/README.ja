@@ -70,6 +70,13 @@ comment $Id$
     --enable-optimize-redrawing
       行の再描画処理を高速化します。(但し、w3m-img で副作用が出ます)
 
+    --with-scrollbars
+      scrollbar/ か contrib/scrollbar/ 以下の指定されたスクロールバーをビルドし
+      ます。
+
+    --with-tools
+      tool/ か contrib/tool/ 以下の指定されたツールをビルドします。
+
     --disable-shared
       共有ライブラリを構築しません。
 

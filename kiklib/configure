@@ -12,7 +12,7 @@ ac_help=
 ac_default_prefix=/usr/local
 # Any additions from configure.in:
 ac_help="$ac_help
-  --with-libtool          libtool path[without]"
+  --with-libtool          libtool path[default=without]"
 ac_help="$ac_help
   --enable-shared[=PKGS]  build shared libraries [default=yes]"
 ac_help="$ac_help
@@ -185,9 +185,9 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-pic              try to use only PIC/non-PIC objects [default=use both]"
 ac_help="$ac_help
-  --with-libltdl[=PREFIX] load modules with libltdl[without]"
+  --with-libltdl[=PREFIX] load modules with libltdl[default=without]"
 ac_help="$ac_help
-  --enable-debug          debug[disabled]"
+  --enable-debug          debug[default=disabled]"
 
 # Initialize some variables set by options.
 # The variables have the same names as the options, with

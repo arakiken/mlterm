@@ -43,6 +43,12 @@ Options for configure
   --enable-optimize-redrawing
     Optimize redrawing a line
 
+  --with-scrollbars
+    Build specified scrollbars in a scrollbar/ or contrib/scrollbar/ directory.
+
+  --with-tools
+    Build specified tools in a tool/ or contrib/tool/ directory.
+
   --disable-shared
     Disable shared libraries
 
