@@ -2102,6 +2102,21 @@ selecting_with_motion(
 	}
 	else
 	{
+		if( ml_is_after_sel_right_base_pos( &termscr->sel , char_index , bs_row))
+		{
+			if( char_index > 0)
+			{
+				char_index -- ;
+			}
+		}
+		else if( ml_is_before_sel_left_base_pos( &termscr->sel , char_index , bs_row))
+		{
+			if( char_index < line->num_of_filled_chars - 1)
+			{
+				char_index ++ ;
+			}
+		}
+		
 		if( ml_selected_region_is_changed( &termscr->sel , char_index , bs_row , 1))
 		{
 			ml_selecting( &termscr->sel , char_index , bs_row) ;

@@ -1047,8 +1047,8 @@ ml_bidi_convert_logical_char_index_to_visual(
 {
 	if( ! line->visual_order)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " visual_order is NULL\n") ;
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " visual_order is NULL\n") ;
 	#endif
 	
 		return  char_index ;
@@ -1074,8 +1074,8 @@ ml_bidi_convert_visual_char_index_to_logical(
 
 	if( ! line->visual_order)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " visual_order is NULL\n") ;
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " visual_order is NULL\n") ;
 	#endif
 	
 		return  char_index ;

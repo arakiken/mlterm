@@ -54,7 +54,7 @@ update_sel_region(
 	do_restore = 0 ;
 
 	if( sel->beg_row > row || (sel->beg_row == row && sel->beg_col > col))
-	{	 
+	{
 		rv_beg_col = col ;
 		rv_beg_row = row ;
 		rv_end_col = sel->beg_col ;
@@ -63,24 +63,25 @@ update_sel_region(
 
 		sel->beg_col = col ;
 		sel->beg_row = row ;
-		
-		if( sel->end_row > sel->base_row_l ||
-			(sel->end_row == sel->base_row_l && sel->end_col > sel->base_col_l))
+
+		if( sel->end_row > sel->base_row_r ||
+			(sel->end_row == sel->base_row_r && sel->end_col >= sel->base_col_r))
 		{
+			kik_debug_printf( "HELO\n") ;
 			rs_beg_col = sel->base_col_r ;
 			rs_beg_row = sel->base_row_r ;
 			rs_end_col = sel->end_col ;
 			rs_end_row = sel->end_row ;
 			do_restore = 1 ;
 			
-			sel->end_col = sel->base_col_r ;
-			sel->end_row = sel->base_row_r ;
+			sel->end_col = sel->base_col_l ;
+			sel->end_row = sel->base_row_l ;
 		}
 	}
-	else if((sel->beg_row < row || (sel->beg_row == row && sel->beg_col < col)) &&
-		(sel->end_row > row || (sel->end_row == row && sel->end_col > col)))
+	else if((sel->beg_row < row || (sel->beg_row == row && sel->beg_col <= col)) &&
+		(sel->end_row > row || (sel->end_row == row && sel->end_col >= col)))
 	{
-		if( row > sel->base_row_l || (row == sel->base_row_l && col > sel->base_col_l))
+		if( row > sel->base_row_r || (row == sel->base_row_r && col >= sel->base_col_r))
 		{
 			rs_beg_col = col + 1 ;	/* don't restore col itself */
 			rs_beg_row = row ;
@@ -91,7 +92,7 @@ update_sel_region(
 			sel->end_col = col ;
 			sel->end_row = row ;
 		}
-		else if( row < sel->base_row_r || (row == sel->base_row_r && col < sel->base_col_r))
+		else if( row < sel->base_row_l || (row == sel->base_row_l && col <= sel->base_col_l))
 		{
 			rs_beg_col = sel->beg_col ;
 			rs_beg_row = sel->beg_row ;
@@ -114,8 +115,8 @@ update_sel_region(
 		sel->end_col = col ;
 		sel->end_row = row ;
 		
-		if( sel->beg_row < sel->base_row_r ||
-			(sel->beg_row == sel->base_row_r && sel->beg_col < sel->base_col_r))
+		if( sel->beg_row < sel->base_row_l ||
+			(sel->beg_row == sel->base_row_l && sel->beg_col <= sel->base_col_l))
 		{
 			rs_beg_col = sel->beg_col ;
 			rs_beg_row = sel->beg_row ;
@@ -123,20 +124,9 @@ update_sel_region(
 			rs_end_row = sel->base_row_l ;
 			do_restore = 1 ;
 			
-			sel->beg_col = sel->base_col_l ;
-			sel->beg_row = sel->base_row_l ;
+			sel->beg_col = sel->base_col_r ;
+			sel->beg_row = sel->base_row_r ;
 		}
-	}
-
-	if( do_restore)
-	{
-		sel->sel_listener->restore_color( sel->sel_listener->self ,
-			rs_beg_col , rs_beg_row , rs_end_col , rs_end_row) ;
-
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " restoring %d %d %d %d\n" , rs_beg_col , rs_beg_row ,
-			rs_end_col , rs_end_row) ;
-	#endif
 	}
 
 	if( do_reverse)
@@ -147,6 +137,17 @@ update_sel_region(
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " reversing %d %d %d %d\n" , rv_beg_col , rv_beg_row ,
 			rv_end_col , rv_end_row) ;
+	#endif
+	}
+
+	if( do_restore)
+	{
+		sel->sel_listener->restore_color( sel->sel_listener->self ,
+			rs_beg_col , rs_beg_row , rs_end_col , rs_end_row) ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " restoring %d %d %d %d\n" , rs_beg_col , rs_beg_row ,
+			rs_end_col , rs_end_row) ;
 	#endif
 	}
 
@@ -350,6 +351,40 @@ ml_selected_region_is_changed(
 	)
 {
 	if( abs( sel->prev_col - col) >= base || abs( sel->prev_row - row) >= base)
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+int
+ml_is_after_sel_right_base_pos(
+	ml_selection_t *  sel ,
+	int  col ,
+	int  row
+	)
+{
+	if( sel->base_row_r < row || (sel->base_row_r == row && sel->base_col_r < col))
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+int
+ml_is_before_sel_left_base_pos(
+	ml_selection_t *  sel ,
+	int  col ,
+	int  row
+	)
+{
+	if( sel->base_row_l > row || (sel->base_row_l == row && sel->base_col_l > col))
 	{
 		return  1 ;
 	}

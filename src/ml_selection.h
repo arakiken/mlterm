@@ -63,5 +63,9 @@ int  ml_selected_region_is_changed( ml_selection_t *  sel , int  col , int  row 
 
 int  ml_sel_upward_scrolled_out( ml_selection_t *  sel , u_int  height) ;
 
+int  ml_is_after_sel_right_base_pos( ml_selection_t *  sel , int  col , int  row) ;
+
+int  ml_is_before_sel_left_base_pos( ml_selection_t *  sel , int  col , int  row) ;
+
 
 #endif

@@ -1,4 +1,9 @@
 [20020108]
+* fribidi 0.10.0(where FriBidiStrIndex is 32bit , not 16bit) is supported.
+* selecting region policy is changed(character is selected after mouse
+  pointer passing over it) , and some bug are fixed.
+
+[20020108]
 * mlterm with --enable-debug option can dump core owing to failure of 
   list operations. fixed. (thanks to Karl Koehler)
 * ISCII / Bidi codes are more shared.

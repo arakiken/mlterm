@@ -29,7 +29,8 @@ ml_bidi(
 	)
 {
 	FriBidiChar *  fri_src ;
-	FriBidiCharType  type ;
+	FriBidiCharType  fri_type ;
+	FriBidiStrIndex *  fri_order ;
 	u_char *  bytes ;
 	int  counter ;
 
@@ -39,6 +40,15 @@ ml_bidi(
 	}
 
 	if( ( fri_src = alloca( sizeof( FriBidiChar) * size)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
+	if( ( fri_order = alloca( sizeof( FriBidiStrIndex) * size)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
@@ -74,18 +84,32 @@ ml_bidi(
 		}
 	}
 
-	/* initial state */
-	type = FRIBIDI_TYPE_LTR ;
-
-	fribidi_log2vis( fri_src , size , &type , NULL , order , NULL , NULL) ;
-
 #ifdef  __DEBUG
-	printf( "visual order => ") ;
+	fprintf( stderr , "utf8 text => \n") ;
 	for( counter = 0 ; counter < size ; counter ++)
 	{
-		printf( "%.2d" , order[counter]) ;
+		fprintf( stderr , "%.4x " , fri_src[counter]) ;
 	}
-	printf( "\n") ;
+	fprintf( stderr , "\n") ;
+#endif
+
+	/* initial state */
+	fri_type = FRIBIDI_TYPE_LTR ;
+
+	fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
+
+	for( counter = 0 ; counter < size ; counter ++)
+	{
+		order[counter] = fri_order[counter] ;
+	}
+	
+#ifdef  __DEBUG
+	fprintf( stderr , "visual order => ") ;
+	for( counter = 0 ; counter < size ; counter ++)
+	{
+		fprintf( stderr , "%.2d " , order[counter]) ;
+	}
+	fprintf( stderr , "\n") ;
 #endif
 
 #ifdef  DEBUG

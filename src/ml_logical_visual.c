@@ -116,8 +116,8 @@ bidi_visual(
 	{
 		if( ! ml_imgline_bidi_visual( &IMAGE_LINE(image,row)))
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " visualize row %d failed.\n" , row) ;
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " visualize row %d failed.\n" , row) ;
 		#endif
 		}
 	}
@@ -157,8 +157,8 @@ bidi_logical(
 	{
 		if( ! ml_imgline_bidi_logical( &IMAGE_LINE(image,row)))
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " visualize row %d failed.\n" , row) ;
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " visualize row %d failed.\n" , row) ;
 		#endif
 		}
 	}

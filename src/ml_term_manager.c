@@ -1110,6 +1110,14 @@ ml_term_manager_init(
 		/* For each value not found, the argument is left unchanged.(see man XParseGeometry(3)) */
 		term_man->geom_hint = XParseGeometry( value , &term_man->x , &term_man->y ,
 						&term_man->cols , &term_man->rows) ;
+
+		if( term_man->cols == 0 || term_man->rows == 0)
+		{
+			kik_msg_printf( "geometry option %s is illegal.\n" , value) ;
+			
+			term_man->cols = 80 ;
+			term_man->rows = 30 ;
+		}
 	}
 
 	if( ( value = kik_conf_get_value( conf , "fontsize")) == NULL)
