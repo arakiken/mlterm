@@ -140,13 +140,14 @@ comment $Id$
       o use_combining  ... 結合文字を動的合成する(true/*false*)
       o use_transbg    ... 背景透過する(true/*false*)
 
+      o big5_buggy              ... Big5 CTEXT のバグ(XFree86 4.1.0 以前)に対応する(true/*false*)
       o unicode_to_other_cs     ... UNICODE文字をUNICODE以外の適当な文字集合に変換する(true/*false*)
       o all_cs_to_unicode       ... US_ASCII以外のすべての文字をUNICODEに変換する(true/*false*)
       o conv_to_generic_iso2022 ... ISO2022準拠のencoding使用時、ペーストする文字列が、厳密に
                                     そのencodingに変換できなくても、できるだけ柔軟に変換する
                                     (true/*false*)
       o pre_conv_xct_to_ucs     ... ペーストされたXCOMPOUND TEXTを一旦UCSにmappingしてから、
-                    現在のエンコーディングに変換する。(true/*false*)
+                                    現在のエンコーディングに変換する。(true/*false*)
 
       o col_size_of_width_a     ... UNICODEのEastAsianWidth.txtのAプロパティのコラム数(*1*/2)
 

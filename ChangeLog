@@ -1,4 +1,10 @@
 [20011214]
+* mlconfig is replaced by the new one designed by Kubota Tomohiro san(thanks)
+* mlconfig works asynchronous.
+* documentation for big5_buggy option is added.
+* memory leaks when pre_conv_xct_to_ucs option is changed more than twice. fixed.
+
+[20011214]
 * mlterm can core dump in kik_locale_init(). fixed.
 * XA_STRING property is supported in copy and paste.
 * cursor-control characters inside ESC sequences are partially supported.

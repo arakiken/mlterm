@@ -10,7 +10,6 @@
 #include  <unistd.h>		/* getpid/select */
 #include  <sys/wait.h>		/* wait */
 #include  <signal.h>		/* kill */
-#include  <errno.h>
 #include  <stdlib.h>		/* getenv() */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_basename/kik_str_to_int/kik_str_alloca_dup */
@@ -24,17 +23,13 @@
 #include  "version.h"
 #include  "ml_sb_term_screen.h"
 #include  "ml_term_screen.h"
+#include  "ml_sig_child.h"
 
 
 #define  MAX_TERMS(term_man)  sizeof( (term_man)->terms) / sizeof( (term_man)->terms[0])
 
 #define  FOREACH_TERMS(term_man,counter) \
 	for( (counter) = 0 ; (counter) < (term_man)->num_of_terms ; (counter) ++)
-
-
-/* --- static variables --- */
-
-static ml_term_manager_t *  singleton = NULL ;
 
 
 /* --- static functions --- */
@@ -417,7 +412,7 @@ delete_term(
 
 	term = &term_man->terms[idx] ;
 	
-	ml_window_manager_remove_root( &singleton->win_man , term->root_window) ;
+	ml_window_manager_remove_root( &term_man->win_man , term->root_window) ;
 	
 	ml_vt100_parser_delete( term->vt100_parser) ;
 
@@ -425,20 +420,20 @@ delete_term(
 
 	ml_font_manager_delete( term->font_man) ;
 
-	if( singleton->num_of_terms == 1)
+	if( term_man->num_of_terms == 1)
 	{
 		exit( 0) ;
 	}
 
-	singleton->num_of_terms -- ;
+	term_man->num_of_terms -- ;
 
-	if( idx == singleton->num_of_terms)
+	if( idx == term_man->num_of_terms)
 	{
 		memset( term , 0 , sizeof( *term)) ;
 	}
 	else
 	{
-		memcpy( term , &singleton->terms[singleton->num_of_terms] , sizeof( *term)) ;
+		memcpy( term , &term_man->terms[term_man->num_of_terms] , sizeof( *term)) ;
 	}
 
 	return  1 ;
@@ -459,7 +454,7 @@ delete_pty(
 	{
 		if( root_window == term_man->terms[counter].root_window)
 		{
-			kill( singleton->terms[counter].pty->child_pid , SIGKILL) ;
+			kill( term_man->terms[counter].pty->child_pid , SIGKILL) ;
 
 			break ;
 		}
@@ -502,39 +497,32 @@ term_was_closed(
 }
 
 static void
-sig_child( int  sig)
+sig_child(
+	void *  p ,
+	pid_t  pid
+	)
 {
-	pid_t  pid ;
+	ml_term_manager_t *  term_man ;
 	int  counter ;
+
+	term_man = p ;
 	
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " SIG CHILD received.\n") ;
-#endif
-
-	while( ( pid = waitpid( -1 , NULL , WNOHANG)) == -1 && errno == EINTR)
+	FOREACH_TERMS(term_man,counter)
 	{
-		errno = 0 ;
-	}
-
-	FOREACH_TERMS(singleton,counter)
-	{
-		if( pid == singleton->terms[counter].pty->child_pid)
+		if( pid == term_man->terms[counter].pty->child_pid)
 		{
-			singleton->dead_mask |= (1 << counter) ;
+			term_man->dead_mask |= (1 << counter) ;
 
-			break ;
+			return ;
 		}
 	}
-	
-	/* reset */
-	signal( SIGCHLD , sig_child) ;
 }
 
 static void
 signal_dispatcher( int  sig)
 {
 #ifdef  DEBUG
-	kik_debug_printf( "signal %d is received\n" , sig) ;
+	kik_warn_printf( KIK_DEBUG_TAG "signal %d is received\n" , sig) ;
 #endif
 	
 	/* reset */
@@ -1390,14 +1378,14 @@ ml_term_manager_init(
 	term_man->system_listener.new_pty = new_pty ;
 	term_man->system_listener.delete_pty = delete_pty ;
 
-	singleton = term_man ;
-	
 	signal( SIGHUP , signal_dispatcher) ;
 	signal( SIGINT , signal_dispatcher) ;
 	signal( SIGQUIT , signal_dispatcher) ;
 	signal( SIGTERM , signal_dispatcher) ;
-	signal( SIGCHLD , sig_child) ;
 
+	ml_sig_child_init() ;
+	ml_add_sig_child_listener( term_man , sig_child) ;
+	
 	kik_alloca_garbage_collect() ;
 	
 	return  1 ;
@@ -1436,6 +1424,9 @@ ml_term_manager_final(
 	ml_keymap_final( &term_man->keymap) ;
 	ml_termcap_final( &term_man->termcap) ;
 
+	ml_sig_child_final() ;
+	ml_remove_sig_child_listener( term_man) ;
+	
 	return  1 ;
 }
 

@@ -73,6 +73,9 @@ Delimiter characters used for word selection.
 \fB\-X\fR, \fB\-\-openim\fR(=\fIbool\fR)
 Open XIM on startup.
 .TP
+\fB\-5\fR, \fB\-\-big5bug\fR(=\fIbool\fR)
+Support Big5 CTEXT bugs(which exist in XFree86 4.1.0 or before).
+.TP
 \fB\-7\fR, \fB\-\-bel\fR(=\fImode\fR)
 Behavior when BEL(0x07) is received. \fBsound\fR for beep
 and \fBvisual\fR for blanking screen.
@@ -322,6 +325,9 @@ Enable combining characters (default \fIfalse\fR).
 .TP
 \fBuse_transbg=\fIbool\fR
 Use transparent background (default \fIfalse\fR).
+.TP
+\fBbig5_buggy=\fIbool\fR
+Support Big5 CTEXT bugs(which exist in XFree86 4.1.0 or before).
 .TP
 \fBunicode_to_other_cs=\fIbool\fR
 Convert Unicode characters to other appropriate character sets

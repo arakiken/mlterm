@@ -422,8 +422,6 @@ use_pre_conv_xct_to_ucs(
 			termscr->ucs4_conv = NULL ;
 		}
 
-		termscr->pre_conv_xct_to_ucs = 0 ;
-		
 		return  0 ;
 	}
 	else
@@ -432,6 +430,27 @@ use_pre_conv_xct_to_ucs(
 
 		return  1 ;
 	}
+}
+
+static int
+unuse_pre_conv_xct_to_ucs(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( ! termscr->pre_conv_xct_to_ucs)
+	{
+		return  0 ;
+	}
+
+	(*termscr->ucs4_parser->delete)( termscr->ucs4_parser) ;
+	termscr->ucs4_parser = NULL ;
+	
+	(*termscr->ucs4_conv->delete)( termscr->ucs4_conv) ;
+	termscr->ucs4_conv = NULL ;
+
+	termscr->pre_conv_xct_to_ucs = 0 ;
+
+	return  1 ;
 }
 
 static void
@@ -885,7 +904,7 @@ change_pre_conv_xct_to_ucs_flag(
 	
 	if( ! flag)
 	{
-		termscr->pre_conv_xct_to_ucs = 0 ;
+		unuse_pre_conv_xct_to_ucs( termscr) ;
 	}
 	else
 	{
