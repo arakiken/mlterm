@@ -874,6 +874,14 @@ ml_vt100_cmd_set_config(
 				termscr , ml_get_vertical_mode( value)) ;
 		}
 	}
+	else if( strcmp( key , "scrollbar_mode") == 0)
+	{
+		if( termscr->config_menu_listener.change_sb_mode)
+		{
+			(*termscr->config_menu_listener.change_sb_mode)(
+				termscr , ml_get_sb_mode( value)) ;
+		}
+	}
 	else if( strcmp( key , "use_combining") == 0)
 	{
 		int  flag ;
@@ -1143,6 +1151,23 @@ ml_vt100_cmd_get_config(
 	else if( strcmp( key , "bel_mode") == 0)
 	{
 		value = ml_get_bel_mode_name( termscr->bel_mode) ;
+	}
+	else if( strcmp( key , "vertical_mode") == 0)
+	{
+		value = ml_get_vertical_mode_name( termscr->vertical_mode) ;
+	}
+	else if( strcmp( key , "scrollbar_mode") == 0)
+	{
+		if( termscr->screen_scroll_listener &&
+			termscr->screen_scroll_listener->sb_mode)
+		{
+			value = ml_get_sb_mode_name( (*termscr->screen_scroll_listener->sb_mode)(
+				termscr->screen_scroll_listener->self)) ;
+		}
+		else
+		{
+			value = ml_get_sb_mode_name( SB_NONE) ;
+		}
 	}
 	else if( strcmp( key , "use_combining") == 0)
 	{

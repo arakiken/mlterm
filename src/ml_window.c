@@ -2136,7 +2136,27 @@ ml_window_show(
 		ml_window_show( win->children[counter] , 0) ;
 	}
 
+	ml_window_map( win) ;
+
+	return  1 ;
+}
+
+int
+ml_window_map(
+	ml_window_t *  win
+	)
+{
 	XMapWindow( win->display , win->my_window) ;
+
+	return  1 ;
+}
+
+int
+ml_window_unmap(
+	ml_window_t *  win
+	)
+{
+	XUnmapSubwindows( win->display , win->my_window) ;
 
 	return  1 ;
 }
@@ -2150,7 +2170,7 @@ ml_window_reset_font(
 
 	return  1 ;
 }
-	
+
 int
 ml_window_resize(
 	ml_window_t *  win ,
@@ -2186,13 +2206,29 @@ ml_window_resize(
 	}
 	
 	XResizeWindow( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-
+	
 	if( (flag & NOTIFY_TO_MYSELF) && win->window_resized)
 	{
 		(*win->window_resized)( win) ;
 	}
 
 	return  1 ;
+}
+
+/*
+ * !! Notice !!
+ * This function is not recommended.
+ * Use ml_window_resize if at all possible.
+ */
+int
+ml_window_resize_with_margin(
+	ml_window_t *  win ,
+	u_int  width ,
+	u_int  height ,
+	ml_event_dispatch_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
+	)
+{
+	return  ml_window_resize( win , width - win->margin * 2 , height - win->margin * 2 , flag) ;
 }
 
 int

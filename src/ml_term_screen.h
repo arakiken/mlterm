@@ -23,6 +23,7 @@
 #include  "ml_config_menu.h"
 #include  "ml_mod_meta_mode.h"
 #include  "ml_bel_mode.h"
+#include  "ml_sb_mode.h"
 #include  "ml_pty.h"
 #include  "ml_shaping.h"
 #include  "ml_iscii.h"
@@ -62,6 +63,8 @@ typedef struct  ml_screen_scroll_event_listener
 	void  (*log_size_changed)( void * , u_int) ;
 	void  (*line_height_changed)( void * , u_int) ;
 	void  (*transparent_state_changed)( void * , int , ml_picture_modifier_t *) ;
+	ml_sb_mode_t  (*sb_mode)( void *) ;
+	void  (*change_sb_mode)( void * , ml_sb_mode_t) ;
 
 } ml_screen_scroll_event_listener_t ;
 

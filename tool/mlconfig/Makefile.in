@@ -26,7 +26,7 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 OBJ = main.o mc_combo.o mc_char_encoding.o mc_xim.o mc_tabsize.o mc_logsize.o mc_check.o \
 	mc_fontsize.o mc_color.o mc_mod_meta.o mc_bel.o mc_font_present.o mc_iscii_lang.o \
-	mc_fade.o mc_brightness.o mc_screen_ratio.o mc_line_space.o mc_vertical.o
+	mc_fade.o mc_brightness.o mc_screen_ratio.o mc_line_space.o mc_vertical.o mc_sb.o
 
 LKIK_DEB=-lkik_deb
 

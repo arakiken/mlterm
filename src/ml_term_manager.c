@@ -175,7 +175,7 @@ open_new_term(
 		if( ( sb_termscr = ml_sb_term_screen_new( termscr , term_man->scrollbar_view_name ,
 					ml_color_table_new( &term_man->color_man ,
 						term_man->sb_fg_color , term_man->sb_bg_color) ,
-					term_man->is_right_sb))
+					term_man->sb_mode))
 					== NULL)
 		{
 		#ifdef  DEBUG
@@ -739,8 +739,8 @@ ml_term_manager_init(
 		"vertical view mode") ;
 	kik_conf_add_opt( conf , 'C' , "iscii" , 0 , "iscii_lang" , 
 		"language to be used in ISCII encoding") ;
-	kik_conf_add_opt( conf , 'O' , "sbpos" , 0 , "scrollbar_position" ,
-		"scrollbar position") ;
+	kik_conf_add_opt( conf , 'O' , "sbmod" , 0 , "scrollbar_mode" ,
+		"scrollbar mode") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell") ;
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
@@ -1418,28 +1418,23 @@ ml_term_manager_init(
 		}
 	}
 
-	term_man->use_scrollbar = 0 ;
+	term_man->use_scrollbar = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_scrollbar")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , "false") == 0)
 		{
-			term_man->use_scrollbar = 1 ;
+			term_man->use_scrollbar = 0 ;
 		}
 	}
 
-	term_man->is_right_sb = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "scrollbar_position")))
+	if( ( value = kik_conf_get_value( conf , "scrollbar_mode")))
 	{
-		if( strcmp( value , "right") == 0)
-		{
-			term_man->is_right_sb = 1 ;
-		}
-		else if( strcmp( value , "left") != 0)
-		{
-			kik_msg_printf( "scrollbar position %s is not valid.\n" , value) ;
-		}
+		term_man->sb_mode = ml_get_sb_mode( value) ;
+	}
+	else
+	{
+		term_man->sb_mode = SB_NONE ;
 	}
 
 	term_man->iso88591_font_for_usascii = 0 ;

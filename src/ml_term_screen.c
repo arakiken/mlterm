@@ -1372,11 +1372,22 @@ config_menu(
 	int  global_x ;
 	int  global_y ;
 	Window  child ;
+	ml_sb_mode_t  sb_mode ;
 
 	XTranslateCoordinates( termscr->window.display , termscr->window.my_window ,
 		DefaultRootWindow( termscr->window.display) , x , y ,
 		&global_x , &global_y , &child) ;
 
+	if( HAS_SCROLL_LISTENER(termscr,sb_mode))
+	{
+		sb_mode = (*termscr->screen_scroll_listener->sb_mode)(
+				termscr->screen_scroll_listener->self) ;
+	}
+	else
+	{
+		sb_mode = SB_NONE ;
+	}
+	
 	ml_config_menu_start( &termscr->config_menu , global_x , global_y ,
 		(*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) ,
 		termscr->iscii_lang , ml_window_get_fg_color( &termscr->window) ,
@@ -1387,7 +1398,7 @@ config_menu(
 		termscr->font_man->font_custom->max_font_size ,
 		termscr->font_man->line_space ,
 		termscr->screen_width_ratio , termscr->screen_height_ratio ,
-		termscr->mod_meta_mode , termscr->bel_mode , termscr->vertical_mode ,
+		termscr->mod_meta_mode , termscr->bel_mode , termscr->vertical_mode , sb_mode ,
 		ml_is_char_combining() , termscr->copy_paste_via_ucs ,
 		termscr->window.is_transparent , termscr->pic_mod.brightness , termscr->fade_ratio ,
 		termscr->font_present , termscr->use_bidi ,
@@ -3103,6 +3114,23 @@ change_vertical_mode(
 }
 
 static void
+change_sb_mode(
+	void *  p ,
+	ml_sb_mode_t  sb_mode
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+	
+	if( HAS_SCROLL_LISTENER(termscr,change_sb_mode))
+	{
+		(*termscr->screen_scroll_listener->change_sb_mode)(
+			termscr->screen_scroll_listener->self , sb_mode) ;
+	}
+}
+
+static void
 change_char_combining_flag(
 	void *  p ,
 	int  is_combining_char
@@ -3922,6 +3950,7 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_mod_meta_mode = change_mod_meta_mode ;
 	termscr->config_menu_listener.change_bel_mode = change_bel_mode ;
 	termscr->config_menu_listener.change_vertical_mode = change_vertical_mode ;
+	termscr->config_menu_listener.change_sb_mode = change_sb_mode ;
 	termscr->config_menu_listener.change_char_combining_flag = change_char_combining_flag ;
 	termscr->config_menu_listener.change_copy_paste_via_ucs_flag = change_copy_paste_via_ucs_flag ;
 	termscr->config_menu_listener.change_transparent_flag = change_transparent_flag ;

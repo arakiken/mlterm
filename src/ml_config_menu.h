@@ -13,6 +13,7 @@
 #include  "ml_mod_meta_mode.h"
 #include  "ml_bel_mode.h"
 #include  "ml_logical_visual.h"
+#include  "ml_sb_mode.h"
 #include  "ml_font.h"
 #include  "ml_iscii.h"
 
@@ -38,6 +39,7 @@ typedef struct  ml_config_menu_session
 	ml_bel_mode_t  bel_mode ;
 	ml_font_present_t  font_present ;
 	ml_vertical_mode_t  vertical_mode ;
+	ml_sb_mode_t  sb_mode ;
 	char *  xim ;
 	char *  locale ;
 	int8_t  is_combining_char ;
@@ -66,6 +68,7 @@ typedef struct  ml_config_menu_event_listener
 	void (*change_mod_meta_mode)( void * , ml_mod_meta_mode_t) ;
 	void (*change_bel_mode)( void * , ml_bel_mode_t) ;
 	void (*change_vertical_mode)( void * , ml_vertical_mode_t) ;
+	void (*change_sb_mode)( void * , ml_sb_mode_t) ;
 	void (*change_char_combining_flag)( void * , int) ;
 	void (*change_copy_paste_via_ucs_flag)( void * , int) ;
 	void (*change_transparent_flag)( void * , int) ;
@@ -106,8 +109,8 @@ int  ml_config_menu_start( ml_config_menu_t *  config_menu , int  x , int  y ,
 	u_int  orig_max_fontsize , u_int  orig_line_space ,
 	u_int  orig_screen_width_ratio , u_int  orig_screen_height_ratio ,
 	ml_mod_meta_mode_t  orig_mod_meta_mode , ml_bel_mode_t  orig_bel_mode ,
-	ml_vertical_mode_t  orig_vertical_mode , int  orig_is_combining_char ,
-	int  orig_copy_paste_via_ucs , int  orig_is_transparent ,
+	ml_vertical_mode_t  orig_vertical_mode , ml_sb_mode_t  orig_sb_mode ,
+	int  orig_is_combining_char , int  orig_copy_paste_via_ucs , int  orig_is_transparent ,
 	u_int  orig_brightness , u_int  orig_fade_ratio , ml_font_present_t  orig_font_present ,
 	int  orig_is_bidi , char *  orig_xim , char *  orig_locale) ;
 

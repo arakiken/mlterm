@@ -155,9 +155,6 @@ comment $Id$
       o bel_mode ... BEL(0x7)を受け取った時の挙動(none/*sound*/visual)
                      soundの場合はビープ音で、visualの場合は画面ブランクでBELを通知します。
 
-      o scrollbar_position ... スクロールバーを表示する位置(*left*/right)
-      o scrollbar_view_name ... 使いたいスクロールバーの名前(*simple*)
-      
       o conf_menu_path ... mlconfig(GUI設定コマンド)のパス(*/usr/local/libexec/mlconfig*)
 
       o use_variable_column_width ... 可変長コラム幅を使用する。
@@ -165,10 +162,13 @@ comment $Id$
       o use_xim        ... XIMを使う(*true*/false)
       o use_bidi       ... BiDi レンダリングを行う(*true*/false)
       o xim_open_in_startup ... 起動時にXIMをopenする(*true*/false)
-      o use_scrollbar  ... スクロールバーをつける(true/*false*)
       o use_combining  ... 結合文字を動的合成する(*true*/false)
       o use_transbg    ... 背景透過する(true/*false*)
 
+      o use_scrollbar       ... スクロールバーをつける(*true*/false)
+      o scrollbar_mode      ... スクロールバーのつけ方(*none*/left/right)
+      o scrollbar_view_name ... 使いたいスクロールバーの名前(*simple*)
+      
       o copy_paste_via_ucs      ... copy and paste で受け取った XCOMPOUND TEXT を一度 UNICODE を
                                     経由してから、端末エンコーディングに変換する(true/*false*)
       o big5_buggy              ... Big5 CTEXT のバグ(XFree86 4.1.0 以前)に対応する(true/*false*)
@@ -192,7 +192,7 @@ comment $Id$
 
       o wall_picture   ... 壁紙にする画像ファイルのパス(*なし*)
 
-      o vertical_mode  ... 縦表示のスタイル(none,cjk,mongol)を指定 (*none*)
+      o vertical_mode  ... 縦表示のスタイルを指定 (*none*/cjk/mongol)
 
       o fade_ratio     ... Focus から外れたときの前景/背景色のFade率(百分率) (*100*)
       o brightness     ... 背景画像(透過処理含む)の輝度調整(百分率) (*100*)
@@ -421,7 +421,7 @@ comment $Id$
     -I/--icon=value    : icon name設定
     -K/--maxptys=value : pty ウィンドウの最大数
     -M/--menu=value    : mlconfigのパス
-    -O/--sbpos=value   : スクロールバーを表示する位置
+    -O/--sbmod=value   : スクロールバーのつけ方
     -P/--ptys=value    : 起動時に立ち上げるptyウィンドウの数
     -S/--sbview=value  : 使いたいスクロールバーの名前
     -U/--viaucs=value  : 受け取ったXCOMPOUND TEXTを一度UCSに変換する
@@ -442,7 +442,7 @@ comment $Id$
     -p/--pic=value     : 背景画像のパス
     -o/--lsp=value     : 行間の広さ
     -r/--fade=value    : Focus を外れたときの Fade 率
-    -s/--sb(=bool)     : スクロールバーを使う
+    -s/--sb(=bool)     : スクロールバーをつける
     -t/--transbg(=bool) : 背景透過する
     -y/--term=value    : 端末タイプ
     -w/--fontsize=value : フォントサイズ

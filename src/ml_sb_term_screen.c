@@ -12,10 +12,45 @@
 
 /* --- static functions --- */
 
+static void
+move_scrollbar(
+	ml_sb_term_screen_t *  sb_termscr ,
+	int  to_right
+	)
+{
+	if( to_right)
+	{
+		ml_window_move( &sb_termscr->scrollbar.window ,
+			ACTUAL_WIDTH( &sb_termscr->termscr->window) + SEPARATOR_WIDTH , 0) ;
+	}
+	else
+	{
+		ml_window_move( &sb_termscr->scrollbar.window , 0 , 0) ;
+	}
+}
+
+static void
+move_term_screen(
+	ml_sb_term_screen_t *  sb_termscr ,
+	int  to_right
+	)
+{
+	if( to_right)
+	{
+		ml_window_move( &sb_termscr->termscr->window ,
+			ACTUAL_WIDTH( &sb_termscr->scrollbar.window) + SEPARATOR_WIDTH , 0) ;
+	}
+	else
+	{
+		ml_window_move( &sb_termscr->termscr->window , 0 , 0) ;
+	}
+}
+
+
 /*
  * callbacks of ml_window_t events.
  */
- 
+
 static void
 window_finalized(
 	ml_window_t *  win
@@ -37,21 +72,17 @@ window_resized(
 
 	sb_termscr = (ml_sb_term_screen_t*) win ;
 
-	ml_window_resize( &sb_termscr->termscr->window ,
-		(ACTUAL_WIDTH(win) - sb_termscr->scrollbar.window.width - SEPARATOR_WIDTH)
-			- sb_termscr->termscr->window.margin * 2 ,
-		ACTUAL_HEIGHT(win) - sb_termscr->termscr->window.margin * 2 ,
-		NOTIFY_TO_MYSELF) ;
+	ml_window_resize_with_margin( &sb_termscr->termscr->window ,
+		ACTUAL_WIDTH(win) - sb_termscr->scrollbar.window.width - SEPARATOR_WIDTH ,
+		ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
 
-	ml_window_resize( &sb_termscr->scrollbar.window ,
-		sb_termscr->scrollbar.window.width ,
-		ACTUAL_HEIGHT(win) - sb_termscr->scrollbar.window.margin * 2 ,
-		NOTIFY_TO_MYSELF) ;
+	ml_window_resize_with_margin( &sb_termscr->scrollbar.window ,
+		ACTUAL_WIDTH( &sb_termscr->scrollbar.window) ,
+		ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
 
-	if( sb_termscr->is_right_sb)
+	if( sb_termscr->sb_mode == SB_RIGHT)
 	{
-		ml_window_move( &sb_termscr->scrollbar.window ,
-			ACTUAL_WIDTH( &sb_termscr->termscr->window) + SEPARATOR_WIDTH , 0) ;
+		move_scrollbar( sb_termscr , 1) ;
 	}
 }
 
@@ -75,21 +106,17 @@ child_window_resized(
 		return ;
 	}
 	
-	ml_window_resize( &sb_termscr->window ,
-		(ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_termscr->scrollbar.window) + SEPARATOR_WIDTH)
-			- sb_termscr->window.margin * 2 ,
-		ACTUAL_HEIGHT(child) - sb_termscr->window.margin * 2 ,
-		NOTIFY_TO_NONE) ;
+	ml_window_resize_with_margin( &sb_termscr->window ,
+		ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_termscr->scrollbar.window) + SEPARATOR_WIDTH ,
+		ACTUAL_HEIGHT(child) , NOTIFY_TO_NONE) ;
 	
-	ml_window_resize( &sb_termscr->scrollbar.window ,
-		sb_termscr->scrollbar.window.width ,
-		ACTUAL_HEIGHT(child) - sb_termscr->scrollbar.window.margin * 2 ,
-		NOTIFY_TO_MYSELF) ;
+	ml_window_resize_with_margin( &sb_termscr->scrollbar.window ,
+		ACTUAL_WIDTH( &sb_termscr->scrollbar.window) ,
+		ACTUAL_HEIGHT(child) , NOTIFY_TO_MYSELF) ;
 		
-	if( sb_termscr->is_right_sb)
+	if( sb_termscr->sb_mode == SB_RIGHT)
 	{
-		ml_window_move( &sb_termscr->scrollbar.window ,
-			ACTUAL_WIDTH( &sb_termscr->termscr->window) + SEPARATOR_WIDTH , 0) ;
+		move_scrollbar( sb_termscr , 1) ;
 	}
 }
 
@@ -294,6 +321,72 @@ transparent_state_changed(
 	}
 }
 
+static ml_sb_mode_t
+sb_mode(
+	void *  p
+	)
+{
+	ml_sb_term_screen_t *  sb_termscr  ;
+	
+	sb_termscr = p ;
+	
+	return  sb_termscr->sb_mode ;
+}
+
+static void
+change_sb_mode(
+	void *  p ,
+	ml_sb_mode_t  mode
+	)
+{
+	ml_sb_term_screen_t *  sb_termscr  ;
+
+	sb_termscr = p ;
+	
+	if( sb_termscr->sb_mode == mode)
+	{
+		return ;
+	}
+	
+	if( mode == SB_NONE)
+	{
+		ml_window_unmap( &sb_termscr->scrollbar.window) ;
+
+		ml_window_resize_with_margin( &sb_termscr->window ,
+			ACTUAL_WIDTH( &sb_termscr->termscr->window) ,
+			ACTUAL_HEIGHT( &sb_termscr->termscr->window) , NOTIFY_TO_NONE) ;
+
+		move_term_screen( sb_termscr , 0) ;
+	}
+	else
+	{
+		if( sb_termscr->sb_mode == SB_NONE) ;
+		{
+			ml_window_map( &sb_termscr->scrollbar.window) ;
+				
+			ml_window_resize_with_margin( &sb_termscr->window ,
+				ACTUAL_WIDTH( &sb_termscr->termscr->window)
+					+ ACTUAL_WIDTH( &sb_termscr->scrollbar.window)
+					+ SEPARATOR_WIDTH ,
+				ACTUAL_HEIGHT( &sb_termscr->termscr->window) ,
+				NOTIFY_TO_NONE) ;
+		}
+		
+		if( mode == SB_LEFT)
+		{
+			move_term_screen( sb_termscr , 1) ;
+			move_scrollbar( sb_termscr , 0) ;
+		}
+		else /* if( mode == SB_RIGHT) */
+		{
+			move_term_screen( sb_termscr , 0) ;
+			move_scrollbar( sb_termscr , 1) ;
+		}
+	}
+
+	sb_termscr->sb_mode = mode ;
+}
+
 
 /* --- global functions --- */
 
@@ -302,10 +395,12 @@ ml_sb_term_screen_new(
 	ml_term_screen_t *  termscr ,
 	char *  view_name ,
 	ml_color_table_t  color_table ,
-	int  is_right_sb
+	ml_sb_mode_t  mode
 	)
 {
 	ml_sb_term_screen_t *  sb_termscr ;
+	u_int  width ;
+	u_int  height ;
 	
 	if( ( sb_termscr = malloc( sizeof( ml_sb_term_screen_t))) == NULL)
 	{
@@ -346,6 +441,8 @@ ml_sb_term_screen_new(
 	sb_termscr->screen_scroll_listener.log_size_changed = log_size_changed ;
 	sb_termscr->screen_scroll_listener.line_height_changed = line_height_changed ;
 	sb_termscr->screen_scroll_listener.transparent_state_changed = transparent_state_changed ;
+	sb_termscr->screen_scroll_listener.sb_mode = sb_mode ;
+	sb_termscr->screen_scroll_listener.change_sb_mode = change_sb_mode ;
 
 	ml_set_screen_scroll_listener( termscr , &sb_termscr->screen_scroll_listener) ;
 	
@@ -355,11 +452,22 @@ ml_sb_term_screen_new(
 	termscr->image_scroll_listener.receive_upward_scrolled_out_line =
 		receive_scrolled_out_line ;
 
-
+	sb_termscr->sb_mode = mode ;
+	
+	if( sb_termscr->sb_mode == SB_NONE)
+	{
+		width = ACTUAL_WIDTH( &termscr->window) - termscr->window.margin * 2 ;
+		height = ACTUAL_HEIGHT( &termscr->window) - termscr->window.margin * 2 ;
+	}
+	else
+	{
+		width = (ACTUAL_WIDTH( &termscr->window) + ACTUAL_WIDTH( &sb_termscr->scrollbar.window)
+				+ SEPARATOR_WIDTH) - termscr->window.margin * 2 ;
+		height = ACTUAL_HEIGHT( &termscr->window) - termscr->window.margin * 2 ;
+	}
+	
 	if( ml_window_init( &sb_termscr->window , ml_color_table_dup( color_table) ,
-		(ACTUAL_WIDTH( &termscr->window) + ACTUAL_WIDTH( &sb_termscr->scrollbar.window)
-			+ SEPARATOR_WIDTH) - termscr->window.margin * 2 ,
-		ACTUAL_HEIGHT( &termscr->window) - termscr->window.margin * 2 ,
+		width , height ,
 		termscr->window.min_width , termscr->window.min_height ,
 		termscr->window.width_inc , termscr->window.height_inc ,
 		termscr->window.margin) == 0)
@@ -369,6 +477,46 @@ ml_sb_term_screen_new(
 	#endif
 
 		goto  error ;
+	}
+
+	if( sb_termscr->sb_mode == SB_RIGHT)
+	{
+		if( ml_window_add_child( &sb_termscr->window , &termscr->window ,
+			0 , 0) == 0)
+		{
+			goto  error ;
+		}
+
+		if( ml_window_add_child( &sb_termscr->window , &sb_termscr->scrollbar.window ,
+			ACTUAL_WIDTH( &termscr->window) + SEPARATOR_WIDTH , 0) == 0)
+		{
+			goto  error ;
+		}
+	}
+	else if( sb_termscr->sb_mode == SB_LEFT)
+	{
+		if( ml_window_add_child( &sb_termscr->window , &sb_termscr->scrollbar.window , 0 , 0) == 0)
+		{
+			goto  error ;
+		}
+		
+		if( ml_window_add_child( &sb_termscr->window , &termscr->window ,
+			ACTUAL_WIDTH( &sb_termscr->scrollbar.window) + SEPARATOR_WIDTH , 0) == 0)
+		{
+			goto  error ;
+		}
+	}
+	else /* if( sb_termscr->sb_mode == SB_NONE) */
+	{
+		if( ml_window_add_child( &sb_termscr->window , &sb_termscr->scrollbar.window , 0 , 0) == 0)
+		{
+			goto  error ;
+		}
+		
+		if( ml_window_add_child( &sb_termscr->window , &termscr->window , 0 , 0) == 0)
+		{
+			goto  error ;
+		}
 	}
 
 	/* seperator color of ml_scrollbar_t and ml_term_screen_t */
@@ -384,34 +532,6 @@ ml_sb_term_screen_new(
 	sb_termscr->window.window_exposed = window_exposed ;
 	sb_termscr->window.key_pressed = key_pressed ;
 	sb_termscr->window.window_deleted = window_deleted ;
-
-	if( ( sb_termscr->is_right_sb = is_right_sb))
-	{
-		if( ml_window_add_child( &sb_termscr->window , &termscr->window ,
-			0 , 0) == 0)
-		{
-			goto  error ;
-		}
-
-		if( ml_window_add_child( &sb_termscr->window , &sb_termscr->scrollbar.window ,
-			ACTUAL_WIDTH( &termscr->window) + SEPARATOR_WIDTH , 0) == 0)
-		{
-			goto  error ;
-		}
-	}
-	else
-	{
-		if( ml_window_add_child( &sb_termscr->window , &sb_termscr->scrollbar.window , 0 , 0) == 0)
-		{
-			goto  error ;
-		}
-		
-		if( ml_window_add_child( &sb_termscr->window , &termscr->window ,
-			ACTUAL_WIDTH( &sb_termscr->scrollbar.window) + SEPARATOR_WIDTH , 0) == 0)
-		{
-			goto  error ;
-		}
-	}
 
 	return  sb_termscr ;
 

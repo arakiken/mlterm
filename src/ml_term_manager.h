@@ -71,6 +71,7 @@ typedef struct  ml_term_manager
 	ml_iscii_lang_t  iscii_lang ;
 	ml_mod_meta_mode_t  mod_meta_mode ;
 	ml_bel_mode_t  bel_mode ;
+	ml_sb_mode_t  sb_mode ;
 	u_int  num_of_startup_terms ;
 	u_int  col_size_a ;
 	ml_char_encoding_t  encoding ;
@@ -81,7 +82,6 @@ typedef struct  ml_term_manager
 	u_int8_t  brightness ;
 	u_int8_t  fade_ratio ;
 	int8_t  use_scrollbar ;
-	int8_t  is_right_sb ;
 	int8_t  use_login_shell ;
 	int8_t  xim_open_in_startup ;
 	int8_t  use_bidi ;

@@ -195,9 +195,16 @@ int  ml_window_remove_event_mask( ml_window_t *  win , long  event_mask) ;
 
 int  ml_window_show( ml_window_t *  win , int  hint) ;
 
+int  ml_window_map( ml_window_t *  win) ;
+
+int  ml_window_unmap( ml_window_t *  win) ;
+
 int  ml_window_reset_font( ml_window_t *  win) ;
 
 int  ml_window_resize( ml_window_t *  win , u_int  width , u_int  height , ml_event_dispatch_t  flag) ;
+
+int  ml_window_resize_with_margin( ml_window_t *  win , u_int  width , u_int  height ,
+	ml_event_dispatch_t  flag) ;
 
 int  ml_window_set_normal_hints( ml_window_t *  win , u_int  width_inc , u_int  height_inc ,
 	u_int  min_width , u_int  min_height) ;

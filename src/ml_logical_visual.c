@@ -1442,8 +1442,27 @@ ml_get_vertical_mode(
 	{
 		return  VERT_LTR | VERT_HALF_WIDTH ;
 	}
-	else /* if( strcmp( name , "normal") == 0 */
+	else /* if( strcmp( name , "none") == 0 */
 	{
 		return  0 ;
+	}
+}
+
+char *
+ml_get_vertical_mode_name(
+	ml_vertical_mode_t  mode
+	)
+{
+	if( mode == (VERT_RTL | VERT_FULL_WIDTH))
+	{
+		return  "cjk" ;
+	}
+	else if( mode == (VERT_LTR | VERT_HALF_WIDTH))
+	{
+		return  "mongol" ;
+	}
+	else
+	{
+		return  "none" ;
 	}
 }

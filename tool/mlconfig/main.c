@@ -22,11 +22,12 @@
 #include  "mc_screen_ratio.h"
 #include  "mc_mod_meta.h"
 #include  "mc_bel.h"
+#include  "mc_vertical.h"
+#include  "mc_sb.h"
 #include  "mc_font_present.h"
 #include  "mc_xim.h"
 #include  "mc_check.h"
 #include  "mc_iscii_lang.h"
-#include  "mc_vertical.h"
 
 
 #if  0
@@ -78,10 +79,10 @@ apply_clicked(
 	/*
 	 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
 	 * [screen width ratio] [screen height ratio] [mod meta mode] [bel mode] [vertical mode] \
-	 * [combining char] [copy paste via ucs] [is transparent] [brightness] [fade ratio] \
+	 * [sb mode] [combining char] [copy paste via ucs] [is transparent] [brightness] [fade ratio] \
 	 * [font present] [is bidi] [xim] [locale][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
 		mc_get_char_encoding() ,
 		mc_get_iscii_lang() ,
 		mc_get_fg_color() ,
@@ -95,6 +96,7 @@ apply_clicked(
 		mc_get_mod_meta_mode() ,
 		mc_get_bel_mode() ,
 		mc_get_vertical_mode() ,
+		mc_get_sb_mode() ,
 		GTK_TOGGLE_BUTTON(is_comb_check)->active ,
 		GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active ,
 		GTK_TOGGLE_BUTTON(is_tp_check)->active ,
@@ -340,6 +342,7 @@ show(
 	ml_mod_meta_mode_t  mod_meta_mode ,
 	ml_bel_mode_t  bel_mode ,
 	ml_vertical_mode_t  vertical_mode ,
+	ml_sb_mode_t  sb_mode ,
 	int  is_combining_char ,
 	int  copy_paste_via_ucs ,
 	int  is_transparent ,
@@ -615,6 +618,12 @@ show(
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
+	if( ! ( config_widget = mc_sb_config_widget_new( sb_mode)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
 	gtk_main() ;
 
@@ -650,6 +659,7 @@ start_application(
 	int  mod_meta_mode ;
 	int  bel_mode ;
 	int  vertical_mode ;
+	int  sb_mode ;
 	int  is_combining_char ;
 	int  copy_paste_via_ucs ;
 	int  is_transparent ;
@@ -690,7 +700,7 @@ start_application(
 	/*
 	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
 	 * [min font size] [max font size] [line space] [mod meta mode] [bel mode] [vertical mode] \
-	 * [combining char] [copy paste via ucs] [is transparent] [font present] [is bidi] \
+	 * [sb mode] [combining char] [copy paste via ucs] [is transparent] [font present] [is bidi] \
 	 * [xim] [locale][LF]
 	 */
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
@@ -778,6 +788,12 @@ start_application(
 	}
 
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+		! kik_str_to_int( &sb_mode , p))
+	{
+		return  0 ;
+	}
+
+	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &is_combining_char , p))
 	{
 		return  0 ;
@@ -830,8 +846,8 @@ start_application(
 	return  show( x , y , encoding , iscii_lang , fg_color , bg_color , tabsize ,
 		logsize , fontsize , min_fontsize , max_fontsize , line_space ,
 		screen_width_ratio , screen_height_ratio , mod_meta_mode , bel_mode , vertical_mode ,
-		is_combining_char , copy_paste_via_ucs , is_transparent , brightness , fade_ratio ,
-		font_present , use_bidi , xim , locale) ;
+		sb_mode , is_combining_char , copy_paste_via_ucs , is_transparent , brightness ,
+		fade_ratio , font_present , use_bidi , xim , locale) ;
 }
 
 
@@ -856,7 +872,7 @@ main(
 		! kik_str_to_int( &in_fd , argv[3]) ||
 		! kik_str_to_int( &out_fd , argv[4]))
 	{
-		kik_msg_printf( "usage: (stdin 24) mlconfig [x] [y] [in] [out]\n") ;
+		kik_msg_printf( "usage: (stdin 25) mlconfig [x] [y] [in] [out]\n") ;
 		
 		return  0 ;
 	}

@@ -92,8 +92,8 @@ sig_child(
 		/*
 		 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
 		 * [line space] [screen width ratio] [screen height ratio] [mod meta mode] [bel mode] \
-		 * [vertical mode] [combining char] [copy paste via ucs] [is transparent] [shade ratio] \
-		 * [fade ratio] [font present] [is bidi] [xim] [locale][LF]
+		 * [vertical mode] [sb mode] [combining char] [copy paste via ucs] [is transparent] \
+		 * [shade ratio] [fade ratio] [font present] [is bidi] [xim] [locale][LF]
 		 */
 		 
 		int  encoding ;
@@ -109,6 +109,7 @@ sig_child(
 		int  mod_meta_mode ;
 		int  bel_mode ;
 		int  vertical_mode ;
+		int  sb_mode ;
 		int  is_combining_char ;
 		int  copy_paste_via_ucs ;
 		int  is_transparent ;
@@ -193,6 +194,12 @@ sig_child(
 		
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 			! kik_str_to_int( &vertical_mode , p))
+		{
+			goto  end ;
+		}
+		
+		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+			! kik_str_to_int( &sb_mode , p))
 		{
 			goto  end ;
 		}
@@ -363,6 +370,15 @@ sig_child(
 			{
 				(*config_menu->config_menu_listener->change_vertical_mode)(
 					config_menu->config_menu_listener->self , vertical_mode) ;
+			}
+		}
+
+		if( sb_mode != config_menu->session->sb_mode)
+		{
+			if( config_menu->config_menu_listener->change_sb_mode)
+			{
+				(*config_menu->config_menu_listener->change_sb_mode)(
+					config_menu->config_menu_listener->self , sb_mode) ;
 			}
 		}
 
@@ -568,6 +584,7 @@ ml_config_menu_start(
 	ml_mod_meta_mode_t  orig_mod_meta_mode ,
 	ml_bel_mode_t  orig_bel_mode ,
 	ml_vertical_mode_t  orig_vertical_mode ,
+	ml_sb_mode_t  orig_sb_mode ,
 	int  orig_is_combining_char ,
 	int  orig_copy_paste_via_ucs ,
 	int  orig_is_transparent ,
@@ -657,16 +674,18 @@ ml_config_menu_start(
 	/*
 	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [font size] \
 	 * [min font size] [max font size] [line space] [screen width ratio] [screen height ratio] \
-	 * [mod meta mode] [bel mode] [vertical mode] [is combining char] [copy paste via ucs] \
-	 * [is transparent] [shade ratio] [fade ratio] [font present] [use bidi] [xim] [locale][LF]
+	 * [mod meta mode] [bel mode] [vertical mode] [sb mode] [is combining char] \
+	 * [copy paste via ucs] [is transparent] [shade ratio] [fade ratio] [font present] \
+	 * [use bidi] [xim] [locale][LF]
 	 */
-	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
 		orig_encoding , orig_iscii_lang , orig_fg_color , orig_bg_color , orig_tabsize ,
 		orig_logsize , orig_fontsize , min_fontsize , max_fontsize , orig_line_space ,
 		orig_screen_width_ratio , orig_screen_height_ratio ,
-		orig_mod_meta_mode , orig_bel_mode , orig_vertical_mode , orig_is_combining_char ,
-		orig_copy_paste_via_ucs , orig_is_transparent , orig_brightness , orig_fade_ratio ,
-		orig_font_present , orig_use_bidi , orig_xim , orig_locale) ;
+		orig_mod_meta_mode , orig_bel_mode , orig_vertical_mode , orig_sb_mode ,
+		orig_is_combining_char , orig_copy_paste_via_ucs , orig_is_transparent ,
+		orig_brightness , orig_fade_ratio , orig_font_present , orig_use_bidi ,
+		orig_xim , orig_locale) ;
 	fclose( fp) ;
 
 	/*
@@ -689,6 +708,7 @@ ml_config_menu_start(
 	config_menu->session->mod_meta_mode = orig_mod_meta_mode ;
 	config_menu->session->bel_mode = orig_bel_mode ;
 	config_menu->session->vertical_mode = orig_vertical_mode ;
+	config_menu->session->sb_mode = orig_sb_mode ;
 	config_menu->session->is_combining_char = orig_is_combining_char ;
 	config_menu->session->copy_paste_via_ucs = orig_copy_paste_via_ucs ;
 	config_menu->session->is_transparent = orig_is_transparent ;

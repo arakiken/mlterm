@@ -63,5 +63,7 @@ ml_logical_visual_t *  ml_logvis_vert_new( ml_image_t *  image , ml_vertical_mod
 
 ml_vertical_mode_t  ml_get_vertical_mode( char *  name) ;
 
+char *  ml_get_vertical_mode_name( ml_vertical_mode_t  mode) ;
+
 
 #endif
