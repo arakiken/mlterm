@@ -207,7 +207,8 @@ comment $Id$
       o use_dynamic_comb  (true/*false*) (#)
         結合文字を動的に合成する
 
-	端末アプリケーションが結合文字をサポートしていない場合に使用します。
+	端末アプリケーションが結合文字をサポートしていない場合でも、結合文字を正しく
+	表示できるようにします。
         use_combining が true でないと、有効になりません。
 
       o iscii_lang  (assamese/bengali/gujarati/hindi/kannada/*malayalam*/oriya/punjabi/roman/tamil/telugu) (#)
@@ -709,7 +710,7 @@ comment $Id$
 
 * 連絡先
   荒木 賢(Araki Ken)
-  j00v0113@ip.media.kyoto-u.ac.jp
+  arakiken@users.sourceforge.net
 
 * 利用に際しての条件
   BSDライセンスとします。詳細は附属のLICENCEファイルを参照。

@@ -162,7 +162,7 @@ flush_buffer(
 			#if  0
 				kik_msg_printf( "%x" , bytes[0]) ;
 			#else
-				kik_msg_printf( "%c" , bytes[1]) ;
+				kik_msg_printf( "%c" , bytes[0]) ;
 			#endif
 			}
 		}

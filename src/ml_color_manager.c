@@ -81,7 +81,7 @@ ml_get_color(
 				return  color ;
 			}
 
-			kik_msg_printf( " Not enough colors available.\n") ;
+			kik_msg_printf( " Not enough colors available. %s setting problematic.\n" , name) ;
 
 			return  ML_UNKNOWN_COLOR ;
 		}

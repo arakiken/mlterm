@@ -3402,6 +3402,11 @@ change_dynamic_comb_flag(
 
 	termscr = p ;
 
+	if( ! ml_is_using_char_combining())
+	{
+		return ;
+	}
+
 	if( termscr->use_dynamic_comb == use_dynamic_comb)
 	{
 		/* not changed */
@@ -4271,7 +4276,7 @@ ml_term_screen_new(
 	termscr->bel_mode = bel_mode ;
 	
 	termscr->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
-	termscr->use_dynamic_comb = use_dynamic_comb ;
+	termscr->use_dynamic_comb = ml_is_using_char_combining() && use_dynamic_comb ;
 
 	/*
 	 * for receiving selection.

@@ -613,7 +613,7 @@ ml_image_init(
 	image->scroll_region_end = image->model.num_of_rows - 1 ;
 	image->scroll_listener = scroll_listener ;
 
-	if( ( image->tab_stops = malloc( image->model.num_of_rows * LINE_TAB_STOPS_SIZE(image))) == NULL)
+	if( ( image->tab_stops = malloc( LINE_TAB_STOPS_SIZE(image))) == NULL)
 	{
 		return  0 ;
 	}
@@ -686,7 +686,7 @@ ml_image_resize(
 	image->scroll_region_end = image->model.num_of_rows - 1 ;
 
 	free( image->tab_stops) ;
-	if( ( image->tab_stops = malloc( image->model.num_of_rows * LINE_TAB_STOPS_SIZE(image))) == NULL)
+	if( ( image->tab_stops = malloc( LINE_TAB_STOPS_SIZE(image))) == NULL)
 	{
 		return  0 ;
 	}
@@ -1288,15 +1288,12 @@ ml_image_vertical_tab(
 	)
 {
 	int  col ;
-	u_int8_t *  tab_stops ;
-
+	
 	reset_wraparound_checker( image) ;
-
-	tab_stops = &image->tab_stops[ image->cursor.row * LINE_TAB_STOPS_SIZE(image)] ;
 
 	for( col = image->cursor.col + 1 ; col < image->model.num_of_cols - 1 ; col ++)
 	{
-		if( tab_stops[col / 8] & ( 1 << (7 - col % 8)))
+		if( image->tab_stops[col / 8] & ( 1 << (7 - col % 8)))
 		{
 			break ;
 		}
@@ -1313,10 +1310,9 @@ ml_image_set_tab_size(
 	u_int  tab_size
 	)
 {
-	int  row ;
 	int  col ;
 	u_int8_t *  tab_stops ;
-
+	
 	if( tab_size == 0)
 	{
 	#ifdef  DEBUG
@@ -1327,52 +1323,40 @@ ml_image_set_tab_size(
 	}
 
 	ml_image_clear_all_tab_stops( image) ;
-
+	
+	col = 0 ;
 	tab_stops = image->tab_stops ;
 	
-	for( row = 0 ; row < image->model.num_of_rows ; row ++)
+	while( 1)
 	{
-		col = 0 ;
-		
-		while( 1)
+		if( col % tab_size == 0)
 		{
-			if( col % tab_size == 0)
-			{
-				(*tab_stops) |= ( 1 << (7 - col % 8)) ;
-			}
+			(*tab_stops) |= ( 1 << (7 - col % 8)) ;
+		}
 
-			col ++ ;
-			
-			if( col >= image->model.num_of_cols)
-			{
-				tab_stops ++ ;
+		col ++ ;
 
-				break ;
-			}
-			else if( col % 8 == 0)
-			{
-				tab_stops ++ ;
-			}
+		if( col >= image->model.num_of_cols)
+		{
+			tab_stops ++ ;
+
+			break ;
+		}
+		else if( col % 8 == 0)
+		{
+			tab_stops ++ ;
 		}
 	}
 
 #ifdef  __DEBUG
 	{
 		int  i ;
-		int  j ;
-		u_int8_t *  tab_stops ;
 
-		kik_debug_printf( KIK_DEBUG_TAG " tab stops\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " tab stops =>\n") ;
 
-		for( i = 0 ; i < image->model.num_of_rows ; i ++)
+		for( i = 0 ; i < LINE_TAB_STOPS_SIZE(image) ; i ++)
 		{
-			tab_stops = &image->tab_stops[ i * LINE_TAB_STOPS_SIZE(image)] ;
-		
-			for( j = 0 ; j < LINE_TAB_STOPS_SIZE(image) ; j ++)
-			{
-				kik_msg_printf( "%x " , tab_stops[j]) ;
-			}
-			kik_msg_printf( "\n") ;
+			kik_msg_printf( "%x " , image->tab_stops[i]) ;
 		}
 		kik_msg_printf( "\n") ;
 	}
@@ -1388,8 +1372,7 @@ ml_image_set_tab_stop(
 	ml_image_t *  image
 	)
 {
-	image->tab_stops[ image->cursor.row * LINE_TAB_STOPS_SIZE(image) + image->cursor.col / 8]
-		|= (1 << (7 - image->cursor.col % 8)) ;
+	image->tab_stops[ image->cursor.col / 8] |= (1 << (7 - image->cursor.col % 8)) ;
 	
 	return  1 ;
 }
@@ -1399,8 +1382,7 @@ ml_image_clear_tab_stop(
 	ml_image_t *  image
 	)
 {
-	image->tab_stops[ image->cursor.row * LINE_TAB_STOPS_SIZE(image) + image->cursor.col / 8]
-		&= ~(1 << (7 - image->cursor.col % 8)) ;
+	image->tab_stops[ image->cursor.col / 8] &= ~(1 << (7 - image->cursor.col % 8)) ;
 	
 	return  1 ;
 }
@@ -1410,7 +1392,7 @@ ml_image_clear_all_tab_stops(
 	ml_image_t *  image
 	)
 {
-	memset( image->tab_stops , 0 , image->model.num_of_rows * LINE_TAB_STOPS_SIZE(image)) ;
+	memset( image->tab_stops , 0 , LINE_TAB_STOPS_SIZE(image)) ;
 	
 	return  1 ;
 }
