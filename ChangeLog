@@ -1,3 +1,9 @@
+2004-02-12  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* **/Makefile.in:
+	- use @X_LIBS@/@X_PRE_LIBS@/@X_EXTRA_LIBS@ when possible.
+	- mlconfig does not needs IMAGELIB_CFLAGS to compile.
+
 2004-02-11  Araki Ken  <arakiken@users.sf.net>
 
 	* Region selection and backscrolling are disabled in

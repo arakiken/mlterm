@@ -35,14 +35,14 @@ LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
 
 CFLAGS=$(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ \
-       @IMAGELIB_CFLAGS@ @XUTF8_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+       @IMAGELIB_CFLAGS@ @X_CFLAGS@ @XUTF8_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-DLIBEXECDIR=\"$(LIBEXECDIR)\" -DDATADIR=\"$(DATADIR)\"\
-	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow @X_CFLAGS@ -I/usr/local/include
+	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/local/include
 
-LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @X_EXTRA_LIBS@ @DL_LIBS@ \
-	-lX11 $(LMLTERM) $(LMKF) $(LKIK) \
-	@X_LIBS@ -L/usr/local/lib -R/usr/local/lib
+LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS@ \
+	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@ $(LMLTERM) $(LMKF) $(LKIK) \
+	-L/usr/local/lib -R/usr/local/lib
 
 PROG = mlterm
 INSTALL_OPT = @INSTALL_OPT@
