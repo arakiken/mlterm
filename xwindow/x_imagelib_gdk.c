@@ -88,6 +88,22 @@ load_file(
 
 	pixbuf = NULL ;
 
+	if( !path)
+	{
+		/* free caches */
+		if( data)
+		{
+			gdk_pixbuf_unref( data) ;
+			data = NULL ;
+		}
+		if( scaled)
+		{
+			gdk_pixbuf_unref( scaled) ;
+			data = NULL ;
+		}
+		return  NULL ;
+	}
+
 	/* cached one is still valid? */
 	if( name && (strcmp( name, path) == 0))
 	{
@@ -285,6 +301,8 @@ create_cardinals_from_bixbuf(
 			}
 		}
 	}
+
+	gdk_pixbuf_unref( pixbuf) ;
 
 	return  SUCCESS ;
 }
@@ -1307,14 +1325,6 @@ modify_pixmap(
 	switch( vinfolist[0].class)
 	{
 	case TrueColor:
-		r_mask = vinfolist[0].red_mask ;
-		g_mask = vinfolist[0].green_mask ;
-		b_mask = vinfolist[0].blue_mask ;
-
-		r_offset = lsb( r_mask) ;
-		g_offset = lsb( g_mask) ;
-		b_offset = lsb( b_mask) ;
-
 		switch( depth)
 		{
 		case 1:
@@ -1329,6 +1339,14 @@ modify_pixmap(
 			unsigned char  r, g, b ;
 			int r_limit, g_limit, b_limit ;
 			u_int16_t *  data;
+			
+			r_mask = vinfolist[0].red_mask ;
+			g_mask = vinfolist[0].green_mask ;
+			b_mask = vinfolist[0].blue_mask ;
+			
+			r_offset = lsb( r_mask) ;
+			g_offset = lsb( g_mask) ;
+			b_offset = lsb( b_mask) ;
 
 			data = (u_int16_t *)(image->data) ;
 			r_limit = 8 + r_offset - msb( r_mask) ;
@@ -1362,25 +1380,22 @@ modify_pixmap(
 		case 24:
 		case 32:
 		{
-			unsigned char  r, g, b ;
-			u_int32_t *  data ;
+			long  limit ;
+			u_int8_t *  data ;
 
-			data = (u_int32_t *)(image->data) ;
+			data = (u_int8_t *)(image->data) ;
 			value_table_refresh( pic_mod) ;
 			for (i = 0; i < height; i++)
 			{
 				for (j = 0; j < width; j++)
 				{
-					r = ((*data) >>r_offset) & 0xFF ;
-					g = ((*data) >>g_offset) & 0xFF ;
-					b = ((*data) >>b_offset) & 0xFF ;
-
-
-					r = value_table[r] ;
-					g = value_table[g] ;
-					b = value_table[b] ;
-
-					*data = r << r_offset | g << g_offset | b << b_offset ;
+					*data = value_table[*data];
+					data++ ;
+					*data = value_table[*data];
+					data++ ;
+					*data = value_table[*data];
+					data++ ;
+					*data = value_table[*data];
 					data++ ;
 				}
 			}
@@ -1467,6 +1482,13 @@ x_imagelib_display_closed(
 {
 	display_count -- ;
 	cache_delete( display) ;
+
+	if( display_count == 0)
+	{
+		/* drop pixbuf cache */
+		load_file( NULL, 0, 0, 0) ;
+	}
+
 	return  1 ;
 }
 

@@ -3,6 +3,7 @@
 	* Removed obsoleted config tools(mlcc/mlconf_curses)
 	* xwindow/x_dnd.c: code cleanup
 	* xwindow/x_imagelib_imlib.c: added mask support
+	* xwindow/x_imagelib_gdk.c: plugged leak
 	
 2003-05-25 Tomohiro KUBOTA <kubota@debian.org>
 
