@@ -1,3 +1,9 @@
+2003-09-08  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font_custom.[ch]: Added default_font_name_table to x_font_custom_t.
+	  Shrunk wasted memory if many default font names specified in
+	  ~/.mlterm/*font files.
+
 2003-09-01  Araki Ken  <arakiken@users.sf.net>
 
 	* Dumped core in selecting region in some situations. Fixed.
