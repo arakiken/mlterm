@@ -5,6 +5,8 @@
 #include "data_entry_bool.h"
 
 static int _is_true(char *str){
+	if (!str)
+		return 0;
 
 	if ((str[0] != 't')&&(str[0] != 'T'))
 		return 0; /* mlterm returns "true" or "false". first char is enough*/
