@@ -17,6 +17,7 @@
 #include  "x_mod_meta_mode.h"
 #include  "x_bel_mode.h"
 #include  "x_sb_mode.h"
+#include  "x_kbd.h"
 
 
 typedef struct x_screen *  x_screen_ptr_t ;
@@ -86,8 +87,9 @@ typedef struct  x_screen
 	 * encoding proper aux
 	 */
 	ml_shape_t *  shape ;
-	ml_iscii_lang_t  iscii_lang ;
-	ml_iscii_state_t  iscii_state ;
+	x_kbd_t *  kbd ;
+
+	ml_iscii_lang_type_t  iscii_lang_type ;
 
 	char *  mod_meta_key ;
 	x_mod_meta_mode_t  mod_meta_mode ;
@@ -144,8 +146,8 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	x_bel_mode_t  bel_mode , int  receive_string_via_ucs , char *  pic_file_path ,
 	int  use_transbg , int  use_bidi , ml_vertical_mode_t  vertical_mode ,
 	int  use_vertical_cursor , int  big5_buggy ,
-	char *  conf_menu_path , ml_iscii_lang_t  iscii_lang , int  use_extended_scroll_shortcut ,
-	int  use_dynamic_comb , u_int  line_space) ;
+	char *  conf_menu_path , ml_iscii_lang_type_t  iscii_lang_type ,
+	int  use_extended_scroll_shortcut , int  use_dynamic_comb , u_int  line_space) ;
 
 int  x_screen_delete( x_screen_t *  screen) ;
 

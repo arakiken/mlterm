@@ -555,6 +555,8 @@ comment $Id$
         xim_open_in_startup が true に設定されている場合は、最初から Open されています
         ので、使われません。
       o XIM_CLOSE(UNUSED)
+      o EXT_KBD(UNUSED)
+	アラビア語、インド諸語の mlterm 内蔵入力メソッドを起動、終了します。
       o OPEN_SCREEN(Ctrl+F1)
         新しいPTYを、新しい画面上に開きます。
       o NEW_PTY(Ctrl+F1)

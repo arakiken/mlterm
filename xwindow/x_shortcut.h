@@ -18,6 +18,7 @@ typedef enum  x_key_func
 {
 	XIM_OPEN ,
 	XIM_CLOSE ,
+	EXT_KBD ,
 	OPEN_SCREEN ,
 	OPEN_PTY ,
 	PAGE_UP ,

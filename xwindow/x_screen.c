@@ -2075,54 +2075,6 @@ get_mod_meta_mask(
 }
 
 static int
-select_iscii_lang(
-	x_screen_t *  screen
-	)
-{
-	u_int  font_size ;
-	char *  font_name ;
-
-	if( screen->iscii_state == NULL)
-	{
-		return  0 ;
-	}
-
-	if( ! ml_iscii_select_lang( screen->iscii_state , screen->iscii_lang))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_select_lang() failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	for( font_size = screen->font_man->font_custom->min_font_size ;
-		font_size <= screen->font_man->font_custom->max_font_size ;
-		font_size ++)
-	{
-		if( ( font_name = ml_iscii_get_font_name( screen->iscii_state , font_size)) == NULL)
-		{
-			continue ;
-		}
-		
-		x_font_manager_set_local_font_name( screen->font_man ,
-			DEFAULT_FONT(ISCII) , font_name , font_size) ;
-	}
-
-	/*
-	 * XXX
-	 * anti alias ISCII font is not supported.
-	 */
-	
-	if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_AA))
-	{
-		x_font_manager_reload( screen->font_man) ;
-	}
-	
-	return  1 ;
-}
-
-static int
 update_special_visual(
 	x_screen_t *  screen
 	)
@@ -2138,67 +2090,69 @@ update_special_visual(
 		/*
 		 * It is impossible to process ISCII with other encoding proper auxes.
 		 */
-		 
-		if( screen->iscii_state == NULL)
+
+		ml_iscii_lang_t  iscii_lang ;
+		u_int  font_size ;
+		char *  font_name ;
+		
+		if( ( iscii_lang = ml_iscii_lang_new( screen->iscii_lang_type)) == NULL)
 		{
-			if( ( screen->iscii_state = ml_iscii_new()) == NULL)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_new() failed.\n") ;
-			#endif
-				
-				return  0 ;
-			}
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_new() failed.\n") ;
+		#endif
 
-			if( ! select_iscii_lang( screen))
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " select_iscii_lang() failed.\n") ;
-			#endif
-
-				goto  iscii_error ;
-			}
+			return  0 ;
 		}
 		
-		if( ( screen->shape = ml_iscii_shape_new( screen->iscii_state)) == NULL)
+		for( font_size = screen->font_man->font_custom->min_font_size ;
+			font_size <= screen->font_man->font_custom->max_font_size ;
+			font_size ++)
+		{
+			if( ( font_name = ml_iscii_get_font_name( iscii_lang , font_size)) == NULL)
+			{
+				continue ;
+			}
+
+			x_font_manager_set_local_font_name( screen->font_man ,
+				DEFAULT_FONT(ISCII) , font_name , font_size) ;
+		}
+
+		/*
+		 * XXX
+		 * anti alias ISCII font is not supported.
+		 */
+		if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_AA))
+		{
+			x_font_manager_reload( screen->font_man) ;
+		}
+
+		if( ( screen->shape = ml_iscii_shape_new( iscii_lang)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_shape_new() failed.\n") ;
 		#endif
 
-			goto  iscii_error ;
+			ml_iscii_lang_delete( iscii_lang) ;
+
+			goto  error ;
 		}
 
-		if( ! ml_term_enable_special_visual( screen->term , VIS_ISCII ,
-			0 , screen->iscii_state , 0))
+		if( ! ml_term_enable_special_visual( screen->term , VIS_ISCII , 0 , iscii_lang , 0))
 		{
-			goto  iscii_error ;
-		}
-
-		return  1 ;
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_term_enable_special_visual() failed.\n") ;
+		#endif
 		
-	iscii_error:
-		if( screen->iscii_state)
-		{
-			ml_iscii_delete( screen->iscii_state) ;
-			screen->iscii_state = NULL ;
-		}
+			ml_iscii_lang_delete( iscii_lang) ;
 
-		return  0 ;
+			goto  error ;
+		}
 	}
 	else
 	{
 		ml_special_visual_t  visual ;
-		ml_shape_t *  shape ;
 
-		shape = NULL ;
 		visual = 0 ;
-
-		if( screen->iscii_state)
-		{
-			ml_iscii_delete( screen->iscii_state) ;
-			screen->iscii_state = NULL ;
-		}
 
 		if( screen->use_dynamic_comb)
 		{
@@ -2211,7 +2165,7 @@ update_special_visual(
 		}
 		else if( screen->use_bidi && ml_term_get_encoding( screen->term) == ML_UTF8)
 		{
-			if( ( shape = ml_arabic_shape_new()) == NULL)
+			if( ( screen->shape = ml_arabic_shape_new()) == NULL)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " x_arabic_shape_new() failed.\n") ;
@@ -2223,24 +2177,22 @@ update_special_visual(
 			visual |= VIS_BIDI ;
 		}
 		
-		screen->shape = shape ;
-
 		if( ! ml_term_enable_special_visual( screen->term , visual ,
 			0 , NULL , screen->vertical_mode))
 		{
 			goto  error ;
 		}
-		
-		return  1 ;
-		
-	error:
-		if( shape)
-		{
-			(*shape->delete)( screen->shape) ;
-		}
-
-		return  0 ;
 	}
+	
+	return  1 ;
+
+error:
+	if( screen->shape)
+	{
+		(*screen->shape->delete)( screen->shape) ;
+	}
+
+	return  0 ;
 }
 
 
@@ -2588,7 +2540,14 @@ key_pressed(
 
 	screen = (x_screen_t *) win ;
 
-	size = x_window_get_str( win , seq , sizeof(seq) , &parser , &ksym , event) ;
+	if( screen->kbd)
+	{
+		size = (*screen->kbd->get_str)( screen->kbd , seq , sizeof(seq) , &parser , &ksym , event) ;
+	}
+	else
+	{
+		size = x_window_get_str( win , seq , sizeof(seq) , &parser , &ksym , event) ;
+	}
 
 #ifdef  __DEBUG
 	{
@@ -2603,44 +2562,6 @@ key_pressed(
 	}
 #endif
 
-	if( ml_term_get_encoding( screen->term) == ML_ISCII)
-	{
-		ml_iscii_keyb_t  keyb ;
-
-		keyb = ml_iscii_current_keyb( screen->iscii_state) ;
-		
-		if( ksym == XK_Alt_R)
-		{
-			if( keyb == ISCIIKEYB_NONE)
-			{
-				x_set_window_name( &screen->window , "Inscript Keyb") ;
-				ml_iscii_select_keyb( screen->iscii_state , ISCIIKEYB_INSCRIPT) ;
-			}
-			else
-			{
-				x_set_window_name( &screen->window , "mlterm") ;
-				ml_iscii_select_keyb( screen->iscii_state , ISCIIKEYB_NONE) ;
-			}
-
-			return ;
-		}
-		else if( ksym == XK_F1 && keyb != ISCIIKEYB_NONE)
-		{
-			if( keyb == ISCIIKEYB_IITKEYB)
-			{
-				x_set_window_name( &screen->window , "Inscript Keyb") ;
-				ml_iscii_select_keyb( screen->iscii_state , ISCIIKEYB_INSCRIPT) ;
-			}
-			else if( keyb == ISCIIKEYB_INSCRIPT)
-			{
-				x_set_window_name( &screen->window , "Phonetic Keyb") ;
-				ml_iscii_select_keyb( screen->iscii_state , ISCIIKEYB_IITKEYB) ;
-			}
-
-			return ;
-		}
-	}
-	
 	if( x_shortcut_match( screen->shortcut , XIM_OPEN , ksym , event->state))
 	{
 		x_xic_activate( &screen->window , "" , "") ;
@@ -2651,6 +2572,35 @@ key_pressed(
 	{
 		x_xic_deactivate( &screen->window) ;
 
+		return ;
+	}
+	else if( x_shortcut_match( screen->shortcut , EXT_KBD , ksym , event->state))
+	{
+		if( screen->kbd)
+		{
+			if( screen->kbd->type == KBD_ISCII_INSCRIPT)
+			{
+				(*screen->kbd->delete)( screen->kbd) ;
+				screen->kbd = x_iscii_phonetic_kbd_new( &screen->window) ;
+			}
+			else
+			{
+				(*screen->kbd->delete)( screen->kbd) ;
+				screen->kbd = NULL ;
+			}
+		}
+		else
+		{
+			if( ml_term_get_encoding( screen->term) == ML_ISCII)
+			{
+				screen->kbd = x_iscii_inscript_kbd_new( &screen->window) ;
+			}
+			else
+			{
+				screen->kbd = x_arabic_kbd_new( &screen->window) ;
+			}
+		}
+		
 		return ;
 	}
 	else if( x_shortcut_match( screen->shortcut , OPEN_SCREEN , ksym , event->state))
@@ -2841,12 +2791,6 @@ key_pressed(
 		else if( size > 0)
 		{
 			buf = NULL ;
-			
-			if( screen->iscii_state)
-			{
-				size = ml_convert_ascii_to_iscii(
-					screen->iscii_state , seq , size , seq , size) ;
-			}
 		}
 		/*
 		 * following ksym is processed only if no sequence string is received(size == 0)
@@ -4203,21 +4147,20 @@ change_char_encoding(
 static void
 change_iscii_lang(
 	x_screen_t *  screen ,
-	ml_iscii_lang_t  lang
+	ml_iscii_lang_type_t  type
 	)
 {
-	if( screen->iscii_lang == lang)
+	if( screen->iscii_lang_type == type)
 	{
 		/* not changed */
 		
 		return ;
 	}
 
-	screen->iscii_lang = lang ;
+	screen->iscii_lang_type = type ;
 	
-	if( screen->iscii_state)
+	if( update_special_visual( screen))
 	{
-		select_iscii_lang( screen) ;
 		ml_term_set_modified_all( screen->term) ;
 	}
 }
@@ -4347,10 +4290,11 @@ change_vertical_mode(
 
 	screen->vertical_mode = vertical_mode ;
 	
-	update_special_visual( screen) ;
-	
-	/* redrawing under new vertical mode. */
-	ml_term_set_modified_all( screen->term) ;
+	if( update_special_visual( screen))
+	{
+		/* redrawing under new vertical mode. */
+		ml_term_set_modified_all( screen->term) ;
+	}
 	
 	x_window_resize( &screen->window , screen_width(screen) , screen_height(screen) ,
 		NOTIFY_TO_PARENT) ;
@@ -4404,9 +4348,10 @@ change_dynamic_comb_flag(
 
 	screen->use_dynamic_comb = use_dynamic_comb ;
 
-	update_special_visual( screen) ;
-	
-	ml_term_set_modified_all( screen->term) ;
+	if( update_special_visual( screen))
+	{
+		ml_term_set_modified_all( screen->term) ;
+	}
 }
 
 static void
@@ -4583,10 +4528,11 @@ change_bidi_flag(
 	}
 
 	screen->use_bidi = use_bidi ;
-	
-	ml_term_set_modified_all( screen->term) ;
 
-	update_special_visual( screen) ;
+	if( update_special_visual( screen))
+	{
+		ml_term_set_modified_all( screen->term) ;
+	}
 }
 
 static void
@@ -4776,14 +4722,14 @@ set_config(
 	}
 	else if( strcmp( key , "iscii_lang") == 0)
 	{
-		ml_iscii_lang_t  lang ;
+		ml_iscii_lang_type_t  type ;
 
-		if( ( lang = ml_iscii_get_lang( value)) == ISCIILANG_UNKNOWN)
+		if( ( type = ml_iscii_get_lang( value)) == ISCIILANG_UNKNOWN)
 		{
 			return ;
 		}
 		
-		change_iscii_lang( screen , lang) ;
+		change_iscii_lang( screen , type) ;
 	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
@@ -5159,7 +5105,7 @@ get_config(
 	}
 	else if( strcmp( key , "iscii_lang") == 0)
 	{
-		value = ml_iscii_get_lang_name( screen->iscii_lang) ;
+		value = ml_iscii_get_lang_name( screen->iscii_lang_type) ;
 	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
@@ -5735,11 +5681,14 @@ start_vt100_cmd(
 
 	screen = p ;
 
-	if( ml_term_is_backscrolling( screen->term) == BSM_VOLATILE)
+#if  0
+	if( ! ml_term_is_backscrolling( screen->term) ||
+		ml_term_is_backscrolling( screen->term) == BSM_VOLATILE)
 	{
 		x_stop_selecting( &screen->sel) ;
 	}
-	
+#endif
+
 	if( screen->sel.is_selecting)
 	{
 		x_restore_selected_region_color_except_logs( &screen->sel) ;
@@ -5979,7 +5928,7 @@ x_screen_new(
 	int  use_vertical_cursor ,
 	int  big5_buggy ,
 	char *  conf_menu_path ,
-	ml_iscii_lang_t  iscii_lang ,
+	ml_iscii_lang_type_t  iscii_lang_type ,
 	int  use_extended_scroll_shortcut ,
 	int  use_dynamic_comb ,
 	u_int  line_space
@@ -6034,10 +5983,11 @@ x_screen_new(
 	screen->utf8_conv = NULL ;
 	screen->xct_conv = NULL ;
 	
-	screen->iscii_lang = iscii_lang ;
-	screen->iscii_state = NULL ;
 	screen->shape = NULL ;
+	screen->kbd = NULL ;
 
+	screen->iscii_lang_type = iscii_lang_type ;
+	
 	screen->vertical_mode = vertical_mode ;
 	screen->use_vertical_cursor = use_vertical_cursor ;
 	
@@ -6273,9 +6223,9 @@ x_screen_delete(
 		(*screen->shape->delete)( screen->shape) ;
 	}
 
-	if( screen->iscii_state)
+	if( screen->kbd)
 	{
-		ml_iscii_delete( screen->iscii_state) ;
+		(*screen->kbd->delete)( screen->kbd) ;
 	}
 
 	if( screen->mod_meta_key)
@@ -6351,9 +6301,10 @@ x_screen_attach(
 
 	usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
 
-	update_special_visual( screen) ;
-
-	ml_term_set_modified_all( screen->term) ;
+	if( update_special_visual( screen))
+	{
+		ml_term_set_modified_all( screen->term) ;
+	}
 
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;

@@ -1,5 +1,6 @@
 # Shift+space=XIM_OPEN
 # UNUSED=XIM_CLOSE
+# Control+backslash=EXT_KBD
 # Control+F1=OPEN_SCREEN
 # UNUSED=OPEN_PTY
 # Shift+Prior=PAGE_UP

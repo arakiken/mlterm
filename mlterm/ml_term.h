@@ -114,7 +114,7 @@ int  ml_term_set_modified_all( ml_term_t *  term) ;
 
 int  ml_term_enable_special_visual( ml_term_t *  term ,
 	ml_special_visual_t  visual , int  adhoc_right_align ,
-	ml_iscii_state_t  iscii_state , ml_vertical_mode_t  vertical_mode) ;
+	ml_iscii_lang_t  iscii_lang , ml_vertical_mode_t  vertical_mode) ;
 
 int  ml_term_disable_special_visual( ml_term_t *  term) ;
 

@@ -1285,7 +1285,7 @@ ml_line_copy_str(
 int
 ml_line_iscii_visual(
 	ml_line_t *  line ,
-	ml_iscii_state_t  iscii_state
+	ml_iscii_lang_t  iscii_lang
 	)
 {
 	ml_char_t *  src ;
@@ -1339,7 +1339,7 @@ ml_line_iscii_visual(
 			
 			iscii_buf[iscii_filled ++] = ml_char_bytes( ch)[0] ;
 			iscii_buf[iscii_filled] = '\0' ;
-			font_filled = ml_iscii_shape( iscii_state , font_buf , font_buf_len , iscii_buf) ;
+			font_filled = ml_iscii_shape( iscii_lang , font_buf , font_buf_len , iscii_buf) ;
 
 			if( font_filled < prev_font_filled)
 			{

@@ -50,7 +50,7 @@ typedef struct  iscii_logical_visual
 {
 	ml_logical_visual_t  logvis ;
 	
-	ml_iscii_state_t  iscii_state ;
+	ml_iscii_lang_t  iscii_lang ;
 
 	ml_line_t *  logical_lines ;
 	ml_line_t *  visual_lines ;
@@ -1017,7 +1017,7 @@ iscii_visual(
 			ml_line_copy_line( &iscii_logvis->logical_lines[row] , line) ;
 			ml_line_updated( &iscii_logvis->logical_lines[row]) ;
 
-			ml_line_iscii_visual( line , iscii_logvis->iscii_state) ;
+			ml_line_iscii_visual( line , iscii_logvis->iscii_lang) ;
 
 			/* caching */
 			ml_line_copy_line( &iscii_logvis->visual_lines[row] , line) ;
@@ -1083,11 +1083,11 @@ iscii_visual_line(
 	ml_line_t *  line
 	)
 {
-	ml_iscii_state_t  iscii_state ;
+	ml_iscii_lang_t  iscii_lang ;
 
-	iscii_state = ((iscii_logical_visual_t*) logvis)->iscii_state ;
+	iscii_lang = ((iscii_logical_visual_t*) logvis)->iscii_lang ;
 
-	ml_line_iscii_visual( line , iscii_state) ;
+	ml_line_iscii_visual( line , iscii_lang) ;
 	
 	return  1 ;
 }
@@ -1515,7 +1515,7 @@ ml_logvis_comb_new(void)
 
 ml_logical_visual_t *
 ml_logvis_iscii_new(
-	ml_iscii_state_t  iscii_state
+	ml_iscii_lang_t  iscii_lang
 	)
 {
 	iscii_logical_visual_t *  iscii_logvis ;
@@ -1525,7 +1525,7 @@ ml_logvis_iscii_new(
 		return  NULL ;
 	}
 
-	iscii_logvis->iscii_state = iscii_state ;
+	iscii_logvis->iscii_lang = iscii_lang ;
 	iscii_logvis->visual_lines = NULL ;
 	iscii_logvis->logical_lines = NULL ;
 	iscii_logvis->cursor_logical_char_index = 0 ;

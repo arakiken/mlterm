@@ -35,7 +35,7 @@ typedef struct arabic_comb
 typedef struct iscii_shape
 {
 	ml_shape_t  shape ;
-	ml_iscii_state_t  iscii_state ;
+	ml_iscii_lang_t  iscii_lang ;
 
 } iscii_shape_t ;
 
@@ -317,6 +317,16 @@ shape_arabic(
 	return  count ;
 }
 
+static int
+arabic_delete(
+	ml_shape_t *  shape
+	)
+{
+	free( shape) ;
+
+	return  1 ;
+}
+
 static u_int
 shape_iscii(
 	ml_shape_t *  shape ,
@@ -389,7 +399,7 @@ shape_iscii(
 			if( iscii_filled)
 			{
 				iscii_buf[iscii_filled] = '\0' ;
-				font_filled = ml_iscii_shape( iscii_shape->iscii_state ,
+				font_filled = ml_iscii_shape( iscii_shape->iscii_lang ,
 						font_buf , dst_len , iscii_buf) ;
 
 			#ifdef  __DEBUG
@@ -431,7 +441,7 @@ shape_iscii(
 	if( iscii_filled)
 	{
 		iscii_buf[iscii_filled] = '\0' ;
-		font_filled = ml_iscii_shape( iscii_shape->iscii_state , font_buf , dst_len , iscii_buf) ;
+		font_filled = ml_iscii_shape( iscii_shape->iscii_lang , font_buf , dst_len , iscii_buf) ;
 		
 		for( count = 0 ; count < font_filled ; count ++)
 		{
@@ -443,11 +453,16 @@ shape_iscii(
 }
 
 static int
-delete(
+iscii_delete(
 	ml_shape_t *  shape
 	)
 {
-	free( shape) ;
+	iscii_shape_t *  iscii_shape ;
+
+	iscii_shape = (iscii_shape_t*) shape ;
+
+	ml_iscii_lang_delete( iscii_shape->iscii_lang) ;
+	free( iscii_shape) ;
 
 	return  1 ;
 }
@@ -466,7 +481,7 @@ ml_arabic_shape_new(void)
 	}
 
 	shape->shape = shape_arabic ;
-	shape->delete = delete ;
+	shape->delete = arabic_delete ;
 
 	return  shape ;
 }
@@ -569,7 +584,7 @@ ml_is_arabic_combining(
 
 ml_shape_t *
 ml_iscii_shape_new(
-	ml_iscii_state_t  iscii_state
+	ml_iscii_lang_t  iscii_lang
 	)
 {
 	iscii_shape_t *  iscii_shape ;
@@ -580,8 +595,8 @@ ml_iscii_shape_new(
 	}
 
 	iscii_shape->shape.shape = shape_iscii ;
-	iscii_shape->shape.delete = delete ;
-	iscii_shape->iscii_state = iscii_state ;
+	iscii_shape->shape.delete = iscii_delete ;
+	iscii_shape->iscii_lang = iscii_lang ;
 
 	return  (ml_shape_t*) iscii_shape ;
 }

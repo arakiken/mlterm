@@ -453,7 +453,7 @@ ml_term_enable_special_visual(
 	ml_term_t *  term ,
 	ml_special_visual_t  visual ,
 	int  adhoc_right_align ,
-	ml_iscii_state_t  iscii_state ,
+	ml_iscii_lang_t  iscii_lang ,
 	ml_vertical_mode_t  vertical_mode
 	)
 {
@@ -467,7 +467,7 @@ ml_term_enable_special_visual(
 		 * It is impossible to process ISCII with other encoding proper auxes.
 		 */
 		 
-		if( ( logvis = ml_logvis_iscii_new( iscii_state)) == NULL)
+		if( ( logvis = ml_logvis_iscii_new( iscii_lang)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_iscii_new() failed.\n") ;

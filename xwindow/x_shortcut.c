@@ -34,6 +34,7 @@ static key_func_table_t  key_func_table[] =
 {
 	{ "XIM_OPEN" , XIM_OPEN , } ,
 	{ "XIM_CLOSE" , XIM_CLOSE , } ,
+	{ "EXT_KBD" , EXT_KBD } ,
 	{ "OPEN_SCREEN" , OPEN_SCREEN , } ,
 	{ "OPEN_PTY" , OPEN_PTY , } ,
 	{ "PAGE_UP" , PAGE_UP , } ,
@@ -186,6 +187,9 @@ x_shortcut_init(
 		/* XIM_CLOSE(not used) */
 		{ 0 , 0 , 0 , } ,
 
+		/* EXT_KBD(not used) */
+		{ 0 , 0 , 0 , } ,
+		
 		/* OPEN SCREEN */
 		{ XK_F1 , ControlMask , 1 , } ,
 

@@ -141,7 +141,7 @@ int  ml_bidi_convert_logical_char_index_to_visual( ml_line_t *  line , int  char
 int  ml_line_copy_str( ml_line_t *  line , ml_char_t *  dst , int  beg , u_int  len) ;
 
 
-int  ml_line_iscii_visual( ml_line_t *  line , ml_iscii_state_t  iscii_state) ;
+int  ml_line_iscii_visual( ml_line_t *  line , ml_iscii_lang_t  iscii_lang) ;
 
 int  ml_iscii_convert_logical_char_index_to_visual( ml_line_t *  line , int  logical_char_index) ;
 

@@ -48,7 +48,7 @@ typedef struct main_config
 	u_int  num_of_log_lines ;
 	u_int  line_space ;
 	u_int  tab_size ;
-	ml_iscii_lang_t  iscii_lang ;
+	ml_iscii_lang_type_t  iscii_lang_type ;
 	x_mod_meta_mode_t  mod_meta_mode ;
 	x_bel_mode_t  bel_mode ;
 	x_sb_mode_t  sb_mode ;
@@ -372,7 +372,7 @@ open_term(void)
 			main_config.use_transbg , main_config.use_bidi ,
 			main_config.vertical_mode , main_config.use_vertical_cursor ,
 			main_config.big5_buggy , main_config.conf_menu_path ,
-			main_config.iscii_lang , main_config.use_extended_scroll_shortcut ,
+			main_config.iscii_lang_type , main_config.use_extended_scroll_shortcut ,
 			main_config.use_dynamic_comb , main_config.line_space)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -1495,15 +1495,15 @@ config_init(
 		}
 	}
 	
-	main_config.iscii_lang = ISCIILANG_MALAYALAM ;
+	main_config.iscii_lang_type = ISCIILANG_MALAYALAM ;
 	
 	if( ( value = kik_conf_get_value( conf , "iscii_lang")))
 	{
-		ml_iscii_lang_t  lang ;
+		ml_iscii_lang_type_t  type ;
 		
-		if( ( lang = ml_iscii_get_lang( strdup( value))) != ISCIILANG_UNKNOWN)
+		if( ( type = ml_iscii_get_lang( strdup( value))) != ISCIILANG_UNKNOWN)
 		{
-			main_config.iscii_lang = lang ;
+			main_config.iscii_lang_type = type ;
 		}
 	}
 

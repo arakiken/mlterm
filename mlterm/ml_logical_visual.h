@@ -57,7 +57,7 @@ ml_logical_visual_t *  ml_logvis_bidi_new( int  adhoc_right_align) ;
 
 ml_logical_visual_t *  ml_logvis_comb_new(void) ;
 
-ml_logical_visual_t *  ml_logvis_iscii_new( ml_iscii_state_t  iscii_state) ;
+ml_logical_visual_t *  ml_logvis_iscii_new( ml_iscii_lang_t  iscii_lang) ;
 
 ml_logical_visual_t *  ml_logvis_vert_new( ml_vertical_mode_t  vertical_mode) ;
 

@@ -9,9 +9,11 @@
 #include  <kiklib/kik_types.h>		/* u_int/u_char */
 
 
-typedef struct ml_iscii_state *  ml_iscii_state_t ;
+typedef struct ml_iscii_lang *  ml_iscii_lang_t ;
 
-typedef enum  ml_iscii_lang
+typedef struct ml_iscii_keymap *  ml_iscii_keymap_t ;
+
+typedef enum  ml_iscii_lang_type
 {
 	ISCIILANG_UNKNOWN = -1 ,
 	
@@ -29,41 +31,34 @@ typedef enum  ml_iscii_lang
 
 	MAX_ISCIILANG ,
 
-} ml_iscii_lang_t ;
-
-typedef enum  ml_iscii_keyb
-{
-	ISCIIKEYB_UNKNOWN = -1 ,
-	
-	ISCIIKEYB_NONE = 0 ,
-	ISCIIKEYB_INSCRIPT ,
-	ISCIIKEYB_IITKEYB ,
-
-	MAX_ISCIIKEYB ,
-
-} ml_iscii_keyb_t ;
+} ml_iscii_lang_type_t ;
 
 
-ml_iscii_lang_t  ml_iscii_get_lang( char *  name) ;
+ml_iscii_lang_type_t  ml_iscii_get_lang( char *  name) ;
 
-char *  ml_iscii_get_lang_name( ml_iscii_lang_t  lang) ;
+char *  ml_iscii_get_lang_name( ml_iscii_lang_type_t  lang) ;
 
+/*
+ * lang
+ */
+ 
+ml_iscii_lang_t  ml_iscii_lang_new( ml_iscii_lang_type_t  type) ;
 
-ml_iscii_state_t  ml_iscii_new(void) ;
+int  ml_iscii_lang_delete( ml_iscii_lang_t  lang) ;
 
-int  ml_iscii_delete( ml_iscii_state_t  iscii_state) ;
+char *  ml_iscii_get_font_name( ml_iscii_lang_t  lang , u_int  font_size) ;
 
-int  ml_iscii_select_lang( ml_iscii_state_t  iscii_state , ml_iscii_lang_t  lang) ;
+u_int  ml_iscii_shape( ml_iscii_lang_t  lang , u_char *  dst , size_t  dst_size , u_char *  src) ;
 
-char *  ml_iscii_get_font_name( ml_iscii_state_t  iscii_state , u_int  font_size) ;
+/*
+ * keymap
+ */
+ 
+ml_iscii_keymap_t  ml_iscii_keymap_new( int  is_inscript) ;
 
-u_int  ml_iscii_shape( ml_iscii_state_t  iscii_state , u_char *  dst , size_t  dst_size , u_char *  src) ;
+int  ml_iscii_keymap_delete( ml_iscii_keymap_t  keymap) ;
 
-int  ml_iscii_select_keyb( ml_iscii_state_t  iscii_state , ml_iscii_keyb_t  keyb) ;
-
-ml_iscii_keyb_t  ml_iscii_current_keyb( ml_iscii_state_t  iscii_state) ;
-
-size_t  ml_convert_ascii_to_iscii( ml_iscii_state_t  iscii_state ,
+size_t  ml_convert_ascii_to_iscii( ml_iscii_keymap_t  keymap ,
 	u_char *  iscii , size_t  iscii_len , u_char *  ascii , size_t  ascii_len) ;
 
 
