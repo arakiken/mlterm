@@ -1,3 +1,8 @@
+2004-05-07  MINAMI Hirokazu <minami@mistfall.net>
+
+	* x_imagelib_gdk.c: gdk_pixbuf_ref() was deprecated and 
+	  shouldn't be called on GTK2.
+
 2004-04-23  Tomohiro KUBOTA <kubota@debian.org>
 
 	* The --borderless option was not documented in the manpage.

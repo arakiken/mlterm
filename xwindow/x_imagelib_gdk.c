@@ -107,7 +107,7 @@ load_file(
 #else
 			gdk_pixbuf_unref( scaled) ;
 #endif /*GDK_PIXBUF_MAJOR*/
-			data = NULL ;
+			scaled = NULL ;
 		}
 		return  NULL ;
 	}
@@ -200,7 +200,11 @@ load_file(
 	}
 	/* scaling ends here */
 
-	gdk_pixbuf_ref( pixbuf) ;
+#if GDK_PIXBUF_MAJOR >= 2
+		g_object_ref( pixbuf) ;
+#else
+		gdk_pixbuf_ref( pixbuf) ;
+#endif /*GDK_PIXBUF_MAJOR*/
 
 	return  pixbuf ;
 }
