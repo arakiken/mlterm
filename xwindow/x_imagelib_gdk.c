@@ -93,20 +93,20 @@ load_file(
 		/* free caches */
 		if( data)
 		{
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( data) ;
 #else
 			gdk_pixbuf_unref( data) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 			data = NULL ;
 		}
 		if( scaled)
 		{
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( scaled) ;
 #else
 			gdk_pixbuf_unref( scaled) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 			data = NULL ;
 		}
 		return  NULL ;
@@ -133,28 +133,28 @@ load_file(
 
 		if( data)
 		{
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( data) ;
 #else
 			gdk_pixbuf_unref( data) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 		}
 
 		if( scaled) /* scaled one is not vaild now */
 		{
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( scaled) ;
 #else
 			gdk_pixbuf_unref( scaled) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 		}
 		scaled = NULL ;
 
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 		data = gdk_pixbuf_new_from_file( path, NULL) ;
 #else
 		data = gdk_pixbuf_new_from_file( path) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 
 		pixbuf = data ;
 
@@ -184,11 +184,11 @@ load_file(
 		{
 			if( scaled)
 			{
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 				g_object_unref( scaled) ;
 #else
 				gdk_pixbuf_unref( scaled) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 			}
 #ifdef __DEBUG
 			kik_warn_printf(KIK_DEBUG_TAG "creating a scaled pixbuf(%d x %d) from %d %d \n", width, height) ;
@@ -263,11 +263,11 @@ create_pixbuf_from_cardinals(
 
 	if( scaled)
 	{
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 		g_object_unref( pixbuf) ;
 #else
 		gdk_pixbuf_unref( pixbuf) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 		return  scaled ;
 	}
 	else
@@ -332,11 +332,11 @@ create_cardinals_from_bixbuf(
 		}
 	}
 
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 	g_object_unref( pixbuf) ;
 #else
 	gdk_pixbuf_unref( pixbuf) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 
 	return  SUCCESS ;
 }
@@ -1428,9 +1428,9 @@ x_imagelib_display_opened(
 {
 	if (display_count == 0)
 	{
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 		g_type_init() ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 	}
 	display_count ++ ;
 	return  1 ;
@@ -1498,11 +1498,11 @@ x_imagelib_load_file_for_background(
 
 		if( cached_pixbuf)
 		{
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( cached_pixbuf) ;
 #else
 			gdk_pixbuf_unref( cached_pixbuf) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 		}
 		if( cached_mod)
 			free(cached_mod) ;
@@ -1517,11 +1517,11 @@ x_imagelib_load_file_for_background(
 		else
 		{
 			cached_pixbuf = gdk_pixbuf_copy(pixbuf) ;
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( pixbuf) ;
 #else
 			gdk_pixbuf_unref( pixbuf) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 			modify_image( cached_pixbuf, pic_mod) ;
 		}
 
@@ -1768,11 +1768,11 @@ int x_imagelib_load_file(
 						       DefaultScreen( display),
 						       pixbuf, pixmap, mask) != SUCCESS)
 			{
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 				g_object_unref( pixbuf) ;
 #else
 				gdk_pixbuf_unref( pixbuf) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 				XFreePixmap( display, *pixmap) ;
 				*pixmap = None ;
 				XFreePixmap( display, *mask) ;
@@ -1787,11 +1787,11 @@ int x_imagelib_load_file(
 			if( pixbuf_to_pixmap( display, DefaultScreen( display),
 					      pixbuf, *pixmap) != SUCCESS)
 			{
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 				g_object_unref( pixbuf) ;
 #else
 				gdk_pixbuf_unref( pixbuf) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 				XFreePixmap( display, *pixmap) ;
 				*pixmap = None ;
 
@@ -1809,10 +1809,10 @@ int x_imagelib_load_file(
 		*height = dst_height ;
 	}
 
-#ifndef OLD_GDK_PIXBUF
+#if GDK_PIXBUF_MAJOR >= 2
 	g_object_unref( pixbuf) ;
 #else
 	gdk_pixbuf_unref( pixbuf) ;
-#endif /*OLD_GDK_PIXBUF*/
+#endif /*GDK_PIXBUF_MAJOR*/
 	return  1 ;
 }
