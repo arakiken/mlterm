@@ -20,6 +20,7 @@ kik_dl_open(
 	char *  name
 	)
 {
+	HMODULE  module ;
 	char *  path ;
 #ifdef __CYGWIN__
 	char  winpath[MAX_PATH];
@@ -38,7 +39,25 @@ kik_dl_open(
 	sprintf( path , "%slib%s.dll" , dirpath , name) ;
 #endif
 
-	return  ( kik_dl_handle_t)LoadLibrary( path) ;
+	if( ( module == LoadLibrary( path)))
+	{
+		return  ( kik_dl_handle_t)module ;
+	}
+
+#ifdef __CYGWIN__
+	sprintf( path , "%s%s.dll" , dirpath , name) ;
+	cygwin_conv_to_win32_path( path , winpath);
+	path = winpath ;
+#else
+	sprintf( path , "%s%s.dll" , dirpath , name) ;
+#endif
+
+	if( ( module == LoadLibrary( path)))
+	{
+		return  ( kik_dl_handle_t)module ;
+	}
+
+	return  NULL ;
 }
 
 int
@@ -46,7 +65,7 @@ kik_dl_close(
 	kik_dl_handle_t  handle
 	)
 {
-	return  FreeLibrary( (HINSTANCE)handle) ;
+	return  FreeLibrary( (HMODULE)handle) ;
 }
 
 void *
@@ -55,7 +74,7 @@ kik_dl_func_symbol(
 	char *  symbol
 	)
 {
-	return  GetProcAddress( (HINSTANCE)handle , symbol) ;
+	return  GetProcAddress( (HMODULE)handle , symbol) ;
 }
 
 int

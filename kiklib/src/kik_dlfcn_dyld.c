@@ -34,14 +34,19 @@ kik_dl_open(
 		return  NULL ;
 	}
 
+	/*
+	 * libfoo.so --> foo.so
+	 */
+
 	sprintf( path , "%slib%s.so" , dirpath , name) ;
 
 	if( ( ret = NSCreateObjectFileImageFromFile( path , &file_image)) != NSObjectFileImageSuccess)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " NSCreateObjectFileImageFromFile() failed. [ret: %d]\n" , ret) ;
-	#endif
-		return  NULL ;
+		sprintf( path , "%s%s.so" , dirpath , name) ;
+		if( ( ret = NSCreateObjectFileImageFromFile( path , &file_image)) != NSObjectFileImageSuccess)
+		{
+			return  NULL ;
+		}
 	}
 
 	return  (kik_dl_handle_t)NSLinkModule( file_image , path ,

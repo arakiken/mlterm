@@ -20,15 +20,31 @@ kik_dl_open(
 	)
 {
 	char *  path ;
+	shl_t  handle ;
 
 	if( ( path = alloca( strlen( dirpath) + strlen( name) + 7)) == NULL)
 	{
 		return  NULL ;
 	}
 
-	sprintf( path , "%slib%s.sl" , dirpath , name) ;
 
-	return  (kik_dl_handle_t)shl_load( path , BIND_DEFERRED , 0x0) ;
+	/*
+	 * libfoo.sl --> foo.sl
+	 */
+
+	sprintf( path , "%slib%s.sl" , dirpath , name) ;
+	if( ( handle = shl_load( path , BIND_DEFERRED , 0x0)))
+	{
+		return  (kik_dl_handle_t) handle ;
+	}
+
+	sprintf( path , "%s%s.sl" , dirpath , name) ;
+	if( ( handle = shl_load( path , BIND_DEFERRED , 0x0)))
+	{
+		return  (kik_dl_handle_t) handle ;
+	}
+
+	return  NULL ;
 }
 
 int

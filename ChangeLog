@@ -1,3 +1,10 @@
+2005-02-18 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* kiklib/src/kik_dlfcn_dl.c, kiklib/src/kik_dlfcn_dld.c,
+	  kiklib/src/kik_dlfcn_dyld.c, kiklib/src/kik_dlfcn_ltdl.c,
+	  kiklib/src/kik_dlfcn_win32.c: supported prefix-less library name such
+	  as foo.so, foo.sl and foo.dll.
+
 2005-02-18  Mike FABIAN  <mfabian@suse.de>
 
 	* inputmethod/scim/Makefile.in: add "CC      = @CC@"

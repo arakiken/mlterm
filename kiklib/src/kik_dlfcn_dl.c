@@ -27,16 +27,35 @@ kik_dl_open(
 		return  NULL ;
 	}
 
-	sprintf( path , "%slib%s.so" , dirpath , name) ;
+	/*
+	 * libfoo.so --> foo.so --> libfoo.sl --> foo.sl
+	 */
 
-	if( ( ret = dlopen( path , RTLD_LAZY)) == NULL)
+	sprintf( path , "%slib%s.so" , dirpath , name) ;
+	if( ( ret = dlopen( path , RTLD_LAZY)))
 	{
-		/* HP-UX libfoo.sl */
-		sprintf( path , "%slib%s.sl" , dirpath , name) ;
-		ret = dlopen( path , RTLD_LAZY) ;
+		return  (kik_dl_handle_t)ret ;
 	}
 
-	return  ret ;
+	sprintf( path , "%slib%s.sl" , dirpath , name) ;
+	if( ( ret = dlopen( path , RTLD_LAZY)))
+	{
+		return  (kik_dl_handle_t)ret ;
+	}
+
+	sprintf( path , "%s%s.so" , dirpath , name) ;
+	if( ( ret = dlopen( path , RTLD_LAZY)))
+	{
+		return  (kik_dl_handle_t)ret ;
+	}
+
+	sprintf( path , "%s%s.sl" , dirpath , name) ;
+	if( ( ret = dlopen( path , RTLD_LAZY)))
+	{
+		return  (kik_dl_handle_t)ret ;
+	}
+
+	return  NULL ;
 }
 
 int

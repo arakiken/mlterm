@@ -39,11 +39,23 @@ kik_dl_open(
 		return  NULL ;
 	}
 
+	/*
+	 * libfoo -> foo
+	 */
+
 	sprintf( path , "%slib%s" , dirpath , name) ;
+	if( ( handle = lt_dlopenext( path )))
+	{
+		return  (kik_dl_handle_t)handle;
+	}
 
-	handle = lt_dlopenext( path ) ;
+	sprintf( path , "%s%s" , dirpath , name) ;
+	if( ( handle = lt_dlopenext( path )))
+	{
+		return  (kik_dl_handle_t)handle;
+	}
 
-	return  (kik_dl_handle_t)handle;
+	return  NULL ;
 }
 
 int
