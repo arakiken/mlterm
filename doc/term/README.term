@@ -5,5 +5,6 @@ This directory contains data for terminfo/termcap.
 * mlterm.ti : for terminfo
 * mlterm.tc : for termcap
 
-Note that these two file are not perfectly coincide. Some function of mlterm could not be mentioned in mlterm.tc because the size of an termcap entry cannot exceed 1K. 
+*NOTE* mlterm.tc is over 1K limit of some inpremantation of termcap.
+it's considerd to be broken and needs your help! 
 
