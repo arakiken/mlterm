@@ -983,14 +983,6 @@ ml_vt100_cmd_set_config(
 	}
 	else if( strcmp( key , "wall_picture") == 0)
 	{
-		if( *value == '\0')
-		{
-			/* Do not change current image but alter diaplay setting */
-			/* XXX nothing can be done for now */
-
-			return  0 ;
-		}
-		
 		if( termscr->config_menu_listener.change_wall_picture)
 		{
 			(*termscr->config_menu_listener.change_wall_picture)( termscr , value) ;

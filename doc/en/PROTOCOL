@@ -19,7 +19,7 @@ version 20020113
   set bg color     = "\x1b" "]" "49" ";" <color name> "\x07"
   color name       = white | black | red | green | yellow | blue | magenta | cyan |
                      gray | lightgray | pink | brown | priv_fg | priv_bg
-  set wall picture = "\x1b" "]" "20" ";" <path> "[" ";" <adjusting> "]" "[" ":" <operation> "]" "\x07"
+  set picture      = "\x1b" "]" "20" ";" <path> "[" ";" <adjusting> "]" "[" ":" <operation> "]" "\x07"
 
 * values for each key
   encoding = ISO8859[1-11] | ISO8859[13-16] | TCVN5712 | KOI8R | KOI8U | VISCII |

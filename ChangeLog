@@ -1,4 +1,8 @@
 [20020113]
+* MSB of single shifted G3 characters in EUCJP(EUCJISX0213) is set.
+* ESC]5379;wall_picture=BEL stops wall picture.
+
+[20020113]
 * mlterm configuration protocol is decided and implemented.(see doc/en/PROTOCOL)
 * cursor highlight bug is fixed.
 

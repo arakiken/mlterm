@@ -1739,6 +1739,17 @@ parse_vt100_escape_sequence(
 							*p = '\0';
 						}
 
+						if( *pt == '\0')
+						{
+							/*
+							 * Do not change current image but alter
+							 * diaplay setting.
+							 * XXX nothing can be done for now.
+							 */
+							 
+							return  0 ;
+						}
+
 						ml_vt100_cmd_set_config( vt100_parser->termscr ,
 							"wall_picture" , pt) ;
 					}

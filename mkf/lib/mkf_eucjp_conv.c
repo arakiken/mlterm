@@ -198,8 +198,8 @@ convert_to_eucjp(
 			}
 			
 			*(dst ++) = SS3 ;
-			*(dst ++) = ch.ch[0] ;
-			*(dst ++) = ch.ch[1] ;
+			*(dst ++) = MAP_TO_GR( ch.ch[0]) ;
+			*(dst ++) = MAP_TO_GR( ch.ch[1]) ;
 
 			filled_size += 3 ;
 		}
