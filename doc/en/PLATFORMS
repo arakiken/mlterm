@@ -31,6 +31,7 @@ supported platforms (mlterm-2.8.0 post/cvs-1.732)
   Fedora Core 2 (i386)
     configure options: --with-type-engines=xft
                        --with-tools=mlclient,mlconfig
+                       --enable-iiimf
     termtype: xterm
   SuSE LINUX 9.1 (i386)
     configure options: --with-type-engines=xcore,xft
