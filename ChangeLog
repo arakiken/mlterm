@@ -1,3 +1,8 @@
+2005-01-15 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* xwindow/x_term_manager.c (x_term_manager_init): ignore SIGPIPE.
+	* inputmethod/uim/im_uim.c: removed a handler for SIGPIPE.
+
 2005-01-13 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	Allow to use static linked IM plugins with libltdl.

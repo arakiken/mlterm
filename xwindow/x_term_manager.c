@@ -1708,6 +1708,7 @@ x_term_manager_init(
 	signal( SIGINT , sig_fatal) ;
 	signal( SIGQUIT , sig_fatal) ;
 	signal( SIGTERM , sig_fatal) ;
+	signal( SIGPIPE , SIG_IGN) ;
 
 	ml_term_manager_init() ;
 	

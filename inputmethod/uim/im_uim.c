@@ -42,7 +42,6 @@
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep kik_snprintf*/
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <kiklib/kik_list.h>
-#include  <signal.h>
 
 #include  <x_im.h>
 #include  "../im_common.h"
@@ -56,8 +55,6 @@
 #define  IM_UIM_COMPAT_0_3_8 1
 /* see http://www.freedesktop.org/pipermail/uim/2004-June/000383.html */
 #endif
-
-#define  PRIME_HACK 1
 
 
 /*
@@ -103,16 +100,6 @@ static mod_key_debug = 0 ;
 
 
 /* --- static functions --- */
-
-#ifdef  PRIME_HACK
-static void
-sig_pipe(
-	int  sig
-	)
-{
-	kik_error_printf( "SIGPIPE received. prime is dead?\n") ;
-}
-#endif
 
 static int
 find_engine(
@@ -961,10 +948,6 @@ delete(
 
 		uim_quit() ;
 
-	#ifdef  PRIME_HACK
-		signal( SIGPIPE , SIG_DFL) ;
-	#endif
-
 		if( ! kik_list_is_empty( uim_list))
 		{
 		#ifdef  DEBUG
@@ -1436,10 +1419,6 @@ im_uim_new(
 		kik_list_new( im_uim_t , uim_list) ;
 
 		initialized = 1 ;
-
-	#ifdef  PRIME_HACK
-		signal( SIGPIPE , sig_pipe) ;
-	#endif
 	}
 
 	/*
@@ -1581,10 +1560,6 @@ error:
 	if( initialized && ref_count == 0)
 	{
 		uim_quit() ;
-
-	#ifdef  PRIME_HACK
-		signal( SIGPIPE , SIG_DFL) ;
-	#endif
 
 		initialized = 0 ;
 	}
