@@ -1,3 +1,7 @@
+2002-09-08 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Added mlterm-icon-24colors-[12].png for low color depth.
+
 2002-09-08 Araki Ken <arakiken@users.sf.net>
 
 	* OPEN_PTY and OPEN_SCREEN shortcut keys were confused. fixed.
