@@ -1,0 +1,49 @@
+top_builddir = ../../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+datadir = @datadir@
+libdir = @libdir@
+
+DESTDIR =
+PREFIX = $(DESTDIR)$(prefix)
+LIBDIR = $(DESTDIR)$(libdir)/mlterm
+DATADIR = $(DESTDIR)$(datadir)/mlterm
+
+SAMPLES = sample3
+PIXMAP_ENGINE_OBJ = pixmap_engine.o
+
+CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @CFLAGS@ @CPPFLAGS@ -I/usr/X11R6/include -I/usr/include/include
+
+CC = @CC@
+INSTALL = @INSTALL@
+LIBTOOL = @LIBTOOL@
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+.SUFFIXES: .o .c
+
+all: pixmap_engine
+pixmap_engine: $(PIXMAP_ENGINE_OBJ)
+	$(LIBTOOL_LINK) -o libpixmap_engine.la $(PIXMAP_ENGINE_OBJ:.o=.lo) -rpath $(LIBDIR) \
+	-module -avoid-version -no-undefined \
+	-L/usr/X11R6/lib -lX11
+
+.c.o:
+	$(LIBTOOL_CC) -c $<
+
+$(LIBDIR):
+	mkdir -p $(LIBDIR)
+
+install: $(LIBDIR)
+	$(LIBTOOL_INSTALL) libpixmap_engine.la $(LIBDIR)
+	for dir in $(SAMPLES) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
+
+clean:
+	rm -rf $(PIXMAP_ENGINE_OBJ) $(PIXMAP_ENGINE_OBJ:.o=.lo) \
+		libpixmap_engine.la *.core .libs *~
+
+distclean: clean
+	rm -f Makefile sample3/Makefile

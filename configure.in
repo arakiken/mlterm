@@ -218,7 +218,7 @@ done
 
 scrollbars="sample,extra"
 AC_ARG_WITH(scrollbars,
-	[  --with-scrollbars[=ARG] scrollbar plugins [sample,extra]],
+	[  --with-scrollbars[=ARG] scrollbar plugins [sample,extra,pixmap_engine]],
 	[
 	# If given --without-scrollbars or --with-scrollbars with no args.
 	if test "${with_scrollbars}" = "no" ; then
@@ -237,6 +237,18 @@ sample)
 extra)
 	MAKE_DIRS="contrib/scrollbar/extra ${MAKE_DIRS}"
 	OUTPUT_FILES="contrib/scrollbar/extra/Makefile ${OUTPUT_FILES}"
+	;;
+pixmap_engine)
+	if test "$IMAGELIB_NAME" = "gdk" -o "$IMAGELIB_NAME" = "imlib" ; then
+		MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
+		OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"
+	else
+		echo ""
+		echo "To use pixmap_engine for scrollbar. you will need the image library such as"
+		echo "gdk-pixbuf and imlib. (e.g. --with-imagelib=imlib)"
+		echo ""
+		exit 1
+	fi
 	;;
 *)
 	echo "${scrollbar} is unknown scrollbar."

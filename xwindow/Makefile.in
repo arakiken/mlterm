@@ -3,6 +3,7 @@ top_srcdir = @top_srcdir@
 prefix = @prefix@
 sysconfdir = @sysconfdir@
 exec_prefix = @exec_prefix@
+datadir = @datadir@
 bindir = @bindir@
 libdir = @libdir@
 libexecdir = @libexecdir@
@@ -14,6 +15,7 @@ INSTALL = @INSTALL@
 PREFIX = $(DESTDIR)$(prefix)
 BINDIR = $(DESTDIR)$(bindir)
 LIBDIR = $(DESTDIR)$(libdir)
+DATADIR = $(DESTDIR)$(datadir)
 SYSCONFDIR = $(sysconfdir)
 LIBEXECDIR = $(libexecdir)
 
@@ -35,8 +37,9 @@ LMKF_DEB = -lmkf_deb
 CFLAGS=$(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ \
        @IMAGELIB_CFLAGS@ @XUTF8_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
-	-DLIBEXECDIR=\"$(LIBEXECDIR)\" \
+	-DLIBEXECDIR=\"$(LIBEXECDIR)\" -DDATADIR=\"$(DATADIR)\"\
 	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/X11R6/include -I/usr/local/include
+LDFLAGS=-export-dynamic
 
 LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @X_EXTRA_LIBS@ \
 	-lX11 $(LMLTERM) $(LMKF) $(LKIK) \
@@ -45,7 +48,7 @@ LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @X_EXTRA_
 PROG = mlterm
 INSTALL_OPT = @INSTALL_OPT@
 
-LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) $(LDFLAGS)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all: $(PROG)

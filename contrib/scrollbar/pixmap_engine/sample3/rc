@@ -1,0 +1,33 @@
+# sample3 - sample scrollbar for mlterm, requires "pixmap_engine" plugin.
+#
+# Copylight (c) 2003 Seiichi SATO <ssato@sh.rim.or.jp>
+# license: Modified BSD-style license
+
+engine = pixmap_engine
+
+width = 12
+top_margin = 13
+bottom_margin = 13
+
+# background
+bg_top_height = 14
+bg_body_height = 5
+bg_bottom_height = 14
+bg_tile = true
+bg_enable_trans = true
+
+# up/down botton
+button_layout = normal
+button_up_height = 11
+button_down_height = 11
+button_use_mask = true
+
+# slider
+slider_width = 10
+slider_top_height = 5
+slider_body_height = 3
+slider_bottom_height = 5
+slider_knob_height = 10
+slider_tile = true
+slider_use_mask = true
+

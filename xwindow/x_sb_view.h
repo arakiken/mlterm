@@ -45,4 +45,22 @@ typedef struct  x_sb_view
 } x_sb_view_t ;
 
 
+typedef struct x_sb_view_rc
+{
+	char *  key ;
+	char *  value ;
+}  x_sb_view_rc_t ;
+
+
+typedef struct  x_sb_view_conf
+{
+	char *  sb_name ;
+	char *  engine_name ;
+	char *  dir ;
+	x_sb_view_rc_t *  rc ;
+	u_int  rc_num ;
+	u_int  use_count ;
+} x_sb_view_conf_t ;
+
+
 #endif

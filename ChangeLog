@@ -1,3 +1,13 @@
+2003-06-29 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Extended an API of scrollbar plugin to load new style scrollbar
+	  which has an rcfile.
+	* To use x_imagelib_load_file() from plugin side, added
+	  '-export-dynamic' to link option.
+	* Added 'pixmap_engine' scrollbar library.(depends on imlib or
+	  gdk-pixbuf)
+	* Added 'sample3' scrollbar to show the usages of pixmap_engine.
+
 2003-06-29 Araki Ken <arakiken@users.sf.net>
 
 	* If a text was folded into multiple lines and one of them were ended with
