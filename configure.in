@@ -525,7 +525,7 @@ echo -n "Input Methods                     : XIM "
   if test "x$have_uim" = xyes ; then echo -n "uim " ; fi
   if test "x$enable_iiimf" = xyes ; then echo -n "IIIMF " ; fi
 echo
-echo -n "Scrollbarbars                     : simple "
+echo -n "Scrollbars                        : simple "
   echo `echo "$with_scrollbars" | sed 's/,/ /g'`
 echo
 
