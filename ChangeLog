@@ -3,6 +3,7 @@
 	* Fixed tools/mlconfig/mc_flags.[ch] and tools/mlconfig/po/POTFILES.in
 	  to enable translation (gettextization) of labels which are handled
 	  in mc_flags.[ch] .
+	* Updated po files in tools/mlconfig/po .
 
 2003-03-02 Araki Ken <arakiken@users.sf.net>
 

@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.2\n"
-"POT-Creation-Date: 2003-01-12 21:19+0900\n"
+"POT-Creation-Date: 2003-03-02 14:42+0900\n"
 "PO-Revision-Date: 2002-11-25 19:25+0100\n"
 "Last-Translator: Mike Fabian <mfabian@suse.de>\n"
 "Language-Team: German <suse-i18n@suse.de>\n"
@@ -14,227 +14,231 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: tool/mlconfig/main.c:223
+#: tool/mlconfig/main.c:200
 msgid "OK"
 msgstr "OK"
 
-#: tool/mlconfig/main.c:228
+#: tool/mlconfig/main.c:205
 msgid "Apply"
 msgstr "Anwenden"
 
-#: tool/mlconfig/main.c:233
+#: tool/mlconfig/main.c:210
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: tool/mlconfig/main.c:249
+#: tool/mlconfig/main.c:226
 msgid "Font size"
 msgstr "Font Größe"
 
-#: tool/mlconfig/main.c:257
+#: tool/mlconfig/main.c:234
 msgid "Larger"
 msgstr "Größer"
 
-#: tool/mlconfig/main.c:262
+#: tool/mlconfig/main.c:239
 msgid "Smaller"
 msgstr "Kleiner"
 
-#: tool/mlconfig/main.c:277 tool/mlconfig/main.c:285
+#: tool/mlconfig/main.c:254 tool/mlconfig/main.c:262
 msgid "Full reset"
 msgstr "Alles Zurücksetzen"
 
-#: tool/mlconfig/main.c:312
-msgid "mlterm configuration"
-msgstr "mlterm Konfiguration"
+#: tool/mlconfig/main.c:284
+msgid "PTY List"
+msgstr ""
 
-#: tool/mlconfig/main.c:346 tool/mlconfig/mc_char_encoding.c:173
-msgid "Encoding"
-msgstr "Kodierung"
-
-#: tool/mlconfig/main.c:382
-msgid "Bidi (UTF8 only)"
-msgstr "Bidirektional (nur in UTF8)"
-
-#: tool/mlconfig/main.c:392
-msgid "Combining"
-msgstr "Zusammengesetzte Zeichen"
-
-#: tool/mlconfig/main.c:399
-msgid "Process received strings via Unicode"
-msgstr "Prozess empfängt Strings als Unicode"
-
-#: tool/mlconfig/main.c:409
-msgid "Font"
-msgstr "Font"
-
-#: tool/mlconfig/main.c:429
-msgid "Screen ratio against font size"
-msgstr "Bildschirmgröße relativ zur Fontgröße"
-
-#: tool/mlconfig/main.c:465
-msgid "Anti Alias"
-msgstr "Anti-Aliasing"
-
-#: tool/mlconfig/main.c:475
-msgid "Variable column width"
-msgstr "Proportionalschrift"
-
-#: tool/mlconfig/main.c:484
-msgid "Background"
-msgstr "Hintergrund"
-
-#: tool/mlconfig/main.c:508
-msgid "Picture/Transparent"
-msgstr "Bild/Transparenz"
-
-#: tool/mlconfig/main.c:546
-msgid "Scrollbar"
-msgstr "Scrollbalken"
-
-#: tool/mlconfig/main.c:579
-msgid "Others"
-msgstr "Sonstiges"
-
-#: tool/mlconfig/main.c:617
-msgid "Combining = 1 (or 0) logical column(s)"
-msgstr "Zusammengesetzte Zeichen =1 (oder 0) logische Spalte(n)"
-
-#: tool/mlconfig/main.c:625
-msgid "Fullwidth = 2 (or 1) logical column(s)"
-msgstr "Volle Breite = 2 (oder 1) logische Spalte(n)"
-
-#: tool/mlconfig/mc_bel.c:84
-msgid " Bel mode "
-msgstr "Signalglocke"
-
-#: tool/mlconfig/mc_bel.c:90 tool/mlconfig/mc_mod_meta.c:91
-#: tool/mlconfig/mc_sb.c:91 tool/mlconfig/mc_vertical.c:90
-msgid "None"
-msgstr "Keine"
-
-#: tool/mlconfig/mc_bel.c:101
-msgid "Sound"
-msgstr "akustisch"
-
-#: tool/mlconfig/mc_bel.c:112
-msgid "Visual"
-msgstr "visuell"
-
-#: tool/mlconfig/mc_bgtype.c:99
-msgid "Background type"
-msgstr "Hintergrundtyp"
-
-#: tool/mlconfig/mc_bgtype.c:106
-msgid "Color"
-msgstr "Farbe"
-
-#: tool/mlconfig/mc_bgtype.c:120 tool/mlconfig/mc_wall_pic.c:78
-msgid "Picture"
-msgstr "Bild"
-
-#: tool/mlconfig/mc_bgtype.c:137
-msgid "Transparent"
-msgstr "transparent"
-
-#: tool/mlconfig/mc_brightness.c:67
-msgid "Brightness"
-msgstr "Helligkeit"
-
-#: tool/mlconfig/mc_color.c:135 tool/mlconfig/mc_color.c:155
-msgid "Foreground color"
-msgstr "Vordergrundfarbe"
-
-#: tool/mlconfig/mc_color.c:145 tool/mlconfig/mc_color.c:165
-msgid "Background color"
-msgstr "Hintergrundfarbe"
-
-#: tool/mlconfig/mc_contrast.c:67
-msgid "Contrast"
-msgstr "Kontrast"
-
-#: tool/mlconfig/mc_fade.c:67
-msgid "Fade ratio on unfocus"
-msgstr "Verblassungsrate bei Fokusverlust"
-
-#: tool/mlconfig/mc_fontsize.c:67
-msgid "Font size (pixels)"
-msgstr "Fontgröße (Pixel)"
-
-#: tool/mlconfig/mc_gamma.c:67
-msgid "Gamma"
-msgstr "Gamma"
-
-#: tool/mlconfig/mc_iscii_lang.c:69
-msgid "ISCII language"
-msgstr "ISCII Sprache"
-
-#: tool/mlconfig/mc_line_space.c:63
-msgid "Line space (pixels)"
-msgstr "Zeilenabstand (Pixel)"
-
-#: tool/mlconfig/mc_logsize.c:61
-msgid "Backlog size (lines)"
-msgstr "Verlaufsspeicher Größe (Zeilen)"
-
-#: tool/mlconfig/mc_mod_meta.c:85
-msgid "Meta key outputs:"
-msgstr "Verhalten der Meta Taste:"
-
-#: tool/mlconfig/mc_mod_meta.c:102
-msgid "Esc"
-msgstr "Esc"
-
-#: tool/mlconfig/mc_mod_meta.c:113
-msgid "8bit"
-msgstr "8 Bit"
-
-#: tool/mlconfig/mc_sb.c:85
-msgid "Position"
-msgstr "Position"
-
-#: tool/mlconfig/mc_sb.c:102
-msgid "Left"
-msgstr "Links"
-
-#: tool/mlconfig/mc_sb.c:113
-msgid "Right"
-msgstr "Rechts"
-
-#: tool/mlconfig/mc_sb_view.c:64
-msgid "View"
-msgstr "Aussehen"
-
-#: tool/mlconfig/mc_screen_ratio.c:99
-msgid "Width"
-msgstr "Breite"
-
-#: tool/mlconfig/mc_screen_ratio.c:109
-msgid "Height"
-msgstr "Höhe"
-
-#: tool/mlconfig/mc_tabsize.c:60
-msgid "Tab width (columns)"
-msgstr "Tabulatorbreite (Spalten)"
-
-#: tool/mlconfig/mc_vertical.c:84
-msgid " Vertical mode "
-msgstr "Vertikaler Modus"
-
-#: tool/mlconfig/mc_vertical.c:101
-msgid "CJK"
-msgstr "CJK"
-
-#: tool/mlconfig/mc_vertical.c:112
-msgid "Mongol"
-msgstr "Mongolisch"
-
-#: tool/mlconfig/mc_wall_pic.c:88
+#: tool/mlconfig/main.c:292 tool/mlconfig/mc_wall_pic.c:90
 msgid " Select "
 msgstr "Auswahl"
 
-#: tool/mlconfig/mc_xim.c:213
+#: tool/mlconfig/main.c:318
+msgid "mlterm configuration"
+msgstr "mlterm Konfiguration"
+
+#: tool/mlconfig/main.c:354 tool/mlconfig/mc_char_encoding.c:199
+msgid "Encoding"
+msgstr "Kodierung"
+
+#: tool/mlconfig/main.c:408
+msgid "Font"
+msgstr "Font"
+
+#: tool/mlconfig/main.c:426
+msgid "Screen ratio against font size"
+msgstr "Bildschirmgröße relativ zur Fontgröße"
+
+#: tool/mlconfig/main.c:474
+msgid "Background"
+msgstr "Hintergrund"
+
+#: tool/mlconfig/main.c:487
+msgid "Picture/Transparent"
+msgstr "Bild/Transparenz"
+
+#: tool/mlconfig/main.c:522
+msgid "Scrollbar"
+msgstr "Scrollbalken"
+
+#: tool/mlconfig/main.c:551
+msgid "Others"
+msgstr "Sonstiges"
+
+#: tool/mlconfig/mc_bel.c:87
+msgid " Bel mode "
+msgstr "Signalglocke"
+
+#: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
+#: tool/mlconfig/mc_sb.c:94 tool/mlconfig/mc_vertical.c:94
+msgid "None"
+msgstr "Keine"
+
+#: tool/mlconfig/mc_bel.c:104
+msgid "Sound"
+msgstr "akustisch"
+
+#: tool/mlconfig/mc_bel.c:115
+msgid "Visual"
+msgstr "visuell"
+
+#: tool/mlconfig/mc_bgtype.c:113
+msgid "Background type"
+msgstr "Hintergrundtyp"
+
+#: tool/mlconfig/mc_bgtype.c:120
+msgid "Color"
+msgstr "Farbe"
+
+#: tool/mlconfig/mc_bgtype.c:134 tool/mlconfig/mc_wall_pic.c:80
+msgid "Picture"
+msgstr "Bild"
+
+#: tool/mlconfig/mc_bgtype.c:151
+msgid "Transparent"
+msgstr "transparent"
+
+#: tool/mlconfig/mc_brightness.c:71
+msgid "Brightness"
+msgstr "Helligkeit"
+
+#: tool/mlconfig/mc_color.c:137 tool/mlconfig/mc_color.c:155
+msgid "Foreground color"
+msgstr "Vordergrundfarbe"
+
+#: tool/mlconfig/mc_color.c:146 tool/mlconfig/mc_color.c:164
+msgid "Background color"
+msgstr "Hintergrundfarbe"
+
+#: tool/mlconfig/mc_contrast.c:69
+msgid "Contrast"
+msgstr "Kontrast"
+
+#: tool/mlconfig/mc_fade.c:69
+msgid "Fade ratio on unfocus"
+msgstr "Verblassungsrate bei Fokusverlust"
+
+#: tool/mlconfig/mc_flags.c:35
+msgid "Anti Alias"
+msgstr "Anti-Aliasing"
+
+#: tool/mlconfig/mc_flags.c:36
+msgid "Variable column width"
+msgstr "Proportionalschrift"
+
+#: tool/mlconfig/mc_flags.c:37
+msgid "Combining"
+msgstr "Zusammengesetzte Zeichen"
+
+#: tool/mlconfig/mc_flags.c:38
+msgid "Combining = 1 (or 0) logical column(s)"
+msgstr "Zusammengesetzte Zeichen =1 (oder 0) logische Spalte(n)"
+
+#: tool/mlconfig/mc_flags.c:39
+msgid "Process received strings via Unicode"
+msgstr "Prozess empfängt Strings als Unicode"
+
+#: tool/mlconfig/mc_flags.c:40
+msgid "Fullwidth = 2 (or 1) logical column(s)"
+msgstr "Volle Breite = 2 (oder 1) logische Spalte(n)"
+
+#: tool/mlconfig/mc_flags.c:41
+msgid "Bidi (UTF8 only)"
+msgstr "Bidirektional (nur in UTF8)"
+
+#: tool/mlconfig/mc_fontsize.c:62
+msgid "Font size (pixels)"
+msgstr "Fontgröße (Pixel)"
+
+#: tool/mlconfig/mc_gamma.c:69
+msgid "Gamma"
+msgstr "Gamma"
+
+#: tool/mlconfig/mc_iscii_lang.c:71
+msgid "ISCII language"
+msgstr "ISCII Sprache"
+
+#: tool/mlconfig/mc_line_space.c:65
+msgid "Line space (pixels)"
+msgstr "Zeilenabstand (Pixel)"
+
+#: tool/mlconfig/mc_logsize.c:63
+msgid "Backlog size (lines)"
+msgstr "Verlaufsspeicher Größe (Zeilen)"
+
+#: tool/mlconfig/mc_mod_meta.c:88
+msgid "Meta key outputs:"
+msgstr "Verhalten der Meta Taste:"
+
+#: tool/mlconfig/mc_mod_meta.c:105
+msgid "Esc"
+msgstr "Esc"
+
+#: tool/mlconfig/mc_mod_meta.c:116
+msgid "8bit"
+msgstr "8 Bit"
+
+#: tool/mlconfig/mc_sb.c:88
+msgid "Position"
+msgstr "Position"
+
+#: tool/mlconfig/mc_sb.c:105
+msgid "Left"
+msgstr "Links"
+
+#: tool/mlconfig/mc_sb.c:116
+msgid "Right"
+msgstr "Rechts"
+
+#: tool/mlconfig/mc_sb_view.c:66
+msgid "View"
+msgstr "Aussehen"
+
+#: tool/mlconfig/mc_screen_ratio.c:101
+msgid "Width"
+msgstr "Breite"
+
+#: tool/mlconfig/mc_screen_ratio.c:110
+msgid "Height"
+msgstr "Höhe"
+
+#: tool/mlconfig/mc_tabsize.c:62
+msgid "Tab width (columns)"
+msgstr "Tabulatorbreite (Spalten)"
+
+#: tool/mlconfig/mc_vertical.c:88
+msgid " Vertical mode "
+msgstr "Vertikaler Modus"
+
+#: tool/mlconfig/mc_vertical.c:105
+msgid "CJK"
+msgstr "CJK"
+
+#: tool/mlconfig/mc_vertical.c:116
+msgid "Mongol"
+msgstr "Mongolisch"
+
+#: tool/mlconfig/mc_xim.c:212
 msgid "XIM locale"
 msgstr "XIM Locale"
 
-#: tool/mlconfig/mc_xim.c:225
+#: tool/mlconfig/mc_xim.c:224
 msgid "X Input Method"
 msgstr "X Input Methode"

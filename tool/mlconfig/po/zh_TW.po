@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlconfig\n"
-"POT-Creation-Date: 2003-02-09 21:08+0800\n"
+"POT-Creation-Date: 2003-03-02 14:42+0900\n"
 "PO-Revision-Date: 2003-02-09 21:26+0800\n"
 "Last-Translator: Yuan-Chen Cheng <ycheng@slat.org>\n"
 "Language-Team: Chinese (Traditional) <zh-l10n@linux.org.tw>\n"
@@ -13,126 +13,236 @@ msgstr ""
 "Content-Type: text/plain; charset=Big5\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: main.c:223
+#: tool/mlconfig/main.c:200
 msgid "OK"
 msgstr "確定"
 
-#: main.c:228
+#: tool/mlconfig/main.c:205
 msgid "Apply"
 msgstr "套用"
 
-#: main.c:233
+#: tool/mlconfig/main.c:210
 msgid "Cancel"
 msgstr "取消"
 
-#: main.c:249
+#: tool/mlconfig/main.c:226
 msgid "Font size"
 msgstr "字型大小"
 
-#: main.c:257
+#: tool/mlconfig/main.c:234
 msgid "Larger"
 msgstr "大一點"
 
-#: main.c:262
+#: tool/mlconfig/main.c:239
 msgid "Smaller"
 msgstr "小一點"
 
-#: main.c:277 main.c:285
+#: tool/mlconfig/main.c:254 tool/mlconfig/main.c:262
 msgid "Full reset"
 msgstr ""
 
-#: main.c:346 mc_char_encoding.c:174
+#: tool/mlconfig/main.c:284
+msgid "PTY List"
+msgstr ""
+
+#: tool/mlconfig/main.c:292 tool/mlconfig/mc_wall_pic.c:90
+msgid " Select "
+msgstr ""
+
+#: tool/mlconfig/main.c:318
+msgid "mlterm configuration"
+msgstr ""
+
+#: tool/mlconfig/main.c:354 tool/mlconfig/mc_char_encoding.c:199
 msgid "Encoding"
 msgstr "編碼"
 
-#: main.c:382
-msgid "Bidi (UTF8 only)"
-msgstr ""
-
-#: main.c:392
-msgid "Combining"
-msgstr ""
-
-#: main.c:399
-msgid "Process received strings via Unicode"
-msgstr ""
-
-#: main.c:409
+#: tool/mlconfig/main.c:408
 msgid "Font"
 msgstr "字型"
 
-#: main.c:429
+#: tool/mlconfig/main.c:426
 msgid "Screen ratio against font size"
 msgstr ""
 
-#: main.c:449
-msgid "fg_color"
-msgstr ""
-
-#: main.c:465
-msgid "Anti Alias"
-msgstr ""
-
-#: main.c:475
-msgid "Variable column width"
-msgstr ""
-
-#: main.c:484
+#: tool/mlconfig/main.c:474
 msgid "Background"
 msgstr "背景"
 
-#: main.c:508
+#: tool/mlconfig/main.c:487
 msgid "Picture/Transparent"
 msgstr ""
 
-#: main.c:546
+#: tool/mlconfig/main.c:522
 msgid "Scrollbar"
 msgstr ""
 
-#: main.c:579
+#: tool/mlconfig/main.c:551
 msgid "Others"
 msgstr ""
 
-#: main.c:655
-msgid "test"
-msgstr "測試"
-
-#: main.c:662
-msgid "Starting mlconfig failed.\n"
-msgstr ""
-
-#: mc_bel.c:84
+#: tool/mlconfig/mc_bel.c:87
 msgid " Bel mode "
 msgstr ""
 
-#: mc_bel.c:101
+#: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
+#: tool/mlconfig/mc_sb.c:94 tool/mlconfig/mc_vertical.c:94
+msgid "None"
+msgstr ""
+
+#: tool/mlconfig/mc_bel.c:104
 msgid "Sound"
 msgstr ""
 
-#: mc_bel.c:112
+#: tool/mlconfig/mc_bel.c:115
 msgid "Visual"
 msgstr ""
 
-#: mc_bgtype.c:96
+#: tool/mlconfig/mc_bgtype.c:113
 msgid "Background type"
 msgstr "背景類型"
 
-#: mc_bgtype.c:103
+#: tool/mlconfig/mc_bgtype.c:120
 msgid "Color"
 msgstr "顏色"
 
-#: mc_bgtype.c:117
+#: tool/mlconfig/mc_bgtype.c:134 tool/mlconfig/mc_wall_pic.c:80
 msgid "Picture"
 msgstr "圖案"
 
-#: mc_bgtype.c:134
+#: tool/mlconfig/mc_bgtype.c:151
 msgid "Transparent"
 msgstr "透明"
 
-#: mc_xim.c:213
+#: tool/mlconfig/mc_brightness.c:71
+msgid "Brightness"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:137 tool/mlconfig/mc_color.c:155
+msgid "Foreground color"
+msgstr ""
+
+#: tool/mlconfig/mc_color.c:146 tool/mlconfig/mc_color.c:164
+#, fuzzy
+msgid "Background color"
+msgstr "背景"
+
+#: tool/mlconfig/mc_contrast.c:69
+msgid "Contrast"
+msgstr ""
+
+#: tool/mlconfig/mc_fade.c:69
+msgid "Fade ratio on unfocus"
+msgstr ""
+
+#: tool/mlconfig/mc_flags.c:35
+msgid "Anti Alias"
+msgstr ""
+
+#: tool/mlconfig/mc_flags.c:36
+msgid "Variable column width"
+msgstr ""
+
+#: tool/mlconfig/mc_flags.c:37
+msgid "Combining"
+msgstr ""
+
+#: tool/mlconfig/mc_flags.c:38
+msgid "Combining = 1 (or 0) logical column(s)"
+msgstr ""
+
+#: tool/mlconfig/mc_flags.c:39
+msgid "Process received strings via Unicode"
+msgstr ""
+
+#: tool/mlconfig/mc_flags.c:40
+msgid "Fullwidth = 2 (or 1) logical column(s)"
+msgstr ""
+
+#: tool/mlconfig/mc_flags.c:41
+msgid "Bidi (UTF8 only)"
+msgstr ""
+
+#: tool/mlconfig/mc_fontsize.c:62
+#, fuzzy
+msgid "Font size (pixels)"
+msgstr "字型大小"
+
+#: tool/mlconfig/mc_gamma.c:69
+msgid "Gamma"
+msgstr ""
+
+#: tool/mlconfig/mc_iscii_lang.c:71
+msgid "ISCII language"
+msgstr ""
+
+#: tool/mlconfig/mc_line_space.c:65
+msgid "Line space (pixels)"
+msgstr ""
+
+#: tool/mlconfig/mc_logsize.c:63
+msgid "Backlog size (lines)"
+msgstr ""
+
+#: tool/mlconfig/mc_mod_meta.c:88
+msgid "Meta key outputs:"
+msgstr ""
+
+#: tool/mlconfig/mc_mod_meta.c:105
+msgid "Esc"
+msgstr ""
+
+#: tool/mlconfig/mc_mod_meta.c:116
+msgid "8bit"
+msgstr ""
+
+#: tool/mlconfig/mc_sb.c:88
+msgid "Position"
+msgstr ""
+
+#: tool/mlconfig/mc_sb.c:105
+msgid "Left"
+msgstr ""
+
+#: tool/mlconfig/mc_sb.c:116
+msgid "Right"
+msgstr ""
+
+#: tool/mlconfig/mc_sb_view.c:66
+msgid "View"
+msgstr ""
+
+#: tool/mlconfig/mc_screen_ratio.c:101
+msgid "Width"
+msgstr ""
+
+#: tool/mlconfig/mc_screen_ratio.c:110
+msgid "Height"
+msgstr ""
+
+#: tool/mlconfig/mc_tabsize.c:62
+msgid "Tab width (columns)"
+msgstr ""
+
+#: tool/mlconfig/mc_vertical.c:88
+msgid " Vertical mode "
+msgstr ""
+
+#: tool/mlconfig/mc_vertical.c:105
+msgid "CJK"
+msgstr ""
+
+#: tool/mlconfig/mc_vertical.c:116
+msgid "Mongol"
+msgstr ""
+
+#: tool/mlconfig/mc_xim.c:212
 msgid "XIM locale"
 msgstr "輸入法地域"
 
-#: mc_xim.c:225
+#: tool/mlconfig/mc_xim.c:224
 msgid "X Input Method"
 msgstr "輸入法主程式"
+
+#~ msgid "test"
+#~ msgstr "測試"
