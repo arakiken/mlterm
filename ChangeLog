@@ -1,4 +1,10 @@
 [20011225]
+* memory leaks if you use both -m and -bi options under utf8 encoding. fixed.
+* mkf/mkf_ucs4_xxx.c are thread-safe.
+* Shift + Mouse Button operations under console apps useing mouse tracking
+  are supported.
+
+[20011225]
 * wraparound word can be selected.
 * mlterm core dumps if XMODIFIERS variable is empty or illegal value. fixed.
 
