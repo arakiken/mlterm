@@ -1,5 +1,9 @@
 2003-05-05  MINAMI Hirokazu  <minami@mistfall.net>
 
+	* xwindow/x_imagelib_gdk.c: minor code cleanup
+
+2003-05-05  MINAMI Hirokazu  <minami@mistfall.net>
+
 	* mlterm/ml_vt100_parser.c: The rxvt style background changing 
 	sequence "ESC ] 49 ; colorname BEL" was not working. 
 

@@ -1203,26 +1203,20 @@ value_table_refresh(
 	real_gamma = (double)(mod->gamma) / 100 ;
 	real_contrast = (double)(mod->contrast) / 100 ;
 	real_brightness = (double)(mod->brightness) / 100 ;
-	i = 128 ;
-	while( i >= 0)
+	
+	for( i = 0 ; i < 256 ; i++)
 	{
 		tmp = real_contrast * (255 * pow(((double)i + 0.5)/ 255, real_gamma) -128 ) + 128 *  real_brightness ;
-		if( tmp < 0 )
-			break ;
-		value_table[i--] = tmp ;
+		if( tmp >= 255)
+			break;
+
+		if( tmp < 0 )			
+			value_table[i] = 0 ;
+		else
+			value_table[i] = tmp ;
 	}
-	while( i > 0)
-		value_table[i--] = 0;
-	i = 129 ;
-	while( i < 256)
-	{
-		tmp = real_contrast * (255 * pow(((double)i )/ 255, real_gamma) -128 ) + 128 *  real_brightness ;
-		if (tmp > 255)
-			break ;
-		value_table[i++] = tmp ;
-	}
-	while( i < 256)
-		value_table[i++] = 255 ;
+	for( ; i< 256 ; i++ )
+		value_table[i] = 255 ;
 }
 
 static int
