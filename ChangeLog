@@ -1,3 +1,7 @@
+2003-06-08 Araki Ken <arakiken@users.sf.net>(1.449)
+
+	* Rewritten documentations(doc/en/*,doc/ja/*)
+
 2003-06-08 Araki Ken <arakiken@users.sf.net>
 
 	* http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=196228 fixed.

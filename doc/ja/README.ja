@@ -24,8 +24,8 @@ comment $Id$
     freetype 2.0.2 以上
     が必要です。
 
-    壁紙を貼るには、imlib (1.9.x ?) または gdk-pixbuf (0.16 以上 または
-    GTK+ 2.0.1 以上) が必要です。
+    壁紙を貼るには、imlib (1.9.x ?) または gdk-pixbuf (0.16 以上 または GTK+ 
+    2.0.1 以上) が必要です。
 
     Unicode の Bidi レンダリングには、Fribidi 0.9.x 以上(?) が必要です。
 
@@ -75,7 +75,8 @@ comment $Id$
 
     o Examples
       (最重量版)
-      ./configure --with-imagelib=gdk-pixbuf2 --enable-anti-alias --enable-fribidi --enable-ind --enable-utmp 
+      ./configure --with-imagelib=gdk-pixbuf2 --enable-anti-alias \
+      --enable-fribidi --enable-ind --enable-utmp 
 
       (最軽量版)
       ./configure --without-map-table --without-prop-table --disable-shared
@@ -85,21 +86,21 @@ comment $Id$
     フォントのアンチエイリアス表示をサポートしています。
     これには、X の Xrender extension に対応した Xft を利用しています。
 
-    アンチエイリアスフォントと通常の X フォントのどちらを使うかは、動的に切替え可
-    能です。
+    アンチエイリアスフォントと通常の X フォントのどちらを使うかは、動的に切替え
+    可能です。
 
-    KDE(Qt) と同じ設定でアンチエイリアスを使用できるようになりますので、Xft の設定
-    の詳細については、KDE ユーザ会の web ページなどを参照して下さい。
+    KDE(Qt) と同じ設定でアンチエイリアスを使用できるようになりますので、Xft の設
+    定の詳細については、KDE ユーザ会の web ページなどを参照して下さい。
     (http://www.KDE.gr.jp/~kom/aa.html)
     
     また、KDE(Qt) で発生する不具合は、mlterm でもほぼ同様に再現します。
     問題が発生した場合は、KDE(Qt) と同じように対処してください。
 
   o 壁紙、背景透過
-    imlib または gdk-pixbuf がインストールされている環境で、いずれかを組み込ん
-    でビルドした mlterm には、壁紙をはり付けることができます。
-    背景透過も可能です。imlib または gdk-pixbuf がリンクされていれば、透過した
-    背景の輝度を調節することもできます。
+    imlib または gdk-pixbuf がインストールされている環境で、いずれかを組み込んで
+    ビルドした mlterm には、壁紙をはり付けることができます。
+    背景透過も可能です。imlib または gdk-pixbuf がリンクされていれば、透過した背
+    景の輝度を調節することもできます。
 
   o マルチPTY
     単一プロセス中から、最大 32 個の pty セッションを立ち上げることができます。
@@ -121,8 +122,8 @@ comment $Id$
 
   o プロポーショナルフォント
     プロポーショナルフォントも使用できます。
-    この場合、-V オプションで、コラム幅を可変にするか、固定にするかを指定すること
-    ができます。
+    この場合、-V オプションで、コラム幅を可変にするか、固定にするかを指定するこ
+    とができます。
     プロポーショナルフォントをコラム幅固定で使用する場合、一文字ずつ描画して無理
     矢理隙間を埋めますので、描画パフォーマンスが低下します。
 
@@ -139,8 +140,8 @@ comment $Id$
   o mlterm server
     mlterm は daemon process として動作することができます。
     その場合、X なしでの起動や、複数のディスプレイ接続が可能です。
-    mlterm server が起動していれば、mlclient をフロントエンドとして使用することで、
-    端末ウィンドウを開けます。
+    mlterm server が起動していれば、mlclient をフロントエンドとして使用すること
+    で、端末ウィンドウを開けます。
     (see doc/ja/README.server)
 
 * 設定
@@ -205,30 +206,32 @@ comment $Id$
         起動時に立ち上げる pty の数
 
       o startup_screens (*1*)
-	起動時に立ち上げるウィンドウの数
+        起動時に立ち上げるウィンドウの数
 
       -- Encoding 関連 --
       o ENCODING  (*auto*) (#)
         エンコーディングの指定
         
         サポートしているエンコーディングは、以下の通りです。
-        ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11), KOI8-[RUT],
-        ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP1251, CP1255, EUC-JP, EUC-JISX0213,
-	Shift_JIS, Shift_JISX0213, ISO-2022-JP[1-3], EUC-KR, UHC, JOHAB, ISO-2022-KR,
-	GB2312 (EUC-CN), GBK, GB18030, ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, 
-	UTF-8, AUTO
+        ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11),
+        KOI8-[RUT], ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP1251, CP1255,
+        EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213, ISO-2022-JP[1-3],
+        EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK, GB18030,
+        ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO
         '-' , '_' および、大文字小文字は無視されます。
 
         (注)
-        o pty から流れてくる文字列のエンコーディングを自動認識することはできません。
+        o pty から流れてくる文字列のエンコーディングを自動認識することはできませ
+          ん。
         o TIS620,TCVN5712,JISX0213 の合成用ダイアクリティカルマーク、および
           UNICODE の結合クラス結合文字については、結合文字を動的合成できますので、
           それらを使う場合は、-m オプションをつけて、結合文字サポートを有効にし
           てください。
-	o KOI8_T, GEORGIAN_PS, CP1251, CP1255 については、専用のフォントは存在せず、
-	  Unicode 経由でしか利用できないため、必ず -u オプションを併用してください。
-        o AUTO を指定した場合、nl_langinfo -> LC_ALL -> LC_TYPE -> LANGを順番に調
-          べ、適当なエンコーディングを選択します。
+        o KOI8_T, GEORGIAN_PS, CP1251, CP1255 については、専用のフォントは存在せ
+          ず、Unicode 経由でしか利用できないため、必ず -u オプションを併用してく
+          ださい。
+        o AUTO を指定した場合、nl_langinfo -> LC_ALL -> LC_TYPE -> LANGを順番に
+          調べ、適当なエンコーディングを選択します。
           ENCODING 指定を行なわなかった場合も同様です。
 
       o use_bidi  (*true*/false) (#)
@@ -240,8 +243,8 @@ comment $Id$
       o use_dynamic_comb  (true/*false*) (#)
         結合文字を動的に合成する
 
-        端末アプリケーションが結合文字をサポートしていない場合でも、結合文字を正しく
-        表示できるようにします。
+        端末アプリケーションが結合文字をサポートしていない場合でも、結合文字を正
+        しく表示できるようにします。
         use_combining が true でないと、有効になりません。
 
       o iscii_lang  (assamese/bengali/gujarati/hindi/kannada/*malayalam*/oriya/punjabi/roman/tamil/telugu) (#)
@@ -305,8 +308,8 @@ comment $Id$
         アンチエイリアス(Xft)時、JISX0208 の Unicode 変換に CP932 の変換テーブル
         を使う
         
-        多くの Unicode フォント(東風、Dynalab フォント)は、CP932 の変換テーブルを
-        元に、JISX0208 用のフォントを格納しています。
+        多くの Unicode フォント(東風、Dynalab フォント)は、CP932 の変換テーブル
+        を元に、JISX0208 用のフォントを格納しています。
         「〜」などが表示されないという場合は、このオプションを有効にしてください。
       
       o not_use_unicode_font  (true/*false*)
@@ -343,8 +346,8 @@ comment $Id$
       o fg_color  (*black*) (#)
         端末画面の前景色
         
-        fg_color,bg_colorに指定できる値は、rgb.txt で定義された色名、color ファイ
-        ルで定義した色名、または、#RRGGBB 形式の色指定です。
+        fg_color,bg_colorに指定できる値は、rgb.txt で定義された色名、color ファ
+        イルで定義した色名、または、#RRGGBB 形式の色指定です。
 
         e.g.)
         fg_color = blue
@@ -418,8 +421,8 @@ comment $Id$
         
       o conf_menu_path_[1-3]
         GUI 設定コマンドのパス
-	conf_menu_path_1 は Ctrl+Button1、conf_menu_path_2 は Ctrl+Button2、
-	conf_menu_path_3 は Ctrl+Button3 により起動されます。
+        conf_menu_path_1 は Ctrl+Button1、conf_menu_path_2 は Ctrl+Button2、
+        conf_menu_path_3 は Ctrl+Button3 により起動されます。
 
       o daemon_mode (*none*/blend/genuine)
         daemon process となるかどうか
@@ -430,9 +433,9 @@ comment $Id$
         が終了したのちも、daemon process として動作しつづけることが可能です。
 
       o use_extended_scroll_shortcut (true/*false*)
-        スクロールのショートカットキーとして、PAGE_UP,PAGE_DOWN ショートカット
-        以外に、Up,Down,j,k,Prior,Next キー及び、SCROLL_UP,SCROLL_DOWN ショート
-        カットを有効にするかどうか
+        スクロールのショートカットキーとして、PAGE_UP,PAGE_DOWN ショートカット以
+        外に、Up,Down,j,k,Prior,Next キー及び、SCROLL_UP,SCROLL_DOWN ショートカ
+        ットを有効にするかどうか
 
       o init_str
         pty をオープンしたときに、端末に送られる初期化文字列を指定する。
@@ -462,8 +465,10 @@ comment $Id$
       o JISX0213_2000_1    ... JISX0213_1フォント
       o JISX0213_2000_2    ... JISX0213_2フォント
       o KSX1001_1997       ... KSC5601_1987フォント(KSC5601_1987も可)
-      o UHC                ... UHCフォント(使用されません。UHCの表示にはKSX1001が使われます)
-      o JOHAB              ... JOHABフォント(使用されません。JOHABの表示にはKSX1001が使われます)
+      o UHC                ... UHCフォント(現在のところ使用されません。
+                               UHCの表示にはKSX1001が使われます)
+      o JOHAB              ... JOHABフォント(現在のところ使用されません。
+                               JOHABの表示にはKSX1001が使われます)
       o GB2312_80          ... GB2312_80フォント
       o GBK                ... GBKフォント
       o BIG5               ... BIG5フォント
@@ -607,7 +612,7 @@ comment $Id$
         ので、使われません。
       o XIM_CLOSE(UNUSED)
       o EXT_KBD(UNUSED)
-	アラビア語、インド諸語の mlterm 内蔵入力メソッドを起動、終了します。
+        アラビア語、インド諸語の mlterm 内蔵入力メソッドを起動、終了します。
       o NEW_PTY(Ctrl+F1)
         OPEN_SCREEN と同じ。2.6.0 以降 obsoleted.
       o OPEN_SCREEN(Ctrl+F1)
@@ -647,6 +652,8 @@ comment $Id$
       e.g.)
       Control+backslash=XIM_OPEN
       XIM_OPEN を、Control+backslash キーに割り当てます。
+
+      また、"" で囲まれた文字列としては、'\x'から始まる16進数、'\n','\r','\e','\t' が使えます。
 
     o termcap
       termcapデータベースもどき
@@ -719,7 +726,8 @@ comment $Id$
     -Z/--multicol(=bool): 全角文字の処理
     -a/--ac=value      : EastAsianWidth.txt の A プロパティ文字のコラム数
     -b/--bg=value      : 背景色
-    -c/--cp932(=bool)  : Xft 使用時に JISX0208 の Unicode 変換で CP932 の変換テーブルを使用 (X)
+    -c/--cp932(=bool)  : Xft 使用時に JISX0208 の Unicode 変換で CP932 の変換テ
+                         ーブルを使用 (X)
     -d/--display       : DISPLAY を指定
     -f/--fg=value      : 前景色
     -g/--geometry=value : 表示座標位置
@@ -731,7 +739,8 @@ comment $Id$
     -n/--noucsfont(=bool) : UNICODE フォントを使用しない
     -o/--lsp=value     : 行間の広さ
     -p/--pic=value     : 背景画像のパス
-    -q/--extkey(=bool) : スクロール時の拡張ショートカットキーを有効にするかどうか
+    -q/--extkey(=bool) : スクロール時の拡張ショートカットキーを有効にするかどう
+			 か
     -r/--fade=value    : Focus を外れたときの Fade 率
     -s/--sb(=bool)     : スクロールバーをつける
     -t/--transbg(=bool) : 背景透過
@@ -789,8 +798,8 @@ comment $Id$
     ドラッグすれば領域選択できます。
     また、そのまま、スクロールすることもできます。
     
-    コンソールアプリケーションがマウスイベントを横取りしている場合は、Shift + Button
-    で領域選択できます。
+    コンソールアプリケーションがマウスイベントを横取りしている場合は、Shift +
+    Button で領域選択できます。
    
     Ctrl+左ボタン(ボタン1)で、メニューがでます。 
     Ctrl+右ボタン(ボタン3)で、設定画面がでます。

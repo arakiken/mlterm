@@ -23,7 +23,7 @@ Following is a instruction of setting up mlterm BIDI support.
   selected, you don't have to do anything to enable bidi support.
   
 * Note
-  mlterm also supports arabic shaping, but not a few unicode fonts has no
-  glyphs for it.
+  mlterm also supports arabic shaping, but not a few unicode fonts has no glyphs
+  for it.
   So you may have to add fonts with arabic presentation glyphs to "font"
   configuration file explicitly.

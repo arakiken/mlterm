@@ -4,41 +4,44 @@ comment $Id$
 mlterm configuration protocol
 version 20030301
 
-* mlterm proper
+* Protocol
   set              = "\x1b" "]" "5379" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
   get(pty)         = "\x1b" "]" "5380" ";" [ "/dev/..." ":" ] <key> "\x07"
   get(GUI menu)    = "\x1b" "]" "5381" ";" [ "/dev/..." ":" ] <key> "\x07"
   save             = "\x1b" "]" "5382" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
   set&save         = "\x1b" "]" "5383" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
   return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a"
-  set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
-                     mod_meta_key | mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
-                     use_combining | use_transbg | use_bidi | receive_string_via_ucs | xim |
-                     wall_picture | full_reset | brightness | gamma | contrast | line_space |
-                     screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
-                     use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
-                     iscii_lang | use_dynamic_comb | cursor_fg_color | cursor_bg_color |
-                     open_pty | open_screen | select_pty
-  get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize | fontsize |
-                     fade_ratio | mod_meta_key | mod_meta_mode | bel_mode | use_anti_alias |
-                     use_variable_column_width | use_combining | use_transbg | use_bidi |
-                     receive_string_via_ucs | xim | locale | wall_picture | pwd | brightness | gamma |
-                     contrast | line_space | screen_width_ratio | screen_height_ratio | vertical_mode |
-                     scrollbar_mode | use_multi_column_char | scrollbar_view_name | sb_fg_color |
-                     sb_bg_color | iscii_lang | use_dynamic_comb | rows | cols | cursor_fg_color |
-                     cursor_bg_color | pty_list | pty_name
+  set key          = encoding | fg_color | bg_color | tabsize | logsize |
+                     fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
+                     bel_mode | use_anti_alias | use_variable_column_width |
+                     use_combining | use_transbg | use_bidi |
+                     receive_string_via_ucs | xim | wall_picture | full_reset |
+                     brightness | gamma | contrast | line_space |
+                     screen_width_ratio | screen_height_ratio | vertical_mode |
+                     scrollbar_mode | use_multi_column_char |
+                     scrollbar_view_name | sb_fg_color | sb_bg_color |
+                     iscii_lang | use_dynamic_comb | cursor_fg_color |
+                     cursor_bg_color | open_pty | open_screen | select_pty
+  get key          = encoding | is_auto_encoding | fg_color | bg_color |
+                     tabsize | logsize | fontsize | fade_ratio | mod_meta_key |
+                     mod_meta_mode | bel_mode | use_anti_alias |
+                     use_variable_column_width | use_combining | use_transbg |
+                     use_bidi | receive_string_via_ucs | xim | locale |
+                     wall_picture | pwd | brightness | gamma | contrast |
+                     line_space | screen_width_ratio | screen_height_ratio |
+                     vertical_mode | scrollbar_mode | use_multi_column_char |
+                     scrollbar_view_name | sb_fg_color | sb_bg_color |
+                     iscii_lang | use_dynamic_comb | rows | cols |
+                     cursor_fg_color | cursor_bg_color | pty_list | pty_name
   value            = <values for each key>
 
-* compatible with other terminals
+* Compatibility with other terminals
   set fg color     = "\x1b" "]" "39" ";" <color name> "\x07"
   set bg color     = "\x1b" "]" "49" ";" <color name> "\x07"
   set picture      = "\x1b" "]" "20" ";" <path> "[" ";" <adjusting> "]" "[" ":" <operation> "]" "\x07"
 
-* values for each key
-  encoding = ISO8859[1-11] | ISO8859[13-16] | TCVN5712 | KOI8R | KOI8U | VISCII |
-           EUCJP | EUCJISX0213 | ISO2022JP[1-3] | SJIS | SJISX0213 | ISO2022KR |
-           EUCKR | UHC | JOHAB | EUCCN | GBK | ISO2022CN | BIG5 | BIG5HKSCS |
-           EUCTW | HZ | UTF8 | GB18030 | auto
+* Values for each key
+  encoding = <encoding name> | auto
   fg_color = <color name> | <color rgb>
   bg_color = <color name> | <color rgb>
   tabsize = <any ASCII decimal digit>
@@ -71,8 +74,8 @@ version 20030301
   scrollbar_view_name = <name>
   sb_fg_color = <color name> | <color rgb>
   sb_bg_color = <color name> | <color rgb>
-  iscii_lang = Assamese | Bengali | Gujarati | Hindi | Kannada | Malayalam | Oriya | Punjabi |
-                Roman | Tamil | Telugu
+  iscii_lang = Assamese | Bengali | Gujarati | Hindi | Kannada | Malayalam |
+               Oriya | Punjabi | Roman | Tamil | Telugu
   use_dynamic_comb = true | false
   rows = <any ASCII decimal digit>
   cols = <any ASCII decimal digit>
@@ -84,15 +87,19 @@ version 20030301
   pty_list = (<pty dev>:<active flag>;)*
   pty_name = <pty dev> | <pty title>
 
-* note
-  o Encoding names are regularized , that is , `-' , `-' are removed , and only upper
-    case letters are used. But encoding names which are not regularized can be used in
-    ESC ] 5379 ; encoding= <value> BEL sequence by secondary effect.
-  o Adjusting and operation arguments of  ESC ] 20 ; pt BEL sequence are not used for now.
-  o If ESC ] 5379 ; xim= <value> BEL sequence doesn't contain ":" <locale name> ,
-    current mlterm locale is used.
-  o Return value of ESC ] 5380 ; xim BEL is <xim name> only , never <xim name> ":" <locale name>.
+* Note
+  o Encoding names are regularized , that is , `-' , `-' are removed , and only
+    upper case letters are used. But encoding names which are not regularized
+    can be used in ESC ] 5379 ; encoding= <value> BEL sequence by secondary
+    effect.
+  o Adjusting and operation arguments of  ESC ] 20 ; pt BEL sequence are not
+    used for now.
+  o If ESC ] 5379 ; xim= <value> BEL sequence doesn't contain ":" <locale name>
+    , current mlterm locale is used.
+  o Return value of ESC ] 5380 ; xim BEL is <xim name> only , never <xim name>
+    ":" <locale name>.
   o It is configuration programs themselves that search ~/.mlterm/xim and
-    ${SYSCONFDIR}/mlterm/xim files for pairs of xim name and its preferable locale.
+    ${SYSCONFDIR}/mlterm/xim files for pairs of xim name and its preferable
+    locale.
   o If /dev/... specified with 'pty_name' key, <pty title> is returned.
     Otherwise, <pty dev> returned.

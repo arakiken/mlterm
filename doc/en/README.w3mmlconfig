@@ -3,13 +3,13 @@ comment $Id$
 
 w3mmlconfig (tool/w3mmlconfig) is a configuration program using w3m local-CGI.
 
-* install
-  edit prefix and PERL in Makefile
+* Install
+  Edit prefix and PERL in Makefile
   
   $ make
   $ make install
 
-* usage
+* Usage
   $ w3mmlconfig
 
 * Thanks
