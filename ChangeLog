@@ -1,4 +1,10 @@
 [20011215]
+* prefer_utf8_selection (-U/--utf8sel) , auto_detect_utf8_selection (-o/--autoutf8)
+  options are added.
+* when window resized , font changed or encoding changed , screen may not be redrawn
+  or cursor position may be strange. fixed.
+
+[20011215]
 * ESC H (set tab) ESC [ 0 g (clear tab) ESC [ 3 g (clear all tabs) are supported.
 * Big5HKSCS encoding/charset is supported.
 * US ASCII font is not changed when encoding is changed to ISO8859 variant or UTF8. fixed.
