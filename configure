@@ -28,8 +28,6 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-utmp           utmp[disabled]"
 ac_help="$ac_help
-  --enable-ucs4           ucs4[disabled]"
-ac_help="$ac_help
   --disable-shared        shared libraries[enabled]"
 ac_help="$ac_help
   --disable-static        static libraries[enabled]"
@@ -614,12 +612,6 @@ fi
 # Check whether --enable-utmp or --disable-utmp was given.
 if test "${enable_utmp+set}" = set; then
   enableval="$enable_utmp"
-  :
-fi
-
-# Check whether --enable-ucs4 or --disable-ucs4 was given.
-if test "${enable_ucs4+set}" = set; then
-  enableval="$enable_ucs4"
   :
 fi
 

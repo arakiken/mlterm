@@ -1,3 +1,8 @@
+2002-05-14  Araki Ken <arakiken@users.sf.net>
+
+	* vt100 core functions and GUI(x window system) functions are separated.
+	  (vt100 core functions doesn't depend on any UI)
+
 2002-05-09  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* utmp entry may be left unterminated when login() is used. fixed. 
