@@ -40,7 +40,6 @@
 
 KIK_MAP_TYPEDEF(xim_locale, char*, char*);
 
-
 /* --- static variables --- */
 
 static enum {
@@ -57,6 +56,7 @@ static u_int num_of_xims;
 static int is_changed = 0;
 
 static char xim_auto_str[STR_LEN] = "";
+static char uim_auto_str[STR_LEN] = "";
 static char iiimf_auto_str[STR_LEN] = "";
 static char current_locale_str[STR_LEN] = "";
 static char selected_xim_name[STR_LEN] = "";
@@ -68,7 +68,7 @@ static char original_iiimf_lang[STR_LEN] = "";
 /* --- static functions --- */
 
 /*
- * xim
+ * XIM
  */
 
 static gint
@@ -269,9 +269,11 @@ uim_selected(GtkWidget *widget, gpointer data)
 
 	snprintf(selected_uim_engine, STR_LEN, str);
 
-	/* "anthy (ja)" -> "anthy" */
-	p = strstr(selected_uim_engine, " (");
-	if(p) *p = '\0';
+	if (strcmp(selected_uim_engine, uim_auto_str)) {
+		/* "anthy (ja)" -> "anthy" */
+		p = strstr(selected_uim_engine, " (");
+		if(p) *p = '\0';
+	}
 
 	is_changed = 1;
 
@@ -280,7 +282,7 @@ uim_selected(GtkWidget *widget, gpointer data)
 #endif
 
 static GtkWidget *
-uim_widget_new(const char *uim_engine)
+uim_widget_new(const char *uim_engine, const char *cur_locale)
 {
 #ifdef USE_UIM
 	GtkWidget *combo;
@@ -301,7 +303,7 @@ uim_widget_new(const char *uim_engine)
 
 		num_of_engines = uim_get_nr_im(context);
 
-		engines = malloc(sizeof(char*) * num_of_engines);
+		engines = alloca(sizeof(char*) * num_of_engines + 1);
 
 		for (i = 0; i < num_of_engines && engines; i++) {
 
@@ -311,14 +313,14 @@ uim_widget_new(const char *uim_engine)
 			/* format: "engine_name (language)" */
 			len = strlen(engine_name) + strlen(language) + 3 + 1;
 
-			engines[i] = malloc(sizeof(char) * len);
+			engines[i + 1] = alloca(sizeof(char) * len);
 
-			snprintf(engines[i], len, "%s (%s)",
+			snprintf(engines[i + 1], len, "%s (%s)",
 				 engine_name, language);
 
 			if (uim_engine) {
 				if (strcmp(engine_name, uim_engine) == 0) {
-					selected_index = i;
+					selected_index = i + 1;
 					snprintf(selected_uim_engine, STR_LEN,
 						 engine_name);
 				}
@@ -326,18 +328,23 @@ uim_widget_new(const char *uim_engine)
 		}
 	}
 
+	if (selected_index == -1) {
+		snprintf(uim_auto_str, STR_LEN, _("auto (currently %s)"),
+	#ifdef UIM_CAN_GET_DEFAULT_IM
+			  uim_get_default_im_name(cur_locale));
+	#else
+			  "default (*)");
+	#endif
+		selected_index = 0;
+	} else {
+		snprintf( uim_auto_str, STR_LEN, _("auto"));
+	}
+	engines[0] = strdup(uim_auto_str);
+
 	uim_quit();
 
-	combo = mc_combo_new(
-		_("Conversion engine"), engines, num_of_engines,
-		selected_index == -1 ? "default (*)" : engines[selected_index],
-		0, uim_selected, NULL);
-
-	if (engines) {
-		for (i = 0; i < num_of_engines; i++)
-			if (engines[i]) free( engines[i]);
-		free( engines);
-	}
+	combo = mc_combo_new(_("Conversion engine"), engines, num_of_engines,
+			     engines[selected_index], 1, uim_selected, NULL);
 
 	return combo;
 #else
@@ -717,7 +724,7 @@ mc_im_config_widget_new(void)
 	cur_locale = mc_get_str_value("locale");
 
 	xim = xim_widget_new(xim_name, xim_locale, cur_locale);
-	uim = uim_widget_new(uim_engine);
+	uim = uim_widget_new(uim_engine, cur_locale);
 	iiimf = iiimf_widget_new(iiimf_lang_id, iiimf_le, cur_locale);
 
 	free(cur_locale);
@@ -834,7 +841,7 @@ mc_update_im(void)
 		}
 		break;
 	case IM_UIM:
-		if (strcmp(selected_uim_engine, "default (*)") == 0) {
+		if (strcmp(selected_uim_engine, uim_auto_str) == 0) {
 			p = strdup("uim");
 		} else {
 			len = 3 + 1 + strlen(selected_uim_engine) + 1;

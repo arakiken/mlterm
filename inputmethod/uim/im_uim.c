@@ -35,7 +35,8 @@
 #include  <uim-helper.h>
 
 #include  <X11/keysym.h>	/* XK_xxx */
-#include  <kiklib/kik_str.h>	/* kik_str_sep, kik_snprintf */
+#include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep kik_snprintf */
+#include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <signal.h>
 
 #include  <x_im.h>
@@ -45,7 +46,7 @@
 #define IM_UIM_DEBUG 1
 #endif
 
-#if 1	/* XXX: should be removed? */
+#if  1	/* XXX: should be removed? */
 #define IM_UIM_COMPAT_0_3_8 1
 /* see http://www.freedesktop.org/pipermail/uim/2004-June/000383.html */
 #endif
@@ -1059,6 +1060,7 @@ im_new(
 	im_uim_t *  uim ;
 	char *  encoding_name ;
 	ml_char_encoding_t  encoding ;
+	void * hold_handler;
 
 	if( magic != (u_int64_t) IM_API_COMPAT_CHECK_MAGIC)
 	{
@@ -1071,6 +1073,9 @@ im_new(
 
 	if( ! initialized)
 	{
+		char *  cur_locale ;
+		cur_locale = kik_str_alloca_dup( kik_get_locale()) ;
+
 		if( uim_init() == -1)
 		{
 		#ifdef  DEBUG
@@ -1079,6 +1084,9 @@ im_new(
 
 			return  NULL ;
 		}
+
+		/* restoring */
+		kik_locale_init( cur_locale) ;
 
 		mlterm_syms = export_syms ;
 
@@ -1093,12 +1101,11 @@ im_new(
 	    mlterm_syms->x_term_manager_add_fd &&
 	    mlterm_syms->x_term_manager_remove_fd)
 	{
-		void * hold_handler;
-
 		hold_handler = signal(SIGCHLD, SIG_DFL) ;
 
 		helper_fd = uim_helper_init_client_fd( helper_disconnected) ;
 
+		/* restoring */
 		signal(SIGCHLD, hold_handler) ;
 
 		(*mlterm_syms->x_term_manager_add_fd)(helper_fd ,
@@ -1107,12 +1114,17 @@ im_new(
 
 	if( engine == NULL)
 	{
+	#ifdef UIM_CAN_GET_DEFAULT_IM
+		engine = (char*)uim_get_default_im_name(kik_get_locale()) ;
+	#else
 		engine = "default" ;
+	#endif
 	}
 
 	if( ! find_engine( engine , &encoding_name))
 	{
-		kik_error_printf( " Could not find '%s' conversion engine.\n" , engine) ;
+		kik_error_printf( " Could not find '%s' conversion engine.\n" ,
+				  engine) ;
 
 		goto  error ;
 	}
@@ -1157,6 +1169,8 @@ im_new(
 		goto  error ;
 	}
 
+	hold_handler = signal(SIGCHLD, SIG_DFL) ;
+
 	if( ! ( uim->context = uim_create_context( uim ,
 						   encoding_name ,
 						   NULL ,
@@ -1168,8 +1182,14 @@ im_new(
 		kik_warn_printf( KIK_DEBUG_TAG " could not create uim context.\n") ;
 	#endif
 
+		/* restoring */
+		signal(SIGCHLD, hold_handler) ;
+
 		goto  error ;
 	}
+
+	/* restoring */
+	signal(SIGCHLD, hold_handler) ;
 
 	uim_set_preedit_cb( uim->context ,
 			    preedit_clear ,

@@ -326,6 +326,18 @@ if test "$enable_uim" = yes ; then
 		UIM_LIBS=`pkg-config uim --libs`
 		MAKE_DIRS="inputmethod/uim ${MAKE_DIRS}"
 		OUTPUT_FILES="inputmethod/uim/Makefile ${OUTPUT_FILES}"
+		# check API
+		ml_saved_libs="$LIBS"
+		LIBS="$UIM_LIBS"
+		AC_CHECK_LIB(uim, uim_get_default_im_name,
+			     [
+			     UIM_CFLAGS="$UIM_CFLAGS -DUIM_CAN_GET_DEFAULT_IM"
+			     ])
+		AC_CHECK_LIB(uim, uim_get_im_short_desc,
+			     [
+			     UIM_CFLAGS="$UIM_CFLAGS -DUIM_CAN_GET_IM_DESC"
+			     ])
+		LIBS="$ml_saved_libs"
 	fi
 fi
 AC_SUBST(UIM_CFLAGS)

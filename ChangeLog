@@ -1,5 +1,16 @@
 2004-09-15 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/uim/im_uim.c (im_new),
+	  tool/mlconfig/mc_im.c:
+	  - use uim_get_default_im_name() if available.
+	  - unset the signal handler for SIGCHLD before calling
+	    uim_create_context().
+
+	* configure.in: added tests for uim_get_default_im_name() and
+	  uim_get_im_short_desc()
+
+2004-09-15 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* tool/mlconfig/mc_im.c: fixed a small bug in auto selector for IIIMF.
 
 2004-09-15 Seiichi SATO <ssato@sh.rim.or.jp>
