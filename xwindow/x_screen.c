@@ -6431,6 +6431,7 @@ get_bg_color(
  * callbacks of x_uim events.
  */
 
+#ifdef  USE_UIM
 static int
 get_segment_spot(
 	void *  p ,
@@ -6761,7 +6762,7 @@ write_to_term(
 
 	ml_term_write( screen->term , str , len , 0) ;
 }
-
+#endif  /* USE_UIM */
 
 /*
  * callbacks of ml_xterm_event_listener_t
