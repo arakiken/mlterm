@@ -253,6 +253,10 @@ mlmenu)
 	MAKE_DIRS="tool/mlmenu ${MAKE_DIRS}"
 	OUTPUT_FILES="tool/mlmenu/Makefile ${OUTPUT_FILES}"
 	;;
+mlterm-zoom)
+	MAKE_DIRS="contrib/tool/mlterm-zoom ${MAKE_DIRS}"
+	OUTPUT_FILES="contrib/tool/mlterm-zoom/Makefile ${OUTPUT_FILES}"
+	;;
 *)
 	echo "${tool} is unknown tool."
 	;;
