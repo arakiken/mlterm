@@ -1,7 +1,7 @@
 2005-03-01 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/uim/im_uim.c:
-	  - applied a patch from Etsushi Kato. (for focus problem)
+	  - applied a patch from Etsushi Kato. (for focuse problem)
 	  - get rid of compiler warning.
 	  - allow to work with uim-0.3.8.
 
@@ -10,6 +10,14 @@
 	  inputmethod/m17nlib/im_m17nlib.c, inputmethod/scim/im_scim_mod_if.c,
 	  inputmethod/scim/im_scim_1.0.cpp, inputmethod/scim/im_scim_1.2.cpp:
 	  get rid of compiler warning.
+
+	* kiklib/src/kik_dlfcn_dyld.c: fixed a segfault that occured when the
+	module was loaded multiply. (Thanks to Etsushi Kato for report)
+
+	* contrib/scrollbar/extra/exsb_comon.c:
+	  - removed.
+	  - To avoid multiple definitions problem on Mac OX X, exsb_get_pixel()
+	    was moved to exsb_comon.h as static function.
 
 2005-02-28 Seiichi SATO <ssato@sh.rim.or.jp>
 
