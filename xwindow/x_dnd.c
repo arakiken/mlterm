@@ -12,6 +12,7 @@
 
 #include  "x_dnd.h"
 
+/* XXX create x_atom.h ?? */
 #define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
 #define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
@@ -31,10 +32,10 @@ charset_name2code(
 	for( i = strlen(charset) -1 ; i > 0 ; i--)
 		charset[i] = (charset[i] > 'A')? charset[i]-'A'+'a':charset[i];
 	if( strcmp(charset, "utf-16le") ==0 )
-		return 0;
+		return 0 ;
 
 */
-	return 1;
+	return 1 ;
 }
 
 static int
@@ -114,11 +115,11 @@ x_dnd_reply(
 }
 
 /**send finish message to dnd sender
- *\param win mlterm window
+ *\param win mlterm window 
  */
 void
 x_dnd_finish(
-	x_window_t * win
+	x_window_t *  win 
 	)
 {
 	XClientMessageEvent reply_msg ;
@@ -149,6 +150,7 @@ int
 x_dnd_parse(
 	x_window_t * win,
 	Atom atom,
+	
 	unsigned char *src,
 	int len)
 {
@@ -178,10 +180,15 @@ x_dnd_parse(
 			if( !atom)
 				return 1;
 		}
+		else
+		{
+			XFree(atom_name);
+		}
 	}
 	else
+	{
 		XFree(atom_name);
-	
+	}
 	    
 	/* COMPOUND_TEXT */
 	if( atom == XA_COMPOUND_TEXT(win->display))
@@ -315,11 +322,11 @@ x_dnd_parse(
 Atom
 x_dnd_preferable_atom(
 	x_window_t *  win ,
-	Atom *atom,
-	int num
+	Atom *  atom,
+	int  num
 	)
 {
-	int i = 0 ;
+	int  i = 0 ;
 
 	i = is_pref( XA_COMPOUND_TEXT( win->display), atom, num) ;
 	if(!i)
@@ -336,32 +343,32 @@ x_dnd_preferable_atom(
 #ifdef  DEBUG
 	if( i)
 	{
-		char *p;
+		char *  p ;
 		p = XGetAtomName( win->display, atom[i]);
 		if( p)
 		{
 			kik_debug_printf( "accepted as atom: %s(%d)\n",
 					  p, atom[i]) ;
-			XFree( p);
+			XFree( p) ;
 		}
 	}
 	else
 	{
-		char *p;
+		char *  p ;
 		for( i = 0 ; i < num ; i++)
 			if( atom[i])
 			{
 				p = XGetAtomName( win->display, atom[i]);
 				kik_debug_printf("dropped atoms: %d\n",
 						 XGetAtomName( win->display,
-							       atom[i]) ) ;
-				XFree( p);
+							       atom[i])) ;
+				XFree( p) ;
 			}
 	}
 #endif
 	if( i)
 		return atom[i] ;
 	else
-		return (Atom)0  ;/* it's illegal value for Atom */
+		return (Atom)0  ;/* 0 would never be used for Atom */
 }
 
