@@ -25,7 +25,7 @@ typedef struct  ml_window_manager
 } ml_window_manager_t ;
 
 
-int  ml_window_manager_init( ml_window_manager_t *  win_man , char *  disp_name , int  use_xim) ;
+int  ml_window_manager_init( ml_window_manager_t *  win_man , Display *  display) ;
 
 int  ml_window_manager_final( ml_window_manager_t *  win_man) ;
 

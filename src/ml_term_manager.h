@@ -20,9 +20,20 @@
 #include  "ml_term_screen.h"	/* ml_system_event_listener_t */
 
 
+typedef struct ml_display
+{
+	char *  name ;
+	Display *  display ;
+	
+	ml_window_manager_t  win_man ;
+	ml_color_manager_t  color_man ;
+
+} ml_display_t ;
+
 typedef struct ml_term
 {
 	ml_pty_t *  pty ;
+	ml_display_t *  display ;
 	ml_window_t *  root_window ;
 	ml_vt100_parser_t *  vt100_parser ;
 	ml_font_manager_t *  font_man ;
@@ -55,6 +66,7 @@ typedef struct ml_config
 	ml_font_present_t  font_present ;
 	ml_vertical_mode_t  vertical_mode ;
 
+	char *  disp_name ;
 	char *  app_name ;
 	char *  title ;
 	char *  icon_name ;
@@ -85,23 +97,9 @@ typedef struct ml_config
 
 typedef struct  ml_term_manager
 {
-	ml_window_manager_t  win_man ;
-	ml_color_manager_t  color_man ;
-	ml_font_custom_t  normal_font_custom ;
-	ml_font_custom_t  v_font_custom ;
-	ml_font_custom_t  t_font_custom ;
-#ifdef  ANTI_ALIAS
-	ml_font_custom_t  aa_font_custom ;
-	ml_font_custom_t  vaa_font_custom ;
-	ml_font_custom_t  taa_font_custom ;
-#endif
-	ml_keymap_t  keymap ;
-	ml_termcap_t  termcap ;
-
-	ml_system_event_listener_t  system_listener ;
+	ml_display_t **  displays ;
+	u_int  num_of_displays ;
 	
-	ml_config_t  conf ;
-
 	ml_term_t *  terms ;
 	u_int  max_terms ;
 	u_int  num_of_terms ;
@@ -111,6 +109,22 @@ typedef struct  ml_term_manager
 	u_int32_t  dead_mask ;
 
 	int  sock_fd ;
+	
+	ml_system_event_listener_t  system_listener ;
+	
+	ml_font_custom_t  normal_font_custom ;
+	ml_font_custom_t  v_font_custom ;
+	ml_font_custom_t  t_font_custom ;
+#ifdef  ANTI_ALIAS
+	ml_font_custom_t  aa_font_custom ;
+	ml_font_custom_t  vaa_font_custom ;
+	ml_font_custom_t  taa_font_custom ;
+#endif
+	ml_color_custom_t  color_custom ;
+	ml_keymap_t  keymap ;
+	ml_termcap_t  termcap ;
+
+	ml_config_t  conf ;
 
 	int8_t  is_genuine_daemon ;
 	

@@ -23,7 +23,7 @@ OBJ = kik_debug.o kik_map.o kik_args.o kik_dlfcn.o kik_mem.o kik_conf.o kik_file
 	kik_conf_io.o kik_str.o kik_cycle_index.o kik_langinfo.o kik_time.o kik_locale.o \
 	kik_pty.o kik_utmp.o kik_privilege.o
 
-INC = $(OBJ:.o=.h) kik_list.h kik_iterator.h kik_types.h kik_config.h kik_util.h kik_def.h
+INC = $(OBJ:.o=.h) kik_list.h kik_iterator.h kik_types.h kik_config.h kik_util.h kik_def.h kik_net.h
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)

@@ -6060,49 +6060,13 @@ EOF
 fi
 
 
-echo $ac_n "checking for __FUNCTION__ ""... $ac_c" 1>&6
-echo "configure:6065: checking for __FUNCTION__ " >&5
-if eval "test \"`echo '$''{'kik_cv_func_ident'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  
-cat > conftest.$ac_ext <<EOF
-#line 6071 "configure"
-#include "confdefs.h"
-
-int main() {
-
-	char * p = __FUNCTION__ ;
-
-; return 0; }
-EOF
-if { (eval echo configure:6080: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  kik_cv_func_ident=yes
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  kik_cv_func_ident=no
-fi
-rm -f conftest*
-fi
-
-echo "$ac_t""$kik_cv_func_ident" 1>&6
-if test "${kik_cv_func_ident}" = "yes" ; then
-	cat >> confdefs.h <<\EOF
-#define HAVE_FUNCTION 1
-EOF
-
-fi
-
 echo $ac_n "checking for mode_t""... $ac_c" 1>&6
-echo "configure:6101: checking for mode_t" >&5
+echo "configure:6065: checking for mode_t" >&5
 if eval "test \"`echo '$''{'ac_cv_type_mode_t'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 6106 "configure"
+#line 6070 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #if STDC_HEADERS
@@ -6130,12 +6094,12 @@ EOF
 fi
 
 echo $ac_n "checking for pid_t""... $ac_c" 1>&6
-echo "configure:6134: checking for pid_t" >&5
+echo "configure:6098: checking for pid_t" >&5
 if eval "test \"`echo '$''{'ac_cv_type_pid_t'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 6139 "configure"
+#line 6103 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #if STDC_HEADERS
@@ -6163,12 +6127,12 @@ EOF
 fi
 
 echo $ac_n "checking for uid_t in sys/types.h""... $ac_c" 1>&6
-echo "configure:6167: checking for uid_t in sys/types.h" >&5
+echo "configure:6131: checking for uid_t in sys/types.h" >&5
 if eval "test \"`echo '$''{'ac_cv_type_uid_t'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 6172 "configure"
+#line 6136 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 EOF
@@ -6197,12 +6161,12 @@ EOF
 fi
 
 echo $ac_n "checking for off_t""... $ac_c" 1>&6
-echo "configure:6201: checking for off_t" >&5
+echo "configure:6165: checking for off_t" >&5
 if eval "test \"`echo '$''{'ac_cv_type_off_t'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 6206 "configure"
+#line 6170 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #if STDC_HEADERS
@@ -6230,12 +6194,12 @@ EOF
 fi
 
 echo $ac_n "checking for size_t""... $ac_c" 1>&6
-echo "configure:6234: checking for size_t" >&5
+echo "configure:6198: checking for size_t" >&5
 if eval "test \"`echo '$''{'ac_cv_type_size_t'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 6239 "configure"
+#line 6203 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #if STDC_HEADERS
@@ -6263,10 +6227,84 @@ EOF
 fi
 
 
+echo $ac_n "checking for socklen_t ""... $ac_c" 1>&6
+echo "configure:6232: checking for socklen_t " >&5
+if eval "test \"`echo '$''{'kik_cv_socklen_ident'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  
+cat > conftest.$ac_ext <<EOF
+#line 6238 "configure"
+#include "confdefs.h"
+
+#include  <sys/socket.h>
+
+int main() {
+
+socklen_t  len ;
+
+; return 0; }
+EOF
+if { (eval echo configure:6249: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  kik_cv_socklen_ident=yes
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  kik_cv_socklen_ident=no
+fi
+rm -f conftest*
+fi
+
+echo "$ac_t""$kik_cv_socklen_ident" 1>&6
+if test "${kik_cv_sockeln_ident}" = "no" ; then
+	cat >> confdefs.h <<\EOF
+#define socklen_t unsigned int
+EOF
+
+fi
+
+echo $ac_n "checking for __FUNCTION__ ""... $ac_c" 1>&6
+echo "configure:6270: checking for __FUNCTION__ " >&5
+if eval "test \"`echo '$''{'kik_cv_func_ident'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  
+cat > conftest.$ac_ext <<EOF
+#line 6276 "configure"
+#include "confdefs.h"
+
+int main() {
+
+char * p = __FUNCTION__ ;
+
+; return 0; }
+EOF
+if { (eval echo configure:6285: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  kik_cv_func_ident=yes
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  kik_cv_func_ident=no
+fi
+rm -f conftest*
+fi
+
+echo "$ac_t""$kik_cv_func_ident" 1>&6
+if test "${kik_cv_func_ident}" = "yes" ; then
+	cat >> confdefs.h <<\EOF
+#define HAVE_FUNCTION 1
+EOF
+
+fi
+
 # I don't know why , but xpg4 check is also necessary here for FreeBSD
 # according to Sakamoto Hironori san.
 echo $ac_n "checking for setlocale in -lxpg4""... $ac_c" 1>&6
-echo "configure:6270: checking for setlocale in -lxpg4" >&5
+echo "configure:6308: checking for setlocale in -lxpg4" >&5
 ac_lib_var=`echo xpg4'_'setlocale | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -6274,7 +6312,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lxpg4  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 6278 "configure"
+#line 6316 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -6285,7 +6323,7 @@ int main() {
 setlocale()
 ; return 0; }
 EOF
-if { (eval echo configure:6289: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:6327: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -6308,7 +6346,7 @@ fi
 
 
 echo $ac_n "checking for pty/tty type""... $ac_c" 1>&6
-echo "configure:6312: checking for pty/tty type" >&5
+echo "configure:6350: checking for pty/tty type" >&5
 if eval "test \"`echo '$''{'kik_cv_pty'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else

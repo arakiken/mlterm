@@ -22,8 +22,13 @@
 #include  "ml_char_encoding.h"	/* ml_convert_to_xft_ucs4 */
 
 
-#define  DOUBLE_CLICK_INTERVAL  1000	/* mili second */
+#define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
+#define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
+#define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
+#define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
+#define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
 
+#define  DOUBLE_CLICK_INTERVAL  1000	/* mili second */
 #define  MAX_CLICK  3			/* max is triple click */
 
 #if  0
@@ -33,18 +38,6 @@
 #if  0
 #define  PERF_DEBUG
 #endif
-
-
-/* --- static variables --- */
-
-/*
- * initialized in ml_window_new()
- */
-static Atom  xa_utf8_string ;
-static Atom  xa_compound_text ;
-static Atom  xa_text ;
-static Atom  xa_selection_prop ;
-static Atom  xa_delete_window ;
 
 
 /* --- static functions --- */
@@ -1349,12 +1342,12 @@ ml_window_init(
 	win->display = NULL ;
 	win->screen = 0 ;
 	
-	win->parent_window = 0 ;
-	win->my_window = 0 ;
+	win->parent_window = None ;
+	win->my_window = None ;
 	
-	win->drawable = 0 ;
-	win->pixmap = 0 ;
-	win->gc = 0 ;
+	win->drawable = None ;
+	win->pixmap = None ;
+	win->gc = None ;
 #ifdef  ANTI_ALIAS
 	win->xft_draw = NULL ;
 #endif
@@ -1434,7 +1427,7 @@ ml_window_final(
 	int  counter ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( "deleting child windows ==>\n") ;
+	kik_debug_printf( "[deleting child windows]\n") ;
 	ml_window_dump_children( win) ;
 #endif
 	
@@ -1463,7 +1456,18 @@ ml_window_final(
 	free( win->color_table) ;
 
 	ml_window_manager_clear_selection( ml_get_root_window( win)->win_man , win) ;
+	
 	XFreeGC( win->display , win->gc) ;
+
+	if( win->pixmap)
+	{
+		XFreePixmap( win->display , win->pixmap) ;
+	}
+
+#ifdef  ANTI_ALIAS
+	XftDrawDestroy( win->xft_draw) ;
+#endif
+	
 	XDestroyWindow( win->display , win->my_window) ;
 
 	ml_xic_deactivate( win) ;
@@ -1472,20 +1476,6 @@ ml_window_final(
 	{
 		(*win->window_finalized)( win) ;
 	}
-
-	return  1 ;
-}
-
-int
-ml_window_init_atom(
-	Display *  display
-	)
-{
-	xa_compound_text = XInternAtom( display , "COMPOUND_TEXT" , False) ;
-	xa_text = XInternAtom( display , "TEXT" , False) ;
-	xa_utf8_string = XInternAtom( display , "UTF8_STRING" , False) ;
-	xa_selection_prop = XInternAtom( display , "MLTERM_SELECTION" , False) ;
-	xa_delete_window = XInternAtom( display , "WM_DELETE_WINDOW" , False) ;
 
 	return  1 ;
 }
@@ -2113,7 +2103,7 @@ ml_window_show(
 
 		return  0 ;
 	}
-	
+
 	if( win->parent)
 	{
 		win->display = win->parent->display ;
@@ -2177,6 +2167,7 @@ ml_window_show(
 		XWMHints  wm_hints ;
 		int  argc = 1 ;
 		char *  argv[] = { "mlterm" , NULL , } ;
+		Atom  protocols[1] ;
 		
 		win->event_mask |= StructureNotifyMask ;
 
@@ -2232,13 +2223,15 @@ ml_window_show(
 		/* notify to window manager */
 		XmbSetWMProperties( win->display , win->my_window , "mlterm" , "mlterm" ,
 			argv , argc , &size_hints , &wm_hints , NULL) ;
-			
-		XSetWMProtocols( win->display , win->my_window , &xa_delete_window , 1) ;
+
+		protocols[0] = XA_DELETE_WINDOW(win->display) ;
+		
+		XSetWMProtocols( win->display , win->my_window , protocols , 1) ;
 	}
 
 	XSelectInput( win->display , win->my_window , win->event_mask) ;
 
-#if  0	
+#if  0
 	ml_window_clear_all( win) ;
 #endif
 	
@@ -2906,6 +2899,14 @@ ml_window_receive_event(
 	}
 	else if( event->type == SelectionRequest)
 	{
+		Atom  xa_utf8_string ;
+		Atom  xa_compound_text ;
+		Atom  xa_text ;
+		
+		xa_compound_text = XA_COMPOUND_TEXT(win->display) ;
+		xa_text = XA_TEXT(win->display) ;
+		xa_utf8_string = XA_UTF8_STRING(win->display) ;
+		
 		if( event->xselectionrequest.target == XA_STRING)
 		{
 			if( win->xct_selection_requested)
@@ -2944,6 +2945,16 @@ ml_window_receive_event(
 	}
 	else if( event->type == SelectionNotify)
 	{
+		Atom  xa_utf8_string ;
+		Atom  xa_compound_text ;
+		Atom  xa_text ;
+		Atom  xa_selection ;
+		
+		xa_compound_text = XA_COMPOUND_TEXT(win->display) ;
+		xa_text = XA_TEXT(win->display) ;
+		xa_utf8_string = XA_UTF8_STRING(win->display) ;
+		xa_selection = XA_SELECTION(win->display) ;
+		
 		if( event->xselection.property == None)
 		{
 			/*
@@ -2960,12 +2971,12 @@ ml_window_receive_event(
 			else if( event->xselection.target == xa_compound_text)
 			{
 				XConvertSelection( win->display , XA_PRIMARY , xa_text ,
-					xa_selection_prop , win->my_window , CurrentTime) ;
+					xa_selection , win->my_window , CurrentTime) ;
 			}
 			else if( event->xselection.target == xa_text)
 			{
 				XConvertSelection( win->display , XA_PRIMARY , XA_STRING ,
-					xa_selection_prop , win->my_window , CurrentTime) ;
+					xa_selection , win->my_window , CurrentTime) ;
 			}
 			else if( win->xct_selection_request_failed)
 			{
@@ -3058,7 +3069,8 @@ ml_window_receive_event(
 	}
 	else if( event->type == ClientMessage)
 	{
-		if( event->xclient.format == 32 && event->xclient.data.l[0] == xa_delete_window)
+		if( event->xclient.format == 32 &&
+			event->xclient.data.l[0] == XA_DELETE_WINDOW( win->display))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
@@ -3363,8 +3375,8 @@ ml_window_xct_selection_request(
 	Time  time
 	)
 {
-	XConvertSelection( win->display , XA_PRIMARY , xa_compound_text , xa_selection_prop ,
-		win->my_window , time) ;
+	XConvertSelection( win->display , XA_PRIMARY , XA_COMPOUND_TEXT(win->display) ,
+		XA_SELECTION(win->display) , win->my_window , time) ;
 
 	return  1 ;
 }
@@ -3375,8 +3387,8 @@ ml_window_utf8_selection_request(
 	Time  time
 	)
 {
-	XConvertSelection( win->display , XA_PRIMARY , xa_utf8_string , xa_selection_prop ,
-		win->my_window , time) ;
+	XConvertSelection( win->display , XA_PRIMARY , XA_UTF8_STRING(win->display) ,
+		XA_SELECTION(win->display) , win->my_window , time) ;
 
 	return  1 ;
 }

@@ -10,8 +10,43 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_conf_io.h>
 
-#include  "ml_window_intern.h"
-#include  "ml_xim.h"
+
+#if  0
+#define  __DEBUG
+#endif
+
+
+/* --- static functions --- */
+
+#ifdef  __DEBUG
+static int
+error_handler(
+	Display *  display ,
+	XErrorEvent *  event
+	)
+{
+	char  buffer[1024] ;
+
+	XGetErrorText( display , event->error_code , buffer , 1024) ;
+
+	kik_error_printf( "%s\n" , buffer) ;
+	
+	abort() ;
+
+	return  1 ;
+}
+
+static int
+ioerror_handler(
+	Display *  display
+	)
+{
+	kik_error_printf( "X IO Error.\n") ;
+	abort() ;
+
+	return  1 ;
+}
+#endif
 
 
 /* --- global functions --- */
@@ -19,17 +54,10 @@
 int
 ml_window_manager_init(
 	ml_window_manager_t *  win_man ,
-	char *  disp_name ,
-	int  use_xim
+	Display *  display
 	)
 {
-	if( ( win_man->display = XOpenDisplay( disp_name)) == NULL)
-	{
-		kik_msg_printf( " display %s couldn't be opened.\n" , disp_name) ;
-		
-		return  0 ;
-	}
-	
+	win_man->display = display ;
 	win_man->screen = DefaultScreen( win_man->display) ;
 	win_man->my_window = DefaultRootWindow( win_man->display) ;
 
@@ -37,18 +65,12 @@ ml_window_manager_init(
 	win_man->num_of_roots = 0 ;
 
 	win_man->selection_owner = NULL ;
-	
-	ml_window_init_atom( win_man->display) ;
 
-	if( use_xim)
-	{
-		ml_xim_init( win_man->display) ;
-	}
-	else
-	{
-		ml_xim_init( NULL) ;
-	}
-	
+#ifdef  __DEBUG
+	XSetErrorHandler( error_handler) ;
+	XSetIOErrorHandler( ioerror_handler) ;
+#endif
+
 	return  1 ;
 }
 
@@ -68,10 +90,6 @@ ml_window_manager_final(
 	{
 		free( win_man->roots) ;
 	}
-
-	ml_xim_final() ;
-
-	XCloseDisplay( win_man->display) ;
 
 	return  1 ;
 }

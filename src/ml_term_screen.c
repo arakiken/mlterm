@@ -1209,7 +1209,7 @@ window_realized(
 	ml_term_screen_t *  termscr ;
 
 	termscr = (ml_term_screen_t*) win ;
-		
+
 	termscr->mod_meta_mask = get_mod_meta_mask( termscr->window.display) ;
 
 	if( termscr->xim_open_in_startup)

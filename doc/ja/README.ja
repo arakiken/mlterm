@@ -478,6 +478,7 @@ comment $Id$
       フォーマットは以下のとおり。
 
       color_name = [red]-[green]-[blue]
+      [red],[green],[blue]は、それぞれ 16 bit 16 進数表記です。
 
       e.g.)
       priv_fg=ffff-ffff-0;

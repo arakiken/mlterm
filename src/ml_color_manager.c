@@ -7,8 +7,6 @@
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
-#include  <kiklib/kik_file.h>
-#include  <kiklib/kik_conf_io.h>
 
 
 /* --- static functions --- */
@@ -94,13 +92,15 @@ int
 ml_color_manager_init(
 	ml_color_manager_t *  color_man ,
 	Display *  display ,
-	int  screen
+	int  screen ,
+	ml_color_custom_t *  color_custom
 	)
 {
 	memset( color_man , 0 , sizeof( ml_color_manager_t)) ;
 	
 	color_man->display = display ;
 	color_man->screen = screen ;
+	color_man->color_custom = color_custom ;
 
 	return  1 ;
 }
@@ -114,98 +114,8 @@ ml_color_manager_final(
 
 	for( color = 0 ; color < MAX_ACTUAL_COLORS ; color ++)
 	{
-		free( color_man->rgbs[color]) ;
-	}
-	
-	for( color = 0 ; color < MAX_ACTUAL_COLORS ; color ++)
-	{
 		unload_xcolor( color_man , &color_man->xcolors[color]) ;
 	}
-
-	return  1 ;
-}
-
-int
-ml_color_manager_set_rgb(
-	ml_color_manager_t *  color_man ,
-	ml_color_t  color ,
-	u_short  red ,
-	u_short  green ,
-	u_short  blue
-	)
-{
-	ml_rgb_t *  rgb ;
-
-	if( color_man->rgbs[color])
-	{
-		free( color_man->rgbs[color]) ;
-		color_man->rgbs[color] = NULL ;
-	}
-	
-	if( ( rgb = malloc( sizeof( ml_rgb_t))) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
-	#endif
-
-		return  0 ;
-	}
-
-	rgb->red = red ;
-	rgb->green = green ;
-	rgb->blue = blue ;
-
-	color_man->rgbs[color] = rgb ;
-
-	return  1 ;
-}
-
-int
-ml_color_manager_read_conf(
-	ml_color_manager_t *  color_man ,
-	char *  filename
-	)
-{
-	kik_file_t *  from ;
-	char *  name ;
-	char *  rgb ;
-	u_int  red ;
-	u_int  green ;
-	u_int  blue ;
-	ml_color_t  color ;
-
-	if( ! ( from = kik_file_open( filename , "r")))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " %s couldn't be opened.\n" , filename) ;
-	#endif
-	
-		return  0 ;
-	}
-
-	while( kik_conf_io_read( from , &name , &rgb))
-	{
-		if( sscanf( rgb , "%x-%x-%x" , &red , &green , &blue) != 3)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " illegal rgblist format (%s,%s)\n" ,
-				name , rgb) ;
-		#endif
-
-			continue ;
-		}
-
-	#ifdef  __DEBUG
-		kik_debug_printf( "%s = red %x green %x blue %x\n" , name , red , green , blue) ;
-	#endif
-
-		if( ( color = ml_get_color( name)) != MLC_UNKNOWN_COLOR)
-		{
-			ml_color_manager_set_rgb( color_man , color , red , green , blue) ;
-		}
-	}
-
-	kik_file_close( from) ;
 
 	return  1 ;
 }
@@ -216,15 +126,17 @@ ml_color_manager_load(
 	)
 {
 	ml_color_t  color ;
+	u_short  red ;
+	u_short  green ;
+	u_short  blue ;
 	char *  name ;
 
 	for( color = 0 ; color < MAX_ACTUAL_COLORS ; color ++)
 	{
-		if( color_man->rgbs[color])
+		if( ml_color_custom_get_rgb( color_man->color_custom , &red , &green , &blue , color))
 		{
 			if( load_rgb_xcolor( color_man , &color_man->xcolors[color] ,
-				color_man->rgbs[color]->red , color_man->rgbs[color]->green ,
-				color_man->rgbs[color]->blue))
+				red , green , blue))
 			{
 				continue ;
 			}

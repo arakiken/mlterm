@@ -12,8 +12,6 @@
 #include  <sys/wait.h>		/* wait */
 #include  <signal.h>		/* kill */
 #include  <stdlib.h>		/* getenv */
-#include  <sys/socket.h>	/* socket/bind/listen */
-#include  <sys/un.h>		/* sockaddr_un */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/kik_str_alloca_dup */
 #include  <kiklib/kik_path.h>	/* kik_basename */
@@ -22,9 +20,11 @@
 #include  <kiklib/kik_conf.h>
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_locale.h>	/* kik_get_codeset */
+#include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
 #include  <mkf/mkf_charset.h>	/* mkf_charset_t */
 
 #include  "version.h"
+#include  "ml_xim.h"
 #include  "ml_sb_term_screen.h"
 #include  "ml_sig_child.h"
 
@@ -72,11 +72,148 @@ get_font_size_range(
 	return  1 ;
 }
 
-static int
-open_new_term(
+static ml_display_t *
+open_display(
 	ml_term_manager_t *  term_man
 	)
 {
+	int  counter ;
+	ml_display_t *  disp ;
+	void *  p ;
+
+	for( counter = 0 ; counter < term_man->num_of_displays ; counter ++)
+	{
+		if( strcmp( term_man->displays[counter]->name , term_man->conf.disp_name) == 0)
+		{
+			return  term_man->displays[counter] ;
+		}
+	}
+
+	if( ( disp = malloc( sizeof( ml_display_t))) == NULL)
+	{
+		return  NULL ;
+	}
+	
+	if( ( disp->display = XOpenDisplay( term_man->conf.disp_name)) == NULL)
+	{
+		kik_msg_printf( " display %s couldn't be opened.\n" , term_man->conf.disp_name) ;
+
+		goto  error1 ;
+	}
+
+	if( ( disp->name = strdup( term_man->conf.disp_name)) == NULL)
+	{
+		goto  error2 ;
+	}
+	
+	if( ! ml_window_manager_init( &disp->win_man , disp->display))
+	{
+		goto  error3 ;
+	}
+
+	ml_xim_display_opened( disp->display) ;
+	
+	if( ! ml_color_manager_init( &disp->color_man , disp->display ,
+		DefaultScreen( disp->display) , &term_man->color_custom))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_color_manager_init failed.\n") ;
+	#endif
+
+		goto  error4 ;
+	}
+
+	if( ! ml_color_manager_load( &disp->color_man))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_color_manager_load failed.\n") ;
+	#endif
+
+		goto  error5 ;
+	}
+
+	if( ( p = realloc( term_man->displays ,
+			sizeof( ml_display_t*) * (term_man->num_of_displays + 1))) == NULL)
+	{
+		goto  error5 ;
+	}
+
+	term_man->displays = p ;
+	term_man->displays[term_man->num_of_displays ++] = disp ;
+
+#ifdef  DEBUG
+	kik_debug_printf( "X connection opened.\n") ;
+#endif
+
+	return  disp ;
+
+error5:
+	ml_color_manager_final( &disp->color_man) ;
+
+error4:
+	ml_window_manager_final( &disp->win_man) ;
+
+error3:
+	free( disp->name) ;
+
+error2:
+	XCloseDisplay( disp->display) ;
+
+error1:
+	free( disp) ;
+
+	return  NULL ;
+}
+
+static int
+delete_display(
+	ml_display_t *  disp
+	)
+{
+	free( disp->name) ;
+	ml_color_manager_final( &disp->color_man) ;
+	ml_window_manager_final( &disp->win_man) ;
+	ml_xim_display_closed( disp->display) ;
+	XCloseDisplay( disp->display) ;
+	
+	free( disp) ;
+
+	return  1 ;
+}
+
+static int
+close_display(
+	ml_term_manager_t *  term_man ,
+	ml_display_t *  disp
+	)
+{
+	int  counter ;
+
+	for( counter = 0 ; counter < term_man->num_of_displays ; counter ++)
+	{
+		if( term_man->displays[counter] == disp)
+		{
+			delete_display( disp) ;
+			term_man->displays[counter] =
+				term_man->displays[-- term_man->num_of_displays] ;
+
+		#ifdef  DEBUG
+			kik_debug_printf( "X connection closed.\n") ;
+		#endif
+
+			return  1 ;
+		}
+	}
+	
+	return  0 ;
+}
+
+static int
+open_term(
+	ml_term_manager_t *  term_man
+	)
+{
+	ml_display_t *  disp ;
 	ml_term_screen_t *  termscr ;
 	ml_sb_term_screen_t *  sb_termscr ;
 	ml_font_manager_t *  font_man ;
@@ -92,21 +229,31 @@ open_new_term(
 	char *  disp_str ;
 	char *  term ;
 
+	if( term_man->num_of_terms == term_man->max_terms
+		/* block until dead_mask is cleared */
+		|| term_man->dead_mask)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " still busy.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
 	/*
 	 * these are dynamically allocated.
 	 */
+	disp = NULL ;
 	font_man = NULL ;
 	termscr = NULL ;
 	sb_termscr = NULL ;
 	vt100_parser = NULL ;
 	pty = NULL ;
 
-	if( term_man->num_of_terms == term_man->max_terms
-		/* block until dead_mask is cleared */
-		|| term_man->dead_mask)
+	if( ( disp = open_display( term_man)) == NULL)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " open_display failed.\n") ;
 	#endif
 	
 		return  0 ;
@@ -128,7 +275,7 @@ open_new_term(
 		usascii_font_cs_changable = 1 ;
 	}
 	
-	if( ( font_man = ml_font_manager_new( term_man->win_man.display ,
+	if( ( font_man = ml_font_manager_new( disp->display ,
 		&term_man->normal_font_custom , &term_man->v_font_custom , &term_man->t_font_custom ,
 	#ifdef  ANTI_ALIAS
 		&term_man->aa_font_custom , &term_man->vaa_font_custom , &term_man->taa_font_custom ,
@@ -147,7 +294,7 @@ open_new_term(
 	}
 
 	if( ( termscr = ml_term_screen_new( term_man->conf.cols , term_man->conf.rows , font_man ,
-		ml_color_table_new( &term_man->color_man ,
+		ml_color_table_new( &disp->color_man ,
 			term_man->conf.fg_color , term_man->conf.bg_color) ,
 		term_man->conf.brightness , term_man->conf.fade_ratio ,
 		&term_man->keymap , &term_man->termcap ,
@@ -177,7 +324,7 @@ open_new_term(
 	{
 		if( ( sb_termscr = ml_sb_term_screen_new( termscr ,
 					term_man->conf.scrollbar_view_name ,
-					ml_color_table_new( &term_man->color_man ,
+					ml_color_table_new( &disp->color_man ,
 						term_man->conf.sb_fg_color , term_man->conf.sb_bg_color) ,
 					term_man->conf.sb_mode)) == NULL)
 		{
@@ -207,7 +354,7 @@ open_new_term(
 		goto  error ;
 	}
 
-	if( ! ml_window_manager_show_root( &term_man->win_man , root ,
+	if( ! ml_window_manager_show_root( &disp->win_man , root ,
 		term_man->conf.x , term_man->conf.y , term_man->conf.geom_hint))
 	{
 	#ifdef  DEBUG
@@ -240,7 +387,7 @@ open_new_term(
 	sprintf( wid_env , "WINDOWID=%ld" , root->my_window) ;
 	*(env_p ++) = wid_env ;
 	
-	disp_str = XDisplayString( term_man->win_man.display) ;
+	disp_str = XDisplayString( disp->display) ;
 
 	/* "DISPLAY="(8) + NULL(1) */
 	if( ( disp_env = alloca( 8 + strlen( disp_str) + 1)))
@@ -345,8 +492,8 @@ open_new_term(
 		goto  error ;
 	}
 
-	
 	term_man->terms[term_man->num_of_terms].pty = pty ;
+	term_man->terms[term_man->num_of_terms].display = disp ;
 	term_man->terms[term_man->num_of_terms].root_window = root ;
 	term_man->terms[term_man->num_of_terms].vt100_parser = vt100_parser ;
 	term_man->terms[term_man->num_of_terms].font_man = font_man ;
@@ -356,6 +503,11 @@ open_new_term(
 	return  1 ;
 	
 error:
+	if( disp)
+	{
+		close_display( term_man , disp) ;
+	}
+	
 	if( font_man)
 	{
 		ml_font_manager_delete( font_man) ;
@@ -386,40 +538,22 @@ error:
 
 static int
 delete_term(
-	ml_term_manager_t *  term_man ,
-	int  idx
+	ml_term_t *  term
 	)
 {
-	ml_term_t *  term ;
-
-	term = &term_man->terms[idx] ;
-	
-	ml_window_manager_remove_root( &term_man->win_man , term->root_window) ;
-	
 	ml_vt100_parser_delete( term->vt100_parser) ;
 
 	ml_pty_delete( term->pty) ;
 
 	ml_font_manager_delete( term->font_man) ;
 
-	if( term_man->num_of_terms == 1 && ! term_man->is_genuine_daemon)
-	{
-		exit( 0) ;
-	}
+	ml_window_manager_remove_root( &term->display->win_man , term->root_window) ;
 	
-	term_man->num_of_terms -- ;
-
-	if( idx < term_man->num_of_terms)
-	{
-		memcpy( &term_man->terms[idx] , &term_man->terms[term_man->num_of_terms] ,
-			sizeof( *term)) ;
-	}
-
 	return  1 ;
 }
 
 static int
-term_closed(
+close_dead_terms(
 	ml_term_manager_t *  term_man
 	)
 {
@@ -429,7 +563,19 @@ term_closed(
 	{
 		if( term_man->dead_mask & (0x1 << counter))
 		{
-			delete_term( term_man , counter) ;
+			if( -- term_man->num_of_terms == 0 && ! term_man->is_genuine_daemon)
+			{
+				exit( 0) ;
+			}
+			
+			delete_term( &term_man->terms[counter]) ;
+
+			if( term_man->terms[counter].display->win_man.num_of_roots == 0)
+			{
+				close_display( term_man , term_man->terms[counter].display) ;
+			}
+
+			term_man->terms[counter] = term_man->terms[term_man->num_of_terms] ;
 		}
 	}
 	
@@ -480,7 +626,7 @@ open_pty(
 
 	term_man = p ;
 	
-	open_new_term( term_man) ;
+	open_term( term_man) ;
 }
 
 static void
@@ -797,6 +943,16 @@ config_init(
 	char *  xterm = "xterm" ;
 	char *  value ;
 	
+	if( ( value = kik_conf_get_value( conf , "display")) == NULL)
+	{
+		value = "" ;
+	}
+
+	if( ( term_man->conf.disp_name = strdup( value)) == NULL)
+	{
+		return  0 ;
+	}
+	
 	if( ( value = kik_conf_get_value( conf , "fontsize")) == NULL)
 	{
 		term_man->conf.font_size = 16 ;
@@ -937,26 +1093,10 @@ config_init(
 
 	if( term_man->conf.fg_color == term_man->conf.bg_color)
 	{
-		u_short  red ;
-		u_short  blue ;
-		u_short  green ;
-		
 		kik_msg_printf( "fg and bg colors are the same. is this ok ?\n") ;
 		
-		/*
-		 * if fg and bg colors are the same , users will want to see characters anyway.
-		 */
-		
-		ml_get_color_rgb( &term_man->color_man , &red , &blue , &green , term_man->conf.fg_color) ;
-
-		red = (red > 0x8000) ? 0x0 : 0xffff ;
-		green = (green > 0x8000) ? 0x0 : 0xffff ;
-		blue = (blue > 0x8000) ? 0x0 : 0xffff ;
-		
-		ml_color_manager_change_rgb( &term_man->color_man , MLC_PRIVATE_BG_COLOR ,
-			red , blue , green) ;
-		
-		term_man->conf.bg_color = MLC_PRIVATE_BG_COLOR ;
+		term_man->conf.fg_color = MLC_BLACK ;
+		term_man->conf.bg_color = MLC_WHITE ;
 	}
 	
 	if( ( value = kik_conf_get_value( conf , "sb_fg_color")))
@@ -1393,6 +1533,7 @@ config_final(
 	ml_term_manager_t *  term_man
 	)
 {
+	free( term_man->conf.disp_name) ;
 	free( term_man->conf.app_name) ;
 	free( term_man->conf.title) ;
 	free( term_man->conf.icon_name) ;
@@ -1499,7 +1640,7 @@ client_connected(
 	
 	config_init( term_man , conf , argc , argv) ;
 
-	open_new_term( term_man) ;
+	open_term( term_man) ;
 
 	config_final( term_man) ;
 
@@ -1512,8 +1653,8 @@ receive_next_event(
 	)
 {
 	int  counter ;
-	int  ptyfd ;
 	int  xfd ;
+	int  ptyfd ;
 	int  maxfd ;
 	int  ret ;
 	fd_set  read_fds ;
@@ -1535,14 +1676,27 @@ receive_next_event(
 		tval.tv_usec = 50000 ;	/* 0.05 sec */
 		tval.tv_sec = 0 ;
 
-		/* it is necessary to flush events here since some events may have happened in idling */
-		ml_window_manager_receive_next_event( &term_man->win_man) ;
-		
+		maxfd = 0 ;
 		FD_ZERO( &read_fds) ;
 
-		maxfd = xfd = XConnectionNumber( term_man->win_man.display) ;
-		FD_SET( xfd , &read_fds) ;
+		for( counter = 0 ; counter < term_man->num_of_displays ; counter ++)
+		{
+			/*
+			 * it is necessary to flush events here since some events
+			 * may have happened in idling
+			 */
+			ml_window_manager_receive_next_event( &term_man->displays[counter]->win_man) ;
 
+			xfd = XConnectionNumber( term_man->displays[counter]->display) ;
+			
+			FD_SET( xfd , &read_fds) ;
+		
+			if( xfd > maxfd)
+			{
+				maxfd = xfd ;
+			}
+		}
+		
 		for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
 		{
 			ptyfd = term_man->terms[counter].pty->fd ;
@@ -1553,7 +1707,7 @@ receive_next_event(
 				maxfd = ptyfd ;
 			}
 		}
-
+		
 		if( term_man->sock_fd >= 0)
 		{
 			FD_SET( term_man->sock_fd , &read_fds) ;
@@ -1568,8 +1722,11 @@ receive_next_event(
 		{
 			break ;
 		}
-		
-		ml_window_manager_idling( &term_man->win_man) ;
+
+		for( counter = 0 ; counter < term_man->num_of_displays ; counter ++)
+		{
+			ml_window_manager_idling( &term_man->displays[counter]->win_man) ;
+		}
 	}
 	
 	if( ret < 0)
@@ -1579,9 +1736,12 @@ receive_next_event(
 		return ;
 	}
 
-	if( FD_ISSET( xfd , &read_fds))
+	for( counter = 0 ; counter < term_man->num_of_displays ; counter ++)
 	{
-		ml_window_manager_receive_next_event( &term_man->win_man) ;
+		if( FD_ISSET( XConnectionNumber( term_man->displays[counter]->display) , &read_fds))
+		{
+			ml_window_manager_receive_next_event( &term_man->displays[counter]->win_man) ;
+		}
 	}
 
 	for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
@@ -1660,10 +1820,6 @@ ml_term_manager_init(
 	#endif
 	}
 
-	/*
-	 * window manager
-	 */
-
 	use_xim = 1 ;
 	
 	if( ( value = kik_conf_get_value( conf , "use_xim")))
@@ -1674,25 +1830,7 @@ ml_term_manager_init(
 		}
 	}
 
-	if( ( value = kik_conf_get_value( conf , "display")))
-	{
-		if( ! ml_window_manager_init( &term_man->win_man , value , use_xim) &&
-			! ml_window_manager_init( &term_man->win_man , "" , use_xim))
-		{
-			return  0 ;
-		}
-	}
-	else
-	{
-		if( ! ml_window_manager_init( &term_man->win_man , "" , use_xim))
-		{
-			return  0 ;
-		}
-	}
-
-	/*
-	 * font manager
-	 */
+	ml_xim_init( use_xim) ;
 	
 	if( ( value = kik_conf_get_value( conf , "font_size_range")))
 	{
@@ -1880,46 +2018,28 @@ ml_term_manager_init(
 	}
 #endif
 
-	/*
-	 * color manager
-	 */
-	
-	if( ! ml_color_manager_init( &term_man->color_man ,
-		term_man->win_man.display , term_man->win_man.screen))
+	if( ! ml_color_custom_init( &term_man->color_custom))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_color_manager_init failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " ml_color_custom_init failed.\n") ;
 	#endif
 	
 		return  0 ;
 	}
-
+	
 	if( ( rcpath = kik_get_sys_rc_path( "mlterm/color")))
 	{
-		ml_color_manager_read_conf( &term_man->color_man , rcpath) ;
+		ml_color_custom_read_conf( &term_man->color_custom , rcpath) ;
 
 		free( rcpath) ;
 	}
 	
 	if( ( rcpath = kik_get_user_rc_path( "mlterm/color")))
 	{
-		ml_color_manager_read_conf( &term_man->color_man , rcpath) ;
+		ml_color_custom_read_conf( &term_man->color_custom , rcpath) ;
 
 		free( rcpath) ;
 	}
-	
-	if( ! ml_color_manager_load( &term_man->color_man))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_color_manager_load failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	/*
-	 * keymap and termcap
-	 */
 
 	if( ! ml_keymap_init( &term_man->keymap))
 	{
@@ -2017,6 +2137,9 @@ ml_term_manager_init(
 
 	kik_conf_delete( conf) ;
 
+	term_man->displays = NULL ;
+	term_man->num_of_displays = 0 ;
+	
 	if( ( term_man->terms = malloc( sizeof( ml_term_t) * term_man->max_terms)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -2060,15 +2183,19 @@ ml_term_manager_final(
 	
 	for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
 	{
-		ml_vt100_parser_delete( term_man->terms[counter].vt100_parser) ;
-		ml_pty_delete( term_man->terms[counter].pty) ;
-		ml_font_manager_delete( term_man->terms[counter].font_man) ;
+		delete_term( &term_man->terms[counter]) ;
 	}
 
 	free( term_man->terms) ;
-	
-	ml_window_manager_final( &term_man->win_man) ;
-	ml_color_manager_final( &term_man->color_man) ;
+
+	for( counter = 0 ; counter < term_man->num_of_displays ; counter ++)
+	{
+		delete_display( term_man->displays[counter]) ;
+	}
+
+	free( term_man->displays) ;
+
+	ml_xim_final() ;
 	
 	ml_font_custom_final( &term_man->normal_font_custom) ;
 	ml_font_custom_final( &term_man->v_font_custom) ;
@@ -2078,6 +2205,9 @@ ml_term_manager_final(
 	ml_font_custom_final( &term_man->vaa_font_custom) ;
 	ml_font_custom_final( &term_man->taa_font_custom) ;
 #endif
+
+	ml_color_custom_final( &term_man->color_custom) ;
+	
 	ml_keymap_final( &term_man->keymap) ;
 	ml_termcap_final( &term_man->termcap) ;
 
@@ -2096,10 +2226,10 @@ ml_term_manager_event_loop(
 
 	for( counter = 0 ; counter < term_man->num_of_startup_terms ; counter ++)
 	{
-		if( ! open_new_term( term_man))
+		if( ! open_term( term_man))
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " open_new_term() failed.\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " open_term() failed.\n") ;
 		#endif
 
 			break ;
@@ -2114,7 +2244,7 @@ ml_term_manager_event_loop(
 
 		if( term_man->dead_mask)
 		{
-			term_closed( term_man) ;
+			close_dead_terms( term_man) ;
 		}
 
 		kik_alloca_end_stack_frame() ;

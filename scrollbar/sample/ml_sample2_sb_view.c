@@ -17,20 +17,6 @@
 #define  WIDTH          13
 
 
-/* --- static variables --- */
-
-static GC  gc_intern ;
-
-static Pixmap  arrow_up ;
-static Pixmap  arrow_up_dent ;
-static Pixmap  arrow_down ;
-static Pixmap  arrow_down_dent ;
-
-static XColor  gray_color ;
-static XColor  lightgray_color ;
-static int  color_init = 0 ;
-
-
 /* --- static functions --- */
 
 static void
@@ -75,6 +61,11 @@ realized(
 	unsigned int  height
 	)
 {
+	sample_sb_view_t *  sample ;
+	XGCValues  gc_value ;
+
+	sample = (sample_sb_view_t*) view ;
+	
 	view->display = display ;
 	view->screen = screen ;
 	view->window = window ;
@@ -83,58 +74,21 @@ realized(
 
 	XDefineCursor( view->display , view->window , XCreateFontCursor( view->display , XC_left_ptr)) ;
 
-	if( ! color_init)
-	{
-		XColor  exact ;
-		
-		if( XAllocNamedColor( view->display , DefaultColormap( view->display , view->screen) ,
-			"gray" , &gray_color , &exact) == False)
-		{
-			fprintf( stderr , "gray failed.\n") ;
-		}
+	gc_value.foreground = BlackPixel( view->display , view->screen) ;
+	gc_value.background = WhitePixel( view->display , view->screen) ;
+	gc_value.graphics_exposures = 0 ;
 
-		if( XAllocNamedColor( view->display , DefaultColormap( view->display , view->screen) ,
-			"lightgray" , &lightgray_color , &exact) == False)
-		{
-			fprintf( stderr , "lightgray failed.\n") ;
-		}
-
-		color_init = 1 ;
-	}
-	
-	if( ! gc_intern)
-	{
-		XGCValues  gc_value ;
-
-		gc_value.foreground = BlackPixel( view->display , view->screen) ;
-		gc_value.background = WhitePixel( view->display , view->screen) ;
-		gc_value.graphics_exposures = 0 ;
-
-		gc_intern = XCreateGC( view->display , view->window ,
+	sample->gc = XCreateGC( view->display , view->window ,
 			GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
-	}
-
-	if( ! arrow_up)
-	{
-		arrow_up = ml_get_icon_pixmap( view , gc_intern , arrow_up_src , WIDTH , BOTTOM_MARGIN / 2) ;
-	}
-
-	if( ! arrow_down)
-	{
-		arrow_down = ml_get_icon_pixmap( view , gc_intern , arrow_down_src , WIDTH , BOTTOM_MARGIN / 2) ;
-	}
-
-	if( ! arrow_up_dent)
-	{
-		arrow_up_dent = ml_get_icon_pixmap( view , gc_intern , arrow_up_dent_src ,
-			WIDTH , BOTTOM_MARGIN / 2) ;
-	}
 	
-	if( ! arrow_down_dent)
-	{
-		arrow_down_dent = ml_get_icon_pixmap( view , gc_intern , arrow_down_dent_src ,
-			WIDTH , BOTTOM_MARGIN / 2) ;
-	}
+	sample->arrow_up = ml_get_icon_pixmap( view , sample->gc , arrow_up_src ,
+				WIDTH , BOTTOM_MARGIN / 2) ;
+	sample->arrow_down = ml_get_icon_pixmap( view , sample->gc , arrow_down_src ,
+				WIDTH , BOTTOM_MARGIN / 2) ;
+	sample->arrow_up_dent = ml_get_icon_pixmap( view , sample->gc , arrow_up_dent_src ,
+					WIDTH , BOTTOM_MARGIN / 2) ;
+	sample->arrow_down_dent = ml_get_icon_pixmap( view , sample->gc , arrow_down_dent_src ,
+					WIDTH , BOTTOM_MARGIN / 2) ;
 }
 
 static void
@@ -153,7 +107,18 @@ delete(
 	ml_sb_view_t *  view
 	)
 {
-	free( view) ;
+	sample_sb_view_t *  sample ;
+
+	sample = (sample_sb_view_t*) view ;
+
+	XFreePixmap( view->display , sample->arrow_up) ;
+	XFreePixmap( view->display , sample->arrow_up_dent) ;
+	XFreePixmap( view->display , sample->arrow_down) ;
+	XFreePixmap( view->display , sample->arrow_down_dent) ;
+	
+	XFreeGC( view->display , sample->gc) ;
+	
+	free( sample) ;
 }
 
 static void
@@ -162,15 +127,18 @@ draw_arrow_up_icon(
 	int  is_dent
 	)
 {
+	sample_sb_view_t *  sample ;
 	Pixmap  arrow ;
 
+	sample = (sample_sb_view_t*) view ;
+	
 	if( is_dent)
 	{
-		arrow = arrow_up_dent ;
+		arrow = sample->arrow_up_dent ;
 	}
 	else
 	{
-		arrow = arrow_up ;
+		arrow = sample->arrow_up ;
 	}
 	
 	XCopyArea( view->display , arrow , view->window , view->gc ,
@@ -183,15 +151,18 @@ draw_arrow_down_icon(
 	int  is_dent
 	)
 {
+	sample_sb_view_t *  sample ;
 	Pixmap  arrow ;
+
+	sample = (sample_sb_view_t*) view ;
 
 	if( is_dent)
 	{
-		arrow = arrow_down_dent ;
+		arrow = sample->arrow_down_dent ;
 	}
 	else
 	{
-		arrow = arrow_down ;
+		arrow = sample->arrow_down ;
 	}
 	
 	XCopyArea( view->display , arrow , view->window , view->gc ,
@@ -214,6 +185,10 @@ draw_scrollbar(
 	unsigned int  bar_height
 	)
 {
+	sample_sb_view_t *  sample ;
+
+	sample = (sample_sb_view_t*) view ;
+	
 	XClearArea( view->display , view->window , 0 , TOP_MARGIN , WIDTH ,
 		view->height - HEIGHT_MARGIN , 0) ;
 
@@ -222,21 +197,21 @@ draw_scrollbar(
 		1 , bar_top_y , WIDTH - 1 , bar_height) ;
 		
 	/* left side shade */
-	XSetForeground( view->display , gc_intern , WhitePixel( view->display , view->screen)) ;
-	XDrawLine( view->display , view->window , gc_intern ,
+	XSetForeground( view->display , sample->gc , WhitePixel( view->display , view->screen)) ;
+	XDrawLine( view->display , view->window , sample->gc ,
 		0 , bar_top_y , 0 , bar_top_y + bar_height - 1) ;
 
 	/* up side shade */
-	XDrawLine( view->display , view->window , gc_intern ,
+	XDrawLine( view->display , view->window , sample->gc ,
 		0 , bar_top_y , WIDTH - 1 , bar_top_y) ;
 
 	/* right side shade */
-	XSetForeground( view->display , gc_intern , BlackPixel( view->display , view->screen)) ;
-	XDrawLine( view->display , view->window , gc_intern ,
+	XSetForeground( view->display , sample->gc , BlackPixel( view->display , view->screen)) ;
+	XDrawLine( view->display , view->window , sample->gc ,
 		WIDTH - 1 , bar_top_y , WIDTH - 1 , bar_top_y + bar_height - 1) ;
 
 	/* down side shade */
-	XDrawLine( view->display , view->window , gc_intern ,
+	XDrawLine( view->display , view->window , sample->gc ,
 		1 , bar_top_y + bar_height - 1 , WIDTH , bar_top_y + bar_height - 1) ;
 }
 
@@ -278,26 +253,31 @@ down_button_released(
 ml_sb_view_t *
 ml_sample2_sb_view_new(void)
 {
-	ml_sb_view_t *  view ;
+	sample_sb_view_t *  sample ;
 	
-	if( ( view = malloc( sizeof( ml_sb_view_t))) == NULL)
+	if( ( sample = malloc( sizeof( sample_sb_view_t))) == NULL)
 	{
 		return  NULL ;
 	}
 
-	view->get_geometry_hints = get_geometry_hints ;
-	view->get_default_color = get_default_color ;
-	view->realized = realized ;
-	view->resized = resized ;
-	view->delete = delete ;
+	sample->view.get_geometry_hints = get_geometry_hints ;
+	sample->view.get_default_color = get_default_color ;
+	sample->view.realized = realized ;
+	sample->view.resized = resized ;
+	sample->view.delete = delete ;
 	
-	view->draw_decoration = draw_decoration ;
-	view->draw_scrollbar = draw_scrollbar ;
+	sample->view.draw_decoration = draw_decoration ;
+	sample->view.draw_scrollbar = draw_scrollbar ;
 
-	view->up_button_pressed = up_button_pressed ;
-	view->down_button_pressed = down_button_pressed ;
-	view->up_button_released = up_button_released ;
-	view->down_button_released = down_button_released ;
+	sample->view.up_button_pressed = up_button_pressed ;
+	sample->view.down_button_pressed = down_button_pressed ;
+	sample->view.up_button_released = up_button_released ;
+	sample->view.down_button_released = down_button_released ;
 
-	return  view ;
+	sample->arrow_up = None ;
+	sample->arrow_up_dent = None ;
+	sample->arrow_down = None ;
+	sample->arrow_down_dent = None ;
+
+	return  (ml_sb_view_t*) sample ;
 }

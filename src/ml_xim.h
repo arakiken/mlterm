@@ -28,9 +28,13 @@ typedef struct  ml_xim
 } ml_xim_t ;
 
 
-int  ml_xim_init( Display *  display) ;
+int  ml_xim_init( int  use_xim) ;
 
 int  ml_xim_final(void) ;
+
+int  ml_xim_display_opened( Display *  display) ;
+
+int  ml_xim_display_closed( Display *  display) ;
 
 int  ml_add_xim_listener( ml_window_t *  win , char *  xim_name , char *  xim_locale) ;
 

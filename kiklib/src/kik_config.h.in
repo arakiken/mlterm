@@ -22,8 +22,6 @@
 
 #undef  HAVE_ALLOCA_H
 
-#undef  HAVE_FUNCTION
-
 #undef  HAVE_STROPTS_H
 
 #undef  HAVE_SYS_STROPTS_H
@@ -39,6 +37,8 @@
 #undef  HAVE_GETEUID
 
 #undef  HAVE_GETEGID
+
+#undef  HAVE_FUNCTION
 
 #undef  PTY_STREAMS
 
@@ -75,6 +75,8 @@
 #undef  int32_t
 
 #undef  int64_t
+
+#undef  socklen_t
 
 #undef  mode_t
 

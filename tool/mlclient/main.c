@@ -3,10 +3,9 @@
  */
 
 #include  <sys/types.h>
-#include  <sys/socket.h>	/* socket/bind/listen */
-#include  <sys/un.h>		/* sockaddr_un */
 #include  <unistd.h>		/* write */
 #include  <string.h>		/* memset */
+#include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
 
 int
 main(
@@ -38,7 +37,6 @@ main(
 		write( sock_fd , " " , 1) ;
 	}
 	write( sock_fd , "\n" , 1) ;
-
 
 	return  0 ;
 }

@@ -23,7 +23,7 @@
 
 /* --- static variables --- */
 
-static Display *  xim_display ;
+static int  use_xim ;
 static char *  default_xim_name ;	/* this can be NULL */
 
 static ml_xim_t  xims[MAX_XIMS_SAME_TIME] ;
@@ -59,6 +59,21 @@ close_xim(
 	return  1 ;
 }
 
+static int
+invoke_xim_destroyed(
+	ml_xim_t *  xim
+	)
+{
+	int  counter ;
+
+	for( counter = 0 ; counter < xim->num_of_xic_wins ; counter ++)
+	{
+		ml_xim_destroyed( xims->xic_wins[counter]) ;
+	}
+
+	return  1 ;
+}
+
 static void
 xim_server_destroyed(
 	XIM  im ,
@@ -72,18 +87,13 @@ xim_server_destroyed(
 	{
 		if( xims[counter].im == im)
 		{
-			int  _counter ;
-			
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
 				" %s xim(with %d xic) server destroyed.\n" ,
 				xims[counter].name , xims[counter].num_of_xic_wins) ;
 		#endif
 
-			for( _counter = 0 ; _counter < xims[counter].num_of_xic_wins ; _counter ++)
-			{
-				ml_xim_destroyed( xims[counter].xic_wins[_counter]) ;
-			}
+			invoke_xim_destroyed( &xims[counter]) ;
 
 			xims[counter].im = NULL ;
 
@@ -97,14 +107,15 @@ xim_server_destroyed(
 	 */
 #if  ! defined(sun) && ! defined(__sun__) && ! defined(__sun)
 	/* it is necessary to reset callback */
-	XRegisterIMInstantiateCallback( xim_display , NULL , NULL , NULL ,
+	XRegisterIMInstantiateCallback( XDisplayOfIM( im) , NULL , NULL , NULL ,
 		xim_server_instantiated , NULL) ;
 #endif
 }
 
 static int
 open_xim(
-	ml_xim_t *  xim
+	ml_xim_t *  xim ,
+	Display *  display
 	)
 {
 	char *  xmod ;
@@ -143,7 +154,7 @@ open_xim(
 
 	result = 0 ;
 
-	if( XSetLocaleModifiers(xmod) && ( xim->im = XOpenIM( xim_display , NULL , NULL , NULL)))
+	if( XSetLocaleModifiers(xmod) && ( xim->im = XOpenIM( display , NULL , NULL , NULL)))
 	{
 		XIMCallback  callback = { NULL , xim_server_destroyed } ;
 
@@ -173,12 +184,13 @@ open_xim(
 
 static int
 activate_xim(
-	ml_xim_t *  xim
+	ml_xim_t *  xim ,
+	Display *  display
 	)
 {
 	int  counter ;
 
-	if( ! xim->im && ! open_xim( xim))
+	if( ! xim->im && ! open_xim( xim , display))
 	{
 		return  0 ;
 	}
@@ -206,7 +218,7 @@ xim_server_instantiated(
 
 	for( counter = 0 ; counter < num_of_xims ; counter ++)
 	{
-		activate_xim( &xims[counter]) ;
+		activate_xim( &xims[counter] , display) ;
 	}
 }
 
@@ -305,19 +317,15 @@ search_xim_style(
 
 int
 ml_xim_init(
-	Display *  display
+	int  _use_xim
 	)
 {
 	char *  xmod ;
 	char *  p ;
 
-	if( ( xim_display = display) == NULL)
+	if( ! ( use_xim = _use_xim))
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " xim not used.\n") ;
-	#endif
-	
-		return  1 ;
+		return  0 ;
 	}
 
 	xmod = XSetLocaleModifiers("") ;
@@ -336,15 +344,6 @@ ml_xim_init(
 			*p = '\0' ;
 		}
 	}
-
-	/*
-	 * XXX
-	 * XRegisterIMInstantiateCallback of sunos/openwin seems buggy.
-	 */
-#if  ! defined(sun) && ! defined(__sun__) && ! defined(__sun)
-	XRegisterIMInstantiateCallback( xim_display , NULL , NULL , NULL ,
-		xim_server_instantiated , NULL) ;
-#endif
 	
 	return  1 ;
 }
@@ -352,21 +351,27 @@ ml_xim_init(
 int
 ml_xim_final(void)
 {
-	int  counter ;
-
-	if( xim_display == NULL)
+	if( ! use_xim)
 	{
-		return  1 ;
+		return  0 ;
 	}
 	
-	for( counter = 0 ; counter < num_of_xims ; counter ++)
-	{
-		close_xim( &xims[counter]) ;
-	}
-
 	if( default_xim_name)
 	{
 		free( default_xim_name) ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_xim_display_opened(
+	Display *  display
+	)
+{
+	if( ! use_xim)
+	{
+		return  0 ;
 	}
 
 	/*
@@ -374,10 +379,48 @@ ml_xim_final(void)
 	 * XRegisterIMInstantiateCallback of sunos/openwin seems buggy.
 	 */
 #if  ! defined(sun) && ! defined(__sun__) && ! defined(__sun)
-	XUnregisterIMInstantiateCallback( xim_display , NULL , NULL , NULL ,
+	XRegisterIMInstantiateCallback( display , NULL , NULL , NULL ,
 		xim_server_instantiated , NULL) ;
 #endif
 	
+	return  1 ;
+}
+
+int
+ml_xim_display_closed(
+	Display *  display
+	)
+{
+	int  counter ;
+
+	if( ! use_xim)
+	{
+		return  0 ;
+	}
+
+	counter = 0 ;
+	while( counter < num_of_xims)
+	{
+		if( XDisplayOfIM( xims[counter].im) == display)
+		{
+			close_xim( &xims[counter]) ;
+			xims[counter] = xims[-- num_of_xims] ;
+		}
+		else
+		{
+			counter ++ ;
+		}
+	}
+	
+	/*
+	 * XXX
+	 * XRegisterIMInstantiateCallback of sunos/openwin seems buggy.
+	 */
+#if  ! defined(sun) && ! defined(__sun__) && ! defined(__sun)
+	XUnregisterIMInstantiateCallback( display , NULL , NULL , NULL ,
+		xim_server_instantiated , NULL) ;
+#endif
+
 	return  1 ;
 }
 
@@ -390,7 +433,7 @@ ml_add_xim_listener(
 {
 	void *  p ;
 
-	if( xim_display == NULL)
+	if( ! use_xim)
 	{
 		return  0 ;
 	}
@@ -407,7 +450,7 @@ ml_add_xim_listener(
 		 * reactivating current xim.
 		 */
 
-		return  activate_xim( win->xim) ;
+		return  activate_xim( win->xim , win->display) ;
 	}
 	 
 	if( win->xim)
@@ -454,7 +497,7 @@ ml_add_xim_listener(
 	
 	win->xim->xic_wins[ win->xim->num_of_xic_wins ++] = win ;
 	
-	return  activate_xim( win->xim) ;
+	return  activate_xim( win->xim , win->display) ;
 }
 
 int
