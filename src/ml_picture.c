@@ -112,6 +112,10 @@ get_background_picture(
 {
 	int  x ;
 	int  y ;
+	u_int  width ;
+	u_int  height ;
+	int  pix_x ;
+	int  pix_y ;
 	Window  child ;
 	Window  src ;
 	Pixmap  pixmap ;
@@ -124,19 +128,65 @@ get_background_picture(
 	{
 		return  None ;
 	}
-	
+
 	XTranslateCoordinates( win->display , win->my_window ,
 		DefaultRootWindow( win->display) , 0 , 0 ,
 		&x , &y , &child) ;
-	
+
 	attr.background_pixmap = ParentRelative ;
 	attr.backing_store = Always ;
 	attr.event_mask = ExposureMask ;
 	attr.override_redirect = True ;
 	
+	if( x < 0)
+	{
+		if( ACTUAL_WIDTH(win) <= abs(x))
+		{
+			return  None ;
+		}
+
+		pix_x = abs(x) ;
+		
+		width = ACTUAL_WIDTH(win) - abs(x) ;
+		x = 0 ;
+	}
+	else
+	{
+		pix_x = 0 ;
+		width = ACTUAL_WIDTH(win) ;
+	}
+
+	if( y < 0)
+	{
+		if( ACTUAL_HEIGHT(win) <= abs(y))
+		{
+			return  None ;
+		}
+
+		pix_y = abs(y) ;
+
+		height = ACTUAL_HEIGHT(win) - abs(y) ;
+		y = 0 ;
+	}
+	else
+	{
+		pix_y = 0 ;
+		height = ACTUAL_HEIGHT(win) ;
+	}
+
+	if( x + width > DisplayWidth( win->display , win->screen))
+	{
+		width = DisplayWidth( win->display , win->screen) - x ;
+	}
+
+	if( y + height > DisplayHeight( win->display , win->screen))
+	{
+		height = DisplayHeight( win->display , win->screen) - y ;
+	}
+
 	src = XCreateWindow(
 			win->display , DefaultRootWindow( win->display) ,
-			x , y , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , 0 ,
+			x , y , width , height , 0 ,
 			CopyFromParent, CopyFromParent, CopyFromParent ,
 			CWBackPixmap|CWBackingStore|CWOverrideRedirect|CWEventMask ,
 			&attr) ;
@@ -152,13 +202,15 @@ get_background_picture(
 
 		if( ++ counter >= 10)
 		{
+			XDestroyWindow( win->display , src) ;
+			XUngrabServer( win->display) ;
+
 			return  None ;
 		}
 	}
-	
-	img = Imlib_create_image_from_drawable( imlib , src , AllPlanes , 0 , 0 ,
-		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 
+	img = Imlib_create_image_from_drawable( imlib , src , AllPlanes , 0 , 0 , width , height) ;
+	
 	XDestroyWindow( win->display , src) ;
 	XUngrabServer( win->display) ;
 
@@ -166,12 +218,11 @@ get_background_picture(
 	{
 		modify_image( img , pic_mod) ;
 	}
-	
-	pixmap = XCreatePixmap( win->display , win->my_window ,
-		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-		DefaultDepth( win->display , win->screen)) ;
 
-	Imlib_paste_image( imlib , img , pixmap , 0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+			DefaultDepth( win->display , win->screen)) ;
+
+	Imlib_paste_image( imlib , img , pixmap , pix_x , pix_y , width , height) ;
 
 	Imlib_kill_image( imlib , img) ;
 

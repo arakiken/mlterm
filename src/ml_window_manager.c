@@ -107,10 +107,12 @@ ml_window_manager_show_root(
 	root->parent_window = win_man->my_window ;
 	root->display = win_man->display ;
 	root->screen = win_man->screen ;
+	root->x = x ;
+	root->y = y ;
 	
 	win_man->roots[win_man->num_of_roots++] = root ;
 
-	ml_window_show( root , x , y , hint) ;
+	ml_window_show( root , hint) ;
 	
 	return  1 ;
 }

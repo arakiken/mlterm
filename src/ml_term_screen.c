@@ -206,7 +206,7 @@ draw_line(
 			num_of_redrawn = ml_imgline_get_num_of_redrawn_chars( line) ;
 		}
 
-		if( line->is_cleared_to_end || termscr->font_present & FONT_VAR_WIDTH)
+		if( line->is_cleared_to_end || (termscr->font_present & FONT_VAR_WIDTH))
 		{
 			if( ! ml_window_draw_str_to_eol( &termscr->window , &line->chars[beg_char_index] ,
 				num_of_redrawn , beg_x , y ,
@@ -517,9 +517,6 @@ highlight_cursor(
 	return  1 ;
 }
 
-/*
- * this doesn't consider backscroll mode.
- */
 static int
 unhighlight_cursor(
 	ml_term_screen_t *  termscr
@@ -713,10 +710,6 @@ bs_page_downward(
 	highlight_cursor( termscr) ;
 }
 
-
-/*
- * picture modifier
- */
  
 static ml_picture_modifier_t *
 get_picture_modifier(

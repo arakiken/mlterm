@@ -32,6 +32,7 @@
 
 typedef enum  ml_event_dispatch
 {
+	NOTIFY_TO_NONE = 0x0 ,
 	NOTIFY_TO_CHILDREN = 0x01 ,
 	NOTIFY_TO_PARENT = 0x02 ,
 	NOTIFY_TO_MYSELF = 0x04 ,
@@ -75,15 +76,7 @@ typedef struct  ml_window
 	ml_window_manager_ptr_t  win_man ;
 	
 	struct ml_window *  parent ;
-
-	struct
-	{
-		struct ml_window *  window ;
-		int  x ;
-		int  y ;
-		
-	} * children ;
-
+	struct ml_window **  children ;
 	u_int  num_of_children ;
 	
 	u_int  cursor_shape ;
@@ -92,6 +85,8 @@ typedef struct  ml_window
 
 	ml_font_t *  font ;
 
+	int  x ;
+	int  y ;
 	u_int  width ;
 	u_int  height ;
 	u_int  min_width ;
@@ -198,7 +193,7 @@ int  ml_window_add_event_mask( ml_window_t *  win , long  event_mask) ;
 
 int  ml_window_remove_event_mask( ml_window_t *  win , long  event_mask) ;
 
-int  ml_window_show( ml_window_t *  win , int  x , int  y , int  hint) ;
+int  ml_window_show( ml_window_t *  win , int  hint) ;
 
 int  ml_window_reset_font( ml_window_t *  win) ;
 
@@ -206,6 +201,8 @@ int  ml_window_resize( ml_window_t *  win , u_int  width , u_int  height , ml_ev
 
 int  ml_window_set_normal_hints( ml_window_t *  win , u_int  width_inc , u_int  height_inc ,
 	u_int  min_width , u_int  min_height) ;
+
+int  ml_window_move( ml_window_t *  win , int  x , int  y) ;
 
 int  ml_window_reverse_video( ml_window_t *  win) ;
 

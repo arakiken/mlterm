@@ -14,7 +14,6 @@
 #define  TOP_MARGIN     0
 #define  BOTTOM_MARGIN  28
 #define  HEIGHT_MARGIN  (TOP_MARGIN + BOTTOM_MARGIN)
-#define  RIGHT_MARGIN   1
 #define  WIDTH          13
 
 
@@ -42,7 +41,7 @@ get_geometry_hints(
 	unsigned int *  down_button_height
 	)
 {
-	*width = WIDTH + RIGHT_MARGIN ;
+	*width = WIDTH ;
 	*top_margin = TOP_MARGIN ;
 	*bottom_margin = BOTTOM_MARGIN ;
 	*up_button_y = -BOTTOM_MARGIN ;
@@ -223,10 +222,6 @@ draw_decoration(
 {
 	draw_arrow_up_icon( view , 0) ;
 	draw_arrow_down_icon( view , 0) ;
-
-	/* separator */
-	XSetForeground( view->display , gc_intern , BlackPixel( view->display , view->screen)) ;
-	XDrawLine( view->display , view->window , gc_intern , WIDTH , 0 , WIDTH , view->height) ;
 }
 
 static void
@@ -236,7 +231,8 @@ draw_scrollbar(
 	unsigned int  bar_height
 	)
 {
-	XClearArea( view->display , view->window , 0 , TOP_MARGIN , WIDTH ,
+	/* drawing bar */
+	XClearArea( view->display , view->window , 1 , TOP_MARGIN , WIDTH - 1 ,
 		view->height - HEIGHT_MARGIN , 0) ;
 
 	/* left side shade */

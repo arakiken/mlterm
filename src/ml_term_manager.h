@@ -10,17 +10,14 @@
 #define  __ML_TERM_MANAGER_H__
 
 
-#include  <kiklib/kik_types.h>
-#include  <kiklib/kik_conf.h>
+#include  <kiklib/kik_types.h>	/* u_int */
 
 #include  "ml_pty.h"
 #include  "ml_vt100_parser.h"
 #include  "ml_font_manager.h"
 #include  "ml_color_manager.h"
 #include  "ml_window_manager.h"
-#include  "ml_keymap.h"
-#include  "ml_termcap.h"
-#include  "ml_char_encoding.h"
+#include  "ml_term_screen.h"	/* ml_system_event_listener_t ... */
 
 
 typedef struct ml_term
@@ -84,6 +81,7 @@ typedef struct  ml_term_manager
 	u_int8_t  brightness ;
 	u_int8_t  fade_ratio ;
 	int8_t  use_scrollbar ;
+	int8_t  is_right_sb ;
 	int8_t  use_login_shell ;
 	int8_t  xim_open_in_startup ;
 	int8_t  use_bidi ;

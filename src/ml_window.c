@@ -1066,29 +1066,32 @@ update_transparent(
 {
 	ml_picture_t  pic ;
 
-	if( ! win->pic_mod)
+	if( win->pic_mod)
 	{
-		return  0 ;
+		if( ml_picture_init( &pic , win , win->pic_mod) &&
+			ml_picture_load_background( &pic))
+		{
+			/*
+			 * !! Notice !!
+			 * this must be done before ml_window_set_wall_picture() because
+			 * ml_window_set_wall_picture() doesn't do anything if is_transparent
+			 * flag is on.
+			 */
+			win->is_transparent = 0 ;
+
+			ml_window_set_wall_picture( win , pic.pixmap) ;
+
+			win->is_transparent = 1 ;
+		}
+
+		ml_picture_final( &pic) ;
+	}
+	else
+	{
+		ml_window_clear_all( win) ;
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 	
-	if( ml_picture_init( &pic , win , win->pic_mod) &&
-		ml_picture_load_background( &pic))
-	{
-		/*
-		 * !! Notice !!
-		 * this must be done before ml_window_set_wall_picture() because
-		 * ml_window_set_wall_picture() doesn't do anything if is_transparent
-		 * flag is on.
-		 */
-		win->is_transparent = 0 ;
-
-		ml_window_set_wall_picture( win , pic.pixmap) ;
-
-		win->is_transparent = 1 ;
-	}
-
-	ml_picture_final( &pic) ;
-
 	return  1 ;
 }
 
@@ -1108,7 +1111,7 @@ notify_focus_in_to_children(
 
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		notify_focus_in_to_children( win->children[counter].window) ;
+		notify_focus_in_to_children( win->children[counter]) ;
 	}
 }
 
@@ -1128,12 +1131,12 @@ notify_focus_out_to_children(
 
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		notify_focus_out_to_children( win->children[counter].window) ;
+		notify_focus_out_to_children( win->children[counter]) ;
 	}
 }
 
 static void
-configure_notify_to_children(
+notify_configure_to_children(
 	ml_window_t *  win
 	)
 {
@@ -1141,25 +1144,17 @@ configure_notify_to_children(
 
 	if( win->is_transparent)
 	{
-		if( win->pic_mod)
-		{
-			update_transparent( win) ;
-		}
-		else if( win->window_exposed)
-		{
-			ml_window_clear_all( win) ;
-			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-		}
+		update_transparent( win) ;
 	}
-			
+
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		configure_notify_to_children( win->children[counter].window) ;
+		notify_configure_to_children( win->children[counter]) ;
 	}
 }
 
 static void
-reparent_notify_to_children(
+notify_reparent_to_children(
 	ml_window_t *  win
 	)
 {
@@ -1172,7 +1167,7 @@ reparent_notify_to_children(
 
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		reparent_notify_to_children( win->children[counter].window) ;
+		notify_reparent_to_children( win->children[counter]) ;
 	}
 }
 
@@ -1191,7 +1186,7 @@ is_descendant_window(
 
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		if( is_descendant_window( win->children[counter].window , counter))
+		if( is_descendant_window( win->children[counter] , counter))
 		{
 			return  1 ;
 		}
@@ -1261,7 +1256,9 @@ ml_window_init(
 	win->is_scrollable = 1 ;
 
 	win->font = NULL ;
-	
+
+	win->x = 0 ;
+	win->y = 0 ;	
 	win->width = width ;
 	win->height = height ;
 	win->min_width = min_width ,
@@ -1321,7 +1318,7 @@ ml_window_final(
 	
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		ml_window_final( win->children[counter].window) ;
+		ml_window_final( win->children[counter]) ;
 	}
 
 	if( win->children)
@@ -1617,7 +1614,7 @@ ml_window_set_transparent(
 end:
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		ml_window_set_transparent( win->children[counter].window , pic_mod) ;
+		ml_window_set_transparent( win->children[counter] , pic_mod) ;
 	}
 	
 	return  1 ;
@@ -1685,7 +1682,7 @@ ml_window_unset_transparent(
 	
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		ml_window_unset_transparent( win->children[counter].window) ;
+		ml_window_unset_transparent( win->children[counter]) ;
 	}
 	
 	return  1 ;
@@ -1933,7 +1930,8 @@ ml_window_add_child(
 {
 	void *  p ;
 	
-	if( ( p = realloc( win->children , sizeof( *win->children) * (win->num_of_children + 1))) == NULL)
+	if( ( p = realloc( win->children , sizeof( *win->children) * (win->num_of_children + 1)))
+		== NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
@@ -1949,12 +1947,10 @@ ml_window_add_child(
 	 */
 	child->win_man = NULL ;
 	child->parent = win ;
+	child->x = x ;
+	child->y = y ;
 	
-	win->children[ win->num_of_children].window = child ;
-	win->children[ win->num_of_children].x = x ;
-	win->children[ win->num_of_children].y = y ;
-
-	win->num_of_children ++ ;
+	win->children[ win->num_of_children ++] = child ;
 
 	return  1 ;
 }
@@ -1975,8 +1971,6 @@ ml_get_root_window(
 int
 ml_window_show(
 	ml_window_t *  win ,
-	int  x ,
-	int  y ,
 	int  hint
 	)
 {
@@ -2007,16 +2001,17 @@ ml_window_show(
 
 	if( hint & XNegative)
 	{
-		x += ( DisplayWidth( win->display , win->screen) - ACTUAL_WIDTH(win)) ;
+		win->x += (DisplayWidth( win->display , win->screen) - ACTUAL_WIDTH(win)) ;
 	}
 
 	if( hint & YNegative)
 	{
-		y += ( DisplayHeight( win->display , win->screen) - ACTUAL_HEIGHT(win)) ;
+		win->y += (DisplayHeight( win->display , win->screen) - ACTUAL_HEIGHT(win)) ;
 	}
 
 	win->my_window = XCreateSimpleWindow(
-		win->display , win->parent_window , x , y , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+		win->display , win->parent_window ,
+		win->x , win->y , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 		0 , BlackPixel(win->display , win->screen) , BG_COLOR_PIXEL(win)) ;
 
 	if( win->use_pixmap)
@@ -2068,8 +2063,8 @@ ml_window_show(
 		 * XXX
 		 * x/y/width/height are obsoleted. (see XSizeHints(3))
 		 */
-		size_hints.x = x ;
-		size_hints.y = y ;
+		size_hints.x = win->x ;
+		size_hints.y = win->y ;
 		size_hints.width = ACTUAL_WIDTH(win) ;
 		size_hints.height = ACTUAL_HEIGHT(win) ;
 		
@@ -2126,15 +2121,15 @@ ml_window_show(
 	}
 
 	XSelectInput( win->display , win->my_window , win->event_mask) ;
-	
+
+#if  0	
 	ml_window_clear_all( win) ;
+#endif
 	
 	if( win->window_realized)
 	{
 		(*win->window_realized)( win) ;
 	}
-
-	XMapWindow( win->display , win->my_window) ;
 
 	/*
 	 * showing child windows.
@@ -2142,9 +2137,10 @@ ml_window_show(
 
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		ml_window_show( win->children[counter].window ,
-			win->children[counter].x , win->children[counter].y , 0) ;
+		ml_window_show( win->children[counter] , 0) ;
 	}
+
+	XMapWindow( win->display , win->my_window) ;
 
 	return  1 ;
 }
@@ -2234,6 +2230,18 @@ ml_window_set_normal_hints(
 
 	XSetWMNormalHints( win->display , win->my_window , &size_hints) ;
 	
+	return  1 ;
+}
+
+int
+ml_window_move(
+	ml_window_t *  win ,
+	int  x ,
+	int  y
+	)
+{
+	XMoveWindow( win->display , win->my_window , x , y) ;
+
 	return  1 ;
 }
 
@@ -2402,7 +2410,7 @@ ml_window_idling(
 	
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		ml_window_idling( win->children[counter].window) ;
+		ml_window_idling( win->children[counter]) ;
 	}
 
 #ifdef  __DEBUG
@@ -2428,7 +2436,7 @@ ml_window_receive_event(
 	
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		if( ml_window_receive_event( win->children[counter].window , event))
+		if( ml_window_receive_event( win->children[counter] , event))
 		{
 			return  1 ;
 		}
@@ -2647,6 +2655,19 @@ ml_window_receive_event(
 	}
 	else if( event->type == ConfigureNotify)
 	{
+		ml_event_dispatch_t  dispatch ;
+		XEvent  next_ev ;
+
+		dispatch = NOTIFY_TO_NONE ;
+		
+		if( event->xconfigure.x != win->x || event->xconfigure.y != win->y)
+		{
+			win->x = event->xconfigure.x ;
+			win->y = event->xconfigure.y ;
+			
+			dispatch = NOTIFY_TO_CHILDREN ;
+		}
+		
 		if( event->xconfigure.width != ACTUAL_WIDTH(win) ||
 			event->xconfigure.height != ACTUAL_HEIGHT(win))
 		{
@@ -2674,13 +2695,41 @@ ml_window_receive_event(
 			}
 
 			ml_xic_resized( win) ;
+
+			dispatch = NOTIFY_TO_CHILDREN ;
 		}
 
-		configure_notify_to_children( win) ;		
+		/*
+		 * transparent processing.
+		 */
+		 
+		if( dispatch != NOTIFY_TO_NONE &&
+			XCheckMaskEvent( win->display , StructureNotifyMask , &next_ev))
+		{
+			if( next_ev.type == ConfigureNotify)
+			{
+				dispatch = NOTIFY_TO_NONE ;
+			}
+
+			XPutBackEvent( win->display , &next_ev) ;
+		}
+		
+		if( dispatch == NOTIFY_TO_MYSELF)
+		{
+			update_transparent( win) ;
+		}
+		else if( dispatch == NOTIFY_TO_CHILDREN)
+		{
+			notify_configure_to_children( win) ;
+		}
 	}
 	else if( event->type == ReparentNotify)
 	{
-		reparent_notify_to_children( win) ;
+		/*
+		 * transparent processing.
+		 */
+		
+		notify_reparent_to_children( win) ;
 	}
 	else if( event->type == SelectionClear)
 	{
@@ -3284,14 +3333,14 @@ ml_window_dump_children(
 	fprintf( stderr , "%p(%li) => " , win , win->my_window) ;
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		fprintf( stderr , "%p(%li) " , win->children[counter].window ,
-			win->children[counter].window->my_window) ; 
+		fprintf( stderr , "%p(%li) " , win->children[counter] ,
+			win->children[counter]->my_window) ; 
 	}
 	fprintf( stderr , "\n") ;
 
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		ml_window_dump_children( win->children[counter].window) ;
+		ml_window_dump_children( win->children[counter]) ;
 	}
 }
 #endif

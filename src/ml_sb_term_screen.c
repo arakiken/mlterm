@@ -7,6 +7,9 @@
 #include  <kiklib/kik_types.h>		/* u_int */
 
 
+#define  SEPARATOR_WIDTH  1
+
+
 /* --- static functions --- */
 
 /*
@@ -35,12 +38,18 @@ window_resized(
 	sb_termscr = (ml_sb_term_screen_t*) win ;
 
 	ml_window_resize( &sb_termscr->termscr->window ,
-		sb_termscr->window.width - sb_termscr->scrollbar.window.width ,
+		sb_termscr->window.width - sb_termscr->scrollbar.window.width - SEPARATOR_WIDTH ,
 		win->height , NOTIFY_TO_MYSELF) ;
 
 	/* srollbar window's margin is 0 , so ACTUAL_HEIGHT() is used. */
 	ml_window_resize( &sb_termscr->scrollbar.window , sb_termscr->scrollbar.window.width ,
 		ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
+
+	if( sb_termscr->is_right_sb)
+	{
+		ml_window_move( &sb_termscr->scrollbar.window ,
+			ACTUAL_WIDTH( &sb_termscr->termscr->window) + SEPARATOR_WIDTH , 0) ;
+	}
 }
 
 static void
@@ -271,8 +280,7 @@ ml_sb_term_screen_new(
 	ml_term_screen_t *  termscr ,
 	char *  view_name ,
 	ml_color_table_t  color_table ,
-	int  use_transbg ,
-	ml_picture_modifier_t *  pic_mod
+	int  is_right_sb
 	)
 {
 	ml_sb_term_screen_t *  sb_termscr ;
@@ -293,7 +301,8 @@ ml_sb_term_screen_new(
 	if( ml_scrollbar_init( &sb_termscr->scrollbar , &sb_termscr->sb_listener ,
 		view_name , color_table , ACTUAL_HEIGHT( &termscr->window) ,
 		ml_line_height( termscr->font_man) , termscr->logs.num_of_rows ,
-		use_transbg , pic_mod) == 0)
+		termscr->window.is_transparent ,
+		ml_term_screen_get_picture_modifier( termscr)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_scrollbar_init() failed.\n") ;
@@ -326,7 +335,7 @@ ml_sb_term_screen_new(
 
 
 	if( ml_window_init( &sb_termscr->window , ml_color_table_dup( color_table) ,
-		termscr->window.width + sb_termscr->scrollbar.window.width ,
+		termscr->window.width + sb_termscr->scrollbar.window.width + SEPARATOR_WIDTH ,
 		termscr->window.height ,
 		termscr->window.min_width , termscr->window.min_height ,
 		termscr->window.width_inc , termscr->window.height_inc ,
@@ -339,6 +348,9 @@ ml_sb_term_screen_new(
 		goto  error ;
 	}
 
+	/* seperator color of ml_scrollbar_t and ml_term_screen_t */
+	ml_window_set_bg_color( &sb_termscr->window , MLC_BLACK) ;
+
 	/*
 	 * event call backs.
 	 */
@@ -349,15 +361,32 @@ ml_sb_term_screen_new(
 	sb_termscr->window.key_pressed = key_pressed ;
 	sb_termscr->window.window_deleted = window_deleted ;
 
-	if( ml_window_add_child( &sb_termscr->window , &sb_termscr->termscr->window ,
-		sb_termscr->scrollbar.window.width , 0) == 0)
+	if( ( sb_termscr->is_right_sb = is_right_sb))
 	{
-		goto  error ;
+		if( ml_window_add_child( &sb_termscr->window , &termscr->window ,
+			0 , 0) == 0)
+		{
+			goto  error ;
+		}
+
+		if( ml_window_add_child( &sb_termscr->window , &sb_termscr->scrollbar.window ,
+			ACTUAL_WIDTH( &termscr->window) + SEPARATOR_WIDTH , 0) == 0)
+		{
+			goto  error ;
+		}
 	}
-	
-	if( ml_window_add_child( &sb_termscr->window , &sb_termscr->scrollbar.window , 0 , 0) == 0)
+	else
 	{
-		goto  error ;
+		if( ml_window_add_child( &sb_termscr->window , &sb_termscr->scrollbar.window , 0 , 0) == 0)
+		{
+			goto  error ;
+		}
+		
+		if( ml_window_add_child( &sb_termscr->window , &termscr->window ,
+			ACTUAL_WIDTH( &sb_termscr->scrollbar.window) + SEPARATOR_WIDTH , 0) == 0)
+		{
+			goto  error ;
+		}
 	}
 
 	return  sb_termscr ;

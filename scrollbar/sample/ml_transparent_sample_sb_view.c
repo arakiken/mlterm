@@ -235,7 +235,8 @@ draw_scrollbar(
 	unsigned int  bar_height
 	)
 {
-	XClearArea( view->display , view->window , 0 , TOP_MARGIN , WIDTH ,
+	/* drawing bar */
+	XClearArea( view->display , view->window , 1 , TOP_MARGIN , WIDTH - 1 ,
 		view->height - HEIGHT_MARGIN , 0) ;
 
 	/* left side shade */

@@ -14,7 +14,8 @@
 typedef struct  ml_simple_sb_view
 {
 	ml_sb_view_t  view ;
-	int  is_transparent ;
+	
+	int8_t  is_transparent ;
 	
 } ml_simple_sb_view_t ;
 
@@ -86,7 +87,7 @@ draw_decoration(
 	ml_sb_view_t *  view
 	)
 {
-	XFillRectangle( view->display , view->window , view->gc , WIDTH - 1 , 0 , 1 , view->height) ;
+	/* do nothing */
 }
 
 static void
@@ -100,21 +101,21 @@ draw_scrollbar(
 
 	simple_view = (ml_simple_sb_view_t*) view ;
 	
-	XClearArea( view->display , view->window , 0 , 0 , WIDTH - 1 , view->height , 0) ;
+	XClearArea( view->display , view->window , 0 , 0 , WIDTH , view->height , 0) ;
 
 	if( ! simple_view->is_transparent)
 	{
 		XFillRectangle( view->display , view->window , view->gc , 0 , bar_top_y ,
-			WIDTH - 1 , bar_height) ;
+			WIDTH , bar_height) ;
 	}
 	else
 	{
 		XFillRectangle( view->display , view->window , view->gc , 0 , bar_top_y , 1 , bar_height) ;
-		XFillRectangle( view->display , view->window , view->gc , WIDTH - 1 ,
+		XFillRectangle( view->display , view->window , view->gc , WIDTH ,
 			bar_top_y , 1 , bar_height) ;
-		XFillRectangle( view->display , view->window , view->gc , 0 , bar_top_y , WIDTH - 1 , 1) ;
+		XFillRectangle( view->display , view->window , view->gc , 0 , bar_top_y , WIDTH , 1) ;
 		XFillRectangle( view->display , view->window , view->gc , 0 ,
-			bar_top_y + bar_height - 1 , WIDTH - 1 , 1) ;
+			bar_top_y + bar_height - 1 , WIDTH , 1) ;
 	}
 }
 

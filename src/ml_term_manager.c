@@ -16,7 +16,7 @@
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/kik_str_alloca_dup */
 #include  <kiklib/kik_path.h>	/* kik_basename */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
-#include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect/malloc */
+#include  <kiklib/kik_mem.h>	/* alloca/kik_alloca_garbage_collect/malloc/free */
 #include  <kiklib/kik_conf.h>
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_locale.h>	/* kik_get_codeset */
@@ -24,9 +24,7 @@
 
 #include  "version.h"
 #include  "ml_sb_term_screen.h"
-#include  "ml_term_screen.h"
 #include  "ml_sig_child.h"
-#include  "ml_iscii.h"
 
 
 #define  FOREACH_TERMS(term_man,counter) \
@@ -81,11 +79,11 @@ open_new_term(
 	ml_term_manager_t *  term_man
 	)
 {
-	ml_term_screen_t *  termscr = NULL ;
-	ml_sb_term_screen_t *  sb_termscr = NULL ;
-	ml_font_manager_t *  font_man = NULL ;
-	ml_vt100_parser_t *  vt100_parser = NULL ;
-	ml_pty_t *  pty = NULL ;
+	ml_term_screen_t *  termscr ;
+	ml_sb_term_screen_t *  sb_termscr ;
+	ml_font_manager_t *  font_man ;
+	ml_vt100_parser_t *  vt100_parser ;
+	ml_pty_t *  pty ;
 	ml_window_t *  root ;
 	mkf_charset_t  usascii_font_cs ;
 	int  usascii_font_cs_changable ;
@@ -95,6 +93,15 @@ open_new_term(
 	char *  disp_env ;
 	char *  disp_str ;
 	char *  term ;
+
+	/*
+	 * these are dynamically allocated.
+	 */
+	font_man = NULL ;
+	termscr = NULL ;
+	sb_termscr = NULL ;
+	vt100_parser = NULL ;
+	pty = NULL ;
 
 	if( term_man->num_of_terms == term_man->max_terms
 		/* block until dead_mask is cleared */
@@ -168,8 +175,8 @@ open_new_term(
 		if( ( sb_termscr = ml_sb_term_screen_new( termscr , term_man->scrollbar_view_name ,
 					ml_color_table_new( &term_man->color_man ,
 						term_man->sb_fg_color , term_man->sb_bg_color) ,
-					term_man->use_transbg ,
-					ml_term_screen_get_picture_modifier( termscr))) == NULL)
+					term_man->is_right_sb))
+					== NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_sb_term_screen_new() failed.\n") ;
@@ -732,6 +739,8 @@ ml_term_manager_init(
 		"vertical view mode") ;
 	kik_conf_add_opt( conf , 'C' , "iscii" , 0 , "iscii_lang" , 
 		"language to be used in ISCII encoding") ;
+	kik_conf_add_opt( conf , 'O' , "sbpos" , 0 , "scrollbar_position" ,
+		"scrollbar position") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell") ;
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
@@ -1416,6 +1425,20 @@ ml_term_manager_init(
 		if( strcmp( value , "true") == 0)
 		{
 			term_man->use_scrollbar = 1 ;
+		}
+	}
+
+	term_man->is_right_sb = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "scrollbar_position")))
+	{
+		if( strcmp( value , "right") == 0)
+		{
+			term_man->is_right_sb = 1 ;
+		}
+		else if( strcmp( value , "left") != 0)
+		{
+			kik_msg_printf( "scrollbar position %s is not valid.\n" , value) ;
 		}
 	}
 
