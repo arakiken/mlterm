@@ -276,7 +276,7 @@ put_char(
 				ch , len , vt100_parser->font , vt100_parser->font_decor ,
 				vt100_parser->fg_color , vt100_parser->bg_color , is_comb))
 			{
-				return  ;
+				return ;
 			}
 		}
 		else
@@ -285,7 +285,7 @@ put_char(
 				ch , len , vt100_parser->font , vt100_parser->font_decor ,
 				vt100_parser->fg_color , vt100_parser->bg_color , is_comb))
 			{
-				return  ;
+				return ;
 			}
 		}
 
@@ -297,32 +297,58 @@ put_char(
 	ml_char_set( &vt100_parser->buffer.chars[vt100_parser->buffer.len++] , ch , len ,
 		vt100_parser->font , vt100_parser->font_decor , fg_color , bg_color , is_comb) ;
 
-	if( ! vt100_parser->termscr->use_dynamic_comb)
+	if( ! vt100_parser->termscr->use_dynamic_comb &&
+		(cs == ISO10646_UCS2_1 || cs == ISO10646_UCS4_1))
 	{
-		if( vt100_parser->buffer.len >= 2 &&
-			(cs == ISO10646_UCS2_1 || cs == ISO10646_UCS4_1))
+		ml_char_t *  prev2 ;
+		ml_char_t *  prev ;
+		ml_char_t *  cur ;
+		int  n ;
+
+		cur = &vt100_parser->buffer.chars[vt100_parser->buffer.len - 1] ;
+		n = 0 ;
+
+		if( vt100_parser->buffer.len >= 2)
 		{
-			ml_char_t *  prev2 ;
-			ml_char_t *  prev ;
-			ml_char_t *  cur ;
-
-			cur = &vt100_parser->buffer.chars[vt100_parser->buffer.len - 1] ;
 			prev = cur - 1 ;
-
-			if( vt100_parser->buffer.len >= 3)
+		}
+		else
+		{
+			if( ( prev = ml_vt100_cmd_get_n_prev_char( vt100_parser->termscr , ++n)) == NULL)
 			{
-				prev2 = cur - 2 ;
+				return ;
+			}
+		}
+		
+		if( vt100_parser->buffer.len >= 3)
+		{
+			prev2 = cur - 2  ;
+		}
+		else
+		{
+			/* possibly NULL */
+			prev2 = ml_vt100_cmd_get_n_prev_char( vt100_parser->termscr , ++n) ;
+		}
+		
+		if( ml_is_arabic_combining( prev2 , prev , cur))
+		{
+			if( vt100_parser->buffer.len >= 2)
+			{
+				if( ml_char_combine( prev ,
+					ch , len , vt100_parser->font , vt100_parser->font_decor ,
+					vt100_parser->fg_color , vt100_parser->bg_color , is_comb))
+				{
+					vt100_parser->buffer.len -- ;
+				}
 			}
 			else
 			{
-				prev2 = NULL ;
-			}
-
-			if( ml_is_arabic_combining( prev2 , prev , cur))
-			{
-				ml_combine_chars( prev , cur) ;
-
-				vt100_parser->buffer.len -- ;
+				if( ml_vt100_cmd_combine_with_prev_char( vt100_parser->termscr ,
+					ch , len , vt100_parser->font , vt100_parser->font_decor ,
+					vt100_parser->fg_color , vt100_parser->bg_color , is_comb))
+				{
+					vt100_parser->buffer.len -- ;
+				}
 			}
 		}
 	}
@@ -2089,7 +2115,7 @@ ml_parse_vt100_sequence(
 		return  0 ;
 	}
 
-	while( receive_bytes( vt100_parser))
+	if( receive_bytes( vt100_parser))
 	{
 		ml_term_screen_start_vt100_cmd( vt100_parser->termscr) ;
 

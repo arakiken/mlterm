@@ -14,6 +14,76 @@
 #include  "ml_xic.h"		/* ml_xic_get_xim_name */
 
 
+/* --- static functions --- */
+
+#if  0
+
+static int
+get_n_prev_char_pos(
+	ml_term_screen_t *  termscr ,
+	int *  char_index ,
+	int *  row ,
+	int  n
+	)
+{
+	int  counter ;
+	ml_cursor_t  cursor ;
+	int  result ;
+
+	cursor = termscr->image->cursor ;
+
+	for( counter = 0 ; counter < n ; counter ++)
+	{
+		if( ! ml_cursor_go_back( termscr->image , WRAPAROUND))
+		{
+			result = 0 ;
+
+			goto  end ;
+		}
+	}
+
+	*char_index = termscr->image->cursor.char_index ;
+	*row = termscr->image->cursor.row ;
+
+	result = 1 ;
+
+end:
+	termscr->image->cursor = cursor ;
+
+	return  result ;
+}
+
+#else
+
+static int
+get_n_prev_char_pos(
+	ml_term_screen_t *  termscr ,
+	int *  char_index ,
+	int *  row ,
+	int  n
+	)
+{
+	int  counter ;
+
+	*char_index = termscr->image->cursor.char_index ;
+	*row = termscr->image->cursor.row ;
+
+	for( counter = 0 ; counter < n ; counter ++)
+	{
+		if( *char_index == 0)
+		{
+			return  0 ;
+		}
+
+		(*char_index) -- ;
+	}
+
+	return  1 ;
+}
+
+#endif	
+
+
 /* --- global functions --- */
 
 /*
@@ -23,6 +93,35 @@
  * these functions considers termscr->image to be logical order.
  * call ml_term_screen_start_vt100_cmd() before using them.
  */
+ 
+ml_char_t *
+ml_vt100_cmd_get_n_prev_char(
+	ml_term_screen_t *  termscr ,
+	int  n
+	)
+{
+	int  char_index ;
+	int  row ;
+	ml_char_t *  ch ;
+	ml_image_line_t *  line ;
+
+	if( ! get_n_prev_char_pos( termscr , &char_index , &row , 1))
+	{
+		return  NULL ;
+	}
+
+	if( ( line = ml_image_get_line( termscr->image , row)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	if( ( ch = ml_imgline_get_char( line , char_index)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	return  ch ;
+}
 
 int
 ml_vt100_cmd_combine_with_prev_char(
@@ -36,34 +135,35 @@ ml_vt100_cmd_combine_with_prev_char(
 	int  is_comb
 	)
 {
+	int  char_index ;
+	int  row ;
 	ml_char_t *  ch ;
 	ml_image_line_t *  line ;
-	int  result ;
-	
-	ml_cursor_go_back( termscr->image , WRAPAROUND) ;
-	
-	if( ( line = ml_image_get_line( termscr->image , ml_cursor_row( termscr->image))) == NULL ||
-		ml_imgline_is_empty( line))
-	{
-		result = 0 ;
 
-		goto  end ;
-	}
-	
-	ch = &line->chars[ ml_cursor_char_index( termscr->image)] ;
-	
-	if( ( result = ml_char_combine( ch , bytes , ch_size , font , font_decor ,
-		fg_color , bg_color , is_comb)))
+	if( ! get_n_prev_char_pos( termscr , &char_index , &row , 1))
 	{
-		ml_imgline_set_modified( line ,
-			ml_cursor_char_index( termscr->image) ,
-			ml_cursor_char_index( termscr->image) , 0) ;
+		return  0 ;
 	}
 
-end:
-	ml_cursor_go_forward( termscr->image , WRAPAROUND) ;
+	if( ( line = ml_image_get_line( termscr->image , row)) == NULL)
+	{
+		return  0 ;
+	}
 
-	return  result ;
+	if( ( ch = ml_imgline_get_char( line , char_index)) == NULL)
+	{
+		return  0 ;
+	}
+	
+	if( ! ml_char_combine( ch , bytes , ch_size , font , font_decor ,
+				fg_color , bg_color , is_comb))
+	{
+		return  0 ;
+	}
+	
+	ml_imgline_set_modified( line , char_index , char_index , 0) ;
+	
+	return  1 ;
 }
 
 int

@@ -73,6 +73,8 @@ int  ml_imgline_overwrite_all( ml_image_line_t *  line , int  change_char_index 
 
 int  ml_imgline_fill_all( ml_image_line_t *  line , ml_char_t *  ch , u_int  num) ;
 
+ml_char_t *  ml_imgline_get_char( ml_image_line_t *  line , int  char_index) ;
+
 void  ml_imgline_set_modified( ml_image_line_t *  line ,
 	int  beg_char_index , int  end_char_index , int  is_cleared_to_end) ;
 
@@ -96,8 +98,6 @@ void  ml_imgline_set_continued_to_next( ml_image_line_t *  line) ;
 
 void  ml_imgline_unset_continued_to_next( ml_image_line_t *  line) ;
 
-u_int  ml_imgline_get_num_of_filled_cols( ml_image_line_t *  line) ;
-
 int  ml_convert_char_index_to_col( ml_image_line_t *  line , int  char_index , int  flag) ;
 
 int  ml_convert_col_to_char_index( ml_image_line_t *  line , u_int *  cols_rest , int  col , int  flag) ;
@@ -114,9 +114,11 @@ int  ml_imgline_copy_line( ml_image_line_t *  dst , ml_image_line_t *  src) ;
 
 int  ml_imgline_share( ml_image_line_t *  dst , ml_image_line_t *  src) ;
 
-int  ml_imgline_end_char_index( ml_image_line_t *  line) ;
-
 int  ml_imgline_is_empty( ml_image_line_t *  line) ;
+
+u_int  ml_imgline_get_num_of_filled_cols( ml_image_line_t *  line) ;
+
+int  ml_imgline_end_char_index( ml_image_line_t *  line) ;
 
 u_int  ml_get_num_of_filled_chars_except_end_space( ml_image_line_t *  line) ;
 

@@ -5,21 +5,7 @@ Frequently Asked Questions
 よくある(かどうかは分かりませんが)質問と回答集
 
 
-1. コンパイル
-
-[Q1]
-Kondara AsumiRC2 などの環境にて、Xutf8LookupString がないといわれてコンパイルが
-通りません。
-
-[A1]
-ml_xic.c の #ifdef X_HAVE_UTF8_STRING を #if  0 に修正してください。
-この問題につきましては、
-http://www.kondara.org/archive/Kondara-devel.ja/msg06133.html
-http://sourceforge.net/mailarchive/forum.php?thread_id=501442&forum_id=3020
-からの一連のスレッドを御覧ください。
-
-
-2. フォント
+1. フォント
 
 [Q1]
 ドキュメントの通り設定したにも関わらず、Anti Alias 表示ができません。

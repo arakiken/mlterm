@@ -11,14 +11,11 @@
 #include  "ml_term_screen.h"
 
 
-int  ml_vt100_cmd_start( ml_term_screen_t *  termscr) ;
-
-int  ml_vt100_cmd_stop( ml_term_screen_t *  termscr) ;
-
-
 /*
  * VT100 commands.
  */
+
+ml_char_t *  ml_vt100_cmd_get_n_prev_char( ml_term_screen_t *  termscr , int  n) ;
 
 int  ml_vt100_cmd_combine_with_prev_char( ml_term_screen_t *  termscr , u_char *  bytes ,
 	size_t  ch_size , ml_font_t *  font , ml_font_decor_t  font_decor ,

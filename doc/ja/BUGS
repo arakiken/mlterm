@@ -15,19 +15,6 @@
   タイトルが化ける。
   (reported by K.Kawabata san)
 
-* FreeBSDで使っているのですが、utmpの挙動がおかしいです。
-  o .xsessionから起動したりAfterStepのWharfから起動する
-    とwで出て来ない。
-  o rxvtを起動して、
-% w
-USER             TTY      FROM             LOGIN@  IDLE WHAT
-mona             p0       :0.0             xx:xxPM     - w
-   のようになっている状態で、mlterm &すると
-mona             p1       :0.0             xx:xxPM     - w
-   のようになり、exitするとエントリが消えてしまいます。
-   utmpグループを作って/var/run/utmpなどは書けるようにしても、
-   mltermをsetuid rootしても同様です。
-
 * Ctrl+F1連打して、端末をいっぱい開くとcoreダンプします。
   OS: FreeBSD4.5
   X: XFree86 4.1.0

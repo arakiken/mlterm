@@ -15,10 +15,9 @@ typedef struct  ml_bidi_state
 {
 	u_int16_t *  visual_order ;
 	u_int16_t  size ;
-	int16_t  cursor_pos ;
 	
 	int8_t  base_is_rtl ;
-	int8_t  cursor_pos_is_changed ;
+	int8_t  has_rtl ;
 	
 } ml_bidi_state_t ;
 
@@ -29,7 +28,7 @@ int  ml_bidi_delete( ml_bidi_state_t *  state) ;
 
 int  ml_bidi_reset( ml_bidi_state_t *  state) ;
 
-int  ml_bidi( ml_bidi_state_t *  state , ml_char_t *  src , u_int  size , int  cursor_pos) ;
+int  ml_bidi( ml_bidi_state_t *  state , ml_char_t *  src , u_int  size) ;
 
 
 #endif

@@ -1433,14 +1433,6 @@ ml_cursor_is_beg_of_line(
 }
 
 int
-ml_cursor_is_end_of_line(
-	ml_image_t *  image
-	)
-{
-	return  (image->cursor.char_index == ml_imgline_end_char_index( CURSOR_LINE(image))) ;
-}
-
-int
 ml_cursor_goto_beg_of_line(
 	ml_image_t *  image
 	)
@@ -1449,20 +1441,6 @@ ml_cursor_goto_beg_of_line(
 	
 	image->cursor.char_index = 0 ;
 	image->cursor.col = 0 ;
-
-	return  1 ;
-}
-
-int
-ml_cursor_goto_end_of_line(
-	ml_image_t *  image
-	)
-{
-	reset_wraparound_checker( image) ;
-	
-	image->cursor.char_index = ml_imgline_end_char_index( CURSOR_LINE(image)) ;
-	image->cursor.col =
-		ml_convert_char_index_to_col( CURSOR_LINE(image) , image->cursor.char_index , 0) ;
 
 	return  1 ;
 }
@@ -1489,9 +1467,8 @@ ml_cursor_goto_end(
 	reset_wraparound_checker( image) ;
 	
 	image->cursor.row = ml_imgmdl_end_row( &image->model) ;
-	image->cursor.char_index = ml_imgline_end_char_index( CURSOR_LINE(image)) ;
-	image->cursor.col =
-		ml_convert_char_index_to_col( CURSOR_LINE(image) , image->cursor.char_index , 0) ;
+	image->cursor.char_index = 0 ;
+	image->cursor.col = 0 ;
 
 	return  1 ;
 }

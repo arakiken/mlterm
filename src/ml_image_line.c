@@ -349,6 +349,22 @@ ml_imgline_fill_all(
 	return  1 ;
 }
 
+ml_char_t *
+ml_imgline_get_char(
+	ml_image_line_t *  line ,
+	int  char_index
+	)
+{
+	if( char_index > END_CHAR_INDEX(line))
+	{
+		return  NULL ;
+	}
+	else
+	{
+		return  &line->chars[char_index] ;
+	}
+}
+
 void
 ml_imgline_set_modified(
 	ml_image_line_t *  line ,
@@ -511,14 +527,6 @@ ml_imgline_unset_continued_to_next(
 	)
 {
 	UNSET_CONTINUED_TO_NEXT(line->flag) ;
-}
-
-u_int
-ml_imgline_get_num_of_filled_cols(
-	ml_image_line_t *  line
-	)
-{
-	return  ml_str_cols( line->chars , line->num_of_filled_chars) ;
 }
 
 int
@@ -843,6 +851,22 @@ ml_imgline_share(
 }
 
 int
+ml_imgline_is_empty(
+	ml_image_line_t *  line
+	)
+{
+	return  IS_EMPTY(line) ;
+}
+
+u_int
+ml_imgline_get_num_of_filled_cols(
+	ml_image_line_t *  line
+	)
+{
+	return  ml_str_cols( line->chars , line->num_of_filled_chars) ;
+}
+
+int
 ml_imgline_end_char_index(
 	ml_image_line_t *  line
 	)
@@ -859,14 +883,6 @@ ml_imgline_end_char_index(
 	{
 		return  line->num_of_filled_chars - 1 ;
 	}
-}
-
-int
-ml_imgline_is_empty(
-	ml_image_line_t *  line
-	)
-{
-	return  IS_EMPTY(line) ;
 }
 
 u_int
@@ -957,12 +973,12 @@ ml_imgline_bidi_render(
 		return  0 ;
 	}
 
-	if( line->bidi_state->cursor_pos == cursor_pos && ! IS_MODIFIED(line->flag))
+	if( ! IS_MODIFIED(line->flag))
 	{
 		return  1 ;
 	}
 	
-	return  ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars , cursor_pos) ;
+	return  ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars) ;
 }
 
 int
@@ -972,7 +988,6 @@ ml_imgline_bidi_visual(
 {
 	int  counter ;
 	ml_char_t *  src ;
-	int  has_rtl ;
 	
 	if( ! line->bidi_state)
 	{
@@ -999,20 +1014,14 @@ ml_imgline_bidi_visual(
 
 	ml_str_copy( src , line->chars , line->bidi_state->size) ;
 
-	has_rtl = 0 ;
 	for( counter = 0 ; counter < line->bidi_state->size ; counter ++)
 	{
-		if( counter != line->bidi_state->visual_order[counter])
-		{
-			has_rtl = 1 ;
-		}
-
 		ml_char_copy( &line->chars[line->bidi_state->visual_order[counter]] , &src[counter]) ;
 	}
 
 	ml_str_final( src , line->bidi_state->size) ;
 
-	if( has_rtl && (line->bidi_state->cursor_pos_is_changed || IS_MODIFIED(line->flag)))
+	if( line->bidi_state->has_rtl && IS_MODIFIED(line->flag))
 	{
 		ml_imgline_set_modified( line , 0 , END_CHAR_INDEX(line) , IS_CLEARED_TO_END(line->flag)) ;
 	}
@@ -1108,6 +1117,8 @@ ml_bidi_convert_logical_char_index_to_visual(
 							return  line->bidi_state->visual_order[counter + 1] ;
 						}
 					}
+
+					break ;
 				}
 			}
 
@@ -1136,9 +1147,11 @@ ml_bidi_convert_logical_char_index_to_visual(
 							return  line->bidi_state->visual_order[counter + 1] ;
 						}
 					}
+
+					break ;
 				}
 			}
-			
+
 			if( counter == 0)
 			{
 				*ltr_rtl_meet_pos = 0 ;

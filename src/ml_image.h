@@ -129,8 +129,6 @@ int  ml_cursor_go_downward( ml_image_t *  image , int  flag) ;
 
 int  ml_cursor_goto_beg_of_line( ml_image_t *  image) ;
 
-int  ml_cursor_goto_end_of_line( ml_image_t *  image) ;
-
 int  ml_cursor_goto_home( ml_image_t *  image) ;
 
 int  ml_cursor_goto_end( ml_image_t *  image) ;
@@ -138,8 +136,6 @@ int  ml_cursor_goto_end( ml_image_t *  image) ;
 int  ml_cursor_goto( ml_image_t *  image , int  col , int  row , int  flag) ;
 
 int  ml_cursor_is_beg_of_line( ml_image_t *  image) ;
-
-int  ml_cursor_is_end_of_line( ml_image_t *  image) ;
 
 int  ml_cursor_set_color( ml_image_t *  image , ml_color_t  fg_color , ml_color_t  bg_color) ;
 

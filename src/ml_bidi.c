@@ -31,9 +31,8 @@ ml_bidi_new(void)
 
 	state->visual_order = NULL ;
 	state->size = 0 ;
-	state->cursor_pos = -1 ;
 	state->base_is_rtl = 0 ;
-	state->cursor_pos_is_changed = 0 ;
+	state->has_rtl = 0 ;
 
 	return  state ;
 }
@@ -63,8 +62,7 @@ int
 ml_bidi(
 	ml_bidi_state_t *  state ,
 	ml_char_t *  src ,
-	u_int  size ,
-	int  cursor_pos
+	u_int  size
 	)
 {
 	FriBidiChar *  fri_src ;
@@ -72,7 +70,6 @@ ml_bidi(
 	FriBidiStrIndex *  fri_order ;
 	u_char *  bytes ;
 	int  counter ;
-	int  prev_cursor_pos ;
 
 	if( size == 0)
 	{
@@ -100,6 +97,8 @@ ml_bidi(
 		return  0 ;
 	}
 
+	state->has_rtl = 0 ;
+
 	for( counter = 0 ; counter < size ; counter ++)
 	{
 		bytes = ml_char_bytes( &src[counter]) ;
@@ -125,6 +124,11 @@ ml_bidi(
 			/* white space */
 			fri_src[counter] = 0x20 ;
 		}
+
+		if( ! state->has_rtl && (fribidi_get_type( fri_src[counter]) & FRIBIDI_MASK_RTL))
+		{
+			state->has_rtl = 1 ;
+		}
 	}
 
 #ifdef  __DEBUG
@@ -140,50 +144,6 @@ ml_bidi(
 
 	fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
 
-	prev_cursor_pos = state->cursor_pos ;
-	state->cursor_pos = -1 ;
-	
-	if( cursor_pos >= 0)
-	{
-		int  pos ;
-		FriBidiCharType  prev_type ;
-
-		for( pos = cursor_pos ; pos < size ; pos ++)
-		{
-			if( fri_src[pos] != 0x20)
-			{
-				goto  end ;
-			}
-		}
-		
-		prev_type = 0 ;
-		for( pos = cursor_pos + 1 ; pos >= 0 ; pos --)
-		{
-			if( ( prev_type = fribidi_get_type( fri_src[pos])) & FRIBIDI_MASK_STRONG)
-			{
-				break ;
-			}
-		}
-
-		if( ! ( prev_type & FRIBIDI_MASK_RTL) && fri_type == FRIBIDI_TYPE_RTL)
-		{
-			fri_src[cursor_pos] = 0x61 ;
-		}
-		else if( ( prev_type & FRIBIDI_MASK_RTL) && fri_type & FRIBIDI_TYPE_LTR)
-		{
-			fri_src[cursor_pos] = 0x0621 ;
-		}
-		else
-		{
-			goto  end ;
-		}
-
-		state->cursor_pos = cursor_pos ;
-
-		fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
-	}
-
-end:
 	if( state->size != size)
 	{
 		void *  p ;
@@ -215,15 +175,6 @@ end:
 	else
 	{
 		state->base_is_rtl = 0 ;
-	}
-
-	if( prev_cursor_pos != state->cursor_pos)
-	{
-		state->cursor_pos_is_changed = 1 ;
-	}
-	else
-	{
-		state->cursor_pos_is_changed = 0 ;
 	}
 
 #ifdef  __DEBUG
@@ -291,8 +242,7 @@ int
 ml_bidi(
 	ml_bidi_state_t *  state ,
 	ml_char_t *  src ,
-	u_int  size ,
-	int  cursor_pos
+	u_int  size
 	)
 {
 	return  0 ;
