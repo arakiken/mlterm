@@ -3179,6 +3179,7 @@ report_mouse_tracking(
 	 * Control = 16
 	 */
 	key_state = ((event->state & ShiftMask) ? 4 : 0) +
+		((event->state & screen->mod_meta_mask) ? 8 : 0) +
 		((event->state & ControlMask) ? 16 : 0) ;
 
 	if( is_released)

@@ -1,3 +1,9 @@
+2005-02-23 MINAMI Hirokazu <minami@mistfall.net>
+
+	* xwindow/x_screen.c: reprt meta while mouse tracking mode.
+	* mlterm/ml_screen.h: modified definitions for back scroll mode.
+	* mlterm/ml_vt100_parser.c: fixed typo.
+
 2005-02-22 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* xwindow/x_im.c (x_im_new): return NULL when input_method is "none".

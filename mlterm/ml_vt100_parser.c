@@ -1330,7 +1330,7 @@ parse_vt100_escape_sequence(
 						{
 							// if( !titeInhibit)
 							save_cursor( vt100_parser) ;
-							ml_screen_user_alternate_edit(
+							ml_screen_use_alternative_edit(
 								vt100_parser->screen) ;
 							//
 						}
@@ -1344,7 +1344,7 @@ parse_vt100_escape_sequence(
 						{
 							// if( !titeInhibit)
 							save_cursor( vt100_parser) ;
-							ml_screen_user_alternate_edit(
+							ml_screen_use_alternative_edit(
 								vt100_parser->screen) ;
 							clear_display_all( vt100_parser) ;
 							//
@@ -1498,7 +1498,7 @@ parse_vt100_escape_sequence(
 						{
 							// if( !titeInhibit)
 							clear_display_all( vt100_parser) ;
-							ml_screen_user_normal_edit(
+							ml_screen_use_normal_edit(
 								vt100_parser->screen) ;
 							restore_cursor( vt100_parser) ;
 							//
@@ -1512,7 +1512,7 @@ parse_vt100_escape_sequence(
 						else if( ps[0] == 1049)
 						{
 							// if( !titeInhibit)
-							ml_screen_user_normal_edit(
+							ml_screen_use_normal_edit(
 								vt100_parser->screen) ;
 							restore_cursor( vt100_parser) ;
 							//

@@ -26,12 +26,10 @@ typedef struct  ml_screen_event_listener
 
 typedef enum  ml_bs_mode
 {
-	BSM_NONE = 0x0 ,
-	BSM_VOLATILE ,
-	BSM_STATIC ,
-
-	BSM_MAX
-
+	BSM_VOLATILE = 0,
+	BSM_STATIC = 1,
+	BSM_NOKEY = 2
+	
 } ml_bs_mode_t ;
 
 typedef struct  ml_screen
