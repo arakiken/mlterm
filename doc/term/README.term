@@ -1,14 +1,9 @@
 $Id$
 
-mlterm.ti is an exprinemtal terminfo data for mlterm.
-To install, see tic(1).
+Exprinemtal terminfo/termcap data for mlterm
 
-*NOTE*
-The corresponding data for termcap named "mlterm.tc" had been 
-also placed this directory.
-The file was removed because 
-- making a entry for mlterm which does not over 
-  termcap's entry size limit is a painful job. 
-- nobody seemes to be using the data anyway.
+How to install:
 
+mlterm.ti - see tic(1).
+mlterm.tc - Add this to /etc/termcap.
 
