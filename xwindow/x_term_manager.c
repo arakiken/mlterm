@@ -1444,6 +1444,26 @@ x_term_manager_init(
 		return  0 ;
 	}
 
+	if( ( value = kik_conf_get_value( conf , "font_size_range")))
+	{
+		if( ! get_font_size_range( &min_font_size , &max_font_size , value))
+		{
+			kik_msg_printf( "font_size_range = %s is illegal.\n" , value) ;
+
+			/* default values are used */
+			min_font_size = 6 ;
+			max_font_size = 30 ;
+		}
+	}
+	else
+	{
+		/* default values are used */
+		min_font_size = 6 ;
+		max_font_size = 30 ;
+	}
+
+	x_set_font_size_range( min_font_size , max_font_size) ;
+
 	x_main_config_init( &main_config , conf , argc , argv) ;
 
 	is_genuine_daemon = 0 ;
@@ -1488,26 +1508,6 @@ x_term_manager_init(
 
 	x_xim_init( use_xim) ;
 	
-	if( ( value = kik_conf_get_value( conf , "font_size_range")))
-	{
-		if( ! get_font_size_range( &min_font_size , &max_font_size , value))
-		{
-			kik_msg_printf( "font_size_range = %s is illegal.\n" , value) ;
-
-			/* default values are used */
-			min_font_size = 6 ;
-			max_font_size = 30 ;
-		}
-	}
-	else
-	{
-		/* default values are used */
-		min_font_size = 6 ;
-		max_font_size = 30 ;
-	}
-
-	x_set_font_size_range( min_font_size , max_font_size) ;
-
 	if( ( value = kik_conf_get_value( conf , "click_interval")))
 	{
 		int  interval ;
