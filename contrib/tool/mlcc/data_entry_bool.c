@@ -1,4 +1,3 @@
-#include "config.h"
 #include <stdlib.h> /* free/malloc */
 #include "comm.h"
 #include "data.h"

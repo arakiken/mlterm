@@ -1,4 +1,3 @@
-#include "config.h"
 #include <string.h> /* strncasecmp/strcasecmp/strdup/strchr/strrchr/memmove*/
 #include <stdlib.h> /* free/malloc */
 #include "comm.h"

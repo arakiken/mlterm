@@ -1,4 +1,3 @@
-#include "config.h"
 #include "comm.h"
 #include "data.h"
 #include "data_entry_string.h"
