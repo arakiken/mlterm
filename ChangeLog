@@ -1,8 +1,15 @@
 2002-09-07 Araki Ken <arakiken@users.sf.net>
 
+	* 2.6.0 released
+	  (tag "rel-2_6_0")
+
+2002-09-07 Araki Ken <arakiken@users.sf.net>
+
 	* Added --with-imagelib=[imlib,gdk-pixbuf1,gdk-pixbuf2]
 	  Removed --enable-imlib, --enable-gdk-pixbuf
+	  (Thanks to Sato Seiichi san)
 	* USPosition bit is set in XSizeHints.flags.
+	  (Minami Hirokazu san)
 
 2002-09-07  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
