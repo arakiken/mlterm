@@ -8,12 +8,18 @@
 #include  <X11/Xatom.h>			/* XA_PIXMAP */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>		/* realloc/free */
+#include  <kiklib/kik_unistd.h>		/* kik_usleep */
 
 #ifdef  USE_IMLIB
 #include  <Imlib.h>
 #endif
 
 #include  "ml_window.h"
+
+
+#if  1
+#define  PSEUDO_TRANSPARENT
+#endif
 
 
 #ifdef  USE_IMLIB
@@ -200,6 +206,8 @@ load_picture(
 	return  pixmap ;
 }
 
+#ifdef  PSEUDO_TRANSPARENT
+
 static Pixmap
 get_background_picture(
 	ml_window_t *  win ,
@@ -284,7 +292,7 @@ get_background_picture(
 	counter = 0 ;
 	while( ! XCheckWindowEvent( win->display , src , ExposureMask, &event))
 	{
-		sleep(1) ;
+		kik_usleep( 50000) ;
 
 		if( ++ counter >= 10)
 		{
@@ -320,6 +328,132 @@ found:
 
 	return  pixmap ;
 }
+
+#else
+
+static Pixmap
+get_background_picture(
+	ml_window_t *  win ,
+	ml_picture_modifier_t *  pic_mod
+	)
+{
+	int  x ;
+	int  y ;
+	int  pix_x ;
+	int  pix_y ;
+	u_int  width ;
+	u_int  height ;
+	Pixmap  pixmap ;
+	ImlibData *  imlib ;
+	ImlibImage *  img ;
+	ml_window_t *  root ;
+	int  counter ;
+	XEvent *  queued_events ;
+	u_int  num_of_queued ;
+	XEvent  event ;
+
+	if( ! ( imlib = get_imlib( win->display)))
+	{
+		return  None ;
+	}
+
+	root = ml_get_root_window(win) ;
+	
+	if( ! get_visible_window_geometry( win , &x , &y , &pix_x , &pix_y , &width , &height))
+	{
+		return  None ;
+	}
+
+	/* XXX already queued StructureNotifyMask events are backuped */
+	queued_events = NULL ;
+	num_of_queued = 0 ;
+	while( XCheckWindowEvent( root->display , root->my_window , StructureNotifyMask , &event))
+	{
+		void *  p ;
+		
+		if( ( p = realloc( queued_events , sizeof( XEvent) * ( num_of_queued + 1))) == NULL)
+		{
+			break ;
+		}
+
+		queued_events = p ;
+		queued_events[num_of_queued ++] = event ;
+	}
+
+	ml_window_remove_event_mask( root , StructureNotifyMask /* | SubstructureNotifyMask */) ;
+
+	/*
+	 * StructureNotifyMask events are ignored from here.
+	 */
+	
+	ml_window_unmap( root) ;
+
+	/* XXX waiting for all exposed windows actually redrawn. */
+	XSync( root->display , False) ;
+	kik_usleep( 25000) ;
+	
+	img = Imlib_create_image_from_drawable( imlib , DefaultRootWindow( win->display) ,
+		AllPlanes , x , y , width , height) ;
+
+	/* XXX ingoring all queued Expose events */
+	while( XCheckWindowEvent( root->display , root->my_window , ExposureMask, &event)) ;
+	
+	ml_window_map( root) ;
+
+	/*
+	 * StructureNoitfyMask events are ignored till here.
+	 */
+	
+	ml_window_add_event_mask( root , StructureNotifyMask /* | SubstructureNotifyMask */) ;
+
+	/* XXX waiting for all StructureNotifyMask events are responsed */
+	XSync( root->display , False) ;
+	kik_usleep( 25000) ;
+
+	/* XXX ignoreing all queued StructureNotifyMask events */
+	while( XCheckWindowEvent( root->display , root->my_window , StructureNotifyMask , &event)) ;
+
+	/* XXX restoring all backuped StructureNotifyMask events */
+	for( counter = 0 ; counter < num_of_queued ; counter ++)
+	{
+		XPutBackEvent( root->display , &queued_events[counter]) ;
+	}
+	free( queued_events) ;
+	
+	/* XXX waiting for root window actually mapped. */
+	counter = 0 ;
+	while( ! XCheckWindowEvent( root->display , root->my_window , ExposureMask, &event))
+	{
+		kik_usleep( 50000) ;
+
+		if( ++ counter >= 10)
+		{
+			return  None ;
+		}
+	}
+	XPutBackEvent( root->display , &event) ;
+
+	if( ! img)
+	{
+		return  None ;
+	}
+
+	if( pic_mod)
+	{
+		modify_image( imlib , img , pic_mod) ;
+	}
+
+	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+			DefaultDepth( win->display , win->screen)) ;
+
+	Imlib_paste_image( imlib , img , pixmap , pix_x , pix_y , width , height) ;
+
+	Imlib_kill_image( imlib , img) ;
+
+	return  pixmap ;
+}
+
+#endif
 
 #else
 
@@ -543,12 +677,16 @@ ml_root_pixmap_available(
 	Display *  display
 	)
 {
+#ifdef  PSEUDO_TRANSPARENT
 	if( XInternAtom( display , "_XROOTPMAP_ID" , True))
 	{
 		return  1 ;
 	}
 
 	return  0 ;
+#else
+	return  1 ;
+#endif
 }
 	
 int
@@ -567,6 +705,6 @@ ml_picture_load_background(
 	{
 		return  0 ;
 	}
-	
+
 	return  1 ;
 }

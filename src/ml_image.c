@@ -1416,9 +1416,15 @@ ml_image_clear_below(
 	)
 {
 	reset_wraparound_checker( image) ;
-	
-	return  ml_image_clear_lines( image , image->cursor.row ,
-			image->num_of_filled_rows - image->cursor.row) ;
+
+	if( ! ml_image_clear_line_to_right( image) ||
+                ! ml_image_clear_lines( image , image->cursor.row + 1 ,
+                    image->num_of_filled_rows - (image->cursor.row + 1)))
+	{
+		return  0 ;
+	}
+
+	return  1 ;
 }
 
 int

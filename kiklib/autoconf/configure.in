@@ -24,7 +24,7 @@ AC_CONFIG_HEADER(../src/kik_config.h)
 
 AC_CHECK_HEADERS(langinfo.h dlfcn.h dl.h stropts.h sys/stropts.h)
 
-AC_CHECK_FUNCS(strsep fgetln basename isastream setutent seteuid setegid geteuid getegid snprintf)
+AC_CHECK_FUNCS(strsep fgetln basename isastream setutent seteuid setegid geteuid getegid snprintf usleep)
 
 AC_FUNC_ALLOCA
 

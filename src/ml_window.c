@@ -1260,7 +1260,7 @@ is_in_the_same_window_family(
 	return  is_descendant_window( ml_get_root_window( win) , window) ;
 }
 
-u_int
+static u_int
 total_min_width(
 	ml_window_t *  win
 	)
@@ -1278,7 +1278,7 @@ total_min_width(
 	return  min_width ;
 }
 
-u_int
+static u_int
 total_min_height(
 	ml_window_t *  win
 	)
@@ -1296,7 +1296,7 @@ total_min_height(
 	return  min_height ;
 }
 
-u_int
+static u_int
 total_width_inc(
 	ml_window_t *  win
 	)
@@ -1323,7 +1323,7 @@ total_width_inc(
 	return  width_inc ;
 }
 
-u_int
+static u_int
 total_height_inc(
 	ml_window_t *  win
 	)
@@ -2273,7 +2273,6 @@ ml_window_show(
 	return  1 ;
 }
 
-#if  0
 int
 ml_window_map(
 	ml_window_t *  win
@@ -2289,11 +2288,30 @@ ml_window_unmap(
 	ml_window_t *  win
 	)
 {
-	XUnmapSubwindows( win->display , win->my_window) ;
+	XSizeHints  size_hints ;
+
+	XUnmapWindow( win->display , win->my_window) ;
+
+	/*
+	 * XXX
+	 * x/y/width/height are obsoleted. (see XSizeHints(3))
+	 */
+	size_hints.x = win->x ;
+	size_hints.y = win->y ;
+	size_hints.width = ACTUAL_WIDTH(win) ;
+	size_hints.height = ACTUAL_HEIGHT(win) ;
+
+	size_hints.width_inc = total_width_inc( win) ;
+	size_hints.height_inc = total_height_inc( win) ;
+	size_hints.base_width = size_hints.min_width = total_min_width( win) ;
+	size_hints.base_height = size_hints.min_height = total_min_height( win) ;
+
+	size_hints.flags = PSize | PMinSize | PResizeInc | PBaseSize | PPosition ;
+	
+	XSetWMNormalHints( win->display , win->my_window , &size_hints) ;
 
 	return  1 ;
 }
-#endif
 
 int
 ml_window_reset_font(
@@ -2824,7 +2842,7 @@ ml_window_receive_event(
 		XEvent  next_ev ;
 
 		is_changed = 0 ;
-	
+
 		if( event->xconfigure.x != win->x || event->xconfigure.y != win->y)
 		{
 			/*
@@ -2843,9 +2861,9 @@ ml_window_receive_event(
 			{
 				is_changed = 1 ;
 			}
-			
+
 			win->x = event->xconfigure.x ;
-			win->y = event->xconfigure.y ; 
+			win->y = event->xconfigure.y ;
 		}
 
 		if( event->xconfigure.width != ACTUAL_WIDTH(win) ||
@@ -2907,7 +2925,7 @@ ml_window_receive_event(
 
 		win->x = event->xreparent.x ;
 		win->y = event->xreparent.y ;
-		
+
 		notify_reparent_to_children( win) ;
 	}
 	else if( event->type == SelectionClear)
