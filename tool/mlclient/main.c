@@ -40,10 +40,10 @@ help(void)
 
 	printf( "mlclient [prefix options] [options]\n\n") ;
 	printf( "prefix optioins:\n") ;
-	printf( "  /dev/...: specify pty with which a new window is opened.\n") ;
-	printf( "  pty_list: request pty list.\n\n") ;
+	printf( "  /dev/...: specify pty with which a new window is opened.\n\n") ;
 	printf( "options:\n") ;
-	printf( "  N.A. option list\n") ;
+	printf( "  -P/--ptylist: print pty list.\n\n") ;
+	printf( "  N.A. options among those of mlterm.\n") ;
 
 	for( count = 0 ; count < sizeof( na_options) / sizeof( na_options[0]) ; count ++)
 	{
@@ -67,11 +67,17 @@ main(
 	char  buf[256] ;
 	size_t  len ;
 
-	for( count = 0 ; count < argc ; count ++)
+	for( count = 1 ; count < argc ; count ++)
 	{
-		if( ( p = strrchr( argv[count] , '-')) != NULL)
+		p = argv[count];
+		if( *p == '-')
 		{
 			p ++ ;
+			if ( *p == '-')
+			{
+				/* long option */
+				p ++ ;
+			}
 			
 			if( strcmp( p , "help") == 0 || strcmp( p , "h") == 0)
 			{

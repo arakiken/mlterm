@@ -1,5 +1,13 @@
 2003-02-15 Araki Ken <arakiken@users.sf.net>
 
+	* Added -#/--initstr/init_str option.
+	  The string specified as this option's value is initially sent to pty.
+	* Renamed mlclient prefix option "pty_list" to "-P" / "--ptylist".
+	* If -e option is specified after "mlterm /dev/...", the command string
+	  following "-e" is sent to the specified "/dev/..." pty.
+
+2003-02-15 Araki Ken <arakiken@users.sf.net>
+
 	* Mlconfig didn't deal with ISO8859-11(TIS620) correctly. Fixed.
 	* Mlterm exit(1) if us ascii for the specified encoding not found.
 

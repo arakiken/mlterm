@@ -135,21 +135,23 @@ ml_term_open_pty(
 		
 		return  1 ;
 	}
-	
-	if( ( term->pty = ml_pty_new( cmd_path , argv , env , host ,
-				ml_screen_get_logical_cols( term->screen) ,
-				ml_screen_get_logical_rows( term->screen))) == NULL)
+	else
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new failed.\n") ;
-	#endif
-	
-		return  0 ;
+		if( ( term->pty = ml_pty_new( cmd_path , argv , env , host ,
+					ml_screen_get_logical_cols( term->screen) ,
+					ml_screen_get_logical_rows( term->screen))) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new failed.\n") ;
+		#endif
+
+			return  0 ;
+		}
+
+		ml_vt100_parser_set_pty( term->parser , term->pty) ;
+
+		return  1 ;
 	}
-
-	ml_vt100_parser_set_pty( term->parser , term->pty) ;
-
-	return  1 ;
 }
 
 int

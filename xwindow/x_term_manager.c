@@ -76,6 +76,7 @@ typedef struct main_config
 	char *  sb_bg_color ;
 	char *  mod_meta_key ;
 	char *  icon_path ;
+	char *  init_str ;
 	char *  cmd_path ;
 	char **  cmd_argv ;
 	
@@ -470,13 +471,34 @@ open_term(
 		x_window_set_icon( &screen->window , main_config.icon_path);
 	}
 
-	if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
-		XDisplayString( disp->display) , root->my_window ,
-		main_config.term_type , main_config.use_login_shell))
+	if( pty && main_config.cmd_argv)
 	{
-		goto  error ;
+		int  count ;
+		
+		for( count = 0 ; main_config.cmd_argv[count] ; count ++)
+		{
+			ml_term_write( term , main_config.cmd_argv[count] ,
+				strlen( main_config.cmd_argv[count]) , 0) ;
+			ml_term_write( term , " " , 1 , 0) ;
+		}
+
+		ml_term_write( term , "\n" , 1 , 0) ;
+	}
+	else
+	{
+		if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
+			XDisplayString( disp->display) , root->my_window ,
+			main_config.term_type , main_config.use_login_shell))
+		{
+			goto  error ;
+		}
 	}
 
+	if( main_config.init_str)
+	{
+		ml_term_write( term , main_config.init_str , strlen( main_config.init_str) , 0) ;
+	}
+	
 	if( ( p = realloc( screens , sizeof( x_screen_t*) * (num_of_screens + 1))) == NULL)
 	{
 		goto  error ;
@@ -912,6 +934,8 @@ get_min_conf(
 		free( rcpath) ;
 	}
 
+	kik_conf_add_opt( conf , '#' , "initstr" , 0 , "init_str" ,
+		"initial string sent to pty") ;
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
 		"screen width in percent against font width [default = 100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
@@ -1650,6 +1674,24 @@ config_init(
 		}
 	}
 
+	if( ( value = kik_conf_get_value( conf , "icon_path")))
+	{
+		main_config.icon_path = strdup( value) ;
+	}
+	else
+	{
+		main_config.icon_path = NULL ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "init_str")))
+	{
+		main_config.init_str = strdup( value) ;
+	}
+	else
+	{
+		main_config.init_str = NULL ;
+	}
+
 	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , "true") == 0)
 	{
 		if( ( main_config.cmd_argv = malloc( sizeof( char*) * (argc + 1))) == NULL)
@@ -1680,16 +1722,7 @@ config_init(
 		main_config.cmd_path = NULL ;
 		main_config.cmd_argv = NULL ;
 	}
-	
-	if( ( value = kik_conf_get_value( conf , "icon_path")))
-	{
-		main_config.icon_path = strdup( value) ;
-	}
-	else
-	{
-		main_config.icon_path = NULL ;
-	}
-	
+
 	return  1 ;
 }
 
@@ -1712,6 +1745,7 @@ config_final(void)
 	free( main_config.sb_bg_color) ;
 	free( main_config.icon_path) ;
 	free( main_config.mod_meta_key) ;
+	free( main_config.init_str) ;
 	free( main_config.cmd_argv) ;
 
 	return  1 ;
@@ -1813,8 +1847,13 @@ client_connected(void)
 		goto  error ;
 	}
 
-	if( argc >= 2 && strncmp( argv[1] , "pty_list" , 4) == 0)
+	if( argc == 2 &&
+		( strncmp( argv[1] , "-P" , 2) == 0 || strncmp( argv[1] , "--ptylist" , 9) == 0))
 	{
+		/*
+		 * mlclient -P or mlclient --ptylist
+		 */
+		 
 		char *  list ;
 
 		if( ( list = ml_get_pty_list()) == NULL)
@@ -1833,8 +1872,13 @@ client_connected(void)
 		
 		if( argc >= 2 && strncmp( argv[1] , "/dev" , 4) == 0)
 		{
+			/*
+			 * mlclient /dev/... [optioins...]
+			 */
+			 
 			pty = argv[1] ;
 			argv[1] = argv[0] ;
+			argv = &argv[1] ;
 			argc -- ;
 		}
 		else
