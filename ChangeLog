@@ -1,3 +1,10 @@
+[20020302]
+* whether libsocket exists or not is checked in configure.
+  (Thanks to Nadim Shaikli)
+* ISO-8859-N character sets except ISO-8859-1 cannnot be shown correctly
+  under anti alias mode. fixed.
+  (Thanks to Kubota Tomohiro san)
+
 [20020228]
 * ESC [ J clears characters to the left side of the cursor. fixed.
   (Thanks to KATO Kazuyoshi san)
