@@ -1,4 +1,7 @@
 [20020129]
+* mlcurses_conf is updated(20020127 version).
+
+[20020129]
 * copy&paste with kterm fails. fixed. (thanks to Sakamoto Hironori san)
 * minus value specified for unsigned int is treated as error. (thanks to Minami Hirokazu san)
 

@@ -1,9 +1,9 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
 
 <HTML LANG="ja">
  <HEAD>
  <META NAME=author CONTENT="MINAMI Hirokazu">
- <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-2022-jp">
+ <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=us-ascii">
  <TITLE>mlterm configurator on curses</TITLE>
 </HEAD>
  <BODY>
@@ -17,28 +17,28 @@
  mlconfig is a GUI configurator and should be more user-friendly.</p>
 
  <p>Or you can also use w3mmlconfig if you have installed w3m.</p>
- <p>When you are not using both of them, this tool will help you to change
+ <p>When you are not using both of them, this tool will help you to change</p>
  <ul>
   <li>Terminal encoding</li>
   <li>X Input Method</li>
   <li>Font size/color</li>
   <li>Anti Aliasing</li>
   <li>Wall picture</li>
-  <li>Transparent background</li
-  <li>..and more</li>
+  <li>Transparent background</li>
+  <li>... and more .</li>
  </ul>
- on the fly.
- </p>
+
  <p>Actually, you can send escape sequence to mlterm by hand and control
- the setting. For example, 
+ the setting. For example, </p>
  <pre>
  echo -e "\e]5379;wall_picture=/path/to/file.jpg\x07"
  </pre>
+<p>
  will change wall picture to /path/to/file.jpg.
 
  This tool was written to automagically generate such a magic
  word instead of you. 
-</p>
+ </p>
 
  <h2>Requirement</h2>
  <ul>
@@ -48,11 +48,15 @@
 
  <h2>Install</h2>
  <p> It's a plain perl script. You do not have to do anything to run.</p>
- <p>To test,</p>
+ <p>You can try by</p>
  <pre>perl mlconf_curses.pl</pre>
  <p>To install,</p>
+ <p>(If your perl is not in /usr/bin, edit "PERL=" line in Makefile.) </p>
  <pre>make&amp;make install</pre>
-
+ <p> Afer instllation, you sould be able to run this tool by </p>
+ <pre>mlconf_curses</pre>
+ <p>(.pl is omitted because 1. it's ugly.  2. someday this tool would be
+ rewriten in other language.)</p>
  <h2>To Do</h2>
  <ul>
   <li>Implement file selector (someday)</li>
@@ -64,7 +68,7 @@
   <li>Serialization (write back changes to config file)</li>
  </ul>
  <h2>Author</h2>
- MINAMI Hirokazu (minami@chem.s.u-tokyo.ac.jp)
+ <p>MINAMI Hirokazu (minami@chem.s.u-tokyo.ac.jp)</p>
  </BODY>
 </HTML>
 

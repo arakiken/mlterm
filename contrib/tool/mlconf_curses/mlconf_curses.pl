@@ -10,7 +10,7 @@ use Data::Dumper;
 ###########
 #
 my $VERSION="0.1.2";
-my $TITLE = "mlterm configulator on Curses v.$VERSION";
+my $TITLE = "mlterm configurator on Curses v.$VERSION";
 my $TERM="mlterm" || $ENV{TERM}; ### XXX:drop support for other T.E.s ?
 my $TTY = "/dev/tty"; ### XXX TBD:support remote control!
 
@@ -158,7 +158,7 @@ sub config_init_bg(){
 	    $BG_COLOR = $color;
 	}
     }
-    if ($BG_COLOR eq $FG_COLOR){ ### can't see anythig
+    if ($BG_COLOR eq $FG_COLOR){ ### can't see anything
 	if ($FG_COLOR eq "black"){
 	    $BG_COLOR = "white";
 	}else{
@@ -435,7 +435,7 @@ sub display_str(@){
 }
 
 sub display_set_color(@){
-### XXX rewrite to suppot misc. colors
+### XXX rewrite to support misc. colors
     my $window = shift;
     my $fg = shift || $FG_COLOR;
     my $bg = shift || $BG_COLOR;
@@ -532,7 +532,7 @@ sub display_section_select(@){
     return $display_state;
 }
 ####<<< display section    ######################################
-####    disaply entry   >>>######################################
+####    display entry   >>>######################################
 sub display_entry_edit(){
     my $entry_index = config_entry_get_cur_index();
     $window_grab = $window_entry;
@@ -590,12 +590,12 @@ sub display_entry_all(@){
 	display_entry($index);
     }
 }
-####<<< disaply entry ######################################
+####<<< display entry ######################################
 
-#### configulator internal >>>##############################
+#### configurator internal >>>##############################
 sub config_entry_sel_color(@){
 ## return the color for entry title
-# retuens STRING(COLOR_NAME)
+# returns STRING(COLOR_NAME)
     my $entry_index = shift;
     my $section_name = shift || config_section_get_cur_name();
     unless(config_entry_is_cur($entry_index)){
@@ -623,7 +623,7 @@ sub config_entry_data_color(@){
 
 sub config_entry_is_cur(@){
 ## return the color for entry index
-# retuens BOOL
+# returns BOOL
     my $entry_index = shift;
     my $section_name = shift || config_section_get_cur_name();
     return ($entry_index == config_entry_get_cur_index($section_name));
@@ -1030,7 +1030,7 @@ sub display_text_box(@){
 		$offset = 0;
 	    }
 	} elsif ( $input =~ /\t/) {
-	    ### XXX autocomplete?
+	    ### XXX auto-complete?
 	}
     }
 }
@@ -1524,5 +1524,6 @@ while ($display_state >= 0){
 }
 
 display_final();
+
 
 
