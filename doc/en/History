@@ -9,7 +9,7 @@ ver 2.2.0()
 * ESC ] 20 ; pt BEL sequence is supported.
 * mlterm configuration protocol is decided and implemented.(see doc/en/PROTOCOL)
 * w3mmlconfig is added. (thanks to Sakamoto Hironori san)
-* ~/.mlterm/{v|aa}font format is changed. (Dynalab font can be used for anti alias)
+* etc/{font|vfont|aafont|vaafont} format is changed. (Dynalab font can be used for anti alias)
 * CP932 => UCS conversion is supported.(-c/--cp932/use_cp932_ucs_for_xft)
 * fribidi 0.10.0 is supported. 
 * and many minor bugs are fixed.

@@ -768,20 +768,20 @@ ml_term_manager_init(
 		if( ! get_font_size_range( &min_font_size , &max_font_size , value))
 		{
 			kik_msg_printf( "font_size_range = %s is illegal.\n" , value) ;
-			
+
 			/* default values are used */
-			min_font_size = 0 ;
-			max_font_size = 0 ;
+			min_font_size = 6 ;
+			max_font_size = 30 ;
 		}
 	}
 	else
 	{
 		/* default values are used */
-		min_font_size = 0 ;
-		max_font_size = 0 ;
+		min_font_size = 6 ;
+		max_font_size = 30 ;
 	}
 
-	
+
 	if( ! ml_font_custom_init( &term_man->normal_font_custom , min_font_size , max_font_size))
 	{
 	#ifdef  DEBUG
@@ -904,12 +904,10 @@ ml_term_manager_init(
 		}
 	}
 
-	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")))
+	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")) == NULL ||
+		strcmp( value , "true") == 0)
 	{
-		if( strcmp( value , "true") == 0)
-		{
-			ml_use_cp932_ucs_for_xft() ;
-		}
+		ml_use_cp932_ucs_for_xft() ;
 	}
 #endif
 
@@ -1207,15 +1205,15 @@ ml_term_manager_init(
 
 	if( ( value = kik_conf_get_value( conf , "tabsize")) == NULL)
 	{
-		/* 0 means the default tab size(see ml_image.c) */
-		term_man->tab_size = 0 ;
+		/* default value is used. */
+		term_man->tab_size = 8 ;
 	}
 	else if( ! kik_str_to_int( &term_man->tab_size , value))
 	{
 		kik_msg_printf( "tab size %s is not digit.\n" , value) ;
 
-		/* 0 means the default tab size(see ml_image.c) */
-		term_man->tab_size = 0 ;
+		/* default value is used. */
+		term_man->tab_size = 8 ;
 	}
 	
 	term_man->use_login_shell = 0 ;
@@ -1318,7 +1316,7 @@ ml_term_manager_init(
 			kik_msg_printf( "col size of width a %s is not digit.\n" , value) ;
 
 			/* default value is used */
-			term_man->col_size_a = 0 ;
+			term_man->col_size_a = 1 ;
 		}
 	}
 

@@ -34,8 +34,6 @@
 
 #endif
 
-#define  DEFAULT_TAB_SIZE  8
-
 
 /* --- static functions --- */
 
@@ -1504,7 +1502,11 @@ ml_image_set_tab_size(
 
 	if( tab_size == 0)
 	{
-		tab_size = DEFAULT_TAB_SIZE ;
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " tab size 0 is not acceptable.\n") ;
+	#endif
+	
+		return  0 ;
 	}
 
 	ml_image_clear_all_tab_stops( image) ;

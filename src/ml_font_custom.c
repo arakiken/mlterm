@@ -14,10 +14,6 @@
 #include  "ml_font_intern.h"
 
 
-#define  DEFAULT_MAX_FONT_SIZE  30
-#define  DEFAULT_MIN_FONT_SIZE  6
-
-
 typedef struct  cs_table
 {
 	char *  name ;
@@ -127,14 +123,13 @@ ml_font_custom_init(
 	u_int  max_font_size
 	)
 {
-	if( min_font_size == 0)
+	if( min_font_size == 0 || max_font_size == 0)
 	{
-		min_font_size = DEFAULT_MIN_FONT_SIZE ;
-	}
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " max_font_size/min_font_size must not be 0.\n") ;
+	#endif
 	
-	if( max_font_size == 0)
-	{
-		max_font_size = DEFAULT_MAX_FONT_SIZE ;
+		return  0 ;
 	}
 	
 	if( max_font_size < min_font_size)

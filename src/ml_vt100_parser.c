@@ -2140,16 +2140,10 @@ ml_vt100_parser_new(
 	{
 		vt100_parser->col_size_of_east_asian_width_a = col_size_a ;
 	}
-	else if( col_size_a == 0)
-	{
-		/* default value */
-		
-		vt100_parser->col_size_of_east_asian_width_a = 1 ;
-	}
 	else
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG , " col size should be 1 or 2. default value 1 is used.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " col size should be 1 or 2. default value 1 is used.\n") ;
 	#endif
 	
 		vt100_parser->col_size_of_east_asian_width_a = 1 ;

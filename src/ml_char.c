@@ -213,6 +213,26 @@ ml_str_cols(
 	return  cols ;
 }
 
+int
+ml_str_bytes_equal(
+	ml_char_t *  str1 ,
+	ml_char_t *  str2 ,
+	u_int  len
+	)
+{
+	int  counter ;
+
+	for( counter = 0 ; counter < len ; counter ++)
+	{
+		if( ! ml_char_bytes_equal( &str1[counter] , &str2[counter]))
+		{
+			return  0 ;
+		}
+	}
+
+	return  1 ;
+}
+
 #ifdef  DEBUG
 
 void
@@ -702,6 +722,51 @@ ml_char_is_reversed(
 	return  IS_REVERSED(ch->attr) ;
 }
 
+int
+ml_char_bytes_equal(
+	ml_char_t *  ch1 ,
+	ml_char_t *  ch2
+	)
+{
+	u_int  size1 ;
+	u_int  size2 ;
+	ml_char_t *  comb1 ;
+	ml_char_t *  comb2 ;
+	u_int  comb1_size ;
+	u_int  comb2_size ;
+	int  counter ;
+
+	size1 = ml_char_size( ch1) ;
+	size2 = ml_char_size( ch2) ;
+
+	if( size1 != size2)
+	{
+		return  0 ;
+	}
+
+	if( memcmp( ml_char_bytes( ch1) , ml_char_bytes( ch2) , size1) != 0)
+	{
+		return  0 ;
+	}
+	
+	comb1 = ml_get_combining_chars( ch1 , &comb1_size) ;
+	comb2 = ml_get_combining_chars( ch2 , &comb2_size) ;
+
+	if( comb1_size != comb2_size)
+	{
+		return  0 ;
+	}
+
+	for( counter = 0 ; counter < comb1_size ; counter ++)
+	{
+		if( ! ml_char_bytes_equal( &comb1[counter] , &comb2[counter]))
+		{
+			return  0 ;
+		}
+	}
+
+	return  1 ;
+}
 
 #ifdef  DEBUG
 

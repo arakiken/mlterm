@@ -263,6 +263,28 @@ iscii_render(
 }
 
 static int
+search_same_line(
+	ml_image_line_t *  lines ,
+	u_int  num_of_lines ,
+	ml_image_line_t *  line
+	)
+{
+	int  row ;
+
+	for( row = 0 ; row < num_of_lines ; row ++)
+	{
+		if( lines[row].num_of_filled_chars == line->num_of_filled_chars &&
+			ml_str_bytes_equal( lines[row].chars , line->chars , line->num_of_filled_chars))
+		{
+			return  row ;
+		}
+	}
+
+	/* not found */
+	return  -1 ;
+}
+
+static int
 iscii_visual(
 	ml_logical_visual_t *  logvis
 	)
@@ -337,10 +359,55 @@ iscii_visual(
 	
 	for( row = 0 ; row < image->num_of_filled_rows ; row ++)
 	{
-		if( iscii_logvis->logical_lines[row].num_of_filled_chars == 0 ||
-			iscii_logvis->visual_lines[row].num_of_filled_chars == 0 ||
-			IMAGE_LINE(image,row).is_modified)
+		int  is_cache_active ;
+		
+		if( IMAGE_LINE(image,row).is_modified)
 		{
+			is_cache_active = 0 ;
+		}
+		else if( iscii_logvis->logical_lines[row].num_of_filled_chars !=
+				IMAGE_LINE(image,row).num_of_filled_chars ||
+			! ml_str_bytes_equal( iscii_logvis->logical_lines[row].chars ,
+				IMAGE_LINE(image,row).chars ,
+				iscii_logvis->logical_lines[row].num_of_filled_chars) )
+		{
+			int  hit_row ;
+			
+			if( ( hit_row = search_same_line( iscii_logvis->logical_lines ,
+				iscii_logvis->num_of_rows , &IMAGE_LINE(image,row))) == -1)
+			{
+				is_cache_active = 0 ;
+			}
+			else
+			{
+				/*
+				 * XXX
+				 * this may break active cache in "row" line.
+				 */
+				ml_imgline_copy_line( &iscii_logvis->logical_lines[row] ,
+					&iscii_logvis->logical_lines[hit_row]) ;
+				ml_imgline_copy_line( &iscii_logvis->visual_lines[row] ,
+					&iscii_logvis->visual_lines[hit_row]) ;
+				
+				is_cache_active = 1 ;
+			}
+		}
+		else
+		{
+			is_cache_active = 1 ;
+		}
+
+		if( is_cache_active)
+		{
+			/* using cached line */
+			ml_imgline_copy_line( &IMAGE_LINE(image,row) , &iscii_logvis->visual_lines[row]) ;
+		}
+		else
+		{
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " iscii rendering.\n") ;
+		#endif
+		
 			ml_imgline_copy_line( &iscii_logvis->logical_lines[row] , &IMAGE_LINE(image,row)) ;
 			ml_imgline_is_updated( &iscii_logvis->logical_lines[row]) ;
 
@@ -349,11 +416,6 @@ iscii_visual(
 			/* caching */
 			ml_imgline_copy_line( &iscii_logvis->visual_lines[row] , &IMAGE_LINE(image,row)) ;
 			ml_imgline_is_updated( &iscii_logvis->visual_lines[row]) ;
-		}
-		else
-		{
-			/* using cached line */
-			ml_imgline_copy_line( &IMAGE_LINE(image,row) , &iscii_logvis->visual_lines[row]) ;
 		}
 	}
 
