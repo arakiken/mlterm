@@ -94,7 +94,7 @@ static int  initialized = 0 ;
 static mkf_parser_t *  parser_utf16 = NULL ;
 static IIIMCF_handle  handle = NULL ;
 /* mlterm internal symbols */
-static x_im_export_syms_t *  mlterm_syms = NULL ;
+static x_im_export_syms_t *  syms = NULL ;
 
 /* --- static functions --- */
 
@@ -214,7 +214,7 @@ find_language_engine(
 
 	le_name ++;	/* remove ":". ex. ":CannaLE" -> "CannaLE" */
 
-	if( ! ( conv = (*mlterm_syms->ml_conv_new)( ML_ISO8859_1)))
+	if( ! ( conv = (*syms->ml_conv_new)( ML_ISO8859_1)))
 	{
 		return  NULL ;
 	}
@@ -302,7 +302,7 @@ show_available_gui_objects(void)
 	int  num_of_bin_objs = 0 ;
 	mkf_conv_t *  conv = NULL ;
 
-	if( ! ( conv = (*mlterm_syms->ml_conv_new)( ML_ISO8859_1)))
+	if( ! ( conv = (*syms->ml_conv_new)( ML_ISO8859_1)))
 	{
 		return ;
 	}
@@ -482,8 +482,8 @@ preedit_start(
 
 	if( iiimf->im.preedit.chars)
 	{
-		(*mlterm_syms->ml_str_delete)( iiimf->im.preedit.chars ,
-					       iiimf->im.preedit.num_of_chars) ;
+		(*syms->ml_str_delete)( iiimf->im.preedit.chars ,
+				        iiimf->im.preedit.num_of_chars) ;
 	}
 
 	iiimf->im.preedit.num_of_chars = 0 ;
@@ -542,8 +542,8 @@ preedit_change(
 
 		if( iiimf->im.preedit.chars)
 		{
-			(*mlterm_syms->ml_str_delete)( iiimf->im.preedit.chars ,
-						       iiimf->im.preedit.num_of_chars) ;
+			(*syms->ml_str_delete)( iiimf->im.preedit.chars ,
+					        iiimf->im.preedit.num_of_chars) ;
 			iiimf->im.preedit.chars = NULL ;
 			iiimf->im.preedit.num_of_chars = 0 ;
 			iiimf->im.preedit.filled_len = 0 ;
@@ -578,8 +578,8 @@ preedit_change(
 	 */
 	if( iiimf->im.preedit.chars)
 	{
-		(*mlterm_syms->ml_str_delete)( iiimf->im.preedit.chars ,
-					       iiimf->im.preedit.num_of_chars) ;
+		(*syms->ml_str_delete)( iiimf->im.preedit.chars ,
+					iiimf->im.preedit.num_of_chars) ;
 		iiimf->im.preedit.chars = NULL ;
 		iiimf->im.preedit.num_of_chars = 0 ;
 		iiimf->im.preedit.filled_len = 0 ;
@@ -599,15 +599,15 @@ preedit_change(
 	iiimf->im.preedit.num_of_chars = count ;
 	iiimf->im.preedit.filled_len = 0 ;
 
-	(*mlterm_syms->ml_str_init)( iiimf->im.preedit.chars ,
-				     iiimf->im.preedit.num_of_chars) ;
+	(*syms->ml_str_init)( iiimf->im.preedit.chars ,
+			      iiimf->im.preedit.num_of_chars) ;
 
 	/*
 	 * IIIMP_card16(utf16) -> ml_char_t
 	 */
 
 	p = iiimf->im.preedit.chars ;
-	(*mlterm_syms->ml_str_init)( p , iiimf->im.preedit.num_of_chars) ;
+	(*syms->ml_str_init)( p , iiimf->im.preedit.num_of_chars) ;
 
 	(*iiimf->parser_term->init)( iiimf->parser_term) ;
 	(*iiimf->parser_term->set_str)( iiimf->parser_term ,
@@ -698,14 +698,14 @@ preedit_change(
 
 		if( is_comb)
 		{
-			if( (*mlterm_syms->ml_char_combine)( p - 1 , ch.ch ,
-							     ch.size , ch.cs ,
-							     is_biwidth ,
-							     is_comb ,
-							     fg_color ,
-							     bg_color ,
-							     is_bold ,
-							     is_underline))
+			if( (*syms->ml_char_combine)( p - 1 , ch.ch ,
+						      ch.size , ch.cs ,
+						      is_biwidth ,
+						      is_comb ,
+						      fg_color ,
+						      bg_color ,
+						      is_bold ,
+						      is_underline))
 			{
 				continue;
 			}
@@ -715,15 +715,15 @@ preedit_change(
 			 */
 		}
 
-		if( (*mlterm_syms->ml_is_msb_set)( ch.cs))
+		if( (*syms->ml_is_msb_set)( ch.cs))
 		{
 			SET_MSB( ch.ch[0]) ;
 		}
 
-		(*mlterm_syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
-					     is_biwidth , is_comb ,
-					     fg_color , bg_color ,
-					     is_bold , is_underline) ;
+		(*syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
+				      is_biwidth , is_comb ,
+				      fg_color , bg_color ,
+				      is_bold , is_underline) ;
 
 		p++ ;
 		iiimf->im.preedit.filled_len++;
@@ -757,8 +757,8 @@ preedit_done(
 
 	if( iiimf->im.preedit.chars)
 	{
-		(*mlterm_syms->ml_str_delete)( iiimf->im.preedit.chars ,
-					       iiimf->im.preedit.num_of_chars) ;
+		(*syms->ml_str_delete)( iiimf->im.preedit.chars ,
+					iiimf->im.preedit.num_of_chars) ;
 		iiimf->im.preedit.chars = NULL ;
 		iiimf->im.preedit.num_of_chars = 0 ;
 		iiimf->im.preedit.filled_len = 0 ;
@@ -867,7 +867,7 @@ lookup_choice_change(
 			is_vertical_direction = 1 ;
 		}
 
-		if( ! ( iiimf->im.cand_screen = (*mlterm_syms->x_im_candidate_screen_new)(
+		if( ! ( iiimf->im.cand_screen = (*syms->x_im_candidate_screen_new)(
 				(*iiimf->im.listener->get_win_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_color_man)(iiimf->im.listener->self) ,
@@ -1007,7 +1007,7 @@ atokx_lookup_set(
 
 	if( ! iiimf->im.cand_screen)
 	{
-		if( ! ( iiimf->im.cand_screen = (*mlterm_syms->x_im_candidate_screen_new)(
+		if( ! ( iiimf->im.cand_screen = (*syms->x_im_candidate_screen_new)(
 				(*iiimf->im.listener->get_win_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_color_man)(iiimf->im.listener->self) ,
@@ -1238,7 +1238,7 @@ status_change(
 
 	if( iiimf->im.stat_screen == NULL)
 	{
-		if( ! ( iiimf->im.stat_screen = (*mlterm_syms->x_im_status_screen_new)(
+		if( ! ( iiimf->im.stat_screen = (*syms->x_im_status_screen_new)(
 
 				(*iiimf->im.listener->get_win_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
@@ -1713,7 +1713,7 @@ im_iiimf_new(
 
 		show_iiimcf_version();
 
-		mlterm_syms = export_syms ;
+		syms = export_syms ;
 
 		show_available_gui_objects() ;
 	}
@@ -1739,12 +1739,12 @@ im_iiimf_new(
 	iiimf->im.focused = focused ;
 	iiimf->im.unfocused = unfocused ;
 
-	if( ! ( iiimf->parser_term = (*mlterm_syms->ml_parser_new)( term_encoding)))
+	if( ! ( iiimf->parser_term = (*syms->ml_parser_new)( term_encoding)))
 	{
 		goto  error ;
 	}
 
-	if( ! ( iiimf->conv = (*mlterm_syms->ml_conv_new)( term_encoding)))
+	if( ! ( iiimf->conv = (*syms->ml_conv_new)( term_encoding)))
 	{
 		goto  error ;
 	}

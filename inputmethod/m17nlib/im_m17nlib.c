@@ -73,7 +73,7 @@ static int  ref_count = 0 ;
 static int  initialized = 0 ;
 static mkf_parser_t *  parser_ascii = NULL ;
 /* mlterm internal symbols */
-static x_im_export_syms_t *  mlterm_syms = NULL ;
+static x_im_export_syms_t *  syms = NULL ;
 
 
 /* --- static functions --- */
@@ -405,8 +405,7 @@ preedit_changed(
 
 	if( m17nlib->im.preedit.chars)
 	{
-		(*mlterm_syms->ml_str_delete)(
-					m17nlib->im.preedit.chars ,
+		(*syms->ml_str_delete)( m17nlib->im.preedit.chars ,
 					m17nlib->im.preedit.num_of_chars) ;
 		m17nlib->im.preedit.chars = NULL ;
 	}
@@ -468,7 +467,7 @@ preedit_changed(
 	 */
 
 	p = m17nlib->im.preedit.chars ;
-	(*mlterm_syms->ml_str_init)( p , m17nlib->im.preedit.num_of_chars);
+	(*syms->ml_str_init)( p , m17nlib->im.preedit.num_of_chars);
 
 	(*m17nlib->parser_term->init)( m17nlib->parser_term) ;
 	(*m17nlib->parser_term->set_str)( m17nlib->parser_term ,
@@ -516,13 +515,13 @@ preedit_changed(
 
 		if( is_comb)
 		{
-			if( (*mlterm_syms->ml_char_combine)( p - 1 , ch.ch ,
-							     ch.size , ch.cs ,
-							     is_biwidth ,
-							     is_comb ,
-							     fg_color ,
-							     bg_color ,
-							     0 , is_underline))
+			if( (*syms->ml_char_combine)( p - 1 , ch.ch ,
+						      ch.size , ch.cs ,
+						      is_biwidth ,
+						      is_comb ,
+						      fg_color ,
+						      bg_color ,
+						      0 , is_underline))
 			{
 				pos++ ;
 				continue;
@@ -533,15 +532,15 @@ preedit_changed(
 			 */
 		}
 
-		if( (*mlterm_syms->ml_is_msb_set)( ch.cs))
+		if( (*syms->ml_is_msb_set)( ch.cs))
 		{
 			SET_MSB( ch.ch[0]) ;
 		}
 
-		(*mlterm_syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
-					     is_biwidth , is_comb ,
-					     fg_color , bg_color ,
-					     0 , is_underline) ;
+		(*syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
+				      is_biwidth , is_comb ,
+				      fg_color , bg_color ,
+				      0 , is_underline) ;
 
 		pos++ ;
 		p++ ;
@@ -628,7 +627,7 @@ candidates_changed(
 			is_vertical_direction = 1 ;
 		}
 
-		if( ! ( m17nlib->im.cand_screen = (*mlterm_syms->x_im_candidate_screen_new)(
+		if( ! ( m17nlib->im.cand_screen = (*syms->x_im_candidate_screen_new)(
 				(*m17nlib->im.listener->get_win_man)(m17nlib->im.listener->self) ,
 				(*m17nlib->im.listener->get_font_man)(m17nlib->im.listener->self) ,
 				(*m17nlib->im.listener->get_color_man)(m17nlib->im.listener->self) ,
@@ -850,7 +849,7 @@ switch_mode(
 
 		if( m17nlib->im.stat_screen == NULL)
 		{
-			if( ! ( m17nlib->im.stat_screen = (*mlterm_syms->x_im_status_screen_new)(
+			if( ! ( m17nlib->im.stat_screen = (*syms->x_im_status_screen_new)(
 					(*m17nlib->im.listener->get_win_man)(m17nlib->im.listener->self) ,
 					(*m17nlib->im.listener->get_font_man)(m17nlib->im.listener->self) ,
 					(*m17nlib->im.listener->get_color_man)(m17nlib->im.listener->self) ,
@@ -906,8 +905,7 @@ switch_mode(
 
 		if( m17nlib->im.preedit.chars)
 		{
-			(*mlterm_syms->ml_str_delete)(
-						m17nlib->im.preedit.chars ,
+			(*syms->ml_str_delete)( m17nlib->im.preedit.chars ,
 						m17nlib->im.preedit.num_of_chars) ;
 			m17nlib->im.preedit.chars = NULL ;
 		}
@@ -1035,11 +1033,11 @@ im_m17nlib_new(
 			goto  error ;
 		}
 
-		mlterm_syms = export_syms ;
+		syms = export_syms ;
 
 		initialized = 1 ;
 
-		if( ! ( parser_ascii = (*mlterm_syms->ml_parser_new)( ML_ISO8859_1)))
+		if( ! ( parser_ascii = (*syms->ml_parser_new)( ML_ISO8859_1)))
 		{
 			goto  error ;
 		}
@@ -1079,12 +1077,11 @@ im_m17nlib_new(
 
 	if( term_encoding == ML_EUCJISX0213)
 	{
-		kik_msg_printf( "EUC-JP is used instead of EUC-JISX0213\n");
-		encoding_name = (*mlterm_syms->ml_get_char_encoding_name)( ML_EUCJP) ;
+		encoding_name = (*syms->ml_get_char_encoding_name)( ML_EUCJP) ;
 	}
 	else
 	{
-		encoding_name = (*mlterm_syms->ml_get_char_encoding_name)( term_encoding) ;
+		encoding_name = (*syms->ml_get_char_encoding_name)( term_encoding) ;
 	}
 
 
@@ -1105,12 +1102,12 @@ im_m17nlib_new(
 		goto  error ;
 	}
 
-	if( ! ( m17nlib->conv = (*mlterm_syms->ml_conv_new)( term_encoding)))
+	if( ! ( m17nlib->conv = (*syms->ml_conv_new)( term_encoding)))
 	{
 		goto  error ;
 	}
 
-	if( ! ( m17nlib->parser_term = (*mlterm_syms->ml_parser_new)( term_encoding)))
+	if( ! ( m17nlib->parser_term = (*syms->ml_parser_new)( term_encoding)))
 	{
 		goto  error ;
 	}

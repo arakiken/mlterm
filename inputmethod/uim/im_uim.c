@@ -95,7 +95,7 @@ static int  ref_count = 0 ;
 static int  initialized = 0 ;
 static int  helper_fd = -1 ;
 static im_uim_t *  last_focused_uim = NULL ;
-static x_im_export_syms_t *  mlterm_syms = NULL ; /* mlterm internal symbols */
+static x_im_export_syms_t *  syms = NULL ; /* mlterm internal symbols */
 static mod_key_debug = 0 ;
 
 
@@ -348,7 +348,7 @@ helper_disconnected( void)
 	kik_debug_printf("helper was disconnected\n");
 #endif
 
-	(*mlterm_syms->x_term_manager_remove_fd)( helper_fd) ;
+	(*syms->x_term_manager_remove_fd)( helper_fd) ;
 
 	helper_fd = -1 ;
 }
@@ -511,8 +511,8 @@ preedit_clear(
 
 	if( uim->im.preedit.chars)
 	{
-		(*mlterm_syms->ml_str_delete)( uim->im.preedit.chars ,
-					       uim->im.preedit.num_of_chars) ;
+		(*syms->ml_str_delete)( uim->im.preedit.chars ,
+					uim->im.preedit.num_of_chars) ;
 		uim->im.preedit.chars = NULL ;
 	}
 
@@ -611,8 +611,7 @@ preedit_pushback(
 			kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
 		#endif
 
-			(*mlterm_syms->ml_str_delete)(
-						uim->im.preedit.chars ,
+			(*syms->ml_str_delete)( uim->im.preedit.chars ,
 						uim->im.preedit.num_of_chars) ;
 			uim->im.preedit.chars = NULL ;
 			uim->im.preedit.num_of_chars = 0 ;
@@ -635,7 +634,7 @@ preedit_pushback(
 	 */
 
 	p = &uim->im.preedit.chars[uim->im.preedit.filled_len];
-	(*mlterm_syms->ml_str_init)( p , count);
+	(*syms->ml_str_init)( p , count);
 
 	(*uim->parser_term->init)( uim->parser_term) ;
 	(*uim->parser_term->set_str)( uim->parser_term ,
@@ -669,13 +668,13 @@ preedit_pushback(
 
 		if( is_comb)
 		{
-			if( (*mlterm_syms->ml_char_combine)( p - 1 , ch.ch ,
-							     ch.size , ch.cs ,
-							     is_biwidth ,
-							     is_comb ,
-							     fg_color ,
-							     bg_color ,
-							     0 , is_underline))
+			if( (*syms->ml_char_combine)( p - 1 , ch.ch ,
+						      ch.size , ch.cs ,
+						      is_biwidth ,
+						      is_comb ,
+						      fg_color ,
+						      bg_color ,
+						      0 , is_underline))
 			{
 				continue;
 			}
@@ -685,15 +684,15 @@ preedit_pushback(
 			 */
 		}
 
-		if( (*mlterm_syms->ml_is_msb_set)( ch.cs))
+		if( (*syms->ml_is_msb_set)( ch.cs))
 		{
 			SET_MSB( ch.ch[0]) ;
 		}
 
-		(*mlterm_syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
-					     is_biwidth , is_comb ,
-					     fg_color , bg_color ,
-					     0 , is_underline) ;
+		(*syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
+				      is_biwidth , is_comb ,
+				      fg_color , bg_color ,
+				      0 , is_underline) ;
 
 		p++ ;
 		uim->im.preedit.filled_len++;
@@ -774,7 +773,7 @@ candidate_activate(
 					       uim->im.preedit.segment_offset ,
 					       &x , &y) ;
 
-		if( ! ( uim->im.cand_screen = (*mlterm_syms->x_im_candidate_screen_new)(
+		if( ! ( uim->im.cand_screen = (*syms->x_im_candidate_screen_new)(
 				(*uim->im.listener->get_win_man)(uim->im.listener->self) ,
 				(*uim->im.listener->get_font_man)(uim->im.listener->self) ,
 				(*uim->im.listener->get_color_man)(uim->im.listener->self) ,
@@ -859,8 +858,7 @@ candidate_select(
 
 	if( uim->im.cand_screen)
 	{
-			(*uim->im.cand_screen->select)( uim->im.cand_screen ,
-							index) ;
+		(*uim->im.cand_screen->select)( uim->im.cand_screen , index) ;
 	}
 }
 
@@ -946,7 +944,7 @@ delete(
 	if( ref_count == 0 && initialized)
 	{
 		uim_helper_close_client_fd( helper_fd) ;
-		(*mlterm_syms->x_term_manager_remove_fd)( helper_fd) ;
+		(*syms->x_term_manager_remove_fd)( helper_fd) ;
 		helper_fd = -1 ;
 
 		uim_quit() ;
@@ -1417,7 +1415,7 @@ im_uim_new(
 		kik_locale_init( cur_locale) ;
 	#endif
 
-		mlterm_syms = export_syms ;
+		syms = export_syms ;
 
 		kik_list_new( im_uim_t , uim_list) ;
 
@@ -1427,14 +1425,12 @@ im_uim_new(
 	/*
 	 * create I/O chanel for uim_helper_server
 	 */
-	if( helper_fd == -1 &&
-	    mlterm_syms &&
-	    mlterm_syms->x_term_manager_add_fd &&
-	    mlterm_syms->x_term_manager_remove_fd)
+	if( helper_fd == -1 && syms && syms->x_term_manager_add_fd &&
+	    syms->x_term_manager_remove_fd)
 	{
 		helper_fd = uim_helper_init_client_fd( helper_disconnected) ;
 
-		(*mlterm_syms->x_term_manager_add_fd)(helper_fd ,
+		(*syms->x_term_manager_add_fd)(helper_fd ,
 						      helper_read_handler) ;
 	}
 
@@ -1455,7 +1451,7 @@ im_uim_new(
 		goto  error ;
 	}
 
-	if( (encoding = (*mlterm_syms->ml_get_char_encoding)( encoding_name)) == ML_UNKNOWN_ENCODING)
+	if( (encoding = (*syms->ml_get_char_encoding)( encoding_name)) == ML_UNKNOWN_ENCODING)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " %s is unknown encoding.\n" , encoding_name) ;
@@ -1482,18 +1478,18 @@ im_uim_new(
 
 	if( uim->term_encoding != encoding)
 	{
-		if( ! ( uim->parser_uim = (*mlterm_syms->ml_parser_new)( encoding)))
+		if( ! ( uim->parser_uim = (*syms->ml_parser_new)( encoding)))
 		{
 			goto  error ;
 		}
 
-		if( ! ( uim->conv = (*mlterm_syms->ml_conv_new)( term_encoding)))
+		if( ! ( uim->conv = (*syms->ml_conv_new)( term_encoding)))
 		{
 			goto  error ;
 		}
 	}
 
-	if( ! ( uim->parser_term = (*mlterm_syms->ml_parser_new)( term_encoding)))
+	if( ! ( uim->parser_term = (*syms->ml_parser_new)( term_encoding)))
 	{
 		goto  error ;
 	}
@@ -1555,7 +1551,7 @@ error:
 	{
 		uim_helper_close_client_fd( helper_fd) ;
 
-		(*mlterm_syms->x_term_manager_remove_fd)( helper_fd) ;
+		(*syms->x_term_manager_remove_fd)( helper_fd) ;
 
 		helper_fd = -1 ;
 	}

@@ -6,6 +6,14 @@
 	* inputmethod/iiimf/im_iiimf.c, configure.in: added
 	  -DHAVE_HOTKEY_NOTFY_EVENT and -DHAVE_AUX_GETVALUES_EVENT
 
+	* inputmethod/uim/im_uim.c
+	* inputmethod/m17nlib/im_m17nlib.c
+	* inputmethod/iiimf/im_iiimf.c
+	  (mlterm_syms): renamed to syms
+
+	* inputmethod/scim/im_scim_mod_if.c (preedit_update):
+	  dropped candidates, when position of editing segment was changed,
+
 2005-01-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/scim/im_scim.cpp: minor bug fix.

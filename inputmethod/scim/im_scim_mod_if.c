@@ -226,6 +226,7 @@ preedit_update(
 	mkf_char_t  ch ;
 	u_int  count = 0 ;
 	u_int  index = 0 ;
+	int  saved_segment_offset ;
 
 	scim = (im_scim_t *) ptr ;
 
@@ -235,6 +236,8 @@ preedit_update(
 					scim->im.preedit.num_of_chars) ;
 		scim->im.preedit.chars = NULL ;
 	}
+
+	saved_segment_offset = scim->im.preedit.cursor_offset ;
 
 	scim->im.preedit.num_of_chars = 0 ;
 	scim->im.preedit.filled_len = 0 ;
@@ -423,6 +426,14 @@ draw:
 						scim->im.preedit.chars ,
 						scim->im.preedit.filled_len ,
 						scim->im.preedit.cursor_offset) ;
+
+	/* Drop the current candidates since the segment is changed */
+	if( saved_segment_offset != scim->im.preedit.segment_offset &&
+	    scim->im.cand_screen)
+	{
+		(*scim->im.cand_screen->delete)( scim->im.cand_screen) ;
+		scim->im.cand_screen = NULL ;
+	}
 }
 
 static void
