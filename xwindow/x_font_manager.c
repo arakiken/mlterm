@@ -148,8 +148,15 @@ x_font_manager_new(
 	font_man->prev_cache.xfont = NULL ;
 
 	font_man->usascii_font_cs_changable = usascii_font_cs_changable ;
-	font_man->step_in_changing_font_size = step_in_changing_font_size ;
-
+	if(  x_get_max_font_size() - x_get_min_font_size() >= step_in_changing_font_size)
+	{
+		font_man->step_in_changing_font_size = step_in_changing_font_size ;
+	}
+	else
+	{
+		 font_man->step_in_changing_font_size = x_get_max_font_size() - x_get_min_font_size() ;
+	}
+	
 	return  font_man ;
 }
 
