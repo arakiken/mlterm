@@ -289,8 +289,7 @@ static int
 overwrite_lines(
 	ml_image_t *  image ,
 	ml_char_t *  chars ,
-	u_int  num_of_chars ,
-	u_int  max_lines
+	u_int  num_of_chars
 	)
 {
 	int  counter ;
@@ -304,11 +303,17 @@ overwrite_lines(
 	}
 
 	num_of_lines = ml_get_num_of_lines_by_hints( &image->line_hints) ;
-	if( max_lines < num_of_lines)
+
+#ifdef  DEBUG
+	if( num_of_lines > image->num_of_rows)
 	{
-		num_of_lines = max_lines ;
+		kik_warn_printf( KIK_DEBUG_TAG
+			" ml_get_num_of_lines_by_hints() returns too large value.\n") ;
+		
+		num_of_lines = image->num_of_rows ;
 	}
-	
+#endif
+
 	counter = 0 ;
 	current_row = image->cursor.row ;
 
@@ -496,7 +501,7 @@ cursor_goto_by_col(
  * inserting chars within a line.
  */
 static int
-insert_chars_intern(
+insert_chars(
 	ml_image_t *  image ,
 	ml_char_t *  ins_chars ,
 	u_int  num_of_ins_chars ,
@@ -509,14 +514,14 @@ insert_chars_intern(
 	ml_char_t *  buffer ;
 	u_int  buf_len ;
 	u_int  filled_len ;
+	u_int  filled_cols ;
 	int  cols_rest ;
 	int  cols_after ;
 	int  counter ;
 
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " inserting %d chars at char index %d row %d(%d/%d len %d) -> " ,
-		num_of_ins_chars , image->cursor.char_index , image->cursor.row ,
-		image->num_of_filled_rows , image->num_of_rows , CURSOR_LINE(image).num_of_filled_chars) ;
+	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
+		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
 	buf_len = image->num_of_cols ;
@@ -532,7 +537,10 @@ insert_chars_intern(
 
 	filled_len = 0 ;
 
-	/* before cursor(excluding cursor) */
+	/*
+	 * before cursor(excluding cursor)
+	 */
+	 
 	if( image->cursor.char_index > 0)
 	{
 		ml_str_copy( &buffer[filled_len] , CURSOR_LINE(image).chars , image->cursor.char_index) ;
@@ -550,14 +558,14 @@ insert_chars_intern(
 	#endif
 	
 		/*
-		 * padding spaces before cursor.
+		 * padding spaces for former half of cursor.
 		 */
 		for( counter = 0 ; counter < cols_rest ; counter ++)
 		{
 			ml_char_copy( &buffer[filled_len ++] , &image->sp_ch) ;
 		}
 		
-		cols_after = ml_char_cols( &CURSOR_CHAR(image)) - cols_rest ;	
+		cols_after = ml_char_cols( &CURSOR_CHAR(image)) - cols_rest ;
 	}
 	else
 	{
@@ -568,80 +576,101 @@ insert_chars_intern(
 	{
 		cursor_index = filled_len ;
 	}
+
+	/*
+	 * chars are appended one by one below since the line may be full.
+	 */
+	 
+	/*
+	 * inserted chars
+	 */
+	 
+	filled_cols = ml_str_cols( buffer , filled_len) ;
 	
-	/* inserted chars */
-	if( filled_len + num_of_ins_chars > buf_len)
+	for( counter = 0 ; counter < num_of_ins_chars ; counter ++)
 	{
-		ml_str_copy( &buffer[filled_len] , ins_chars , buf_len - filled_len) ;
-		filled_len += (buf_len - filled_len) ;
-
-		if( do_move_cursor)
+		if( filled_cols + ml_char_cols( &ins_chars[counter]) > image->num_of_cols)
 		{
-			cursor_index = filled_len ;
+			break ;
 		}
+
+		ml_char_copy( &buffer[filled_len ++] , &ins_chars[counter]) ;
+		filled_cols += ml_char_cols( &ins_chars[counter]) ;
 	}
-	else
+
+	if( do_move_cursor)
 	{
-		ml_str_copy( &buffer[filled_len] , ins_chars , num_of_ins_chars) ;
-		filled_len += num_of_ins_chars ;
-
-		if( do_move_cursor)
-		{
-			cursor_index = filled_len ;
-		}
-
-		/* cursor char */
+		cursor_index = filled_len ;
+	}
+	
+	if( filled_cols < image->num_of_cols)
+	{
+		/*
+		 * cursor char
+		 */
+		 
 		if( cols_after)
 		{
 			/*
-			 * padding spaces after cursor.
+			 * padding spaces for latter half of cursor.
 			 */
-			if( filled_len + cols_after > buf_len)
+			for( counter = 0 ; counter < cols_after ; counter ++)
 			{
-				for( counter = 0 ; counter < buf_len - filled_len ; counter ++)
+				if( filled_cols + ml_char_cols( &image->sp_ch) > image->num_of_cols)
 				{
-					ml_char_copy( &buffer[filled_len++] , &image->sp_ch) ;
+					goto  full ;
 				}
-			}
-			else
-			{
-				for( counter = 0 ; counter < cols_after ; counter ++)
-				{
-					ml_char_copy( &buffer[filled_len++] , &image->sp_ch) ;
-				}
-			}
-		}
-		else
-		{
-			ml_char_copy( &buffer[filled_len++] , &CURSOR_CHAR(image)) ;
-		}
-	
-		/* after cursor(excluding cursor) */
 
-		if( filled_len + CURSOR_LINE(image).num_of_filled_chars - (image->cursor.char_index + 1)
-			> buf_len)
-		{
-			ml_str_copy( &buffer[filled_len] , &CURSOR_CHAR(image) + 1 , buf_len - filled_len) ;
-			filled_len += (buf_len - filled_len) ;
+				ml_char_copy( &buffer[filled_len++] , &image->sp_ch) ;
+				filled_cols += ml_char_cols( &image->sp_ch) ;
+			}
 		}
 		else
 		{
-			ml_str_copy( &buffer[filled_len] , &CURSOR_CHAR(image) + 1 ,
-				CURSOR_LINE(image).num_of_filled_chars - (image->cursor.char_index + 1)) ;
-			filled_len +=
-				(CURSOR_LINE(image).num_of_filled_chars - (image->cursor.char_index + 1)) ;
+			if( filled_cols + ml_char_cols( &CURSOR_CHAR(image)) > image->num_of_cols)
+			{
+				goto  full ;
+			}
+
+			ml_char_copy( &buffer[filled_len++] , &CURSOR_CHAR(image)) ;
+			filled_cols += ml_char_cols( &CURSOR_CHAR(image)) ;
 		}
+
+		/*
+		 * after cursor(excluding cursor)
+		 */
+		 
+		for( counter = image->cursor.char_index + 1 ;
+			counter < CURSOR_LINE(image).num_of_filled_chars ;
+			counter ++)
+		{
+			if( filled_cols + ml_char_cols( &CURSOR_LINE(image).chars[counter]) >
+				image->num_of_cols)
+			{
+				break ;
+			}
+
+			ml_char_copy( &buffer[filled_len ++] , &CURSOR_LINE(image).chars[counter]) ;
+			filled_cols += ml_char_cols( &CURSOR_LINE(image).chars[counter]) ;
+		}
+	full:
 	}
 	
 	/*
 	 * overwriting.
 	 */
 
-	overwrite_lines( image , buffer , filled_len , 1) ;
+	ml_imgline_overwrite_all( &CURSOR_LINE(image) , image->cursor.char_index , buffer ,
+		filled_len , filled_cols) ;
+
+	ml_str_final( buffer , buf_len) ;
+
+	/* this is necessary before get_pos() since insert_chars() should affect only this line */
+	reset_wraparound_checker( image) ;
 
 	/* wraparound_ready_line member is set in this function */
 	get_pos( image , &new_row , &new_char_index , image->cursor.row , 0 ,
-		ml_get_num_of_lines_by_hints( &image->line_hints) + image->cursor.row - 1 , cursor_index) ;
+		image->cursor.row , cursor_index) ;
 
 	/* for wraparound line checking */
 	if( image->wraparound_ready_line != NULL)
@@ -659,12 +688,9 @@ insert_chars_intern(
 	cursor_goto_by_char_index( image , new_char_index , new_row , BREAK_BOUNDARY) ;
 
 #ifdef  CURSOR_DEBUG
-	fprintf( stderr " -> char index %d row %d(%d/%d len %d)\n" ,
-		image->cursor.char_index , image->cursor.row ,
-		image->num_of_filled_rows , image->num_of_rows , CURSOR_LINE(image).num_of_filled_chars) ;
+	fprintf( stderr , "-> [cursor(index)%d (col)%d (row)%d]\n" ,
+		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
-
-	ml_str_final( buffer , buf_len) ;
 
 	return  1 ;
 }
@@ -921,7 +947,7 @@ ml_image_resize(
 	}
 
 #ifdef  __DEBUG
-	fprintf( stderr , " -> char index %d row %d\n" ,
+	fprintf( stderr , "-> char index %d row %d\n" ,
 		image->cursor.char_index , image->cursor.row) ;
 #endif
 
@@ -1020,8 +1046,8 @@ ml_image_start_bidi(
 	}
 	
 #ifdef  CURSOR_DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " cursor position is %d (col %d) =>" ,
-		image->cursor.char_index , image->cursor.col) ;
+	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
+		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
 	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
@@ -1037,7 +1063,8 @@ ml_image_start_bidi(
 					image->cursor.char_index , 0) + cols_rest ;
 
 #ifdef  CURSOR_DEBUG
-	fprintf( stderr , "%d (col %d)\n" , image->cursor.char_index , image->cursor.col) ;
+	fprintf( stderr , "-> [cursor(index)%d (col)%d (row)%d]\n" ,
+		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
 	return  1 ;
@@ -1064,8 +1091,8 @@ ml_image_stop_bidi(
 	}
 	
 #ifdef  CURSOR_DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " cursor position is %d (col %d) => " ,
-		image->cursor.char_index , image->cursor.col) ;
+	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
+		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
 	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
@@ -1081,7 +1108,8 @@ ml_image_stop_bidi(
 					image->cursor.char_index , 0) + cols_rest ;
 
 #ifdef  CURSOR_DEBUG
-	fprintf( stderr , "%d (col %d)\n" , image->cursor.char_index , image->cursor.col) ;
+	fprintf( stderr , "-> [cursor(index)%d (col)%d (row)%d]\n" ,
+		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 	
 	return  1 ;
@@ -1094,7 +1122,7 @@ ml_image_insert_chars(
 	u_int  num_of_ins_chars
 	)
 {
-	return  insert_chars_intern( image , ins_chars , num_of_ins_chars , 1) ;
+	return  insert_chars( image , ins_chars , num_of_ins_chars , 1) ;
 }
 
 int
@@ -1123,7 +1151,7 @@ ml_image_insert_blank_chars(
 	ml_str_final( blank_chars , num_of_blank_chars) ;
 
 	/* the cursor will not moved. */
-	return  insert_chars_intern( image , blank_chars , num_of_blank_chars , 0) ;
+	return  insert_chars( image , blank_chars , num_of_blank_chars , 0) ;
 }
 
 int
@@ -1142,10 +1170,8 @@ ml_image_overwrite_chars(
 	int  cols_rest ;
 
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " overwriting %d chars at char index %d col %d row %d(%d/%d len %d) -> " ,
-		num_of_ow_chars , image->cursor.char_index , image->cursor.col , image->cursor.row ,
-		image->num_of_filled_rows , image->num_of_rows ,
-		CURSOR_LINE(image).num_of_filled_chars) ;
+	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
+		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
 	buf_len = num_of_ow_chars + image->num_of_cols ;
@@ -1192,7 +1218,10 @@ ml_image_overwrite_chars(
 	 * overwriting
 	 */
 
-	overwrite_lines( image , buffer , filled_len , image->num_of_rows) ;
+	/* overwriting lines with scrolling */
+	overwrite_lines( image , buffer , filled_len) ;
+
+	ml_str_final( buffer , buf_len) ;
 
 	/* wraparound_ready_line member is set in this function */
 	get_pos( image , &new_row , &new_char_index , image->cursor.row , 0 ,
@@ -1214,16 +1243,16 @@ ml_image_overwrite_chars(
 	cursor_goto_by_char_index( image , new_char_index , new_row , BREAK_BOUNDARY) ;
 
 #ifdef  CURSOR_DEBUG
-	fprintf( stderr " -> char index %d col %d row %d(%d/%d len %d)\n" ,
-		image->cursor.char_index , image->cursor.col , image->cursor.row ,
-		image->num_of_filled_rows , image->num_of_rows , CURSOR_LINE(image).num_of_filled_chars) ;
+	fprintf( stderr , "-> [cursor(index)%d (col)%d (row)%d]\n" ,
+		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
-
-	ml_str_final( buffer , buf_len) ;
 	
 	return  1 ;
 }
 
+/*
+ * deleting chars within a line.
+ */
 int
 ml_image_delete_cols(
 	ml_image_t *  image ,
@@ -1239,9 +1268,8 @@ ml_image_delete_cols(
 	int  cols_rest ;
 
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " deleting %d chars at char index %d row %d (%d/%d len %d) -> " ,
-		delete_cols , image->cursor.char_index , image->cursor.row , image->num_of_filled_rows ,
-		image->num_of_rows , CURSOR_LINE(image).num_of_filled_chars) ;
+	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
+		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
 	reset_wraparound_checker( image) ;
@@ -1347,22 +1375,28 @@ ml_image_delete_cols(
 		CURSOR_LINE(image).num_of_filled_chars - char_index) ;
 	filled_len += (CURSOR_LINE(image).num_of_filled_chars - char_index) ;
 
-	/*
-	 * overwriting.
-	 */
-	 
-	ml_imgline_overwrite_all( &CURSOR_LINE(image) , image->cursor.char_index ,
-		buffer , filled_len , ml_str_cols( buffer , filled_len)) ;
+	if( filled_len > 0)
+	{
+		/*
+		 * overwriting.
+		 */
+
+		ml_imgline_overwrite_all( &CURSOR_LINE(image) , image->cursor.char_index ,
+			buffer , filled_len , ml_str_cols( buffer , filled_len)) ;
+	}
+	else
+	{
+		ml_imgline_clear( &CURSOR_LINE(image) , 0 , &image->sp_ch) ;
+	}
+
+	ml_str_final( buffer , buf_len) ;
 
 	cursor_goto_by_char_index( image , cursor_char_index , image->cursor.row , BREAK_BOUNDARY) ;
 
 #ifdef  CURSOR_DEBUG
-	fprintf( stderr , " -> char_index %d row %d(%d/%d len %d)\n" ,
-		image->cursor.char_index , image->cursor.row ,
-		image->num_of_filled_rows , image->num_of_rows , CURSOR_LINE(image).num_of_filled_chars) ;
+	fprintf( stderr , "-> [cursor(index)%d (col)%d (row)%d]\n" ,
+		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
-
-	ml_str_final( buffer , buf_len) ;
 	
 	return  1 ;
 }
@@ -1805,7 +1839,7 @@ ml_cursor_go_forward(
 	int  cols_rest ;
 	
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " going forward from char index %d col %d row %d, then -> " ,
+	kik_debug_printf( KIK_DEBUG_TAG " going forward from char index %d col %d row %d, then ->" ,
 		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
@@ -1888,7 +1922,7 @@ end:
 		ml_convert_char_index_to_col( &CURSOR_LINE(image) , image->cursor.char_index , 0) ;
 
 #ifdef  CURSOR_DEBUG
-	fprintf( stderr , " -> char index %d col %d row %d\n" ,
+	fprintf( stderr , "-> char index %d col %d row %d\n" ,
 		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
@@ -1904,8 +1938,8 @@ ml_cursor_go_back(
 	int  cols_rest ;
 	
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " going back from %d %d, then -> " ,
-		image->cursor.char_index , image->cursor.row) ;
+	kik_debug_printf( KIK_DEBUG_TAG " going back from char index %d col %d row %d ->" ,
+		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
 	reset_wraparound_checker( image) ;
@@ -1962,7 +1996,7 @@ ml_cursor_go_back(
 	image->cursor.col += (ml_char_cols( &CURSOR_CHAR(image)) - 1) ;
 
 #ifdef  CURSOR_DEBUG
-	fprintf( stderr , " -> char index %d col %d row %d\n" ,
+	fprintf( stderr , " to char index %d col %d row %d\n" ,
 		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
@@ -2004,7 +2038,7 @@ ml_cursor_go_upward(
 	}
 	
 #ifdef  CURSOR_DEBUG
-	fprintf( stderr , " -> upward to char index %d (col %d)\n" ,
+	fprintf( stderr , "-> upward to char index %d (col %d)\n" ,
 		image->cursor.char_index , image->cursor.col) ;
 #endif
 	
@@ -2051,7 +2085,7 @@ ml_cursor_go_downward(
 	}
 
 #ifdef  CURSOR_DEBUG
-	fprintf( stderr , " -> downward to char_index %d col %d row %d\n" ,
+	fprintf( stderr , "-> downward to char_index %d col %d row %d\n" ,
 		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 	
@@ -2280,7 +2314,7 @@ ml_image_dump(
 	int  row ;
 	
 	kik_debug_printf( KIK_DEBUG_TAG
-		" ===> dumping image...[filled %d][cursor (index)%d (col)%d (row)%d]\n" ,
+		" ===> dumping image...[(filled rows)%d] [cursor(index)%d (col)%d (row)%d]\n" ,
 		image->num_of_filled_rows , image->cursor.char_index , image->cursor.col ,
 		image->cursor.row) ;
 

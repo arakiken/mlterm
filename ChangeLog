@@ -1,4 +1,7 @@
 [20011228]
+* screen can be scrolled when characters are inserted at the end of screen. fixed.
+
+[20011228]
 * INIT_PARSER short cut key (which initializes status of pty encoding parser)
   is added.
 * invoking graphic characters by SI/SO is supported.(non-ISO2022 encoding only)
