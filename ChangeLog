@@ -1,3 +1,7 @@
+2003-09-19  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
+
+	* x_dnd.c: code cleanup.
+
 2003-09-18  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_char.[ch]: If ml_char_t combined or not could not be distinguished. Fixed.

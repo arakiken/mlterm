@@ -12,12 +12,13 @@
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
 
+#define  SUCCESS 0
+#define  FAILURE -1
+
 #define  XA_DND_STORE(display) (XInternAtom(display, "MLTERM_DND", False))
 
 /* following defines should match those of in x_window.c */
-#define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
-
 
 typedef struct x_dnd_context {
 	Window  source ;
@@ -45,7 +46,7 @@ parse_text_unicode(
 	char conv_buf[512] = {0};
 
 	if( !(win->utf8_selection_notified))
-		return 0 ;
+		return  FAILURE ;
 
 	if( (conv = win->dnd->conv) && (parser = win->dnd->parser))
 	{
@@ -59,7 +60,7 @@ parse_text_unicode(
 #ifdef  DEBUG
 			kik_debug_printf("freed parser/converter\n" ) ;
 #endif
-			return 1 ;
+			return  SUCCESS ;
 		}
 #ifdef  DEBUG
 		kik_debug_printf("recycling parser/converter %d, %p, %p\n",
@@ -71,11 +72,11 @@ parse_text_unicode(
 	else
 	{
 		if( !(conv = mkf_utf8_conv_new()))
-			return 0 ;
+			return  FAILURE ;
 		if( !(parser = mkf_utf16_parser_new()))
 		{
 			(conv->delete)(conv) ;
-			return 0 ;
+			return  FAILURE ;
 		}
 		(parser->init)( parser) ;
 		if ( (src[0] == 0xFF || src[0] == 0xFE)
@@ -112,6 +113,7 @@ parse_text_unicode(
 	}
 	if( win->dnd->is_incr)
 	{
+/* keep a parser/converter for reuse */
 		win->dnd->parser = parser ;
 		win->dnd->conv = conv ;
 	}
@@ -121,7 +123,7 @@ parse_text_unicode(
 		(parser->delete)( parser) ;
 	}
 
-	return 1 ;
+	return  SUCCESS ;
 }
 
 static int
@@ -134,7 +136,7 @@ parse_text_uri_list(
 	unsigned char *delim ;
 
 	if( !(win->utf8_selection_notified))
-		return 0 ;
+		return  FAILURE ;
 	pos = 0 ;
 	delim = src ;
 	while( pos < len){
@@ -167,7 +169,7 @@ parse_text_uri_list(
 		pos = (delim - src) +2 ;
 	}
 
-	return 1;
+	return  SUCCESS;
 }
 
 static int
@@ -177,10 +179,10 @@ parse_compound_text(
 	int  len)
 {
 	if( !(win->xct_selection_notified))
-		return 0 ;
+		return  FAILURE ;
 	(*win->xct_selection_notified)( win , src , len) ;
 
-	return 1 ;
+	return  SUCCESS ;
 }
 
 static int
@@ -190,10 +192,10 @@ parse_text(
 	int  len)
 {
 	if( !(win->utf8_selection_notified))
-		return 0 ;
+		return  FAILURE ;
 	(*win->utf8_selection_notified)( win , src , len) ;
-	
-	return 1 ;
+
+	return  SUCCESS ;
 }
 
 static int
@@ -203,10 +205,10 @@ parse_utf8_string(
 	int  len)
 {
 	if( !(win->utf8_selection_notified))
-		return 0 ;
+		return  FAILURE ;
 	(*win->utf8_selection_notified)( win , src , len) ;
 
-	return 1 ;
+	return  SUCCESS ;
 }
 
 static int
@@ -218,10 +220,10 @@ parse_mlterm_config(
 	char *  value ;
 
 	if( !(win->set_xdnd_config))
-		return 0 ;
+		return  FAILURE ;
 	value = strchr( src, '=') ;
 	if( !value)
-		return 0 ;
+		return  FAILURE ;
 	*value = 0 ;
 #ifdef  DEBUG
 	kik_debug_printf("conf key %s val %s\n",src, value);
@@ -231,7 +233,7 @@ parse_mlterm_config(
 				 src, /* key */
 				 value +1 /* value */) ;
 
-	return 1 ;
+	return  SUCCESS ;
 }
 
 static int
@@ -253,7 +255,7 @@ parse_app_color(
 #endif
 	parse_mlterm_config( win, buffer, 0);
 
-	return 1 ;
+	return  SUCCESS ;
 }
 
 static int
@@ -263,14 +265,16 @@ parse_prop_bgimage(
 	int  len)
 {
 	char *  head ;
-        if( !(win->set_xdnd_config))
-                return  0 ;
-        if( (head = strstr( src, "file://")))
-        {
-		/* format should be file://<host>/<path> */
-                src = head +7;
+
+	if( !(win->set_xdnd_config))
+		return  FAILURE ;
+
+	if( (head = strstr( src, "file://")))
+	{
+/* format should be file://<host>/<path> */
+		src = head +7;
 		if( !(head = strstr( src, "/")))
-			return  0 ;
+			return  FAILURE ;
 		/* and <host> should be localhost and safely ignored.*/
 		src = head ;
 
@@ -285,14 +289,14 @@ parse_prop_bgimage(
 		/* other schemas may be supported here */
 	}
 #ifdef  DEBUG
-        kik_debug_printf( "bgimage: %s\n" , src) ;
+	kik_debug_printf( "bgimage: %s\n" , src) ;
 #endif
-        (*win->set_xdnd_config)( win ,
-                                 NULL, /* dev */
-                                 "wall_picture", /* key */
-                                 src /* value */) ;
+	(*win->set_xdnd_config)( win ,
+				 NULL, /* dev */
+				 "wall_picture", /* key */
+				 src /* value */) ;
 
-        return 1 ;
+	return  SUCCESS ;
 }
 
 #ifdef  DEBUG
@@ -307,7 +311,7 @@ parse_debug(
 	for( i = 0 ; i < 100 && i < len ; i++)
 		kik_debug_printf( "\n%d %x" ,i, src[i]) ;
 
-	return 1 ;
+	return  SUCCESS ;
 }
 #endif
 
@@ -346,7 +350,7 @@ ignore_badwin(
 	switch( event->error_code)
 	{
 	case BadWindow:
-		return 1;
+		return  1;
 	default:
 		abort() ;
 	}
@@ -379,32 +383,33 @@ finalize_context(
 	x_window_t * win
 	)
 {
-	if( win->dnd)
-	{
-		if( win->dnd->conv)
-			(win->dnd->conv->delete)(win->dnd->conv) ;
-		if( win->dnd->parser)
-			(win->dnd->parser->delete)(win->dnd->parser) ;
-		free( win->dnd);
-		win->dnd = NULL ;
-	}
+	if( !(win->dnd))
+		return  FAILURE ;
 
-	return  1 ;
+	if( win->dnd->conv)
+		(win->dnd->conv->delete)(win->dnd->conv) ;
+	if( win->dnd->parser)
+		(win->dnd->parser->delete)(win->dnd->parser) ;
+
+	free( win->dnd);
+	win->dnd = NULL ;
+
+	return  SUCCESS ;
 }
 
 /* seek atom array and return the index */
 static int
 is_pref(
 	Atom type,
-	Atom * atom,
+	Atom * atom_list,
 	int num
 	)
 {
 	int i ;
 	for( i = 0 ; i < num ; i++)
-		if( atom[i] == type)
+		if( atom_list[i] == type)
 			return i ;
-	return  -1 ;
+	return  FAILURE ;
 }
 
 /**send a accept/reject message to the dnd sender
@@ -447,7 +452,7 @@ reply(
 /**send finish message to dnd sender
  *\param win mlterm window
  */
-static void
+static int
 finish(
 	x_window_t *  win
 	)
@@ -455,9 +460,9 @@ finish(
 	XClientMessageEvent msg ;
 
 	if( !(win->dnd))
-		return ;
+		return  FAILURE;
 	if( !(win->dnd->source))
-		return ;
+		return  FAILURE;
 
 #ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG "saying good bye\n") ;
@@ -478,6 +483,8 @@ finish(
 	set_badwin_handler(0) ;
 
 	win->dnd->source = 0 ;
+
+	return  SUCCESS ;
 }
 
 /**parse dnd data and send them to the pty
@@ -495,12 +502,12 @@ parse(
 	dnd_parser_t *  proc_entry ;
 
 	if( !src)
-		return 1 ;
+		return  FAILURE ;
 	if( !(win->dnd))
-		return 1;
+		return  FAILURE;
 
 	if( !(win->dnd->waiting_atom))
-		return 1 ;
+		return  FAILURE ;
 
 	for( proc_entry = dnd_parsers ; proc_entry->atomname ; proc_entry++)
 	{
@@ -516,7 +523,7 @@ parse(
 	if( proc_entry->parser)
 		return  (proc_entry->parser)( win, src, len) ;
 
-	return 0 ;
+	return  FAILURE ;
 }
 
 
@@ -530,7 +537,7 @@ parse(
 static Atom
 choose_atom(
 	x_window_t *  win ,
-	Atom *  atom,
+	Atom *  atom_list,
 	int  num
 	)
 {
@@ -544,22 +551,22 @@ choose_atom(
 		i = is_pref( XInternAtom( win->display,
 					  proc_entry->atomname,
 					  False),
-			     atom, num);
+			     atom_list, num);
 
 	if( i < 0)
 		return (Atom)0  ;/* 0 would never be used for Atom */
 
 #ifdef  DEBUG
-	atom_name = XGetAtomName( win->display, atom[i]);
+	atom_name = XGetAtomName( win->display, atom_list[i]);
 	if( atom_name)
 	{
 		kik_debug_printf( KIK_DEBUG_TAG "accepted: %s(%d)\n",
-				  atom_name, atom[i]) ;
+				  atom_name, atom_list[i]) ;
 		XFree( atom_name) ;
 	}
 #endif
 
-	return atom[i] ;
+	return atom_list[i] ;
 }
 
 /* --- global functions --- */
@@ -583,7 +590,7 @@ awareness(
 }
 
 static int
-process_enter(
+enter(
 	x_window_t *  win,
 	XEvent *  event
 	)
@@ -611,16 +618,18 @@ process_enter(
 					     (unsigned char **)(&dat));
 		set_badwin_handler(0) ;
 
-		if( ( result == Success) &&
-		    ( act_type != None))
+		if( result != Success)
+			return  FAILURE ;
+
+		if( act_type != None)
 		{
 			to_wait = choose_atom( win , dat, nitems) ;
-			XFree( dat);
 		}
 		else
 		{
-			to_wait = 0 ;
+			to_wait = None ;
 		}
+		XFree( dat);
 	}
 	else
 	{
@@ -628,89 +637,71 @@ process_enter(
 		to_wait = choose_atom( win , (event->xclient.data.l)+2 , 3);
 	}
 
-	if( to_wait)
+	if( !(to_wait))
 	{
-		if( !(win->dnd))
-			win->dnd = malloc( sizeof( x_dnd_context_t)) ;
-		if( !(win->dnd))
-			return 1 ;
-		win->dnd->source = event->xclient.data.l[0];
-		win->dnd->waiting_atom = to_wait;
-		win->dnd->is_incr = 0 ;
-		win->dnd->parser = NULL ;
-		win->dnd->conv = NULL ;
-#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "choosed atom:%d  on %p\n",
-				  to_wait, win->dnd) ;
-#endif
-	}
-	else
-	{
-		if( win->dnd)
-		{
-#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG "terminating.\n") ;
-#endif
-			finalize_context( win) ;
-		}
-		return 1 ;
+		finalize_context( win) ;
+
+		return  FAILURE ;
 	}
 
-	return 0 ;
+	if( !(win->dnd))
+		win->dnd = malloc( sizeof( x_dnd_context_t)) ;
+	if( !(win->dnd))
+		return  FAILURE ;
+	win->dnd->source = event->xclient.data.l[0];
+	win->dnd->waiting_atom = to_wait;
+	win->dnd->is_incr = 0 ;
+	win->dnd->parser = NULL ;
+	win->dnd->conv = NULL ;
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG "choosed atom:%d  on %p\n",
+			  to_wait, win->dnd) ;
+#endif
+
+	return  SUCCESS ;
 }
 
 static int
-process_position(
+position(
 	x_window_t *  win,
 	XEvent *  event
 	)
 {
 	if( !(win->dnd))
-	{
-#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "session nonexistent.\n");
-#endif
-		return 1 ;
-	}
+		return  FAILURE ;
 
 	if( win->dnd->source != event->xclient.data.l[0])
 	{
 #ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "WID not matched.\n");
+		kik_debug_printf( KIK_DEBUG_TAG "WID mismatched.\n");
 #endif
 		finalize_context( win) ;
 
-		return 1 ;
+		return  FAILURE ;
 	}
 
 	reply( win);
 
-	return 0 ;
+	return  SUCCESS ;
 }
 
 static int
-process_drop(
+drop(
 	x_window_t *  win,
 	XEvent *  event
 	)
 {
-
 	if( !(win->dnd))
-	{
-#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "session nonexistent.\n");
-#endif
-		return 1 ;
-	}
+		return  FAILURE ;
 
 	if( win->dnd->source != event->xclient.data.l[0])
 	{
 #ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "WID not matched.\n");
+		kik_debug_printf( KIK_DEBUG_TAG "WID mismatched.\n");
 #endif
 		finalize_context( win) ;
 
-		return 1 ;
+		return  FAILURE ;
 	}
 
 	/* data request */
@@ -723,11 +714,11 @@ process_drop(
 			   event->xclient.data.l[2]);
 	set_badwin_handler(0) ;
 
-	return 0 ;
+	return  SUCCESS ;
 }
 
 static int
-process_incr(
+incr(
 	x_window_t *  win,
 	XEvent *  event
 	)
@@ -737,12 +728,8 @@ process_incr(
 	int result ;
 
 	if( !(win->dnd))
-	{
-#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG "session nonexistent\n");
-#endif
-		return 1 ;
-	}
+		return  FAILURE ;
+
 	/* remember that it's an incremental transfer */
 	win->dnd->is_incr = 1 ;
 
@@ -754,7 +741,7 @@ process_incr(
 				     &ct.nitems, &bytes_after, &ct.value) ;
 	set_badwin_handler(0) ;
 	if( result != Success)
-		return  1 ;
+		return  FAILURE ;
 
 	/* ignore when ct.encoding != XA_INCR */
 	if( ct.encoding != XA_INCR(win->display))
@@ -764,7 +751,7 @@ process_incr(
 #endif
 		if( ct.value)
 			XFree( ct.value) ;
-		return  1 ;
+		return  FAILURE ;
 	}
 
 	set_badwin_handler(1) ;
@@ -775,7 +762,7 @@ process_incr(
 	set_badwin_handler(0) ;
 
 	if( result != Success)
-		return  1 ;
+		return  FAILURE ;
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "INCR: %d\n", ct.nitems) ;
@@ -801,11 +788,11 @@ process_incr(
 			 event->xproperty.atom) ;
 	set_badwin_handler(0) ;
 
-	return 0 ;
+	return  SUCCESS ;
 }
 
 static int
-process_selection(
+selection(
 	x_window_t *  win,
 	XEvent *  event
 	)
@@ -816,7 +803,7 @@ process_selection(
 	int  result ;
 
 	if( !(win->dnd))
-		return 1 ;
+		return  FAILURE ;
 
 	/* dummy read to determine data length */
 	set_badwin_handler(1) ;
@@ -835,14 +822,12 @@ process_selection(
 #endif
 		finalize_context( win) ;
 
-		return 1 ;
+		return  FAILURE ;
 	}
 	if( ct.value)
 		XFree( ct.value) ;
 	if( ct.encoding == XA_INCR(win->display))
-	{
-		return 0 ;
-	}
+		return  SUCCESS ;
 
 	while( bytes_after > 0)
 	{
@@ -868,10 +853,14 @@ process_selection(
 	finish( win) ;
 	finalize_context( win) ;
 
-	return  0 ;
+	return  SUCCESS ;
 }
 
+/*****************************************************************************/
+
 /* XFilterEvent(event, w) analogue */
+/* return 0 if the event should be processed in the mlterm mail loop */
+/* return 1 if nothing to be done is left for the event */
 int
 x_dnd_filter_event(
 	XEvent *  event,
@@ -885,13 +874,13 @@ x_dnd_filter_event(
 		/* CreateNotifyEvent seems to be lost somewhere... */
 		awareness( win, 5) ;
 
-		return 0 ;
+		return  0 ;
 
 	case SelectionNotify:
 		if( event->xselection.property != XA_DND_STORE(win->display))
-			return 0 ;
+			return  0 ;
 
-		process_selection( win, event) ;
+		selection( win, event) ;
 
 		set_badwin_handler(1) ;
 		XDeleteProperty( win->display, event->xselection.requestor,
@@ -904,52 +893,53 @@ x_dnd_filter_event(
 		if( event->xclient.message_type ==
 		    XInternAtom( win->display, "XdndEnter", False))
 		{
-			process_enter( win, event) ;
+			enter( win, event) ;
 		}
 		else if( event->xclient.message_type ==
 			 XInternAtom( win->display, "XdndPosition", False))
 		{
-			process_position( win, event) ;
+			position( win, event) ;
 		}
 		else if( event->xclient.message_type ==
 			 XInternAtom( win->display, "XdndDrop", False))
 		{
-			process_drop( win, event) ;
+			drop( win, event) ;
 		}
 		else if ( event->xclient.data.l[0] ==
-			  XA_DELETE_WINDOW( win->display))
+			  (XInternAtom( win->display , "WM_DELETE_WINDOW" , False)))
 		{
 			finalize_context( win) ;
-			/* the event should also be processed by mlterm main loop */
-			return 0 ;
+			/* the event should also be processed in main loop */
+			return  0 ;
 		}
 		else
 		{
-			return 0 ;
+			return  0 ;
 		}
 
 		break ;
 
 	case PropertyNotify:
 		if( event->xproperty.atom != XA_DND_STORE( win->display))
-			return 0 ;
+			return  0 ;
 		if( event->xproperty.state == PropertyDelete)
 		{
 			/* ignore delete notify */
-			return 1 ;
+			return  1 ;
 		}
 
-		process_incr( win, event) ;
+		incr( win, event) ;
 
 		break ;
+
 	case DestroyNotify:
 		finalize_context( win) ;
 
-		return 0 ;
+		return  0 ;
 	default:
-		return 0 ;
+		return  0 ;
 	}
 
-	/* event processed */
-	return 1 ;
+	/* the event was processed. mlterm main loop don't have to know about it*/
+	return  1 ;
 }
