@@ -42,7 +42,8 @@ typedef struct x_im_candidate_screen
 
 	u_int  line_height ;	/* line height of attaced screen          */
 
-	int  is_vertical ;
+	int  is_vertical_term ;
+	int  is_vertical_direction ;
 
 	/* x_im_candidate_screen.c -> im plugins */
 	x_im_candidate_event_listener_t  listener ;
@@ -65,7 +66,8 @@ x_im_candidate_screen_t * x_im_candidate_screen_new(
 					x_window_manager_t *  win_man ,
 					x_font_manager_t *  font_man ,
 					x_color_manager_t *  color_man ,
-					int  is_vertical ,
+					int  is_vertical_term ,
+					int  is_vertical_direction ,
 					u_int  line_height_of_screen ,
 					int  x , int  y) ;
 

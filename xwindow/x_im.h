@@ -74,7 +74,7 @@ typedef struct x_im_export_syms
 						x_window_manager_t * ,
 						x_font_manager_t * ,
 						x_color_manager_t * ,
-						int , u_int , int , int) ;
+						int , int , u_int , int , int) ;
 	x_im_status_screen_t *  (*x_im_status_screen_new)(
 						x_window_manager_t * ,
 						x_font_manager_t * ,
@@ -119,7 +119,7 @@ void  x_im_delete( x_im_t *  xim) ;
 
 void  x_im_redraw_preedit( x_im_t *  im , int  is_focused) ;
 
-#define  IM_API_VERSION  0x07
+#define  IM_API_VERSION  0x08
 #define  IM_API_COMPAT_CHECK_MAGIC			\
 	 (IM_API_VERSION & 0xff << 28 |			\
 	 ((sizeof( x_im_t) & 0xff) << 20) |		\

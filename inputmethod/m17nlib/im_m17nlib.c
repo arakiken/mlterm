@@ -620,14 +620,20 @@ candidates_changed(
 
 	if( m17nlib->im.cand_screen == NULL)
 	{
-		int  is_vertical ;
+		int  is_vertical_direction = 0 ;
 		u_int  line_height ;
+
+		if( strcmp( msymbol_name( m17nlib->input_method->name) , "anthy") == 0)
+		{
+			is_vertical_direction = 1 ;
+		}
 
 		if( ! ( m17nlib->im.cand_screen = (*mlterm_syms->x_im_candidate_screen_new)(
 				(*m17nlib->im.listener->get_win_man)(m17nlib->im.listener->self) ,
 				(*m17nlib->im.listener->get_font_man)(m17nlib->im.listener->self) ,
 				(*m17nlib->im.listener->get_color_man)(m17nlib->im.listener->self) ,
 				(*m17nlib->im.listener->is_vertical)(m17nlib->im.listener->self) ,
+				is_vertical_direction ,
 				(*m17nlib->im.listener->get_line_height)(m17nlib->im.listener->self) ,
 				x , y)))
 		{
@@ -650,8 +656,6 @@ candidates_changed(
 		m17nlib->im.cand_screen = NULL ;
 		return ;
 	}
-
-	(*m17nlib->im.cand_screen->set_spot)( m17nlib->im.cand_screen , x , y) ;
 
 	group = m17nlib->input_context->candidate_list ;
 
@@ -694,6 +698,8 @@ candidates_changed(
 	(*m17nlib->im.cand_screen->select)(
 				m17nlib->im.cand_screen ,
 				m17nlib->input_context->candidate_index) ;
+
+	(*m17nlib->im.cand_screen->set_spot)( m17nlib->im.cand_screen , x , y) ;
 
 	if( m17nlib->im.stat_screen)
 	{

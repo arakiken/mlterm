@@ -758,11 +758,19 @@ lookup_choice_change(
 
 	if( ! iiimf->im.cand_screen)
 	{
+		int  is_vertical_direction = 0 ;
+
+		if( direction == IIIMCF_LOOKUP_CHOICE_VERTICAL_DIRECTION)
+		{
+			is_vertical_direction = 1 ;
+		}
+
 		if( ! ( iiimf->im.cand_screen = (*mlterm_syms->x_im_candidate_screen_new)(
 				(*iiimf->im.listener->get_win_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_color_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->is_vertical)(iiimf->im.listener->self) ,
+				is_vertical_direction ,
 				(*iiimf->im.listener->get_line_height)(iiimf->im.listener->self) ,
 				x , y)))
 		{
@@ -902,6 +910,7 @@ atokx_lookup_set(
 				(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_color_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->is_vertical)(iiimf->im.listener->self) ,
+				1 ,
 				(*iiimf->im.listener->get_line_height)(iiimf->im.listener->self) ,
 				x , y)))
 		{

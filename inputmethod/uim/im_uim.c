@@ -776,6 +776,7 @@ candidate_activate(
 				(*uim->im.listener->get_font_man)(uim->im.listener->self) ,
 				(*uim->im.listener->get_color_man)(uim->im.listener->self) ,
 				(*uim->im.listener->is_vertical)(uim->im.listener->self) ,
+				1 ,
 				(*uim->im.listener->get_line_height)(uim->im.listener->self) ,
 				x , y)))
 		{
