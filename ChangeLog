@@ -1,4 +1,9 @@
 [20020221]
+* garbage is left on upward arrow image of scrollbar. fixed.
+* w3mmlconfig is updated.
+  (Thanks to Sakamoto Hironori san)
+
+[20020221]
 * brightness cannot be changed in transparent mode. fixed.
   (Thanks to Minami Hirokazu san)
 
