@@ -240,7 +240,7 @@ kik_pty_fork(
 		dup2( *slave , 1) ;
 		dup2( *slave , 2) ;
 
-		if( slave > STDERR_FILENO)
+		if( *slave > STDERR_FILENO)
 		{
 			close(*slave) ;
 		}

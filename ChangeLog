@@ -1,3 +1,7 @@
+2003-07-17  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* kik_pty_streams.c: slave -> *slave (line 243)
+
 2003-07-14  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* Applied a keypad patch from Mike Fabian.
