@@ -1634,10 +1634,14 @@ key_pressed(
 	if( ml_keymap_match( termscr->keymap , XIM_OPEN , ksym , event->state))
 	{
 		ml_xic_activate( &termscr->window , "" , "") ;
+
+		return ;
 	}
 	else if( ml_keymap_match( termscr->keymap , XIM_CLOSE , ksym , event->state))
 	{
 		ml_xic_deactivate( &termscr->window) ;
+
+		return ;
 	}
 	else if( ml_keymap_match( termscr->keymap , NEW_PTY , ksym , event->state))
 	{
@@ -1645,6 +1649,8 @@ key_pressed(
 		{
 			termscr->system_listener->open_pty( termscr->system_listener->self) ;
 		}
+
+		return ;
 	}
 #ifdef  DEBUG
 	else if( ml_keymap_match( termscr->keymap , EXIT_PROGRAM , ksym , event->state))
@@ -1653,9 +1659,12 @@ key_pressed(
 		{
 			termscr->system_listener->exit( termscr->system_listener->self , 1) ;
 		}
+
+		return ;
 	}
 #endif
-	else if( ml_is_backscroll_mode( &termscr->bs_image))
+
+	if( ml_is_backscroll_mode( &termscr->bs_image))
 	{
 		if( ksym == XK_Prior)
 		{
@@ -1667,6 +1676,8 @@ key_pressed(
 			{
 				bs_page_downward( termscr) ;
 			}
+
+			return ;
 		}
 		else if( ksym == XK_Next)
 		{
@@ -1678,34 +1689,108 @@ key_pressed(
 			{
 				bs_page_upward( termscr) ;
 			}
+
+			return ;
 		}
-		else if( ksym == XK_k || ksym == XK_Up)
+		else if( termscr->use_extended_scroll_shortcut && (ksym == XK_k || ksym == XK_Up))
 		{
 			bs_scroll_downward( termscr) ;
+
+			return ;
 		}
-		else if( ksym == XK_j || ksym == XK_Down)
+		else if( termscr->use_extended_scroll_shortcut && (ksym == XK_j || ksym == XK_Down))
 		{
 			bs_scroll_upward( termscr) ;
+
+			return ;
 		}
-		else if( ksym != XK_Shift_L && ksym != XK_Shift_R && ksym != XK_Control_L &&
-			ksym != XK_Control_R && ksym != XK_Caps_Lock && ksym != XK_Shift_Lock &&
-			ksym != XK_Meta_L && ksym != XK_Meta_R && ksym != XK_Alt_L &&
-			ksym != XK_Alt_R && ksym != XK_Super_L && ksym != XK_Super_R &&
-			ksym != XK_Hyper_L && ksym != XK_Hyper_R && ksym != XK_Escape)
+		else if( ksym == XK_Shift_L || ksym == XK_Shift_R || ksym == XK_Control_L ||
+			ksym == XK_Control_R || ksym == XK_Caps_Lock || ksym == XK_Shift_Lock ||
+			ksym == XK_Meta_L || ksym == XK_Meta_R || ksym == XK_Alt_L ||
+			ksym == XK_Alt_R || ksym == XK_Super_L || ksym == XK_Super_R ||
+			ksym == XK_Hyper_L || ksym == XK_Hyper_R || ksym == XK_Escape)
 		{
-			/* any string except Modifiers(X11/keysymdefs.h) */
+			/* any modifier keys(X11/keysymdefs.h) */
 
+			return ;
+		}
+		else
+		{
 			exit_backscroll_mode( termscr) ;
-			redraw_image( termscr) ;
-
-			if( size > 0)
-			{
-				write_to_pty( termscr , seq , size , parser) ;
-			}
 		}
 	}
+
+	if( ml_keymap_match( termscr->keymap , PAGE_UP , ksym , event->state))
+	{
+		enter_backscroll_mode( termscr) ;
+		bs_half_page_downward( termscr) ;
+	}
+	else if( termscr->use_extended_scroll_shortcut &&
+		ml_keymap_match( termscr->keymap , SCROLL_UP , ksym , event->state))
+	{
+		enter_backscroll_mode( termscr) ;
+		bs_scroll_downward( termscr) ;
+	}
+	else if( ml_keymap_match( termscr->keymap , INSERT_SELECTION , ksym , event->state))
+	{
+		yank_event_received( termscr , CurrentTime) ;
+	}
+#ifdef  __DEBUG
+	else if( ksym == XK_F12)
+	{
+		/* this is for tests of ml_image_xxx functions */
+
+		/* ml_image_xxx( termscr->image) ; */
+
+		redraw_image( termscr) ;
+	}
+#endif
 	else
 	{
+		char *  buf ;
+
+		if( termscr->use_vertical_cursor)
+		{
+			if( termscr->vertical_mode & VERT_RTL)
+			{
+				if( ksym == XK_Up)
+				{
+					ksym = XK_Left ;
+				}
+				else if( ksym == XK_Down)
+				{
+					ksym = XK_Right ;
+				}
+				else if( ksym == XK_Left)
+				{
+					ksym = XK_Down ;
+				}
+				else if( ksym == XK_Right)
+				{
+					ksym = XK_Up ;
+				}
+			}
+			else if( termscr->vertical_mode & VERT_LTR)
+			{
+				if( ksym == XK_Up)
+				{
+					ksym = XK_Left ;
+				}
+				else if( ksym == XK_Down)
+				{
+					ksym = XK_Right ;
+				}
+				else if( ksym == XK_Left)
+				{
+					ksym = XK_Up ;
+				}
+				else if( ksym == XK_Right)
+				{
+					ksym = XK_Down ;
+				}
+			}
+		}
+
 		if( termscr->mod_meta_mask & event->state)
 		{
 			if( termscr->mod_meta_mode == MOD_META_OUTPUT_ESC)
@@ -1721,368 +1806,297 @@ key_pressed(
 			}
 		}
 
-		if( ml_keymap_match( termscr->keymap , PAGE_UP , ksym , event->state))
+		if( ksym == XK_Delete && size == 1)
 		{
-			enter_backscroll_mode( termscr) ;
-			bs_half_page_downward( termscr) ;
+			buf = ml_termcap_get_sequence( termscr->termcap , MLT_DELETE) ;
 		}
-		else if( ml_keymap_match( termscr->keymap , SCROLL_UP , ksym , event->state))
+		else if( ksym == XK_BackSpace && size == 1)
 		{
-			enter_backscroll_mode( termscr) ;
-			bs_scroll_downward( termscr) ;
+			buf = ml_termcap_get_sequence( termscr->termcap , MLT_BACKSPACE) ;
 		}
-		else if( ml_keymap_match( termscr->keymap , INSERT_SELECTION , ksym , event->state))
+		else if( size > 0)
 		{
-			yank_event_received( termscr , CurrentTime) ;
-		}
-	#ifdef  __DEBUG
-		else if( ksym == XK_F12)
-		{
-			/* this is for tests of ml_image_xxx functions */
-
-			/* ml_image_xxx( termscr->image) ; */
-			
-			redraw_image( termscr) ;
-		}
-	#endif
-		else
-		{
-			char *  buf ;
-
-			if( termscr->use_vertical_cursor)
+			if( termscr->iscii_state)
 			{
-				if( termscr->vertical_mode & VERT_RTL)
-				{
-					if( ksym == XK_Up)
-					{
-						ksym = XK_Left ;
-					}
-					else if( ksym == XK_Down)
-					{
-						ksym = XK_Right ;
-					}
-					else if( ksym == XK_Left)
-					{
-						ksym = XK_Down ;
-					}
-					else if( ksym == XK_Right)
-					{
-						ksym = XK_Up ;
-					}
-				}
-				else if( termscr->vertical_mode & VERT_LTR)
-				{
-					if( ksym == XK_Up)
-					{
-						ksym = XK_Left ;
-					}
-					else if( ksym == XK_Down)
-					{
-						ksym = XK_Right ;
-					}
-					else if( ksym == XK_Left)
-					{
-						ksym = XK_Up ;
-					}
-					else if( ksym == XK_Right)
-					{
-						ksym = XK_Down ;
-					}
-				}
+				size = ml_convert_ascii_to_iscii(
+					termscr->iscii_state , seq , size , seq , size) ;
 			}
 
-			if( ksym == XK_Delete && size == 1)
-			{
-				buf = ml_termcap_get_sequence( termscr->termcap , MLT_DELETE) ;
-			}
-			else if( ksym == XK_BackSpace && size == 1)
-			{
-				buf = ml_termcap_get_sequence( termscr->termcap , MLT_BACKSPACE) ;
-			}
-			else if( size > 0)
-			{
-				if( termscr->iscii_state)
-				{
-					size = ml_convert_ascii_to_iscii(
-						termscr->iscii_state , seq , size , seq , size) ;
-				}
-				
-				write_to_pty( termscr , seq , size , parser) ;
+			write_to_pty( termscr , seq , size , parser) ;
 
-				return ;
-			}
-			/*
-			 * following ksym is processed only if no sequence string is received(size == 0)
-			 */
-			else if( ksym == XK_Up)
+			return ;
+		}
+		/*
+		 * following ksym is processed only if no sequence string is received(size == 0)
+		 */
+		else if( ksym == XK_Up)
+		{
+			if( termscr->is_app_cursor_keys)
 			{
-				if( termscr->is_app_cursor_keys)
-				{
-					buf = "\x1bOA" ;
-				}
-				else
-				{
-					buf = "\x1b[A" ;
-				}
-			}
-			else if( ksym == XK_Down)
-			{
-				if( termscr->is_app_cursor_keys)
-				{
-					buf = "\x1bOB" ;
-				}
-				else
-				{
-					buf = "\x1b[B" ;
-				}
-			}
-			else if( ksym == XK_Right)
-			{
-				if( termscr->is_app_cursor_keys)
-				{
-					buf = "\x1bOC" ;
-				}
-				else
-				{
-					buf = "\x1b[C" ;
-				}
-			}
-			else if( ksym == XK_Left)
-			{
-				if( termscr->is_app_cursor_keys)
-				{
-					buf = "\x1bOD" ;
-				}
-				else
-				{
-					buf = "\x1b[D" ;
-				}
-			}
-			else if( ksym == XK_Prior)
-			{
-				buf = "\x1b[5~" ;
-			}
-			else if( ksym == XK_Next)
-			{
-				buf = "\x1b[6~" ;
-			}
-			else if( ksym == XK_Insert)
-			{
-				buf = "\x1b[2~" ;
-			}
-			else if( ksym == XK_F1)
-			{
-				buf = "\x1b[11~" ;
-			}
-			else if( ksym == XK_F2)
-			{
-				buf = "\x1b[12~" ;
-			}
-			else if( ksym == XK_F3)
-			{
-				buf = "\x1b[13~" ;
-			}
-			else if( ksym == XK_F4)
-			{
-				buf = "\x1b[14~" ;
-			}
-			else if( ksym == XK_F5)
-			{
-				buf = "\x1b[15~" ;
-			}
-			else if( ksym == XK_F6)
-			{
-				buf = "\x1b[17~" ;
-			}
-			else if( ksym == XK_F7)
-			{
-				buf = "\x1b[18~" ;
-			}
-			else if( ksym == XK_F8)
-			{
-				buf = "\x1b[19~" ;
-			}
-			else if( ksym == XK_F9)
-			{
-				buf = "\x1b[20~" ;
-			}
-			else if( ksym == XK_F10)
-			{
-				buf = "\x1b[21~" ;
-			}
-			else if( ksym == XK_F11)
-			{
-				buf = "\x1b[23~" ;
-			}
-			else if( ksym == XK_F12)
-			{
-				buf = "\x1b[24~" ;
-			}
-			else if( ksym == XK_F13)
-			{
-				buf = "\x1b[25~" ;
-			}
-			else if( ksym == XK_F14)
-			{
-				buf = "\x1b[26~" ;
-			}
-			else if( ksym == XK_F15)
-			{
-				buf = "\x1b[28~" ;
-			}
-			else if( ksym == XK_F16)
-			{
-				buf = "\x1b[29~" ;
-			}
-			else if( ksym == XK_Help)
-			{
-				buf = "\x1b[28~" ;
-			}
-			else if( ksym == XK_Menu)
-			{
-				buf = "\x1b[29~" ;
-			}
-		#if  0
-			else if( termscr->is_app_keypad && ksym == XK_KP_Home)
-			{
-				buf = "\x1bOw" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Up)
-			{
-				buf = "\x1bOx" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Down)
-			{
-				buf = "\x1bOw" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Right)
-			{
-				buf = "\x1bOv" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Left)
-			{
-				buf = "\x1bOt" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Prior)
-			{
-				buf = "\x1bOy" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Next)
-			{
-				buf = "\x1bOs" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_End)
-			{
-				buf = "\x1bOq" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Enter)
-			{
-				buf = "\x1bOM" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Begin)
-			{
-				buf = "\x1bOu" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Insert)
-			{
-				buf = "\x1bOp" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Begin)
-			{
-				buf = "\x1bOu" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Delete)
-			{
-				buf = "\x1bOn" ;
-			}
-		#endif
-			else if( termscr->is_app_keypad && ksym == XK_KP_F1)
-			{
-				buf = "\x1bOP" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_F2)
-			{
-				buf = "\x1bOQ" ;
-			}		
-			else if( termscr->is_app_keypad && ksym == XK_KP_F3)
-			{
-				buf = "\x1bOR" ;
-			}		
-			else if( termscr->is_app_keypad && ksym == XK_KP_F4)
-			{
-				buf = "\x1bOS" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Multiply)
-			{
-				buf = "\x1bOj" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Add)
-			{
-				buf = "\x1bOk" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Separator)
-			{
-				buf = "\x1bOl" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Subtract)
-			{
-				buf = "\x1bOm" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Decimal)
-			{
-				buf = "\x1bOn" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_Divide)
-			{
-				buf = "\x1bOo" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_0)
-			{
-				buf = "\x1bOp" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_1)
-			{
-				buf = "\x1bOq" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_2)
-			{
-				buf = "\x1bOr" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_3)
-			{
-				buf = "\x1bOs" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_4)
-			{
-				buf = "\x1bOt" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_5)
-			{
-				buf = "\x1bOu" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_6)
-			{
-				buf = "\x1bOv" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_7)
-			{
-				buf = "\x1bOw" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_8)
-			{
-				buf = "\x1bOx" ;
-			}
-			else if( termscr->is_app_keypad && ksym == XK_KP_9)
-			{
-				buf = "\x1bOy" ;
+				buf = "\x1bOA" ;
 			}
 			else
 			{
-				return ;
+				buf = "\x1b[A" ;
 			}
-
-			write_to_pty( termscr , buf , strlen(buf) , NULL) ;
 		}
+		else if( ksym == XK_Down)
+		{
+			if( termscr->is_app_cursor_keys)
+			{
+				buf = "\x1bOB" ;
+			}
+			else
+			{
+				buf = "\x1b[B" ;
+			}
+		}
+		else if( ksym == XK_Right)
+		{
+			if( termscr->is_app_cursor_keys)
+			{
+				buf = "\x1bOC" ;
+			}
+			else
+			{
+				buf = "\x1b[C" ;
+			}
+		}
+		else if( ksym == XK_Left)
+		{
+			if( termscr->is_app_cursor_keys)
+			{
+				buf = "\x1bOD" ;
+			}
+			else
+			{
+				buf = "\x1b[D" ;
+			}
+		}
+		else if( ksym == XK_Prior)
+		{
+			buf = "\x1b[5~" ;
+		}
+		else if( ksym == XK_Next)
+		{
+			buf = "\x1b[6~" ;
+		}
+		else if( ksym == XK_Insert)
+		{
+			buf = "\x1b[2~" ;
+		}
+		else if( ksym == XK_F1)
+		{
+			buf = "\x1b[11~" ;
+		}
+		else if( ksym == XK_F2)
+		{
+			buf = "\x1b[12~" ;
+		}
+		else if( ksym == XK_F3)
+		{
+			buf = "\x1b[13~" ;
+		}
+		else if( ksym == XK_F4)
+		{
+			buf = "\x1b[14~" ;
+		}
+		else if( ksym == XK_F5)
+		{
+			buf = "\x1b[15~" ;
+		}
+		else if( ksym == XK_F6)
+		{
+			buf = "\x1b[17~" ;
+		}
+		else if( ksym == XK_F7)
+		{
+			buf = "\x1b[18~" ;
+		}
+		else if( ksym == XK_F8)
+		{
+			buf = "\x1b[19~" ;
+		}
+		else if( ksym == XK_F9)
+		{
+			buf = "\x1b[20~" ;
+		}
+		else if( ksym == XK_F10)
+		{
+			buf = "\x1b[21~" ;
+		}
+		else if( ksym == XK_F11)
+		{
+			buf = "\x1b[23~" ;
+		}
+		else if( ksym == XK_F12)
+		{
+			buf = "\x1b[24~" ;
+		}
+		else if( ksym == XK_F13)
+		{
+			buf = "\x1b[25~" ;
+		}
+		else if( ksym == XK_F14)
+		{
+			buf = "\x1b[26~" ;
+		}
+		else if( ksym == XK_F15)
+		{
+			buf = "\x1b[28~" ;
+		}
+		else if( ksym == XK_F16)
+		{
+			buf = "\x1b[29~" ;
+		}
+		else if( ksym == XK_Help)
+		{
+			buf = "\x1b[28~" ;
+		}
+		else if( ksym == XK_Menu)
+		{
+			buf = "\x1b[29~" ;
+		}
+	#if  0
+		else if( termscr->is_app_keypad && ksym == XK_KP_Home)
+		{
+			buf = "\x1bOw" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Up)
+		{
+			buf = "\x1bOx" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Down)
+		{
+			buf = "\x1bOw" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Right)
+		{
+			buf = "\x1bOv" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Left)
+		{
+			buf = "\x1bOt" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Prior)
+		{
+			buf = "\x1bOy" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Next)
+		{
+			buf = "\x1bOs" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_End)
+		{
+			buf = "\x1bOq" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Enter)
+		{
+			buf = "\x1bOM" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Begin)
+		{
+			buf = "\x1bOu" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Insert)
+		{
+			buf = "\x1bOp" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Begin)
+		{
+			buf = "\x1bOu" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Delete)
+		{
+			buf = "\x1bOn" ;
+		}
+	#endif
+		else if( termscr->is_app_keypad && ksym == XK_KP_F1)
+		{
+			buf = "\x1bOP" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_F2)
+		{
+			buf = "\x1bOQ" ;
+		}		
+		else if( termscr->is_app_keypad && ksym == XK_KP_F3)
+		{
+			buf = "\x1bOR" ;
+		}		
+		else if( termscr->is_app_keypad && ksym == XK_KP_F4)
+		{
+			buf = "\x1bOS" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Multiply)
+		{
+			buf = "\x1bOj" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Add)
+		{
+			buf = "\x1bOk" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Separator)
+		{
+			buf = "\x1bOl" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Subtract)
+		{
+			buf = "\x1bOm" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Decimal)
+		{
+			buf = "\x1bOn" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_Divide)
+		{
+			buf = "\x1bOo" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_0)
+		{
+			buf = "\x1bOp" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_1)
+		{
+			buf = "\x1bOq" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_2)
+		{
+			buf = "\x1bOr" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_3)
+		{
+			buf = "\x1bOs" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_4)
+		{
+			buf = "\x1bOt" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_5)
+		{
+			buf = "\x1bOu" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_6)
+		{
+			buf = "\x1bOv" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_7)
+		{
+			buf = "\x1bOw" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_8)
+		{
+			buf = "\x1bOx" ;
+		}
+		else if( termscr->is_app_keypad && ksym == XK_KP_9)
+		{
+			buf = "\x1bOy" ;
+		}
+		else
+		{
+			return ;
+		}
+
+		write_to_pty( termscr , buf , strlen(buf) , NULL) ;
 	}
 }
 
@@ -4029,7 +4043,8 @@ ml_term_screen_new(
 	int  use_vertical_cursor ,
 	int  big5_buggy ,
 	char *  conf_menu_path ,
-	ml_iscii_lang_t  iscii_lang
+	ml_iscii_lang_t  iscii_lang ,
+	int  use_extended_scroll_shortcut
 	)
 {
 	ml_term_screen_t *  termscr ;
@@ -4285,6 +4300,8 @@ ml_term_screen_new(
 	termscr->mod_meta_mode = mod_meta_mode ;
 
 	termscr->bel_mode = bel_mode ;
+
+	termscr->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
 
 	/*
 	 * for receiving selection.

@@ -314,7 +314,7 @@ open_term(
 		term_man->conf.font_present , term_man->conf.use_bidi ,
 		term_man->conf.vertical_mode , term_man->conf.use_vertical_cursor ,
 		term_man->conf.big5_buggy , term_man->conf.conf_menu_path ,
-		term_man->conf.iscii_lang)) == NULL)
+		term_man->conf.iscii_lang , term_man->conf.use_extended_scroll_shortcut)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_screen_new() failed.\n") ;
@@ -936,6 +936,8 @@ get_min_conf(
 		"number of extra dots between lines") ;
 	kik_conf_add_opt( conf , 'p' , "pic" , 0 , "wall_picture" , 
 		"wall picture path") ;
+	kik_conf_add_opt( conf , 'q' , "extkey" , 1 , "use_extended_scroll_shortcut" ,
+		"use extended scroll shortcut key") ;
 	kik_conf_add_opt( conf , 'r' , "fade" , 0 , "fade_ratio" , 
 		"fade ratio when window unfocued.") ;
 	kik_conf_add_opt( conf , 's' , "sb" , 1 , "use_scrollbar" , 
@@ -1519,6 +1521,16 @@ config_init(
 		if( ( lang = ml_iscii_get_lang( strdup( value))) != ISCIILANG_UNKNOWN)
 		{
 			term_man->conf.iscii_lang = lang ;
+		}
+	}
+
+	term_man->conf.use_extended_scroll_shortcut = 0 ;
+	
+	if( ( value = kik_conf_get_value( conf , "use_extended_scroll_shortcut")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.use_extended_scroll_shortcut = 1 ;
 		}
 	}
 

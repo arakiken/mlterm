@@ -514,7 +514,7 @@ ml_xic_get_utf8_str(
 	XKeyEvent *  event
 	)
 {
-#ifdef  X_HAVE_UTF8_STRING
+#ifdef  HAVE_XUTF8_LOOKUP_STRING
 	Status  stat ;
 	size_t  len ;
 

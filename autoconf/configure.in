@@ -47,6 +47,10 @@ AC_SUBST(SOCK_LIBS)
 
 AC_PATH_XTRA
 
+# Li18nux Xlib-I18N defines X_HAVE_UTF8_STRING but has no Xutf8LookupString.
+AC_CHECK_LIB(X11,Xutf8LookupString,XUTF8_CFLAGS="-DHAVE_XUTF8_LOOKUP_STRING")
+AC_SUBST(XUTF8_CFLAGS)
+
 AC_ARG_ENABLE(debug,
 	[  --enable-debug          debug[disabled]],
 	debug=$enable_debug)

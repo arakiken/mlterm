@@ -230,8 +230,15 @@ ml_font_custom_read_conf(
 		counter = 0 ;
 		for( counter = 0 ; counter < sizeof( cs_table) / sizeof( cs_table[0]) ; counter ++)
 		{
-			if( strncmp( cs_table[counter].name , key ,
-				K_MIN( strlen( cs_table[counter].name) , key_len)) == 0)
+			size_t  nlen ;
+
+			nlen = strlen( cs_table[counter].name) ;
+			
+			if( key_len >= nlen &&
+				strncmp( cs_table[counter].name , key , nlen) == 0 &&
+				( key[nlen] == '\0' ||
+					/* "_BOLD" or "_BIWIDTH" is trailing */
+					key[nlen] == '_'))
 			{
 				cs = cs_table[counter].cs ;
 
@@ -246,18 +253,15 @@ ml_font_custom_read_conf(
 
 		attr = DEFAULT_FONT_ATTR(cs) ;
 		
-		if( key)
+		if( key_len >= 8 && strstr( key , "_BIWIDTH"))
 		{
-			if( key_len >= 8 && strstr( key , "_BIWIDTH"))
-			{
-				attr |= FONT_BIWIDTH ;
-			}
+			attr |= FONT_BIWIDTH ;
+		}
 
-			if( key_len >= 5 && strstr( key , "_BOLD"))
-			{
-				attr &= ~FONT_MEDIUM ;
-				attr |= FONT_BOLD ;
-			}
+		if( key_len >= 5 && strstr( key , "_BOLD"))
+		{
+			attr &= ~FONT_MEDIUM ;
+			attr |= FONT_BOLD ;
 		}
 
 		/*
