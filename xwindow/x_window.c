@@ -84,8 +84,45 @@ static const u_char  DND_VERSION = 4 ;
 
 /* --- static functions --- */
 
+/* XXX XDND stuff should be moved into separete module */
+static void
+x_dnd_set_awareness(
+	x_window_t * win,
+	int flag
+	)
+{
+	if( flag)
+	{
+		XChangeProperty(win->display, win->my_window, XA_DND_AWARE(win->display),
+				XA_ATOM, 32, PropModeReplace, &DND_VERSION, 1) ;
+	}
+	else
+	{
+		XDeleteProperty(win->display, win->my_window, XA_DND_AWARE(win->display)) ;
+	}
+}
+
+static void
+x_dnd_finish(
+	x_window_t * win
+	)
+{
+	XClientMessageEvent reply_msg;
+
+	reply_msg.message_type = XA_DND_FINISH(win->display);
+	reply_msg.data.l[0] = win->my_window;
+	reply_msg.data.l[1] = 0;
+	reply_msg.type = ClientMessage;
+	reply_msg.format = 32;
+	reply_msg.window = win->dnd_source;
+	reply_msg.display = win->display;
+	
+	XSendEvent(win->display, win->dnd_source, False, 0,
+		   (XEvent*)&reply_msg);
+}
+
 static int
-xdnd_parse(
+x_dnd_parse(
 	x_window_t * win,
 	Atom atom,
 	char *src,
@@ -177,11 +214,11 @@ xdnd_parse(
 }
 
 static Atom
-is_dnd_mime_type_acceptable(
+x_dnd_mime_type_acceptable(
 	x_window_t *  win ,
 	Atom atom)
 {
-	if( xdnd_parse( win, atom, NULL, 0))
+	if( x_dnd_parse( win, atom, NULL, 0))
 	{
 		return atom;
 	}
@@ -1161,10 +1198,10 @@ x_window_show(
 					DefaultVisual( win->display , win->screen) ,
 					DefaultColormap( win->display , win->screen)) ;
 #endif
-	/* accept XDND */
-	XChangeProperty(win->display, win->my_window, XA_DND_AWARE(win->display),
-			XA_ATOM, 32, PropModeReplace, &DND_VERSION, 1);
-	
+
+	/* declare support XDND protocol */
+	x_dnd_set_awareness( win, 1) ;
+
 	/*
 	 * graphic context.
 	 */
@@ -2114,9 +2151,12 @@ x_window_receive_event(
 				/* XDND */
 				if( event->xselection.property == XA_DND_STORE(win->display))
 				{
-					xdnd_parse(win,
-						   win->is_dnd_accepting, /* Mime type is stored as Atom */
-						   ct.value, ct.nitems);
+					if( ct.encoding != XA_INCR(win->display)) /* XXX should read size */
+					{
+						x_dnd_parse(win,
+							   win->is_dnd_accepting, /* Mime type is stored as Atom */
+							   ct.value, ct.nitems) ;
+					}
 				}
 				/* SELECTION */
 				else if( event->xselection.target == XA_STRING || 
@@ -2148,18 +2188,7 @@ x_window_receive_event(
 
 			if( event->xselection.property == XA_DND_STORE(win->display))
 			{
-				XClientMessageEvent reply_msg;
-				
-				reply_msg.message_type = XA_DND_FINISH(win->display);
-				reply_msg.data.l[0] = win->my_window;
-				reply_msg.data.l[1] = 0;
-				reply_msg.type = ClientMessage;
-				reply_msg.format = 32;
-				reply_msg.window = win->dnd_source;
-				reply_msg.display = win->display;
-
-				XSendEvent(reply_msg.display, win->dnd_source, False, 0,
-					(XEvent*)&reply_msg);
+				x_dnd_finish( win) ;
 			}
 		}
 		
@@ -2234,7 +2263,7 @@ x_window_receive_event(
 				for( count = 0 ; count < nitems ; count++)
 				{
 					if( ( win->is_dnd_accepting =
-						is_dnd_mime_type_acceptable( win, dat[count])))
+						x_dnd_mime_type_acceptable( win, dat[count])))
 					{
 						break; /* parsable atom is returned */
 					}
@@ -2244,17 +2273,17 @@ x_window_receive_event(
 			}
 			/* less than 3*/
 			else if( ( win->is_dnd_accepting =
-				is_dnd_mime_type_acceptable( win, event->xclient.data.l[2])))
+				x_dnd_mime_type_acceptable( win, event->xclient.data.l[2])))
 			{
 				/* do nothing (judge preference?)*/ ;
 			}
 			else if( ( win->is_dnd_accepting =
-				is_dnd_mime_type_acceptable( win, event->xclient.data.l[3])))
+				x_dnd_mime_type_acceptable( win, event->xclient.data.l[3])))
 			{
 				/* do nothing (judge preference?)*/ ;
 			}
 			else if( ( win->is_dnd_accepting =
-				is_dnd_mime_type_acceptable( win, event->xclient.data.l[4])))
+				x_dnd_mime_type_acceptable( win, event->xclient.data.l[4])))
 			{
 				/* do nothing (judge preference?)*/ ;
 			}
@@ -2302,6 +2331,47 @@ x_window_receive_event(
 				  XA_DND_STORE(win->display),
 				  win->my_window,
 				  event->xclient.data.l[2]);
+		}
+	}
+	else if( event->type == PropertyNotify)
+	{
+		/* XXX paste using INCR also should be processed here */
+
+		if( event->xproperty.atom == XA_DND_STORE( win->display))
+                {			
+			u_long  bytes_after ;
+			XTextProperty  ct ;
+			int result ;
+			/* dummy read to determine data length (it shouldn't so long because this is INCR handler)*/
+			result = XGetWindowProperty( win->display , event->xproperty.window ,
+						     event->xproperty.atom , 0 , 0 , False ,
+						     AnyPropertyType , &ct.encoding , &ct.format ,
+						     &ct.nitems , &bytes_after , &ct.value) ;
+			if( (result == Success) && 
+			    /* when ct.encoding == XA_INCR, delete will be done in another place(SelectionNotify). 
+			       ct.encoding == None, the event should be ignored */
+			    (ct.encoding != XA_INCR(win->display)) && ( ct.encoding != None))
+			{
+				XGetWindowProperty( win->display , event->xproperty.window ,
+						    event->xproperty.atom , 0 , bytes_after , False ,
+						    AnyPropertyType , &ct.encoding , &ct.format ,
+						    &ct.nitems , &bytes_after , &ct.value) ; /* should alway success*/
+			
+				if( ct.nitems > 0)
+				{
+					x_dnd_parse( win, win->is_dnd_accepting,
+						     ct.value, ct.nitems) ;
+				}
+				else
+				{       /* all data have received */
+					x_dnd_finish( win) ;
+				}
+
+				XFree( ct.value) ; 
+				/* This delete triggers next update*/
+				XDeleteProperty( win->display, event->xproperty.window,
+						 event->xproperty.atom) ;					
+			}
 		}
 	}
 #ifdef  __DEBUG

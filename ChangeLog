@@ -1,19 +1,25 @@
+2002-11-08  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* Rewrited XDND processiong code.
+	- INCR (incremantal transfer of huge data) is supported.
+	- cleaned up a bit for future separation. 
+	
 2002-11-07 Araki Ken <arakiken@users.sf.net>
 
 	* Default screen size is 80x24 instead of 80x30.
 	  (Thanks to Sato Seiichi san)
 	* Performance tuning of ml_edit.c.
 
-2002-11-06  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
+2002-11-06  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* GBK parser became more robust againt invalid input.
 	  (Thanks to Wang WenRui)
 
-2002-11-04  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
+2002-11-04  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* UTF8_STRING and COMPOUND_TEXT are now accepted as XDND's mime type. 
 	
-2002-10-16  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
+2002-10-16  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* Major rewrite of x_imagelib_gdk.c.
 	  Now it's only depends on gdk-pixbuf and not gdk-pixbuf-xlib.
