@@ -618,7 +618,10 @@ preedit_pushback(
 			uim->im.preedit.num_of_chars = 0 ;
 			uim->im.preedit.filled_len = 0 ;
 
-			free( str) ;
+			if( NEED_TO_CONV(uim))
+			{
+				free( str) ;
+			}
 
 			return ;
 		}

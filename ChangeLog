@@ -1,3 +1,7 @@
+2005-01-21 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/uim/im_uim.c: minor code cleanup.
+
 2005-01-16 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* mlterm/ml_pty.c (ml_pty_new): In the forked pty process, reset the
