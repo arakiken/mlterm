@@ -1,3 +1,14 @@
+2004-11-16 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* mlterm/ml_term_manager.c (sig_child): ignore SIGCHLD from non pty
+	  process. (pid == -1)
+
+	* inputmethod/uim/im_uim.c
+	  (helper_read_handler): An empty message ("") from helper crased
+	  mlterm, fixed.
+	  (im_new): removed workaround for SIGCHLD problem with prime.
+	  (sig_pipe): New function to handle SIGPIPE from prime.
+
 2004-11-15 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/kbd/Makefile.in: @MKF_LIBS@ -> @MKF_LIBS_FOR_MODULE@

@@ -57,6 +57,8 @@
 /* see http://www.freedesktop.org/pipermail/uim/2004-June/000383.html */
 #endif
 
+#define  PRIME_HACK 1
+
 
 /*
  * When uim encoding is the same as terminal, parser_uim and conv are NULL,
@@ -99,7 +101,18 @@ static im_uim_t *  last_focused_uim = NULL ;
 static x_im_export_syms_t *  mlterm_syms = NULL ; /* mlterm internal symbols */
 static mod_key_debug = 0 ;
 
+
 /* --- static functions --- */
+
+#ifdef  PRIME_HACK
+static void
+sig_pipe(
+	int  sig
+	)
+{
+	kik_error_printf( "SIGPIPE received. prime is dead?\n") ;
+}
+#endif
 
 static int
 find_engine(
@@ -948,6 +961,10 @@ delete(
 
 		uim_quit() ;
 
+	#ifdef  PRIME_HACK
+		signal( SIGPIPE , SIG_DFL) ;
+	#endif
+
 		if( ! kik_list_is_empty( uim_list))
 		{
 		#ifdef  DEBUG
@@ -1343,9 +1360,11 @@ helper_read_handler( void)
 							   second_line) ;
 				}
 			}
+
+			message = first_line ; /* for free() */
 		}
 
-		free( first_line) ;
+		free( message) ;
 	}
 }
 
@@ -1364,7 +1383,6 @@ im_new(
 	im_uim_t *  uim ;
 	char *  encoding_name ;
 	ml_char_encoding_t  encoding ;
-	void * hold_handler;
 
 	if( magic != (u_int64_t) IM_API_COMPAT_CHECK_MAGIC)
 	{
@@ -1418,6 +1436,10 @@ im_new(
 		kik_list_new( im_uim_t , uim_list) ;
 
 		initialized = 1 ;
+
+	#ifdef  PRIME_HACK
+		signal( SIGPIPE , sig_pipe) ;
+	#endif
 	}
 
 	/*
@@ -1428,18 +1450,11 @@ im_new(
 	    mlterm_syms->x_term_manager_add_fd &&
 	    mlterm_syms->x_term_manager_remove_fd)
 	{
-		hold_handler = signal(SIGCHLD, SIG_DFL) ;
-
 		helper_fd = uim_helper_init_client_fd( helper_disconnected) ;
-
-		/* restoring */
-		signal(SIGCHLD, hold_handler) ;
 
 		(*mlterm_syms->x_term_manager_add_fd)(helper_fd ,
 						      helper_read_handler) ;
 	}
-
-	hold_handler = NULL ;
 
 	if( engine == NULL || strlen( engine) == 0)
 	{
@@ -1501,12 +1516,6 @@ im_new(
 		goto  error ;
 	}
 
-	/* XXX */
-	if( strcmp( engine , "prime") == 0 && ref_count == 0)
-	{
-		hold_handler = signal(SIGCHLD, SIG_DFL) ;
-	}
-
 	if( ! ( uim->context = uim_create_context( uim ,
 						   encoding_name ,
 						   NULL ,
@@ -1519,12 +1528,6 @@ im_new(
 	#endif
 
 		goto  error ;
-	}
-
-	/* restoring */
-	if( hold_handler)
-	{
-		signal(SIGCHLD, hold_handler) ;
 	}
 
 	uim_set_preedit_cb( uim->context ,
@@ -1566,12 +1569,6 @@ im_new(
 	return  (x_im_t*) uim ;
 
 error:
-	/* restoring */
-	if( hold_handler)
-	{
-		signal(SIGCHLD, hold_handler) ;
-	}
-
 	if( helper_fd != -1)
 	{
 		uim_helper_close_client_fd( helper_fd) ;
@@ -1584,6 +1581,10 @@ error:
 	if( initialized && ref_count == 0)
 	{
 		uim_quit() ;
+
+	#ifdef  PRIME_HACK
+		signal( SIGPIPE , SIG_DFL) ;
+	#endif
 
 		initialized = 0 ;
 	}

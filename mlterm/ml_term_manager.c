@@ -33,6 +33,11 @@ sig_child(
 {
 	int  count ;
 
+	if( pid == -1)
+	{
+		return ;
+	}
+
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
 		if( pid == ml_term_get_child_pid( terms[count]))
