@@ -1,3 +1,7 @@
+2003-03-02 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Added "New PTY" button for mlconfig.
+
 2003-03-02 MINAMI Hirokazu <minami@mistfall.net>
 
 	* Code cleanup in the gdk-pixbuf module. 

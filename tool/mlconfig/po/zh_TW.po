@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlconfig\n"
-"POT-Creation-Date: 2003-03-02 14:42+0900\n"
+"POT-Creation-Date: 2003-03-02 23:30+0900\n"
 "PO-Revision-Date: 2003-02-09 21:26+0800\n"
 "Last-Translator: Yuan-Chen Cheng <ycheng@slat.org>\n"
 "Language-Team: Chinese (Traditional) <zh-l10n@linux.org.tw>\n"
@@ -13,71 +13,75 @@ msgstr ""
 "Content-Type: text/plain; charset=Big5\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: tool/mlconfig/main.c:200
+#: tool/mlconfig/main.c:213
 msgid "OK"
 msgstr "確定"
 
-#: tool/mlconfig/main.c:205
+#: tool/mlconfig/main.c:218
 msgid "Apply"
 msgstr "套用"
 
-#: tool/mlconfig/main.c:210
+#: tool/mlconfig/main.c:223
 msgid "Cancel"
 msgstr "取消"
 
-#: tool/mlconfig/main.c:226
+#: tool/mlconfig/main.c:239
 msgid "Font size"
 msgstr "字型大小"
 
-#: tool/mlconfig/main.c:234
+#: tool/mlconfig/main.c:247
 msgid "Larger"
 msgstr "大一點"
 
-#: tool/mlconfig/main.c:239
+#: tool/mlconfig/main.c:252
 msgid "Smaller"
 msgstr "小一點"
 
-#: tool/mlconfig/main.c:254 tool/mlconfig/main.c:262
+#: tool/mlconfig/main.c:267 tool/mlconfig/main.c:275
 msgid "Full reset"
 msgstr ""
 
-#: tool/mlconfig/main.c:284
+#: tool/mlconfig/main.c:297
 msgid "PTY List"
 msgstr ""
 
-#: tool/mlconfig/main.c:292 tool/mlconfig/mc_wall_pic.c:90
+#: tool/mlconfig/main.c:305
+msgid " New "
+msgstr ""
+
+#: tool/mlconfig/main.c:310 tool/mlconfig/mc_wall_pic.c:90
 msgid " Select "
 msgstr ""
 
-#: tool/mlconfig/main.c:318
+#: tool/mlconfig/main.c:336
 msgid "mlterm configuration"
 msgstr ""
 
-#: tool/mlconfig/main.c:354 tool/mlconfig/mc_char_encoding.c:199
+#: tool/mlconfig/main.c:372 tool/mlconfig/mc_char_encoding.c:199
 msgid "Encoding"
 msgstr "編碼"
 
-#: tool/mlconfig/main.c:408
+#: tool/mlconfig/main.c:426
 msgid "Font"
 msgstr "字型"
 
-#: tool/mlconfig/main.c:426
+#: tool/mlconfig/main.c:444
 msgid "Screen ratio against font size"
 msgstr ""
 
-#: tool/mlconfig/main.c:474
+#: tool/mlconfig/main.c:492
 msgid "Background"
 msgstr "背景"
 
-#: tool/mlconfig/main.c:487
+#: tool/mlconfig/main.c:505
 msgid "Picture/Transparent"
 msgstr ""
 
-#: tool/mlconfig/main.c:522
+#: tool/mlconfig/main.c:540
 msgid "Scrollbar"
 msgstr ""
 
-#: tool/mlconfig/main.c:551
+#: tool/mlconfig/main.c:569
 msgid "Others"
 msgstr ""
 

@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.2\n"
-"POT-Creation-Date: 2003-03-02 14:42+0900\n"
+"POT-Creation-Date: 2003-03-02 23:30+0900\n"
 "PO-Revision-Date: 2002-11-25 19:25+0100\n"
 "Last-Translator: Mike Fabian <mfabian@suse.de>\n"
 "Language-Team: German <suse-i18n@suse.de>\n"
@@ -14,71 +14,75 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: tool/mlconfig/main.c:200
+#: tool/mlconfig/main.c:213
 msgid "OK"
 msgstr "OK"
 
-#: tool/mlconfig/main.c:205
+#: tool/mlconfig/main.c:218
 msgid "Apply"
 msgstr "Anwenden"
 
-#: tool/mlconfig/main.c:210
+#: tool/mlconfig/main.c:223
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: tool/mlconfig/main.c:226
+#: tool/mlconfig/main.c:239
 msgid "Font size"
 msgstr "Font Größe"
 
-#: tool/mlconfig/main.c:234
+#: tool/mlconfig/main.c:247
 msgid "Larger"
 msgstr "Größer"
 
-#: tool/mlconfig/main.c:239
+#: tool/mlconfig/main.c:252
 msgid "Smaller"
 msgstr "Kleiner"
 
-#: tool/mlconfig/main.c:254 tool/mlconfig/main.c:262
+#: tool/mlconfig/main.c:267 tool/mlconfig/main.c:275
 msgid "Full reset"
 msgstr "Alles Zurücksetzen"
 
-#: tool/mlconfig/main.c:284
+#: tool/mlconfig/main.c:297
 msgid "PTY List"
 msgstr ""
 
-#: tool/mlconfig/main.c:292 tool/mlconfig/mc_wall_pic.c:90
+#: tool/mlconfig/main.c:305
+msgid " New "
+msgstr ""
+
+#: tool/mlconfig/main.c:310 tool/mlconfig/mc_wall_pic.c:90
 msgid " Select "
 msgstr "Auswahl"
 
-#: tool/mlconfig/main.c:318
+#: tool/mlconfig/main.c:336
 msgid "mlterm configuration"
 msgstr "mlterm Konfiguration"
 
-#: tool/mlconfig/main.c:354 tool/mlconfig/mc_char_encoding.c:199
+#: tool/mlconfig/main.c:372 tool/mlconfig/mc_char_encoding.c:199
 msgid "Encoding"
 msgstr "Kodierung"
 
-#: tool/mlconfig/main.c:408
+#: tool/mlconfig/main.c:426
 msgid "Font"
 msgstr "Font"
 
-#: tool/mlconfig/main.c:426
+#: tool/mlconfig/main.c:444
 msgid "Screen ratio against font size"
 msgstr "Bildschirmgröße relativ zur Fontgröße"
 
-#: tool/mlconfig/main.c:474
+#: tool/mlconfig/main.c:492
 msgid "Background"
 msgstr "Hintergrund"
 
-#: tool/mlconfig/main.c:487
+#: tool/mlconfig/main.c:505
 msgid "Picture/Transparent"
 msgstr "Bild/Transparenz"
 
-#: tool/mlconfig/main.c:522
+#: tool/mlconfig/main.c:540
 msgid "Scrollbar"
 msgstr "Scrollbalken"
 
-#: tool/mlconfig/main.c:551
+#: tool/mlconfig/main.c:569
 msgid "Others"
 msgstr "Sonstiges"
 

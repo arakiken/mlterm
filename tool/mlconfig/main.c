@@ -170,6 +170,19 @@ full_reset_clicked(
 }
 
 static gint
+pty_new_button_clicked(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	mc_set_str_value("open_pty" , "") ;
+	mc_flush(mc_io_set);
+	gtk_main_quit() ;
+	
+	return  1 ;
+}	
+
+static gint
 pty_button_clicked(
 	GtkWidget *  widget ,
 	gpointer  data
@@ -289,12 +302,17 @@ pty_list(void)
 	gtk_widget_show(hbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
 	
+	button = gtk_button_new_with_label( _(" New ")) ;
+	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(pty_new_button_clicked) , NULL) ;
+	gtk_widget_show(button) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;
+	
 	button = gtk_button_new_with_label( _(" Select ")) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(pty_button_clicked) , NULL) ;
 	gtk_widget_show(button) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;
 	
-	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , config_widget , TRUE , TRUE , 0) ;
 
 	return  frame ;
 }

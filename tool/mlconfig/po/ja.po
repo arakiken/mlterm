@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
-"POT-Creation-Date: 2003-03-02 14:42+0900\n"
+"POT-Creation-Date: 2003-03-02 23:30+0900\n"
 "PO-Revision-Date: 2002-11-25 19:24+0100\n"
 "Last-Translator: Tomohiro KUBOTA <kubota@debian.org>\n"
 "Language-Team: Japanese <mlterm-dev-ja@lists.sourceforge.net>\n"
@@ -14,71 +14,75 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: tool/mlconfig/main.c:200
+#: tool/mlconfig/main.c:213
 msgid "OK"
 msgstr "OK"
 
-#: tool/mlconfig/main.c:205
+#: tool/mlconfig/main.c:218
 msgid "Apply"
 msgstr "適用"
 
-#: tool/mlconfig/main.c:210
+#: tool/mlconfig/main.c:223
 msgid "Cancel"
 msgstr "キャンセル"
 
-#: tool/mlconfig/main.c:226
+#: tool/mlconfig/main.c:239
 msgid "Font size"
 msgstr "フォントサイズ"
 
-#: tool/mlconfig/main.c:234
+#: tool/mlconfig/main.c:247
 msgid "Larger"
 msgstr "大きく"
 
-#: tool/mlconfig/main.c:239
+#: tool/mlconfig/main.c:252
 msgid "Smaller"
 msgstr "小さく"
 
-#: tool/mlconfig/main.c:254 tool/mlconfig/main.c:262
+#: tool/mlconfig/main.c:267 tool/mlconfig/main.c:275
 msgid "Full reset"
 msgstr "全リセット"
 
-#: tool/mlconfig/main.c:284
+#: tool/mlconfig/main.c:297
 msgid "PTY List"
 msgstr "仮想端末一覧"
 
-#: tool/mlconfig/main.c:292 tool/mlconfig/mc_wall_pic.c:90
+#: tool/mlconfig/main.c:305
+msgid " New "
+msgstr "新規"
+
+#: tool/mlconfig/main.c:310 tool/mlconfig/mc_wall_pic.c:90
 msgid " Select "
 msgstr "選択"
 
-#: tool/mlconfig/main.c:318
+#: tool/mlconfig/main.c:336
 msgid "mlterm configuration"
 msgstr "mltermの設定"
 
-#: tool/mlconfig/main.c:354 tool/mlconfig/mc_char_encoding.c:199
+#: tool/mlconfig/main.c:372 tool/mlconfig/mc_char_encoding.c:199
 msgid "Encoding"
 msgstr "エンコーディング"
 
-#: tool/mlconfig/main.c:408
+#: tool/mlconfig/main.c:426
 msgid "Font"
 msgstr "フォント"
 
-#: tool/mlconfig/main.c:426
+#: tool/mlconfig/main.c:444
 msgid "Screen ratio against font size"
 msgstr "スクリーンサイズとフォントサイズの割合"
 
-#: tool/mlconfig/main.c:474
+#: tool/mlconfig/main.c:492
 msgid "Background"
 msgstr "背景"
 
-#: tool/mlconfig/main.c:487
+#: tool/mlconfig/main.c:505
 msgid "Picture/Transparent"
 msgstr "壁紙/透明"
 
-#: tool/mlconfig/main.c:522
+#: tool/mlconfig/main.c:540
 msgid "Scrollbar"
 msgstr "スクロールバー"
 
-#: tool/mlconfig/main.c:551
+#: tool/mlconfig/main.c:569
 msgid "Others"
 msgstr "その他"
 
