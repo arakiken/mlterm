@@ -707,12 +707,15 @@ ml_convert_col_to_char_index(
 	
 	for( ; char_index < END_CHAR_INDEX(line) ; char_index ++)
 	{
-		if( col < ml_char_cols( &line->chars[char_index]))
+		int  cols ; /* cache ml_char_cols*/
+
+		cols = ml_char_cols( &line->chars[char_index]);
+		if( col < cols)
 		{
 			goto  end ;
 		}
 
-		col -= ml_char_cols( &line->chars[char_index]) ;
+		col -= cols ;
 	}
 	
 	if( col < ml_char_cols( &line->chars[char_index]))
