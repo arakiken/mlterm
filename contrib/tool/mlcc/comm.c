@@ -55,9 +55,9 @@ static void reload_passwd(){
 		mlterm_pass[0] = 0 ;
 		return;
 	}	
-	
-	fprintf( stderr, "%d\n",fread(mlterm_pass, 1, 63, file) );
-	fprintf( stderr, "%s\n", mlterm_pass);
+	fread(mlterm_pass, 1, 63, file);	
+	/*fprintf( stderr, "%d\n",fread(mlterm_pass, 1, 63, file) );*/
+	/*fprintf( stderr, "%s\n", mlterm_pass);*/
 	fclose(file);
 }
 
@@ -173,7 +173,7 @@ char * mlterm_get_param(const char * key){
 	reload_passwd() ;
 
 	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5380;%s;%s\007", mlterm_pass, key);
-	fprintf(stderr, internal_buffer);
+	/*fprintf(stderr, internal_buffer);*/
 	csi(internal_buffer);
 	fgets(internal_buffer, sizeof(internal_buffer) -1, stdin);
 	result = strchr(internal_buffer, '\n');

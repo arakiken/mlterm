@@ -343,6 +343,11 @@ int main(int argc, char **argv){
 	struct sigaction act;	
 	window_t *win_root =0, *win_section = 0, *win_entry = 0;
 
+	if(argc == 3){
+		mlterm_set_param(argv[1], argv[2]);
+		exit(0);
+	}
+	
 	sigemptyset(&(act.sa_mask));
 	sigaddset(&act.sa_mask,SIGINT | SIGWINCH);
 	act.sa_flags = SA_RESTART;

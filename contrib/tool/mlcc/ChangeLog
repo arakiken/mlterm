@@ -1,3 +1,9 @@
+2003-06-29  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* added non-interactive mode.
+	ex)
+	 mlcc fg_color blue
+
 2004-10-04  Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* new input method option.
