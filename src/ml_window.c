@@ -2372,15 +2372,25 @@ ml_window_receive_event(
 		kik_debug_printf( "FOCUS IN %p\n" , event->xany.window) ;
 	#endif
 
-		notify_focus_in_to_children( win) ;
+		if( win->parent == NULL)
+		{
+			/* root window event only */
+			
+			notify_focus_in_to_children( win) ;
+		}
 	}
 	else if( event->type == FocusOut)
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( "FOCUS OUT %p\n" , event->xany.window) ;
 	#endif
-		
-		notify_focus_out_to_children( win) ;
+
+		if( win->parent == NULL)
+		{
+			/* root window event only */
+			
+			notify_focus_out_to_children( win) ;
+		}
 	}
 	else if( event->type == MotionNotify)
 	{

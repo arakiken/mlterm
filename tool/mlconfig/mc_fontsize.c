@@ -4,9 +4,10 @@
 
 #include  "mc_fontsize.h"
 
-#include  <stdio.h>
+#include  <stdio.h>		/* sprintf */
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_str.h>
+#include  <kiklib/kik_mem.h>	/* alloca */
 #include  <glib.h>
 
 #include  "mc_combo.h"
@@ -32,7 +33,7 @@ fontsize_selected(
 	selected_fontsize = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 	
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s encoding is selected.\n" , selected_fontsize) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s font size is selected.\n" , selected_fontsize) ;
 #endif
 
 	return  1 ;
@@ -52,12 +53,12 @@ mc_fontsize_config_widget_new(
 	char *  sizes ;
 	int  counter ;
 	
-	if((fontlist = alloca(sizeof(char*) * (max_fontsize - min_fontsize + 1))) == NULL)
+	if( ( fontlist = alloca( sizeof(char*) * (max_fontsize - min_fontsize + 1))) == NULL)
 	{
 		return  NULL ;
 	}
 
-	if((sizes = alloca((max_fontsize - min_fontsize + 1) * 10)) == NULL)
+	if( ( sizes = alloca( ( max_fontsize - min_fontsize + 1) * 10)) == NULL)
 	{
 		return  NULL ;
 	}
@@ -82,8 +83,16 @@ mc_fontsize_config_widget_new(
 		fontsize , 1 , fontsize_selected , NULL) ;
 }
 
-char *
+u_int
 mc_get_fontsize(void)
 {
-	return  selected_fontsize ;
+	u_int  fontsize ;
+	
+	/* this never fails */
+	if( ! kik_str_to_int( &fontsize , selected_fontsize))
+	{
+		fontsize = 16 ;
+	}
+	
+	return  fontsize ;
 }

@@ -14,6 +14,7 @@
 #include  "mc_char_encoding.h"
 #include  "mc_fg_color.h"
 #include  "mc_bg_color.h"
+#include  "mc_fade.h"
 #include  "mc_tabsize.h"
 #include  "mc_logsize.h"
 #include  "mc_fontsize.h"
@@ -75,9 +76,9 @@ apply_clicked(
 	/*
 	 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
 	 * [mod meta mode] [bel mode] [combining char] [copy paste via ucs] [is transparent] \
-	 * [font present] [is bidi] [xim] [locale][LF]
+	 * [fade ratio] [font present] [is bidi] [xim] [locale][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %d %s %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
 		mc_get_char_encoding() ,
 		mc_get_iscii_lang() ,
 		mc_get_fg_color() ,
@@ -90,6 +91,7 @@ apply_clicked(
 		GTK_TOGGLE_BUTTON(is_comb_check)->active ,
 		GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active ,
 		GTK_TOGGLE_BUTTON(is_tp_check)->active ,
+		mc_get_fade_ratio() ,
 		mc_get_font_present() ,
 		GTK_TOGGLE_BUTTON(use_bidi_check)->active ,
 		mc_get_xim_name() ,
@@ -329,6 +331,7 @@ show(
 	int  is_combining_char ,
 	int  copy_paste_via_ucs ,
 	int  is_transparent ,
+	char *  fade_ratio ,
 	ml_font_present_t  font_present ,
 	int  use_bidi ,
 	char *  xim ,
@@ -345,153 +348,153 @@ show(
 	GtkWidget *  separator ;
 	
 	window = gtk_window_new( GTK_WINDOW_TOPLEVEL) ;
-	gtk_signal_connect(GTK_OBJECT(window) , "delete_event" ,
+	gtk_signal_connect( GTK_OBJECT(window) , "delete_event" ,
 		GTK_SIGNAL_FUNC(end_application) , NULL) ;
-	gtk_window_set_title(GTK_WINDOW(window) , "mlterm configuration") ;
-	gtk_container_set_border_width(GTK_CONTAINER(window) , 0) ;
-	gtk_widget_show(window) ;
-	gdk_window_move(window->window , x , y) ;
-	gtk_window_set_policy(GTK_WINDOW(window) , 0 , 0 , 0) ;
+	gtk_window_set_title( GTK_WINDOW(window) , "mlterm configuration") ;
+	gtk_container_set_border_width( GTK_CONTAINER(window) , 0) ;
+	gtk_widget_show( window) ;
+	gdk_window_move( window->window , x , y) ;
+	gtk_window_set_policy( GTK_WINDOW(window) , 0 , 0 , 0) ;
 
 	vbox = gtk_vbox_new( FALSE , 10) ;
-	gtk_widget_show(vbox) ;
-	gtk_container_set_border_width(GTK_CONTAINER(vbox) , 5) ;
-	gtk_container_add(GTK_CONTAINER(window) , vbox) ;
+	gtk_widget_show( vbox) ;
+	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
+	gtk_container_add( GTK_CONTAINER(window) , vbox) ;
 
 
 	/* whole screen (except for the contents of notebook) */
 
 	notebook = gtk_notebook_new() ;
-	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(notebook) , GTK_POS_TOP) ;
-	gtk_widget_show(notebook) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , notebook , TRUE , TRUE , 0) ;
+	gtk_notebook_set_tab_pos( GTK_NOTEBOOK(notebook) , GTK_POS_TOP) ;
+	gtk_widget_show( notebook) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , notebook , TRUE , TRUE , 0) ;
 
 	separator = gtk_hseparator_new() ;
-	gtk_widget_show(separator) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , separator , FALSE , FALSE , 2) ;
+	gtk_widget_show( separator) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , separator , FALSE , FALSE , 2) ;
 
 	hbox = apply_cancel_button();
-	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 	
-	hbox = gtk_hbox_new(FALSE , 0) ;
-	gtk_widget_show(hbox) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
+	hbox = gtk_hbox_new( FALSE , 0) ;
+	gtk_widget_show( hbox) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 	frame = font_large_small();
-	gtk_box_pack_start(GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
-	frame = wall_picture(window);
-	gtk_box_pack_start(GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
+	frame = wall_picture( window);
+	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
 	frame = full_reset();
-	gtk_box_pack_start(GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
 
 	/* contents of the "Encoding" tab */
 
-	label = gtk_label_new("Encoding") ;
-	gtk_widget_show(label) ;
+	label = gtk_label_new( "Encoding") ;
+	gtk_widget_show( label) ;
 
-	vbox = gtk_vbox_new(FALSE , 3) ;
-	gtk_container_set_border_width(GTK_CONTAINER(vbox) , 5) ;
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
-	gtk_widget_show(vbox) ;
+	vbox = gtk_vbox_new( FALSE , 3) ;
+	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
+	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
+	gtk_widget_show( vbox) ;
 
-	if( ! ( config_widget = mc_char_encoding_config_widget_new(encoding)))
+	if( ! ( config_widget = mc_char_encoding_config_widget_new( encoding)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! ( config_widget = mc_iscii_lang_config_widget_new(iscii_lang)))
+	if( ! ( config_widget = mc_iscii_lang_config_widget_new( iscii_lang)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! ( config_widget = mc_xim_config_widget_new(xim, locale)))
+	if( ! ( config_widget = mc_xim_config_widget_new( xim, locale)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	hbox = gtk_hbox_new(TRUE , 5) ;
-	gtk_widget_show(hbox) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;	
+	hbox = gtk_hbox_new( TRUE , 5) ;
+	gtk_widget_show( hbox) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;	
 
 	if( ! ( use_bidi_check = mc_check_config_widget_new( "Bidi (UTF8 only)" , use_bidi)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(use_bidi_check) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , use_bidi_check , TRUE , TRUE , 0) ;
+	gtk_widget_show( use_bidi_check) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , use_bidi_check , TRUE , TRUE , 0) ;
 	
 	if( ! ( is_comb_check = mc_check_config_widget_new( "Combining" , is_combining_char)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(is_comb_check) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , is_comb_check , TRUE , TRUE , 0) ;
+	gtk_widget_show( is_comb_check) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , is_comb_check , TRUE , TRUE , 0) ;
 
 	
 	/* contents of the "Copy&paste" tab */
 
-	label = gtk_label_new("Copy&paste") ;
-	gtk_widget_show(label) ;
+	label = gtk_label_new( "Copy&paste") ;
+	gtk_widget_show( label) ;
 	
-	vbox = gtk_vbox_new(FALSE , 3) ;
-	gtk_container_set_border_width(GTK_CONTAINER(vbox) , 5) ;
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
-	gtk_widget_show(vbox) ;
+	vbox = gtk_vbox_new( FALSE , 3) ;
+	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
+	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
+	gtk_widget_show( vbox) ;
 
-	frame = gtk_frame_new("For unicode-subset encodings") ;
-	gtk_widget_show(frame) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , frame , FALSE , FALSE , 0) ;
+	frame = gtk_frame_new( "For unicode-subset encodings") ;
+	gtk_widget_show( frame) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , frame , FALSE , FALSE , 0) ;
 	
 	if( ! ( copy_paste_via_ucs_check = mc_check_config_widget_new(
 		"Process received strings via Unicode" , copy_paste_via_ucs)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(copy_paste_via_ucs_check) ;
-	gtk_container_add(GTK_CONTAINER(frame) , copy_paste_via_ucs_check) ;
+	gtk_widget_show( copy_paste_via_ucs_check) ;
+	gtk_container_add( GTK_CONTAINER(frame) , copy_paste_via_ucs_check) ;
 		
 	
 	/* contents of the "Appearance" tab */
 
-	label = gtk_label_new("Appearance") ;
-	gtk_widget_show(label) ;
-	vbox = gtk_vbox_new(FALSE , 3) ;
-	gtk_container_set_border_width(GTK_CONTAINER(vbox) , 5) ;
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
-	gtk_widget_show(vbox) ;
+	label = gtk_label_new( "Appearance") ;
+	gtk_widget_show( label) ;
+	vbox = gtk_vbox_new( FALSE , 3) ;
+	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
+	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
+	gtk_widget_show( vbox) ;
 
-	if ( ! ( config_widget = mc_fg_color_config_widget_new(fg_color)))
+	if ( ! ( config_widget = mc_fg_color_config_widget_new( fg_color)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 	
-	if( ! (config_widget = mc_bg_color_config_widget_new(bg_color)))
+	if( ! ( config_widget = mc_bg_color_config_widget_new( bg_color)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 	
-	if( ! (config_widget = mc_fontsize_config_widget_new(fontsize , min_fontsize , max_fontsize)))
+	if( ! ( config_widget = mc_fontsize_config_widget_new( fontsize , min_fontsize , max_fontsize)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! (config_widget = mc_bel_config_widget_new(bel_mode)))
+	if( ! ( config_widget = mc_fade_config_widget_new( fade_ratio)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
 	if( ! ( config_widget = mc_font_present_config_widget_new( font_present)))
 	{
@@ -501,47 +504,54 @@ show(
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , TRUE , TRUE , 0) ;
 
 	
-	hbox = gtk_hbox_new(TRUE , 5) ;
-	gtk_widget_show(hbox) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
+	hbox = gtk_hbox_new( TRUE , 5) ;
+	gtk_widget_show( hbox) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 
 	if( ! ( is_tp_check = mc_check_config_widget_new( "Transparent" , is_transparent)))
 	{
 		return  0 ;
 	}
 	gtk_widget_show( is_tp_check) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , is_tp_check , TRUE , TRUE , 0) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , is_tp_check , TRUE , TRUE , 0) ;
 
 
 	/* contents of the "Others" tab */
 
-	label = gtk_label_new("Others") ;
-	gtk_widget_show(label) ;
-	vbox = gtk_vbox_new(FALSE , 3) ;
-	gtk_container_set_border_width(GTK_CONTAINER(vbox) , 5) ;
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
-	gtk_widget_show(vbox) ;
+	label = gtk_label_new( "Others") ;
+	gtk_widget_show( label) ;
+	vbox = gtk_vbox_new( FALSE , 3) ;
+	gtk_container_set_border_width( GTK_CONTAINER(vbox) , 5) ;
+	gtk_notebook_append_page( GTK_NOTEBOOK(notebook) , vbox , label) ;
+	gtk_widget_show( vbox) ;
 
-	if( ! ( config_widget = mc_tabsize_config_widget_new(tabsize)))
+	if( ! ( config_widget = mc_tabsize_config_widget_new( tabsize)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! (config_widget = mc_logsize_config_widget_new(logsize)))
+	if( ! (config_widget = mc_logsize_config_widget_new( logsize)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! (config_widget = mc_mod_meta_config_widget_new(mod_meta_mode)))
+	if( ! (config_widget = mc_mod_meta_config_widget_new( mod_meta_mode)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+
+	if( ! ( config_widget = mc_bel_config_widget_new( bel_mode)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
 
 	gtk_main() ;
@@ -577,6 +587,7 @@ start_application(
 	int  is_combining_char ;
 	int  copy_paste_via_ucs ;
 	int  is_transparent ;
+	char *  fade_ratio ;
 	int  font_present ;
 	int  use_bidi ;
 	char *  locale ;
@@ -694,6 +705,11 @@ start_application(
 	{
 		return  0 ;
 	}
+
+	if( ( fade_ratio = kik_str_sep( &input_line , " ")) == NULL)
+	{
+		return  0 ;
+	}
 	
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &font_present , p))
@@ -720,7 +736,7 @@ start_application(
 	return  show( x , y , encoding , iscii_lang , fg_color , bg_color , tabsize ,
 		logsize , fontsize , min_fontsize , max_fontsize ,
 		mod_meta_mode , bel_mode , is_combining_char , copy_paste_via_ucs ,
-		is_transparent , font_present , use_bidi , xim , locale) ;
+		is_transparent , fade_ratio , font_present , use_bidi , xim , locale) ;
 }
 
 
@@ -745,7 +761,7 @@ main(
 		! kik_str_to_int( &in_fd , argv[3]) ||
 		! kik_str_to_int( &out_fd , argv[4]))
 	{
-		kik_msg_printf( "usage: (stdin 18) mlconfig [x] [y] [in] [out]\n") ;
+		kik_msg_printf( "usage: (stdin 19) mlconfig [x] [y] [in] [out]\n") ;
 		
 		return  0 ;
 	}

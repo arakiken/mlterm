@@ -1219,7 +1219,8 @@ config_menu(
 		termscr->font_man->font_custom->max_font_size ,
 		termscr->mod_meta_mode , termscr->bel_mode ,
 		ml_is_char_combining() , termscr->copy_paste_via_ucs ,
-		termscr->window.is_transparent , termscr->font_present , termscr->use_bidi ,
+		termscr->window.is_transparent , termscr->fade_ratio ,
+		termscr->font_present , termscr->use_bidi ,
 		ml_xic_get_xim_name( &termscr->window) , kik_get_locale()) ;
 }
 
@@ -2976,6 +2977,33 @@ unset_wall_picture(
 }
 
 static void
+change_fade_ratio(
+	void *  p ,
+	u_int  fade_ratio
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+
+	termscr->fade_ratio = fade_ratio ;
+
+	if( ! termscr->is_focused)
+	{
+		unhighlight_cursor( termscr) ;
+
+		/* suppressing redrawing */
+		termscr->window.window_exposed = NULL ;
+		ml_window_unfade_bg_color( &termscr->window) ;
+		
+		termscr->window.window_exposed = window_exposed ;
+		ml_window_fade_bg_color( &termscr->window , termscr->fade_ratio) ;
+		
+		highlight_cursor( termscr) ;
+	}
+}
+
+static void
 change_xim(
 	void *  p ,
 	char *  xim ,
@@ -3526,6 +3554,7 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_char_combining_flag = change_char_combining_flag ;
 	termscr->config_menu_listener.change_copy_paste_via_ucs_flag = change_copy_paste_via_ucs_flag ;
 	termscr->config_menu_listener.change_transparent_flag = change_transparent_flag ;
+	termscr->config_menu_listener.change_fade_ratio = change_fade_ratio ;
 	termscr->config_menu_listener.change_font_present = change_font_present ;
 	termscr->config_menu_listener.change_bidi_flag = change_bidi_flag ;
 	termscr->config_menu_listener.change_xim = change_xim ;

@@ -12,7 +12,7 @@
 
 GtkWidget *  mc_fontsize_config_widget_new( char * fontsize , u_int  min , u_int  max) ;
 
-char *  mc_get_fontsize(void) ;
+u_int  mc_get_fontsize(void) ;
 
 
 #endif

@@ -92,7 +92,7 @@ sig_child(
 		/*
 		 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
 		 * [mod meta mode] [bel mode] [combining char] [copy paste via ucs] [is transparent] \
-		 * [font present] [is bidi] [xim] [locale][LF]
+		 * [fade ratio] [font present] [is bidi] [xim] [locale][LF]
 		 */
 		 
 		int  encoding ;
@@ -107,6 +107,7 @@ sig_child(
 		int  is_combining_char ;
 		int  copy_paste_via_ucs ;
 		int  is_transparent ;
+		u_int  fade_ratio ;
 		int  font_present ;
 		int  use_bidi ;
 		char *  xim ;
@@ -180,6 +181,12 @@ sig_child(
 		
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 			! kik_str_to_int( &is_transparent , p))
+		{
+			goto  end ;
+		}
+
+		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+			! kik_str_to_int( &fade_ratio , p))
 		{
 			goto  end ;
 		}
@@ -311,6 +318,15 @@ sig_child(
 			{
 				(*config_menu->config_menu_listener->change_transparent_flag)(
 					config_menu->config_menu_listener->self , is_transparent) ;
+			}
+		}
+
+		if( fade_ratio != config_menu->session->fade_ratio)
+		{
+			if( config_menu->config_menu_listener->change_fade_ratio)
+			{
+				(*config_menu->config_menu_listener->change_fade_ratio)(
+					config_menu->config_menu_listener->self , fade_ratio) ;
 			}
 		}
 
@@ -470,6 +486,7 @@ ml_config_menu_start(
 	int  orig_is_combining_char ,
 	int  orig_copy_paste_via_ucs ,
 	int  orig_is_transparent ,
+	u_int  orig_fade_ratio ,
 	ml_font_present_t  orig_font_present ,
 	int  orig_use_bidi ,
 	char *  orig_xim ,
@@ -554,14 +571,15 @@ ml_config_menu_start(
 	/*
 	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [font size] \
 	 * [min font size] [max font size] [mod meta mode] [bel mode] [is combining char] \
-	 * [copy paste via ucs] [is transparent] [font present] [use bidi] [xim] [locale][LF]
+	 * [copy paste via ucs] [is transparent] [fade ratio] [font present] [use bidi] \
+	 * [xim] [locale][LF]
 	 */
-	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
 		orig_encoding , orig_iscii_lang , orig_fg_color , orig_bg_color , orig_tabsize ,
 		orig_logsize , orig_fontsize , min_fontsize , max_fontsize ,
 		orig_mod_meta_mode , orig_bel_mode , orig_is_combining_char ,
-		orig_copy_paste_via_ucs , orig_is_transparent , orig_font_present ,
-		orig_use_bidi , orig_xim , orig_locale) ;
+		orig_copy_paste_via_ucs , orig_is_transparent , orig_fade_ratio ,
+		orig_font_present , orig_use_bidi , orig_xim , orig_locale) ;
 	fclose( fp) ;
 
 	/*
@@ -583,6 +601,7 @@ ml_config_menu_start(
 	config_menu->session->is_combining_char = orig_is_combining_char ;
 	config_menu->session->copy_paste_via_ucs = orig_copy_paste_via_ucs ;
 	config_menu->session->is_transparent = orig_is_transparent ;
+	config_menu->session->fade_ratio = orig_fade_ratio ;
 	config_menu->session->font_present = orig_font_present ;
 	config_menu->session->use_bidi = orig_use_bidi ;
 	config_menu->session->xim = orig_xim ;

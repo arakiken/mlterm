@@ -888,6 +888,20 @@ ml_vt100_cmd_set_config(
 			(*termscr->config_menu_listener.change_transparent_flag)( termscr , flag) ;
 		}
 	}
+	else if( strcmp( key , "fade_ratio") == 0)
+	{
+		u_int  fade_ratio ;
+
+		if( ! kik_str_to_int( &fade_ratio , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_fade_ratio)
+		{
+			(*termscr->config_menu_listener.change_fade_ratio)( termscr , fade_ratio) ;
+		}
+	}
 	else if( strcmp( key , "use_anti_alias") == 0)
 	{
 		ml_font_present_t  font_present ;
@@ -1081,6 +1095,11 @@ ml_vt100_cmd_get_config(
 			value = false ;
 		}
 	}
+	else if( strcmp( key , "fade_ratio") == 0)
+	{
+		sprintf( digit , "%d" , termscr->fade_ratio) ;
+		value = digit ;
+	}
 	else if( strcmp( key , "use_anti_alias") == 0)
 	{
 		if( termscr->font_present & FONT_AA)
@@ -1121,6 +1140,10 @@ ml_vt100_cmd_get_config(
 	else if( strcmp( key , "locale") == 0)
 	{
 		value = kik_get_locale() ;
+	}
+	else if( strcmp( key , "wall_picture") == 0)
+	{
+		value = termscr->pic_file_path ;
 	}
 	else
 	{

@@ -14,12 +14,7 @@ comment $Id$
 
 * JISX0213_2000 <=> UCS と、JISX0208 <=> UCS テーブルを統合する。
 
-* Xtで設定画面を作る(gtkなくても設定を動的に変えられるように)
-
 * XInternAtom( display , "_XROOTPMAP_ID" , True) で取得される atom を使って、
   Root Pixmap の取得し、背景画像を表示する方法を実装
 
 * utmp に対応
-
-* mlconfig に OK / Apply(終了しない) / Cancel の 3 つの選択肢を用意する
-  (mlterm-dev-ja <20020103220529.WAJUC0A82633.10625183@mth.biglobe.ne.jp>)
