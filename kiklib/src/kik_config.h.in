@@ -30,6 +30,16 @@
 
 #undef  HAVE_ISASTREAM
 
+#undef  HAVE_SETUTENT
+
+#undef  HAVE_SETEUID
+
+#undef  HAVE_SETEGID
+
+#undef  HAVE_GETEUID
+
+#undef  HAVE_GETEGID
+
 #undef  PTY_STREAMS
 
 #undef  PTY_BSD

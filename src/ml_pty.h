@@ -6,13 +6,21 @@
 #define  __ML_PTY_H__
 
 
-#include  <kiklib/kik_types.h>		/* u_int/u_char */
+#include  <kiklib/kik_types.h>		/* u_int/u_char/uid_t/gid_t */
+
+#ifdef  USE_UTMP
+#include  <kiklib/kik_utmp.h>
+#endif
 
 
 typedef struct  ml_pty
 {
 	int  fd ;		/* master pty fd */
 	pid_t  child_pid ;
+
+#ifdef  USE_UTMP	
+	kik_utmp_t  utmp ;
+#endif
 
 	/* buffer to be written */
 	u_char *  buf ;
@@ -21,7 +29,8 @@ typedef struct  ml_pty
 } ml_pty_t ;
 
 
-ml_pty_t *  ml_pty_new( char *  cmd_path , char **  cmd_argv , char **  env , u_int  cols , u_int  rows) ;
+ml_pty_t *  ml_pty_new( char *  cmd_path , char **  cmd_argv , char **  env , char *  disp ,
+	u_int  cols , u_int  rows) ;
 
 int  ml_pty_delete( ml_pty_t *  pty) ;
 

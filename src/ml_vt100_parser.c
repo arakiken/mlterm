@@ -2331,6 +2331,7 @@ ml_parse_vt100_sequence(
 				/*
 				 * NON UCS <-> NON UCS
 				 */
+				
 				{
 					/*
 					 * XXX hack

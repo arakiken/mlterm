@@ -9,7 +9,7 @@
 #include  "kik_types.h"		/* pid_t */
 
 
-pid_t  kik_pty_fork( int *  master) ;
+pid_t  kik_pty_fork( int *  master , char **  slave_name) ;
 
 
 #endif

@@ -31,7 +31,7 @@ LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
 
 CFLAGS=$(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @IMLIB_CFLAGS@ @FRIBIDI_CFLAGS@ \
-	@AA_CFLAGS@ @UCS4_CFLAGS@ @IND_CFLAGS@ @CFLAGS@ \
+	@AA_CFLAGS@ @UCS4_CFLAGS@ @IND_CFLAGS@ @UTMP_CFLAGS@ @CFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DLIBEXECDIR=\"$(LIBEXECDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-I/usr/X11R6/include -I/usr/local/include
 LIBS=$(CFLAGS_LOCAL) @FRIBIDI_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ @IND_LIBS@ \
@@ -39,6 +39,7 @@ LIBS=$(CFLAGS_LOCAL) @FRIBIDI_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ @IND_LIBS@ \
 	-L/usr/X11R6/lib -L/usr/local/lib -R/usr/X11R6/lib -R/usr/local/lib
 
 PROG = mlterm
+PERMISSION = @PERMISSION@
 
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
@@ -60,7 +61,7 @@ $(BINDIR):
 	mkdir -p $(BINDIR)
 
 install : $(BINDIR)
-	$(LIBTOOL_INSTALL) -m 755 $(PROG) $(BINDIR)
+	$(LIBTOOL_INSTALL) -m $(PERMISSION) $(PROG) $(BINDIR)
 
 wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l

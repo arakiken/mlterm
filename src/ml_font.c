@@ -76,9 +76,9 @@ static cs_info_t  cs_info_table[] =
 	{ KOI8_U , 1 , { "koi8-u" , NULL , NULL , } , } ,
 	{ JISX0201_KATA , 1 , { "jisx0201.1976-0" , NULL , NULL , } , } ,
 	{ JISX0201_ROMAN , 1 , { "jisx0201.1976-0" , NULL , NULL , } , } ,
-	{ JISC6226_1978 , 2 , { "jisx0208.1978-0" , NULL , NULL , } , } ,
-	{ JISX0208_1983 , 2 , { "jisx0208.1983-0" , NULL , NULL , } , } ,
-	{ JISX0208_1990 , 2 , { "jisx0208.1990-0" , NULL , NULL , } , } ,
+	{ JISC6226_1978 , 2 , { "jisx0208.1978-0" , "jisx0208.1983-0" , NULL , } , } ,
+	{ JISX0208_1983 , 2 , { "jisx0208.1983-0" , "jisx0208.1990-0" , NULL , } , } ,
+	{ JISX0208_1990 , 2 , { "jisx0208.1990-0" , "jisx0208.1983-0" , NULL , } , } ,
 	{ JISX0212_1990 , 2 , { "jisx0212.1990-0" , NULL , NULL , } , } ,
 	{ JISX0213_2000_1 , 2 , { "jisx0213.2000-1" , NULL , NULL , } , } ,
 	{ JISX0213_2000_2 , 2 , { "jisx0213.2000-2" , NULL , NULL , } , } ,
@@ -253,12 +253,7 @@ load_xfont(
 		return  0 ;
 	}
 
-	/*
-	 * XXX
-	 * snprintf should be used , but how portable is it ?
-	 */
-	
-	sprintf( fontname , "-*-%s-%s-%s-%s--%d-*-*-*-%s-*-%s" ,
+	snprintf( fontname , max_len , "-*-%s-%s-%s-%s--%d-*-*-*-%s-*-%s" ,
 		family , weight , slant , width , fontsize , spacing , encoding) ;
 
 #ifdef  __DEBUG
@@ -274,7 +269,7 @@ load_xfont(
 	{
 		/* XFree86 Unicode font */
 		
-		sprintf( fontname , "-*-*-%s-%s-%s-%s-%d-*-*-*-%s-*-%s" ,
+		snprintf( fontname , max_len , "-*-*-%s-%s-%s-%s-%d-*-*-*-%s-*-%s" ,
 			weight , slant , width , kik_get_lang() , fontsize , spacing , encoding) ;
 
 	#ifdef  __DEBUG
@@ -288,7 +283,7 @@ load_xfont(
 
 		if( strcmp( kik_get_lang() , "ja") != 0)
 		{
-			sprintf( fontname , "-*-*-%s-%s-%s-ja-%d-*-*-*-%s-*-%s" ,
+			snprintf( fontname , max_len , "-*-*-%s-%s-%s-ja-%d-*-*-*-%s-*-%s" ,
 				weight , slant , width , fontsize , spacing , encoding) ;
 
 		#ifdef  __DEBUG
@@ -303,7 +298,7 @@ load_xfont(
 
 		/* GNU Unifont */
 		
-		sprintf( fontname , "-gnu-unifont-%s-%s-%s--%d-*-*-*-%s-*-%s" ,
+		snprintf( fontname , max_len , "-gnu-unifont-%s-%s-%s--%d-*-*-*-%s-*-%s" ,
 			weight , slant , width , fontsize , spacing , encoding) ;
 
 	#ifdef  __DEBUG

@@ -136,7 +136,5 @@ ISO8859_1 = [Dynalab Font]-iso8859-1:100;
 -c , --cp932 オプションをつけて mlterm を起動するか、~/.mlterm/main に、
 
 use_cp932_ucs_for_xft = true
-
 と設定することで回避できます。
 (このオプションはデフォルトで有効になっています)
-

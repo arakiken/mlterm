@@ -4,6 +4,7 @@
 
 #include  "ml_scrollbar.h"
 
+#include  <stdlib.h>		/* abs */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* free */
 #include  <kiklib/kik_str.h>	/* strdup */

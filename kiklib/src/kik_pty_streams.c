@@ -22,6 +22,7 @@
 #include  <sys/stropts.h>
 #endif
 
+#include  "kik_str.h"		/* strdup */
 #include  "kik_debug.h"
 
 
@@ -35,9 +36,13 @@
 
 /* --- global functions --- */
 
+/*
+ * slave_name memory must be freed by a caller.
+ */
 pid_t
 kik_pty_fork(
-	int *  master
+	int *  master ,
+	char **  slave_name
 	)
 {
 	int  slave ;
@@ -67,12 +72,15 @@ kik_pty_fork(
 	}
 
 	fcntl(*master, F_SETFL, O_NDELAY);
-		
+	
 	if( ( slave = open( ttydev, O_RDWR | O_NOCTTY, 0)) < 0)
 	{
 		return -1;
 	}
 
+	/*
+	 * cygwin doesn't have isastream.
+	 */
 #ifdef  HAVE_ISASTREAM
 	if( isastream(slave) == 1)
 	{
@@ -137,7 +145,9 @@ kik_pty_fork(
 	tio.c_cflag = CS8 | CREAD ;
 	tio.c_lflag = ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK ;
 
-	/* inheriting tty(0,1,2) settings ... */
+	/*
+	 * inheriting tty(0,1,2) settings ...
+	 */
 
 	for( fd = 0 ; fd <= 2 ; fd ++)
 	{
@@ -159,10 +169,21 @@ kik_pty_fork(
 		}
 	}
 
+	if( ( *slave_name = strdup( ttydev)) == NULL)
+	{
+		close( *master) ;
+		close( slave) ;
+
+		return  -1 ;
+	}
+
 	pid = fork() ;
+
 	if( pid == -1)
 	{
-		/* failed to fork. */
+		/* fork failed */
+
+		free( *slave_name) ;
 		
 		return  -1 ;
 	}

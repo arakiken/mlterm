@@ -8,6 +8,7 @@
 #include  <stdio.h>		/* fprintf */
 #endif
 
+#include  <stdlib.h>		/* abs */
 #include  <string.h>		/* memset/memcpy */
 #include  <X11/Xutil.h>		/* for XSizeHints */
 #include  <X11/Xatom.h>

@@ -2,8 +2,11 @@
  *	$Id$
  */
 
+#include  <sys/types.h>
+#include  <unistd.h>		/* getuid/getgid */
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_locale.h>
+#include  <kiklib/kik_privilege.h>
 
 #include  "ml_term_manager.h"
 
@@ -24,6 +27,10 @@ main(
 	)
 {
 	ml_term_manager_t  term_man ;
+
+	/* normal user */
+	kik_priv_change_euid( getuid()) ;
+	kik_priv_change_egid( getgid()) ;
 
 	if( ! kik_locale_init(""))
 	{

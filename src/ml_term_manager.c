@@ -263,7 +263,7 @@ open_new_term(
 	
 	if( term_man->cmd_path && term_man->cmd_argv)
 	{
-		if( ( pty = ml_pty_new( term_man->cmd_path , term_man->cmd_argv , env ,
+		if( ( pty = ml_pty_new( term_man->cmd_path , term_man->cmd_argv , env , disp_str ,
 			ml_term_screen_get_cols( termscr) , ml_term_screen_get_rows( termscr))) == NULL)
 		{
 		#ifdef  DEBUG
@@ -272,7 +272,7 @@ open_new_term(
 
 			goto  error ;
 		}
-	}	
+	}
 	else
 	{
 		struct passwd *  pw ;
@@ -320,7 +320,7 @@ open_new_term(
 
 		cmd_argv[1] = NULL ;
 
-		if( ( pty = ml_pty_new( cmd_path , cmd_argv , env ,
+		if( ( pty = ml_pty_new( cmd_path , cmd_argv , env , disp_str ,
 			ml_term_screen_get_cols( termscr) , ml_term_screen_get_rows( termscr))) == NULL)
 		{
 		#ifdef  DEBUG
@@ -341,6 +341,7 @@ open_new_term(
 		goto  error ;
 	}
 
+	
 	term_man->terms[term_man->num_of_terms].pty = pty ;
 	term_man->terms[term_man->num_of_terms].root_window = root ;
 	term_man->terms[term_man->num_of_terms].vt100_parser = vt100_parser ;
@@ -676,108 +677,110 @@ ml_term_manager_init(
 		free( rcpath) ;
 	}
 
-	kik_conf_add_opt( conf , 'd' , "display" , 0 , "display" , 
-		"X server to connect") ;
-	kik_conf_add_opt( conf , 'g' , "geometry" , 0 , "geometry" , 
-		"size (in characters) and position") ;
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
 		"screen width ratio") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
 		"screen height ratio") ;
-	kik_conf_add_opt( conf , 'N' , "name" , 0 , "app_name" , 
-		"application name") ;
-	kik_conf_add_opt( conf , 'T' , "title" , 0 , "title" , 
-		"title name") ;
-	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
-		"icon name") ;
-	kik_conf_add_opt( conf , 'w' , "fontsize" , 0 , "fontsize" , 
-		"font size") ;
-	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
-		"font size range") ;
-	kik_conf_add_opt( conf , 'o' , "lsp" , 0 , "line_space" ,
-		"number of extra dots between lines") ;
-	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
-		"step in changing font size in GUI configurator") ;
-	kik_conf_add_opt( conf , 'l' , "sl" , 0 , "logsize" , 
-		"number of scrolled lines to save") ;
-	kik_conf_add_opt( conf , 'E' , "km" , 0 , "ENCODING" , 
-		"character encoding") ;
-	kik_conf_add_opt( conf , 'x' , "tw" , 0 , "tabsize" , 
-		"tab width") ;
-	kik_conf_add_opt( conf , 'f' , "fg" , 0 , "fg_color" , 
-		"fg color") ;
-	kik_conf_add_opt( conf , 'b' , "bg" , 0 , "bg_color" , 
-		"bg color") ;
-	kik_conf_add_opt( conf , 'F' , "sbfg" , 0 , "sb_fg_color" , 
-		"scrollbar fg color") ;
-	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
-		"scrollbar bg color") ;
-	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
-		"shading ratio of background image") ;
-	kik_conf_add_opt( conf , 'r' , "fade" , 0 , "fade_ratio" , 
-		"fade ratio when window unfocued.") ;
-	kik_conf_add_opt( conf , 'p' , "pic" , 0 , "wall_picture" , 
-		"wall picture path") ;
-	kik_conf_add_opt( conf , 'a' , "ac" , 0 , "col_size_of_width_a" ,
-		"column numbers for Unicode EastAsianAmbiguous character") ;
-	kik_conf_add_opt( conf , 'y' , "term" , 0 , "termtype" , 
-		"terminal type") ;
-	kik_conf_add_opt( conf , 'S' , "sbview" , 0 , "scrollbar_view_name" , 
-		"scrollbar view name") ;
-	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path" ,
-		"command path of mlconfig (GUI configurator)") ;
-	kik_conf_add_opt( conf , 'K' , "maxptys" , 0 , "max_ptys" ,
-		"max ptys to use") ;
-	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "ptys" , 
-		"num of ptys to use in start up") ;
-	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
-		"word separator characters") ;
-	kik_conf_add_opt( conf , 'k' , "meta" , 0 , "mod_meta_mode" , 
-		"mode in pressing meta key") ;
-	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , 
-		"bel(0x07) mode") ;
-	kik_conf_add_opt( conf , 'G' , "vertical" , 0 , "vertical_mode" ,
-		"vertical view mode") ;
-	kik_conf_add_opt( conf , 'C' , "iscii" , 0 , "iscii_lang" , 
-		"language to be used in ISCII encoding") ;
-	kik_conf_add_opt( conf , 'O' , "sbmod" , 0 , "scrollbar_mode" ,
-		"scrollbar mode") ;
-	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
-		"turn on login shell") ;
-	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
-		"use XIM (X Input Method)") ;
-	kik_conf_add_opt( conf , 't' , "transbg" , 1 , "use_transbg" , 
-		"use transparent background") ;
-	kik_conf_add_opt( conf , 's' , "sb" , 1 , "use_scrollbar" , 
-		"use scrollbar") ;
-	kik_conf_add_opt( conf , 'm' , "comb" , 1 , "use_combining" , 
-		"use combining characters") ;
-	kik_conf_add_opt( conf , '8' , "88591" , 1 , "iso88591_font_for_usascii" ,
-		"use ISO-8859-1 font for US-ASCII part of every encodings") ;
-	kik_conf_add_opt( conf , 'n' , "noucsfont" , 1 , "not_use_unicode_font" ,
-		"use non-Unicode fonts even in UTF-8 mode") ;
-	kik_conf_add_opt( conf , 'u' , "onlyucsfont" , 1 , "only_use_unicode_font" ,
-		"use a Unicode font even in non-UTF-8 modes") ;
-	kik_conf_add_opt( conf , 'U' , "viaucs" , 1 , "copy_paste_via_ucs" ,
-		"process received strings via ucs.") ;
-	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" , 
-		"open xim in starting up.") ;
-	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , 
-		"use bidi") ;
 	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" ,
 		"support buggy Big5 CTEXT in XFree86 4.1 or earlier") ;
-	kik_conf_add_opt( conf , 'V' , "varwidth" , 1 , "use_variable_column_width" ,
-		"variable column width") ;
-	kik_conf_add_opt( conf , 'Z' , "multicol" , 1 , "use_multi_column_char" ,
-		"use multiple column character") ;
-	kik_conf_add_opt( conf , 'Q' , "vcur" , 1 , "use_vertical_cursor" ,
-		"use vertical cursor") ;
+	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , 
+		"bel(0x07) mode") ;
+	kik_conf_add_opt( conf , '8' , "88591" , 1 , "iso88591_font_for_usascii" ,
+		"use ISO-8859-1 font for US-ASCII part of every encodings") ;
 #ifdef  ANTI_ALIAS
-	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
-		"CP932 mapping table for JISX0208-Unicode conversion") ;
 	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , 
 		"use anti alias font") ;
 #endif
+	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
+		"scrollbar bg color") ;
+	kik_conf_add_opt( conf , 'C' , "iscii" , 0 , "iscii_lang" , 
+		"language to be used in ISCII encoding") ;
+	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , 
+		"use bidi") ;
+	kik_conf_add_opt( conf , 'E' , "km" , 0 , "ENCODING" , 
+		"character encoding") ;
+	kik_conf_add_opt( conf , 'F' , "sbfg" , 0 , "sb_fg_color" , 
+		"scrollbar fg color") ;
+	kik_conf_add_opt( conf , 'G' , "vertical" , 0 , "vertical_mode" ,
+		"vertical view mode") ;
+	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
+		"shading ratio of background image") ;
+	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
+		"icon name") ;
+	kik_conf_add_opt( conf , 'K' , "maxptys" , 0 , "max_ptys" ,
+		"max ptys to use") ;
+	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
+		"turn on login shell") ;
+	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path" ,
+		"command path of mlconfig (GUI configurator)") ;
+	kik_conf_add_opt( conf , 'N' , "name" , 0 , "app_name" , 
+		"application name") ;
+	kik_conf_add_opt( conf , 'O' , "sbmod" , 0 , "scrollbar_mode" ,
+		"scrollbar mode") ;
+	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "ptys" , 
+		"num of ptys to use in start up") ;
+	kik_conf_add_opt( conf , 'Q' , "vcur" , 1 , "use_vertical_cursor" ,
+		"use vertical cursor") ;
+	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
+		"font size range") ;
+	kik_conf_add_opt( conf , 'S' , "sbview" , 0 , "scrollbar_view_name" , 
+		"scrollbar view name") ;
+	kik_conf_add_opt( conf , 'T' , "title" , 0 , "title" , 
+		"title name") ;
+	kik_conf_add_opt( conf , 'U' , "viaucs" , 1 , "copy_paste_via_ucs" ,
+		"process received strings via ucs.") ;
+	kik_conf_add_opt( conf , 'V' , "varwidth" , 1 , "use_variable_column_width" ,
+		"variable column width") ;
+	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
+		"word separator characters") ;
+	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" , 
+		"open xim in starting up.") ;
+	kik_conf_add_opt( conf , 'Z' , "multicol" , 1 , "use_multi_column_char" ,
+		"use multiple column character") ;
+	kik_conf_add_opt( conf , 'a' , "ac" , 0 , "col_size_of_width_a" ,
+		"column numbers for Unicode EastAsianAmbiguous character") ;
+	kik_conf_add_opt( conf , 'b' , "bg" , 0 , "bg_color" , 
+		"bg color") ;
+#ifdef  ANTI_ALIAS
+	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
+		"CP932 mapping table for JISX0208-Unicode conversion") ;
+#endif
+	kik_conf_add_opt( conf , 'd' , "display" , 0 , "display" , 
+		"X server to connect") ;
+	kik_conf_add_opt( conf , 'f' , "fg" , 0 , "fg_color" , 
+		"fg color") ;
+	kik_conf_add_opt( conf , 'g' , "geometry" , 0 , "geometry" , 
+		"size (in characters) and position") ;
+	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
+		"use XIM (X Input Method)") ;
+	kik_conf_add_opt( conf , 'k' , "meta" , 0 , "mod_meta_mode" , 
+		"mode in pressing meta key") ;
+	kik_conf_add_opt( conf , 'l' , "sl" , 0 , "logsize" , 
+		"number of scrolled lines to save") ;
+	kik_conf_add_opt( conf , 'm' , "comb" , 1 , "use_combining" , 
+		"use combining characters") ;
+	kik_conf_add_opt( conf , 'n' , "noucsfont" , 1 , "not_use_unicode_font" ,
+		"use non-Unicode fonts even in UTF-8 mode") ;
+	kik_conf_add_opt( conf , 'o' , "lsp" , 0 , "line_space" ,
+		"number of extra dots between lines") ;
+	kik_conf_add_opt( conf , 'p' , "pic" , 0 , "wall_picture" , 
+		"wall picture path") ;
+	kik_conf_add_opt( conf , 'r' , "fade" , 0 , "fade_ratio" , 
+		"fade ratio when window unfocued.") ;
+	kik_conf_add_opt( conf , 's' , "sb" , 1 , "use_scrollbar" , 
+		"use scrollbar") ;
+	kik_conf_add_opt( conf , 't' , "transbg" , 1 , "use_transbg" , 
+		"use transparent background") ;
+	kik_conf_add_opt( conf , 'u' , "onlyucsfont" , 1 , "only_use_unicode_font" ,
+		"use a Unicode font even in non-UTF-8 modes") ;
+	kik_conf_add_opt( conf , 'w' , "fontsize" , 0 , "fontsize" , 
+		"font size") ;
+	kik_conf_add_opt( conf , 'x' , "tw" , 0 , "tabsize" , 
+		"tab width") ;
+	kik_conf_add_opt( conf , 'y' , "term" , 0 , "termtype" , 
+		"terminal type") ;
+	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
+		"step in changing font size in GUI configurator") ;
 
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
@@ -1162,38 +1165,6 @@ ml_term_manager_init(
 		term_man->sb_bg_color = MLC_UNKNOWN_COLOR ;
 	}
 
-	term_man->brightness = 100 ;
-
-	if( ( value = kik_conf_get_value( conf , "brightness")))
-	{
-		u_int  brightness ;
-		
-		if( kik_str_to_uint( &brightness , value))
-		{
-			term_man->brightness = brightness ;
-		}
-		else
-		{
-			kik_msg_printf( "shade ratio %s is not valid.\n" , value) ;
-		}
-	}
-	
-	term_man->fade_ratio = 100 ;
-	
-	if( ( value = kik_conf_get_value( conf , "fade_ratio")))
-	{
-		u_int  fade_ratio ;
-		
-		if( kik_str_to_uint( &fade_ratio , value))
-		{
-			term_man->fade_ratio = fade_ratio ;
-		}
-		else
-		{
-			kik_msg_printf( "fade ratio %s is not valid.\n" , value) ;
-		}
-	}
-
 	/*
 	 * keymap and termcap
 	 */
@@ -1293,7 +1264,7 @@ ml_term_manager_init(
 		term_man->icon_name = strdup( value) ;
 	}
 	
-	/* using default value */
+	/* use default value */
 	term_man->scrollbar_view_name = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "scrollbar_view_name")))
@@ -1544,6 +1515,38 @@ ml_term_manager_init(
 
 		/* using wall picture */
 		term_man->use_transbg = 0 ;
+	}
+
+	term_man->brightness = 100 ;
+
+	if( ( value = kik_conf_get_value( conf , "brightness")))
+	{
+		u_int  brightness ;
+		
+		if( kik_str_to_uint( &brightness , value))
+		{
+			term_man->brightness = brightness ;
+		}
+		else
+		{
+			kik_msg_printf( "shade ratio %s is not valid.\n" , value) ;
+		}
+	}
+	
+	term_man->fade_ratio = 100 ;
+	
+	if( ( value = kik_conf_get_value( conf , "fade_ratio")))
+	{
+		u_int  fade_ratio ;
+		
+		if( kik_str_to_uint( &fade_ratio , value))
+		{
+			term_man->fade_ratio = fade_ratio ;
+		}
+		else
+		{
+			kik_msg_printf( "fade ratio %s is not valid.\n" , value) ;
+		}
 	}
 
 	if( ( term_man->encoding = ml_get_char_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING)

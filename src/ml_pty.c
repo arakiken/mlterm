@@ -24,25 +24,37 @@ ml_pty_new(
 	char *  cmd_path ,
 	char **  cmd_argv ,
 	char **  env ,
+	char *  disp ,
 	u_int  cols ,
 	u_int  rows
 	)
 {
-	pid_t  pid ;
 	ml_pty_t *  pty ;
+	pid_t  pid ;
+	char *  slave ;
 
 	if( ( pty = malloc( sizeof( ml_pty_t))) == NULL)
 	{
 		return  NULL ;
 	}
 	
-	pid = kik_pty_fork( &pty->fd) ;
+	pid = kik_pty_fork( &pty->fd , &slave) ;
 
 	if( pid == -1)
 	{
 		goto  error ;
 	}
-	else if( pid == 0)
+
+#ifdef  USE_UTMP
+	if( ( pty->utmp = kik_utmp_new( slave , disp)) == NULL)
+	{
+		kik_msg_printf( "utmp failed.\n") ;
+	}
+#endif
+
+	free( slave) ;
+
+	if( pid == 0)
 	{
 		/* child process */
 
@@ -125,8 +137,15 @@ ml_pty_delete(
 	ml_pty_t *  pty
 	)
 {
+#ifdef  USE_UTMP
+	if( pty->utmp)
+	{
+		kik_utmp_delete( pty->utmp) ;
+	}
+#endif
+
 #ifdef  __DEBUG
-	kik_debug_printf( "fd: %d is closed\n" , pty->fd) ;
+	kik_debug_printf( "%d fd is closed\n" , pty->fd) ;
 #endif
 
 	if( close( pty->fd) == 0)

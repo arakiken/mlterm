@@ -4,6 +4,7 @@
 
 #include  "ml_picture.h"
 
+#include  <stdlib.h>			/* abs */
 #include  <kiklib/kik_debug.h>
 
 #ifdef  USE_IMLIB

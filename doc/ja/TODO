@@ -17,5 +17,3 @@ comment $Id$
 
 * XInternAtom( display , "_XROOTPMAP_ID" , True) で取得される atom を使って、
   Root Pixmap の取得し、背景画像を表示する方法を実装
-
-* utmp に対応
