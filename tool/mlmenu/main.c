@@ -97,6 +97,30 @@ get_value(
 }
 
 static int
+open_menu_file(void)
+{
+	char *  menu_file ;
+	
+	if( getenv( "HOME") && ( menu_file = malloc( strlen( getenv( "HOME")) + 13 + 1)))
+	{
+		int  fd ;
+		
+		sprintf( menu_file , "%s/.mlterm/menu" , getenv( "HOME")) ;
+		
+		fd = open( menu_file , O_RDONLY , 0600) ;
+
+		free( menu_file) ;
+
+		if( fd >= 0)
+		{
+			return  fd ;
+		}
+	}
+	
+	return  open( MENU_FILE , O_RDONLY , 0600) ;
+}
+
+static int
 init_entries(
 	u_int *  cols ,
 	u_int *  rows
@@ -107,29 +131,16 @@ init_entries(
 	char *  buf ;
 	char *  line ;
 	char *  p ;
-	char *  menu_file ;
 
-	if( getenv( "HOME") &&
-		( menu_file = malloc( strlen( getenv( "HOME")) + 13 + 1)))
-	{
-		sprintf( menu_file , "%s/.mlterm/menu" , getenv( "HOME")) ;
-		
-		fd = open( menu_file , O_RDONLY , 0600) ;
-
-		free( menu_file) ;
-
-		if( fd >= 0)
-		{
-			goto  success ;
-		}
-	}
-	
-	if( ( fd = open( MENU_FILE , O_RDONLY , 0600)) == -1)
+	/*
+	 * XXX Use mmap instead of open/read/close.
+	 */
+	 
+	if( ( fd = open_menu_file()) == -1)
 	{
 		return  0 ;
 	}
-
-success:
+	
 	fstat( fd , &st) ;
 
 	if( ( buf = malloc( st.st_size + 1)) == NULL)

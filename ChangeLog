@@ -1,5 +1,9 @@
 2003-10-12  Araki Ken  <arakiken@users.sf.net>
 
+	* Added 'snapshot' to 5379 protocol.
+
+2003-10-12  Araki Ken  <arakiken@users.sf.net>
+
 	* doc/ja/README.ja: Updated and fixed typo.
 
 2003-10-12  Araki Ken  <arakiken@users.sf.net>

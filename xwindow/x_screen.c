@@ -14,6 +14,7 @@
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_util.h>	/* K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
+#include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
 #include  <mkf/mkf_xct_parser.h>
 #include  <mkf/mkf_xct_conv.h>
 #include  <mkf/mkf_utf8_conv.h>
@@ -4921,6 +4922,75 @@ full_reset(
 }
 
 static void
+snapshot(
+	x_screen_t *  screen ,
+	ml_char_encoding_t  encoding ,
+	char *  path
+	)
+{
+	int  beg ;
+	int  end ;
+	ml_char_t *  buf ;
+	u_int  num ;
+	FILE *  file ;
+	u_char  conv_buf[512] ;
+	mkf_conv_t *  conv ;
+
+	if( ( file = fopen( path , "w")) == NULL)
+	{
+		return ;
+	}
+
+	beg = - ml_term_get_num_of_logged_lines( screen->term) ;
+	end = ml_term_get_rows( screen->term) ;
+
+	num = ml_term_get_region_size( screen->term , 0 , beg , 0 , end) ;
+
+	if( ( buf = ml_str_alloca( num)) == NULL)
+	{
+		fclose( file) ;
+		
+		return ;
+	}
+
+	ml_term_copy_region( screen->term , buf , num , 0 , beg , 0 , end) ;
+	
+	(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
+	ml_str_parser_set_str( screen->ml_str_parser , buf , num) ;
+
+	if( encoding == ML_UNKNOWN_ENCODING || ( conv = ml_conv_new( encoding)) == NULL)
+	{
+		while( ! screen->ml_str_parser->is_eos)
+		{
+			if( ( num = ml_term_convert_to( screen->term ,
+						conv_buf , sizeof( conv_buf) , screen->ml_str_parser)) == 0)
+			{
+				break ;
+			}
+
+			fwrite( conv_buf , num , 1 , file) ;
+		}
+	}
+	else
+	{
+		while( ! screen->ml_str_parser->is_eos)
+		{
+			if( ( num = (*conv->convert)( conv , conv_buf , sizeof( conv_buf) ,
+					screen->ml_str_parser)) == 0)
+			{
+				break ;
+			}
+
+			fwrite( conv_buf , num , 1 , file) ;
+		}
+
+		(*conv->delete)( conv) ;
+	}
+	
+	fclose( file) ;
+}
+
+static void
 set_config(
 	void *  p ,
 	char *  dev ,		/* can be NULL */
@@ -5395,6 +5465,58 @@ set_config(
 		{
 			(*screen->system_listener->open_screen)( screen->system_listener->self) ;
 		}
+	}
+	else if( strcmp( key , "snapshot") == 0)
+	{
+		char *  encoding ;
+		char *  file ;
+		size_t  len ;
+		char *  path ;
+		char *  p ;
+
+		encoding = value ;
+		
+		if( ( p = strchr( value , ':')) == NULL)
+		{
+			return ;
+		}
+		
+		*(p ++) = '\0' ;
+
+		if( *p == '\0')
+		{
+			char *  tty ;
+
+			/* skip /dev/ */
+			tty = ml_term_get_slave_name( screen->term) + 5 ;
+			
+			len = 7 + strlen( tty) + 4 + 1 ;
+			if( ( file = alloca( len)) == NULL)
+			{
+				return ;
+			}
+			sprintf( file , "mlterm/%s.snp" , tty) ;
+
+			path = kik_get_user_rc_path( file) ;
+		}
+		else
+		{
+			len = 7 + strlen( p) + 1 ;
+			if( ( file = alloca( len)) == NULL)
+			{
+				return ;
+			}
+			sprintf( file , "mlterm/%s" , p) ;
+			
+			path = kik_get_user_rc_path( file) ;
+		}
+
+		if( path == NULL)
+		{
+			return ;
+		}
+
+		snapshot( screen , ml_get_char_encoding( encoding) , path) ;
 	}
 }
 

@@ -190,6 +190,33 @@ reverse_or_restore_color(
 	u_int  size_except_spaces ;
 	int  beg_regarding_rtl ;
 
+	row = end_row ;
+	
+	while( ( line = ml_screen_get_line( screen , row)) == NULL || ml_line_is_empty( line))
+	{
+		if( -- row < 0)
+		{
+			return  0 ;
+		}
+	}
+
+	if( row < end_row)
+	{
+		if( ml_line_is_rtl( line))
+		{
+			end_char_index = ml_line_beg_char_index_regarding_rtl( line) ;
+		}
+		else
+		{
+			if( ( end_char_index = ml_get_num_of_filled_chars_except_spaces( line)) > 0)
+			{
+				end_char_index -- ;
+			}
+		}
+		
+		end_row = row ;
+	}
+
 	row = beg_row ;
 
 	while( 1)
@@ -348,6 +375,33 @@ check_or_copy_region(
 	u_int  size_except_spaces ;
 	int  beg_regarding_rtl ;
 	int  row ;
+
+	row = end_row ;
+	
+	while( ( line = ml_screen_get_line( screen , row)) == NULL || ml_line_is_empty( line))
+	{
+		if( -- row < 0)
+		{
+			return  0 ;
+		}
+	}
+
+	if( row < end_row)
+	{
+		if( ml_line_is_rtl( line))
+		{
+			end_char_index = ml_line_beg_char_index_regarding_rtl( line) ;
+		}
+		else
+		{
+			if( ( end_char_index = ml_get_num_of_filled_chars_except_spaces( line)) > 0)
+			{
+				end_char_index -- ;
+			}
+		}
+		
+		end_row = row ;
+	}
 
 	row = beg_row ;
 
