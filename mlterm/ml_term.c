@@ -402,7 +402,7 @@ ml_term_resize(
 	{
 		ml_set_pty_winsize( term->pty , cols , rows) ;
 	}
-	
+
 	ml_screen_logical( term->screen) ;
 	ml_screen_resize( term->screen , cols , rows) ;
 	ml_screen_render( term->screen) ;
@@ -441,6 +441,32 @@ ml_term_cursor_row_in_screen(
 	)
 {
 	return  ml_screen_cursor_row_in_screen( term->screen) ;
+}
+
+int
+ml_term_unhighlight_cursor(
+	ml_term_t *  term
+	)
+{
+	ml_line_t *  line ;
+
+	ml_screen_logical( term->screen) ;
+	
+	if( ( line = ml_screen_get_cursor_line( term->screen)) == NULL || ml_line_is_empty( line))
+	{
+		/* ml_screen_render( term->screen) ; */
+		ml_screen_visual( term->screen) ;
+
+		return  0 ;
+	}
+
+	ml_line_set_modified( line , ml_screen_cursor_char_index( term->screen) ,
+		ml_screen_cursor_char_index( term->screen)) ;
+
+	/* ml_screen_render( term->screen) ; */
+	ml_screen_visual( term->screen) ;
+
+	return  1 ;
 }
 
 u_int
@@ -536,11 +562,68 @@ ml_term_get_cursor_line(
 }
 
 int
+ml_term_set_modified_lines(
+	ml_term_t *  term ,
+	u_int  beg ,
+	u_int  end
+	)
+{
+	int  row ;
+	ml_line_t *  line ;
+
+	ml_screen_logical( term->screen) ;
+
+	for( row = beg ; row <= end ; row ++)
+	{
+		if( ( line = ml_screen_get_line( term->screen , row)))
+		{
+			ml_line_set_modified_all( line) ;
+		}
+	}
+
+	/* ml_screen_render( term->screen) ; */
+	ml_screen_visual( term->screen) ;
+
+	return  1 ;
+}
+
+int
+ml_term_set_modified_lines_in_screen(
+	ml_term_t *  term ,
+	u_int  beg ,
+	u_int  end
+	)
+{
+	int  row ;
+	ml_line_t *  line ;
+
+	ml_screen_logical( term->screen) ;
+
+	for( row = beg ; row <= end ; row ++)
+	{
+		if( ( line = ml_screen_get_line_in_screen( term->screen , row)))
+		{
+			ml_line_set_modified_all( line) ;
+		}
+	}
+
+	/* ml_screen_render( term->screen) ; */
+	ml_screen_visual( term->screen) ;
+
+	return  1 ;
+}
+
+int
 ml_term_set_modified_all(
 	ml_term_t *  term
 	)
 {
-	return  ml_screen_set_modified_all( term->screen) ;
+	ml_screen_logical( term->screen) ;
+	ml_screen_set_modified_all( term->screen) ;
+	/* ml_screen_render( term->screen) ; */
+	ml_screen_visual( term->screen) ;
+
+	return  1 ;
 }
 
 int

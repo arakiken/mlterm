@@ -872,12 +872,22 @@ static int
 search_same_line(
 	ml_line_t *  lines ,
 	u_int  num_of_lines ,
+	int  search_beg ,
 	ml_line_t *  line
 	)
 {
 	int  row ;
 
-	for( row = 0 ; row < num_of_lines ; row ++)
+	for( row = search_beg ; row < num_of_lines ; row ++)
+	{
+		if( lines[row].num_of_filled_chars == line->num_of_filled_chars &&
+			ml_str_bytes_equal( lines[row].chars , line->chars , line->num_of_filled_chars))
+		{
+			return  row ;
+		}
+	}
+	
+	for( row = 0 ; row < search_beg ; row ++)
 	{
 		if( lines[row].num_of_filled_chars == line->num_of_filled_chars &&
 			ml_str_bytes_equal( lines[row].chars , line->chars , line->num_of_filled_chars))
@@ -964,46 +974,53 @@ iscii_visual(
 	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
 		int  is_cache_active ;
+		int  hit_row ;
 
 		line = ml_model_get_line( logvis->model , row) ;
+
+		if( ml_line_is_empty( line))
+		{
+			continue ;
+		}
 		
-		if( ml_line_is_modified( line))
+		if( ( hit_row = search_same_line( iscii_logvis->logical_lines ,
+			iscii_logvis->logical_num_of_rows , row , line)) == -1)
 		{
 			is_cache_active = 0 ;
 		}
-		else if( iscii_logvis->logical_lines[row].num_of_filled_chars != line->num_of_filled_chars ||
-			! ml_str_bytes_equal( iscii_logvis->logical_lines[row].chars ,
-				line->chars , iscii_logvis->logical_lines[row].num_of_filled_chars))
+		else
 		{
-			int  hit_row ;
+			int  beg ;
+			int  end ;
+
+			beg = ml_iscii_convert_logical_char_index_to_visual(
+					&iscii_logvis->visual_lines[hit_row] ,
+					ml_line_get_beg_of_modified(line)) ;
 			
-			if( ( hit_row = search_same_line( iscii_logvis->logical_lines ,
-				iscii_logvis->logical_num_of_rows , line)) == -1)
+			if( ml_line_is_cleared_to_end( line))
 			{
-				is_cache_active = 0 ;
+				end = iscii_logvis->visual_lines[hit_row].num_of_filled_chars ;
 			}
 			else
 			{
-				/*
-				 * XXX
-				 * This can break active cache for another line in "row" line.
-				 * It is preferable to swap iscii_logvis->{logical|visual}_lines[row]
-				 * and iscii_logvis->{logical|visual}_lines[hit_row] , but
-				 * this also works anyway:)
-				 */
-				ml_line_copy_line( &iscii_logvis->logical_lines[row] ,
-					&iscii_logvis->logical_lines[hit_row]) ;
+				end = ml_iscii_convert_logical_char_index_to_visual(
+					&iscii_logvis->visual_lines[hit_row] ,
+					ml_line_get_end_of_modified(line)) ;
+			}
+			
+			ml_line_updated( &iscii_logvis->visual_lines[hit_row]) ;
+			ml_line_set_modified( &iscii_logvis->visual_lines[hit_row] , beg , end) ;
+
+			if( hit_row != row)
+			{
+				ml_line_copy_line( &iscii_logvis->logical_lines[row] , line) ;
 				ml_line_copy_line( &iscii_logvis->visual_lines[row] ,
 					&iscii_logvis->visual_lines[hit_row]) ;
-				
-				is_cache_active = 1 ;
 			}
-		}
-		else
-		{
+			
 			is_cache_active = 1 ;
 		}
-
+		
 		if( is_cache_active)
 		{
 			/* using cached line */
@@ -1014,15 +1031,14 @@ iscii_visual(
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " iscii rendering.\n") ;
 		#endif
-		
+
+			/* caching */
 			ml_line_copy_line( &iscii_logvis->logical_lines[row] , line) ;
-			ml_line_updated( &iscii_logvis->logical_lines[row]) ;
 
 			ml_line_iscii_visual( line , iscii_logvis->iscii_lang) ;
 
 			/* caching */
 			ml_line_copy_line( &iscii_logvis->visual_lines[row] , line) ;
-			ml_line_updated( &iscii_logvis->visual_lines[row]) ;
 		}
 	}
 
@@ -1301,8 +1317,6 @@ vert_visual_intern(
 					vis_line->num_of_filled_chars - 1) ;
 			}
 		}
-
-		ml_line_updated( log_line) ;
 	}
 
 	vert_logvis->logical_model = *logvis->model ;

@@ -1,3 +1,12 @@
+2003-09-14  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_logical_visual.c(iscii_visual): cleaned and tuned up.
+
+	* ml_term.c, x_screen.c: ml_model_t and ml_logs_t states must not be
+	  modified by x_screen.c, in other words, functions in ml_term.c must
+	  not modify them unless unless these are logicalized in advance.
+	  But it was not complied. Fixed.
+
 2003-09-13  Araki Ken  <arakiken@users.sf.net>
 
 	* xwindow/Makefile.in: Added x_font_cache.o.

@@ -2,6 +2,12 @@
  *	$Id$
  */
 
+/*
+ * !! Notice !!
+ * Don't provide any methods modifying ml_model_t and ml_logs_t states
+ * unless these are logicalized in advance.
+ */
+ 
 #ifndef  __ML_TERM_H__
 #define  __ML_TERM_H__
 
@@ -117,6 +123,8 @@ int  ml_term_cursor_row( ml_term_t *  term) ;
 
 int  ml_term_cursor_row_in_screen( ml_term_t *  term) ;
 
+int  ml_term_unhighlight_cursor( ml_term_t *  term) ;
+
 u_int  ml_term_get_cols( ml_term_t *  term) ;
 
 u_int  ml_term_get_rows( ml_term_t *  term) ;
@@ -138,6 +146,10 @@ ml_line_t *  ml_term_get_line( ml_term_t *  term , int  row) ;
 ml_line_t *  ml_term_get_line_in_screen( ml_term_t *  term , int  row) ;
 
 ml_line_t *  ml_term_get_cursor_line( ml_term_t *  term) ;
+
+int  ml_term_set_modified_lines_in_screen( ml_term_t *  term , u_int  beg , u_int  end) ;
+
+int  ml_term_set_modified_lines( ml_term_t *  term , u_int  beg , u_int  end) ;
 
 int  ml_term_set_modified_all( ml_term_t *  term) ;
 

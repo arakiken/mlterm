@@ -457,7 +457,6 @@ x_font_custom_new(
 		font_custom->default_font_name_table , font_hash , font_compare , 8) ;
 
 	font_custom->font_present = font_present ;
-	font_custom->default_font_name_cache = NULL ;
 	font_custom->ref_count = 0 ;
 	
 	return  font_custom ;
@@ -501,8 +500,6 @@ x_font_custom_delete(
 	}
 
 	kik_map_delete( font_custom->default_font_name_table) ;
-
-	free( font_custom->default_font_name_cache) ;
 
 	free( font_custom) ;
 	
@@ -574,12 +571,8 @@ x_customize_default_font_name(
 	return  result ;
 }
 
-/*
- * Not reentrant because font_custom->default_font_name_cache can be
- * overwritten by multiple calls of x_get_font_name().
- */
 char *
-x_get_font_name(
+x_get_custom_font_name(
 	x_font_custom_t *  font_custom ,
 	u_int  font_size ,
 	ml_font_t  font
@@ -587,6 +580,7 @@ x_get_font_name(
 {
 	KIK_PAIR( x_font_name)  fa_pair ;
 	int  result ;
+	char *  font_name ;
 	
 	if( font_size < min_font_size || max_font_size < font_size)
 	{
@@ -596,7 +590,7 @@ x_get_font_name(
 	kik_map_get( result , get_font_name_table( font_custom , font_size) , font , fa_pair) ;
 	if( result)
 	{
-		return  fa_pair->value ;
+		return  strdup( fa_pair->value) ;
 	}
 
 	kik_map_get( result , font_custom->default_font_name_table , font , fa_pair) ;
@@ -606,29 +600,18 @@ x_get_font_name(
 	}
 
 	/* -2 is for "%d" */
-	if( ( font_custom->default_font_name_cache = realloc( font_custom->default_font_name_cache ,
-				strlen( fa_pair->value) - 2 + DIGIT_STR_LEN(font_size) + 1)) == NULL)
+	if( ( font_name = malloc( strlen( fa_pair->value) - 2 + DIGIT_STR_LEN(font_size) + 1)) == NULL)
 	{
 		return  NULL ;
 	}
 
-	sprintf( font_custom->default_font_name_cache , fa_pair->value , font_size) ;
+	sprintf( font_name , fa_pair->value , font_size) ;
 
-	return  font_custom->default_font_name_cache ;
-}
-
-char *
-x_get_font_name_r(
-	x_font_custom_t *  font_custom ,
-	u_int  font_size ,
-	ml_font_t  font
-	)
-{
-	return  strdup( x_get_font_name_r( font_custom , font_size , font)) ;
+	return  font_name ;
 }
 
 u_int
-x_get_all_font_names(
+x_get_all_custom_font_names(
 	x_font_custom_t *  font_custom ,
 	char ***  font_names ,
 	u_int  font_size

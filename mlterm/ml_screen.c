@@ -1077,6 +1077,8 @@ ml_exit_backscroll_mode(
 	screen->is_backscrolling = 0 ;
 	screen->backscroll_rows = 0 ;
 
+	ml_screen_set_modified_all( screen) ;
+
 	return  1 ;
 }
 

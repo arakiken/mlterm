@@ -22,7 +22,6 @@ typedef struct  x_font_custom
 	/* private */
 	KIK_MAP( x_font_name) *  font_name_table ;
 	KIK_MAP( x_font_name)  default_font_name_table ;
-	char *  default_font_name_cache ;
 
 	u_int  ref_count ;
 
@@ -49,11 +48,10 @@ int  x_customize_font_name( x_font_custom_t *  font_custom , ml_font_t  font ,
 int  x_customize_default_font_name( x_font_custom_t *  font_custom , ml_font_t  font ,
 	char *  fontname , u_int  font_size) ;
 
-char *  x_get_font_name( x_font_custom_t *  font_custom , u_int  font_size , ml_font_t  font) ;
+char *  x_get_custom_font_name( x_font_custom_t *  font_custom , u_int  font_size , ml_font_t  font) ;
 
-char *  x_get_font_name_r( x_font_custom_t *  font_custom , u_int  font_size , ml_font_t  font); 
-
-u_int  x_get_all_font_names( x_font_custom_t *  font_custom ,char ***  font_names , u_int  font_size) ;
+u_int  x_get_all_custom_font_names( x_font_custom_t *  font_custom ,char ***  font_names ,
+	u_int  font_size) ;
 
 
 #endif

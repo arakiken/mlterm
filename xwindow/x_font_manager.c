@@ -7,7 +7,6 @@
 #include  <string.h>		/* strcat */
 #include  <stdio.h>		/* sprintf */
 #include  <kiklib/kik_mem.h>	/* malloc/alloca */
-#include  <kiklib/kik_str.h>	/* kik_str_dup */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 
 

@@ -1494,38 +1494,21 @@ flush_scroll_cache(
 		 * setting modified mark to the lines within scroll region.
 		 */
 
-		int  row ;
-		ml_line_t *  line ;
-
 		if( screen->scroll_cache_rows > 0)
 		{
 			/*
 			 * scrolling upward.
 			 */
-			for( row = screen->scroll_cache_boundary_start ;
-				row <= screen->scroll_cache_boundary_end - screen->scroll_cache_rows ;
-				row ++)
-			{
-				if( ( line = ml_term_get_line( screen->term , row)))
-				{
-					ml_line_set_modified_all( line) ;
-				}
-			}
+			ml_term_set_modified_lines( screen->term , screen->scroll_cache_boundary_start ,
+				screen->scroll_cache_boundary_end - screen->scroll_cache_rows) ;
 		}
 		else
 		{
 			/*
 			 * scrolling downward.
 			 */
-			for( row = screen->scroll_cache_boundary_end ;
-				row >= screen->scroll_cache_boundary_start - screen->scroll_cache_rows ;
-				row --)
-			{
-				if( ( line = ml_term_get_line( screen->term , row)))
-				{
-					ml_line_set_modified_all( line) ;
-				}
-			}
+			ml_term_set_modified_lines( screen->term , screen->scroll_cache_boundary_end ,
+				screen->scroll_cache_boundary_start - screen->scroll_cache_rows) ;
 		}
 	}
 
@@ -1644,21 +1627,7 @@ unhighlight_cursor(
 	x_screen_t *  screen
 	)
 {
-	ml_line_t *  line ;
-	
-	/*
-	 * Not actually redrawn until redraw_screen().
-	 */
-	 
-	if( ( line = ml_term_get_cursor_line( screen->term)) == NULL || ml_line_is_empty( line))
-	{
-		return  0 ;
-	}
-
-	ml_line_set_modified( line , ml_term_cursor_char_index( screen->term) ,
-		ml_term_cursor_char_index( screen->term)) ;
-
-	return  1 ;
+	return  ml_term_unhighlight_cursor( screen->term) ;
 }
 
 
@@ -1698,9 +1667,7 @@ exit_backscroll_mode(
 	}
 	
 	ml_term_exit_backscroll_mode( screen->term) ;
-	
-	ml_term_set_modified_all( screen->term) ;
-	
+		
 	if( HAS_SCROLL_LISTENER(screen,bs_mode_exited))
 	{
 		(*screen->screen_scroll_listener->bs_mode_exited)(
@@ -2196,11 +2163,9 @@ window_exposed(
 	u_int  height
 	)
 {
-	int  count ;
 	int  beg_row ;
 	int  end_row ;
 	x_screen_t *  screen ;
-	ml_line_t *  line ;
 	
 	screen = (x_screen_t *) win ;
 
@@ -2211,16 +2176,8 @@ window_exposed(
 	kik_debug_printf( KIK_DEBUG_TAG " exposed [row] from %d to %d [y] from %d to %d\n" ,
 		beg_row , end_row , y , y + height) ;
 #endif
-	
-	for( count = beg_row ; count <= end_row ; count ++)
-	{
-		if( ( line = ml_term_get_line_in_screen( screen->term , count)) == NULL)
-		{
-			break ;
-		}
 
-		ml_line_set_modified_all( line) ;
-	}
+	ml_term_set_modified_lines_in_screen( screen->term , beg_row , end_row) ;
 	
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
@@ -2303,7 +2260,6 @@ window_focused(
 			x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 		ml_term_set_modified_all( screen->term) ;
-
 		redraw_screen( screen) ;
 	}
 
@@ -2336,7 +2292,6 @@ window_unfocused(
 			x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 		ml_term_set_modified_all( screen->term) ;
-
 		redraw_screen( screen) ;
 	}
 
@@ -4205,10 +4160,10 @@ change_font_present(
 		return ;
 	}
 
-	font_size_changed( screen) ;
-	
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all( screen->term) ;
+
+	font_size_changed( screen) ;
 }
 
 static int
@@ -4265,9 +4220,10 @@ change_char_encoding(
 		kik_error_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
 	}
 	
-	update_special_visual( screen) ;
-	
-	ml_term_set_modified_all( screen->term) ;
+	if( update_special_visual( screen))
+	{
+		ml_term_set_modified_all( screen->term) ;
+	}
 }
 
 static void
@@ -4618,8 +4574,6 @@ smaller_font_size(
 
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all( screen->term) ;
-	
-	return ;
 }
 
 static void
@@ -6005,14 +5959,8 @@ start_vt100_cmd(
 	{
 		restore_selected_region_color( screen) ;
 	}
-}
 
-static void
-start_vt100_cmd_2(
-	void *  p
-	)
-{
-	unhighlight_cursor( ( x_screen_t*) p) ;
+	unhighlight_cursor( screen) ;
 }
 
 static void
@@ -6126,7 +6074,6 @@ xterm_reverse_video(
 		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 	
 	ml_term_set_modified_all( screen->term) ;
-
 	redraw_screen( screen) ;
 }
 
@@ -6276,7 +6223,6 @@ x_screen_new(
 
 	screen->xterm_listener.self = screen ;
 	screen->xterm_listener.start = start_vt100_cmd ;
-	screen->xterm_listener.start_2 = start_vt100_cmd_2 ;
 	screen->xterm_listener.stop = stop_vt100_cmd ;
 	screen->xterm_listener.set_app_keypad = xterm_set_app_keypad ;
 	screen->xterm_listener.set_app_cursor_keys = xterm_set_app_cursor_keys ;

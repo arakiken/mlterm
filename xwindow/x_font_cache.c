@@ -214,19 +214,14 @@ x_font_cache_get_xfont(
 		return  fn_pair->value ;
 	}
 
-	if( ( fontname = x_get_font_name( font_cache->font_custom , font_cache->font_size , font)))
+	use_medium_for_bold = 0 ;
+	
+	if( ( fontname = x_get_custom_font_name( font_cache->font_custom , font_cache->font_size , font))
+		== NULL)
 	{
-		use_medium_for_bold = 0 ;
-	}
-	else
-	{
-		/* fontname == NULL */
-		
-		use_medium_for_bold = 0 ;
-		
 		if( font & FONT_BOLD)
 		{
-			if( ( fontname = x_get_font_name( font_cache->font_custom ,
+			if( ( fontname = x_get_custom_font_name( font_cache->font_custom ,
 						font_cache->font_size , font & ~FONT_BOLD)))
 			{
 				use_medium_for_bold = 1 ;
@@ -248,6 +243,8 @@ x_font_cache_get_xfont(
 		kik_warn_printf( KIK_DEBUG_TAG " font for id %x doesn't exist.\n" , font) ;
 	}
 #endif
+
+	free( fontname) ;
 	
 	/*
 	 * If this font doesn't exist, NULL(which indicates it) is cached.
@@ -279,7 +276,7 @@ x_font_cache_get_all_font_names(
 			return  0 ;
 		}
 
-		size = x_get_all_font_names( font_custom , fontnames , font_cache->font_size) ;
+		size = x_get_all_custom_font_names( font_custom , fontnames , font_cache->font_size) ;
 
 		x_release_font_custom( font_custom) ;
 
@@ -287,6 +284,7 @@ x_font_cache_get_all_font_names(
 	}
 	else
 	{
-		return  x_get_all_font_names( font_cache->font_custom , fontnames , font_cache->font_size) ;
+		return  x_get_all_custom_font_names( font_cache->font_custom , fontnames ,
+				font_cache->font_size) ;
 	}
 }
