@@ -9,7 +9,7 @@ use Curses;
 # global variables
 ###########
 #
-my $VERSION="0.1-2.3.0";
+my $VERSION="0.1-2.4.0pre1";
 my $TITLE = "mlterm configurator on Curses v.$VERSION";
 my $TERM="mlterm" || $ENV{TERM}; ### XXX:drop support for other T.E.s ?
 my $TTY = "/dev/tty"; ### XXX TBD:support remote control!
@@ -363,7 +363,7 @@ sub config_revert_section(@){
 ########################
 # display
 ########################
-### misc.
+### misc. rew curces stuff should only appear here
 sub display_window_size(@){
     my $window = shift;
     my ($x,$y);
@@ -374,6 +374,11 @@ sub display_window_size(@){
 sub display_window_delete(@){
     my $window = shift;
     $window->delwin();
+}
+
+sub display_draw_box(@){
+    my $window = shift;
+    box( $window, ACS_VLINE, ACS_HLINE);
 }
 
 sub display_refresh(@){
@@ -393,6 +398,7 @@ sub display_clear(@){
     my $window = shift;
     my ($x,$y) = display_window_size($window);
     my $line;
+    $window->clear();
     foreach $line (0 .. $y){
 	display_str($window, " " x $x , 0, $line, $FG_COLOR, $BG_COLOR );
     }
@@ -400,12 +406,7 @@ sub display_clear(@){
 
 sub display_init(){
     $window_top = new Curses || die "FATAL: curses is not ready";
-    if (has_colors){
-	start_color();
-    }
-    else{
-	die "FATAL: expected to have a color terminal.";
-    }
+    start_color(); ### mlterm always supports color
     $window_grab = $window_top;
     noecho();
     $window_top->keypad(1);  ### XXX never used?
@@ -487,7 +488,7 @@ sub display_section_all(@){
 
     display_clear($dest_window);
     display_set_color( $dest_window, $FG_COLOR, $BG_COLOR);
-    box( $dest_window, ACS_VLINE, ACS_HLINE);
+    display_draw_box( $dest_window);
     for ( $section = 0 ; $section < @config_section_list; $section ++){
 	display_section( $section , $dest_window);
     }
@@ -529,15 +530,15 @@ sub display_section_select(@){
 		config_section_set_cur_index(config_section_get_cur_index() - 1);
 		display_entry_all();
 		display_refresh($window_entry);
+		display_section(config_section_get_cur_index() + 1); ## clear old one
 	    }
-	    display_section(config_section_get_cur_index() + 1); ## clear old one
 	}elsif( $input eq KEY_DOWN){
 	    if (config_section_get_cur_index() < @config_section_list -1){
 		config_section_set_cur_index(config_section_get_cur_index() + 1);
 		display_entry_all();
 		display_refresh($window_entry);
+		display_section(config_section_get_cur_index() -1 ); ## clear old one
 	    }
-	    display_section(config_section_get_cur_index() -1 ); ## clear old one
 	}
     }
     return $display_state;
@@ -592,7 +593,7 @@ sub display_entry_all(@){
     my $section_name =shift || config_section_get_cur_name();
     display_clear($dest_window);
     display_set_color($dest_window);
-    box( $dest_window, ACS_VLINE, ACS_HLINE);
+    display_draw_box( $dest_window);
     $window_grab = $window_entry;
 
     my @entry_list = config_entry_list();
@@ -953,7 +954,7 @@ sub display_entry_system(@){
 	$window_dlg->keypad(1);
 	display_set_color( $window_dlg, $FG_COLOR, $BG_COLOR);
 	display_clear($window_dlg);
-	box( $window_dlg, ACS_VLINE, ACS_HLINE);	
+	display_draw_box( $window_dlg);	
 	my $input = 1;
 	while(1){
 	    display_str( $window_dlg, $data, 2, 1);
@@ -1061,7 +1062,7 @@ sub display_color_selector(@){
     $window_dlg->keypad(1);
     display_set_color( $window_dlg, $FG_COLOR, $BG_COLOR);
     display_clear($window_dlg);
-    box( $window_dlg, ACS_VLINE, ACS_HLINE);	
+    display_draw_box( $window_dlg);	
     my $input = 1;
     for ( $i = 0; $color_table[$i] ; $i++){
 	$current = $i if ( $current eq $color_table[$i]);
@@ -1085,7 +1086,7 @@ sub display_color_selector(@){
 	    last;
 	}
     }
-    $window_dlg->delwin;
+    display_window_delete($window_dlg);
     display_section(config_section_get_cur_index());
     return $color_table[$current];
 }
@@ -1246,8 +1247,8 @@ sub comm_setparam_mlterm(@){
 sub comm_getparam_internal(@){
     my $entry = shift;
     return $TTY if ( $entry eq "pty");
-    return $FG_COLOR if ( $entry eq "foreground");
-    return $BG_COLOR if ( $entry eq "background");
+    return $FG_COLOR if ( $entry eq "Foreground");
+    return $BG_COLOR if ( $entry eq "Background");
     return $EDIT_COLOR if ( $entry eq "editing");
     return $SELECT_COLOR if ( $entry eq "selection");
     return "error";
@@ -1257,8 +1258,16 @@ sub comm_setparam_internal(@){
     my $entry = shift;
     my $data = shift;
     $TTY = $data if ( $entry eq "pty");
-    $FG_COLOR = $data if ( $entry eq "foreground");
-    $BG_COLOR = $data if ( $entry eq "background");
+    if ( $entry eq "Foreground"){
+	$FG_COLOR = $data ;
+	comm_setparam_mlterm($entry, $data);
+	
+	
+    }
+    if ( $entry eq "Background"){
+	$BG_COLOR = $data ;
+	comm_setparam_mlterm($entry, $data);
+    }
     $EDIT_COLOR = $data if ( $entry eq "editing");
     $SELECT_COLOR = $data if ( $entry eq "selection");
 }
@@ -1487,12 +1496,12 @@ config_entry_add_from_list(
 		       \&display_entry_radio ,
 			["none", "sound", "visual"] ],
 		       ["Configuration" ,
-			"Quit (discard changes)" ,
+			"[Quit (discard changes)]" ,
 			\&comm_dummy , \&comm_dummy ,
 			\&display_entry_sys_discard ,
 			["Really quit discarding all changes?", "<Cancel>", "<OK>"] ],
 		       ["Configuration" ,
-			"Apply all changes" ,
+			"[Apply all changes]" ,
 			\&comm_dummy , \&comm_dummy ,
 			\&display_entry_sys_apply ,
 			["Really apply all changes?", "<Cancel>", "<OK>"] ],
@@ -1504,13 +1513,13 @@ config_entry_add_from_list(
 #		       \&display_entry_text ,
 #		       undef ],
 		      ["Configuration" ,
-		       "foreground" ,
+		       "Foreground" ,
 		       \&comm_getparam_internal ,
 		       \&comm_setparam_internal ,
 		       \&display_entry_color,
 		       undef ],
 		      ["Configuration" ,
-		       "background" ,
+		       "Background" ,
 		       \&comm_getparam_internal ,
 		       \&comm_setparam_internal ,
 		       \&display_entry_color ,
