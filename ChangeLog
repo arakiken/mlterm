@@ -1,3 +1,8 @@
+2002-10-02 Araki Ken <arakiken@users.sf.net>
+
+	* Scrollbar never get too small even if the value of 'logsize' option
+	  is huge.
+
 2002-10-01 Araki Ken <arakiken@users.sf.net>
 
 	* If more than 512 bytes were copy&pasted within a window, the 513th byte

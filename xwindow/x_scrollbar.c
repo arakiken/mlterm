@@ -17,6 +17,8 @@
 #endif
 
 
+#define  MAX_LOG_LINES  512
+
 #define  HEIGHT_MARGIN(sb)  ((sb)->top_margin + (sb)->bottom_margin)
 #define  IS_TOO_SMALL(sb)  ((sb)->window.height - HEIGHT_MARGIN(sb) <= (sb)->line_height)
 
@@ -662,8 +664,19 @@ view_created:
 		sb->bar_height = height - HEIGHT_MARGIN(sb) ;
 		sb->num_of_scr_lines = sb->bar_height / sb->line_height ;
 	}
+
+	/*
+	 * sb::num_of_log_lines never exceeds MAX_LOG_LINES.
+	 */
+	if( num_of_log_lines > MAX_LOG_LINES)
+	{
+		sb->num_of_log_lines = MAX_LOG_LINES ;
+	}
+	else
+	{
+		sb->num_of_log_lines = num_of_log_lines ;
+	}
 	
-	sb->num_of_log_lines = num_of_log_lines ;
 	sb->num_of_filled_log_lines = 0 ;
 	sb->bar_top_y = 0 ;
 	sb->y_on_bar = 0 ;
@@ -866,7 +879,17 @@ x_scrollbar_set_num_of_log_lines(
 	u_int  num_of_log_lines
 	)
 {
-	sb->num_of_log_lines = num_of_log_lines ;
+	/*
+	 * sb::num_of_log_lines never exceeds MAX_LOG_LINES.
+	 */
+	if( num_of_log_lines > MAX_LOG_LINES)
+	{
+		sb->num_of_log_lines = MAX_LOG_LINES ;
+	}
+	else
+	{
+		sb->num_of_log_lines = num_of_log_lines ;
+	}
 
 	if( sb->num_of_filled_log_lines > sb->num_of_log_lines)
 	{
