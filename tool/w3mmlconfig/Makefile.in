@@ -16,7 +16,7 @@ LIB_TARGETS	= mlconfig.cgi
 DATA_TARGETS	= mlconfig-data.pl
 DATA		= mlconfig-data section/* key/*
 
-PERL		= /usr/bin/perl
+PERL		= @PERL@
 
 MKDIR		= mkdir -p
 INSTALL		= @INSTALL@

@@ -1,3 +1,7 @@
+2004-12-03 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* tool/w3mmlconfig/Makefile.in: /usr/bin/perl -> @PERL@
+
 2004-11-28 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* xwindow/version.h.in: 2.9.1 -> 2.9.1 post
