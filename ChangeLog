@@ -1,5 +1,9 @@
 2004-10-24 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* xwindow/version.h.in: 2.9.0 -> 2.9.0 post
+
+2004-10-24 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* 2.9.0 released.
 	  (tag "rel-2_9_0)
 
