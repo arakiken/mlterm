@@ -1,4 +1,7 @@
-[20029222]
+[20020222]
+* scroll fails ?
+
+[20020222]
 
 [20020222]
 * mlterm can dump core if screen is scrolled while cursor is out of scroll region.

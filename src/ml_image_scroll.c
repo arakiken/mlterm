@@ -381,10 +381,16 @@ ml_imgscrl_scroll_upward(
 	u_int  size
 	)
 {
+#if  0
+	/*
+	 * XXX
+	 * Can this cause unexpected result ?
+	 */
 	if( image->scroll_region_beg > image->cursor.row || image->cursor.row > image->scroll_region_end)
 	{
 		return  0 ;
 	}
+#endif
 
 	return  scroll_upward_region( image , image->scroll_region_beg , image->scroll_region_end , size) ;
 }
@@ -404,10 +410,16 @@ ml_imgscrl_scroll_downward(
 	u_int  size
 	)
 {
+#if  0
+	/*
+	 * XXX
+	 * Can this cause unexpected result ?
+	 */
 	if( image->scroll_region_beg > image->cursor.row || image->cursor.row > image->scroll_region_end)
 	{
 		return  0 ;
 	}
+#endif
 	
 	return  scroll_downward_region( image , image->scroll_region_beg , image->scroll_region_end , size) ;
 }

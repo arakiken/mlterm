@@ -133,9 +133,11 @@ get_pos(
 				 * is too small.
 				 */
 				if( ! ml_imgscrl_scroll_upward( image , 1))
+			#else
+				if( ! ml_imgscrl_scroll_upward_in_all( image , 1))
 			#endif
 				{
-					ml_imgscrl_scroll_upward_in_all( image , 1) ;
+					return  0 ;
 				}
 
 				if( break_row_boundary( image , 1) != 1)
@@ -294,9 +296,14 @@ render_chars(
 				 * is too small.
 				 */
 				if( ! ml_imgscrl_scroll_upward( image , scroll_size))
+			#else
+				if( ! ml_imgscrl_scroll_upward_in_all( image , scroll_size))
 			#endif
 				{
-					ml_imgscrl_scroll_upward_in_all( image , scroll_size) ;
+				#ifdef  DEBUG
+					kik_warn_printf( KIK_DEBUG_TAG
+						" ml_imgscrl_scroll_upward_in_all failed.\n") ;
+				#endif
 				}
 			}
 			
