@@ -225,6 +225,7 @@ xim_server_instantiated(
 
 static x_xim_t *
 search_xim(
+	Display *  display ,
 	char *  xim_name
 	)
 {
@@ -232,7 +233,8 @@ search_xim(
 
 	for( count = 0 ; count < num_of_xims ; count ++)
 	{
-		if( strcmp( xims[count].name , xim_name) == 0)
+		if( strcmp( xims[count].name , xim_name) == 0 &&
+		    XDisplayOfIM( xims[count].im) == display)
 		{
 			return  &xims[count] ;
 		}
@@ -243,13 +245,14 @@ search_xim(
 
 static x_xim_t *
 get_xim(
+	Display *  display ,
 	char *  xim_name ,
 	char *  xim_locale
 	)
 {
 	x_xim_t *  xim ;
 	
-	if( ( xim = search_xim( xim_name)) == NULL)
+	if( ( xim = search_xim( display , xim_name)) == NULL)
 	{
 		if( num_of_xims == MAX_XIMS_SAME_TIME)
 		{
@@ -490,7 +493,7 @@ x_add_xim_listener(
 		}
 	}
 	
-	if( ( win->xim = get_xim( xim_name , xim_locale)) == NULL)
+	if( ( win->xim = get_xim( win->display , xim_name , xim_locale)) == NULL)
 	{
 		return  0 ;
 	}

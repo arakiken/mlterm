@@ -1,3 +1,7 @@
+2004-10-12 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* x_xim.c (search_xim): fixed a bug with multiple displays. (#1034630)
+
 2004-10-11 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/iiimf/im_iiimf.c (im_get_info): fixed a segfault with
@@ -5,8 +9,8 @@
 
 2004-10-11 Seiichi SATO <ssato@sh.rim.or.jp>
 
-	I got "YOUR MEMORY MANAGEMENT IS PERFECT!" message from kik_mem by this
-	changes:
+	I got "YOUR MEMORY MANAGEMENT IS PERFECT!" message from kik_mem by
+	these changes:
 
 	* inputmethod/iiimf/Makefile.in, inputmethod/kbd/Makefile.in,
 	  inputmethod/m17nlib/Makefile.in, inputmethod/uim/Makefile.in:
