@@ -2046,6 +2046,47 @@ x_window_scroll_downward_region(
 }
 
 int
+x_window_draw_decsp_string(
+	x_window_t *  win ,
+	x_font_t *  font ,
+	x_color_t *  fg_color ,
+	x_color_t *  bg_color ,
+	int  x ,
+	int  y ,
+	u_char *  str ,
+	u_int  len
+	)
+{
+	if( font->decsp_font)
+	{
+		XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
+		XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
+		
+		x_decsp_font_draw_string( font->decsp_font ,
+			win->display , win->drawable , win->ch_gc ,
+			x + win->margin , y + win->margin , str , len) ;
+
+		return  1 ;
+	}
+	else if( font->xfont)
+	{
+		if( bg_color)
+		{
+			return  x_window_draw_image_string( win , font , fg_color , bg_color ,
+					x , y , str , len) ;
+		}
+		else
+		{
+			return  x_window_draw_string( win , font , fg_color , x , y , str , len) ;
+		}
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+int
 x_window_draw_string(
 	x_window_t *  win ,
 	x_font_t *  font ,
@@ -2059,31 +2100,13 @@ x_window_draw_string(
 	XSetFont( win->display , win->ch_gc , font->xfont->fid) ;
 	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
 
-	if( font->decsp_font)
-	{
-		x_decsp_font_draw_string( font->decsp_font ,
-			win->display , win->drawable , win->ch_gc ,
-			x + win->margin , y + win->margin , str , len) ;
-	}
-	else
-	{
-		XDrawString( win->display , win->drawable , win->ch_gc ,
-			x + font->x_off + win->margin , y + win->margin , str , len) ;
-	}
+	XDrawString( win->display , win->drawable , win->ch_gc ,
+		x + font->x_off + win->margin , y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		if( font->decsp_font)
-		{
-			x_decsp_font_draw_string( font->decsp_font ,
-				win->display , win->drawable , win->ch_gc ,
-				x + win->margin , y + win->margin , str , len) ;
-		}
-		else
-		{
-			XDrawString( win->display , win->drawable , win->ch_gc ,
-				x + font->x_off + win->margin + 1 , y + win->margin , str , len) ;
-		}
+		XDrawString( win->display , win->drawable , win->ch_gc ,
+			x + font->x_off + win->margin + 1 , y + win->margin , str , len) ;
 	}
 
 	return  1 ;
@@ -2130,10 +2153,10 @@ x_window_draw_image_string(
 	XSetFont( win->display , win->ch_gc , font->xfont->fid) ;
 	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
 	XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
-	
+
 	XDrawImageString( win->display , win->drawable , win->ch_gc ,
 		x + font->x_off + win->margin , y + win->margin , str , len) ;
-	
+
 	if( font->is_double_drawing)
 	{
 		XDrawString( win->display , win->drawable , win->ch_gc ,
@@ -2183,17 +2206,8 @@ x_window_xft_draw_string8(
 	size_t  len
 	)
 {
-	if( font->decsp_font)
-	{
-		x_decsp_font_draw_string( font->decsp_font ,
-			win->display , win->drawable , win->gc ,
-			x + win->margin , y + win->margin , str , len) ;
-	}
-	else
-	{
-		XftDrawString8( win->xft_draw , fg_color , font->xft_font ,
-			x + win->margin , y + win->margin , str , len) ;
-	}
+	XftDrawString8( win->xft_draw , fg_color , font->xft_font ,
+		x + win->margin , y + win->margin , str , len) ;
 
 	return  1 ;
 }

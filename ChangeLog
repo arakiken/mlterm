@@ -1,5 +1,13 @@
 2002-05-19 Araki Ken <arakiken@users.sf.net>
 
+	* DEC_SPECIAL characters were not shown with -Y,--decsp option. fixed.
+	  (Thanks to Kubota Tomohiro san)
+	* "RRRRR-BBBBB-GGGG;" style is accepted in color config file for backward
+	  compatiblity with 2.4.0 or before.
+	  (Thanks to Nanashi san)
+
+2002-05-19 Araki Ken <arakiken@users.sf.net>
+
 	* a bug of shaping arabic combining characters is fixed.
 	* scrollbar's height was incorrect when screen was revived. fixed.
 

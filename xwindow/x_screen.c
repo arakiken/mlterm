@@ -66,8 +66,10 @@
 
 /* --- static functions --- */
 
+/*
+ * Not used for now.
+ */
 #if  0
-
 static int
 char_combining_is_supported(
 	mkf_charset_t  cs
@@ -87,12 +89,10 @@ char_combining_is_supported(
 		return  0 ;
 	}
 }
-
 #else
-
 #define  char_combining_is_supported(cs)  0
-
 #endif
+
 
 /*
  * drawing string 
@@ -120,7 +120,14 @@ xft_draw_combining_chars(
 		ch_size = ml_char_size( &chars[count]) ;
 		ch_cs = ml_char_cs( &chars[count]) ;
 
-		if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
+		if( ch_cs == DEC_SPECIAL)
+		{
+			x_window_draw_decsp_string( &screen->window ,
+				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
+				x_get_color( screen->color_man , ml_char_fg_color( &chars[count])) ,
+				NULL , x , y , ch_bytes , ch_size) ;
+		}
+		else if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
 		{
 			x_window_xft_draw_string8( &screen->window ,
 				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
@@ -175,10 +182,9 @@ xft_draw_str(
 	XftChar8 *  str8 ;
 	XftChar32 *  str32 ;
 	u_int	str_len ;
-	int  is_mb ;
+	int  state ;
 	
 	u_char *  ch_bytes ;
-	
 	size_t  ch_size ;
 	u_int  ch_width ;
 	mkf_charset_t  ch_cs ;
@@ -189,7 +195,6 @@ xft_draw_str(
 	ml_char_t *  comb_chars ;
 	u_int  comb_size ;
 
-	mkf_charset_t  next_ch_cs ;
 	x_font_t *  next_xfont ;
 	ml_color_t  next_fg_color ;
 	ml_color_t  next_bg_color ;
@@ -247,15 +252,21 @@ xft_draw_str(
 	}
 
 	str_len = 0 ;
-	is_mb = 0 ;
+	state = 0 ;
 
 	while( 1)
 	{
 		if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
 		{
 			str8[str_len++] = ch_bytes[0] ;
-			
-			is_mb = 0 ;
+
+			state = 0 ;
+		}
+		else if( ch_cs == DEC_SPECIAL)
+		{
+			str8[str_len++] = ch_bytes[0] ;
+
+			state = 1 ;
 		}
 		else
 		{
@@ -277,7 +288,7 @@ xft_draw_str(
 				((ucs4_bytes[1] << 16) & 0xff0000) | ((ucs4_bytes[2] << 8) & 0xff00) |
 				(ucs4_bytes[3] & 0xff) ;
 
-			is_mb = 1 ;
+			state = 2 ;
 		}
 
 		comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
@@ -297,14 +308,13 @@ xft_draw_str(
 		{
 			ch_bytes = ml_char_bytes( &chars[count]) ;
 			ch_size = ml_char_size( &chars[count]) ;
-			next_ch_cs = ml_char_cs( &chars[count]) ;
+			ch_cs = ml_char_cs( &chars[count]) ;
 			next_fg_color = ml_char_fg_color( &chars[count]) ;
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
 			next_xfont = x_get_font( screen->font_man , ml_char_font( &chars[count])) ;
 			
-			ch_width = x_calculate_char_width( next_xfont ,
-					ch_bytes , ch_size , next_ch_cs) ;
+			ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
 			
 			if( current_width + ch_width >= screen->window.width)
 			{
@@ -318,8 +328,6 @@ xft_draw_str(
 				|| (is_underlined && xfont->is_vertical)
 				|| (next_is_underlined && xfont->is_vertical)
 				|| comb_chars != NULL
-				|| (is_mb && (next_ch_cs == US_ASCII || next_ch_cs == ISO8859_1_R))
-				|| (! is_mb && (next_ch_cs != US_ASCII && next_ch_cs != ISO8859_1_R))
 				|| (next_xfont->is_proportional && ! next_xfont->is_var_col_width)
 				|| (xfont->is_proportional && ! xfont->is_var_col_width))
 			{
@@ -364,31 +372,29 @@ xft_draw_str(
 			/*
 			 * drawing string
 			 */
-			if( is_mb)
-			{
-				x_window_xft_draw_string32( &screen->window ,
-					xfont , x_get_color( screen->color_man , fg_color) ,
-					x , y + height_to_baseline , str32 , str_len) ;
-			}
-			else
+			if( state == 0)
 			{
 				x_window_xft_draw_string8( &screen->window ,
 					xfont , x_get_color( screen->color_man , fg_color) ,
 					x , y + height_to_baseline , str8 , str_len) ;
 			}
+			else if( state == 1)
+			{
+				x_window_draw_decsp_string( &screen->window , xfont ,
+					x_get_color( screen->color_man , fg_color) , NULL ,
+					x , y + height_to_baseline , str8 , str_len) ;
+			}
+			else /* if( state == 2) */
+			{
+				x_window_xft_draw_string32( &screen->window ,
+					xfont , x_get_color( screen->color_man , fg_color) ,
+					x , y + height_to_baseline , str32 , str_len) ;
+			}
 
 			if( comb_chars)
 			{
-				if( char_combining_is_supported( ch_cs))
-				{
-					xft_draw_combining_chars( screen , comb_chars , comb_size ,
-						current_width , y + height_to_baseline) ;
-				}
-				else
-				{
-					xft_draw_combining_chars( screen , comb_chars , comb_size ,
-						current_width - ch_width , y + height_to_baseline) ;
-				}
+				xft_draw_combining_chars( screen , comb_chars , comb_size ,
+					current_width - ch_width , y + height_to_baseline) ;
 			}
 			
 			if( is_underlined)
@@ -419,7 +425,6 @@ xft_draw_str(
 			break ;
 		}
 
-		ch_cs = next_ch_cs ;
 		is_underlined = next_is_underlined ;
 		xfont = next_xfont ;
 		fg_color = next_fg_color ;
@@ -457,7 +462,14 @@ x_draw_combining_chars(
 		ch_bytes = ml_char_bytes( &chars[count]) ;
 		ch_size = ml_char_size( &chars[count]) ;
 
-		if( ch_size == 1)
+		if( ml_char_cs( &chars[count]) == DEC_SPECIAL)
+		{
+			x_window_draw_decsp_string( &screen->window ,
+				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
+				x_get_color( screen->color_man , ml_char_fg_color( &chars[count])) ,
+				NULL , x , y , ch_bytes , 1) ;
+		}
+		else if( ch_size == 1)
 		{
 			x_window_draw_string( &screen->window ,
 				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
@@ -523,7 +535,7 @@ x_draw_str(
 	u_char *  str ;
 	XChar2b *  str2b ;
 	u_int	str_len ;
-	int  is_mb ;
+	int  state ;			/* 0(8bit),1(decsp),2(16bit) */
 	ml_char_t *  comb_chars ;
 	u_int  comb_size ;
 
@@ -592,21 +604,29 @@ x_draw_str(
 	}
 
 	str_len = 0 ;
-	is_mb = 0 ;
+	state = 0 ;
 	
 	while( 1)
 	{
 		if( ch_size == 1)
 		{
 			str[str_len++] = ch_bytes[0] ;
-			is_mb = 0 ;
+
+			if( ch_cs == DEC_SPECIAL)
+			{
+				state = 1 ;
+			}
+			else
+			{
+				state = 0 ;
+			}
 		}
 		else if( ch_size == 2)
 		{
 			str2b[str_len].byte1 = ch_bytes[0] ;
 			str2b[str_len].byte2 = ch_bytes[1] ;
 			str_len ++ ;
-			is_mb = 1 ;
+			state = 2 ;
 		}
 		else if( ch_size == 4 && ch_bytes[0] == '\0' && ch_bytes[1] == '\0')
 		{
@@ -615,7 +635,7 @@ x_draw_str(
 			str2b[str_len].byte1 = ch_bytes[2] ;
 			str2b[str_len].byte2 = ch_bytes[3] ;
 			str_len ++ ;
-			is_mb = 1 ;
+			state = 2 ;
 		}
 		else
 		{
@@ -623,7 +643,7 @@ x_draw_str(
 			kik_warn_printf( KIK_DEBUG_TAG " strange character , ignored.\n") ;
 		#endif
 
-			if( is_mb)
+			if( state)
 			{
 				str2b[str_len].byte1 = '\x20' ;
 				str2b[str_len].byte2 = '\x20' ;
@@ -672,8 +692,6 @@ x_draw_str(
 				|| (is_underlined && xfont->is_vertical)
 				|| (next_is_underlined && xfont->is_vertical)
 				|| comb_chars != NULL
-				|| (is_mb == 1 && ch_size == 1)
-				|| (is_mb == 0 && ch_size > 1)
 				|| (next_xfont->is_proportional && ! next_xfont->is_var_col_width)
 				|| (xfont->is_proportional && ! xfont->is_var_col_width))
 			{
@@ -720,13 +738,19 @@ x_draw_str(
 						x , y , current_width - x , height) ;
 				}
 
-				if( is_mb)
+				if( state == 2)
 				{
 					x_window_draw_string16( &screen->window , xfont ,
 						x_get_color( screen->color_man , fg_color) ,
 						x , y + height_to_baseline , str2b , str_len) ;
 				}
-				else
+				else if( state == 1)
+				{
+					x_window_draw_decsp_string( &screen->window , xfont ,
+						x_get_color( screen->color_man , fg_color) , NULL ,
+						x , y + height_to_baseline , str , str_len) ;
+				}
+				else /* if( state == 0) */
 				{
 					x_window_draw_string( &screen->window , xfont ,
 						x_get_color( screen->color_man , fg_color) ,
@@ -735,14 +759,21 @@ x_draw_str(
 			}
 			else
 			{
-				if( is_mb)
+				if( state == 2)
 				{
 					x_window_draw_image_string16( &screen->window , xfont ,
 						x_get_color( screen->color_man , fg_color) ,
 						x_get_color( screen->color_man , bg_color) ,
 						x , y + height_to_baseline , str2b , str_len) ;
 				}
-				else
+				else if( state == 1)
+				{
+					x_window_draw_decsp_string( &screen->window , xfont ,
+						x_get_color( screen->color_man , fg_color) ,
+						x_get_color( screen->color_man , bg_color) ,
+						x , y + height_to_baseline , str , str_len) ;
+				}
+				else /* if( state == 0) */
 				{
 					x_window_draw_image_string( &screen->window , xfont ,
 						x_get_color( screen->color_man , fg_color) ,
@@ -753,16 +784,8 @@ x_draw_str(
 			
 			if( comb_chars)
 			{
-				if( char_combining_is_supported( x_font_cs( screen->xfont)))
-				{
-					x_draw_combining_chars( screen , comb_chars , comb_size ,
-						current_width , y + height_to_baseline) ;
-				}
-				else
-				{
-					x_draw_combining_chars( screen , comb_chars , comb_size ,
-						current_width - ch_width , y + height_to_baseline) ;
-				}
+				x_draw_combining_chars( screen , comb_chars , comb_size ,
+					current_width - ch_width , y + height_to_baseline) ;
 			}
 
 			if( is_underlined)

@@ -519,8 +519,8 @@ comment $Id$
       [red],[green],[blue]は、それぞれ 16 bit 16 進数表記です。
 
       e.g.)
-      priv_fg=ffff-ffff-0;
-      priv_bg=0-0-ffff;
+      priv_fg=ffff-ffff-0
+      priv_bg=0-0-ffff
 
     o xim
       mlterm では、複数の XIM の動的切替えをサポートしています。

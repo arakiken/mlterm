@@ -129,7 +129,14 @@ x_color_custom_read_conf(
 
 	while( kik_conf_io_read( from , &color , &rgb))
 	{
-		if( strlen( rgb) == 14 &&
+		/*
+		 * XXX
+		 * "RRRR-GGGG-BBBB" length is 14, but 2.4.0 or before accepts
+		 * "RRRR-GGGG-BBBB....."(trailing any characters) format and
+		 * what is worse "RRRR-GGGG-BBBB;" appears in etc/color sample file.
+		 * So, more than 14 length is also accepted for backward compatiblity.
+		 */
+		if( strlen( rgb) >= 14 &&
 			sscanf( rgb , "%4x-%4x-%4x" , &red , &green , &blue) == 3)
 		{
 			/* do nothing */

@@ -323,7 +323,6 @@ unset_xfont(
 	}
 	else
 #endif
-
 	if( font->xfont)
 	{
 		XFreeFont( font->display , font->xfont) ;
@@ -451,11 +450,34 @@ set_decsp_font(
 	x_font_t *  font
 	)
 {
+	/*
+	 * freeing font->xfont or font->xft_font
+	 */
+#ifdef  ANTI_ALIAS
+	if( font->xft_font)
+	{
+		XftFontClose( font->display , font->xft_font) ;
+		font->xft_font = NULL ;
+	}
+	else
+#endif
+	if( font->xfont)
+	{
+		XFreeFont( font->display , font->xfont) ;
+		font->xfont = NULL ;
+	}
+	
 	if( ( font->decsp_font = x_decsp_font_new( font->display , font->width , font->height ,
 					font->height_to_baseline)) == NULL)
 	{
 		return  0 ;
 	}
+
+	/* decsp_font is impossible to draw double with. */
+	font->is_double_drawing = 0 ;
+
+	/* decsp_font is always fixed pitch. */
+	font->is_proportional = 0 ;
 
 	return  1 ;
 }
@@ -767,6 +789,10 @@ font_found:
 		font->height_to_baseline = fontsize ;
 	}
 
+	/*
+	 * set_decsp_font() is called after dummy font is loaded to get font metrics.
+	 * Since dummy font encoding is "iso8859-1", loading rarely fails.
+	 */
 	if( compose_dec_special_font && FONT_CS(font->id) == DEC_SPECIAL)
 	{
 		return  set_decsp_font( font) ;
@@ -1164,6 +1190,10 @@ font_found:
 		font->height_to_baseline = fontsize ;
 	}
 
+	/*
+	 * set_decsp_font() is called after dummy font is loaded to get font metrics.
+	 * Since dummy font encoding is "iso8859-1", loading rarely fails.
+	 */
 	if( compose_dec_special_font && FONT_CS(font->id) == DEC_SPECIAL)
 	{
 		return  set_decsp_font( font) ;

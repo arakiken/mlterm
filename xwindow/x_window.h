@@ -229,6 +229,10 @@ int  x_window_scroll_downward( x_window_t *  win , u_int  height) ;
 
 int  x_window_scroll_downward_region( x_window_t *  win , int  start_y , int  end_y , u_int  height) ;
 
+int  x_window_draw_decsp_string( x_window_t *  win , x_font_t *  font ,
+	x_color_t *  fg_color , x_color_t *  bg_color , int  x , int  y ,
+	u_char *  str , u_int  len) ;
+
 int  x_window_draw_string( x_window_t *  win , x_font_t *  font , x_color_t *  fg_color ,
 	int  x , int  y , u_char *  str , u_int  len) ;
 
