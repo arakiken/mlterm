@@ -18,7 +18,6 @@ typedef struct  mkf_ucs4_parser
 } mkf_ucs4_parser_t ;
 
 
-
 /* --- static functions --- */
 
 static void
@@ -26,13 +25,9 @@ ucs4_parser_init(
 	mkf_parser_t *  parser
 	)
 {
-	mkf_ucs4_parser_t *  ucs4_parser ;
-
 	mkf_parser_init( parser) ;
 
-	ucs4_parser = (mkf_ucs4_parser_t*) parser ;
-	
-	ucs4_parser->is_big_endian = 1 ;
+	((mkf_ucs4_parser_t*)parser)->is_big_endian = 1 ;
 }
 
 static void
@@ -50,10 +45,10 @@ ucs4_parser_set_str(
 
 static void
 ucs4_parser_delete(
-	mkf_parser_t *  s
+	mkf_parser_t *  parser
 	)
 {
-	free( s) ;
+	free( parser) ;
 }
 
 static int

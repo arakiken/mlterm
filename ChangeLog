@@ -1,3 +1,7 @@
+2002-11-16 Araki Ken <arakiken@users.sf.net>
+
+	* Added mkf_utf16_parser.[ch] which parses UTF16 sequence.
+
 2002-11-15  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
 
 	* added support for some lazy WM which does only set a part of
