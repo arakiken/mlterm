@@ -125,7 +125,7 @@ create_xic(
 	XPoint  spot ;
 	XFontSet  fontset ;
 	XIC  xic ;
-	int  xim_ev_mask ;
+	long  xim_ev_mask ;
 
 	if( win->xic)
 	{

@@ -87,6 +87,8 @@ esac
 AC_CACHE_CHECK(for socklen_t, kik_cv_socklen_ident,
 [AC_TRY_COMPILE(
 [
+#include  <stddef.h>
+#include  <sys/types.h>
 #include  <sys/socket.h>
 ],
 [
