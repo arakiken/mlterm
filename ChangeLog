@@ -1,8 +1,8 @@
 2003-05-19  MINAMI Hirokazu  <minami@mistfall.net>
 
+	* support DND from nautilus's background setting dialog. 
 	* support application/x-color as DND type and
 	refrect the color to the window's background.
-
 	* added lots of dubug messages.
 
 	* In DND session, "text/x-mlterm.config" is now preffered

@@ -6,6 +6,7 @@
 
 #include  "x_window.h"
 #include  "x_dnd.h"
+#include  <stdio.h>
 #include  <X11/Xatom.h>
 #include  <X11/Xutil.h>
 #include  <mkf/mkf_utf8_conv.h>
@@ -185,6 +186,7 @@ parse_mlterm_config(
 
 	return 1 ;
 }
+
 static int
 parse_app_color(
 	x_window_t *  win,
@@ -192,7 +194,7 @@ parse_app_color(
 	int  len)
 {
 	u_int16_t *r, *g, *b;
-	char buffer[255];
+	char buffer[25];
 	
 	r = (u_int16_t *)src ;
 	g = r + 1 ;
@@ -207,6 +209,42 @@ parse_app_color(
 	return 1 ;
 }
 
+static int
+parse_prop_bgimage(
+	x_window_t *  win,
+	unsigned char *  src,
+	int  len)
+{
+	/* XXX: DO SANITY CHECK */
+	if( !(win->config_listener))
+		return 0 ;
+#ifdef  DEBUG
+	kik_debug_printf( "%s\n" , src +7) ;
+#endif 
+	(*win->config_listener)( win , 
+				 NULL, /* dev */
+				 "wall_picture", /* key */
+				 src + 7 /* value */) ;
+
+	return 1 ;
+}
+
+#ifdef  DEBUG
+static int
+parse_debug(
+	x_window_t *  win,
+	unsigned char *  src,
+	int  len)
+{
+	int i;
+	kik_debug_printf(src);
+	for( i = 0 ; i < 100 && i < len ; i++)
+		kik_debug_printf( "\n%d %x" ,i, src[i]) ;
+
+	return 1 ;
+}
+#endif
+
 dnd_parser_t dnd_parsers[] ={
 	{"text/x-mlterm.config"  , parse_mlterm_config } ,
 	{"UTF8_STRING"  , parse_utf8_string } ,
@@ -216,6 +254,8 @@ dnd_parser_t dnd_parsers[] ={
 	{"TEXT"         , parse_text } ,
 	{"text/unicode"   , parse_text_unicode } ,
 	{"application/x-color"  , parse_app_color } ,
+	{"property/bgimage"  , parse_prop_bgimage } ,
+	{"x-special/gnome-reset-background"  , parse_prop_bgimage }, 
 	{"GIMP_PATTERN"  , parse_utf8_string } ,
 	{"GIMP_BRUSH"  , parse_utf8_string } ,
 	{"GIMP_GRADIENT"  , parse_utf8_string } ,
@@ -489,7 +529,7 @@ x_dnd_process_enter(
 					     XInternAtom( win->display, "XdndTypeList", False), 0L, 1024L,
 					     False, XA_ATOM,
 					     &act_type, &act_format, &nitems, &left,
-					     (unsigned char **)&dat);
+					     (unsigned char **)(&dat));
 		set_badwin_handler(0) ;
 
 		if( ( result == Success) &&
