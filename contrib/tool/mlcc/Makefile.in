@@ -35,7 +35,10 @@ main.o: comm.h data.h
 clean:
 	rm -f $(OBJECTS) $(PROG) core core.* $(PROG).core 
 
-install:
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
+install: $(BINDIR)
 	$(INSTALL) -m 755 $(PROG) $(BINDIR)
 
 uninstall:
