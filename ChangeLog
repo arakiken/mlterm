@@ -1,3 +1,8 @@
+2004-01-14  Tomohiro KUBOTA  <kubota@debian.org>
+
+	* mlconfig lists scrollbars in user's configuration directory
+	  and system directory.
+
 2004-01-13  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* tool/mlclient/main.c: arguments specified by -e option were able to

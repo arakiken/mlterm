@@ -7,11 +7,22 @@
 #include  <string.h>
 #include  <stdlib.h>		/* free */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_conf_io.h>
 #include  <glib.h>
 #include  <c_intl.h>
+#include  <sys/types.h>
+#include  <dirent.h>
 
 #include  "mc_combo.h"
 #include  "mc_io.h"
+
+#ifndef  DATADIR
+#define  SB_DIR  "/usr/local/share/mlterm/scrollbars"
+#else
+#define  SB_DIR  DATADIR "/mlterm/scrollbars"
+#endif
+
+#define MAX_SCROLLBARS 100
 
 
 #if  0
@@ -43,13 +54,41 @@ sb_view_name_selected(
 	return  1 ;
 }
 
+static int
+read_sb_names(char *dirname, char **sbnames, int n)
+{
+    int n0, j;
+    DIR *d;
+    struct dirent *e;
+
+    d = opendir(dirname);
+    if (!d) return n;
+
+    n0 = n;
+
+    while (n<MAX_SCROLLBARS) {
+    ignore:
+	e = readdir(d);
+	if (!e) break;
+	if (e->d_name[0] == '.') continue;
+	sbnames[n] = strdup(e->d_name);
+	if (!sbnames[n]) break;
+	for(j=0; j<n0; j++){
+	    if (!strcmp(sbnames[n], sbnames[j])) goto ignore;
+	}
+	n++;
+    }
+    closedir(d);
+    return n;
+}
+
 
 /* --- global functions --- */
 
 GtkWidget *
 mc_sb_view_config_widget_new(void)
 {
-	char *  sb_view_names[] =
+	char *  sb_view0[] =
 	{
 		"simple" ,
 		"sample" ,
@@ -58,14 +97,25 @@ mc_sb_view_config_widget_new(void)
 		"athena" ,
 		"motif" ,
 		"mozmodern" ,
-		"next" ,
+		"next"
 	} ;
+	char *sb_view_names[MAX_SCROLLBARS];
+	char *userdir;
+	int n;
 
-	new_sb_view_name = old_sb_view_name = mc_get_str_value( "scrollbar_view_name") ;
+	for (n=0; n<sizeof(sb_view0)/sizeof(sb_view0[0]); n++) {
+		sb_view_names[n] = sb_view0[n];
+	}
+
+	userdir = kik_get_user_rc_path("mlterm/scrollbars");
+	if (userdir) n = read_sb_names(userdir, sb_view_names, n);
+	n = read_sb_names(SB_DIR, sb_view_names, n);
+
+	new_sb_view_name = old_sb_view_name =
+	  mc_get_str_value( "scrollbar_view_name") ;
 	is_changed = 0;
 
-	return  mc_combo_new( _("View") , sb_view_names ,
-		sizeof(sb_view_names) / sizeof(sb_view_names[0]) ,
+	return  mc_combo_new( _("View") , sb_view_names , n,
 		new_sb_view_name , 0 , sb_view_name_selected , NULL) ;
 }
 
