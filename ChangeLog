@@ -1,4 +1,7 @@
 [20020206]
+* -Z/--multicol/use_multi_column_char option is added.
+
+[20020206]
 * if scrollbar_mode is none and window is resized , garbages are left
   on screen. fixed.
 * w3mmlconfig is updated(around scrollbar_mode). 
