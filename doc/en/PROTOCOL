@@ -2,7 +2,7 @@ comment -*- mode: text -*-
 comment $Id$
 
 mlterm configuration protocol
-version 20020203
+version 20020206
 
 * mlterm proper
   set              = "\x1b" "]" "5379" ";" <set key> "=" <value> "\x07"
