@@ -1,3 +1,7 @@
+2002-09-04  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* lots of minor fix/enhancements. 2.6.0 ready.
+
 2002-07-08  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* gamma/contrast are now supported.
