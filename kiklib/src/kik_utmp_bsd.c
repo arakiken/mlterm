@@ -174,7 +174,8 @@ write_lastlog(
 kik_utmp_t
 kik_utmp_new(
 	char *  tty ,
-	char *  host
+	char *  host ,
+	int  pty_fd	/* not used */
 	)
 {
 	kik_utmp_t  utmp ;

@@ -18,7 +18,7 @@ typedef struct  ml_pty
 	int  fd ;		/* master pty fd */
 	pid_t  child_pid ;
 
-#ifdef  USE_UTMP	
+#ifdef  USE_UTMP
 	kik_utmp_t  utmp ;
 #endif
 

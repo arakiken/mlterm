@@ -17,7 +17,7 @@ INSTALL = @INSTALL@
 LIBTOOL = @LIBTOOL@
 
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @CFLAGS@
-LIBS = $(LIBS_LOCAL) @XPG4_LIBS@
+LIBS = $(LIBS_LOCAL) @XPG4_LIBS@ @UTMPER_LIBS@
 
 OBJ = kik_debug.o kik_map.o kik_args.o kik_dlfcn.o kik_mem.o kik_conf.o kik_file.o kik_path.o \
 	kik_conf_io.o kik_str.o kik_cycle_index.o kik_langinfo.o kik_time.o kik_locale.o \
@@ -26,7 +26,7 @@ OBJ = kik_debug.o kik_map.o kik_args.o kik_dlfcn.o kik_mem.o kik_conf.o kik_file
 INC = $(OBJ:.o=.h) kik_list.h kik_iterator.h kik_types.h kik_config.h kik_util.h kik_def.h kik_net.h
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
-LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) $(LIBS)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 LIBNAME=libkik

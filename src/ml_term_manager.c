@@ -569,6 +569,8 @@ close_dead_terms(
 	{
 		if( term_man->dead_mask & (0x1 << counter))
 		{
+			delete_term( &term_man->terms[counter]) ;
+			
 			if( -- term_man->num_of_terms == 0 && ! term_man->is_genuine_daemon)
 			{
 				if( un_file)
@@ -578,8 +580,6 @@ close_dead_terms(
 			
 				exit( 0) ;
 			}
-			
-			delete_term( &term_man->terms[counter]) ;
 
 			if( term_man->terms[counter].display->win_man.num_of_roots == 0)
 			{
@@ -624,6 +624,11 @@ __exit(
 	kik_msg_printf( "reporting unfreed memories --->\n") ;
 	kik_mem_free_all() ;
 #endif
+	
+	if( un_file)
+	{
+		unlink( un_file) ;
+	}
 	
 	exit(status) ;
 }

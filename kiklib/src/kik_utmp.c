@@ -5,7 +5,11 @@
 #include  "kik_config.h"
 
 
-#ifdef  HAVE_SETUTENT
+#if  defined(HAVE_UTMPER)
+
+#include  "kik_utmp_utmper.c"
+
+#elif  defined(HAVE_SETUTENT)
 
 #include  "kik_utmp_sysv.c"
 

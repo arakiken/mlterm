@@ -16,7 +16,8 @@
 kik_utmp_t
 kik_utmp_new(
 	char *  tty ,
-	char *  host
+	char *  host ,
+	int  pty_fd
 	)
 {
 	return  NULL ;

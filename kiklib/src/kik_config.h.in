@@ -40,6 +40,8 @@
 
 #undef  HAVE_FUNCTION
 
+#undef  HAVE_UTMPER
+
 #undef  PTY_STREAMS
 
 #undef  PTY_BSD

@@ -45,13 +45,6 @@ ml_pty_new(
 		goto  error ;
 	}
 
-#ifdef  USE_UTMP
-	if( ( pty->utmp = kik_utmp_new( slave , disp)) == NULL)
-	{
-		kik_msg_printf( "utmp failed.\n") ;
-	}
-#endif
-
 	free( slave) ;
 
 	if( pid == 0)
@@ -111,6 +104,13 @@ ml_pty_new(
 	}
 
 	/* parent process */
+
+#ifdef  USE_UTMP
+	if( ( pty->utmp = kik_utmp_new( slave , disp, pty->fd)) == NULL)
+	{
+		kik_msg_printf( "utmp failed.\n") ;
+	}
+#endif
 
 	pty->child_pid = pid ;
 	pty->buf = NULL ;
