@@ -1,3 +1,8 @@
+2004-01-12  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* kiklib/src/kik_pty_streams.c: #defined _BSD_SOURCE to
+	get rid of compile error on glibc.
+	
 2004-01-12  Tomohiro KUBOTA  <kubota@debian.org>
 
 	* Include <string.h> in xwindow/x_sb_mode.c for usage of

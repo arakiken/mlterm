@@ -5,6 +5,11 @@
 /* ptsname/grantpt/unlockpt are not available without _XOPEN_SOURCE
  * on GNU libc based systems. (It may have some ill side-effect though) */
 #define  _XOPEN_SOURCE 500
+
+/* When _XOPEN_SOURCE is defined, 
+ * u_int/u_long/... won't be defined without _BSD_SOURCE */
+#define  _BSD_SOURCE 1
+
 #include  "kik_pty.h"
 
 #include  <fcntl.h>
