@@ -1994,8 +1994,6 @@ x_window_receive_event(
 				(*win->window_resized)( win) ;
 			}
 
-			x_xic_resized( win) ;
-
 			is_changed = 1 ;
 		}
 

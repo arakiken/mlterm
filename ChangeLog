@@ -1,3 +1,10 @@
+2004-10-13 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	xim could not get the rectangle information of maximized window. fixed.
+
+	* x_window.c (x_window_receive_event): moved x_xic_resized() into...
+	* x_screen.c (window_resized): this.
+
 2004-10-13 MINAMI Hirokazu <minami@mistfall.net>
 
 	* man/mlclient.1: Updated.
@@ -32,7 +39,8 @@
 
 	* inputmethod/uim/im_uim.c: #include <uim-im-switcher.h>
 
-	* x_im.c, x_im.h: fixed a bug caused by using uim and m17nlib together.
+	* x_im.c, x_im.h: fixed a segfault which is caused by using uim and
+	  m17nlib together.
 
 2004-10-10 Seiichi SATO <ssato@sh.rim.or.jp>
 

@@ -1544,6 +1544,8 @@ window_resized(
 
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
+
+	x_xic_resized( &screen->window) ;
 }
 
 static void
