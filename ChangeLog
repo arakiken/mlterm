@@ -1,3 +1,9 @@
+2004-04-23  Tomohiro KUBOTA <kubota@debian.org>
+
+	* The --borderless option was not documented in the manpage.
+	  Patch from Nicolas Kratz <nick@ikarus.dyndns.org>,
+	  Debian Bug#244657.
+
 2004-04-18 MINAMI Hirokazu <minami@mistfall.net>
 
 	* x_shortcut.c: before assigning new function to a key,

@@ -278,6 +278,12 @@ configuration file and color rgb string whose format is "#RRGGBB".
 Doubleclick/tripleclick interval in millisecond.
 The default is \fB250\fR.
 .TP
+\fB\-&\fR, \fB\-\-borderless\fR=\fIbool\fR
+Asks the window manager to use no decorations at all. Warning: You will
+not be able to resize the window. You probably want to use \fB\-\-geometry\fR
+as well.
+The default is \fBfalse\fR.
+.TP
 \fB\-@\fR, \fB\-\-screenss\fR=\fIvalue\fR
 Specify number of screens (sessions) to be used in start up.
 The default is \fB1\fR.
@@ -901,6 +907,9 @@ Background color.
 .TP
 \fBbrightness=\fIvalue\fR (\fB\-H\fR, \fB\-\-brightness\fR) 
 Specify the amount of darkening or lightening the background image.
+.TP
+\fBborderless=\fIbool\fR (\fB\-&\fR, \fB\-\-borderless\fR) 
+Don't draw window decorations.
 .TP
 \fBbig5_buggy=\fIbool\fR (\fB\-5\fR, \fB\-\-big5bug\fR) 
 Support Big5 CTEXT bugs (which exist in XFree86 4.1.0 or before).
