@@ -1,3 +1,7 @@
+2003-05-11  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* doc/term/mlterm.tc: Removed u[6-9] to make the file smaller.
+
 2003-05-10 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* configure.in, kiklib/configure.in, mkf/configure.in: added
