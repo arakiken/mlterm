@@ -1,5 +1,8 @@
 2003-07-14  Araki Ken  <arakiken@users.sf.net>
 
+	* Bidi characters in backward-scrolled area were not correctly
+	  selected. Fixed.
+
 	* The end characters of lines in backward-scrolled area couldn't
 	  be selected. Fixed.
 

@@ -105,6 +105,17 @@ receive_scrolled_out_line(
 	{
 		(*screen->logvis->visual_line)( screen->logvis , line) ;
 	}
+#if  1
+	/*
+	 * Optimized memory consumption.
+	 * This causes some problem if the visual order of characters are different
+	 * from the logical one.
+	 */
+	else
+	{
+		line->num_of_filled_chars = ml_get_num_of_filled_chars_except_spaces( line) ;
+	}
+#endif
 	
 	ml_log_add( &screen->logs , line) ;
 
