@@ -1403,22 +1403,25 @@ draw_cursor(
 		ml_char_set_bg_color( &ch , ML_BG_COLOR) ;
 
 		x_color_manager_begin_cursor_color( screen->color_man) ;
+	}
 
-		if( screen->window.wall_picture_is_set)
-		{
-			screen->window.wall_picture_is_set = 0 ;
-			draw_str( screen , &ch , 1 , x , y ,
-				x_line_height( screen) ,
-				x_line_height_to_baseline( screen) , 0 , 0) ;
-			screen->window.wall_picture_is_set = 1 ;
-		}
-		else
-		{
-			draw_str( screen , &ch , 1 , x , y ,
-				x_line_height( screen) ,
-				x_line_height_to_baseline( screen) , 0 , 0) ;
-		}
+	if( screen->window.wall_picture_is_set)
+	{
+		screen->window.wall_picture_is_set = 0 ;
+		draw_str( screen , &ch , 1 , x , y ,
+			x_line_height( screen) ,
+			x_line_height_to_baseline( screen) , 0 , 0) ;
+		screen->window.wall_picture_is_set = 1 ;
+	}
+	else
+	{
+		draw_str( screen , &ch , 1 , x , y ,
+			x_line_height( screen) ,
+			x_line_height_to_baseline( screen) , 0 , 0) ;
+	}
 
+	if( screen->is_focused)
+	{
 		x_color_manager_end_cursor_color( screen->color_man) ;
 	}
 	else
@@ -2285,8 +2288,6 @@ window_focused(
 		return ;
 	}
 	
-	unhighlight_cursor( screen) ;
-
 	screen->is_focused = 1 ;
 
 	if( screen->fade_ratio != 100)
@@ -2320,8 +2321,6 @@ window_unfocused(
 		return ;
 	}
 	
-	unhighlight_cursor( screen) ;
-
 	screen->is_focused = 0 ;
 
 	if( screen->fade_ratio != 100)
@@ -2384,6 +2383,9 @@ config_menu(
 	XTranslateCoordinates( screen->window.display , screen->window.my_window ,
 		DefaultRootWindow( screen->window.display) , x , y ,
 		&global_x , &global_y , &child) ;
+
+	/* XXX I don't know why but XGrabPointer() in child processes fails without this. */
+	XUngrabPointer( screen->window.display , CurrentTime) ;
 
 	ml_term_start_config_menu( screen->term , conf_menu_path , global_x , global_y ,
 		DisplayString(screen->window.display)) ;

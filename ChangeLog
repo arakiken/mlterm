@@ -1,3 +1,7 @@
+2003-07-06  Araki Ken  <arakiken@users.sf.net>
+
+	* Cursor character was not correctly drawn in window unfocused. Fixed.
+
 2003-07-06  Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* pixmap_engine.c: minor cleanup
