@@ -1,3 +1,8 @@
+2003-02-16 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Update manpage (man/mlterm.1) for -0/-9/-@ options.
+	* Update manpage for OK/Apply/Cancel buttons and PTY List of mlconfig.
+
 2003-02-15 Araki Ken <arakiken@users.sf.net>
 
 	* Terminals with Arabic,ISCII,vertical writing etc options can be switched
