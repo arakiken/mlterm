@@ -1,5 +1,10 @@
 2004-10-11 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/iiimf/im_iiimf.c (im_get_info): fixed a segfault with
+	  htt server provided within ATOK X.
+
+2004-10-11 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	I got "YOUR MEMORY MANAGEMENT IS PERFECT!" message from kik_mem by this
 	changes:
 

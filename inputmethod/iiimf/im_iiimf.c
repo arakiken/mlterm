@@ -1766,12 +1766,6 @@ im_get_info(
 		goto  error ;
 	}
 
-	/* XXX: workaround for atokx's htt */
-	if ( num_of_ims == 0)
-	{
-		goto  error;
-	}
-
 	for( i = 0 ; i < num_of_ims ; i++)
 	{
 		if( iiimcf_get_input_method_languages(
@@ -1941,18 +1935,18 @@ error:
 
 	iiimcf_finalize() ;
 
-	if( result->args)
-	{
-		free( result->args) ;
-	}
-
-	if( result->readable_args)
-	{
-		free( result->readable_args) ;
-	}
-
 	if( result)
 	{
+		if( result->args)
+		{
+			free( result->args) ;
+		}
+
+		if( result->readable_args)
+		{
+			free( result->readable_args) ;
+		}
+
 		free( result) ;
 	}
 
