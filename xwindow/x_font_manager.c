@@ -244,19 +244,19 @@ x_change_font_present(
 	{
 		return  1 ;
 	}
-	
+
 	if( ( font_config = x_acquire_font_config( font_present)) == NULL)
 	{
-		return  NULL ;
+		return  0 ;
 	}
-	
+
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
 				font_man->font_cache->font_size ,
 				font_man->font_cache->usascii_font_cs ,
 				font_config , font_man->font_cache->use_multi_col_char)) == NULL)
 	{
 		x_release_font_config( font_config) ;
-		
+
 		return  0 ;
 	}
 
