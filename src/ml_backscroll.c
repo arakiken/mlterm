@@ -447,7 +447,7 @@ ml_bs_copy_region(
 				size_except_end_space - beg_char_index) ;
 		counter += (size_except_end_space - beg_char_index) ;
 
-		if( ! line->is_continued_to_next)
+		if( ! ml_imgline_is_continued_to_next( line))
 		{
 			ml_char_copy( &chars[counter++] , &bs_image->nl_ch) ;
 		}
@@ -461,7 +461,7 @@ ml_bs_copy_region(
 			ml_imgline_copy_str( line , &chars[counter] , 0 , size_except_end_space) ;
 			counter += size_except_end_space ;
 
-			if( ! line->is_continued_to_next)
+			if( ! ml_imgline_is_continued_to_next( line))
 			{
 				ml_char_copy( &chars[counter++] , &bs_image->nl_ch) ;
 			}
@@ -544,7 +544,7 @@ ml_bs_get_region_size(
 
 		region_size = size_except_end_space - beg_char_index ;
 
-		if( ! line->is_continued_to_next)
+		if( ! ml_imgline_is_continued_to_next( line))
 		{
 			/* for NL */
 			region_size ++ ;
@@ -556,7 +556,7 @@ ml_bs_get_region_size(
 
 			region_size += ml_get_num_of_filled_chars_except_end_space( line) ;
 
-			if( ! line->is_continued_to_next)
+			if( ! ml_imgline_is_continued_to_next( line))
 			{
 				/* for NL */
 				region_size ++ ;
@@ -601,7 +601,7 @@ ml_bs_get_line_region(
 
 	while( 1)
 	{
-		if( ! line->is_continued_to_next)
+		if( ! ml_imgline_is_continued_to_next( line))
 		{
 			break ;
 		}
@@ -628,7 +628,7 @@ ml_bs_get_line_region(
 	{
 		if( ( line = ml_bs_get_image_line_in_all( bs_image , row - 1)) == NULL ||
 			ml_imgline_is_empty( line) ||
-			! line->is_continued_to_next)
+			! ml_imgline_is_continued_to_next( line))
 		{
 			break ;
 		}
@@ -686,7 +686,7 @@ ml_bs_get_word_region(
 		if( char_index == 0)
 		{
 			if( ( line = ml_bs_get_image_line_in_all( bs_image , row - 1)) == NULL ||
-				ml_imgline_is_empty( line) || ! line->is_continued_to_next)
+				ml_imgline_is_empty( line) || ! ml_imgline_is_continued_to_next( line))
 			{
 				*beg_char_index = char_index ;
 				
@@ -724,7 +724,7 @@ ml_bs_get_word_region(
 	{
 		if( char_index == line->num_of_filled_chars - 1)
 		{
-			if( ! line->is_continued_to_next ||
+			if( ! ml_imgline_is_continued_to_next( line) ||
 				( line = ml_bs_get_image_line_in_all( bs_image , row + 1)) == NULL ||
 				ml_imgline_is_empty( line))
 			{

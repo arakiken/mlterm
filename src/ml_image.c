@@ -122,12 +122,12 @@ get_pos(
 		*char_index -= IMAGE_LINE(image,*row).num_of_filled_chars ;
 	}
 
-	if( IMAGE_LINE(image,end_row).num_of_filled_cols == image->num_of_cols &&
+	if( ml_imgline_get_num_of_filled_cols( &IMAGE_LINE(image,end_row)) == image->num_of_cols &&
 		*char_index > ml_imgline_end_char_index( &IMAGE_LINE(image,end_row)))
 	{
 		if( image->wraparound_ready_line == &IMAGE_LINE(image,end_row))
 		{
-			IMAGE_LINE(image,*row).is_continued_to_next = 1 ;
+			ml_imgline_set_continued_to_next( &IMAGE_LINE(image,*row)) ;
 			
 			if( *row == image->num_of_rows - 1)
 			{
@@ -357,7 +357,7 @@ overwrite_lines(
 		{
 			ml_imgline_overwrite_chars( line , beg_char_index ,
 				&chars[beg_of_line] , len , cols , &image->sp_ch) ;
-			line->is_continued_to_next = 0 ;
+			ml_imgline_unset_continued_to_next( line) ;
 
 			break ;
 		}
@@ -365,7 +365,7 @@ overwrite_lines(
 		{
 			ml_imgline_overwrite_all( line , beg_char_index ,
 				&chars[beg_of_line] , len , cols) ;
-			line->is_continued_to_next = 1 ;
+			ml_imgline_set_continued_to_next( line) ;
 			
 			current_row ++ ;
 		}
@@ -2179,7 +2179,7 @@ ml_image_dump(
 		int  char_index ;
 
 		fprintf( stderr , "[%.2d %.2d]" , IMAGE_LINE(image,row).num_of_filled_chars ,
-			IMAGE_LINE(image,row).num_of_filled_cols) ;
+			ml_imgline_get_num_of_filled_cols( &IMAGE_LINE(image,row))) ;
 			
 		if( IMAGE_LINE(image,row).num_of_filled_chars > 0)
 		{
@@ -2215,11 +2215,10 @@ ml_image_dump_updated(
 
 	for( row = 0 ; row < image->num_of_filled_rows ; row ++)
 	{
-		fprintf( stderr , "(%.2d)%d " , row , IMAGE_LINE(image,row).is_modified) ;
+		fprintf( stderr , "(%.2d)%d " , row , ml_imgline_is_modified( &IMAGE_LINE(image,row))) ;
 	}
 
 	fprintf( stderr , "\n") ;
 }
 
 #endif
-

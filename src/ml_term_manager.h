@@ -91,6 +91,7 @@ typedef struct  ml_term_manager
 	int8_t  only_use_unicode_font ;
 	int8_t  copy_paste_via_ucs ;
 	int8_t  use_transbg ;
+	int8_t  use_multi_col_char ;
 	
 	char *  cmd_path ;
 	char **  cmd_argv ;

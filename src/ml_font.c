@@ -1094,6 +1094,51 @@ ml_change_font_cs(
 }
 
 u_int
+ml_font_default_cols(
+	ml_font_t *  font
+	)
+{
+	if( font->attr & FONT_BIWIDTH)
+	{
+		return  2 ;
+	}
+	else
+	{
+		cs_info_t *  csinfo ;
+
+		if( ( csinfo = get_cs_info( FONT_CS(font->attr))) == NULL)
+		{
+			/* error */
+			
+			return  0 ;
+		}
+		else
+		{
+			return  csinfo->cols ;
+		}
+	}
+}
+
+int
+ml_change_font_cols(
+	ml_font_t *  font ,
+	u_int  cols	/* 0 means default value */
+	)
+{
+	if( cols == 0)
+	{
+		if( ( cols = ml_font_default_cols( font)) == 0)
+		{
+			return  0 ;
+		}
+	}
+	
+	font->cols = cols ;
+	
+	return  1 ;
+}
+
+u_int
 ml_calculate_char_width(
 	ml_font_t *  font ,
 	u_char *  ch ,

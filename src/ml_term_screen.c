@@ -206,7 +206,7 @@ draw_line(
 			num_of_redrawn = ml_imgline_get_num_of_redrawn_chars( line) ;
 		}
 
-		if( line->is_cleared_to_end || (termscr->font_present & FONT_VAR_WIDTH))
+		if( ml_imgline_is_cleared_to_end( line) || (termscr->font_present & FONT_VAR_WIDTH))
 		{
 			if( ! ml_window_draw_str_to_eol( &termscr->window , &line->chars[beg_char_index] ,
 				num_of_redrawn , beg_x , y ,
@@ -447,7 +447,7 @@ redraw_image(
 			return  1 ;
 		}
 		
-		if( line->is_modified)
+		if( ml_imgline_is_modified( line))
 		{
 			break ;
 		}
@@ -470,7 +470,7 @@ redraw_image(
 
 	while( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , counter)) != NULL)
 	{
-		if( line->is_modified)
+		if( ml_imgline_is_modified( line))
 		{
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " redrawing -> line %d\n" , counter) ;
@@ -1401,7 +1401,7 @@ config_menu(
 		termscr->mod_meta_mode , termscr->bel_mode , termscr->vertical_mode , sb_mode ,
 		ml_is_char_combining() , termscr->copy_paste_via_ucs ,
 		termscr->window.is_transparent , termscr->pic_mod.brightness , termscr->fade_ratio ,
-		termscr->font_present , termscr->use_bidi ,
+		termscr->font_present , termscr->font_man->use_multi_col_char , termscr->use_bidi ,
 		ml_xic_get_xim_name( &termscr->window) , kik_get_locale()) ;
 }
 
@@ -3296,6 +3296,26 @@ change_font_present(
 }
 
 static void
+change_multi_col_char_flag(
+	void *  p ,
+	int  flag
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+	
+	if( flag)
+	{
+		ml_use_multi_col_char( termscr->font_man) ;
+	}
+	else
+	{
+		ml_unuse_multi_col_char( termscr->font_man) ;
+	}
+}
+
+static void
 change_bidi_flag(
 	void *  p ,
 	int  use_bidi
@@ -3957,6 +3977,7 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_brightness = change_brightness ;
 	termscr->config_menu_listener.change_fade_ratio = change_fade_ratio ;
 	termscr->config_menu_listener.change_font_present = change_font_present ;
+	termscr->config_menu_listener.change_multi_col_char_flag = change_multi_col_char_flag ;
 	termscr->config_menu_listener.change_bidi_flag = change_bidi_flag ;
 	termscr->config_menu_listener.change_xim = change_xim ;
 	termscr->config_menu_listener.larger_font_size = larger_font_size ;

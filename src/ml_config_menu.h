@@ -46,6 +46,7 @@ typedef struct  ml_config_menu_session
 	int8_t  copy_paste_via_ucs ;
 	int8_t  is_transparent ;
 	int8_t  use_bidi ;
+	int8_t  use_multi_col_char ;
 	u_int8_t  brightness ;
 	u_int8_t  fade_ratio ;
 	
@@ -73,6 +74,7 @@ typedef struct  ml_config_menu_event_listener
 	void (*change_copy_paste_via_ucs_flag)( void * , int) ;
 	void (*change_transparent_flag)( void * , int) ;
 	void (*change_font_present)( void * , ml_font_present_t) ;
+	void (*change_multi_col_char_flag)( void * , int) ;
 	void (*change_bidi_flag)( void * , int) ;
 	void (*change_fade_ratio)( void * , u_int) ;
 	void (*change_brightness)( void * , u_int) ;
@@ -112,7 +114,7 @@ int  ml_config_menu_start( ml_config_menu_t *  config_menu , int  x , int  y ,
 	ml_vertical_mode_t  orig_vertical_mode , ml_sb_mode_t  orig_sb_mode ,
 	int  orig_is_combining_char , int  orig_copy_paste_via_ucs , int  orig_is_transparent ,
 	u_int  orig_brightness , u_int  orig_fade_ratio , ml_font_present_t  orig_font_present ,
-	int  orig_is_bidi , char *  orig_xim , char *  orig_locale) ;
+	int  orig_use_multi_col_char , int  orig_use_bidi , char *  orig_xim , char *  orig_locale) ;
 
 
 #endif

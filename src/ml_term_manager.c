@@ -138,7 +138,8 @@ open_new_term(
 		NULL , NULL , NULL ,
 	#endif
 		term_man->font_size , term_man->line_space , usascii_font_cs ,
-		usascii_font_cs_changable , term_man->step_in_changing_font_size)) == NULL)
+		usascii_font_cs_changable , term_man->use_multi_col_char ,
+		term_man->step_in_changing_font_size)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_new() failed.\n") ;
@@ -767,6 +768,8 @@ ml_term_manager_init(
 		"support buggy Big5 CTEXT in XFree86 4.1 or earlier") ;
 	kik_conf_add_opt( conf , 'V' , "varwidth" , 1 , "use_variable_column_width" ,
 		"variable column width") ;
+	kik_conf_add_opt( conf , 'Z' , "multicol" , 1 , "use_multi_column_char" ,
+		"use multiple column character") ;
 #ifdef  ANTI_ALIAS
 	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
 		"CP932 mapping table for JISX0208-Unicode conversion") ;
@@ -993,6 +996,16 @@ ml_term_manager_init(
 		if( strcmp( value , "true") == 0)
 		{
 			term_man->font_present |= FONT_VAR_WIDTH ;
+		}
+	}
+
+	term_man->use_multi_col_char = 1 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_multi_column_char")))
+	{
+		if( strcmp( value , "false") == 0)
+		{
+			term_man->use_multi_col_char = 0 ;
 		}
 	}
 

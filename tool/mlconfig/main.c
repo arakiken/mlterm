@@ -40,6 +40,7 @@
 static FILE *  out ;
 
 static GtkWidget *  is_comb_check ;
+static GtkWidget *  use_multi_col_char_check ;
 static GtkWidget *  use_bidi_check ;
 static GtkWidget *  copy_paste_via_ucs_check ;
 static GtkWidget *  is_tp_check ;
@@ -80,9 +81,9 @@ apply_clicked(
 	 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
 	 * [screen width ratio] [screen height ratio] [mod meta mode] [bel mode] [vertical mode] \
 	 * [sb mode] [combining char] [copy paste via ucs] [is transparent] [brightness] [fade ratio] \
-	 * [font present] [is bidi] [xim] [locale][LF]
+	 * [font present] [use multi col char] [use bidi] [xim] [locale][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
 		mc_get_char_encoding() ,
 		mc_get_iscii_lang() ,
 		mc_get_fg_color() ,
@@ -103,6 +104,7 @@ apply_clicked(
 		mc_get_brightness() ,
 		mc_get_fade_ratio() ,
 		mc_get_font_present() ,
+		GTK_TOGGLE_BUTTON(use_multi_col_char_check)->active ,
 		GTK_TOGGLE_BUTTON(use_bidi_check)->active ,
 		mc_get_xim_name() ,
 		mc_get_xim_locale()) ;
@@ -349,6 +351,7 @@ show(
 	char *  brightness ,
 	char *  fade_ratio ,
 	ml_font_present_t  font_present ,
+	int  use_multi_col_char ,
 	int  use_bidi ,
 	char *  xim ,
 	char *  locale
@@ -401,6 +404,7 @@ show(
 	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
 	frame = full_reset();
 	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
+
 
 	/* contents of the "Encoding" tab */
 
@@ -461,6 +465,14 @@ show(
 	hbox = gtk_hbox_new( TRUE , 5) ;
 	gtk_widget_show( hbox) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;	
+
+	if( ! ( use_multi_col_char_check =
+			mc_check_config_widget_new( "Multiple column character" , use_multi_col_char)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( use_multi_col_char_check) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , use_multi_col_char_check , TRUE , TRUE , 0) ;
 
 
 	/* contents of the "Copy&paste" tab */
@@ -666,6 +678,7 @@ start_application(
 	char *  brightness ;
 	char *  fade_ratio ;
 	int  font_present ;
+	int  use_multi_col_char ;
 	int  use_bidi ;
 	char *  locale ;
 	char *  xim ;
@@ -700,8 +713,8 @@ start_application(
 	/*
 	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
 	 * [min font size] [max font size] [line space] [mod meta mode] [bel mode] [vertical mode] \
-	 * [sb mode] [combining char] [copy paste via ucs] [is transparent] [font present] [is bidi] \
-	 * [xim] [locale][LF]
+	 * [sb mode] [combining char] [copy paste via ucs] [is transparent] [font present] \
+	 * [use multi col char] [use bidi] [xim] [locale][LF]
 	 */
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &encoding , p))
@@ -828,6 +841,12 @@ start_application(
 	}
 	
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+		! kik_str_to_int( &use_multi_col_char , p))
+	{
+		return  0 ;
+	}
+	
+	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &use_bidi , p))
 	{
 		return  0 ;
@@ -847,7 +866,7 @@ start_application(
 		logsize , fontsize , min_fontsize , max_fontsize , line_space ,
 		screen_width_ratio , screen_height_ratio , mod_meta_mode , bel_mode , vertical_mode ,
 		sb_mode , is_combining_char , copy_paste_via_ucs , is_transparent , brightness ,
-		fade_ratio , font_present , use_bidi , xim , locale) ;
+		fade_ratio , font_present , use_multi_col_char , use_bidi , xim , locale) ;
 }
 
 
@@ -872,7 +891,7 @@ main(
 		! kik_str_to_int( &in_fd , argv[3]) ||
 		! kik_str_to_int( &out_fd , argv[4]))
 	{
-		kik_msg_printf( "usage: (stdin 25) mlconfig [x] [y] [in] [out]\n") ;
+		kik_msg_printf( "usage: (stdin 26) mlconfig [x] [y] [in] [out]\n") ;
 		
 		return  0 ;
 	}

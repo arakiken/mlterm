@@ -147,6 +147,29 @@ get_font_name_for_attr(
 }
 
 static int
+set_xfont(
+	ml_font_manager_t *  font_man ,
+	ml_font_t *  font ,
+	char *  fontname ,
+	u_int  fontsize ,
+	u_int  col_width ,
+	int  use_medium_for_bold
+	)
+{
+	if( ! (*font_man->set_xfont)( font , fontname , fontsize , col_width , use_medium_for_bold))
+	{
+		return  0 ;
+	}
+
+	if( ! font_man->use_multi_col_char)
+	{
+		ml_change_font_cols( font , 1) ;
+	}
+
+	return  1 ;
+}
+
+static int
 set_usascii_xfont(
 	ml_font_manager_t *  font_man ,
 	ml_font_t *  font ,
@@ -164,7 +187,7 @@ set_usascii_xfont(
 	orig_attr = font->attr ;
 	font->attr = attr ;
 
-	if( ! (*font_man->set_xfont)( font , fontname , font_man->font_size ,
+	if( ! set_xfont( font_man , font , fontname , font_man->font_size ,
 		0 , use_medium_for_bold))
 	{
 		font->attr = orig_attr ;
@@ -238,7 +261,7 @@ get_font_intern(
 		}
 	}
 
-	if( (*font_man->set_xfont)( font , fontname , font_man->font_size ,
+	if( set_xfont( font_man , font , fontname , font_man->font_size ,
 		col_width , use_medium_for_bold) == 0)
 	{
 	#ifdef  DEBUG
@@ -287,6 +310,7 @@ ml_font_manager_new(
 	u_int  line_space ,
 	mkf_charset_t  usascii_font_cs ,
 	int  usascii_font_cs_changable ,
+	int  use_multi_col_char ,
 	int  step_in_changing_font_size
 	)
 {
@@ -326,6 +350,8 @@ ml_font_manager_new(
 	font_man->usascii_font_cs_changable = usascii_font_cs_changable ;
 
 	font_man->set_xfont = ml_font_set_xfont ;
+
+	font_man->use_multi_col_char = use_multi_col_char ;
 
 	font_man->step_in_changing_font_size = step_in_changing_font_size ;
 
@@ -604,7 +630,7 @@ ml_font_manager_reload(
 			}
 		}
 		
-		if( (*font_man->set_xfont)( font , fontname , font_man->font_size ,
+		if( set_xfont( font_man , font , fontname , font_man->font_size ,
 			ml_col_width( font_man) , use_medium_for_bold) == 0)
 		{
 		#ifdef  DEBUG
@@ -878,6 +904,68 @@ ml_smaller_font(
 			return  1 ;
 		}
 	}
+}
+
+int
+ml_use_multi_col_char(
+	ml_font_manager_t *  font_man
+	)
+{
+	KIK_PAIR( ml_font) *  array ;
+	u_int  size ;
+	int  counter ;
+
+	if( font_man->use_multi_col_char)
+	{
+		return  0 ;
+	}
+
+	kik_map_get_pairs_array( font_man->font_cache_table , array , size) ;
+
+	for( counter = 0 ; counter < size ; counter ++)
+	{
+		ml_font_t *  font ;
+
+		if( ( font = array[counter]->value) != NULL)
+		{
+			ml_change_font_cols( font , 0) ;
+		}
+	}
+
+	font_man->use_multi_col_char = 1 ;
+
+	return  1 ;
+}
+
+int
+ml_unuse_multi_col_char(
+	ml_font_manager_t *  font_man
+	)
+{
+	KIK_PAIR( ml_font) *  array ;
+	u_int  size ;
+	int  counter ;
+
+	if( ! font_man->use_multi_col_char)
+	{
+		return  0 ;
+	}
+	
+	kik_map_get_pairs_array( font_man->font_cache_table , array , size) ;
+
+	for( counter = 0 ; counter < size ; counter ++)
+	{
+		ml_font_t *  font ;
+
+		if( ( font = array[counter]->value) != NULL)
+		{
+			ml_change_font_cols( font , 1) ;
+		}
+	}
+
+	font_man->use_multi_col_char = 0 ;
+
+	return  1 ;
 }
 
 XFontSet

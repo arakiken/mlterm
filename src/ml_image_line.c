@@ -27,6 +27,18 @@
 
 #endif
 
+#define  IS_CLEARED_TO_END(flag) ((flag) & 0x1)
+#define  SET_CLEARED_TO_END(flag)  ((flag) |= 0x1)
+#define  UNSET_CLEARED_TO_END(flag)  ((flag) &= ~0x1)
+
+#define  IS_MODIFIED(flag)  (((flag) >> 1) & 0x1)
+#define  SET_MODIFIED(flag)  ((flag) |= 0x2)
+#define  UNSET_MODIFIED(flag)  ((flag) &= ~0x2)
+
+#define  IS_CONTINUED_TO_NEXT(flag)  (((flag) >> 2) & 0x1)
+#define  SET_CONTINUED_TO_NEXT(flag)  ((flag) |= 0x4)
+#define  UNSET_CONTINUED_TO_NEXT(flag)  ((flag) &= ~0x4)
+
 
 /* --- global functions --- */
 
@@ -130,7 +142,6 @@ ml_imgline_break_boundary(
 	}
 
 	line->num_of_filled_chars += size ;
-	line->num_of_filled_cols += ( ml_char_cols(sp_ch) * size) ;
 
 	/*
 	 * change char index is not updated , because space has no glyph.
@@ -150,9 +161,8 @@ ml_imgline_reset(
 	}
 
 	line->num_of_filled_chars = 0 ;
-	line->num_of_filled_cols = 0 ;
 	line->num_of_filled_visual_order = 0 ;
-	line->is_continued_to_next = 0 ;
+	UNSET_CONTINUED_TO_NEXT(line->flag) ;
 
 	return 1 ;
 }
@@ -170,7 +180,6 @@ ml_imgline_clear(
 
 		ml_char_copy( &line->chars[0] , sp_ch) ;
 		line->num_of_filled_chars = 1 ;
-		line->num_of_filled_cols = 1 ;
 	}
 	else
 	{
@@ -185,7 +194,6 @@ ml_imgline_clear(
 
 		ml_char_copy( &line->chars[char_index] , sp_ch) ;
 		line->num_of_filled_chars = char_index + 1 ;
-		line->num_of_filled_cols = ml_str_cols( line->chars , line->num_of_filled_chars) ;
 
 		ml_imgline_set_modified( line , char_index , END_CHAR_INDEX(line) , 1) ;
 	}
@@ -205,12 +213,15 @@ ml_imgline_overwrite_chars(
 {
 	int  counter ;
 	int  char_index ;
+	u_int  orig_filled_cols ;
 	u_int  cols_rest ;
 	u_int  padding ;
 	u_int  new_len ;
 	u_int  copy_len ;
 
-	if( cols >= line->num_of_filled_cols || ml_imgline_is_empty( line))
+	orig_filled_cols = ml_imgline_get_num_of_filled_cols( line) ;
+
+	if( ml_imgline_is_empty( line) || cols >= orig_filled_cols)
 	{
 		return  ml_imgline_overwrite_all( line , change_char_index , chars , len , cols) ;
 	}
@@ -271,17 +282,8 @@ ml_imgline_overwrite_chars(
 	ml_str_copy( line->chars , chars , len) ;
 
 	line->num_of_filled_chars = new_len ;
-	
-	/*
-	 * reculculating width...
-	 */
-	 
-	for( counter = len ; counter <= END_CHAR_INDEX(line) ; counter ++)
-	{
-		cols += ml_char_cols( &line->chars[counter]) ;
-	}
 
-	if( line->num_of_filled_cols > cols)
+	if( orig_filled_cols > ml_imgline_get_num_of_filled_cols( line))
 	{
 		ml_imgline_set_modified( line , change_char_index ,
 			K_MAX(change_char_index,END_CHAR_INDEX(line)) , 1) ;
@@ -289,10 +291,8 @@ ml_imgline_overwrite_chars(
 	else
 	{
 		ml_imgline_set_modified( line , change_char_index ,
-			K_MAX(change_char_index,len - 1) , 0) ;
+			K_MAX(change_char_index,END_CHAR_INDEX(line)) , 0) ;
 	}
-
-	line->num_of_filled_cols = cols ;
 
 	return  1 ;
 }
@@ -306,11 +306,14 @@ ml_imgline_overwrite_all(
 	u_int  cols
 	)
 {
-	ml_str_copy( line->chars , chars , len) ;
+	u_int  orig_filled_cols ;
 
+	orig_filled_cols = ml_imgline_get_num_of_filled_cols( line) ;
+	
+	ml_str_copy( line->chars , chars , len) ;
 	line->num_of_filled_chars = len ;
 
-	if( line->num_of_filled_cols > cols)
+	if( orig_filled_cols > cols)
 	{
 		ml_imgline_set_modified( line , change_char_index , END_CHAR_INDEX(line) , 1) ;
 	}
@@ -318,8 +321,6 @@ ml_imgline_overwrite_all(
 	{
 		ml_imgline_set_modified( line , change_char_index , END_CHAR_INDEX(line) , 0) ;
 	}
-	
-	line->num_of_filled_cols = cols ;
 
 	return  1 ;
 }
@@ -344,7 +345,6 @@ ml_imgline_fill_all(
 	}
 
 	line->num_of_filled_chars = char_index ;
-	line->num_of_filled_cols = cols ;
 
 	ml_imgline_set_modified_all( line) ;
 
@@ -369,7 +369,7 @@ ml_imgline_set_modified(
 		return ;
 	}
 
-	if( line->is_modified)
+	if( IS_MODIFIED(line->flag))
 	{
 		if( beg_char_index < line->change_beg_char_index)
 		{
@@ -381,14 +381,25 @@ ml_imgline_set_modified(
 			line->change_end_char_index = end_char_index ;
 		}
 
-		line->is_cleared_to_end |= is_cleared_to_end ;
+		if( is_cleared_to_end)
+		{
+			SET_CLEARED_TO_END(line->flag) ;
+		}
 	}
 	else
 	{
-		line->is_modified = 1 ;
 		line->change_beg_char_index = beg_char_index ;
 		line->change_end_char_index = end_char_index ;
-		line->is_cleared_to_end = is_cleared_to_end ;
+
+		SET_MODIFIED(line->flag) ;
+		if( is_cleared_to_end)
+		{
+			SET_CLEARED_TO_END(line->flag) ;
+		}
+		else
+		{
+			UNSET_CLEARED_TO_END(line->flag) ;
+		}
 	}
 }
 
@@ -407,12 +418,61 @@ ml_imgline_set_modified_all(
 	}
 }
 
+int
+ml_imgline_is_cleared_to_end(
+	ml_image_line_t *  line
+	)
+{
+	return  IS_CLEARED_TO_END(line->flag) ;
+}
+
+int
+ml_imgline_is_modified(
+	ml_image_line_t *  line
+	)
+{
+	return  IS_MODIFIED(line->flag) ;
+}
+
 void
 ml_imgline_is_updated(
 	ml_image_line_t *  line
 	)
 {
-	line->is_modified = 0 ;
+	UNSET_MODIFIED(line->flag) ;
+	UNSET_CLEARED_TO_END(line->flag) ;
+}
+
+int
+ml_imgline_is_continued_to_next(
+	ml_image_line_t *  line
+	)
+{
+	return  IS_CONTINUED_TO_NEXT(line->flag) ;
+}
+
+void
+ml_imgline_set_continued_to_next(
+	ml_image_line_t *  line
+	)
+{
+	SET_CONTINUED_TO_NEXT(line->flag) ;
+}
+
+void
+ml_imgline_unset_continued_to_next(
+	ml_image_line_t *  line
+	)
+{
+	UNSET_CONTINUED_TO_NEXT(line->flag) ;
+}
+
+u_int
+ml_imgline_get_num_of_filled_cols(
+	ml_image_line_t *  line
+	)
+{
+	return  ml_str_cols( line->chars , line->num_of_filled_chars) ;
 }
 
 int
@@ -728,21 +788,10 @@ ml_imgline_copy_line(
 	ml_str_copy( dst->chars , src->chars , copy_len) ;
 	dst->num_of_filled_chars = copy_len ;
 
-	if( copy_len == src->num_of_filled_chars)
-	{
-		dst->num_of_filled_cols = src->num_of_filled_cols ;
-	}
-	else
-	{
-		dst->num_of_filled_cols = ml_str_cols( dst->chars , dst->num_of_filled_chars) ;
-	}
-
-	dst->is_modified = src->is_modified ;
 	dst->change_beg_char_index = K_MIN(src->change_beg_char_index,dst->num_of_chars) ;
 	dst->change_end_char_index = K_MIN(src->change_end_char_index,dst->num_of_chars) ;
-	dst->is_cleared_to_end = src->is_cleared_to_end ;
-
-	dst->is_continued_to_next = src->is_continued_to_next ;
+	
+	dst->flag = src->flag ;
 
 	/*
 	 * bidi parameters.
@@ -781,15 +830,13 @@ ml_imgline_share(
 {
 	dst->chars = src->chars ;
 	dst->num_of_filled_chars = src->num_of_filled_chars ;
-	dst->num_of_filled_cols = src->num_of_filled_cols ;
 	
 	dst->visual_order = src->visual_order ;
 	dst->num_of_filled_visual_order = src->num_of_filled_visual_order ;
 
 	dst->change_beg_char_index = src->change_beg_char_index ;
 	dst->change_end_char_index = src->change_end_char_index ;
-	dst->is_modified = src->is_modified ;
-	dst->is_continued_to_next = src->is_continued_to_next ;
+	dst->flag = src->flag ;
 
 	return  1 ;
 }
@@ -972,7 +1019,7 @@ ml_imgline_bidi_visual(
 
 	ml_str_final( src , line->num_of_filled_visual_order) ;
 
-	if( line->is_modified)
+	if( IS_MODIFIED(line->flag))
 	{
 		ml_imgline_set_modified_all( line) ;
 	}
@@ -1345,7 +1392,7 @@ end:
 
 	line->num_of_filled_chars = dst_pos ;
 
-	if( line->is_modified)
+	if( IS_MODIFIED(line->flag))
 	{
 		ml_imgline_set_modified_all( line) ;
 	}

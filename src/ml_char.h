@@ -135,6 +135,8 @@ inline u_int  ml_char_width( ml_char_t *  ch) ;
 
 inline u_int  ml_char_cols( ml_char_t *  ch) ;
 
+inline u_int  ml_char_default_cols( ml_char_t *  ch) ;
+
 inline mkf_charset_t  ml_char_cs( ml_char_t *  ch) ;
 
 inline ml_color_t  ml_char_fg_color( ml_char_t *  ch) ;

@@ -116,6 +116,10 @@ mkf_charset_t  ml_font_cs( ml_font_t *  font) ;
 
 int  ml_change_font_cs( ml_font_t *  font , mkf_charset_t  cs) ;
 
+u_int  ml_font_default_cols( ml_font_t *  font) ;
+
+int  ml_change_font_cols( ml_font_t *  font , u_int  cols) ;
+
 u_int  ml_calculate_char_width( ml_font_t *  font , u_char *  ch , size_t  len , mkf_charset_t  cs) ;
 
 #ifdef  DEBUG

@@ -326,7 +326,7 @@ bidi_render(
 	{
 		line = &IMAGE_LINE(image,row) ;
 		
-		if( line->is_modified)
+		if( ml_imgline_is_modified( line))
 		{
 			if( ! ml_imgline_is_using_bidi( line))
 			{
@@ -628,7 +628,7 @@ iscii_visual(
 	{
 		int  is_cache_active ;
 		
-		if( IMAGE_LINE(image,row).is_modified)
+		if( ml_imgline_is_modified( &IMAGE_LINE(image,row)))
 		{
 			is_cache_active = 0 ;
 		}
@@ -954,7 +954,7 @@ cjk_vert_visual(
 			ml_char_copy( &IMAGE_LINE(image,row).chars[
 				IMAGE_LINE(image,row).num_of_filled_chars ++] , &line->chars[row]) ;
 
-			if( ml_char_cols( &line->chars[row]) == 1)
+			if( ml_char_default_cols( &line->chars[row]) == 1)
 			{
 				ml_char_set( &IMAGE_LINE(image,row).chars[
 					IMAGE_LINE(image,row).num_of_filled_chars ++] ,
@@ -965,7 +965,7 @@ cjk_vert_visual(
 					ml_char_fg_color( &line->chars[row]) ,
 					ml_char_bg_color( &line->chars[row])) ;
 				
-				if( line->is_modified)
+				if( ml_imgline_is_modified( line))
 				{
 					ml_imgline_set_modified( &IMAGE_LINE(image,row) ,
 						IMAGE_LINE(image,row).num_of_filled_chars - 2 ,
@@ -974,7 +974,7 @@ cjk_vert_visual(
 			}
 			else
 			{
-				if( line->is_modified)
+				if( ml_imgline_is_modified( line))
 				{
 					ml_imgline_set_modified( &IMAGE_LINE(image,row) ,
 						IMAGE_LINE(image,row).num_of_filled_chars - 1 ,
@@ -996,7 +996,7 @@ cjk_vert_visual(
 			ml_char_copy( &IMAGE_LINE(image,row).chars[
 				IMAGE_LINE(image,row).num_of_filled_chars ++] , &image->sp_ch) ;
 				
-			if( line->is_modified)
+			if( ml_imgline_is_modified( line))
 			{
 				ml_imgline_set_modified( &IMAGE_LINE(image,row) ,
 					IMAGE_LINE(image,row).num_of_filled_chars - 2 ,
@@ -1011,12 +1011,43 @@ cjk_vert_visual(
 	vert_logvis->cursor_logical_col = image->cursor.col ;
 	vert_logvis->cursor_logical_row = image->cursor.row ;
 
+#if  1
 	image->cursor.row = vert_logvis->cursor_logical_char_index ;
+#else
+	/*
+	 * visual cursor position is decided by regarding full width characters
+	 * as 1 column.
+	 */
+	image->cursor.row = vert_logvis->cursor_logical_col ;
+	for( row = 0 ; row < vert_logvis->cursor_logical_col ; row ++)
+	{
+		int  char_index ;
+
+		char_index = 0 ;
+		
+		for( counter = 0 ;
+			counter < vert_logvis->logical_num_of_rows - vert_logvis->cursor_logical_row - 1 ;
+			counter ++)
+		{
+			if( ml_char_default_cols( &IMAGE_LINE(image,row).chars[counter]) == 1)
+			{
+				char_index ++ ;
+			}
+			char_index ++ ;
+		}
+		
+		if( ml_char_default_cols( &IMAGE_LINE(image,row).chars[char_index]) == 2)
+		{
+			image->cursor.row -- ;
+		}
+	}
+#endif
+
 	image->cursor.char_index = image->cursor.col = 0 ;
 	for( counter = 0 ; counter < vert_logvis->logical_num_of_rows - vert_logvis->cursor_logical_row - 1 ;
 		counter ++)
 	{
-		if( ml_char_cols( &CURSOR_CHAR(image)) == 1)
+		if( ml_char_default_cols( &CURSOR_CHAR(image)) == 1)
 		{
 			image->cursor.char_index ++ ;
 		}
@@ -1147,7 +1178,7 @@ mongol_vert_visual(
 			ml_char_copy( &IMAGE_LINE(image,row).chars[
 				IMAGE_LINE(image,row).num_of_filled_chars ++] , &line->chars[row]) ;
 			
-			if( line->is_modified)
+			if( ml_imgline_is_modified( line))
 			{
 				ml_imgline_set_modified( &IMAGE_LINE(image,row) ,
 					IMAGE_LINE(image,row).num_of_filled_chars - 1 ,
@@ -1166,7 +1197,7 @@ mongol_vert_visual(
 			ml_char_copy( &IMAGE_LINE(image,row).chars[
 				IMAGE_LINE(image,row).num_of_filled_chars ++] , &image->sp_ch) ;
 				
-			if( line->is_modified)
+			if( ml_imgline_is_modified( line))
 			{
 				ml_imgline_set_modified( &IMAGE_LINE(image,row) ,
 					IMAGE_LINE(image,row).num_of_filled_chars - 1 ,
@@ -1185,7 +1216,7 @@ mongol_vert_visual(
 	image->cursor.char_index = image->cursor.col = 0 ;
 	for( counter = 0 ; counter < vert_logvis->cursor_logical_row ; counter ++)
 	{
-		image->cursor.col += ml_char_cols( &CURSOR_CHAR(image)) ;
+		image->cursor.col += ml_char_default_cols( &CURSOR_CHAR(image)) ;
 		image->cursor.char_index ++ ;
 	}
 

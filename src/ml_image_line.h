@@ -20,11 +20,7 @@ enum
 
 /*
  * this object size should be kept as small as possible.
- * (192bit ILP32) (256bit ILP64)
- *
- * !!! Notice !!!
- * these members are initialized in ml_image_init/ml_image_resize(ml_image.c)
- * and ml_logs_init/ml_logs_add(ml_logs.c) , not only in ml_image_line.c
+ * (160bit ILP32) (224bit ILP64)
  */
 typedef struct  ml_image_line
 {
@@ -34,24 +30,27 @@ typedef struct  ml_image_line
 	/* private */
 	u_int16_t *  visual_order ;		/* for bidi rendering */
 
-	/* private */
-	u_int16_t  num_of_filled_visual_order ;	/* for bidi rendering (0 - 65536) */
-	
 	/* public(readonly) */
 	u_int16_t  num_of_chars ;		/* 0 - 65536 */
 	u_int16_t  num_of_filled_chars ;	/* 0 - 65536 */
-	u_int16_t  num_of_filled_cols ;		/* 0 - 65536 */
 
+	/* private */
+	u_int16_t  num_of_filled_visual_order ;	/* for bidi rendering (0 - 65536) */
+	
 	/* private */
 	u_int16_t  change_beg_char_index ;	/* 0 - 65536 */
 	u_int16_t  change_end_char_index ;	/* 0 - 65536 */
 
-	/* public(read only) */
-	int8_t  is_cleared_to_end ;
-	int8_t  is_modified ;
-
-	/* public */
-	int8_t  is_continued_to_next ;
+	/*
+	 * private
+	 *
+	 * total 8 bit
+	 * 5 bit : not used
+	 * 1 bit : is_cleared_to_end
+	 * 1 bit : is_modified
+	 * 1 bit : is_continued_to_next
+	 */
+	u_int8_t  flag ;
 
 } ml_image_line_t ;
 
@@ -81,7 +80,19 @@ void  ml_imgline_set_modified( ml_image_line_t *  line ,
 
 void  ml_imgline_set_modified_all( ml_image_line_t *  line) ;
 
+int  ml_imgline_is_cleared_to_end( ml_image_line_t *  line) ;
+
+int  ml_imgline_is_modified( ml_image_line_t *  line) ;
+
 void  ml_imgline_is_updated( ml_image_line_t *  line) ;
+
+int  ml_imgline_is_continued_to_next( ml_image_line_t *  line) ;
+
+void  ml_imgline_set_continued_to_next( ml_image_line_t *  line) ;
+
+void  ml_imgline_unset_continued_to_next( ml_image_line_t *  line) ;
+
+u_int  ml_imgline_get_num_of_filled_cols( ml_image_line_t *  line) ;
 
 int  ml_imgline_get_beg_of_modified( ml_image_line_t *  line) ;
 
