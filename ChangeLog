@@ -1,3 +1,8 @@
+2004-12-09 MINAMI Hirokazu <minami@mistfall.net>
+
+	*  mkf/lib/mkf_property.h, kiklib/src/kik_debug.c,
+	mkf/lib/mkf_charset.hi: minor code cleanup.
+	
 2004-12-09 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* xwindow/x_im_candidate_screen.c: fixed a syntax error inside #ifndef
