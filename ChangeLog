@@ -1,3 +1,10 @@
+[20020310]
+* compilation fails in ml_term_manager.c by configure --disable-fribidi because of
+  undefined reference to ml_bidi_set_base_dir().
+  (Thanks to Nanashi san)
+* only limited region is scrolled when output characters is over screen buffer.
+* -J,--rtl,bidi_base_direction_rtl option is dynamically changeable.
+
 [20020308]
 * COLORTERM_BCE is unset from the beginning.
 * arabic characters two of which can turn into one glyph are supported.
