@@ -82,6 +82,8 @@ typedef struct im_uim
 	mkf_parser_t *  parser_term ;	/* for term encoding  */
 	mkf_conv_t *  conv ;
 
+	int  pressing_mod_key ;
+
 }  im_uim_t ;
 
 KIK_LIST_TYPEDEF( im_uim_t) ;
@@ -996,6 +998,41 @@ key_event(
 
 	uim = (im_uim_t*) im ;
 
+	if( event->state == 0)
+	{
+		uim->pressing_mod_key = 0 ;
+	}
+
+	switch( ksym)
+	{
+	case XK_Shift_L:
+	case XK_Shift_R:
+		uim->pressing_mod_key |= UMod_Shift ;
+		break ;
+	case XK_Control_L:
+	case XK_Control_R:
+		uim->pressing_mod_key |= UMod_Control ;
+		break ;
+	case XK_Alt_L:
+	case XK_Alt_R:
+		uim->pressing_mod_key |= UMod_Alt ;
+		break ;
+	case XK_Meta_L:
+	case XK_Meta_R:
+		uim->pressing_mod_key |= UMod_Meta ;
+		break ;
+	case XK_Super_L:
+	case XK_Super_R:
+		uim->pressing_mod_key |= UMod_Super ;
+		break ;
+	case XK_Hyper_L:
+	case XK_Hyper_R:
+		uim->pressing_mod_key |= UMod_Hyper ;
+		break ;
+	default:
+		break ;
+	}
+
 	(*uim->im.listener->compare_key_state_with_modmap)(
 							uim->im.listener->self ,
 							event->state ,
@@ -1004,12 +1041,30 @@ key_event(
 							&is_meta , &is_super ,
 							&is_hyper) ;
 
-	if( is_shift) state |= UKey_Shift;
-	if( is_ctl)   state |= UKey_Control;
-	if( is_alt)   state |= UMod_Alt ;
-	if( is_meta)  state |= UMod_Meta ;
-	if( is_super) state |= UMod_Super ;
-	if( is_hyper) state |= UMod_Hyper ;
+	if( is_shift && (uim->pressing_mod_key & UMod_Shift))
+	{
+		state |= UMod_Shift ;
+	}
+	if( is_ctl && (uim->pressing_mod_key & UMod_Control))
+	{
+		state |= UMod_Control ;
+	}
+	if( is_alt && (uim->pressing_mod_key & UMod_Alt))
+	{
+		state |= UMod_Alt ;
+	}
+	if( is_meta && (uim->pressing_mod_key & UMod_Meta))
+	{
+		state |= UMod_Meta ;
+	}
+	if( is_super && (uim->pressing_mod_key & UMod_Super))
+	{
+		state |= UMod_Super ;
+	}
+	if( is_hyper && (uim->pressing_mod_key & UMod_Hyper))
+	{
+		state |= UMod_Hyper ;
+	}
 
 	key = xksym_to_ukey(ksym) ;
 

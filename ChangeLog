@@ -1,3 +1,11 @@
+2004-10-26 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/uim/im_uim.c (key_event): for exact matching mechanism
+	in uim_press_key(), if and only if the target modifier key is pressing
+	modifier bit will be set. (Thanks to gabor for reporting)
+
+	* doc/en/PLATFORM: updated supported platforms.
+
 2004-10-24 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* xwindow/version.h.in: 2.9.0 -> 2.9.0 post
