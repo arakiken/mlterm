@@ -76,6 +76,16 @@ kik_conf_io_write(
 	char *  val
 	)
 {
+	if( key == NULL)
+	{
+		return  0 ;
+	}
+
+	if( val == NULL)
+	{
+		val = "\0" ;
+	}
+	
 	fprintf( to , "%s=%s\n" , key , val) ;
 
 	return  1 ;

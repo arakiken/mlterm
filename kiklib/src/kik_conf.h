@@ -28,7 +28,6 @@ typedef struct  kik_arg_opt
  */
 typedef struct  kik_conf_entry
 {
-	char *  key ;
 	char *  value ;
 	char *  default_value ;
 
@@ -65,6 +64,8 @@ int  kik_conf_add_opt( kik_conf_t *  conf , char  short_opt , char *  long_opt ,
 int  kik_conf_set_end_opt( kik_conf_t *  conf , char  opt , char *  long_opt , char *  key , char *  help) ;
 
 int  kik_conf_parse_args( kik_conf_t *  conf , int *  argc , char ***  argv) ;
+
+int  kik_conf_write( kik_conf_t *  conf , char *  filename) ;
 
 int  kik_conf_read( kik_conf_t *  conf , char *  filename) ;
 

@@ -178,6 +178,17 @@ create_new_conf_entry(
 	}
 	memset( entry , 0 , sizeof( kik_conf_entry_t)) ;
 
+	if( ( key = strdup( key)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " strdup() failed.\n") ;
+	#endif
+	
+		free( entry) ;
+
+		return  NULL ;
+	}
+	
 	kik_map_set( result , conf->conf_entries , key , entry) ;
 	if( ! result)
 	{
@@ -185,8 +196,9 @@ create_new_conf_entry(
 		kik_warn_printf( KIK_DEBUG_TAG " kik_map_set() failed.\n") ;
 	#endif
 
+		free( key) ;
 		free( entry) ;
-	
+		
 		return  NULL ;
 	}
 
@@ -198,7 +210,7 @@ create_new_conf_entry(
 
 kik_conf_t *
 kik_conf_new(
-	char *  prog_name ,
+	char *  prog_name ,	/* should be static data */
 	int  major_version ,
 	int  minor_version ,
 	int  revision ,
@@ -269,7 +281,7 @@ kik_conf_delete(
 	
 	for( count = 0 ; count < size ; count ++)
 	{
-		free( pairs[count]->value->key) ;
+		free( pairs[count]->key) ;
 		free( pairs[count]->value->value) ;
 		free( pairs[count]->value->default_value) ;
 		free( pairs[count]->value) ;
@@ -286,10 +298,10 @@ int
 kik_conf_add_opt(
 	kik_conf_t *  conf ,
 	char   short_opt ,	/* '\0' is accepted */
-	char *  long_opt ,	/* NULL is accepted */
+	char *  long_opt ,	/* should be static data. NULL is accepted */
 	int  is_boolean ,
-	char *  key ,
-	char *  help
+	char *  key ,		/* should be static data */
+	char *  help		/* should be static data */
 	)
 {
 	kik_arg_opt_t **  opt ;
@@ -352,9 +364,9 @@ int
 kik_conf_set_end_opt(
 	kik_conf_t *  conf ,
 	char   opt ,
-	char *  long_opt ,
-	char *  key ,
-	char *  help
+	char *  long_opt ,	/* should be static data */
+	char *  key ,		/* should be static data */
+	char *  help		/* should be static data */
 	)
 {
 	conf->end_opt = opt ;
@@ -534,6 +546,40 @@ error:
 }
 
 int
+kik_conf_write(
+	kik_conf_t *  conf ,
+	char *  filename
+	)
+{
+	FILE *  to ;
+	KIK_PAIR( kik_conf_entry) *  pairs ;
+	u_int  size ;
+	int  count ;
+
+	if( ! ( to = fopen( filename , "w")))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " %s couldn't be opened.\n" , filename) ;
+	#endif
+		
+		return  0 ;
+	}
+
+	kik_map_get_pairs_array( conf->conf_entries , pairs , size) ;
+
+	for( count = 0 ; count < size ; count ++)
+	{
+		kik_conf_io_write( to , pairs[count]->key ,
+			pairs[count]->value->value ?
+				pairs[count]->value->value : pairs[count]->value->default_value) ;
+	}
+
+	fclose( to) ;
+
+	return  1 ;
+}
+
+int
 kik_conf_read(
 	kik_conf_t *  conf ,
 	char *  filename
@@ -562,14 +608,10 @@ kik_conf_read(
 		kik_map_get( ret , conf->conf_entries , key , pair) ;
 		if( ! ret)
 		{
-			key = strdup( key) ;
-
 			if( ( entry = create_new_conf_entry( conf , key)) == NULL)
 			{
 				return  0 ;
 			}
-
-			entry->key = key ;
 		}
 		else
 		{
