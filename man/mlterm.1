@@ -412,8 +412,9 @@ Pushing control key and mouse button 3 invokes GUI configurator
 color, tab size, backlog size, font size, usage of combining character,
 and so on.
 .PP
-GUI configurator has four pages (Encoding, Copy&paste, Appearance,
-and Others), Apply and Cancel buttons, and four special buttons.
+GUI configurator has five pages (Encoding, Appearance, Color,
+Scrollbar, and Others), OK/Apply/Cancel buttons, and
+three special buttons.
 .PP
 Note this feature needs GTK+ 1.2.
 .\" ******************************************************
@@ -424,7 +425,7 @@ Note that configurations will be enabled when you push Apply button.
 Encoding
 Specify encoding.  (\fB\-E\fR, \fB\-\-km\fR) 
 .TP
-ISCII lang
+ISCII language
 Specify ISCII language. (\fB\-C\fR, \fB\-\-iscii\fR) 
 .TP
 X Input Method
@@ -447,10 +448,6 @@ Whether to support BiDi (bi-direction).  (\fB\-D\fR, \fB\-\-bi\fR)
 Combining
 Whether to support combining characters by overstriking. (\fB\-m\fR, \fB\-\-comb\fR) 
 .TP
-Processing multiple column character
-Whether to support processing full width character.
-(\fB\-Z\fR, \fB\-\-multicol\fR) 
-.TP
 Process received strings via Unicode
 When you paste some strings into \fBmlterm\fR, the strings
 are converted into Unicode and then to \fBmlterm\fR encoding.
@@ -463,29 +460,42 @@ in this page.
 Font size
 Font size in pixel. (\fB\-w\fR, \fB\-\-fontsize\fR) 
 .TP
-FG color
-Foreground color. (\fB\-f\fR, \fB\-\-fg\fR) 
+Line space
+Specify number of extra dots between lines. (\fB\-o\fR, \fB\-\-lsp\fR) 
 .TP
-BG color
+Width ratio
+Specify actual screen width. (\fB\-1\fR, \fB\-\-wscr\fR) 
+.TP
+Height ratio
+Specify actual screen height. (\fB\-2\fR, \fB\-\-hscr\fR) 
+.TP
+Anti alias
+Use anti-alias fonts by using Xft. (\fB\-A\fR, \fB\-\-aa\fR) 
+.TP
+Variable column width
+Use variable column width. (\fB\-V\fR, \fB\-\-varwidth\fR) 
+.\" ******************************************************
+.SS Color page
+Configurations related to color and background are
+located in this page.
+.TP
+Foreground color
+Foreground color for letters. (\fB\-f\fR, \fB\-\-fg\fR) 
+.TP
+Background color
 Background color. (\fB\-b\fR, \fB\-\-bg\fR) 
 .TP
-Brightness
-Brightness of the background image. (\fB\-H\fR, \fB\-\-bright\fR) 
-.TP
-Fade ratio
+Fade ratio on unfocus
 Fading ratio when window is unfocused. (\fB\-r\fR, \fB\-\-fade\fR) 
 .TP
 Wall picture
 Specify the image file to be used for background image.
 (\fB\-p\fR, \fB\-\-pic\fR) 
 .TP
-Variable column width
-Use variable column width. (\fB\-V\fR, \fB\-\-varwidth\fR) 
+Wall picture brightness
+Brightness of the background image. (\fB\-H\fR, \fB\-\-bright\fR) 
 .TP
-Anti-alias
-Use anti-alias fonts by using Xft. (\fB\-A\fR, \fB\-\-aa\fR) 
-.TP
-Transparent
+Transparent background
 Transparent background. (\fB\-t\fR, \fB\-\-transbg\fR) 
 .\" ******************************************************
 .SS Scrollbar page
@@ -497,39 +507,40 @@ Specify scrollbar position. (\fB\-O\fR, \fB\-\-sbmod\fR)
 View
 Specify name of scrollbar. (\fB\-S\fR, \fB\-\-sbview\fR) 
 .TP
-FG color
+Foreground color
 Specify foreground color of scrollbar. (\fB\-F\fR, \fB\-\-sbfg\fR) 
 .TP
-BG color
+Background color
 Specify background color of scrollbar. (\fB\-B\fR, \fB\-\-sbbg\fR) 
 .\" ******************************************************
 .SS Others page
 Other configurations are located in this page.
 .TP
-Width ratio
-Specify actual screen width. (\fB\-1\fR, \fB\-\-wscr\fR) 
-.TP
-Height ratio
-Specify actual screen height. (\fB\-2\fR, \fB\-\-hscr\fR) 
-.TP
-Line space
-Specify number of extra dots between lines. (\fB\-o\fR, \fB\-\-lsp\fR) 
-.TP
 Tab size
 Column number of tab. (\fB\-x\fR, \fB\-\-tw\fR) 
 .TP
-Log size
+Backog size
 Number of lines of backlog. (\fB\-l\fR, \fB\-\-sl\fR) 
 .TP
-Mod Meta mode
+Meta key outputs
 Behavior of META key. (\fB\-k\fR, \fB\-\-meta\fR) 
 .TP
 Bel mode
 Behavior when \fBmlterm\fR receives BEL (0x07) code.
 (\fB\-7\fR, \fB\-\-bel\fR) 
+.TP
+Combining = 1 (or 0) logical column(s)
+Processing combining characters as if it occupies one column logically
+while it occupies zero column on the screen.  
+(\fB\-J\fR, \fB\-\-dyncomb\fR)
+.TP
+Fullwidth = 2 (or 1) logical column(s)
+Processing CJK fullwidth characters as it occupies two columns logically
+since it occupies two columns on the screen.
+(\fB\-Z\fR, \fB\-\-multicol\fR) 
 .\" ******************************************************
 .SS Buttons
-There are buttons which is independent from Accept/Cancel buttons.
+There are buttons which is independent from OK/Apply/Cancel buttons.
 .TP
 Font size (Larger and Smaller)
 Change font size.

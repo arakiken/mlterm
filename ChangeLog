@@ -1,6 +1,7 @@
 2002-06-11 Tomohiro KUBOTA <kubota@debian.org>
 
 	* XIM server could not be changed by using mlconfig; fixed.
+	* manpage update for mlconfig.
 
 2002-06-09 Araki Ken <arakiken@users.sf.net>
 
