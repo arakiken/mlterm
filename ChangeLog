@@ -1,3 +1,10 @@
+2003-02-12  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* Added a cache to x_imagelib_load_file in x_imagelib_gdk.c 
+	  so that the last used image can be re-generated 
+	  without reading from the image file again.
+	  (for Seiichi SATO san)
+
 2003-2-11 Araki Ken <arakiken@users.sf.net>
 
 	* Mlterm died as soon as the pty in the last window closed even if 
