@@ -310,7 +310,7 @@ check_or_copy_region(
 	{
 		do
 		{
-			if( ++ beg_row >= end_row ||
+			if( ++ beg_row > end_row ||
 				( line = ml_screen_get_line( screen , beg_row)) == NULL)
 			{
 				return  0 ;

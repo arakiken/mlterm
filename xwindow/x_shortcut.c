@@ -124,7 +124,39 @@ parse(
 			}
 			else
 			{
-				*p = *oper ;
+				if( *oper == '\\')
+				{
+					oper ++ ;
+					
+					if( *oper == '\0')
+					{
+						break ;
+					}
+					else if( *oper == 'n')
+					{
+						*p = '\n' ;
+					}
+					else if( *oper == 'r')
+					{
+						*p = '\r' ;
+					}
+					else if( *oper == 't')
+					{
+						*p = '\t' ;
+					}
+					else if( *oper == 'e')
+					{
+						*p = '\e' ;
+					}
+					else
+					{
+						*p = *oper ;
+					}
+				}
+				else
+				{
+					*p = *oper ;
+				}
 
 				oper ++ ;
 			}
