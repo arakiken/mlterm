@@ -33,6 +33,8 @@ static str_field_table_t  str_field_table[] =
 {
 	{ "kD" , ML_DELETE , } ,
 	{ "kb" , ML_BACKSPACE , } ,
+	{ "kh" , ML_HOME , } ,
+	{ "@7" , ML_END , } ,
 } ;
 
 static bool_field_table_t  bool_field_table[] =
@@ -117,6 +119,8 @@ entry_init(
 	entry->name = strdup( name) ;
 	entry->str_fields[ML_DELETE] = strdup( "\x7f") ;
 	entry->str_fields[ML_BACKSPACE] = strdup( "\x08") ;
+	entry->str_fields[ML_HOME] = strdup( "") ;
+	entry->str_fields[ML_END] = strdup( "") ;
 
 	for( count = 0 ; count < MAX_TERMCAP_BOOL_FIELDS ; count ++)
 	{
@@ -303,7 +307,6 @@ x_termcap_read_conf(
 	while( ( line = kik_file_get_line( from , &len)))
 	{
 		void *  p ;
-
 		if( *line == '#')
 		{
 			continue ;

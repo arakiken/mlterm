@@ -2936,6 +2936,14 @@ key_pressed(
 		{
 			buf = "\x1b[29~" ;
 		}
+		else if( ksym == XK_Home)
+		{
+			buf = x_termcap_get_str_field( screen->termcap , ML_HOME) ;
+		}
+		else if( ksym == XK_End)
+		{
+			buf = x_termcap_get_str_field( screen->termcap , ML_END) ;
+		}
 	#if  0
 		else if( screen->is_app_keypad && ksym == XK_KP_Home)
 		{

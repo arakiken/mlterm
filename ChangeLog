@@ -1,3 +1,7 @@
+2002-07-03  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* HOME/END key support is added.
+
 2002-07-02  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* Minor code cleanup (xwindow/x_decsp_font.c).
