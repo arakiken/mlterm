@@ -1,3 +1,10 @@
+2004-11-14 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* tool/w3mmlconfig/mlconfig.cgi.in: ~/.mlterm/challenge support.
+
+	* tool/w3mmlconfig/section/encoding:
+	  "xim", "xim_locale" -> "input_method"
+
 2004-11-12 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* kiklib/src/kik_map.h: An expanded hash table was broken. Fixed.

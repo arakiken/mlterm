@@ -4,6 +4,10 @@ $DEBUG = 1;
 
 require 'mlconfig-data.pl';
 
+open(CHALLENGE, "$ENV{HOME}/.mlterm/challenge");
+$challenge = <CHALLENGE>;
+close(CHALLENGE);
+
 $config_file = "$ENV{HOME}/.mlterm/main";
 $CGI = $ENV{SCRIPT_NAME} || $0;
 $CGI = &html_quote($CGI);
@@ -287,7 +291,7 @@ sub get_config {
 	open(TTY, "+>/dev/tty");
 	for $k (@{$key}) {
 		$k =~ /^_/ && next;
-		print TTY "\033]5380;$k\007";
+		print TTY "\033]5380;$challenge;$k\007";
 		$_ = <TTY>;
 $DEBUG && print "DEBUG: get $_";
 		s/^\#${k}=// || next;
