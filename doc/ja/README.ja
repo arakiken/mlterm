@@ -133,7 +133,7 @@ comment $Id$
 
       行頭の # で、その行をコメントアウトできます。
       
-      **で囲まれている方のがデフォルト値です。
+      ** で囲まれている方のがデフォルト値です。
       (#) のついているオプションは、設定画面からの動的変更が可能です。
 
       -- Window 関連 --
@@ -215,7 +215,17 @@ comment $Id$
         
         cjk は、右から左の縦表示、mongol は、左から右の縦表示です。
 
-      o use_multi_column_char  (*false*)  (#)
+      o use_vertical_cursor (true/*false*)
+        縦書き用カーソル
+
+        十字カーソルキーを、cjk 縦表示の場合であれば、
+        右 => 下
+        左 => 上
+        上 => 右
+        下 => 左
+        に割当て直します。
+
+      o use_multi_column_char  (true/*false*)  (#)
         1 文字で複数コラムを占有する文字の処理を行なう
 
         いわゆる全角文字を処理するかどうかを指定します。
@@ -266,11 +276,11 @@ comment $Id$
         US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
 
       o compose_dec_special_font (true/*false*)
-	DEC_SPECIAL フォントの罫線文字のグリフを動的に合成
+        DEC_SPECIAL フォントの罫線文字のグリフを動的に合成
 
-	背景透過や壁紙を使用する場合、または、DEC_SPECIAL フォントの特殊文字を
-	使用する場合は、問題が生じますが、それ以外の使い方をされる方は、true に
-	設定することを推奨します。
+       背景透過や壁紙を使用する場合、または、DEC_SPECIAL フォントの特殊文字を
+       使用する場合は、問題が生じますが、それ以外の使い方をされる方は、true に
+       設定することを推奨します。
 
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)
@@ -354,12 +364,12 @@ comment $Id$
         mlconfig(GUI設定コマンド)のパス
 
       o daemon_mode (*none*/blend/genuine)
-	daemon process となるかどうか
+        daemon process となるかどうか
 
-	blend の場合、最後の端末ウィンドウが閉じられた段階で、daemon process
-	は終了します。
-	一方、genuine の場合、最後の端末ウィンドウが閉じられた後も、また、X
-	が終了したのちも、daemon process として動作しつづけることが可能です。
+        blend の場合、最後の端末ウィンドウが閉じられた段階で、daemon process
+        は終了します。
+        一方、genuine の場合、最後の端末ウィンドウが閉じられた後も、また、X
+        が終了したのちも、daemon process として動作しつづけることが可能です。
 
     o font/vfont/aafont/vaafont/tfont/taafont
       o DEC_SPECIAL        ... 罫線文字用のフォント
@@ -562,8 +572,10 @@ comment $Id$
         デフォルトでは、`^H'
 
   o 引数オプション
-    -h/--help(=bool)   : ヘルプ
-    -v/--version(=bool) : バージョン情報(あまり信用できない:D)
+    (X) のついているオプションは、mlclient からは指定できません。
+    
+    -h/--help(=bool)   : ヘルプ (X)
+    -v/--version(=bool) : バージョン情報(あまり信用できない:D) (X)
     
     -1/--wscr=value    : 実スクリーンの横幅
     -2/--hscr=value    : 実スクリーンの縦幅
@@ -579,30 +591,30 @@ comment $Id$
     -G/--vertical=value: 縦表示のスタイル
     -H/--bright=value  : 背景画像の輝度
     -I/--icon=value    : アイコン 名
-    -K/--maxptys=value : pty window の最大数
+    -K/--maxptys=value : pty window の最大数 (X)
     -L/--ls(=bool)     : ログインシェルを使用
     -M/--menu=value     : mlconfig のパス
     -N/--name=value    : アプリケーション名
     -O/--sbmod=value   : スクロールバーのつけ方
-    -P/--ptys=value    : 起動時に立ちあげる pty window の数
+    -P/--ptys=value    : 起動時に立ちあげる pty window の数 (X)
     -Q/--vcur(=bool)   : 縦用カーソルキーを使用
-    -R/--fsrange=value : フォントサイズの範囲
+    -R/--fsrange=value : フォントサイズの範囲 (X)
     -S/--sbview=value  : 使いたいスクロールバーの名前
     -T/--title=value   : タイトル名
     -U/--viaucs=value  : 受け取ったXCOMPOUND TEXTを一度UCSに変換
     -V/--varwidth(=bool): 可変長コラム幅を使用
-    -W/--sep=value     : 単語の区切り文字
+    -W/--sep=value     : 単語の区切り文字 (X)
     -X/--openim(=bool) : 起動時に XIM を open
-    -Y/--decsp(=bool)  : DEC_SPECIAL フォントを動的合成
+    -Y/--decsp(=bool)  : DEC_SPECIAL フォントを動的合成 (X)
     -Z/--multicol(=bool): 全角文字の処理
     -a/--ac=value      : EastAsianWidth.txt の A プロパティ文字のコラム数
     -b/--bg=value      : 背景色
-    -c/--cp932(=bool)  : Xft 使用時に JISX0208 の Unicode 変換で CP932 の変換テーブルを使用
+    -c/--cp932(=bool)  : Xft 使用時に JISX0208 の Unicode 変換で CP932 の変換テーブルを使用 (X)
     -d/--display       : DISPLAY を指定
     -f/--fg=value      : 前景色
     -g/--geometry=value : 表示座標位置
-    -i/--xim(=bool)    : xim を使用
-    -j/--daemon=value  : daemon process となるかどうか
+    -i/--xim(=bool)    : xim を使用 (X)
+    -j/--daemon=value  : daemon process となるかどうか (X)
     -k/--meta(=value)  : Meta キーを押した時の動作
     -l/--sl=value      : ログサイズ
     -m/--comb(=bool)   : 結合文字を使用

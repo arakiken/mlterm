@@ -1,3 +1,15 @@
+ver 2.3.0
+* Vertical view(both right to left and left to right) is supported.
+* Most settings of scrollbar(position,type,color etc) can be dynamically changed.
+* Number of extra dots between lines can be specified.
+* Brightness of wall picture and transparent background can be adjustied.
+* mlterm can work as daemon process , and mlclient which is a front end of mlterm
+  server is added.
+* mlterm can handle multiple display connections.
+* BSD style utmp and utemper is supported. 
+  (utemper support is contributed by Mike Fabian. Thanks!)
+* and many minor bugs are fixed.
+
 ver 2.2.0(2002/01/29)
 * variable length column is supported.
 * ISCII support codes are imported(but is not still supported formally).

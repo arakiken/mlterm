@@ -7,3 +7,10 @@
   また、core dump しないまでも、輝度調節された背景画像や壁紙が、うまく表示
   されなくなる。
   ImlibData のデストラクタ API が存在しないため、対処の方法なし。
+
+* 複数の Display に接続している場合、一方の Display でしか XIM を起動できな
+  い場合がある。
+
+* Gnome + Sawfish 0.36-7 にて、app_name または title を指定しないと、Window
+  タイトルが化ける。
+  (reported by K.Kawabata san)

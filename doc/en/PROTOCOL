@@ -12,12 +12,14 @@ version 20020206
                      mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
                      wall_picture | full_reset | brightness | line_space | screen_width_ratio |
-                     screen_height_ratio | vertical_mode | scrollbar_mode
+                     screen_height_ratio | vertical_mode | scrollbar_mode | use_multi_column_char |
+                     scrollbar_view_name | sb_fg_color | sb_bg_color
   get key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
                      locale | wall_picture | pwd | brightness | line_space | screen_width_ratio |
-                     screen_height_ratio | vertical_mode | scrollbar_mode
+                     screen_height_ratio | vertical_mode | scrollbar_mode | use_multi_column_char |
+                     scrollbar_view_name | sb_fg_color | sb_bg_color
   value            = <values for each key>
 
 * compatible with other terminals
@@ -32,6 +34,8 @@ version 20020206
            EUCJP | EUCJISX0213 | ISO2022JP[1-3] | SJIS | SJISX0213 | ISO2022KR |
            EUCKR | UHC | JOHAB | EUCCN | GBK | ISO2022CN | BIG5 | BIG5HKSCS |
            EUCTW | HZ | UTF8 | GB18030
+  fg_color = <color name>
+  bg_color = <color name>
   tabsize = <any ASCII decimal digit>
   logsize = <any ASCII decimal digit>
   fontsize = <any ASCII decimal digit> | larger | smaller
@@ -55,6 +59,10 @@ version 20020206
   screen_height_ratio = <any ASCII decimal digit>
   vertical_mode = none | cjk | mongol
   scrollbar_mode = none | left | right
+  use_multi_column_char = true | false
+  scrollbar_view_name = <name>
+  sb_fg_color = <color name>
+  sb_bg_color = <color name>
 
 * note
   o Encoding names are regularized , that is , `-' , `-' are removed , and only upper

@@ -1,1 +1,4 @@
-# JISX0208_1983 = 20,-kappa-mincho-medium-r-normal--20-190-75-75-vc-200-jisx0208.1990-0;
+# ISO8859_1 = -*-medium-*--%d-*-*-*-vc-*-iso8859-1:100;
+# ISO8859_1_BOLD = -*-bold-*--%d-*-*-*-vc-*-iso8859-1;
+# JISX0208_1983 = -*-medium-*--%d-*-vc-*-jisx0208.*;
+# JISX0208_1983_BOLD = -*-bold-*--%d-*-vc-*-jisx0208.*-0;

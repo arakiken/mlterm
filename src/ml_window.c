@@ -2893,6 +2893,9 @@ ml_window_receive_event(
 		/*
 		 * transparent processing.
 		 */
+
+		win->x = event->xreparent.x ;
+		win->y = event->xreparent.y ;
 		
 		notify_reparent_to_children( win) ;
 	}

@@ -1,0 +1,35 @@
+comment -*- mode: text -*-
+comment $Id$
+
+mlterm server
+
+* 何それ?
+  mlterm は、client からの要求に応じて、単一プロセス中に新たな端末ウィンドウを起
+  動する server として動作することができます。
+  また、一定の制約(具体的には Imlib 関連)はありますが、複数の Display への同時接
+  続をこなすことも可能です。
+
+* mlterm server の設定
+  引数オプション -j , --daemon または、main 設定ファイルの daemon_mode に、blend
+  または genuine を指定して起動してください。
+  
+  blend を指定した場合、最後の端末ウィンドウが閉じられた段階で、プロセスが終了す
+  ることになりますが、genuine を指定すると、最後の端末ウィンドウが閉じられた後も
+  daemon process として動作しつづけることになります。
+  さらに、genuine の場合には、-P 0 オプションを一緒に指定することで、X なしで起
+  動することもできますし、すべての端末ウィンドウを閉じ、X との接続を切って、X の 
+  shutdown にまきこまれないようにすれば、X 終了後も動作しつづけることが可能です。
+  
+  mlterm server は、/tmp/mlterm.unix を使った Unix Domain Socket にて、client
+  プログラムと通信します。
+  起動時に、/tmp/mlterm.unix がすでに存在する場合は、すでに mlterm server が稼働
+  していると判断して、自身は daemon process になりませんので注意してください。
+
+* client の起動
+  ビルドに成功すると、mlclient というプログラムがインストールされます。
+  mlterm server が稼働しているホスト上で、mlclient を実行すると、新しい端末ウィ
+  ンドウが開きます。
+  
+  mlclient は、一部を除く、ほぼすべてのオプションを指定することができます。
+  (指定できないオプションについては、README.ja の「引数オプション」の項目を
+  参照下さい)
