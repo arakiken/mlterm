@@ -123,5 +123,5 @@ mltermでは、オリジナルのスクロールバーを比較的簡単に実装するためのフレームワーク
   み込み)が使われます。
 
 * 補足
-  細かい手順などについては、src/x_simple_sb_view.[ch],contrib/scrollbar/sample
-  を参照下さい。
+  細かい手順などについては、xwindow/x_simple_sb_view.[ch],scrollbar/sample を参
+  照下さい。

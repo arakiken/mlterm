@@ -94,4 +94,4 @@ This document describes how to implement your own scrollbar.
 
   If your_sb scrollbar is not found, simple scrollbar is used.
 
-* See src/x_simple_sb_view.[ch] and contrib/scrollbar/sample for detail.
+* See xwindow/x_simple_sb_view.[ch] and scrollbar/sample for detail.

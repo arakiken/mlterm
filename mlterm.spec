@@ -17,7 +17,7 @@ License:     Modified BSD-style license
 Group:	     User Interface/X
 URL:         http://mlterm.sourceforge.net/
 Source0:     http://prdownloads.sourceforge.net/mlterm/mlterm-%{version}.tar.gz
-Packager:    Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
+Packager:    Araki Ken <arakiken@users.sf.net>
 Requires:    imlib, gtk+
 BuildRoot:   /var/tmp/%{name}-%{version}-root
 BuildPreReq: imlib-devel, gtk+-devel
