@@ -2024,7 +2024,8 @@ x_window_receive_event(
 				}
 
 				/* XDND */
-				if( event->xselection.property == XA_DND_STORE(win->display))
+				if( win->is_dnd_accepting && 
+				    event->xselection.property == XA_DND_STORE(win->display))
 				{
 					if( ct.encoding != XA_INCR(win->display)) /* XXX should read size */
 					{
@@ -2113,7 +2114,7 @@ x_window_receive_event(
 		
 		/* DnD Enter */
 		if( event->xclient.format == 32 &&
-			event->xclient.message_type == XA_DND_ENTER( win->display))
+		    event->xclient.message_type == XA_DND_ENTER( win->display))
 		{
 			win->is_dnd_accepting = (Atom)0;
 
@@ -2154,8 +2155,9 @@ x_window_receive_event(
 		}
 
 		/*DnD Drop*/
-		if( event->xclient.format == 32 &&
-			event->xclient.message_type == XA_DND_DROP( win->display))
+		if( win->is_dnd_accepting &&
+		    event->xclient.format == 32 &&
+		    event->xclient.message_type == XA_DND_DROP( win->display))
 		{
 			/* data request */
 			XConvertSelection(win->display, XA_DND_SELECTION(win->display),
