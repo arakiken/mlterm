@@ -10,7 +10,6 @@
 
 #include  "kik_types.h"		/* size_t */
 
-
 typedef struct  kik_file
 {
 	FILE *  file ;
@@ -29,6 +28,10 @@ kik_file_t *  kik_file_open( char *  file_path , char *  mode) ;
 int  kik_file_close( kik_file_t *  file) ;
 
 char *  kik_file_get_line( kik_file_t *  from , size_t *  len) ;
-	
- 
+
+int  kik_file_lock( int  fd) ;
+
+int  kik_file_unlock( int  fd) ;
+
+
 #endif

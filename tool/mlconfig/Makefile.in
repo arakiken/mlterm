@@ -51,7 +51,8 @@ debug:
 
 mlconfig: $(OBJ)
 	$(LIBTOOL_LINK) $(OBJ) $(CFLAGS) -o mlconfig $(LIBS)
-	cd po ; $(MAKE) update-po
+	cd po ; $(MAKE) update-gmo
+	# cd po ; $(MAKE) update-po
 
 .c.o:
 	$(CC) $(DEFS) $(CFLAGS) -c $<
@@ -69,4 +70,4 @@ clean:
 
 distclean: clean
 	rm -f Makefile
-	cd po ; $(MAKE) distclean ; rm -f *.gmo mlconfig.pot
+	cd po ; $(MAKE) maintainer-clean

@@ -52,6 +52,8 @@
 
 #undef  HAVE_UNSETENV
 
+#undef  HAVE_FLOCK
+
 #undef  PTY_STREAMS
 
 #undef  PTY_BSD

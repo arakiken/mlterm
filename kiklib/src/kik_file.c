@@ -148,3 +148,55 @@ kik_file_get_line(
 }
 
 #endif
+
+#if defined(HAVE_FLOCK) && defined(LOCK_EX) && defined(LOCK_UN)
+
+int
+kik_file_lock(
+	int  fd
+	)
+{
+	if( flock( fd , LOCK_EX) == -1)
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  1 ;
+	}
+}
+
+int
+kik_file_unlock(
+	int  fd
+	)
+{
+	if( flock( fd , LOCK_UN) == -1)
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  1 ;
+	}
+}
+
+#else
+
+int
+kik_file_lock(
+	int  fd
+	)
+{
+	return  0 ;
+}
+
+int
+kik_file_unlock(
+	int  fd
+	)
+{
+	return  0 ;
+}
+
+#endif

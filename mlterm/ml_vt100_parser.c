@@ -10,6 +10,8 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* malloc/free */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
+#include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
 #include  <mkf/mkf_ucs4_map.h>	/* mkf_map_to_ucs4 */
 #include  <mkf/mkf_ucs_property.h>
 #include  <mkf/mkf_locale_ucs4_map.h>
@@ -572,6 +574,92 @@ increment_str(
 	}
 
 	(*str) ++ ;
+
+	return  1 ;
+}
+
+/*
+ * This function will destroy the content of pt.
+ */
+static int
+config_protocol_set(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  pt
+	)
+{
+	if( HAS_CONFIG_LISTENER(vt100_parser,set))
+	{
+		char *  val ;
+		char *  p ;
+
+		stop_vt100_cmd( vt100_parser) ;
+
+		/*
+		 * accept multiple key=value pairs.
+		 */
+		while( pt && ( val = strchr( pt , '=')))
+		{
+			*(val ++) = '\0' ;
+
+			if( ( p = strchr( val , ';')))
+			{
+				*(p ++) = '\0' ;
+			}
+
+			(*vt100_parser->config_listener->set)(
+				vt100_parser->config_listener->self ,
+				pt , val) ;
+
+			pt = p ;
+		}
+
+		start_vt100_cmd( vt100_parser) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+/*
+ * This function will destroy the content of pt.
+ */
+static int
+config_protocol_save(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  pt
+	)
+{
+	char *  file ;
+	kik_conf_write_t *  conf ;
+	char *  val ;
+	char *  p ;
+
+	file = kik_get_user_rc_path( "mlterm/main") ;
+	if( file && ( conf = kik_conf_write_open( file)))
+	{
+		/*
+		 * accept multiple key=value pairs.
+		 */
+		while( pt && ( val = strchr( pt , '=')))
+		{
+			*(val ++) = '\0' ;
+
+			if( ( p = strchr( val , ';')))
+			{
+				*(p ++) = '\0' ;
+			}
+
+			kik_conf_io_write( conf , pt , val) ;
+
+			pt = p ;
+		}
+
+		kik_conf_write_close( conf) ;
+	}
+	free( file) ;
 
 	return  1 ;
 }
@@ -1762,33 +1850,33 @@ parse_vt100_escape_sequence(
 					}
 					else if( ps == 20)
 					{
-						/* edit commands */
-						char *  p ;
-						
-						/* XXX discard all adjust./op. settings.*/
-						/* XXX may break multi-byte character string. */
-						if( ( p = strchr( pt , ';')))
-						{
-							*p = '\0';
-						}
-						if( ( p = strchr( pt , ':')))
-						{
-							*p = '\0';
-						}
-
-						if( *pt == '\0')
-						{
-							/*
-							 * Do not change current edit but alter
-							 * diaplay setting.
-							 * XXX nothing can be done for now.
-							 */
-							 
-							return  0 ;
-						}
-
 						if( HAS_CONFIG_LISTENER(vt100_parser,set))
 						{
+							/* edit commands */
+							char *  p ;
+
+							/* XXX discard all adjust./op. settings.*/
+							/* XXX may break multi-byte character string. */
+							if( ( p = strchr( pt , ';')))
+							{
+								*p = '\0';
+							}
+							if( ( p = strchr( pt , ':')))
+							{
+								*p = '\0';
+							}
+
+							if( *pt == '\0')
+							{
+								/*
+								 * Do not change current edit but alter
+								 * diaplay setting.
+								 * XXX nothing can be done for now.
+								 */
+
+								return  0 ;
+							}
+
 							stop_vt100_cmd( vt100_parser) ;
 							(*vt100_parser->config_listener->set)(
 								vt100_parser->config_listener->self ,
@@ -1828,20 +1916,7 @@ parse_vt100_escape_sequence(
 					}
 					else if( ps == 5379)
 					{
-						char *  p ;
-
-						if( ( p = strchr( pt , '=')))
-						{
-							*(p ++) = '\0' ;
-						}
-							
-						if( HAS_CONFIG_LISTENER(vt100_parser,set))
-						{
-							stop_vt100_cmd( vt100_parser) ;
-							(*vt100_parser->config_listener->set)(
-								vt100_parser->config_listener->self , pt , p) ;
-							start_vt100_cmd( vt100_parser) ;
-						}
+						config_protocol_set( vt100_parser , pt) ;
 					}
 					else if( ps == 5380)
 					{
@@ -1863,6 +1938,23 @@ parse_vt100_escape_sequence(
 								vt100_parser->config_listener->self ,
 								pt , 1) ;
 							start_vt100_cmd( vt100_parser) ;
+						}
+					}
+					else if( ps == 5382)
+					{
+						config_protocol_save( vt100_parser , pt) ;
+					}
+					else if( ps == 5383)
+					{
+						char *  p ;
+
+						p = kik_str_alloca_dup( pt) ;
+						
+						config_protocol_set( vt100_parser , pt) ;
+
+						if( p)
+						{
+							config_protocol_save( vt100_parser , p) ;
 						}
 					}
 				#ifdef  DEBUG

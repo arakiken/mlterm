@@ -69,13 +69,97 @@ kik_get_user_rc_path(
 	return  dotrcpath ;
 }
 
+kik_conf_write_t *
+kik_conf_write_open(
+	char *  name
+	)
+{
+	kik_conf_write_t *  conf ;
+	kik_file_t *  from ;
+
+	if( ( conf = malloc( sizeof( kik_conf_write_t))) == NULL)
+	{
+		return  conf ;
+	}
+	
+	if( ( conf->lines = malloc( sizeof( char *) * 128)) == NULL)
+	{
+		free( conf) ;
+		
+		return  NULL ;
+	}
+
+	conf->num = 0 ;
+	conf->scale = 1 ;
+
+	if( ( from = kik_file_open( name , "r")) == NULL)
+	{
+		goto  error ;
+	}
+
+	while( 1)
+	{
+		char *  line ;
+		size_t  len ;
+		
+		if( conf->num >= conf->scale * 128)
+		{
+			void *  p ;
+			
+			if( ( p = realloc( conf->lines , sizeof( char *) * 128 * (++ conf->scale))) == NULL)
+			{
+				goto  error ;
+			}
+
+			conf->lines = p ;
+		}
+
+		if( ( line = kik_file_get_line( from , &len)) == NULL)
+		{
+			break ;
+		}
+
+		line[len - 1] = '\0' ;
+		conf->lines[conf->num++] = strdup( line) ;
+	}
+
+	kik_file_close( from) ;
+	
+	if( ( conf->to = fopen( name , "w")) == NULL)
+	{
+		goto  error ;
+	}
+
+	kik_file_lock( fileno( conf->to)) ;
+
+	return  conf ;
+
+error:
+	{
+		int  count ;
+
+		for( count = 0 ; count < conf->num ; count ++)
+		{
+			free( conf->lines[count]) ;
+		}
+	}
+	
+	free( conf->lines) ;
+	free( conf) ;
+
+	return  NULL ;
+}
+
 int
 kik_conf_io_write(
-	FILE *  to ,
+	kik_conf_write_t *  conf ,
 	char *  key ,
 	char *  val
 	)
 {
+	int  count ;
+	char *  p ;
+		
 	if( key == NULL)
 	{
 		return  0 ;
@@ -85,8 +169,66 @@ kik_conf_io_write(
 	{
 		val = "\0" ;
 	}
+
+	for( count = 0 ; count < conf->num ; count ++)
+	{
+		if( *conf->lines[count] != '#' && ( p = strstr( conf->lines[count] , key)))
+		{
+			if( ( p = malloc( strlen( key) + strlen( val) + 4)) == NULL)
+			{
+				return  0 ;
+			}
+			sprintf( p , "%s = %s" , key , val) ;
+			
+			free( conf->lines[count]) ;
+			conf->lines[count] = p ;
+
+			return  1 ;
+		}
+	}
+
+	if( conf->num + 1 >= conf->scale * 128)
+	{
+		void *  p ;
+		
+		if( ( p = realloc( conf->lines , sizeof( char *) * 128 * (++ conf->scale))) == NULL)
+		{
+			return  0 ;
+		}
+
+		conf->lines = p ;
+	}
+
+	if( ( p = malloc( strlen( key) + strlen( val) + 4)) == NULL)
+	{
+		return  0 ;
+	}
+	sprintf( p , "%s = %s" , key , val) ;
+
+	conf->lines[conf->num ++] = p ;
 	
-	fprintf( to , "%s=%s\n" , key , val) ;
+	return  1 ;
+}
+
+int
+kik_conf_write_close(
+	kik_conf_write_t *  conf
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < conf->num ; count ++)
+	{
+		fprintf( conf->to , "%s\n" , conf->lines[count]) ;
+		free( conf->lines[count]) ;
+	}
+
+	kik_file_unlock( fileno( conf->to)) ;
+
+	fclose( conf->to) ;
+
+	free( conf->lines) ;
+	free( conf) ;
 
 	return  1 ;
 }
