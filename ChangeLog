@@ -1,3 +1,13 @@
+2005-03-05 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* 2.9.2 released.
+	  (tag "rel-2_9_2")
+
+	* xwindow/x_imagelib_gdk.c: fixed possible integer overflow.
+
+	* configure, configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated.
+
 2005-03-04 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* doc/en/PLATFORM: updated.

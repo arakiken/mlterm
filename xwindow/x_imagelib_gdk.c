@@ -9,11 +9,23 @@
 #include <string.h>                      /* memcpy */
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
-#include <kiklib/kik_types.h> /* u_int32_t/u_int16_t */
+#include <kiklib/kik_types.h> /* u_int32_t/u_int16_t, HAVE_STDINT_H */
 #include <kiklib/kik_unistd.h>
 #include <kiklib/kik_str.h>    /* strdup */
 
 #include "x_imagelib.h"
+
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+
+#ifndef SIZE_MAX
+#ifdef SIZE_T_MAX
+#define SIZE_MAX SIZE_T_MAX
+#else
+#define SIZE_MAX ((size_t)-1)
+#endif
+#endif
 
 #define USE_FS 1
 #define SUCCESS 0
@@ -292,7 +304,13 @@ create_cardinals_from_bixbuf(
 	unsigned char *pixel ;
 	int i, j ;
 
-	*cardinal = malloc( (width * height + 2) *4) ;
+	if( !width || !height)
+		return -1;
+
+	if( width > ((SIZE_MAX / 4) -2) / height)
+		return -1; /* integer overflow */
+
+	*cardinal = malloc( ((size_t)width * height + 2) *4) ;
 	if( !(*cardinal))
 		return  -1 ;
 
@@ -354,13 +372,12 @@ closest_color_index(
 	int blue
 	)
 {
-	int  closest ;
+	int  closest = 0 ;
 	int  i ;
 	unsigned long  min = 0xffffff ;
 	unsigned long  diff ;
 	int  diff_r, diff_g, diff_b ;
 
-	/* start seeking from the color last used */
 	for( i = 0 ; i < len ; i++)
 	{
 		/* lazy color-space conversion*/
@@ -830,6 +847,9 @@ pixbuf_to_ximage_truecolor(
 	width = gdk_pixbuf_get_width( pixbuf) ;
 	height = gdk_pixbuf_get_height( pixbuf) ;
 
+	if( !width || !height)
+		return  NULL ;
+
 	r_mask = vinfo[0].red_mask ;
 	g_mask = vinfo[0].green_mask ;
 	b_mask = vinfo[0].blue_mask ;
@@ -849,7 +869,10 @@ pixbuf_to_ximage_truecolor(
 		int r_limit, g_limit, b_limit ;
 		u_int16_t *data ;
 
-		data = (u_int16_t *)malloc( width *  height * 2) ;
+		if( width > (SIZE_MAX / 2) / height)
+			return  NULL ;
+
+		data = (u_int16_t *)malloc( (size_t)width * height * 2) ;
 		if( !data)
 			return  NULL ;
 		image = XCreateImage( display, DefaultVisual( display, screen),
@@ -881,9 +904,13 @@ pixbuf_to_ximage_truecolor(
 	{
 		u_int32_t *  data ;
 
-		data = (u_int32_t *)malloc( width *  height * 4) ;
+		if( width > (SIZE_MAX / 4) / height)
+			return  NULL ;
+
+		data = (u_int32_t *)malloc( (size_t)width *  height * 4) ;
 		if( !data)
 			return  NULL;
+
 		image = XCreateImage( display, DefaultVisual( display, screen),
 				      DefaultDepth( display, screen), ZPixmap, 0,
 				      (char *)data,

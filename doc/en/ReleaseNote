@@ -1,3 +1,24 @@
+ver 2.9.2
+* [SECURITY] Fixed possible integer overflow.
+  Overview  : If a large image file is specified as a background image,
+              mlterm may access invalid memory.
+  Affected  : mlterm 2.5.0--2.9.1 configured with gdk-pixbuf support
+  Solution  : Update to mlterm-2.9.2.
+* Improvement for mouse tracking feature. [minami]
+* New '--iconpath' option and 'icon_path' key for per-window icon setting.
+  [minami]
+* New '--kill' option for mlclient. [minami]
+* Revived termcap file. [seiichi]
+* Xterm-like color scheme for cursor and selection. [minami]
+  (Thanks to Ian Ward)
+* SCIM input method plugin (Experimental) [seiichi]
+* Updated documentations. (#1110868) [mfabian, minami, seiichi]
+* IIIMF X aux object handling. [seiichi]
+* Implemented some xterm private esc sequences (1047/1048/1049). [minami]
+* Fixed a shortcut key bug [minami] (Thanks to Yusuke Sakai)
+* Bug fixes for input method plugins [Kenichi Handa, Etsushi Kato]
+* Other bug fixes including #1081111 and #1048321 [mfabian, minami, seiichi]
+
 ver 2.9.1
 * Fixed a segfault caused by broken hash table. (#1061470) [seiichi]
 * Fixed a segfault when mlclient has bool option. (#1069725) [minami, seiichi]
