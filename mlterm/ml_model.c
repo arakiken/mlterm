@@ -107,8 +107,8 @@ ml_model_resize(
 	if( num_of_cols == model->num_of_cols && num_of_rows == model->num_of_rows)
 	{
 		/* not resized */
-		
-		return  1 ;
+
+		return  0 ;
 	}
 
 	if( ( lines_p = malloc( sizeof( ml_line_t) * num_of_rows)) == NULL)
@@ -125,7 +125,15 @@ ml_model_resize(
 	count = model->num_of_rows - 1 ;
 	while( 1)
 	{
+	#if  0
+		/*
+		 * This is problematic, since the value of 'slide' can be incorrect when
+		 * cursor is located at the line which contains white spaces alone.
+		 */
 		if( ml_get_num_of_filled_chars_except_spaces( ml_model_get_line( model , count)) > 0)
+	#else
+		if( ! ml_line_is_empty( ml_model_get_line( model , count)))
+	#endif
 		{
 			filled_rows = count + 1 ;
 			
@@ -144,7 +152,6 @@ ml_model_resize(
 	if( num_of_rows >= filled_rows)
 	{
 		old_row = 0 ;
-
 		copy_rows = filled_rows ;
 	}
 	else

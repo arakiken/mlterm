@@ -640,37 +640,43 @@ ml_edit_resize(
 	u_int  old_cols ;
 	u_int  slide ;
 	
+#ifdef  CURSOR_DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
+		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+#endif
+
 	old_rows = edit->model.num_of_rows ;
 	old_cols = edit->model.num_of_cols ;
-	
+
 	if( ! ml_model_resize( &edit->model , &slide , num_of_cols , num_of_rows))
 	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_model_resize() failed.\n") ;
+	#endif
+		
 		return  0 ;
 	}
-	
-	if( num_of_cols < old_cols)
-	{
-		if( edit->cursor.col >= num_of_cols)
-		{
-			edit->cursor.col = num_of_cols - 1 ;
-			edit->cursor.char_index = ml_convert_col_to_char_index( CURSOR_LINE(edit) ,
-						&edit->cursor.col_in_char , edit->cursor.col , 0) ;
-		}
-	}
 
-	if( slide > 0)
+	if( slide > edit->cursor.row)
 	{
-		if( slide <= edit->cursor.row)
+		edit->cursor.row = 0 ;
+		edit->cursor.col = 0 ;
+		edit->cursor.col_in_char = 0 ;
+
+		ml_line_assure_boundary( CURSOR_LINE(edit) , 0) ;
+	}
+	else
+	{
+		edit->cursor.row -= slide ;
+
+		if( num_of_cols < old_cols)
 		{
-			edit->cursor.row -= slide ;
-		}
-		else
-		{
-			edit->cursor.row = 0 ;
-			edit->cursor.col = 0 ;
-			edit->cursor.col_in_char = 0 ;
-			
-			ml_line_assure_boundary( CURSOR_LINE(edit) , 0) ;
+			if( edit->cursor.col >= num_of_cols)
+			{
+				edit->cursor.col = num_of_cols - 1 ;
+				edit->cursor.char_index = ml_convert_col_to_char_index( CURSOR_LINE(edit) ,
+							&edit->cursor.col_in_char , edit->cursor.col , 0) ;
+			}
 		}
 	}
 
@@ -687,6 +693,11 @@ ml_edit_resize(
 	}
 
 	ml_edit_set_tab_size( edit , edit->tab_size) ;
+
+#ifdef  CURSOR_DEBUG
+	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
+		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+#endif
 
 	return  1 ;
 }
