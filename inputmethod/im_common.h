@@ -23,6 +23,7 @@ im_convert_encoding(
 	len = 0 ;
 
 	(*parser->set_str)( parser , from , from_len) ;
+	(*conv->init)( conv) ;
 
 #define  UNIT__ 32
 
