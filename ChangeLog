@@ -1,3 +1,13 @@
+2003-04-01 Tomohiro KUBOTA <kubota@debian.org>
+
+	* tool/mlconfig/mc_char_encoding.c: mlconfig supports "GEORGIAN-PS"
+	  and "KOI8-T".
+	* tool/mlconfig/main.c: write in the label that "font larger"
+	  and "font smaller" doesn't modify (save) configuration files.
+	* Updated "po" (gettext) files for the above modification.
+	* man/mlterm.1: mentions these two encodings and
+	  "-%" and "-$" options.
+
 2003-03-31  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_imagelib_gdk.c: minor code cleanup.

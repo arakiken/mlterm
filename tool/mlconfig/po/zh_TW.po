@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlconfig\n"
-"POT-Creation-Date: 2003-03-22 21:17+0900\n"
+"POT-Creation-Date: 2003-04-01 08:29+0900\n"
 "PO-Revision-Date: 2003-02-09 21:26+0800\n"
 "Last-Translator: Yuan-Chen Cheng <ycheng@slat.org>\n"
 "Language-Team: Chinese (Traditional) <zh-l10n@linux.org.tw>\n"
@@ -31,7 +31,8 @@ msgid "Cancel"
 msgstr "取消"
 
 #: tool/mlconfig/main.c:234
-msgid "Font size"
+#, fuzzy
+msgid "Font size (temporal)"
 msgstr "字型大小"
 
 #: tool/mlconfig/main.c:242
@@ -62,7 +63,7 @@ msgstr ""
 msgid "mlterm configuration"
 msgstr ""
 
-#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:185
+#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:187
 msgid "Encoding"
 msgstr "編碼"
 
@@ -143,76 +144,76 @@ msgstr ""
 msgid "--- Other 8bit ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:60
+#: tool/mlconfig/mc_char_encoding.c:62
 msgid "--- Japanese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:69
+#: tool/mlconfig/mc_char_encoding.c:71
 msgid "--- Korean ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:75
+#: tool/mlconfig/mc_char_encoding.c:77
 msgid "--- traditional Chinese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:80
+#: tool/mlconfig/mc_char_encoding.c:82
 msgid "--- simplified Chinese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:36 tool/mlconfig/mc_color.c:38
+#: tool/mlconfig/mc_color.c:39 tool/mlconfig/mc_color.c:41
 msgid "Foreground color"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:37 tool/mlconfig/mc_color.c:39
+#: tool/mlconfig/mc_color.c:40 tool/mlconfig/mc_color.c:42
 #, fuzzy
 msgid "Background color"
 msgstr "背景"
 
-#: tool/mlconfig/mc_color.c:43
+#: tool/mlconfig/mc_color.c:46
 msgid "black"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:44
+#: tool/mlconfig/mc_color.c:47
 msgid "red"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:45
+#: tool/mlconfig/mc_color.c:48
 msgid "green"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:46
+#: tool/mlconfig/mc_color.c:49
 msgid "yellow"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:47
+#: tool/mlconfig/mc_color.c:50
 msgid "blue"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:48
+#: tool/mlconfig/mc_color.c:51
 msgid "magenta"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:49
+#: tool/mlconfig/mc_color.c:52
 msgid "cyan"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:50
+#: tool/mlconfig/mc_color.c:53
 msgid "white"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:51
+#: tool/mlconfig/mc_color.c:54
 msgid "gray"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:52
+#: tool/mlconfig/mc_color.c:55
 msgid "lightgray"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:53
+#: tool/mlconfig/mc_color.c:56
 msgid "pink"
 msgstr ""
 
-#: tool/mlconfig/mc_color.c:54
+#: tool/mlconfig/mc_color.c:57
 msgid "brown"
 msgstr ""
 
@@ -332,6 +333,9 @@ msgstr "輸入法地域"
 #: tool/mlconfig/mc_xim.c:224
 msgid "X Input Method"
 msgstr "輸入法主程式"
+
+#~ msgid "Font size"
+#~ msgstr "字型大小"
 
 #~ msgid "OK"
 #~ msgstr "確定"

@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
-"POT-Creation-Date: 2003-03-22 21:17+0900\n"
+"POT-Creation-Date: 2003-04-01 08:29+0900\n"
 "PO-Revision-Date: 2002-11-25 19:24+0100\n"
 "Last-Translator: Tomohiro KUBOTA <kubota@debian.org>\n"
 "Language-Team: Japanese <mlterm-dev-ja@lists.sourceforge.net>\n"
@@ -31,8 +31,8 @@ msgid "Cancel"
 msgstr "キャンセル"
 
 #: tool/mlconfig/main.c:234
-msgid "Font size"
-msgstr "フォントサイズ"
+msgid "Font size (temporal)"
+msgstr "フォントサイズ (一時設定)"
 
 #: tool/mlconfig/main.c:242
 msgid "Larger"
@@ -62,7 +62,7 @@ msgstr "選択"
 msgid "mlterm configuration"
 msgstr "mltermの設定"
 
-#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:185
+#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:187
 msgid "Encoding"
 msgstr "エンコーディング"
 
@@ -143,75 +143,75 @@ msgstr "--- ISO 8859 エンコーディング ---"
 msgid "--- Other 8bit ---"
 msgstr "-- その他8ビット ---"
 
-#: tool/mlconfig/mc_char_encoding.c:60
+#: tool/mlconfig/mc_char_encoding.c:62
 msgid "--- Japanese ---"
 msgstr "--- 日本語 ---"
 
-#: tool/mlconfig/mc_char_encoding.c:69
+#: tool/mlconfig/mc_char_encoding.c:71
 msgid "--- Korean ---"
 msgstr "--- 韓国語 ---"
 
-#: tool/mlconfig/mc_char_encoding.c:75
+#: tool/mlconfig/mc_char_encoding.c:77
 msgid "--- traditional Chinese ---"
 msgstr "--- 中国語(繁体字) ---"
 
-#: tool/mlconfig/mc_char_encoding.c:80
+#: tool/mlconfig/mc_char_encoding.c:82
 msgid "--- simplified Chinese ---"
 msgstr "--- 中国語(簡体字) ---"
 
-#: tool/mlconfig/mc_color.c:36 tool/mlconfig/mc_color.c:38
+#: tool/mlconfig/mc_color.c:39 tool/mlconfig/mc_color.c:41
 msgid "Foreground color"
 msgstr "前景色"
 
-#: tool/mlconfig/mc_color.c:37 tool/mlconfig/mc_color.c:39
+#: tool/mlconfig/mc_color.c:40 tool/mlconfig/mc_color.c:42
 msgid "Background color"
 msgstr "背景色"
 
-#: tool/mlconfig/mc_color.c:43
+#: tool/mlconfig/mc_color.c:46
 msgid "black"
 msgstr "黒"
 
-#: tool/mlconfig/mc_color.c:44
+#: tool/mlconfig/mc_color.c:47
 msgid "red"
 msgstr "赤"
 
-#: tool/mlconfig/mc_color.c:45
+#: tool/mlconfig/mc_color.c:48
 msgid "green"
 msgstr "緑"
 
-#: tool/mlconfig/mc_color.c:46
+#: tool/mlconfig/mc_color.c:49
 msgid "yellow"
 msgstr "黄"
 
-#: tool/mlconfig/mc_color.c:47
+#: tool/mlconfig/mc_color.c:50
 msgid "blue"
 msgstr "青"
 
-#: tool/mlconfig/mc_color.c:48
+#: tool/mlconfig/mc_color.c:51
 msgid "magenta"
 msgstr "紫"
 
-#: tool/mlconfig/mc_color.c:49
+#: tool/mlconfig/mc_color.c:52
 msgid "cyan"
 msgstr "水色"
 
-#: tool/mlconfig/mc_color.c:50
+#: tool/mlconfig/mc_color.c:53
 msgid "white"
 msgstr "白"
 
-#: tool/mlconfig/mc_color.c:51
+#: tool/mlconfig/mc_color.c:54
 msgid "gray"
 msgstr "灰色"
 
-#: tool/mlconfig/mc_color.c:52
+#: tool/mlconfig/mc_color.c:55
 msgid "lightgray"
 msgstr "明るい灰色"
 
-#: tool/mlconfig/mc_color.c:53
+#: tool/mlconfig/mc_color.c:56
 msgid "pink"
 msgstr "ピンク"
 
-#: tool/mlconfig/mc_color.c:54
+#: tool/mlconfig/mc_color.c:57
 msgid "brown"
 msgstr "茶色"
 
@@ -331,3 +331,5 @@ msgstr "入力ロケール"
 msgid "X Input Method"
 msgstr "漢字入力メソッド"
 
+#~ msgid "Font size"
+#~ msgstr "フォントサイズ"

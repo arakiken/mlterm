@@ -53,6 +53,8 @@ static char *  encodings[] =
 	N_("--- Other 8bit ---"),
 	"KOI8-R (Russian)" ,
 	"KOI8-U (Ukrainian)" ,
+	"KOI8-T (Tajik)" ,
+	"GEORGIAN-PS (Georgian)" ,
 	"TCVN5712 (Vietnamese)" ,
 	"VISCII (Vietnamese)" ,
 	"ISCII (Indics)" ,
