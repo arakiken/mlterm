@@ -30,4 +30,5 @@ int  x_decsp_font_draw_string( x_decsp_font_t *  vtgr , Display *  display ,
 int  x_decsp_font_draw_image_string( x_decsp_font_t *  font , Display *  display ,
 	Drawable  drawable , GC  gc , int  x , int  y , u_char *  str , u_int  len) ;
 
+
 #endif

@@ -148,7 +148,14 @@ ml_line_reset(
 	ml_line_t *  line
 	)
 {
+#if  0
+	/*
+	 * If this check is enabled, ml_edit_clear_lines() in
+	 * ml_edit_scroll.c:scroll_{up|down}ward_region() cannot
+	 * set modified flag of the lines.
+	 */
 	if( line->num_of_filled_chars > 0)
+#endif
 	{
 		ml_line_set_modified_all( line) ;
 	}

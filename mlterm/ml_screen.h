@@ -203,6 +203,10 @@ int  ml_screen_clear_above( ml_screen_t *  screen) ;
 
 int  ml_screen_set_scroll_region( ml_screen_t *  screen , int  beg , int  end) ;
 
+int  ml_screen_index( ml_screen_t *  screen) ;
+
+int  ml_screen_reverse_index( ml_screen_t *  screen) ;
+
 int  ml_screen_scroll_upward( ml_screen_t *  screen , u_int  size) ;
 
 int  ml_screen_scroll_downward( ml_screen_t *  screen , u_int  size) ;

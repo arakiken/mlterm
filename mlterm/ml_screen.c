@@ -1716,12 +1716,28 @@ ml_screen_set_scroll_region(
 }
 
 int
+ml_screen_index(
+	ml_screen_t *  screen
+	)
+{
+	return  ml_edit_go_downward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
+}
+
+int
+ml_screen_reverse_index(
+	ml_screen_t *  screen
+	)
+{
+	return  ml_edit_go_upward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
+}
+
+int
 ml_screen_scroll_upward(
 	ml_screen_t *  screen ,
 	u_int  size
 	)
 {
-	return  ml_edit_go_downward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
+	return  ml_edit_scroll_upward( screen->edit , size) ;
 }
 
 int
@@ -1730,7 +1746,7 @@ ml_screen_scroll_downward(
 	u_int  size
 	)
 {
-	return  ml_edit_go_upward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
+	return  ml_edit_scroll_downward( screen->edit , size) ;
 }
 
 int

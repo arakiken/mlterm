@@ -363,7 +363,7 @@ ml_model_scroll_downward(
 	{
 		model->beg_row -= size ;
 	}
-
+	
 	return  1 ;
 }
 

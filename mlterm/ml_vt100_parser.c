@@ -675,7 +675,7 @@ parse_vt100_escape_sequence(
 			{
 				/* index(scroll up) */
 
-				ml_screen_scroll_upward( vt100_parser->screen , 1) ;
+				ml_screen_index( vt100_parser->screen) ;
 			}
 			else if( *str_p == 'E')
 			{
@@ -703,7 +703,7 @@ parse_vt100_escape_sequence(
 			{
 				/* reverse index(scroll down) */
 
-				ml_screen_scroll_downward( vt100_parser->screen , 1) ;
+				ml_screen_reverse_index( vt100_parser->screen) ;
 			}
 			else if( *str_p == 'Z')
 			{
@@ -1211,6 +1211,7 @@ parse_vt100_escape_sequence(
 					else if( *str_p == 'r')
 					{
 						/* Restore DEC Private Mode */
+						
 					#ifdef  DEBUG
 						kik_warn_printf( KIK_DEBUG_TAG
 							" ESC - [ ? %d r is not implemented.\n" ,
@@ -1220,6 +1221,7 @@ parse_vt100_escape_sequence(
 					else if( *str_p == 's')
 					{
 						/* Save DEC Private Mode */
+						
 					#ifdef  DEBUG
 						kik_warn_printf( KIK_DEBUG_TAG
 							" ESC - [ ? %d s is not implemented.\n" ,
@@ -1432,18 +1434,33 @@ parse_vt100_escape_sequence(
 					}
 					else if( *str_p == 'S')
 					{
-					#ifdef  DEBUG
-						kik_warn_printf( KIK_DEBUG_TAG
-							" ESC - [ - S is not implemented.\n") ;
-					#endif
+						/* scroll up */
+
+						if( num == 0)
+						{
+							ps[0] = 1 ;
+						}
+						
+						ml_screen_scroll_upward( vt100_parser->screen , ps[0]) ;
 					}
-					else if( *str_p == 'T' || *str_p == '^')
+					else if( *str_p == 'T')
+					{
+						/* scroll down */
+
+						if( num == 0)
+						{
+							ps[0] = 1 ;
+						}
+						
+						ml_screen_scroll_downward( vt100_parser->screen , ps[0]) ;
+					}
+					else if( *str_p == '^')
 					{
 						/* initiate hilite mouse tracking. */
 
 					#ifdef  DEBUG
 						kik_warn_printf( KIK_DEBUG_TAG
-							" ESC - [ - T(^) is not implemented.\n") ;
+							" ESC - [ - ^ is not implemented.\n") ;
 					#endif
 					}
 					else if( *str_p == 'X')

@@ -273,7 +273,7 @@ scroll_downward_region(
 
 		ml_model_reserve_boundary( &edit->model , brk_size) ;
 	}
-		
+	
 	if( boundary_beg == 0 && boundary_end == edit->model.num_of_rows - 1)
 	{
 		ml_model_scroll_downward( &edit->model , size) ;
@@ -283,11 +283,11 @@ scroll_downward_region(
 		copy_lines( edit , boundary_beg + size , boundary_beg ,
 			(boundary_end - size) - boundary_beg + 1 , 0) ;
 	}
-	
+
 	ml_edit_clear_lines( edit , boundary_beg , size) ;
 	
 	if( ! window_is_scrolled)
-	{	
+	{
 		int  count ;
 		
 		for( count = boundary_beg ; count <= boundary_end ; count ++)
