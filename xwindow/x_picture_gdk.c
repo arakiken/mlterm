@@ -27,12 +27,14 @@ modify_color(unsigned char value, x_picture_modifier_t *  pic_mod){
 	unsigned int result;
 
 	result = pic_mod->contrast*(value - 128)/100 + 128 * pic_mod->brightness/100;
-	if (result > 255)
+	if (result >= 255)
 		return 255;
- 	if (result <0)
+ 	if (result <= 0)
 		return 0;
+/* XXX  LUT should be made*/
+/* default gamma may be machine dependent?*/
 	if (pic_mod->gamma != 100)
-		result = 255 * pow((double)result / 255, (double)pic_mod->gamma / 100); /* XXX  LUT should be made*/
+		result = 255 * pow((double)result / 255, (double)pic_mod->gamma / 100);
 	return (unsigned char)(result);
 }
 static int
