@@ -1,3 +1,28 @@
+2004-09-10 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	IIIMF (Internet Intranet Input Method Framework) support:
+
+	* configure.in: added '--enable-iiimf'.
+
+	* inputmethod/iiimf/im_iiimf.c: new file
+	* inputmethod/iiimf/Makefile.in: new file
+
+	How to use:
+	--im=iiimf .............  use IIIMF with the default language.
+	--im=iiimf:ar ..........  use IIIMF with Arabic.
+	--im=iiimf:ja:CannaLE ..  use IIIMF with Japanese using CannaLE
+	                          languages engine.
+
+	about IIIMF:
+	<http://www.openi18n.org/subgroups/im/IIIMF/>
+
+2004-09-10 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/uim/im_uim.c (convert_encoding): moved to...
+	* xwindow/x_im.h (x_im_convert_encoding): ..this
+
+	* inputmethod/uim/im_uim.c: minor cleanups.
+
 2004-09-08 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/uim/im_uim.c (im_new):

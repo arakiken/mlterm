@@ -93,6 +93,75 @@ x_im_t *  x_im_new( ml_char_encoding_t  term_encoding ,
 		    x_im_event_listener_t *  im_listener ,
 		    char *  input_method) ;
 
+
+inline u_int
+x_im_convert_encoding(
+	mkf_parser_t *  parser , /* must be initialized */
+	mkf_conv_t *  conv ,
+	u_char *  from ,
+	u_char **  to ,		/* *to must be NULL */
+	u_int  from_len
+	)
+{
+	u_int  len ;
+	u_int  filled_len ;
+
+	if( from == NULL || parser == NULL || conv == NULL || *to)
+	{
+		return  0 ;
+	}
+
+	len = 0 ;
+
+	(*parser->set_str)( parser , from , from_len) ;
+
+#define  UNIT__ 1024
+
+	while( ! parser->is_eos)
+	{
+		u_char *  p ;
+
+		if( ! ( p = realloc( *to , UNIT__)))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
+		#endif
+
+			if( *to)
+			{
+				free( *to) ;
+			}
+
+			return  0 ;
+		}
+
+		*to = p ;
+
+		p = *to + len ;
+
+		filled_len = (*conv->convert)( conv , p , UNIT__ - 1 , parser) ;
+
+		len += filled_len ;
+
+		if( filled_len == 0)
+		{
+			/* finished converting */
+
+			break ;
+		}
+
+	}
+
+#undef  UNIT__
+
+	if( len)
+	{
+		(*to)[len] = '\0' ;
+	}
+
+	return  len ;
+}
+
 #define  IM_API_VERSION  0x02
 #define  IM_API_COMPAT_CHECK_MAGIC			\
 	 (IM_API_VERSION & 0xff << 28 |			\
