@@ -1,3 +1,8 @@
+2005-02-18  Mike FABIAN  <mfabian@suse.de>
+
+	* inputmethod/scim/Makefile.in: add "CC      = @CC@"
+	* man/mlterm.1: fix typo.
+
 2005-02-17 MINAMI Hirokazu <minami@mistfall.net>
 
 	* mlterm/ml_logs.c: use calloc to fail when integer overflow.
