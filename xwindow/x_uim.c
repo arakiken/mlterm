@@ -128,10 +128,19 @@ candwin_update_position(
 
 	invoke_candwin_if_not_available( &uim->candwin) ;
 
-	uim->listener->get_spot( uim->listener->self ,
-				 uim->preedit.chars ,
-				 uim->preedit.segment_offset ,
-				 &x , &y) ;
+	if( ! (*uim->listener->get_spot)( uim->listener->self ,
+					  uim->preedit.chars ,
+					  uim->preedit.segment_offset ,
+					  &x , &y))
+	{
+		fprintf( uim->candwin.pipe_w , "hide\n\n") ;
+		fflush( uim->candwin.pipe_w) ;
+
+		return  ;
+	}
+
+	fprintf( uim->candwin.pipe_w , "show\n\n") ;
+	fflush( uim->candwin.pipe_w) ;
 
 	if( uim->candwin.x == x && uim->candwin.y == y)
 	{
@@ -813,7 +822,7 @@ x_uim_new(
 	}
 
 	if( ! ( uim->context = uim_create_context( uim ,
-						   uim->encoding ,
+						   uim_encoding ,
 						   NULL ,
 						   engine ,
 						   uim_iconv ,
@@ -908,6 +917,8 @@ x_uim_delete(
 
 	if( uim->candwin.pid)
 	{
+		fclose( uim->candwin.pipe_w) ;
+		fclose( uim->candwin.pipe_r) ;
 		kill( uim->candwin.pid , SIGKILL) ;
 		uim->candwin.pid = 0 ;
 		uim->candwin.pipe_w = NULL ;

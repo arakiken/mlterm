@@ -2695,6 +2695,12 @@ key_pressed(
 	{
 		if( ! x_uim_filter_key_event( screen->uim , ksym , event))
 		{
+			if( ml_term_is_backscrolling( screen->term))
+			{
+				exit_backscroll_mode( screen) ;
+				redraw_screen( screen) ;
+			}
+
 			return ;
 		}
 	}
@@ -6457,10 +6463,16 @@ get_segment_spot(
 
 	if( ! screen->term->vertical_mode)
 	{
+		int  row ;
+
+		if( ( row = ml_term_cursor_row_in_screen( screen->term)) < 0)
+		{
+			return  0 ;
+		}
+
 		*x = convert_char_index_to_x_with_shape( screen , line ,
 				ml_term_cursor_char_index( screen->term)) ;
-		*y = convert_row_to_y( screen ,
-				ml_term_cursor_row( screen->term)) ;
+		*y = convert_row_to_y( screen , row) ;
 		*y += x_line_height( screen) + 3 ;
 	}
 	else
@@ -6584,11 +6596,6 @@ draw_preedit_str(
 		return  0 ;
 	}
 
-	if( ml_term_is_backscrolling( screen->term))
-	{
-		return  0 ;
-	}
-
 	if( ( line = ml_term_get_cursor_line( screen->term)) == NULL ||
 		ml_line_is_empty( line))
 	{
@@ -6601,7 +6608,16 @@ draw_preedit_str(
 
 	if( ! screen->term->vertical_mode)
 	{
-		beg_row = ml_term_cursor_row( screen->term) ;
+		int  row ;
+
+		row = ml_term_cursor_row_in_screen( screen->term) ;
+
+		if( row < 0)
+		{
+			return  0 ;
+		}
+
+		beg_row = row ;
 	}
 	else if( screen->term->vertical_mode == VERT_RTL)
 	{
@@ -6619,7 +6635,7 @@ draw_preedit_str(
 
 	x = convert_char_index_to_x_with_shape( screen , line ,
 				ml_term_cursor_char_index( screen->term)) ;
-	y = convert_row_to_y( screen , ml_term_cursor_row( screen->term)) ;
+	y = convert_row_to_y( screen , ml_term_cursor_row_in_screen( screen->term)) ;
 
 	for( i = 0 ; i < num_of_chars ; i++)
 	{

@@ -1,3 +1,17 @@
+2004-04-12  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* x_uim.c (x_uim_delete): To plug a file descriptor leak, closed pipes
+	for uim-helper-candwin-gtk.
+
+	* x_uim.c (x_uim_new): Plugged a memory leak detected by valgrind. It
+	was caused by uninitialized valiable 'uim->encoding'.
+
+	* x_screen.c (draw_preedit_str, get_segment_spot): Calculate the preedit
+	position correctly in the back scroll mode.
+
+	* x_uim.c (candwin_update_position): Hide a candidate window when the
+	cursor position is out of screen.
+
 2004-04-11  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* Added uim support.
