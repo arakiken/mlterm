@@ -1,3 +1,8 @@
+[20020119]
+* DynaFont problem is fixed by checking 'i' character width before 'W' character.
+  (thanks to Asaki Takumi san)
+* font,aafont are read before vfont,vaafont for variable column width fonts.
+
 [20020118]
 * XftTextExtents returns full width extents for DynaFont "W" , which makes space between
   characters too wide. fixed(there is still room for improvement).
