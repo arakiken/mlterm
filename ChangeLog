@@ -1,3 +1,7 @@
+2003-07-27  Araki Ken  <arakiken@users.sf.net>
+
+	* Added OPTIMIZE_REDRAWING macro, which is defined by default, to ml_line.c.
+
 2003-07-27  Tomohiro KUBOTA <kubota@debian.org>
 
 	* contrib/tool/mlterm-menu/Makefile.in: SYSCONFDIR is changed

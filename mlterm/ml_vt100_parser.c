@@ -65,6 +65,7 @@
 #define  DUMP_HEX
 #endif
 
+/* Optimization cooperating with OPTIMIZE_REDRAWING macro defined in ml_line.c. */
 #if  1
 #define  IGNORE_SPACE_FG_COLOR
 #endif

@@ -985,8 +985,8 @@ iscii_visual(
 			{
 				/*
 				 * XXX
-				 * this may break active cache for another line in "row" line.
-				 * it is preferable to swap iscii_logvis->{logical|visual}_lines[row]
+				 * This can break active cache for another line in "row" line.
+				 * It is preferable to swap iscii_logvis->{logical|visual}_lines[row]
 				 * and iscii_logvis->{logical|visual}_lines[hit_row] , but
 				 * this also works anyway:)
 				 */

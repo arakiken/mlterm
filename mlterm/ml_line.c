@@ -37,6 +37,11 @@
 #define  __DEBUG
 #endif
 
+/* Optimization cooperating with IGNORE_SPACE_FG_COLOR macro defined in ml_vt100_parser.c. */
+#if  1
+#define  OPTIMIZE_REDRAWING
+#endif
+
 
 /* --- global functions --- */
 
@@ -179,7 +184,8 @@ ml_line_reset(
 		
 		return  1 ;
 	}
-	
+
+#ifdef  OPTIMIZE_REDRAWING
 	count = END_CHAR_INDEX(line) ;
 	while( 1)
 	{
@@ -194,6 +200,9 @@ ml_line_reset(
 			break ;
 		}
 	}
+#else
+	ml_line_set_modified( line , 0 , count) ;
+#endif
 	
 	line->num_of_filled_chars = 0 ;
 
@@ -220,6 +229,7 @@ ml_line_clear(
 		return  1 ;
 	}
 
+#ifdef  OPTIMIZE_REDRAWING
 	count = END_CHAR_INDEX(line) ;
 	while( 1)
 	{
@@ -234,7 +244,10 @@ ml_line_clear(
 			break ;
 		}
 	}
-	
+#else
+	ml_line_set_modified( line , char_index , count) ;
+#endif
+
 	ml_char_copy( &line->chars[char_index] , ml_sp_ch()) ;
 	line->num_of_filled_chars = char_index + 1 ;
 	
@@ -283,6 +296,7 @@ ml_line_overwrite(
 		len = line->num_of_chars - beg_char_index ;
 	}
 
+#ifdef  OPTIMIZE_REDRAWING
 	if( len <= line->num_of_filled_chars - beg_char_index)
 	{
 		if( ml_str_equal( &line->chars[beg_char_index] , chars , len))
@@ -318,6 +332,7 @@ ml_line_overwrite(
 			}
 		}
 	}
+#endif
 
 	cols_to_beg = ml_str_cols( line->chars , beg_char_index) ;
 
@@ -453,6 +468,7 @@ ml_line_fill(
 		return  0 ;
 	}
 
+#ifdef  OPTIMIZE_REDRAWING
 	count = 0 ;
 	while( 1)
 	{
@@ -496,6 +512,7 @@ ml_line_fill(
 			break ;
 		}
 	}
+#endif
 
 	num = K_MIN(num,line->num_of_chars - beg) ;
 
