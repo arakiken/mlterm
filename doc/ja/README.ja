@@ -55,8 +55,11 @@ comment $Id$
       デフォルトでは、UCS2。
       現在のところ、メモリ消費量が増えるだけで、あんまし(全然)、意味ないです。
 
+    --disable-shared
+      共有ライブラリを構築しません。
+
     --disable-static
-      staticリンク用のライブラリを構築しません(推奨)
+      静的ライブラリを構築しません。
 
     --with-libtool=[path]
       libtool を自動生成せず、システムのlibtoolを使うよう指定します。

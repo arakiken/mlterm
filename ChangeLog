@@ -1,4 +1,7 @@
 [20020206]
+* step in resizing window gets wrong. fixed.
+
+[20020206]
 * when font size is changed with right scrollbar , scrollbar is placed
   in strange position. fixed.
 
