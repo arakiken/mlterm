@@ -1,3 +1,8 @@
+2002-12-13 Araki Ken <arakiken@users.sf.net>
+
+	* Fixed a bug in ml_line_fill().
+	  (Thanks to Sato Seiichi san)
+
 2002-12-10 Araki Ken <arakiken@users.sf.net>
 
 	* Fixed cursor highlight problem.

@@ -404,9 +404,10 @@ clear_line_to_left(
 		sp_ch = ml_sp_ch() ;
 	}
 
+	ml_line_fill( cursor_line , sp_ch , 0 , edit->cursor.col + 1) ;
+
 	edit->cursor.char_index = edit->cursor.col ;
-	
-	ml_line_fill( cursor_line , sp_ch , 0 , edit->cursor.char_index + 1) ;
+	edit->cursor.col_in_char = 0 ;
 
 	return  1 ;
 }

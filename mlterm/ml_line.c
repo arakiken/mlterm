@@ -391,7 +391,7 @@ ml_line_fill(
 				}
 			}
 			
-			char_index ++ ;
+			char_index += (left_cols / ml_char_cols(ch)) ;
 			
 			break ;
 		}
