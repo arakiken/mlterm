@@ -251,7 +251,7 @@ open_term(
 	}
 
 	if( ( screen = x_screen_new( term , font_man , color_man , termcap ,
-			term_man->conf.brightness ,
+			term_man->conf.brightness , term_man->conf.contrast , term_man->conf.gamma ,
 			term_man->conf.fade_ratio , &term_man->keymap ,
 			term_man->conf.screen_width_ratio , term_man->conf.screen_height_ratio ,
 			term_man->conf.xim_open_in_startup , term_man->conf.mod_meta_key ,
@@ -799,6 +799,12 @@ get_min_conf(
 		"screen width in percent against font width [default = 100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
 		"screen height in percent against font height [100]") ;
+#if defined(USE_IMLIB)
+	kik_conf_add_opt( conf , '3' , "contrast" , 0 , "contrast" ,
+		"contrast of background image in percent [100]") ;
+	kik_conf_add_opt( conf , '4' , "gamma" , 0 , "gamma" ,
+		"gamma of background image in percent [100]") ;
+#endif
 	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" ,
 		"manage buggy Big5 CTEXT in XFree86 4.1 or earlier [false]") ;
 	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , 
@@ -825,8 +831,10 @@ get_min_conf(
 		"scrollbar foreground color") ;
 	kik_conf_add_opt( conf , 'G' , "vertical" , 0 , "vertical_mode" ,
 		"vertical mode [none/cjk/mongol]") ;
+#if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
 	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
 		"brightness of background image in percent [100]") ;
+#endif
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
 	kik_conf_add_opt( conf , 'J' , "dyncomb" , 1 , "use_dynamic_comb" ,
@@ -1338,6 +1346,38 @@ config_init(
 		else
 		{
 			kik_msg_printf( "shade ratio %s is not valid.\n" , value) ;
+		}
+	}
+	
+	term_man->conf.contrast = 100 ;
+
+	if( ( value = kik_conf_get_value( conf , "contrast")))
+	{
+		u_int  contrast ;
+		
+		if( kik_str_to_uint( &contrast , value))
+		{
+			term_man->conf.contrast = contrast ;
+		}
+		else
+		{
+			kik_msg_printf( "contrast ratio %s is not valid.\n" , value) ;
+		}
+	}
+	
+	term_man->conf.gamma = 100 ;
+
+	if( ( value = kik_conf_get_value( conf , "gamma")))
+	{
+		u_int  gamma ;
+		
+		if( kik_str_to_uint( &gamma , value))
+		{
+			term_man->conf.gamma = gamma ;
+		}
+		else
+		{
+			kik_msg_printf( "gamma ratio %s is not valid.\n" , value) ;
 		}
 	}
 	

@@ -11,11 +11,6 @@
 #include  "x_picture_dep.h"
 
 
-#if  1
-#define  PSEUDO_TRANSPARENT
-#endif
-
-
 /* --- global functions --- */
 
 int
@@ -108,4 +103,19 @@ x_picture_load_background(
 	}
 
 	return  1 ;
+}
+
+int
+x_picture_modifier_is_normal(
+	x_picture_modifier_t *  pic_mod
+	)
+{
+	if( pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100)
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }

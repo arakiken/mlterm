@@ -1834,7 +1834,7 @@ get_picture_modifier(
 	x_screen_t *  screen
 	)
 {
-	if( screen->pic_mod.brightness == 100)
+	if( x_picture_modifier_is_normal( &screen->pic_mod))
 	{
 		return  NULL ;
 	}
@@ -3457,19 +3457,20 @@ selecting_with_motion(
 {
 	int  char_index ;
 	int  row ;
-	int  x_is_minus ;
+	int  x_is_outside ;
 	u_int  x_rest ;
 	ml_line_t *  line ;
 
-	x_is_minus = 0 ;
+	x_is_outside = 0 ;
 	if( x < 0)
 	{
 		x = 0 ;
-		x_is_minus = 1 ;
+		x_is_outside = 1 ;
 	}
 	else if( x > screen->window.width)
 	{
 		x = screen->window.width ;
+		x_is_outside = 1 ;
 	}
 	
 	if( y < 0)
@@ -3508,7 +3509,7 @@ selecting_with_motion(
 	}
 	
 	char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
-	
+
 	if( ml_line_is_rtl( line))
 	{
 		char_index = -char_index ;
@@ -3532,14 +3533,14 @@ selecting_with_motion(
 	{
 		if( x_is_after_sel_right_base_pos( &screen->sel , char_index , row))
 		{
-			if( abs( char_index) > 0 || ( ! x_is_minus && ml_line_is_rtl( line)))
+			if( ! x_is_outside && abs( char_index) > 0)
 			{
 				char_index -- ;
 			}
 		}
 		else if( x_is_before_sel_left_base_pos( &screen->sel , char_index , row))
 		{
-			if( ! x_is_minus && abs( char_index) < ml_line_end_char_index( line))
+			if( ! x_is_outside && abs( char_index) < ml_line_end_char_index( line))
 			{
 				char_index ++ ;
 			}
@@ -4525,20 +4526,10 @@ change_wall_picture(
 }
 
 static void
-change_brightness(
-	x_screen_t *  screen ,
-	u_int  brightness
+picture_modifier_changed(
+	x_screen_t *  screen
 	)
 {
-	if( screen->pic_mod.brightness == brightness)
-	{
-		/* not changed */
-		
-		return ;
-	}
-
-	screen->pic_mod.brightness = brightness ;
-	
 	if( screen->window.is_transparent)
 	{
 		x_window_set_transparent( &screen->window , get_picture_modifier( screen)) ;
@@ -4553,6 +4544,60 @@ change_brightness(
 	{
 		set_wall_picture( screen) ;
 	}
+}
+
+static void
+change_brightness(
+	x_screen_t *  screen ,
+	u_int  brightness
+	)
+{
+	if( screen->pic_mod.brightness == brightness)
+	{
+		/* not changed */
+		
+		return ;
+	}
+
+	screen->pic_mod.brightness = brightness ;
+
+	picture_modifier_changed( screen);
+}
+	
+static void
+change_contrast(
+	x_screen_t *  screen ,
+	u_int  contrast
+	)
+{
+	if( screen->pic_mod.contrast == contrast)
+	{
+		/* not changed */
+		
+		return ;
+	}
+
+	screen->pic_mod.contrast = contrast ;
+	
+	picture_modifier_changed( screen);
+}
+	
+static void
+change_gamma(
+	x_screen_t *  screen ,
+	u_int  gamma
+	)
+{
+	if( screen->pic_mod.gamma == gamma)
+	{
+		/* not changed */
+		
+		return ;
+	}
+
+	screen->pic_mod.gamma = gamma ;
+	
+	picture_modifier_changed( screen);
 }
 	
 static void
@@ -4856,6 +4901,28 @@ set_config(
 		}
 
 		change_brightness( screen , brightness) ;
+	}
+	else if( strcmp( key , "contrast") == 0)
+	{
+		u_int  contrast ;
+
+		if( ! kik_str_to_uint( &contrast , value))
+		{
+			return ;
+		}
+
+		change_contrast( screen , contrast) ;
+	}
+	else if( strcmp( key , "gamma") == 0)
+	{
+		u_int  gamma ;
+
+		if( ! kik_str_to_uint( &gamma , value))
+		{
+			return ;
+		}
+
+		change_gamma( screen , gamma) ;
 	}
 	else if( strcmp( key , "fade_ratio") == 0)
 	{
@@ -5162,6 +5229,16 @@ get_config(
 	else if( strcmp( key , "brightness") == 0)
 	{
 		sprintf( digit , "%d" , screen->pic_mod.brightness) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "contrast") == 0)
+	{
+		sprintf( digit , "%d" , screen->pic_mod.contrast) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "gamma") == 0)
+	{
+		sprintf( digit , "%d" , screen->pic_mod.gamma) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "fade_ratio") == 0)
@@ -5744,6 +5821,8 @@ x_screen_new(
 	x_color_manager_t *  color_man ,
 	x_termcap_entry_t *  termcap ,
 	u_int  brightness ,
+	u_int  contrast ,
+	u_int  gamma ,
 	u_int  fade_ratio ,
 	x_keymap_t *  keymap ,
 	u_int  screen_width_ratio ,
@@ -5857,7 +5936,9 @@ x_screen_new(
 	}
 
 	screen->pic_mod.brightness = brightness ;
-	
+	screen->pic_mod.contrast = contrast ;
+	screen->pic_mod.gamma = gamma ;
+
 	screen->fade_ratio = fade_ratio ;
 	screen->is_focused = 0 ;
 

@@ -1,3 +1,9 @@
+2002-07-04 Araki Ken <arakiken@users.sf.net>
+
+	* -3/--contrast,-4/--gamma options are added.
+	  (Thanks to IWAMOTO Toshihiro san and Nakada Nobuyoshi san)
+	* the last character of each line cannot be selected by mouse. fixed.
+
 2002-07-03  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* HOME/END key support is added.

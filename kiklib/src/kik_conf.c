@@ -63,7 +63,7 @@ usage(
 
 	printf( "usage: %s" , conf->prog_name) ;
 	
-	for( count = 0 ; count < 0x5f ; count ++)
+	for( count = 0 ; count < conf->num_of_opts ; count ++)
 	{
 		if( conf->arg_opts[count] != NULL && conf->arg_opts[count]->opt != conf->end_opt)
 		{
@@ -81,7 +81,7 @@ usage(
 	printf( "\n\noptions:\n") ;
 
 	end_opt = NULL ;
-	for( count = 0 ; count < 0x5f ; count ++)
+	for( count = 0 ; count < conf->num_of_opts ; count ++)
 	{
 		if( conf->arg_opts[count] != NULL)
 		{
@@ -110,12 +110,19 @@ usage(
 				}
 
 				/* 3 bytes */
-				sprintf( str , " -%c" , conf->arg_opts[count]->opt) ;
+				if( conf->arg_opts[count]->opt)
+				{
+					sprintf( str , " -%c" , conf->arg_opts[count]->opt) ;
+				}
+				else
+				{
+					strcpy( str , "   ") ;
+				}
 
 				if( conf->arg_opts[count]->long_opt)
 				{
 					/* 3 bytes */
-					strcat( str , "/--") ;
+					strcat( str , conf->arg_opts[count]->opt ? "/--" : " --") ;
 					
 					strcat( str , conf->arg_opts[count]->long_opt) ;
 				}
@@ -209,14 +216,29 @@ kik_conf_new(
 		return  NULL ;
 	}
 	
-	memset( conf , 0 , sizeof( kik_conf_t)) ;
-	
 	conf->prog_name = prog_name ;
 
 	conf->major_version = major_version ;
 	conf->minor_version = minor_version ;
 	conf->revision = revision ;
 	conf->patch_level = patch_level ;
+
+	conf->num_of_opts = 0x60 ;
+
+	if( ( conf->arg_opts = malloc( conf->num_of_opts * sizeof( kik_arg_opt_t *))) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+	#endif
+	
+		free( conf) ;
+		
+		return  NULL ;
+	}
+
+	memset( conf->arg_opts , 0 , conf->num_of_opts * sizeof( kik_arg_opt_t *)) ;
+	
+	conf->end_opt = '\0' ;
 	
 	kik_map_new( char * , kik_conf_entry_t * , conf->conf_entries ,
 		kik_map_hash_str , kik_map_compare_str) ;
@@ -233,13 +255,15 @@ kik_conf_delete(
 	KIK_PAIR( kik_conf_entry) *  pairs ;
 	u_int  size ;
 
-	for( count = 0 ; count < 0x5f ; count ++)
+	for( count = 0 ; count < conf->num_of_opts ; count ++)
 	{
 		if( conf->arg_opts[count])
 		{
 			free( conf->arg_opts[count]) ;
 		}
 	}
+
+	free( conf->arg_opts) ;
 
 	kik_map_get_pairs_array( conf->conf_entries , pairs , size) ;
 	
@@ -261,16 +285,51 @@ kik_conf_delete(
 int
 kik_conf_add_opt(
 	kik_conf_t *  conf ,
-	char   opt ,
-	char *  long_opt ,	/* optional(NULL is accepted) */
+	char   short_opt ,	/* '\0' is accepted */
+	char *  long_opt ,	/* NULL is accepted */
 	int  is_boolean ,
 	char *  key ,
 	char *  help
 	)
 {
-	if( conf->arg_opts[CH2IDX(opt)] == NULL)
+	kik_arg_opt_t **  opt ;
+
+	if( short_opt == '\0')
 	{
-		if( ( conf->arg_opts[CH2IDX(opt)] = malloc( sizeof( kik_arg_opt_t))) == NULL)
+		kik_arg_opt_t **  arg_opts ;
+
+		if( long_opt == NULL)
+		{
+			/* it is not accepted that both opt and long_opt are NULL. */
+			return  0 ;
+		}
+
+		if( ( arg_opts = realloc( conf->arg_opts ,
+			(conf->num_of_opts + 1) * sizeof( kik_arg_opt_t *))) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " realloc() failed.\n") ;
+		#endif
+
+			return  0 ;
+		}
+		
+		conf->arg_opts = arg_opts ;
+		opt = &arg_opts[conf->num_of_opts++] ;
+		*opt = NULL ;
+	}
+	else if( short_opt < ' ')
+	{
+		return  0 ;
+	}
+	else
+	{
+		opt = &conf->arg_opts[CH2IDX(short_opt)] ;
+	}
+	
+	if( *opt == NULL)
+	{
+		if( ( *opt = malloc( sizeof( kik_arg_opt_t))) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
@@ -280,11 +339,11 @@ kik_conf_add_opt(
 		}
 	}
 
-	conf->arg_opts[CH2IDX(opt)]->opt = opt ;
-	conf->arg_opts[CH2IDX(opt)]->long_opt = long_opt ;
-	conf->arg_opts[CH2IDX(opt)]->key = key ;
-	conf->arg_opts[CH2IDX(opt)]->is_boolean = is_boolean ;
-	conf->arg_opts[CH2IDX(opt)]->help = help ;
+	(*opt)->opt = short_opt ;
+	(*opt)->long_opt = long_opt ;
+	(*opt)->key = key ;
+	(*opt)->is_boolean = is_boolean ;
+	(*opt)->help = help ;
 
 	return  1 ;
 }
@@ -311,7 +370,7 @@ kik_conf_parse_args(
 	char ***  argv
 	)
 {
-	char *  opt ;
+	char *  opt_name ;
 	char *  opt_val ;
 	KIK_PAIR( kik_conf_entry)  pair ;
 	kik_conf_entry_t *  entry ;
@@ -321,57 +380,61 @@ kik_conf_parse_args(
 	(*argv) ++ ;
 	(*argc) -- ;
 
-	while( kik_parse_options( &opt , &opt_val , argc , argv))
+	while( kik_parse_options( &opt_name , &opt_val , argc , argv))
 	{
 		char  short_opt ;
+		kik_arg_opt_t *  opt ;
 
-		if( strlen( opt) == 1)
+		if( strlen( opt_name) == 1)
 		{
-			short_opt = *opt ;
+			short_opt = *opt_name ;
+			
+			if( ( opt = conf->arg_opts[CH2IDX(short_opt)]) == NULL)
+			{
+				kik_msg_printf( "%s is unknown option.\n\n" , opt_name) ;
+				
+				goto error ;
+			}
 		}
-		else if( strlen( opt) > 1)
+		else if( strlen( opt_name) > 1)
 		{
 			/* long opt -> short opt */
 			
 			int  count ;
+
+			opt = NULL ;
 			
-			for( count = 0 ; count < 0x5f ; count ++)
+			for( count = 0 ; count < conf->num_of_opts ; count ++)
 			{
 				if( conf->arg_opts[count] && conf->arg_opts[count]->long_opt &&
-					strcmp( opt , conf->arg_opts[count]->long_opt) == 0)
+					strcmp( opt_name , conf->arg_opts[count]->long_opt) == 0)
 				{
-					short_opt = conf->arg_opts[count]->opt ;
+					opt = conf->arg_opts[count] ;
 					
 					break ;
 				}
 			}
 
-			if( count == 0x5f)
+			if( ! opt)
 			{
-				kik_msg_printf( "%s is unknown option.\n\n" , opt) ;
+				kik_msg_printf( "%s is unknown option.\n\n" , opt_name) ;
 
 				goto error ;
 			}
+
+			short_opt = opt->opt ;
 		}
 		else
 		{
-			kik_msg_printf( "%s is unknown option.\n\n" , opt) ;
+			kik_msg_printf( "%s is unknown option.\n\n" , opt_name) ;
 			
 			goto error ;
 		}
 
-		if( conf->arg_opts[CH2IDX(short_opt)] == NULL)
-		{
-			kik_msg_printf( "%s is unknown option.\n\n" , opt) ;
-			
-			goto error ;
-		}
-	
-		kik_map_get( ret , conf->conf_entries , conf->arg_opts[CH2IDX(short_opt)]->key , pair) ;
+		kik_map_get( ret , conf->conf_entries , opt->key , pair) ;
 		if( ! ret)
 		{
-			if( ( entry = create_new_conf_entry( conf , conf->arg_opts[CH2IDX(short_opt)]->key))
-				== NULL)
+			if( ( entry = create_new_conf_entry( conf , opt->key)) == NULL)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " create_new_conf_entry() failed.\n") ;
@@ -403,7 +466,7 @@ kik_conf_parse_args(
 			__exit( conf , 1) ;
 		}
 
-		if( conf->arg_opts[CH2IDX(short_opt)]->is_boolean)
+		if( opt->is_boolean)
 		{
 			if( opt_val)
 			{
@@ -435,7 +498,7 @@ kik_conf_parse_args(
 				
 				if( (*argv)[0] == NULL)
 				{
-					kik_msg_printf( "%s option requires value.\n\n" , opt) ;
+					kik_msg_printf( "%s option requires value.\n\n" , opt_name) ;
 
 					entry->value = NULL ;
 					

@@ -45,7 +45,8 @@ typedef struct  kik_conf
 	int  revision ;
 	int  patch_level ;
 
-	kik_arg_opt_t *  arg_opts[0x5f] ;	/* 0x20 - 0x7f */
+	kik_arg_opt_t **  arg_opts ;	/* 0x20 - 0x7f */
+	int  num_of_opts ;
 	char  end_opt ;
 	
 	KIK_MAP( kik_conf_entry)  conf_entries ;
@@ -58,10 +59,10 @@ kik_conf_t *  kik_conf_new( char *  prog_name , int  major_version ,
 
 int  kik_conf_delete( kik_conf_t *  conf) ;
 
-int  kik_conf_add_opt( kik_conf_t *  conf , char  opt , char *  long_opt ,
+int  kik_conf_add_opt( kik_conf_t *  conf , char  short_opt , char *  long_opt ,
 	int  is_boolean , char *  key , char *  help) ;
 
-int  kik_conf_set_end_opt( kik_conf_t *  conf , char   opt , char *  long_opt , char *  key , char *  help) ;
+int  kik_conf_set_end_opt( kik_conf_t *  conf , char  opt , char *  long_opt , char *  key , char *  help) ;
 
 int  kik_conf_parse_args( kik_conf_t *  conf , int *  argc , char ***  argv) ;
 

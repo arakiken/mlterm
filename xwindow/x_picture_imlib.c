@@ -67,12 +67,14 @@ modify_image(
 	x_picture_modifier_t *  pic_mod
 	)
 {
-	if( pic_mod->brightness != 100)
+	if( pic_mod->brightness != 100 || pic_mod->contrast != 100 || pic_mod->gamma != 100)
 	{
 		ImlibColorModifier  mod ;
 
 		Imlib_get_image_modifier( imlib , img , &mod) ;
 		mod.brightness = ( mod.brightness * pic_mod->brightness) / 100 ;
+		mod.contrast = ( mod.contrast * pic_mod->contrast) / 100 ;
+		mod.gamma = ( mod.gamma * pic_mod->gamma) / 100 ;
 		Imlib_set_image_modifier( imlib , img , &mod) ;
 	}
 	
