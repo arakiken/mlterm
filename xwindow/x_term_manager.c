@@ -24,8 +24,8 @@
 #include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
 #include  <kiklib/kik_types.h>	/* u_int */
 #include  <kiklib/kik_sig_child.h>
-#include  <version.h>
 
+#include  "version.h"
 #include  "x_xim.h"
 #include  "x_sb_screen.h"
 #include  "x_display.h"

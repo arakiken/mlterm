@@ -45,7 +45,7 @@ int  x_release_font_cache( x_font_cache_t *  font_cache) ;
 
 x_font_t *  x_font_cache_get_xfont( x_font_cache_t *  font_cache , ml_font_t  font) ;
 
-char *  x_font_cache_get_all_font_names( x_font_cache_t *  font_cache) ;
+char *  x_get_font_name_list_for_fontset( x_font_cache_t *  font_cache) ;
 
 
 #endif

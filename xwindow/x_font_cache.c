@@ -4,6 +4,9 @@
 
 #include  "x_font_cache.h"
 
+#include  <stdio.h>		/* sprintf */
+#include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
+
 
 /* --- static variables --- */
 
@@ -259,30 +262,59 @@ x_font_cache_get_xfont(
 }
 
 char *
-x_font_cache_get_all_font_names(
+x_get_font_name_list_for_fontset(
 	x_font_cache_t *  font_cache
 	)
 {
+	char *  font_name_list ;
+	char *  p ;
+	size_t  list_len ;
+	
 	if( font_cache->font_custom->font_present & FONT_AA)
 	{
 		x_font_custom_t *  font_custom ;
-		char *  font_name_list ;
 
 		if( ( font_custom = x_acquire_font_custom(
-					font_cache->font_custom->font_present & ~FONT_AA))
-			== NULL)
+					font_cache->font_custom->font_present & ~FONT_AA)) == NULL)
 		{
-			return  0 ;
+			font_name_list = NULL ;
 		}
+		else
+		{
+			font_name_list = x_get_all_custom_font_names( font_custom , font_cache->font_size) ;
 
-		font_name_list = x_get_all_custom_font_names( font_custom , font_cache->font_size) ;
-
-		x_release_font_custom( font_custom) ;
-
-		return  font_name_list ;
+			x_release_font_custom( font_custom) ;
+		}
 	}
 	else
 	{
-		return  x_get_all_custom_font_names( font_cache->font_custom , font_cache->font_size) ;
+		font_name_list = x_get_all_custom_font_names( font_cache->font_custom ,
+					font_cache->font_size) ;
 	}
+
+	if( font_name_list)
+	{
+		list_len = strlen( font_name_list) ;
+	}
+	else
+	{
+		list_len = 0 ;
+	}
+
+	if( ( p = realloc( font_name_list , list_len + 27 + DIGIT_STR_LEN(font_cache->font_size) + 1))
+			== NULL)
+	{
+		return  font_name_list ;
+	}
+
+	if( font_name_list)
+	{
+		sprintf( p , "%s-*-*-medium-r-*--%d-*-*-*-*-*" , font_name_list , font_cache->font_size) ;
+	}
+	else
+	{
+		sprintf( p , "-*-*-medium-r-*--%d-*-*-*-*-*" , font_cache->font_size) ;
+	}
+
+	return  p ;
 }

@@ -422,11 +422,11 @@ x_get_fontset(
 	int  miss_num ;
 	char *  def_str ;
 
-	if( ( list_str = x_font_cache_get_all_font_names( font_man->font_cache)) == NULL)
+	if( ( list_str = x_get_font_name_list_for_fontset( font_man->font_cache)) == NULL)
 	{
-		return  None ;
+		return  NULL ;
 	}
-
+	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " font set list -> %s\n" , list_str) ;
 #endif
@@ -435,13 +435,13 @@ x_get_fontset(
 			&missing , &miss_num , &def_str) ;
 
 	free( list_str) ;
-
+	
 #ifdef  DEBUG
 	if( miss_num)
 	{
 		int  count ;
 		
-		kik_warn_printf( KIK_DEBUG_TAG " missing these fonts ...\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " missing charsets ...\n") ;
 		for( count = 0 ; count < miss_num ; count ++)
 		{
 			kik_msg_printf( " %s\n" , missing[count]) ;
