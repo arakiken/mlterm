@@ -228,6 +228,14 @@ parse_prop_bgimage(
         {
                 src = head +7;
         }
+        if( head = strstr( src, "\r"))
+        {
+                *head = 0 ;
+        }
+        if( head = strstr( src, "\n"))
+        {
+                *head = 0 ;
+        }
 #ifdef  DEBUG
         kik_debug_printf( "bgimage: %s\n" , src) ;
 #endif
