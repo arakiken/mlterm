@@ -63,6 +63,10 @@
 #define  PERF_DEBUG
 #endif
 
+#if  1
+#define  NL_TO_CR_IN_PAST_TEXT
+#endif
+
 
 /* --- static functions --- */
 
@@ -2520,6 +2524,24 @@ yank_event_received(
 			return  0 ;
 		}
 
+	#ifdef  NL_TO_CR_IN_PAST_TEXT
+		{
+			int  count ;
+			
+			/*
+			 * Convert normal newline chars to carriage return chars which are
+			 * common return key sequences.
+			 */
+			for( count = 0 ; count < screen->sel.sel_len ; count ++)
+			{
+				if( ml_char_bytes_is( &screen->sel.sel_str[count] , "\n" , 1 , US_ASCII))
+				{
+					ml_char_set_bytes( &screen->sel.sel_str[count] , "\r") ;
+				}
+			}
+		}
+	#endif
+		
 		(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
 		ml_str_parser_set_str( screen->ml_str_parser ,
 			screen->sel.sel_str , screen->sel.sel_len) ;
@@ -3354,9 +3376,9 @@ xct_selection_notified(
 	)
 {
 	x_screen_t *  screen ;
-	int  count ;
 
-	screen = (x_screen_t*) win ;
+#ifdef  NL_TO_CR_IN_PAST_TEXT
+	int  count ;
 
 	/*
 	 * Convert normal newline chars to carriage return chars which are
@@ -3369,6 +3391,9 @@ xct_selection_notified(
 			str[count] = '\r' ;
 		}
 	}
+#endif
+
+	screen = (x_screen_t*) win ;
 
 #if  1
 	/*
@@ -3428,10 +3453,8 @@ utf8_selection_notified(
 	size_t  len
 	)
 {
-	x_screen_t *  screen ;
+#ifdef  NL_TO_CR_IN_PAST_TEXT
 	int  count ;
-
-	screen = (x_screen_t*) win ;
 
 	/*
 	 * Convert normal newline chars to carriage return chars which are
@@ -3444,8 +3467,9 @@ utf8_selection_notified(
 			str[count] = '\r' ;
 		}
 	}
+#endif
 
-	write_to_pty( screen , str , len , screen->utf8_parser) ;
+	write_to_pty( (x_screen_t*) win , str , len , ( (x_screen_t*) win)->utf8_parser) ;
 }
 
 

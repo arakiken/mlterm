@@ -1,3 +1,8 @@
+2002-12-15 Araki Ken <arakiken@users.sf.net>
+
+	* 2002-12-14 fix was incomplete, that is, copy&paste in the same window failed. fixed.
+	  (Thanks to Martin Horcicka)
+
 2002-12-14 Araki Ken <arakiken@users.sf.net>
 
 	* Newline characters in pasted text are converted to carriage return characters.
