@@ -1,5 +1,9 @@
 2004-10-16 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* README, doc/en/PLATFORM: updated supported platforms.
+
+2004-10-16 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* tool/mlconfig/mc_im.c (is_im_plugin): fixed a stupid bug.
 	  (strstr() == 0 -> strstr())
 

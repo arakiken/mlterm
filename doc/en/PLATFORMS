@@ -1,7 +1,46 @@
 comment -*- mode: text -*-
 comment $Id$
 
+supported platforms (mlterm-2.8.0 post/cvs-1.732)
+
+* tested by Seiichi SATO <ssato@sh.rim.or.jp>
+  Debian GNU/Linux Sid, GNU libc 2.3.2, gcc-3.3.5 (i386)
+    configure options:
+      --enable-fribidi
+      --enable-ind
+      --with-tools=mlclient,mlconfig,mlterm-menu,mlcc,mlterm-zoom
+      --with-scrollbars=sample,extra,pixmap_engine
+      --with-imagelib=gdk-pixbuf2
+      --with-type-engines=xft,xcore
+      --enable-optimize-redrawing
+      --enable-uim
+      --enable-iiimf
+      --enable-m17nlib
+      --enable-utmp
+    termtype: mlterm
+  OpenBSD 3.5, gcc-2.95.3 (i386)
+    configure options: --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
+                       --with-scrollbars=sample,extra
+                       --with-type-engines=xcore
+    termtype: mlterm
+  MS Windows 98/Cygwin-1.5.11 with x-org 6.8.1.0-3 (i386)
+    configure options: --with-type-engines=xft,xcore
+                       --with-scrollbars=sample,extra
+                       --with-tools=mlclient,mlconfig,mlcc
+    termtype: xterm
+  Fedora Core 2 (i386)
+    configure options: --with-type-engines=xft
+                       --with-tools=mlclient,mlconfig
+    termtype: xterm
+  SuSE LINUX 9.1 (i386)
+    configure options: --with-type-engines=xcore,xft
+                       --with-tools=mlclient,mlconfig
+                       --with-scrollbars=sample,extra,pixmap_engine
+    termtype: xterm
+
+
 supported platforms (mlterm-2.2.0pl1)
+
 * tested by Okazaki Tetsurou san
   cygwin-1.3.9-1 with Cygwin/XFree86 4.2.0
   cygwin-1.3.9-1 with Cygwin/XFree86 4.1.0
