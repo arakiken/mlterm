@@ -1,3 +1,7 @@
+[20020413]
+* each line had its tab stop list and "\x1bH" didn't work as expected. fixed.
+* doc/ja/README.comb is added.
+
 [20020410]
 * man/mlterm.1 is updated.
 * scroll by 'd' and 'u' keys was NA. fixed.
