@@ -115,7 +115,7 @@ typedef struct  ml_term_screen
 	
 	u_int  screen_width_ratio ;
 	u_int  screen_height_ratio ;
-	
+
 	ml_pty_encoding_event_listener_t *  encoding_listener ;
 	ml_system_event_listener_t *  system_listener ;
 	ml_screen_scroll_event_listener_t *  screen_scroll_listener ;

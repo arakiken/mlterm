@@ -1310,6 +1310,7 @@ config_menu(
 		termscr->font_man->font_size ,
 		termscr->font_man->font_custom->min_font_size ,
 		termscr->font_man->font_custom->max_font_size ,
+		termscr->font_man->line_space ,
 		termscr->screen_width_ratio , termscr->screen_height_ratio ,
 		termscr->mod_meta_mode , termscr->bel_mode , termscr->vertical_mode ,
 		ml_is_char_combining() , termscr->copy_paste_via_ucs ,
@@ -2747,6 +2748,21 @@ change_font_size(
 }
 
 static void
+change_line_space(
+	void *  p ,
+	u_int  line_space
+	)
+{
+	ml_term_screen_t *  termscr ;
+
+	termscr = p ;
+
+	termscr->font_man->line_space = line_space ;
+
+	font_size_changed( termscr) ;
+}
+
+static void
 change_screen_width_ratio(
 	void *  p ,
 	u_int  ratio
@@ -3805,6 +3821,7 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_tab_size = change_tab_size ;
 	termscr->config_menu_listener.change_log_size = change_log_size ;
 	termscr->config_menu_listener.change_font_size = change_font_size ;
+	termscr->config_menu_listener.change_line_space = change_line_space ;
 	termscr->config_menu_listener.change_screen_width_ratio = change_screen_width_ratio ;
 	termscr->config_menu_listener.change_screen_height_ratio = change_screen_height_ratio ;
 	termscr->config_menu_listener.change_mod_meta_mode = change_mod_meta_mode ;

@@ -19,6 +19,7 @@
 #include  "mc_tabsize.h"
 #include  "mc_logsize.h"
 #include  "mc_fontsize.h"
+#include  "mc_line_space.h"
 #include  "mc_screen_ratio.h"
 #include  "mc_mod_meta.h"
 #include  "mc_bel.h"
@@ -81,7 +82,7 @@ apply_clicked(
 	 * [combining char] [copy paste via ucs] [is transparent] [fade ratio] [font present] \
 	 * [is bidi] [xim] [locale][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( out , "CONFIG:%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
 		mc_get_char_encoding() ,
 		mc_get_iscii_lang() ,
 		mc_get_fg_color() ,
@@ -89,6 +90,7 @@ apply_clicked(
 		mc_get_tabsize() ,
 		mc_get_logsize() ,
 		mc_get_fontsize() ,
+		mc_get_line_space() ,
 		mc_get_screen_width_ratio() ,
 		mc_get_screen_height_ratio() ,
 		mc_get_mod_meta_mode() ,
@@ -332,6 +334,7 @@ show(
 	char *  fontsize ,
 	u_int  min_fontsize ,
 	u_int  max_fontsize ,
+	char *  line_space ,
 	char *  screen_width_ratio ,
 	char *  screen_height_ratio ,
 	ml_mod_meta_mode_t  mod_meta_mode ,
@@ -510,6 +513,13 @@ show(
 	gtk_widget_show( config_widget) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
+	if( ! ( config_widget = mc_line_space_config_widget_new( line_space)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+	
 	if( ! ( config_widget = mc_fade_config_widget_new( fade_ratio)))
 	{
 		return  0 ;
@@ -617,6 +627,7 @@ start_application(
 	char *  fontsize ;
 	u_int  min_fontsize ;
 	u_int  max_fontsize ;
+	char *  line_space ;
 	char *  screen_width_ratio ;
 	char *  screen_height_ratio ;
 	int  mod_meta_mode ;
@@ -660,8 +671,9 @@ start_application(
 
 	/*
 	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
-	 * [mod meta mode] [bel mode] [vertical mode] [combining char] [copy paste via ucs] \
-	 * [is transparent] [font present] [is bidi] [xim] [locale][LF]
+	 * [min font size] [max font size] [line space] [mod meta mode] [bel mode] [vertical mode] \
+	 * [combining char] [copy paste via ucs] [is transparent] [font present] [is bidi] \
+	 * [xim] [locale][LF]
 	 */
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &encoding , p))
@@ -710,6 +722,11 @@ start_application(
 
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_uint( &max_fontsize , p))
+	{
+		return  0 ;
+	}
+	
+	if( ( line_space = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}
@@ -788,8 +805,8 @@ start_application(
 	}
 	
 	return  show( x , y , encoding , iscii_lang , fg_color , bg_color , tabsize ,
-		logsize , fontsize , min_fontsize , max_fontsize , screen_width_ratio ,
-		screen_height_ratio , mod_meta_mode , bel_mode , vertical_mode ,
+		logsize , fontsize , min_fontsize , max_fontsize , line_space ,
+		screen_width_ratio , screen_height_ratio , mod_meta_mode , bel_mode , vertical_mode ,
 		is_combining_char , copy_paste_via_ucs , is_transparent , fade_ratio ,
 		font_present , use_bidi , xim , locale) ;
 }
@@ -816,7 +833,7 @@ main(
 		! kik_str_to_int( &in_fd , argv[3]) ||
 		! kik_str_to_int( &out_fd , argv[4]))
 	{
-		kik_msg_printf( "usage: (stdin 22) mlconfig [x] [y] [in] [out]\n") ;
+		kik_msg_printf( "usage: (stdin 23) mlconfig [x] [y] [in] [out]\n") ;
 		
 		return  0 ;
 	}

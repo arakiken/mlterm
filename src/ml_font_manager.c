@@ -284,6 +284,7 @@ ml_font_manager_new(
 	ml_font_custom_t *  vaa_font_custom ,
 	ml_font_custom_t *  taa_font_custom ,
 	u_int  font_size ,
+	u_int  line_space ,
 	mkf_charset_t  usascii_font_cs ,
 	int  usascii_font_cs_changable ,
 	int  step_in_changing_font_size
@@ -312,6 +313,8 @@ ml_font_manager_new(
 	font_man->font_custom = font_man->normal_font_custom ;
 
 	font_man->font_size = font_size ;
+
+	font_man->line_space = line_space ;
 
 	kik_map_new( ml_font_attr_t , ml_font_t * , font_man->font_cache_table , 
 		fontattr_hash , fontattr_compare) ;
@@ -673,7 +676,7 @@ ml_line_height(
 		return  1 ;
 	}
 
-	return  usascii_font->height ;
+	return  usascii_font->height + font_man->line_space ;
 }
 
 u_int
@@ -691,7 +694,7 @@ ml_line_height_to_baseline(
 		return  1 ;
 	}
 
-	return  usascii_font->height_to_baseline ;
+	return  usascii_font->height_to_baseline + font_man->line_space / 2 ;
 }
 
 int

@@ -29,6 +29,7 @@ typedef struct  ml_config_menu_session
 	u_int  tabsize ;
 	u_int  logsize ;
 	u_int  fontsize ;
+	u_int  line_space ;
 	u_int  min_fontsize ;
 	u_int  max_fontsize ;
 	u_int  screen_width_ratio ;
@@ -58,6 +59,7 @@ typedef struct  ml_config_menu_event_listener
 	void (*change_tab_size)( void * , u_int) ;
 	void (*change_log_size)( void * , u_int) ;
 	void (*change_font_size)( void * , u_int) ;
+	void (*change_line_space)( void * , u_int) ;
 	void (*change_screen_width_ratio)( void * , u_int) ;
 	void (*change_screen_height_ratio)( void * , u_int) ;
 	void (*change_mod_meta_mode)( void * , ml_mod_meta_mode_t) ;
@@ -99,7 +101,8 @@ int  ml_config_menu_start( ml_config_menu_t *  config_menu , int  x , int  y ,
 	ml_char_encoding_t  orig_encoding , ml_iscii_lang_t  orig_iscii_lang ,
 	ml_color_t  orig_fg_color , ml_color_t  orig_bg_color ,
 	u_int  orig_tabsize , u_int  orig_logsize , u_int  orig_fontsize , u_int  orig_min_fontsize ,
-	u_int  orig_max_fontsize , u_int  orig_screen_width_ratio , u_int  orig_screen_height_ratio ,
+	u_int  orig_max_fontsize , u_int  orig_line_space ,
+	u_int  orig_screen_width_ratio , u_int  orig_screen_height_ratio ,
 	ml_mod_meta_mode_t  orig_mod_meta_mode , ml_bel_mode_t  orig_bel_mode ,
 	ml_vertical_mode_t  orig_vertical_mode , int  orig_is_combining_char ,
 	int  orig_copy_paste_via_ucs , int  orig_is_transparent , u_int  orig_fade_ratio ,

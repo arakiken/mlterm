@@ -132,8 +132,8 @@ open_new_term(
 	#else
 		NULL , NULL , NULL ,
 	#endif
-		term_man->font_size , usascii_font_cs , usascii_font_cs_changable ,
-		term_man->step_in_changing_font_size)) == NULL)
+		term_man->font_size , term_man->line_space , usascii_font_cs ,
+		usascii_font_cs_changable , term_man->step_in_changing_font_size)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_new() failed.\n") ;
@@ -704,6 +704,8 @@ ml_term_manager_init(
 		"font size") ;
 	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
 		"font size range") ;
+	kik_conf_add_opt( conf , 'o' , "lsp" , 0 , "line_space" ,
+		"number of extra dots between lines") ;
 	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
 		"step in changing font size in GUI configurator") ;
 	kik_conf_add_opt( conf , 'l' , "sl" , 0 , "logsize" , 
@@ -989,6 +991,22 @@ ml_term_manager_init(
 		}
 	}
 
+	term_man->line_space = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "line_space")))
+	{
+		u_int  size ;
+
+		if( kik_str_to_uint( &size , value))
+		{
+			term_man->line_space = size ;
+		}
+		else
+		{
+			kik_msg_printf( "line space %s is not valid.\n" , value) ;
+		}
+	}
+
 	term_man->step_in_changing_font_size = 1 ;
 	
 	if( ( value = kik_conf_get_value( conf , "step_in_changing_font_size")))
@@ -1001,7 +1019,7 @@ ml_term_manager_init(
 		}
 		else
 		{
-			kik_msg_printf( "font larger smaller size %s is not valid.\n" , value) ;
+			kik_msg_printf( "step in changing font size %s is not valid.\n" , value) ;
 		}
 	}
 

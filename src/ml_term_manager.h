@@ -66,6 +66,7 @@ typedef struct  ml_term_manager
 	ml_color_t  sb_bg_color ;
 	u_int  num_of_log_lines ;
 	u_int  font_size ;
+	u_int  line_space ;
 	u_int  tab_size ;
 	char *  scrollbar_view_name ;
 	char *  pic_file_path ;

@@ -91,9 +91,9 @@ sig_child(
 	{
 		/*
 		 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [fontsize] \
-		 * [screen width ratio] [screen height ratio] [mod meta mode] [bel mode] [vertical mode] \
-		 * [combining char] [copy paste via ucs] [is transparent] [fade ratio] [font present] \
-		 * [is bidi] [xim] [locale][LF]
+		 * [line space] [screen width ratio] [screen height ratio] [mod meta mode] [bel mode] \
+		 * [vertical mode] [combining char] [copy paste via ucs] [is transparent] [fade ratio] \
+		 * [font present] [is bidi] [xim] [locale][LF]
 		 */
 		 
 		int  encoding ;
@@ -103,6 +103,7 @@ sig_child(
 		u_int  tabsize ;
 		u_int  logsize ;
 		u_int  fontsize ;
+		u_int  line_space ;
 		u_int  screen_width_ratio ;
 		u_int  screen_height_ratio ;
 		int  mod_meta_mode ;
@@ -159,6 +160,12 @@ sig_child(
 			goto  end ;
 		}
 
+		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+			! kik_str_to_uint( &line_space , p))
+		{
+			goto  end ;
+		}
+		
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 			! kik_str_to_uint( &screen_width_ratio , p))
 		{
@@ -298,6 +305,15 @@ sig_child(
 			}
 		}
 
+		if( line_space != config_menu->session->line_space)
+		{
+			if( config_menu->config_menu_listener->change_line_space)
+			{
+				(*config_menu->config_menu_listener->change_line_space)(
+					config_menu->config_menu_listener->self , line_space) ;
+			}
+		}
+		
 		if( screen_width_ratio != config_menu->session->screen_width_ratio)
 		{
 			if( config_menu->config_menu_listener->change_screen_width_ratio)
@@ -530,6 +546,7 @@ ml_config_menu_start(
 	u_int  orig_fontsize ,
 	u_int  min_fontsize ,
 	u_int  max_fontsize ,
+	u_int  orig_line_space ,
 	u_int  orig_screen_width_ratio ,
 	u_int  orig_screen_height_ratio ,
 	ml_mod_meta_mode_t  orig_mod_meta_mode ,
@@ -622,13 +639,13 @@ ml_config_menu_start(
 
 	/*
 	 * [encoding] [iscii lang] [fg color] [bg color] [tabsize] [logsize] [font size] \
-	 * [min font size] [max font size] [screen width ratio] [screen height ratio] \
+	 * [min font size] [max font size] [line space] [screen width ratio] [screen height ratio] \
 	 * [mod meta mode] [bel mode] [vertical mode] [is combining char] [copy paste via ucs] \
 	 * [is transparent] [fade ratio] [font present] [use bidi] [xim] [locale][LF]
 	 */
-	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
 		orig_encoding , orig_iscii_lang , orig_fg_color , orig_bg_color , orig_tabsize ,
-		orig_logsize , orig_fontsize , min_fontsize , max_fontsize ,
+		orig_logsize , orig_fontsize , min_fontsize , max_fontsize , orig_line_space ,
 		orig_screen_width_ratio , orig_screen_height_ratio ,
 		orig_mod_meta_mode , orig_bel_mode , orig_vertical_mode , orig_is_combining_char ,
 		orig_copy_paste_via_ucs , orig_is_transparent , orig_fade_ratio ,
@@ -649,6 +666,7 @@ ml_config_menu_start(
 	config_menu->session->tabsize = orig_tabsize ;
 	config_menu->session->logsize = orig_logsize ;
 	config_menu->session->fontsize = orig_fontsize ;
+	config_menu->session->line_space = orig_line_space ;
 	config_menu->session->screen_width_ratio = orig_screen_width_ratio ;
 	config_menu->session->screen_height_ratio = orig_screen_height_ratio ;
 	config_menu->session->mod_meta_mode = orig_mod_meta_mode ;

@@ -808,6 +808,20 @@ ml_vt100_cmd_set_config(
 			}
 		}
 	}
+	else if( strcmp( key , "line_space") == 0)
+	{
+		u_int  line_space ;
+
+		if( ! kik_str_to_uint( &line_space , value))
+		{
+			return  0 ;
+		}
+
+		if( termscr->config_menu_listener.change_line_space)
+		{
+			(*termscr->config_menu_listener.change_line_space)( termscr , line_space) ;
+		}
+	}
 	else if( strcmp( key , "screen_width_ratio") == 0)
 	{
 		u_int  ratio ;
@@ -1091,6 +1105,11 @@ ml_vt100_cmd_get_config(
 	else if( strcmp( key , "fontsize") == 0)
 	{
 		sprintf( digit , "%d" , termscr->font_man->font_size) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "line_space") == 0)
+	{
+		sprintf( digit , "%d" , termscr->font_man->line_space) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "screen_width_ratio") == 0)
