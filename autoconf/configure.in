@@ -175,7 +175,7 @@ else
 fi
 AC_SUBST(GTK_CONFIG)
 
-MAKE_DIRS="src tool/mlclient man etc scrollbar/sample ${MAKE_DIRS}"
+MAKE_DIRS="src tool/mlclient man etc scrollbar/sample contrib/scrollbar/extra ${MAKE_DIRS}"
 AC_SUBST(MAKE_DIRS)
 
-AC_OUTPUT(Makefile ../src/Makefile ../tool/mlconfig/Makefile ../tool/mlclient/Makefile ../man/Makefile ../etc/Makefile ../scrollbar/sample/Makefile)
+AC_OUTPUT(Makefile ../src/Makefile ../tool/mlconfig/Makefile ../tool/mlclient/Makefile ../man/Makefile ../etc/Makefile ../scrollbar/sample/Makefile ../contrib/scrollbar/extra/Makefile)
