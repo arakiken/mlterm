@@ -523,7 +523,7 @@ mc_im_config_widget_new(void)
 	}
 
 	group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
-	radio = gtk_radio_button_new_with_label(group, "None");
+	radio = gtk_radio_button_new_with_label(group, _("None"));
 	gtk_signal_connect(GTK_OBJECT(radio), "toggled",
 			   GTK_SIGNAL_FUNC(button_im_checked), NULL);
 	gtk_widget_show(GTK_WIDGET(radio));

@@ -1,3 +1,7 @@
+2004-11-07 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* tool/mlconfig/mc_im.c: "None" -> _("None")
+
 2004-11-04 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* xwindow/x_im.c: don't increase ref_count_uim and ref_count_m17nlib if
