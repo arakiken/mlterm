@@ -12,11 +12,16 @@
 #include  "x_im.h"
 
 #if 0
-#define UIM_DEBUG 1
+#define IM_UIM_DEBUG 1
 #endif
 
 #if 0
-#define UIM_DEBUG_COMB 1
+#define IM_UIM_DEBUG_COMB 1
+#endif
+
+#if 1	/* XXX: should be removed? */
+#define IM_UIM_COMPAT_0_3_8 1
+/* see http://www.freedesktop.org/pipermail/uim/2004-June/000383.html */
 #endif
 
 typedef struct im_uim
@@ -75,7 +80,7 @@ find_engine(
 		if( strcmp( uim_get_im_name( u , i) , engine) == 0)
 		{
 			*encoding = (char*) uim_get_im_encoding( u , i) ;
-		#ifdef  UIM_DEBUG_COMB
+		#ifdef  IM_UIM_DEBUG_COMB
 			*encoding = strdup( "UTF-8");
 		#endif
 
@@ -289,7 +294,7 @@ xksym_to_ukey(
 static void
 helper_disconnected( void)
 {
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf("helper was disconnected\n");
 #endif
 
@@ -300,31 +305,28 @@ helper_disconnected( void)
 
 static void
 prop_list_update(
-	void *  p ,
+	void *  p ,	/* uim 0.3.8 p == uim->context, 0.3.9 p == uim */
 	const char *  str
 	)
 {
+	im_uim_t *  uim = NULL ;
 	char  buf[BUFSIZ] ;
 	int  len ;
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf("prop_list_update(), str: %s\n", str);
 #endif
 
-	if( last_focused_uim == NULL)
+	uim = (im_uim_t*) p ;
+
+#ifdef  IM_UIM_COMPAT_0_3_8
+	if( last_focused_uim->context == p)
 	{
-		return ;
+		uim = (im_uim_t*) last_focused_uim ;
 	}
+#endif
 
-	if( last_focused_uim->context != p)
-	{
-		uim_prop_list_update( last_focused_uim->context) ;
-
-		return ;
-	}
-
-
-	len = 26 + strlen( last_focused_uim->encoding_name) + strlen( str) + 1 ;
+	len = 26 + strlen( uim->encoding_name) + strlen( str) + 1 ;
 
 	if( len > sizeof( buf))
 	{
@@ -336,7 +338,7 @@ prop_list_update(
 	}
 
 	kik_snprintf( buf , sizeof(buf) , "prop_list_update\ncharset=%s\n%s" ,
-		      last_focused_uim->encoding_name , str) ;
+		      uim->encoding_name , str) ;
 
 	uim_helper_send_message( helper_fd , buf) ;
 }
@@ -347,27 +349,24 @@ prop_label_update(
 	const char *  str
 	)
 {
-	im_uim_t *  uim ;
+	im_uim_t *  uim = NULL ;
 	char  buf[BUFSIZ] ;
 	int  len ;
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf("prop_label_update(), str: %s\n", str);
 #endif
 
-	if( last_focused_uim == NULL)
+	uim = (im_uim_t*) p ;
+
+#ifdef  IM_UIM_COMPAT_0_3_8
+	if( last_focused_uim->context == p)
 	{
-		return ;
+		uim = (im_uim_t*) last_focused_uim ;
 	}
+#endif
 
-	if( last_focused_uim->context != p)
-	{
-		uim_prop_label_update( last_focused_uim->context) ;
-
-		return ;
-	}
-
-	len = 27 + strlen( last_focused_uim->encoding_name) + strlen( str) + 1 ;
+	len = 27 + strlen( uim->encoding_name) + strlen( str) + 1 ;
 
 	if( len > sizeof( buf))
 	{
@@ -379,7 +378,7 @@ prop_label_update(
 	}
 
 	kik_snprintf( buf , sizeof(buf) , "prop_label_update\ncharset=%s\n%s" ,
-		      last_focused_uim->encoding_name , str) ;
+		      uim->encoding_name , str) ;
 
 	uim_helper_send_message( helper_fd , buf) ;
 }
@@ -433,7 +432,7 @@ preedit_clear(
 	im_uim_t *  uim ;
 	int  i ;
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf( "preedit_clear\n") ;
 #endif
 
@@ -468,7 +467,7 @@ preedit_pushback(
 	int  is_underline = 0 ;
 	u_int  count = 0 ;
 
-#ifdef UIM_DEBUG_COMB
+#ifdef IM_UIM_DEBUG_COMB
 	char _str[512];
 	static int n = 1;
 	if( attr & UPreeditAttr_UnderLine && strlen(str))
@@ -489,7 +488,7 @@ preedit_pushback(
 	}
 #endif
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf( "preedit_pushback attr: %d, str:%s, length:%d\n" , attr , str, strlen( str)) ;
 #endif
 
@@ -644,7 +643,7 @@ candidate_selected(
 	im_uim_t *  uim ;
 	u_int  num_of_candidates ;
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " index : %d\n" , index) ;
 #endif
 
@@ -670,7 +669,7 @@ candidate_activate(
 	int  y ;
 	int  i ;
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " num: %d limit: %d\n", num , limit) ;
 #endif
 
@@ -724,7 +723,7 @@ candidate_activate(
 		c = uim_get_candidate( uim->context , i , i) ;
 		s = (u_char*)uim_candidate_get_cand_str( c) ;
 
-	#ifdef  UIM_DEBUG
+	#ifdef  IM_UIM_DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " %d| %s\n", i , s) ;
 	#endif
 
@@ -746,7 +745,7 @@ candidate_select(
 {
 	im_uim_t *  uim ;
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " index: %d\n", index) ;
 #endif
 
@@ -767,7 +766,7 @@ candidate_shift_page(
 {
 	im_uim_t *  uim ;
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " direction: %d\n", direction) ;
 #endif
 
@@ -783,7 +782,7 @@ candidate_deactivate(
 {
 	im_uim_t *  uim ;
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "\n") ;
 #endif
 
@@ -826,7 +825,7 @@ delete(
 
 	ref_count-- ;
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count) ;
 #endif
 
@@ -930,7 +929,7 @@ draw_preedit(
 {
 	im_uim_t *  uim ;
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "is_focused: %d\n", is_focused);
 #endif
 
@@ -980,7 +979,7 @@ helper_read_handler( void)
 		char *  first_line ;
 		char *  second_line ;
 
-	#ifdef  UIM_DEBUG
+	#ifdef  IM_UIM_DEBUG
 		kik_debug_printf("message recieved from helper: %s\n" , first_line);
 	#endif
 
@@ -1072,7 +1071,7 @@ im_new(
 
 	if( ! find_engine( engine , &encoding_name))
 	{
-		kik_error_printf( " Uim does not support %s conversion engine.\n" , engine) ;
+		kik_error_printf( " Could not find '%s' conversion engine.\n" , engine) ;
 
 		goto  error ;
 	}
@@ -1140,6 +1139,9 @@ im_new(
 	uim_set_prop_list_update_cb( uim->context , prop_list_update) ;
 	uim_set_prop_label_update_cb( uim->context , prop_label_update) ;
 
+#ifdef  IM_UIM_COMPAT_0_3_8
+	last_focused_uim = uim ;
+#endif
 	uim_prop_list_update( uim->context) ;
 
 	/*
@@ -1163,7 +1165,7 @@ im_new(
 
 	ref_count++;
 
-#ifdef  UIM_DEBUG
+#ifdef  IM_UIM_DEBUG
 	kik_debug_printf("New object was created. ref_count is %d.\n", ref_count);
 #endif
 

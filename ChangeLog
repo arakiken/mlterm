@@ -1,3 +1,9 @@
+2004-06-14  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* im_uim.c: updated for uim-0.3.9.
+
+	* x_term_manager.c: cleanup.
+
 2004-06-13  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* x_screen.c(x_screen_new, x_screen_delete): duplicated

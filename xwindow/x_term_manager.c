@@ -34,7 +34,6 @@
 #include  "x_display.h"
 #include  "x_termcap.h"
 #include  "x_imagelib.h"
-#include  "x_im_candidate_screen.h"
 
 #define  MAX_SCREENS  (8*sizeof(dead_mask))
 
