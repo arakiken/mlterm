@@ -1,3 +1,7 @@
+[20011225]
+* wraparound word can be selected.
+* mlterm core dumps if XMODIFIERS variable is empty or illegal value. fixed.
+
 [20011224]
 * US-ASCII chars may be shown incorrectly under EUC-CN/GBK/GB18030. fixed.
 * mlterm.1 document is updated a little more.(thanks to Kubota Tomohiro san)
