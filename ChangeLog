@@ -1,3 +1,8 @@
+2005-02-26 MINAMI Hirokazu <minami@mistfall.net>
+
+	* mlterm/ml_screen.h: reverted the last change.
+	(it should be done in 3.x)
+
 2005-02-25 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/iiimf/im_iimf.c: minor code cleanup.
