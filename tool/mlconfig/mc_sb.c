@@ -138,6 +138,7 @@ mc_update_sb_mode(void)
 	if (is_changed)
 	{
 		mc_set_str_value( "scrollbar_mode" , new_sb_mode) ;
+		free( old_sb_mode);
 		old_sb_mode = strdup( new_sb_mode) ;
 	}
 }
