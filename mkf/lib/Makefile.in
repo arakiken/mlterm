@@ -55,7 +55,7 @@ MAJOR = 13
 MINOR = 0
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
-LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) -L${top_builddir}/kiklib/src/.libs
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 
