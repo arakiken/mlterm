@@ -192,7 +192,7 @@ create_bg(
 	}
 
 	XSetForeground( view->display , next_sb->gc , next_sb->gray_dark) ;
-	for( y = 0 ; y < height ; y +=2)
+	for( y = 0 ; y < height ; y += 2)
 	{
 		for( x = 1 ; x < width - 1 ; x += 2)
 		{
@@ -200,14 +200,14 @@ create_bg(
 			xpoint[i].y = y ;
 			i ++ ;
 		}
-		if ( y + 1 < height)
+	}
+	for( y = 1 ; y < height ; y += 2)
+	{
+		for( x = 2 ; x < width - 1 ; x += 2)
 		{
-			for( x = 2 ; x < width - 1 ; x += 2)
-			{
-				xpoint[i].x = x ;
-				xpoint[i].y = y + 1 ;
-				i ++ ;
-			}
+			xpoint[i].x = x ;
+			xpoint[i].y = y ;
+			i ++ ;
 		}
 	}
 	XDrawPoints( view->display , pix , next_sb->gc ,
