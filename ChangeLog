@@ -1,3 +1,9 @@
+2005-02-02 MINAMI Hiroakzu <minami@mistfall.net>
+
+	* xwindow/x_screen.c: For mouse tracking, 
+	report the maximum value, not random value, when the clicked
+	position was out of protocol-suppoted range.
+
 2005-01-31 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* xwindow/version.h.in: 2.9.1 post -> 2.9.2 pre

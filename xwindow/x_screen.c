@@ -3245,8 +3245,18 @@ report_mouse_tracking(
 	strcpy( buf , "\x1b[M") ;
 
 	buf[3] = 0x20 + button + key_state ;
-	buf[4] = 0x20 + col + 1 ;
-	buf[5] = 0x20 + row + 1 ;
+	
+	col = 0x20 + col + 1 ;
+	if( col > 0xff){
+		col = 0xff ;
+	}
+	buf[4] = col ;
+
+	row = 0x20 + row + 1 ;
+	if( row > 0xff){
+		row = 0xff ;
+	}
+	buf[5] = row ;
 
 	write_to_pty( screen , buf , 6 , NULL) ;
 
