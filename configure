@@ -12,25 +12,25 @@ ac_help=
 ac_default_prefix=/usr/local
 # Any additions from configure.in:
 ac_help="$ac_help
-  --with-libtool          libtool path[without]"
+  --with-libtool          libtool path [without]"
 ac_help="$ac_help
-  --enable-debug          debug[disabled]"
+  --enable-debug          debug [disabled]"
 ac_help="$ac_help
-  --enable-fribidi        fribidi[disabled]"
+  --enable-fribidi        use fribidi to enable BiDi [disabled]"
 ac_help="$ac_help
-  --enable-ind            libind[disabled]"
+  --enable-ind            use libind to enable ISCII [disabled]"
 ac_help="$ac_help
-  --enable-gdk-pixbuf     gdk-pixbuf[disabled]"
+  --enable-gdk-pixbuf     use gdk-pixbuf for wallpaper [disabled]"
 ac_help="$ac_help
-  --enable-imlib          imlib[disabled]"
+  --enable-imlib          use imlib for wallpaper [disabled]"
 ac_help="$ac_help
-  --enable-anti-alias     anti alias[disabled]"
+  --enable-anti-alias     use Xft to enable anti-alias [disabled]"
 ac_help="$ac_help
-  --enable-utmp           utmp[disabled]"
+  --enable-utmp           utmp [disabled]"
 ac_help="$ac_help
-  --disable-shared        shared libraries[enabled]"
+  --disable-shared        shared libraries [enabled]"
 ac_help="$ac_help
-  --disable-static        static libraries[enabled]"
+  --disable-static        static libraries [enabled]"
 
 # Initialize some variables set by options.
 # The variables have the same names as the options, with

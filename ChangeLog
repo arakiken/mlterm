@@ -1,6 +1,7 @@
 2002-05-26 Tomohiro KUBOTA <kubota@debian.org>
 
 	* rewrite help message ("mlterm --help").
+	* rewrite help message of ./configure script.
 
 2002-05-20 Araki Ken <arakiken@users.sf.net>
 
