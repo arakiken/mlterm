@@ -1606,14 +1606,14 @@ int x_imagelib_load_file(
 	if( misc.name && (strcmp( misc.name, path) == 0))
 	{
 #ifdef DEBUG
-		kik_debug_printf("used pixbuf from cache\n");
+		kik_warn_printf(KIK_DEBUG_TAG "used pixbuf from cache\n");
 #endif		
 		pixbuf = misc.data ;
 	}
 	else
 	{
 #ifdef DEBUG
-		kik_debug_printf("adding pixbuf to cache(%s/%s)\n", path);
+		kik_warn_printf(KIK_DEBUG_TAG "adding pixbuf to cache(%s/%s)\n", path);
 #endif
 		if( misc.name)
 			free( misc.name);		
@@ -1652,7 +1652,7 @@ int x_imagelib_load_file(
 		if( misc.width == width && misc.height == height && misc.scaled)
 		{
 #ifdef DEBUG
-			kik_debug_printf("scaled pixbuf from cache\n");
+			kik_warn_printf(KIK_DEBUG_TAG "scaled pixbuf from cache\n");
 #endif
 			scaled = misc.scaled ;
 		}
@@ -1661,7 +1661,7 @@ int x_imagelib_load_file(
 			if( misc.scaled)
 				gdk_pixbuf_unref( misc.scaled) ;
 #ifdef DEBUG
-			kik_debug_printf("creating scaled  pixbuf\n");
+			kik_warn_printf(KIK_DEBUG_TAG "creating scaled  pixbuf\n");
 #endif
 			scaled = gdk_pixbuf_scale_simple(pixbuf, width, height,
 							 GDK_INTERP_NEAREST); 
