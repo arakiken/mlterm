@@ -1,4 +1,10 @@
 [20020206]
+* if scrollbar_mode is none and window is resized , garbages are left
+  on screen. fixed.
+* w3mmlconfig is updated(around scrollbar_mode). 
+  (thanks to Sakamoto Hironori san)
+
+[20020206]
 * -O/--sbpos/scrollbar_position option is removed and
   -O/--sbmod/scrollbar_mode option is added.
 * scrollbar can be dynamically switched among off , right and left.
