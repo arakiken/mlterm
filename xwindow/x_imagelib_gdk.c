@@ -93,12 +93,20 @@ load_file(
 		/* free caches */
 		if( data)
 		{
+#ifndef OLD_GDK_PIXBUF
+			g_object_unref( data) ;
+#else
 			gdk_pixbuf_unref( data) ;
+#endif /*OLD_GDK_PIXBUF*/
 			data = NULL ;
 		}
 		if( scaled)
 		{
+#ifndef OLD_GDK_PIXBUF
+			g_object_unref( scaled) ;
+#else
 			gdk_pixbuf_unref( scaled) ;
+#endif /*OLD_GDK_PIXBUF*/
 			data = NULL ;
 		}
 		return  NULL ;
@@ -124,10 +132,22 @@ load_file(
 		name = strdup( path) ;
 
 		if( data)
+		{
+#ifndef OLD_GDK_PIXBUF
+			g_object_unref( data) ;
+#else
 			gdk_pixbuf_unref( data) ;
+#endif /*OLD_GDK_PIXBUF*/
+		}
 
 		if( scaled) /* scaled one is not vaild now */
+		{
+#ifndef OLD_GDK_PIXBUF
+			g_object_unref( scaled) ;
+#else
 			gdk_pixbuf_unref( scaled) ;
+#endif /*OLD_GDK_PIXBUF*/
+		}
 		scaled = NULL ;
 
 #ifndef OLD_GDK_PIXBUF
@@ -163,7 +183,13 @@ load_file(
 		else
 		{
 			if( scaled)
+			{
+#ifndef OLD_GDK_PIXBUF
+				g_object_unref( scaled) ;
+#else
 				gdk_pixbuf_unref( scaled) ;
+#endif /*OLD_GDK_PIXBUF*/
+			}
 #ifdef __DEBUG
 			kik_warn_printf(KIK_DEBUG_TAG "creating a scaled pixbuf(%d x %d) from %d %d \n", width, height) ;
 #endif
@@ -237,8 +263,11 @@ create_pixbuf_from_cardinals(
 
 	if( scaled)
 	{
+#ifndef OLD_GDK_PIXBUF
+		g_object_unref( pixbuf) ;
+#else
 		gdk_pixbuf_unref( pixbuf) ;
-
+#endif /*OLD_GDK_PIXBUF*/
 		return  scaled ;
 	}
 	else
@@ -303,7 +332,11 @@ create_cardinals_from_bixbuf(
 		}
 	}
 
+#ifndef OLD_GDK_PIXBUF
+	g_object_unref( pixbuf) ;
+#else
 	gdk_pixbuf_unref( pixbuf) ;
+#endif /*OLD_GDK_PIXBUF*/
 
 	return  SUCCESS ;
 }
@@ -1464,7 +1497,13 @@ x_imagelib_load_file_for_background(
 		}
 
 		if( cached_pixbuf)
+		{
+#ifndef OLD_GDK_PIXBUF
+			g_object_unref( cached_pixbuf) ;
+#else
 			gdk_pixbuf_unref( cached_pixbuf) ;
+#endif /*OLD_GDK_PIXBUF*/
+		}
 		if( cached_mod)
 			free(cached_mod) ;
 		if( cached_pixbuf_file_path)
@@ -1478,7 +1517,11 @@ x_imagelib_load_file_for_background(
 		else
 		{
 			cached_pixbuf = gdk_pixbuf_copy(pixbuf) ;
+#ifndef OLD_GDK_PIXBUF
+			g_object_unref( pixbuf) ;
+#else
 			gdk_pixbuf_unref( pixbuf) ;
+#endif /*OLD_GDK_PIXBUF*/
 			modify_image( cached_pixbuf, pic_mod) ;
 		}
 
@@ -1725,7 +1768,11 @@ int x_imagelib_load_file(
 						       DefaultScreen( display),
 						       pixbuf, pixmap, mask) != SUCCESS)
 			{
+#ifndef OLD_GDK_PIXBUF
+				g_object_unref( pixbuf) ;
+#else
 				gdk_pixbuf_unref( pixbuf) ;
+#endif /*OLD_GDK_PIXBUF*/
 				XFreePixmap( display, *pixmap) ;
 				*pixmap = None ;
 				XFreePixmap( display, *mask) ;
@@ -1740,7 +1787,11 @@ int x_imagelib_load_file(
 			if( pixbuf_to_pixmap( display, DefaultScreen( display),
 					      pixbuf, *pixmap) != SUCCESS)
 			{
+#ifndef OLD_GDK_PIXBUF
+				g_object_unref( pixbuf) ;
+#else
 				gdk_pixbuf_unref( pixbuf) ;
+#endif /*OLD_GDK_PIXBUF*/
 				XFreePixmap( display, *pixmap) ;
 				*pixmap = None ;
 
@@ -1758,7 +1809,10 @@ int x_imagelib_load_file(
 		*height = dst_height ;
 	}
 
+#ifndef OLD_GDK_PIXBUF
+	g_object_unref( pixbuf) ;
+#else
 	gdk_pixbuf_unref( pixbuf) ;
-
+#endif /*OLD_GDK_PIXBUF*/
 	return  1 ;
 }
