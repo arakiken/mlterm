@@ -1,3 +1,13 @@
+[20011216]
+* prefer_utf8_selection includes auto_detect_utf8_selection.
+  that is , true/false/auto can be used as value.
+* conv_to_generic_iso2022 and pre_conv_xct_to_ucs options are obsoleted.
+* xct_process_mode(-c/--xct) option is added.
+  this accepts ucs , raw or normal value.
+* new "copy&paste" tab is added to mlconfig
+* --ucshater => --ucs2other
+  --ucslover => --all2ucs
+
 [20011215]
 * prefer_utf8_selection (-U/--utf8sel) , auto_detect_utf8_selection (-o/--autoutf8)
   options are added.
