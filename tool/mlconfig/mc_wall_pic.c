@@ -102,6 +102,11 @@ mc_update_wall_pic(void)
 {
 	char *  new_wall_pic ;
 
+	if( *( new_wall_pic = gtk_entry_get_text(GTK_ENTRY(entry))) == '\0')
+	{
+		new_wall_pic = "none" ;
+	}
+
 	if( strcmp( old_wall_pic , new_wall_pic) != 0)
 	{
 		mc_set_str_value( "wall_picture" , new_wall_pic) ;

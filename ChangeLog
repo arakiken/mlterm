@@ -3,7 +3,12 @@
 	* "wall_picture = none" in "main" configuration file now means
 	  that the user doesn't use wall picture.  Previously, the same
 	  configuration caused that mlterm complains "wall picture file
-	  none is not found."
+	  none is not found." (xwindow/x_term_manager.c)
+	* mlconfig could not output the filename of the selected
+	  wall paper, fixed (tool/mlconfig/x_wall_pic.c).  This bug
+	  might be introduced in 2003-03-01.
+	* Cleaning up tool/mlconfig/mc_bgtype.c, using integer value
+	  to store background type instead of string.
 
 2003-03-08 Araki Ken <arakiken@users.sf.net>
 

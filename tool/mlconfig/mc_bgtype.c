@@ -16,10 +16,13 @@
 #define  __DEBUG
 #endif
 
+#define MC_BG_TRANSPARENT 0
+#define MC_BG_WALLPICTURE 1
+#define MC_BG_COLOR       2
 
 /* --- static variables --- */
 
-static char *  bgtype ;
+static int  bgtype ;
 static int  is_changed ;
 static GtkWidget *  bg_color ;
 static GtkWidget *  wall_picture ;
@@ -27,23 +30,23 @@ static GtkWidget *  wall_picture ;
 
 /* --- static functions --- */
 
-static char *
+static int
 get_bgtype(void)
 {
 	char *  val;
 	
-	if (mc_get_flag_value("use_transbg")) return "transparent" ;
-	else if ((val = mc_get_str_value("wall_picture")) && *val != '\0') return "picture" ;
-	else return  "color" ;
+	if (mc_get_flag_value("use_transbg")) return MC_BG_TRANSPARENT ;
+	else if ((val = mc_get_str_value("wall_picture")) && *val != '\0') return MC_BG_WALLPICTURE ;
+	else return  MC_BG_COLOR ;
 }
 
 static void
 set_sensitive(void)
 {
-    if (!strcmp(bgtype, "color")) {
+    if (bgtype == MC_BG_COLOR) {
 	gtk_widget_set_sensitive(bg_color, 1);
 	gtk_widget_set_sensitive(wall_picture, 0);
-    } else if (!strcmp(bgtype, "picture")) {
+    } else if (bgtype == MC_BG_WALLPICTURE) {
 	gtk_widget_set_sensitive(bg_color, 0);
 	gtk_widget_set_sensitive(wall_picture, 1);
     } else {
@@ -59,7 +62,7 @@ button_color_checked(
 	)
 {
     if (GTK_TOGGLE_BUTTON(widget)->active) {
-	bgtype = "color"; is_changed = 1;
+	bgtype = MC_BG_COLOR; is_changed = 1;
 	set_sensitive();
     }
     return  1 ;
@@ -72,7 +75,7 @@ button_transparent_checked(
 	)
 {
     if (GTK_TOGGLE_BUTTON(widget)->active) {
-	bgtype = "transparent"; is_changed = 1;
+	bgtype = MC_BG_TRANSPARENT; is_changed = 1;
 	set_sensitive();
     }
     return  1 ;
@@ -85,7 +88,7 @@ button_picture_checked(
 	)
 {
     if (GTK_TOGGLE_BUTTON(widget)->active) {
-	bgtype = "picture"; is_changed = 1;
+	bgtype = MC_BG_WALLPICTURE; is_changed = 1;
 	set_sensitive();
     }
     return  1 ;
@@ -122,7 +125,7 @@ mc_bgtype_config_widget_new(void)
     gtk_signal_connect(GTK_OBJECT(radio), "toggled",
 		       GTK_SIGNAL_FUNC(button_color_checked), NULL);
     gtk_widget_show(GTK_WIDGET(radio));
-    if (strcmp(bgtype, "color") == 0)
+    if (bgtype == MC_BG_COLOR)
 	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio), TRUE);
     hbox = gtk_hbox_new(FALSE, 2);
     gtk_widget_show(hbox);
@@ -136,7 +139,7 @@ mc_bgtype_config_widget_new(void)
     gtk_signal_connect(GTK_OBJECT(radio), "toggled", 
 		       GTK_SIGNAL_FUNC(button_picture_checked), NULL);
     gtk_widget_show(GTK_WIDGET(radio));
-    if (strcmp(bgtype, "picture") == 0)
+    if (bgtype == MC_BG_WALLPICTURE)
 	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio), TRUE);
     hbox = gtk_hbox_new(FALSE, 2);
     gtk_widget_show(hbox);
@@ -153,7 +156,7 @@ mc_bgtype_config_widget_new(void)
     gtk_signal_connect(GTK_OBJECT(radio), "toggled",
 		       GTK_SIGNAL_FUNC(button_transparent_checked), NULL);
     gtk_widget_show(GTK_WIDGET(radio));
-    if (strcmp(bgtype, "transparent") == 0)
+    if (bgtype == MC_BG_TRANSPARENT)
 	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio), TRUE);
     hbox = gtk_hbox_new(FALSE, 2);
     gtk_widget_show(hbox);
@@ -167,18 +170,18 @@ mc_bgtype_config_widget_new(void)
 void
 mc_update_bgtype(void)
 {
-	if ( ! strcmp( bgtype, "color")) {
+	if ( bgtype == MC_BG_COLOR) {
 	    if( is_changed) {
 		mc_set_flag_value("use_transbg", 0);
 		mc_set_str_value("wall_picture", "none");
 	    }
 	    mc_update_bg_color() ;
-	} else if (!strcmp( bgtype, "picture")) {
+	} else if ( bgtype == MC_BG_WALLPICTURE) {
 	    if( is_changed) {
 	        mc_set_flag_value("use_transbg", 0);
 	    }
 	    mc_update_wall_pic() ;
-	} else if (!strcmp( bgtype, "transparent")) {
+	} else if ( bgtype == MC_BG_TRANSPARENT) {
 	    if( is_changed) {
 	        mc_set_flag_value("use_transbg", 1);
 		mc_set_str_value("wall_picture", "none");
