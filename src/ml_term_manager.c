@@ -781,7 +781,17 @@ ml_term_manager_init(
 		max_font_size = 0 ;
 	}
 
+	
 	if( ! ml_font_custom_init( &term_man->normal_font_custom , min_font_size , max_font_size))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_font_custom_init failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+	
+	if( ! ml_font_custom_init( &term_man->v_font_custom , min_font_size , max_font_size))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_font_custom_init failed.\n") ;
@@ -795,6 +805,7 @@ ml_term_manager_init(
 	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
 	{
 		ml_font_custom_read_conf( &term_man->normal_font_custom , rcpath) ;
+		ml_font_custom_read_conf( &term_man->v_font_custom , rcpath) ;
 
 		free( rcpath) ;
 	}
@@ -802,19 +813,12 @@ ml_term_manager_init(
 	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
 	{
 		ml_font_custom_read_conf( &term_man->normal_font_custom , rcpath) ;
+		ml_font_custom_read_conf( &term_man->v_font_custom , rcpath) ;
 
 		free( rcpath) ;
 	}
-
-	if( ! ml_font_custom_init( &term_man->v_font_custom , min_font_size , max_font_size))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_font_custom_init failed.\n") ;
-	#endif
 	
-		return  0 ;
-	}
-
+	/* overriding mlterm/font */
 	font_rcfile = "mlterm/vfont" ;
 	
 	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
@@ -830,9 +834,19 @@ ml_term_manager_init(
 
 		free( rcpath) ;
 	}
-	
+
+
 #ifdef  ANTI_ALIAS
 	if( ! ml_font_custom_init( &term_man->aa_font_custom , min_font_size , max_font_size))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_font_custom_init failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
+	if( ! ml_font_custom_init( &term_man->vaa_font_custom , min_font_size , max_font_size))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_font_custom_init failed.\n") ;
@@ -846,6 +860,7 @@ ml_term_manager_init(
 	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
 	{
 		ml_font_custom_read_aa_conf( &term_man->aa_font_custom , rcpath) ;
+		ml_font_custom_read_aa_conf( &term_man->vaa_font_custom , rcpath) ;
 
 		free( rcpath) ;
 	}
@@ -853,19 +868,12 @@ ml_term_manager_init(
 	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
 	{
 		ml_font_custom_read_aa_conf( &term_man->aa_font_custom , rcpath) ;
+		ml_font_custom_read_aa_conf( &term_man->vaa_font_custom , rcpath) ;
 
 		free( rcpath) ;
 	}
-	
-	if( ! ml_font_custom_init( &term_man->vaa_font_custom , min_font_size , max_font_size))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_font_custom_init failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
 
+	/* overriding mlterm/aafont */	
 	font_rcfile = "mlterm/vaafont" ;
 	
 	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
