@@ -1,3 +1,8 @@
+[20011228]
+* INIT_PARSER short cut key (which initializes status of pty encoding parser)
+  is added.
+* invoking graphic characters by SI/SO is supported.(non-ISO2022 encoding only)
+
 [20011227]
 * if pty encoding is stateless , state of pty encoding parser is not
   reset when key is pressed.
