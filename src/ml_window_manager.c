@@ -23,7 +23,8 @@
 int
 ml_window_manager_init(
 	ml_window_manager_t *  win_man ,
-	char *  disp_name
+	char *  disp_name ,
+	int  use_xim
 	)
 {
 	if( ( win_man->display = XOpenDisplay( disp_name)) == NULL)
@@ -36,14 +37,21 @@ ml_window_manager_init(
 	win_man->screen = DefaultScreen( win_man->display) ;
 	win_man->my_window = DefaultRootWindow( win_man->display) ;
 
-	memset( &win_man->roots , 0 , sizeof( win_man->roots)) ;
+	win_man->roots = NULL ;
 	win_man->num_of_roots = 0 ;
 
 	win_man->selection_owner = NULL ;
 	
 	ml_window_init_atom( win_man->display) ;
 
-	ml_xim_init( win_man->display) ;
+	if( use_xim)
+	{
+		ml_xim_init( win_man->display) ;
+	}
+	else
+	{
+		ml_xim_init( NULL) ;
+	}
 	
 	return  1 ;
 }

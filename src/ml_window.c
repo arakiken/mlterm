@@ -1274,7 +1274,6 @@ ml_window_init(
 	win->orig_fg_xcolor = NULL ;
 	win->orig_bg_xcolor = NULL ;
 
-	win->use_xim = 0 ;
 	win->xic = NULL ;
 	win->xim = NULL ;
 	win->xim_listener = NULL ;

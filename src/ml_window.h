@@ -128,9 +128,6 @@ typedef struct  ml_window
 	
 	int8_t  is_scrollable ;
 
-	/* used by ml_xim */
-	int8_t  use_xim ;
-
 	/* button */
 	int8_t  button_is_pressing ;
 	int8_t  click_num ;

@@ -15,6 +15,10 @@
 #include  "ml_xim.h"		/* refering mutually */
 
 
+#define  HAS_XIM_LISTENER(win,function) \
+	((win)->xim_listener && (win)->xim_listener->function)
+
+
 /* --- static variables --- */
 
 static mkf_parser_t *  utf8_parser ;
@@ -43,7 +47,8 @@ get_spot(
 	int  x ;
 	int  y ;
 
-	if( win->xim_listener->get_spot( win->xim_listener->self , &x , &y) == 0)
+	if( ! HAS_XIM_LISTENER(win,get_spot) ||
+		win->xim_listener->get_spot( win->xim_listener->self , &x , &y) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " xim_listener->get_spot() failed.\n") ;
@@ -69,6 +74,11 @@ load_fontset(
 	cur_locale = kik_str_alloca_dup( kik_get_locale()) ;
 	if( kik_locale_init( ml_get_xim_locale( win)))
 	{
+		if( ! HAS_XIM_LISTENER(win,get_fontset))
+		{
+			return  None ;
+		}
+		
 		fontset = (*win->xim_listener->get_fontset)( win->xim_listener->self) ;
 		
 		/* restoring */
@@ -76,7 +86,7 @@ load_fontset(
 	}
 	else
 	{
-		fontset = 0 ;
+		fontset = None ;
 	}
 
 	return  fontset ;
@@ -229,18 +239,6 @@ create_xic(
 /* --- global functions --- */
 
 int
-ml_use_xim(
-	ml_window_t *  win ,
-	ml_xim_event_listener_t *  xim_listener
-	)
-{
-	win->use_xim = 1 ;
-	win->xim_listener = xim_listener ;
-	
-	return  1 ;
-}
-
-int
 ml_xic_activate(
 	ml_window_t *  win ,
 	char *  xim_name ,
@@ -297,22 +295,6 @@ ml_xic_deactivate(
 	return  1 ;
 }
 
-int
-ml_xim_activated(
-	ml_window_t *  win
-	)
-{
-	return  create_xic( win) ;
-}
-
-int
-ml_xim_destroyed(
-	ml_window_t *  win
-	)
-{
-	return  destroy_xic( win) ;
-}
-
 char *
 ml_xic_get_xim_name(
 	ml_window_t *  win
@@ -328,7 +310,7 @@ ml_xic_fg_color_changed(
 {
 	XVaNestedList  preedit_attr ;
 
-	if( win->use_xim == 0 || win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
+	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
 	{
 		return  0 ;
 	}
@@ -353,7 +335,7 @@ ml_xic_bg_color_changed(
 {
 	XVaNestedList  preedit_attr ;
 
-	if( win->use_xim == 0 || win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
+	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
 	{
 		return  0 ;
 	}
@@ -379,7 +361,7 @@ ml_xic_font_set_changed(
 	XVaNestedList  preedit_attr ;
 	XFontSet  fontset ;
 
-	if( win->use_xim == 0 || win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
+	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
 	{
 		return  0 ;
 	}
@@ -415,7 +397,7 @@ ml_xic_resized(
 	XRectangle  rect ;
 	XPoint  spot ;
 
-	if( win->use_xim == 0 || win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
+	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
 	{
 		return  0 ;
 	}
@@ -453,7 +435,7 @@ ml_xic_set_spot(
 	XVaNestedList  preedit_attr ;
 	XPoint  spot ;
 
-	if( win->use_xim == 0 || win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
+	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
 	{
 		return  0 ;
 	}
@@ -494,7 +476,7 @@ ml_xic_get_str(
 	Status  stat ;
 	size_t  len ;
 
-	if( win->xic == NULL || win->use_xim == 0)
+	if( win->xic == NULL)
 	{
 		return  0 ;
 	}
@@ -536,7 +518,7 @@ ml_xic_get_utf8_str(
 	Status  stat ;
 	size_t  len ;
 
-	if( win->xic == NULL || win->use_xim == 0)
+	if( win->xic == NULL)
 	{
 		return  0 ;
 	}
@@ -587,4 +569,24 @@ ml_xic_unset_focus(
 	XUnsetICFocus( win->xic->ic) ;
 
 	return  1 ;
+}
+
+/*
+ * ml_xim.c <-> ml_xic.c communication functions
+ */
+
+int
+ml_xim_activated(
+	ml_window_t *  win
+	)
+{
+	return  create_xic( win) ;
+}
+
+int
+ml_xim_destroyed(
+	ml_window_t *  win
+	)
+{
+	return  destroy_xic( win) ;
 }

@@ -21,16 +21,10 @@ typedef struct  ml_xic
 } ml_xic_t ;
 
 
-int  ml_use_xim( ml_window_t *  win , ml_xim_event_listener_t *  xim_listener) ;
-
 int  ml_xic_activate( ml_window_t *  win , char *  name , char *  locale) ;
 
 int  ml_xic_deactivate( ml_window_t *  win) ;
 
-int  ml_xim_activated( ml_window_t *  win) ;
-
-int  ml_xim_destroyed( ml_window_t *  win) ;
-	
 char *  ml_xic_get_xim_name( ml_window_t *  win) ;
 
 int  ml_xic_fg_color_changed( ml_window_t *  win) ;
@@ -52,6 +46,11 @@ size_t  ml_xic_get_utf8_str( ml_window_t *  win , u_char *  seq , size_t  seq_le
 int  ml_xic_set_focus( ml_window_t *  win) ;
 
 int  ml_xic_unset_focus( ml_window_t *  win) ;
+
+
+int  ml_xim_activated( ml_window_t *  win) ;
+
+int  ml_xim_destroyed( ml_window_t *  win) ;
 
 
 #endif

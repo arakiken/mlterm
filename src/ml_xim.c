@@ -305,7 +305,14 @@ ml_xim_init(
 	char *  xmod ;
 	char *  p ;
 
-	xim_display = display ;
+	if( ( xim_display = display) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " xim not used.\n") ;
+	#endif
+	
+		return  1 ;
+	}
 
 	xmod = XSetLocaleModifiers("") ;
 
@@ -334,6 +341,11 @@ int
 ml_xim_final(void)
 {
 	int  counter ;
+
+	if( xim_display == NULL)
+	{
+		return  1 ;
+	}
 	
 	for( counter = 0 ; counter < num_of_xims ; counter ++)
 	{
@@ -359,6 +371,11 @@ ml_add_xim_listener(
 	)
 {
 	void *  p ;
+
+	if( xim_display == NULL)
+	{
+		return  0 ;
+	}
 	
 	if( strcmp( xim_locale , "C") == 0 ||
 		strcmp( xim_name , "unused") == 0)
@@ -429,6 +446,11 @@ ml_remove_xim_listener(
 {
 	int  counter ;
 
+	if( win->xim == NULL)
+	{
+		return  0 ;
+	}
+
 	if( win->xim->num_of_xic_wins == 0)
 	{
 		return  0 ;
@@ -459,6 +481,11 @@ ml_xim_create_ic(
 	XVaNestedList  preedit_attr
 	)
 {
+	if( win->xim == NULL)
+	{
+		return  0 ;
+	}
+	
 	if( preedit_attr)
 	{
 		return  XCreateIC( win->xim->im , XNClientWindow , win->my_window ,
@@ -495,6 +522,11 @@ ml_xim_get_style(
 
 	XIMStyle  selected_style ;
 	XIMStyles *  xim_styles ;
+
+	if( win->xim == NULL)
+	{
+		return  0 ;
+	}
 
 	if( XGetIMValues( win->xim->im , XNQueryInputStyle , &xim_styles , NULL) || ! xim_styles)
 	{

@@ -145,8 +145,7 @@ open_new_term(
 		term_man->brightness , term_man->fade_ratio , &term_man->keymap , &term_man->termcap ,
 		term_man->num_of_log_lines , term_man->tab_size ,
 		term_man->screen_width_ratio , term_man->screen_height_ratio ,
-		term_man->use_xim , term_man->xim_open_in_startup ,
-		term_man->mod_meta_mode , term_man->bel_mode ,
+		term_man->xim_open_in_startup , term_man->mod_meta_mode , term_man->bel_mode ,
 		term_man->copy_paste_via_ucs , term_man->pic_file_path ,
 		term_man->use_transbg , term_man->font_present , term_man->use_bidi ,
 		term_man->vertical_mode , term_man->big5_buggy , term_man->conf_menu_path ,
@@ -617,6 +616,7 @@ ml_term_manager_init(
 	)
 {
 	kik_conf_t *  conf ;
+	int  use_xim ;
 	char *  rcpath ;
 	u_int  min_font_size ;
 	u_int  max_font_size ;
@@ -775,17 +775,27 @@ ml_term_manager_init(
 	 * window manager
 	 */
 
+	use_xim = 1 ;
+	
+	if( ( value = kik_conf_get_value( conf , "use_xim")))
+	{
+		if( strcmp( value , "false") == 0)
+		{
+			use_xim = 0 ;
+		}
+	}
+
 	if( ( value = kik_conf_get_value( conf , "display")))
 	{
-		if( ! ml_window_manager_init( &term_man->win_man , value) &&
-			! ml_window_manager_init( &term_man->win_man , ""))
+		if( ! ml_window_manager_init( &term_man->win_man , value , use_xim) &&
+			! ml_window_manager_init( &term_man->win_man , "" , use_xim))
 		{
 			return  0 ;
 		}
 	}
 	else
 	{
-		if( ! ml_window_manager_init( &term_man->win_man , ""))
+		if( ! ml_window_manager_init( &term_man->win_man , "" , use_xim))
 		{
 			return  0 ;
 		}
@@ -1386,16 +1396,6 @@ ml_term_manager_init(
 		if( strcmp( value , "true") == 0)
 		{
 			term_man->use_login_shell = 1 ;
-		}
-	}
-
-	term_man->use_xim = 1 ;
-	
-	if( ( value = kik_conf_get_value( conf , "use_xim")))
-	{
-		if( strcmp( value , "false") == 0)
-		{
-			term_man->use_xim = 0 ;
 		}
 	}
 

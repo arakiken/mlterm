@@ -3084,7 +3084,7 @@ change_vertical_mode(
 	}
 
 	termscr->vertical_mode = vertical_mode ;
-
+	
 	update_encoding_proper_aux( termscr , 1) ;
 	
 	ml_window_resize( &termscr->window , screen_width(termscr) , screen_height(termscr) ,
@@ -3692,7 +3692,6 @@ ml_term_screen_new(
 	u_int  tab_size ,
 	u_int  screen_width_ratio ,
 	u_int  screen_height_ratio ,
-	int  use_xim ,
 	int  xim_open_in_startup ,
 	ml_mod_meta_mode_t  mod_meta_mode ,
 	ml_bel_mode_t  bel_mode ,
@@ -3859,21 +3858,12 @@ ml_term_screen_new(
 		goto  error ;
 	}
 
-	if( use_xim)
-	{
-		termscr->xim_listener.self = termscr ;
-		termscr->xim_listener.get_spot = get_spot ;
-		termscr->xim_listener.get_fontset = get_fontset ;
+	termscr->xim_listener.self = termscr ;
+	termscr->xim_listener.get_spot = get_spot ;
+	termscr->xim_listener.get_fontset = get_fontset ;
+	termscr->window.xim_listener = &termscr->xim_listener ;
 
-		if( ml_use_xim( &termscr->window , &termscr->xim_listener) == 0)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_use_xim() failed.\n") ;
-		#endif
-		}
-
-		termscr->xim_open_in_startup = xim_open_in_startup ;
-	}
+	termscr->xim_open_in_startup = xim_open_in_startup ;
 
 	ml_window_set_cursor( &termscr->window , XC_xterm) ;
 

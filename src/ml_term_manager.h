@@ -85,7 +85,6 @@ typedef struct  ml_term_manager
 	u_int8_t  fade_ratio ;
 	int8_t  use_scrollbar ;
 	int8_t  use_login_shell ;
-	int8_t  use_xim ;
 	int8_t  xim_open_in_startup ;
 	int8_t  use_bidi ;
 	int8_t  big5_buggy ;
