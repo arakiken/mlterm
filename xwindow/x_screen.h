@@ -2,8 +2,8 @@
  *	$Id$
  */
 
-#ifndef  __X_TERM_SCREEN_H__
-#define  __X_TERM_SCREEN_H__
+#ifndef  __X_SCREEN_H__
+#define  __X_SCREEN_H__
 
 
 #include  <mkf/mkf_parser.h>
@@ -12,7 +12,7 @@
 
 #include  "x_window.h"
 #include  "x_selection.h"
-#include  "x_keymap.h"
+#include  "x_shortcut.h"
 #include  "x_termcap.h"
 #include  "x_mod_meta_mode.h"
 #include  "x_bel_mode.h"
@@ -79,7 +79,7 @@ typedef struct  x_screen
 	x_sel_event_listener_t  sel_listener ;
 	x_xim_event_listener_t  xim_listener ;
 
-	x_keymap_t *  keymap ;
+	x_shortcut_t *  shortcut ;
 	x_termcap_entry_t *  termcap ;
 
 	/*
@@ -138,7 +138,7 @@ typedef struct  x_screen
 x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man , x_termcap_entry_t *  termcap ,
 	u_int  brightness , u_int contrast , u_int gamma ,
-	u_int  fade_ratio , x_keymap_t *  keymap ,
+	u_int  fade_ratio , x_shortcut_t *  shortcut ,
 	u_int  screen_width_ratio , u_int  screen_height_ratio ,
 	int  xim_open_in_startup , char *  mod_meta_key , x_mod_meta_mode_t  mod_meta_mode ,
 	x_bel_mode_t  bel_mode , int  receive_string_via_ucs , char *  pic_file_path ,

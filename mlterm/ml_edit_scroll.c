@@ -117,11 +117,11 @@ scroll_upward_region(
 		 * all lines within boundary are scrolled out.
 		 */
 
-		if( edit->is_logging && edit->scroll_listener->receive_upward_scrolled_out_line)
+		if( edit->is_logging && edit->scroll_listener->receive_scrolled_out_line)
 		{
 			for( count = boundary_beg ; count < boundary_end ; count ++)
 			{
-				(*edit->scroll_listener->receive_upward_scrolled_out_line)(
+				(*edit->scroll_listener->receive_scrolled_out_line)(
 					edit->scroll_listener->self ,
 					ml_model_get_line( &edit->model , count)) ;
 			}
@@ -148,11 +148,11 @@ scroll_upward_region(
 	 * handing over scrolled out lines , and calculating scrolling beg/end y positions.
 	 */
 
-	if( edit->is_logging && edit->scroll_listener->receive_upward_scrolled_out_line)
+	if( edit->is_logging && edit->scroll_listener->receive_scrolled_out_line)
 	{
 		for( count = boundary_beg ; count < boundary_beg + size ; count ++)
 		{
-			(*edit->scroll_listener->receive_upward_scrolled_out_line)(
+			(*edit->scroll_listener->receive_scrolled_out_line)(
 				edit->scroll_listener->self ,
 				ml_model_get_line( &edit->model , count)) ;
 		}

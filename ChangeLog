@@ -1,3 +1,9 @@
+2003-2-1 Araki Ken <arakiken@users.sf.net>
+
+	* Even if log buffer is full, static backscrolling works.
+	  (Thanks to Murase Masaki san)
+	* Renamed x_keymap to x_shortcut.
+
 2003-1-27 Araki Ken <arakiken@users.sf.net>
 
 	* Mouse position reporting is enabled, selecting region is forced to stop.

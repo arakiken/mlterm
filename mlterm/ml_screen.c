@@ -133,6 +133,11 @@ receive_scrolled_out_line(
 
 	screen = p ;
 
+	if( screen->screen_listener && screen->screen_listener->line_scrolled_out)
+	{
+		(*screen->screen_listener->line_scrolled_out)( screen->screen_listener->self) ;
+	}
+	
 	if( screen->logvis)
 	{
 		(*screen->logvis->visual_line)( screen->logvis , line) ;
@@ -140,21 +145,13 @@ receive_scrolled_out_line(
 	
 	ml_log_add( &screen->logs , line) ;
 
-	if( screen->is_backscrolling == BSM_STATIC)
+	if( ml_screen_is_backscrolling( p) == BSM_STATIC)
 	{
-		if( ml_log_full( &screen->logs))
-		{
-			ml_screen_set_modified_all( screen) ;
-		}
-		else
-		{
-			screen->backscroll_rows ++ ;
-		}
+		screen->backscroll_rows ++ ;
 	}
-	
-	if( screen->screen_listener && screen->screen_listener->line_scrolled_out)
+	else
 	{
-		(*screen->screen_listener->line_scrolled_out)( screen->screen_listener->self) ;
+		ml_screen_set_modified_all( screen) ;
 	}
 }
 
@@ -170,7 +167,7 @@ window_scroll_upward_region(
 
 	screen = p ;
 
-	if( screen->is_backscrolling == BSM_STATIC)
+	if( screen->is_backscrolling)
 	{
 		return  1 ;
 	}
@@ -196,7 +193,7 @@ window_scroll_downward_region(
 
 	screen = p ;
 
-	if( screen->is_backscrolling == BSM_STATIC)
+	if( screen->is_backscrolling)
 	{
 		return  1 ;
 	}
@@ -529,7 +526,7 @@ ml_screen_new(
 	screen->logvis = screen->container_logvis = NULL ;
 
 	screen->edit_scroll_listener.self = screen ;
-	screen->edit_scroll_listener.receive_upward_scrolled_out_line = receive_scrolled_out_line ;
+	screen->edit_scroll_listener.receive_scrolled_out_line = receive_scrolled_out_line ;
 	screen->edit_scroll_listener.window_scroll_upward_region = window_scroll_upward_region ;
 	screen->edit_scroll_listener.window_scroll_downward_region = window_scroll_downward_region ;
 
@@ -2021,4 +2018,26 @@ ml_screen_fill_all_with_e(
 	ml_char_final( &e_ch) ;
 
 	return  1 ;
+}
+
+ml_bs_mode_t
+ml_screen_is_backscrolling(
+	ml_screen_t *  screen
+	)
+{
+	if( screen->is_backscrolling == BSM_STATIC)
+	{
+		if( screen->backscroll_rows < ml_get_log_size( &screen->logs))
+		{
+			return  BSM_STATIC ;
+		}
+		else
+		{
+			return  BSM_VOLATILE ;
+		}
+	}
+	else
+	{
+		return  screen->is_backscrolling ;
+	}
 }

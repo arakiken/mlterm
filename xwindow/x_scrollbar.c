@@ -773,25 +773,33 @@ x_scrollbar_line_is_added(
 	)
 {
 	int  old_y ;
-	
-	if( sb->num_of_filled_log_lines == sb->num_of_log_lines)
-	{
-		return  0 ;
-	}
+	u_int  old_bar_height ;
 	
 	if( (*sb->sb_listener->screen_is_static)(sb->sb_listener->self))
 	{
+		if( sb->num_of_filled_log_lines < sb->num_of_log_lines)
+		{
+			sb->num_of_filled_log_lines ++ ;
+		}
+
 		sb->current_row -- ;
 	}
-	
-	sb->num_of_filled_log_lines ++ ;
-	
+	else if( sb->num_of_filled_log_lines == sb->num_of_log_lines)
+	{
+		return  0 ;
+	}
+	else
+	{
+		sb->num_of_filled_log_lines ++ ;
+	}
+
+	old_bar_height = sb->bar_height ;
 	sb->bar_height = calculate_bar_height( sb) ;
 	
 	old_y = sb->bar_top_y ;
 	sb->bar_top_y = calculate_bar_top_y( sb) ;
 	
-	if( old_y == sb->bar_top_y)
+	if( old_y == sb->bar_top_y && old_bar_height == sb->bar_height)
 	{
 		return  1 ;
 	}

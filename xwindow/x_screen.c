@@ -2641,19 +2641,19 @@ key_pressed(
 		}
 	}
 	
-	if( x_keymap_match( screen->keymap , XIM_OPEN , ksym , event->state))
+	if( x_shortcut_match( screen->shortcut , XIM_OPEN , ksym , event->state))
 	{
 		x_xic_activate( &screen->window , "" , "") ;
 
 		return ;
 	}
-	else if( x_keymap_match( screen->keymap , XIM_CLOSE , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , XIM_CLOSE , ksym , event->state))
 	{
 		x_xic_deactivate( &screen->window) ;
 
 		return ;
 	}
-	else if( x_keymap_match( screen->keymap , OPEN_SCREEN , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , OPEN_SCREEN , ksym , event->state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_screen))
 		{
@@ -2662,7 +2662,7 @@ key_pressed(
 
 		return ;
 	}
-	else if( x_keymap_match( screen->keymap , OPEN_PTY , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , OPEN_PTY , ksym , event->state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_pty))
 		{
@@ -2672,7 +2672,7 @@ key_pressed(
 		return ;
 	}
 #ifdef  DEBUG
-	else if( x_keymap_match( screen->keymap , EXIT_PROGRAM , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , EXIT_PROGRAM , ksym , event->state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,exit))
 		{
@@ -2687,13 +2687,13 @@ key_pressed(
 	{
 		if( screen->use_extended_scroll_shortcut)
 		{
-			if( x_keymap_match( screen->keymap , SCROLL_UP , ksym , event->state))
+			if( x_shortcut_match( screen->shortcut , SCROLL_UP , ksym , event->state))
 			{
 				bs_scroll_downward( screen) ;
 
 				return ;
 			}
-			else if( x_keymap_match( screen->keymap , SCROLL_DOWN , ksym , event->state))
+			else if( x_shortcut_match( screen->shortcut , SCROLL_DOWN , ksym , event->state))
 			{
 				bs_scroll_upward( screen) ;
 
@@ -2727,13 +2727,13 @@ key_pressed(
 		#endif
 		}
 		
-		if( x_keymap_match( screen->keymap , PAGE_UP , ksym , event->state))
+		if( x_shortcut_match( screen->shortcut , PAGE_UP , ksym , event->state))
 		{
 			bs_half_page_downward( screen) ;
 
 			return ;
 		}
-		else if( x_keymap_match( screen->keymap , PAGE_DOWN , ksym , event->state))
+		else if( x_shortcut_match( screen->shortcut , PAGE_DOWN , ksym , event->state))
 		{
 			bs_half_page_upward( screen) ;
 
@@ -2756,17 +2756,17 @@ key_pressed(
 	}
 
 	if( screen->use_extended_scroll_shortcut &&
-		x_keymap_match( screen->keymap , SCROLL_UP , ksym , event->state))
+		x_shortcut_match( screen->shortcut , SCROLL_UP , ksym , event->state))
 	{
 		enter_backscroll_mode( screen) ;
 		bs_scroll_downward( screen) ;
 	}
-	else if( x_keymap_match( screen->keymap , PAGE_UP , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , PAGE_UP , ksym , event->state))
 	{
 		enter_backscroll_mode( screen) ;
 		bs_half_page_downward( screen) ;
 	}
-	else if( x_keymap_match( screen->keymap , INSERT_SELECTION , ksym , event->state))
+	else if( x_shortcut_match( screen->shortcut , INSERT_SELECTION , ksym , event->state))
 	{
 		yank_event_received( screen , CurrentTime) ;
 	}
@@ -2834,9 +2834,9 @@ key_pressed(
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE) ;
 		}
-		else if( x_keymap_str( screen->keymap , ksym , event->state))
+		else if( x_shortcut_str( screen->shortcut , ksym , event->state))
 		{
-			buf = x_keymap_str( screen->keymap , ksym , event->state) ;
+			buf = x_shortcut_str( screen->shortcut , ksym , event->state) ;
 		}
 		else if( size > 0)
 		{
@@ -5738,7 +5738,6 @@ start_vt100_cmd(
 	if( ml_term_is_backscrolling( screen->term) == BSM_VOLATILE)
 	{
 		x_stop_selecting( &screen->sel) ;
-		exit_backscroll_mode( screen) ;
 	}
 	
 	if( screen->sel.is_selecting)
@@ -5965,7 +5964,7 @@ x_screen_new(
 	u_int  contrast ,
 	u_int  gamma ,
 	u_int  fade_ratio ,
-	x_keymap_t *  keymap ,
+	x_shortcut_t *  shortcut ,
 	u_int  screen_width_ratio ,
 	u_int  screen_height_ratio ,
 	int  xim_open_in_startup ,
@@ -6149,7 +6148,7 @@ x_screen_new(
 		screen->pic_file_path = NULL ;
 	}
 
-	screen->keymap = keymap ;
+	screen->shortcut = shortcut ;
 	screen->termcap = termcap ;
 
 	if( mod_meta_key && strcmp( mod_meta_key , "none") != 0)

@@ -126,8 +126,6 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 
 int  ml_term_exit_backscroll_mode( ml_term_t *  term) ;
 
-int  ml_term_backscroll_log_full( ml_term_t *  term) ;
-
 int  ml_term_backscroll_to( ml_term_t *  term , int  row) ;
 
 int  ml_term_backscroll_upward( ml_term_t *  term , u_int  size) ;

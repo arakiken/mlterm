@@ -570,7 +570,7 @@ ml_term_is_backscrolling(
 	ml_term_t *  term
 	)
 {
-	return  term->screen->is_backscrolling ;
+	return  ml_screen_is_backscrolling( term->screen) ;
 }
 
 int
@@ -596,14 +596,6 @@ ml_term_exit_backscroll_mode(
 	)
 {
 	return  ml_exit_backscroll_mode( term->screen) ;
-}
-
-int
-ml_term_backscroll_log_full(
-	ml_term_t *  term
-	)
-{
-	return  ml_log_full( &term->screen->logs) ;
 }
 
 int

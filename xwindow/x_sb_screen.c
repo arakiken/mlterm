@@ -242,7 +242,7 @@ window_deleted(
  */
  
 static void
-scrolled_out_line_received(
+line_scrolled_out(
 	void *  p		/* must be x_screen_t(, or child of x_sb_screen_t) */
 	)
 {
@@ -634,7 +634,7 @@ x_sb_screen_new(
 	x_set_screen_scroll_listener( screen , &sb_screen->screen_scroll_listener) ;
 
 	sb_screen->line_scrolled_out = screen->screen_listener.line_scrolled_out ;
-	screen->screen_listener.line_scrolled_out = scrolled_out_line_received ;
+	screen->screen_listener.line_scrolled_out = line_scrolled_out ;
 
 	sb_screen->sb_mode = mode ;
 

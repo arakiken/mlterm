@@ -121,7 +121,7 @@ static x_font_custom_t  vaa_font_custom ;
 static x_font_custom_t  taa_font_custom ;
 #endif
 static x_color_custom_t  color_custom ;
-static x_keymap_t  keymap ;
+static x_shortcut_t  shortcut ;
 static x_termcap_t  termcap ;
 
 static int  sock_fd ;
@@ -364,7 +364,7 @@ open_term(void)
 
 	if( ( screen = x_screen_new( term , font_man , color_man , tent ,
 			main_config.brightness , main_config.contrast , main_config.gamma ,
-			main_config.fade_ratio , &keymap ,
+			main_config.fade_ratio , &shortcut ,
 			main_config.screen_width_ratio , main_config.screen_height_ratio ,
 			main_config.xim_open_in_startup , main_config.mod_meta_key ,
 			main_config.mod_meta_mode , main_config.bel_mode ,
@@ -2140,10 +2140,10 @@ x_term_manager_init(
 		free( rcpath) ;
 	}
 
-	if( ! x_keymap_init( &keymap))
+	if( ! x_shortcut_init( &shortcut))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_keymap_init failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " x_shortcut_init failed.\n") ;
 	#endif
 	
 		return  0 ;
@@ -2151,14 +2151,14 @@ x_term_manager_init(
 
 	if( ( rcpath = kik_get_sys_rc_path( "mlterm/key")))
 	{
-		x_keymap_read_conf( &keymap , rcpath) ;
+		x_shortcut_read_conf( &shortcut , rcpath) ;
 
 		free( rcpath) ;
 	}
 	
 	if( ( rcpath = kik_get_user_rc_path( "mlterm/key")))
 	{
-		x_keymap_read_conf( &keymap , rcpath) ;
+		x_shortcut_read_conf( &shortcut , rcpath) ;
 
 		free( rcpath) ;
 	}
@@ -2297,7 +2297,7 @@ x_term_manager_final(void)
 
 	x_color_custom_final( &color_custom) ;
 	
-	x_keymap_final( &keymap) ;
+	x_shortcut_final( &shortcut) ;
 	x_termcap_final( &termcap) ;
 
 	kik_sig_child_final() ;

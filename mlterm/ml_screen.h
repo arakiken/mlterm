@@ -17,9 +17,10 @@ typedef struct  ml_screen_event_listener
 {
 	void *  self ;
 	
+	int  (*screen_is_static)( void *) ;
+	void  (*line_scrolled_out)( void *) ;
 	int  (*window_scroll_upward_region)( void * , int , int , u_int) ;
 	int  (*window_scroll_downward_region)( void * , int , int , u_int) ;
-	void  (*line_scrolled_out)( void *) ;
 
 }  ml_screen_event_listener_t ;
 
@@ -253,6 +254,8 @@ int  ml_screen_use_normal_edit( ml_screen_t *  screen) ;
 int  ml_screen_use_alternative_edit( ml_screen_t *  screen) ;
 
 int  ml_screen_fill_all_with_e( ml_screen_t *  screen) ;
+
+ml_bs_mode_t  ml_screen_is_backscrolling( ml_screen_t *  screen) ;
 
 
 #endif
