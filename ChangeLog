@@ -1,3 +1,7 @@
+[20020120]
+* many codes are cleaned up.
+* 'l' instead of 'i' is checked for DynaFont problem.
+
 [20020119]
 * DynaFont problem is fixed by checking 'i' character width before 'W' character.
   (thanks to Asaki Takumi san)
