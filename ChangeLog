@@ -1,5 +1,9 @@
 2004-09-12 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* etc/Makefile.in: removed uim.
+
+2004-09-12 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* configure.in: added output to show how you configured mlterm.
 
 	* updated config.sub (timestamp='2004-06-24')
