@@ -1304,7 +1304,7 @@ dispatch(
 	case IIIMCF_EVENT_TYPE_OPERATION:
 	case IIIMCF_EVENT_TYPE_SETICFOCUS:
 	case IIIMCF_EVENT_TYPE_UNSETICFOCUS:
-#if 0	/* XXX: Fedora Core 2 */
+#ifdef  HAVE_HOTKEY_NOTFY_EVENT
 	case IIIMCF_EVENT_TYPE_HOTKEY_NOTIFY:
 #endif
 		/* not implemented yet */
@@ -1354,7 +1354,7 @@ dispatch(
 	case IIIMCF_EVENT_TYPE_AUX_DONE:
 		aux_dump( "done" , iiimf, event);
 		break;
-#if 0   /* XXX: Fedora Core 2 */
+#ifdef  HAVE_AUX_GETVALUES_EVENT
 	case IIIMCF_EVENT_TYPE_AUX_GETVALUES:
 		aux_dump( "getvalues" , iiimf, event);
 		break;

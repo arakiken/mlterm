@@ -400,28 +400,35 @@ if test "x$iiimf" = xyes ; then
 		LIBS="$LIBS -L/usr/lib/im/lib"
 		AC_CHECK_LIB(iiimcf, iiimcf_create_context,
 			[
-			IM_CFLAGS="$IM_CFLAGS -DUSE_IIIMF"
+			found_iiimcf=yes
 			IIIMF_CFLAGS="-I/usr/lib/im/include"
 			IIIMF_LIBS="-L/usr/lib/im/lib -liiimcf"
-			MAKE_DIRS="inputmethod/iiimf ${MAKE_DIRS}"
-			OUTPUT_FILES="inputmethod/iiimf/Makefile ${OUTPUT_FILES}"
-			if test "x$with_libltdl" != "xno" ; then
-				DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/iiimf/libim-iiimf.la ${DL_LIBS_IM}"
-			fi
-			input_methods_result="$input_methods_result IIIMF"
 			])
 	else
 		AC_CHECK_LIB(iiimcf, iiimcf_create_context,
 			[
-			IM_CFLAGS="$IM_CFLAGS -DUSE_IIIMF"
+			found_iiimcf=yes
 			IIIMF_CFLAGS=""
 			IIIMF_LIBS="-liiimcf"
-			MAKE_DIRS="inputmethod/iiimf ${MAKE_DIRS}"
-			OUTPUT_FILES="inputmethod/iiimf/Makefile ${OUTPUT_FILES}"
-			if test "x$with_libltdl" != "xno" ; then
-				DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/iiimf/libim-iiimf.la ${DL_LIBS_IM}"
-			fi
-			input_methods_result="$input_methods_result IIIMF"
+			])
+	fi
+
+	if test "x$found_iiimcf" = xyes ; then
+		IM_CFLAGS="$IM_CFLAGS -DUSE_IIIMF"
+		MAKE_DIRS="inputmethod/iiimf ${MAKE_DIRS}"
+		OUTPUT_FILES="inputmethod/iiimf/Makefile ${OUTPUT_FILES}"
+		if test "x$with_libltdl" != "xno" ; then
+			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/iiimf/libim-iiimf.la ${DL_LIBS_IM}"
+		fi
+		input_methods_result="$input_methods_result IIIMF"
+		# checks for API
+		AC_CHECK_LIB(iiimcf, iiimcf_create_hotkey_notify_event,
+			[
+			IIIMF_CFLAGS="$IIIMF_CFLAGS -DHAVE_HOTKEY_NOTFY_EVENT"
+			])
+		AC_CHECK_LIB(iiimcf, iiimcf_create_aux_getvalues_event,
+			[
+			IIIMF_CFLAGS="$IIIMF_CFLAGS -DHAVE_AUX_GETVALUES_EVENT"
 			])
 	fi
 fi

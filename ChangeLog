@@ -3,6 +3,9 @@
 	* inputmethod/iiimf/im_iiimf.c (show_available_gui_objects):
 	  new function for debugging.
 
+	* inputmethod/iiimf/im_iiimf.c, configure.in: added
+	  -DHAVE_HOTKEY_NOTFY_EVENT and -DHAVE_AUX_GETVALUES_EVENT
+
 2005-01-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/scim/im_scim.cpp: minor bug fix.
