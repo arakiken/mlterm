@@ -298,8 +298,6 @@ pixbuf_to_pixmap_truecolor(
 	long  r_mask, g_mask, b_mask ;
 	int  r_offset, g_offset, b_offset;
 
-	XVisualInfo *  vinfolist ;
-
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
 
@@ -324,7 +322,7 @@ pixbuf_to_pixmap_truecolor(
 
 		data = (u_int16_t *)malloc( width *  height * 2) ;
 		if( !data)
-			return;
+			return NULL ;
 		image = XCreateImage( display, DefaultVisual( display, screen),
 				      DefaultDepth( display, screen), ZPixmap, 0,
 				      (char *)data,
@@ -357,7 +355,7 @@ pixbuf_to_pixmap_truecolor(
 		data = (u_int32_t *)malloc( width *  height * 4) ;
 
 		if( !data)
-			return ;
+			return NULL;
 		image = XCreateImage( display, DefaultVisual( display, screen),
 				      DefaultDepth( display, screen), ZPixmap, 0,
 				      (char *)data,
@@ -391,14 +389,6 @@ pixbuf_to_pixmap(
 	)
 {
 	XImage *  image = NULL;
-
-	unsigned int  i, j ;
-	unsigned int  width, height, rowstride, bytes_per_pixel ;
-	unsigned char *  line ;
-	unsigned char *  pixel ;
-
-	long  r_mask, g_mask, b_mask ;
-	int  r_offset, g_offset, b_offset;
 	int  matched ;
 	XVisualInfo *  vinfolist ;
 	XVisualInfo  vinfo ;
@@ -426,6 +416,7 @@ pixbuf_to_pixmap(
 		break ;
 	}
 	XFree( vinfolist) ;
+
 	if( image)
 	{
 		XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
@@ -435,13 +426,14 @@ pixbuf_to_pixmap(
 
 }
 
-static void
+static XImage *
 compose_to_pixmap_truecolor(
 	Display *  display,
 	int  screen,
 	GdkPixbuf *  pixbuf,
 	Pixmap  pixmap,
-	int  depth
+	int  depth,
+	XVisualInfo * vinfo
 	)
 {
 	XImage *  image ;
@@ -454,84 +446,66 @@ compose_to_pixmap_truecolor(
 	int r_offset, g_offset, b_offset;
 	long r_mask, g_mask, b_mask ;
 	long r, g, b ;
-	int matched ;
 
-	XVisualInfo *vinfolist ;
-	XVisualInfo vinfo ;
-
-	if (!pixbuf)
-		return ;
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
 
-	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
-	if (!vinfo.visualid)
-		return ;
-	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
-	if ( (!matched) || (!vinfolist) )
-		return ;
-
 	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap) ;
-	switch( vinfolist[0].class)
+	r_mask = vinfo[0].red_mask ;
+	g_mask = vinfo[0].green_mask ;
+	b_mask = vinfo[0].blue_mask ;
+	r_offset = lsb( r_mask) ;
+	g_offset = lsb( g_mask) ;
+	b_offset = lsb( b_mask) ;
+	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
+	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
+	line = gdk_pixbuf_get_pixels( pixbuf) ;
+
+	switch( depth)
 	{
-	case TrueColor:
-		r_mask = vinfolist[0].red_mask ;
-		g_mask = vinfolist[0].green_mask ;
-		b_mask = vinfolist[0].blue_mask ;
-		r_offset = lsb( r_mask) ;
-		g_offset = lsb( g_mask) ;
-		b_offset = lsb( b_mask) ;
-		bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
-		rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
-		line = gdk_pixbuf_get_pixels( pixbuf) ;
-
-		switch( depth)
-		{
-		case 24:
-		case 32:
-		{
-			u_int32_t *  data ;
-			data = (u_int32_t *)(image->data) ;
-			for( i = 0; i < height; i++){
-				pixel = line ;
-				for( j = 0; j < width; j++){
-					if(pixel[3] != 0)
+	case 24:
+	case 32:
+	{
+		u_int32_t *  data ;
+		data = (u_int32_t *)(image->data) ;
+		for( i = 0; i < height; i++){
+			pixel = line ;
+			for( j = 0; j < width; j++){
+				if(pixel[3] != 0)
+				{
+					if (pixel[3] != 0xFF)
 					{
-						if (pixel[3] != 0xFF)
-						{
-							r = ((*data) >>r_offset) & 0xFF ;
-							g = ((*data) >>g_offset) & 0xFF ;
-							b = ((*data) >>b_offset) & 0xFF ;
+						r = ((*data) >>r_offset) & 0xFF ;
+						g = ((*data) >>g_offset) & 0xFF ;
+						b = ((*data) >>b_offset) & 0xFF ;
 
-							r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
-							g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
-							b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
+						r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
+						g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
+						b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
 
-							*data =	(r <<r_offset ) |
-								(g <<g_offset ) |
-								(b <<b_offset ) ;
-						}
-						else
-						{
-							*data =	(pixel[0] <<r_offset ) |
-								(pixel[1] <<g_offset ) |
-								(pixel[2] <<b_offset ) ;
-						}				       
+						*data =	(r <<r_offset ) |
+							(g <<g_offset ) |
+							(b <<b_offset ) ;
 					}
-					data++ ;
-					pixel +=bytes_per_pixel ;
+					else
+					{
+						*data =	(pixel[0] <<r_offset ) |
+							(pixel[1] <<g_offset ) |
+							(pixel[2] <<b_offset ) ;
+					}				       
 				}
-				line += rowstride ;
+				data++ ;
+				pixel +=bytes_per_pixel ;
 			}
-		}
-		default:
-			break;
+			line += rowstride ;
 		}
 	}
-	XFree(vinfolist) ;
-	XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
-		   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
-	XDestroyImage( image) ;
+	default:
+		break;
+	}
+
+
+	return image ;
 }
 
 static void
@@ -541,12 +515,40 @@ compose_to_pixmap(
 	GdkPixbuf *  pixbuf,
 	Pixmap  pixmap)
 {
-	compose_to_pixmap_truecolor(
-		display,
-		screen,
-		pixbuf,
-		pixmap,
-		DefaultDepth( display, screen)) ;
+	int  matched ;
+	XVisualInfo *  vinfolist ;
+	XVisualInfo  vinfo ;
+	XImage *  image = NULL ;
+
+	if(!pixbuf)
+		return ;
+	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
+	if (!vinfo.visualid)
+		return ;
+	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
+	if ( (!matched) || (!vinfolist) )
+		return ;
+
+	switch( vinfolist[0].class)
+	{
+	case TrueColor:
+		image = compose_to_pixmap_truecolor( display,
+					     screen,
+					     pixbuf,
+					     pixmap,
+					     DefaultDepth( display, screen),
+					     vinfolist) ;
+		break;
+	default:
+		break;
+	}
+	if (image)
+	{
+		XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
+			   gdk_pixbuf_get_width( pixbuf), gdk_pixbuf_get_height( pixbuf)) ;
+		XDestroyImage( image) ;
+	}
+	XFree( vinfolist) ;
 }
 
 static void
@@ -1020,8 +1022,6 @@ x_imagelib_get_transparent_background(
 	Pixmap  pixmap ;
 	Pixmap  current_root ;
 	GC  gc ;
-
-	int flag = 0 ;
 
 	current_root =  root_pixmap( win) ;
 
