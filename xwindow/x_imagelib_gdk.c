@@ -139,7 +139,7 @@ dither_to_pixmap(
 					       pixel[0], 
 					       pixel[1],
 					       pixel[2]) ;
-		diff_r = (color_list[closest].red   >>8 ) - pixel[0];
+/*		diff_r = (color_list[closest].red   >>8 ) - pixel[0];
 		diff_g = (color_list[closest].green >>8 ) - pixel[1];
 		diff_b = (color_list[closest].blue  >>8 ) - pixel[2];
 
@@ -154,7 +154,7 @@ dither_to_pixmap(
 		diff_next[3*1 +0] = diff_r /4; 
 		diff_next[3*1 +1] = diff_g /4; 
 		diff_next[3*1 +2] = diff_b /4; 
-
+*/
 		XSetForeground( display, gc, closest) ;		
 		XDrawPoint( display, pixmap, gc, 0, y) ;	
 		pixel += bytes_per_pixel ;
@@ -169,7 +169,7 @@ dither_to_pixmap(
 						       pixel[0] , 
 						       pixel[1] , 
 						       pixel[2] ) ;
-			diff_r = (color_list[closest].red   >>8 ) - pixel[0];
+/*			diff_r = (color_list[closest].red   >>8 ) - pixel[0];
 			diff_g = (color_list[closest].green >>8 ) - pixel[1];
 			diff_b = (color_list[closest].blue  >>8 ) - pixel[2];
 			
@@ -188,7 +188,7 @@ dither_to_pixmap(
 			diff_next[3*(x+1) +0] = diff_r /4; 
 			diff_next[3*(x+1) +1] = diff_g /4; 
 			diff_next[3*(x+1) +2] = diff_b /4; 
-
+*/
 			XSetForeground( display, gc, closest) ;		
 			XDrawPoint( display, pixmap, gc, x, y) ;	
 
@@ -206,7 +206,7 @@ dither_to_pixmap(
 
 		XSetForeground( display, gc, closest) ;		
 		XDrawPoint( display, pixmap, gc, x, y) ;	
-			
+/*			
 		diff_r = (color_list[closest].red   >>8 ) - pixel[0];
 		diff_g = (color_list[closest].green >>8 ) - pixel[1];
 		diff_b = (color_list[closest].blue  >>8 ) - pixel[2];
@@ -218,7 +218,7 @@ dither_to_pixmap(
 		diff_next[3*(x+0) +0] += diff_r /4; 
 		diff_next[3*(x+0) +1] += diff_g /4; 
 		diff_next[3*(x+0) +2] += diff_b /4; 
-		
+*/		
 		line += rowstride ;
 		temp = diff_cur;
 		diff_cur = diff_next;
