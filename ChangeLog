@@ -1,3 +1,13 @@
+[20020323]
+* if mlterm doesn't work as a genuine daemon and cannot start any pty windows,
+  it outputs error messages and do exit(1).
+  (Thanks to Nadim Shaikli)
+* cursor movement in ltr-rtl meeting point is improved.
+  (Thanks to Nadim Shaikli)
+* on some enviroments Xutf8LookupString was not found even if it exits because of failure of '-lX11'.
+  fixed.
+  (Thanks to Kubota Tomohiro san & Nakada Nobuyoshi san)
+
 [20020321]
 * cursor doesn't move correctly before the meeting point of LTR and RTL characters. fixed.
 * the line cursor is previously located should be redrawn even if it is not modified.
