@@ -4,6 +4,7 @@ bindir = @bindir@
 
 CC = @CC@
 CFLAGS = @KIK_CFLAGS@ @CFLAGS@
+LIBS = @SOCK_LIBS@
 INSTALL = @INSTALL@
 
 BINDIR = $(DESTDIR)$(bindir)
@@ -15,7 +16,7 @@ PROG = mlclient
 all: $(PROG)
 
 $(PROG): $(OBJ)
-	$(CC) -o $(PROG) $(OBJ)
+	$(CC) -o $(PROG) $(OBJ) $(LIBS)
 
 .SUFFIXES: .c.o
 

@@ -406,7 +406,7 @@ get_background_picture(
 	
 	ml_window_add_event_mask( root , StructureNotifyMask /* | SubstructureNotifyMask */) ;
 
-	/* XXX waiting for all StructureNotifyMask events are responsed */
+	/* XXX waiting for all StructureNotifyMask events responded */
 	XSync( root->display , False) ;
 	kik_usleep( 25000) ;
 

@@ -481,7 +481,7 @@ ml_convert_to_ucs4(
 		ucs4_bytes[2] = src_bytes[0] ;
 		ucs4_bytes[3] = src_bytes[1] ;
 	}
-	else if( cs != US_ASCII && cs != ISO8859_1_R)
+	else
 	{
 		/*
 		 * all multi byte chars should be converted to UCS2(or UCS4) in Xft.
@@ -490,7 +490,20 @@ ml_convert_to_ucs4(
 		mkf_char_t  non_ucs ;
 		mkf_char_t  ucs4 ;
 
-		memcpy( non_ucs.ch , src_bytes , src_size) ;
+		if( ml_is_msb_set( cs))
+		{
+			int  counter ;
+
+			for( counter = 0 ; counter < src_size ; counter ++)
+			{
+				non_ucs.ch[counter] = src_bytes[counter] & 0x7f ;
+			}
+		}
+		else
+		{
+			memcpy( non_ucs.ch , src_bytes , src_size) ;
+		}
+		
 		non_ucs.size = src_size ;
 		non_ucs.property = 0 ;
 		non_ucs.cs = cs ;
@@ -524,10 +537,14 @@ ml_convert_to_xft_ucs4(
 	u_char *  ucs4_bytes ,
 	u_char *  src_bytes ,
 	size_t  src_size ,
-	mkf_charset_t  cs
+	mkf_charset_t  cs	/* US_ASCII and ISO8859_1_R is not accepted */
 	)
 {
-	if( use_cp932_ucs_for_xft && cs == JISX0208_1983)
+	if( cs == US_ASCII || cs == ISO8859_1_R)
+	{
+		return  0 ;
+	}
+	else if( use_cp932_ucs_for_xft && cs == JISX0208_1983)
 	{
 		u_int16_t  code ;
 

@@ -85,6 +85,7 @@ xft_draw_combining_chars(
 	ml_font_t *  font ;
 	u_char *  ch_bytes ;
 	size_t  ch_size ;
+	mkf_charset_t  ch_cs ;
 
 	for( counter = 0 ; counter < size ; counter ++)
 	{
@@ -95,11 +96,12 @@ xft_draw_combining_chars(
 
 		ch_bytes = ml_char_bytes( &chars[counter]) ;
 		ch_size = ml_char_size( &chars[counter]) ;
+		ch_cs = ml_char_cs( &chars[counter]) ;
 
-		if( ch_size == 1)
+		if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
 		{
 			XftDrawString8( win->xft_draw , XFT_COLOR(win,ml_char_fg_color( &chars[counter])) ,
-				font->xft_font , x , y , ch_bytes , 1) ;
+				font->xft_font , x , y , ch_bytes , ch_size) ;
 		}
 		else
 		{
@@ -111,8 +113,7 @@ xft_draw_combining_chars(
 			
 			char  ucs4_bytes[4] ;
 
-			if( ! ml_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size ,
-				ml_char_cs(&chars[counter])))
+			if( ! ml_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
 			{
 				return  0 ;
 			}
@@ -161,6 +162,7 @@ xft_draw_str(
 	
 	size_t  ch_size ;
 	u_int  ch_width ;
+	mkf_charset_t  ch_cs ;
 	ml_font_t *  font ;
 	XftColor *  fg_color ;
 	XftColor *  bg_color ;
@@ -170,6 +172,7 @@ xft_draw_str(
 
 	size_t  next_ch_size ;
 	u_int  next_ch_width ;
+	mkf_charset_t  next_ch_cs ;
 	ml_font_t *  next_font ;
 	XftColor *  next_fg_color ;
 	XftColor *  next_bg_color ;
@@ -228,6 +231,12 @@ xft_draw_str(
 		win->font = font ;
 	}
 
+	if( ( ch_cs = ml_char_cs( &chars[counter])) == ISO8859_1_R)
+	{
+		/* XXX ISO8859_1_R is regarded as US_ASCII for easier processing */
+		ch_cs = US_ASCII ;
+	}
+	
 	fg_color = XFT_COLOR(win,ml_char_fg_color( &chars[counter])) ;
 	bg_color = XFT_COLOR(win,ml_char_bg_color( &chars[counter])) ;
 
@@ -254,16 +263,17 @@ xft_draw_str(
 	{
 		ch_bytes = ml_char_bytes( &chars[counter]) ;
 		
-		if( ch_size == 1)
+		if( ch_cs == US_ASCII)
 		{
+			/* including ISO8859_1_R */
 			str8[str_len++] = ch_bytes[0] ;
+			ch_size = 1 ;
 		}
 		else
 		{
 			char  ucs4_bytes[4] ;
 
-			if( ! ml_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size ,
-				ml_char_cs(&chars[counter])))
+			if( ! ml_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " strange character , ignored.\n") ;
@@ -275,7 +285,7 @@ xft_draw_str(
 			
 		#ifndef USE_UCS4
 			str16[str_len++] = ((ucs4_bytes[2] << 8) & 0xff00) | (ucs4_bytes[3] & 0xff) ;
-			ch_size = 2 ;	
+			ch_size = 2 ;
 		#else
 			str32[str_len++] = ((ucs4_bytes[0] << 24) & 0xff000000) |
 				((ucs4_bytes[1] << 16) & 0xff0000) | ((ucs4_bytes[2] << 8) & 0xff00) |
@@ -301,6 +311,11 @@ xft_draw_str(
 		{
 			next_ch_size = ml_char_size( &chars[counter]) ;
 			next_ch_width = ml_char_width( &chars[counter]) ;
+			if( ( next_ch_cs = ml_char_cs( &chars[counter])) == ISO8859_1_R)
+			{
+				/* XXX ISO8859_1_R is regarded as US_ASCII for easier processing */
+				next_ch_cs = US_ASCII ;
+			}
 			next_font = ml_char_font( &chars[counter]) ;
 			next_fg_color = XFT_COLOR( win,ml_char_fg_color( &chars[counter])) ;
 			next_bg_color = XFT_COLOR( win,ml_char_bg_color( &chars[counter])) ;
@@ -319,6 +334,7 @@ xft_draw_str(
 				|| (next_decor & FONT_LEFTLINE)
 				|| comb_chars != NULL
 				|| ch_size != next_ch_size
+				|| ch_cs != next_ch_cs
 				|| (next_font->is_proportional && ! next_font->is_var_col_width)
 				|| (win->font->is_proportional && ! win->font->is_var_col_width))
 			{
@@ -442,11 +458,8 @@ xft_draw_str(
 
 		current_width += next_ch_width ;
 		ch_width = next_ch_width ;
-
-		if( next_ch_size != ch_size)
-		{
-			ch_size = next_ch_size ;
-		}
+		ch_size = next_ch_size ;
+		ch_cs = next_ch_cs ;
 				
 		if( next_font == NULL || next_font->xft_font == NULL)
 		{
