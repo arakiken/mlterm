@@ -1,6 +1,6 @@
 [20020124]
 * cursor may disappear when selected region color is restored. fixed.
-* w3mmlconfig is added(tool/w3mmlconfig)
+* w3mmlconfig(2002/01/15 version) is added(tool/w3mmlconfig)
 * contrib/scrollbar/sample is moved to scrollbar/sample
 
 [20020123]
