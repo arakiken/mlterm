@@ -1,3 +1,9 @@
+2003-1-26 MINAMI hirokazu <minami@chem.s.u-tokyo.ac.jp>
+
+	* Fixed a bug in gdk-pixbuf module which prevents gamma correction
+	  with pseudo-transparency (Thanks to TAKAHASHI Tamotsu san) 
+	* Rewrited cache mechanism of background pictures for performance.
+	
 2003-1-26 Araki Ken <arakiken@users.sf.net>
 
 	* Added -6/--stbs/static_backscroll_mode option, under which backscroll mode
