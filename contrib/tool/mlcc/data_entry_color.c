@@ -93,9 +93,8 @@ int color_select(window_t *edit, int initial){
 		}
 		buffer = read_one();
 		switch(buffer){
-		case 27:
+		case KEY_ESC:
 			return initial;
-			break;
 		case KEY_UP:
 		case KEY_LEFT:
 			ind--;
