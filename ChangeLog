@@ -1,3 +1,11 @@
+2004-01-03  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* xwindow/x_main.config.c: type_engine was not initialized when
+	no option had been specified. fixed.
+
+	* xwindow/x_font_cache.c: "font_name_list" should not accessed
+	after realloc.
+
 2003-12-30  Araki Ken  <arakiken@users.sf.net>
 
 	* Core X Font Subsystem can be removed by --with-type-engines=xft.

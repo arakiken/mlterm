@@ -302,7 +302,7 @@ x_get_font_name_list_for_fontset(
 		list_len = 0 ;
 	}
 
-	if( ( p = realloc( font_name_list , list_len + 28 + DIGIT_STR_LEN(font_cache->font_size) + 1))
+	if( ( p = malloc( list_len + 28 + DIGIT_STR_LEN(font_cache->font_size) + 1))
 			== NULL)
 	{
 		return  font_name_list ;
@@ -312,6 +312,7 @@ x_get_font_name_list_for_fontset(
 	{
 		sprintf( p , "%s,-*-*-medium-r-*--%d-*-*-*-*-*" ,
 			font_name_list , font_cache->font_size) ;
+		free( font_name_list) ;
 	}
 	else
 	{
