@@ -49,11 +49,7 @@
 #include  "../im_info.h"
 
 #if  0
-#define  MOD_KEY_DEBUG 1
-#endif
-
-#if  0
-#define IM_UIM_DEBUG 1
+#define  IM_UIM_DEBUG 1
 #endif
 
 #ifndef  UIM_0_4_4_OR_LATER
@@ -80,8 +76,6 @@ typedef struct im_uim
 	/* native encoding of conversion engine */
 	char *  encoding_name ;
 
-	char *  engine_name ;
-
 	mkf_parser_t *  parser_uim ;	/* for uim encoding  */
 	mkf_parser_t *  parser_term ;	/* for term encoding  */
 	mkf_conv_t *  conv ;
@@ -102,10 +96,8 @@ static int  ref_count = 0 ;
 static int  initialized = 0 ;
 static int  helper_fd = -1 ;
 static im_uim_t *  last_focused_uim = NULL ;
-
-/* mlterm internal symbols */
-static x_im_export_syms_t *  mlterm_syms = NULL ;
-
+static x_im_export_syms_t *  mlterm_syms = NULL ; /* mlterm internal symbols */
+static mod_key_debug = 0 ;
 
 /* --- static functions --- */
 
@@ -384,12 +376,10 @@ prop_list_update(
 	}
 #endif
 
-#define  PROP_LIST_FORMAT			\
-	"prop_list_update\ncharset=%s\n%s"	\
-	"branch\t%s\t%s\n"
+#define  PROP_LIST_FORMAT  "prop_list_update\ncharset=%s\n%s"
 
 	len = strlen(PROP_LIST_FORMAT) + strlen( uim->encoding_name) +
-	      strlen( str) + (strlen(uim->engine_name) * 2) + 1 ;
+	      strlen( str) + 1 ;
 
 	if( len > sizeof( buf))
 	{
@@ -401,8 +391,7 @@ prop_list_update(
 	}
 
 	kik_snprintf( buf , sizeof(buf) , PROP_LIST_FORMAT ,
-		      uim->encoding_name , str ,
-		      uim->engine_name , uim->engine_name) ;
+		      uim->encoding_name , str) ;
 
 	uim_helper_send_message( helper_fd , buf) ;
 
@@ -432,10 +421,10 @@ prop_label_update(
 	}
 #endif
 
-#define  PROP_LABEL_FORMAT "prop_label_update\ncharset=%s\n%s%s\t%s\n"
+#define  PROP_LABEL_FORMAT "prop_label_update\ncharset=%s\n%s"
 
 	len = strlen(PROP_LABEL_FORMAT) + strlen( uim->encoding_name) +
-	      strlen( str) + (strlen(uim->engine_name) * 2) + 1 ;
+	      strlen( str) + 1 ;
 
 	if( len > sizeof( buf))
 	{
@@ -447,8 +436,7 @@ prop_label_update(
 	}
 
 	kik_snprintf( buf , sizeof(buf) , PROP_LABEL_FORMAT ,
-		      uim->encoding_name , str ,
-		      uim->engine_name , uim->engine_name) ;
+		      uim->encoding_name , str) ;
 
 	uim_helper_send_message( helper_fd , buf) ;
 
@@ -939,11 +927,6 @@ delete(
 		(*uim->conv->delete)( uim->conv) ;
 	}
 
-	if( uim->engine_name)
-	{
-		free( uim->engine_name) ;
-	}
-
 	uim_release_context( uim->context) ;
 
 	ref_count-- ;
@@ -1003,12 +986,13 @@ key_event(
 
 	uim = (im_uim_t*) im ;
 
-#ifdef  MOD_KEY_DEBUG
-	kik_debug_printf( ">>--------------------------------\n") ;
-	kik_debug_printf( ">>event->state    : %.8x\n" , event->state) ;
-	kik_debug_printf( ">>mod_ignore_mask : %.8x\n" , uim->mod_ignore_mask) ;
-	kik_debug_printf( ">>ksym            : %.8x\n" , ksym) ;
-#endif
+	if( mod_key_debug)
+	{
+		kik_msg_printf( ">>--------------------------------\n") ;
+		kik_msg_printf( ">>event->state    : %.8x\n" , event->state) ;
+		kik_msg_printf( ">>mod_ignore_mask : %.8x\n" , uim->mod_ignore_mask) ;
+		kik_msg_printf( ">>ksym            : %.8x\n" , ksym) ;
+	}
 
 	if( ! ( event->state & uim->mod_ignore_mask))
 	{
@@ -1045,10 +1029,6 @@ key_event(
 		break ;
 	}
 
-#ifdef  MOD_KEY_DEBUG
-	kik_debug_printf( ">>pressing_mod_key: %.8x\n" , uim->pressing_mod_key) ;
-#endif
-
 	(*uim->im.listener->compare_key_state_with_modmap)(
 							uim->im.listener->self ,
 							event->state ,
@@ -1082,10 +1062,12 @@ key_event(
 		state |= UMod_Hyper ;
 	}
 
-#ifdef  MOD_KEY_DEBUG
-	kik_debug_printf( ">>state           : %.8x\n" , state) ;
-	kik_debug_printf( ">>--------------------------------\n") ;
-#endif
+	if( mod_key_debug)
+	{
+		kik_msg_printf( ">>pressing_mod_key: %.8x\n" , uim->pressing_mod_key) ;
+		kik_msg_printf( ">>state           : %.8x\n" , state) ;
+		kik_msg_printf( ">>--------------------------------\n") ;
+	}
 
 	key = xksym_to_ukey(ksym) ;
 
@@ -1392,6 +1374,11 @@ im_new(
 
 	uim = NULL ;
 
+	if( getenv( "MOD_KEY_DEBUG"))
+	{
+		mod_key_debug = 1 ;
+	}
+
 #if 1
 #define  RESTORE_LOCALE
 #endif
@@ -1489,7 +1476,6 @@ im_new(
 
 	uim->term_encoding = term_encoding ;
 	uim->encoding_name = encoding_name ;
-	uim->engine_name = strdup( engine) ;
 	uim->parser_uim = NULL ;
 	uim->parser_term = NULL ;
 	uim->conv = NULL ;
@@ -1616,11 +1602,6 @@ error:
 		if( uim->conv)
 		{
 			(*uim->conv->delete)( uim->conv) ;
-		}
-
-		if( uim->engine_name)
-		{
-			free( uim->engine_name) ;
 		}
 
 		free( uim) ;
