@@ -4245,9 +4245,9 @@ change_dynamic_comb_flag(
 
 	screen->use_dynamic_comb = use_dynamic_comb ;
 
-	ml_term_set_modified_all( screen->term) ;
-
 	update_encoding_proper_aux( screen) ;
+	
+	ml_term_set_modified_all( screen->term) ;
 }
 
 static void
@@ -4278,14 +4278,14 @@ change_fg_color(
 		return ;
 	}
 
-	x_color_manager_unfade( screen->color_man) ;
-
 	x_color_manager_set_fg_color( screen->color_man , name) ;
 	
 	x_window_set_fg_color( &screen->window ,
 		x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
 	
 	x_xic_fg_color_changed( &screen->window) ;
+
+	ml_term_set_modified_all( screen->term) ;
 }
 
 static void
@@ -4303,14 +4303,14 @@ change_bg_color(
 		return ;
 	}
 
-	x_color_manager_unfade( screen->color_man) ;
-
 	x_color_manager_set_bg_color( screen->color_man , name) ;
 	
 	x_window_set_bg_color( &screen->window ,
 		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 	
 	x_xic_bg_color_changed( &screen->window) ;
+	
+	ml_term_set_modified_all( screen->term) ;
 }
 
 static void
@@ -4585,23 +4585,25 @@ change_fade_ratio(
 
 	screen->fade_ratio = fade_ratio ;
 
+	x_color_manager_unfade( screen->color_man) ;
+
 	if( ! screen->is_focused)
 	{
-		unhighlight_cursor( screen) ;
-
-		x_color_manager_unfade( screen->color_man) ;
-		
 		if( screen->fade_ratio < 100)
 		{
 			x_color_manager_fade( screen->color_man , screen->fade_ratio) ;
 		}
-
-		ml_term_set_modified_all( screen->term) ;
-
-		redraw_screen( screen) ;
-		
-		highlight_cursor( screen) ;
 	}
+
+	x_window_set_fg_color( &screen->window ,
+		x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
+	x_window_set_bg_color( &screen->window ,
+		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
+	
+	x_xic_fg_color_changed( &screen->window) ;
+	x_xic_bg_color_changed( &screen->window) ;
+
+	ml_term_set_modified_all( screen->term) ;
 }
 
 static void

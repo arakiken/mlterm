@@ -99,8 +99,19 @@ x_color_manager_set_fg_color(
 	char *  fg_color
 	)
 {
+	free( color_man->fg_color) ;
 	color_man->fg_color = strdup( fg_color) ;
 
+	if( color_man->is_loaded[ML_FG_COLOR])
+	{
+		x_unload_xcolor( color_man->display , color_man->screen ,
+			&color_man->colors[ML_FG_COLOR]) ;
+		x_unload_xcolor( color_man->display , color_man->screen ,
+			&color_man->highlighted_colors[ML_FG_COLOR]) ;
+
+		color_man->is_loaded[ML_FG_COLOR] = 0 ;
+	}
+	
 	return  1 ;
 }
 
@@ -110,7 +121,18 @@ x_color_manager_set_bg_color(
 	char *  bg_color
 	)
 {
+	free( color_man->bg_color) ;
 	color_man->bg_color = strdup( bg_color) ;
+	
+	if( color_man->is_loaded[ML_BG_COLOR])
+	{
+		x_unload_xcolor( color_man->display , color_man->screen ,
+			&color_man->colors[ML_BG_COLOR]) ;
+		x_unload_xcolor( color_man->display , color_man->screen ,
+			&color_man->highlighted_colors[ML_BG_COLOR]) ;
+
+		color_man->is_loaded[ML_BG_COLOR] = 0 ;
+	}
 
 	return  1 ;
 }
@@ -177,17 +199,27 @@ x_get_color(
 	if( x_color_custom_get_rgb( color_man->color_custom , &red , &green , &blue , name))
 	{
 		if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
-			&color_man->colors[color] , red * 90 / 100 , green * 90 / 100 , blue * 90 / 100))
+			&color_man->highlighted_colors[color] , red , green , blue))
 		{
-			if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
-				&color_man->highlighted_colors[color] , red , green , blue))
+			if( color == ML_FG_COLOR || color == ML_BG_COLOR)
 			{
+				color_man->colors[color] = color_man->highlighted_colors[color] ;
+
 				goto  found ;
 			}
 			else
 			{
-				x_unload_xcolor( color_man->display , color_man->screen ,
-					&color_man->colors[color]) ;
+				if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
+					&color_man->colors[color] ,
+					red * 90 / 100 , green * 90 / 100 , blue * 90 / 100))
+				{
+					goto  found ;
+				}
+				else
+				{
+					x_unload_xcolor( color_man->display , color_man->screen ,
+						&color_man->colors[color]) ;
+				}
 			}
 		}
 	}
@@ -195,17 +227,27 @@ x_get_color(
 	if( x_load_named_xcolor( color_man->display , color_man->screen ,
 		&color_man->highlighted_colors[color] , name))
 	{
-		x_get_xcolor_rgb( &red , &green , &blue , &color_man->highlighted_colors[color]) ;
-	
-		if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
-			&color_man->colors[color] , red * 90 / 100 , green * 90 / 100 , blue * 90 / 100))
+		if( color == ML_FG_COLOR || color == ML_BG_COLOR)
 		{
+			color_man->colors[color] = color_man->highlighted_colors[color] ;
+
 			goto  found ;
 		}
 		else
 		{
-			x_unload_xcolor( color_man->display , color_man->screen ,
-				&color_man->highlighted_colors[color]) ;
+			x_get_xcolor_rgb( &red , &green , &blue , &color_man->highlighted_colors[color]) ;
+
+			if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
+				&color_man->colors[color] ,
+				red * 90 / 100 , green * 90 / 100 , blue * 90 / 100))
+			{
+				goto  found ;
+			}
+			else
+			{
+				x_unload_xcolor( color_man->display , color_man->screen ,
+					&color_man->highlighted_colors[color]) ;
+			}
 		}
 	}
 
@@ -227,7 +269,14 @@ found:
 	
 	color_man->is_loaded[color] = 1 ;
 
-	return  &color_man->colors[color] ;
+	if( is_highlighted)
+	{
+		return  &color_man->highlighted_colors[color] ;
+	}
+	else
+	{
+		return  &color_man->colors[color] ;
+	}
 }
 
 x_color_t *
