@@ -130,6 +130,10 @@ if test "$anti_alias" = "yes" ; then
 	type_engines="xcore xft"
 fi
 
+if test "$type_engines" = ""; then
+	type_engines="xcore"
+fi
+
 type_engines=`echo ${type_engines} | sed 's/,/ /g'`
 for type_engine in ${type_engines} ; do
 case ${type_engine} in
