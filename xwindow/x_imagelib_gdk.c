@@ -34,6 +34,9 @@ static int  wp_cache_width = 0 ;
 static int  wp_cache_height = 0 ;
 static GdkPixbuf *  wp_cache_scaled = NULL ;
 
+static int modify_ubound = 255 ;
+static int modify_lbound = 0 ;
+
 /* --- static functions --- */
 
 /* Get background pixmap from _XROOTMAP_ID */
@@ -149,7 +152,7 @@ is_picmod_eq(
  */
 static int
 lsb(
-	unsigned int val
+	unsigned int  val
 	)
 {
 	int nth = 0 ;
@@ -194,7 +197,7 @@ msb(
 static void
 pixbuf_to_pixmap_truecolor(
 	Display *  display,
-	int screen,
+	int  screen,
 	GdkPixbuf *  pixbuf,
 	Pixmap  pixmap,
 	int  depth 
@@ -309,9 +312,9 @@ pixbuf_to_pixmap_truecolor(
 static void
 pixbuf_to_pixmap(
 	Display *  display,
-	int screen,
+	int  screen,
 	GdkPixbuf *  pixbuf,
-	Pixmap pixmap
+	Pixmap  pixmap
 	)
 {
 	pixbuf_to_pixmap_truecolor(
@@ -381,16 +384,29 @@ compose_to_pixmap_truecolor(
 		for( i = 0; i < height; i++){
 			pixel = line ;
 			for( j = 0; j < width; j++){
-				r = ((*data) & r_mask ) >>r_offset ;
-				g = ((*data) & g_mask ) >>g_offset ;
-				b = ((*data) & b_mask ) >>b_offset ;
-				r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
-				g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
-				b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
-				*data =
-					((r <<r_offset ) & r_mask) |
-					((g <<g_offset ) & g_mask) |
-					((b <<b_offset ) & b_mask) ;
+				if(pixel[3] != 0)
+				{				
+					if (pixel[3] != 0xFF)
+					{
+						r = ((*data) >>r_offset) & 0xFF ;
+						g = ((*data) >>g_offset) & 0xFF ;
+						b = ((*data) >>b_offset) & 0xFF ;
+
+						r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
+						g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
+						b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
+
+						*data =	(r <<r_offset ) |
+							(g <<g_offset ) |
+							(b <<b_offset ) ;
+					}
+					else
+					{
+						*data =	(pixel[0] <<r_offset ) |
+							(pixel[1] <<g_offset ) |
+							(pixel[2] <<b_offset ) ;						
+					}				       					
+				}
 				data++ ;
 				pixel +=bytes_per_pixel ;
 			}
@@ -408,9 +424,9 @@ compose_to_pixmap_truecolor(
 static void
 compose_to_pixmap(
 	Display *  display,
-	int screen,
+	int  screen,
 	GdkPixbuf *  pixbuf,
-	Pixmap pixmap)
+	Pixmap  pixmap)
 {
 	compose_to_pixmap_truecolor(
 		display,
@@ -423,17 +439,18 @@ compose_to_pixmap(
 static void
 pixbuf_to_pixmap_and_mask(
 	Display *  display,
-	int screen,
+	int  screen,
 	GdkPixbuf *  pixbuf,
-	Pixmap pixmap,
-	Pixmap mask){
-
-	GC gc ;
-	XGCValues gcv;
-	int i, j ;
-	int width, height, rowstride, bytes_per_pixel ;
-	unsigned char *line ;
-	unsigned char *pixel ;
+	Pixmap  pixmap,
+	Pixmap  mask
+	)
+{
+	GC  gc ;
+	XGCValues  gcv ;
+	int  i, j ;
+	int  width, height, rowstride, bytes_per_pixel ;
+	unsigned char *  line ;
+	unsigned char *  pixel ;
 
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
@@ -468,19 +485,44 @@ pixbuf_to_pixmap_and_mask(
 
 }
 
+static void
+modify_bound(
+	x_picture_modifier_t *  pic_mod
+	)
+{
+	if( pic_mod->contrast > 0){
+		modify_ubound =(256*100 - 128*pic_mod->brightness)/pic_mod->contrast + 128 ;
+		modify_lbound =(        - 128*pic_mod->brightness)/pic_mod->contrast + 128 ;
+	
+		if (modify_ubound > 255)
+			modify_ubound = 255 ;
+		if (modify_ubound < 0)
+			modify_ubound = 0 ;
+	}
+}
+
 static unsigned char
-modify_color(unsigned char value, x_picture_modifier_t *   pic_mod){
+modify_color(
+	unsigned char  value,
+	x_picture_modifier_t *  pic_mod
+	)
+{
 	int result ;
+	
+	if( value > modify_ubound)
+		return 255;
+	if( value < modify_lbound)
+		return 0;
 
 	result = pic_mod->contrast*(value - 128)/100 + 128 *  pic_mod->brightness/100 ;
-	if (result >= 255)
-		return 255 ;
- 	if (result <= 0)
-		return 0 ;
 	return (unsigned char)(result) ;
 }
+
 static void
-gamma_cache_refresh(int gamma){
+gamma_cache_refresh(
+int gamma
+	)
+{
 	int i ;
 	double real_gamma ;
 
@@ -515,7 +557,11 @@ gamma_cache_refresh(int gamma){
  */
 
 static int
-modify_image( GdkPixbuf *  pixbuf, x_picture_modifier_t *  pic_mod){
+modify_image(
+	GdkPixbuf *  pixbuf,
+	x_picture_modifier_t *  pic_mod
+	)
+{
 	int i, j ;
 	int width, height, rowstride, bytes_per_pixel ;
 	unsigned char *line ;
@@ -532,7 +578,7 @@ modify_image( GdkPixbuf *  pixbuf, x_picture_modifier_t *  pic_mod){
 		return 1 ;
 	if(pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100)
 		return 1 ;
-
+	modify_bound( pic_mod);
        	line = gdk_pixbuf_get_pixels (pixbuf) ;
 	for (i = 0; i < height; i++) {
 		pixel = line ;
@@ -566,21 +612,25 @@ modify_image( GdkPixbuf *  pixbuf, x_picture_modifier_t *  pic_mod){
 }
 
 static int
-modify_pixmap( Display *  display, int screen, Pixmap pixmap, x_picture_modifier_t *  pic_mod){
-	int i, j ;
-	int width, height ;
-	int border, depth, x, y ;
-	Window root ;
+modify_pixmap(
+	Display *  display,
+	int  screen,
+	Pixmap  pixmap,
+	x_picture_modifier_t *  pic_mod
+	)
+{
+	int  i, j ;
+	int  width, height ;
+	int  border, depth, x, y ;
+	Window  root ;
 	XImage *  image ;
-	unsigned char r,g,b ;
+	unsigned char  r,g,b ;
 
-	int r_offset, g_offset, b_offset ;
-	int r_mask, g_mask, b_mask ;
-	int r_limit, g_limit, b_limit ;
-	int matched ;
-	XVisualInfo *vinfolist ;
-	XVisualInfo vinfo ;
-	unsigned long data ;
+	int  r_offset, g_offset, b_offset ;
+	int  r_mask, g_mask, b_mask ;
+	int  matched ;
+	XVisualInfo *  vinfolist ;
+	XVisualInfo  vinfo ;
 
 	if ( !pixmap )
 		return 0 ;
@@ -598,13 +648,11 @@ modify_pixmap( Display *  display, int screen, Pixmap pixmap, x_picture_modifier
 	r_mask = vinfolist[0].red_mask ;
 	g_mask = vinfolist[0].green_mask ;
 	b_mask = vinfolist[0].blue_mask ;
+	XFree(vinfolist) ;
 	r_offset = lsb( r_mask) ;
 	g_offset = lsb( g_mask) ;
 	b_offset = lsb( b_mask) ;
-	r_limit = 8 + r_offset - msb( r_mask) ;
-	g_limit = 8 + g_offset - msb( g_mask) ;
-	b_limit = 8 + b_offset - msb( b_mask) ;
-	XFree(vinfolist) ;
+
 	switch( depth){
 	case 1:
 		/* XXX not yet supported */
@@ -614,81 +662,97 @@ modify_pixmap( Display *  display, int screen, Pixmap pixmap, x_picture_modifier
 		break ;
 	case 15:
 	case 16:
+	{
+		int r_limit, g_limit, b_limit ;
+
+		r_limit = 8 + r_offset - msb( r_mask) ;
+		g_limit = 8 + g_offset - msb( g_mask) ;
+		b_limit = 8 + b_offset - msb( b_mask) ;
+		modify_bound( pic_mod);
 		if (pic_mod->gamma == 100){
+			u_int16_t *  data;
+			
+			data = (u_int16_t *)(image->data) ;
 			for (i = 0; i < height; i++) {
 				for (j = 0; j < width; j++) {
-					data = ((u_int16_t *)(image->data))[i*width+j] ;
-					r = ((data & r_mask) >> r_offset)<<r_limit ;
-					g = ((data & g_mask) >> g_offset)<<g_limit ;
-					b = ((data & b_mask) >> b_offset)<<b_limit ;
+					r = ((*data & r_mask) >> r_offset)<<r_limit ;
+					g = ((*data & g_mask) >> g_offset)<<g_limit ;
+					b = ((*data & b_mask) >> b_offset)<<b_limit ;
 
 					r = modify_color( r, pic_mod) ;
 					g = modify_color( g, pic_mod) ;
 					b = modify_color( b, pic_mod) ;
 
-					data = (r >> r_limit) << r_offset |
-						(g >> g_limit)<< g_offset |
-						(b >> b_limit)<< b_offset ;
-					((u_int16_t *)(image->data))[i*width+j] = data ;
+					*data = (r >> r_limit) << r_offset |
+						(g >> g_limit) << g_offset |
+						(b >> b_limit) << b_offset ;
+					data++;
 				}
 			}
 		}else{
+			u_int16_t *  data;
+			
+			data = (u_int16_t *)(image->data) ;
 			gamma_cache_refresh( pic_mod->gamma) ;
 
 			for (i = 0; i < height; i++) {
 				for (j = 0; j < width; j++) {
-					data = ((u_int16_t *)(image->data))[i*width+j] ;
-					r = ((data & r_mask) >> r_offset)<<r_limit ;
-					g = ((data & g_mask) >> g_offset)<<g_limit ;
-					b = ((data & b_mask) >> b_offset)<<b_limit ;
+					r = ((*data & r_mask) >> r_offset)<<r_limit ;
+					g = ((*data & g_mask) >> g_offset)<<g_limit ;
+					b = ((*data & b_mask) >> b_offset)<<b_limit ;
 
 					r = gamma_cache[modify_color( r, pic_mod)] ;
 					g = gamma_cache[modify_color( g, pic_mod)] ;
 					b = gamma_cache[modify_color( b, pic_mod)] ;
 
-					data = (r >> r_limit) << r_offset |
-						(g >> g_limit)<< g_offset |
-						(b >> b_limit)<< b_offset ;
-					((u_int16_t *)(image->data))[i*width+j] = data ;
+					*data = (r >> r_limit) << r_offset |
+						(g >> g_limit) << g_offset |
+						(b >> b_limit) << b_offset ;
 				}
 			}
 		}
 		XPutImage( display, pixmap, DefaultGC( display, screen),
 			   image, 0, 0, 0, 0, width, height) ;
 		break ;
+	}
 	case 24:
 	case 32:
+		modify_bound( pic_mod);
 		if (pic_mod->gamma == 100){
+			u_int32_t *  data ;
+
+			data = (u_int32_t *)(image->data) ;
 			for (i = 0; i < height; i++) {
 				for (j = 0; j < width; j++) {
-					data = ((u_int32_t *)(image->data))[i*width+j] ;
-					r = (data & r_mask) >> r_offset ;
-					g = (data & g_mask) >> g_offset ;
-					b = (data & b_mask) >> b_offset ;
+					r = ((*data) >>r_offset) & 0xFF ;
+					g = ((*data) >>g_offset) & 0xFF ;
+					b = ((*data) >>b_offset) & 0xFF ;
 
 					r = modify_color( r, pic_mod) ;
 					g = modify_color( g, pic_mod) ;
 					b = modify_color( b, pic_mod) ;
 
-					data = r << r_offset | g << g_offset | b << b_offset ;
-					((u_int32_t *)(image->data))[i*width+j] = data ;
+					*data = r << r_offset | g << g_offset | b << b_offset ;
+					data++ ;
 				}
 			}
 		}else{
+			u_int32_t *  data ;
+
+			data = (u_int32_t *)(image->data) ;
 			gamma_cache_refresh( pic_mod->gamma) ;
 			for (i = 0; i < height; i++) {
 				for (j = 0; j < width; j++) {
-					data = ((u_int32_t *)(image->data))[i*width+j] ;
-					r = (data & r_mask) >> r_offset ;
-					g = (data & g_mask) >> g_offset ;
-					b = (data & b_mask) >> b_offset ;
+					r = ((*data) >>r_offset) & 0xFF ;
+					g = ((*data) >>g_offset) & 0xFF ;
+					b = ((*data) >>b_offset) & 0xFF ;
 
 					r = gamma_cache[modify_color( r, pic_mod)] ;
 					g = gamma_cache[modify_color( g, pic_mod)] ;
 					b = gamma_cache[modify_color( b, pic_mod)] ;
 
-					data = r << r_offset | g << g_offset | b << b_offset ;
-					((u_int32_t *)(image->data))[i*width+j] = data ;
+					*data = r << r_offset | g << g_offset | b << b_offset ;
+					data++ ;
 				}
 			}
 		}
@@ -704,7 +768,10 @@ modify_pixmap( Display *  display, int screen, Pixmap pixmap, x_picture_modifier
 /* --- global functions --- */
 
 int
-x_imagelib_display_opened( Display *  display){
+x_imagelib_display_opened(
+	Display *  display
+	)
+{
 	int i ;
 	if (display_count == 0){
 #ifndef OLD_GDK_PIXBUF
@@ -720,7 +787,10 @@ x_imagelib_display_opened( Display *  display){
 }
 
 int
-x_imagelib_display_closed( Display *  display){
+x_imagelib_display_closed(
+	Display *  display
+	)
+{
 	display_count -- ;
 	cache_delete( display) ;
 	return 1 ;
@@ -734,7 +804,12 @@ x_imagelib_display_closed( Display *  display){
  *\return Pixmap to be used as a window's background.
  */
 Pixmap
-x_imagelib_load_file_for_background( x_window_t *  win, char *  file_path, x_picture_modifier_t *  pic_mod){
+x_imagelib_load_file_for_background(
+	x_window_t *  win,
+	char *  file_path,
+	x_picture_modifier_t *  pic_mod
+	)
+{
 	GdkPixbuf *  pixbuf ;
 	Pixmap pixmap ;
 
@@ -808,7 +883,10 @@ x_imagelib_load_file_for_background( x_window_t *  win, char *  file_path, x_pic
  *\return Success => 1, Failure => 0
  */
 int
-x_imagelib_root_pixmap_available( Display *  display){
+x_imagelib_root_pixmap_available(
+	Display *  display
+	)
+{
 	if( XInternAtom( display, "_XROOTPMAP_ID", True))
 		return 1 ;
 	return 0 ;
@@ -821,17 +899,21 @@ x_imagelib_root_pixmap_available( Display *  display){
  *\return Newly allocated Pixmap (or None in the case of failure)
  */
 Pixmap
-x_imagelib_get_transparent_background( x_window_t *  win, x_picture_modifier_t *  pic_mod){
-	int x ;
-	int y ;
-	int pix_x ;
-	int pix_y ;
-	u_int width ;
-	u_int height ;
+x_imagelib_get_transparent_background(
+	x_window_t *  win, 
+	x_picture_modifier_t *  pic_mod
+	)
+{
+	int  x ;
+	int  y ;
+	int  pix_x ;
+	int  pix_y ;
+	u_int  width ;
+	u_int  height ;
 	display_store_t *  cache ;
-	Pixmap pixmap ;
-	Pixmap current_root ;
-	GC gc ;
+	Pixmap  pixmap ;
+	Pixmap  current_root ;
+	GC  gc ;
 
 	cache = seek_cache( win->display);
 	if (!cache){
@@ -916,7 +998,8 @@ int x_imagelib_load_file(
 	char *  path,
 	u_int32_t **  cardinal,
 	Pixmap *  pixmap,
-	Pixmap *  mask)
+	Pixmap *  mask
+	)
 {
 	GdkPixbuf *  pixbuf ;
 	int width, height, rowstride ;
