@@ -72,7 +72,9 @@ mc_set_str_value(
 		return  0 ;
 	}
 
+#ifdef __DEBUG
 	kik_debug_printf( "%s=%s\n" , key , value) ;
+#endif
 	
 	printf( "\x1b]5379;%s=%s\x07" , key , value) ;
 	fflush( stdout) ;
