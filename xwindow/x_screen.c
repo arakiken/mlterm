@@ -5255,7 +5255,7 @@ get_config(
 			value = false ;
 		}
 	}
-	else if( strcmp( key , "receive_string_via_ucs") == 0
+	else if( strcmp( key , "receive_string_via_ucs") == 0 ||
 		/* backward compatibility with 2.6.1 or before */
 		strcmp( key , "copy_paste_via_ucs") == 0)
 	{

@@ -1,5 +1,10 @@
 2002-10-06 Araki Ken <arakiken@users.sf.net>
 
+	* If screen was resized too small, it disappeared once, but resized smaller, 
+	  it appeared again drawn corruptly. fixed.
+
+2002-10-06 Araki Ken <arakiken@users.sf.net>
+
 	* copy_paste_via_ucs option is renamed to receive_string_via_ucs.
 	  And if its value is true, strings from XIM as well as from X Selection are 
 	  converted to UCS once.

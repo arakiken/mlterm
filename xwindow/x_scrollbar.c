@@ -20,7 +20,7 @@
 #define  MAX_LOG_LINES  512
 
 #define  HEIGHT_MARGIN(sb)  ((sb)->top_margin + (sb)->bottom_margin)
-#define  IS_TOO_SMALL(sb)  ((sb)->window.height - HEIGHT_MARGIN(sb) <= (sb)->line_height)
+#define  IS_TOO_SMALL(sb)  ((sb)->window.height <= HEIGHT_MARGIN(sb))
 
 #ifdef  DEBUG
 #define  MAX_BAR_HEIGHT(sb)  (IS_TOO_SMALL(sb) ? \
@@ -87,7 +87,7 @@ calculate_bar_height(
 	x_scrollbar_t *  sb
 	)
 {
-	if( IS_TOO_SMALL(sb))
+	if( IS_TOO_SMALL(sb) || sb->num_of_filled_log_lines + sb->num_of_scr_lines == 0)
 	{
 		return  0 ;
 	}
@@ -219,15 +219,15 @@ window_resized(
 	#endif
 
 		sb->num_of_scr_lines = 0 ;
+		sb->bar_height = 0 ;
+		sb->bar_top_y = 0 ;
 	}
 	else
 	{
 		sb->num_of_scr_lines = MAX_BAR_HEIGHT(sb) / sb->line_height ;
+		sb->bar_height = calculate_bar_height( sb) ;
+		sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
 	}
-
-	sb->bar_height = calculate_bar_height( sb) ;
-
-	sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
 
 	if( sb->view->resized)
 	{
@@ -301,6 +301,11 @@ button_pressed(
 	int  y ;
 	
 	sb = (x_scrollbar_t*) win ;
+
+	if( IS_TOO_SMALL(sb))
+	{
+		return ;
+	}
 
 	result = is_updown_button_event( sb , event->y) ;
 
@@ -392,7 +397,8 @@ button_motion(
 	sb = (x_scrollbar_t*) win ;
 
 	if( sb->is_pressing_up_button || sb->is_pressing_down_button ||
-		is_updown_button_event( sb , event->y) != 0)
+		is_updown_button_event( sb , event->y) != 0 ||
+		IS_TOO_SMALL(sb))
 	{
 		return ;
 	}
@@ -753,9 +759,9 @@ x_scrollbar_set_logged_lines(
 	sb->num_of_filled_log_lines = lines ;
 
 	sb->bar_height = calculate_bar_height( sb) ;
-
-	sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
 	
+	sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
+			
 	return  1 ;
 }
 
@@ -774,7 +780,7 @@ x_scrollbar_line_is_added(
 	sb->num_of_filled_log_lines ++ ;
 
 	sb->bar_height = calculate_bar_height( sb) ;
-
+	
 	old_y = sb->bar_top_y ;
 	sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
 	
@@ -795,7 +801,7 @@ x_scrollbar_reset(
 	x_scrollbar_t *  sb
 	)
 {
-	if( sb->is_motion || sb->bar_top_y < MAX_BAR_HEIGHT(sb) - sb->bar_height)
+	if( sb->is_motion || sb->bar_top_y + sb->bar_height < MAX_BAR_HEIGHT(sb))
 	{
 		sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
 		sb->is_motion = 0 ;
