@@ -1,3 +1,8 @@
+2003-05-20  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* make XDND handler call start/stop_vt100_cmd()
+	before/after processing a config sequence.
+
 2003-05-20 Araki Ken <arakiken@users.sf.net>
 
 	* Fixed some problems in resizing window.

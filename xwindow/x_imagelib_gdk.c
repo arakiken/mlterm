@@ -19,8 +19,7 @@
 #define SUCCESS 0
 
 /** Pixmap cache per display. */
-typedef struct
-pixmap_cache_tag 
+typedef struct  pixmap_cache_tag 
 {
 	Display *  display; /**<Display */
 	Pixmap  root;      /**<Root pixmap   !!! NOT owned by mlterm. DON'T FREE !!!*/

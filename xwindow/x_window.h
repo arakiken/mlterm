@@ -110,10 +110,12 @@ typedef struct  x_window
 
 	x_picture_modifier_t *  pic_mod ;
 	
+#ifndef  DEISABLE_XDND
 	/*
 	 * XDND
 	 */
 	x_dnd_context_ptr_t  dnd ;
+#endif
 
 	/*
 	 * WMHints Icon
@@ -157,7 +159,7 @@ typedef struct  x_window
 	void (*utf8_selection_requested)( struct x_window * , XSelectionRequestEvent * , Atom) ;
 	void (*xct_selection_notified)( struct x_window * , u_char * , size_t) ;
 	void (*utf8_selection_notified)( struct x_window * , u_char * , size_t) ;
-	void (*config_listener)( struct x_window * , char * ,  char * , char * ) ;
+	void (*set_xdnd_config)( struct x_window * , char * ,  char * , char * ) ;
 	void (*window_deleted)( struct x_window *) ;
 	
 } x_window_t ;

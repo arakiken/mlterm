@@ -170,7 +170,7 @@ parse_mlterm_config(
 {
 	char *  value ;	
 	
-	if( !(win->config_listener))
+	if( !(win->set_xdnd_config))
 		return 0 ;
 	value = strchr( src, '=') ;
 	if( !value)
@@ -179,7 +179,7 @@ parse_mlterm_config(
 #ifdef  DEBUG
 	kik_debug_printf("key %s val %s",src, value);
 #endif 
-	(*win->config_listener)( win , 
+	(*win->set_xdnd_config)( win , 
 				 NULL, /* dev */
 				 src, /* key */
 				 value +1 /* value */) ;
@@ -216,12 +216,12 @@ parse_prop_bgimage(
 	int  len)
 {
 	/* XXX: DO SANITY CHECK */
-	if( !(win->config_listener))
+	if( !(win->set_xdnd_config))
 		return 0 ;
 #ifdef  DEBUG
 	kik_debug_printf( "%s\n" , src +7) ;
 #endif 
-	(*win->config_listener)( win , 
+	(*win->set_xdnd_config)( win , 
 				 NULL, /* dev */
 				 "wall_picture", /* key */
 				 src + 7 /* value */) ;

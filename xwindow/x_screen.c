@@ -5869,6 +5869,23 @@ stop_vt100_cmd(
 }
 
 static void
+set_xdnd_config(
+	void *  p,
+	char *  key,
+	char *  dev,
+	char *  value
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+	start_vt100_cmd( p) ;
+	set_config( p, key, dev, value);
+	stop_vt100_cmd( p) ;
+}
+
+static void
 xterm_set_app_keypad(
 	void *  p ,
 	int  flag
@@ -6233,8 +6250,8 @@ x_screen_new(
 	screen->window.utf8_selection_requested = utf8_selection_requested ;
 	screen->window.xct_selection_notified = xct_selection_notified ;
 	screen->window.utf8_selection_notified = utf8_selection_notified ;
-	screen->window.config_listener = set_config ;
 	screen->window.window_deleted = window_deleted ;
+	screen->window.set_xdnd_config = set_xdnd_config ;
 
 	if( use_transbg)
 	{

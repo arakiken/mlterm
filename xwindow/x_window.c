@@ -532,7 +532,7 @@ x_window_init(
 	win->utf8_selection_requested = NULL ;
 	win->xct_selection_notified = NULL ;
 	win->utf8_selection_notified = NULL ;
-	win->config_listener = NULL ;
+	win->set_xdnd_config = NULL ;
 	win->window_deleted = NULL ;
 	
 	return	1 ;

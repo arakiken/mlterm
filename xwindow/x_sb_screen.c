@@ -224,7 +224,7 @@ xct_selection_notified(
 }
 
 static void
-config_listener(
+set_xdnd_config(
 	x_window_t *  win ,
 	char *  dev ,
 	char *  buf ,
@@ -236,7 +236,7 @@ config_listener(
 	sb_screen = (x_sb_screen_t*) win ;
 
 	/* dispatch to screen */
-	(*sb_screen->screen->window.config_listener)( &sb_screen->screen->window ,
+	(*sb_screen->screen->window.set_xdnd_config)( &sb_screen->screen->window ,
 		dev, buf , value) ;
 }
 
@@ -744,8 +744,8 @@ x_sb_screen_new(
 	sb_screen->window.key_pressed = key_pressed ;
 	sb_screen->window.utf8_selection_notified = utf8_selection_notified ;
 	sb_screen->window.xct_selection_notified = xct_selection_notified ;
-	sb_screen->window.config_listener = config_listener ;
 	sb_screen->window.window_deleted = window_deleted ;
+	sb_screen->window.set_xdnd_config = set_xdnd_config ;
 
 	return  sb_screen ;
 
