@@ -4,7 +4,7 @@ comment $Id$
 How to debug mlterm?
 
 If you find something strange and try to send me a report, following options
-will be helpful for me(and maybe for you, too).
+will be helpful for me (and maybe for you, too).
 
 * --enable-debug (configure option)
   mlterm outputs general debug messages.

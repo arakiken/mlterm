@@ -27,7 +27,7 @@ This document describes how to implement your own scrollbar.
   o void (*realized)( struct  x_sb_view *  , Display * , int , Window , GC , unsigned int  win_height) ;
     this is invoked just before the Window is mapped.
     x_sb_view_t status should be initialized here.
-    Don't forget to set display,screen,window,gc given as arguments to each member of x_sb_view_t.
+    Don't forget to set display, screen, window, gc given as arguments to each member of x_sb_view_t.
     (must)
     
   o void (*resized)( struct  x_sb_view * , Window , unsigned int  height) ;
@@ -64,16 +64,16 @@ This document describes how to implement your own scrollbar.
   x_sb_view_t *  x_[yourbar]_transparent_sb_view_new(void) ;  /* transparent version */
 
   you should prepare both normal and transparent versions of your scrollbar.
-  if transparent version is not found , normal version is used under transparent mode.
+  if transparent version is not found, normal version is used under transparent mode.
 
-  Be careful of using static data , which may be shared by multiple x_sb_view_t objects
+  Be careful of using static data, which may be shared by multiple x_sb_view_t objects
   if more than one pty windows are created.
 
   you must also name your scrollbar library as below.
 
   lib[yourbar].so
 
-  when you compile , don't forget to add the directory of x_sb_view.h to cc -I option 
+  when you compile, don't forget to add the directory of x_sb_view.h to cc -I option 
   for cpp to find it.
 
 * registration
@@ -82,6 +82,6 @@ This document describes how to implement your own scrollbar.
 * usage
   $ mlterm -S "your_sb"
 
-  if your_sb scrollbar is not found , simple scrollbar is used.
+  if your_sb scrollbar is not found, simple scrollbar is used.
 
-* see src/x_simple_sb_view.[ch],contrib/scrollbar/sample for detail.
+* see src/x_simple_sb_view.[ch] and contrib/scrollbar/sample for detail.

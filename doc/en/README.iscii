@@ -9,7 +9,7 @@ Following is a instruction of setting up mlterm ISCII support.
   mlterm depends on libind.tar.gz and truetype.tar.gz at
   http://www.tenet.res.in/Donlab/Indlinux/X-Windows/download.html , and xfstt.
   So install and setup them in advance.
-  Don't forget to install indian.h to where cc can find(e.g. /usr/local/include).
+  Don't forget to install indian.h to where cc can find (e.g. /usr/local/include).
 
 * Installation
   $ ./configure --enable-ind
@@ -22,22 +22,22 @@ Following is a instruction of setting up mlterm ISCII support.
 * Usage
   $ LIBIND_PATH=[LIBIND_PATH] mlterm -X=false -E iscii -w 16 -m -V -C Malayalam
 
-  o -X=false is necessary if you use X Input Method(e.g. kinput2) which conflicts with
-    xfstt.(recommended)
+  o -X=false is necessary if you use X Input Method (e.g. kinput2) which conflicts with
+    xfstt. (recommended)
   o -V option enables variable width column.
-    This option is automatically turned on in ISCII encoding.(optional)
-  o -m option enables character combining , which is necessary since mlterm diverts characters
+    This option is automatically turned on in ISCII encoding. (optional)
+  o -m option enables character combining, which is necessary since mlterm diverts characters
     combining framework for rendering ISCII glyph internally.
-    This option is automatically turned on in ISCII encoding.(optional)
-  o -C [lang] enables [lang] glyph of ISCII. Without -C option , Malayalam is used by default.
+    This option is automatically turned on in ISCII encoding. (optional)
+  o -C [lang] enables [lang] glyph of ISCII. Without -C option, Malayalam is used by default.
     (optional)
-  o -w [font size] specifies font size you want to use.(optional)
+  o -w [font size] specifies font size you want to use. (optional)
 
   Pressing the key defined as EXT_KBD in ~/.mlterm/key lets you use ISCII inputting.
   EXT_KBD switches the loop Inscript => Phonetic => US ASCII => Inscript ...
 
 * Note
   I am not a native speaker and mlterm ISCII support itself may be still unstable.
-  So if you find something strange or wrong about it , please report it without reservation to
+  So if you find something strange or wrong about it, please report it without reservation to
   me (arakiken@users.sourceforge.net) or
-  Mlterm-dev-en(http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en).
+  Mlterm-dev-en (http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en).
