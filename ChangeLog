@@ -1,4 +1,8 @@
 [20020203]
+* mlterm dumps core under cjk vertical mode. fixed.
+* doc/ja/README.ja doc/ja/FAQ doc/en/PROTOCOL are updated.
+
+[20020203]
 * cursor disappears under backscroll mode. fixed. (Thanks to Sakamoto Hironori san)
 * -K/--maxptys/max_ptys option is added. You can use more than 5 pty windows in one
   process.
