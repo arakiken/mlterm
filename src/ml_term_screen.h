@@ -139,7 +139,6 @@ typedef struct  ml_term_screen
 	char *  pic_file_path ;
 	ml_picture_modifier_t  pic_mod ;
 
-	u_int8_t  brightness ;
 	u_int8_t  fade_ratio ;
 	int8_t  is_focused ;
 	int8_t  copy_paste_via_ucs ;

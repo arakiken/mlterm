@@ -1316,7 +1316,7 @@ ml_vt100_cmd_get_config(
 	}
 	else if( strcmp( key , "brightness") == 0)
 	{
-		sprintf( digit , "%d" , termscr->brightness) ;
+		sprintf( digit , "%d" , termscr->pic_mod.brightness) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "fade_ratio") == 0)

@@ -3637,7 +3637,7 @@ change_brightness(
 
 	termscr = p ;
 
-	if( termscr->brightness == brightness)
+	if( termscr->pic_mod.brightness == brightness)
 	{
 		/* not changed */
 		
@@ -3648,9 +3648,12 @@ change_brightness(
 	
 	if( termscr->window.is_transparent)
 	{
-		if( termscr->config_menu_listener.change_transparent_flag)
+		ml_window_set_transparent( &termscr->window , get_picture_modifier( termscr)) ;
+		
+		if( HAS_SCROLL_LISTENER(termscr,transparent_state_changed))
 		{
-			(*termscr->config_menu_listener.change_transparent_flag)( termscr , 1) ;
+			(*termscr->screen_scroll_listener->transparent_state_changed)(
+				termscr->screen_scroll_listener->self , 1 , get_picture_modifier( termscr)) ;
 		}
 	}
 	else
@@ -4529,7 +4532,7 @@ ml_set_encoding_listener(
 
 		ml_use_char_combining() ;
 	}
-		
+	
 	return  1 ;
 }
 

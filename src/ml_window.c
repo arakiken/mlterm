@@ -1126,11 +1126,16 @@ update_pic_transparent(
 
 	if( ! ml_picture_init( &pic , win , win->pic_mod))
 	{
+		unset_transparent( win) ;
+
 		return  0 ;
 	}
 	
 	if( ! ml_picture_load_background( &pic))
 	{
+		ml_picture_final( &pic) ;
+		unset_transparent( win) ;
+
 		return  0 ;
 	}
 	

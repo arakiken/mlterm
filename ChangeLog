@@ -1,4 +1,8 @@
 [20020221]
+* brightness cannot be changed in transparent mode. fixed.
+  (Thanks to Minami Hirokazu san)
+
+[20020221]
 * man/mlterm.1 is updated.
 * -H option accepts over 100.
 
