@@ -314,7 +314,8 @@ draw_screen_vertical(
 	 * |                |/
 	 * +----------------+
 	 */
-	if( cand_screen->num_of_candidates > 10 && last - top < 10)
+	if( cand_screen->num_of_candidates > cand_screen->num_per_window &&
+	    last - top < cand_screen->num_per_window)
 	{
 		u_int  y ;
 

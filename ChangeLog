@@ -2,6 +2,9 @@
 
 	* inputmethod/uim/im_uim.c, configure.in: uim_prop_update_custrom()
 
+	* xwindow/x_im_candidate_screen.c (draw_screen_vertical):
+	  10 -> num_per_window
+
 2005-02-10 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* doc/term/mlterm.tc: revived.
