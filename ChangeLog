@@ -1,3 +1,14 @@
+2004-10-09  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_cursor.h: added missig #endif.
+
+2004-10-09  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_cursor.[ch]: Intensified cursor operations.
+
+	* ml_screen.c,ml_edit_util.c,ml_logical_visual.h,ml_mode.h,ml_edit.[ch]:
+	  Fixed because of ml_cursor.[ch] being added.
+
 2004-10-06 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* configure.in:
