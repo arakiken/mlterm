@@ -1,3 +1,9 @@
+2002-09-08 Araki Ken <arakiken@users.sf.net>
+
+	* Screen of logged lines which contains multi byte characters got corrupt. fixed.
+	* Tanween characters were ignored when arabic characters shaped. fixed.
+	* Added doc/ja/README.confapp.
+
 2002-09-08 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Added mlterm-icon-24colors-[12].png for low color depth.

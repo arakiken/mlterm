@@ -178,7 +178,6 @@ shape_arabic(
 	int  count ;
 	arabic_present_t **  list ;
 	u_int16_t  code ;
-	u_char *  bytes ;
 	ml_char_t *  comb ;
 	ml_char_t *  cur ;
 	ml_char_t *  next ;
@@ -234,7 +233,15 @@ shape_arabic(
 		}
 		else if( list[count])
 		{
+		#if  0
+			/*
+			 * Tanween characters combining their proceeded characters will
+			 * be ignored by ml_get_base_char(cur).
+			 */
 			ml_char_copy( &dst[count] , ml_get_base_char(cur)) ;
+		#else
+			ml_char_copy( &dst[count] , cur) ;
+		#endif
 
 			if( list[count - 1] && list[count - 1]->right_joining_present)
 			{
@@ -288,6 +295,8 @@ shape_arabic(
 
 			if( code)
 			{
+				u_char *  bytes ;
+				
 				bytes = ml_char_bytes( &dst[count]) ;
 
 				bytes[0] = 0x0 ;

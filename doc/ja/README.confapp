@@ -1,0 +1,32 @@
+comment -*- mode: text -*-
+comment $Id$
+
+外部設定プログラムの作成方法
+
+* 概略
+  mlterm 本体と、外部設定プログラムは、doc/en/PROTOCOL に規定された
+  プロトコルを使用して、設定の取得・更新を行ないます。
+
+* コンソール型設定プログラム
+  mlterm のコンソール上で起動するタイプの設定プログラムです。
+  main() 関数から始まる、通常のスタンドアロンアプリケーションとして設計
+  してください。
+  この場合、素直に、標準入出力を使用して、mlterm 本体と doc/en/PROTOCOL
+  なやりとりを実装することになります。
+
+  実装例) contrib/tool/mlconf_curses,contrib/tool/mlcc
+
+* GUI 型設定プログラム
+  mlterm 上で、Ctrl+Button3 で起動させるタイプの設定プログラムです。
+  main() 関数から始まる、通常のスタンドアロンアプリケーションとして設計
+  してください。
+  起動させる設定プログラムは、~/.mlterm/main の conf_menu_path オプション
+  で指定できます。(see README.ja)
+  Ctrl+Button3 で起動されたプログラムには、mlterm 本体側で推奨する表示座標
+  が渡されます。
+  その後の mlterm 本体との通信は、標準入出力を介した doc/en/PROTOCOL なや
+  りとりになります。
+  また、GUI を実装する際に使用する Tookit は問いません。
+
+  実装例) tool/mlconfig
+  

@@ -500,7 +500,14 @@ ml_line_set_modified_all(
 	)
 {
 	line->change_beg_col = 0 ;
-	line->change_end_col = line->num_of_chars ;	/* points over the end of line */
+	
+	/*
+	 * '* 2' assures change_end_col should point over the end of line.
+	 * If triple width(or wider) characters(!) were to exist, this hack would make
+	 * no sense...
+	 */
+	line->change_end_col = line->num_of_chars * 2 ;
+
 	SET_MODIFIED(line->flag) ;
 
 	return  1 ;
@@ -693,15 +700,13 @@ ml_convert_col_to_char_index(
 		return  0 ;
 	}
 
-	if( col >= line->num_of_chars)
+#ifdef  DEBUG
+	if( col >= line->num_of_chars * 2)
 	{
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " col %d is larger than num_of_chars(%d)\n" ,
-			col , line->num_of_chars) ;
-	#endif
-
-		col = line->num_of_chars - 1 ;
+		kik_warn_printf( KIK_DEBUG_TAG " col [%d] is over line->num_of_chars * 2 [%d]\n" ,
+			col , line->num_of_chars * 2) ;
 	}
+#endif
 
 	char_index = 0 ;
 	
