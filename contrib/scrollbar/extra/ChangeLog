@@ -1,5 +1,10 @@
 2002-05-01 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* exsb_common.c: fixed minor bug in get_closest_xcolor_pseudo()
+	* athena.c, motif.c: removed unused variables
+
+2002-05-01 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* exsb_common.c: renamed nearest_color to closest_color
 
 2002-04-30 Seiichi SATO <ssato@sh.rim.or.jp>
