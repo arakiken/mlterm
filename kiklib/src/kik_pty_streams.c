@@ -226,18 +226,19 @@ kik_pty_fork(
 	{
 		/* child */
 
-		setsid() ;
-		
 		close(*master) ;
-		
-#if defined(TIOCNOTTY) && !(defined(__GLIBC__) && (__GLIBC__ >= 2))
+#ifdef HAVE_SETSID
+		setsid() ;
+#else /*HAVE_SETSID*/
+#ifdef TIOCNOTTY
 		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
 		if (fd >= 0)
 		{
 			ioctl(fd, TIOCNOTTY, NULL);
 			close(fd);
 		}
-#endif
+#endif /*TIOCNOTTY*/
+#endif /*HAVE_SETSID*/
 		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
 		if (fd >= 0)
 		{

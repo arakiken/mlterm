@@ -37,7 +37,7 @@ AC_CHECK_HEADERS(langinfo.h dlfcn.h dl.h stropts.h sys/stropts.h)
 #
 # --- Checks for library functions ---
 #
-AC_CHECK_FUNCS(strsep fgetln basename isastream seteuid setegid geteuid getegid snprintf usleep unsetenv flock)
+AC_CHECK_FUNCS(strsep fgetln basename isastream seteuid setegid geteuid getegid setsid snprintf usleep unsetenv flock)
 AC_FUNC_ALLOCA
 
 AC_C_INLINE

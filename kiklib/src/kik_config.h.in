@@ -43,7 +43,7 @@
 
 #undef  HAVE_GETEUID
 
-#undef  HAVE_GETEGID
+#undef  HAVE_SETSID
 
 #undef  HAVE_SNPRINTF
 
