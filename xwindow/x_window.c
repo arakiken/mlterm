@@ -3,7 +3,7 @@
  */
 
 /*
- * Functions designed and implemeted by Minami Hirokazu(minami@chem.s.u-tokyo.ac.jp) are:
+ * Functions designed and implemented by Minami Hirokazu(minami@chem.s.u-tokyo.ac.jp) are:
  * - XDND support
  * - Extended Window Manager Hint(Icon) support
  */
@@ -69,7 +69,7 @@ enum
 	STATE_FLAG_MAXIMIZED_HORZ
 } ;
 
-#define  DOUBLE_CLICK_INTERVAL  1000	/* mili second */
+#define  DOUBLE_CLICK_INTERVAL  1000	/* millisecond */
 #define  MAX_CLICK  3			/* max is triple click */
 
 #if  0
@@ -96,11 +96,11 @@ xdnd_parse(
 	{
 		if( !(win->xct_selection_notified))
 		{
-			return 0 ; /* needs ascii capable parser*/
+			return 0 ; /* needs ASCII capable parser*/
 		}
 		if( !src)
 		{
-			return 1 ; /* return success for judgement */
+			return 1 ; /* return success for judgment */
 		}
 		(*win->xct_selection_notified)( win , src , len) ;
 		return 1 ;
@@ -110,26 +110,26 @@ xdnd_parse(
 	{
 		if( !(win->utf8_selection_notified))
 		{
-			return 0 ; /* needs ascii capable parser*/
+			return 0 ; /* needs ASCII capable parser*/
 		}
 		if( !src)
 		{
-			return 1 ; /* return success for judgement */
+			return 1 ; /* return success for judgment */
 		}
 		(*win->utf8_selection_notified)( win , src , len) ;
 		return 1 ;
 	}
-	/* XXX ASCII sould be safely processed because it's subset of utf8. iso8859-1 may be problematic...*/
+	/* XXX ASCII should be safely processed because it's subset of utf8. ISO8859-1 may be problematic...*/
 	/* text/plain */
 	if( atom == XA_DND_MIME_TEXT_PLAIN(win->display))
 	{
 		if( !(win->utf8_selection_notified))
 		{
-			return 0 ; /* needs ascii capable parser*/
+			return 0 ; /* needs ASCII capable parser*/
 		}
 		if( !src)
 		{
-			return 1 ; /* return success for judgement */
+			return 1 ; /* return success for judgment */
 		}
 		(*win->utf8_selection_notified)( win , src , len) ;
 		return 1 ;
@@ -141,11 +141,11 @@ xdnd_parse(
 		char *delim ;
 		if( !(win->utf8_selection_notified))
 		{
-			return 0 ; /* needs ascii capable parser*/
+			return 0 ; /* needs ASCII capable parser*/
 		}
 		if( !src)
 		{
-			return 1 ; /* return success for judgement */
+			return 1 ; /* return success for judgment */
 		}
 		pos = 0 ;
 		delim = src ;
@@ -189,7 +189,7 @@ is_dnd_mime_type_acceptable(
 #ifdef  DEBUG
 	kik_debug_printf("dropped unrecognized atom: %d\n", atom);
 #endif
-	return (Atom)0;/* it's illegal valur for Atom */
+	return (Atom)0;/* it's illegal value for Atom */
 }
 
 static int
@@ -588,7 +588,7 @@ x_window_init(
 
 	win->event_mask = ExposureMask | VisibilityChangeMask | FocusChangeMask | PropertyChangeMask ;
 
-	/* if visibility is partially obsucured , scrollable will be 0. */
+	/* if visibility is partially obscured , scrollable will be 0. */
 	win->is_scrollable = 1 ;
 
 	win->is_mapped = 1 ;
@@ -2096,7 +2096,7 @@ x_window_receive_event(
 				/*
 				 * XXX
 				 * long_offset and long_len is the same as rxvt-2.6.3 ,
-				 * but I'm not confident if this is ok.
+				 * but I'm not confident if this is OK.
 				 */
 				if( XGetWindowProperty( win->display , event->xselection.requestor ,
 					event->xselection.property , seg / 4 , 4096 , False ,
@@ -2844,7 +2844,7 @@ x_window_set_icon(
 /* set extended window manager hint's icon */
 	if( *cardinal)
 	{
-	  /*it shuold be possible to set multiple icons...*/
+	  /*it should be possible to set multiple icons...*/
 		XChangeProperty( win->display, win->my_window,
 				 XInternAtom( win->display,
 					      "_NET_WM_ICON",
