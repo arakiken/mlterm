@@ -1645,7 +1645,16 @@ ml_edit_go_back(
 		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
 #endif
 
-	reset_wraparound_checker( edit) ;
+	if( edit->wraparound_ready_line)
+	{
+		reset_wraparound_checker( edit) ;
+
+		return  1 ;
+	}
+	else
+	{
+		reset_wraparound_checker( edit) ;
+	}
 	
 	/*
 	 * full width char check.
