@@ -6194,9 +6194,14 @@ fi
 
 if test "$utmp" = "yes" ; then
 	UTMP_CFLAGS="-DUSE_UTMP"
-	PERMISSION="4755"
+	has_utmp=`grep utmp /etc/group 2>/dev/null`
+	if test "$has_utmp" ; then
+		INSTALL_OPT="-m 2755 -g utmp"
+	else
+		INSTALL_OPT="-m 4755 -o root"
+	fi
 else
-	PERMISSION="755"
+	INSTALL_OPT="-m 755"
 fi
 
 
@@ -6215,7 +6220,7 @@ fi
 # Extract the first word of "gtk-config", so it can be a program name with args.
 set dummy gtk-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6219: checking for $ac_word" >&5
+echo "configure:6224: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_gtk_config'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6245,7 +6250,7 @@ if test "$gtk_config" = "yes" ; then
 	# Extract the first word of "gtk-config", so it can be a program name with args.
 set dummy gtk-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6249: checking for $ac_word" >&5
+echo "configure:6254: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_GTK_CONFIG'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6284,7 +6289,7 @@ else
 	# Extract the first word of "gtk12-config", so it can be a program name with args.
 set dummy gtk12-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6288: checking for $ac_word" >&5
+echo "configure:6293: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_gtk_config'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6314,7 +6319,7 @@ fi
 		# Extract the first word of "gtk12-config", so it can be a program name with args.
 set dummy gtk12-config; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:6318: checking for $ac_word" >&5
+echo "configure:6323: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_GTK_CONFIG'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -6546,7 +6551,7 @@ s%@PROG@%$PROG%g
 s%@IND_LIBS@%$IND_LIBS%g
 s%@IND_CFLAGS@%$IND_CFLAGS%g
 s%@UTMP_CFLAGS@%$UTMP_CFLAGS%g
-s%@PERMISSION@%$PERMISSION%g
+s%@INSTALL_OPT@%$INSTALL_OPT%g
 s%@UCS4_CFLAGS@%$UCS4_CFLAGS%g
 s%@gtk_config@%$gtk_config%g
 s%@GTK_CONFIG@%$GTK_CONFIG%g

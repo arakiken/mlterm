@@ -84,6 +84,13 @@ AC_SUBST(UTMPER_LIBS)
 AC_DEFINE(HAVE_UTMPER)
 ])
 
+AC_CHECK_LIB(util,logout,
+[
+LOGIN_LIBS="-lutil"
+AC_SUBST(LOGIN_LIBS)
+AC_DEFINE(HAVE_LOGIN)
+])
+
 AC_MSG_CHECKING(for pty/tty type)
 AC_CACHE_VAL(kik_cv_pty,[
 if test -c /dev/ptmx ; then

@@ -6,8 +6,10 @@ ver 2.3.0
 * mlterm can work as a daemon process , and mlclient which is a front end of mlterm
   server is added.
 * mlterm can handle multiple display connections.
-* BSD style utmp and utemper is supported. 
-  (utemper support is contributed by Mike Fabian. Thanks!)
+* utmp,wtmp is supported by utemper , login/logout functions , or directly 
+  operating BSD style utmp,wtmp files.
+  (utemper support is contributed by Mike Fabian , and login/logout one is by
+  Minami Hirokazu san. Thanks!)
 * and many minor bugs are fixed.
 
 ver 2.2.0(2002/01/29)

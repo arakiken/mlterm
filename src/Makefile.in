@@ -34,12 +34,12 @@ CFLAGS=$(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @IMLIB_CFLAGS@ @FR
 	@AA_CFLAGS@ @UCS4_CFLAGS@ @IND_CFLAGS@ @UTMP_CFLAGS@ @CFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DLIBEXECDIR=\"$(LIBEXECDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-I/usr/X11R6/include -I/usr/local/include
-LIBS=$(CFLAGS_LOCAL) @FRIBIDI_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ @IND_LIBS@ \
+LIBS=$(LIBS_LOCAL) @FRIBIDI_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ @IND_LIBS@ \
 	@X_EXTRA_LIBS@ -lX11 $(LKIK) $(LMKF) @DL_LIBS@ \
 	-L/usr/X11R6/lib -L/usr/local/lib -R/usr/X11R6/lib -R/usr/local/lib
 
 PROG = mlterm
-PERMISSION = @PERMISSION@
+INSTALL_OPT = @INSTALL_OPT@
 
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
@@ -61,7 +61,7 @@ $(BINDIR):
 	mkdir -p $(BINDIR)
 
 install : $(BINDIR)
-	$(LIBTOOL_INSTALL) -m $(PERMISSION) $(PROG) $(BINDIR)
+	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG) $(BINDIR)
 
 wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l

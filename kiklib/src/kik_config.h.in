@@ -42,6 +42,8 @@
 
 #undef  HAVE_UTMPER
 
+#undef  HAVE_LOGIN
+
 #undef  PTY_STREAMS
 
 #undef  PTY_BSD

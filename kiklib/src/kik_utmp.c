@@ -9,6 +9,10 @@
 
 #include  "kik_utmp_utmper.c"
 
+#elif  defined(HAVE_LOGIN)
+
+#include  "kik_utmp_login.c"
+
 #elif  defined(HAVE_SETUTENT)
 
 #include  "kik_utmp_sysv.c"
