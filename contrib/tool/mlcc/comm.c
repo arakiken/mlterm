@@ -33,7 +33,9 @@ static void _csi(char *str){
 }
 
 int read_one(){
-	return  fgetc( stdin);
+	int i;
+	i = fgetc( stdin);
+	return  i;
 }
 
 
@@ -114,7 +116,9 @@ void term_size(int *w, int *h){
 
 char * mlterm_get_param(const char * key){
 	char * result;
-	printf("\033]5380;%s\007", key);
+
+	snprintf(_buffer, sizeof(_buffer), "]5380;%s\007",key);
+	_csi(_buffer);
 	fgets(_buffer, sizeof(_buffer) -1, stdin);
 	result = strchr(_buffer, '\n');
 	if (!result){
@@ -132,12 +136,13 @@ char * mlterm_get_param(const char * key){
 }
 
 void mlterm_set_value(const char * key, int value){
-	snprintf(_buffer, sizeof(_buffer), "%d", value);
-	printf("\033]5379;%s=%s\007", key, _buffer);
+	snprintf(_buffer, sizeof(_buffer), "]5379;%s=%d\007",key, value);
+	_csi(_buffer);
 }
 
 void mlterm_set_param(const char * key, char *value){
-	printf("\033]5379;%s=%s\007", key, value);
+	snprintf(_buffer, sizeof(_buffer), "]5379;%s=%s\007",key, value);
+	_csi(_buffer);
 }
 
 void display_colorcube(window_t * window, int x, int y, int colorid){
@@ -311,7 +316,7 @@ void window_clear(window_t * window){
 	if (window->framed)
 		normal_char();
 
-	fflush(stdout);
+	flush_stdout();
 }
 
 int termios_init(){
@@ -320,7 +325,7 @@ int termios_init(){
 	newtio = _oldtio;
 	newtio.c_lflag &= ~ICANON;
 	newtio.c_lflag &= ~ECHO;
-	newtio.c_cc[VMIN] = 0;
+	newtio.c_cc[VMIN] = 1;
 	newtio.c_cc[VTIME] = 1; /* have to break with some intervals to distinguish ESC/Right*/
 	tcsetattr(0, TCSAFLUSH, &newtio);
 	return 0;
@@ -355,11 +360,11 @@ int string_edit(window_t *window, char *src, char **result){
 				window_addstr(window, width - strlen(work) -2, 0, work);
 			}
 			set_cursor_pos(window, cur_pos - offset, 1);
-			fflush(stdout);
+			flush_stdout();
 			flag = 0;
 		}
 		
-		input = fgetc( stdin);
+		input = read_one();
 		switch(input){
 		case 8: /* BS */
 			if(cur_pos > 1){
@@ -367,20 +372,20 @@ int string_edit(window_t *window, char *src, char **result){
 				cur_pos --;
 			}
 			flag = 1;
-			break;			
+			break;
 		case 10: /* ret */
 			*result = buffer;
 			cursor_hide();
   			return 1;
 		case 27:/*esc seq*/
-			input = fgetc( stdin);
+			input = read_one();
 			if( input != 79){ /* cursor key or ESC ? */
 				/* ESC */
 				cursor_hide();
  				free(work);
 				return 0; /* discard */
 			}
-			input = fgetc( stdin);
+			input = read_one();
 			switch(input){
 			case 67: /* RIGHT */
 				if (cur_pos > strlen(buffer))
@@ -445,18 +450,18 @@ int color_select(window_t *edit, int initial){
 				window_addstr(edit, 1, i, colorname_from_id(i));
 				set_fg_color_default();
 			}
-			fflush(stdout);
+			flush_stdout();
 			flag = 0;
 		}
-		buffer = fgetc( stdin);
+		buffer = read_one();
 		switch(buffer){
 		case 27:
-			buffer = fgetc( stdin);
+			buffer = read_one();
 			if( buffer != 79){ /* cursor key or ESC ? */
 				/* ESC */
  				return initial;
 			}
-			buffer = fgetc( stdin);
+			buffer = read_one();
 			switch(buffer){
 			case 65: /* UP */
 				if (ind > 0){
