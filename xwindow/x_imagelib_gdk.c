@@ -129,7 +129,7 @@ dither_to_pixmap(
 
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
-	kik_debug_printf("W %d H%d", width,height);
+
 #ifdef USE_FS
 	diff_cur = calloc( width*3, 1) ;
 	if( !diff_cur)
@@ -744,6 +744,92 @@ compose_truecolor(
 	return image ;
 }
 
+static XImage *
+compose_pseudocolor(
+	Display *  display,
+	int  screen,
+	GdkPixbuf *  pixbuf,
+	Pixmap  pixmap,
+	int  depth,
+	XVisualInfo * vinfo
+	)
+{
+	XImage *  image ;
+
+	unsigned int i, j, num_cells, r, g, b ;
+	unsigned int width, height, rowstride ;
+	unsigned char *line ;
+	unsigned char *pixel ;
+	XColor *  color_list ;
+
+	Colormap  cmap = DefaultColormap( display, screen) ;
+
+	num_cells = DisplayCells( display , screen) ;
+	color_list = malloc( num_cells * sizeof(XColor)) ;
+	for( i = 0 ; i < num_cells ; i ++)
+	{
+		color_list[i].pixel = i ;
+	}
+
+	XQueryColors( display , cmap , color_list, num_cells) ;
+
+	width = gdk_pixbuf_get_width (pixbuf) ;
+	height = gdk_pixbuf_get_height (pixbuf) ;
+
+	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap) ;
+
+	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
+	line = gdk_pixbuf_get_pixels( pixbuf) ;
+
+	switch( depth)
+	{
+	case 8:
+	{
+		u_int8_t *  data = (u_int8_t *)(image->data) ;
+		kik_debug_printf("dp: %p\n", data) ;
+		for( i = 0; i < height; i++){
+			pixel = line ;
+			for( j = 0; j < width; j++){
+				if(pixel[3] != 0)
+				{
+					if (pixel[3] != 0xFF)
+					{
+
+						r = color_list[*data].red >>8 ;
+						g = color_list[*data].green >>8 ;
+						b = color_list[*data].blue >>8 ;
+
+						r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
+						g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
+						b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
+						
+						*data = closest_color_index( display, screen,
+									     color_list, num_cells, 
+									     r, g, b ) ;
+
+
+					}
+					else
+					{
+						*data = closest_color_index( display, screen,
+									     color_list, num_cells, 
+									     pixel[0], pixel[1], pixel[2] ) ; 
+					}				       
+				}
+				data++ ;
+				pixel += 4 ;
+			}
+			line += rowstride ;
+		}
+		break ;
+	}
+	default:
+		break;
+	}
+	free( color_list) ;
+	return image ;
+}
+
 static int
 compose_to_pixmap(
 	Display *  display,
@@ -780,17 +866,27 @@ compose_to_pixmap(
 					     DefaultDepth( display, screen),
 					     vinfolist) ;
 		break;
+	case PseudoColor:
+		image = compose_pseudocolor( display,
+					     screen,
+					     pixbuf,
+					     pixmap,
+					     DefaultDepth( display, screen),
+					     vinfolist) ;
+		break;		
 	default:
 		break;
 	}
-	XFree( vinfolist) ;
 	if (image)
 	{
 		XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
 			   gdk_pixbuf_get_width( pixbuf), gdk_pixbuf_get_height( pixbuf)) ;
 		XDestroyImage( image) ;
 		return 0;
-	}
+	}	
+
+	XFree( vinfolist) ;
+
 	return -5 ;
 }
 
@@ -1225,7 +1321,6 @@ x_imagelib_load_file_for_background(
 				       pixbuf,
 				       pixmap)) <0 )
 		{
-			kik_debug_printf("err: %d\n", res);
 			XFreePixmap( win->display, pixmap) ;
 			return None ;
 		}
