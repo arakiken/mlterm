@@ -2847,10 +2847,22 @@ x_window_get_visible_geometry(
 	)
 {
 	Window  child ;
+	int screen_width ;
+	int screen_height ;
 	
 	XTranslateCoordinates( win->display , win->my_window ,
 		DefaultRootWindow( win->display) , 0 , 0 ,
 		x , y , &child) ;
+
+	screen_width = DisplayWidth( win->display , win->screen) ;
+	screen_height = DisplayHeight( win->display , win->screen) ;
+
+	if( *x >= screen_width || *y >= screen_height)
+	{
+		/* no visible window */
+		
+		return  0 ;
+	}
 
 	if( *x < 0)
 	{
@@ -2892,14 +2904,14 @@ x_window_get_visible_geometry(
 		*height = ACTUAL_HEIGHT(win) ;
 	}
 
-	if( *x + *width > DisplayWidth( win->display , win->screen))
+	if( *x + *width > screen_width)
 	{
-		*width = DisplayWidth( win->display , win->screen) - *x ;
+		*width = screen_width - *x ;
 	}
 
-	if( *y + *height > DisplayHeight( win->display , win->screen))
+	if( *y + *height > screen_height)
 	{
-		*height = DisplayHeight( win->display , win->screen) - *y ;
+		*height = screen_height - *y ;
 	}
 
 	return  1 ;
