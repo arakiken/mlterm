@@ -14,7 +14,7 @@
  * Internal size representation is like this.
  * 0x0 = size 1 , 0x1 = size 2 , 0x2 = size 3 , 0x3 = size 4.
  */
-#define  SIZE(attr) ((( (attr) >> 14) & 0x3) + 1)
+#define  SIZE(attr) ((((attr) >> 14) & 0x3) + 1)
 
 #define  SET_SIZE(attr,size)  ( (attr) = (((attr) & 0x3fff) | (((size) - 1) << 14)) )
 
@@ -28,11 +28,11 @@
 
 #define  RESTORE_COLOR(attr) ( (attr) &= 0xf7ff )
 
-#define  FG_COLOR(attr)  (( (attr) >> 7) & 0xf)
+#define  FG_COLOR(attr)  (((attr) >> 7) & 0xf)
 
 #define  SET_FG_COLOR(attr,color)  ( (attr) = (((attr) & 0xf87f) | ((color) << 7)) )
 
-#define  BG_COLOR(attr)  (( (attr) >> 3) & 0xf)
+#define  BG_COLOR(attr)  (((attr) >> 3) & 0xf)
 
 #define  SET_BG_COLOR(attr,color)  ( (attr) = (((attr) & 0xff87) | ((color) << 3)) )
 
@@ -210,7 +210,7 @@ ml_str_copy(
 	return  1 ;
 }
 
-u_int
+inline u_int
 ml_str_cols(
 	ml_char_t *  chars ,
 	u_int  len
@@ -229,7 +229,7 @@ ml_str_cols(
 	return  cols ;
 }
 
-int
+inline int
 ml_str_bytes_equal(
 	ml_char_t *  str1 ,
 	ml_char_t *  str2 ,
@@ -770,7 +770,7 @@ ml_char_is_reversed(
 	return  IS_REVERSED(ch->attr) ;
 }
 
-int
+inline int
 ml_char_bytes_equal(
 	ml_char_t *  ch1 ,
 	ml_char_t *  ch2

@@ -59,7 +59,7 @@ AC_TRY_COMPILE(
 [
 socklen_t  len ;
 ],kik_cv_socklen_ident=yes,kik_cv_socklen_ident=no)])
-if test "${kik_cv_sockeln_ident}" = "no" ; then
+if test "${kik_cv_socklen_ident}" = "no" ; then
 	AC_DEFINE(socklen_t,unsigned int)
 fi
 

@@ -14,40 +14,55 @@
 #include  "ml_window.h"
 
 
+#ifdef  USE_IMLIB
+
+typedef struct  imlib
+{
+	Display *  display ;
+	ImlibData *  imlib ;
+
+} imlib_t ;
+
+
 /* --- static variables --- */
 
-#ifdef  USE_IMLIB
-/* shared by all picture managers */
-static ImlibData *  imlib ;
-#endif
+static imlib_t *  imlibs ;
+static u_int  num_of_imlibs ;
 
 
 /* --- static functions --- */
 
-#ifdef  USE_IMLIB
-
-static int
-init_imlib(
-	ml_window_t *  win
+static ImlibData *
+get_imlib(
+	Display *  display
 	)
 {
-	if( imlib == NULL)
-	{
-		if( ( imlib = Imlib_init( win->display)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( "failed to init imlib.\n") ;
-		#endif
+	int  counter ;
 
-			return  0 ;
+	for( counter = 0 ; counter < num_of_imlibs ; counter ++)
+	{
+		if( imlibs[counter].display == display)
+		{
+			if( imlibs[counter].imlib == NULL &&
+				(imlibs[counter].imlib = Imlib_init( display)) == NULL)
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( "failed to init imlib.\n") ;
+			#endif
+
+				return  None ;
+			}
+
+			return  imlibs[counter].imlib ;
 		}
 	}
 
-	return  1 ;
+	return  NULL ;
 }
 
 static int
 modify_image(
+	ImlibData *  imlib ,
 	ImlibImage *  img ,
 	ml_picture_modifier_t *  pic_mod
 	)
@@ -71,10 +86,11 @@ load_picture(
 	ml_picture_modifier_t *  pic_mod
 	)
 {
+	ImlibData *  imlib ;
 	ImlibImage *  img ;
 	Pixmap  pixmap ;
 
-	if( ! init_imlib( win))
+	if( ! ( imlib = get_imlib( win->display)))
 	{
 		return  None ;
 	}
@@ -90,12 +106,11 @@ load_picture(
 
 	if( pic_mod)
 	{
-		modify_image( img , pic_mod) ;
+		modify_image( imlib , img , pic_mod) ;
 	}
 	
-	pixmap = XCreatePixmap( win->display , win->my_window ,
-		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-		DefaultDepth( win->display , win->screen)) ;
+	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+			DefaultDepth( win->display , win->screen)) ;
 
 	Imlib_paste_image( imlib , img , pixmap , 0 , 0 ,
 		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
@@ -123,9 +138,10 @@ get_background_picture(
 	XSetWindowAttributes attr ;
 	XEvent event ;
 	int counter ;
+	ImlibData *  imlib ;
 	ImlibImage *  img ;
 	
-	if( ! init_imlib( win))
+	if( ! ( imlib = get_imlib( win->display)))
 	{
 		return  None ;
 	}
@@ -217,7 +233,7 @@ get_background_picture(
 
 	if( pic_mod)
 	{
-		modify_image( img , pic_mod) ;
+		modify_image( imlib , img , pic_mod) ;
 	}
 
 	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
@@ -258,6 +274,83 @@ get_background_picture(
 
 
 /* --- global functions --- */
+
+#ifdef  USE_IMLIB
+
+int
+ml_picture_display_opened(
+	Display *  display
+	)
+{
+	void *  p ;
+
+	if( ( p = realloc( imlibs , sizeof( imlib_t) * (num_of_imlibs + 1))) == NULL)
+	{
+		return  0 ;
+	}
+
+	imlibs = p ;
+
+	imlibs[num_of_imlibs].display = display ;
+	imlibs[num_of_imlibs].imlib = NULL ;
+	
+	num_of_imlibs ++ ;
+
+	return  1 ;
+}
+
+int
+ml_picture_display_closed(
+	Display *  display
+	)
+{
+	int  counter ;
+	
+	for( counter = 0 ; counter < num_of_imlibs ; counter ++)
+	{
+		if( imlibs[counter].display == display)
+		{
+			/*
+			 * XXX
+			 * How to destroy ImlibData ?
+			 * static data of this display are still left in imlib , which
+			 * results in unexpected behaviors(maybe core dumps)
+			 */
+
+			if( imlibs[counter].imlib)
+			{
+				Imlib_free_colors( imlibs[counter].imlib) ;
+				free( imlibs[counter].imlib) ;
+			}
+			
+			imlibs[counter] = imlibs[--num_of_imlibs] ;
+
+			return  1 ;
+		}
+	}
+
+	return  1 ;
+}
+
+#else
+
+int
+ml_picture_display_opened(
+	Display *  display
+	)
+{
+	return  1 ;
+}
+
+int
+ml_picture_display_closed(
+	Display *  display
+	)
+{
+	return  1 ;
+}
+
+#endif
 
 int
 ml_picture_init(

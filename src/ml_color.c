@@ -169,9 +169,7 @@ ml_get_xcolor_rgb(
 	return  1 ;
 }
 
-
 #else
-
 
 int
 ml_load_named_xcolor(
@@ -247,6 +245,5 @@ ml_get_xcolor_rgb(
 
 	return  1 ;
 }
-
 
 #endif

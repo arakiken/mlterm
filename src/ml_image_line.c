@@ -15,16 +15,12 @@
 
 
 #ifdef  DEBUG
-
 #define  END_CHAR_INDEX(line) \
 	( (line)->num_of_filled_chars == 0 && \
 		kik_warn_printf( "END_CHAR_INDEX()[" __FUNCTION__  "] num_of_filled_chars is 0.\n") ? \
 		0 : (line)->num_of_filled_chars - 1 )
-
 #else
-
 #define  END_CHAR_INDEX(line)  ((line)->num_of_filled_chars - 1)
-
 #endif
 
 #define  IS_CLEARED_TO_END(flag) ((flag) & 0x1)
@@ -841,7 +837,7 @@ ml_imgline_share(
 	return  1 ;
 }
 
-inline int
+int
 ml_imgline_end_char_index(
 	ml_image_line_t *  line
 	)

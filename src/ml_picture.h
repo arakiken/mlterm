@@ -28,6 +28,10 @@ typedef struct ml_picture
 } ml_picture_t ;
 
 
+int  ml_picture_display_opened( Display *  display) ;
+
+int  ml_picture_display_closed( Display *  display) ;
+
 int  ml_picture_init( ml_picture_t *  pic , ml_window_ptr_t  win , ml_picture_modifier_t *  mod) ;
 
 int  ml_picture_final( ml_picture_t *  pic) ;

@@ -652,7 +652,8 @@ iscii_visual(
 				 * XXX
 				 * this may break active cache for another line in "row" line.
 				 * it is preferable to swap iscii_logvis->{logical|visual}_lines[row]
-				 * and iscii_logvis->{logical|visual}_lines[hit_row].
+				 * and iscii_logvis->{logical|visual}_lines[hit_row] , but
+				 * this also works anyway:)
 				 */
 				ml_imgline_copy_line( &iscii_logvis->logical_lines[row] ,
 					&iscii_logvis->logical_lines[hit_row]) ;

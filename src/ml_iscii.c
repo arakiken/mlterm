@@ -449,4 +449,4 @@ ml_convert_ascii_to_iscii(
 }
 
 
-#endif
+#endif	/* USE_IND */

@@ -11,8 +11,8 @@
 #include  <kiklib/kik_util.h>	/* K_MIN */
 
 
-#define  ROW_IN_LOGS(bs_image,row) \
-	( ml_get_num_of_logged_lines((bs_image)->logs) + row)
+#define  ROW_IN_LOGS( bs_image , row) \
+	( ml_get_num_of_logged_lines( (bs_image)->logs) + row)
 
 #if  0
 #define  __DEBUG
@@ -216,7 +216,7 @@ ml_bs_get_image_line_in_all(
 
 	if( row < 0)
 	{
-		return  ml_log_get( bs_image->logs , ROW_IN_LOGS(bs_image,row)) ;
+		return  ml_log_get( bs_image->logs , ROW_IN_LOGS( bs_image , row)) ;
 	}
 	else
 	{
@@ -256,7 +256,7 @@ ml_bs_get_image_line_in_screen(
 		if( row_in_scr < bs_image->backscroll_rows)
 		{
 			return  ml_log_get( bs_image->logs ,
-				ROW_IN_LOGS(bs_image,row_in_scr - bs_image->backscroll_rows)) ;
+				ROW_IN_LOGS( bs_image , row_in_scr - bs_image->backscroll_rows)) ;
 		}
 		else
 		{
@@ -397,7 +397,7 @@ ml_bs_copy_region(
 	int  end_row_in_all ;
 
 	/* u_int => int */
-	beg_row_in_all = -(ml_get_num_of_logged_lines((bs_image)->logs)) ;
+	beg_row_in_all = - ( ml_get_num_of_logged_lines( ( bs_image)->logs)) ;
 	end_row_in_all = bs_image->image->num_of_filled_rows - 1 ;
 
 	if( beg_row < beg_row_in_all)
@@ -434,7 +434,7 @@ ml_bs_copy_region(
 	
 	if( beg_row == end_row)
 	{
-		size_except_end_space = K_MIN(end_char_index + 1,size_except_end_space) ;
+		size_except_end_space = K_MIN( end_char_index + 1 , size_except_end_space) ;
 
 		ml_imgline_copy_str( line , &chars[counter] , beg_char_index ,
 			size_except_end_space - beg_char_index) ;
@@ -537,7 +537,7 @@ ml_bs_get_region_size(
 	
 	if( beg_row == end_row)
 	{
-		region_size = K_MIN(end_char_index + 1,size_except_end_space) - beg_char_index ;
+		region_size = K_MIN( end_char_index + 1 , size_except_end_space) - beg_char_index ;
 	}
 	else if( beg_row < end_row)
 	{
@@ -567,7 +567,7 @@ ml_bs_get_region_size(
 		line = ml_bs_get_image_line_in_all( bs_image , row) ;
 
 		size_except_end_space = ml_get_num_of_filled_chars_except_end_space( line) ;
-		region_size += (K_MIN(end_char_index + 1,size_except_end_space)) ;
+		region_size += (K_MIN( end_char_index + 1 , size_except_end_space)) ;
 	}
 	else
 	{

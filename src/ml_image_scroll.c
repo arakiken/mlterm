@@ -378,7 +378,7 @@ ml_imgscrl_scroll_downward(
 	return  scroll_downward_region( image , image->scroll_region_beg , image->scroll_region_end , size) ;
 }
 
-inline int
+int
 ml_is_scroll_upperlimit(
 	ml_image_t *  image ,
 	int  row
@@ -387,7 +387,7 @@ ml_is_scroll_upperlimit(
 	return  (row == image->scroll_region_beg) ;
 }
 
-inline int
+int
 ml_is_scroll_lowerlimit(
 	ml_image_t *  image ,
 	int  row

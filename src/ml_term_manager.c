@@ -118,6 +118,7 @@ open_display(
 	}
 
 	ml_xim_display_opened( disp->display) ;
+	ml_picture_display_opened( disp->display) ;
 	
 	if( ! ml_color_manager_init( &disp->color_man , disp->display ,
 		DefaultScreen( disp->display) , &term_man->color_custom))
@@ -180,6 +181,7 @@ delete_display(
 	ml_color_manager_final( &disp->color_man) ;
 	ml_window_manager_final( &disp->win_man) ;
 	ml_xim_display_closed( disp->display) ;
+	ml_picture_display_closed( disp->display) ;
 	XCloseDisplay( disp->display) ;
 	
 	free( disp) ;
@@ -668,6 +670,10 @@ close_pty(
 }
 
 
+/*
+ * signal handlers.
+ */
+ 
 static void
 sig_child(
 	void *  p ,
@@ -707,6 +713,7 @@ sig_fatal( int  sig)
 	
 	kill( getpid() , sig) ;
 }
+
 
 static int
 start_daemon(
@@ -2143,7 +2150,7 @@ ml_term_manager_init(
 		u_int  max ;
 
 		/*
-		 * max_ptys are 1 - 32.
+		 * max_ptys is 1 - 32.
 		 * 32 is the limit of dead_mask(32bit).
 		 */
 		if( ! kik_str_to_uint( &max , value) || max == 0 || max > 32)

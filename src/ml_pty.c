@@ -42,7 +42,9 @@ ml_pty_new(
 
 	if( pid == -1)
 	{
-		goto  error ;
+		free( pty) ;
+
+		return  NULL ;
 	}
 
 	if( pid == 0)
@@ -106,7 +108,9 @@ ml_pty_new(
 #ifdef  USE_UTMP
 	if( ( pty->utmp = kik_utmp_new( slave , disp, pty->fd)) == NULL)
 	{
-		kik_msg_printf( "utmp failed.\n") ;
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG "utmp failed.\n") ;
+	#endif
 	}
 #endif
 
@@ -118,18 +122,12 @@ ml_pty_new(
 	
 	if( ml_set_pty_winsize( pty , cols , rows) == 0)
 	{
-		goto  error ;
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
+	#endif
 	}
 
 	return  pty ;
-
-error:
-	if( pty)
-	{
-		free( pty) ;
-	}
-
-	return  NULL ;
 }
 
 int

@@ -105,6 +105,12 @@ comment $Id$
     設定変更のための専用シーケンスを定義しています(see doc/en/PROTOCOL)
     それを使うことによっても、設定の動的変更が可能です。
 
+  o mlterm server
+    mlterm は daemon process として動作することができます。
+    その場合、X なしでの起動や、複数のディスプレイ接続が可能です。
+    mlterm server が起動していれば、mlclient をフロントエンドとして使用することで、
+    端末ウィンドウを開けます。
+
 * 設定
   o 設定ファイル
     ${SYSCONFDIR}/mlterm 以下、および、~/.mlterm 以下におかれます。
@@ -347,6 +353,14 @@ comment $Id$
       o conf_menu_path  (*/usr/local/libexec/mlconfig*) (#)
         mlconfig(GUI設定コマンド)のパス
 
+      o daemon_mode (*none*/blend/genuine)
+	daemon process となるかどうか
+
+	blend の場合、最後の端末ウィンドウが閉じられた段階で、daemon process
+	は終了します。
+	一方、genuine の場合、最後の端末ウィンドウが閉じられた後も、また、X
+	が終了したのちも、daemon process として動作しつづけることが可能です。
+
     o font/vfont/aafont/vaafont/tfont/taafont
       o DEC_SPECIAL        ... 罫線文字用のフォント
       o ISO8859_N          ... ISO8859_Nフォント
@@ -588,6 +602,7 @@ comment $Id$
     -f/--fg=value      : 前景色
     -g/--geometry=value : 表示座標位置
     -i/--xim(=bool)    : xim を使用
+    -j/--daemon=value  : daemon process となるかどうか
     -k/--meta(=value)  : Meta キーを押した時の動作
     -l/--sl=value      : ログサイズ
     -m/--comb(=bool)   : 結合文字を使用

@@ -21,21 +21,18 @@
 #define  IS_TOO_SMALL(sb)  ((sb)->window.height - HEIGHT_MARGIN(sb) <= (sb)->line_height)
 
 #ifdef  DEBUG
-
 #define  MAX_BAR_HEIGHT(sb)  (IS_TOO_SMALL(sb) ? \
 	0 & kik_debug_printf( KIK_DEBUG_TAG \
 		" scroll bar is too small , but MAX_BAR_HEIGHT was refered.\n") : \
 	(sb)->window.height - HEIGHT_MARGIN(sb))
 #else
-
 #define  MAX_BAR_HEIGHT(sb)  ((sb)->window.height - HEIGHT_MARGIN(sb))
-
 #endif
 
 
 /* --- static functions --- */
 
-inline static void
+static void
 draw_scrollbar(
 	ml_scrollbar_t *  sb
 	)
@@ -51,7 +48,7 @@ draw_scrollbar(
 	}
 }
 
-inline static void
+static void
 draw_decoration(
 	ml_scrollbar_t *  sb
 	)
@@ -66,7 +63,7 @@ draw_decoration(
 	}
 }
 
-inline static int
+static int
 calculate_bar_top_y(
       ml_scrollbar_t *  sb
       )
@@ -83,7 +80,7 @@ calculate_bar_top_y(
 	}
 }
 
-inline static u_int
+static u_int
 calculate_bar_height(
 	ml_scrollbar_t *  sb
 	)
@@ -99,7 +96,7 @@ calculate_bar_height(
 	}
 }
 
-inline static int
+static int
 calculate_current_row(
 	ml_scrollbar_t *  sb
 	)

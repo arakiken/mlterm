@@ -232,7 +232,7 @@ int  ml_window_receive_event( ml_window_t *  win , XEvent *  event) ;
 size_t  ml_window_get_str( ml_window_t *  win , u_char *  seq , size_t  seq_len , mkf_parser_t **  parser ,
 	KeySym *  keysym , XKeyEvent *  event) ;
 
-inline int  ml_window_is_scrollable( ml_window_t *  win) ;
+int  ml_window_is_scrollable( ml_window_t *  win) ;
 
 int  ml_window_scroll_upward( ml_window_t *  win , u_int  height) ;
 

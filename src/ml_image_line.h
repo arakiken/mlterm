@@ -114,7 +114,7 @@ int  ml_imgline_copy_line( ml_image_line_t *  dst , ml_image_line_t *  src) ;
 
 int  ml_imgline_share( ml_image_line_t *  dst , ml_image_line_t *  src) ;
 
-inline int  ml_imgline_end_char_index( ml_image_line_t *  line) ;
+int  ml_imgline_end_char_index( ml_image_line_t *  line) ;
 
 int  ml_imgline_is_empty( ml_image_line_t *  line) ;
 

@@ -1085,6 +1085,49 @@ update_bg_color(
 }
 
 static int
+set_transparent(
+	ml_window_t *  win ,
+	Pixmap  pixmap
+	)
+{
+	/*
+	 * !! Notice !!
+	 * this must be done before ml_window_set_wall_picture() because
+	 * ml_window_set_wall_picture() doesn't do anything if is_transparent
+	 * flag is on.
+	 */
+	win->is_transparent = 0 ;
+
+	if( ! ml_window_set_wall_picture( win , pixmap))
+	{
+		win->pic_mod = NULL ;
+
+		return  0 ;
+	}
+
+	win->is_transparent = 1 ;
+
+	return  1 ;
+}
+
+static int
+unset_transparent(
+	ml_window_t *  win
+	)
+{
+	/*
+	 * !! Notice !!
+	 * this must be done before ml_window_unset_wall_picture() because
+	 * ml_window_unset_wall_picture() doesn't do anything if is_transparent
+	 * flag is on.
+	 */
+	win->is_transparent = 0 ;
+	win->pic_mod = NULL ;
+
+	return  ml_window_unset_wall_picture( win) ;
+}
+
+static int
 update_pic_transparent(
 	ml_window_t *  win
 	)
@@ -1094,17 +1137,7 @@ update_pic_transparent(
 	if( ml_picture_init( &pic , win , win->pic_mod) &&
 		ml_picture_load_background( &pic))
 	{
-		/*
-		 * !! Notice !!
-		 * this must be done before ml_window_set_wall_picture() because
-		 * ml_window_set_wall_picture() doesn't do anything if is_transparent
-		 * flag is on.
-		 */
-		win->is_transparent = 0 ;
-
-		ml_window_set_wall_picture( win , pic.pixmap) ;
-
-		win->is_transparent = 1 ;
+		set_transparent( win , pic.pixmap) ;
 	}
 
 	ml_picture_final( &pic) ;
@@ -1684,20 +1717,7 @@ ml_window_set_transparent(
 	}
 	else
 	{
-		/*
-		 * !! Notice !!
-		 * this must be done before ml_window_set_wall_picture() because
-		 * ml_window_set_wall_picture() doesn't do anything if is_transparent
-		 * flag is on.
-		 */
-		win->is_transparent = 0 ;
-
-		if( ! ml_window_set_wall_picture( win , ParentRelative))
-		{
-			return  0 ;
-		}
-	
-		win->is_transparent = 1 ;
+		set_transparent( win , ParentRelative) ;
 
 		XSetWindowBackgroundPixmap( win->display , win->my_window , ParentRelative) ;
 
@@ -1752,19 +1772,7 @@ ml_window_unset_transparent(
 		return  1 ;
 	}
 
-	/*
-	 * !! Notice !!
-	 * this must be done before ml_window_unset_wall_picture() because
-	 * ml_window_unset_wall_picture() doesn't do anything if is_transparent
-	 * flag is on.
-	 */
-	win->is_transparent = 0 ;
-	win->pic_mod = NULL ;
-
-	if( ! ml_window_unset_wall_picture( win))
-	{
-		return  0 ;
-	}
+	unset_transparent( win) ;
 
 #if  0
 	/*
@@ -3129,7 +3137,7 @@ ml_window_get_str(
 	return  0 ;
 }
 
-inline int
+int
 ml_window_is_scrollable(
 	ml_window_t *  win
 	)

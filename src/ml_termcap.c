@@ -21,13 +21,16 @@ typedef struct  field_table
 } field_table_t ;
 
 
-/* --- static functions --- */
+/* --- static variables --- */
 
 static field_table_t  field_table[] =
 {
 	{ "kD" , MLT_DELETE , } ,
 	{ "kb" , MLT_BACKSPACE , } ,
 } ;
+
+
+/* --- static functions --- */
 
 static char *
 unescape_sequence(

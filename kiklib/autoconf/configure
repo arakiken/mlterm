@@ -6258,7 +6258,7 @@ rm -f conftest*
 fi
 
 echo "$ac_t""$kik_cv_socklen_ident" 1>&6
-if test "${kik_cv_sockeln_ident}" = "no" ; then
+if test "${kik_cv_socklen_ident}" = "no" ; then
 	cat >> confdefs.h <<\EOF
 #define socklen_t unsigned int
 EOF

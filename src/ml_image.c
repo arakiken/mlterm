@@ -25,13 +25,9 @@
 #endif
 
 #ifdef  DEBUG
-
 #define  LINE_TAB_STOPS_SIZE(image)  ((image)->num_of_cols == 0 ? 0 : ((image)->num_of_cols - 1) / 8 + 1)
-
 #else
-
 #define  LINE_TAB_STOPS_SIZE(image)  (((image)->num_of_cols - 1) / 8 + 1)
-
 #endif
 
 
@@ -1383,8 +1379,7 @@ ml_image_clear_line_to_left(
 		ml_str_delete( buf , buf_size) ;
 	}
 
-	ml_imgline_set_modified(
-		&CURSOR_LINE(image) , 0 , image->cursor.char_index , 0) ;
+	ml_imgline_set_modified( &CURSOR_LINE(image) , 0 , image->cursor.char_index , 0) ;
 
 	return  1 ;
 }
