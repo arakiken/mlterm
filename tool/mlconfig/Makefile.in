@@ -22,6 +22,7 @@ SYSCONFDIR = $(DESTDIR)$(sysconfdir)
 LOCALEDIR = $(DESTDIR)$(datadir)/locale
 
 LKIK = @KIK_LIBS@
+LMKF = @MKF_LIBS@
 
 GTK_CONFIG=@GTK_CONFIG@
 CFLAGS = `$(GTK_CONFIG) --cflags` $(CFLAGS_LOCAL) \
@@ -33,8 +34,8 @@ CFLAGS = `$(GTK_CONFIG) --cflags` $(CFLAGS_LOCAL) \
 	-I/usr/local/include \
 	-DSYSCONFDIR=\"$(SYSCONFDIR)\" -DLOCALEDIR=\"$(LOCALEDIR)\" \
 	-DDATADIR=\"$(DATADIR)\" -DLIBDIR=\"$(LIBDIR)\"
-LIBS = @INTL_LIBS@ @DL_SELF@ `$(GTK_CONFIG) --libs` $(LIBS_LOCAL) $(LKIK) \
-	-L/usr/local/lib -R/usr/local/lib
+LIBS = @INTL_LIBS@ @DL_SELF@ `$(GTK_CONFIG) --libs` $(LIBS_LOCAL) \
+	$(LKIK) $(LMKF) -L/usr/local/lib -R/usr/local/lib
 
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)

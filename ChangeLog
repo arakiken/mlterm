@@ -1,5 +1,9 @@
 2004-10-29 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* tool/mlconfig/Makefile.in: -lmkf (required from libim-iiimf.so)
+
+2004-10-29 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	Removed -lkik and -lmkf from linker flag of modules.
 	Note: Both libraries are linked if the platform does not support
 	undefined symblos such as Cygwin and AIX.
