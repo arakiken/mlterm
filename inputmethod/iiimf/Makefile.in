@@ -23,7 +23,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @IIIMF_CFLAGS@			\
 	 -I$(top_srcdir)/mlterm		\
 	 -I${top_builddir}/xwindow	\
-	 -I/usr/include/include
+	 -I/usr/local/include
 
 CC      = @CC@
 INSTALL = @INSTALL@
@@ -40,7 +40,7 @@ all: im-iiimf
 im-iiimf: $(IM_IIIMF_OBJ)
 	$(LIBTOOL_LINK) -o libim-iiimf.la $(IM_IIIMF_OBJ:.o=.lo)	\
 	-rpath $(LIBDIR) -module -avoid-version @NO_UNDEFINED_FLAG@	\
-	@KIK_LIBS@ @MKF_LIBS@ @IIIMF_LIBS@
+	$(LIBS_LOCAL) @KIK_LIBS@ @MKF_LIBS@ @IIIMF_LIBS@
 
 .c.o:
 	$(LIBTOOL_CC) -c $<

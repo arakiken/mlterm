@@ -783,7 +783,9 @@ dispatch(
 	case IIIMCF_EVENT_TYPE_OPERATION:
 	case IIIMCF_EVENT_TYPE_SETICFOCUS:
 	case IIIMCF_EVENT_TYPE_UNSETICFOCUS:
+#if 0	/* XXX: for Fedora Core 2 */
 	case IIIMCF_EVENT_TYPE_HOTKEY_NOTIFY:
+#endif
 		/* not implemented yet */
 		break ;
 	case IIIMCF_EVENT_TYPE_UI_PREEDIT_START:
@@ -814,7 +816,9 @@ dispatch(
 		break;
 	case IIIMCF_EVENT_TYPE_AUX_START:
 	case IIIMCF_EVENT_TYPE_AUX_DRAW:
+#if 0   /* XXX: for Fedora Core 2 */
 	case IIIMCF_EVENT_TYPE_AUX_SETVALUES:
+#endif
 	case IIIMCF_EVENT_TYPE_AUX_DONE:
 	case IIIMCF_EVENT_TYPE_AUX_GETVALUES:
 		/* not implemented yet */

@@ -1,5 +1,15 @@
 2004-09-10 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/uim/Makefile.in:
+	* inputmethod/iiimf/Makefile.in:
+	- fixed typo.
+	- added LIBS_LOCAL.
+
+	* inputmethod/iiimf/im_iiimf.c: fixed compilation errors with
+	libiiimcf in Fedora Core 2.
+
+2004-09-10 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* inputmethod/im_common.h: new file
 
 	* xwindow/x_im.h (x_im_convert_encoding): moved to..
