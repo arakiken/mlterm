@@ -166,7 +166,7 @@ void data_free(config_data_t *data){
 int edit_entry(window_t * window, config_data_t *data){
 	section_t * section;
 	entry_t * entry;
-	int result;
+	int result = 0xDEADBEEF;
 	
 	section = current_section(data);
 	entry = &(section->entry[section->selected]);
