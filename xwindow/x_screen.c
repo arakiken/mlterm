@@ -6233,6 +6233,7 @@ x_screen_new(
 	screen->window.utf8_selection_requested = utf8_selection_requested ;
 	screen->window.xct_selection_notified = xct_selection_notified ;
 	screen->window.utf8_selection_notified = utf8_selection_notified ;
+	screen->window.config_listener = set_config ;
 	screen->window.window_deleted = window_deleted ;
 
 	if( use_transbg)

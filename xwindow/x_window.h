@@ -157,6 +157,7 @@ typedef struct  x_window
 	void (*utf8_selection_requested)( struct x_window * , XSelectionRequestEvent * , Atom) ;
 	void (*xct_selection_notified)( struct x_window * , u_char * , size_t) ;
 	void (*utf8_selection_notified)( struct x_window * , u_char * , size_t) ;
+	void (*config_listener)( struct x_window * , char * ,  char * , char * ) ;
 	void (*window_deleted)( struct x_window *) ;
 	
 } x_window_t ;

@@ -1,3 +1,8 @@
+2003-05-17  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* mlterm now accepts configuration strings 
+	through XDND protocol.
+
 2003-05-17 Araki Ken <arakiken@users.sf.net>
 
 	* ml_convert_col_to_char_index() could access invalid characters
@@ -27,7 +32,7 @@
 
 2003-05-16  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* xwindow/x_dnd.h: added a X error handler.
+	* xwindow/x_dnd.c: added a X error handler.
 
 2003-05-15  MINAMI Hirokazu  <minami@mistfall.net>
 

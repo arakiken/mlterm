@@ -20,15 +20,206 @@
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 
-#define  XA_DND_AWARE(display) (XInternAtom(display, "XdndAware", False))
-#define  XA_DND_TYPE_LIST(display) (XInternAtom(display, "XdndTypeList", False))
-#define  XA_DND_STATUS(display) (XInternAtom(display, "XdndStatus", False))
-#define  XA_DND_ACTION_COPY(display) (XInternAtom(display, "XdndActionCopy", False))
-#define  XA_DND_SELECTION(display) (XInternAtom(display, "XdndSelection", False))
-#define  XA_DND_FINISH(display) (XInternAtom(display, "XdndFinished", False))
 #define  XA_DND_MIME_TEXT_PLAIN(display) (XInternAtom(display, "text/plain", False))
 #define  XA_DND_MIME_TEXT_UNICODE(display) (XInternAtom(display, "text/unicode", False))
 #define  XA_DND_MIME_TEXT_URI_LIST(display) (XInternAtom(display, "text/uri-list", False))
+
+typedef struct dnd_parser {
+	char *  atomname ;
+	int  (*parser)(x_window_t *, unsigned char *, int);
+} dnd_parser_t ;
+
+static int
+parse_text_plain(
+	x_window_t *  win,
+	unsigned char *  src,
+	int  len)
+{
+	if( !(win->utf8_selection_notified))
+		return 0 ; /* needs ASCII capable parser*/
+	(*win->utf8_selection_notified)( win , src , len) ;
+
+	return 1 ;
+}
+
+static int
+parse_text_unicode(
+	x_window_t *  win,
+	unsigned char *  src,
+	int  len)
+{
+	int filled_len ;
+	mkf_parser_t * parser ;
+	mkf_conv_t * conv ;
+	char conv_buf[512] = {0};
+	
+	if( !(win->utf8_selection_notified))
+		return 0 ;
+	if( !(conv = mkf_utf8_conv_new()))
+		return 0 ;
+	if( !(parser = mkf_utf16_parser_new()))
+	{
+		(conv->delete)(conv) ;
+		return 0 ;
+	}
+	
+	(parser->init)( parser) ;
+	if ( (src[0] == 0xFF || src[0] == 0xFE)
+	     && (src[1] == 0xFF || src[1] == 0xFE)
+	     && (src[0] != src[1]))
+	{			
+		/* src sequence seems to have a valid BOM and *
+		 * should be processed correctly */
+	}
+	else
+	{
+		/* try to set parser state depending on 
+		   your machine's endianess by sending BOM */
+		u_int16_t BOM[] =  {0xFEFF};
+		
+		(parser->set_str)( parser , (char *)BOM , 2) ;
+		(parser->next_char)( parser , 0) ;	     
+	}
+	
+	(parser->set_str)( parser , src , len) ;
+	/* conversion from utf16 -> utf8. */
+	while( ! parser->is_eos)
+	{
+		filled_len = (conv->convert)( conv,
+					      conv_buf,
+					      sizeof(conv_buf),
+					      parser) ;
+		if(filled_len ==0) 
+			break ;
+		(*win->utf8_selection_notified)( win,
+						 conv_buf, 
+						 filled_len) ;
+	}
+	(conv->delete)( conv) ;
+	(parser->delete)( parser) ;
+	
+	return 1 ;
+}
+
+static int
+parse_text_uri_list(
+	x_window_t *  win,
+	unsigned char *  src,
+	int  len)
+{
+	int pos ;
+	unsigned char *delim ;
+	
+	if( !(win->utf8_selection_notified))
+		return 0 ;
+	pos = 0 ;
+	delim = src ;
+	while( pos < len){
+		delim = strchr( &(src[pos]), 13) ;
+		if( delim )
+		{
+			/* output one ' ' as a separator */
+			*delim = ' ' ; 
+		}
+		else
+		{
+			delim = &(src[len -1]) ;
+		}
+		if( strncmp( &(src[pos]), "file:",5) == 0)
+		{
+			/* remove garbage("file:").
+			   new length should be (length - "file:" + " ")*/
+			(*win->utf8_selection_notified)( win ,
+							 &(src[pos+5]),
+							 (delim - &(src[pos])) -5 +1 ) ;
+		}
+		else
+		{
+			/* original string + " " */
+			(*win->utf8_selection_notified)( win ,
+							 &(src[pos]),
+							 (delim - &(src[pos])) +1) ;
+		}
+		/* skip trailing 0x0A */
+		pos = (delim - src) +2 ; 
+	}
+	
+	return 1;
+}
+
+static int
+parse_compound_text(
+	x_window_t *  win,
+	unsigned char *  src,
+	int  len)
+{
+	if( !(win->xct_selection_notified))
+		return 0 ;
+	(*win->xct_selection_notified)( win , src , len) ;
+
+	return 1 ;
+}
+
+static int
+parse_text(
+	x_window_t *  win,
+	unsigned char *  src,
+	int  len)
+{
+		if( !(win->utf8_selection_notified))
+			return 0 ;
+		(*win->utf8_selection_notified)( win , src , len) ;
+		return 1 ;
+}
+
+static int
+parse_utf8_string(
+	x_window_t *  win,
+	unsigned char *  src,
+	int  len)
+{
+	if( !(win->utf8_selection_notified))
+		return 0 ;
+	(*win->utf8_selection_notified)( win , src , len) ;
+	return 1 ;
+}
+
+static int
+parse_mlterm_config(
+	x_window_t *  win,
+	unsigned char *  src,
+	int  len)
+{
+	char *  value ;	
+	
+	if( !(win->config_listener))
+		return 0 ;
+	value = strchr( src, '=') ;
+	if( !value)
+		return 0 ;
+	*value = 0 ;
+	(*win->config_listener)( win , 
+				 NULL, /* dev */
+				 src, /* key */
+				 value +1 /* value */) ;
+
+	return 1 ;
+}
+
+dnd_parser_t dnd_parsers[] ={
+	{"text/plain"   , parse_text_plain } ,
+	{"text/unicode"   , parse_text_unicode } ,
+	{"text/uri-list", parse_text_uri_list } ,
+	{"COMPOUND_TEXT", parse_compound_text } ,
+	{"TEXT"         , parse_text } ,
+	{"UTF8_STRING"  , parse_utf8_string } ,
+	{"text/x-mlterm.config"  , parse_mlterm_config } ,
+	{NULL, NULL}
+};
+
+/* --- static variables --- */
+
+
 
 /* --- static functions --- */
 static int
@@ -62,14 +253,10 @@ set_badwin_handler(
 	if( flag)
 	{
 		if( !old)
-		{
 			old = XSetErrorHandler( ignore_badwin) ;
-		}
 #ifdef  DEBUG
 		else
-		{
 			kik_debug_printf("handler aready istalled\n") ;
-		}
 #endif
 	}
 	else
@@ -88,24 +275,6 @@ set_badwin_handler(
 	}
 }
 
-static int
-charset_name2code(
-	char *charset
-	)
-{
-	/*  Not used for now.
-	    Someday we can use codeset as defined in XDND spec.
-
-	    int i;
-	for( i = strlen(charset) -1 ; i > 0 ; i--)
-		charset[i] = tolower(charset[i]);
-	if( strcmp(charset, "utf-16le") ==0 )
-		return 0 ;
-	*/
-
-	return -1 ;
-}
-
 /* seek atom array and return the index */
 static int
 is_pref(
@@ -116,10 +285,9 @@ is_pref(
 {
 	int i ;
 	for( i = 0 ; i < num ; i++)
-	{
 		if( atom[i] == type)
 			return i ;
-	}
+
 	return  -1 ;
 }
 
@@ -131,27 +299,27 @@ reply(
 	x_window_t * win
 	)
 {
-	XClientMessageEvent msg;
+	XClientMessageEvent  msg ;
 	
-	msg.type = ClientMessage;
-	msg.display = win->display;
-	msg.format = 32;
-	msg.window = win->dnd->source;
-	msg.message_type = XA_DND_STATUS(win->display);
-	msg.data.l[0] = win->my_window;
-	if (win->dnd->waiting_atom)
+	msg.type = ClientMessage ;
+	msg.display = win->display ;
+	msg.format = 32 ;
+	msg.window = win->dnd->source ;
+	msg.message_type = XInternAtom( win->display, "XdndStatus", False) ;
+	msg.data.l[0] = win->my_window ;
+	if( win->dnd->waiting_atom)
 	{
-		msg.data.l[1] = 0x1 | 0x2; /* accept the drop | use [2][3] */
-		msg.data.l[2] = 0;
-		msg.data.l[3] = 0;
-		msg.data.l[4] = XA_DND_ACTION_COPY(win->display);
+		msg.data.l[1] = 0x1 | 0x2 ; /* accept the drop | use [2][3] */
+		msg.data.l[2] = 0 ;
+		msg.data.l[3] = 0 ;
+		msg.data.l[4] = XInternAtom( win->display, "XdndActionCopy", False) ;
 	}
 	else
 	{
-		msg.data.l[1] = 0;
-		msg.data.l[2] = 0;
-		msg.data.l[3] = 0;
-		msg.data.l[4] = 0;
+		msg.data.l[1] = 0 ;
+		msg.data.l[2] = 0 ;
+		msg.data.l[3] = 0 ;
+		msg.data.l[4] = 0 ;
 	}
 
 	set_badwin_handler(1) ;	
@@ -171,20 +339,19 @@ finish(
 	
 	if( !(win->dnd->source))
 		return ;
-	
-	msg.message_type = XA_DND_FINISH(win->display) ;
+
+	msg.message_type = XInternAtom( win->display, "XdndFinished", False) ;
 	msg.data.l[0] = win->my_window ;
 	/* setting bit 0 means success */
 	msg.data.l[1] = 1 ; 
-	msg.data.l[2] = XA_DND_ACTION_COPY(win->display) ;
+	msg.data.l[2] = XInternAtom( win->display, "XdndActionCopy", False) ;
 	msg.type = ClientMessage ;
 	msg.format = 32 ;
 	msg.window = win->dnd->source ;
 	msg.display = win->display ;
 
 	set_badwin_handler(1) ;
-	XSendEvent(win->display, win->dnd->source, False, 0,
-		   (XEvent*)&msg) ;
+	XSendEvent(win->display, win->dnd->source, False, 0, (XEvent*)&msg) ;
 	set_badwin_handler(0) ;
 
 	win->dnd->source = 0 ;
@@ -199,178 +366,28 @@ finish(
 static int
 parse(
 	x_window_t * win,
-	Atom atom,
 	unsigned char *src,
 	int len)
 {
-	char * atom_name;
-	char * charset;
-	int charset_code;
+	dnd_parser_t *  proc_entry ;
+	Atom atom ;
 
-	if(!src)
+	atom = win->dnd->waiting_atom ;
+	if( !src)
 		return 1 ;
-	if(!atom)
+	if( !(win->dnd))
 		return 1;
-
-	atom_name = XGetAtomName( win->display, atom);
-
-	/* process charset directive.
-	   Though charset is not recognized for now,
-	   it should possible to accept types like "text/plain;charset=ascii"
-	*/
-	if( (charset = strchr( atom_name, ';')) )
-	{
-		if(strncmp(charset+1, "charset", 7)
-		    || strncmp(charset+1, "CHARSET", 7))
-		{
-			/* remove charset=... and re-read atom */
-			*charset = 0; 
-			charset = strchr( charset +1, '=') +1 ;
-			charset_code = charset_name2code( charset) ;
-			/* atom_name is now terminated before ";charset=xxx" */
-			atom = XInternAtom( win->display, atom_name, False) ;
-			XFree( atom_name) ;
-			if( !atom)
-				return 1;
-		}
-		else
-		{
-			XFree(atom_name);
-		}
-	}
-	else
-	{
-		XFree(atom_name);
-	}
 	    
-	/* COMPOUND_TEXT */
-	if( atom == XA_COMPOUND_TEXT(win->display))
+	for( proc_entry = dnd_parsers ; proc_entry->atomname ;proc_entry++)
 	{
-		if( !(win->xct_selection_notified))
-			return 0 ;
-		(*win->xct_selection_notified)( win , src , len) ;
-		return 1 ;
+		if( atom == XInternAtom( win->display, proc_entry->atomname, False) )
+			break ;		    
 	}
-	/* UTF8_STRING */
-	if( atom == XA_UTF8_STRING(win->display) )
-	{
-		if( !(win->utf8_selection_notified))
-			return 0 ;
-		(*win->utf8_selection_notified)( win , src , len) ;
-		return 1 ;
-	}
-	/* text/unicode */
-	if( atom == XA_DND_MIME_TEXT_UNICODE(win->display))
-	{
-		int filled_len ;
-		mkf_parser_t * parser ;
-		mkf_conv_t * conv ;
-		char conv_buf[512] = {0};
+	
+	if( proc_entry->parser)
+		return  (proc_entry->parser)( win, src, len) ;
 
-		if( !(win->utf8_selection_notified))
-			return 0 ;
-		if( !(conv = mkf_utf8_conv_new()))
-			return 0 ;
-		if( !(parser = mkf_utf16_parser_new()))
-		{
-			(conv->delete)(conv) ;
-			return 0 ;
-		}
-
-		(parser->init)( parser) ;
-		if ( (src[0] == 0xFF || src[0] == 0xFE)
-		     && (src[1] == 0xFF || src[1] == 0xFE)
-		     && (src[0] != src[1]))
-		{			
-			/* src sequence seems to have a valid BOM and *
-			 * should be processed correctly */
-		}
-		else
-		{
-			/* try to set parser state depending on 
-			   your machine's endianess by sending BOM */
-			u_int16_t BOM[] =  {0xFEFF};
-			
-			(parser->set_str)( parser , (char *)BOM , 2) ;
-			(parser->next_char)( parser , 0) ;	     
-		}
-
-		(parser->set_str)( parser , src , len) ;
-		/* conversion from utf16 -> utf8. */
-		while( ! parser->is_eos)
-		{
-			filled_len = (conv->convert)( conv,
-						      conv_buf,
-						      sizeof(conv_buf),
-						      parser) ;
-			if(filled_len ==0) 
-				break ;
-			(*win->utf8_selection_notified)( win,
-							 conv_buf, 
-							 filled_len) ;
-                }
-		(conv->delete)( conv) ;
-		(parser->delete)( parser) ;
-
-		return 1 ;
-	}
-	/* text/plain */
-	if( atom == XA_DND_MIME_TEXT_PLAIN(win->display))
-	{
-		if( !(win->utf8_selection_notified))
-			return 0 ; /* needs ASCII capable parser*/
-		(*win->utf8_selection_notified)( win , src , len) ;
-		return 1 ;
-	}
-	/* TEXT */
-	if( atom == XA_TEXT(win->display) )
-	{
-		if( !(win->utf8_selection_notified))
-			return 0 ;
-		(*win->utf8_selection_notified)( win , src , len) ;
-		return 1 ;
-	}
-	/* text/url-list */
-	if( atom == XA_DND_MIME_TEXT_URI_LIST(win->display))
-	{
-		int pos ;
-		unsigned char *delim ;
-
-		if( !(win->utf8_selection_notified))
-			return 0 ;
-		pos = 0 ;
-		delim = src ;
-		while( pos < len){
-			delim = strchr( &(src[pos]), 13) ;
-			if( delim )
-			{
-				/* output one ' ' as a separator */
-				*delim = ' ' ; 
-			}
-			else
-			{
-				delim = &(src[len -1]) ;
-			}
-			if( strncmp( &(src[pos]), "file:",5) == 0)
-			{
-				/* remove garbage("file:").
-				   new length should be (length - "file:" + " ")*/
-				(*win->utf8_selection_notified)( win ,
-								 &(src[pos+5]),
-								 (delim - &(src[pos])) -5 +1 ) ;
-			}
-			else
-			{
-				/* original string + " " */
-				(*win->utf8_selection_notified)( win ,
-								 &(src[pos]),
-								 (delim - &(src[pos])) +1) ;
-			}
-			/* skip trailing 0x0A */
-			pos = (delim - src) +2 ; 
-		}
-	}
-	return 0 ;
+	return 0 ; 
 }
 
 
@@ -388,19 +405,14 @@ choose_atom(
 	int  num
 	)
 {
+	dnd_parser_t *  proc_entry ;
 	int  i = -1 ;
-
-	i = is_pref( XA_COMPOUND_TEXT( win->display), atom, num) ;
-	if( i < 0)
-		i = is_pref( XA_UTF8_STRING( win->display), atom, num) ;
-	if( i < 0)
-		i = is_pref( XA_TEXT( win->display), atom, num) ;
-	if( i < 0)
-		i = is_pref( XA_DND_MIME_TEXT_PLAIN( win->display), atom, num) ;
-	if( i < 0)
-		i = is_pref( XA_DND_MIME_TEXT_UNICODE( win->display), atom, num) ;
-	if( i < 0)
-		i = is_pref( XA_DND_MIME_TEXT_URI_LIST( win->display), atom, num) ;
+	
+	for( proc_entry = dnd_parsers ; proc_entry->atomname ;proc_entry++)
+	{
+		if( (i = is_pref( XInternAtom( win->display, proc_entry->atomname, False), atom, num) >= 0))
+			break ;	
+	}
 		
 	if( i < 0)
 	{
@@ -430,7 +442,7 @@ choose_atom(
 			XFree( p) ;
 		}
 #endif
-		kik_debug_printf( "accepted %d\n", atom[i]);
+
 		return atom[i] ;
 	}
 }
@@ -448,10 +460,10 @@ x_dnd_set_awareness(
 	)
 {
 	set_badwin_handler(1);
-	XChangeProperty(win->display, win->my_window,
-			XA_DND_AWARE(win->display),
-			XA_ATOM, 32, PropModeReplace, 
-			(unsigned char *)(&version), 1) ;
+	XChangeProperty( win->display, win->my_window,
+			 XInternAtom( win->display, "XdndAware", False),
+			 XA_ATOM, 32, PropModeReplace, 
+			 (unsigned char *)(&version), 1) ;
 	set_badwin_handler(0);
 }
 
@@ -473,18 +485,18 @@ x_dnd_process_enter(
 		int  result ;
 		
 		set_badwin_handler(1) ;
-		result = XGetWindowProperty(win->display, event->xclient.data.l[0],
-				   XA_DND_TYPE_LIST(win->display), 0L, 1024L,
-				   False, XA_ATOM,
-				   &act_type, &act_format, &nitems, &left,
-				   (unsigned char **)&dat);
+		result = XGetWindowProperty( win->display, event->xclient.data.l[0],
+					     XInternAtom( win->display, "XdndTypeList", False), 0L, 1024L,
+					     False, XA_ATOM,
+					     &act_type, &act_format, &nitems, &left,
+					     (unsigned char **)&dat);
 		set_badwin_handler(0) ;
 
 		if( ( result == Success) &&
 		    ( act_type != None))
 		{
 			to_wait = choose_atom( win , dat, nitems) ;
-			XFree(dat);
+			XFree( dat);
 		}
 		else
 		{
@@ -569,11 +581,11 @@ x_dnd_process_drop(
 	
 	/* data request */
 	set_badwin_handler(1) ;
-	XConvertSelection(win->display, XA_DND_SELECTION(win->display),
-			  win->dnd->waiting_atom, /* mime type */
-			  XA_DND_STORE(win->display),
-			  win->my_window,
-			  event->xclient.data.l[2]);
+	XConvertSelection( win->display, XInternAtom( win->display, "XdndSelection", False),
+			   win->dnd->waiting_atom, /* mime type */
+			   XA_DND_STORE(win->display),
+			   win->my_window,
+			   event->xclient.data.l[2]);
 	set_badwin_handler(0) ;
 
 	return 0 ;
@@ -623,8 +635,7 @@ x_dnd_process_incr(
 
 	if( ct.nitems > 0)
 	{
-		parse( win, win->dnd->waiting_atom,
-			     ct.value, ct.nitems) ;
+		parse( win, ct.value, ct.nitems) ;
 	}
 	else
 	{       /* all data have been received */
@@ -689,7 +700,7 @@ x_dnd_process_selection(
 		if(result != Success)
 			break ;
 				
-		parse( win, win->dnd->waiting_atom, ct.value, ct.nitems) ;		
+		parse( win, ct.value, ct.nitems) ;		
 		XFree( ct.value) ;
 		
 		seg += ct.nitems ;

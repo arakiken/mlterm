@@ -532,6 +532,7 @@ x_window_init(
 	win->utf8_selection_requested = NULL ;
 	win->xct_selection_notified = NULL ;
 	win->utf8_selection_notified = NULL ;
+	win->config_listener = NULL ;
 	win->window_deleted = NULL ;
 	
 	return	1 ;
@@ -1807,7 +1808,7 @@ x_window_receive_event(
 		}
 	}
 	else if( event->type == ConfigureNotify)
-	{
+	{		
 		int  is_changed ;
 		XEvent  next_ev ;
 
