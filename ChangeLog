@@ -1,3 +1,7 @@
+2004-01-06  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* mlterm/ml_vt100_parser.c: replaced magic constant "20" by DIGIT_STR_LEN(int).
+
 2004-01-05  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* mlterm/ml_edit.c (cursor_goto_intern): If requested row is larger
