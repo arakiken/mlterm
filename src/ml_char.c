@@ -251,7 +251,7 @@ ml_char_final(
 	ml_char_t *  ch
 	)
 {
-	if( is_char_combining && COMB_SIZE(ch->attr) > 0)
+	if( COMB_SIZE(ch->attr) > 0)
 	{
 		free( ch->u.multi_ch) ;
 	}
@@ -358,7 +358,7 @@ ml_get_combining_chars(
 	u_int *  size
 	)
 {
-	if( is_char_combining && ( *size = COMB_SIZE(ch->attr)) > 0)
+	if( ( *size = COMB_SIZE(ch->attr)) > 0)
 	{
 		return  &ch->u.multi_ch[1] ;
 	}
@@ -383,7 +383,7 @@ ml_char_copy(
 	
 	memcpy( dst , src , sizeof( ml_char_t)) ;
 
-	if( is_char_combining && COMB_SIZE(src->attr) > 0)
+	if( COMB_SIZE(src->attr) > 0)
 	{
 		ml_char_t *  multi_ch ;
 		
@@ -576,14 +576,11 @@ ml_char_set_fg_color(
 	ml_color_t  fg_color
 	)
 {
-	if( is_char_combining)
-	{
-		int  counter ;
+	int  counter ;
 
-		for( counter = 0 ; counter < COMB_SIZE(ch->attr) ; counter ++)
-		{
-			ml_char_set_fg_color( &ch->u.multi_ch[counter + 1] , fg_color) ;
-		}
+	for( counter = 0 ; counter < COMB_SIZE(ch->attr) ; counter ++)
+	{
+		ml_char_set_fg_color( &ch->u.multi_ch[counter + 1] , fg_color) ;
 	}
 	
 	ch->attr = COMPOUND_ATTR(SIZE(ch->attr),COMB_SIZE(ch->attr),0,
@@ -606,14 +603,11 @@ ml_char_set_bg_color(
 	ml_color_t  bg_color
 	)
 {
-	if( is_char_combining)
-	{
-		int  counter ;
+	int  counter ;
 
-		for( counter = 0 ; counter < COMB_SIZE(ch->attr) ; counter ++)
-		{
-			ml_char_set_bg_color( &ch->u.multi_ch[counter + 1] , bg_color) ;
-		}
+	for( counter = 0 ; counter < COMB_SIZE(ch->attr) ; counter ++)
+	{
+		ml_char_set_bg_color( &ch->u.multi_ch[counter + 1] , bg_color) ;
 	}
 	
 	ch->attr = COMPOUND_ATTR(SIZE(ch->attr),COMB_SIZE(ch->attr),0,
@@ -650,12 +644,9 @@ ml_char_reverse_color(
 		return  0 ;
 	}
 	
-	if( is_char_combining)
+	for( counter = 0 ; counter < COMB_SIZE(ch->attr) ; counter ++)
 	{
-		for( counter = 0 ; counter < COMB_SIZE(ch->attr) ; counter ++)
-		{
-			ml_char_reverse_color( &ch->u.multi_ch[counter + 1]) ;
-		}
+		ml_char_reverse_color( &ch->u.multi_ch[counter + 1]) ;
 	}
 	
 	ch->attr = COMPOUND_ATTR(SIZE(ch->attr),COMB_SIZE(ch->attr),1,
@@ -676,12 +667,9 @@ ml_char_restore_color(
 		return  0 ;
 	}
 	
-	if( is_char_combining)
+	for( counter = 0 ; counter < COMB_SIZE(ch->attr) ; counter ++)
 	{
-		for( counter = 0 ; counter < COMB_SIZE(ch->attr) ; counter ++)
-		{
-			ml_char_restore_color( &ch->u.multi_ch[counter + 1]) ;
-		}
+		ml_char_restore_color( &ch->u.multi_ch[counter + 1]) ;
 	}
 	
 	ch->attr = COMPOUND_ATTR(SIZE(ch->attr),COMB_SIZE(ch->attr),0,

@@ -51,9 +51,6 @@
 /* the same as rxvt. if this size is too few , we may drop sequences from kinput2. */
 #define  KEY_BUF_SIZE  512
 
-#define  HAS_ENCODING_LISTENER(termscr,function) \
-	((termscr)->encoding_listener && (termscr)->encoding_listener->function)
-
 #define  HAS_SYSTEM_LISTENER(termscr,function) \
 	((termscr)->system_listener && (termscr)->system_listener->function)
 	
@@ -271,9 +268,9 @@ bs_page_downward(
 static void
 write_to_pty(
 	ml_term_screen_t *  termscr ,
-	u_char *  str ,
+	u_char *  str ,			/* str may be NULL */
 	size_t  len ,
-	mkf_parser_t *  parser
+	mkf_parser_t *  parser		/* parser may be NULL */
 	)
 {
 	if( termscr->pty == NULL)
@@ -287,7 +284,7 @@ write_to_pty(
 		(*parser->set_str)( parser , str , len) ;
 	}
 
-	if( parser && HAS_ENCODING_LISTENER(termscr,convert_to_current_encoding))
+	if( parser)
 	{
 		u_char  conv_buf[512] ;
 		size_t  filled_len ;
@@ -298,18 +295,18 @@ write_to_pty(
 			{
 				int  i ;
 
-				kik_debug_printf( KIK_DEBUG_TAG " written str: ") ;
+				kik_debug_printf( KIK_DEBUG_TAG " written str:\n") ;
 				for( i = 0 ; i < len ; i ++)
 				{
-					fprintf( stderr , "%.2x" , str[i]) ;
+					fprintf( stderr , "[%.2x]" , str[i]) ;
 				}
-				fprintf( stderr , " => ") ;
+				fprintf( stderr , "=>\n") ;
 			}
 		#endif
 
-			if( ( filled_len = (*termscr->encoding_listener->convert_to_current_encoding)(
-				termscr->encoding_listener->self , conv_buf ,
-				sizeof( conv_buf) , parser)) == 0)
+			if( ( filled_len = (*termscr->encoding_listener->convert)(
+				termscr->encoding_listener->self , conv_buf , sizeof( conv_buf) , parser))
+				== 0)
 			{
 				break ;
 			}
@@ -320,7 +317,7 @@ write_to_pty(
 
 				for( i = 0 ; i < filled_len ; i ++)
 				{
-					fprintf( stderr , "%.2x" , conv_buf[i]) ;
+					fprintf( stderr , "[%.2x]" , conv_buf[i]) ;
 				}
 				fprintf( stderr , "\n") ;
 			}
@@ -351,11 +348,7 @@ write_to_pty(
 		return ;
 	}
 	
-	if( HAS_ENCODING_LISTENER(termscr,init_encoding_state))
-	{
-		(*termscr->encoding_listener->init_encoding_state)(
-			termscr->encoding_listener->self) ;
-	}
+	(*termscr->encoding_listener->init)( termscr->encoding_listener->self) ;
 }
 
 static int
@@ -461,9 +454,7 @@ use_bidi(
 	ml_term_screen_t *  termscr
 	)
 {
-	if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
-		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
-			== ML_UTF8)
+	if( (*termscr->encoding_listener->encoding)(termscr->encoding_listener->self) == ML_UTF8)
 	{
 		ml_image_use_bidi( &termscr->normal_image) ;
 		ml_image_use_bidi( &termscr->alt_image) ;
@@ -481,9 +472,7 @@ unuse_bidi(
 	ml_term_screen_t *  termscr
 	)
 {
-	if( HAS_ENCODING_LISTENER(termscr,current_encoding) &&
-		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
-		== ML_UTF8)
+	if( (*termscr->encoding_listener->encoding)(termscr->encoding_listener->self) == ML_UTF8)
 	{
 		ml_term_screen_stop_bidi( termscr) ;
 		ml_image_unuse_bidi( &termscr->normal_image) ;
@@ -731,13 +720,9 @@ change_encoding(
 
 	unuse_bidi( termscr) ;
 
-	if( HAS_ENCODING_LISTENER(termscr,encoding_changed))
+	if( ! termscr->encoding_listener->encoding_changed( termscr->encoding_listener->self , encoding))
 	{
-		if( ! termscr->encoding_listener->encoding_changed(
-			termscr->encoding_listener->self , encoding))
-		{
-			kik_msg_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
-		}
+		kik_msg_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
 	}
 
 	use_bidi( termscr) ;
@@ -824,7 +809,7 @@ change_char_combining_flag(
 }
 
 static void
-change_prefer_utf8_selection_flag(
+change_copy_paste_via_ucs_flag(
 	void *  p ,
 	int  flag
 	)
@@ -833,20 +818,7 @@ change_prefer_utf8_selection_flag(
 
 	termscr = p ;
 	
-	termscr->prefer_utf8_selection = flag ;
-}
-
-static void
-change_xct_proc_mode(
-	void *  p ,
-	ml_xct_proc_mode_t  xct_proc_mode
-	)
-{
-	ml_term_screen_t *  termscr ;
-
-	termscr = p ;
-	
-	termscr->xct_proc_mode = xct_proc_mode ;
+	termscr->copy_paste_via_ucs = flag ;
 }
 
 static void
@@ -1084,177 +1056,45 @@ config_menu(
 	int  global_x ;
 	int  global_y ;
 	Window  child ;
-	ml_char_encoding_t  encoding ;
-	
-	if( ! HAS_ENCODING_LISTENER(termscr,current_encoding))
-	{
-		encoding = ML_ISO8859_1 ;
-	}
-	else
-	{
-		encoding = (*termscr->encoding_listener->current_encoding)(
-			termscr->encoding_listener->self) ;
-	}
 
 	XTranslateCoordinates( termscr->window.display , termscr->window.my_window ,
 		DefaultRootWindow( termscr->window.display) , x , y ,
 		&global_x , &global_y , &child) ;
 
-	ml_config_menu_start( &termscr->config_menu , global_x , global_y , encoding , 
+	ml_config_menu_start( &termscr->config_menu , global_x , global_y ,
+		(*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) ,
 		ml_window_get_fg_color( &termscr->window) , ml_window_get_bg_color( &termscr->window) ,
 		termscr->image->tab_size , ml_get_log_size( &termscr->logs) ,
 		termscr->font_man->font_size ,
 		termscr->font_man->font_custom->min_font_size ,
 		termscr->font_man->font_custom->max_font_size ,
 		termscr->mod_meta_mode , termscr->bel_mode ,
-		ml_is_char_combining() ,
-		termscr->prefer_utf8_selection , termscr->xct_proc_mode ,
+		ml_is_char_combining() , termscr->copy_paste_via_ucs ,
 		termscr->window.is_transparent , termscr->is_aa , termscr->use_bidi ,
 		ml_xic_get_xim_name( &termscr->window) , kik_get_locale()) ;
 }
 
 static int
-prefer_utf8_selection(
+use_utf8_selection(
 	ml_term_screen_t *  termscr
 	)
 {
-	if( termscr->prefer_utf8_selection == 1)
+	ml_char_encoding_t  encoding ;
+
+	encoding = (*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) ;
+
+	if( encoding == UTF8)
 	{
 		return  1 ;
 	}
-	else if( termscr->prefer_utf8_selection == -1)
+	else if( IS_UTF8_SUBSET_ENCODING(encoding) && termscr->copy_paste_via_ucs)
 	{
-		ml_char_encoding_t  encoding ;
-
-		if( HAS_ENCODING_LISTENER(termscr,current_encoding))
-		{
-			encoding = (*termscr->encoding_listener->current_encoding)(
-				termscr->encoding_listener->self) ;
-				
-
-			return  IS_UTF8_SUBSET_ENCODING(encoding) ;
-		}
+		return  1 ;
 	}
-
-	return  0 ;
-}
-
-static ml_xct_proc_mode_t
-xct_proc_mode(
-	ml_term_screen_t *  termscr
-	)
-{
-	if( termscr->xct_proc_mode == XCT_PRECONV_UCS)
+	else
 	{
-		return  XCT_PRECONV_UCS ;
+		return  0 ;
 	}
-	else if( termscr->xct_proc_mode == XCT_RAW)
-	{
-		ml_char_encoding_t  encoding ;
-
-		if( HAS_ENCODING_LISTENER(termscr,current_encoding))
-		{
-			encoding = (*termscr->encoding_listener->current_encoding)(
-				termscr->encoding_listener->self) ;
-
-			if( IS_ENCODING_BASED_ON_ISO2022(encoding))
-			{
-				return  XCT_RAW ;
-			}
-		}
-	}
-
-	return  XCT_NORMAL ;
-}
-
-static size_t
-convert_selection_to_xct(
-	ml_term_screen_t *  termscr ,
-	u_char *  str ,
-	size_t  len
-	)
-{
-	size_t  filled_len ;
-	
-#ifdef  __DEBUG
-	{
-		int  i ;
-
-		kik_debug_printf( KIK_DEBUG_TAG " sending internal str: ") ;
-		for( i = 0 ; i < termscr->sel.sel_len ; i ++)
-		{
-			ml_char_dump( &termscr->sel.sel_str[i]) ;
-		}
-		fprintf( stderr , "\n -> converting to ->\n") ;
-	}
-#endif
-
-	(*termscr->ml_str_parser->init)( termscr->ml_str_parser) ;
-	ml_str_parser_set_str( termscr->ml_str_parser , termscr->sel.sel_str , termscr->sel.sel_len) ;
-	
-	(*termscr->xct_conv->init)( termscr->xct_conv) ;
-	filled_len = (*termscr->xct_conv->convert)( termscr->xct_conv ,
-		str , len , termscr->ml_str_parser) ;
-
-#ifdef  __DEBUG
-	{
-		int  i ;
-
-		kik_debug_printf( KIK_DEBUG_TAG " sending xct str: ") ;
-		for( i = 0 ; i < filled_len ; i ++)
-		{
-			fprintf( stderr , "%.2x" , str[i]) ;
-		}
-		fprintf( stderr , "\n") ;
-	}
-#endif
-
-	return  filled_len ;
-}
-
-static size_t
-convert_selection_to_utf8(
-	ml_term_screen_t *  termscr ,
-	u_char *  str ,
-	size_t  len
-	)
-{
-	size_t  filled_len ;
-
-#ifdef  __DEBUG
-	{
-		int  i ;
-
-		kik_debug_printf( KIK_DEBUG_TAG " sending internal str: ") ;
-		for( i = 0 ; i < termscr->sel.sel_len ; i ++)
-		{
-			ml_char_dump( &termscr->sel.sel_str[i]) ;
-		}
-		fprintf( stderr , "\n -> converting to ->\n") ;
-	}
-#endif
-
-	(*termscr->ml_str_parser->init)( termscr->ml_str_parser) ;
-	ml_str_parser_set_str( termscr->ml_str_parser , termscr->sel.sel_str , termscr->sel.sel_len) ;
-	
-	(*termscr->utf8_conv->init)( termscr->utf8_conv) ;
-	filled_len = (*termscr->utf8_conv->convert)( termscr->utf8_conv ,
-		str , len , termscr->ml_str_parser) ;
-		
-#ifdef  __DEBUG
-	{
-		int  i ;
-
-		kik_debug_printf( KIK_DEBUG_TAG " sending utf8 str: ") ;
-		for( i = 0 ; i < filled_len ; i ++)
-		{
-			fprintf( stderr , "%.2x" , str[i]) ;
-		}
-		fprintf( stderr , "\n") ;
-	}
-#endif
-
-	return  filled_len ;
 }
 
 static int
@@ -1275,7 +1115,7 @@ yank_event_received(
 	}
 	else
 	{
-		if( prefer_utf8_selection(termscr))
+		if( use_utf8_selection(termscr))
 		{
 			return  ml_window_utf8_selection_request( &termscr->window , time) ;
 		}
@@ -1758,6 +1598,115 @@ selection_cleared(
 	ml_restore_selected_region_color( &termscr->sel) ;
 }
 
+static int
+copy_paste_via_ucs(
+	ml_term_screen_t *  termscr
+	)
+{
+	ml_char_encoding_t  encoding ;
+
+	encoding = (*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) ;
+
+	if( IS_UTF8_SUBSET_ENCODING(encoding) && termscr->copy_paste_via_ucs)
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+static size_t
+convert_selection_to_xct(
+	ml_term_screen_t *  termscr ,
+	u_char *  str ,
+	size_t  len
+	)
+{
+	size_t  filled_len ;
+	
+#ifdef  __DEBUG
+	{
+		int  i ;
+
+		kik_debug_printf( KIK_DEBUG_TAG " sending internal str: ") ;
+		for( i = 0 ; i < termscr->sel.sel_len ; i ++)
+		{
+			ml_char_dump( &termscr->sel.sel_str[i]) ;
+		}
+		fprintf( stderr , "\n -> converting to ->\n") ;
+	}
+#endif
+
+	(*termscr->ml_str_parser->init)( termscr->ml_str_parser) ;
+	ml_str_parser_set_str( termscr->ml_str_parser , termscr->sel.sel_str , termscr->sel.sel_len) ;
+	
+	(*termscr->xct_conv->init)( termscr->xct_conv) ;
+	filled_len = (*termscr->xct_conv->convert)( termscr->xct_conv ,
+		str , len , termscr->ml_str_parser) ;
+
+#ifdef  __DEBUG
+	{
+		int  i ;
+
+		kik_debug_printf( KIK_DEBUG_TAG " sending xct str: ") ;
+		for( i = 0 ; i < filled_len ; i ++)
+		{
+			fprintf( stderr , "%.2x" , str[i]) ;
+		}
+		fprintf( stderr , "\n") ;
+	}
+#endif
+
+	return  filled_len ;
+}
+
+static size_t
+convert_selection_to_utf8(
+	ml_term_screen_t *  termscr ,
+	u_char *  str ,
+	size_t  len
+	)
+{
+	size_t  filled_len ;
+
+#ifdef  __DEBUG
+	{
+		int  i ;
+
+		kik_debug_printf( KIK_DEBUG_TAG " sending internal str: ") ;
+		for( i = 0 ; i < termscr->sel.sel_len ; i ++)
+		{
+			ml_char_dump( &termscr->sel.sel_str[i]) ;
+		}
+		fprintf( stderr , "\n -> converting to ->\n") ;
+	}
+#endif
+
+	(*termscr->ml_str_parser->init)( termscr->ml_str_parser) ;
+	ml_str_parser_set_str( termscr->ml_str_parser , termscr->sel.sel_str , termscr->sel.sel_len) ;
+	
+	(*termscr->utf8_conv->init)( termscr->utf8_conv) ;
+	filled_len = (*termscr->utf8_conv->convert)( termscr->utf8_conv ,
+		str , len , termscr->ml_str_parser) ;
+		
+#ifdef  __DEBUG
+	{
+		int  i ;
+
+		kik_debug_printf( KIK_DEBUG_TAG " sending utf8 str: ") ;
+		for( i = 0 ; i < filled_len ; i ++)
+		{
+			fprintf( stderr , "%.2x" , str[i]) ;
+		}
+		fprintf( stderr , "\n") ;
+	}
+#endif
+
+	return  filled_len ;
+}
+
 static void
 xct_selection_requested(
 	ml_window_t * win ,
@@ -1803,11 +1752,7 @@ utf8_selection_requested(
 
 	termscr = (ml_term_screen_t*) win ;
 
-	if( termscr->sel.sel_str &&
-		( prefer_utf8_selection( termscr) ||
-		( !HAS_ENCODING_LISTENER(termscr,current_encoding) &&
-		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
-			!= ML_UTF8)))
+	if( termscr->sel.sel_str)
 	{
 		u_char *  utf8_str ;
 		size_t  utf8_len ;
@@ -1843,20 +1788,7 @@ xct_selection_notified(
 
 	termscr = (ml_term_screen_t*) win ;
 
-#ifdef  __DEBUG
-	{
-		int  i ;
-
-		kik_debug_printf( KIK_DEBUG_TAG " pasting str: ") ;
-		for( i = 0 ; i < len ; i ++)
-		{
-			fprintf( stderr , "%.2x " , str[i]) ;
-		}
-		fprintf( stderr , "\n") ;
-	}
-#endif
-
-	if( xct_proc_mode(termscr) == XCT_PRECONV_UCS)
+	if( copy_paste_via_ucs(termscr))
 	{
 		/* XCOMPOUND TEXT -> UCS -> PTY ENCODING */
 		
@@ -1880,12 +1812,10 @@ xct_selection_notified(
 			write_to_pty( termscr , conv_buf , filled_len , termscr->utf8_parser) ;
 		}
 	}
-	else if( xct_proc_mode(termscr) == XCT_RAW)
-	{
-		write_to_pty( termscr , str , len , NULL) ;
-	}
 	else
 	{
+		/* XCOMPOUND TEXT -> UCS -> PTY ENCODING */
+		
 		write_to_pty( termscr , str , len , termscr->xct_parser) ;
 	}
 
@@ -2510,6 +2440,8 @@ select_in_window(
 	}
 
 	ml_str_copy( *chars , buf , size) ;
+
+	ml_str_final( buf , size) ;
 	
 	return  1 ;
 }
@@ -2776,9 +2708,8 @@ draw_line(
 		beg_x = ml_convert_char_index_to_x( line , beg_char_index) ;
 		num_of_redrawn = ml_imgline_get_num_of_redrawn_chars( line) ;
 
-		if( termscr->use_bidi && HAS_ENCODING_LISTENER(termscr,current_encoding) &&
-			(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
-				== ML_UTF8)
+		if( termscr->use_bidi &&
+			(*termscr->encoding_listener->encoding)(termscr->encoding_listener->self) == ML_UTF8)
 		{
 			if( ( shaped = ml_str_new( line->num_of_filled_chars)) == NULL)
 			{
@@ -2850,9 +2781,8 @@ draw_cursor(
 	
 	x = ml_convert_char_index_to_x( line , ml_cursor_char_index( termscr->image)) ;
 
-	if( termscr->use_bidi && HAS_ENCODING_LISTENER(termscr,current_encoding) &&
-		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
-			== ML_UTF8)
+	if( termscr->use_bidi &&
+		(*termscr->encoding_listener->encoding)(termscr->encoding_listener->self) == ML_UTF8)
 	{
 		if( ( shaped = ml_str_new( line->num_of_filled_chars)) == NULL)
 		{
@@ -2906,8 +2836,7 @@ ml_term_screen_new(
 	int  xim_open_in_startup ,
 	ml_mod_meta_mode_t  mod_meta_mode ,
 	ml_bel_mode_t  bel_mode ,
-	int  prefer_utf8_selection ,
-	ml_xct_proc_mode_t  xct_proc_mode ,
+	int  copy_paste_via_ucs ,
 	char *  pic_file_path ,
 	int  use_transbg ,
 	int  is_aa ,
@@ -3113,9 +3042,7 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_mod_meta_mode = change_mod_meta_mode ;
 	termscr->config_menu_listener.change_bel_mode = change_bel_mode ;
 	termscr->config_menu_listener.change_char_combining_flag = change_char_combining_flag ;
-	termscr->config_menu_listener.change_prefer_utf8_selection_flag =
-		change_prefer_utf8_selection_flag ;
-	termscr->config_menu_listener.change_xct_proc_mode = change_xct_proc_mode ;
+	termscr->config_menu_listener.change_copy_paste_via_ucs_flag = change_copy_paste_via_ucs_flag ;
 	termscr->config_menu_listener.change_transparent_flag = change_transparent_flag ;
 	termscr->config_menu_listener.change_aa_flag = change_aa_flag ;
 	termscr->config_menu_listener.change_bidi_flag = change_bidi_flag ;
@@ -3183,8 +3110,7 @@ ml_term_screen_new(
 		goto  error ;
 	}
 
-	termscr->prefer_utf8_selection = prefer_utf8_selection ;
-	termscr->xct_proc_mode = xct_proc_mode ;
+	termscr->copy_paste_via_ucs = copy_paste_via_ucs ;
 
 	termscr->encoding_listener = NULL ;
 	termscr->system_listener = NULL ;
@@ -3306,7 +3232,7 @@ ml_term_screen_set_pty(
 int
 ml_set_encoding_listener(
 	ml_term_screen_t *  termscr ,
-	ml_encoding_event_listener_t *  encoding_listener
+	ml_pty_encoding_event_listener_t *  encoding_listener
 	)
 {
 	if( termscr->encoding_listener)
@@ -3315,6 +3241,17 @@ ml_set_encoding_listener(
 		kik_warn_printf( KIK_DEBUG_TAG " encoding listener is already set.\n") ;
 	#endif
 
+		return  0 ;
+	}
+
+	/*
+	 * all members must be set.
+	 */
+	if( ! encoding_listener->encoding_changed ||
+		! encoding_listener->encoding ||
+		! encoding_listener->convert ||
+		! encoding_listener->init)
+	{
 		return  0 ;
 	}
 

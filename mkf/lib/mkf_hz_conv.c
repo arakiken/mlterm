@@ -63,40 +63,8 @@ convert_to_hz(
 	hz_conv = (mkf_hz_conv_t *)conv ;
 
 	filled_size = 0 ;
-	while( 1)
+	while( mkf_parser_next_char( parser , &ch))
 	{
-		mkf_parser_mark( parser) ;
-
-		if( ! (*parser->next_char)( parser , &ch))
-		{
-			if( parser->is_eos)
-			{
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" parser reached the end of string.\n") ;
-			#endif
-			
-				return  filled_size ;
-			}
-			else
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" parser->next_char() returns error , but the process is continuing...\n") ;
-			#endif
-
-				/*
-				 * passing unrecognized byte...
-				 */
-				if( mkf_parser_increment( parser) == 0)
-				{
-					return  filled_size ;
-				}
-
-				continue ;
-			}
-		}
-
 		remap_unsupported_charset( &ch) ;
 
 		if( ch.ch[0] == '~' && ch.cs == US_ASCII)
@@ -146,24 +114,27 @@ convert_to_hz(
 
 				filled_size += 2 ;
 			}
-			else
+			else if( conv->illegal_char)
 			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" cs(%x) is not supported by hz. char(%x) is discarded.\n" ,
-					ch.cs , mkf_char_to_int( &ch)) ;
-			#endif
+				size_t  size ;
+				int  is_full ;
 
-				if( filled_size >= dst_size)
+				size = (*conv->illegal_char)( conv , dst , dst_size - filled_size ,
+						&is_full , &ch) ;
+				if( is_full)
 				{
 					mkf_parser_reset( parser) ;
 
 					return  filled_size ;
 				}
 
-				*(dst ++) = ' ' ;
-				filled_size ++ ;
+				dst += size ;
+				filled_size += size ;
 
+				continue ;
+			}
+			else
+			{
 				continue ;
 			}
 		}
@@ -175,6 +146,8 @@ convert_to_hz(
 
 		filled_size += ch.size ;
 	}
+
+	return  filled_size ;
 }
 
 static void
@@ -213,6 +186,7 @@ mkf_hz_conv_new(void)
 	hz_conv->conv.convert = convert_to_hz ;
 	hz_conv->conv.init = conv_init ;
 	hz_conv->conv.delete = conv_delete ;
+	hz_conv->conv.illegal_char = NULL ;
 
 	hz_conv->cur_cs = US_ASCII ;
 

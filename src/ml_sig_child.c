@@ -81,6 +81,10 @@ ml_add_sig_child_listener(
 {
 	if( num_of_listeners == MAX_LISTENERS)
 	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " full of SIG_CHILD listeners.\n") ;
+	#endif
+	
 		return  0 ;
 	}
 

@@ -8,17 +8,24 @@
 #include  <kiklib/kik_debug.h>
 
 
+/*
+ * the same macro is defined in mkf_ucs4_big5.c
+ */
+#define  IS_HKSCS(code) \
+	( (0x8140 <= (code) && (code) <= 0xa0fe) || \
+	  (0xc6a1 <= (code) && (code) <= 0xc8fe) || \
+	  (0xf9d6 <= (code) && (code) <= 0xfefe) )
+
+
 /* --- static functions --- */
 
 static int
 big5_parser_next_char_intern(
 	mkf_parser_t *  big5_parser ,
 	mkf_char_t *  ch ,
-	mkf_charset_t  big5cs
+	int  use_hkscs
 	)
-{
-	u_char  big5_byte1_start ;
-	
+{	
 	if( big5_parser->is_eos)
 	{
 		return  0 ;
@@ -26,26 +33,19 @@ big5_parser_next_char_intern(
 
 	mkf_parser_mark( big5_parser) ;
 
-	/*
-	 * 0x8140 - 0xa0fe: user defined area.
-	 */
-	if( big5cs == BIG5HKSCS)
-	{
-		big5_byte1_start = 0x81 ;
-	}
-	else /* if( big5cs == BIG5) */
-	{
-		big5_byte1_start = 0xa1 ;
-	}
-	
 	if( /* 0x0 <= *big5_parser->str && */ *big5_parser->str <= 0x7f)
 	{
 		ch->ch[0] = *big5_parser->str ;
 		ch->size = 1 ;
 		ch->cs = US_ASCII ;
 	}
-	else if( big5_byte1_start <= *big5_parser->str && *big5_parser->str <= 0xfe)
+	/*
+	 * 8140-a0fe is user defined area.
+	 */
+	else if( 0x81 <= *big5_parser->str && *big5_parser->str <= 0xfe)
 	{
+		u_int16_t  code ;
+		
 		ch->ch[0] = *big5_parser->str ;
 
 		if( mkf_parser_increment( big5_parser) == 0)
@@ -62,28 +62,25 @@ big5_parser_next_char_intern(
 		}
 		else
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" the second byte(0x%x) big5 doesn't support is received.(first is 0x%x)\n" ,
-				big5_parser->str[-1] , big5_parser->str[0]) ;
-		#endif
+			goto  error ;
+		}
 
-			/* skipping */
-			mkf_parser_increment( big5_parser) ;
-		
-			return  0 ;
+		code = mkf_bytes_to_int( ch->ch , 2) ;
+
+		if( use_hkscs && IS_HKSCS(code))
+		{
+			ch->cs = HKSCS ;
+		}
+		else
+		{
+			ch->cs = BIG5 ;
 		}
 		
 		ch->size = 2 ;
-		ch->cs = big5cs ;
 	}
 	else
 	{
-		/* illegal */
-
-		mkf_parser_increment( big5_parser) ;
-		
-		return  0 ;
+		goto  error ;
 	}
 
 	ch->property = 0 ;
@@ -91,6 +88,11 @@ big5_parser_next_char_intern(
 	mkf_parser_increment( big5_parser) ;
 	
 	return  1 ;
+
+error:
+	mkf_parser_increment( big5_parser) ;
+
+	return  0 ;
 }
 
 static int
@@ -99,7 +101,7 @@ big5_parser_next_char(
 	mkf_char_t *  ch
 	)
 {
-	return  big5_parser_next_char_intern( big5_parser , ch , BIG5) ;
+	return  big5_parser_next_char_intern( big5_parser , ch , 0) ;
 }
 
 static int
@@ -108,7 +110,7 @@ big5hkscs_parser_next_char(
 	mkf_char_t *  ch
 	)
 {
-	return  big5_parser_next_char_intern( big5_parser , ch , BIG5HKSCS) ;
+	return  big5_parser_next_char_intern( big5_parser , ch , 1) ;
 }
 
 static void

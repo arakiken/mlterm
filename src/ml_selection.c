@@ -331,7 +331,6 @@ ml_sel_clear(
 	if( sel->sel_str)
 	{
 		ml_str_delete( sel->sel_str , sel->sel_len) ;
-		
 		sel->sel_str = NULL ;
 	}
 	

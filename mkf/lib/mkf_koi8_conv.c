@@ -84,40 +84,8 @@ convert_to_koi8_intern(
 	mkf_char_t  ch ;
 
 	filled_size = 0 ;
-	while( 1)
+	while( mkf_parser_next_char( parser , &ch))
 	{
-		mkf_parser_mark( parser) ;
-	
-		if( ! (*parser->next_char)( parser , &ch))
-		{
-			if( parser->is_eos)
-			{
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" parser reached the end of string.\n") ;
-			#endif
-			
-				return  filled_size ;
-			}
-			else
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" parser->next_char() returns error , but the process is continuing...\n") ;
-			#endif
-
-				/*
-				 * passing unrecognized byte...
-				 */
-				if( mkf_parser_increment( parser) == 0)
-				{
-					return  filled_size ;
-				}
-				
-				continue ;
-			}
-		}
-
 		remap_unsupported_charset( &ch , to_cs) ;
 
 		if( (to_cs == KOI8_R && ch.cs == KOI8_R) ||
@@ -135,25 +103,25 @@ convert_to_koi8_intern(
 
 			filled_size ++ ;
 		}
-		else
+		else if( conv->illegal_char)
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" cs(%x) is not supported by koi8. char(%x) is discarded.\n" ,
-				ch.cs , mkf_char_to_int( &ch)) ;
-		#endif
-
-			if( filled_size >= dst_size)
+			size_t  size ;
+			int  is_full ;
+			
+			size = (*conv->illegal_char)( conv , dst , dst_size - filled_size , &is_full , &ch) ;
+			if( is_full)
 			{
 				mkf_parser_reset( parser) ;
 
 				return  filled_size ;
 			}
 
-			*(dst ++) = ' ' ;
-			filled_size ++ ;
+			dst += size ;
+			filled_size += size ;
 		}
 	}
+
+	return  filled_size ;
 }
 
 static size_t
@@ -209,6 +177,7 @@ mkf_koi8_r_conv_new(void)
 	conv->convert = convert_to_koi8_r ;
 	conv->init = conv_init ;
 	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
 
 	return  conv ;
 }
@@ -226,6 +195,7 @@ mkf_koi8_u_conv_new(void)
 	conv->convert = convert_to_koi8_u ;
 	conv->init = conv_init ;
 	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
 
 	return  conv ;
 }

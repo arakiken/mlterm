@@ -41,6 +41,7 @@
 #include  <mkf/mkf_utf8_conv.h>
 
 #include  <mkf/mkf_ucs4_conv.h>
+#include  <mkf/mkf_iso2022_conv.h>
 
 
 typedef struct  encoding_table
@@ -51,6 +52,9 @@ typedef struct  encoding_table
 	mkf_conv_t *  (*conv_new)( void) ;
 
 } encoding_table_t ;
+
+
+/* --- static variables --- */
 
 /*
  * !!! Notice !!!
@@ -124,6 +128,59 @@ static encoding_table_t  encoding_table[] =
 	{ ML_HZ , "HZGB2312" } ,
 } ;
 
+static void (*iso2022kr_conv_init)( mkf_conv_t *) ;
+static void (*iso2022kr_parser_init)( mkf_parser_t *) ;
+
+
+/* --- static functions --- */
+
+static void
+ovrd_iso2022kr_conv_init(
+	mkf_conv_t *  conv
+	)
+{
+	u_char  buf[5] ;
+	mkf_parser_t *  parser ;
+	
+	(*iso2022kr_conv_init)( conv) ;
+
+	if( ( parser = mkf_iso2022kr_parser_new()) == NULL)
+	{
+		return ;
+	}
+	
+	/* designating KSC5601 to G1 */
+	(*parser->set_str)( parser , "\x1b$)Ca" , 5) ;
+	
+	/* this returns sequence of designating KSC5601 to G1 */
+	(*conv->convert)( conv , buf , sizeof(buf) , parser) ;
+
+	(*parser->delete)( parser) ;
+}
+
+static void
+ovrd_iso2022kr_parser_init(
+	mkf_parser_t *  parser
+	)
+{
+	u_char  buf[5] ;
+	mkf_conv_t *  conv ;
+	
+	(*iso2022kr_parser_init)( parser) ;
+
+	if( ( conv = mkf_iso2022kr_conv_new()) == NULL)
+	{
+		return ;
+	}
+	
+	/* designating KSC5601 to G1 */
+	(*parser->set_str)( parser , "\x1b$)Ca" , 5) ;
+	
+	/* this returns sequence of designating KSC5601 to G1 */
+	(*conv->convert)( conv , buf , sizeof(buf) , parser) ;
+
+	(*conv->delete)( conv) ;
+}
 
 
 /* --- global functions --- */
@@ -189,6 +246,8 @@ ml_parser_new(
 	ml_char_encoding_t  encoding
 	)
 {
+	mkf_parser_t *  parser ;
+	
 	if( encoding < 0 || MAX_CHAR_ENCODINGS <= encoding ||
 		encoding_table[encoding].encoding != encoding)
 	{
@@ -199,7 +258,22 @@ ml_parser_new(
 		return  NULL ;
 	}
 
-	return  (*encoding_table[encoding].parser_new)() ;
+	if( ( parser = (*encoding_table[encoding].parser_new)()) == NULL)
+	{
+		return  NULL ;
+	}
+
+	if( encoding == ML_ISO2022KR)
+	{
+		/* overriding init method */
+		
+		iso2022kr_parser_init = parser->init ;
+		parser->init = ovrd_iso2022kr_parser_init ;
+
+		(*parser->init)( parser) ;
+	}
+
+	return  parser ;
 }
 
 mkf_conv_t *
@@ -207,6 +281,8 @@ ml_conv_new(
 	ml_char_encoding_t  encoding
 	)
 {
+	mkf_conv_t *  conv ;
+	
 	if( encoding < 0 || MAX_CHAR_ENCODINGS <= encoding ||
 		encoding_table[encoding].encoding != encoding)
 	{
@@ -217,5 +293,25 @@ ml_conv_new(
 		return  NULL ;
 	}
 
-	return  (*encoding_table[encoding].conv_new)() ;
+	if( ( conv = (*encoding_table[encoding].conv_new)()) == NULL)
+	{
+		return  NULL ;
+	}
+
+	if( IS_ENCODING_BASED_ON_ISO2022(encoding))
+	{
+		conv->illegal_char = mkf_iso2022_illegal_char ;
+
+		if( encoding == ML_ISO2022KR)
+		{
+			/* overriding init method */
+
+			iso2022kr_conv_init = conv->init ;
+			conv->init = ovrd_iso2022kr_conv_init ;
+
+			(*conv->init)( conv) ;
+		}
+	}
+	
+	return  conv ;
 }

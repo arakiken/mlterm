@@ -4,27 +4,44 @@
 
 #include  "mkf_conv.h"
 
+#include  <string.h>		/* strncmp */
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_locale.h>
+#include  <kiklib/kik_util.h>	/* K_MIN */
 
 #include  "mkf_zh_tw_map.h"
+#include  "mkf_zh_hk_map.h"
 
 
 /* --- static functions --- */
 
 static void
 remap_unsupported_charset(
-	mkf_char_t *  ch ,
-	mkf_charset_t  big5cs
+	mkf_char_t *  ch
 	)
 {
 	mkf_char_t  c ;
 
 	if( ch->cs == ISO10646_UCS4_1)
 	{
-		if( ! mkf_map_ucs4_to_zh_tw( &c , ch))
+		char *  locale ;
+
+		locale = kik_get_locale() ;
+
+		if( strncmp( locale , "zh_HK" , K_MIN(strlen(locale) , 5)) == 0)
 		{
-			return ;
+			if( ! mkf_map_ucs4_to_zh_hk( &c , ch))
+			{
+				return ;
+			}
+		}
+		else
+		{
+			if( ! mkf_map_ucs4_to_zh_tw( &c , ch))
+			{
+				return ;
+			}
 		}
 		
 		*ch = c ;
@@ -44,73 +61,25 @@ remap_unsupported_charset(
 			*ch = c ;
 		}
 	}
-
-	if( big5cs == BIG5 && ch->cs == BIG5HKSCS)
-	{
-		if( mkf_map_big5hkscs_to_big5( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
-	else if( big5cs == BIG5HKSCS && ch->cs == BIG5)
-	{
-		if( mkf_map_big5_to_big5hkscs( &c , ch))
-		{
-			*ch = c ;
-		}
-	}
 }
 
 static size_t
-convert_to_big5_intern(
+convert_to_big5(
 	mkf_conv_t *  conv ,
 	u_char *  dst ,
 	size_t  dst_size ,
-	mkf_parser_t *  parser ,
-	mkf_charset_t  big5cs
+	mkf_parser_t *  parser
 	)
 {
 	size_t  filled_size ;
 	mkf_char_t  ch ;
 
 	filled_size = 0 ;
-	while( 1)
+	while( mkf_parser_next_char( parser , &ch))
 	{
-		mkf_parser_mark( parser) ;
-	
-		if( ! (*parser->next_char)( parser , &ch))
-		{
-			if( parser->is_eos)
-			{
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" parser reached the end of string.\n") ;
-			#endif
-			
-				return  filled_size ;
-			}
-			else
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" parser->next_char() returns error , but the process is continuing...\n") ;
-			#endif
+		remap_unsupported_charset( &ch) ;
 
-				/*
-				 * passing unrecognized byte...
-				 */
-				if( mkf_parser_increment( parser) == 0)
-				{
-					return  filled_size ;
-				}
-				
-				continue ;
-			}
-		}
-
-		remap_unsupported_charset( &ch , big5cs) ;
-
-		if( ch.cs == big5cs)
+		if( ch.cs == BIG5 || ch.cs == HKSCS)
 		{
 			if( filled_size + 1 >= dst_size)
 			{
@@ -137,47 +106,25 @@ convert_to_big5_intern(
 
 			filled_size ++ ;
 		}
-		else
+		else if( conv->illegal_char)
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" cs(%x) is not supported by big5. char(%x) is discarded.\n" ,
-				ch.cs , mkf_char_to_int( &ch)) ;
-		#endif
-
-			if( filled_size >= dst_size)
+			size_t  size ;
+			int  is_full ;
+			
+			size = (*conv->illegal_char)( conv , dst , dst_size - filled_size , &is_full , &ch) ;
+			if( is_full)
 			{
 				mkf_parser_reset( parser) ;
 
 				return  filled_size ;
 			}
 
-			*(dst ++) = ' ' ;
-			filled_size ++ ;
+			dst += size ;
+			filled_size += size ;
 		}
 	}
-}
 
-static size_t
-convert_to_big5(
-	mkf_conv_t *  conv ,
-	u_char *  dst ,
-	size_t  dst_size ,
-	mkf_parser_t *  parser
-	)
-{
-	return  convert_to_big5_intern( conv , dst , dst_size , parser , BIG5) ;
-}
-
-static size_t
-convert_to_big5hkscs(
-	mkf_conv_t *  conv ,
-	u_char *  dst ,
-	size_t  dst_size ,
-	mkf_parser_t *  parser
-	)
-{
-	return  convert_to_big5_intern( conv , dst , dst_size , parser , BIG5HKSCS) ;
+	return  filled_size ;
 }
 
 static void
@@ -211,6 +158,7 @@ mkf_big5_conv_new(void)
 	conv->convert = convert_to_big5 ;
 	conv->init = conv_init ;
 	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
 
 	return  conv ;
 }
@@ -225,9 +173,10 @@ mkf_big5hkscs_conv_new(void)
 		return  NULL ;
 	}
 
-	conv->convert = convert_to_big5hkscs ;
+	conv->convert = convert_to_big5 ;
 	conv->init = conv_init ;
 	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
 
 	return  conv ;
 }

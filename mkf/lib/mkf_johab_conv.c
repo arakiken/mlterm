@@ -77,40 +77,8 @@ convert_to_johab(
 	mkf_char_t  ch ;
 
 	filled_size = 0 ;
-	while( 1)
+	while( mkf_parser_next_char( parser , &ch))
 	{
-		mkf_parser_mark( parser) ;
-	
-		if( ! (*parser->next_char)( parser , &ch))
-		{
-			if( parser->is_eos)
-			{
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" parser reached the end of string.\n") ;
-			#endif
-			
-				return  filled_size ;
-			}
-			else
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" parser->next_char() returns error , but the process is continuing...\n") ;
-			#endif
-
-				/*
-				 * passing unrecognized byte...
-				 */
-				if( mkf_parser_increment( parser) == 0)
-				{
-					return  filled_size ;
-				}
-				
-				continue ;
-			}
-		}
-
 		remap_unsupported_charset( &ch) ;
 
 		if( ch.cs == JOHAB)
@@ -244,25 +212,25 @@ convert_to_johab(
 
 			filled_size ++ ;
 		}
-		else
+		else if( conv->illegal_char)
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" cs(%x) is not supported by johab. char(%x) is discarded.\n" ,
-				ch.cs , mkf_char_to_int( &ch)) ;
-		#endif
-
-			if( filled_size >= dst_size)
+			size_t  size ;
+			int  is_full ;
+			
+			size = (*conv->illegal_char)( conv , dst , dst_size - filled_size , &is_full , &ch) ;
+			if( is_full)
 			{
 				mkf_parser_reset( parser) ;
 
 				return  filled_size ;
 			}
 
-			*(dst ++) = ' ' ;
-			filled_size ++ ;
+			dst += size ;
+			filled_size += size ;
 		}
 	}
+
+	return  filled_size ;
 }
 
 static void
@@ -296,6 +264,7 @@ mkf_johab_conv_new(void)
 	conv->convert = convert_to_johab ;
 	conv->init = conv_init ;
 	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
 
 	return  conv ;
 }

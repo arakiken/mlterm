@@ -75,7 +75,7 @@ static map_t  map_table[] =
 	{ CNS11643_1992_1 , mkf_map_ucs4_to_cns11643_1992_1 , mkf_map_cns11643_1992_1_to_ucs4 } ,
 	{ CNS11643_1992_2 , mkf_map_ucs4_to_cns11643_1992_2 , mkf_map_cns11643_1992_2_to_ucs4 } ,
 	{ BIG5 , mkf_map_ucs4_to_big5 , mkf_map_big5_to_ucs4 } ,
-	{ BIG5HKSCS , mkf_map_ucs4_to_big5hkscs , mkf_map_big5hkscs_to_ucs4 } ,
+	{ HKSCS , mkf_map_ucs4_to_hkscs , mkf_map_hkscs_to_ucs4 } ,
 
 	{ KSC5601_1987 , mkf_map_ucs4_to_ksc5601_1987 , mkf_map_ksc5601_1987_to_ucs4 } ,
 	{ UHC , mkf_map_ucs4_to_uhc , mkf_map_uhc_to_ucs4 } ,

@@ -89,6 +89,12 @@ sig_child(
 
 	if( strcmp( command , "CONFIG") == 0)
 	{
+		/*
+		 * CONFIG:[encoding] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
+		 * [bel mode] [combining char] [copy paste via ucs] [is transparent] [is aa] [is bidi] \
+		 * [xim] [locale][LF]
+		 */
+		 
 		int  encoding ;
 		int  fg_color ;
 		int  bg_color ;
@@ -98,8 +104,7 @@ sig_child(
 		int  mod_meta_mode ;
 		int  bel_mode ;
 		int  is_combining_char ;
-		int  prefer_utf8_selection ;
-		int  xct_proc_mode ;
+		int  copy_paste_via_ucs ;
 		int  is_transparent ;
 		int  is_aa ;
 		int  use_bidi ;
@@ -161,13 +166,7 @@ sig_child(
 		}
 		
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_int( &prefer_utf8_selection , p))
-		{
-			goto  end ;
-		}
-
-		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_int( &xct_proc_mode , p))
+			! kik_str_to_int( &copy_paste_via_ucs , p))
 		{
 			goto  end ;
 		}
@@ -281,21 +280,12 @@ sig_child(
 			}
 		}
 
-		if( prefer_utf8_selection != config_menu->session->prefer_utf8_selection)
+		if( copy_paste_via_ucs != config_menu->session->copy_paste_via_ucs)
 		{
-			if( config_menu->config_menu_listener->change_prefer_utf8_selection_flag)
+			if( config_menu->config_menu_listener->change_copy_paste_via_ucs_flag)
 			{
-				(*config_menu->config_menu_listener->change_prefer_utf8_selection_flag)(
-					config_menu->config_menu_listener->self , prefer_utf8_selection) ;
-			}
-		}
-		
-		if( xct_proc_mode != config_menu->session->xct_proc_mode)
-		{
-			if( config_menu->config_menu_listener->change_xct_proc_mode)
-			{
-				(*config_menu->config_menu_listener->change_xct_proc_mode)(
-					config_menu->config_menu_listener->self , xct_proc_mode) ;
+				(*config_menu->config_menu_listener->change_copy_paste_via_ucs_flag)(
+					config_menu->config_menu_listener->self , copy_paste_via_ucs) ;
 			}
 		}
 		
@@ -453,8 +443,7 @@ ml_config_menu_start(
 	ml_mod_meta_mode_t  orig_mod_meta_mode ,
 	ml_bel_mode_t  orig_bel_mode ,
 	int  orig_is_combining_char ,
-	int  orig_prefer_utf8_selection ,
-	ml_xct_proc_mode_t  orig_xct_proc_mode ,
+	int  orig_copy_paste_via_ucs ,
 	int  orig_is_transparent ,
 	int  orig_is_aa ,
 	int  orig_use_bidi ,
@@ -538,17 +527,16 @@ ml_config_menu_start(
 	}
 
 	/*
-	 * output format
 	 * [encoding] [fg color] [bg color] [tabsize] [logsize] [font size] [min font size] \
-	 * [max font size] [mod meta mode] [bel mode] [is combining char] [prefer utf8 selection] \
-	 * [xct proc mode] [is transparent] [is aa] [use bidi] [xim] [locale][LF]
+	 * [max font size] [mod meta mode] [bel mode] [is combining char] [copy paste via ucs] \
+	 * [is transparent] [is aa] [use bidi] [xim] [locale][LF]
 	 */
-	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( fp , "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s\n" ,
 		orig_encoding , orig_fg_color , orig_bg_color , orig_tabsize ,
 		orig_logsize , orig_fontsize , min_fontsize , max_fontsize ,
 		orig_mod_meta_mode , orig_bel_mode , orig_is_combining_char ,
-		orig_prefer_utf8_selection , orig_xct_proc_mode ,
-		orig_is_transparent , orig_is_aa , orig_use_bidi , orig_xim , orig_locale) ;
+		orig_copy_paste_via_ucs , orig_is_transparent , orig_is_aa ,
+		orig_use_bidi , orig_xim , orig_locale) ;
 	fclose( fp) ;
 
 	/*
@@ -567,8 +555,7 @@ ml_config_menu_start(
 	config_menu->session->mod_meta_mode = orig_mod_meta_mode ;
 	config_menu->session->bel_mode = orig_bel_mode ;
 	config_menu->session->is_combining_char = orig_is_combining_char ;
-	config_menu->session->prefer_utf8_selection = orig_prefer_utf8_selection ;
-	config_menu->session->xct_proc_mode = orig_xct_proc_mode ;
+	config_menu->session->copy_paste_via_ucs = orig_copy_paste_via_ucs ;
 	config_menu->session->is_transparent = orig_is_transparent ;
 	config_menu->session->is_aa = orig_is_aa ;
 	config_menu->session->use_bidi = orig_use_bidi ;

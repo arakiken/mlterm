@@ -20,7 +20,6 @@ static mkf_map_ucs4_to_func_t  map_ucs4_to_funcs[] =
 	mkf_map_ucs4_to_big5 ,
 	mkf_map_ucs4_to_cns11643_1992_1 ,
 	mkf_map_ucs4_to_cns11643_1992_2 ,
-	mkf_map_ucs4_to_big5hkscs ,
 } ;
 
 
@@ -150,39 +149,6 @@ mkf_map_cns11643_1992_2_to_big5(
 	}
 
 	*big5 = ch ;
-
-	return  1 ;
-}
-
-int
-mkf_map_big5hkscs_to_big5(
-	mkf_char_t *  big5 ,
-	mkf_char_t *  big5hkscs
-	)
-{
-	u_int16_t  big5_code ;
-
-	big5_code = mkf_bytes_to_int( big5->ch , big5->size) ;
-
-	if( IS_BASIC_BIG5(big5_code))
-	{
-		return  0 ;
-	}
-
-	big5 = big5hkscs ;
-	big5->cs = BIG5 ;
-
-	return  1 ;
-}
-
-int
-mkf_map_big5_to_big5hkscs(
-	mkf_char_t *  big5hkscs ,
-	mkf_char_t *  big5
-	)
-{
-	big5hkscs = big5 ;
-	big5hkscs->cs = BIG5HKSCS ;
 
 	return  1 ;
 }

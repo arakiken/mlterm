@@ -18,7 +18,7 @@ Supported encodings are:
 ISO-8859-[1-10], ISO-8859-[13-16], TCVN5712, KOI8-R, KOI8-U, VISCII,
 EUC-JP, EUC-JISX0213, ISO-2022-JP[1-3], Shift_JIS, Shift_JISX0213,
 ISO-2022-KR, EUC-KR, UHC, JOHAB, GB2312 (EUC-CN), GBK, ISO-2022-CN, BIG5,
-EUC-TW, HZ, TIS-620, UTF-8, and GB18030.
+BIG5HKSCS, EUC-TW, HZ, TIS-620, UTF-8, and GB18030.
 If you have already set locale (for example LANG variable;
 see \fBlocale\fR(7) for detail) mlterm will automatically select
 proper encoding.
@@ -64,6 +64,9 @@ Specify name of scrollbar.
 \fB\-T\fR, \fB\-\-title\fR=\fIname\fR
 Specify title name.
 .TP
+\fB\-U\fR, \fB\-\-viaucs\fR(=\fIbool\fR)
+Process received strings via ucs.
+.TP
 \fB\-W\fR, \fB\-\-sep\fR=\fIcharacterlist\fR
 Delimiter characters used for word selection.
 .TP
@@ -83,10 +86,6 @@ EastAsianAmbiguous property.
 .TP
 \fB\-b\fR, \fB\-\-bg\fR=\fIcolor\fR
 Specify background color.
-.TP
-\fB\-c\fR, \fB\-\-xct\fR(=\fIbool\fR)
-How to process ctext received in selection.
-ucs/raw/normal values are accepted.
 .TP
 \fB\-d\fR, \fB\-\-display\fR=\fIstring\fR
 Specify X display.
@@ -334,10 +333,9 @@ Convert Unicode characters to other appropriate character sets
 Convert all characters (except for ASCII) to Unicode
 (default \fIfalse\fR).
 .TP
-\fBxct_process_mode=\fImode\fR
-How to process ctext received in selection.
-ucs/raw/normal values are accepted.
-(default \fInormal\fR).
+\fBcopy_paste_via_ucs=\fIbool\fR
+Process received strings via ucs.
+(default \fIfalse\fR)
 .TP
 \fBcol_size_of_width_a=\fIvalue\fR
 Number of columns of Unicode characters with
@@ -412,6 +410,7 @@ have the following keys.
 \fBGB2312_80=\fIfonts\fR
 \fBGBK=\fIfonts\fR
 \fBBIG5=\fIfonts\fR
+\fBHKSCS=\fIfonts\fR
 \fBCNS11643_1992_\fIn\fB=\fIfonts\fR
 \fBISO10646_UCS2_1=\fIfonts\fR
 \fBISO10646_UCS2_1_BIWIDTH=\fIfonts\fR

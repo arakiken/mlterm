@@ -7,14 +7,15 @@
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 
+#include  "mkf_iso2022_conv.h"
 #include  "mkf_iso2022_intern.h"
+#include  "mkf_ucs4_map.h"
 #include  "mkf_ko_kr_map.h"
 
 
 typedef struct  mkf_iso2022kr_conv
 {
-	mkf_conv_t   conv ;
-	mkf_charset_t  cur_cs ;
+	mkf_iso2022_conv_t  iso2022_conv ;
 	int  is_designated ;
 
 } mkf_iso2022kr_conv_t ;
@@ -31,7 +32,7 @@ remap_unsupported_charset(
 
 	if( ch->cs == ISO10646_UCS4_1)
 	{
-		if( ! mkf_map_ucs4_to_ko_kr( &c , ch))
+		if( ! mkf_map_ucs4_to_ko_kr( &c , ch) && ! mkf_map_ucs4_to_iso2022cs( &c , ch))
 		{
 			return ;
 		}
@@ -91,45 +92,13 @@ convert_to_iso2022kr(
 		iso2022kr_conv->is_designated = 1 ;
 	}
 	
-	while( 1)
+	while( mkf_parser_next_char( parser , &ch))
 	{
 		int  counter ;
 
-		mkf_parser_mark( parser) ;
-
-		if( ! (*parser->next_char)( parser , &ch))
-		{
-			if( parser->is_eos)
-			{
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" parser reached the end of string.\n") ;
-			#endif
-			
-				return  filled_size ;
-			}
-			else
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" parser->next_char() returns error , but the process is continuing...\n") ;
-			#endif
-
-				/*
-				 * passing unrecognized byte...
-				 */
-				if( mkf_parser_increment( parser) == 0)
-				{
-					return  filled_size ;
-				}
-				
-				continue ;
-			}
-		}
-
 		remap_unsupported_charset( &ch) ;
 		
-		if( ch.cs == iso2022kr_conv->cur_cs)
+		if( ch.cs == *iso2022kr_conv->iso2022_conv.gl)
 		{
 			if( filled_size + ch.size > dst_size)
 			{
@@ -140,7 +109,7 @@ convert_to_iso2022kr(
 		}
 		else
 		{
-			iso2022kr_conv->cur_cs = ch.cs ;
+			iso2022kr_conv->iso2022_conv.g0 = ch.cs ;
 
 			if( ch.cs == KSC5601_1987)
 			{
@@ -154,6 +123,8 @@ convert_to_iso2022kr(
 				*(dst ++) = LS1 ;
 
 				filled_size ++ ;
+
+				iso2022kr_conv->iso2022_conv.gl = &iso2022kr_conv->iso2022_conv.g1 ;
 			}
 			else if( ch.cs == US_ASCII)
 			{
@@ -167,26 +138,30 @@ convert_to_iso2022kr(
 				*(dst ++) = LS0 ;
 
 				filled_size ++ ;
+				
+				iso2022kr_conv->iso2022_conv.gl = &iso2022kr_conv->iso2022_conv.g0 ;
 			}
-			else
+			else if( conv->illegal_char)
 			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" cs(%x) is not supported by iso2022kr. char(%x) is discarded.\n" ,
-					ch.cs , mkf_char_to_int( &ch)) ;
-			#endif
+				size_t  size ;
+				int  is_full ;
 
-				if( filled_size >= dst_size)
+				size = (*conv->illegal_char)( conv , dst , dst_size - filled_size ,
+					&is_full , &ch) ;
+				if( is_full)
 				{
 					mkf_parser_reset( parser) ;
 
 					return  filled_size ;
 				}
 
-				*(dst ++) = ' ' ;
-				
-				filled_size ++ ;
+				dst += size ;
+				filled_size += size ;
 
+				continue ;
+			}
+			else
+			{
 				continue ;
 			}
 		}
@@ -198,6 +173,8 @@ convert_to_iso2022kr(
 
 		filled_size += ch.size ;
 	}
+
+	return  filled_size ;
 }
 
 static void
@@ -209,7 +186,13 @@ conv_init(
 
 	iso2022kr_conv = (mkf_iso2022kr_conv_t*) conv ;
 
-	iso2022kr_conv->cur_cs = US_ASCII ;
+	iso2022kr_conv->iso2022_conv.gl = &iso2022kr_conv->iso2022_conv.g0 ;
+	iso2022kr_conv->iso2022_conv.gr = NULL ;
+	iso2022kr_conv->iso2022_conv.g0 = US_ASCII ;
+	iso2022kr_conv->iso2022_conv.g1 = UNKNOWN_CS ;
+	iso2022kr_conv->iso2022_conv.g2 = UNKNOWN_CS ;
+	iso2022kr_conv->iso2022_conv.g3 = UNKNOWN_CS ;
+	
 	iso2022kr_conv->is_designated = 0 ;
 }
 
@@ -234,11 +217,12 @@ mkf_iso2022kr_conv_new(void)
 		return  NULL ;
 	}
 
-	iso2022kr_conv->conv.convert = convert_to_iso2022kr ;
-	iso2022kr_conv->conv.init = conv_init ;
-	iso2022kr_conv->conv.delete = conv_delete ;
-	iso2022kr_conv->cur_cs = US_ASCII ;
-	iso2022kr_conv->is_designated = 0 ;
+	conv_init( (mkf_conv_t*) iso2022kr_conv) ;
 
+	iso2022kr_conv->iso2022_conv.conv.convert = convert_to_iso2022kr ;
+	iso2022kr_conv->iso2022_conv.conv.init = conv_init ;
+	iso2022kr_conv->iso2022_conv.conv.delete = conv_delete ;
+	iso2022kr_conv->iso2022_conv.conv.illegal_char = NULL ;
+	
 	return  (mkf_conv_t*)iso2022kr_conv ;
 }

@@ -78,6 +78,10 @@ ml_window_manager_show_root(
 {
 	if( win_man->num_of_roots == MAX_ROOTS(win_man))
 	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " full of root windows.\n") ;
+	#endif
+	
 		return  0 ;
 	}
 

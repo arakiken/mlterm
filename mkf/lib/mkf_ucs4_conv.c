@@ -59,36 +59,11 @@ convert_to_ucs4(
 	
 	while( filled_size + 4 <= dst_size)
 	{
-		if( ! (*parser->next_char)( parser , &ch))
+		if( ! mkf_parser_next_char( parser , &ch))
 		{
-			if( parser->is_eos)
-			{
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" parser reached the end of string.\n") ;
-			#endif
-			
-				return  filled_size ;
-			}
-			else
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" parser->next_char() returns error , but the process is continuing...\n") ;
-			#endif
-
-				/*
-				 * passing unrecognized byte...
-				 */
-				if( mkf_parser_increment( parser) == 0)
-				{
-					return  filled_size ;
-				}
-				
-				continue ;
-			}
+			return  filled_size ;
 		}
-
+		
 		if( ch.cs == ISO10646_UCS2_1)
 		{
 			dst[0] = 0x0 ;
@@ -107,18 +82,27 @@ convert_to_ucs4(
 		{
 			mkf_char_t  ucs4_ch ;
 			
-			if( ! mkf_map_to_ucs4( &ucs4_ch , &ch))
+			if( mkf_map_to_ucs4( &ucs4_ch , &ch))
 			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" cs(%x) is not supported by ucs4. char(%x) is discarded.\n" ,
-					ch.cs , mkf_char_to_int( &ch)) ;
-			#endif
-
-				continue ;
+				memcpy( dst , ucs4_ch.ch , 4) ;
 			}
+			else if( conv->illegal_char)
+			{
+				size_t  size ;
+				int  is_full ;
 
-			memcpy( dst , ucs4_ch.ch , 4) ;
+				size = (*conv->illegal_char)( conv , dst , dst_size - filled_size ,
+						&is_full , &ch) ;
+				if( is_full)
+				{
+					mkf_parser_reset( parser) ;
+
+					return  filled_size ;
+				}
+
+				dst += size ;
+				filled_size += size ;
+			}
 		}
 		
 		dst += 4 ;
@@ -164,6 +148,8 @@ mkf_ucs4_conv_new(void)
 	ucs4_conv->conv.convert = convert_to_ucs4 ;
 	ucs4_conv->conv.init = conv_init ;
 	ucs4_conv->conv.delete = conv_delete ;
+	ucs4_conv->conv.illegal_char = NULL ;
+	
 	ucs4_conv->is_bof = 1 ;
 
 	return  (mkf_conv_t*)ucs4_conv ;

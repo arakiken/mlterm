@@ -63,7 +63,7 @@ typedef struct  ml_vt100_parser
 
 	ml_term_screen_t *  termscr ;
 
-	ml_encoding_event_listener_t  encoding_listener ;
+	ml_pty_encoding_event_listener_t  encoding_listener ;
 
 } ml_vt100_parser_t ;
 

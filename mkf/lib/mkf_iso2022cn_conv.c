@@ -8,18 +8,10 @@
 #include  <kiklib/kik_debug.h>
 
 #include  "mkf_iso2022_intern.h"
+#include  "mkf_iso2022_conv.h"
+#include  "mkf_ucs4_map.h"
 #include  "mkf_zh_cn_map.h"
 #include  "mkf_zh_tw_map.h"
-
-
-typedef struct  mkf_iso2022cn_conv
-{
-	mkf_conv_t   conv ;
-	mkf_charset_t  cur_cs ;
-	mkf_charset_t  cur_g1 ;
-	mkf_charset_t  cur_g2 ;	
-
-} mkf_iso2022cn_conv_t ;
 
 
 /* --- static functions --- */
@@ -41,10 +33,19 @@ remap_unsupported_charset(
 		{
 			*ch = c ;
 		}
+		else if( mkf_map_ucs4_to_iso2022cs( &c , ch))
+		{
+			*ch = c ;
+		}
 		else
 		{
 			return ;
 		}
+	}
+
+	if( ch->cs == HKSCS)
+	{
+		ch->cs = BIG5 ;
 	}
 	
 	if( ch->cs == BIG5)
@@ -71,53 +72,19 @@ convert_to_iso2022cn(
 	mkf_parser_t *  parser
 	)
 {
-	mkf_iso2022cn_conv_t *  iso2022cn_conv ;
+	mkf_iso2022_conv_t *  iso2022_conv ;
 	size_t  filled_size ;
 	mkf_char_t  ch ;
+	int  counter ;
 
-	iso2022cn_conv = (mkf_iso2022cn_conv_t*) conv ;
+	iso2022_conv = (mkf_iso2022_conv_t*) conv ;
 
 	filled_size = 0 ;
-	
-	while( 1)
+	while( mkf_parser_next_char( parser , &ch))
 	{
-		int  counter ;
-
-		mkf_parser_mark( parser) ;
-
-		if( ! (*parser->next_char)( parser , &ch))
-		{
-			if( parser->is_eos)
-			{
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" parser reached the end of string.\n") ;
-			#endif
-			
-				return  filled_size ;
-			}
-			else
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" parser->next_char() returns error , but the process is continuing...\n") ;
-			#endif
-
-				/*
-				 * passing unrecognized byte...
-				 */
-				if( mkf_parser_increment( parser) == 0)
-				{
-					return  filled_size ;
-				}
-				
-				continue ;
-			}
-		}
-
 		remap_unsupported_charset( &ch) ;
 		
-		if( ch.cs == iso2022cn_conv->cur_cs)
+		if( ch.cs == *iso2022_conv->gl)
 		{
 			if( filled_size + ch.size > dst_size)
 			{
@@ -130,15 +97,17 @@ convert_to_iso2022cn(
 			{
 				/* reset */
 				
-				iso2022cn_conv->cur_g1 = UNKNOWN_CS ;
-				iso2022cn_conv->cur_g2 = UNKNOWN_CS ;
+				iso2022_conv->g1 = UNKNOWN_CS ;
+				iso2022_conv->g2 = UNKNOWN_CS ;
 			}
 		}
 		else if( ch.cs == CNS11643_1992_2)
 		{
-			if( iso2022cn_conv->cur_g2 != CNS11643_1992_2)
+			/* single shifted */
+			
+			if( iso2022_conv->g2 != CNS11643_1992_2)
 			{
-				if( filled_size + ch.size + 5 >= dst_size)
+				if( filled_size + ch.size + 6 > dst_size)
 				{
 					mkf_parser_reset( parser) ;
 
@@ -154,11 +123,11 @@ convert_to_iso2022cn(
 
 				filled_size += 6 ;
 
-				iso2022cn_conv->cur_g2 = CNS11643_1992_2 ;
+				iso2022_conv->g2 = CNS11643_1992_2 ;
 			}
 			else
 			{
-				if( filled_size + ch.size + 1 >= dst_size)
+				if( filled_size + ch.size + 2 > dst_size)
 				{
 					mkf_parser_reset( parser) ;
 
@@ -170,89 +139,88 @@ convert_to_iso2022cn(
 
 				filled_size += 2 ;
 			}
-			
-			/* this is single shifted , so iso2022cn_conv->cur_cs is not changed */
 		}
-		else
+		else if( ch.cs == CNS11643_1992_1 || ch.cs == GB2312_80)
 		{
-			if( ch.cs == CNS11643_1992_1 || ch.cs == GB2312_80)
+			if( iso2022_conv->g1 != ch.cs)
 			{
-				if( iso2022cn_conv->cur_g1 != ch.cs)
-				{
-					if( filled_size + ch.size + 4 >= dst_size)
-					{
-						mkf_parser_reset( parser) ;
-
-						return  filled_size ;
-					}
-
-					*(dst ++) = ESC ;
-					*(dst ++) = MB_CS ;
-					*(dst ++) = CS94_TO_G1 ;
-					*(dst ++) = CS94MB_FT(ch.cs) ;
-					*(dst ++) = LS1 ;
-
-					filled_size += 5 ;
-
-					iso2022cn_conv->cur_g1 = ch.cs ;
-				}
-				else
-				{
-					if( filled_size + ch.size >= dst_size)
-					{
-						mkf_parser_reset( parser) ;
-
-						return  filled_size ;
-					}
-
-					*(dst ++) = LS1 ;
-					
-					filled_size ++ ;
-				}
-			}
-			else if( ch.cs == US_ASCII)
-			{
-				if( filled_size + ch.size >= dst_size)
+				if( filled_size + ch.size + 5 > dst_size)
 				{
 					mkf_parser_reset( parser) ;
 
 					return  filled_size ;
 				}
 
-				*(dst ++) = LS0 ;
+				*(dst ++) = ESC ;
+				*(dst ++) = MB_CS ;
+				*(dst ++) = CS94_TO_G1 ;
+				*(dst ++) = CS94MB_FT(ch.cs) ;
+				*(dst ++) = LS1 ;
 
-				filled_size ++ ;
-				
-				if( ch.ch[0] == '\n')
-				{
-					/* reset */
-					iso2022cn_conv->cur_g1 = UNKNOWN_CS ;
-					iso2022cn_conv->cur_g2 = UNKNOWN_CS ;
-				}
+				filled_size += 5 ;
+
+				iso2022_conv->g1 = ch.cs ;
 			}
 			else
 			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" cs(%x) is not supported by iso2022cn. char(%x) is discarded.\n" ,
-					ch.cs , mkf_char_to_int( &ch)) ;
-			#endif
-
-				if( filled_size >= dst_size)
+				if( filled_size + ch.size + 1 > dst_size)
 				{
 					mkf_parser_reset( parser) ;
 
 					return  filled_size ;
 				}
 
-				*(dst ++) = ' ' ;
-				
-				filled_size ++ ;
+				*(dst ++) = LS1 ;
 
-				continue ;
+				filled_size ++ ;
 			}
-			
-			iso2022cn_conv->cur_cs = ch.cs ;
+
+			iso2022_conv->gl = &iso2022_conv->g1 ;
+		}
+		else if( ch.cs == US_ASCII)
+		{
+			if( filled_size + ch.size + 1 > dst_size)
+			{
+				mkf_parser_reset( parser) ;
+
+				return  filled_size ;
+			}
+
+			*(dst ++) = LS0 ;
+
+			filled_size ++ ;
+
+			if( ch.ch[0] == '\n')
+			{
+				/* reset */
+				
+				iso2022_conv->g1 = UNKNOWN_CS ;
+				iso2022_conv->g2 = UNKNOWN_CS ;
+			}
+
+			iso2022_conv->gl = &iso2022_conv->g0 ;
+		}
+		else if( conv->illegal_char)
+		{
+			size_t  size ;
+			int  is_full ;
+
+			size = (*conv->illegal_char)( conv , dst , dst_size - filled_size , &is_full , &ch) ;
+			if( is_full)
+			{
+				mkf_parser_reset( parser) ;
+
+				return  filled_size ;
+			}
+
+			dst += size ;
+			filled_size += size ;
+
+			continue ;
+		}
+		else
+		{
+			continue ;
 		}
 		
 		for( counter = 0 ; counter < ch.size ; counter ++)
@@ -262,6 +230,8 @@ convert_to_iso2022cn(
 
 		filled_size += ch.size ;
 	}
+
+	return  filled_size ;
 }
 
 static void
@@ -269,13 +239,15 @@ conv_init(
 	mkf_conv_t *  conv
 	)
 {
-	mkf_iso2022cn_conv_t *  iso2022cn_conv ;
+	mkf_iso2022_conv_t *  iso2022_conv ;
 
-	iso2022cn_conv = (mkf_iso2022cn_conv_t*) conv ;
-	
-	iso2022cn_conv->cur_cs = US_ASCII ;
-	iso2022cn_conv->cur_g1 = UNKNOWN_CS ;
-	iso2022cn_conv->cur_g2 = UNKNOWN_CS ;
+	iso2022_conv = (mkf_iso2022_conv_t*) conv ;
+
+	iso2022_conv->gl = &iso2022_conv->g0 ;
+	iso2022_conv->gr = NULL ;
+	iso2022_conv->g0 = US_ASCII ;
+	iso2022_conv->g1 = UNKNOWN_CS ;
+	iso2022_conv->g2 = UNKNOWN_CS ;
 }
 
 static void
@@ -292,20 +264,19 @@ conv_delete(
 mkf_conv_t *
 mkf_iso2022cn_conv_new(void)
 {
-	mkf_iso2022cn_conv_t *  iso2022cn_conv ;
+	mkf_iso2022_conv_t *  iso2022_conv ;
 
-	if( ( iso2022cn_conv = malloc( sizeof( mkf_iso2022cn_conv_t))) == NULL)
+	if( ( iso2022_conv = malloc( sizeof( mkf_iso2022_conv_t))) == NULL)
 	{
 		return  NULL ;
 	}
 
-	iso2022cn_conv->conv.convert = convert_to_iso2022cn ;
-	iso2022cn_conv->conv.init = conv_init ;
-	iso2022cn_conv->conv.delete = conv_delete ;
-	
-	iso2022cn_conv->cur_cs = US_ASCII ;
-	iso2022cn_conv->cur_g1 = UNKNOWN_CS ;
-	iso2022cn_conv->cur_g2 = UNKNOWN_CS ;
+	conv_init( ( mkf_conv_t*) iso2022_conv) ;
 
-	return  (mkf_conv_t*)iso2022cn_conv ;
+	iso2022_conv->conv.convert = convert_to_iso2022cn ;
+	iso2022_conv->conv.init = conv_init ;
+	iso2022_conv->conv.delete = conv_delete ;
+	iso2022_conv->conv.illegal_char = NULL ;
+
+	return  (mkf_conv_t*)iso2022_conv ;
 }

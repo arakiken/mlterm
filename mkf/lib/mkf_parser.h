@@ -49,5 +49,7 @@ inline void  __mkf_parser_mark( mkf_parser_t *  parser) ;
 
 inline void  __mkf_parser_reset( mkf_parser_t *  parser) ;
 
+int  mkf_parser_next_char( mkf_parser_t *  parser , mkf_char_t *  ch) ;
+
 
 #endif

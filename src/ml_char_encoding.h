@@ -2,8 +2,8 @@
  *	$Id$
  */
 
-#ifndef  __ML_ENCODING_H__
-#define  __ML_ENCODING_H__
+#ifndef  __ML_CHAR_ENCODING_H__
+#define  __ML_CHAR_ENCODING_H__
 
 
 #include  <mkf/mkf_parser.h>
@@ -14,7 +14,7 @@
  * supported encodings are those which are not conflicted with US_ASCII.
  * so , UCS4 is not supported.
  */
-typedef enum  ml_encoding_type
+typedef enum  ml_char_encoding
 {
 	ML_UNKNOWN_ENCODING = -1 ,
 	ML_ISO8859_1 = 0 ,
@@ -77,9 +77,10 @@ typedef enum  ml_encoding_type
 		ML_EUCKR == (encoding) || ML_ISO2022KR == (encoding) || ML_EUCTW == (encoding) || \
 		ML_ISO2022CN == (encoding) || ML_EUCCN == (encoding))
 
+/* ISO2022KR is subset of UTF8 */
 #define  IS_UTF8_SUBSET_ENCODING(encoding) \
 	( (encoding) != ML_ISO2022JP && (encoding) != ML_ISO2022JP2 && (encoding) != ML_ISO2022JP3 && \
-		(encoding) != ML_ISO2022CN && (encoding) != ML_ISO2022KR )
+		(encoding) != ML_ISO2022CN )
 
 ml_char_encoding_t  ml_get_encoding( char *  name) ;
 

@@ -66,7 +66,7 @@ typedef struct  ml_term_manager
 	int8_t  big5_buggy ;
 	int8_t  unicode_to_other_cs ;
 	int8_t  all_cs_to_unicode ;
-	int8_t  prefer_utf8_selection ;
+	int8_t  copy_paste_via_ucs ;
 	int8_t  use_transbg ;
 	
 	char *  scrollbar_view_name ;
@@ -75,7 +75,6 @@ typedef struct  ml_term_manager
 	
 	ml_mod_meta_mode_t  mod_meta_mode ;
 	ml_bel_mode_t  bel_mode ;
-	ml_xct_proc_mode_t  xct_proc_mode ;
 	
 	u_int  num_of_startup_terms ;
 	u_int  col_size_a ;

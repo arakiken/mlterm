@@ -1622,37 +1622,11 @@ parse_vt100_escape_sequence(
 	}
 }
 
-static void
-init_encoding_state_intern(
-	mkf_conv_t *  cc_conv ,
-	mkf_parser_t *  cc_parser ,
-	ml_char_encoding_t  encoding
-	)
-{
-	if( encoding == ML_ISO2022KR)
-	{
-		u_char  buf[5] ;
 
-		/* designating KSC5601 to G1 */
-		(*cc_parser->set_str)( cc_parser , "\x1b$)Ca" , 5) ;
-
-		/* this returns sequence of designating KSC5601 to G1 */
-		(*cc_conv->convert)( cc_conv , buf , sizeof(buf) , cc_parser) ;
-	}
-}
-
-static ml_char_encoding_t
-current_encoding(
-	void *  p
-	)
-{
-	ml_vt100_parser_t *  vt100_parser ;
-
-	vt100_parser = p ;
-
-	return  vt100_parser->encoding ;
-}
-
+/*
+ * callbacks of pty encoding listener
+ */
+ 
 static int
 encoding_changed(
 	void *  p ,
@@ -1699,30 +1673,39 @@ encoding_changed(
 
 	/* reset */
 	vt100_parser->is_graphic_char_in_gl = 0 ;
-
-	init_encoding_state_intern( vt100_parser->cc_conv , vt100_parser->cc_parser ,
-		vt100_parser->encoding) ;
 	
 	return  1 ;
 }
 
-static size_t
-convert_to_current_encoding(
-	void *  p ,
-	u_char *  dst ,
-	size_t  len ,
-	mkf_parser_t *  cc_parser
+static ml_char_encoding_t
+pty_encoding(
+	void *  p
 	)
 {
 	ml_vt100_parser_t *  vt100_parser ;
 
 	vt100_parser = p ;
-	
-	return  (*vt100_parser->cc_conv->convert)( vt100_parser->cc_conv , dst , len , cc_parser) ;
+
+	return  vt100_parser->encoding ;
+}
+
+static size_t
+convert_to_pty_encoding(
+	void *  p ,
+	u_char *  dst ,
+	size_t  len ,
+	mkf_parser_t *  parser
+	)
+{
+	ml_vt100_parser_t *  vt100_parser ;
+
+	vt100_parser = p ;
+
+	return  (*vt100_parser->cc_conv->convert)( vt100_parser->cc_conv , dst , len , parser) ;
 }
 
 static int
-init_encoding_state(
+init_pty_encoding(
 	void *  p
 	)
 {
@@ -1732,9 +1715,6 @@ init_encoding_state(
 
 	(*vt100_parser->cc_conv->init)( vt100_parser->cc_conv) ;
 	(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
-
-	init_encoding_state_intern( vt100_parser->cc_conv , vt100_parser->cc_parser ,
-		vt100_parser->encoding) ;
 
 	return  1 ;
 }
@@ -1769,9 +1749,9 @@ ml_vt100_parser_new(
 	
 	vt100_parser->encoding_listener.self = vt100_parser ;
 	vt100_parser->encoding_listener.encoding_changed = encoding_changed ;
-	vt100_parser->encoding_listener.current_encoding = current_encoding ;
-	vt100_parser->encoding_listener.convert_to_current_encoding = convert_to_current_encoding ;
-	vt100_parser->encoding_listener.init_encoding_state = init_encoding_state ;
+	vt100_parser->encoding_listener.encoding = pty_encoding ;
+	vt100_parser->encoding_listener.convert = convert_to_pty_encoding ;
+	vt100_parser->encoding_listener.init = init_pty_encoding ;
 
 	if( ! ml_set_encoding_listener( termscr , &vt100_parser->encoding_listener))
 	{
@@ -1797,7 +1777,7 @@ ml_vt100_parser_new(
 	{
 		goto  error ;
 	}
-	
+
 	if( ( vt100_parser->cc_parser = ml_parser_new( encoding)) == NULL)
 	{
 		(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
@@ -1809,9 +1789,6 @@ ml_vt100_parser_new(
 
 	vt100_parser->is_graphic_char_in_gl = 0 ;
 
-	init_encoding_state_intern( vt100_parser->cc_conv , vt100_parser->cc_parser ,
-		vt100_parser->encoding) ;
-	
 	if( col_size_a == 1 || col_size_a == 2)
 	{
 		vt100_parser->col_size_of_east_asian_width_a = col_size_a ;

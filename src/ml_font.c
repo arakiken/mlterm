@@ -77,7 +77,7 @@ static cs_info_t  cs_info_table[] =
 	{ GB2312_80 , 2 , { "gb2312.1980-0" , NULL , NULL , } , } ,
 	{ GBK , 2 , { "gbk-0" , NULL , NULL , } , } ,
 	{ BIG5 , 2 , { "big5.eten-0" , "big5.hku-0" , NULL , } , } ,
-	{ BIG5HKSCS , 2 , { "big5hkscs-0" , "big5-0" , NULL , } , } ,
+	{ HKSCS , 2 , { "big5hkscs-0" , "big5-0" , NULL , } , } ,
 	{ CNS11643_1992_1 , 2 , { "cns11643.1992-1" , "cns11643.1992.1-0" , NULL , } , } ,
 	{ CNS11643_1992_2 , 2 , { "cns11643.1992-2" , "cns11643.1992.2-0" , NULL , } , } ,
 	{ CNS11643_1992_3 , 2 , { "cns11643.1992-3" , "cns11643.1992.3-0" , NULL , } , } ,

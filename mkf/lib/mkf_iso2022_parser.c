@@ -134,7 +134,7 @@ parse_escape(
 	)
 {
 	mkf_parser_mark( iso2022_parser) ;
-
+	
 	if( *iso2022_parser->parser.str == SS2)
 	{
 		ch->cs = iso2022_parser->g2 ;
@@ -467,21 +467,25 @@ next_byte(
 {
 	if( iso2022_parser->parser.is_eos)
 	{
+		mkf_parser_reset( iso2022_parser) ;
+		
 		ch->size = 0 ;
 		
 		return  0 ;
 	}
 	else if( IS_NON_ISO2022(iso2022_parser->non_iso2022_cs))
 	{
-		if( ! iso2022_parser->next_non_iso2022_byte ||
-			! (*iso2022_parser->next_non_iso2022_byte)( iso2022_parser , ch))
+		if( iso2022_parser->next_non_iso2022_byte &&
+			(*iso2022_parser->next_non_iso2022_byte)( iso2022_parser , ch))
+		{
+			return  1 ;
+		}
+		else
 		{
 			iso2022_parser->non_iso2022_cs = UNKNOWN_CS ;
 			
 			return  next_byte( iso2022_parser , ch) ;
 		}
-		
-		return  1 ;
 	}
 	else if( IS_ESCAPE( *iso2022_parser->parser.str))
 	{
@@ -495,10 +499,6 @@ next_byte(
 	else if( iso2022_parser->is_single_shifted)
 	{
 		ch->ch[ ch->size++] = UNMAP_FROM_GR( *iso2022_parser->parser.str) ;
-		
-		mkf_parser_increment( iso2022_parser) ;
-
-		return  1 ;
 	}
 	else
 	{
@@ -511,7 +511,8 @@ next_byte(
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
-				" %.2x C1 charset except SS2(0x8e) SS3(0x8f) is not supported , skipping...\n" ,
+				" %.2x C1 charset except SS2(0x8e) SS3(0x8f) is not supported ,"
+				" skipping...\n" ,
 				*iso2022_parser->parser.str) ;
 		#endif
 			
@@ -575,11 +576,11 @@ next_byte(
 				ch->cs = *iso2022_parser->gr ;
 			}
 		}
-		
-		mkf_parser_increment( iso2022_parser) ;
-
-		return  1 ;
 	}
+	
+	mkf_parser_increment( iso2022_parser) ;
+
+	return  1 ;
 }
 
 static int
@@ -596,6 +597,7 @@ sub_next_char(
 	{
 		/* initialize */
 		memset( ch , 0 , sizeof( mkf_char_t)) ;
+
 		mkf_parser_mark( iso2022_parser) ;
 
 		if( ! next_byte( iso2022_parser , ch))
@@ -647,8 +649,9 @@ sub_next_char(
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
-				" prev byte cs and cur byte cs are not the same , strange !"
-				"ignoring this char.\n") ;
+				" prev byte cs(%x) and cur byte cs(%x) are not the same , strange !"
+				" ignoring this char.\n" ,
+				cs , ch->cs) ;
 		#endif
 			
 			return  sub_next_char( iso2022_parser , ch) ;

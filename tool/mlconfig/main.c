@@ -20,8 +20,6 @@
 #include  "mc_mod_meta.h"
 #include  "mc_bel.h"
 #include  "mc_xim.h"
-#include  "mc_utf8_sel.h"
-#include  "mc_xct_proc.h"
 #include  "mc_check.h"
 
 
@@ -36,6 +34,7 @@ static FILE *  out ;
 
 static GtkWidget *  is_comb_check ;
 static GtkWidget *  use_bidi_check ;
+static GtkWidget *  copy_paste_via_ucs_check ;
 
 static GtkWidget *  is_tp_check ;
 static GtkWidget *  is_aa_check ;
@@ -63,10 +62,10 @@ apply_clicked(
 {
 	/*
 	 * CONFIG:[encoding] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
-	 * [bel mode] [combining char] [prefer utf8 selection request] [pre conv xct to ucs] \
-	 * [is transparent] [is aa] [is bidi] [xim] [locale][LF]
+	 * [bel mode] [combining char] [copy paste via ucs] [is transparent] [is aa] [is bidi] \
+	 * [xim] [locale][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %s %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( out , "CONFIG:%d %d %d %d %d %s %d %d %d %d %d %d %d %s %s\n" ,
 		mc_get_encoding() ,
 		mc_get_fg_color() ,
 		mc_get_bg_color() ,
@@ -76,8 +75,7 @@ apply_clicked(
 		mc_get_mod_meta_mode() ,
 		mc_get_bel_mode() ,
 		GTK_TOGGLE_BUTTON(is_comb_check)->active ,
-		mc_get_utf8_sel_mode() ,
-		mc_get_xct_proc_mode() ,
+		GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active ,
 		GTK_TOGGLE_BUTTON(is_tp_check)->active ,
 		GTK_TOGGLE_BUTTON(is_aa_check)->active ,
 		GTK_TOGGLE_BUTTON(use_bidi_check)->active ,
@@ -281,8 +279,7 @@ show(
 	ml_mod_meta_mode_t  mod_meta_mode ,
 	ml_bel_mode_t  bel_mode ,
 	int  is_combining_char ,
-	int  prefer_utf8_selection ,
-	ml_xct_proc_mode_t  xct_proc_mode ,
+	int  copy_paste_via_ucs ,
 	int  is_transparent ,
 	int  is_aa ,
 	int  use_bidi ,
@@ -340,7 +337,7 @@ show(
 
 	label = gtk_label_new("encoding") ;
 	gtk_widget_show(label) ;
-	
+
 	vbox = gtk_vbox_new(FALSE , 3) ;
 	gtk_container_set_border_width(GTK_CONTAINER(vbox) , 5) ;
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
@@ -383,25 +380,24 @@ show(
 
 	label = gtk_label_new("copy&paste") ;
 	gtk_widget_show(label) ;
+	
 	vbox = gtk_vbox_new(FALSE , 3) ;
 	gtk_container_set_border_width(GTK_CONTAINER(vbox) , 5) ;
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
 	gtk_widget_show(vbox) ;
 
-	if( ! ( config_widget = mc_utf8_sel_config_widget_new(prefer_utf8_selection)))
-	{
-		return  0 ;
-	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , TRUE , TRUE , 0) ;
+	frame = gtk_frame_new("for Unicode-subset encodings") ;
+	gtk_widget_show(frame) ;
+	gtk_box_pack_start(GTK_BOX(vbox) , frame , FALSE , FALSE , 0) ;
 	
-	if( ! ( config_widget = mc_xct_proc_config_widget_new(xct_proc_mode)))
+	if( ! ( copy_paste_via_ucs_check = mc_check_config_widget_new(
+		"process received strings via UCS" , copy_paste_via_ucs)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(config_widget) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , TRUE , TRUE , 0) ;
-
+	gtk_widget_show(copy_paste_via_ucs_check) ;
+	gtk_container_add(GTK_CONTAINER(frame) , copy_paste_via_ucs_check) ;
+		
 	
 	/* contents of the "appearance" tab */
 
@@ -520,8 +516,7 @@ start_application(
 	int  mod_meta_mode ;
 	int  bel_mode ;
 	int  is_combining_char ;
-	int  prefer_utf8_selection ;
-	int  xct_proc_mode ;
+	int  copy_paste_via_ucs ;
 	int  is_transparent ;
 	int  is_aa ;
 	int  use_bidi ;
@@ -550,17 +545,14 @@ start_application(
 	
 	p[len - 1] = '\0' ;
 
-	/* this memory area is leaked , but this makes almost no matter */
 	input_line = strdup( p) ;
 	
 	kik_file_delete( kin) ;
 	fclose( in) ;
 
 	/*
-	 * input_line format
 	 * [encoding] [fg color] [bg color] [tabsize] [logsize] [font size] [min font size] \
-	 * [max font size] [is combining char] [prefer utf8 selection request] [xct proc mode] \
-	 * [auto detect utf8 selection] [is transparent] [locale] [xim][LF]
+	 * [max font size] [is combining char] [copy paste via ucs] [is transparent] [locale] [xim][LF]
 	 */
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &encoding , p))
@@ -626,13 +618,7 @@ start_application(
 	}
 
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &prefer_utf8_selection , p))
-	{
-		return  0 ;
-	}
-
-	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &xct_proc_mode , p))
+		! kik_str_to_int( &copy_paste_via_ucs , p))
 	{
 		return  0 ;
 	}
@@ -667,9 +653,8 @@ start_application(
 	
 	return  show( x , y , encoding , fg_color , bg_color , tabsize ,
 		logsize , fontsize , min_fontsize , max_fontsize ,
-		mod_meta_mode , bel_mode , is_combining_char ,
-		prefer_utf8_selection , xct_proc_mode , is_transparent , is_aa ,
-		use_bidi , xim , locale) ;
+		mod_meta_mode , bel_mode , is_combining_char , copy_paste_via_ucs ,
+		is_transparent , is_aa , use_bidi , xim , locale) ;
 }
 
 

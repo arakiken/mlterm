@@ -125,6 +125,10 @@ open_new_term(
 		/* block until dead_mask is cleared */
 		|| term_man->dead_mask)
 	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " full of terms.\n") ;
+	#endif
+	
 		return  0 ;
 	}
 	
@@ -150,9 +154,8 @@ open_new_term(
 		term_man->num_of_log_lines , term_man->tab_size ,
 		term_man->use_xim , term_man->xim_open_in_startup ,
 		term_man->mod_meta_mode , term_man->bel_mode ,
-		term_man->prefer_utf8_selection , term_man->xct_proc_mode ,
-		term_man->pic_file_path , term_man->use_transbg , term_man->is_aa ,
-		term_man->use_bidi , term_man->big5_buggy ,
+		term_man->copy_paste_via_ucs , term_man->pic_file_path , term_man->use_transbg ,
+		term_man->is_aa , term_man->use_bidi , term_man->big5_buggy ,
 		term_man->conf_menu_path)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -704,9 +707,8 @@ ml_term_manager_init(
 		"converting unicode to other cs") ;
 	kik_conf_add_opt( conf , 'u' , "all2ucs" , 1 , "all_cs_to_unicode" ,
 		"converting all cs to unicode.") ;
-	kik_conf_add_opt( conf , 'U' , "utf8sel" , 0 , "prefer_utf8_selection" ,
-		"prefer utf8 selection request.") ;
-	kik_conf_add_opt( conf , 'c' , "xct" , 1 , "xct_process_mode" , "how to process received xct.") ;
+	kik_conf_add_opt( conf , 'U' , "viaucs" , 1 , "copy_paste_via_ucs" ,
+		"process received strings via ucs.") ;
 	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" ,
 		"opening xim in starting up.") ;
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , "use bidi") ;
@@ -1165,40 +1167,16 @@ ml_term_manager_init(
 		term_man->all_cs_to_unicode = 0 ;
 	}
 
-	term_man->prefer_utf8_selection = 0 ;
+	term_man->copy_paste_via_ucs = 0 ;
 
-	if( ( value = kik_conf_get_value( conf , "prefer_utf8_selection")))
+	if( ( value = kik_conf_get_value( conf , "copy_paste_via_ucs")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			term_man->prefer_utf8_selection = 1 ;
-		}
-		else if( strcmp( value , "auto") == 0)
-		{
-			term_man->prefer_utf8_selection = -1 ;
+			term_man->copy_paste_via_ucs = 1 ;
 		}
 	}
 	
-	term_man->xct_proc_mode = XCT_NORMAL ;
-
-	if( ( value = kik_conf_get_value( conf , "xct_proc_mode")))
-	{
-		if( strcmp( value , "ucs") == 0)
-		{
-			term_man->xct_proc_mode = XCT_PRECONV_UCS ;
-		}
-		else if( strcmp( value , "raw") == 0)
-		{
-			term_man->xct_proc_mode = XCT_RAW ;
-		}
-	#if  0
-		else if( strcmp( value , "normal") == 0)
-		{
-			term_man->xct_proc_mode = XCT_NORMAL ;
-		}
-	#endif
-	}
-
 	term_man->col_size_a = 0 ;
 	
 	if( ( value = kik_conf_get_value( conf , "col_size_of_width_a")))

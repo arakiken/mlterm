@@ -25,20 +25,19 @@
 #include  "ml_config_menu.h"
 #include  "ml_mod_meta_mode.h"
 #include  "ml_bel_mode.h"
-#include  "ml_xct_proc_mode.h"
 #include  "ml_pty.h"
 
 
-typedef struct  ml_encoding_event_listener
+typedef struct  ml_pty_encoding_event_listener
 {
 	void *  self ;
 
 	int  (*encoding_changed)( void * , ml_char_encoding_t) ;
-	ml_char_encoding_t  (*current_encoding)( void *) ;
-	size_t  (*convert_to_current_encoding)( void * , u_char * , size_t , mkf_parser_t *) ;
-	int  (*init_encoding_state)( void *) ;
+	ml_char_encoding_t  (*encoding)( void *) ;
+	size_t  (*convert)( void * , u_char *  dst , size_t  len , mkf_parser_t *) ;
+	int  (*init)( void *) ;
 	
-} ml_encoding_event_listener_t ;
+} ml_pty_encoding_event_listener_t ;
 
 typedef struct  ml_system_event_listener
 {
@@ -98,9 +97,7 @@ typedef struct  ml_term_screen
 
 	ml_bel_mode_t  bel_mode ;
 
-	ml_xct_proc_mode_t  xct_proc_mode ;
-	
-	ml_encoding_event_listener_t *  encoding_listener ;
+	ml_pty_encoding_event_listener_t *  encoding_listener ;
 	ml_system_event_listener_t *  system_listener ;
 	ml_screen_scroll_event_listener_t *  screen_scroll_listener ;
 
@@ -117,7 +114,7 @@ typedef struct  ml_term_screen
 
 	char *  pic_file_path ;
 
-	int8_t  prefer_utf8_selection ;
+	int8_t  copy_paste_via_ucs ;
 	int8_t  is_reverse ;
 	int8_t  is_app_keypad ;
 	int8_t  is_app_cursor_keys ;
@@ -134,16 +131,15 @@ ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
 	u_int  num_of_log_lines , u_int  tab_size , int  use_xim ,
 	int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode , ml_bel_mode_t  bel_mode ,
-	int  prefer_utf8_selection , ml_xct_proc_mode_t  xct_proc_mode ,
-	char *  pic_file_path , int  use_transbg , int  is_aa , int  use_bidi ,
-	int  big5_buggy , char *  conf_menu_path) ;
+	int  prefer_utf8_selection , char *  pic_file_path , int  use_transbg , int  is_aa ,
+	int  use_bidi , int  big5_buggy , char *  conf_menu_path) ;
 
 int  ml_term_screen_delete( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_set_pty( ml_term_screen_t *  termscr , ml_pty_t *  pty) ;
 
 int  ml_set_encoding_listener( ml_term_screen_t *  termscr ,
-	ml_encoding_event_listener_t *  encoding_listener) ;
+	ml_pty_encoding_event_listener_t *  encoding_listener) ;
 	
 int  ml_set_system_listener( ml_term_screen_t *  termscr ,
 	ml_system_event_listener_t *  system_listener) ;

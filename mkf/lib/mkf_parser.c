@@ -5,6 +5,7 @@
 #include  "mkf_parser.h"
 
 #include  <stdio.h>	/* NULL */
+#include  <kiklib/kik_debug.h>
 
 
 /* --- global functions --- */
@@ -77,4 +78,40 @@ __mkf_parser_reset(
 {
 	parser->str -= (parser->marked_left - parser->left) ;
 	parser->left = parser->marked_left ;
+}
+
+/*
+ * short cut function. (ignoring error)
+ */
+int
+mkf_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	while( 1)
+	{
+		mkf_parser_mark( parser) ;
+
+		if( (*parser->next_char)( parser , ch))
+		{
+			return  1 ;
+		}
+		else if( parser->is_eos)
+		{
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" parser reached the end of string.\n") ;
+		#endif
+
+			return  0 ;
+		}
+	#ifdef  DEBUG
+		else
+		{
+			kik_warn_printf( KIK_DEBUG_TAG
+				" parser->next_char() returns error , continuing...\n") ;
+		}
+	#endif
+	}
 }

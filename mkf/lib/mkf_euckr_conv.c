@@ -7,7 +7,9 @@
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 
+#include  "mkf_iso2022_conv.h"
 #include  "mkf_iso2022_intern.h"
+#include  "mkf_ucs4_map.h"
 #include  "mkf_ko_kr_map.h"
 
 
@@ -23,7 +25,8 @@ remap_unsupported_charset(
 
 	if( ch->cs == ISO10646_UCS4_1)
 	{
-		if( ! mkf_map_ucs4_to_ko_kr( &c , ch))
+		if( ! mkf_map_ucs4_to_ko_kr( &c , ch) &&
+			( ! to_uhc && ! mkf_map_ucs4_to_iso2022cs( &c , ch)))
 		{
 			return ;
 		}
@@ -70,40 +73,8 @@ convert_to_euckr_intern(
 	mkf_char_t  ch ;
 
 	filled_size = 0 ;
-	while( 1)
+	while( mkf_parser_next_char( parser , &ch))
 	{
-		mkf_parser_mark( parser) ;
-
-		if( ! (*parser->next_char)( parser , &ch))
-		{
-			if( parser->is_eos)
-			{
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" parser reached the end of string.\n") ;
-			#endif
-			
-				return  filled_size ;
-			}
-			else
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" parser->next_char() returns error , but the process is continuing...\n") ;
-			#endif
-
-				/*
-				 * passing unrecognized byte...
-				 */
-				if( mkf_parser_increment( parser) == 0)
-				{
-					return  filled_size ;
-				}
-
-				continue ;
-			}
-		}
-
 		if( is_uhc)
 		{
 			remap_unsupported_charset( &ch , 1) ;
@@ -154,25 +125,25 @@ convert_to_euckr_intern(
 			
 			filled_size += 2 ;
 		}
-		else
+		else if( conv->illegal_char)
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" cs(%x) is not supported by euckr. char(%x) is discarded.\n" ,
-				ch.cs , mkf_char_to_int( &ch)) ;
-		#endif
-
-			if( filled_size >= dst_size)
+			size_t  size ;
+			int  is_full ;
+			
+			size = (*conv->illegal_char)( conv , dst , dst_size - filled_size , &is_full , &ch) ;
+			if( is_full)
 			{
 				mkf_parser_reset( parser) ;
-			
+
 				return  filled_size ;
 			}
-			
-			*(dst ++) = ' ' ;
-			filled_size ++ ;
+
+			dst += size ;
+			filled_size += size ;
 		}
 	}
+
+	return  filled_size ;
 }
 
 static size_t
@@ -198,7 +169,24 @@ convert_to_uhc(
 }
 
 static void
-conv_init(
+euckr_conv_init(
+	mkf_conv_t *  conv
+	)
+{
+	mkf_iso2022_conv_t *  iso2022_conv ;
+
+	iso2022_conv = ( mkf_iso2022_conv_t*) conv ;
+
+	iso2022_conv->gl = &iso2022_conv->g0 ;
+	iso2022_conv->gr = &iso2022_conv->g1 ;
+	iso2022_conv->g0 = US_ASCII ;
+	iso2022_conv->g1 = KSC5601_1987 ;
+	iso2022_conv->g2 = UNKNOWN_CS ;
+	iso2022_conv->g3 = UNKNOWN_CS ;
+}
+
+static void
+uhc_conv_init(
 	mkf_conv_t *  conv
 	)
 {
@@ -212,10 +200,31 @@ conv_delete(
 	free( conv) ;
 }
 
-static mkf_conv_t *
-euckr_conv_new(
-	size_t (*convert)( struct mkf_conv * , u_char * , size_t , mkf_parser_t *)
-	)
+
+/* --- global functions --- */
+
+mkf_conv_t *
+mkf_euckr_conv_new(void)
+{
+	mkf_iso2022_conv_t *  iso2022_conv ;
+
+	if( ( iso2022_conv = malloc( sizeof( mkf_iso2022_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	euckr_conv_init( ( mkf_conv_t*) iso2022_conv) ;
+
+	iso2022_conv->conv.convert = convert_to_euckr ;
+	iso2022_conv->conv.init = euckr_conv_init ;
+	iso2022_conv->conv.delete = conv_delete ;
+	iso2022_conv->conv.illegal_char = NULL ;
+
+	return  (mkf_conv_t*) iso2022_conv ;
+}
+
+mkf_conv_t *
+mkf_uhc_conv_new(void)
 {
 	mkf_conv_t *  conv ;
 
@@ -224,24 +233,10 @@ euckr_conv_new(
 		return  NULL ;
 	}
 
-	conv->convert = convert ;
-	conv->init = conv_init ;
+	conv->convert = convert_to_uhc ;
+	conv->init = uhc_conv_init ;
 	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
 
 	return  conv ;
-}
-
-
-/* --- global functions --- */
-
-mkf_conv_t *
-mkf_euckr_conv_new(void)
-{
-	return  euckr_conv_new( convert_to_euckr) ;
-}
-
-mkf_conv_t *
-mkf_uhc_conv_new(void)
-{
-	return  euckr_conv_new( convert_to_uhc) ;
 }

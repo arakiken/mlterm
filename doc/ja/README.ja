@@ -111,6 +111,8 @@ comment $Id$
       **で囲まれている方のがデフォルト値です。
 
       KEY LIST
+      o display        ... DISPLAY を指定
+      
       o tabsize        ... タブ幅(*8*)
       o logsize        ... ログの行数(*128*)
 
@@ -140,15 +142,11 @@ comment $Id$
       o use_combining  ... 結合文字を動的合成する(true/*false*)
       o use_transbg    ... 背景透過する(true/*false*)
 
-      o utf8sel                 ... UTF8 でのセレクションを優先する(true/auto/*false*)
-                                    auto の場合、端末エンコーディングが UTF8 のサブセット
-                                    の場合のみ、UTF8 でのセレクションを行います。
+      o copy_paste_via_ucs      ... copy and paste で受け取った XCOMPOUND TEXT を一度 UCS を
+                                    経由してから、端末エンコーディングに変換する(true/*false*)
       o big5_buggy              ... Big5 CTEXT のバグ(XFree86 4.1.0 以前)に対応する(true/*false*)
       o unicode_to_other_cs     ... UNICODE文字をUNICODE以外の適当な文字集合に変換する(true/*false*)
       o all_cs_to_unicode       ... US_ASCII以外のすべての文字をUNICODEに変換する(true/*false*)
-      o xct_process_mode        ... selection で受け取った CTEXT の処理方法(ucs/raw/*normal*)
-                                    ucs の場合、一旦 ucs に変換後、端末エンコーディングに変換します。
-                                    raw では、受け取った CTEXT をそのまま端末に流します。
       o col_size_of_width_a     ... UNICODEのEastAsianWidth.txtのAプロパティのコラム数(*1*/2)
 
       o fg_color       ... 端末画面の前景色(*black*)
@@ -177,7 +175,7 @@ comment $Id$
         ISO-8859-[1-11],ISO-8859-[13-16],TCVN5712,KOI8-R,KOI8-U,VISCII,
         EUC-JP,EUC-JISX0213,ISO-2022-JP[1-3],Shift_JIS,Shift_JISX0213,
         ISO-2022-KR,EUC-KR,UHC,JOHAB,GB2312(EUC-CN),GBK,ISO-2022-CN,BIG5,
-        EUC-TW,HZ,UTF8,GB18030,AUTO
+        BIG5HKSCS,EUC-TW,HZ,UTF8,GB18030,AUTO
         '-' , '_' および、大文字小文字は無視されます。
 
         (注)
@@ -212,6 +210,7 @@ comment $Id$
       o GB2312_80          ... GB2312_80フォント
       o GBK                ... GBKフォント
       o BIG5               ... BIG5フォント
+      o HKSCS              ... HKSCSフォント
       o CNS11643_1992_N    ... CNS11643_1992_Nフォント
       o ISO10646_UCS2_1    ... UNICODEフォント(1カラム用)
       o ISO10646_UCS2_1_BIWIDTH ... UNICODEフォント(2カラム用)
