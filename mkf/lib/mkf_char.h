@@ -28,7 +28,7 @@
  */
 typedef struct  mkf_char
 {
-	u_char  ch[MAX_CS_BYTELEN] ;
+	u_char  ch[MAX_CS_BYTELEN] ;	/* Big Endian */
 
 	u_int8_t  size ;
 	u_int8_t  property ;	/* mkf_property_t */

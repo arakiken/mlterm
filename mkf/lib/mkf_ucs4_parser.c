@@ -31,6 +31,16 @@ ucs4_parser_init(
 }
 
 static void
+ucs4le_parser_init(
+	mkf_parser_t *  parser
+	)
+{
+	mkf_parser_init( parser) ;
+
+	((mkf_ucs4_parser_t*)parser)->is_big_endian = 0 ;
+}
+
+static void
 ucs4_parser_set_str(
 	mkf_parser_t *  parser ,
 	u_char *  str ,
@@ -142,4 +152,30 @@ mkf_parser_t *
 mkf_utf32_parser_new(void)
 {
 	return  mkf_ucs4_parser_new() ;
+}
+
+mkf_parser_t *
+mkf_ucs4le_parser_new(void)
+{
+	mkf_ucs4_parser_t *  ucs4_parser ;
+
+	if( ( ucs4_parser = malloc( sizeof( mkf_ucs4_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+	
+	ucs4_parser_init( (mkf_parser_t*) ucs4_parser) ;
+
+	ucs4_parser->parser.init = ucs4le_parser_init ;
+	ucs4_parser->parser.set_str = ucs4_parser_set_str ;
+	ucs4_parser->parser.delete = ucs4_parser_delete ;
+	ucs4_parser->parser.next_char = ucs4_parser_next_char ;
+
+	return  (mkf_parser_t*) ucs4_parser ;
+}
+
+mkf_parser_t *
+mkf_utf32le_parser_new(void)
+{
+	return  mkf_ucs4le_parser_new() ;
 }

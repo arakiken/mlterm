@@ -11,5 +11,7 @@
 
 mkf_parser_t *  mkf_utf16_parser_new(void) ;
 
+mkf_parser_t *  mkf_utf16le_parser_new(void) ;
+
 
 #endif

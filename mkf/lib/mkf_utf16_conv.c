@@ -21,7 +21,7 @@ typedef struct  mkf_utf16_conv
 /* --- static functions --- */
 
 static size_t
-convert_to_utf16(
+convert_to_utf16_intern(
 	mkf_conv_t *  conv ,
 	u_char *  dst ,
 	size_t  dst_size ,
@@ -70,11 +70,10 @@ convert_to_utf16(
 
 				return  filled_size ;
 			}
+
+			(*dst++) = ch.ch[0] ;
+			(*dst++) = ch.ch[1] ;
 			
-			dst[0] = ch.ch[0] ;
-			dst[1] = ch.ch[1] ;
-			
-			dst += 2 ;
 			filled_size += 2 ;
 		}
 		else
@@ -119,11 +118,10 @@ convert_to_utf16(
 
 					return  filled_size ;
 				}
-				
-				dst[0] = ch.ch[2] ;
-				dst[1] = ch.ch[3] ;
 
-				dst += 2 ;
+				(*dst++) = ch.ch[2] ;
+				(*dst++) = ch.ch[3] ;
+
 				filled_size += 2 ;
 			}
 			else /* if( ch.ch[1] == 0x1) */

@@ -31,6 +31,16 @@ utf16_parser_init(
 }
 
 static void
+utf16le_parser_init(
+	mkf_parser_t *  parser
+	)
+{
+	mkf_parser_init( parser) ;
+
+	((mkf_utf16_parser_t*)parser)->is_big_endian = 0 ;
+}
+
+static void
 utf16_parser_set_str(
 	mkf_parser_t *  parser ,
 	u_char *  str ,
@@ -194,6 +204,26 @@ mkf_utf16_parser_new(void)
 	utf16_parser_init( ( mkf_parser_t*) utf16_parser) ;
 
 	utf16_parser->parser.init = utf16_parser_init ;
+	utf16_parser->parser.set_str = utf16_parser_set_str ;
+	utf16_parser->parser.delete = utf16_parser_delete ;
+	utf16_parser->parser.next_char = utf16_parser_next_char ;
+
+	return  (mkf_parser_t*) utf16_parser ;
+}
+
+mkf_parser_t *
+mkf_utf16le_parser_new(void)
+{
+	mkf_utf16_parser_t *  utf16_parser ;
+
+	if( ( utf16_parser = malloc( sizeof( mkf_utf16_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	utf16_parser_init( ( mkf_parser_t*) utf16_parser) ;
+
+	utf16_parser->parser.init = utf16le_parser_init ;
 	utf16_parser->parser.set_str = utf16_parser_set_str ;
 	utf16_parser->parser.delete = utf16_parser_delete ;
 	utf16_parser->parser.next_char = utf16_parser_next_char ;
