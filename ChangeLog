@@ -1,3 +1,8 @@
+2004-10-13 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/*/Makefile.in: fixed a stupid bug.
+	  (-I${top_builddir}/xwindow -> -I${top_srcdir}/xwindow)
+
 2004-10-12 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* x_xim.c (search_xim): fixed a bug with multiple displays. (#1034630)

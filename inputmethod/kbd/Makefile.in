@@ -22,7 +22,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
 	 -I$(top_srcdir)/mlterm		\
-	 -I${top_builddir}/xwindow	\
+	 -I${top_srcdir}/xwindow	\
 	 -I/usr/local/include
 
 CC      = @CC@
