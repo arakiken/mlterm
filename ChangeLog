@@ -1,3 +1,7 @@
+2002-06-12 MINAMI Hirokazu <minami@chem.s.u-tokyo.ac.jp>
+
+	* mlcc (new console based config tool) is added.
+
 2002-06-12 Araki Ken <arakiken@users.sf.net>
 
 	* "rows" and "cols" are added to ESC ] 5380 configuration protocol.
