@@ -1,3 +1,7 @@
+2003-05-16 Araki Ken <arakiken@users.sf.net>
+
+	* Cleaned up mlterm/ml_(edit|model|line).[ch].
+
 2003-05-16  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_dnd.h: added a X error handler.
