@@ -34,7 +34,7 @@ CFLAGS = `$(GTK_CONFIG) --cflags` $(CFLAGS_LOCAL) \
 	-I/usr/local/include \
 	-DSYSCONFDIR=\"$(SYSCONFDIR)\" -DLOCALEDIR=\"$(LOCALEDIR)\" \
 	-DDATADIR=\"$(DATADIR)\" -DLIBDIR=\"$(LIBDIR)\"
-LIBS = @INTL_LIBS@ @DL_SELF@ `$(GTK_CONFIG) --libs` $(LIBS_LOCAL) \
+LIBS = @INTL_LIBS@ @DL_LIBS_IM@ `$(GTK_CONFIG) --libs` $(LIBS_LOCAL) \
 	$(LKIK) $(LMKF) -L/usr/local/lib -R/usr/local/lib
 
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)

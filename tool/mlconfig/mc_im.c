@@ -99,9 +99,10 @@ get_im_info(char *locale, char *encoding)
 
 	while ( (d = readdir(dir)) ) {
 		kik_dl_handle_t handle;
-		im_get_info_func_t func ;
+		im_get_info_func_t func;
 		im_info_t *info;
-		char *p ;
+		char symname[100];
+		char *p;
 
 		if (d->d_name[0] == '.' || !is_im_plugin(d->d_name)) continue;
 
@@ -114,8 +115,9 @@ get_im_info(char *locale, char *encoding)
 
 		if (!(handle = kik_dl_open(IM_DIR , p))) continue;
 
-		func = (im_get_info_func_t)kik_dl_func_symbol(handle ,
-							      "im_get_info");
+		snprintf(symname, 100, "im_%s_get_info", &p[3]);
+
+		func = (im_get_info_func_t)kik_dl_func_symbol(handle , symname);
 		if (!func) {
 			kik_dl_close(handle);
 			continue;

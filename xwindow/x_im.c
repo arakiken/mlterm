@@ -61,6 +61,7 @@ dlsym_im_new_func(
 	)
 {
 	char * libname ;
+	char * symname ;
 
 	if( ! im_name)
 	{
@@ -70,7 +71,7 @@ dlsym_im_new_func(
 	if( ! ( libname = alloca( strlen( im_name) + 4)))
 	{
 	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
 	#endif
 
 		return  0 ;
@@ -78,13 +79,23 @@ dlsym_im_new_func(
 
 	sprintf( libname , "im-%s" , im_name) ;
 
+	if( ! ( symname = alloca( strlen( im_name) + 8)))
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
+	#endif
+
+		return  0 ;
+	}
+
+	sprintf( symname , "im_%s_new" , im_name) ;
+
 	if( ! ( *handle = kik_dl_open( IM_DIR , libname)))
 	{
 		return  0 ;
 	}
 
-	if( ! ( *func = (x_im_new_func_t) kik_dl_func_symbol( *handle ,
-							      "im_new")))
+	if( ! ( *func = (x_im_new_func_t) kik_dl_func_symbol( *handle , symname)))
 	{
 		kik_dl_close( *handle) ;
 

@@ -81,6 +81,16 @@ kik_dl_is_module(
 		return  0 ;
 	}
 
-	return  1 ;
+	if( ( len = strlen( name)) < 3)
+	{
+		return  0 ;
+	}
+
+	if( strcmp( &name[len - 3] , ".la") == 0)
+	{
+		return  1 ;
+	}
+
+	return  0 ;
 }
 

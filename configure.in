@@ -341,6 +341,7 @@ AC_SUBST(DND_LIBS)
 
 
 IM_CFLAGS=""
+DL_LIBS_IM=""
 
 #
 # --- kbd ---
@@ -352,6 +353,9 @@ if test "$kbd" != "no" ; then
 	IM_CFLAGS="$IM_CFLAGS -DUSE_KBD"
 	MAKE_DIRS="inputmethod/kbd ${MAKE_DIRS}"
 	OUTPUT_FILES="inputmethod/kbd/Makefile ${OUTPUT_FILES}"
+	if test "x$with_libltdl" != "xno" ; then
+		DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/kbd/libim-kbd.la ${DL_LIBS_IM}"
+	fi
 	input_methods_result="$input_methods_result kbd"
 fi
 
@@ -377,6 +381,9 @@ if test "x$uim" = xyes ; then
 			     UIM_CFLAGS="$UIM_CFLAGS -DUIM_0_4_4_OR_LATER"
 			     ])
 		LIBS="$ml_saved_libs"
+		if test "x$with_libltdl" != "xno" ; then
+			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/uim/libim-uim.la ${DL_LIBS_IM}"
+		fi
 		input_methods_result="$input_methods_result uim"
 	fi
 fi
@@ -399,6 +406,9 @@ if test "x$iiimf" = xyes ; then
 			IIIMF_LIBS="-L/usr/lib/im/lib -liiimcf"
 			MAKE_DIRS="inputmethod/iiimf ${MAKE_DIRS}"
 			OUTPUT_FILES="inputmethod/iiimf/Makefile ${OUTPUT_FILES}"
+			if test "x$with_libltdl" != "xno" ; then
+				DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/iiimf/libim-iiimf.la ${DL_LIBS_IM}"
+			fi
 			input_methods_result="$input_methods_result IIIMF"
 			])
 	else
@@ -409,6 +419,9 @@ if test "x$iiimf" = xyes ; then
 			IIIMF_LIBS="-liiimcf"
 			MAKE_DIRS="inputmethod/iiimf ${MAKE_DIRS}"
 			OUTPUT_FILES="inputmethod/iiimf/Makefile ${OUTPUT_FILES}"
+			if test "x$with_libltdl" != "xno" ; then
+				DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/iiimf/libim-iiimf.la ${DL_LIBS_IM}"
+			fi
 			input_methods_result="$input_methods_result IIIMF"
 			])
 	fi
@@ -435,6 +448,9 @@ if test "x$m17nlib" = xyes ; then
 		M17NLIB_CFLAGS="`m17n-config --cflags`"
 		MAKE_DIRS="inputmethod/m17nlib ${MAKE_DIRS}"
 		OUTPUT_FILES="inputmethod/m17nlib/Makefile ${OUTPUT_FILES}"
+		if test "x$with_libltdl" != "xno" ; then
+			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/m17nlib/libim-m17nlib.la ${DL_LIBS_IM}"
+		fi
 		input_methods_result="$input_methods_result m17nlib"
 		])
 	LIBS="$m17n_saved_libs"
@@ -447,14 +463,15 @@ if test "x$IM_CFLAGS" != x ; then
 fi
 
 AC_SUBST(IM_CFLAGS)
+AC_SUBST(DL_LIBS_IM)
 
 
 #
 # --- scrollbar plugins ---
 #
 
-DL_LIBS=
-DL_SELF=
+DL_LIBS_SB=""
+
 scrollbars="sample,extra"  # default
 
 AC_ARG_WITH(scrollbars,
@@ -475,7 +492,7 @@ sample)
 	OUTPUT_FILES="scrollbar/sample/Makefile ${OUTPUT_FILES}"
 	if test "x$with_libltdl" != "xno" ; then
 		for name in sample sample2 ; do
-			DL_LIBS="-dlopen \$(top_builddir)/scrollbar/sample/lib$name.la ${DL_LIBS}"
+			DL_LIBS_SB="-dlopen \$(top_builddir)/scrollbar/sample/lib$name.la ${DL_LIBS_SB}"
 		done
 	fi
 	scrollbars_result="$scrollbars_result $scrollbar"
@@ -485,7 +502,7 @@ extra)
 	OUTPUT_FILES="contrib/scrollbar/extra/Makefile ${OUTPUT_FILES}"
 	if test "x$with_libltdl" != "xno" ; then
 		for name in athena next motif mozmodern ; do
-			DL_LIBS="-dlopen \$(top_builddir)/contrib/scrollbar/extra/lib$name.la ${DL_LIBS}"
+			DL_LIBS_SB="-dlopen \$(top_builddir)/contrib/scrollbar/extra/lib$name.la ${DL_LIBS_SB}"
 		done
 	fi
 	scrollbars_result="$scrollbars_result $scrollbar"
@@ -504,9 +521,9 @@ pixmap_engine)
 		MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
-			DL_LIBS="-export-dynamic -dlopen \$(top_builddir)/contrib/scrollbar/pixmap_engine/libpixmap_engine.la ${DL_LIBS}"
+			DL_LIBS_SB="-export-dynamic -dlopen \$(top_builddir)/contrib/scrollbar/pixmap_engine/libpixmap_engine.la ${DL_LIBS_SB}"
 		else
-			DL_LIBS="-export-dynamic"
+			DL_LIBS_SB="-export-dynamic"
 		fi
 		scrollbars_result="$scrollbars_result $scrollbar"
 	else
@@ -524,11 +541,7 @@ pixmap_engine)
 esac
 done # for scrollbar in ${scrollbars}
 
-if test "x$with_libltdl" != "xno" ; then
-	DL_SELF="-dlopen self"
-fi
-AC_SUBST(DL_LIBS)
-AC_SUBST(DL_SELF)
+AC_SUBST(DL_LIBS_SB)
 
 AC_ARG_ENABLE(optimize_redrawing,
 	[  --enable-optimize-redrawing optimize redrawing a line[default=disabled]],
@@ -572,9 +585,12 @@ if test "${USE_NLS}" = "yes" ; then
 fi
 AC_SUBST(INTL_LIBS)
 
+
 #
-# --- check for undefined symbol ---
+# --- module related stuffs ---
 #
+
+# undefined symbol
 AC_MSG_CHECKING([for undefined symbol])
 if test "x$allow_undefined_flag" = "xunsupported" ; then
 	AC_MSG_RESULT([not supported])
@@ -590,6 +606,12 @@ fi
 AC_SUBST(NO_UNDEFINED_FLAG)
 AC_SUBST(KIK_LIBS_FOR_MODULE)
 AC_SUBST(MKF_LIBS_FOR_MODULE)
+
+dnl if test "x$with_libltdl" != "xno" ; then
+dnl 	DL_SELF="-dlopen self"
+dnl fi
+dnl AC_SUBST(DL_SELF)
+
 
 # CVS revision
 CVS_REVISION=`tail -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^.Id: .* \(.*\) .* .* .* Exp .$/\1/p'`

@@ -1544,7 +1544,7 @@ unfocused(
 /* --- global functions --- */
 
 x_im_t *
-im_new(
+im_iiimf_new(
 	u_int64_t  magic ,
 	ml_char_encoding_t  term_encoding ,
 	x_im_export_syms_t *  export_syms ,
@@ -1748,7 +1748,7 @@ error:
 /* --- API for external tools --- */
 
 im_info_t *
-im_get_info(
+im_iiimf_get_info(
 	char *  locale ,
 	char *  encoding
 	)

@@ -42,7 +42,8 @@ CFLAGS=$(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ \
 	-DLIBEXECDIR=\"$(LIBEXECDIR)\" -DDATADIR=\"$(DATADIR)\"\
 	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/local/include
 
-LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS@ \
+LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ \
+	@DL_LIBS_IM@ @DL_LIBS_SB@ \
 	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@ $(LMLTERM) $(LMKF) $(LKIK) \
 	-L/usr/local/lib -R/usr/local/lib
 
