@@ -640,8 +640,6 @@ init_candidates(
 	u_int num_per_window
 	)
 {
-	int  i ;
-
 	if( cand_screen->candidates)
 	{
 		free_candidates( cand_screen->candidates ,

@@ -21,6 +21,8 @@
 
 	* contrib/scrollbar/extra/Makefile.in: removed exsb_common.o
 
+	* xwindow/x_im_candidate_screen.c (init_candidates): cleanup.
+
 2005-02-28 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/iiimf/im_iiimf.c: minor code cleanup.
