@@ -2,6 +2,8 @@
 
 	* A patch contributed by Mike Fabian to fix unstability in
 	  64 bit platforms, by changing "0" into "NULL".
+	* $(SYSCONFDIR)/mlterm/menu was not read even when
+	  $(HOME)/.mlterm/menu isn't available.  Fixed.
 
 2003-03-29 Araki Ken <arakiken@users.sf.net>
 

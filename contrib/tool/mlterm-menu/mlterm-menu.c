@@ -89,13 +89,15 @@ GtkWidget* create_menu()
 {
     GtkWidget* menu;
     char* rc_path;
+    int userexist = 0;
 
     menu = gtk_menu_new();
 
     if ((rc_path = kik_get_user_rc_path(MENU_RCFILE))) {
-        append_menu_from_file(GTK_MENU(menu), rc_path);
+        userexist = append_menu_from_file(GTK_MENU(menu), rc_path);
         free(rc_path);
-    } else if ((rc_path = kik_get_sys_rc_path(MENU_RCFILE))) {
+    }
+    if (userexist == 0 && (rc_path = kik_get_sys_rc_path(MENU_RCFILE))) {
         append_menu_from_file(GTK_MENU(menu), rc_path);
         free(rc_path);
     }
