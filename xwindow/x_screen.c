@@ -548,10 +548,20 @@ draw_cursor(
 
 	if( screen->is_focused)
 	{
-		ml_char_set_fg_color( &ch , ML_FG_COLOR) ;
-		ml_char_set_bg_color( &ch , ML_BG_COLOR) ;
+		ml_color_t orig_bg ;
 
-		x_color_manager_begin_cursor_color( screen->color_man) ;
+		orig_bg = ml_char_bg_color(&ch);
+
+		if( x_color_manager_adjust_cursor_fg( screen->color_man)){
+			ml_char_set_bg_color( &ch, ML_FG_COLOR);
+		}else{
+			ml_char_set_bg_color( &ch, ml_char_fg_color(&ch));
+		}
+		if( x_color_manager_adjust_cursor_bg( screen->color_man)){
+			ml_char_set_fg_color( &ch, ML_BG_COLOR);
+		}else{
+			ml_char_set_fg_color( &ch, orig_bg);
+		}
 	}
 
 	if( screen->window.wall_picture_is_set)
@@ -577,13 +587,17 @@ draw_cursor(
 
 	if( screen->is_focused)
 	{
-		x_color_manager_end_cursor_color( screen->color_man) ;
+		x_color_manager_adjust_cursor_fg( screen->color_man);
+		x_color_manager_adjust_cursor_bg( screen->color_man);
 	}
 	else
 	{
 		x_font_t *  xfont ;
 
 		xfont = x_get_font( screen->font_man , ml_char_font( &ch)) ;
+
+		x_window_set_fg_color( &screen->window ,
+			x_get_color( screen->color_man , ml_char_fg_color(&ch))->pixel) ;
 
 		x_window_draw_rect_frame( &screen->window ,
 			x + 2 , y + x_line_top_margin( screen) + 2 ,

@@ -75,9 +75,8 @@ int  x_color_manager_reverse_video( x_color_manager_t *  color_man) ;
 
 int  x_color_manager_restore_video( x_color_manager_t *  color_man) ;
 
-int  x_color_manager_begin_cursor_color( x_color_manager_t *  color_man) ;
+int  x_color_manager_adjust_cursor_fg( x_color_manager_t *  color_man) ;
 
-int  x_color_manager_end_cursor_color( x_color_manager_t *  color_man) ;
-
+int  x_color_manager_adjust_cursor_bg( x_color_manager_t *  color_man) ;
 
 #endif

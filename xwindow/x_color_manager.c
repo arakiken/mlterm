@@ -33,7 +33,6 @@ unload_all_colors(
 	return  1 ;
 }
 
-
 /* --- global functions --- */
 
 x_color_manager_t *
@@ -442,127 +441,57 @@ x_color_manager_restore_video(
 }
 
 int
-x_color_manager_begin_cursor_color(
+x_color_manager_adjust_cursor_fg(
 	x_color_manager_t *  color_man
 	)
 {
-	char *  fg_color ;
-	char *  bg_color ;
-	x_color_t  fg_xcolor ;
-	x_color_t  bg_xcolor ;
-	int  fg_is_loaded ;
-	int  bg_is_loaded ;
+	char *  color ;
+	x_color_t  xcolor ;
+	int  is_loaded ;
 
-	fg_color = color_man->fg_color ;
-	bg_color = color_man->bg_color ;
-	fg_xcolor = color_man->xcolors[ML_FG_COLOR] ;
-	bg_xcolor = color_man->xcolors[ML_BG_COLOR] ;
-	fg_is_loaded = color_man->is_loaded[ML_FG_COLOR] ;
-	bg_is_loaded = color_man->is_loaded[ML_BG_COLOR] ;
-
-	/*
-	 * fg color <=> cursor fg color
-	 */
-	if( color_man->cursor_colors[0].color)
-	{
-		color_man->fg_color = color_man->cursor_colors[0].color ;
-		color_man->xcolors[ML_FG_COLOR] = color_man->cursor_colors[0].xcolor ;
-		color_man->is_loaded[ML_FG_COLOR] = color_man->cursor_colors[0].is_loaded ;
-	}
-	else
-	{
-		color_man->fg_color = bg_color ;
-		color_man->xcolors[ML_FG_COLOR] = bg_xcolor ;
-		color_man->is_loaded[ML_FG_COLOR] = bg_is_loaded ;
-	}
-	
-	/* backup */
-	color_man->cursor_colors[0].color = fg_color ;
-	color_man->cursor_colors[0].xcolor = fg_xcolor ;
-	color_man->cursor_colors[0].is_loaded = fg_is_loaded;
-	
-	/*
-	 * bg color <=> cursor bg color
-	 */
-	if( color_man->cursor_colors[1].color)
-	{
-		color_man->bg_color = color_man->cursor_colors[1].color ;
-		color_man->xcolors[ML_BG_COLOR] = color_man->cursor_colors[1].xcolor ;
-		color_man->is_loaded[ML_BG_COLOR] = color_man->cursor_colors[1].is_loaded ;
-	}
-	else
-	{
-		color_man->bg_color = fg_color ;
-		color_man->xcolors[ML_BG_COLOR] = fg_xcolor ;
-		color_man->is_loaded[ML_BG_COLOR] = fg_is_loaded ;
+	if( !color_man->cursor_colors[1].color){
+		return  0 ;
 	}
 
-	/* backup */
-	color_man->cursor_colors[1].color = bg_color ;
-	color_man->cursor_colors[1].xcolor = bg_xcolor ;
-	color_man->cursor_colors[1].is_loaded = bg_is_loaded;
+	color = color_man->cursor_colors[1].color ;
+	xcolor = color_man->cursor_colors[1].xcolor ;
+	is_loaded = color_man->cursor_colors[1].is_loaded ;
+
+	color_man->cursor_colors[1].color = color_man->fg_color ;
+	color_man->cursor_colors[1].is_loaded = color_man->is_loaded[ML_FG_COLOR] ;
+	color_man->cursor_colors[1].xcolor = color_man->xcolors[ML_FG_COLOR] ;
+
+	color_man->fg_color = color ;
+	color_man->xcolors[ML_FG_COLOR] = xcolor ;
+	color_man->is_loaded[ML_FG_COLOR] = is_loaded ;
 
 	return  1 ;
 }
 
 int
-x_color_manager_end_cursor_color(
+x_color_manager_adjust_cursor_bg(
 	x_color_manager_t *  color_man
 	)
 {
-	char *  orig_fg_color ;
-	char *  orig_bg_color ;
-	x_color_t  orig_fg_xcolor ;
-	x_color_t  orig_bg_xcolor ;
-	int  orig_fg_is_loaded ;
-	int  orig_bg_is_loaded ;
+	char *  color ;
+	x_color_t  xcolor ;
+	int  is_loaded ;
 
-	orig_fg_color = color_man->cursor_colors[0].color ;
-	orig_bg_color = color_man->cursor_colors[1].color ;
-	orig_fg_xcolor = color_man->cursor_colors[0].xcolor ;
-	orig_bg_xcolor = color_man->cursor_colors[1].xcolor ;
-	orig_fg_is_loaded = color_man->cursor_colors[0].is_loaded ;
-	orig_bg_is_loaded = color_man->cursor_colors[1].is_loaded ;
-
-	/*
-	 * cursor fg color <=> fg color
-	 */
-	if( color_man->fg_color != orig_bg_color)
-	{
-		color_man->cursor_colors[0].color = color_man->fg_color ;
-		
-		color_man->cursor_colors[0].is_loaded = color_man->is_loaded[ML_FG_COLOR] ;
-		color_man->cursor_colors[0].xcolor = color_man->xcolors[ML_FG_COLOR] ;
-	}
-	else
-	{
-		color_man->cursor_colors[0].color = NULL ;
+	if( !color_man->cursor_colors[0].color){
+		return  0 ;
 	}
 
-	/* restore */
-	color_man->fg_color = orig_fg_color ;
-	color_man->xcolors[ML_FG_COLOR] = orig_fg_xcolor ;
-	color_man->is_loaded[ML_FG_COLOR] = orig_fg_is_loaded ;
+	color = color_man->cursor_colors[0].color ;
+	xcolor = color_man->cursor_colors[0].xcolor ;
+	is_loaded = color_man->cursor_colors[0].is_loaded ;
 
-	/*
-	 * cursor bg color <=> bg color
-	 */
-	if( color_man->bg_color != orig_fg_color)
-	{
-		color_man->cursor_colors[1].color = color_man->bg_color ;
-		
-		color_man->cursor_colors[1].is_loaded = color_man->is_loaded[ML_BG_COLOR] ;
-		color_man->cursor_colors[1].xcolor = color_man->xcolors[ML_BG_COLOR] ;
-	}
-	else
-	{
-		color_man->cursor_colors[1].color = NULL ;
-	}
+	color_man->cursor_colors[0].color = color_man->bg_color ;
+	color_man->cursor_colors[0].is_loaded = color_man->is_loaded[ML_BG_COLOR] ;
+	color_man->cursor_colors[0].xcolor = color_man->xcolors[ML_BG_COLOR] ;
 
-	/* restore */
-	color_man->bg_color = orig_bg_color ;
-	color_man->xcolors[ML_BG_COLOR] = orig_bg_xcolor ;
-	color_man->is_loaded[ML_BG_COLOR] = orig_bg_is_loaded ;
-	
+	color_man->bg_color = color ;
+	color_man->xcolors[ML_BG_COLOR] = xcolor ;
+	color_man->is_loaded[ML_BG_COLOR] = is_loaded ;
+
 	return  1 ;
 }

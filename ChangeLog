@@ -1,3 +1,10 @@
+2005-01-23 MINAAMI Hirokazu <minami@mistfall.net>
+
+        Made cursor looks better (thanks to Ian Ward). 
+	* mlterm/ml_vt100_parser.c: stopped to unify cursor color.
+	* xwindow/x_screen.c, xwindow/x_color_manager.*: cursors are now 
+	drawn using the colors of charecters under them.
+	
 2005-01-21 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/uim/im_uim.c: minor code cleanup.

@@ -66,7 +66,7 @@
 #endif
 
 /* Optimization cooperating with OPTIMIZE_REDRAWING macro defined in ml_line.c. */
-#if  1
+#if  0
 #define  IGNORE_SPACE_FG_COLOR
 #endif
 
