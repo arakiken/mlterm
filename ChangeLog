@@ -1,3 +1,8 @@
+2004-09-06  Mike FABIAN  <mfabian@suse.de>
+
+	* man/mlterm.1:
+	- fixed typo (CONFIGURATABLE -> CONFIGURABLE)
+
 2004-09-06 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* x_im_candidate_screen.c: fixed a compiler warning.
