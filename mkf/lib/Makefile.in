@@ -31,7 +31,8 @@ PARSER_OBJ = mkf_parser.o mkf_iso2022_parser.o mkf_iso8859_parser.o mkf_xct_pars
 CONV_OBJ = mkf_iso8859_conv.o mkf_iso2022_conv.o mkf_iso2022jp_conv.o mkf_iso2022kr_conv.o \
 	mkf_sjis_conv.o mkf_utf8_conv.o mkf_big5_conv.o mkf_euctw_conv.o mkf_iso2022cn_conv.o \
 	mkf_hz_conv.o mkf_ucs4_conv.o mkf_eucjp_conv.o mkf_euckr_conv.o mkf_euccn_conv.o \
-	mkf_johab_conv.o mkf_viscii_conv.o mkf_koi8_conv.o mkf_xct_conv.o mkf_iscii_conv.o
+	mkf_johab_conv.o mkf_viscii_conv.o mkf_koi8_conv.o mkf_xct_conv.o mkf_iscii_conv.o \
+	mkf_utf16_conv.o
 
 MAP_OBJ = mkf_ucs4_map.o mkf_locale_ucs4_map.o mkf_zh_cn_map.o mkf_zh_tw_map.o mkf_zh_hk_map.o \
 	mkf_ko_kr_map.o mkf_viet_map.o mkf_ja_jp_map.o mkf_ru_map.o
