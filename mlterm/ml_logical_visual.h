@@ -6,7 +6,7 @@
 #define  __ML_LOGICAL_VISUAL_H__
 
 
-#include  "ml_edit.h"
+#include  "ml_model.h"
 #include  "ml_iscii.h"
 
 
@@ -24,10 +24,11 @@ typedef enum  ml_vertical_mode
 typedef struct  ml_logical_visual
 {
 	int  is_visual ;
-	
-	ml_edit_t *  edit ;
 
-	int  (*init)( struct ml_logical_visual * , ml_edit_t *) ;
+	ml_model_t *  model ;
+	ml_cursor_t *  cursor ;
+
+	int  (*init)( struct ml_logical_visual * , ml_model_t * , ml_cursor_t *) ;
 	
 	int  (*delete)( struct ml_logical_visual *) ;
 	
@@ -36,7 +37,7 @@ typedef struct  ml_logical_visual
 
 	/*
 	 * !! Notice !!
-	 * ml_edit_t should not be modified from render/viaul until logical.
+	 * ml_model_t should not be modified from render/viaul until logical.
 	 * Any modification is done from logical until render/visual.
 	 */
 	int  (*render)( struct ml_logical_visual *) ;

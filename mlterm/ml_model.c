@@ -304,6 +304,23 @@ ml_model_shrink_boundary(
 	return  size ;
 }
 
+u_int
+ml_model_assure_boundary(
+	ml_model_t *  model ,
+	int  row
+	)
+{
+	int  count ;
+
+	for( count = model->num_of_filled_rows ; count <= row ; count ++)
+	{
+		ml_line_reset( ml_model_get_line( model , count)) ;
+		model->num_of_filled_rows ++ ;
+	}
+
+	return  model->num_of_filled_rows ;
+}
+
 int
 ml_model_scroll_upward(
 	ml_model_t *  model ,
@@ -349,3 +366,37 @@ ml_model_scroll_downward(
 
 	return  1 ;
 }
+
+#ifdef  DEBUG
+
+void
+ml_model_dump(
+	ml_model_t *  model
+	)
+{
+	int  row ;
+	ml_line_t *  line ;
+	
+	for( row = 0 ; row < model->num_of_rows ; row++)
+	{
+		line = ml_model_get_line( model , row) ;
+
+		if( ml_line_is_modified( line))
+		{
+			kik_msg_printf( "!%.2d-%.2d" ,
+				ml_line_get_beg_of_modified( line) ,
+				ml_line_get_end_of_modified( line)) ;
+		}
+		else
+		{
+			kik_msg_printf( "      ") ;
+		}
+		
+		kik_msg_printf( "[%.2d %.2d]" , line->num_of_filled_chars ,
+			ml_line_get_num_of_filled_cols( line)) ;
+
+		ml_str_dump( line->chars , line->num_of_filled_chars) ;
+	}
+}
+
+#endif

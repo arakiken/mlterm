@@ -71,9 +71,9 @@ typedef struct main_config
 	char *  sb_fg_color ;
 	char *  sb_bg_color ;
 	char *  mod_meta_key ;
+	char *  icon_path ;
 	char *  cmd_path ;
 	char **  cmd_argv ;
-	char **  icon_path ;
 	
 	u_int8_t  step_in_changing_font_size ;
 	u_int16_t  brightness ;
@@ -1552,6 +1552,7 @@ config_init(
 	{
 		main_config.icon_path = NULL ;
 	}
+	
 	return  1 ;
 }
 

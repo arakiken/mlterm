@@ -429,7 +429,6 @@ get_wm_state(
 	Atom actual_type;
 	int actual_format;
 	unsigned long nitems;
-	unsigned long nbytes;
 	unsigned long bytes_after;
 	unsigned char *prop;
 	int flag = 0;
@@ -2156,7 +2155,8 @@ x_window_receive_event(
 				
 				for( count = 0 ; count < nitems ; count++)
 				{
-					if ( win->is_dnd_accepting = is_dnd_mime_type_acceptable( win, dat[count]))
+					if( ( win->is_dnd_accepting =
+						is_dnd_mime_type_acceptable( win, dat[count])))
 					{
 						break; /* parsable atom is returned */
 					}
@@ -2165,17 +2165,20 @@ x_window_receive_event(
 				XFree(dat);
 			}
 			/* less than 3*/
-			else if(  win->is_dnd_accepting = is_dnd_mime_type_acceptable( win, event->xclient.data.l[2]))
+			else if( ( win->is_dnd_accepting =
+				is_dnd_mime_type_acceptable( win, event->xclient.data.l[2])))
 			{
-						/* do nothing (judge preference?)*/;
+				/* do nothing (judge preference?)*/ ;
 			}
-			else if(  win->is_dnd_accepting = is_dnd_mime_type_acceptable( win, event->xclient.data.l[3]))
+			else if( ( win->is_dnd_accepting =
+				is_dnd_mime_type_acceptable( win, event->xclient.data.l[3])))
 			{
-						/* do nothing (judge preference?)*/;
+				/* do nothing (judge preference?)*/ ;
 			}
-			else if(  win->is_dnd_accepting = is_dnd_mime_type_acceptable( win, event->xclient.data.l[4]))
+			else if( ( win->is_dnd_accepting =
+				is_dnd_mime_type_acceptable( win, event->xclient.data.l[4])))
 			{
-						/* do nothing (judge preference?)*/;
+				/* do nothing (judge preference?)*/ ;
 			}
 		}
 

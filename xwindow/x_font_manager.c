@@ -708,8 +708,9 @@ x_font_manager_usascii_font_cs_changed(
 	mkf_charset_t  usascii_font_cs
 	)
 {
-	mkf_charset_t  old_cs;
-
+	mkf_charset_t  old_cs ;
+	x_font_t *  font ;
+	
 	if( ! font_man->usascii_font_cs_changable || usascii_font_cs == font_man->usascii_font_cs)
 	{
 		return  0 ;
@@ -718,18 +719,18 @@ x_font_manager_usascii_font_cs_changed(
 	old_cs = font_man->usascii_font_cs ;
 	font_man->usascii_font_cs = usascii_font_cs ;
 
-	font_man->usascii_font = search_usascii_font( font_man) ;
-
-	if (!font_man->usascii_font)
+	if( ( font = search_usascii_font( font_man)) == NULL)
 	{
 		font_man->usascii_font_cs = old_cs ;
 
-		font_man->usascii_font = search_usascii_font( font_man) ;
-		
-		return 0 ;
+		return  0 ;
 	}
+	else
+	{	
+		font_man->usascii_font = font ;
 
-	return  1 ;
+		return  1 ;
+	}
 }
 
 int

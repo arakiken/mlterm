@@ -96,7 +96,7 @@ ml_edit_clear_lines(
 	else
 	{
 		ml_model_shrink_boundary( &edit->model , edit->model.num_of_filled_rows - beg_row - 1) ;
-	
+		
 		if( edit->cursor.row >= beg_row)
 		{
 			edit->cursor.row = beg_row ;

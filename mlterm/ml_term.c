@@ -132,8 +132,8 @@ ml_term_open_pty(
 	}
 	
 	if( ( term->pty = ml_pty_new( cmd_path , argv , env , host ,
-				ml_screen_get_cols( term->screen) ,
-				ml_screen_get_rows( term->screen))) == NULL)
+				ml_screen_get_logical_cols( term->screen) ,
+				ml_screen_get_logical_rows( term->screen))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new failed.\n") ;

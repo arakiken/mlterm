@@ -8,7 +8,8 @@
 #include  <kiklib/kik_util.h>		/* K_MIN */
 #include  <kiklib/kik_debug.h>		/* kik_msg_printf */
 
-#include  "ml_edit_intern.h"
+
+#define  CURSOR_LINE(logvis)  (ml_model_get_line((logvis)->model,(logvis)->cursor->row))
 
 
 typedef struct  container_logical_visual
@@ -73,6 +74,8 @@ typedef struct  vert_logical_visual
 	int  cursor_logical_col ;
 	int  cursor_logical_row ;
 
+	int8_t  is_init ;
+
 } vert_logical_visual_t ;
 
 
@@ -106,19 +109,21 @@ container_delete(
 static int
 container_init(
 	ml_logical_visual_t *  logvis ,
-	ml_edit_t *  edit
+	ml_model_t *  model ,
+	ml_cursor_t *  cursor
 	)
 {
 	container_logical_visual_t *  container ;
 	int  count ;
 
-	logvis->edit = edit ;
+	logvis->model = model ;
+	logvis->cursor = cursor ;
 
 	container = (container_logical_visual_t*) logvis ;
 
 	for( count = 0 ; count < container->num_of_children ; count ++)
 	{
-		(*container->children[count]->init)( container->children[count] , edit) ;
+		(*container->children[count]->init)( container->children[count] , model , cursor) ;
 	}
 
 	return  1 ;
@@ -140,7 +145,7 @@ container_logical_cols(
 	}
 	else
 	{
-		return  ml_edit_get_cols( logvis->edit) ;
+		return  logvis->model->num_of_cols ;
 	}
 }
 
@@ -160,7 +165,7 @@ container_logical_rows(
 	}
 	else
 	{
-		return  ml_edit_get_rows( logvis->edit) ;
+		return  logvis->model->num_of_rows ;
 	}
 }
 
@@ -272,11 +277,11 @@ bidi_delete(
 {
 	int  row ;
 
-	if( logvis->edit)
+	if( logvis->model)
 	{
-		for( row = 0 ; row < logvis->edit->model.num_of_rows ; row ++)
+		for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 		{
-			ml_line_unuse_bidi( &logvis->edit->model.lines[row]) ;
+			ml_line_unuse_bidi( &logvis->model->lines[row]) ;
 		}
 
 		free( logvis) ;
@@ -288,20 +293,22 @@ bidi_delete(
 static int
 bidi_init(
 	ml_logical_visual_t *  logvis ,
-	ml_edit_t *  new_edit
+	ml_model_t *  model ,
+	ml_cursor_t *  cursor
 	)
 {
 	int  row ;
 
-	if( logvis->edit)
+	if( logvis->model)
 	{
-		for( row = 0 ; row < logvis->edit->model.num_of_rows ; row ++)
+		for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 		{
-			ml_line_unuse_bidi( &logvis->edit->model.lines[row]) ;
+			ml_line_unuse_bidi( &logvis->model->lines[row]) ;
 		}
 	}
 
-	logvis->edit = new_edit ;
+	logvis->model = model ;
+	logvis->cursor = cursor ;
 	
 	return  1 ;
 }
@@ -311,7 +318,7 @@ bidi_logical_cols(
 	ml_logical_visual_t *  logvis
 	)
 {
-	return  ml_edit_get_cols( logvis->edit) ;
+	return  logvis->model->num_of_cols ;
 }
 
 static u_int
@@ -319,7 +326,7 @@ bidi_logical_rows(
 	ml_logical_visual_t *  logvis
 	)
 {
-	return  ml_edit_get_rows( logvis->edit) ;
+	return  logvis->model->num_of_rows ;
 }
 
 static int
@@ -327,7 +334,6 @@ bidi_render(
 	ml_logical_visual_t *  logvis
 	)
 {
-	ml_edit_t *  edit ;
 	ml_line_t *  line ;
 	int  row ;
 
@@ -336,23 +342,21 @@ bidi_render(
 		return  1 ;
 	}
 
-	edit = logvis->edit ;
-
 	/*
 	 * all lines(not only filled lines) should be rendered.
 	 */
-	for( row = 0 ; row < edit->model.num_of_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
 		int  need_render ;
 
-		line = ml_model_get_line( &edit->model , row) ;
+		line = ml_model_get_line( logvis->model , row) ;
 
 		need_render = 0 ;
 		
 		if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align && line->num_of_filled_chars > 0)
 		{
 			ml_line_fill( line , ml_sp_ch() , line->num_of_filled_chars ,
-				edit->model.num_of_cols - ml_line_get_num_of_filled_cols( line)) ;
+				logvis->model->num_of_cols - ml_line_get_num_of_filled_cols( line)) ;
 			need_render = 1 ;
 		}
 
@@ -382,7 +386,6 @@ bidi_visual(
 	ml_logical_visual_t *  logvis
 	)
 {
-	ml_edit_t *  edit ;
 	int  row ;
 	u_int  cols_rest ;
 
@@ -390,19 +393,17 @@ bidi_visual(
 	{
 		return  0 ;
 	}
-	
-	edit = logvis->edit ;
 
 #ifdef  CURSOR_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+		logvis->cursor->char_index , logvis->cursor->col , logvis->cursor->row) ;
 #endif
 
-	ml_convert_col_to_char_index( CURSOR_LINE(edit) , &cols_rest , edit->cursor.col , 0) ;
+	ml_convert_col_to_char_index( CURSOR_LINE(logvis) , &cols_rest , logvis->cursor->col , 0) ;
 
-	for( row = 0 ; row < edit->model.num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
 	{
-		if( ! ml_line_bidi_visual( ml_model_get_line( &edit->model , row)))
+		if( ! ml_line_bidi_visual( ml_model_get_line( logvis->model , row)))
 		{
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " visualize row %d failed.\n" , row) ;
@@ -410,18 +411,18 @@ bidi_visual(
 		}
 	}
 
-	((bidi_logical_visual_t*)logvis)->cursor_logical_char_index = edit->cursor.char_index ;
-	((bidi_logical_visual_t*)logvis)->cursor_logical_col = edit->cursor.col ;
+	((bidi_logical_visual_t*)logvis)->cursor_logical_char_index = logvis->cursor->char_index ;
+	((bidi_logical_visual_t*)logvis)->cursor_logical_col = logvis->cursor->col ;
 
-	edit->cursor.char_index = ml_bidi_convert_logical_char_index_to_visual(
-					CURSOR_LINE(edit) , edit->cursor.char_index ,
+	logvis->cursor->char_index = ml_bidi_convert_logical_char_index_to_visual(
+					CURSOR_LINE(logvis) , logvis->cursor->char_index ,
 					&((bidi_logical_visual_t*)logvis)->ltr_rtl_meet_pos) ;
-	edit->cursor.col = ml_convert_char_index_to_col( CURSOR_LINE(edit) ,
-					edit->cursor.char_index , 0) + cols_rest ;
+	logvis->cursor->col = ml_convert_char_index_to_col( CURSOR_LINE(logvis) ,
+					logvis->cursor->char_index , 0) + cols_rest ;
 
 #ifdef  CURSOR_DEBUG
 	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+		logvis->cursor->char_index , logvis->cursor->col , logvis->cursor->row) ;
 #endif
 
 	logvis->is_visual = 1 ;
@@ -434,7 +435,6 @@ bidi_logical(
 	ml_logical_visual_t *  logvis
 	)
 {
-	ml_edit_t *  edit ;
 	int  row ;
 
 	if( ! logvis->is_visual)
@@ -442,16 +442,14 @@ bidi_logical(
 		return  0 ;
 	}
 	
-	edit = logvis->edit ;
-	
 #ifdef  CURSOR_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+		logvis->cursor->char_index , logvis->cursor->col , logvis->cursor->row) ;
 #endif
 
-	for( row = 0 ; row < edit->model.num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
 	{
-		if( ! ml_line_bidi_logical( ml_model_get_line( &edit->model , row)))
+		if( ! ml_line_bidi_logical( ml_model_get_line( logvis->model , row)))
 		{
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " visualize row %d failed.\n" , row) ;
@@ -459,12 +457,12 @@ bidi_logical(
 		}
 	}
 
-	edit->cursor.char_index = ((bidi_logical_visual_t*)logvis)->cursor_logical_char_index ;
-	edit->cursor.col = ((bidi_logical_visual_t*)logvis)->cursor_logical_col ;
+	logvis->cursor->char_index = ((bidi_logical_visual_t*)logvis)->cursor_logical_char_index ;
+	logvis->cursor->col = ((bidi_logical_visual_t*)logvis)->cursor_logical_col ;
 
 #ifdef  CURSOR_DEBUG
 	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+		logvis->cursor->char_index , logvis->cursor->col , logvis->cursor->row) ;
 #endif
 	
 	logvis->is_visual = 0 ;
@@ -485,7 +483,7 @@ bidi_visual_line(
 	if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align && line->num_of_filled_chars > 0)
 	{
 		ml_line_fill( line , ml_sp_ch() , line->num_of_filled_chars ,
-			logvis->edit->model.num_of_cols - ml_line_get_num_of_filled_cols( line)) ;
+			logvis->model->num_of_cols - ml_line_get_num_of_filled_cols( line)) ;
 		need_render = 1 ;
 	}
 
@@ -534,10 +532,12 @@ comb_delete(
 static int
 comb_init(
 	ml_logical_visual_t *  logvis ,
-	ml_edit_t *  edit
+	ml_model_t *  model ,
+	ml_cursor_t *  cursor
 	)
 {
-	logvis->edit = edit ;
+	logvis->model = model ;
+	logvis->cursor = cursor ;
 	
 	return  1 ;
 }
@@ -547,7 +547,7 @@ comb_logical_cols(
 	ml_logical_visual_t *  logvis
 	)
 {
-	return  ml_edit_get_cols( logvis->edit) ;
+	return  logvis->model->num_of_cols ;
 }
 
 static u_int
@@ -555,7 +555,7 @@ comb_logical_rows(
 	ml_logical_visual_t *  logvis
 	)
 {
-	return  ml_edit_get_rows( logvis->edit) ;
+	return  logvis->model->num_of_rows ;
 }
 
 static int
@@ -571,7 +571,6 @@ comb_visual(
 	ml_logical_visual_t *  logvis
 	)
 {
-	ml_edit_t *  edit ;
 	int  row ;
 	u_int  cols_rest ;
 
@@ -580,14 +579,12 @@ comb_visual(
 		return  0 ;
 	}
 
-	edit = logvis->edit ;
-
-	((comb_logical_visual_t*)logvis)->cursor_logical_char_index = edit->cursor.char_index ;
-	((comb_logical_visual_t*)logvis)->cursor_logical_col = edit->cursor.col ;
+	((comb_logical_visual_t*)logvis)->cursor_logical_char_index = logvis->cursor->char_index ;
+	((comb_logical_visual_t*)logvis)->cursor_logical_col = logvis->cursor->col ;
 	
-	ml_convert_col_to_char_index( CURSOR_LINE(edit) , &cols_rest , edit->cursor.col , 0) ;
+	ml_convert_col_to_char_index( CURSOR_LINE(logvis) , &cols_rest , logvis->cursor->col , 0) ;
 
-	for( row = 0 ; row < edit->model.num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
 	{
 		ml_line_t *  line ;
 		int  dst_pos ;
@@ -596,7 +593,7 @@ comb_visual(
 		ml_char_t *  prev ;
 		ml_char_t *  prev2 ;
 
-		line = ml_model_get_line( &edit->model , row) ;
+		line = ml_model_get_line( logvis->model , row) ;
 		
 		dst_pos = 0 ;
 		prev = NULL ;
@@ -633,7 +630,7 @@ comb_visual(
 					}
 
 					ml_line_updated( line) ;
-					ml_line_set_modified( line , beg , end , 1) ;
+					ml_line_set_modified( line , beg , end) ;
 				}
 			#endif
 			}
@@ -642,11 +639,11 @@ comb_visual(
 				ml_char_copy( &line->chars[dst_pos ++] , cur) ;
 			}
 
-			if( row == edit->cursor.row && src_pos == edit->cursor.char_index)
+			if( row == logvis->cursor->row && src_pos == logvis->cursor->char_index)
 			{
-				edit->cursor.char_index = dst_pos - 1 ;
-				edit->cursor.col = ml_convert_char_index_to_col( CURSOR_LINE(edit) ,
-							edit->cursor.char_index , 0) + cols_rest ;
+				logvis->cursor->char_index = dst_pos - 1 ;
+				logvis->cursor->col = ml_convert_char_index_to_col( CURSOR_LINE(logvis) ,
+							logvis->cursor->char_index , 0) + cols_rest ;
 			}
 
 			prev2 = prev ;
@@ -674,7 +671,6 @@ comb_logical(
 	ml_logical_visual_t *  logvis
 	)
 {
-	ml_edit_t *  edit ;
 	ml_char_t *  buf ;
 	int  row ;
 
@@ -682,22 +678,20 @@ comb_logical(
 	{
 		return  0 ;
 	}
-	
-	edit = logvis->edit ;
 
-	if( ( buf = ml_str_alloca( edit->model.num_of_cols)) == NULL)
+	if( ( buf = ml_str_alloca( logvis->model->num_of_cols)) == NULL)
 	{
 		return  0 ;
 	}
 
-	for( row = 0 ; row < edit->model.num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
 	{
 		ml_line_t *  line ;
 		int  dst_pos ;
 		int  src_pos ;
 		ml_char_t *  c ;
 
-		line = ml_model_get_line( &edit->model , row) ;
+		line = ml_model_get_line( logvis->model , row) ;
 
 		ml_str_copy( buf , line->chars , line->num_of_filled_chars) ;
 
@@ -736,7 +730,6 @@ comb_logical(
 
 						beg = ml_line_get_beg_of_modified( line) ;
 						end = ml_line_get_end_of_modified( line) ;
-						is_cleared_to_end = ml_line_is_cleared_to_end( line) ;
 						
 						if( beg > src_pos)
 						{
@@ -749,8 +742,7 @@ comb_logical(
 						}
 
 						ml_line_updated( line) ;
-						ml_line_set_modified( line , beg , end ,
-							is_cleared_to_end) ;
+						ml_line_set_modified( line , beg , end) ;
 					}
 				#endif
 
@@ -770,10 +762,10 @@ comb_logical(
 		line->num_of_filled_chars = dst_pos ;
 	}
 	
-	ml_str_final( buf , edit->model.num_of_cols) ;
+	ml_str_final( buf , logvis->model->num_of_cols) ;
 
-	edit->cursor.char_index = ((bidi_logical_visual_t*)logvis)->cursor_logical_char_index ;
-	edit->cursor.col = ((bidi_logical_visual_t*)logvis)->cursor_logical_col ;
+	logvis->cursor->char_index = ((bidi_logical_visual_t*)logvis)->cursor_logical_char_index ;
+	logvis->cursor->col = ((bidi_logical_visual_t*)logvis)->cursor_logical_col ;
 	
 	logvis->is_visual = 0 ;
 
@@ -850,10 +842,12 @@ iscii_delete(
 static int
 iscii_init(
 	ml_logical_visual_t *  logvis ,
-	ml_edit_t *  edit
+	ml_model_t *  model ,
+	ml_cursor_t *  cursor
 	)
 {
-	logvis->edit = edit ;
+	logvis->model = model ;
+	logvis->cursor = cursor ;
 
 	return  1 ;
 }
@@ -863,7 +857,7 @@ iscii_logical_cols(
 	ml_logical_visual_t *  logvis
 	)
 {
-	return  ml_edit_get_cols( logvis->edit) ;
+	return  logvis->model->num_of_cols ;
 }
 
 static u_int
@@ -871,7 +865,7 @@ iscii_logical_rows(
 	ml_logical_visual_t *  logvis
 	)
 {
-	return  ml_edit_get_rows( logvis->edit) ;
+	return  logvis->model->num_of_rows ;
 }
 
 static int
@@ -910,7 +904,6 @@ iscii_visual(
 	)
 {
 	iscii_logical_visual_t *  iscii_logvis ;
-	ml_edit_t *  edit ;
 	ml_line_t *  line ;
 	int  row ;
 	int  cols_rest ;
@@ -919,17 +912,15 @@ iscii_visual(
 	{
 		return  0 ;
 	}
-	
-	edit = logvis->edit ;
 
 	iscii_logvis = (iscii_logical_visual_t*) logvis ;
 
-	if( iscii_logvis->logical_num_of_rows != edit->model.num_of_rows ||
-		iscii_logvis->logical_num_of_cols != edit->model.num_of_cols)
+	if( iscii_logvis->logical_num_of_rows != logvis->model->num_of_rows ||
+		iscii_logvis->logical_num_of_cols != logvis->model->num_of_cols)
 	{
-		/* ml_edit_t is resized */
+		/* ml_model_t resized */
 		
-		if( iscii_logvis->logical_num_of_rows != edit->model.num_of_rows)
+		if( iscii_logvis->logical_num_of_rows != logvis->model->num_of_rows)
 		{
 			void *  p1 ;
 			void *  p2 ;
@@ -951,9 +942,9 @@ iscii_visual(
 			}
 			
 			if( ( p1 = realloc( iscii_logvis->visual_lines ,
-					sizeof( ml_line_t) * edit->model.num_of_rows)) == NULL ||
+					sizeof( ml_line_t) * logvis->model->num_of_rows)) == NULL ||
 				( p2 = realloc( iscii_logvis->logical_lines ,
-					sizeof( ml_line_t) * edit->model.num_of_rows)) == NULL)
+					sizeof( ml_line_t) * logvis->model->num_of_rows)) == NULL)
 			{
 				free( iscii_logvis->visual_lines) ;
 				iscii_logvis->visual_lines = NULL ;
@@ -967,25 +958,25 @@ iscii_visual(
 			iscii_logvis->visual_lines = p1 ;
 			iscii_logvis->logical_lines = p2 ;
 			
-			iscii_logvis->logical_num_of_rows = edit->model.num_of_rows ;
+			iscii_logvis->logical_num_of_rows = logvis->model->num_of_rows ;
 		}
 		
 		for( row = 0 ; row < iscii_logvis->logical_num_of_rows ; row ++)
 		{
-			ml_line_init( &iscii_logvis->visual_lines[row] , edit->model.num_of_cols) ;
-			ml_line_init( &iscii_logvis->logical_lines[row] , edit->model.num_of_cols) ;
+			ml_line_init( &iscii_logvis->visual_lines[row] , logvis->model->num_of_cols) ;
+			ml_line_init( &iscii_logvis->logical_lines[row] , logvis->model->num_of_cols) ;
 		}
 
-		iscii_logvis->logical_num_of_cols = edit->model.num_of_cols ;
+		iscii_logvis->logical_num_of_cols = logvis->model->num_of_cols ;
 	}
 	
-	ml_convert_col_to_char_index( CURSOR_LINE(edit) , &cols_rest , edit->cursor.col , 0) ;
+	ml_convert_col_to_char_index( CURSOR_LINE(logvis) , &cols_rest , logvis->cursor->col , 0) ;
 	
-	for( row = 0 ; row < edit->model.num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
 	{
 		int  is_cache_active ;
 
-		line = ml_model_get_line( &edit->model , row) ;
+		line = ml_model_get_line( logvis->model , row) ;
 		
 		if( ml_line_is_modified( line))
 		{
@@ -1046,17 +1037,17 @@ iscii_visual(
 		}
 	}
 
-	iscii_logvis->cursor_logical_char_index = edit->cursor.char_index ;
-	iscii_logvis->cursor_logical_col = edit->cursor.col ;
+	iscii_logvis->cursor_logical_char_index = logvis->cursor->char_index ;
+	iscii_logvis->cursor_logical_col = logvis->cursor->col ;
 	
-	edit->cursor.char_index = ml_iscii_convert_logical_char_index_to_visual(
-					CURSOR_LINE(edit) , edit->cursor.char_index) ;
-	edit->cursor.col = ml_convert_char_index_to_col( CURSOR_LINE(edit) ,
-				edit->cursor.char_index , 0) + cols_rest ;
+	logvis->cursor->char_index = ml_iscii_convert_logical_char_index_to_visual(
+					CURSOR_LINE(logvis) , logvis->cursor->char_index) ;
+	logvis->cursor->col = ml_convert_char_index_to_col( CURSOR_LINE(logvis) ,
+				logvis->cursor->char_index , 0) + cols_rest ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d]\n" ,
-		edit->cursor.col , edit->cursor.char_index) ;
+		logvis->cursor->col , logvis->cursor->char_index) ;
 #endif
 
 	logvis->is_visual = 1 ;
@@ -1070,30 +1061,27 @@ iscii_logical(
 	)
 {
 	iscii_logical_visual_t *  iscii_logvis ;
-	ml_edit_t *  edit ;
 	int  row ;
 
 	if( ! logvis->is_visual)
 	{
 		return  0 ;
 	}
-	
-	edit = logvis->edit ;
 
 	iscii_logvis = (iscii_logical_visual_t*) logvis ;
 	
-	for( row = 0 ; row < edit->model.num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
 	{
-		ml_line_copy_line( ml_model_get_line( &edit->model , row) ,
+		ml_line_copy_line( ml_model_get_line( logvis->model , row) ,
 			&iscii_logvis->logical_lines[row]) ;
 	}
 
-	edit->cursor.char_index = iscii_logvis->cursor_logical_char_index ;
-	edit->cursor.col = iscii_logvis->cursor_logical_col ;
+	logvis->cursor->char_index = iscii_logvis->cursor_logical_char_index ;
+	logvis->cursor->col = iscii_logvis->cursor_logical_col ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d]\n" ,
-		edit->cursor.col , edit->cursor.char_index) ;
+		logvis->cursor->col , logvis->cursor->char_index) ;
 #endif
 
 	logvis->is_visual = 0 ;
@@ -1128,7 +1116,7 @@ vert_delete(
 {
 	vert_logical_visual_t *  vert_logvis ;
 
-	if( logvis->edit)
+	if( logvis->model)
 	{
 		vert_logvis = (vert_logical_visual_t*) logvis ;
 		ml_model_final( &vert_logvis->visual_model) ;
@@ -1142,19 +1130,31 @@ vert_delete(
 static int
 vert_init(
 	ml_logical_visual_t *  logvis ,
-	ml_edit_t *  edit
+	ml_model_t *  model ,
+	ml_cursor_t *  cursor
 	)
 {
 	vert_logical_visual_t *  vert_logvis ;
 
 	vert_logvis = (vert_logical_visual_t*) logvis ;
+	
+	if( vert_logvis->is_init)
+	{
+		ml_model_resize( &vert_logvis->visual_model ,
+			model->num_of_rows , model->num_of_cols) ;
+	}
+	else
+	{
+		ml_model_init( &vert_logvis->visual_model ,
+			model->num_of_rows , model->num_of_cols) ;
+		vert_logvis->is_init = 1 ;
+	}
+	
+	vert_logvis->logical_model = *model ;
+	
+	logvis->model = model ;
+	logvis->cursor = cursor ;
 
-	logvis->edit = edit ;
-	
-	vert_logvis->logical_model = logvis->edit->model ;
-	ml_model_resize( &vert_logvis->visual_model ,
-		logvis->edit->model.num_of_rows , logvis->edit->model.num_of_cols) ;
-	
 	return  1 ;
 }
 
@@ -1169,7 +1169,7 @@ vert_logical_cols(
 	}
 	else
 	{
-		return  ml_edit_get_cols( logvis->edit) ;
+		return  logvis->model->num_of_cols ;
 	}
 }
 
@@ -1184,7 +1184,7 @@ vert_logical_rows(
 	}
 	else
 	{
-		return  ml_edit_get_rows( logvis->edit) ;
+		return  logvis->model->num_of_rows ;
 	}
 }
 
@@ -1203,7 +1203,6 @@ vert_visual_intern(
 	)
 {
 	vert_logical_visual_t *  vert_logvis ;
-	ml_edit_t *  edit ;
 	ml_line_t *  log_line ;
 	ml_line_t *  vis_line ;
 	int  row ;
@@ -1214,29 +1213,24 @@ vert_visual_intern(
 		return  0 ;
 	}
 
-	edit = logvis->edit ;
-
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d row %d]\n" ,
-		edit->cursor.col , edit->cursor.char_index , edit->cursor.row) ;
+	kik_debug_printf( KIK_DEBUG_TAG " logical cursor [col %d index %d row %d]\n" ,
+		logvis->cursor->col , logvis->cursor->char_index , logvis->cursor->row) ;
 #endif
 
 	vert_logvis = (vert_logical_visual_t*) logvis ;
 
-	ml_model_reset( &vert_logvis->visual_model) ;
-	ml_model_reserve_boundary( &vert_logvis->visual_model , vert_logvis->visual_model.num_of_rows) ;
-	
-	if( vert_logvis->logical_model.num_of_rows != edit->model.num_of_rows ||
-		vert_logvis->logical_model.num_of_cols != edit->model.num_of_cols)
+	if( vert_logvis->logical_model.num_of_rows != logvis->model->num_of_rows ||
+		vert_logvis->logical_model.num_of_cols != logvis->model->num_of_cols)
 	{
-		/* ml_edit_t is resized */
+		/* ml_model_t is resized */
 
 		ml_model_resize( &vert_logvis->visual_model ,
-			edit->model.num_of_rows , edit->model.num_of_cols) ;
+			logvis->model->num_of_rows , logvis->model->num_of_cols) ;
 	}
-	
-	vert_logvis->logical_model = edit->model ;
-	edit->model = vert_logvis->visual_model ;
+
+	ml_model_reset( &vert_logvis->visual_model) ;
+	ml_model_reserve_boundary( &vert_logvis->visual_model , vert_logvis->visual_model.num_of_rows) ;
 
 	if( mode & VERT_LTR)
 	{
@@ -1248,7 +1242,7 @@ vert_visual_intern(
 	{
 		/* CJK */
 		
-		count = vert_logvis->logical_model.num_of_rows ;
+		count = logvis->model->num_of_rows ;
 	}
 
 	while( 1)
@@ -1257,7 +1251,7 @@ vert_visual_intern(
 		{
 			/* Mongol */
 			
-			if( ++ count >= vert_logvis->logical_model.num_of_rows)
+			if( ++ count >= logvis->model->num_of_rows)
 			{
 				break ;
 			}
@@ -1272,22 +1266,19 @@ vert_visual_intern(
 			}
 		}
 
-		log_line = ml_model_get_line( &vert_logvis->logical_model , count) ;
+		log_line = ml_model_get_line( logvis->model , count) ;
 
 		for( row = 0 ; row < log_line->num_of_filled_chars ; row ++)
 		{
-			ml_char_t *  ch ;
+			vis_line = ml_model_get_line( &vert_logvis->visual_model , row) ;
 
-			vis_line = ml_model_get_line( &edit->model , row) ;
-			
-			if( vis_line->num_of_filled_chars >= vis_line->num_of_chars)
+			if( vis_line == NULL || vis_line->num_of_filled_chars >= vis_line->num_of_chars)
 			{
 				continue ;
 			}
 
-			ch = &vis_line->chars[ vis_line->num_of_filled_chars ++] ;
-
-			ml_char_copy( ch , &log_line->chars[row]) ;
+			ml_char_copy( &vis_line->chars[ vis_line->num_of_filled_chars ++] ,
+				&log_line->chars[row]) ;
 			
 			if( ml_line_is_modified( log_line) &&
 				ml_line_get_beg_of_modified( log_line) <= row &&
@@ -1297,21 +1288,21 @@ vert_visual_intern(
 			{
 				ml_line_set_modified( vis_line ,
 					vis_line->num_of_filled_chars - 1 ,
-					vis_line->num_of_filled_chars - 1 , 0) ;
+					vis_line->num_of_filled_chars - 1) ;
 			}
 		}
 
-		for( ; row < edit->model.num_of_rows ; row ++)
+		for( ; row < vert_logvis->visual_model.num_of_rows ; row ++)
 		{
-			vis_line = ml_model_get_line( &edit->model , row) ;
+			vis_line = ml_model_get_line( &vert_logvis->visual_model , row) ;
 			
-			if( vis_line->num_of_filled_chars + 1 > vis_line->num_of_chars)
+			if( vis_line == NULL || vis_line->num_of_filled_chars + 1 > vis_line->num_of_chars)
 			{
 				continue ;
 			}
 			
 			ml_char_copy( &vis_line->chars[ vis_line->num_of_filled_chars ++] , ml_sp_ch()) ;
-						
+			
 			if( ml_line_is_modified( log_line) &&
 				ml_line_get_beg_of_modified( log_line) <= row &&
 				(ml_line_is_cleared_to_end( log_line) ||
@@ -1320,37 +1311,40 @@ vert_visual_intern(
 			{
 				ml_line_set_modified( vis_line ,
 					vis_line->num_of_filled_chars - 1 ,
-					vis_line->num_of_filled_chars - 1 , 0) ;
+					vis_line->num_of_filled_chars - 1) ;
 			}
 		}
 
 		ml_line_updated( log_line) ;
 	}
 
-	vert_logvis->cursor_logical_char_index = edit->cursor.char_index ;
-	vert_logvis->cursor_logical_col = edit->cursor.col ;
-	vert_logvis->cursor_logical_row = edit->cursor.row ;
+	vert_logvis->logical_model = *logvis->model ;
+	*logvis->model = vert_logvis->visual_model ;
 
-	edit->cursor.row = vert_logvis->cursor_logical_char_index ;
-	edit->cursor.char_index = edit->cursor.col = 0 ;
+	vert_logvis->cursor_logical_char_index = logvis->cursor->char_index ;
+	vert_logvis->cursor_logical_col = logvis->cursor->col ;
+	vert_logvis->cursor_logical_row = logvis->cursor->row ;
+
+	logvis->cursor->row = vert_logvis->cursor_logical_char_index ;
+	logvis->cursor->char_index = logvis->cursor->col = 0 ;
 
 	if( mode & VERT_LTR)
 	{
 		/* Mongol */
 		
-		edit->cursor.col = edit->cursor.char_index = vert_logvis->cursor_logical_row ;
+		logvis->cursor->col = logvis->cursor->char_index = vert_logvis->cursor_logical_row ;
 	}
 	else
 	{
 		/* CJK */
 		
-		edit->cursor.col = edit->cursor.char_index =
+		logvis->cursor->col = logvis->cursor->char_index =
 			vert_logvis->logical_model.num_of_rows - vert_logvis->cursor_logical_row - 1 ;
 	}
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d row %d]\n" ,
-		edit->cursor.col , edit->cursor.char_index , edit->cursor.row) ;
+	kik_debug_printf( KIK_DEBUG_TAG " visual cursor [col %d index %d row %d]\n" ,
+		logvis->cursor->col , logvis->cursor->char_index , logvis->cursor->row) ;
 #endif
 
 	logvis->is_visual = 1 ;
@@ -1380,26 +1374,23 @@ vert_logical(
 	)
 {
 	vert_logical_visual_t *  vert_logvis ;
-	ml_edit_t *  edit ;
 
 	if( ! logvis->is_visual)
 	{
 		return  0 ;
 	}
 	
-	edit = logvis->edit ;
-	
 	vert_logvis = (vert_logical_visual_t*) logvis ;
 	
-	edit->model = vert_logvis->logical_model ;
+	*logvis->model = vert_logvis->logical_model ;
 
-	edit->cursor.char_index = vert_logvis->cursor_logical_char_index ;
-	edit->cursor.col = vert_logvis->cursor_logical_col ;
-	edit->cursor.row = vert_logvis->cursor_logical_row ;
+	logvis->cursor->char_index = vert_logvis->cursor_logical_char_index ;
+	logvis->cursor->col = vert_logvis->cursor_logical_col ;
+	logvis->cursor->row = vert_logvis->cursor_logical_row ;
 	
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d row %d]\n" ,
-		edit->cursor.col , edit->cursor.char_index , edit->cursor.row) ;
+	kik_debug_printf( KIK_DEBUG_TAG " logical cursor [col %d index %d row %d]\n" ,
+		logvis->cursor->col , logvis->cursor->char_index , logvis->cursor->row) ;
 #endif
 
 	logvis->is_visual = 0 ;
@@ -1432,7 +1423,8 @@ ml_logvis_container_new(void)
 	container->children = NULL ;
 	container->num_of_children = 0 ;
 	
-	container->logvis.edit = NULL ;
+	container->logvis.model = NULL ;
+	container->logvis.cursor = NULL ;
 	container->logvis.is_visual = 0 ;
 
 	container->logvis.delete = container_delete ;
@@ -1488,7 +1480,8 @@ ml_logvis_bidi_new(
 	bidi_logvis->ltr_rtl_meet_pos = 0 ;
 	bidi_logvis->adhoc_right_align = adhoc_right_align ;
 
-	bidi_logvis->logvis.edit = NULL ;
+	bidi_logvis->logvis.model = NULL ;
+	bidi_logvis->logvis.cursor = NULL ;
 	bidi_logvis->logvis.is_visual = 0 ;
 	
 	bidi_logvis->logvis.delete = bidi_delete ;
@@ -1516,7 +1509,8 @@ ml_logvis_comb_new(void)
 	comb_logvis->cursor_logical_char_index = 0 ;
 	comb_logvis->cursor_logical_col = 0 ;
 
-	comb_logvis->logvis.edit = NULL ;
+	comb_logvis->logvis.model = NULL ;
+	comb_logvis->logvis.cursor = NULL ;
 	comb_logvis->logvis.is_visual = 0 ;
 	
 	comb_logvis->logvis.delete = comb_delete ;
@@ -1549,8 +1543,10 @@ ml_logvis_iscii_new(
 	iscii_logvis->cursor_logical_char_index = 0 ;
 	iscii_logvis->cursor_logical_col = 0 ;
 
+	iscii_logvis->logvis.model = NULL ;
+	iscii_logvis->logvis.cursor = NULL ;
 	iscii_logvis->logvis.is_visual = 0 ;
-	iscii_logvis->logvis.edit = NULL ;
+	
 	iscii_logvis->logical_num_of_cols = 0 ;
 	iscii_logvis->logical_num_of_rows = 0 ;
 	
@@ -1583,15 +1579,19 @@ ml_logvis_vert_new(
 		return  NULL ;
 	}
 
+	vert_logvis->is_init = 0 ;
+#if  0
 	memset( &vert_logvis->logical_model , 0 , sizeof( vert_logvis->logical_model)) ;
 	memset( &vert_logvis->visual_model , 0 , sizeof( vert_logvis->visual_model)) ;
+#endif
 	
 	vert_logvis->cursor_logical_char_index = 0 ;
 	vert_logvis->cursor_logical_col = 0 ;
 	vert_logvis->cursor_logical_row = 0 ;
 
+	vert_logvis->logvis.model = NULL ;
+	vert_logvis->logvis.cursor = NULL ;
 	vert_logvis->logvis.is_visual = 0 ;
-	vert_logvis->logvis.edit = NULL ;
 
 	vert_logvis->logvis.delete = vert_delete ;
 	vert_logvis->logvis.init = vert_init ;

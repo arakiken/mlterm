@@ -1,3 +1,8 @@
+2002-09-03 Araki Ken <arakiken@users.sf.net>
+
+	* ml_edit* module cleaned up.
+	* some warnings in x_term_manager.c and x_window.c are suppressed.
+
 2002-09-02  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* segmantation fault when no font is available for specified CS.

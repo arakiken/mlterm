@@ -41,7 +41,7 @@ get_n_prev_char_pos(
 
 	for( count = 0 ; count < n ; count ++)
 	{
-		if( ! ml_cursor_go_back( screen->edit , WRAPAROUND))
+		if( ! ml_edit_go_back( screen->edit , WRAPAROUND))
 		{
 			result = 0 ;
 
@@ -905,7 +905,7 @@ ml_screen_add_logical_visual(
 	ml_logical_visual_t *  logvis
 	)
 {
-	(*logvis->init)( logvis , screen->edit) ;
+	(*logvis->init)( logvis , &screen->edit->model , &screen->edit->cursor) ;
 
 	if( screen->logvis)
 	{
@@ -1489,7 +1489,7 @@ ml_screen_combine_with_prev_char(
 		return  0 ;
 	}
 	
-	ml_line_set_modified( line , char_index , char_index , 0) ;
+	ml_line_set_modified( line , char_index , char_index) ;
 	
 	return  1 ;
 }
@@ -1566,7 +1566,7 @@ ml_screen_line_feed(
 	ml_screen_t *  screen
 	)
 {	
-	return  ml_cursor_go_downward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
+	return  ml_edit_go_downward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
 }
 
 int
@@ -1710,7 +1710,7 @@ ml_screen_scroll_upward(
 	u_int  size
 	)
 {
-	return  ml_cursor_go_downward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
+	return  ml_edit_go_downward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
 }
 
 int
@@ -1719,7 +1719,7 @@ ml_screen_scroll_downward(
 	u_int  size
 	)
 {
-	return  ml_cursor_go_upward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
+	return  ml_edit_go_upward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
 }
 
 int
@@ -1732,7 +1732,7 @@ ml_screen_go_forward(
 
 	for( count = 0 ; count < size ; count ++)
 	{
-		if( ! ml_cursor_go_forward( screen->edit , BREAK_BOUNDARY))
+		if( ! ml_edit_go_forward( screen->edit , BREAK_BOUNDARY))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot go forward any more.\n") ;
@@ -1755,7 +1755,7 @@ ml_screen_go_back(
 
 	for( count = 0 ; count < size ; count ++)
 	{
-		if( ! ml_cursor_go_back( screen->edit , 0))
+		if( ! ml_edit_go_back( screen->edit , 0))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot go back any more.\n") ;
@@ -1778,7 +1778,7 @@ ml_screen_go_upward(
 	
 	for( count = 0 ; count < size ; count ++)
 	{
-		if( ! ml_cursor_go_upward( screen->edit , BREAK_BOUNDARY))
+		if( ! ml_edit_go_upward( screen->edit , BREAK_BOUNDARY))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot go upward any more.\n") ;
@@ -1801,7 +1801,7 @@ ml_screen_go_downward(
 	
 	for( count = 0 ; count < size ; count ++)
 	{
-		if( ! ml_cursor_go_downward( screen->edit , BREAK_BOUNDARY))
+		if( ! ml_edit_go_downward( screen->edit , BREAK_BOUNDARY))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot go downward any more.\n") ;
@@ -1819,7 +1819,7 @@ ml_screen_goto_beg_of_line(
 	ml_screen_t *  screen
 	)
 {
-	return  ml_cursor_goto_beg_of_line( screen->edit) ;
+	return  ml_edit_goto_beg_of_line( screen->edit) ;
 }
 
 int
@@ -1845,7 +1845,7 @@ ml_screen_goto_home(
 	ml_screen_t *  screen
 	)
 {
-	return  ml_cursor_goto_home( screen->edit) ;
+	return  ml_edit_goto_home( screen->edit) ;
 }
 
 int
@@ -1855,7 +1855,7 @@ ml_screen_goto(
 	int  row
 	)
 {
-	return  ml_cursor_goto( screen->edit , col , row , BREAK_BOUNDARY) ;
+	return  ml_edit_goto( screen->edit , col , row , BREAK_BOUNDARY) ;
 }
 
 int
@@ -1915,7 +1915,7 @@ ml_screen_use_normal_edit(
 
 	if( screen->logvis)
 	{
-		(*screen->logvis->init)( screen->logvis , screen->edit) ;
+		(*screen->logvis->init)( screen->logvis , &screen->edit->model , &screen->edit->cursor) ;
 	}
 
 	ml_edit_set_modified_all( screen->edit) ;
@@ -1935,7 +1935,7 @@ ml_screen_use_alternative_edit(
 
 	if( screen->logvis)
 	{
-		(*screen->logvis->init)( screen->logvis , screen->edit) ;
+		(*screen->logvis->init)( screen->logvis , &screen->edit->model , &screen->edit->cursor) ;
 	}
 
 	ml_edit_set_modified_all( screen->edit) ;

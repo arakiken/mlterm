@@ -21,17 +21,13 @@
 #define  END_CHAR_INDEX(line)  ((line)->num_of_filled_chars - 1)
 #endif
 
-#define  IS_CLEARED_TO_END(flag) ((flag) & 0x1)
-#define  SET_CLEARED_TO_END(flag)  ((flag) |= 0x1)
-#define  UNSET_CLEARED_TO_END(flag)  ((flag) &= ~0x1)
+#define  IS_MODIFIED(flag)  ((flag) & 0x1)
+#define  SET_MODIFIED(flag)  ((flag) |= 0x1)
+#define  UNSET_MODIFIED(flag)  ((flag) &= ~0x1)
 
-#define  IS_MODIFIED(flag)  (((flag) >> 1) & 0x1)
-#define  SET_MODIFIED(flag)  ((flag) |= 0x2)
-#define  UNSET_MODIFIED(flag)  ((flag) &= ~0x2)
-
-#define  IS_CONTINUED_TO_NEXT(flag)  (((flag) >> 2) & 0x1)
-#define  SET_CONTINUED_TO_NEXT(flag)  ((flag) |= 0x4)
-#define  UNSET_CONTINUED_TO_NEXT(flag)  ((flag) &= ~0x4)
+#define  IS_CONTINUED_TO_NEXT(flag)  (((flag) >> 1) & 0x1)
+#define  SET_CONTINUED_TO_NEXT(flag)  ((flag) |= 0x2)
+#define  UNSET_CONTINUED_TO_NEXT(flag)  ((flag) &= ~0x2)
 
 #define  IS_EMPTY(line)  ((line)->num_of_filled_chars == 0)
 
@@ -154,7 +150,7 @@ ml_line_reset(
 {
 	if( line->num_of_filled_chars > 0)
 	{
-		ml_line_set_modified( line , 0 , 0 , 1) ;
+		ml_line_set_modified_all( line) ;
 	}
 
 	line->num_of_filled_chars = 0 ;
@@ -193,10 +189,10 @@ ml_line_clear(
 			return  1 ;
 		}
 
+		ml_line_set_modified( line , char_index , END_CHAR_INDEX(line)) ;
+
 		ml_char_copy( &line->chars[char_index] , ml_sp_ch()) ;
 		line->num_of_filled_chars = char_index + 1 ;
-
-		ml_line_set_modified( line , char_index , END_CHAR_INDEX(line) , 1) ;
 	}
 	
 	return  1 ;
@@ -205,57 +201,68 @@ ml_line_clear(
 int
 ml_line_overwrite(
 	ml_line_t *  line ,
-	int  change_char_index ,
+	int  beg_char_index ,
 	ml_char_t *  chars ,
 	u_int  len ,
 	u_int  cols
 	)
 {
 	int  count ;
-	int  char_index ;
-	u_int  orig_filled_cols ;
+	int  char_index ;	/* points after overwritten chars */
 	u_int  cols_rest ;
 	u_int  padding ;
 	u_int  new_len ;
 	u_int  copy_len ;
 
-	if( len > line->num_of_chars)
+	if( beg_char_index > line->num_of_filled_chars)
 	{
-		len = line->num_of_chars ;
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " beg_char_index[%d] is over filled region.\n" ,
+			beg_char_index) ;
+	#endif
+	
+		beg_char_index = END_CHAR_INDEX(line) ;
+	}
+	
+	if( beg_char_index + len > line->num_of_chars)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " beg_char_index[%d] + len[%d] is over line capacity.\n" ,
+			beg_char_index , len) ;
+	#endif
+	
+		len = line->num_of_chars - beg_char_index ;
 	}
 
-	orig_filled_cols = ml_line_get_num_of_filled_cols( line) ;
-
-	if( IS_EMPTY( line) || cols >= orig_filled_cols)
-	{
-		return  ml_line_overwrite_all( line , change_char_index , chars , len , cols) ;
-	}
-
-	/* trying to delete from pos 0 to the pos just before this char_index */
-	char_index = ml_convert_col_to_char_index( line , &cols_rest , cols , 0) ;
-
-	if( char_index == END_CHAR_INDEX(line) && cols_rest >= 1)
-	{
-		return  ml_line_overwrite_all( line , change_char_index , chars , len , cols) ;
-	}
+	char_index = ml_convert_col_to_char_index( line , &cols_rest ,
+			ml_str_cols( line->chars , beg_char_index) + cols , 0) ;
 
 	if( 1 <= cols_rest && cols_rest < ml_char_cols( &line->chars[char_index]))
 	{
 		padding = ml_char_cols( &line->chars[char_index]) - cols_rest ;
-		char_index ++ ;
+		char_index += padding ;
 	}
 	else
 	{
 		padding = 0 ;
 	}
 
-	copy_len = line->num_of_filled_chars - char_index ;
-	new_len = len + padding + copy_len ;
+	if( line->num_of_filled_chars > char_index)
+	{
+		copy_len = line->num_of_filled_chars - char_index ;
+	}
+	else
+	{
+		copy_len = 0 ;
+	}
+	
+	new_len = beg_char_index + len + padding + copy_len ;
+	
 	if( new_len > line->num_of_chars)
 	{
-	#ifdef DEBUG
+	#ifdef  DEBUG
 		kik_warn_printf(
-			KIK_DEBUG_TAG " line length %d(ow %d copy %d) after overwriting is overflowed\n" ,
+			KIK_DEBUG_TAG " new line len %d(ow %d copy %d) is overflowed\n" ,
 			new_len , len , copy_len) ;
 
 		if( line->num_of_chars < padding + copy_len)
@@ -269,44 +276,38 @@ ml_line_overwrite(
 	#endif
 		
 		new_len = line->num_of_chars ;
-		copy_len = new_len - padding - len ;
+
+		if( new_len > padding + beg_char_index + len)
+		{
+			copy_len = new_len - padding - beg_char_index - len ;
+		}
+		else
+		{
+			copy_len = 0 ;
+		}
 
 	#ifdef  DEBUG
-		kik_msg_printf( " ... modified -> new_len %d , copy_len %d\n" , new_len , len) ;
+		kik_msg_printf( " ... modified -> new_len %d , copy_len %d\n" , new_len , copy_len) ;
 	#endif
 	}
 
 	if( copy_len > 0)
 	{
 		/* making space */
-		ml_str_copy( &line->chars[len + padding] , &line->chars[char_index] , copy_len) ;
-		
-		if( IS_MODIFIED(line->flag))
-		{
-			ml_line_set_modified( line , line->change_beg_char_index ,
-				line->change_end_char_index + (len + padding - char_index) , 0) ;
-		}
+		ml_str_copy( &line->chars[beg_char_index + len + padding] ,
+			&line->chars[char_index] , copy_len) ;
 	}
 
 	for( count = 0 ; count < padding ; count ++)
 	{
-		ml_char_copy( &line->chars[len + count] , ml_sp_ch()) ;
+		ml_char_copy( &line->chars[beg_char_index + len + count] , ml_sp_ch()) ;
 	}
 
-	ml_str_copy( line->chars , chars , len) ;
+	ml_str_copy( &line->chars[beg_char_index] , chars , len) ;
 
 	line->num_of_filled_chars = new_len ;
 
-	if( orig_filled_cols > ml_line_get_num_of_filled_cols( line))
-	{
-		ml_line_set_modified( line , change_char_index ,
-			K_MAX(change_char_index,END_CHAR_INDEX(line)) , 1) ;
-	}
-	else
-	{
-		ml_line_set_modified( line , change_char_index ,
-			K_MAX(change_char_index,len - 1) , 0) ;
-	}
+	ml_line_set_modified( line , beg_char_index , beg_char_index + len - 1) ;
 
 	return  1 ;
 }
@@ -314,27 +315,16 @@ ml_line_overwrite(
 int
 ml_line_overwrite_all(
 	ml_line_t *  line ,
-	int  change_char_index ,
 	ml_char_t *  chars ,
-	int  len ,
-	u_int  cols
+	int  len
 	)
 {
-	u_int  orig_filled_cols ;
+	ml_line_set_modified( line , 0 , END_CHAR_INDEX(line)) ;
 
-	orig_filled_cols = ml_line_get_num_of_filled_cols( line) ;
-	
 	ml_str_copy( line->chars , chars , len) ;
 	line->num_of_filled_chars = len ;
 
-	if( orig_filled_cols > cols)
-	{
-		ml_line_set_modified( line , change_char_index , END_CHAR_INDEX(line) , 1) ;
-	}
-	else
-	{
-		ml_line_set_modified( line , change_char_index , END_CHAR_INDEX(line) , 0) ;
-	}
+	ml_line_set_modified( line , 0 , END_CHAR_INDEX(line)) ;
 
 	return  1 ;
 }
@@ -400,14 +390,7 @@ ml_line_fill(
 	{
 		/* making space */
 		ml_str_copy( &line->chars[beg + num + left_cols] , &line->chars[char_index] , copy_len) ;
-
-		if( IS_MODIFIED(line->flag))
-		{
-			ml_line_set_modified( line , line->change_beg_char_index ,
-				line->change_end_char_index + (beg + num + left_cols - char_index) , 0) ;
-		}
 	}
-
 
 	char_index = beg ;
 	
@@ -424,7 +407,7 @@ ml_line_fill(
 	
 	line->num_of_filled_chars = char_index + copy_len ;
 
-	ml_line_set_modified( line , beg , END_CHAR_INDEX(line) , 0) ;
+	ml_line_set_modified( line , beg , beg + num + left_cols) ;
 
 	return  1 ;
 }
@@ -449,10 +432,13 @@ int
 ml_line_set_modified(
 	ml_line_t *  line ,
 	int  beg_char_index ,
-	int  end_char_index ,
-	int  is_cleared_to_end
+	int  end_char_index
 	)
 {
+	int  count ;
+	int  beg_col ;
+	int  end_col ;
+	
 	if( beg_char_index > end_char_index)
 	{
 	#ifdef  DEBUG
@@ -460,42 +446,49 @@ ml_line_set_modified(
 			beg_char_index , end_char_index) ;
 	#endif
 
-	#if  0
 		return  0 ;
-	#endif
+	}
+
+	if( beg_char_index >= line->num_of_filled_chars)
+	{
+		beg_char_index = END_CHAR_INDEX(line) ;
+	}
+	
+	if( end_char_index >= line->num_of_filled_chars)
+	{
+		end_char_index = END_CHAR_INDEX(line) ;
+	}
+
+	beg_col = 0 ;
+	for( count = 0 ; count < beg_char_index ; count ++)
+	{
+		beg_col += ml_char_cols( &line->chars[count]) ;
+	}
+
+	end_col = beg_col ;
+	for( ; count < end_char_index ; count ++)
+	{
+		end_col += ml_char_cols( &line->chars[count]) ;
 	}
 
 	if( IS_MODIFIED(line->flag))
 	{
-		if( beg_char_index < line->change_beg_char_index)
+		if( beg_col < line->change_beg_col)
 		{
-			line->change_beg_char_index = beg_char_index ;
+			line->change_beg_col = beg_col ;
 		}
 
-		if( end_char_index > line->change_end_char_index)
+		if( end_col > line->change_end_col)
 		{
-			line->change_end_char_index = end_char_index ;
-		}
-
-		if( is_cleared_to_end)
-		{
-			SET_CLEARED_TO_END(line->flag) ;
+			line->change_end_col = end_col ;
 		}
 	}
 	else
 	{
-		line->change_beg_char_index = beg_char_index ;
-		line->change_end_char_index = end_char_index ;
+		line->change_beg_col = beg_col ;
+		line->change_end_col = end_col ;
 
 		SET_MODIFIED(line->flag) ;
-		if( is_cleared_to_end)
-		{
-			SET_CLEARED_TO_END(line->flag) ;
-		}
-		else
-		{
-			UNSET_CLEARED_TO_END(line->flag) ;
-		}
 	}
 
 	return  1 ;
@@ -506,14 +499,11 @@ ml_line_set_modified_all(
 	ml_line_t *  line
 	)
 {
-	if( IS_EMPTY( line))
-	{
-		return  ml_line_set_modified( line , 0 , 0 , 1) ;
-	}
-	else
-	{
-		return  ml_line_set_modified( line , 0 , END_CHAR_INDEX(line) , 1) ;
-	}
+	line->change_beg_col = 0 ;
+	line->change_end_col = line->num_of_chars ;	/* points over the end of line */
+	SET_MODIFIED(line->flag) ;
+
+	return  1 ;
 }
 
 int
@@ -521,7 +511,14 @@ ml_line_is_cleared_to_end(
 	ml_line_t *  line
 	)
 {
-	return  IS_CLEARED_TO_END(line->flag) ;
+	if( ml_line_get_num_of_filled_cols( line) < line->change_end_col + 1)
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }
 
 int
@@ -543,7 +540,7 @@ ml_line_get_beg_of_modified(
 	}
 	else
 	{
-		return  K_MIN(line->change_beg_char_index,END_CHAR_INDEX(line)) ;
+		return  ml_convert_col_to_char_index( line , NULL , line->change_beg_col , 0) ;
 	}
 }
 
@@ -558,7 +555,7 @@ ml_line_get_end_of_modified(
 	}
 	else
 	{
-		return  K_MIN(line->change_end_char_index,END_CHAR_INDEX(line)) ;
+		return  ml_convert_col_to_char_index( line , NULL , line->change_end_col , 0) ;
 	}
 }
 
@@ -583,10 +580,9 @@ ml_line_updated(
 	)
 {
 	UNSET_MODIFIED(line->flag) ;
-	UNSET_CLEARED_TO_END(line->flag) ;
 
-	line->change_beg_char_index = 0 ;
-	line->change_end_char_index = 0 ;
+	line->change_beg_col = 0 ;
+	line->change_end_col = 0 ;
 }
 
 int
@@ -628,18 +624,16 @@ ml_convert_char_index_to_col(
 		return  0 ;
 	}
 
-#ifdef  DEBUG
 	if( char_index >= line->num_of_chars)
 	{
-		/* this must never happen */
-		
-		kik_warn_printf( KIK_DEBUG_TAG
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG
 			" char index %d is larger than num_of_chars(%d)\n" ,
 			char_index , line->num_of_chars) ;
-			
-		abort() ;
+	#endif
+
+		char_index = line->num_of_chars - 1 ;
 	}
-#endif
 	
 	col = 0 ;
 
@@ -699,17 +693,15 @@ ml_convert_col_to_char_index(
 		return  0 ;
 	}
 
-#ifdef  DEBUG
 	if( col >= line->num_of_chars)
 	{
-		/* this must never happen */
-		
-		kik_warn_printf( KIK_DEBUG_TAG " col %d is larger than num_of_chars(%d)" ,
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " col %d is larger than num_of_chars(%d)\n" ,
 			col , line->num_of_chars) ;
+	#endif
 
-		abort() ;
+		col = line->num_of_chars - 1 ;
 	}
-#endif
 
 	char_index = 0 ;
 	
@@ -760,7 +752,7 @@ ml_line_reverse_color(
 
 	ml_char_reverse_color( &line->chars[char_index]) ;
 
-	ml_line_set_modified( line , char_index , char_index , 0) ;
+	ml_line_set_modified( line , char_index , char_index) ;
 
 	return  1 ;
 }
@@ -778,7 +770,7 @@ ml_line_restore_color(
 
 	ml_char_restore_color( &line->chars[char_index]) ;
 
-	ml_line_set_modified( line , char_index , char_index , 0) ;
+	ml_line_set_modified( line , char_index , char_index) ;
 
 	return  1 ;
 }
@@ -800,8 +792,8 @@ ml_line_copy_line(
 	ml_str_copy( dst->chars , src->chars , copy_len) ;
 	dst->num_of_filled_chars = copy_len ;
 
-	dst->change_beg_char_index = K_MIN(src->change_beg_char_index,dst->num_of_chars) ;
-	dst->change_end_char_index = K_MIN(src->change_end_char_index,dst->num_of_chars) ;
+	dst->change_beg_col = K_MIN(src->change_beg_col,dst->num_of_chars) ;
+	dst->change_end_col = K_MIN(src->change_end_col,dst->num_of_chars) ;
 	
 	dst->flag = src->flag ;
 
@@ -832,8 +824,8 @@ ml_line_share(
 	
 	dst->bidi_state = src->bidi_state ;
 
-	dst->change_beg_char_index = src->change_beg_char_index ;
-	dst->change_end_char_index = src->change_end_char_index ;
+	dst->change_beg_col = src->change_beg_col ;
+	dst->change_end_col = src->change_end_col ;
 	dst->flag = src->flag ;
 
 	return  1 ;
@@ -1016,7 +1008,7 @@ ml_line_bidi_render(
 	else if( line->bidi_state->has_rtl && IS_MODIFIED(line->flag))
 	{
 		/* if line contains RTL chars, line is redrawn all */
-		ml_line_set_modified( line , 0 , END_CHAR_INDEX(line) , IS_CLEARED_TO_END(line->flag)) ;
+		ml_line_set_modified( line , 0 , END_CHAR_INDEX(line)) ;
 	}
 	
 	return  result ;
@@ -1575,3 +1567,22 @@ ml_line_unshape(
 
 	return  1 ;
 }
+
+#ifdef  DEBUG
+
+void
+ml_line_dump(
+	ml_line_t *  line
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < line->num_of_filled_chars ; count ++)
+	{
+		ml_char_dump( &line->chars[count]) ;
+	}
+
+	kik_msg_printf( "\n") ;
+}
+
+#endif

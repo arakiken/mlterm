@@ -9,27 +9,9 @@
 #include  <kiklib/kik_types.h>
 
 #include  "ml_char.h"
-#include  "ml_render_hint.h"
 #include  "ml_line.h"
 #include  "ml_model.h"
 
-
-typedef struct  ml_cursor
-{
-	int  row ;
-	int  char_index ;
-	int  col ;
-	
-	ml_color_t  orig_fg ;
-	ml_color_t  orig_bg ;
-	int8_t  is_highlighted ;
-
-	int  saved_row ;
-	int  saved_char_index ;
-	int  saved_col ;
-	int8_t  is_saved ;
-	
-} ml_cursor_t ;
 
 typedef struct ml_edit_scroll_event_listener
 {
@@ -47,9 +29,6 @@ typedef struct  ml_edit
 	ml_model_t  model ;
 	ml_cursor_t  cursor ;
 
-	/* used for rendering */
-	ml_render_hint_t  render_hint ;
-
 	int8_t  is_logging ;
 
 	u_int8_t *  tab_stops ;
@@ -59,7 +38,6 @@ typedef struct  ml_edit
 
 	/* used for line overlapping */
 	ml_line_t *  wraparound_ready_line ;
-	ml_char_t  prev_recv_ch ;	/* a char which was inserted or overwritten an opearation before */
 	
 	int  scroll_region_beg ;
 	int  scroll_region_end ;
@@ -128,21 +106,21 @@ int  ml_edit_clear_all_tab_stops( ml_edit_t *  edit) ;
 
 ml_line_t *  ml_edit_get_line( ml_edit_t *  edit , int  row) ;
 
-int  ml_cursor_go_forward( ml_edit_t *  edit , int  flag) ;
+int  ml_edit_go_forward( ml_edit_t *  edit , int  flag) ;
 
-int  ml_cursor_go_back( ml_edit_t *  edit , int  flag) ;
+int  ml_edit_go_back( ml_edit_t *  edit , int  flag) ;
 
-int  ml_cursor_go_upward( ml_edit_t *  edit , int  flag) ;
+int  ml_edit_go_upward( ml_edit_t *  edit , int  flag) ;
 
-int  ml_cursor_go_downward( ml_edit_t *  edit , int  flag) ;
+int  ml_edit_go_downward( ml_edit_t *  edit , int  flag) ;
 
-int  ml_cursor_goto_beg_of_line( ml_edit_t *  edit) ;
+int  ml_edit_goto_beg_of_line( ml_edit_t *  edit) ;
 
-int  ml_cursor_goto_home( ml_edit_t *  edit) ;
+int  ml_edit_goto_home( ml_edit_t *  edit) ;
 
-int  ml_cursor_goto_end( ml_edit_t *  edit) ;
+int  ml_edit_goto_end( ml_edit_t *  edit) ;
 
-int  ml_cursor_goto( ml_edit_t *  edit , int  col , int  row , int  flag) ;
+int  ml_edit_goto( ml_edit_t *  edit , int  col , int  row , int  flag) ;
 
 int  ml_cursor_is_beg_of_line( ml_edit_t *  edit) ;
 

@@ -78,8 +78,7 @@ copy_lines(
 			ml_line_copy_line( dst_line , src_line) ;
 			if( mark_changed)
 			{
-				ml_line_set_modified( dst_line ,
-					0 , ml_line_end_char_index( dst_line) , 1) ;
+				ml_line_set_modified_all( dst_line) ;
 			}
 		}
 	}
@@ -93,8 +92,7 @@ copy_lines(
 			ml_line_copy_line( dst_line , src_line) ;
 			if( mark_changed)
 			{
-				ml_line_set_modified( dst_line ,
-					0 , ml_line_end_char_index( dst_line) , 1) ;
+				ml_line_set_modified_all( dst_line) ;
 			}
 		}
 	}
@@ -391,7 +389,6 @@ ml_edsl_insert_new_line(
 	ml_edit_t *  edit
 	)
 {
-	u_int  copy_rows ;
 	int  start_row ;
 	int  end_row ;
 
@@ -413,14 +410,7 @@ ml_edsl_insert_new_line(
 		end_row = ml_model_end_row( &edit->model) ;
 	}
 
-	copy_rows = end_row - start_row + 1 ;
-
-	if( copy_rows + start_row > end_row)
-	{
-		copy_rows -- ;
-	}
-
-	copy_lines( edit , start_row + 1 , start_row , copy_rows , 1) ;
+	copy_lines( edit , start_row + 1 , start_row , end_row - start_row + 1 , 1) ;
 	ml_edit_clear_lines( edit , start_row , 1) ;
 
 	return  1 ;

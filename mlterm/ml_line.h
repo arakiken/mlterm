@@ -36,15 +36,14 @@ typedef struct  ml_line
 	u_int16_t  num_of_filled_chars ;	/* 0 - 65536 */
 
 	/* private */
-	u_int16_t  change_beg_char_index ;	/* 0 - 65536 */
-	u_int16_t  change_end_char_index ;	/* 0 - 65536 */
+	u_int16_t  change_beg_col ;	/* 0 - 65536 */
+	u_int16_t  change_end_col ;	/* 0 - 65536 */
 
 	/*
 	 * private
 	 *
 	 * total 8 bit
-	 * 5 bit : not used
-	 * 1 bit : is_cleared_to_end
+	 * 6 bit : unused
 	 * 1 bit : is_modified
 	 * 1 bit : is_continued_to_next
 	 */
@@ -65,18 +64,16 @@ int  ml_line_reset( ml_line_t *  line) ;
 
 int  ml_line_clear( ml_line_t *  line , int  char_index) ;
 
-int  ml_line_overwrite( ml_line_t *  line , int  change_char_index ,
-	ml_char_t *  chars , u_int  len , u_int  cols) ;
+int  ml_line_overwrite( ml_line_t *  line , int  beg_char_index , ml_char_t *  chars ,
+	u_int  len , u_int  cols) ;
 
-int  ml_line_overwrite_all( ml_line_t *  line , int  change_char_index ,
-	ml_char_t *  chars , int  len , u_int  cols) ;
+int  ml_line_overwrite_all( ml_line_t *  line , ml_char_t *  chars , int  len) ;
 
 int  ml_line_fill( ml_line_t *  line , ml_char_t *  ch , int  beg , u_int  num) ;
 
 ml_char_t *  ml_line_get_char( ml_line_t *  line , int  char_index) ;
 
-int  ml_line_set_modified( ml_line_t *  line , int  beg_char_index , int  end_char_index ,
-	int  is_cleared_to_end) ;
+int  ml_line_set_modified( ml_line_t *  line , int  beg_char_index , int  end_char_index) ;
 
 int  ml_line_set_modified_all( ml_line_t *  line) ;
 
@@ -152,6 +149,8 @@ int  ml_iscii_convert_logical_char_index_to_visual( ml_line_t *  line , int  log
 ml_line_t *  ml_line_shape( ml_line_t *  line , ml_shape_t *  shape) ;
 
 int  ml_line_unshape( ml_line_t *  line , ml_line_t *  orig) ;
+
+void  ml_line_dump( ml_line_t *  line) ;
 
 
 #endif

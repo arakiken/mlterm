@@ -4078,7 +4078,7 @@ usascii_font_cs_changed(
 	ml_char_encoding_t  encoding
 	)
 {
-	x_font_manager_usascii_font_cs_changed( screen->font_man ,x_get_usascii_font_cs( encoding)) ;
+	x_font_manager_usascii_font_cs_changed( screen->font_man , x_get_usascii_font_cs( encoding)) ;
 	
 	font_size_changed( screen) ;
 
@@ -5412,7 +5412,7 @@ reverse_color(
 	
 	ml_term_reverse_color( screen->term , beg_char_index , beg_row ,
 		end_char_index , end_row) ;
-		
+
 	redraw_screen( screen) ;
 }
 

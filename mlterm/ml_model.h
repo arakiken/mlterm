@@ -12,6 +12,23 @@
 #include  "ml_line.h"
 
 
+typedef struct  ml_cursor
+{
+	int  row ;
+	int  char_index ;
+	int  col ;
+	
+	ml_color_t  orig_fg ;
+	ml_color_t  orig_bg ;
+	int8_t  is_highlighted ;
+
+	int  saved_row ;
+	int  saved_char_index ;
+	int  saved_col ;
+	int8_t  is_saved ;
+	
+} ml_cursor_t ;
+
 typedef struct  ml_model
 {
 	/* private */
@@ -48,9 +65,13 @@ u_int  ml_model_break_boundary( ml_model_t *  model , u_int  size) ;
 
 u_int  ml_model_shrink_boundary( ml_model_t *  model , u_int  size) ;
 
+u_int  ml_model_assure_boundary( ml_model_t *  model , int  row) ;
+
 int  ml_model_scroll_upward( ml_model_t *  model , u_int  size) ;
 
 int  ml_model_scroll_downward( ml_model_t *  model , u_int  size) ;
+
+void  ml_model_dump( ml_model_t *  model) ;
 
 
 #endif
