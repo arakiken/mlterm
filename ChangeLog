@@ -1,5 +1,13 @@
 2004-10-24 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* 2.9.0 released.
+	  (tag "rel-2_9_0)
+
+	* configure.in, mlterm.spec, xwindow/version.h.in, doc/en/ReleaseNote:
+	  updated.
+
+2004-10-24 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* xwindow/x_window.h (x_window_t):
 	  added following dummy members to keep the size of x_winodw_t.
 	  - void *  xft_draw; (used if USE_TYPE_XFT is undefined)

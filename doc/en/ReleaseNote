@@ -1,4 +1,45 @@
-ver 2.8.0(rc1)
+ver 2.9.0
+* Improvement of borderless mode using _MOTIF_WM_HINTS [minami]
+* Fixed a selection bug with KDE klipper. [minami]
+* GTK+2 migration in mlconfig/mlterm-menu [minami]
+* New option '--type' to select the rendering engine for drawing fonts [karaki]
+* Fixed a bug when moving cursor to out of the screen. [minami]
+* Fixed a bug in mod_meta_mode = 8bit. [minami]
+* Fixed a bug that crashed mlterm by changing font size [minami]
+* Fixed a bug in stream pty on 64bit arch. (Debian BTS #226654) [minami]
+* Fixed a bug of 'mlclient -e' [MURANO Naoki <nao@futurex.org>]
+* mlconfig lists scrollbars in user's configuration directory and system
+  directory. [kubota]
+* New external tool 'mlterm-zoom' [kzys]
+* Update man [kubota, mfabian, minami, seiichi]
+* Fixed a bug that crashed mlterm when invalid value was specified with
+  --fsrange option [mfabian]
+* Fixed a bug that crashed mlterm when resizing a window over and over.
+  [seiichi]
+* Verbose message for devpts problem of Linux (Debian BTS #257765) [seiichi]
+* Fixed a bug with DEC special character in using xft. [minami]
+* Fixed a bug in selecting ISCII text. [karaki]
+* Support uim. (Experimental) [seiichi]
+* Support IIIMF. (Experimental) [seiichi]
+* Support input method of m17n-lib. (Experimental) [seiichi]
+* Support INCR type transfer of ICCM selection protocol. (Debian BTS #248087)
+  [minami]
+* Fixed incorrect mapping for KOI8-U <-> UCS4. (Debian BTS #267631)
+  [Eugeniy Meshcheryakov <eugen@univ.kiev.ua>]
+* A lot of improvements for terminfo [minami]
+* Fixes for strange behavior of VT emulation [minami, seiichi]
+* Fixed a bug that XIM could not be used with multiple displays. [seiichi]
+* Fixed a bug that the preedit area of XIM became invisible in the maximized
+  window. [seiichi]
+* Cleanups and refactorings for ml_* APIs [karaki]
+
+ver 2.8.0p1
+* New '--borderless' option [karaki]
+* After options saved by 5382 or 5383 protocol, new terminals start
+  with the new options. [karaki]
+* New configuration protocol 'snapshot' [karaki]
+
+ver 2.8.0
 * Added contrib/scrollbar/pixmap_engine, which eases adding your original scrollbars
   to mlterm.
 * Shrunk used memory if many font names specified in ~/.mlterm/*font files.

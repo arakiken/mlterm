@@ -535,7 +535,7 @@ AC_SUBST(OUTPUT_FILES)
 AC_SUBST(PLATFORM_LIB_LDFLAGS)
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,2.8.0)
+AM_INIT_AUTOMAKE(mlterm,2.9.0)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)
