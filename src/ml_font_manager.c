@@ -759,7 +759,7 @@ ml_line_bottom_margin(
 	ml_font_manager_t *  font_man
 	)
 {
-	return  font_man->line_space / 2 ;
+	return  font_man->line_space / 2 + font_man->line_space % 2 ;
 }
 
 int

@@ -12,6 +12,8 @@ AC_SUBST(SRC_TOPDIR)
 AC_CONFIG_AUX_DIR(${top_srcdir-$srcdir})
 
 AC_PROG_CC
+# if --with-libtool is specified, cpp isn't detected.
+AC_PROG_CPP
 AC_PROG_INSTALL
 
 AC_ARG_WITH(libtool,
@@ -24,6 +26,9 @@ else
 	LIBTOOL='${BUILD_TOPDIR}/autoconf/libtool'
 fi
 AC_SUBST(LIBTOOL)
+
+# if --with-libtool is specified, stdc header isn't detected.
+AC_HEADER_STDC
 
 AC_CONFIG_HEADER(../src/kik_config.h) 
 
