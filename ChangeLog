@@ -1,3 +1,11 @@
+[20020416]
+* scrolling downward over the lowest filled line fails. fixed.
+* arabic combined characters are processed as the one which occupies one
+  column, not two.
+* -J/--dyncomb, use_dynamic_comb option is added.
+* "-- INSERT (lang) --" message can be shown in a strange line on vim. fixed.
+  (Thanks to Nadim Shaikli)
+
 [20020315]
 * some bugs in man/mlterm.1 are fixed. (Thanks to Nadim Shaikli)
 * arabic shaping errors are fixed. (Thanks to Nadim Shaikli)
