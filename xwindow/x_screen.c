@@ -3501,7 +3501,7 @@ selecting_with_motion(
 		
 		y = 0 ;
 	}
-	else if( y > screen->window.height - x_line_height( screen))
+	else if( y > screen->window.height)
 	{
 		if( ml_term_is_backscrolling( screen->term))
 		{
