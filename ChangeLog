@@ -1,10 +1,14 @@
 2002-09-06  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
+	* Added mlterm.ti and  mlterm.tc under doc/term/ .
+
+2002-09-06  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
 	* Mlterm's default behabior is changed as following
 	 - mod_meta_mode is 8bit
 	 - kD (sequence for DELETE) is \E[3~
 	 - kb (sequence for BS) is ^?
-	 - kH (sequence for HOME) is \EOH
+	 - kh (sequence for HOME) is \EOH
 	 - @7 (sequence for END) is \EOF
 
 2002-09-05 Araki Ken <arakiken@users.sf.net>
