@@ -145,6 +145,7 @@ char * mlterm_get_param(const char * key){
 	}
 	*result = 0; /* terminate */
 	result = strchr(_buffer, '=');
+	fprintf(stderr, "got %s=%s\n",key,result);
 	if (result){ /*XXX check key and error!!*/
 		if (*(result +1))
 			return result +1;
@@ -161,6 +162,7 @@ void mlterm_set_value(const char * key, int value){
 
 void mlterm_set_param(const char * key, char *value){
 	snprintf(_buffer, sizeof(_buffer), "]5379;%s=%s\007",key, value);
+	fprintf(stderr, "set %s=%s\n",key, value);
 	_csi(_buffer);
 }
 
@@ -353,94 +355,5 @@ int termios_init(){
 int termios_final(){
 	tcsetattr(0, TCSAFLUSH, &_oldtio);
 	return 0;
-}
-
-int string_edit(window_t *window, char *src, char **result){
-	int input;
-	int offset = 0;
-	int cur_pos = 0;
-	int width;
-	char buffer[256]; /*XXX*/
-	char *work;
-	int flag = 1;
-
-	width = window_width(window);
-	work = malloc(width  *(sizeof(char) ));
-	strcpy(buffer, src);
-	cursor_show();	
-	while(1){
-		if (flag){
-			window_clear(window);
-			strncpy(work, buffer + offset, width -2);
-			window_addstr(window, 0, 0, work);
-			if (strlen(buffer) -offset < width -2){
-				memset(work, ' ', width - (strlen(buffer) -offset) -2);
-				work[width - (strlen(buffer) -offset) -2] = 0;
-				window_addstr(window, width - strlen(work) -2, 0, work);
-			}
-			set_cursor_pos(window, cur_pos - offset, 1);
-			flush_stdout();
-			flag = 0;
-		}
-		
-		input = read_one();
-		switch(input){
-		case 8: /* BS */
-			if(cur_pos > 1){
-				memmove(buffer + cur_pos -2, buffer + cur_pos-1 , strlen(buffer) - cur_pos+2);
-				cur_pos --;
-			}
-			flag = 1;
-			break;
-		case 10: /* ret */
-			*result = buffer;
-			cursor_hide();
-  			return 1;
-		case KEY_ESC:
-			cursor_hide();
-			free(work);
-			return 0; /* discard */
-		case KEY_DOWN:
-		case KEY_RIGHT:
-			if (cur_pos > strlen(buffer))
-				break;
-			cur_pos++;
-			flag = 1;
-			if (cur_pos > offset + width -2)
-				offset++;
-			break;
-		case KEY_UP:
-		case KEY_LEFT:
-			if (cur_pos <= 0)
-				break;
-			cur_pos--;
-			flag = 1;
-			if ( cur_pos < offset)
-				offset--;
-			break;
-		case 127: /* DEL */
-			if ((cur_pos >0) && (cur_pos <= strlen(buffer)))
-				memmove(buffer + cur_pos -1, buffer + cur_pos , strlen(buffer) - cur_pos +2);
-			flag = 1;
-			break;			
-		case -1: /* ignore */
-			break;			
-		default:/*discard non-printable chars?*/
-			if (cur_pos > 0){
-				memmove(buffer + cur_pos , buffer + cur_pos -1, strlen(buffer) - cur_pos +2);
-				buffer[cur_pos -1] = input;
-			}else{
-				memmove(buffer +1 , buffer , strlen(buffer) +2);
-				buffer[0] = input;
-			}
-			cur_pos ++;
-			if (cur_pos > offset + width -2)
-				offset++;
-			flag = 1;
-		}
-	}
-	cursor_hide();
-	free(work);
-	
 }
 
