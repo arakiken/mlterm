@@ -4,7 +4,6 @@
  */
 
 #include <math.h>                        /* pow */
-//#include <sys/time.h>                    /* gettimeofdy */
 #include <X11/Xatom.h>                   /* XInternAtom */
 #include <string.h>                      /* memcpy */
 #include <gdk-pixbuf/gdk-pixbuf.h>
@@ -17,7 +16,7 @@
 
 /** Pixmap cache per display. */
 typedef struct display_store_tag {
-	Display *display; /**<Display (primary key)*/
+	Display *display; /**<Display */
 	Pixmap root;      /**<Root pixmap !!! NOT owned by mlterm !!!*/
 	Pixmap cooked;    /**<Background pixmap cache*/
 	x_picture_modifier_t  pic_mod; /**<modification applied to "cooked"*/
@@ -50,14 +49,14 @@ root_pixmap(
 	u_long bytes_after;
 	u_char * prop;
 			
-	id = XInternAtom( win->display , "_XROOTPMAP_ID" , True);
+	id = XInternAtom( win->display, "_XROOTPMAP_ID", True);
 
 	if(!id)
 		return None;
 
-	if( XGetWindowProperty( win->display , DefaultRootWindow(win->display) , id , 0 , 1 ,
-				False , XA_PIXMAP , &id , &act_format ,
-				&nitems , &bytes_after , &prop) == Success)
+	if( XGetWindowProperty( win->display, DefaultRootWindow(win->display), id, 0, 1,
+				False, XA_PIXMAP, &id, &act_format,
+				&nitems, &bytes_after, &prop) == Success)
 	{
 		if( prop){
 			Pixmap root;
@@ -204,7 +203,7 @@ pixbuf_to_pixmap_16t(
 	data = (u_int16_t *)malloc( width * height * sizeof(long));
 	if( !data)
 		return;
-	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display , screen));
+	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen));
 	if (!vinfo.visualid){
 		free( data);
 		return;
@@ -214,7 +213,7 @@ pixbuf_to_pixmap_16t(
 		free( data);
 		return;
 	}
-	image = XCreateImage( display, DefaultVisual( display , screen),
+	image = XCreateImage( display, DefaultVisual( display, screen),
 			      DefaultDepth( display, screen), ZPixmap, 0,
 			      (char *)data,
 			      gdk_pixbuf_get_width( pixbuf),
@@ -278,7 +277,7 @@ pixbuf_to_pixmap_24t(
 	data = (u_int32_t *)malloc( width * height * sizeof(long) );
 	if( !data)
 		return;
-	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display , screen));
+	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen));
 	if (!vinfo.visualid){
 		free( data);
 		return;
@@ -288,12 +287,12 @@ pixbuf_to_pixmap_24t(
 		free( data);
 		return;
 	}
-	image = XCreateImage( display, DefaultVisual( display , screen),
+	image = XCreateImage( display, DefaultVisual( display, screen),
 			      DefaultDepth( display, screen), ZPixmap, 0,
 			      (char *)data,
 			      gdk_pixbuf_get_width( pixbuf),
 			      gdk_pixbuf_get_height( pixbuf),
-			      32 ,
+			      32,
 			      gdk_pixbuf_get_width( pixbuf) * 4);
 	r_offset = lsb( vinfolist[0].red_mask);
 	g_offset = lsb( vinfolist[0].green_mask);
@@ -319,10 +318,10 @@ static void
 pixbuf_to_pixmap(
 	Display * display,
 	int screen,
-	GdkPixbuf * pixbuf ,
+	GdkPixbuf * pixbuf,
 	Pixmap pixmap){
 
-	switch (DefaultDepth( display , screen)){
+	switch (DefaultDepth( display, screen)){
 		
 	case 1:
 		/* XXX not yet supported */
@@ -335,7 +334,7 @@ pixbuf_to_pixmap(
 		pixbuf_to_pixmap_16t(
 			display,
 			screen,
-			pixbuf ,
+			pixbuf,
 			pixmap);
 		break;
 	case 24:
@@ -344,7 +343,7 @@ pixbuf_to_pixmap(
 		pixbuf_to_pixmap_24t(
 			display,
 			screen,
-			pixbuf ,
+			pixbuf,
 			pixmap);
 		break;
 	default:
@@ -379,7 +378,7 @@ compose_to_pixmap_16t(
 	height = gdk_pixbuf_get_height (pixbuf);
 
 
-	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display , screen));
+	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen));
 	if (!vinfo.visualid)
 		return;       
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched);
@@ -405,9 +404,9 @@ compose_to_pixmap_16t(
 			r = ((((u_int32_t *)image->data)[ i*width + j]) & r_mask ) >>r_offset;
 			g = ((((u_int32_t *)image->data)[ i*width + j]) & g_mask ) >>g_offset;
 			b = ((((u_int32_t *)image->data)[ i*width + j]) & b_mask ) >>b_offset;
-			r = (r*(255 - pixel[3]) + (pixel[0] * pixel[3])>>r_limit)/255;
-			g = (g*(255 - pixel[3]) + (pixel[1] * pixel[3])>>g_limit)/255;
-			b = (b*(255 - pixel[3]) + (pixel[2] * pixel[3])>>b_limit)/255;
+			r = (r*(256 - pixel[3]) + ((pixel[0] * pixel[3])>>r_limit))>>8;
+			g = (g*(256 - pixel[3]) + ((pixel[1] * pixel[3])>>g_limit))>>8;
+			b = (b*(256 - pixel[3]) + ((pixel[2] * pixel[3])>>b_limit))>>8;
 			((u_int32_t *)image->data)[i*width +j ] = 
 				((r <<r_offset ) & r_mask) |
 				((g <<g_offset ) & g_mask) |
@@ -450,7 +449,7 @@ compose_to_pixmap_24t(
 	height = gdk_pixbuf_get_height (pixbuf);
 
 
-	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display , screen));
+	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen));
 	if (!vinfo.visualid)
 		return;       
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched);
@@ -496,10 +495,10 @@ static void
 compose_to_pixmap(
 	Display * display,
 	int screen,
-	GdkPixbuf * pixbuf ,
+	GdkPixbuf * pixbuf,
 	Pixmap pixmap){
 
-	switch (DefaultDepth( display , screen)){
+	switch (DefaultDepth( display, screen)){
 		
 	case 1:
 		/* XXX not yet supported */
@@ -509,6 +508,11 @@ compose_to_pixmap(
 		break;
 	case 15:
 	case 16:
+		compose_to_pixmap_16t(
+			display,
+			screen,
+			pixbuf,
+			pixmap);
 		break;
 	case 24:
 		/*FALL THROUGH*/
@@ -516,7 +520,7 @@ compose_to_pixmap(
 		compose_to_pixmap_24t(
 			display,
 			screen,
-			pixbuf ,
+			pixbuf,
 			pixmap);
 		break;
 	default:
@@ -695,7 +699,7 @@ modify_pixmap( Display * display, int screen, Pixmap pixmap, x_picture_modifier_
 
 	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap);
 
-	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display , screen));
+	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen));
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched);
 
 	r_mask = vinfolist[0].red_mask;
@@ -837,10 +841,10 @@ x_imagelib_display_closed( Display * display){
  *\return Pixmap to be used as a window's background.
  */
 Pixmap
-x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_picture_modifier_t * pic_mod){
+x_imagelib_load_file_for_background( x_window_t * win, char * file_path, x_picture_modifier_t * pic_mod){
 	GdkPixbuf * pixbuf;
 	Pixmap pixmap;
-	GC gc;
+
 	if(!file_path)
 		return None;
 	if( wp_cache_name && (strcmp( wp_cache_name, file_path) == 0) && wp_cache_data ){		
@@ -859,7 +863,7 @@ x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_pic
 			wp_cache_name = NULL;
 		}
 #ifndef OLD_GDK_PIXBUF
-		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path , NULL )) == NULL)
+		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path, NULL )) == NULL)
 			return None;
 #else
 		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path )) == NULL)
@@ -874,11 +878,11 @@ x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_pic
 	
 	pixmap = XCreatePixmap( win->display, win->my_window,
 				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
-				DefaultDepth( win->display , win->screen));		
+				DefaultDepth( win->display, win->screen));		
 
 	if (wp_cache_width != ACTUAL_WIDTH(win) || ACTUAL_HEIGHT(win) != wp_cache_height){
 		/* it's new pixbuf */
-		pixbuf = gdk_pixbuf_scale_simple(pixbuf, ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+		pixbuf = gdk_pixbuf_scale_simple(pixbuf, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
 						 GDK_INTERP_TILES); /* use one of _NEAREST, _TILES, _BILINEAR, _HYPER (speed<->quality) */
 		
 		if( pic_mod)
@@ -891,7 +895,7 @@ x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_pic
 		pixbuf = wp_cache_scaled;
 	
 	if( gdk_pixbuf_get_has_alpha ( pixbuf) ){
-		pixmap = x_imagelib_get_transparent_background( win , NULL);
+		pixmap = x_imagelib_get_transparent_background( win, NULL);
 		compose_to_pixmap( win->display,
 				   win->screen,
 				   pixbuf,
@@ -912,7 +916,7 @@ x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_pic
  */
 int
 x_imagelib_root_pixmap_available( Display * display){
-	if( XInternAtom( display , "_XROOTPMAP_ID" , True))
+	if( XInternAtom( display, "_XROOTPMAP_ID", True))
 		return 1;
 	return 0;
 }
@@ -924,15 +928,13 @@ x_imagelib_root_pixmap_available( Display * display){
  *\return Newly allocated Pixmap (or None in the case of failure)
  */
 Pixmap
-x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t * pic_mod){
+x_imagelib_get_transparent_background( x_window_t * win, x_picture_modifier_t * pic_mod){
 	int x;
 	int y;
 	int pix_x;
 	int pix_y;
 	u_int width;
 	u_int height;
-	Window src;
-	Atom id;
 	display_store_t * cache;
 	Pixmap pixmap;
 	Pixmap current_root;
@@ -964,20 +966,20 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 	if (cache->root == None)
 		return None;
 
-	if( ! x_window_get_visible_geometry( win , &x , &y , &pix_x , &pix_y , &width , &height))
+	if( ! x_window_get_visible_geometry( win, &x, &y, &pix_x, &pix_y, &width, &height))
 		return None;
 
 
-	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-				DefaultDepth( win->display , win->screen));
+	pixmap = XCreatePixmap( win->display, win->my_window, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
+				DefaultDepth( win->display, win->screen));
 
 	gc = XCreateGC( win->display, win->my_window, 0, 0 );	
 	if (pic_mod){
 		if ( cache->cooked == None ){
-			cache->cooked = XCreatePixmap( win->display , win->my_window ,
-						       DisplayWidth( win->display, win->screen) ,
+			cache->cooked = XCreatePixmap( win->display, win->my_window,
+						       DisplayWidth( win->display, win->screen),
 						       DisplayHeight( win->display, win->screen),
-						       DefaultDepth( win->display , win->screen));
+						       DefaultDepth( win->display, win->screen));
 		}
 		if ( !is_picmod_eq( &(cache->pic_mod), pic_mod)){
 			memcpy( &(cache->pic_mod), pic_mod, sizeof(x_picture_modifier_t));
@@ -985,18 +987,18 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 			XSetTSOrigin( win->display, gc, 0, 0) ;
 			XSetFillStyle( win->display, gc, FillTiled) ;
 			XFillRectangle( win->display, cache->cooked, gc, 0, 0, 
-					DisplayWidth( win->display, win->screen) ,
+					DisplayWidth( win->display, win->screen),
 					DisplayHeight( win->display, win->screen)) ;
-			modify_pixmap( win->display, win->screen, cache->cooked , pic_mod);
+			modify_pixmap( win->display, win->screen, cache->cooked, pic_mod);
 		}
-		XCopyArea( win->display, cache->cooked, pixmap, gc, x, y, width , height, pix_x, pix_y);
+		XCopyArea( win->display, cache->cooked, pixmap, gc, x, y, width, height, pix_x, pix_y);
 	}else{
 		XSetTile( win->display, gc, cache->root) ;
 		XSetTSOrigin( win->display, gc, -x+pix_x, -y +pix_y) ;
 		XSetFillStyle( win->display, gc, FillTiled) ;
 		XFillRectangle( win->display, pixmap, gc, 0, 0, width +pix_x, height+pix_y) ;
 	}
-	XFreeGC( win->display , gc ) ;
+	XFreeGC( win->display, gc ) ;
 	return pixmap;
 }
 
@@ -1017,9 +1019,9 @@ int x_imagelib_load_file(
 	Pixmap *mask)
 {
 	GdkPixbuf * pixbuf;
-	int width, height, rowstride, bytes_per_pixel;
+	int width, height, rowstride;
 #ifndef OLD_GDK_PIXBUF
-	pixbuf = gdk_pixbuf_new_from_file( path , NULL );
+	pixbuf = gdk_pixbuf_new_from_file( path, NULL );
 #else
 	pixbuf = gdk_pixbuf_new_from_file( path );
 #endif /*OLD_GDK_PIXBUF*/
@@ -1034,7 +1036,6 @@ int x_imagelib_load_file(
 		int i, j;
 
 /* create CARDINAL array for_NET_WM_ICON data */
-		bytes_per_pixel = gdk_pixbuf_get_has_alpha (pixbuf) ? 4 : 3;
 		rowstride = gdk_pixbuf_get_rowstride (pixbuf);
 		line = gdk_pixbuf_get_pixels (pixbuf);
 		*cardinal = malloc((width * height + 2) *4);
@@ -1044,35 +1045,36 @@ int x_imagelib_load_file(
 /* {width, height, ARGB[][]} */
 		(*cardinal)[0] = width;
 		(*cardinal)[1] = height;
-		if (bytes_per_pixel == 4){ /* alpha support (convert to ARGB format)*/
+		if ( gdk_pixbuf_get_has_alpha (pixbuf)){ /* alpha support (convert to ARGB format)*/
 			for (i = 0; i < height; i++) {
 				pixel = line;
-				line += rowstride;
-				
+				line += rowstride;				
 				for (j = 0; j < width; j++) {
-					(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(pixel[3]) << 8) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
-					pixel += bytes_per_pixel;
+					(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(pixel[3]) << 8) 
+									 + pixel[0]) << 8) 
+								       + pixel[1]) << 8) + pixel[2];
+					pixel += 4;
 				}
 			}
 		}else{
 			for (i = 0; i < height; i++) {
 				pixel = line;
-				line += rowstride;
-				
+				line += rowstride;				
 				for (j = 0; j < width; j++) {
-					(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8 ) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
-					pixel += bytes_per_pixel;
+					(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8 )
+									 + pixel[0]) << 8) 
+								       + pixel[1]) << 8) + pixel[2];
+					pixel += 3;
 				}
 			}
 		}
 	}
 /* Create Icon pixmap&mask for WMHints. None as result is acceptable.*/
 	if (pixmap && mask){
-		*pixmap = XCreatePixmap( display , DefaultRootWindow( display) , width , height,
-					DefaultDepth( display , DefaultScreen( display)));
-		*mask = XCreatePixmap( display , DefaultRootWindow( display) , width, height,
-					1);
-		pixbuf_to_pixmap_and_mask( display , DefaultScreen( display), pixbuf, *pixmap, *mask);
+		*pixmap = XCreatePixmap( display, DefaultRootWindow( display), width, height,
+					DefaultDepth( display, DefaultScreen( display)));
+		*mask = XCreatePixmap( display, DefaultRootWindow( display), width, height, 1);
+		pixbuf_to_pixmap_and_mask( display, DefaultScreen( display), pixbuf, *pixmap, *mask);
 	}
 
 	gdk_pixbuf_unref(pixbuf);
