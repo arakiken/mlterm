@@ -619,7 +619,6 @@ candidates_changed(
 	if( m17nlib->im.cand_screen == NULL)
 	{
 		int  is_vertical_direction = 0 ;
-		u_int  line_height ;
 
 		if( strcmp( msymbol_name( m17nlib->input_method->name) , "anthy") == 0)
 		{
@@ -985,7 +984,6 @@ im_m17nlib_new(
 	)
 {
 	im_m17nlib_t *  m17nlib ;
-	MInputMethod *  input_method ;
 	char *  encoding_name ;
 	MSymbol  encoding_sym ;
 
