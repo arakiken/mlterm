@@ -1,5 +1,5 @@
 /** @file
- *  @brief image handring functions using gdk-pixbuf
+ *  @brief image handling functions using gdk-pixbuf
  *	$Id$
  */
 
@@ -10,7 +10,6 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
 #include <kiklib/kik_types.h> /* u_int32_t/u_int16_t */
-#define CARDINAL u_int32_t
 #include <kiklib/kik_unistd.h>
 #include <kiklib/kik_str.h>    /* strdup */
 
@@ -19,10 +18,10 @@
 /** Pixmap cache per display. */
 typedef struct display_store_tag {
 	Display *display; /**<Display (primary key)*/
-	Pixmap root;      /**<Root pixmap !NOT owned by mlterm!*/
+	Pixmap root;      /**<Root pixmap !!! NOT owned by mlterm !!!*/
 	Pixmap cooked;    /**<Background pixmap cache*/
 	x_picture_modifier_t  pic_mod; /**<modification applied to "cooked"*/
-	struct timeval tval; /**<The time cache when cache was created*/
+	struct timeval tval; /**<The time when this cache entry was created*/
 	struct display_store_tag *next;
 } display_store_t;
 
@@ -35,7 +34,9 @@ static display_store_t * display_store = NULL;
 /* --- static functions --- */
 
 /**Remove a cache for the display
- *\param display The display to remove cache.
+ *
+ *\param display The display to be removed from cache.
+ *
  */
 static void
 cache_delete(Display * display){
@@ -66,7 +67,7 @@ cache_delete(Display * display){
 	}
 }
 
-/**judge whether pic_mod is quale or not
+/**judge whether pic_mod is equal or not
  *\param a,b picture modifier
  *\return 1 when they are same. 0 when not.
  */
@@ -80,9 +81,10 @@ is_picmod_eq(
 	return 0;
 }
 
-/**Return position of lowse high bit
- *\param val
- *\return 
+/**Return position of least significant bit
+ *
+ *\param val value to count
+ *
  */
 static int
 lsb(
@@ -96,6 +98,11 @@ lsb(
 	return nth;
 }
 
+/**Return position of most significant bit
+ *
+ *\param val value to count
+ *
+ */
 static int
 msb(
 	unsigned int val){
@@ -110,6 +117,14 @@ msb(
 
 
 static void
+/**convert pixbuf into depth 16 pixmap
+ *
+ *\param display
+ *\param screen
+ *\param pixbuf source
+ *\param pixmap where image is rendered(should be created before calling this function)
+ *
+ */
 pixbuf_to_pixmap_16t(
 	Display * display,
 	int screen,
@@ -136,11 +151,9 @@ pixbuf_to_pixmap_16t(
 	width = gdk_pixbuf_get_width (pixbuf);
 	height = gdk_pixbuf_get_height (pixbuf);
 
-
 	data = (u_int16_t *)malloc( width * height * sizeof(long));
 	if( !data)
 		return;
-
 	image = XCreateImage( display, DefaultVisual( display , screen),
 			      DefaultDepth( display, screen), ZPixmap, 0,
 			      (char *)data,
@@ -264,10 +277,10 @@ pixbuf_to_pixmap(
 	switch (DefaultDepth( display , screen)){
 		
 	case 1:
-		/* XXX not yet suported */
+		/* XXX not yet supported */
 		break;
 	case 8:
-		/* XXX not yet suported */
+		/* XXX not yet supported */
 		break;
 	case 15:
 	case 16:
@@ -357,7 +370,7 @@ gamma_cache_refresh(int gamma){
 	if( gamma == gamma_cache[256])
 		return;
 	memset(gamma_cache, 0, sizeof(gamma_cache));
-	gamma_cache[256] = gamma %256; /* corrision will never happen actually */
+	gamma_cache[256] = gamma %256; /* corride will never happen actually */
 	
 	real_gamma = (double)gamma / 100;
 	i = 128;
@@ -477,10 +490,10 @@ modify_pixmap( Display * display, int screen, Pixmap pixmap, x_picture_modifier_
 	XFree(vinfolist);
 	switch( depth){
 	case 1:
-		/* XXX not yet suported */
+		/* XXX not yet supported */
 		break;
 	case 8:
-		/* XXX not yet suported */
+		/* XXX not yet supported */
 		break;
 	case 15:
 	case 16:
@@ -522,8 +535,8 @@ modify_pixmap( Display * display, int screen, Pixmap pixmap, x_picture_modifier_
 				}
 			}
 		}
-		XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
-			   width, height);
+		XPutImage( display, pixmap, DefaultGC( display, screen),
+			   image, 0, 0, 0, 0, width, height);
 		break;
 	case 24:
 	case 32:
@@ -595,6 +608,13 @@ x_imagelib_display_closed( Display * display){
 	return 1;
 }
 
+/** Load an image from the specified file. 
+ *\param win mlterm window.
+ *\param path File full path.
+ *\param pic_mod picture modifier.
+ *
+ *\return Pixmap to be used as a window's background.
+ */
 Pixmap
 x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_picture_modifier_t * pic_mod){
 	GdkPixbuf * pixbuf;
@@ -633,7 +653,7 @@ x_imagelib_load_file_for_background( x_window_t * win , char * file_path , x_pic
 	return pixmap;
 }
 
-/** Answer whether pseudo transparency is avilable
+/** Answer whether pseudo transparency is available
  *\param display connection to X server.
  * 
  *\return Success => 1, Failure => 0
@@ -693,7 +713,7 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 	gettimeofday(&tval, &tz);
 	if ( (tval.tv_sec - cache->tval.tv_sec) > 500){
 		if (cache->root != None)
-			cache->root = None; /* pixmap should not be freed. (not owened by mlterm)*/
+			cache->root = None; /* pixmap should not be freed. (not owned by mlterm)*/
 		if (cache->cooked != None){
 			XFreePixmap( win->display, cache->cooked);
 			cache->cooked = None;
@@ -703,7 +723,7 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 	if( ! x_window_get_visible_geometry( win , &x , &y , &pix_x , &pix_y , &width , &height))
 		return None;
 	if (cache->root == None){
-		/* Get bakckground pixmap from _XROOTMAP_ID */
+		/* Get background pixmap from _XROOTMAP_ID */
 		id = XInternAtom( win->display , "_XROOTPMAP_ID" , True);
 		if( id){
 			Atom act_type;
@@ -743,8 +763,6 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 				   0, 0);
 			modify_pixmap( win->display, win->screen, cache->cooked , pic_mod);
 		}
-
-
 		XCopyArea( win->display, cache->cooked, pixmap, gc, x, y, width , height, pix_x, pix_y);
 	}else{
 		XCopyArea( win->display, cache->root, pixmap, gc, x, y, width , height, pix_x, pix_y);
@@ -753,12 +771,12 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 	return pixmap;
 }
 
-/** Load an image from the specified file. 
+/** Load an image from the specified file with alpha plane and returns as pixmap and mask.
  *\param display connection to X server.
  *\param path File full path.
- *\param cardinal Returns pointer to a data structur for the extended WM hint spec.
+ *\param cardinal Returns pointer to a data structure for the extended WM hint spec.
  *\param pixmap Returns image pixmap for the old WM hint.
- *\param mask Returns mask bitmap for the old WM hint.
+ *\param mask Returns mask bitmap for the old WM hint. */
  * 
  *\return Success => 1, Failure => 0
  */
@@ -803,7 +821,7 @@ int x_imagelib_load_file(
 				line += rowstride;
 				
 				for (j = 0; j < width; j++) {
-					(*cardinal)[(i*width+j)+2] = ((((((CARDINAL)(pixel[3]) << 8) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
+					(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(pixel[3]) << 8) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
 					pixel += bytes_per_pixel;
 				}
 			}
@@ -813,7 +831,7 @@ int x_imagelib_load_file(
 				line += rowstride;
 				
 				for (j = 0; j < width; j++) {
-					(*cardinal)[(i*width+j)+2] = ((((((CARDINAL)(0x0000FF) <<8 ) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
+					(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8 ) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
 					pixel += bytes_per_pixel;
 				}
 			}
