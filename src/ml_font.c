@@ -510,7 +510,7 @@ set_xft_font(
 		{
 			if( col_width == 0)
 			{
-				if( percent_str == NULL || ! kik_str_to_int( &percent , percent_str) ||
+				if( percent_str == NULL || ! kik_str_to_uint( &percent , percent_str) ||
 					percent == 0)
 				{
 					/* basic font (e.g. usascii) width */
@@ -768,7 +768,7 @@ ml_font_set_xfont(
 
 			if( ( xfont = XLoadQueryFont( font->display , font_xlfd)))
 			{
-				if( percent_str == NULL || ! kik_str_to_int( &percent , percent_str))
+				if( percent_str == NULL || ! kik_str_to_uint( &percent , percent_str))
 				{
 					percent = 0 ;
 				}

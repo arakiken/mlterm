@@ -63,9 +63,9 @@ mc_get_tabsize(void)
 {
 	u_int  tabsize ;
 	
-	if( ! kik_str_to_int( &tabsize , selected_tabsize))
+	if( ! kik_str_to_uint( &tabsize , selected_tabsize))
 	{
-		kik_str_to_int( &tabsize , tabsizes[0]) ;
+		kik_str_to_uint( &tabsize , tabsizes[0]) ;
 	}
 	
 	return  tabsize ;

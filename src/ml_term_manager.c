@@ -61,16 +61,16 @@ get_font_size_range(
 		return  0 ;
 	}
 
-	if( ! kik_str_to_int( min , p))
+	if( ! kik_str_to_uint( min , p))
 	{
-		kik_msg_printf( "min font size %s is not digit.\n" , p) ;
+		kik_msg_printf( "min font size %s is not valid.\n" , p) ;
 
 		return  0 ;
 	}
 
-	if( ! kik_str_to_int( max , str_p))
+	if( ! kik_str_to_uint( max , str_p))
 	{
-		kik_msg_printf( "max font size %s is not digit.\n" , str_p) ;
+		kik_msg_printf( "max font size %s is not valid.\n" , str_p) ;
 
 		return  0 ;
 	}
@@ -939,13 +939,13 @@ ml_term_manager_init(
 	{
 		u_int  size ;
 		
-		if( kik_str_to_int( &size , value))
+		if( kik_str_to_uint( &size , value))
 		{
 			term_man->step_in_changing_font_size = size ;
 		}
 		else
 		{
-			kik_msg_printf( "font larger smaller size %s is not digit.\n" , value) ;
+			kik_msg_printf( "font larger smaller size %s is not valid.\n" , value) ;
 		}
 	}
 
@@ -1073,9 +1073,13 @@ ml_term_manager_init(
 	{
 		u_int  fade_ratio ;
 		
-		if( kik_str_to_int( &fade_ratio , value))
+		if( kik_str_to_uint( &fade_ratio , value))
 		{
 			term_man->fade_ratio = fade_ratio ;
+		}
+		else
+		{
+			kik_msg_printf( "fade ratio %s is not valid.\n" , value) ;
 		}
 	}
 
@@ -1217,14 +1221,18 @@ ml_term_manager_init(
 			term_man->rows = 30 ;
 		}
 	}
+	else
+	{
+		term_man->geom_hint = 0 ;
+	}
 
 	if( ( value = kik_conf_get_value( conf , "fontsize")) == NULL)
 	{
 		term_man->font_size = 16 ;
 	}
-	else if( ! kik_str_to_int( &term_man->font_size , value))
+	else if( ! kik_str_to_uint( &term_man->font_size , value))
 	{
-		kik_msg_printf( "font size %s is not digit.\n" , value) ;
+		kik_msg_printf( "font size %s is not valid.\n" , value) ;
 
 		/* default value is used. */
 		term_man->font_size = 16 ;
@@ -1249,9 +1257,9 @@ ml_term_manager_init(
 	{
 		term_man->num_of_log_lines = 128 ;
 	}
-	else if( ! kik_str_to_int( &term_man->num_of_log_lines , value))
+	else if( ! kik_str_to_uint( &term_man->num_of_log_lines , value))
 	{
-		kik_msg_printf( "log size %s is not digit.\n" , value) ;
+		kik_msg_printf( "log size %s is not valid.\n" , value) ;
 
 		/* default value is used. */
 		term_man->num_of_log_lines = 128 ;
@@ -1262,9 +1270,9 @@ ml_term_manager_init(
 		/* default value is used. */
 		term_man->tab_size = 8 ;
 	}
-	else if( ! kik_str_to_int( &term_man->tab_size , value))
+	else if( ! kik_str_to_uint( &term_man->tab_size , value))
 	{
-		kik_msg_printf( "tab size %s is not digit.\n" , value) ;
+		kik_msg_printf( "tab size %s is not valid.\n" , value) ;
 
 		/* default value is used. */
 		term_man->tab_size = 8 ;
@@ -1368,13 +1376,13 @@ ml_term_manager_init(
 	{
 		u_int  col_size_a ;
 		
-		if( kik_str_to_int( &col_size_a , value))
+		if( kik_str_to_uint( &col_size_a , value))
 		{
 			term_man->col_size_a = col_size_a ;
 		}
 		else
 		{
-			kik_msg_printf( "col size of width a %s is not digit.\n" , value) ;
+			kik_msg_printf( "col size of width a %s is not valid.\n" , value) ;
 		}
 	}
 
@@ -1479,9 +1487,9 @@ ml_term_manager_init(
 	{
 		u_int  ptys ;
 		
-		if( ! kik_str_to_int( &ptys , value))
+		if( ! kik_str_to_uint( &ptys , value))
 		{
-			kik_msg_printf( "ptys %s is not digit.\n" , value) ;
+			kik_msg_printf( "ptys %s is not valid.\n" , value) ;
 		}
 		else
 		{

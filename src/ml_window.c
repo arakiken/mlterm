@@ -2619,14 +2619,27 @@ ml_window_receive_event(
 	}
 	else if( event->type == SelectionRequest)
 	{
-		if( event->xselectionrequest.target == XA_STRING ||
-			event->xselectionrequest.target == xa_text ||
-			event->xselectionrequest.target == xa_compound_text)
+		if( event->xselectionrequest.target == XA_STRING)
 		{
 			if( win->xct_selection_requested)
 			{
 				(*win->xct_selection_requested)( win , &event->xselectionrequest ,
-					event->xselectionrequest.target) ;
+					event->xselectionrequest.target) ; 
+			}
+		}
+		else if( event->xselectionrequest.target == xa_text ||
+			event->xselectionrequest.target == xa_compound_text)
+		{
+			if( win->xct_selection_requested)
+			{
+				/*
+				 * kterm requests selection with "TEXT" atom , but
+				 * wants it to be sent back with "COMPOUND_TEXT" atom.
+				 * why ?
+				 */
+				 
+				(*win->xct_selection_requested)( win , &event->xselectionrequest ,
+					xa_compound_text) ; 
 			}
 		}
 		else if( event->xselectionrequest.target == xa_utf8_string)

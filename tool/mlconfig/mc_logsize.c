@@ -64,9 +64,9 @@ mc_get_logsize(void)
 {
 	u_int  logsize ;
 	
-	if( ! kik_str_to_int( &logsize , selected_logsize))
+	if( ! kik_str_to_uint( &logsize , selected_logsize))
 	{
-		kik_str_to_int( &logsize , logsizes[0]) ;
+		kik_str_to_uint( &logsize , logsizes[0]) ;
 	}
 	
 	return  logsize ;

@@ -182,10 +182,10 @@ comment $Id$
 
       o ENCODING       ... エンコーディングの指定(*auto*)
         サポートしているエンコーディング
-        ISO-8859-[1-11],ISO-8859-[13-16],TCVN5712,KOI8-R,KOI8-U,VISCII,
-        EUC-JP,EUC-JISX0213,ISO-2022-JP[1-3],Shift_JIS,Shift_JISX0213,
-        ISO-2022-KR,EUC-KR,UHC,JOHAB,GB2312(EUC-CN),GBK,ISO-2022-CN,BIG5,
-        BIG5HKSCS,EUC-TW,HZ,UTF8,GB18030,AUTO
+        ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11), KOI8-R,
+        KOI8-U, TCVN5712, VISCII, EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213, 
+        ISO-2022-JP[1-3], EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK,
+        GB18030, ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO
         '-' , '_' および、大文字小文字は無視されます。
 
         (注)

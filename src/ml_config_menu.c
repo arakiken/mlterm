@@ -138,19 +138,19 @@ sig_child(
 		}
 		
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_int( &tabsize , p))
+			! kik_str_to_uint( &tabsize , p))
 		{
 			goto  end ;
 		}
 		
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_int( &logsize , p))
+			! kik_str_to_uint( &logsize , p))
 		{
 			goto  end ;
 		}
 		
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_int( &fontsize , p))
+			! kik_str_to_uint( &fontsize , p))
 		{
 			goto  end ;
 		}
@@ -186,7 +186,7 @@ sig_child(
 		}
 
 		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_int( &fade_ratio , p))
+			! kik_str_to_uint( &fade_ratio , p))
 		{
 			goto  end ;
 		}

@@ -89,7 +89,7 @@ mc_get_fontsize(void)
 	u_int  fontsize ;
 	
 	/* this never fails */
-	if( ! kik_str_to_int( &fontsize , selected_fontsize))
+	if( ! kik_str_to_uint( &fontsize , selected_fontsize))
 	{
 		fontsize = 16 ;
 	}

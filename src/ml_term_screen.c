@@ -1856,7 +1856,7 @@ convert_selection_to_xct(
 		{
 			ml_char_dump( &termscr->sel.sel_str[i]) ;
 		}
-		fprintf( stderr , "\n -> converting to ->\n") ;
+		kik_msg_printf( "\n -> converting to ->\n") ;
 	}
 #endif
 
@@ -1874,9 +1874,9 @@ convert_selection_to_xct(
 		kik_debug_printf( KIK_DEBUG_TAG " sending xct str: ") ;
 		for( i = 0 ; i < filled_len ; i ++)
 		{
-			fprintf( stderr , "%.2x" , str[i]) ;
+			kik_msg_printf( "%.2x" , str[i]) ;
 		}
-		fprintf( stderr , "\n") ;
+		kik_msg_printf( "\n") ;
 	}
 #endif
 

@@ -248,17 +248,48 @@ kik_str_chop_spaces(
 }
 
 int
+kik_str_n_to_uint(
+	u_int *  i ,
+	char *  s ,
+	size_t  n
+	)
+{
+	u_int  _i ;
+	int  digit ;
+
+	if( n == 0)
+	{
+		return  0 ;
+	}
+
+	_i = 0 ;
+	for( digit = 0 ; digit < n && s[digit] ; digit ++)
+	{
+		if( ! isdigit( s[digit]))
+		{
+			return  0 ;
+		}
+
+		_i *= 10 ;
+		_i += (s[digit] - 0x30) ;
+	}
+
+	*i = _i ;
+	
+	return  1 ;
+}
+
+int
 kik_str_n_to_int(
 	int *  i ,
 	char *  s ,
 	size_t  n
 	)
 {
-	int  digit ;
-	int  _i ;
+	u_int  _i ;
 	int  is_minus ;
 
-	if( n == 0 || *s == '\0')
+	if( n == 0)
 	{
 		return  0 ;
 	}
@@ -278,27 +309,57 @@ kik_str_n_to_int(
 	{
 		is_minus = 0 ;
 	}
+
+	if( ! kik_str_n_to_uint( &_i , s , n))
+	{
+		return  0 ;
+	}
+	
+	if( (int)_i < 0)
+	{
+		return  0 ;
+	}
+
+	if( is_minus)
+	{
+		*i = -((int)_i) ;
+	}
+	else
+	{
+		*i = (int)_i ;
+	}
+
+	return  1 ;
+}
+
+int
+kik_str_to_uint(
+	u_int *  i ,
+	char *  s
+	)
+{
+	u_int  _i ;
+
+	if( *s == '\0')
+	{
+		return  0 ;
+	}
 	
 	_i = 0 ;
-	for( digit = 0 ; digit < n && s[digit] ; digit ++)
+	while( *s)
 	{
-		if( ! isdigit( s[digit]))
+		if( ! isdigit( *s))
 		{
 			return  0 ;
 		}
 
 		_i *= 10 ;
-		_i += (s[digit] - 0x30) ;
+		_i += (*s - 0x30) ;
+
+		s ++ ;
 	}
 
-	if( is_minus)
-	{
-		*i = -(_i) ;
-	}
-	else
-	{
-		*i = _i ;
-	}
+	*i = _i ;
 
 	return  1 ;
 }
@@ -309,7 +370,7 @@ kik_str_to_int(
 	char *  s
 	)
 {
-	int  _i ;
+	u_int  _i ;
 	int  is_minus ;
 
 	if( *s == '\0')
@@ -330,28 +391,24 @@ kik_str_to_int(
 	{
 		is_minus = 0 ;
 	}
-	
-	_i = 0 ;
-	while( *s)
+
+	if( ! kik_str_to_uint( &_i , s))
 	{
-		if( ! isdigit( *s))
-		{
-			return  0 ;
-		}
+		return  0 ;
+	}
 
-		_i *= 10 ;
-		_i += (*s - 0x30) ;
-
-		s ++ ;
+	if( (int)_i < 0)
+	{
+		return  0 ;
 	}
 
 	if( is_minus)
 	{
-		*i = -(_i) ;
+		*i = -((int)_i) ;
 	}
 	else
 	{
-		*i = _i ;
+		*i = (int)_i ;
 	}
 
 	return  1 ;

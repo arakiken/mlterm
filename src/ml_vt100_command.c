@@ -753,7 +753,7 @@ ml_vt100_cmd_set_config(
 	{
 		u_int  tab_size ;
 
-		if( ! kik_str_to_int( &tab_size , value))
+		if( ! kik_str_to_uint( &tab_size , value))
 		{
 			return  0 ;
 		}
@@ -767,7 +767,7 @@ ml_vt100_cmd_set_config(
 	{
 		u_int  log_size ;
 
-		if( ! kik_str_to_int( &log_size , value))
+		if( ! kik_str_to_uint( &log_size , value))
 		{
 			return  0 ;
 		}
@@ -797,7 +797,7 @@ ml_vt100_cmd_set_config(
 		}
 		else
 		{
-			if( ! kik_str_to_int( &font_size , value))
+			if( ! kik_str_to_uint( &font_size , value))
 			{
 				return  0 ;
 			}
@@ -894,7 +894,7 @@ ml_vt100_cmd_set_config(
 	{
 		u_int  fade_ratio ;
 
-		if( ! kik_str_to_int( &fade_ratio , value))
+		if( ! kik_str_to_uint( &fade_ratio , value))
 		{
 			return  0 ;
 		}

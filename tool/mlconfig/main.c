@@ -665,13 +665,13 @@ start_application(
 	}
 
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &min_fontsize , p))
+		! kik_str_to_uint( &min_fontsize , p))
 	{
 		return  0 ;
 	}
 
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &max_fontsize , p))
+		! kik_str_to_uint( &max_fontsize , p))
 	{
 		return  0 ;
 	}

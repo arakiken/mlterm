@@ -49,7 +49,11 @@ size_t  kik_str_tabify( u_char *  dst , size_t  dst_len ,
 
 char *  kik_str_chop_spaces( char *  str) ;
 
+int  kik_str_n_to_uint( u_int *  i , char *  s , size_t  n) ;
+
 int  kik_str_n_to_int( int *  i , char *  s , size_t  n) ;
+
+int  kik_str_to_uint( u_int *  i , char *  s) ;
 
 int  kik_str_to_int( int *  i , char *  s) ;
 

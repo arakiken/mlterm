@@ -282,9 +282,9 @@ ml_font_custom_read_conf(
 					continue ;
 				}
 				
-				if( ! kik_str_to_int( &size , size_str))
+				if( ! kik_str_to_uint( &size , size_str))
 				{
-					kik_msg_printf( "a font size %s is not digit.\n" , size_str) ;
+					kik_msg_printf( "a font size %s is not valid.\n" , size_str) ;
 
 					continue ;
 				}

@@ -70,9 +70,9 @@ mc_get_fade_ratio(void)
 {
 	u_int  fade_ratio ;
 	
-	if( ! kik_str_to_int( &fade_ratio , selected_fade_ratio))
+	if( ! kik_str_to_uint( &fade_ratio , selected_fade_ratio))
 	{
-		kik_str_to_int( &fade_ratio , fade_ratios[0]) ;
+		kik_str_to_uint( &fade_ratio , fade_ratios[0]) ;
 	}
 	
 	return  fade_ratio ;
