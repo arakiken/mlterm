@@ -4090,7 +4090,7 @@ change_font_size(
 	u_int  font_size
 	)
 {
-	if( font_size == screen->font_man->font_cache->font_size)
+	if( font_size == x_get_font_size( screen->font_man))
 	{
 		/* not changed */
 		
@@ -5412,7 +5412,7 @@ get_config(
 	}
 	else if( strcmp( key , "fontsize") == 0)
 	{
-		sprintf( digit , "%d" , screen->font_man->font_cache->font_size) ;
+		sprintf( digit , "%d" , x_get_font_size( screen->font_man)) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "line_space") == 0)
