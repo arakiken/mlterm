@@ -22,6 +22,20 @@
 
 
 /* --- static functuions --- */
+static int
+charset_name2code(
+	char *charset
+	)
+{
+/*	int i;
+	for( i = strlen(charset) -1 ; i > 0 ; i--)
+		charset[i] = (charset[i] > 'A')? charset[i]-'A'+'a':charset[i];
+	if( strcmp(charset, "utf-16le") ==0 )
+		return 0;
+
+*/
+	return 1;
+}
 
 static int
 is_pref(
@@ -138,9 +152,37 @@ x_dnd_parse(
 	unsigned char *src,
 	int len)
 {
+	char * atom_name;
+	char * charset;
+	int charset_code;
+
 	if(!src)
 		return 1 ;
+	if(!atom)
+		return 1;
 
+	atom_name = XGetAtomName( win->display, atom);
+
+	/* process charset directive */
+	if( charset = strchr( atom_name, ';'))
+	{
+		if(strncmp(charset+1, "charset", 7)
+		    || strncmp(charset+1, "CHARSET", 7))
+		{
+			/* remove charset=... and re-read atom */
+			*charset = 0 ;
+			charset = strchr( charset +1, '=') +1 ;
+			charset_code = charset_name2code( charset) ;
+			atom = XInternAtom( win->display, atom_name, False) ;
+			XFree( atom_name) ;
+			if( !atom)
+				return 1;
+		}
+	}
+	else
+		XFree(atom_name);
+	
+	    
 	/* COMPOUND_TEXT */
 	if( atom == XA_COMPOUND_TEXT(win->display))
 	{
@@ -294,18 +336,26 @@ x_dnd_preferable_atom(
 #ifdef  DEBUG
 	if( i)
 	{
-		kik_debug_printf( "accepted as atom: %s(%d)\n",
-				  XGetAtomName( win->display, atom[i]),
-				  atom[i]) ;
+		char *p;
+		p = XGetAtomName( win->display, atom[i]);
+		if( p)
+		{
+			kik_debug_printf( "accepted as atom: %s(%d)\n",
+					  p, atom[i]) ;
+			XFree( p);
+		}
 	}
 	else
 	{
+		char *p;
 		for( i = 0 ; i < num ; i++)
 			if( atom[i])
 			{
+				p = XGetAtomName( win->display, atom[i]);
 				kik_debug_printf("dropped atoms: %d\n",
 						 XGetAtomName( win->display,
 							       atom[i]) ) ;
+				XFree( p);
 			}
 	}
 #endif
