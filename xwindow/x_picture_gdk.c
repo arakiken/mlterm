@@ -207,7 +207,13 @@ x_picdep_display_opened( Display *  display){
 int
 x_picdep_display_closed( Display *  display){
 	display_count --;
-	icon_cache_remove_display(display); /* clean up pixmaps/cardinals */
+	icon_cache_remove_display( display); /* clean up pixmaps/cardinals */
+	if (display_count == 0){
+		free( icon_cache);
+		icon_cache = NULL;
+		cache_size = 0;
+	}
+
 	/* XXX
          *
          *  there's no way to free mamories alocated from gdk_pixbuf_xlib_init( display, 0 ).
