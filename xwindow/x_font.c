@@ -386,8 +386,34 @@ parse_xft_font_name(
 	 * [Font Family]-[Font Encoding](:[Percentage])
 	 */
 
-	if( ( *font_family = kik_str_sep( &font_name , "-")) == NULL ||
-		font_name == NULL)
+	if( *font_family = font_name)
+	{
+		/*
+		 * It seems that XftFont format allows hyphens to be escaped.
+		 * (e.g. Foo\-Bold-iso10646-1)
+		 */
+		int  i ;
+		int  j ;
+		char *  s ;
+
+		s = font_name ;
+		for( i = 0 , j = 0 ; s[i] && s[i] != '-' ; i ++ , j ++)
+		{
+			/* escaped? */
+			if( s[i] == '\\' && s[i + 1])
+			{
+				/* skip backslash */
+				i ++ ;
+			}
+			s[j] = s[i] ;
+		}
+		/* replace delimiter */
+		s[j] = '\0' ;
+		/* move forward to the next token */
+		font_name = s + i + 1 ;
+	}
+
+	if( *font_family == NULL || font_name == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " illegal true type font name(%s).\n" ,

@@ -1,3 +1,9 @@
+2003-06-09 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Changed parse_xft_font_name() to allow XftFont name to include
+	  hyphens, e.g. "Foo\-Bold-iso10646-1"
+	  (Thanks to Ambrose Li)
+
 2003-06-08 Araki Ken <arakiken@users.sf.net>(1.449)
 
 	* Rewritten documentations(doc/en/*,doc/ja/*)
