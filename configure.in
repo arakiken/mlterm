@@ -139,7 +139,7 @@ AC_SUBST(IMAGELIB_NAME)
 
 # --enable-anti-alias is backward compatibility for --with-type-engines
 AC_ARG_ENABLE(anti_alias,
-	[  --enable-anti-alias     (obsoleted)anti alias[default=disabled]],
+	[  --enable-anti-alias     (obsoleted by --with-type-engines)anti alias[default=disabled]],
 	anti_alias=$enable_anti_alias)
 	
 AC_ARG_WITH(type_engines,

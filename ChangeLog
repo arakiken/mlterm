@@ -1,3 +1,9 @@
+2004-12-22 MINAMI Hirokazu <minami@mistfall.net>
+
+        * configure.in: noted about --with-type-engines in the
+	description of --enable-anti-alias to make upgrade easier
+	(for lusers).
+
 2004-12-21 MINAMI Hirokazu <minami@mistfall.net>
 
         * kiklib/src/kik_mem.h: When HAVE_ALLOCA_H was defined,
