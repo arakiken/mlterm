@@ -5,6 +5,7 @@
 
 #include <math.h>                        /* pow */
 #include <X11/Xatom.h>                   /* XInternAtom */
+#include <X11/Xutil.h>
 #include <string.h>                      /* memcpy */
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
