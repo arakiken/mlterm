@@ -109,9 +109,9 @@ char_combining_is_supported(
 
 
 /*
- * drawing string 
+ * drawing string
  */
- 
+
 #ifdef  ANTI_ALIAS
 
 static int
@@ -151,7 +151,7 @@ xft_draw_combining_chars(
 		else
 		{
 			XftChar32  xch ;
-			
+
 			char  ucs4_bytes[4] ;
 
 			if( ! ml_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
@@ -198,7 +198,7 @@ xft_draw_str(
 	u_int	str_len ;
 	int  state ;
 	int  next_state ;
-	
+
 	u_char *  ch_bytes ;
 	size_t  ch_size ;
 	u_int  ch_width ;
@@ -215,7 +215,7 @@ xft_draw_str(
 	ml_color_t  next_bg_color ;
 	int  next_is_underlined ;
 	u_int  next_ch_width ;
-	
+
 #ifdef  PERF_DEBUG
 	int  draw_count = 0 ;
 #endif
@@ -226,7 +226,7 @@ xft_draw_str(
 		kik_warn_printf( KIK_DEBUG_TAG " drawing string in overflowed area.(x %d y %d h %d)\n" ,
 			x , y , height) ;
 	#endif
-	
+
 		return  0 ;
 	}
 
@@ -235,7 +235,7 @@ xft_draw_str(
 	#ifdef	__DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " input chars length is 0(x_window_draw_str).\n") ;
 	#endif
-		
+
 		return	1 ;
 	}
 
@@ -246,7 +246,7 @@ xft_draw_str(
 	y = y ;
 
 	count = 0 ;
-	
+
 	ch_bytes = ml_char_bytes( &chars[count]) ;
 	ch_size = ml_char_size( &chars[count]) ;
 	ch_cs = ml_char_cs( &chars[count]) ;
@@ -273,7 +273,7 @@ xft_draw_str(
 	bg_color = ml_char_bg_color( &chars[count]) ;
 
 	is_underlined = ml_char_is_underlined( &chars[count]) ;
-	
+
 	if( ( str8 = alloca( sizeof( XftChar8) * num_of_chars)) == NULL)
 	{
 		return	0 ;
@@ -311,7 +311,7 @@ xft_draw_str(
 				ucs4_bytes[2] = 0 ;
 				ucs4_bytes[3] = 0x20 ;
 			}
-			
+
 			str32[str_len++] = ((ucs4_bytes[0] << 24) & 0xff000000) |
 				((ucs4_bytes[1] << 16) & 0xff0000) | ((ucs4_bytes[2] << 8) & 0xff00) |
 				(ucs4_bytes[3] & 0xff) ;
@@ -322,7 +322,7 @@ xft_draw_str(
 		/*
 		 * next character.
 		 */
-		
+
 		count ++ ;
 
 		if( count >= num_of_chars)
@@ -339,7 +339,7 @@ xft_draw_str(
 			next_bg_color = ml_char_bg_color( &chars[count]) ;
 			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
 			next_xfont = x_get_font( screen->font_man , ml_char_font( &chars[count])) ;
-			
+
 			if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
 			{
 				next_state = 0 ;
@@ -352,9 +352,9 @@ xft_draw_str(
 			{
 				next_state = 2 ;
 			}
-			
+
 			next_ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
-			
+
 			if( current_width + next_ch_width > screen->window.width)
 			{
 				start_draw = 1 ;
@@ -362,7 +362,7 @@ xft_draw_str(
 			}
 			/*
 			 * !! Notice !!
-			 * next_xfont != xfont doen't necessarily detect change of 'state'
+			 * next_xfont != xfont doesn't necessarily detect change of 'state'
 			 * (for example, same Unicode font is used for both US_ASCII/ISO8859_1
 			 * and other half-width unicode characters), 'next_state' is necessary.
 			 */
@@ -384,7 +384,7 @@ xft_draw_str(
 				start_draw = 0 ;
 			}
 		}
-		
+
 		if( start_draw)
 		{
 			/*
@@ -403,7 +403,7 @@ xft_draw_str(
 			{
 				height_to_baseline = std_height_to_baseline ;
 			}
-		
+
 			/*
 			 * clearing background
 			 */
@@ -418,7 +418,7 @@ xft_draw_str(
 					x_get_color( screen->color_man , bg_color)->pixel ,
 					x , y , current_width - x , height) ;
 			}
-			
+
 			/*
 			 * drawing string
 			 */
@@ -446,7 +446,7 @@ xft_draw_str(
 				xft_draw_combining_chars( screen , comb_chars , comb_size ,
 					current_width - ch_width , y + height_to_baseline) ;
 			}
-			
+
 			if( is_underlined)
 			{
 				if( xfont->is_vertical)
@@ -465,7 +465,7 @@ xft_draw_str(
 			}
 
 			start_draw = 0 ;
-			
+
 			x = current_width ;
 			str_len = 0 ;
 		}
@@ -544,12 +544,12 @@ x_draw_combining_chars(
 		else if( ch_size == 4 && ch_bytes[0] == '\0' && ch_bytes[1] == '\0')
 		{
 			/* UCS4 */
-			
+
 			XChar2b  xch ;
 
 			xch.byte1 = ch_bytes[2] ;
 			xch.byte2 = ch_bytes[3] ;
-			
+
 			x_window_draw_string16( &screen->window ,
 				x_get_font( screen->font_man , ml_char_font( &chars[count])) ,
 				x_get_color( screen->color_man , ml_char_fg_color( &chars[count])) ,
@@ -562,7 +562,7 @@ x_draw_combining_chars(
 		}
 	#endif
 	}
-	
+
 	return  1 ;
 }
 
@@ -615,10 +615,10 @@ x_draw_str(
 	if( x > screen->window.width || y + height > screen->window.height)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " drawing string in overflowed area.(x %d y %d h %d)\n" , 
+		kik_warn_printf( KIK_DEBUG_TAG " drawing string in overflowed area.(x %d y %d h %d)\n" ,
 			x , y , height) ;
 	#endif
-	
+
 		return  0 ;
 	}
 
@@ -627,7 +627,7 @@ x_draw_str(
 	#ifdef	__DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " input chars length is 0(x_window_draw_str).\n") ;
 	#endif
-		
+
 		return	1 ;
 	}
 
@@ -655,16 +655,16 @@ x_draw_str(
 	{
 		state = 2 ;
 	}
-	
+
 	xfont = x_get_font( screen->font_man , ml_char_font( &chars[count])) ;
-	
+
 	ch_width = x_calculate_char_width( xfont , ch_bytes , ch_size , ch_cs) ;
 	current_width = x + ch_width ;
-	
+
 	fg_color = ml_char_fg_color( &chars[count]) ;
 	bg_color = ml_char_bg_color( &chars[count]) ;
 	is_underlined = ml_char_is_underlined( &chars[count]) ;
-	
+
 	if( ( str = alloca( sizeof( char) * num_of_chars)) == NULL)
 	{
 		return	0 ;
@@ -676,7 +676,7 @@ x_draw_str(
 	}
 
 	str_len = 0 ;
-	
+
 	while( 1)
 	{
 		if( ch_size == 1)
@@ -720,7 +720,7 @@ x_draw_str(
 		/*
 		 * next character.
 		 */
-		
+
 		count ++ ;
 
 		if( count >= num_of_chars)
@@ -750,9 +750,9 @@ x_draw_str(
 			{
 				next_state = 2 ;
 			}
-			
+
 			next_ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
-			
+
 			if( current_width + next_ch_width > screen->window.width)
 			{
 				start_draw = 1 ;
@@ -760,7 +760,7 @@ x_draw_str(
 			}
 			/*
 			 * !! Notice !!
-			 * next_xfont != xfont doen't necessarily detect change of 'state'
+			 * next_xfont != xfont doesn't necessarily detect change of 'state'
 			 * (for example, same Unicode font is used for both US_ASCII/ISO8859_1
 			 * and other half-width unicode characters), 'next_state' is necessary.
 			 */
@@ -864,7 +864,7 @@ x_draw_str(
 						x , y + height_to_baseline , str , str_len) ;
 				}
 			}
-			
+
 			if( comb_chars)
 			{
 				x_draw_combining_chars( screen , comb_chars , comb_size ,
@@ -1026,7 +1026,7 @@ convert_y_to_row(
 	 * !! Notice !!
 	 * assumption: line hight is always the same!
 	 */
-	
+
 	row = y / x_line_height( screen) ;
 
 	if( y_rest)
@@ -1046,7 +1046,7 @@ convert_char_index_to_x(
 {
 	int  count ;
 	int  x ;
-	
+
 	if( char_index > ml_line_end_char_index(line))
 	{
 		char_index = ml_line_end_char_index(line) ;
@@ -1176,7 +1176,7 @@ convert_x_to_char_index(
 	{
 		*x_rest = x ;
 	}
-	
+
 	return  count ;
 }
 
@@ -1190,7 +1190,7 @@ convert_x_to_char_index_with_shape(
 {
 	ml_line_t *  orig ;
 	int  char_index ;
-		
+
 	if( screen->term->shape)
 	{
 		if( ( orig = ml_line_shape( line , screen->term->shape)) == NULL)
@@ -1206,7 +1206,7 @@ convert_x_to_char_index_with_shape(
 	}
 
 	char_index = convert_x_to_char_index( screen , line , x_rest , x) ;
-	
+
 	if( orig)
 	{
 		ml_line_unshape( line , orig) ;
@@ -1221,11 +1221,11 @@ screen_width(
 	)
 {
 	u_int  width ;
-	
+
 	/*
 	 * logical cols/rows => visual width/height.
 	 */
-	 
+
 	if( screen->term->vertical_mode)
 	{
 		width = ml_term_get_logical_rows( screen->term) * x_col_width( screen) ;
@@ -1234,7 +1234,7 @@ screen_width(
 	{
 		width = ml_term_get_logical_cols( screen->term) * x_col_width( screen) ;
 	}
-	
+
 	return  (width * screen->screen_width_ratio) / 100 ;
 }
 
@@ -1244,11 +1244,11 @@ screen_height(
 	)
 {
 	u_int  height ;
-	
+
 	/*
 	 * logical cols/rows => visual width/height.
 	 */
-	 
+
 	if( screen->term->vertical_mode)
 	{
 		height = ml_term_get_logical_cols( screen->term) * x_line_height( screen) ;
@@ -1265,7 +1265,7 @@ screen_height(
 /*
  * drawing screen functions.
  */
- 
+
 static int
 draw_line(
 	x_screen_t *  screen ,
@@ -1299,7 +1299,7 @@ draw_line(
 		}
 
 		present = x_get_font_present( screen->font_man) ;
-		
+
 		beg_char_index = ml_line_get_beg_of_modified( line) ;
 		num_of_redrawn = ml_line_get_num_of_redrawn_chars( line ,
 					(present & FONT_VAR_WIDTH) == FONT_VAR_WIDTH) ;
@@ -1309,13 +1309,13 @@ draw_line(
 		{
 			if( ml_line_is_rtl( line))
 			{
-				num_of_redrawn += beg_char_index ; 
+				num_of_redrawn += beg_char_index ;
 				beg_char_index = 0 ;
 			}
-			
+
 			is_cleared_to_end = 1 ;
 		}
-		
+
 		/* don't use _with_shape function since line is already shaped */
 		beg_x = convert_char_index_to_x( screen , line , beg_char_index) ;
 
@@ -1324,7 +1324,7 @@ draw_line(
 			if( ml_line_is_rtl( line))
 			{
 				x_window_clear( &screen->window , 0 , y , beg_x , x_line_height( screen)) ;
-				
+
 				if( ! draw_str( screen , ml_char_at( line , beg_char_index) ,
 					num_of_redrawn , beg_x , y ,
 					x_line_height( screen) ,
@@ -1386,9 +1386,9 @@ draw_cursor(
 	{
 		return  0 ;
 	}
-	
+
 	y = convert_row_to_y( screen , row) ;
-	
+
 	if( ( line = ml_term_get_cursor_line( screen->term)) == NULL || ml_line_is_empty( line))
 	{
 	#ifdef  DEBUG
@@ -1409,7 +1409,7 @@ draw_cursor(
 	{
 		orig = NULL ;
 	}
-	
+
 	/* don't use _with_shape function since line is already shaped */
 	x = convert_char_index_to_x( screen , line , ml_term_cursor_char_index( screen->term)) ;
 
@@ -1457,7 +1457,7 @@ draw_cursor(
 	}
 
 	ml_char_final( &ch) ;
-	
+
 	if( orig)
 	{
 		ml_line_unshape( line , orig) ;
@@ -1476,7 +1476,7 @@ flush_scroll_cache(
 	{
 		return  0 ;
 	}
-	
+
 	if( scroll_actual_screen && x_window_is_scrollable( &screen->window))
 	{
 		if( ! screen->term->vertical_mode)
@@ -1526,14 +1526,14 @@ flush_scroll_cache(
 				end_x = beg_x + x_col_width( screen) *
 						(screen->scroll_cache_boundary_end -
 						screen->scroll_cache_boundary_start + 1) ;
-						
+
 				if( screen->term->vertical_mode & VERT_RTL)
 				{
 					end_x = screen->window.width - beg_x ;
 					beg_x = screen->window.width - end_x ;
 					screen->scroll_cache_rows = -(screen->scroll_cache_rows) ;
 				}
-				
+
 				if( screen->scroll_cache_rows > 0)
 				{
 					x_window_scroll_leftward_region( &screen->window ,
@@ -1622,10 +1622,10 @@ redraw_screen(
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " nothing is redrawn.\n") ;
 		#endif
-		
+
 			return  1 ;
 		}
-		
+
 		if( ml_line_is_modified( line))
 		{
 			break ;
@@ -1663,7 +1663,7 @@ redraw_screen(
 		{
 			y += x_line_height( screen) ;
 		}
-	
+
 		count ++ ;
 	}
 
@@ -1702,7 +1702,7 @@ unhighlight_cursor(
  *
  * Similar processing to bs_XXX() is done in x_screen_scroll_{upward|downward|to}().
  */
- 
+
 static void
 enter_backscroll_mode(
 	x_screen_t *  screen
@@ -1712,7 +1712,7 @@ enter_backscroll_mode(
 	{
 		return ;
 	}
-	
+
 	ml_term_enter_backscroll_mode( screen->term) ;
 
 	if( HAS_SCROLL_LISTENER(screen,bs_mode_entered))
@@ -1731,9 +1731,9 @@ exit_backscroll_mode(
 	{
 		return ;
 	}
-	
+
 	ml_term_exit_backscroll_mode( screen->term) ;
-		
+
 	if( HAS_SCROLL_LISTENER(screen,bs_mode_exited))
 	{
 		(*screen->screen_scroll_listener->bs_mode_exited)(
@@ -1751,7 +1751,7 @@ bs_scroll_upward(
 		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
-		
+
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
 			(*screen->screen_scroll_listener->scrolled_upward)(
@@ -1770,7 +1770,7 @@ bs_scroll_downward(
 		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
-		
+
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
 			(*screen->screen_scroll_listener->scrolled_downward)(
@@ -1789,7 +1789,7 @@ bs_half_page_upward(
 		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
-		
+
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
 			/* XXX Not necessarily ml_term_get_rows( screen->term) / 2. */
@@ -1810,7 +1810,7 @@ bs_half_page_downward(
 		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
-		
+
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
 			/* XXX Not necessarily ml_term_get_rows( screen->term) / 2. */
@@ -1831,7 +1831,7 @@ bs_page_upward(
 		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
-		
+
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
 			/* XXX Not necessarily ml_term_get_rows( screen->term). */
@@ -1852,7 +1852,7 @@ bs_page_downward(
 		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
-		
+
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
 			/* XXX Not necessarily ml_term_get_rows( screen->term). */
@@ -1863,7 +1863,7 @@ bs_page_downward(
 	}
 }
 
- 
+
 static x_picture_modifier_t *
 get_picture_modifier(
 	x_screen_t *  screen
@@ -1920,7 +1920,7 @@ write_to_pty(
 		size_t  filled_len ;
 
 		p = conv_buf ;
-		
+
 	#ifdef  __DEBUG
 		{
 			int  i ;
@@ -1986,12 +1986,12 @@ set_wall_picture(
 	)
 {
 	x_picture_t  pic ;
-	
+
 	if( ! screen->pic_file_path)
 	{
 		return  0 ;
 	}
-	
+
 	if( ! x_picture_init( &pic , &screen->window , get_picture_modifier( screen)))
 	{
 		goto  error ;
@@ -2003,14 +2003,14 @@ set_wall_picture(
 			screen->pic_file_path) ;
 
 		x_picture_final( &pic) ;
-		
+
 		goto  error ;
 	}
-	
+
 	if( ! x_window_set_wall_picture( &screen->window , pic.pixmap))
 	{
 		x_picture_final( &pic) ;
-		
+
 		goto  error ;
 	}
 	else
@@ -2049,7 +2049,7 @@ get_mod_meta_mask(
 	if( mod_key)
 	{
 		int  count ;
-		
+
 		for( count = 0 ; count < sizeof( mod_keys) / sizeof( mod_keys[0]) ; count ++)
 		{
 			if( strcmp( mod_key , mod_keys[count]) == 0)
@@ -2058,8 +2058,8 @@ get_mod_meta_mask(
 			}
 		}
 	}
-	
-	for( mask_count = 0 ; mask_count < 6 ; mask_count++)
+
+	for( mask_count = 0 ; mask_count < 5 ; mask_count++)
 	{
 		int  count ;
 
@@ -2072,7 +2072,7 @@ get_mod_meta_mask(
 
 		/* skip shift/lock/control */
 		kc_count = (mask_count + 3) * mod_map->max_keypermod ;
-		
+
 		for( count = 0 ; count < mod_map->max_keypermod ; count++)
 		{
 			if( key_codes[kc_count] == 0)
@@ -2092,14 +2092,14 @@ get_mod_meta_mask(
 					( sym == XK_Hyper_L || sym == XK_Hyper_R)) )
 			{
 				XFreeModifiermap( mod_map) ;
-				
+
 				return  mod_masks[mask_count] ;
 			}
 
 			kc_count ++ ;
 		}
 	}
-	
+
 	XFreeModifiermap( mod_map) ;
 
 #ifdef  DEBUG
@@ -2109,7 +2109,7 @@ get_mod_meta_mask(
 	return  0 ;
 }
 
-/* refered in update_special_visual */
+/* referred in update_special_visual */
 static void  change_font_present( x_screen_t *  screen , x_font_present_t  font_present) ;
 
 static int
@@ -2121,7 +2121,7 @@ update_special_visual(
 	{
 		return  0 ;
 	}
-	
+
 	if( screen->term->iscii_lang)
 	{
 		u_int  font_size ;
@@ -2137,7 +2137,7 @@ update_special_visual(
 		{
 			return  0 ;
 		}
-		
+
 		for( font_size = x_get_min_font_size() ;
 			font_size <= x_get_max_font_size() ;
 			font_size ++)
@@ -2160,7 +2160,7 @@ update_special_visual(
 
 	/*
 	 * vertical font is automatically used under vertical mode.
-	 * similler processing is done in x_term_manager.c:config_init.
+	 * similar processing is done in x_term_manager.c:config_init.
 	 */
 	if( screen->term->vertical_mode)
 	{
@@ -2237,7 +2237,7 @@ window_exposed(
 	int  beg_row ;
 	int  end_row ;
 	x_screen_t *  screen ;
-	
+
 	screen = (x_screen_t *) win ;
 
 	if( screen->term->vertical_mode)
@@ -2245,12 +2245,12 @@ window_exposed(
 		u_int  ncols ;
 
 		ncols = ml_term_get_cols( screen->term) ;
-		
+
 		if( ( beg_row = x / x_col_width( screen)) >= ncols)
 		{
 			beg_row = ncols - 1 ;
 		}
-		
+
 		if( ( end_row = (x + width) / x_col_width( screen) + 1) >= ncols)
 		{
 			end_row = ncols - 1 ;
@@ -2259,7 +2259,7 @@ window_exposed(
 		if( screen->term->vertical_mode & VERT_RTL)
 		{
 			u_int  swp ;
-			
+
 			swp = ncols - beg_row - 1 ;
 			beg_row = ncols - end_row - 1 ;
 			end_row = swp ;
@@ -2274,7 +2274,7 @@ window_exposed(
 	{
 		beg_row = convert_y_to_row( screen , NULL , y) ;
 		end_row = convert_y_to_row( screen , NULL , y + height) ;
-		
+
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " exposed [row] from %d to %d [y] from %d to %d\n" ,
 			beg_row , end_row , y , y + height) ;
@@ -2282,7 +2282,7 @@ window_exposed(
 	}
 
 	ml_term_set_modified_lines_in_screen( screen->term , beg_row , end_row) ;
-	
+
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
 }
@@ -2302,7 +2302,7 @@ window_resized(
 	kik_debug_printf( KIK_DEBUG_TAG " term screen resized => width %d height %d.\n" ,
 		win->width , win->height) ;
 #endif
-	
+
 	screen = (x_screen_t *) win ;
 
 	/* This is necessary since ml_term_t size is changed. */
@@ -2318,7 +2318,7 @@ window_resized(
 
 	width = (screen->window.width * 100) / screen->screen_width_ratio ;
 	height = (screen->window.height * 100) / screen->screen_height_ratio ;
-	
+
 	if( screen->term->vertical_mode)
 	{
 		rows = width / x_col_width( screen) ;
@@ -2331,7 +2331,7 @@ window_resized(
 	}
 
 	ml_term_resize( screen->term , cols , rows) ;
-	
+
 	set_wall_picture( screen) ;
 
 	redraw_screen( screen) ;
@@ -2351,7 +2351,7 @@ window_focused(
 	{
 		return ;
 	}
-	
+
 	screen->is_focused = 1 ;
 
 	if( screen->fade_ratio != 100)
@@ -2376,14 +2376,14 @@ window_unfocused(
 	)
 {
 	x_screen_t *  screen ;
-	
+
 	screen = (x_screen_t *) win ;
 
 	if( ! screen->is_focused)
 	{
 		return ;
 	}
-	
+
 	screen->is_focused = 0 ;
 
 	if( screen->fade_ratio != 100)
@@ -2404,7 +2404,7 @@ window_unfocused(
 
 /*
  * the finalizer of x_screen_t.
- * 
+ *
  * x_window_final(term_screen) -> window_finalized(term_screen)
  */
 static void
@@ -2492,7 +2492,7 @@ yank_event_received(
 	#ifdef  NL_TO_CR_IN_PAST_TEXT
 		{
 			int  count ;
-			
+
 			/*
 			 * Convert normal newline chars to carriage return chars which are
 			 * common return key sequences.
@@ -2506,11 +2506,11 @@ yank_event_received(
 			}
 		}
 	#endif
-		
+
 		(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
 		ml_str_parser_set_str( screen->ml_str_parser ,
 			screen->sel.sel_str , screen->sel.sel_len) ;
-		
+
 		write_to_pty( screen , NULL , 0 , screen->ml_str_parser) ;
 
 		return  1 ;
@@ -2547,7 +2547,7 @@ receive_string_via_ucs(
 	}
 }
 
-/* refered in key_pressed and set_xdnd_config. */
+/* referred in key_pressed and set_xdnd_config. */
 static void set_config( void *  p , char *  dev , char *  key , char *  value) ;
 
 static void
@@ -2624,7 +2624,7 @@ key_pressed(
 				screen->kbd = x_arabic_kbd_new( &screen->window) ;
 			}
 		}
-		
+
 		return ;
 	}
 	else if( x_shortcut_match( screen->shortcut , OPEN_SCREEN , ksym , event->state))
@@ -2719,7 +2719,7 @@ key_pressed(
 			}
 		#endif
 		}
-		
+
 		if( x_shortcut_match( screen->shortcut , PAGE_UP , ksym , event->state))
 		{
 			bs_half_page_downward( screen) ;
@@ -2824,7 +2824,7 @@ key_pressed(
 			}
 		}
 
-		if( ( ksym == XK_Delete && size == 1) || ksym == XK_KP_Delete) 
+		if( ( ksym == XK_Delete && size == 1) || ksym == XK_KP_Delete)
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_DELETE) ;
 		}
@@ -2845,7 +2845,7 @@ key_pressed(
 				char *  key ;
 				char *  val ;
 				char *  p ;
-				
+
 				key = kik_str_alloca_dup( buf + 6) ;
 
 				while( key)
@@ -2854,7 +2854,7 @@ key_pressed(
 					{
 						*(p ++) = '\0' ;
 					}
-					
+
 					if( strncmp( key , "/dev" , 4) == 0)
 					{
 						dev = key ;
@@ -2872,7 +2872,7 @@ key_pressed(
 					{
 						dev = NULL ;
 					}
-					
+
 					if( ( val = strchr( key , '=')))
 					{
 						*(val ++) = '\0' ;
@@ -3098,11 +3098,11 @@ key_pressed(
 		else if( is_app_keypad && ksym == XK_KP_F2)
 		{
 			buf = "\x1bOQ" ;
-		}		
+		}
 		else if( is_app_keypad && ksym == XK_KP_F3)
 		{
 			buf = "\x1bOR" ;
-		}		
+		}
 		else if( is_app_keypad && ksym == XK_KP_F4)
 		{
 			buf = "\x1bOS" ;
@@ -3251,7 +3251,7 @@ convert_selection_to_xct(
 	)
 {
 	size_t  filled_len ;
-	
+
 #ifdef  __DEBUG
 	{
 		int  i ;
@@ -3267,7 +3267,7 @@ convert_selection_to_xct(
 
 	(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
 	ml_str_parser_set_str( screen->ml_str_parser , screen->sel.sel_str , screen->sel.sel_len) ;
-	
+
 	(*screen->xct_conv->init)( screen->xct_conv) ;
 	filled_len = (*screen->xct_conv->convert)( screen->xct_conv ,
 		str , len , screen->ml_str_parser) ;
@@ -3312,11 +3312,11 @@ convert_selection_to_utf8(
 
 	(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
 	ml_str_parser_set_str( screen->ml_str_parser , screen->sel.sel_str , screen->sel.sel_len) ;
-	
+
 	(*screen->utf8_conv->init)( screen->utf8_conv) ;
 	filled_len = (*screen->utf8_conv->convert)( screen->utf8_conv ,
 		str , len , screen->ml_str_parser) ;
-		
+
 #ifdef  __DEBUG
 	{
 		int  i ;
@@ -3379,7 +3379,7 @@ utf8_selection_requested(
 	screen = (x_screen_t*) win ;
 
 	if( screen->sel.sel_str == NULL || screen->sel.sel_len == 0)
-	{		
+	{
 		x_window_send_selection( win , event , NULL , 0 , 0) ;
 	}
 	else
@@ -3387,7 +3387,7 @@ utf8_selection_requested(
 		u_char *  utf8_str ;
 		size_t  utf8_len ;
 		size_t  filled_len ;
-		
+
 		utf8_len = screen->sel.sel_len * UTF8_MAX_CHAR_SIZE ;
 
 		if( ( utf8_str = alloca( utf8_len)) == NULL)
@@ -3442,7 +3442,7 @@ xct_selection_notified(
 			kik_msg_printf( "%.2x " , str[i]) ;
 		}
 	#endif
-	
+
 		write_to_pty( screen , str + 3 , len - 3 , screen->utf8_parser) ;
 	}
 	else
@@ -3450,13 +3450,13 @@ xct_selection_notified(
 	if( receive_string_via_ucs(screen))
 	{
 		/* XCOMPOUND TEXT -> UCS -> PTY ENCODING */
-		
+
 		u_char  conv_buf[512] ;
 		size_t  filled_len ;
 
 		(*screen->xct_parser->init)( screen->xct_parser) ;
 		(*screen->xct_parser->set_str)( screen->xct_parser , str , len) ;
-		
+
 		(*screen->utf8_conv->init)( screen->utf8_conv) ;
 
 		while( ! screen->xct_parser->is_eos)
@@ -3474,7 +3474,7 @@ xct_selection_notified(
 	else
 	{
 		/* XCOMPOUND TEXT -> PTY ENCODING */
-		
+
 		write_to_pty( screen , str , len , screen->xct_parser) ;
 	}
 }
@@ -3518,7 +3518,7 @@ set_xdnd_config(
 	screen = (x_screen_t*)win ;
 
 	set_config( screen, key, dev, value) ;
-	
+
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
 }
@@ -3543,7 +3543,7 @@ start_selection(
 	{
 		return ;
 	}
-	
+
 	if( ( ! ml_line_is_rtl( line) && col_r == 0) ||
 		( ml_line_is_rtl( line) && abs( col_r) == ml_line_end_char_index( line)))
 	{
@@ -3620,7 +3620,7 @@ selecting_with_motion(
 	{
 		x_is_outside = 0 ;
 	}
-	
+
 	if( y < 0)
 	{
 		if( ml_term_get_num_of_logged_lines( screen->term) > 0)
@@ -3629,10 +3629,10 @@ selecting_with_motion(
 			{
 				enter_backscroll_mode( screen) ;
 			}
-			
+
 			bs_scroll_downward( screen) ;
 		}
-		
+
 		y = 0 ;
 	}
 	else if( y > screen->window.height)
@@ -3641,7 +3641,7 @@ selecting_with_motion(
 		{
 			bs_scroll_upward( screen) ;
 		}
-		
+
 		y = screen->window.height - x_line_height( screen) ;
 	}
 
@@ -3665,7 +3665,7 @@ selecting_with_motion(
 
 		return ;
 	}
-	
+
 	char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
 
 	if( char_index == ml_line_end_char_index( line) && x_rest > 0)
@@ -3691,7 +3691,7 @@ selecting_with_motion(
 	if( ! screen->sel.is_selecting)
 	{
 		restore_selected_region_color( screen) ;
-		
+
 		if( ! screen->sel.is_owner)
 		{
 			if( x_window_set_selection_owner( &screen->window , time) == 0)
@@ -3721,7 +3721,7 @@ selecting_with_motion(
 				}
 			}
 		}
-		
+
 		if( x_selected_region_is_changed( &screen->sel , char_index , row , 1))
 		{
 			selecting( screen , char_index , row) ;
@@ -3736,7 +3736,7 @@ button_motion(
 	)
 {
 	x_screen_t *  screen ;
-	
+
 	screen = (x_screen_t*) win ;
 
 	if( ml_term_is_mouse_pos_sending( screen->term) && ! (event->state & ShiftMask))
@@ -3754,9 +3754,9 @@ button_press_continued(
 	)
 {
 	x_screen_t *  screen ;
-	
+
 	screen = (x_screen_t*) win ;
-	
+
 	if( screen->sel.is_selecting &&
 		(event->y < 0 || win->height < event->y))
 	{
@@ -3807,16 +3807,16 @@ selecting_word(
 	{
 		beg_char_index = -beg_char_index + 1 ;
 	}
-	
+
 	if( ml_line_is_rtl( ml_term_get_line( screen->term , end_row)))
 	{
 		end_char_index = -end_char_index ;
 	}
-	
+
 	if( ! screen->sel.is_selecting)
 	{
 		restore_selected_region_color( screen) ;
-		
+
 		if( ! screen->sel.is_owner)
 		{
 			if( x_window_set_selection_owner( &screen->window , time) == 0)
@@ -3824,7 +3824,7 @@ selecting_word(
 				return ;
 			}
 		}
-		
+
 		start_selection( screen , beg_char_index , beg_row) ;
 	}
 
@@ -3859,17 +3859,17 @@ selecting_line(
 	{
 		beg_char_index = 0 ;
 	}
-	
+
 	if( ml_line_is_rtl( ml_term_get_line( screen->term , end_row)))
 	{
 		end_char_index = end_char_index -
 			ml_line_end_char_index( ml_term_get_line( screen->term , end_row)) ;
 	}
-	
+
 	if( ! screen->sel.is_selecting)
 	{
 		restore_selected_region_color( screen) ;
-		
+
 		if( ! screen->sel.is_owner)
 		{
 			if( x_window_set_selection_owner( &screen->window , time) == 0)
@@ -3877,7 +3877,7 @@ selecting_line(
 				return ;
 			}
 		}
-		
+
 		start_selection( screen , beg_char_index , beg_row) ;
 	}
 
@@ -3918,7 +3918,7 @@ report_mouse_tracking(
 	if( screen->term->vertical_mode)
 	{
 		u_int  x_rest ;
-		
+
 		col = convert_y_to_row( screen , NULL , event->y) ;
 
 	#if  0
@@ -3930,20 +3930,20 @@ report_mouse_tracking(
 			 */
 		}
 	#endif
-	
+
 		if( ( line = ml_term_get_line_in_screen( screen->term , col)) == NULL)
 		{
 			return  0 ;
 		}
-		
+
 		row = ml_convert_char_index_to_col( line ,
 			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) , 0) ;
-			
+
 		if( screen->term->vertical_mode & VERT_RTL)
 		{
 			row = ml_term_get_cols( screen->term) - row - 1 ;
 		}
-		
+
 	#if  0
 		if( x_is_using_multi_col_char( screen->font_man))
 		{
@@ -3957,12 +3957,12 @@ report_mouse_tracking(
 	else
 	{
 		row = convert_y_to_row( screen , NULL , event->y) ;
-		
+
 		if( ( line = ml_term_get_line_in_screen( screen->term , row)) == NULL)
 		{
 			return  0 ;
 		}
-		
+
 		col = ml_convert_char_index_to_col( line ,
 			convert_x_to_char_index_with_shape( screen , line , NULL , event->x) , 0) ;
 	}
@@ -3978,7 +3978,7 @@ report_mouse_tracking(
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;
 #endif
-	
+
 	return  1 ;
 }
 
@@ -3996,7 +3996,7 @@ button_pressed(
 	if( ml_term_is_mouse_pos_sending( screen->term) && ! (event->state & (ShiftMask | ControlMask)))
 	{
 		restore_selected_region_color( screen) ;
-		
+
 		report_mouse_tracking( screen , event , 0) ;
 
 		return ;
@@ -4018,7 +4018,7 @@ button_pressed(
 	else if( click_num == 2 && event->button == 1)
 	{
 		/* double clicked */
-		
+
 		selecting_word( screen , event->x , event->y , event->time) ;
 	}
 	else if( click_num == 3 && event->button == 1)
@@ -4049,10 +4049,10 @@ button_pressed(
 			config_menu( screen , event->x , event->y , MLCONFIG_PATH) ;
 		}
 	}
-	else if ( event->button == 4) 
+	else if ( event->button == 4)
 	{
 		/* wheel mouse */
-		
+
 		enter_backscroll_mode(screen) ;
 		if( event->state & ShiftMask)
 		{
@@ -4061,16 +4061,16 @@ button_pressed(
 		else if( event->state & ControlMask)
 		{
 			bs_page_downward(screen) ;
-		} 
-		else 
+		}
+		else
 		{
 			bs_half_page_downward(screen) ;
 		}
 	}
-	else if ( event->button == 5) 
+	else if ( event->button == 5)
 	{
 		/* wheel mouse */
-		
+
 		enter_backscroll_mode(screen) ;
 		if( event->state & ShiftMask)
 		{
@@ -4079,8 +4079,8 @@ button_pressed(
 		else if( event->state & ControlMask)
 		{
 			bs_page_upward(screen) ;
-		} 
-		else 
+		}
+		else
 		{
 			bs_half_page_upward(screen) ;
 		}
@@ -4153,19 +4153,19 @@ change_font_size(
 	if( font_size == x_get_font_size( screen->font_man))
 	{
 		/* not changed */
-		
+
 		return ;
 	}
-	
+
 	if( ! x_change_font_size( screen->font_man , font_size))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_change_font_size(%d) failed.\n" , font_size) ;
 	#endif
-	
+
 		return ;
 	}
-	
+
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
@@ -4196,7 +4196,7 @@ change_screen_width_ratio(
 	{
 		return ;
 	}
-	
+
 	screen->screen_width_ratio = ratio ;
 
 	if( x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
@@ -4225,7 +4225,7 @@ change_screen_height_ratio(
 	{
 		return ;
 	}
-	
+
 	screen->screen_height_ratio = ratio ;
 
 	if( x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
@@ -4258,7 +4258,7 @@ change_font_present(
 	if( x_get_font_present( screen->font_man) == font_present)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
@@ -4280,7 +4280,7 @@ usascii_font_cs_changed(
 	)
 {
 	x_font_manager_usascii_font_cs_changed( screen->font_man , x_get_usascii_font_cs( encoding)) ;
-	
+
 	font_size_changed( screen) ;
 
 	/*
@@ -4301,7 +4301,7 @@ change_char_encoding(
 	if( ml_term_get_encoding( screen->term) == encoding)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
@@ -4326,7 +4326,7 @@ change_char_encoding(
 	{
 		kik_error_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
 	}
-	
+
 	if( update_special_visual( screen))
 	{
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -4342,12 +4342,12 @@ change_iscii_lang(
 	if( screen->term->iscii_lang_type == type)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
 	screen->term->iscii_lang_type = type ;
-	
+
 	if( update_special_visual( screen))
 	{
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -4372,17 +4372,17 @@ change_log_size(
 	if( ml_term_get_log_size( screen->term) == logsize)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
 	/*
-	 * this is necesary since ml_logs_t size is changed.
+	 * this is necessary since ml_logs_t size is changed.
 	 */
 	x_stop_selecting( &screen->sel) ;
 	restore_selected_region_color( screen) ;
 	exit_backscroll_mode( screen) ;
-	
+
 	ml_term_change_log_size( screen->term , logsize) ;
 
 	if( HAS_SCROLL_LISTENER(screen,log_size_changed))
@@ -4421,7 +4421,7 @@ change_mod_meta_key(
 	{
 		screen->mod_meta_key = strdup( key) ;
 	}
-	
+
 	screen->mod_meta_mask = get_mod_meta_mask( screen->window.display , screen->mod_meta_key) ;
 }
 
@@ -4439,7 +4439,7 @@ change_bel_mode(
 	x_screen_t *  screen ,
 	x_bel_mode_t  bel_mode
 	)
-{	
+{
 	screen->bel_mode = bel_mode ;
 }
 
@@ -4452,18 +4452,18 @@ change_vertical_mode(
 	if( screen->term->vertical_mode == vertical_mode)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
 	screen->term->vertical_mode = vertical_mode ;
-	
+
 	if( update_special_visual( screen))
 	{
 		/* redrawing under new vertical mode. */
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
-	
+
 	if( x_window_resize( &screen->window , screen_width(screen) , screen_height(screen) ,
 		NOTIFY_TO_PARENT))
 	{
@@ -4511,7 +4511,7 @@ change_dynamic_comb_flag(
 	if( screen->term->use_dynamic_comb == use_dynamic_comb)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
@@ -4544,10 +4544,10 @@ change_fg_color(
 	}
 
 	x_color_manager_set_fg_color( screen->color_man , name) ;
-	
+
 	x_window_set_fg_color( &screen->window ,
 		x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
-	
+
 	x_xic_fg_color_changed( &screen->window) ;
 
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -4565,12 +4565,12 @@ change_bg_color(
 	}
 
 	x_color_manager_set_bg_color( screen->color_man , name) ;
-	
+
 	x_window_set_bg_color( &screen->window ,
 		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
-	
+
 	x_xic_bg_color_changed( &screen->window) ;
-	
+
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
 
@@ -4581,12 +4581,12 @@ change_cursor_fg_color(
 	)
 {
 	char *  old ;
-	
+
 	if( ( old = x_color_manager_get_cursor_fg_color( screen->color_man)) == NULL)
 	{
 		old = "" ;
 	}
-	
+
 	if( strcmp( name , old) == 0)
 	{
 		return ;
@@ -4607,12 +4607,12 @@ change_cursor_bg_color(
 	)
 {
 	char *  old ;
-	
+
 	if( ( old = x_color_manager_get_cursor_bg_color( screen->color_man)) == NULL)
 	{
 		old = "" ;
 	}
-	
+
 	if( strcmp( name , old) == 0)
 	{
 		return ;
@@ -4676,7 +4676,7 @@ smaller_font_size(
 	x_smaller_font( screen->font_man) ;
 
 	font_size_changed( screen) ;
-	
+
 	/* this is because font_man->font_set may have changed in x_smaller_font() */
 	x_xic_font_set_changed( &screen->window) ;
 
@@ -4693,7 +4693,7 @@ change_transparent_flag(
 	if( screen->window.is_transparent == is_transparent)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
@@ -4706,7 +4706,7 @@ change_transparent_flag(
 		x_window_unset_transparent( &screen->window) ;
 		set_wall_picture( screen) ;
 	}
-	
+
 	if( HAS_SCROLL_LISTENER(screen,transparent_state_changed))
 	{
 		(*screen->screen_scroll_listener->transparent_state_changed)(
@@ -4734,7 +4734,7 @@ change_bidi_flag(
 	if( screen->term->use_bidi == use_bidi)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
@@ -4769,17 +4769,17 @@ change_wall_picture(
 		if( strcmp( screen->pic_file_path , file_path) == 0)
 		{
 			/* not changed */
-			
+
 			return ;
 		}
-		
+
 		free( screen->pic_file_path) ;
 	}
-	
+
 	if( *file_path == '\0')
 	{
 		screen->pic_file_path = NULL ;
-		
+
 		x_window_unset_wall_picture( &screen->window) ;
 	}
 	else
@@ -4798,7 +4798,7 @@ picture_modifier_changed(
 	if( screen->window.is_transparent)
 	{
 		x_window_set_transparent( &screen->window , get_picture_modifier( screen)) ;
-		
+
 		if( HAS_SCROLL_LISTENER(screen,transparent_state_changed))
 		{
 			(*screen->screen_scroll_listener->transparent_state_changed)(
@@ -4820,15 +4820,15 @@ change_brightness(
 	if( screen->pic_mod.brightness == brightness)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
 	screen->pic_mod.brightness = brightness ;
 
-	picture_modifier_changed( screen);
+	picture_modifier_changed( screen) ;
 }
-	
+
 static void
 change_contrast(
 	x_screen_t *  screen ,
@@ -4838,15 +4838,15 @@ change_contrast(
 	if( screen->pic_mod.contrast == contrast)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
 	screen->pic_mod.contrast = contrast ;
-	
-	picture_modifier_changed( screen);
+
+	picture_modifier_changed( screen) ;
 }
-	
+
 static void
 change_gamma(
 	x_screen_t *  screen ,
@@ -4856,15 +4856,15 @@ change_gamma(
 	if( screen->pic_mod.gamma == gamma)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
 	screen->pic_mod.gamma = gamma ;
-	
-	picture_modifier_changed( screen);
+
+	picture_modifier_changed( screen) ;
 }
-	
+
 static void
 change_fade_ratio(
 	x_screen_t *  screen ,
@@ -4874,7 +4874,7 @@ change_fade_ratio(
 	if( screen->fade_ratio == fade_ratio)
 	{
 		/* not changed */
-		
+
 		return ;
 	}
 
@@ -4894,7 +4894,7 @@ change_fade_ratio(
 		x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
 	x_window_set_bg_color( &screen->window ,
 		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
-	
+
 	x_xic_fg_color_changed( &screen->window) ;
 	x_xic_bg_color_changed( &screen->window) ;
 
@@ -4957,12 +4957,12 @@ snapshot(
 	if( ( buf = ml_str_alloca( num)) == NULL)
 	{
 		fclose( file) ;
-		
+
 		return ;
 	}
 
 	ml_term_copy_region( screen->term , buf , num , 0 , beg , 0 , end) ;
-	
+
 	(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
 	ml_str_parser_set_str( screen->ml_str_parser , buf , num) ;
 
@@ -4994,7 +4994,7 @@ snapshot(
 
 		(*conv->delete)( conv) ;
 	}
-	
+
 	fclose( file) ;
 }
 
@@ -5009,7 +5009,7 @@ set_config(
 	x_screen_t *  screen ;
 	char *  true = "true" ;
 	char *  false = "false" ;
-	
+
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
 #endif
@@ -5043,7 +5043,7 @@ set_config(
 
 	/*
 	 * x_screen_{start|stop}_term_screen are necessary since
-	 * window is redrawn in chagne_wall_picture().
+	 * window is redrawn in change_wall_picture().
 	 */
 
 	if( strcmp( key , "encoding") == 0)
@@ -5074,7 +5074,7 @@ set_config(
 		{
 			return ;
 		}
-		
+
 		change_iscii_lang( screen , type) ;
 	}
 	else if( strcmp( key , "fg_color") == 0)
@@ -5205,7 +5205,7 @@ set_config(
 	else if( strcmp( key , "use_combining") == 0)
 	{
 		int  flag ;
-		
+
 		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
@@ -5218,13 +5218,13 @@ set_config(
 		{
 			return ;
 		}
-		
+
 		change_char_combining_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "use_dynamic_comb") == 0)
 	{
 		int  flag ;
-		
+
 		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
@@ -5245,7 +5245,7 @@ set_config(
 		strcmp( key , "copy_paste_via_ucs") == 0)
 	{
 		int  flag ;
-		
+
 		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
@@ -5258,13 +5258,13 @@ set_config(
 		{
 			return ;
 		}
-		
+
 		change_receive_string_via_ucs_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "use_transbg") == 0)
 	{
 		int  flag ;
-		
+
 		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
@@ -5277,7 +5277,7 @@ set_config(
 		{
 			return ;
 		}
-		
+
 		change_transparent_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "brightness") == 0)
@@ -5329,7 +5329,7 @@ set_config(
 		x_font_present_t  font_present ;
 
 		font_present = x_get_font_present( screen->font_man) ;
-		
+
 		if( strcmp( value , true) == 0)
 		{
 			font_present |= FONT_AA ;
@@ -5342,7 +5342,7 @@ set_config(
 		{
 			return ;
 		}
-		
+
 		change_font_present( screen , font_present) ;
 	}
 	else if( strcmp( key , "use_variable_column_width") == 0)
@@ -5350,7 +5350,7 @@ set_config(
 		x_font_present_t  font_present ;
 
 		font_present = x_get_font_present( screen->font_man) ;
-		
+
 		if( strcmp( value , true) == 0)
 		{
 			font_present |= FONT_VAR_WIDTH ;
@@ -5363,13 +5363,13 @@ set_config(
 		{
 			return ;
 		}
-		
+
 		change_font_present( screen , font_present) ;
 	}
 	else if( strcmp( key , "use_multi_column_char") == 0)
 	{
 		int  flag ;
-		
+
 		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
@@ -5382,13 +5382,13 @@ set_config(
 		{
 			return ;
 		}
-		
+
 		change_multi_col_char_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "use_bidi") == 0)
 	{
 		int  flag ;
-		
+
 		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
@@ -5401,7 +5401,7 @@ set_config(
 		{
 			return ;
 		}
-		
+
 		change_bidi_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "xim") == 0)
@@ -5427,7 +5427,7 @@ set_config(
 	else if( strcmp( key , "borderless") == 0)
 	{
 		int  flag ;
-		
+
 		if( strcmp( value , true) == 0)
 		{
 			flag = 1 ;
@@ -5481,7 +5481,7 @@ set_config(
 		char *  p ;
 
 		encoding = value ;
-		
+
 		if( ( p = strchr( value , ':')) == NULL || *(p + 1) == '\0')
 		{
 			/* skip /dev/ */
@@ -5493,20 +5493,20 @@ set_config(
 
 			if( strstr( p , "..") != NULL)
 			{
-				/* unsecure file name */
+				/* insecure file name */
 
-				kik_msg_printf( "%s is unsecure file name.\n" , p) ;
+				kik_msg_printf( "%s is insecure file name.\n" , p) ;
 
 				return ;
 			}
 		}
-		
+
 		if( ( file = alloca( 7 + strlen( p) + 4 + 1)) == NULL)
 		{
 			return ;
 		}
 		sprintf( file , "mlterm/%s.snp" , p) ;
-		
+
 		snapshot( screen , ml_get_char_encoding( encoding) , file) ;
 	}
 }
@@ -5528,7 +5528,7 @@ get_config(
 	char  cwd[PATH_MAX] ;
 
 	screen = p ;
-	
+
 	if( dev)
 	{
 		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
@@ -5541,7 +5541,7 @@ get_config(
 	{
 		term = screen->term ;
 	}
-	
+
 	if( strcmp( key , "encoding") == 0)
 	{
 		value = ml_get_char_encoding_name( ml_term_get_encoding( term)) ;
@@ -5911,7 +5911,7 @@ config_saved(
 /*
  * callbacks of x_sel_event_listener_t events.
  */
- 
+
 static void
 reverse_color(
 	void *  p ,
@@ -5929,7 +5929,7 @@ reverse_color(
 	/*
 	 * Char index -1 has special meaning in rtl lines, so don't use abs() here.
 	 */
-	
+
 	if( ( line = ml_term_get_line( screen->term , beg_row)) && ml_line_is_rtl( line))
 	{
 		beg_char_index = -beg_char_index ;
@@ -5962,11 +5962,11 @@ restore_color(
 	ml_line_t *  line ;
 
 	screen = (x_screen_t*)p ;
-	
+
 	/*
 	 * Char index -1 has special meaning in rtl lines, so don't use abs() here.
 	 */
-	 
+
 	if( ( line = ml_term_get_line( screen->term , beg_row)) && ml_line_is_rtl( line))
 	{
 		beg_char_index = -beg_char_index ;
@@ -6006,7 +6006,7 @@ select_in_window(
 	/*
 	 * Char index -1 has special meaning in rtl lines, so don't use abs() here.
 	 */
-	 
+
 	if( ( line = ml_term_get_line( screen->term , beg_row)) && ml_line_is_rtl( line))
 	{
 		beg_char_index = -beg_char_index ;
@@ -6048,7 +6048,7 @@ select_in_window(
 /*
  * callbacks of ml_screen_event_listener_t events.
  */
- 
+
 static int
 window_scroll_upward_region(
 	void *  p ,
@@ -6067,7 +6067,7 @@ window_scroll_upward_region(
 	}
 
 	set_scroll_boundary( screen , beg_row , end_row) ;
-	
+
 	screen->scroll_cache_rows += size ;
 
 	return  1 ;
@@ -6091,7 +6091,7 @@ window_scroll_downward_region(
 	}
 
 	set_scroll_boundary( screen , beg_row , end_row) ;
-	
+
 	screen->scroll_cache_rows -= size ;
 
 	return  1 ;
@@ -6103,7 +6103,7 @@ line_scrolled_out(
 	)
 {
 	x_screen_t *  screen ;
-	
+
 	screen = p ;
 
 	x_sel_line_scrolled_out( &screen->sel , -((int)ml_term_get_log_size( screen->term))) ;
@@ -6120,9 +6120,9 @@ window_clear(
 	x_screen_t *  screen ;
 	int  y ;
 	u_int  height ;
-	
+
 	screen = p ;
-	
+
 	y = row * x_line_height( screen) ;
 	height = num * x_line_height( screen) ;
 
@@ -6134,7 +6134,7 @@ window_clear(
 /*
  * callbacks of x_xim events.
  */
- 
+
 /*
  * this doesn't consider backscroll mode.
  */
@@ -6149,20 +6149,20 @@ get_spot(
 	ml_line_t *  line ;
 
 	screen = p ;
-	
+
 	if( ( line = ml_term_get_cursor_line( screen->term)) == NULL ||
 		ml_line_is_empty( line))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " cursor line doesn't exist ?.\n") ;
 	#endif
-	
+
 		return  0 ;
 	}
-	
+
 	*y = convert_row_to_y( screen , ml_term_cursor_row( screen->term)) +
 		x_line_height( screen) ;
-	
+
 	*x = convert_char_index_to_x_with_shape( screen , line ,
 		ml_term_cursor_char_index( screen->term)) ;
 
@@ -6179,7 +6179,7 @@ get_fontset(
 	)
 {
 	x_screen_t *  screen ;
-	
+
 	screen = p ;
 
 	return  x_get_fontset( screen->font_man) ;
@@ -6191,7 +6191,7 @@ get_fg_color(
 	)
 {
 	x_screen_t *  screen ;
-	
+
 	screen = p ;
 
 	return  x_get_color( screen->color_man , ML_FG_COLOR)->pixel ;
@@ -6203,7 +6203,7 @@ get_bg_color(
 	)
 {
 	x_screen_t *  screen ;
-	
+
 	screen = p ;
 
 	return  x_get_color( screen->color_man , ML_BG_COLOR)->pixel ;
@@ -6212,7 +6212,7 @@ get_bg_color(
 /*
  * callbacks of ml_xterm_event_listener_t
  */
- 
+
 static void
 start_vt100_cmd(
 	void *  p
@@ -6255,7 +6255,7 @@ stop_vt100_cmd(
 	{
 		x_reverse_selected_region_color_except_logs( &screen->sel) ;
 	}
-	
+
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
 }
@@ -6305,7 +6305,7 @@ xterm_resize_columns(
 	 * x_screen_{start|stop}_term_screen are necessary since
 	 * window is redrawn in window_resized().
 	 */
-	
+
 	if( x_window_resize( &screen->window , x_col_width(screen) * cols ,
 		x_line_height(screen) * ml_term_get_rows(screen->term) ,
 		NOTIFY_TO_PARENT))
@@ -6332,7 +6332,7 @@ xterm_reverse_video(
 	x_screen_t *  screen ;
 
 	screen = p ;
-	
+
 	if( do_reverse)
 	{
 		if( ! x_color_manager_reverse_video( screen->color_man))
@@ -6347,12 +6347,12 @@ xterm_reverse_video(
 			return ;
 		}
 	}
-	
+
 	x_window_set_fg_color( &screen->window ,
 		x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
 	x_window_set_bg_color( &screen->window ,
 		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
-	
+
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	redraw_screen( screen) ;
 }
@@ -6366,7 +6366,7 @@ xterm_set_mouse_report(
 	x_screen_t *  screen ;
 
 	screen = p ;
-	
+
 	if( flag)
 	{
 		x_stop_selecting( &screen->sel) ;
@@ -6386,7 +6386,7 @@ xterm_set_window_name(
 	x_screen_t *  screen ;
 
 	screen = p ;
-	
+
 	x_set_window_name( &screen->window , name) ;
 	ml_term_set_window_name( screen->term , name) ;
 }
@@ -6400,7 +6400,7 @@ xterm_set_icon_name(
 	x_screen_t *  screen ;
 
 	screen = p ;
-	
+
 	x_set_icon_name( &screen->window , name) ;
 	ml_term_set_icon_name( screen->term , name) ;
 }
@@ -6409,11 +6409,11 @@ static void
 xterm_bel(
 	void *  p
 	)
-{	
+{
 	x_screen_t *  screen ;
 
 	screen = p ;
-	
+
 	if( screen->bel_mode == BEL_SOUND)
 	{
 		XBell( screen->window.display , 0) ;
@@ -6480,18 +6480,18 @@ x_screen_new(
 	char *  conf_menu_path_2 ,
 	char *  conf_menu_path_3 ,
 	int  use_extended_scroll_shortcut ,
-	int  override_recirect ,
+	int  override_redirect ,
 	u_int  line_space
 	)
 {
 	x_screen_t *  screen ;
-	
+
 	if( ( screen = malloc( sizeof( x_screen_t))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
 	#endif
-	
+
 		return  NULL ;
 	}
 
@@ -6524,22 +6524,22 @@ x_screen_new(
 
 	ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
 		&screen->screen_listener , &screen->pty_listener) ;
-	
+
 	screen->term = term ;
-	
+
 	/* allocated dynamically */
 	screen->utf8_parser = NULL ;
 	screen->xct_parser = NULL ;
 	screen->ml_str_parser = NULL ;
 	screen->utf8_conv = NULL ;
 	screen->xct_conv = NULL ;
-	
+
 	screen->kbd = NULL ;
 
 	screen->use_vertical_cursor = use_vertical_cursor ;
-	
+
 	screen->font_man = font_man ;
-	
+
 	if( ml_term_get_encoding( screen->term) == ML_ISCII)
 	{
 		/*
@@ -6555,9 +6555,9 @@ x_screen_new(
 
 		ml_term_set_char_combining_flag( screen->term , 1) ;
 	}
-	
+
 	screen->color_man = color_man ;
-	
+
 	screen->sel_listener.self = screen ;
 	screen->sel_listener.select_in_window = select_in_window ;
 	screen->sel_listener.reverse_color = reverse_color ;
@@ -6568,7 +6568,7 @@ x_screen_new(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_sel_init failed.\n") ;
 	#endif
-	
+
 		goto  error ;
 	}
 
@@ -6590,7 +6590,7 @@ x_screen_new(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;
 	#endif
-	
+
 		goto  error ;
 	}
 
@@ -6635,7 +6635,7 @@ x_screen_new(
 	{
 		x_window_set_transparent( &screen->window , get_picture_modifier( screen)) ;
 	}
-	
+
 	if( pic_file_path)
 	{
 		screen->pic_file_path = strdup( pic_file_path) ;
@@ -6664,10 +6664,10 @@ x_screen_new(
 	screen->mod_meta_mask = 0 ;		/* set later in get_mod_meta_mask() */
 
 	screen->bel_mode = bel_mode ;
-	
+
 	screen->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
 
-	screen->borderless = override_recirect ;
+	screen->borderless = override_redirect ;
 
 	/*
 	 * for receiving selection.
@@ -6677,7 +6677,7 @@ x_screen_new(
 	{
 		goto  error ;
 	}
-	
+
 	if( ( screen->xct_parser = mkf_xct_parser_new()) == NULL)
 	{
 		goto  error ;
@@ -6686,7 +6686,7 @@ x_screen_new(
 	/*
 	 * for sending selection
 	 */
-	 
+
 	if( ( screen->ml_str_parser = ml_str_parser_new()) == NULL)
 	{
 		goto  error ;
@@ -6727,27 +6727,27 @@ error:
 	{
 		(*screen->utf8_parser->delete)( screen->utf8_parser) ;
 	}
-	
+
 	if( screen->xct_parser)
 	{
 		(*screen->xct_parser->delete)( screen->xct_parser) ;
 	}
-	
+
 	if( screen->ml_str_parser)
 	{
 		(*screen->ml_str_parser->delete)( screen->ml_str_parser) ;
 	}
-	
+
 	if( screen->utf8_conv)
 	{
 		(*screen->utf8_conv->delete)( screen->utf8_conv) ;
 	}
-	
+
 	if( screen->xct_conv)
 	{
 		(*screen->xct_conv->delete)( screen->xct_conv) ;
 	}
-	
+
 	if( screen)
 	{
 		free( screen) ;
@@ -6765,7 +6765,7 @@ x_screen_delete(
 	{
 		ml_term_detach( screen->term) ;
 	}
-	
+
 	x_sel_final( &screen->sel) ;
 
 	if( screen->kbd)
@@ -6782,32 +6782,32 @@ x_screen_delete(
 	{
 		free( screen->pic_file_path) ;
 	}
-	
+
 	if( screen->utf8_parser)
 	{
 		(*screen->utf8_parser->delete)( screen->utf8_parser) ;
 	}
-	
+
 	if( screen->xct_parser)
 	{
 		(*screen->xct_parser->delete)( screen->xct_parser) ;
 	}
-	
+
 	if( screen->ml_str_parser)
 	{
 		(*screen->ml_str_parser->delete)( screen->ml_str_parser) ;
 	}
-	
+
 	if( screen->utf8_conv)
 	{
 		(*screen->utf8_conv->delete)( screen->utf8_conv) ;
 	}
-	
+
 	if( screen->xct_conv)
 	{
 		(*screen->xct_conv->delete)( screen->xct_conv) ;
 	}
-	
+
 	free( screen) ;
 
 	return  1 ;
@@ -6823,7 +6823,7 @@ x_screen_attach(
 	{
 		return  0 ;
 	}
-	
+
 	screen->term = term ;
 
 	ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
@@ -6865,10 +6865,10 @@ x_screen_attach(
 	 */
 	x_set_window_name( &screen->window , ml_term_window_name( screen->term)) ;
 	x_set_icon_name( &screen->window , ml_term_icon_name( screen->term)) ;
-	
+
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
-	
+
 	return  1 ;
 }
 
@@ -6878,7 +6878,7 @@ x_screen_detach(
 	)
 {
 	ml_term_t *  term ;
-	
+
 	if( screen->term == NULL)
 	{
 		return  NULL ;
@@ -6912,7 +6912,7 @@ x_set_system_listener(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " system listener is already set.\n") ;
 	#endif
-	
+
 		return  0 ;
 	}
 
@@ -6932,7 +6932,7 @@ x_set_screen_scroll_listener(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " screen scroll listener is already set.\n") ;
 	#endif
-	
+
 		return  0 ;
 	}
 
@@ -6947,7 +6947,7 @@ x_set_screen_scroll_listener(
  *
  * Similar processing is done in bs_xxx().
  */
- 
+
 int
 x_screen_scroll_upward(
 	x_screen_t *  screen ,
@@ -6955,17 +6955,17 @@ x_screen_scroll_upward(
 	)
 {
 	unhighlight_cursor( screen) ;
-	
+
 	if( ! ml_term_is_backscrolling( screen->term))
 	{
 		enter_backscroll_mode( screen) ;
 	}
 
 	ml_term_backscroll_upward( screen->term , size) ;
-	
+
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
-	
+
 	return  1 ;
 }
 
@@ -6976,7 +6976,7 @@ x_screen_scroll_downward(
 	)
 {
 	unhighlight_cursor( screen) ;
-	
+
 	if( ! ml_term_is_backscrolling( screen->term))
 	{
 		enter_backscroll_mode( screen) ;
@@ -7002,7 +7002,7 @@ x_screen_scroll_to(
 	{
 		enter_backscroll_mode( screen) ;
 	}
-	
+
 	ml_term_backscroll_to( screen->term , row) ;
 
 	redraw_screen( screen) ;

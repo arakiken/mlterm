@@ -1,3 +1,9 @@
+2003-12-11  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* xwindow/x_screen.c: fixed an off-by-one error in get_mod_meta_mask().
+	  (modifiermap[8*max_keypermod] shouldn't be accessed)
+	* removed redundant spaces/ corrected typo.
+
 2003-11-24  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* configure.in, mlterm/Makefile: Added AC_CANONICAL_HOST,
