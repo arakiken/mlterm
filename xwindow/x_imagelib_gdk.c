@@ -1654,16 +1654,19 @@ int x_imagelib_load_file(
 #ifdef DEBUG
 			kik_debug_printf("scaled pixbuf from cache\n");
 #endif
-
 			scaled = misc.scaled ;
 		}
 		else
 		{
+			if( misc.scaled)
+				gdk_pixbuf_unref( misc.scaled) ;
 #ifdef DEBUG
 			kik_debug_printf("creating scaled  pixbuf\n");
 #endif
 			scaled = gdk_pixbuf_scale_simple(pixbuf, width, height,
 							 GDK_INTERP_NEAREST); 
+			misc.width = width ;
+			misc.height = height ;
 		}
 		if( scaled)
 		{
