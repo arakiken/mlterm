@@ -36,6 +36,7 @@ typedef struct  ml_term_manager
 	ml_font_custom_t  v_font_custom ;
 #ifdef  ANTI_ALIAS
 	ml_font_custom_t  aa_font_custom ;
+	ml_font_custom_t  vaa_font_custom ;
 #endif
 	ml_keymap_t  keymap ;
 	ml_termcap_t  termcap ;

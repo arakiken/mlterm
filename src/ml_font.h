@@ -56,9 +56,9 @@ typedef struct  ml_font
 
 	/* public */
 	
-	#ifdef  ANTI_ALIAS
+#ifdef  ANTI_ALIAS
 	XftFont *  xft_font ;
-	#endif
+#endif
 	XFontStruct *  xfont ;
 
 	ml_font_attr_t  attr ;
@@ -95,13 +95,16 @@ int  ml_font_set_xfont( ml_font_t *  font , char *  fontname , u_int  fontsize ,
 #ifdef  ANTI_ALIAS
 int  ml_font_set_xft_font( ml_font_t *  font , char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold) ;
+	
+int  ml_font_set_xft_pfont( ml_font_t *  font , char *  fontname , u_int  fontsize ,
+	u_int  col_width , int  use_medium_for_bold) ;
 #endif
 
 mkf_charset_t  ml_font_cs( ml_font_t *  font) ;
 
 int  ml_change_font_cs( ml_font_t *  font , mkf_charset_t  cs) ;
 
-u_int  ml_calculate_char_width( ml_font_t *  font , u_char *  ch , size_t  len) ;
+u_int  ml_calculate_char_width( ml_font_t *  font , u_char *  ch , size_t  len , mkf_charset_t  cs) ;
 
 
 #endif

@@ -523,7 +523,8 @@ ml_char_width(
 
 	if( font->is_var_col_width)
 	{
-		return  ml_calculate_char_width( font , ml_char_bytes( ch) , ml_char_size( ch)) ;
+		return  ml_calculate_char_width( font , ml_char_bytes( ch) , ml_char_size( ch) ,
+				ml_char_cs( ch)) ;
 	}
 	else
 	{

@@ -8,6 +8,8 @@
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 
+#include  "ml_char_encoding.h"		/* ml_is_msb_set */
+
 
 typedef struct ml_str_parser
 {

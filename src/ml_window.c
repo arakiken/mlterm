@@ -14,11 +14,11 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <mkf/mkf_charset.h>	/* mkf_charset */
-#include  <mkf/mkf_ucs4_map.h>
 
 #include  "ml_xic.h"
 #include  "ml_window_manager.h"
 #include  "ml_window_intern.h"
+#include  "ml_char_encoding.h"	/* ml_convert_to_ucs4 */
 
 
 #define  DOUBLE_CLICK_INTERVAL  1000	/* mili second */
@@ -83,52 +83,6 @@ char_combining_is_supported(
 #ifdef  ANTI_ALIAS
 
 static int
-convert_to_ucs4(
-	u_char *  ucs4_bytes ,
-	u_char *  src_bytes ,
-	size_t  src_size ,
-	mkf_charset_t  cs
-	)
-{
-	if( cs == ISO10646_UCS4_1)
-	{
-		memcpy( ucs4_bytes , src_bytes , 4) ;
-	}
-	else if( cs == ISO10646_UCS2_1)
-	{
-		ucs4_bytes[0] = 0x0 ;
-		ucs4_bytes[1] = 0x0 ;
-		ucs4_bytes[2] = src_bytes[0] ;
-		ucs4_bytes[3] = src_bytes[1] ;
-	}
-	else if( cs != US_ASCII && cs != ISO8859_1_R)
-	{
-		/*
-		 * all multi byte chars should be converted to UCS2(or UCS4) in Xft.
-		 */
-
-		mkf_char_t  non_ucs ;
-		mkf_char_t  ucs4 ;
-
-		memcpy( non_ucs.ch , src_bytes , src_size) ;
-		non_ucs.size = src_size ;
-		non_ucs.property = 0 ;
-		non_ucs.cs = cs ;
-
-		if( mkf_map_to_ucs4( &ucs4 , &non_ucs))
-		{
-			memcpy( ucs4_bytes , ucs4.ch , 4) ;
-		}
-		else
-		{
-			return  0 ;
-		}
-	}
-
-	return  1 ;
-}
-
-static int
 xft_draw_combining_chars(
 	ml_window_t *  win ,
 	ml_char_t *  chars ,
@@ -167,7 +121,7 @@ xft_draw_combining_chars(
 			
 			char  ucs4_bytes[4] ;
 
-			if( ! convert_to_ucs4( ucs4_bytes , ch_bytes , ch_size ,
+			if( ! ml_convert_to_ucs4( ucs4_bytes , ch_bytes , ch_size ,
 				ml_char_cs(&chars[counter])))
 			{
 				return  0 ;
@@ -319,7 +273,7 @@ xft_draw_str(
 		{
 			char  ucs4_bytes[4] ;
 
-			if( ! convert_to_ucs4( ucs4_bytes , ch_bytes , ch_size ,
+			if( ! ml_convert_to_ucs4( ucs4_bytes , ch_bytes , ch_size ,
 				ml_char_cs(&chars[counter])))
 			{
 			#ifdef  DEBUG

@@ -2880,37 +2880,9 @@ change_font_present(
 		return ;
 	}
 
-	if( font_present == FONT_VAR_WIDTH)
+	if( ! ml_font_manager_change_font_present( termscr->font_man , font_present))
 	{
-		if( ! ml_font_manager_use_var_col_width( termscr->font_man))
-		{
-			return ;
-		}
-	}
-	else if( font_present == FONT_AA)
-	{
-		if( ! ml_font_manager_use_aa( termscr->font_man))
-		{
-			return ;
-		}
-	}
-	else if( font_present == (FONT_VAR_WIDTH | FONT_AA))
-	{
-		/*
-		 * XXX
-		 * Anti-Aliased font cannot be proportional.
-		 */
-		if( ! ml_font_manager_use_aa( termscr->font_man))
-		{
-			return ;
-		}
-	}
-	else
-	{
-		if( ! ml_font_manager_use_normal( termscr->font_man))
-		{
-			return ;
-		}
+		return ;
 	}
 
 	font_size_changed( termscr) ;
@@ -3346,38 +3318,12 @@ ml_term_screen_new(
 	
 	termscr->font_man = font_man ;
 
-	if( font_present == FONT_VAR_WIDTH)
+	if( font_present)
 	{
-		if( ! ml_font_manager_use_var_col_width( termscr->font_man))
+		if( ! ml_font_manager_change_font_present( termscr->font_man , font_present))
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_use_var_col_width failed.\n") ;
-		#endif
-		
-			font_present = 0 ;
-		}
-	}
-	else if( font_present == FONT_AA)
-	{
-		if( ! ml_font_manager_use_aa( termscr->font_man))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_use_aa failed.\n") ;
-		#endif
-		
-			font_present = 0 ;
-		}
-	}
-	else if( font_present == (FONT_AA | FONT_VAR_WIDTH))
-	{
-		/*
-		 * XXX
-		 * Anti-Aliased font cannot be proportional.
-		 */
-		if( ! ml_font_manager_use_aa( termscr->font_man))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_use_aa failed.\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_change_font_present failed.\n") ;
 		#endif
 		
 			font_present = 0 ;

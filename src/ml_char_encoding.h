@@ -101,5 +101,8 @@ mkf_charset_t  ml_get_usascii_font_cs( ml_char_encoding_t  encoding) ;
 
 int  ml_is_msb_set( mkf_charset_t  cs) ;
 
+int  ml_convert_to_ucs4( u_char *  ucs4_bytes , u_char *  src_bytes , size_t  src_size ,
+	mkf_charset_t  cs) ;
+
 
 #endif

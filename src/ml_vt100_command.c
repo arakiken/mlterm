@@ -1146,7 +1146,14 @@ ml_vt100_cmd_get_config(
 	}
 	else if( strcmp( key , "wall_picture") == 0)
 	{
-		value = termscr->pic_file_path ;
+		if( termscr->pic_file_path)
+		{
+			value = termscr->pic_file_path ;
+		}
+		else
+		{
+			value = "" ;
+		}
 	}
 	else if( strcmp( key , "pwd") == 0)
 	{
@@ -1154,12 +1161,12 @@ ml_vt100_cmd_get_config(
 	}
 	else
 	{
-		value = "#error" ;
+		goto  error ;
 	}
 
 	if( value == NULL)
 	{
-		value = "#error" ;
+		goto  error ;
 	}
 
 	ml_write_to_pty( termscr->pty , "#" , 1) ;
@@ -1168,9 +1175,18 @@ ml_vt100_cmd_get_config(
 	ml_write_to_pty( termscr->pty , value , strlen( value)) ;
 	ml_write_to_pty( termscr->pty , "\n" , 1) ;
 
-#ifdef  DEBUG
+#ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
 #endif
 
 	return  1 ;
+
+error:
+	ml_write_to_pty( termscr->pty , "#error\n" , 7) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " #error\n") ;
+#endif
+
+	return  0 ;
 }

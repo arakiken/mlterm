@@ -77,7 +77,8 @@ is_var_col_width(
 	ml_font_manager_t *  font_man
 	)
 {
-	return  (font_man->font_custom == font_man->v_font_custom) ;
+	return  (font_man->font_custom == font_man->v_font_custom) ||
+		(font_man->font_custom == font_man->vaa_font_custom) ;
 }
 
 static int
@@ -85,7 +86,8 @@ is_aa(
 	ml_font_manager_t *  font_man
 	)
 {
-	return  (font_man->font_custom == font_man->aa_font_custom) ;
+	return  (font_man->font_custom == font_man->aa_font_custom) ||
+		(font_man->font_custom == font_man->vaa_font_custom) ;
 }
 
 static char *
@@ -258,7 +260,8 @@ ml_font_manager_new(
 	Display *  display ,
 	ml_font_custom_t *  normal_font_custom ,
 	ml_font_custom_t *  v_font_custom ,
-	ml_font_custom_t *  aa_font_custom ,
+	ml_font_custom_t *  aa_font_custom ,	/* may be NULL */
+	ml_font_custom_t *  vaa_font_custom ,
 	u_int  font_size ,
 	mkf_charset_t  usascii_font_cs ,
 	int  usascii_font_cs_changable
@@ -278,6 +281,8 @@ ml_font_manager_new(
 	font_man->normal_font_custom = normal_font_custom ;
 	font_man->aa_font_custom = aa_font_custom ;
 	font_man->v_font_custom = v_font_custom ;
+	font_man->vaa_font_custom = vaa_font_custom ;
+	
 	font_man->local_font_custom = NULL ;
 
 	font_man->font_custom = font_man->normal_font_custom ;
@@ -331,63 +336,59 @@ ml_font_manager_delete(
 }
 
 int
-ml_font_manager_use_normal(
-	ml_font_manager_t *  font_man
+ml_font_manager_change_font_present(
+	ml_font_manager_t *  font_man ,
+	ml_font_present_t  font_present
 	)
 {
-	if( font_man->font_custom == font_man->normal_font_custom)
+	if( font_present == FONT_VAR_WIDTH)
 	{
-		return  0 ;
+		if( font_man->font_custom == font_man->v_font_custom)
+		{
+			return  0 ;
+		}
+
+		font_man->set_xfont = ml_font_set_xfont ;
+		font_man->font_custom = font_man->v_font_custom ;
 	}
-	
-	font_man->set_xfont = ml_font_set_xfont ;
-	font_man->font_custom = font_man->normal_font_custom ;
-
-	ml_font_manager_reload( font_man) ;
-	
-	return  1 ;
-}
-
-int
-ml_font_manager_use_var_col_width(
-	ml_font_manager_t *  font_man
-	)
-{
-	if( font_man->font_custom == font_man->v_font_custom)
-	{
-		return  0 ;
-	}
-	
-	font_man->set_xfont = ml_font_set_xfont ;
-	font_man->font_custom = font_man->v_font_custom ;
-
-	ml_font_manager_reload( font_man) ;
-	
-	return  1 ;
-}
-
-int
-ml_font_manager_use_aa(
-	ml_font_manager_t *  font_man
-	)
-{
 #ifdef  ANTI_ALIAS
-	if( font_man->font_custom == font_man->aa_font_custom)
+	else if( font_present == FONT_AA)
 	{
-		return  0 ;
+		if( font_man->aa_font_custom == NULL ||
+			font_man->font_custom == font_man->aa_font_custom)
+		{
+			return  0 ;
+		}
+
+		font_man->set_xfont = ml_font_set_xft_font ;
+		font_man->font_custom = font_man->aa_font_custom ;
+	}
+	else if( font_present == (FONT_AA | FONT_VAR_WIDTH))
+	{
+		if( font_man->vaa_font_custom == NULL ||
+			font_man->font_custom == font_man->vaa_font_custom)
+		{
+			return  0 ;
+		}
+
+		font_man->set_xfont = ml_font_set_xft_pfont ;
+		font_man->font_custom = font_man->vaa_font_custom ;
+	}
+#endif
+	else
+	{
+		if( font_man->font_custom == font_man->normal_font_custom)
+		{
+			return  0 ;
+		}
+
+		font_man->set_xfont = ml_font_set_xfont ;
+		font_man->font_custom = font_man->normal_font_custom ;
 	}
 	
-	font_man->set_xfont = ml_font_set_xft_font ;
-	font_man->font_custom = font_man->aa_font_custom ;
-
 	ml_font_manager_reload( font_man) ;
-
-	return  1 ;
-#else
-	/* always false */
 	
-	return  0 ;
-#endif
+	return  1 ;
 }
 
 int

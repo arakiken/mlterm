@@ -45,6 +45,8 @@
 #include  <mkf/mkf_ucs4_conv.h>
 #include  <mkf/mkf_iso2022_conv.h>
 
+#include  <mkf/mkf_ucs4_map.h>
+
 
 typedef struct  encoding_table
 {
@@ -452,4 +454,50 @@ ml_is_msb_set(
 	}
 
 	return  0 ;
+}
+
+int
+ml_convert_to_ucs4(
+	u_char *  ucs4_bytes ,
+	u_char *  src_bytes ,
+	size_t  src_size ,
+	mkf_charset_t  cs
+	)
+{
+	if( cs == ISO10646_UCS4_1)
+	{
+		memcpy( ucs4_bytes , src_bytes , 4) ;
+	}
+	else if( cs == ISO10646_UCS2_1)
+	{
+		ucs4_bytes[0] = 0x0 ;
+		ucs4_bytes[1] = 0x0 ;
+		ucs4_bytes[2] = src_bytes[0] ;
+		ucs4_bytes[3] = src_bytes[1] ;
+	}
+	else if( cs != US_ASCII && cs != ISO8859_1_R)
+	{
+		/*
+		 * all multi byte chars should be converted to UCS2(or UCS4) in Xft.
+		 */
+
+		mkf_char_t  non_ucs ;
+		mkf_char_t  ucs4 ;
+
+		memcpy( non_ucs.ch , src_bytes , src_size) ;
+		non_ucs.size = src_size ;
+		non_ucs.property = 0 ;
+		non_ucs.cs = cs ;
+
+		if( mkf_map_to_ucs4( &ucs4 , &non_ucs))
+		{
+			memcpy( ucs4_bytes , ucs4.ch , 4) ;
+		}
+		else
+		{
+			return  0 ;
+		}
+	}
+
+	return  1 ;
 }

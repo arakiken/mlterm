@@ -14,6 +14,7 @@
 #include  <kiklib/kik_locale.h>	/* kik_get_lang() */
 
 #include  "ml_font_intern.h"
+#include  "ml_char_encoding.h"	/* ml_convert_to_ucs4 */
 
 
 #define  FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p) \
@@ -133,13 +134,14 @@ get_cs_info(
 	return  NULL ;
 }
 
+
 #ifdef  ANTI_ALIAS
 
 static u_int
 xft_calculate_char_width(
 	Display *  display ,
 	XftFont *  xfont ,
-	u_char *  ch ,
+	u_char *  ch ,		/* US-ASCII or Unicode */
 	size_t  len
 	)
 {
@@ -175,7 +177,7 @@ xft_calculate_char_width(
 		return  0 ;
 	}
 
-	return  extents.width ;
+	return  extents.xOff ;
 }
 
 #endif
@@ -224,44 +226,6 @@ calculate_char_width(
 		return  0 ;
 	}
 }
-
-#ifdef  ANTI_ALIAS
-
-static u_int
-get_xft_col_width(
-	ml_font_t *  font ,
-	char *  family ,
-	u_int  fontsize
-	)
-{
-	XftFont *  xfont ;
-	
-	/*
-	 * XXX
-	 * DefaultScreen() should not be used , but ...
-	 */
-	if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
-			XFT_FAMILY , XftTypeString , family ,
-			XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
-			XFT_SPACING , XftTypeInteger , XFT_CHARCELL , 0)))
-	{
-		u_int  w_width ;
-
-		w_width = xft_calculate_char_width( font->display , xfont , "W" , 1) ;
-
-		XftFontClose( font->display , xfont) ;
-
-		if( w_width > 0)
-		{
-			return  w_width ;
-		}
-	}
-	
-	/* XXX this may be inaccurate. */
-	return  fontsize / 2 ;
-}
-
-#endif
 
 static XFontStruct *
 load_xfont(
@@ -369,54 +333,85 @@ unset_xfont(
 }
 
 
-/* --- global functions --- */
+#ifdef  ANTI_ALIAS
 
-ml_font_t *
-ml_font_new(
-	Display *  display ,
-	ml_font_attr_t  attr
+static int
+parse_xft_font_name(
+	char **  font_family ,
+	char **  font_encoding ,
+	char *  font_name
 	)
 {
-	ml_font_t *  font ;
+	/*
+	 * XftFont format.
+	 * [Font Family]-[Font Encoding]
+	 */
 
-	if( ( font = malloc( sizeof( ml_font_t))) == NULL)
+	if( ( *font_family = kik_str_sep( &font_name , "-")) == NULL)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " illegal true type font name(%s).\n" ,
+			font_name) ;
 	#endif
 
-		return  NULL ;
+		return  0 ;
 	}
 
-	memset( font , 0 , sizeof( ml_font_t)) ;
+	if( ( *font_encoding = font_name) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " illegal true type font name(%s).\n" ,
+			font_name) ;
+	#endif
 
-	font->attr = attr ;
-	font->display = display ;
-
-	return  font ;
-}
-
-int
-ml_font_delete(
-	ml_font_t *  font
-	)
-{
-	unset_xfont( font) ;
-
-	free( font) ;
+		return  0 ;
+	}
 
 	return  1 ;
 }
 
-#ifdef  ANTI_ALIAS
+static u_int
+get_xft_col_width(
+	ml_font_t *  font ,
+	char *  family ,
+	u_int  fontsize
+	)
+{
+	XftFont *  xfont ;
+	
+	/*
+	 * XXX
+	 * DefaultScreen() should not be used , but ...
+	 */
+	if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
+		XFT_FAMILY , XftTypeString , family ,
+		XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+		XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
+	{
+		u_int  w_width ;
 
-int
-ml_font_set_xft_font(
+		w_width = xft_calculate_char_width( font->display , xfont , "W" , 1) ;
+
+		XftFontClose( font->display , xfont) ;
+
+		if( w_width > 0)
+		{
+			return  w_width ;
+		}
+	}
+	
+	/* XXX this may be inaccurate. */
+	return  fontsize / 2 ;
+}
+
+static int
+set_xft_font(
 	ml_font_t *  font ,
 	char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set */
-	int  use_medium_for_bold
+	int  use_medium_for_bold ,
+	int  is_proportional
 	)
 {
 	int  weight ;
@@ -424,7 +419,6 @@ ml_font_set_xft_font(
 	u_int  cols ;
 	u_int  ch_width ;
 	XftFont *  xfont ;
-	char *  font_encoding ;
 	char **  font_encoding_p ;
 
 	if( ( csinfo = get_cs_info( FONT_CS(font->attr))) == NULL)
@@ -464,13 +458,9 @@ ml_font_set_xft_font(
 	
 	if( fontname != NULL)
 	{
-		/*
-		 * XftFont format.
-		 * [Font Family]-[Font Encoding]
-		 */
-		 
 		char *  p ;
 		char *  font_family ;
+		char *  font_encoding ;
 
 		if( ( p = kik_str_alloca_dup( fontname)) == NULL)
 		{
@@ -480,48 +470,47 @@ ml_font_set_xft_font(
 		
 			return  0 ;
 		}
+
+		if( parse_xft_font_name( &font_family , &font_encoding , p))
+		{
+			if( col_width == 0)
+			{
+				/* basic font (e.g. usascii) width */
+				ch_width = get_xft_col_width( font , font_family , fontsize) * cols ;
+			}
+			else
+			{
+				ch_width = col_width * cols ;
+			}
+
+			if( is_proportional)
+			{
+				if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
+						XFT_FAMILY , XftTypeString , font_family ,
+						XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+						XFT_ENCODING , XftTypeString , font_encoding ,
+						XFT_WEIGHT , XftTypeInteger , weight ,
+						XFT_SIZE , XftTypeDouble , (double)ch_width ,
+						XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
+				{
+					goto  font_found ;
+				}
+			}
+			else
+			{
+				if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
+						XFT_FAMILY , XftTypeString , font_family ,
+						XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+						XFT_ENCODING , XftTypeString , font_encoding ,
+						XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
+						XFT_WEIGHT , XftTypeInteger , weight ,
+						XFT_SPACING , XftTypeInteger , XFT_CHARCELL , 0)))
+				{
+					goto  font_found ;
+				}
+			}
+		}
 		
-		if( ( font_family = kik_str_sep( &p , "-")) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " illegal true type font name(%s).\n" ,
-				fontname) ;
-		#endif
-		
-			return  0 ;
-		}
-
-		if( ( font_encoding = p) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " illegal true type font name(%s).\n" ,
-				fontname) ;
-		#endif
-
-			return  0 ;
-		}
-
-		if( col_width == 0)
-		{
-			/* basic font (e.g. usascii) width */
-			ch_width = get_xft_col_width( font , font_family , fontsize) * cols ;
-		}
-		else
-		{
-			ch_width = col_width * cols ;
-		}
-
-		if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
-				XFT_FAMILY , XftTypeString , font_family ,
-				XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
-				XFT_ENCODING , XftTypeString , font_encoding ,
-				XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
-				XFT_WEIGHT , XftTypeInteger , weight ,
-				XFT_SPACING , XftTypeInteger , XFT_CHARCELL , 0)))
-		{
-			goto  font_found ;
-		}
-
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " %s font couln't be loaded.\n" , fontname) ;
 	#endif
@@ -539,14 +528,29 @@ ml_font_set_xft_font(
 
 	FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
 	{
-		if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
-				XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
-				XFT_ENCODING , XftTypeString , *font_encoding_p ,
-				XFT_WEIGHT , XftTypeInteger , weight ,
-				XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
-				XFT_SPACING , XftTypeInteger , XFT_CHARCELL , 0)))
+		if( is_proportional)
 		{
-			goto  font_found ;
+			if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
+					XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+					XFT_ENCODING , XftTypeString , *font_encoding_p ,
+					XFT_WEIGHT , XftTypeInteger , weight ,
+					XFT_SIZE , XftTypeDouble , (double)ch_width ,
+					XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
+			{
+				goto  font_found ;
+			}
+		}
+		else
+		{
+			if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
+					XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+					XFT_ENCODING , XftTypeString , *font_encoding_p ,
+					XFT_WEIGHT , XftTypeInteger , weight ,
+					XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
+					XFT_SPACING , XftTypeInteger , XFT_CHARCELL , 0)))
+			{
+				goto  font_found ;
+			}
 		}
 	}
 	
@@ -568,7 +572,7 @@ font_found:
 	font->width = ch_width ;
 	font->cols = cols ;
 
-	font->is_proportional = 0 ;
+	font->is_proportional = is_proportional ;
 	
 	/*
 	 * checking if font height/height_to_baseline member is sane.
@@ -590,7 +594,77 @@ font_found:
 	return  1 ;
 }
 
+#endif
+
+
+/* --- global functions --- */
+
+ml_font_t *
+ml_font_new(
+	Display *  display ,
+	ml_font_attr_t  attr
+	)
+{
+	ml_font_t *  font ;
+
+	if( ( font = malloc( sizeof( ml_font_t))) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+	#endif
+
+		return  NULL ;
+	}
+
+	memset( font , 0 , sizeof( ml_font_t)) ;
+
+	font->attr = attr ;
+	font->display = display ;
+
+	return  font ;
+}
+
+int
+ml_font_delete(
+	ml_font_t *  font
+	)
+{
+	unset_xfont( font) ;
+
+	free( font) ;
+
+	return  1 ;
+}
+
+
+#ifdef  ANTI_ALIAS
+
+int
+ml_font_set_xft_font(
+	ml_font_t *  font ,
+	char *  fontname ,
+	u_int  fontsize ,
+	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
+	int  use_medium_for_bold
+	)
+{
+	return  set_xft_font( font , fontname , fontsize , col_width , use_medium_for_bold , 0) ;
+}
+
+int
+ml_font_set_xft_pfont(
+	ml_font_t *  font ,
+	char *  fontname ,
+	u_int  fontsize ,
+	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
+	int  use_medium_for_bold
+	)
+{
+	return  set_xft_font( font , fontname , fontsize , col_width , use_medium_for_bold , 1) ;
+}
+
 #endif	/* ANTI_ALIAS */
+
 
 int
 ml_font_set_xfont(
@@ -939,19 +1013,38 @@ u_int
 ml_calculate_char_width(
 	ml_font_t *  font ,
 	u_char *  ch ,
-	size_t  len
+	size_t  len ,
+	mkf_charset_t  cs
 	)
 {
-	if( ! font->is_proportional
-#ifdef  ANTI_ALIAS
-		|| font->xft_font
-#endif
-		)
+	if( ! font->is_proportional)
 	{
 		return  font->width ;
 	}
 	else
 	{
-		return  calculate_char_width( font->display , font->xfont , ch , len) ;
+	#ifdef  ANTI_ALIAS
+		if( font->xft_font)
+		{
+			u_char  ucs4[4] ;
+
+			if( cs != US_ASCII)
+			{
+				if( ! ml_convert_to_ucs4( ucs4 , ch , len , cs))
+				{
+					return  0 ;
+				}
+
+				ch = ucs4 ;
+				len = 4 ;
+			}
+
+			return  xft_calculate_char_width( font->display , font->xft_font , ch , len) ;
+		}
+		else
+	#endif
+		{
+			return  calculate_char_width( font->display , font->xfont , ch , len) ;
+		}
 	}
 }
