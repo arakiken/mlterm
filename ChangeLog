@@ -1,3 +1,8 @@
+2002-04-28 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Fixed several typos in the manpage.
+	* Explanation on "-1" command option in more detail in the manpage.
+
 2002-04-28 Araki Ken <arakiken@users.sf.net>
 
 	* underline can be left as garbage on screen if line space is 

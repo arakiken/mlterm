@@ -101,6 +101,7 @@ The default is \fBfalse\fR.
 \fB\-K\fR, \fB\-\-maxptys\fR=\fIvalue\fR
 Specify max pty windows.
 The default is \fB5\fR.
+See \fBMULTIPLE PTY\fR section for detail.
 .TP
 \fB\-L\fR, \fB\-\-ls\fR(=\fIbool\fR)
 Whether to use login shell or not.  The default is \fBfalse\fR.
@@ -186,7 +187,11 @@ Process full width characters which holds two columns for one character.
 The default is \fBtrue\fR.
 .TP
 \fB\-1\fR, \fB\-\-wscr\fR=\fIvalue\fR
-Specify actual screen width.
+Specify actual window width, by percentage against 
+calculated value by multiplying font width by column number.
+This is useful when you use a proportional font which includes
+some glyphs with excepsionally large width, i.e., much
+larger "maximum width" than your expectation.
 The default is \fB100\fR.
 .TP
 \fB\-2\fR, \fB\-\-hscr\fR=\fIvalue\fR
@@ -433,7 +438,7 @@ Wall picture
 Specify the image file to be used for background image.
 (\fB\-p\fR, \fB\-\-pic\fR) 
 .TP
-Varaiable column width
+Variable column width
 Use variable column width. (\fB\-V\fR, \fB\-\-varwidth\fR) 
 .TP
 Anti-alias
@@ -849,13 +854,13 @@ Background color for scrollbar.
 \fBwall_picture=\fIpath\fR (\fB\-p\fR, \fB\-\-pic\fR) 
 Path for wallpaper image.
 .TP
-\fBfade_ratio=\fratio\fR (\fB\-r\fR, \fB\-\-fade_ratio\fR) 
+\fBfade_ratio=\fIratio\fR (\fB\-r\fR, \fB\-\-fade_ratio\fR) 
 Specify fading ratio when window is unfocused.
 .TP
-\fBbrightness=\fvalue\fR (\fB\-H\fR, \fB\-\-brightness\fR) 
+\fBbrightness=\fIvalue\fR (\fB\-H\fR, \fB\-\-brightness\fR) 
 Specify the amount of darkening or lightening the background image.
 .TP
-\fBline_space=\fvalue\fR (\fB\-o\fR, \fB\-\-lsp\fR) 
+\fBline_space=\fIvalue\fR (\fB\-o\fR, \fB\-\-lsp\fR) 
 Specify number of extra dots between lines.
 .TP
 \fBuse_xim=\fIbool\fR (\fB\-i\fR, \fB\-\-xim\fR) 
@@ -1038,7 +1043,7 @@ Manual pages of
 \fBREADME.sb\fR for development of scrollbar library.
 .PP
 Mapping tables between Unicode and local character sets
-(and encodings) are found at Unicode Consortium website
+(and encodings) are found at Unicode Consortium web site
 (http://www.unicode.org/Public/MAPPINGS/).  Note that
 mapping tables for East Asian character sets and encodings
 are moved to OBSOLETE/EASTASIA directory of the site
@@ -1055,12 +1060,12 @@ characters in Unicode, are supplied by Unicode Consortium
 .PP
 See the web page of "Linux Technology Development for Indian
 Languages" (http://www.cse.iitk.ac.in/~moona/isciig/) for
-libind library and related needed resouces for ISCII support
+libind library and related needed resources for ISCII support
 by \fBmlterm\fR.
 .SH FILES
 .TP
-"\fImain\fR", "\fIfont\fR", "\fIvfont\fR", "\fItfont\fR", "\fIaafont\fR",\
-"\fIvaafont\fR", "\fItaafont\fR", "\fIcolor\fR", "\fIkey\fR", "\fItermcap\fR",\
+"\fImain\fR", "\fIfont\fR", "\fIvfont\fR", "\fItfont\fR", "\fIaafont\fR",
+"\fIvaafont\fR", "\fItaafont\fR", "\fIcolor\fR", "\fIkey\fR", "\fItermcap\fR",
 and "\fIxim\fR"
 Configuration files.
 .TP
