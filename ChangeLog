@@ -1,3 +1,8 @@
+2004-09-26 meiichi SATO <ssato@sh.rim.or.jp>
+
+	* man/mlterm.1: fixed typo. (JISX0201_KANA -> JISX0201_KATA)
+	  (Thanks to Konosuke WATANABE for reporting)
+
 2004-09-19 meiichi SATO <ssato@sh.rim.or.jp>
 
 	* mlterm/ml_vt100_parser.c (change_char_attr): kept is_reversed when
