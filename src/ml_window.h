@@ -101,7 +101,7 @@ typedef struct  ml_window
 
 	/* color */
 	ml_color_table_t  color_table ;
-	x_color_t *  faded_xcolor ;
+	x_color_t *  orig_fg_xcolor ;
 	x_color_t *  orig_bg_xcolor ;
 
 	/* used by ml_xim */
@@ -182,9 +182,9 @@ int  ml_window_get_fg_color( ml_window_t *  win) ;
 
 int  ml_window_get_bg_color( ml_window_t *  win) ;
 
-int  ml_window_fade_bg_color( ml_window_t *  win , u_int8_t  fade_ratio) ;
+int  ml_window_fade( ml_window_t *  win , u_int8_t  fade_ratio) ;
 
-int  ml_window_unfade_bg_color( ml_window_t *  win) ;
+int  ml_window_unfade( ml_window_t *  win) ;
 
 int  ml_window_add_child( ml_window_t *  win , ml_window_t *  child , int  x , int  y) ;
 

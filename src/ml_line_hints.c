@@ -73,27 +73,6 @@ ml_line_hints_add(
 }
 
 int
-ml_line_hints_set(
-	ml_line_hints_t *  hints ,
-	int  beg_of_line ,
-	u_int  len ,
-	u_int  width ,
-	int  at
-	)
-{
-	if( ( at = kik_cycle_index_of( hints->index , at)) == -1)
-	{
-		return  0 ;
-	}
-	
-	hints->lines[ at].beg_of_line = beg_of_line ;
-	hints->lines[ at].len = len ;
-	hints->lines[ at].width = width ;
-
-	return  1 ;
-}
-
-int
 ml_line_hints_at(
 	ml_line_hints_t *  hints ,
 	int *  beg_of_line ,
@@ -112,48 +91,6 @@ ml_line_hints_at(
 	*width = hints->lines[at].width ;
 
 	return  1 ;
-}
-
-int
-ml_get_beg_of_line_hint(
-	ml_line_hints_t *  hints ,
-	int  at
-	)
-{
-	if( ( at = kik_cycle_index_of( hints->index , at)) == -1)
-	{
-		return  0 ;
-	}
-	
-	return  hints->lines[at].beg_of_line ;
-}
-
-u_int
-ml_get_line_len_hint(
-	ml_line_hints_t *  hints ,
-	int  at
-	)
-{
-	if( ( at = kik_cycle_index_of( hints->index , at)) == -1)
-	{
-		return  0 ;
-	}
-
-	return  hints->lines[at].len ;
-}
-
-u_int
-ml_get_line_width_hint(
-	ml_line_hints_t *  hints ,
-	int  at
-	)
-{
-	if( ( at = kik_cycle_index_of( hints->index , at)) == -1)
-	{
-		return  0 ;
-	}
-
-	return  hints->lines[at].width ;
 }
 
 u_int

@@ -1510,6 +1510,7 @@ ml_term_manager_final(
 	ml_font_custom_final( &term_man->v_font_custom) ;
 #ifdef  ANTI_ALIAS
 	ml_font_custom_final( &term_man->aa_font_custom) ;
+	ml_font_custom_final( &term_man->vaa_font_custom) ;
 #endif
 	ml_keymap_final( &term_man->keymap) ;
 	ml_termcap_final( &term_man->termcap) ;

@@ -1142,7 +1142,7 @@ window_focused(
 
 	termscr->is_focused = 1 ;
 	
-	ml_window_unfade_bg_color( win) ;
+	ml_window_unfade( win) ;
 	
 	highlight_cursor( termscr) ;
 }
@@ -1160,7 +1160,7 @@ window_unfocused(
 	
 	termscr->is_focused = 0 ;
 	
-	ml_window_fade_bg_color( win , termscr->fade_ratio) ;
+	ml_window_fade( win , termscr->fade_ratio) ;
 
 	highlight_cursor( termscr) ;
 }
@@ -2790,7 +2790,7 @@ change_bg_color(
 
 	termscr = p ;
 
-	ml_window_unfade_bg_color( &termscr->window) ;
+	ml_window_unfade( &termscr->window) ;
 	ml_window_set_bg_color( &termscr->window , color) ;
 	ml_xic_bg_color_changed( &termscr->window) ;
 }
@@ -2966,10 +2966,10 @@ change_fade_ratio(
 
 		/* suppressing redrawing */
 		termscr->window.window_exposed = NULL ;
-		ml_window_unfade_bg_color( &termscr->window) ;
+		ml_window_unfade( &termscr->window) ;
 		
 		termscr->window.window_exposed = window_exposed ;
-		ml_window_fade_bg_color( &termscr->window , termscr->fade_ratio) ;
+		ml_window_fade( &termscr->window , termscr->fade_ratio) ;
 		
 		highlight_cursor( termscr) ;
 	}

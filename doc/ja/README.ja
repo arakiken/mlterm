@@ -95,7 +95,9 @@ comment $Id$
   o 設定ファイル(~/.mlterm/以下)
     main: 引数オプションで上書き可能な、プリミティブな設定
     font: フォント設定
-    aafoont: Xft用フォント設定
+    vfont: 可変長コラム幅使用時のフォント設定
+    aafont: Xft用フォント設定
+    vaafont: Xft用かつ可変長コラム幅使用時のフォント設定 
     color: 色定義
     key: ショートカットキー定義
     termcap: termcapもどき
@@ -191,7 +193,7 @@ comment $Id$
           べ、適当なエンコーディングを選択します。
           ENCODING指定を行なわなかった場合も同様です。
 
-    o font/aafont
+    o font/vfont/aafont/vaafont
       o DEC_SPECIAL        ... 罫線文字用のフォント
       o ISO8859_N          ... ISO8859_Nフォント
       o TIS620             ... TIS 620 フォント
@@ -222,13 +224,13 @@ comment $Id$
         ISO8859_1_BOLD
         のように、"_BOLD"をつけた名前で指定して下さい。
 
-        フォーマットは、font(通常のXフォント)と、aafont(Xft用フォント)で異なります。
-        o font
+        フォーマットは、font/vfont(通常のXフォント)と、aafont/vaafont(Xft用フォント)で異なります。
+        o font/vfont
           [font size],[font name];[font size],[font name];...
 
           [font name]は、XLFD、もしくは、fonts.aliasで定義している省略記法
 
-        o aafont
+        o aafont/vaafont
           [font name];([font size],[font name];...)
 
           [font name]は、[font family]-[font encoding]となります。

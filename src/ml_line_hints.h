@@ -31,19 +31,10 @@ int  ml_line_hints_final( ml_line_hints_t *  hints) ;
 
 int  ml_line_hints_reset( ml_line_hints_t *  hints) ;
 
-int  ml_line_hints_set( ml_line_hints_t *  hints , int  beg_of_line ,
-	u_int  len , u_int  width , int  at) ;
-	
 int  ml_line_hints_add( ml_line_hints_t *  hints , int  beg_of_line , u_int  len , u_int  width) ;
 
 int  ml_line_hints_at( ml_line_hints_t *  hints , int *  beg_of_line , u_int *  len ,
 	u_int *  width , int  at) ;
-
-int  ml_get_beg_of_line_hint( ml_line_hints_t *  hints , int  at) ;
-
-u_int  ml_get_line_len_hint( ml_line_hints_t *  hints , int  at) ;
-
-u_int  ml_get_line_width_hint( ml_line_hints_t *  hints , int  at) ;
 
 u_int  ml_get_num_of_lines_by_hints( ml_line_hints_t *  hints) ;
 

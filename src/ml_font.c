@@ -5,12 +5,12 @@
 #include  "ml_font.h"
 
 #include  <stdio.h>		/* sprintf */
-#include  <string.h>		/* memset */
+#include  <string.h>		/* memset/strncasecmp */
 #include  <X11/Xatom.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int */
-#include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
+#include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN/K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_lang() */
 
 #include  "ml_font_intern.h"
@@ -377,8 +377,44 @@ get_xft_col_width(
 	u_int  fontsize
 	)
 {
-	XftFont *  xfont ;
+#if  0
+
+	/*
+	 * XXX
+	 * I don't know why but XftTextExtents() returns full width extents for DynaFont 'W'
+	 * (e.g. fontsize == 12 / w_width == 12) , so "Dynalab" family fonts are excluded.
+	 */
+	if( strncasecmp( family , "Dynalab" , K_MIN(7,strlen(family))) != 0)
+	{
+		XftFont *  xfont ;
+
+		/*
+		 * XXX
+		 * DefaultScreen() should not be used , but ...
+		 */
+		if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
+			XFT_FAMILY , XftTypeString , family ,
+			XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+			XFT_ENCODING , XftTypeString , "iso8859-1" ,
+			XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
+		{
+			u_int  w_width ;
+
+			w_width = xft_calculate_char_width( font->display , xfont , "W" , 1) ;
+
+			XftFontClose( font->display , xfont) ;
+
+			if( w_width > 0)
+			{
+				return  w_width ;
+			}
+		}
+	}
 	
+#else
+
+	XftFont *  xfont ;
+
 	/*
 	 * XXX
 	 * DefaultScreen() should not be used , but ...
@@ -386,6 +422,7 @@ get_xft_col_width(
 	if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
 		XFT_FAMILY , XftTypeString , family ,
 		XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+		XFT_ENCODING , XftTypeString , "iso8859-1" ,
 		XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
 	{
 		u_int  w_width ;
@@ -394,11 +431,20 @@ get_xft_col_width(
 
 		XftFontClose( font->display , xfont) ;
 
-		if( w_width > 0)
+		/*
+		 * XXX
+		 * since some fonts(e.g. Dynalab Font) returns full width extents for 'W' ,
+		 * w_width < fontsize check is done.
+		 * if there is a proportional font whose 'W' width is really wider
+		 * than fontsize , w_width < fontsize trick may backfire.
+		 */
+		if( 0 < w_width && w_width < fontsize)
 		{
 			return  w_width ;
 		}
 	}
+
+#endif
 	
 	/* XXX this may be inaccurate. */
 	return  fontsize / 2 ;
@@ -490,7 +536,6 @@ set_xft_font(
 						XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
 						XFT_ENCODING , XftTypeString , font_encoding ,
 						XFT_WEIGHT , XftTypeInteger , weight ,
-						XFT_SIZE , XftTypeDouble , (double)ch_width ,
 						XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
 				{
 					goto  font_found ;
@@ -534,7 +579,6 @@ set_xft_font(
 					XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
 					XFT_ENCODING , XftTypeString , *font_encoding_p ,
 					XFT_WEIGHT , XftTypeInteger , weight ,
-					XFT_SIZE , XftTypeDouble , (double)ch_width ,
 					XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , 0)))
 			{
 				goto  font_found ;

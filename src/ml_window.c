@@ -1035,7 +1035,17 @@ draw_str(
 }
 
 static int
-set_bg_color(
+update_fg_color(
+	ml_window_t *  win
+	)
+{
+	XSetForeground( win->display , win->gc , FG_COLOR_PIXEL(win)) ;
+
+	return  1 ;
+}
+
+static int
+update_bg_color(
 	ml_window_t *  win
 	)
 {
@@ -1044,12 +1054,6 @@ set_bg_color(
 	if( ! win->is_transparent && ! win->wall_picture_is_set)
 	{
 		XSetWindowBackground( win->display , win->my_window , BG_COLOR_PIXEL(win)) ;
-	}
-
-	if( win->window_exposed)
-	{
-		ml_window_clear_all( win) ;
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 
 	return  1 ;
@@ -1225,7 +1229,7 @@ ml_window_init(
 	win->margin = margin ;
 
 	win->color_table = color_table ;
-	win->faded_xcolor = NULL ;
+	win->orig_fg_xcolor = NULL ;
 	win->orig_bg_xcolor = NULL ;
 
 	win->use_xim = 0 ;
@@ -1279,14 +1283,20 @@ ml_window_final(
 		ml_window_final( win->children[counter].window) ;
 	}
 	
-	free( win->color_table) ;
-
-	if( win->faded_xcolor)
+	if( win->orig_fg_xcolor)
 	{
-		ml_unload_xcolor( win->display , win->screen , win->faded_xcolor) ;
-		free( win->faded_xcolor) ;
+		ml_unload_xcolor( win->display , win->screen , win->color_table[MLC_FG_COLOR]) ;
+		free( win->color_table[MLC_FG_COLOR]) ;
+	}
+
+	if( win->orig_bg_xcolor)
+	{
+		ml_unload_xcolor( win->display , win->screen , win->color_table[MLC_BG_COLOR]) ;
+		free( win->color_table[MLC_BG_COLOR]) ;
 	}
 	
+	free( win->color_table) ;
+
 	ml_window_manager_clear_selection( ml_get_root_window( win)->win_man , win) ;
 	XFreeGC( win->display , win->gc) ;
 	XDestroyWindow( win->display , win->my_window) ;
@@ -1653,7 +1663,7 @@ ml_window_set_fg_color(
 
 	if( win->drawable)
 	{
-		XSetForeground( win->display , win->gc , FG_COLOR_PIXEL(win)) ;
+		update_fg_color( win) ;
 
 		if( win->window_exposed)
 		{
@@ -1682,7 +1692,13 @@ ml_window_set_bg_color(
 
 	if( win->drawable)
 	{
-		set_bg_color( win) ;
+		update_bg_color( win) ;
+		
+		if( win->window_exposed)
+		{
+			ml_window_clear_all( win) ;
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
 	}
 
 	return  1 ;
@@ -1725,59 +1741,113 @@ ml_window_get_bg_color(
 }
 
 int
-ml_window_fade_bg_color(
+ml_window_fade(
 	ml_window_t *  win ,
 	u_int8_t  fade_ratio
 	)
 {
+	x_color_t *  xcolor ;
 	u_short  red ;
 	u_short  green ;
 	u_short  blue ;
-	
-	if( fade_ratio >= 100 || win->faded_xcolor || win->wall_picture_is_set)
+
+	if( fade_ratio >= 100 || win->orig_fg_xcolor || win->orig_bg_xcolor || win->wall_picture_is_set)
 	{
 		return  1 ;
 	}
-	
+
+	/*
+	 * fading fg color
+	 */
+	 
+	ml_get_xcolor_rgb( &red , &green , &blue , win->color_table[MLC_FG_COLOR]) ;
+
+	red = (red * fade_ratio) / 100 ;
+	green = (green * fade_ratio) / 100 ;
+	blue = (blue * fade_ratio) / 100 ;
+
+	if( ( xcolor = malloc( sizeof( x_color_t))) == NULL)
+	{
+		return  0 ;
+	}
+
+	ml_load_rgb_xcolor( win->display , win->screen , xcolor , red , green , blue) ;
+
+	win->orig_fg_xcolor = win->color_table[MLC_FG_COLOR] ;
+	win->color_table[MLC_FG_COLOR] = xcolor ;
+
+	update_fg_color( win) ;
+
+
+	/*
+	 * fading bg color
+	 */
+	 
 	ml_get_xcolor_rgb( &red , &green , &blue , win->color_table[MLC_BG_COLOR]) ;
 
 	red = (red * fade_ratio) / 100 ;
 	green = (green * fade_ratio) / 100 ;
 	blue = (blue * fade_ratio) / 100 ;
 
-	if( ( win->faded_xcolor = malloc( sizeof( x_color_t))))
+	if( ( xcolor = malloc( sizeof( x_color_t))) == NULL)
 	{
-		ml_load_rgb_xcolor( win->display , win->screen , win->faded_xcolor ,
-			red , green , blue) ;
+		return  0 ;
+	}
 
-		win->orig_bg_xcolor = win->color_table[MLC_BG_COLOR] ;
-		win->color_table[MLC_BG_COLOR] = win->faded_xcolor ;
+	ml_load_rgb_xcolor( win->display , win->screen , xcolor , red , green , blue) ;
 
-		set_bg_color( win) ;
+	win->orig_bg_xcolor = win->color_table[MLC_BG_COLOR] ;
+	win->color_table[MLC_BG_COLOR] = xcolor ;
+
+	update_bg_color( win) ;
+
+	
+	if( win->window_exposed)
+	{
+		ml_window_clear_all( win) ;
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 
 	return  1 ;
 }
 
 int
-ml_window_unfade_bg_color(
+ml_window_unfade(
 	ml_window_t *  win
 	)
 {
-	if( win->orig_bg_xcolor == NULL)
+	if( win->orig_fg_xcolor == NULL && win->orig_bg_xcolor == NULL)
 	{
-		return  0 ;
+		return  1 ;
 	}
 	
-	win->color_table[MLC_BG_COLOR] = win->orig_bg_xcolor ;
-	win->orig_bg_xcolor = NULL ;
+	if( win->orig_fg_xcolor)
+	{
+		ml_unload_xcolor( win->display , win->screen , win->color_table[MLC_FG_COLOR]) ;
+		free( win->color_table[MLC_FG_COLOR]) ;
+		
+		win->color_table[MLC_FG_COLOR] = win->orig_fg_xcolor ;
+		win->orig_fg_xcolor = NULL ;
+		
+		update_fg_color( win) ;
+	}
 
-	ml_unload_xcolor( win->display , win->screen , win->faded_xcolor) ;
-	free( win->faded_xcolor) ;
+	if( win->orig_bg_xcolor)
+	{
+		ml_unload_xcolor( win->display , win->screen , win->color_table[MLC_BG_COLOR]) ;
+		free( win->color_table[MLC_BG_COLOR]) ;
+		
+		win->color_table[MLC_BG_COLOR] = win->orig_bg_xcolor ;
+		win->orig_bg_xcolor = NULL ;
 
-	win->faded_xcolor = NULL ;
-
-	set_bg_color( win) ;
+		update_bg_color( win) ;
+	}
+	
+	if( win->window_exposed)
+	{
+		ml_window_clear_all( win) ;
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+	}
 
 	return  1 ;
 }
