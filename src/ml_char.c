@@ -8,25 +8,37 @@
 #include  <string.h>		/* memset/memcpy */
 #include  <kiklib/kik_debug.h>
 
-#include  "ml_font.h"
-
 
 /*
  * !Notice!
- * internal representation.
+ * Internal size representation is like this.
  * 0x0 = size 1 , 0x1 = size 2 , 0x2 = size 3 , 0x3 = size 4.
  */
-#define  SIZE(attr) ((((attr) >> 14) & 0x3) + 1)
+#define  SIZE(attr) ((( (attr) >> 14) & 0x3) + 1)
 
-#define  COMB_SIZE(attr)  (((attr) >> 12) & 0x3)
+#define  SET_SIZE(attr,size)  ( (attr) = (((attr) & 0x3fff) | (((size) - 1) << 14)) )
+
+#define  COMB_SIZE(attr)  (( (attr) >> 12) & 0x3)
+
+#define  SET_COMB_SIZE(attr,size) ( (attr) = (((attr) & 0xcfff) | ((size) << 12)) )
 
 #define  IS_REVERSED(attr)  (((attr) >> 11) & 0x1)
 
-#define  FG_COLOR(attr)  (((attr) >> 7) & 0xf)
+#define  REVERSE_COLOR(attr) ( (attr) |= 0x0800 )
 
-#define  BG_COLOR(attr)  (((attr) >> 3) & 0xf)
+#define  RESTORE_COLOR(attr) ( (attr) &= 0xf7ff )
+
+#define  FG_COLOR(attr)  (( (attr) >> 7) & 0xf)
+
+#define  SET_FG_COLOR(attr,color)  ( (attr) = (((attr) & 0xf87f) | ((color) << 7)) )
+
+#define  BG_COLOR(attr)  (( (attr) >> 3) & 0xf)
+
+#define  SET_BG_COLOR(attr,color)  ( (attr) = (((attr) & 0xff87) | ((color) << 3)) )
 
 #define  FONT_DECOR(attr)  ((attr) & 0x7)
+
+#define  SET_FONT_DECOR(attr,decor)  ( (attr) = (((attr) & 0xfff8) | (decor)) )
 
 #define  COMPOUND_ATTR(size,comb_size,is_reversed,fg_color,bg_color,decor) \
 	( ((size - 1) << 14) | ((comb_size) << 12) | ((is_reversed) << 11) | \
@@ -62,6 +74,11 @@ ml_is_char_combining(void)
 	return  is_char_combining ;
 }
 
+
+/*
+ * string functions
+ */
+ 
 int
 ml_str_init(
 	ml_char_t *  str ,
@@ -94,7 +111,6 @@ __ml_str_init(
 	return  str ;
 }
 	
-
 ml_char_t *
 ml_str_new(
 	u_int  size
@@ -169,7 +185,7 @@ ml_str_copy(
 {
 	int  counter ;
 
-	if( size == NULL || dst == src)
+	if( size == 0 || dst == src)
 	{
 		return  0 ;
 	}
@@ -253,6 +269,10 @@ ml_str_dump(
 
 #endif
 
+
+/*
+ * character functions
+ */
 
 inline int
 ml_char_init(
@@ -371,9 +391,8 @@ ml_char_combine(
 	}
 
 	ch->u.multi_ch = multi_ch ;
-	
-	ch->attr = COMPOUND_ATTR(SIZE(ch->attr),comb_size,IS_REVERSED(ch->attr),
-		FG_COLOR(ch->attr),BG_COLOR(ch->attr),FONT_DECOR(ch->attr)) ;
+
+	SET_COMB_SIZE(ch->attr,comb_size) ;
 
 	return  1 ;
 }
@@ -446,9 +465,8 @@ ml_char_set_bytes(
 	)
 {
 	memcpy( ch->bytes , bytes , size) ;
-	
-	ch->attr = COMPOUND_ATTR(size,COMB_SIZE(ch->attr),IS_REVERSED(ch->attr),
-		FG_COLOR(ch->attr),BG_COLOR(ch->attr),FONT_DECOR(ch->attr)) ;
+
+	SET_SIZE(ch->attr,size) ;
 
 	if( COMB_SIZE(ch->attr) > 0)
 	{
@@ -605,7 +623,14 @@ ml_char_fg_color(
 	ml_char_t *  ch
 	)
 {
-	return  FG_COLOR(ch->attr) ;
+	if( IS_REVERSED(ch->attr))
+	{
+		return  BG_COLOR(ch->attr) ;
+	}
+	else
+	{
+		return  FG_COLOR(ch->attr) ;
+	}
 }
 
 inline int
@@ -620,9 +645,8 @@ ml_char_set_fg_color(
 	{
 		ml_char_set_fg_color( &ch->u.multi_ch[counter + 1] , fg_color) ;
 	}
-	
-	ch->attr = COMPOUND_ATTR(SIZE(ch->attr),COMB_SIZE(ch->attr),0,
-		fg_color,BG_COLOR(ch->attr),FONT_DECOR(ch->attr)) ;
+
+	SET_FG_COLOR(ch->attr,fg_color) ;
 
 	return  1 ;
 }
@@ -632,7 +656,14 @@ ml_char_bg_color(
 	ml_char_t *  ch
 	)
 {
-	return  BG_COLOR(ch->attr) ;
+	if( IS_REVERSED(ch->attr))
+	{
+		return  FG_COLOR(ch->attr) ;
+	}
+	else
+	{
+		return  BG_COLOR(ch->attr) ;
+	}
 }
 
 inline int
@@ -647,9 +678,8 @@ ml_char_set_bg_color(
 	{
 		ml_char_set_bg_color( &ch->u.multi_ch[counter + 1] , bg_color) ;
 	}
-	
-	ch->attr = COMPOUND_ATTR(SIZE(ch->attr),COMB_SIZE(ch->attr),0,
-		FG_COLOR(ch->attr),bg_color,FONT_DECOR(ch->attr)) ;
+
+	SET_BG_COLOR(ch->attr,bg_color) ;
 
 	return  1 ;
 }
@@ -674,9 +704,8 @@ ml_char_set_font_decor(
 	{
 		ml_char_set_font_decor( &ch->u.multi_ch[counter + 1] , font_decor) ;
 	}
-	
-	ch->attr = COMPOUND_ATTR(SIZE(ch->attr),COMB_SIZE(ch->attr),IS_REVERSED(ch->attr),
-		FG_COLOR(ch->attr),BG_COLOR(ch->attr),font_decor) ;
+
+	SET_FONT_DECOR(ch->attr,font_decor) ;
 		
 	return  1 ;
 }
@@ -700,15 +729,14 @@ ml_char_reverse_color(
 	{
 		return  0 ;
 	}
-	
+
 	for( counter = 0 ; counter < COMB_SIZE(ch->attr) ; counter ++)
 	{
 		ml_char_reverse_color( &ch->u.multi_ch[counter + 1]) ;
 	}
-	
-	ch->attr = COMPOUND_ATTR(SIZE(ch->attr),COMB_SIZE(ch->attr),1,
-		BG_COLOR(ch->attr),FG_COLOR(ch->attr),FONT_DECOR(ch->attr)) ;
-	
+
+	REVERSE_COLOR(ch->attr) ;
+		
 	return  1 ;
 }
 
@@ -728,9 +756,8 @@ ml_char_restore_color(
 	{
 		ml_char_restore_color( &ch->u.multi_ch[counter + 1]) ;
 	}
-	
-	ch->attr = COMPOUND_ATTR(SIZE(ch->attr),COMB_SIZE(ch->attr),0,
-		BG_COLOR(ch->attr),FG_COLOR(ch->attr),FONT_DECOR(ch->attr)) ;
+
+	RESTORE_COLOR(ch->attr) ;
 	
 	return  1 ;
 }

@@ -5,6 +5,7 @@
 #include  "ml_simple_sb_view.h"
 
 #include  <stdlib.h>
+#include  <kiklib/kik_mem.h>		/* malloc */
 #include  <kiklib/kik_types.h>
 
 

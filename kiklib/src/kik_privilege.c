@@ -54,7 +54,7 @@ kik_priv_restore_euid(void)
 	{
 		/* pretending to succeed */
 		
-		return  0 ;
+		return  1 ;
 	}
 
 	if( seteuid( saved_euid) == 0)
@@ -99,7 +99,7 @@ kik_priv_change_egid(
 	{
 		/* pretending to succeed */
 		
-		return  0 ;
+		return  1 ;
 	}
 
 	saved_egid = getegid() ;
@@ -123,7 +123,7 @@ kik_priv_restore_egid(void)
 	{
 		/* pretending to succeed */
 		
-		return  0 ;
+		return  1 ;
 	}
 
 	if( setegid( saved_egid) == 0)

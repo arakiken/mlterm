@@ -14,10 +14,6 @@
 #include  "ml_xim.h"
 
 
-#define  FOREACH_ROOTS(win_man,counter) \
-	for( (counter) = 0 ; (counter) < (win_man)->num_of_roots ; (counter) ++)
-
-
 /* --- global functions --- */
 
 int
@@ -63,7 +59,7 @@ ml_window_manager_final(
 {
 	int  counter ;
 	
-	FOREACH_ROOTS(win_man,counter)
+	for( counter = 0 ; counter < win_man->num_of_roots ; counter ++)
 	{
 		ml_window_final( win_man->roots[counter]) ;
 	}
@@ -125,7 +121,7 @@ ml_window_manager_remove_root(
 {
 	int  counter ;
 	
-	FOREACH_ROOTS(win_man,counter)
+	for( counter = 0 ; counter < win_man->num_of_roots ; counter ++)
 	{
 		if( win_man->roots[counter] == root)
 		{
@@ -195,7 +191,7 @@ ml_window_manager_idling(
 {
 	int  counter ;
 
-	FOREACH_ROOTS(win_man,counter)
+	for( counter = 0 ; counter < win_man->num_of_roots ; counter ++)
 	{
 		ml_window_idling( win_man->roots[counter]) ;
 	}
@@ -217,7 +213,7 @@ ml_window_manager_receive_next_event(
 
 			if( ! XFilterEvent( &event , None))
 			{
-				FOREACH_ROOTS(win_man,counter)
+				for( counter = 0 ; counter < win_man->num_of_roots ; counter ++)
 				{
 					ml_window_receive_event( win_man->roots[counter] , &event) ;
 				}

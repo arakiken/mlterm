@@ -19,6 +19,7 @@
 #include  "kik_mem.h"		/* malloc/free */
 #include  "kik_privilege.h"
 
+
 /*
  * These four macros are directly used in this file.
  * They appeared at least in 4.4BSD-Lite according to NetBSD cvs repository.

@@ -4,9 +4,8 @@
 
 #include  "ml_font.h"
 
-#include  <stdio.h>		/* sprintf */
+#include  <stdio.h>		/* snprintf */
 #include  <string.h>		/* memset/strncasecmp */
-#include  <X11/Xatom.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int */

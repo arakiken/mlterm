@@ -27,10 +27,6 @@
 #include  "ml_sig_child.h"
 
 
-#define  FOREACH_TERMS(term_man,counter) \
-	for( (counter) = 0 ; (counter) < (term_man)->num_of_terms ; (counter) ++)
-
-
 /* --- static functions --- */
 
 static int
@@ -490,7 +486,7 @@ close_pty(
 
 	term_man = p ;
 	
-	FOREACH_TERMS(term_man,counter)
+	for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
 	{
 		if( root_window == term_man->terms[counter].root_window)
 		{
@@ -513,7 +509,7 @@ sig_child(
 
 	term_man = p ;
 	
-	FOREACH_TERMS(term_man,counter)
+	for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
 	{
 		if( pid == term_man->terms[counter].pty->child_pid)
 		{
@@ -555,7 +551,7 @@ receive_next_event(
 	 * flush buffer
 	 */
 
-	FOREACH_TERMS(term_man,counter)
+	for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
 	{
 		ml_flush_pty( term_man->terms[counter].pty) ;
 	}
@@ -574,7 +570,7 @@ receive_next_event(
 		maxfd = xfd = XConnectionNumber( term_man->win_man.display) ;
 		FD_SET( xfd , &read_fds) ;
 
-		FOREACH_TERMS(term_man,counter)
+		for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
 		{
 			ptyfd = term_man->terms[counter].pty->fd ;
 			FD_SET( ptyfd , &read_fds) ;
@@ -605,7 +601,7 @@ receive_next_event(
 		ml_window_manager_receive_next_event( &term_man->win_man) ;
 	}
 
-	FOREACH_TERMS(term_man,counter)
+	for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
 	{
 		if( FD_ISSET( term_man->terms[counter].pty->fd , &read_fds))
 		{
@@ -1760,7 +1756,7 @@ ml_term_manager_final(
 	
 	ml_free_word_separators() ;
 	
-	FOREACH_TERMS(term_man,counter)
+	for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
 	{
 		ml_vt100_parser_delete( term_man->terms[counter].vt100_parser) ;
 		ml_pty_delete( term_man->terms[counter].pty) ;

@@ -501,6 +501,10 @@ sig_child(
 	}
 	else if( strcmp( command , "WALL_PIC") == 0 && input_line)
 	{
+		/*
+		 * WALL_PIC:(off|[pic file path])
+		 */
+		 
 		if( strcmp( input_line , "off") == 0)
 		{
 			if( config_menu->config_menu_listener->unset_wall_picture)
@@ -520,6 +524,10 @@ sig_child(
 	}
 	else if( strcmp( command , "FULL_RESET") == 0)
 	{
+		/*
+		 * FULL_RESET
+		 */
+		 
 		if( config_menu->config_menu_listener->full_reset)
 		{
 			(*config_menu->config_menu_listener->full_reset)(
