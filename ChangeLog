@@ -1,3 +1,9 @@
+2004-01-31  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* mlterm/ml_edit.c(ml_edit_resize): Clear char_index of cursor, when
+	the cursor position was reset. This change fixes a bug that caused a
+	segfaul when resizing window over and over.
+
 2004-01-31  KATO Kazuyoshi  <kzys@users.sf.net>
 
 	* configure.in: mlterm-zoom can be specified as a value of
@@ -384,7 +390,7 @@
 	
 2003-09-15  Seiichi SATO <ssato@sh.rim.or.jp>
 
-	* x_font_manager.c (x_get_fontset): Fixed a compile error with
+	* x_font_manager.c (x_get_fontset): Fixed a compilation error with
 	  --enable-debug.
 
 2003-09-15  Araki Ken  <arakiken@users.sf.net>
@@ -583,7 +589,7 @@
 
 2003-07-21  Seiichi SATO  <ssato@sh.rim.or.jp>
 
-	* kik_dlfcn_dl.c: Cound not dynamically load HP-UX library(.sl). Fixed.
+	* kik_dlfcn_dl.c: Could not dynamically load HP-UX library(.sl). Fixed.
 	  NOTE: Recent HP-UX has dlopen() and shl_load(). At first configure
 	  scripts do check for dlopen(). If we don't find dlopen(), shl_load()
 	  will be used.

@@ -660,6 +660,7 @@ ml_edit_resize(
 		edit->cursor.row = 0 ;
 		edit->cursor.col = 0 ;
 		edit->cursor.col_in_char = 0 ;
+		edit->cursor.char_index = 0 ;
 
 		ml_line_assure_boundary( CURSOR_LINE(edit) , 0) ;
 	}
