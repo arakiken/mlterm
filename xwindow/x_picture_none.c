@@ -115,3 +115,11 @@ x_picdep_load_background(
 
 	return  pixmap ;
 }
+
+int x_picdep_set_icon_from_file(
+	x_window_t * win,
+	char * file_path
+	)
+{
+	return 0;
+}
