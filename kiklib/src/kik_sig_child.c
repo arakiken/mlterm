@@ -4,6 +4,8 @@
 
 #include  "kik_sig_child.h"
 
+#ifndef  USE_WIN32API
+
 #include  <errno.h>		/* EINTR */
 #include  <sys/wait.h>
 #include  <signal.h>
@@ -152,3 +154,5 @@ kik_remove_sig_child_listener(
 
 	return  0 ;
 }
+
+#endif  /* USE_WIN32API */

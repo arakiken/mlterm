@@ -7,6 +7,9 @@
 #include  <time.h>
 #include  <unistd.h>	/* select */
 
+#ifdef  USE_WIN32API
+#include  <windows.h>
+#endif
 
 /* --- global functions --- */
 
@@ -17,6 +20,7 @@ __kik_usleep(
 	u_int  microseconds
 	)
 {
+#ifndef USE_WIN32API
 	struct timeval  tval ;
 	
 	tval.tv_usec = microseconds % 1000000 ;
@@ -30,6 +34,10 @@ __kik_usleep(
 	{
 		return  -1 ;
 	}
+#else
+	Sleep(microseconds / 1000);
+	return  0 ;
+#endif /* USE_WIN32API */
 }
 
 #endif
