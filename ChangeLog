@@ -1,4 +1,8 @@
-[20020223]
+[20020222]
+* mlterm can dump core if screen is scrolled while cursor is out of scroll region.
+  fixed. (Thanks to Minami Hirokazu san)
+
+[20020222]
 * 2.3.0 release date is added to mlterm.spec.
 
 [20020222]
