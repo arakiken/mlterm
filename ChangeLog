@@ -1,4 +1,12 @@
 [20020115]
+* calculating width of anti alias font was somewhat wrong. fixed.
+* variable column width anti alias fonts , which are specified in ~/.mlterm/etc/vaafont ,
+  are supported.
+* #error instead of #<key>=#error is returned.
+* ESC]5380;wall_pictureBEL returns #wall_picture= instead of #error when no wall picture
+  is used.
+
+[20020115]
 * JISX0201 katakana copy&paste failed. fixed.(thanks to Kubota Tomohiro san)
 * ESC]5380;pwdBEL is supported.
 * #<key>=#error instead of #<key>=error is returned when error happens around ESC]5380;ptBEL
