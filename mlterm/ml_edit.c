@@ -178,8 +178,8 @@ insert_chars(
 	u_int  filled_len ;
 	u_int  filled_cols ;
 	u_int  last_index ;
-	int  cols_rest ;
-	int  cols_after ;
+	u_int  cols_rest ;
+	u_int  cols_after ;
 	int  count ;
 	ml_line_t *  cursor_line ;
 
@@ -349,6 +349,9 @@ clear_cols(
 	int  use_bce
 	)
 {
+	u_int  cols_rest ;
+	ml_line_t *  cursor_line ;
+	
 	if( edit->cursor.col + cols >= edit->model.num_of_cols)
 	{
 		if( use_bce)
@@ -361,13 +364,22 @@ clear_cols(
 		}
 	}
 
+	cursor_line = CURSOR_LINE(edit) ;
+
+	ml_convert_col_to_char_index( cursor_line , &cols_rest , edit->cursor.col , 0) ;
+	if( cols_rest)
+	{
+		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index , cols_rest) ;
+		edit->cursor.char_index += cols_rest ;
+	}
+
 	if( use_bce)
 	{
-		ml_line_fill( CURSOR_LINE(edit) , &edit->bce_ch , edit->cursor.char_index , cols) ;
+		ml_line_fill( cursor_line , &edit->bce_ch , edit->cursor.char_index , cols) ;
 	}
 	else
 	{
-		ml_line_fill( CURSOR_LINE(edit) , ml_sp_ch() , edit->cursor.char_index , cols) ;
+		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index , cols) ;
 	}
 
 	return  1 ;
@@ -686,11 +698,12 @@ ml_edit_overwrite_chars(
 		return  0 ;
 	}
 
+	line = CURSOR_LINE(edit) ;
 	filled_len = 0 ;
 
 	/* before cursor(excluding cursor) */
 	
-	ml_convert_col_to_char_index( CURSOR_LINE(edit) , &cols_rest , edit->cursor.col , 0) ;
+	ml_convert_col_to_char_index( line , &cols_rest , edit->cursor.col , 0) ;
 	if( cols_rest)
 	{
 		int  count ;
@@ -716,7 +729,6 @@ ml_edit_overwrite_chars(
 
 	beg = 0 ;
 	count = 0 ;
-	line = CURSOR_LINE(edit) ;
 	cols = 0 ;
 
 	while( 1)
@@ -1018,23 +1030,26 @@ ml_edit_clear_line_to_right(
 	)
 {
 	int  cols_rest ;
+	ml_line_t *  cursor_line ;
 
 	reset_wraparound_checker( edit) ;
 
-	ml_convert_col_to_char_index( CURSOR_LINE(edit) , &cols_rest , edit->cursor.col , 0) ;
+	cursor_line = CURSOR_LINE(edit) ;
+
+	ml_convert_col_to_char_index( cursor_line , &cols_rest , edit->cursor.col , 0) ;
 	if( cols_rest)
 	{
 		int  count ;
 
-		if( edit->cursor.char_index + cols_rest >= CURSOR_LINE(edit)->num_of_filled_chars)
+		if( edit->cursor.char_index + cols_rest >= cursor_line->num_of_filled_chars)
 		{
 			u_int  size ;
 			u_int  actual_size ;
 
 			size = edit->cursor.char_index + cols_rest -
-				CURSOR_LINE(edit)->num_of_filled_chars + 1 ;
+				cursor_line->num_of_filled_chars + 1 ;
 
-			actual_size = ml_line_break_boundary( CURSOR_LINE(edit) , size) ;
+			actual_size = ml_line_break_boundary( cursor_line , size) ;
 			if( actual_size < size)
 			{
 			#ifdef  DEBUG
@@ -1075,12 +1090,21 @@ ml_edit_clear_line_to_right_bce(
 {
 	int  cols ;
 	int  char_index ;
+	u_int  cols_rest ;
 	ml_line_t *  line ;
 
 	reset_wraparound_checker( edit) ;
 
-	char_index = edit->cursor.char_index ;
 	line = CURSOR_LINE(edit) ;
+	
+	ml_convert_col_to_char_index( line , &cols_rest , edit->cursor.col , 0) ;
+	if( cols_rest)
+	{
+		ml_line_fill( line , ml_sp_ch() , edit->cursor.char_index , cols_rest) ;
+		edit->cursor.char_index += cols_rest ;
+	}
+
+	char_index = edit->cursor.char_index ;
 
 	for( cols = ml_str_cols( line->chars , edit->cursor.char_index) ;
 		cols < edit->model.num_of_cols ; cols ++)

@@ -1,6 +1,12 @@
+2002-09-15 Araki Ken <arakiken@users.sf.net>
+
+	* If cursor is located at the second byte of a multi-byte character,
+	  cursor moves to strangely, when bce is enabled. fixed.
+
 2002-09-12 Araki Ken <arakiken@users.sf.net>
 
 	* 2.6.1 released
+	  (tag "rel-2_6_1")
 
 2002-09-12 Araki Ken <arakiken@users.sf.net>
 
