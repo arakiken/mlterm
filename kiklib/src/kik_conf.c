@@ -220,10 +220,6 @@ kik_conf_new(
 	kik_map_new( char * , kik_conf_entry_t * , conf->conf_entries ,
 		kik_map_hash_str , kik_map_compare_str) ;
 
-	/* default options */
-	kik_conf_add_opt( conf , 'h' , "help" , 1 , "help" , "help message") ;
-	kik_conf_add_opt( conf , 'v' , "version" , 1 , "version" , "version message") ;
-	
 	return  conf ;
 }
 
@@ -320,7 +316,11 @@ kik_conf_parse_args(
 	kik_conf_entry_t *  entry ;
 	int  ret ;
 
-	while( kik_parse_options( &opt , &opt_val , argv))
+	/* passing argv[0] 'cause it may be the program name. */
+	(*argv) ++ ;
+	(*argc) -- ;
+
+	while( kik_parse_options( &opt , &opt_val , argc , argv))
 	{
 		char  short_opt ;
 
@@ -410,12 +410,14 @@ kik_conf_parse_args(
 				
 				entry->value = strdup( opt_val) ;
 			}
-			else if((*argv)[1] != NULL &&
-				(strcmp((*argv)[1] , "true") == 0 || strcmp((*argv)[1] , "false") == 0))
+			else if((*argv)[0] != NULL &&
+				(strcmp((*argv)[0] , "true") == 0 || strcmp((*argv)[0] , "false") == 0))
 			{
 				/* "-[opt] true" format */
 
-				entry->value = strdup( *(++ (*argv))) ;
+				entry->value = strdup( (*argv)[0]) ;
+				(*argv) ++ ;
+				(*argc) -- ;
 			}
 			else
 			{
@@ -430,14 +432,18 @@ kik_conf_parse_args(
 			{
 				/* "-[opt] [opt_val]" format */
 				
-				if( *(++ (*argv)) == NULL)
+				if( (*argv)[0] == NULL)
 				{
 					kik_msg_printf( "%s option requires value.\n\n" , opt) ;
+
+					entry->value = NULL ;
 					
 					goto  error ;
 				}
 
 				entry->value = strdup( (*argv)[0]) ;
+				(*argv) ++ ;
+				(*argc) -- ;
 			}
 			else
 			{
@@ -455,14 +461,10 @@ kik_conf_parse_args(
 		}
 	}
 
-	(*argv) ++ ;
-
 	return  1 ;
 	
 error:
 	usage( conf) ;
-
-	__exit( conf , 1) ;
 
 	return  0 ;
 }

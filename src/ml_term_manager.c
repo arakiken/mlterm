@@ -811,7 +811,7 @@ start_daemon(
 }
 
 static kik_conf_t *
-get_conf(
+get_min_conf(
 	int  argc ,
 	char **  argv
 	)
@@ -892,8 +892,6 @@ get_conf(
 		"shading ratio of background image") ;
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
-	kik_conf_add_opt( conf , 'K' , "maxptys" , 0 , "max_ptys" ,
-		"max ptys to use") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell") ;
 	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path" ,
@@ -902,12 +900,8 @@ get_conf(
 		"application name") ;
 	kik_conf_add_opt( conf , 'O' , "sbmod" , 0 , "scrollbar_mode" ,
 		"scrollbar mode") ;
-	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "ptys" , 
-		"num of ptys to use in start up") ;
 	kik_conf_add_opt( conf , 'Q' , "vcur" , 1 , "use_vertical_cursor" ,
 		"use vertical cursor") ;
-	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
-		"font size range") ;
 	kik_conf_add_opt( conf , 'S' , "sbview" , 0 , "scrollbar_view_name" , 
 		"scrollbar view name") ;
 	kik_conf_add_opt( conf , 'T' , "title" , 0 , "title" , 
@@ -916,32 +910,20 @@ get_conf(
 		"process received strings via ucs.") ;
 	kik_conf_add_opt( conf , 'V' , "varwidth" , 1 , "use_variable_column_width" ,
 		"variable column width") ;
-	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
-		"word separator characters") ;
 	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" , 
 		"open xim in starting up") ;
-	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
-		"compose dec special font") ;
 	kik_conf_add_opt( conf , 'Z' , "multicol" , 1 , "use_multi_column_char" ,
 		"use multiple column character") ;
 	kik_conf_add_opt( conf , 'a' , "ac" , 0 , "col_size_of_width_a" ,
 		"column numbers for Unicode EastAsianAmbiguous character") ;
 	kik_conf_add_opt( conf , 'b' , "bg" , 0 , "bg_color" , 
 		"bg color") ;
-#ifdef  ANTI_ALIAS
-	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
-		"CP932 mapping table for JISX0208-Unicode conversion") ;
-#endif
 	kik_conf_add_opt( conf , 'd' , "display" , 0 , "display" , 
 		"X server to connect") ;
 	kik_conf_add_opt( conf , 'f' , "fg" , 0 , "fg_color" , 
 		"fg color") ;
 	kik_conf_add_opt( conf , 'g' , "geometry" , 0 , "geometry" , 
 		"size (in characters) and position") ;
-	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
-		"use XIM (X Input Method)") ;
-	kik_conf_add_opt( conf , 'j' , "daemon" , 0 , "daemon_mode" ,
-		"start as a daemon") ;
 	kik_conf_add_opt( conf , 'k' , "meta" , 0 , "mod_meta_mode" , 
 		"mode in pressing meta key") ;
 	kik_conf_add_opt( conf , 'l' , "sl" , 0 , "logsize" , 
@@ -1668,7 +1650,7 @@ client_connected(
 		argc ++ ;
 	}
 
-	if( ( conf = get_conf( argc , argv)) == NULL)
+	if( ( conf = get_min_conf( argc , argv)) == NULL)
 	{
 		return ;
 	}
@@ -1684,14 +1666,19 @@ client_connected(
 	}
 #endif
 
-	kik_conf_parse_args( conf , &argc , &argv) ;
+	if( ! kik_conf_parse_args( conf , &argc , &argv))
+	{
+		kik_conf_delete( conf) ;
 
-	orig_conf = term_man->conf ;
+		return ;
+	}
 	
+	orig_conf = term_man->conf ;
+
 	config_init( term_man , conf , argc , argv) ;
 
 	kik_conf_delete( conf) ;
-
+	
 	open_term( term_man) ;
 
 	config_final( term_man) ;
@@ -1831,12 +1818,40 @@ ml_term_manager_init(
 	char *  rcpath ;
 	char *  value ;
 
-	if( ( conf = get_conf( argc , argv)) == NULL)
+	if( ( conf = get_min_conf( argc , argv)) == NULL)
 	{
 		return  0 ;
 	}
 
-	kik_conf_parse_args( conf , &argc , &argv) ;
+	kik_conf_add_opt( conf , 'K' , "maxptys" , 0 , "max_ptys" ,
+		"max ptys to use") ;
+	kik_conf_add_opt( conf , 'h' , "help" , 1 , "help" ,
+		"help message") ;
+	kik_conf_add_opt( conf , 'v' , "version" , 1 , "version" ,
+		"version message") ;
+	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "ptys" , 
+		"num of ptys to use in start up") ;
+	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
+		"font size range") ;
+	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
+		"word separator characters") ;
+	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
+		"compose dec special font") ;
+#ifdef  ANTI_ALIAS
+	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
+		"CP932 mapping table for JISX0208-Unicode conversion") ;
+#endif
+	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
+		"use XIM (X Input Method)") ;
+	kik_conf_add_opt( conf , 'j' , "daemon" , 0 , "daemon_mode" ,
+		"start as a daemon") ;
+	
+	if( ! kik_conf_parse_args( conf , &argc , &argv))
+	{
+		kik_conf_delete( conf) ;
+
+		return  0 ;
+	}
 
 	/*
 	 * daemon
