@@ -225,13 +225,6 @@ ml_log_add(
 
 	ml_imgline_is_updated( &logs->lines[at]) ;
 
-	/*
-	 * !! Notice !!
-	 * backscroll log lines will not be modified any more.
-	 * so they should be bidi visual order.
-	 */
-	ml_imgline_start_bidi( &logs->lines[at]) ;
-
 	return  1 ;
 }
 

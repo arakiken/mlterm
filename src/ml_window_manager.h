@@ -15,15 +15,7 @@ typedef struct  ml_window_manager
 	int  screen ;
 	Window  my_window ;
 
-	struct
-	{
-		ml_window_t *  root ;
-	
-		int  x ;
-		int  y ;
-		
-	} roots[5] ;
-
+	ml_window_t *  roots[5] ;
 	u_int  num_of_roots ;
 
 	ml_window_t *  selection_owner ;
@@ -35,7 +27,8 @@ int  ml_window_manager_init( ml_window_manager_t *  win_man , char *  disp_name)
 
 int  ml_window_manager_final( ml_window_manager_t *  win_man) ;
 
-int  ml_window_manager_show_root( ml_window_manager_t *  win_man , ml_window_t *  root , int  x , int  y) ;
+int  ml_window_manager_show_root( ml_window_manager_t *  win_man , ml_window_t *  root ,
+	int  x , int  y , int  hint) ;
 
 int  ml_window_manager_remove_root( ml_window_manager_t *  win_man , ml_window_t *  root) ;
 

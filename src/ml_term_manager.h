@@ -44,6 +44,7 @@ typedef struct  ml_term_manager
 	
 	int  x ;
 	int  y ;
+	int  geom_hint ;
 	u_int  cols ;
 	u_int  rows ;
 	char *  app_name ;

@@ -122,23 +122,26 @@ static encoding_table_t  encoding_table[] =
 	{ ML_ISO2022CN , "ISO2022CN" , mkf_iso2022cn_parser_new , mkf_iso2022cn_conv_new , } ,
 	
 	/*
-	 * alternative names.(these are not used in ml_{parser|conv}_new)
+	 * alternative names.
+	 * these are not used in ml_{parser|conv}_new , so parser_new/parser_conv members are
+	 * not necessary.
 	 */
 
-	{ ML_TIS620 , "ISO885911" , mkf_tis620_2533_parser_new , mkf_tis620_2533_conv_new , } ,
+	{ ML_TIS620 , "ISO885911" , } ,
 	
 #if  0
 	/* XXX necessary ? */
-	{ ML_EUCJP , "EXTENDEDUNIXCODEPACKEDFORMATFORJAPANESE" } , /* MIME */
-	{ ML_EUCJP , "CSEUCPKDFMTJAPANESE" } ,	/* MIME */
+	{ ML_EUCJP , "EXTENDEDUNIXCODEPACKEDFORMATFORJAPANESE" , } , /* MIME */
+	{ ML_EUCJP , "CSEUCPKDFMTJAPANESE" , } ,	/* MIME */
 #endif
-	{ ML_SJIS , "SHIFTJIS" } ,	/* MIME */
+	{ ML_EUCJP , "UJIS" } ,
+	{ ML_SJIS , "SHIFTJIS" , } ,	/* MIME */
 	
-	{ ML_EUCKR , "KSC56011987" } ,	/* for IIS error page(IIS bug?) */
+	{ ML_EUCKR , "KSC56011987" , } ,	/* for IIS error page(IIS bug?) */
 	
-	{ ML_EUCCN , "GB2312" } ,
+	{ ML_EUCCN , "GB2312" , } ,
 	
-	{ ML_HZ , "HZGB2312" } ,
+	{ ML_HZ , "HZGB2312" , } ,
 } ;
 
 /*

@@ -134,6 +134,7 @@ comment $Id$
       o scrollbar_view_name ... 使いたいスクロールバーの名前(*simple*)
       o conf_menu_path ... mlconfig(GUI設定コマンド)のパス(*/usr/local/libexec/mlconfig*)
 
+      o use_variable_column_width ... 可変長コラム幅を使用する。
       o use_anti_alias ... アンチエイリアスフォントを使用する(true/*false*)
       o use_xim        ... XIMを使う(*true*/false)
       o use_bidi       ... BiDi レンダリングを行う(*true*/false)
@@ -294,9 +295,6 @@ comment $Id$
         スクロール開始
       o INSERT_SELECTION(Shift+Insert)
         セレクションのペースト
-      o INIT_PARSER(UNUSED)
-        端末文字コードパーサを初期化する。
-        (文字化け発生時に使用)
 
       KEY_BINDINGのフォーマットは以下の通り
       (MASK+)KEY
@@ -342,6 +340,7 @@ comment $Id$
     -P/--ptys=value    : 起動時に立ち上げるptyウィンドウの数
     -S/--sbview=value  : 使いたいスクロールバーの名前
     -U/--viaucs=value  : 受け取ったXCOMPOUND TEXTを一度UCSに変換する
+    -V/--varwidth(=bool): 可変長コラム幅を使用する。
     -X/--openim(=bool) : 起動時に、XIMをOpenする
     -8/--88591(=bool)  : USASCIIの表示に、必ずISO8859-1フォントを使用する
     -7/--bel=value     : BEL(0x7)を受け取った時の挙動

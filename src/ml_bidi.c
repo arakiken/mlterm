@@ -65,8 +65,8 @@ ml_bidi(
 		}
 		else
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " illegal cs %x.\n" , ml_char_cs(&src[counter])) ;
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " %x is not ucs.\n" , ml_char_cs(&src[counter])) ;
 		#endif
 		
 			/* white space */

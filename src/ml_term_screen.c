@@ -832,37 +832,6 @@ get_mod_meta_mask(
 	return  0 ;
 }
 
-
-static int
-start_visual_indian(
-	ml_term_screen_t *  termscr
-	)
-{
-	if( (*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) == ML_ISCII)
-	{
-		return  ml_image_start_visual_indian( termscr->image , termscr->iscii_state) ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
-static int
-stop_visual_indian(
-	ml_term_screen_t *  termscr
-	)
-{
-	if( (*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) == ML_ISCII)
-	{
-		return  ml_image_stop_visual_indian( termscr->image) ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
 static int
 select_iscii_lang(
 	ml_term_screen_t *  termscr
@@ -870,6 +839,11 @@ select_iscii_lang(
 {
 	u_int  font_size ;
 	char *  font_name ;
+
+	if( termscr->iscii_state == NULL)
+	{
+		return  0 ;
+	}
 
 	if( ! ml_iscii_select_lang( termscr->iscii_state , termscr->iscii_lang))
 	{
@@ -892,7 +866,12 @@ select_iscii_lang(
 		ml_font_manager_set_local_font_name( termscr->font_man ,
 			DEFAULT_FONT_ATTR(ISCII) , font_name , font_size) ;
 	}
-	
+
+	/*
+	 * XXX
+	 * anti alias ISCII font is not supported.
+	 */
+	 	
 	if( ! (termscr->font_present & FONT_AA))
 	{
 		ml_font_manager_reload( termscr->font_man) ;
@@ -902,13 +881,19 @@ select_iscii_lang(
 }
 
 /*
- * updating ml_shape_t/ml_iscii_state_t
+ * updating  ml_logical_visual_t/ml_shape_t/ml_iscii_state_t
  */
 static int
 update_encoding_proper_aux(
 	ml_term_screen_t *  termscr
 	)
 {
+	if( termscr->logvis)
+	{
+		(*termscr->logvis->logical)( termscr->logvis) ;
+		(*termscr->logvis->delete)( termscr->logvis) ;
+	}
+	
 	if( termscr->shape)
 	{
 		(*termscr->shape->delete)( termscr->shape) ;
@@ -940,6 +925,16 @@ update_encoding_proper_aux(
 			}
 		}
 		
+		if( ( termscr->logvis = ml_logvis_iscii_new(
+						termscr->image , termscr->iscii_state)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_iscii_new() failed.\n") ;
+		#endif
+
+			return  0 ;
+		}
+		
 		if( ( termscr->shape = ml_iscii_shape_new( termscr->iscii_state)) == NULL)
 		{
 		#ifdef  DEBUG
@@ -960,6 +955,15 @@ update_encoding_proper_aux(
 		if( termscr->use_bidi &&
 			(*termscr->encoding_listener->encoding)(termscr->encoding_listener->self) == ML_UTF8)
 		{
+			if( ( termscr->logvis = ml_logvis_bidi_new( termscr->image)) == NULL)
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_bidi_new() failed.\n") ;
+			#endif
+
+				return  0 ;
+			}
+
 			if( ( termscr->shape = ml_arabic_shape_new()) == NULL)
 			{
 			#ifdef  DEBUG
@@ -971,49 +975,18 @@ update_encoding_proper_aux(
 		}
 		else
 		{
+			termscr->logvis = NULL ;
 			termscr->shape = NULL ;
 		}
 	}
 
+	if( termscr->logvis)
+	{
+		(*termscr->logvis->render)( termscr->logvis) ;
+		(*termscr->logvis->visual)( termscr->logvis) ;
+	}
+
 	return  1 ;
-}
-
-static int
-use_bidi(
-	ml_term_screen_t *  termscr
-	)
-{
-	if( (*termscr->encoding_listener->encoding)(termscr->encoding_listener->self) == ML_UTF8)
-	{
-		ml_image_use_bidi( &termscr->normal_image) ;
-		ml_image_use_bidi( &termscr->alt_image) ;
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
-static int
-unuse_bidi(
-	ml_term_screen_t *  termscr
-	)
-{
-	if( (*termscr->encoding_listener->encoding)(termscr->encoding_listener->self) == ML_UTF8)
-	{
-		ml_image_stop_bidi( termscr->image) ;
-		
-		ml_image_unuse_bidi( &termscr->normal_image) ;
-		ml_image_unuse_bidi( &termscr->alt_image) ;
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
 }
 
 
@@ -1029,12 +1002,7 @@ window_realized(
 	ml_term_screen_t *  termscr ;
 
 	termscr = (ml_term_screen_t*) win ;
-	
-	if( termscr->use_bidi)
-	{
-		use_bidi( termscr) ;
-	}
-	
+		
 	termscr->mod_meta_mask = get_mod_meta_mask( termscr->window.display) ;
 
 	if( termscr->xim_open_in_startup)
@@ -1107,6 +1075,16 @@ window_resized(
 
 	unhighlight_cursor( termscr) ;
 
+	/*
+	 * !! Notice !!
+	 * ml_image_resize() modifies screen image that visual to logical should be done
+	 * before ml_image_resize() is called.
+	 */
+	if( termscr->logvis)
+	{
+		(*termscr->logvis->logical)( termscr->logvis) ;
+	}
+	
 	ml_image_resize( &termscr->normal_image ,
 		termscr->window.width / ml_col_width((termscr)->font_man) ,
 		termscr->window.height / ml_line_height((termscr)->font_man)) ;
@@ -1115,6 +1093,12 @@ window_resized(
 		termscr->window.width / ml_col_width((termscr)->font_man) ,
 		termscr->window.height / ml_line_height((termscr)->font_man)) ;
 
+	if( termscr->logvis)
+	{
+		(*termscr->logvis->render)( termscr->logvis) ;
+		(*termscr->logvis->visual)( termscr->logvis) ;
+	}
+	
 	if( termscr->pty)
 	{
 		ml_set_pty_winsize( termscr->pty , ml_image_get_cols( termscr->image) ,
@@ -1442,8 +1426,7 @@ key_pressed(
 			}
 			else if( size > 0)
 			{
-				if( (*termscr->encoding_listener->encoding)(
-					termscr->encoding_listener->self) == ML_ISCII)
+				if( termscr->iscii_state)
 				{
 					size = ml_convert_ascii_to_iscii(
 						termscr->iscii_state , seq , size , seq , size) ;
@@ -2501,6 +2484,12 @@ font_size_changed(
 			termscr->screen_scroll_listener->self , ml_line_height(termscr->font_man)) ;
 	}
 
+	/* screen will redrawn in window_resized() */
+	ml_window_resize( &termscr->window ,
+		ml_col_width((termscr)->font_man) * ml_image_get_cols( termscr->image) ,
+		ml_line_height((termscr)->font_man) * ml_image_get_rows( termscr->image) ,
+		NOTIFY_TO_PARENT) ;
+
 	ml_window_set_normal_hints( &termscr->window ,
 		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man) ,
 		ml_col_width(termscr->font_man) , ml_line_height(termscr->font_man)) ;
@@ -2577,19 +2566,14 @@ change_encoding(
 		ml_xic_font_set_changed( &termscr->window) ;
 	}
 
-	unuse_bidi( termscr) ;
-
 	if( ! termscr->encoding_listener->encoding_changed( termscr->encoding_listener->self , encoding))
 	{
 		kik_msg_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
 	}
-
-	use_bidi( termscr) ;
-
-	update_encoding_proper_aux( termscr) ;
 	
-	/* redrawing all lines with new fonts. */
 	ml_image_set_modified_all( termscr->image) ;
+	
+	update_encoding_proper_aux( termscr) ;
 }
 
 static void
@@ -2604,12 +2588,21 @@ change_iscii_lang(
 
 	termscr->iscii_lang = lang ;
 	
-	if( (*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) == ML_ISCII)
+	if( termscr->iscii_state)
 	{
-		stop_visual_indian( termscr) ;
-		select_iscii_lang( termscr) ;
-		start_visual_indian( termscr) ;
+		if( termscr->logvis == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " termscr->logvis is NULL under ISCII encoding.\n") ;
+		#endif
 
+			return ;
+		}
+
+		(*termscr->logvis->logical)( termscr->logvis) ;
+		select_iscii_lang( termscr) ;
+		(*termscr->logvis->visual)( termscr->logvis) ;
+		
 		ml_image_set_modified_all( termscr->image) ;
 	}
 }
@@ -2861,36 +2854,17 @@ change_font_present(
 static void
 change_bidi_flag(
 	void *  p ,
-	int  _use_bidi
+	int  use_bidi
 	)
 {
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
 
-	termscr->use_bidi = _use_bidi ;
-
-	if( termscr->use_bidi)
-	{
-		use_bidi( termscr) ;
-
-		/*
-		 * rendering and redrawing all lines.
-		 */
-		ml_image_set_modified_all( termscr->image) ;
-
-		ml_image_render_bidi( termscr->image) ;
-	}
-	else
-	{
-		/*
-		 * redawing all lines.
-		 */
-		ml_image_set_modified_all( termscr->image) ;
-
-		unuse_bidi( termscr) ;
-	}
+	termscr->use_bidi = use_bidi ;
 	
+	ml_image_set_modified_all( termscr->image) ;
+
 	update_encoding_proper_aux( termscr) ;
 }
 
@@ -3163,6 +3137,11 @@ receive_scrolled_out_line(
 
 	termscr = p ;
 
+	if( termscr->logvis)
+	{
+		(*termscr->logvis->visual_line)( termscr->logvis , line) ;
+	}
+	
 	ml_log_add( &termscr->logs , line) ;
 }
 
@@ -3237,7 +3216,7 @@ ml_term_screen_new(
 	char *  pic_file_path ,
 	int  use_transbg ,
 	ml_font_present_t  font_present ,
-	int  _use_bidi ,
+	int  use_bidi ,
 	int  big5_buggy ,
 	char *  conf_menu_path ,
 	ml_iscii_lang_t  iscii_lang
@@ -3417,7 +3396,7 @@ ml_term_screen_new(
 
 	termscr->image = &termscr->normal_image ;
 
-	termscr->use_bidi = _use_bidi ;
+	termscr->use_bidi = use_bidi ;
 
 	termscr->sel_listener.self = termscr ;
 	termscr->sel_listener.select_in_window = select_in_window ;
@@ -3499,6 +3478,7 @@ ml_term_screen_new(
 
 	termscr->bel_mode = bel_mode ;
 
+	termscr->logvis = NULL ;
 	termscr->iscii_lang = iscii_lang ;
 	termscr->iscii_state = NULL ;
 	termscr->shape = NULL ;
@@ -3600,6 +3580,15 @@ ml_term_screen_delete(
 	ml_term_screen_t *  termscr
 	)
 {
+	/*
+	 * this should be done before ml_image_final() since termscr->logvis refers
+	 * to ml_image_t and may have some data structure for it.
+	 */
+	if( termscr->logvis)
+	{
+		(*termscr->logvis->delete)( termscr->logvis) ;
+	}
+	
 	ml_image_final( &termscr->normal_image) ;
 	ml_image_final( &termscr->alt_image) ;
 
@@ -3608,14 +3597,14 @@ ml_term_screen_delete(
 	ml_bs_final( &termscr->bs_image) ;
 	ml_config_menu_final( &termscr->config_menu) ;
 
-	if( termscr->iscii_state)
-	{
-		ml_iscii_delete( termscr->iscii_state) ;
-	}
-
 	if( termscr->shape)
 	{
 		(*termscr->shape->delete)( termscr->shape) ;
+	}
+
+	if( termscr->iscii_state)
+	{
+		ml_iscii_delete( termscr->iscii_state) ;
 	}
 
 	if( termscr->pic_file_path)
@@ -3720,7 +3709,7 @@ ml_set_encoding_listener(
 	}
 
 	termscr->encoding_listener = encoding_listener ;
-
+	
 	update_encoding_proper_aux( termscr) ;
 	
 	return  1 ;
@@ -3844,10 +3833,11 @@ ml_term_screen_start_vt100_cmd(
 	exit_backscroll_mode( termscr) ;
 
 	unhighlight_cursor( termscr) ;
-	
-	stop_visual_indian( termscr) ;
 
-	ml_image_stop_bidi( termscr->image) ;
+	if( termscr->logvis)
+	{
+		(*termscr->logvis->logical)( termscr->logvis) ;
+	}
 
 	return  1 ;
 }
@@ -3857,14 +3847,15 @@ ml_term_screen_stop_vt100_cmd(
 	ml_term_screen_t *  termscr
 	)
 {
-	ml_image_render_bidi( termscr->image) ;
-	ml_image_start_bidi( termscr->image) ;
-		
-	start_visual_indian( termscr) ;
+	if( termscr->logvis)
+	{
+		(*termscr->logvis->render)( termscr->logvis) ;
+		(*termscr->logvis->visual)( termscr->logvis) ;
+	}
 	
 	redraw_image( termscr) ;
 	highlight_cursor( termscr) ;
-
+	
 	return  1 ;
 }
 

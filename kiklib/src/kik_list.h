@@ -77,7 +77,7 @@ typedef struct  __ ## type ## _list \
 { \
 	KIK_ITERATOR( type)   new_iterator = NULL ; \
 	\
-	if( ( new_iterator = malloc( sizeof( KIK_ITERATOR( type)))) == NULL) \
+	if( ( new_iterator = malloc( sizeof( *new_iterator))) == NULL) \
 	{ \
 		kik_error_printf( "malloc() failed in kik_list_insert_after().\n") ; \
 		abort() ; \
@@ -101,7 +101,7 @@ typedef struct  __ ## type ## _list \
 { \
 	KIK_ITERATOR( type)   new_iterator = NULL ; \
 	\
-	if( ( new_iterator = malloc( sizeof( KIK_ITERATOR( type)))) == NULL) \
+	if( ( new_iterator = malloc( sizeof( *new_iterator))) == NULL) \
 	{ \
 		kik_error_printf( "malloc() failed in kik_list_insert_before().\n") ; \
 		abort() ; \
@@ -125,7 +125,7 @@ typedef struct  __ ## type ## _list \
 { \
 	KIK_ITERATOR( type)   new_iterator = NULL ; \
 	\
-	if( ( new_iterator = malloc( sizeof( KIK_ITERATOR( type)))) == NULL) \
+	if( ( new_iterator = malloc( sizeof( *new_iterator))) == NULL) \
 	{ \
 		kik_error_printf( "malloc() failed in kik_list_insert_head().\n") ; \
 		abort() ; \
@@ -148,7 +148,7 @@ typedef struct  __ ## type ## _list \
 { \
 	KIK_ITERATOR( type)   new_iterator = NULL ; \
 	\
-	if( ( new_iterator = malloc( sizeof( KIK_ITERATOR( type)))) == NULL) \
+	if( ( new_iterator = malloc( sizeof( *new_iterator))) == NULL) \
 	{ \
 		kik_error_printf( "malloc() failed in kik_list_insert_tail().\n") ; \
 		abort() ; \

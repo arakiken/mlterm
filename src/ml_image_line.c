@@ -30,6 +30,10 @@
 
 /* --- global functions --- */
 
+/*
+ * functions which doesn't have to care about visual order.
+ */
+ 
 int
 ml_imgline_init(
 	ml_image_line_t *  line ,
@@ -48,10 +52,6 @@ ml_imgline_init(
 	return  1 ;
 }
 
-/*
- * !! Notice !!
- * cloning the very same including bidi parameters.
- */
 int
 ml_imgline_clone(
 	ml_image_line_t *  clone ,
@@ -61,11 +61,6 @@ ml_imgline_clone(
 {
 	ml_imgline_init( clone , num_of_chars) ;
 	
-	if( ml_imgline_is_using_bidi( orig))
-	{
-		ml_imgline_use_bidi( clone) ;
-	}
-
 	ml_imgline_copy_line( clone , orig) ;
 
 	return  1 ;
@@ -81,6 +76,9 @@ ml_imgline_final(
 		ml_str_delete( line->chars , line->num_of_chars) ;
 	}
 
+	/*
+	 * just to be sure...
+	 */
 	if( line->visual_order)
 	{
 		free( line->visual_order) ;
@@ -155,7 +153,6 @@ ml_imgline_reset(
 	line->num_of_filled_cols = 0 ;
 	line->visual_order_len = 0 ;
 	line->is_continued_to_next = 0 ;
-	line->is_bidi = 0 ;
 
 	return 1 ;
 }
@@ -715,9 +712,8 @@ ml_imgline_restore_color(
 }
 
 /*
- * !! Notice !!
- * this copys src parameters to dst if at all possible.
- * if visual_order of dst is NULL , this ignores bidi related parameters.
+ * This copys a line as it is and doesn't care about visual order.
+ * But bidi parameters are also copyed as it is.
  */
 int
 ml_imgline_copy_line(
@@ -729,8 +725,7 @@ ml_imgline_copy_line(
 
 	copy_len = K_MIN(src->num_of_filled_chars,dst->num_of_chars) ;
 
-	/* getting normalized str */
-	ml_imgline_copy_str( src , dst->chars , 0 , copy_len) ;
+	ml_str_copy( dst->chars , src->chars , copy_len) ;
 	dst->num_of_filled_chars = copy_len ;
 
 	if( copy_len == src->num_of_filled_chars)
@@ -748,15 +743,26 @@ ml_imgline_copy_line(
 	dst->is_cleared_to_end = src->is_cleared_to_end ;
 
 	dst->is_continued_to_next = src->is_continued_to_next ;
-	dst->is_bidi = 0 ;
 
-	if( ml_imgline_is_using_bidi( src) && ml_imgline_is_using_bidi( dst))
+	/*
+	 * bidi parameters.
+	 */
+	if( ml_imgline_is_using_bidi( src))
 	{
-		ml_imgline_render_bidi( dst) ;
+		ml_imgline_use_bidi( dst) ;
 
-		if( src->is_bidi)
+		if( src->visual_order_len > 0)
 		{
-			ml_imgline_start_bidi( dst) ;
+			if( src->num_of_filled_chars == dst->num_of_filled_chars)
+			{
+				memcpy( dst->visual_order , src->visual_order ,
+					sizeof( u_int16_t) * src->visual_order_len) ;
+				dst->visual_order_len = src->visual_order_len ;
+			}
+			else
+			{
+				ml_imgline_bidi_render( dst) ;
+			}
 		}
 	}
 	else
@@ -784,7 +790,6 @@ ml_imgline_share(
 	dst->change_end_char_index = src->change_end_char_index ;
 	dst->is_modified = src->is_modified ;
 	dst->is_continued_to_next = src->is_continued_to_next ;
-	dst->is_bidi = src->is_bidi ;
 
 	return  1 ;
 }
@@ -837,6 +842,11 @@ ml_get_num_of_filled_chars_except_end_space(
 	return  0 ;
 }
 
+
+/*
+ * visual <=> logical functions , which must care about visual order.
+ */
+
 int
 ml_imgline_is_using_bidi(
 	ml_image_line_t *  line
@@ -874,8 +884,8 @@ ml_imgline_use_bidi(
 
 int
 ml_imgline_unuse_bidi(
-	ml_image_line_t *  line
-	)
+        ml_image_line_t *  line
+        )
 {
 	free( line->visual_order) ;
 	line->visual_order = NULL ;
@@ -885,19 +895,18 @@ ml_imgline_unuse_bidi(
 }
 
 int
-ml_imgline_render_bidi(
+ml_imgline_bidi_render(
 	ml_image_line_t *  line
 	)
 {
-	int  len ;
+	u_int  len ;
 
-	if( ! line->visual_order || line->is_bidi)
+	if( ! line->visual_order)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " render failed. visual_order is %p and is_bidi is %d\n" ,
-			line->visual_order , line->is_bidi) ;
+		kik_warn_printf( KIK_DEBUG_TAG " render failed. visual_order is NULL\n") ;
 	#endif
-	
+
 		return  0 ;
 	}
 	else if( line->num_of_filled_chars == 0 ||
@@ -913,7 +922,7 @@ ml_imgline_render_bidi(
 }
 
 int
-ml_imgline_start_bidi(
+ml_imgline_bidi_visual(
 	ml_image_line_t *  line
 	)
 {
@@ -923,22 +932,19 @@ ml_imgline_start_bidi(
 	if( ! line->visual_order)
 	{
 	#ifdef  __DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " visual bidi failed..\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " visual_order is NULL\n") ;
 	#endif
 
 		return  0 ;
 	}
-	
-	if( line->is_bidi)
-	{
-		return  1 ;
-	}
 
 	if( line->visual_order_len == 0)
 	{
-		line->is_bidi = 1 ;
-
-		return  1 ;
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " not rendered yet.\n") ;
+	#endif
+	
+		return  0 ;
 	}
 
 	if( ( src = ml_str_alloca( line->visual_order_len)) == NULL)
@@ -971,29 +977,33 @@ ml_imgline_start_bidi(
 		ml_imgline_set_modified_all( line) ;
 	}
 
-	line->is_bidi = 1 ;
-
 	return  1 ;
 }
 
 int
-ml_imgline_stop_bidi(
+ml_imgline_bidi_logical(
 	ml_image_line_t *  line
 	)
 {
 	int  counter ;
 	ml_char_t *  src ;
 	
-	if( ! line->visual_order || ! line->is_bidi)
+	if( ! line->visual_order)
 	{
-		return  1 ;
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " visual_order is NULL\n") ;
+	#endif
+
+		return  0 ;
 	}
 
 	if( line->visual_order_len == 0)
 	{
-		line->is_bidi = 0 ;
-
-		return  1 ;
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " not rendered yet.\n") ;
+	#endif
+	
+		return  0 ;
 	}
 
 	if( ( src = ml_str_alloca( line->visual_order_len)) == NULL)
@@ -1020,8 +1030,6 @@ ml_imgline_stop_bidi(
 	}
 
 	ml_str_final( src , line->visual_order_len) ;
-
-	line->is_bidi = 0 ;
 
 	/*
 	 * !! Notice !!
@@ -1092,7 +1100,7 @@ ml_imgline_copy_str(
 	u_int  len
 	)
 {
-	if( ! line->is_bidi)
+	if( line->visual_order_len == 0)
 	{
 		return  ml_str_copy( dst , &line->chars[beg] , len) ;
 	}
@@ -1138,52 +1146,9 @@ ml_imgline_copy_str(
 	}
 }
 
-ml_image_line_t *
-ml_imgline_shape(
-	ml_image_line_t *  line ,
-	ml_shape_t *  shape
-	)
-{
-	ml_image_line_t *  orig ;
-	ml_char_t *  shaped ;
-
-	if( ( orig = malloc( sizeof( ml_image_line_t))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	ml_imgline_share( orig , line) ;
-	
-	if( ( shaped = ml_str_new( line->num_of_chars)) == NULL)
-	{
-		return  NULL ;
-	}
-
-	line->num_of_filled_chars = (*shape->shape)( shape , shaped , line->num_of_chars ,
-					line->chars , line->num_of_filled_chars) ;
-	line->chars = shaped ;
-
-	return  orig ;
-}
 
 int
-ml_imgline_unshape(
-	ml_image_line_t *  line ,
-	ml_image_line_t *  orig
-	)
-{
-	ml_str_delete( line->chars , line->num_of_chars) ;
-	
-	line->chars = orig->chars ;
-	line->num_of_filled_chars = orig->num_of_filled_chars ;
-
-	free( orig) ;
-
-	return  1 ;
-}
-
-int
-ml_imgline_start_visual_indian(
+ml_imgline_iscii_visual(
 	ml_image_line_t *  line ,
 	ml_iscii_state_t  iscii_state
 	)
@@ -1389,7 +1354,7 @@ end:
 }
 
 int
-ml_imgline_stop_visual_indian(
+ml_imgline_iscii_logical(
 	ml_image_line_t *  line
 	)
 {
@@ -1607,4 +1572,49 @@ end:
 #endif
 
 	return  visual_char_index ;
+}
+
+
+ml_image_line_t *
+ml_imgline_shape(
+	ml_image_line_t *  line ,
+	ml_shape_t *  shape
+	)
+{
+	ml_image_line_t *  orig ;
+	ml_char_t *  shaped ;
+
+	if( ( orig = malloc( sizeof( ml_image_line_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	ml_imgline_share( orig , line) ;
+	
+	if( ( shaped = ml_str_new( line->num_of_chars)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	line->num_of_filled_chars = (*shape->shape)( shape , shaped , line->num_of_chars ,
+					line->chars , line->num_of_filled_chars) ;
+	line->chars = shaped ;
+
+	return  orig ;
+}
+
+int
+ml_imgline_unshape(
+	ml_image_line_t *  line ,
+	ml_image_line_t *  orig
+	)
+{
+	ml_str_delete( line->chars , line->num_of_chars) ;
+	
+	line->chars = orig->chars ;
+	line->num_of_filled_chars = orig->num_of_filled_chars ;
+
+	free( orig) ;
+
+	return  1 ;
 }

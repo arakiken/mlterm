@@ -79,4 +79,3 @@ kik_parse_options(
 
 	return  1 ;
 }
-

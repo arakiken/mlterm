@@ -13,6 +13,7 @@
 #include  <mkf/mkf_parser.h>
 
 #include  "ml_image.h"
+#include  "ml_logical_visual.h"
 #include  "ml_window.h"
 #include  "ml_logs.h"
 #include  "ml_selection.h"
@@ -94,6 +95,10 @@ typedef struct  ml_term_screen
 	ml_keymap_t *  keymap ;
 	ml_termcap_t *  termcap ;
 
+	/*
+	 * encoding proper aux
+	 */
+	ml_logical_visual_t *  logvis ;
 	ml_shape_t *  shape ;
 	ml_iscii_lang_t  iscii_lang ;
 	ml_iscii_state_t  iscii_state ;

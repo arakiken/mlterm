@@ -1796,7 +1796,8 @@ int
 ml_window_show(
 	ml_window_t *  win ,
 	int  x ,
-	int  y
+	int  y ,
+	int  hint
 	)
 {
 	XGCValues  gc_value ;
@@ -1822,6 +1823,16 @@ ml_window_show(
 		win->display = win->parent->display ;
 		win->screen = win->parent->screen ;
 		win->parent_window = win->parent->my_window ;
+	}
+
+	if( hint & XNegative)
+	{
+		x += ( DisplayWidth( win->display , win->screen) - ACTUAL_WIDTH(win)) ;
+	}
+
+	if( hint & YNegative)
+	{
+		y += ( DisplayHeight( win->display , win->screen) - ACTUAL_HEIGHT(win)) ;
 	}
 
 	win->my_window = XCreateSimpleWindow(
@@ -1871,27 +1882,53 @@ ml_window_show(
 		int  argc = 1 ;
 		char *  argv[] = { "mlterm" , NULL , } ;
 		
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " setWMProperties.\n") ;
-	#endif
-		
 		win->event_mask |= StructureNotifyMask ;
-		
+
 		/*
 		 * XXX
-		 * x/y/width/height are obsoleted ?(see XSizeHints(3))
+		 * x/y/width/height are obsoleted. (see XSizeHints(3))
 		 */
 		size_hints.x = x ;
 		size_hints.y = y ;
 		size_hints.width = ACTUAL_WIDTH(win) ;
 		size_hints.height = ACTUAL_HEIGHT(win) ;
+		
 		size_hints.base_width = 2 * win->margin ;
 		size_hints.base_height = 2 * win->margin ;
 		size_hints.width_inc = win->width_inc ;
 		size_hints.height_inc = win->height_inc ;
 		size_hints.min_width = win->min_width + 2 * win->margin ;
 		size_hints.min_height = win->min_height + 2 * win->margin ;
-		size_hints.flags = PPosition | PSize | PMinSize | PResizeInc | PBaseSize ;
+
+		if( hint & XNegative)
+		{
+			if( hint & YNegative)
+			{
+				size_hints.win_gravity = SouthEastGravity ;
+			}
+			else
+			{
+				size_hints.win_gravity = NorthEastGravity ;
+			}
+		}
+		else
+		{
+			if( hint & YNegative)
+			{
+				size_hints.win_gravity = SouthWestGravity ;
+			}
+			else
+			{
+				size_hints.win_gravity = NorthWestGravity ;
+			}
+		}
+
+		size_hints.flags = PSize | PMinSize | PResizeInc | PBaseSize | PWinGravity ;
+		
+		if( hint & (XValue | YValue))
+		{
+			size_hints.flags |= PPosition ;
+		}
 
 		class_hint.res_name = "mlterm" ;
 		class_hint.res_class = "XTerm" ;
@@ -1926,7 +1963,7 @@ ml_window_show(
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
 		ml_window_show( win->children[counter].window ,
-			win->children[counter].x , win->children[counter].y) ;
+			win->children[counter].x , win->children[counter].y , 0) ;
 	}
 
 	return  1 ;
@@ -2580,7 +2617,7 @@ ml_window_receive_event(
 		if( win->event_mask & VisibilityChangeMask)
 		{
 			/*
-			 * this event is only received if use_pixmap flag is not set in ml_window_new.
+			 * this event is only received if use_pixmap flag is not set in ml_window_init.
 			 */
 
 			if( event->xvisibility.state == VisibilityPartiallyObscured)

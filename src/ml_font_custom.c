@@ -14,8 +14,8 @@
 #include  "ml_font_intern.h"
 
 
-#define  DEFAULT_MAX_FONT_SIZE  24
-#define  DEFAULT_MIN_FONT_SIZE  10
+#define  DEFAULT_MAX_FONT_SIZE  30
+#define  DEFAULT_MIN_FONT_SIZE  6
 
 
 typedef struct  cs_table

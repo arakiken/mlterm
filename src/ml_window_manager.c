@@ -59,7 +59,7 @@ ml_window_manager_final(
 	
 	FOREACH_ROOTS(win_man,counter)
 	{
-		ml_window_final( win_man->roots[counter].root) ;
+		ml_window_final( win_man->roots[counter]) ;
 	}
 
 	ml_xim_final() ;
@@ -74,7 +74,8 @@ ml_window_manager_show_root(
 	ml_window_manager_t *  win_man ,
 	ml_window_t *  root ,
 	int  x ,
-	int  y
+	int  y ,
+	int  hint
 	)
 {
 	if( win_man->num_of_roots == MAX_ROOTS(win_man))
@@ -92,13 +93,9 @@ ml_window_manager_show_root(
 	root->display = win_man->display ;
 	root->screen = win_man->screen ;
 	
-	win_man->roots[win_man->num_of_roots].root = root ;
-	win_man->roots[win_man->num_of_roots].x = x ;
-	win_man->roots[win_man->num_of_roots].y = y ;
+	win_man->roots[win_man->num_of_roots++] = root ;
 
-	win_man->num_of_roots ++ ;
-
-	ml_window_show( root , x , y) ;
+	ml_window_show( root , x , y , hint) ;
 	
 	return  1 ;
 }
@@ -113,7 +110,7 @@ ml_window_manager_remove_root(
 	
 	FOREACH_ROOTS(win_man,counter)
 	{
-		if( win_man->roots[counter].root == root)
+		if( win_man->roots[counter] == root)
 		{
 			ml_window_final( root) ;
 
@@ -183,7 +180,7 @@ ml_window_manager_idling(
 
 	FOREACH_ROOTS(win_man,counter)
 	{
-		ml_window_idling( win_man->roots[counter].root) ;
+		ml_window_idling( win_man->roots[counter]) ;
 	}
 }
 
@@ -205,7 +202,7 @@ ml_window_manager_receive_next_event(
 			{
 				FOREACH_ROOTS(win_man,counter)
 				{
-					ml_window_receive_event( win_man->roots[counter].root , &event) ;
+					ml_window_receive_event( win_man->roots[counter] , &event) ;
 				}
 			}
 		}

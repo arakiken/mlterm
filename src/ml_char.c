@@ -704,7 +704,7 @@ ml_char_is_reversed(
 
 #ifdef  DEBUG
 
-#if  1
+#if  0
 #define  DUMP_HEX
 #endif
 

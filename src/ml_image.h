@@ -88,22 +88,6 @@ int  ml_image_final( ml_image_t *  image) ;
 
 int  ml_image_resize( ml_image_t *  image , u_int  num_of_cols , u_int  num_of_rows) ;
 
-int  ml_image_is_using_bidi( ml_image_t *  image) ;
-
-int  ml_image_use_bidi( ml_image_t *  image) ;
-
-int  ml_image_unuse_bidi( ml_image_t *  image) ;
-
-int  ml_image_render_bidi( ml_image_t *  image) ;
-
-int  ml_image_start_bidi( ml_image_t *  image) ;
-
-int  ml_image_stop_bidi( ml_image_t *  image) ;
-
-int  ml_image_start_visual_indian( ml_image_t *  image , ml_iscii_state_t  iscii_state) ;
-
-int  ml_image_stop_visual_indian( ml_image_t *  image) ;
-
 int  ml_image_insert_chars( ml_image_t *  image , ml_char_t *  chars , u_int  num_of_chars) ;
 
 int  ml_image_insert_blank_chars( ml_image_t *  image , u_int  num_of_blank_chars) ;

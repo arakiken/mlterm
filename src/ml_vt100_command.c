@@ -550,6 +550,11 @@ ml_vt100_cmd_use_normal_image(
 
 	ml_bs_change_image( &termscr->bs_image , termscr->image) ;
 
+	if( termscr->logvis)
+	{
+		(*termscr->logvis->change_image)( termscr->logvis , termscr->image) ;
+	}
+
 	return  1 ;
 }
 
@@ -565,6 +570,11 @@ ml_vt100_cmd_use_alternative_image(
 
 	ml_bs_change_image( &termscr->bs_image , termscr->image) ;
 
+	if( termscr->logvis)
+	{
+		(*termscr->logvis->change_image)( termscr->logvis , termscr->image) ;
+	}
+	
 	ml_window_clear_all( &termscr->window) ;
 	
 	return  1 ;

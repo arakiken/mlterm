@@ -196,7 +196,8 @@ open_new_term(
 		goto  error ;
 	}
 	
-	if( ! ml_window_manager_show_root( &term_man->win_man , root , term_man->x , term_man->y))
+	if( ! ml_window_manager_show_root( &term_man->win_man , root ,
+		term_man->x , term_man->y , term_man->geom_hint))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_window_manager_show_root() failed.\n") ;
@@ -1107,8 +1108,8 @@ ml_term_manager_init(
 	if( ( value = kik_conf_get_value( conf , "geometry")))
 	{
 		/* For each value not found, the argument is left unchanged.(see man XParseGeometry(3)) */
-		XParseGeometry( value , &term_man->x , &term_man->y ,
-			&term_man->cols , &term_man->rows) ;
+		term_man->geom_hint = XParseGeometry( value , &term_man->x , &term_man->y ,
+						&term_man->cols , &term_man->rows) ;
 	}
 
 	if( ( value = kik_conf_get_value( conf , "fontsize")) == NULL)

@@ -24,9 +24,16 @@
 #define  CURSOR_DEBUG
 #endif
 
-#define  IS_BIDI_VISUAL(image) ((image)->lines[0].is_bidi)
+#ifdef  DEBUG
 
-#define  LINE_TAB_STOPS_SIZE(image) ((image)->num_of_cols / 8 + 1)
+#define  LINE_TAB_STOPS_SIZE(image)  ((image)->num_of_cols == 0 ? 0 : ((image)->num_of_cols - 1) / 8 + 1)
+
+#else
+
+#define  LINE_TAB_STOPS_SIZE(image)  (((image)->num_of_cols - 1) / 8 + 1)
+
+#endif
+
 #define  DEFAULT_TAB_SIZE  8
 
 
@@ -806,7 +813,6 @@ ml_image_resize(
 	u_int  num_of_rows
 	)
 {
-	int  is_using_bidi ;
 	int  old_row ;
 	int  new_row ;
 	int  counter ;
@@ -825,10 +831,6 @@ ml_image_resize(
 		
 		return  0 ;
 	}
-
-	is_using_bidi = ml_image_is_using_bidi(image) ;
-
-	ml_image_stop_bidi( image) ;
 
 	if( ( lines_p = malloc( sizeof( ml_image_line_t) * num_of_rows)) == NULL)
 	{
@@ -942,237 +944,9 @@ ml_image_resize(
 					image->cursor.char_index , 0) ;
 	}
 
-	if( is_using_bidi)
-	{
-		ml_image_use_bidi( image) ;
-
-		/* bidi-rendering all lines. */
-		ml_image_render_bidi( image) ;
-	}
-
 #ifdef  __DEBUG
 	fprintf( stderr , "-> char index %d row %d\n" ,
 		image->cursor.char_index , image->cursor.row) ;
-#endif
-
-	return  1 ;
-}
-
-int
-ml_image_is_using_bidi(
-	ml_image_t *  image
-	)
-{
-	return  ml_imgline_is_using_bidi(&(image)->lines[0]) ;
-}
-
-int
-ml_image_use_bidi(
-	ml_image_t *  image
-	)
-{
-	int  row ;
-	
-	if( ml_image_is_using_bidi(image))
-	{
-		return  0 ;
-	}
-
-	for( row = 0 ; row < image->num_of_rows ; row ++)
-	{
-		ml_imgline_use_bidi( &image->lines[row]) ;
-	}
-
-	return  1 ;
-}
-
-int
-ml_image_unuse_bidi(
-	ml_image_t *  image
-	)
-{
-	int  row ;
-	
-	if( ! ml_image_is_using_bidi(image))
-	{
-		return  0 ;
-	}
-
-	for( row = 0 ; row < image->num_of_rows ; row ++)
-	{
-		ml_imgline_unuse_bidi( &image->lines[row]) ;
-	}
-	
-	return  1 ;
-}
-
-int
-ml_image_render_bidi(
-	ml_image_t *  image
-	)
-{
-	int  row ;
-
-	if( ! ml_image_is_using_bidi(image))
-	{
-		return  0 ;
-	}
-
-	for( row = 0 ; row < image->num_of_rows ; row ++)
-	{
-		if( image->lines[row].is_modified)
-		{
-			ml_imgline_render_bidi( &image->lines[row]) ;
-		}
-	}
-
-	return  1 ;
-}
-
-int
-ml_image_start_bidi(
-	ml_image_t *  image
-	)
-{
-	int  row ;
-	u_int  cols_rest ;
-
-	if( ! ml_image_is_using_bidi(image))
-	{
-		return  0 ;
-	}
-
-	if( IS_BIDI_VISUAL(image))
-	{
-		/* already started. blocking multiple call */
-		
-		return  1 ;
-	}
-	
-#ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
-		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
-#endif
-
-	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
-
-	for( row = 0 ; row < image->num_of_rows ; row ++)
-	{
-		ml_imgline_start_bidi( &image->lines[row]) ;
-	}
-
-	image->cursor.char_index = ml_bidi_convert_logical_char_index_to_visual(
-					&CURSOR_LINE(image) , image->cursor.char_index) ;
-	image->cursor.col = ml_convert_char_index_to_col( &CURSOR_LINE(image) ,
-					image->cursor.char_index , 0) + cols_rest ;
-
-#ifdef  CURSOR_DEBUG
-	fprintf( stderr , "-> [cursor(index)%d (col)%d (row)%d]\n" ,
-		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
-#endif
-
-	return  1 ;
-}
-
-int
-ml_image_stop_bidi(
-	ml_image_t *  image
-	)
-{
-	int  row ;
-	u_int  cols_rest ;
-
-	if( ! ml_image_is_using_bidi(image))
-	{
-		return  0 ;
-	}
-
-	if( ! IS_BIDI_VISUAL(image))
-	{
-		/* already stopped. blocking multiple call */
-		
-		return  1 ;
-	}
-	
-#ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
-		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
-#endif
-
-	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
-	
-	for( row = 0 ; row < image->num_of_rows ; row ++)
-	{
-		ml_imgline_stop_bidi( &image->lines[row]) ;
-	}
-
-	image->cursor.char_index = ml_bidi_convert_visual_char_index_to_logical(
-					&CURSOR_LINE(image) , image->cursor.char_index) ;
-	image->cursor.col = ml_convert_char_index_to_col( &CURSOR_LINE(image) ,
-					image->cursor.char_index , 0) + cols_rest ;
-
-#ifdef  CURSOR_DEBUG
-	fprintf( stderr , "-> [cursor(index)%d (col)%d (row)%d]\n" ,
-		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
-#endif
-	
-	return  1 ;
-}
-
-int
-ml_image_start_visual_indian(
-	ml_image_t *  image ,
-	ml_iscii_state_t  iscii_state
-	)
-{
-	int  row ;
-	int  cols_rest ;
-
-	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
-	
-	for( row = 0 ; row < image->num_of_filled_rows ; row ++)
-	{
-		ml_imgline_start_visual_indian( &IMAGE_LINE(image,row) , iscii_state) ;
-	}
-
-	image->cursor.char_index = ml_iscii_convert_logical_char_index_to_visual(
-					&CURSOR_LINE(image) , image->cursor.char_index) ;
-
-	image->cursor.col = ml_convert_char_index_to_col( &CURSOR_LINE(image) ,
-				image->cursor.char_index , 0) + cols_rest ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d]\n" ,
-		image->cursor.col , image->cursor.char_index) ;
-#endif
-
-	return  1 ;
-}
-
-int
-ml_image_stop_visual_indian(
-	ml_image_t *  image
-	)
-{
-	int  row ;
-	int  cols_rest ;
-
-	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest , image->cursor.col , 0) ;
-	
-	image->cursor.char_index = ml_iscii_convert_visual_char_index_to_logical(
-					&CURSOR_LINE(image) , image->cursor.char_index) ;
-	
-	for( row = 0 ; row < image->num_of_filled_rows ; row ++)
-	{
-		ml_imgline_stop_visual_indian( &IMAGE_LINE(image,row)) ;
-	}
-
-	image->cursor.col = ml_convert_char_index_to_col( &CURSOR_LINE(image) ,
-				image->cursor.char_index , 0) + cols_rest ;
-	
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d]\n" ,
-		image->cursor.col , image->cursor.char_index) ;
 #endif
 
 	return  1 ;
@@ -1699,13 +1473,13 @@ ml_image_vertical_tab(
 	)
 {
 	int  col ;
-	u_char *  tab_stops ;
+	u_int8_t *  tab_stops ;
 
 	reset_wraparound_checker( image) ;
 
 	tab_stops = &image->tab_stops[ image->cursor.row * LINE_TAB_STOPS_SIZE(image)] ;
 
-	for( col = image->cursor.col + 1 ; col < image->num_of_cols ; col ++)
+	for( col = image->cursor.col + 1 ; col < image->num_of_cols - 1 ; col ++)
 	{
 		if( tab_stops[col / 8] & ( 1 << (7 - col % 8)))
 		{
@@ -1750,24 +1524,41 @@ ml_image_set_tab_size(
 
 			col ++ ;
 			
-			if( col % 8 == 0)
-			{
-				tab_stops ++ ;
-
-				if( col >= image->num_of_cols)
-				{
-					break ;
-				}
-			}
-			else if( col >= image->num_of_cols)
+			if( col >= image->num_of_cols)
 			{
 				tab_stops ++ ;
 
 				break ;
 			}
+			else if( col % 8 == 0)
+			{
+				tab_stops ++ ;
+			}
 		}
 	}
 
+#ifdef  __DEBUG
+	{
+		int  i ;
+		int  j ;
+		u_int8_t *  tab_stops ;
+
+		kik_debug_printf( KIK_DEBUG_TAG " tab stops\n") ;
+
+		for( i = 0 ; i < image->num_of_rows ; i ++)
+		{
+			tab_stops = &image->tab_stops[ i * LINE_TAB_STOPS_SIZE(image)] ;
+		
+			for( j = 0 ; j < LINE_TAB_STOPS_SIZE(image) ; j ++)
+			{
+				fprintf( stderr , "%x " , tab_stops[j]) ;
+			}
+			fprintf( stderr , "\n") ;
+		}
+		fprintf( stderr , "\n") ;
+	}
+#endif
+	
 	image->tab_size = tab_size ;
 
 	return  1 ;
