@@ -22,7 +22,7 @@ version 20030301
                      scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | cursor_fg_color |
                      cursor_bg_color | open_pty | open_screen | select_pty |
-                     snapshot | gen_proto_challenge
+                     snapshot | gen_proto_challenge | icon_path
   get key          = encoding | is_auto_encoding | fg_color | bg_color |
                      tabsize | logsize | fontsize | fade_ratio | mod_meta_key |
                      mod_meta_mode | bel_mode | use_anti_alias |
@@ -34,6 +34,8 @@ version 20030301
                      scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | rows | cols |
                      cursor_fg_color | cursor_bg_color | pty_list | pty_name
+		     icon_path
+
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 
@@ -43,53 +45,53 @@ version 20030301
   set picture      = "\x1b" "]" "20" ";" <path> "[" ";" <adjusting> "]" "[" ":" <operation> "]" "\x07"
 
 * Values for each key
-  encoding = <encoding name> | auto
-  fg_color = <color name> | <color rgb>
+  bel_mode = none | sound | visual
   bg_color = <color name> | <color rgb>
-  tabsize = <any ASCII decimal digit>
-  logsize = <any ASCII decimal digit>
-  fontsize = <any ASCII decimal digit> | larger | smaller
+  brightness = <any ASCII decimal digit>
+  cols = <any ASCII decimal digit>
+  contrast = <any ASCII decimal digit>
+  cursor_bg_color = <color name> | <color rgb>
+  cursor_fg_color = <color name> | <color rgb>
+  encoding = <encoding name> | auto
   fade_ratio = <any ASCII decimal digit>
+  fg_color = <color name> | <color rgb>
+  fontsize = <any ASCII decimal digit> | larger | smaller
+  full_reset = <none>
+  gamma = <any ASCII decimal digit>
+  gen_proto_challenge = <none>
+  icon_path = <file path>
+  input_method = <input method> ":" <input method specific options> ...
+  iscii_lang = Assamese | Bengali | Gujarati | Hindi | Kannada | Malayalam | Oriya | Punjabi | Roman | Tamil | Telugu
+  line_space = <any ASCII decimal digit>
+  locale = <locale name>
+  logsize = <any ASCII decimal digit>
   mod_meta_key = none | mod1 | mod2 | mod3 | mod4 | meta | alt | super | hyper
   mod_meta_mode = none | esc | 8bit
-  bel_mode = none | sound | visual
-  use_anti_alias = true | false
-  use_variable_column_width = true | false
-  use_combining = true | false
-  use_transbg = true | false
-  use_bidi = true | false
-  receive_string_via_ucs = true | false
-  input_method = <input method> ":" <input method specific options> ...
-  locale = <locale name>
-  wall_picture = <file path>
-  full_reset = <none>
-  pwd = <current working directory>
-  brightness = <any ASCII decimal digit>
-  gamma = <any ASCII decimal digit>
-  contrast = <any ASCII decimal digit>
-  line_space = <any ASCII decimal digit>
-  screen_width_ratio = <any ASCII decimal digit>
-  screen_height_ratio = <any ASCII decimal digit>
-  vertical_mode = none | cjk | mongol
-  scrollbar_mode = none | left | right
-  use_multi_column_char = true | false
-  scrollbar_view_name = <name>
-  sb_fg_color = <color name> | <color rgb>
-  sb_bg_color = <color name> | <color rgb>
-  iscii_lang = Assamese | Bengali | Gujarati | Hindi | Kannada | Malayalam |
-               Oriya | Punjabi | Roman | Tamil | Telugu
-  use_dynamic_comb = true | false
-  rows = <any ASCII decimal digit>
-  cols = <any ASCII decimal digit>
-  cursor_fg_color = <color name> | <color rgb>
-  cursor_bg_color = <color name> | <color rgb>
   open_pty = <none>
   open_screen = <none>
-  select_pty = <pty dev name>
   pty_list = (<pty dev>:<active flag>;)*
   pty_name = <pty dev> | <pty title>
+  pwd = <current working directory>
+  receive_string_via_ucs = true | false
+  rows = <any ASCII decimal digit>
+  sb_bg_color = <color name> | <color rgb>
+  sb_fg_color = <color name> | <color rgb>
+  screen_height_ratio = <any ASCII decimal digit>
+  screen_width_ratio = <any ASCII decimal digit>
+  scrollbar_mode = none | left | right
+  scrollbar_view_name = <name>
+  select_pty = <pty dev name>
   snapshot = <encoding name>:<file name> | <none>
-  gen_proto_challenge = <none>
+  tabsize = <any ASCII decimal digit>
+  use_anti_alias = true | false
+  use_bidi = true | false
+  use_combining = true | false
+  use_dynamic_comb = true | false
+  use_multi_column_char = true | false
+  use_transbg = true | false
+  use_variable_column_width = true | false
+  vertical_mode = none | cjk | mongol
+  wall_picture = <file path>
 
 * Note
   o Encoding names are regularized , that is , `-' , `_' are removed , and only

@@ -1376,7 +1376,7 @@ update_special_visual(
 	{
 		if( ! ( x_get_font_present( screen->font_man) & FONT_VERTICAL))
 		{
-			change_font_present( screen , 
+			change_font_present( screen ,
 				( x_get_font_present( screen->font_man) | FONT_VERTICAL) & ~FONT_VAR_WIDTH) ;
 		}
 	}
@@ -4348,6 +4348,21 @@ snapshot(
 }
 
 static void
+change_icon(
+	x_screen_t *  screen,
+	char *new_icon
+	)
+{
+	if( new_icon)
+	{
+		ml_term_set_icon_path( screen->term, new_icon);
+	}
+
+	x_window_manager_set_icon( x_get_root_window( &screen->window),
+					   ml_term_icon_path( screen->term));
+}
+
+static void
 set_config(
 	void *  p ,
 	char *  dev ,		/* can be NULL */
@@ -4842,6 +4857,10 @@ set_config(
 
 		snapshot( screen , ml_get_char_encoding( encoding) , file) ;
 	}
+	else if( strcmp( key , "icon_path") == 0)
+	{
+		change_icon( screen, value) ;
+	}
 }
 
 static void
@@ -5203,6 +5222,10 @@ get_config(
 		{
 			value = ml_term_get_slave_name( term) ;
 		}
+	}
+	else if( strcmp( key , "icon_path") == 0)
+	{
+		value = ml_term_icon_path( term) ;
 	}
 
 	if( value == NULL)
@@ -6827,6 +6850,9 @@ x_screen_attach(
 	x_set_window_name( &screen->window , ml_term_window_name( screen->term)) ;
 	x_set_icon_name( &screen->window , ml_term_icon_name( screen->term)) ;
 
+	/* reset icon to screen->term's one */
+	change_icon( screen, NULL) ;
+
 	if( screen->im)
 	{
 		x_window_t *  root ;
@@ -6868,7 +6894,7 @@ x_screen_detach(
 
 	term = screen->term ;
 	screen->term = NULL ;
-
+	x_window_remove_icon( &screen->window) ;
 	x_window_clear_all( &screen->window) ;
 
 	return  term ;

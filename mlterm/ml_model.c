@@ -28,10 +28,10 @@ ml_model_init(
 	model->num_of_rows = num_of_rows ;
 	model->num_of_cols = num_of_cols ;
 
-	if( ( model->lines = malloc( sizeof( ml_line_t) * model->num_of_rows)) == NULL)
+	if( ( model->lines = calloc( sizeof( ml_line_t), model->num_of_rows)) == NULL)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG "calloc() failed.\n") ;
 	#endif
 	
 		return  0 ;
@@ -111,7 +111,7 @@ ml_model_resize(
 		return  0 ;
 	}
 
-	if( ( lines_p = malloc( sizeof( ml_line_t) * num_of_rows)) == NULL)
+	if( ( lines_p = calloc( sizeof( ml_line_t), num_of_rows)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
@@ -128,7 +128,7 @@ ml_model_resize(
 		if( count < 0)
 		{
 			/* All lines are empty, which is impossible. */
-			
+			free( lines_p) ;		
 			return  0 ;
 		}
 	#if  0

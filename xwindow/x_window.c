@@ -2913,6 +2913,43 @@ x_set_icon_name(
 }
 
 int
+x_window_remove_icon(
+	x_window_t *  win
+	)
+{
+	XWMHints *hints ;
+
+	hints = XGetWMHints( win->display, win->my_window) ;
+
+	if( hints)
+	{
+
+		hints->flags &= ~IconPixmapHint ;
+		hints->flags &= ~IconMaskHint ;
+
+		XSetWMHints( win->display, win->my_window, hints) ;
+		XFree( hints) ;
+	}
+	/* do not use hints->icon_*. they may be shared! */
+	if( win->icon_pix != None)
+	{
+		XFreePixmap( win->display, win->icon_pix);
+		win->icon_pix = None ;
+	}
+	if( win->icon_mask != None)
+	{
+		XFreePixmap( win->display, win->icon_mask);
+		win->icon_mask = None ;
+	}
+	free( win->icon_card);
+	win->icon_card = NULL ;
+
+	XDeleteProperty( win->display, win->my_window,XA_NET_WM_ICON( win->display)) ;
+
+	return  1 ;
+}
+
+int
 x_window_set_icon(
 	x_window_t *  win,
 	Pixmap  icon,
@@ -2920,7 +2957,7 @@ x_window_set_icon(
 	u_int32_t *  cardinal
 	)
 {
-	XWMHints *hints ;
+	XWMHints *  hints = NULL ;
 
 	/* set extended window manager hint's icon */
 	if( cardinal && cardinal[0] && cardinal[1])
@@ -2935,7 +2972,6 @@ x_window_set_icon(
 				 (cardinal[0])*(cardinal[1]) +2) ;
 	}
 	/* set old style window manager hint's icon */
-	hints = NULL ;
 	if (icon || mask)
 	{
 		hints = XGetWMHints( win->display, win->my_window) ;
@@ -2962,6 +2998,32 @@ x_window_set_icon(
 	XFree( hints) ;
 
 	return 1 ;
+}
+
+int
+x_window_set_icon_from_file(
+	x_window_t *  win,
+	char *  path
+	)
+{
+	int icon_size = 48;
+
+	x_window_remove_icon( win);
+
+	if( !x_imagelib_load_file( win->display ,
+				   path,
+				   &(win->icon_card),
+				   &(win->icon_pix),
+				   &(win->icon_mask),
+				   &icon_size ,&icon_size))
+	{
+		return  0 ;
+	}
+
+	return x_window_set_icon( win,
+				  win->icon_pix,
+				  win->icon_mask,
+				  win->icon_card) ;
 }
 
 int

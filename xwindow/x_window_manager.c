@@ -338,3 +338,56 @@ x_window_manager_update_modifier_mapping(
 		win_man->modmap.serial = serial ;
 	}
 }
+
+int x_window_manager_set_icon(
+	x_window_t *  win,
+	char *  icon_path
+	)
+{
+	x_window_manager_t *  win_man ;
+
+	win_man = win->win_man ;
+
+	if( !icon_path && !win_man->icon_path)
+	{
+		/* dont't need icon at all? */
+		return  0 ;
+	}
+
+	if( !win_man->icon_path)
+	{
+		x_window_t  dummy = {0};
+
+		/* register the default icon */
+		if(!(win_man->icon_path = strdup( icon_path)))
+		{
+			return  0 ;
+		}
+		dummy.my_window = win_man->group_leader ;
+		dummy.display = win_man->display ;
+		dummy.icon_pix = None ;
+		dummy.icon_mask = None ;
+		dummy.icon_card = NULL ;
+		x_window_set_icon_from_file( &dummy, icon_path);
+
+		win_man->icon = dummy.icon_pix ;
+		win_man->mask = dummy.icon_mask ;
+		win_man->cardinal = dummy.icon_card ;
+
+	}
+
+	if( !icon_path || strcmp( icon_path, win_man->icon_path) ==0)
+	{
+		x_window_remove_icon( win) ;
+		/* use a default icon from window manager */
+		return x_window_set_icon( win,
+					  win_man->icon,
+					  win_man->mask,
+					  win_man->cardinal) ;
+	}
+	else
+	{
+		/* load new icon from "icon_path" */
+		return x_window_set_icon_from_file( win, icon_path);
+	}
+}

@@ -160,10 +160,15 @@ create_term_intern(void)
 	{
 		ml_term_set_window_name( term , main_config.title) ;
 	}
-	
+
 	if( main_config.icon_name)
 	{
 		ml_term_set_icon_name( term , main_config.icon_name) ;
+	}
+
+	if( main_config.icon_path)
+	{
+		ml_term_set_icon_path( term , main_config.icon_path) ;
 	}
 
 	if( main_config.logging_vt_seq)
@@ -470,60 +475,7 @@ open_screen_intern(
 
 	if( main_config.icon_path)
 	{
-		int  icon_size = 48 ;
-		if( disp->win_man.icon_path)
-		{
-			if( strcmp( disp->win_man.icon_path,
-				    main_config.icon_path) == 0)
-			{
-				x_window_set_icon( root,
-						   disp->win_man.icon,
-						   disp->win_man.mask,
-						   disp->win_man.cardinal) ;
-			}
-			else
-			{
-				if ( x_imagelib_load_file( disp->display ,
-							   main_config.icon_path,
-							   &(root->icon_card),
-							   &(root->icon_pix),
-							   &(root->icon_mask),
-							   &icon_size ,&icon_size))
-				{
-					x_window_set_icon( root,
-							   root->icon_pix,
-							   root->icon_mask,
-							   root->icon_card) ;
-				}
-			}
-		}
-		else
-		{
-			if( disp->win_man.icon_path = strdup( main_config.icon_path))
-			{
-				if( x_imagelib_load_file( disp->display ,
-							  main_config.icon_path,
-							  &(disp->win_man.cardinal),
-							  &(disp->win_man.icon),
-							  &(disp->win_man.mask),
-							  &icon_size ,&icon_size))
-
-				{
-					x_window_t  dummy ;
-					
-					dummy.my_window = disp->win_man.group_leader ;
-					dummy.display = disp->win_man.display ;
-					x_window_set_icon( &dummy,
-							   disp->win_man.icon,
-							   disp->win_man.mask,
-							   disp->win_man.cardinal) ;
-					x_window_set_icon( root,
-							   disp->win_man.icon,
-							   disp->win_man.mask,
-							   disp->win_man.cardinal) ;
-				}
-			}
-		}
+		x_window_manager_set_icon( root, main_config.icon_path);
 	}
 
 	if( pty && main_config.cmd_argv)

@@ -654,21 +654,14 @@ init_candidates(
 	cand_screen->num_per_window = num_per_window ;
 
 	/* allocate candidates(x_im_candidate_t) array */
-	if( ( cand_screen->candidates = malloc( sizeof( x_im_candidate_t) * cand_screen->num_of_candidates)) == NULL)
+	if( ( cand_screen->candidates = calloc( sizeof( x_im_candidate_t), cand_screen->num_of_candidates)) == NULL)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " calloc failed.\n") ;
 	#endif
-
+		cand_screen->num_of_candidates = 0 ;
+		cand_screen->num_per_window = 0 ;
 		return  0 ;
-	}
-
-	/* initialize candidate array */
-	for( i = 0 ; i < cand_screen->num_of_candidates ; i++)
-	{
-		cand_screen->candidates[i].chars = NULL ;
-		cand_screen->candidates[i].num_of_chars = 0 ;
-		cand_screen->candidates[i].filled_len = 0 ;
 	}
 
 	cand_screen->index = 0 ;

@@ -49,7 +49,7 @@ fetch_colormap(
 	Colormap  cmap = DefaultColormap( display, screen) ;
 
 	num_cells = DisplayCells( display , screen) ;
-	*color_list = malloc( num_cells * sizeof(XColor)) ;
+	*color_list = calloc( sizeof(XColor), num_cells) ;
 	if( !*color_list)
 	{
 #ifdef DEBUG
