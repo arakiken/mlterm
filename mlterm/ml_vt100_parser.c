@@ -597,7 +597,8 @@ static int
 inc_str_in_esc_seq(
 	ml_screen_t *  screen ,
 	u_char **  str_p ,
-	size_t *  left
+	size_t *  left ,
+	int  want_ctrl
 	)
 {
 	while( 1)
@@ -634,6 +635,10 @@ inc_str_in_esc_seq(
 			else if( **str_p == CTLKEY_BS)
 			{
 				ml_screen_go_back( screen , 1) ;
+			}
+			else if( want_ctrl)
+			{
+				return  1 ;
 			}
 			else
 			{
@@ -887,14 +892,14 @@ parse_vt100_escape_sequence(
 			kik_msg_printf( "RECEIVED ESCAPE SEQUENCE: ESC") ;
 		#endif
 
-			if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
+			if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) == 0)
 			{
 				return  0 ;
 			}
 
 			if( *str_p == '#')
 			{
-				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
+				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) == 0)
 				{
 					return  0 ;
 				}
@@ -1031,7 +1036,7 @@ parse_vt100_escape_sequence(
 				int  ps[5] ;
 				size_t  num ;
 
-				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
+				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) == 0)
 				{
 					return  0 ;
 				}
@@ -1040,7 +1045,8 @@ parse_vt100_escape_sequence(
 				{
 					is_dec_priv = 1 ;
 
-					if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
+					if( inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0) == 0)
 					{
 						return  0 ;
 					}
@@ -1063,7 +1069,7 @@ parse_vt100_escape_sequence(
 						for( count = 1 ; count < 19 ; count ++)
 						{
 							if( inc_str_in_esc_seq( vt100_parser->screen ,
-								&str_p , &left) == 0)
+								&str_p , &left , 0) == 0)
 							{
 								return  0 ;
 							}
@@ -1108,7 +1114,8 @@ parse_vt100_escape_sequence(
 						break ;
 					}
 					
-					if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
+					if( inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0) == 0)
 					{
 						return  0 ;
 					}
@@ -1892,7 +1899,7 @@ parse_vt100_escape_sequence(
 				int  ps ;
 				u_char *  pt ;
 
-				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
+				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) == 0)
 				{
 					return  0 ;
 				}
@@ -1902,7 +1909,8 @@ parse_vt100_escape_sequence(
 				{
 					digit[count++] = *str_p ;
 
-					if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
+					if( inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0) == 0)
 					{
 						return  0 ;
 					}
@@ -1915,7 +1923,8 @@ parse_vt100_escape_sequence(
 
 				if( *str_p == ';')
 				{
-					if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
+					if( inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 1) == 0)
 					{
 						return  0 ;
 					}
@@ -1930,7 +1939,7 @@ parse_vt100_escape_sequence(
 						}
 						
 						if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left) == 0)
+							&str_p , &left , 1) == 0)
 						{
 							return  0 ;
 						}
@@ -2113,7 +2122,7 @@ parse_vt100_escape_sequence(
 					return  1 ;
 				}
 
-				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
+				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) == 0)
 				{
 					return  0 ;
 				}
@@ -2152,7 +2161,7 @@ parse_vt100_escape_sequence(
 				 * ignored.
 				 */
 				 
-				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left) == 0)
+				if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) == 0)
 				{
 					return  0 ;
 				}

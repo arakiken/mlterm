@@ -1,5 +1,9 @@
 2003-05-18 Araki Ken <arakiken@users.sf.net>
 
+	* BEL character after ESC ] ... was ignored. Fixed.
+
+2003-05-18 Araki Ken <arakiken@users.sf.net>
+
 	* Supported ESC [ ? 6 h(relative origin), ESC [ ? 6 l(absolute origin).
 	* Supported ESC [ ? 7 h(auto wrap), ESC [ ? 7 l(no auto wrap).
 
