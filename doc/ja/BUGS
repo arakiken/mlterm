@@ -1,3 +1,8 @@
+* mlterm --display hoge で、起動し、 mlclient --display fuga したあと、
+  最初のウィンドウを殺すと、二つ目のウィンドウに、何も入力できなくなる。
+  x_display_close() の x_xim_display_closed() と XCloseDisplay() をコメ
+  ントアウトすると問題ない。
+  
 * 背景透過 + 輝度調節中に、スクロールバーの位置を変えると、透過している
   背景がずれる。
   (当面直す予定なし)

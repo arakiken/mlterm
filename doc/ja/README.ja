@@ -206,8 +206,8 @@ comment $Id$
       o use_dynamic_comb  (true/*false*) (#)
         結合文字を動的に合成する
 
-	端末アプリケーションが結合文字をサポートしていない場合でも、結合文字を正しく
-	表示できるようにします。
+        端末アプリケーションが結合文字をサポートしていない場合でも、結合文字を正しく
+        表示できるようにします。
         use_combining が true でないと、有効になりません。
 
       o iscii_lang  (assamese/bengali/gujarati/hindi/kannada/*malayalam*/oriya/punjabi/roman/tamil/telugu) (#)
@@ -357,7 +357,7 @@ comment $Id$
       o word_separators  (*" ,.:;/@"*)
         単語の区切り文字を指定
 
-        double クリックで、単語選択する際に使用されます。
+        マウスのダブルクリックで、単語選択する際に使用されます。
 
       o mod_meta_mode  (*none*/esc/8bit) (#)
         Metaキーを押下した時の挙動
@@ -409,8 +409,8 @@ comment $Id$
       o BIG5               ... BIG5フォント
       o HKSCS              ... HKSCSフォント
       o CNS11643_1992_N    ... CNS11643_1992_Nフォント
-      o ISO10646_UCS2_1    ... UNICODEフォント(1カラム用)
-      o ISO10646_UCS2_1_BIWIDTH ... UNICODEフォント(2カラム用)
+      o ISO10646_UCS4_1    ... UNICODEフォント(1カラム用)
+      o ISO10646_UCS4_1_BIWIDTH ... UNICODEフォント(2カラム用)
 
         それぞれのボールド体のフォントを指定したい場合には、
         ISO8859_1_BOLD
@@ -578,7 +578,6 @@ comment $Id$
     o termcap
       termcapデータベースもどき
       
-      キーを押下したときに吐き出すシーケンスを指定することができます。
       `\E' , `^A' などが使えます。
       `\' のあとに8進数を指定する記法はサポートしていません。
 
@@ -588,6 +587,9 @@ comment $Id$
       o kb
         バックスペースキーを押下したときのシーケンス
         デフォルトでは、`^H'
+      o ut
+        BCE を有効にするかどうかを指定します。
+        デフォルトでは、無効
 
   o 引数オプション
     (X) のついているオプションは、mlclient からは指定できません。

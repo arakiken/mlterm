@@ -1064,6 +1064,12 @@ font_found:
 	{
 		if( xfont->max_bounds.width != xfont->min_bounds.width)
 		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG
+				" max font width(%d) and min one(%d) are mismatched.\n" ,
+				xfont->max_bounds.width , xfont->min_bounds.width) ;
+		#endif
+		
 			font->is_proportional = 1 ;
 		}
 		else
@@ -1153,6 +1159,12 @@ font_found:
 		{
 			if( font->width != col_width * font->cols)
 			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" font width(%d) is not matched with standard width(%d).\n" ,
+					font->width , col_width * font->cols) ;
+			#endif
+
 				font->is_proportional = 1 ;
 				
 				if( font->width < col_width * font->cols)
@@ -1172,6 +1184,10 @@ font_found:
 	 
 	if( font->width == 0)
 	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " font width is 0.\n") ;
+	#endif
+
 		font->is_proportional = 1 ;
 		
 		/* XXX this may be inaccurate. */

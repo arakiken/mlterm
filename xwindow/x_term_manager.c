@@ -23,6 +23,7 @@
 #include  <kiklib/kik_locale.h>	/* kik_get_codeset */
 #include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
 #include  <kiklib/kik_sig_child.h>
+#include  <ml_term_factory.h>
 
 #include  "version.h"
 #include  "x_xim.h"
@@ -154,7 +155,6 @@ open_term(
 	mkf_charset_t  usascii_font_cs ;
 	int  usascii_font_cs_changable ;
 	x_termcap_entry_t *  termcap ;
-
 	ml_term_t *  term ;
 	char *  env[4] ;
 	char **  env_p ;
@@ -187,22 +187,15 @@ open_term(
 	term = NULL ;
 
 	termcap = x_termcap_get_entry( &term_man->termcap , term_man->conf.term_type) ;
-	
-	if( term_man->num_of_stray_terms)
+
+	if( ( term = ml_attach_term( term_man->conf.cols , term_man->conf.rows ,
+			term_man->conf.tab_size , term_man->conf.num_of_log_lines ,
+			term_man->conf.encoding , term_man->conf.not_use_unicode_font ,
+			term_man->conf.only_use_unicode_font , term_man->conf.col_size_a ,
+			term_man->conf.use_char_combining , term_man->conf.use_multi_col_char ,
+			x_termcap_get_bool_field( termcap , ML_BCE))) == NULL)
 	{
-		term = term_man->stray_terms[-- term_man->num_of_stray_terms] ;
-	}
-	else
-	{
-		if( ( term = ml_term_new( term_man->conf.cols , term_man->conf.rows ,
-				term_man->conf.tab_size , term_man->conf.num_of_log_lines ,
-				term_man->conf.encoding , term_man->conf.not_use_unicode_font ,
-				term_man->conf.only_use_unicode_font , term_man->conf.col_size_a ,
-				term_man->conf.use_char_combining , term_man->conf.use_multi_col_char ,
-				x_termcap_get_bool_field( termcap , ML_BCE))) == NULL)
-		{
-			goto  error ;
-		}
+		goto  error ;
 	}
 	
 	if( ( disp = open_display( term_man)) == NULL)
@@ -483,22 +476,22 @@ close_dead_terms(
 {
 	int  count ;
 	
-	for( count = 0 ; count < term_man->max_terms ; count ++)
+	for( count = term_man->max_terms - 1 ; count >= 0 ; count --)
 	{
 		if( term_man->dead_mask & (0x1 << count))
 		{
-			close_term( &term_man->terms[count]) ;
-			
 			if( -- term_man->num_of_terms == 0 && ! term_man->is_genuine_daemon)
 			{
 				if( un_file)
 				{
 					unlink( un_file) ;
 				}
-			
+				
 				exit( 0) ;
 			}
 
+			close_term( &term_man->terms[count]) ;
+			
 			if( term_man->terms[count].display->win_man.num_of_roots == 0)
 			{
 				close_display( term_man , term_man->terms[count].display) ;
@@ -588,19 +581,7 @@ close_pty(
 		#else
 			term_man->dead_mask |= (1 << count) ;
 			
-			if( ( p = realloc( term_man->stray_terms ,
-					sizeof( ml_term_t *) * (term_man->num_of_stray_terms + 1))))
-			{
-				term_man->stray_terms = p ;
-				
-				term_man->stray_terms[term_man->num_of_stray_terms ++] =
-					term_man->terms[count].term ;
-			}
-			else
-			{
-				ml_term_delete( term_man->terms[count].term) ;
-			}
-
+			ml_detach_term( term_man->terms[count].term) ;
 			term_man->terms[count].term = NULL ;
 		#endif
 		
@@ -1637,9 +1618,12 @@ receive_next_event(
 	int  maxfd ;
 	int  ret ;
 	fd_set  read_fds ;
-
 	struct timeval  tval ;
+	ml_term_t **  detached_terms ;
+	u_int  num_of_detached ;
 
+	num_of_detached = ml_get_detached_terms( &detached_terms) ;
+	
 	/*
 	 * flush buffer
 	 */
@@ -1687,9 +1671,9 @@ receive_next_event(
 			}
 		}
 		
-		for( count = 0 ; count < term_man->num_of_stray_terms ; count ++)
+		for( count = 0 ; count < num_of_detached ; count ++)
 		{
-			ptyfd = ml_term_get_pty_fd( term_man->stray_terms[count]) ;
+			ptyfd = ml_term_get_pty_fd( detached_terms[count]) ;
 			FD_SET( ptyfd , &read_fds) ;
 
 			if( ptyfd > maxfd)
@@ -1734,11 +1718,11 @@ receive_next_event(
 		}
 	}
 
-	for( count = 0 ; count < term_man->num_of_stray_terms ; count ++)
+	for( count = 0 ; count < num_of_detached ; count ++)
 	{
-		if( FD_ISSET( ml_term_get_pty_fd( term_man->stray_terms[count]) , &read_fds))
+		if( FD_ISSET( ml_term_get_pty_fd( detached_terms[count]) , &read_fds))
 		{
-			ml_term_parse_vt100_sequence( term_man->stray_terms[count]) ;
+			ml_term_parse_vt100_sequence( detached_terms[count]) ;
 		}
 	}
 	
@@ -1746,6 +1730,19 @@ receive_next_event(
 	{
 		if( FD_ISSET( x_display_fd( term_man->displays[count]) , &read_fds))
 		{
+		#if  0
+			char *  env ;
+			char *  disp ;
+
+			disp = DisplayString( term_man->displays[count]->display) ;
+
+			if( ( env = alloca( 9 + strlen( disp))))
+			{
+				sprintf( env , "DISPLAY=%s" , disp) ;
+				putenv( env) ;
+			}
+		#endif
+			
 			x_window_manager_receive_next_event( &term_man->displays[count]->win_man) ;
 		}
 	}
@@ -1884,7 +1881,7 @@ x_term_manager_init(
 	
 		return  0 ;
 	}
-	
+
 	font_rcfile = "mlterm/font" ;
 	
 	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
@@ -2027,7 +2024,7 @@ x_term_manager_init(
 		free( rcpath) ;
 	}
 #endif
-		
+	
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -2163,6 +2160,21 @@ x_term_manager_init(
 
 	kik_conf_delete( conf) ;
 
+	if( *term_man->conf.disp_name)
+	{
+		/*
+		 * setting DISPLAY environment variable to match "--display" option.
+		 */
+		
+		char *  env ;
+
+		if( ( env = alloca( strlen( term_man->conf.disp_name) + 9)))
+		{
+			sprintf( env , "DISPLAY=%s" , term_man->conf.disp_name) ;
+			putenv( env) ;
+		}
+	}
+
 	term_man->displays = NULL ;
 	term_man->num_of_displays = 0 ;
 	
@@ -2177,9 +2189,6 @@ x_term_manager_init(
 
 	term_man->num_of_terms = 0 ;
 	term_man->dead_mask = 0 ;
-
-	term_man->stray_terms = NULL ;
-	term_man->num_of_stray_terms = 0 ;
 
 	term_man->system_listener.self = term_man ;
 	term_man->system_listener.exit = __exit ;

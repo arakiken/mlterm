@@ -103,9 +103,6 @@ typedef struct  x_term_manager
 	
 	/* 32 is the very max of terminals */
 	u_int32_t  dead_mask ;
-	
-	ml_term_t **  stray_terms ;
-	u_int  num_of_stray_terms ;
 
 	x_system_event_listener_t  system_listener ;
 

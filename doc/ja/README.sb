@@ -7,17 +7,17 @@ mltermでは、オリジナルのスクロールバーを比較的簡単に実装するためのフレームワーク
 以下では、その実装方法について説明します。
 
 * 実装方法の概略
-  1. ml_sb_view_t の各イベントごとの描画処理を実装。
+  1. x_sb_view_t の各イベントごとの描画処理を実装。
   2. コンパイル、共有ライブラリの作成
   3. 所定のディレクトリに、ライブラリを配置
 
 * 必要な環境
   dl*/sh*()関数が使用可能であること。
 
-* ml_sb_view_t
+* x_sb_view_t
   現在定義されているイベント
 
-  o void (*get_geometry_hints)( struct  ml_sb_view * , unsigned int *  width , 
+  o void (*get_geometry_hints)( struct  x_sb_view * , unsigned int *  width , 
         unsigned int *  top_margin , unsigned int *  bottom_margin ,
         int *  up_button_y , unsigned int *  up_button_height ,
         int *  down_button_y , unsigned int *  down_button_height) ;
@@ -25,44 +25,44 @@ mltermでは、オリジナルのスクロールバーを比較的簡単に実装するためのフレームワーク
     スクロールバーの幅、および、垂直方向のマージン、そして、上下スクロールボタンの位置を渡します。
     (必須)
 
-  o void (*get_default_color)( struct ml_sb_view * , char **  fg_color , char **  bg_color) ;
+  o void (*get_default_color)( struct x_sb_view * , char **  fg_color , char **  bg_color) ;
     デフォルトの前景背景色を渡すイベント
     前景背景色に使える名前は、{fg|bg}_color 設定で使えるものと同じです。
     文字列は、呼び出し側では解放しませんので、内部で処理して下さい。
     (推奨)
     
-  o void (*realized)( struct  ml_sb_view *  , Display * , int , Window , GC , unsigned int  win_height) ;
+  o void (*realized)( struct  x_sb_view *  , Display * , int , Window , GC , unsigned int  win_height) ;
     スクロールバーが、画面にMAPされる直前で呼ばれるイベント
     スクロールバーオブジェクトの内部状態の初期化します。
-    受け取ったDisplay,screen,Window,GCを、ml_sb_view_t の各メンバに設定するのを
+    受け取ったDisplay,screen,Window,GCを、x_sb_view_t の各メンバに設定するのを
     忘れないで下さい。
     (必須)
     
-  o void (*resized)( struct  ml_sb_view * , Window , unsigned int  height) ;
+  o void (*resized)( struct  x_sb_view * , Window , unsigned int  height) ;
     スクロールバーの高さが変更された場合に呼ばれるイベント
     スクロールバーオブジェクト内部の状態を再設定します。
-    受け取った Window を、ml_sb_view_t のメンバに設定するのを忘れないで下さい。
+    受け取った Window を、x_sb_view_t のメンバに設定するのを忘れないで下さい。
     (必須)
     
-  o void (*delete)( struct  ml_sb_view *) ;
+  o void (*delete)( struct  x_sb_view *) ;
     スクロールバーオブジェクトの破壊イベント
     不要になったデータを解放して下さい。
     (必須)
 
-  o void (*draw_decoration)( struct  ml_sb_view *) ;
+  o void (*draw_decoration)( struct  x_sb_view *) ;
     スクロールバーの周りの装飾を描画するイベント
     (推奨)
     
-  o void (*draw_scrollbar)( struct  ml_sb_view * , int  bar_top_y , unsigned int  bar_height) ;
+  o void (*draw_scrollbar)( struct  x_sb_view * , int  bar_top_y , unsigned int  bar_height) ;
     スクロールバーの描画イベント
     bar_top_y 位置(top_margin として渡した値は含まれます)から、 bar_height 分の
     高さのバーを描画します。
     (必須)
 
-  o void (*up_button_pressed)( struct  ml_sb_view *) ;
-  o void (*down_button_pressed)( struct  ml_sb_view *) ;
-  o void (*up_button_released)( struct  ml_sb_view *) ;
-  o void (*down_button_released)( struct  ml_sb_view *) ;
+  o void (*up_button_pressed)( struct  x_sb_view *) ;
+  o void (*down_button_pressed)( struct  x_sb_view *) ;
+  o void (*up_button_released)( struct  x_sb_view *) ;
+  o void (*down_button_released)( struct  x_sb_view *) ;
     get_geometry_hints()で申請した、上スクロールボタン、下スクロールボタンが押された場合に
     呼ばれるイベント。
     (推奨)
@@ -70,8 +70,8 @@ mltermでは、オリジナルのスクロールバーを比較的簡単に実装するためのフレームワーク
 * 実装、コンパイル
   コンストラクタは、必ず、
 
-  ml_sb_view_t *  ml_[yourbar]_sb_view_new(void) ;  /* 通常版 */
-  ml_sb_view_t *  ml_[yourbar]_transparent_sb_view_new(void) ;  /* 透過処理対応版 */
+  x_sb_view_t *  x_[yourbar]_sb_view_new(void) ;  /* 通常版 */
+  x_sb_view_t *  x_[yourbar]_transparent_sb_view_new(void) ;  /* 透過処理対応版 */
 
   としてください。
 
@@ -82,11 +82,11 @@ mltermでは、オリジナルのスクロールバーを比較的簡単に実装するためのフレームワーク
   されることになりますので、独自のデータ構造をstaticにもっている場合には、それらの
   扱いには十分注意して下さい。
 
-  ml_sb_view_t を拡張し、
+  x_sb_view_t を拡張し、
 
-  ml_your_sb_view_t 
+  x_your_sb_view_t 
   {
-	ml_sb_view_t ;
+	x_sb_view_t ;
 	your own data ;
   } ;
 
@@ -98,7 +98,7 @@ mltermでは、オリジナルのスクロールバーを比較的簡単に実装するためのフレームワーク
 
   としてください。
 
-  また、プリプロセッサが、ml_sb_view.h を見つけられるよう、ml_sb_view.hのあるパス
+  また、プリプロセッサが、x_sb_view.h を見つけられるよう、x_sb_view.hのあるパス
   を-Iオプションに加えるようにして下さい。
 
 * 登録作業
@@ -113,4 +113,4 @@ mltermでは、オリジナルのスクロールバーを比較的簡単に実装するためのフレームワーク
   込み)が使われます。
 
 * 補足
-  細かい手順などについては、src/ml_simple_sb_view.[ch],contrib/scrollbar/sampleを参照下さい。
+  細かい手順などについては、src/x_simple_sb_view.[ch],contrib/scrollbar/sampleを参照下さい。

@@ -1,5 +1,9 @@
 2002-05-19 Araki Ken <arakiken@users.sf.net>
 
+	* display name specified by --display overwrites DISPLAY environment variable.
+
+2002-05-19 Araki Ken <arakiken@users.sf.net>
+
 	* combining characters were not shown with both -bi and -m options. fixed.
 
 2002-05-19 Araki Ken <arakiken@users.sf.net>

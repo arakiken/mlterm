@@ -63,6 +63,10 @@
 #define  __DEBUG
 #endif
 
+#if  0
+#define  PERF_DEBUG
+#endif
+
 
 /* --- static functions --- */
 
@@ -201,6 +205,10 @@ xft_draw_str(
 	ml_color_t  next_bg_color ;
 	int  next_is_underlined ;
 	
+#ifdef  PERF_DEBUG
+	int  draw_count = 0 ;
+#endif
+
 	if( x > screen->window.width || y + height > screen->window.height)
 	{
 	#ifdef  DEBUG
@@ -372,6 +380,10 @@ xft_draw_str(
 			 * status is changed.
 			 */
 
+		#ifdef  PERF_DEBUG
+			draw_count ++ ;
+		#endif
+
 			if( height == xfont->height)
 			{
 				height_to_baseline = xfont->height_to_baseline ;
@@ -466,6 +478,10 @@ xft_draw_str(
 	{
 		*updated_width = current_width ;
 	}
+
+#ifdef  PERF_DEBUG
+	kik_debug_printf( " drawing %d times in a line.\n" , draw_count) ;
+#endif
 
 	return	1 ;
 }
@@ -581,7 +597,11 @@ x_draw_str(
 	ml_color_t  next_fg_color ;
 	ml_color_t  next_bg_color ;
 	int  next_is_underlined ;
-	
+
+#ifdef  PERF_DEBUG
+	int  draw_count = 0 ;
+#endif
+
 	if( x > screen->window.width || y + height > screen->window.height)
 	{
 	#ifdef  DEBUG
@@ -759,6 +779,10 @@ x_draw_str(
 			 * status is changed.
 			 */
 
+		#ifdef  PERF_DEBUG
+			draw_count ++ ;
+		#endif
+
 			if( xfont->height == height)
 			{
 				height_to_baseline = xfont->height_to_baseline ;
@@ -880,6 +904,10 @@ x_draw_str(
 	{
 		*updated_width = current_width ;
 	}
+
+#ifdef  PERF_DEBUG
+	kik_debug_printf( " drawing %d times in a line.\n" , draw_count) ;
+#endif
 
 	return	1 ;
 }

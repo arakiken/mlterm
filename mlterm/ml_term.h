@@ -135,11 +135,11 @@ int  ml_term_get_line_region( ml_term_t *  term , int *  beg_row ,
 int  ml_term_get_word_region( ml_term_t *  term , int *  beg_char_index ,
 	int *  beg_row , int *  end_char_index , int *  end_row , int  base_char_index , int  base_row) ;
 
-int  ml_term_set_multi_col_char_flag( ml_term_t *  term , int  flag) ;
+int  ml_term_set_char_combining_flag( ml_term_t *  term , int  flag) ;
 
 int  ml_term_is_using_char_combining( ml_term_t *  term) ;
 
-int  ml_term_set_char_combining_flag( ml_term_t *  term , int  flag) ;
+int  ml_term_set_multi_col_char_flag( ml_term_t *  term , int  flag) ;
 
 int  ml_term_is_using_multi_col_char( ml_term_t *  term) ;
 

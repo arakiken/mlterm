@@ -50,7 +50,7 @@ close_xim(
 	{
 		(*xim->parser->delete)( xim->parser) ;
 	}
-		
+	
 	free( xim->name) ;
 	free( xim->locale) ;
 
