@@ -27,6 +27,15 @@ supported platforms (mlterm-2.9.1 pre/cvs-1.778)
                        --with-imagelib=gdk-pixbuf
                        --enable-utmp
 
+  Mac OS X 10.1 Server (PowerPC G4), Apple's cc based on gcc 2.95.2, GTK+-1.2.10
+    configure options: --with-type-engines=xcore
+                       --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
+                       --with-scrollbars=sample,extra
+                       --with-imagelib=imlib
+    $ chmod 755 script/* {mkf,kiklib}/script/*
+    $ MISSING=`pwd`/script/missing install_sh=`pwd`/script/install-sh \
+      ./configure <OPTIONS> ..
+
 
 supported platforms (mlterm-2.9.0 post/cvs-1.758)
 

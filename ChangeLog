@@ -1,3 +1,7 @@
+2004-11-18 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* doc/en/PLATFORM: updated supported platforms.
+
 2004-11-18 MINAMI Hirokazu <minami@mistfall.net>
 
 	* configure.in, mkf/configure.in: added AC_C_INLINE.
