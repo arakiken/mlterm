@@ -1,3 +1,8 @@
+2002-11-11 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Updated config.guess and config.sub.(timestamp='2002-11-08')
+	  (Thanks to Kubota Tomohiro san)
+
 2002-11-08  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* Rewrited XDND processiong code.
