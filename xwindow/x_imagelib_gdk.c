@@ -53,7 +53,8 @@ static int modify_lbound = 0 ;
 
 /* --- static functions --- */
 
-static int create_cardinals(
+static int
+create_cardinals(
 	u_int32_t **  cardinal,
 	int  width,
 	int  height,
@@ -121,7 +122,7 @@ closest_color_index(
 	int  closest = 0 ;
 	unsigned long  min = 0xffffff ;
 	unsigned long  diff ;
-	unsigned long  diff_r, diff_g, diff_b ;
+	int  diff_r, diff_g, diff_b ;
 
 	if( red   < 0)
 		red   = 0 ;
@@ -1387,6 +1388,7 @@ modify_pixmap(
 	}
 	XFree(vinfolist) ;
 	XDestroyImage( image) ;
+
 	return 1 ;
 }
 
@@ -1703,7 +1705,7 @@ int x_imagelib_load_file(
 	    ( height != gdk_pixbuf_get_height( pixbuf)))
 	{
 		GdkPixbuf * scaled;
-/* use one of _NEAREST, _TILES, _BILINEAR, _HYPER (speed<->quality) */
+
 		if( misc.width == width && misc.height == height && misc.scaled)
 		{
 #ifdef DEBUG
@@ -1728,23 +1730,25 @@ int x_imagelib_load_file(
 			}
 		}
 		if( scaled)
-		{
 			pixbuf = scaled ;
-		}
 	}
 
 	if ( cardinal)
 		create_cardinals( cardinal, width, height, pixbuf) ;
 
-/* Create the Icon pixmap&mask for WMHints. None as result is acceptable.*/
-/* Pixmaps cannot be cached since the last returned pixmap may be freed already */
+/* Create the Icon pixmap & mask to be used in WMHints.
+ * Note that none as a result is acceptable.
+ * Pixmaps can't be cached since the last pixmap may be freed by someone... */
 	if( pixmap)
 	{
-		*pixmap = XCreatePixmap( display, DefaultRootWindow( display), width, height,
+		*pixmap = XCreatePixmap( display, DefaultRootWindow( display),
+					 width, height,
 					 DefaultDepth( display, DefaultScreen( display))) ;
 		if( mask)
 		{
-			*mask = XCreatePixmap( display, DefaultRootWindow( display), width, height, 1) ;
+			*mask = XCreatePixmap( display,
+					       DefaultRootWindow( display),
+					       width, height, 1) ;
 			if( pixbuf_to_pixmap_and_mask( display,
 						       DefaultScreen( display),
 						       pixbuf, *pixmap, *mask))
