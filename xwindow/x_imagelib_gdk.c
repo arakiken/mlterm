@@ -1479,40 +1479,52 @@ x_imagelib_load_file_for_background(
 {
 	static x_picture_modifier_t *  cached_mod = NULL ;
 	static GdkPixbuf *  cached_pixbuf = NULL ;
+	static char *  cached_pixbuf_file_path = NULL ;
 
 	GdkPixbuf *  pixbuf ;
 	Pixmap pixmap ;
 
 	if(!file_path)
 		return  None ;
-	if( !( pixbuf = load_file( file_path,
-				   ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
-				   GDK_INTERP_TILES)))
-	{
-		return  None ;
-	}
 
 	if( cached_pixbuf
 	    && (is_picmod_eq( pic_mod, cached_mod))
 	    && ACTUAL_WIDTH(win) == gdk_pixbuf_get_width( cached_pixbuf)
-	    && ACTUAL_HEIGHT(win) == gdk_pixbuf_get_height( cached_pixbuf))
+	    && ACTUAL_HEIGHT(win) == gdk_pixbuf_get_height( cached_pixbuf)
+	    && (strcmp( file_path, cached_pixbuf_file_path) == 0) )
 	{
 		/* use pixbuf in the cache */
 		pixbuf = cached_pixbuf ;
-		gdk_pixbuf_ref( pixbuf) ;
 	}
 	else
 	{
 		/* re-generate cache */
+		if( !( pixbuf = load_file( file_path,
+					   ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
+					   GDK_INTERP_TILES)))
+		{
+			return  None ;
+		}
+
 		if( cached_pixbuf)
 			gdk_pixbuf_unref( cached_pixbuf) ;
 		if( cached_mod)
-		{
 			free(cached_mod) ;
+		if( cached_pixbuf_file_path)
+                        free(cached_pixbuf_file_path) ;
+		cached_pixbuf_file_path = strdup( file_path) ;
+
+		if( is_picmod_eq( pic_mod, NULL) )
+		{
+			cached_pixbuf = pixbuf ;
 		}
-		cached_pixbuf = gdk_pixbuf_copy(pixbuf) ;
-		if( !is_picmod_eq( pic_mod, NULL) )
-		    modify_image( cached_pixbuf, pic_mod) ;
+		else
+		{
+			cached_pixbuf = gdk_pixbuf_copy(pixbuf) ;
+			gdk_pixbuf_unref( pixbuf) ;
+			modify_image( cached_pixbuf, pic_mod) ;
+		}
+
 		if( pic_mod)
 		{
 			cached_mod = malloc(sizeof(x_picture_modifier_t)) ;		
@@ -1523,7 +1535,7 @@ x_imagelib_load_file_for_background(
 			cached_mod = NULL ;
 		}
 
-		gdk_pixbuf_unref( pixbuf) ;
+		pixbuf = cached_pixbuf ;
 	}
 
 	if( gdk_pixbuf_get_has_alpha ( pixbuf) )

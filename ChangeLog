@@ -1,3 +1,8 @@
+2003-03-20  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
+
+	* fixed a pixmap cache corruption bug with gdk-pixbuf
+	 (Thanks to Kato san and Kubota san)
+
 2003-03-19 Tomohiro KUBOTA <kubota@debian.org>
 
 	* mlconfig to have "save&exit", "apply&exit", "apply", and "cancel"
