@@ -314,7 +314,9 @@ int init_data(config_data_t *data){
 	entry_color_add(section, "Background color", "bg_color");
 	entry_numeric_add(section, "Fade ratio", "fade_ratio", 0, 100, "%");
 	entry_string_add(section, "Wall picture", "wall_picture");
-	entry_numeric_add(section, "Wall picture brightness", "brightness", 0, -1, "%");
+	entry_numeric_add(section, "Brightness", "brightness", 0, -1, "%");
+	entry_numeric_add(section, "Contrast", "contrast", 0, -1, "%");
+	entry_numeric_add(section, "Gammma", "gamma", 0, -1, "%");
 	entry_bool_add(section, "Transparent background", "use_transbg");
 
 	section = section_add(data, "Scrollbar");

@@ -1,3 +1,7 @@
+2002-07-08  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* gamma/contrast are now supported.
+
 2002-06-24  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* code cleanup & bugfix (wall paper support was broken).
