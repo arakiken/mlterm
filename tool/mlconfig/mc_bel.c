@@ -14,7 +14,7 @@
 
 /* --- static variables --- */
 
-static ml_bel_mode_t  new_bel_mode ;
+static x_bel_mode_t  new_bel_mode ;
 
 
 /* --- static functions --- */
@@ -66,7 +66,7 @@ button_sound_checked(
 
 GtkWidget *
 mc_bel_config_widget_new(
-	ml_bel_mode_t  bel_mode
+	x_bel_mode_t  bel_mode
 	)
 {
 	GtkWidget *  label ;
@@ -120,7 +120,7 @@ mc_bel_config_widget_new(
 	return  hbox ;
 }
 
-ml_bel_mode_t
+x_bel_mode_t
 mc_get_bel_mode(void)
 {
 	return  new_bel_mode ;

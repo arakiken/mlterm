@@ -148,7 +148,7 @@ kik_str_tabify(
 	size_t  space_num ;
 	int  dst_pos ;
 	int  src_pos ;
-	int  counter ;
+	int  count ;
 
 	if( tab_len == 0)
 	{
@@ -192,7 +192,7 @@ kik_str_tabify(
 		{
 			if( space_num > 0)
 			{
-				for( counter = 0 ; counter < space_num ; counter ++)
+				for( count = 0 ; count < space_num ; count ++)
 				{
 					dst[dst_pos++] = ' ' ;
 
@@ -239,7 +239,7 @@ kik_str_tabify(
 
 	if( space_num > 0)
 	{
-		for( counter = 0 ; counter < space_num ; counter ++)
+		for( count = 0 ; count < space_num ; count ++)
 		{
 			dst[dst_pos++] = ' ' ;
 

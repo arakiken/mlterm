@@ -5,7 +5,7 @@
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  <X11/cursorfont.h>
-#include  <ml_sb_view.h>
+#include  <x_sb_view.h>
 
 #include  "exsb_common.h"
 #include  "next_data.h"
@@ -22,7 +22,7 @@
 
 typedef struct  next_sb_view
 {
-	ml_sb_view_t  view ;
+	x_sb_view_t  view ;
 
 	GC  gc ;
 
@@ -45,7 +45,7 @@ typedef struct  next_sb_view
 
 static Pixmap
 get_icon_pixmap(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	GC  gc ,
 	char **  data ,
 	unsigned int  width ,
@@ -132,7 +132,7 @@ get_icon_pixmap(
 
 static void
 get_geometry_hints(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	unsigned int *  width ,
 	unsigned int *  top_margin ,
 	unsigned int *  bottom_margin ,
@@ -153,7 +153,7 @@ get_geometry_hints(
 
 static void
 get_default_color(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	char **  fg_color ,
 	char **  bg_color
 	)
@@ -164,7 +164,7 @@ get_default_color(
 
 static Pixmap
 create_bg(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int width ,
 	int height
 	)
@@ -217,7 +217,7 @@ create_bg(
 
 static void
 realized(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	Display *  display ,
 	int  screen ,
 	Window  window ,
@@ -278,7 +278,7 @@ realized(
 
 static void
 resized(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	Window  window ,
 	unsigned int  height
 	)
@@ -297,7 +297,7 @@ resized(
 
 static void
 delete(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	next_sb_view_t *  next_sb ;
@@ -321,7 +321,7 @@ delete(
 
 static void
 draw_arrow_up_icon(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  is_pressed
 	)
 {
@@ -394,7 +394,7 @@ draw_arrow_up_icon(
 
 static void
 draw_arrow_down_icon(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  is_pressed
 	)
 {
@@ -478,7 +478,7 @@ draw_arrow_down_icon(
 
 static void
 draw_decoration(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_up_icon( view , 0) ;
@@ -487,7 +487,7 @@ draw_decoration(
 
 static void
 draw_scrollbar(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  bar_top_y ,
 	unsigned int  bar_height
 	)
@@ -636,7 +636,7 @@ draw_scrollbar(
 
 static void
 up_button_pressed(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_up_icon( view , 1) ;
@@ -644,7 +644,7 @@ up_button_pressed(
 
 static void
 down_button_pressed(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_down_icon( view , 1) ;
@@ -652,7 +652,7 @@ down_button_pressed(
 
 static void
 up_button_released(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_up_icon( view , 0) ;
@@ -660,7 +660,7 @@ up_button_released(
 
 static void
 down_button_released(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_down_icon( view , 0) ;
@@ -669,7 +669,7 @@ down_button_released(
 
 /* --- global functions --- */
 
-ml_sb_view_t *
+x_sb_view_t *
 ml_next_sb_view_new(void)
 {
 	next_sb_view_t *  next_sb ;
@@ -705,10 +705,10 @@ ml_next_sb_view_new(void)
 	next_sb->is_transparent = 0 ;
 	next_sb->has_scrollbuf = 0 ;
 
-	return  (ml_sb_view_t*) next_sb ;
+	return  (x_sb_view_t*) next_sb ;
 }
 
-ml_sb_view_t *
+x_sb_view_t *
 ml_next_transparent_sb_view_new(void)
 {
 	next_sb_view_t *  next_sb ;
@@ -744,5 +744,5 @@ ml_next_transparent_sb_view_new(void)
 	next_sb->is_transparent = 1 ;
 	next_sb->has_scrollbuf = 0 ;
 
-	return  (ml_sb_view_t*) next_sb ;
+	return  (x_sb_view_t*) next_sb ;
 }

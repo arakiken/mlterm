@@ -14,7 +14,7 @@
 
 /* --- static variables --- */
 
-static ml_font_present_t  new_font_present ;
+static x_font_present_t  new_font_present ;
 
 
 /* --- static functions --- */
@@ -60,7 +60,7 @@ button_aa_checked(
 
 GtkWidget *
 mc_font_present_config_widget_new(
-	ml_font_present_t  font_present
+	x_font_present_t  font_present
 	)
 {
 	GtkWidget *  hbox ;
@@ -94,7 +94,7 @@ mc_font_present_config_widget_new(
 	return  hbox ;
 }
 
-ml_font_present_t
+x_font_present_t
 mc_get_font_present(void)
 {
 	return  new_font_present ;

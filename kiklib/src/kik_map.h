@@ -88,13 +88,13 @@ typedef struct  __ ## name ## _map \
 #define  kik_map_get( result , map , __key , __pair_p) \
 { \
 	int  hash_key ; \
-	int  counter ; \
+	int  count ; \
 	\
 	__pair_p = NULL ; \
 	result = 0 ; \
 	\
 	hash_key = (*(map)->hash_func)( __key , (map)->map_size) ; \
-	for( counter = 0 ; counter < (map)->map_size ; counter ++) \
+	for( count = 0 ; count < (map)->map_size ; count ++) \
 	{ \
 		if( (map)->pairs[hash_key].is_filled && \
 			(*(map)->compare_func)( __key , (map)->pairs[hash_key].key)) \
@@ -125,14 +125,14 @@ typedef struct  __ ## name ## _map \
 #define  kik_map_set( result , map , __key , __value) \
 { \
 	int  hash_key ; \
-	int  counter ; \
+	int  count ; \
 	\
 	result = 0 ; \
 	\
 	while( 1) \
 	{ \
 		hash_key = (*(map)->hash_func)( __key , (map)->map_size) ; \
-		for( counter = 0 ; counter < (map)->map_size ; counter ++) \
+		for( count = 0 ; count < (map)->map_size ; count ++) \
 		{ \
 			if( ! (map)->pairs[hash_key].is_filled) \
 			{ \
@@ -179,11 +179,11 @@ typedef struct  __ ## name ## _map \
 			} \
 			\
 			array_index = 0 ; \
-			for( counter = 0 ; counter < (map)->map_size ; counter ++) \
+			for( count = 0 ; count < (map)->map_size ; count ++) \
 			{ \
-				if( (map)->pairs[counter].is_filled) \
+				if( (map)->pairs[count].is_filled) \
 				{ \
-					(map)->pairs_array[array_index++] = &(map)->pairs[counter] ; \
+					(map)->pairs_array[array_index++] = &(map)->pairs[count] ; \
 				} \
 			} \
 			\
@@ -195,26 +195,26 @@ typedef struct  __ ## name ## _map \
 #define  kik_map_erase( result , map , __key) \
 { \
 	int  hash_key ; \
-	int  counter ; \
+	int  count ; \
 	\
 	result = 0 ; \
 	\
 	hash_key = (*(map)->hash_func)( __key , (map)->map_size) ; \
-	for( counter = 0 ; counter < (map)->map_size ; counter ++) \
+	for( count = 0 ; count < (map)->map_size ; count ++) \
 	{ \
 		if( (map)->pairs[hash_key].is_filled && \
 			(*(map)->compare_func)( __key , (map)->pairs[hash_key].key)) \
 		{ \
-			int  counter2 ; \
+			int  count2 ; \
 			\
-			for( counter2 = 0 ; counter2 < (map)->filled_size ; counter2 ++) \
+			for( count2 = 0 ; count2 < (map)->filled_size ; count2 ++) \
 			{ \
-				if( (map)->pairs_array[counter2] == &(map)->pairs[hash_key]) \
+				if( (map)->pairs_array[count2] == &(map)->pairs[hash_key]) \
 				{ \
-					if( counter2 + 1 < (map)->filled_size) \
+					if( count2 + 1 < (map)->filled_size) \
 					{ \
 						/* moving the last element to the pos of the erased */ \
-						(map)->pairs_array[counter2] = \
+						(map)->pairs_array[count2] = \
 							(map)->pairs_array[(map)->filled_size - 1] ; \
 					} \
 					(map)->filled_size -- ; \
@@ -265,11 +265,11 @@ typedef struct  __ ## name ## _map \
 			} \
 			\
 			array_index = 0 ; \
-			for( counter = 0 ; counter < (map)->map_size ; counter ++) \
+			for( count = 0 ; count < (map)->map_size ; count ++) \
 			{ \
-				if( (map)->pairs[counter].is_filled) \
+				if( (map)->pairs[count].is_filled) \
 				{ \
-					(map)->pairs_array[array_index++] = &(map)->pairs[counter] ; \
+					(map)->pairs_array[array_index++] = &(map)->pairs[count] ; \
 				} \
 			} \
 			\

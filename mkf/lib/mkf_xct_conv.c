@@ -133,7 +133,7 @@ convert_to_xct_intern(
 	filled_size = 0 ;
 	while( mkf_parser_next_char( parser , &ch))
 	{
-		int  counter ;
+		int  count ;
 
 		remap_unsupported_charset( &ch) ;
 
@@ -185,9 +185,9 @@ convert_to_xct_intern(
 				}
 			}
 			
-			for( counter = 0 ; counter < ch.size ; counter++)
+			for( count = 0 ; count < ch.size ; count++)
 			{
-				*(dst ++) = ch.ch[counter] ;
+				*(dst ++) = ch.ch[count] ;
 			}
 
 			filled_size += ch.size ;
@@ -240,9 +240,9 @@ convert_to_xct_intern(
 				}
 			}
 			
-			for( counter = 0 ; counter < ch.size ; counter++)
+			for( count = 0 ; count < ch.size ; count++)
 			{
-				*(dst ++) = MAP_TO_GR(ch.ch[counter]) ;
+				*(dst ++) = MAP_TO_GR(ch.ch[count]) ;
 			}
 
 			filled_size += ch.size ;

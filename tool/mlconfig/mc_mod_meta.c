@@ -14,7 +14,7 @@
 
 /* --- static variables --- */
 
-static ml_mod_meta_mode_t  new_mod_meta_mode ;
+static x_mod_meta_mode_t  new_mod_meta_mode ;
 
 
 /* --- static functions --- */
@@ -66,7 +66,7 @@ button_8bit_checked(
 
 GtkWidget *
 mc_mod_meta_config_widget_new(
-	ml_mod_meta_mode_t  mod_meta_mode
+	x_mod_meta_mode_t  mod_meta_mode
 	)
 {
 	GtkWidget *  label ;
@@ -120,7 +120,7 @@ mc_mod_meta_config_widget_new(
 	return  hbox ;
 }
 
-ml_mod_meta_mode_t
+x_mod_meta_mode_t
 mc_get_mod_meta_mode(void)
 {
 	return  new_mod_meta_mode ;

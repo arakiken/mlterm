@@ -47,20 +47,20 @@ iscii_lang_selected(
 	gpointer  data
 	)
 {
-	int  counter ;
+	int  count ;
 	char *  text ;
 
 	text = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
-	for( counter = 0 ; counter < sizeof( iscii_langs) / sizeof( iscii_langs[0]) ; counter ++)
+	for( count = 0 ; count < sizeof( iscii_langs) / sizeof( iscii_langs[0]) ; count ++)
 	{
-		if( strcmp( text , iscii_langs[counter]) == 0)
+		if( strcmp( text , iscii_langs[count]) == 0)
 		{
 			break ;
 		}
 	}
 	
-	selected_iscii_lang = counter ;
+	selected_iscii_lang = count ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s iscii_lang is selected.\n" , selected_iscii_lang) ;

@@ -7,12 +7,12 @@
 
 
 #include  <gtk/gtk.h>
-#include  <ml_font.h>
+#include  <x_font.h>
 
 
-GtkWidget *  mc_font_present_config_widget_new( ml_font_present_t  font_present) ;
+GtkWidget *  mc_font_present_config_widget_new( x_font_present_t  font_present) ;
 
-ml_font_present_t  mc_get_font_present(void) ;
+x_font_present_t  mc_get_font_present(void) ;
 
 
 #endif

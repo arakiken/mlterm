@@ -55,20 +55,20 @@ static map_ucs4_to_func_table_t  map_ucs4_to_func_table[] =
 static map_func_t
 get_map_ucs4_to_func_for_current_locale(void)
 {
-	int  counter ;
+	int  count ;
 	char *  locale ;
 
 	locale = kik_get_locale() ;
 
-	for( counter = 0 ;
-		counter < sizeof( map_ucs4_to_func_table) / sizeof( map_ucs4_to_func_table[0]) ;
-		counter ++)
+	for( count = 0 ;
+		count < sizeof( map_ucs4_to_func_table) / sizeof( map_ucs4_to_func_table[0]) ;
+		count ++)
 	{
-		if( strncmp( map_ucs4_to_func_table[counter].locale , locale ,
-				K_MIN( strlen( map_ucs4_to_func_table[counter].locale) ,
+		if( strncmp( map_ucs4_to_func_table[count].locale , locale ,
+				K_MIN( strlen( map_ucs4_to_func_table[count].locale) ,
 					strlen( locale))) == 0)
 		{
-			return  map_ucs4_to_func_table[counter].func ;
+			return  map_ucs4_to_func_table[count].func ;
 		}
 	}
 

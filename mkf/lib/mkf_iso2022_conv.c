@@ -108,7 +108,7 @@ mkf_iso2022_illegal_char(
 	mkf_iso2022_conv_t *  iso2022_conv ;
 	size_t  filled_size ;
 	size_t  size ;
-	int  counter ;
+	int  count ;
 
 	iso2022_conv = (mkf_iso2022_conv_t*) conv ;
 
@@ -165,16 +165,16 @@ mkf_iso2022_illegal_char(
 
 	if( IS_CS94SB(ch->cs) || IS_CS94MB(ch->cs))
 	{
-		for( counter = 0 ; counter < ch->size ; counter++)
+		for( count = 0 ; count < ch->size ; count++)
 		{
-			*(dst ++) = ch->ch[counter] ;
+			*(dst ++) = ch->ch[count] ;
 		}
 	}
 	else if( IS_CS96SB(ch->cs) || IS_CS96MB(ch->cs))
 	{
-		for( counter = 0 ; counter < ch->size ; counter++)
+		for( count = 0 ; count < ch->size ; count++)
 		{
-			*(dst ++) = MAP_TO_GR(ch->ch[counter]) ;
+			*(dst ++) = MAP_TO_GR(ch->ch[count]) ;
 		}
 	}
 	else

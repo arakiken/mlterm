@@ -49,7 +49,7 @@ convert_to_iso2022cn(
 	mkf_iso2022_conv_t *  iso2022_conv ;
 	size_t  filled_size ;
 	mkf_char_t  ch ;
-	int  counter ;
+	int  count ;
 
 	iso2022_conv = (mkf_iso2022_conv_t*) conv ;
 
@@ -197,9 +197,9 @@ convert_to_iso2022cn(
 			continue ;
 		}
 		
-		for( counter = 0 ; counter < ch.size ; counter ++)
+		for( count = 0 ; count < ch.size ; count ++)
 		{
-			*(dst ++) = ch.ch[counter] ;
+			*(dst ++) = ch.ch[count] ;
 		}
 
 		filled_size += ch.size ;

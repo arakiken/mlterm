@@ -35,13 +35,13 @@ version(void)
 static void
 help(void)
 {
-	int  counter ;
+	int  count ;
 
 	printf( "Not available options.\n") ;
 
-	for( counter = 0 ; counter < sizeof( na_options) / sizeof( na_options[0]) ; counter ++)
+	for( count = 0 ; count < sizeof( na_options) / sizeof( na_options[0]) ; count ++)
 	{
-		printf( " %s\n" , na_options[counter]) ;
+		printf( " %s\n" , na_options[count]) ;
 	}
 }
 
@@ -57,11 +57,11 @@ main(
 	char *  p ;
 	int  sock_fd ;
 	struct sockaddr_un  servaddr ;
-	int  counter ;
+	int  count ;
 
-	for( counter = 0 ; counter < argc ; counter ++)
+	for( count = 0 ; count < argc ; count ++)
 	{
-		if( ( p = strrchr( argv[counter] , '-')) != NULL)
+		if( ( p = strrchr( argv[count] , '-')) != NULL)
 		{
 			p ++ ;
 			
@@ -94,12 +94,12 @@ main(
 		return  1 ;
 	}
 
-	counter = 0 ;
+	count = 0 ;
 	while( 1)
 	{
-		write( sock_fd , argv[counter] , strlen( argv[counter])) ;
+		write( sock_fd , argv[count] , strlen( argv[count])) ;
 
-		if( ++ counter < argc)
+		if( ++ count < argc)
 		{
 			write( sock_fd , " " , 1) ;
 		}

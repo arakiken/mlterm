@@ -5,7 +5,7 @@
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  <X11/cursorfont.h>
-#include  <ml_sb_view.h>
+#include  <x_sb_view.h>
 
 #include  "motif_data.h"
 
@@ -15,7 +15,7 @@
 
 typedef struct  motif_sb_view
 {
-	ml_sb_view_t  view ;
+	x_sb_view_t  view ;
 
 	GC  gc ;
 
@@ -32,7 +32,7 @@ typedef struct  motif_sb_view
 
 static void
 get_geometry_hints(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	unsigned int *  width ,
 	unsigned int *  top_margin ,
 	unsigned int *  bottom_margin ,
@@ -53,7 +53,7 @@ get_geometry_hints(
 
 static void
 get_default_color(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	char **  fg_color ,
 	char **  bg_color
 	)
@@ -64,7 +64,7 @@ get_default_color(
 
 static void
 realized(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	Display *  display ,
 	int  screen ,
 	Window  window ,
@@ -96,7 +96,7 @@ realized(
 
 static void
 resized(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	Window  window ,
 	unsigned int  height
 	)
@@ -111,7 +111,7 @@ resized(
 
 static void
 delete(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	motif_sb_view_t *  motif_sb ;
@@ -127,7 +127,7 @@ delete(
 
 static void
 draw_button(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	char **  data ,
 	unsigned int offset_y
 	)
@@ -208,7 +208,7 @@ draw_button(
 
 static void
 draw_arrow_up_icon(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  is_pressed
 	)
 {
@@ -258,7 +258,7 @@ draw_arrow_up_icon(
 
 static void
 draw_arrow_down_icon(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  is_pressed
 	)
 {
@@ -329,7 +329,7 @@ adjust_rgb(
 
 static void
 update_color(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	motif_sb_view_t *  motif_sb ;
@@ -424,7 +424,7 @@ update_color(
 
 static void
 draw_decoration(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	update_color( view) ;
@@ -434,7 +434,7 @@ draw_decoration(
 
 static void
 draw_scrollbar(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  bar_top_y ,
 	unsigned int  bar_height
 	)
@@ -508,7 +508,7 @@ draw_scrollbar(
 
 static void
 up_button_pressed(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_up_icon( view , 1) ;
@@ -516,7 +516,7 @@ up_button_pressed(
 
 static void
 down_button_pressed(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_down_icon( view , 1) ;
@@ -524,7 +524,7 @@ down_button_pressed(
 
 static void
 up_button_released(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_up_icon( view , 0) ;
@@ -532,7 +532,7 @@ up_button_released(
 
 static void
 down_button_released(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_down_icon( view , 0) ;
@@ -541,7 +541,7 @@ down_button_released(
 
 /* --- global functions --- */
 
-ml_sb_view_t *
+x_sb_view_t *
 ml_motif_sb_view_new(void)
 {
 	motif_sb_view_t *  motif_sb ;
@@ -569,10 +569,10 @@ ml_motif_sb_view_new(void)
 
 	motif_sb->is_transparent = 0 ;
 
-	return  (ml_sb_view_t*) motif_sb ;
+	return  (x_sb_view_t*) motif_sb ;
 }
 
-ml_sb_view_t *
+x_sb_view_t *
 ml_motif_transparent_sb_view_new(void)
 {
 	motif_sb_view_t *  motif_sb ;
@@ -600,5 +600,5 @@ ml_motif_transparent_sb_view_new(void)
 
 	motif_sb->is_transparent = 1 ;
 
-	return  (ml_sb_view_t*) motif_sb ;
+	return  (x_sb_view_t*) motif_sb ;
 }

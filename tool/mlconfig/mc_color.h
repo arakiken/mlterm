@@ -7,7 +7,7 @@
 
 
 #include  <gtk/gtk.h>
-#include  <ml_color.h>
+#include  <x_color.h>
 
 
 GtkWidget *  mc_fg_color_config_widget_new( char *  color) ;

@@ -1,0 +1,214 @@
+/*
+ *	$Id$
+ */
+
+#include  "x_keymap.h"
+
+#include  <string.h>		/* strchr/memcpy */
+#include  <X11/keysym.h>
+#include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_file.h>
+#include  <kiklib/kik_conf_io.h>
+
+
+typedef struct  key_func_table
+{
+	char *  name ;
+	x_key_func_t  func ;
+	
+} key_func_table_t ;
+
+
+/*
+ * !! Notice !!
+ * these are not distinguished.
+ */
+#define  ModMask  (Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask)
+
+
+/* --- static functions --- */
+
+static key_func_table_t  key_func_table[] =
+{
+	{ "XIM_OPEN" , XIM_OPEN , } ,
+	{ "XIM_CLOSE" , XIM_CLOSE , } ,
+	{ "NEW_PTY" , NEW_PTY , } ,
+	{ "PAGE_UP" , PAGE_UP , } ,
+	{ "PAGE_DOWN" , PAGE_DOWN , } ,
+	{ "SCROLL_UP" , SCROLL_UP , } ,
+	{ "SCROLL_DOWN" , SCROLL_DOWN , } ,
+	{ "INSERT_SELECTION" , INSERT_SELECTION , } ,
+	{ "EXIT_PROGRAM" , EXIT_PROGRAM , } ,
+} ;
+
+
+/* --- global functions --- */
+
+int
+x_keymap_init(
+	x_keymap_t *  keymap
+	)
+{
+	x_key_t  default_key_map[] =
+	{
+		/* XIM_OPEN */
+		{ XK_space , ShiftMask , 1 , } ,
+
+		/* XIM_CLOSE(not used) */
+		{ 0 , 0 , 0 , } ,
+
+		/* NEW PTY */
+		{ XK_F1 , ControlMask , 1 , } ,
+
+		/* PAGE_UP(compatible with kterm) */
+		{ XK_Prior , ShiftMask , 1 , } ,
+
+		/* PAGE_DOWN(compatible with kterm) */
+		{ XK_Next , ShiftMask , 1 , } ,
+
+		/* SCROLL_UP */
+		{ XK_Up , ShiftMask , 1 , } ,
+
+		/* SCROLL_DOWN */
+		{ XK_Down , ShiftMask , 1 , } ,
+
+		/* INSERT_SELECTION */
+		{ XK_Insert , ShiftMask , 1 , } ,
+
+		/* EXIT PROGRAM(only for debug) */
+		{ XK_F1 , ControlMask | ShiftMask , 1 , } ,
+	} ;
+
+	memcpy( &keymap->map , &default_key_map , sizeof( default_key_map)) ;
+
+	return  1 ;
+}
+
+int
+x_keymap_final(
+	x_keymap_t *  keymap
+	)
+{
+	return  1 ;
+}
+
+int
+x_keymap_read_conf(
+	x_keymap_t *  keymap ,
+	char *  filename
+	)
+{
+	kik_file_t *  from ;
+	char *  key ;
+	char *  value ;
+
+	if( ! ( from = kik_file_open( filename , "r")))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " %s couldn't be opened.\n" , filename) ;
+	#endif
+	
+		return  0 ;
+	}
+
+	while( kik_conf_io_read( from , &key , &value))
+	{
+		char *  p ;
+		u_int  state ;
+		int  count ;
+
+		state = 0 ;
+		
+		while( ( p = strchr( value , '+')) != NULL)
+		{
+			*(p ++) = '\0' ;
+
+			if( strcmp( value , "Control") == 0)
+			{
+				state |= ControlMask ;
+			}
+			else if( strcmp( value , "Shift") == 0)
+			{
+				state |= ShiftMask ;
+			}
+			else if( strcmp( value , "Mod") == 0)
+			{
+				state |= ModMask ;
+			}
+		#ifdef  DEBUG
+			else
+			{
+				kik_warn_printf( KIK_DEBUG_TAG " unrecognized mask(%s)\n" , value) ;
+			}
+		#endif
+
+			value = p ;
+		}
+		
+		for( count = 0 ; count < sizeof( key_func_table) / sizeof( key_func_table_t) ;
+			count ++)
+		{
+			if( strcmp( key , key_func_table[count].name) == 0)
+			{
+				if( strcmp( value , "UNUSED") == 0)
+				{
+					keymap->map[key_func_table[count].func].is_used = 0 ;
+				}
+				else
+				{
+					keymap->map[key_func_table[count].func].ksym =
+						XStringToKeysym( value) ;
+					keymap->map[key_func_table[count].func].is_used = 1 ;
+				}
+
+				keymap->map[key_func_table[count].func].state = state ;
+
+				break ;
+			}
+		}
+	}
+
+	kik_file_close( from) ;
+	
+	return  1 ;
+}
+
+int
+x_keymap_match(
+	x_keymap_t *  keymap ,
+	x_key_func_t  func ,
+	KeySym  ksym ,
+	u_int  state
+	)
+{
+	if( keymap->map[func].is_used == 0)
+	{
+		return  0 ;
+	}
+	
+	if( keymap->map[func].state != 0)
+	{
+		/* ingoring except ModMask / ControlMask / ShiftMask */
+		state &= (ModMask | ControlMask | ShiftMask) ;
+		
+		if( state & ModMask)
+		{
+			/* all ModNMasks are set. */
+			state |= ModMask ;
+		}
+
+		if( state != keymap->map[func].state)
+		{
+			return  0 ;
+		}
+	}
+	
+	if( keymap->map[func].ksym == ksym)
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}

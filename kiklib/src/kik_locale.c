@@ -178,16 +178,16 @@ kik_locale_init(
 		 * normalizing codeset name.
 		 */
 		 
-		int  counter ;
+		int  count ;
 		
-		for( counter = 0 ;
-			counter < sizeof( alias_codeset_table) / sizeof( alias_codeset_table[0]) ;
-			counter ++)
+		for( count = 0 ;
+			count < sizeof( alias_codeset_table) / sizeof( alias_codeset_table[0]) ;
+			count ++)
 		{
-			if( strcmp( sys_codeset , alias_codeset_table[counter].codeset) == 0 &&
-				strcmp( locale , alias_codeset_table[counter].locale) == 0)
+			if( strcmp( sys_codeset , alias_codeset_table[count].codeset) == 0 &&
+				strcmp( locale , alias_codeset_table[count].locale) == 0)
 			{
-				sys_codeset = alias_codeset_table[counter].alias ;
+				sys_codeset = alias_codeset_table[count].alias ;
 				
 				break ;
 			}
@@ -262,7 +262,7 @@ kik_get_codeset(void)
 	}
 	else if( sys_lang)
 	{
-		int  counter ;
+		int  count ;
 		char *  lang ;
 		u_int  lang_len ;
 
@@ -291,15 +291,15 @@ kik_get_codeset(void)
 		kik_debug_printf( "lang -> %s\n" , lang) ;
 	#endif
 
-		for( counter = 0 ;
-			counter < sizeof( lang_codeset_table) / sizeof( lang_codeset_table[0]) ;
-			counter ++)
+		for( count = 0 ;
+			count < sizeof( lang_codeset_table) / sizeof( lang_codeset_table[0]) ;
+			count ++)
 		{
-			if( strncmp( lang , lang_codeset_table[counter].lang ,
+			if( strncmp( lang , lang_codeset_table[count].lang ,
 				/* lang_len *- 1* is excluing NULL */
-				K_MIN(lang_len - 1,strlen(lang_codeset_table[counter].lang))) == 0)
+				K_MIN(lang_len - 1,strlen(lang_codeset_table[count].lang))) == 0)
 			{
-				return  lang_codeset_table[counter].codeset ;
+				return  lang_codeset_table[count].codeset ;
 			}
 		}
 	}

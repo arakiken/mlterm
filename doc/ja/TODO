@@ -10,5 +10,3 @@ comment $Id$
 * JISX0213_2000 <=> JISX0208/JISX0212をちゃんと実装する。
 
 * JISX0213_2000 <=> UCS と、JISX0208 <=> UCS テーブルを統合する。
-
-* SYSV 型の utmp に対応

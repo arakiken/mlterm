@@ -127,7 +127,7 @@ convert_to_iso2022jp(
 		}
 		else
 		{
-			int  counter ;
+			int  count ;
 
 			if( ch.cs == iso2022_conv->g0)
 			{
@@ -259,9 +259,9 @@ convert_to_iso2022jp(
 				}
 			}
 
-			for( counter = 0 ; counter < ch.size ; counter ++)
+			for( count = 0 ; count < ch.size ; count ++)
 			{
-				*(dst ++) = ch.ch[counter] ;
+				*(dst ++) = ch.ch[count] ;
 			}
 			
 			filled_size += ch.size ;

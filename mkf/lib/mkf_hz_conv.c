@@ -58,7 +58,7 @@ convert_to_hz(
 	mkf_hz_conv_t *  hz_conv ;
 	size_t  filled_size ;
 	mkf_char_t  ch ;
-	int  counter ;
+	int  count ;
 
 	hz_conv = (mkf_hz_conv_t *)conv ;
 
@@ -139,9 +139,9 @@ convert_to_hz(
 			}
 		}
 		
-		for( counter = 0 ; counter < ch.size ; counter ++)
+		for( count = 0 ; count < ch.size ; count ++)
 		{
-			*(dst ++) = ch.ch[counter] ;
+			*(dst ++) = ch.ch[count] ;
 		}
 
 		filled_size += ch.size ;

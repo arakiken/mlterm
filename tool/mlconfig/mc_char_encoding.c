@@ -83,20 +83,20 @@ encoding_selected(
 	gpointer  data
 	)
 {
-	int  counter ;
+	int  count ;
 	char *  text ;
 
 	text = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
-	for( counter = 0 ; counter < sizeof( encodings) / sizeof( encodings[0]) ; counter ++)
+	for( count = 0 ; count < sizeof( encodings) / sizeof( encodings[0]) ; count ++)
 	{
-		if( strcmp( text , encodings[counter]) == 0)
+		if( strcmp( text , encodings[count]) == 0)
 		{
 			break ;
 		}
 	}
 	
-	selected_encoding = counter ;
+	selected_encoding = count ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s encoding is selected.\n" , selected_encoding) ;

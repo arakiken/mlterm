@@ -57,14 +57,14 @@ usage(
 	kik_conf_t *  conf
 	)
 {
-	int  counter ;
+	int  count ;
 	kik_arg_opt_t *  end_opt ;
 
 	printf( "usage: %s" , conf->prog_name) ;
 	
-	for( counter = 0 ; counter < 0x5f ; counter ++)
+	for( count = 0 ; count < 0x5f ; count ++)
 	{
-		if( conf->arg_opts[counter] != NULL && conf->arg_opts[counter]->opt != conf->end_opt)
+		if( conf->arg_opts[count] != NULL && conf->arg_opts[count]->opt != conf->end_opt)
 		{
 			printf( " [options]") ;
 			
@@ -80,13 +80,13 @@ usage(
 	printf( "\n\noptions:\n") ;
 
 	end_opt = NULL ;
-	for( counter = 0 ; counter < 0x5f ; counter ++)
+	for( count = 0 ; count < 0x5f ; count ++)
 	{
-		if( conf->arg_opts[counter] != NULL)
+		if( conf->arg_opts[count] != NULL)
 		{
-			if( conf->arg_opts[counter]->opt == conf->end_opt)
+			if( conf->arg_opts[count]->opt == conf->end_opt)
 			{
-				end_opt = conf->arg_opts[counter] ; 
+				end_opt = conf->arg_opts[count] ; 
 			}
 			else
 			{
@@ -94,9 +94,9 @@ usage(
 				size_t  len ;
 
 				len = 3 + 8 + 1 ;
-				if( conf->arg_opts[counter]->long_opt)
+				if( conf->arg_opts[count]->long_opt)
 				{
-					len += (3 + strlen( conf->arg_opts[counter]->long_opt) + 1) ;
+					len += (3 + strlen( conf->arg_opts[count]->long_opt) + 1) ;
 				}
 
 				if( ( str = alloca( len)) == NULL)
@@ -109,17 +109,17 @@ usage(
 				}
 
 				/* 3 bytes */
-				sprintf( str , " -%c" , conf->arg_opts[counter]->opt) ;
+				sprintf( str , " -%c" , conf->arg_opts[count]->opt) ;
 
-				if( conf->arg_opts[counter]->long_opt)
+				if( conf->arg_opts[count]->long_opt)
 				{
 					/* 3 bytes */
 					strcat( str , "/--") ;
 					
-					strcat( str , conf->arg_opts[counter]->long_opt) ;
+					strcat( str , conf->arg_opts[count]->long_opt) ;
 				}
 
-				if( conf->arg_opts[counter]->is_boolean)
+				if( conf->arg_opts[count]->is_boolean)
 				{
 					/* 8 bytes or ... */
 					strcat( str , "(=bool) ") ;
@@ -130,7 +130,7 @@ usage(
 					strcat( str , "=value ") ;
 				}
 
-				printf( "%-20s: %s\n" , str , conf->arg_opts[counter]->help) ;
+				printf( "%-20s: %s\n" , str , conf->arg_opts[count]->help) ;
 			}
 		}
 	}
@@ -228,26 +228,26 @@ kik_conf_delete(
 	kik_conf_t *  conf
 	)
 {
-	int  counter ;
+	int  count ;
 	KIK_PAIR( kik_conf_entry) *  pairs ;
 	u_int  size ;
 
-	for( counter = 0 ; counter < 0x5f ; counter ++)
+	for( count = 0 ; count < 0x5f ; count ++)
 	{
-		if( conf->arg_opts[counter])
+		if( conf->arg_opts[count])
 		{
-			free( conf->arg_opts[counter]) ;
+			free( conf->arg_opts[count]) ;
 		}
 	}
 
 	kik_map_get_pairs_array( conf->conf_entries , pairs , size) ;
 	
-	for( counter = 0 ; counter < size ; counter ++)
+	for( count = 0 ; count < size ; count ++)
 	{
-		free( pairs[counter]->value->key) ;
-		free( pairs[counter]->value->value) ;
-		free( pairs[counter]->value->default_value) ;
-		free( pairs[counter]->value) ;
+		free( pairs[count]->value->key) ;
+		free( pairs[count]->value->value) ;
+		free( pairs[count]->value->default_value) ;
+		free( pairs[count]->value) ;
 	}
 	
 	kik_map_delete( conf->conf_entries) ;
@@ -332,20 +332,20 @@ kik_conf_parse_args(
 		{
 			/* long opt -> short opt */
 			
-			int  counter ;
+			int  count ;
 			
-			for( counter = 0 ; counter < 0x5f ; counter ++)
+			for( count = 0 ; count < 0x5f ; count ++)
 			{
-				if( conf->arg_opts[counter] && conf->arg_opts[counter]->long_opt &&
-					strcmp( opt , conf->arg_opts[counter]->long_opt) == 0)
+				if( conf->arg_opts[count] && conf->arg_opts[count]->long_opt &&
+					strcmp( opt , conf->arg_opts[count]->long_opt) == 0)
 				{
-					short_opt = conf->arg_opts[counter]->opt ;
+					short_opt = conf->arg_opts[count]->opt ;
 					
 					break ;
 				}
 			}
 
-			if( counter == 0x5f)
+			if( count == 0x5f)
 			{
 				kik_msg_printf( "%s is unknown option.\n\n" , opt) ;
 

@@ -14,7 +14,7 @@
 
 /* --- static variables --- */
 
-static ml_sb_mode_t  new_sb_mode ;
+static x_sb_mode_t  new_sb_mode ;
 
 
 /* --- static functions --- */
@@ -66,7 +66,7 @@ button_right_checked(
 
 GtkWidget *
 mc_sb_config_widget_new(
-	ml_sb_mode_t  sb_mode
+	x_sb_mode_t  sb_mode
 	)
 {
 	GtkWidget *  label ;
@@ -120,7 +120,7 @@ mc_sb_config_widget_new(
 	return  hbox ;
 }
 
-ml_sb_mode_t
+x_sb_mode_t
 mc_get_sb_mode(void)
 {
 	return  new_sb_mode ;

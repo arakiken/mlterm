@@ -149,14 +149,6 @@ fi
 AC_SUBST(UTMP_CFLAGS)
 AC_SUBST(INSTALL_OPT)
 
-AC_ARG_ENABLE(ucs4,
-	[  --enable-ucs4           ucs4[disabled]],
-	ucs4=$enable_ucs4)
-if test "$ucs4" = "yes" ; then
-	UCS4_CFLAGS="-DUSE_UCS4"
-fi
-AC_SUBST(UCS4_CFLAGS)
-
 AC_CHECK_PROG(gtk_config,gtk-config,yes)
 if test "$gtk_config" = "yes" ; then
 	AC_PATH_PROG(GTK_CONFIG,gtk-config,/usr/local/bin/gtk-config,$PATH)
@@ -171,7 +163,7 @@ else
 fi
 AC_SUBST(GTK_CONFIG)
 
-MAKE_DIRS="src tool/mlclient man etc scrollbar/sample contrib/scrollbar/extra ${MAKE_DIRS}"
+MAKE_DIRS="mlterm xwindow tool/mlclient man etc scrollbar/sample contrib/scrollbar/extra ${MAKE_DIRS}"
 AC_SUBST(MAKE_DIRS)
 
-AC_OUTPUT(Makefile ../src/Makefile ../tool/mlconfig/Makefile ../tool/mlclient/Makefile ../man/Makefile ../etc/Makefile ../scrollbar/sample/Makefile ../contrib/scrollbar/extra/Makefile)
+AC_OUTPUT(Makefile ../mlterm/Makefile ../xwindow/Makefile ../tool/mlconfig/Makefile ../tool/mlclient/Makefile ../man/Makefile ../etc/Makefile ../scrollbar/sample/Makefile ../contrib/scrollbar/extra/Makefile)

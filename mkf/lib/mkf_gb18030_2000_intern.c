@@ -57,19 +57,19 @@ mkf_decode_gb18030_2000_to_ucs4(
 	u_char *  gb18030		/* should be 4 bytes. */
 	)
 {
-	int  counter ;
+	int  count ;
 	u_int32_t  linear ;
 	u_int32_t  ucs4_code ;
 
 	linear = bytes_to_linear( gb18030) ;
 		
-	for( counter = 0 ; counter < sizeof( gb18030_ranges) / sizeof( gb18030_ranges[0]) ; counter ++)
+	for( count = 0 ; count < sizeof( gb18030_ranges) / sizeof( gb18030_ranges[0]) ; count ++)
 	{
-		if( bytes_to_linear( gb18030_ranges[counter].b_first) <= linear &&
-			linear <= bytes_to_linear( gb18030_ranges[counter].b_last))
+		if( bytes_to_linear( gb18030_ranges[count].b_first) <= linear &&
+			linear <= bytes_to_linear( gb18030_ranges[count].b_last))
 		{
-			ucs4_code = gb18030_ranges[counter].u_first +
-				(linear - bytes_to_linear( gb18030_ranges[counter].b_first)) ;
+			ucs4_code = gb18030_ranges[count].u_first +
+				(linear - bytes_to_linear( gb18030_ranges[count].b_first)) ;
 
 			ucs4[0] = (ucs4_code >> 24) & 0xff ;
 			ucs4[1] = (ucs4_code >> 16) & 0xff ;
@@ -89,20 +89,20 @@ mkf_encode_ucs4_to_gb18030_2000(
 	u_char *  ucs4		/* should be 4 bytes */
 	)
 {
-	int  counter ;
+	int  count ;
 	u_int32_t  ucs4_code ;
 
 	ucs4_code = ((ucs4[0] << 24) & 0xff000000) + ((ucs4[1] << 16) & 0xff0000) +
 		((ucs4[2] << 8) & 0xff00) + ucs4[3] ;
 	
-	for( counter = 0 ; counter < sizeof( gb18030_ranges) / sizeof( gb18030_ranges[0]) ; counter ++)
+	for( count = 0 ; count < sizeof( gb18030_ranges) / sizeof( gb18030_ranges[0]) ; count ++)
 	{
-		if( gb18030_ranges[counter].u_first <= ucs4_code &&
-			ucs4_code <= gb18030_ranges[counter].u_last)
+		if( gb18030_ranges[count].u_first <= ucs4_code &&
+			ucs4_code <= gb18030_ranges[count].u_last)
 		{
 			linear_to_bytes( gb18030 ,
-				bytes_to_linear( gb18030_ranges[counter].b_first) +
-				(ucs4_code - gb18030_ranges[counter].u_first)) ;
+				bytes_to_linear( gb18030_ranges[count].b_first) +
+				(ucs4_code - gb18030_ranges[count].u_first)) ;
 
 			return  1 ;
 		}

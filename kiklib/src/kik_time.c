@@ -301,14 +301,14 @@ kik_time_string_wday_to_int(
 	const char *  wday
 	)
 {
-	int  counter = 0 ;
+	int  count = 0 ;
 
-	for( counter = 0 ; counter < 7 ; counter ++)
+	for( count = 0 ; count < 7 ; count ++)
 	{
-		if( strcmp( wday , wdays[ counter]) == 0 ||
-			strcmp( wday , abbrev_wdays[ counter]) == 0)
+		if( strcmp( wday , wdays[ count]) == 0 ||
+			strcmp( wday , abbrev_wdays[ count]) == 0)
 		{
-			return  counter ;
+			return  count ;
 		}
 	}
 
@@ -359,14 +359,14 @@ kik_time_string_month_to_int(
 	const char *  month
 	)
 {
-	int  counter = 0 ;
+	int  count = 0 ;
 
-	for( counter = 0 ; counter < 12 ; counter ++)
+	for( count = 0 ; count < 12 ; count ++)
 	{
-		if( strcmp( month , months[ counter]) == 0 ||
-			strcmp( month , abbrev_months[ counter]) == 0)
+		if( strcmp( month , months[ count]) == 0 ||
+			strcmp( month , abbrev_months[ count]) == 0)
 		{
-			return  counter ;
+			return  count ;
 		}
 	}
 

@@ -51,7 +51,7 @@ mc_fontsize_config_widget_new(
 {
 	char **  fontlist ;
 	char *  sizes ;
-	int  counter ;
+	int  count ;
 	
 	if( ( fontlist = alloca( sizeof(char*) * (max_fontsize - min_fontsize + 1))) == NULL)
 	{
@@ -63,10 +63,10 @@ mc_fontsize_config_widget_new(
 		return  NULL ;
 	}
 
-	for( counter = min_fontsize ; counter <= max_fontsize ; counter++)
+	for( count = min_fontsize ; count <= max_fontsize ; count++)
 	{
-		sprintf( sizes , "%d" , counter) ;
-		fontlist[counter - min_fontsize] = sizes ;
+		sprintf( sizes , "%d" , count) ;
+		fontlist[count - min_fontsize] = sizes ;
 		sizes += 10 ;
 	}
 

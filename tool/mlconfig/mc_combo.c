@@ -23,7 +23,7 @@ mc_combo_new(
 	GtkWidget *  combo ;
 	GList *  items ;
 	int  item_found ;
-	int  counter ;
+	int  count ;
 
 	hbox = gtk_hbox_new(FALSE , 5) ;
 	gtk_widget_show(hbox) ;
@@ -34,16 +34,16 @@ mc_combo_new(
 
 	items = NULL ;
 	item_found = 0 ;
-	for( counter = 0 ; counter < item_num ; counter++)
+	for( count = 0 ; count < item_num ; count++)
 	{
-		if( strcmp( selected_item_name , item_names[counter]) == 0)
+		if( strcmp( selected_item_name , item_names[count]) == 0)
 		{
-			items = g_list_prepend(items , item_names[counter]) ;
+			items = g_list_prepend(items , item_names[count]) ;
 			item_found = 1 ;
 		}
 		else
 		{
-			items = g_list_append(items , item_names[counter]) ;
+			items = g_list_append(items , item_names[count]) ;
 		}
 	}
 

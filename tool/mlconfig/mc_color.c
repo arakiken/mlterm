@@ -18,7 +18,7 @@
 
 /*
  * !!! Notice !!!
- * the order should be the same as ml_color_t in ml_color.h
+ * the order should be the same as x_color_t in x_color.h
  */
 static char *  colors[] =
 {

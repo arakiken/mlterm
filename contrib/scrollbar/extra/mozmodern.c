@@ -5,7 +5,7 @@
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  <X11/cursorfont.h>
-#include  <ml_sb_view.h>
+#include  <x_sb_view.h>
 
 #include  "exsb_common.h"
 #include  "mozmodern_data.h"
@@ -16,7 +16,7 @@
 
 typedef struct  mozmod_sb_view
 {
-	ml_sb_view_t  view ;
+	x_sb_view_t  view ;
 
 	GC  gc ;
 
@@ -57,7 +57,7 @@ static char *color_name[] =
 
 static unsigned long
 get_pixel_by_symbol(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	char symbol
 	)
 {
@@ -113,7 +113,7 @@ get_pixel_by_symbol(
 
 static Pixmap
 get_pixmap(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	GC  gc ,
 	char **  data ,
 	unsigned int  width ,
@@ -148,7 +148,7 @@ get_pixmap(
 
 static void
 get_geometry_hints(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	unsigned int *  width ,
 	unsigned int *  top_margin ,
 	unsigned int *  bottom_margin ,
@@ -169,7 +169,7 @@ get_geometry_hints(
 
 static void
 get_default_color(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	char **  fg_color ,
 	char **  bg_color
 	)
@@ -180,7 +180,7 @@ get_default_color(
 
 static Pixmap
 ml_create_sb_bg_pixmap(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int width ,
 	int height
 	)
@@ -222,7 +222,7 @@ ml_create_sb_bg_pixmap(
 
 static void
 realized(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	Display *  display ,
 	int  screen ,
 	Window  window ,
@@ -278,7 +278,7 @@ realized(
 
 static void
 resized(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	Window  window ,
 	unsigned int  height
 	)
@@ -300,7 +300,7 @@ resized(
 
 static void
 delete(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	mozmod_sb_view_t *  mozmod_sb ;
@@ -323,7 +323,7 @@ delete(
 
 static void
 draw_arrow_up_icon(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  is_pressed
 	)
 {
@@ -352,7 +352,7 @@ draw_arrow_up_icon(
 
 static void
 draw_arrow_down_icon(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  is_pressed
 	)
 {
@@ -381,7 +381,7 @@ draw_arrow_down_icon(
 
 static void
 draw_decoration(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_up_icon( view , 0) ;
@@ -390,7 +390,7 @@ draw_decoration(
 
 static void
 draw_scrollbar_common(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  bar_top_y ,
 	unsigned int  bar_height ,
 	int is_transparent
@@ -533,7 +533,7 @@ draw_scrollbar_common(
 
 static void
 draw_scrollbar(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  bar_top_y ,
 	unsigned int  bar_height
 	)
@@ -543,7 +543,7 @@ draw_scrollbar(
 
 static void
 draw_transparent_scrollbar(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  bar_top_y ,
 	unsigned int  bar_height
 	)
@@ -553,7 +553,7 @@ draw_transparent_scrollbar(
 
 static void
 up_button_pressed(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_up_icon( view , 1) ;
@@ -561,7 +561,7 @@ up_button_pressed(
 
 static void
 down_button_pressed(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_down_icon( view , 1) ;
@@ -569,7 +569,7 @@ down_button_pressed(
 
 static void
 up_button_released(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_up_icon( view , 0) ;
@@ -577,7 +577,7 @@ up_button_released(
 
 static void
 down_button_released(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	draw_arrow_down_icon( view , 0) ;
@@ -586,7 +586,7 @@ down_button_released(
 
 /* --- global functions --- */
 
-ml_sb_view_t *
+x_sb_view_t *
 ml_mozmodern_sb_view_new(void)
 {
 	mozmod_sb_view_t *  mozmod_sb ;
@@ -618,10 +618,10 @@ ml_mozmodern_sb_view_new(void)
 	mozmod_sb->arrow_down = None ;
 	mozmod_sb->arrow_down_pressed = None ;
 
-	return  (ml_sb_view_t*) mozmod_sb ;
+	return  (x_sb_view_t*) mozmod_sb ;
 }
 
-ml_sb_view_t *
+x_sb_view_t *
 ml_mozmodern_transparent_sb_view_new(void)
 {
 	mozmod_sb_view_t *  mozmod_sb ;
@@ -653,5 +653,5 @@ ml_mozmodern_transparent_sb_view_new(void)
 	mozmod_sb->arrow_down = None ;
 	mozmod_sb->arrow_down_pressed = None ;
 
-	return  (ml_sb_view_t*) mozmod_sb ;
+	return  (x_sb_view_t*) mozmod_sb ;
 }

@@ -95,7 +95,7 @@ mkf_map_ucs4_to_cs(
 	mkf_charset_t  cs
 	)
 {
-	int  counter ;
+	int  count ;
 	u_int32_t  ucs4_code ;
 
 	if( ucs4->cs != ISO10646_UCS4_1)
@@ -105,11 +105,11 @@ mkf_map_ucs4_to_cs(
 
 	ucs4_code = mkf_char_to_int( ucs4) ;
 	
-	for( counter = 0 ; counter < sizeof( map_table) / sizeof( map_t) ; counter ++)
+	for( count = 0 ; count < sizeof( map_table) / sizeof( map_t) ; count ++)
 	{
-		if( map_table[counter].cs == cs)
+		if( map_table[count].cs == cs)
 		{
-			if( (*map_table[counter].map_ucs4_to)( non_ucs , ucs4_code))
+			if( (*map_table[count].map_ucs4_to)( non_ucs , ucs4_code))
 			{
 				return  1 ;
 			}
@@ -141,7 +141,7 @@ mkf_map_ucs4_to_with_funcs(
 	size_t  list_size
 	)
 {
-	int  counter ;
+	int  count ;
 	u_int32_t  ucs4_code ;
 
 	if( ucs4->cs != ISO10646_UCS4_1)
@@ -151,9 +151,9 @@ mkf_map_ucs4_to_with_funcs(
 
 	ucs4_code = mkf_char_to_int( ucs4) ;
 	
-	for( counter = 0 ; counter < list_size ; counter ++)
+	for( count = 0 ; count < list_size ; count ++)
 	{
-		if( (*map_ucs4_to_funcs[counter])( non_ucs , ucs4_code))
+		if( (*map_ucs4_to_funcs[count])( non_ucs , ucs4_code))
 		{
 			return  1 ;
 		}
@@ -176,7 +176,7 @@ mkf_map_ucs4_to(
 	mkf_char_t *  ucs4
 	)
 {
-	int  counter ;
+	int  count ;
 	u_int32_t  ucs4_code ;
 
 	if( ucs4->cs != ISO10646_UCS4_1)
@@ -186,10 +186,10 @@ mkf_map_ucs4_to(
 
 	ucs4_code = mkf_char_to_int( ucs4) ;
 
-	for( counter = 0 ; counter < sizeof( map_table) / sizeof( map_table[0]) ;
-		counter ++)
+	for( count = 0 ; count < sizeof( map_table) / sizeof( map_table[0]) ;
+		count ++)
 	{
-		if( (*map_table[counter].map_ucs4_to)( non_ucs , ucs4_code))
+		if( (*map_table[count].map_ucs4_to)( non_ucs , ucs4_code))
 		{
 			return  1 ;
 		}
@@ -212,7 +212,7 @@ mkf_map_ucs4_to_iso2022cs(
 	mkf_char_t *  ucs4
 	)
 {
-	int  counter ;
+	int  count ;
 	u_int32_t  ucs4_code ;
 
 	if( ucs4->cs != ISO10646_UCS4_1)
@@ -222,12 +222,12 @@ mkf_map_ucs4_to_iso2022cs(
 
 	ucs4_code = mkf_char_to_int( ucs4) ;
 
-	for( counter = 0 ; counter < sizeof( map_table) / sizeof( map_table[0]) ;
-		counter ++)
+	for( count = 0 ; count < sizeof( map_table) / sizeof( map_table[0]) ;
+		count ++)
 	{
-		if( IS_CS_BASED_ON_ISO2022(map_table[counter].cs))
+		if( IS_CS_BASED_ON_ISO2022(map_table[count].cs))
 		{
-			if( (*map_table[counter].map_ucs4_to)( non_ucs , ucs4_code))
+			if( (*map_table[count].map_ucs4_to)( non_ucs , ucs4_code))
 			{
 				return  1 ;
 			}
@@ -248,16 +248,16 @@ mkf_map_to_ucs4(
 	mkf_char_t *  non_ucs
 	)
 {
-	int  counter ;
+	int  count ;
 	u_int32_t  code ;
 	
 	code = mkf_char_to_int( non_ucs) ;
 	
-	for( counter = 0 ; counter < sizeof( map_table) / sizeof( map_t) ; counter ++)
+	for( count = 0 ; count < sizeof( map_table) / sizeof( map_t) ; count ++)
 	{
-		if( map_table[counter].cs == non_ucs->cs)
+		if( map_table[count].cs == non_ucs->cs)
 		{
-			if( (*map_table[counter].map_to_ucs4)( ucs4 , code))
+			if( (*map_table[count].map_to_ucs4)( ucs4 , code))
 			{
 				return  1 ;
 			}

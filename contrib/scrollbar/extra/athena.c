@@ -5,13 +5,13 @@
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  <X11/cursorfont.h>
-#include  <ml_sb_view.h>
+#include  <x_sb_view.h>
 
 #define  WIDTH       14
 
 typedef struct  athena_sb_view
 {
-	ml_sb_view_t  view ;
+	x_sb_view_t  view ;
 
 	int  is_transparent ;
 
@@ -21,7 +21,7 @@ typedef struct  athena_sb_view
 
 static void
 get_geometry_hints(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	unsigned int *  width ,
 	unsigned int *  top_margin ,
 	unsigned int *  bottom_margin ,
@@ -42,7 +42,7 @@ get_geometry_hints(
 
 static void
 get_default_color(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	char **  fg_color ,
 	char **  bg_color
 	)
@@ -53,7 +53,7 @@ get_default_color(
 
 static void
 realized(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	Display *  display ,
 	int  screen ,
 	Window  window ,
@@ -77,7 +77,7 @@ realized(
 
 static void
 resized(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	Window  window ,
 	unsigned int  height
 	)
@@ -88,7 +88,7 @@ resized(
 
 static void
 delete(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	athena_sb_view_t *  athena_sb ;
@@ -103,7 +103,7 @@ delete(
 
 static void
 draw_decoration(
-	ml_sb_view_t *  view
+	x_sb_view_t *  view
 	)
 {
 	/* do nothing */
@@ -111,7 +111,7 @@ draw_decoration(
 
 static void
 draw_scrollbar(
-	ml_sb_view_t *  view ,
+	x_sb_view_t *  view ,
 	int  bar_top_y ,
 	unsigned int  bar_height
 	)
@@ -159,7 +159,7 @@ draw_scrollbar(
 
 /* --- global functions --- */
 
-ml_sb_view_t *
+x_sb_view_t *
 ml_athena_sb_view_new(void)
 {
 	athena_sb_view_t *  athena_sb ;
@@ -185,10 +185,10 @@ ml_athena_sb_view_new(void)
 
 	athena_sb->is_transparent = 0 ;
 
-	return  (ml_sb_view_t*) athena_sb ;
+	return  (x_sb_view_t*) athena_sb ;
 }
 
-ml_sb_view_t *
+x_sb_view_t *
 ml_athena_transparent_sb_view_new(void)
 {
 	athena_sb_view_t *  athena_sb ;
@@ -214,5 +214,5 @@ ml_athena_transparent_sb_view_new(void)
 
 	athena_sb->is_transparent = 1 ;
 
-	return  (ml_sb_view_t*) athena_sb ;
+	return  (x_sb_view_t*) athena_sb ;
 }

@@ -57,13 +57,13 @@ get_xim_locale(
 	char *  xim
 	)
 {
-	int  counter ;
+	int  count ;
 	
-	for( counter = 0 ; counter < num_of_xims ; counter ++)
+	for( count = 0 ; count < num_of_xims ; count ++)
 	{
-		if( strcmp( xims[counter] , selected_xim) == 0)
+		if( strcmp( xims[count] , selected_xim) == 0)
 		{
-			return  locales[counter] ;
+			return  locales[count] ;
 		}
 	}
 
@@ -152,7 +152,7 @@ mc_xim_config_widget_new(
 	KIK_MAP(xim_locale)  xim_locale_table ;
 	KIK_PAIR(xim_locale) *  array ;
 	u_int  size ;
-	int  counter ;
+	int  count ;
 	GtkWidget *  vbox ;
 	GtkWidget *  hbox ;
 	GtkWidget *  label ;
@@ -191,14 +191,14 @@ mc_xim_config_widget_new(
 		return  NULL ;
 	}
 
-	for( counter = 0 ; counter < size ; counter ++)
+	for( count = 0 ; count < size ; count ++)
 	{
-		xims[counter] = array[counter]->key ;
-		locales[counter] = array[counter]->value ;
+		xims[count] = array[count]->key ;
+		locales[count] = array[count]->value ;
 	}
 	
-	xims[counter] = strdup( "unused") ;
-	locales[counter] = NULL ;
+	xims[count] = strdup( "unused") ;
+	locales[count] = NULL ;
 	
 	num_of_xims = size + 1 ;
 

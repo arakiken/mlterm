@@ -7,12 +7,12 @@
 
 
 #include  <gtk/gtk.h>
-#include  <ml_mod_meta_mode.h>
+#include  <x_mod_meta_mode.h>
 
 
-GtkWidget *  mc_mod_meta_config_widget_new( ml_mod_meta_mode_t  mod_meta_mode) ;
+GtkWidget *  mc_mod_meta_config_widget_new( x_mod_meta_mode_t  mod_meta_mode) ;
 
-ml_mod_meta_mode_t  mc_get_mod_meta_mode(void) ;
+x_mod_meta_mode_t  mc_get_mod_meta_mode(void) ;
 
 
 #endif
