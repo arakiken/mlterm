@@ -1,6 +1,12 @@
+BUILD_TOPDIR = ../..
+
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
+
+SRC_TOPDIR = @SRC_TOPDIR@
+
+VPATH = ${SRC_TOPDIR}/tool/mlclient
 
 CC = @CC@
 CFLAGS = @KIK_CFLAGS@ @CFLAGS@

@@ -1,16 +1,18 @@
+BUILD_TOPDIR = ..
+
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
 
-TOPDIR = @TOPDIR@
+SRC_TOPDIR = @SRC_TOPDIR@
 
-DESTDIR = 
 PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)
 INCDIR = $(DESTDIR)$(PREFIX)/include
 
-SRCDIR = $(TOPDIR)/src
-INCDIR_TMP = $(TOPDIR)/include
+VPATH = $(SRC_TOPDIR)/src
+
+INCDIR_TMP = $(BUILD_TOPDIR)/include
 
 CC = @CC@
 INSTALL = @INSTALL@
@@ -23,7 +25,7 @@ OBJ = kik_debug.o kik_map.o kik_args.o kik_dlfcn.o kik_mem.o kik_conf.o kik_file
 	kik_conf_io.o kik_str.o kik_cycle_index.o kik_langinfo.o kik_time.o kik_locale.o \
 	kik_pty.o kik_utmp.o kik_privilege.o kik_unistd.o
 
-INC = $(OBJ:.o=.h) kik_list.h kik_iterator.h kik_types.h kik_config.h kik_util.h kik_def.h kik_net.h
+INC = $(OBJ:.o=.h) kik_list.h kik_iterator.h kik_types.h kik_util.h kik_def.h kik_net.h
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) $(LIBS)
@@ -45,7 +47,7 @@ debug :
 install : install-inc install-la
 
 install-inc : $(INCDIR)/kiklib
-	cp $(INC) $(INCDIR)/kiklib
+	cp $(INCDIR_TMP)/kiklib/*.h $(INCDIR)/kiklib
 
 install-la : $(LIBDIR)
 	$(LIBTOOL_INSTALL) $(LIBNAME).la $(LIBDIR)
@@ -66,7 +68,8 @@ $(INCDIR_TMP)/kiklib :
 	mkdir -p $(INCDIR_TMP)/kiklib
 
 collect-headers: $(INCDIR_TMP)/kiklib
-	cp $(INC) $(INCDIR_TMP)/kiklib
+	for file in $(INC) ; do cp $(SRC_TOPDIR)/src/$${file} $(INCDIR_TMP)/kiklib ; done
+	cp kik_config.h $(INCDIR_TMP)/kiklib
 
 wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
@@ -74,7 +77,7 @@ wc :
 .SUFFIXES: .c.o
 
 .c.o:
-	$(LIBTOOL_CC) -c $<
+	$(LIBTOOL_CC) -I. -c $<
 
 $(LIBNAME).la : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(PREFIX)/lib \

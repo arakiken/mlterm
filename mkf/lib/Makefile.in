@@ -1,21 +1,22 @@
+BUILD_TOPDIR = ..
+
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
 
-TOPDIR = @TOPDIR@
+SRC_TOPDIR = @SRC_TOPDIR@
 
 CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-DESTDIR =
 PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)
 INCDIR = $(DESTDIR)$(PREFIX)/include
 
-INCDIR_TMP = $(TOPDIR)/include
-SRCDIR = $(TOPDIR)/lib
-BUILDDIR = $(TOPDIR)/build
+VPATH = $(SRC_TOPDIR)/lib
+
+INCDIR_TMP = $(BUILD_TOPDIR)/include
 
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @CFLAGS@ -I/usr/local/include
 LIBS = $(LIBS_LOCAL)
@@ -73,7 +74,7 @@ $(INCDIR_TMP)/mkf :
 	mkdir -p $(INCDIR_TMP)/mkf
 
 collect-headers : $(INCDIR_TMP)/mkf
-	cp $(INC) $(INCDIR_TMP)/mkf
+	for file in $(INC) ; do cp $(SRC_TOPDIR)/lib/$${file} $(INCDIR_TMP)/mkf ; done
 
 install: install-inc install-la
 
@@ -81,7 +82,7 @@ install-deb : $(LIBDIR)
 	$(MAKE) LIBNAME=$(LIBNAME_DEB) install-ar
 
 install-inc : $(INCDIR)/mkf
-	cp $(INC) $(INCDIR)/mkf
+	cp $(INCDIR_TMP)/mkf/*.h $(INCDIR)/mkf
 
 install-la :
 	$(LIBTOOL_INSTALL) *.la $(LIBDIR)

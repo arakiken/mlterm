@@ -1,8 +1,9 @@
+BUILD_TOPDIR = ..
 MAKE_DIRS=@MAKE_DIRS@
 
 all .DEFAULT:
-	for dir in $(MAKE_DIRS) ; do cd $${dir} ; $(MAKE) $@ ; done
+	for dir in $(MAKE_DIRS) ; do (cd ../$${dir} ; $(MAKE) $@) ; done
 
 distclean : clean
 	rm -f config.log config.cache config.status libtool Makefile 
-	for dir in ${MAKE_DIRS} ; do rm -f $${dir}/Makefile ; done
+	for dir in ${MAKE_DIRS} ; do (rm -f ../$${dir}/Makefile) ; done

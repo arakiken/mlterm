@@ -1,5 +1,9 @@
+BUILD_TOPDIR = ..
+
 prefix=@prefix@
 mandir=@mandir@
+
+SRC_TOPDIR=@SRC_TOPDIR@
 
 DESTDIR=
 MANDIR=$(DESTDIR)$(mandir)
@@ -14,4 +18,4 @@ $(MAN1DIR):
 	mkdir -p $(MAN1DIR)
 
 install: $(MAN1DIR)
-	$(INSTALL) -m 644 mlterm.1 $(MAN1DIR)
+	$(INSTALL) -m 644 $(SRC_TOPDIR)/man/mlterm.1 $(MAN1DIR)

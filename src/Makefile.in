@@ -1,9 +1,13 @@
+BUILD_TOPDIR = ..
+
 prefix = @prefix@
 sysconfdir = @sysconfdir@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 libdir = @libdir@
 libexecdir = @libexecdir@
+
+SRC_TOPDIR = @SRC_TOPDIR@
 
 CC = @CC@
 LIBTOOL = @LIBTOOL@
@@ -14,6 +18,8 @@ BINDIR = $(DESTDIR)$(bindir)
 LIBDIR = $(DESTDIR)$(libdir)
 SYSCONFDIR = $(sysconfdir)
 LIBEXECDIR = $(libexecdir)
+
+VPATH = $(SRC_TOPDIR)/src
 
 OBJ = ml_window_manager.o ml_window.o ml_char.o ml_image.o ml_logs.o ml_line_hints.o \
 	ml_vt100_parser.o ml_pty.o ml_image_intern.o ml_image_scroll.o \
@@ -31,11 +37,11 @@ LMKF = @MKF_LIBS@
 LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
 
-CFLAGS=$(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @IMLIB_CFLAGS@ @FRIBIDI_CFLAGS@ @GDK_PIXBUF_CFLAGS@\
-	@AA_CFLAGS@ @UCS4_CFLAGS@ @IND_CFLAGS@ @UTMP_CFLAGS@ @XUTF8_CFLAGS@ @CFLAGS@ \
+CFLAGS=$(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @IMLIB_CFLAGS@ @FRIBIDI_CFLAGS@ \
+	@GDK_PIXBUF_CFLAGS@ @AA_CFLAGS@ @UCS4_CFLAGS@ @IND_CFLAGS@ @UTMP_CFLAGS@ @XUTF8_CFLAGS@ @CFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DLIBEXECDIR=\"$(LIBEXECDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-I/usr/X11R6/include -I/usr/local/include
-LIBS=$(LIBS_LOCAL) @FRIBIDI_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ @IND_LIBS@ @GDK_PIXBUF_LIBS@\
+LIBS=$(LIBS_LOCAL) @FRIBIDI_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ @IND_LIBS@ @GDK_PIXBUF_LIBS@ \
 	@X_EXTRA_LIBS@ -lX11 $(LKIK) $(LMKF) @DL_LIBS@ \
 	-L/usr/X11R6/lib -L/usr/local/lib -R/usr/X11R6/lib -R/usr/local/lib
 

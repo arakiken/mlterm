@@ -1,7 +1,13 @@
+BUILD_TOPDIR = ../..
+
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libexecdir = @libexecdir@
 sysconfdir = @sysconfdir@
+
+SRC_TOPDIR = @SRC_TOPDIR@
+
+VPATH = ${SRC_TOPDIR}/tool/mlconfig
 
 CC = @CC@
 LIBTOOL = @LIBTOOL@
@@ -16,7 +22,7 @@ LKIK = @KIK_LIBS@
 GTK_CONFIG=@GTK_CONFIG@
 CFLAGS = `$(GTK_CONFIG) --cflags` $(CFLAGS_LOCAL) \
 	@DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @CFLAGS@ \
-	-I../../src -I/usr/X11R6/include -I/usr/local/include \
+	-I${SRC_TOPDIR}/src -I/usr/X11R6/include -I/usr/local/include \
 	-DSYSCONFDIR=\"$(SYSCONFDIR)\"
 LIBS = `$(GTK_CONFIG) --libs` $(LIBS_LOCAL) $(LKIK) \
 	-L/usr/X11R6/lib -L/usr/local/lib -R/usr/X11R6/lib -R/usr/local/lib

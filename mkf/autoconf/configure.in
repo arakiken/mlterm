@@ -1,10 +1,9 @@
 AC_INIT()
 
-PWD=`pwd`
-TOPDIR=${PWD}/..
-AC_SUBST(TOPDIR)
+SRC_TOPDIR='${BUILD_TOPDIR}'/autoconf/${top_srcdir-$srcdir}/..
+AC_SUBST(SRC_TOPDIR)
 
-AC_CONFIG_AUX_DIR(${PWD})
+AC_CONFIG_AUX_DIR(${top_srcdir-$srcdir})
 
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -16,12 +15,12 @@ if test "${libtool}" != "" ; then
 	LIBTOOL=${libtool}
 else
 	AM_PROG_LIBTOOL
-	LIBTOOL=${PWD}/libtool
+	LIBTOOL='${BUILD_TOPDIR}/autoconf/libtool'
 fi
 AC_SUBST(LIBTOOL)
 
-if test -d ${TOPDIR}/kiklib ; then
-	KIK_CFLAGS="-I${TOPDIR}/kiklib/include"
+if test -d ../kiklib ; then
+	KIK_CFLAGS='-I${BUILD_TOPDIR}/kiklib/include'
 fi
 AC_SUBST(KIK_CFLAGS)
 
@@ -33,4 +32,4 @@ if test "$debug" = "yes" ; then
 fi
 AC_SUBST(DEB_CFLAGS)
 
-AC_OUTPUT(../lib/Makefile)
+AC_OUTPUT(Makefile ../lib/Makefile)

@@ -1,0 +1,722 @@
+[20020422]
+* ml_picture_gdk.c is added. (Thanks to Minami Hirokazu san)
+
+[20020421]
+* ml_picture_dep.[ch], where graphic library dependent codes are implements, is separated 
+  from ml_picture.c.
+* if larger number than 0 is specified for --lsp, underlines cannot be cleared. fixed.
+  (Thanks to Nanashi san)
+* aafont config files are replaced by contributed ones.
+  (Thanks to Kubota Tomohiro san)
+
+[20020414]
+* 2.4.0 release
+
+[20020413]
+* each line had its tab stop list and "\x1bH" didn't work as expected. fixed.
+* doc/ja/README.comb is added.
+
+[20020410]
+* man/mlterm.1 is updated.
+* scroll by 'd' and 'u' keys was NA. fixed.
+* compilation failed in ml_vt100_parser.c if __DEBUG is defined. fixed.
+  (Thanks to Nadim Shaikli)
+
+[20020407]
+* backscroll_rows and is_backscroll_mode variables are not initialized. fixed.
+* PAGE_DOWN,PAGE_UP,SCROLL_DOWN,SCROLL_UP shortcut keys are processed twice per
+  one press. fixed.
+
+[20020407]
+* PAGE_DOWN,SCROLL_DOWN shortcut keys are added, and PAGE_DOWN,PAGE_UP,SCROLL_DOWN,
+  SCROLL_UP shortcut keys are available under backscroll mode.
+  (Thanks to Nobuyoshi Nakada)
+* ml_term_xxx.[ch] are cleaned up.
+* meta key is processed even when shift key, control key or so is pressed. fixed.
+  (Thanks to Nanashi san)
+* 2.3.1 => 2.4.0 in version.h, mlterm.spec
+
+[20020329]
+* memory leaks in ml_color_custom.c. fixed.
+
+[20020329]
+* all the colors defined in rgb.txt are available.
+* #RRGGBB format is supported for fg_color,bg_color,sb_fg_color,sb_bg_color.
+
+[20020328]
+* lines sometimes get left-aligned. fixed.
+  (Thanks to Nadim Shaikli)
+
+[20020328]
+* parsing sequence from pty is stopped after 4096 bytes are parsed even if 
+  it is still left in pty.(Thanks to Nanashi san)
+* LF on the first char of an arabic word gets the original line not to be redrawn correctly.
+  fixed.(Thanks to Nadim Shaikli)
+* There were a bug around calculating the meeting position of ltr and rtl characters. fixed.
+  (Thanks to Nadim Shaikli)
+* if cursor is on a space after a RTL word at the end of line, the RTL word strangely moves.
+  fixed. (Thanks to Nadim Shaikli)
+
+[20020324]
+* strange cursor movement on bidi is fixed.
+* memory leak in ml_bidi.c:ml_bidi() is fixed.
+* -J/--dyncomb option can be dynamically changed.
+
+[20020323]
+* if mlterm doesn't work as a genuine daemon and cannot start any pty windows,
+  it outputs error messages and do exit(1).
+  (Thanks to Nadim Shaikli)
+* cursor movement in ltr-rtl meeting point is improved.
+  (Thanks to Nadim Shaikli)
+* on some enviroments Xutf8LookupString was not found even if it exits because of failure of '-lX11'.
+  fixed.
+  (Thanks to Kubota Tomohiro san & Nakada Nobuyoshi san)
+
+[20020321]
+* cursor doesn't move correctly before the meeting point of LTR and RTL characters. fixed.
+* the line cursor is previously located should be redrawn even if it is not modified.
+
+[20020320]
+* cursor movement policy before the meeting point of LTR and RTL characters is changed.
+* character set designated to G1 is unexpectedly changed if enacs=\E)0,smacs=^N,rmacs=^O.
+  fixed.
+
+[20020317]
+* some scrolled out lines aren't bidi rendered. fixed. (Thanks to Nadim Shaikli)
+* login,logout are not used for utmp operations on *BSD.
+
+[20020316]
+* if the cursor is at the end of line under bidi mode, according to the previous
+  character whose property is STRONG and the base direction of the line, output of
+  fribidi_log2vis is modified for more natural cursor movement.
+* -J/--dyncomb couldn't be used without arguments. fixed.
+
+[20020316]
+* scrolling downward over the lowest filled line fails. fixed.
+* arabic combined characters are processed as the one which occupies one
+  column, not two.
+* -J/--dyncomb, use_dynamic_comb option is added.
+* "-- INSERT (lang) --" message can be shown in a strange line on vim. fixed.
+  (Thanks to Nadim Shaikli)
+
+[20020315]
+* some bugs in man/mlterm.1 are fixed. (Thanks to Nadim Shaikli)
+* arabic shaping errors are fixed. (Thanks to Nadim Shaikli)
+* redrawn region under bidi mode is optimized.
+
+[20020314]
+* ml_char_copy() frees necessary memory area if src and dst is equal. fixed.
+  (Thanks to Sakamoto Hironori san)
+* -J/--rtl, bidi_base_dir_is_rtl option is removed.
+  (Thanks to Nadim Shaikli)
+* when all lines in scroll region is scrolled out, cursor position is not moved 
+  correctly. fixed.
+
+[20020312]
+* if USE_FRIBIDI is not defined, compilation fails in ml_bidi() because of shortage of arguments.
+  (Thanks to Nanashi san)
+* primitive data structure around ml_image* is changed.
+
+[20020310]
+* compilation fails in ml_term_manager.c by configure --disable-fribidi because of
+  undefined reference to ml_bidi_set_base_dir().
+  (Thanks to Nanashi san)
+* only limited region is scrolled when output characters is over screen buffer.
+* -J,--rtl,bidi_base_direction_rtl option is dynamically changeable.
+
+[20020308]
+* COLORTERM_BCE is unset from the beginning.
+* arabic characters two of which can turn into one glyph are supported.
+* -J,--rtl,bidi_base_direction_rtl option is added.
+  This option lets bidi base direction RTL.
+
+[20020306]
+* core dump in processing _XROOTPMAP_ID. fixed.
+  (Thanks to Nanashi san)
+* strange format of man page is fixed.
+  (Thanks to Mike Fabian)
+* when line is wrapped around, characters at the end of line are swapped. fixed.
+  (Thanks to Mike Fabian)
+
+[20020304]
+* -q/--extkey use_extended_scroll_shortcut option , which enables scroll shortcutkey
+  extension(scrolling by arrow keys, 'j' and 'k'), is added.(disabled by default)
+* ISO8859_1 and ISO8859_1X in xxfont config files aren't distinguished. fixed.
+  (Thanks to Kubota Tomohiro san)
+* 0x1b is inserted when INSERT_SELECTION etc keys are pressed if they are assigned
+  to Mod + Foo.
+  (Thanks to Nobuyoshi Nakada san)
+* whether Xutf8LookupString exists or not is checked in configure.
+  (Thanks to Nobuyoshi Nakada san)
+
+[20020302]
+* whether libsocket exists or not is checked in configure.
+  (Thanks to Nadim Shaikli)
+* ISO-8859-N character sets except ISO-8859-1 cannnot be shown correctly
+  under anti alias mode. fixed.
+  (Thanks to Kubota Tomohiro san)
+
+[20020228]
+* ESC [ J clears characters to the left side of the cursor. fixed.
+  (Thanks to KATO Kazuyoshi san)
+* another (experimental) engine of getting transparent background picture is implemented.
+
+[20020225]
+* -e option fails on Linux etc. fixed.
+* 2.3.1 released.
+
+[20020223]
+* 2.3.0 released.
+
+[20020222]
+* scroll fails ?
+
+[20020222]
+
+[20020222]
+* mlterm can dump core if screen is scrolled while cursor is out of scroll region.
+  fixed. (Thanks to Minami Hirokazu san)
+
+[20020222]
+* 2.3.0 release date is added to mlterm.spec.
+
+[20020222]
+* transparency by _XROOTPMAP_ID behaves strangely if Window is moved to outside of
+  Display. fixed.
+
+[20020222]
+* transparency by _XROOTPMAP_ID is also supported without Imlib.
+* w3mmlconfig/section/scrollbar is lost. fixed.
+  (Thanks to Sakamoto Hironori san)
+
+[20020221]
+* garbage is left on arrow images of scrollbar. fixed.
+* w3mmlconfig is updated.
+  (Thanks to Sakamoto Hironori san)
+
+[20020221]
+* brightness cannot be changed in transparent mode. fixed.
+  (Thanks to Minami Hirokazu san)
+
+[20020221]
+* man/mlterm.1 is updated.
+* -H option accepts over 100.
+
+[20020221]
+* transparent background using root pixmap by "_XROOTPMAP_ID" atom is supported.
+
+[20020220]
+* compilation fails on platforms where snprintf doesn't exist. fixed.
+* ISCII rendering fails. fixed.
+* extra processing which can cause core dump under utf8 + bidi mode or iscii mode 
+  without fribidi or libind is removed. (Thanks to Takahasi Tamotsu san)
+
+[20020219]
+* utmp,wtmp operation by login,logout,logwtmp is supported on both 
+  Linux/glibc2 and *BSD. (Thanks to Minami Hirokazu san)
+
+[20020219]
+* performance of utf8 + bidi mode without fribidi is improved.
+* if scroll region is changed multiple times , scroll can fail. fixed.
+* README.bidi is added.
+
+[20020218]
+* mlclient appends extra white space for ipc message. fixed.
+* character background color which is different from Window background one
+  is not drawn under transparent mode. fixed. (Thanks to KATO Kazuyoshi san)
+* mlconf_curses is updated (2002/02/18 version). 
+  (Thanks to Minami Hirokazu san)
+
+[20020217]
+* mlclient with invalid options causes mlterm process to exit. fixed.
+* typo in LICENCE file is fixed. (Thanks to Fumitake Taniguchi san)
+
+[20020217]
+* iscii_lang is added to mlterm configuration protocol.
+* mlclient --help or --version causes mlterm process to exit. fixed.
+  (Thanks to Ikezoe Hiroyuki san)
+
+[20020216]
+* typo fixed. (Thanks to Mike Fabian)
+
+[20020215]
+* New documents(doc/ja/README.server,doc/ja/README.tate) are added and doc/ja/README.ja
+  doc/en/PROTOCOL doc/en/History are updated.
+
+[20020215]
+* code clean up
+
+[20020215]
+* ImlibData is created and managed for each Display.
+* existing test of socklen_t fails because of my typo. fixed. (Thanks to Sakamoto Hironori san)
+
+[20020214]
+* some bugs around utmp are fixed. (Thanks to Mike Fabian)
+
+[20020213]
+* priv_fg and priv_bg cannot be customized. fixed. (Thanks to Nekoie san)
+* utmper is supported. (Thanks to Mike Fabian)
+
+[20020213]
+* before starting daemon , whether /tmp/mlterm.unix exists or not is checked.
+  and it is also unlinked when mlterm server exits.
+
+[20020213]
+* compilation failed in tool/mlclient/main.c. fixed. (Thanks to Okazaki Tetsurou san)
+* memory leaks when mlclient is connected. fixed.
+* transparent sample scrollbar is 1 dot wider than expected. fixed.
+* scrollbar_view_name , sb_fg_color , sb_bg_color can be dynamically changed.
+* mlconfig layout is changed.
+
+[20020212]
+* -e option fails for memory allocation. fixed. (Thanks to Nekoie san)
+* mlterm with -j and -P 0 options can start without X.
+* mlterm can manage multiple display connections.
+* compilation fails around socket on HP-UX 10.20. fixed.
+
+[20020211]
+* daemon mode is supported and -j/--daemon/daemon_mode option is added.
+* mlclient program (tool/mlclient) is added.
+* characters in the beginning of lines cannot be selected. fixed. (Thanks to nekoie san)
+* 2 dot margin area in both right and left sides are cleared since garbages
+  can be left there.
+
+[20020210]
+* -Y/--decsp/compose_dec_special_font option is added.
+
+[20020210]
+* #include <sys/stat.h> is omitted in kiklib/src/kik_utmp_bsd.c. 
+  fixed. (Thanks to Nanashi san)
+
+[20020209]
+* README.ja is rewritten.
+* BSD type utmp/wtmp/lastlog is supported. (--enable-utmp configure option)
+
+[20020208]
+* brightness-adjusted transparent background costs when fvwm2 style virtual screens
+  are changed. fixed.(thanks to Nanashi san)
+
+[20020208]
+* if --enable-anti-alias is not specified , compilation fails. fixed.
+
+[20020208]
+* processing half width character in vertical view is improved.
+* XLFD font name to query internally is strange. fixed. (Thanks to Karl Koehler)
+* when fade_ratio is set 100 from mlconfig , screen is not completely cleared. fixed.
+
+[20020207]
+* window increment/decrement size and minimum window width and height can be wrong. fixed.
+  (Thanks to Minami Hirokazu san)
+
+[20020207]
+* underline is drawn on the left side of character under vertical mode.
+
+[20020207]
+* strange mouse position is reported under vertical mode. fixed.
+
+[20020207]
+* vertical mode and veriable column width mode are considered for reporting
+  mouse position to console applications.
+* -Q/--vcur/use_vertical_cursor option is added.
+* mlconfig_curses is updated.(see [patch tracker 513620])
+  (thanks to Minami Hirokazu san)
+
+[20020206]
+* -Z/--multicol/use_multi_column_char option is added.
+
+[20020206]
+* if scrollbar_mode is none and window is resized , garbages are left
+  on screen. fixed.
+* w3mmlconfig is updated(around scrollbar_mode). 
+  (thanks to Sakamoto Hironori san)
+
+[20020206]
+* -O/--sbpos/scrollbar_position option is removed and
+  -O/--sbmod/scrollbar_mode option is added.
+* scrollbar can be dynamically switched among off , right and left.
+* default value of use_scrollbar option is true , not false.
+
+[20020206]
+* step in resizing window gets wrong. fixed.
+
+[20020206]
+* when font size is changed with right scrollbar , scrollbar is placed
+  in strange position. fixed.
+
+[20020205]
+* -O/--sbpos/scrollbar_position option is added.
+* processing brightness adjustment under transparent mode is tuned.
+* doc/ja/README.ja is updated.
+
+[20020205]
+* cywin port patch is merged.(thanks to Tetsurou Okazaki san)
+* XRegisterIMInstantiateCallback is never called on sunos.
+
+[20020204]
+* When CapsLock or NumLock is on , control mask or shift mask etc is not recogized.
+  fixed. (Thanks to K.Kawabata san)
+* cursor disappears when screen scrolled with scrollbar. fixed.
+  (Thanks to Sakamoto Hironori san/Minami Hirokazu san)
+* w3mmlconfig is updated.(thanks to Sakamoto Hironori san)
+* baurates are explicitly set with cfsetispeed,cfsetospeed.(thanks to t-matsuo san)
+
+[20020203]
+* If --xim=false is specified , XRegisterIMInstatiateCallback is not done.
+
+[20020203]
+* mlterm dumps core under cjk vertical mode. fixed.
+* doc/ja/README.ja doc/ja/FAQ doc/en/PROTOCOL are updated.
+
+[20020203]
+* cursor disappears under backscroll mode. fixed. (Thanks to Sakamoto Hironori san)
+* -K/--maxptys/max_ptys option is added. You can use more than 5 pty windows in one
+  process.
+  Note that max_ptys option accepts numbers between 1 and 32.
+
+[20020202]
+* --shade/shade_ratio option is renamed to --bright/brightness.
+* brightness option works under transparent mode.
+
+[20020202]
+* -H/--shade/shade_ratio option is added.
+
+[20020202]
+* if number of terminal rows is double as many as that of cols under vertical mode , 
+  mlterm dumps core. fixed.
+* mongol vertical mode is added.
+* "Font" Tab is added to mlconfig.
+
+[20020201]
+* -o/--lsp/line_space option is added.
+
+[20020131]
+* If both vertical view and bidi are used at the same time , terminal window
+  can become too large. fixed.
+* under vertical mode settings in etc/tfont and etc/taafont are used.
+
+[20020130]
+* vertical view support is added.(-G/--vertical/vertical_mode option)
+* actual screen size can be specified with -1/--wscr/screen_width_ratio and
+  -2/--hscr/screen_height_ratio options regardless of console columns and rows.
+
+[20020129]
+* 2.2.0 released
+
+[20020129]
+* mlcurses_conf is updated(20020127 version).(thanks to Minami Hirokazu san)
+
+[20020129]
+* copy&paste with kterm fails. fixed. (thanks to Sakamoto Hironori san)
+* minus value specified for unsigned int is treated as error. (thanks to Minami Hirokazu san)
+
+[20020128]
+* variable column width and character combining are turned on in ISCII encoding.
+
+[20020128]
+* doc/en/README.iscii is added.
+* fribidi-config is used to check libs and cflags for fribidi.
+* -h help messages are improved.(thanks to Kubota Tomohiro san)
+* font_larger_smaller_size option is renamed to step_in_changing_font_size.
+* man/mlterm.1 manual is updated.(thanks to Kubota Tomohiro san)
+
+[20020126]
+* big5_buggy option didn't work(is always true). fixed.
+* XIM fg/bg color may be faded. fixed.
+* man/mlterm.1 manual is updated.
+
+[20020125]
+* mlconf_curses is updated(20020125 version) and LICENCE,Makefile,mlcc.html
+  files are added. (thanks to Minami Hirokazu san)
+* CP932 gaiji characters (IBM , NEC , NECIBM) <=> UCS conversion is supported.
+* -z/--largesmall/font_larger_smaller_size option is added.
+
+[20020124]
+* use_cp932_ucs_for_xft option is true by default.
+* screen is corrupt when scrolled. fixed.
+* if font_size_range is not set , mlterm behaves unexpectedly. fixed.
+* mlconf_curses(2002/01/24 version) is added. (thanks to Minami Hirokazu san)
+* doc/ja/FAQ is added.
+
+[20020124]
+* NEC Gaiji couldn't be converted to UCS. fixed.
+* Japanese gaiji characters are converted to UCS.
+* if -w [fontsize] is too small or too large , mlterm may dump core. fixed.
+* foreground color couldn't be change run time. fixed.
+
+[20020124]
+* cursor may disappear when selected region color is restored. fixed.
+* w3mmlconfig(2002/01/15 version) is added(tool/w3mmlconfig)
+* contrib/scrollbar/sample is moved to scrollbar/sample
+
+[20020123]
+* ISCII rendering is tuned up.
+* etc/font and etc/vfont format is changed. (default font can be specified.)
+
+[20020122]
+* -c/--cp932/use_cp932_ucs_for_xft option is added.
+
+[20020122]
+* aafont file format is changed. ([Font Family]-[Font Encoding](:[Percentage]))
+* font or vfont is used when XIM fontset is created under AA mode.
+
+[20020120]
+* many codes are cleaned up.
+* 'l' instead of 'i' is checked for DynaFont problem.
+
+[20020119]
+* DynaFont problem is fixed by checking 'i' character width before 'W' character.
+  (thanks to Asaki Takumi san)
+* font,aafont are read before vfont,vaafont for variable column width fonts.
+
+[20020118]
+* XftTextExtents returns full width extents for DynaFont "W" , which makes space between
+  characters too wide. fixed(there is still room for improvement).
+  (thanks to Asaki Takumi san)
+* not only background color but foreground color is faded.
+
+[20020115]
+* calculating width of anti alias font was somewhat wrong. fixed.
+* variable column width anti alias fonts , which are specified in ~/.mlterm/vaafont ,
+  are supported.
+* #error instead of #<key>=#error is returned.
+* ESC]5380;wall_pictureBEL returns #wall_picture= instead of #error when no wall picture
+  is used.
+
+[20020115]
+* JISX0201 katakana copy&paste failed. fixed.(thanks to Kubota Tomohiro san)
+* ESC]5380;pwdBEL is supported.
+* #<key>=#error instead of #<key>=error is returned when error happens around ESC]5380;ptBEL
+  sequence.
+
+[20020114]
+* fade_ratio can be dynamically changed.
+* ESC]5379;fade_ratio=<value>BEL , ESC]5380;fade_ratioBEL , ESC]5380;wall_pictureBEL
+  are supported.(see doc/en/PROTOCOL)
+* FocusIn/FocusOut events to windows except a top window are ignored.
+
+[20020113]
+* MSB of single shifted G3 characters in EUCJP(EUCJISX0213) is set.(thanks to Kubota Tomohiro san)
+* ESC]5379;wall_picture=BEL stops wall picture.
+
+[20020113]
+* mlterm configuration protocol is decided and implemented.(see doc/en/PROTOCOL)
+* cursor highlight bug is fixed.
+
+[20020111]
+* cursor form is changed when window is focused or unfocused.
+* when a character whose color is reversed is drawn under wall paper or tranparent mode ,
+  not background image but the background color of the charcter is used.
+  (thanks to Masao Uebayashi san)
+* ESC ] 20 ; pt BEL sequence is supported.(thanks to Minami Hirokazu san)
+
+[20020110]
+* big5 unstandard characters can be converted to and from ucs4.
+
+[20020109]
+* -r/--fade/fade_ratio option is added.
+* infinite loop owing to malformed escape sequence like "ESC ] ;"
+  can be escaped by pressing LF.(Minami Hirokazu san)
+
+[20020108]
+* fribidi 0.10.0(where FriBidiStrIndex is 32bit , not 16bit) is supported.
+* selecting region policy is changed(character is selected after mouse
+  pointer passing over it) , and some bug are fixed.
+
+[20020108]
+* mlterm with --enable-debug option can dump core owing to failure of 
+  list operations. fixed. (thanks to Karl Koehler)
+* ISCII / Bidi codes are more shared.
+* mlterm.spec is updated (thanks to Kiyoshi Nishizawa san)
+* ISCII characters in backscroll logs cannot be selected(and copyed) correctly.
+  fixed.
+* Window is not resized when font size is changed. fixed.
+* -g option accepts minus x/y position.
+* vertical tab sometimes fails. fixed.(thanks to nekoie san)
+* default font size range is 6 - 30.
+
+[20020106]
+* ISCII support codes are added. (still unstable)
+* INIT_PARSER short cut key is removed and "Full Rest" button is added to mlconfig. 
+* when color rgb is explicitly assigned in ~/.mlterm/color , reversed color is not
+  drawn correctly under Anti Alias mode. fixed. (thanks to nekoie san)
+* ISO-8859-11 can be used as a -E option value.
+* ~/.mlterm/vlfont is renamed to ~/.mlterm/vfont
+* -V/--varlen/use_variable_length_column option is renamed to 
+  -V/--varwidth/use_variable_column_width
+* Kochi Mincho sample is added to etc/aafont.
+
+[20020102]
+* variable length column is supported. (-V/--verlen/use_variable_length_column option)
+* DEC_SPECIAL characters are not shown under TERM=kterm and non-iso2022 encoding. fixed.
+
+[20020102]
+* selected region is reset in scrolling with dragging mouse. fixed.
+* 2.1.2 is released.
+
+[20011230]
+* cursor doesn't move correctly on full width characters(critical bug!). fixed.
+* If scroll commands appear with scroll region changing one by one , the number
+  of redrawing screen becomes too much. fixed.
+* mistake of mlterm.spec is fixed.
+* 2.1.1 is released.
+
+[20011229]
+* 2.1.0 is released.
+
+[20011229]
+* compilation of src/ml_image.c fails in Solaris,HP-UX,EWS4800. fixed.
+  (thanks to Sakamoto Hironori san)
+* support for the sequences invoking dec-special characters is improved.
+* memory leaks when combining chars are selected twice or more. fixed.
+
+[20011228]
+* screen can be illegally scrolled when characters are inserted at the buttom of screen. fixed.
+  (thanks to Minami Hirokazu san)
+
+[20011228]
+* INIT_PARSER short cut key (which initializes status of pty encoding parser)
+  is added.
+* invoking dec-special characters by SI/SO is supported.(non-ISO2022 encoding only)
+
+[20011227]
+* if pty encoding is stateless , state of pty encoding parser is not
+  reset when key is pressed.
+* "ESC [ ? 25 h" , "ESC [ ? 25 l" sequences are supported.
+
+[20011226]
+* typos in mlterm.1 are fixed.(thanks to Kubota Tomohiro san)
+* something like "ESC [ 34 ; 0 ; m" sequence is parsed incorrectly.fixed.
+  (thanks to Sakamoto Hironori san)
+* cursor is not repainted under transparent mode. fixed.
+  (thanks to Uebayashi Masao san)
+
+[20011225]
+* memory leaks if you use both -m and -bi options under utf8 encoding. fixed.
+* mkf/mkf_ucs4_xxx.c are thread-safe.
+* Shift + Mouse Button operations under console apps useing mouse tracking
+  are supported.
+
+[20011225]
+* wraparound word can be selected.
+* mlterm core dumps if XMODIFIERS variable is empty or illegal value. fixed.
+
+[20011224]
+* US-ASCII chars may be shown incorrectly under EUC-CN/GBK/GB18030. fixed.
+* mlterm.1 document is updated a little more.(thanks to Kubota Tomohiro san)
+* Unicode <=> CNS11643-1992 plane 3 convertion table is added.
+* EUC-TW is excluded from Unicode subset group.
+* the default value of use_bidi and use_combining is true.
+* if mlterm is resized under bidi-mode , you cannot copy&paste RTL chars. fixed.
+
+[20011222]
+* Hangul chars are not shown correctly in --noucsfont. fixed.
+* manual page(mlterm.1) is updated. (thanks to Kubota Tomohiro san)
+* the same CTEXT generator engine is used whether --big5bug option is set or not. fixed.
+
+[20011221]
+* option names are changed.
+  --ucs2other => --noucsfont
+  unicode_to_other_cs => not_use_unicode_font
+  --all2ucs => --onlyucsfont
+  all_cs_to_unicode => only_use_unicode_font
+* full width chars are not shown correctly in --onlyucsfont. fixed.
+* -8/--88591 (iso88591_font_for_usascii) option is added.
+* -R /usr/local/lib -R /usr/X11R6/lib options are added to LIBS macro in
+  src/Makefile.in tool/mlconfig/Makefile.in
+  (thanks to Uebayashi Masao san)
+* illegal chars which is not based on ISO2022 (e.g. KOI8-R) are also accepted if
+  at all possible in ISO2022-based encodings.
+
+[20011220]
+* prefer_utf8_selection and xct_process_mode options are removed , and copy_paste_via_ucs
+  option is added.
+* BIG5HKSCS is separated into BIG5 and HKSCS.
+* memory leaks when copy&paste combined chars. fixed.
+* illegal chars based on ISO2022 are accepted if at all possible in ISO2022-based encodings.
+* ISO2022 parser doesn't parse correctly when sequence is splited. fixed.
+* core dump when copy&paste with no chars selected. fixed.
+
+[20011216]
+* prefer_utf8_selection includes auto_detect_utf8_selection.
+  that is , true/false/auto can be used as value.
+* conv_to_generic_iso2022 and pre_conv_xct_to_ucs options are obsoleted.
+* xct_process_mode(-c/--xct) option is added.
+  this accepts ucs , raw or normal value.
+* new "copy&paste" tab is added to mlconfig
+* --ucshater => --ucs2other
+  --ucslover => --all2ucs
+
+[20011215]
+* prefer_utf8_selection (-U/--utf8sel) , auto_detect_utf8_selection (-o/--autoutf8)
+  options are added.
+* when window resized , font changed or encoding changed , screen may not be redrawn
+  or cursor position may be strange. fixed.
+
+[20011215]
+* ESC H (set tab) ESC [ 0 g (clear tab) ESC [ 3 g (clear all tabs) are supported.
+* Big5HKSCS encoding/charset is supported.
+* US ASCII font is not changed when encoding is changed to ISO8859 variant or UTF8. fixed.
+* huge memory leaks when window is resized. fixed.
+* input text is received in order of XmbLookupString => XLookupString => Xutf8LookupString.
+* UTF8 selection is received as it is.
+* Big5 buggy sequence is automatically detected.
+
+[20011214]
+* mlconfig is replaced by the new one designed by Kubota Tomohiro san(thanks)
+* mlconfig works asynchronous.
+* documentation for big5_buggy option is added.
+* memory leaks when pre_conv_xct_to_ucs option is changed more than twice. fixed.
+
+[20011214]
+* mlterm can core dump in kik_locale_init(). fixed.
+* XA_STRING property is supported in copy and paste.
+* cursor-control characters inside ESC sequences are partially supported.
+  (Thanks to Minami Hirokazu san)
+
+[20011213]
+* memory leaks around encoding parsers. fixed.
+* XIM codes are rewritten. XRegisterIMInstantiateCallback() is used.
+
+[20011212]
+* garbages can be left on screen in scrolling. fixed.
+* The implementation of VT102 INS/DEL lines functions was buggy. fixed.
+* If XMODIFIERS's xim is executed after mlterm started , mlterm won't use it
+  even if XIM_OPEN key is pressed. fixed.
+
+[20011212]
+* the number of redrawing in bidi mode is reduced.
+* ml_image modules is cleaned up.
+* INDEX/RINDEX vt100 implementation was wrong. fixed.
+* ESC # , ESC E , ESC [ ? l 3 , ESC [ ? l 5 , ESC [ ? h 3 , ESC [ ? h 5 are supported.
+* "ESC [ ; ..." is regarded as "ESC [ 0 ; ..."
+* buffer overflow in parsing ESC [ ... sequence is fixed.
+* the size of mlconfig window is shrunk.
+
+[20011210]
+* Big5 copy and paste problem is fixed.
+  (--big5bug option is added)
+* minor bugs of bidi are fixed.
+* documents are updated except --big5bug option.
+* character shaping stops unless mlterm works on bidi mode.
+ 
+[20011208]
+* Bidi is supported.(FriBidi is required)
+* Arabic character shaping is supported.
+* ml_image module is cleaned up.
+* many minor bugs are fixed.
+* mlterm icons are added.(thanks to Kubota Tomohiro san.)
+
+[20011203]
+* ml_get_locale() in ml_locale.c returns "C" if setlocale() failed in ml_locale_init().
+* ml_get_xim() in ml_xim.c returns NULL if xim_locale argument is "C" or 
+  ml_locale_init(xim_locale) fails.
+* doc/en/README.sb is added.
+* doc/{ja|en}/README.xim is added.
+
+[20011202]
+* BEL(0x7) is supported and bel_mode option(none/visual/sound) is added.
+* VWERSE typo is fixed.(ml_pty_fork_{streams|bsd}.c)
+* LC_CTYPE=C mlterm and pressing Shift + Space causes segmentation fault. fixed.
+* WINDOWID env var doesn't set that of VT100 Window but Top Window.
+* pink and brown colors are added.
+* "update: ..." lines of all files are removed.

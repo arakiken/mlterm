@@ -1,23 +1,22 @@
 AC_INIT()
 
-PWD=`pwd`
-TOPDIR=${PWD}/..
-AC_SUBST(TOPDIR)
+SRC_TOPDIR='${BUILD_TOPDIR}'/autoconf/${top_srcdir-$srcdir}/..
+AC_SUBST(SRC_TOPDIR)
 
-AC_CONFIG_AUX_DIR(${PWD})
+AC_CONFIG_AUX_DIR(${top_srcdir-$srcdir})
 
-if test -d ${TOPDIR}/mkf ; then
-	MKF_LIBS="${TOPDIR}/mkf/lib/libmkf.la"
-	MKF_CFLAGS="-I${TOPDIR}/mkf/include"
+if test -d ../mkf ; then
+	MKF_LIBS='${BUILD_TOPDIR}/mkf/lib/libmkf.la'
+	MKF_CFLAGS='-I${BUILD_TOPDIR}/mkf/include'
 else
 	MKF_LIBS="-lmkf"
 fi
 AC_SUBST(MKF_LIBS)
 AC_SUBST(MKF_CFLAGS)
 
-if test -d ${TOPDIR}/kiklib ; then
-	KIK_LIBS="${TOPDIR}/kiklib/src/libkik.la"
-	KIK_CFLAGS="-I${TOPDIR}/kiklib/include"
+if test -d ../kiklib ; then
+	KIK_LIBS='${BUILD_TOPDIR}/kiklib/src/libkik.la'
+	KIK_CFLAGS='-I${BUILD_TOPDIR}/kiklib/include'
 else
 	KIK_LIBS="-lkik"
 fi
@@ -35,7 +34,7 @@ if test "${libtool}" != "" ; then
 	LIBTOOL=${libtool}
 else
 	AM_PROG_LIBTOOL
-	LIBTOOL=${PWD}/libtool
+	LIBTOOL='${BUILD_TOPDIR}/autoconf/libtool'
 fi
 AC_SUBST(LIBTOOL)
 
@@ -160,18 +159,18 @@ AC_SUBST(UCS4_CFLAGS)
 AC_CHECK_PROG(gtk_config,gtk-config,yes)
 if test "$gtk_config" = "yes" ; then
 	AC_PATH_PROG(GTK_CONFIG,gtk-config,/usr/local/bin/gtk-config,$PATH)
-	MAKE_DIRS="${TOPDIR}/tool/mlconfig ${MAKE_DIRS}"
+	MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
 else
 	# for Daichi Goto-san:)
 	AC_CHECK_PROG(gtk_config,gtk12-config,yes)
 	if test "$gtk_config" = "yes" ; then
 		AC_PATH_PROG(GTK_CONFIG,gtk12-config,/usr/X11R6/bin/gtk12-config,$PATH)
-		MAKE_DIRS="${TOPDIR}/tool/mlconfig ${MAKE_DIRS}"
+		MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
 	fi
 fi
 AC_SUBST(GTK_CONFIG)
 
-MAKE_DIRS="${TOPDIR}/src ${TOPDIR}/tool/mlclient ${TOPDIR}/man ${TOPDIR}/etc ${TOPDIR}/scrollbar/sample ${MAKE_DIRS}"
+MAKE_DIRS="src tool/mlclient man etc scrollbar/sample ${MAKE_DIRS}"
 AC_SUBST(MAKE_DIRS)
 
 AC_OUTPUT(Makefile ../src/Makefile ../tool/mlconfig/Makefile ../tool/mlclient/Makefile ../man/Makefile ../etc/Makefile ../scrollbar/sample/Makefile)

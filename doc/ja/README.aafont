@@ -1,0 +1,37 @@
+comment -*- mode: text -*-
+comment $Id$
+
+* etc/aafont に記載されているフォントについて
+
+--- mlterm-dev-ja より引用
+Subject: [Mlterm-dev-ja] sample font configuration file
+Message-ID: <200204170258.g3H2wF906187@side.riken.go.jp>
+From: Tomohiro KUBOTA <tkubota@riken.go.jp>
+To: mlterm-dev-ja <mlterm-dev-ja@lists.sourceforge.net>
+Date: Wed, 17 Apr 2002 12:04:54 +0900
+
+Courier 10 Pitch は、/etc/X11/XftConfig に
+dir "/usr/X11R6/lib/X11/fonts/Type1"
+と書かれているあたりのフォントです。たぶん Debian 特有でしょう。
+
+Thryomanes というのは、ftp://ftp.io.com/pub/usr/hmiller/fonts/
+にあるフォントで、ラテン・キリル・ギリシャ系の多くのグリフを持って
+います。プロポーショナルなのでいまいちかも。
+
+韓国語は baekmuk フォント、中国語は arphic フォントです。
+これら (と東風) を統合したフォントがあればいいのですが...
+まあ、統合漢字については、きれいな解というのは無理ですね。
+
+ロシア文字は、
+
+    1) urw-fonts-1.0.7pre4.tar.bz2 and oldslavic.tar.bz2 from
+       ftp://ftp.gnome.ru/fonts/
+       Maintainer: Valek Filippov <frob@df.ru>
+
+    2) ftp://ftp.ice.ru/pub/fonts/type1/teams-1.1.tar.gz
+       Maintainer: TopTeam Co. <http://www.topteam.bg>
+                   Alexander Shopov <al_shopov@web.bg>
+
+のあたりにあるそうです。(scalable-cyrfonts パッケージの
+ドキュメントからの抜粋)。等幅フォントなので、thryomanes よりも
+きれいに表示できます。
