@@ -1,3 +1,8 @@
+2002-06-08 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Removed command options from mlconfig which are not
+	  needed any more.
+
 2002-06-06 Araki Ken <arakiken@users.sf.net>
 
 	* -K/--maxptys option is removed.

@@ -246,10 +246,7 @@ full_reset(void)
 }
 
 static int
-show(
-	int  x ,
-	int  y
-	)
+show(void)
 {
 	GtkWidget *  window ;
 	GtkWidget *  vbox ;
@@ -573,21 +570,9 @@ main(
 	char **  argv
 	)
 {
-	int  x ;
-	int  y ;
-		
 	gtk_init( &argc , &argv) ;
 
-	if( argc != 3 ||
-		! kik_str_to_int( &x , argv[1]) ||
-		! kik_str_to_int( &y , argv[2]))
-	{
-		kik_msg_printf( "usage: mlconfig [x] [y]\n") ;
-		
-		return  0 ;
-	}
-
-	if( show( x , y) == 0)
+	if( show() == 0)
 	{
 		kik_msg_printf( "Starting mlconfig failed.\n") ;
 		
