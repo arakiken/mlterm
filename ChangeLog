@@ -1,3 +1,10 @@
+2003-05-10 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* configure.in, kiklib/configure.in, mkf/configure.in: added
+	  AC_LIBTOOL_WIN32_DLL macro.
+	* kiklib/src/Makefile.in: MAJOR increment with a change of
+	  kik_dl_open().
+
 2003-05-06  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_dnd.c, xwindow/x_dnd.h : adopt XDnD v5 spec.

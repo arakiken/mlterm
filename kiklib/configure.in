@@ -11,6 +11,7 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
 
+AC_LIBTOOL_WIN32_DLL
 AC_ARG_WITH(libtool,
 	[  --with-libtool          libtool path[without]],
 	libtool=$with_libtool)
