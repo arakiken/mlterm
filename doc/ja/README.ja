@@ -36,6 +36,14 @@ comment $Id$
     --prefix
       インストールプレフィクス
 
+    --without-map-table
+      文字変換テーブルを組込みません。
+      この場合、UNICODE <=> 各種文字集合の変換等を扱えなくなります。
+
+    --without-prop-table
+      文字プロパティテーブルを組み込みません。
+      この場合、結合文字や BIDI 等を扱えなくなります。
+
     --with-imagelib=[imlib, gdk-pixbuf2, gdk-pixbuf1]
       imlib/gdk-pixbuf(gtk2附属)/gdk-pixbuf(0.1x) を使って、
       壁紙を貼れるようにします。

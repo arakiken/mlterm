@@ -9,6 +9,12 @@
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
+#ifdef  REMOVE_MAPPING_TABLE
+
+#define  CONV_UCS4_COMPAT_TO_JISX0208_1983(ch)  0x0
+
+#else
+
 #define  CONV_UCS4_COMPAT_TO_JISX0208_1983(ch) \
 	( (ch) < ucs4_compat_to_jisx0208_1983_beg || ucs4_compat_to_jisx0208_1983_end < (ch) ? \
 		0 : ucs4_compat_to_jisx0208_1983_table[ (ch) - ucs4_compat_to_jisx0208_1983_beg])
@@ -279,6 +285,8 @@ static u_int16_t  ucs4_compat_to_jisx0208_1983_table[] =
 static u_int  ucs4_compat_to_jisx0208_1983_beg = 0xff01 ;
 
 static u_int  ucs4_compat_to_jisx0208_1983_end = 0xffe5 ;
+
+#endif
 
 
 #endif

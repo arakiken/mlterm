@@ -11,6 +11,12 @@
 #include  "../mkf_ucs_property.h"
 
 
+#ifdef  REMOVE_PROPERTY_TABLE
+
+#define  GET_UCS_ALPHABET_PROPERTY(ucs)  0x0
+
+#else
+
 #define  GET_UCS_ALPHABET_PROPERTY(ucs)  \
 	((ucs_alphabet_property_beg <= (ucs) && (ucs) <= ucs_alphabet_property_end) ? \
 		ucs_alphabet_property_table[ (ucs) - ucs_alphabet_property_beg] : 0)
@@ -15997,6 +16003,8 @@ static mkf_ucs_property_t  ucs_alphabet_property_table[] =
 static u_int  ucs_alphabet_property_beg = 0x0 ; 
 
 static u_int  ucs_alphabet_property_end = 0x33fe ; 
+
+#endif
 
 
 #endif

@@ -11,6 +11,12 @@
 #include  "../mkf_ucs_property.h"
 
 
+#ifdef  REMOVE_PROPERTY_TABLE
+
+#define  GET_UCS_COMPAT_PROPERTY(ucs)  0x0
+
+#else
+
 #define  GET_UCS_COMPAT_PROPERTY(ucs)  \
 	((ucs_compat_property_beg <= (ucs) && (ucs) <= ucs_compat_property_end) ? \
 		ucs_compat_property_table[ (ucs) - ucs_compat_property_beg] : 0)
@@ -2172,6 +2178,8 @@ static mkf_ucs_property_t  ucs_compat_property_table[] =
 static u_int  ucs_compat_property_beg = 0xf900 ; 
 
 static u_int  ucs_compat_property_end = 0xfffd ; 
+
+#endif
 
 
 #endif

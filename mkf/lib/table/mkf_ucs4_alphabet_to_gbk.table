@@ -9,6 +9,12 @@
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
+#ifdef  REMOVE_MAPPING_TABLE
+
+#define  CONV_UCS4_ALPHABET_TO_GBK(ch)  0x0
+
+#else
+
 #define  CONV_UCS4_ALPHABET_TO_GBK(ch) \
 	( (ch) < ucs4_alphabet_to_gbk_beg || ucs4_alphabet_to_gbk_end < (ch) ? \
 		0 : ucs4_alphabet_to_gbk_table[ (ch) - ucs4_alphabet_to_gbk_beg])
@@ -14766,6 +14772,8 @@ static u_int16_t  ucs4_alphabet_to_gbk_table[] =
 static u_int  ucs4_alphabet_to_gbk_beg = 0xa4 ;
 
 static u_int  ucs4_alphabet_to_gbk_end = 0x33d5 ;
+
+#endif
 
 
 #endif

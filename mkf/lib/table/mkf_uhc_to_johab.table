@@ -9,6 +9,12 @@
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
+#ifdef  REMOVE_MAPPING_TABLE
+
+#define  CONV_UHC_TO_JOHAB(ch)  0x0
+
+#else
+
 #define  CONV_UHC_TO_JOHAB(ch) \
 	( (ch) < uhc_to_johab_beg || uhc_to_johab_end < (ch) ? \
 		0 : uhc_to_johab_table[ (ch) - uhc_to_johab_beg])
@@ -7038,6 +7044,8 @@ static u_int16_t  uhc_to_johab_table[] =
 static u_int  uhc_to_johab_beg = 0xb0a1 ;
 
 static u_int  uhc_to_johab_end = 0xc8fe ;
+
+#endif
 
 
 #endif

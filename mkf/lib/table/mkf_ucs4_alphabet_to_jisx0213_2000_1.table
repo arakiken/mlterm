@@ -9,6 +9,12 @@
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
+#ifdef  REMOVE_MAPPING_TABLE
+
+#define  CONV_UCS4_ALPHABET_TO_JISX0213_2000_1(ch)  0x0
+
+#else
+
 #define  CONV_UCS4_ALPHABET_TO_JISX0213_2000_1(ch) \
 	( (ch) < ucs4_alphabet_to_jisx0213_2000_1_beg || ucs4_alphabet_to_jisx0213_2000_1_end < (ch) ? \
 		0 : ucs4_alphabet_to_jisx0213_2000_1_table[ (ch) - ucs4_alphabet_to_jisx0213_2000_1_beg])
@@ -14760,6 +14766,8 @@ static u_int16_t  ucs4_alphabet_to_jisx0213_2000_1_table[] =
 static u_int  ucs4_alphabet_to_jisx0213_2000_1_beg = 0xa0 ;
 
 static u_int  ucs4_alphabet_to_jisx0213_2000_1_end = 0x33cd ;
+
+#endif
 
 
 #endif

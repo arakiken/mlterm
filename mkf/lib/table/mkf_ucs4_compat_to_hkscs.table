@@ -9,6 +9,12 @@
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
+#ifdef  REMOVE_MAPPING_TABLE
+
+#define  CONV_UCS4_COMPAT_TO_HKSCS(ch)  0x0
+
+#else
+
 #define  CONV_UCS4_COMPAT_TO_HKSCS(ch) \
 	( (ch) < ucs4_compat_to_hkscs_beg || ucs4_compat_to_hkscs_end < (ch) ? \
 		0 : ucs4_compat_to_hkscs_table[ (ch) - ucs4_compat_to_hkscs_beg])
@@ -286,6 +292,8 @@ static u_int16_t  ucs4_compat_to_hkscs_table[] =
 static u_int  ucs4_compat_to_hkscs_beg = 0xff02 ;
 
 static u_int  ucs4_compat_to_hkscs_end = 0xffed ;
+
+#endif
 
 
 #endif

@@ -9,6 +9,12 @@
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
+#ifdef  REMOVE_MAPPING_TABLE
+
+#define  CONV_BIG5_TO_UCS4(ch)  0x0
+
+#else
+
 #define  CONV_BIG5_TO_UCS4(ch) \
 	( (ch) < big5_to_ucs4_beg || big5_to_ucs4_end < (ch) ? \
 		0 : big5_to_ucs4_table[ (ch) - big5_to_ucs4_beg])
@@ -25579,6 +25585,8 @@ static u_int16_t  big5_to_ucs4_table[] =
 static u_int  big5_to_ucs4_beg = 0xa140 ;
 
 static u_int  big5_to_ucs4_end = 0xf9fe ;
+
+#endif
 
 
 #endif

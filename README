@@ -13,6 +13,12 @@ Options for configure
   --prefix
     Installation prefix
 
+  --without-map-table
+    Remove character mapping table
+
+  --without-prop-table
+    Remove character property table
+
   --with-imagelib=[imlib,gdk-pixbuf2,gdk-pixbuf1]
     Image library
 

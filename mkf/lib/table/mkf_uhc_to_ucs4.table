@@ -9,6 +9,12 @@
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
+#ifdef  REMOVE_MAPPING_TABLE
+
+#define  CONV_UHC_TO_UCS4(ch)  0x0
+
+#else
+
 #define  CONV_UHC_TO_UCS4(ch) \
 	( (ch) < uhc_to_ucs4_beg || uhc_to_ucs4_end < (ch) ? \
 		0 : uhc_to_ucs4_table[ (ch) - uhc_to_ucs4_beg])
@@ -35946,6 +35952,8 @@ static u_int16_t  uhc_to_ucs4_table[] =
 static u_int  uhc_to_ucs4_beg = 0x8141 ;
 
 static u_int  uhc_to_ucs4_end = 0xfdfe ;
+
+#endif
 
 
 #endif

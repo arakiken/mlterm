@@ -1,5 +1,6 @@
 /*
  *	mkf_sjis_ibm_ext_to_ucs4.table
+ *	-- Not automatically generated, maintained by hand.
  */
 
 #ifndef  __MKF_SJIS_IBM_EXT_TO_UCS4_TABLE__

@@ -11,6 +11,12 @@
 #include  "../mkf_ucs_property.h"
 
 
+#ifdef  REMOVE_PROPERTY_TABLE
+
+#define  GET_UCS_HANGUL_PROPERTY(ucs)  0x0
+
+#else
+
 #define  GET_UCS_HANGUL_PROPERTY(ucs)  \
 	((ucs_hangul_property_beg <= (ucs) && (ucs) <= ucs_hangul_property_end) ? \
 		ucs_hangul_property_table[ (ucs) - ucs_hangul_property_beg] : 0)
@@ -13430,6 +13436,8 @@ static mkf_ucs_property_t  ucs_hangul_property_table[] =
 static u_int  ucs_hangul_property_beg = 0xac00 ; 
 
 static u_int  ucs_hangul_property_end = 0xd7a3 ; 
+
+#endif
 
 
 #endif

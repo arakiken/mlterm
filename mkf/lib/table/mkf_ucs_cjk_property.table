@@ -11,6 +11,12 @@
 #include  "../mkf_ucs_property.h"
 
 
+#ifdef  REMOVE_PROPERTY_TABLE
+
+#define  GET_UCS_CJK_PROPERTY(ucs)  0x0
+
+#else
+
 #define  GET_UCS_CJK_PROPERTY(ucs)  \
 	((ucs_cjk_property_beg <= (ucs) && (ucs) <= ucs_cjk_property_end) ? \
 		ucs_cjk_property_table[ (ucs) - ucs_cjk_property_beg] : 0)
@@ -25106,6 +25112,8 @@ static mkf_ucs_property_t  ucs_cjk_property_table[] =
 static u_int  ucs_cjk_property_beg = 0x4e00 ; 
 
 static u_int  ucs_cjk_property_end = 0x9fa5 ; 
+
+#endif
 
 
 #endif

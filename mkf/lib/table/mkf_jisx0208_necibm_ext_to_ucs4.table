@@ -1,5 +1,6 @@
 /*
  *	mkf_jisx0208_necibm_ext_to_ucs4.table
+ *	-- Not automatically generated, maintained by hand.
  */
 
 #ifndef  __MKF_JISX0208_NECIBM_EXT_TO_UCS4_TABLE__

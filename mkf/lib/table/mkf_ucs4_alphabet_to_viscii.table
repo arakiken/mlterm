@@ -9,6 +9,12 @@
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
+#ifdef  REMOVE_MAPPING_TABLE
+
+#define  CONV_UCS4_ALPHABET_TO_VISCII(ch)  0x0
+
+#else
+
 #define  CONV_UCS4_ALPHABET_TO_VISCII(ch) \
 	( (ch) < ucs4_alphabet_to_viscii_beg || ucs4_alphabet_to_viscii_end < (ch) ? \
 		0 : ucs4_alphabet_to_viscii_table[ (ch) - ucs4_alphabet_to_viscii_beg])
@@ -8726,6 +8732,8 @@ static u_int8_t  ucs4_alphabet_to_viscii_table[] =
 static u_int  ucs4_alphabet_to_viscii_beg = 0xc0 ;
 
 static u_int  ucs4_alphabet_to_viscii_end = 0x1ef9 ;
+
+#endif
 
 
 #endif

@@ -9,6 +9,12 @@
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
+#ifdef  REMOVE_MAPPING_TABLE
+
+#define  CONV_UCS4_CJK_TO_CNS11643_1992_2(ch)  0x0
+
+#else
+
 #define  CONV_UCS4_CJK_TO_CNS11643_1992_2(ch) \
 	( (ch) < ucs4_cjk_to_cns11643_1992_2_beg || ucs4_cjk_to_cns11643_1992_2_end < (ch) ? \
 		0 : ucs4_cjk_to_cns11643_1992_2_table[ (ch) - ucs4_cjk_to_cns11643_1992_2_beg])
@@ -23526,6 +23532,8 @@ static u_int16_t  ucs4_cjk_to_cns11643_1992_2_table[] =
 static u_int  ucs4_cjk_to_cns11643_1992_2_beg = 0x4e07 ;
 
 static u_int  ucs4_cjk_to_cns11643_1992_2_end = 0x9fa4 ;
+
+#endif
 
 
 #endif
