@@ -89,7 +89,10 @@ imlib)
 	fi
 	;;
 gdk-pixbuf)
-	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, IMAGELIB_NAME=gdk)
+	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
+		IMAGELIB_NAME=gdk
+		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_GDK_PIXBUF"
+	])
 	if test "x$IMAGELIB_NAME" = "xnone" ; then
 		AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
 		if test "$pkg_config" = "yes" ; then
@@ -100,7 +103,10 @@ gdk-pixbuf)
 	fi
 	;;
 gdk-pixbuf2)
-	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, IMAGELIB_NAME=gdk)
+	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
+		IMAGELIB_NAME=gdk
+		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_GDK_PIXBUF"
+	])
 	;;
 gdk-pixbuf1)
 	AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)

@@ -1,3 +1,8 @@
+2004-03-04  Tomohiro KUBOTA  <kubota@debian.org>
+
+	* "-p"/"--pic" option was not enabled when using gdk-pixbuf2.
+	  Fixed.
+
 2004-03-01  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* mlterm/ml_vt100_parser.c: ignore leading zeroes in numeric
