@@ -1,3 +1,7 @@
+2004-08-29 Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* inputmethod/uim/im_uim.c: converted X modify key to uim key.
+
 2004-08-28 MINAMI Hirokazu <minami@mistfall.net>
  
         * doc/term/mlterm.* : reversed the order of sequences in sgr0.

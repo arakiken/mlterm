@@ -862,22 +862,23 @@ key_event(
 
 	uim = (im_uim_t*) im ;
 
+	/* XXX */
 	if( event->state & ShiftMask)
-		state += UKey_Shift;
+		state |= UKey_Shift;
 	if( event->state & LockMask)
-		state += 0; /* XXX */
+		;
 	if( event->state & ControlMask)
-		state += UKey_Control;
+		state |= UKey_Control;
 	if( event->state & Mod1Mask)
-		state += 0 ; /* XXX */
+		state |= UMod_Alt ;
 	if( event->state & Mod2Mask)
-		state += 0 ; /* XXX */
+		state |= UMod_Meta ;
 	if( event->state & Mod3Mask)
-		state += 0 ; /* XXX */
+		state |= UMod_Super ;
 	if( event->state & Mod4Mask)
-		state += 0 ; /* XXX */
+		state |= UMod_Hyper ;
 	if( event->state & Mod5Mask)
-		state += 0 ; /* XXX */
+		;
 
 	key = xksym_to_ukey(ksym) ;
 
