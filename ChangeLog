@@ -1,3 +1,10 @@
+2003-07-13  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* kik_config.h.in: Added gid_t. it is required on some platforms, and
+	  defined by AC_TYPE_UID_T.
+	
+	* kiklib/configure.in: Cleaned up platform dependent stuff.
+
 2003-07-09  Araki Ken  <arakiken@users.sf.net>
 
 	* Fixed 0x0 core dump bug.

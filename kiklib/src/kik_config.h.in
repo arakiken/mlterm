@@ -98,6 +98,8 @@
 
 #undef  uid_t
 
+#undef  gid_t
+
 #undef  off_t
 
 #undef  size_t

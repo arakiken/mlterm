@@ -4,7 +4,7 @@ AC_CONFIG_HEADER(src/kik_config.h)
 AC_CONFIG_AUX_DIR(script)
 
 AC_CANONICAL_HOST
-# AC_CANONICAL_TARGET  TODO: cross-compile support (sato)
+AC_CANONICAL_TARGET
 
 AC_PROG_CC
 # if --with-libtool is specified, cpp isn't detected.
@@ -55,6 +55,31 @@ AC_TYPE_UID_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 
+# platform dependent stuff
+case "${target_os}" in
+cygwin*)
+	LIB_PREFIX="cyg"
+	LIB_SUFFIX=".dll"
+	kik_cv_utmp=none
+	;;
+#mingw32*) mingw32 support (still not work yet)
+#	LIB_PREFIX="lib"
+#	LIB_SUFFIX=".dll"
+#	AC_DEFINE(USE_WIN32API)
+#	kik_cv_utmp=none
+#	kik_cv_pty=win32
+#	;;
+#darwin* | rhapsody*) darwin support (still not work yet)
+#	LIB_PREFIX="lib"
+#	LIB_SUFFIX=".dylib"
+#	;;
+*)
+	LIB_PREFIX="lib"
+	LIB_SUFFIX=".so"
+esac
+AC_SUBST(LIB_PREFIX)
+AC_SUBST(LIB_SUFFIX)
+
 AC_CACHE_CHECK(for socklen_t , kik_cv_socklen_ident,[
 AC_TRY_COMPILE(
 [
@@ -104,11 +129,7 @@ AC_SUBST(UTMPER_LIBS)
 kik_cv_utmp=utmper
 ])
 
-if test "${host_os}" = "cygwin" ; then
-	UTMP_NAME=none
-else
-	UTMP_NAME=$kik_cv_utmp
-fi
+UTMP_NAME=$kik_cv_utmp
 AC_SUBST(UTMP_NAME)
 
 AC_MSG_CHECKING(for pty/tty type)
@@ -130,24 +151,5 @@ if test "$debug" = "yes" ; then
 	DEB_CFLAGS="-DDEBUG -DKIK_DEBUG"
 fi
 AC_SUBST(DEB_CFLAGS)
-
-# librarie name (cygwin: cygfoo.dll, darwin: libfoo.dylib, other: libfoo.so)
-# case ${target_os} in  TODO: cross-compile support (sato)
-case ${host_os} in
-	cygwin*)
-		LIB_PREFIX="cyg"
-		LIB_SUFFIX=".dll"
-		;;
-#	drawin* | rhapsody*) TODO: darwin support (sato)
-#		LIB_PREFIX="lib"
-#		LIB_SUFFIX=".dylib"
-#		;;
-	*)
-		LIB_PREFIX="lib"
-		LIB_SUFFIX=".so"
-		;;
-esac
-AC_SUBST(LIB_PREFIX)
-AC_SUBST(LIB_SUFFIX)
 
 AC_OUTPUT(Makefile src/Makefile)
