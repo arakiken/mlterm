@@ -1,6 +1,15 @@
 2003-07-13  Seiichi SATO  <ssato@sh.rim.or.jp>
 
-	* kik_config.h.in: Added gid_t. it is required on some platforms, and
+	* Aedded "lang" and "country" into map_ucs4_to_func_table struct instead
+	  of "locale", and get_map_ucs4_to_func_for_current_locale() function
+	  was changed to select UCS mapping table by sys_lang and sys_coutry.
+	  Probably it is useful, if your system have no posix locale mechanism,
+	  or broken one such as old UN*X and Mac OS X.
+	  (Thanks to Aida Shinra san for sending a patch)
+
+2003-07-13  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* kik_config.h.in: Added gid_t. It is required on some platforms, and
 	  defined by AC_TYPE_UID_T.
 	
 	* kiklib/configure.in: Cleaned up platform dependent stuff.

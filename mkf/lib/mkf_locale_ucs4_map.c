@@ -24,7 +24,8 @@ typedef int (*map_func_t)( mkf_char_t *  , mkf_char_t *) ;
 
 typedef struct  map_ucs4_to_func_table
 {
-	char *  locale ;
+	char *  lang ;
+	char *  country ;
 	map_func_t  func ;
 
 } map_ucs4_to_func_table_t ;
@@ -41,16 +42,16 @@ typedef struct  map_ucs4_to_func_table
  */
 static map_ucs4_to_func_table_t  map_ucs4_to_func_table[] =
 {
-	{ "ja" , mkf_map_ucs4_to_ja_jp } ,
-	{ "ko" , mkf_map_ucs4_to_ko_kr } ,
-	{ "ru" , mkf_map_ucs4_to_ru } ,
-	{ "uk" , mkf_map_ucs4_to_uk } ,
-	{ "tg" , mkf_map_ucs4_to_tg } ,
-	{ "vi" , mkf_map_ucs4_to_viet } ,
-	{ "zh_CN" , mkf_map_ucs4_to_zh_cn } ,
-	{ "zh_TW" , mkf_map_ucs4_to_zh_tw } ,
-	{ "zh_HK" , mkf_map_ucs4_to_zh_hk } ,
-	{ "zh" , mkf_map_ucs4_to_zh_cn } ,
+	{ "ja" , NULL , mkf_map_ucs4_to_ja_jp } ,
+	{ "ko" , NULL , mkf_map_ucs4_to_ko_kr } ,
+	{ "ru" , NULL , mkf_map_ucs4_to_ru } ,
+	{ "uk" , NULL , mkf_map_ucs4_to_uk } ,
+	{ "tg" , NULL , mkf_map_ucs4_to_tg } ,
+	{ "vi" , NULL , mkf_map_ucs4_to_viet } ,
+	{ "zh" , "CN" , mkf_map_ucs4_to_zh_cn } ,
+	{ "zh" , "TW" , mkf_map_ucs4_to_zh_tw } ,
+	{ "zh" , "HK" , mkf_map_ucs4_to_zh_hk } ,
+	{ "zh" , NULL , mkf_map_ucs4_to_zh_cn } ,
 } ;
 
 
@@ -60,17 +61,22 @@ static map_func_t
 get_map_ucs4_to_func_for_current_locale(void)
 {
 	int  count ;
-	char *  locale ;
+	char *  lang ;
+	char *  country ;
 
-	locale = kik_get_locale() ;
+	lang = kik_get_lang() ;
+	country = kik_get_country() ;
 
 	for( count = 0 ;
 		count < sizeof( map_ucs4_to_func_table) / sizeof( map_ucs4_to_func_table[0]) ;
 		count ++)
 	{
-		if( strncmp( map_ucs4_to_func_table[count].locale , locale ,
-				K_MIN( strlen( map_ucs4_to_func_table[count].locale) ,
-					strlen( locale))) == 0)
+		map_ucs4_to_func_table_t *  tablep ;
+		
+		tablep = map_ucs4_to_func_table + count ;
+
+		if( ( ! tablep->lang || ! strcmp( tablep->lang, lang)) &&
+			( ! tablep->country || ! strcmp( tablep->country, country)))
 		{
 			return  map_ucs4_to_func_table[count].func ;
 		}
