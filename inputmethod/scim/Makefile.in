@@ -44,7 +44,7 @@ all: im-scim
 
 im-scim: $(IM_SCIM_OBJ)
 	$(LIBTOOL_LINK) -o libim-scim.la $(IM_SCIM_OBJ:.o=.lo) \
-	-rpath $(LIBDIR) \
+	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
 .cpp.o:

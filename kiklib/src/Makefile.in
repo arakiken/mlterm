@@ -81,7 +81,7 @@ wc :
 	$(LIBTOOL_CC) -I. -c $<
 
 $(LIBNAME).la : $(OBJ)
-	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(LIBDIR) \
+	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(libdir) \
 		@NO_UNDEFINED_FLAG@ -version-info $(MAJOR):$(MINOR):0
 
 $(LIBNAME).a : $(OBJ)

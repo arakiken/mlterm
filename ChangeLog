@@ -1,3 +1,12 @@
+2005-03-13 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* kiklib/src/Makefile.in, mkf/lib/Makefile.in,
+	  inputmethod/iiimf/Makefile.in, inputmethod/kbd/Makefile.in,
+	  inputmethod/m17nlib/Makefile.in, inputmethod/scim/Makefile.in,
+	  inputmethod/uim/Makefile.in, contrib/scrollbar/extra/Makefile.in,
+	  contrib/scrollbar/pixmap_engine/Makefile.in:
+	  fixed incorrect paths for -rpath of libtool. (#1161055)
+
 2005-03-10 MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_imagelib_gdk.c: don't try to be translucent

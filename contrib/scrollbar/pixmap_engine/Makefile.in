@@ -30,7 +30,7 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 all: pixmap_engine
 pixmap_engine: $(PIXMAP_ENGINE_OBJ)
 	$(LIBTOOL_LINK) -o libpixmap_engine.la $(PIXMAP_ENGINE_OBJ:.o=.lo) \
-	-rpath $(LIBDIR) -module -avoid-version \
+	-rpath $(libdir)/mlterm -module -avoid-version \
 	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 
 .c.o:

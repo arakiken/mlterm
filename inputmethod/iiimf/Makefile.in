@@ -41,7 +41,8 @@ all: im-iiimf
 
 im-iiimf: $(IM_IIIMF_OBJ)
 	$(LIBTOOL_LINK) -o libim-iiimf.la $(IM_IIIMF_OBJ:.o=.lo) \
-	-rpath $(LIBDIR) -module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
+	-rpath $(libdir)/mlterm \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
 .c.o:
 	$(LIBTOOL_CC) -c $<

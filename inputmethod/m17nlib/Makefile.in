@@ -40,7 +40,8 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 all: im-m17nlib
 
 im-m17nlib: $(IM_M17NLIB_OBJ)
-	$(LIBTOOL_LINK) -o libim-m17nlib.la $(IM_M17NLIB_OBJ:.o=.lo) -rpath $(LIBDIR) \
+	$(LIBTOOL_LINK) -o libim-m17nlib.la $(IM_M17NLIB_OBJ:.o=.lo) \
+	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
 .c.o:
