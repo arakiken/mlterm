@@ -25,6 +25,8 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 -I${top_srcdir}/xwindow	\
 	 -I/usr/local/include
 
+LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @IIIMF_LIBS@
+
 CC      = @CC@
 INSTALL = @INSTALL@
 LIBTOOL = @LIBTOOL@
@@ -38,9 +40,8 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 all: im-iiimf
 
 im-iiimf: $(IM_IIIMF_OBJ)
-	$(LIBTOOL_LINK) -o libim-iiimf.la $(IM_IIIMF_OBJ:.o=.lo)	\
-	-rpath $(LIBDIR) -module -avoid-version @NO_UNDEFINED_FLAG@	\
-	$(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @IIIMF_LIBS@
+	$(LIBTOOL_LINK) -o libim-iiimf.la $(IM_IIIMF_OBJ:.o=.lo) \
+	-rpath $(LIBDIR) -module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
 .c.o:
 	$(LIBTOOL_CC) -c $<

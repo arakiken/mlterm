@@ -1,3 +1,22 @@
+2004-11-19 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* mkf/lib/Makefile.in, inputmethod/kbd/Makefile.in,
+	inputmethod/uim/Makefile.in, inputmethod/iiimf/Makefile.in,
+	inputmethod/m17nlib/Makefile.in: Workaround for HP-UX's make.
+
+	;-(
+	Makefile.in -- s/@FOO@/foo/g, s/@BAR@//g --> Makefile
+	target:                                      target:
+	< TAB >@FOO@ \                               < TAB >foo \
+	< TAB >@BAR@                                 < TAB >
+
+	:-)
+	Makefile.in -- s/@FOO@/foo/g, s/@BAR@//g --> Makefile
+	target:                                      target:
+	< TAB >@FOO@ @BAR@                           < TAB >foo
+
+	* doc/en/PLATFORM: updated supported platforms.
+
 2004-11-18 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* doc/en/PLATFORM: updated supported platforms.

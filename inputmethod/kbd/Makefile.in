@@ -23,6 +23,8 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 -I${top_srcdir}/xwindow	\
 	 -I/usr/local/include
 
+LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@
+
 CC      = @CC@
 INSTALL = @INSTALL@
 LIBTOOL = @LIBTOOL@
@@ -37,8 +39,7 @@ all: im-kbd
 
 im-kbd: $(IM_KBD_OBJ)
 	$(LIBTOOL_LINK) -o libim-kbd.la $(IM_KBD_OBJ:.o=.lo) -rpath $(LIBDIR) \
-	-module -avoid-version @NO_UNDEFINED_FLAG@ \
-	$(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@
+	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
 .c.o:
 	$(LIBTOOL_CC) -c $<
