@@ -24,7 +24,7 @@
 
 static unsigned char
 modify_color(unsigned char value, x_picture_modifier_t *  pic_mod){
-	unsigned int result;
+	int result;
 
 	result = pic_mod->contrast*(value - 128)/100 + 128 * pic_mod->brightness/100;
 	if (result >= 255)
