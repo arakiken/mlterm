@@ -1,3 +1,16 @@
+2004-02-27  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* configure.in, aclocal.m4, configure:
+	- use PKG_CHECK_MODULES() where possible.
+	- accept "gdk-pixbuf" as a target of with-imagelib.
+	- mlconfig/mlterm-menu will be linked against gtk+-2.x when
+	  apropreate libraries are available.
+
+	* xwindow/x_imagelib_gdk.c: minor code cleanup.
+
+	* mlterm/ml_edit.c: try to feed a line if next char does not
+	fit in curent line.
+
 2004-02-22  Araki Ken  <arakiken@users.sf.net>
 
 	* Added ml_str.[ch].(separated from ml_char.[ch].)

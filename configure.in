@@ -88,18 +88,24 @@ imlib)
 		IMAGELIB_NAME=imlib
 	fi
 	;;
-gdk-pixbuf2)
-	AC_CHECK_PROG(pkg_config,pkg-config,yes)
-	if test "$pkg_config" = "yes" ; then
-		IMAGELIB_CFLAGS="`pkg-config --cflags gdk-pixbuf-2.0` -DUSE_GDK_PIXBUF"
-		IMAGELIB_LIBS="`pkg-config --libs gdk-pixbuf-2.0`"
-		IMAGELIB_NAME=gdk
+gdk-pixbuf)
+	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, IMAGELIB_NAME=gdk)
+	if test "x$IMAGELIB_NAME" = "xnone" ; then
+		AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
+		if test "$pkg_config" = "yes" ; then
+			IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF"
+			IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
+			IMAGELIB_NAME=gdk
+		fi
 	fi
+	;;
+gdk-pixbuf2)
+	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, IMAGELIB_NAME=gdk)
 	;;
 gdk-pixbuf1)
 	AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
 	if test "$pkg_config" = "yes" ; then
-		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF -DOLD_GDK_PIXBUF"
+		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF"
 		IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
 		IMAGELIB_NAME=gdk
 	fi
@@ -138,18 +144,13 @@ type_engines=`echo ${type_engines} | sed 's/,/ /g'`
 for type_engine in ${type_engines} ; do
 case ${type_engine} in
 xft)
-	AC_CHECK_PROG(pkg_config,pkg-config,yes)
-	if test "$pkg_config" = "yes" ; then
-		if `pkg-config --exists xft` ; then
-			AA_CFLAGS="`pkg-config --cflags xft` -DUSE_TYPE_XFT ${AA_CFLAGS}"
-			AA_LIBS="`pkg-config --libs xft`"
-		else
-			AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
-			AA_LIBS="-lXft"
-		fi
+	PKG_CHECK_MODULES(XFT, xft, have_xft=yes, have_xft=no)
+	if test "$have_xft" = "yes" ; then
+		AA_CFLAGS="-DUSE_TYPE_XFT  ${XFT_CFLAGS} ${AA_CFLAGS}"
+		AA_LIBS="${XFT_LIBS} ${AA_LIBS}"
 	else
 		AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
-		AA_LIBS="-lXft"
+		AA_LIBS="-lXft ${AA_LIBS}"
 	fi
 	;;
 xcore)
@@ -200,15 +201,26 @@ fi
 AC_SUBST(UTMP_CFLAGS)
 AC_SUBST(INSTALL_OPT)
 
-AC_CHECK_PROG(gtk_config,gtk-config,yes)
-if test "$gtk_config" = "yes" ; then
-	AC_PATH_PROG(GTK_CONFIG,gtk-config,/usr/local/bin/gtk-config,$PATH)
+PKG_CHECK_MODULES(GTK, gtk+-2.0, have_gtk2=yes, have_gtk2=no)
+if test "$have_gtk2" = "yes" ; then
+	gtk_config=yes
+	GTK_CONFIG="pkg-config gtk+-2.0"
 else
-	# for Daichi Goto-san:)
-	AC_CHECK_PROG(gtk_config,gtk12-config,yes)
+	AC_CHECK_PROG(gtk_config,gtk-config,yes)
 	if test "$gtk_config" = "yes" ; then
-		AC_PATH_PROG(GTK_CONFIG,gtk12-config,/usr/X11R6/bin/gtk12-config,$PATH)
+		AC_PATH_PROG(GTK_CONFIG,gtk-config,/usr/local/bin/gtk-config,$PATH)
+	else
+		# for Daichi Goto-san:)
+		AC_CHECK_PROG(gtk_config,gtk12-config,yes)
+		if test "$gtk_config" = "yes" ; then
+			AC_PATH_PROG(GTK_CONFIG,gtk12-config,/usr/X11R6/bin/gtk12-config,$PATH)
+		fi
 	fi
+	GTK_CFLAGS='gtk-config --cflags'
+	GTK_LIBS='gtk-config --libs'
+
+	AC_SUBST(GTK_CFLAGS)
+	AC_SUBST(GTK_LIBS)
 fi
 AC_SUBST(GTK_CONFIG)
 
