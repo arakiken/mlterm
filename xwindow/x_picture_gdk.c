@@ -2,28 +2,115 @@
  *	$Id$
  */
 
-#if  1
-#define  PSEUDO_TRANSPARENT
-#endif
-
-#include <math.h>
+#include <math.h>                        /* XXX replace by talor expansion? */
 #include <X11/Xatom.h>                   /* XInternAtom */
+
 #ifdef OLD_GDK_PIXBUF
 #include <gdk-pixbuf/gdk-pixbuf-xlib.h>  
 #else
 #include <gdk-pixbuf-xlib/gdk-pixbuf-xlib.h>  
 #endif
+
 #include <kiklib/kik_unistd.h>
 
 #include "x_picture_dep.h"
 
-
+typedef struct {
+	Display * display;
+	char * path;
+	Pixmap icon;
+	Pixmap mask;
+	unsigned long * data;
+	int width;
+	int height;
+} icon_cache_t;
 
 /* --- static variables --- */
 
 static int display_count = 0;
 static unsigned char gamma_cache[255];
+static icon_cache_t *icon_cache = NULL;
+static int cache_size = 0;
+
 /* --- static functions --- */
+
+static icon_cache_t *
+icon_cache_lookup(
+	Display * display,
+	char *path)
+{
+	int i;
+	for (i = 0; i< cache_size; i++){
+		if ((icon_cache[i].display == display) && (strcmp(icon_cache[i].path, path) == 0) )
+			return &icon_cache[i];
+	}
+	return NULL;
+}
+
+static icon_cache_t *
+icon_cache_add(
+	Display * display,
+	char *path, Pixmap icon,
+	Pixmap mask,
+	unsigned long *data,
+	int width,
+	int height)
+{
+	void *p;
+	icon_cache_t * dest;
+	dest = icon_cache_lookup(NULL, NULL); /* seek freed ones */
+	if (dest == NULL){
+		if( !( p = realloc( icon_cache , sizeof( icon_cache_t) * (cache_size + 1) ) ) ){ /* no free area, expand */
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " couldn't expand icon cache.\n") ;
+			#endif
+			XFreePixmap(display, icon); /* must be cleaned here */
+			XFreePixmap(display, mask);
+			return NULL; 
+		}
+		icon_cache = p;
+		dest = &icon_cache[cache_size];
+		cache_size ++;
+	}
+	dest->path = strdup(path);
+	if (!dest->path){ /* memory exhausted */
+		dest->display = 0;
+		XFreePixmap(display, icon); /* must be cleaned here */
+		XFreePixmap(display, mask);
+
+		return NULL; 
+	}
+	dest->display = display;
+	dest->icon = icon;
+	dest->mask = mask;
+	dest->data = data;
+	dest->width = width;
+	dest->height = height;
+
+	return dest;
+}
+
+static int
+icon_cache_remove_display(Display * display){
+	int i;
+	int flag = 0;
+	for (i = 0; i< cache_size; i++){
+		if (icon_cache[i].display == display){
+			free(icon_cache[i].path);
+			free(icon_cache[i].data);
+			icon_cache[i].path = NULL;
+			icon_cache[i].data = NULL;
+
+			XFreePixmap(icon_cache[i].display, icon_cache[i].icon);
+			XFreePixmap(icon_cache[i].display, icon_cache[i].mask);
+			icon_cache[i].icon = icon_cache[i].mask = None;
+			icon_cache[i].display = NULL;
+			/* icon cache is never shrinked. (cache_size is kept sane here) */
+			flag = 1;
+		}
+	}
+	return flag;
+}
 
 static unsigned char
 modify_gamma(unsigned char value, x_picture_modifier_t *  pic_mod){
@@ -113,6 +200,7 @@ x_picdep_display_opened( Display *  display){
 int
 x_picdep_display_closed( Display *  display){
 	display_count --;
+	icon_cache_remove_display(display); /* clean up pixmaps/cardinals */
 	return  1 ; 
 }
 
@@ -267,10 +355,106 @@ found:
 					    pix_x , pix_y , /* dest */
 					    width ,
 					    height ,
-					    XLIB_RGB_DITHER_NONE,
+					    XLIB_RGB_DITHER_NONE, /* depth should be equal */
 					    0 , 0 /* dither x,y */ ) ;
 	XFreeGC( win->display , gc );
 	gdk_pixbuf_unref( img ) ;
 
 	return  pixmap ;
+}
+
+int x_picdep_set_icon_from_file(
+	x_window_t * win,
+	char * file_path
+	)
+{
+	XWMHints *hints;
+	icon_cache_t * icon;
+
+	if( !file_path || !*file_path)
+		return 0; /* XXX unset icon?*/
+	icon = icon_cache_lookup(win->display, file_path);
+
+	if (!icon){/* not cached */
+		int i, j;
+		int width, height, rowstride, bytes_per_pixel;
+		unsigned char *line;
+		unsigned char *pixel;
+		GdkPixbuf * pixbuf;
+		unsigned long * data;
+		Pixmap pixmap_return;
+		Pixmap mask_return;
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG "loading icon form %s .\n", file_path) ;
+		#endif
+
+#ifndef OLD_GDK_PIXBUF
+		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path , NULL )) == NULL)
+			return  0 ;/* XXX error handling? */
+#else
+		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path )) == NULL)
+			return  0 ;
+#endif /*OLD_GDK_PIXBUF*/
+		if ( !pixbuf )
+			return 0;
+
+/* create CARDINAL array for_NET_WM_ICON data */
+		bytes_per_pixel = gdk_pixbuf_get_has_alpha (pixbuf) ? 4 : 3;
+		width = gdk_pixbuf_get_width (pixbuf);
+		height = gdk_pixbuf_get_height (pixbuf);
+		rowstride = gdk_pixbuf_get_rowstride (pixbuf);
+		line = gdk_pixbuf_get_pixels (pixbuf);
+		
+		data = malloc((width * height + 2) *4);
+		if (!data){
+			gdk_pixbuf_unref(pixbuf);
+			return 0;
+		}
+/* {width, height, data...} */
+		data[0] = width;
+		data[1] = height;
+		for (i = 0 ; i < height ; i++) {
+			pixel = line;
+			line += rowstride;
+			
+			for (j = 0 ; j < width ; j++) {
+				if (bytes_per_pixel == 4) /* alpha support (convert to ARGB format)*/
+					data[(i*width+j)+2] = ((((((long)(pixel[3]) << 8) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
+				else                      /* completely opaque */
+					data[(i*width+j)+2] = ((((((long)(0x0000FF) <<8 ) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
+				pixel += bytes_per_pixel;
+			}
+		}
+/* Create Icon pixmap&mask for WMHints. None as result is acceptable.*/
+		gdk_pixbuf_xlib_render_pixmap_and_mask
+			(pixbuf,
+			 &pixmap_return,
+			 &mask_return,
+			 128);
+		gdk_pixbuf_unref(pixbuf);
+
+/* cache the reslut */
+		icon = icon_cache_add( win->display, file_path, pixmap_return, mask_return, data, width, height);
+	}
+
+/* set extended window manager hint's icon */
+	XChangeProperty ( win->display, win->my_window,
+			  XInternAtom(win->display, "_NET_WM_ICON", False),
+			  XA_CARDINAL, 32,
+			  PropModeReplace,
+			  (unsigned char *)(icon->data), (icon->width)*(icon->height)+2);
+
+/* set old style window manager hint's icon */		
+	hints = XAllocWMHints(); /* can be NULL*/
+	if (!hints)
+		return 0;
+	hints->flags |= IconPixmapHint;
+	hints->flags |= IconMaskHint;
+	hints->icon_mask = icon->mask;
+	hints->icon_pixmap = icon->icon;
+	/* old pixmaps are kept in the cache and can be freed later */
+	XSetWMHints(win->display, win->my_window,hints);
+	XFree(hints);
+
+	return 1;
 }

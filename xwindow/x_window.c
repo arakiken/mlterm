@@ -36,6 +36,20 @@
 #define  XA_DND_FINISH(display) (XInternAtom(display, "XdndFinished", False))
 #define  XA_DND_MIME_TEXT_PLAIN(display) (XInternAtom(display, "text/plain", False))
 
+/* Extended WIndow Manager Hint support  */
+#define  XA_NET_WM_ICON(display) (XInternAtom(display, "_NET_WM_ICON", False))
+#define  XA_NET_WM_STATE(display) (XInternAtom(display, "_NET_WM_STATE", False))
+#define  XA_NET_WM_STATE_MAXIMIZED_VERT(display) (XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", False))
+#define  XA_NET_WM_STATE_MAXIMIZED_HORZ(display) (XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", False))
+#define  _NET_WM_STATE_REMOVE 0
+#define  _NET_WM_STATE_ADD 1
+#define  _NET_WM_STATE_TOGGLE 2
+enum {
+	STATE_FLAG_MAXIMIZED_VERT,
+	STATE_FLAG_MAXIMIZED_HORZ
+};
+
+
 #define  DOUBLE_CLICK_INTERVAL  1000	/* mili second */
 #define  MAX_CLICK  3			/* max is triple click */
 
@@ -325,6 +339,62 @@ total_height_inc(
 	}
 
 	return  height_inc ;
+}
+
+static int
+get_wm_state(
+	x_window_t *  win
+	)
+{
+	Atom actual_type;
+	int actual_format;
+	unsigned long nitems;
+	unsigned long nbytes;
+	unsigned long bytes_after;
+	unsigned char *prop;
+	int flag = 0;
+
+	if( XGetWindowProperty(win->display, win->my_window,
+			       XA_NET_WM_STATE(win->display), 0, 10,
+			       False, XA_ATOM, &actual_type,
+			       &actual_format, &nitems, &bytes_after,
+			       &prop) != Success)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " getwindowprop. failed.\n") ;
+	#endif
+		return 0 ;
+	}
+	if( actual_type == XA_ATOM)
+	{
+		if( !prop)
+		{
+			return 0 ;
+		}
+		while( nitems > 0)
+		{
+			nitems--;
+			if (((Atom *)prop)[nitems] == XA_NET_WM_STATE_MAXIMIZED_VERT( win->display))
+			{
+				flag |= 1 << STATE_FLAG_MAXIMIZED_VERT ;
+			}
+			if (((Atom *)prop)[nitems] == XA_NET_WM_STATE_MAXIMIZED_HORZ( win->display))
+			{
+				flag |= 1 << STATE_FLAG_MAXIMIZED_HORZ ;
+			}
+		} ;
+		XFree( prop) ;
+		return flag ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " unknown property format.\n") ;
+	#endif
+		if( prop)
+			XFree(prop) ;
+		return 0 ;
+	}
 }
 
 
@@ -1135,6 +1205,44 @@ x_window_resize(
 		(*win->window_resized)( win) ;
 	}
 
+	return  1 ;
+}
+
+int
+x_window_remaximize(
+	x_window_t *  win
+	)
+{
+	int flag ;
+	XClientMessageEvent xev ;
+	
+	flag = get_wm_state( x_get_root_window( win)) ;
+	switch (flag){
+	case 1 << STATE_FLAG_MAXIMIZED_VERT:
+		xev.data.l[1] = XA_NET_WM_STATE_MAXIMIZED_VERT( win->display) ;
+		xev.data.l[2] = 0;
+		break;
+	case 1 << STATE_FLAG_MAXIMIZED_HORZ:
+		xev.data.l[1] = XA_NET_WM_STATE_MAXIMIZED_HORZ( win->display) ;
+		xev.data.l[2] = 0;
+		break;
+	case (1 << STATE_FLAG_MAXIMIZED_HORZ) | (1 << STATE_FLAG_MAXIMIZED_VERT):
+		xev.data.l[1] = XA_NET_WM_STATE_MAXIMIZED_HORZ( win->display) ;
+		xev.data.l[2] = XA_NET_WM_STATE_MAXIMIZED_VERT( win->display) ;
+		break ;
+	default:
+		return 0 ;
+	}
+        xev.type = ClientMessage ;
+        xev.window = x_get_root_window( win)->my_window ;
+        xev.message_type = XA_NET_WM_STATE( win->display) ;
+        xev.format = 32 ;
+        xev.data.l[0] = _NET_WM_STATE_REMOVE ;
+	XSendEvent( win->display, DefaultRootWindow( win->display), False,
+		   SubstructureNotifyMask, (XEvent*)&xev) ;
+        xev.data.l[0] = _NET_WM_STATE_ADD ;
+	XSendEvent( win->display, DefaultRootWindow( win->display), False,
+		   SubstructureNotifyMask, (XEvent*)&xev) ;
 	return  1 ;
 }
 
@@ -2512,6 +2620,15 @@ x_set_icon_name(
 	}
 
 	return  1 ;
+}
+
+int
+x_window_set_icon(
+	x_window_t *  win, 
+	char * file_path
+	)
+{
+	return x_picture_set_icon_from_file(x_get_root_window(win), file_path);
 }
 
 int

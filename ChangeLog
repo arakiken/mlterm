@@ -1,5 +1,9 @@
 2002-08-28  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
+	* Window icon support is added (require --enable-gdk-pixbuf).
+	
+2002-08-28  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
 	* Compilation failed on Linux glibc 2.1.x because of incomplete langinfo.h.
 	  Built-in (dummy) kik_langinfo is now used when CODESET is not defined.
 	  (Thanks to Kubota Tomohiro san)

@@ -119,3 +119,14 @@ x_picture_modifier_is_normal(
 		return  0 ;
 	}
 }
+
+int
+x_picture_set_icon_from_file(
+	x_window_ptr_t win,
+	char * file_path
+	)
+{
+	if( !x_picdep_set_icon_from_file( win, file_path))
+		return 0;
+	return 1;
+}

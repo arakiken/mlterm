@@ -20,5 +20,5 @@ Pixmap  x_picdep_load_file( x_window_t *  win , char *  file_path , x_picture_mo
 
 Pixmap  x_picdep_load_background( x_window_t *  win , x_picture_modifier_t *  pic_mod) ;
 
-
+int  x_picdep_set_icon_from_file( x_window_t *  win , char * file_path) ;
 #endif

@@ -73,6 +73,7 @@ typedef struct main_config
 	char *  mod_meta_key ;
 	char *  cmd_path ;
 	char **  cmd_argv ;
+	char **  icon_path ;
 	
 	u_int8_t  step_in_changing_font_size ;
 	u_int16_t  brightness ;
@@ -435,6 +436,10 @@ open_term(void)
 		{
 			x_set_icon_name( &screen->window , main_config.icon_name) ;
 		}
+	}
+
+	if( main_config.icon_path){
+		x_window_set_icon( &screen->window, main_config.icon_path);
 	}
 
 	if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
@@ -1539,6 +1544,14 @@ config_init(
 		main_config.cmd_argv = NULL ;
 	}
 	
+	if( ( value = kik_conf_get_value( conf , "icon_path")))
+	{
+		main_config.icon_path = strdup( value) ;
+	}
+	else
+	{
+		main_config.icon_path = NULL ;
+	}
 	return  1 ;
 }
 

@@ -196,6 +196,8 @@ int  x_window_unmap( x_window_t *  win) ;
 
 int  x_window_resize( x_window_t *  win , u_int  width , u_int  height , x_event_dispatch_t  flag) ;
 
+int  x_window_remaximize( x_window_t *  win) ;
+
 int  x_window_resize_with_margin( x_window_t *  win , u_int  width , u_int  height ,
 	x_event_dispatch_t  flag) ;
 
@@ -277,6 +279,8 @@ int  x_window_send_selection( x_window_t *  win , XSelectionRequestEvent *  even
 int  x_set_window_name( x_window_t *  win , u_char *  name) ;
 
 int  x_set_icon_name( x_window_t *  win , u_char *  name) ;
+
+int  x_window_set_icon( x_window_t *  win, char * file_path) ;
 
 int  x_window_get_visible_geometry( x_window_t *  win ,
 	int *  x , int *  y , int *  my_x , int *  my_y , u_int *  width , u_int *  height) ;
