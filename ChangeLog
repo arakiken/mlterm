@@ -1,3 +1,8 @@
+2003-05-05  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* mlterm/ml_vt100_parser.c: The rxvt style background changing 
+	sequence "ESC ] 49 ; colorname BEL" was not working. 
+
 2003-05-05 Araki Ken <arakiken@users.sf.net>
 
 	* Minor fixes around only_use_unicode_font and not_use_unicode_font options.

@@ -2020,7 +2020,11 @@ parse_vt100_escape_sequence(
 							start_vt100_cmd( vt100_parser) ;
 						}
 					}
-					else if( ps == 40)
+					else if( ps == 46)
+					{
+						/* change log file */
+					}
+					else if( ps == 49)
 					{
 						if( HAS_CONFIG_LISTENER(vt100_parser,set))
 						{
@@ -2030,10 +2034,6 @@ parse_vt100_escape_sequence(
 								NULL , "bg_color" , pt) ;
 							start_vt100_cmd( vt100_parser) ;
 						}
-					}
-					else if( ps == 46)
-					{
-						/* change log file */
 					}
 					else if( ps == 50)
 					{
