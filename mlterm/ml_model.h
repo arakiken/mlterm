@@ -47,7 +47,7 @@ int  ml_model_final( ml_model_t *  model) ;
 
 int  ml_model_reset( ml_model_t *  model) ;
 
-int  ml_model_resize( ml_model_t *  model , u_int  num_of_cols , u_int  num_of_rows) ;
+int  ml_model_resize( ml_model_t *  model , u_int *  slide , u_int  num_of_cols , u_int  num_of_rows) ;
 
 int  ml_model_end_row( ml_model_t *  model) ;
 

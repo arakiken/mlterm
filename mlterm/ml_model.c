@@ -86,6 +86,7 @@ ml_model_reset(
 int
 ml_model_resize(
 	ml_model_t *  model ,
+	u_int *  slide ,
 	u_int  num_of_cols ,
 	u_int  num_of_rows
 	)
@@ -96,6 +97,7 @@ ml_model_resize(
 	u_int  copy_rows ;
 	u_int  copy_len ;
 	ml_line_t *  lines_p ;
+	u_int  filled_rows ;
 
 	if( num_of_cols == 0 || num_of_rows == 0)
 	{
@@ -120,14 +122,33 @@ ml_model_resize(
 	
 	copy_len = K_MIN(num_of_cols , model->num_of_cols) ;
 
-	if( num_of_rows >= model->num_of_rows)
+	count = model->num_of_rows - 1 ;
+	while( 1)
 	{
-		old_row = 0 ;
-		copy_rows = model->num_of_rows ;
+		if( ml_get_num_of_filled_chars_except_spaces( ml_model_get_line( model , count)) > 0)
+		{
+			filled_rows = count + 1 ;
+			
+			break ;
+		}
+		else if( -- count == 0)
+		{
+			/* Line num 0 must not be empty. */
+			
+			filled_rows = 0 ;
+			
+			break ;
+		}
+	}
+
+	if( num_of_rows >= filled_rows)
+	{
+		*slide = old_row = 0 ;
+		copy_rows = filled_rows ;
 	}
 	else
 	{
-		old_row = model->num_of_rows - num_of_rows ;
+		*slide = old_row = filled_rows - num_of_rows ;
 		copy_rows = num_of_rows ;
 	}
 

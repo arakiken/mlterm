@@ -638,11 +638,12 @@ ml_edit_resize(
 {
 	u_int  old_rows ;
 	u_int  old_cols ;
+	u_int  slide ;
 	
 	old_rows = edit->model.num_of_rows ;
 	old_cols = edit->model.num_of_cols ;
 	
-	if( ! ml_model_resize( &edit->model , num_of_cols , num_of_rows))
+	if( ! ml_model_resize( &edit->model , &slide , num_of_cols , num_of_rows))
 	{
 		return  0 ;
 	}
@@ -657,11 +658,11 @@ ml_edit_resize(
 		}
 	}
 
-	if( num_of_rows < old_rows)
+	if( slide > 0)
 	{
-		if( old_rows - num_of_rows <= edit->cursor.row)
+		if( slide <= edit->cursor.row)
 		{
-			edit->cursor.row -= (old_rows - num_of_rows) ;
+			edit->cursor.row -= slide ;
 		}
 		else
 		{
