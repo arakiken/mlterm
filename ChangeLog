@@ -1,3 +1,7 @@
+[20020216]
+* typo fixed. (Thanks to Mike Fabian)
+* cleanup
+
 [20020215]
 * New documents(doc/ja/README.server,doc/ja/README.tate) are added and doc/ja/README.ja
   doc/en/PROTOCOL doc/en/History is updated.
