@@ -14,7 +14,6 @@
 static char *  na_options[] =
 {
 	"-@/--screens" ,
-	"-K/--maxptys" ,
 	"-P/--ptys" ,
 	"-R/--fsrange" ,
 	"-W/--sep" ,

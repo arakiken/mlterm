@@ -1129,33 +1129,44 @@ parse_end:
 		goto  error ;
 	}
 
-	if( argc == 2 &&
-		( strncmp( argv[1] , "-P" , 2) == 0 || strncmp( argv[1] , "--ptylist" , 9) == 0))
+	if( argc == 2)
 	{
-		/*
-		 * mlclient -P or mlclient --ptylist
-		 */
-		
-		ml_term_t **  terms ;
-		u_int  num ;
-		int  count ;
-		
-		num = ml_get_all_terms( &terms) ;
-		for( count = 0 ; count < num ; count ++)
+		if( strncmp( argv[1] , "-P" , 2) == 0 || strncmp( argv[1] , "--ptylist" , 9) == 0)
 		{
-			fprintf( fp , "%s" , ml_term_get_slave_name( terms[count])) ;
-			if( ml_term_window_name( terms[count]))
+			/*
+			 * mlclient -P or mlclient --ptylist
+			 */
+
+			ml_term_t **  terms ;
+			u_int  num ;
+			int  count ;
+		
+			num = ml_get_all_terms( &terms) ;
+			for( count = 0 ; count < num ; count ++)
 			{
-				fprintf( fp , "(whose title is %s)" , ml_term_window_name( terms[count])) ;
+				fprintf( fp , "%s" , ml_term_get_slave_name( terms[count])) ;
+				if( ml_term_window_name( terms[count]))
+				{
+					fprintf( fp , "(whose title is %s)" , ml_term_window_name( terms[count])) ;
+				}
+				if( ml_term_is_attached( terms[count]))
+				{
+					fprintf( fp , " is active:)\n") ;
+				}
+				else
+				{
+					fprintf( fp , " is sleeping.zZ\n") ;
+				}
 			}
-			if( ml_term_is_attached( terms[count]))
+		}
+		else if( strncmp( argv[1] , "--kill" , 6) == 0)
+		{
+			if( un_file)
 			{
-				fprintf( fp , " is active:)\n") ;
+				unlink( un_file) ;
 			}
-			else
-			{
-				fprintf( fp , " is sleeping.zZ\n") ;
-			}
+			fprintf( fp, "bye\n") ;
+			exit( 0) ;
 		}
 	}
 	else

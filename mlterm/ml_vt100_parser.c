@@ -1326,18 +1326,31 @@ parse_vt100_escape_sequence(
 							/* scroll to bottom on key press */
 						}
 					#endif
-					#if  0
 						else if( ps[0] == 1047)
 						{
-							/* secondary screen w/ clearing */
+							// if( !titeInhibit)
+							save_cursor( vt100_parser) ;
+							ml_screen_user_alternate_edit(
+								vt100_parser->screen) ;
+							//
 						}
-					#endif
-					#if  0
 						else if( ps[0] == 1048)
 						{
-							/* alternative cursor save */
+							// if( !titeInhibit)
+							save_cursor( vt100_parser) ;
+							ml_screen_user_alternate_edit(
+								vt100_parser->screen) ;
+							//
 						}
-					#endif
+						else if( ps[0] == 1049)
+						{
+							// if( !titeInhibit)
+							save_cursor( vt100_parser) ;
+							ml_screen_user_alternate_edit(
+								vt100_parser->screen) ;
+							clear_display_all( vt100_parser) ;
+							//
+						}
 						else
 						{
 						#ifdef  DEBUG
@@ -1483,18 +1496,32 @@ parse_vt100_escape_sequence(
 							/* scroll to bottom on key press */
 						}
 					#endif
-					#if  0
 						else if( ps[0] == 1047)
 						{
-							/* secondary screen w/ clearing */
+							// if( !titeInhibit)
+							clear_display_all( vt100_parser) ;
+							ml_screen_user_normal_edit(
+								vt100_parser->screen) ;
+							restore_cursor( vt100_parser) ;
+							//
 						}
-					#endif
-					#if  0
 						else if( ps[0] == 1048)
 						{
-							/* alternative cursor save */
+							// if( !titeInhibit)
+							clear_display_all( vt100_parser) ;
+							ml_screen_user_normal_edit(
+								vt100_parser->screen) ;
+							restore_cursor( vt100_parser) ;
+							//
 						}
-					#endif
+						else if( ps[0] == 1049)
+						{
+							// if( !titeInhibit)
+							ml_screen_user_normal_edit(
+								vt100_parser->screen) ;
+							restore_cursor( vt100_parser) ;
+							//
+						}
 						else
 						{
 						#ifdef  DEBUG
