@@ -1017,6 +1017,35 @@ ml_image_delete_cols(
 }
 
 int
+ml_image_delete_cols_bce(
+	ml_image_t *  image ,
+	u_int  delete_cols
+	)
+{
+	ml_image_line_t *  line ;
+	int  char_index ;
+	int  col ;
+	
+	if( ! ml_image_delete_cols( image , delete_cols))
+	{
+		return  0 ;
+	}
+
+	line = CURSOR_LINE(image) ;
+	
+	char_index = ml_imgline_end_char_index( line) + 1 ;
+
+	for( col = ml_imgline_get_num_of_filled_cols( line) ; col < image->model.num_of_cols ; col ++)
+	{
+		ml_char_copy( &line->chars[char_index++] , &image->bce_ch) ;
+	}
+
+	line->num_of_filled_chars = char_index ;
+	
+	return  1 ;
+}
+
+int
 ml_image_insert_new_line(
 	ml_image_t *  image
 	)

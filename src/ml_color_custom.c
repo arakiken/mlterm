@@ -72,7 +72,7 @@ ml_color_custom_set_rgb(
 		char *  _color ;
 
 		_color = strdup( color) ;
-		
+
 		kik_map_set( result , color_custom->color_rgb_table , _color , rgb) ;
 	}
 

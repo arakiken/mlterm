@@ -42,9 +42,6 @@ else
 fi
 AC_SUBST(LIBTOOL)
 
-AC_CHECK_LIB(dl,dlopen,DL_LIBS=-ldl)
-AC_SUBST(DL_LIBS)
-
 AC_CHECK_LIB(socket,connect,SOCK_LIBS=-lsocket)
 AC_SUBST(SOCK_LIBS)
 

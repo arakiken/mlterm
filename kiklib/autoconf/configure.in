@@ -82,10 +82,11 @@ if test "${kik_cv_func_ident}" = "yes" ; then
 	AC_DEFINE(HAVE_FUNCTION)
 fi
 
-# I don't know why , but xpg4 check is also necessary here for FreeBSD
-# according to Sakamoto Hironori san.
 AC_CHECK_LIB(xpg4,setlocale,XPG4_LIBS=-lxpg4)
 AC_SUBST(XPG4_LIBS)
+
+AC_CHECK_LIB(dl,dlopen,DL_LIBS=-ldl)
+AC_SUBST(DL_LIBS)
 
 AC_CHECK_LIB(utempter,addToUtmp,
 [

@@ -225,6 +225,7 @@ open_term(
 	ml_color_t  bg_color ;
 	ml_char_t  sp_ch ;
 	ml_char_t  nl_ch ;
+	ml_termcap_entry_t *  termcap ;
 	int  usascii_font_cs_changable ;
 	char *  env[4] ;
 	char **  env_p ;
@@ -321,6 +322,8 @@ open_term(
 		kik_msg_printf( " Foreground and background colors are the same.\n") ;
 	}
 
+	termcap = ml_termcap_get_entry( &term_man->termcap , term_man->conf.term_type) ;
+	
 	ml_char_init( &sp_ch) ;
 	ml_char_init( &nl_ch) ;
 	
@@ -331,7 +334,8 @@ open_term(
 
 	if( ( termmdl = ml_term_model_new( term_man->conf.cols , term_man->conf.rows ,
 				&sp_ch , &nl_ch , term_man->conf.tab_size ,
-				term_man->conf.num_of_log_lines , term_man->conf.use_bce)) == NULL)
+				term_man->conf.num_of_log_lines ,
+				ml_termcap_get_bool_field( termcap , MLT_BCE))) == NULL)
 	{
 		goto  error ;
 	}
@@ -341,7 +345,7 @@ open_term(
 
 	if( ( termscr = ml_term_screen_new( termmdl , font_man , &disp->color_man ,
 		fg_color , bg_color , term_man->conf.brightness ,
-		term_man->conf.fade_ratio , &term_man->keymap , &term_man->termcap ,
+		term_man->conf.fade_ratio , &term_man->keymap , termcap ,
 		term_man->conf.screen_width_ratio , term_man->conf.screen_height_ratio ,
 		term_man->conf.xim_open_in_startup , term_man->conf.mod_meta_mode ,
 		term_man->conf.bel_mode , term_man->conf.copy_paste_via_ucs ,
@@ -935,8 +939,6 @@ get_min_conf(
 		"screen width ratio") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
 		"screen height ratio") ;
-	kik_conf_add_opt( conf , '3' , "bce" , 1 , "use_bce" ,
-		"use bce") ;
 	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" ,
 		"support buggy Big5 CTEXT in XFree86 4.1 or earlier") ;
 	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , 
@@ -1042,8 +1044,6 @@ config_init(
 	char **  argv
 	)
 {
-	char *  kterm = "kterm" ;
-	char *  xterm = "xterm" ;
 	char *  value ;
 	
 	if( ( value = kik_conf_get_value( conf , "display")) == NULL)
@@ -1209,36 +1209,13 @@ config_init(
 	
 	if( ( value = kik_conf_get_value( conf , "termtype")))
 	{
-		if( strcasecmp( value , kterm) == 0)
-		{
-			term_man->conf.term_type = kterm ;
-		}
-		else if( strcasecmp( value , xterm) == 0)
-		{
-			term_man->conf.term_type = xterm ;
-		}
-		else
-		{
-			kik_msg_printf(
-				"supported terminal types are only xterm or kterm , xterm is used.\n") ;
-
-			term_man->conf.term_type = xterm ;
-		}
+		term_man->conf.term_type = strdup( value) ;
 	}
 	else
 	{
-		term_man->conf.term_type = xterm ;
+		term_man->conf.term_type = strdup( "xterm") ;
 	}
 
-	term_man->conf.use_bce = 0 ;
-	if( ( value = kik_conf_get_value( conf , "use_bce")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->conf.use_bce = 1 ;
-		}
-	}
-	
 	term_man->conf.x = 0 ;
 	term_man->conf.y = 0 ;
 	term_man->conf.cols = 80 ;
@@ -1646,6 +1623,7 @@ config_final(
 	free( term_man->conf.app_name) ;
 	free( term_man->conf.title) ;
 	free( term_man->conf.icon_name) ;
+	free( term_man->conf.term_type) ;
 	free( term_man->conf.conf_menu_path) ;
 	free( term_man->conf.pic_file_path) ;
 	free( term_man->conf.scrollbar_view_name) ;

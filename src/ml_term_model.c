@@ -1406,8 +1406,15 @@ ml_term_model_delete_cols(
 	ml_term_model_t *  termmdl ,
 	u_int  len
 	)
-{	
-	return  ml_image_delete_cols( termmdl->image , len) ;
+{
+	if( termmdl->use_bce)
+	{
+		return  ml_image_delete_cols_bce( termmdl->image , len) ;
+	}
+	else
+	{
+		return  ml_image_delete_cols( termmdl->image , len) ;
+	}
 }
 
 int

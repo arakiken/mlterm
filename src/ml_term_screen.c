@@ -1829,11 +1829,11 @@ key_pressed(
 
 		if( ksym == XK_Delete && size == 1)
 		{
-			buf = ml_termcap_get_sequence( termscr->termcap , MLT_DELETE) ;
+			buf = ml_termcap_get_str_field( termscr->termcap , MLT_DELETE) ;
 		}
 		else if( ksym == XK_BackSpace && size == 1)
 		{
-			buf = ml_termcap_get_sequence( termscr->termcap , MLT_BACKSPACE) ;
+			buf = ml_termcap_get_str_field( termscr->termcap , MLT_BACKSPACE) ;
 		}
 		else if( size > 0)
 		{
@@ -4042,7 +4042,7 @@ ml_term_screen_new(
 	u_int  brightness ,
 	u_int  fade_ratio ,
 	ml_keymap_t *  keymap ,
-	ml_termcap_t *  termcap ,
+	ml_termcap_entry_t *  termcap ,
 	u_int  screen_width_ratio ,
 	u_int  screen_height_ratio ,
 	int  xim_open_in_startup ,

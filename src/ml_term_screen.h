@@ -91,7 +91,7 @@ typedef struct  ml_term_screen
 	ml_color_manager_t *  color_man ;
 
 	ml_keymap_t *  keymap ;
-	ml_termcap_t *  termcap ;
+	ml_termcap_entry_t *  termcap ;
 
 	/*
 	 * encoding proper aux
@@ -151,7 +151,7 @@ ml_term_screen_t *  ml_term_screen_new( ml_term_model_t *  model ,
 	ml_font_manager_t *  font_man , ml_color_manager_t *  color_man ,
 	ml_color_t  fg_color , ml_color_t  bg_color ,
 	u_int  brightness , u_int  fade_ratio ,
-	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
+	ml_keymap_t *  keymap , ml_termcap_entry_t *  termcap ,
 	u_int  screen_width_ratio , u_int  screen_height_ratio ,
 	int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode ,
 	ml_bel_mode_t  bel_mode , int  prefer_utf8_selection , char *  pic_file_path ,

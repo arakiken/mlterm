@@ -1,3 +1,6 @@
-# kD=^?
-# kD=\E[3~
-# kb=^H
+*:\
+	kD=^?:kb=^H
+xterm|rxvt:\
+	kD=^?:kb=^H:ut
+#kterm:\
+#	kD=^?:kb=^H

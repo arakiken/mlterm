@@ -87,7 +87,9 @@ int  ml_image_insert_blank_chars( ml_image_t *  image , u_int  num_of_blank_char
 
 int  ml_image_overwrite_chars( ml_image_t *  image , ml_char_t *  chars , u_int  num_of_chars) ;
 
-int  ml_image_delete_cols( ml_image_t *  image , u_int  delete_len) ;
+int  ml_image_delete_cols( ml_image_t *  image , u_int  delete_cols) ;
+
+int  ml_image_delete_cols_bce( ml_image_t *  image , u_int  delete_cols) ;
 
 int  ml_image_insert_new_line( ml_image_t *  image) ;
 

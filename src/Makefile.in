@@ -42,7 +42,7 @@ CFLAGS=$(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @IMLIB_CFLAGS@ @FR
 	-DLIBDIR=\"$(LIBDIR)\" -DLIBEXECDIR=\"$(LIBEXECDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-I/usr/X11R6/include -I/usr/local/include
 LIBS=$(LIBS_LOCAL) @FRIBIDI_LIBS@ @IMLIB_LIBS@ @AA_LIBS@ @IND_LIBS@ @GDK_PIXBUF_LIBS@ \
-	@X_EXTRA_LIBS@ -lX11 $(LKIK) $(LMKF) @DL_LIBS@ \
+	@X_EXTRA_LIBS@ -lX11 $(LKIK) $(LMKF) \
 	-L/usr/X11R6/lib -L/usr/local/lib -R/usr/X11R6/lib -R/usr/local/lib
 
 PROG = mlterm

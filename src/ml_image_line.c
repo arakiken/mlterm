@@ -384,8 +384,10 @@ ml_imgline_set_modified(
 		kik_warn_printf( KIK_DEBUG_TAG " beg_char_index %d > end_char_index %d\n" ,
 			beg_char_index , end_char_index) ;
 	#endif
-	
+
+	#if  0
 		return ;
+	#endif
 	}
 
 	if( IS_MODIFIED(line->flag))

@@ -38,9 +38,12 @@ ml_color_manager_final(
 
 	for( color = 0 ; color < MAX_ACTUAL_COLORS ; color ++)
 	{
-		free( color_man->xcolors[color].name) ;
-		ml_unload_xcolor( color_man->display , color_man->screen ,
-			&color_man->xcolors[color].xcolor) ;
+		if( color_man->xcolors[color].name)
+		{
+			free( color_man->xcolors[color].name) ;
+			ml_unload_xcolor( color_man->display , color_man->screen ,
+				&color_man->xcolors[color].xcolor) ;
+		}
 	}
 
 	return  1 ;
