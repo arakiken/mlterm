@@ -464,14 +464,14 @@ int x_imagelib_load_file(
 	u_int32_t **  cardinal,
 	Pixmap *  pixmap,
 	Pixmap *  mask,
-	int *  width,
-	int *  height
+	unsigned int *  width,
+	unsigned int *  height
 	)
 {
 	ImlibData *  imlib ;
 	ImlibImage *  img ;
 
-	int  dst_width, dst_height ;
+	unsigned int  dst_width, dst_height ;
 
 	if( ! ( imlib = get_imlib( display)))
 	{

@@ -75,8 +75,8 @@ static
 GdkPixbuf *
 load_file(
 	char *  path,
-	int  width,
-	int  height,
+	unsigned int  width,
+	unsigned int  height,
 	GdkInterpType scale_type
 	)
 {
@@ -1127,35 +1127,39 @@ pixbuf_to_pixmap_and_mask(
 	Display *  display,
 	int  screen,
 	GdkPixbuf *  pixbuf,
-	Pixmap  pixmap,
-	Pixmap  mask
+	Pixmap *  pixmap,
+	Pixmap *  mask
 	)
 {
-	GC  gc ;
-	XGCValues  gcv ;
-	int  i, j ;
-	int  width, height, rowstride, bytes_per_pixel ;
-	unsigned char *  line ;
-	unsigned char *  pixel ;
 
-	width = gdk_pixbuf_get_width (pixbuf) ;
-	height = gdk_pixbuf_get_height (pixbuf) ;
-	if( pixbuf_to_pixmap( display, screen, pixbuf, pixmap) == -1)
+	int  bytes_per_pixel ;
+
+	if( pixbuf_to_pixmap( display, screen, pixbuf, *pixmap) == -1)
 		return  -1 ;
 
-	gc = XCreateGC (display, mask, 0, &gcv) ;
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
 	if (bytes_per_pixel == 3)
 	{ /* no mask */
-		XSetForeground( display, gc, 1) ;
-		XFillRectangle( display, mask, gc,
-				0, 0, width, height) ;
-
+		*mask = None ;
 	}
 	else
 	{
+		int  i, j ;
+		int  width, height, rowstride ;
+		unsigned char *  line ;
+		unsigned char *  pixel ;
+
+		width = gdk_pixbuf_get_width (pixbuf) ;
+		height = gdk_pixbuf_get_height (pixbuf) ;
+		GC  gc ;
+		XGCValues  gcv ;
+
+		*mask = XCreatePixmap( display,
+				       DefaultRootWindow( display),
+				       width, height, 1) ;		
+		gc = XCreateGC (display, *mask, 0, &gcv) ;
 		XSetForeground( display, gc, 0) ;
-		XFillRectangle( display, mask, gc,
+		XFillRectangle( display, *mask, gc,
 				0, 0, width, height) ;
 		XSetForeground( display, gc, 1) ;
 		line = gdk_pixbuf_get_pixels( pixbuf) ;
@@ -1167,12 +1171,13 @@ pixbuf_to_pixmap_and_mask(
 			for (j = 0; j < width; j++)
 			{
 				if( pixel[3] > 127)
-					XDrawPoint( display, mask, gc, j, i) ;
+					XDrawPoint( display, *mask, gc, j, i) ;
 				pixel += 4 ;
 			}
 		}
+		XFreeGC( display, gc) ;
 	}
-	XFreeGC( display, gc) ;
+
 	return  SUCCESS ;
 }
 
@@ -1657,12 +1662,12 @@ int x_imagelib_load_file(
 	u_int32_t **  cardinal,
 	Pixmap *  pixmap,
 	Pixmap *  mask,
-	int *  width,
-	int *  height
+	unsigned int *  width,
+	unsigned int *  height
 	)
 {
 	GdkPixbuf *  pixbuf ;
-	int  dst_height, dst_width ;
+	unsigned int  dst_height, dst_width ;
 	if( !width)
 	{
 		dst_width = 0 ;
@@ -1718,12 +1723,9 @@ int x_imagelib_load_file(
 					 DefaultDepth( display, DefaultScreen( display))) ;
 		if( mask)
 		{
-			*mask = XCreatePixmap( display,
-					       DefaultRootWindow( display),
-					       dst_width, dst_height, 1) ;
 			if( pixbuf_to_pixmap_and_mask( display,
 						       DefaultScreen( display),
-						       pixbuf, *pixmap, *mask) != SUCCESS)
+						       pixbuf, pixmap, mask) != SUCCESS)
 			{
 				gdk_pixbuf_unref( pixbuf) ;
 				XFreePixmap( display, *pixmap) ;

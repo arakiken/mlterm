@@ -130,7 +130,7 @@ load_image(
 		printf("x_imagelib_load_file() failed\n");;
 	}
 #else
-	x_imagelib_load_file( display , path , NULL , pixmap , mask , width , height) ;
+	x_imagelib_load_file( display , path , NULL , pixmap , mask , &width , &height) ;
 #endif
 
 #ifdef __DEBUG

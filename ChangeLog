@@ -1,3 +1,8 @@
+2003-07-05  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* x_imagelib_gdk.c:x_imagelib_load_file() now retuens None as "mask"
+	when there's no alpha plane in the specified image file.	
+
 2003-07-05  Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Updated pixmap_engine since x_imagelib_load_file() was changed.

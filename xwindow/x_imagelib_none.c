@@ -122,8 +122,8 @@ int x_imagelib_load_file(
 	u_int32_t **  cardinal,
 	Pixmap *  pixmap,
 	Pixmap *  mask,
-	int *  width,
-	int *  height
+	unsigned int *  width,
+	unsigned int *  height
 	)
 {
 	return 0 ;
