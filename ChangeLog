@@ -1,3 +1,7 @@
+2003-07-14  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* Applied a keypad patch from Mike Fabian.
+
 2003-07-14  Araki Ken  <arakiken@users.sf.net>
 
 	* Bidi characters in backward-scrolled area were not correctly
@@ -8,7 +12,7 @@
 
 2003-07-13  Seiichi SATO  <ssato@sh.rim.or.jp>
 
-	* Aedded "lang" and "country" into map_ucs4_to_func_table struct instead
+	* Added "lang" and "country" into map_ucs4_to_func_table struct instead
 	  of "locale", and get_map_ucs4_to_func_for_current_locale() function
 	  was changed to select UCS mapping table by sys_lang and sys_coutry.
 	  Probably it is useful, if your system have no posix locale mechanism,

@@ -2631,25 +2631,25 @@ key_pressed(
 				return ;
 			}
 		#if  1
-			else if( ksym == XK_u || ksym == XK_Prior)
+			else if( ksym == XK_u || ksym == XK_Prior || ksym == XK_KP_Prior)
 			{
 				bs_half_page_downward( screen) ;
 
 				return ;
 			}
-			else if( ksym == XK_d || ksym == XK_Next)
+			else if( ksym == XK_d || ksym == XK_Next || ksym == XK_KP_Next)
 			{
 				bs_half_page_upward( screen) ;
 
 				return ;
 			}
-			else if( ksym == XK_k || ksym == XK_Up)
+			else if( ksym == XK_k || ksym == XK_Up || ksym == XK_KP_Up)
 			{
 				bs_scroll_downward( screen) ;
 
 				return ;
 			}
-			else if( ksym == XK_j || ksym == XK_Down)
+			else if( ksym == XK_j || ksym == XK_Down || ksym == XK_KP_Down)
 			{
 				bs_scroll_upward( screen) ;
 
@@ -2724,45 +2724,45 @@ key_pressed(
 		{
 			if( screen->term->vertical_mode & VERT_RTL)
 			{
-				if( ksym == XK_Up)
+				if( ksym == XK_Up || ksym == XK_KP_Up)
 				{
 					ksym = XK_Left ;
 				}
-				else if( ksym == XK_Down)
+				else if( ksym == XK_Down || ksym == XK_KP_Down)
 				{
 					ksym = XK_Right ;
 				}
-				else if( ksym == XK_Left)
+				else if( ksym == XK_Left || ksym == XK_KP_Left)
 				{
 					ksym = XK_Down ;
 				}
-				else if( ksym == XK_Right)
+				else if( ksym == XK_Right || ksym == XK_KP_Right)
 				{
 					ksym = XK_Up ;
 				}
 			}
 			else if( screen->term->vertical_mode & VERT_LTR)
 			{
-				if( ksym == XK_Up)
+				if( ksym == XK_Up || ksym == XK_KP_Up)
 				{
 					ksym = XK_Left ;
 				}
-				else if( ksym == XK_Down)
+				else if( ksym == XK_Down || ksym == XK_KP_Down)
 				{
 					ksym = XK_Right ;
 				}
-				else if( ksym == XK_Left)
+				else if( ksym == XK_Left || ksym == XK_KP_Left)
 				{
 					ksym = XK_Up ;
 				}
-				else if( ksym == XK_Right)
+				else if( ksym == XK_Right || ksym == XK_KP_Right)
 				{
 					ksym = XK_Down ;
 				}
 			}
 		}
 
-		if( ksym == XK_Delete && size == 1)
+		if( ( ksym == XK_Delete && size == 1) || ksym == XK_KP_Delete) 
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_DELETE) ;
 		}
@@ -2839,7 +2839,7 @@ key_pressed(
 		/*
 		 * following ksym is processed only if no sequence string is received(size == 0)
 		 */
-		else if( ksym == XK_Up)
+		else if( ksym == XK_Up || ksym == XK_KP_Up)
 		{
 			if( is_app_cursor_keys)
 			{
@@ -2850,7 +2850,7 @@ key_pressed(
 				buf = "\x1b[A" ;
 			}
 		}
-		else if( ksym == XK_Down)
+		else if( ksym == XK_Down || ksym == XK_KP_Down)
 		{
 			if( is_app_cursor_keys)
 			{
@@ -2861,7 +2861,7 @@ key_pressed(
 				buf = "\x1b[B" ;
 			}
 		}
-		else if( ksym == XK_Right)
+		else if( ksym == XK_Right || ksym == XK_KP_Right)
 		{
 			if( is_app_cursor_keys)
 			{
@@ -2872,7 +2872,7 @@ key_pressed(
 				buf = "\x1b[C" ;
 			}
 		}
-		else if( ksym == XK_Left)
+		else if( ksym == XK_Left || ksym == XK_KP_Left)
 		{
 			if( is_app_cursor_keys)
 			{
@@ -2883,15 +2883,15 @@ key_pressed(
 				buf = "\x1b[D" ;
 			}
 		}
-		else if( ksym == XK_Prior)
+		else if( ksym == XK_Prior || ksym == XK_KP_Prior)
 		{
 			buf = "\x1b[5~" ;
 		}
-		else if( ksym == XK_Next)
+		else if( ksym == XK_Next || ksym == XK_KP_Next)
 		{
 			buf = "\x1b[6~" ;
 		}
-		else if( ksym == XK_Insert)
+		else if( ksym == XK_Insert || ksym == XK_KP_Insert)
 		{
 			buf = "\x1b[2~" ;
 		}
@@ -2967,11 +2967,11 @@ key_pressed(
 		{
 			buf = "\x1b[29~" ;
 		}
-		else if( ksym == XK_Home)
+		else if( ksym == XK_Home || ksym == XK_KP_Home)
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_HOME) ;
 		}
-		else if( ksym == XK_End)
+		else if( ksym == XK_End || ksym == XK_KP_End)
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_END) ;
 		}
