@@ -15,6 +15,8 @@
 
 #include "x_imagelib.h"
 
+#define NOT_USING_WINDOWMAKER
+
 /** Pixmap cache per display. */
 typedef struct display_store_tag {
 	Display *  display; /**<Display */
@@ -41,6 +43,49 @@ static int modify_lbound = 0 ;
 /* --- static functions --- */
 
 /* Get an background pixmap from _XROOTMAP_ID */
+
+static Pixmap 
+tile_pixmap(
+	Display * display, 
+	int   screen, 
+	GC  gc ,
+	Pixmap pixmap,
+	int force_copy
+	)
+{
+	Window dummy ;
+	int ax,ay ;
+	unsigned int aw, ah;
+	unsigned int bw, depth;
+	
+	Pixmap result;
+	
+	XGetGeometry( display, pixmap, &dummy, &ax, &ay,
+		      &aw, &ah, &bw, &depth) ;
+	if ( force_copy ||
+	     ( aw < DisplayWidth( display, screen)) ||
+	     ( ah < DisplayHeight( display, screen)))
+	{
+		/* Some WM needs tiling... sigh.*/
+		result = XCreatePixmap( display, pixmap,
+					       DisplayWidth( display, screen),
+					       DisplayHeight( display, screen),
+					       depth) ;
+			
+		XSetTile( display, gc, pixmap) ;
+		XSetTSOrigin( display, gc, 0, 0) ;
+		XSetFillStyle( display, gc, FillTiled) ;
+		XFillRectangle( display, result, gc, 0, 0,
+				DisplayWidth( display, screen),
+				DisplayHeight( display, screen)) ;
+		return result ;
+	}
+	else
+	{
+		return pixmap ;
+	}
+}
+
 static Pixmap
 root_pixmap(
 	x_window_t *  win
@@ -73,7 +118,7 @@ root_pixmap(
 }
 
 static display_store_t *
-seek_cache(
+cache_seek(
 	   Display *  display
 	   )
 {
@@ -84,6 +129,25 @@ seek_cache(
 			break ;
 		cache = cache->next ;
 	}
+	return cache ;
+}
+
+static display_store_t *
+cache_add(
+	   Display *  display
+	   )
+{
+	display_store_t *  cache ;
+	cache = malloc( sizeof( display_store_t)) ;
+	if (!cache)
+		return NULL ;
+	cache->display = display ;
+	cache->root = None ;
+	cache->cooked = None ;
+	memset( &(cache->pic_mod), 0, sizeof(x_picture_modifier_t)) ;
+	cache->next = display_store ;
+	display_store = cache ;
+
 	return cache ;
 }
 
@@ -109,7 +173,7 @@ cache_delete(
 			if ( o == NULL)
 			{
 				display_store = cache->next ;
-				if (cache->cooked)
+				if ((cache->cooked) && (cache->root != cache->cooked))
 					XFreePixmap( display, cache->cooked) ;
 				free( cache) ;
 				cache = display_store ;
@@ -137,12 +201,28 @@ cache_delete(
  */
 static int
 is_picmod_eq(
-		x_picture_modifier_t *  a,
-		x_picture_modifier_t *  b
+	display_store_t *  cache,
+	x_picture_modifier_t *  new
 	)
 {
-	if( (a->brightness == b->brightness) && (a->contrast == b->contrast) && (a->gamma == b->gamma))
-		return 1 ;
+	if (new == NULL)
+	{
+		if( (cache->pic_mod.brightness == 100) &&
+		    (cache->pic_mod.contrast == 100) &&
+		    (cache->pic_mod.gamma == 100))
+		{
+			return 1 ;
+		}
+	}
+	else
+	{
+		if( (cache->pic_mod.brightness == new->brightness) &&
+		    (cache->pic_mod.contrast == new->contrast) &&
+		    (cache->pic_mod.gamma == new->gamma))
+		{
+			return 1 ;
+		}
+	}
 	return 0 ;
 }
 
@@ -158,6 +238,8 @@ lsb(
 {
 	int nth = 0 ;
 
+	if( val == 0)
+		return 0 ;
 	while((val & 1) == 0)
 	{
 		val = val >>1 ;
@@ -177,7 +259,8 @@ msb(
 	)
 {
 	int nth ;
-
+	if( val == 0)
+		return 0 ;
 	nth = lsb( val) +1 ;
 	while(val & (1 << nth))
 	{
@@ -228,80 +311,86 @@ pixbuf_to_pixmap_truecolor(
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
 	if ( (!matched) || (!vinfolist) )
 		return ;
-
-	r_mask = vinfolist[0].red_mask ;
-	g_mask = vinfolist[0].green_mask ;
-	b_mask = vinfolist[0].blue_mask ;
-	XFree(vinfolist) ;
-
-	r_offset = lsb( r_mask) ;
-	g_offset = lsb( g_mask) ;
-	b_offset = lsb( b_mask) ;
-
-	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
-	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
-       	line = gdk_pixbuf_get_pixels (pixbuf) ;
-
-	switch ( depth)
+	switch( vinfolist[0].class)
 	{
-	case 15:
-	case 16:
-	{		
-		int r_limit, g_limit, b_limit ;
-		u_int16_t *data ;
-
-		data = (u_int16_t *)malloc( width *  height * 2) ;
-		if( !data)
-			return;
-		image = XCreateImage( display, DefaultVisual( display, screen),
-				      DefaultDepth( display, screen), ZPixmap, 0,
-				      (char *)data,
-				      gdk_pixbuf_get_width( pixbuf),
-				      gdk_pixbuf_get_height( pixbuf),
-				      16,
-				      gdk_pixbuf_get_width( pixbuf) *  2);
-		r_limit = 8 + r_offset - msb( r_mask) ;
-		g_limit = 8 + g_offset - msb( g_mask) ;
-		b_limit = 8 + b_offset - msb( b_mask) ;
-		for (i = 0; i < height; i++)
+	case TrueColor:
+		r_mask = vinfolist[0].red_mask ;
+		g_mask = vinfolist[0].green_mask ;
+		b_mask = vinfolist[0].blue_mask ;
+		XFree(vinfolist) ;
+		
+		r_offset = lsb( r_mask) ;
+		g_offset = lsb( g_mask) ;
+		b_offset = lsb( b_mask) ;
+		
+		bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
+		rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
+		line = gdk_pixbuf_get_pixels (pixbuf) ;
+		
+		switch ( depth)
 		{
-			pixel = line ;
-			for (j = 0; j < width; j++)
+		case 15:
+		case 16:
+		{		
+			int r_limit, g_limit, b_limit ;
+			u_int16_t *data ;
+			
+			data = (u_int16_t *)malloc( width *  height * 2) ;
+			if( !data)
+				return;
+			image = XCreateImage( display, DefaultVisual( display, screen),
+					      DefaultDepth( display, screen), ZPixmap, 0,
+					      (char *)data,
+					      gdk_pixbuf_get_width( pixbuf),
+					      gdk_pixbuf_get_height( pixbuf),
+					      16,
+					      gdk_pixbuf_get_width( pixbuf) *  2);
+			r_limit = 8 + r_offset - msb( r_mask) ;
+			g_limit = 8 + g_offset - msb( g_mask) ;
+			b_limit = 8 + b_offset - msb( b_mask) ;
+			for (i = 0; i < height; i++)
 			{
-				data[i*width +j ] =
-					(((pixel[0] >> r_limit) << r_offset) & r_mask) |
-					(((pixel[1] >> g_limit) << g_offset) & g_mask) |
-					(((pixel[2] >> b_limit) << b_offset) & b_mask) ;
-				pixel += bytes_per_pixel ;
+				pixel = line ;
+				for (j = 0; j < width; j++)
+				{
+					data[i*width +j ] =
+						(((pixel[0] >> r_limit) << r_offset) & r_mask) |
+						(((pixel[1] >> g_limit) << g_offset) & g_mask) |
+						(((pixel[2] >> b_limit) << b_offset) & b_mask) ;
+					pixel += bytes_per_pixel ;
+				}
+				line += rowstride ;
 			}
-			line += rowstride ;
 		}
-	}
-	break;
-	case 24:
-	case 32:
-	{
-		u_int32_t *  data ;
-		data = (u_int32_t *)malloc( width *  height * 4) ;
-
-		if( !data)
-			return ;
-		image = XCreateImage( display, DefaultVisual( display, screen),
-				      DefaultDepth( display, screen), ZPixmap, 0,
-				      (char *)data,
-				      gdk_pixbuf_get_width( pixbuf),
-				      gdk_pixbuf_get_height( pixbuf),
-				      32,
-				      gdk_pixbuf_get_width( pixbuf) *  4) ;
-		for( i = 0; i < height; i++){
-			pixel = line ;
-			for( j = 0; j < width; j++){
-				data[i*width +j ] = pixel[0] <<r_offset | pixel[1] <<g_offset | pixel[2]<<b_offset ;
-				pixel +=bytes_per_pixel ;
+		break;
+		case 24:
+		case 32:
+		{
+			u_int32_t *  data ;
+			data = (u_int32_t *)malloc( width *  height * 4) ;
+			
+			if( !data)
+				return ;
+			image = XCreateImage( display, DefaultVisual( display, screen),
+					      DefaultDepth( display, screen), ZPixmap, 0,
+					      (char *)data,
+					      gdk_pixbuf_get_width( pixbuf),
+					      gdk_pixbuf_get_height( pixbuf),
+					      32,
+					      gdk_pixbuf_get_width( pixbuf) *  4) ;
+			for( i = 0; i < height; i++){
+				pixel = line ;
+				for( j = 0; j < width; j++){
+					data[i*width +j ] = pixel[0] <<r_offset | pixel[1] <<g_offset | pixel[2]<<b_offset ;
+					pixel +=bytes_per_pixel ;
+				}
+				line += rowstride ;
 			}
-			line += rowstride ;
 		}
-	}
+		}
+		break ;
+	default:
+		break;
 	}
 
 	if( image)
@@ -757,6 +846,7 @@ modify_pixmap(
 			   width, height) ;
 		break ;
 	default:
+		break;
 	}
 	XDestroyImage( image) ;
 	return 1 ;
@@ -812,7 +902,7 @@ x_imagelib_load_file_for_background(
 
 	if(!file_path)
 		return None ;
-	if( wp_cache_name && (strcmp( wp_cache_name, file_path) == 0) && wp_cache_data ){
+	if( wp_cache_name && (strcmp( wp_cache_name, file_path) == 0) && wp_cache_data && (!pic_mod)){
 		pixbuf = wp_cache_data ;
 	}else{
 		if ( wp_cache_data){
@@ -912,70 +1002,84 @@ x_imagelib_get_transparent_background(
 	Pixmap  current_root ;
 	GC  gc ;
 
-	cache = seek_cache( win->display);
-	if (!cache){
-		cache = malloc( sizeof( display_store_t)) ;
-		if (!cache)
-			return None ;
-		cache->display = win->display ;
-		cache->root = None ;
-		cache->cooked = None ;
-		memset( &(cache->pic_mod), 0, sizeof(x_picture_modifier_t)) ;
-		cache->next = display_store ;
-		display_store = cache ;
-	}
+	int flag = 0 ;
 
-/* discard old caches */
 	current_root =  root_pixmap( win) ;
-	if ( cache->root !=  current_root)
+
+	if(current_root == None)
+		return None;
+
+	cache = cache_seek( win->display);
+	if( cache)
 	{
-		cache->root = current_root ;
-		if (cache->cooked != None)
+/* discard old info */
+		if ( cache->root !=  current_root)
 		{
-			XFreePixmap( win->display, cache->cooked) ;
+			cache->root = current_root ;
+			if((cache->cooked != None) && (cache->cooked != cache->root))
+			{
+				XFreePixmap( win->display, cache->cooked) ;
+			}
 			cache->cooked = None ;
 		}
 	}
-	if (cache->root == None)
-		return None ;
+	else
+	{
+		cache = cache_add( win->display);
+		if( !cache)
+			return None ;
+		cache->root = current_root ;
+	}
 
 	if( ! x_window_get_visible_geometry( win, &x, &y, &pix_x, &pix_y, &width, &height))
 		return None ;
 
-
+	/* The pixmap to be returned */
 	pixmap = XCreatePixmap( win->display, win->my_window, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
 				DefaultDepth( win->display, win->screen)) ;
 
 	gc = XCreateGC( win->display, win->my_window, 0, 0 );
-	if (pic_mod)
+
+	if ( !is_picmod_eq( cache, pic_mod))
 	{
-		if( cache->cooked == None )
+		if((cache->cooked != None) && (cache->cooked != cache->root))
+			XFreePixmap( win->display, cache->cooked) ;
+
+		/* re-creation */
+		if(pic_mod)
 		{
-			cache->cooked = XCreatePixmap( win->display, win->my_window,
-						       DisplayWidth( win->display, win->screen),
-						       DisplayHeight( win->display, win->screen),
-						       DefaultDepth( win->display, win->screen)) ;
-		}
-		if( !is_picmod_eq( &(cache->pic_mod), pic_mod))
-		{
+			cache->cooked = tile_pixmap( win->display,
+						     win->screen,
+						     gc,
+						     current_root
+						     /* we need a copy of pixmap to modify */
+						     ,1 ) ;
 			memcpy( &(cache->pic_mod), pic_mod, sizeof(x_picture_modifier_t)) ;
-			XSetTile( win->display, gc, cache->root) ;
-			XSetTSOrigin( win->display, gc, 0, 0) ;
-			XSetFillStyle( win->display, gc, FillTiled) ;
-			XFillRectangle( win->display, cache->cooked, gc, 0, 0,
-					DisplayWidth( win->display, win->screen),
-					DisplayHeight( win->display, win->screen)) ;
 			modify_pixmap( win->display, win->screen, cache->cooked, pic_mod) ;
 		}
-		XCopyArea( win->display, cache->cooked, pixmap, gc, x, y, width, height, pix_x, pix_y) ;
+		else
+		{
+			cache->cooked = tile_pixmap( win->display,
+						     win->screen,
+						     gc,
+						     current_root,
+						     0 ) ;
+		}
 	}
 	else
 	{
-		XSetTile( win->display, gc, cache->root) ;
-		XSetTSOrigin( win->display, gc, -x+pix_x, -y +pix_y) ;
-		XSetFillStyle( win->display, gc, FillTiled) ;
-		XFillRectangle( win->display, pixmap, gc, 0, 0, width +pix_x, height+pix_y) ;
+		if( cache->cooked == None )
+		{
+			cache->cooked = tile_pixmap( win->display,
+						     win->screen,
+						     gc,
+						     current_root,
+						     0 ) ;
+		}
 	}
+	
+	XCopyArea( win->display, cache->cooked, pixmap, gc, x, y, width, height, pix_x, pix_y) ;
+
 	XFreeGC( win->display, gc ) ;
 	return pixmap ;
 }
