@@ -1,6 +1,30 @@
 comment -*- mode: text -*-
 comment $Id$
 
+supported platforms (mlterm-2.9.2 pre/cvs-1.865)
+
+* tested by Seiichi SATO <ssato@sh.rim.or.jp>
+
+  Solaris 8 (x86), gcc-3.4.2
+     configure options: --with-type-engines=xcore
+                       --with-tools=mlclient,mlcc
+                       --with-scrollbars=sample,extra
+
+  MS Windows NT 4.0/Cygwin-1.5.12 with x-org 6.8.1.0-3 (x86)
+    configure options: --with-type-engines=xcore,xft
+                       --with-scrollbars=sample,extra
+                       --with-imagelib=gdk-pixbuf
+                       --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
+    Note: It seems that Cygwin/X has libXrender.la. You can get it at:
+    <http://www.sh.rim.or.jp/~ssato/mlterm/libXrender.la>
+
+  OpenBSD 3.5, gcc-2.95.3 (x86)
+    configure options: --with-tools=mlclient,mlcc
+                       --with-scrollbars=sample
+                       --with-type-engines=xcore
+                       --enable-utmp
+
+
 supported platforms (mlterm-2.9.2 pre/cvs-1.838)
 
 * tested by Seiichi SATO <ssato@sh.rim.or.jp>
