@@ -16,6 +16,7 @@
 #include "x_imagelib.h"
 
 #define USE_FS 1
+#define SUCCESS 0
 
 /** Pixmap cache per display. */
 typedef struct
@@ -71,7 +72,7 @@ create_cardinals(
 	line = gdk_pixbuf_get_pixels (pixbuf) ;
 	*cardinal = malloc((width * height + 2) *4) ;
 	if (!(*cardinal))
-		return 0 ;
+		return -1 ;
 
 /* {width, height, ARGB[][]} */
 	(*cardinal)[0] = width ;
@@ -104,7 +105,7 @@ create_cardinals(
 			}
 		}
 	}
-	return 1 ;
+	return SUCCESS ;
 }
 
 static int
@@ -209,7 +210,7 @@ pixbuf_to_pixmap_pseudocolor(
 	if( !diff_next)
 	{
 		free( diff_cur) ;
-		return -1 ;
+		return -2 ;
 	}
 #endif /* USE_SF */
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
@@ -333,7 +334,7 @@ pixbuf_to_pixmap_pseudocolor(
 	free( diff_cur) ;
 	free( diff_next) ;
 #endif /* USE_SF */
-	return 0 ;
+	return SUCCESS ;
 }
 
 
@@ -685,14 +686,14 @@ pixbuf_to_pixmap(
 
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
 	if (!vinfo.visualid)
-		return -1 ;
+		return -2 ;
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
 	if( !vinfolist)
-		return -1 ;
+		return -3 ;
 	if ( !matched)
 	{
 		XFree( vinfolist) ;
-		return -1 ;
+		return -4 ;
 	}
 	switch( vinfolist[0].class)
 	{
@@ -709,18 +710,16 @@ pixbuf_to_pixmap(
 			XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
 				   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
 			XDestroyImage( image) ;
-			return 0 ;
+			return SUCCESS ;
 		}
 		break ;
 	}
 	case PseudoColor:
 	{
 		XFree( vinfolist) ;
-		if( pixbuf_to_pixmap_pseudocolor( display, screen, pixbuf, pixmap) == -1)
-		{
+		if( pixbuf_to_pixmap_pseudocolor( display, screen, pixbuf, pixmap) != SUCCESS)
 			return -1;
-		}
-		return 0 ;
+		return SUCCESS ;
 		break ;
 	}
 	default:
@@ -952,7 +951,7 @@ compose_to_pixmap(
 		XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
 			   gdk_pixbuf_get_width( pixbuf), gdk_pixbuf_get_height( pixbuf)) ;
 		XDestroyImage( image) ;
-		return 0;
+		return SUCCESS ;
 	}
 
 	XFree( vinfolist) ;
@@ -1011,7 +1010,7 @@ pixbuf_to_pixmap_and_mask(
 		}
 	}
 	XFreeGC( display, gc) ;
-	return 0 ;
+	return SUCCESS ;
 }
 
 static void
@@ -1094,16 +1093,16 @@ modify_image(
 	unsigned char *pixel ;
 
 	if ( !pixbuf )
-			return 0 ;
+			return -1 ;
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
 	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
 
 	if( !pic_mod)
-		return 1 ;
+		return -2 ;
 	if(pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100)
-		return 1 ;
+		return SUCCESS ;
 	modify_bound( pic_mod);
        	line = gdk_pixbuf_get_pixels (pixbuf) ;
 	for (i = 0; i < height; i++)
@@ -1139,7 +1138,7 @@ modify_image(
 			}
 		}
 	}
-	return 1 ;
+	return SUCCESS ;
 }
 
 static int
@@ -1164,19 +1163,19 @@ modify_pixmap(
 	XVisualInfo  vinfo ;
 
 	if ( !pixmap )
-		return 0 ;
+		return -1 ;
 
 	if(pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100)
-		return 0 ;
+		return SUCCESS ;
 
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display, screen)) ;
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
 	if( !vinfolist)
-		return 0;
+		return -2;
 	if ( !matched)
 	{
 		XFree( vinfolist) ;
-		return 0;
+		return -3;
 	}
 
 	XGetGeometry( display, pixmap, &root, &x, &y,
@@ -1329,7 +1328,7 @@ modify_pixmap(
 			if( !color_list)
 			{
 				XFree(vinfolist) ;
-				return 1;
+				return -5;
 			}
 			for( i = 0 ; i < num_cells ; i ++)
 				color_list[i].pixel = i ;
@@ -1389,7 +1388,7 @@ modify_pixmap(
 	XFree(vinfolist) ;
 	XDestroyImage( image) ;
 
-	return 1 ;
+	return SUCCESS ;
 }
 
 /* --- global functions --- */
@@ -1498,7 +1497,7 @@ x_imagelib_load_file_for_background(
 	{
 		pixmap = x_imagelib_get_transparent_background( win, NULL) ;
 		if( compose_to_pixmap( win->display, win->screen,
-				       pixbuf, pixmap) )
+				       pixbuf, pixmap) != SUCCESS)
 		{
 			XFreePixmap( win->display, pixmap) ;
 			return None ;
@@ -1510,7 +1509,7 @@ x_imagelib_load_file_for_background(
 					ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
 					DefaultDepth( win->display, win->screen));
 		if( pixbuf_to_pixmap( win->display, win->screen,
-				      pixbuf, pixmap) )
+				      pixbuf, pixmap) != SUCCESS)
 		{
 			XFreePixmap( win->display, pixmap) ;
 			return None ;
@@ -1751,7 +1750,7 @@ int x_imagelib_load_file(
 					       width, height, 1) ;
 			if( pixbuf_to_pixmap_and_mask( display,
 						       DefaultScreen( display),
-						       pixbuf, *pixmap, *mask))
+						       pixbuf, *pixmap, *mask) != SUCCESS)
 			{
 				XFreePixmap( display, *pixmap) ;
 				*pixmap = 0 ;
@@ -1764,7 +1763,7 @@ int x_imagelib_load_file(
 		else
 		{
 			if( pixbuf_to_pixmap( display, DefaultScreen( display),
-					      pixbuf, *pixmap))
+					      pixbuf, *pixmap) != SUCCESS)
 			{
 				XFreePixmap( display, *pixmap) ;
 				*pixmap = 0 ;
