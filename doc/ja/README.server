@@ -7,7 +7,7 @@ mlterm server
   mlterm は、client からの要求に応じて、単一プロセス中に新たな端末ウィンドウを起
   動する server として動作することができます。
   また、一定の制約(具体的には Imlib 関連)はありますが、複数の Display への同時接
-  続をこなすことも可能です。
+  続をこなすことも可能です(多分)
 
 * mlterm server の設定
   引数オプション -j , --daemon または、main 設定ファイルの daemon_mode に、blend

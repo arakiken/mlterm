@@ -17,9 +17,9 @@ mlterm で縦表示
 
   から入手できます。
 
-  vertfonts-20020201.tar.gz には、naga10 および shinonme 12-16 の JISX0208 フォント
-  へのパッチが、 vertfonts-half-20020209.tar.gz には、同 ISO8859-1 フォントへのパッ
-  チが含まれています。
+  vertfonts-20020201.tar.gz には、naga10 1.1 および shinonme 0.9.7 (12-16 point) 
+  の JISX0208 フォントへのパッチが、 vertfonts-half-20020209.tar.gz には、同 ISO8859-1 
+  フォントへのパッチが含まれています。
 
 * 半角、全角の扱いについて
   縦表示の場合、半角文字は、全角文字と同じ幅で表示されます。しかし、通常、半角文字

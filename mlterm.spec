@@ -71,7 +71,7 @@ rm -rf $RPM_BUILD_ROOT
 %{pixmapdir}/mlterm*
 
 %changelog
-* XXX XXX NN NNNN Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
+* Sat Feb 23 2002 Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
 - Source version 2.3.0
 
 * Tue Jan 29 2002 Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>

@@ -534,7 +534,7 @@ ml_sb_term_screen_new(
 		view_name , color_table , ACTUAL_HEIGHT( &termscr->window) ,
 		ml_line_height( termscr->font_man) , termscr->logs.num_of_rows ,
 		termscr->window.is_transparent ,
-		ml_term_screen_get_picture_modifier( termscr)) == NULL)
+		ml_term_screen_get_picture_modifier( termscr)) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_scrollbar_init() failed.\n") ;
