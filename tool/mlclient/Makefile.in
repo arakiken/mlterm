@@ -33,5 +33,8 @@ clean:
 distclean: clean
 	rm -f Makefile
 
-install:
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
+install: $(BINDIR)
 	$(INSTALL) -m 755 $(PROG) $(BINDIR)
