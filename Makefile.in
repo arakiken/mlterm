@@ -14,4 +14,5 @@ distclean:
 	if [ -d kiklib ]; then cd kiklib ; $(MAKE) $@ ; fi
 	if [ -d mkf ]; then cd mkf ; $(MAKE) $@ ; fi
 	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
-	rm -f config.log config.cache config.status libtool Makefile common/config.h
+	rm -f config.log config.cache config.status libtool Makefile \
+		common/c_config.h xwindow/version.h
