@@ -6043,7 +6043,7 @@ x_screen_new(
 	screen->pty_listener.self = screen ;
 	screen->pty_listener.closed = pty_closed ;
 
-	ml_term_set_listener( term , &screen->xterm_listener , &screen->config_listener ,
+	ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
 		&screen->screen_listener , &screen->pty_listener) ;
 	
 	screen->term = term ;
@@ -6278,7 +6278,7 @@ x_screen_delete(
 {
 	if( screen->term)
 	{
-		ml_term_set_listener( screen->term , NULL , NULL , NULL , NULL) ;
+		ml_term_detach( screen->term) ;
 	}
 	
 	x_sel_final( &screen->sel) ;
@@ -6341,7 +6341,7 @@ x_screen_attach(
 	
 	screen->term = term ;
 
-	ml_term_set_listener( term , &screen->xterm_listener , &screen->config_listener ,
+	ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
 		&screen->screen_listener , &screen->pty_listener) ;
 
 	if( ml_term_get_encoding( screen->term) == ML_ISCII)
@@ -6399,7 +6399,7 @@ x_screen_detach(
 	exit_backscroll_mode( screen) ;
 #endif
 
-	ml_term_set_listener( screen->term , NULL , NULL , NULL , NULL) ;
+	ml_term_detach( screen->term) ;
 
 	term = screen->term ;
 	screen->term = NULL ;

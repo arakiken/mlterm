@@ -516,11 +516,6 @@ open_term(
 	return  1 ;
 	
 error:
-	if( term)
-	{
-		ml_put_back_term( term) ;
-	}
-
 	if( disp)
 	{
 		x_display_close( disp) ;
@@ -554,15 +549,10 @@ close_term(
 	x_screen_t *  screen
 	)
 {
-	ml_term_t *  term ;
 	x_window_t *  root ;
 	x_window_manager_t *  win_man ;
 
-	if( ( term = x_screen_detach( screen)))
-	{
-		ml_put_back_term( term) ;
-	}
-	
+	x_screen_detach( screen) ;
 	x_font_manager_delete( screen->font_man) ;
 	x_color_manager_delete( screen->color_man) ;
 
@@ -625,7 +615,6 @@ open_pty(
 	{
 		if( screen == screens[count])
 		{
-			ml_term_t *  old ;
 			ml_term_t *  new ;
 
 			if( dev)
@@ -651,11 +640,7 @@ open_pty(
 				}
 			}
 			
-			if( ( old = x_screen_detach( screen)))
-			{
-				ml_put_back_term( old) ;
-			}
-
+			x_screen_detach( screen) ;
 			x_screen_attach( screen , new) ;
 			
 			return ;
@@ -684,7 +669,7 @@ next_pty(
 			{
 				return ;
 			}
-			
+
 			if( ( new = ml_next_term( old)) == NULL)
 			{
 				x_screen_attach( screen , old) ;
@@ -2774,8 +2759,6 @@ x_term_manager_event_loop(void)
 		{
 			return ;
 		}
-		
-		ml_put_back_term( term) ;
 	}
 	
 	while( 1)

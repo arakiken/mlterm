@@ -90,6 +90,8 @@ ml_term_new(
 	term->is_mouse_pos_sending = 0 ;
 	term->is_app_keypad = 0 ;
 	term->is_app_cursor_keys = 0 ;
+
+	term->is_attached = 0 ;
 	
 	return  term ;
 
@@ -182,7 +184,7 @@ ml_term_open_pty(
 }
 
 int
-ml_term_set_listener(
+ml_term_attach(
 	ml_term_t *  term ,
 	ml_xterm_event_listener_t *  xterm_listener ,
 	ml_config_event_listener_t *  config_listener ,
@@ -196,7 +198,33 @@ ml_term_set_listener(
 
 	term->pty_listener = pty_listener ;
 
+	term->is_attached = 1 ;
+
 	return  1 ;
+}
+
+int
+ml_term_detach(
+	ml_term_t *  term
+	)
+{
+	ml_vt100_parser_set_xterm_listener( term->parser , NULL) ;
+	ml_vt100_parser_set_config_listener( term->parser , NULL) ;
+	ml_screen_set_listener( term->screen , NULL) ;
+
+	term->pty_listener = NULL ;
+
+	term->is_attached = 0 ;
+
+	return  1 ;
+}
+
+int
+ml_term_is_attached(
+	ml_term_t *  term
+	)
+{
+	return  term->is_attached ;
 }
 
 int

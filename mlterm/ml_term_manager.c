@@ -21,7 +21,6 @@
 static u_int32_t  dead_mask ;
 
 static ml_term_t *  terms[MAX_TERMS] ;
-static int8_t  is_active[MAX_TERMS] ;
 static u_int  num_of_terms ;
 static char *  pty_list ;
 
@@ -108,8 +107,6 @@ ml_create_term(
 		return  NULL ;
 	}
 
-	is_active[num_of_terms] = 1 ;
-
 	return  terms[num_of_terms++] ;
 }
 
@@ -123,10 +120,8 @@ ml_get_term(
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
 		if( ( dev == NULL || strcmp( dev , ml_term_get_slave_name( terms[count])) == 0) &&
-			! is_active[count])
+			! ml_term_is_attached( terms[count]))
 		{
-			is_active[count] = 1 ;
-			
 			return  terms[count] ;
 		}
 	}
@@ -149,29 +144,23 @@ ml_next_term(
 			
 			old = count ;
 
-			for( ; count < num_of_terms ; count ++)
+			for( count ++ ; count < num_of_terms ; count ++)
 			{
-				if( ! is_active[count])
+				if( ! ml_term_is_attached(terms[count]))
 				{
-					goto  found ;
+					return  terms[count] ;
 				}
 			}
 
 			for( count = 0 ; count < old ; count ++)
 			{
-				if( ! is_active[count])
+				if( ! ml_term_is_attached(terms[count]))
 				{
-					goto  found ;
+					return  terms[count] ;
 				}
 			}
 
 			return  NULL ;
-			
-		found:
-			is_active[count] = 1 ;
-			is_active[old] = 0 ;
-
-			return  terms[count] ;
 		}
 	}
 	
@@ -193,53 +182,27 @@ ml_prev_term(
 			
 			old = count ;
 
-			for( ; count >= 0 ; count --)
+			for( count -- ; count >= 0 ; count --)
 			{
-				if( ! is_active[count])
+				if( ! ml_term_is_attached(terms[count]))
 				{
-					goto  found ;
+					return  terms[count] ;
 				}
 			}
 
 			for( count = num_of_terms - 1 ; count > old ; count --)
 			{
-				if( ! is_active[count])
+				if( ! ml_term_is_attached(terms[count]))
 				{
-					goto  found ;
+					return  terms[count] ;
 				}
 			}
 
 			return  NULL ;
-			
-		found:
-			is_active[count] = 1 ;
-			is_active[old] = 0 ;
-
-			return  terms[count] ;
 		}
 	}
 	
 	return  NULL ;
-}
-
-int
-ml_put_back_term(
-	ml_term_t *  term
-	)
-{
-	int  count ;
-
-	for( count = 0 ; count < num_of_terms ; count ++)
-	{
-		if( terms[count] == term)
-		{
-			is_active[count] = 0 ;
-
-			break ;
-		}
-	}
-
-	return  1 ;
 }
 
 u_int
@@ -266,7 +229,6 @@ ml_close_dead_terms(void)
 				ml_term_delete( terms[count]) ;
 
 				terms[count] = terms[num_of_terms - 1] ;
-				is_active[count] = is_active[num_of_terms - 1] ;
 				num_of_terms -- ;
 			}
 		}
@@ -299,7 +261,7 @@ ml_get_pty_list(void)
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
 		kik_snprintf( p , len , "%s:%d;" ,
-			ml_term_get_slave_name( terms[count]) , is_active[count]) ;
+			ml_term_get_slave_name( terms[count]) , ml_term_is_attached( terms[count])) ;
 		p += strlen( p) ;
 	}
 

@@ -52,6 +52,8 @@ typedef struct ml_term
 	int8_t  is_app_keypad ;
 	int8_t  is_app_cursor_keys ;
 
+	int8_t  is_attached ;
+
 } ml_term_t ;
 
 
@@ -66,9 +68,13 @@ int  ml_term_delete( ml_term_t *  term) ;
 int  ml_term_open_pty( ml_term_t *  term , char *  cmd_path , char **  argv ,
 	char **  env , char *  host) ;
 
-int  ml_term_set_listener( ml_term_t *  term , ml_xterm_event_listener_t *  xterm_listener ,
+int  ml_term_attach( ml_term_t *  term , ml_xterm_event_listener_t *  xterm_listener ,
 	ml_config_event_listener_t *  config_listener , ml_screen_event_listener_t *  screen_listener ,
 	ml_pty_event_listener_t *  pty_listner) ;
+
+int  ml_term_detach( ml_term_t *  term) ;
+
+int  ml_term_is_attached( ml_term_t *  term) ;
 
 int  ml_term_parse_vt100_sequence( ml_term_t *  term) ;
 

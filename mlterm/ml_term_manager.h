@@ -25,8 +25,6 @@ ml_term_t *  ml_next_term( ml_term_t *  term) ;
 
 ml_term_t *  ml_prev_term( ml_term_t *  term) ;
 
-int  ml_put_back_term( ml_term_t *  term) ;
-
 u_int  ml_get_all_terms( ml_term_t ***  terms) ;
 
 int  ml_close_dead_terms(void) ;
