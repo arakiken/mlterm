@@ -1,12 +1,18 @@
+top_builddir = ../../..
+top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
+
+DESTDIR =
+BINDIR = $(DESTDIR)$(bindir)
+
+VPATH = ${top_srcdir}/contrib/tool/mlcc
 
 CC = @CC@
 PROG = mlcc
 CFLAGS = @CFLAGS@
 INSTALL = @INSTALL@
-
 
 OBJECTS = data.o main.o comm.o \
  data_entry_string.o data_entry_bool.o data_entry_numeric.o \
@@ -30,10 +36,10 @@ clean:
 	rm -f $(OBJECTS) $(PROG) core core.* $(PROG).core 
 
 install:
-	$(INSTALL) -m 755 $(PROG) $(bindir)
+	$(INSTALL) -m 755 $(PROG) $(BINDIR)
 
 uninstall:
-	rm -f $(bindir)/$(PROG)
+	rm -f $(BINDIR)/$(PROG)
 
 mostlyclean:
 	rm -f $(OBJECTS) core core.* $(PROG).core 

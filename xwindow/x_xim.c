@@ -334,7 +334,11 @@ x_xim_init(
 	if( xmod == NULL || strlen( xmod) < 4 || ( p = strstr( xmod , "@im=")) == NULL ||
 		( default_xim_name = strdup( p + 4)) == NULL)
 	{
+	#if  0
 		default_xim_name = NULL ;
+	#else
+		default_xim_name = "@im=none" ;
+	#endif
 	}
 	else
 	{

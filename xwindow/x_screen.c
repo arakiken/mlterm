@@ -4862,7 +4862,7 @@ set_config(
 		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
 				dev)) == NULL)
 		{
-			goto  error ;
+			return ;
 		}
 	}
 	else

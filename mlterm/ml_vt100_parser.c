@@ -780,13 +780,23 @@ config_protocol_get(
 	{
 		char *  dev ;
 		char *  key ;
+		int  ret ;
 		
 		stop_vt100_cmd( vt100_parser) ;
 
-		if( ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0))
+		ret = ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0) ;
+		if( ret > 0)
 		{
 			(*vt100_parser->config_listener->get)( vt100_parser->config_listener->self ,
 				dev , key , to_menu) ;
+		}
+		else if( ret == -1)
+		{
+			/* to_menu is necessarily 0, so it is pty that msg should be returned to. */
+			
+			char  msg[] = "#forbidden\n" ;
+
+			ml_write_to_pty( vt100_parser->pty , msg , sizeof( msg) - 1) ;
 		}
 
 		start_vt100_cmd( vt100_parser) ;

@@ -10,7 +10,7 @@ version 20030301
   get(GUI menu)    = "\x1b" "]" "5381" ";" [ "/dev/..." ":" ] <key> "\x07"
   save             = "\x1b" "]" "5382" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
   set&save         = "\x1b" "]" "5383" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
-  return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a"
+  return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a" | "#forbidden" "\x0a"
   set key          = encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | use_anti_alias | use_variable_column_width |

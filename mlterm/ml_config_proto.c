@@ -131,6 +131,10 @@ ml_gen_proto_challenge(void)
 	return  1 ;
 }
 
+/*
+ * Returns 0 if error happens.
+ * Returns -1 if do_challenge is 1 and challenge failed.
+ */
 int
 ml_parse_proto(
 	char **  dev ,
@@ -168,7 +172,7 @@ ml_parse_proto(
 			kik_msg_printf( "Protocol 5380 is not permitted "
 				"because client password is wrong.\n") ;
 
-			return  0 ;
+			return  -1 ;
 		}
 	}
 
