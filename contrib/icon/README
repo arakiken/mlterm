@@ -32,14 +32,20 @@ mlterm icon collection
 
 - mlterm-icon-twm.png
 
-    This icon has been changed to monochromatic color for twm window manager
-    from an icon which was made by Tomohiro KUBOTA san. (mlterm_48x48.xpm)
+    This icon was changed to monochromatic color for twm window manager
+    from the icon which was made by Tomohiro KUBOTA san. (mlterm_48x48.xpm)
 
 
 - mlterm-icon-24colors-1.png, mlterm-icon-24colors-2.png
 
-    These icons I made use less than 24 colors. I hope these make you happy
-    with low depth color. Licensed under modified BSD-style license.
+    These icons use less than 24 colors. I hope these make you happy with low
+    depth color. Licensed under modified BSD-style license.
+
+
+- mlterm-icon.svg, mlterm-icon-trans.svg
+
+    These icons were contributed from Tobias Kieslich <tobias@justdreams.de>.
+    Licensed under GPL.
 
 
 comments, suggestions are welcome.
