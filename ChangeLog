@@ -1,3 +1,11 @@
+2003-1-13 Araki Ken <arakiken@users.sf.net>
+
+	* config.h.in -> c_config.h.in
+
+2003-1-13 Araki Ken <arakiken@users.sf.net>
+
+	* ml_intl.h -> c_intl.h
+
 2003-1-12 Araki Ken <arakiken@users.sf.net>
 
 	* Multiple 'key=value' pairs separated by ';' can be specified
