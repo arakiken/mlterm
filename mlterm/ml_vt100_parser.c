@@ -102,6 +102,11 @@ start_vt100_cmd(
 	}
 
 	ml_screen_logical( vt100_parser->screen) ;
+	
+	if( HAS_XTERM_LISTENER(vt100_parser,start_2))
+	{
+		(*vt100_parser->xterm_listener->start_2)( vt100_parser->xterm_listener->self) ;
+	}
 }
 
 static void

@@ -75,7 +75,7 @@ int  ml_line_overwrite_all( ml_line_t *  line , ml_char_t *  chars , int  len) ;
 
 int  ml_line_fill( ml_line_t *  line , ml_char_t *  ch , int  beg , u_int  num) ;
 
-ml_char_t *  ml_line_get_char( ml_line_t *  line , int  char_index) ;
+ml_char_t *  ml_char_at( ml_line_t *  line , int  at) ;
 
 int  ml_line_set_modified( ml_line_t *  line , int  beg_char_index , int  end_char_index) ;
 
@@ -89,7 +89,7 @@ int  ml_line_get_beg_of_modified( ml_line_t *  line) ;
 
 int  ml_line_get_end_of_modified( ml_line_t *  line) ;
 
-u_int  ml_line_get_num_of_redrawn_chars( ml_line_t *  line) ;
+u_int  ml_line_get_num_of_redrawn_chars( ml_line_t *  line , int  to_end) ;
 
 void  ml_line_updated( ml_line_t *  line) ;
 
@@ -117,7 +117,7 @@ u_int  ml_line_get_num_of_filled_cols( ml_line_t *  line) ;
 
 int  ml_line_end_char_index( ml_line_t *  line) ;
 
-int  ml_line_beg_char_index_except_spaces( ml_line_t *  line) ;
+int  ml_line_beg_char_index_regarding_rtl( ml_line_t *  line) ;
 
 u_int  ml_get_num_of_filled_chars_except_spaces( ml_line_t *  line) ;
 

@@ -135,7 +135,7 @@ ml_line_break_boundary(
 	/* padding spaces */
 	for( count = line->num_of_filled_chars ; count < line->num_of_filled_chars + size ; count ++)
 	{
-		ml_char_copy( &line->chars[count] , ml_sp_ch()) ;
+		ml_char_copy( line->chars + count , ml_sp_ch()) ;
 	}
 
 	/*
@@ -189,7 +189,7 @@ ml_line_reset(
 	count = END_CHAR_INDEX(line) ;
 	while( 1)
 	{
-		if( ! ml_char_equal( &line->chars[count] , ml_sp_ch()))
+		if( ! ml_char_equal( line->chars + count , ml_sp_ch()))
 		{
 			ml_line_set_modified( line , 0 , count) ;
 
@@ -233,7 +233,7 @@ ml_line_clear(
 	count = END_CHAR_INDEX(line) ;
 	while( 1)
 	{
-		if( ! ml_char_equal( &line->chars[count] , ml_sp_ch()))
+		if( ! ml_char_equal( line->chars + count , ml_sp_ch()))
 		{
 			ml_line_set_modified( line , char_index , count) ;
 
@@ -248,7 +248,7 @@ ml_line_clear(
 	ml_line_set_modified( line , char_index , END_CHAR_INDEX(line)) ;
 #endif
 
-	ml_char_copy( &line->chars[char_index] , ml_sp_ch()) ;
+	ml_char_copy( line->chars + char_index , ml_sp_ch()) ;
 	line->num_of_filled_chars = char_index + 1 ;
 	
 	return  1 ;
@@ -299,7 +299,7 @@ ml_line_overwrite(
 #ifdef  OPTIMIZE_REDRAWING
 	if( len <= line->num_of_filled_chars - beg_char_index)
 	{
-		if( ml_str_equal( &line->chars[beg_char_index] , chars , len))
+		if( ml_str_equal( line->chars + beg_char_index , chars , len))
 		{
 			return  1 ;
 		}
@@ -342,9 +342,9 @@ ml_line_overwrite(
 		
 		char_index = ml_convert_col_to_char_index( line , &cols_rest , cols_to_beg + cols , 0) ;
 
-		if( 1 <= cols_rest && cols_rest < ml_char_cols( &line->chars[char_index]))
+		if( 1 <= cols_rest && cols_rest < ml_char_cols( line->chars + char_index))
 		{
-			padding = ml_char_cols( &line->chars[char_index]) - cols_rest ;
+			padding = ml_char_cols( line->chars + char_index) - cols_rest ;
 			char_index ++ ;
 		}
 		else
@@ -361,7 +361,7 @@ ml_line_overwrite(
 			copy_len = 0 ;
 		}
 
-		copy_src = &line->chars[char_index] ;
+		copy_src = line->chars + char_index ;
 	}
 	else
 	{
@@ -400,15 +400,15 @@ ml_line_overwrite(
 	if( copy_len > 0)
 	{
 		/* making space */
-		ml_str_copy( &line->chars[beg_char_index + len + padding] , copy_src , copy_len) ;
+		ml_str_copy( line->chars + beg_char_index + len + padding , copy_src , copy_len) ;
 	}
 
 	for( count = 0 ; count < padding ; count ++)
 	{
-		ml_char_copy( &line->chars[beg_char_index + len + count] , ml_sp_ch()) ;
+		ml_char_copy( line->chars + beg_char_index + len + count , ml_sp_ch()) ;
 	}
 
-	ml_str_copy( &line->chars[beg_char_index] , chars , len) ;
+	ml_str_copy( line->chars + beg_char_index , chars , len) ;
 
 	line->num_of_filled_chars = new_len ;
 
@@ -472,7 +472,7 @@ ml_line_fill(
 	count = 0 ;
 	while( 1)
 	{
-		if( ! ml_char_equal( &line->chars[beg + count] , ch))
+		if( ! ml_char_equal( line->chars + beg + count , ch))
 		{
 			beg += count ;
 			num -= count ;
@@ -482,8 +482,7 @@ ml_line_fill(
 				count = 0 ;
 				while( 1)
 				{
-					if( ! ml_char_equal(
-						&line->chars[beg + num - 1 - count] , ch))
+					if( ! ml_char_equal( line->chars + beg + num - 1 - count , ch))
 					{
 						num -= count ;
 						
@@ -528,7 +527,7 @@ ml_line_fill(
 			
 			break ;
 		}
-		else if( left_cols < ml_char_cols( &line->chars[char_index]))
+		else if( left_cols < ml_char_cols( line->chars + char_index))
 		{
 			if( beg + num + left_cols > line->num_of_chars)
 			{
@@ -557,7 +556,7 @@ ml_line_fill(
 		}
 		else
 		{
-			left_cols -= ml_char_cols( &line->chars[char_index]) ;
+			left_cols -= ml_char_cols( line->chars + char_index) ;
 			char_index ++ ;
 		}
 	}
@@ -565,8 +564,7 @@ ml_line_fill(
 	if( copy_len > 0)
 	{
 		/* making space */
-		ml_str_copy( &line->chars[beg + num + left_cols] , &line->chars[char_index] ,
-			copy_len) ;
+		ml_str_copy( line->chars + beg + num + left_cols , line->chars + char_index , copy_len) ;
 	}
 
 	char_index = beg ;
@@ -590,18 +588,18 @@ ml_line_fill(
 }
 
 ml_char_t *
-ml_line_get_char(
+ml_char_at(
 	ml_line_t *  line ,
-	int  char_index
+	int  at
 	)
 {
-	if( char_index >= line->num_of_filled_chars)
+	if( at >= line->num_of_filled_chars)
 	{
 		return  NULL ;
 	}
 	else
 	{
-		return  &line->chars[char_index] ;
+		return  line->chars + at ;
 	}
 }
 
@@ -639,7 +637,7 @@ ml_line_set_modified(
 	beg_col = 0 ;
 	for( count = 0 ; count < beg_char_index ; count ++)
 	{
-		beg_col += ml_char_cols( &line->chars[count]) ;
+		beg_col += ml_char_cols( line->chars + count) ;
 	}
 
 	end_col = beg_col ;
@@ -649,7 +647,7 @@ ml_line_set_modified(
 		 * This will be executed at least once, because beg_char_index is never
 		 * greater than end_char_index.
 		 */
-		end_col += ml_char_cols( &line->chars[count]) ;
+		end_col += ml_char_cols( line->chars + count) ;
 	}
 	end_col -- ;
 
@@ -750,12 +748,17 @@ ml_line_get_end_of_modified(
 
 u_int
 ml_line_get_num_of_redrawn_chars(
-	ml_line_t *  line
+	ml_line_t *  line ,
+	int  to_end
 	)
 {
 	if( IS_EMPTY( line))
 	{
 		return  0 ;
+	}
+	else if( to_end)
+	{
+		return  line->num_of_filled_chars - ml_line_get_beg_of_modified( line) ;
 	}
 	else
 	{
@@ -831,7 +834,7 @@ ml_convert_char_index_to_col(
 		for( count = 0 ; count < line->num_of_filled_chars ; count ++)
 		{
 		#ifdef  DEBUG
-			if( ml_char_cols( &line->chars[count]) == 0)
+			if( ml_char_cols( line->chars + count) == 0)
 			{
 				kik_warn_printf( KIK_DEBUG_TAG " ml_char_cols returns 0.\n") ;
 			
@@ -839,7 +842,7 @@ ml_convert_char_index_to_col(
 			}
 		#endif
 		
-			col += ml_char_cols( &line->chars[count]) ;
+			col += ml_char_cols( line->chars + count) ;
 		}
 
 		col += (char_index - count) ;
@@ -851,7 +854,7 @@ ml_convert_char_index_to_col(
 		 */
 		for( count = 0 ; count < K_MIN(char_index,END_CHAR_INDEX(line)) ; count ++)
 		{
-			col += ml_char_cols( &line->chars[count]) ;
+			col += ml_char_cols( line->chars + count) ;
 		}
 	}
 
@@ -882,7 +885,7 @@ ml_convert_col_to_char_index(
 	{
 		int  cols ;
 
-		cols = ml_char_cols( &line->chars[char_index]);
+		cols = ml_char_cols( line->chars + char_index);
 		if( col < cols)
 		{
 			goto  end ;
@@ -917,7 +920,7 @@ ml_line_reverse_color(
 		return  0 ;
 	}
 
-	ml_char_reverse_color( &line->chars[char_index]) ;
+	ml_char_reverse_color( line->chars + char_index) ;
 
 	ml_line_set_modified( line , char_index , char_index) ;
 
@@ -935,7 +938,7 @@ ml_line_restore_color(
 		return  0 ;
 	}
 
-	ml_char_restore_color( &line->chars[char_index]) ;
+	ml_char_restore_color( line->chars + char_index) ;
 
 	ml_line_set_modified( line , char_index , char_index) ;
 
@@ -1006,12 +1009,25 @@ ml_line_is_empty(
 	return  IS_EMPTY(line) ;
 }
 
-u_int
-ml_line_get_num_of_filled_cols(
+int
+ml_line_beg_char_index_regarding_rtl(
 	ml_line_t *  line
 	)
 {
-	return  ml_str_cols( line->chars , line->num_of_filled_chars) ;
+	int  char_index ;
+
+	if( ml_line_is_rtl( line))
+	{
+		for( char_index = 0 ; char_index < line->num_of_filled_chars ; char_index ++)
+		{
+			if( ! ml_char_equal( line->chars + char_index , ml_sp_ch()))
+			{
+				return  char_index ;
+			}
+		}
+	}
+
+	return  0 ;
 }
 
 int
@@ -1033,25 +1049,12 @@ ml_line_end_char_index(
 	}
 }
 
-int
-ml_line_beg_char_index_except_spaces(
+u_int
+ml_line_get_num_of_filled_cols(
 	ml_line_t *  line
 	)
 {
-	int  char_index ;
-
-	if( ml_line_is_rtl( line))
-	{
-		for( char_index = 0 ; char_index < line->num_of_filled_chars ; char_index ++)
-		{
-			if( ! ml_char_equal( &line->chars[char_index] , ml_sp_ch()))
-			{
-				return  char_index ;
-			}
-		}
-	}
-
-	return  0 ;
+	return  ml_str_cols( line->chars , line->num_of_filled_chars) ;
 }
 
 u_int
@@ -1073,7 +1076,7 @@ ml_get_num_of_filled_chars_except_spaces(
 	{
 		for( char_index = END_CHAR_INDEX(line) ; char_index >= 0 ; char_index --)
 		{
-			if( ! ml_char_equal( &line->chars[char_index] , ml_sp_ch()))
+			if( ! ml_char_equal( line->chars + char_index , ml_sp_ch()))
 			{
 				return  char_index + 1 ;
 			}
@@ -1220,7 +1223,7 @@ ml_line_bidi_visual(
 
 	for( count = 0 ; count < line->bidi_state->size ; count ++)
 	{
-		ml_char_copy( &line->chars[line->bidi_state->visual_order[count]] , &src[count]) ;
+		ml_char_copy( line->chars + line->bidi_state->visual_order[count] , src + count) ;
 	}
 
 	ml_str_final( src , line->bidi_state->size) ;
@@ -1263,7 +1266,7 @@ ml_line_bidi_logical(
 
 	for( count = 0 ; count < line->bidi_state->size ; count ++)
 	{
-		ml_char_copy( &line->chars[count] , &src[line->bidi_state->visual_order[count]]) ;
+		ml_char_copy( line->chars + count , src + line->bidi_state->visual_order[count]) ;
 	}
 
 	ml_str_final( src , line->bidi_state->size) ;
@@ -1381,7 +1384,7 @@ ml_line_copy_str(
 {
 	if( line->bidi_state == NULL || line->bidi_state->size == 0)
 	{
-		return  ml_str_copy( dst , &line->chars[beg] , len) ;
+		return  ml_str_copy( dst , line->chars + beg , len) ;
 	}
 	else
 	{
@@ -1418,7 +1421,7 @@ ml_line_copy_str(
 			if( flags[norm_pos])
 			{
 				ml_char_copy( &dst[dst_pos ++] ,
-					&line->chars[line->bidi_state->visual_order[norm_pos]]) ;
+					line->chars + line->bidi_state->visual_order[norm_pos]) ;
 			}
 		}
 
@@ -1476,7 +1479,7 @@ ml_line_iscii_visual(
 	iscii_filled = 0 ;
 	for( src_pos = 0 ; src_pos < src_len ; src_pos ++)
 	{
-		ch = &src[src_pos] ;
+		ch = src + src_pos ;
 		
 		if( ml_char_cs( ch) == ISCII)
 		{
@@ -1503,7 +1506,7 @@ ml_line_iscii_visual(
 				{
 					int  comb_pos ;
 					
-					c = &dst[dst_pos + count] ;
+					c = dst + dst_pos + count ;
 
 					if( ml_char_is_null( c))
 					{
@@ -1515,14 +1518,14 @@ ml_line_iscii_visual(
 					comb_pos = 0 ;
 					while( 1)
 					{
-						if( ml_char_is_null( &dst[dst_pos]))
+						if( ml_char_is_null( dst + dst_pos))
 						{
 							/*
 							 * combining is forbidden if base character is null
 							 */
-							ml_char_copy( &dst[dst_pos] , c) ;
+							ml_char_copy( dst + dst_pos , c) ;
 						}
-						else if( ! ml_combine_chars( &dst[dst_pos] , c))
+						else if( ! ml_combine_chars( dst + dst_pos , c))
 						{
 						#ifdef  DEBUG
 							kik_warn_printf( KIK_DEBUG_TAG
@@ -1546,14 +1549,14 @@ ml_line_iscii_visual(
 
 			if( dst_pos >= 0 && font_filled == prev_font_filled)
 			{
-				if( ml_char_is_null( &dst[dst_pos]))
+				if( ml_char_is_null( dst + dst_pos))
 				{
 					/*
 					 * combining is forbidden if base character is null
 					 */
-					ml_char_copy( &dst[dst_pos] , ch) ;
+					ml_char_copy( dst + dst_pos , ch) ;
 				}
-				else if( ! ml_combine_chars( &dst[dst_pos] , ch))
+				else if( ! ml_combine_chars( dst + dst_pos , ch))
 				{
 				#ifdef  DEBUG
 					kik_warn_printf( KIK_DEBUG_TAG
@@ -1568,7 +1571,7 @@ ml_line_iscii_visual(
 					goto  end ;
 				}
 
-				ml_char_copy( &dst[dst_pos] , ch) ;
+				ml_char_copy( dst + dst_pos , ch) ;
 				
 				if( font_filled > prev_font_filled + 1)
 				{
@@ -1580,10 +1583,10 @@ ml_line_iscii_visual(
 							goto  end ;
 						}
 
-						ml_char_copy( &dst[dst_pos] , ch) ;
+						ml_char_copy( dst + dst_pos , ch) ;
 						
 						/* NULL */
-						ml_char_set_bytes( &dst[dst_pos] , "\x0") ;
+						ml_char_set_bytes( dst + dst_pos , "\x0") ;
 					}
 				}
 			}
@@ -1597,7 +1600,7 @@ ml_line_iscii_visual(
 				goto  end ;
 			}
 			
-			ml_char_copy( &dst[dst_pos] , ch) ;
+			ml_char_copy( dst + dst_pos , ch) ;
 
 			prev_font_filled = 0 ;
 			iscii_filled = 0 ;
@@ -1641,12 +1644,12 @@ ml_iscii_convert_logical_char_index_to_visual(
 
 	for( count = 0 ; count < logical_char_index && count < END_CHAR_INDEX(line) ; count ++)
 	{
-		if( ml_char_cs( &line->chars[count]) == ISCII)
+		if( ml_char_cs( line->chars + count) == ISCII)
 		{
 			/*
 			 * skipping trailing null characters of previous character.
 			 */
-			while( ml_char_is_null( &line->chars[count]))
+			while( ml_char_is_null( line->chars + count))
 			{
 				if( ++ count >= line->num_of_filled_chars)
 				{
@@ -1657,7 +1660,7 @@ ml_iscii_convert_logical_char_index_to_visual(
 				visual_char_index ++ ;
 			}
 
-			if( ml_get_combining_chars( &line->chars[count] , &comb_size))
+			if( ml_get_combining_chars( line->chars + count , &comb_size))
 			{
 				logical_char_index -= comb_size ;
 			}
@@ -1666,7 +1669,7 @@ ml_iscii_convert_logical_char_index_to_visual(
 		visual_char_index ++ ;
 	}
 
-	while( ml_char_is_null( &line->chars[count]))
+	while( ml_char_is_null( line->chars + count))
 	{
 		if( ++ count >= line->num_of_filled_chars)
 		{
@@ -1755,7 +1758,7 @@ ml_line_dump(
 
 	for( count = 0 ; count < line->num_of_filled_chars ; count ++)
 	{
-		ml_char_dump( &line->chars[count]) ;
+		ml_char_dump( line->chars + count) ;
 	}
 
 	kik_msg_printf( "\n") ;

@@ -6,7 +6,7 @@
 
 #include  <kiklib/kik_util.h>
 
-#include  "ml_edit_intern.h"
+#include  "ml_edit_util.h"
 
 
 /* --- static functions --- */

@@ -300,7 +300,7 @@ ml_log_reverse_color(
 		return  0 ;
 	}
 	
-	ml_char_reverse_color( &line->chars[char_index]) ;
+	ml_char_reverse_color( ml_char_at( line , char_index)) ;
 
 	ml_line_set_modified( line , char_index , ml_line_end_char_index(line)) ;
 
@@ -321,7 +321,7 @@ ml_log_restore_color(
 		return  0 ;
 	}
 
-	ml_char_restore_color( &line->chars[char_index]) ;
+	ml_char_restore_color( ml_char_at( line , char_index)) ;
 
 	ml_line_set_modified( line , char_index , ml_line_end_char_index(line)) ;
 

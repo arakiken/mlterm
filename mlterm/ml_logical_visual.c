@@ -598,10 +598,11 @@ comb_visual(
 		for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
 		{
 			if( dst_pos > 0 && (ml_char_is_comb( cur) ||
-				ml_is_arabic_combining( dst_pos >= 2 ? &line->chars[dst_pos - 2] : NULL ,
-					&line->chars[dst_pos - 1] , cur)))
+				ml_is_arabic_combining(
+					dst_pos >= 2 ? ml_char_at( line , dst_pos - 2) : NULL ,
+					ml_char_at( line , dst_pos - 1) , cur)))
 			{
-				ml_combine_chars( &line->chars[dst_pos - 1] , cur) ;
+				ml_combine_chars( ml_char_at( line , dst_pos - 1) , cur) ;
 
 			#if  0
 				/*
@@ -633,7 +634,7 @@ comb_visual(
 			}
 			else
 			{
-				ml_char_copy( &line->chars[dst_pos ++] , cur) ;
+				ml_char_copy( ml_char_at( line , dst_pos ++) , cur) ;
 			}
 
 			if( row == logvis->cursor->row && src_pos == logvis->cursor->char_index)
@@ -704,7 +705,7 @@ comb_logical(
 			{
 				int  count ;
 
-				ml_char_copy( &line->chars[dst_pos ++] , ml_get_base_char(c)) ;
+				ml_char_copy( ml_char_at( line , dst_pos ++) , ml_get_base_char(c)) ;
 
 				for( count = 0 ; count < size ; count ++)
 				{
@@ -742,14 +743,14 @@ comb_logical(
 					}
 				#endif
 
-					ml_char_copy( &line->chars[dst_pos ++] , comb) ;
+					ml_char_copy( ml_char_at( line , dst_pos ++) , comb) ;
 
 					comb ++ ;
 				}
 			}
 			else
 			{
-				ml_char_copy( &line->chars[dst_pos ++] , c) ;
+				ml_char_copy( ml_char_at( line , dst_pos ++) , c) ;
 			}
 
 			c ++ ;
@@ -783,14 +784,14 @@ comb_visual_line(
 	for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
 	{
 		if( dst_pos > 0 && (ml_char_is_comb( cur) ||
-			ml_is_arabic_combining( dst_pos >= 2 ? &line->chars[dst_pos - 2] : NULL ,
-				&line->chars[dst_pos - 1] , cur)))
+			ml_is_arabic_combining( dst_pos >= 2 ? ml_char_at( line , dst_pos - 2) : NULL ,
+				ml_char_at( line , dst_pos - 1) , cur)))
 		{
-			ml_combine_chars( &line->chars[dst_pos - 1] , cur) ;
+			ml_combine_chars( ml_char_at( line , dst_pos - 1) , cur) ;
 		}
 		else
 		{
-			ml_char_copy( &line->chars[dst_pos ++] , cur) ;
+			ml_char_copy( ml_char_at( line , dst_pos ++) , cur) ;
 		}
 
 		cur ++ ;
@@ -1264,14 +1265,13 @@ vert_visual_intern(
 				continue ;
 			}
 
-			ml_char_copy( &vis_line->chars[ vis_line->num_of_filled_chars ++] ,
-				&log_line->chars[row]) ;
+			ml_char_copy( ml_char_at( vis_line , vis_line->num_of_filled_chars ++) ,
+				ml_char_at( log_line , row)) ;
 			
 			if( ml_line_is_modified( log_line) &&
 				ml_line_get_beg_of_modified( log_line) <= row &&
 				(ml_line_is_cleared_to_end( log_line) ||
-				row < ml_line_get_beg_of_modified( log_line)
-					+ ml_line_get_num_of_redrawn_chars( log_line)))
+				row <= ml_line_get_end_of_modified( log_line)))
 			{
 				ml_line_set_modified( vis_line ,
 					vis_line->num_of_filled_chars - 1 ,
@@ -1288,13 +1288,13 @@ vert_visual_intern(
 				continue ;
 			}
 			
-			ml_char_copy( &vis_line->chars[ vis_line->num_of_filled_chars ++] , ml_sp_ch()) ;
+			ml_char_copy( ml_char_at( vis_line , vis_line->num_of_filled_chars ++) ,
+				ml_sp_ch()) ;
 			
 			if( ml_line_is_modified( log_line) &&
 				ml_line_get_beg_of_modified( log_line) <= row &&
 				(ml_line_is_cleared_to_end( log_line) ||
-				row < ml_line_get_beg_of_modified( log_line)
-					+ ml_line_get_num_of_redrawn_chars( log_line)))
+				row <= ml_line_get_end_of_modified( log_line)))
 			{
 				ml_line_set_modified( vis_line ,
 					vis_line->num_of_filled_chars - 1 ,

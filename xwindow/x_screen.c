@@ -1062,11 +1062,12 @@ convert_char_index_to_x(
 
 		for( count = ml_line_end_char_index(line) ; count >= char_index ; count --)
 		{
+			ml_char_t *  ch ;
+
+			ch = ml_char_at( line , count) ;
 			x -= x_calculate_char_width(
-				x_get_font( screen->font_man , ml_char_font( &line->chars[count])) ,
-				ml_char_bytes( &line->chars[count]) ,
-				ml_char_size( &line->chars[count]) ,
-				ml_char_cs( &line->chars[count])) ;
+				x_get_font( screen->font_man , ml_char_font( ch)) ,
+				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
 		}
 	}
 	else
@@ -1077,11 +1078,12 @@ convert_char_index_to_x(
 		x = 0 ;
 		for( count = 0 ; count < char_index ; count ++)
 		{
+			ml_char_t *  ch ;
+
+			ch = ml_char_at( line , count) ;
 			x += x_calculate_char_width(
-				x_get_font( screen->font_man , ml_char_font( &line->chars[count])) ,
-				ml_char_bytes( &line->chars[count]) ,
-				ml_char_size( &line->chars[count]) ,
-				ml_char_cs( &line->chars[count])) ;
+				x_get_font( screen->font_man , ml_char_font( ch)) ,
+				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
 		}
 	}
 
@@ -1139,11 +1141,12 @@ convert_x_to_char_index(
 
 		for( count = ml_line_end_char_index(line) ; count > 0 ; count --)
 		{
+			ml_char_t *  ch ;
+
+			ch = ml_char_at( line , count) ;
 			width = x_calculate_char_width(
-				x_get_font( screen->font_man , ml_char_font( &line->chars[count])) ,
-				ml_char_bytes( &line->chars[count]) ,
-				ml_char_size( &line->chars[count]) ,
-				ml_char_cs( &line->chars[count])) ;
+				x_get_font( screen->font_man , ml_char_font( ch)) ,
+				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
 
 			if( x <= width)
 			{
@@ -1157,11 +1160,12 @@ convert_x_to_char_index(
 	{
 		for( count = 0 ; count < ml_line_end_char_index(line) ; count ++)
 		{
+			ml_char_t *  ch ;
+
+			ch = ml_char_at( line , count) ;
 			width = x_calculate_char_width(
-				x_get_font( screen->font_man , ml_char_font( &line->chars[count])) ,
-				ml_char_bytes( &line->chars[count]) ,
-				ml_char_size( &line->chars[count]) ,
-				ml_char_cs( &line->chars[count])) ;
+				x_get_font( screen->font_man , ml_char_font( ch)) ,
+				ml_char_bytes( ch) , ml_char_size( ch) , ml_char_cs( ch)) ;
 
 			if( x < width)
 			{
@@ -1297,18 +1301,12 @@ draw_line(
 		}
 		
 		beg_char_index = ml_line_get_beg_of_modified( line) ;
+		num_of_redrawn = ml_line_get_num_of_redrawn_chars( line ,
+				(x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH)
+					== FONT_VAR_WIDTH) ;
 		
 		/* don't use _with_shape function since line is already shaped */
 		beg_x = convert_char_index_to_x( screen , line , beg_char_index) ;
-
-		if( x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH)
-		{
-			num_of_redrawn = line->num_of_filled_chars - beg_char_index ;
-		}
-		else
-		{
-			num_of_redrawn = ml_line_get_num_of_redrawn_chars( line) ;
-		}
 
 		if( ml_line_is_cleared_to_end( line) ||
 			( x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
@@ -1319,7 +1317,7 @@ draw_line(
 					screen->window.width , x_line_height( screen)) ;
 			}
 			
-			if( ! draw_str_to_eol( screen , &line->chars[beg_char_index] ,
+			if( ! draw_str_to_eol( screen , ml_char_at( line , beg_char_index) ,
 				num_of_redrawn , beg_x , y ,
 				x_line_height( screen) ,
 				x_line_height_to_baseline( screen) ,
@@ -1331,7 +1329,7 @@ draw_line(
 		}
 		else
 		{
-			if( ! draw_str( screen , &line->chars[beg_char_index] ,
+			if( ! draw_str( screen , ml_char_at( line , beg_char_index) ,
 				num_of_redrawn , beg_x , y ,
 				x_line_height( screen) ,
 				x_line_height_to_baseline( screen) ,
@@ -1395,7 +1393,7 @@ draw_cursor(
 	x = convert_char_index_to_x( screen , line , ml_term_cursor_char_index( screen->term)) ;
 
 	ml_char_init( &ch) ;
-	ml_char_copy( &ch , &line->chars[ ml_term_cursor_char_index( screen->term)]) ;
+	ml_char_copy( &ch , ml_char_at( line , ml_term_cursor_char_index( screen->term))) ;
 
 	if( screen->is_focused)
 	{
@@ -3483,7 +3481,7 @@ start_selection(
 	}
 	
 	if( ( ! ml_line_is_rtl( line) && col_r == 0) ||
-		( ml_line_is_rtl( line) && abs( col_r) == line->num_of_filled_chars - 1))
+		( ml_line_is_rtl( line) && abs( col_r) == ml_line_end_char_index( line)))
 	{
 		if( ( line = ml_term_get_line( screen->term , row_r - 1)) == NULL ||
 			ml_line_is_empty( line))
@@ -3500,7 +3498,7 @@ start_selection(
 			}
 			else
 			{
-				col_l = line->num_of_filled_chars - 1 ;
+				col_l = ml_line_end_char_index( line) ;
 			}
 			row_l = row_r - 1 ;
 		}
@@ -3705,7 +3703,7 @@ selecting_word(
 
 	char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
 
-	if( line->num_of_filled_chars - 1 == char_index && x_rest)
+	if( ml_line_end_char_index( line) == char_index && x_rest)
 	{
 		/* over end of line */
 
@@ -5983,8 +5981,14 @@ start_vt100_cmd(
 	{
 		restore_selected_region_color( screen) ;
 	}
-	
-	unhighlight_cursor( screen) ;
+}
+
+static void
+start_vt100_cmd_2(
+	void *  p
+	)
+{
+	unhighlight_cursor( ( x_screen_t*) p) ;
 }
 
 static void
@@ -6248,6 +6252,7 @@ x_screen_new(
 
 	screen->xterm_listener.self = screen ;
 	screen->xterm_listener.start = start_vt100_cmd ;
+	screen->xterm_listener.start_2 = start_vt100_cmd_2 ;
 	screen->xterm_listener.stop = stop_vt100_cmd ;
 	screen->xterm_listener.set_app_keypad = xterm_set_app_keypad ;
 	screen->xterm_listener.set_app_cursor_keys = xterm_set_app_cursor_keys ;

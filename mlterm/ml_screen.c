@@ -216,7 +216,7 @@ reverse_or_restore_color(
 	}
 
 	size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
-	beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+	beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
 
 	row = beg_row ;
 	if( beg_row == end_row)
@@ -254,7 +254,7 @@ reverse_or_restore_color(
 			}
 
 			size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
-			beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+			beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
 			
 			for( char_index = beg_except_spaces ;
 				char_index < size_except_spaces ; char_index ++)
@@ -270,7 +270,7 @@ reverse_or_restore_color(
 		}
 
 		size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
-		beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+		beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
 
 		if( ml_line_is_rtl( line))
 		{
@@ -352,7 +352,7 @@ check_or_copy_region(
 		}
 	}
 
-	beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+	beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
 
 	if( beg_row == end_row)
 	{
@@ -398,7 +398,7 @@ check_or_copy_region(
 			line = ml_screen_get_line( screen , row) ;
 
 			size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
-			beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+			beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
 
 			if( chars)
 			{
@@ -420,7 +420,7 @@ check_or_copy_region(
 		line = ml_screen_get_line( screen , row) ;
 
 		size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
-		beg_except_spaces = ml_line_beg_char_index_except_spaces( line) ;
+		beg_except_spaces = ml_line_beg_char_index_regarding_rtl( line) ;
 
 		if( ml_line_is_rtl( line))
 		{
@@ -1328,7 +1328,7 @@ ml_screen_get_word_region(
 		return  0 ;
 	}
 
-	if( is_word_separator(&base_line->chars[base_char_index]))
+	if( is_word_separator( ml_char_at( base_line , base_char_index)))
 	{
 		*beg_char_index = base_char_index ;
 		*end_char_index = base_char_index ;
@@ -1338,7 +1338,7 @@ ml_screen_get_word_region(
 		return  1 ;
 	}
 
-	flag = ml_char_is_biwidth(&base_line->chars[base_char_index]) ;
+	flag = ml_char_is_biwidth( ml_char_at( base_line , base_char_index)) ;
 	
 	/*
 	 * search the beg of word
@@ -1367,7 +1367,7 @@ ml_screen_get_word_region(
 			char_index -- ;
 		}
 		
-		ch = &line->chars[char_index] ;
+		ch = ml_char_at( line , char_index) ;
 
 		if( is_word_separator(ch) || flag != ml_char_is_biwidth( ch))
 		{
@@ -1407,7 +1407,7 @@ ml_screen_get_word_region(
 			char_index ++ ;
 		}
 		
-		ch = &line->chars[char_index] ;
+		ch = ml_char_at( line , char_index) ;
 
 		if( is_word_separator(ch) || flag != ml_char_is_biwidth( ch))
 		{
@@ -1456,7 +1456,7 @@ ml_screen_get_n_prev_char(
 		return  NULL ;
 	}
 
-	if( ( ch = ml_line_get_char( line , char_index)) == NULL)
+	if( ( ch = ml_char_at( line , char_index)) == NULL)
 	{
 		return  NULL ;
 	}
@@ -1493,7 +1493,7 @@ ml_screen_combine_with_prev_char(
 		return  0 ;
 	}
 
-	if( ( ch = ml_line_get_char( line , char_index)) == NULL)
+	if( ( ch = ml_char_at( line , char_index)) == NULL)
 	{
 		return  0 ;
 	}

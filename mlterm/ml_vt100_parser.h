@@ -41,6 +41,7 @@ typedef struct  ml_xterm_event_listener
 	void *  self ;
 
 	void (*start)( void *) ;
+	void (*start_2)( void *) ;
 	void (*stop)( void *) ;
 	
 	void (*set_app_keypad)( void * , int) ;

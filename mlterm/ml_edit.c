@@ -10,7 +10,7 @@
 #include  <kiklib/kik_util.h>
 #include  <mkf/mkf_charset.h>	/* mkf_charset_t */
 
-#include  "ml_edit_intern.h"
+#include  "ml_edit_util.h"
 #include  "ml_edit_scroll.h"
 #include  "ml_bidi.h"
 
@@ -224,14 +224,14 @@ insert_chars(
 			count < cursor_line->num_of_filled_chars ;
 			count ++)
 		{
-			if( filled_cols + ml_char_cols( &cursor_line->chars[count]) >
+			if( filled_cols + ml_char_cols( ml_char_at( cursor_line , count)) >
 				edit->model.num_of_cols)
 			{
 				break ;
 			}
 
-			ml_char_copy( &buffer[filled_len ++] , &cursor_line->chars[count]) ;
-			filled_cols += ml_char_cols( &cursor_line->chars[count]) ;
+			ml_char_copy( &buffer[filled_len ++] , ml_char_at( cursor_line , count)) ;
+			filled_cols += ml_char_cols( ml_char_at( cursor_line , count)) ;
 		}
 	}
 
@@ -380,14 +380,14 @@ delete_cols(
 	{
 		u_int  cols ;
 		
-		cols = ml_char_cols( &cursor_line->chars[char_index ++]) ;
+		cols = ml_char_cols( ml_char_at( cursor_line , char_index ++)) ;
 		while( cols < del_cols && char_index < cursor_line->num_of_filled_chars)
 		{
-			cols += ml_char_cols( &cursor_line->chars[char_index ++]) ;
+			cols += ml_char_cols( ml_char_at( cursor_line , char_index ++)) ;
 		}
 	}
 
-	ml_str_copy( &buffer[filled_len] , &cursor_line->chars[char_index] ,
+	ml_str_copy( buffer + filled_len , ml_char_at( cursor_line , char_index) ,
 		cursor_line->num_of_filled_chars - char_index) ;
 	filled_len += (cursor_line->num_of_filled_chars - char_index) ;
 
@@ -416,16 +416,8 @@ delete_cols(
 
 	if( use_bce)
 	{
-		int  col ;
-
-		for( col = ml_line_get_num_of_filled_cols( cursor_line) ;
-			col < edit->model.num_of_cols ; col ++)
-		{
-			ml_char_copy( &cursor_line->chars[cursor_line->num_of_filled_chars++] , sp_ch) ;
-		}
-
-		ml_line_set_modified( cursor_line , edit->cursor.char_index ,
-			ml_line_end_char_index( cursor_line)) ;
+		ml_line_fill( cursor_line , sp_ch , cursor_line->num_of_filled_chars ,
+			edit->model.num_of_cols - ml_line_get_num_of_filled_cols( cursor_line)) ;
 	}
 
 #ifdef  CURSOR_DEBUG
@@ -1833,7 +1825,7 @@ ml_edit_dump(
 					kik_msg_printf( "**") ;
 				}
 
-				ml_char_dump( &line->chars[char_index]) ;
+				ml_char_dump( ml_char_at( line , char_index)) ;
 
 				if( edit->cursor.row == row && edit->cursor.char_index == char_index)
 				{

@@ -1,3 +1,12 @@
+2003-08-10  Araki Ken  <arakiken@users.sf.net>
+
+	* Added ml_xterm_event_listener_t.start_2: Cursor wasn't
+	  redrawn under vertical writing mode. Fixed.
+
+	* Using ml_char_at() instead of refering ml_line_t:chars[] array.
+
+	* ml_edit_intern.c: renamed to ml_edit_util.c.
+
 2003-08-05  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_screen.c(receive_scrolled_out_line): Adhoc workaround

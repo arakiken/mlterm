@@ -2,8 +2,8 @@
  *	$Id$
  */
 
-#ifndef  __ML_EDIT_INTERN_H__
-#define  __ML_EDIT_INTERN_H__
+#ifndef  __ML_EDIT_UTIL_H__
+#define  __ML_EDIT_UTIL_H__
 
 
 #include  <kiklib/kik_debug.h>

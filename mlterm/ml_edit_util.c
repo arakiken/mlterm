@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "ml_edit_intern.h"
+#include  "ml_edit_util.h"
 
 #include  <kiklib/kik_debug.h>
 
