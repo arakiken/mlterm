@@ -6,6 +6,7 @@
 
 #include  <string.h>		/* memcpy */
 #include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_debug.h>
 
 /* --- static functions --- */
 
