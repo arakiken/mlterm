@@ -1,5 +1,12 @@
 2004-11-04 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* xwindow/x_im.c: don't increase ref_count_uim and ref_count_m17nlib if
+	  x_im_new() failed.
+	
+	* tool/mlconfig/mc_sb_view.c (has_rc_file): I forgot closing dir, fixed.
+
+2004-11-04 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* inputmethod/m17nlib/im_m17nlib.c:
 	- - fixed a bug that the last preedit text was not cleared when
 	    deactivating the input method. (Thanks to Ken'ichi HANDA)

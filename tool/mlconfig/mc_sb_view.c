@@ -60,17 +60,21 @@ has_rc_file(char *dirname, char *sbdirname)
 	DIR *d;
 	struct dirent *e;
 	char path[PATH_MAX];
+	int result = 0;
 
 	snprintf(path, PATH_MAX, "%s/%s", dirname, sbdirname);
 	if(!(d = opendir(path))) return 0;
 
 	while ((e = readdir(d))) {
 		if (strcmp("rc", e->d_name) == 0) {
-			return 1;
+			result = 1;
+			break;
 		}
 	}
 
-	return 0;
+	closedir(d);
+
+	return result;
 }
 
 static int

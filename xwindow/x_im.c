@@ -142,15 +142,6 @@ x_im_new(
 		kik_error_printf( "uim and m17nlib cannot be used together.\n");
 		return  NULL ;
 	}
-
-	if( strcmp( im_name , "uim") == 0)
-	{
-		ref_count_uim ++ ;
-	}
-	else if( strcmp( im_name , "m17nlib") == 0)
-	{
-		ref_count_m17nlib ++ ;
-	}
 #endif
 
 	if ( ! dlsym_im_new_func( im_name , &func , &handle))
@@ -174,6 +165,17 @@ x_im_new(
 		im->preedit.filled_len = 0 ;
 		im->preedit.segment_offset = 0 ;
 		im->preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
+
+	#if  defined(USE_UIM) && defined(USE_M17NLIB)
+		if( strcmp( im_name , "uim") == 0)
+		{
+			ref_count_uim ++ ;
+		}
+		else if( strcmp( im_name , "m17nlib") == 0)
+		{
+			ref_count_m17nlib ++ ;
+		}
+	#endif
 
 	}
 	else
