@@ -5,7 +5,8 @@ AC_CONFIG_AUX_DIR(script)
 
 if test -d ${top_srcdir-$srcdir}/mkf -a -d ${top_srcdir-$srcdir}/kiklib ; then
 	mkdir -p mkf kiklib
-	ln -sf ../kiklib mkf/
+	ln -sf ../kiklib ${top_srcdir-$srcdir}/mkf
+	ln -sf ../kiklib mkf
 	SUBDIRS="kiklib mkf"
 	MKF_LIBS='${top_builddir}/mkf/lib/libmkf.la'
 	MKF_CFLAGS='-I${top_builddir}/mkf/include'
