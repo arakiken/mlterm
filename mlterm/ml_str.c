@@ -4,6 +4,8 @@
 
 #include  "ml_str.h"
 
+#include  <kiklib/kik_debug.h>
+
 
 /* --- global functions --- */
 
