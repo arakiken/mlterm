@@ -28,11 +28,13 @@ int  kik_cycle_index_reset( kik_cycle_index_t *  cycle) ;
 
 int  kik_cycle_index_change_size( kik_cycle_index_t *  cycle , u_int  new_size) ;
 
-inline u_int  kik_get_filled_cycle_index( kik_cycle_index_t *  cycle) ;
+u_int  kik_get_cycle_index_size( kik_cycle_index_t *  cycle) ;
 
-inline int  kik_cycle_index_of( kik_cycle_index_t *  cycle , int  at) ;
+u_int  kik_get_filled_cycle_index( kik_cycle_index_t *  cycle) ;
 
-inline int  kik_next_cycle_index( kik_cycle_index_t *  cycle) ;
+int  kik_cycle_index_of( kik_cycle_index_t *  cycle , int  at) ;
+
+int  kik_next_cycle_index( kik_cycle_index_t *  cycle) ;
 
 
 #endif

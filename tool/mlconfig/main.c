@@ -44,6 +44,7 @@ static FILE *  out ;
 static GtkWidget *  is_comb_check ;
 static GtkWidget *  use_multi_col_char_check ;
 static GtkWidget *  use_bidi_check ;
+static GtkWidget *  bidi_base_dir_rtl_check ;
 static GtkWidget *  copy_paste_via_ucs_check ;
 static GtkWidget *  is_tp_check ;
 
@@ -83,12 +84,12 @@ apply_clicked(
 	 * CONFIG:[encoding] [iscii lang] [fg color] [bg color] [sb fg color] [sb bg color] \
 	 * [tabsize] [logsize] [fontsize] [screen width ratio] [screen height ratio] [mod meta mode] \
 	 * [bel mode] [vertical mode] [sb mode] [combining char] [copy paste via ucs] [is transparent] \
-	 * [brightness] [fade ratio] [font present] [use multi col char] [use bidi] [sb view name] \
-	 * [xim] [locale] [wall pic][LF]
+	 * [brightness] [fade ratio] [font present] [use multi col char] [use bidi] [bidi base dir] \
+	 * [sb view name] [xim] [locale] [wall pic][LF]
 	 */
 	fprintf( out ,
 		"CONFIG:"
-		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s %s %s\n" ,
+		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s %s %s\n" ,
 		mc_get_char_encoding() ,
 		mc_get_iscii_lang() ,
 		mc_get_fg_color() ,
@@ -113,6 +114,7 @@ apply_clicked(
 		mc_get_font_present() ,
 		GTK_TOGGLE_BUTTON(use_multi_col_char_check)->active ,
 		GTK_TOGGLE_BUTTON(use_bidi_check)->active ,
+		GTK_TOGGLE_BUTTON(bidi_base_dir_rtl_check)->active ,
 		mc_get_sb_view_name() ,
 		mc_get_xim_name() ,
 		mc_get_xim_locale() ,
@@ -268,6 +270,7 @@ show(
 	ml_font_present_t  font_present ,
 	int  use_multi_col_char ,
 	int  use_bidi ,
+	int  bidi_base_dir_is_rtl ,
 	char *  sb_view_name ,
 	char *  xim ,
 	char *  locale ,
@@ -363,12 +366,20 @@ show(
 	gtk_widget_show( hbox) ;
 	gtk_box_pack_start( GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;	
 
-	if( ! ( use_bidi_check = mc_check_config_widget_new( "Bidi (UTF8 only)" , use_bidi)))
+	if( ! ( use_bidi_check = mc_check_config_widget_new( "Bidi(UTF8 only)" , use_bidi)))
 	{
 		return  0 ;
 	}
 	gtk_widget_show( use_bidi_check) ;
 	gtk_box_pack_start( GTK_BOX(hbox) , use_bidi_check , TRUE , TRUE , 0) ;
+	
+	if( ! ( bidi_base_dir_rtl_check = mc_check_config_widget_new( "RTL-based Bidi" ,
+						bidi_base_dir_is_rtl)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( bidi_base_dir_rtl_check) ;
+	gtk_box_pack_start( GTK_BOX(hbox) , bidi_base_dir_rtl_check , TRUE , TRUE , 0) ;
 	
 	if( ! ( is_comb_check = mc_check_config_widget_new( "Combining" , is_combining_char)))
 	{
@@ -609,6 +620,7 @@ start_application(
 	int  font_present ;
 	int  use_multi_col_char ;
 	int  use_bidi ;
+	int  bidi_base_dir_is_rtl ;
 	char *  sb_view_name ;
 	char *  locale ;
 	char *  xim ;
@@ -795,6 +807,12 @@ start_application(
 		return  0 ;
 	}
 
+	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+		! kik_str_to_int( &bidi_base_dir_is_rtl , p))
+	{
+		return  0 ;
+	}
+	
 	if( ( sb_view_name = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
@@ -819,8 +837,8 @@ start_application(
 		tabsize , logsize , fontsize , min_fontsize , max_fontsize , line_space ,
 		screen_width_ratio , screen_height_ratio , mod_meta_mode , bel_mode , vertical_mode ,
 		sb_mode , is_combining_char , copy_paste_via_ucs , is_transparent , brightness ,
-		fade_ratio , font_present , use_multi_col_char , use_bidi , sb_view_name , xim ,
-		locale , wall_pic) ;
+		fade_ratio , font_present , use_multi_col_char , use_bidi , bidi_base_dir_is_rtl ,
+		sb_view_name , xim , locale , wall_pic) ;
 }
 
 
@@ -845,7 +863,7 @@ main(
 		! kik_str_to_int( &in_fd , argv[3]) ||
 		! kik_str_to_int( &out_fd , argv[4]))
 	{
-		kik_msg_printf( "usage: (stdin 30) mlconfig [x] [y] [in] [out]\n") ;
+		kik_msg_printf( "usage: (stdin 31) mlconfig [x] [y] [in] [out]\n") ;
 		
 		return  0 ;
 	}

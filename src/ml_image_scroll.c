@@ -396,15 +396,6 @@ ml_imgscrl_scroll_upward(
 }
 
 int
-ml_imgscrl_scroll_upward_in_all(
-	ml_image_t *  image ,
-	u_int  size
-	)
-{
-	return  scroll_upward_region( image , 0 , image->num_of_rows - 1 , size) ;
-}
-
-int
 ml_imgscrl_scroll_downward(
 	ml_image_t *  image ,
 	u_int  size
@@ -424,6 +415,20 @@ ml_imgscrl_scroll_downward(
 	return  scroll_downward_region( image , image->scroll_region_beg , image->scroll_region_end , size) ;
 }
 
+/*
+ * XXX
+ * not used for now.
+ */
+#if  0
+int
+ml_imgscrl_scroll_upward_in_all(
+	ml_image_t *  image ,
+	u_int  size
+	)
+{
+	return  scroll_upward_region( image , 0 , image->num_of_rows - 1 , size) ;
+}
+
 int
 ml_imgscrl_scroll_downward_in_all(
 	ml_image_t *  image ,
@@ -432,6 +437,7 @@ ml_imgscrl_scroll_downward_in_all(
 {
 	return  scroll_downward_region( image , 0 , image->num_of_rows - 1 , size) ;
 }
+#endif
 
 int
 ml_is_scroll_upperlimit(

@@ -94,7 +94,8 @@ sig_child(
 		 * [tabsize] [logsize] [fontsize] [line space] [screen width ratio] [screen height ratio] \
 		 * [mod meta mode] [bel mode] [vertical mode] [sb mode] [combining char] \
 		 * [copy paste via ucs] [is transparent] [shade ratio] [fade ratio] [font present] \
-		 * [use multi col char] [use bidi] [sb view name] [xim] [locale] [wall pic][LF]
+		 * [use multi col char] [use bidi] [bidi base dir] [sb view name] [xim] [locale] \
+		 * [wall pic][LF]
 		 */
 		 
 		int  encoding ;
@@ -121,6 +122,7 @@ sig_child(
 		int  font_present ;
 		int  use_multi_col_char ;
 		int  use_bidi ;
+		int  bidi_base_dir_is_rtl ;
 		char *  sb_view_name ;
 		char *  xim ;
 		char *  locale ;
@@ -270,6 +272,12 @@ sig_child(
 			goto  end ;
 		}
 
+		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
+			! kik_str_to_int( &bidi_base_dir_is_rtl , p))
+		{
+			goto  end ;
+		}
+		
 		if( ( sb_view_name = kik_str_sep( &input_line , " ")) == NULL)
 		{
 			goto  end ;
@@ -506,6 +514,15 @@ sig_child(
 			}
 		}
 
+		if( bidi_base_dir_is_rtl != config_menu->session->bidi_base_dir_is_rtl)
+		{
+			if( config_menu->config_menu_listener->change_bidi_base_dir)
+			{
+				(*config_menu->config_menu_listener->change_bidi_base_dir)(
+					config_menu->config_menu_listener->self , bidi_base_dir_is_rtl) ;
+			}
+		}
+		
 		if( strcmp( sb_view_name , config_menu->session->sb_view_name) != 0)
 		{
 			if( config_menu->config_menu_listener->change_sb_view)
@@ -659,6 +676,7 @@ ml_config_menu_start(
 	ml_font_present_t  orig_font_present ,
 	int  orig_use_multi_col_char ,
 	int  orig_use_bidi ,
+	int  orig_bidi_base_dir_is_rtl ,
 	char *  orig_sb_view_name ,
 	char *  orig_xim ,
 	char *  orig_locale ,
@@ -745,11 +763,11 @@ ml_config_menu_start(
 	 * [logsize] [font size] [min font size] [max font size] [line space] [screen width ratio] \
 	 * [screen height ratio] [mod meta mode] [bel mode] [vertical mode] [sb mode] \
 	 * [is combining char] [copy paste via ucs] [is transparent] [shade ratio] [fade ratio] \
-	 * [font present] [use multi col char] [use bidi] [use multi col char] [sb view name] \
-	 * [xim] [locale] [wall pic][LF]
+	 * [font present] [use multi col char] [use bidi] [bidi base dir] [use multi col char] \
+	 * [sb view name] [xim] [locale] [wall pic][LF]
 	 */
 	fprintf( fp ,
-		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d "
+		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d "
 		"%s %s %s %s\n" ,
 		orig_encoding , orig_iscii_lang , orig_fg_color , orig_bg_color ,
 		orig_sb_fg_color , orig_sb_bg_color , orig_tabsize , orig_logsize , orig_fontsize ,
@@ -758,7 +776,8 @@ ml_config_menu_start(
 		orig_mod_meta_mode , orig_bel_mode , orig_vertical_mode , orig_sb_mode ,
 		orig_is_combining_char , orig_copy_paste_via_ucs , orig_is_transparent ,
 		orig_brightness , orig_fade_ratio , orig_font_present , orig_use_multi_col_char ,
-		orig_use_bidi , orig_sb_view_name , orig_xim , orig_locale , orig_wall_pic) ;
+		orig_use_bidi , orig_bidi_base_dir_is_rtl ,
+		orig_sb_view_name , orig_xim , orig_locale , orig_wall_pic) ;
 	fclose( fp) ;
 
 	/*
@@ -792,6 +811,7 @@ ml_config_menu_start(
 	config_menu->session->font_present = orig_font_present ;
 	config_menu->session->use_multi_col_char = orig_use_multi_col_char ;
 	config_menu->session->use_bidi = orig_use_bidi ;
+	config_menu->session->bidi_base_dir_is_rtl = orig_bidi_base_dir_is_rtl ;
 	config_menu->session->sb_view_name = orig_sb_view_name ;
 	config_menu->session->xim = orig_xim ;
 	config_menu->session->locale = orig_locale ;

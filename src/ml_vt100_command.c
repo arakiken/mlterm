@@ -1118,6 +1118,28 @@ ml_vt100_cmd_set_config(
 			(*termscr->config_menu_listener.change_bidi_flag)( termscr , flag) ;
 		}
 	}
+	else if( strcmp( key , "bidi_base_direction_rtl") == 0)
+	{
+		int  flag ;
+
+		if( strcmp( value , "true") == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , "false") == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+		
+		if( termscr->config_menu_listener.change_bidi_base_dir)
+		{
+			(*termscr->config_menu_listener.change_bidi_base_dir)( termscr , flag) ;
+		}
+	}
 	else if( strcmp( key , "xim") == 0)
 	{
 		char *  xim ;
@@ -1360,6 +1382,17 @@ ml_vt100_cmd_get_config(
 	else if( strcmp( key , "use_bidi") == 0)
 	{
 		if( termscr->use_bidi)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "bidi_base_direction_rtl") == 0)
+	{
+		if( termscr->bidi_base_dir_is_rtl)
 		{
 			value = true ;
 		}

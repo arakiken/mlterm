@@ -54,6 +54,31 @@ ml_line_hints_reset(
 }
 
 int
+ml_line_hints_change_size(
+	ml_line_hints_t *   hints ,
+	u_int  num_of_lines
+	)
+{
+	if( kik_get_cycle_index_size( hints->index) == num_of_lines)
+	{
+		return  1 ;
+	}
+
+	free( hints->lines) ;
+	
+	if( ( hints->lines = malloc( sizeof( *hints->lines) * num_of_lines)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+	#endif
+
+		return  0 ;
+	}
+	
+	return  kik_cycle_index_change_size( hints->index , num_of_lines) ;
+}
+
+int
 ml_line_hints_add(
 	ml_line_hints_t *  hints ,
 	int  beg_of_line ,

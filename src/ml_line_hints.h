@@ -31,6 +31,8 @@ int  ml_line_hints_final( ml_line_hints_t *  hints) ;
 
 int  ml_line_hints_reset( ml_line_hints_t *  hints) ;
 
+int  ml_line_hints_change_size( ml_line_hints_t *  hints , u_int  num_of_lines) ;
+
 int  ml_line_hints_add( ml_line_hints_t *  hints , int  beg_of_line , u_int  len , u_int  width) ;
 
 int  ml_line_hints_at( ml_line_hints_t *  hints , int *  beg_of_line , u_int *  len ,

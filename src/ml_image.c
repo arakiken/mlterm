@@ -141,7 +141,19 @@ render_chars(
 	int  counter ;
 	u_int  scroll_size ;
 
+	if( start_row <= image->scroll_region_end)
+	{
+		ml_line_hints_change_size( &image->line_hints ,
+			image->scroll_region_end - image->scroll_region_beg + 1) ;
+	}
+	else
+	{
+		ml_line_hints_change_size( &image->line_hints ,
+			image->num_of_rows - image->scroll_region_end - 1) ;
+	}
+	
 	ml_line_hints_reset( &image->line_hints) ;
+	
 	counter = 0 ;
 	bol = 0 ;
 	row = start_row ;
@@ -173,7 +185,7 @@ render_chars(
 			
 			ml_line_hints_add( &image->line_hints , bol , line_len , line_cols) ;
 
-			if( row >= image->num_of_rows)
+			if( row > image->scroll_region_end)
 			{
 				scroll_size ++ ;
 			}
@@ -219,20 +231,11 @@ render_chars(
 
 			if( scroll_size)
 			{
-			#if  0
-				/*
-				 * XXX
-				 * This can cause unexpected behavior if scroll region
-				 * is too small.
-				 */
 				if( ! ml_imgscrl_scroll_upward( image , scroll_size))
-			#else
-				if( ! ml_imgscrl_scroll_upward_in_all( image , scroll_size))
-			#endif
 				{
 				#ifdef  DEBUG
 					kik_warn_printf( KIK_DEBUG_TAG
-						" ml_imgscrl_scroll_upward_in_all failed.\n") ;
+						" ml_imgscrl_scroll_upward failed.\n") ;
 				#endif
 				}
 			}
@@ -876,9 +879,8 @@ ml_image_resize(
 		return  0 ;
 	}
 	ml_image_set_tab_size( image , image->tab_size) ;
-	
-	ml_line_hints_final( &image->line_hints) ;
-	ml_line_hints_init( &image->line_hints , image->num_of_rows) ;
+
+	ml_line_hints_change_size( &image->line_hints , image->num_of_rows) ;
 
 	if( image->cursor.row > image->num_of_rows)
 	{
@@ -1388,8 +1390,38 @@ ml_image_set_scroll_region(
 	int  end
 	)
 {
+	if( 0 > beg)
+	{
+		beg = 0 ;
+	}
+	else if( beg >= image->num_of_rows)
+	{
+		beg = image->num_of_rows - 1 ;
+	}
+
+	if( 0 > end)
+	{
+		end = 0 ;
+	}
+	else if( end >= image->num_of_rows)
+	{
+		end = image->num_of_rows - 1 ;
+	}
+
+	if( beg > end)
+	{
+		/* illegal */
+		
+		return  0 ;
+	}
+
 	image->scroll_region_beg = beg ;
 	image->scroll_region_end = end ;
+
+	/* cursor position is reset(the same behavior of xterm 4.0.3, kterm 6.2.0 or so) */
+	image->cursor.row = 0 ;
+	image->cursor.col = 0 ;
+	image->cursor.char_index = 0 ;
 
 	return  1 ;
 }

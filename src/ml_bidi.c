@@ -10,24 +10,6 @@
 #endif
 
 
-/* --- static variables --- */
-
-static int  base_dir_is_rtl ;
-
-
-/* --- global functions --- */
-
-int
-ml_bidi_set_base_dir(
-	int  is_rtl
-	)
-{
-	base_dir_is_rtl = is_rtl ;
-
-	return  1 ;
-}
-
-
 #ifdef  USE_FRIBIDI
 
 #include  <kiklib/kik_debug.h>
@@ -47,7 +29,8 @@ int
 ml_bidi(
 	u_int16_t *  order ,
 	ml_char_t *  src ,
-	u_int  size
+	u_int  size ,
+	int  base_dir_is_rtl
 	)
 {
 	FriBidiChar *  fri_src ;

@@ -99,7 +99,15 @@ kik_cycle_index_change_size(
 	return  1 ;
 }
 
-inline u_int
+u_int
+kik_get_cycle_index_size(
+	kik_cycle_index_t *  cycle
+	)
+{
+	return  cycle->size ;
+}
+
+u_int
 kik_get_filled_cycle_index(
 	kik_cycle_index_t *  cycle
 	)
@@ -118,7 +126,7 @@ kik_get_filled_cycle_index(
 	}
 }
 
-inline int
+int
 kik_cycle_index_of(
 	kik_cycle_index_t *  cycle ,
 	int  at
@@ -145,7 +153,7 @@ kik_cycle_index_of(
 	}
 }
 
-inline int
+int
 kik_next_cycle_index(
 	kik_cycle_index_t *  cycle
 	)

@@ -151,6 +151,7 @@ typedef struct  ml_term_screen
 	int8_t  use_bidi ;
 	int8_t  use_vertical_cursor ;
 	int8_t  use_extended_scroll_shortcut ;
+	int8_t  bidi_base_dir_is_rtl ;
 	
 } ml_term_screen_t ;
 
@@ -165,7 +166,8 @@ ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 	ml_bel_mode_t  bel_mode , int  prefer_utf8_selection , char *  pic_file_path ,
 	int  use_transbg , ml_font_present_t  font_present , int  use_bidi ,
 	ml_vertical_mode_t  vertical_mode , int  use_vertical_cursor , int  big5_buggy ,
-	char *  conf_menu_path , ml_iscii_lang_t  iscii_lang , int  use_extended_scroll_shortcut) ;
+	char *  conf_menu_path , ml_iscii_lang_t  iscii_lang , int  use_extended_scroll_shortcut ,
+	int  bidi_base_dir_is_rtl) ;
 
 int  ml_term_screen_delete( ml_term_screen_t *  termscr) ;
 

@@ -31,6 +31,8 @@ typedef struct  bidi_logical_visual
 	int  cursor_logical_char_index ;
 	int  cursor_logical_col ;
 
+	int  base_dir_is_rtl ;
+
 } bidi_logical_visual_t ;
 
 typedef struct  comb_logical_visual
@@ -273,7 +275,7 @@ bidi_delete(
 	int  row ;
 
 	image = logvis->image ;
-	
+
 	for( row = 0 ; row < image->num_of_rows ; row ++)
 	{
 		ml_imgline_unuse_bidi( &image->lines[row]) ;
@@ -294,7 +296,7 @@ bidi_change_image(
 	int  row ;
 
 	image = logvis->image ;
-	
+
 	for( row = 0 ; row < image->num_of_rows ; row ++)
 	{
 		ml_imgline_unuse_bidi( &image->lines[row]) ;
@@ -333,6 +335,11 @@ bidi_render(
 	ml_image_line_t *  line ;
 	int  row ;
 
+	if( logvis->is_visual)
+	{
+		return  1 ;
+	}
+
 	image = logvis->image ;
 
 #if  0
@@ -359,18 +366,22 @@ bidi_render(
 		{
 			int  cols ;
 
-			for( cols = ml_imgline_get_num_of_filled_cols( line) ;
-				cols < image->num_of_cols ; cols ++)
+			if( line->num_of_filled_chars > 0)
 			{
-				ml_char_copy( &line->chars[line->num_of_filled_chars++] , &image->sp_ch) ;
+				for( cols = ml_imgline_get_num_of_filled_cols( line) ;
+					cols < image->num_of_cols ; cols ++)
+				{
+					ml_char_copy( &line->chars[line->num_of_filled_chars++] ,
+						&image->sp_ch) ;
+				}
 			}
-		
+
 			if( ! ml_imgline_is_using_bidi( line))
 			{
 				ml_imgline_use_bidi( line) ;
 			}
 
-			ml_imgline_bidi_render( line) ;
+			ml_imgline_bidi_render( line , ((bidi_logical_visual_t*)logvis)->base_dir_is_rtl) ;
 		}
 	}
 
@@ -394,10 +405,6 @@ bidi_visual(
 
 	if( logvis->is_visual)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " is called continuously.\n") ;
-	#endif
-		
 		return  0 ;
 	}
 	
@@ -448,10 +455,6 @@ bidi_logical(
 
 	if( ! logvis->is_visual)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " is called continuously.\n") ;
-	#endif
-			
 		return  0 ;
 	}
 	
@@ -562,10 +565,6 @@ comb_visual(
 
 	if( logvis->is_visual)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " is called continuously.\n") ;
-	#endif
-			
 		return  0 ;
 	}
 	
@@ -631,10 +630,6 @@ comb_logical(
 
 	if( ! logvis->is_visual)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " is called continuously.\n") ;
-	#endif
-			
 		return  0 ;
 	}
 	
@@ -835,10 +830,6 @@ iscii_visual(
 
 	if( logvis->is_visual)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " is called continuously.\n") ;
-	#endif
-	
 		return  0 ;
 	}
 	
@@ -997,10 +988,6 @@ iscii_logical(
 
 	if( ! logvis->is_visual)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " is called continuously.\n") ;
-	#endif
-			
 		return  0 ;
 	}
 	
@@ -1136,10 +1123,6 @@ vert_visual_intern(
 
 	if( logvis->is_visual)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " is called continuously.\n") ;
-	#endif
-	
 		return  0 ;
 	}
 
@@ -1372,10 +1355,6 @@ vert_logical(
 
 	if( ! logvis->is_visual)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " is called continuously.\n") ;
-	#endif
-	
 		return  0 ;
 	}
 	
@@ -1474,7 +1453,8 @@ ml_logvis_container_add(
 
 ml_logical_visual_t *
 ml_logvis_bidi_new(
-	ml_image_t *  image
+	ml_image_t *  image ,
+	int  base_dir_is_rtl
 	)
 {
 	bidi_logical_visual_t *  bidi_logvis ;
@@ -1486,6 +1466,7 @@ ml_logvis_bidi_new(
 	
 	bidi_logvis->cursor_logical_char_index = 0 ;
 	bidi_logvis->cursor_logical_col = 0 ;
+	bidi_logvis->base_dir_is_rtl = base_dir_is_rtl ;
 
 	bidi_logvis->logvis.image = image ;
 	bidi_logvis->logvis.is_visual = 0 ;

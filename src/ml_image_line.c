@@ -9,7 +9,6 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>
 
-#include  "ml_bidi.h"
 #include  "ml_iscii.h"
 
 
@@ -805,7 +804,7 @@ ml_imgline_copy_line(
 			}
 			else
 			{
-				ml_imgline_bidi_render( dst) ;
+				SET_MODIFIED(dst->flag) ;
 			}
 		}
 	}
@@ -938,7 +937,8 @@ ml_imgline_unuse_bidi(
 
 int
 ml_imgline_bidi_render(
-	ml_image_line_t *  line
+	ml_image_line_t *  line ,
+	int  base_dir_is_rtl
 	)
 {
 	u_int  len ;
@@ -958,15 +958,13 @@ ml_imgline_bidi_render(
 		return  1 ;
 	}
 #else
-	else if( line->num_of_filled_chars == 0)
+	else if( ( len = line->num_of_filled_chars) == 0)
 	{
 		return  1 ;
 	}
-
-	len = line->num_of_filled_chars ;
 #endif
 
-	if( ! ml_bidi( line->visual_order , line->chars , len))
+	if( ! ml_bidi( line->visual_order , line->chars , len , base_dir_is_rtl))
 	{
 		line->num_of_filled_visual_order = 0 ;
 		
