@@ -60,7 +60,7 @@ static int  ref_count = 0 ;
 static int  initialized = 0 ;
 static x_im_export_syms_t *  syms = NULL ; /* mlterm internal symbols */
 static mkf_parser_t *  parser_utf8 = NULL ;
-static panel_fd = -1 ;
+static int panel_fd = -1 ;
 
 /* --- static functions --- */
 
@@ -454,9 +454,6 @@ candidate_update(
 
 	if( scim->im.cand_screen == NULL)
 	{
-		u_int  line_height ;
-
-
 		if( ! ( scim->im.cand_screen = (*syms->x_im_candidate_screen_new)(
 				(*scim->im.listener->get_win_man)(scim->im.listener->self) ,
 				(*scim->im.listener->get_font_man)(scim->im.listener->self) ,

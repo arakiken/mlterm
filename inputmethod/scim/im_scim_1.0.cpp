@@ -51,7 +51,7 @@ using namespace scim ;
 typedef struct  im_scim_context_private
 {
 	String  factory ;
-	int  instance ;
+	u_int  instance ;
 
 	int  on ;
 	int  focused ;
@@ -113,7 +113,10 @@ static bool  is_vertical_lookup ;
 // --- static functions ---
 
 static int
-kind_of_key( KeySym  ksym , unsigned int mask)
+kind_of_key(
+	int  ksym ,
+	int  mask
+	)
 {
 	std::vector <KeyEvent>::const_iterator  key ;
 
@@ -177,10 +180,9 @@ load_config( const ConfigPointer &  config)
 
 static im_scim_context_private_t *
 instance_to_context(
-	int  instance
+	u_int  instance
 	)
 {
-	im_scim_context_private_t *  context = NULL ;
 	size_t i ;
 
 	for( i = 0 ; i < context_table.size() ; i++)
@@ -362,7 +364,7 @@ cb_lookup_update(
 	)
 {
 	im_scim_context_private_t *  context = NULL ;
-	u_int  num_of_candiate ;
+	int  num_of_candiate ;
 	int  index ;
 	char **  str ;
 	int  i ;
@@ -498,20 +500,20 @@ im_scim_initialize( char *  locale)
 						 TIMEOUT))
 	{
 		kik_error_printf( "Unable to connect to the socket frontend.\n") ;
-		return  0 ;
+		goto  error ;
 	}
 
 	if( scim_get_imengine_module_list( imengines) == 0)
 	{
 		kik_error_printf( "Could not find any IMEngines.\n") ;
-		return  0 ;
+		return  error ;
 	}
 
 	if( std::find( imengines.begin() , imengines.end() , "socket")
 							== imengines.end())
 	{
 		kik_error_printf( "Could not find socket module.\n");
-		return  0 ;
+		return  error ;
 	}
 
 	imengines.clear() ;
@@ -520,7 +522,7 @@ im_scim_initialize( char *  locale)
 	if( scim_get_config_module_list( config_modules) == 0)
 	{
 		kik_error_printf( "Could not find any config modules.\n") ;
-		return  0 ;
+		return  error ;
 	}
 
 	config_mod_name = scim_global_config_read(
@@ -539,7 +541,7 @@ im_scim_initialize( char *  locale)
 	{
 		kik_error_printf( "ConfigModule failed. (%s)\n" ,
 				  config_mod_name.c_str());
-		return  0 ;
+		return  error ;
 	}
 
 	config = config_module->create_config( "scim") ;
@@ -548,20 +550,20 @@ im_scim_initialize( char *  locale)
 	{
 		// TODO fallback DummyConfig
 		kik_error_printf( "create_config failed.\n") ;
-		return  0 ;
+		return  error ;
 	}
 
 	be = new CommonBackEnd( config , imengines) ;
 	if( be.null())
 	{
 		kik_error_printf( "CommonBackEnd failed.\n") ;
-		return  0 ;
+		return  error ;
 	}
 
 	if( be->number_of_factories() == 0)
 	{
 		kik_error_printf( "No factory\n");
-		return  0 ;
+		return  error ;
 	}
 
 	be->get_factory_list( factories) ;
@@ -655,7 +657,7 @@ im_scim_create_context(
 
 	context = new im_scim_context_private_t ;
 
-	context->instance = -1 ;
+	context->instance = 0xffffffffU ;
 
 	for( i = 0 , factory = factories[0] ; i < factories.size() ; i++)
 	{
@@ -681,7 +683,7 @@ im_scim_create_context(
 		kik_error_printf( "Could not create new instance.\n") ;
 		return  NULL ;
 	}
-	if( context->instance > 0xffffffff)	// FIXME
+	if( context->instance >= 0xffffffff)	// FIXME
 	{
 		kik_error_printf( "An instance %d is too big.\n", context->instance) ;
 		return  NULL ;
@@ -750,7 +752,7 @@ im_scim_focused(
 
 	context->focused = 1 ;
 
-	return 1 ;
+	return  1 ;
 }
 
 int
@@ -777,7 +779,7 @@ im_scim_unfocused(
 
 	context->focused = 0 ;
 
-	return 1 ;
+	return  1 ;
 }
 
 int
@@ -792,7 +794,7 @@ im_scim_key_event(
 
 	context = (im_scim_context_private_t *) _context ;
 
-	switch( kind_of_key( ksym , event->state))
+	switch( kind_of_key( (int)ksym , (int)event->state))
 	{
 	case KEY_TRIGER:
 		transaction_init( context->instance) ;
