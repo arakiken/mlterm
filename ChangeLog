@@ -1,3 +1,10 @@
+2004-10-18 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* configure.in: could not find IIIMF's path (/usr/lib/im/) on Fedora
+	  Core 2, fixed.
+
+	* doc/en/PLATFORM: updated supported platforms.
+
 2004-10-17 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/iiimf/im_iiimf.c: minor cleanups.

@@ -1,6 +1,15 @@
 comment -*- mode: text -*-
 comment $Id$
 
+supported platforms (mlterm-2.8.0 post/cvs-1.735)
+
+  Fedora Core 2 (i386)
+    configure options: --with-type-engines=xft,xcore
+                       --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
+                       --enable-iiimf
+    termtype: mlterm
+
+
 supported platforms (mlterm-2.8.0 post/cvs-1.732)
 
 * tested by Seiichi SATO <ssato@sh.rim.or.jp>
@@ -27,11 +36,6 @@ supported platforms (mlterm-2.8.0 post/cvs-1.732)
     configure options: --with-type-engines=xft,xcore
                        --with-scrollbars=sample,extra
                        --with-tools=mlclient,mlconfig,mlcc
-    termtype: xterm
-  Fedora Core 2 (i386)
-    configure options: --with-type-engines=xft
-                       --with-tools=mlclient,mlconfig
-                       --enable-iiimf
     termtype: xterm
   SuSE LINUX 9.1 (i386)
     configure options: --with-type-engines=xcore,xft
