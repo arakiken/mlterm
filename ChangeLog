@@ -1,5 +1,14 @@
 2004-11-14 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* tool/w3mmlconfig/Makefile: moved to...
+	* tool/w3mmlconfig/Makefile.in: this for autoconfication.
+
+	* configure.in, tool/w3mmlconfig/mlconfig.cgi.in,
+	  tool/w3mmlconfig/w3mmlconfig.in, tool/w3mmlconfig/Makefile.in:
+	  autoconfication
+
+2004-11-14 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* tool/w3mmlconfig/mlconfig.cgi.in: ~/.mlterm/challenge support.
 
 	* tool/w3mmlconfig/section/encoding:

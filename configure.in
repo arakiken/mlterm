@@ -282,7 +282,16 @@ mlclient)
 	tools_result="$tools_result $tool"
 	;;
 w3mmlconfig)
+	AC_PATH_PROG(PERL,perl,$PATH)
+	if test "x$PERL" = x ; then
+		echo ""
+		echo "** WARNING  **"
+		echo " couldn't find perl in PATH environment variable."
+		echo ""
+		PERL="/usr/local/bin/perl" # should be "/usr/bin/env perl"?
+	fi
 	MAKE_DIRS="tool/w3mmlconfig ${MAKE_DIRS}"
+	OUTPUT_FILES="tool/w3mmlconfig/Makefile tool/w3mmlconfig/mlconfig.cgi tool/w3mmlconfig/w3mmlconfig ${OUTPUT_FILES}"
 	tools_result="$tools_result $tool"
 	;;
 mlcc)

@@ -1,44 +1,32 @@
+top_builddir	= ..
+top_srcdir	= @top_srcdir@
+prefix		= @prefix@
+sysconfdir	= @sysconfdir@
+exec_prefix	= @exec_prefix@
+datadir		= @datadir@
+bindir		= @bindir@
+libdir		= @libdir@
+libexecdir	= @libexecdir@
 
-prefix		= /usr/local
 BIN_DIR		= $(prefix)/bin
-LIB_DIR		= $(prefix)/libexec/w3mmlconfig
-
-distdir		= ./distfiles
-DISTNAME	= w3mmlconfig
+LIB_DIR		= $(libexecdir)/w3mmlconfig
 
 TARGETS		= w3mmlconfig
 LIB_TARGETS	= mlconfig.cgi
 DATA_TARGETS	= mlconfig-data.pl
 DATA		= mlconfig-data section/* key/*
-DISTFILES	= Makefile w3mmlconfig.in mlconfig.cgi.in	\
-		mk_mlconfig-data.pl mlconfig-data section key
 
-PERL		= /usr/local/bin/perl
+PERL		= /usr/bin/perl
 
 MKDIR		= mkdir -p
-INSTALL		= install -c
+INSTALL		= @INSTALL@
 INSTALL_SCRIPT	= $(INSTALL) -m 755
 INSTALL_DATA	= $(INSTALL) -m 644
 
-.SUFFIXES: .in
-
 all: $(TARGETS) $(LIB_TARGETS) $(DATA_TARGETS)
-
-.in:
-	sed -e 's;@CGI_BIN@;$(LIB_DIR);'	\
-	    -e 's;@PERL@;$(PERL);'	\
-	    $< > $@
 
 mlconfig-data.pl: $(DATA)
 	$(PERL) mk_mlconfig-data.pl mlconfig-data > $@
-
-dist:
-	@rm -rf $(distdir)/$(DISTNAME)
-	$(MKDIR) $(distdir)/$(DISTNAME)
-	cp -rp $(DISTFILES) $(distdir)/$(DISTNAME)
-	(cd $(distdir); tar -cf - $(DISTNAME) | GZIP='' gzip)	\
-		> $(distdir)/$(DISTNAME).tar.gz
-	@rm -rf $(distdir)/$(DISTNAME)
 
 install: all
 	-$(MKDIR) $(DESTDIR)$(BIN_DIR)
@@ -55,3 +43,10 @@ install: all
 	do      \
 		$(INSTALL_DATA) $$file $(DESTDIR)$(LIB_DIR);  \
 	done
+
+clean:
+	rm -f $(DATA_TARGETS)
+
+distclean: clean
+	rm -f Makefile $(LIB_TARGETS) $(TARGETS)
+

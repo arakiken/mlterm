@@ -1,5 +1,9 @@
 #!/bin/sh
 
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libexecdir=@libexecdir@
+
 query=""
 case "$1" in
 -a) query="?SECTION=appearance" ;;
@@ -10,4 +14,4 @@ case "$1" in
 -h) echo "$0 [-a|-c|-e|-o|-s]" ; exit ;;
 esac
 
-w3m -o cgi_bin=@CGI_BIN@ "file:/cgi-bin/mlconfig.cgi$query"
+w3m -o cgi_bin=${libexecdir}/w3mmlconfig "file:/cgi-bin/mlconfig.cgi$query"
