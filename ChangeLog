@@ -1,3 +1,8 @@
+2003-12-24  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* contrib/scrollbar/pixmap_engine/pixmap_engine.c: fixed a problem when
+	  slider images was not presented.
+
 2003-12-22  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* x_window.c: selection conversion request type "TARGETS"

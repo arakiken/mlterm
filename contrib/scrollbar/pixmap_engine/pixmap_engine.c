@@ -3,7 +3,7 @@
  */
 
 #if 0
-#define __DEBUG
+#define __DEBUG 1
 #endif
 
 #include  <stdio.h>
@@ -74,7 +74,7 @@ typedef struct  pixmap_sb_view
 	int  bg_enable_trans ;
 	int  bg_tile ;
 
-	/* up/down button */
+	/* up/down buttons */
 	button_layout_t  btn_layout ;
 	unsigned int  btn_up_h ;
 	unsigned int  btn_dw_h ;
@@ -190,7 +190,7 @@ create_bg_cache(
 		cached_body_h = bg_h - ps->bg_top_h - ps->bg_bottom_h ;
 		if( cached_body_h <= 0)
 		{
-			/* background's height is too small, do nothing */
+			/* height of background is too small, do nothing */
 		}
 		else if( ps->bg_tile)
 		{
@@ -245,7 +245,7 @@ resize_slider(
 	win = ps->view.window ;
 	gc = ps->gc ;
 
-	if( body_height <= 0)
+	if( body_height <= 0 || ! ps->slider_width)
 	{
 		return ;
 	}
@@ -259,7 +259,7 @@ resize_slider(
 	{
 		if( ps->slider_tile)
 		{
-			/* title */
+			/* tile */
 			XSetTile( d , gc , ps->slider_body) ;
 			XSetTSOrigin( d , gc , 0 , 0) ;
 			XSetFillStyle( d , gc , FillTiled) ;
@@ -367,7 +367,7 @@ realized(
 	ps->gc = XCreateGC( display , window , GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
 
 	/*
-	 * load background images (separated three parts; top, body and bottom.)
+	 * load background images (separated three parts: top, body and bottom.)
 	 */
 	if( ! (ps->is_transparent && ps->bg_enable_trans))
 	{
@@ -394,7 +394,7 @@ realized(
 			&ps->btn_dw_pressed_mask , &ps->width , &ps->btn_dw_h) ;
 
 	/*
-	 * load slider images (separated three parts; top, body and bottom.)
+	 * load slider images (separated three parts: top, body and bottom.)
 	 */
 	load_image( display , ps->dir , "slider_top" , &ps->slider_top ,
 		&ps->slider_top_mask , &ps->slider_width , &ps->slider_top_h) ;
