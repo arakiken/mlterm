@@ -1877,7 +1877,7 @@ client_connected(void)
 	 */
 	fcntl( fd , F_SETFD , 1) ;
 
-	if( ( fp = fdopen( fd , "r")) == NULL)
+	if( ( fp = fdopen( fd , "r+")) == NULL)
 	{
 		goto  error ;
 	}
@@ -2013,16 +2013,28 @@ parse_end:
 		/*
 		 * mlclient -P or mlclient --ptylist
 		 */
-		 
-		char *  list ;
-
-		if( ( list = ml_get_pty_list()) == NULL)
+		
+		ml_term_t **  terms ;
+		u_int  num ;
+		int  count ;
+		
+		num = ml_get_all_terms( &terms) ;
+		for( count = 0 ; count < num ; count ++)
 		{
-			goto  error ;
+			fprintf( fp , "%s" , ml_term_get_slave_name( terms[count])) ;
+			if( ml_term_window_name( terms[count]))
+			{
+				fprintf( fp , "(whose title is %s)" , ml_term_window_name( terms[count])) ;
+			}
+			if( ml_term_is_attached( terms[count]))
+			{
+				fprintf( fp , " is active:)\n") ;
+			}
+			else
+			{
+				fprintf( fp , " is sleeping.zZ\n") ;
+			}
 		}
-
-		write( fd , list , strlen( list)) ;
-		write( fd , "\n" , 1) ;
 	}
 	else
 	{
@@ -2033,7 +2045,7 @@ parse_end:
 		if( argc >= 2 && *argv[1] != '-')
 		{
 			/*
-			 * mlclient [dev] [optioins...]
+			 * mlclient [dev] [options...]
 			 */
 			 
 			pty = argv[1] ;
