@@ -2618,18 +2618,18 @@ key_pressed(
 	}
 	else if( x_keymap_match( screen->keymap , OPEN_SCREEN , ksym , event->state))
 	{
-		if( HAS_SYSTEM_LISTENER(screen,open_pty))
+		if( HAS_SYSTEM_LISTENER(screen,open_screen))
 		{
-			(*screen->system_listener->open_pty)( screen->system_listener->self , screen) ;
+			(*screen->system_listener->open_screen)( screen->system_listener->self) ;
 		}
 
 		return ;
 	}
 	else if( x_keymap_match( screen->keymap , OPEN_PTY , ksym , event->state))
 	{
-		if( HAS_SYSTEM_LISTENER(screen,open_screen))
+		if( HAS_SYSTEM_LISTENER(screen,open_pty))
 		{
-			(*screen->system_listener->open_screen)( screen->system_listener->self) ;
+			(*screen->system_listener->open_pty)( screen->system_listener->self , screen) ;
 		}
 
 		return ;
@@ -6256,7 +6256,7 @@ x_screen_attach(
 		ml_term_set_char_combining_flag( screen->term , 1) ;
 	}
 
-	usascii_font_cs_changed( screen , x_get_usascii_font_cs( ml_term_get_encoding( screen->term))) ;
+	usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
 
 	update_special_visual( screen) ;
 

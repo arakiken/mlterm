@@ -710,7 +710,7 @@ x_font_manager_usascii_font_cs_changed(
 {
 	mkf_charset_t  old_cs ;
 	x_font_t *  font ;
-	
+
 	if( ! font_man->usascii_font_cs_changable || usascii_font_cs == font_man->usascii_font_cs)
 	{
 		return  0 ;
@@ -721,6 +721,10 @@ x_font_manager_usascii_font_cs_changed(
 
 	if( ( font = search_usascii_font( font_man)) == NULL)
 	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " Not found usascii font for %x cs.\n") ;
+	#endif
+	
 		font_man->usascii_font_cs = old_cs ;
 
 		return  0 ;

@@ -306,7 +306,7 @@ x_keymap_match(
 			return  0 ;
 		}
 	}
-	
+
 	if( keymap->map[func].ksym == ksym)
 	{
 		return  1 ;

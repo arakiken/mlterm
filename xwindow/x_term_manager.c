@@ -333,7 +333,7 @@ open_term(void)
 	}
 	else
 	{
-		usascii_font_cs = x_get_usascii_font_cs( main_config.encoding) ;
+		usascii_font_cs = x_get_usascii_font_cs( ml_term_get_encoding( term)) ;
 		usascii_font_cs_changable = 1 ;
 	}
 	

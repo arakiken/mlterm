@@ -1197,6 +1197,25 @@ ml_edit_clear_above_bce(
 }
 
 int
+ml_edit_fill_all(
+	ml_edit_t *  edit ,
+	ml_char_t *  ch
+	)
+{
+	int  row ;
+	
+	for( row = 0 ; row < edit->model.num_of_rows ; row ++)
+	{
+		ml_line_fill( ml_model_get_line( &edit->model , row) , ch , 0 ,
+			edit->model.num_of_cols / ml_char_cols(ch)) ;
+	}
+
+	edit->model.num_of_filled_rows = edit->model.num_of_rows ;
+
+	return  1 ;
+}
+
+int
 ml_edit_set_scroll_region(
 	ml_edit_t *  edit ,
 	int  beg ,
@@ -1405,6 +1424,37 @@ ml_edit_get_line(
 	)
 {
 	return  ml_model_get_line( &edit->model , row) ;
+}
+
+int
+ml_edit_set_modified_all(
+	ml_edit_t *  edit
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < edit->model.num_of_rows ; count ++)
+	{
+		ml_line_set_modified_all( ml_model_get_line( &edit->model , count)) ;
+	}
+
+	return  1 ;
+}
+
+u_int
+ml_edit_get_cols(
+	ml_edit_t *  edit
+	)
+{
+	return  edit->model.num_of_cols ;
+}
+
+u_int
+ml_edit_get_rows(
+	ml_edit_t *  edit
+	)
+{
+	return  edit->model.num_of_rows ;
 }
 
 int
@@ -1872,56 +1922,6 @@ ml_cursor_row(
 	)
 {
 	return  edit->cursor.row ;
-}
-
-int
-ml_edit_set_modified_all(
-	ml_edit_t *  edit
-	)
-{
-	int  count ;
-
-	for( count = 0 ; count < edit->model.num_of_rows ; count ++)
-	{
-		ml_line_set_modified_all( ml_model_get_line( &edit->model , count)) ;
-	}
-
-	return  1 ;
-}
-
-u_int
-ml_edit_get_cols(
-	ml_edit_t *  edit
-	)
-{
-	return  edit->model.num_of_cols ;
-}
-
-u_int
-ml_edit_get_rows(
-	ml_edit_t *  edit
-	)
-{
-	return  edit->model.num_of_rows ;
-}
-
-int
-ml_edit_fill_all(
-	ml_edit_t *  edit ,
-	ml_char_t *  ch
-	)
-{
-	int  row ;
-	
-	for( row = 0 ; row < edit->model.num_of_rows ; row ++)
-	{
-		ml_line_fill( ml_model_get_line( &edit->model , row) , ch , 0 ,
-			edit->model.num_of_cols / ml_char_cols(ch)) ;
-	}
-
-	edit->model.num_of_filled_rows = edit->model.num_of_rows ;
-
-	return  1 ;
 }
 
 /*

@@ -88,6 +88,8 @@ int  ml_edit_clear_above( ml_edit_t *  edit) ;
 
 int  ml_edit_clear_above_bce( ml_edit_t *  edit) ;
 
+int  ml_edit_fill_all( ml_edit_t *  edit , ml_char_t *  ch) ;
+	
 int  ml_edit_set_scroll_region( ml_edit_t *  edit , int  beg , int  end) ;
 
 int  ml_edit_scroll_upward( ml_edit_t *  edit , u_int  size) ;
@@ -105,6 +107,12 @@ int  ml_edit_clear_tab_stop( ml_edit_t *  edit) ;
 int  ml_edit_clear_all_tab_stops( ml_edit_t *  edit) ;
 
 ml_line_t *  ml_edit_get_line( ml_edit_t *  edit , int  row) ;
+
+int  ml_edit_set_modified_all( ml_edit_t *  edit) ;
+
+u_int ml_edit_get_cols( ml_edit_t *  edit) ;
+
+u_int ml_edit_get_rows( ml_edit_t *  edit) ;
 
 int  ml_edit_go_forward( ml_edit_t *  edit , int  flag) ;
 
@@ -138,14 +146,6 @@ int  ml_cursor_col( ml_edit_t *  edit) ;
 
 int  ml_cursor_row( ml_edit_t *  edit) ;
 
-int  ml_edit_set_modified_all( ml_edit_t *  edit) ;
-
-u_int ml_edit_get_cols( ml_edit_t *  edit) ;
-
-u_int ml_edit_get_rows( ml_edit_t *  edit) ;
-
-int  ml_edit_fill_all( ml_edit_t *  edit , ml_char_t *  ch) ;
-	
 #ifdef  DEBUG
 
 void  ml_edit_dump( ml_edit_t *  edit) ;

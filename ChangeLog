@@ -1,3 +1,11 @@
+2002-09-08 Araki Ken <arakiken@users.sf.net>
+
+	* OPEN_PTY and OPEN_SCREEN shortcut keys were confused. fixed.
+	* mkf_charset_t variable was passed to usascii_font_cs_changed()
+	  in x_screen_attach(). fixed.
+	* Added --with-imagelib option to mlterm/configure(.in) and
+	  removed --enable-imlib, --enable-gdk-pixbuf.
+
 2002-09-07 Araki Ken <arakiken@users.sf.net>
 
 	* 2.6.0 released

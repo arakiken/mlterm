@@ -99,12 +99,16 @@ ml_pop_term(
 	{
 		if( ! is_active[count])
 		{
+		#if  0
 			ml_term_resize( terms[count] , cols , rows) ;
 			ml_term_change_log_size( terms[count] , log_size) ;
+		#endif
+		#if  0
 			ml_term_change_encoding( terms[count] , encoding) ;
 			ml_term_set_char_combining_flag( terms[count] , use_char_combining) ;
 			ml_term_set_multi_col_char_flag( terms[count] , use_multi_col_char) ;
-
+		#endif
+		
 			is_active[count] = 1 ;
 
 			return  terms[count] ;
