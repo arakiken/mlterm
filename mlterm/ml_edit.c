@@ -724,8 +724,6 @@ ml_edit_init(
 	edit->cursor.row = 0 ;
 	edit->cursor.char_index = 0 ;
 	edit->cursor.col = 0 ;
-	edit->cursor.fg_color = ML_BG_COLOR ;
-	edit->cursor.bg_color = ML_FG_COLOR ;
 	edit->cursor.orig_fg = ML_BG_COLOR ;
 	edit->cursor.orig_bg = ML_FG_COLOR ;
 	edit->cursor.is_highlighted = 0 ;
@@ -1965,19 +1963,6 @@ ml_cursor_goto(
 }
 
 int
-ml_cursor_set_color(
-	ml_edit_t *  edit ,
-	ml_color_t  fg_color ,
-	ml_color_t  bg_color
-	)
-{
-	edit->cursor.fg_color = fg_color ;
-	edit->cursor.bg_color = bg_color ;
-
-	return  1 ;
-}
-
-int
 ml_cursor_save(
 	ml_edit_t *  edit
 	)
@@ -2024,10 +2009,10 @@ ml_highlight_cursor(
 	}
 
 	edit->cursor.orig_fg = ml_char_fg_color( CURSOR_CHAR(edit)) ;
-	ml_char_set_fg_color( CURSOR_CHAR(edit) , edit->cursor.fg_color) ;
+	ml_char_set_fg_color( CURSOR_CHAR(edit) , ML_BG_COLOR) ;
 	
 	edit->cursor.orig_bg = ml_char_bg_color( CURSOR_CHAR(edit)) ;
-	ml_char_set_bg_color( CURSOR_CHAR(edit) , edit->cursor.bg_color) ;
+	ml_char_set_bg_color( CURSOR_CHAR(edit) , ML_FG_COLOR) ;
 
 	edit->cursor.is_highlighted = 1 ;
 

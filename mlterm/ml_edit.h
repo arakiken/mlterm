@@ -20,8 +20,6 @@ typedef struct  ml_cursor
 	int  char_index ;
 	int  col ;
 	
-	ml_color_t  fg_color ;
-	ml_color_t  bg_color ;
 	ml_color_t  orig_fg ;
 	ml_color_t  orig_bg ;
 	int8_t  is_highlighted ;
@@ -148,8 +146,6 @@ int  ml_cursor_goto_end( ml_edit_t *  edit) ;
 int  ml_cursor_goto( ml_edit_t *  edit , int  col , int  row , int  flag) ;
 
 int  ml_cursor_is_beg_of_line( ml_edit_t *  edit) ;
-
-int  ml_cursor_set_color( ml_edit_t *  edit , ml_color_t  fg_color , ml_color_t  bg_color) ;
 
 int  ml_cursor_save( ml_edit_t *  edit) ;
 

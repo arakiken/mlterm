@@ -302,7 +302,7 @@ comment $Id$
       o scrollbar_mode (none/*left*/right) (#)
         スクロールバーのつけ方
         
-      o scrollbar_view_name  (*simple*/sample/sample2) (#)
+      o scrollbar_view_name  (*simple*/sample/sample2/next/motif/athena/mozmodern) (#)
         使いたいスクロールバーの名前
 
       o fg_color  (*black*) (#)

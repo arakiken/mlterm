@@ -1,6 +1,7 @@
 ver 2.5.0
 * gdk-pixbuf as well as imlib is supported.(Thanks to Minami Hirokazu san)
 * mlterm can be built in other directories than the source tree.
+  (Thanks to Nakada Nobuyoshi san)
 * BCE is supported.
 * mlterm is separated into vt100 core functions(mlterm/) and x window system 
   specific functions(xwindow/), and mlterm window can be revived even if
@@ -8,7 +9,9 @@ ver 2.5.0
 * UCS4 is used internally even if --enable-ucs4 option is not specified.
 * <KEY>=<OUTPUT STRING> format is supported in key config file.
 * mlcc is added. (Thanks to Minami Hirokazu san)
-* extra scrollbar plugins(athena,motif,mozmodern,next) are added.(Thanks to Sato Seiichi san)
+* extra scrollbar plugins(athena,motif,mozmodern,next) are added.
+  (Thanks to Sato Seiichi san)
+* 16 color support.
 * And many minor bugs are fixed.
 
 ver 2.4.0

@@ -1,5 +1,9 @@
 2002-06-16 Araki Ken <arakiken@users.sf.net>
 
+	* 2.5.0 is released.
+
+2002-06-16 Araki Ken <arakiken@users.sf.net>
+
 	* mlterm died if -Y option is specified with -A, -t or -P. fixed.
 	  (Thanks to Minami Hirokazu san)
 
