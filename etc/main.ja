@@ -30,7 +30,7 @@
 
 # -- Terminal 関連 --
 # ログインシェルを使うかどうか
-# use_loing_shell = false
+# use_login_shell = false
 
 # 端末タイプ(xterm,mlterm,kterm)
 # termtype = xterm
@@ -163,6 +163,9 @@
 
 # 行間の広さ
 # line_space = 0
+
+# Window Manager の飾りを外す
+# borderless = false
 
 # -- その他 --
 # XIM を使う

@@ -208,7 +208,7 @@ comment $Id$
         実スクリーンの縦幅(百分率)
 
       -- Terminal 関連 --
-      o use_loing_shell  (true/*false*)
+      o use_login_shell  (true/*false*)
         ログインシェルを使うかどうか
        
       o termtype (*xterm*)
@@ -400,6 +400,9 @@ comment $Id$
 
       o line_space  (*0*) (#)
         行間の広さ
+
+      o borderless (true/*false*) (#)
+        Window Manager の飾りを外す。
 
       -- その他 --
       o use_xim  (*true*/false)
@@ -708,71 +711,70 @@ comment $Id$
     -h/--help(=bool)   : ヘルプ (X)
     -v/--version(=bool) : バージョン情報(あまり信用できない:D) (X)
    
-    -#/--initstr=value : pty をオープンしたときに、端末に送られる初期化文字列
-    -%/--logseq        : pty から流れてくる VT sequence を記録する
-    -$/--mc=value      : ダブルクリックの間隔(ミリ秒)
-    -0/--crbg=value    : カーソルの背景色
-    -1/--wscr=value    : 実スクリーンの横幅
-    -2/--hscr=value    : 実スクリーンの縦幅
-    -3/--contrast=value: 背景画像のコントラスト
-    -4/--gamma=value   : 背景画像のガンマ値
-    -5/--big5bug(=bool): XFree86-4.1.0 以前の Big5 CTEXT のバグに対応
-    -6/--stbs(=bool)   : バックスクロール時に端末出力があっても画面が流れない
-    -7/--bel=value     : BEL(0x7) を受け取った時の挙動
-    -8/--88591(=bool)  : USASCII の表示に必ず ISO8859-1 フォントを使用
-    -9/--crfg=value    : カーソルの前景色
-    -@/--screens=value : 起動時に開くウィンドウ数
-    -A/--aa(=bool)     : アンチ エイリアスフォントの使用
-    -B/--sbbg=value    : スクロールバーの背景色
-    -C/--iscii=value   : ISCII にて使用する言語
-    -D/--bi(=bool)     : BiDi レンダリング
-    -E/--km=value      : 文字エンコーディング
-    -F/--sbfg=value    : スクロールバーの前景色
-    -G/--vertical=value: 縦表示のスタイル
-    -H/--bright=value  : 背景画像の輝度
-    -I/--icon=value    : アイコン 名
-    -J/--dyncomb(=bool) : 結合文字を動的に合成する
-    -K/--metakey=value : Meta キーとして使用するキーを指定する
-    -L/--ls(=bool)     : ログインシェルを使用
-    -M/--menu=value    : Ctrl+Button3 で起動するコマンドのパス
-    -N/--name=value    : アプリケーション名
-    -O/--sbmod=value   : スクロールバーのつけ方
-    -P/--ptys=value    : 起動時に立ちあげる pty の数 (X)
-    -Q/--vcur(=bool)   : 縦用カーソルキーを使用
-    -R/--fsrange=value : フォントサイズの範囲 (X)
-    -S/--sbview=value  : 使いたいスクロールバーの名前
-    -T/--title=value   : タイトル名
-    -U/--viaucs=value  : 受け取ったXCOMPOUND TEXTを一度UCSに変換
-    -V/--varwidth(=bool): 可変長コラム幅を使用
-    -W/--sep=value     : 単語の区切り文字 (X)
-    -X/--openim(=bool) : 起動時に XIM を open
-    -Y/--decsp(=bool)  : DEC_SPECIAL フォントを動的合成 (X)
-    -Z/--multicol(=bool): 全角文字の処理
-    -a/--ac=value      : EastAsianWidth.txt の A プロパティ文字のコラム数
-    -b/--bg=value      : 背景色
-    -c/--cp932(=bool)  : Xft 使用時に JISX0208 の Unicode 変換で CP932 の変換テ
-                         ーブルを使用 (X)
-    -d/--display       : DISPLAY を指定
-    -f/--fg=value      : 前景色
-    -g/--geometry=value : 表示座標位置
-    -i/--xim(=bool)    : xim を使用 (X)
-    -j/--daemon=value  : daemon process となるかどうか (X)
-    -k/--meta(=value)  : Meta キーを押した時の動作
-    -l/--sl=value      : ログサイズ
-    -m/--comb(=bool)   : 結合文字を使用
-    -n/--noucsfont(=bool) : UNICODE フォントを使用しない
-    -o/--lsp=value     : 行間の広さ
-    -p/--pic=value     : 背景画像のパス
-    -q/--extkey(=bool) : スクロール時の拡張ショートカットキーを有効にするかどう
-			 か
-    -r/--fade=value    : Focus を外れたときの Fade 率
-    -s/--sb(=bool)     : スクロールバーをつける
-    -t/--transbg(=bool) : 背景透過
-    -u/--onlyucsfont(=bool) : 常に UNICODE フォントを使用
-    -w/--fontsize=value : フォントサイズ
-    -x/--tw=value      : タブ幅
-    -y/--term=value    : 端末タイプ
-    -z/--largesmall=value : larger,smaller ボタンでのフォントサイズの変化量
+    -#/--initstr=value : init_str
+    -%/--logseq        : logging_vt_seq
+    -$/--mc=value      : click_interval
+    -&/--borderless    : borderless
+    -0/--crbg=value    : cursor_bg_color
+    -1/--wscr=value    : screen_width_ratio
+    -2/--hscr=value    : screen_height_ratio
+    -3/--contrast=value: contrast
+    -4/--gamma=value   : gamma
+    -5/--big5bug(=bool): big5_buggy
+    -6/--stbs(=bool)   : static_backscroll_mode
+    -7/--bel=value     : bel_mode
+    -8/--88591(=bool)  : iso88591_font_for_usascii
+    -9/--crfg=value    : cursor_fg_color
+    -@/--screens=value : startup_screens (X)
+    -A/--aa(=bool)     : use_anti_alias
+    -B/--sbbg=value    : sb_bg_color
+    -C/--iscii=value   : iscii_lang
+    -D/--bi(=bool)     : use_bidi
+    -E/--km=value      : ENCODING
+    -F/--sbfg=value    : sb_fg_color
+    -G/--vertical=value: vertical_mode
+    -H/--bright=value  : brightness
+    -I/--icon=value    : icon_name
+    -J/--dyncomb(=bool) : use_dynamic_comb
+    -K/--metakey=value : mod_meta_key
+    -L/--ls(=bool)     : use_login_shell
+    -M/--menu=value    : conf_menu_path_3
+    -N/--name=value    : app_name
+    -O/--sbmod=value   : scrollbar_mode
+    -P/--ptys=value    : startup_ptys (X)
+    -Q/--vcur(=bool)   : use_vertical_cursor
+    -R/--fsrange=value : font_size_range (X)
+    -S/--sbview=value  : scrollbar_view_name
+    -T/--title=value   : title
+    -U/--viaucs=value  : receive_string_via_ucs
+    -V/--varwidth(=bool): use_variable_column_width
+    -W/--sep=value     : word_separators (X)
+    -X/--openim(=bool) : xim_open_in_startup
+    -Y/--decsp(=bool)  : compose_dec_special_font (X)
+    -Z/--multicol(=bool): use_multi_column_char
+    -a/--ac=value      : col_size_of_width_a
+    -b/--bg=value      : bg_color
+    -c/--cp932(=bool)  : use_cp932_ucs_for_xft (X)
+    -d/--display       : display
+    -f/--fg=value      : fg_color
+    -g/--geometry=value : geometry
+    -i/--xim(=bool)    : use_xim (X)
+    -j/--daemon=value  : daemon_mode (X)
+    -k/--meta(=value)  : mod_meta_mode
+    -l/--sl=value      : logsize
+    -m/--comb(=bool)   : use_combining
+    -n/--noucsfont(=bool) : not_use_unicode_font
+    -o/--lsp=value     : line_space
+    -p/--pic=value     : wall_picture
+    -q/--extkey(=bool) : use_extended_scroll_shortcut
+    -r/--fade=value    : fade_ratio
+    -s/--sb(=bool)     : use_scrollbar
+    -t/--transbg(=bool) : use_transbg
+    -u/--onlyucsfont(=bool) : only_use_unicode_font
+    -w/--fontsize=value : fontsize
+    -x/--tw=value      : tabsize
+    -y/--term=value    : term_type
+    -z/--largesmall=value : step_in_changing_font_size
 
     -e ... : 指定したコマンドを起動
 
