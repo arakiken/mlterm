@@ -1,5 +1,10 @@
 2003-06-21 Araki Ken <arakiken@users.sf.net>
 
+	* kik_conf_io_write() could misunderstand a value string
+	  as its key string. Fixed.
+
+2003-06-21 Araki Ken <arakiken@users.sf.net>
+
 	* In some cases, combining characters couldn't be drawn. Fixed.
 	  (Thanks to Kubota Tohomiro san)
 

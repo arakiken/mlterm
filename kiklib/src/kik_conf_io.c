@@ -196,19 +196,33 @@ kik_conf_io_write(
 
 	for( count = 0 ; count < conf->num ; count ++)
 	{
-		if( *conf->lines[count] != '#' && ( p = strstr( conf->lines[count] , key)))
+		if( *conf->lines[count] == '#')
 		{
-			if( ( p = malloc( strlen( key) + strlen( val) + 4)) == NULL)
-			{
-				return  0 ;
-			}
-			sprintf( p , "%s = %s" , key , val) ;
-			
-			free( conf->lines[count]) ;
-			conf->lines[count] = p ;
-
-			return  1 ;
+			continue ;
 		}
+
+		p = conf->lines[count] ;
+
+		while( *p == ' ' || *p == '\t')
+		{
+			p ++ ;
+		}
+
+		if( strncmp( p , key , strlen(key)) != 0)
+		{
+			continue ;
+		}
+
+		if( ( p = malloc( strlen( key) + strlen( val) + 4)) == NULL)
+		{
+			continue ;
+		}
+		sprintf( p , "%s = %s" , key , val) ;
+
+		free( conf->lines[count]) ;
+		conf->lines[count] = p ;
+
+		return  1 ;
 	}
 
 	if( conf->num + 1 >= conf->scale * 128)
