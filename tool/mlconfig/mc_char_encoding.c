@@ -5,7 +5,7 @@
 #include  "mc_char_encoding.h"
 #include  <stdio.h>
 #include  <kiklib/kik_str.h>
-#include  <stdlib.h>		/* free */
+#include  <kiklib/kik_mem.h>		/* free */
 #include  <ctype.h>
 #include  <kiklib/kik_debug.h>
 #include  <glib.h>

@@ -5,12 +5,12 @@
 #include  "mc_sb_view.h"
 
 #include  <kiklib/kik_str.h>
-#include  <stdlib.h>		/* free */
+#include  <kiklib/kik_mem.h>		/* free */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_conf_io.h>
 #include  <glib.h>
 #include  <c_intl.h>
-#include  <sys/types.h>
+#include  <kiklib/kik_types.h>
 #include  <dirent.h>
 
 #include  "mc_combo.h"

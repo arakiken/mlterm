@@ -5,8 +5,8 @@
 #include  "mc_io.h"
 
 #include  <stdio.h>
-#include  <stdlib.h>		/* malloc */
-#include  <unistd.h>		/* STDIN_FILENO */
+#include  <kiklib/kik_mem.h>		/* malloc */
+#include  <kiklib/kik_unistd.h>		/* STDIN_FILENO */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>
 

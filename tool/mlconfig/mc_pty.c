@@ -6,7 +6,7 @@
 
 #include  <stdio.h>
 #include  <kiklib/kik_str.h>
-#include  <stdlib.h>	/* malloc */
+#include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_str.h>	/* kik_str_sep */
 
 #include  "mc_combo.h"

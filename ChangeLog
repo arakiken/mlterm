@@ -1,8 +1,10 @@
 2004-12-06 MINAMI Hirokazu <minami@mistfall.net>
 
-	* xwindow/x_term_manager.c: fixed typo
+	* xwindow/x_window_manager.c: pointer should be initialized by NULL. 
 	* xwindow/x_screen.c, xwindow/x_im_candidate_screen.c:
 	  minor code cleanup.
+	* tools/mlconfig/*.c: use kiklib/*.h instead of standard headers
+	  for better memory usage tracking.
 
 2004-12-03 Seiichi SATO <ssato@sh.rim.or.jp>
 

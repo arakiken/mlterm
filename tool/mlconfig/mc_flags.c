@@ -5,7 +5,7 @@
 #include  "mc_flags.h"
 
 #include  <kiklib/kik_str.h>
-#include  <stdlib.h>		/* free */
+#include  <kiklib/kik_mem.h>		/* free */
 #include  <glib.h>
 #include  <c_intl.h>
 

@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include <string.h>
+#include <kiklib/kik_str.h>
 #include  "mc_combo.h"
 
 
