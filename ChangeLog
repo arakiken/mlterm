@@ -1,3 +1,10 @@
+2003-06-03 Araki Ken <arakiken@users.sf.net>
+
+	* Added doc/ja/README.pty
+	* Updated doc/ja/README.ja
+	* Ctrl+[F2-F4] are assigned to OPEN_PTY,NEXT_PTY,PREV_PTY shortcut by default.
+	* If --sb=false is specified, ignored --title and --icon options. Fixed.
+
 2003-06-03  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_imagelib_gdk.c: 
