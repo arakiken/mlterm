@@ -164,7 +164,7 @@ x_dnd_parse(
 	atom_name = XGetAtomName( win->display, atom);
 
 	/* process charset directive */
-	if( charset = strchr( atom_name, ';'))
+	if( (charset = strchr( atom_name, ';')) )
 	{
 		if(strncmp(charset+1, "charset", 7)
 		    || strncmp(charset+1, "CHARSET", 7))

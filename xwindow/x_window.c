@@ -2012,12 +2012,14 @@ x_window_receive_event(
 				}
 			}
 
-			if( event->xselection.property == XA_DND_STORE(win->display))
+			if( event->xselection.property == XA_DND_STORE(win->display) &&
+			    ct.encoding != XA_INCR(win->display) )
 			{
 				x_dnd_finish( win) ;
 			}
 		}
 		
+
 		XDeleteProperty( win->display, event->xselection.requestor,
 			event->xselection.property) ;
 	}
@@ -2090,7 +2092,7 @@ x_window_receive_event(
 			else
 			{
 				/* less than 3*/
-				win->is_dnd_accepting = x_dnd_preferable_atom( win , event->xclient.data.l +1 , 3);
+				win->is_dnd_accepting = x_dnd_preferable_atom( win , (event->xclient.data.l)+2 , 3);
 			}
 		}
 
