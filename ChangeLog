@@ -1,4 +1,8 @@
 [20020221]
+* man/mlterm.1 is updated.
+* -H option accepts over 100.
+
+[20020221]
 * transparent background using root pixmap by "_XROOTPMAP_ID" atom is supported.
 
 [20020220]
