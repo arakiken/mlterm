@@ -4,7 +4,7 @@
 
 #include  "ml_config_menu.h"
 
-#include  <stdio.h>
+#include  <stdio.h>		/* fprintf */
 #include  <unistd.h>		/* pipe/close */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>

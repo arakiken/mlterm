@@ -22,7 +22,7 @@ mlterm server
   
   mlterm server は、/tmp/mlterm.unix を使った Unix Domain Socket にて、client
   プログラムと通信します。
-  起動時に、/tmp/mlterm.unix がすでに存在する場合は、すでに mlterm server が稼働
+  起動時に、/tmp/mlterm.unix が存在する場合は、すでに mlterm server が稼働
   していると判断して、自身は daemon process になりませんので注意してください。
 
 * client の起動

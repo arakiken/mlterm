@@ -3,7 +3,7 @@ ver 2.3.0
 * Most settings of scrollbar(position,type,color etc) can be dynamically changed.
 * Number of extra dots between lines can be specified.
 * Brightness of wall picture and transparent background can be adjustied.
-* mlterm can work as daemon process , and mlclient which is a front end of mlterm
+* mlterm can work as a daemon process , and mlclient which is a front end of mlterm
   server is added.
 * mlterm can handle multiple display connections.
 * BSD style utmp and utemper is supported. 

@@ -4,7 +4,6 @@
 
 #include  "mkf_xct_parser.h"
 
-#include  <stdio.h>		/* NULL */
 #include  <string.h>		/* strncmp */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* malloc */
@@ -40,12 +39,12 @@ xct_non_iso2022_is_started(
 	{
 		int  i ;
 		
-		fprintf( stderr , "non iso2022 sequence -->\n") ;
+		kik_msg_printf( "non iso2022 sequence -->\n") ;
 		for( i = 0 ; i < iso2022_parser->parser.left ; i ++)
 		{
-			fprintf( stderr , "%.2x " , iso2022_parser->parser.str[i]) ;
+			kik_msg_printf( "%.2x " , iso2022_parser->parser.str[i]) ;
 		}
-		fprintf( stderr , "\n") ;
+		kik_msg_printf( "\n") ;
 	}
 #endif
 

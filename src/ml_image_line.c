@@ -4,7 +4,6 @@
 
 #include  "ml_image_line.h"
 
-#include  <stdio.h>		/* fprintf */
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
@@ -119,7 +118,7 @@ ml_imgline_break_boundary(
 		size = line->num_of_chars - line->num_of_filled_chars ;
 
 	#ifdef  DEBUG
-		fprintf( stderr , " ... size modified -> %d\n" , size) ;
+		kik_msg_printf( " ... size modified -> %d\n" , size) ;
 	#endif
 	}
 
@@ -264,7 +263,7 @@ ml_imgline_overwrite_chars(
 		len = new_len - padding - copy_len ;
 
 	#ifdef  DEBUG
-		fprintf( stderr , " ... modified -> new_len %d , ow len %d\n" , new_len , len) ;
+		kik_msg_printf( " ... modified -> new_len %d , ow len %d\n" , new_len , len) ;
 	#endif
 	}
 
@@ -576,7 +575,7 @@ ml_convert_char_index_to_col(
 int
 ml_convert_col_to_char_index(
 	ml_image_line_t *  line ,
-	int *  cols_rest ,
+	u_int *  cols_rest ,
 	int  col ,
 	int  flag	/* BREAK_BOUNDARY */
 	)

@@ -4,7 +4,6 @@
 
 #include  "ml_image_scroll.h"
 
-#include  <stdio.h>		/* stderr */
 #include  <kiklib/kik_util.h>
 
 #include  "ml_image_intern.h"
@@ -46,7 +45,7 @@ copy_lines(
 		size = image->num_of_rows - src_row ;
 
 	#ifdef  DEBUG
-		fprintf( stderr , " ... size modified -> %d.\n" , size) ;
+		kik_msg_printf( " ... size modified -> %d.\n" , size) ;
 	#endif
 	}
 	
@@ -59,7 +58,7 @@ copy_lines(
 		size = image->num_of_rows - dst_row ;
 
 	#ifdef  DEBUG
-		fprintf( stderr,  " ... size modified -> %d.\n" , size) ;
+		kik_msg_printf( " ... size modified -> %d.\n" , size) ;
 	#endif
 	}
 

@@ -4,9 +4,9 @@
 
 #include  "ml_shaping.h"
 
-#include  <stdio.h>		/* fprintf */
 #include  <string.h>		/* strncpy */
 #include  <kiklib/kik_mem.h>	/* alloca */
+#include  <kiklib/kik_debug.h>	/* kik_msg_printf */
 
 
 typedef struct arabic_present
@@ -345,15 +345,15 @@ shape_iscii(
 					
 					for( i = 0 ; i < iscii_filled ; i ++)
 					{
-						fprintf( stderr , "%.2x " , iscii_buf[i]) ;
+						kik_msg_printf( "%.2x " , iscii_buf[i]) ;
 					}
-					fprintf( stderr , "=>\n") ;
+					kik_msg_printf( "=>\n") ;
 					
 					for( i = 0 ; i < font_filled ; i ++)
 					{
-						fprintf( stderr , "%.2x " , font_buf[i]) ;
+						kik_msg_printf( "%.2x " , font_buf[i]) ;
 					}
-					fprintf( stderr , "\n") ;
+					kik_msg_printf( "\n") ;
 				}
 			#endif
 				

@@ -4,7 +4,6 @@
 
 #include  "ml_char.h"
 
-#include  <stdio.h>		/* fprintf */
 #include  <string.h>		/* memset/memcpy */
 #include  <kiklib/kik_debug.h>
 
@@ -264,7 +263,7 @@ ml_str_dump(
 		ml_char_dump( &chars[counter]) ;
 	}
 
-	fprintf( stderr , "\n") ;
+	kik_msg_printf( "\n") ;
 }
 
 #endif
@@ -488,7 +487,7 @@ ml_char_font(
 		{
 			kik_warn_printf( KIK_DEBUG_TAG " font of the char [") ;
 			ml_char_dump( ch) ;
-			fprintf( stderr , "] is NULL.\n") ;
+			kik_msg_printf( "] is NULL.\n") ;
 		}
 	#endif
 	
@@ -501,7 +500,7 @@ ml_char_font(
 		{
 			kik_warn_printf( KIK_DEBUG_TAG " multi_ch of char [") ;
 			ml_char_dump( ch) ;
-			fprintf( stderr , "] is NULL.\n") ;
+			kik_msg_printf( "] is NULL.\n") ;
 		}
 	#endif
 	
@@ -836,12 +835,12 @@ ml_char_dump(
 #ifdef  DUMP_HEX
 	int  i ;
 	
-	fprintf( stderr , "[") ;
+	kik_msg_printf( "[") ;
 	for( i = 0 ; i < ml_char_size(ch) ; i ++)
 	{
-		fprintf( stderr , "%.2x" , ml_char_bytes(ch)[i]) ;
+		kik_msg_printf( "%.2x" , ml_char_bytes(ch)[i]) ;
 	}
-	fprintf( stderr , "]") ;
+	kik_msg_printf( "]") ;
 #else
 	if( ml_char_size(ch) == 2)
 	{
@@ -849,21 +848,21 @@ ml_char_dump(
 		{
 			/* only eucjp */
 
-			fprintf( stderr , "%c%c" , ml_char_bytes(ch)[0] | 0x80 ,
+			kik_msg_printf( "%c%c" , ml_char_bytes(ch)[0] | 0x80 ,
 				ml_char_bytes(ch)[1] | 0x80) ;
 		}
 		else
 		{
-			fprintf( stderr , "**") ;
+			kik_msg_printf( "**") ;
 		}
 	}
 	else if( ml_char_size(ch) == 1)
 	{
-		fprintf( stderr , "%c" , ml_char_bytes(ch)[0]) ;
+		kik_msg_printf( "%c" , ml_char_bytes(ch)[0]) ;
 	}
 	else
 	{
-		fprintf( stderr , "!!! unsupported char[0x%.2x len %d] !!!" ,
+		kik_msg_printf( "!!! unsupported char[0x%.2x len %d] !!!" ,
 			ml_char_bytes(ch)[0] , SIZE(ch->attr)) ;
 	}
 #endif

@@ -1079,7 +1079,7 @@ ml_get_fontset(
 		kik_warn_printf( KIK_DEBUG_TAG " missing these fonts ...\n") ;
 		for( counter = 0 ; counter < miss_num ; counter ++)
 		{
-			fprintf( stderr , " %s\n" , missing[counter]) ;
+			kik_msg_printf( " %s\n" , missing[counter]) ;
 		}
 	}
 #endif

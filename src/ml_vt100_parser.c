@@ -4,7 +4,6 @@
 
 #include  "ml_vt100_parser.h"
 
-#include  <stdio.h>
 #include  <string.h>		/* memmove */
 #include  <stdlib.h>		/* atoi */
 #include  <kiklib/kik_debug.h>
@@ -74,17 +73,17 @@ receive_bytes(
 	#if  0
 		for( counter = 0 ; counter < vt100_parser->left ; counter ++)
 		{
-			fprintf( stderr , "%c" , vt100_parser->seq[counter]) ;
+			kik_msg_printf( "%c" , vt100_parser->seq[counter]) ;
 		}
-		fprintf( stderr , "[END]\n") ;
+		kik_msg_printf( "[END]\n") ;
 	#endif
 
 	#if  1
 		for( counter = 0 ; counter < vt100_parser->left ; counter ++)
 		{
-			fprintf( stderr , "[%.2x]" , vt100_parser->seq[counter]) ;
+			kik_msg_printf( "[%.2x]" , vt100_parser->seq[counter]) ;
 		}
-		fprintf( stderr , "[END]\n") ;
+		kik_msg_printf( "[END]\n") ;
 	#endif
 	}
 #endif
@@ -153,17 +152,17 @@ flush_buffer(
 	{
 		int  counter ;
 
-		fprintf( stderr , "\nflushing chars(%d)...==>" , buffer->len) ;
+		kik_msg_printf( "\nflushing chars(%d)...==>" , buffer->len) ;
 		for( counter = 0 ; counter < buffer->len ; counter ++)
 		{
 			if( ml_char_size( &buffer->chars[counter]) == 2)
 			{
 			#if  0
-				fprintf( stderr , "%x%x" ,
+				kik_msg_printf( "%x%x" ,
 					ml_char_bytes( &buffer->chars[counter])[0] | 0x80 ,
 					ml_char_bytes( &buffer->chars[counter])[1] | 0x80) ;
 			#else
-				fprintf( stderr , "%c%c" ,
+				kik_msg_printf( "%c%c" ,
 					ml_char_bytes( &buffer->chars[counter])[0] | 0x80 ,
 					ml_char_bytes( &buffer->chars[counter])[1] | 0x80) ;
 			#endif
@@ -171,14 +170,14 @@ flush_buffer(
 			else
 			{
 			#if  0
-				fprintf( stderr , "%x" , ml_char_bytes( &buffer->chars[counter])[0]) ;
+				kik_msg_printf( "%x" , ml_char_bytes( &buffer->chars[counter])[0]) ;
 			#else
-				fprintf( stderr , "%c" , ml_char_bytes( &buffer->chars[counter])[0]) ;
+				kik_msg_printf( "%c" , ml_char_bytes( &buffer->chars[counter])[0]) ;
 			#endif
 			}
 		}
 
-		fprintf( stderr , "<===\n") ;
+		kik_msg_printf( "<===\n") ;
 	}
 #endif
 
@@ -665,7 +664,7 @@ parse_vt100_escape_sequence(
 			}
 
 		#ifdef  ESCSEQ_DEBUG
-			fprintf( stderr , "RECEIVED ESCAPE SEQUENCE: ESC - %c" , *str_p) ;
+			kik_msg_printf( "RECEIVED ESCAPE SEQUENCE: ESC - %c" , *str_p) ;
 		#endif
 
 			if( *str_p < 0x20 || 0x7e < *str_p)
@@ -817,7 +816,7 @@ parse_vt100_escape_sequence(
 				size_t  num ;
 
 			#ifdef  ESCSEQ_DEBUG
-				fprintf( stderr , " - ") ;
+				kik_msg_printf( " - ") ;
 			#endif
 
 				if( increment_str( &str_p , &left) == 0)
@@ -828,7 +827,7 @@ parse_vt100_escape_sequence(
 				if( *str_p == '?')
 				{
 				#ifdef  ESCSEQ_DEBUG
-					fprintf( stderr , "%c - " , *str_p) ;
+					kik_msg_printf( "%c - " , *str_p) ;
 				#endif
 				
 					is_dec_priv = 1 ;
@@ -873,7 +872,7 @@ parse_vt100_escape_sequence(
 						ps[num ++] = atoi( digit) ;
 
 					#ifdef  ESCSEQ_DEBUG
-						fprintf( stderr , "%d - " , ps[num - 1]) ;
+						kik_msg_printf( "%d - " , ps[num - 1]) ;
 					#endif
 
 						if( *str_p != ';')
@@ -905,7 +904,7 @@ parse_vt100_escape_sequence(
 					}
 					
 				#ifdef  ESCSEQ_DEBUG
-					fprintf( stderr , "; - ") ;
+					kik_msg_printf( "; - ") ;
 				#endif
 				
 					if( increment_str( &str_p , &left) == 0)
@@ -928,11 +927,11 @@ parse_vt100_escape_sequence(
 			#ifdef  ESCSEQ_DEBUG
 				if( *str_p < 0x20 || 0x7e < *str_p)
 				{
-					fprintf( stderr , "<%x>" , *str_p) ;
+					kik_msg_printf( "<%x>" , *str_p) ;
 				}
 				else
 				{
-					fprintf( stderr , "%c" , *str_p) ;
+					kik_msg_printf( "%c" , *str_p) ;
 				}
 			#endif
 
@@ -1766,7 +1765,7 @@ parse_vt100_escape_sequence(
 				}
 
 			#ifdef  ESCSEQ_DEBUG
-				fprintf( stderr , " - %c" , *str_p) ;
+				kik_msg_printf( " - %c" , *str_p) ;
 			#endif
 
 				if( *str_p == '0')
@@ -1809,7 +1808,7 @@ parse_vt100_escape_sequence(
 				}
 				
 			#ifdef  ESCSEQ_DEBUG
-				fprintf( stderr , " - %c" , *str_p) ;
+				kik_msg_printf( " - %c" , *str_p) ;
 			#endif
 			
 				if( *str_p == '0')
@@ -1841,7 +1840,7 @@ parse_vt100_escape_sequence(
 			}
 
 		#ifdef  ESCSEQ_DEBUG
-			fprintf( stderr , "\n") ;
+			kik_msg_printf( "\n") ;
 		#endif
 		}
 		else if( *str_p == CTLKEY_SI)

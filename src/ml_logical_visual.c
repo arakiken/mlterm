@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_mem.h>		/* realloc/free */
 #include  <kiklib/kik_util.h>		/* K_MIN */
+#include  <kiklib/kik_debug.h>		/* kik_msg_printf */
 
 #include  "ml_image_intern.h"
 
@@ -387,7 +388,7 @@ bidi_visual(
 					image->cursor.char_index , 0) + cols_rest ;
 
 #ifdef  CURSOR_DEBUG
-	fprintf( stderr , "-> [cursor(index)%d (col)%d (row)%d]\n" ,
+	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
 		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 
@@ -434,7 +435,7 @@ bidi_logical(
 	image->cursor.col = ((bidi_logical_visual_t*)logvis)->cursor_logical_col ;
 
 #ifdef  CURSOR_DEBUG
-	fprintf( stderr , "-> [cursor(index)%d (col)%d (row)%d]\n" ,
+	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
 		image->cursor.char_index , image->cursor.col , image->cursor.row) ;
 #endif
 	

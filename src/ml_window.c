@@ -4,10 +4,6 @@
 
 #include  "ml_window.h"
 
-#ifdef  DEBUG
-#include  <stdio.h>		/* fprintf */
-#endif
-
 #include  <stdlib.h>		/* abs */
 #include  <string.h>		/* memset/memcpy */
 #include  <X11/Xutil.h>		/* for XSizeHints */
@@ -3544,13 +3540,13 @@ ml_window_dump_children(
 {
 	int  counter ;
 
-	fprintf( stderr , "%p(%li) => " , win , win->my_window) ;
+	kik_msg_printf( "%p(%li) => " , win , win->my_window) ;
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{
-		fprintf( stderr , "%p(%li) " , win->children[counter] ,
+		kik_msg_printf( "%p(%li) " , win->children[counter] ,
 			win->children[counter]->my_window) ; 
 	}
-	fprintf( stderr , "\n") ;
+	kik_msg_printf( "\n") ;
 
 	for( counter = 0 ; counter < win->num_of_children ; counter ++)
 	{

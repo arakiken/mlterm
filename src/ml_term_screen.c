@@ -152,7 +152,7 @@ static int
 convert_x_to_char_index(
 	ml_term_screen_t *  termscr ,
 	ml_image_line_t *  line ,
-	int *  x_rest ,
+	u_int *  x_rest ,
 	int  x
 	)
 {
@@ -840,9 +840,9 @@ write_to_pty(
 				kik_debug_printf( KIK_DEBUG_TAG " written str:\n") ;
 				for( i = 0 ; i < len ; i ++)
 				{
-					fprintf( stderr , "[%.2x]" , str[i]) ;
+					kik_msg_printf( "[%.2x]" , str[i]) ;
 				}
-				fprintf( stderr , "=>\n") ;
+				kik_msg_printf( "=>\n") ;
 			}
 		#endif
 
@@ -859,9 +859,9 @@ write_to_pty(
 
 				for( i = 0 ; i < filled_len ; i ++)
 				{
-					fprintf( stderr , "[%.2x]" , conv_buf[i]) ;
+					kik_msg_printf( "[%.2x]" , conv_buf[i]) ;
 				}
-				fprintf( stderr , "\n") ;
+				kik_msg_printf( "\n") ;
 			}
 		#endif
 
@@ -877,9 +877,9 @@ write_to_pty(
 			kik_debug_printf( KIK_DEBUG_TAG " written str: ") ;
 			for( i = 0 ; i < len ; i ++)
 			{
-				fprintf( stderr , "%.2x" , str[i]) ;
+				kik_msg_printf( "%.2x" , str[i]) ;
 			}
-			fprintf( stderr , "\n") ;
+			kik_msg_printf( "\n") ;
 		}
 	#endif
 
@@ -1583,9 +1583,9 @@ key_pressed(
 		kik_debug_printf( KIK_DEBUG_TAG " received sequence =>") ;
 		for( i = 0 ; i < size ; i ++)
 		{
-			printf( "%.2x" , seq[i]) ;
+			kik_msg_printf( "%.2x" , seq[i]) ;
 		}
-		printf( "\n") ;
+		kik_msg_printf( "\n") ;
 	}
 #endif
 
@@ -2196,7 +2196,7 @@ convert_selection_to_utf8(
 		{
 			ml_char_dump( &termscr->sel.sel_str[i]) ;
 		}
-		fprintf( stderr , "\n -> converting to ->\n") ;
+		kik_msg_printf( "\n -> converting to ->\n") ;
 	}
 #endif
 
@@ -2214,9 +2214,9 @@ convert_selection_to_utf8(
 		kik_debug_printf( KIK_DEBUG_TAG " sending utf8 str: ") ;
 		for( i = 0 ; i < filled_len ; i ++)
 		{
-			fprintf( stderr , "%.2x" , str[i]) ;
+			kik_msg_printf( "%.2x" , str[i]) ;
 		}
-		fprintf( stderr , "\n") ;
+		kik_msg_printf( "\n") ;
 	}
 #endif
 

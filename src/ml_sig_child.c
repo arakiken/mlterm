@@ -4,7 +4,6 @@
 
 #include  "ml_sig_child.h"
 
-#include  <stdio.h>		/* NULL */
 #include  <errno.h>		/* EINTR */
 #include  <sys/wait.h>
 #include  <signal.h>

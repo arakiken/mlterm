@@ -4,8 +4,6 @@
 
 #include  "ml_iscii.h"
 
-#include  <stdio.h>		/* snprintf */
-#include  <ctype.h>		/* isdigit */
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
@@ -59,6 +57,8 @@ ml_iscii_get_lang(
 
 #ifdef  USE_IND
 
+#include  <stdio.h>		/* snprintf */
+#include  <ctype.h>		/* isdigit */
 #include  <indian.h>
 
 

@@ -4,7 +4,6 @@
 
 #include  "ml_selection.h"
 
-#include  <stdio.h>
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 
@@ -230,7 +229,7 @@ ml_start_selection(
 		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " selection started from %d %d\n" , col , row) ;
+	kik_debug_printf( KIK_DEBUG_TAG " selection started from %d %d\n" , sel->beg_col , sel->beg_row) ;
 #endif
 	
 	return  1 ;

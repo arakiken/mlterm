@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  <stdio.h>
+#include  <stdio.h>		/* fprintf */
 #include  <stdlib.h>
 #include  <string.h>
 #include  <gtk/gtk.h>

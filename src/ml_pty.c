@@ -8,7 +8,6 @@
 #include  <sys/ioctl.h>
 #include  <termios.h>
 #include  <signal.h>		/* signal/SIGWINCH */
-#include  <stdio.h>		/* fprintf */
 #include  <string.h>		/* strchr/memcpy */
 #include  <stdlib.h>		/* putenv */
 #include  <kiklib/kik_debug.h>
@@ -232,9 +231,9 @@ ml_write_to_pty(
 		int  i ;
 		for( i = 0 ; i < w_buf_size ; i++)
 		{
-			fprintf( stderr , "%.2x" , w_buf[i]) ;
+			kik_msg_printf( "%.2x" , w_buf[i]) ;
 		}
-		fprintf( stderr , "\n") ;
+		kik_msg_printf( "\n") ;
 	}
 #endif
 

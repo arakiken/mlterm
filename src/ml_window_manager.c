@@ -4,7 +4,7 @@
 
 #include  "ml_window_manager.h"
 
-#include  <string.h>			/* memset/memcpy */
+#include  <string.h>		/* memset/memcpy */
 #include  <X11/Xlib.h>
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>

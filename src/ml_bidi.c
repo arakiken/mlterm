@@ -4,7 +4,6 @@
 
 #include  "ml_bidi.h"
 
-#include  <stdio.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* alloca */
 
@@ -85,12 +84,12 @@ ml_bidi(
 	}
 
 #ifdef  __DEBUG
-	fprintf( stderr , "utf8 text => \n") ;
+	kik_msg_printf( "utf8 text => \n") ;
 	for( counter = 0 ; counter < size ; counter ++)
 	{
-		fprintf( stderr , "%.4x " , fri_src[counter]) ;
+		kik_msg_printf( "%.4x " , fri_src[counter]) ;
 	}
-	fprintf( stderr , "\n") ;
+	kik_msg_printf( "\n") ;
 #endif
 
 	/* initial state */
@@ -104,12 +103,12 @@ ml_bidi(
 	}
 	
 #ifdef  __DEBUG
-	fprintf( stderr , "visual order => ") ;
+	kik_msg_printf( "visual order => ") ;
 	for( counter = 0 ; counter < size ; counter ++)
 	{
-		fprintf( stderr , "%.2d " , order[counter]) ;
+		kik_msg_printf( "%.2d " , order[counter]) ;
 	}
-	fprintf( stderr , "\n") ;
+	kik_msg_printf( "\n") ;
 #endif
 
 #ifdef  DEBUG

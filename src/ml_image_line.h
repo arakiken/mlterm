@@ -100,7 +100,7 @@ u_int  ml_imgline_get_num_of_redrawn_chars( ml_image_line_t *  line) ;
 
 int  ml_convert_char_index_to_col( ml_image_line_t *  line , int  char_index , int  flag) ;
 
-int  ml_convert_col_to_char_index( ml_image_line_t *  line , int *  cols_rest , int  col , int  flag) ;
+int  ml_convert_col_to_char_index( ml_image_line_t *  line , u_int *  cols_rest , int  col , int  flag) ;
 	
 int  ml_convert_char_index_to_x( ml_image_line_t *  line , int  char_index , ml_shape_t *  shape) ;
 

@@ -4,7 +4,6 @@
 
 #include  "ml_image_intern.h"
 
-#include  <stdio.h>
 #include  <kiklib/kik_debug.h>
 
 
