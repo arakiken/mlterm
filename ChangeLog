@@ -12,6 +12,12 @@
 
 	* inputmethod/kbd/im_kbd.c (mlterm_syms): renamed to syms.
 
+	* inputmethod/scim/im_scim.cpp (send_help_description): impremented.
+
+	* inputmethod/scim/im_scim_mod_if.c (im_scim_get_info): num_of_args = 0
+
+	* tool/mlconfig/mc_im.c: allow im_info.num_of_args is 0.
+
 2005-01-25 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/uim/im_uim.c

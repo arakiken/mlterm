@@ -758,48 +758,15 @@ im_scim_get_info(
 
 	if( ! ( result = malloc( sizeof( im_info_t))))
 	{
-		goto  error ;
+		goto  NULL ;
 	}
 
 	result->id = strdup( "scim") ;
 	result->name = strdup( "SCIM") ;
-	result->num_of_args = 1;
+	result->num_of_args = 0;
 	result->args = NULL ;
 	result->readable_args = NULL ;
 
-	if( ! ( result->args = malloc( sizeof(char*) * result->num_of_args)))
-	{
-		goto  error ;
-	}
-
-	if( ! ( result->readable_args = malloc( sizeof(char*) * result->num_of_args)))
-	{
-		free( result->args) ;
-		goto  error ;
-	}
-
-	result->args[0] = strdup( "") ;
-	result->readable_args[0] = strdup( "unknown") ;
-
-	return  result ;
-
-error:
-
-	if( result)
-	{
-		if( result->args)
-		{
-			free( result->args) ;
-		}
-
-		if( result->readable_args)
-		{
-			free( result->readable_args) ;
-		}
-
-		free( result) ;
-	}
-
-	return  NULL ;
+	return  result;
 }
 

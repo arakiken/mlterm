@@ -221,9 +221,39 @@ send_help_description(
 	int  instance
 	)
 {
+	String  desc ;
+	String  str ;
+
+	desc = String( "Hot keys\n\n") ;
+
+	scim_key_list_to_string( str , key_list_trigger) ;
+	desc += String( "  ") + str +
+		String( ":\n    open/close the input method.\n\n") ;
+	scim_key_list_to_string( str , key_list_factory_menu) ;
+	desc += String( "  ") + str +
+		String( ":\n    show the factory menu.\n\n") ;
+	scim_key_list_to_string( str , key_list_factory_menu_next) ;
+	desc += String( "  ") + str +
+		String( ":\n    switch to the next input method.\n\n") ;
+	scim_key_list_to_string( str , key_list_factory_menu_prev) ;
+	desc += String( "  ") + str +
+		String( ":\n    switch to the previous input method.\n\n\n") ;
+
+	desc += utf8_wcstombs( be->get_instance_name( instance)) +
+		String( "\n\n");
+	desc += String( "  Authors:\n    ") +
+		utf8_wcstombs( be->get_instance_authors( instance)) +
+		String( "\n");
+	desc += String( "  Help:\n    ") +
+		utf8_wcstombs( be->get_instance_help( instance)) +
+		String( "\n");
+	desc += String( "  Credits:\n    ") +
+		utf8_wcstombs( be->get_instance_credits( instance)) +
+		String( "\n\n");
+
 	transaction_init( instance) ;
 	sock.put_command( SCIM_TRANS_CMD_PANEL_SHOW_HELP);
-	sock.put_data( String( "not implemented yet.\n")) ;
+	sock.put_data( desc) ;
 	sock.write_to_socket(panel , SCIM_TRANS_MAGIC);
 }
 

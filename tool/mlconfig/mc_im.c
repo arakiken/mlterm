@@ -367,6 +367,9 @@ im_widget_new(int nth_im, const char *value, char *locale)
 		}
 	}
 
+	if (!info->num_of_args)
+		return NULL;
+
 	if (!value || (value && selected)) {
 		char *auto_str;
 
@@ -376,8 +379,7 @@ im_widget_new(int nth_im, const char *value, char *locale)
 		len = strlen(_("auto (currently %s)")) +
 		      strlen(info->readable_args[0]) + 1;
 
-		if ( (auto_str = malloc(len)))
-		{
+		if ((auto_str = malloc(len))) {
 			snprintf(auto_str, len, _("auto (currently %s)"),
 				 info->readable_args[0]);
 			free(info->readable_args[0]);
@@ -431,9 +433,11 @@ button_im_checked(GtkWidget *widget, gpointer  data)
 		if (GTK_TOGGLE_BUTTON(widget)->active) {
 			im_type = IM_OTHER;
 			selected_im = data;
-			gtk_widget_show(GTK_WIDGET(im_opt_widget[idx]));
+			if (im_opt_widget[idx])
+				gtk_widget_show(GTK_WIDGET(im_opt_widget[idx]));
 		} else {
-			gtk_widget_hide(GTK_WIDGET(im_opt_widget[idx]));
+			if (im_opt_widget[idx])
+				gtk_widget_hide(GTK_WIDGET(im_opt_widget[idx]));
 		}
 	}
 
@@ -546,16 +550,21 @@ mc_im_config_widget_new(void)
 	case IM_XIM:
 		gtk_widget_show(xim);
 		for (i = 0; i < num_of_info; i++)
-			gtk_widget_hide(im_opt_widget[i]);
+			if (im_opt_widget[i])
+				gtk_widget_hide(im_opt_widget[i]);
 		break;
 	case IM_NONE:
 		gtk_widget_hide(xim);
 		for (i = 0; i < num_of_info; i++)
-			gtk_widget_hide(im_opt_widget[i]);
+			if (im_opt_widget[i])
+				gtk_widget_hide(im_opt_widget[i]);
 		break;
 	case IM_OTHER:
 		gtk_widget_hide(xim);
 		for (i = 0; i < num_of_info; i++) {
+			if (!im_opt_widget[i])
+				continue;
+
 			if (i == index)
 				gtk_widget_show(im_opt_widget[i]);
 			else
@@ -568,7 +577,9 @@ mc_im_config_widget_new(void)
 
 	gtk_box_pack_start(GTK_BOX(vbox), xim, TRUE, TRUE, 0);
 	for (i = 0; i < num_of_info; i++)
-		gtk_box_pack_start(GTK_BOX(vbox), im_opt_widget[i], TRUE, TRUE, 0);
+		if (im_opt_widget[i])
+			gtk_box_pack_start(GTK_BOX(vbox), im_opt_widget[i],
+					   TRUE, TRUE, 0);
 
 	gtk_container_set_border_width(GTK_CONTAINER(vbox), 5);
 	gtk_container_add(GTK_CONTAINER(frame), vbox);
