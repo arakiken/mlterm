@@ -571,6 +571,11 @@ close_dead_terms(
 		{
 			if( -- term_man->num_of_terms == 0 && ! term_man->is_genuine_daemon)
 			{
+				if( un_file)
+				{
+					unlink( un_file) ;
+				}
+			
 				exit( 0) ;
 			}
 			
@@ -711,7 +716,7 @@ start_daemon(
 
 	if( ( fd = creat( path , 0600)) == -1)
 	{
-		/* already exits */
+		/* already exists */
 
 		kik_msg_printf( "remove %s before starting daemon.\n" , path) ;
 
