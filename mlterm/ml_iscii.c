@@ -352,7 +352,9 @@ no_conv:
 /* --- global functions --- */
 
 ml_iscii_lang_t
-ml_iscii_lang_new(void)
+ml_iscii_lang_new(
+	ml_iscii_lang_type_t  type
+	)
 {
 	return  NULL ;
 }

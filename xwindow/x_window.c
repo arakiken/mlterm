@@ -54,7 +54,7 @@ enum
 	STATE_FLAG_MAXIMIZED_HORZ
 } ;
 
-#define  DOUBLE_CLICK_INTERVAL  1000	/* millisecond */
+#define  DOUBLE_CLICK_INTERVAL  250	/* millisecond, same as xterm. */
 #define  MAX_CLICK  3			/* max is triple click */
 
 #if  0

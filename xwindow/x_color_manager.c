@@ -466,26 +466,20 @@ x_color_manager_begin_cursor_color(
 	if( color_man->cursor_colors[0].color)
 	{
 		color_man->fg_color = color_man->cursor_colors[0].color ;
+		color_man->xcolors[ML_FG_COLOR] = color_man->cursor_colors[0].xcolor ;
+		color_man->is_loaded[ML_FG_COLOR] = color_man->cursor_colors[0].is_loaded ;
 	}
 	else
 	{
 		color_man->fg_color = bg_color ;
-
-		/* use bg color as cursor fg color */
-		color_man->cursor_colors[0].xcolor = bg_xcolor ;
-		color_man->cursor_colors[0].is_loaded = bg_is_loaded ;
+		color_man->xcolors[ML_FG_COLOR] = bg_xcolor ;
+		color_man->is_loaded[ML_FG_COLOR] = bg_is_loaded ;
 	}
 	
 	/* backup */
 	color_man->cursor_colors[0].color = fg_color ;
-	
-	if( ( color_man->is_loaded[ML_FG_COLOR] = color_man->cursor_colors[0].is_loaded))
-	{
-		color_man->xcolors[ML_FG_COLOR] = color_man->cursor_colors[0].xcolor ;
-		
-		/* backup */
-		color_man->cursor_colors[0].xcolor = fg_xcolor ;
-	}
+	color_man->cursor_colors[0].xcolor = fg_xcolor ;
+	color_man->cursor_colors[0].is_loaded = fg_is_loaded;
 	
 	/*
 	 * bg color <=> cursor bg color
@@ -493,26 +487,20 @@ x_color_manager_begin_cursor_color(
 	if( color_man->cursor_colors[1].color)
 	{
 		color_man->bg_color = color_man->cursor_colors[1].color ;
+		color_man->xcolors[ML_BG_COLOR] = color_man->cursor_colors[1].xcolor ;
+		color_man->is_loaded[ML_BG_COLOR] = color_man->cursor_colors[1].is_loaded ;
 	}
 	else
 	{
 		color_man->bg_color = fg_color ;
-		
-		/* use fg color as cursor bg color */
-		color_man->cursor_colors[1].xcolor = fg_xcolor ;
-		color_man->cursor_colors[1].is_loaded = fg_is_loaded ;
+		color_man->xcolors[ML_BG_COLOR] = fg_xcolor ;
+		color_man->is_loaded[ML_BG_COLOR] = fg_is_loaded ;
 	}
 
 	/* backup */
 	color_man->cursor_colors[1].color = bg_color ;
-	
-	if( ( color_man->is_loaded[ML_BG_COLOR] = color_man->cursor_colors[1].is_loaded))
-	{
-		color_man->xcolors[ML_BG_COLOR] = color_man->cursor_colors[1].xcolor ;
-
-		/* backup */
-		color_man->cursor_colors[1].xcolor = bg_xcolor ;
-	}
+	color_man->cursor_colors[1].xcolor = bg_xcolor ;
+	color_man->cursor_colors[1].is_loaded = bg_is_loaded;
 
 	return  1 ;
 }
@@ -543,10 +531,8 @@ x_color_manager_end_cursor_color(
 	{
 		color_man->cursor_colors[0].color = color_man->fg_color ;
 		
-		if( ( color_man->cursor_colors[0].is_loaded = color_man->is_loaded[ML_FG_COLOR]))
-		{
-			color_man->cursor_colors[0].xcolor = color_man->xcolors[ML_FG_COLOR] ;
-		}
+		color_man->cursor_colors[0].is_loaded = color_man->is_loaded[ML_FG_COLOR] ;
+		color_man->cursor_colors[0].xcolor = color_man->xcolors[ML_FG_COLOR] ;
 	}
 	else
 	{
@@ -565,10 +551,8 @@ x_color_manager_end_cursor_color(
 	{
 		color_man->cursor_colors[1].color = color_man->bg_color ;
 		
-		if( ( color_man->cursor_colors[1].is_loaded = color_man->is_loaded[ML_BG_COLOR]))
-		{
-			color_man->cursor_colors[1].xcolor = color_man->xcolors[ML_BG_COLOR] ;
-		}
+		color_man->cursor_colors[1].is_loaded = color_man->is_loaded[ML_BG_COLOR] ;
+		color_man->cursor_colors[1].xcolor = color_man->xcolors[ML_BG_COLOR] ;
 	}
 	else
 	{
