@@ -3609,7 +3609,7 @@ selecting_with_motion(
 	
 	char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest , x) ;
 
-	if( x_rest > 0)
+	if( char_index == ml_line_end_char_index( line) && x_rest > 0)
 	{
 		x_is_outside = 1 ;
 

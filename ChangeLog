@@ -1,5 +1,8 @@
 2003-09-13  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen.c:selecting_with_motion(): A character which is after expected one
+	  was selected. Fixed.
+
 	* x_screen.c: Use x_get_font_size() instead of accessing
 	  screen->font_man->font_cache->font_size directly.
 
