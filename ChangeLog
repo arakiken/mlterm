@@ -1,3 +1,7 @@
+2004-02-13  Tomohiro KUBOTA  <kubota@debian.org>
+
+	* configure: synchronized with configure.in (2004-01-31).
+
 2004-02-12  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* **/Makefile.in:
