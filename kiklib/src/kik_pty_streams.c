@@ -89,6 +89,7 @@ kik_pty_fork(
 		ioctl(*slave, I_PUSH, "ttcompat");
 	}
 #endif
+	memset( &tio, 0, sizeof( struct termios)) ;
 
 	tio.c_iflag = BRKINT | IGNPAR | ICRNL | IXON ;
 	tio.c_oflag = OPOST | ONLCR ;

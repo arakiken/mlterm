@@ -181,6 +181,7 @@ kik_pty_fork(
 	/*
 	 * terminal attributes.
 	 */
+	memset( &tio, 0, sizeof( struct termios)) ;
 	 
 	tio.c_iflag = BRKINT | IGNPAR | ICRNL | IXON ;
 	tio.c_oflag = OPOST | ONLCR ;
