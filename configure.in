@@ -322,22 +322,18 @@ fi
 case "${host_os}" in
 mingw32*)
 #	MAKE_DIRS="mlterm win32"
-#	OUTPUT_FILES="Makefile mlterm/Makefile win32/Makefile etc/Makefile"
-#	PTY_OBJ="mlterm/ml_pty_win32.o"
 	MAKE_DIRS="mlterm"
+#	OUTPUT_FILES="Makefile mlterm/Makefile win32/Makefile etc/Makefile"
 	OUTPUT_FILES="Makefile mlterm/Makefile etc/Makefile"
-	PTY_OBJ=""
+	ML_PTY_OBJ="ml_pty_win32.o"
 	;;
 *)
 	MAKE_DIRS="mlterm ${MAKE_DIRS} xwindow man etc"
 	OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
-	PTY_OBJ="ml_pty.o"
+	ML_PTY_OBJ="ml_pty.o"
 	;;
 esac
-
-AC_SUBST(PTY_CFLAGS)
-AC_SUBST(PTY_OBJ)
-
+AC_SUBST(ML_PTY_OBJ)
 AC_SUBST(MAKE_DIRS)
 AC_SUBST(OUTPUT_FILES)
 

@@ -1,3 +1,17 @@
+2003-12-21  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* mlterm/ml_pty_win32.c: Added:-)
+	* configure.in mlterm/Makefile.in: Only a few changes for ml_pty_win32.c
+	* man page: Updated the maximum number of windows in MULTIPLE PTY
+	  section.
+	* etc/xim: Added uim-anthy, uim-skk, uim-tcode, uim-prime and
+	  uim-tutcode.
+	  Notes:
+	  - Uim is available at http://www.freedesktop.org/Software/uim
+	  - uim-xim version 0.2.0 said 'Now only supports Japanese' on startup.
+	  - I've tested uim-anthy and uim-prime for a little while, both seem
+	    to work fine with mlterm.
+
 2003-12-11  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_screen.c: fixed an off-by-one error in get_mod_meta_mask().
