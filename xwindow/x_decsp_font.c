@@ -192,20 +192,23 @@ x_decsp_font_draw_string(
 	)
 {
 	int  count ;
+	int  cache = -1; /* to avoid replace clip mask every time */
 
+	y -= font->height_to_baseline; /* original y is not used */
 	for( count = 0 ; count < len ; count ++)
 	{
-		if( /* 0x00 <= *str && */ *str < 0x20 && font->glyphs[*str])
+		if( *str < 0x20 && font->glyphs[*str])
 		{
-			XSetClipOrigin( display, gc, x , y - font->height_to_baseline);
-			XSetClipMask( display, gc, font->glyphs[*str]);
+			XSetClipOrigin( display, gc, x , y );
+			if (cache != *str){
+				XSetClipMask( display , gc , font->glyphs[*str] );
+				cache = *str;
+			}
 			XFillRectangle(display , drawable , gc ,
-				       x , y  - font->height_to_baseline ,
-				       font->width , font->height);
+				       x , y , font->width , font->height);
 		}else{
 			XDrawRectangle(display , drawable , gc ,
-				       x , y  - font->height_to_baseline ,
-				       font->width-1 , font->height-1 );
+				       x , y , font->width-1 , font->height-1 );
 		}
 
 		x += font->width ;
@@ -231,14 +234,15 @@ x_decsp_font_draw_image_string(
 {
 	int  count ;
 
+	y -= font->height_to_baseline;/* original y is not used */
 	for( count = 0 ; count < len ; count ++)
 	{
-		if( /* 0x00 <= *str && */ *str < 0x20 && font->glyphs[*str])
+		if( *str < 0x20 && font->glyphs[*str])
 		{
 			XCopyPlane( display, font->glyphs[*str], drawable,
-				    gc, 0,0,
-				    font->width , font->height,
-				    x , y - font->height_to_baseline, 1);		}
+				    gc , 0 , 0 , font->width , font->height,
+				    x , y , 1);
+		}
 
 		x += font->width ;
 		str ++ ;

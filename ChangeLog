@@ -1,3 +1,7 @@
+2002-07-02  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* Minor code cleanup (xwindow/x_decsp_font.c).
+
 2002-07-01  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
 	* Background of line characters did not drawn when 
