@@ -11,12 +11,12 @@
 /* --- static functions --- */
 
 void
-get_nearest_xcolor_pseudo(
+get_closest_xcolor_pseudo(
 	Display * display ,
 	int screen ,
 	Colormap cmap ,
 	XColor color ,
-	XColor * nearest_color
+	XColor * closest_color
 	)
 {
 	XColor *  all_colors ;
@@ -46,17 +46,17 @@ get_nearest_xcolor_pseudo(
 
 		sum = ABS( diff_r) + ABS( diff_g) + ABS( diff_b) ;
 
-		if ( sum < min) /* nearest ? */
+		if ( sum < min) /* closest ? */
 		{
 			min = sum ;
 			index = i ;
 		}
 	}
 
-	nearest_color->pixel = all_colors[index].pixel ;
-	nearest_color->red = all_colors[index].red ;
-	nearest_color->green = all_colors[index].green ;
-	nearest_color->blue = all_colors[index].blue ;
+	closest_color->pixel = all_colors[index].pixel ;
+	closest_color->red = all_colors[index].red ;
+	closest_color->green = all_colors[index].green ;
+	closest_color->blue = all_colors[index].blue ;
 
 	free( all_colors) ;
 }
@@ -71,7 +71,7 @@ exsb_get_pixel(
 	)
 {
 	XColor  color ;
-	XColor  nearest_color ;
+	XColor  closest_color ;
 	Colormap cmap = DefaultColormap( display , screen) ;
 	Visual * visual = DefaultVisual( display , screen) ;
 
@@ -84,10 +84,10 @@ exsb_get_pixel(
 	{
 		if( visual->class == PseudoColor || visual->class == GrayScale)
 		{
-			get_nearest_xcolor_pseudo( display , screen , cmap ,
+			get_closest_xcolor_pseudo( display , screen , cmap ,
 						  color ,
-						  &nearest_color) ;
-			return nearest_color.pixel ;
+						  &closest_color) ;
+			return closest_color.pixel ;
 		}
 
 		return BlackPixel( display , screen ) ;
