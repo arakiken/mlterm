@@ -16,13 +16,13 @@
 
 #include "x_imagelib.h"
 
-/// Pixmap cache per display.
+/** Pixmap cache per display. */
 typedef struct display_store_tag {
-	Display *display; ///<Display (primary key)
-	Pixmap root;      ///<Root pixmap !NOT owned by mlterm!
-	Pixmap cooked;    ///<Background pixmap cache
-	x_picture_modifier_t  pic_mod; ///<modification applied to "cooked"
-	struct timeval tval; ///<The time cache when cache was created
+	Display *display; /**<Display (primary key)*/
+	Pixmap root;      /**<Root pixmap !NOT owned by mlterm!*/
+	Pixmap cooked;    /**<Background pixmap cache*/
+	x_picture_modifier_t  pic_mod; /**<modification applied to "cooked"*/
+	struct timeval tval; /**<The time cache when cache was created*/
 	struct display_store_tag *next;
 } display_store_t;
 
@@ -34,8 +34,7 @@ static display_store_t * display_store = NULL;
 
 /* --- static functions --- */
 
-/**\fn void cache_delete(Display * display)
- *\brief Remove a cache for the display.
+/**Remove a cache for the display
  *\param display The display to remove cache.
  */
 static void
@@ -67,6 +66,10 @@ cache_delete(Display * display){
 	}
 }
 
+/**judge whether pic_mod is quale or not
+ *\param a,b picture modifier
+ *\return 1 when they are same. 0 when not.
+ */
 static int
 is_picmod_eq(
 		x_picture_modifier_t * a,
@@ -77,6 +80,10 @@ is_picmod_eq(
 	return 0;
 }
 
+/**Return position of lowse high bit
+ *\param val
+ *\return 
+ */
 static int
 lsb(
 	unsigned int val){
@@ -750,8 +757,8 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
  *\param display connection to X server.
  *\param path File full path.
  *\param cardinal Returns pointer to a data structur for the extended WM hint spec.
- *\param cardinal Returns image pixmap for the old WM hint.
- *\param cardinal Returns mask bitmap for the old WM hint.
+ *\param pixmap Returns image pixmap for the old WM hint.
+ *\param mask Returns mask bitmap for the old WM hint.
  * 
  *\return Success => 1, Failure => 0
  */
