@@ -1,8 +1,7 @@
 2003-09-13  Araki Ken  <arakiken@users.sf.net>
 
-	* 2.8.0 rc1
-	  (rel-2_8_0_rc1)
-
+	* xwindow/Makefile.in: Added x_font_cache.o.
+	
 	* x_screen.c:selecting_with_motion(): A character which is after expected one
 	  was selected. Fixed.
 
