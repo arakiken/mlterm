@@ -29,7 +29,7 @@ kik_dl_open(
 
 	sprintf( path , "%slib%s.so" , dirpath , name) ;
 
-	if( ( ret == dlopen( path , RTLD_LAZY)) == NULL)
+	if( ( ret = dlopen( path , RTLD_LAZY)) == NULL)
 	{
 		/* HP-UX libfoo.sl */
 		sprintf( path , "%slib%s.sl" , dirpath , name) ;
