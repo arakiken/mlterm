@@ -1,3 +1,10 @@
+[20020128]
+* doc/en/README.iscii is added.
+* fribidi-config is used to check libs and cflags for fribidi.
+* -h help messages are improved.(thanks to Kubota Tomohiro san)
+* font_larger_smaller_size option is renamed to step_in_changing_font_size.
+* man/mlterm.1 manual is updated.(thanks to Kubota Tomohiro san)
+
 [20020126]
 * big5_buggy option didn't work(is always true). fixed.
 * XIM fg/bg color may be faded. fixed.
