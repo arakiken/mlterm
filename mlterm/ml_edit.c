@@ -36,67 +36,6 @@ reset_wraparound_checker(
 	edit->wraparound_ready_line = NULL ;
 }
 
-static int
-cursor_goto_intern(
-	ml_edit_t *  edit ,
-	int  col_or_idx ,
-	int  row ,
-	int  is_col
-	)
-{
-	int  char_index ;
-	int  cols_rest ;
-	ml_line_t *  line ;
-
-	if( row > ml_model_end_row( &edit->model))
-	{
-		/* round row to end of row */
-		row = ml_model_end_row( &edit->model) ;
-	}
-
-	if( ( line = ml_model_get_line( &edit->model , row)) == NULL)
-	{
-		return  0 ;
-	}
-
-	if( is_col)
-	{
-		char_index = ml_convert_col_to_char_index( line , &cols_rest , col_or_idx , BREAK_BOUNDARY) ;
-	}
-	else
-	{
-		char_index = col_or_idx ;
-		cols_rest = 0 ;
-	}
-
-	if( ! ml_line_assure_boundary( line , char_index))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf(
-			KIK_DEBUG_TAG " cursor cannot goto char index %d(line length is %d)\n" ,
-			char_index , line->num_of_filled_chars) ;
-	#endif
-
-		char_index = ml_line_end_char_index(line) ;
-		
-		/* In this case, cols_rest is always 0. */
-	}
-
-	edit->cursor.char_index = char_index ;
-	edit->cursor.row = row ;
-	edit->cursor.col_in_char = cols_rest ;
-	edit->cursor.col = ml_convert_char_index_to_col( CURSOR_LINE(edit) , edit->cursor.char_index , 0)
-				+ edit->cursor.col_in_char ;
-
-	return  1 ;
-}
-
-#define  cursor_goto_by_char_index( edit , char_index , row) \
-	cursor_goto_intern( edit , char_index , row , 0)
-
-#define  cursor_goto_by_col( edit , col , row) \
-	cursor_goto_intern( edit , col , row , 1)
-
 
 /*
  * inserting chars within a line.
@@ -119,8 +58,7 @@ insert_chars(
 	ml_line_t *  cursor_line ;
 
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 
 	cursor_line = CURSOR_LINE(edit) ;
@@ -257,17 +195,16 @@ line_full:
 
 	if( do_move_cursor)
 	{
-		cursor_goto_by_char_index( edit , edit->cursor.char_index + last_index , edit->cursor.row) ;
+		ml_cursor_moveh_by_char( &edit->cursor , edit->cursor.char_index + last_index) ;
 	}
 	else if( edit->cursor.col_in_char)
 	{
-		cursor_goto_by_char_index( edit , edit->cursor.char_index + edit->cursor.col_in_char ,
-			edit->cursor.row) ;
+		ml_cursor_moveh_by_char( &edit->cursor ,
+			edit->cursor.char_index + edit->cursor.col_in_char) ;
 	}
 
 #ifdef  CURSOR_DEBUG
-	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 
 	return  1 ;
@@ -291,8 +228,7 @@ delete_cols(
 	ml_char_t *  sp_ch ;
 
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 
 	reset_wraparound_checker( edit) ;
@@ -417,8 +353,8 @@ delete_cols(
 
 	if( edit->cursor.col_in_char)
 	{
-		cursor_goto_by_char_index( edit , edit->cursor.char_index + edit->cursor.col_in_char ,
-			edit->cursor.row) ;
+		ml_cursor_moveh_by_char( &edit->cursor ,
+			edit->cursor.char_index + edit->cursor.col_in_char) ;
 	}
 
 	if( use_bce)
@@ -428,8 +364,7 @@ delete_cols(
 	}
 
 #ifdef  CURSOR_DEBUG
-	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 	
 	return  1 ;
@@ -462,9 +397,8 @@ clear_cols(
 	{
 		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
 			edit->cursor.col_in_char) ;
-			
-		edit->cursor.char_index += edit->cursor.col_in_char ;
-		edit->cursor.col_in_char = 0 ;
+
+		ml_cursor_char_is_cleared( &edit->cursor) ;
 	}
 
 	if( use_bce)
@@ -501,9 +435,8 @@ clear_line_to_left(
 
 	ml_line_fill( cursor_line , sp_ch , 0 , edit->cursor.col + 1) ;
 
-	edit->cursor.char_index = edit->cursor.col ;
-	edit->cursor.col_in_char = 0 ;
-
+	ml_cursor_left_chars_in_line_are_cleared( &edit->cursor) ;
+	
 	return  1 ;
 }
 
@@ -552,7 +485,7 @@ vertical_tabs(
 	}
 
 end:
-	cursor_goto_by_col( edit , col , edit->cursor.row) ;
+	ml_cursor_moveh_by_col( &edit->cursor , col) ;
 	
 	return  1 ;
 }
@@ -575,14 +508,7 @@ ml_edit_init(
 		return  0 ;
 	}
 
-	edit->cursor.row = 0 ;
-	edit->cursor.char_index = 0 ;
-	edit->cursor.col = 0 ;
-	edit->cursor.col_in_char = 0 ;
-	edit->cursor.saved_row = 0 ;
-	edit->cursor.saved_char_index = 0 ;
-	edit->cursor.saved_col = 0 ;
-	edit->cursor.is_saved = 0 ;
+	ml_cursor_init( &edit->cursor , &edit->model) ;
 
 	ml_line_assure_boundary( CURSOR_LINE(edit) , 0) ;
 
@@ -640,8 +566,7 @@ ml_edit_resize(
 	u_int  slide ;
 	
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 
 	old_rows = edit->model.num_of_rows ;
@@ -658,11 +583,7 @@ ml_edit_resize(
 
 	if( slide > edit->cursor.row)
 	{
-		edit->cursor.row = 0 ;
-		edit->cursor.col = 0 ;
-		edit->cursor.col_in_char = 0 ;
-		edit->cursor.char_index = 0 ;
-
+		ml_cursor_goto_home( &edit->cursor) ;
 		ml_line_assure_boundary( CURSOR_LINE(edit) , 0) ;
 	}
 	else
@@ -695,8 +616,7 @@ ml_edit_resize(
 	ml_edit_set_tab_size( edit , edit->tab_size) ;
 
 #ifdef  CURSOR_DEBUG
-	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 
 	return  1 ;
@@ -763,8 +683,7 @@ ml_edit_overwrite_chars(
 	int  new_char_index ;
 
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 
 	buf_len = num_of_ow_chars + edit->model.num_of_cols ;
@@ -888,13 +807,12 @@ ml_edit_overwrite_chars(
 		count - beg , cols) ;
 	ml_line_unset_continued_to_next( line) ;
 
-	cursor_goto_by_char_index( edit , new_char_index , edit->cursor.row) ;
+	ml_cursor_moveh_by_char( &edit->cursor , new_char_index) ;
 
 	ml_str_final( buffer , buf_len) ;
 
 #ifdef  CURSOR_DEBUG
-	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 	
 	return  1 ;
@@ -975,8 +893,7 @@ ml_edit_clear_line_to_right(
 	{
 		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
 			edit->cursor.col_in_char) ;
-		edit->cursor.char_index += edit->cursor.col_in_char ;
-		edit->cursor.col_in_char = 0 ;
+		ml_cursor_char_is_cleared( &edit->cursor) ;
 	}
 	
 	ml_line_clear( CURSOR_LINE(edit) , edit->cursor.char_index) ;
@@ -999,8 +916,7 @@ ml_edit_clear_line_to_right_bce(
 	{
 		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
 			edit->cursor.col_in_char) ;
-		edit->cursor.char_index += edit->cursor.col_in_char ;
-		edit->cursor.col_in_char = 0 ;
+		ml_cursor_char_is_cleared( &edit->cursor) ;
 	}
 
 	ml_line_fill( cursor_line , &edit->bce_ch , edit->cursor.char_index ,
@@ -1184,7 +1100,7 @@ ml_edit_scroll_upward(
 		return  0 ;
 	}
 	
-	cursor_goto_by_col( edit , cursor_col , cursor_row) ;
+	ml_cursor_goto_by_col( &edit->cursor , cursor_col , cursor_row) ;
 
 	return  1 ;
 }
@@ -1206,7 +1122,7 @@ ml_edit_scroll_downward(
 		return  0 ;
 	}
 	
-	cursor_goto_by_col( edit , cursor_col , cursor_row) ;
+	ml_cursor_goto_by_col( &edit->cursor , cursor_col , cursor_row) ;
 
 	return  1 ;
 }
@@ -1369,10 +1285,8 @@ ml_edit_goto_beg_of_line(
 {
 	reset_wraparound_checker( edit) ;
 	
-	edit->cursor.char_index = 0 ;
-	edit->cursor.col = 0 ;
-	edit->cursor.col_in_char = 0 ;
-
+	ml_cursor_goto_beg_of_line( &edit->cursor) ;
+	
 	return  1 ;
 }
 
@@ -1382,11 +1296,8 @@ ml_edit_goto_home(
 	)
 {
 	reset_wraparound_checker( edit) ;
-	
-	edit->cursor.row = 0 ;
-	edit->cursor.char_index = 0 ;
-	edit->cursor.col = 0 ;
-	edit->cursor.col_in_char = 0 ;
+
+	ml_cursor_goto_home( &edit->cursor) ;
 
 	return  1 ;
 }
@@ -1398,81 +1309,46 @@ ml_edit_go_forward(
 	)
 {
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " going forward from char index %d col %d row %d, then ->" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 
 	reset_wraparound_checker( edit) ;
 
-	/*
-	 * full width char check.
-	 */
-
-	if( edit->cursor.col_in_char + 1 < ml_char_cols( CURSOR_CHAR(edit)))
-	{
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " cursor is at 2nd byte of multi byte char.\n") ;
-	#endif
-
-		edit->cursor.col ++ ;
-		edit->cursor.col_in_char ++ ;
-
-		return  1 ;
-	}
-
-	/*
-	 * moving forward.
-	 */
-	 
-	if( edit->cursor.char_index == ml_line_end_char_index( CURSOR_LINE(edit)))
+	if( ! ml_cursor_go_forward( &edit->cursor))
 	{
 		if( ml_line_get_num_of_filled_cols( CURSOR_LINE(edit)) < edit->model.num_of_cols)
 		{
 			/* This must succeed since the condition above is passed. */
 			ml_line_break_boundary( CURSOR_LINE(edit) , 1) ;
-			edit->cursor.char_index ++ ;
 
-			goto  end ;
+			ml_cursor_go_forward( &edit->cursor) ;
 		}
-		
-		if( ! ( flag & WRAPAROUND))
+		else
 		{
-			return  0 ;
-		}
-
-		if( ml_is_scroll_lowerlimit( edit , edit->cursor.row))
-		{
-			if( ! ( flag & SCROLL))
+			if( ! ( flag & WRAPAROUND))
 			{
 				return  0 ;
 			}
 
-			if( ! ml_edsl_scroll_upward( edit , 1))
+			if( ml_is_scroll_lowerlimit( edit , edit->cursor.row))
 			{
-				return  0 ;
+				if( ! ( flag & SCROLL))
+				{
+					return  0 ;
+				}
+
+				if( ! ml_edsl_scroll_upward( edit , 1))
+				{
+					return  0 ;
+				}
 			}
-		}
-		
-		edit->cursor.row ++ ;
-		edit->cursor.char_index = 0 ;
 
-		if( ! ml_line_assure_boundary( CURSOR_LINE(edit) , 0))
-		{
-			return  0 ;
+			ml_cursor_cr_lf( &edit->cursor) ;
 		}
 	}
-	else
-	{
-		edit->cursor.char_index ++ ;
-	}
-
-end:
-	edit->cursor.col = ml_convert_char_index_to_col( CURSOR_LINE(edit) , edit->cursor.char_index , 0) ;
-	edit->cursor.col_in_char = 0 ;
-
+	
 #ifdef  CURSOR_DEBUG
-	kik_msg_printf( "-> char index %d col %d row %d\n" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 
 	return  1 ;
@@ -1485,8 +1361,7 @@ ml_edit_go_back(
 	)
 {
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " going back from char index %d col %d row %d ->" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 
 	if( edit->wraparound_ready_line)
@@ -1555,8 +1430,7 @@ ml_edit_go_back(
 		+ edit->cursor.col_in_char ;
 
 #ifdef  CURSOR_DEBUG
-	kik_msg_printf( "-> char index %d col %d row %d\n" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 
 	return  1 ;
@@ -1569,8 +1443,7 @@ ml_edit_go_upward(
 	)
 {
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " going upward from char index %d(col %d) ->" ,
-		edit->cursor.char_index , edit->cursor.col) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 	
 	reset_wraparound_checker( edit) ;
@@ -1589,15 +1462,14 @@ ml_edit_go_upward(
 	}
 	else
 	{
-		if( ! cursor_goto_by_col( edit , edit->cursor.col , edit->cursor.row - 1))
+		if( ! ml_cursor_goto_by_col( &edit->cursor , edit->cursor.col , edit->cursor.row - 1))
 		{
 			return  0 ;
 		}
 	}
 	
 #ifdef  CURSOR_DEBUG
-	kik_msg_printf( "-> upward to char index %d (col %d)\n" ,
-		edit->cursor.char_index , edit->cursor.col) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 	
 	return  1 ;
@@ -1610,8 +1482,7 @@ ml_edit_go_downward(
 	)
 {
 #ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " going downward from char index %d col %d row %d ->" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 	
 	reset_wraparound_checker( edit) ;
@@ -1635,15 +1506,14 @@ ml_edit_go_downward(
 	}
 	else
 	{
-		if( ! cursor_goto_by_col( edit , edit->cursor.col , edit->cursor.row + 1))
+		if( ! ml_cursor_goto_by_col( &edit->cursor , edit->cursor.col , edit->cursor.row + 1))
 		{
 			return  0 ;
 		}
 	}
 
 #ifdef  CURSOR_DEBUG
-	kik_msg_printf( "-> downward to char_index %d col %d row %d\n" ,
-		edit->cursor.char_index , edit->cursor.col , edit->cursor.row) ;
+	ml_cursor_dump( &edit->cursor) ;
 #endif
 	
 	return  1 ;
@@ -1666,7 +1536,7 @@ ml_edit_goto(
 		}
 	}
 	
-	return  cursor_goto_by_col( edit , col , row) ;
+	return  ml_cursor_goto_by_col( &edit->cursor , col , row) ;
 }
 
 int
@@ -1716,34 +1586,19 @@ ml_edit_unset_auto_wrap(
 }
 
 int
-ml_cursor_save(
+ml_edit_save_cursor(
 	ml_edit_t *  edit
 	)
 {
-	edit->cursor.saved_col = edit->cursor.col ;
-	edit->cursor.saved_char_index = edit->cursor.char_index ;
-	edit->cursor.saved_row = edit->cursor.row ;
-	edit->cursor.is_saved = 1 ;
-
-	return  1 ;
+	return  ml_cursor_save( &edit->cursor) ;
 }
 
 int
-ml_cursor_restore(
+ml_edit_restore_cursor(
 	ml_edit_t *  edit
 	)
 {
-	if( ! edit->cursor.is_saved)
-	{
-		return  0 ;
-	}
-	
-	if( ! cursor_goto_by_col( edit , edit->cursor.saved_col , edit->cursor.saved_row))
-	{
-		return  0 ;
-	}
-	
-	return  1 ;
+	return  ml_cursor_restore( &edit->cursor) ;
 }
 
 int

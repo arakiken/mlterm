@@ -11,8 +11,8 @@
 #include  "ml_edit.h"
 
 
-#define  CURSOR_LINE( edit)  (ml_model_get_line( &(edit)->model,(edit)->cursor.row))
-#define  CURSOR_CHAR( edit)  (&CURSOR_LINE(edit)->chars[(edit)->cursor.char_index])
+#define  CURSOR_LINE( edit)  ml_get_cursor_line( &(edit)->cursor)
+#define  CURSOR_CHAR( edit)  ml_get_cursor_char( &(edit)->cursor)
 
 
 int  ml_edit_clear_lines( ml_edit_t *  edit , int  start , u_int  size) ;

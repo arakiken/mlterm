@@ -11,6 +11,7 @@
 #include  "ml_str.h"
 #include  "ml_line.h"
 #include  "ml_model.h"
+#include  "ml_cursor.h"
 
 
 typedef struct ml_edit_scroll_event_listener
@@ -141,9 +142,9 @@ int  ml_edit_set_auto_wrap( ml_edit_t *  edit) ;
 
 int  ml_edit_unset_auto_wrap( ml_edit_t *  edit) ;
 
-int  ml_cursor_save( ml_edit_t *  edit) ;
+int  ml_edit_save_cursor( ml_edit_t *  edit) ;
 
-int  ml_cursor_restore( ml_edit_t *  edit) ;
+int  ml_edit_restore_cursor( ml_edit_t *  edit) ;
 
 int  ml_cursor_char_index( ml_edit_t *  edit) ;
 

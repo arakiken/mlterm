@@ -7,6 +7,7 @@
 
 
 #include  "ml_model.h"
+#include  "ml_cursor.h"
 #include  "ml_iscii.h"
 
 

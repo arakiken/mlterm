@@ -2052,7 +2052,7 @@ ml_screen_save_cursor(
 	ml_screen_t *  screen
 	)
 {
-	return  ml_cursor_save( screen->edit) ;
+	return  ml_edit_save_cursor( screen->edit) ;
 }
 
 int
@@ -2060,7 +2060,7 @@ ml_screen_restore_cursor(
 	ml_screen_t *  screen
 	)
 {
-	return  ml_cursor_restore( screen->edit) ;
+	return  ml_edit_restore_cursor( screen->edit) ;
 }
 
 int
