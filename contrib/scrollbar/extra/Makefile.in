@@ -15,7 +15,7 @@ MOTIF_OBJ = motif.o
 MOZMODERN_OBJ = mozmodern.o exsb_common.o
 NEXT_OBJ = next.o exsb_common.o
 
-CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @CFLAGS@ @CPPFLAGS@ -I/usr/X11R6/include -I/usr/include/include
+CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ -I/usr/include/include
 
 CC = @CC@
 INSTALL = @INSTALL@
@@ -31,22 +31,22 @@ all: athena motif mozmodern next
 athena: $(ATHENA_OBJ)
 	$(LIBTOOL_LINK) -o libathena.la $(ATHENA_OBJ:.o=.lo) -rpath $(LIBDIR) \
 	-module -avoid-version -no-undefined \
-	-L/usr/X11R6/lib -lX11
+	@X_LIBS@
 
 motif: $(MOTIF_OBJ)
 	$(LIBTOOL_LINK) -o libmotif.la $(MOTIF_OBJ:.o=.lo) -rpath $(LIBDIR) \
 	-module -avoid-version -no-undefined \
-	-L/usr/X11R6/lib -lX11
+	@X_LIBS@
 
 mozmodern: $(MOZMODERN_OBJ)
 	$(LIBTOOL_LINK) -o libmozmodern.la $(MOZMODERN_OBJ:.o=.lo) -rpath $(LIBDIR) \
 	-module -avoid-version -no-undefined \
-	-L/usr/X11R6/lib -lX11
+	@X_LIBS@
 
 next: $(NEXT_OBJ)
 	$(LIBTOOL_LINK) -o libnext.la $(NEXT_OBJ:.o=.lo) -rpath $(LIBDIR) \
 	-module -avoid-version -no-undefined \
-	-L/usr/X11R6/lib -lX11
+	@X_LIBS@
 
 .c.o:
 	$(LIBTOOL_CC) -c $<

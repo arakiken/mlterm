@@ -38,11 +38,11 @@ CFLAGS=$(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @FRIBI
        @IMAGELIB_CFLAGS@ @XUTF8_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-DLIBEXECDIR=\"$(LIBEXECDIR)\" -DDATADIR=\"$(DATADIR)\"\
-	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/X11R6/include -I/usr/local/include
+	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow @X_CFLAGS@ -I/usr/local/include
 
 LIBS=$(LIBS_LOCAL) @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @X_EXTRA_LIBS@ @DL_LIBS@ \
 	-lX11 $(LMLTERM) $(LMKF) $(LKIK) \
-	-L/usr/X11R6/lib -L/usr/local/lib -R/usr/X11R6/lib -R/usr/local/lib
+	@X_LIBS@ -L/usr/local/lib -R/usr/local/lib
 
 PROG = mlterm
 INSTALL_OPT = @INSTALL_OPT@
