@@ -331,7 +331,7 @@ commit(
 	if( iiimcf_get_committed_text( iiimf->context , &iiimcf_text) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not get committed text.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Could not get committed text.\n") ;
 	#endif
 		return ;
 	}
@@ -339,7 +339,7 @@ commit(
 	if( iiimcf_get_text_utf16string( iiimcf_text , &utf16str) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not get utf16 string.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Could not get utf16 string.\n") ;
 	#endif
 		return ;
 	}
@@ -417,7 +417,7 @@ preedit_change(
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG
-				 " Cound not get preedit text\n") ;
+				 " Could not get preedit text\n") ;
 	#endif
 		return ;
 	}
@@ -426,7 +426,7 @@ preedit_change(
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG
-				 " Cound not get utf16 string\n") ;
+				 " Could not get utf16 string\n") ;
 	#endif
 		return ;
 	}
@@ -705,7 +705,7 @@ lookup_choice_change(
 	if( iiimcf_get_lookup_choice( iiimf->context , &lookup_choice) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not get lookup table\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Could not get lookup table\n") ;
 	#endif
 		return ;
 	}
@@ -717,7 +717,7 @@ lookup_choice_change(
 					   &index_current) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not get lookup table.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Could not get lookup table.\n") ;
 	#endif
 		return ;
 	}
@@ -730,7 +730,7 @@ lookup_choice_change(
 					&direction) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not get lookup information.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Could not get lookup information.\n") ;
 	#endif
 		return ;
 	}
@@ -801,7 +801,7 @@ lookup_choice_change(
 						   &flag) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Cound not candidate item\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Could not candidate item\n") ;
 		#endif
 			continue ;
 		}
@@ -811,7 +811,7 @@ lookup_choice_change(
 					&utf16str) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Cound not get utf16 string\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Could not get utf16 string\n") ;
 		#endif
 			continue ;
 		}
@@ -1104,7 +1104,7 @@ status_change(
 	if( iiimcf_get_current_conversion_mode( iiimf->context , &on) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not get the current mode.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Could not get the current mode.\n") ;
 	#endif
 		return ;
 	}
@@ -1146,7 +1146,7 @@ status_change(
 	if( iiimcf_get_text_utf16string( iiimcf_text , &utf16str) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not get utf16 string.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Could not get utf16 string.\n") ;
 	#endif
 		return ;
 	}
@@ -1373,7 +1373,7 @@ key_event(
 		#endif
 			break ;
 		default:
-			kik_error_printf( "Cound not send key event to IIIMSF\n");
+			kik_error_printf( "Could not send key event to IIIMSF\n");
 			break ;
 		}
 	}
@@ -1395,7 +1395,7 @@ dispatch:
 		if( iiimcf_get_event_type( received_event , &type) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Cound not get event type\n");
+			kik_warn_printf( KIK_DEBUG_TAG " Could not get event type\n");
 		#endif
 
 			return  0 ;
@@ -1424,14 +1424,14 @@ dispatch:
 		if( iiimcf_dispatch_event( iiimf->context , received_event) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Cound not dispatch event\n");
+			kik_warn_printf( KIK_DEBUG_TAG " Could not dispatch event\n");
 		#endif
 		}
 
 		if( iiimcf_ignore_event( received_event) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Cound not dispatch event\n");
+			kik_warn_printf( KIK_DEBUG_TAG " Could not dispatch event\n");
 		#endif
 		}
 	}
@@ -1480,7 +1480,7 @@ focused(
 		status = iiimcf_forward_event( iiimf->context , event) ;
 		if( status != IIIMF_STATUS_SUCCESS)
 		{
-			kik_error_printf( "Cound not forward focus event to IIIMS [status = %d]\n", status) ;
+			kik_error_printf( "Could not forward focus event to IIIMS [status = %d]\n", status) ;
 		}
 	}
 
@@ -1516,7 +1516,7 @@ unfocused(
 		status = iiimcf_forward_event( iiimf->context , event) ;
 		if( status != IIIMF_STATUS_SUCCESS)
 		{
-			kik_error_printf( "Cound not forward unfocus event to IIIMS [status = %d]\n", status) ;
+			kik_error_printf( "Could not forward unfocus event to IIIMS [status = %d]\n", status) ;
 		}
 	}
 
@@ -1559,7 +1559,7 @@ im_new(
 		if( iiimcf_initialize( IIIMCF_ATTR_NULL) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Cound not initialize\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Could not initialize\n") ;
 		#endif
 			return  NULL ;
 		}
@@ -1569,7 +1569,7 @@ im_new(
 		if( iiimcf_create_attr( &attr) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Cound not create attribute\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Could not create attribute\n") ;
 		#endif
 			goto  error ;
 		}
@@ -1580,14 +1580,14 @@ im_new(
 							!= IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Cound not append a string to the attribute\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Could not append a string to the attribute\n") ;
 		#endif
 			goto  error ;
 		}
 
 		if( iiimcf_create_handle( attr , &handle) != IIIMF_STATUS_SUCCESS)
 		{
-			kik_error_printf( "Cound not create handle for IIIMF\n") ;
+			kik_error_printf( "Could not create handle for IIIMF\n") ;
 			goto  error ;
 		}
 
@@ -1638,7 +1638,7 @@ im_new(
 	if( iiimcf_create_attr( &attr) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not create attribute\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Could not create attribute\n") ;
 	#endif
 		goto  error ;
 	}
@@ -1651,7 +1651,7 @@ im_new(
 							!= IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Cound not append value to the attribute\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Could not append value to the attribute\n") ;
 		#endif
 		}
 	}
@@ -1664,7 +1664,7 @@ im_new(
 				language_engine) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Cound not append value to the attribute\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Could not append value to the attribute\n") ;
 		#endif
 		}
 	}
@@ -1674,7 +1674,7 @@ im_new(
 				   &iiimf->context) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not create context\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Could not create context\n") ;
 	#endif
 		goto  error ;
 	}

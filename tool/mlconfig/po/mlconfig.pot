@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-09-13 16:24+0900\n"
+"POT-Creation-Date: 2004-10-26 17:41+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -98,7 +98,6 @@ msgstr ""
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
 #: tool/mlconfig/mc_sb.c:94 tool/mlconfig/mc_vertical.c:94
-#: tool/mlconfig/mc_im.c:711
 msgid "None"
 msgstr ""
 
@@ -162,8 +161,9 @@ msgstr ""
 msgid "--- simplified Chinese ---"
 msgstr ""
 
-#: tool/mlconfig/mc_char_encoding.c:194 tool/mlconfig/mc_im.c:174
-#: tool/mlconfig/mc_im.c:227
+#: tool/mlconfig/mc_char_encoding.c:194 tool/mlconfig/mc_im.c:239
+#: tool/mlconfig/mc_im.c:291 tool/mlconfig/mc_im.c:370
+#: tool/mlconfig/mc_im.c:375
 #, c-format
 msgid "auto (currently %s)"
 msgstr ""
@@ -304,7 +304,7 @@ msgstr ""
 msgid "Right"
 msgstr ""
 
-#: tool/mlconfig/mc_sb_view.c:118
+#: tool/mlconfig/mc_sb_view.c:137
 msgid "View"
 msgstr ""
 
@@ -332,42 +332,18 @@ msgstr ""
 msgid "Mongol"
 msgstr ""
 
-#: tool/mlconfig/mc_im.c:237
+#: tool/mlconfig/mc_im.c:300
 msgid "XIM Server"
 msgstr ""
 
-#: tool/mlconfig/mc_im.c:240
+#: tool/mlconfig/mc_im.c:303
 msgid "XIM locale"
 msgstr ""
 
-#: tool/mlconfig/mc_im.c:333
-msgid "Conversion engine"
+#: tool/mlconfig/mc_im.c:385
+msgid "Option"
 msgstr ""
 
-#: tool/mlconfig/mc_im.c:345
-msgid "uim is disabled."
-msgstr ""
-
-#: tool/mlconfig/mc_im.c:456
-msgid "IIIMCF initialization failed."
-msgstr ""
-
-#: tool/mlconfig/mc_im.c:510
-msgid "Language (Language engine)"
-msgstr ""
-
-#: tool/mlconfig/mc_im.c:541
-msgid "Cound not create language list."
-msgstr ""
-
-#: tool/mlconfig/mc_im.c:543
-msgid "Language selector depends on glib-2.0 or later."
-msgstr ""
-
-#: tool/mlconfig/mc_im.c:546
-msgid "IIIMF is disabled."
-msgstr ""
-
-#: tool/mlconfig/mc_im.c:670
+#: tool/mlconfig/mc_im.c:497
 msgid "Input Method"
 msgstr ""

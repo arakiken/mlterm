@@ -176,7 +176,7 @@ x_im_new(
 	}
 	else
 	{
-		kik_error_printf( "Cound not open specified "
+		kik_error_printf( "Could not open specified "
 				  "input method(%s).\n" , im_name) ;
 
 		kik_dl_close( handle) ;

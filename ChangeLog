@@ -1,5 +1,12 @@
 2004-10-26 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/iiimf/im_iiimf.c, inputmethod/m17nlib/im_m17nlib.c,
+	tool/mlconfig/po/de.po, tool/mlconfig/po/mlconfig.pot,
+	tool/mlconfig/po/zh_TW.po, xwindow/x_im.c:
+	fixed typo (Cound -> Could).
+
+2004-10-26 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* inputmethod/uim/im_uim.c (key_event): for exact matching mechanism
 	in uim_press_key(), if and only if the target modifier key is pressing
 	modifier bit will be set. (Thanks to gabor for reporting)

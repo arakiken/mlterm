@@ -240,7 +240,7 @@ find_input_method(
 	if( ! ( im_list = mdatabase_list( msymbol( "input-method") ,
 					  Mnil , Mnil , Mnil)))
 	{
-		kik_error_printf( "Cound not get available input method from m17n database.\n") ;
+		kik_error_printf( "Could not get available input method from m17n database.\n") ;
 		return  0 ;
 	}
 
@@ -978,7 +978,7 @@ im_new(
 
 	if( ! ( m17nlib->input_method = find_input_method( param)))
 	{
-		kik_error_printf( "Cound not find %s\n" , param) ;
+		kik_error_printf( "Could not find %s\n" , param) ;
 		goto  error ;
 	}
 
@@ -986,7 +986,7 @@ im_new(
 							m17nlib->input_method ,
 							NULL)))
 	{
-		kik_error_printf( "Cound not crate context for %s\n", param) ;
+		kik_error_printf( "Could not crate context for %s\n", param) ;
 		goto  error ;
 	}
 
@@ -995,7 +995,7 @@ im_new(
 	if( ( encoding_sym = mconv_resolve_coding( msymbol( encoding_name))) == Mnil)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not resolve encoding name [%s]\n" , encoding_name) ;
+		kik_warn_printf( KIK_DEBUG_TAG " Could not resolve encoding name [%s]\n" , encoding_name) ;
 	#endif
 		goto  error ;
 	}
@@ -1004,7 +1004,7 @@ im_new(
 							      NULL , 0)))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not create MConverter\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Could not create MConverter\n") ;
 	#endif
 		goto  error ;
 	}
