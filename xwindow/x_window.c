@@ -35,6 +35,7 @@
 #define  XA_DND_SELECTION(display) (XInternAtom(display, "XdndSelection", False))
 #define  XA_DND_FINISH(display) (XInternAtom(display, "XdndFinished", False))
 #define  XA_DND_MIME_TEXT_PLAIN(display) (XInternAtom(display, "text/plain", False))
+#define  XA_DND_MIME_TEXT_URL_LIST(display) (XInternAtom(display, "text/uri-list", False))
 
 /* Extended WIndow Manager Hint support  */
 #define  XA_NET_WM_ICON(display) (XInternAtom(display, "_NET_WM_ICON", False))
@@ -64,6 +65,85 @@ static const u_char  DND_VERSION = 4 ;
 
 
 /* --- static functions --- */
+static int
+xdnd_parse(
+	x_window_t * win,
+	Atom atom,
+	char *src,
+	int len)
+{
+	/* XXX ASCII sould be safely processed because it's subset of utf8. iso8859-1 may be problematic...*/
+	/* text/plain */
+	if( atom == XA_DND_MIME_TEXT_PLAIN(win->display))
+	{
+		if( !(win->utf8_selection_notified))
+		{
+			return 0 ; /* needs utf8(actuaally ascii) parser*/
+		}
+		if( !src)
+		{
+			return 1 ; /* return success for judgement */
+		}
+		(*win->utf8_selection_notified)( win , src , len) ;
+		return 1 ;
+	}
+	/* text/url-list */
+	if( atom == XA_DND_MIME_TEXT_URL_LIST(win->display))
+	{
+		int pos ;
+		char *delim ;
+		if( !(win->utf8_selection_notified))
+		{
+			return 0 ; /* needs utf8(actuaally ascii) parser*/
+		}
+		if( !src)
+		{
+			return 1 ; /* return success for judgement */
+		}
+		pos = 0 ;
+		delim = src ;
+
+		while( pos < len){
+			delim = strchr( &(src[pos]), 13) ;
+			if( !delim)
+				return 0 ; /* parse error */
+			while( delim[1] != 10)
+			{
+				delim[0] = ' ' ; /* eliminate illegal 0x0Ds (they should not appear) */
+				delim = strchr( delim, 13) ;
+				if ( !delim)
+					return 0 ; /* parse error */
+			}
+			delim[0] = ' '; /* always optput space as separator */
+			if( strncmp( &(src[pos]), "file:",5) == 0)
+			{/* remove "file:". write to pty (length - "file:" + " ")*/
+				(*win->utf8_selection_notified)( win , &(src[pos+5]) , (delim - src) - pos -4) ;
+			}
+			else
+			{/* as-is + " " */
+				(*win->utf8_selection_notified)( win , &(src[pos]) , (delim - src) - pos +1) ;
+			}
+			pos = (delim - src) +2 ; /* skip 0x0A */
+		}
+	}
+	return 0 ;
+}
+
+static Atom
+is_dnd_mime_type_acceptable(
+	x_window_t *  win ,
+	Atom atom)
+{
+	if( xdnd_parse( win, atom, NULL, 0))
+	{
+		return atom;
+	}
+	
+	#ifdef  DEBUG
+       		kik_debug_printf("dropped unrecognized atom: %d\n", atom);
+	#endif
+	return (Atom)0;/* it's illegal valur for Atom */
+}
 
 static int
 set_transparent(
@@ -1953,10 +2033,17 @@ x_window_receive_event(
 					break ;
 				}
 
-				if( event->xselection.property == XA_DND_STORE(win->display) ||
-					event->xselection.target == XA_STRING ||
-					event->xselection.target == xa_text ||
-					event->xselection.target == xa_compound_text)
+				/* XDND */
+				if( event->xselection.property == XA_DND_STORE(win->display))
+				{
+					xdnd_parse(win,
+						   win->is_dnd_accepting, /* Mime type is stored as Atom */
+						   ct.value, ct.nitems);
+				}
+				/* SELECTION */
+				else if( event->xselection.target == XA_STRING || 
+					 event->xselection.target == xa_text ||
+					 event->xselection.target == xa_compound_text)
 				{
 					if( win->xct_selection_notified)
 					{
@@ -2044,7 +2131,7 @@ x_window_receive_event(
 		if( event->xclient.format == 32 &&
 			event->xclient.message_type == XA_DND_ENTER( win->display))
 		{
-			win->is_dnd_accepting = 0;
+			win->is_dnd_accepting = (Atom)0;
 
 			/* more than 3 type ? */
 			if (event->xclient.data.l[1] & 0x01)
@@ -2068,21 +2155,26 @@ x_window_receive_event(
 				
 				for( count = 0 ; count < nitems ; count++)
 				{
-					if (dat[count] == XA_DND_MIME_TEXT_PLAIN(win->display))
+					if ( win->is_dnd_accepting = is_dnd_mime_type_acceptable( win, dat[count]))
 					{
-						win->is_dnd_accepting = 1;
-						break;
+						break; /* parsable atom is returned */
 					}
 				}
 				
 				XFree(dat);
 			}
 			/* less than 3*/
-			else if( event->xclient.data.l[2] == XA_DND_MIME_TEXT_PLAIN(win->display) ||
-				event->xclient.data.l[3] == XA_DND_MIME_TEXT_PLAIN(win->display) ||
-				event->xclient.data.l[4] == XA_DND_MIME_TEXT_PLAIN(win->display) )
+			else if(  win->is_dnd_accepting = is_dnd_mime_type_acceptable( win, event->xclient.data.l[2]))
 			{
-				win->is_dnd_accepting = 1;
+						/* do nothing (judge preference?)*/;
+			}
+			else if(  win->is_dnd_accepting = is_dnd_mime_type_acceptable( win, event->xclient.data.l[3]))
+			{
+						/* do nothing (judge preference?)*/;
+			}
+			else if(  win->is_dnd_accepting = is_dnd_mime_type_acceptable( win, event->xclient.data.l[4]))
+			{
+						/* do nothing (judge preference?)*/;
 			}
 		}
 
@@ -2124,7 +2216,7 @@ x_window_receive_event(
 		{
 			/* data request */
 			XConvertSelection(win->display, XA_DND_SELECTION(win->display),
-				  XA_DND_MIME_TEXT_PLAIN(win->display),
+				  win->is_dnd_accepting, /* mime type */
 				  XA_DND_STORE(win->display),
 				  win->my_window,
 				  event->xclient.data.l[2]);

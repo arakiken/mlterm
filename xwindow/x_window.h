@@ -117,7 +117,7 @@ typedef struct  x_window
 	 * XDND
 	 */
 	Window  dnd_source;
-	int8_t  is_dnd_accepting ;
+	Atom  is_dnd_accepting ;
 
 	/*
 	 * flags etc.

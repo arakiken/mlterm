@@ -192,7 +192,7 @@ key_pressed(
 }
 
 static void
-xct_selection_notified(
+utf8_selection_notified(
 	x_window_t *  win ,
 	u_char *  buf ,
 	size_t  len
@@ -203,7 +203,7 @@ xct_selection_notified(
 	sb_screen = (x_sb_screen_t*) win ;
 
 	/* dispatch to screen */
-	(*sb_screen->screen->window.xct_selection_notified)( &sb_screen->screen->window ,
+	(*sb_screen->screen->window.utf8_selection_notified)( &sb_screen->screen->window ,
 		buf , len) ;
 }
 
@@ -670,7 +670,7 @@ x_sb_screen_new(
 	sb_screen->window.child_window_resized = child_window_resized ;
 	sb_screen->window.window_exposed = window_exposed ;
 	sb_screen->window.key_pressed = key_pressed ;
-	sb_screen->window.xct_selection_notified = xct_selection_notified ;
+	sb_screen->window.utf8_selection_notified = utf8_selection_notified ;
 	sb_screen->window.window_deleted = window_deleted ;
 
 	return  sb_screen ;
