@@ -189,7 +189,9 @@ create_term_intern(void)
 			main_config.encoding , main_config.not_use_unicode_font ,
 			main_config.only_use_unicode_font , main_config.col_size_a ,
 			main_config.use_char_combining , main_config.use_multi_col_char ,
-			x_termcap_get_bool_field( main_config.tent , ML_BCE) , main_config.bs_mode) ;
+			main_config.use_bidi , x_termcap_get_bool_field( main_config.tent , ML_BCE) ,
+			main_config.use_dynamic_comb , main_config.bs_mode , main_config.vertical_mode ,
+			main_config.iscii_lang_type) ;
 }
 
 static int
@@ -398,11 +400,9 @@ open_term(
 			main_config.xim_open_in_startup , main_config.mod_meta_key ,
 			main_config.mod_meta_mode , main_config.bel_mode ,
 			main_config.receive_string_via_ucs , main_config.pic_file_path ,
-			main_config.use_transbg , main_config.use_bidi ,
-			main_config.vertical_mode , main_config.use_vertical_cursor ,
+			main_config.use_transbg , main_config.use_vertical_cursor ,
 			main_config.big5_buggy , main_config.conf_menu_path ,
-			main_config.iscii_lang_type , main_config.use_extended_scroll_shortcut ,
-			main_config.use_dynamic_comb , main_config.line_space)) == NULL)
+			main_config.use_extended_scroll_shortcut , main_config.line_space)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_screen_new() failed.\n") ;

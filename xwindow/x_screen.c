@@ -1088,9 +1088,9 @@ convert_char_index_to_x_with_shape(
 	ml_line_t *  orig ;
 	int  x ;
 
-	if( screen->shape)
+	if( screen->term->shape)
 	{
-		if( ( orig = ml_line_shape( line , screen->shape)) == NULL)
+		if( ( orig = ml_line_shape( line , screen->term->shape)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_line_shape() failed.\n") ;
@@ -1181,9 +1181,9 @@ convert_x_to_char_index_with_shape(
 	ml_line_t *  orig ;
 	int  char_index ;
 		
-	if( screen->shape)
+	if( screen->term->shape)
 	{
-		if( ( orig = ml_line_shape( line , screen->shape)) == NULL)
+		if( ( orig = ml_line_shape( line , screen->term->shape)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_line_shape() failed.\n") ;
@@ -1216,7 +1216,7 @@ screen_width(
 	 * logical cols/rows => visual width/height.
 	 */
 	 
-	if( screen->vertical_mode)
+	if( screen->term->vertical_mode)
 	{
 		width = ml_term_get_logical_rows( screen->term) * x_col_width( screen) ;
 	}
@@ -1239,7 +1239,7 @@ screen_height(
 	 * logical cols/rows => visual width/height.
 	 */
 	 
-	if( screen->vertical_mode)
+	if( screen->term->vertical_mode)
 	{
 		height = ml_term_get_logical_cols( screen->term) * x_line_height( screen) ;
 	}
@@ -1274,9 +1274,9 @@ draw_line(
 		u_int  num_of_redrawn ;
 		ml_line_t *  orig ;
 
-		if( screen->shape)
+		if( screen->term->shape)
 		{
-			if( ( orig = ml_line_shape( line , screen->shape)) == NULL)
+			if( ( orig = ml_line_shape( line , screen->term->shape)) == NULL)
 			{
 				return  0 ;
 			}
@@ -1370,9 +1370,9 @@ draw_cursor(
 		return  0 ;
 	}
 
-	if( screen->shape)
+	if( screen->term->shape)
 	{
-		if( ( orig = ml_line_shape( line , screen->shape)) == NULL)
+		if( ( orig = ml_line_shape( line , screen->term->shape)) == NULL)
 		{
 			return  0 ;
 		}
@@ -2077,41 +2077,30 @@ get_mod_meta_mask(
 	return  0 ;
 }
 
+/* refered in update_special_visual */
+static void  change_font_present( x_screen_t *  screen , x_font_present_t  font_present) ;
+
 static int
 update_special_visual(
 	x_screen_t *  screen
 	)
 {
-	if( screen->shape)
+	if( ! ml_term_update_special_visual( screen->term))
 	{
-		(*screen->shape->delete)( screen->shape) ;
-		screen->shape = NULL ;
+		return  0 ;
 	}
-
-	if( ml_term_get_encoding( screen->term) == ML_ISCII)
+	
+	if( screen->term->iscii_lang)
 	{
-		/*
-		 * It is impossible to process ISCII with other encoding proper auxes.
-		 */
-
-		ml_iscii_lang_t  iscii_lang ;
 		u_int  font_size ;
 		char *  font_name ;
-		
-		if( ( iscii_lang = ml_iscii_lang_new( screen->iscii_lang_type)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_new() failed.\n") ;
-		#endif
-
-			return  0 ;
-		}
 		
 		for( font_size = screen->font_man->font_custom->min_font_size ;
 			font_size <= screen->font_man->font_custom->max_font_size ;
 			font_size ++)
 		{
-			if( ( font_name = ml_iscii_get_font_name( iscii_lang , font_size)) == NULL)
+			if( ( font_name = ml_iscii_get_font_name( screen->term->iscii_lang ,
+						font_size)) == NULL)
 			{
 				continue ;
 			}
@@ -2119,7 +2108,7 @@ update_special_visual(
 			x_font_manager_set_local_font_name( screen->font_man ,
 				DEFAULT_FONT(ISCII) , font_name , font_size) ;
 		}
-
+	
 		/*
 		 * XXX
 		 * anti alias ISCII font is not supported.
@@ -2128,74 +2117,31 @@ update_special_visual(
 		{
 			x_font_manager_reload( screen->font_man) ;
 		}
+	}
 
-		if( ( screen->shape = ml_iscii_shape_new( iscii_lang)) == NULL)
+	/*
+	 * vertical font is automatically used under vertical mode.
+	 * similler processing is done in x_term_manager.c:config_init.
+	 */
+	if( screen->term->vertical_mode)
+	{
+		if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_VERTICAL))
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_shape_new() failed.\n") ;
-		#endif
-
-			ml_iscii_lang_delete( iscii_lang) ;
-
-			goto  error ;
-		}
-
-		if( ! ml_term_enable_special_visual( screen->term , VIS_ISCII , 0 , iscii_lang , 0))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_term_enable_special_visual() failed.\n") ;
-		#endif
-		
-			ml_iscii_lang_delete( iscii_lang) ;
-
-			goto  error ;
+			change_font_present( screen ,
+				( x_font_manager_get_font_present( screen->font_man) | FONT_VERTICAL) &
+					~FONT_VAR_WIDTH) ;
 		}
 	}
 	else
 	{
-		ml_special_visual_t  visual ;
-
-		visual = 0 ;
-
-		if( screen->use_dynamic_comb)
+		if( x_font_manager_get_font_present( screen->font_man) & FONT_VERTICAL)
 		{
-			visual |= VIS_DYNAMIC_COMB ;
-		}
-		
-		if( screen->vertical_mode)
-		{
-			visual |= VIS_VERT ;
-		}
-		else if( screen->use_bidi && ml_term_get_encoding( screen->term) == ML_UTF8)
-		{
-			if( ( screen->shape = ml_arabic_shape_new()) == NULL)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " x_arabic_shape_new() failed.\n") ;
-			#endif
-
-				goto  error ;
-			}
-			
-			visual |= VIS_BIDI ;
-		}
-		
-		if( ! ml_term_enable_special_visual( screen->term , visual ,
-			0 , NULL , screen->vertical_mode))
-		{
-			goto  error ;
+			change_font_present( screen ,
+				x_font_manager_get_font_present( screen->font_man) & ~FONT_VERTICAL) ;
 		}
 	}
-	
+
 	return  1 ;
-
-error:
-	if( screen->shape)
-	{
-		(*screen->shape->delete)( screen->shape) ;
-	}
-
-	return  0 ;
 }
 
 
@@ -2294,7 +2240,7 @@ window_resized(
 	width = (screen->window.width * 100) / screen->screen_width_ratio ;
 	height = (screen->window.height * 100) / screen->screen_height_ratio ;
 	
-	if( screen->vertical_mode)
+	if( screen->term->vertical_mode)
 	{
 		rows = width / x_col_width( screen) ;
 		cols = height / x_line_height( screen) ;
@@ -2749,7 +2695,7 @@ key_pressed(
 
 		if( screen->use_vertical_cursor)
 		{
-			if( screen->vertical_mode & VERT_RTL)
+			if( screen->term->vertical_mode & VERT_RTL)
 			{
 				if( ksym == XK_Up)
 				{
@@ -2768,7 +2714,7 @@ key_pressed(
 					ksym = XK_Up ;
 				}
 			}
-			else if( screen->vertical_mode & VERT_LTR)
+			else if( screen->term->vertical_mode & VERT_LTR)
 			{
 				if( ksym == XK_Up)
 				{
@@ -3769,7 +3715,7 @@ report_mouse_tracking(
 	key_state = ((event->state & ShiftMask) ? 4 : 0) +
 		((event->state & ControlMask) ? 16 : 0) ;
 
-	if( screen->vertical_mode)
+	if( screen->term->vertical_mode)
 	{
 		u_int  x_rest ;
 		
@@ -3793,7 +3739,7 @@ report_mouse_tracking(
 		row = ml_convert_char_index_to_col( line ,
 			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) , 0) ;
 			
-		if( screen->vertical_mode & VERT_RTL)
+		if( screen->term->vertical_mode & VERT_RTL)
 		{
 			row = ml_term_get_cols( screen->term) - row - 1 ;
 		}
@@ -4076,7 +4022,7 @@ change_font_present(
 	x_font_present_t  font_present
 	)
 {
-	if( screen->vertical_mode)
+	if( screen->term->vertical_mode)
 	{
 		font_present &= ~FONT_VAR_WIDTH ;
 	}
@@ -4164,14 +4110,14 @@ change_iscii_lang(
 	ml_iscii_lang_type_t  type
 	)
 {
-	if( screen->iscii_lang_type == type)
+	if( screen->term->iscii_lang_type == type)
 	{
 		/* not changed */
 		
 		return ;
 	}
 
-	screen->iscii_lang_type = type ;
+	screen->term->iscii_lang_type = type ;
 	
 	if( update_special_visual( screen))
 	{
@@ -4273,36 +4219,14 @@ change_vertical_mode(
 	ml_vertical_mode_t  vertical_mode
 	)
 {
-	if( screen->vertical_mode == vertical_mode)
+	if( screen->term->vertical_mode == vertical_mode)
 	{
 		/* not changed */
 		
 		return ;
 	}
 
-	/*
-	 * vertical font is automatically used under vertical mode.
-	 * similler processing is done in x_term_manager.c:config_init.
-	 */
-	if( vertical_mode)
-	{
-		if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_VERTICAL))
-		{
-			change_font_present( screen ,
-				( x_font_manager_get_font_present( screen->font_man) | FONT_VERTICAL) &
-					~FONT_VAR_WIDTH) ;
-		}
-	}
-	else
-	{
-		if( x_font_manager_get_font_present( screen->font_man) & FONT_VERTICAL)
-		{
-			change_font_present( screen ,
-				x_font_manager_get_font_present( screen->font_man) & ~FONT_VERTICAL) ;
-		}
-	}
-
-	screen->vertical_mode = vertical_mode ;
+	screen->term->vertical_mode = vertical_mode ;
 	
 	if( update_special_visual( screen))
 	{
@@ -4353,14 +4277,14 @@ change_dynamic_comb_flag(
 	int  use_dynamic_comb
 	)
 {
-	if( screen->use_dynamic_comb == use_dynamic_comb)
+	if( screen->term->use_dynamic_comb == use_dynamic_comb)
 	{
 		/* not changed */
 		
 		return ;
 	}
 
-	screen->use_dynamic_comb = use_dynamic_comb ;
+	screen->term->use_dynamic_comb = use_dynamic_comb ;
 
 	if( update_special_visual( screen))
 	{
@@ -4586,14 +4510,14 @@ change_bidi_flag(
 	int  use_bidi
 	)
 {
-	if( screen->use_bidi == use_bidi)
+	if( screen->term->use_bidi == use_bidi)
 	{
 		/* not changed */
 		
 		return ;
 	}
 
-	screen->use_bidi = use_bidi ;
+	screen->term->use_bidi = use_bidi ;
 
 	if( update_special_visual( screen))
 	{
@@ -5187,7 +5111,7 @@ get_config(
 	}
 	else if( strcmp( key , "iscii_lang") == 0)
 	{
-		value = ml_iscii_get_lang_name( screen->iscii_lang_type) ;
+		value = ml_iscii_get_lang_name( screen->term->iscii_lang_type) ;
 	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
@@ -5298,7 +5222,7 @@ get_config(
 	}
 	else if( strcmp( key , "vertical_mode") == 0)
 	{
-		value = ml_get_vertical_mode_name( screen->vertical_mode) ;
+		value = ml_get_vertical_mode_name( screen->term->vertical_mode) ;
 	}
 	else if( strcmp( key , "scrollbar_mode") == 0)
 	{
@@ -5326,7 +5250,7 @@ get_config(
 	}
 	else if( strcmp( key , "use_dynamic_comb") == 0)
 	{
-		if( screen->use_dynamic_comb)
+		if( screen->term->use_dynamic_comb)
 		{
 			value = true ;
 		}
@@ -5414,7 +5338,7 @@ get_config(
 	}
 	else if( strcmp( key , "use_bidi") == 0)
 	{
-		if( screen->use_bidi)
+		if( screen->term->use_bidi)
 		{
 			value = true ;
 		}
@@ -5649,7 +5573,7 @@ window_scroll_upward_region(
 
 	screen = p ;
 
-	if( screen->vertical_mode || ! x_window_is_scrollable( &screen->window))
+	if( screen->term->vertical_mode || ! x_window_is_scrollable( &screen->window))
 	{
 		return  0 ;
 	}
@@ -5673,7 +5597,7 @@ window_scroll_downward_region(
 
 	screen = p ;
 
-	if( screen->vertical_mode || ! x_window_is_scrollable( &screen->window))
+	if( screen->term->vertical_mode || ! x_window_is_scrollable( &screen->window))
 	{
 		return  0 ;
 	}
@@ -6036,14 +5960,10 @@ x_screen_new(
 	int  receive_string_via_ucs ,
 	char *  pic_file_path ,
 	int  use_transbg ,
-	int  use_bidi ,
-	ml_vertical_mode_t  vertical_mode ,
 	int  use_vertical_cursor ,
 	int  big5_buggy ,
 	char *  conf_menu_path ,
-	ml_iscii_lang_type_t  iscii_lang_type ,
 	int  use_extended_scroll_shortcut ,
-	int  use_dynamic_comb ,
 	u_int  line_space
 	)
 {
@@ -6096,12 +6016,8 @@ x_screen_new(
 	screen->utf8_conv = NULL ;
 	screen->xct_conv = NULL ;
 	
-	screen->shape = NULL ;
 	screen->kbd = NULL ;
 
-	screen->iscii_lang_type = iscii_lang_type ;
-
-	screen->vertical_mode = vertical_mode ;
 	screen->use_vertical_cursor = use_vertical_cursor ;
 	
 	screen->font_man = font_man ;
@@ -6122,8 +6038,6 @@ x_screen_new(
 		ml_term_set_char_combining_flag( screen->term , 1) ;
 	}
 	
-	screen->use_bidi = use_bidi ;
-
 	screen->color_man = color_man ;
 	
 	screen->sel_listener.self = screen ;
@@ -6228,7 +6142,6 @@ x_screen_new(
 	screen->bel_mode = bel_mode ;
 	
 	screen->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
-	screen->use_dynamic_comb = use_dynamic_comb ;
 
 	/*
 	 * for receiving selection.
@@ -6328,11 +6241,6 @@ x_screen_delete(
 	}
 	
 	x_sel_final( &screen->sel) ;
-
-	if( screen->shape)
-	{
-		(*screen->shape->delete)( screen->shape) ;
-	}
 
 	if( screen->kbd)
 	{

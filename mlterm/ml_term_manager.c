@@ -87,8 +87,12 @@ ml_create_term(
 	int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char ,
+	int  use_bidi ,
 	int  use_bce ,
-	ml_bs_mode_t  bs_mode
+	int  use_dynamic_comb ,
+	ml_bs_mode_t  bs_mode ,
+	ml_vertical_mode_t  vertical_mode ,
+	ml_iscii_lang_type_t  iscii_lang_type
 	)
 {
 	if( num_of_terms == MAX_TERMS)
@@ -98,7 +102,8 @@ ml_create_term(
 
 	if( ( terms[num_of_terms] = ml_term_new( cols , rows , tab_size , log_size , encoding ,
 				not_use_unicode_font , only_use_unicode_font , col_size_a ,
-				use_char_combining , use_multi_col_char , use_bce , bs_mode)) == NULL)
+				use_char_combining , use_multi_col_char , use_bidi , use_bce ,
+				use_dynamic_comb , bs_mode , vertical_mode , iscii_lang_type)) == NULL)
 	{
 		return  NULL ;
 	}

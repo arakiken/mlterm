@@ -26,8 +26,12 @@ ml_term_new(
 	int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char ,
+	int  use_bidi ,
 	int  use_bce ,
-	ml_bs_mode_t  bs_mode
+	int  use_dynamic_comb ,
+	ml_bs_mode_t  bs_mode ,
+	ml_vertical_mode_t  vertical_mode ,
+	ml_iscii_lang_type_t  iscii_lang_type
 	)
 {
 	ml_term_t *  term ;
@@ -73,6 +77,12 @@ ml_term_new(
 		goto  error ;
 	}
 
+	term->shape = NULL ;
+	term->iscii_lang = NULL ;
+	term->iscii_lang_type = iscii_lang_type ;
+	term->vertical_mode = vertical_mode ;
+	term->use_bidi = use_bidi ;
+	term->use_dynamic_comb = use_dynamic_comb ;
 	term->is_mouse_pos_sending = 0 ;
 	term->is_app_keypad = 0 ;
 	term->is_app_cursor_keys = 0 ;
@@ -110,6 +120,16 @@ ml_term_delete(
 		ml_pty_delete( term->pty) ;
 	}
 	
+	if( term->shape)
+	{
+		(*term->shape->delete)( term->shape) ;
+	}
+
+	if( term->iscii_lang)
+	{
+		ml_iscii_lang_delete( term->iscii_lang) ;
+	}
+
 	ml_screen_delete( term->screen) ;
 	ml_vt100_parser_delete( term->parser) ;
 
@@ -452,25 +472,52 @@ ml_term_set_modified_all(
 }
 
 int
-ml_term_enable_special_visual(
-	ml_term_t *  term ,
-	ml_special_visual_t  visual ,
-	int  adhoc_right_align ,
-	ml_iscii_lang_t  iscii_lang ,
-	ml_vertical_mode_t  vertical_mode
+ml_term_update_special_visual(
+	ml_term_t *  term
 	)
 {
 	ml_logical_visual_t *  logvis ;
 
-	ml_term_disable_special_visual( term) ;
+	if( term->shape)
+	{
+		(*term->shape->delete)( term->shape) ;
+		term->shape = NULL ;
+	}
+
+	if( term->iscii_lang)
+	{
+		ml_iscii_lang_delete( term->iscii_lang) ;
+		term->iscii_lang = NULL ;
+	}
 	
-	if( visual & VIS_ISCII)
+	term->screen->use_dynamic_comb = 0 ;
+	ml_screen_delete_logical_visual( term->screen) ;
+
+	if( ml_term_get_encoding( term) == ML_ISCII)
 	{
 		/*
 		 * It is impossible to process ISCII with other encoding proper auxes.
 		 */
-		 
-		if( ( logvis = ml_logvis_iscii_new( iscii_lang)) == NULL)
+
+		if( ( term->iscii_lang = ml_iscii_lang_new( term->iscii_lang_type)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_new() failed.\n") ;
+		#endif
+
+			return  0 ;
+		}
+
+		if( ( term->shape = ml_iscii_shape_new( term->iscii_lang)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_shape_new() failed.\n") ;
+		#endif
+
+			goto  error ;
+		}
+
+		if( ( logvis = ml_logvis_iscii_new( term->iscii_lang)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_iscii_new() failed.\n") ;
@@ -483,15 +530,10 @@ ml_term_enable_special_visual(
 		{
 			goto  error ;
 		}
-
-		ml_screen_render( term->screen) ;
-		ml_screen_visual( term->screen) ;
-		
-		return  1 ;
 	}
 	else
 	{
-		if( visual & VIS_DYNAMIC_COMB)
+		if( term->use_dynamic_comb)
 		{
 			if( ( logvis = ml_logvis_comb_new()) == NULL)
 			{
@@ -512,26 +554,9 @@ ml_term_enable_special_visual(
 			term->screen->use_dynamic_comb = 1 ;
 		}
 		
-		if( visual & VIS_BIDI)
+		if( term->vertical_mode)
 		{
-			if( ( logvis = ml_logvis_bidi_new( adhoc_right_align)) == NULL)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_bidi_new() failed.\n") ;
-			#endif
-
-				goto  error ;
-			}
-
-			if( ! ml_screen_add_logical_visual( term->screen , logvis))
-			{
-				goto  error ;
-			}
-		}
-
-		if( visual & VIS_VERT)
-		{
-			if( ( logvis = ml_logvis_vert_new( vertical_mode)) == NULL)
+			if( ( logvis = ml_logvis_vert_new( term->vertical_mode)) == NULL)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_vert_new() failed.\n") ;
@@ -545,27 +570,59 @@ ml_term_enable_special_visual(
 				goto  error ;
 			}
 		}
-		
-		ml_screen_render( term->screen) ;
-		ml_screen_visual( term->screen) ;
-		
-		return  1 ;
+		else if( term->use_bidi && ml_term_get_encoding( term) == ML_UTF8)
+		{
+			if( ( term->shape = ml_arabic_shape_new()) == NULL)
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " x_arabic_shape_new() failed.\n") ;
+			#endif
+
+				goto  error ;
+			}
+
+		#if  0
+			if( ( logvis = ml_logvis_bidi_new( 0)) == NULL)
+		#else
+			if( ( logvis = ml_logvis_bidi_new( 1)) == NULL)
+		#endif
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_bidi_new() failed.\n") ;
+			#endif
+
+				goto  error ;
+			}
+
+			if( ! ml_screen_add_logical_visual( term->screen , logvis))
+			{
+				goto  error ;
+			}
+		}
 	}
 	
+	ml_screen_render( term->screen) ;
+	ml_screen_visual( term->screen) ;
+
+	return  1 ;
+
 error:
-	ml_term_disable_special_visual( term) ;
+	if( term->shape)
+	{
+		(*term->shape->delete)( term->shape) ;
+		term->shape = NULL ;
+	}
+
+	if( term->iscii_lang)
+	{
+		ml_iscii_lang_delete( term->iscii_lang) ;
+		term->iscii_lang = NULL ;
+	}
+
+	term->screen->use_dynamic_comb = 0 ;
+	ml_screen_delete_logical_visual( term->screen) ;
 
 	return  0 ;
-}
-
-int
-ml_term_disable_special_visual(
-	ml_term_t *  term
-	)
-{
-	term->screen->use_dynamic_comb = 0 ;
-	
-	return  ml_screen_delete_logical_visual( term->screen) ;
 }
 
 ml_bs_mode_t

@@ -124,17 +124,6 @@ typedef struct  x_screen
 	int8_t  use_vertical_cursor ;
 	int8_t  use_extended_scroll_shortcut ;
 
-	/*
-	 * XXX should be moved to ml_term_t
-	 */
-
-	ml_shape_t *  shape ;
-	ml_iscii_lang_type_t  iscii_lang_type ;
-	ml_vertical_mode_t  vertical_mode ;
-	
-	int8_t  use_bidi ;
-	int8_t  use_dynamic_comb ;
-	
 } x_screen_t ;
 
 
@@ -145,10 +134,8 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	u_int  screen_width_ratio , u_int  screen_height_ratio ,
 	int  xim_open_in_startup , char *  mod_meta_key , x_mod_meta_mode_t  mod_meta_mode ,
 	x_bel_mode_t  bel_mode , int  receive_string_via_ucs , char *  pic_file_path ,
-	int  use_transbg , int  use_bidi , ml_vertical_mode_t  vertical_mode ,
-	int  use_vertical_cursor , int  big5_buggy ,
-	char *  conf_menu_path , ml_iscii_lang_type_t  iscii_lang_type ,
-	int  use_extended_scroll_shortcut , int  use_dynamic_comb , u_int  line_space) ;
+	int  use_transbg , int  use_vertical_cursor , int  big5_buggy ,
+	char *  conf_menu_path , int  use_extended_scroll_shortcut , u_int  line_space) ;
 
 int  x_screen_delete( x_screen_t *  screen) ;
 

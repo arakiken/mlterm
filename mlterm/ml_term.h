@@ -12,15 +12,6 @@
 #include  "ml_config_menu.h"
 
 
-typedef enum  ml_special_visual
-{
-	VIS_ISCII = 0x1 ,
-	VIS_DYNAMIC_COMB = 0x2 ,
-	VIS_BIDI = 0x4 ,
-	VIS_VERT = 0x8 ,
-	
-} ml_special_visual_t ;
-
 typedef struct ml_pty_event_listener
 {
 	void *  self ;
@@ -30,6 +21,9 @@ typedef struct ml_pty_event_listener
 
 typedef struct ml_term
 {
+	/*
+	 * private
+	 */
 	ml_pty_t *  pty ;
 	ml_pty_event_listener_t *  pty_listener ;
 	
@@ -37,6 +31,20 @@ typedef struct ml_term
 	ml_screen_t *  screen ;
 	ml_config_menu_t  config_menu ;
 
+	/*
+	 * public(read/write)
+	 */
+	ml_shape_t *  shape ;
+	ml_iscii_lang_type_t  iscii_lang_type ;
+	ml_iscii_lang_t  iscii_lang ;
+	ml_vertical_mode_t  vertical_mode ;
+	
+	int8_t  use_bidi ;
+	int8_t  use_dynamic_comb ;
+
+	/*
+	 * private
+	 */
 	int8_t  is_mouse_pos_sending ;
 	int8_t  is_app_keypad ;
 	int8_t  is_app_cursor_keys ;
@@ -44,10 +52,11 @@ typedef struct ml_term
 } ml_term_t ;
 
 
-ml_term_t *  ml_term_new( u_int  cols , u_int  rows ,
-	u_int  tab_size , u_int  log_size , ml_char_encoding_t  encoding ,
-	int  not_use_unicode_font , int  only_use_unicode_font , int  col_size_a ,
-	int  use_char_combining , int  use_multi_col_char , int  use_bce , ml_bs_mode_t  bs_mode) ;
+ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  log_size ,
+	ml_char_encoding_t  encoding , int  not_use_unicode_font , int  only_use_unicode_font ,
+	int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
+	int  use_bce , int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
+	ml_vertical_mode_t  vertical_mode , ml_iscii_lang_type_t  iscii_lang_type) ;
 
 int  ml_term_delete( ml_term_t *  term) ;
 
@@ -114,11 +123,7 @@ ml_line_t *  ml_term_get_cursor_line( ml_term_t *  term) ;
 
 int  ml_term_set_modified_all( ml_term_t *  term) ;
 
-int  ml_term_enable_special_visual( ml_term_t *  term ,
-	ml_special_visual_t  visual , int  adhoc_right_align ,
-	ml_iscii_lang_t  iscii_lang , ml_vertical_mode_t  vertical_mode) ;
-
-int  ml_term_disable_special_visual( ml_term_t *  term) ;
+int  ml_term_update_special_visual( ml_term_t *  term) ;
 
 ml_bs_mode_t  ml_term_is_backscrolling( ml_term_t *  term) ;
 

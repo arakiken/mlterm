@@ -1,5 +1,10 @@
 2003-02-15 Araki Ken <arakiken@users.sf.net>
 
+	* Terminals with Arabic,ISCII,vertical writing etc options can be switched
+	  by NEXT_PTY in the same Window.
+
+2003-02-15 Araki Ken <arakiken@users.sf.net>
+
 	* Tuned up mlconfig.
 
 2003-02-15 Araki Ken <arakiken@users.sf.net>

@@ -461,7 +461,6 @@ iscii_delete(
 
 	iscii_shape = (iscii_shape_t*) shape ;
 
-	ml_iscii_lang_delete( iscii_shape->iscii_lang) ;
 	free( iscii_shape) ;
 
 	return  1 ;
