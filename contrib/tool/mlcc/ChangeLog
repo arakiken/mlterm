@@ -1,0 +1,18 @@
+2002-06-13  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	* added contrib/tool/LICENE, contrib/tool/Changelog
+
+2002-06-12 20:41  h_minami
+
+	* main.c: removed SA_SIGINFO which is not compatible with
+	sa_handler.
+
+2002-06-12 20:36  h_minami
+
+	* Makefile.in, comm.c, comm.h, config.h.in, configure,
+	configure.in, data.c, data.h, data_entry_bool.c, data_entry_bool.h,
+	data_entry_color.c, data_entry_color.h, data_entry_numeric.c,
+	data_entry_numeric.h, data_entry_radio.c, data_entry_radio.h,
+	data_entry_string.c, data_entry_string.h, install-sh, main.c: mlcc
+	(console based config tool) is added.
+
