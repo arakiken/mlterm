@@ -289,6 +289,108 @@ do { 									\
 #endif
 }
 
+static void
+show_available_gui_objects(void)
+{
+#ifdef  IM_IIIMF_DEBUG
+	const IIIMCF_object_descriptor *  objdesc_list ;
+	IIIMCF_object_descriptor **  bin_objdesc_list = NULL ;
+	IIIMCF_downloaded_object * objs = NULL ;
+	IIIMF_status  status ;
+	int  i ;
+	int  num_of_objs ;
+	int  num_of_bin_objs = 0 ;
+	mkf_conv_t *  conv = NULL ;
+
+	if( ! ( conv = (*mlterm_syms->ml_conv_new)( ML_ISO8859_1)))
+	{
+		return ;
+	}
+
+	if( iiimcf_get_object_descriptor_list(
+					handle ,
+					&num_of_objs ,
+					&objdesc_list) != IIIMF_STATUS_SUCCESS)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " iiimcf_get_object_descriptor_list failed.\n");
+	#endif
+		goto  error ;
+	}
+
+	bin_objdesc_list = malloc( sizeof(IIIMCF_object_descriptor*) * num_of_objs) ;
+	objs = malloc( sizeof(IIIMCF_downloaded_object) * num_of_objs) ;
+
+	if( ! bin_objdesc_list || ! objs)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " malloc failed.\n");
+	#endif
+		goto  error ;
+	}
+
+	for( i = 0 ; i < num_of_objs; i++)
+	{
+		if( objdesc_list[i].predefined_id == IIIMP_IMATTRIBUTE_BINARY_GUI_OBJECT)
+		{
+			bin_objdesc_list[num_of_bin_objs] = &objdesc_list[i] ;
+			num_of_bin_objs++ ;
+		}
+	}
+
+	if( iiimcf_get_downloaded_objects( handle ,
+					   num_of_bin_objs ,
+					   bin_objdesc_list ,
+					   objs) != IIIMF_STATUS_SUCCESS)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG "iiimcf_get_downloaded_objects failed\n");
+	#endif
+		goto  error ;
+	}
+
+	for( i = 0 ; i < num_of_bin_objs ; i++)
+	{
+		const IIIMP_card16 *  obj_name ;
+		u_char *  str = NULL ;
+
+		if( iiimcf_get_downloaded_object_filename(
+					objs[i] ,
+					&obj_name) != IIIMF_STATUS_SUCCESS)
+		{
+			continue ;
+		}
+
+		PARSER_INIT_WITH_BOM( parser_utf16) ;
+		im_convert_encoding( parser_utf16, conv ,
+				     (u_char*)obj_name, &str,
+				     strlen_utf16( obj_name) + 1) ;
+		kik_debug_printf( "%d: object_name: %s\n" , i , str) ;
+		free( str) ;
+		str = NULL ;
+	}
+
+	conv->delete( conv);
+
+	return ;
+
+error:
+	if( conv)
+	{
+		conv->delete( conv) ;
+	}
+
+	if( bin_objdesc_list)
+	{
+		free( bin_objdesc_list) ;
+	}
+
+	if( objs)
+	{
+		free( objs) ;
+	}
+#endif
+}
 
 /*
  * callback for candidate screen events
@@ -1612,6 +1714,8 @@ im_iiimf_new(
 		show_iiimcf_version();
 
 		mlterm_syms = export_syms ;
+
+		show_available_gui_objects() ;
 	}
 
 	language = find_language( lang) ;

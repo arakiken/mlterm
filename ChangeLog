@@ -1,3 +1,8 @@
+2005-01-24 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/iiimf/im_iiimf.c (show_available_gui_objects):
+	  new function for debugging.
+
 2005-01-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/scim/im_scim.cpp: minor bug fix.
