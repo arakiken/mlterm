@@ -7,7 +7,7 @@
 
 
 #include  <kiklib/kik_types.h>		/* u_int */
-#include  <ml_char.h>
+#include  <ml_str.h>
 
 
 typedef struct  x_sel_event_listener

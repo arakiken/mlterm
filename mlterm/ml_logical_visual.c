@@ -1106,9 +1106,15 @@ iscii_logical(
 		ml_line_t *  vis_line ;
 
 		vis_line = ml_model_get_line( logvis->model , row) ;
-		
+
+		/*
+		 * XXX
+		 * If logical lines are changed by vt sequences,
+		 * reversed flag will be all cleared.
+		 */
 		ml_line_copy_color_reversed_flag( &iscii_logvis->logical_lines[row] , vis_line) ;
 		ml_line_copy_color_reversed_flag( &iscii_logvis->visual_lines[row] , vis_line) ;
+
 		ml_line_copy_line( vis_line , &iscii_logvis->logical_lines[row]) ;
 	}
 

@@ -8,7 +8,7 @@
 
 #include  <kiklib/kik_types.h>
 
-#include  "ml_char.h"
+#include  "ml_str.h"
 #include  "ml_line.h"
 
 

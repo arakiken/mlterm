@@ -23,6 +23,40 @@
 
 * ml_line_is_modified
 
+[ml_char]
+* ml_char_bytes
+
+* ml_char_size
+
+* ml_char_cs
+
+* ml_char_font
+
+* ml_char_fg_color
+
+* ml_char_bg_color
+
+* ml_char_is_underlined
+
+* ml_char_init
+
+* ml_char_copy
+
+* ml_char_final
+
+* ml_char_bytes_is
+
+* ml_char_set_bytes
+
+* ml_char_dump
+
+[ml_str]
+* ml_str_alloca
+
+* ml_str_new
+
+* ml_str_delete
+
 [ml_char_encoding]
 (All functions declared in ml_char_encoding.h)
 

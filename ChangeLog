@@ -1,3 +1,7 @@
+2004-02-22  Araki Ken  <arakiken@users.sf.net>
+
+	* Added ml_str.[ch].(separated from ml_char.[ch].)
+
 2004-02-20  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* kiklib/src/kik_pty_streams.c: sttsid() seems to detach

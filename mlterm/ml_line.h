@@ -6,7 +6,7 @@
 #define  __ML_LINE_H__
 
 
-#include  "ml_char.h"
+#include  "ml_str.h"
 #include  "ml_shape.h"
 #include  "ml_bidi.h"		/* ml_bidi_state_t */
 

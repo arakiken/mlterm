@@ -990,6 +990,7 @@ ml_line_copy_line(
 	return  1 ;
 }
 
+/* XXX only used for iscii_logical() */
 int
 ml_line_copy_color_reversed_flag(
 	ml_line_t *  dst ,
