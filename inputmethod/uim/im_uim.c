@@ -194,7 +194,7 @@ xksym_to_ukey(
 	case  XK_Down:
 		return  UKey_Down ;
 	case  XK_Prior:
-		return  XK_Prior ;
+		return  UKey_Prior ;
 	case  XK_Next:
 		return  UKey_Next ;
 	case  XK_End:
@@ -869,6 +869,7 @@ candidate_shift_page(
 	)
 {
 	im_uim_t *  uim ;
+	int index ;
 
 #ifdef  IM_UIM_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " direction: %d\n", direction) ;
@@ -876,7 +877,42 @@ candidate_shift_page(
 
 	uim = (im_uim_t*) p ;
 
-	/* XXX: not implemented yet */
+	if( ! uim->im.cand_screen)
+	{
+		return ;
+	}
+
+	index = (int) uim->im.cand_screen->index ;
+
+	if( ! direction && index < 10)
+	{
+		/* top page -> last page */
+		index = (uim->im.cand_screen->num_of_candidates / 10) * 10 + index ;
+	}
+	else if( direction &&
+		 index + 10 >= uim->im.cand_screen->num_of_candidates)
+	{
+		/* last page -> top page */
+		index = index % 10 ;
+	}
+	else
+	{
+		/* shift page according to the direction */
+
+		index += (direction ? 10 : -10) ;
+
+		if( index < 0)
+		{
+			index = 0 ;
+		}
+		else if( index >= uim->im.cand_screen->num_of_candidates)
+		{
+			index = uim->im.cand_screen->num_of_candidates - 1 ;
+		}
+	}
+
+	(*uim->im.cand_screen->select)( uim->im.cand_screen , index) ;
+	uim_set_candidate_index( uim->context , index) ;
 }
 
 static void

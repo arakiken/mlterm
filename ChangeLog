@@ -1,3 +1,12 @@
+2005-01-25 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/uim/im_uim.c
+	  (xksym_to_ukey): fixed typo.
+	  (candidate_shift_page): impremented.
+
+	* inputmethod/scim/im_scim_mod_if.c (im_scim_get_info):
+	  fixed a segfault when scim daemon is not running.
+
 2005-01-24 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/iiimf/im_iiimf.c (show_available_gui_objects):

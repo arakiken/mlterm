@@ -782,9 +782,9 @@ im_scim_get_info(
 	im_info_t *  result ;
 	int  i ;
 
-	if( ! im_scim_initialize())
+	if( im_scim_initialize())
 	{
-		return  NULL ;
+		initialized = 1 ;
 	}
 
 	if( ! ( result = malloc( sizeof( im_info_t))))
@@ -794,12 +794,14 @@ im_scim_get_info(
 
 	result->id = strdup( "scim") ;
 	result->name = strdup( "SCIM") ;
-#if 0
-	result->num_of_args = im_scim_get_number_of_factory() + 1;
-#endif
 	result->num_of_args = 1;
 	result->args = NULL ;
 	result->readable_args = NULL ;
+
+	if( initialized)
+	{
+		result->num_of_args += im_scim_get_number_of_factory() ;
+	}
 
 	if( ! ( result->args = malloc( sizeof(char*) * result->num_of_args)))
 	{
@@ -813,7 +815,14 @@ im_scim_get_info(
 	}
 
 	result->args[0] = strdup( "") ;
-	result->readable_args[0] = strdup( im_scim_get_default_factory_name( locale)) ;
+	if( initialized)
+	{
+		result->readable_args[0] = strdup( im_scim_get_default_factory_name( locale)) ;
+	}
+	else
+	{
+		result->readable_args[0] = strdup( "unknown") ;
+	}
 
 	for( i = 1 ; i < result->num_of_args; i ++)
 	{
@@ -839,7 +848,10 @@ im_scim_get_info(
 		}
 	}
 
-	im_scim_finalize() ;
+	if( initialized)
+	{
+		im_scim_finalize() ;
+	}
 
 	return  result ;
 
