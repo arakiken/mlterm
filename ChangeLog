@@ -1,3 +1,8 @@
+2003-05-18  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* Really fixed the XDND bug 
+	(Thanks to Seiichi SATO san)
+
 2003-05-18 Araki Ken <arakiken@users.sf.net>
 
 	* BEL character after ESC ] ... was ignored. Fixed.

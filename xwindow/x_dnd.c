@@ -20,10 +20,6 @@
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 
-#define  XA_DND_MIME_TEXT_PLAIN(display) (XInternAtom(display, "text/plain", False))
-#define  XA_DND_MIME_TEXT_UNICODE(display) (XInternAtom(display, "text/unicode", False))
-#define  XA_DND_MIME_TEXT_URI_LIST(display) (XInternAtom(display, "text/uri-list", False))
-
 typedef struct dnd_parser {
 	char *  atomname ;
 	int  (*parser)(x_window_t *, unsigned char *, int);
