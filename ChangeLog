@@ -1,3 +1,7 @@
+2003-07-18  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* x_dnd.c: tweaked mime-type preference order.
+
 2003-07-17  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* x_dnd.c: fixed bugs in the parsing of configuration protocol.
