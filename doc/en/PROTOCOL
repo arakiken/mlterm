@@ -6,7 +6,7 @@ version 20030301
 
 * Protocol
   set              = "\x1b" "]" "5379" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
-  get(pty)         = "\x1b" "]" "5380" ";" [ "/dev/..." ":" ] <key> "\x07"
+  get(pty)         = "\x1b" "]" "5380" ";" <challenge> ; [ "/dev/..." ":" ] <key> "\x07"
   get(GUI menu)    = "\x1b" "]" "5381" ";" [ "/dev/..." ":" ] <key> "\x07"
   save             = "\x1b" "]" "5382" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
   set&save         = "\x1b" "]" "5383" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
@@ -21,7 +21,8 @@ version 20030301
                      scrollbar_mode | use_multi_column_char |
                      scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | cursor_fg_color |
-                     cursor_bg_color | open_pty | open_screen | select_pty
+                     cursor_bg_color | open_pty | open_screen | select_pty |
+                     gen_proto_challenge
   get key          = encoding | is_auto_encoding | fg_color | bg_color |
                      tabsize | logsize | fontsize | fade_ratio | mod_meta_key |
                      mod_meta_mode | bel_mode | use_anti_alias |
@@ -34,6 +35,7 @@ version 20030301
                      iscii_lang | use_dynamic_comb | rows | cols |
                      cursor_fg_color | cursor_bg_color | pty_list | pty_name
   value            = <values for each key>
+  challenge        = <string in ~/.mlterm/challenge>
 
 * Compatibility with other terminals
   set fg color     = "\x1b" "]" "39" ";" <color name> "\x07"
@@ -86,6 +88,7 @@ version 20030301
   select_pty = <pty dev name>
   pty_list = (<pty dev>:<active flag>;)*
   pty_name = <pty dev> | <pty title>
+  gen_proto_challenge = <none>
 
 * Note
   o Encoding names are regularized , that is , `-' , `_' are removed , and only
@@ -103,3 +106,4 @@ version 20030301
     locale.
   o If /dev/... is specified with 'pty_name' key, <pty title> is returned.
     Otherwise, <pty dev> returned.
+  o /dev/... in 5379,5382,5383 proto is ignored for now.

@@ -944,20 +944,6 @@ ml_term_is_app_cursor_keys(
 }
 
 int
-ml_term_start_config_menu(
-	ml_term_t *  term ,
-	char *  cmd_path ,
-	int  x ,
-	int  y ,
-	char *  display
-	)
-{
-	ml_config_menu_start( &term->config_menu , cmd_path , x , y , display, term->pty->slave) ;
-	
-	return  1 ;
-}
-
-int
 ml_term_set_window_name(
 	ml_term_t *  term ,
 	char *  name
@@ -995,4 +981,16 @@ ml_term_icon_name(
 	)
 {
 	return  term->icon_name ;
+}
+
+int
+ml_term_start_config_menu(
+	ml_term_t *  term ,
+	char *  cmd_path ,
+	int  x ,
+	int  y ,
+	char *  display
+	)
+{
+	return  ml_config_menu_start( &term->config_menu , cmd_path , x , y , display, term->pty->slave) ;
 }

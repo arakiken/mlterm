@@ -18,6 +18,7 @@
 #include  <mkf/mkf_ko_kr_map.h>
 
 #include  "ml_iscii.h"
+#include  "ml_config_proto.h"
 
 
 #define  CTLKEY_BEL	0x07
@@ -667,8 +668,8 @@ config_protocol_set(
 	if( HAS_CONFIG_LISTENER(vt100_parser,set))
 	{
 		char *  dev ;
+		char *  key ;
 		char *  val ;
-		char *  p ;
 
 		stop_vt100_cmd( vt100_parser) ;
 
@@ -677,41 +678,21 @@ config_protocol_set(
 		 */
 		while( pt)
 		{
-			if( ( p = strchr( pt , ';')))
+			if( ! ml_parse_proto( &dev , &key , &val , &pt , 0))
 			{
-				*(p ++) = '\0' ;
+				break ;
 			}
-
-			if( strncmp( pt , "/dev" , 4) == 0)
+			
+			if( strcmp( key , "gen_proto_challenge") == 0)
 			{
-				dev = pt ;
-				
-				if( ( pt = strchr( pt , ':')) == NULL)
-				{
-					/* Illegal format */
-
-					goto  next ;
-				}
-
-				pt ++ ;
+				ml_gen_proto_challenge() ;
 			}
 			else
 			{
-				dev = NULL ;
+				(*vt100_parser->config_listener->set)(
+					vt100_parser->config_listener->self , dev , key , val) ;
 			}
 			
-			if( ( val = strchr( pt , '=')))
-			{
-				*(val ++) = '\0' ;
-			}
-			else
-			{
-				val = "" ;
-			}
-			
-			(*vt100_parser->config_listener->set)( vt100_parser->config_listener->self ,
-				dev , pt , val) ;
-
 			/* XXX */
 			if( vt100_parser->config_listener == NULL)
 			{
@@ -720,9 +701,6 @@ config_protocol_set(
 				 */
 				break ;
 			}
-
-		next:			
-			pt = p ;
 		}
 
 		start_vt100_cmd( vt100_parser) ;
@@ -746,71 +724,40 @@ config_protocol_save(
 {
 	char *  file ;
 	kik_conf_write_t *  conf ;
-	char *  dev ;
+	char *  key ;
 	char *  val ;
-	char *  p ;
 
-	file = kik_get_user_rc_path( "mlterm/main") ;
-	if( file == NULL)  return  0 ;
+	if( ( file = kik_get_user_rc_path( "mlterm/main")) == NULL)
+	{
+		return  0 ;
+	}
 
-	conf = kik_conf_write_open( file) ;
-	if( conf == NULL)  return  0 ;
+	if( ( conf = kik_conf_write_open( file)) == NULL)
+	{
+		return  0 ;
+	}
 
 	/*
 	 * accept multiple key=value pairs.
 	 */
 	while( pt)
 	{
-		if( ( p = strchr( pt , ';')))
+		if( ! ml_parse_proto( NULL , &key , &val , &pt , 0))
 		{
-			*(p ++) = '\0' ;
+			break ;
 		}
-
-		/*
-		 * In case "/dev/..." specified in set&save protocol.
-		 * Not used 'dev' var.
-		 */
-		if( strncmp( pt , "/dev" , 4) == 0)
+		
+		/* XXX */
+		if( strcmp( key , "encoding") == 0)
 		{
-			dev = pt ;
-
-			if( ( pt = strchr( pt , ':')) == NULL)
-			{
-				/* Illegal format */
-
-				goto  next ;
-			}
-
-			pt ++ ;
-		}
-		else
-		{
-			dev = NULL ;
-		}
-
-		if( ( val = strchr( pt , '=')))
-		{
-			*(val ++) = '\0' ;
-		}
-		else
-		{
-			val = "" ;
+			key = "ENCODING" ;
 		}
 
 		/* XXX */
-		if( strcmp( pt , "encoding") == 0)
+		if( strcmp( key , "xim") != 0)
 		{
-			pt = "ENCODING" ;
+			kik_conf_io_write( conf , key , val) ;
 		}
-
-		/* XXX */
-		if( strcmp( pt , "xim") != 0)
-		{
-			kik_conf_io_write( conf , pt , val) ;
-		}
-
-	next:
-		pt = p ;
 	}
 
 	kik_conf_write_close( conf) ;
@@ -832,29 +779,15 @@ config_protocol_get(
 	if( HAS_CONFIG_LISTENER(vt100_parser,get))
 	{
 		char *  dev ;
-
-		if( strncmp( pt , "/dev" , 4) == 0)
-		{
-			dev = pt ;
-
-			if( ( pt = strchr( pt , ':')) == NULL)
-			{
-				/* Illegal format */
-
-				return  0 ;
-			}
-
-			*(pt ++) = '\0' ;
-		}
-		else
-		{
-			dev = NULL ;
-		}
-
+		char *  key ;
+		
 		stop_vt100_cmd( vt100_parser) ;
 
-		(*vt100_parser->config_listener->get)( vt100_parser->config_listener->self ,
-			dev , pt , to_menu) ;
+		if( ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0))
+		{
+			(*vt100_parser->config_listener->get)( vt100_parser->config_listener->self ,
+				dev , key , to_menu) ;
+		}
 
 		start_vt100_cmd( vt100_parser) ;
 

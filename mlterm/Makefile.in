@@ -23,7 +23,7 @@ LIBS = $(LIBS_LOCAL)
 OBJ = ml_bidi.o ml_char.o ml_char_encoding.o ml_color.o ml_edit.o ml_edit_intern.o ml_edit_scroll.o \
 	ml_iscii.o ml_line.o ml_logical_visual.o ml_logs.o ml_model.o ml_pty.o \
 	ml_screen.o ml_shape.o ml_str_parser.o ml_term.o ml_vt100_parser.o ml_term_manager.o \
-	ml_config_menu.o
+	ml_config_menu.o ml_config_proto.o
 
 INC = $(OBJ:.o=.h)
 

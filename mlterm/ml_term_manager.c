@@ -53,7 +53,8 @@ int
 ml_term_manager_init(void)
 {
 	kik_add_sig_child_listener( NULL , sig_child) ;
-
+	ml_config_proto_init() ;
+	
 	return  1 ;
 }
 

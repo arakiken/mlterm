@@ -4833,9 +4833,9 @@ full_reset(
 static void
 set_config(
 	void *  p ,
-	char *  dev ,		/* not used in now */
+	char *  dev ,		/* can be NULL */
 	char *  key ,
-	char *  value
+	char *  value		/* can be NULL */
 	)
 {
 	x_screen_t *  screen ;
@@ -4844,7 +4844,32 @@ set_config(
 	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
 #endif
 
+	if( value == NULL)
+	{
+		value = "" ;
+	}
+
 	screen = p ;
+
+	/*
+	 * XXX
+	 * 'dev' is not used for now, since many static functions used below uses
+	 * screen->term internally.
+	 */
+#if  0
+	if( dev)
+	{
+		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
+				dev)) == NULL)
+		{
+			goto  error ;
+		}
+	}
+	else
+	{
+		term = screen->term ;
+	}
+#endif
 
 	/*
 	 * x_screen_{start|stop}_term_screen are necessary since
@@ -5277,15 +5302,6 @@ get_config(
 	char *  true = "true" ;
 	char *  false = "false" ;
 	char  cwd[PATH_MAX] ;
-
-#if  1
-	if( ! to_menu)
-	{
-		kik_msg_printf( "XXXX UNFIXED VULNERABILITY XXX\n") ;
-
-		return ;
-	}
-#endif
 
 	screen = p ;
 	
