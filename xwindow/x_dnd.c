@@ -18,6 +18,8 @@
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 
+static u_char  DND_VERSION = 4 ;
+
 /* --- static variables --- */
 
 /* --- static functions --- */
@@ -64,8 +66,6 @@ x_dnd_set_awareness(
 	int flag
 	)
 {
-	u_char  DND_VERSION = 4 ;
-
 	if( flag)
 	{
 		XChangeProperty(win->display, win->my_window,
