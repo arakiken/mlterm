@@ -4,8 +4,8 @@
 
 #include "mc_im.h"
 
-#include <string.h>
-#include <stdlib.h>		/* free */
+#include <kiklib/kik_str.h>
+#include <kiklib/kik_mem.h>		/* free */
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_file.h>
 #include <kiklib/kik_conf_io.h>
@@ -602,6 +602,7 @@ mc_update_im(void)
 			sprintf(p, "%s:%s", selected_im->id ,
 				selected_im->args[selected_im_arg]);
 		}
+		break;
 	case IM_NONE:
 	default:
 		p = strdup("none");
