@@ -17,5 +17,9 @@ mkf_parser_t *  mkf_koi8_t_parser_new(void) ;
 
 mkf_parser_t *  mkf_georgian_ps_parser_new(void) ;
 
+mkf_parser_t *  mkf_cp1251_parser_new(void) ;
+
+mkf_parser_t *  mkf_cp1255_parser_new(void) ;
+
 
 #endif

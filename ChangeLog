@@ -1,5 +1,9 @@
 2003-04-06 Araki Ken <arakiken@users.sf.net>
 
+	* Added "cp1251" and "cp1255" encodings.
+
+2003-04-06 Araki Ken <arakiken@users.sf.net>
+
 	* The message mlclient -P outputs is easier to understand. 
 
 2003-04-05 Tomohiro KUBOTA <kubota@debian.org>

@@ -88,6 +88,24 @@ georgian_ps_parser_next_char(
 	return  parser_next_char_intern( parser , ch , GEORGIAN_PS) ;
 }
 
+static int
+cp1251_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , CP1251) ;
+}
+
+static int
+cp1255_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , CP1255) ;
+}
+
 static void
 parser_set_str(
 	mkf_parser_t *  parser ,
@@ -186,6 +204,46 @@ mkf_georgian_ps_parser_new(void)
 
 	parser->init = mkf_parser_init ;
 	parser->next_char = georgian_ps_parser_next_char ;
+	parser->set_str = parser_set_str ;
+	parser->delete = parser_delete ;
+
+	return  parser ;
+}
+
+mkf_parser_t *
+mkf_cp1251_parser_new(void)
+{
+	mkf_parser_t *  parser ;
+	
+	if( ( parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( parser) ;
+
+	parser->init = mkf_parser_init ;
+	parser->next_char = cp1251_parser_next_char ;
+	parser->set_str = parser_set_str ;
+	parser->delete = parser_delete ;
+
+	return  parser ;
+}
+
+mkf_parser_t *
+mkf_cp1255_parser_new(void)
+{
+	mkf_parser_t *  parser ;
+	
+	if( ( parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( parser) ;
+
+	parser->init = mkf_parser_init ;
+	parser->next_char = cp1255_parser_next_char ;
 	parser->set_str = parser_set_str ;
 	parser->delete = parser_delete ;
 

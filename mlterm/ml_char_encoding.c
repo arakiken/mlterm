@@ -89,6 +89,8 @@ static encoding_table_t  encoding_table[] =
 	{ ML_KOI8_U , "KOI8U" , mkf_koi8_u_parser_new , mkf_koi8_u_conv_new , } ,
 	{ ML_KOI8_T , "KOI8T" , mkf_koi8_t_parser_new , mkf_koi8_t_conv_new , } ,
 	{ ML_GEORGIAN_PS , "GEORGIANPS" , mkf_georgian_ps_parser_new , mkf_georgian_ps_conv_new , } ,
+	{ ML_CP1251 , "CP1251" , mkf_cp1251_parser_new , mkf_cp1251_conv_new , } ,
+	{ ML_CP1255 , "CP1255" , mkf_cp1255_parser_new , mkf_cp1255_conv_new , } ,
 
 	{ ML_UTF8 , "UTF8" , mkf_utf8_parser_new , mkf_utf8_conv_new , } ,
 	

@@ -128,6 +128,9 @@ typedef enum  mkf_charset
 	/*
 	 * Those who are not ISO2022 registed characterset or do not confirm to ISO2022.
 	 * 0x300 - 0x3ff.
+	 *
+	 * XXX
+	 * Should be reordered.
 	 */
 	SJIS_IBM_EXT = 0x300 ,
 	UHC = 0x301 ,
@@ -143,6 +146,8 @@ typedef enum  mkf_charset
 	ISCII = 0x311 ,
 	KOI8_T = 0x312 ,		/* Excluding US_ASCII(0x0-0x7f) */
 	GEORGIAN_PS = 0x313 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	CP1251 = 0x314 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	CP1255 = 0x315 ,		/* Excluding US_ASCII(0x0-0x7f) */
 
 	/* Followings are ISO2022 based charsets with revisions. */
 

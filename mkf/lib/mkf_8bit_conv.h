@@ -17,5 +17,9 @@ mkf_conv_t *  mkf_koi8_t_conv_new(void) ;
 
 mkf_conv_t *  mkf_georgian_ps_conv_new(void) ;
 
+mkf_conv_t *  mkf_cp1251_conv_new(void) ;
+
+mkf_conv_t *  mkf_cp1255_conv_new(void) ;
+
 
 #endif
