@@ -10,4 +10,5 @@
 # Shift+Insert=INSERT_SELECTION
 # UNUSED=INIT_PARSER
 # UNUSED=EXIT_PROGRAM
-# Control+F2="HELO WORLD"
+# Control+F5="HELO WORLD"
+# Control+F6="proto:font_size=12;encoding=utf8"

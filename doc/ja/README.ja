@@ -651,9 +651,16 @@ comment $Id$
 
       e.g.)
       Control+backslash=XIM_OPEN
-      XIM_OPEN を、Control+backslash キーに割り当てます。
+      Control+backslash を押下すると、XIM サーバに接続します。
 
-      また、"" で囲まれた文字列としては、'\x'から始まる16進数、'\n','\r','\e','\t' が使えます。
+      "" で囲まれた文字列としては、'\x'から始まる16進数、'\n','\r','\e','\t' が使えます。
+      また、"" で囲まれた文字列が、'proto:' から始まっている場合、以降の文字列を
+      doc/en/PROTOCOL の set プロトコル(の簡略版。key=value を ';' で区切って複数指定)と
+      解釈されます。
+
+      e.g.)
+      Control+F1="proto:font_size=12;encoding=utf8"
+      Control+F1 を押下すると、フォントサイズが 12、エンコーディングが utf8 になります。
 
     o termcap
       termcapデータベースもどき

@@ -1,5 +1,11 @@
 2003-06-13 Araki Ken <arakiken@users.sf.net>
 
+	* Supported "proto:" prefix which is a part of shortcut key string
+	  and designates its following string as mlterm configuration
+	  protocol.
+
+2003-06-13 Araki Ken <arakiken@users.sf.net>
+
 	* If pty device not opened, mlterm died. Fixed.
 	  (Thanks to Minami Hirokazu san)
 

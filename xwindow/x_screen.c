@@ -2492,6 +2492,9 @@ receive_string_via_ucs(
 	}
 }
 
+/* refered in key_pressed and set_xdnd_config. */
+static void set_config( void *  p , char *  dev , char *  key , char *  value) ;
+
 static void
 key_pressed(
 	x_window_t *  win ,
@@ -2779,9 +2782,62 @@ key_pressed(
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE) ;
 		}
-		else if( x_shortcut_str( screen->shortcut , ksym , event->state))
+		else if( ( buf = x_shortcut_str( screen->shortcut , ksym , event->state)))
 		{
-			buf = x_shortcut_str( screen->shortcut , ksym , event->state) ;
+			if( strncmp( buf , "proto:" , 6) == 0)
+			{
+				char *  dev ;
+				char *  key ;
+				char *  val ;
+				char *  p ;
+				
+				key = kik_str_alloca_dup( buf + 6) ;
+
+				while( key)
+				{
+					if( ( p = strchr( key , ';')))
+					{
+						*(p ++) = '\0' ;
+					}
+					
+					if( strncmp( key , "/dev" , 4) == 0)
+					{
+						dev = key ;
+
+						if( ( key = strchr( key , ':')) == NULL)
+						{
+							/* Illegal format */
+
+							goto  next ;
+						}
+
+						key ++ ;
+					}
+					else
+					{
+						dev = NULL ;
+					}
+					
+					if( ( val = strchr( key , '=')))
+					{
+						*(val ++) = '\0' ;
+					}
+					else
+					{
+						val = "" ;
+					}
+
+					set_config( screen , dev , key , val) ;
+
+				next:
+					key = p ;
+				}
+
+				redraw_screen( screen) ;
+				highlight_cursor( screen) ;
+
+				return  ;
+			}
 		}
 		else if( size > 0)
 		{
@@ -3393,9 +3449,6 @@ utf8_selection_notified(
 
 	write_to_pty( (x_screen_t*) win , str , len , ( (x_screen_t*) win)->utf8_parser) ;
 }
-
-/* refered in set_xdnd_config. */
-static void set_config( void *  p , char *  dev , char *  key , char *  value) ;
 
 static void
 set_xdnd_config(
