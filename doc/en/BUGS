@@ -1,0 +1,10 @@
+* X Input Method(e.g. kinput2) cannot be used in HP-UX 10.20 (reported by Sakamoto Hironori san)
+
+* vttest items not passed.
+  2. Test of screen features
+  o Test of WRAP AROUND mode setting.
+    [cause] "ESC [ ? 7 l" , "ESC [ ? 7 h" are not supported.
+  o Origin mode test
+    [cause] "ESC [ ? 6 l" , "ESC [ ? 6 h" are not supported.
+  o Test of the SAVE/RESTORE CURSOR feature
+    [cause] save/restore cursor functions don't save/restore cursor character.

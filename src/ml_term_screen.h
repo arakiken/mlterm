@@ -172,8 +172,6 @@ int  ml_term_screen_combine_with_prev_char( ml_term_screen_t *  termscr , u_char
 
 ml_font_t *  ml_term_screen_get_font( ml_term_screen_t *  termscr , ml_font_attr_t  attr) ;
 
-int  ml_term_screen_set_fontname( ml_term_screen_t *  termscr , ml_font_attr_t  attr , char *  font_name) ;
-
 int  ml_term_screen_render_bidi( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_start_bidi( ml_term_screen_t *  termscr) ;

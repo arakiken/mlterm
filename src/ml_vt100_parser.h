@@ -78,8 +78,6 @@ int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
 
 int  ml_vt100_parser_set_pty( ml_vt100_parser_t *  vt100_parser , ml_pty_t *  pty) ;
 
-int  ml_set_col_size_of_east_asian_width_a( int  col_size) ;
-
 int  ml_parse_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
 
 

@@ -1,7 +1,7 @@
 comment -*- mode: text -*-
 comment $Id$
 
-This list is whether transparent background feature of mlterm 2.0.0 works or not.
+platforms where transparent background feature supported.
 
 o NetBSD 1.5 Y current + XFree86 4.1.0
   twm-4.1.0 ... OK

@@ -1,15 +1,3 @@
-* vttest not passed items
-  2. Test of screen features
-  o Test of WRAP AROUND mode setting.
-    [cause] "ESC [ ? 7 l" , "ESC [ ? 7 h" are not supported.
-  o Origin mode test
-    [cause] "ESC [ ? 6 l" , "ESC [ ? 6 h" are not supported.
-  o Test of the SAVE/RESTORE CURSOR feature
-    [cause] save/restore cursor functions don't save/restore cursor character.
-
-* HP-UX 10.20 で kinput2 入力ができない。
-  (reported by Sakamoto Hironori san)
-
 * less でページ移動する際に画面にゴミが残る場合がある。
   man で、マニュアル閲覧中に先頭ページにジャンプすると発生することが多い。
   <原因>

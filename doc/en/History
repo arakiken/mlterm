@@ -1,11 +1,12 @@
 ver 2.1.0(2001/12/29)
-* Big5 copy&paste problem is fixed.
+* Big5 and koi8 copy&paste problem is fixed.
 * Bidi rendering and Arabic shaping are supported.
 * BIG5HKSCS is supported.
 * most of vttest items are passed.
 * processing encodings of copy&paste text is improved.
 * mlconfig is improved.(e.g. it works asynchronous with mlterm itself)
 * mlterm icons(doc/icon/) are contributed by Kubota Tomohiro san:)
+* XIM processing is improved.
 * and many minor fixes/improvement.
 
 2001/5/12 development started
