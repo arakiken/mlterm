@@ -1,4 +1,7 @@
 [20011229]
+* 2.1.0 is released.
+
+[20011229]
 * compilation of src/ml_image.c fails in Solaris,HP-UX,EWS4800. fixed.
   (thanks to Sakamoto Hironori san)
 * support for the sequences invoking dec-special characters is improved.
