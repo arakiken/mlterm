@@ -1,5 +1,21 @@
 2004-09-10 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* README, doc/ja/README.ja:
+	- removed xim_open_in_startup.
+	- added input_method.
+	- added --enable-dnd, --enable-uim and --enable-iiimf.
+	- reformatted to fit in 80 columns.
+
+	* LICENCE: updated. (The contents are not changed)
+
+	* kiklib/configure.in:
+	applied SuSE's patches(mlterm-configure.patch).
+
+	* aclocal.m4:
+	applied SuSE's patch(autoconf.patch).
+
+2004-09-10 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* x_im.h (x_im_t):
 	- remove draw_preedit.
 	- increased IM_API_VERSION.

@@ -49,6 +49,15 @@ Options for configure
   --with-tools
     Build specified tools in tool/ and contrib/tool/ directories
 
+  --enable-dnd
+    support XDnD.
+
+  --enable-uim
+    support uim(Universal? Input Method) if available.
+
+  --enable-iiimf
+    support IIIMF(Internet/Intranet Input Method Framework) if available.
+
   --disable-shared
     Disable shared libraries
 
@@ -67,7 +76,7 @@ What you need for compilation
 
   Imlib (1.9.x ?) or gdk-pixbuf (0.16 or higher) for background image.
 
-  Gtk+ (1.2.x ?) for GUI configurator "mlconfig".
+  Gtk+ (1.2.x ?) for GUI configurator "mlconfig" and "mlterm-menu".
 
   Fribidi (0.9.0 - ?) for Bidi.
 

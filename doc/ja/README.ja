@@ -32,7 +32,7 @@ comment $Id$
     ISCII の表示には、libind が必要です。
 
     これらは、すべて、configure 時に有無をチェックします。
-     
+
   o configure オプション
     --prefix
       インストールプレフィクス
@@ -74,6 +74,16 @@ comment $Id$
       scrollbar/ か contrib/scrollbar/ 以下の指定されたスクロールバーをビルドし
       ます。
 
+    --enable-dnd
+      XDnD プロトコルによるドラッグアンドドロップをサポートします。
+
+    --enable-uim
+      uim をサポートします。libuim が必要です。
+
+    --enable-iiimf
+      IIIMF (Internet/Intranet Input Method Framework) をサポートします。
+      libiiimcf が必要です。
+
     --with-tools
       tool/ か contrib/tool/ 以下の指定されたツールをビルドします。
 
@@ -105,7 +115,7 @@ comment $Id$
     KDE(Qt) と同じ設定でアンチエイリアスを使用できるようになりますので、Xft の設
     定の詳細については、KDE ユーザ会の web ページなどを参照して下さい。
     (http://www.KDE.gr.jp/~kom/aa.html)
-    
+
     また、KDE(Qt) で発生する不具合は、mlterm でもほぼ同様に再現します。
     問題が発生した場合は、KDE(Qt) と同じように対処してください。
 
@@ -117,7 +127,8 @@ comment $Id$
 
   o マルチPTY
     単一プロセス中から、最大 32 個の pty セッションを立ち上げることができます。
-    -P オプションで、mlterm 起動時に立ち上げる pty セッションの数を指定できます。
+    -P オプションで、mlterm 起動時に立ち上げる pty セッションの数を指定できま
+    す。
     Ctrl+F2(デフォルト)で、新しい pty セッションを立ち上げることができます。
     -@ オプションで、mlterm 起動時に立ち上げる ウィンドウの数を指定できます。
     Ctrl+F1(デフォルト)で、新しいウィンドウを立ち上げることができます。
@@ -132,6 +143,12 @@ comment $Id$
     たとえば、端末側が UTF8 エンコーディングで、kinput2 と Ami を切替えながら、
     日本語ハングル混在の文章を入力できます。
     (see doc/ja/README.xim)
+
+  o インプットメソッド プラグイン
+    モダンなインプットメソッド(多言語でウインドウシステム非依存)である IIIMF と
+    uim に対応しています。プラグインになっていますので、使う時だけロードされ動
+    的に変更が可能です。端末のエンコーディングに依存しないのはマルチXIMと同様
+    です。
 
   o プロポーショナルフォント
     プロポーショナルフォントも使用できます。
@@ -161,7 +178,7 @@ comment $Id$
   o 設定ファイル
     ${SYSCONFDIR}/mlterm 以下、および、~/.mlterm 以下におかれます。
     前者が先に読まれ、次にそれを後者で上書きできます。
-  
+
     main     ... 引数オプションで上書き可能な、プリミティブな設定
     font     ... フォント設定
     vfont    ... 可変長コラム幅使用時のフォント設定
@@ -178,43 +195,43 @@ comment $Id$
       KEY=VALUE
 
       行頭の # で、その行をコメントアウトできます。
-      
+
       ** で囲まれている方のがデフォルト値です。
       (#) のついているオプションは、設定画面からの動的変更が可能です。
 
       -- Window 関連 --
       o display
         X の DISPLAY を指定
-        
+
       o geometry
         表示位置を指定
 
       o app_name  (*mlterm*)
         アプリケーション名
-        
+
       o title  (*mlterm*)
         タイトル名
-        
+
       o icon_name  (*mlterm*)
         アイコン名
-      
+
       o icon_path
         アイコンのファイル名
-      
+
       o screen_width_ratio  (*100*) (#)
         実スクリーンの横幅(百分率)
-        
+
       o screen_height_ratio  (*100*) (#)
         実スクリーンの縦幅(百分率)
 
       -- Terminal 関連 --
       o use_login_shell  (true/*false*)
         ログインシェルを使うかどうか
-       
+
       o termtype (*xterm*)
         端末タイプ
         デフォルトは xterm だが、mlterm とすることを推奨。
-        
+
       o startup_ptys  (*1*)
         起動時に立ち上げる pty の数
 
@@ -224,24 +241,24 @@ comment $Id$
       -- Encoding 関連 --
       o ENCODING  (*auto*) (#)
         エンコーディングの指定
-        
+
         サポートしているエンコーディングは、以下の通りです。
-	
+
         ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11),
         KOI8-[RUT], ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP1251, CP1255,
         EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213, ISO-2022-JP[1-3],
         EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK, GB18030,
         ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO
-	
+
         '-' , '_' および、大文字小文字は無視されます。
 
         (注)
         o pty から流れてくる文字列のエンコーディングを自動認識することはできませ
           ん。
         o TIS620,TCVN5712,JISX0213 の合成用ダイアクリティカルマーク、および
-          UNICODE の結合クラス結合文字については、結合文字を動的合成できますので、
-          それらを使う場合は、-m オプションをつけて、結合文字サポートを有効にし
-          てください。
+          UNICODE の結合クラス結合文字については、結合文字を動的合成できますの
+          で、それらを使う場合は、-m オプションをつけて、結合文字サポートを有
+          効にしてください。
         o KOI8_T, GEORGIAN_PS, CP1251, CP1255 については、専用のフォントは存在せ
           ず、Unicode 経由でしか利用できないため、必ず -u オプションを併用してく
           ださい。
@@ -251,7 +268,7 @@ comment $Id$
 
       o use_bidi  (*true*/false) (#)
         BiDi レンダリングを行う
-        
+
       o use_combining  (*true*/false) (#)
         結合文字を処理する
 
@@ -262,18 +279,19 @@ comment $Id$
         しく表示できるようにします。
         use_combining が true でないと、有効になりません。
 
-      o iscii_lang  (assamese/bengali/gujarati/hindi/kannada/*malayalam*/oriya/punjabi/roman/tamil/telugu) (#)
+      o iscii_lang  (assamese/bengali/gujarati/hindi/kannada/*malayalam*/oriya/
+                     punjabi/roman/tamil/telugu) (#)
         ISCII にて、使用する言語を指定する
-        
+
       o big5_buggy  (true/*false*)
         Big5 CTEXT のバグ (XFree86 4.1.0 以前) に対応する
-        
+
       o col_size_of_width_a  (*1*/2)
         UNICODE の EastAsianWidth.txt の A プロパティのコラム数
-        
+
       o vertical_mode  (*none*/cjk/mongol) (#)
         縦表示のスタイルを指定
-        
+
         cjk は、右から左の縦表示、mongol は、左から右の縦表示です。
 
       o use_vertical_cursor (true/*false*)
@@ -289,9 +307,9 @@ comment $Id$
       o use_multi_column_char  (true/*false*)  (#)
         1 文字で複数コラムを占有する文字の処理を行なう
 
-        いわゆる全角文字を処理するかどうかを指定します。
-        w3m-m17n を縦表示で使用する場合には、このオプションを有効にしてください。
-         
+        いわゆる全角文字を処理するかどうかを指定します。 w3m-m17n を縦表示で使
+        用する場合には、このオプションを有効にしてください。
+
       o receive_string_via_ucs  (true/*false*) (#)
         copy and paste で受け取った XCOMPOUND TEXT や、XIM から入力された文字列
         を、一旦 UNICODE を経由してから端末エンコーディングに変換する
@@ -299,40 +317,40 @@ comment $Id$
       -- Font 関連 --
       o fontsize  (*16*) (#)
         デフォルトフォントサイズ
-        
+
       o font_size_range  (*6-30*)
         変更可能なフォントサイズの範囲
-        
+
         フォーマットは以下のとおり。
         [min]-[max]
-        
+
         e.g.)
         font_size_range = 10-24
         10 から 24 ポイントまで変更できるようになります
-              
+
       o step_in_changing_font_size (*1*)
         larger,smaller ボタンでのフォントサイズの変化量(*1*)
 
       o use_variable_column_width  (*false*) (#)
         可変長コラム幅を使用する
-        
+
       o use_anti_alias  (true/*false*) (#)
         アンチエイリアスフォントを使用する
-        
+
       o use_cp932_ucs_for_xft  (*true*/false)
         アンチエイリアス(Xft)時、JISX0208 の Unicode 変換に CP932 の変換テーブル
         を使う
-        
-        多くの Unicode フォント(東風、Dynalab フォント)は、CP932 の変換テーブル
-        を元に、JISX0208 用のフォントを格納しています。
-        「〜」などが表示されないという場合は、このオプションを有効にしてください。
-      
+
+        多くの Unicode フォント(東風、Dynalab フォント)は、CP932 の変換テーブ
+        ルを元に、JISX0208 用のフォントを格納しています。「〜」などが表示され
+        ないという場合は、このオプションを有効にしてください。
+
       o not_use_unicode_font  (true/*false*)
         UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに表示する
-        
+
       o only_use_unicode_font (true/*false*)
         すべての文字を UNICODE フォントだけを使って表示する
-        
+
       o iso88591_font_for_usascii (true/*false*)
         US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
 
@@ -344,23 +362,23 @@ comment $Id$
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)
         背景透過する
-      
+
       o use_scrollbar (*true*/false)
         スクロールバーをつける
-        
+
         scrollbar_mode , scrollbar_view_name オプションは、これが true の場合の
         み有効です。
         2.2.0 以前との互換オプションです。
-        
+
       o scrollbar_mode (none/*left*/right) (#)
         スクロールバーのつけ方
-        
+
       o scrollbar_view_name  (*simple*/sample/sample2/sample3/next/motif/athena/mozmodern) (#)
         使いたいスクロールバーの名前
 
       o fg_color  (*black*) (#)
         端末画面の前景色
-        
+
         fg_color,bg_colorに指定できる値は、rgb.txt で定義された色名、color ファ
         イルで定義した色名、または、#RRGGBB 形式の色指定です。
 
@@ -370,13 +388,13 @@ comment $Id$
 
       o bg_color  (*white*) (#)
         同背景色
-        
+
       o sb_fg_color (#)
         スクロールバーの前景色
-        
+
       o sb_bg_color (#)
         同背景色
-      
+
       o cursor_fg_color (#)
         カーソルの前景色
 
@@ -388,7 +406,7 @@ comment $Id$
 
       o fade_ratio  (*100*) (#)
         Focus から外れたときの前景/背景色の Fade 率(百分率)
-        
+
       o brightness  (*100*) (#)
         背景画像(透過処理含む)の輝度調整(百分率)
 
@@ -407,15 +425,43 @@ comment $Id$
       -- その他 --
       o use_xim  (*true*/false)
         XIM を使う
-        
+
         これを false にすると、XIM は一切使用できなくなります
-        
-      o xim_open_in_startup  (*true*/false)
-        起動時に XIM を open する
-        
+
+      o input_method
+        使用するインプットメソッド
+        フォーマットは以下のようになります。
+
+        [input method];[option1]:[option2]
+
+        [input method] にインプットメソッド(xim/uim/iiimf)を指定し、必要であ
+        れば ":" で区切ってオプションを列挙します。
+
+        各インプットメソッドのオプションは以下の通りです。
+
+        xim の場合: xim:[xim server]:[locale]
+        [xim server] で XIM サーバー名(kinput2, Ami, xcin など)を指定します。
+        指定しなかった場合は、環境変数 XMODIFIERS で指定した XIM サーバーが
+        使用されます。
+        [locale] に XIM サーバーを動かしているローケールを指定します。
+        指定しなかった場合はシステムのローケールが使用されます。
+        use_xim で xim を無効にした場合、xim を指定しても無視されます。
+
+        uim の場合:
+        uim:[conversion engine]
+        [conversion engine] に変換エンジン(anthy, prime, hangul2など)を指定しま
+        す。
+
+        iiimf の場合:
+        iiimf:[language id]:[language engine]
+        [language id] でRFC1766に従って言語(ar, zh_CN, ja など)を指定します。
+        指定しなかった場合はシステムのローケールから取得した言語が使われます。
+        [language engine] で使用する LE (CannaLE, newpy など)を指定します。
+        指定しなかった場合、[language id] のデフォルト LE が使用されます。
+
       o tabsize  (*8*) (#)
         タブ幅
-        
+
       o logsize  (*128*) (#)
         ログの行数
 
@@ -431,12 +477,12 @@ comment $Id$
         Meta キーを押下した時の挙動
 
         esc の場合、"0x1b" を、8bit の場合は、入力文字の8ビット目をたてます。
-        
+
       o bel_mode  (none/*sound*/visual) (#)
         BEL(0x7)を受け取った時の挙動
 
         soundの場合はビープ音で、visualの場合は画面ブランクでBELを通知します。
-        
+
       o conf_menu_path_[1-3]
         GUI 設定コマンドのパス
         conf_menu_path_1 は Ctrl+Button1、conf_menu_path_2 は Ctrl+Button2、
@@ -466,6 +512,14 @@ comment $Id$
 
       o logging_vt_seq (true/*false*)
         pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
+
+      --- 廃止されたもの ---
+      o xim_open_in_startup  (*true*/false)
+        起動時に XIM を open するという機能でしたが、インプットメソッド関連
+        のオプションを input_method に統合したので廃止されました。
+        現在 input_method に xim を指定すると XIM は必ず open されます。
+        代替手段として --im=none を指定して、mlterm 起動後に mlconfig などから、
+        xim を指定するとすることで対応してください。
 
     o font/vfont/aafont/vaafont/tfont/taafont
       o DEC_SPECIAL        ... 罫線文字用のフォント
@@ -501,52 +555,53 @@ comment $Id$
         のように、"_BOLD"をつけた名前で指定して下さい。
 
         フォーマットは、以下のようになります。
-        
+
         [default font name];[font size],[font name];[font size],[font name];...
 
-        [default font name] で、デフォルトのフォントを指定し、サイズごとにデフォル
-        トと異なるフォントを指定できます。
-        [default font name] に %d を含めておくと、そこにフォントサイズが入ります。
+        [default font name] で、デフォルトのフォントを指定し、サイズごとにデフォ
+        ルトと異なるフォントを指定できます。
+        [default font name] に %d を含めておくと、そこにフォントサイズが入りま
+        す。
 
         例えば、
-        
+
         ISO8859_1 = -kochi-mincho-medium-*-%d-*-iso8859-1;10,a10;
 
-        このように指定すると、10 point を除くすべてのサイズで東風フォントを使用し、
-        10 point については、a10 フォントを使用することができます。
+        このように指定すると、10 point を除くすべてのサイズで東風フォントを使
+        用し、 10 point については、a10 フォントを使用することができます。
 
         [font name] , [default font name] は、font , vfont(通常のXフォント)と、
         aafont , vaafont(Xft用フォント) で異なります。
-        
+
         o font/vfont/tfont
           [XLFD(*)](:[percentage])
 
           (*) もしくは、fonts.aliasで定義している省略記法。
-          
+
         o aafont/vaafont/taafont
           [font family]-[font encoding](:[percentage])
 
-          percentage は、そのフォントのグリフを表示するに、フォントサイズの何パー
-          セント分の幅をとるかを指定します。
-          例えば、フォントサイズが 12 の場合に、percentage として 100 を指定すると、
-          半角文字なら幅 6 , 全角文字なら幅 12 がとられます。
-          
-          percentage 指定がない場合、通常の X フォントについては、そのフォントの最
-          大幅が、Xft フォントについては、'W'が収まるだけの幅がとられます。
+          percentage は、そのフォントのグリフを表示するに、フォントサイズの何
+          パーセント分の幅をとるかを指定します。
+          例えば、フォントサイズが 12 の場合に、percentage として 100 を指定す
+          ると、半角文字なら幅 6 , 全角文字なら幅 12 がとられます。
 
-          percentage は、微妙に大きさの異なるフォントを組み合わせる場合の微調整や、
-          フォントの最大幅、'W' の幅が大きすぎるようなプロポーショナルフォントを使用
-          する場合などに使います。
-          
-          とくに、Dynalab フォントのように、'W' が全角幅で収められているフォントを
-          使用する場合は、必ず適切な指定を行なってください。
+          percentage 指定がない場合、通常の X フォントについては、そのフォント
+          の最大幅が、Xft フォントについては、'W'が収まるだけの幅がとられます。
+
+          percentage は、微妙に大きさの異なるフォントを組み合わせる場合の微調
+          整や、フォントの最大幅、'W' の幅が大きすぎるようなプロポーショナルフォ
+          ントを使用する場合などに使います。
+
+          とくに、Dynalab フォントのように、'W' が全角幅で収められているフォン
+          トを使用する場合は、必ず適切な指定を行なってください。
 
           e.g.)
           JISX0208_1983 = Hoge-iso10646-1:100;
 
-          但し、表示の際に基準となるフォント(US-ASCII相当のグリフを表示するフォント)
-          以外のフォントの percentage 指定は無視され、できるだけ基準フォントに合う
-          ような表示が優先されます。
+          但し、表示の際に基準となるフォント(US-ASCII相当のグリフを表示するフォ
+          ント) 以外のフォントの percentage 指定は無視され、できるだけ基準フォ
+          ントに合うような表示が優先されます。
 
           また、縦用フォントは、デフォルトで、すべて全角幅となりますので、
 
@@ -554,20 +609,20 @@ comment $Id$
 
           のようにすると、a10 フォントを無理矢理横幅 10 point で表示します。
 
-          percentage 指定の結果、プロポーショナルフォントを固定幅で表示する場合と
-          同じ扱いになる場合があります。
-          その際は、描画速度が低下しますので注意してください。
-          
-        vfont または、vaafont , taafont に、条件にあうフォントが見つからない場合、
-        それぞれ font , aafont が参照されます。
+          percentage 指定の結果、プロポーショナルフォントを固定幅で表示する場
+          合と同じ扱いになる場合があります。その際は、描画速度が低下しますので
+          注意してください。
 
-        フォントが指定されていない文字については、mltermが適当に判断して表示しま
-        す。ただし、TCVN5712フォントについては、自動検索しませんので、font/aafont
-        にて指定するようにしてください。
-        
-        ボールド体が指定されていない場合は、mediumフォントとして指定れたフォント、
-        もしくは、mltermが適当に見つけ出したmediumフォントを重ね打ちして、それっ
-        ぽくみせます。
+        vfont または、vaafont , taafont に、条件にあうフォントが見つからない場
+        合、それぞれ font , aafont が参照されます。
+
+        フォントが指定されていない文字については、mltermが適当に判断して表示し
+        ます。ただし、TCVN5712フォントについては、自動検索しませんので、
+        font/aafont にて指定するようにしてください。
+
+        ボールド体が指定されていない場合は、mediumフォントとして指定れたフォン
+        ト、もしくは、mltermが適当に見つけ出したmediumフォントを重ね打ちして、
+        それっぽくみせます。
         ボールド体フォントとして、mediumフォントを指定してやれば、重ねうちはしま
         せん。
         また、アンチエイリアスフォントについては、いずれにせよ、重ねうちはしませ
@@ -575,7 +630,7 @@ comment $Id$
 
         DEC_SPECIAL は、罫線文字の含まれている iso8859-1 フォントを指定してくだ
         さい。
-        
+
         GB18030 については、
         1-byte char : US_ASCII
         2-byte char : GBK
@@ -596,13 +651,15 @@ comment $Id$
         たフォントが使用されます。
 
     o color
-      新しい色名を定義したり、または、既存の色名の RGB 値を変更することができます。
-      フォーマットは以下のとおり。
+      新しい色名を定義したり、または、既存の色名の RGB 値を変更することができ
+      ます。フォーマットは以下のとおり。
 
-      color_name = [red]-[green]-[blue] ([red],[green],[blue]は、それぞれ 16 bit 16 進数表記です)
+      color_name = [red]-[green]-[blue]
+                   ([red],[green],[blue]は、それぞれ 16 bit 16 進数表記です)
       color_name = #RRGGBB (RR,GG,BB は、それぞれ 8 bit 16 進数表記です)
 
-      色名の先頭に hl_ を付けると、16 色対応における強調色の RGB 値を指定できます。
+      色名の先頭に hl_ を付けると、16 色対応における強調色の RGB 値を指定でき
+      ます。
 
     o xim
       mlterm では、複数の XIM の動的切替えをサポートしています。
@@ -627,8 +684,8 @@ comment $Id$
 
       o XIM_OPEN(Shift+space)
         XIM メソッドを Open します。
-        xim_open_in_startup が true に設定されている場合は、最初から Open されています
-        ので、使われません。
+        xim_open_in_startup が true に設定されている場合は、最初から Open され
+        ていますので、使われません。
       o XIM_CLOSE(UNUSED)
       o EXT_KBD(UNUSED)
         アラビア語、インド諸語の mlterm 内蔵入力メソッドを起動、終了します。
@@ -672,20 +729,22 @@ comment $Id$
       Control+backslash=XIM_OPEN
       Control+backslash を押下すると、XIM サーバに接続します。
 
-      "" で囲まれた文字列としては、'\x'から始まる16進数、'\n','\r','\e','\t' が使えます。
+      "" で囲まれた文字列としては、'\x'から始まる16進数、'\n','\r','\e','\t'
+      が使えます。
       また、"" で囲まれた文字列が、'proto:' から始まっている場合、以降の文字列を
-      doc/en/PROTOCOL の set プロトコル(の簡略版。key=value を ';' で区切って複数指定)と
-      解釈されます。
+      doc/en/PROTOCOL の set プロトコル(の簡略版。key=value を ';' で区切って
+      複数指定)と解釈されます。
 
       e.g.)
       Control+F1="proto:font_size=12;encoding=utf8"
-      Control+F1 を押下すると、フォントサイズが 12、エンコーディングが utf8 になります。
+      Control+F1 を押下すると、フォントサイズが 12、エンコーディングが utf8 に
+      なります。
 
     o termcap
       termcapデータベースもどき
       様々な TERM ごとに、その挙動を定義できます。
       端末名 '*' で、デフォルトの設定を定義できます。
-      
+
       `\E' , `^A' などが使えます。
       `\' のあとに8進数を指定する記法はサポートしていません。
 
@@ -707,10 +766,10 @@ comment $Id$
 
   o 引数オプション
     (X) のついているオプションは、mlclient からは指定できません。
-    
+
     -h/--help(=bool)   : ヘルプ (X)
     -v/--version(=bool) : バージョン情報(あまり信用できない:D) (X)
-   
+
     -#/--initstr=value : init_str
     -%/--logseq        : logging_vt_seq
     -$/--mc=value      : click_interval
@@ -749,7 +808,6 @@ comment $Id$
     -U/--viaucs=value  : receive_string_via_ucs
     -V/--varwidth(=bool): use_variable_column_width
     -W/--sep=value     : word_separators (X)
-    -X/--openim(=bool) : xim_open_in_startup
     -Y/--decsp(=bool)  : compose_dec_special_font (X)
     -Z/--multicol(=bool): use_multi_column_char
     -a/--ac=value      : col_size_of_width_a
@@ -775,11 +833,12 @@ comment $Id$
     -x/--tw=value      : tabsize
     -y/--term=value    : term_type
     -z/--largesmall=value : step_in_changing_font_size
+       --input_method=value: input_method
 
     -e ... : 指定したコマンドを起動
 
     o オプションは、以下のフォーマットを受け付けます。
-      (-E/--km,-X/--openimを例に)
+      (-E/--km,-J/--dyncombを例に)
 
       -E=euc-jp
       -E euc-jp
@@ -788,21 +847,21 @@ comment $Id$
       --km euc-jp
       --km=euc-jp
 
-      -X  (-X=trueと同じ)
-      -X=true
-      -X=false
-      -X true
-      -X false
-      -openim  (-openim=trueと同じ)
-      -openim=true
-      -openim=false
-      -openim true
-      -openim false
-      --openim  (-openim=trueと同じ)
-      --openim=true
-      --openim=false
-      --openim true
-      --openim false
+      -J  (-J=trueと同じ)
+      -J=true
+      -J=false
+      -J true
+      -J false
+      -dyncomb  (-dyncomb=trueと同じ)
+      -dyncomb=true
+      -dyncomb=false
+      -dyncomb true
+      -dyncomb false
+      --dyncomb  (-dyncomb=trueと同じ)
+      --dyncomb=true
+      --dyncomb=false
+      --dyncomb true
+      --dyncomb false
 
 * 操作方法
   o キーボード
@@ -823,10 +882,10 @@ comment $Id$
   o マウス
     ドラッグすれば領域選択できます。
     また、そのまま、スクロールすることもできます。
-    
+
     コンソールアプリケーションがマウスイベントを横取りしている場合は、Shift +
     Button で領域選択できます。
-   
+
     Ctrl+左ボタン(ボタン1)で、メニューがでます。 
     Ctrl+右ボタン(ボタン3)で、設定画面がでます。
 

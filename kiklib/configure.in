@@ -75,7 +75,7 @@ cygwin*)
 	;;
 mingw32*)
 	kik_cv_mingw32=yes
-	AC_DEFINE(USE_WIN32API)
+	AC_DEFINE(USE_WIN32API,,"USE_WIN32API")
 	;;
 *)
 	;;
@@ -95,7 +95,7 @@ AC_CACHE_CHECK(for socklen_t, kik_cv_socklen_ident,
 socklen_t  len ;
 ], kik_cv_socklen_ident=yes, kik_cv_socklen_ident=no)])
 if test "${kik_cv_socklen_ident}" = "no" ; then
-	AC_DEFINE(socklen_t, unsigned int)
+	AC_DEFINE(socklen_t, unsigned int, "socklen_t")
 fi
 
 
@@ -108,7 +108,7 @@ AC_TRY_COMPILE(,
 char * p = "[" __FUNCTION__ "]" ;
 ] , kik_cv_func_ident=yes,kik_cv_func_ident=no)])
 if test "${kik_cv_func_ident}" = "yes" ; then
-	AC_DEFINE(HAVE_FUNCTION)
+	AC_DEFINE(HAVE_FUNCTION,,"HAVE_FUNCTION")
 fi
 
 
