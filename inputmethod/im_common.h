@@ -6,17 +6,19 @@ im_convert_encoding(
 	mkf_parser_t *  parser , /* must be initialized */
 	mkf_conv_t *  conv ,
 	u_char *  from ,
-	u_char **  to ,		/* *to must be NULL */
+	u_char **  to ,
 	u_int  from_len
 	)
 {
 	u_int  len ;
 	u_int  filled_len ;
 
-	if( from == NULL || parser == NULL || conv == NULL || *to)
+	if( from == NULL || parser == NULL || conv == NULL)
 	{
 		return  0 ;
 	}
+
+	*to = NULL ;
 
 	len = 0 ;
 

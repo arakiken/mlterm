@@ -32,7 +32,9 @@ typedef struct x_im_candidate_screen
 	x_color_manager_t *  color_man ;	/* same as attaced screen */
 
 	x_im_candidate_t *  candidates ;
-	u_int  num_of_candidates ;		/* == number of array     */
+	u_int  num_of_candidates ;		/* == array size          */
+
+	u_int  num_per_window ;
 
 	u_int  index ;		/* current selected index of candidates   */
 
@@ -52,7 +54,7 @@ typedef struct x_im_candidate_screen
 	int (*show)( struct x_im_candidate_screen *) ;
 	int (*hide)( struct x_im_candidate_screen *) ;
 	int (*set_spot)( struct x_im_candidate_screen * , int  , int) ;
-	int (*init)( struct x_im_candidate_screen * , u_int) ;
+	int (*init)( struct x_im_candidate_screen * , u_int , u_int) ;
 	int (*set)( struct x_im_candidate_screen * ,
 		    mkf_parser_t * , u_char * , u_int) ;
 	int (*select)( struct x_im_candidate_screen *  cand_screen , u_int) ;

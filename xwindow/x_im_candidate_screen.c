@@ -10,10 +10,10 @@
 #define  MARGIN		3
 #define  LINE_SPACE	2
 
-#define  VISIBLE_INDEX( n , i , t , l)		\
+#define  VISIBLE_INDEX( n , p , i , t , l)	\
 do {						\
-	(t) = ((i) / 10) * 10 ;			\
-	(l) = (t) + 9 ;				\
+	(t) = ((i) / p) * p ;			\
+	(l) = (t) + p - 1 ;			\
 	if( (l) > (n) - 1)			\
 	{					\
 		(l) = (n) - 1 ;			\
@@ -24,14 +24,14 @@ do {						\
  * calculate max number of digits
  */
 
-#define  NUM_OF_DIGITS( n , l)			\
+#define  NUM_OF_DIGITS( n , d)			\
 do {						\
 	int  v10 ;				\
 	(n) = 1 ;				\
 	v10 = 10 ;				\
 	while( 1)				\
 	{					\
-		if( ( (l) + 1) / v10)		\
+		if( (d) / v10)			\
 		{				\
 			(n)++ ;			\
 			v10 *= 10 ;		\
@@ -140,10 +140,11 @@ draw_screen(
 	int  n ;
 
 	VISIBLE_INDEX(cand_screen->num_of_candidates ,
+		      cand_screen->num_per_window ,
 		      cand_screen->index ,
 		      top , last) ;
 
-	NUM_OF_DIGITS( num_of_digits , last) ;
+	NUM_OF_DIGITS( num_of_digits , last - top + 1) ;
 
 	/*
 	 * resize window
@@ -151,21 +152,21 @@ draw_screen(
 
 	/*
 	 * width : [digit] + [space] + [max_candidate_width]
-	 *         of width of "index/total"
-	 * height: ([ascii height] + [line space]) x (10 + 1)
+	 *         or width of "index/total"
+	 * height: ([ascii height] + [line space]) x (num_per_window + 1)
 	 *         or ([ascii height] + [line space)] x num_of_candidates
 	 *   +-------------------+
-	 *   |1  cand0           |
-	 *   |2  cand1           |
-	 *   |3  cand2           |
-	 *   |4  cand3           |
-	 *   |5  cand4           |
-	 *   |6  cand5           |
-	 *   |7  cand6           |
-	 *   |8  cand7           |
-	 *   |9  widest candidate|
-	 *   |10 cand9           |
-	 *   |    index/total    |--> show if total > 10
+	 *   |1  cand0           |\
+	 *   |2  cand1           | \
+	 *   |3  cand2           |  |
+	 *   |4  cand3           |  |
+	 *   |5  cand4           |  |-- num_per_window
+	 *   |6  cand5           |  |
+	 *   |7  cand6           |  |
+	 *   |8  cand7           |  |
+	 *   |9  widest candidate| /
+	 *   |10 cand9           |/
+	 *   |    index/total    |--> show if total > num_per_window
 	 *   +-------------------+
 	 */
 
@@ -182,13 +183,15 @@ draw_screen(
 	}
 
 	/* height of window */
-	if( cand_screen->num_of_candidates > 10)
+	if( cand_screen->num_of_candidates > cand_screen->num_per_window)
 	{
-		win_height = (xfont->height + LINE_SPACE) * 11 ;
+		win_height = (xfont->height + LINE_SPACE) *
+			     (cand_screen->num_per_window + 1) ;
 	}
 	else
 	{
-		win_height = (xfont->height + LINE_SPACE) * cand_screen->num_of_candidates ;
+		win_height = (xfont->height + LINE_SPACE) *
+			     cand_screen->num_of_candidates ;
 	}
 
 	x_window_resize( &cand_screen->window , win_width , win_height , 0) ;
@@ -222,7 +225,7 @@ draw_screen(
 		 * |1 cand0   |
 		 *  ^
 		 */
-		snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i     " , i + 1) ;
+		snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i    " , i - top + 1) ;
 
 		for( j = 0 ; j < num_of_digits + 1 ; j++)
 		{
@@ -291,7 +294,7 @@ draw_screen(
 	 * | index/total | <-- draw this
 	 * +-------------+
 	 */
-	if( cand_screen->num_of_candidates > 10)
+	if( cand_screen->num_of_candidates > cand_screen->num_per_window)
 	{
 		u_char  navi[MAX_NUM_OF_DIGITS * 2 + 4];
 		u_int  width ;
@@ -322,7 +325,7 @@ draw_screen(
 				    cand_screen->color_man ,
 				    &ch , 1 ,
 				    x + i * xfont->width ,
-				    (xfont->height + LINE_SPACE)*10 + LINE_SPACE,
+				    (xfont->height + LINE_SPACE) * cand_screen->num_per_window + LINE_SPACE,
 				    xfont->height ,
 				    xfont->height_to_baseline ,
 				    0 , 0) ;
@@ -344,10 +347,11 @@ adjust_window_position(
 	u_int  num_of_digits ;
 
 	VISIBLE_INDEX( cand_screen->num_of_candidates ,
+		       cand_screen->num_per_window ,
 		       cand_screen->index ,
 		       top , last) ;
 
-	NUM_OF_DIGITS( num_of_digits , last) ;
+	NUM_OF_DIGITS( num_of_digits , last - top + 1) ;
 
 	if( cand_screen->is_vertical)
 	{
@@ -435,7 +439,8 @@ set_spot(
 static int
 init_candidates(
 	x_im_candidate_screen_t *  cand_screen ,
-	unsigned int num_of_candidates
+	u_int num_of_candidates ,
+	u_int num_per_window
 	)
 {
 	int  i ;
@@ -449,6 +454,7 @@ init_candidates(
 	}
 
 	cand_screen->num_of_candidates = num_of_candidates ;
+	cand_screen->num_per_window = num_per_window ;
 
 	/* allocate candidates(x_im_candidate_t) array */
 	if( ( cand_screen->candidates = malloc( sizeof( x_im_candidate_t) * cand_screen->num_of_candidates)) == NULL)
@@ -478,7 +484,7 @@ set_candidate(
 	x_im_candidate_screen_t *  cand_screen ,
 	mkf_parser_t *  parser ,
 	u_char *  str ,
-	u_int index
+	u_int  index
 	)
 {
 	int  count = 0 ;
@@ -637,21 +643,24 @@ select_candidate(
 	}
 
 	VISIBLE_INDEX( cand_screen->num_of_candidates ,
+		       cand_screen->num_per_window ,
 		       cand_screen->index ,
 		       top , last) ;
 
-	NUM_OF_DIGITS( prev_num_of_digits , last) ;
+	NUM_OF_DIGITS( prev_num_of_digits , last - top + 1) ;
 
 	VISIBLE_INDEX( cand_screen->num_of_candidates ,
+		       cand_screen->num_per_window ,
 		       index , top , last) ;
 
-	NUM_OF_DIGITS( num_of_digits , last) ;
+	NUM_OF_DIGITS( num_of_digits , last - top + 1) ;
 
 	if( ! cand_screen->is_vertical && prev_num_of_digits != num_of_digits)
 	{
 		int  diff ;
-		
-		diff = x_get_usascii_font( cand_screen->font_man)->width * ( num_of_digits - prev_num_of_digits) ;
+
+		diff = x_get_usascii_font( cand_screen->font_man)->width *
+		       ( num_of_digits - prev_num_of_digits) ;
 
 		x_window_move( &cand_screen->window ,
 			       cand_screen->window.x - diff ,
@@ -733,6 +742,7 @@ button_pressed(
 	x_im_candidate_screen_t *  cand_screen ;
 	u_int  index ;
 	u_int  top ;
+	u_int  last ;
 
 	cand_screen = (x_im_candidate_screen_t *) win ;
 
@@ -746,7 +756,10 @@ button_pressed(
 		return ;
 	}
 
-	top = (cand_screen->index / 10) * 10 ;	/* ten's place */
+	VISIBLE_INDEX(cand_screen->num_of_candidates ,
+		      cand_screen->num_per_window ,
+		      cand_screen->index ,
+		      top , last) ;
 
 	index = event->y / (x_get_usascii_font( cand_screen->font_man)->height + LINE_SPACE);
 

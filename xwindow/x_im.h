@@ -94,7 +94,7 @@ x_im_t *  x_im_new( ml_char_encoding_t  term_encoding ,
 
 void  x_im_redraw_preedit( x_im_t *  im , int  is_focused) ;
 
-#define  IM_API_VERSION  0x04
+#define  IM_API_VERSION  0x05
 #define  IM_API_COMPAT_CHECK_MAGIC			\
 	 (IM_API_VERSION & 0xff << 28 |			\
 	 ((sizeof( x_im_t) & 0xff) << 20) |		\

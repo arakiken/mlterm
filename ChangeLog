@@ -1,4 +1,30 @@
+2004-09-19 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* x_im.h: increased IM_API_VERSION.
+
+	* etc/xim: removed uim-*.
+
+	* inputmethod/uim/im_uim.c (prop_list_update, prop_label_update):
+	  - sent engine name to uim helper.
+	  - minor cleanups.
+
+	* inputmethod/iiimf/im_iiimf.c (atokx_lookup_show, atokx_lookup_hide,
+	  atokx_lookup_select, atokx_lookup_set, atokx_lookup): new functions
+	  for handling the candidate window using ATOK X LookupAux event.
+
+	* inputmethod/iiimf/im_iiimf.c (show_iiimcf_version): new function
+	  for debugging.
+
+	* inputmethod/iiimf/im_iiimf.c: minor cleanups.
+
+	* inputmethod/im_common.h (im_convert_encoding): minor cleanups.
+
+	* x_im_candidate_screen.c (init_candidates)
+	  x_im_candidate_screen.h (x_im_candidate_t):
+	  added new parameter 'num_per_window'.
+
 2004-09-19 MINAMI Hirokazu <minami@mistfall.net>
+
 	* mkf_ucs4_koi8.c: fixed mapping for cyryllic capital letter
 	ukrainian ie. Thanks to Eugeniy Meshcheryakov(Debian BTS #267631).
 
@@ -387,7 +413,7 @@
 
 	Uim related things have been implemented as plug-ins(pluggable
 	modules). This change enables mlterm to be compiled without -luim in
-	the case of either --enable-uim or --disable-uim, and libuim is
+	case of either --enable-uim or --disable-uim, and libuim is
 	required from this module only.
 
 	* x_im.c, x_im.h: new file, used to load input method plug-ins.
@@ -1783,7 +1809,7 @@
 	  - To compile DLL on Cygwin environment, added "-no-undefined" to
 	    libtool option.
 	  - Added ".exe" suffix in "clean" target in Makefile.
-	  - In the case of Cygwin, the dynamic library name is "cygfoo.dll".
+	  - In case of Cygwin, the dynamic library name is "cygfoo.dll".
 	    It's supported now.
 	  (Thanks to Sakai Masahiro san)
 	  NOTE: To compile mlterm with DLL support on Cygwin, recent libtool is

@@ -67,6 +67,8 @@ typedef struct im_uim
 	/* native encoding of conversion engine */
 	char *  encoding_name ;
 
+	char *  engine_name ;
+
 	mkf_parser_t *  parser_uim ;	/* for uim encoding  */
 	mkf_parser_t *  parser_term ;	/* for term encoding  */
 	mkf_conv_t *  conv ;
@@ -119,7 +121,7 @@ find_engine(
 			if( encoding_name)
 			{
 			#ifdef  IM_UIM_DEBUG
-				kik_debug_printf("conversion engine: %s, native encoding: %s\n" , engine , *encoding_name);
+				kik_debug_printf( KIK_DEBUG_TAG "conversion engine: %s, native encoding: %s\n" , engine , *encoding_name);
 			#endif
 
 				result = 1 ;
@@ -362,19 +364,25 @@ prop_list_update(
 	}
 #endif
 
-	len = 26 + strlen( uim->encoding_name) + strlen( str) + 1 ;
+#define PROP_LIST_FORMAT			\
+	"prop_list_update\ncharset=%s\n%s"	\
+	"branch\t%s\t%s\n"
+
+	len = strlen(PROP_LIST_FORMAT) + strlen( uim->encoding_name) +
+	      strlen( str) + (strlen(uim->engine_name) * 2) + 1 ;
 
 	if( len > sizeof( buf))
 	{
 	#ifdef  DEBUG
-		kik_debug_printf( "property list string is too long.");
+		kik_warn_printf( "property list string is too long.");
 	#endif
 
 		return ;
 	}
 
-	kik_snprintf( buf , sizeof(buf) , "prop_list_update\ncharset=%s\n%s" ,
-		      uim->encoding_name , str) ;
+	kik_snprintf( buf , sizeof(buf) , PROP_LIST_FORMAT ,
+		      uim->encoding_name , str ,
+		      uim->engine_name , uim->engine_name) ;
 
 	uim_helper_send_message( helper_fd , buf) ;
 }
@@ -402,19 +410,23 @@ prop_label_update(
 	}
 #endif
 
-	len = 27 + strlen( uim->encoding_name) + strlen( str) + 1 ;
+#define PROP_LABEL_FORMAT "prop_label_update\ncharset=%s\n%s%s\t%s\n"
+
+	len = strlen(PROP_LABEL_FORMAT) + strlen( uim->encoding_name) +
+	      strlen( str) + (strlen(uim->engine_name) * 2) + 1 ;
 
 	if( len > sizeof( buf))
 	{
 	#ifdef  DEBUG
-		kik_debug_printf( "property label string is too long.");
+		kik_warn_printf( "property label string is too long.");
 	#endif
 
 		return ;
 	}
 
-	kik_snprintf( buf , sizeof(buf) , "prop_label_update\ncharset=%s\n%s" ,
-		      uim->encoding_name , str) ;
+	kik_snprintf( buf , sizeof(buf) , PROP_LABEL_FORMAT ,
+		      uim->encoding_name , str ,
+		      uim->engine_name , uim->engine_name) ;
 
 	uim_helper_send_message( helper_fd , buf) ;
 }
@@ -506,7 +518,7 @@ preedit_pushback(
 	)
 {
 	im_uim_t *  uim ;
-	u_char *  str = NULL ;
+	u_char *  str ;
 	ml_char_t *  p ;
 	mkf_char_t  ch ;
 	ml_color_t  fg_color = ML_FG_COLOR ;
@@ -704,7 +716,6 @@ candidate_selected(
 	)
 {
 	im_uim_t *  uim ;
-	u_int  num_of_candidates ;
 
 #ifdef  IM_UIM_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " index : %d\n" , index) ;
@@ -767,7 +778,7 @@ candidate_activate(
 		uim->im.cand_screen->listener.selected = candidate_selected ;
 	}
 
-	if( ! (*uim->im.cand_screen->init)( uim->im.cand_screen , num))
+	if( ! (*uim->im.cand_screen->init)( uim->im.cand_screen , num , 10))
 	{
 		(*uim->im.cand_screen->delete)( uim->im.cand_screen) ;
 
@@ -908,6 +919,11 @@ delete(
 	if( uim->im.cand_screen)
 	{
 		(*uim->im.cand_screen->delete)( uim->im.cand_screen) ;
+	}
+
+	if( uim->engine_name)
+	{
+		free( uim->engine_name) ;
 	}
 
 	uim_release_context( uim->context) ;
@@ -1147,6 +1163,7 @@ im_new(
 	}
 
 	uim->encoding_name = encoding_name ;
+	uim->engine_name = strdup( engine) ;
 	uim->parser_uim = NULL ;
 	uim->parser_term = NULL ;
 	uim->conv = NULL ;
@@ -1258,6 +1275,11 @@ error:
 		if( uim->conv)
 		{
 			(*uim->conv->delete)( uim->conv) ;
+		}
+
+		if( uim->engine_name)
+		{
+			free( uim->engine_name) ;
 		}
 
 		free( uim) ;

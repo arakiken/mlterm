@@ -30,12 +30,12 @@
  *	$Id$
  */
 
-
-#define HAVE_STDINT_H 1		/* FIXME */
+#define  HAVE_STDINT_H 1	/* FIXME */
 #include  <iiimcf.h>
+
 #include  <string.h>		/* strncmp */
 #include  <X11/keysym.h>	/* XK_xxx */
-#include  <kiklib/kik_str.h>	/* kik_str_sep, kik_snprintf */
+#include  <kiklib/kik_str.h>	/* kik_str_sep kik_str_alloca_dup kik_snprintf*/
 #include  <kiklib/kik_locale.h>	/* kik_get_lang */
 #include  <kiklib/kik_debug.h>
 #include  <mkf/mkf_utf16_parser.h>
@@ -45,7 +45,11 @@
 #include  "../im_common.h"
 
 #if  0
-#define IM_IIIMF_DEBUG 1
+#define  IM_IIIMF_DEBUG 1
+#endif
+
+#if  1
+#define  IM_IIIMF_ATOKX_LOOKUP_HACK 1
 #endif
 
 /*
@@ -61,12 +65,11 @@ do {								\
 	(*(parser)->next_char)( ( parser) , NULL) ;		\
 } while(0)
 
-/* XXX: it seems to undefined in iiim*.h. why? */
+/* XXX: it seems to be undefined in iiim*.h. why? */
 #define  IIIMF_SHIFT_MODIFIER	1
 #define  IIIMF_CONTROL_MODIFIER	2
 #define  IIIMF_META_MODIFIER	4
 #define  IIIMF_ALT_MODIFIER	8
-
 
 typedef struct im_iiimf
 {
@@ -80,15 +83,16 @@ typedef struct im_iiimf
 
 }  im_iiimf_t ;
 
+
 /* --- static variables --- */
 
 static int  ref_count = 0 ;
 static int  initialized = 0 ;
 static mkf_parser_t *  parser_utf16 = NULL ;
 static IIIMCF_handle  handle = NULL ;
-
 /* mlterm internal symbols */
 static x_im_export_syms_t *  mlterm_syms = NULL ;
+
 
 /* --- static functions --- */
 
@@ -119,20 +123,21 @@ strlen_utf16(
 
 static IIIMCF_language
 find_language(
-	char *  language_id
+	char *  lang
 	)
 {
 	IIIMCF_language *  array ;
-	IIIMCF_language  result = NULL ;
+	IIIMCF_language  best_result = NULL ;
+	IIIMCF_language  better_result = NULL ;
 	char *  p = NULL ;
 	char *  language = NULL;
 	char *  country = NULL ;
 	int  num ;
 	int  i ;
 
-	if( language_id)
+	if( lang)
 	{
-		p = strdup( language_id) ;
+		p = kik_str_alloca_dup( lang) ;
 
 		if( ( country = kik_str_sep( &p , ":")))
 		{
@@ -168,27 +173,19 @@ find_language(
 
 				if( strcmp( buf , lang_id) == 0)
 				{
-					result = array[i] ;
-					break ;
+					best_result = array[i] ;
 				}
 			}
 
-			/* Second, compare with lang like "ja" */
+			/* Next, compare with lang like "ja" */
 			if( strcmp( language , lang_id) == 0)
 			{
-				result = array[i] ;
-				break ;
+				better_result = array[i] ;
 			}
 		}
 	}
 
-
-	if( p)
-	{
-		free( p) ;
-	}
-
-	return  result ;
+	return  (best_result ? best_result : better_result) ;
 }
 
 static IIIMCF_input_method
@@ -213,14 +210,16 @@ find_language_engine(
 		return  NULL ;
 	}
 
-	le_name ++;	/* ex. ":CannaLE" -> "CannaLE" */
+	le_name ++;	/* remove ":". ex. ":CannaLE" -> "CannaLE" */
 
 	if( ! ( conv = (*mlterm_syms->ml_conv_new)( ML_ISO8859_1)))
 	{
 		return  NULL ;
 	}
 
-	if( iiimcf_get_supported_input_methods( handle , &num , &array) == IIIMF_STATUS_SUCCESS)
+	if( iiimcf_get_supported_input_methods( handle ,
+						&num ,
+						&array) == IIIMF_STATUS_SUCCESS)
 	{
 		for( i = 0 ; i < num ; i++)
 		{
@@ -252,7 +251,7 @@ find_language_engine(
 				if( strncmp( le_name , buf , filled_len) == 0)
 				{
 				#ifdef  IM_IIIMF_DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG " found %s.\n", le_name) ;
+					kik_debug_printf( KIK_DEBUG_TAG " found le [%s].\n", le_name) ;
 				#endif
 
 					result = array[i] ;
@@ -264,6 +263,52 @@ find_language_engine(
 	(*conv->delete)( conv) ;
 
 	return  result ;
+}
+
+
+static void
+show_iiimcf_version( void)
+{
+#ifdef  IM_IIIMF_DEBUG
+#define  SHOW_VER( flag , str)						\
+do { 									\
+	int  ver ;							\
+	if( iiimcf_get_version_number( handle , (flag) , &ver)		\
+						== IIIMF_STATUS_ARGUMENT)\
+	{								\
+		kik_debug_printf( KIK_DEBUG_TAG "%s\t\t:%d\n" , (str) , ver) ;\
+	}								\
+	else								\
+	{								\
+		kik_debug_printf( KIK_DEBUG_TAG "%s\t\t:none\n" , (str)) ;\
+	}								\
+} while (0)
+
+	SHOW_VER( IIIMCF_LIBRARY_VERSION , "library version") ;
+	SHOW_VER( IIIMCF_PROTOCOL_VERSION , "protocol version") ;
+	SHOW_VER( IIIMCF_MINOR_VERSION , "minor version") ;
+	SHOW_VER( IIIMCF_MAJOR_VERSION , "major version") ;
+#endif
+}
+
+
+/*
+ * callback for candidate screen events
+ */
+
+static void
+candidate_selected(
+	void *  p ,
+	u_int  index
+	)
+{
+	im_iiimf_t *  iiimf ;
+
+#ifdef  IM_IIIMF_DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " index : %d\n" , index) ;
+#endif
+
+	/* not implemented yet. */
 }
 
 
@@ -281,8 +326,8 @@ commit(
 	u_char  buf[256] ;
 	size_t  filled_len ;
 
-#ifdef  IM_UIM_DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG "\n");
+#ifdef  IM_IIIMF_DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG "\n");
 #endif
 
 	if( iiimcf_get_committed_text( iiimf->context , &iiimcf_text) != IIIMF_STATUS_SUCCESS)
@@ -354,7 +399,7 @@ preedit_change(
 {
 	IIIMCF_text  iiimcf_text ;
 	const IIIMP_card16 *  utf16str ;
-	u_char *  str = NULL ;
+	u_char *  str ;
 	ml_char_t *  p ;
 	mkf_char_t  ch ;
 	int  is_underline = 0 ;
@@ -644,6 +689,14 @@ lookup_choice_change(
 	int  x ;
 	int  y ;
 	int  i ;
+	int  num_per_window ;
+	int  row ;
+	int  col ;
+	int  direction ;
+
+#ifdef  IM_IIIMF_DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG "\n");
+#endif
 
 	if( iiimcf_get_lookup_choice( iiimf->context , &lookup_choice) != IIIMF_STATUS_SUCCESS)
 	{
@@ -660,47 +713,68 @@ lookup_choice_change(
 					   &index_current) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " Cound not get lookup table\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " Cound not get lookup table.\n") ;
 	#endif
 		return ;
 	}
+
+	if( iiimcf_get_lookup_choice_configuration(
+					lookup_choice ,
+					&num_per_window ,
+					&row ,
+					&col ,
+					&direction) != IIIMF_STATUS_SUCCESS)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " Cound not get lookup information.\n") ;
+	#endif
+		return ;
+	}
+
+#ifdef  IM_IIIMF_DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG "size:          %d\n" , size) ;
+	kik_debug_printf( KIK_DEBUG_TAG "index_first:   %d\n" , index_first) ;
+	kik_debug_printf( KIK_DEBUG_TAG "index_last:    %d\n" , index_last) ;
+	kik_debug_printf( KIK_DEBUG_TAG "index_current: %d\n" , index_current) ;
+	kik_debug_printf( KIK_DEBUG_TAG "num_per_window:%d\n" , num_per_window);
+	kik_debug_printf( KIK_DEBUG_TAG "row:           %d\n" , row) ;
+	kik_debug_printf( KIK_DEBUG_TAG "col:           %d\n" , col) ;
+#endif
 
 	if( index_first == 0 && index_last == 0)
 	{
 		return ;
 	}
 
-		(*iiimf->im.listener->get_spot)(
-					iiimf->im.listener->self ,
-					iiimf->im.preedit.chars ,
-					iiimf->im.preedit.segment_offset ,
-					&x , &y) ;
+	(*iiimf->im.listener->get_spot)(
+				iiimf->im.listener->self ,
+				iiimf->im.preedit.chars ,
+				iiimf->im.preedit.segment_offset ,
+				&x , &y) ;
 
-	if( iiimf->im.cand_screen)
+	if( ! iiimf->im.cand_screen)
 	{
-		(*iiimf->im.cand_screen->delete)( iiimf->im.cand_screen) ;
-		iiimf->im.cand_screen = NULL ;
+		if( ! ( iiimf->im.cand_screen = (*mlterm_syms->x_im_candidate_screen_new)(
+				(*iiimf->im.listener->get_win_man)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->get_color_man)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->is_vertical)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->get_line_height)(iiimf->im.listener->self) ,
+				x , y)))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " x_im_candidate_screen_new() failed.\n") ;
+		#endif
+			
+			return ;
+		}
+
+		iiimf->im.cand_screen->listener.self = iiimf ;
+		iiimf->im.cand_screen->listener.selected = candidate_selected ;
 	}
 
-	if( ! ( iiimf->im.cand_screen = (*mlterm_syms->x_im_candidate_screen_new)(
-			(*iiimf->im.listener->get_win_man)(iiimf->im.listener->self) ,
-			(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
-			(*iiimf->im.listener->get_color_man)(iiimf->im.listener->self) ,
-			(*iiimf->im.listener->is_vertical)(iiimf->im.listener->self) ,
-			(*iiimf->im.listener->get_line_height)(iiimf->im.listener->self) ,
-			x , y)))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_im_candidate_screen_new() failed.\n") ;
-	#endif
-		
-		return ;
-	}
-
-	iiimf->im.cand_screen->listener.self = iiimf ;
-	iiimf->im.cand_screen->listener.selected = NULL ; /* XXX */
-
-	if( ! (*iiimf->im.cand_screen->init)( iiimf->im.cand_screen , size))
+	if( ! (*iiimf->im.cand_screen->init)( iiimf->im.cand_screen , size ,
+				              num_per_window))
 	{
 		(*iiimf->im.cand_screen->delete)( iiimf->im.cand_screen) ;
 		iiimf->im.cand_screen = NULL ;
@@ -709,7 +783,7 @@ lookup_choice_change(
 
 	(*iiimf->im.cand_screen->set_spot)( iiimf->im.cand_screen , x , y) ;
 
-	for( i = 0 ; i <= index_last ; i++)
+	for( i = index_first ; i <= index_last ; i++)
 	{
 		IIIMCF_text  iiimcf_text_cand ;
 		IIIMCF_text  iiimcf_text_label ;
@@ -733,8 +807,7 @@ lookup_choice_change(
 					&utf16str) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-					 " Cound not get utf16 string\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " Cound not get utf16 string\n") ;
 		#endif
 			continue ;
 		}
@@ -768,6 +841,180 @@ lookup_choice_done(
 	}
 }
 
+#ifdef  IM_IIIMF_ATOKX_LOOKUP_HACK
+static void
+atokx_lookup_show(
+	im_iiimf_t *  iiimf
+	)
+{
+}
+
+static void
+atokx_lookup_hide(
+	im_iiimf_t *  iiimf
+	)
+{
+	if( iiimf->im.cand_screen)
+	{
+		(*iiimf->im.cand_screen->delete)( iiimf->im.cand_screen) ;
+		iiimf->im.cand_screen = NULL ;
+	}
+}
+
+static void
+atokx_lookup_select(
+	im_iiimf_t *  iiimf ,
+	int  index
+	)
+{
+	(*iiimf->im.cand_screen->select)( iiimf->im.cand_screen , index) ;
+}
+
+static void
+atokx_lookup_set(
+	im_iiimf_t *  iiimf ,
+	const IIIMP_card16 **  candidates ,
+	int  num_of_candidate ,
+	int  num_per_window ,
+	int  index
+	)
+{
+	u_char *  str = NULL ;
+	int  top ;
+	int  x ;
+	int  y ;
+	int  i ;
+
+	(*iiimf->im.listener->get_spot)(
+				iiimf->im.listener->self ,
+				iiimf->im.preedit.chars ,
+				iiimf->im.preedit.segment_offset ,
+				&x , &y) ;
+
+	if( ! iiimf->im.cand_screen)
+	{
+		if( ! ( iiimf->im.cand_screen = (*mlterm_syms->x_im_candidate_screen_new)(
+				(*iiimf->im.listener->get_win_man)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->get_color_man)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->is_vertical)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->get_line_height)(iiimf->im.listener->self) ,
+				x , y)))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " x_im_candidate_screen_new() failed.\n") ;
+		#endif
+			
+			return ;
+		}
+
+		iiimf->im.cand_screen->listener.self = iiimf ;
+		iiimf->im.cand_screen->listener.selected = candidate_selected ;
+	}
+
+	if( ! (*iiimf->im.cand_screen->init)( iiimf->im.cand_screen ,
+					      num_of_candidate ,
+					      num_per_window))
+	{
+		(*iiimf->im.cand_screen->delete)( iiimf->im.cand_screen) ;
+		iiimf->im.cand_screen = NULL ;
+		return ;
+	}
+
+	top = (index / num_per_window) * num_per_window ;
+
+	for( i = 1 ; i < num_per_window + 1 ; i++)
+	{
+		PARSER_INIT_WITH_BOM( parser_utf16) ;
+		if( im_convert_encoding( parser_utf16 , iiimf->conv ,
+					 (u_char*)candidates[i] , &str ,
+					 strlen_utf16( candidates[i])))
+		{
+			(*iiimf->im.cand_screen->set)(
+						iiimf->im.cand_screen ,
+						iiimf->parser_term ,
+						str , i - 1 + top) ;
+			free( str) ;
+		}
+	}
+
+	(*iiimf->im.cand_screen->select)( iiimf->im.cand_screen , index) ;
+}
+
+#define ATOKX_LOOKUP_SHOW	0x0a02
+#define ATOKX_LOOKUP_HIDE	0x0a03
+#define ATOKX_LOOKUP_SELECT	0x0a04
+#define ATOKX_LOOKUP_SET	0x0a05
+
+static void
+atokx_lookup(
+	im_iiimf_t *  iiimf ,
+	IIIMCF_event  event
+	)
+{
+	const IIIMP_card16 *  aux_name ;
+	IIIMP_card32  class_index ;
+	const IIIMP_card32 *  array_val_int ;
+	const IIIMP_card16 **  array_val_str ;
+	int  num_of_int ;
+	int  num_of_str ;
+	int  i ;
+	u_char *  str = NULL ;
+
+	if( iiimcf_get_aux_event_value( event ,
+					&aux_name ,
+					&class_index ,
+					&num_of_int ,
+					&array_val_int ,
+					&num_of_str ,
+					&array_val_str) != IIIMF_STATUS_SUCCESS)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " iiimcf_get_aux_event_value() failed\n");
+	#endif
+		return ;
+	}
+
+	if( ! num_of_int)
+	{
+		return ;
+	}
+
+	PARSER_INIT_WITH_BOM( parser_utf16) ;
+	im_convert_encoding( parser_utf16, iiimf->conv ,
+			     (u_char*)aux_name, &str,
+			     strlen_utf16( aux_name)) ;
+	if( strcmp( str , "jp.co.justsystem.atok12.LookupAu"))
+	{
+		free( str) ;
+		return ;
+	}
+
+	free( str) ;
+
+	switch( array_val_int[0])
+	{
+	case ATOKX_LOOKUP_SHOW:
+		atokx_lookup_show( iiimf) ;
+		break;
+	case ATOKX_LOOKUP_HIDE:
+		atokx_lookup_hide( iiimf) ;
+		break;
+	case ATOKX_LOOKUP_SELECT:
+		atokx_lookup_select( iiimf, array_val_int[1] - 1) ;
+		break;
+	case ATOKX_LOOKUP_SET:
+		atokx_lookup_set( iiimf ,
+				  array_val_str ,
+				  array_val_int[2] ,
+				  array_val_int[1] ,
+				  array_val_int[3] - 1) ;
+		break;
+	}
+}
+
+#endif /* IM_IIIMF_ATOKX_LOOKUP_HACK */
+
 static void
 aux_dump(
 	char *  tag ,
@@ -796,7 +1043,7 @@ aux_dump(
 					&array_val_str) != IIIMF_STATUS_SUCCESS)
 	{
 		/* XXX */
-		kik_debug_printf("iiimcf_get_aux_event_value() failed\n");
+		kik_warn_printf("iiimcf_get_aux_event_value() failed\n");
 		return ;
 	}
 
@@ -844,7 +1091,7 @@ dispatch(
 	case IIIMCF_EVENT_TYPE_OPERATION:
 	case IIIMCF_EVENT_TYPE_SETICFOCUS:
 	case IIIMCF_EVENT_TYPE_UNSETICFOCUS:
-#if 0	/* XXX: for Fedora Core 2 */
+#if 0	/* XXX: Fedora Core 2 */
 	case IIIMCF_EVENT_TYPE_HOTKEY_NOTIFY:
 #endif
 		/* not implemented yet */
@@ -880,11 +1127,13 @@ dispatch(
 		break;
 	case IIIMCF_EVENT_TYPE_AUX_DRAW:
 		aux_dump( "draw" , iiimf, event);
+	#ifdef  IM_IIIMF_ATOKX_LOOKUP_HACK
+		atokx_lookup( iiimf , event) ;
+	#endif
 		break;
-#if 0   /* XXX: for Fedora Core 2 */
+#if 0   /* XXX: Fedora Core 2 */
 	case IIIMCF_EVENT_TYPE_AUX_SETVALUES:
 		aux_dump( "setvalues" , iiimf, event);
-		kik_debug_printf("IIIMCF_EVENT_TYPE_AUX_SETVALUES\n");
 		break ;
 #endif
 	case IIIMCF_EVENT_TYPE_AUX_DONE:
@@ -897,6 +1146,7 @@ dispatch(
 		break ;
 	}
 }
+
 
 /*
  * methods of x_im_t
@@ -936,7 +1186,7 @@ delete(
 	ref_count-- ;
 
 #ifdef  IM_IIIMF_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " An object was deleted. ref_count: %d\n", ref_count) ;
+	kik_debug_printf( KIK_DEBUG_TAG " An object was deleted. ref_count is %d\n", ref_count) ;
 #endif
 
 	if( ref_count == 0 && initialized)
@@ -960,7 +1210,7 @@ key_event(
 {
 	im_iiimf_t *  iiimf ;
 	IIIMCF_keyevent  key ;
-	IIIMCF_event  key_event ;
+	IIIMCF_event  event ;
 	IIIMF_status  status ;
 	int  ret ;
 
@@ -983,9 +1233,9 @@ key_event(
 
 	key.time_stamp = xevent->time ;
 
-	if( iiimcf_create_keyevent( &key , &key_event) == IIIMF_STATUS_SUCCESS)
+	if( iiimcf_create_keyevent( &key , &event) == IIIMF_STATUS_SUCCESS)
 	{
-		status = iiimcf_forward_event( iiimf->context , key_event) ;
+		status = iiimcf_forward_event( iiimf->context , event) ;
 
 		switch( status)
 		{
@@ -994,7 +1244,7 @@ key_event(
 		case IIIMF_STATUS_EVENT_NOT_FORWARDED:
 			break ;
 		case IIIMF_STATUS_IC_INVALID:
-			kik_error_printf( "invalid IIIMCF context\n");
+			kik_error_printf( "Invalid IIIMCF context\n");
 			break ;
 		case IIIMF_STATUS_MALLOC:
 		#ifdef  DEBUG
@@ -1090,8 +1340,7 @@ focused(
 		status = iiimcf_forward_event( iiimf->context , event) ;
 		if( status != IIIMF_STATUS_SUCCESS)
 		{
-			kik_error_printf( "Cound not forward focus event to "
-					  "IIIMSF [status = %d]\n", status) ;
+			kik_error_printf( "Cound not forward focus event to IIIMS [status = %d]\n", status) ;
 		}
 	}
 }
@@ -1117,8 +1366,7 @@ unfocused(
 		status = iiimcf_forward_event( iiimf->context , event) ;
 		if( status != IIIMF_STATUS_SUCCESS)
 		{
-			kik_error_printf( "Cound not forward unfocus event to "
-					  "IIIMSF [status = %d]\n", status) ;
+			kik_error_printf( "Cound not forward unfocus event to IIIMS [status = %d]\n", status) ;
 		}
 	}
 }
@@ -1191,6 +1439,8 @@ im_new(
 			goto  error ;
 		}
 
+		show_iiimcf_version();
+
 		mlterm_syms = export_syms ;
 	}
 
@@ -1247,10 +1497,10 @@ im_new(
 
 	if( language_engine)
 	{
-		if( iiimcf_attr_put_ptr_value( attr ,
-					       IIIMCF_ATTR_INPUT_METHOD ,
-					       language_engine)
-							!= IIIMF_STATUS_SUCCESS)
+		if( iiimcf_attr_put_ptr_value(
+				attr ,
+				IIIMCF_ATTR_INPUT_METHOD ,
+				language_engine) != IIIMF_STATUS_SUCCESS)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " Cound not append value to the attribute\n") ;
@@ -1258,7 +1508,9 @@ im_new(
 		}
 	}
 
-	if( iiimcf_create_context( handle , attr , &iiimf->context) != IIIMF_STATUS_SUCCESS)
+	if( iiimcf_create_context( handle ,
+				   attr ,
+				   &iiimf->context) != IIIMF_STATUS_SUCCESS)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " Cound not create context\n") ;
