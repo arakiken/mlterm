@@ -17,6 +17,10 @@ typedef struct  x_window_manager
 	int  screen ;
 	Window  my_window ;
 
+	Pixmap  icon ;
+	Pixmap  mask ;
+	u_int32_t *  cardinal ;
+
 	x_window_t **  roots ;
 	u_int  num_of_roots ;
 

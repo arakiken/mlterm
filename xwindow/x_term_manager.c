@@ -30,6 +30,7 @@
 #include  "x_sb_screen.h"
 #include  "x_display.h"
 #include  "x_termcap.h"
+#include  "x_imagelib.h"
 #include  "ml_term_manager.h"
 
 
@@ -474,7 +475,20 @@ open_screen_intern(
 
 	if( main_config.icon_path)
 	{
-		x_window_set_icon( &screen->window , main_config.icon_path);
+		if( !(disp->win_man.icon) && !(disp->win_man.mask) && !(disp->win_man.cardinal))
+		{
+			x_imagelib_load_file( disp->display , main_config.icon_path,
+					      &(disp->win_man.cardinal),
+					      &(disp->win_man.icon),
+					      &(disp->win_man.mask),
+					      48 ,48) ;
+
+		}
+		x_window_set_icon( root,
+				   disp->win_man.icon,
+				   disp->win_man.mask,
+				   disp->win_man.cardinal) ;
+
 	}
 
 	if( pty && main_config.cmd_argv)

@@ -1,3 +1,10 @@
+2003-06-05  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* Icon handling is re-designed.
+	 - do not hinder window property anymore
+	 - smaller memory consumption
+	(Thanks to  Tatsuya Kinoshita san and Seiichi SATO san) 
+	
 2003-06-04 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* Added $CPPFLAGS to CFLAGS.
@@ -75,7 +82,7 @@
 
 2003-05-22  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* Removed unused fuctions from x_window.c.
+	* Removed unused functions from x_window.c.
 
 2003-05-22 Araki Ken <arakiken@users.sf.net>
 
@@ -96,8 +103,8 @@
 
 	* support DND from nautilus's background setting dialog. 
 	* support application/x-color as DND type and
-	refrect the color to the window's background.
-	* added lots of dubug messages.
+	reflect the color to the window's background.
+	* added lots of debug messages.
 
 	* In DND session, "text/x-mlterm.config" is now preffered
 	to other mime types. 

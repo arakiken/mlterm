@@ -118,12 +118,6 @@ typedef struct  x_window
 #endif
 
 	/*
-	 * WMHints Icon
-	 */
-	Pixmap icon ;
-	Pixmap mask ;
-
-	/*
 	 * XClassHint
 	 */
 	char *  app_name ;
@@ -287,7 +281,7 @@ int  x_set_window_name( x_window_t *  win , u_char *  name) ;
 
 int  x_set_icon_name( x_window_t *  win , u_char *  name) ;
 
-int  x_window_set_icon( x_window_t *  win, char * file_path) ;
+int  x_window_set_icon( x_window_t *  win , Pixmap  icon , Pixmap  mask , u_int32_t *  cardinal) ;
 
 int  x_window_get_visible_geometry( x_window_t *  win ,
 	int *  x , int *  y , int *  my_x , int *  my_y , u_int *  width , u_int *  height) ;

@@ -439,9 +439,6 @@ x_window_init(
 
 	win->dnd = NULL ;
 
-	win->icon = None ;
-	win->mask = None ;
-
 	win->app_name = "mlterm" ;
 
 	win->window_realized = NULL ;
@@ -497,18 +494,6 @@ x_window_final(
 	if( win->pixmap)
 	{
 		XFreePixmap( win->display , win->pixmap) ;
-	}
-
-	if( win->icon)
-	{
-		XFreePixmap( win->display , win->icon) ;
-		win->icon = 0 ;
-	}
-
-	if( win->mask)
-	{
-		XFreePixmap( win->display , win->mask) ;
-		win->mask = 0 ;
 	}
 
 #ifdef  ANTI_ALIAS
@@ -2550,79 +2535,39 @@ x_set_icon_name(
 
 int
 x_window_set_icon(
-	x_window_t *  win, 
-	char * file_path
+ 	x_window_t *  win,
+ 	Pixmap  icon,
+ 	Pixmap  mask,
+ 	u_int32_t *  cardinal	
 	)
 {
 	XWMHints *hints ;
-	u_int32_t *cardinal ; 
-	Pixmap icon ;
-	Pixmap mask ;
 
-	/* caller should do this? */
-	win = x_get_root_window( win) ;
-
-	/* clean up old icons */
-	if( win->icon)
-	{
-		XFreePixmap( win->display, win->icon) ;
-		win->icon = 0 ;
-	}
-	if( win->mask)
-	{
-		XFreePixmap( win->display, win->mask) ;
-		win->mask = 0 ;
-	}
-	XDeleteProperty( win->display, win->my_window,
-			 XA_NET_WM_ICON( win->display)) ;
-	/* note that delete is already done anyway. 
-	   i.e. icons are removed */
-	if( !file_path || !*file_path)
-	{
-		return 0 ;
-	}
-
-	if (! x_imagelib_load_file( win->display , file_path,
-				   &cardinal, &icon, &mask,
-				   48 ,48))
-	{
-#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " loading icon from %s failed\n" ,
-				 file_path ) ;
-#endif
-
-		return 0 ;
-	}
-	
-/* set extended window manager hint's icon */
+	/* set extended window manager hint's icon */
 	if( cardinal && cardinal[0] && cardinal[1])
 	{
-	  /*it should be possible to set multiple icons...*/
+		/*it should be possible to set multiple icons...*/
 		XChangeProperty( win->display, win->my_window,
 				 XA_NET_WM_ICON( win->display),
 				 XA_CARDINAL, 32, PropModeReplace,
 				 (unsigned char *)(cardinal),
-/* (cardinal[0])*(cardinal[1]) = width * height */
+				 /* (cardinal[0])*(cardinal[1]) 
+				  *          = width * height */
 				 (cardinal[0])*(cardinal[1]) +2) ; 
-		free(cardinal) ; /* not used anymore */
 	}
-/* set old style window manager hint's icon */		
+	/* set old style window manager hint's icon */		
 	hints = NULL ;
 	if (icon || mask)
 	{
+		hints = XGetWMHints( win->display, win->my_window) ;
+	}
+	if (!hints){
 		hints = XAllocWMHints() ;
 	}
-	if (!hints){ /* can be NULL*/
-		if( icon)
-		{
-			XFreePixmap( win->display, icon) ;
-		}
-		if( mask)
-		{
-			XFreePixmap( win->display, mask) ;
-		}
+	if (!hints){
 		return 0 ;
 	}
+
 	if( icon)
 	{
 		hints->flags |= IconPixmapHint ;
@@ -2636,9 +2581,6 @@ x_window_set_icon(
 	
 	XSetWMHints( win->display, win->my_window, hints) ;
 	XFree( hints) ;
-	/* pixmaps should be freed later */
-	win->icon = icon ;
-	win->mask = mask ;
 
 	return 1 ;
 }

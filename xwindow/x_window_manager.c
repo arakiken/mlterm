@@ -61,6 +61,10 @@ x_window_manager_init(
 	win_man->screen = DefaultScreen( win_man->display) ;
 	win_man->my_window = DefaultRootWindow( win_man->display) ;
 
+	win_man->icon = None ;
+	win_man->mask = None ;
+	win_man->cardinal = 0 ;
+
 	win_man->roots = NULL ;
 	win_man->num_of_roots = 0 ;
 
@@ -81,6 +85,18 @@ x_window_manager_final(
 {
 	int  count ;
 
+	if( win_man->icon) 
+	{
+		XFreePixmap( win_man->display, win_man->icon) ;
+	}
+	if( win_man->mask) 
+	{
+		XFreePixmap( win_man->display, win_man->mask) ;
+	}
+	if( win_man->cardinal) 
+	{
+		free( win_man->cardinal) ;
+	}
 	for( count = 0 ; count < win_man->num_of_roots ; count ++)
 	{
 		x_window_unmap( win_man->roots[count]) ;
