@@ -1,3 +1,7 @@
+2005-02-10 MINAMI Hirokazu <minami@mistfall.net>
+	
+	* man/mlterm.1: updated many out-of-date descriptions.
+
 2005-02-09 MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_main_config.c: now accepts --iconpath option.
