@@ -1105,6 +1105,11 @@ yank_event_received(
 {
 	if( termscr->sel.is_owner)
 	{
+		if( termscr->sel.sel_len == 0)
+		{
+			return  0 ;
+		}
+		
 		(*termscr->ml_str_parser->init)( termscr->ml_str_parser) ;
 		ml_str_parser_set_str( termscr->ml_str_parser ,
 			termscr->sel.sel_str , termscr->sel.sel_len) ;
