@@ -1,5 +1,12 @@
 2002-09-28 Araki Ken <arakiken@users.sf.net>
 
+	* If cursor was placed at a half-width char preceded by a full-width char and
+	  the full-width char was deleted by "ESC [ 2 P", the half-width char was also 
+	  deleted. fixed.
+	  (Thanks to Hideki EIRAKU san)
+
+2002-09-28 Araki Ken <arakiken@users.sf.net>
+
 	* "Full reset" button of mlconfig didn't work. fixed.
 	  (Thanks to Murase Masaki san)
 

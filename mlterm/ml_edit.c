@@ -909,10 +909,10 @@ ml_edit_delete_cols(
 	{
 		u_int  cols ;
 		
-		cols = ml_char_cols( &cursor_line->chars[++ char_index]) ;
+		cols = ml_char_cols( &cursor_line->chars[char_index ++]) ;
 		while( cols < delete_cols && char_index <= ml_line_end_char_index( cursor_line))
 		{
-			cols += ml_char_cols( &cursor_line->chars[++ char_index]) ;
+			cols += ml_char_cols( &cursor_line->chars[char_index ++]) ;
 		}
 	}
 
