@@ -54,6 +54,7 @@ mc_sb_view_config_widget_new(void)
 		"simple" ,
 		"sample" ,
 		"sample2" ,
+		"sample3" ,
 		"athena" ,
 		"motif" ,
 		"mozmodern" ,
