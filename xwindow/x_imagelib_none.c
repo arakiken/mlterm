@@ -121,7 +121,7 @@ int x_imagelib_load_file(
 	char *  path,
 	u_int32_t **  cardinal,
 	Pixmap *  pixmap,
-	Pixmap *  mask
+	Pixmap *  mask,
 	int  width,
 	int  height
 	)
