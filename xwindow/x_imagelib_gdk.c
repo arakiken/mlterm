@@ -19,7 +19,7 @@
 #define SUCCESS 0
 
 /** Pixmap cache per display. */
-typedef struct  pixmap_cache_tag 
+typedef struct  pixmap_cache_tag
 {
 	Display *  display; /**<Display */
 	Pixmap  root;      /**<Root pixmap   !!! NOT owned by mlterm. DON'T FREE !!!*/
@@ -57,7 +57,7 @@ fetch_colormap(
 #endif
 		return  0 ;
 	}
-	for( i = 0 ; i < num_cells ; i ++)	
+	for( i = 0 ; i < num_cells ; i ++)
 		((*color_list)[i]).pixel = i ;
 
 	XQueryColors( display , cmap , *color_list, num_cells) ;
@@ -155,7 +155,7 @@ load_file(
 	{
 		if( scaled && gdk_pixbuf_get_width( scaled) == width && gdk_pixbuf_get_height( scaled) == height)
 		{
-#ifdef DEBUG
+#ifdef __DEBUG
 			kik_warn_printf(KIK_DEBUG_TAG "using the scaled pixbuf( %d x %d) from cache\n", width, height) ;
 #endif
 			pixbuf = scaled ;
@@ -164,7 +164,7 @@ load_file(
 		{
 			if( scaled)
 				gdk_pixbuf_unref( scaled) ;
-#ifdef DEBUG
+#ifdef __DEBUG
 			kik_warn_printf(KIK_DEBUG_TAG "creating a scaled pixbuf(%d x %d) from %d %d \n", width, height) ;
 #endif
 			scaled = gdk_pixbuf_scale_simple( data, width, height,
@@ -261,14 +261,15 @@ create_cardinals_from_bixbuf(
 	unsigned char *pixel ;
 	int i, j ;
 
-	/* create (maybe shriked) copy */ 
+	*cardinal = malloc( (width * height + 2) *4) ;
+	if( !(*cardinal))
+		return  -1 ;
+
+	/* create (maybe shriked) copy */
 	pixbuf = gdk_pixbuf_scale_simple(pixbuf, width, height, GDK_INTERP_TILES) ;
 
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
-	*cardinal = malloc( (width * height + 2) *4) ;
-	if( !(*cardinal))
-		return  -1 ;
 
 	/* format of the array is {width, height, ARGB[][]} */
 	(*cardinal)[0] = width ;
@@ -278,7 +279,7 @@ create_cardinals_from_bixbuf(
 			pixel = line ;
 			line += rowstride;
 			for( j = 0; j < width; j++) {
-				/* from RGBA to ARGB conversion */
+				/* RGBA to ARGB */
 				(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(pixel[3]) << 8)
 								 + pixel[0]) << 8)
 							       + pixel[1]) << 8) + pixel[2] ;
@@ -306,7 +307,7 @@ create_cardinals_from_bixbuf(
 
 	return  SUCCESS ;
 }
-/* seek the closet color */
+/* seek the closest color */
 static int
 closest_color_index(
 	Display *  display ,
@@ -489,9 +490,9 @@ pixbuf_to_pixmap_pseudocolor(
 		diff_next[3*(x+0) +0] += diff_r /4;
 		diff_next[3*(x+0) +1] += diff_g /4;
 		diff_next[3*(x+0) +2] += diff_b /4;
+
 		temp = diff_cur;
 		diff_cur = diff_next;
-		/* next line is overwritten and don't need a special initialization */
 		diff_next = temp;
 #else
 		closest = closest_color_index( display, screen, color_list, num_cells,
@@ -553,6 +554,7 @@ tile_pixmap(
 		XFillRectangle( display, result, gc, 0, 0,
 				DisplayWidth( display, screen),
 				DisplayHeight( display, screen)) ;
+
 		return  result ;
 	}
 
@@ -574,9 +576,8 @@ root_pixmap(
 	if( !id)
 	{
 #ifdef DEBUG
-			kik_warn_printf(KIK_DEBUG_TAG "_XROOTPMAP_ID is not available\n") ;
+		kik_warn_printf(KIK_DEBUG_TAG "_XROOTPMAP_ID is not available\n") ;
 #endif
-
 		return  None ;
 	}
 
@@ -589,17 +590,14 @@ root_pixmap(
 			Pixmap root ;
 			root = *((Drawable *)prop) ;
 			XFree( prop) ;
-#ifdef DEBUG
-			kik_warn_printf(KIK_DEBUG_TAG "pixmap id # %d is read\n" , root) ;
-#endif
 
 			return  root ;
 		}
 #ifdef DEBUG
 		else
 		{
-			kik_warn_printf(KIK_DEBUG_TAG "failed tp read prop\n") ;		}
-
+			kik_warn_printf(KIK_DEBUG_TAG "failed tp read prop\n") ;
+		}
 #endif
 	}
 
@@ -833,7 +831,7 @@ pixbuf_to_ximage_truecolor(
 			pixel = line ;
 			for (j = 0; j < width; j++)
 			{
-				XPutPixel( image, j, i, 
+				XPutPixel( image, j, i,
 					   ( ( (pixel[0] >> r_limit) << r_offset) & r_mask) |
 					   ( ( (pixel[1] >> g_limit) << g_offset) & g_mask) |
 					   ( ( (pixel[2] >> b_limit) << b_offset) & b_mask) ) ;
@@ -974,22 +972,22 @@ compose_truecolor(
 
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
-	
+
 	for( i = 0; i < height; i++)
 	{
 		pixel = line ;
 		for( j = 0; j < width; j++)
 		{
 			data = XGetPixel( image, j, i) ;
-			
+
 			r = ((data & r_mask) >>r_offset) ;
 			g = ((data & g_mask) >>g_offset) ;
 			b = ((data & b_mask) >>b_offset) ;
-			
+
 			r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
 			g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
 			b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
-			
+
 			XPutPixel( image, j, i,
 				   (r <<r_offset ) |
 				   (g <<g_offset ) |
@@ -1018,7 +1016,7 @@ compose_pseudocolor(
 	unsigned int width, height, rowstride ;
 	unsigned char *line ;
 	unsigned char *pixel ;
-	long  data ; 
+	long  data ;
 	XColor *  color_list ;
 
 	num_cells = fetch_colormap( display, screen, &color_list) ;
@@ -1043,11 +1041,11 @@ compose_pseudocolor(
 			r = color_list[data].red >>8 ;
 			g = color_list[data].green >>8 ;
 			b = color_list[data].blue >>8 ;
-			
+
 			r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
 			g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
 			b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
-			
+
 			XPutPixel( image, j, i,
 				   closest_color_index( display, screen,
 							color_list, num_cells,
@@ -1148,7 +1146,7 @@ pixbuf_to_pixmap_and_mask(
 
 		*mask = XCreatePixmap( display,
 				       DefaultRootWindow( display),
-				       width, height, 1) ;		
+				       width, height, 1) ;
 		gc = XCreateGC (display, *mask, 0, &gcv) ;
 
 		XSetForeground( display, gc, 0) ;
@@ -1168,7 +1166,7 @@ pixbuf_to_pixmap_and_mask(
 					XDrawPoint( display, *mask, gc, j, i) ;
 				pixel += 4 ;
 			}
-       			line += rowstride ;
+			line += rowstride ;
 		}
 		XFreeGC( display, gc) ;
 	}
@@ -1191,14 +1189,15 @@ value_table_refresh(
 	real_gamma = (double)(mod->gamma) / 100 ;
 	real_contrast = (double)(mod->contrast) / 100 ;
 	real_brightness = (double)(mod->brightness) / 100 ;
-	
+
 	for( i = 0 ; i < 256 ; i++)
 	{
-		tmp = real_contrast * (255 * pow(((double)i + 0.5)/ 255, real_gamma) -128 ) + 128 *  real_brightness ;
+		tmp = real_contrast * (255 * pow(((double)i + 0.5)/ 255, real_gamma) -128 )
+			+ 128 *  real_brightness ;
 		if( tmp >= 255)
 			break;
 
-		if( tmp < 0 )			
+		if( tmp < 0 )
 			value_table[i] = 0 ;
 		else
 			value_table[i] = tmp ;
@@ -1230,7 +1229,7 @@ modify_image(
 	if( is_picmod_eq( pic_mod, NULL))
 		return  SUCCESS ;
 
-       	line = gdk_pixbuf_get_pixels( pixbuf) ;
+	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
 	value_table_refresh( pic_mod) ;
 
@@ -1299,36 +1298,36 @@ modify_pixmap(
 	{
 		unsigned char  r, g, b ;
 		int r_limit, g_limit, b_limit ;
-		long  data;			
-		
+		long  data ;
+
 		r_mask = vinfolist[0].red_mask ;
 		g_mask = vinfolist[0].green_mask ;
 		b_mask = vinfolist[0].blue_mask ;
-		
+
 		r_offset = lsb( r_mask) ;
 		g_offset = lsb( g_mask) ;
-		b_offset = lsb( b_mask) ;		
+		b_offset = lsb( b_mask) ;
 
 		r_limit = 8 + r_offset - msb( r_mask) ;
 		g_limit = 8 + g_offset - msb( g_mask) ;
 		b_limit = 8 + b_offset - msb( b_mask) ;
-		
+
 		value_table_refresh( pic_mod) ;
 		for (i = 0; i < height; i++)
 		{
 			for (j = 0; j < width; j++)
 			{
 				data = XGetPixel( image, j, i) ;
-				
+
 				r = ((data & r_mask) >> r_offset)<<r_limit ;
 				g = ((data & g_mask) >> g_offset)<<g_limit ;
 				b = ((data & b_mask) >> b_offset)<<b_limit ;
-				
+
 				r = value_table[r] ;
 				g = value_table[g] ;
 				b = value_table[b] ;
-				
-				XPutPixel( image, j, i, 
+
+				XPutPixel( image, j, i,
 					   (r >> r_limit) << r_offset |
 					   (g >> g_limit) << g_offset |
 					   (b >> b_limit) << b_offset) ;
@@ -1357,7 +1356,7 @@ modify_pixmap(
 				for (j = 0; j < width; j++)
 				{
 					data = XGetPixel( image, j, i) ;
-					
+
 					r = (color_list[data].red >>8)  ;
 					g = (color_list[data].green >>8)  ;
 					b = (color_list[data].blue >>8)  ;
@@ -1366,7 +1365,7 @@ modify_pixmap(
 					g = value_table[g] ;
 					b = value_table[b] ;
 
-					XPutPixel( image, j, i, 
+					XPutPixel( image, j, i,
 						   closest_color_index( display, screen,
 									color_list, num_cells,
 									r, g, b ) );
@@ -1469,7 +1468,7 @@ x_imagelib_load_file_for_background(
 		if( cached_mod)
 			free(cached_mod) ;
 		if( cached_pixbuf_file_path)
-                        free(cached_pixbuf_file_path) ;
+			free(cached_pixbuf_file_path) ;
 		cached_pixbuf_file_path = strdup( file_path) ;
 
 		if( is_picmod_eq( pic_mod, NULL) )
@@ -1485,7 +1484,7 @@ x_imagelib_load_file_for_background(
 
 		if( pic_mod)
 		{
-			cached_mod = malloc(sizeof(x_picture_modifier_t)) ;		
+			cached_mod = malloc(sizeof(x_picture_modifier_t)) ;
 			memcpy( cached_mod, pic_mod, sizeof(x_picture_modifier_t)) ;
 		}
 		else
@@ -1650,7 +1649,7 @@ x_imagelib_get_transparent_background(
  *\param cardinal Returns pointer to a data structure for the extended WM hint spec.
  *\param pixmap Returns an image pixmap for the old WM hint.
  *\param mask Returns a mask bitmap for the old WM hint.
- *\param width Pointer to the desired width. If *width is 0, the returned image would not be scaled and *width would be overwritten by its width. "width" can be NULL and the image would not be scaled and nothing would be returned in this case.   
+ *\param width Pointer to the desired width. If *width is 0, the returned image would not be scaled and *width would be overwritten by its width. "width" can be NULL and the image would not be scaled and nothing would be returned in this case.
  *\param height Pointer to the desired height. *height can be 0 and height can be NULL(see "width" 's description)
  *
  *\return  Success => 1, Failure => 0
@@ -1683,7 +1682,7 @@ int x_imagelib_load_file(
 	{
 		dst_height = *height ;
 	}
-	
+
 	if( path)
 	{
 		/* create a pixbuf from the file and create a cardinal array */
@@ -1707,10 +1706,10 @@ int x_imagelib_load_file(
 			return  0 ;
 
 	}
-	
+
 	dst_width = gdk_pixbuf_get_width( pixbuf) ;
 	dst_height = gdk_pixbuf_get_height( pixbuf) ;
-	
+
 	/* Create the Icon pixmap & mask to be used in WMHints.
 	 * Note that none as a result is acceptable.
 	 * Pixmaps can't be cached since the last pixmap may be freed by someone... */
