@@ -1128,7 +1128,7 @@ vert_init(
 	
 	if( vert_logvis->is_init)
 	{
-		ml_model_resize( &vert_logvis->visual_model ,
+		ml_model_resize( &vert_logvis->visual_model , NULL ,
 			model->num_of_rows , model->num_of_cols) ;
 	}
 	else
@@ -1213,7 +1213,7 @@ vert_visual_intern(
 	{
 		/* ml_model_t is resized */
 
-		ml_model_resize( &vert_logvis->visual_model ,
+		ml_model_resize( &vert_logvis->visual_model , NULL ,
 			logvis->model->num_of_rows , logvis->model->num_of_cols) ;
 	}
 

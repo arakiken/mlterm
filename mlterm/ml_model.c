@@ -143,13 +143,19 @@ ml_model_resize(
 
 	if( num_of_rows >= filled_rows)
 	{
-		*slide = old_row = 0 ;
+		old_row = 0 ;
+
 		copy_rows = filled_rows ;
 	}
 	else
 	{
-		*slide = old_row = filled_rows - num_of_rows ;
+		old_row = filled_rows - num_of_rows ;
 		copy_rows = num_of_rows ;
+	}
+
+	if( slide)
+	{
+		*slide = old_row ;
 	}
 
 	/*
