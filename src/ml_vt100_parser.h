@@ -46,7 +46,6 @@ typedef struct  ml_vt100_parser
 	
 	int8_t  unicode_to_other_cs ;	/* whether unicode chars are converted to other cs or not */
 	int8_t  all_cs_to_unicode ;	/* whether all chars are converted to unicode or not */
-	int8_t  conv_to_generic_iso2022 ;
 	
 	u_int  col_size_of_east_asian_width_a ;
 		
@@ -71,7 +70,7 @@ typedef struct  ml_vt100_parser
 
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_term_screen_t *  term_window ,
 	ml_char_encoding_t  type , int  unicode_to_other_cs , int  all_cs_to_unicode ,
-	int  conv_to_generic_iso2022 , u_int  col_size_a) ;
+	u_int  col_size_a) ;
 
 int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
 

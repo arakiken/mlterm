@@ -12,6 +12,7 @@
 #include  "ml_char_encoding.h"
 #include  "ml_mod_meta_mode.h"
 #include  "ml_bel_mode.h"
+#include  "ml_xct_proc_mode.h"
 
 
 typedef struct  ml_config_menu_session
@@ -29,15 +30,14 @@ typedef struct  ml_config_menu_session
 	u_int  max_fontsize ;
 	ml_mod_meta_mode_t  mod_meta_mode ;
 	ml_bel_mode_t  bel_mode ;
+	ml_xct_proc_mode_t  xct_proc_mode ;
+	char *  xim ;
+	char *  locale ;
 	int8_t  is_combining_char ;
 	int8_t  prefer_utf8_selection ;
-	int8_t  pre_conv_xct_to_ucs ;
-	int8_t  auto_detect_utf8_selection ;
 	int8_t  is_transparent ;
 	int8_t  is_aa ;
 	int8_t  use_bidi ;
-	char *  xim ;
-	char *  locale ;
 	
 } ml_config_menu_session_t ;
 
@@ -55,8 +55,7 @@ typedef struct  ml_config_menu_event_listener
 	void (*change_bel_mode)( void * , ml_bel_mode_t) ;
 	void (*change_char_combining_flag)( void * , int) ;
 	void (*change_prefer_utf8_selection_flag)( void * , int) ;
-	void (*change_pre_conv_xct_to_ucs_flag)( void * , int) ;
-	void (*change_auto_detect_utf8_selection_flag)( void * , int) ;
+	void (*change_xct_proc_mode)( void * , ml_xct_proc_mode_t) ;
 	void (*change_transparent_flag)( void * , int) ;
 	void (*change_aa_flag)( void * , int) ;
 	void (*change_bidi_flag)( void * , int) ;
@@ -89,9 +88,8 @@ int  ml_config_menu_start( ml_config_menu_t *  config_menu , int  x , int  y ,
 	u_int  orig_tabsize , u_int  orig_logsize , u_int  orig_fontsize , u_int  orig_min_fontsize ,
 	u_int  orig_max_fontsize , ml_mod_meta_mode_t  orig_mod_meta_mode , ml_bel_mode_t  orig_bel_mode ,
 	int  orig_is_combining_char , int  orig_prefer_utf8_selection ,
-	int  orig_pre_conv_xct_to_ucs4 , int  orig_auto_detect_utf8_selection ,
-	int  orig_is_transparent , int  orig_is_aa , int  orig_is_bidi ,
-	char *  orig_xim , char *  orig_locale) ;
+	ml_xct_proc_mode_t  orig_xct_proc_mode , int  orig_is_transparent , int  orig_is_aa ,
+	int  orig_is_bidi , char *  orig_xim , char *  orig_locale) ;
 
 
 #endif

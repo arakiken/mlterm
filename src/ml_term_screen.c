@@ -837,29 +837,16 @@ change_prefer_utf8_selection_flag(
 }
 
 static void
-change_pre_conv_xct_to_ucs_flag(
+change_xct_proc_mode(
 	void *  p ,
-	int  flag
+	ml_xct_proc_mode_t  xct_proc_mode
 	)
 {
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
 	
-	termscr->pre_conv_xct_to_ucs = flag ;
-}
-
-static void
-change_auto_detect_utf8_selection_flag(
-	void *  p ,
-	int  flag
-	)
-{
-	ml_term_screen_t *  termscr ;
-
-	termscr = p ;
-	
-	termscr->auto_detect_utf8_selection = flag ;
+	termscr->xct_proc_mode = xct_proc_mode ;
 }
 
 static void
@@ -1120,35 +1107,64 @@ config_menu(
 		termscr->font_man->font_custom->min_font_size ,
 		termscr->font_man->font_custom->max_font_size ,
 		termscr->mod_meta_mode , termscr->bel_mode ,
-		ml_is_char_combining() , termscr->prefer_utf8_selection ,
-		termscr->pre_conv_xct_to_ucs , termscr->auto_detect_utf8_selection ,
+		ml_is_char_combining() ,
+		termscr->prefer_utf8_selection , termscr->xct_proc_mode ,
 		termscr->window.is_transparent , termscr->is_aa , termscr->use_bidi ,
 		ml_xic_get_xim_name( &termscr->window) , kik_get_locale()) ;
 }
 
 static int
-is_auto_detected_utf8_selection(
+prefer_utf8_selection(
 	ml_term_screen_t *  termscr
 	)
 {
-	ml_char_encoding_t  encoding ;
+	if( termscr->prefer_utf8_selection == 1)
+	{
+		return  1 ;
+	}
+	else if( termscr->prefer_utf8_selection == -1)
+	{
+		ml_char_encoding_t  encoding ;
 
-	if( ! termscr->auto_detect_utf8_selection)
-	{
-		return  0 ;
-	}
-	
-	if( HAS_ENCODING_LISTENER(termscr,current_encoding))
-	{
-		encoding = (*termscr->encoding_listener->current_encoding)(
-			termscr->encoding_listener->self) ;
-	}
-	else
-	{
-		encoding = ML_UNKNOWN_ENCODING ;
+		if( HAS_ENCODING_LISTENER(termscr,current_encoding))
+		{
+			encoding = (*termscr->encoding_listener->current_encoding)(
+				termscr->encoding_listener->self) ;
+				
+
+			return  IS_UTF8_SUBSET_ENCODING(encoding) ;
+		}
 	}
 
-	return  IS_UTF8_SUBSET_ENCODING(encoding) ;
+	return  0 ;
+}
+
+static ml_xct_proc_mode_t
+xct_proc_mode(
+	ml_term_screen_t *  termscr
+	)
+{
+	if( termscr->xct_proc_mode == XCT_PRECONV_UCS)
+	{
+		return  XCT_PRECONV_UCS ;
+	}
+	else if( termscr->xct_proc_mode == XCT_RAW)
+	{
+		ml_char_encoding_t  encoding ;
+
+		if( HAS_ENCODING_LISTENER(termscr,current_encoding))
+		{
+			encoding = (*termscr->encoding_listener->current_encoding)(
+				termscr->encoding_listener->self) ;
+
+			if( IS_ENCODING_BASED_ON_ISO2022(encoding))
+			{
+				return  XCT_RAW ;
+			}
+		}
+	}
+
+	return  XCT_NORMAL ;
 }
 
 static size_t
@@ -1259,7 +1275,7 @@ yank_event_received(
 	}
 	else
 	{
-		if( termscr->prefer_utf8_selection || is_auto_detected_utf8_selection(termscr))
+		if( prefer_utf8_selection(termscr))
 		{
 			return  ml_window_utf8_selection_request( &termscr->window , time) ;
 		}
@@ -1788,9 +1804,10 @@ utf8_selection_requested(
 	termscr = (ml_term_screen_t*) win ;
 
 	if( termscr->sel.sel_str &&
-		(termscr->prefer_utf8_selection || is_auto_detected_utf8_selection( termscr) ||
-		(! HAS_ENCODING_LISTENER(termscr,current_encoding) &&
-		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self) != ML_UTF8)))
+		( prefer_utf8_selection( termscr) ||
+		( !HAS_ENCODING_LISTENER(termscr,current_encoding) &&
+		(*termscr->encoding_listener->current_encoding)(termscr->encoding_listener->self)
+			!= ML_UTF8)))
 	{
 		u_char *  utf8_str ;
 		size_t  utf8_len ;
@@ -1839,9 +1856,9 @@ xct_selection_notified(
 	}
 #endif
 
-	if( termscr->pre_conv_xct_to_ucs || is_auto_detected_utf8_selection( termscr))
+	if( xct_proc_mode(termscr) == XCT_PRECONV_UCS)
 	{
-		/* XCOMPOUND TEXT -> UCS -> CURRENT ENCODING */
+		/* XCOMPOUND TEXT -> UCS -> PTY ENCODING */
 		
 		u_char  conv_buf[512] ;
 		size_t  filled_len ;
@@ -1862,6 +1879,10 @@ xct_selection_notified(
 
 			write_to_pty( termscr , conv_buf , filled_len , termscr->utf8_parser) ;
 		}
+	}
+	else if( xct_proc_mode(termscr) == XCT_RAW)
+	{
+		write_to_pty( termscr , str , len , NULL) ;
 	}
 	else
 	{
@@ -2886,8 +2907,7 @@ ml_term_screen_new(
 	ml_mod_meta_mode_t  mod_meta_mode ,
 	ml_bel_mode_t  bel_mode ,
 	int  prefer_utf8_selection ,
-	int  pre_conv_xct_to_ucs ,
-	int  auto_detect_utf8_selection ,
+	ml_xct_proc_mode_t  xct_proc_mode ,
 	char *  pic_file_path ,
 	int  use_transbg ,
 	int  is_aa ,
@@ -3095,9 +3115,7 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_char_combining_flag = change_char_combining_flag ;
 	termscr->config_menu_listener.change_prefer_utf8_selection_flag =
 		change_prefer_utf8_selection_flag ;
-	termscr->config_menu_listener.change_pre_conv_xct_to_ucs_flag = change_pre_conv_xct_to_ucs_flag ;
-	termscr->config_menu_listener.change_auto_detect_utf8_selection_flag =
-		change_auto_detect_utf8_selection_flag ;
+	termscr->config_menu_listener.change_xct_proc_mode = change_xct_proc_mode ;
 	termscr->config_menu_listener.change_transparent_flag = change_transparent_flag ;
 	termscr->config_menu_listener.change_aa_flag = change_aa_flag ;
 	termscr->config_menu_listener.change_bidi_flag = change_bidi_flag ;
@@ -3166,8 +3184,7 @@ ml_term_screen_new(
 	}
 
 	termscr->prefer_utf8_selection = prefer_utf8_selection ;
-	termscr->pre_conv_xct_to_ucs = pre_conv_xct_to_ucs ;
-	termscr->auto_detect_utf8_selection = auto_detect_utf8_selection ;
+	termscr->xct_proc_mode = xct_proc_mode ;
 
 	termscr->encoding_listener = NULL ;
 	termscr->system_listener = NULL ;

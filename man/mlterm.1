@@ -33,9 +33,6 @@ Use anti-aliased fonts using Xft.
 \fB\-B\fR, \fB\-\-sbbg\fR=\fIcolor\fR
 Specify background color of the scrollbar.
 .TP
-\fB\-C\fR, \fB\-\-xct2ucs\fR(=\fIbool\fR)
-Pre-converting COMPOUND_TEXT to Unicode on pasting selection.
-.TP
 \fB\-D\fR, \fB\-\-bi\fR(=\fIbool\fR)
 Use BiDi rendering on UTF8 encoding.
 .TP
@@ -87,9 +84,9 @@ EastAsianAmbiguous property.
 \fB\-b\fR, \fB\-\-bg\fR=\fIcolor\fR
 Specify background color.
 .TP
-\fB\-c\fR, \fB\-\-conv2022\fR(=\fIbool\fR)
-Try to convert charsets on pasting characters so that
-as wide range of characters as possible can be pasted.
+\fB\-c\fR, \fB\-\-xct\fR(=\fIbool\fR)
+How to process ctext received in selection.
+ucs/raw/normal values are accepted.
 .TP
 \fB\-d\fR, \fB\-\-display\fR=\fIstring\fR
 Specify X display.
@@ -120,7 +117,7 @@ Specify number of lines of backlog.
 \fB\-m\fR, \fB\-\-comb\fR(=\fIbool\fR)
 Enable combining characters (recommended for TIS 620 and UTF-8).
 .TP
-\fB\-n\fR, \fB\-\-ucshater\fR(=\fIbool\fR)
+\fB\-n\fR, \fB\-\-ucs2other\fR(=\fIbool\fR)
 Convert Unicode characters to other appropriate character sets.
 .TP
 \fB\-p\fR, \fB\-\-pic\fR=\fIpath\fR
@@ -132,7 +129,7 @@ Whether to use scrollbar.
 \fB\-t\fR, \fB\-\-transbg\fR(=\fIbool\fR)
 Whether to use transparent background.
 .TP
-\fB\-u\fR, \fB\-\-ucslover\fR(=\fIbool\fR)
+\fB\-u\fR, \fB\-\-all2ucs\fR(=\fIbool\fR)
 Convert all characters (except for ASCII) to Unicode.
 .TP
 \fB\-v\fR, \fB\-\-version
@@ -337,14 +334,10 @@ Convert Unicode characters to other appropriate character sets
 Convert all characters (except for ASCII) to Unicode
 (default \fIfalse\fR).
 .TP
-\fBconv_to_generic_iso2022=\fIbool\fR
-Try to convert charsets on pasting characters so that
-as wide range of characters as possible can be pasted
-(default \fIfalse\fR).
-.TP
-\fBpre_conv_xct_to_ucs=\fIbool\fR
-Convert pasted COMPOUND_TEXT to Unicode and then to the
-current encoding (default \fIfalse\fR).
+\fBxct_process_mode=\fImode\fR
+How to process ctext received in selection.
+ucs/raw/normal values are accepted.
+(default \fInormal\fR).
 .TP
 \fBcol_size_of_width_a=\fIvalue\fR
 Number of columns of Unicode characters with

@@ -150,8 +150,7 @@ open_new_term(
 		term_man->num_of_log_lines , term_man->tab_size ,
 		term_man->use_xim , term_man->xim_open_in_startup ,
 		term_man->mod_meta_mode , term_man->bel_mode ,
-		term_man->prefer_utf8_selection , term_man->pre_conv_xct_to_ucs ,
-		term_man->auto_detect_utf8_selection ,
+		term_man->prefer_utf8_selection , term_man->xct_proc_mode ,
 		term_man->pic_file_path , term_man->use_transbg , term_man->is_aa ,
 		term_man->use_bidi , term_man->big5_buggy ,
 		term_man->conf_menu_path)) == NULL)
@@ -192,7 +191,7 @@ open_new_term(
 
 	if( ( vt100_parser = ml_vt100_parser_new( termscr , term_man->encoding ,
 		term_man->unicode_to_other_cs , term_man->all_cs_to_unicode ,
-		term_man->conv_to_generic_iso2022 , term_man->col_size_a)) == NULL)
+		term_man->col_size_a)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_vt100_parser_new() failed.\n") ;
@@ -701,18 +700,13 @@ ml_term_manager_init(
 	kik_conf_add_opt( conf , 't' , "transbg" , 1 , "use_transbg" , "use transparent background.") ;
 	kik_conf_add_opt( conf , 's' , "sb" , 1 , "use_scrollbar" , "use scrollbar") ;
 	kik_conf_add_opt( conf , 'm' , "comb" , 1 , "use_combining" , "combining chars") ;
-	kik_conf_add_opt( conf , 'n' , "ucshater" , 1 , "unicode_to_other_cs" ,
+	kik_conf_add_opt( conf , 'n' , "ucs2other" , 1 , "unicode_to_other_cs" ,
 		"converting unicode to other cs") ;
-	kik_conf_add_opt( conf , 'u' , "ucslover" , 1 , "all_cs_to_unicode" ,
+	kik_conf_add_opt( conf , 'u' , "all2ucs" , 1 , "all_cs_to_unicode" ,
 		"converting all cs to unicode.") ;
-	kik_conf_add_opt( conf , 'c' , "conv2022" , 1 , "conv_to_generic_iso2022" ,
-		"converting generic ISO2022 in pasting.") ;
-	kik_conf_add_opt( conf , 'U' , "utf8sel" , 1 , "prefer_utf8_selection" ,
+	kik_conf_add_opt( conf , 'U' , "utf8sel" , 0 , "prefer_utf8_selection" ,
 		"prefer utf8 selection request.") ;
-	kik_conf_add_opt( conf , 'C' , "xct2ucs" , 1 , "pre_conv_xct_to_ucs" ,
-		"pre-converting xct to ucs in pasting selection.") ;
-	kik_conf_add_opt( conf , 'o' , "autoutf8" , 1 , "auto_detect_utf8_selection" ,
-		"auto detection of using utf8 selection.") ;
+	kik_conf_add_opt( conf , 'c' , "xct" , 1 , "xct_process_mode" , "how to process received xct.") ;
 	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" ,
 		"opening xim in starting up.") ;
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , "use bidi") ;
@@ -1171,16 +1165,6 @@ ml_term_manager_init(
 		term_man->all_cs_to_unicode = 0 ;
 	}
 
-	term_man->conv_to_generic_iso2022 = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "conv_to_generic_iso2022")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->conv_to_generic_iso2022 = 1 ;
-		}
-	}
-
 	term_man->prefer_utf8_selection = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "prefer_utf8_selection")))
@@ -1189,28 +1173,32 @@ ml_term_manager_init(
 		{
 			term_man->prefer_utf8_selection = 1 ;
 		}
-	}
-	
-	term_man->pre_conv_xct_to_ucs = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "pre_conv_xct_to_ucs")))
-	{
-		if( strcmp( value , "true") == 0)
+		else if( strcmp( value , "auto") == 0)
 		{
-			term_man->pre_conv_xct_to_ucs = 1 ;
-		}
-	}
-
-	term_man->auto_detect_utf8_selection = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "auto_detect_utf8_selection")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->auto_detect_utf8_selection = 1 ;
+			term_man->prefer_utf8_selection = -1 ;
 		}
 	}
 	
+	term_man->xct_proc_mode = XCT_NORMAL ;
+
+	if( ( value = kik_conf_get_value( conf , "xct_proc_mode")))
+	{
+		if( strcmp( value , "ucs") == 0)
+		{
+			term_man->xct_proc_mode = XCT_PRECONV_UCS ;
+		}
+		else if( strcmp( value , "raw") == 0)
+		{
+			term_man->xct_proc_mode = XCT_RAW ;
+		}
+	#if  0
+		else if( strcmp( value , "normal") == 0)
+		{
+			term_man->xct_proc_mode = XCT_NORMAL ;
+		}
+	#endif
+	}
+
 	term_man->col_size_a = 0 ;
 	
 	if( ( value = kik_conf_get_value( conf , "col_size_of_width_a")))

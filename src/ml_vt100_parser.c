@@ -9,7 +9,6 @@
 #include  <stdlib.h>		/* atoi */
 #include  <kiklib/kik_debug.h>
 
-#include  <mkf/mkf_iso2022_conv.h>
 #include  <mkf/mkf_ucs4_map.h>
 #include  <mkf/mkf_ko_kr_map.h>
 
@@ -1666,15 +1665,7 @@ encoding_changed(
 
 	vt100_parser = p ;
 
-	if( vt100_parser->conv_to_generic_iso2022)
-	{
-		cc_conv = mkf_iso2022_conv_new() ;
-	}
-	else
-	{
-		cc_conv = ml_conv_new( encoding) ;
-	}
-	
+	cc_conv = ml_conv_new( encoding) ;
 	cc_parser = ml_parser_new( encoding) ;
 
 	if( cc_parser == NULL || cc_conv == NULL)
@@ -1757,7 +1748,6 @@ ml_vt100_parser_new(
 	ml_char_encoding_t  encoding ,
 	int  unicode_to_other_cs ,
 	int  all_cs_to_unicode ,
-	int  conv_to_generic_iso2022 ,
 	u_int  col_size_a
 	)
 {
@@ -1802,16 +1792,8 @@ ml_vt100_parser_new(
 
 	vt100_parser->unicode_to_other_cs = unicode_to_other_cs ;
 	vt100_parser->all_cs_to_unicode = all_cs_to_unicode ;
-	vt100_parser->conv_to_generic_iso2022 = conv_to_generic_iso2022 ;
 
-	if( vt100_parser->conv_to_generic_iso2022)
-	{
-		if( ( vt100_parser->cc_conv = mkf_iso2022_conv_new()) == NULL)
-		{
-			goto  error ;
-		}
-	}
-	else if( ( vt100_parser->cc_conv = ml_conv_new( encoding)) == NULL)
+	if( ( vt100_parser->cc_conv = ml_conv_new( encoding)) == NULL)
 	{
 		goto  error ;
 	}

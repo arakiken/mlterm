@@ -20,6 +20,8 @@
 #include  "mc_mod_meta.h"
 #include  "mc_bel.h"
 #include  "mc_xim.h"
+#include  "mc_utf8_sel.h"
+#include  "mc_xct_proc.h"
 #include  "mc_check.h"
 
 
@@ -33,9 +35,6 @@
 static FILE *  out ;
 
 static GtkWidget *  is_comb_check ;
-static GtkWidget *  pref_utf8_sel_check ;
-static GtkWidget *  pre_conv_check ;
-static GtkWidget *  auto_utf8_sel_check ;
 static GtkWidget *  use_bidi_check ;
 
 static GtkWidget *  is_tp_check ;
@@ -65,9 +64,9 @@ apply_clicked(
 	/*
 	 * CONFIG:[encoding] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
 	 * [bel mode] [combining char] [prefer utf8 selection request] [pre conv xct to ucs] \
-	 * [auto detect utf8 selection] [is transparent] [is aa] [is bidi] [xim] [locale][LF]
+	 * [is transparent] [is aa] [is bidi] [xim] [locale][LF]
 	 */
-	fprintf( out , "CONFIG:%d %d %d %d %d %s %d %d %d %d %d %d %d %d %d %s %s\n" ,
+	fprintf( out , "CONFIG:%d %d %d %d %d %s %d %d %d %d %d %d %d %d %s %s\n" ,
 		mc_get_encoding() ,
 		mc_get_fg_color() ,
 		mc_get_bg_color() ,
@@ -77,9 +76,8 @@ apply_clicked(
 		mc_get_mod_meta_mode() ,
 		mc_get_bel_mode() ,
 		GTK_TOGGLE_BUTTON(is_comb_check)->active ,
-		GTK_TOGGLE_BUTTON(pref_utf8_sel_check)->active ,
-		GTK_TOGGLE_BUTTON(pre_conv_check)->active ,
-		GTK_TOGGLE_BUTTON(auto_utf8_sel_check)->active ,
+		mc_get_utf8_sel_mode() ,
+		mc_get_xct_proc_mode() ,
 		GTK_TOGGLE_BUTTON(is_tp_check)->active ,
 		GTK_TOGGLE_BUTTON(is_aa_check)->active ,
 		GTK_TOGGLE_BUTTON(use_bidi_check)->active ,
@@ -272,25 +270,24 @@ static int
 show(
 	int  x ,
 	int  y ,
-	ml_char_encoding_t  cur_encoding ,
-	ml_color_t  cur_fg_color ,
-	ml_color_t  cur_bg_color ,
-	char *  cur_tabsize ,
-	char *  cur_logsize ,
-	char *  cur_fontsize ,
+	ml_char_encoding_t  encoding ,
+	ml_color_t  fg_color ,
+	ml_color_t  bg_color ,
+	char *  tabsize ,
+	char *  logsize ,
+	char *  fontsize ,
 	u_int  min_fontsize ,
 	u_int  max_fontsize ,
 	ml_mod_meta_mode_t  mod_meta_mode ,
 	ml_bel_mode_t  bel_mode ,
 	int  is_combining_char ,
 	int  prefer_utf8_selection ,
-	int  pre_conv_xct_to_ucs ,
-	int  auto_detect_utf8_selection ,
+	ml_xct_proc_mode_t  xct_proc_mode ,
 	int  is_transparent ,
 	int  is_aa ,
 	int  use_bidi ,
-	char *  cur_xim ,
-	char *  cur_locale
+	char *  xim ,
+	char *  locale
 	)
 {
 	GtkWidget *  window ;
@@ -315,6 +312,7 @@ show(
 	gtk_widget_show(vbox) ;
 	gtk_container_set_border_width(GTK_CONTAINER(vbox) , 5) ;
 	gtk_container_add(GTK_CONTAINER(window) , vbox) ;
+
 
 	/* whole screen (except for the contents of notebook) */
 
@@ -348,14 +346,14 @@ show(
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
 	gtk_widget_show(vbox) ;
 
-	if( ! ( config_widget = mc_encoding_config_widget_new(cur_encoding)))
+	if( ! ( config_widget = mc_encoding_config_widget_new(encoding)))
 	{
 		return  0 ;
 	}
 	gtk_widget_show(config_widget) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! ( config_widget = mc_xim_config_widget_new(cur_xim, cur_locale)))
+	if( ! ( config_widget = mc_xim_config_widget_new(xim, locale)))
 	{
 		return  0 ;
 	}
@@ -380,36 +378,29 @@ show(
 	gtk_widget_show(is_comb_check) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , is_comb_check , TRUE , TRUE , 0) ;
 
-	hbox = gtk_hbox_new(TRUE , 5) ;
-	gtk_widget_show(hbox) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 	
-	if( ! ( pref_utf8_sel_check = mc_check_config_widget_new(
-			"utf8 selection request" , prefer_utf8_selection)))
-	{
-		return  0 ;
-	}
-	gtk_widget_show(pref_utf8_sel_check) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , pref_utf8_sel_check , TRUE , TRUE , 0) ;
-	
-	if( ! ( pre_conv_check = mc_check_config_widget_new( "pre conv xct to ucs" , pre_conv_xct_to_ucs)))
-	{
-		return  0 ;
-	}
-	gtk_widget_show(pre_conv_check) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , pre_conv_check , TRUE , TRUE , 0) ;
+	/* contents of the "copy&paste" tab */
 
-	hbox = gtk_hbox_new(TRUE , 5) ;
-	gtk_widget_show(hbox) ;
-	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
-	
-	if( ! ( auto_utf8_sel_check = mc_check_config_widget_new( "auto utf8 selection" ,
-					auto_detect_utf8_selection)))
+	label = gtk_label_new("copy&paste") ;
+	gtk_widget_show(label) ;
+	vbox = gtk_vbox_new(FALSE , 3) ;
+	gtk_container_set_border_width(GTK_CONTAINER(vbox) , 5) ;
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
+	gtk_widget_show(vbox) ;
+
+	if( ! ( config_widget = mc_utf8_sel_config_widget_new(prefer_utf8_selection)))
 	{
 		return  0 ;
 	}
-	gtk_widget_show(auto_utf8_sel_check) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , auto_utf8_sel_check , TRUE , TRUE , 0) ;
+	gtk_widget_show(config_widget) ;
+	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , TRUE , TRUE , 0) ;
+	
+	if( ! ( config_widget = mc_xct_proc_config_widget_new(xct_proc_mode)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show(config_widget) ;
+	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , TRUE , TRUE , 0) ;
 
 	
 	/* contents of the "appearance" tab */
@@ -421,21 +412,21 @@ show(
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
 	gtk_widget_show(vbox) ;
 
-	if ( ! ( config_widget = mc_fg_color_config_widget_new(cur_fg_color)))
+	if ( ! ( config_widget = mc_fg_color_config_widget_new(fg_color)))
 	{
 		return  0 ;
 	}
 	gtk_widget_show(config_widget) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 	
-	if( ! (config_widget = mc_bg_color_config_widget_new(cur_bg_color)))
+	if( ! (config_widget = mc_bg_color_config_widget_new(bg_color)))
 	{
 		return  0 ;
 	}
 	gtk_widget_show(config_widget) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 	
-	if( ! (config_widget = mc_fontsize_config_widget_new(cur_fontsize , min_fontsize , max_fontsize)))
+	if( ! (config_widget = mc_fontsize_config_widget_new(fontsize , min_fontsize , max_fontsize)))
 	{
 		return  0 ;
 	}
@@ -477,14 +468,14 @@ show(
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
 	gtk_widget_show(vbox) ;
 
-	if( ! ( config_widget = mc_tabsize_config_widget_new(cur_tabsize)))
+	if( ! ( config_widget = mc_tabsize_config_widget_new(tabsize)))
 	{
 		return  0 ;
 	}
 	gtk_widget_show(config_widget) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
 
-	if( ! (config_widget = mc_logsize_config_widget_new(cur_logsize)))
+	if( ! (config_widget = mc_logsize_config_widget_new(logsize)))
 	{
 		return  0 ;
 	}
@@ -518,25 +509,24 @@ start_application(
 	size_t  len ;
 	char *  input_line ;
 	
-	int  cur_encoding ;
-	int  cur_fg_color ;
-	int  cur_bg_color ;
-	char *  cur_tabsize ;
-	char *  cur_logsize ;
-	char *  cur_fontsize ;
+	int  encoding ;
+	int  fg_color ;
+	int  bg_color ;
+	char *  tabsize ;
+	char *  logsize ;
+	char *  fontsize ;
 	u_int  min_fontsize ;
 	u_int  max_fontsize ;
-	int  cur_mod_meta_mode ;
-	int  cur_bel_mode ;
+	int  mod_meta_mode ;
+	int  bel_mode ;
 	int  is_combining_char ;
 	int  prefer_utf8_selection ;
-	int  pre_conv_xct_to_ucs ;
-	int  auto_detect_utf8_selection ;
+	int  xct_proc_mode ;
 	int  is_transparent ;
 	int  is_aa ;
 	int  use_bidi ;
-	char *  cur_locale ;
-	char *  cur_xim ;
+	char *  locale ;
+	char *  xim ;
 
 	if( ( in = fdopen( in_fd , "r")) == NULL)
 	{
@@ -569,38 +559,38 @@ start_application(
 	/*
 	 * input_line format
 	 * [encoding] [fg color] [bg color] [tabsize] [logsize] [font size] [min font size] \
-	 * [max font size] [is combining char] [prefer utf8 selection request] [pre conv xct to cs] \
+	 * [max font size] [is combining char] [prefer utf8 selection request] [xct proc mode] \
 	 * [auto detect utf8 selection] [is transparent] [locale] [xim][LF]
 	 */
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &cur_encoding , p))
+		! kik_str_to_int( &encoding , p))
 	{
 		return  0 ;
 	}
 
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &cur_fg_color , p))
+		! kik_str_to_int( &fg_color , p))
 	{
 		return  0 ;
 	}
 	
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &cur_bg_color , p))
+		! kik_str_to_int( &bg_color , p))
 	{
 		return  0 ;
 	}
 	
-	if( ( cur_tabsize = kik_str_sep( &input_line , " ")) == NULL)
+	if( ( tabsize = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}
 
-	if( ( cur_logsize = kik_str_sep( &input_line , " ")) == NULL)
+	if( ( logsize = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}
 
-	if( ( cur_fontsize = kik_str_sep( &input_line , " ")) == NULL)
+	if( ( fontsize = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}
@@ -618,13 +608,13 @@ start_application(
 	}
 	
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &cur_mod_meta_mode , p))
+		! kik_str_to_int( &mod_meta_mode , p))
 	{
 		return  0 ;
 	}
 
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &cur_bel_mode , p))
+		! kik_str_to_int( &bel_mode , p))
 	{
 		return  0 ;
 	}
@@ -642,13 +632,7 @@ start_application(
 	}
 
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &pre_conv_xct_to_ucs , p))
-	{
-		return  0 ;
-	}
-
-	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &auto_detect_utf8_selection , p))
+		! kik_str_to_int( &xct_proc_mode , p))
 	{
 		return  0 ;
 	}
@@ -671,21 +655,21 @@ start_application(
 		return  0 ;
 	}
 	
-	if( ( cur_xim = kik_str_sep( &input_line , " ")) == NULL)
+	if( ( xim = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}
 	
-	if( ( cur_locale = input_line) == NULL)
+	if( ( locale = input_line) == NULL)
 	{
 		return  0 ;
 	}
 	
-	return  show( x , y , cur_encoding , cur_fg_color , cur_bg_color , cur_tabsize ,
-		cur_logsize , cur_fontsize , min_fontsize , max_fontsize ,
-		cur_mod_meta_mode , cur_bel_mode , is_combining_char ,
-		prefer_utf8_selection , pre_conv_xct_to_ucs , auto_detect_utf8_selection ,
-		is_transparent , is_aa , use_bidi , cur_xim , cur_locale) ;
+	return  show( x , y , encoding , fg_color , bg_color , tabsize ,
+		logsize , fontsize , min_fontsize , max_fontsize ,
+		mod_meta_mode , bel_mode , is_combining_char ,
+		prefer_utf8_selection , xct_proc_mode , is_transparent , is_aa ,
+		use_bidi , xim , locale) ;
 }
 
 

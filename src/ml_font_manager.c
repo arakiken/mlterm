@@ -93,8 +93,8 @@ dump_cached_fonts(
 			fprintf( stderr , "  attr %x: XftFont %p\n" , f_array[counter]->value->attr ,
 				f_array[counter]->value->xft_font) ;
 		#endif
-			fprintf( stderr , "  attr %x: XFont %li\n" , f_array[counter]->value->attr ,
-				f_array[counter]->value->xfont->fid) ;
+			fprintf( stderr , "  attr %x: XFont %p\n" , f_array[counter]->value->attr ,
+				f_array[counter]->value->xfont) ;
 		}
 	}
 }

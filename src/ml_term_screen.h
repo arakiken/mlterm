@@ -25,6 +25,7 @@
 #include  "ml_config_menu.h"
 #include  "ml_mod_meta_mode.h"
 #include  "ml_bel_mode.h"
+#include  "ml_xct_proc_mode.h"
 #include  "ml_pty.h"
 
 
@@ -96,6 +97,8 @@ typedef struct  ml_term_screen
 	ml_mod_meta_mode_t  mod_meta_mode ;
 
 	ml_bel_mode_t  bel_mode ;
+
+	ml_xct_proc_mode_t  xct_proc_mode ;
 	
 	ml_encoding_event_listener_t *  encoding_listener ;
 	ml_system_event_listener_t *  system_listener ;
@@ -112,9 +115,9 @@ typedef struct  ml_term_screen
 	int  scroll_cache_boundary_start ;
 	int  scroll_cache_boundary_end ;
 
+	char *  pic_file_path ;
+
 	int8_t  prefer_utf8_selection ;
-	int8_t  pre_conv_xct_to_ucs ;
-	int8_t  auto_detect_utf8_selection ;
 	int8_t  is_reverse ;
 	int8_t  is_app_keypad ;
 	int8_t  is_app_cursor_keys ;
@@ -123,8 +126,6 @@ typedef struct  ml_term_screen
 	int8_t  is_aa ;
 	int8_t  use_bidi ;
 	
-	char *  pic_file_path ;
-
 } ml_term_screen_t ;
 
 
@@ -133,7 +134,7 @@ ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
 	u_int  num_of_log_lines , u_int  tab_size , int  use_xim ,
 	int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode , ml_bel_mode_t  bel_mode ,
-	int  prefer_utf8_selection , int  pre_conv_xct_to_ucs , int  auto_detect_utf8_selection ,
+	int  prefer_utf8_selection , ml_xct_proc_mode_t  xct_proc_mode ,
 	char *  pic_file_path , int  use_transbg , int  is_aa , int  use_bidi ,
 	int  big5_buggy , char *  conf_menu_path) ;
 

@@ -57,7 +57,6 @@ typedef struct  ml_term_manager
 	u_int  font_size ;
 	u_int  tab_size ;
 	
-	char *  scrollbar_view_name ;
 	int8_t  use_scrollbar ;
 	int8_t  use_login_shell ;
 	int8_t  use_xim ;
@@ -67,20 +66,23 @@ typedef struct  ml_term_manager
 	int8_t  big5_buggy ;
 	int8_t  unicode_to_other_cs ;
 	int8_t  all_cs_to_unicode ;
-	int8_t  conv_to_generic_iso2022 ;
 	int8_t  prefer_utf8_selection ;
-	int8_t  pre_conv_xct_to_ucs ;
-	int8_t  auto_detect_utf8_selection ;
 	int8_t  use_transbg ;
+	
+	char *  scrollbar_view_name ;
 	char *  pic_file_path ;
+	char *  conf_menu_path ;
+	
 	ml_mod_meta_mode_t  mod_meta_mode ;
 	ml_bel_mode_t  bel_mode ;
+	ml_xct_proc_mode_t  xct_proc_mode ;
+	
+	u_int  num_of_startup_terms ;
 	u_int  col_size_a ;
-	char *  conf_menu_path ;
 	ml_char_encoding_t  encoding ;
+	
 	char *  cmd_path ;
 	char **  cmd_argv ;
-	u_int  num_of_startup_terms ;
 	
 	ml_term_t  terms[5] ;
 	u_int  num_of_terms ;
