@@ -1356,7 +1356,7 @@ config_init(
 
 	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , "true") == 0)
 	{
-		if( ( term_man->conf.cmd_argv = alloca( sizeof( char*) * (argc + 2))) == NULL)
+		if( ( term_man->conf.cmd_argv = malloc( sizeof( char*) * (argc + 2))) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
