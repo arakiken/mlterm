@@ -1,3 +1,8 @@
+2003-07-01 Araki Ken <arakiken@users.sf.net>
+
+	* Updated tool/mlconfig/po/zh_TW.po.
+	  (Thanks to Ambrose Li)
+
 2003-06-30 Araki Ken <arakiken@users.sf.net>
 
 	* Compiled mlcc and pixmap_engine by default.
