@@ -1,3 +1,9 @@
+[20020115]
+* JISX0201 katakana copy&paste failed. fixed.(thanks to Kubota Tomohiro san)
+* ESC]5380;pwdBEL is supported.
+* #<key>=#error instead of #<key>=error is returned when error happens around ESC]5380;ptBEL
+  sequence.
+
 [20020114]
 * fade_ratio can be dynamically changed.
 * ESC]5379;fade_ratio=<value>BEL , ESC]5380;fade_ratioBEL , ESC]5380;wall_pictureBEL
