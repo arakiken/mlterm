@@ -1,3 +1,8 @@
+2004-11-17 MINAMI Hirokazu <minami@mistfall.net>
+
+	* kiklib/src/kik_sig_child.c: changed the handler for SIGCHLD 
+	from SIG_IGN to SIG_DFL to be old POSIX compliant.
+
 2004-11-16 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* mlterm/ml_term_manager.c (sig_child): ignore SIGCHLD from non pty

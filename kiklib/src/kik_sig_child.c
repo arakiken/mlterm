@@ -85,7 +85,7 @@ kik_sig_child_suspend(void)
 {
 	if( is_init)
 	{
-		signal( SIGCHLD , SIG_IGN) ;
+		signal( SIGCHLD , SIG_DFL) ;
 	}
 
 	return  1 ;
