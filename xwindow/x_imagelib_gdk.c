@@ -1023,11 +1023,11 @@ compose_to_pixmap(
 	{
 	case TrueColor:
 		image = compose_truecolor( display,
-					     screen,
-					     pixbuf,
-					     pixmap,
-					     DefaultDepth( display, screen),
-					     vinfolist) ;
+					   screen,
+					   pixbuf,
+					   pixmap,
+					   DefaultDepth( display, screen),
+					   vinfolist) ;
 		break;
 	case PseudoColor:
 		image = compose_pseudocolor( display,
@@ -1532,6 +1532,7 @@ x_imagelib_load_file_for_background(
 {
 	GdkPixbuf *  pixbuf ;
 	Pixmap pixmap ;
+	int  dup_flag = 0;
 
 	if(!file_path)
 		return None ;
@@ -1544,8 +1545,11 @@ x_imagelib_load_file_for_background(
 	}
 
 	if( pic_mod)
+	{
+		pixbuf = gdk_pixbuf_copy(pixbuf);
 		modify_image( pixbuf, pic_mod) ;
-
+		dup_flag = 1 ;
+	}
 	if( gdk_pixbuf_get_has_alpha ( pixbuf) )
 	{
 		pixmap = x_imagelib_get_transparent_background( win, NULL) ;
@@ -1568,6 +1572,9 @@ x_imagelib_load_file_for_background(
 			return None ;
 		}
 	}
+	if( dup_flag)
+		gdk_pixbuf_unref( pixbuf) ;
+
 	return pixmap ;
 }
 
