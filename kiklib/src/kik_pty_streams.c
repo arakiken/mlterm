@@ -97,6 +97,8 @@ kik_pty_fork(
 		 * device. -- seiichi
 		 */
 		kik_msg_printf( "Unable to open slave pseudo-terminal device\n") ;
+		kik_msg_printf( "If your operating system is Linux, make sure your kernel was compiled with\n"
+			        "'CONFIG_UNIX98_PTYS=y' and devpts file system was mounted\n");
 		return  -1;
 	}
 

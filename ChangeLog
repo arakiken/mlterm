@@ -1,3 +1,8 @@
+2004-08-01 Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* kik_pty_streams.c (kik_pty_fork): more verbose error message for
+	Linux.
+
 2004-08-01 MINAMI Hirokazu <minami@mistfall.net>
 
 	* mlterm/ml_edit.c: allowed multiple restore cursor request.
