@@ -1,3 +1,8 @@
+[20020124]
+* cursor may disappear when selected region color is restored. fixed.
+* w3mmlconfig is added(tool/w3mmlconfig)
+* contrib/scrollbar/sample is moved to scrollbar/sample
+
 [20020123]
 * ISCII rendering is tuned up.
 * etc/font and etc/vfont format is changed. (default font can be specified.)
