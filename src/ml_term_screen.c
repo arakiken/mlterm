@@ -1017,7 +1017,7 @@ update_encoding_proper_aux(
 			termscr->logvis = NULL ;
 			termscr->shape = NULL ;
 		}
-		
+
 		if( termscr->vertical_mode)
 		{
 			ml_logical_visual_t *  logvis ;
@@ -2633,7 +2633,7 @@ end:
  * callbacks of ml_config_menu_event events.
  */
 
-static int
+static u_int
 screen_width(
 	ml_term_screen_t *  termscr
 	)
@@ -2661,7 +2661,7 @@ screen_width(
 	return  (width * termscr->screen_width_ratio) / 100 ;
 }
 
-static int
+static u_int
 screen_height(
 	ml_term_screen_t *  termscr
 	)
@@ -2975,6 +2975,27 @@ change_vertical_mode(
 		return ;
 	}
 
+	/*
+	 * vertical font is automatically used under vertical mode.
+	 * similler processing is done in ml_term_screen_new.
+	 */
+	if( vertical_mode)
+	{
+		if( ! (termscr->font_present & FONT_VERTICAL))
+		{
+			(*termscr->config_menu_listener.change_font_present)( termscr ,
+				(termscr->font_present | FONT_VERTICAL) & ~FONT_VAR_WIDTH) ;
+		}
+	}
+	else
+	{
+		if( termscr->font_present & FONT_VERTICAL)
+		{
+			(*termscr->config_menu_listener.change_font_present)( termscr ,
+				termscr->font_present & ~FONT_VERTICAL) ;
+		}
+	}
+
 	termscr->vertical_mode = vertical_mode ;
 
 	update_encoding_proper_aux( termscr , 1) ;
@@ -3135,6 +3156,11 @@ change_font_present(
 
 	termscr = p ;
 	
+	if( termscr->vertical_mode)
+	{
+		font_present &= ~FONT_VAR_WIDTH ;
+	}
+
 	if( termscr->font_present == font_present)
 	{
 		return ;
@@ -3584,8 +3610,23 @@ ml_term_screen_new(
 	
 	termscr->pty = NULL ;
 	
+	termscr->logvis = NULL ;
+	termscr->iscii_lang = iscii_lang ;
+	termscr->iscii_state = NULL ;
+	termscr->shape = NULL ;
+
 	termscr->font_man = font_man ;
 
+	if( ( termscr->vertical_mode = vertical_mode))
+	{
+		/*
+		 * vertical font is automatically used under vertical mode.
+		 * similler processing is done in change_vertical_mode.
+		 */
+		font_present |= FONT_VERTICAL ;
+		font_present &= ~FONT_VAR_WIDTH ;
+	}
+	
 	if( font_present)
 	{
 		if( ! ml_font_manager_change_font_present( termscr->font_man , font_present))
@@ -3599,11 +3640,6 @@ ml_term_screen_new(
 	}
 	
 	termscr->font_present = font_present ;
-
-	termscr->logvis = NULL ;
-	termscr->iscii_lang = iscii_lang ;
-	termscr->iscii_state = NULL ;
-	termscr->shape = NULL ;
 
 	termscr->use_bidi = use_bidi ;
 	
@@ -3686,8 +3722,6 @@ ml_term_screen_new(
 
 	termscr->fade_ratio = fade_ratio ;
 	termscr->is_focused = 0 ;
-
-	termscr->vertical_mode = vertical_mode ;
 
 	termscr->screen_width_ratio = screen_width_ratio ;
 	termscr->screen_height_ratio = screen_height_ratio ;

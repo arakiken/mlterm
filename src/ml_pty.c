@@ -153,6 +153,10 @@ ml_set_pty_winsize(
 {
 	struct winsize  ws ;
 
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " win size cols %d rows %d.\n" , cols , rows) ;
+#endif
+
 	ws.ws_col = cols ;
 	ws.ws_row = rows ;
 	

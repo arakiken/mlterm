@@ -126,11 +126,11 @@ open_new_term(
 	}
 	
 	if( ( font_man = ml_font_manager_new( term_man->win_man.display ,
-		&term_man->normal_font_custom , &term_man->v_font_custom ,
+		&term_man->normal_font_custom , &term_man->v_font_custom , &term_man->t_font_custom ,
 	#ifdef  ANTI_ALIAS
-		&term_man->aa_font_custom , &term_man->vaa_font_custom ,
+		&term_man->aa_font_custom , &term_man->vaa_font_custom , &term_man->taa_font_custom ,
 	#else
-		NULL , NULL ,
+		NULL , NULL , NULL ,
 	#endif
 		term_man->font_size , usascii_font_cs , usascii_font_cs_changable ,
 		term_man->step_in_changing_font_size)) == NULL)
@@ -877,6 +877,30 @@ ml_term_manager_init(
 		free( rcpath) ;
 	}
 
+	if( ! ml_font_custom_init( &term_man->t_font_custom , min_font_size , max_font_size))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_font_custom_init failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
+	font_rcfile = "mlterm/tfont" ;
+	
+	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
+	{
+		ml_font_custom_read_conf( &term_man->t_font_custom , rcpath) ;
+
+		free( rcpath) ;
+	}
+
+	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
+	{
+		ml_font_custom_read_conf( &term_man->t_font_custom , rcpath) ;
+
+		free( rcpath) ;
+	}
 
 #ifdef  ANTI_ALIAS
 	if( ! ml_font_custom_init( &term_man->aa_font_custom , min_font_size , max_font_size))
@@ -925,6 +949,31 @@ ml_term_manager_init(
 	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
 	{
 		ml_font_custom_read_conf( &term_man->vaa_font_custom , rcpath) ;
+
+		free( rcpath) ;
+	}
+	
+	if( ! ml_font_custom_init( &term_man->taa_font_custom , min_font_size , max_font_size))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_font_custom_init failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
+	font_rcfile = "mlterm/taafont" ;
+	
+	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
+	{
+		ml_font_custom_read_conf( &term_man->taa_font_custom , rcpath) ;
+
+		free( rcpath) ;
+	}
+
+	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
+	{
+		ml_font_custom_read_conf( &term_man->taa_font_custom , rcpath) ;
 
 		free( rcpath) ;
 	}
@@ -1633,11 +1682,14 @@ ml_term_manager_final(
 	
 	ml_window_manager_final( &term_man->win_man) ;
 	ml_color_manager_final( &term_man->color_man) ;
+	
 	ml_font_custom_final( &term_man->normal_font_custom) ;
 	ml_font_custom_final( &term_man->v_font_custom) ;
+	ml_font_custom_final( &term_man->t_font_custom) ;
 #ifdef  ANTI_ALIAS
 	ml_font_custom_final( &term_man->aa_font_custom) ;
 	ml_font_custom_final( &term_man->vaa_font_custom) ;
+	ml_font_custom_final( &term_man->taa_font_custom) ;
 #endif
 	ml_keymap_final( &term_man->keymap) ;
 	ml_termcap_final( &term_man->termcap) ;

@@ -13,6 +13,10 @@ typedef struct  container_logical_visual
 {
 	ml_logical_visual_t  logvis ;
 
+	/*
+	 * visual : children[0] => children[1] => ... => children[n]
+	 * logical: children[n] => ... => children[1] => children[0]
+	 */
 	ml_logical_visual_t *  children[2] ;
 	u_int  num_of_children ;
 
@@ -119,7 +123,8 @@ container_logical_cols(
 	
 	if( container->num_of_children > 0)
 	{
-		return  (*container->children[0]->logical_cols)( container->children[0]) ;
+		return  (*container->children[container->num_of_children - 1]->logical_cols)(
+			container->children[container->num_of_children - 1]) ;
 	}
 	else
 	{
@@ -138,7 +143,8 @@ container_logical_rows(
 	
 	if( container->num_of_children > 0)
 	{
-		return  (*container->children[0]->logical_rows)( container->children[0]) ;
+		return  (*container->children[container->num_of_children - 1]->logical_rows)(
+			container->children[container->num_of_children - 1]) ;
 	}
 	else
 	{
@@ -796,7 +802,14 @@ cjk_vert_logical_cols(
 	ml_logical_visual_t *  logvis
 	)
 {
-	return  ((cjk_vert_logical_visual_t*)logvis)->logical_num_of_cols ;
+	if( logvis->is_visual)
+	{
+		return  ((cjk_vert_logical_visual_t*)logvis)->logical_num_of_cols ;
+	}
+	else
+	{
+		return  ml_image_get_cols( logvis->image) ;
+	}
 }
 
 static int
@@ -804,7 +817,14 @@ cjk_vert_logical_rows(
 	ml_logical_visual_t *  logvis
 	)
 {
-	return  ((cjk_vert_logical_visual_t*)logvis)->logical_num_of_rows ;
+	if( logvis->is_visual)
+	{
+		return  ((cjk_vert_logical_visual_t*)logvis)->logical_num_of_rows ;
+	}
+	else
+	{
+		return  ml_image_get_rows( logvis->image) ;
+	}
 }
 
 static int

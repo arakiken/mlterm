@@ -31,6 +31,10 @@ typedef struct  ml_font_manager
 	ml_font_custom_t *  v_font_custom ;
 	ml_font_custom_t *  vaa_font_custom ;		/* may be NULL */
 
+	/* for vertical view */
+	ml_font_custom_t *  t_font_custom ;
+	ml_font_custom_t *  taa_font_custom ;		/* may be NULL */
+
 	/* this ml_font_manager_t object local customization */
 	ml_font_custom_t *  local_font_custom ;
 
@@ -52,7 +56,9 @@ typedef struct  ml_font_manager
 
 ml_font_manager_t *  ml_font_manager_new( Display *  display ,
 	ml_font_custom_t *  normal_font_custom , ml_font_custom_t *  v_font_custom ,
+	ml_font_custom_t *  t_font_custom ,
 	ml_font_custom_t *  aa_font_custom , ml_font_custom_t *  vaa_font_custom ,
+	ml_font_custom_t *  taa_font_custom ,
 	u_int  font_size , mkf_charset_t  usascii_font_cs , int  usascii_font_cs_changable ,
 	int  step_in_changing_font_size) ;
 	

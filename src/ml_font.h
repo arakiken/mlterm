@@ -30,6 +30,7 @@ typedef enum ml_font_present
 {
 	FONT_VAR_WIDTH = 0x01 ,
 	FONT_AA = 0x02 ,
+	FONT_VERTICAL = 0x04 ,
 
 } ml_font_present_t ;
 

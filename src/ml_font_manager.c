@@ -72,7 +72,8 @@ is_var_col_width(
 	)
 {
 	return  (font_man->font_custom == font_man->v_font_custom) ||
-		(font_man->font_custom == font_man->vaa_font_custom) ;
+		(font_man->font_custom == font_man->vaa_font_custom) ||
+		(font_man->font_custom == font_man->taa_font_custom) ;
 }
 
 static int
@@ -82,6 +83,15 @@ is_aa(
 {
 	return  (font_man->font_custom == font_man->aa_font_custom) ||
 		(font_man->font_custom == font_man->vaa_font_custom) ;
+}
+
+static int
+is_vertical(
+	ml_font_manager_t *  font_man
+	)
+{
+	return  (font_man->font_custom == font_man->t_font_custom) ||
+		(font_man->font_custom == font_man->taa_font_custom) ;
 }
 
 static char *
@@ -105,12 +115,14 @@ get_font_name_for_attr(
 		return  font_name ;
 	}
 
-	if( is_var_col_width( font_man))
+	if( is_var_col_width( font_man) || is_vertical( font_man))
 	{
 		/*
 		 * searching
 		 *  ~/.mlterm/vfont -> ~/.mlterm/font
+		 *  ~/.mlterm/tfont -> ~/.mlterm/font
 		 *  ~/.mlterm/vaafont -> ~/.mlterm/aafont
+		 *  ~/.mlterm/taafont -> ~/.mlterm/aafont
 		 */
 		if( is_aa( font_man))
 		{
@@ -267,8 +279,10 @@ ml_font_manager_new(
 	Display *  display ,
 	ml_font_custom_t *  normal_font_custom ,
 	ml_font_custom_t *  v_font_custom ,
+	ml_font_custom_t *  t_font_custom ,
 	ml_font_custom_t *  aa_font_custom ,	/* may be NULL */
 	ml_font_custom_t *  vaa_font_custom ,
+	ml_font_custom_t *  taa_font_custom ,
 	u_int  font_size ,
 	mkf_charset_t  usascii_font_cs ,
 	int  usascii_font_cs_changable ,
@@ -287,9 +301,11 @@ ml_font_manager_new(
 	}
 
 	font_man->normal_font_custom = normal_font_custom ;
-	font_man->aa_font_custom = aa_font_custom ;
 	font_man->v_font_custom = v_font_custom ;
+	font_man->t_font_custom = t_font_custom ;
+	font_man->aa_font_custom = aa_font_custom ;
 	font_man->vaa_font_custom = vaa_font_custom ;
+	font_man->taa_font_custom = taa_font_custom ;
 	
 	font_man->local_font_custom = NULL ;
 
@@ -382,6 +398,27 @@ ml_font_manager_change_font_present(
 
 		font_man->set_xfont = ml_font_set_xft_pfont ;
 		font_man->font_custom = font_man->vaa_font_custom ;
+	}
+	else if( font_present == FONT_VERTICAL)
+	{
+		if( font_man->font_custom == font_man->t_font_custom)
+		{
+			return  0 ;
+		}
+
+		font_man->set_xfont = ml_font_set_xfont ;
+		font_man->font_custom = font_man->t_font_custom ;
+	}
+	else if( font_present == (FONT_AA | FONT_VERTICAL))
+	{
+		if( font_man->taa_font_custom == NULL ||
+			font_man->font_custom == font_man->taa_font_custom)
+		{
+			return  0 ;
+		}
+
+		font_man->set_xfont = ml_font_set_xft_pfont ;
+		font_man->font_custom = font_man->taa_font_custom ;
 	}
 	else
 	{

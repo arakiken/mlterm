@@ -117,6 +117,7 @@ comment $Id$
 
       KEY LIST
       o display        ... DISPLAY を指定
+      o geometry       ... geometry を指定
       
       o tabsize        ... タブ幅(*8*)
       o logsize        ... ログの行数(*128*)
