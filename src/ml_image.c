@@ -388,6 +388,7 @@ cursor_goto_intern(
 	u_int  brk_size ;
 	u_int  actual ;
 	int  char_index ;
+	int  cols_rest ;
 
 	if( row > END_ROW(image))
 	{
@@ -416,12 +417,13 @@ cursor_goto_intern(
 
 	if( is_col)
 	{
-		char_index = ml_convert_col_to_char_index( &IMAGE_LINE(image,row) , NULL ,
+		char_index = ml_convert_col_to_char_index( &IMAGE_LINE(image,row) , &cols_rest ,
 					col_or_indx , BREAK_BOUNDARY) ;
 	}
 	else
 	{
 		char_index = col_or_indx ;
+		cols_rest = 0 ;
 	}
 	
 	if( char_index > ml_imgline_end_char_index( &IMAGE_LINE(image,row)))
@@ -437,7 +439,7 @@ cursor_goto_intern(
 			return  0 ;
 		}
 
-		brk_size = char_index + 1 - IMAGE_LINE(image,row).num_of_filled_chars ;
+		brk_size = char_index + cols_rest + 1 - IMAGE_LINE(image,row).num_of_filled_chars ;
 		
 		if( ( actual = ml_imgline_break_boundary( &IMAGE_LINE(image,row) , brk_size , &image->sp_ch))
 			< brk_size)
@@ -456,7 +458,8 @@ cursor_goto_intern(
 	image->cursor.row = row ;
 	
 	image->cursor.col =
-		ml_convert_char_index_to_col( &CURSOR_LINE(image) , image->cursor.char_index , 0) ;
+		ml_convert_char_index_to_col( &CURSOR_LINE(image) , image->cursor.char_index , 0)
+		+ cols_rest ;
 
 	return  1 ;
 }

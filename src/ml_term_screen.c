@@ -61,6 +61,10 @@
 #define  __DEBUG
 #endif
 
+#if  0
+#define  XCOPYAREA_SCROLLING
+#endif
+
 
 /* --- static functions --- */
 
@@ -2501,6 +2505,7 @@ window_scroll_upward(
 	u_int  size
 	)
 {
+#ifdef  XCOPYAREA_SCROLLING
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
@@ -2510,11 +2515,16 @@ window_scroll_upward(
 		return  0 ;
 	}
 
+	ml_restore_selected_region_color( &termscr->sel) ;
+
 	set_scroll_boundary( termscr , 0 , ml_image_get_rows( termscr->image) - 1) ;
 	
 	termscr->scroll_cache_rows += size ;
 
 	return  1 ;
+#else
+	return  0 ;
+#endif
 }
 
 static int
@@ -2523,6 +2533,7 @@ window_scroll_downward(
 	u_int  size
 	)
 {
+#ifdef  XCOPYAREA_SCROLLING
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
@@ -2531,12 +2542,17 @@ window_scroll_downward(
 	{
 		return  0 ;
 	}
+
+	ml_restore_selected_region_color( &termscr->sel) ;
 	
 	set_scroll_boundary( termscr , 0 , ml_image_get_rows( termscr->image) - 1) ;
 	
 	termscr->scroll_cache_rows -= size ;
 
 	return  1 ;
+#else
+	return  0 ;
+#endif
 }
 
 static int
@@ -2547,6 +2563,7 @@ window_scroll_upward_region(
 	u_int  size
 	)
 {
+#ifdef  XCOPYAREA_SCROLLING
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
@@ -2563,6 +2580,9 @@ window_scroll_upward_region(
 	termscr->scroll_cache_rows += size ;
 
 	return  1 ;
+#else
+	return  0 ;
+#endif
 }
 
 static int
@@ -2573,6 +2593,7 @@ window_scroll_downward_region(
 	u_int  size
 	)
 {
+#ifdef  XCOPYAREA_SCROLLING
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
@@ -2589,6 +2610,9 @@ window_scroll_downward_region(
 	termscr->scroll_cache_rows -= size ;
 
 	return  1 ;
+#else
+	return  0 ;
+#endif
 }
 
 /*
