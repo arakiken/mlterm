@@ -1728,8 +1728,8 @@ ml_vt100_parser_t *
 ml_vt100_parser_new(
 	ml_term_screen_t *  termscr ,
 	ml_char_encoding_t  encoding ,
-	int  unicode_to_other_cs ,
-	int  all_cs_to_unicode ,
+	int  not_use_unicode_font ,
+	int  only_use_unicode_font ,
 	u_int  col_size_a
 	)
 {
@@ -1772,8 +1772,8 @@ ml_vt100_parser_new(
 	vt100_parser->font = NULL ;
 	vt100_parser->cs = UNKNOWN_CS ;
 
-	vt100_parser->unicode_to_other_cs = unicode_to_other_cs ;
-	vt100_parser->all_cs_to_unicode = all_cs_to_unicode ;
+	vt100_parser->not_use_unicode_font = not_use_unicode_font ;
+	vt100_parser->only_use_unicode_font = only_use_unicode_font ;
 
 	if( ( vt100_parser->cc_conv = ml_conv_new( encoding)) == NULL)
 	{
@@ -1891,6 +1891,77 @@ ml_parse_vt100_sequence(
 			while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 			{
 				/*
+				 * UCS <-> OTHER CS
+				 */ 
+				if( ch.cs == ISO10646_UCS4_1)
+				{
+					if( ch.ch[0] == 0x00 && ch.ch[1] == 0x00 &&
+						ch.ch[2] == 0x00 && ch.ch[3] <= 0x7f
+						)
+					{
+						/* this is always done */
+						ch.ch[0] = ch.ch[3] ;
+						ch.size = 1 ;
+						ch.cs = US_ASCII ;
+					}
+					else if( vt100_parser->not_use_unicode_font)
+					{
+						/* convert ucs4 to appropriate charset */
+
+						mkf_char_t  non_ucs ;
+
+						if( mkf_map_locale_ucs4_to( &non_ucs , &ch) == 0)
+						{
+						#ifdef  DEBUG
+							kik_warn_printf( KIK_DEBUG_TAG
+							" failed to convert ucs4 to other cs , ignored.\n") ;
+						#endif
+							continue ;
+						}
+						else
+						{
+							ch = non_ucs ;
+						}
+					}
+				#ifndef  USE_UCS4
+					else
+					{
+						/* change UCS4 to UCS2 */
+						ch.ch[0] = ch.ch[2] ;
+						ch.ch[1] = ch.ch[3] ;
+						ch.size = 2 ;
+						ch.cs = ISO10646_UCS2_1 ;
+					}
+				#endif
+				}
+				else if( vt100_parser->only_use_unicode_font && ch.cs != US_ASCII)
+				{
+					mkf_char_t  ucs ;
+
+					if( mkf_map_to_ucs4( &ucs , &ch))
+					{
+						ucs.property =  mkf_get_ucs_property( ucs.ch , ucs.size) ;
+						
+					#ifdef  USE_UCS4
+						ch = ucs ;
+					#else
+						ch.ch[0] = ucs.ch[2] ;
+						ch.ch[1] = ucs.ch[3] ;
+						ch.size = 2 ;
+						ch.cs = ISO10646_UCS2_1 ;
+						ch.property = ucs.property ;
+					#endif
+					}
+				#ifdef  DEBUG
+					else
+					{
+						kik_warn_printf( KIK_DEBUG_TAG
+							" mkf_convert_to_ucs4_char() failed, ignored.\n") ;
+					}
+				#endif
+				}
+
+				/*
 				 * NON UCS <-> NON UCS
 				 */
 				{
@@ -1924,77 +1995,6 @@ ml_parse_vt100_sequence(
 							continue ;
 						}
 					}
-				}
-
-				/*
-				 * UCS <-> OTHER CS
-				 */ 
-				if( ch.cs == ISO10646_UCS4_1)
-				{
-					if( ch.ch[0] == 0x00 && ch.ch[1] == 0x00 &&
-						ch.ch[2] == 0x00 && ch.ch[3] <= 0x7f
-						)
-					{
-						/* this is always done */
-						ch.ch[0] = ch.ch[3] ;
-						ch.size = 1 ;
-						ch.cs = US_ASCII ;
-					}
-					else if( vt100_parser->unicode_to_other_cs)
-					{
-						/* convert ucs4 to appropriate charset */
-
-						mkf_char_t  non_ucs ;
-
-						if( mkf_map_locale_ucs4_to( &non_ucs , &ch) == 0)
-						{
-						#ifdef  DEBUG
-							kik_warn_printf( KIK_DEBUG_TAG
-							" failed to convert ucs4 to other cs , ignored.\n") ;
-						#endif
-							continue ;
-						}
-						else
-						{
-							ch = non_ucs ;
-						}
-					}
-				#ifndef  USE_UCS4
-					else
-					{
-						/* change UCS4 to UCS2 */
-						ch.ch[0] = ch.ch[2] ;
-						ch.ch[1] = ch.ch[3] ;
-						ch.size = 2 ;
-						ch.cs = ISO10646_UCS2_1 ;
-					}
-				#endif
-				}
-				else if( vt100_parser->all_cs_to_unicode && ch.cs != US_ASCII)
-				{
-					mkf_char_t  ucs ;
-
-					if( mkf_map_to_ucs4( &ucs , &ch))
-					{
-						ucs.property =  mkf_get_ucs_property( ucs.ch , ucs.size) ;
-						
-					#ifdef  USE_UCS4
-						ch = ucs ;
-					#else
-						ch.ch[0] = ucs.ch[2] ;
-						ch.ch[1] = ucs.ch[3] ;
-						ch.size = 2 ;
-						ch.cs = ISO10646_UCS2_1 ;
-						ch.property = ucs.property ;
-					#endif
-					}
-				#ifdef  DEBUG
-					else
-					{
-						kik_warn_printf( KIK_DEBUG_TAG
-							" mkf_convert_to_ucs4_char() failed, ignored.\n") ;
-					}
-				#endif
 				}
 
 				if( ch.size == 1 && ch.ch[0] == 0x0)

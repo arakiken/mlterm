@@ -189,12 +189,12 @@ apply_cancel_button(
 	hbox = gtk_hbox_new(FALSE , 5) ;
 	gtk_widget_show(hbox) ;
 
-	button = gtk_button_new_with_label("apply") ;
+	button = gtk_button_new_with_label("Apply") ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(apply_clicked) , NULL) ;
 	gtk_widget_show(button) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
 
-	button = gtk_button_new_with_label("cancel") ;
+	button = gtk_button_new_with_label("Cancel") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(end_application) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 5) ;
@@ -212,7 +212,7 @@ font_large_small(
 	GtkWidget * hbox;
 	GtkWidget * button;
 
-	frame = gtk_frame_new("Font Size") ;
+	frame = gtk_frame_new("Font size") ;
 	gtk_widget_show(frame) ;
 
 	hbox = gtk_hbox_new( FALSE , 5) ;
@@ -220,12 +220,12 @@ font_large_small(
 	gtk_widget_show(hbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
 
-	button = gtk_button_new_with_label("larger") ;
+	button = gtk_button_new_with_label("Larger") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(larger_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
 
-	button = gtk_button_new_with_label("smaller") ;
+	button = gtk_button_new_with_label("Smaller") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(smaller_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
@@ -242,7 +242,7 @@ wall_picture(
 	GtkWidget * hbox;
 	GtkWidget * button;
 
-	frame = gtk_frame_new("Wall Picture") ;
+	frame = gtk_frame_new("Wall picture") ;
 	gtk_widget_show(frame) ;
 
 	hbox = gtk_hbox_new( FALSE , 5) ;
@@ -250,13 +250,13 @@ wall_picture(
 	gtk_widget_show(hbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
 
-	button = gtk_button_new_with_label( "select") ;
+	button = gtk_button_new_with_label( "Select") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect_object(GTK_OBJECT(button) ,
 		"clicked" , GTK_SIGNAL_FUNC(wall_pic_clicked) , GTK_OBJECT(window)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
 
-	button = gtk_button_new_with_label( "off") ;
+	button = gtk_button_new_with_label( "Off") ;
 	gtk_widget_show(button) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(no_wall_pic_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , TRUE , TRUE , 0) ;
@@ -333,9 +333,9 @@ show(
 	frame = wall_picture(window);
 	gtk_box_pack_start(GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
 
-	/* contents of the "encoding" tab */
+	/* contents of the "Encoding" tab */
 
-	label = gtk_label_new("encoding") ;
+	label = gtk_label_new("Encoding") ;
 	gtk_widget_show(label) ;
 
 	vbox = gtk_vbox_new(FALSE , 3) ;
@@ -361,14 +361,14 @@ show(
 	gtk_widget_show(hbox) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;	
 
-	if( ! ( use_bidi_check = mc_check_config_widget_new( "bidi (only UTF8)" , use_bidi)))
+	if( ! ( use_bidi_check = mc_check_config_widget_new( "Bidi (UTF8 only)" , use_bidi)))
 	{
 		return  0 ;
 	}
 	gtk_widget_show(use_bidi_check) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , use_bidi_check , TRUE , TRUE , 0) ;
 	
-	if( ! ( is_comb_check = mc_check_config_widget_new( "char combining" , is_combining_char)))
+	if( ! ( is_comb_check = mc_check_config_widget_new( "Combining" , is_combining_char)))
 	{
 		return  0 ;
 	}
@@ -376,9 +376,9 @@ show(
 	gtk_box_pack_start(GTK_BOX(hbox) , is_comb_check , TRUE , TRUE , 0) ;
 
 	
-	/* contents of the "copy&paste" tab */
+	/* contents of the "Copy&paste" tab */
 
-	label = gtk_label_new("copy&paste") ;
+	label = gtk_label_new("Copy&paste") ;
 	gtk_widget_show(label) ;
 	
 	vbox = gtk_vbox_new(FALSE , 3) ;
@@ -386,12 +386,12 @@ show(
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook) , vbox , label) ;
 	gtk_widget_show(vbox) ;
 
-	frame = gtk_frame_new("for Unicode-subset encodings") ;
+	frame = gtk_frame_new("For unicode-subset encodings") ;
 	gtk_widget_show(frame) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , frame , FALSE , FALSE , 0) ;
 	
 	if( ! ( copy_paste_via_ucs_check = mc_check_config_widget_new(
-		"process received strings via UCS" , copy_paste_via_ucs)))
+		"Process received strings via Unicode" , copy_paste_via_ucs)))
 	{
 		return  0 ;
 	}
@@ -399,9 +399,9 @@ show(
 	gtk_container_add(GTK_CONTAINER(frame) , copy_paste_via_ucs_check) ;
 		
 	
-	/* contents of the "appearance" tab */
+	/* contents of the "Appearance" tab */
 
-	label = gtk_label_new("appearance") ;
+	label = gtk_label_new("Appearance") ;
 	gtk_widget_show(label) ;
 	vbox = gtk_vbox_new(FALSE , 3) ;
 	gtk_container_set_border_width(GTK_CONTAINER(vbox) , 5) ;
@@ -440,14 +440,14 @@ show(
 	gtk_widget_show(hbox) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 
-	if( ! ( is_aa_check = mc_check_config_widget_new( "anti alias font" , is_aa)))
+	if( ! ( is_aa_check = mc_check_config_widget_new( "Anti-alias" , is_aa)))
 	{
 		return  0 ;
 	}
 	gtk_widget_show( is_aa_check) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , is_aa_check , TRUE , TRUE , 0) ;
 	
-	if( ! ( is_tp_check = mc_check_config_widget_new( "transparent" , is_transparent)))
+	if( ! ( is_tp_check = mc_check_config_widget_new( "Transparent" , is_transparent)))
 	{
 		return  0 ;
 	}
@@ -455,9 +455,9 @@ show(
 	gtk_box_pack_start(GTK_BOX(hbox) , is_tp_check , TRUE , TRUE , 0) ;
 
 
-	/* contents of the "others" tab */
+	/* contents of the "Others" tab */
 
-	label = gtk_label_new("others") ;
+	label = gtk_label_new("Others") ;
 	gtk_widget_show(label) ;
 	vbox = gtk_vbox_new(FALSE , 3) ;
 	gtk_container_set_border_width(GTK_CONTAINER(vbox) , 5) ;
@@ -679,7 +679,7 @@ main(
 		! kik_str_to_int( &in_fd , argv[3]) ||
 		! kik_str_to_int( &out_fd , argv[4]))
 	{
-		kik_msg_printf( "usage: (stdin 15) mlconfig [x] [y] [in] [out]\n") ;
+		kik_msg_printf( "usage: (stdin 17) mlconfig [x] [y] [in] [out]\n") ;
 		
 		return  0 ;
 	}

@@ -116,7 +116,7 @@ remap_unsupported_charset(
 }
 
 static size_t
-convert_to_iso2022_intern(
+convert_to_xct_intern(
 	mkf_conv_t *  conv ,
 	u_char *  dst ,
 	size_t  dst_size ,
@@ -353,7 +353,7 @@ convert_to_xct(
 	mkf_parser_t *  parser
 	)
 {
-	return  convert_to_iso2022_intern( conv , dst , dst_size , parser , 1) ;
+	return  convert_to_xct_intern( conv , dst , dst_size , parser , 1) ;
 }
 
 static size_t
@@ -364,7 +364,7 @@ convert_to_xct_big5_buggy(
 	mkf_parser_t *  parser
 	)
 {
-	return  convert_to_iso2022_intern( conv , dst , dst_size , parser , 1) ;
+	return  convert_to_xct_intern( conv , dst , dst_size , parser , 1) ;
 }
 
 static void

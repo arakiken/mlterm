@@ -37,7 +37,7 @@ dump_cached_fonts(
 #ifdef  ANTI_ALIAS
 	fprintf( stderr , "  usascii: XftFont %p\n" , font_man->usascii_font->xft_font) ;
 #endif
-	fprintf( stderr , "  usascii: XFont %li\n" , font_man->usascii_font->xfont->fid) ;
+	fprintf( stderr , "  usascii: XFont %p\n" , font_man->usascii_font->xfont) ;
 	
 	kik_map_get_pairs_array( font_man->font_cache_table , f_array , size) ;
 	for( counter = 0 ; counter < size ; counter++)

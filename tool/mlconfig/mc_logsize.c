@@ -55,7 +55,7 @@ mc_logsize_config_widget_new(
 {
 	selected_logsize = logsize ;
 
-	return  mc_combo_new( "Log Size" , logsizes , sizeof(logsizes) / sizeof(logsizes[0]) ,
+	return  mc_combo_new( "Log size" , logsizes , sizeof(logsizes) / sizeof(logsizes[0]) ,
 		selected_logsize , 0 , logsize_selected , NULL) ;
 }
 

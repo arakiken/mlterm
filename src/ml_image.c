@@ -211,7 +211,7 @@ render_chars(
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG 
-					" line len %d is over ml_image_t::num_of_chars %d" ,
+					" line len %d is over ml_image_t::num_of_cols %d" ,
 					line_len , image->num_of_cols) ;
 			#endif
 

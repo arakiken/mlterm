@@ -78,7 +78,7 @@ mc_fontsize_config_widget_new(
 		selected_fontsize = fontsize ;
 	}
 
-	return  mc_combo_new( "Font Size" , fontlist , max_fontsize - min_fontsize + 1 ,
+	return  mc_combo_new( "Font size" , fontlist , max_fontsize - min_fontsize + 1 ,
 		fontsize , 1 , fontsize_selected , NULL) ;
 }
 

@@ -54,7 +54,7 @@ mc_tabsize_config_widget_new(
 {
 	selected_tabsize = tabsize ;
 
-	return  mc_combo_new( "Tab Size" , tabsizes , sizeof(tabsizes) / sizeof(tabsizes[0]) ,
+	return  mc_combo_new( "Tab size" , tabsizes , sizeof(tabsizes) / sizeof(tabsizes[0]) ,
 		selected_tabsize , 0 , tabsize_selected , NULL) ;
 }
 

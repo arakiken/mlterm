@@ -47,7 +47,7 @@ mc_bg_color_config_widget_new(
 {
 	selected_bg_color = color ;
 	
-	return  mc_color_config_widget_new( color , "BG Color" , color_selected) ;
+	return  mc_color_config_widget_new( color , "BG color" , color_selected) ;
 }
 
 ml_color_t

@@ -216,7 +216,7 @@ mc_xim_config_widget_new(
 	
 	hbox = gtk_hbox_new(FALSE , 5) ;
 	
-	label = gtk_label_new( "XIM Locale") ;
+	label = gtk_label_new( "XIM locale") ;
 	gtk_widget_show( label) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 2) ;
 	
@@ -227,7 +227,7 @@ mc_xim_config_widget_new(
 	
 	gtk_signal_connect(GTK_OBJECT(entry) , "changed" , GTK_SIGNAL_FUNC(locale_changed) , NULL) ;
 
-	combo = mc_combo_new( "Input Method" , xims , num_of_xims ,
+	combo = mc_combo_new( "X Input Method" , xims , num_of_xims ,
 		selected_xim , 0 , xim_selected , entry) ;
 		
 	gtk_widget_show( combo) ;

@@ -34,7 +34,7 @@ typedef enum  ml_font_decor
 
 /*
  * this object size should be kept as small as possible.
- * (ILP32: 64bit) (LP64: 96bit)
+ * (ILP32: min 64bit max 96bit) (LP64: min 96bit max 128bit)
  *
  * [combining state]
  * ml_char_t.[all_fields except u] are invalid.

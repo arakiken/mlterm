@@ -142,14 +142,14 @@ comment $Id$
       o use_combining  ... 結合文字を動的合成する(true/*false*)
       o use_transbg    ... 背景透過する(true/*false*)
 
-      o copy_paste_via_ucs      ... copy and paste で受け取った XCOMPOUND TEXT を一度 UCS を
+      o copy_paste_via_ucs      ... copy and paste で受け取った XCOMPOUND TEXT を一度 UNICODE を
                                     経由してから、端末エンコーディングに変換する(true/*false*)
       o big5_buggy              ... Big5 CTEXT のバグ(XFree86 4.1.0 以前)に対応する(true/*false*)
-      o not_use_unicode_font    ... UCSを適当な文字集合にmapして、UNICODEフォントを使わずに表示
-                                    する(true/*false*)
-      o only_use_unicode_font   ... すべての文字をUNICODEフォントだけを使って表示する(true/*false*)
-      o iso88591_font_for_usascii ... US_ASCIIの表示には、必ず ISO8859-1 フォントを使用する(true/*false*)
-      o col_size_of_width_a     ... UNICODEのEastAsianWidth.txtのAプロパティのコラム数(*1*/2)
+      o not_use_unicode_font    ... UNICODE を適当な文字集合にmapして、UNICODE フォントを使わずに
+                                    表示する(true/*false*)
+      o only_use_unicode_font   ... すべての文字を UNICODE フォントだけを使って表示する(true/*false*)
+      o iso88591_font_for_usascii ... US_ASCII の表示には、必ず ISO8859-1 フォントを使用する(true/*false*)
+      o col_size_of_width_a     ... UNICODE の EastAsianWidth.txt の A プロパティのコラム数(*1*/2)
 
       o fg_color       ... 端末画面の前景色(*black*)
       o bg_color       ... 同背景色(*white*)
@@ -183,7 +183,7 @@ comment $Id$
         (注)
         o ptyから流れてくる文字列のエンコーディングを自動認識することはできません。
         o TIS620、TCVN5712,JISX0213の合成用ダイアクリティカルマーク、
-          およびUNICODEの結合クラス結合文字については、結合文字を動的合成できます
+          および UNICODE の結合クラス結合文字については、結合文字を動的合成できます
           ので、それらを使う場合は、-m オプションをつけて、結合文字サポートを有効
           にしてください。
         o AUTOを指定した場合、nl_langinfo -> LC_ALL -> LC_TYPE -> LANGを順番に調
@@ -323,6 +323,7 @@ comment $Id$
     -v/--version(=bool) : バージョン情報(あまり信用できない:D)
     -A/--aa(=bool)     : アンチエイリアスフォントの使用
     -B/--sbbg=value    : スクロールバーの背景色
+    -D/--bi(=bool)     : BiDi レンダリングを行う
     -E/--km=value      : 文字エンコーディングの指定
     -F/--sbfg=value    : スクロールバーの前景色
     -L/--ls(=bool)     : ログインシェルを使う
@@ -332,20 +333,22 @@ comment $Id$
     -M/--menu=value    : mlconfigのパス
     -P/--ptys=value    : 起動時に立ち上げるptyウィンドウの数
     -S/--sbview=value  : 使いたいスクロールバーの名前
+    -U/--viaucs=value  : 受け取ったXCOMPOUND TEXTを一度UCSに変換する
     -X/--openim(=bool) : 起動時に、XIMをOpenする
+    -8/--88591(=bool)  : USASCIIの表示に、必ずISO8859-1フォントを使用する
+    -7/--bel=value     : BEL(0x7)を受け取った時の挙動
+    -5/--big5bug(=bool): Big5 CTEXT のバグに対応する
     -a/--ac=value      : EastAsianWidth.txtのAプロパティ文字のコラム数
     -f/--fg=value      : 前景色
     -b/--bg=value      : 背景色
-    -c/--conv2022(=bool) : ペーストの際、柔軟なISO2022変換を行なう。
-    -d/--db            : double buffering 表示
+    -d/--display       : DISPLAYを指定
     -g/--geometry=value : 表示座標位置
     -i/--xim(=bool)    : ximを使う
     -k/--meta(=value)  : Meta キーを押した時の動作
     -l/--sl=value      : ログサイズ
     -m/--comb(=bool)   : 結合文字を使う
-    -n/--ucshater(=bool) : UTF8で入力された文字をすべて他の適当な文字集合に変換して表示する。
-    -u/--ucslover(=bool) : すべての文字をUNICODEに変換して表示する。
-    -C/--xct2ucs(=bool) : ペーストされたXCOMPOUND TEXTを、一旦UCSに変換する。
+    -n/--noucsfont(=bool) : UNICODEフォントを一切使わずに表示する。
+    -u/--onlyucsfont(=bool) : 常にUNICODEフォントを使って表示する。
     -p/--pic=value     : 背景画像のパス
     -s/--sb(=bool)     : スクロールバーを使う
     -t/--transbg(=bool) : 背景透過する。

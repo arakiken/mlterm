@@ -47,7 +47,7 @@ mc_fg_color_config_widget_new(
 {
 	selected_fg_color = color ;
 	
-	return  mc_color_config_widget_new( color , "FG Color" , color_selected) ;
+	return  mc_color_config_widget_new( color , "FG color" , color_selected) ;
 }
 
 ml_color_t
