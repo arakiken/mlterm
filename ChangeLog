@@ -1,3 +1,8 @@
+2003-09-13  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font_manager_t.font_cache_table can be shared by multiple font managers
+	  as x_font_cache_t.
+
 2003-09-10  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* ml_term_manager.c: dead_mask is now u_long instead of u_int32.

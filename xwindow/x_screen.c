@@ -939,7 +939,7 @@ draw_str(
 	u_int  updated_width ;
 
 #ifdef  ANTI_ALIAS
-	if( x_font_manager_get_font_present( screen->font_man) & FONT_AA)
+	if( x_get_font_present( screen->font_man) & FONT_AA)
 	{
 		if( ! xft_draw_str( screen , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))
@@ -976,7 +976,7 @@ draw_str_to_eol(
 	u_int  updated_width ;
 
 #ifdef  ANTI_ALIAS
-	if( x_font_manager_get_font_present( screen->font_man) & FONT_AA)
+	if( x_get_font_present( screen->font_man) & FONT_AA)
 	{
 		if( ! xft_draw_str( screen , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))
@@ -1302,14 +1302,13 @@ draw_line(
 		
 		beg_char_index = ml_line_get_beg_of_modified( line) ;
 		num_of_redrawn = ml_line_get_num_of_redrawn_chars( line ,
-				(x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH)
-					== FONT_VAR_WIDTH) ;
+				(x_get_font_present( screen->font_man) & FONT_VAR_WIDTH) == FONT_VAR_WIDTH) ;
 		
 		/* don't use _with_shape function since line is already shaped */
 		beg_x = convert_char_index_to_x( screen , line , beg_char_index) ;
 
 		if( ml_line_is_cleared_to_end( line) ||
-			( x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
+			( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
 		{
 			if( ml_line_is_rtl( line))
 			{
@@ -2094,9 +2093,20 @@ update_special_visual(
 	{
 		u_int  font_size ;
 		char *  font_name ;
+		x_font_custom_t *  font_custom ;
+
+		/*
+		 * XXX
+		 * anti alias ISCII font is not supported.
+		 */
+		if( ( font_custom = x_font_custom_new(
+					x_get_font_present( screen->font_man) & ~FONT_AA)) == NULL)
+		{
+			return  0 ;
+		}
 		
-		for( font_size = screen->font_man->font_custom->min_font_size ;
-			font_size <= screen->font_man->font_custom->max_font_size ;
+		for( font_size = x_get_min_font_size() ;
+			font_size <= x_get_max_font_size() ;
 			font_size ++)
 		{
 			if( ( font_name = ml_iscii_get_font_name( screen->term->iscii_lang ,
@@ -2105,18 +2115,14 @@ update_special_visual(
 				continue ;
 			}
 
-			x_font_manager_set_local_font_name( screen->font_man ,
-				DEFAULT_FONT(ISCII) , font_name , font_size) ;
+			x_customize_font_name( font_custom , DEFAULT_FONT(ISCII) , font_name , font_size) ;
 		}
-	
-		/*
-		 * XXX
-		 * anti alias ISCII font is not supported.
-		 */
-		if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_AA))
-		{
-			x_font_manager_reload( screen->font_man) ;
-		}
+
+		x_activate_local_font_custom( screen->font_man , font_custom) ;
+	}
+	else
+	{
+		x_deactivate_local_font_custom( screen->font_man) ;
 	}
 
 	/*
@@ -2125,19 +2131,18 @@ update_special_visual(
 	 */
 	if( screen->term->vertical_mode)
 	{
-		if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_VERTICAL))
+		if( ! ( x_get_font_present( screen->font_man) & FONT_VERTICAL))
 		{
 			change_font_present( screen ,
-				( x_font_manager_get_font_present( screen->font_man) | FONT_VERTICAL) &
-					~FONT_VAR_WIDTH) ;
+				( x_get_font_present( screen->font_man) | FONT_VERTICAL) & ~FONT_VAR_WIDTH) ;
 		}
 	}
 	else
 	{
-		if( x_font_manager_get_font_present( screen->font_man) & FONT_VERTICAL)
+		if( x_get_font_present( screen->font_man) & FONT_VERTICAL)
 		{
 			change_font_present( screen ,
-				x_font_manager_get_font_present( screen->font_man) & ~FONT_VERTICAL) ;
+				x_get_font_present( screen->font_man) & ~FONT_VERTICAL) ;
 		}
 	}
 
@@ -3858,7 +3863,7 @@ report_mouse_tracking(
 		col = convert_y_to_row( screen , NULL , event->y) ;
 
 	#if  0
-		if( screen->font_man->use_multi_col_char)
+		if( x_is_using_multi_col_char( screen->font_man))
 		{
 			/*
 			 * XXX
@@ -3881,7 +3886,7 @@ report_mouse_tracking(
 		}
 		
 	#if  0
-		if( screen->font_man->use_multi_col_char)
+		if( x_is_using_multi_col_char( screen->font_man))
 		{
 			/*
 			 * XXX
@@ -4085,7 +4090,7 @@ change_font_size(
 	u_int  font_size
 	)
 {
-	if( font_size == screen->font_man->font_size)
+	if( font_size == screen->font_man->font_cache->font_size)
 	{
 		/* not changed */
 		
@@ -4188,14 +4193,14 @@ change_font_present(
 		font_present &= ~FONT_VAR_WIDTH ;
 	}
 
-	if( x_font_manager_get_font_present( screen->font_man) == font_present)
+	if( x_get_font_present( screen->font_man) == font_present)
 	{
 		/* not changed */
 		
 		return ;
 	}
 
-	if( ! x_font_manager_change_font_present( screen->font_man , font_present))
+	if( ! x_change_font_present( screen->font_man , font_present))
 	{
 		return ;
 	}
@@ -4244,10 +4249,10 @@ change_char_encoding(
 		 * ISCII needs variable column width and character combining.
 		 */
 
-		if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
+		if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
 		{
 			change_font_present( screen ,
-				x_font_manager_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
+				x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
 		}
 
 		ml_term_set_char_combining_flag( screen->term , 1) ;
@@ -4654,15 +4659,7 @@ change_multi_col_char_flag(
 	int  flag
 	)
 {
-	if( flag)
-	{
-		x_use_multi_col_char( screen->font_man) ;
-	}
-	else
-	{
-		x_unuse_multi_col_char( screen->font_man) ;
-	}
-
+	x_set_multi_col_char_flag( screen->font_man , flag) ;
 	ml_term_set_multi_col_char_flag( screen->term , flag) ;
 }
 
@@ -5178,7 +5175,7 @@ set_config(
 	{
 		x_font_present_t  font_present ;
 
-		font_present = x_font_manager_get_font_present( screen->font_man) ;
+		font_present = x_get_font_present( screen->font_man) ;
 		
 		if( strcmp( value , "true") == 0)
 		{
@@ -5199,7 +5196,7 @@ set_config(
 	{
 		x_font_present_t  font_present ;
 
-		font_present = x_font_manager_get_font_present( screen->font_man) ;
+		font_present = x_get_font_present( screen->font_man) ;
 		
 		if( strcmp( value , "true") == 0)
 		{
@@ -5415,7 +5412,7 @@ get_config(
 	}
 	else if( strcmp( key , "fontsize") == 0)
 	{
-		sprintf( digit , "%d" , screen->font_man->font_size) ;
+		sprintf( digit , "%d" , screen->font_man->font_cache->font_size) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "line_space") == 0)
@@ -5549,7 +5546,7 @@ get_config(
 	}
 	else if( strcmp( key , "use_anti_alias") == 0)
 	{
-		if( x_font_manager_get_font_present( screen->font_man) & FONT_AA)
+		if( x_get_font_present( screen->font_man) & FONT_AA)
 		{
 			value = true ;
 		}
@@ -5560,7 +5557,7 @@ get_config(
 	}
 	else if( strcmp( key , "use_variable_column_width") == 0)
 	{
-		if( x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH)
+		if( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH)
 		{
 			value = true ;
 		}
@@ -5571,7 +5568,7 @@ get_config(
 	}
 	else if( strcmp( key , "use_multi_column_char") == 0)
 	{
-		if( screen->font_man->use_multi_col_char)
+		if( x_is_using_multi_col_char( screen->font_man))
 		{
 			value = true ;
 		}
@@ -6322,10 +6319,10 @@ x_screen_new(
 		 * (similar processing is done in change_char_encoding)
 		 */
 
-		if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
+		if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
 		{
-			x_font_manager_change_font_present( screen->font_man ,
-				x_font_manager_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
+			x_change_font_present( screen->font_man ,
+				x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
 		}
 
 		ml_term_set_char_combining_flag( screen->term , 1) ;
@@ -6608,10 +6605,10 @@ x_screen_attach(
 		 * ISCII needs variable column width and character combining.
 		 */
 
-		if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
+		if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
 		{
 			change_font_present( screen ,
-				x_font_manager_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
+				x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
 		}
 
 		ml_term_set_char_combining_flag( screen->term , 1) ;

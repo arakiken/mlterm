@@ -73,6 +73,7 @@ typedef struct  x_screen
 	x_window_t  window ;
 
 	x_font_manager_t *  font_man ;
+	
 	x_color_manager_t *  color_man ;
 
 	ml_term_t *  term ;

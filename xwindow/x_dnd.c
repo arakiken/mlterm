@@ -265,7 +265,7 @@ parse_prop_bgimage(
 	char *  head ;
         if( !(win->set_xdnd_config))
                 return  0 ;
-        if( head = strstr( src, "file://"))
+        if( (head = strstr( src, "file://")))
         {
 		/* format should be file://<host>/<path> */
                 src = head +7;
@@ -275,9 +275,9 @@ parse_prop_bgimage(
 		src = head ;
 
 		/* remove trailing garbage */
-		if( head = strstr( src, "\r"))
+		if( (head = strstr( src, "\r")))
 			*head = 0 ;
-		if( head = strstr( src, "\n"))
+		if( (head = strstr( src, "\n")))
 			*head = 0 ;
 	}
 	else
@@ -388,6 +388,8 @@ finalize_context(
 		free( win->dnd);
 		win->dnd = NULL ;
 	}
+
+	return  1 ;
 }
 
 /* seek atom array and return the index */

@@ -65,383 +65,36 @@ static encoding_to_cs_table_t  usascii_font_cs_table[] =
 
 /* --- static functions --- */
 
-#ifdef  DEBUG
-
-static void
-dump_cached_fonts(
-	x_font_manager_t *  font_man
-	)
-{
-	int  count ;
-	u_int  size ;
-	KIK_PAIR( x_font) *  f_array ;
-	
-	kik_warn_printf( KIK_DEBUG_TAG " cached fonts info\n") ;
-	kik_msg_printf( " usascii:\n") ;
-	x_font_dump( font_man->usascii_font) ;
-
-	kik_msg_printf( " others:\n") ;
-	kik_map_get_pairs_array( font_man->font_cache_table , f_array , size) ;
-	for( count = 0 ; count < size ; count++)
-	{
-		if( f_array[count]->value != NULL)
-		{
-			x_font_dump( f_array[count]->value) ;
-		}
-	}
-}
-
-#endif
-
 static int
-font_hash(
-	ml_font_t  font ,
-	u_int  size
-	)
-{
-	return  font % size ;
-}
-
-static int
-font_compare(
-	ml_font_t  key1 ,
-	ml_font_t  key2
-	)
-{
-	return  (key1 == key2) ;
-}
-
-static int
-is_var_col_width(
-	x_font_manager_t *  font_man
-	)
-{
-	return  (font_man->font_custom == font_man->v_font_custom) ||
-		(font_man->font_custom == font_man->vaa_font_custom) ;
-}
-
-static int
-is_aa(
-	x_font_manager_t *  font_man
-	)
-{
-	return  (font_man->font_custom == font_man->aa_font_custom) ||
-		(font_man->font_custom == font_man->vaa_font_custom) ||
-		(font_man->font_custom == font_man->taa_font_custom) ;
-}
-
-static int
-is_vertical(
-	x_font_manager_t *  font_man
-	)
-{
-	return  (font_man->font_custom == font_man->t_font_custom) ||
-		(font_man->font_custom == font_man->taa_font_custom) ;
-}
-
-static char *
-get_font_name(
+change_font_cache(
 	x_font_manager_t *  font_man ,
-	ml_font_t  id
+	x_font_cache_t *  font_cache
 	)
 {
-	char *  font_name ;
-	
-	if( font_man->local_font_custom &&
-		( font_name = x_get_font_name( font_man->local_font_custom ,
-				font_man->font_size , id)))
-	{
-		return  font_name ;
-	}
+	x_release_font_cache( font_man->font_cache) ;
+	font_man->font_cache = font_cache ;
 
-	if( ( font_name = x_get_font_name( font_man->font_custom ,
-				font_man->font_size , id)))
-	{
-		return  font_name ;
-	}
-
-	if( is_var_col_width( font_man) || is_vertical( font_man))
-	{
-		/*
-		 * searching
-		 *  ~/.mlterm/vfont -> ~/.mlterm/font
-		 *  ~/.mlterm/tfont -> ~/.mlterm/font
-		 *  ~/.mlterm/vaafont -> ~/.mlterm/aafont
-		 *  ~/.mlterm/taafont -> ~/.mlterm/aafont
-		 */
-		if( is_aa( font_man))
-		{
-			if( font_man->aa_font_custom &&
-				( font_name = x_get_font_name( font_man->aa_font_custom ,
-					font_man->font_size , id)))
-			{
-				return  font_name ;
-			}
-		}
-		else
-		{
-			if( ( font_name = x_get_font_name( font_man->normal_font_custom ,
-					font_man->font_size , id)))
-			{
-				return  font_name ;
-			}
-		}
-	}
-
-	return  NULL ;
-}
-
-static int
-load_xfont(
-	x_font_manager_t *  font_man ,
-	x_font_t *  xfont
-	)
-{
-	int  use_medium_for_bold ;
-	u_int  col_width ;
-	char *  fontname ;
-	
-	if( xfont->id == DEFAULT_FONT(font_man->usascii_font_cs))
-	{
-		col_width = 0 ;
-	}
-	else
-	{
-		col_width = font_man->usascii_font->width ;
-	}
-	
-	if( ( fontname = get_font_name( font_man , xfont->id)))
-	{
-		use_medium_for_bold = 0 ;
-	}
-	else
-	{
-		/* fontname == NULL */
-
-		use_medium_for_bold = 0 ;
-
-		if( xfont->id & FONT_BOLD)
-		{
-			if( ( fontname = get_font_name( font_man , xfont->id & ~FONT_BOLD)))
-			{
-				use_medium_for_bold = 1 ;
-			}
-		}
-	}
-
-	x_font_set_font_present( xfont , x_font_manager_get_font_present( font_man)) ;
-	
-	if( ! (*font_man->load_xfont)( xfont , fontname , font_man->font_size ,
-		col_width , use_medium_for_bold))
-	{
-		return  0 ;
-	}
-
-	if( ! font_man->use_multi_col_char)
-	{
-		x_change_font_cols( xfont , 1) ;
-	}
+	font_man->prev_cache.font = 0 ;
+	font_man->prev_cache.xfont = NULL ;
 
 	return  1 ;
 }
 
-static x_font_t *
-get_font(
-	x_font_manager_t *  font_man ,
-	ml_font_t  font
-	)
-{
-	int  result ;
-	x_font_t *  xfont ;
-	KIK_PAIR( x_font)  fn_pair ;
-	char *  fontname ;
-	int  use_medium_for_bold ;
-	u_int  col_width ;
-
-	if( font == DEFAULT_FONT(font_man->usascii_font_cs))
-	{
-		col_width = 0 ;
-	}
-	else
-	{
-		col_width = font_man->usascii_font->width ;
-	}
-
-	kik_map_get( result , font_man->font_cache_table , font , fn_pair) ;
-	if( result)
-	{
-		return  fn_pair->value ;
-	}
-
-	if( ( xfont = x_font_new( font_man->display , font)) == NULL)
-	{
-		return  NULL ;
-	}
-
-	if( ( fontname = get_font_name( font_man , font)))
-	{
-		use_medium_for_bold = 0 ;
-	}
-	else
-	{
-		/* fontname == NULL */
-		
-		use_medium_for_bold = 0 ;
-		
-		if( font & FONT_BOLD)
-		{
-			if( ( fontname = get_font_name( font_man , font & ~FONT_BOLD)))
-			{
-				use_medium_for_bold = 1 ;
-			}
-		}
-	}
-
-	x_font_set_font_present( xfont , x_font_manager_get_font_present( font_man)) ;
-
-	if( ! (*font_man->load_xfont)( xfont , fontname , font_man->font_size ,
-		col_width , use_medium_for_bold))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " font for id %x doesn't exist.\n" , font) ;
-	#endif
-	
-		x_font_delete( xfont) ;
-
-		/*
-		 * this font doesn't exist , NULL is set.
-		 * caching the fact that this font id doesn't exist.
-		 */
-		xfont = NULL ;
-	}
-	
-	if( ! font_man->use_multi_col_char)
-	{
-		x_change_font_cols( xfont , 1) ;
-	}
-	
-	kik_map_set( result , font_man->font_cache_table , font , xfont) ;
-
-#ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " font for id %x was cached.\n" , font) ;
-#endif
-
-	return  xfont ;
-}
-
 static int
-set_font_present(
-	x_font_manager_t *  font_man ,
-	x_font_present_t  font_present
-	)
-{
-	if( font_present == FONT_VAR_WIDTH)
-	{
-		if( font_man->font_custom == font_man->v_font_custom)
-		{
-			return  0 ;
-		}
-
-		font_man->load_xfont = x_font_load_xfont ;
-		font_man->font_custom = font_man->v_font_custom ;
-	}
-	else if( font_present == FONT_AA)
-	{
-		if( font_man->aa_font_custom == NULL ||
-			font_man->font_custom == font_man->aa_font_custom)
-		{
-			return  0 ;
-		}
-
-		font_man->load_xfont = x_font_load_xft_font ;
-		font_man->font_custom = font_man->aa_font_custom ;
-	}
-	else if( font_present == (FONT_AA | FONT_VAR_WIDTH))
-	{
-		if( font_man->vaa_font_custom == NULL ||
-			font_man->font_custom == font_man->vaa_font_custom)
-		{
-			return  0 ;
-		}
-
-		font_man->load_xfont = x_font_load_xft_font ;
-		font_man->font_custom = font_man->vaa_font_custom ;
-	}
-	else if( font_present == FONT_VERTICAL)
-	{
-		if( font_man->font_custom == font_man->t_font_custom)
-		{
-			return  0 ;
-		}
-
-		font_man->load_xfont = x_font_load_xfont ;
-		font_man->font_custom = font_man->t_font_custom ;
-	}
-	else if( font_present == (FONT_AA | FONT_VERTICAL))
-	{
-		if( font_man->taa_font_custom == NULL ||
-			font_man->font_custom == font_man->taa_font_custom)
-		{
-			return  0 ;
-		}
-
-		font_man->load_xfont = x_font_load_xft_font ;
-		font_man->font_custom = font_man->taa_font_custom ;
-	}
-	else
-	{
-		if( font_man->font_custom == font_man->normal_font_custom)
-		{
-			return  0 ;
-		}
-
-		font_man->load_xfont = x_font_load_xfont ;
-		font_man->font_custom = font_man->normal_font_custom ;
-	}
-
-	return  1 ;
-}
-
-static x_font_t *
-search_usascii_font(
+release_font_custom(
 	x_font_manager_t *  font_man
 	)
 {
-	x_font_t *  xfont ;
-	
-	if( ( xfont = get_font( font_man ,
-			DEFAULT_FONT(font_man->usascii_font_cs))) == NULL)
+	if( font_man->is_local_font_custom)
 	{
-		u_int  beg_size ;
-
-		beg_size = font_man->font_size ;
-
-		while( 1)
-		{
-			if( ++ font_man->font_size > font_man->font_custom->max_font_size)
-			{
-				font_man->font_size = font_man->font_custom->min_font_size ;
-			}
-
-			if( font_man->font_size == beg_size)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" a font for displaying us ascii chars is not found.\n") ;
-			#endif
-			
-				return  NULL ;
-			}
-
-			if( ( xfont = get_font( font_man ,
-					DEFAULT_FONT(font_man->usascii_font_cs))))
-			{
-				break ;
-			}
-		}
+		x_font_custom_delete( font_man->font_custom) ;
+	}
+	else
+	{
+		x_release_font_custom( font_man->font_custom) ;
 	}
 
-	return  xfont ;
+	return  1 ;
 }
 
 
@@ -450,12 +103,6 @@ search_usascii_font(
 x_font_manager_t *
 x_font_manager_new(
 	Display *  display ,
-	x_font_custom_t *  normal_font_custom ,
-	x_font_custom_t *  v_font_custom ,
-	x_font_custom_t *  t_font_custom ,
-	x_font_custom_t *  aa_font_custom ,	/* may be NULL */
-	x_font_custom_t *  vaa_font_custom ,
-	x_font_custom_t *  taa_font_custom ,
 	x_font_present_t  font_present ,
 	u_int  font_size ,
 	mkf_charset_t  usascii_font_cs ,
@@ -475,58 +122,35 @@ x_font_manager_new(
 		return  NULL ;
 	}
 
-	font_man->normal_font_custom = normal_font_custom ;
-	font_man->v_font_custom = v_font_custom ;
-	font_man->t_font_custom = t_font_custom ;
-	font_man->aa_font_custom = aa_font_custom ;
-	font_man->vaa_font_custom = vaa_font_custom ;
-	font_man->taa_font_custom = taa_font_custom ;
+	if( ( font_man->font_custom = x_acquire_font_custom( font_present)) == NULL)
+	{
+		free( font_man) ;
 
-	font_man->font_custom = NULL ;	
-	font_man->local_font_custom = NULL ;
+		return  NULL ;
+	}
 
-	font_man->font_size = font_size ;
+	if( ( font_man->font_cache = x_acquire_font_cache( display , font_size , usascii_font_cs ,
+					font_man->font_custom , use_multi_col_char)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " x_acquire_font_cache() failed.\n") ;
+	#endif
 
-	kik_map_new( ml_font_t , x_font_t * , font_man->font_cache_table , 
-		font_hash , font_compare) ;
+		x_release_font_custom( font_man->font_custom) ;
+		free( font_man) ;
+		
+		return  NULL ;
+	}
 
-	font_man->display = display ;
-
+	font_man->is_local_font_custom = 0 ;
+	
 	font_man->prev_cache.font = 0 ;
 	font_man->prev_cache.xfont = NULL ;
 
-	font_man->usascii_font_cs = usascii_font_cs ;
 	font_man->usascii_font_cs_changable = usascii_font_cs_changable ;
-
-	font_man->use_multi_col_char = use_multi_col_char ;
-
 	font_man->step_in_changing_font_size = step_in_changing_font_size ;
 
-	set_font_present( font_man , font_present) ;
-
-	if( ( font_man->usascii_font = search_usascii_font( font_man)))
-	{
-		return  font_man ;
-	}
-
-#if  0
-	if( font_man->usascii_font_cs_changable)
-	{
-		font_man->usascii_font_cs = ISO10646_UCS4_1 ;
-
-		if( ( font_man->usascii_font = search_usascii_font( font_man)))
-		{
-			return  font_man ;
-		}
-	}
-#endif
-	
-	kik_msg_printf( "Not found any fonts for the encoding. Bye...\n") ;
-
-	exit(1) ;
-
-	/* not reachable */
-	return  NULL ;
+	return  font_man ;
 }
 
 int
@@ -534,93 +158,11 @@ x_font_manager_delete(
 	x_font_manager_t *  font_man
 	)
 {
-	int  count ;
-	u_int  size ;
-	KIK_PAIR( x_font) *  f_array ;
+	x_release_font_cache( font_man->font_cache) ;
 
-	kik_map_get_pairs_array( font_man->font_cache_table , f_array , size) ;
-	for( count = 0 ; count < size ; count++)
-	{
-		if( f_array[count]->value != NULL)
-		{
-			x_font_delete( f_array[count]->value) ;
-		}
-	}
-
-	kik_map_delete( font_man->font_cache_table) ;
-
-	if( font_man->local_font_custom)
-	{
-		x_font_custom_final( font_man->local_font_custom) ;
-
-		free( font_man->local_font_custom) ;
-	}
-
+	release_font_custom( font_man) ;
+	
 	free( font_man) ;
-
-	return  1 ;
-}
-
-int
-x_font_manager_change_font_present(
-	x_font_manager_t *  font_man ,
-	x_font_present_t  font_present
-	)
-{
-	set_font_present( font_man , font_present) ;
-	
-	x_font_manager_reload( font_man) ;
-	
-	return  1 ;
-}
-
-x_font_present_t
-x_font_manager_get_font_present(
-	x_font_manager_t *  font_man
-	)
-{
-	x_font_present_t  font_present ;
-
-	font_present = 0 ;
-	
-	if( is_aa( font_man))
-	{
-		font_present |= FONT_AA ;
-	}
-
-	if( is_var_col_width( font_man))
-	{
-		font_present |= FONT_VAR_WIDTH ;
-	}
-	
-	if( is_vertical( font_man))
-	{
-		font_present |= FONT_VERTICAL ;
-	}
-
-	return  font_present ;	
-}
-
-int
-x_font_manager_set_local_font_name(
-	x_font_manager_t *  font_man ,
-	ml_font_t  font ,
-	char *  font_name ,
-	u_int  font_size
-	)
-{
-	if( font_man->local_font_custom == NULL)
-	{
-		if( ( font_man->local_font_custom = malloc( sizeof( x_font_custom_t))) == NULL)
-		{
-			return  0 ;
-		}
-
-		x_font_custom_init( font_man->local_font_custom ,
-			font_man->font_custom->min_font_size , font_man->font_custom->max_font_size) ;
-	}
-
-	x_set_font_name( font_man->local_font_custom , font , font_name , font_size) ;
 
 	return  1 ;
 }
@@ -638,13 +180,7 @@ x_get_font(
 		return  font_man->prev_cache.xfont ;
 	}
 
-	if( FONT_CS(font) == US_ASCII)
-	{
-		font &= ~US_ASCII ;
-		font |= font_man->usascii_font_cs ;
-	}
-	
-	if( ( xfont = get_font( font_man , font)))
+	if( ( xfont = x_font_cache_get_xfont( font_man->font_cache , font)))
 	{
 		font_man->prev_cache.font = font ;
 		font_man->prev_cache.xfont = xfont ;
@@ -653,7 +189,7 @@ x_get_font(
 	}
 	else
 	{
-		return  font_man->usascii_font ;
+		return  font_man->font_cache->usascii_font ;
 	}
 }
 
@@ -662,69 +198,7 @@ x_get_usascii_font(
 	x_font_manager_t *  font_man
 	)
 {
-	return  font_man->usascii_font ;
-}
-
-int
-x_font_manager_reload(
-	x_font_manager_t *  font_man
-	)
-{
-	KIK_PAIR( x_font) *  array ;
-	u_int  size ;
-	int  count ;
-	
-	if( ! load_xfont( font_man , font_man->usascii_font))
-	{
-		return  0 ;
-	}
-	
-	kik_map_get_pairs_array( font_man->font_cache_table , array , size) ;
-
-	for( count = 0 ; count < size ; count ++)
-	{
-		ml_font_t  font ;
-		x_font_t *  xfont ;
-
-		font = array[count]->key ;
-		if( (xfont = array[count]->value) == NULL)
-		{
-			if( ( xfont = x_font_new( font_man->display , font)) == NULL)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " x_font_new() failed.\n") ;
-			#endif
-			
-				continue ;
-			}
-
-			array[count]->value = xfont ;
-		}
-
-		if( font == DEFAULT_FONT(font_man->usascii_font_cs))
-		{
-			/* usascii default font is already loaded. */
-			
-			continue ;
-		}
-
-		if( load_xfont( font_man , xfont) == 0)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " larger font for id %x is not found.\n" ,
-				xfont->id) ;
-		#endif
-
-			x_font_delete( xfont) ;
-			array[count]->value = NULL ;
-		}
-	}
-
-#ifdef  DEBUG
-	dump_cached_fonts( font_man) ;
-#endif
-
-	return  1 ;
+	return  font_man->font_cache->usascii_font ;
 }
 
 int
@@ -733,39 +207,74 @@ x_font_manager_usascii_font_cs_changed(
 	mkf_charset_t  usascii_font_cs
 	)
 {
-	mkf_charset_t  old_cs ;
-	x_font_t *  font ;
+	x_font_cache_t *  font_cache ;
 
-	if( ! font_man->usascii_font_cs_changable || usascii_font_cs == font_man->usascii_font_cs)
+	if( usascii_font_cs == font_man->font_cache->usascii_font_cs)
+	{
+		return  1 ;
+	}
+	
+	if( ! font_man->usascii_font_cs_changable)
 	{
 		return  0 ;
 	}
 
-	old_cs = font_man->usascii_font_cs ;
-	font_man->usascii_font_cs = usascii_font_cs ;
-
-	if( ( font = search_usascii_font( font_man)) == NULL)
+	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
+				font_man->font_cache->font_size , usascii_font_cs ,
+				font_man->font_custom ,
+				font_man->font_cache->use_multi_col_char)) == NULL)
 	{
-	#if  0
-		font_man->usascii_font_cs = ISO10646_UCS4_1 ;
+		return  0 ;
+	}
 
-		if( ( font = search_usascii_font( font_man)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Not found usascii font for %x cs.\n") ;
-		#endif
-	#endif
-			font_man->usascii_font_cs = old_cs ;
+	change_font_cache( font_man , font_cache) ;
 
-			return  0 ;
-	#if  0
-		}
-	#endif
+	return  1 ;
+}
+
+int
+x_change_font_present(
+	x_font_manager_t *  font_man ,
+	x_font_present_t  font_present
+	)
+{
+	x_font_custom_t *  font_custom ;
+	x_font_cache_t *  font_cache ;
+
+	if( font_present == font_man->font_custom->font_present)
+	{
+		return  1 ;
 	}
 	
-	font_man->usascii_font = font ;
+	if( ( font_custom = x_acquire_font_custom( font_present)) == NULL)
+	{
+		return  NULL ;
+	}
 	
+	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
+				font_man->font_cache->font_size ,
+				font_man->font_cache->usascii_font_cs ,
+				font_custom , font_man->font_cache->use_multi_col_char)) == NULL)
+	{
+		x_release_font_custom( font_custom) ;
+		
+		return  0 ;
+	}
+
+	change_font_cache( font_man , font_cache) ;
+
+	release_font_custom( font_man) ;
+	font_man->font_custom = font_custom ;
+
 	return  1 ;
+}
+
+x_font_present_t
+x_get_font_present(
+	x_font_manager_t *  font_man
+	)
+{
+	return  font_man->font_custom->font_present ;
 }
 
 int
@@ -774,42 +283,31 @@ x_change_font_size(
 	u_int  font_size
 	)
 {
-	u_int  orig_font_size ;
-	
-	if( font_size == font_man->font_size)
+	x_font_cache_t *  font_cache ;
+		
+	if( font_size == font_man->font_cache->font_size)
 	{
 		/* not changed (pretending to succeed) */
 		
 		return  1 ;
 	}
 
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " changing font size to %d\n" , font_size) ;
-#endif
-
-	if( font_size < font_man->font_custom->min_font_size ||
-		font_man->font_custom->max_font_size < font_size)
+	if( font_size < x_get_min_font_size() || x_get_max_font_size() < font_size)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " font_size %d is illegal.\n" , font_size) ;
-	#endif
-	
 		return  0 ;
 	}
 
-	orig_font_size = font_man->font_size ;
-	font_man->font_size = font_size ;
-
-	if( ! x_font_manager_reload( font_man))
+	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
+				font_size , font_man->font_cache->usascii_font_cs , 
+				font_man->font_custom ,
+				font_man->font_cache->use_multi_col_char)) == NULL)
 	{
-		font_man->font_size = orig_font_size ;
-		
 		return  0 ;
 	}
-	else
-	{
-		return  1 ;
-	}
+
+	change_font_cache( font_man , font_cache) ;
+
+	return  1 ;
 }
 
 int
@@ -817,38 +315,29 @@ x_larger_font(
 	x_font_manager_t *  font_man
 	)
 {
-	u_int  beg_size ;
-	u_int  size ;
+	u_int  font_size ;
+	x_font_cache_t *  font_cache ;
 
-	beg_size = font_man->font_size ;
-	size = font_man->font_size ;
-	
-	while( 1)
+	if( font_man->font_cache->font_size + font_man->step_in_changing_font_size > x_get_max_font_size())
 	{
-		if( size + font_man->step_in_changing_font_size > font_man->font_custom->max_font_size)
-		{
-			if( font_man->font_custom->min_font_size == beg_size)
-			{
-				return  0 ;
-			}
-
-			size = font_man->font_custom->min_font_size ;
-		}
-		else
-		{
-			if( size < beg_size && beg_size <= size + font_man->step_in_changing_font_size)
-			{
-				return  0 ;
-			}
-
-			size += font_man->step_in_changing_font_size ;
-		}
-		
-		if( x_change_font_size( font_man , size))
-		{
-			return  1 ;
-		}
+		font_size = x_get_min_font_size() ;
 	}
+	else
+	{
+		font_size = font_man->font_cache->font_size + font_man->step_in_changing_font_size ;
+	}
+	
+	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
+				font_size , font_man->font_cache->usascii_font_cs , 
+				font_man->font_custom ,
+				font_man->font_cache->use_multi_col_char)) == NULL)
+	{
+		return  0 ;
+	}
+	
+	change_font_cache( font_man , font_cache) ;
+
+	return  1 ;
 }
 
 int
@@ -856,100 +345,71 @@ x_smaller_font(
 	x_font_manager_t *  font_man
 	)
 {
-	u_int  beg_size ;
-	u_int  size ;
+	u_int  font_size ;
+	x_font_cache_t *  font_cache ;
 
-	beg_size = font_man->font_size ;
-	size = font_man->font_size ;
-
-	while( 1)
+	if( font_man->font_cache->font_size < x_get_min_font_size() + font_man->step_in_changing_font_size)
 	{
-		if( size == font_man->font_custom->min_font_size)
-		{
-			if( font_man->font_custom->max_font_size == beg_size)
-			{
-				return  0 ;
-			}
-			
-			size = font_man->font_custom->max_font_size ;
-		}
-		else
-		{
-			if( size - font_man->step_in_changing_font_size <= beg_size && beg_size < size)
-			{
-				return  0 ;
-			}
-			
-			size -= font_man->step_in_changing_font_size ;
-		}
-		
-		if( x_change_font_size( font_man , size))
-		{
-			return  1 ;
-		}
+		font_size = x_get_max_font_size() ;
 	}
-}
-
-int
-x_use_multi_col_char(
-	x_font_manager_t *  font_man
-	)
-{
-	KIK_PAIR( x_font) *  array ;
-	u_int  size ;
-	int  count ;
-
-	if( font_man->use_multi_col_char)
+	else
 	{
-		return  0 ;
-	}
-
-	kik_map_get_pairs_array( font_man->font_cache_table , array , size) ;
-
-	for( count = 0 ; count < size ; count ++)
-	{
-		x_font_t *  font ;
-
-		if( ( font = array[count]->value) != NULL)
-		{
-			x_change_font_cols( font , 0) ;
-		}
-	}
-
-	font_man->use_multi_col_char = 1 ;
-
-	return  1 ;
-}
-
-int
-x_unuse_multi_col_char(
-	x_font_manager_t *  font_man
-	)
-{
-	KIK_PAIR( x_font) *  array ;
-	u_int  size ;
-	int  count ;
-
-	if( ! font_man->use_multi_col_char)
-	{
-		return  0 ;
+		font_size = font_man->font_cache->font_size - font_man->step_in_changing_font_size ;
 	}
 	
-	kik_map_get_pairs_array( font_man->font_cache_table , array , size) ;
-
-	for( count = 0 ; count < size ; count ++)
+	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
+				font_size , font_man->font_cache->usascii_font_cs , 
+				font_man->font_custom ,
+				font_man->font_cache->use_multi_col_char)) == NULL)
 	{
-		x_font_t *  font ;
-
-		if( ( font = array[count]->value) != NULL)
-		{
-			x_change_font_cols( font , 1) ;
-		}
+		return  0 ;
 	}
 
-	font_man->use_multi_col_char = 0 ;
+	change_font_cache( font_man , font_cache) ;
 
 	return  1 ;
+}
+
+u_int
+x_get_font_size(
+	x_font_manager_t *  font_man
+	)
+{
+	return  font_man->font_cache->font_size ;
+}
+
+int
+x_set_multi_col_char_flag(
+	x_font_manager_t *  font_man ,
+	int  flag
+	)
+{
+	x_font_cache_t *  font_cache ;
+
+	if( font_man->font_cache->use_multi_col_char == flag)
+	{
+		return  0 ;
+	}
+
+	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
+				font_man->font_cache->font_size ,
+				font_man->font_cache->usascii_font_cs ,
+				font_man->font_custom , flag)) == NULL)
+	{
+		return  0 ;
+	}
+
+	change_font_cache( font_man , font_cache) ;
+
+	return  1 ;
+}
+
+int
+x_is_using_multi_col_char(
+	x_font_manager_t *  font_man
+	)
+{
+	return  font_man->font_cache->use_multi_col_char ;
 }
 
 XFontSet
@@ -969,34 +429,20 @@ x_get_fontset(
 	int  count ;
 
 	/* "+ 1" is for '\0' */
-	if( ( default_font_name = alloca( 22 + DIGIT_STR_LEN(font_man->font_size) + 1)) == NULL)
+	if( ( default_font_name = alloca( 22 + DIGIT_STR_LEN(font_man->font_cache->font_size) + 1)) == NULL)
 	{
 		return  NULL ;
 	}
 
-	sprintf( default_font_name , "-*-*-medium-r-*--%d-*-*-*-*-*" , font_man->font_size) ;
+	sprintf( default_font_name , "-*-*-medium-r-*--%d-*-*-*-*-*" , font_man->font_cache->font_size) ;
 
 	list_str_len = strlen( default_font_name) ;
 
-	if( is_aa( font_man) || is_vertical( font_man))
+	if( ( size = x_font_cache_get_all_font_names( font_man->font_cache , &fontnames)) == 0)
 	{
-		if( is_var_col_width( font_man))
-		{
-			size = x_get_all_font_names( font_man->v_font_custom ,
-				&fontnames , font_man->font_size) ;
-		}
-		else
-		{
-			size = x_get_all_font_names( font_man->normal_font_custom ,
-				&fontnames , font_man->font_size) ;
-		}
+		return  NULL ;
 	}
-	else
-	{
-		size = x_get_all_font_names( font_man->font_custom ,  &fontnames ,
-			font_man->font_size) ;
-	}
-	
+
 	for( count = 0 ; count < size ; count ++)
 	{
 		list_str_len += (1 + strlen( fontnames[count])) ;
@@ -1032,7 +478,8 @@ x_get_fontset(
 	kik_debug_printf( KIK_DEBUG_TAG " font set list -> %s\n" , list_str) ;
 #endif
 
-	fontset = XCreateFontSet( font_man->display , list_str , &missing , &miss_num , &def_str) ;
+	fontset = XCreateFontSet( font_man->font_cache->display , list_str ,
+			&missing , &miss_num , &def_str) ;
 
 #ifdef  DEBUG
 	if( miss_num)
@@ -1077,4 +524,66 @@ x_get_usascii_font_cs(
 	
 		return  usascii_font_cs_table[encoding].cs ;
 	}
+}
+
+int
+x_activate_local_font_custom(
+	x_font_manager_t *  font_man ,
+	x_font_custom_t *  font_custom		/* Should be generated by x_font_custom_new() */
+	)
+{
+	x_font_cache_t *  font_cache ;
+
+	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
+				font_man->font_cache->font_size ,
+				font_man->font_cache->usascii_font_cs ,
+				font_custom , font_man->font_cache->use_multi_col_char)) == NULL)
+	{
+		return  0 ;
+	}
+
+	change_font_cache( font_man , font_cache) ;
+	
+	release_font_custom( font_man) ;
+	font_man->font_custom = font_custom ;
+	font_man->is_local_font_custom = 1 ;
+		
+	return  1 ;
+}
+
+int
+x_deactivate_local_font_custom(
+	x_font_manager_t *  font_man
+	)
+{
+	x_font_custom_t *  font_custom ;
+	x_font_cache_t *  font_cache ;
+
+	if( ! font_man->is_local_font_custom)
+	{
+		return  0 ;
+	}
+
+	if( ( font_custom = x_acquire_font_custom( font_man->font_custom->font_present)) == NULL)
+	{
+		return  0 ;
+	}
+	
+	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
+				font_man->font_cache->font_size ,
+				font_man->font_cache->usascii_font_cs ,
+				font_man->font_custom , font_man->font_cache->use_multi_col_char)) == NULL)
+	{
+		x_release_font_custom( font_custom) ;
+		
+		return  0 ;
+	}
+
+	change_font_cache( font_man , font_cache) ;
+
+	x_font_custom_delete( font_man->font_custom) ;
+	font_man->font_custom = font_custom ;
+	font_man->font_custom = 0 ;
+
+	return  1 ;
 }

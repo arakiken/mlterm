@@ -180,6 +180,8 @@ receive_bytes(
 			if( ( vt100_parser->log_file =
 				open( path , O_CREAT | O_TRUNC | O_WRONLY , 0600)) == -1)
 			{
+				free( path) ;
+				
 				goto  end ;
 			}
 

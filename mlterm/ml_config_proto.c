@@ -97,6 +97,15 @@ ml_config_proto_init(void)
 }
 
 int
+ml_config_proto_final(void)
+{
+	free( path) ;
+	free( challenge) ;
+
+	return  1 ;
+}
+
+int
 ml_gen_proto_challenge(void)
 {
 	int  fd ;

@@ -61,6 +61,7 @@ ml_term_manager_final(void)
 	int  count ;
 
 	kik_remove_sig_child_listener( NULL , sig_child) ;
+	ml_config_proto_final() ;
 
 	for( count = num_of_terms - 1 ; count >= 0 ; count --)
 	{

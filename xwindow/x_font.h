@@ -68,7 +68,8 @@ typedef struct x_font
 int  x_compose_dec_special_font(void) ;
 
 
-x_font_t *  x_font_new( Display *  display , ml_font_t  id) ;
+x_font_t *  x_font_new( Display *  display , ml_font_t  id , x_font_present_t  font_present ,
+	char *  fontname , u_int  fontsize , u_int  col_width , int  use_medium_for_bold) ;
 
 int  x_font_delete( x_font_t *  font) ;
 

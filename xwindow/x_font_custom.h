@@ -16,25 +16,37 @@ KIK_MAP_TYPEDEF( x_font_name , ml_font_t , char *) ;
 
 typedef struct  x_font_custom
 {
+	/* public(readonly) */
+	x_font_present_t  font_present ;
+
+	/* private */
 	KIK_MAP( x_font_name) *  font_name_table ;
 	KIK_MAP( x_font_name)  default_font_name_table ;
 	char *  default_font_name_cache ;
 
-	/* public(readonly) */
-	u_int  min_font_size ;
-	u_int  max_font_size ;
+	u_int  ref_count ;
 
 } x_font_custom_t ;
 
 
-int  x_font_custom_init( x_font_custom_t *  font_custom , u_int  min_font_size ,
-	u_int  max_font_size) ;
+int  x_set_font_size_range( u_int  min_font_size , u_int  max_font_size) ;
 
-int  x_font_custom_final( x_font_custom_t *  font_custom) ;
+u_int  x_get_min_font_size(void) ;
 
-int  x_font_custom_read_conf( x_font_custom_t *  font_custom , char *  filename) ;
+u_int  x_get_max_font_size(void) ;
 
-int  x_set_font_name( x_font_custom_t *  font_custom , ml_font_t  font ,
+x_font_custom_t *  x_font_custom_new( x_font_present_t  font_present) ;
+
+int  x_font_custom_delete( x_font_custom_t *  font_custom) ;
+
+x_font_custom_t *  x_acquire_font_custom( x_font_present_t  font_present) ;
+
+int  x_release_font_custom( x_font_custom_t *  font_custom) ;
+
+int  x_customize_font_name( x_font_custom_t *  font_custom , ml_font_t  font ,
+	char *  fontname , u_int  font_size) ;
+
+int  x_customize_default_font_name( x_font_custom_t *  font_custom , ml_font_t  font ,
 	char *  fontname , u_int  font_size) ;
 
 char *  x_get_font_name( x_font_custom_t *  font_custom , u_int  font_size , ml_font_t  font) ;

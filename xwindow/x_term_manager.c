@@ -124,14 +124,6 @@ static char *  version ;
 
 static main_config_t  main_config ;
 
-static x_font_custom_t  normal_font_custom ;
-static x_font_custom_t  v_font_custom ;
-static x_font_custom_t  t_font_custom ;
-#ifdef  ANTI_ALIAS
-static x_font_custom_t  aa_font_custom ;
-static x_font_custom_t  vaa_font_custom ;
-static x_font_custom_t  taa_font_custom ;
-#endif
 static x_color_custom_t  color_custom ;
 static x_shortcut_t  shortcut ;
 static x_termcap_t  termcap ;
@@ -398,12 +390,6 @@ open_screen_intern(
 	}
 	
 	if( ( font_man = x_font_manager_new( disp->display ,
-		&normal_font_custom , &v_font_custom , &t_font_custom ,
-	#ifdef  ANTI_ALIAS
-		&aa_font_custom , &vaa_font_custom , &taa_font_custom ,
-	#else
-		NULL , NULL , NULL ,
-	#endif
 		main_config.font_present , main_config.font_size ,
 		usascii_font_cs , usascii_font_cs_changable ,
 		main_config.use_multi_col_char ,
@@ -984,28 +970,24 @@ get_min_conf(
 	if( ( rcpath = kik_get_sys_rc_path( "mlterm/core")))
 	{
 		kik_conf_read( conf , rcpath) ;
-
 		free( rcpath) ;
 	}
 	
 	if( ( rcpath = kik_get_user_rc_path( "mlterm/core")))
 	{
 		kik_conf_read( conf , rcpath) ;
-
 		free( rcpath) ;
 	}
 	
 	if( ( rcpath = kik_get_sys_rc_path( "mlterm/main")))
 	{
 		kik_conf_read( conf , rcpath) ;
-
 		free( rcpath) ;
 	}
 	
 	if( ( rcpath = kik_get_user_rc_path( "mlterm/main")))
 	{
 		kik_conf_read( conf , rcpath) ;
-
 		free( rcpath) ;
 	}
 
@@ -1169,19 +1151,19 @@ config_init(
 		main_config.font_size = 16 ;
 	}
 
-	if( main_config.font_size > normal_font_custom.max_font_size)
+	if( main_config.font_size > x_get_max_font_size())
 	{
 		kik_msg_printf( "font size %d is too large. %d is used.\n" ,
-			main_config.font_size , normal_font_custom.max_font_size) ;
+			main_config.font_size , x_get_max_font_size()) ;
 		
-		main_config.font_size = normal_font_custom.max_font_size ;
+		main_config.font_size = x_get_max_font_size() ;
 	}
-	else if( main_config.font_size < normal_font_custom.min_font_size)
+	else if( main_config.font_size < x_get_min_font_size())
 	{
 		kik_msg_printf( "font size %d is too small. %d is used.\n" ,
-			main_config.font_size , normal_font_custom.min_font_size) ;
+			main_config.font_size , x_get_min_font_size()) ;
 			
-		main_config.font_size = normal_font_custom.min_font_size ;
+		main_config.font_size = x_get_min_font_size() ;
 	}
 
 	main_config.app_name = NULL ;
@@ -2301,7 +2283,6 @@ x_term_manager_init(
 	int  use_xim ;
 	u_int  min_font_size ;
 	u_int  max_font_size ;
-	char *  font_rcfile ;
 	char *  rcpath ;
 	char *  value ;
 
@@ -2404,6 +2385,8 @@ x_term_manager_init(
 		max_font_size = 30 ;
 	}
 
+	x_set_font_size_range( min_font_size , max_font_size) ;
+
 	if( ( value = kik_conf_get_value( conf , "click_interval")))
 	{
 		int  interval ;
@@ -2447,158 +2430,6 @@ x_term_manager_init(
 		ml_use_cp932_ucs_for_xft() ;
 	}
 #endif
-
-	if( ! x_font_custom_init( &normal_font_custom , min_font_size , max_font_size))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_font_custom_init failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	font_rcfile = "mlterm/font" ;
-	
-	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &normal_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &normal_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-	
-	if( ! x_font_custom_init( &v_font_custom , min_font_size , max_font_size))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_font_custom_init failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	font_rcfile = "mlterm/vfont" ;
-	
-	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &v_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &v_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-	if( ! x_font_custom_init( &t_font_custom , min_font_size , max_font_size))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_font_custom_init failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	font_rcfile = "mlterm/tfont" ;
-	
-	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &t_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &t_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-#ifdef  ANTI_ALIAS
-	if( ! x_font_custom_init( &aa_font_custom , min_font_size , max_font_size))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_font_custom_init failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	font_rcfile = "mlterm/aafont" ;
-	
-	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &aa_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &aa_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-	if( ! x_font_custom_init( &vaa_font_custom , min_font_size , max_font_size))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_font_custom_init failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	font_rcfile = "mlterm/vaafont" ;
-	
-	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &vaa_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &vaa_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-	
-	if( ! x_font_custom_init( &taa_font_custom , min_font_size , max_font_size))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_font_custom_init failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	font_rcfile = "mlterm/taafont" ;
-	
-	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &taa_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-
-	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
-	{
-		x_font_custom_read_conf( &taa_font_custom , rcpath) ;
-
-		free( rcpath) ;
-	}
-#endif
 	
 	if( ! x_color_custom_init( &color_custom))
 	{
@@ -2612,14 +2443,12 @@ x_term_manager_init(
 	if( ( rcpath = kik_get_sys_rc_path( "mlterm/color")))
 	{
 		x_color_custom_read_conf( &color_custom , rcpath) ;
-
 		free( rcpath) ;
 	}
 	
 	if( ( rcpath = kik_get_user_rc_path( "mlterm/color")))
 	{
 		x_color_custom_read_conf( &color_custom , rcpath) ;
-
 		free( rcpath) ;
 	}
 
@@ -2635,14 +2464,12 @@ x_term_manager_init(
 	if( ( rcpath = kik_get_sys_rc_path( "mlterm/key")))
 	{
 		x_shortcut_read_conf( &shortcut , rcpath) ;
-
 		free( rcpath) ;
 	}
 	
 	if( ( rcpath = kik_get_user_rc_path( "mlterm/key")))
 	{
 		x_shortcut_read_conf( &shortcut , rcpath) ;
-
 		free( rcpath) ;
 	}
 
@@ -2658,14 +2485,12 @@ x_term_manager_init(
 	if( ( rcpath = kik_get_sys_rc_path( "mlterm/termcap")))
 	{
 		x_termcap_read_conf( &termcap , rcpath) ;
-
 		free( rcpath) ;
 	}
 	
 	if( ( rcpath = kik_get_user_rc_path( "mlterm/termcap")))
 	{
 		x_termcap_read_conf( &termcap , rcpath) ;
-
 		free( rcpath) ;
 	}
 	
@@ -2805,15 +2630,6 @@ x_term_manager_final(void)
 
 	x_xim_final() ;
 	
-	x_font_custom_final( &normal_font_custom) ;
-	x_font_custom_final( &v_font_custom) ;
-	x_font_custom_final( &t_font_custom) ;
-#ifdef  ANTI_ALIAS
-	x_font_custom_final( &aa_font_custom) ;
-	x_font_custom_final( &vaa_font_custom) ;
-	x_font_custom_final( &taa_font_custom) ;
-#endif
-
 	x_color_custom_final( &color_custom) ;
 	
 	x_shortcut_final( &shortcut) ;

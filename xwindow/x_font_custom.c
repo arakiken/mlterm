@@ -7,7 +7,7 @@
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_str.h>	/* strdup */
-#include  <kiklib/kik_util.h>	/* K_MIN */
+#include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_file.h>
 
@@ -79,6 +79,12 @@ static cs_table_t  cs_table[] =
 
 } ;
 
+static x_font_custom_t **  font_customs ;
+static u_int  num_of_customs ;
+
+static u_int  min_font_size = 6 ;
+static u_int  max_font_size = 30 ;
+
 
 /* --- static functions --- */
 
@@ -106,115 +112,18 @@ get_font_name_table(
 	int  font_size
 	)
 {
-	if( font_custom->font_name_table[font_size - font_custom->min_font_size] == NULL)
+	if( font_custom->font_name_table[font_size - min_font_size] == NULL)
 	{
 		kik_map_new_with_size( ml_font_t , char * ,
-			font_custom->font_name_table[font_size - font_custom->min_font_size] ,
+			font_custom->font_name_table[font_size - min_font_size] ,
 			font_hash , font_compare , 16) ;
 	}
 
-	return  font_custom->font_name_table[font_size - font_custom->min_font_size] ;
+	return  font_custom->font_name_table[font_size - min_font_size] ;
 }
 
-
-/* --- global functions --- */
-
-int
-x_font_custom_init(
-	x_font_custom_t *  font_custom ,
-	u_int  min_font_size ,
-	u_int  max_font_size
-	)
-{
-	if( min_font_size == 0 || max_font_size == 0)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " max_font_size/min_font_size must not be 0.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-	
-	if( max_font_size < min_font_size)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " max_font_size %d is smaller than min_font_size %d\n" ,
-			max_font_size , min_font_size) ;
-	#endif
-	
-		return  0 ;
-	}
-	
-	if( ( font_custom->font_name_table = malloc(
-		sizeof( KIK_MAP( x_font_name)) * (max_font_size - min_font_size + 1))) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
-	#endif
-
-		return  0 ;
-	}
-	
-	memset( font_custom->font_name_table , 0 ,
-		sizeof( KIK_MAP( x_font_name)) * (max_font_size - min_font_size + 1)) ;
-
-	kik_map_new_with_size( ml_font_t , char * ,
-		font_custom->default_font_name_table , font_hash , font_compare , 8) ;
-
-	font_custom->default_font_name_cache = NULL ;
-	
-	font_custom->max_font_size = max_font_size ;
-	font_custom->min_font_size = min_font_size ;
-
-	return  1 ;
-}
-
-int
-x_font_custom_final(
-	x_font_custom_t *  font_custom
-	)
-{
-	int  count ;
-	u_int  size ;
-	KIK_PAIR( x_font_name) *  fn_array ;
-	
-	for( count = 0 ; count <= (font_custom->max_font_size - font_custom->min_font_size) ; count ++)
-	{
-		if( font_custom->font_name_table[count])
-		{
-			int  __count ;
-
-			kik_map_get_pairs_array( font_custom->font_name_table[count] ,
-				fn_array , size) ;
-				
-			for( __count = 0 ; __count < size ; __count ++)
-			{
-				free( fn_array[__count]->value) ;
-			}
-			
-			kik_map_delete( font_custom->font_name_table[count]) ;
-		}
-	}
-
-	free( font_custom->font_name_table) ;
-
-	kik_map_get_pairs_array( font_custom->default_font_name_table ,
-		fn_array , size) ;
-
-	for( count = 0 ; count < size ; count ++)
-	{
-		free( fn_array[count]->value) ;
-	}
-
-	kik_map_delete( font_custom->default_font_name_table) ;
-
-	free( font_custom->default_font_name_cache) ;
-	
-	return  1 ;
-}
-
-int
-x_font_custom_read_conf(
+static int
+read_conf(
 	x_font_custom_t *  font_custom ,
 	char *  filename
 	)
@@ -318,7 +227,7 @@ x_font_custom_read_conf(
 					font , size , fontname) ;
 			#endif
 
-				x_set_font_name( font_custom , font , fontname , size) ;
+				x_customize_font_name( font_custom , font , fontname , size) ;
 			}
 			else
 			{
@@ -327,22 +236,7 @@ x_font_custom_read_conf(
 				 * [font name]
 				 */
 
-				int  result ;
-				KIK_PAIR( x_font_name)  pair ;
-
-				fontname = strdup( entry) ;
-			
-				kik_map_get( result , font_custom->default_font_name_table , font , pair) ;
-				if( result)
-				{
-					free( pair->value) ;
-					pair->value = fontname ;
-				}
-				else
-				{
-					kik_map_set( result , font_custom->default_font_name_table ,
-						font , fontname) ;
-				}
+				x_customize_default_font_name( font_custom , font , entry , size) ;
 			}
 		}
 	}
@@ -352,8 +246,271 @@ x_font_custom_read_conf(
 	return  1 ;
 }
 
+
+/* --- global functions --- */
+
 int
-x_set_font_name(
+x_set_font_size_range(
+	u_int  min_font_size ,
+	u_int  max_font_size
+	)
+{
+	if( min_font_size == 0 || max_font_size == 0)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " max_font_size/min_font_size must not be 0.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+	
+	if( max_font_size < min_font_size)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " max_font_size %d is smaller than min_font_size %d\n" ,
+			max_font_size , min_font_size) ;
+	#endif
+	
+		return  0 ;
+	}
+
+	return  1 ;
+}
+
+u_int
+x_get_min_font_size(void)
+{
+	return  min_font_size ;
+}
+
+u_int
+x_get_max_font_size(void)
+{
+	return  max_font_size ;
+}
+
+x_font_custom_t *
+x_acquire_font_custom(
+	x_font_present_t  font_present
+	)
+{
+	x_font_custom_t *  font_custom ;
+	void *  p ;
+	char *  font_rcfile ;
+	char *  font_rcfile2 ;
+	char *  rcpath ;
+	
+	if( font_customs)
+	{
+		int  count ;
+
+		for( count = 0 ; count < num_of_customs ; count ++)
+		{
+			if( font_customs[count]->font_present == font_present)
+			{
+				font_customs[count]->ref_count ++ ;
+
+				return  font_customs[count] ;
+			}
+		}
+	}
+
+	if( ( p = realloc( font_customs , sizeof( x_font_custom_t*) * (num_of_customs + 1))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	font_customs = p ;
+
+	if( ( font_custom = x_font_custom_new( font_present)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	switch( font_present)
+	{
+	default:
+		font_rcfile = "mlterm/font" ;
+		font_rcfile2 = NULL ;
+		break ;
+	
+	case FONT_VAR_WIDTH:
+		font_rcfile = "mlterm/font" ;
+		font_rcfile2 = "mlterm/vfont" ;
+		break ;
+
+	case FONT_VERTICAL:
+		font_rcfile = "mlterm/font" ;
+		font_rcfile2 = "mlterm/tfont" ;
+		break ;
+
+#ifdef  ANTI_ALIAS
+	case FONT_AA:
+		font_rcfile = "mlterm/aafont" ;
+		font_rcfile2 = NULL ;
+		break ;
+
+	case FONT_VAR_WIDTH|FONT_AA:
+		font_rcfile = "mlterm/aafont" ;
+		font_rcfile2 = "mlterm/vaafont" ;
+		break ;
+
+	case FONT_VERTICAL|FONT_AA:
+		font_rcfile = "mlterm/aafont" ;
+		font_rcfile2 = "mlterm/taafont" ;
+		break ;
+#endif
+	}
+	
+	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
+	{
+		read_conf( font_custom , rcpath) ;
+		free( rcpath) ;
+	}
+
+	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
+	{
+		read_conf( font_custom , rcpath) ;
+		free( rcpath) ;
+	}
+
+	if( font_rcfile2)
+	{
+		if( ( rcpath = kik_get_sys_rc_path( font_rcfile2)))
+		{
+			read_conf( font_custom , rcpath) ;
+			free( rcpath) ;
+		}
+
+		if( ( rcpath = kik_get_user_rc_path( font_rcfile2)))
+		{
+			read_conf( font_custom , rcpath) ;
+			free( rcpath) ;
+		}
+	}
+
+	font_custom->ref_count ++ ;
+	
+	return  font_customs[num_of_customs ++] = font_custom ;
+}
+
+int
+x_release_font_custom(
+	x_font_custom_t *  font_custom
+	)
+{
+	int  count ;
+	
+	if( -- font_custom->ref_count > 0)
+	{
+		return  1 ;
+	}
+
+	for( count = 0 ; count < num_of_customs ; count ++)
+	{
+		if( font_customs[count] == font_custom)
+		{
+			font_customs[count] = font_customs[--num_of_customs] ;
+			x_font_custom_delete( font_custom) ;
+
+			if( num_of_customs == 0)
+			{
+				free( font_customs) ;
+				font_customs = NULL ;
+			}
+			
+			return  1 ;
+		}
+	}
+
+	return  0 ;
+}
+
+x_font_custom_t *
+x_font_custom_new(
+	x_font_present_t  font_present
+	)
+{
+	x_font_custom_t *  font_custom ;
+	
+	if( ( font_custom = malloc( sizeof( x_font_custom_t))) == NULL)
+	{
+		return  NULL ;
+	}
+	
+	if( ( font_custom->font_name_table = malloc(
+		sizeof( KIK_MAP( x_font_name)) * (max_font_size - min_font_size + 1))) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+	#endif
+
+		free( font_custom) ;
+		
+		return  NULL ;
+	}
+	
+	memset( font_custom->font_name_table , 0 ,
+		sizeof( KIK_MAP( x_font_name)) * (max_font_size - min_font_size + 1)) ;
+
+	kik_map_new_with_size( ml_font_t , char * ,
+		font_custom->default_font_name_table , font_hash , font_compare , 8) ;
+
+	font_custom->font_present = font_present ;
+	font_custom->default_font_name_cache = NULL ;
+	font_custom->ref_count = 0 ;
+	
+	return  font_custom ;
+}
+
+int
+x_font_custom_delete(
+	x_font_custom_t *  font_custom
+	)
+{
+	int  count ;
+	u_int  size ;
+	KIK_PAIR( x_font_name) *  fn_array ;
+	
+	for( count = 0 ; count <= (max_font_size - min_font_size) ; count ++)
+	{
+		if( font_custom->font_name_table[count])
+		{
+			int  __count ;
+
+			kik_map_get_pairs_array( font_custom->font_name_table[count] ,
+				fn_array , size) ;
+				
+			for( __count = 0 ; __count < size ; __count ++)
+			{
+				free( fn_array[__count]->value) ;
+			}
+			
+			kik_map_delete( font_custom->font_name_table[count]) ;
+		}
+	}
+
+	free( font_custom->font_name_table) ;
+
+	kik_map_get_pairs_array( font_custom->default_font_name_table ,
+		fn_array , size) ;
+
+	for( count = 0 ; count < size ; count ++)
+	{
+		free( fn_array[count]->value) ;
+	}
+
+	kik_map_delete( font_custom->default_font_name_table) ;
+
+	free( font_custom->default_font_name_cache) ;
+
+	free( font_custom) ;
+	
+	return  1 ;
+}
+
+int
+x_customize_font_name(
 	x_font_custom_t *  font_custom ,
 	ml_font_t  font ,
 	char *  fontname ,
@@ -363,7 +520,7 @@ x_set_font_name(
 	int  result ;
 	KIK_PAIR( x_font_name)  pair ;
 
-	if( font_size < font_custom->min_font_size || font_custom->max_font_size < font_size)
+	if( font_size < min_font_size || max_font_size < font_size)
 	{
 		return  0 ;
 	}
@@ -389,6 +546,34 @@ x_set_font_name(
 	return  result ;
 }
 
+int
+x_customize_default_font_name(
+	x_font_custom_t *  font_custom ,
+	ml_font_t  font ,
+	char *  fontname ,
+	u_int  font_size
+	)
+{
+	int  result ;
+	KIK_PAIR( x_font_name)  pair ;
+
+	fontname = strdup( fontname) ;
+
+	kik_map_get( result , font_custom->default_font_name_table , font , pair) ;
+	if( result)
+	{
+		free( pair->value) ;
+		pair->value = fontname ;
+	}
+	else
+	{
+		kik_map_set( result , font_custom->default_font_name_table ,
+			font , fontname) ;
+	}
+
+	return  result ;
+}
+
 /*
  * Not reentrant because font_custom->default_font_name_cache can be
  * overwritten by multiple calls of x_get_font_name().
@@ -403,7 +588,7 @@ x_get_font_name(
 	KIK_PAIR( x_font_name)  fa_pair ;
 	int  result ;
 	
-	if( font_size < font_custom->min_font_size || font_custom->max_font_size < font_size)
+	if( font_size < min_font_size || max_font_size < font_size)
 	{
 		return  NULL ;
 	}
