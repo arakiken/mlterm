@@ -1,3 +1,7 @@
+2004-10-23 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* xwindow/version.h.in: 2.8.0 post -> 2.9.0 pre
+
 2004-10-22 MINAMI Hirokazu <minami@mistfall.net>
 
         * kiklib/src/kik_net.h: when neither PF_LOCAL nor PF_UNIX was defined, 
@@ -9,7 +13,7 @@
 	  - strlen() -> strlen() + 1
 	  - fixed typo in comment.
 
-	* inputmethod/iiimf/im_iiimf.c: - strlen_utf16() -> strlen_utf16() + 1
+	* inputmethod/iiimf/im_iiimf.c: strlen_utf16() -> strlen_utf16() + 1
 
 	* inputmethod/m17nlib/im_m17nlib.c: fixed typo in comment.
 

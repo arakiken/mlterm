@@ -7,13 +7,13 @@
 
 
 #define  MAJOR_VERSION	2
-#define  MINOR_VERSION	8
+#define  MINOR_VERSION	9
 #define  REVISION	0
 #define  PATCH_LEVEL	0
 
-#if  0
+#if  1
 #define  CVS_REVISION   "pre/cvs-@CVS_REVISION@"
-#elif  1
+#elif  0
 #define  CVS_REVISION   "post/cvs-@CVS_REVISION@"
 #else
 #define  CVS_REVISION   ""
