@@ -264,6 +264,22 @@ ml_str_cols(
 	return  cols ;
 }
 
+/*
+ * XXX
+ * Returns inaccurate result in dealing with combined characters.
+ * Even if they have the same bytes, false is returned since
+ * ml_char_t:multi_ch-s never point the same address.)
+ */
+inline int
+ml_str_equal(
+	ml_char_t *  str1 ,
+	ml_char_t *  str2 ,
+	u_int  len
+	)
+{
+	return  memcmp( str1 , str2 , sizeof( ml_char_t) * len) == 0 ;
+}
+
 inline int
 ml_str_bytes_equal(
 	ml_char_t *  str1 ,
@@ -275,7 +291,7 @@ ml_str_bytes_equal(
 
 	for( count = 0 ; count < len ; count ++)
 	{
-		if( ! ml_char_bytes_equal( &str1[count] , &str2[count]))
+		if( ! ml_char_bytes_equal( str1 ++ , str2 ++))
 		{
 			return  0 ;
 		}
@@ -349,6 +365,7 @@ ml_char_set(
 	ml_char_final( ch) ;
 
 	memcpy( ch->u.bytes , bytes , size) ;
+	memset( ch->u.bytes + size , 0 , MAX_CHAR_SIZE - size) ;
 
 	INTERN_COLOR(fg_color) ;
 	INTERN_COLOR(bg_color) ;
@@ -790,6 +807,21 @@ ml_char_is_null(
 	)
 {
 	return  (SIZE(ch->attr) == 1 && ch->u.bytes[0] == '\0') ;
+}
+
+/*
+ * XXX
+ * Returns inaccurate result in dealing with combined characters.
+ * Even if they have the same bytes, false is returned since
+ * ml_char_t:multi_ch-s never point the same address.)
+ */
+inline int
+ml_char_equal(
+	ml_char_t *  ch1 ,
+	ml_char_t *  ch2
+	)
+{
+	return  memcmp( ch1 , ch2 , sizeof( ml_char_t)) == 0 ;
 }
 
 inline int

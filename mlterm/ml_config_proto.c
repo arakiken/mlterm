@@ -30,14 +30,6 @@ static char *  path ;
 
 /* --- static functions --- */
 
-static void
-remove_file(void)
-{
-	unlink( path) ;
-	free( path) ;
-	free( challenge) ;
-}
-
 static int
 read_challenge(void)
 {

@@ -989,8 +989,6 @@ ml_edit_clear_line_to_right_bce(
 	ml_edit_t *  edit
 	)
 {
-	int  cols ;
-	int  char_index ;
 	ml_line_t *  cursor_line ;
 
 	reset_wraparound_checker( edit) ;
@@ -1010,18 +1008,9 @@ ml_edit_clear_line_to_right_bce(
 		edit->cursor.col_in_char = 0 ;
 	}
 
-	char_index = edit->cursor.char_index ;
-
-	for( cols = ml_str_cols( cursor_line->chars , edit->cursor.char_index) ;
-		cols < edit->model.num_of_cols ; cols ++)
-	{
-		ml_char_copy( &cursor_line->chars[char_index++] , &edit->bce_ch) ;
-	}
-
-	cursor_line->num_of_filled_chars = char_index ;
-
-	ml_line_set_modified( cursor_line , edit->cursor.char_index ,
-		ml_line_end_char_index( cursor_line)) ;
+	ml_line_fill( cursor_line , &edit->bce_ch , edit->cursor.char_index ,
+		edit->model.num_of_cols -
+			ml_str_cols( cursor_line->chars , edit->cursor.char_index)) ;
 
 	return  1 ;
 }
@@ -1814,9 +1803,17 @@ ml_edit_dump(
 
 		if( ml_line_is_modified( line))
 		{
-			kik_msg_printf( "!%.2d-%.2d" ,
-				ml_line_get_beg_of_modified( line) ,
-				ml_line_get_end_of_modified( line)) ;
+			if( ml_line_is_cleared_to_end( line))
+			{
+				kik_msg_printf( "!%.2d-END" ,
+					ml_line_get_beg_of_modified( line)) ;
+			}
+			else
+			{
+				kik_msg_printf( "!%.2d-%.2d" ,
+					ml_line_get_beg_of_modified( line) ,
+					ml_line_get_end_of_modified( line)) ;
+			}
 		}
 		else
 		{

@@ -152,7 +152,7 @@ scroll_upward_region(
 
 		return  clear_lines_to_eol( edit , boundary_beg , boundary_end - boundary_beg + 1) ;
 	}
-	
+
 	/*
 	 * scrolling up in window.
 	 *

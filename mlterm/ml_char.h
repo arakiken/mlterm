@@ -85,6 +85,8 @@ inline int  ml_str_copy( ml_char_t *  dst , ml_char_t *  src , u_int  size) ;
 
 inline u_int  ml_str_cols( ml_char_t *  chars , u_int  len) ;
 
+inline int  ml_str_equal( ml_char_t *  str1 , ml_char_t *  str2 , u_int  len) ;
+
 inline int  ml_str_bytes_equal( ml_char_t *  str1 , ml_char_t *  str2 , u_int  len) ;
 
 #ifdef  DEBUG
@@ -149,6 +151,8 @@ inline int  ml_char_reverse_color( ml_char_t *  ch) ;
 inline int  ml_char_restore_color( ml_char_t *  ch) ;
 
 int  ml_char_is_null( ml_char_t *  ch) ;
+
+inline int  ml_char_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
 
 inline int  ml_char_bytes_is( ml_char_t *  ch , char *  bytes , size_t  size , mkf_charset_t  cs) ;
 

@@ -171,6 +171,8 @@ ml_line_reset(
 	ml_line_t *  line
 	)
 {
+	int  count ;
+	
 	if( IS_EMPTY(line))
 	{
 		/* already reset */
@@ -178,7 +180,20 @@ ml_line_reset(
 		return  1 ;
 	}
 	
-	ml_line_set_modified( line , 0 , END_CHAR_INDEX(line)) ;
+	count = END_CHAR_INDEX(line) ;
+	while( 1)
+	{
+		if( ! ml_char_equal( &line->chars[count] , ml_sp_ch()))
+		{
+			ml_line_set_modified( line , 0 , count) ;
+
+			break ;
+		}
+		else if( -- count < 0)
+		{
+			break ;
+		}
+	}
 	
 	line->num_of_filled_chars = 0 ;
 
@@ -198,13 +213,30 @@ ml_line_clear(
 	int  char_index
 	)
 {
-	if( char_index < line->num_of_filled_chars)
+	int  count ;
+	
+	if( char_index >= line->num_of_filled_chars)
 	{
-		ml_line_set_modified( line , char_index , END_CHAR_INDEX(line)) ;
-
-		ml_char_copy( &line->chars[char_index] , ml_sp_ch()) ;
-		line->num_of_filled_chars = char_index + 1 ;
+		return  1 ;
 	}
+
+	count = END_CHAR_INDEX(line) ;
+	while( 1)
+	{
+		if( ! ml_char_equal( &line->chars[count] , ml_sp_ch()))
+		{
+			ml_line_set_modified( line , char_index , count) ;
+
+			break ;
+		}
+		else if( -- count < char_index)
+		{
+			break ;
+		}
+	}
+	
+	ml_char_copy( &line->chars[char_index] , ml_sp_ch()) ;
+	line->num_of_filled_chars = char_index + 1 ;
 	
 	return  1 ;
 }
@@ -249,6 +281,42 @@ ml_line_overwrite(
 	#endif
 	
 		len = line->num_of_chars - beg_char_index ;
+	}
+
+	if( len <= line->num_of_filled_chars - beg_char_index)
+	{
+		if( ml_str_equal( &line->chars[beg_char_index] , chars , len))
+		{
+			return  1 ;
+		}
+	}
+	else
+	{
+		if( ml_str_equal( line->chars + beg_char_index , chars ,
+			line->num_of_filled_chars - beg_char_index))
+		{
+			chars += (line->num_of_filled_chars - beg_char_index) ;
+			len -= (line->num_of_filled_chars - beg_char_index) ;
+			beg_char_index = line->num_of_filled_chars ;
+			
+			count = 0 ;
+			while( 1)
+			{
+				if( ! ml_char_equal( chars + count  , ml_sp_ch()))
+				{
+					break ;
+				}
+				else if( ++ count >= len)
+				{
+					ml_str_copy( line->chars + beg_char_index , chars , len) ;
+					line->num_of_filled_chars = beg_char_index + len ;
+
+					/* Not necessary ml_line_set_modified() */
+
+					return  1 ;
+				}
+			}
+		}
 	}
 
 	cols_to_beg = ml_str_cols( line->chars , beg_char_index) ;
@@ -330,10 +398,14 @@ ml_line_overwrite(
 	line->num_of_filled_chars = new_len ;
 
 	ml_line_set_modified( line , beg_char_index , beg_char_index + len + padding - 1) ;
-
+	
 	return  1 ;
 }
 
+/*
+ * Not used for now.
+ */
+#if  0
 int
 ml_line_overwrite_all(
 	ml_line_t *  line ,
@@ -350,6 +422,7 @@ ml_line_overwrite_all(
 
 	return  1 ;
 }
+#endif
 
 int
 ml_line_fill(
@@ -378,6 +451,50 @@ ml_line_fill(
 	#endif
 	
 		return  0 ;
+	}
+
+	count = 0 ;
+	while( 1)
+	{
+		if( ! ml_char_equal( &line->chars[beg + count] , ch))
+		{
+			beg += count ;
+			num -= count ;
+
+			if( beg + num <= line->num_of_filled_chars)
+			{
+				count = 0 ;
+				while( 1)
+				{
+					if( ! ml_char_equal(
+						&line->chars[beg + num - 1 - count] , ch))
+					{
+						num -= count ;
+						
+						break ;
+					}
+					else if( count ++ == num)
+					{
+						/* Never happens */
+						
+						return  1 ;
+					}
+				}
+			}
+
+			break ;
+		}
+		else if( ++ count >= num)
+		{
+			return  1 ;
+		}
+		else if( beg + count == line->num_of_filled_chars)
+		{
+			beg += count ;
+			num -= count ;
+			
+			break ;
+		}
 	}
 
 	num = K_MIN(num,line->num_of_chars - beg) ;
@@ -431,7 +548,8 @@ ml_line_fill(
 	if( copy_len > 0)
 	{
 		/* making space */
-		ml_str_copy( &line->chars[beg + num + left_cols] , &line->chars[char_index] , copy_len) ;
+		ml_str_copy( &line->chars[beg + num + left_cols] , &line->chars[char_index] ,
+			copy_len) ;
 	}
 
 	char_index = beg ;

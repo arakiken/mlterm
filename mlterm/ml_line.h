@@ -69,7 +69,9 @@ int  ml_line_clear( ml_line_t *  line , int  char_index) ;
 int  ml_line_overwrite( ml_line_t *  line , int  beg_char_index , ml_char_t *  chars ,
 	u_int  len , u_int  cols) ;
 
+#if  0
 int  ml_line_overwrite_all( ml_line_t *  line , ml_char_t *  chars , int  len) ;
+#endif
 
 int  ml_line_fill( ml_line_t *  line , ml_char_t *  ch , int  beg , u_int  num) ;
 

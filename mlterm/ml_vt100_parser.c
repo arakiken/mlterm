@@ -44,11 +44,15 @@
 #endif
 
 #if  0
-#define  ESCSEQ_DEBUG
+#define  EDIT_ROUGH_DEBUG
 #endif
 
 #if  0
 #define  INPUT_DEBUG
+#endif
+
+#if  0
+#define  ESCSEQ_DEBUG
 #endif
 
 #if  0
@@ -57,6 +61,11 @@
 
 #if  0
 #define  DUMP_HEX
+#endif
+
+/* This causes w3m-img to fail to erase images. */
+#if  0
+#define  IGNORE_SPACE_FG_COLOR
 #endif
 
 
@@ -284,6 +293,14 @@ put_char(
 		fg_color = vt100_parser->fg_color ;
 		bg_color = vt100_parser->bg_color ;
 	}
+
+#ifdef  IGNORE_SPACE_FG_COLOR
+	if( fg_color != ML_FG_COLOR && cs == US_ASCII && ch[0] == ' ' &&
+		! vt100_parser->is_bold && ! vt100_parser->is_underlined)
+	{
+		fg_color = ML_FG_COLOR ;
+	}
+#endif
 
 	if( ! vt100_parser->screen->use_dynamic_comb && is_comb)
 	{
@@ -536,7 +553,9 @@ change_char_attr(
 	if( fg_color != vt100_parser->fg_color)
 	{
 		vt100_parser->fg_color = fg_color ;
+	#ifndef  IGNORE_SPACE_FG_COLOR
 		ml_screen_set_bce_fg_color( vt100_parser->screen , fg_color) ;
+	#endif
 	}
 
 	if( bg_color != vt100_parser->bg_color)
@@ -2587,6 +2606,10 @@ ml_parse_vt100_sequence(
 
 				break ;
 			}
+
+		#ifdef  EDIT_ROUGH_DEBUG
+			ml_edit_dump( vt100_parser->screen->edit) ;
+		#endif
 
 			if( vt100_parser->left == prev_left)
 			{

@@ -1353,8 +1353,7 @@ draw_line(
 
 static int
 draw_cursor(
-	x_screen_t *  screen ,
-	int  restore
+	x_screen_t *  screen
 	)
 {
 	int  row ;
@@ -1398,53 +1397,41 @@ draw_cursor(
 	ml_char_init( &ch) ;
 	ml_char_copy( &ch , &line->chars[ ml_term_cursor_char_index( screen->term)]) ;
 
-	if( restore)
+	if( screen->is_focused)
 	{
-		draw_str( screen , &ch , 1 , x , y ,
-			x_line_height( screen) ,
-			x_line_height_to_baseline( screen) ,
-			x_line_top_margin( screen) ,
-			x_line_bottom_margin( screen)) ;
-	}
-	else
-	{
-		if( screen->is_focused)
-		{
-			ml_char_set_fg_color( &ch , ML_FG_COLOR) ;
-			ml_char_set_bg_color( &ch , ML_BG_COLOR) ;
-			
-			x_color_manager_begin_cursor_color( screen->color_man) ;
-			
-			if( screen->window.wall_picture_is_set)
-			{
-				screen->window.wall_picture_is_set = 0 ;
-				draw_str( screen , &ch , 1 , x , y ,
-					x_line_height( screen) ,
-					x_line_height_to_baseline( screen) , 0 , 0) ;
-				screen->window.wall_picture_is_set = 1 ;
-			}
-			else
-			{
-				draw_str( screen , &ch , 1 , x , y ,
-					x_line_height( screen) ,
-					x_line_height_to_baseline( screen) , 0 , 0) ;
-			}
+		ml_char_set_fg_color( &ch , ML_FG_COLOR) ;
+		ml_char_set_bg_color( &ch , ML_BG_COLOR) ;
 
-			x_color_manager_end_cursor_color( screen->color_man) ;
+		x_color_manager_begin_cursor_color( screen->color_man) ;
+
+		if( screen->window.wall_picture_is_set)
+		{
+			screen->window.wall_picture_is_set = 0 ;
+			draw_str( screen , &ch , 1 , x , y ,
+				x_line_height( screen) ,
+				x_line_height_to_baseline( screen) , 0 , 0) ;
+			screen->window.wall_picture_is_set = 1 ;
 		}
 		else
 		{
-			x_font_t *  xfont ;
-
-			xfont = x_get_font( screen->font_man , ml_char_font( &ch)) ;
-			
-			x_window_draw_rect_frame( &screen->window ,
-				x + 2 ,
-				y + x_line_top_margin( screen) + 2 ,
-				x + x_calculate_char_width( xfont ,
-					ml_char_bytes(&ch) , ml_char_size(&ch) , ml_char_cs(&ch)) + 1 ,
-				y + x_line_top_margin( screen) + xfont->height + 1) ;
+			draw_str( screen , &ch , 1 , x , y ,
+				x_line_height( screen) ,
+				x_line_height_to_baseline( screen) , 0 , 0) ;
 		}
+
+		x_color_manager_end_cursor_color( screen->color_man) ;
+	}
+	else
+	{
+		x_font_t *  xfont ;
+
+		xfont = x_get_font( screen->font_man , ml_char_font( &ch)) ;
+
+		x_window_draw_rect_frame( &screen->window ,
+			x + 2 , y + x_line_top_margin( screen) + 2 ,
+			x + x_calculate_char_width( xfont ,
+				ml_char_bytes(&ch) , ml_char_size(&ch) , ml_char_cs(&ch)) + 1 ,
+			y + x_line_top_margin( screen) + xfont->height + 1) ;
 	}
 
 	ml_char_final( &ch) ;
@@ -1645,7 +1632,7 @@ highlight_cursor(
 {
 	flush_scroll_cache( screen , 1) ;
 
-	draw_cursor( screen , 0) ;
+	draw_cursor( screen) ;
 
 	x_xic_set_spot( &screen->window) ;
 
@@ -1657,10 +1644,20 @@ unhighlight_cursor(
 	x_screen_t *  screen
 	)
 {
-	flush_scroll_cache( screen , 1) ;
-
-	draw_cursor( screen , 1) ;
+	ml_line_t *  line ;
 	
+	/*
+	 * Not actually redrawn until redraw_screen().
+	 */
+	 
+	if( ( line = ml_term_get_cursor_line( screen->term)) == NULL || ml_line_is_empty( line))
+	{
+		return  0 ;
+	}
+
+	ml_line_set_modified( line , ml_term_cursor_char_index( screen->term) ,
+		ml_term_cursor_char_index( screen->term)) ;
+
 	return  1 ;
 }
 
@@ -1716,11 +1713,11 @@ bs_scroll_upward(
 	x_screen_t *  screen
 	)
 {
-	unhighlight_cursor( screen) ;
-	
 	if( ml_term_backscroll_upward( screen->term , 1))
 	{
+		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
+		highlight_cursor( screen) ;
 		
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
@@ -1728,8 +1725,6 @@ bs_scroll_upward(
 				screen->screen_scroll_listener->self , 1) ;
 		}
 	}
-	
-	highlight_cursor( screen) ;
 }
 
 static void
@@ -1737,11 +1732,11 @@ bs_scroll_downward(
 	x_screen_t *  screen
 	)
 {
-	unhighlight_cursor( screen) ;
-	
 	if( ml_term_backscroll_downward( screen->term , 1))
 	{
+		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
+		highlight_cursor( screen) ;
 		
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
@@ -1749,8 +1744,6 @@ bs_scroll_downward(
 				screen->screen_scroll_listener->self , 1) ;
 		}
 	}
-	
-	highlight_cursor( screen) ;
 }
 
 static void
@@ -1758,21 +1751,20 @@ bs_half_page_upward(
 	x_screen_t *  screen
 	)
 {
-	unhighlight_cursor( screen) ;
-	
 	if( ml_term_backscroll_upward( screen->term , ml_term_get_rows( screen->term) / 2))
 	{
+		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
+		highlight_cursor( screen) ;
 		
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
+			/* XXX Not necessarily ml_term_get_rows( screen->term) / 2. */
 			(*screen->screen_scroll_listener->scrolled_upward)(
 				screen->screen_scroll_listener->self ,
 				ml_term_get_rows( screen->term) / 2) ;
 		}
 	}
-	
-	highlight_cursor( screen) ;
 }
 
 static void
@@ -1780,21 +1772,20 @@ bs_half_page_downward(
 	x_screen_t *  screen
 	)
 {
-	unhighlight_cursor( screen) ;
-	
 	if( ml_term_backscroll_downward( screen->term , ml_term_get_rows( screen->term) / 2))
 	{
+		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
+		highlight_cursor( screen) ;
 		
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
+			/* XXX Not necessarily ml_term_get_rows( screen->term) / 2. */
 			(*screen->screen_scroll_listener->scrolled_downward)(
 				screen->screen_scroll_listener->self ,
 				ml_term_get_rows( screen->term) / 2) ;
 		}
 	}
-	
-	highlight_cursor( screen) ;
 }
 
 static void
@@ -1802,21 +1793,20 @@ bs_page_upward(
 	x_screen_t *  screen
 	)
 {
-	unhighlight_cursor( screen) ;
-	
 	if( ml_term_backscroll_upward( screen->term , ml_term_get_rows( screen->term)))
 	{
+		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
+		highlight_cursor( screen) ;
 		
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
+			/* XXX Not necessarily ml_term_get_rows( screen->term). */
 			(*screen->screen_scroll_listener->scrolled_upward)(
 				screen->screen_scroll_listener->self ,
 				ml_term_get_rows( screen->term)) ;
 		}
 	}
-	
-	highlight_cursor( screen) ;
 }
 
 static void
@@ -1824,21 +1814,20 @@ bs_page_downward(
 	x_screen_t *  screen
 	)
 {
-	unhighlight_cursor( screen) ;
-	
 	if( ml_term_backscroll_downward( screen->term , ml_term_get_rows( screen->term)))
 	{
+		unhighlight_cursor( screen) ;
 		redraw_screen( screen) ;
+		highlight_cursor( screen) ;
 		
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
+			/* XXX Not necessarily ml_term_get_rows( screen->term). */
 			(*screen->screen_scroll_listener->scrolled_downward)(
 				screen->screen_scroll_listener->self ,
 				ml_term_get_rows( screen->term)) ;
 		}
 	}
-	
-	highlight_cursor( screen) ;
 }
 
  
