@@ -1,10 +1,12 @@
-# This is an example of ~/.mlterm/menu
-
-"font size" {
-    "larger"    "fontsize=larger"
-    "smaller"   "fontsize=smaller"
+"Font Size" {
+	"Larger"	"fontsize=larger"
+	"Smaller"	"fontsize=smaller"
 }
-"encodinf UTF-8"      "encoding=UTF-8"
-"brightness is 10"    "brightness=10"
+"Encoding" {
+	"Auto"		"encoding=auto"
+	"UTF-8"		"encoding=UTF-8"
+}
+"Full Reset"	"full_reset"
 -
 pty_list
+"New PTY"	"open_pty"
