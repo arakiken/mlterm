@@ -2704,11 +2704,16 @@ x_window_set_icon(
 				   &cardinal, &icon, &mask,
 				   48 ,48))
 	{
+#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " loading icon from %s failed\n" ,
+				 file_path ) ;
+#endif
+
 		return 0 ;
 	}
 	
 /* set extended window manager hint's icon */
-	if( *cardinal)
+	if( cardinal && cardinal[0] && cardinal[1])
 	{
 	  /*it should be possible to set multiple icons...*/
 		XChangeProperty( win->display, win->my_window,

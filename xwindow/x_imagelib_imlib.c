@@ -473,7 +473,7 @@ int x_imagelib_load_file(
 
 	if( ! ( imlib = get_imlib( display)))
 	{
-		return  -1 ;
+		return  0 ;
 	}
 	
 	if( ( img = Imlib_load_image( imlib , path)) == NULL)
@@ -482,7 +482,7 @@ int x_imagelib_load_file(
 		kik_warn_printf( KIK_DEBUG_TAG , " Imlib_load_image() failed.\n") ;
 	#endif
 	
-		return  -1 ;
+		return  0 ;
 	}
 
 	if( cardinal)
@@ -512,5 +512,5 @@ int x_imagelib_load_file(
 
 	Imlib_kill_image( imlib , img) ;
 	
-	return 0 ;
+	return 1 ;
 }
