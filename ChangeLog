@@ -1,5 +1,10 @@
 2002-05-19 Araki Ken <arakiken@users.sf.net>
 
+	* auto pointer was passed to putenv(). fixed.
+	  (Thanks to Nakada Nobuyoshi san)
+
+2002-05-19 Araki Ken <arakiken@users.sf.net>
+
 	* display name specified by --display overwrites DISPLAY environment variable.
 
 2002-05-19 Araki Ken <arakiken@users.sf.net>

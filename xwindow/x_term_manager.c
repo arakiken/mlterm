@@ -156,7 +156,7 @@ open_term(
 	int  usascii_font_cs_changable ;
 	x_termcap_entry_t *  termcap ;
 	ml_term_t *  term ;
-	char *  env[4] ;
+	char *  env[5] ;	/* MLTERM,TERM,WINDOWID,DISPLAY */
 	char **  env_p ;
 	char  wid_env[9 + DIGIT_STR_LEN(Window) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
 	char *  disp_env ;
@@ -325,6 +325,8 @@ open_term(
 	}
 	
 	env_p = env ;
+
+	*(env_p ++) = "MLTERM=" ;
 	
 	sprintf( wid_env , "WINDOWID=%ld" , root->my_window) ;
 	*(env_p ++) = wid_env ;
@@ -1736,7 +1738,7 @@ receive_next_event(
 
 			disp = DisplayString( term_man->displays[count]->display) ;
 
-			if( ( env = alloca( 9 + strlen( disp))))
+			if( ( env = malloc( 9 + strlen( disp))))
 			{
 				sprintf( env , "DISPLAY=%s" , disp) ;
 				putenv( env) ;
@@ -2168,7 +2170,7 @@ x_term_manager_init(
 		
 		char *  env ;
 
-		if( ( env = alloca( strlen( term_man->conf.disp_name) + 9)))
+		if( ( env = malloc( strlen( term_man->conf.disp_name) + 9)))
 		{
 			sprintf( env , "DISPLAY=%s" , term_man->conf.disp_name) ;
 			putenv( env) ;
