@@ -12,7 +12,7 @@
 
 #include  "x_dnd.h"
 
-/* XXX create x_atom.h ?? */
+/* XXX Should we create x_atom.h ?? */
 #define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
 #define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
@@ -20,15 +20,14 @@
 
 /* --- static variables --- */
 
-
-
 /* --- static functuions --- */
 static int
 charset_name2code(
 	char *charset
 	)
 {
-/*	int i;
+/*      Someday mozilla become sane, we can support XDND v4 spec. No one, however, seems to support charset.
+	int i;
 	for( i = strlen(charset) -1 ; i > 0 ; i--)
 		charset[i] = (charset[i] > 'A')? charset[i]-'A'+'a':charset[i];
 	if( strcmp(charset, "utf-16le") ==0 )
@@ -55,9 +54,9 @@ is_pref(
 
 /* --- global functuions --- */
 
-/**set/reset dnd awereness
+/**set/reset the window's dnd awereness
  *\param win mlterm window
- *\param flag set aweaness when true
+ *\param flag aweaness is set when true
  */
 void
 x_dnd_set_awareness(
@@ -80,7 +79,7 @@ x_dnd_set_awareness(
 				XA_DND_AWARE(win->display)) ;
 	}
 }
-/**send accept/reject message to dnd sender
+/**send a accept/reject message to the dnd sender
  *\param win mlterm window
  */
 void
@@ -140,7 +139,7 @@ x_dnd_finish(
 	}
 }
 
-/**parse dnd data and sed them to terminal
+/**parse dnd data and send them to the pty
  *\param win mlterm window
  *\param atom type of data
  *\param src data from dnd
@@ -301,7 +300,7 @@ x_dnd_parse(
 				if ( !delim)
 					return 0 ; /* parse error */
 			}
-			delim[0] = ' ' ; /* always output ' ' as separator */
+			delim[0] = ' ' ; /* always output a ' ' as separator */
 			if( strncmp( &(src[pos]), "file:",5) == 0)
 			{/* remove "file:". new length is (length - "file:" + " ")*/
 				(*win->utf8_selection_notified)

@@ -17,7 +17,7 @@
 /** Pixmap cache per display. */
 typedef struct display_store_tag {
 	Display *  display; /**<Display */
-	Pixmap  root;      /**<Root pixmap !!! NOT owned by mlterm !!!*/
+	Pixmap  root;      /**<Root pixmap !!! NOT owned by mlterm. DON'T FREE !!!*/
 	Pixmap  cooked;    /**<Background pixmap cache*/
 	x_picture_modifier_t  pic_mod; /**<modification applied to "cooked"*/
 	struct display_store_tag *  next ;
@@ -39,7 +39,7 @@ static int modify_lbound = 0 ;
 
 /* --- static functions --- */
 
-/* Get background pixmap from _XROOTMAP_ID */
+/* Get an background pixmap from _XROOTMAP_ID */
 static Pixmap
 root_pixmap(
 	x_window_t *  win
@@ -88,7 +88,7 @@ seek_cache(
 
 /**Remove a cache for the display
  *
- *\param display The display to be removed from cache.
+ *\param display display to be removed from the cache.
  *
  */
 static void
@@ -130,7 +130,7 @@ cache_delete(
 	}
 }
 
-/**judge whether pic_mod is equal or not
+/**judge whether pic_mods are equal or not
  *\param a,b picture modifier
  *\return 1 when they are same. 0 when not.
  */
@@ -145,7 +145,7 @@ is_picmod_eq(
 	return 0 ;
 }
 
-/**Return position of least significant bit
+/**Return position of the least significant bit
  *
  *\param val value to count
  *
@@ -165,7 +165,7 @@ lsb(
 	return nth ;
 }
 
-/**Return position of most significant bit
+/**Return position of the most significant bit
  *
  *\param val value to count
  *
@@ -191,7 +191,7 @@ msb(
  *\param display
  *\param screen
  *\param pixbuf source
- *\param pixmap where image is rendered(should be created before calling this function)
+ *\param pixmap where an image is rendered(should be created before calling this function)
  *
  */
 static void
@@ -529,7 +529,7 @@ int gamma
 	if( gamma == gamma_cache[256])
 		return ;
 	memset(gamma_cache, 0, sizeof(gamma_cache)) ;
-	gamma_cache[256] = gamma %256; /* corride will never happen actually */
+	gamma_cache[256] = gamma %256;
 
 	real_gamma = (double)gamma / 100 ;
 	i = 128 ;
@@ -549,12 +549,6 @@ int gamma
 	while( i <= 255)
 		gamma_cache[i++] = 255 ;
 }
-
-/** modify GdkPixbuf according to pic_mod
- *  GdkPixbuf is a client side resource and it's not efficient
- *  to render an GdkPixbuf to Pixmap and convert Pixmap to XImage
- *  and edit XImage's data and XPutImage() them.
- */
 
 static int
 modify_image(
@@ -585,7 +579,7 @@ modify_image(
 		line += rowstride ;
 
 		for (j = 0; j < width; j++) {
-/* XXX keeps neither hue nor saturation. MUST be replaced using better color model(CIE Yxy? lab?)*/
+/* XXX keeps neither hue nor saturation. MUST be replaced by another better color model(CIE Yxy? lab?)*/
 				pixel[0] = modify_color(pixel[0], pic_mod) ;
 				pixel[1] = modify_color(pixel[1], pic_mod) ;
 				pixel[2] = modify_color(pixel[2], pic_mod) ;
@@ -603,7 +597,7 @@ modify_image(
 				pixel[0] = gamma_cache[pixel[0]] ;
 				pixel[1] = gamma_cache[pixel[1]] ;
 				pixel[2] = gamma_cache[pixel[2]] ;
-				/* alpha is not changed */
+				/* alpha plane is not changed */
 				pixel += bytes_per_pixel ;
 			}
 		}
@@ -928,11 +922,10 @@ x_imagelib_get_transparent_background(
 		display_store = cache ;
 	}
 
-/* discard old cached root pixmap */
+/* discard old caches */
 	current_root =  root_pixmap( win) ;
 	if ( cache->root !=  current_root)
 	{
-		/* old pixmap should not be freed. (not owned by mlterm)*/
 		cache->root = current_root ;
 		if (cache->cooked != None)
 		{
@@ -984,12 +977,12 @@ x_imagelib_get_transparent_background(
 	return pixmap ;
 }
 
-/** Load an image from the specified file with alpha plane and returns as pixmap and mask.
- *\param display connection to X server.
+/** Load an image from the specified file with alpha plane. A pixmap and a mask are returned.
+ *\param display connection to the X server.
  *\param path File full path.
  *\param cardinal Returns pointer to a data structure for the extended WM hint spec.
- *\param pixmap Returns image pixmap for the old WM hint.
- *\param mask Returns mask bitmap for the old WM hint.
+ *\param pixmap Returns an image pixmap for the old WM hint.
+ *\param mask Returns a mask bitmap for the old WM hint.
  *
  *\return Success => 1, Failure => 0
  */
@@ -1018,7 +1011,7 @@ int x_imagelib_load_file(
 		unsigned char *pixel ;
 		int i, j ;
 
-/* create CARDINAL array for_NET_WM_ICON data */
+/* create an CARDINAL array for_NET_WM_ICON data */
 		rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
 		line = gdk_pixbuf_get_pixels (pixbuf) ;
 		*cardinal = malloc((width * height + 2) *4) ;
@@ -1055,7 +1048,7 @@ int x_imagelib_load_file(
 			}
 		}
 	}
-/* Create Icon pixmap&mask for WMHints. None as result is acceptable.*/
+/* Create the Icon pixmap&mask for WMHints. None as result is acceptable.*/
 	if( pixmap && mask)
 	{
 		*pixmap = XCreatePixmap( display, DefaultRootWindow( display), width, height,
