@@ -3,6 +3,9 @@
 	* mlterm/ml_pty.c (ml_pty_new): In the forked pty process, reset the
 	signal handler for SIGPIPE. (SIG_IGN -> SIG_DFL)
 
+	* configure.in, tool/mlconfig/Makefile.in,
+	contrib/tool/mlterm-zoom/Makefile.in: revived DL_SELF (-dlopen self).
+
 2005-01-15 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* xwindow/x_term_manager.c (x_term_manager_init): ignore SIGPIPE.

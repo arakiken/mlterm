@@ -607,10 +607,10 @@ AC_SUBST(NO_UNDEFINED_FLAG)
 AC_SUBST(KIK_LIBS_FOR_MODULE)
 AC_SUBST(MKF_LIBS_FOR_MODULE)
 
-dnl if test "x$with_libltdl" != "xno" ; then
-dnl 	DL_SELF="-dlopen self"
-dnl fi
-dnl AC_SUBST(DL_SELF)
+if test "x$with_libltdl" != "xno" ; then
+	DL_SELF="-dlopen self"
+fi
+AC_SUBST(DL_SELF)
 
 
 # CVS revision

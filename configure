@@ -9872,6 +9872,10 @@ fi
 
 
 
+if test "x$with_libltdl" != "xno" ; then
+	DL_SELF="-dlopen self"
+fi
+
 
 
 # CVS revision
@@ -10137,6 +10141,7 @@ s%@INTL_LIBS@%$INTL_LIBS%g
 s%@NO_UNDEFINED_FLAG@%$NO_UNDEFINED_FLAG%g
 s%@KIK_LIBS_FOR_MODULE@%$KIK_LIBS_FOR_MODULE%g
 s%@MKF_LIBS_FOR_MODULE@%$MKF_LIBS_FOR_MODULE%g
+s%@DL_SELF@%$DL_SELF%g
 s%@CVS_REVISION@%$CVS_REVISION%g
 s%@subdirs@%$subdirs%g
 
