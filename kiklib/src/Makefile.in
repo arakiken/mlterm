@@ -8,7 +8,7 @@ SRC_TOPDIR = @SRC_TOPDIR@
 
 PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)
-INCDIR = $(DESTDIR)$(PREFIX)/include
+INCDIR = $(DESTDIR)$(prefix)/include
 
 VPATH = $(SRC_TOPDIR)/src
 

@@ -109,7 +109,7 @@ ml_line_break_boundary(
 		/* over line length */
 
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " breakin from col %d by size %d failed." ,
+		kik_warn_printf( KIK_DEBUG_TAG " breaking from col %d by size %d failed." ,
 			END_CHAR_INDEX(line) , size) ;
 	#endif
 
@@ -701,9 +701,11 @@ ml_convert_col_to_char_index(
 	}
 
 #ifdef  DEBUG
-	if( col >= line->num_of_chars * 2)
+	if( col >= line->num_of_chars * 2 && cols_rest)
 	{
-		kik_warn_printf( KIK_DEBUG_TAG " col [%d] is over line->num_of_chars * 2 [%d]\n" ,
+		kik_warn_printf( KIK_DEBUG_TAG
+			" Since col [%d] is over line->num_of_chars * 2 [%d],"
+			" cols_rest will be corrupt...\n" ,
 			col , line->num_of_chars * 2) ;
 	}
 #endif

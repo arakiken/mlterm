@@ -1,3 +1,10 @@
+2002-09-12 Araki Ken <arakiken@users.sf.net>
+
+	* The right-end column didn't draw correctly under anti-alias mode. fixed.
+	  (Thanks to Sato Seiichi san)
+	* INCDIR macro was wrong. fixed.
+	  (Thanks to Nakada Nobuyoshi asn)
+
 2002-09-08 Araki Ken <arakiken@users.sf.net>
 
 	* Screen of logged lines which contains multi byte characters got corrupt. fixed.

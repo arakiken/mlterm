@@ -25,14 +25,10 @@
 
 /*
  * XXX
- *
  * char length is max 8 bytes.
- *
- * combining chars may be max 3 per char.
- *
  * I think this is enough , but I'm not sure.
  */
-#define  UTF8_MAX_CHAR_SIZE  (8 * 4)
+#define  UTF8_MAX_CHAR_SIZE  (8 * (MAX_COMB_SIZE + 1))
 
 /*
  * XXX
@@ -344,7 +340,7 @@ xft_draw_str(
 			
 			ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
 			
-			if( current_width + ch_width >= screen->window.width)
+			if( current_width + ch_width > screen->window.width)
 			{
 				start_draw = 1 ;
 				end_of_str = 1 ;

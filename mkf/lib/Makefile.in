@@ -12,7 +12,7 @@ INSTALL = @INSTALL@
 
 PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)
-INCDIR = $(DESTDIR)$(PREFIX)/include
+INCDIR = $(DESTDIR)$(prefix)/include
 
 VPATH = $(SRC_TOPDIR)/lib
 
@@ -78,16 +78,16 @@ collect-headers : $(INCDIR_TMP)/mkf
 
 install: install-inc install-la
 
-install-deb : $(LIBDIR)
+install-deb :
 	$(MAKE) LIBNAME=$(LIBNAME_DEB) install-ar
 
 install-inc : $(INCDIR)/mkf
 	cp $(INCDIR_TMP)/mkf/*.h $(INCDIR)/mkf
 
-install-la :
+install-la : $(LIBDIR)
 	$(LIBTOOL_INSTALL) *.la $(LIBDIR)
 
-install-ar :
+install-ar : $(LIBDIR)
 	$(LIBTOOL_INSTALL) *.a $(LIBDIR)
 
 $(INCDIR)/mkf :
