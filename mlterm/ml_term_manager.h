@@ -15,7 +15,8 @@ int  ml_term_manager_final( void) ;
 
 ml_term_t *  ml_pop_term( u_int  cols , u_int  rows , u_int  tab_size , u_int  log_size ,
 	ml_char_encoding_t  encoding , int  not_use_unicode_font , int  only_use_unicode_font ,
-	int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bce) ;
+	int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bce ,
+	ml_bs_mode_t  bs_mode) ;
 
 int  ml_put_back_term( ml_term_t *  term) ;
 

@@ -16,21 +16,6 @@
 
 /* --- static functions --- */
 
-static void
-reset_sel_region(
-	x_selection_t *  sel
-	)
-{
-	sel->base_col_r = 0 ;
-	sel->base_row_r = 0 ;
-	sel->base_col_l = 0 ;
-	sel->base_row_l = 0 ;
-	sel->beg_col = 0 ;
-	sel->beg_row = 0 ;
-	sel->end_col = 0 ;
-	sel->end_row = 0 ;
-}
-
 static int
 update_sel_region(
 	x_selection_t *  sel ,
@@ -308,6 +293,11 @@ x_sel_clear(
 	kik_debug_printf( KIK_DEBUG_TAG " selection is cleared.\n") ;
 #endif
 
+	if( ! sel->is_owner)
+	{
+		return  0 ;
+	}
+	
 	if( sel->is_selecting)
 	{
 		if( sel->sel_str)
@@ -322,6 +312,74 @@ x_sel_clear(
 	
 	sel->is_owner = 0 ;
 
+	return  x_restore_selected_region_color( sel) ;
+}
+
+int
+x_restore_selected_region_color_except_logs(
+	x_selection_t *  sel
+	)
+{
+	int  beg_row ;
+	int  beg_col ;
+	
+	if( ! sel->is_reversed)
+	{
+		return  0 ;
+	}
+
+	if( sel->end_row < 0)
+	{
+		return  1 ;
+	}
+	
+	if( ( beg_row = sel->beg_row) < 0)
+	{
+		beg_row = 0 ;
+		beg_col = 0 ;
+	}
+	else
+	{
+		beg_col = sel->beg_col ;
+	}
+	
+	sel->sel_listener->restore_color( sel->sel_listener->self ,
+		beg_col , beg_row , sel->end_col , sel->end_row) ;
+
+	return  1 ;
+}
+
+int
+x_reverse_selected_region_color_except_logs(
+	x_selection_t *  sel
+	)
+{
+	int  beg_row ;
+	int  beg_col ;
+	
+	if( ! sel->is_reversed)
+	{
+		return  0 ;
+	}
+
+	if( sel->end_row < 0)
+	{
+		return  1 ;
+	}
+	
+	if( ( beg_row = sel->beg_row) < 0)
+	{
+		beg_row = 0 ;
+		beg_col = 0 ;
+	}
+	else
+	{
+		beg_col = sel->beg_col ;
+	}
+
+	sel->sel_listener->reverse_color( sel->sel_listener->self ,
+		beg_col , beg_row , sel->end_col , sel->end_row) ;
+
 	return  1 ;
 }
 
@@ -335,15 +393,98 @@ x_restore_selected_region_color(
 		return  0 ;
 	}
 
-	x_stop_selecting( sel) ;
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " restore selected region color => %d %d - %d %d.\n" ,
+		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
+#endif
 
 	sel->sel_listener->restore_color( sel->sel_listener->self ,
 		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
 
 	sel->is_reversed = 0 ;
 
-	reset_sel_region( sel) ;
-	
+	return  1 ;
+}
+
+int
+x_reverse_selected_region_color(
+	x_selection_t *  sel
+	)
+{
+	if( ! sel->is_owner || ! sel->is_selecting || sel->is_reversed)
+	{
+		return  0 ;
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " reverse selected region color => %d %d - %d %d.\n" ,
+		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
+#endif
+
+	sel->sel_listener->reverse_color( sel->sel_listener->self ,
+		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
+
+	sel->is_reversed = 1 ;
+
+	return  1 ;
+}
+
+int
+x_sel_line_scrolled_out(
+	x_selection_t *  sel ,
+	int  min_row
+	)
+{
+	if( ! sel->is_selecting)
+	{
+		return  0 ;
+	}
+
+	if( sel->base_row_l > min_row)
+	{
+		sel->base_row_l -- ;
+	}
+	else
+	{
+		sel->base_col_l = -1 ;
+	}
+
+	if( sel->base_row_r > min_row)
+	{
+		sel->base_row_r -- ;
+	}
+	else
+	{
+		sel->base_col_r = 0 ;
+	}
+
+	if( sel->beg_row > min_row)
+	{
+		sel->beg_row -- ;
+	}
+	else
+	{
+		sel->beg_col = 0 ;
+	}
+
+	if( sel->end_row > min_row)
+	{
+		sel->end_row -- ;
+	}
+	else
+	{
+		sel->end_col = 0 ;
+	}
+
+	if( sel->prev_row > min_row)
+	{
+		sel->prev_row -- ;
+	}
+	else
+	{
+		sel->prev_col = 0 ;
+	}
+
 	return  1 ;
 }
 

@@ -42,8 +42,8 @@ typedef struct  x_screen_scroll_event_listener
 {
 	void *  self ;
 
-	void  (*bs_mode_exited)( void *) ;
 	void  (*bs_mode_entered)( void *) ;
+	void  (*bs_mode_exited)( void *) ;
 	void  (*scrolled_upward)( void * , u_int) ;
 	void  (*scrolled_downward)( void * , u_int) ;
 	void  (*log_size_changed)( void * , u_int) ;

@@ -238,7 +238,7 @@ window_deleted(
 
 
 /*
- * overriding methods of x_screen_t
+ * Overriding methods of ml_screen_listener_t of x_screen_t.
  */
  
 static void
@@ -249,6 +249,8 @@ scrolled_out_line_received(
 	x_sb_screen_t *  sb_screen ;
 
 	sb_screen = (x_sb_screen_t*)((x_window_t*)p)->parent ;
+
+	(*sb_screen->line_scrolled_out)( p) ;
 
 	x_scrollbar_line_is_added( &sb_screen->scrollbar) ;
 }
@@ -303,11 +305,29 @@ screen_scroll_downward(
 	return  1 ;
 }
 
+static int
+screen_is_static(
+	void *  p
+	)
+{
+	x_sb_screen_t *  sb_screen  ;
+	
+	sb_screen = p ;
+
+	if( ml_term_is_backscrolling( sb_screen->screen->term) == BSM_STATIC)
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
 
 /*
  * callbacks of x_screen_scroll_event_listener_t events.
  */
- 
+
 static void
 bs_mode_exited(
 	void *  p
@@ -568,6 +588,7 @@ x_sb_screen_new(
 	sb_screen->sb_listener.screen_scroll_to = screen_scroll_to ;
 	sb_screen->sb_listener.screen_scroll_upward = screen_scroll_upward ;
 	sb_screen->sb_listener.screen_scroll_downward = screen_scroll_downward ;
+	sb_screen->sb_listener.screen_is_static = screen_is_static ;
 
 	if( x_scrollbar_init( &sb_screen->scrollbar , &sb_screen->sb_listener ,
 		view_name , fg_color , bg_color , ACTUAL_HEIGHT( &screen->window) ,
@@ -594,8 +615,8 @@ x_sb_screen_new(
 	 * event callbacks.
 	 */	
 	sb_screen->screen_scroll_listener.self = sb_screen ;
-	sb_screen->screen_scroll_listener.bs_mode_exited = bs_mode_exited ;
 	sb_screen->screen_scroll_listener.bs_mode_entered = NULL ;
+	sb_screen->screen_scroll_listener.bs_mode_exited = bs_mode_exited ;
 	sb_screen->screen_scroll_listener.scrolled_upward = scrolled_upward ;
 	sb_screen->screen_scroll_listener.scrolled_downward = scrolled_downward ;
 	sb_screen->screen_scroll_listener.log_size_changed = log_size_changed ;
@@ -611,7 +632,8 @@ x_sb_screen_new(
 	sb_screen->screen_scroll_listener.change_sb_mode = change_sb_mode ;
 
 	x_set_screen_scroll_listener( screen , &sb_screen->screen_scroll_listener) ;
-	
+
+	sb_screen->line_scrolled_out = screen->screen_listener.line_scrolled_out ;
 	screen->screen_listener.line_scrolled_out = scrolled_out_line_received ;
 
 	sb_screen->sb_mode = mode ;

@@ -20,11 +20,13 @@ typedef struct  x_sb_screen
 	x_screen_t *  screen ;
 	x_scrollbar_t  scrollbar ;
 
+	void (*line_scrolled_out)( void *) ;
+	
 	x_scrollbar_event_listener_t  sb_listener ;
 	x_screen_scroll_event_listener_t  screen_scroll_listener ;
 
 	x_sb_mode_t  sb_mode ;
-	
+
 } x_sb_screen_t ;
 
 

@@ -56,6 +56,7 @@ typedef struct main_config
 	ml_char_encoding_t  encoding ;
 	x_font_present_t  font_present ;
 	ml_vertical_mode_t  vertical_mode ;
+	ml_bs_mode_t  bs_mode ;
 
 	char *  disp_name ;
 	char *  app_name ;
@@ -305,7 +306,7 @@ open_term(void)
 			main_config.encoding , main_config.not_use_unicode_font ,
 			main_config.only_use_unicode_font , main_config.col_size_a ,
 			main_config.use_char_combining , main_config.use_multi_col_char ,
-			x_termcap_get_bool_field( tent , ML_BCE))) == NULL)
+			x_termcap_get_bool_field( tent , ML_BCE) , main_config.bs_mode)) == NULL)
 	{
 		return  0 ;
 	}
@@ -554,7 +555,8 @@ open_pty(
 				main_config.tab_size , main_config.num_of_log_lines ,
 				main_config.encoding , main_config.not_use_unicode_font ,
 				main_config.only_use_unicode_font , main_config.col_size_a ,
-				main_config.use_char_combining , main_config.use_multi_col_char , 0))
+				main_config.use_char_combining , main_config.use_multi_col_char ,
+				0 , main_config.bs_mode))
 				== NULL)
 			{
 				return  ;
@@ -818,6 +820,8 @@ get_min_conf(
 #endif
 	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" ,
 		"manage buggy Big5 CTEXT in XFree86 4.1 or earlier [false]") ;
+	kik_conf_add_opt( conf , '6' , "stbs" , 1 , "static_backscroll_mode" ,
+		"screen is static under backscroll mode [false]") ;
 	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , 
 		"bel (0x07) mode [none/sound/visual, default = none]") ;
 	kik_conf_add_opt( conf , '8' , "88591" , 1 , "iso88591_font_for_usascii" ,
@@ -1509,6 +1513,16 @@ config_init(
 		if( strcmp( value , "true") == 0)
 		{
 			main_config.use_extended_scroll_shortcut = 1 ;
+		}
+	}
+
+	main_config.bs_mode = BSM_VOLATILE ;
+
+	if( ( value = kik_conf_get_value( conf , "static_backscroll_mode")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			main_config.bs_mode = BSM_STATIC ;
 		}
 	}
 

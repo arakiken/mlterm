@@ -140,6 +140,18 @@ receive_scrolled_out_line(
 	
 	ml_log_add( &screen->logs , line) ;
 
+	if( screen->is_backscrolling == BSM_STATIC)
+	{
+		if( ml_log_full( &screen->logs))
+		{
+			ml_screen_set_modified_all( screen) ;
+		}
+		else
+		{
+			screen->backscroll_rows ++ ;
+		}
+	}
+	
 	if( screen->screen_listener && screen->screen_listener->line_scrolled_out)
 	{
 		(*screen->screen_listener->line_scrolled_out)( screen->screen_listener->self) ;
@@ -157,6 +169,11 @@ window_scroll_upward_region(
 	ml_screen_t *  screen ;
 
 	screen = p ;
+
+	if( screen->is_backscrolling == BSM_STATIC)
+	{
+		return  1 ;
+	}
 
 	if( ! screen->screen_listener)
 	{
@@ -179,6 +196,11 @@ window_scroll_downward_region(
 
 	screen = p ;
 
+	if( screen->is_backscrolling == BSM_STATIC)
+	{
+		return  1 ;
+	}
+	
 	if( ! screen->screen_listener)
 	{
 		return  0 ;
@@ -487,7 +509,8 @@ ml_screen_new(
 	u_int  rows ,
 	u_int  tab_size ,
 	u_int  num_of_log_lines ,
-	int  use_bce
+	int  use_bce ,
+	ml_bs_mode_t  bs_mode
 	)
 {
 	ml_screen_t *  screen ;
@@ -542,7 +565,8 @@ ml_screen_new(
 	}
 
 	screen->backscroll_rows = 0 ;
-	screen->is_backscroll_mode = 0 ;
+	screen->backscroll_mode = bs_mode ;
+	screen->is_backscrolling = 0 ;
 
 	screen->use_dynamic_comb = 0 ;
 	screen->use_bce = use_bce ;
@@ -833,7 +857,7 @@ ml_screen_get_line_in_screen(
 	int  row
 	)
 {
-	if( screen->is_backscroll_mode && screen->backscroll_rows > 0)
+	if( screen->is_backscrolling && screen->backscroll_rows > 0)
 	{
 		int  abs_row ;
 
@@ -991,11 +1015,24 @@ ml_screen_logical(
 }
 
 int
-ml_is_backscroll_mode(
-	ml_screen_t *  screen
+ml_set_backscroll_mode(
+	ml_screen_t *  screen ,
+	ml_bs_mode_t   mode
 	)
 {
-	return  screen->is_backscroll_mode ;
+	if( mode != BSM_VOLATILE && mode != BSM_STATIC)
+	{
+		return  0 ;
+	}
+	
+	screen->backscroll_mode = mode ;
+
+	if( screen->is_backscrolling)
+	{
+		screen->is_backscrolling = mode ;
+	}
+	
+	return  1 ;
 }
 
 int
@@ -1003,8 +1040,7 @@ ml_enter_backscroll_mode(
 	ml_screen_t *  screen
 	)
 {
-	screen->is_backscroll_mode = 1 ;
-	screen->backscroll_rows = 0 ;
+	screen->is_backscrolling = screen->backscroll_mode ;
 
 	return  1 ;
 }
@@ -1014,7 +1050,7 @@ ml_exit_backscroll_mode(
 	ml_screen_t *  screen
 	)
 {
-	screen->is_backscroll_mode = 0 ;
+	screen->is_backscrolling = 0 ;
 	screen->backscroll_rows = 0 ;
 
 	return  1 ;
@@ -1029,7 +1065,7 @@ ml_screen_backscroll_to(
 	ml_line_t *  line ;
 	int  count ;
 	
-	if( ! screen->is_backscroll_mode)
+	if( ! screen->is_backscrolling)
 	{
 		return  0 ;
 	}
@@ -1065,7 +1101,7 @@ ml_screen_backscroll_upward(
 	ml_line_t *  line ;
 	int  count ;
 
-	if( ! screen->is_backscroll_mode)
+	if( ! screen->is_backscrolling)
 	{
 		return  0 ;
 	}
@@ -1116,7 +1152,7 @@ ml_screen_backscroll_downward(
 	ml_line_t *  line ;
 	int  count ;
 	
-	if( ! screen->is_backscroll_mode)
+	if( ! screen->is_backscrolling)
 	{
 		return  0 ;
 	}

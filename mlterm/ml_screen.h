@@ -23,6 +23,14 @@ typedef struct  ml_screen_event_listener
 
 }  ml_screen_event_listener_t ;
 
+typedef enum  ml_bs_mode
+{
+	BSM_NONE = 0x0 ,
+	BSM_VOLATILE ,
+	BSM_STATIC ,
+
+} ml_bs_mode_t ;
+
 typedef struct  ml_screen
 {
 	/* public(readonly) */
@@ -45,7 +53,8 @@ typedef struct  ml_screen
 	ml_screen_event_listener_t *  screen_listener ;
 
 	u_int  backscroll_rows ;
-	int8_t  is_backscroll_mode ;
+	ml_bs_mode_t  backscroll_mode ;
+	int8_t  is_backscrolling ;
 
 	int8_t  use_dynamic_comb ;	/* public */
 	int8_t  use_bce ;
@@ -60,7 +69,7 @@ int  ml_free_word_separators(void) ;
 
 
 ml_screen_t *  ml_screen_new( u_int  cols , u_int  rows , u_int  tab_size ,
-	u_int  num_of_log_lines , int  use_bce) ;
+	u_int  num_of_log_lines , int  use_bce , ml_bs_mode_t  bs_mode) ;
 
 int  ml_screen_delete( ml_screen_t *  screen) ;
 
@@ -122,7 +131,9 @@ int  ml_screen_visual( ml_screen_t *  screen) ;
 
 int  ml_screen_logical( ml_screen_t *  screen) ;
 
-int  ml_is_backscroll_mode( ml_screen_t *  screen) ;
+ml_bs_mode_t  ml_is_backscroll_mode( ml_screen_t *  screen) ;
+
+int  ml_set_backscroll_mode( ml_screen_t *  screen , ml_bs_mode_t  mode) ;
 
 int  ml_enter_backscroll_mode( ml_screen_t *  screen) ;
 

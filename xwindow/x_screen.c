@@ -1655,7 +1655,7 @@ unhighlight_cursor(
 /*
  * {enter|exit}_backscroll_mode() and bs_XXX() functions provides backscroll operations.
  *
- * Similar processing is done in x_screen_scroll_{upward|downward|to}().
+ * Similar processing to bs_XXX() is done in x_screen_scroll_{upward|downward|to}().
  */
  
 static void
@@ -1663,7 +1663,7 @@ enter_backscroll_mode(
 	x_screen_t *  screen
 	)
 {
-	if( ml_term_is_backscroll_mode( screen->term))
+	if( ml_term_is_backscrolling( screen->term))
 	{
 		return ;
 	}
@@ -1682,7 +1682,7 @@ exit_backscroll_mode(
 	x_screen_t *  screen
 	)
 {
-	if( ! ml_term_is_backscroll_mode( screen->term))
+	if( ! ml_term_is_backscrolling( screen->term))
 	{
 		return ;
 	}
@@ -1856,6 +1856,7 @@ restore_selected_region_color(
 {
 	if( x_restore_selected_region_color( &screen->sel))
 	{
+		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
 	}
 }
@@ -1869,12 +1870,6 @@ write_to_pty(
 	mkf_parser_t *  parser		/* parser may be NULL */
 	)
 {
-	/*
-	 * this is necessary since x_image_t or x_logs_t is changed.
-	 */
-	restore_selected_region_color( screen) ;
-	exit_backscroll_mode( screen) ;
-	
 	if( parser && str)
 	{
 		(*parser->init)( parser) ;
@@ -2336,10 +2331,7 @@ window_resized(
 	
 	screen = (x_screen_t *) win ;
 
-	/*
-	 * this is necessary since x_edit_t size is changed.
-	 */
-	restore_selected_region_color( screen) ;
+	/* This is necessary since ml_term_t size is changed. */
 	exit_backscroll_mode( screen) ;
 
 	unhighlight_cursor( screen) ;
@@ -2691,7 +2683,7 @@ key_pressed(
 	}
 #endif
 
-	if( ml_term_is_backscroll_mode( screen->term))
+	if( ml_term_is_backscrolling( screen->term))
 	{
 		if( screen->use_extended_scroll_shortcut)
 		{
@@ -3198,16 +3190,7 @@ selection_cleared(
 	XSelectionClearEvent *  event
 	)
 {
-	x_screen_t *  screen ;
-
-	screen = (x_screen_t*) win ;
-	
-	if( screen->sel.is_owner)
-	{
-		x_sel_clear( &screen->sel) ;
-	}
-
-	restore_selected_region_color( screen) ;
+	x_sel_clear( &((x_screen_t*)win)->sel) ;
 }
 
 static size_t
@@ -3518,7 +3501,23 @@ start_selection(
 		row_l = row_r ;
 	}
 
-	x_start_selection( &screen->sel , col_l , row_l , col_r , row_r) ;
+	if( x_start_selection( &screen->sel , col_l , row_l , col_r , row_r))
+	{
+		redraw_screen( screen) ;
+	}
+}
+
+static void
+selecting(
+	x_screen_t *  screen ,
+	int  char_index ,
+	int  row
+	)
+{
+	if( x_selecting( &screen->sel , char_index , row))
+	{
+		redraw_screen( screen) ;
+	}
 }
 
 static void
@@ -3551,7 +3550,7 @@ selecting_with_motion(
 	{
 		if( ml_term_get_num_of_logged_lines( screen->term) > 0)
 		{
-			if( ! ml_term_is_backscroll_mode( screen->term))
+			if( ! ml_term_is_backscrolling( screen->term))
 			{
 				enter_backscroll_mode( screen) ;
 			}
@@ -3563,7 +3562,7 @@ selecting_with_motion(
 	}
 	else if( y > screen->window.height - x_line_height( screen))
 	{
-		if( ml_term_is_backscroll_mode( screen->term))
+		if( ml_term_is_backscrolling( screen->term))
 		{
 			bs_scroll_upward( screen) ;
 		}
@@ -3576,7 +3575,7 @@ selecting_with_motion(
 	if( ( line = ml_term_get_line( screen->term , row)) == NULL || ml_line_is_empty( line))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " image line(%d) not found.\n" , row) ;
+		kik_warn_printf( KIK_DEBUG_TAG " line(%d) not found.\n" , row) ;
 	#endif
 
 		return ;
@@ -3622,7 +3621,7 @@ selecting_with_motion(
 		
 		if( x_selected_region_is_changed( &screen->sel , char_index , row , 1))
 		{
-			x_selecting( &screen->sel , char_index , row) ;
+			selecting( screen , char_index , row) ;
 		}
 	}
 }
@@ -3726,7 +3725,7 @@ selecting_word(
 		start_selection( screen , beg_char_index , beg_row) ;
 	}
 
-	x_selecting( &screen->sel , end_char_index , end_row) ;
+	selecting( screen , end_char_index , end_row) ;
 }
 
 static void
@@ -3779,7 +3778,7 @@ selecting_line(
 		start_selection( screen , beg_char_index , beg_row) ;
 	}
 
-	x_selecting( &screen->sel , end_char_index , end_row) ;
+	selecting( screen , end_char_index , end_row) ;
 }
 
 static int
@@ -3890,11 +3889,11 @@ button_pressed(
 	x_screen_t *  screen ;
 
 	screen = (x_screen_t*)win ;
-	
-	restore_selected_region_color( screen) ;
 
 	if( screen->is_mouse_pos_sending && ! (event->state & (ShiftMask | ControlMask)))
 	{
+		restore_selected_region_color( screen) ;
+		
 		report_mouse_tracking( screen , event , 0) ;
 
 		return ;
@@ -3902,6 +3901,8 @@ button_pressed(
 
 	if( event->button == 2)
 	{
+		restore_selected_region_color( screen) ;
+		
 		yank_event_received( screen , event->time) ;
 	}
 	else if( click_num == 2 && event->button == 1)
@@ -3956,6 +3957,10 @@ button_pressed(
 			bs_half_page_upward(screen) ;
 		}
 	}
+	else
+	{
+		restore_selected_region_color( screen) ;
+	}
 }
 
 static void
@@ -3971,11 +3976,8 @@ button_released(
 	if( screen->is_mouse_pos_sending && ! (event->state & ShiftMask))
 	{
 		report_mouse_tracking( screen , event , 1) ;
-
-		return ;
 	}
-	
-	if( screen->sel.is_selecting)
+	else
 	{
 		x_stop_selecting( &screen->sel) ;
 	}
@@ -4243,7 +4245,7 @@ change_log_size(
 	}
 
 	/*
-	 * this is necesary since x_logs_t size is changed.
+	 * this is necesary since ml_logs_t size is changed.
 	 */
 	restore_selected_region_color( screen) ;
 	exit_backscroll_mode( screen) ;
@@ -5476,8 +5478,6 @@ reverse_color(
 	
 	ml_term_reverse_color( screen->term , beg_char_index , beg_row ,
 		end_char_index , end_row) ;
-
-	redraw_screen( screen) ;
 }
 
 static void
@@ -5504,11 +5504,14 @@ restore_color(
 		beg_char_index = end_char_index ;
 		end_char_index = buf ;
 	}
-	
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " restoring region %d %d %d %d.\n" ,
+		beg_char_index , beg_row , end_char_index , end_row) ;
+#endif
+
 	ml_term_restore_color( screen->term , beg_char_index , beg_row ,
 		end_char_index , end_row) ;
-
-	redraw_screen( screen) ;
 }
 
 static int
@@ -5601,7 +5604,7 @@ window_scroll_upward_region(
 	set_scroll_boundary( screen , beg_row , end_row) ;
 	
 	screen->scroll_cache_rows += size ;
-	
+
 	return  1 ;
 }
 
@@ -5627,6 +5630,18 @@ window_scroll_downward_region(
 	screen->scroll_cache_rows -= size ;
 
 	return  1 ;
+}
+
+static void
+line_scrolled_out(
+	void *  p
+	)
+{
+	x_screen_t *  screen ;
+	
+	screen = p ;
+
+	x_sel_line_scrolled_out( &screen->sel , -((int)ml_term_get_log_size( screen->term))) ;
 }
 
 /*
@@ -5719,10 +5734,22 @@ start_vt100_cmd(
 	x_screen_t *  screen ;
 
 	screen = p ;
-	
-	restore_selected_region_color( screen) ;
-	exit_backscroll_mode( screen) ;
 
+	if( ml_term_is_backscrolling( screen->term) == BSM_VOLATILE)
+	{
+		x_stop_selecting( &screen->sel) ;
+		exit_backscroll_mode( screen) ;
+	}
+	
+	if( screen->sel.is_selecting)
+	{
+		x_restore_selected_region_color_except_logs( &screen->sel) ;
+	}
+	else
+	{
+		restore_selected_region_color( screen) ;
+	}
+	
 	unhighlight_cursor( screen) ;
 }
 
@@ -5734,6 +5761,11 @@ stop_vt100_cmd(
 	x_screen_t *  screen ;
 
 	screen = p ;
+
+	if( screen->sel.is_selecting)
+	{
+		x_reverse_selected_region_color_except_logs( &screen->sel) ;
+	}
 	
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
@@ -5967,8 +5999,7 @@ x_screen_new(
 	screen->screen_listener.self = screen ;
 	screen->screen_listener.window_scroll_upward_region = window_scroll_upward_region ;
 	screen->screen_listener.window_scroll_downward_region = window_scroll_downward_region ;
-	/* set by x_sb_screen_t */
-	screen->screen_listener.line_scrolled_out = NULL ;
+	screen->screen_listener.line_scrolled_out = line_scrolled_out ;
 
 	screen->xterm_listener.self = screen ;
 	screen->xterm_listener.start = start_vt100_cmd ;
@@ -6401,7 +6432,7 @@ x_screen_scroll_upward(
 {
 	unhighlight_cursor( screen) ;
 	
-	if( ! ml_term_is_backscroll_mode( screen->term))
+	if( ! ml_term_is_backscrolling( screen->term))
 	{
 		enter_backscroll_mode( screen) ;
 	}
@@ -6422,7 +6453,7 @@ x_screen_scroll_downward(
 {
 	unhighlight_cursor( screen) ;
 	
-	if( ! ml_term_is_backscroll_mode( screen->term))
+	if( ! ml_term_is_backscrolling( screen->term))
 	{
 		enter_backscroll_mode( screen) ;
 	}
@@ -6443,7 +6474,7 @@ x_screen_scroll_to(
 {
 	unhighlight_cursor( screen) ;
 
-	if( ! ml_term_is_backscroll_mode( screen->term))
+	if( ! ml_term_is_backscrolling( screen->term))
 	{
 		enter_backscroll_mode( screen) ;
 	}

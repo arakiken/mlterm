@@ -1,3 +1,9 @@
+2003-1-26 Araki Ken <arakiken@users.sf.net>
+
+	* Added -6/--stbs/static_backscroll_mode option, under which backscroll mode
+	  isn't reset even if vt100 sequence is output from tty.
+	* You can select region even while vt100 sequence is output from tty.
+
 2003-1-13 Araki Ken <arakiken@users.sf.net>
 
 	* config.h.in -> c_config.h.in

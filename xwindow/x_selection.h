@@ -55,13 +55,19 @@ int  x_selecting( x_selection_t *  sel , int  col , int  row) ;
 
 int  x_stop_selecting( x_selection_t *  sel) ;
 
+int  x_restore_selected_region_color_except_logs( x_selection_t *  sel) ;
+
+int  x_reverse_selected_region_color_except_logs( x_selection_t *  sel) ;
+
 int  x_restore_selected_region_color( x_selection_t *  sel) ;
+
+int  x_reverse_selected_region_color( x_selection_t *  sel) ;
 
 int  x_sel_clear( x_selection_t *  sel) ;
 
 int  x_selected_region_is_changed( x_selection_t *  sel , int  col , int  row , u_int  base) ;
 
-int  x_sel_upward_scrolled_out( x_selection_t *  sel , u_int  height) ;
+int  x_sel_line_scrolled_out( x_selection_t *  sel , int  min_row) ;
 
 int  x_is_after_sel_right_base_pos( x_selection_t *  sel , int  col , int  row) ;
 

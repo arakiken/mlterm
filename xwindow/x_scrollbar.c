@@ -778,13 +778,18 @@ x_scrollbar_line_is_added(
 	{
 		return  0 ;
 	}
-
+	
+	if( (*sb->sb_listener->screen_is_static)(sb->sb_listener->self))
+	{
+		sb->current_row -- ;
+	}
+	
 	sb->num_of_filled_log_lines ++ ;
-
+	
 	sb->bar_height = calculate_bar_height( sb) ;
 	
 	old_y = sb->bar_top_y ;
-	sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
+	sb->bar_top_y = calculate_bar_top_y( sb) ;
 	
 	if( old_y == sb->bar_top_y)
 	{

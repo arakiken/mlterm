@@ -21,6 +21,7 @@ typedef struct  x_scrollbar_event_listener
 	int  (*screen_scroll_to)( void * , int) ;
 	int  (*screen_scroll_upward)( void * , u_int) ;
 	int  (*screen_scroll_downward)( void * , u_int) ;
+	int  (*screen_is_static)( void *) ;
 
 } x_scrollbar_event_listener_t ;
 

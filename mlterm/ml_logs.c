@@ -287,6 +287,21 @@ ml_get_log_size(
 }
 
 int
+ml_log_full(
+	ml_logs_t *  logs
+	)
+{
+	if( kik_get_filled_cycle_index( logs->index) == logs->num_of_rows)
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+int
 ml_log_reverse_color(
 	ml_logs_t *  logs ,
 	int  char_index ,

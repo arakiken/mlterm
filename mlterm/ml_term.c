@@ -26,7 +26,8 @@ ml_term_new(
 	int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char ,
-	int  use_bce
+	int  use_bce ,
+	ml_bs_mode_t  bs_mode
 	)
 {
 	ml_term_t *  term ;
@@ -43,7 +44,7 @@ ml_term_new(
 	term->pty = NULL ;
 	term->pty_listener = NULL ;
 
-	if( ( term->screen = ml_screen_new( cols , rows , tab_size , log_size , use_bce)) == NULL)
+	if( ( term->screen = ml_screen_new( cols , rows , tab_size , log_size , use_bce , bs_mode)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_screen_new failed.\n") ;
@@ -564,12 +565,21 @@ ml_term_disable_special_visual(
 	return  ml_screen_delete_logical_visual( term->screen) ;
 }
 
-int
-ml_term_is_backscroll_mode(
+ml_bs_mode_t
+ml_term_is_backscrolling(
 	ml_term_t *  term
 	)
 {
-	return  ml_is_backscroll_mode( term->screen) ;
+	return  term->screen->is_backscrolling ;
+}
+
+int
+ml_term_set_backscroll_mode(
+	ml_term_t *  term ,
+	ml_bs_mode_t  mode
+	)
+{
+	return  ml_set_backscroll_mode( term->screen , mode) ;
 }
 
 int
@@ -586,6 +596,14 @@ ml_term_exit_backscroll_mode(
 	)
 {
 	return  ml_exit_backscroll_mode( term->screen) ;
+}
+
+int
+ml_term_backscroll_log_full(
+	ml_term_t *  term
+	)
+{
+	return  ml_log_full( &term->screen->logs) ;
 }
 
 int
