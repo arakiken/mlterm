@@ -4815,7 +4815,7 @@ get_config(
 {
 	x_screen_t *  screen ;
 	ml_term_t *  term ;
-	char *  value ;
+	char *  value = NULL ;
 	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
 	char *  true = "true" ;
 	char *  false = "false" ;
@@ -5164,10 +5164,6 @@ get_config(
 		{
 			value = ml_term_get_slave_name( term) ;
 		}
-	}
-	else
-	{
-		goto  error ;
 	}
 
 	if( value == NULL)
@@ -5995,7 +5991,6 @@ compare_key_state_with_modmap(
 
 	for( i = 0 ; i < 5 ; i++)
 	{
-		KeySym  sym ;
 		int  index ;
 		int  mod1_index ;
 

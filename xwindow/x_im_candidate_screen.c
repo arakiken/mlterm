@@ -2,6 +2,7 @@
  *	$Id$
  */
 
+#include  <kiklib/kik_str.h>
 #include  "x_im_candidate_screen.h"
 
 #ifdef  USE_IM_PLUGIN
@@ -579,8 +580,6 @@ delete(
 	x_im_candidate_screen_t *  cand_screen
 	)
 {
-	int  i ;
-
 	free_candidates( cand_screen->candidates ,
 			 cand_screen->num_of_candidates) ;
 
