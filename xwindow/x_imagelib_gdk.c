@@ -71,7 +71,7 @@ closest_color_index(
 		green = 255 ;
 	if( blue  > 255)
 		blue  = 255 ;
-	
+
 
 	for( i = 0 ; i < len ; i ++)
 	{
@@ -91,15 +91,15 @@ closest_color_index(
 
 
 static int
-dither_to_pixmap(
+pixbuf_to_pixmap_pseudocolor(
 	Display *  display ,
-	int screen, 
+	int screen,
 	GdkPixbuf *  pixbuf,
 	Pixmap pixmap
 	)
 {
 	unsigned int  width, height, rowstride, bytes_per_pixel ;
-	
+
 	int  x, y ;
 	int  num_cells;
 #ifdef USE_FS
@@ -115,7 +115,7 @@ dither_to_pixmap(
 	GC  gc;
 	XGCValues  gcv ;
 	int  diff_r, diff_g, diff_b ;
-	
+
 	Colormap  cmap = DefaultColormap( display, screen) ;
 
 	num_cells = DisplayCells( display , screen) ;
@@ -135,7 +135,7 @@ dither_to_pixmap(
 	if( !diff_cur)
 	{
 		return -1 ;
-	}	
+	}
 	diff_next = calloc( width*3, 1) ;
 	if( !diff_next)
 	{
@@ -146,21 +146,21 @@ dither_to_pixmap(
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
 	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
 
-	line = gdk_pixbuf_get_pixels (pixbuf) ;	
+	line = gdk_pixbuf_get_pixels (pixbuf) ;
 	gc = XCreateGC (display, pixmap, 0, &gcv) ;
 
 	for ( y = 0 ; y < height ; y++ ) {
 		pixel = line ;
 #ifdef USE_FS
-		closest = closest_color_index( display, screen, color_list, num_cells, 
-					       pixel[0] - diff_cur[0], 
+		closest = closest_color_index( display, screen, color_list, num_cells,
+					       pixel[0] - diff_cur[0],
 					       pixel[1] - diff_cur[1],
 					       pixel[2] - diff_cur[2]) ;
 #else
-		closest = closest_color_index( display, screen, color_list, num_cells, 
-					       pixel[0], 
+		closest = closest_color_index( display, screen, color_list, num_cells,
+					       pixel[0],
 					       pixel[1],
-					       pixel[2]) 
+					       pixel[2])
 #endif
 
 #ifdef USE_FS
@@ -168,32 +168,32 @@ dither_to_pixmap(
 		diff_g = (color_list[closest].green >>8 ) - pixel[1];
 		diff_b = (color_list[closest].blue  >>8 ) - pixel[2];
 
-		diff_cur[3*1 + 0 ] += diff_r /2; 
-		diff_cur[3*1 + 1 ] += diff_g /2; 
-		diff_cur[3*1 + 2 ] += diff_b /2; 
-		
-		diff_next[3*0 +0] = diff_r /4; 
-		diff_next[3*0 +1] = diff_g /4; 
-		diff_next[3*0 +2] = diff_b /4; 
+		diff_cur[3*1 + 0 ] += diff_r /2;
+		diff_cur[3*1 + 1 ] += diff_g /2;
+		diff_cur[3*1 + 2 ] += diff_b /2;
 
-		diff_next[3*1 +0] = diff_r /4; 
-		diff_next[3*1 +1] = diff_g /4; 
-		diff_next[3*1 +2] = diff_b /4; 
+		diff_next[3*0 +0] = diff_r /4;
+		diff_next[3*0 +1] = diff_g /4;
+		diff_next[3*0 +2] = diff_b /4;
+
+		diff_next[3*1 +0] = diff_r /4;
+		diff_next[3*1 +1] = diff_g /4;
+		diff_next[3*1 +2] = diff_b /4;
 #endif
-		XSetForeground( display, gc, closest) ;		
-		XDrawPoint( display, pixmap, gc, 0, y) ;	
+		XSetForeground( display, gc, closest) ;
+		XDrawPoint( display, pixmap, gc, 0, y) ;
 		pixel += bytes_per_pixel ;
 
-		for ( x = 1 ; x < width -2 ; x++ ) {			
+		for ( x = 1 ; x < width -2 ; x++ ) {
 #ifdef USE_FS
-			closest = closest_color_index( display, screen, color_list, num_cells, 
-						       pixel[0] - diff_cur[3*x +0], 
-						       pixel[1] - diff_cur[3*x +1], 
+			closest = closest_color_index( display, screen, color_list, num_cells,
+						       pixel[0] - diff_cur[3*x +0],
+						       pixel[1] - diff_cur[3*x +1],
 						       pixel[2] - diff_cur[3*x +2]) ;
 #else
-			closest = closest_color_index( display, screen, color_list, num_cells, 
-						       pixel[0] , 
-						       pixel[1] , 
+			closest = closest_color_index( display, screen, color_list, num_cells,
+						       pixel[0] ,
+						       pixel[1] ,
 						       pixel[2] ) ;
 #endif
 
@@ -201,54 +201,54 @@ dither_to_pixmap(
 			diff_r = (color_list[closest].red   >>8 ) - pixel[0];
 			diff_g = (color_list[closest].green >>8 ) - pixel[1];
 			diff_b = (color_list[closest].blue  >>8 ) - pixel[2];
-			
-			diff_cur[3*(x+1) + 0 ] += diff_r /2; 
-			diff_cur[3*(x+1) + 1 ] += diff_g /2; 
-			diff_cur[3*(x+1) + 2 ] += diff_b /2; 
-			
-			diff_next[3*(x-1) +0] += diff_r /8; 
-			diff_next[3*(x-1) +1] += diff_g /8; 
-			diff_next[3*(x-1) +2] += diff_b /8; 
 
-			diff_next[3*(x+0) +0] += diff_r /8; 
-			diff_next[3*(x+0) +1] += diff_g /8; 
-			diff_next[3*(x+0) +2] += diff_b /8; 
+			diff_cur[3*(x+1) + 0 ] += diff_r /2;
+			diff_cur[3*(x+1) + 1 ] += diff_g /2;
+			diff_cur[3*(x+1) + 2 ] += diff_b /2;
 
-			diff_next[3*(x+1) +0] = diff_r /4; 
-			diff_next[3*(x+1) +1] = diff_g /4; 
-			diff_next[3*(x+1) +2] = diff_b /4; 
+			diff_next[3*(x-1) +0] += diff_r /8;
+			diff_next[3*(x-1) +1] += diff_g /8;
+			diff_next[3*(x-1) +2] += diff_b /8;
+
+			diff_next[3*(x+0) +0] += diff_r /8;
+			diff_next[3*(x+0) +1] += diff_g /8;
+			diff_next[3*(x+0) +2] += diff_b /8;
+
+			diff_next[3*(x+1) +0] = diff_r /4;
+			diff_next[3*(x+1) +1] = diff_g /4;
+			diff_next[3*(x+1) +2] = diff_b /4;
 #endif
-			XSetForeground( display, gc, closest) ;		
-			XDrawPoint( display, pixmap, gc, x, y) ;	
+			XSetForeground( display, gc, closest) ;
+			XDrawPoint( display, pixmap, gc, x, y) ;
 
 			pixel += bytes_per_pixel ;
 		}
 #ifdef USE_FS
-		closest = closest_color_index( display, screen, color_list, num_cells, 
-					       pixel[0] - diff_cur[3*x +0], 
-					       pixel[1] - diff_cur[3*x +1], 
+		closest = closest_color_index( display, screen, color_list, num_cells,
+					       pixel[0] - diff_cur[3*x +0],
+					       pixel[1] - diff_cur[3*x +1],
 					       pixel[2] - diff_cur[3*x +2]) ;
 #else
-		closest = closest_color_index( display, screen, color_list, num_cells, 
-					       pixel[0], 
-					       pixel[1], 
+		closest = closest_color_index( display, screen, color_list, num_cells,
+					       pixel[0],
+					       pixel[1],
 					       pixel[2]) ;
 #endif
-		XSetForeground( display, gc, closest) ;		
-		XDrawPoint( display, pixmap, gc, x, y) ;	
-#ifdef USE_FS			
+		XSetForeground( display, gc, closest) ;
+		XDrawPoint( display, pixmap, gc, x, y) ;
+#ifdef USE_FS
 		diff_r = (color_list[closest].red   >>8 ) - pixel[0];
 		diff_g = (color_list[closest].green >>8 ) - pixel[1];
 		diff_b = (color_list[closest].blue  >>8 ) - pixel[2];
-		
-		diff_next[3*(x-1) +0] += diff_r /4; 
-		diff_next[3*(x-1) +1] += diff_g /4; 
-		diff_next[3*(x-1) +2] += diff_b /4; 
-		
-		diff_next[3*(x+0) +0] += diff_r /4; 
-		diff_next[3*(x+0) +1] += diff_g /4; 
-		diff_next[3*(x+0) +2] += diff_b /4; 
-#endif		
+
+		diff_next[3*(x-1) +0] += diff_r /4;
+		diff_next[3*(x-1) +1] += diff_g /4;
+		diff_next[3*(x-1) +2] += diff_b /4;
+
+		diff_next[3*(x+0) +0] += diff_r /4;
+		diff_next[3*(x+0) +1] += diff_g /4;
+		diff_next[3*(x+0) +2] += diff_b /4;
+#endif
 		line += rowstride ;
 #ifdef USE_FS
 		temp = diff_cur;
@@ -263,7 +263,7 @@ dither_to_pixmap(
 	free( diff_next) ;
 #endif
 	return 0 ;
-}	
+}
 
 
 /* Get an background pixmap from _XROOTMAP_ID */
@@ -631,7 +631,7 @@ pixbuf_to_pixmap(
 		image = pixbuf_to_ximage_truecolor( display,
 						    screen,
 						    pixbuf,
-						    DefaultDepth( display, screen),						    
+						    DefaultDepth( display, screen),
 						    vinfolist) ;
 		if( image)
 		{
@@ -646,7 +646,7 @@ pixbuf_to_pixmap(
 	{
 		XFree( vinfolist) ;
 
-		if( dither_to_pixmap( display, screen, pixbuf, pixmap) == -1)
+		if( pixbuf_to_pixmap_pseudocolor( display, screen, pixbuf, pixmap) == -1)
 		{
 			return -1;
 		}
@@ -729,7 +729,7 @@ compose_truecolor(
 						*data =	(pixel[0] <<r_offset ) |
 							(pixel[1] <<g_offset ) |
 							(pixel[2] <<b_offset ) ;
-					}				       
+					}
 				}
 				data++ ;
 				pixel += 4 ;
@@ -786,7 +786,7 @@ compose_pseudocolor(
 	case 8:
 	{
 		u_int8_t *  data = (u_int8_t *)(image->data) ;
-		kik_debug_printf("dp: %p\n", data) ;
+
 		for( i = 0; i < height; i++){
 			pixel = line ;
 			for( j = 0; j < width; j++){
@@ -802,9 +802,9 @@ compose_pseudocolor(
 						r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
 						g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
 						b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
-						
+
 						*data = closest_color_index( display, screen,
-									     color_list, num_cells, 
+									     color_list, num_cells,
 									     r, g, b ) ;
 
 
@@ -812,9 +812,9 @@ compose_pseudocolor(
 					else
 					{
 						*data = closest_color_index( display, screen,
-									     color_list, num_cells, 
-									     pixel[0], pixel[1], pixel[2] ) ; 
-					}				       
+									     color_list, num_cells,
+									     pixel[0], pixel[1], pixel[2] ) ;
+					}
 				}
 				data++ ;
 				pixel += 4 ;
@@ -873,7 +873,7 @@ compose_to_pixmap(
 					     pixmap,
 					     DefaultDepth( display, screen),
 					     vinfolist) ;
-		break;		
+		break;
 	default:
 		break;
 	}
@@ -883,7 +883,7 @@ compose_to_pixmap(
 			   gdk_pixbuf_get_width( pixbuf), gdk_pixbuf_get_height( pixbuf)) ;
 		XDestroyImage( image) ;
 		return 0;
-	}	
+	}
 
 	XFree( vinfolist) ;
 
@@ -1324,7 +1324,7 @@ x_imagelib_load_file_for_background(
 			XFreePixmap( win->display, pixmap) ;
 			return None ;
 		}
-	}else{	      
+	}else{
 		int res;
 		pixmap = XCreatePixmap( win->display, win->my_window,
 					ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
@@ -1538,8 +1538,8 @@ int x_imagelib_load_file(
 		if( mask)
 		{
 			*mask = XCreatePixmap( display, DefaultRootWindow( display), width, height, 1) ;
-			if( pixbuf_to_pixmap_and_mask( display, 
-						       DefaultScreen( display), 
+			if( pixbuf_to_pixmap_and_mask( display,
+						       DefaultScreen( display),
 						       pixbuf, *pixmap, *mask) == -1)
 			{
 				XFreePixmap( display, *pixmap) ;
@@ -1548,7 +1548,7 @@ int x_imagelib_load_file(
 				*mask = 0 ;
 				return 0 ;
 			}
-			
+
 		}
 		else
 		{
