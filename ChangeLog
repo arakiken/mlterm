@@ -1,3 +1,8 @@
+2002-12-14 Araki Ken <arakiken@users.sf.net>
+
+	* Newline characters in pasted text are converted to carriage return characters.
+	  (Thanks to Martin Horcicka)
+
 2002-12-13 Araki Ken <arakiken@users.sf.net>
 
 	* Fixed arabic combining problem.

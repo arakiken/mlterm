@@ -3354,8 +3354,21 @@ xct_selection_notified(
 	)
 {
 	x_screen_t *  screen ;
+	int  count ;
 
 	screen = (x_screen_t*) win ;
+
+	/*
+	 * Convert normal newline chars to carriage return chars which are
+	 * common return key sequences.
+	 */
+	for( count = 0 ; count < len ; count ++)
+	{
+		if( str[count] == '\n')
+		{
+			str[count] = '\r' ;
+		}
+	}
 
 #if  1
 	/*
@@ -3416,8 +3429,21 @@ utf8_selection_notified(
 	)
 {
 	x_screen_t *  screen ;
+	int  count ;
 
 	screen = (x_screen_t*) win ;
+
+	/*
+	 * Convert normal newline chars to carriage return chars which are
+	 * common return key sequences.
+	 */
+	for( count = 0 ; count < len ; count ++)
+	{
+		if( str[count] == '\n')
+		{
+			str[count] = '\r' ;
+		}
+	}
 
 	write_to_pty( screen , str , len , screen->utf8_parser) ;
 }
