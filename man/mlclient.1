@@ -3,29 +3,37 @@
 .SH NAME
 mlclient \- client for mlterm
 .SH SYNOPSIS
-.B mlterm
+.B mlclient
 .RB [\fIoptions\fP]
 .\" ********************************************************************
 .SH DESCRIPTION
-\fBmlclient\fR is a client for \fBmlterm\fR(1) server (daemon).
+\fBmlclient\fR is a client for the \fBmlterm\fR(1) server (daemon).
 \fBmlterm\fR(1), an X terminal emulator, can be invoked
-in daemon process which holds sessions (shell process and other
-informations like backlog).  \fBmlclient\fR creats new sessions
-or recalls existing sessions which were disconnected from
-\fBmlclient\fR processes because the processes were killed.
+as a daemon process which holds multiple sessions (shell process and other
+informations like backlog).  \fBmlclient\fR can creat a new session
+or recall an existing session which had been disconnected from a window.
 .\" ********************************************************************
 .SH OPTIONS
-Options of
+\fBmlclient\fR accepts most options of mlterm.
+Please read \fBmlterm\fR(1) for detail.
+
+Following options do \fBnot\fR work for \fBmlclient\fR:
+.TP
 \fB\-K\fR/\fB\-\-maxptys\fR,
+.TP
 \fB\-P\fR/\fB\-\-ptys\fR,
+.TP
 \fB\-R\fR/\fB\-\-fsrange\fR,
+.TP
 \fB\-W\fR/\fB\-\-sep\fR,
+.TP
 \fB\-Y\fR/\fB\-\-decsp\fR,
+.TP
 \fB\-c\fR/\fB\-\-cp932\fR,
+.TP
 \fB\-i\fR/\fB\-\-xim\fR, and
+.TP
 \fB\-j\fR/\fB\-\-daemon\fR
-are available.  Please read \fBmlterm\fR(1) for
-detail of these options.
 .\" ********************************************************************
 .SH SEE ALSO
 \fBmlterm\fR(1),
