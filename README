@@ -53,7 +53,7 @@ Options for configure
     Disable XDnD.
 
   --disable-kbd
-    Disable kbd input method for Arabic and Indic.
+    Disable kbd input method for Arabic, Hebrew and Indic.
 
   --enable-uim
     Support uim (Universal? Input Method) if available.

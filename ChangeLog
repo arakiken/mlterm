@@ -1,3 +1,8 @@
+2005-03-18 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/kbd/im_kbd.c: added Hebrew key mapping table.
+	* README, doc/ja/README.ja, man/mlterm.1: updated.
+
 2005-03-14 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* mlterm/ml_screen.c (receive_scrolled_out_line): if backscrolling

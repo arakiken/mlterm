@@ -37,6 +37,7 @@
 #include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_snprintf */
+#include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <mkf/mkf_utf16_parser.h>
 #include  <ml_iscii.h>
 
@@ -50,7 +51,9 @@
 
 typedef enum  kbd_type
 {
+	KBD_TYPE_UNKNOWN ,
 	KBD_TYPE_ARABIC ,
+	KBD_TYPE_HEBREW ,
 	KBD_TYPE_ISCII ,
 
 	KBD_TYPE_MAX
@@ -60,12 +63,16 @@ typedef enum  kbd_type
 typedef enum  kbd_mode
 {
 	KBD_MODE_ASCII = 0 ,
-	KBD_MODE_ARABIC ,
+
+	/* arabic or hebrew */
+	KBD_MODE_ON ,
+
+	/* iscii */
 	KBD_MODE_ISCII_INSCRIPT ,
 	KBD_MODE_ISCII_PHONETIC ,
 
 	KBD_MODE_MAX
-	
+
 }  kbd_mode_t ;
 
 typedef struct im_kbd
@@ -185,8 +192,119 @@ static u_char *  arabic_conv_tbl[] =
 
 } ;
 
+static u_char *  hebrew_conv_tbl[] =
+{
+	"\x00\x3b" ,	/* ' */
+	NULL ,		/* ( */
+	NULL ,		/* ) */
+	NULL ,		/* * */
+	NULL ,		/* + */
+	"\x05\xea" ,	/* , */
+	NULL ,		/* - */
+	"\x05\xe5" ,	/* . */
+	"\x00\x2e" ,	/* / */
+	NULL ,		/* 0 */
+	NULL ,		/* 1 */
+	NULL ,		/* 2 */
+	NULL ,		/* 3 */
+	NULL ,		/* 4 */
+	NULL ,		/* 5 */
+	NULL ,		/* 6 */
+	NULL ,		/* 7 */
+	NULL ,		/* 8 */
+	NULL ,		/* 9 */
+	NULL ,		/* : */
+	"\x05\xe3" ,	/* ; */
+	NULL ,		/* < */
+	NULL ,		/* = */
+	NULL ,		/* > */
+	NULL ,		/* ? */
+	NULL ,		/* @ */
+	NULL ,		/* A */
+	NULL ,		/* B */
+	NULL ,		/* C */
+	NULL ,		/* D */
+	NULL ,		/* E */
+	NULL ,		/* F */
+	NULL ,		/* G */
+	NULL ,		/* H */
+	NULL ,		/* I */
+	NULL ,		/* J */
+	NULL ,		/* K */
+	NULL ,		/* L */
+	NULL ,		/* M */
+	NULL ,		/* N */
+	NULL ,		/* O */
+	NULL ,		/* P */
+	NULL ,		/* Q */
+	NULL ,		/* R */
+	NULL ,		/* S */
+	NULL ,		/* T */
+	NULL ,		/* U */
+	NULL ,		/* V */
+	NULL ,		/* W */
+	NULL ,		/* X */
+	NULL ,		/* Y */
+	NULL ,		/* Z */
+	NULL ,		/* [ */
+	NULL ,		/* \ */
+	NULL ,		/* ] */
+	NULL ,		/* ^ */
+	NULL ,		/* _ */
+	"\x00\x3b" ,	/* ` */
+	"\x05\xe9" ,	/* a */
+	"\x05\xe0" ,	/* b */
+	"\x05\xd1" ,	/* c */
+	"\x05\xd2" ,	/* d */
+	"\x05\xe7" ,	/* e */
+	"\x05\xdb" ,	/* f */
+	"\x05\xe2" ,	/* g */
+	"\x05\xd9" ,	/* h */
+	"\x05\xdf" ,	/* i */
+	"\x05\xd7" ,	/* j */
+	"\x05\xdc" ,	/* k */
+	"\x05\xda" ,	/* l */
+	"\x05\xe6" ,	/* m */
+	"\x05\xde" ,	/* n */
+	"\x05\xdd" ,	/* o */
+	"\x05\xe4" ,	/* p */
+	"\x00\x2f" ,	/* q */
+	"\x05\xe8" ,	/* r */
+	"\x05\xd3" ,	/* s */
+	"\x05\xd0" ,	/* t */
+	"\x05\xd5" ,	/* u */
+	"\x05\xd4" ,	/* v */
+	"\x00\x27" ,	/* w */
+	"\x05\xe1" ,	/* x */
+	"\x05\xd8" ,	/* y */
+	"\x05\xd6" ,	/* z */
+	NULL ,		/* { */
+	NULL ,		/* | */
+	NULL ,		/* } */
+	NULL ,		/* ~ */
+
+} ;
+
 
 /* --- static functions --- */
+
+static kbd_type_t
+find_kbd_type(
+	char *  locale
+	)
+{
+	if( locale && strncmp( locale , "ar" , 2) == 0)
+	{
+		return  KBD_TYPE_ARABIC ;
+	}
+
+	if( locale && strncmp( locale , "he" , 2) == 0)
+	{
+		return  KBD_TYPE_HEBREW ;
+	}
+
+	return  KBD_TYPE_UNKNOWN ;
+}
 
 /*
  * methods of x_im_t
@@ -236,7 +354,7 @@ delete(
 }
 
 static int
-key_event_arabic(
+key_event_arabic_hebrew(
 	x_im_t *  im ,
 	u_char  key_char ,
 	KeySym  ksym ,
@@ -250,7 +368,7 @@ key_event_arabic(
 
 	kbd = (im_kbd_t*) im ;
 
-	if( kbd->mode != KBD_MODE_ARABIC)
+	if( kbd->mode != KBD_MODE_ON)
 	{
 		return  1 ;
 	}
@@ -265,9 +383,17 @@ key_event_arabic(
 		return  1 ;
 	}
 
-	if( ! ( c = arabic_conv_tbl[key_char - 0x27]))
+	if( kbd->type == KBD_TYPE_ARABIC)
 	{
-		return  1 ;
+		if( ! ( c = arabic_conv_tbl[key_char - 0x27]))
+		{
+			return  1 ;
+		}
+	} else { /* kbd->type == KBD_TYPE_HEBREW */
+		if( ! ( c = hebrew_conv_tbl[key_char - 0x27]))
+		{
+			return  1 ;
+		}
 	}
 
 	if( *c == 0x0)
@@ -351,11 +477,16 @@ switch_mode(
 
 	kbd =  (im_kbd_t*)  im ;
 
-	if( kbd->type == KBD_TYPE_ARABIC)
+	if( kbd->type == KBD_TYPE_UNKNOWN)
+	{
+		return  0 ;
+	}
+
+	if( kbd->type == KBD_TYPE_ARABIC || kbd->type == KBD_TYPE_HEBREW)
 	{
 		if( kbd->mode == KBD_MODE_ASCII)
 		{
-			kbd->mode = KBD_MODE_ARABIC ;
+			kbd->mode = KBD_MODE_ON ;
 		}
 		else
 		{
@@ -447,10 +578,10 @@ switch_mode(
 
 		switch( kbd->mode)
 		{
-		case KBD_MODE_ARABIC:
+		case KBD_MODE_ON:
 			(*kbd->im.stat_screen->set)( kbd->im.stat_screen ,
 						     parser_ascii ,
-						     "Arabic") ;
+						     kbd->type == KBD_TYPE_ARABIC ? "Arabic" : "Hebrew") ;
 			break ;
 		case KBD_MODE_ISCII_INSCRIPT:
 			(*kbd->im.stat_screen->set)( kbd->im.stat_screen ,
@@ -508,17 +639,43 @@ im_kbd_new(
 	u_int64_t  magic ,
 	ml_char_encoding_t  term_encoding ,
 	x_im_export_syms_t *  export_syms ,
-	char *  opts ,
+	char *  opt , /* arabic/hebrew/iscii */
 	u_int  mod_ignore_mask
 	)
 {
 	im_kbd_t *  kbd ;
+	kbd_type_t  type ;
 
 	if( magic != (u_int64_t) IM_API_COMPAT_CHECK_MAGIC)
 	{
 		kik_error_printf( "Incompatible input method API.\n") ;
 
 		return  NULL ;
+	}
+
+	if( opt && strcmp( opt , "arabic") == 0)
+	{
+		type = KBD_TYPE_ARABIC ;
+	}
+	else if( opt && strcmp( opt , "hebrew") == 0)
+	{
+		type = KBD_TYPE_HEBREW ;
+	}
+	else if( opt && strcmp( opt , "iscii") == 0)
+	{
+		type = KBD_TYPE_ISCII ;
+	}
+	else
+	{
+		type = find_kbd_type( kik_get_locale()) ;
+	}
+
+	if( type == KBD_TYPE_UNKNOWN)
+	{
+		if( term_encoding == ML_ISCII)
+		{
+			type = KBD_TYPE_ISCII ;
+		}
 	}
 
 	if( ! initialized)
@@ -544,21 +701,13 @@ im_kbd_new(
 		goto  error ;
 	}
 
-	if( term_encoding == ML_ISCII)
-	{
-		kbd->type = KBD_TYPE_ISCII ;
-	}
-	else
-	{
-		kbd->type = KBD_TYPE_ARABIC ;
-	}
-
+	kbd->type = type ;
 	kbd->mode = KBD_MODE_ASCII ;
 	kbd->keymap = NULL ;
 	kbd->parser = NULL ;
 	kbd->conv = NULL ;
 
-	if( kbd->type == KBD_TYPE_ARABIC)
+	if( kbd->type == KBD_TYPE_ARABIC || kbd->type == KBD_TYPE_HEBREW)
 	{
 		if( ! ( kbd->parser = mkf_utf16_parser_new()))
 		{
@@ -575,8 +724,8 @@ im_kbd_new(
 	 * set methods of x_im_t
 	 */
 	kbd->im.delete = delete ;
-	kbd->im.key_event = (kbd->type == KBD_TYPE_ARABIC) ?
-			    key_event_arabic : key_event_iscii ;
+	kbd->im.key_event = (kbd->type == KBD_TYPE_ISCII) ?
+			    key_event_iscii : key_event_arabic_hebrew ;
 	kbd->im.switch_mode = switch_mode ;
 	kbd->im.focused = focused ;
 	kbd->im.unfocused = unfocused ;
@@ -629,7 +778,7 @@ im_kbd_get_info(
 
 	result->id = strdup( "kbd") ;
 	result->name = strdup( "keyboard") ;
-	result->num_of_args = 1 ;
+	result->num_of_args = 4 ;
 
 	if( ! ( result->args = malloc( sizeof(char*) * result->num_of_args)))
 	{
@@ -644,15 +793,39 @@ im_kbd_get_info(
 		return  NULL ;
 	}
 
-	result->args[0] = strdup( "") ;
-	if( strcmp( encoding , "ISCII") == 0)
+	switch( find_kbd_type( locale))
 	{
-		result->readable_args[0] = strdup( "Indic") ;
-	}
-	else
-	{
+	case KBD_TYPE_ARABIC:
 		result->readable_args[0] = strdup( "Arabic") ;
+		break ;
+	case KBD_TYPE_HEBREW:
+		result->readable_args[0] = strdup( "Hebrew") ;
+		break ;
+	case KBD_TYPE_ISCII:
+		result->readable_args[0] = strdup( "ISCII") ;
+		break ;
+	case KBD_TYPE_UNKNOWN:
+		if( strcmp( encoding , "ISCII") == 0)
+		{
+			result->readable_args[0] = strdup( "Indic") ;
+		}
+		else
+		{
+			result->readable_args[0] = strdup( "unknown") ;
+		}
+		break ;
+	default:
+		break ;
 	}
+
+	result->readable_args[1] = strdup("Arabic") ;
+	result->readable_args[2] = strdup("Hebrew") ;
+	result->readable_args[3] = strdup("ISCII") ;
+
+	result->args[0] = strdup( "") ;
+	result->args[1] = strdup("arabic") ;
+	result->args[2] = strdup("hebrew") ;
+	result->args[3] = strdup("iscii") ;
 
 	return  result ;
 }
