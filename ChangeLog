@@ -1,3 +1,9 @@
+[20020308]
+* COLORTERM_BCE is unset from the beginning.
+* arabic characters two of which can turn into one glyph are supported.
+* -J,--rtl,bidi_base_direction_rtl option is added.
+  This option lets bidi base direction RTL.
+
 [20020306]
 * core dump in processing _XROOTPMAP_ID. fixed.
   (Thanks to Nanashi san)
