@@ -554,7 +554,6 @@ iiimf_widget_new(const char *iiimf_lang_id, const char *iiimf_le, const char *cu
 	} else {
 		snprintf(iiimf_auto_str, STR_LEN, _("auto"), iiimf_lang_id);
 		iiimf_set_item(items, iiimf_auto_str, NULL, num_total);
-		selected_index = num_total;
 		snprintf(original_iiimf_lang, STR_LEN, ":%s:%s",
 			 iiimf_lang_id, iiimf_le);
 	}

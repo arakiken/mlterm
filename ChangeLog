@@ -1,4 +1,8 @@
-2004-09-14 Seiichi SATO <ssato@sh.rim.or.jp>
+2004-09-15 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* tool/mlconfig/mc_im.c: fixed a small bug in auto selector for IIIMF.
+
+2004-09-15 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* tool/mlconfig/mc_im.c:
 	- fixed segfault when the combo box for IIIMF was changed.
