@@ -146,24 +146,24 @@ flush_buffer(
 		kik_msg_printf( "\nflushing chars(%d)...==>" , buffer->len) ;
 		for( counter = 0 ; counter < buffer->len ; counter ++)
 		{
+			char *  bytes ;
+
+			bytes = ml_char_bytes( &buffer->chars[counter]) ;
+			
 			if( ml_char_size( &buffer->chars[counter]) == 2)
 			{
 			#if  0
-				kik_msg_printf( "%x%x" ,
-					ml_char_bytes( &buffer->chars[counter])[0] | 0x80 ,
-					ml_char_bytes( &buffer->chars[counter])[1] | 0x80) ;
+				kik_msg_printf( "%x%x" , bytes[0] | 0x80 , bytes[1] | 0x80) ;
 			#else
-				kik_msg_printf( "%c%c" ,
-					ml_char_bytes( &buffer->chars[counter])[0] | 0x80 ,
-					ml_char_bytes( &buffer->chars[counter])[1] | 0x80) ;
+				kik_msg_printf( "%c%c" , bytes[0] | 0x80 , bytes[1] | 0x80) ;
 			#endif
 			}
 			else
 			{
 			#if  0
-				kik_msg_printf( "%x" , ml_char_bytes( &buffer->chars[counter])[0]) ;
+				kik_msg_printf( "%x" , bytes[0]) ;
 			#else
-				kik_msg_printf( "%c" , ml_char_bytes( &buffer->chars[counter])[0]) ;
+				kik_msg_printf( "%c" , bytes[1]) ;
 			#endif
 			}
 		}

@@ -135,7 +135,7 @@ int  ml_imgline_bidi_visual( ml_image_line_t *  line) ;
 int  ml_imgline_bidi_logical( ml_image_line_t *  line) ;
 
 int  ml_bidi_convert_logical_char_index_to_visual( ml_image_line_t *  line , int  char_index ,
-	int  correct_pos) ;
+	int *  ltr_rtl_meet_pos) ;
 
 int  ml_imgline_copy_str( ml_image_line_t *  line , ml_char_t *  dst , int  beg , u_int  len) ;
 

@@ -31,8 +31,9 @@ ml_bidi_new(void)
 
 	state->visual_order = NULL ;
 	state->size = 0 ;
-	state->base_is_rtl = 0 ;
 	state->cursor_pos = -1 ;
+	state->base_is_rtl = 0 ;
+	state->cursor_pos_is_changed = 0 ;
 
 	return  state ;
 }
@@ -71,6 +72,7 @@ ml_bidi(
 	FriBidiStrIndex *  fri_order ;
 	u_char *  bytes ;
 	int  counter ;
+	int  prev_cursor_pos ;
 
 	if( size == 0)
 	{
@@ -138,6 +140,7 @@ ml_bidi(
 
 	fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
 
+	prev_cursor_pos = state->cursor_pos ;
 	state->cursor_pos = -1 ;
 	
 	if( cursor_pos >= 0)
@@ -203,6 +206,15 @@ end:
 	else
 	{
 		state->base_is_rtl = 0 ;
+	}
+
+	if( prev_cursor_pos != state->cursor_pos)
+	{
+		state->cursor_pos_is_changed = 1 ;
+	}
+	else
+	{
+		state->cursor_pos_is_changed = 0 ;
 	}
 
 #ifdef  __DEBUG

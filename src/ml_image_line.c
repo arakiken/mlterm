@@ -938,19 +938,7 @@ ml_imgline_bidi_render(
 		return  0 ;
 	}
 
-	if( line->bidi_state->cursor_pos != cursor_pos)
-	{
-		if( cursor_pos == -1)
-		{
-			ml_imgline_set_modified( line , line->bidi_state->cursor_pos ,
-				line->bidi_state->cursor_pos , 0) ;
-		}
-		else
-		{
-			ml_imgline_set_modified( line , cursor_pos , cursor_pos , 0) ;
-		}
-	}
-	else if( ! IS_MODIFIED(line->flag))
+	if( line->bidi_state->cursor_pos == cursor_pos && ! IS_MODIFIED(line->flag))
 	{
 		return  1 ;
 	}
@@ -1005,7 +993,7 @@ ml_imgline_bidi_visual(
 
 	ml_str_final( src , line->bidi_state->size) ;
 
-	if( has_rtl && IS_MODIFIED(line->flag))
+	if( has_rtl && (line->bidi_state->cursor_pos_is_changed || IS_MODIFIED(line->flag)))
 	{
 		ml_imgline_set_modified( line , 0 , END_CHAR_INDEX(line) , IS_CLEARED_TO_END(line->flag)) ;
 	}
@@ -1065,7 +1053,7 @@ int
 ml_bidi_convert_logical_char_index_to_visual(
 	ml_image_line_t *  line ,
 	int  char_index ,
-	int  correct_pos
+	int *  ltr_rtl_meet_pos
 	)
 {
 	if( ! line->bidi_state)
@@ -1079,14 +1067,20 @@ ml_bidi_convert_logical_char_index_to_visual(
 	
 	if( 0 <= char_index && char_index < line->bidi_state->size)
 	{
-		if( correct_pos)
+		if( ! line->bidi_state->base_is_rtl && char_index >= 2 &&
+			line->bidi_state->visual_order[char_index - 1] + 1 <
+				line->bidi_state->visual_order[char_index])
 		{
-			if( ! line->bidi_state->base_is_rtl && char_index >= 2 &&
-				line->bidi_state->visual_order[char_index - 1] + 1 <
-					line->bidi_state->visual_order[char_index])
+			if( *ltr_rtl_meet_pos == 0)
+			{
+				*ltr_rtl_meet_pos = char_index - 1 ;
+			}
+			else if( *ltr_rtl_meet_pos != char_index - 1)
 			{
 				int  counter ;
 
+				*ltr_rtl_meet_pos = char_index - 1 ;
+				
 				counter = char_index - 2 ;
 
 				if( line->bidi_state->visual_order[counter] ==
@@ -1102,12 +1096,21 @@ ml_bidi_convert_logical_char_index_to_visual(
 					}
 				}
 			}
-			else if( line->bidi_state->base_is_rtl && char_index >= 2 &&
-				line->bidi_state->visual_order[char_index - 1] >
-					line->bidi_state->visual_order[char_index] + 1)
+		}
+		else if( line->bidi_state->base_is_rtl && char_index >= 2 &&
+			line->bidi_state->visual_order[char_index - 1] >
+				line->bidi_state->visual_order[char_index] + 1)
+		{
+			if( *ltr_rtl_meet_pos == 0)
+			{
+				*ltr_rtl_meet_pos = char_index - 1 ;
+			}
+			else if( *ltr_rtl_meet_pos != char_index - 1)
 			{
 				int  counter ;
 
+				*ltr_rtl_meet_pos = char_index - 1 ;
+				
 				counter = char_index - 2 ;
 
 				if( line->bidi_state->visual_order[counter] + 1 ==
@@ -1124,11 +1127,17 @@ ml_bidi_convert_logical_char_index_to_visual(
 				}
 			}
 		}
-				
+		else
+		{
+			*ltr_rtl_meet_pos = 0 ;
+		}
+		
 		return  line->bidi_state->visual_order[char_index] ;
 	}
 	else
 	{
+		*ltr_rtl_meet_pos = 0 ;
+		
 		return  char_index ;
 	}
 }
