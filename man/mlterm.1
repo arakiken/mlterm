@@ -1016,12 +1016,29 @@ Specify boldface fonts.
 .SS Color Configuration File
 The color configuration file "\fBcolor\fR" has the following key.
 .TP
-\fBcolor_rgb=\fIcolor\fR , \fIRGB\fR
-Assign a concrete color for the name \fIcolor\fR, where
-\fIRGB\fR is \fIRED\fR\-\fIGREEN\fR\-\fIBLUE\fR, where
-\fIRED\fR,
-\fIGREEN\fR, and
-\fIBLUE\fR are hexadecimal value from 0 to ffff.
+\fICOLORNAME\fR=\fIRGB\fR
+Assign a concrete color for the name \fICOLORNAME\fR.
+\fICOLORNAME\fR is one of
+\fBprev_fg\fR (foreground), 
+\fBprev_bg\fR (background), 
+\fBred\fR,
+\fBgreen\fR,
+\fByellow\fR,
+\fBblue\fR,
+\fBmagenta\fR,
+\fBcyan\fR, and
+\fBwhite\fR.  Names of \fBhl_\fICOLORNAME\fR are available
+for other than \fBprev_fg\fR and \fBprev_bg\fR for highlighted colors.
+
+The format of \fIRGB\fR is either "\fIRRRR\fB\-\fIGGGG\fB\-\fIBBBB\fR"
+(where 
+\fIRRRR\fR,
+\fIGGGG\fR, and
+\fIBBBB\fR are hexadecimal value from 0 to ffff)
+or "\fB#\fIRRGGBB\fR" (where
+\fIRR\fR,
+\fIGG\fR, and
+\fIBB\fR are hexadecimal value from 00 to ff).
 .\" ******************************************************
 .SS XIM Configuration File
 The X Input Methods configuration file "\fBxim\fR" has the following
@@ -1073,6 +1090,11 @@ Specify key to scroll down one line
 .TP
 \fBINSERT_SELECTION=\fIkey\fR
 Specify key to insert selection (default \fBShift+Insert\fR).
+.TP
+\fIKEY\fB="\fISTRING\fB"\fR
+Character (or string) to be issued on pressing \fIKEY\fR key
+is changed to \fISTRING\fR.  Note that double quotation marks
+are required around \fISTRING\fR.
 .PP
 The format for \fIkey\fR is "\fI(MASK+)KEY\fR",
 where \fIMASK\fR is one of \fBControl\fR, \fBShift\fR, and
