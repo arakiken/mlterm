@@ -19,6 +19,8 @@
 	  - To avoid multiple definitions problem on Mac OX X, exsb_get_pixel()
 	    was moved to exsb_comon.h as static function.
 
+	* contrib/scrollbar/extra/Makefile.in: removed exsb_common.o
+
 2005-02-28 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/iiimf/im_iiimf.c: minor code cleanup.

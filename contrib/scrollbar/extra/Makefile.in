@@ -12,8 +12,8 @@ VPATH = ${top_srcdir}/contrib/scrollbar/extra
 
 ATHENA_OBJ = athena.o
 MOTIF_OBJ = motif.o
-MOZMODERN_OBJ = mozmodern.o exsb_common.o
-NEXT_OBJ = next.o exsb_common.o
+MOZMODERN_OBJ = mozmodern.o
+NEXT_OBJ = next.o
 
 CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ -I/usr/include/include
 
