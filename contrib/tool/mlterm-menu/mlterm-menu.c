@@ -1,3 +1,9 @@
+/*
+ * mlterm-menu - popup menu style configration tool for mlterm
+ * 
+ * $Id$
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
