@@ -2958,12 +2958,21 @@ change_font_size(
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
+
+	if( font_size == termscr->font_man->font_size)
+	{
+		/* not changed */
+		
+		return ;
+	}
 	
 	if( ! ml_change_font_size( termscr->font_man , font_size))
 	{
-		kik_msg_printf( "changing font size to %d failed.\n" , font_size) ;
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_change_font_size(%d) failed.\n" , font_size) ;
+	#endif
 	
-		return  ;
+		return ;
 	}
 	
 	/* redrawing all lines with new fonts. */
@@ -2971,7 +2980,7 @@ change_font_size(
 
 	font_size_changed( termscr) ;
 
-	/* this is because font_man->font_set may have changed in ml_smaller_font() */
+	/* this is because font_man->font_set may have changed in ml_change_font_size() */
 	ml_xic_font_set_changed( &termscr->window) ;
 }
 
@@ -3093,7 +3102,9 @@ change_char_encoding(
 	{
 		/* failed */
 
-		kik_msg_printf( "encoding couldn't be changed.\n") ;
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " encoding couldn't be changed to %x.\n" , encoding) ;
+	#endif
 
 		return ;
 	}

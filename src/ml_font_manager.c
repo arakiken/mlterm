@@ -768,7 +768,7 @@ ml_font_manager_usascii_font_cs_changed(
 	{
 		/* critical error */
 		
-		return  0 ;
+		return  -1 ;
 	}
 	
 	orig_usascii_font_cs = font_man->usascii_font_cs ;
@@ -817,7 +817,7 @@ ml_change_font_size(
 	
 	if( font_size == font_man->font_size)
 	{
-		/* not changed */
+		/* not changed (pretending to succeed) */
 		
 		return  1 ;
 	}

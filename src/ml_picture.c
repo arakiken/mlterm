@@ -141,6 +141,7 @@ get_background_picture(
 	int counter ;
 	ImlibData *  imlib ;
 	ImlibImage *  img ;
+	Atom id ;
 	
 	if( ! ( imlib = get_imlib( win->display)))
 	{
@@ -202,8 +203,38 @@ get_background_picture(
 		height = DisplayHeight( win->display , win->screen) - y ;
 	}
 
-	src = XCreateWindow(
-			win->display , DefaultRootWindow( win->display) ,
+	if( ( id = XInternAtom( win->display , "_XROOTPMAP_ID" , True)))
+	{
+		Atom act_type ;
+		int  act_format ;
+		u_long  nitems ;
+		u_long  bytes_after ;
+		u_char *  prop ;
+		
+		if( XGetWindowProperty( win->display , DefaultRootWindow(win->display) , id , 0 , 1 ,
+			False , XA_PIXMAP , &act_type , &act_format , &nitems , &bytes_after , &prop)
+			== Success)
+		{
+			if( prop && *prop)
+			{
+			#ifdef  __DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " root pixmap %d found.\n" , *prop) ;
+			#endif
+
+				img = Imlib_create_image_from_drawable( imlib , *((Drawable *) prop) ,
+					AllPlanes , x , y , width , height) ;
+					
+				XFree(prop) ;
+				
+				if( img)
+				{
+					goto  found ;
+				}
+			}
+		}
+	}
+
+	src = XCreateWindow( win->display , DefaultRootWindow( win->display) ,
 			x , y , width , height , 0 ,
 			CopyFromParent, CopyFromParent, CopyFromParent ,
 			CWBackPixmap|CWBackingStore|CWOverrideRedirect|CWEventMask ,
@@ -228,15 +259,21 @@ get_background_picture(
 	}
 
 	img = Imlib_create_image_from_drawable( imlib , src , AllPlanes , 0 , 0 , width , height) ;
-	
+
 	XDestroyWindow( win->display , src) ;
 	XUngrabServer( win->display) ;
 
+	if( ! img)
+	{		
+		return  None ;
+	}
+
+found:
 	if( pic_mod)
 	{
 		modify_image( imlib , img , pic_mod) ;
 	}
-
+	
 	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 			DefaultDepth( win->display , win->screen)) ;
 

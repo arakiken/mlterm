@@ -11,7 +11,4 @@ comment $Id$
 
 * JISX0213_2000 <=> UCS と、JISX0208 <=> UCS テーブルを統合する。
 
-* XInternAtom( display , "_XROOTPMAP_ID" , True) で取得される atom を使って、
-  Root Pixmap の取得し、背景画像を表示する方法を実装
-
 * SYSV 型の utmp に対応

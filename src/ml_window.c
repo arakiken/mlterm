@@ -1184,7 +1184,7 @@ notify_configure_to_children(
 
 	if( win->is_transparent)
 	{
-		if( win->pic_mod)
+		if( win->pic_mod || XInternAtom( win->display , "_XROOTPMAP_ID" , True))
 		{
 			update_pic_transparent( win) ;
 		}
@@ -1701,7 +1701,7 @@ ml_window_set_transparent(
 		goto  end ;
 	}
 
-	if( win->pic_mod)
+	if( win->pic_mod || XInternAtom( win->display , "_XROOTPMAP_ID" , True))
 	{
 		update_pic_transparent( win) ;
 	}
