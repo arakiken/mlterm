@@ -306,7 +306,7 @@ int init_data(config_data_t *data){
 	entry_numeric_add(section, "Font size", "fontsize", 5, 50, "pix");
 	entry_numeric_add(section, "Line space", "line_space", 0, 5, "pix");
 	entry_numeric_add(section, "Width", "screen_width_ratio", 0, 100, "%");
-	entry_numeric_add(section, "Height", "screen_width_ratio", 0, 100, "%");
+	entry_numeric_add(section, "Height", "screen_height_ratio", 0, 100, "%");
 	entry_bool_add(section, "Variable column width", "use_variable_column_width");
 	entry_bool_add(section, "Anti alias", "use_anti_alias");
 
