@@ -1,3 +1,8 @@
+[20020131]
+* If both vertical view and bidi is used at the same time , terminal window
+  can become too large. fixed.
+* under vertical mode settings in etc/tfont and etc/taafont are used.
+
 [20020130]
 * vertical view support is added.(-G/--vertical/vertical_mode option)
 * actual screen size can be specified with -1/--wscr/screen_width_ratio and
