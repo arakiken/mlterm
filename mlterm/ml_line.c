@@ -738,11 +738,11 @@ ml_convert_col_to_char_index(
 
 		col -= cols ;
 	}
-	
-	if( col >= ml_char_cols( &line->chars[char_index]) && (flag & BREAK_BOUNDARY))
+
+	if( flag & BREAK_BOUNDARY)
 	{
-		col -= ml_char_cols( &line->chars[char_index++]) ;
 		char_index += col ;
+		col = 0 ;
 	}
 
 end:

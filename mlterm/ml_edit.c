@@ -1493,10 +1493,6 @@ ml_edit_go_back(
 
 		return  1 ;
 	}
-	else
-	{
-		reset_wraparound_checker( edit) ;
-	}
 	
 	/*
 	 * full width char check.
