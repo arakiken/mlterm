@@ -7,6 +7,8 @@ ver 2.6.0
 * contrast/gamma options are supported.
 * HOME/END keys are supported.
 * metakey=[mod1-mod5,meta,alt,super,hyper] option is supported.
+* TERM=mlterm is supported and doc/term/mlterm.{ti|tc} are added.
+  (Thanks to Minami Hirokazu san)
 * And many minor bugs are fixed.
 
 ver 2.5.0
