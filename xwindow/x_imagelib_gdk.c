@@ -54,6 +54,10 @@ static int modify_lbound = 0 ;
 
 /* --- static functions --- */
 
+/* create GdkPixbuf from the specified file path. 
+ * don't modify returned pixbuf since the pixbuf
+ * is cached and may br reused.
+ */
 static 
 GdkPixbuf * 
 load_file(
@@ -68,6 +72,7 @@ load_file(
 
 	pixbuf = NULL ;
 
+	/* is cached one is still valid? */
 	if( misc.name && (strcmp( misc.name, path) == 0))
 	{
 #ifdef DEBUG
@@ -77,9 +82,11 @@ load_file(
 	}
 	else
 	{
+		/* create new pixbuf */
 #ifdef DEBUG
 		kik_warn_printf(KIK_DEBUG_TAG "adding pixbuf to cache(%s/%s)\n", path);
 #endif
+		/* get rid of old cache data */
 		if( misc.name)
 			free( misc.name);
 		misc.name = strdup( path) ;
@@ -92,6 +99,9 @@ load_file(
 			gdk_pixbuf_unref( misc.scaled) ;
 			misc.scaled = 0 ;
 		}
+		misc.width = 0 ;
+		misc.height = 0 ;
+
 #ifndef OLD_GDK_PIXBUF
 		pixbuf = gdk_pixbuf_new_from_file( path, NULL) ;
 #else
@@ -99,25 +109,23 @@ load_file(
 #endif /*OLD_GDK_PIXBUF*/
 		
 		misc.data = pixbuf ;
-		misc.width = gdk_pixbuf_get_width( pixbuf) ;
-		misc.height = gdk_pixbuf_get_height( pixbuf) ;
 
 	}
 	
 	if( !pixbuf)
 		return  NULL ;
+	
 
-/* scaling is done here */
 	if( width == 0)
 		width = gdk_pixbuf_get_width( pixbuf) ;
 	if( height == 0)
 		height = gdk_pixbuf_get_height( pixbuf) ;
-
+	/* do we need scaling ? */
 	if( ( width != gdk_pixbuf_get_width( pixbuf) ) ||
 	    ( height != gdk_pixbuf_get_height( pixbuf)))
 	{
 		GdkPixbuf * scaled;
-
+		/* Is scaled one in the cache still valid? */
 		if( misc.width == width && misc.height == height && misc.scaled)
 		{
 #ifdef DEBUG
@@ -148,6 +156,49 @@ load_file(
 	return  pixbuf ;
 }
 
+/* create a pixbuf from an array of cardnals */
+static GdkPixbuf *
+create_pixbuf_from_cardinals(
+	u_int32_t *  cardinal
+	)
+{
+	GdkPixbuf *  pixbuf ;
+	int  rowstride ;
+	unsigned char *  line ;
+	unsigned char *  pixel ;
+	int  width,height ;
+	int  i, j ;
+
+	width = cardinal[0] ;
+	height = cardinal[1] ;
+	pixbuf = gdk_pixbuf_new( GDK_COLORSPACE_RGB,
+				 TRUE, 8, width, height) ;
+	if( !pixbuf)
+		return NULL ;
+	
+	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
+	line = gdk_pixbuf_get_pixels (pixbuf) ;
+       
+	for( i = 0 ; i < width ; i++)
+	{ 
+		pixel = line ;
+		for( j = 0 ; j < height ; j++)
+		{
+			/*ARGB -> RGBA conversion*/
+			pixel[2] = (*cardinal) & 0xFF ;
+			pixel[1] = ((*cardinal) & 0xFF00) >> 8 ;
+			pixel[0] = ((*cardinal) & 0xFF0000) >>16 ;
+			pixel[3] = (*cardinal) >> 24 ;
+			
+			cardinal++ ;
+			pixel += 4;
+		}
+		line += rowstride ;
+	}
+	return  pixbuf ;
+}
+
+/* create an CARDINAL array for_NET_WM_ICON data */
 static int
 create_cardinals(
 	u_int32_t **  cardinal,
@@ -161,17 +212,16 @@ create_cardinals(
 	unsigned char *pixel ;
 	int i, j ;
 
-/* create an CARDINAL array for_NET_WM_ICON data */
 	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
 	line = gdk_pixbuf_get_pixels (pixbuf) ;
 	*cardinal = malloc((width * height + 2) *4) ;
 	if (!(*cardinal))
 		return -1 ;
 
-/* {width, height, ARGB[][]} */
+	/* format of the array is {width, height, ARGB[][]} */
 	(*cardinal)[0] = width ;
 	(*cardinal)[1] = height ;
-	if ( gdk_pixbuf_get_has_alpha (pixbuf)){ /* alpha support (convert to ARGB format)*/
+	if ( gdk_pixbuf_get_has_alpha (pixbuf)){
 		for (i = 0; i < height; i++) {
 			pixel = line ;
 			line += rowstride;
@@ -191,7 +241,7 @@ create_cardinals(
 			pixel = line ;
 			line += rowstride;
 			for (j = 0; j < width; j++) {
-				/* all pixels are completely opaque */
+				/* all pixels are completely opaque (0xFF) */
 				(*cardinal)[(i*width+j)+2] = ((((((u_int32_t)(0x0000FF) <<8 )
 								 + pixel[0]) << 8)
 							       + pixel[1]) << 8) + pixel[2] ;
@@ -201,7 +251,7 @@ create_cardinals(
 	}
 	return SUCCESS ;
 }
-
+/* seek the closet color */
 static int
 closest_color_index(
 	Display *  display ,
@@ -218,7 +268,7 @@ closest_color_index(
 	unsigned long  min = 0xffffff ;
 	unsigned long  diff ;
 	int  diff_r, diff_g, diff_b ;
-
+/*
 	if( red   < 0)
 		red   = 0 ;
 	else
@@ -234,7 +284,7 @@ closest_color_index(
 	else
 		if( blue  > 255)
 			blue  = 255 ;
-
+*/
 
 	for( i = 0 ; i < len ; i ++)
 	{
@@ -247,9 +297,11 @@ closest_color_index(
 		{
 			min = diff ;
 			closest = i ;
+			if ( diff < 3)
+				goto enough:
 		}
 	}
-
+enough:
 	return closest ;
 }
 
@@ -1735,12 +1787,12 @@ int x_imagelib_load_file(
 	}
 	else
 	{
+		if( !(*cardinal))
+			return 0 ;
 		/* create a pixbuf from the cardianl array */		
-		pixbuf = gdk_pixbuf_new( GDK_COLORSPACE_RGB,
-					 TRUE, 8, width, height) ;
+		pixbuf = create_pixbuf_from_cardinals( *cardinal) ;
 		if( !pixbuf)
 			return 0 ;
-		
 
 	}
 /* Create the Icon pixmap & mask to be used in WMHints.
