@@ -3,7 +3,7 @@
  */
 
 /*
- * this manages short-cut keys of x_screen key events.
+ * This manages short-cut keys of x_screen key events.
  */
  
 #ifndef  __X_SHORTCUT_H__

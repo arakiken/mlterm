@@ -12,8 +12,8 @@
 
 
 /*
- * supported encodings are those which are not conflicted with US_ASCII.
- * so , UCS4 is not supported.
+ * Supported encodings are those which are not conflicted with US_ASCII.
+ * So , UCS-2, UCS-4 etc encodings are not supported.
  */
 typedef enum  ml_char_encoding
 {

@@ -18,7 +18,6 @@
 #define  FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p) \
 	for( (font_encoding_p) = &csinfo->encoding_names[0] ; *(font_encoding_p) ; (font_encoding_p) ++)
 
-
 #if  0
 #define  __DEBUG
 #endif

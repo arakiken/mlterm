@@ -6,6 +6,7 @@
 #define  __X_FONT_H__
 
 
+/* This must be included ahead of Xft.h on XFree86-4.0.x or before. */
 #include  <X11/Xlib.h>
 
 #ifdef  ANTI_ALIAS

@@ -15,10 +15,10 @@
 
 #include  <kiklib/kik_types.h>
 #include  <mkf/mkf_parser.h>
+#include  <ml_char.h>
 
 #include  "x_font_manager.h"
 #include  "x_color_manager.h"
-#include  "ml_char.h"
 #include  "x_picture.h"
 
 

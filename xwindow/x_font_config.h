@@ -2,8 +2,8 @@
  *	$Id$
  */
 
-#ifndef  __X_FONT_CUSTOM_H__
-#define  __X_FONT_CUSTOM_H__
+#ifndef  __X_FONT_CONFIG_H__
+#define  __X_FONT_CONFIG_H__
 
 
 #include  <kiklib/kik_map.h>

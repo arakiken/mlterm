@@ -8,9 +8,9 @@
 
 #include  <X11/Xlib.h>
 #include  <kiklib/kik_types.h>
+#include  <ml_char_encoding.h>
 
 #include  "x_font_cache.h"
-#include  "ml_char_encoding.h"
 
 
 typedef struct  x_font_manager

@@ -24,6 +24,7 @@
 #include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
 #include  <kiklib/kik_types.h>	/* u_int */
 #include  <kiklib/kik_sig_child.h>
+#include  <ml_term_manager.h>
 
 #include  "version.h"
 #include  "x_main_config.h"
@@ -32,11 +33,9 @@
 #include  "x_display.h"
 #include  "x_termcap.h"
 #include  "x_imagelib.h"
-#include  "ml_term_manager.h"
 
 
 #define  MAX_SCREENS  (8*sizeof(dead_mask))
-
 
 
 /* --- static variables --- */

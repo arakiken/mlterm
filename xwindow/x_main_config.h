@@ -8,8 +8,8 @@
 
 #include  <kiklib/kik_types.h>
 #include  <kiklib/kik_conf.h>
+#include  <ml_term.h>
 
-#include  "ml_term.h"
 #include  "x_sb_screen.h"
 
 

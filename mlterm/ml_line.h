@@ -20,7 +20,7 @@ enum
 
 
 /*
- * this object size should be kept as small as possible.
+ * This object size should be kept as small as possible.
  * (160bit ILP32) (224bit ILP64)
  */
 typedef struct  ml_line

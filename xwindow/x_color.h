@@ -6,7 +6,7 @@
 #define  __X_COLOR_H__
 
 
-/* this must be included before including Xft.h(before XFree86-4.0.x) */
+/* This must be included ahead of Xft.h on XFree86-4.0.x or before. */
 #include  <X11/Xlib.h>
 
 #ifdef  ANTI_ALIAS

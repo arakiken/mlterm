@@ -8,8 +8,6 @@
 
 #include  "x_sb_view.h"
 
-typedef  x_sb_view_t * (*x_sb_view_new_func_t)(void) ;
-typedef  x_sb_view_t * (*x_sb_engine_new_func_t)( x_sb_view_conf_t *  conf, int is_transparent) ;
 
 x_sb_view_t *  x_sb_view_new( char *  name) ;
 

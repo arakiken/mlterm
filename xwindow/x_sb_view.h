@@ -4,8 +4,9 @@
 
 /*
  * !! Notice !!
- * this file must be kept as independent to specific systems as possible.
- * so u_xxx which may not defined must not be used.
+ * This file must be kept as independent to specific systems as possible.
+ * So types like u_xxx which may not be defined in some environments must
+ * not be used here.
  */
  
 #ifndef  __X_SB_VIEW_H__
