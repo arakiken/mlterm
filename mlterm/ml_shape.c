@@ -229,51 +229,28 @@ shape_arabic(
 			u_char  bytes[4] ;
 
 			ml_char_copy( &dst[count] , ml_get_base_char(cur)) ;
-			ml_char_set_bytes( &dst[count] , mkf_int_to_bytes( bytes , ml_char_size(cur) , code)) ;
+			ml_char_set_bytes( &dst[count] ,
+				mkf_int_to_bytes( bytes , ml_char_size(cur) , code)) ;
 		}
-		else
+		else if( list[count])
 		{
 			ml_char_copy( &dst[count] , ml_get_base_char(cur)) ;
 
-			if( list[count])
+			if( list[count - 1] && list[count - 1]->right_joining_present)
 			{
-				if( list[count - 1] && list[count - 1]->right_joining_present)
+				if( (list[count + 1] && list[count + 1]->left_joining_present)
+				    && ! ( next && (comb = ml_get_combining_chars( next , &size)) &&
+					 ( code = ml_is_arabic_combining( next2 , next , comb))) )
 				{
-					if( (list[count + 1] && list[count + 1]->left_joining_present)
-					    && ! ( next && (comb = ml_get_combining_chars( next , &size)) &&
-						 ( code = ml_is_arabic_combining( next2 , next , comb))) )
+					if( list[count]->both_joining_present)
 					{
-						if( list[count]->both_joining_present)
-						{
-							code = list[count]->both_joining_present ;
-						}
-						else if( list[count]->left_joining_present)
-						{
-							code = list[count]->left_joining_present ;
-						}
-						else if( list[count]->right_joining_present)
-						{
-							code = list[count]->right_joining_present ;
-						}
-						else
-						{
-							code = list[count]->no_joining_present ;
-						}
+						code = list[count]->both_joining_present ;
 					}
 					else if( list[count]->left_joining_present)
 					{
 						code = list[count]->left_joining_present ;
 					}
-					else
-					{
-						code = list[count]->no_joining_present ;
-					}
-				}
-				else if( (list[count + 1] && list[count + 1]->left_joining_present)
-					 && ! ( next && ( comb = ml_get_combining_chars( next , &size)) &&
-					      ( code = ml_is_arabic_combining( next2 , next , comb))) )
-				{
-					if( list[count]->right_joining_present)
+					else if( list[count]->right_joining_present)
 					{
 						code = list[count]->right_joining_present ;
 					}
@@ -282,21 +259,46 @@ shape_arabic(
 						code = list[count]->no_joining_present ;
 					}
 				}
+				else if( list[count]->left_joining_present)
+				{
+					code = list[count]->left_joining_present ;
+				}
 				else
 				{
 					code = list[count]->no_joining_present ;
 				}
-
-				if( code)
+			}
+			else if( (list[count + 1] && list[count + 1]->left_joining_present)
+				 && ! ( next && ( comb = ml_get_combining_chars( next , &size)) &&
+				      ( code = ml_is_arabic_combining( next2 , next , comb))) )
+			{
+				if( list[count]->right_joining_present)
 				{
-					bytes = ml_char_bytes( &dst[count]) ;
-
-					bytes[0] = 0x0 ;
-					bytes[1] = 0x0 ;
-					bytes[2] = (code >> 8) & 0xff ;
-					bytes[3] = code & 0xff ;
+					code = list[count]->right_joining_present ;
+				}
+				else
+				{
+					code = list[count]->no_joining_present ;
 				}
 			}
+			else
+			{
+				code = list[count]->no_joining_present ;
+			}
+
+			if( code)
+			{
+				bytes = ml_char_bytes( &dst[count]) ;
+
+				bytes[0] = 0x0 ;
+				bytes[1] = 0x0 ;
+				bytes[2] = (code >> 8) & 0xff ;
+				bytes[3] = code & 0xff ;
+			}
+		}
+		else
+		{
+			ml_char_copy( &dst[count] , cur) ;
 		}
 
 		cur = next ;

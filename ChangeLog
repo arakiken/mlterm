@@ -1,5 +1,9 @@
 2002-05-19 Araki Ken <arakiken@users.sf.net>
 
+	* combining characters were not shown with both -bi and -m options. fixed.
+
+2002-05-19 Araki Ken <arakiken@users.sf.net>
+
 	* Unicode characters except 0x00-0x7f could be shown incorrectly. fixed.
 
 2002-05-19 Tomohiro KUBOTA <kubota@debian.org>
