@@ -1,3 +1,9 @@
+[20020410]
+* man/mlterm.1 is updated.
+* scroll by 'd' and 'u' keys was NA. fixed.
+* compilation failed in ml_vt100_parser.c if __DEBUG is defined. fixed.
+  (Thanks to Nadim Shaikli)
+
 [20020407]
 * backscroll_rows and is_backscroll_mode variables are not initialized. fixed.
 * PAGE_DOWN,PAGE_UP,SCROLL_DOWN,SCROLL_UP shortcut keys are processed twice per
