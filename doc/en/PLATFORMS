@@ -1,6 +1,15 @@
 comment -*- mode: text -*-
 comment $Id$
 
+supported platforms (mlterm-2.9.0 post/cvs-1.758)
+
+* tested by Seiichi SATO <ssato@sh.rim.or.jp>
+
+  Red Hat Linux 7.3 (x86), gcc-2.96 20000731, early xft without fontconfig
+    configure options: --with-type-engines=xcore,xft
+                       --with-tools=mlclient,mlconfig
+
+
 supported platforms (mlterm-2.8.0 post/cvs-1.744)
 
 * tested by Seiichi SATO <ssato@sh.rim.or.jp>
