@@ -786,99 +786,105 @@ get_min_conf(
 	}
 
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
-		"screen width ratio") ;
+		"screen width in percent against font width [default = 100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
-		"screen height ratio") ;
+		"screen height in percent against font height [100]") ;
 	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" ,
-		"support buggy Big5 CTEXT in XFree86 4.1 or earlier") ;
+		"manage buggy Big5 CTEXT in XFree86 4.1 or earlier [false]") ;
 	kik_conf_add_opt( conf , '7' , "bel" , 0 , "bel_mode" , 
-		"bel(0x07) mode") ;
+		"bel (0x07) mode [none/sound/visual, default = none]") ;
 	kik_conf_add_opt( conf , '8' , "88591" , 1 , "iso88591_font_for_usascii" ,
-		"use ISO-8859-1 font for US-ASCII part of every encodings") ;
+		"use ISO-8859-1 font for ASCII part of any encoding [false]") ;
 #ifdef  ANTI_ALIAS
 	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , 
-		"use anti alias font") ;
+		"use anti-alias font by using Xft [false]") ;
 #endif
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
-		"scrollbar bg color") ;
+		"scrollbar background color") ;
+#ifdef  USE_IND
 	kik_conf_add_opt( conf , 'C' , "iscii" , 0 , "iscii_lang" , 
 		"language to be used in ISCII encoding") ;
+#endif
+#ifdef  USE_FRIBIDI
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , 
-		"use bidi") ;
+		"use bidi (bi-directional text) [false]") ;
+#endif
 	kik_conf_add_opt( conf , 'E' , "km" , 0 , "ENCODING" , 
-		"character encoding") ;
+		"character encoding [AUTO/ISO-8859-*/EUC-*/UTF-8/...]") ;
 	kik_conf_add_opt( conf , 'F' , "sbfg" , 0 , "sb_fg_color" , 
-		"scrollbar fg color") ;
+		"scrollbar foreground color") ;
 	kik_conf_add_opt( conf , 'G' , "vertical" , 0 , "vertical_mode" ,
-		"vertical view mode") ;
+		"vertical mode [none/cjk/mongol]") ;
 	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
-		"the amount of darkening or lightening background image") ;
+		"brightness of background image in percent [100]") ;
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
 	kik_conf_add_opt( conf , 'J' , "dyncomb" , 1 , "use_dynamic_comb" ,
-		"use dynamic combining") ;
+		"use dynamic combining [false]") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
-		"turn on login shell") ;
+		"turn on login shell [false]") ;
 	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path" ,
 		"command path of mlconfig (GUI configurator)") ;
 	kik_conf_add_opt( conf , 'N' , "name" , 0 , "app_name" , 
 		"application name") ;
 	kik_conf_add_opt( conf , 'O' , "sbmod" , 0 , "scrollbar_mode" ,
-		"scrollbar mode") ;
+		"scrollbar mode [none/left/right]") ;
 	kik_conf_add_opt( conf , 'Q' , "vcur" , 1 , "use_vertical_cursor" ,
-		"use vertical cursor") ;
+		"rearrange cursor key for vertical mode [false]") ;
 	kik_conf_add_opt( conf , 'S' , "sbview" , 0 , "scrollbar_view_name" , 
-		"scrollbar view name") ;
+		"scrollbar view name [simple/sample/athena/motif/...]") ;
 	kik_conf_add_opt( conf , 'T' , "title" , 0 , "title" , 
 		"title name") ;
 	kik_conf_add_opt( conf , 'U' , "viaucs" , 1 , "copy_paste_via_ucs" ,
-		"process received strings via ucs.") ;
+		"process received (pasted) strings via Unicode [false]") ;
 	kik_conf_add_opt( conf , 'V' , "varwidth" , 1 , "use_variable_column_width" ,
-		"variable column width") ;
+		"variable column width (for proportional/ISCII) [false]") ;
 	kik_conf_add_opt( conf , 'X' , "openim" , 1 , "xim_open_in_startup" , 
-		"open xim in starting up") ;
+		"open XIM (X Input Method) in starting up [true]") ;
 	kik_conf_add_opt( conf , 'Z' , "multicol" , 1 , "use_multi_column_char" ,
-		"use multiple column character") ;
+		"fullwidth character occupies two logical columns [true]") ;
 	kik_conf_add_opt( conf , 'a' , "ac" , 0 , "col_size_of_width_a" ,
-		"column numbers for Unicode EastAsianAmbiguous character") ;
+		"columns for Unicode \"EastAsianAmbiguous\" character [1]") ;
 	kik_conf_add_opt( conf , 'b' , "bg" , 0 , "bg_color" , 
-		"bg color") ;
+		"background color") ;
 	kik_conf_add_opt( conf , 'd' , "display" , 0 , "display" , 
 		"X server to connect") ;
 	kik_conf_add_opt( conf , 'f' , "fg" , 0 , "fg_color" , 
-		"fg color") ;
+		"foreground color") ;
 	kik_conf_add_opt( conf , 'g' , "geometry" , 0 , "geometry" , 
-		"size (in characters) and position") ;
+		"size (in characters) and position [80x30]") ;
 	kik_conf_add_opt( conf , 'k' , "meta" , 0 , "mod_meta_mode" , 
-		"mode in pressing meta key") ;
+		"mode in pressing meta key [none/esc/8bit]") ;
 	kik_conf_add_opt( conf , 'l' , "sl" , 0 , "logsize" , 
-		"number of scrolled lines to save") ;
+		"number of backlog (scrolled lines to save) [128]") ;
 	kik_conf_add_opt( conf , 'm' , "comb" , 1 , "use_combining" , 
-		"use combining characters") ;
+		"use combining characters [true]") ;
 	kik_conf_add_opt( conf , 'n' , "noucsfont" , 1 , "not_use_unicode_font" ,
-		"use non-Unicode fonts even in UTF-8 mode") ;
+		"use non-Unicode fonts even in UTF-8 mode [false]") ;
 	kik_conf_add_opt( conf , 'o' , "lsp" , 0 , "line_space" ,
-		"number of extra dots between lines") ;
+		"extra space between lines in pixels [0]") ;
+#if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
 	kik_conf_add_opt( conf , 'p' , "pic" , 0 , "wall_picture" , 
-		"wall picture path") ;
+		"path for wallpaper (background) image") ;
+#endif
 	kik_conf_add_opt( conf , 'q' , "extkey" , 1 , "use_extended_scroll_shortcut" ,
-		"use extended scroll shortcut key") ;
+		"use extended scroll shortcut keys [false]") ;
 	kik_conf_add_opt( conf , 'r' , "fade" , 0 , "fade_ratio" , 
-		"fade ratio when window unfocued.") ;
+		"fade ratio in percent when window unfocued [100]") ;
 	kik_conf_add_opt( conf , 's' , "sb" , 1 , "use_scrollbar" , 
-		"use scrollbar") ;
+		"use scrollbar [false]") ;
 	kik_conf_add_opt( conf , 't' , "transbg" , 1 , "use_transbg" , 
-		"use transparent background") ;
+		"use transparent background [false]") ;
 	kik_conf_add_opt( conf , 'u' , "onlyucsfont" , 1 , "only_use_unicode_font" ,
-		"use a Unicode font even in non-UTF-8 modes") ;
+		"use a Unicode font even in non-UTF-8 modes [false]") ;
 	kik_conf_add_opt( conf , 'w' , "fontsize" , 0 , "fontsize" , 
-		"font size") ;
+		"font size in pixels [16]") ;
 	kik_conf_add_opt( conf , 'x' , "tw" , 0 , "tabsize" , 
-		"tab width") ;
+		"tab width in columns [8]") ;
 	kik_conf_add_opt( conf , 'y' , "term" , 0 , "termtype" , 
-		"terminal type") ;
+		"terminal type for TERM variable [xterm]") ;
 	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
-		"step in changing font size in GUI configurator") ;
+		"step in changing font size in GUI configurator [1]") ;
 
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
@@ -1769,27 +1775,27 @@ x_term_manager_init(
 	}
 
 	kik_conf_add_opt( conf , 'K' , "maxptys" , 0 , "max_ptys" ,
-		"max ptys to use") ;
+		"max ptys to use [5]") ;
 	kik_conf_add_opt( conf , 'h' , "help" , 1 , "help" ,
-		"help message") ;
+		"show this help message") ;
 	kik_conf_add_opt( conf , 'v' , "version" , 1 , "version" ,
-		"version message") ;
+		"show version message") ;
 	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "ptys" , 
-		"num of ptys to use in start up") ;
+		"number of ptys to use in start up [1]") ;
 	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
-		"font size range") ;
+		"font size range for GUI configurator [6-30]") ;
 	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
-		"word separator characters") ;
+		"word-separating characters for double-click [,.:;/@]") ;
 	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
-		"compose dec special font") ;
+		"compose dec special font [false]") ;
 #ifdef  ANTI_ALIAS
 	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
-		"CP932 mapping table for JISX0208-Unicode conversion") ;
+		"use CP932-Unicode mapping table for JISX0208 [false]") ;
 #endif
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
-		"use XIM (X Input Method)") ;
+		"use XIM (X Input Method) [true]") ;
 	kik_conf_add_opt( conf , 'j' , "daemon" , 0 , "daemon_mode" ,
-		"start as a daemon") ;
+		"start as a daemon [none/blend/genuine]") ;
 	
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
 	{
