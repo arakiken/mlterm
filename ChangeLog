@@ -1,5 +1,9 @@
 2002-08-30  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
 
+	* Updated documents.
+
+2002-08-30  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
 	* initialize struct termios by zero because setting
 	  random values may cause unexpectable results.
 

@@ -156,6 +156,9 @@ comment $Id$
       o icon_name  (*mlterm*)
         アイコン名
       
+      o icon_path
+        アイコンのファイル名
+      
       o screen_width_ratio  (*100*) (#)
         実スクリーンの横幅(百分率)
         

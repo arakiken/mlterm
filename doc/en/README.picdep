@@ -15,23 +15,21 @@ and/or more better post-processing of background images.
 Current spec for background image processing part of mlterm will be 
 briefly described below.
 
-! This spec is still in alpha and may have a lot of room for expansion.
-
 * related files
 
- - ml_picture_dep.h     := definition of interface (don't touch)
- - ml_picture_dep.c     := (only #include appropriate ml_picture_*.c)
- - ml_picture_*.c       := implements graphics library dependent part
+ - x_picture_dep.h     := definition of interface (don't touch)
+ - x_picture_dep.c     := (only #include appropriate x_picture_*.c)
+ - x_picture_*.c       := implements graphics library dependent part
 
 and These files contain informations which will help you
 to understand what is going on.
 
- - ml_window.h          :ml_window_t (type of win) is defined here
- - ml_picture.h         :ml_picture_modifier_t (type of pic_mod) is defined 
+ - x_window.h          :x_window_t (type of win) is defined here
+ - x_picture.h         :x_picture_modifier_t (type of pic_mod) is defined 
 
-* In ml_picture_*.c, following five global function should be defined.
+* In x_picture_*.c, following 6 global function should be defined.
 
- int ml_picdep_display_opened( Display *  display)
+ int x_picdep_display_opened( Display *  display)
 
     Called when mlterm opens a new display.
 
@@ -42,7 +40,7 @@ to understand what is going on.
 
     Return a non-zero value if successful.
 
- int ml_picdep_display_closed( Display *  display)
+ int x_picdep_display_closed( Display *  display)
 
     Called when mlterm closes a display .
      (i.e. last window on the display is closed) 
@@ -51,12 +49,12 @@ to understand what is going on.
      display: the display which no longer have mlterm window
 
     Free resources that may allocated display_open.
-    Pixmaps returned from ml_picdep_load_* is freed in common part and
+    Pixmaps returned from x_picdep_load_* is freed in common part and
     it should not done here.
     
     Return a non-zero value if successful.
 
- int ml_picdep_root_pixmap_available(Display *  display)
+ int x_picdep_root_pixmap_available(Display *  display)
 
     Called to query whether pseudo-translucency is available.
 
@@ -65,14 +63,14 @@ to understand what is going on.
     
     Return a non-zero value if translucency is available.
 
- Pixmap ml_picdep_load_file( ml_window_t *  win , 
+ Pixmap x_picdep_load_file( x_window_t *  win , 
                             char *  file_path ,
-                            ml_picture_modifier_t *  pic_mod)
+                            x_picture_modifier_t *  pic_mod)
 			
     Called to a load background image.
 
     Arguments are
-     win:       the window to have background.
+     win:       the window to change background.
      file_path: a path of the image file.
      pic_mod:   image modifier.
 
@@ -83,12 +81,12 @@ to understand what is going on.
 
     Return the Pixmap (or None if failed).
 
- Pixmap ml_picdep_load_background( ml_window_t *  win , ml_picture_modifier_t *  pic_mod)
+ Pixmap x_picdep_load_background( x_window_t *  win , x_picture_modifier_t *  pic_mod)
 
-    Called to get background image which gives translucent look.
+    Called to get image of root window.
 
     Arguments are
-     win:       the window to have background.
+     win:       the window to be transparent
      pic_mod:   image modifier.
 
     Get an image which looks like root window (it' a pseudo translucency).
@@ -99,3 +97,12 @@ to understand what is going on.
 
     Return the Pixmap (or None if failed).
 
+ int x_picdep_set_icon_from_file( x_window_t * win, char * file_path)
+
+    Called to set window icon.
+
+    Arguments are
+     win:       destination window to set an icon
+     file_path:   path of the image file
+
+    Returns 1 in success. Retuens 0 in failure.
