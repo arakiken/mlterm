@@ -1,5 +1,11 @@
 2005-02-24 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* configure.in:
+	  - fixed typo. (scim=$enable_m17nlib)
+	  - added -DSCIM_1_2_0. (beginning of #ifdef hell)
+
+2005-02-24 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	supported IIIMF X aux object.
 	* inputmethod/iiimf/aux.c:
 	  new file (heavily based on iiimpAux.c of IIIMXCF)
@@ -13,7 +19,7 @@
 	 - check for HTT_DISABLE_STATUS_WINDOW environment variable.
 	 - removed IM_IIIMF_ATOKX_HACK.
 
-	Note: In the next release, IIIMF plugin will be distributed under MIX/X
+	Note: In the next release, IIIMF plugin will be distributed under MIT/X
 	      license. See inputmethod/iiimf/LICENCE for more detail.
 
 2005-02-23 MINAMI Hirokazu <minami@mistfall.net>
