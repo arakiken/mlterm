@@ -610,10 +610,9 @@ x_get_custom_font_name(
 	return  font_name ;
 }
 
-u_int
+char *
 x_get_all_custom_font_names(
 	x_font_custom_t *  font_custom ,
-	char ***  font_names ,
 	u_int  font_size
 	)
 {
@@ -621,7 +620,9 @@ x_get_all_custom_font_names(
 	u_int  size ;
 	KIK_PAIR( x_font_name) *  d_array ;
 	u_int  d_size ;
-	char **  str_array ;
+	char *  font_name_list ;
+	size_t  list_len ;
+	char *  p ;
 	int  count ;
 	
 	kik_map_get_pairs_array( get_font_name_table( font_custom , font_size) , array , size) ;
@@ -629,27 +630,43 @@ x_get_all_custom_font_names(
 
 	if( d_size + size == 0)
 	{
-		*font_names = NULL ;
+		return  NULL ;
+	}
 
-		return  0 ;
-	}
-	
-	if( ( str_array = malloc( sizeof( char *) * ( d_size + size))) == NULL)
-	{
-		return  0 ;
-	}
+	list_len = 0 ;
 	
 	for( count = 0 ; count < size ; count ++)
 	{
-		str_array[count] = array[count]->value ;
+		list_len += (strlen( array[count]->value) + 1) ;
 	}
 
 	for( count = 0 ; count < d_size ; count ++)
 	{
-		str_array[count + size] = array[count]->value ;
+		list_len += (strlen( d_array[count]->value) - 2 + DIGIT_STR_LEN(font_size) + 1) ;
 	}
 
-	*font_names = str_array ;
+	if( ( font_name_list = malloc( list_len)) == NULL)
+	{
+		return  NULL ;
+	}
 
-	return  d_size + size ;
+	p = font_name_list ;
+
+	for( count = 0 ; count < size ; count ++)
+	{
+		strcpy( p , array[count]->value) ;
+		p += strlen( p) ;
+		*(p ++) = ',' ;
+	}
+
+	for( count = 0 ; count < d_size ; count ++)
+	{
+		sprintf( p , d_array[count]->value , font_size) ;
+		p += strlen( p) ;
+		*(p ++) = ',' ;
+	}
+
+	*p = '\0' ;
+
+	return  font_name_list ;
 }

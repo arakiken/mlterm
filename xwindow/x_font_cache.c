@@ -258,16 +258,15 @@ x_font_cache_get_xfont(
 	return  xfont ;
 }
 
-u_int
+char *
 x_font_cache_get_all_font_names(
-	x_font_cache_t *  font_cache ,
-	char ***  fontnames
+	x_font_cache_t *  font_cache
 	)
 {
 	if( font_cache->font_custom->font_present & FONT_AA)
 	{
 		x_font_custom_t *  font_custom ;
-		u_int  size ;
+		char *  font_name_list ;
 
 		if( ( font_custom = x_acquire_font_custom(
 					font_cache->font_custom->font_present & ~FONT_AA))
@@ -276,15 +275,14 @@ x_font_cache_get_all_font_names(
 			return  0 ;
 		}
 
-		size = x_get_all_custom_font_names( font_custom , fontnames , font_cache->font_size) ;
+		font_name_list = x_get_all_custom_font_names( font_custom , font_cache->font_size) ;
 
 		x_release_font_custom( font_custom) ;
 
-		return  size ;
+		return  font_name_list ;
 	}
 	else
 	{
-		return  x_get_all_custom_font_names( font_cache->font_custom , fontnames ,
-				font_cache->font_size) ;
+		return  x_get_all_custom_font_names( font_cache->font_custom , font_cache->font_size) ;
 	}
 }

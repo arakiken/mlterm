@@ -1,5 +1,10 @@
 2003-09-14  Araki Ken  <arakiken@users.sf.net>
 
+	* x_font_custom.c(x_get_all_custom_font_names): Returns fontname list
+	  separated by ','. (Illegal font name list returned before.)
+
+2003-09-14  Araki Ken  <arakiken@users.sf.net>
+	
 	* x_font.c(x_font_new): Surrounded xft_font by #ifdef  ANTI_ALIAS - #endif.
 
 2003-09-14  Araki Ken  <arakiken@users.sf.net>

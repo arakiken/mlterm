@@ -176,8 +176,6 @@ ml_line_reset(
 	ml_line_t *  line
 	)
 {
-	int  count ;
-	
 	if( IS_EMPTY(line))
 	{
 		/* already reset */
@@ -186,18 +184,22 @@ ml_line_reset(
 	}
 
 #ifdef  OPTIMIZE_REDRAWING
-	count = END_CHAR_INDEX(line) ;
-	while( 1)
 	{
-		if( ! ml_char_equal( line->chars + count , ml_sp_ch()))
-		{
-			ml_line_set_modified( line , 0 , count) ;
+		int  count ;
 
-			break ;
-		}
-		else if( -- count < 0)
+		count = END_CHAR_INDEX(line) ;
+		while( 1)
 		{
-			break ;
+			if( ! ml_char_equal( line->chars + count , ml_sp_ch()))
+			{
+				ml_line_set_modified( line , 0 , count) ;
+
+				break ;
+			}
+			else if( -- count < 0)
+			{
+				break ;
+			}
 		}
 	}
 #else
@@ -222,26 +224,28 @@ ml_line_clear(
 	int  char_index
 	)
 {
-	int  count ;
-	
 	if( char_index >= line->num_of_filled_chars)
 	{
 		return  1 ;
 	}
 
 #ifdef  OPTIMIZE_REDRAWING
-	count = END_CHAR_INDEX(line) ;
-	while( 1)
 	{
-		if( ! ml_char_equal( line->chars + count , ml_sp_ch()))
-		{
-			ml_line_set_modified( line , char_index , count) ;
+		int  count ;
 
-			break ;
-		}
-		else if( -- count < char_index)
+		count = END_CHAR_INDEX(line) ;
+		while( 1)
 		{
-			break ;
+			if( ! ml_char_equal( line->chars + count , ml_sp_ch()))
+			{
+				ml_line_set_modified( line , char_index , count) ;
+
+				break ;
+			}
+			else if( -- count < char_index)
+			{
+				break ;
+			}
 		}
 	}
 #else

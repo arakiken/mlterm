@@ -50,8 +50,7 @@ int  x_customize_default_font_name( x_font_custom_t *  font_custom , ml_font_t  
 
 char *  x_get_custom_font_name( x_font_custom_t *  font_custom , u_int  font_size , ml_font_t  font) ;
 
-u_int  x_get_all_custom_font_names( x_font_custom_t *  font_custom ,char ***  font_names ,
-	u_int  font_size) ;
+char *  x_get_all_custom_font_names( x_font_custom_t *  font_custom , u_int  font_size) ;
 
 
 #endif

@@ -417,61 +417,15 @@ x_get_fontset(
 	)
 {
 	XFontSet  fontset ;
-	char *  default_font_name ;
 	char *  list_str ;
-	u_int  list_str_len ;
 	char **  missing ;
 	int  miss_num ;
 	char *  def_str ;
-	char **  fontnames ;
-	u_int  size ;
-	int  count ;
 
-	/* "+ 1" is for '\0' */
-	if( ( default_font_name = alloca( 22 + DIGIT_STR_LEN(font_man->font_cache->font_size) + 1)) == NULL)
+	if( ( list_str = x_font_cache_get_all_font_names( font_man->font_cache)) == NULL)
 	{
-		return  NULL ;
+		return  None ;
 	}
-
-	sprintf( default_font_name , "-*-*-medium-r-*--%d-*-*-*-*-*" , font_man->font_cache->font_size) ;
-
-	list_str_len = strlen( default_font_name) ;
-
-	if( ( size = x_font_cache_get_all_font_names( font_man->font_cache , &fontnames)) == 0)
-	{
-		return  NULL ;
-	}
-
-	for( count = 0 ; count < size ; count ++)
-	{
-		list_str_len += (1 + strlen( fontnames[count])) ;
-	}
-	
-	if( ( list_str = alloca( sizeof( char) * list_str_len)) == NULL)
-	{
-		return  NULL ;
-	}
-	*list_str = '\0' ;
-
-	for( count = 0 ; count < size ; count ++)
-	{
-		if( strstr( list_str , fontnames[count]))
-		{
-			/* removing the same name fonts. */
-
-			continue ;
-		}
-
-		strcat( list_str , fontnames[count]) ;
-		strcat( list_str , ",") ;
-	}
-
-	if( size > 0)
-	{
-		free( fontnames) ;
-	}
-
-	strcat( list_str , default_font_name) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " font set list -> %s\n" , list_str) ;
@@ -479,6 +433,8 @@ x_get_fontset(
 
 	fontset = XCreateFontSet( font_man->font_cache->display , list_str ,
 			&missing , &miss_num , &def_str) ;
+
+	free( list_str) ;
 
 #ifdef  DEBUG
 	if( miss_num)

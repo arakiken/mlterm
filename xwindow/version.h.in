@@ -14,7 +14,7 @@
 #if  1
 #define  CVS_REVISION   "pre/cvs-@CVS_REVISION@"
 #else
-#define  CVS_REVISION   "rc1"
+#define  CVS_REVISION   "rc2"
 #endif
 
 
