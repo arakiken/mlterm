@@ -1,3 +1,7 @@
+2004-08-01 Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* mlterm/ml_edit.c (ml_edit_overwrite_chars): fixed a wrap-around bug.
+
 2004-07-16 Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* contrib/icon/mlterm-icon.svg, contrib/icon/mlterm-icon-trans.svg:

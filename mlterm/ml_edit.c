@@ -850,7 +850,7 @@ ml_edit_overwrite_chars(
 				edit->cursor.row ++ ;
 			}
 
-			if(cols == 0)
+			if( ml_char_cols( &buffer[count]) > edit->model.num_of_cols)
 			{
 				/* next char is too wide. giving up. */
 				break ;
@@ -875,13 +875,13 @@ ml_edit_overwrite_chars(
 		edit->wraparound_ready_line != line)
 	{
 		edit->wraparound_ready_line = line ;
-		new_char_index = edit->cursor.char_index + count - beg - 1 ;
 	}
 	else
 	{
 		reset_wraparound_checker( edit) ;
-		new_char_index = edit->cursor.char_index + count - beg ;
 	}
+
+	new_char_index = edit->cursor.char_index + count - beg ;
 
 	ml_line_overwrite( line , edit->cursor.char_index , &buffer[beg] ,
 		count - beg , cols) ;
