@@ -614,6 +614,7 @@ main(
 	gtk_set_locale ();
 
 	bindtextdomain( "mlconfig" , LOCALEDIR) ;
+	bind_textdomain_codeset ( "mlconfig", "UTF-8");
 	textdomain( "mlconfig") ;
 
 #ifdef  __DEBUG

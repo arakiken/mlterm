@@ -1,5 +1,7 @@
 2003-12-25  MINAMI Hirokazu  <minami@mistfall.net>
 
+	* tools/mlconfig/main.c: made gettext work with GTK2.
+
 	* Re-mapping of keys using xmodmap now should be handled properly.
 	* Keys that can be locked(Num_Lock/Scroll_Lock/ISO-Level3_Lock)
 	 are no longer regarded as a valid modifier key.
