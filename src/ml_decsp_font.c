@@ -198,7 +198,7 @@ ml_decsp_font_draw_string(
 		if( /* 0x00 <= *str && */ *str < 0x20 && font->glyphs[*str])
 		{
 			XCopyPlane( display , font->glyphs[*str] , drawable , gc ,
-				0 , 0 , font->width - 1 , font->height - 1 ,
+				0 , 0 , font->width , font->height ,
 				x , y - font->height_to_baseline , 1) ;
 		}
 

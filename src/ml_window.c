@@ -936,7 +936,7 @@ draw_str(
 						/*
 						 * font->x_off is ignored.
 						 */
-						ml_decsp_font_draw_string( font->decsp_font , win->display ,
+						ml_decsp_font_draw_string( win->font->decsp_font , win->display ,
 							win->drawable , win->gc ,
 							x , y + height_to_baseline ,
 							str , str_len) ;

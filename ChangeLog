@@ -1,3 +1,8 @@
+2002-04-25 Tomohiro KUBOTA <kubota@debian.org>
+
+	* "mlterm -Y" sometimes segfaulted, fixed.
+	* Line-drawing characters in "mlterm -Y" had a gap, fixed.
+
 2002-04-24 Tomohiro KUBOTA <kubota@debian.org>
 
 	* Added a note on older changelog information to this file.
