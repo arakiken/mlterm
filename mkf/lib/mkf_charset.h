@@ -154,7 +154,7 @@ typedef enum  mkf_charset
 	/* Revision 1 */
 	JISX0208_1990 = CS_REVISION_1( CS94MB_ID('B')) ,
 	
-	MAX_CHARSET = 0x7ff ,
+	MAX_CHARSET = 0x7ff
 	
 } mkf_charset_t ;
 

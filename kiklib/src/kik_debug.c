@@ -6,6 +6,7 @@
 
 #include  <stdio.h>
 #include  <stdarg.h>
+#include  <string.h>    /* strlen */
 
 #include  "kik_mem.h"	/* alloca */
 
