@@ -238,6 +238,7 @@ comment $Id$
       o termtype (*xterm*)
         端末タイプ
         デフォルトは xterm だが、mlterm を推奨。
+        (terminfo: doc/term/mlterm.ti, termcap: 協力者募集中)
 
       o startup_ptys  (*1*)
         起動時に立ち上げる pty の数
