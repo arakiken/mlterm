@@ -74,7 +74,7 @@ xim_server_destroyed(
 	)
 {
 	int  counter ;
-	
+
 	for( counter = 0 ; counter < num_of_xims ; counter ++)
 	{
 		if( xims[counter].im == im)

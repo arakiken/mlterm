@@ -206,6 +206,11 @@ scroll_upward_region(
 	/*
 	 * clearing
 	 */
+
+	for( counter = boundary_end - size + 1 ; counter <= boundary_end  ; counter ++)
+	{
+		ml_imgline_clear( &IMAGE_LINE(image,counter) , 0 , &image->sp_ch) ;
+	}
 	 
 	for( counter = image->num_of_filled_rows ; counter < old_num_of_filled_rows ; counter ++)
 	{
@@ -397,36 +402,36 @@ ml_imgscrl_insert_new_line(
 	)
 {
 	u_int  copy_rows ;
+	int  start_row ;
+	int  end_row ;
 
-	if( image->cursor.row >= image->scroll_region_beg && image->scroll_region_end < END_ROW(image))
+	if( image->cursor.row < image->scroll_region_beg)
 	{
-		copy_rows = image->scroll_region_end + 1 - image->cursor.row ;
-
-		if( copy_rows + image->cursor.row + 1 > image->scroll_region_end + 1)
-		{
-			copy_rows -- ;
-		}
-		
-		copy_lines( image , image->cursor.row + 1 , image->cursor.row , copy_rows , 1) ;
+		start_row = image->scroll_region_beg ;
 	}
 	else
 	{
-		copy_rows = image->num_of_filled_rows - image->cursor.row ;
-		
-		if( copy_rows + image->cursor.row + 1 > image->num_of_rows)
-		{
-			copy_rows -- ;
-		}
-		
-		copy_lines( image , image->cursor.row + 1 , image->cursor.row , copy_rows , 1) ;
-
-		if( image->num_of_filled_rows < image->num_of_rows)
-		{
-			image->num_of_filled_rows ++ ;
-		}
+		start_row = image->cursor.row ;
 	}
 	
-	ml_image_clear_lines( image , image->cursor.row , 1) ;
+	if( image->scroll_region_end < END_ROW(image))
+	{
+		end_row = image->scroll_region_end ;
+	}
+	else
+	{
+		end_row = END_ROW(image) ;
+	}
+
+	copy_rows = end_row - start_row + 1 ;
+
+	if( copy_rows + start_row > end_row)
+	{
+		copy_rows -- ;
+	}
+
+	copy_lines( image , start_row + 1 , start_row , copy_rows , 1) ;
+	ml_image_clear_lines( image , start_row , 1) ;
 
 	return  1 ;
 }
@@ -436,24 +441,29 @@ ml_imgscrl_delete_line(
 	ml_image_t *  image
 	)
 {
-	if( image->cursor.row >= image->scroll_region_beg && image->scroll_region_end < END_ROW(image))
-	{
-		copy_lines( image , image->cursor.row , image->cursor.row + 1 ,
-			image->scroll_region_end - image->cursor.row , 1) ;
-			
-		ml_image_clear_lines( image , image->scroll_region_end , 1) ;
-	}
-	else if( image->cursor.row < END_ROW(image))
-	{
-		copy_lines( image , image->cursor.row , image->cursor.row + 1 ,
-			END_ROW(image) - image->cursor.row , 1) ;
+	int  start_row ;
+	int  end_row ;
 
-		ml_image_clear_lines( image , END_ROW(image) , 1) ;
-	}
-	else /* if( image->cursor.row == END_ROW(image)) */
+	if( image->cursor.row < image->scroll_region_beg)
 	{
-		ml_image_clear_lines( image , END_ROW(image) , 1) ;
+		start_row = image->scroll_region_beg ;
 	}
+	else
+	{
+		start_row = image->cursor.row ;
+	}
+
+	if( image->scroll_region_end < END_ROW(image))
+	{
+		end_row = image->scroll_region_end ;
+	}
+	else
+	{
+		end_row = END_ROW(image) ;
+	}
+	
+	copy_lines( image , start_row , start_row + 1 , end_row - start_row , 1) ;
+	ml_image_clear_lines( image , end_row , 1) ;
 	
 	return  1 ;
 }

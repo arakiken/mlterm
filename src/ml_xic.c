@@ -98,10 +98,6 @@ search_xim_style(
 		}
 	}
 	
-#ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " style not found.\n") ;
-#endif
-
 	return  0 ;
 }
 
@@ -139,13 +135,23 @@ xic_create(
 	}
 	
 	if( ! ( selected_style = search_xim_style( xim_styles , over_the_spot_styles ,
-			sizeof( over_the_spot_styles) / sizeof( over_the_spot_styles[0]))) &&
-		! ( selected_style = search_xim_style( xim_styles , root_styles ,
-			sizeof( root_styles) / sizeof( root_styles[0]))))
+			sizeof( over_the_spot_styles) / sizeof( over_the_spot_styles[0]))))
 	{
-		XFree( xim_styles) ;
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " over the spot style not found.\n") ;
+	#endif
 
-		return  0 ;
+		if( ! ( selected_style = search_xim_style( xim_styles , root_styles ,
+			sizeof( root_styles) / sizeof( root_styles[0]))))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " root style not found.\n") ;
+		#endif
+		
+			XFree( xim_styles) ;
+
+			return  0 ;
+		}
 	}
 
 	XFree( xim_styles) ;
@@ -289,9 +295,7 @@ ml_xic_activate(
 
 	if( win->xic)
 	{
-		/* already activated */
-		
-		return  0 ;
+		ml_xic_deactivate( win) ;
 	}
 	
 	if( strcmp( xim_name , "unused") == 0)
@@ -324,6 +328,10 @@ ml_xic_activate(
 		
 		return  0 ;
 	}
+
+#ifdef  DEBUG
+	kik_warn_printf( KIK_DEBUG_TAG " XIC activated.\n") ;
+#endif
 
 	return  1 ;
 }
@@ -365,7 +373,11 @@ ml_xic_deactivate(
 	#endif
 	}
 
-	return  0 ;
+#ifdef  DEBUG
+	kik_warn_printf( KIK_DEBUG_TAG " XIC deactivated.\n") ;
+#endif
+
+	return  1 ;
 }
 
 char *
