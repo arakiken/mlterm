@@ -1,3 +1,12 @@
+2004-11-21 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	Fixed #1069725.
+	* kiklib/src/kik_conf.c (kik_conf_parse_args): check whether argc is 0.
+	* xwindow/x_term_manager.c (client_connected): argv[argc] = NULL.
+	(POSIX exec family style)
+
+	* configure, mkf/configure: synchronized with configure.in.
+
 2004-11-19 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* mkf/lib/Makefile.in, inputmethod/kbd/Makefile.in,

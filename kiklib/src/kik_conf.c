@@ -490,7 +490,7 @@ kik_conf_parse_args(
 				
 				entry->value = strdup( opt_val) ;
 			}
-			else if((*argv)[0] != NULL &&
+			else if( *argc && (*argv)[0] != NULL &&
 				(strcmp((*argv)[0] , "true") == 0 || strcmp((*argv)[0] , "false") == 0))
 			{
 				/* "-[opt] true" format */
@@ -512,7 +512,7 @@ kik_conf_parse_args(
 			{
 				/* "-[opt] [opt_val]" format */
 				
-				if( (*argv)[0] == NULL)
+				if( *argc == 0 || (*argv)[0] == NULL)
 				{
 					kik_msg_printf( "%s option requires value.\n\n" , opt_name) ;
 

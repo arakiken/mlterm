@@ -1051,7 +1051,7 @@ client_connected(void)
 
 	argc = 0 ;
 
-	if( ( argv = alloca( sizeof( char*) * line_len)) == NULL)
+	if( ( argv = alloca( sizeof( char*) * ( line_len + 1))) == NULL)
 	{
 		goto  error ;
 	}
@@ -1124,6 +1124,10 @@ client_connected(void)
 		argv[argc ++] = args_dup ;
 		args_dup = p ;
 	}
+
+	/* NULL terminator (POSIX exec family style) */
+	argv[argc + 1] = NULL ;
+
 parse_end:
 
 #ifdef  __DEBUG
