@@ -60,6 +60,7 @@ typedef struct  ml_config_event_listener
 
 	void (*set)( void * , char * , char * , char *) ;
 	void (*get)( void * , char * , char * , int) ;
+	void (*saved)( void *) ;
 
 } ml_config_event_listener_t ;
 

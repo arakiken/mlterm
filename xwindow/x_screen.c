@@ -2263,7 +2263,7 @@ window_exposed(
 			beg_row = ncols - end_row - 1 ;
 			end_row = swp ;
 		}
-		
+
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " exposed [row] from %d to %d [x] from %d to %d\n" ,
 			beg_row , end_row , x , x + width) ;
@@ -2362,7 +2362,7 @@ window_focused(
 		x_window_set_bg_color( &screen->window ,
 			x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
-		ml_term_set_modified_all( screen->term) ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 		redraw_screen( screen) ;
 	}
 
@@ -2394,7 +2394,7 @@ window_unfocused(
 		x_window_set_bg_color( &screen->window ,
 			x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
-		ml_term_set_modified_all( screen->term) ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 		redraw_screen( screen) ;
 	}
 
@@ -4166,7 +4166,7 @@ change_font_size(
 	}
 	
 	/* redrawing all lines with new fonts. */
-	ml_term_set_modified_all( screen->term) ;
+	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
 	font_size_changed( screen) ;
 
@@ -4267,7 +4267,7 @@ change_font_present(
 	}
 
 	/* redrawing all lines with new fonts. */
-	ml_term_set_modified_all( screen->term) ;
+	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
 	font_size_changed( screen) ;
 }
@@ -4328,7 +4328,7 @@ change_char_encoding(
 	
 	if( update_special_visual( screen))
 	{
-		ml_term_set_modified_all( screen->term) ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 }
 
@@ -4349,7 +4349,7 @@ change_iscii_lang(
 	
 	if( update_special_visual( screen))
 	{
-		ml_term_set_modified_all( screen->term) ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 }
 
@@ -4460,7 +4460,7 @@ change_vertical_mode(
 	if( update_special_visual( screen))
 	{
 		/* redrawing under new vertical mode. */
-		ml_term_set_modified_all( screen->term) ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 	
 	if( x_window_resize( &screen->window , screen_width(screen) , screen_height(screen) ,
@@ -4518,7 +4518,7 @@ change_dynamic_comb_flag(
 
 	if( update_special_visual( screen))
 	{
-		ml_term_set_modified_all( screen->term) ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 }
 
@@ -4549,7 +4549,7 @@ change_fg_color(
 	
 	x_xic_fg_color_changed( &screen->window) ;
 
-	ml_term_set_modified_all( screen->term) ;
+	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
 
 static void
@@ -4570,7 +4570,7 @@ change_bg_color(
 	
 	x_xic_bg_color_changed( &screen->window) ;
 	
-	ml_term_set_modified_all( screen->term) ;
+	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
 
 static void
@@ -4664,7 +4664,7 @@ larger_font_size(
 	x_xic_font_set_changed( &screen->window) ;
 
 	/* redrawing all lines with new fonts. */
-	ml_term_set_modified_all( screen->term) ;
+	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
 
 static void
@@ -4680,7 +4680,7 @@ smaller_font_size(
 	x_xic_font_set_changed( &screen->window) ;
 
 	/* redrawing all lines with new fonts. */
-	ml_term_set_modified_all( screen->term) ;
+	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
 
 static void
@@ -4741,7 +4741,7 @@ change_bidi_flag(
 
 	if( update_special_visual( screen))
 	{
-		ml_term_set_modified_all( screen->term) ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 }
 
@@ -4897,7 +4897,7 @@ change_fade_ratio(
 	x_xic_fg_color_changed( &screen->window) ;
 	x_xic_bg_color_changed( &screen->window) ;
 
-	ml_term_set_modified_all( screen->term) ;
+	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
 
 static void
@@ -5779,6 +5779,21 @@ error:
 	return ;
 }
 
+static void
+config_saved(
+	void *  p
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+	if( HAS_SYSTEM_LISTENER(screen,config_saved))
+	{
+		(*screen->system_listener->config_saved)( screen->system_listener->self) ;
+	}
+}
+
 
 /*
  * callbacks of x_sel_event_listener_t events.
@@ -6225,7 +6240,7 @@ xterm_reverse_video(
 	x_window_set_bg_color( &screen->window ,
 		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 	
-	ml_term_set_modified_all( screen->term) ;
+	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	redraw_screen( screen) ;
 }
 
@@ -6297,7 +6312,7 @@ xterm_bel(
 		XFlush( screen->window.display) ;
 
 		x_window_clear_all( &screen->window) ;
-		ml_term_set_modified_all( screen->term) ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 		redraw_screen( screen) ;
 	}
 }
@@ -6389,6 +6404,7 @@ x_screen_new(
 	screen->config_listener.self = screen ;
 	screen->config_listener.set = set_config ;
 	screen->config_listener.get = get_config ;
+	screen->config_listener.saved = config_saved ;
 
 	screen->pty_listener.self = screen ;
 	screen->pty_listener.closed = pty_closed ;
@@ -6719,7 +6735,7 @@ x_screen_attach(
 
 	if( update_special_visual( screen))
 	{
-		ml_term_set_modified_all( screen->term) ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 
 	if( HAS_SCROLL_LISTENER(screen,term_changed))

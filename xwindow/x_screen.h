@@ -39,6 +39,8 @@ typedef struct x_system_event_listener
 	ml_term_t *  (*get_pty)( void * , char *) ;
 
 	char *  (*pty_list)( void *) ;
+
+	void  (*config_saved)( void *) ;
 	
 	/* for debug */
 	void  (*exit)( void * , int) ;

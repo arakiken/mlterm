@@ -834,6 +834,11 @@ config_protocol_save(
 	kik_conf_write_close( conf) ;
 	free( file) ;
 
+	if( HAS_CONFIG_LISTENER(vt100_parser,saved))
+	{
+		(*vt100_parser->config_listener->saved)( vt100_parser->config_listener->self) ;
+	}
+
 	return  1 ;
 }
 

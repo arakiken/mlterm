@@ -147,11 +147,19 @@ ml_line_t *  ml_term_get_line_in_screen( ml_term_t *  term , int  row) ;
 
 ml_line_t *  ml_term_get_cursor_line( ml_term_t *  term) ;
 
-int  ml_term_set_modified_lines_in_screen( ml_term_t *  term , u_int  beg , u_int  end) ;
+#if  0
+int  ml_term_set_modified_region( ml_term_t *  term ,
+	int  beg_char_index , int  beg_row , u_int  nchars , u_int  nrows) ;
+
+int  ml_term_set_modified_region_in_screen( ml_term_t *  term ,
+	int  beg_char_index , int  beg_row , u_int  nchars , u_int  nrows) ;
+#endif
 
 int  ml_term_set_modified_lines( ml_term_t *  term , u_int  beg , u_int  end) ;
 
-int  ml_term_set_modified_all( ml_term_t *  term) ;
+int  ml_term_set_modified_lines_in_screen( ml_term_t *  term , u_int  beg , u_int  end) ;
+
+int  ml_term_set_modified_all_lines_in_screen( ml_term_t *  term) ;
 
 int  ml_term_updated_all( ml_term_t *  term) ;
 

@@ -178,788 +178,8 @@ get_font_size_range(
 	return  1 ;
 }
 
-static ml_term_t *
-create_term_intern(void)
-{
-	ml_term_t *  term ;
-	
-	if( ( term = ml_create_term( main_config.cols , main_config.rows ,
-			main_config.tab_size , main_config.num_of_log_lines ,
-			main_config.encoding , main_config.is_auto_encoding , 
-			main_config.unicode_font_policy ,
-			main_config.col_size_a , main_config.use_char_combining ,
-			main_config.use_multi_col_char , main_config.use_bidi ,
-			x_termcap_get_bool_field( main_config.tent , ML_BCE) ,
-			main_config.use_dynamic_comb , main_config.bs_mode ,
-			main_config.vertical_mode , main_config.iscii_lang_type)) == NULL)
-	{
-		return  NULL ;
-	}
-
-	if( main_config.title)
-	{
-		ml_term_set_window_name( term , main_config.title) ;
-	}
-	
-	if( main_config.icon_name)
-	{
-		ml_term_set_icon_name( term , main_config.icon_name) ;
-	}
-
-	if( main_config.logging_vt_seq)
-	{
-		ml_term_enable_logging_vt_seq( term) ;
-	}
-
-	return  term ;
-}
-
-static int
-open_pty_intern(
-	ml_term_t *  term ,
-	char *  cmd_path ,
-	char **  cmd_argv ,
-	char *  display ,
-	Window  window ,
-	char *  term_type ,
-	int  use_login_shell
-	)
-{
-	char *  env[5] ;	/* MLTERM,TERM,WINDOWID,DISPLAY,NULL */
-	char **  env_p ;
-	char  wid_env[9 + DIGIT_STR_LEN(Window) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
-	char *  ver_env ;
-	char *  disp_env ;
-	char *  term_env ;
-	
-	env_p = env ;
-
-	if( version && ( ver_env = alloca( 7 + strlen( version) + 1)))
-	{
-		sprintf( ver_env , "MLTERM=%s" , version) ;
-		*(env_p ++) = ver_env ;
-	}
-	
-	sprintf( wid_env , "WINDOWID=%ld" , window) ;
-	*(env_p ++) = wid_env ;
-	
-	/* "DISPLAY="(8) + NULL(1) */
-	if( ( disp_env = alloca( 8 + strlen( display) + 1)))
-	{
-		sprintf( disp_env , "DISPLAY=%s" , display) ;
-		*(env_p ++) = disp_env ;
-	}
-
-	/* "TERM="(5) + NULL(1) */
-	if( ( term_env = alloca( 5 + strlen( term_type) + 1)))
-	{
-		sprintf( term_env , "TERM=%s" , term_type) ;
-		*(env_p ++) = term_env ;
-	}
-
-	/* NULL terminator */
-	*env_p = NULL ;
-
-	if( ! cmd_path)
-	{
-		struct passwd *  pw ;
-
-		/*
-		 * SHELL env var -> /etc/passwd -> /bin/sh
-		 */
-		if( ( cmd_path = getenv( "SHELL")) == NULL || *cmd_path == '\0')
-		{
-			if( ( pw = getpwuid(getuid())) == NULL ||
-				*( cmd_path = pw->pw_shell) == '\0')
-			{
-				cmd_path = "/bin/sh" ;
-			}
-		}
-	}
-
-	if( ! cmd_argv)
-	{
-		char *  cmd_file ;
-		
-		if( ( cmd_argv = alloca( sizeof( char*) * 2)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
-		#endif
-
-			return  0 ;
-		}
-
-		cmd_file = kik_basename( cmd_path) ;
-
-		/* 2 = `-' and NULL */
-		if( ( cmd_argv[0] = alloca( strlen( cmd_file) + 2)) == NULL)
-		{
-			return  0 ;
-		}
-
-		if( use_login_shell)
-		{
-			sprintf( cmd_argv[0] , "-%s" , cmd_file) ;
-		}
-		else
-		{
-			strcpy( cmd_argv[0] , cmd_file) ;
-		}
-
-		cmd_argv[1] = NULL ;
-	}
-
-	return  ml_term_open_pty( term , cmd_path , cmd_argv , env , display) ;
-}
-
-static int
-open_screen_intern(
-	char *  pty
-	)
-{
-	ml_term_t *  term ;
-	x_display_t *  disp ;
-	x_screen_t *  screen ;
-	x_sb_screen_t *  sb_screen ;
-	x_font_manager_t *  font_man ;
-	x_color_manager_t *  color_man ;
-	x_window_t *  root ;
-	mkf_charset_t  usascii_font_cs ;
-	int  usascii_font_cs_changable ;
-	void *  p ;
-	
-	/*
-	 * these are dynamically allocated.
-	 */
-	term = NULL ;
-	disp = NULL ;
-	font_man = NULL ;
-	color_man = NULL ;
-	screen = NULL ;
-	sb_screen = NULL ;
-	root = NULL ;
-
-	if( MAX_SCREENS <= num_of_screens)
-	{
-		return  0 ;
-	}
-
-	if( pty)
-	{
-		if( ( term = ml_get_detached_term( pty)) == NULL)
-		{
-			return  0 ;
-		}
-	}
-	else
-	{
-	#if  0
-		if( ( term = ml_get_detached_term( NULL)) == NULL &&
-			( term = create_term_intern()) == NULL)
-	#else
-		if( ( term = create_term_intern()) == NULL)
-	#endif
-		{
-			return  0 ;
-		}
-	}
-
-	if( ( disp = x_display_open( main_config.disp_name)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_display_open failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	if( main_config.unicode_font_policy == NOT_USE_UNICODE_FONT ||
-		main_config.iso88591_font_for_usascii)
-	{
-		usascii_font_cs = x_get_usascii_font_cs( ML_ISO8859_1) ;
-		usascii_font_cs_changable = 0 ;
-	}
-	else if( main_config.unicode_font_policy == ONLY_USE_UNICODE_FONT)
-	{
-		usascii_font_cs = x_get_usascii_font_cs( ML_UTF8) ;
-		usascii_font_cs_changable = 0 ;
-	}
-	else
-	{
-		usascii_font_cs = x_get_usascii_font_cs( ml_term_get_encoding( term)) ;
-		usascii_font_cs_changable = 1 ;
-	}
-	
-	if( ( font_man = x_font_manager_new( disp->display ,
-		main_config.font_present , main_config.font_size ,
-		usascii_font_cs , usascii_font_cs_changable ,
-		main_config.use_multi_col_char ,
-		main_config.step_in_changing_font_size)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_font_manager_new() failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	if( ( color_man = x_color_manager_new( disp->display ,
-				DefaultScreen( disp->display) , &color_custom ,
-				main_config.fg_color , main_config.bg_color ,
-				main_config.cursor_fg_color , main_config.cursor_bg_color)) == NULL)
-	{
-		goto  error ;
-	}
-
-	if( ( screen = x_screen_new( term , font_man , color_man , main_config.tent ,
-			main_config.brightness , main_config.contrast , main_config.gamma ,
-			main_config.fade_ratio , &shortcut ,
-			main_config.screen_width_ratio , main_config.screen_height_ratio ,
-			main_config.xim_open_in_startup , main_config.mod_meta_key ,
-			main_config.mod_meta_mode , main_config.bel_mode ,
-			main_config.receive_string_via_ucs , main_config.pic_file_path ,
-			main_config.use_transbg , main_config.use_vertical_cursor ,
-			main_config.big5_buggy , main_config.conf_menu_path_1 ,
-			main_config.conf_menu_path_2 , main_config.conf_menu_path_3 ,
-			main_config.use_extended_scroll_shortcut ,
-			main_config.borderless , main_config.line_space)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_screen_new() failed.\n") ;
-	#endif
-
-		goto  error ;
-	}
-
-	if( ! x_set_system_listener( screen , &system_listener))
-	{
-		goto  error ;
-	}
-
-	if( main_config.use_scrollbar)
-	{
-		if( ( sb_screen = x_sb_screen_new( screen ,
-					main_config.scrollbar_view_name ,
-					main_config.sb_fg_color , main_config.sb_bg_color ,
-					main_config.sb_mode)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " x_sb_screen_new() failed.\n") ;
-		#endif
-
-			goto  error ;
-		}
-
-		root = &sb_screen->window ;
-	}
-	else
-	{
-		root = &screen->window ;
-	}
-
-	if( ! x_window_manager_show_root( &disp->win_man , root ,
-		main_config.x , main_config.y , main_config.geom_hint , main_config.app_name))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_window_manager_show_root() failed.\n") ;
-	#endif
-	
-		goto  error ;
-	}
-
-	if( main_config.icon_path)
-	{
-		if( !(disp->win_man.icon) && !(disp->win_man.mask) && !(disp->win_man.cardinal))
-		{
-			x_window_t  dummy ;
-			int  icon_size = 48 ;
-			x_imagelib_load_file( disp->display , main_config.icon_path,
-					      &(disp->win_man.cardinal),
-					      &(disp->win_man.icon),
-					      &(disp->win_man.mask),
-					      &icon_size ,&icon_size) ;
-
-			dummy.my_window = disp->win_man.group_leader ;
-			dummy.display = disp->win_man.display ;
-			x_window_set_icon( &dummy,
-					   disp->win_man.icon,
-					   disp->win_man.mask,
-					   disp->win_man.cardinal) ;
-		}
-		x_window_set_icon( root,
-				   disp->win_man.icon,
-				   disp->win_man.mask,
-				   disp->win_man.cardinal) ;
-
-	}
-
-	if( pty && main_config.cmd_argv)
-	{
-		int  count ;
-		
-		for( count = 0 ; main_config.cmd_argv[count] ; count ++)
-		{
-			ml_term_write( term , main_config.cmd_argv[count] ,
-				strlen( main_config.cmd_argv[count]) , 0) ;
-			ml_term_write( term , " " , 1 , 0) ;
-		}
-
-		ml_term_write( term , "\n" , 1 , 0) ;
-	}
-	else
-	{
-		if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
-			XDisplayString( disp->display) , root->my_window ,
-			main_config.term_type , main_config.use_login_shell))
-		{
-			goto  error ;
-		}
-	}
-
-	if( main_config.init_str)
-	{
-		ml_term_write( term , main_config.init_str , strlen( main_config.init_str) , 0) ;
-	}
-	
-	if( ( p = realloc( screens , sizeof( x_screen_t*) * (num_of_screens + 1))) == NULL)
-	{
-		goto  error ;
-	}
-
-	screens = p ;
-	screens[num_of_screens++] = screen ;
-	
-	return  1 ;
-	
-error:
-	if( font_man)
-	{
-		x_font_manager_delete( font_man) ;
-	}
-
-	if( color_man)
-	{
-		x_color_manager_delete( color_man) ;
-	}
-
-	if( ! root || ! x_window_manager_remove_root( &disp->win_man , root))
-	{
-		/*
-		 * If root is still NULL or is not registered to win_man yet.
-		 */
-		 
-		if( screen)
-		{
-			x_screen_delete( screen) ;
-		}
-
-		if( sb_screen)
-		{
-			x_sb_screen_delete( sb_screen) ;
-		}
-	}
-
-	if( disp)
-	{
-		x_display_close( disp) ;
-	}
-
-	return  0 ;
-}
-
-static int
-close_screen_intern(
-	x_screen_t *  screen
-	)
-{
-	x_window_t *  root ;
-	x_window_manager_t *  win_man ;
-
-	x_screen_detach( screen) ;
-	x_font_manager_delete( screen->font_man) ;
-	x_color_manager_delete( screen->color_man) ;
-
-	root = x_get_root_window( &screen->window) ;
-	win_man = root->win_man ;
-	
-	if( win_man->num_of_roots == 1)
-	{
-		Display *  display_to_close ;
-
-		display_to_close = root->display ;
-		x_window_manager_remove_root( win_man , root) ;
-		x_display_close_2( display_to_close) ;
-	}
-	else
-	{
-		x_window_manager_remove_root( win_man , root) ;
-	}
-
-	return  1 ;
-}
-
-
-/*
- * callbacks of x_system_event_listener_t
- */
- 
-/*
- * EXIT_PROGRAM shortcut calls this at last.
- * this is for debugging.
- */
-#ifdef  KIK_DEBUG
-#include  <kiklib/kik_locale.h>		/* kik_locale_final */
-#endif
-static void
-__exit(
-	void *  p ,
-	int  status
-	)
-{
-#ifdef  KIK_DEBUG
-	x_term_manager_final() ;
-	
-	kik_locale_final() ;
-
-	kik_alloca_garbage_collect() ;
-
-	kik_msg_printf( "reporting unfreed memories --->\n") ;
-	kik_mem_free_all() ;
-#endif
-	
-	if( un_file)
-	{
-		unlink( un_file) ;
-	}
-	
-	exit(status) ;
-}
-
-static void
-open_pty(
-	void *  p ,
-	x_screen_t *  screen ,
-	char *  dev
-	)
-{
-	int  count ;
-
-	for( count = 0 ; count < num_of_screens ; count ++)
-	{
-		if( screen == screens[count])
-		{
-			ml_term_t *  new ;
-
-			if( dev)
-			{
-				if( ( new = ml_get_detached_term( dev)) == NULL)
-				{
-					return ;
-				}
-			}
-			else
-			{
-				if( ( new = create_term_intern()) == NULL)
-				{
-					return ;
-				}
-
-				if( ! open_pty_intern( new , main_config.cmd_path , main_config.cmd_argv ,
-					XDisplayString( screen->window.display) ,
-					x_get_root_window( &screen->window)->my_window ,
-					main_config.term_type , main_config.use_login_shell))
-				{
-					return ;
-				}
-			}
-			
-			x_screen_detach( screen) ;
-			x_screen_attach( screen , new) ;
-			
-			return ;
-		}
-	}
-}
-
-static void
-next_pty(
-	void *  p ,
-	x_screen_t *  screen
-	)
-{
-	int  count ;
-	
-	for( count = 0 ; count < num_of_screens ; count ++)
-	{
-		if( screen == screens[count])
-		{
-			ml_term_t *  old ;
-			ml_term_t *  new ;
-
-			if( ( old = x_screen_detach( screen)) == NULL)
-			{
-				return ;
-			}
-
-			if( ( new = ml_next_term( old)) == NULL)
-			{
-				x_screen_attach( screen , old) ;
-			}
-			else
-			{
-				x_screen_attach( screen , new) ;
-			}
-			
-			return ;
-		}
-	}
-}
-
-static void
-prev_pty(
-	void *  p ,
-	x_screen_t *  screen
-	)
-{
-	int  count ;
-	
-	for( count = 0 ; count < num_of_screens ; count ++)
-	{
-		if( screen == screens[count])
-		{
-			ml_term_t *  old ;
-			ml_term_t *  new ;
-
-			if( ( old = x_screen_detach( screen)) == NULL)
-			{
-				return ;
-			}
-			
-			if( ( new = ml_prev_term( old)) == NULL)
-			{
-				x_screen_attach( screen , old) ;
-			}
-			else
-			{
-				x_screen_attach( screen , new) ;
-			}
-			
-			return ;
-		}
-	}
-}
-	
-static void
-pty_closed(
-	void *  p ,
-	x_screen_t *  screen	/* screen->term was already deleted. */
-	)
-{
-	int  count ;
-
-	for( count = num_of_screens - 1 ; count >= 0 ; count --)
-	{
-		if( screen == screens[count])
-		{
-			ml_term_t *  term ;
-			
-			if( ( term = ml_get_detached_term( NULL)) == NULL)
-			{
-				close_screen_intern( screen) ;
-				screens[count] = screens[--num_of_screens] ;
-			}
-			else
-			{
-				x_screen_attach( screen , term) ;
-			}
-
-			return ;
-		}
-	}
-}
-
-static void
-open_screen(
-	void *  p
-	)
-{
-	if( ! open_screen_intern(NULL))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern failed.\n") ;
-	#endif
-	}
-}
-	
-static void
-close_screen(
-	void *  p ,
-	x_screen_t *  screen
-	)
-{
-	int  count ;
-	
-	for( count = 0 ; count < num_of_screens ; count ++)
-	{
-		if( screen == screens[count])
-		{
-			dead_mask |= (1 << count) ;
-			
-			return ;
-		}
-	}
-}
-
-static ml_term_t *
-get_pty(
-	void *  p ,
-	char *  dev
-	)
-{
-	return  ml_get_term( dev) ;
-}
-
-static char *
-pty_list(
-	void *  p
-	)
-{
-	return  ml_get_pty_list() ;
-}
-
-
-/*
- * signal handlers.
- */
- 
-static void
-sig_fatal( int  sig)
-{
-#ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG "signal %d is received\n" , sig) ;
-#endif
-
-	if( un_file)
-	{
-		unlink( un_file) ;
-	}
-
-	/* reset */
-	signal( sig , SIG_DFL) ;
-	
-	kill( getpid() , sig) ;
-}
-
-
-static int
-start_daemon(void)
-{
-	pid_t  pid ;
-	int  sock_fd ;
-	struct sockaddr_un  servaddr ;
-	char * const path = servaddr.sun_path ;
-
-	memset( &servaddr , 0 , sizeof( servaddr)) ;
-	servaddr.sun_family = AF_LOCAL ;
-	kik_snprintf( path , sizeof( servaddr.sun_path) - 1 , "/tmp/.mlterm-%d.unix" , getuid()) ;
-
-	if( ( sock_fd = socket( AF_LOCAL , SOCK_STREAM , 0)) < 0)
-	{
-		return  -1 ;
-	}
-
-	while( bind( sock_fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) < 0)
-	{
-		if( errno == EADDRINUSE)
-		{
-			if( connect( sock_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
-			{
-				close( sock_fd) ;
-				
-				kik_msg_printf( "daemon is already running.\n") ;
-				
-				return  -1 ;
-			}
-
-			kik_msg_printf( "removing stale lock file %s.\n" , path) ;
-			
-			if( unlink( path) == 0)
-			{
-				continue ;
-			}
-		}
-		else
-		{
-			close( sock_fd) ;
-
-			kik_msg_printf( "failed to lock file %s: %s\n" , path , strerror(errno)) ;
-
-			return  -1 ;
-		}
-	}
-
-	pid = fork() ;
-
-	if( pid == -1)
-	{
-		return  -1 ;
-	}
-
-	if( pid != 0)
-	{
-		exit(0) ;
-	}
-	
-	/*
-	 * child
-	 */
-
-	/*
-	 * This process becomes a session leader and purged from control terminal.
-	 */
-	setsid() ;
-
-	/*
-	 * SIGHUP signal when the child process exits must not be sent to
-	 * the grandchild process.
-	 */
-	signal( SIGHUP , SIG_IGN) ;
-
-	pid = fork() ;
-
-	if( pid == -1)
-	{
-		exit(1) ;
-	}
-
-	if( pid != 0)
-	{
-		exit(0) ;
-	}
-
-	/*
-	 * grandchild
-	 */
-
-	if( listen( sock_fd , 1024) < 0)
-	{
-		close( sock_fd) ;
-		unlink( path) ;
-		
-		return  -1 ;
-	}
-
-	un_file = strdup( path) ;
-
-	return  sock_fd ;
-}
-
 static kik_conf_t *
-get_min_conf(
-	int  argc ,
-	char **  argv
-	)
+get_min_conf(void)
 {
 	kik_conf_t *  conf ;
 	char *  rcpath ;
@@ -1134,6 +354,42 @@ get_min_conf(
 	return  conf ;	
 }
 
+static kik_conf_t *
+get_full_conf(void)
+{
+	kik_conf_t *  conf ;
+	
+	if( ( conf = get_min_conf()) == NULL)
+	{
+		return  0 ;
+	}
+
+	kik_conf_add_opt( conf , '@' , "screens" , 0 , "startup_screens" ,
+		"number of screens to open in start up [1]") ;
+	kik_conf_add_opt( conf , 'h' , "help" , 1 , "help" ,
+		"show this help message") ;
+	kik_conf_add_opt( conf , 'v' , "version" , 1 , "version" ,
+		"show version message") ;
+	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "startup_ptys" ,
+		"number of ptys to open in start up [1]") ;
+	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
+		"font size range for GUI configurator [6-30]") ;
+	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
+		"word-separating characters for double-click [,.:;/@]") ;
+	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
+		"compose dec special font [false]") ;
+#ifdef  ANTI_ALIAS
+	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
+		"use CP932-Unicode mapping table for JISX0208 [false]") ;
+#endif
+	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
+		"use XIM (X Input Method) [true]") ;
+	kik_conf_add_opt( conf , 'j' , "daemon" , 0 , "daemon_mode" ,
+		"start as a daemon [none/blend/genuine]") ;
+
+	return  conf ;
+}
+
 static int
 config_init(
 	kik_conf_t *  conf ,
@@ -1201,10 +457,22 @@ config_init(
 		main_config.icon_name = strdup( value) ;
 	}
 
-	/*
-	 * conf_menu_path_[12] are set x_term_manager_init() once.
-	 * conf_menu_path_3 alone is changable.
-	 */	
+	/* Not changeable. */
+	main_config.conf_menu_path_1 = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "conf_menu_path_1")))
+	{
+		main_config.conf_menu_path_1 = strdup( value) ;
+	}
+
+	/* Not changeable. */
+	main_config.conf_menu_path_2 = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "conf_menu_path_2")))
+	{
+		main_config.conf_menu_path_2 = strdup( value) ;
+	}
+
 	main_config.conf_menu_path_3 = NULL ;
 
 	if( ( value = kik_conf_get_value( conf , "conf_menu_path_3")))
@@ -1901,6 +1169,804 @@ config_final(void)
 	return  1 ;
 }
 
+
+static ml_term_t *
+create_term_intern(void)
+{
+	ml_term_t *  term ;
+	
+	if( ( term = ml_create_term( main_config.cols , main_config.rows ,
+			main_config.tab_size , main_config.num_of_log_lines ,
+			main_config.encoding , main_config.is_auto_encoding , 
+			main_config.unicode_font_policy ,
+			main_config.col_size_a , main_config.use_char_combining ,
+			main_config.use_multi_col_char , main_config.use_bidi ,
+			x_termcap_get_bool_field( main_config.tent , ML_BCE) ,
+			main_config.use_dynamic_comb , main_config.bs_mode ,
+			main_config.vertical_mode , main_config.iscii_lang_type)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	if( main_config.title)
+	{
+		ml_term_set_window_name( term , main_config.title) ;
+	}
+	
+	if( main_config.icon_name)
+	{
+		ml_term_set_icon_name( term , main_config.icon_name) ;
+	}
+
+	if( main_config.logging_vt_seq)
+	{
+		ml_term_enable_logging_vt_seq( term) ;
+	}
+
+	return  term ;
+}
+
+static int
+open_pty_intern(
+	ml_term_t *  term ,
+	char *  cmd_path ,
+	char **  cmd_argv ,
+	char *  display ,
+	Window  window ,
+	char *  term_type ,
+	int  use_login_shell
+	)
+{
+	char *  env[5] ;	/* MLTERM,TERM,WINDOWID,DISPLAY,NULL */
+	char **  env_p ;
+	char  wid_env[9 + DIGIT_STR_LEN(Window) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
+	char *  ver_env ;
+	char *  disp_env ;
+	char *  term_env ;
+	
+	env_p = env ;
+
+	if( version && ( ver_env = alloca( 7 + strlen( version) + 1)))
+	{
+		sprintf( ver_env , "MLTERM=%s" , version) ;
+		*(env_p ++) = ver_env ;
+	}
+	
+	sprintf( wid_env , "WINDOWID=%ld" , window) ;
+	*(env_p ++) = wid_env ;
+	
+	/* "DISPLAY="(8) + NULL(1) */
+	if( ( disp_env = alloca( 8 + strlen( display) + 1)))
+	{
+		sprintf( disp_env , "DISPLAY=%s" , display) ;
+		*(env_p ++) = disp_env ;
+	}
+
+	/* "TERM="(5) + NULL(1) */
+	if( ( term_env = alloca( 5 + strlen( term_type) + 1)))
+	{
+		sprintf( term_env , "TERM=%s" , term_type) ;
+		*(env_p ++) = term_env ;
+	}
+
+	/* NULL terminator */
+	*env_p = NULL ;
+
+	if( ! cmd_path)
+	{
+		struct passwd *  pw ;
+
+		/*
+		 * SHELL env var -> /etc/passwd -> /bin/sh
+		 */
+		if( ( cmd_path = getenv( "SHELL")) == NULL || *cmd_path == '\0')
+		{
+			if( ( pw = getpwuid(getuid())) == NULL ||
+				*( cmd_path = pw->pw_shell) == '\0')
+			{
+				cmd_path = "/bin/sh" ;
+			}
+		}
+	}
+
+	if( ! cmd_argv)
+	{
+		char *  cmd_file ;
+		
+		if( ( cmd_argv = alloca( sizeof( char*) * 2)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
+		#endif
+
+			return  0 ;
+		}
+
+		cmd_file = kik_basename( cmd_path) ;
+
+		/* 2 = `-' and NULL */
+		if( ( cmd_argv[0] = alloca( strlen( cmd_file) + 2)) == NULL)
+		{
+			return  0 ;
+		}
+
+		if( use_login_shell)
+		{
+			sprintf( cmd_argv[0] , "-%s" , cmd_file) ;
+		}
+		else
+		{
+			strcpy( cmd_argv[0] , cmd_file) ;
+		}
+
+		cmd_argv[1] = NULL ;
+	}
+
+	return  ml_term_open_pty( term , cmd_path , cmd_argv , env , display) ;
+}
+
+static int
+open_screen_intern(
+	char *  pty
+	)
+{
+	ml_term_t *  term ;
+	x_display_t *  disp ;
+	x_screen_t *  screen ;
+	x_sb_screen_t *  sb_screen ;
+	x_font_manager_t *  font_man ;
+	x_color_manager_t *  color_man ;
+	x_window_t *  root ;
+	mkf_charset_t  usascii_font_cs ;
+	int  usascii_font_cs_changable ;
+	void *  p ;
+	
+	/*
+	 * these are dynamically allocated.
+	 */
+	term = NULL ;
+	disp = NULL ;
+	font_man = NULL ;
+	color_man = NULL ;
+	screen = NULL ;
+	sb_screen = NULL ;
+	root = NULL ;
+
+	if( MAX_SCREENS <= num_of_screens)
+	{
+		return  0 ;
+	}
+
+	if( pty)
+	{
+		if( ( term = ml_get_detached_term( pty)) == NULL)
+		{
+			return  0 ;
+		}
+	}
+	else
+	{
+	#if  0
+		if( ( term = ml_get_detached_term( NULL)) == NULL &&
+			( term = create_term_intern()) == NULL)
+	#else
+		if( ( term = create_term_intern()) == NULL)
+	#endif
+		{
+			return  0 ;
+		}
+	}
+
+	if( ( disp = x_display_open( main_config.disp_name)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " x_display_open failed.\n") ;
+	#endif
+	
+		goto  error ;
+	}
+
+	if( main_config.unicode_font_policy == NOT_USE_UNICODE_FONT ||
+		main_config.iso88591_font_for_usascii)
+	{
+		usascii_font_cs = x_get_usascii_font_cs( ML_ISO8859_1) ;
+		usascii_font_cs_changable = 0 ;
+	}
+	else if( main_config.unicode_font_policy == ONLY_USE_UNICODE_FONT)
+	{
+		usascii_font_cs = x_get_usascii_font_cs( ML_UTF8) ;
+		usascii_font_cs_changable = 0 ;
+	}
+	else
+	{
+		usascii_font_cs = x_get_usascii_font_cs( ml_term_get_encoding( term)) ;
+		usascii_font_cs_changable = 1 ;
+	}
+	
+	if( ( font_man = x_font_manager_new( disp->display ,
+		main_config.font_present , main_config.font_size ,
+		usascii_font_cs , usascii_font_cs_changable ,
+		main_config.use_multi_col_char ,
+		main_config.step_in_changing_font_size)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " x_font_manager_new() failed.\n") ;
+	#endif
+	
+		goto  error ;
+	}
+
+	if( ( color_man = x_color_manager_new( disp->display ,
+				DefaultScreen( disp->display) , &color_custom ,
+				main_config.fg_color , main_config.bg_color ,
+				main_config.cursor_fg_color , main_config.cursor_bg_color)) == NULL)
+	{
+		goto  error ;
+	}
+
+	if( ( screen = x_screen_new( term , font_man , color_man , main_config.tent ,
+			main_config.brightness , main_config.contrast , main_config.gamma ,
+			main_config.fade_ratio , &shortcut ,
+			main_config.screen_width_ratio , main_config.screen_height_ratio ,
+			main_config.xim_open_in_startup , main_config.mod_meta_key ,
+			main_config.mod_meta_mode , main_config.bel_mode ,
+			main_config.receive_string_via_ucs , main_config.pic_file_path ,
+			main_config.use_transbg , main_config.use_vertical_cursor ,
+			main_config.big5_buggy , main_config.conf_menu_path_1 ,
+			main_config.conf_menu_path_2 , main_config.conf_menu_path_3 ,
+			main_config.use_extended_scroll_shortcut ,
+			main_config.borderless , main_config.line_space)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " x_screen_new() failed.\n") ;
+	#endif
+
+		goto  error ;
+	}
+
+	if( ! x_set_system_listener( screen , &system_listener))
+	{
+		goto  error ;
+	}
+
+	if( main_config.use_scrollbar)
+	{
+		if( ( sb_screen = x_sb_screen_new( screen ,
+					main_config.scrollbar_view_name ,
+					main_config.sb_fg_color , main_config.sb_bg_color ,
+					main_config.sb_mode)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " x_sb_screen_new() failed.\n") ;
+		#endif
+
+			goto  error ;
+		}
+
+		root = &sb_screen->window ;
+	}
+	else
+	{
+		root = &screen->window ;
+	}
+
+	if( ! x_window_manager_show_root( &disp->win_man , root ,
+		main_config.x , main_config.y , main_config.geom_hint , main_config.app_name))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " x_window_manager_show_root() failed.\n") ;
+	#endif
+	
+		goto  error ;
+	}
+
+	if( main_config.icon_path)
+	{
+		if( !(disp->win_man.icon) && !(disp->win_man.mask) && !(disp->win_man.cardinal))
+		{
+			x_window_t  dummy ;
+			int  icon_size = 48 ;
+			x_imagelib_load_file( disp->display , main_config.icon_path,
+					      &(disp->win_man.cardinal),
+					      &(disp->win_man.icon),
+					      &(disp->win_man.mask),
+					      &icon_size ,&icon_size) ;
+
+			dummy.my_window = disp->win_man.group_leader ;
+			dummy.display = disp->win_man.display ;
+			x_window_set_icon( &dummy,
+					   disp->win_man.icon,
+					   disp->win_man.mask,
+					   disp->win_man.cardinal) ;
+		}
+		x_window_set_icon( root,
+				   disp->win_man.icon,
+				   disp->win_man.mask,
+				   disp->win_man.cardinal) ;
+
+	}
+
+	if( pty && main_config.cmd_argv)
+	{
+		int  count ;
+		
+		for( count = 0 ; main_config.cmd_argv[count] ; count ++)
+		{
+			ml_term_write( term , main_config.cmd_argv[count] ,
+				strlen( main_config.cmd_argv[count]) , 0) ;
+			ml_term_write( term , " " , 1 , 0) ;
+		}
+
+		ml_term_write( term , "\n" , 1 , 0) ;
+	}
+	else
+	{
+		if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
+			XDisplayString( disp->display) , root->my_window ,
+			main_config.term_type , main_config.use_login_shell))
+		{
+			goto  error ;
+		}
+	}
+
+	if( main_config.init_str)
+	{
+		ml_term_write( term , main_config.init_str , strlen( main_config.init_str) , 0) ;
+	}
+	
+	if( ( p = realloc( screens , sizeof( x_screen_t*) * (num_of_screens + 1))) == NULL)
+	{
+		goto  error ;
+	}
+
+	screens = p ;
+	screens[num_of_screens++] = screen ;
+	
+	return  1 ;
+	
+error:
+	if( font_man)
+	{
+		x_font_manager_delete( font_man) ;
+	}
+
+	if( color_man)
+	{
+		x_color_manager_delete( color_man) ;
+	}
+
+	if( ! root || ! x_window_manager_remove_root( &disp->win_man , root))
+	{
+		/*
+		 * If root is still NULL or is not registered to win_man yet.
+		 */
+		 
+		if( screen)
+		{
+			x_screen_delete( screen) ;
+		}
+
+		if( sb_screen)
+		{
+			x_sb_screen_delete( sb_screen) ;
+		}
+	}
+
+	if( disp)
+	{
+		x_display_close( disp) ;
+	}
+
+	return  0 ;
+}
+
+static int
+close_screen_intern(
+	x_screen_t *  screen
+	)
+{
+	x_window_t *  root ;
+	x_window_manager_t *  win_man ;
+
+	x_screen_detach( screen) ;
+	x_font_manager_delete( screen->font_man) ;
+	x_color_manager_delete( screen->color_man) ;
+
+	root = x_get_root_window( &screen->window) ;
+	win_man = root->win_man ;
+	
+	if( win_man->num_of_roots == 1)
+	{
+		Display *  display_to_close ;
+
+		display_to_close = root->display ;
+		x_window_manager_remove_root( win_man , root) ;
+		x_display_close_2( display_to_close) ;
+	}
+	else
+	{
+		x_window_manager_remove_root( win_man , root) ;
+	}
+
+	return  1 ;
+}
+
+
+/*
+ * callbacks of x_system_event_listener_t
+ */
+ 
+/*
+ * EXIT_PROGRAM shortcut calls this at last.
+ * this is for debugging.
+ */
+#ifdef  KIK_DEBUG
+#include  <kiklib/kik_locale.h>		/* kik_locale_final */
+#endif
+static void
+__exit(
+	void *  p ,
+	int  status
+	)
+{
+#ifdef  KIK_DEBUG
+	x_term_manager_final() ;
+	
+	kik_locale_final() ;
+
+	kik_alloca_garbage_collect() ;
+
+	kik_msg_printf( "reporting unfreed memories --->\n") ;
+	kik_mem_free_all() ;
+#endif
+	
+	if( un_file)
+	{
+		unlink( un_file) ;
+	}
+	
+	exit(status) ;
+}
+
+static void
+open_pty(
+	void *  p ,
+	x_screen_t *  screen ,
+	char *  dev
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < num_of_screens ; count ++)
+	{
+		if( screen == screens[count])
+		{
+			ml_term_t *  new ;
+
+			if( dev)
+			{
+				if( ( new = ml_get_detached_term( dev)) == NULL)
+				{
+					return ;
+				}
+			}
+			else
+			{
+				if( ( new = create_term_intern()) == NULL)
+				{
+					return ;
+				}
+
+				if( ! open_pty_intern( new , main_config.cmd_path , main_config.cmd_argv ,
+					XDisplayString( screen->window.display) ,
+					x_get_root_window( &screen->window)->my_window ,
+					main_config.term_type , main_config.use_login_shell))
+				{
+					return ;
+				}
+			}
+			
+			x_screen_detach( screen) ;
+			x_screen_attach( screen , new) ;
+			
+			return ;
+		}
+	}
+}
+
+static void
+next_pty(
+	void *  p ,
+	x_screen_t *  screen
+	)
+{
+	int  count ;
+	
+	for( count = 0 ; count < num_of_screens ; count ++)
+	{
+		if( screen == screens[count])
+		{
+			ml_term_t *  old ;
+			ml_term_t *  new ;
+
+			if( ( old = x_screen_detach( screen)) == NULL)
+			{
+				return ;
+			}
+
+			if( ( new = ml_next_term( old)) == NULL)
+			{
+				x_screen_attach( screen , old) ;
+			}
+			else
+			{
+				x_screen_attach( screen , new) ;
+			}
+			
+			return ;
+		}
+	}
+}
+
+static void
+prev_pty(
+	void *  p ,
+	x_screen_t *  screen
+	)
+{
+	int  count ;
+	
+	for( count = 0 ; count < num_of_screens ; count ++)
+	{
+		if( screen == screens[count])
+		{
+			ml_term_t *  old ;
+			ml_term_t *  new ;
+
+			if( ( old = x_screen_detach( screen)) == NULL)
+			{
+				return ;
+			}
+			
+			if( ( new = ml_prev_term( old)) == NULL)
+			{
+				x_screen_attach( screen , old) ;
+			}
+			else
+			{
+				x_screen_attach( screen , new) ;
+			}
+			
+			return ;
+		}
+	}
+}
+	
+static void
+pty_closed(
+	void *  p ,
+	x_screen_t *  screen	/* screen->term was already deleted. */
+	)
+{
+	int  count ;
+
+	for( count = num_of_screens - 1 ; count >= 0 ; count --)
+	{
+		if( screen == screens[count])
+		{
+			ml_term_t *  term ;
+			
+			if( ( term = ml_get_detached_term( NULL)) == NULL)
+			{
+				close_screen_intern( screen) ;
+				screens[count] = screens[--num_of_screens] ;
+			}
+			else
+			{
+				x_screen_attach( screen , term) ;
+			}
+
+			return ;
+		}
+	}
+}
+
+static void
+open_screen(
+	void *  p
+	)
+{
+	if( ! open_screen_intern(NULL))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern failed.\n") ;
+	#endif
+	}
+}
+	
+static void
+close_screen(
+	void *  p ,
+	x_screen_t *  screen
+	)
+{
+	int  count ;
+	
+	for( count = 0 ; count < num_of_screens ; count ++)
+	{
+		if( screen == screens[count])
+		{
+			dead_mask |= (1 << count) ;
+			
+			return ;
+		}
+	}
+}
+
+static ml_term_t *
+get_pty(
+	void *  p ,
+	char *  dev
+	)
+{
+	return  ml_get_term( dev) ;
+}
+
+static char *
+pty_list(
+	void *  p
+	)
+{
+	return  ml_get_pty_list() ;
+}
+
+static void
+config_saved(
+	void *  p
+	)
+{
+	kik_conf_t *  conf ;
+	char *  argv[] = { "mlterm" , NULL } ;
+
+	config_final() ;
+
+	if( ( conf = get_full_conf()) == NULL)
+	{
+		return ;
+	}
+
+	config_init( conf , 1 , argv) ;
+
+	kik_conf_delete( conf) ;
+}
+
+
+/*
+ * signal handlers.
+ */
+ 
+static void
+sig_fatal( int  sig)
+{
+#ifdef  DEBUG
+	kik_warn_printf( KIK_DEBUG_TAG "signal %d is received\n" , sig) ;
+#endif
+
+	if( un_file)
+	{
+		unlink( un_file) ;
+	}
+
+	/* reset */
+	signal( sig , SIG_DFL) ;
+	
+	kill( getpid() , sig) ;
+}
+
+
+static int
+start_daemon(void)
+{
+	pid_t  pid ;
+	int  sock_fd ;
+	struct sockaddr_un  servaddr ;
+	char * const path = servaddr.sun_path ;
+
+	memset( &servaddr , 0 , sizeof( servaddr)) ;
+	servaddr.sun_family = AF_LOCAL ;
+	kik_snprintf( path , sizeof( servaddr.sun_path) - 1 , "/tmp/.mlterm-%d.unix" , getuid()) ;
+
+	if( ( sock_fd = socket( AF_LOCAL , SOCK_STREAM , 0)) < 0)
+	{
+		return  -1 ;
+	}
+
+	while( bind( sock_fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) < 0)
+	{
+		if( errno == EADDRINUSE)
+		{
+			if( connect( sock_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
+			{
+				close( sock_fd) ;
+				
+				kik_msg_printf( "daemon is already running.\n") ;
+				
+				return  -1 ;
+			}
+
+			kik_msg_printf( "removing stale lock file %s.\n" , path) ;
+			
+			if( unlink( path) == 0)
+			{
+				continue ;
+			}
+		}
+		else
+		{
+			close( sock_fd) ;
+
+			kik_msg_printf( "failed to lock file %s: %s\n" , path , strerror(errno)) ;
+
+			return  -1 ;
+		}
+	}
+
+	pid = fork() ;
+
+	if( pid == -1)
+	{
+		return  -1 ;
+	}
+
+	if( pid != 0)
+	{
+		exit(0) ;
+	}
+	
+	/*
+	 * child
+	 */
+
+	/*
+	 * This process becomes a session leader and purged from control terminal.
+	 */
+	setsid() ;
+
+	/*
+	 * SIGHUP signal when the child process exits must not be sent to
+	 * the grandchild process.
+	 */
+	signal( SIGHUP , SIG_IGN) ;
+
+	pid = fork() ;
+
+	if( pid == -1)
+	{
+		exit(1) ;
+	}
+
+	if( pid != 0)
+	{
+		exit(0) ;
+	}
+
+	/*
+	 * grandchild
+	 */
+
+	if( listen( sock_fd , 1024) < 0)
+	{
+		close( sock_fd) ;
+		unlink( path) ;
+		
+		return  -1 ;
+	}
+
+	un_file = strdup( path) ;
+
+	return  sock_fd ;
+}
+
 static void
 client_connected(void)
 {
@@ -2118,7 +2184,7 @@ parse_end:
 			pty = NULL ;
 		}
 
-		if( ( conf = get_min_conf( argc , argv)) == NULL)
+		if( ( conf = get_min_conf()) == NULL)
 		{
 			goto  error ;
 		}
@@ -2306,39 +2372,80 @@ x_term_manager_init(
 	)
 {
 	kik_conf_t *  conf ;
+	char *  value ;
 	int  use_xim ;
 	u_int  min_font_size ;
 	u_int  max_font_size ;
 	char *  rcpath ;
-	char *  value ;
 
-	if( ( conf = get_min_conf( argc , argv)) == NULL)
+	if( ! x_color_custom_init( &color_custom))
 	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " x_color_custom_init failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+	
+	if( ( rcpath = kik_get_sys_rc_path( "mlterm/color")))
+	{
+		x_color_custom_read_conf( &color_custom , rcpath) ;
+		free( rcpath) ;
+	}
+	
+	if( ( rcpath = kik_get_user_rc_path( "mlterm/color")))
+	{
+		x_color_custom_read_conf( &color_custom , rcpath) ;
+		free( rcpath) ;
+	}
+
+	if( ! x_shortcut_init( &shortcut))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " x_shortcut_init failed.\n") ;
+	#endif
+	
 		return  0 ;
 	}
 
-	kik_conf_add_opt( conf , '@' , "screens" , 0 , "startup_screens" ,
-		"number of screens to open in start up [1]") ;
-	kik_conf_add_opt( conf , 'h' , "help" , 1 , "help" ,
-		"show this help message") ;
-	kik_conf_add_opt( conf , 'v' , "version" , 1 , "version" ,
-		"show version message") ;
-	kik_conf_add_opt( conf , 'P' , "ptys" , 0 , "startup_ptys" ,
-		"number of ptys to open in start up [1]") ;
-	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , 
-		"font size range for GUI configurator [6-30]") ;
-	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
-		"word-separating characters for double-click [,.:;/@]") ;
-	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
-		"compose dec special font [false]") ;
-#ifdef  ANTI_ALIAS
-	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
-		"use CP932-Unicode mapping table for JISX0208 [false]") ;
-#endif
-	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
-		"use XIM (X Input Method) [true]") ;
-	kik_conf_add_opt( conf , 'j' , "daemon" , 0 , "daemon_mode" ,
-		"start as a daemon [none/blend/genuine]") ;
+	if( ( rcpath = kik_get_sys_rc_path( "mlterm/key")))
+	{
+		x_shortcut_read_conf( &shortcut , rcpath) ;
+		free( rcpath) ;
+	}
+	
+	if( ( rcpath = kik_get_user_rc_path( "mlterm/key")))
+	{
+		x_shortcut_read_conf( &shortcut , rcpath) ;
+		free( rcpath) ;
+	}
+
+	if( ! x_termcap_init( &termcap))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " x_termcap_init failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
+	if( ( rcpath = kik_get_sys_rc_path( "mlterm/termcap")))
+	{
+		x_termcap_read_conf( &termcap , rcpath) ;
+		free( rcpath) ;
+	}
+	
+	if( ( rcpath = kik_get_user_rc_path( "mlterm/termcap")))
+	{
+		x_termcap_read_conf( &termcap , rcpath) ;
+		free( rcpath) ;
+	}
+
+
+	if( ( conf = get_full_conf()) == NULL)
+	{
+		return  0 ;
+	}
 	
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
 	{
@@ -2347,9 +2454,7 @@ x_term_manager_init(
 		return  0 ;
 	}
 
-	/*
-	 * daemon
-	 */
+	config_init( conf , argc , argv) ;
 
 	is_genuine_daemon = 0 ;
 	sock_fd = -1 ;
@@ -2423,24 +2528,6 @@ x_term_manager_init(
 		}
 	}
 
-	/*
-	 * conf_menu_path_3 is set config_init().
-	 * conf_menu_path_[12] aren't changable.
-	 */	
-	main_config.conf_menu_path_1 = NULL ;
-
-	if( ( value = kik_conf_get_value( conf , "conf_menu_path_1")))
-	{
-		main_config.conf_menu_path_1 = strdup( value) ;
-	}
-
-	main_config.conf_menu_path_2 = NULL ;
-
-	if( ( value = kik_conf_get_value( conf , "conf_menu_path_2")))
-	{
-		main_config.conf_menu_path_2 = strdup( value) ;
-	}
-
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -2456,81 +2543,10 @@ x_term_manager_init(
 		ml_use_cp932_ucs_for_xft() ;
 	}
 #endif
-	
-	if( ! x_color_custom_init( &color_custom))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_color_custom_init failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-	
-	if( ( rcpath = kik_get_sys_rc_path( "mlterm/color")))
-	{
-		x_color_custom_read_conf( &color_custom , rcpath) ;
-		free( rcpath) ;
-	}
-	
-	if( ( rcpath = kik_get_user_rc_path( "mlterm/color")))
-	{
-		x_color_custom_read_conf( &color_custom , rcpath) ;
-		free( rcpath) ;
-	}
-
-	if( ! x_shortcut_init( &shortcut))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_shortcut_init failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	if( ( rcpath = kik_get_sys_rc_path( "mlterm/key")))
-	{
-		x_shortcut_read_conf( &shortcut , rcpath) ;
-		free( rcpath) ;
-	}
-	
-	if( ( rcpath = kik_get_user_rc_path( "mlterm/key")))
-	{
-		x_shortcut_read_conf( &shortcut , rcpath) ;
-		free( rcpath) ;
-	}
-
-	if( ! x_termcap_init( &termcap))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_termcap_init failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	if( ( rcpath = kik_get_sys_rc_path( "mlterm/termcap")))
-	{
-		x_termcap_read_conf( &termcap , rcpath) ;
-		free( rcpath) ;
-	}
-	
-	if( ( rcpath = kik_get_user_rc_path( "mlterm/termcap")))
-	{
-		x_termcap_read_conf( &termcap , rcpath) ;
-		free( rcpath) ;
-	}
-	
-	/*
-	 * others
-	 */
 
 	num_of_startup_screens = 1 ;
 	
-#if  0
-	if( ( value = kik_conf_get_value( conf , "ptys")))
-#else
 	if( ( value = kik_conf_get_value( conf , "startup_screens")))
-#endif
 	{
 		u_int  n ;
 		
@@ -2589,9 +2605,8 @@ x_term_manager_init(
 	#endif
 	}
 
-	config_init( conf , argc , argv) ;
-
 	kik_conf_delete( conf) ;
+
 
 	if( *main_config.disp_name)
 	{
@@ -2619,6 +2634,7 @@ x_term_manager_init(
 	system_listener.pty_closed = pty_closed ;
 	system_listener.get_pty = get_pty ;
 	system_listener.pty_list = pty_list ;
+	system_listener.config_saved = config_saved ;
 
 	signal( SIGHUP , sig_fatal) ;
 	signal( SIGINT , sig_fatal) ;

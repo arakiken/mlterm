@@ -561,6 +561,56 @@ ml_term_get_cursor_line(
 	return  ml_screen_get_cursor_line( term->screen) ;
 }
 
+/*
+ * Not implemented yet.
+ */
+#if  0
+int
+ml_term_set_modified_region(
+	ml_term_t *  term ,
+	int  beg_char_index ,
+	int  beg_row ,
+	u_int  nchars ,
+	u_int  nrows
+	)
+{
+	return  0 ;
+}
+#endif
+
+/*
+ * Not used.
+ */
+#if  0
+int
+ml_term_set_modified_region_in_screen(
+	ml_term_t *  term ,
+	int  beg_char_index ,
+	int  beg_row ,
+	u_int  nchars ,
+	u_int  nrows
+	)
+{
+	int  row ;
+	ml_line_t *  line ;
+
+	ml_screen_logical( term->screen) ;
+
+	for( row = beg_row ; row < beg_row + nrows ; row ++)
+	{
+		if( ( line = ml_screen_get_line_in_screen( term->screen , row)))
+		{
+			ml_line_set_modified( line , beg_char_index , beg_char_index + nchars - 1) ;
+		}
+	}
+
+	/* ml_screen_render( term->screen) ; */
+	ml_screen_visual( term->screen) ;
+
+	return  1 ;
+}
+#endif
+
 int
 ml_term_set_modified_lines(
 	ml_term_t *  term ,
@@ -614,7 +664,7 @@ ml_term_set_modified_lines_in_screen(
 }
 
 int
-ml_term_set_modified_all(
+ml_term_set_modified_all_lines_in_screen(
 	ml_term_t *  term
 	)
 {
