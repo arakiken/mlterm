@@ -72,16 +72,16 @@ typedef struct  x_window
 
 	GC  gc ;	/* for generic use */
 	GC  ch_gc ;	/* for drawing string */
-	
+
 	u_long  fg_color ;
 	u_long  bg_color ;
 
 	x_window_manager_ptr_t  win_man ;
-	
+
 	struct x_window *  parent ;
 	struct x_window **  children ;
 	u_int  num_of_children ;
-	
+
 	u_int  cursor_shape ;
 
 	long  event_mask ;
@@ -96,10 +96,10 @@ typedef struct  x_window
 	u_int  base_height ;
 	u_int  width_inc ;
 	u_int  height_inc ;
-	
+
 	/* actual window size is +margin on north/south/east/west */
 	u_int  margin ;
-	
+
 	/* used by x_xim */
 	x_xic_ptr_t  xic ;
 	x_xim_ptr_t  xim ;
@@ -111,8 +111,8 @@ typedef struct  x_window
 	XButtonEvent  prev_button_press_event ;
 
 	x_picture_modifier_t *  pic_mod ;
-	
-#ifndef  DEISABLE_XDND
+
+#ifndef  DISABLE_XDND
 	/*
 	 * XDND
 	 */
@@ -127,7 +127,7 @@ typedef struct  x_window
 	/*
 	 * flags etc.
 	 */
-	 
+
 	int8_t  use_pixmap ;
 	int8_t  wall_picture_is_set ;
 	int8_t  is_transparent ;
@@ -157,7 +157,7 @@ typedef struct  x_window
 	void (*utf8_selection_notified)( struct x_window * , u_char * , size_t) ;
 	void (*set_xdnd_config)( struct x_window * , char * ,  char * , char * ) ;
 	void (*window_deleted)( struct x_window *) ;
-	
+
 } x_window_t ;
 
 
@@ -250,7 +250,7 @@ int  x_window_scroll_downward_region( x_window_t *  win , int  boundary_start , 
 	u_int  height) ;
 
 int  x_window_scroll_leftward( x_window_t *  win , u_int  width) ;
-	
+
 int  x_window_scroll_leftward_region( x_window_t *  win , int  boundary_start , int  boundary_end ,
 	u_int  width) ;
 
@@ -288,7 +288,7 @@ int  x_window_xft_draw_string32( x_window_t *  win , x_font_t *  font ,
 int  x_window_draw_rect_frame( x_window_t *  win , int  x1 , int  y1 , int  x2 , int  y2) ;
 
 int  x_window_set_selection_owner( x_window_t *  win , Time  time) ;
-	
+
 int  x_window_string_selection_request( x_window_t *  win , Time  time) ;
 
 int  x_window_xct_selection_request( x_window_t *  win , Time  time) ;
