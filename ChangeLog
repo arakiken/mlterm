@@ -1,5 +1,10 @@
 2003-09-25  Araki Ken  <arakiken@users.sf.net>
 
+	* x_screen.c(draw_line): RTL lines shown incorrectly when variable fonts
+	  used and region being selected.
+
+2003-09-25  Araki Ken  <arakiken@users.sf.net>
+
 	* ml_char.[ch]: Supported little endian machines in 64bit.
 
 2003-09-21  Seiichi SATO <ssato@sh.rim.or.jp>

@@ -459,7 +459,8 @@ xft_draw_str(
 					x_window_set_fg_color( &screen->window ,
 						x_get_color( screen->color_man , fg_color)->pixel) ;
 					x_window_fill( &screen->window ,
-						x , y + height_to_baseline - bottom_margin + 1, current_width - x , (height_to_baseline>>4) +1 ) ;
+						x , y + height_to_baseline - bottom_margin + 1,
+						current_width - x , (height_to_baseline>>4) +1 ) ;
 				}
 			}
 
@@ -886,7 +887,8 @@ x_draw_str(
 					x_window_set_fg_color( &screen->window ,
 						x_get_color( screen->color_man , fg_color)->pixel) ;
 					x_window_fill( &screen->window ,
-						x , y + height_to_baseline - bottom_margin + 1, current_width - x , (height_to_baseline>>4) + 1) ;
+						x , y + height_to_baseline - bottom_margin + 1,
+						current_width - x , (height_to_baseline>>4) + 1) ;
 				}
 			}
 
@@ -1286,7 +1288,9 @@ draw_line(
 		int  beg_char_index ;
 		int  beg_x ;
 		u_int  num_of_redrawn ;
+		int  is_cleared_to_end ;
 		ml_line_t *  orig ;
+		x_font_present_t  present ;
 
 		if( screen->term->shape)
 		{
@@ -1299,31 +1303,55 @@ draw_line(
 		{
 			orig = NULL ;
 		}
+
+		present = x_get_font_present( screen->font_man) ;
 		
 		beg_char_index = ml_line_get_beg_of_modified( line) ;
 		num_of_redrawn = ml_line_get_num_of_redrawn_chars( line ,
-				(x_get_font_present( screen->font_man) & FONT_VAR_WIDTH) == FONT_VAR_WIDTH) ;
+					(present & FONT_VAR_WIDTH) == FONT_VAR_WIDTH) ;
+		is_cleared_to_end = ml_line_is_cleared_to_end( line) ;
+
+		if( present & FONT_VAR_WIDTH)
+		{
+			if( ml_line_is_rtl( line))
+			{
+				num_of_redrawn += beg_char_index ; 
+				beg_char_index = 0 ;
+			}
+			
+			is_cleared_to_end = 1 ;
+		}
 		
 		/* don't use _with_shape function since line is already shaped */
 		beg_x = convert_char_index_to_x( screen , line , beg_char_index) ;
 
-		if( ml_line_is_cleared_to_end( line) ||
-			( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
+		if( is_cleared_to_end)
 		{
 			if( ml_line_is_rtl( line))
 			{
-				x_window_clear( &screen->window , 0 , y ,
-					screen->window.width , x_line_height( screen)) ;
+				x_window_clear( &screen->window , 0 , y , beg_x , x_line_height( screen)) ;
+				
+				if( ! draw_str( screen , ml_char_at( line , beg_char_index) ,
+					num_of_redrawn , beg_x , y ,
+					x_line_height( screen) ,
+					x_line_height_to_baseline( screen) ,
+					x_line_top_margin( screen) ,
+					x_line_bottom_margin( screen)))
+				{
+					return  0 ;
+				}
 			}
-			
-			if( ! draw_str_to_eol( screen , ml_char_at( line , beg_char_index) ,
-				num_of_redrawn , beg_x , y ,
-				x_line_height( screen) ,
-				x_line_height_to_baseline( screen) ,
-				x_line_top_margin( screen) ,
-				x_line_bottom_margin( screen)))
+			else
 			{
-				return  0 ;
+				if( ! draw_str_to_eol( screen , ml_char_at( line , beg_char_index) ,
+					num_of_redrawn , beg_x , y ,
+					x_line_height( screen) ,
+					x_line_height_to_baseline( screen) ,
+					x_line_top_margin( screen) ,
+					x_line_bottom_margin( screen)))
+				{
+					return  0 ;
+				}
 			}
 		}
 		else
