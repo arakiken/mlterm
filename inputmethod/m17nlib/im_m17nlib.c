@@ -47,7 +47,10 @@
 #define  IM_M17NLIB_DEBUG 1
 #endif
 
-#define  MAX_BYTES_PER_CHAR  4	/* FIXME */
+#define  MAX_BYTES_PER_CHAR	4	/* FIXME */
+#define  MAX_BYTES_ESC_SEQUEACE	5	/* FIXME */
+
+#define  MAX_BYTES(n) (((n) * MAX_BYTES_PER_CHAR) + MAX_BYTES_ESC_SEQUEACE + 1)
 
 typedef struct im_m17nlib
 {
@@ -313,7 +316,7 @@ set_candidate(
 		return ;
 	}
 
-	if( ! ( buf = alloca( num_of_chars * MAX_BYTES_PER_CHAR + 1)))
+	if( ! ( buf = alloca( MAX_BYTES(num_of_chars))))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG , " alloca failed\n") ;
@@ -321,17 +324,21 @@ set_candidate(
 		return ;
 	}
 
+	mconv_reset_converter( m17nlib->mconverter) ;
 	mconv_rebind_buffer( m17nlib->mconverter , buf ,
-			     num_of_chars * MAX_BYTES_PER_CHAR + 1) ;
+			     MAX_BYTES(num_of_chars)) ;
 	filled_len = mconv_encode( m17nlib->mconverter , candidate) ;
 
-	if( filled_len > 0)
+	if( filled_len == -1)
 	{
-		buf[filled_len] = '\0' ;
-		(*m17nlib->im.cand_screen->set)( m17nlib->im.cand_screen ,
-						 m17nlib->parser_term ,
-						 buf , idx) ;
+		kik_error_printf( "Could not convert the candidate string to terminal encoding\n") ;
+		return ;
 	}
+
+	buf[filled_len] = '\0' ;
+	(*m17nlib->im.cand_screen->set)( m17nlib->im.cand_screen ,
+					 m17nlib->parser_term ,
+					 buf , idx) ;
 }
 
 static void
@@ -379,7 +386,7 @@ preedit_changed(
 		goto  draw ;
 	}
 
-	if( ! ( buf = alloca( num_of_chars  * MAX_BYTES_PER_CHAR)))
+	if( ! ( buf = alloca( MAX_BYTES(num_of_chars))))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG , " alloca failed\n") ;
@@ -387,13 +394,15 @@ preedit_changed(
 		return ;
 	}
 
-	mconv_rebind_buffer( m17nlib->mconverter ,
-			     buf , num_of_chars * MAX_BYTES_PER_CHAR) ;
+	mconv_reset_converter( m17nlib->mconverter) ;
+	mconv_rebind_buffer( m17nlib->mconverter , buf ,
+			     MAX_BYTES(num_of_chars)) ;
 	filled_len = mconv_encode( m17nlib->mconverter ,
 				   m17nlib->input_context->preedit) ;
 
 	if( filled_len == -1)
 	{
+		kik_error_printf( "Could not convert the preedit string to terminal encoding\n") ;
 		return ;
 	}
 
@@ -761,7 +770,7 @@ key_event(
 
 		if( ( num_of_chars = mtext_len( text)))
 		{
-			if( ! ( buf = alloca( num_of_chars * MAX_BYTES_PER_CHAR + 1)))
+			if( ! ( buf = alloca( MAX_BYTES(num_of_chars))))
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG , " alloca failed\n") ;
@@ -771,12 +780,17 @@ key_event(
 
 		if( buf)
 		{
+			mconv_reset_converter( m17nlib->mconverter) ;
 			mconv_rebind_buffer(
 					m17nlib->mconverter , buf ,
-					num_of_chars * MAX_BYTES_PER_CHAR + 1) ;
+					MAX_BYTES(num_of_chars)) ;
 			filled_len = mconv_encode( m17nlib->mconverter , text) ;
 
-			if( filled_len > 0)
+			if( filled_len == -1)
+			{
+				kik_error_printf( "Could not convert the committed string to terminal encoding\n") ;
+			}
+			else
 			{
 				(*m17nlib->im.listener->write_to_term)(
 						m17nlib->im.listener->self ,
@@ -990,7 +1004,16 @@ im_new(
 		goto  error ;
 	}
 
-	encoding_name = (*mlterm_syms->ml_get_char_encoding_name)( term_encoding) ;
+	if( term_encoding == ML_EUCJISX0213)
+	{
+		kik_msg_printf( "EUC-JP is used instead of EUC-JISX0213\n");
+		encoding_name = (*mlterm_syms->ml_get_char_encoding_name)( ML_EUCJP) ;
+	}
+	else
+	{
+		encoding_name = (*mlterm_syms->ml_get_char_encoding_name)( term_encoding) ;
+	}
+
 
 	if( ( encoding_sym = mconv_resolve_coding( msymbol( encoding_name))) == Mnil)
 	{

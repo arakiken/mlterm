@@ -1,5 +1,12 @@
 2004-10-26 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* inputmethod/m17nlib/im_m17nlib.c:
+	  - use EUC-JP instead of EUC-JISX0213 for the internal code convertion.
+	  - fixed a segfault with ISO-2022-JP[123].
+	  - show error messages if code convertion fail.
+
+2004-10-26 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* inputmethod/iiimf/im_iiimf.c, inputmethod/m17nlib/im_m17nlib.c,
 	tool/mlconfig/po/de.po, tool/mlconfig/po/mlconfig.pot,
 	tool/mlconfig/po/zh_TW.po, xwindow/x_im.c:
