@@ -7,8 +7,11 @@
 #define  _XOPEN_SOURCE 500
 
 /* When _XOPEN_SOURCE is defined, 
- * u_int/u_long/... won't be defined without _BSD_SOURCE */
+ * u_int/u_long/... may not be defined without _BSD_SOURCE */
 #define  _BSD_SOURCE 1
+
+/* for solaris */
+#define __EXTENSIONS__
 
 #include  "kik_pty.h"
 

@@ -3,6 +3,8 @@
 	* x_imagelib_gdk.c: When gtk2 is choosed(-with-imagelib=gdk-pixbuf2),
 	use g_object_unref insted of (deprecated)gdk_pixbuf_unref.
 
+	* kik_pty_streams.c: #define __EXTENSIONS__ for solaris.
+ 
 2004-01-14  Tomohiro KUBOTA  <kubota@debian.org>
 
 	* mlconfig lists scrollbars in user's configuration directory
