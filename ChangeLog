@@ -1,3 +1,7 @@
+2004-07-11 MINAMI Hirokazu <minami@mistfall.net>
+
+	* doc/term/mlterm.*: changed some sequences to be rxvt compatible. 
+
 2004-07-07 Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* inputmethod/uim/Makefile.in: Added X_CFLAGS.
