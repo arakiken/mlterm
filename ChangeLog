@@ -1,3 +1,9 @@
+2004-05-23 MINAMI Hirokazu <minami@mistfall.net>
+
+	* x_screen.c: fixes for underlines placement.
+	- shouldn't displaced by bottom_margin.
+	- use the same bottom_margin to draw a cursor.
+
 2004-05-16 MINAMI Hirokazu <minami@mistfall.net>
 
 	* x_window.c: use ct.encoding insted of xselection.property 

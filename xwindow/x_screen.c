@@ -462,8 +462,8 @@ xft_draw_str(
 				{
 					x_window_fill_with( &screen->window ,
 						x_get_color( screen->color_man , fg_color)->pixel ,
-						x , y + height_to_baseline - bottom_margin + 1,
-						current_width - x , (height_to_baseline>>4) +1 ) ;
+						x , y + height_to_baseline ,
+						current_width - x , ((height_to_baseline - bottom_margin)>>4) +1 ) ;
 				}
 			}
 
@@ -889,8 +889,8 @@ x_draw_str(
 				{
 					x_window_fill_with( &screen->window ,
 						x_get_color( screen->color_man , fg_color)->pixel ,
-						x , y + height_to_baseline - bottom_margin + 1,
-						current_width - x , (height_to_baseline>>4) + 1) ;
+						x , y + height_to_baseline,
+						current_width - x , ((height_to_baseline - bottom_margin)>>4) +1 ) ;
 				}
 			}
 
@@ -1467,14 +1467,18 @@ draw_cursor(
 		screen->window.wall_picture_is_set = 0 ;
 		draw_str( screen , &ch , 1 , x , y ,
 			x_line_height( screen) ,
-			x_line_height_to_baseline( screen) , 0 , 0) ;
+			x_line_height_to_baseline( screen) ,
+			x_line_top_margin( screen) ,
+			x_line_bottom_margin( screen));
 		screen->window.wall_picture_is_set = 1 ;
 	}
 	else
 	{
 		draw_str( screen , &ch , 1 , x , y ,
 			x_line_height( screen) ,
-			x_line_height_to_baseline( screen) , 0 , 0) ;
+			x_line_height_to_baseline( screen) ,
+			x_line_top_margin( screen) ,
+			x_line_bottom_margin( screen));
 	}
 
 	if( screen->is_focused)
