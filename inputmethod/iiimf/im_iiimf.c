@@ -1095,12 +1095,21 @@ status_change(
 	u_char *  str ;
 	int  x ;
 	int  y ;
+	int  on ;
 
 #ifdef  IM_IIIMF_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "\n");
 #endif
 
-	if( iiimcf_get_status_text( iiimf->context , &iiimcf_text) != IIIMF_STATUS_SUCCESS)
+	if( iiimcf_get_current_conversion_mode( iiimf->context , &on) != IIIMF_STATUS_SUCCESS)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " Cound not get the current mode.\n") ;
+	#endif
+		return ;
+	}
+
+	if( iiimcf_get_status_text( iiimf->context , &iiimcf_text) != IIIMF_STATUS_SUCCESS || ! on)
 	{
 		if( iiimf->im.stat_screen)
 		{

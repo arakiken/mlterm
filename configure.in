@@ -158,9 +158,11 @@ xft)
 		AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
 		AA_LIBS="-lXft ${AA_LIBS}"
 	fi
+	type_engines_result="$type_engines_result xft"
 	;;
 xcore)
 	AA_CFLAGS="-DUSE_TYPE_XCORE ${AA_CFLAGS}"
+	type_engines_result="$type_engines_result xcore"
 	;;
 *)
 	echo "${type_engine} is unknown type engine."
@@ -248,6 +250,7 @@ mlconfig)
 	if test "${gtk_config}" = "yes" ; then
 		MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
 		OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
+		tools_result="$tools_result $tool"
 	else
 		echo ""
 		echo "** WARNING  **"
@@ -259,6 +262,7 @@ mlterm-menu)
 	if test "${gtk_config}" = "yes" ; then
 		MAKE_DIRS="contrib/tool/mlterm-menu ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
+		tools_result="$tools_result $tool"
 	else
 		echo ""
 		echo "** WARNING  **"
@@ -269,21 +273,26 @@ mlterm-menu)
 mlclient)
 	MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
 	OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
+	tools_result="$tools_result $tool"
 	;;
 w3mmlconfig)
 	MAKE_DIRS="tool/w3mmlconfig ${MAKE_DIRS}"
+	tools_result="$tools_result $tool"
 	;;
 mlcc)
 	MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
 	OUTPUT_FILES="contrib/tool/mlcc/Makefile ${OUTPUT_FILES}"
+	tools_result="$tools_result $tool"
 	;;
 mlmenu)
 	MAKE_DIRS="tool/mlmenu ${MAKE_DIRS}"
 	OUTPUT_FILES="tool/mlmenu/Makefile ${OUTPUT_FILES}"
+	tools_result="$tools_result $tool"
 	;;
 mlterm-zoom)
 	MAKE_DIRS="contrib/tool/mlterm-zoom ${MAKE_DIRS}"
 	OUTPUT_FILES="contrib/tool/mlterm-zoom/Makefile ${OUTPUT_FILES}"
+	tools_result="$tools_result $tool"
 	;;
 *)
 	echo "${tool} is unknown tool."
@@ -446,6 +455,7 @@ sample)
 			DL_LIBS="-dlopen \$(top_builddir)/scrollbar/sample/lib$name.la ${DL_LIBS}"
 		done
 	fi
+	scrollbars_result="$scrollbars_result $scrollbar"
 	;;
 extra)
 	MAKE_DIRS="contrib/scrollbar/extra ${MAKE_DIRS}"
@@ -455,6 +465,7 @@ extra)
 			DL_LIBS="-dlopen \$(top_builddir)/contrib/scrollbar/extra/lib$name.la ${DL_LIBS}"
 		done
 	fi
+	scrollbars_result="$scrollbars_result $scrollbar"
 	;;
 pixmap_engine)
 	if test "x$allow_undefined_flag" = "xunsupported" ; then
@@ -473,6 +484,7 @@ pixmap_engine)
 		else
 			DL_LIBS="-export-dynamic"
 		fi
+		scrollbars_result="$scrollbars_result $scrollbar"
 	else
 		echo ""
 		echo "To use pixmap_engine for scrollbar, you will need the image library such as"
@@ -578,12 +590,11 @@ echo -n "Optimization for redrawing a line : "
 echo -n "BiDi rendering (Fribidi)          : "
   if test "x$fribidi_config" = xyes ; then echo "yes" ; else echo "no" ; fi
 echo "ISCII rendering (libind)          : $ind"
-echo -n "External tools                    : "
-  echo `echo "$tools" | sed 's/,/ /g'`
+echo "External tools                    :$tools_result"
 echo "Image library                     : $with_imagelib"
 echo -n "utmp support                      : "
   if test x$utmp = xyes ; then echo "yes" ; else echo "no" ; fi
-echo "Type engine                       : $type_engines"
+echo "Type engines                      :$type_engines_result"
 echo -n "DnD                               : "
   if test x$enable_dnd = xno ; then echo "no" ; else echo "yes" ; fi
 echo -n "Input Methods                     : XIM "
@@ -592,7 +603,6 @@ echo -n "Input Methods                     : XIM "
   if test x$enable_iiimf = xyes ; then echo -n "IIIMF " ; fi
   if test x$enable_m17nlib = xyes ; then echo -n "m17nlib " ; fi
 echo
-echo -n "Scrollbars                        : simple "
-  echo `echo "$scrollbars" | sed 's/,/ /g'`
+echo "Scrollbars                        : simple${scrollbars_result}"
 echo
 

@@ -1,3 +1,10 @@
+2004-10-17 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/iiimf/im_iiimf.c: hide a status window when conversion
+	  mode is off.
+
+	* configure.in: minor cleanups.
+
 2004-10-17 MINAMI Hirokazu <minami@mistfall.net>
 
 	* doc/term/mlterm.tc: removed.
