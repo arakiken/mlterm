@@ -14,6 +14,10 @@
 #define  ROW_IN_LOGS( model , row) \
 	( ml_get_num_of_logged_lines( &(model)->logs) + row)
 
+#if  1
+#define  EXIT_BS_AT_BOTTOM
+#endif
+
 
 /* --- static variables --- */
 
@@ -1057,11 +1061,18 @@ ml_screen_backscroll_to(
 	{
 		if( ( line = ml_screen_get_line_in_screen( screen , count)) == NULL)
 		{
-			return  0 ;
+			break ;
 		}
 
 		ml_line_set_modified_all( line) ;
 	}
+
+#ifdef  EXIT_BS_AT_BOTTOM
+	if( screen->backscroll_rows == 0)
+	{
+		ml_exit_backscroll_mode( screen) ;
+	}
+#endif
 
 	return  1 ;
 }
@@ -1114,6 +1125,13 @@ ml_screen_backscroll_upward(
 		ml_line_set_modified_all( line) ;
 	}
 	
+#ifdef  EXIT_BS_AT_BOTTOM
+	if( screen->backscroll_rows == 0)
+	{
+		ml_exit_backscroll_mode( screen) ;
+	}
+#endif
+
 	return  1 ;
 }
 

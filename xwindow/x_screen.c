@@ -2425,7 +2425,8 @@ config_menu(
 		DefaultRootWindow( screen->window.display) , x , y ,
 		&global_x , &global_y , &child) ;
 
-	ml_term_start_config_menu( screen->term , NULL , global_x , global_y) ;
+	ml_term_start_config_menu( screen->term , NULL , global_x , global_y ,
+		DisplayString(screen->window.display)) ;
 }
 
 static int

@@ -176,7 +176,8 @@ int  ml_term_set_app_cursor_keys( ml_term_t *  term , int  flag) ;
 
 int  ml_term_is_app_cursor_keys( ml_term_t *  term) ;
 
-int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path , int  x , int  y) ;
+int  ml_term_start_config_menu( ml_term_t *  term ,
+	char *  cmd_path , int  x , int  y , char *  display) ;
 
 
 #endif

@@ -1,5 +1,13 @@
 2003-2-11 Araki Ken <arakiken@users.sf.net>
 
+	* Backscroll mode is automatically exitted if screen is scrolled to the bottom.
+	  (Thanks to Murase Masaki san)
+	* Mlconfig appears in the correct display even if it is called from the window
+	  whose display is different from the default.
+	  (Thanks to Minami Hirokazu san and Nakada Nobuyoshi san)
+
+2003-2-11 Araki Ken <arakiken@users.sf.net>
+
 	* mlclient wouldn't die until the new window which mlclient created dies. Fixed.
 	  (Thanks to Nanashi san)
 

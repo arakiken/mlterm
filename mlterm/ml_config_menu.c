@@ -8,6 +8,7 @@
 #include  <unistd.h>		/* fork */
 #include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 
 
 #ifndef  LIBEXECDIR
@@ -66,6 +67,7 @@ ml_config_menu_start(
 	char *  cmd_path ,
 	int  x ,
 	int  y ,
+	char *  display ,
 	int  pty_fd
 	)
 {
@@ -94,9 +96,8 @@ ml_config_menu_start(
 	{
 		/* child process */
 
-		char *  args[4] ;
-		char  geom_x[10] ;
-		char  geom_y[10] ;
+		char *  args[6] ;
+		char  geom[2 + DIGIT_STR_LEN(int)*2 + 1] ;
 
 		if( cmd_path == NULL)
 		{
@@ -105,13 +106,15 @@ ml_config_menu_start(
 
 		args[0] = cmd_path ;
 		
-		sprintf( geom_x , "%d" , x) ;
-		sprintf( geom_y , "%d" , y) ;
-		
-		args[1] = geom_x ;
-		args[2] = geom_y ;
+		args[1] = "--display" ;
+		args[2] = display ;
 
-		args[3] = NULL ;
+		sprintf( geom , "+%d+%d" , x , y) ;
+		
+		args[3] = "--geometry" ;
+		args[4] = geom ;
+		
+		args[5] = NULL ;
 
 		close( fds[1]) ;
 

@@ -825,10 +825,11 @@ ml_term_start_config_menu(
 	ml_term_t *  term ,
 	char *  cmd_path ,
 	int  x ,
-	int  y
+	int  y ,
+	char *  display
 	)
 {
-	ml_config_menu_start( &term->config_menu , cmd_path , x , y , term->pty->slave) ;
+	ml_config_menu_start( &term->config_menu , cmd_path , x , y , display, term->pty->slave) ;
 	
 	return  1 ;
 }

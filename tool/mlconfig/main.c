@@ -49,7 +49,6 @@ static GtkWidget *  use_dynamic_comb_check ;
 static GtkWidget *  use_multi_col_char_check ;
 static GtkWidget *  use_bidi_check ;
 static GtkWidget *  receive_string_via_ucs_check ;
-static GtkWidget *  is_tp_check ;
 
 
 /* --- static functions --- */
@@ -696,6 +695,17 @@ main(
 
 	bindtextdomain( "mlconfig" , LOCALEDIR) ;
 	textdomain( "mlconfig") ;
+
+#ifdef  __DEBUG
+	{
+		int  count ;
+
+		for( count = 0 ; count < argc ; count ++)
+		{
+			fprintf( stderr , "%s\n" , argv[count]) ;
+		}
+	}
+#endif
 
 	gtk_init( &argc , &argv) ;
 
