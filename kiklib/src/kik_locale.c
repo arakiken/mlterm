@@ -106,7 +106,7 @@ kik_locale_init(
 		sys_lang_country = NULL ;
 	}
 	
-	if( ( locale_p = setlocale( LC_CTYPE , locale)) == NULL)
+	if( ( locale = setlocale( LC_CTYPE , locale)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " setlocale() failed.\n") ;
@@ -126,28 +126,28 @@ kik_locale_init(
 		{
 			/* sys_locale is NULL */
 			
-			if( ( locale_p = getenv( "LC_ALL")) == NULL &&
-				( locale_p = getenv( "LC_CTYPE")) == NULL &&
-				( locale_p = getenv( "LANG")) == NULL)
+			if( ( locale = getenv( "LC_ALL")) == NULL &&
+				( locale = getenv( "LC_CTYPE")) == NULL &&
+				( locale = getenv( "LANG")) == NULL)
 			{
+				/* nothing is changed */
+				
 				return  0 ;
 			}
 		}
 	}
 	else
 	{
-		sys_locale = locale_p ;
+		sys_locale = locale ;
 		result = 1 ;
 	}
 
-	if( ( locale_p = strdup( locale_p)) == NULL)
+	if( ( locale_p = sys_lang_country = strdup( locale)) == NULL)
 	{
 		sys_locale = NULL ;
 		
 		return  0 ;
 	}
-	
-	sys_lang_country = locale_p ;
 	
 	if( ( sys_lang = kik_str_sep( &locale_p , "_")) == NULL)
 	{
@@ -173,6 +173,10 @@ kik_locale_init(
 
 	if( sys_codeset)
 	{
+		/*
+		 * normalizing codeset name.
+		 */
+		 
 		int  counter ;
 		
 		for( counter = 0 ;
@@ -180,7 +184,7 @@ kik_locale_init(
 			counter ++)
 		{
 			if( strcmp( sys_codeset , alias_codeset_table[counter].codeset) == 0 &&
-				strcmp( sys_locale , alias_codeset_table[counter].locale) == 0)
+				strcmp( locale , alias_codeset_table[counter].locale) == 0)
 			{
 				sys_codeset = alias_codeset_table[counter].alias ;
 				

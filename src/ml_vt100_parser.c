@@ -943,11 +943,30 @@ parse_vt100_escape_sequence(
 				}
 
 			#ifdef  ESCSEQ_DEBUG
-				fprintf( stderr , "%c" , *str_p) ;
+				if( *str_p < 0x20 || 0x7e < *str_p)
+				{
+					fprintf( stderr , "<%x>" , *str_p) ;
+				}
+				else
+				{
+					fprintf( stderr , "%c" , *str_p) ;
+				}
 			#endif
 
-				if( *str_p < 0x20 || 0x7e < *str_p) 
-				{ 
+				/*
+				 * cursor-control characters inside ESC sequences
+				 */
+				if( *str_p == 0x8)
+				{
+					cursor_back( vt100_parser , 1) ;
+					if( increment_str( &str_p , &left) == 0)
+					{
+						return  0 ;
+					}
+				}
+				
+				if( *str_p < 0x20 || 0x7e < *str_p)
+				{
 				#ifdef  DEBUG 
 					kik_warn_printf( KIK_DEBUG_TAG
 						" illegal csi sequence ESC - [ - 0x%x.\n" , 

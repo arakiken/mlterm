@@ -549,7 +549,7 @@ mkf_xct_conv_new(void)
 	xct_conv_init( ( mkf_conv_t*) iso2022_conv) ;
 	
 	iso2022_conv->conv.convert = convert_to_xct ;
-	iso2022_conv->conv.init = iso2022_conv_init ;
+	iso2022_conv->conv.init = xct_conv_init ;
 	iso2022_conv->conv.delete = conv_delete ;
 
 	return  (mkf_conv_t*)iso2022_conv ;
@@ -568,7 +568,7 @@ mkf_xct_big5_buggy_conv_new(void)
 	xct_conv_init( ( mkf_conv_t*) iso2022_conv) ;
 	
 	iso2022_conv->conv.convert = convert_to_xct_big5_buggy ;
-	iso2022_conv->conv.init = iso2022_conv_init ;
+	iso2022_conv->conv.init = xct_conv_init ;
 	iso2022_conv->conv.delete = conv_delete ;
 
 	return  (mkf_conv_t*)iso2022_conv ;

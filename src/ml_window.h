@@ -127,8 +127,6 @@ typedef struct  ml_window
 	void (*window_resized)( struct ml_window *) ;
 	void (*child_window_resized)( struct ml_window * , struct ml_window *) ;
 	void (*selection_cleared)( struct ml_window * , XSelectionClearEvent *) ;
-	void (*string_selection_requested)( struct ml_window * , XSelectionRequestEvent * , Atom) ;
-	void (*text_selection_requested)( struct ml_window * , XSelectionRequestEvent * , Atom) ;
 	void (*xct_selection_requested)( struct ml_window * , XSelectionRequestEvent * , Atom) ;
 	void (*utf8_selection_requested)( struct ml_window * , XSelectionRequestEvent * , Atom) ;
 	void (*xct_selection_notified)( struct ml_window * , u_char * , size_t) ;
@@ -228,6 +226,8 @@ int  ml_window_draw_str_to_eol( ml_window_t *  win , ml_char_t *  chars , u_int 
 
 int  ml_window_set_selection_owner( ml_window_t *  win , Time  time) ;
 	
+int  ml_window_string_selection_request( ml_window_t *  win , Time  time) ;
+
 int  ml_window_xct_selection_request( ml_window_t *  win , Time  time) ;
 
 int  ml_window_utf8_selection_request( ml_window_t *  win , Time  time) ;

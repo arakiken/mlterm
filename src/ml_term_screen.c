@@ -3048,8 +3048,6 @@ ml_term_screen_new(
 	termscr->window.button_pressed = button_pressed ;
 	termscr->window.button_press_continued = button_press_continued ;
 	termscr->window.selection_cleared = selection_cleared ;
-	termscr->window.string_selection_requested = xct_selection_requested ;
-	termscr->window.text_selection_requested = xct_selection_requested ;
 	termscr->window.xct_selection_requested = xct_selection_requested ;
 	termscr->window.utf8_selection_requested = utf8_selection_requested ;
 	termscr->window.xct_selection_notified = xct_selection_notified ;

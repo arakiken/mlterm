@@ -1265,8 +1265,6 @@ ml_window_init(
 	win->window_resized = NULL ;
 	win->child_window_resized = NULL ;
 	win->selection_cleared = NULL ;
-	win->string_selection_requested = NULL ;
-	win->text_selection_requested = NULL ;
 	win->xct_selection_requested = NULL ;
 	win->utf8_selection_requested = NULL ;
 	win->xct_selection_notified = NULL ;
@@ -2451,32 +2449,15 @@ ml_window_receive_event(
 	}
 	else if( event->type == SelectionRequest)
 	{
-		if( event->xselectionrequest.target == xa_compound_text)
+		if( event->xselectionrequest.target == XA_STRING ||
+			event->xselectionrequest.target == xa_text ||
+			event->xselectionrequest.target == xa_compound_text)
 		{
 			if( win->xct_selection_requested)
 			{
 				(*win->xct_selection_requested)( win , &event->xselectionrequest ,
-					xa_compound_text) ;
+					event->xselectionrequest.target) ;
 			}
-		}
-		else if( event->xselectionrequest.target == xa_text)
-		{
-		#if  1
-			/*
-			 * XXX
-			 */
-			if( win->xct_selection_requested)
-			{
-				(*win->xct_selection_requested)( win , &event->xselectionrequest ,
-					xa_compound_text) ;
-			}
-		#else
-			if( win->text_selection_requested)
-			{
-				(*win->text_selection_requested)( win , &event->xselectionrequest ,
-					xa_text) ;
-			}
-		#endif
 		}
 		else if( event->xselectionrequest.target == xa_utf8_string)
 		{
@@ -2484,14 +2465,6 @@ ml_window_receive_event(
 			{
 				(*win->utf8_selection_requested)( win , &event->xselectionrequest ,
 					xa_utf8_string) ;
-			}
-		}
-		else if( event->xselectionrequest.target == XA_STRING)
-		{
-			if( win->string_selection_requested)
-			{
-				(*win->string_selection_requested)( win , &event->xselectionrequest ,
-					XA_STRING) ;
 			}
 		}
 		else
@@ -2503,16 +2476,32 @@ ml_window_receive_event(
 	{
 		if( event->xselection.property == None)
 		{
-			if( win->selection_request_failed)
+			/*
+			 * trying with xa_compound_text => xa_text => XA_STRING
+			 */
+			 
+			if( event->xselection.target == xa_compound_text)
+			{
+				XConvertSelection( win->display , XA_PRIMARY , xa_text ,
+					xa_selection_prop , win->my_window , CurrentTime) ;
+			}
+			else if( event->xselection.target == xa_text)
+			{
+				XConvertSelection( win->display , XA_PRIMARY , XA_STRING ,
+					xa_selection_prop , win->my_window , CurrentTime) ;
+			}
+			else if( win->selection_request_failed)
 			{
 				(*win->selection_request_failed)( win , &event->xselection) ;
 			}
 			
 			return  1 ;
 		}
-		
+
 		if( event->xselection.selection == XA_PRIMARY &&
-			( event->xselection.target == xa_compound_text ||
+			( event->xselection.target == XA_STRING ||
+			event->xselection.target == xa_text ||
+			event->xselection.target == xa_compound_text ||
 			event->xselection.target == xa_utf8_string))
 		{
 			u_long  bytes_after ;
@@ -2539,7 +2528,9 @@ ml_window_receive_event(
 					break ;
 				}
 
-				if( event->xselection.target == xa_compound_text)
+				if( event->xselection.target == XA_STRING ||
+					event->xselection.target == xa_text ||
+					event->xselection.target == xa_compound_text)
 				{
 					if( win->xct_selection_notified)
 					{

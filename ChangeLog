@@ -1,3 +1,13 @@
+[20011214]
+* mlterm can core dump in kik_locale_init(). fixed.
+* XA_STRING property is supported in copy and paste.
+* cursor-control characters inside ESC sequences are partially supported.
+  (Thanks to Minami Hirokazu san)
+
+[20011213]
+* memory leaks around encoding parsers. fixed.
+* XIM codes are rewritten. XRegisterIMInstantiateCallback() is used.
+
 [20011212]
 * garbages can be left on screen in scrolling. fixed.
 * The implementation of VT102 INS/DEL lines functions was buggy. fixed.
