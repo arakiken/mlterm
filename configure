@@ -8524,7 +8524,7 @@ fi
 
 
 # CVS revision
-CVS_REVISION=`tail -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^\$Id$$/\1/p`
+CVS_REVISION=`tail -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^.Id: .* \(.*\) .* .* .* Exp .$/\1/p`
 
 OUTPUT_FILES="xwindow/version.h ${OUTPUT_FILES}"
 
