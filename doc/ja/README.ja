@@ -118,7 +118,10 @@ comment $Id$
       KEY LIST
       o display        ... DISPLAY を指定
       o geometry       ... geometry を指定
-      
+
+      o screen_width_ratio ... 実スクリーンの横幅を百分率で指定(*100*)
+      o screen_height_ratio ... 実スクリーンの縦幅を百分率で指定(*100*)
+
       o tabsize        ... タブ幅(*8*)
       o logsize        ... ログの行数(*128*)
 
@@ -127,6 +130,8 @@ comment $Id$
       o title          ... title(*mlterm*)
       o icon_name      ... icon name(*mlterm*)
       o termtype       ... 端末タイプ(*xterm*/kterm)
+      o max_ptys       ... pty ウィンドウの最大数(*5*)
+			   指定できる値は、1 から 32 までです。
       o ptys           ... 起動時に立ち上げるptyウィンドウの数(*1*)
 
       o word_separators ... 単語の区切り文字を指定(*" ,.:;/@"*)
@@ -172,6 +177,11 @@ comment $Id$
 
       o wall_picture   ... 壁紙にする画像ファイルのパス(*なし*)
 
+      o vertical_mode  ... 縦表示のスタイル(none,cjk,mongol)を指定 (*none*)
+
+      o fade_ratio     ... Focus から外れたときの前景/背景色のFade率(百分率) (*100*)
+      o brightness     ... 背景画像(透過処理含む)の輝度調整(百分率) (*100*)
+
       o fontsize       ... デフォルトフォントサイズ(*16*)
       o font_size_range  ... 使用するフォントサイズの範囲(*6-30*)
         フォーマットは以下のとおり。
@@ -180,6 +190,8 @@ comment $Id$
         e.g.) 10-24
               10から24
       o step_in_changing_font_size ... larger/smaller ボタンでのフォントサイズの変化量(*1*)
+
+      o line_space     ... 行間の広さ(*0*)
 
       o ENCODING       ... エンコーディングの指定(*auto*)
         サポートしているエンコーディング
@@ -376,6 +388,8 @@ comment $Id$
   o 引数オプション
     -h/--help(=bool)   : ヘルプ
     -v/--version(=bool) : バージョン情報(あまり信用できない:D)
+    -1/--wscr=value    : 実スクリーンの横幅を百分率で指定
+    -2/--hscr=value    : 実スクリーンの縦幅を百分率で指定
     -5/--big5bug(=bool): XFree86-4.1.0 以前の Big5 CTEXT のバグに対応する
     -7/--bel=value     : BEL(0x7)を受け取った時の挙動
     -8/--88591(=bool)  : USASCIIの表示に、必ずISO8859-1フォントを使用する
@@ -384,10 +398,13 @@ comment $Id$
     -D/--bi(=bool)     : BiDi レンダリングを行う
     -E/--km=value      : 文字エンコーディングの指定
     -F/--sbfg=value    : スクロールバーの前景色
+    -G/--vertical=value: 縦表示のスタイルを指定
     -L/--ls(=bool)     : ログインシェルを使う
     -N/--name=value    : application name設定
     -T/--title=value   : title設定
+    -H/--bright=value  : 背景画像(透過処理含む)の輝度調整
     -I/--icon=value    : icon name設定
+    -K/--maxptys=value : pty ウィンドウの最大数
     -M/--menu=value    : mlconfigのパス
     -P/--ptys=value    : 起動時に立ち上げるptyウィンドウの数
     -S/--sbview=value  : 使いたいスクロールバーの名前
@@ -407,6 +424,8 @@ comment $Id$
     -n/--noucsfont(=bool) : UNICODEフォントを一切使わずに表示する
     -u/--onlyucsfont(=bool) : 常にUNICODEフォントを使って表示する
     -p/--pic=value     : 背景画像のパス
+    -o/--lsp=value     : 行間の広さ
+    -r/--fade=value    : Focus を外れたときの Fade 率
     -s/--sb(=bool)     : スクロールバーを使う
     -t/--transbg(=bool) : 背景透過する
     -y/--term=value    : 端末タイプ

@@ -896,6 +896,8 @@ cjk_vert_visual(
 				return  0 ;
 			}
 
+			vert_logvis->visual_lines = p ;
+
 			vert_logvis->logical_num_of_cols = image->num_of_cols ;
 		}
 		

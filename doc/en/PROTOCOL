@@ -2,7 +2,7 @@ comment -*- mode: text -*-
 comment $Id$
 
 mlterm configuration protocol
-version 20020115
+version 20020203
 
 * mlterm proper
   set              = "\x1b" "]" "5379" ";" <set key> "=" <value> "\x07"
@@ -11,11 +11,13 @@ version 20020115
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
-                     wall_picture | full_reset
+                     wall_picture | full_reset | brightness | line_space | screen_width_ratio |
+                     screen_height_ratio | vertical_mode
   get key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
-		     locale | wall_picture | pwd
+                     locale | wall_picture | pwd | brightness | line_space | screen_width_ratio |
+                     screen_height_ratio | vertical_mode
   value            = <values for each key>
 
 * compatible with other terminals
@@ -47,6 +49,11 @@ version 20020115
   wall_picture = <file path>
   full_reset = <none>
   pwd = <current working directory>
+  brightness = <any ASCII decimal digit>
+  line_space = <any ASCII decimal digit>
+  screen_width_ratio = <any ASCII decimal digit>
+  screen_height_ratio = <any ASCII decimal digit>
+  vertical_mode = none | cjk | mongol
 
 * note
   o Encoding names are regularized , that is , `-' , `-' are removed , and only upper
