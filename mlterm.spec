@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 2.7.0
+%define version 2.8.0
 %define release 1
 %define prefix /usr
 %define bindir /usr/X11R6/bin
@@ -62,6 +62,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc ChangeLog LICENCE README doc/{en,ja}
 %{bindir}/mlterm
 %{bindir}/mlclient
+%{bindir}/mlcc
 %{libdir}/libkik.*
 %{libdir}/libmkf.*
 %{libdir}/mlterm/
@@ -72,6 +73,9 @@ rm -rf $RPM_BUILD_ROOT
 %{pixmapdir}/mlterm*
 
 %changelog
+* XXX XXX XX 2003 Araki Ken <arakiken@users.sf.net>
+- Source version 2.8.0
+
 * Sat Jun 14 2003 Araki Ken <arakiken@users.sf.net>
 - Source version 2.7.0
 

@@ -1,3 +1,7 @@
+2003-09-21  Araki Ken  <arakiken@users.sf.net>
+
+	* mlterm.spec,ml_char.h: minor fixes.
+
 2003-09-20  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_char.[ch]: ml_char_t is 64bit in LP64 system. LSB 4bits of attr

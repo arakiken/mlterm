@@ -8,6 +8,8 @@ ver 2.8.0(rc1)
 * Added -%,--logseq,logging_vt_seq option.
 * Revivied mlterm configuration protocol 5380, added mlcc and w3mmlconfig again.
 * Supported window grouping.
+* ml_char_t is 64bit in LP64, not 96bit.
+* Fixed many bugs, cleaned many codes, and updated documentations.
 
 ver 2.7.0
 * Supported pty switching in the same window.(see doc/ja/README.ja in detail for the Japanese.)

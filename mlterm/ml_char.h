@@ -22,8 +22,8 @@
  * This object size should be kept as small as possible.
  * (ILP32: 64bit) (LP64: 64bit)
  *
- * [combining state]
- * ml_char_t.u.bytes is invalid.
+ * If LSB of ml_char_t.u.ch.attr is 0,
+ * ml_char_t.u.ch is invalid.
  * ml_char_t.u.multi_ch -> ml_char_t [main char]
  *                      -> ml_char_t [first combining char]
  *                      -> ml_char_t [second combining char]
