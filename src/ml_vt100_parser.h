@@ -43,6 +43,7 @@ typedef struct  ml_vt100_parser
 	ml_char_encoding_t  encoding ;
 
 	int8_t  is_dec_special_in_gl ;
+	int8_t  is_so ;
 	int8_t  is_dec_special_in_g0 ;
 	int8_t  is_dec_special_in_g1 ;
 	

@@ -14,9 +14,7 @@
 
 /* --- static variables --- */
 
-static int  is_none_checked = 0 ;
-static int  is_esc_checked = 0 ;
-static int  is_8bit_checked = 0 ;
+static ml_mod_meta_mode_t  new_mod_meta_mode ;
 
 
 /* --- static functions --- */
@@ -27,7 +25,10 @@ button_none_checked(
 	gpointer  data
 	)
 {
-	is_none_checked = GTK_TOGGLE_BUTTON(widget)->active ;
+	if( GTK_TOGGLE_BUTTON(widget)->active)
+	{
+		new_mod_meta_mode = MOD_META_NONE ;
+	}
 	
 	return  1 ;
 }
@@ -38,8 +39,11 @@ button_esc_checked(
 	gpointer  data
 	)
 {
-	is_esc_checked = GTK_TOGGLE_BUTTON(widget)->active ;
-	
+	if( GTK_TOGGLE_BUTTON(widget)->active)
+	{
+		new_mod_meta_mode = MOD_META_OUTPUT_ESC ;
+	}
+		
 	return  1 ;
 }
 
@@ -49,7 +53,10 @@ button_8bit_checked(
 	gpointer  data
 	)
 {
-	is_8bit_checked = GTK_TOGGLE_BUTTON(widget)->active ;
+	if( GTK_TOGGLE_BUTTON(widget)->active)
+	{
+		new_mod_meta_mode = MOD_META_SET_MSB ;
+	}
 	
 	return  1 ;
 }
@@ -107,6 +114,8 @@ mc_mod_meta_config_widget_new(
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
+
+	new_mod_meta_mode = mod_meta_mode ;
 	
 	return  hbox ;
 }
@@ -114,16 +123,5 @@ mc_mod_meta_config_widget_new(
 ml_mod_meta_mode_t
 mc_get_mod_meta_mode(void)
 {
-	if( is_esc_checked)
-	{
-		return  MOD_META_OUTPUT_ESC ;
-	}
-	else if( is_8bit_checked)
-	{
-		return  MOD_META_SET_MSB ;
-	}
-	else /* if( is_none_checked) */
-	{
-		return  MOD_META_NONE ;
-	}
+	return  new_mod_meta_mode ;
 }

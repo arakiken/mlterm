@@ -19,6 +19,7 @@
 #include  "mc_fontsize.h"
 #include  "mc_mod_meta.h"
 #include  "mc_bel.h"
+#include  "mc_font_present.h"
 #include  "mc_xim.h"
 #include  "mc_check.h"
 
@@ -37,7 +38,6 @@ static GtkWidget *  use_bidi_check ;
 static GtkWidget *  copy_paste_via_ucs_check ;
 
 static GtkWidget *  is_tp_check ;
-static GtkWidget *  is_aa_check ;
 
 
 /* --- static functions --- */
@@ -62,7 +62,7 @@ apply_clicked(
 {
 	/*
 	 * CONFIG:[encoding] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
-	 * [bel mode] [combining char] [copy paste via ucs] [is transparent] [is aa] [is bidi] \
+	 * [bel mode] [combining char] [copy paste via ucs] [is transparent] [font present] [is bidi] \
 	 * [xim] [locale][LF]
 	 */
 	fprintf( out , "CONFIG:%d %d %d %d %d %s %d %d %d %d %d %d %d %s %s\n" ,
@@ -77,7 +77,7 @@ apply_clicked(
 		GTK_TOGGLE_BUTTON(is_comb_check)->active ,
 		GTK_TOGGLE_BUTTON(copy_paste_via_ucs_check)->active ,
 		GTK_TOGGLE_BUTTON(is_tp_check)->active ,
-		GTK_TOGGLE_BUTTON(is_aa_check)->active ,
+		mc_get_font_present() ,
 		GTK_TOGGLE_BUTTON(use_bidi_check)->active ,
 		mc_get_xim_name() ,
 		mc_get_xim_locale()) ;
@@ -281,7 +281,7 @@ show(
 	int  is_combining_char ,
 	int  copy_paste_via_ucs ,
 	int  is_transparent ,
-	int  is_aa ,
+	ml_font_present_t  font_present ,
 	int  use_bidi ,
 	char *  xim ,
 	char *  locale
@@ -435,18 +435,19 @@ show(
 	}
 	gtk_widget_show(config_widget) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , config_widget , FALSE , FALSE , 0) ;
+
+	if( ! ( config_widget = mc_font_present_config_widget_new( font_present)))
+	{
+		return  0 ;
+	}
+	gtk_widget_show( config_widget) ;
+	gtk_box_pack_start( GTK_BOX(vbox) , config_widget , TRUE , TRUE , 0) ;
+
 	
 	hbox = gtk_hbox_new(TRUE , 5) ;
 	gtk_widget_show(hbox) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , FALSE , FALSE , 0) ;
 
-	if( ! ( is_aa_check = mc_check_config_widget_new( "Anti-alias" , is_aa)))
-	{
-		return  0 ;
-	}
-	gtk_widget_show( is_aa_check) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , is_aa_check , TRUE , TRUE , 0) ;
-	
 	if( ! ( is_tp_check = mc_check_config_widget_new( "Transparent" , is_transparent)))
 	{
 		return  0 ;
@@ -518,7 +519,7 @@ start_application(
 	int  is_combining_char ;
 	int  copy_paste_via_ucs ;
 	int  is_transparent ;
-	int  is_aa ;
+	int  font_present ;
 	int  use_bidi ;
 	char *  locale ;
 	char *  xim ;
@@ -551,8 +552,9 @@ start_application(
 	fclose( in) ;
 
 	/*
-	 * [encoding] [fg color] [bg color] [tabsize] [logsize] [font size] [min font size] \
-	 * [max font size] [is combining char] [copy paste via ucs] [is transparent] [locale] [xim][LF]
+	 * [encoding] [fg color] [bg color] [tabsize] [logsize] [fontsize] [mod meta mode] \
+	 * [bel mode] [combining char] [copy paste via ucs] [is transparent] [font present] \
+	 * [is bidi] [xim] [locale][LF]
 	 */
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
 		! kik_str_to_int( &encoding , p))
@@ -630,7 +632,7 @@ start_application(
 	}
 	
 	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &is_aa , p))
+		! kik_str_to_int( &font_present , p))
 	{
 		return  0 ;
 	}
@@ -654,7 +656,7 @@ start_application(
 	return  show( x , y , encoding , fg_color , bg_color , tabsize ,
 		logsize , fontsize , min_fontsize , max_fontsize ,
 		mod_meta_mode , bel_mode , is_combining_char , copy_paste_via_ucs ,
-		is_transparent , is_aa , use_bidi , xim , locale) ;
+		is_transparent , font_present , use_bidi , xim , locale) ;
 }
 
 

@@ -373,8 +373,8 @@ xft_draw_str(
 				|| next_decor != decor
 				|| comb_chars != NULL
 				|| ch_size != next_ch_size
-				|| next_font->is_proportional
-				|| win->font->is_proportional)
+				|| (next_font->is_proportional && ! next_font->col_is_var_len)
+				|| (win->font->is_proportional && ! win->font->col_is_var_len))
 			{
 				start_draw = 1 ;
 			}
@@ -896,8 +896,8 @@ draw_str(
 				|| comb_chars != NULL
 				|| (is_mb == 1 && next_ch_size == 1)
 				|| (is_mb == 0 && next_ch_size > 1)
-				|| next_font->is_proportional
-				|| font->is_proportional)
+				|| (next_font->is_proportional && ! next_font->col_is_var_len)
+				|| (win->font->is_proportional && ! win->font->col_is_var_len))
 			{
 				start_draw = 1 ;
 			}
@@ -926,7 +926,8 @@ draw_str(
 				height_to_baseline = std_height_to_baseline ;
 			}
 
-			if( win->wall_picture_is_set || win->font->is_proportional)
+			if( win->wall_picture_is_set ||
+				(win->font->is_proportional && ! win->font->col_is_var_len))
 			{
 				if( win->wall_picture_is_set)
 				{

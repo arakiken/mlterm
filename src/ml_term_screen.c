@@ -927,22 +927,40 @@ change_transparent_flag(
 }
 
 static void
-change_aa_flag(
+change_font_present(
 	void *  p ,
-	int  is_aa
+	ml_font_present_t  font_present
 	)
 {
 	ml_term_screen_t *  termscr ;
 
 	termscr = p ;
 	
-	if( termscr->is_aa == is_aa)
+	if( termscr->font_present == font_present)
 	{
 		return ;
 	}
-	
-	if( is_aa)
+
+	if( font_present == FONT_VARLEN)
 	{
+		if( ! ml_font_manager_use_var_len_col( termscr->font_man))
+		{
+			return ;
+		}
+	}
+	else if( font_present == FONT_AA)
+	{
+		if( ! ml_font_manager_use_aa( termscr->font_man))
+		{
+			return ;
+		}
+	}
+	else if( font_present == (FONT_VARLEN | FONT_AA))
+	{
+		/*
+		 * XXX
+		 * Anti-Aliased font cannot be proportional.
+		 */
 		if( ! ml_font_manager_use_aa( termscr->font_man))
 		{
 			return ;
@@ -950,20 +968,18 @@ change_aa_flag(
 	}
 	else
 	{
-		if( ! ml_font_manager_unuse_aa( termscr->font_man))
+		if( ! ml_font_manager_use_normal( termscr->font_man))
 		{
 			return ;
 		}
 	}
-	
-	ml_change_font_size( termscr->font_man , termscr->font_man->font_size) ;
-	
+
 	font_size_changed( termscr) ;
 	
 	/* redrawing all lines with new fonts. */
 	ml_image_set_modified_all( termscr->image) ;
 	
-	termscr->is_aa = is_aa ;
+	termscr->font_present = font_present ;
 }
 
 static void
@@ -1077,7 +1093,7 @@ config_menu(
 		termscr->font_man->font_custom->max_font_size ,
 		termscr->mod_meta_mode , termscr->bel_mode ,
 		ml_is_char_combining() , termscr->copy_paste_via_ucs ,
-		termscr->window.is_transparent , termscr->is_aa , termscr->use_bidi ,
+		termscr->window.is_transparent , termscr->font_present , termscr->use_bidi ,
 		ml_xic_get_xim_name( &termscr->window) , kik_get_locale()) ;
 }
 
@@ -2725,7 +2741,15 @@ draw_line(
 	{
 		beg_char_index = ml_imgline_get_beg_of_modified( line) ;
 		beg_x = ml_convert_char_index_to_x( line , beg_char_index) ;
-		num_of_redrawn = ml_imgline_get_num_of_redrawn_chars( line) ;
+
+		if( ml_col_is_var_len( termscr->font_man))
+		{
+			num_of_redrawn = line->num_of_filled_chars - beg_char_index ;
+		}
+		else
+		{
+			num_of_redrawn = ml_imgline_get_num_of_redrawn_chars( line) ;
+		}
 
 		if( termscr->use_bidi &&
 			(*termscr->encoding_listener->encoding)(termscr->encoding_listener->self) == ML_UTF8)
@@ -2744,7 +2768,7 @@ draw_line(
 			str = &line->chars[beg_char_index] ;
 		}
 
-		if( line->is_cleared_to_end)
+		if( line->is_cleared_to_end || ml_col_is_var_len( termscr->font_man))
 		{
 			if( ! ml_window_draw_str_to_eol( &termscr->window , str ,
 				num_of_redrawn , beg_x , y ,
@@ -2858,7 +2882,7 @@ ml_term_screen_new(
 	int  copy_paste_via_ucs ,
 	char *  pic_file_path ,
 	int  use_transbg ,
-	int  is_aa ,
+	ml_font_present_t  font_present ,
 	int  _use_bidi ,
 	int  big5_buggy ,
 	char *  conf_menu_path
@@ -2890,7 +2914,18 @@ ml_term_screen_new(
 	
 	termscr->font_man = font_man ;
 
-	if( is_aa)
+	if( font_present == FONT_VARLEN)
+	{
+		if( ! ml_font_manager_use_var_len_col( termscr->font_man))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_use_var_len_col failed.\n") ;
+		#endif
+		
+			font_present = 0 ;
+		}
+	}
+	else if( font_present == FONT_AA)
 	{
 		if( ! ml_font_manager_use_aa( termscr->font_man))
 		{
@@ -2898,11 +2933,26 @@ ml_term_screen_new(
 			kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_use_aa failed.\n") ;
 		#endif
 		
-			is_aa = 0 ;
+			font_present = 0 ;
+		}
+	}
+	else if( font_present == (FONT_AA | FONT_VARLEN))
+	{
+		/*
+		 * XXX
+		 * Anti-Aliased font cannot be proportional.
+		 */
+		if( ! ml_font_manager_use_aa( termscr->font_man))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_use_aa failed.\n") ;
+		#endif
+		
+			font_present = 0 ;
 		}
 	}
 	
-	termscr->is_aa = is_aa ;
+	termscr->font_present = font_present ;
 
 	width = cols * ml_col_width( font_man) ;
 	height = rows * ml_line_height( font_man) ;
@@ -3066,7 +3116,7 @@ ml_term_screen_new(
 	termscr->config_menu_listener.change_char_combining_flag = change_char_combining_flag ;
 	termscr->config_menu_listener.change_copy_paste_via_ucs_flag = change_copy_paste_via_ucs_flag ;
 	termscr->config_menu_listener.change_transparent_flag = change_transparent_flag ;
-	termscr->config_menu_listener.change_aa_flag = change_aa_flag ;
+	termscr->config_menu_listener.change_font_present = change_font_present ;
 	termscr->config_menu_listener.change_bidi_flag = change_bidi_flag ;
 	termscr->config_menu_listener.change_xim = change_xim ;
 	termscr->config_menu_listener.larger_font_size = larger_font_size ;

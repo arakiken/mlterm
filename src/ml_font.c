@@ -287,7 +287,7 @@ load_xfont(
 	
 	sprintf( fontname , "-*-%s-%s-%s-%s--%d-*-%s-*-%s" ,
 		family , weight , slant , width , fontsize , spacing , encoding) ;
-		
+
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " loading %s.\n" , fontname) ;
 #endif
@@ -629,6 +629,10 @@ ml_font_set_xfont(
 
 	if( fontname != NULL)
 	{
+	#ifdef __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " loading %s font.\n" , fontname) ;
+	#endif
+	
 		if( ( xfont = XLoadQueryFont( font->display , fontname)))
 		{
 			goto  font_found ;
@@ -928,4 +932,25 @@ ml_change_font_cs(
 	font->attr |= cs ;
 
 	return  1 ;
+}
+
+u_int
+ml_calculate_char_width(
+	ml_font_t *  font ,
+	u_char *  ch ,
+	size_t  len
+	)
+{
+	if( ! font->is_proportional
+#ifdef  ANTI_ALIAS
+		|| font->xft_font
+#endif
+		)
+	{
+		return  font->width ;
+	}
+	else
+	{
+		return  calculate_char_width( font->display , font->xfont , ch , len) ;
+	}
 }

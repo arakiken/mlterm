@@ -125,6 +125,7 @@ open_new_term(
 	
 	if( ( font_man = ml_font_manager_new( term_man->win_man.display ,
 		&term_man->normal_font_custom ,
+		&term_man->p_font_custom ,
 	#ifdef  ANTI_ALIAS
 		&term_man->aa_font_custom ,
 	#else
@@ -146,7 +147,7 @@ open_new_term(
 		term_man->use_xim , term_man->xim_open_in_startup ,
 		term_man->mod_meta_mode , term_man->bel_mode ,
 		term_man->copy_paste_via_ucs , term_man->pic_file_path , term_man->use_transbg ,
-		term_man->is_aa , term_man->use_bidi , term_man->big5_buggy ,
+		term_man->font_present , term_man->use_bidi , term_man->big5_buggy ,
 		term_man->conf_menu_path)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -722,6 +723,8 @@ ml_term_manager_init(
 				"opening xim in starting up.") ;
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , "use bidi") ;
 	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" , "supporting buggy Big5 CTEXT") ;
+	kik_conf_add_opt( conf , 'V' , "varlen" , 1 , "use_variable_length_column" ,
+				"column width is variable") ;
 #ifdef  ANTI_ALIAS
 	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , "using anti alias font") ;
 #endif
@@ -798,6 +801,31 @@ ml_term_manager_init(
 
 		free( rcpath) ;
 	}
+
+	if( ! ml_font_custom_init( &term_man->p_font_custom , min_font_size , max_font_size))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_font_custom_init failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
+	font_rcfile = "mlterm/vlfont" ;
+	
+	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
+	{
+		ml_font_custom_read_conf( &term_man->p_font_custom , rcpath) ;
+
+		free( rcpath) ;
+	}
+
+	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
+	{
+		ml_font_custom_read_conf( &term_man->p_font_custom , rcpath) ;
+
+		free( rcpath) ;
+	}
 	
 #ifdef  ANTI_ALIAS
 	if( ! ml_font_custom_init( &term_man->aa_font_custom , min_font_size , max_font_size))
@@ -825,15 +853,23 @@ ml_term_manager_init(
 		free( rcpath) ;
 	}
 #endif
-	
-	term_man->is_aa = 0 ;
-	
+		
+	term_man->font_present = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_variable_length_column")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->font_present |= FONT_VARLEN ;
+		}
+	}
+
 #ifdef  ANTI_ALIAS
 	if( ( value = kik_conf_get_value( conf , "use_anti_alias")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
-			term_man->is_aa = 1 ;
+			term_man->font_present |= FONT_AA ;
 		}
 	}
 #endif

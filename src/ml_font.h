@@ -22,6 +22,13 @@
 #define  DEFAULT_FONT_ATTR(cs)  ((cs) | FONT_MEDIUM | FONT_ROMAN | FONT_NORMAL)
 
 
+typedef enum ml_font_present
+{
+	FONT_VARLEN = 0x01 ,
+	FONT_AA = 0x02 ,
+
+} ml_font_present_t ;
+
 typedef enum ml_font_attr
 {
 	/* 0x00 - MAX_CHARSET(0x7ff) is reserved for mkf_charset_t */
@@ -63,9 +70,17 @@ typedef struct  ml_font
 	u_int  width ;
 	u_int  height ;
 	u_int  height_to_baseline ;
-	
+
+	/*
+	 * public(readonly)
+	 */
 	int8_t  is_double_drawing ;
 	int8_t  is_proportional ;
+
+	/*
+	 * public
+	 */
+	int8_t  col_is_var_len ;
 
 } ml_font_t ;
 
@@ -89,6 +104,8 @@ int  ml_font_unset_xft_font( ml_font_t *  font) ;
 mkf_charset_t  ml_font_cs( ml_font_t *  font) ;
 
 int  ml_change_font_cs( ml_font_t *  font , mkf_charset_t  cs) ;
+
+u_int  ml_calculate_char_width( ml_font_t *  font , u_char *  ch , size_t  len) ;
 
 
 #endif

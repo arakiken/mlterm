@@ -97,6 +97,8 @@ typedef struct  ml_term_screen
 
 	ml_bel_mode_t  bel_mode ;
 
+	ml_font_present_t  font_present ;
+
 	ml_pty_encoding_event_listener_t *  encoding_listener ;
 	ml_system_event_listener_t *  system_listener ;
 	ml_screen_scroll_event_listener_t *  screen_scroll_listener ;
@@ -121,7 +123,6 @@ typedef struct  ml_term_screen
 	int8_t  is_app_cursor_keys ;
 	int8_t  is_mouse_pos_sending ;
 	int8_t  xim_open_in_startup ;
-	int8_t  is_aa ;
 	int8_t  use_bidi ;
 	
 } ml_term_screen_t ;
@@ -132,8 +133,8 @@ ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
 	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
 	u_int  num_of_log_lines , u_int  tab_size , int  use_xim ,
 	int  xim_open_in_startup , ml_mod_meta_mode_t  mod_meta_mode , ml_bel_mode_t  bel_mode ,
-	int  prefer_utf8_selection , char *  pic_file_path , int  use_transbg , int  is_aa ,
-	int  use_bidi , int  big5_buggy , char *  conf_menu_path) ;
+	int  prefer_utf8_selection , char *  pic_file_path , int  use_transbg ,
+	ml_font_present_t  font_present , int  use_bidi , int  big5_buggy , char *  conf_menu_path) ;
 
 int  ml_term_screen_delete( ml_term_screen_t *  termscr) ;
 

@@ -142,6 +142,8 @@ get_font_intern(
 		return  NULL ;
 	}
 
+	font->col_is_var_len = ml_col_is_var_len( font_man) ;
+
 	if( ( fontname = ml_get_font_name_for_attr( font_man->font_custom , font_man->font_size , fontattr)))
 	{
 		use_medium_for_bold = 0 ;
@@ -195,6 +197,133 @@ get_font_intern(
 	return  font ;
 }	
 
+static int
+reload_all_fonts(
+	ml_font_manager_t *  font_man
+	)
+{
+	KIK_PAIR( ml_font) *  array ;
+	ml_font_t *  usascii_font ;
+	u_int  size ;
+	int  counter ;
+
+	if( ( usascii_font = ml_get_usascii_font( font_man)) == NULL)
+	{
+		/* critical error */
+		
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" usascii font of size %d is not found. font size not changed.\n" ,
+			font_man->font_size) ;
+	#endif
+
+		return  0 ;
+	}
+	
+	if( set_usascii_xfont( font_man , usascii_font , 0) == 0)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" usascii font of size %d is not found.\n" ,
+			font_man->font_size) ;
+	#endif
+
+		return  0 ;
+	}
+	
+	usascii_font->col_is_var_len = ml_col_is_var_len( font_man) ;
+
+	kik_map_get_pairs_array( font_man->font_cache_table , array , size) ;
+
+	for( counter = 0 ; counter < size ; counter ++)
+	{
+		ml_font_attr_t  attr ;
+		ml_font_t *  font ;
+		char *  fontname ;
+		int  use_medium_for_bold ;
+
+		attr = array[counter]->key ;
+		if( (font = array[counter]->value) == NULL)
+		{
+			if( ( font = ml_font_new( font_man->display , attr)) == NULL)
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " ml_font_new() failed.\n") ;
+			#endif
+			
+				continue ;
+			}
+
+			array[counter]->value = font ;
+		}
+
+		if( attr == DEFAULT_FONT_ATTR(font_man->usascii_font_cs))
+		{
+			/* usascii default font is already loaded. */
+			
+			continue ;
+		}
+
+		if( ( fontname = ml_get_font_name_for_attr( font_man->font_custom ,
+			font_man->font_size ,attr)))
+		{
+			use_medium_for_bold = 0 ;
+		}
+		else
+		{
+			/* fontname == NULL */
+			
+			use_medium_for_bold = 0 ;
+
+			if( attr & FONT_BOLD)
+			{
+				if( ( fontname = ml_get_font_name_for_attr( font_man->font_custom ,
+					font_man->font_size , (attr & ~FONT_BOLD) | FONT_MEDIUM)))
+				{
+					use_medium_for_bold = 1 ;
+				}
+			}
+		}
+		
+		if( (*font_man->set_xfont)( font , fontname , font_man->font_size ,
+			ml_col_width( font_man) , use_medium_for_bold) == 0)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG
+				" larger font for attr %x is not found. us ascii font is used instead.\n" ,
+				font->attr) ;
+		#endif
+
+			if( attr & FONT_BOLD)
+			{
+				use_medium_for_bold = 1 ;
+			}
+			else
+			{
+				use_medium_for_bold = 0 ;
+			}
+
+			/*
+			 * using usascii font instead.
+			 */
+			if( set_usascii_xfont( font_man , font , use_medium_for_bold) == 0)
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " this should never happen.\n") ;
+			#endif
+			}
+		}
+		
+		font->col_is_var_len = ml_col_is_var_len( font_man) ;
+	}
+	
+#ifdef  DEBUG
+	dump_cached_fonts( font_man) ;
+#endif
+
+	return  1 ;
+}
+
 
 /* --- global functions --- */
 
@@ -202,6 +331,7 @@ ml_font_manager_t *
 ml_font_manager_new(
 	Display *  display ,
 	ml_font_custom_t *  normal_font_custom ,
+	ml_font_custom_t *  vl_font_custom ,
 	ml_font_custom_t *  aa_font_custom ,
 	u_int  font_size ,
 	mkf_charset_t  usascii_font_cs ,
@@ -221,6 +351,7 @@ ml_font_manager_new(
 
 	font_man->normal_font_custom = normal_font_custom ;
 	font_man->aa_font_custom = aa_font_custom ;
+	font_man->vl_font_custom = vl_font_custom ;
 
 	font_man->font_custom = font_man->normal_font_custom ;
 
@@ -266,6 +397,42 @@ ml_font_manager_delete(
 }
 
 int
+ml_font_manager_use_normal(
+	ml_font_manager_t *  font_man
+	)
+{
+	if( font_man->font_custom == font_man->normal_font_custom)
+	{
+		return  0 ;
+	}
+	
+	font_man->set_xfont = ml_font_set_xfont ;
+	font_man->font_custom = font_man->normal_font_custom ;
+
+	reload_all_fonts( font_man) ;
+	
+	return  1 ;
+}
+
+int
+ml_font_manager_use_var_len_col(
+	ml_font_manager_t *  font_man
+	)
+{
+	if( font_man->font_custom == font_man->vl_font_custom)
+	{
+		return  0 ;
+	}
+	
+	font_man->set_xfont = ml_font_set_xfont ;
+	font_man->font_custom = font_man->vl_font_custom ;
+
+	reload_all_fonts( font_man) ;
+	
+	return  1 ;
+}
+
+int
 ml_font_manager_use_aa(
 	ml_font_manager_t *  font_man
 	)
@@ -279,6 +446,8 @@ ml_font_manager_use_aa(
 	font_man->set_xfont = ml_font_set_xft_font ;
 	font_man->font_custom = font_man->aa_font_custom ;
 
+	reload_all_fonts( font_man) ;
+
 	return  1 ;
 #else
 	/* always false */
@@ -288,25 +457,11 @@ ml_font_manager_use_aa(
 }
 
 int
-ml_font_manager_unuse_aa(
+ml_col_is_var_len(
 	ml_font_manager_t *  font_man
 	)
 {
-#ifdef  ANTI_ALIAS
-	if( font_man->font_custom == font_man->normal_font_custom)
-	{
-		return  0 ;
-	}
-	
-	font_man->set_xfont = ml_font_set_xfont ;
-	font_man->font_custom = font_man->normal_font_custom ;
-
-	return  1 ;
-#else
-	/* always false */
-	
-	return  0 ;
-#endif
+	return  ( font_man->font_custom == font_man->vl_font_custom) ;
 }
 
 ml_font_t *
@@ -484,24 +639,14 @@ ml_change_font_size(
 	u_int  font_size
 	)
 {
-	KIK_PAIR( ml_font) *  array ;
-	ml_font_t *  usascii_font ;
-	u_int  size ;
-	int  counter ;
-
-#if  0
-	/*
-	 * !! Notice !!
-	 * this check should be done by the caller , because if "font_size" is not changed ,
-	 * *actual* font size may be changed.(e.g. XftFont <=> XFontStruct)
-	 */
+	u_int  orig_font_size ;
+	
 	if( font_size == font_man->font_size)
 	{
 		/* not changed */
 		
 		return  1 ;
 	}
-#endif
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " changing font size to %d\n" , font_size) ;
@@ -517,116 +662,19 @@ ml_change_font_size(
 		return  0 ;
 	}
 
+	orig_font_size = font_man->font_size ;
 	font_man->font_size = font_size ;
-	
-	if( ( usascii_font = ml_get_usascii_font( font_man)) == NULL)
-	{
-		/* critical error */
-		
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" usascii font of size %d is not found. font size not changed.\n" ,
-			font_man->font_size) ;
-	#endif
 
+	if( ! reload_all_fonts( font_man))
+	{
+		font_man->font_size = orig_font_size ;
+		
 		return  0 ;
 	}
-	
-	if( set_usascii_xfont( font_man , usascii_font , 0) == 0)
+	else
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" usascii font of size %d is not found. font size not changed.\n" ,
-			font_size) ;
-	#endif
-
-		return  0 ;
+		return  1 ;
 	}
-	
-	kik_map_get_pairs_array( font_man->font_cache_table , array , size) ;
-
-	for( counter = 0 ; counter < size ; counter ++)
-	{
-		ml_font_attr_t  attr ;
-		ml_font_t *  font ;
-		char *  fontname ;
-		int  use_medium_for_bold ;
-
-		attr = array[counter]->key ;
-		if( (font = array[counter]->value) == NULL)
-		{
-			if( ( font = ml_font_new( font_man->display , attr)) == NULL)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " ml_font_new() failed.\n") ;
-			#endif
-			
-				continue ;
-			}
-
-			array[counter]->value = font ;
-		}
-
-		if( attr == DEFAULT_FONT_ATTR(font_man->usascii_font_cs))
-		{
-			/* usascii default font is already loaded. */
-			
-			continue ;
-		}
-
-		if( ( fontname = ml_get_font_name_for_attr( font_man->font_custom ,
-			font_man->font_size ,attr)))
-		{
-			use_medium_for_bold = 0 ;
-		}
-		else
-		{
-			/* fontname == NULL */
-			
-			use_medium_for_bold = 0 ;
-
-			if( attr & FONT_BOLD)
-			{
-				if( ( fontname = ml_get_font_name_for_attr( font_man->font_custom ,
-					font_man->font_size , (attr & ~FONT_BOLD) | FONT_MEDIUM)))
-				{
-					use_medium_for_bold = 1 ;
-				}
-			}
-		}
-		
-		if( (*font_man->set_xfont)( font , fontname , font_man->font_size ,
-			ml_col_width( font_man) , use_medium_for_bold) == 0)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" larger font for attr %x is not found. us ascii font is used instead.\n" ,
-				font->attr) ;
-		#endif
-
-			if( attr & FONT_BOLD)
-			{
-				use_medium_for_bold = 1 ;
-			}
-			else
-			{
-				use_medium_for_bold = 0 ;
-			}
-
-			if( set_usascii_xfont( font_man , font , use_medium_for_bold) == 0)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " this should never happen.\n") ;
-			#endif
-			}
-		}
-	}
-	
-#ifdef  DEBUG
-	dump_cached_fonts( font_man) ;
-#endif
-
-	return  1 ;
 }
 
 int

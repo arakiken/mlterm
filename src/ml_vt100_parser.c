@@ -1759,6 +1759,12 @@ parse_vt100_escape_sequence(
 
 					return  1 ;
 				}
+
+				if( ! vt100_parser->is_so)
+				{
+					vt100_parser->is_dec_special_in_gl =
+						vt100_parser->is_dec_special_in_g0 ;
+				}
 			}
 			else if( *str_p == ')')
 			{
@@ -1796,6 +1802,12 @@ parse_vt100_escape_sequence(
 
 					return  1 ;
 				}
+				
+				if( vt100_parser->is_so)
+				{
+					vt100_parser->is_dec_special_in_gl =
+						vt100_parser->is_dec_special_in_g1 ;
+				}
 			}
 			else
 			{
@@ -1822,6 +1834,7 @@ parse_vt100_escape_sequence(
 		#endif
 		
 			vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g0 ;
+			vt100_parser->is_so = 0 ;
 		}
 		else if( *str_p == CTLKEY_SO)
 		{
@@ -1837,6 +1850,7 @@ parse_vt100_escape_sequence(
 		#endif
 		
 			vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g1 ;
+			vt100_parser->is_so = 1 ;
 		}
 		else if( *str_p == CTLKEY_LF || *str_p == CTLKEY_VT)
 		{
@@ -1953,6 +1967,7 @@ encoding_changed(
 
 	/* reset */
 	vt100_parser->is_dec_special_in_gl = 0 ;
+	vt100_parser->is_so = 0 ;
 	vt100_parser->is_dec_special_in_g0 = 0 ;
 	vt100_parser->is_dec_special_in_g1 = 1 ;
 	
@@ -2000,6 +2015,7 @@ init_pty_encoding(
 	{
 		(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
 		vt100_parser->is_dec_special_in_gl = 0 ;
+		vt100_parser->is_so = 0 ;
 		vt100_parser->is_dec_special_in_g0 = 0 ;
 		vt100_parser->is_dec_special_in_g1 = 1 ;
 	}
@@ -2018,6 +2034,7 @@ init_pty_encoding(
 		{
 			(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
 			vt100_parser->is_dec_special_in_gl = 0 ;
+			vt100_parser->is_so = 0 ;
 			vt100_parser->is_dec_special_in_g0 = 0 ;
 			vt100_parser->is_dec_special_in_g1 = 1 ;
 		}
@@ -2101,6 +2118,7 @@ ml_vt100_parser_new(
 	vt100_parser->encoding = encoding ;
 
 	vt100_parser->is_dec_special_in_gl = 0 ;
+	vt100_parser->is_so = 0 ;
 	vt100_parser->is_dec_special_in_g0 = 0 ;
 	vt100_parser->is_dec_special_in_g1 = 1 ;
 

@@ -24,8 +24,16 @@ typedef struct  ml_font_manager
 
 	ml_font_custom_t *  font_custom ;
 
+	/*
+	 * for fixed length column
+	 */
 	ml_font_custom_t *  normal_font_custom ;
 	ml_font_custom_t *  aa_font_custom ;
+
+	/*
+	 * for variable length column
+	 */
+	ml_font_custom_t *  vl_font_custom ;
 	
 	u_int  font_size ;
 
@@ -42,14 +50,19 @@ typedef struct  ml_font_manager
 
 
 ml_font_manager_t *  ml_font_manager_new( Display *  display ,
-	ml_font_custom_t *  normal_font_custom , ml_font_custom_t *  aa_font_custom ,
+	ml_font_custom_t *  normal_font_custom , ml_font_custom_t *  vl_font_custom ,
+	ml_font_custom_t *  aa_font_custom ,
 	u_int  font_size , mkf_charset_t  usascii_font_cs , int  usascii_font_cs_changable) ;
 	
 int  ml_font_manager_delete( ml_font_manager_t *  font_man) ;
 
+int  ml_font_manager_use_normal( ml_font_manager_t *  font_man) ;
+
+int  ml_font_manager_use_var_len_col( ml_font_manager_t *  font_man) ;
+
 int  ml_font_manager_use_aa( ml_font_manager_t *  font_man) ;
 
-int  ml_font_manager_unuse_aa( ml_font_manager_t *  font_man) ;
+int  ml_col_is_var_len( ml_font_manager_t *  font_man) ;
 
 ml_font_t *  ml_get_font( ml_font_manager_t *  font_man , ml_font_attr_t  fontattr) ;
 

@@ -503,15 +503,24 @@ ml_char_width(
 	ml_char_t *  ch
 	)
 {
-	if( ml_char_font(ch) == NULL)
+	ml_font_t *  font ;
+	
+	if( ( font = ml_char_font(ch)) == NULL)
 	{
 		kik_error_printf( "ml_font_t is NULL.\n") ;
 	
 		/* XXX avoiding zero division */
 		return  1 ;
 	}
-	
-	return  ml_char_font( ch)->width ;
+
+	if( font->col_is_var_len)
+	{
+		return  ml_calculate_char_width( font , ml_char_bytes( ch) , ml_char_size( ch)) ;
+	}
+	else
+	{
+		return  font->width ;
+	}
 }
 
 /*

@@ -33,6 +33,7 @@ typedef struct  ml_term_manager
 	ml_window_manager_t  win_man ;
 	ml_color_manager_t  color_man ;
 	ml_font_custom_t  normal_font_custom ;
+	ml_font_custom_t  p_font_custom ;
 #ifdef  ANTI_ALIAS
 	ml_font_custom_t  aa_font_custom ;
 #endif
@@ -64,11 +65,11 @@ typedef struct  ml_term_manager
 	u_int  num_of_startup_terms ;
 	u_int  col_size_a ;
 	ml_char_encoding_t  encoding ;
+	ml_font_present_t  font_present ;
 	
 	int8_t  use_scrollbar ;
 	int8_t  use_login_shell ;
 	int8_t  use_xim ;
-	int8_t  is_aa ;
 	int8_t  xim_open_in_startup ;
 	int8_t  use_bidi ;
 	int8_t  big5_buggy ;

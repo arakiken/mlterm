@@ -14,9 +14,7 @@
 
 /* --- static variables --- */
 
-static int  is_visual_checked = 0 ;
-static int  is_sound_checked = 0 ;
-static int  is_none_checked = 0 ;
+static ml_bel_mode_t  new_bel_mode ;
 
 
 /* --- static functions --- */
@@ -27,7 +25,10 @@ button_none_checked(
 	gpointer  data
 	)
 {
-	is_none_checked = GTK_TOGGLE_BUTTON(widget)->active ;
+	if( GTK_TOGGLE_BUTTON(widget)->active)
+	{
+		new_bel_mode = BEL_NONE ;
+	}
 	
 	return  1 ;
 }
@@ -38,7 +39,10 @@ button_visual_checked(
 	gpointer  data
 	)
 {
-	is_visual_checked = GTK_TOGGLE_BUTTON(widget)->active ;
+	if( GTK_TOGGLE_BUTTON(widget)->active)
+	{
+		new_bel_mode = BEL_VISUAL ;
+	}
 	
 	return  1 ;
 }
@@ -49,7 +53,10 @@ button_sound_checked(
 	gpointer  data
 	)
 {
-	is_sound_checked = GTK_TOGGLE_BUTTON(widget)->active ;
+	if( GTK_TOGGLE_BUTTON(widget)->active)
+	{
+		new_bel_mode = BEL_SOUND ;
+	}
 	
 	return  1 ;
 }
@@ -81,7 +88,7 @@ mc_bel_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 
-	if( bel_mode == 0)
+	if( bel_mode == BEL_NONE)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
@@ -92,7 +99,7 @@ mc_bel_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
-	if( bel_mode == 1)
+	if( bel_mode == BEL_SOUND)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
@@ -103,10 +110,12 @@ mc_bel_config_widget_new(
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
-	if( bel_mode == 2)
+	if( bel_mode == BEL_VISUAL)
 	{
 		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
+
+	new_bel_mode = bel_mode ;
 	
 	return  hbox ;
 }
@@ -114,16 +123,5 @@ mc_bel_config_widget_new(
 ml_bel_mode_t
 mc_get_bel_mode(void)
 {
-	if( is_visual_checked)
-	{
-		return  BEL_VISUAL ;
-	}
-	else if( is_sound_checked)
-	{
-		return  BEL_SOUND ;
-	}
-	else /* if( is_none_checked) */
-	{
-		return  BEL_NONE ;
-	}
+	return  new_bel_mode ;
 }
