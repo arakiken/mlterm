@@ -1,3 +1,9 @@
+[20020203]
+* cursor disappears under backscroll mode. fixed. (Thanks to Sakamoto Hironori san)
+* -K/--maxptys/max_ptys option is added. You can use more than 5 pty windows in one
+  process.
+  Note that max_ptys option accepts numbers between 1 and 32.
+
 [20020202]
 * --shade/shade_ratio option is renamed to --bright/brightness.
 * brightness option works under transparent mode.
