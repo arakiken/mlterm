@@ -468,5 +468,41 @@ int x_imagelib_load_file(
 	int  height
 	)
 {
+	ImlibData *  imlib ;
+	ImlibImage *  img ;
+
+	if( ! ( imlib = get_imlib( display)))
+	{
+		return  -1 ;
+	}
+	
+	if( ( img = Imlib_load_image( imlib , path)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG , " Imlib_load_image() failed.\n") ;
+	#endif
+	
+		return  -1 ;
+	}
+
+	if( cardinal)
+	{
+		*cardinal = NULL ;
+	}
+
+	if( pixmap)
+	{
+		*pixmap = XCreatePixmap( display , DefaultRootWindow( display) , width , height ,
+			DefaultDepth( display , DefaultScreen( display))) ;
+		Imlib_paste_image( imlib , img , *pixmap , 0 , 0 ,
+			width , height) ;
+	}
+	if( mask)
+	{
+		*mask = None ;
+	}
+
+	Imlib_kill_image( imlib , img) ;
+	
 	return 0 ;
 }
