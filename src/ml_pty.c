@@ -45,8 +45,6 @@ ml_pty_new(
 		goto  error ;
 	}
 
-	free( slave) ;
-
 	if( pid == 0)
 	{
 		/* child process */
@@ -111,6 +109,8 @@ ml_pty_new(
 		kik_msg_printf( "utmp failed.\n") ;
 	}
 #endif
+
+	free( slave) ;
 
 	pty->child_pid = pid ;
 	pty->buf = NULL ;

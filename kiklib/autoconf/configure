@@ -6345,14 +6345,14 @@ fi
 
 
 
-echo $ac_n "checking for addToUtmp in -lutmper""... $ac_c" 1>&6
-echo "configure:6350: checking for addToUtmp in -lutmper" >&5
-ac_lib_var=`echo utmper'_'addToUtmp | sed 'y%./+-%__p_%'`
+echo $ac_n "checking for addToUtmp in -lutempter""... $ac_c" 1>&6
+echo "configure:6350: checking for addToUtmp in -lutempter" >&5
+ac_lib_var=`echo utempter'_'addToUtmp | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_save_LIBS="$LIBS"
-LIBS="-lutmper  $LIBS"
+LIBS="-lutempter  $LIBS"
 cat > conftest.$ac_ext <<EOF
 #line 6358 "configure"
 #include "confdefs.h"
@@ -6381,7 +6381,7 @@ fi
 if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   echo "$ac_t""yes" 1>&6
   
-UTMPER_LIBS=-lutempter -lutil
+UTMPER_LIBS="-lutempter -lutil"
 
 cat >> confdefs.h <<\EOF
 #define HAVE_UTMPER 1

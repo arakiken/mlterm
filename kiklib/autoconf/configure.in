@@ -77,9 +77,9 @@ fi
 AC_CHECK_LIB(xpg4,setlocale,XPG4_LIBS=-lxpg4)
 AC_SUBST(XPG4_LIBS)
 
-AC_CHECK_LIB(utmper,addToUtmp,
+AC_CHECK_LIB(utempter,addToUtmp,
 [
-UTMPER_LIBS=-lutempter -lutil
+UTMPER_LIBS="-lutempter -lutil"
 AC_SUBST(UTMPER_LIBS)
 AC_DEFINE(HAVE_UTMPER)
 ])
