@@ -1,3 +1,7 @@
+2004-08-28 MINAMI Hirokazu <minami@mistfall.net>
+ 
+        * doc/term/mlterm.* : reversed the order of sequences in sgr0.
+
 2004-08-15 MINAMI Hirokazu <minami@mistfall.net>
 
 	* doc/term/mlterm.* : updated information. 
