@@ -574,6 +574,7 @@ ml_char_cols(
 }
 
 /*
+ * !! Notice !!
  * for ml_logical_visual(vertical cjk)
  */
 inline u_int

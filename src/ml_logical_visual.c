@@ -5,6 +5,7 @@
 #include  "ml_logical_visual.h"
 
 #include  <kiklib/kik_mem.h>		/* realloc/free */
+#include  <kiklib/kik_util.h>		/* K_MIN */
 
 #include  "ml_image_intern.h"
 
@@ -1496,4 +1497,37 @@ ml_get_vertical_mode_name(
 	{
 		return  "none" ;
 	}
+}
+
+/*
+ * Easy and vertical proper version of ml_convert_char_index_to_col.
+ */
+int
+ml_vert_convert_char_index_to_col(
+	ml_image_line_t *  line ,
+	int  char_index
+	)
+{
+	int  counter ;
+	int  col ;
+	u_int  max ;
+
+	if( line->num_of_filled_chars == 0)
+	{
+		return  0 ;
+	}
+
+	col = 0 ;
+
+	max = K_MIN(char_index,line->num_of_filled_chars - 1) ;
+	
+	/*
+	 * excluding the width of the last char.
+	 */
+	for( counter = 0 ; counter < max ; counter ++)
+	{
+		col += ml_char_default_cols( &line->chars[counter]) ;
+	}
+
+	return  col ;
 }

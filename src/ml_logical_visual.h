@@ -65,5 +65,7 @@ ml_vertical_mode_t  ml_get_vertical_mode( char *  name) ;
 
 char *  ml_get_vertical_mode_name( ml_vertical_mode_t  mode) ;
 
+int  ml_vert_convert_char_index_to_col( ml_image_line_t *  line , int  char_index) ;
+
 
 #endif

@@ -3109,6 +3109,33 @@ ml_window_draw_str(
 }
 
 int
+ml_window_draw_str_to_eol(
+	ml_window_t *  win ,
+	ml_char_t *  chars ,
+	u_int	num_of_chars ,
+	int  x ,
+	int  y ,
+	u_int	height ,
+	u_int	height_to_baseline
+	)
+{
+	u_int  updated_width ;
+
+	if( ! draw_str( win , &updated_width , chars , num_of_chars ,
+		x , y , height , height_to_baseline))
+	{
+		return	0 ;
+	}
+
+	if( updated_width < win->width)
+	{
+		ml_window_clear( win , updated_width , y , win->width - updated_width , height) ;
+	}
+
+	return	1 ;
+}
+
+int
 ml_window_draw_cursor(
 	ml_window_t *  win ,
 	ml_char_t *  ch ,
@@ -3149,33 +3176,6 @@ ml_window_draw_rect_frame(
 	XDrawLine( win->display , win->drawable , win->gc , x2 , y2 , x1 , y2) ;
 
 	return  1 ;
-}
-
-int
-ml_window_draw_str_to_eol(
-	ml_window_t *  win ,
-	ml_char_t *  chars ,
-	u_int	num_of_chars ,
-	int  x ,
-	int  y ,
-	u_int	height ,
-	u_int	height_to_baseline
-	)
-{
-	u_int  updated_width ;
-
-	if( ! draw_str( win , &updated_width , chars , num_of_chars ,
-		x , y , height , height_to_baseline))
-	{
-		return	0 ;
-	}
-
-	if( updated_width < win->width)
-	{
-		ml_window_clear( win , updated_width , y , win->width - updated_width , height) ;
-	}
-
-	return	1 ;
 }
 
 int

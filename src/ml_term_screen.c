@@ -2632,10 +2632,11 @@ report_mouse_tracking(
 			 * col is still inaccurate since multiple-column(full width)
 			 * characters are not regarded.
 			 */
-		}
-		else
-		{
-			col *= 2 ;
+			 
+			if( termscr->vertical_mode & VERT_FULL_WIDTH)
+			{
+				col *= 2 ;
+			}
 		}
 
 		if( ( line = ml_bs_get_image_line_in_screen( &termscr->bs_image , col)) == NULL)
@@ -2643,8 +2644,8 @@ report_mouse_tracking(
 			return  0 ;
 		}
 		
-		row = ml_convert_char_index_to_col( line ,
-			convert_x_to_char_index( termscr , line , &x_rest , event->x) , 0) ;
+		row = ml_vert_convert_char_index_to_col( line ,
+			convert_x_to_char_index( termscr , line , &x_rest , event->x)) ;
 			
 		if( termscr->vertical_mode & VERT_RTL)
 		{

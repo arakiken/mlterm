@@ -1,4 +1,7 @@
 [20020207]
+* strange mouse position is reported under vertical mode. fixed.
+
+[20020207]
 * vertical mode and veriable column width mode are considered for reporting
   mouse position to console applications.
 * -Q/--vcur/use_vertical_cursor option is added.

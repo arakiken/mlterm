@@ -24,6 +24,7 @@
 #include  "ml_color.h"
 #include  "ml_char.h"
 #include  "ml_picture.h"
+#include  "ml_logical_visual.h"		/* ml_vertical_mode_t */
 
 
 #define  ACTUAL_WIDTH(win)  ((win)->width + (win)->margin * 2)
@@ -247,12 +248,12 @@ int  ml_window_scroll_downward_region( ml_window_t *  win , int  start_y , int  
 int  ml_window_draw_str( ml_window_t *  win , ml_char_t *  chars , u_int  num_of_chars ,
 	int  x , int  y , u_int  height , u_int  height_to_baseline) ;
 
-int  ml_window_draw_cursor( ml_window_t *  win , ml_char_t *  ch ,
-	int  x , int  y , u_int  height , u_int  height_to_baseline) ;
-	
 int  ml_window_draw_str_to_eol( ml_window_t *  win , ml_char_t *  chars , u_int  num_of_chars ,
 	int  x , int  y , u_int  height , u_int  height_to_baseline) ;
 
+int  ml_window_draw_cursor( ml_window_t *  win , ml_char_t *  ch ,
+	int  x , int  y , u_int  height , u_int  height_to_baseline) ;
+	
 int  ml_window_draw_rect_frame( ml_window_t *  win , int  x1 , int  y1 , int  x2 , int  y2) ;
 
 int  ml_window_set_selection_owner( ml_window_t *  win , Time  time) ;
