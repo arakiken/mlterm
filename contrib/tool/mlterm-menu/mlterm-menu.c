@@ -1,5 +1,5 @@
 /*
- * mlterm-menu - popup menu style configration tool for mlterm
+ * mlterm-menu - a popup-menu-style configuration tool for mlterm
  *
  * $Id$
  */
