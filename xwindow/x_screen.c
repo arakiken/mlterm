@@ -551,8 +551,9 @@ draw_cursor(
 		ml_color_t orig_bg ;
 
 		orig_bg = ml_char_bg_color(&ch);
-
+		/* if fg/bg color should be overriden, reset ch's color to default */
 		if( x_color_manager_adjust_cursor_fg( screen->color_man)){
+			/* for curosr's bg, *FG* color should be used */
 			ml_char_set_bg_color( &ch, ML_FG_COLOR);
 		}else{
 			ml_char_set_bg_color( &ch, ml_char_fg_color(&ch));

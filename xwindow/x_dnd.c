@@ -15,11 +15,14 @@
 #define  SUCCESS 0
 #define  FAILURE -1
 
+/* XXX: should we cache this atom for decrease round-trip? */
 #define  XA_DND_STORE(display) (XInternAtom(display, "MLTERM_DND", False))
 
-/* following defines should match those of in x_window.c */
+/* following define should be consistent with the counterpart in x_window.c */
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 
+/* For now, we need a pointer to this structure in the x_window_t
+ * to keep track of DND. It should be removed someday ...*/
 typedef struct x_dnd_context {
 	Window  source ;
 	Atom  waiting_atom ;
@@ -34,6 +37,7 @@ typedef struct dnd_parser {
 } dnd_parser_t ;
 
 /********************** parsers **********************************/
+/* XXX: to properly support DnD spec v5, parsers should accept "codeset"*/
 static int
 parse_text_unicode(
 	x_window_t *  win,
@@ -78,18 +82,21 @@ parse_text_unicode(
 			(conv->delete)(conv) ;
 			return  FAILURE ;
 		}
+		
+		/* initialize the parser's endian. */
 		(parser->init)( parser) ;
 		if ( (src[0] == 0xFF || src[0] == 0xFE)
 		     && (src[1] == 0xFF || src[1] == 0xFE)
 		     && (src[0] != src[1]))
 		{
 			/* src sequence seems to have a valid BOM and *
-			 * should be processed correctly */
+			 * should initialize parser correctly */
 		}
 		else
 		{
 			/* try to set parser state depending on
 			   your machine's endianess by sending BOM */
+			/* XXX: its'n not comforming spen and sometimes do not work */
 			u_int16_t BOM[] =  {0xFEFF};
 
 			(parser->set_str)( parser , (char *)BOM , 2) ;
@@ -113,7 +120,7 @@ parse_text_unicode(
 	}
 	if( win->dnd->is_incr)
 	{
-/* keep a parser/converter for reuse */
+/* keep pointers to parser/converter to use them for next event */
 		win->dnd->parser = parser ;
 		win->dnd->conv = conv ;
 	}
@@ -140,6 +147,7 @@ parse_text_uri_list(
 	pos = 0 ;
 	delim = src ;
 	while( pos < len){
+		/* according to RFC, 0x0d is the delimiter */
 		delim = strchr( &(src[pos]), 13) ;
 		if( delim )
 		{
@@ -248,7 +256,6 @@ parse_app_color(
 	r = (u_int16_t *)src ;
 	g = r + 1 ;
 	b = r + 2 ;
-
 	sprintf( buffer, "bg_color=#%02x%02x%02x", (*r) >> 8 , (*g) >> 8, (*b) >> 8) ;
 #ifdef  DEBUG
 	kik_debug_printf( "bgcolor: %s\n" , buffer) ;
@@ -286,7 +293,7 @@ parse_prop_bgimage(
 	}
 	else
 	{
-		/* other schemas may be supported here */
+		/* other schemas (like "http" --call wget?) may be supported here */
 	}
 #ifdef  DEBUG
 	kik_debug_printf( "bgimage: %s\n" , src) ;
@@ -315,6 +322,7 @@ parse_debug(
 }
 #endif
 
+/* new mime type and parser pair should be added into this table */
 dnd_parser_t dnd_parsers[] ={
 	{"text/x-mlterm.config"  , parse_mlterm_config } ,
 	{"UTF8_STRING"  , parse_utf8_string } ,
@@ -326,7 +334,7 @@ dnd_parser_t dnd_parsers[] ={
 	{"text/uri-list", parse_text_uri_list } ,
 	{"text/unicode"   , parse_text_unicode } ,
 	{"text/plain"   , parse_utf8_string } ,
-/*
+/* nobody would use following...
 	{"GIMP_PATTERN"  , parse_utf8_string } ,
 	{"GIMP_BRUSH"  , parse_utf8_string } ,
 	{"GIMP_GRADIENT"  , parse_utf8_string } ,
