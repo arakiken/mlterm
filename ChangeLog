@@ -1,3 +1,13 @@
+[20020328]
+* parsing sequence from pty is stopped after 4096 bytes are parsed even if 
+  it is still left in pty.(Thanks to Nanashi san)
+* LF on the first char of an arabic word gets the original line not to be redrawn correctly.
+  fixed.(Thanks to Nadim Shaikli)
+* There were a bug around calculating the meeting position of ltr and rtl characters. fixed.
+  (Thanks to Nadim Shaikli)
+* if cursor is on a space after a RTL word at the end of line, the RTL word strangely moves.
+  fixed. (Thanks to Nadim Shaikli)
+
 [20020324]
 * strange cursor movement on bidi is fixed.
 * memory leak in ml_bidi.c:ml_bidi() is fixed.
