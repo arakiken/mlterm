@@ -100,10 +100,10 @@ sig_child(
 		 
 		int  encoding ;
 		int  iscii_lang ;
-		int  fg_color ;
-		int  bg_color ;
-		int  sb_fg_color ;
-		int  sb_bg_color ;
+		char *  fg_color ;
+		char *  bg_color ;
+		char *  sb_fg_color ;
+		char *  sb_bg_color ;
 		u_int  tabsize ;
 		u_int  logsize ;
 		u_int  fontsize ;
@@ -140,26 +140,22 @@ sig_child(
 			goto  end ;
 		}
 		
-		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_int( (int*)&fg_color , p))
+		if( ( fg_color = kik_str_sep( &input_line , " ")) == NULL)
 		{
 			goto  end ;
 		}
 		
-		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_int( &bg_color , p))
+		if( ( bg_color = kik_str_sep( &input_line , " ")) == NULL)
 		{
 			goto  end ;
 		}
 		
-		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_int( &sb_fg_color , p))
+		if( ( sb_fg_color = kik_str_sep( &input_line , " ")) == NULL)
 		{
 			goto  end ;
 		}
 		
-		if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-			! kik_str_to_int( &sb_bg_color , p))
+		if( ( sb_bg_color = kik_str_sep( &input_line , " ")) == NULL)
 		{
 			goto  end ;
 		}
@@ -316,7 +312,7 @@ sig_child(
 			}
 		}
 
-		if( fg_color != config_menu->session->fg_color)
+		if( strcmp( fg_color , config_menu->session->fg_color) != 0)
 		{
 			if( config_menu->config_menu_listener->change_fg_color)
 			{
@@ -325,7 +321,7 @@ sig_child(
 			}
 		}
 
-		if( bg_color != config_menu->session->bg_color)
+		if( strcmp( bg_color , config_menu->session->bg_color) != 0)
 		{
 			if( config_menu->config_menu_listener->change_bg_color)
 			{
@@ -334,7 +330,7 @@ sig_child(
 			}
 		}
 		
-		if( sb_fg_color != config_menu->session->sb_fg_color)
+		if( strcmp( sb_fg_color , config_menu->session->sb_fg_color) != 0)
 		{
 			if( config_menu->config_menu_listener->change_sb_fg_color)
 			{
@@ -343,7 +339,7 @@ sig_child(
 			}
 		}
 
-		if( sb_bg_color != config_menu->session->sb_bg_color)
+		if( strcmp( sb_bg_color , config_menu->session->sb_bg_color) != 0)
 		{
 			if( config_menu->config_menu_listener->change_sb_bg_color)
 			{
@@ -652,10 +648,10 @@ ml_config_menu_start(
 	int  y ,
 	ml_char_encoding_t  orig_encoding ,
 	ml_iscii_lang_t  orig_iscii_lang ,
-	ml_color_t  orig_fg_color ,
-	ml_color_t  orig_bg_color ,
-	ml_color_t  orig_sb_fg_color ,
-	ml_color_t  orig_sb_bg_color ,
+	char *  orig_fg_color ,
+	char *  orig_bg_color ,
+	char *  orig_sb_fg_color ,
+	char *  orig_sb_bg_color ,
 	u_int  orig_tabsize ,
 	u_int  orig_logsize ,
 	u_int  orig_fontsize ,
@@ -767,7 +763,7 @@ ml_config_menu_start(
 	 * [sb view name] [xim] [locale] [wall pic][LF]
 	 */
 	fprintf( fp ,
-		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d "
+		"%d %d %s %s %s %s %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d "
 		"%s %s %s %s\n" ,
 		orig_encoding , orig_iscii_lang , orig_fg_color , orig_bg_color ,
 		orig_sb_fg_color , orig_sb_bg_color , orig_tabsize , orig_logsize , orig_fontsize ,

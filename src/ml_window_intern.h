@@ -17,8 +17,8 @@
 
 #endif
 
-#define  FG_COLOR_PIXEL(win)  COLOR_PIXEL(win,MLC_FG_COLOR)
-#define  BG_COLOR_PIXEL(win)  COLOR_PIXEL(win,MLC_BG_COLOR)
+#define  FG_COLOR_PIXEL(win)  COLOR_PIXEL(win,ML_FG_COLOR)
+#define  BG_COLOR_PIXEL(win)  COLOR_PIXEL(win,ML_BG_COLOR)
 #define  UNFADE_FG_COLOR_PIXEL(win) \
 	( (win)->orig_fg_xcolor ? (win)->orig_fg_xcolor->pixel : FG_COLOR_PIXEL(win) )
 #define  UNFADE_BG_COLOR_PIXEL(win)  \

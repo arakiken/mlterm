@@ -522,7 +522,9 @@ ml_scrollbar_init(
 	ml_scrollbar_t *  sb ,
 	ml_scrollbar_event_listener_t *  sb_listener ,
 	char *  view_name ,
-	ml_color_table_t  color_table ,
+	ml_color_manager_t *  color_man ,
+	ml_color_t  fg_color ,
+	ml_color_t  bg_color ,
 	u_int  height ,
 	u_int  line_height ,
 	u_int  num_of_log_lines ,
@@ -600,35 +602,28 @@ view_created:
 	sb->is_pressing_up_button = 0 ;
 	sb->is_pressing_down_button = 0 ;
 
-	if( ml_window_init( &sb->window , color_table , width , height , width , 0 , 0 , 0 , 0) == 0)
+	if( fg_color == ML_UNKNOWN_COLOR)
+	{
+		if( fg_color_name == NULL ||
+			( fg_color = ml_get_color( color_man , fg_color_name)) == ML_UNKNOWN_COLOR)
+		{
+			goto  error ;
+		}
+	}
+
+	if( bg_color == ML_UNKNOWN_COLOR)
+	{
+		if( bg_color_name == NULL ||
+			( bg_color = ml_get_color( color_man , bg_color_name)) == ML_UNKNOWN_COLOR)
+		{
+			goto  error ;
+		}
+	}
+	
+	if( ml_window_init( &sb->window , ml_color_table_new( color_man , fg_color , bg_color) ,
+		width , height , width , 0 , 0 , 0 , 0) == 0)
 	{
 		goto  error ;
-	}
-
-	if( ml_window_get_fg_color( &sb->window) == MLC_UNKNOWN_COLOR)
-	{
-		ml_color_t  fg_color ;
-
-		if( fg_color_name == NULL || 
-			( fg_color = ml_get_color( fg_color_name)) == MLC_UNKNOWN_COLOR)
-		{
-			fg_color = MLC_GRAY ;
-		}
-
-		ml_window_set_fg_color( &sb->window , fg_color) ;
-	}
-
-	if( ml_window_get_bg_color( &sb->window) == MLC_UNKNOWN_COLOR)
-	{
-		ml_color_t  bg_color ;
-
-		if( bg_color_name == NULL ||
-			( bg_color = ml_get_color( bg_color_name)) == MLC_UNKNOWN_COLOR)
-		{
-			bg_color = MLC_LIGHTGRAY ;
-		}
-		
-		ml_window_set_bg_color( &sb->window , bg_color) ;
 	}
 
 	sb->line_height = line_height ;

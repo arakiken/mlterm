@@ -1536,7 +1536,7 @@ config_menu(
 	}
 	else
 	{
-		sb_fg_color = MLC_UNKNOWN_COLOR ;
+		sb_fg_color = ML_UNKNOWN_COLOR ;
 	}
 	
 	if( HAS_SCROLL_LISTENER(termscr,bg_color))
@@ -1546,7 +1546,7 @@ config_menu(
 	}
 	else
 	{
-		sb_bg_color = MLC_UNKNOWN_COLOR ;
+		sb_bg_color = ML_UNKNOWN_COLOR ;
 	}
 	
 	if( HAS_SCROLL_LISTENER(termscr,sb_mode))
@@ -1581,9 +1581,10 @@ config_menu(
 	ml_config_menu_start( &termscr->config_menu , global_x , global_y ,
 		(*termscr->encoding_listener->encoding)( termscr->encoding_listener->self) ,
 		termscr->iscii_lang ,
-		ml_window_get_fg_color( &termscr->window) ,
-		ml_window_get_bg_color( &termscr->window) ,
-		sb_fg_color , sb_bg_color ,
+		ml_get_color_name( termscr->color_man , ml_window_get_fg_color( &termscr->window)) ,
+		ml_get_color_name( termscr->color_man , ml_window_get_bg_color( &termscr->window)) ,
+		ml_get_color_name( termscr->color_man , sb_fg_color) ,
+		ml_get_color_name( termscr->color_man , sb_bg_color) ,
 		termscr->image->tab_size , ml_get_log_size( &termscr->logs) ,
 		termscr->font_man->font_size ,
 		termscr->font_man->font_custom->min_font_size ,
@@ -3495,12 +3496,18 @@ change_copy_paste_via_ucs_flag(
 static void
 change_fg_color(
 	void *  p ,
-	ml_color_t  color
+	char *  name
 	)
 {
 	ml_term_screen_t *  termscr ;
+	ml_color_t  color ;
 
 	termscr = p ;
+
+	if( ( color = ml_get_color( termscr->color_man , name)) == ML_UNKNOWN_COLOR)
+	{
+		return ;
+	}
 
 	if( ml_window_get_fg_color( &termscr->window) == color)
 	{
@@ -3518,12 +3525,18 @@ change_fg_color(
 static void
 change_bg_color(
 	void *  p ,
-	ml_color_t  color
+	char *  name
 	)
 {
 	ml_term_screen_t *  termscr ;
+	ml_color_t  color ;
 
 	termscr = p ;
+
+	if( ( color = ml_get_color( termscr->color_man , name)) == ML_UNKNOWN_COLOR)
+	{
+		return ;
+	}
 
 	if( ml_window_get_bg_color( &termscr->window) == color)
 	{
@@ -3541,12 +3554,18 @@ change_bg_color(
 static void
 change_sb_fg_color(
 	void *  p ,
-	ml_color_t  color
+	char *  name
 	)
 {
 	ml_term_screen_t *  termscr ;
+	ml_color_t  color ;
 
 	termscr = p ;
+
+	if( ( color = ml_get_color( termscr->color_man , name)) == ML_UNKNOWN_COLOR)
+	{
+		return ;
+	}
 
 	if( HAS_SCROLL_LISTENER(termscr,change_fg_color))
 	{
@@ -3558,13 +3577,19 @@ change_sb_fg_color(
 static void
 change_sb_bg_color(
 	void *  p ,
-	ml_color_t  color
+	char *  name
 	)
 {
 	ml_term_screen_t *  termscr ;
+	ml_color_t  color ;
 
 	termscr = p ;
 
+	if( ( color = ml_get_color( termscr->color_man , name)) == ML_UNKNOWN_COLOR)
+	{
+		return ;
+	}
+	
 	if( HAS_SCROLL_LISTENER(termscr,change_bg_color))
 	{
 		(*termscr->screen_scroll_listener->change_bg_color)(
@@ -4136,7 +4161,9 @@ ml_term_screen_new(
 	u_int  cols ,
 	u_int  rows ,
 	ml_font_manager_t *  font_man ,
-	ml_color_table_t  color_table ,
+	ml_color_manager_t *  color_man ,
+	ml_color_t  fg_color ,
+	ml_color_t  bg_color ,
 	u_int  brightness ,
 	u_int  fade_ratio ,
 	ml_keymap_t *  keymap ,
@@ -4190,6 +4217,7 @@ ml_term_screen_new(
 	termscr->shape = NULL ;
 
 	termscr->font_man = font_man ;
+	termscr->color_man = color_man ;
 
 	if( ( termscr->vertical_mode = vertical_mode))
 	{
@@ -4223,9 +4251,9 @@ ml_term_screen_new(
 	ml_char_init( &nl_ch) ;
 	
 	ml_char_set( &sp_ch , " " , 1 , ml_get_usascii_font( termscr->font_man) ,
-		0 , MLC_FG_COLOR , MLC_BG_COLOR , 0) ;
+		0 , ML_FG_COLOR , ML_BG_COLOR , 0) ;
 	ml_char_set( &nl_ch , "\n" , 1 , ml_get_usascii_font( termscr->font_man) ,
-		0 , MLC_FG_COLOR , MLC_BG_COLOR , 0) ;
+		0 , ML_FG_COLOR , ML_BG_COLOR , 0) ;
 
 	termscr->image_scroll_listener.self = termscr ;
 	/* this may be overwritten */
@@ -4304,7 +4332,8 @@ ml_term_screen_new(
 	termscr->screen_width_ratio = screen_width_ratio ;
 	termscr->screen_height_ratio = screen_height_ratio ;
 	
-	if( ml_window_init( &termscr->window , color_table ,
+	if( ml_window_init( &termscr->window ,
+		ml_color_table_new( termscr->color_man , fg_color , bg_color) ,
 		screen_width(termscr) , screen_height(termscr) ,
 		ml_col_width( termscr->font_man) , ml_line_height( termscr->font_man) ,
 		ml_col_width( termscr->font_man) , ml_line_height( termscr->font_man) , 2) == 0)
@@ -4860,4 +4889,13 @@ ml_term_screen_get_font(
 #endif
 
 	return  font ;
+}
+
+ml_color_t
+ml_term_screen_get_color(
+	ml_term_screen_t *  termscr ,
+	char *  name
+	)
+{
+	return  ml_get_color( termscr->color_man , name) ;
 }

@@ -10,6 +10,7 @@
 
 #include  "ml_term_screen.h"
 #include  "ml_scrollbar.h"
+#include  "ml_color_manager.h"
 
 
 typedef struct  ml_sb_term_screen
@@ -30,7 +31,8 @@ typedef struct  ml_sb_term_screen
 
 
 ml_sb_term_screen_t *  ml_sb_term_screen_new( ml_term_screen_t *  termscr ,
-	char *  view_name , ml_color_table_t  color_table , ml_sb_mode_t  mode) ;
+	char *  view_name , ml_color_manager_t *  color_man ,
+	ml_color_t  fg_color , ml_color_t  bg_color , ml_sb_mode_t  mode) ;
 
 int  ml_sb_term_screen_delete( ml_sb_term_screen_t *  sb_termscr) ;
 

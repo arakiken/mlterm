@@ -376,8 +376,8 @@ change_font_attr(
 		/* Normal */
 		vt100_parser->font_decor = 0 ;
 		attr = DEFAULT_FONT_ATTR(0) ;
-		vt100_parser->fg_color = MLC_FG_COLOR ;
-		vt100_parser->bg_color = MLC_BG_COLOR ;
+		vt100_parser->fg_color = ML_FG_COLOR ;
+		vt100_parser->bg_color = ML_BG_COLOR ;
 		vt100_parser->is_reversed = 0 ;
 	}
 	else if( flag == 1)
@@ -419,78 +419,78 @@ change_font_attr(
 	}
 	else if( flag == 30)
 	{
-		vt100_parser->fg_color = MLC_BLACK ;
+		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "black") ;
 	}
 	else if( flag == 31)
 	{
-		vt100_parser->fg_color = MLC_RED ;
+		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "red") ;
 	}
 	else if( flag == 32)
 	{
-		vt100_parser->fg_color = MLC_GREEN ;
+		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "green") ;
 	}
 	else if( flag == 33)
 	{
-		vt100_parser->fg_color = MLC_YELLOW ;
+		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "yellow") ;
 	}
 	else if( flag == 34)
 	{
-		vt100_parser->fg_color = MLC_BLUE ;
+		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "blue") ;
 	}
 	else if( flag == 35)
 	{
-		vt100_parser->fg_color = MLC_MAGENTA ;
+		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "magenta") ;
 	}
 	else if( flag == 36)
 	{
-		vt100_parser->fg_color = MLC_CYAN ;
+		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "cyan") ;
 	}
 	else if( flag == 37)
 	{
-		vt100_parser->fg_color = MLC_WHITE ;
+		vt100_parser->fg_color = ml_term_screen_get_color( vt100_parser->termscr , "white") ;
 	}
 	else if( flag == 39)
 	{
 		/* default fg */
 		
-		vt100_parser->fg_color = MLC_FG_COLOR ;
+		vt100_parser->fg_color = ML_FG_COLOR ;
 		vt100_parser->is_reversed = 0 ;
 	}
 	else if( flag == 40)
 	{
-		vt100_parser->bg_color = MLC_BLACK ;
+		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "black") ;
 	}
 	else if( flag == 41)
 	{
-		vt100_parser->bg_color = MLC_RED ;
+		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "red") ;
 	}
 	else if( flag == 42)
 	{
-		vt100_parser->bg_color = MLC_GREEN ;
+		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "green") ;
 	}
 	else if( flag == 43)
 	{
-		vt100_parser->bg_color = MLC_YELLOW ;
+		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "yellow") ;
 	}
 	else if( flag == 44)
 	{
-		vt100_parser->bg_color = MLC_BLUE ;
+		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "blue") ;
 	}
 	else if( flag == 45)
 	{
-		vt100_parser->bg_color = MLC_MAGENTA ;
+		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "magenta") ;
 	}
 	else if( flag == 46)
 	{
-		vt100_parser->bg_color = MLC_CYAN ;
+		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "cyan") ;
 	}
 	else if( flag == 47)
 	{
-		vt100_parser->bg_color = MLC_WHITE ;
+		vt100_parser->bg_color = ml_term_screen_get_color( vt100_parser->termscr , "white") ;
 	}
 	else if( flag == 49)
 	{
-		vt100_parser->bg_color = MLC_BG_COLOR ;
+		vt100_parser->bg_color = ML_BG_COLOR ;
 		vt100_parser->is_reversed = 0 ;
 	}
 #ifdef  DEBUG
@@ -2000,8 +2000,8 @@ ml_vt100_parser_new(
 	vt100_parser->font_decor = 0 ;
 	vt100_parser->saved_attr = DEFAULT_FONT_ATTR(0) ;
 	vt100_parser->saved_decor = 0 ;
-	vt100_parser->fg_color = MLC_FG_COLOR ;
-	vt100_parser->bg_color = MLC_BG_COLOR ;
+	vt100_parser->fg_color = ML_FG_COLOR ;
+	vt100_parser->bg_color = ML_BG_COLOR ;
 	vt100_parser->is_reversed = 0 ;
 	vt100_parser->font = NULL ;
 	vt100_parser->cs = UNKNOWN_CS ;

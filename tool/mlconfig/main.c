@@ -89,7 +89,7 @@ apply_clicked(
 	 */
 	fprintf( out ,
 		"CONFIG:"
-		"%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s %s %s\n" ,
+		"%d %d %s %s %s %s %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %s %s %s %s\n" ,
 		mc_get_char_encoding() ,
 		mc_get_iscii_lang() ,
 		mc_get_fg_color() ,
@@ -246,10 +246,10 @@ show(
 	int  y ,
 	ml_char_encoding_t  encoding ,
 	ml_iscii_lang_t  iscii_lang ,
-	ml_color_t  fg_color ,
-	ml_color_t  bg_color ,
-	ml_color_t  sb_fg_color ,
-	ml_color_t  sb_bg_color ,
+	char *  fg_color ,
+	char *  bg_color ,
+	char *  sb_fg_color ,
+	char *  sb_bg_color ,
 	char *  tabsize ,
 	char *  logsize ,
 	char *  fontsize ,
@@ -600,10 +600,10 @@ start_application(
 	
 	int  encoding ;
 	int  iscii_lang ;
-	int  fg_color ;
-	int  bg_color ;
-	int  sb_fg_color ;
-	int  sb_bg_color ;
+	char *  fg_color ;
+	char *  bg_color ;
+	char *  sb_fg_color ;
+	char *  sb_bg_color ;
 	char *  tabsize ;
 	char *  logsize ;
 	char *  fontsize ;
@@ -675,26 +675,22 @@ start_application(
 		return  0 ;
 	}
 
-	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &fg_color , p))
+	if( ( fg_color = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}
 	
-	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &bg_color , p))
+	if( ( bg_color = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}
 	
-	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &sb_fg_color , p))
+	if( ( sb_fg_color = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}
 	
-	if( ( p = kik_str_sep( &input_line , " ")) == NULL ||
-		! kik_str_to_int( &sb_bg_color , p))
+	if( ( sb_bg_color = kik_str_sep( &input_line , " ")) == NULL)
 	{
 		return  0 ;
 	}

@@ -22,48 +22,28 @@
  */
 static char *  colors[] =
 {
-	"BLACK" ,
-	"RED" ,
-	"GREEN" ,
-	"YELLOW" ,
-	"BLUE" ,
-	"MAGENTA" ,
-	"CYAN" ,
-	"WHITE" ,
-	"GRAY" ,
-	"LIGHTGRAY" ,
-	"PINK" ,
-	"BROWN" ,
-	"PRIVATE_FG" ,
-	"PRIVATE_BG" ,
+	"black" ,
+	"red" ,
+	"green" ,
+	"yellow" ,
+	"blue" ,
+	"magenta" ,
+	"cyan" ,
+	"white" ,
+	"gray" ,
+	"lightgray" ,
+	"pink" ,
+	"brown" ,
 	
 } ;
 
-static ml_color_t  selected_fg_color ;
-static ml_color_t  selected_bg_color ;
-static ml_color_t  selected_sb_fg_color ;
-static ml_color_t  selected_sb_bg_color ;
+static char *  selected_fg_color ;
+static char *  selected_bg_color ;
+static char *  selected_sb_fg_color ;
+static char *  selected_sb_bg_color ;
 
 
 /* --- static functions --- */
-
-static ml_color_t
-get_color(
-	char *  name
-	)
-{
-	int  counter ;
-	
-	for( counter = 0 ; counter < sizeof( colors) / sizeof( colors[0]) ; counter ++)
-	{
-		if( strcmp( name , colors[counter]) == 0)
-		{
-			return  counter ;
-		}
-	}
-	
-	return  -1 ;
-}
 
 static gint
 fg_color_selected(
@@ -71,10 +51,10 @@ fg_color_selected(
 	gpointer  data
 	)
 {
-	selected_fg_color = get_color( gtk_entry_get_text(GTK_ENTRY(widget))) ;
+	selected_fg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %d color is selected.\n" , selected_fg_color) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_fg_color) ;
 #endif
 
 	return  1 ;
@@ -86,10 +66,10 @@ bg_color_selected(
 	gpointer  data
 	)
 {
-	selected_bg_color = get_color( gtk_entry_get_text(GTK_ENTRY(widget))) ;
+	selected_bg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %d color is selected.\n" , selected_bg_color) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_bg_color) ;
 #endif
 
 	return  1 ;
@@ -101,10 +81,10 @@ sb_fg_color_selected(
 	gpointer  data
 	)
 {
-	selected_sb_fg_color = get_color( gtk_entry_get_text(GTK_ENTRY(widget))) ;
+	selected_sb_fg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %d color is selected.\n" , selected_sb_fg_color) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_sb_fg_color) ;
 #endif
 
 	return  1 ;
@@ -116,10 +96,10 @@ sb_bg_color_selected(
 	gpointer  data
 	)
 {
-	selected_sb_bg_color = get_color( gtk_entry_get_text(GTK_ENTRY(widget))) ;
+	selected_sb_bg_color = gtk_entry_get_text(GTK_ENTRY(widget)) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %d color is selected.\n" , selected_sb_bg_color) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s color is selected.\n" , selected_sb_bg_color) ;
 #endif
 
 	return  1 ;
@@ -128,12 +108,12 @@ sb_bg_color_selected(
 static GtkWidget *
 config_widget_new(
 	char *  title ,
-	ml_color_t  selected_color ,
+	char *  selected_color ,
 	gint (*color_selected)(GtkWidget *,gpointer)
 	)
 {
 	return  mc_combo_new( title , colors , sizeof(colors) / sizeof(colors[0]) ,
-		colors[selected_color] , 1 , color_selected , NULL) ;
+			selected_color , 0 , color_selected , NULL) ;
 }
 
 
@@ -141,7 +121,7 @@ config_widget_new(
 
 GtkWidget *
 mc_fg_color_config_widget_new(
-	ml_color_t  color
+	char *  color
 	)
 {
 	selected_fg_color = color ;
@@ -151,7 +131,7 @@ mc_fg_color_config_widget_new(
 
 GtkWidget *
 mc_bg_color_config_widget_new(
-	ml_color_t  color
+	char *  color
 	)
 {
 	selected_bg_color = color ;
@@ -161,7 +141,7 @@ mc_bg_color_config_widget_new(
 
 GtkWidget *
 mc_sb_fg_color_config_widget_new(
-	ml_color_t  color
+	char *  color
 	)
 {
 	selected_sb_fg_color = color ;
@@ -171,7 +151,7 @@ mc_sb_fg_color_config_widget_new(
 
 GtkWidget *
 mc_sb_bg_color_config_widget_new(
-	ml_color_t  color
+	char *  color
 	)
 {
 	selected_sb_bg_color = color ;
@@ -179,25 +159,25 @@ mc_sb_bg_color_config_widget_new(
 	return  config_widget_new( "BG color" , color , sb_bg_color_selected) ;
 }
 
-ml_color_t
+char *
 mc_get_fg_color(void)
 {
 	return  selected_fg_color ;
 }
 
-ml_color_t
+char *
 mc_get_bg_color(void)
 {
 	return  selected_bg_color ;
 }
 
-ml_color_t
+char *
 mc_get_sb_fg_color(void)
 {
 	return  selected_sb_fg_color ;
 }
 
-ml_color_t
+char *
 mc_get_sb_bg_color(void)
 {
 	return  selected_sb_bg_color ;

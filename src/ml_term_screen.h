@@ -17,7 +17,7 @@
 #include  "ml_backscroll.h"
 #include  "ml_char_encoding.h"
 #include  "ml_font_manager.h"
-#include  "ml_color.h"
+#include  "ml_color_manager.h"
 #include  "ml_keymap.h"
 #include  "ml_termcap.h"
 #include  "ml_config_menu.h"
@@ -97,6 +97,7 @@ typedef struct  ml_term_screen
 	ml_pty_t *  pty ;
 	
 	ml_font_manager_t *  font_man ;
+	ml_color_manager_t *  color_man ;
 
 	ml_keymap_t *  keymap ;
 	ml_termcap_t *  termcap ;
@@ -157,7 +158,8 @@ typedef struct  ml_term_screen
 
 
 ml_term_screen_t *  ml_term_screen_new( u_int  cols , u_int  rows ,
-	ml_font_manager_t *  font_man , ml_color_table_t  color_table ,
+	ml_font_manager_t *  font_man , ml_color_manager_t *  color_man ,
+	ml_color_t  fg_color , ml_color_t  bg_color ,
 	u_int  brightness , u_int  fade_ratio ,
 	ml_keymap_t *  keymap , ml_termcap_t *  termcap ,
 	u_int  num_of_log_lines , u_int  tab_size ,
@@ -202,6 +204,8 @@ int  ml_term_screen_start_vt100_cmd( ml_term_screen_t *  termscr) ;
 int  ml_term_screen_stop_vt100_cmd( ml_term_screen_t *  termscr) ;
 
 ml_font_t *  ml_term_screen_get_font( ml_term_screen_t *  termscr , ml_font_attr_t  attr) ;
+
+ml_color_t  ml_term_screen_get_color( ml_term_screen_t *  termscr , char *  name) ;
 
 
 #endif

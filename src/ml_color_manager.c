@@ -9,83 +9,6 @@
 #include  <kiklib/kik_mem.h>
 
 
-/* --- static functions --- */
-
-static int
-load_named_xcolor(
-	ml_color_manager_t *  color_man ,
-	ml_xcolor_t *  xcolor ,
-	char *  name
-	)
-{
-	if( xcolor->is_loaded)
-	{
-		return  0 ;
-	}
-	
-	if( ml_load_named_xcolor( color_man->display , color_man->screen , &xcolor->xcolor , name))
-	{
-		xcolor->is_loaded = 1 ;
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
-static int
-load_rgb_xcolor(
-	ml_color_manager_t *  color_man ,
-	ml_xcolor_t *  xcolor ,
-	u_short  red ,
-	u_short  green ,
-	u_short  blue
-	)
-{
-	if( xcolor->is_loaded)
-	{
-		return  0 ;
-	}
-	
-	if( ml_load_rgb_xcolor( color_man->display , color_man->screen , &xcolor->xcolor ,
-		red , green , blue))
-	{
-		xcolor->is_loaded = 1 ;
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
-static int
-unload_xcolor(
-	ml_color_manager_t *  color_man ,
-	ml_xcolor_t *  xcolor
-	)
-{
-	if( ! xcolor->is_loaded)
-	{
-		return  0 ;
-	}
-	
-	if( ml_unload_xcolor( color_man->display , color_man->screen , &xcolor->xcolor))
-	{
-		xcolor->is_loaded = 0 ;
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
-
 /* --- global functions --- */
 
 int
@@ -114,79 +37,78 @@ ml_color_manager_final(
 
 	for( color = 0 ; color < MAX_ACTUAL_COLORS ; color ++)
 	{
-		unload_xcolor( color_man , &color_man->xcolors[color]) ;
+		free( color_man->xcolors[color].name) ;
+		ml_unload_xcolor( color_man->display , color_man->screen ,
+			&color_man->xcolors[color].xcolor) ;
 	}
 
 	return  1 ;
 }
 
-int
-ml_color_manager_load(
-	ml_color_manager_t *  color_man
+ml_color_t
+ml_get_color(
+	ml_color_manager_t *  color_man ,
+	char *  name
 	)
 {
 	ml_color_t  color ;
-	u_short  red ;
-	u_short  green ;
-	u_short  blue ;
-	char *  name ;
 
 	for( color = 0 ; color < MAX_ACTUAL_COLORS ; color ++)
 	{
-		if( ml_color_custom_get_rgb( color_man->color_custom , &red , &green , &blue , color))
+		if( color_man->xcolors[color].name == NULL)
 		{
-			if( load_rgb_xcolor( color_man , &color_man->xcolors[color] ,
-				red , green , blue))
-			{
-				continue ;
-			}
+			u_short  red ;
+			u_short  green ;
+			u_short  blue ;
 			
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " load_rgb_xfont failed.\n") ;
-		#endif
-		}
-		
-		if( ( name = ml_get_color_name( color)))
-		{
-			if( ! load_named_xcolor( color_man , &color_man->xcolors[color] , name))
+			if( ml_color_custom_get_rgb( color_man->color_custom , &red , &green , &blue , name))
 			{
-				if( color <= MLC_BLACK)
+				if( ml_load_rgb_xcolor( color_man->display , color_man->screen ,
+					&color_man->xcolors[color].xcolor , red , green , blue))
 				{
-					kik_msg_printf( " Not enough colors available.\n") ;
-
-					return  0 ;
-				}
-				else
-				{
-					/* MLC_BLACK is used instead */
-					color_man->xcolors[color] = color_man->xcolors[MLC_BLACK] ;
+					color_man->xcolors[color].name = strdup( name) ;
+					
+					return  color ;
 				}
 			}
-		}
-		else
-		{
-			/*
-			 * white color is used as default value.
-			 */
-			if( color == MLC_PRIVATE_FG_COLOR)
+
+			if( ml_load_named_xcolor( color_man->display , color_man->screen ,
+				&color_man->xcolors[color].xcolor , name))
 			{
-				color_man->xcolors[color].xcolor =
-					color_man->xcolors[MLC_WHITE].xcolor ;
-			}
-			else if( color == MLC_PRIVATE_BG_COLOR)
-			{
-				color_man->xcolors[color].xcolor =
-					color_man->xcolors[MLC_WHITE].xcolor ;
+				color_man->xcolors[color].name = strdup( name) ;
+				
+				return  color ;
 			}
 
-			/*
-			 * this is not a color actually loaded , but only a copy.
-			 */
-			color_man->xcolors[color].is_loaded = 0 ;
+			kik_msg_printf( " Not enough colors available.\n") ;
+
+			return  ML_UNKNOWN_COLOR ;
+		}
+		else if( strcmp( color_man->xcolors[color].name , name) == 0)
+		{
+			return  color ;
 		}
 	}
 
-	return  1 ;
+	kik_msg_printf( " Unable to handle more than 14 colors.\n") ;
+
+	return  ML_UNKNOWN_COLOR ;
+}
+
+char *
+ml_get_color_name(
+	ml_color_manager_t *  color_man ,
+	ml_color_t  color
+	)
+{
+	if( 0 <= color && color <= MAX_ACTUAL_COLORS)
+	{
+		return  color_man->xcolors[color].name ;
+	}
+	else
+	{
+		return  NULL ;
+	}
 }
 
 int
@@ -198,11 +120,9 @@ ml_color_manager_change_rgb(
 	u_short  blue
 	)
 {
-	ml_xcolor_t  xcolor ;
+	x_color_t  xcolor ;
 
-	xcolor.is_loaded = 0 ;
-
-	if( ! load_rgb_xcolor( color_man , &xcolor , red , green , blue))
+	if( ! ml_load_rgb_xcolor( color_man->display , color_man->screen , &xcolor , red , green , blue))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " load_rgb_xcolor(r 0x%x g 0x%x b 0x%x) failed.\n" ,
@@ -212,9 +132,10 @@ ml_color_manager_change_rgb(
 		return  0 ;
 	}
 
-	unload_xcolor( color_man , &color_man->xcolors[color]) ;
+	ml_unload_xcolor( color_man->display , color_man->screen ,
+			&color_man->xcolors[color].xcolor) ;
 	
-	color_man->xcolors[color] = xcolor ;
+	color_man->xcolors[color].xcolor = xcolor ;
 
 	return  1 ;
 }
@@ -229,6 +150,11 @@ ml_color_table_new(
 	int  counter ;
 	ml_color_table_t  color_table ;
 
+	if( fg_color == ML_UNKNOWN_COLOR || bg_color == ML_UNKNOWN_COLOR)
+	{
+		return  NULL ;
+	}
+	
 	if( ( color_table = malloc( sizeof( x_color_t *) * MAX_COLORS)) == NULL)
 	{
 		return  NULL ;
@@ -239,23 +165,8 @@ ml_color_table_new(
 		color_table[counter] = &color_man->xcolors[counter].xcolor ;
 	}
 
-	if( fg_color == MLC_UNKNOWN_COLOR)
-	{
-		color_table[MLC_FG_COLOR] = NULL ;
-	}
-	else
-	{
-		color_table[MLC_FG_COLOR] = color_table[fg_color] ;
-	}
-
-	if( bg_color == MLC_UNKNOWN_COLOR)
-	{
-		color_table[MLC_BG_COLOR] = NULL ;
-	}
-	else
-	{
-		color_table[MLC_BG_COLOR] = color_table[bg_color] ;
-	}
+	color_table[ML_FG_COLOR] = color_table[fg_color] ;
+	color_table[ML_BG_COLOR] = color_table[bg_color] ;
 
 	return  color_table ;
 }

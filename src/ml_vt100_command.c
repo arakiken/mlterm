@@ -781,7 +781,7 @@ ml_vt100_cmd_fill_all_with_e(
 
 	ml_char_init( &e_ch) ;
 	ml_char_set( &e_ch , "E" , 1 , ml_get_usascii_font( termscr->font_man) ,
-		0 , MLC_FG_COLOR , MLC_BG_COLOR , 0) ;
+		0 , ML_FG_COLOR , ML_BG_COLOR , 0) ;
 
 	ml_image_fill_all( termscr->image , &e_ch) ;
 
@@ -838,58 +838,30 @@ ml_vt100_cmd_set_config(
 	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
-		ml_color_t  color ;
-
-		if( ( color = ml_get_color( value)) == MLC_UNKNOWN_COLOR)
-		{
-			return  0 ;
-		}
-
 		if( termscr->config_menu_listener.change_fg_color)
 		{
-			(*termscr->config_menu_listener.change_fg_color)( termscr , color) ;
+			(*termscr->config_menu_listener.change_fg_color)( termscr , value) ;
 		}
 	}
 	else if( strcmp( key , "bg_color") == 0)
 	{
-		ml_color_t  color ;
-
-		if( ( color = ml_get_color( value)) == MLC_UNKNOWN_COLOR)
-		{
-			return  0 ;
-		}
-
 		if( termscr->config_menu_listener.change_bg_color)
 		{
-			(*termscr->config_menu_listener.change_bg_color)( termscr , color) ;
+			(*termscr->config_menu_listener.change_bg_color)( termscr , value) ;
 		}
 	}
 	else if( strcmp( key , "sb_fg_color") == 0)
 	{
-		ml_color_t  color ;
-
-		if( ( color = ml_get_color( value)) == MLC_UNKNOWN_COLOR)
-		{
-			return  0 ;
-		}
-
 		if( termscr->config_menu_listener.change_sb_fg_color)
 		{
-			(*termscr->config_menu_listener.change_sb_fg_color)( termscr , color) ;
+			(*termscr->config_menu_listener.change_sb_fg_color)( termscr , value) ;
 		}
 	}
 	else if( strcmp( key , "sb_bg_color") == 0)
 	{
-		ml_color_t  color ;
-
-		if( ( color = ml_get_color( value)) == MLC_UNKNOWN_COLOR)
-		{
-			return  0 ;
-		}
-
 		if( termscr->config_menu_listener.change_sb_bg_color)
 		{
-			(*termscr->config_menu_listener.change_sb_bg_color)( termscr , color) ;
+			(*termscr->config_menu_listener.change_sb_bg_color)( termscr , value) ;
 		}
 	}
 	else if( strcmp( key , "tabsize") == 0)
@@ -1307,17 +1279,18 @@ ml_vt100_cmd_get_config(
 	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
-		value = ml_get_color_name( ml_window_get_fg_color( &termscr->window)) ;
+		value = ml_get_color_name( termscr->color_man , ml_window_get_fg_color( &termscr->window)) ;
 	}
 	else if( strcmp( key , "bg_color") == 0)
 	{
-		value = ml_get_color_name( ml_window_get_bg_color( &termscr->window)) ;
+		value = ml_get_color_name( termscr->color_man , ml_window_get_bg_color( &termscr->window)) ;
 	}
 	else if( strcmp( key , "sb_fg_color") == 0)
 	{
 		if( termscr->screen_scroll_listener && termscr->screen_scroll_listener->fg_color)
 		{
-			value = ml_get_color_name( (*termscr->screen_scroll_listener->fg_color)(
+			value = ml_get_color_name( termscr->color_man ,
+					(*termscr->screen_scroll_listener->fg_color)(
 					termscr->screen_scroll_listener->self)) ;
 		}
 		else
@@ -1329,7 +1302,8 @@ ml_vt100_cmd_get_config(
 	{
 		if( termscr->screen_scroll_listener && termscr->screen_scroll_listener->bg_color)
 		{
-			value = ml_get_color_name( (*termscr->screen_scroll_listener->bg_color)(
+			value = ml_get_color_name( termscr->color_man ,
+					(*termscr->screen_scroll_listener->bg_color)(
 					termscr->screen_scroll_listener->self)) ;
 		}
 		else

@@ -510,12 +510,15 @@ ml_sb_term_screen_t *
 ml_sb_term_screen_new(
 	ml_term_screen_t *  termscr ,
 	char *  view_name ,
-	ml_color_table_t  color_table ,
+	ml_color_manager_t *  color_man ,
+	ml_color_t  fg_color ,
+	ml_color_t  bg_color ,
 	ml_sb_mode_t  mode
 	)
 {
 	ml_sb_term_screen_t *  sb_termscr ;
 	u_int  actual_width ;
+	ml_color_t  black ;
 	
 	if( ( sb_termscr = malloc( sizeof( ml_sb_term_screen_t))) == NULL)
 	{
@@ -531,7 +534,7 @@ ml_sb_term_screen_new(
 	sb_termscr->sb_listener.screen_scroll_downward = screen_scroll_downward ;
 
 	if( ml_scrollbar_init( &sb_termscr->scrollbar , &sb_termscr->sb_listener ,
-		view_name , color_table , ACTUAL_HEIGHT( &termscr->window) ,
+		view_name , color_man , fg_color , bg_color , ACTUAL_HEIGHT( &termscr->window) ,
 		ml_line_height( termscr->font_man) , termscr->logs.num_of_rows ,
 		termscr->window.is_transparent ,
 		ml_term_screen_get_picture_modifier( termscr)) == 0)
@@ -585,7 +588,8 @@ ml_sb_term_screen_new(
 				ACTUAL_WIDTH( &sb_termscr->scrollbar.window) + SEPARATOR_WIDTH) ;
 	}
 
-	if( ml_window_init( &sb_termscr->window , ml_color_table_dup( color_table) ,
+	if( ml_window_init( &sb_termscr->window ,
+		ml_color_table_dup( sb_termscr->scrollbar.window.color_table) ,
 		actual_width , ACTUAL_HEIGHT( &termscr->window) ,
 		SEPARATOR_WIDTH , 0 , 0 , 0 , 0) == 0)
 	{
@@ -638,7 +642,12 @@ ml_sb_term_screen_new(
 	}
 
 	/* seperator color of ml_scrollbar_t and ml_term_screen_t */
-	ml_window_set_fg_color( &sb_termscr->window , MLC_BLACK) ;
+	if( ( black = ml_get_color( color_man , "black")) == ML_UNKNOWN_COLOR)
+	{
+		goto  error ;
+	}
+	
+	ml_window_set_fg_color( &sb_termscr->window , black) ;
 
 	/*
 	 * event call backs.

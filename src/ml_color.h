@@ -19,7 +19,7 @@
 
 
 /* used in ml_color_manager.c/ml_window.c */
-#define  MAX_ACTUAL_COLORS MLC_FG_COLOR
+#define  MAX_ACTUAL_COLORS ML_FG_COLOR
 
 
 #ifdef  ANTI_ALIAS
@@ -33,31 +33,12 @@ typedef x_color_t **  ml_color_table_t ;
 
 typedef enum  ml_color
 {
-	MLC_UNKNOWN_COLOR = -1 ,
+	ML_UNKNOWN_COLOR = -1 ,
 
-	/*
-	 * max color must be 0xf.
-	 * no more colors cannot be used.(see ml_char.h)
-	 */
-	 
-	MLC_BLACK = 0 ,
-	MLC_RED ,
-	MLC_GREEN ,
-	MLC_YELLOW ,
-	MLC_BLUE ,
-	MLC_MAGENTA ,
-	MLC_CYAN ,
-	MLC_WHITE ,
-	MLC_GRAY ,
-	MLC_LIGHTGRAY ,
-	MLC_PINK ,
-	MLC_BROWN ,
-	MLC_PRIVATE_FG_COLOR ,
-	MLC_PRIVATE_BG_COLOR ,
+	/* 0x0 - 0xd are color handles */
 
-	/* extra */
-	MLC_FG_COLOR ,
-	MLC_BG_COLOR ,	/* 0xf */
+	ML_FG_COLOR = 0xe ,
+	ML_BG_COLOR = 0xf ,
 
 	MAX_COLORS ,
 
@@ -65,10 +46,6 @@ typedef enum  ml_color
 
 
 ml_color_table_t  ml_color_table_dup( ml_color_table_t  color_table) ;
-
-char *  ml_get_color_name( ml_color_t  color) ;
-
-ml_color_t  ml_get_color( char *  name) ;
 
 int  ml_load_named_xcolor( Display *  display , int  screen , x_color_t *  xcolor , char *  name) ;
 

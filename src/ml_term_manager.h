@@ -49,10 +49,6 @@ typedef struct ml_config
 	u_int  rows ;
 	u_int  screen_width_ratio ;
 	u_int  screen_height_ratio ;
-	ml_color_t  fg_color ;
-	ml_color_t  bg_color ;
-	ml_color_t  sb_fg_color ;
-	ml_color_t  sb_bg_color ;
 	u_int  font_size ;
 	u_int  num_of_log_lines ;
 	u_int  line_space ;
@@ -74,9 +70,13 @@ typedef struct ml_config
 	char *  scrollbar_view_name ;
 	char *  pic_file_path ;
 	char *  conf_menu_path ;
+	char *  fg_color ;
+	char *  bg_color ;
+	char *  sb_fg_color ;
+	char *  sb_bg_color ;
 	char *  cmd_path ;
 	char **  cmd_argv ;
-
+	
 	u_int8_t  step_in_changing_font_size ;
 	u_int16_t  brightness ;
 	u_int8_t  fade_ratio ;

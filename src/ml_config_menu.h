@@ -25,10 +25,10 @@ typedef struct  ml_config_menu_session
 	
 	ml_char_encoding_t  encoding ;
 	ml_iscii_lang_t  iscii_lang ;
-	ml_color_t  fg_color ;
-	ml_color_t  bg_color ;
-	ml_color_t  sb_fg_color ;
-	ml_color_t  sb_bg_color ;
+	char *  fg_color ;
+	char *  bg_color ;
+	char *  sb_fg_color ;
+	char *  sb_bg_color ;
 	u_int  tabsize ;
 	u_int  logsize ;
 	u_int  fontsize ;
@@ -63,10 +63,10 @@ typedef struct  ml_config_menu_event_listener
 	
 	void (*change_char_encoding)( void * , ml_char_encoding_t) ;
 	void (*change_iscii_lang)( void * , ml_iscii_lang_t) ;
-	void (*change_fg_color)( void * , ml_color_t) ;
-	void (*change_bg_color)( void * , ml_color_t) ;
-	void (*change_sb_fg_color)( void * , ml_color_t) ;
-	void (*change_sb_bg_color)( void * , ml_color_t) ;
+	void (*change_fg_color)( void * , char *) ;
+	void (*change_bg_color)( void * , char *) ;
+	void (*change_sb_fg_color)( void * , char *) ;
+	void (*change_sb_bg_color)( void * , char *) ;
 	void (*change_tab_size)( void * , u_int) ;
 	void (*change_log_size)( void * , u_int) ;
 	void (*change_font_size)( void * , u_int) ;
@@ -113,8 +113,8 @@ int  ml_config_menu_final( ml_config_menu_t *  config_menu) ;
 
 int  ml_config_menu_start( ml_config_menu_t *  config_menu , int  x , int  y ,
 	ml_char_encoding_t  orig_encoding , ml_iscii_lang_t  orig_iscii_lang ,
-	ml_color_t  orig_fg_color , ml_color_t  orig_bg_color ,
-	ml_color_t  orig_sb_fg_color , ml_color_t  orig_sb_bg_color ,
+	char *  orig_fg_color , char *  orig_bg_color ,
+	char *  orig_sb_fg_color , char *  orig_sb_bg_color ,
 	u_int  orig_tabsize , u_int  orig_logsize , u_int  orig_fontsize , u_int  orig_min_fontsize ,
 	u_int  orig_max_fontsize , u_int  orig_line_space ,
 	u_int  orig_screen_width_ratio , u_int  orig_screen_height_ratio ,

@@ -305,12 +305,12 @@ comment $Id$
       o fg_color  (*black*) (#)
         端末画面の前景色
         
-        fg_color,bg_colorに指定できる値
-        
-        white/black/red/green/yellow/blue/magenta/cyan/gray/lightgray/pink/brown/priv_fg/priv_bg
+        fg_color,bg_colorに指定できる値は、rgb.txt で定義された色名、color ファイ
+        ルで定義した色名、または、#RRGGBB 形式の色指定です。
 
-        priv_{fg|bg} は、ユーザ定義前景、背景色です。
-        color ファイルで、priv_fg/priv_bg(デフォルト値は白)を定義してください。
+        e.g.)
+        fg_color = blue
+        fg_color = #aabbcc
 
       o bg_color  (*white*) (#)
         同背景色
@@ -501,7 +501,7 @@ comment $Id$
         たフォントが使用されます。
 
     o color
-      各色のRGBを具体的に指定することができます。
+      新しい色名を定義したり、または、既存の色名の RGB 値を変更することができます。
       フォーマットは以下のとおり。
 
       color_name = [red]-[green]-[blue]

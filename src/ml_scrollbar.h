@@ -10,6 +10,7 @@
 
 #include  "ml_window.h"
 #include  "ml_sb_view.h"
+#include  "ml_color_manager.h"
 
 
 typedef struct  ml_scrollbar_event_listener
@@ -54,8 +55,10 @@ typedef struct  ml_scrollbar
 
 
 int  ml_scrollbar_init( ml_scrollbar_t *  sb , ml_scrollbar_event_listener_t *  sb_listener ,
-	char *  view_name , ml_color_table_t  color_table , u_int  height , u_int  line_height ,
-	u_int  num_of_log_lines , int  use_transbg , ml_picture_modifier_t *  pic_mod) ;
+	char *  view_name , ml_color_manager_t *  color_man ,
+	ml_color_t  fg_color , ml_color_t  bg_color ,
+	u_int  height , u_int  line_height , u_int  num_of_log_lines ,
+	int  use_transbg , ml_picture_modifier_t *  pic_mod) ;
 
 int  ml_scrollbar_final( ml_scrollbar_t *  sb) ;
 

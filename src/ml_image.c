@@ -597,10 +597,10 @@ ml_image_init(
 	image->cursor.row = 0 ;
 	image->cursor.char_index = 0 ;
 	image->cursor.col = 0 ;
-	image->cursor.fg_color = MLC_BG_COLOR ;
-	image->cursor.bg_color = MLC_FG_COLOR ;
-	image->cursor.orig_fg = MLC_BG_COLOR ;
-	image->cursor.orig_bg = MLC_FG_COLOR ;
+	image->cursor.fg_color = ML_BG_COLOR ;
+	image->cursor.bg_color = ML_FG_COLOR ;
+	image->cursor.orig_fg = ML_BG_COLOR ;
+	image->cursor.orig_bg = ML_FG_COLOR ;
 	image->cursor.is_highlighted = 0 ;
 
 	image->cursor_is_saved = 0 ;

@@ -1487,14 +1487,14 @@ ml_window_final(
 	
 	if( win->orig_fg_xcolor)
 	{
-		ml_unload_xcolor( win->display , win->screen , win->color_table[MLC_FG_COLOR]) ;
-		free( win->color_table[MLC_FG_COLOR]) ;
+		ml_unload_xcolor( win->display , win->screen , win->color_table[ML_FG_COLOR]) ;
+		free( win->color_table[ML_FG_COLOR]) ;
 	}
 
 	if( win->orig_bg_xcolor)
 	{
-		ml_unload_xcolor( win->display , win->screen , win->color_table[MLC_BG_COLOR]) ;
-		free( win->color_table[MLC_BG_COLOR]) ;
+		ml_unload_xcolor( win->display , win->screen , win->color_table[ML_BG_COLOR]) ;
+		free( win->color_table[ML_BG_COLOR]) ;
 	}
 	
 	free( win->color_table) ;
@@ -1858,7 +1858,7 @@ ml_window_set_fg_color(
 		return  0 ;
 	}
 	
-	win->color_table[MLC_FG_COLOR] = win->color_table[fg_color] ;
+	win->color_table[ML_FG_COLOR] = win->color_table[fg_color] ;
 
 	if( win->drawable)
 	{
@@ -1887,7 +1887,7 @@ ml_window_set_bg_color(
 		return  0 ;
 	}
 	
-	win->color_table[MLC_BG_COLOR] = win->color_table[bg_color] ;
+	win->color_table[ML_BG_COLOR] = win->color_table[bg_color] ;
 
 	if( win->drawable)
 	{
@@ -1912,13 +1912,13 @@ ml_window_get_fg_color(
 
 	for( color = 0 ; color < MAX_ACTUAL_COLORS ; color ++)
 	{
-		if( win->color_table[MLC_FG_COLOR] == win->color_table[color])
+		if( win->color_table[ML_FG_COLOR] == win->color_table[color])
 		{
 			return  color ;
 		}
 	}
 
-	return  MLC_UNKNOWN_COLOR ;
+	return  ML_UNKNOWN_COLOR ;
 }
 
 int
@@ -1930,13 +1930,13 @@ ml_window_get_bg_color(
 
 	for( color = 0 ; color < MAX_ACTUAL_COLORS ; color ++)
 	{
-		if( win->color_table[MLC_BG_COLOR] == win->color_table[color])
+		if( win->color_table[ML_BG_COLOR] == win->color_table[color])
 		{
 			return  color ;
 		}
 	}
 
-	return  MLC_UNKNOWN_COLOR ;
+	return  ML_UNKNOWN_COLOR ;
 }
 
 int
@@ -1959,7 +1959,7 @@ ml_window_fade(
 	 * fading fg color
 	 */
 	 
-	ml_get_xcolor_rgb( &red , &green , &blue , win->color_table[MLC_FG_COLOR]) ;
+	ml_get_xcolor_rgb( &red , &green , &blue , win->color_table[ML_FG_COLOR]) ;
 
 	red = (red * fade_ratio) / 100 ;
 	green = (green * fade_ratio) / 100 ;
@@ -1972,8 +1972,8 @@ ml_window_fade(
 
 	ml_load_rgb_xcolor( win->display , win->screen , xcolor , red , green , blue) ;
 
-	win->orig_fg_xcolor = win->color_table[MLC_FG_COLOR] ;
-	win->color_table[MLC_FG_COLOR] = xcolor ;
+	win->orig_fg_xcolor = win->color_table[ML_FG_COLOR] ;
+	win->color_table[ML_FG_COLOR] = xcolor ;
 
 	update_fg_color( win) ;
 
@@ -1982,7 +1982,7 @@ ml_window_fade(
 	 * fading bg color
 	 */
 	 
-	ml_get_xcolor_rgb( &red , &green , &blue , win->color_table[MLC_BG_COLOR]) ;
+	ml_get_xcolor_rgb( &red , &green , &blue , win->color_table[ML_BG_COLOR]) ;
 
 	red = (red * fade_ratio) / 100 ;
 	green = (green * fade_ratio) / 100 ;
@@ -1995,8 +1995,8 @@ ml_window_fade(
 
 	ml_load_rgb_xcolor( win->display , win->screen , xcolor , red , green , blue) ;
 
-	win->orig_bg_xcolor = win->color_table[MLC_BG_COLOR] ;
-	win->color_table[MLC_BG_COLOR] = xcolor ;
+	win->orig_bg_xcolor = win->color_table[ML_BG_COLOR] ;
+	win->color_table[ML_BG_COLOR] = xcolor ;
 
 	update_bg_color( win) ;
 
@@ -2022,10 +2022,10 @@ ml_window_unfade(
 	
 	if( win->orig_fg_xcolor)
 	{
-		ml_unload_xcolor( win->display , win->screen , win->color_table[MLC_FG_COLOR]) ;
-		free( win->color_table[MLC_FG_COLOR]) ;
+		ml_unload_xcolor( win->display , win->screen , win->color_table[ML_FG_COLOR]) ;
+		free( win->color_table[ML_FG_COLOR]) ;
 		
-		win->color_table[MLC_FG_COLOR] = win->orig_fg_xcolor ;
+		win->color_table[ML_FG_COLOR] = win->orig_fg_xcolor ;
 		win->orig_fg_xcolor = NULL ;
 		
 		update_fg_color( win) ;
@@ -2033,10 +2033,10 @@ ml_window_unfade(
 
 	if( win->orig_bg_xcolor)
 	{
-		ml_unload_xcolor( win->display , win->screen , win->color_table[MLC_BG_COLOR]) ;
-		free( win->color_table[MLC_BG_COLOR]) ;
+		ml_unload_xcolor( win->display , win->screen , win->color_table[ML_BG_COLOR]) ;
+		free( win->color_table[ML_BG_COLOR]) ;
 		
-		win->color_table[MLC_BG_COLOR] = win->orig_bg_xcolor ;
+		win->color_table[ML_BG_COLOR] = win->orig_bg_xcolor ;
 		win->orig_bg_xcolor = NULL ;
 
 		update_bg_color( win) ;
@@ -2115,8 +2115,8 @@ ml_window_show(
 		return  0 ;
 	}
 
-	if( win->color_table[MLC_FG_COLOR] == NULL ||
-		win->color_table[MLC_BG_COLOR] == NULL)
+	if( win->color_table[ML_FG_COLOR] == NULL ||
+		win->color_table[ML_BG_COLOR] == NULL)
 	{
 		kik_msg_printf( "fg color / bg_color is not set! window is not shown.\n") ;
 
@@ -2448,9 +2448,9 @@ ml_window_reverse_video(
 {
 	void *  color ;
 
-	color = win->color_table[MLC_FG_COLOR] ;
-	win->color_table[MLC_FG_COLOR] = win->color_table[MLC_BG_COLOR]  ;
-	win->color_table[MLC_BG_COLOR] = color ;
+	color = win->color_table[ML_FG_COLOR] ;
+	win->color_table[ML_FG_COLOR] = win->color_table[ML_BG_COLOR]  ;
+	win->color_table[ML_BG_COLOR] = color ;
 
 	XSetForeground( win->display , win->gc , FG_COLOR_PIXEL(win)) ;
 	XSetBackground( win->display , win->gc , BG_COLOR_PIXEL(win)) ;

@@ -110,9 +110,9 @@ get_font_name_table(
 {
 	if( font_custom->font_name_table[font_size - font_custom->min_font_size] == NULL)
 	{
-		kik_map_new( ml_font_attr_t , char * ,
+		kik_map_new_with_size( ml_font_attr_t , char * ,
 			font_custom->font_name_table[font_size - font_custom->min_font_size] ,
-			fontattr_hash , fontattr_compare) ;
+			fontattr_hash , fontattr_compare , 16) ;
 	}
 
 	return  font_custom->font_name_table[font_size - font_custom->min_font_size] ;

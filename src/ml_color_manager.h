@@ -14,9 +14,8 @@
 
 typedef struct  ml_xcolor
 {
+	char *  name ;
 	x_color_t  xcolor ;
-
-	int8_t  is_loaded ;
 	
 } ml_xcolor_t ;
 
@@ -37,7 +36,9 @@ int  ml_color_manager_init( ml_color_manager_t *  color_man , Display *  display
 
 int  ml_color_manager_final( ml_color_manager_t *  color_man) ;
 
-int  ml_color_manager_load( ml_color_manager_t *  color_man) ;
+ml_color_t  ml_get_color( ml_color_manager_t *  color_man , char *  color) ;
+
+char *  ml_get_color_name( ml_color_manager_t *  color_man , ml_color_t  color) ;
 
 int  ml_color_manager_change_rgb( ml_color_manager_t *  color_man , ml_color_t  color ,
 	u_short  red , u_short  green , u_short  blue) ;

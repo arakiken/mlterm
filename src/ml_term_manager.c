@@ -130,15 +130,6 @@ open_display(
 		goto  error4 ;
 	}
 
-	if( ! ml_color_manager_load( &disp->color_man))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_color_manager_load failed.\n") ;
-	#endif
-
-		goto  error5 ;
-	}
-
 	if( ( p = realloc( term_man->displays ,
 			sizeof( ml_display_t*) * (term_man->num_of_displays + 1))) == NULL)
 	{
@@ -229,6 +220,8 @@ open_term(
 	ml_pty_t *  pty ;
 	ml_window_t *  root ;
 	mkf_charset_t  usascii_font_cs ;
+	ml_color_t  fg_color ;
+	ml_color_t  bg_color ;
 	int  usascii_font_cs_changable ;
 	char *  env[4] ;
 	char **  env_p ;
@@ -301,9 +294,26 @@ open_term(
 		goto  error ;
 	}
 
+	if( term_man->conf.fg_color == NULL ||
+		( fg_color = ml_get_color( &disp->color_man , term_man->conf.fg_color)) == ML_UNKNOWN_COLOR)
+	{
+		if( ( fg_color = ml_get_color( &disp->color_man , "black")) == ML_UNKNOWN_COLOR)
+		{
+			goto  error ;
+		}
+	}
+
+	if( term_man->conf.bg_color == NULL ||
+		( bg_color = ml_get_color( &disp->color_man , term_man->conf.bg_color)) == ML_UNKNOWN_COLOR)
+	{
+		if( ( bg_color = ml_get_color( &disp->color_man , "white")) == ML_UNKNOWN_COLOR)
+		{
+			goto  error ;
+		}
+	}
+
 	if( ( termscr = ml_term_screen_new( term_man->conf.cols , term_man->conf.rows , font_man ,
-		ml_color_table_new( &disp->color_man ,
-			term_man->conf.fg_color , term_man->conf.bg_color) ,
+		&disp->color_man , fg_color , bg_color ,
 		term_man->conf.brightness , term_man->conf.fade_ratio ,
 		&term_man->keymap , &term_man->termcap ,
 		term_man->conf.num_of_log_lines , term_man->conf.tab_size ,
@@ -331,10 +341,30 @@ open_term(
 
 	if( term_man->conf.use_scrollbar)
 	{
+		ml_color_t  sb_fg_color ;
+		ml_color_t  sb_bg_color ;
+		
+		if( term_man->conf.sb_fg_color)
+		{
+			sb_fg_color = ml_get_color( &disp->color_man , term_man->conf.sb_fg_color) ;
+		}
+		else
+		{
+			sb_fg_color = ML_UNKNOWN_COLOR ;
+		}
+
+		if( term_man->conf.sb_bg_color)
+		{
+			sb_bg_color = ml_get_color( &disp->color_man , term_man->conf.sb_bg_color) ;
+		}
+		else
+		{
+			sb_bg_color = ML_UNKNOWN_COLOR ;
+		}
+
 		if( ( sb_termscr = ml_sb_term_screen_new( termscr ,
 					term_man->conf.scrollbar_view_name ,
-					ml_color_table_new( &disp->color_man ,
-						term_man->conf.sb_fg_color , term_man->conf.sb_bg_color) ,
+					&disp->color_man , sb_fg_color , sb_bg_color ,
 					term_man->conf.sb_mode)) == NULL)
 		{
 		#ifdef  DEBUG
@@ -1114,54 +1144,32 @@ config_init(
 	}
 #endif
 
-	term_man->conf.fg_color = MLC_BLACK ;
+	term_man->conf.fg_color = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "fg_color")))
 	{
-		ml_color_t  fg_color ;
-
-		if( ( fg_color = ml_get_color( value)) != MLC_UNKNOWN_COLOR)
-		{
-			term_man->conf.fg_color = fg_color ;
-		}
+		term_man->conf.fg_color = strdup( value) ;
 	}
 
-	term_man->conf.bg_color = MLC_WHITE ;
+	term_man->conf.bg_color = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "bg_color")))
 	{
-		ml_color_t  bg_color ;
-
-		if( ( bg_color = ml_get_color( value)) != MLC_UNKNOWN_COLOR)
-		{
-			term_man->conf.bg_color = bg_color ;
-		}
+		term_man->conf.bg_color = strdup( value) ;
 	}
 
-	if( term_man->conf.fg_color == term_man->conf.bg_color)
-	{
-		kik_msg_printf( "fg and bg colors are the same. is this ok ?\n") ;
-		
-		term_man->conf.fg_color = MLC_BLACK ;
-		term_man->conf.bg_color = MLC_WHITE ;
-	}
+	term_man->conf.sb_fg_color = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "sb_fg_color")))
 	{
-		term_man->conf.sb_fg_color = ml_get_color( value) ;
-	}
-	else
-	{
-		term_man->conf.sb_fg_color = MLC_UNKNOWN_COLOR ;
+		term_man->conf.sb_fg_color = strdup( value) ;
 	}
 
+	term_man->conf.sb_bg_color = NULL ;
+	
 	if( ( value = kik_conf_get_value( conf , "sb_bg_color")))
 	{
-		term_man->conf.sb_bg_color = ml_get_color( value) ;
-	}
-	else
-	{
-		term_man->conf.sb_bg_color = MLC_UNKNOWN_COLOR ;
+		term_man->conf.sb_bg_color = strdup( value) ;
 	}
 	
 	if( ( value = kik_conf_get_value( conf , "termtype")))
@@ -1597,6 +1605,10 @@ config_final(
 	free( term_man->conf.conf_menu_path) ;
 	free( term_man->conf.pic_file_path) ;
 	free( term_man->conf.scrollbar_view_name) ;
+	free( term_man->conf.fg_color) ;
+	free( term_man->conf.bg_color) ;
+	free( term_man->conf.sb_fg_color) ;
+	free( term_man->conf.sb_bg_color) ;
 	free( term_man->conf.cmd_argv) ;
 
 	return  1 ;
