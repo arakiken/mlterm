@@ -213,8 +213,7 @@ overwrite_lines(
 		
 		if( ++ count == num_of_lines)
 		{
-			ml_line_overwrite( line , beg_char_index ,
-				&chars[beg_of_line] , len , cols , &edit->sp_ch) ;
+			ml_line_overwrite( line , beg_char_index , &chars[beg_of_line] , len , cols) ;
 			ml_line_unset_continued_to_next( line) ;
 
 			break ;
@@ -268,8 +267,7 @@ cursor_goto_intern(
 
 		brk_size = row - ml_model_end_row( &edit->model) ;
 		
-		if( ( actual = ml_model_break_boundary( &edit->model , brk_size , &edit->sp_ch))
-			< brk_size)
+		if( ( actual = ml_model_break_boundary( &edit->model , brk_size)) < brk_size)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot goto row %d(total lines are %d)\n" ,
@@ -308,7 +306,7 @@ cursor_goto_intern(
 
 		brk_size = char_index + cols_rest + 1 - line->num_of_filled_chars ;
 		
-		if( ( actual = ml_line_break_boundary( line , brk_size , &edit->sp_ch)) < brk_size)
+		if( ( actual = ml_line_break_boundary( line , brk_size)) < brk_size)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf(
@@ -437,7 +435,7 @@ insert_chars(
 		 */
 		for( count = 0 ; count < cols_rest ; count ++)
 		{
-			ml_char_copy( &buffer[filled_len ++] , &edit->sp_ch) ;
+			ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
 		}
 		
 		cols_after = ml_char_cols( CURSOR_CHAR(edit)) - cols_rest ;
@@ -491,13 +489,13 @@ insert_chars(
 			 */
 			for( count = 0 ; count < cols_after ; count ++)
 			{
-				if( filled_cols + ml_char_cols( &edit->sp_ch) > edit->model.num_of_cols)
+				if( filled_cols + ml_char_cols( ml_sp_ch()) > edit->model.num_of_cols)
 				{
 					goto  line_full ;
 				}
 
-				ml_char_copy( &buffer[filled_len++] , &edit->sp_ch) ;
-				filled_cols += ml_char_cols( &edit->sp_ch) ;
+				ml_char_copy( &buffer[filled_len++] , ml_sp_ch()) ;
+				filled_cols += ml_char_cols( ml_sp_ch()) ;
 			}
 		}
 		else
@@ -590,11 +588,11 @@ clear_cols(
 
 	if( use_bce)
 	{
-		ml_line_fill( line , &edit->bce_ch , edit->cursor.char_index , cols , &edit->bce_ch) ;
+		ml_line_fill( line , &edit->bce_ch , edit->cursor.char_index , cols) ;
 	}
 	else
 	{
-		ml_line_fill( line , &edit->sp_ch , edit->cursor.char_index , cols , &edit->sp_ch) ;
+		ml_line_fill( line , ml_sp_ch() , edit->cursor.char_index , cols) ;
 	}
 
 	return  1 ;
@@ -620,7 +618,7 @@ clear_line_to_left(
 	}
 	else
 	{
-		sp_ch = &edit->sp_ch ;
+		sp_ch = ml_sp_ch() ;
 	}
 
 	/* XXX cursor char will be cleared , is this ok? */
@@ -708,9 +706,6 @@ ml_edit_init(
 		return  0 ;
 	}
 
-	ml_char_init( &edit->sp_ch) ;
-	ml_char_set( &edit->sp_ch , " " , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
-
 	ml_char_init( &edit->bce_ch) ;
 	ml_char_set( &edit->bce_ch , " " , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
 
@@ -719,7 +714,7 @@ ml_edit_init(
 		return  0 ;
 	}
 	
-	ml_model_break_boundary( &edit->model , 1 , &edit->sp_ch) ;
+	ml_model_break_boundary( &edit->model , 1) ;
 	
 	edit->cursor.row = 0 ;
 	edit->cursor.char_index = 0 ;
@@ -762,7 +757,6 @@ ml_edit_final(
 
 	free( edit->tab_stops) ;
 
-	ml_char_final( &edit->sp_ch) ;
 	ml_char_final( &edit->bce_ch) ;
 
 	return  1 ;
@@ -876,7 +870,7 @@ ml_edit_insert_blank_chars(
 
 	for( count = 0 ; count < num_of_blank_chars ; count ++)
 	{
-		ml_char_copy( &blank_chars[count] , &edit->sp_ch) ;
+		ml_char_copy( &blank_chars[count] , ml_sp_ch()) ;
 	}
 
 	ml_str_final( blank_chars , num_of_blank_chars) ;
@@ -946,7 +940,7 @@ ml_edit_overwrite_chars(
 		 */
 		for( count = 0 ; count < cols_rest ; count ++)
 		{
-			ml_char_copy( &buffer[filled_len ++] , &edit->sp_ch) ;
+			ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
 		}
 	}
 	
@@ -1070,7 +1064,7 @@ ml_edit_delete_cols(
 		 */
 		for( count = 0 ; count < cols_rest ; count ++)
 		{
-			ml_char_copy( &buffer[filled_len ++] , &edit->sp_ch) ;
+			ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
 		}
 
 		cursor_char_index = filled_len ;
@@ -1088,7 +1082,7 @@ ml_edit_delete_cols(
 			 */
 			for( count = 0 ; count < cols_after - delete_cols ; count ++)
 			{
-				ml_char_copy( &buffer[filled_len ++] , &edit->sp_ch) ;
+				ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
 			}
 		}
 	}
@@ -1125,7 +1119,7 @@ ml_edit_delete_cols(
 	}
 	else
 	{
-		ml_line_clear( CURSOR_LINE(edit) , 0 , &edit->sp_ch) ;
+		ml_line_clear( CURSOR_LINE(edit) , 0) ;
 	}
 
 	ml_str_final( buffer , buf_len) ;
@@ -1227,8 +1221,7 @@ ml_edit_clear_line_to_right(
 			size = edit->cursor.char_index + cols_rest -
 				CURSOR_LINE(edit)->num_of_filled_chars + 1 ;
 
-			actual_size = ml_line_break_boundary( CURSOR_LINE(edit) , size ,
-					&edit->sp_ch) ;
+			actual_size = ml_line_break_boundary( CURSOR_LINE(edit) , size) ;
 			if( actual_size < size)
 			{
 			#ifdef  DEBUG
@@ -1254,7 +1247,7 @@ ml_edit_clear_line_to_right(
 		 */
 		for( count = 0 ; count < cols_rest ; count ++)
 		{
-			ml_char_copy( CURSOR_CHAR(edit) , &edit->sp_ch) ;
+			ml_char_copy( CURSOR_CHAR(edit) , ml_sp_ch()) ;
 			edit->cursor.char_index ++ ;
 		}
 	}
@@ -1338,7 +1331,7 @@ ml_edit_clear_below_bce(
 	for( row = edit->cursor.row + 1 ; row < edit->model.num_of_rows ; row ++)
 	{
 		ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
-			edit->model.num_of_cols / ml_char_cols(&edit->bce_ch) , &edit->bce_ch) ;
+			edit->model.num_of_cols / ml_char_cols(&edit->bce_ch)) ;
 	}
 
 	edit->model.num_of_filled_rows = edit->model.num_of_rows ;
@@ -1379,7 +1372,7 @@ ml_edit_clear_above_bce(
 	for( row = 0 ; row <= edit->cursor.row - 1 ; row ++)
 	{
 		ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
-			edit->model.num_of_cols / ml_char_cols(&edit->bce_ch) , &edit->bce_ch) ;
+			edit->model.num_of_cols / ml_char_cols(&edit->bce_ch)) ;
 	}
 
 	return  1 ;
@@ -1686,7 +1679,7 @@ ml_cursor_go_forward(
 		if( ml_line_get_num_of_filled_cols( CURSOR_LINE(edit)) < edit->model.num_of_cols &&
 			flag & BREAK_BOUNDARY)
 		{
-			if( ml_line_break_boundary( CURSOR_LINE(edit) , 1 , &edit->sp_ch))
+			if( ml_line_break_boundary( CURSOR_LINE(edit) , 1))
 			{
 				edit->cursor.char_index ++ ;
 
@@ -1719,7 +1712,7 @@ ml_cursor_go_forward(
 				return  0 ;
 			}
 
-			if( ! ml_model_break_boundary( &edit->model , 1 , &edit->sp_ch))
+			if( ! ml_model_break_boundary( &edit->model , 1))
 			{
 				return  0 ;
 			}
@@ -2105,7 +2098,7 @@ ml_edit_fill_all(
 	for( row = 0 ; row < edit->model.num_of_rows ; row ++)
 	{
 		ml_line_fill( ml_model_get_line( &edit->model , row) , ch , 0 ,
-			edit->model.num_of_cols / ml_char_cols(ch) , ch) ;
+			edit->model.num_of_cols / ml_char_cols(ch)) ;
 	}
 
 	edit->model.num_of_filled_rows = edit->model.num_of_rows ;

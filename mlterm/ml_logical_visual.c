@@ -351,9 +351,8 @@ bidi_render(
 		
 		if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align && line->num_of_filled_chars > 0)
 		{
-			ml_line_fill( line , &edit->sp_ch , line->num_of_filled_chars ,
-				edit->model.num_of_cols - ml_line_get_num_of_filled_cols( line) ,
-				&edit->sp_ch) ;
+			ml_line_fill( line , ml_sp_ch() , line->num_of_filled_chars ,
+				edit->model.num_of_cols - ml_line_get_num_of_filled_cols( line)) ;
 			need_render = 1 ;
 		}
 
@@ -485,9 +484,8 @@ bidi_visual_line(
 	
 	if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align && line->num_of_filled_chars > 0)
 	{
-		ml_line_fill( line , &logvis->edit->sp_ch , line->num_of_filled_chars ,
-			logvis->edit->model.num_of_cols - ml_line_get_num_of_filled_cols( line) ,
-			&logvis->edit->sp_ch) ;
+		ml_line_fill( line , ml_sp_ch() , line->num_of_filled_chars ,
+			logvis->edit->model.num_of_cols - ml_line_get_num_of_filled_cols( line)) ;
 		need_render = 1 ;
 	}
 
@@ -1312,7 +1310,7 @@ vert_visual_intern(
 				continue ;
 			}
 			
-			ml_char_copy( &vis_line->chars[ vis_line->num_of_filled_chars ++] , &edit->sp_ch) ;
+			ml_char_copy( &vis_line->chars[ vis_line->num_of_filled_chars ++] , ml_sp_ch()) ;
 						
 			if( ml_line_is_modified( log_line) &&
 				ml_line_get_beg_of_modified( log_line) <= row &&

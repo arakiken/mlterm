@@ -381,7 +381,7 @@ check_or_copy_region(
 		{
 			if( chars)
 			{
-				ml_char_copy( &chars[count] , &screen->nl_ch) ;
+				ml_char_copy( &chars[count] , ml_nl_ch()) ;
 			}
 			count ++ ;
 		}
@@ -404,7 +404,7 @@ check_or_copy_region(
 			{
 				if( chars)
 				{
-					ml_char_copy( &chars[count] , &screen->nl_ch) ;
+					ml_char_copy( &chars[count] , ml_nl_ch()) ;
 				}
 				count ++ ;
 			}
@@ -540,9 +540,6 @@ ml_screen_new(
 		goto  error3 ;
 	}
 
-	ml_char_init( &screen->nl_ch) ;
-	ml_char_set( &screen->nl_ch , "\n" , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
-
 	screen->backscroll_rows = 0 ;
 	screen->is_backscroll_mode = 0 ;
 
@@ -581,8 +578,6 @@ ml_screen_delete(
 	ml_edit_final( &screen->alt_edit) ;
 
 	ml_log_final( &screen->logs) ;
-
-	ml_char_final( &screen->nl_ch) ;
 
 	free( screen) ;
 

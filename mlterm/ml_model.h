@@ -44,7 +44,7 @@ ml_line_t *  ml_model_get_end_line( ml_model_t *  model) ;
 
 u_int  ml_model_reserve_boundary( ml_model_t *  model , u_int  size) ;
 
-u_int  ml_model_break_boundary( ml_model_t *  model , u_int  size , ml_char_t *  sp_ch) ;
+u_int  ml_model_break_boundary( ml_model_t *  model , u_int  size) ;
 
 u_int  ml_model_shrink_boundary( ml_model_t *  model , u_int  size) ;
 

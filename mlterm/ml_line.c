@@ -103,8 +103,7 @@ ml_line_final(
 u_int
 ml_line_break_boundary(
 	ml_line_t *  line ,
-	u_int  size ,
-	ml_char_t *  sp_ch
+	u_int  size
 	)
 {
 	int  count ;
@@ -136,7 +135,7 @@ ml_line_break_boundary(
 	for( count = line->num_of_filled_chars ; count < line->num_of_filled_chars + size ;
 		count ++)
 	{
-		ml_char_copy( &line->chars[count] , sp_ch) ;
+		ml_char_copy( &line->chars[count] , ml_sp_ch()) ;
 	}
 
 	line->num_of_filled_chars += size ;
@@ -173,15 +172,14 @@ ml_line_reset(
 int
 ml_line_clear(
 	ml_line_t *  line ,
-	int  char_index ,
-	ml_char_t *  sp_ch
+	int  char_index
 	)
 {
 	if( char_index == 0)
 	{
 		ml_line_reset( line) ;
 
-		ml_char_copy( &line->chars[0] , sp_ch) ;
+		ml_char_copy( &line->chars[0] , ml_sp_ch()) ;
 		line->num_of_filled_chars = 1 ;
 	}
 	else
@@ -195,7 +193,7 @@ ml_line_clear(
 			return  1 ;
 		}
 
-		ml_char_copy( &line->chars[char_index] , sp_ch) ;
+		ml_char_copy( &line->chars[char_index] , ml_sp_ch()) ;
 		line->num_of_filled_chars = char_index + 1 ;
 
 		ml_line_set_modified( line , char_index , END_CHAR_INDEX(line) , 1) ;
@@ -210,8 +208,7 @@ ml_line_overwrite(
 	int  change_char_index ,
 	ml_char_t *  chars ,
 	u_int  len ,
-	u_int  cols ,
-	ml_char_t *  sp_ch
+	u_int  cols
 	)
 {
 	int  count ;
@@ -293,7 +290,7 @@ ml_line_overwrite(
 
 	for( count = 0 ; count < padding ; count ++)
 	{
-		ml_char_copy( &line->chars[len + count] , sp_ch) ;
+		ml_char_copy( &line->chars[len + count] , ml_sp_ch()) ;
 	}
 
 	ml_str_copy( line->chars , chars , len) ;
@@ -347,8 +344,7 @@ ml_line_fill(
 	ml_line_t *  line ,
 	ml_char_t *  ch ,
 	int  beg ,
-	u_int  num ,
-	ml_char_t *  sp_ch
+	u_int  num
 	)
 {
 	int  count ;
@@ -371,16 +367,26 @@ ml_line_fill(
 		if( char_index >= line->num_of_filled_chars)
 		{
 			left_cols = 0 ;
+			copy_len = 0 ;
 			
 			break ;
 		}
 		else if( left_cols < ml_char_cols( &line->chars[char_index]))
 		{
-			if( left_cols > 0)
+			if( beg + num + left_cols > line->num_of_chars)
 			{
-				char_index ++ ;
+				left_cols = line->num_of_chars - beg - num ;
+				copy_len = 0 ;
 			}
-
+			else if( beg + num + left_cols + copy_len > line->num_of_chars)
+			{
+				copy_len = 0 ;
+			}
+			else
+			{
+				copy_len = line->num_of_filled_chars - char_index - left_cols ;
+			}
+			
 			break ;
 		}
 		else
@@ -390,7 +396,7 @@ ml_line_fill(
 		}
 	}
 
-	if( ( copy_len = line->num_of_filled_chars - char_index) > 0)
+	if( copy_len > 0)
 	{
 		/* making space */
 		ml_str_copy( &line->chars[beg + num + left_cols] , &line->chars[char_index] , copy_len) ;
@@ -410,9 +416,10 @@ ml_line_fill(
 		ml_char_copy( &line->chars[char_index++] , ch) ;
 	}
 
+	/* padding */
 	for( count = 0 ; count < left_cols ; count ++)
 	{
-		ml_char_copy( &line->chars[char_index++] , sp_ch) ;
+		ml_char_copy( &line->chars[char_index++] , ml_sp_ch()) ;
 	}
 	
 	line->num_of_filled_chars = char_index + copy_len ;

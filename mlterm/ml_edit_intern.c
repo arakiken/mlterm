@@ -30,7 +30,7 @@ ml_edit_clear_line(
 
 	line = ml_model_get_line( &edit->model , row) ;
 
-	ml_line_clear( line , char_index , &edit->sp_ch) ;
+	ml_line_clear( line , char_index) ;
 	
 	if( row == edit->cursor.row)
 	{

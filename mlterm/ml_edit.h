@@ -55,7 +55,6 @@ typedef struct  ml_edit
 	u_int8_t *  tab_stops ;
 	u_int  tab_size ;
 
-	ml_char_t  sp_ch ;
 	ml_char_t  bce_ch ;
 
 	/* used for line overlapping */

@@ -44,8 +44,6 @@ typedef struct  ml_screen
 
 	ml_screen_event_listener_t *  screen_listener ;
 
-	ml_char_t  nl_ch ;
-	
 	u_int  backscroll_rows ;
 	int8_t  is_backscroll_mode ;
 

@@ -247,8 +247,7 @@ ml_model_reserve_boundary(
 u_int
 ml_model_break_boundary(
 	ml_model_t *  model ,
-	u_int  size ,
-	ml_char_t *  sp_ch
+	u_int  size
 	)
 {
 	int  count ;
@@ -276,7 +275,7 @@ ml_model_break_boundary(
 
 	for( count = model->num_of_filled_rows ; count < model->num_of_filled_rows + size ; count ++)
 	{
-		ml_line_clear( ml_model_get_line( model , count) , 0 , sp_ch) ;
+		ml_line_clear( ml_model_get_line( model , count) , 0) ;
 	}
 
 	model->num_of_filled_rows += size ;

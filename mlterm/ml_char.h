@@ -152,6 +152,10 @@ inline int  ml_char_bytes_is( ml_char_t *  ch , char *  bytes , size_t  size , m
 
 inline int  ml_char_bytes_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
 
+ml_char_t *  ml_sp_ch(void) ;
+
+ml_char_t *  ml_nl_ch(void) ;
+
 #ifdef  DEBUG
 
 void  ml_char_dump( ml_char_t *  ch) ;

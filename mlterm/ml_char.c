@@ -71,6 +71,8 @@
 
 static int  use_char_combining = 1 ;
 static int  use_multi_col_char = 1 ;
+static ml_char_t  sp_ch ;
+static ml_char_t  nl_ch ;
 
 
 /* --- global functions --- */
@@ -845,6 +847,33 @@ ml_char_bytes_equal(
 
 	return  1 ;
 }
+
+ml_char_t *
+ml_sp_ch(void)
+{
+	if( sp_ch.attr == 0)
+	{
+		ml_char_init( &sp_ch) ;
+		ml_char_set( &sp_ch , " " , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR ,
+			0 , 0) ;
+	}
+
+	return  &sp_ch ;
+}
+
+ml_char_t *
+ml_nl_ch(void)
+{
+	if( nl_ch.attr == 0)
+	{
+		ml_char_init( &nl_ch) ;
+		ml_char_set( &nl_ch , "\n" , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR ,
+			0 , 0) ;
+	}
+
+	return  &nl_ch ;
+}
+
 
 #ifdef  DEBUG
 

@@ -1,7 +1,12 @@
+2002-08-02  Araki Ken <arakiken@users.sf.net>
+
+	* 2002-07-29 (*) problem not still fixed.
+	  (Thanks to Minami Hirokazu san)
+
 2002-07-29  Araki Ken <arakiken@users.sf.net>
 
 	* If bce enabled in termcap config, mlterm hung up when multi-byte
-	  characters are shown in screen. fixed.
+	  characters were shown in screen. fixed. (*)
 	* NEW_PTY short cut key is renamed to OPEN_SCREEN.
 	* OPEN_PTY option is added.
 
