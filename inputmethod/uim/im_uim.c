@@ -1685,6 +1685,16 @@ error:
 
 	if( result)
 	{
+		if( result->args)
+		{
+			free( result->args) ;
+		}
+
+		if( result->readable_args)
+		{
+			free( result->readable_args) ;
+		}
+
 		free( result) ;
 	}
 

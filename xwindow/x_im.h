@@ -86,7 +86,7 @@ typedef struct x_im_export_syms
 } x_im_export_syms_t ;
 
 /*
- * the input method module object
+ * input method module object
  */
 typedef struct x_im
 {

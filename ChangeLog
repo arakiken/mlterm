@@ -1,3 +1,17 @@
+2005-01-23 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	SCIM (Smart Common Input Method platform) support:
+	* configure.in:
+	  - added '--enable-scim'
+	  - added AC_PROG_CXX
+	* inputmethod/scim/im_scim.cpp: new file
+	* inputmethod/scim/im_scim.h: new file
+	* inputmethod/scim/im_scim_mod_if.c: new file
+	* inputmethod/scim/Makefile.in: new file
+
+	* inputmethod/uim/im_uim.c, xwindow/x_im.c, xwindow/x_im.h:
+	minor code cleanup.
+
 2005-01-23 MINAAMI Hirokazu <minami@mistfall.net>
 
         Made cursor looks better (thanks to Ian Ward). 

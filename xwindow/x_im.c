@@ -4,6 +4,7 @@
 
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep kik_snprintf*/
+#include  <kiklib/kik_locale.h>
 
 #include  "x_im.h"
 #include  "x_term_manager.h"
@@ -46,9 +47,9 @@ static  x_im_export_syms_t  im_export_syms =
 
 } ;
 
-#if  defined(USE_UIM) && defined(USE_M17NLIB)
-static int ref_count_uim = 0 ;
-static int ref_count_m17nlib = 0 ;
+#if  1
+/* restroing locale which was overwritten by SCIM */
+#  define  RESTORE_LOCALE  1
 #endif
 
 /* --- static functions --- */
@@ -121,6 +122,9 @@ x_im_new(
 	kik_dl_handle_t  handle ;
 	char *  im_name ;
 	char *  im_attr ;
+#ifdef  RESTORE_LOCALE
+	char *  cur_locale ;
+#endif
 
 	if( input_method == NULL)
 	{
@@ -146,19 +150,24 @@ x_im_new(
 		im_attr = NULL ;
 	}
 
-#if  defined(USE_UIM) && defined(USE_M17NLIB)
-	if( ( strcmp( im_name , "uim") == 0 && ref_count_m17nlib) ||
-	    ( strcmp( im_name , "m17nlib") == 0 && ref_count_uim))
-	{
-		kik_error_printf( "uim and m17nlib cannot be used together.\n");
-		return  NULL ;
-	}
+	/*
+	 * inputmethod specific workarounds
+	 */
+#ifdef  RESTORE_LOCALE
+	cur_locale = kik_str_alloca_dup( kik_get_locale()) ;
 #endif
 
 	if ( ! dlsym_im_new_func( im_name , &func , &handle))
 	{
+	#ifdef  RESTORE_LOCALE
+		kik_locale_init( cur_locale) ;
+	#endif
 		return  NULL ;
 	}
+
+#ifdef  RESTORE_LOCALE
+	kik_locale_init( cur_locale) ;
+#endif
 
 	if( ( im = (*func)( IM_API_COMPAT_CHECK_MAGIC , term_encoding ,
 			    &im_export_syms , im_attr , mod_ignore_mask)))
@@ -176,17 +185,6 @@ x_im_new(
 		im->preedit.filled_len = 0 ;
 		im->preedit.segment_offset = 0 ;
 		im->preedit.cursor_offset = X_IM_PREEDIT_NOCURSOR ;
-
-	#if  defined(USE_UIM) && defined(USE_M17NLIB)
-		if( strcmp( im_name , "uim") == 0)
-		{
-			ref_count_uim ++ ;
-		}
-		else if( strcmp( im_name , "m17nlib") == 0)
-		{
-			ref_count_m17nlib ++ ;
-		}
-	#endif
 
 	}
 	else
@@ -206,17 +204,6 @@ x_im_delete(
 	)
 {
 	kik_dl_handle_t  handle ;
-
-#if  defined(USE_UIM) && defined(USE_M17NLIB)
-	if( strcmp( im->name , "uim") == 0)
-	{
-		ref_count_uim -- ;
-	}
-	else if( strcmp( im->name , "m17nlib") == 0)
-	{
-		ref_count_m17nlib -- ;
-	}
-#endif
 
 	free( im->name) ;
 
@@ -268,7 +255,8 @@ x_im_redraw_preedit(
 					       im->preedit.segment_offset ,
 					       &x , &y))
 		{
-			if( im->stat_screen && im->cand_screen)
+			if( im->stat_screen &&
+			    (im->cand_screen && im->preedit.filled_len))
 			{
 				(*im->stat_screen->hide)( im->stat_screen) ;
 				(*im->cand_screen->show)( im->cand_screen) ;
@@ -281,7 +269,7 @@ x_im_redraw_preedit(
 				(*im->stat_screen->set_spot)( im->stat_screen ,
 							      x , y) ;
 			}
-			else if( im->cand_screen)
+			else if( im->cand_screen && im->preedit.filled_len)
 			{
 				(*im->cand_screen->show)( im->cand_screen) ;
 				(*im->cand_screen->set_spot)( im->cand_screen ,

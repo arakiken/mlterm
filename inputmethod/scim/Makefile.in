@@ -1,0 +1,66 @@
+top_builddir = ../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+
+DESTDIR =
+PREFIX = $(DESTDIR)$(prefix)
+LIBDIR = $(DESTDIR)$(libdir)/mlterm
+
+VPATH = ${top_srcdir}/inputmethod/scim
+
+IM_SCIM_OBJ = im_scim_mod_if.o im_scim.o
+
+CFLAGS = $(CFLAGS_LOCAL) 		\
+	 @DEB_CFLAGS@			\
+	 @KIK_CFLAGS@			\
+	 @MKF_CFLAGS@			\
+	 @X_CFLAGS@			\
+	 @CFLAGS@			\
+	 @CPPFLAGS@			\
+	 @CXXFLAGS@			\
+	 @IM_CFLAGS@			\
+	 @SCIM_CFLAGS@			\
+	 -I$(top_srcdir)/mlterm		\
+	 -I${top_srcdir}/xwindow	\
+	 -I/usr/local/include
+
+LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @SCIM_LIBS@
+
+CXX     = @CXX@
+INSTALL = @INSTALL@
+LIBTOOL = @LIBTOOL@
+
+LIBTOOL_CC      = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_CXX     = $(LIBTOOL) --mode=compile $(CXX) $(CFLAGS)
+LIBTOOL_LINK    = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+.SUFFIXES: .o .c .cpp
+
+all: im-scim
+
+im-scim: $(IM_SCIM_OBJ)
+	$(LIBTOOL_LINK) -o libim-scim.la $(IM_SCIM_OBJ:.o=.lo) \
+	-rpath $(LIBDIR) \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
+
+.cpp.o:
+	$(LIBTOOL_CXX) -c $<
+
+.c.o:
+	$(LIBTOOL_CC) -c $<
+
+$(LIBDIR):
+	mkdir -p $(LIBDIR)
+
+install: $(LIBDIR)
+	$(LIBTOOL_INSTALL) libim-scim.la $(LIBDIR)
+
+clean:
+	rm -rf $(IM_SCIM_OBJ) $(IM_SCIM_OBJ:.o=.lo) libim-scim.la *.core .libs
+
+distclean: clean
+	rm -f Makefile
+
