@@ -204,13 +204,6 @@ pixbuf_to_pixmap_16t(
 	data = (u_int16_t *)malloc( width * height * sizeof(long));
 	if( !data)
 		return;
-	image = XCreateImage( display, DefaultVisual( display , screen),
-			      DefaultDepth( display, screen), ZPixmap, 0,
-			      (char *)data,
-			      gdk_pixbuf_get_width( pixbuf),
-			      gdk_pixbuf_get_height( pixbuf),
-			      16,
-			      gdk_pixbuf_get_width( pixbuf) * 2);	
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display , screen));
 	if (!vinfo.visualid){
 		free( data);
@@ -219,9 +212,15 @@ pixbuf_to_pixmap_16t(
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched);
 	if ( (!matched) || (!vinfolist) ){
 		free( data);
-		XDestroyImage( image);
 		return;
 	}
+	image = XCreateImage( display, DefaultVisual( display , screen),
+			      DefaultDepth( display, screen), ZPixmap, 0,
+			      (char *)data,
+			      gdk_pixbuf_get_width( pixbuf),
+			      gdk_pixbuf_get_height( pixbuf),
+			      16,
+			      gdk_pixbuf_get_width( pixbuf) * 2);	
 	r_mask = vinfolist[0].red_mask;
 	g_mask = vinfolist[0].green_mask;
 	b_mask = vinfolist[0].blue_mask;
@@ -279,13 +278,6 @@ pixbuf_to_pixmap_24t(
 	data = (u_int32_t *)malloc( width * height * sizeof(long) );
 	if( !data)
 		return;
-	image = XCreateImage( display, DefaultVisual( display , screen),
-			      DefaultDepth( display, screen), ZPixmap, 0,
-			      (char *)data,
-			      gdk_pixbuf_get_width( pixbuf),
-			      gdk_pixbuf_get_height( pixbuf),
-			      32 ,
-			      gdk_pixbuf_get_width( pixbuf) * 4);
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display , screen));
 	if (!vinfo.visualid){
 		free( data);
@@ -294,9 +286,15 @@ pixbuf_to_pixmap_24t(
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched);
 	if ( (!matched) || (!vinfolist) ){
 		free( data);
-		XDestroyImage( image);
 		return;
 	}
+	image = XCreateImage( display, DefaultVisual( display , screen),
+			      DefaultDepth( display, screen), ZPixmap, 0,
+			      (char *)data,
+			      gdk_pixbuf_get_width( pixbuf),
+			      gdk_pixbuf_get_height( pixbuf),
+			      32 ,
+			      gdk_pixbuf_get_width( pixbuf) * 4);
 	r_offset = lsb( vinfolist[0].red_mask);
 	g_offset = lsb( vinfolist[0].green_mask);
 	b_offset = lsb( vinfolist[0].blue_mask);
@@ -380,15 +378,15 @@ compose_to_pixmap_16t(
 	width = gdk_pixbuf_get_width (pixbuf);
 	height = gdk_pixbuf_get_height (pixbuf);
 
-	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap);
+
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display , screen));
 	if (!vinfo.visualid)
 		return;       
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched);
-	if ( (!matched) || (!vinfolist) ){
-		XDestroyImage( image);
+	if ( (!matched) || (!vinfolist) )
 		return;
-	}
+	
+	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap);
 	r_mask = vinfolist[0].red_mask;
 	g_mask = vinfolist[0].green_mask;
 	b_mask = vinfolist[0].blue_mask;
@@ -451,15 +449,15 @@ compose_to_pixmap_24t(
 	width = gdk_pixbuf_get_width (pixbuf);
 	height = gdk_pixbuf_get_height (pixbuf);
 
-	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap);
+
 	vinfo.visualid = XVisualIDFromVisual( DefaultVisual( display , screen));
 	if (!vinfo.visualid)
 		return;       
 	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched);
-	if ( (!matched) || (!vinfolist) ){
-		XDestroyImage( image);
+	if ( (!matched) || (!vinfolist) )
 		return;
-	}
+	
+	image = XGetImage( display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap);
 	r_mask = vinfolist[0].red_mask;
 	g_mask = vinfolist[0].green_mask;
 	b_mask = vinfolist[0].blue_mask;
@@ -739,6 +737,7 @@ modify_pixmap( Display * display, int screen, Pixmap pixmap, x_picture_modifier_
 			}
 		}else{
 			gamma_cache_refresh( pic_mod->gamma);
+			
 			for (i = 0; i < height; i++) {
 				for (j = 0; j < width; j++) {
 					data = ((u_int16_t *)(image->data))[i*width+j];
