@@ -1,3 +1,9 @@
+2003-05-24 Tomohiro KUBOTA <kubota@debian.org>
+
+	* Removed description on -%/--class command option from manpage.
+	* Removed non-ASCII (well, seems to be intended to be EUC-JP)
+	  characters from this ChangeLog.
+
 2003-05-24 Araki Ken <arakiken@users.sf.net>
 
 	* Fixed set_xdnd_config() in x_screen.c
