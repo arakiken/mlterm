@@ -1,3 +1,7 @@
+2003-03-30 Araki Ken <arakiken@users.sf.net>
+
+	* Added "georgian-ps" and "koi8-t" encodings.
+
 2003-03-30 Tomohiro KUBOTA <kubota@debian.org>
 
 	* A patch contributed by Mike Fabian to fix unstability in
