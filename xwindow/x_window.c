@@ -2228,14 +2228,14 @@ x_window_receive_event(
 				exit(0) ;
 			}
 		}
-		#ifdef  DEBUG
+#if 0
 		if( event->xclient.format == 32 &&
 			event->xclient.data.l[0] == XA_TAKE_FOCUS( win->display))
 		{
 			kik_warn_printf( KIK_DEBUG_TAG
 				" TakeFocus message is received.\n") ;
 		}
-		#endif
+#endif
 	}
 #ifdef  __DEBUG
 	else

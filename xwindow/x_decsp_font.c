@@ -207,6 +207,10 @@ x_decsp_font_draw_string(
 			XFillRectangle(display , drawable , gc ,
 				       x , y , font->width , font->height);
 		}else{
+			/* XXX handle '#'? */
+			XSetClipMask( display, gc, None);
+			cache = -1 ;
+
 			XDrawRectangle(display , drawable , gc ,
 				       x , y , font->width-1 , font->height-1 );
 		}
@@ -242,6 +246,12 @@ x_decsp_font_draw_image_string(
 			XCopyPlane( display, font->glyphs[*str], drawable,
 				    gc , 0 , 0 , font->width , font->height,
 				    x , y , 1);
+		}
+		else
+		{
+			/* XXX handle '#'? */
+			XDrawRectangle(display , drawable , gc ,
+				       x , y , font->width-1 , font->height-1 );
 		}
 
 		x += font->width ;

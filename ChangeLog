@@ -1,3 +1,12 @@
+2004-02-03  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* xwindow/x_decsp_font.c:
+	- In x_decsp_font_draw_string(), reset a clip mask when unknown
+	char was passed so that dummy rectangle can be drown correctry.
+	- In x_decsp_font_draw_image_string(), draw a rectangle for
+	unknown char.
+	(Thanks to Mike FABIAN for reporting)
+
 2004-01-31  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* kik_pty_stream.c: If ptsname() fails, show an error message.
