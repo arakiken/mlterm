@@ -1,4 +1,8 @@
 [20020202]
+* --shade/shade_ratio option is renamed to --bright/brightness.
+* brightness option works under transparent mode.
+
+[20020202]
 * -H/--shade/shade_ratio option is added.
 
 [20020202]
