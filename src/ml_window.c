@@ -2786,15 +2786,30 @@ ml_window_receive_event(
 		XEvent  next_ev ;
 
 		is_changed = 0 ;
-		
+	
 		if( event->xconfigure.x != win->x || event->xconfigure.y != win->y)
 		{
+			/*
+			 * for fvwm2 style virtual screen.
+			 */
+			if( abs( event->xconfigure.x - win->x) % DisplayWidth(win->display , win->screen) != 0 ||
+				abs( event->xconfigure.y - win->y) % DisplayHeight(win->display , win->screen) != 0 ||
+				( event->xconfigure.x < 0 && event->xconfigure.x + (int)ACTUAL_WIDTH(win) > 0) ||
+				( event->xconfigure.x > 0 && 
+					event->xconfigure.x + (int)ACTUAL_WIDTH(win) 
+						> DisplayWidth( win->display , win->screen)) ||
+				( event->xconfigure.y < 0 && event->xconfigure.y + (int)ACTUAL_HEIGHT(win) > 0) ||
+				( event->xconfigure.y > 0 &&
+					event->xconfigure.y + (int)ACTUAL_HEIGHT(win)
+						> DisplayHeight( win->display , win->screen)) )
+			{
+				is_changed = 1 ;
+			}
+			
 			win->x = event->xconfigure.x ;
-			win->y = event->xconfigure.y ;
-
-			is_changed = 1 ;
+			win->y = event->xconfigure.y ; 
 		}
-		
+
 		if( event->xconfigure.width != ACTUAL_WIDTH(win) ||
 			event->xconfigure.height != ACTUAL_HEIGHT(win))
 		{

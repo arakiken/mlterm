@@ -1,4 +1,8 @@
 [20020208]
+* brightness-adjusted transparent background costs when fvwm2 style virtual screen
+  is changed. fixed.(thanks to Nanashi san)
+
+[20020208]
 * if --enable-anti-alias is not specified , compilation fails. fixed.
 
 [20020208]

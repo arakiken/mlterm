@@ -85,6 +85,15 @@ is_aa(
 		(font_man->font_custom == font_man->taa_font_custom) ;
 }
 
+static int
+is_vertical(
+	ml_font_manager_t *  font_man
+	)
+{
+	return  (font_man->font_custom == font_man->t_font_custom) ||
+		(font_man->font_custom == font_man->taa_font_custom) ;
+}
+
 static ml_font_present_t
 get_font_present(
 	ml_font_manager_t *  font_man
@@ -110,15 +119,6 @@ get_font_present(
 	}
 
 	return  font_present ;	
-}
-
-static int
-is_vertical(
-	ml_font_manager_t *  font_man
-	)
-{
-	return  (font_man->font_custom == font_man->t_font_custom) ||
-		(font_man->font_custom == font_man->taa_font_custom) ;
 }
 
 static char *
