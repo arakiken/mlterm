@@ -67,6 +67,7 @@ ml_pty_new(
 		signal(SIGINT, SIG_DFL) ;
 		signal(SIGQUIT, SIG_DFL) ;
 		signal(SIGCHLD, SIG_DFL) ;
+		signal(SIGPIPE, SIG_DFL) ;
 
 	#if  0
 		/*
