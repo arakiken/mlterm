@@ -91,14 +91,11 @@ kik_pty_fork(
 	}
 	if( ( ttydev = ptsname(*master)) == NULL)
 	{
-		/*
-		 * TODO: removing this message.
-		 * if ptsname() fails, we should try to use bsd stlye pty
-		 * device. -- seiichi
-		 */
 		kik_msg_printf( "Unable to open slave pseudo-terminal device\n") ;
+#ifdef  __linux__
 		kik_msg_printf( "If your operating system is Linux, make sure your kernel was compiled with\n"
 			        "'CONFIG_UNIX98_PTYS=y' and devpts file system was mounted\n");
+#endif
 		return  -1;
 	}
 

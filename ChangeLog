@@ -1,5 +1,10 @@
 2004-10-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* kiklib/src/kik_pty_streams.c: moved linux specific error message
+	  into #ifdef __linux__.
+
+2004-10-23 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* xwindow/version.h.in: 2.8.0 post -> 2.9.0 pre
 
 2004-10-22 MINAMI Hirokazu <minami@mistfall.net>
