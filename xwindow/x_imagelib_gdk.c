@@ -1214,6 +1214,71 @@ modify_pixmap(
 		default:
 			break;
 		}
+	case PseudoColor:
+		switch( vinfolist[0].depth)
+		{
+		case 8:
+		{
+			XColor *  color_list ;
+			int num_cells ;
+			u_int8_t *  data ;
+			data = (u_int8_t *)(image->data) ;
+			Colormap  cmap = DefaultColormap( display, screen) ;
+			
+			num_cells = DisplayCells( display , screen) ;
+			color_list = malloc( num_cells * sizeof(XColor)) ;
+			if( !color_list)
+			{
+				XFree(vinfolist) ;
+				return 1;
+			}
+			for( i = 0 ; i < num_cells ; i ++)
+				color_list[i].pixel = i ;						
+			XQueryColors( display , cmap , color_list, num_cells) ;
+
+			modify_bound( pic_mod);
+			if (pic_mod->gamma == 100){
+				for (i = 0; i < height; i++) {
+					for (j = 0; j < width; j++) {
+						r = color_list[*data].red >>8 ;
+						g = color_list[*data].green >>8 ;
+						b = color_list[*data].blue >>8 ;
+
+						r = modify_color( r, pic_mod) ;
+						g = modify_color( g, pic_mod) ;
+						b = modify_color( b, pic_mod) ;
+
+						*data = closest_color_index( display, screen,
+									     color_list, num_cells,
+									     r, g, b ) ;
+						data++ ;
+					}
+				}
+			}else{
+				gamma_cache_refresh( pic_mod->gamma) ;
+				for (i = 0; i < height; i++) {
+					for (j = 0; j < width; j++) {
+						r = color_list[*data].red >>8 ;
+						g = color_list[*data].green >>8 ;
+						b = color_list[*data].blue >>8 ;
+
+						r = gamma_cache[modify_color( r, pic_mod)] ;
+						g = gamma_cache[modify_color( g, pic_mod)] ;
+						b = gamma_cache[modify_color( b, pic_mod)] ;
+
+						*data = closest_color_index( display, screen,
+									     color_list, num_cells,
+									     r, g, b ) ;
+						data++ ;
+					}
+				}
+			}
+			XPutImage( display, pixmap, DefaultGC( display, screen), image, 0, 0, 0, 0,
+				   width, height) ;
+			free( color_list) ;
+			break ;
+		}
+		}
 	}
 	XFree(vinfolist) ;
 	XDestroyImage( image) ;
