@@ -136,7 +136,7 @@ get_cs_info(
 	return  NULL ;
 }
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 
 static u_int
 xft_calculate_char_width(
@@ -182,7 +182,6 @@ xft_calculate_char_width(
 }
 
 #endif
-
 
 static u_int
 calculate_char_width(
@@ -256,7 +255,7 @@ parse_xfont_name(
 	return  1 ;
 }
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 
 static int
 parse_xft_font_name(
@@ -455,7 +454,7 @@ set_decsp_font(
 	/*
 	 * freeing font->xfont or font->xft_font
 	 */
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	if( font->xft_font)
 	{
 		XftFontClose( font->display , font->xft_font) ;
@@ -883,7 +882,7 @@ font_found:
 	return  1 ;
 }
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 
 static int
 set_xft_font(
@@ -891,7 +890,8 @@ set_xft_font(
 	char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
-	int  use_medium_for_bold
+	int  use_medium_for_bold ,
+	int  is_aa
 	)
 {
 	int  weight ;
@@ -984,7 +984,9 @@ set_xft_font(
 						XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
 						XFT_ENCODING , XftTypeString , font_encoding ,
 						XFT_WEIGHT , XftTypeInteger , weight ,
-						XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , NULL)))
+						XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
+						XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,
+						NULL)))
 				{
 					goto  font_found ;
 				}
@@ -997,7 +999,9 @@ set_xft_font(
 						XFT_ENCODING , XftTypeString , font_encoding ,
 						XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
 						XFT_WEIGHT , XftTypeInteger , weight ,
-						XFT_SPACING , XftTypeInteger , XFT_CHARCELL , NULL)))
+						XFT_SPACING , XftTypeInteger , XFT_CHARCELL ,
+						XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,
+						NULL)))
 				{
 					goto  font_found ;
 				}
@@ -1045,7 +1049,9 @@ set_xft_font(
 					XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
 					XFT_ENCODING , XftTypeString , *font_encoding_p ,
 					XFT_WEIGHT , XftTypeInteger , weight ,
-					XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , NULL)))
+					XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
+					XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,
+					NULL)))
 			{
 				goto  font_found ;
 			}
@@ -1057,7 +1063,9 @@ set_xft_font(
 					XFT_ENCODING , XftTypeString , *font_encoding_p ,
 					XFT_WEIGHT , XftTypeInteger , weight ,
 					XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
-					XFT_SPACING , XftTypeInteger , XFT_CHARCELL , NULL)))
+					XFT_SPACING , XftTypeInteger , XFT_CHARCELL ,
+					XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,
+					NULL)))
 			{
 				goto  font_found ;
 			}
@@ -1130,7 +1138,8 @@ set_xft_font(
 	char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set */
-	int  use_medium_for_bold
+	int  use_medium_for_bold ,
+	int  is_aa
 	)
 {
 	return  set_xfont( font , fontname , fontsize , col_width , use_medium_for_bold) ;
@@ -1154,6 +1163,7 @@ x_font_t *
 x_font_new(
 	Display *  display ,
 	ml_font_t  id ,
+	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present ,
 	char *  fontname ,
 	u_int  fontsize ,
@@ -1203,23 +1213,32 @@ x_font_new(
 	}
 	
 	font->xfont = NULL ;
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	font->xft_font = NULL ;
 #endif
 	font->decsp_font = NULL ;
 
-	if( font_present & FONT_AA)
+	if( type_engine == TYPE_XFT)
 	{
-		if( ! set_xft_font( font , fontname , fontsize , col_width , use_medium_for_bold))
+		if( ! set_xft_font( font , fontname , fontsize , col_width , use_medium_for_bold ,
+			(font_present & FONT_AA) == FONT_AA))
 		{
 			free( font) ;
 
 			return  NULL ;
 		}
 	}
+	else if( type_engine == TYPE_STSF)
+	{
+		return  NULL ;
+	}
 	else
 	{
-		if( ! set_xfont( font , fontname , fontsize , col_width , use_medium_for_bold))
+		if( font_present & FONT_AA)
+		{
+			return  NULL ;
+		}
+		else if( ! set_xfont( font , fontname , fontsize , col_width , use_medium_for_bold))
 		{
 			free( font) ;
 
@@ -1235,7 +1254,7 @@ x_font_delete(
 	x_font_t *  font
 	)
 {
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	if( font->xft_font)
 	{
 		XftFontClose( font->display , font->xft_font) ;
@@ -1299,7 +1318,7 @@ x_calculate_char_width(
 	}
 	else
 	{
-	#ifdef  ANTI_ALIAS
+	#ifdef  USE_TYPE_XFT
 		if( font->xft_font)
 		{
 			u_char  ucs4[4] ;
@@ -1333,7 +1352,7 @@ x_font_dump(
 	)
 {
 	kik_msg_printf( "  id %x: XFont %p" , font->id , font->xfont) ;
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	kik_msg_printf( " XftFont %p" , font->id , font->xft_font) ;
 #endif
 	if( font->is_proportional)

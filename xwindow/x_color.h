@@ -9,12 +9,12 @@
 /* This must be included ahead of Xft.h on XFree86-4.0.x or before. */
 #include  <X11/Xlib.h>
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 #include  <X11/Xft/Xft.h>
 #endif
 
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 typedef XftColor  x_color_t ;
 #else
 typedef XColor  x_color_t ;

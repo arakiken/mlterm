@@ -112,7 +112,7 @@ char_combining_is_supported(
  * drawing string
  */
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 
 static int
 xft_draw_combining_chars(
@@ -934,8 +934,8 @@ draw_str(
 {
 	u_int  updated_width ;
 
-#ifdef  ANTI_ALIAS
-	if( x_get_font_present( screen->font_man) & FONT_AA)
+#ifdef  USE_TYPE_XFT
+	if( x_get_type_engine( screen->font_man) & TYPE_XFT)
 	{
 		if( ! xft_draw_str( screen , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))
@@ -971,8 +971,8 @@ draw_str_to_eol(
 {
 	u_int  updated_width ;
 
-#ifdef  ANTI_ALIAS
-	if( x_get_font_present( screen->font_man) & FONT_AA)
+#ifdef  USE_TYPE_XFT
+	if( x_get_type_engine( screen->font_man) & TYPE_XFT)
 	{
 		if( ! xft_draw_str( screen , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))
@@ -2181,7 +2181,7 @@ update_special_visual(
 		 * XXX
 		 * anti alias ISCII font is not supported.
 		 */
-		if( ( font_config = x_font_config_new(
+		if( ( font_config = x_font_config_new( TYPE_XCORE ,
 					x_get_font_present( screen->font_man) & ~FONT_AA)) == NULL)
 		{
 			return  0 ;
@@ -2215,7 +2215,7 @@ update_special_visual(
 	{
 		if( ! ( x_get_font_present( screen->font_man) & FONT_VERTICAL))
 		{
-			change_font_present( screen ,
+			change_font_present( screen , 
 				( x_get_font_present( screen->font_man) | FONT_VERTICAL) & ~FONT_VAR_WIDTH) ;
 		}
 	}

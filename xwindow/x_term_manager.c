@@ -338,9 +338,9 @@ open_screen_intern(
 	}
 	
 	if( ( font_man = x_font_manager_new( disp->display ,
-		main_config.font_present , main_config.font_size ,
-		usascii_font_cs , usascii_font_cs_changable ,
-		main_config.use_multi_col_char ,
+		main_config.type_engine , main_config.font_present ,
+		main_config.font_size , usascii_font_cs ,
+		usascii_font_cs_changable , main_config.use_multi_col_char ,
 		main_config.step_in_changing_font_size)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -1421,7 +1421,7 @@ x_term_manager_init(
 		"word-separating characters for double-click [,.:;/@]") ;
 	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
 		"compose dec special font [false]") ;
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
 		"use CP932-Unicode mapping table for JISX0208 [false]") ;
 #endif
@@ -1519,7 +1519,7 @@ x_term_manager_init(
 		}
 	}
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")) == NULL ||
 		strcmp( value , "true") == 0)
 	{

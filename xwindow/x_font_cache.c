@@ -232,8 +232,9 @@ x_font_cache_get_xfont(
 		}
 	}
 
-	if( ( xfont = x_font_new( font_cache->display , font , font_cache->font_config->font_present ,
-			fontname , font_cache->font_size , col_width , use_medium_for_bold)))
+	if( ( xfont = x_font_new( font_cache->display , font , font_cache->font_config->type_engine ,
+			font_cache->font_config->font_present , fontname ,
+			font_cache->font_size , col_width , use_medium_for_bold)))
 	{
 		if( ! font_cache->use_multi_col_char)
 		{
@@ -270,11 +271,11 @@ x_get_font_name_list_for_fontset(
 	char *  p ;
 	size_t  list_len ;
 	
-	if( font_cache->font_config->font_present & FONT_AA)
+	if( font_cache->font_config->type_engine != TYPE_XCORE)
 	{
 		x_font_config_t *  font_config ;
 
-		if( ( font_config = x_acquire_font_config(
+		if( ( font_config = x_acquire_font_config( TYPE_XCORE ,
 					font_cache->font_config->font_present & ~FONT_AA)) == NULL)
 		{
 			font_name_list = NULL ;

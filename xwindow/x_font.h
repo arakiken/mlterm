@@ -9,7 +9,7 @@
 /* This must be included ahead of Xft.h on XFree86-4.0.x or before. */
 #include  <X11/Xlib.h>
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 #include  <X11/Xft/Xft.h>
 #endif
 
@@ -17,6 +17,7 @@
 #include  <mkf/mkf_charset.h>	/* mkf_charset_t */
 #include  <ml_font.h>
 
+#include  "x_type_engine.h"
 #include  "x_decsp_font.h"
 
 
@@ -43,7 +44,7 @@ typedef struct x_font
 	int8_t  is_vertical ;
 	int8_t  is_var_col_width ;
 	
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	XftFont *  xft_font ;
 #endif
 	XFontStruct *  xfont ;
@@ -69,8 +70,9 @@ typedef struct x_font
 int  x_compose_dec_special_font(void) ;
 
 
-x_font_t *  x_font_new( Display *  display , ml_font_t  id , x_font_present_t  font_present ,
-	char *  fontname , u_int  fontsize , u_int  col_width , int  use_medium_for_bold) ;
+x_font_t *  x_font_new( Display *  display , ml_font_t  id , x_type_engine_t  type_engine ,
+	x_font_present_t  font_present , char *  fontname , u_int  fontsize ,
+	u_int  col_width , int  use_medium_for_bold) ;
 
 int  x_font_delete( x_font_t *  font) ;
 

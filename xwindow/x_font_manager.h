@@ -33,7 +33,7 @@ typedef struct  x_font_manager
 }  x_font_manager_t ;
 
 
-x_font_manager_t *  x_font_manager_new( Display *  display ,
+x_font_manager_t *  x_font_manager_new( Display *  display , x_type_engine_t  type_engine ,
 	x_font_present_t  font_present , u_int  font_size , mkf_charset_t  usascii_font_cs ,
 	int  usascii_font_cs_changable , int  use_multi_col_char ,
 	int  step_in_changing_font_size) ;
@@ -48,6 +48,8 @@ int  x_font_manager_usascii_font_cs_changed( x_font_manager_t *  font_man ,
 	mkf_charset_t  usascii_font_cs) ;
 
 int  x_change_font_present( x_font_manager_t *  font_man , x_font_present_t  font_present) ;
+
+x_type_engine_t  x_get_type_engine( x_font_manager_t *  font_man) ;
 
 x_font_present_t  x_get_font_present( x_font_manager_t *  font_man) ;
 

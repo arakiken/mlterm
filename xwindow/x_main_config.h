@@ -37,6 +37,7 @@ typedef struct x_main_config
 	u_int  col_size_a ;
 	ml_char_encoding_t  encoding ;
 	int  is_auto_encoding ;
+	x_type_engine_t  type_engine ;
 	x_font_present_t  font_present ;
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bs_mode_t  bs_mode ;

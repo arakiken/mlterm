@@ -102,6 +102,7 @@ release_font_config(
 x_font_manager_t *
 x_font_manager_new(
 	Display *  display ,
+	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present ,
 	u_int  font_size ,
 	mkf_charset_t  usascii_font_cs ,
@@ -121,7 +122,7 @@ x_font_manager_new(
 		return  NULL ;
 	}
 
-	if( ( font_man->font_config = x_acquire_font_config( font_present)) == NULL)
+	if( ( font_man->font_config = x_acquire_font_config( type_engine , font_present)) == NULL)
 	{
 		free( font_man) ;
 
@@ -239,13 +240,28 @@ x_change_font_present(
 {
 	x_font_config_t *  font_config ;
 	x_font_cache_t *  font_cache ;
+#define  __HACK__
+#ifdef  __HACK__
+	x_type_engine_t  type_engine ;
+
+	/* XXX Hack */
+	if( font_present & FONT_AA)
+	{
+		type_engine = TYPE_XFT ;
+	}
+	else
+	{
+		type_engine = TYPE_XCORE ;
+	}
+#endif
+#undef  __HACK__
 
 	if( font_present == font_man->font_config->font_present)
 	{
 		return  1 ;
 	}
 
-	if( ( font_config = x_acquire_font_config( font_present)) == NULL)
+	if( ( font_config = x_acquire_font_config( type_engine , font_present)) == NULL)
 	{
 		return  0 ;
 	}
@@ -266,6 +282,14 @@ x_change_font_present(
 	font_man->font_config = font_config ;
 
 	return  1 ;
+}
+
+x_type_engine_t
+x_get_type_engine(
+	x_font_manager_t *  font_man
+	)
+{
+	return  font_man->font_config->type_engine ;
 }
 
 x_font_present_t
@@ -521,7 +545,8 @@ x_deactivate_local_font_config(
 		return  0 ;
 	}
 
-	if( ( font_config = x_acquire_font_config( font_man->font_config->font_present)) == NULL)
+	if( ( font_config = x_acquire_font_config( font_man->font_config->type_engine ,
+				font_man->font_config->font_present)) == NULL)
 	{
 		return  0 ;
 	}

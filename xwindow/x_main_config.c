@@ -49,11 +49,13 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '#' , "initstr" , 0 , "init_str" ,
 		"initial string sent to pty") ;
 	kik_conf_add_opt( conf , '$' , "mc" , 0 , "click_interval" ,
-		"click interval(milisecond)[250]") ;
+		"click interval(milisecond) [250]") ;
 	kik_conf_add_opt( conf , '%' , "logseq" , 1 , "logging_vt_seq" ,
-		"enable logging vt100 sequence") ;
+		"enable logging vt100 sequence [false]") ;
 	kik_conf_add_opt( conf , '&' , "borderless" , 1 , "borderless" ,
-		"override redirect") ;
+		"override redirect [false]") ;
+	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
+		"type engine [xcore]") ;
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
 		"screen width in percent against font width [default = 100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
@@ -76,7 +78,7 @@ x_prepare_for_main_config(
 		"cursor foreground color") ;
 	kik_conf_add_opt( conf , '0' , "crbg" , 0 , "cursor_bg_color" ,
 		"cursor background color") ;
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , 
 		"use anti-alias font by using Xft [false]") ;
 #endif
@@ -330,12 +332,35 @@ x_main_config_init(
 		}
 	}
 
-#ifdef  ANTI_ALIAS	
+	if( ( value = kik_conf_get_value( conf , "type_engine")))
+	{
+		if( strcmp( value , "xft") == 0)
+		{
+			main_config->type_engine = TYPE_XFT ;
+		}
+		else if( strcmp( value , "stsf") == 0)
+		{
+			kik_msg_printf( "stsf is not supported for now.\n") ;
+			main_config->type_engine = TYPE_XCORE ;
+		}
+		else if( strcmp( value , "xcore") == 0)
+		{
+			main_config->type_engine = TYPE_XCORE ;
+		}
+		else
+		{
+			kik_msg_printf( "%s is unsupported type engine.\n" , value) ;
+		}
+	}
+
+#ifdef  USE_TYPE_XFT
 	if( ( value = kik_conf_get_value( conf , "use_anti_alias")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
 			main_config->font_present |= FONT_AA ;
+			/* forcibly use xft */
+			main_config->type_engine = TYPE_XFT ;
 		}
 	}
 #endif

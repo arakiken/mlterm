@@ -17,6 +17,7 @@ KIK_MAP_TYPEDEF( x_font_name , ml_font_t , char *) ;
 typedef struct  x_font_config
 {
 	/* public(readonly) */
+	x_type_engine_t  type_engine ;
 	x_font_present_t  font_present ;
 
 	/* private */
@@ -34,13 +35,13 @@ u_int  x_get_min_font_size(void) ;
 
 u_int  x_get_max_font_size(void) ;
 
-x_font_config_t *  x_font_config_new( x_font_present_t  font_present) ;
-
-int  x_font_config_delete( x_font_config_t *  font_config) ;
-
-x_font_config_t *  x_acquire_font_config( x_font_present_t  font_present) ;
+x_font_config_t *  x_acquire_font_config( x_type_engine_t  type_engine , x_font_present_t  font_present) ;
 
 int  x_release_font_config( x_font_config_t *  font_config) ;
+
+x_font_config_t *  x_font_config_new( x_type_engine_t  type_engine , x_font_present_t  font_present) ;
+
+int  x_font_config_delete( x_font_config_t *  font_config) ;
 
 int  x_customize_font_name( x_font_config_t *  font_config , ml_font_t  font ,
 	char *  fontname , u_int  font_size) ;

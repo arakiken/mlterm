@@ -453,7 +453,7 @@ x_window_init(
 	win->drawable = None ;
 	win->pixmap = None ;
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	win->xft_draw = NULL ;
 #endif
 
@@ -566,7 +566,7 @@ x_window_final(
 		XFreePixmap( win->display , win->pixmap) ;
 	}
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	XftDrawDestroy( win->xft_draw) ;
 #endif
 
@@ -1042,7 +1042,7 @@ x_window_show(
 			XCreateFontCursor( win->display , win->cursor_shape)) ;
 	}
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	win->xft_draw = XftDrawCreate( win->display , win->drawable ,
 					DefaultVisual( win->display , win->screen) ,
 					DefaultColormap( win->display , win->screen)) ;
@@ -1250,7 +1250,7 @@ x_window_resize(
 			DefaultDepth( win->display , win->screen)) ;
 		win->drawable = win->pixmap ;
 
-	#ifdef  ANTI_ALIAS
+	#ifdef  USE_TYPE_XFT
 		XftDrawChange( win->xft_draw , win->drawable) ;
 	#endif
 	}
@@ -1965,7 +1965,7 @@ x_window_receive_event(
 					DefaultDepth( win->display , win->screen)) ;
 				win->drawable = win->pixmap ;
 
-			#ifdef  ANTI_ALIAS
+			#ifdef  USE_TYPE_XFT
 				XftDrawChange( win->xft_draw , win->drawable) ;
 			#endif
 			}
@@ -2613,7 +2613,7 @@ x_window_draw_image_string16(
 	return  1 ;
 }
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 int
 x_window_xft_draw_string8(
 	x_window_t *  win ,

@@ -9,7 +9,7 @@
 #include  <X11/Xlib.h>
 #include  <X11/cursorfont.h>	/* for cursor shape */
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 #include  <X11/Xft/Xft.h>
 #endif
 
@@ -68,7 +68,7 @@ typedef struct  x_window
 
 	Pixmap  pixmap ;
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	XftDraw *  xft_draw ;
 #endif
 
@@ -281,7 +281,7 @@ int  x_window_draw_image_string16( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , x_color_t *  bg_color , int  x , int  y ,
 	XChar2b *  str , u_int  len) ;
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 int  x_window_xft_draw_string8( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , int  x , int  y , u_char *  str , size_t  len) ;
 

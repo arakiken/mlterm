@@ -19,7 +19,7 @@ alloc_closest_xcolor_pseudo(
 	unsigned short  red ,		/* 0 to 0xffff */
 	unsigned short  green ,		/* 0 to 0xffff */
 	unsigned short  blue ,		/* 0 to 0xffff */
-#ifdef ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	XftColor *  ret_xcolor
 #else
 	XColor *  ret_xcolor
@@ -98,7 +98,7 @@ alloc_closest_xcolor_pseudo(
 		return 0 ;
 	}
 
-#ifdef ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 	ret_xcolor->pixel = closest_color.pixel ;
 	ret_xcolor->color.red = closest_color.red ;
 	ret_xcolor->color.green = closest_color.green ;
@@ -148,7 +148,7 @@ is_rgb_color_name(
 
 /* --- global functions --- */
 
-#ifdef  ANTI_ALIAS
+#ifdef  USE_TYPE_XFT
 
 int
 x_load_named_xcolor(
@@ -246,7 +246,7 @@ x_get_xcolor_rgb(
 	return  1 ;
 }
 
-#else
+#else	/* USE_TYPE_XFT */
 
 int
 x_load_named_xcolor(

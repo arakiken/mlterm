@@ -291,13 +291,14 @@ x_get_max_font_size(void)
 
 x_font_config_t *
 x_acquire_font_config(
+	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present
 	)
 {
 	x_font_config_t *  font_config ;
 	void *  p ;
 	char *  font_rcfile ;
-	char *  font_rcfile2 ;
+	char *  font_rcfile2 ;	/* prior to font_rcfile */
 	char *  rcpath ;
 	
 	if( font_configs)
@@ -306,7 +307,12 @@ x_acquire_font_config(
 
 		for( count = 0 ; count < num_of_configs ; count ++)
 		{
-			if( font_configs[count]->font_present == font_present)
+			/*
+			 * 'type_engine' isn't compared because TYPE_XFT and TYPE_STSF
+			 * config files are the same.
+			 */
+			if( font_configs[count]->font_present == font_present
+				/* && font_configs[count]->type_engine == type_engine */)
 			{
 				font_configs[count]->ref_count ++ ;
 
@@ -322,46 +328,59 @@ x_acquire_font_config(
 
 	font_configs = p ;
 
-	if( ( font_config = x_font_config_new( font_present)) == NULL)
+	if( ( font_config = x_font_config_new( type_engine , font_present)) == NULL)
 	{
 		return  NULL ;
 	}
 
-	switch( font_present)
+	if( type_engine == TYPE_XFT || type_engine == TYPE_STSF)
 	{
-	default:
-		font_rcfile = "mlterm/font" ;
-		font_rcfile2 = NULL ;
-		break ;
-	
-	case FONT_VAR_WIDTH:
-		font_rcfile = "mlterm/font" ;
-		font_rcfile2 = "mlterm/vfont" ;
-		break ;
+		switch( font_present & ~FONT_AA)
+		{
+		default:
+			font_rcfile = "mlterm/aafont" ;
+			font_rcfile2 = NULL ;
+			break ;
 
-	case FONT_VERTICAL:
-		font_rcfile = "mlterm/font" ;
-		font_rcfile2 = "mlterm/tfont" ;
-		break ;
+		case FONT_VAR_WIDTH:
+			font_rcfile = "mlterm/aafont" ;
+			font_rcfile2 = "mlterm/vaafont" ;
+			break ;
 
-#ifdef  ANTI_ALIAS
-	case FONT_AA:
-		font_rcfile = "mlterm/aafont" ;
-		font_rcfile2 = NULL ;
-		break ;
-
-	case FONT_VAR_WIDTH|FONT_AA:
-		font_rcfile = "mlterm/aafont" ;
-		font_rcfile2 = "mlterm/vaafont" ;
-		break ;
-
-	case FONT_VERTICAL|FONT_AA:
-		font_rcfile = "mlterm/aafont" ;
-		font_rcfile2 = "mlterm/taafont" ;
-		break ;
-#endif
+		case FONT_VERTICAL:
+			font_rcfile = "mlterm/aafont" ;
+			font_rcfile2 = "mlterm/taafont" ;
+			break ;
+		}
 	}
-	
+	else
+	{
+		if( font_present & FONT_AA)
+		{
+			return  NULL ;
+		}
+		else
+		{
+			switch( font_present)
+			{
+			default:
+				font_rcfile = "mlterm/font" ;
+				font_rcfile2 = NULL ;
+				break ;
+
+			case FONT_VAR_WIDTH:
+				font_rcfile = "mlterm/font" ;
+				font_rcfile2 = "mlterm/vfont" ;
+				break ;
+
+			case FONT_VERTICAL:
+				font_rcfile = "mlterm/font" ;
+				font_rcfile2 = "mlterm/tfont" ;
+				break ;
+			}
+		}
+	}
+		
 	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
 	{
 		read_conf( font_config , rcpath) ;
@@ -428,6 +447,7 @@ x_release_font_config(
 
 x_font_config_t *
 x_font_config_new(
+	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present
 	)
 {
@@ -456,6 +476,7 @@ x_font_config_new(
 	kik_map_new_with_size( ml_font_t , char * ,
 		font_config->default_font_name_table , font_hash , font_compare , 8) ;
 
+	font_config->type_engine = type_engine ;
 	font_config->font_present = font_present ;
 	font_config->ref_count = 0 ;
 	
