@@ -873,6 +873,9 @@ x_scrollbar_set_fg_color(
 	sb->fg_color = strdup( fg_color) ;
 	x_load_named_xcolor( sb->window.display , sb->window.screen , &sb->fg_xcolor , sb->fg_color) ;
 	x_window_set_fg_color( &sb->window , sb->fg_xcolor.pixel) ;
+	
+	draw_decoration( sb) ;
+	draw_scrollbar( sb) ;
 
 	return  1 ;
 }
@@ -889,6 +892,9 @@ x_scrollbar_set_bg_color(
 	sb->bg_color = strdup( bg_color) ;
 	x_load_named_xcolor( sb->window.display , sb->window.screen , &sb->bg_xcolor , sb->bg_color) ;
 	x_window_set_bg_color( &sb->window , sb->bg_xcolor.pixel) ;
+
+	draw_decoration( sb) ;
+	draw_scrollbar( sb) ;
 
 	return  1 ;
 }

@@ -3823,8 +3823,6 @@ reverse_or_restore_color(
 
 end:
 	redraw_screen( screen) ;
-
-	return  ;
 }
 
 
@@ -4373,8 +4371,6 @@ larger_font_size(
 
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all( screen->term) ;
-		
-	return ;
 }
 
 static void
@@ -4642,6 +4638,19 @@ full_reset(
 	ml_term_init_encoding_parser( screen->term) ;
 }
 
+static void
+config_updated(
+	void *  p
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+	redraw_screen( screen) ;
+	highlight_cursor( screen) ;
+}
+
 
 static void
 set_config(
@@ -4672,10 +4681,7 @@ set_config(
 			return ;
 		}
 
-		if( screen->config_menu_listener.change_char_encoding)
-		{
-			(*screen->config_menu_listener.change_char_encoding)( screen , encoding) ;
-		}
+		change_char_encoding( screen , encoding) ;
 	}
 	else if( strcmp( key , "iscii_lang") == 0)
 	{
@@ -4686,38 +4692,23 @@ set_config(
 			return ;
 		}
 		
-		if( screen->config_menu_listener.change_iscii_lang)
-		{
-			(*screen->config_menu_listener.change_iscii_lang)( screen , lang) ;
-		}
+		change_iscii_lang( screen , lang) ;
 	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
-		if( screen->config_menu_listener.change_fg_color)
-		{
-			(*screen->config_menu_listener.change_fg_color)( screen , value) ;
-		}
+		change_fg_color( screen , value) ;
 	}
 	else if( strcmp( key , "bg_color") == 0)
 	{
-		if( screen->config_menu_listener.change_bg_color)
-		{
-			(*screen->config_menu_listener.change_bg_color)( screen , value) ;
-		}
+		change_bg_color( screen , value) ;
 	}
 	else if( strcmp( key , "sb_fg_color") == 0)
 	{
-		if( screen->config_menu_listener.change_sb_fg_color)
-		{
-			(*screen->config_menu_listener.change_sb_fg_color)( screen , value) ;
-		}
+		change_sb_fg_color( screen , value) ;
 	}
 	else if( strcmp( key , "sb_bg_color") == 0)
 	{
-		if( screen->config_menu_listener.change_sb_bg_color)
-		{
-			(*screen->config_menu_listener.change_sb_bg_color)( screen , value) ;
-		}
+		change_sb_bg_color( screen , value) ;
 	}
 	else if( strcmp( key , "tabsize") == 0)
 	{
@@ -4728,10 +4719,7 @@ set_config(
 			return ;
 		}
 
-		if( screen->config_menu_listener.change_tab_size)
-		{
-			(*screen->config_menu_listener.change_tab_size)( screen , tab_size) ;
-		}
+		change_tab_size( screen , tab_size) ;
 	}
 	else if( strcmp( key , "logsize") == 0)
 	{
@@ -4742,10 +4730,7 @@ set_config(
 			return ;
 		}
 
-		if( screen->config_menu_listener.change_log_size)
-		{
-			(*screen->config_menu_listener.change_log_size)( screen , log_size) ;
-		}
+		change_log_size( screen , log_size) ;
 	}
 	else if( strcmp( key , "fontsize") == 0)
 	{
@@ -4753,17 +4738,11 @@ set_config(
 
 		if( strcmp( value , "larger") == 0)
 		{
-			if( screen->config_menu_listener.larger_font_size)
-			{
-				(*screen->config_menu_listener.larger_font_size)( screen) ;
-			}
+			larger_font_size( screen) ;
 		}
 		else if( strcmp( value , "smaller") == 0)
 		{
-			if( screen->config_menu_listener.smaller_font_size)
-			{
-				(*screen->config_menu_listener.smaller_font_size)( screen) ;
-			}
+			smaller_font_size( screen) ;
 		}
 		else
 		{
@@ -4772,10 +4751,7 @@ set_config(
 				return ;
 			}
 
-			if( screen->config_menu_listener.change_font_size)
-			{
-				(*screen->config_menu_listener.change_font_size)( screen , font_size) ;
-			}
+			change_font_size( screen , font_size) ;
 		}
 	}
 	else if( strcmp( key , "line_space") == 0)
@@ -4787,10 +4763,7 @@ set_config(
 			return ;
 		}
 
-		if( screen->config_menu_listener.change_line_space)
-		{
-			(*screen->config_menu_listener.change_line_space)( screen , line_space) ;
-		}
+		change_line_space( screen , line_space) ;
 	}
 	else if( strcmp( key , "screen_width_ratio") == 0)
 	{
@@ -4801,10 +4774,7 @@ set_config(
 			return ;
 		}
 
-		if( screen->config_menu_listener.change_screen_width_ratio)
-		{
-			(*screen->config_menu_listener.change_screen_width_ratio)( screen , ratio) ;
-		}
+		change_screen_width_ratio( screen , ratio) ;
 	}
 	else if( strcmp( key , "screen_height_ratio") == 0)
 	{
@@ -4815,50 +4785,27 @@ set_config(
 			return ;
 		}
 
-		if( screen->config_menu_listener.change_screen_height_ratio)
-		{
-			(*screen->config_menu_listener.change_screen_height_ratio)( screen , ratio) ;
-		}
+		change_screen_height_ratio( screen , ratio) ;
 	}
 	else if( strcmp( key , "scrollbar_view_name") == 0)
 	{
-		if( screen->config_menu_listener.change_sb_view)
-		{
-			(*screen->config_menu_listener.change_sb_view)(
-				screen , value) ;
-		}
+		change_sb_view( screen , value) ;
 	}
 	else if( strcmp( key , "mod_meta_mode") == 0)
 	{
-		if( screen->config_menu_listener.change_mod_meta_mode)
-		{
-			(*screen->config_menu_listener.change_mod_meta_mode)(
-				screen , x_get_mod_meta_mode( value)) ;
-		}
+		change_mod_meta_mode( screen , x_get_mod_meta_mode( value)) ;
 	}
 	else if( strcmp( key , "bel_mode") == 0)
 	{
-		if( screen->config_menu_listener.change_bel_mode)
-		{
-			(*screen->config_menu_listener.change_bel_mode)(
-				screen , x_get_bel_mode( value)) ;
-		}
+		change_bel_mode( screen , x_get_bel_mode( value)) ;
 	}
 	else if( strcmp( key , "vertical_mode") == 0)
 	{
-		if( screen->config_menu_listener.change_vertical_mode)
-		{
-			(*screen->config_menu_listener.change_vertical_mode)(
-				screen , ml_get_vertical_mode( value)) ;
-		}
+		change_vertical_mode( screen , ml_get_vertical_mode( value)) ;
 	}
 	else if( strcmp( key , "scrollbar_mode") == 0)
 	{
-		if( screen->config_menu_listener.change_sb_mode)
-		{
-			(*screen->config_menu_listener.change_sb_mode)(
-				screen , x_get_sb_mode( value)) ;
-		}
+		change_sb_mode( screen , x_get_sb_mode( value)) ;
 	}
 	else if( strcmp( key , "use_combining") == 0)
 	{
@@ -4877,10 +4824,7 @@ set_config(
 			return ;
 		}
 		
-		if( screen->config_menu_listener.change_char_combining_flag)
-		{
-			(*screen->config_menu_listener.change_char_combining_flag)( screen , flag) ;
-		}
+		change_char_combining_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "use_dynamic_comb") == 0)
 	{
@@ -4899,10 +4843,7 @@ set_config(
 			return ;
 		}
 
-		if( screen->config_menu_listener.change_dynamic_comb_flag)
-		{
-			(*screen->config_menu_listener.change_dynamic_comb_flag)( screen , flag) ;
-		}
+		change_dynamic_comb_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "copy_paste_via_ucs") == 0)
 	{
@@ -4921,10 +4862,7 @@ set_config(
 			return ;
 		}
 		
-		if( screen->config_menu_listener.change_copy_paste_via_ucs_flag)
-		{
-			(*screen->config_menu_listener.change_copy_paste_via_ucs_flag)( screen , flag) ;
-		}
+		change_copy_paste_via_ucs_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "use_transbg") == 0)
 	{
@@ -4943,10 +4881,7 @@ set_config(
 			return ;
 		}
 		
-		if( screen->config_menu_listener.change_transparent_flag)
-		{
-			(*screen->config_menu_listener.change_transparent_flag)( screen , flag) ;
-		}
+		change_transparent_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "brightness") == 0)
 	{
@@ -4957,10 +4892,7 @@ set_config(
 			return ;
 		}
 
-		if( screen->config_menu_listener.change_brightness)
-		{
-			(*screen->config_menu_listener.change_brightness)( screen , brightness) ;
-		}
+		change_brightness( screen , brightness) ;
 	}
 	else if( strcmp( key , "fade_ratio") == 0)
 	{
@@ -4971,10 +4903,7 @@ set_config(
 			return ;
 		}
 
-		if( screen->config_menu_listener.change_fade_ratio)
-		{
-			(*screen->config_menu_listener.change_fade_ratio)( screen , fade_ratio) ;
-		}
+		change_fade_ratio( screen , fade_ratio) ;
 	}
 	else if( strcmp( key , "use_anti_alias") == 0)
 	{
@@ -4995,10 +4924,7 @@ set_config(
 			return ;
 		}
 		
-		if( screen->config_menu_listener.change_font_present)
-		{
-			(*screen->config_menu_listener.change_font_present)( screen , font_present) ;
-		}
+		change_font_present( screen , font_present) ;
 	}
 	else if( strcmp( key , "use_variable_column_width") == 0)
 	{
@@ -5019,10 +4945,7 @@ set_config(
 			return ;
 		}
 		
-		if( screen->config_menu_listener.change_font_present)
-		{
-			(*screen->config_menu_listener.change_font_present)( screen , font_present) ;
-		}
+		change_font_present( screen , font_present) ;
 	}
 	else if( strcmp( key , "use_multi_column_char") == 0)
 	{
@@ -5041,10 +4964,7 @@ set_config(
 			return ;
 		}
 		
-		if( screen->config_menu_listener.change_multi_col_char_flag)
-		{
-			(*screen->config_menu_listener.change_multi_col_char_flag)( screen , flag) ;
-		}
+		change_multi_col_char_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "use_bidi") == 0)
 	{
@@ -5063,10 +4983,7 @@ set_config(
 			return ;
 		}
 		
-		if( screen->config_menu_listener.change_bidi_flag)
-		{
-			(*screen->config_menu_listener.change_bidi_flag)( screen , flag) ;
-		}
+		change_bidi_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "xim") == 0)
 	{
@@ -5086,25 +5003,18 @@ set_config(
 			locale = p + 1 ;
 		}
 
-		if( screen->config_menu_listener.change_xim)
-		{
-			(*screen->config_menu_listener.change_xim)( screen , xim , locale) ;
-		}
+		change_xim( screen , xim , locale) ;
 	}
 	else if( strcmp( key , "wall_picture") == 0)
 	{
-		if( screen->config_menu_listener.change_wall_picture)
-		{
-			(*screen->config_menu_listener.change_wall_picture)( screen , value) ;
-		}
+		change_wall_picture( screen , value) ;
 	}
 	else if( strcmp( key , "full_reset") == 0)
 	{
-		if( screen->config_menu_listener.full_reset)
-		{
-			(*screen->config_menu_listener.full_reset)( screen) ;
-		}
+		full_reset( screen) ;
 	}
+
+	config_updated( screen) ;
 
 	return ;
 }
@@ -6021,6 +5931,7 @@ x_screen_new(
 	screen->config_menu_listener.smaller_font_size = smaller_font_size ;
 	screen->config_menu_listener.change_wall_picture = change_wall_picture ;
 	screen->config_menu_listener.full_reset = full_reset ;
+	screen->config_menu_listener.updated = config_updated ;
 
 	if( ! x_config_menu_init( &screen->config_menu , conf_menu_path ,
 		&screen->config_menu_listener))

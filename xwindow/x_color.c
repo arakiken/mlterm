@@ -5,6 +5,7 @@
 #include  "x_color.h"
 
 #include  <string.h>		/* memcpy */
+#include  <stdio.h>		/* sscanf */
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 
@@ -106,6 +107,38 @@ alloc_closest_xcolor_pseudo(
 	return 1 ;
 }
 
+static int
+is_rgb_color_name(
+	u_short *  red ,
+	u_short *  green ,
+	u_short *  blue ,
+	char *  name
+	)
+{
+	if( *name == '#')
+	{
+		int  _red ;
+		int  _green ;
+		int  _blue ;
+		
+		if( strlen( name + 1) == 6 &&
+			sscanf( name + 1 , "%2x%2x%2x" , &_red , &_green , &_blue) == 3)
+		{
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " %x %x %x\n" , _red , _green , _blue) ;
+		#endif
+
+			*red = _red << 8 ;
+			*green = _green << 8 ;
+			*blue = _blue << 8 ;
+			
+			return  1 ;
+		}
+	}
+	
+	return  0 ;
+}
+
 
 /* --- global functions --- */
 
@@ -119,6 +152,15 @@ x_load_named_xcolor(
 	char *  name
 	)
 {
+	u_short  red ;
+	u_short  green ;
+	u_short  blue ;
+	
+	if( is_rgb_color_name( &red , &green , &blue , name))
+	{
+		return  x_load_rgb_xcolor( display , screen , xcolor , red , green , blue) ;
+	}
+	
 	if( ! XftColorAllocName( display , DefaultVisual( display , screen) ,
 		DefaultColormap( display , screen) , name , xcolor))
 	{
@@ -207,6 +249,14 @@ x_load_named_xcolor(
 	)
 {
 	XColor  exact ;
+	u_short  red ;
+	u_short  green ;
+	u_short  blue ;
+	
+	if( is_rgb_color_name( &red , &green , &blue , name))
+	{
+		return  x_load_rgb_xcolor( display , screen , xcolor , red , green , blue) ;
+	}
 
 	if( ! XAllocNamedColor( display , DefaultColormap( display , screen) , name , xcolor , &exact))
 	{

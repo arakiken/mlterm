@@ -593,6 +593,11 @@ sig_child(
 #endif
 
 end:
+	if( config_menu->config_menu_listener->updated)
+	{
+		(*config_menu->config_menu_listener->updated)( config_menu->config_menu_listener->self) ;
+	}
+	
 	free( config_menu->session) ;
 	config_menu->session = NULL ;
 }

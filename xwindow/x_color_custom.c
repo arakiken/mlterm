@@ -91,27 +91,6 @@ x_color_custom_get_rgb(
 	KIK_PAIR( x_color_rgb)  pair ;
 	int  result ;
 
-	if( *color == '#')
-	{
-		int  _red ;
-		int  _green ;
-		int  _blue ;
-		
-		if( strlen( color + 1) == 6 &&
-			sscanf( color + 1 , "%2x%2x%2x" , &_red , &_green , &_blue))
-		{
-		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " %x %x %x\n" , _red , _green , _blue) ;
-		#endif
-
-			*red = _red << 8 ;
-			*green = _green << 8 ;
-			*blue = _blue << 8 ;
-		
-			return  1 ;
-		}
-	}
-
 	kik_map_get( result , color_custom->color_rgb_table , color , pair) ;
 	if( ! result)
 	{
@@ -149,7 +128,19 @@ x_color_custom_read_conf(
 
 	while( kik_conf_io_read( from , &color , &rgb))
 	{
-		if( sscanf( rgb , "%4x-%4x-%4x" , &red , &green , &blue) != 3)
+		if( strlen( rgb) == 14 &&
+			sscanf( rgb , "%4x-%4x-%4x" , &red , &green , &blue) == 3)
+		{
+			/* do nothing */
+		}
+		else if( strlen( rgb) == 7 &&
+				sscanf( rgb , "#%2x%2x%2x" , &red , &green , &blue) == 3)
+		{
+			red <<= 8 ;
+			green <<= 8 ;
+			blue <<= 8 ;
+		}
+		else
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " illegal rgblist format (%s,%s)\n" ,

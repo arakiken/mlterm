@@ -94,6 +94,12 @@ kik_pty_fork(
 	tio.c_oflag = OPOST | ONLCR ;
 	tio.c_cflag = CS8 | CREAD ;
 	tio.c_lflag = ISIG | ICANON | IEXTEN | ECHO | ECHOE | ECHOK ;
+#ifdef  ECHOKE
+	tio.c_lflag |= ECHOKE ;
+#endif
+#ifdef  ECHOCTL
+	tio.c_lflag |= ECHOCTL ;
+#endif
 
 	tio.c_cc[VEOF] = CEOF ;
 	tio.c_cc[VEOL] = VDISABLE ;

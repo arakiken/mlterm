@@ -95,6 +95,8 @@ typedef struct  x_config_menu_event_listener
 
 	void (*full_reset)( void *) ;
 
+	void (*updated)( void *) ;
+
 } x_config_menu_event_listener_t ;
 
 typedef struct  x_config_menu
