@@ -25,9 +25,9 @@
 
 void x_dnd_set_awareness( x_window_t * win, int flag );
 
-void x_dnd_finish( x_window_t *  win) ;
+int x_dnd_parse( x_window_t * win, Atom atom, unsigned char *src, int len);
 
-int x_dnd_parse( x_window_t * win, Atom atom, char *src, int len);
+void x_dnd_finish( x_window_t *  win) ;
 
 Atom x_dnd_preferable_atom( x_window_t *  win , Atom *atom, int num);
 
