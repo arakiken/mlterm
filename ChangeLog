@@ -1,4 +1,4 @@
-2003-07-27  Tomohiro KUBOTA <kubota@ebian.org>
+2003-07-27  Tomohiro KUBOTA <kubota@debian.org>
 
 	* contrib/tool/mlterm-menu/Makefile.in: SYSCONFDIR is changed
 	  from $(sysconfdir)/mlterm to $(sysconfdir) because "mlterm"
