@@ -1,3 +1,8 @@
+2002-09-15  MINAMI Hirokazu  <minami@chem.s.u-tokyo.ac.jp>
+
+	*  x_picdep_load_icon( &data,&pixmap,&mask) is added
+	  in gdk-pixbuf module. 
+
 2002-09-15 Araki Ken <arakiken@users.sf.net>
 
 	* If cursor is located at the second byte of a multi-byte character,

@@ -12,19 +12,20 @@
 #include <gdk-pixbuf-xlib/gdk-pixbuf-xlib.h>  
 #endif
 
+#include <kiklib/kik_types.h> /* u_int32_t */
+#define CARDINAL u_int32_t
 #include <kiklib/kik_unistd.h>
 #include <kiklib/kik_str.h>    /* strdup */
 
 #include "x_picture_dep.h"
 
-typedef struct {
+typedef struct icon_cache_tag{
 	Display * display;
 	char * path;
 	Pixmap icon;
 	Pixmap mask;
-	unsigned long * data; 	///< used for _NET_WM_ICON
-	int width;
-	int height;
+	CARDINAL * data; 	///< used for _NET_WM_ICON
+	struct icon_cache_tag * next; 
 } icon_cache_t;
 
 /* --- static variables --- */
@@ -32,91 +33,150 @@ typedef struct {
 static int display_count = 0;
 static unsigned char gamma_cache[255];
 static icon_cache_t *icon_cache = NULL;
-static int cache_size = 0;
 
 /* --- static functions --- */
+static icon_cache_t *
+icon_cache_add(
+	Display * display,
+	char *path)
+{
+	void *p;
+	icon_cache_t * dest;
+	int i, j;
+	int width, height, rowstride, bytes_per_pixel;
+	unsigned char *line;
+	unsigned char *pixel;
+	GdkPixbuf * pixbuf;
+
+	Pixmap pixmap_return;
+	Pixmap mask_return;
+
+#ifdef  DEBUG
+	kik_warn_printf( KIK_DEBUG_TAG "loading icon form %s .\n", path) ;
+#endif	
+	dest = malloc( sizeof( icon_cache_t));
+	if (!dest)
+		return NULL;
+
+	dest->display = NULL; /* mark as empty for now*/
+
+#ifndef OLD_GDK_PIXBUF
+	pixbuf = gdk_pixbuf_new_from_file( path , NULL );
+#else
+	pixbuf = gdk_pixbuf_new_from_file( path );
+#endif /*OLD_GDK_PIXBUF*/
+	if ( !pixbuf ){
+		free(dest);
+		return NULL;
+	}
+
+/* create CARDINAL array for_NET_WM_ICON data */
+	bytes_per_pixel = gdk_pixbuf_get_has_alpha (pixbuf) ? 4 : 3;
+	width = gdk_pixbuf_get_width (pixbuf);
+	height = gdk_pixbuf_get_height (pixbuf);
+	rowstride = gdk_pixbuf_get_rowstride (pixbuf);
+	line = gdk_pixbuf_get_pixels (pixbuf);
+	
+	dest->data = malloc((width * height + 2) *4);
+	if (!dest->data){
+		gdk_pixbuf_unref(pixbuf);
+		free(dest);
+		return NULL;
+	}
+/* {width, height, ARGB[][]} */
+	dest->data[0] = width;
+	dest->data[1] = height;
+	for (i = 0 ; i < height ; i++) {
+		pixel = line;
+		line += rowstride;
+		
+		for (j = 0 ; j < width ; j++) {
+			if (bytes_per_pixel == 4) /* alpha support (convert to ARGB format)*/
+				dest->data[(i*width+j)+2] = ((((((CARDINAL)(pixel[3]) << 8) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
+			else                      /* completely opaque */
+				dest->data[(i*width+j)+2] = ((((((CARDINAL)(0x0000FF) <<8 ) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
+			pixel += bytes_per_pixel;
+		}
+	}
+
+/* Create Icon pixmap&mask for WMHints. None as result is acceptable.*/
+	gdk_pixbuf_xlib_render_pixmap_and_mask
+		(pixbuf,
+		 &(dest->icon),
+		 &(dest->mask),
+		 127);
+	gdk_pixbuf_unref(pixbuf);
+
+	dest->path = strdup(path);
+
+	if (!dest->path){ /* memory exhausted */
+		XFreePixmap(display, dest->icon);
+		XFreePixmap(display, dest->mask);
+		free(dest->data);
+		free(dest);
+		return NULL;  
+	}
+	dest->display = display;
+	dest->next = icon_cache;
+	icon_cache = dest;
+	return dest;
+}
 
 static icon_cache_t *
 icon_cache_lookup(
 	Display * display,
 	char *path)
 {
-	int i;
-
-	for (i = 0; i< cache_size; i++){
-		if ((icon_cache[i].display == display) && (strcmp(icon_cache[i].path, path) == 0) )
-			return &icon_cache[i];
+	icon_cache_t *p;
+	
+	p = icon_cache;
+	while(p){
+		if ((p->display == display) && (strcmp(p->path, path) == 0) )
+			return p;
+		p = p->next;
 	}
-	return NULL;
+	return icon_cache_add(display, path);
 }
 
-static icon_cache_t *
-icon_cache_add(
-	Display * display,
-	char *path, Pixmap icon,
-	Pixmap mask,
-	unsigned long *data,
-	int width,
-	int height)
-{
-	void *p;
-	icon_cache_t * dest;
-
-	dest = icon_cache_lookup(NULL, NULL); /* seek freed ones */
-	if (dest == NULL){
-		if( !( p = realloc( icon_cache , sizeof( icon_cache_t) * (cache_size + 1) ) ) ){ /* no free area, expand */
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " couldn't expand icon cache.\n") ;
-			#endif
-			XFreePixmap(display, icon); /* must be cleaned here */
-			XFreePixmap(display, mask);
-			return NULL; 
-		}
-		icon_cache = p;
-		dest = &icon_cache[cache_size];
-		cache_size ++;
-	}
-	dest->path = strdup(path);
-	if (!dest->path){ /* memory exhausted */
-		dest->display = 0;
-		XFreePixmap(display, icon); /* must be cleaned here */
-		XFreePixmap(display, mask);
-
-		return NULL; 
-	}
-	dest->display = display;
-	dest->icon = icon;
-	dest->mask = mask;
-	dest->data = data;
-	dest->width = width;
-	dest->height = height;
-
-	return dest;
-}
 
 static int
 icon_cache_remove_display(Display * display){
-	int i;
-	int is_shrinked = 0;
-	for (i = 0; i< cache_size; i++){
-		if (icon_cache[i].display == display){
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " freeing display %d.\n", display) ;
-			#endif
-			free(icon_cache[i].path);
-			free(icon_cache[i].data);
-			icon_cache[i].path = NULL;
-			icon_cache[i].data = NULL;
+	icon_cache_t * p;
+	icon_cache_t * p_prev;
 
-			XFreePixmap(icon_cache[i].display, icon_cache[i].icon);
-			XFreePixmap(icon_cache[i].display, icon_cache[i].mask);
-			icon_cache[i].icon = icon_cache[i].mask = None;
-			icon_cache[i].display = NULL;
-			/* icon cache never shrink. (cache_size is kept sane here) */
-			is_shrinked = 1;
-		}
+	p_prev = NULL;
+	p = icon_cache;
+
+#ifdef  DEBUG
+	kik_warn_printf( KIK_DEBUG_TAG " freeing display %d.\n", display) ;
+#endif
+	while (p){
+		if (p->display == display){
+			free(p->path);
+			p->data = NULL;
+			free(p->data);
+			p->path = NULL;
+
+			XFreePixmap(p->display, p->icon);
+			XFreePixmap(p->display, p->mask);
+			p->icon = p->mask = None;
+			p->display = NULL;
+			
+			if (p_prev == NULL){ /* head */
+				icon_cache = p->next;
+				free(p);
+				p = icon_cache;
+			}else{
+				p_prev->next = p->next;
+				free(p);
+				p = p_prev->next;
+			}
+		}else{
+			p_prev = p;
+			p = p->next;
+		}	
 	}
-	return is_shrinked;
+	return 0;
 }
 
 static unsigned char
@@ -208,11 +268,6 @@ int
 x_picdep_display_closed( Display *  display){
 	display_count --;
 	icon_cache_remove_display( display); /* clean up pixmaps/cardinals */
-	if (display_count == 0){
-		free( icon_cache);
-		icon_cache = NULL;
-		cache_size = 0;
-	}
 
 	/* XXX
          *
@@ -388,106 +443,67 @@ found:
 	return  pixmap ;
 }
 
+int x_picdep_load_icon(
+	x_window_t * win,
+	char * path,
+	u_int32_t **cardinal,
+	Pixmap *pixmap,
+	Pixmap *mask)
+{
+	icon_cache_t * icon;
+	icon = icon_cache_lookup(win->display, path);
+
+	if (!icon)
+		icon = icon_cache_add(win->display, path);
+	if (!icon)
+		return 0;
+
+	if (cardinal)
+		*cardinal = icon->data;
+	if (pixmap)
+		*pixmap = icon->icon;
+	if (mask)
+		*mask = icon->mask;
+	return 1;
+}
+
 int x_picdep_set_icon_from_file(
 	x_window_t * win,
 	char * file_path
 	)
 {
 	XWMHints *hints;
-	icon_cache_t * icon;
+	CARDINAL *cardinal;
+	Pixmap pixmap;
+	Pixmap mask;
 
 	if( !file_path || !*file_path)
-		return 0; /* XXX unset icon?*/
-	icon = icon_cache_lookup(win->display, file_path);
-
-	if (!icon){/* not cached */
-		int i, j;
-		int width, height, rowstride, bytes_per_pixel;
-		unsigned char *line;
-		unsigned char *pixel;
-		GdkPixbuf * pixbuf;
-		unsigned long * data;
-		Pixmap pixmap_return;
-		Pixmap mask_return;
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG "loading icon form %s .\n", file_path) ;
-		#endif
-
-#ifndef OLD_GDK_PIXBUF
-		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path , NULL )) == NULL)
-			return  0 ;/* XXX error handling? */
-#else
-		if( ( pixbuf = gdk_pixbuf_new_from_file( file_path )) == NULL)
-			return  0 ;
-#endif /*OLD_GDK_PIXBUF*/
-		if ( !pixbuf )
-			return 0;
-
-/* create CARDINAL array for_NET_WM_ICON data */
-		bytes_per_pixel = gdk_pixbuf_get_has_alpha (pixbuf) ? 4 : 3;
-		width = gdk_pixbuf_get_width (pixbuf);
-		height = gdk_pixbuf_get_height (pixbuf);
-		rowstride = gdk_pixbuf_get_rowstride (pixbuf);
-		line = gdk_pixbuf_get_pixels (pixbuf);
-		
-		data = malloc((width * height + 2) *4);
-		if (!data){
-			gdk_pixbuf_unref(pixbuf);
-			return 0;
-		}
-/* {width, height, ARGB[][]} */
-		data[0] = width;
-		data[1] = height;
-		for (i = 0 ; i < height ; i++) {
-			pixel = line;
-			line += rowstride;
-			
-			for (j = 0 ; j < width ; j++) {
-				if (bytes_per_pixel == 4) /* alpha support (convert to ARGB format)*/
-					data[(i*width+j)+2] = ((((((long)(pixel[3]) << 8) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
-				else                      /* completely opaque */
-					data[(i*width+j)+2] = ((((((long)(0x0000FF) <<8 ) + pixel[0]) << 8) + pixel[1]) << 8) + pixel[2];
-				pixel += bytes_per_pixel;
-			}
-		}
-/* Create Icon pixmap&mask for WMHints. None as result is acceptable.*/
-		gdk_pixbuf_xlib_render_pixmap_and_mask
-			(pixbuf,
-			 &pixmap_return,
-			 &mask_return,
-			 127);
-		gdk_pixbuf_unref(pixbuf);
-
-/* cache the reslut */
-		icon = icon_cache_add( win->display, file_path, pixmap_return, mask_return, data, width, height);
-	}
-
-/* XXX
- *
- * Following stuff should be moved into x_window.c.  
- * Ths function should be separated into 
- *  - return CARDINAL[] (_NET_WM_ICON data)
- *  - return pixmap     ( WMHints data)
- *  - return mask       ( WMHints data)
- *  - and backend       (maintain cache)
- */ 
-
-
+		return 0; 
+	x_picdep_load_icon(
+		win,
+		file_path,
+		&cardinal,
+		&pixmap,
+		&mask);
+	
 /* set extended window manager hint's icon */
-	XChangeProperty ( win->display, win->my_window,
-			  XInternAtom(win->display, "_NET_WM_ICON", False),
-			  XA_CARDINAL, 32,
-			  PropModeReplace,
-			  (unsigned char *)(icon->data), (icon->width)*(icon->height)+2);
+	if (cardinal)
+		XChangeProperty ( win->display, win->my_window,
+				  XInternAtom(win->display, "_NET_WM_ICON", False),
+				  XA_CARDINAL, 32,
+				  PropModeReplace,
+				  (unsigned char *)(cardinal), (cardinal[0])*(cardinal[1])+2);
 
 /* set old style window manager hint's icon */		
-	hints = XAllocWMHints(); /* can be NULL*/
+	hints = NULL;
+	if (pixmap & mask)
+		hints = XAllocWMHints(); /* can be NULL*/
 	if (!hints)
 		return 0;
 	hints->flags |= IconPixmapHint;
 	hints->flags |= IconMaskHint;
-	hints->icon_mask = icon->mask;
-	hints->icon_pixmap = icon->icon;
+	hints->icon_mask = mask;
+	hints->icon_pixmap = pixmap;
 	/* old pixmaps are kept in the cache and should be freed later */
 	XSetWMHints(win->display, win->my_window, hints);
 	XFree(hints);
