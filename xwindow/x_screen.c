@@ -213,6 +213,7 @@ xft_draw_str(
 	ml_color_t  next_fg_color ;
 	ml_color_t  next_bg_color ;
 	int  next_is_underlined ;
+	u_int  next_ch_width ;
 	
 #ifdef  PERF_DEBUG
 	int  draw_count = 0 ;
@@ -351,9 +352,9 @@ xft_draw_str(
 				next_state = 2 ;
 			}
 			
-			ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
+			next_ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
 			
-			if( current_width + ch_width > screen->window.width)
+			if( current_width + next_ch_width > screen->window.width)
 			{
 				start_draw = 1 ;
 				end_of_str = 1 ;
@@ -478,7 +479,7 @@ xft_draw_str(
 		fg_color = next_fg_color ;
 		bg_color = next_bg_color ;
 		state = next_state ;
-		current_width += ch_width ;
+		current_width += (ch_width = next_ch_width) ;
 	}
 
 	x_window_set_fg_color( &screen->window , x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
@@ -509,7 +510,7 @@ x_draw_combining_chars(
 	int  count ;
 	u_char *  ch_bytes ;
 	size_t  ch_size ;
-	
+
 	for( count = 0 ; count < size ; count ++)
 	{
 		ch_bytes = ml_char_bytes( &chars[count]) ;
@@ -602,6 +603,7 @@ x_draw_str(
 	ml_color_t  bg_color ;
 	int  is_underlined ;
 
+	u_int  next_ch_width ;
 	x_font_t *  next_xfont ;
 	ml_color_t  next_fg_color ;
 	ml_color_t  next_bg_color ;
@@ -750,9 +752,9 @@ x_draw_str(
 				next_state = 2 ;
 			}
 			
-			ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
+			next_ch_width = x_calculate_char_width( next_xfont , ch_bytes , ch_size , ch_cs) ;
 			
-			if( current_width + ch_width > screen->window.width)
+			if( current_width + next_ch_width > screen->window.width)
 			{
 				start_draw = 1 ;
 				end_of_str = 1 ;
@@ -904,7 +906,7 @@ x_draw_str(
 		bg_color = next_bg_color ;
 		is_underlined = next_is_underlined ;
 		state = next_state ;
-		current_width += ch_width ;
+		current_width += (ch_width = next_ch_width) ;
 	}
 
 	x_window_set_fg_color( &screen->window , x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
