@@ -1,3 +1,10 @@
+[20020213]
+* compilation failed in tool/mlclient/main.c. fixed. (Thanks to Okazaki Tetsurou san)
+* memory leaks when mlclient is connected. fixed.
+* transparent sample scrollbar is 1 dot wider than expected. fixed.
+* scrollbar_view_name , sb_fg_color , sb_bg_color can be dynamically changed.
+* mlconfig layout is changed.
+
 [20020212]
 * -e option fails for memory allocation. fixed. (Thanks to Nekoie san)
 * mlterm with -j and -P 0 options can start without X.
