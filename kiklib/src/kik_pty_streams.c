@@ -230,7 +230,7 @@ kik_pty_fork(
 		
 		close(*master) ;
 		
-#ifdef TIOCNOTTY
+#if defined(TIOCNOTTY) && !(defined(__GLIBC__) && (__GLIBC__ >= 2))
 		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
 		if (fd >= 0)
 		{
