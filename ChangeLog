@@ -1,3 +1,7 @@
+2003-05-22  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* Removed unused fuctions from x_window.c.
+
 2003-05-22 Araki Ken <arakiken@users.sf.net>
 
 	* Compilation failed in ml_logical_visual.c. Fixed.

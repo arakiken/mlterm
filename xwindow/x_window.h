@@ -205,8 +205,6 @@ int  x_window_unmap( x_window_t *  win) ;
 
 int  x_window_resize( x_window_t *  win , u_int  width , u_int  height , x_event_dispatch_t  flag) ;
 
-int  x_window_remaximize( x_window_t *  win) ;
-
 int  x_window_resize_with_margin( x_window_t *  win , u_int  width , u_int  height ,
 	x_event_dispatch_t  flag) ;
 
