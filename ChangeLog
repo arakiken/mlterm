@@ -1,4 +1,9 @@
 2005-02-04 MINAMI Hirokazu <minami@mistfall.net>
+
+	* xwindow/x_window.c: * use Mapnotify as a trigger of transparency
+	processing.
+
+2005-02-04 MINAMI Hirokazu <minami@mistfall.net>
 	
 	* xwindow/x_screen.c: During mouse tracking,
 	try to report sane location even if there was no character

@@ -2029,6 +2029,12 @@ x_window_receive_event(
 
 		notify_reparent_to_children( win) ;
 	}
+	else if( event->type == MapNotify)
+	{
+		if( win->is_transparent){
+			notify_reparent_to_children( win) ;
+		}
+	}
 	else if( event->type == SelectionClear)
 	{
 		if( win->selection_cleared)
