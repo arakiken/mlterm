@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 2.8.0
+%define version 2.9.0
 %define release 1
 %define prefix /usr
 %define bindir /usr/X11R6/bin
@@ -9,7 +9,7 @@
 %define libexecdir /usr/libexec/mlterm
 %define pixmapdir  /usr/share/pixmaps
 
-Summary:     Multi Lingual TERMinal emulator for X
+Summary:     Multi Lingual TERMinal emulator on X
 Name:	     %{name}
 Version:     %{version}
 Release:     %{release}
@@ -17,7 +17,7 @@ License:     Modified BSD-style license
 Group:	     User Interface/X
 URL:         http://mlterm.sourceforge.net/
 Source0:     http://prdownloads.sourceforge.net/mlterm/mlterm-%{version}.tar.gz
-Packager:    Araki Ken <arakiken@users.sf.net>
+Packager:    The mlterm team
 Requires:    imlib, gtk+
 BuildRoot:   /var/tmp/%{name}-%{version}-root
 BuildPreReq: imlib-devel, gtk+-devel
@@ -38,10 +38,10 @@ rm -rf doc/{en,ja}/CVS
 %build
 CFLAGS="$RPM_OPT_FLAGS" \
 ./configure --prefix=%{prefix} \
-            --bindir=%{bindir} \
+	    --bindir=%{bindir} \
 	    --libdir=%{libdir} \
 	    --mandir=%{mandir} \
-            --libexecdir=%{libexecdir} \
+	    --libexecdir=%{libexecdir} \
 	    --sysconfdir=%{sysconfdir}\
 	    --with-imagelib=imlib # --enable-anti-alias
 make
@@ -53,7 +53,7 @@ make DESTDIR=$RPM_BUILD_ROOT install
 mkdir -p $RPM_BUILD_ROOT%{pixmapdir}
 install -m 644 $RPM_BUILD_DIR/%{name}-%{version}/doc/icon/mlterm* \
                $RPM_BUILD_ROOT%{pixmapdir}
-	       
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -73,6 +73,9 @@ rm -rf $RPM_BUILD_ROOT
 %{pixmapdir}/mlterm*
 
 %changelog
+* Sun Oct 24 2004 Seiichi SATO <ssato@sh.rim.or.jp>
+- Source version 2.9.0
+
 * Sun Oct 05 2003 Araki Ken <arakiken@users.sf.net>
 - Source version 2.8.0
 
