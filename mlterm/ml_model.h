@@ -12,6 +12,20 @@
 #include  "ml_line.h"
 
 
+typedef struct  ml_cursor
+{
+	int  row ;
+	int  char_index ;
+	int  col ;
+	int  col_in_char ;
+	
+	int  saved_row ;
+	int  saved_char_index ;
+	int  saved_col ;
+	int8_t  is_saved ;
+	
+} ml_cursor_t ;
+
 typedef struct  ml_model
 {
 	/* private */
