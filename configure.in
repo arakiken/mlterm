@@ -202,7 +202,7 @@ AC_SUBST(IND_LIBS)
 AC_SUBST(IND_CFLAGS)
 
 AC_ARG_ENABLE(utmp,
-	[  --enable-utmp           utmp[default=disabled]],
+	[  --enable-utmp           utmp (Experimental) [default=disabled]],
 	utmp=$enable_utmp, utmp="no")
 if test "$utmp" = "yes" ; then
 	UTMP_CFLAGS="-DUSE_UTMP"
