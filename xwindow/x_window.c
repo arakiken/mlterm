@@ -16,11 +16,9 @@
 #include  <X11/Xatom.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* realloc/free */
-#include  <mkf/mkf_charset.h>	/* mkf_charset */
 
 #include  "x_xic.h"
 #include  "x_window_manager.h"
-#include  "ml_char_encoding.h"	/* x_convert_to_xft_ucs4 */
 #include  "x_imagelib.h"
 #include  "x_dnd.h"
 
@@ -43,9 +41,12 @@
 #define  XA_NET_WM_STATE(display) (XInternAtom(display, "_NET_WM_STATE", False))
 #define  XA_NET_WM_STATE_MAXIMIZED_VERT(display) (XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", False))
 #define  XA_NET_WM_STATE_MAXIMIZED_HORZ(display) (XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", False))
-#define  _NET_WM_STATE_REMOVE 0
-#define  _NET_WM_STATE_ADD 1
-#define  _NET_WM_STATE_TOGGLE 2
+enum
+{
+	NET_WM_STATE_REMOVE = 0 ,
+	NET_WM_STATE_ADD = 1 ,
+	NET_WM_STATE_TOGGLE = 2 ,
+} ;
 
 enum
 {
@@ -1263,10 +1264,10 @@ x_window_remaximize(
         xev.window = x_get_root_window( win)->my_window ;
         xev.message_type = XA_NET_WM_STATE( win->display) ;
         xev.format = 32 ;
-        xev.data.l[0] = _NET_WM_STATE_REMOVE ;
+        xev.data.l[0] = NET_WM_STATE_REMOVE ;
 	XSendEvent( win->display, DefaultRootWindow( win->display), False,
 		   SubstructureNotifyMask, (XEvent*)&xev) ;
-        xev.data.l[0] = _NET_WM_STATE_ADD ;
+        xev.data.l[0] = NET_WM_STATE_ADD ;
 	XSendEvent( win->display, DefaultRootWindow( win->display), False,
 		   SubstructureNotifyMask, (XEvent*)&xev) ;
 	return  1 ;
