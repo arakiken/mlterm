@@ -1,3 +1,10 @@
+[20020211]
+* daemon mode is supported and -j/--daemon/daemon_mode option is added.
+* mlclient program (tool/mlclient) is added.
+* characters in the beginning of lines cannot be selected. fixed. (Thanks to nekoie san)
+* 2 dot margin area in both right and left sides are cleared since garbages
+  can be left there.
+
 [20020210]
 * -Y/--decsp/compose_dec_special_font option is added.
 
@@ -35,7 +42,8 @@
 * vertical mode and veriable column width mode are considered for reporting
   mouse position to console applications.
 * -Q/--vcur/use_vertical_cursor option is added.
-* mlconfig_curses([patch tracker 513620]) is updated. (thanks to Minami Hirokazu san)
+* mlconfig_curses is updated.(see [patch tracker 513620])
+  (thanks to Minami Hirokazu san)
 
 [20020206]
 * -Z/--multicol/use_multi_column_char option is added.
