@@ -1,3 +1,10 @@
+2003-10-31  Araki Ken  <arakiken@users.sf.net>
+
+	* The color of log lines sometimes reversed or restored
+	  incorrectly. Fixed.
+
+	* Supported borderless window by _MOTIF_WM_HINTS atom.
+
 2003-10-16  Araki Ken  <arakiken@users.sf.net>
 
 	* A snapshot file name must not contain ".." and its suffix is

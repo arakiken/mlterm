@@ -5495,7 +5495,7 @@ set_config(
 			{
 				/* unsecure file name */
 
-				kik_msg_printf( "%s is unsecure file name.\n") ;
+				kik_msg_printf( "%s is unsecure file name.\n" , p) ;
 
 				return ;
 			}

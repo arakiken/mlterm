@@ -11,8 +11,7 @@
 #include  <kiklib/kik_util.h>	/* K_MIN */
 
 
-#define  ROW_IN_LOGS( model , row) \
-	( ml_get_num_of_logged_lines( &(model)->logs) + row)
+#define  ROW_IN_LOGS( screen , row) ( ml_get_num_of_logged_lines( &(screen)->logs) + row)
 
 #if  1
 #define  EXIT_BS_AT_BOTTOM
@@ -194,7 +193,7 @@ reverse_or_restore_color(
 	
 	while( ( line = ml_screen_get_line( screen , row)) == NULL || ml_line_is_empty( line))
 	{
-		if( -- row < 0)
+		if( abs(-- row) > ml_get_num_of_logged_lines( &screen->logs))
 		{
 			return  0 ;
 		}
@@ -380,7 +379,7 @@ check_or_copy_region(
 	
 	while( ( line = ml_screen_get_line( screen , row)) == NULL || ml_line_is_empty( line))
 	{
-		if( -- row < 0)
+		if( abs(-- row) > ml_get_num_of_logged_lines( &screen->logs))
 		{
 			return  0 ;
 		}

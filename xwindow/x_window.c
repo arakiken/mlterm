@@ -3,11 +3,11 @@
  */
 
 /*
- * Functions designed and implemented by Minami Hirokazu(minami@chem.s.u-tokyo.ac.jp) are:
+ * Functions designed and implemented by Minami Hirokazu(minami@mistfall.net) are:
  * - XDND support
  * - Extended Window Manager Hint(Icon) support
  */
- 
+
 #include  "x_window.h"
 
 #include  <stdlib.h>		/* abs */
@@ -33,6 +33,7 @@
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
 #define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
 #define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
+#define  XA_TAKE_FOCUS(display) (XInternAtom(display , "WM_TAKE_FOCUS" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 #define  XA_XROOTPMAP_ID(display) (XInternAtom(display, "_XROOTPMAP_ID", False))
 
@@ -40,6 +41,24 @@
  * Extended Window Manager Hint support
  */
 #define  XA_NET_WM_ICON(display) (XInternAtom(display, "_NET_WM_ICON", False))
+
+
+/*
+ * Motif Window Manager Hint (for borderless window)
+ */
+#define  XA_MWM_INFO(display) (XInternAtom(display, "_MOTIF_WM_INFO", True))
+#define  XA_MWM_HINTS(display) (XInternAtom(display, "_MOTIF_WM_HINTS", True))
+
+typedef struct {
+	u_int32_t  flags ;
+	u_int32_t  functions ;
+	u_int32_t  decorations ;
+	int32_t  inputMode ;
+	u_int32_t  status ;
+} MWMHints_t ;
+
+#define MWM_HINTS_DECORATIONS   (1L << 1)
+
 
 #define  MAX_CLICK  3			/* max is triple click */
 
@@ -1042,7 +1061,7 @@ x_window_show(
 		XWMHints  wm_hints ;
 		int  argc = 1 ;
 		char *  argv[] = { "mlterm" , NULL , } ;
-		Atom  protocols[1] ;
+		Atom  protocols[2] ;
 		
 		win->event_mask |= StructureNotifyMask ;
 
@@ -1115,8 +1134,9 @@ x_window_show(
 	#endif
 
 		protocols[0] = XA_DELETE_WINDOW(win->display) ;
+		protocols[1] = XA_TAKE_FOCUS(win->display) ;
 		
-		XSetWMProtocols( win->display , win->my_window , protocols , 1) ;
+		XSetWMProtocols( win->display , win->my_window , protocols , 2) ;
 	}
 
 	/*
@@ -1313,33 +1333,60 @@ x_window_set_borderless_flag(
 	 */
 
 	x_window_t *  root ;
-	XSetWindowAttributes  s_attr ;
-	XWindowAttributes  g_attr ;
+	Atom  atom ;
 
 	root = x_get_root_window(win) ;
-	
-	XGetWindowAttributes( root->display , root->my_window , &g_attr) ;
 
-	if( flag)
+#ifdef  __DEBUG
+	kik_debug_printf( "MOTIF_WM_HINTS: %x\nMOTIF_WM_INFO: %x\n" ,
+		XInternAtom( root->display , "_MOTIF_WM_HINTS" , True) ,
+		XInternAtom( root->display , "_MOTIF_WM_INFO" , True)) ;
+#endif
+
+	if( ( atom = XA_MWM_HINTS(root->display)) != None)
 	{
-		s_attr.override_redirect = True ;
+		if( flag)
+		{
+			MWMHints_t  mwmhints = { MWM_HINTS_DECORATIONS, 0, 0, 0, 0 } ;
+
+			XChangeProperty( root->display, root->my_window, atom , atom , 32, 
+				PropModeReplace, (u_char *)&mwmhints, sizeof(MWMHints_t)/4) ;
+		}
+		else
+		{
+			XDeleteProperty( root->display, root->my_window, atom) ;
+		}
 	}
 	else
 	{
-		s_attr.override_redirect = False ;
-	}
+		/* fallback to override redirect */
+		
+		XSetWindowAttributes  s_attr ;
+		XWindowAttributes  g_attr ;
 
-	if( g_attr.override_redirect == s_attr.override_redirect)
-	{
-		return  1 ;
-	}
-	
-	XChangeWindowAttributes( root->display , root->my_window , CWOverrideRedirect , &s_attr) ;
-	
-	if( g_attr.map_state != IsUnmapped)
-	{
-		XUnmapWindow( root->display , root->my_window) ;
-		XMapWindow( root->display , root->my_window) ;
+		XGetWindowAttributes( root->display , root->my_window , &g_attr) ;
+		if( flag)
+		{
+			s_attr.override_redirect = True ;
+		}
+		else
+		{
+			s_attr.override_redirect = False ;
+		}
+
+		if( g_attr.override_redirect == s_attr.override_redirect)
+		{
+			return  1 ;
+		}
+
+		XChangeWindowAttributes( root->display , root->my_window ,
+					 CWOverrideRedirect , &s_attr) ;
+
+		if( g_attr.map_state != IsUnmapped)
+		{
+			XUnmapWindow( root->display , root->my_window) ;
+			XMapWindow( root->display , root->my_window) ;
+		}
 	}
 
 	return  1 ;
@@ -1625,7 +1672,7 @@ x_window_receive_event(
 		 * no xim window will be opened at XFilterEvent() in x_window_manager_receive_next_event().
 		 * but it is desired to open xim window of x_screen when its event is invoked
 		 * on scrollbar or title bar.
-		 * this hack enables it , but this way won't deal with the case that multiple 
+		 * this hack enables it , but this way won't deal with the case that multiple
 		 * xics exist.
 		 */
 		if( win->xic)
@@ -2134,7 +2181,15 @@ x_window_receive_event(
 			{
 				exit(0) ;
 			}
-		}		
+		}
+		if( event->xclient.format == 32 &&
+			event->xclient.data.l[0] == XA_TAKE_FOCUS( win->display))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG
+				" TakeFocus message is received.\n") ;
+		#endif
+		}
 	}
 #ifdef  __DEBUG
 	else
