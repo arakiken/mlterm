@@ -131,6 +131,11 @@ x_im_new(
 		return  NULL ;
 	}
 
+	if( strcmp( input_method , "none") == 0)
+	{
+		return  NULL ;
+	}
+
 	if( strchr( input_method , ':'))
 	{
 		im_attr = kik_str_alloca_dup( input_method) ;

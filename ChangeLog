@@ -1,3 +1,7 @@
+2005-02-22 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* xwindow/x_im.c (x_im_new): return NULL when input_method is "none".
+
 2005-02-22 MINAMI Hirokazu <minami@mistfall.net>
 
 	* x_term_manager.c: mlterm daemon can be killed by 

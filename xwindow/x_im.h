@@ -12,10 +12,10 @@
 #include  "x_im_candidate_screen.h"
 #include  "x_im_status_screen.h"
 
-#define X_IM_PREEDIT_NOCURSOR -1
+#define X_IM_PREEDIT_NOCURSOR  -1
 
 /*
- * the current preedit information
+ * information for the current preedit string
  */
 typedef struct x_im_preedit
 {
@@ -49,7 +49,7 @@ typedef struct x_im_event_listener
 } x_im_event_listener_t ;
 
 /*
- * a dirty hack to replace -export-dynamic option of libtool
+ * dirty hack to replace -export-dynamic option of libtool
  */
 typedef struct x_im_export_syms
 {
@@ -70,6 +70,7 @@ typedef struct x_im_export_syms
 					     size_t , u_char * , size_t) ;
 	mkf_parser_t * (*ml_parser_new)( ml_char_encoding_t) ;
 	mkf_conv_t * (*ml_conv_new)( ml_char_encoding_t) ;
+
 	x_im_candidate_screen_t *  (*x_im_candidate_screen_new)(
 						x_window_manager_t * ,
 						x_font_manager_t * ,
