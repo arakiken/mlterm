@@ -418,13 +418,13 @@ ml_char_copy(
 	ml_char_t *  src
 	)
 {
-	ml_char_final( dst) ;
-
 	if( dst == src)
 	{
 		return  0 ;
 	}
 	
+	ml_char_final( dst) ;
+
 	memcpy( dst , src , sizeof( ml_char_t)) ;
 
 	if( COMB_SIZE(src->attr) > 0)
