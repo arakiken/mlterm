@@ -4,9 +4,9 @@
 
 2004-02-20  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* kiklib/src/kik_pty_streams.c: sttsid() seems to detach
-	control terminal nayway. disable calling ioctl TICNOTTY when
-	HAVE_STESID.
+	* kiklib/src/kik_pty_streams.c: setsid() seems to detach
+	control terminal. Don't call ioctl TIOCNOTTY when HAVE_SETSID
+	is defined.
 
 2004-02-19  MINAMI Hirokazu  <minami@mistfall.net>
 
