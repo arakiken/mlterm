@@ -423,7 +423,7 @@ search_usascii_font(
 				kik_msg_printf( "a font for displaying us ascii chars "
 					"is not found.\n") ;
 
-				x_font_manager_delete( font_man) ;
+/* useless?				x_font_manager_delete( font_man) ;*/
 				
 				return  NULL ;
 			}
@@ -708,14 +708,26 @@ x_font_manager_usascii_font_cs_changed(
 	mkf_charset_t  usascii_font_cs
 	)
 {
+	mkf_charset_t  old_cs;
+
 	if( ! font_man->usascii_font_cs_changable || usascii_font_cs == font_man->usascii_font_cs)
 	{
 		return  0 ;
 	}
 
+	old_cs = font_man->usascii_font_cs ;
 	font_man->usascii_font_cs = usascii_font_cs ;
 
 	font_man->usascii_font = search_usascii_font( font_man) ;
+
+	if (!font_man->usascii_font)
+	{
+		font_man->usascii_font_cs = old_cs ;
+
+		font_man->usascii_font = search_usascii_font( font_man) ;
+		
+		return 0 ;
+	}
 
 	return  1 ;
 }

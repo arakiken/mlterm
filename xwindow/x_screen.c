@@ -4078,8 +4078,7 @@ usascii_font_cs_changed(
 	ml_char_encoding_t  encoding
 	)
 {
-	x_font_manager_usascii_font_cs_changed( screen->font_man , 
-						x_get_usascii_font_cs(encoding) ) ;
+	x_font_manager_usascii_font_cs_changed( screen->font_man , encoding ) ;
 	
 	font_size_changed( screen) ;
 
