@@ -82,33 +82,7 @@ mkf_map_iso8859_5_r_to_koi8_r(
 	mkf_char_t *  iso8859
 	)
 {
-	u_int32_t  ucs4_code ;
-	u_int16_t  iso8859_code ;
-
-	mkf_char_t  ch ;
-
-	iso8859_code = mkf_char_to_int( iso8859) ;
-
-	if( mkf_map_iso8859_5_r_to_ucs4( &ch , iso8859_code) == 0)
-	{
-		return  0 ;
-	}
-
-	ucs4_code = mkf_char_to_int( &ch) ;
-
-	if( mkf_map_ucs4_to_koi8_r( &ch , ucs4_code) == 0)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG ,
-			" u%.4x is not mapped to tcvn5712.\n" , ucs4_code) ;
-	#endif
-
-		return  0 ;
-	}
-
-	*ru = ch ;
-
-	return  1 ;
+	return  mkf_map_via_ucs( ru , iso8859 , KOI8_R) ;
 }
 
 int
@@ -117,33 +91,7 @@ mkf_map_koi8_r_to_iso8859_5_r(
 	mkf_char_t *  ru
 	)
 {
-	u_int16_t  ru_code ;
-	u_int32_t  ucs4_code ;
-
-	mkf_char_t  ch ;
-
-	ru_code = mkf_char_to_int( ru) ;
-
-	if( mkf_map_koi8_r_to_ucs4( &ch , ru_code) == 0)
-	{
-		return  0 ;
-	}
-
-	ucs4_code = mkf_char_to_int( &ch) ;
-
-	if( mkf_map_ucs4_to_iso8859_5_r( &ch , ucs4_code) == 0)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG ,
-			" u%.4x is not mapped to koi8-r.\n" , ucs4_code) ;
-	#endif
-
-		return  0 ;
-	}
-
-	*iso8859 = ch ;
-
-	return  1 ;
+	return  mkf_map_via_ucs( iso8859 , ru , ISO8859_5_R) ;
 }
 
 int
@@ -152,33 +100,7 @@ mkf_map_iso8859_5_r_to_koi8_u(
 	mkf_char_t *  iso8859
 	)
 {
-	u_int32_t  ucs4_code ;
-	u_int16_t  iso8859_code ;
-
-	mkf_char_t  ch ;
-
-	iso8859_code = mkf_char_to_int( iso8859) ;
-
-	if( mkf_map_iso8859_5_r_to_ucs4( &ch , iso8859_code) == 0)
-	{
-		return  0 ;
-	}
-
-	ucs4_code = mkf_char_to_int( &ch) ;
-
-	if( mkf_map_ucs4_to_koi8_u( &ch , ucs4_code) == 0)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG ,
-			" u%.4x is not mapped to tcvn5712.\n" , ucs4_code) ;
-	#endif
-
-		return  0 ;
-	}
-
-	*uk = ch ;
-
-	return  1 ;
+	return  mkf_map_via_ucs( uk , iso8859 , KOI8_U) ;
 }
 
 int
@@ -187,31 +109,5 @@ mkf_map_koi8_u_to_iso8859_5_r(
 	mkf_char_t *  uk
 	)
 {
-	u_int16_t  uk_code ;
-	u_int32_t  ucs4_code ;
-
-	mkf_char_t  ch ;
-
-	uk_code = mkf_char_to_int( uk) ;
-
-	if( mkf_map_koi8_u_to_ucs4( &ch , uk_code) == 0)
-	{
-		return  0 ;
-	}
-
-	ucs4_code = mkf_char_to_int( &ch) ;
-
-	if( mkf_map_ucs4_to_iso8859_5_r( &ch , ucs4_code) == 0)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG ,
-			" u%.4x is not mapped to tcvn5712.\n" , ucs4_code) ;
-	#endif
-
-		return  0 ;
-	}
-
-	*iso8859 = ch ;
-
-	return  1 ;
+	return  mkf_map_via_ucs( iso8859 , uk , KOI8_U) ;
 }

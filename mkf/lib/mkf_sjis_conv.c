@@ -32,37 +32,7 @@ remap_unsupported_charset(
 		*ch = c ;
 	}
 	
-	if( ch->cs == JISX0212_1990)
-	{
-		/*
-		 * converting JISX0212_1990 to NEC special charset , IBM selected IBM extension
-		 * charset or NEC selected IBM extension.
-		 */
-
-		if( mkf_get_sjis_input_type() == MICROSOFT_CS)
-		{
-			if( mkf_map_jisx0212_1990_to_nec_ext( &c , ch))
-			{
-				*ch = c ;
-			}
-			else if( mkf_map_jisx0212_1990_to_ibm_ext( &c , ch))
-			{
-				*ch = c ;
-			}
-			else if( mkf_map_jisx0212_1990_to_necibm_ext( &c , ch))
-			{
-				*ch = c ;
-			}
-		}
-		else if( mkf_get_sjis_input_type() == APPLE_CS)
-		{
-			if( mkf_map_jisx0212_1990_to_mac_ext( &c , ch))
-			{
-				*ch = c ;
-			}
-		}
-	}
-	else if( ch->cs == JISC6226_1978)
+	if( ch->cs == JISC6226_1978)
 	{
 		/*
 		 * we mkf_sjis_parser don't support JISC6226_1978.
@@ -76,6 +46,63 @@ remap_unsupported_charset(
 
 		ch->cs = JISX0208_1983 ;
 	}
+	else if( ch->cs == JISX0212_1990)
+	{
+		if( is_sjisx0213)
+		{
+			if( mkf_map_jisx0212_1990_to_jisx0213_2000_2( &c , ch))
+			{
+				*ch = c ;
+			}
+		}
+		else
+		{
+			if( mkf_get_sjis_input_type() == MICROSOFT_CS)
+			{
+				if( mkf_map_jisx0212_1990_to_jisx0208_nec_ext( &c , ch) ||
+					mkf_map_jisx0212_1990_to_jisx0208_necibm_ext( &c , ch) ||
+					mkf_map_jisx0212_1990_to_sjis_ibm_ext( &c , ch))
+				{
+					*ch = c ;
+				}
+			}
+			else if( mkf_get_sjis_input_type() == APPLE_CS)
+			{
+				if( mkf_map_jisx0212_1990_to_jisx0208_mac_ext( &c , ch))
+				{
+					*ch = c ;
+				}
+			}
+		}
+	}
+	else if( is_sjisx0213 && ch->cs == JISC6226_1978_NEC_EXT)
+	{
+		if( mkf_map_jisx0208_nec_ext_to_jisx0213_2000( &c , ch))
+		{
+			*ch = c ;
+		}
+	}
+	else if( is_sjisx0213 && ch->cs == JISC6226_1978_NECIBM_EXT)
+	{
+		if( mkf_map_jisx0208_necibm_ext_to_jisx0213_2000( &c , ch))
+		{
+			*ch = c ;
+		}
+	}
+	else if( is_sjisx0213 && ch->cs == SJIS_IBM_EXT)
+	{
+		if( mkf_map_sjis_ibm_ext_to_jisx0213_2000( &c , ch))
+		{
+			*ch = c ;
+		}
+	}
+	else if( is_sjisx0213 && ch->cs == JISX0208_1983_MAC_EXT)
+	{
+		if( mkf_map_jisx0208_mac_ext_to_jisx0213_2000( &c , ch))
+		{
+			*ch = c ;
+		}
+	}
 	else if( is_sjisx0213 && ch->cs == JISX0208_1983)
 	{
 		if( mkf_map_jisx0208_1983_to_jisx0213_2000_1( &c , ch))
@@ -88,6 +115,25 @@ remap_unsupported_charset(
 		if( mkf_map_jisx0213_2000_1_to_jisx0208_1983( &c , ch))
 		{
 			*ch = c ;
+		}
+	}
+	else if( ! is_sjisx0213 && ch->cs == JISX0213_2000_2)
+	{
+		if( mkf_get_sjis_input_type() == MICROSOFT_CS)
+		{
+			if( mkf_map_jisx0213_2000_2_to_jisx0208_nec_ext( &c , ch) ||
+				mkf_map_jisx0213_2000_2_to_jisx0208_necibm_ext( &c , ch) ||
+				mkf_map_jisx0213_2000_2_to_sjis_ibm_ext( &c , ch))
+			{
+				*ch = c ;
+			}
+		}
+		else if( mkf_get_sjis_input_type() == APPLE_CS)
+		{
+			if( mkf_map_jisx0213_2000_2_to_jisx0208_mac_ext( &c , ch))
+			{
+				*ch = c ;
+			}
 		}
 	}
 }

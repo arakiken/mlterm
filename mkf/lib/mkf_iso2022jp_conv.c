@@ -18,7 +18,8 @@
 
 static void
 remap_unsupported_charset(
-	mkf_char_t *  ch
+	mkf_char_t *  ch ,
+	int  version
 	)
 {
 	mkf_char_t  c ;
@@ -33,21 +34,23 @@ remap_unsupported_charset(
 
 	mkf_iso2022_remap_unsupported_charset( ch) ;
 	
+	/*
+	 * various gaiji chars => jis
+	 */
 	if( ch->cs == SJIS_IBM_EXT)
 	{
 		/*
-		 * IBM extension characters is cannot be mapped as jisc6226 1978 gaiji
-		 * (which is based on iso2022 94n charset) , so we managed to remap here.
+		 * IBM extension characters cannot be regarded as jisc6226_1978/jisx0208_1983
+		 * gaiji (which is based on iso2022 94n charset) , so we managed to remap here.
 		 */
 		 
-		if( mkf_map_ibm_ext_to_jisx0208_1983( &c , ch))
+		if( ! mkf_map_sjis_ibm_ext_to_jisx0208_1983( &c , ch) &&
+			! mkf_map_sjis_ibm_ext_to_jisx0212_1990( &c , ch))
 		{
-			*ch = c ;
+			return ;
 		}
-		else if( mkf_map_ibm_ext_to_jisx0212_1990( &c , ch))
-		{
-			*ch = c ;
-		}
+		
+		*ch = c ;
 	}
 	/*
 	 * NEC special characters and NEC selected IBM characters are exactly in gaiji area
@@ -61,6 +64,30 @@ remap_unsupported_charset(
 	else if( ch->cs == JISX0208_1983_MAC_EXT)
 	{
 		ch->cs = JISX0208_1983 ;
+	}
+	
+	/*
+	 * conversion between JIS charsets.
+	 */
+	if( version == 3)
+	{
+		if( ch->cs == JISX0208_1983)
+		{
+			if( mkf_map_jisx0208_1983_to_jisx0213_2000_1( &c , ch))
+			{
+				*ch = c ;
+			}
+		}
+	}
+	else
+	{
+		if( ch->cs == JISX0213_2000_1)
+		{
+			if( mkf_map_jisx0213_2000_1_to_jisx0208_1983( &c , ch))
+			{
+				*ch = c ;
+			}
+		}
 	}
 }
 
@@ -83,7 +110,7 @@ convert_to_iso2022jp(
 	filled_size = 0 ;
 	while( mkf_parser_next_char( parser , &ch))
 	{
-		remap_unsupported_charset( &ch) ;
+		remap_unsupported_charset( &ch , version) ;
 
 		if( (! is_7) && ch.cs == JISX0201_KATA)
 		{

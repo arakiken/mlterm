@@ -105,13 +105,13 @@ mkf_map_ucs4_to_koi8_r(
 	 * XXX
 	 * do implement koi8_r -> ucs4 table.
 	 */
-	int  counter ;
+	u_int8_t  offset ;
 	
-	for( counter = 0 ; counter <= koi8_r_to_ucs4_end - koi8_r_to_ucs4_beg ; counter ++)
+	for( offset = 0 ; offset <= koi8_r_to_ucs4_end - koi8_r_to_ucs4_beg ; offset ++)
 	{
-		if( koi8_r_to_ucs4_table[counter] == (u_int16_t)ucs4_code)
+		if( koi8_r_to_ucs4_table[offset] == (u_int16_t)ucs4_code)
 		{
-			non_ucs->ch[0] = counter + koi8_r_to_ucs4_beg ;
+			non_ucs->ch[0] = offset + koi8_r_to_ucs4_beg ;
 			non_ucs->size = 1 ;
 			non_ucs->cs = KOI8_R ;
 			non_ucs->property = 0 ;

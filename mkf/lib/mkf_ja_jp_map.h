@@ -20,48 +20,48 @@ int  mkf_map_jisx0213_2000_2_to_jisx0212_1990( mkf_char_t *  jis2k , mkf_char_t 
 int  mkf_map_jisx0212_1990_to_jisx0213_2000_2( mkf_char_t *  jis90 , mkf_char_t *  jis2k) ;
 
 
-int  mkf_map_ibm_ext_to_jisx0208_1983( mkf_char_t *  jis , mkf_char_t *  sjis_ibm) ;
+int  mkf_map_sjis_ibm_ext_to_jisx0208_1983( mkf_char_t *  jis , mkf_char_t *  ibm) ;
 
-int  mkf_map_ibm_ext_to_jisx0212_1990( mkf_char_t *  jis , mkf_char_t *  sjis_ibm) ;
+int  mkf_map_sjis_ibm_ext_to_jisx0212_1990( mkf_char_t *  jis , mkf_char_t *  ibm) ;
 
-int  mkf_map_ibm_ext_to_jisx0213_2000( mkf_char_t *  jis , mkf_char_t *  sjis_ibm) ;
+int  mkf_map_sjis_ibm_ext_to_jisx0213_2000( mkf_char_t *  jis , mkf_char_t *  ibm) ;
 
-int  mkf_map_jisx0212_1990_to_ibm_ext( mkf_char_t *  sjis_ibm , mkf_char_t *  jis) ;
+int  mkf_map_jisx0212_1990_to_sjis_ibm_ext( mkf_char_t *  ibm , mkf_char_t *  jis) ;
 
-int  mkf_map_jisx0213_2000_to_ibm_ext( mkf_char_t *  sjis_ibm , mkf_char_t *  jis) ;
-
-
-int  mkf_map_nec_ext_to_jisx0208_1983( mkf_char_t *  jis , mkf_char_t *  nec_ext) ;
-
-int  mkf_map_nec_ext_to_jisx0212_1990( mkf_char_t *  jis , mkf_char_t *  nec_ext) ;
-
-int  mkf_map_nec_ext_to_jisx0213_2000( mkf_char_t *  jis , mkf_char_t *  nec_ext) ;
-
-int  mkf_map_jisx0212_1990_to_nec_ext( mkf_char_t *  nec_ext , mkf_char_t *  jis) ;
-
-int  mkf_map_jisx0213_2000_to_nec_ext( mkf_char_t *  nec_ext , mkf_char_t *  jis) ;
+int  mkf_map_jisx0213_2000_2_to_sjis_ibm_ext( mkf_char_t *  ibm , mkf_char_t *  jis) ;
 
 
-int  mkf_map_necibm_ext_to_jisx0208_1983( mkf_char_t *  jis , mkf_char_t *  ibm) ;
+int  mkf_map_jisx0208_nec_ext_to_jisx0208_1983( mkf_char_t *  jis , mkf_char_t *  nec_ext) ;
 
-int  mkf_map_necibm_ext_to_jisx0212_1990( mkf_char_t *  jis , mkf_char_t *  ibm) ;
+int  mkf_map_jisx0208_nec_ext_to_jisx0212_1990( mkf_char_t *  jis , mkf_char_t *  nec_ext) ;
 
-int  mkf_map_necibm_ext_to_jisx0213_2000( mkf_char_t *  jis , mkf_char_t *  ibm) ;
+int  mkf_map_jisx0208_nec_ext_to_jisx0213_2000( mkf_char_t *  jis , mkf_char_t *  nec_ext) ;
 
-int  mkf_map_jisx0212_1990_to_necibm_ext( mkf_char_t *  ibm , mkf_char_t *  jis) ;
+int  mkf_map_jisx0212_1990_to_jisx0208_nec_ext( mkf_char_t *  nec_ext , mkf_char_t *  jis) ;
 
-int  mkf_map_jisx0213_2000_to_necibm_ext( mkf_char_t *  ibm , mkf_char_t *  jis) ;
+int  mkf_map_jisx0213_2000_2_to_jisx0208_nec_ext( mkf_char_t *  nec_ext , mkf_char_t *  jis) ;
 
 
-int  mkf_map_mac_ext_to_jisx0208_1983( mkf_char_t *  jis , mkf_char_t *  mac) ;
+int  mkf_map_jisx0208_necibm_ext_to_jisx0208_1983( mkf_char_t *  jis , mkf_char_t *  necibm) ;
 
-int  mkf_map_mac_ext_to_jisx0212_1990( mkf_char_t *  jis , mkf_char_t *  mac) ;
+int  mkf_map_jisx0208_necibm_ext_to_jisx0212_1990( mkf_char_t *  jis , mkf_char_t *  necibm) ;
 
-int  mkf_map_mac_ext_to_jisx0213_2000( mkf_char_t *  jis , mkf_char_t *  mac) ;
+int  mkf_map_jisx0208_necibm_ext_to_jisx0213_2000( mkf_char_t *  jis , mkf_char_t *  necibm) ;
 
-int  mkf_map_jisx0212_1990_to_mac_ext( mkf_char_t *  mac , mkf_char_t *  jis) ;
+int  mkf_map_jisx0212_1990_to_jisx0208_necibm_ext( mkf_char_t *  necibm , mkf_char_t *  jis) ;
 
-int  mkf_map_jisx0213_2000_to_mac_ext( mkf_char_t *  mac , mkf_char_t *  jis) ;
+int  mkf_map_jisx0213_2000_2_to_jisx0208_necibm_ext( mkf_char_t *  necibm , mkf_char_t *  jis) ;
+
+
+int  mkf_map_jisx0208_mac_ext_to_jisx0208_1983( mkf_char_t *  jis , mkf_char_t *  mac) ;
+
+int  mkf_map_jisx0208_mac_ext_to_jisx0212_1990( mkf_char_t *  jis , mkf_char_t *  mac) ;
+
+int  mkf_map_jisx0208_mac_ext_to_jisx0213_2000( mkf_char_t *  jis , mkf_char_t *  mac) ;
+
+int  mkf_map_jisx0212_1990_to_jisx0208_mac_ext( mkf_char_t *  mac , mkf_char_t *  jis) ;
+
+int  mkf_map_jisx0213_2000_2_to_jisx0208_mac_ext( mkf_char_t *  mac , mkf_char_t *  jis) ;
 
 
 #endif

@@ -65,7 +65,10 @@ static map_t  map_table[] =
 	{ JISX0212_1990 , mkf_map_ucs4_to_jisx0212_1990 , mkf_map_jisx0212_1990_to_ucs4 } ,
 	{ JISX0213_2000_1 , mkf_map_ucs4_to_jisx0213_2000_1 , mkf_map_jisx0213_2000_1_to_ucs4 } ,
 	{ JISX0213_2000_2 , mkf_map_ucs4_to_jisx0213_2000_2 , mkf_map_jisx0213_2000_2_to_ucs4 } ,
-	{ JISC6226_1978_NEC_EXT , mkf_map_ucs4_to_nec_ext , mkf_map_nec_ext_to_ucs4 } ,
+	{ JISC6226_1978_NEC_EXT , mkf_map_ucs4_to_jisx0208_nec_ext , mkf_map_jisx0208_nec_ext_to_ucs4 } ,
+	{ JISC6226_1978_NECIBM_EXT , mkf_map_ucs4_to_jisx0208_necibm_ext ,
+		mkf_map_jisx0208_necibm_ext_to_ucs4 } ,
+	{ SJIS_IBM_EXT , mkf_map_ucs4_to_sjis_ibm_ext , mkf_map_sjis_ibm_ext_to_ucs4 } ,
 	
 	{ GB2312_80 , mkf_map_ucs4_to_gb2312_80 , mkf_map_gb2312_80_to_ucs4 } ,
 	{ GBK , mkf_map_ucs4_to_gbk , mkf_map_gbk_to_ucs4 } ,
@@ -269,3 +272,19 @@ mkf_map_to_ucs4(
 	return  0 ;
 }
 
+int
+mkf_map_via_ucs(
+	mkf_char_t *  dst ,
+	mkf_char_t *  src ,
+	mkf_charset_t  cs
+	)
+{
+	mkf_char_t  ucs4 ;
+
+	if( ! mkf_map_to_ucs4( &ucs4 , src) || ! mkf_map_ucs4_to_cs( dst , &ucs4 , cs))
+	{
+		return  0 ;
+	}
+
+	return  1 ;
+}

@@ -32,5 +32,7 @@ int  mkf_map_ucs4_to_iso2022cs( mkf_char_t *  non_ucs , mkf_char_t *  ucs4) ;
 
 int  mkf_map_to_ucs4( mkf_char_t *  ucs4 , mkf_char_t *  non_ucs) ;
 
- 
+int  mkf_map_via_ucs( mkf_char_t *  dst , mkf_char_t *  src , mkf_charset_t  cs) ;
+
+
 #endif

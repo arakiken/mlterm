@@ -11,9 +11,6 @@
 #include  "mkf_ucs4_jisx0212.h"
 #include  "mkf_ucs4_jisx0213.h"
 
-#include  "table/mkf_sjis_ext.table"
-#include  "table/mkf_jisx0208_ext.table"
-
 
 /* --- static variables --- */
 
@@ -42,6 +39,7 @@ mkf_map_ucs4_to_ja_jp(
 		sizeof( map_ucs4_to_funcs) / sizeof( map_ucs4_to_funcs[0])) ;
 }
 
+
 int
 mkf_map_jisx0213_2000_1_to_jisx0208_1983(
 	mkf_char_t *  jis2k ,
@@ -64,8 +62,8 @@ mkf_map_jisx0208_1983_to_jisx0213_2000_1(
 {
 	/*
 	 * XXX
-	 * JISX0213-1 is upper compatible with JISX0208 , some chars of JISX0213
-	 * cannot be mapped to JISX0208.
+	 * since JISX0213-1 is upper compatible with JISX0208 , some chars of JISX0213-1
+	 * must not be mapped to JISX0208.
 	 */
 	memcpy( jis83->ch , jis2k->ch , 2) ;
 	jis83->size = 2 ;
@@ -77,353 +75,266 @@ mkf_map_jisx0208_1983_to_jisx0213_2000_1(
 
 int
 mkf_map_jisx0213_2000_2_to_jisx0212_1990(
-	mkf_char_t *  jis2k ,
-	mkf_char_t *  jis90
-	)
-{
-	return  0 ;
-}
-
-int
-mkf_map_jisx0212_1990_to_jisx0213_2000_2(
 	mkf_char_t *  jis90 ,
 	mkf_char_t *  jis2k
 	)
 {
-	return  0 ;
+	return  mkf_map_via_ucs( jis2k , jis90 , JISX0213_2000_2) ;
 }
 
 int
-mkf_map_ibm_ext_to_jisx0208_1983(
+mkf_map_jisx0212_1990_to_jisx0213_2000_2(
+	mkf_char_t *  jis2k ,
+	mkf_char_t *  jis90
+	)
+{
+	return  mkf_map_via_ucs( jis90 , jis2k , JISX0212_1990) ;
+}
+
+
+/*
+ * Gaiji characters
+ */
+
+/* SJIS_IBM_EXT */
+ 
+int
+mkf_map_sjis_ibm_ext_to_jisx0208_1983(
 	mkf_char_t *  jis ,
 	mkf_char_t *  ibm
 	)
 {
-	if( ibm->ch[0] == 0xfa)
-	{
-		if( ibm->ch[1] == 0x54)
-		{
-			memcpy( jis->ch , "\x22\x4c" , 2) ;
-		}
-		else if( ibm->ch[1] == 0x5b)
-		{
-			memcpy( jis->ch , "\x22\x68" , 2) ;
-		}
-		else if( ibm->ch[1] == 0xd0)
-		{
-			/*
-			 * this character(SUBARU) glyph is the same as JISX0208_1983 0x5a65.
-			 * but YFI , it is not the same glyph as JISC6226_1978 0x5a65.
-			 */
+	return  mkf_map_via_ucs( jis , ibm , JISX0208_1983) ;
+}
 
-			memcpy( jis->ch , "\x5a\x65" , 2) ;
-		}
-		else
-		{
-			return  0 ;
-		}
-	}
-	else
+int
+mkf_map_sjis_ibm_ext_to_jisx0212_1990(
+	mkf_char_t *  jis ,
+	mkf_char_t *  ibm
+	)
+{
+	return  mkf_map_via_ucs( jis , ibm , JISX0212_1990) ;
+}
+
+int
+mkf_map_sjis_ibm_ext_to_jisx0213_2000(
+	mkf_char_t *  jis ,
+	mkf_char_t *  ibm
+	)
+{
+	mkf_char_t  ucs4 ;
+
+	if( ! mkf_map_to_ucs4( &ucs4 , ibm))
 	{
 		return  0 ;
 	}
-	
-	jis->size = 2 ;
-	jis->cs = JISX0208_1983 ;
+
+	if( ! mkf_map_ucs4_to_cs( jis , &ucs4 , JISX0213_2000_2) &&
+		! mkf_map_ucs4_to_cs( jis , &ucs4 , JISX0213_2000_1))
+	{
+		return  0 ;
+	}
 
 	return  1 ;
 }
 
 int
-mkf_map_ibm_ext_to_jisx0212_1990(
-	mkf_char_t *  jis ,
-	mkf_char_t *  ibm
-	)
-{
-	u_int16_t  c ;
-
-	if( ibm->ch[0] == 0xfa)
-	{
-		if( 0x59 <= ibm->ch[1] && ibm->ch[1] <= 0xaf)
-		{
-			if( ( c = sjis_ibm_ext_to_jisx0212_1990_table1[ ibm->ch[1] - 0x59]) == 0x0)
-			{
-				return  0 ;
-			}
-		}
-		else
-		{
-			return  0 ;
-		}
-	}
-	else if( ibm->ch[0] == 0xfb)
-	{
-		if( 0x60 <= ibm->ch[1] && ibm->ch[1] <= 0xfb)
-		{
-			if( ( c = sjis_ibm_ext_to_jisx0212_1990_table2[ ibm->ch[1] - 0x60]) == 0x0)
-			{
-				return  0 ;
-			}
-		}
-		else
-		{
-			return  0 ;
-		}
-	}
-	else if( ibm->ch[0] == 0xfc)
-	{
-		if( 0x40 <= ibm->ch[1] && ibm->ch[1] <= 0x4a)
-		{
-			if( ( c = sjis_ibm_ext_to_jisx0212_1990_table3[ ibm->ch[1] - 0x40]) == 0x0)
-			{
-				return  0 ;
-			}
-		}
-		else
-		{
-			return  0 ;
-		}
-	}
-	else
-	{
-		return  0 ;
-	}
-
-	mkf_int_to_bytes( jis->ch , 2 , c) ;
-	jis->size = 2 ;
-	jis->cs = JISX0212_1990 ;
-	
-	return  1 ;
-}
-
-int
-mkf_map_jisx0212_1990_to_ibm_ext(
+mkf_map_jisx0212_1990_to_sjis_ibm_ext(
 	mkf_char_t *  ibm ,
 	mkf_char_t *  jis
 	)
 {
-	return  0 ;
+	return  mkf_map_via_ucs( ibm , jis , SJIS_IBM_EXT) ;
 }
 
 int
-mkf_map_nec_ext_to_jisx0208_1983(
+mkf_map_jisx0213_2000_2_to_sjis_ibm_ext(
+	mkf_char_t *  ibm ,
+	mkf_char_t *  jis
+	)
+{
+	return  mkf_map_via_ucs( ibm , jis , SJIS_IBM_EXT) ;
+}
+
+
+/* NEC EXT */
+
+int
+mkf_map_jisx0208_nec_ext_to_jisx0208_1983(
 	mkf_char_t *  jis ,
 	mkf_char_t *  nec_ext
 	)
 {
-	u_int16_t  c ;
+	return  mkf_map_via_ucs( jis , nec_ext , JISX0208_1983) ;
+}
 
-	if( nec_ext->cs != JISC6226_1978_NEC_EXT
-		|| nec_ext->ch[0] != 0x2d || nec_ext->ch[1] < 0x70 || nec_ext->ch[1] > 0x7c )
+int
+mkf_map_jisx0208_nec_ext_to_jisx0212_1990(
+	mkf_char_t *  jis ,
+	mkf_char_t *  nec_ext
+	)
+{
+	return  mkf_map_via_ucs( jis , nec_ext , JISX0212_1990) ;
+}
+
+int
+mkf_map_jisx0208_nec_ext_to_jisx0213_2000(
+	mkf_char_t *  jis ,
+	mkf_char_t *  nec_ext
+	)
+{
+	mkf_char_t  ucs4 ;
+
+	if( ! mkf_map_to_ucs4( &ucs4 , nec_ext))
 	{
 		return  0 ;
 	}
 
-	if( ( c = nec_ext_to_jisx0208_1983_table[ nec_ext->ch[1] - 0x70]) == 0x0)
+	if( ! mkf_map_ucs4_to_cs( jis , &ucs4 , JISX0213_2000_2) &&
+		! mkf_map_ucs4_to_cs( jis , &ucs4 , JISX0213_2000_1))
 	{
 		return  0 ;
 	}
-
-	mkf_int_to_bytes( jis->ch , 2 , c) ;
-	jis->size = 2 ;
-	jis->cs = JISX0208_1983 ;
 
 	return  1 ;
 }
 
 int
-mkf_map_nec_ext_to_jisx0212_1990(
-	mkf_char_t *  jis ,
-	mkf_char_t *  nec_ext
-	)
-{
-	u_int16_t  c ;
-	
-	if( nec_ext->cs != JISC6226_1978_NEC_EXT || nec_ext->ch[0] != 0x2d)
-	{
-		return  0 ;
-	}
-
-	if( nec_ext->ch[1] == 0x62)
-	{
-		c = 0x2271 ;
-	}
-	else if( 0x70 <= nec_ext->ch[1] && nec_ext->ch[1] <= 0x7c)
-	{
-		if( ( c = nec_ext_to_jisx0212_1990_table[ nec_ext->ch[1] - 0x70]) == 0x0)
-		{
-			return  0 ;
-		}
-	}
-	else
-	{
-		return  0 ;
-	}
-
-	mkf_int_to_bytes( jis->ch , 2 , c) ;
-	jis->size = 2 ;
-	jis->cs = JISX0212_1990 ;
-
-	return  1 ;
-}
-
-int
-mkf_map_jisx0212_1990_to_nec_ext(
+mkf_map_jisx0212_1990_to_jisx0208_nec_ext(
 	mkf_char_t *  nec_ext ,
 	mkf_char_t *  jis
 	)
 {
-	return  0 ;
+	return  mkf_map_via_ucs( nec_ext , jis , JISC6226_1978_NEC_EXT) ;
 }
 
 int
-mkf_map_necibm_ext_to_jisx0208_1983(
-	mkf_char_t *  jis ,
-	mkf_char_t *  ibm
+mkf_map_jisx0213_2000_2_to_jisx0208_nec_ext(
+	mkf_char_t *  nec_ext ,
+	mkf_char_t *  jis
 	)
 {
-	if( ibm->cs != JISC6226_1978_NECIBM_EXT)
-	{
-		return  0 ;
-	}
+	return  mkf_map_via_ucs( nec_ext , jis , JISC6226_1978_NEC_EXT) ;
+}
 
-	if( ibm->ch[0] == 0x7c && ibm->ch[1] == 0x7b)
-	{
-		/* SJIS 0xeef9 (¢Ì) */
-		
-		memcpy( jis->ch , "\x22\x4c" , 2) ;
-		jis->size = 2 ;
-		jis->cs = JISX0208_1983 ;
-		
-		return  1 ;
-	}
 
-	return  0 ;
+/* NEC IBM EXT */
+
+int
+mkf_map_jisx0208_necibm_ext_to_jisx0208_1983(
+	mkf_char_t *  jis ,
+	mkf_char_t *  necibm
+	)
+{
+	return  mkf_map_via_ucs( jis , necibm , JISX0208_1983) ;
 }
 
 int
-mkf_map_necibm_ext_to_jisx0212_1990(
+mkf_map_jisx0208_necibm_ext_to_jisx0212_1990(
 	mkf_char_t *  jis ,
-	mkf_char_t *  ibm
+	mkf_char_t *  necibm
 	)
 {
-	u_int16_t  c ;
+	return  mkf_map_via_ucs( jis , necibm , JISX0212_1990) ;
+}
 
-	if( ibm->cs != JISC6226_1978_NECIBM_EXT)
-	{
-		return  0 ;
-	}
-	
-	if( ibm->ch[ 0] == 0x79)
-	{
-		if( 0x21 <= ibm->ch[1] && ibm->ch[1] <= 0x7d)
-		{
-			if( ( c = necibm_ext_to_jisx0212_1990_table1[ ibm->ch[1] - 0x21]) == 0x0)
-			{
-				return  0 ;
-			}
-		}
-		else
-		{
-			return  0 ;
-		}
-	}
-	else if( ibm->ch[0] == 0x7a)
-	{
-		if( 0x21 <= ibm->ch[1] && ibm->ch[1] <= 0x7e)
-		{
-			if( ( c = necibm_ext_to_jisx0212_1990_table2[ ibm->ch[1] - 0x21]) == 0x0)
-			{
-				return  0 ;
-			}
-		}
-		else
-		{
-			return  0 ;
-		}
-	}
-	else if( ibm->ch[0] == 0x7b)
-	{
-		if( 0x21 <= ibm->ch[1] && ibm->ch[1] <= 0x7e)
-		{
-			if( ( c = necibm_ext_to_jisx0212_1990_table3[ ibm->ch[1] - 0x21]) == 0x0)
-			{
-				return  0 ;
-			}
-		}
-		else
-		{
-			return  0 ;
-		}
-	}
-	else if( ibm->ch[0] == 0x7c)
-	{
-		if( 0x21 <= ibm->ch[1] && ibm->ch[1] <= 0x6d)
-		{
-			if( ( c = necibm_ext_to_jisx0212_1990_table4[ ibm->ch[1] - 0x21]) == 0x0)
-			{
-				return  0 ;
-			}
-		}
-		else
-		{
-			return  0 ;
-		}
-	}
-	else
+int
+mkf_map_jisx0208_necibm_ext_to_jisx0213_2000(
+	mkf_char_t *  jis ,
+	mkf_char_t *  necibm
+	)
+{
+	mkf_char_t  ucs4 ;
+
+	if( ! mkf_map_to_ucs4( &ucs4 , necibm))
 	{
 		return  0 ;
 	}
 
-	mkf_int_to_bytes( jis->ch , 2 , c) ;
-	jis->size = 2 ;
-	jis->cs = JISX0212_1990 ;
-	
+	if( ! mkf_map_ucs4_to_cs( jis , &ucs4 , JISX0213_2000_2) &&
+		! mkf_map_ucs4_to_cs( jis , &ucs4 , JISX0213_2000_1))
+	{
+		return  0 ;
+	}
+
 	return  1 ;
 }
 
 int
-mkf_map_jisx0212_1990_to_necibm_ext(
-	mkf_char_t *  ibm ,
+mkf_map_jisx0212_1990_to_jisx0208_necibm_ext(
+	mkf_char_t *  necibm ,
 	mkf_char_t *  jis
 	)
 {
-	return  0 ;
+	return  mkf_map_via_ucs( necibm , jis , JISC6226_1978_NECIBM_EXT) ;
+}
+
+int
+mkf_map_jisx0213_2000_2_to_jisx0208_necibm_ext(
+	mkf_char_t *  necibm ,
+	mkf_char_t *  jis
+	)
+{
+	return  mkf_map_via_ucs( necibm , jis , JISC6226_1978_NECIBM_EXT) ;
 }
 
 
+/* MAC EXT */
+
 int
-mkf_map_mac_ext_to_jisx0208_1983(
+mkf_map_jisx0208_mac_ext_to_jisx0208_1983(
 	mkf_char_t *  jis ,
 	mkf_char_t *  mac
 	)
 {
-	return  0 ;
+	return  mkf_map_via_ucs( jis , mac , JISX0208_1983) ;
 }
 
 int
-mkf_map_mac_ext_to_jisx0212_1990(
+mkf_map_jisx0208_mac_ext_to_jisx0212_1990(
 	mkf_char_t *  jis ,
 	mkf_char_t *  mac
 	)
 {
-	return  0 ;
+	return  mkf_map_via_ucs( jis , mac , JISX0212_1990) ;
 }
 
 int
-mkf_map_mac_ext_to_jisx0213_2000(
+mkf_map_jisx0208_mac_ext_to_jisx0213_2000(
 	mkf_char_t *  jis ,
 	mkf_char_t *  mac
 	)
 {
-	return  0 ;
+	mkf_char_t  ucs4 ;
+
+	if( ! mkf_map_to_ucs4( &ucs4 , mac))
+	{
+		return  0 ;
+	}
+
+	if( ! mkf_map_ucs4_to_cs( jis , &ucs4 , JISX0213_2000_2) &&
+		! mkf_map_ucs4_to_cs( jis , &ucs4 , JISX0213_2000_1))
+	{
+		return  0 ;
+	}
+
+	return  1 ;
 }
 
 int
-mkf_map_jisx0212_1990_to_mac_ext(
+mkf_map_jisx0212_1990_to_jisx0208_mac_ext(
 	mkf_char_t *  mac ,
 	mkf_char_t *  jis
 	)
 {
-	return  0 ;
+	return  mkf_map_via_ucs( mac , jis , JISX0208_1983_MAC_EXT) ;
+}
+
+int
+mkf_map_jisx0213_2000_2_to_jisx0208_mac_ext(
+	mkf_char_t *  mac ,
+	mkf_char_t *  jis
+	)
+{
+	return  mkf_map_via_ucs( mac , jis , JISX0208_1983_MAC_EXT) ;
 }

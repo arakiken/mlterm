@@ -132,7 +132,8 @@ open_new_term(
 	#else
 		NULL , NULL ,
 	#endif
-		term_man->font_size , usascii_font_cs , usascii_font_cs_changable)) == NULL)
+		term_man->font_size , usascii_font_cs , usascii_font_cs_changable ,
+		term_man->font_larger_smaller_size)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_new() failed.\n") ;
@@ -691,6 +692,8 @@ ml_term_manager_init(
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , "icon name") ;
 	kik_conf_add_opt( conf , 'w' , "fontsize" , 0 , "fontsize" , "font size") ;
 	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , "font size range") ;
+	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "font_larger_smaller_size" ,
+		"font larger or smaller size") ;
 	kik_conf_add_opt( conf , 'l' , "sl" , 0 , "logsize" , "log size") ;
 	kik_conf_add_opt( conf , 'E' , "km" , 0 , "ENCODING" , "character encoding") ;
 	kik_conf_add_opt( conf , 'x' , "tw" , 0 , "tabsize" , "tab width") ;
@@ -760,7 +763,7 @@ ml_term_manager_init(
 
 	
 	/*
-	 * font customization
+	 * font
 	 */
 
 	if( ( value = kik_conf_get_value( conf , "font_size_range")))
@@ -895,6 +898,22 @@ ml_term_manager_init(
 		}
 	}
 
+	term_man->font_larger_smaller_size = 1 ;
+	
+	if( ( value = kik_conf_get_value( conf , "font_larger_smaller_size")))
+	{
+		u_int  size ;
+		
+		if( kik_str_to_int( &size , value))
+		{
+			term_man->font_larger_smaller_size = size ;
+		}
+		else
+		{
+			kik_msg_printf( "font larger smaller size %s is not digit.\n" , value) ;
+		}
+	}
+
 #ifdef  ANTI_ALIAS
 	if( ( value = kik_conf_get_value( conf , "use_anti_alias")))
 	{
@@ -912,7 +931,7 @@ ml_term_manager_init(
 #endif
 
 	/*
-	 * color manager
+	 * color
 	 */
 	
 	if( ! ml_color_manager_init( &term_man->color_man ,
@@ -1307,16 +1326,20 @@ ml_term_manager_init(
 		}
 	}
 	
-	term_man->col_size_a = 0 ;
+	/* default value is used */
+	term_man->col_size_a = 1 ;
 	
 	if( ( value = kik_conf_get_value( conf , "col_size_of_width_a")))
 	{
-		if( ! kik_str_to_int( &term_man->col_size_a , value))
+		u_int  col_size_a ;
+		
+		if( kik_str_to_int( &col_size_a , value))
+		{
+			term_man->col_size_a = col_size_a ;
+		}
+		else
 		{
 			kik_msg_printf( "col size of width a %s is not digit.\n" , value) ;
-
-			/* default value is used */
-			term_man->col_size_a = 1 ;
 		}
 	}
 

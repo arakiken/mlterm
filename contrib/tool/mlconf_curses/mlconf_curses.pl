@@ -9,9 +9,9 @@ use Data::Dumper;
 # global variables
 ###########
 #
-my $VERSION="0.1";
+my $VERSION="0.1.1";
 my $TITLE = "mlterm configulator on Curses v.$VERSION";
-my $TERM="mlterm" || $ENV{TERM};
+my $TERM="mlterm" || $ENV{TERM}; ### XXX:drop support for other T.E.s ?
 my $TTY = "/dev/tty"; ### XXX TBD:support remote control!
 
 my $FG_COLOR = 'white'; ## Used when displaying menu(s).
@@ -28,25 +28,6 @@ my $config_section_width = 2;
 
 my @config_section_list; ## section index to name conversion
 
-my $ST_SECT=0;           ## XXX  ENUM 
-my $ST_ENTRY=1;
-my $ST_MODIFY=2;
-
-my %CURSES_COLOR_PAIR;
-my %CURSES_COLORS = 
-    ( 'black' => COLOR_BLACK,         'cyan'          => COLOR_CYAN,
-      'green' => COLOR_GREEN,         'magenta'       => COLOR_MAGENTA,
-      'red'   => COLOR_RED,           'white'         => COLOR_WHITE,
-      'yellow'=> COLOR_YELLOW,        'blue'       => COLOR_BLUE);
-
-my $display_state = 0;   ## 0.section / 1.entry /2.edit
-
-### curses windows
-my $window_top;
-my $window_sect;
-my $window_entry;
-my $window_demo;
-
 my $ENTRY_NAME=0;
 my $ENTRY_FUNC=1;
 my $ENTRY_CTXT=2; ## setting for display etc.
@@ -59,6 +40,26 @@ my $SECTION_INDEX=1;
 my $SECTION_LIST=2; ## array of entry
 my $SECTION_SELECTED=3; ## id of selected entry
 my $SECTION_ENTRYWIDTH=4; ### XXX not used yet
+
+
+### variables below should  not be touched outside display*
+my $display_state = 0;   ## 0.section / 1.entry /2.edit
+my $ST_SECT=0;           ## XXX  ENUM
+my $ST_ENTRY=1;
+my $ST_MODIFY=2;
+
+my %CURSES_COLOR_PAIR;
+my %CURSES_COLORS = 
+    ( 'black' => COLOR_BLACK,         'cyan'          => COLOR_CYAN,
+      'green' => COLOR_GREEN,         'magenta'       => COLOR_MAGENTA,
+      'red'   => COLOR_RED,           'white'         => COLOR_WHITE,
+      'yellow'=> COLOR_YELLOW,        'blue'       => COLOR_BLUE);
+
+### curses windows
+my $window_top;
+my $window_sect;
+my $window_entry;
+my $window_demo;
 
 my $MARGIN_SIDE = 1;
 my $MARGIN_TOP = 1;
@@ -76,10 +77,10 @@ my @color_table = ( ## mlterm only??
 		   'blue',
 		   'magenta',
 		   'cyan',
-                   'gray',
-		   'lightgray',
-		   'pink',
-		   'brown',
+#                   'gray',
+#		   'lightgray',
+#		   'pink',
+#		   'brown',
 #		   'priv_fg',
 #		   'priv_bg'
 		  );
@@ -92,12 +93,12 @@ my @color_table_map = ( ## mlterm only??
 		       'blue',
 		       'magenta',
 		       'cyan',
-		       'gray',
-		       'lightgray',
-		       'pink',
-		       'brown',
-#		       "$FG_COLOR", ### XXX FixMe: 
-#		       "$FG_COLOR"
+#		       'white',
+#		       'white',
+#		       'red',
+#		       'yellow',
+#		       "white", ### XXX FixMe: 
+#		       "white"
 		      );
 ########################
 # Misc.
@@ -134,6 +135,38 @@ $SIG{INT}=sub{
 ################################
 # config
 ################################
+sub config_init_fg(){
+    return if ($TERM ne "mlterm");
+    my $term_color;
+    $term_color = comm_getparam_mlterm("Foreground");
+    my $color;
+    foreach $color (@color_table_map){
+	if ($term_color eq $color){
+		$FG_COLOR = $color;
+	    }
+    }
+}
+
+
+sub config_init_bg(){
+    return if ($TERM ne "mlterm");
+    my $term_color;
+    $term_color = comm_getparam_mlterm("Background");
+    my $color;
+    foreach $color (@color_table_map){ ### XXX check to avoid fg_color
+	if ($term_color eq $color){
+	    $BG_COLOR = $color;
+	}
+    }
+    if ($BG_COLOR eq $FG_COLOR){ ### can't see anythig
+	if ($FG_COLOR eq "black"){
+	    $BG_COLOR = "white";
+	}else{
+	    $BG_COLOR = "black";
+	}
+    }
+}
+
 sub config_entry_add(@){
     my $data_ref = shift;
     ###FixMe check data structure 
@@ -226,12 +259,12 @@ sub config_entry_get_width(@){
 
 sub config_entry_disp(@){
     my $window = shift;
+    my $section_name = shift;
     my $entry_index = shift;
     my $x = shift;
     my $y = shift;
 
-
-    my @entry_list = config_entry_list();
+    my @entry_list = config_entry_list($section_name);
     my $entry = $entry_list[$entry_index];
 
     my $func_hash = $$entry[$ENTRY_FUNC];
@@ -316,6 +349,16 @@ sub display_main(@){
     }
 }
 
+sub display_clear(@){
+    my $window = shift;
+    my ($x,$y);
+    $window->getmaxyx($y,$x);
+    my $line;
+    foreach $line (0 .. $y){
+	display_str($window, " " x $x , 0, $line, $FG_COLOR, $BG_COLOR );
+    }
+}
+
 sub display_final(){
     $window_sect->delwin();
     $window_entry->delwin();
@@ -331,7 +374,7 @@ sub display_refresh(@){
 
 sub display_init(){
     $window_top = new Curses || die "FATAL: curses is not ready";
-    if (has_color){
+    if (has_colors){
 	start_color();
     }
     else{
@@ -341,8 +384,11 @@ sub display_init(){
     noecho();
     $window_top->keypad(1);
     $window_top->attrset(0); #reset all attributes
+    config_init_fg(); ## getch needs a curses window.
+    display_clear($window_top);
+    config_init_bg(); ## getch needs a curses window.
     display_set_color( $window_top , $FG_COLOR, $BG_COLOR);
-    $window_top->clear();
+    display_clear($window_top);
     $window_top->addstr(0, 1, "$TITLE ");
     $window_top->refresh();
     $window_sect = derwin( $window_top,
@@ -397,9 +443,9 @@ sub display_section_all(@){
     my $section;
     my $width = config_section_get_width();
 
-    $dest_window->clear();
+    display_clear($dest_window);
     display_set_color( $dest_window, $FG_COLOR, $BG_COLOR);
-    box( $dest_window,ACS_VLINE, ACS_HLINE);
+    box( $dest_window, ACS_VLINE, ACS_HLINE);
     for ( $section = 0 ; $section < @config_section_list; $section ++){
 	display_section( $section , $dest_window);
     }
@@ -408,6 +454,9 @@ sub display_section_all(@){
 sub display_section(@){
     my $section_index = shift;
     my $dest_window = shift || $window_sect;
+    display_str( $dest_window, "     ",
+		 $MARGIN_SIDE, 
+		 $section_index * $SECTION_SPAN + $MARGIN_TOP +1 , $FG_COLOR);
     if ($section_index != config_section_get_cur_index()){ ## selected section	
 	display_str( $dest_window, " $config_section_list[$section_index]",
 		     $MARGIN_SIDE, 
@@ -492,15 +541,15 @@ sub display_entry_select(){
 
 sub display_entry(@){
     my $entry_index = shift;
+    my $section = shift || config_section_get_cur_name();
     my $window = shift || $window_entry;
-
-    config_entry_disp( $window, $entry_index, $MARGIN_SIDE, $MARGIN_TOP + $entry_index * $ENTRY_SPAN);
+    config_entry_disp( $window, $section, $entry_index, $MARGIN_SIDE, $MARGIN_TOP + $entry_index * $ENTRY_SPAN);
 }
 
 sub display_entry_all(@){
     my $dest_window = shift || $window_entry;
     my $section_name =shift || config_section_get_cur_name();
-    $dest_window->clear();
+    display_clear($dest_window);
     display_set_color($dest_window);
     box( $dest_window, ACS_VLINE, ACS_HLINE);
     $window_grab = $window_entry;
@@ -508,7 +557,7 @@ sub display_entry_all(@){
     my @entry_list = config_entry_list();
     my $index;
     foreach $index (0 .. @entry_list -1){
-	display_entry($index, $window_entry);
+	display_entry($index);
     }
 }
 
@@ -861,6 +910,7 @@ sub display_entry_system(@){
 				( $LINES-5)/2, ( $COLS-length( $data))/2 -2 );
 	$window_dlg->keypad(1);
 	display_set_color( $window_dlg, $FG_COLOR, $BG_COLOR);
+	display_clear($window_dlg);
 	box( $window_dlg, ACS_VLINE, ACS_HLINE);	
 	my $input = 1;
 	while(1){
@@ -898,7 +948,7 @@ sub display_text_box(@){
 
     $window_dlg= derwin( $parent, $MARGIN_SIDE, $width, $y, $x);
     display_set_color( $window_dlg, $color, $BG_COLOR);
-    $window_dlg->clear;
+    display_clear($window_dlg);
     $window_dlg->keypad(1);
     while(1){
 	$window_dlg->addstr(0, 0, substr($text, $offset, $width -1) );
@@ -968,8 +1018,8 @@ sub display_color_selector(@){
     my $window_dlg = derwin( $window, @color_table +2, 30,
 			    $y , $x );
     $window_dlg->keypad(1);
-    $window_dlg->clear();
     display_set_color( $window_dlg, $FG_COLOR, $BG_COLOR);
+    display_clear($window_dlg);
     box( $window_dlg, ACS_VLINE, ACS_HLINE);	
     my $input = 1;
     for ( $i = 0; $color_table[$i] ; $i++){
@@ -1056,11 +1106,10 @@ sub display_getch(@) {
 
     my $key = -1;
     if ($nonblock){
-	halfdelay(1); ## XXX FixMe: try cbreak ?
+	halfdelay(5); ## XXX FixMe: try cbreak ?
     }else{
 	cbreak();
     }
-    
     $key = $window->getch();
 
     halfdelay(5);
@@ -1106,19 +1155,18 @@ sub comm_getparam_mlterm(@){
 	
 	printf "\x1b]5380;${key}\x07";
 	### FixMe: support /dev/pts/n for remote control
-	
 	while( $input ne '#'){
 	    $input = display_getch(1);
 	    goto ERR if ( $input == -1);
 	}
 	while(( $input = display_getch(1)) ne '='){
+	    goto ERR if ( $input == -1);
 	    $ret .= $input;
 	    goto ERR if ( $ret eq "error"); ## FixMe handle error
 	    goto ERR if ( $input eq "\n"); ## FixMe handle error
 	}
 	unless ( $ret eq $key){
 	    goto ERR;
-	    
 	}
 	$ret = "";
 	while(( $input = display_getch(1)) ne "\n"){
@@ -1351,7 +1399,7 @@ config_entry_add_from_list(
 		       \&comm_getparam_mlterm ,
 		       \&comm_setparam_mlterm ,
 		       \&display_entry_numeric ,
-		       [128, 128, 1024, 0] ], ## XXX support _logarithmic?
+		       [128, 1024, 128, 0] ], ## XXX support _logarithmic?
 		       ["Others" ,
 			"Mod Meta Mode" ,
 		       \&comm_getparam_mlterm ,
@@ -1375,26 +1423,27 @@ config_entry_add_from_list(
 		       \&display_entry_sys_apply_section ,
 		       ["Apply changes to this section?" , "<Cancel>", "<OK>"] ],
 		       ["Configuration" ,
-			"Quit (exec.)" ,
+			"Quit (apply changes)" ,
 		       \&comm_dummy , \&comm_dummy ,
 		       \&display_entry_sys_finish ,
 		       ["Really quit and change terminal settings?", "<Cancel>", "<OK>"] ],
 		       ["Configuration" ,
-			"Quit (discard)" ,
+			"Quit (discard changes)" ,
 		       \&comm_dummy , \&comm_dummy ,
 		       \&display_entry_sys_discard ,
 		       ["Really quit discarding all changes?", "<Cancel>", "<OK>"] ],
 		      ["Configuration" ,
-		       "Apply (continue)" ,
+		       "Apply all changes" ,
 		       \&comm_dummy , \&comm_dummy ,
 		       \&display_entry_sys_apply ,
 		       ["Really apply all changes?", "<Cancel>", "<OK>"] ],
-		      ["Configuration" ,
-		       "pty" ,
-		       \&comm_getparam_internal ,
-		       \&comm_setparam_internal ,
-		       \&display_entry_text ,
-		       undef ],
+####not yet supported
+#		      ["Configuration" ,
+#		       "pty" ,
+#		       \&comm_getparam_internal ,
+#		       \&comm_setparam_internal ,
+#		       \&display_entry_text ,
+#		       undef ],
 		      ["Configuration" ,
 		       "foreground" ,
 		       \&comm_getparam_internal ,
@@ -1427,11 +1476,17 @@ config_entry_add_from_list(
 #    close(IN);
 #}
 
-display_init();
-display_section_all();
-display_refresh($window_sect);
 
+
+display_init();
+
+
+display_refresh($window_sect);
+#config_init_fg(); ## getch needs a curses window.
 display_entry_all();
+#config_init_bg(); ## getch needs a curses window.
+display_section_all();
+#display_entry_all();
 display_refresh($window_entry);
 
 while ($display_state >= 0){

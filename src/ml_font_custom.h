@@ -17,6 +17,8 @@ KIK_MAP_TYPEDEF( ml_font_name , ml_font_attr_t , char *) ;
 typedef struct  ml_font_custom
 {
 	KIK_MAP( ml_font_name) *  font_name_table ;
+
+	/* public(readonly) */
 	u_int  min_font_size ;
 	u_int  max_font_size ;
 

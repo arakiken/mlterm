@@ -35,56 +35,53 @@ remap_unsupported_charset(
 	mkf_iso2022_remap_unsupported_charset( ch) ;
 	
 	/*
-	 * various private chars -> jis
+	 * various gaiji chars => jis
 	 */
 	if( ch->cs == JISC6226_1978_NEC_EXT)
 	{
-		if( mkf_map_nec_ext_to_jisx0208_1983( &c , ch))
+		if( ! mkf_map_jisx0208_nec_ext_to_jisx0208_1983( &c , ch) &&
+			! mkf_map_jisx0208_nec_ext_to_jisx0212_1990( &c , ch))
 		{
-			*ch = c ;
+			return ;
 		}
-		else if( mkf_map_nec_ext_to_jisx0212_1990( &c , ch))
-		{
-			*ch = c ;
-		}
+
+		*ch = c ;
 	}
 	else if( ch->cs == JISC6226_1978_NECIBM_EXT)
 	{
-		if( mkf_map_necibm_ext_to_jisx0208_1983( &c , ch))
+		if( ! mkf_map_jisx0208_necibm_ext_to_jisx0208_1983( &c , ch) &&
+			! mkf_map_jisx0208_necibm_ext_to_jisx0212_1990( &c , ch))
 		{
-			*ch = c ;
+			return ;
 		}
-		else if( mkf_map_necibm_ext_to_jisx0212_1990( &c , ch))
-		{
-			*ch = c ;
-		}
+
+		*ch = c ;
 	}
 	else if( ch->cs == SJIS_IBM_EXT)
 	{
-		if( mkf_map_ibm_ext_to_jisx0208_1983( &c , ch))
+		if( ! mkf_map_sjis_ibm_ext_to_jisx0208_1983( &c , ch) &&
+			! mkf_map_sjis_ibm_ext_to_jisx0212_1990( &c , ch))
 		{
-			*ch = c ;
+			return ;
 		}
-		else if( mkf_map_ibm_ext_to_jisx0212_1990( &c , ch))
-		{
-			*ch = c ;
-		}
+
+		*ch = c ;
 	}
 	else if( ch->cs == JISX0208_1983_MAC_EXT)
 	{
-		if( mkf_map_mac_ext_to_jisx0208_1983( &c , ch))
+		if( ! mkf_map_jisx0208_mac_ext_to_jisx0208_1983( &c , ch) &&
+			! mkf_map_jisx0208_mac_ext_to_jisx0212_1990( &c , ch))
 		{
-			*ch = c ;
+			return ;
 		}
-		else if( mkf_map_mac_ext_to_jisx0212_1990( &c , ch))
-		{
-			*ch = c ;
-		}
+
+		*ch = c ;
 	}
+	
 	/*
 	 * conversion between JIS charsets.
 	 */
-	else if( ch->cs == JISC6226_1978)
+	if( ch->cs == JISC6226_1978)
 	{
 		/*
 		 * we mkf_eucjp_parser don't support JISC6226_1978.

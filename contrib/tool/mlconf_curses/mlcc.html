@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+
+<HTML LANG="ja">
+ <HEAD>
+ <META NAME=author CONTENT="MINAMI Hirokazu">
+ <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-2022-jp">
+ <TITLE>mlterm configulator on curses</TITLE>
+</HEAD>
+ <BODY>
+ <h1>mlterm configulator on curses</h1>
+
+ <h2>What is mlterm configulator on curses?</h2>
+
+ <p>A tiny tool to change terminal setting of mlterm through escape
+ sequence.<b/p>
+ <p> If you have installed gtk, mlconfig is available and you will never need this tool at all.<br>
+ mlconfig is a GUI configulator and should be more user-frendly.</p>
+
+ <p>Or you can also use w3mmlconfig if you have installed w3m.</p>
+ <p>When you do not using both of them, this tool will help you to change
+ <ul>
+  <li>Terminal encoding</li>
+  <li>X Input Method</li>
+  <li>Font size/color</li>
+  <li>Anti Aliasing</li>
+  <li>Wall picture</li>
+  <li>Transparent background</li
+  <li>..and more</li>
+ </ul>
+ on the fly.
+ </p>
+ <p>Actually, you can send escape sequence to mlterm by hand and control
+ the setting. For example, 
+ <pre>
+ echo -e "\e]5379;wall_picture=/path/to/file.jpg\x07"
+ </pre>
+ will change wall picture to /path/to/file.jpg.
+
+ This tool was written to automagically generate such a magic
+ word instead of you. 
+</p>
+
+ <h2>Requirement</h2>
+ <ul>
+  <li> perl 5 (5.6 is recommended)</li>
+  <li> ncurses 5.2 or compatible (BSD curses 4.2 is known to be problematic)</li>
+ </ul>
+
+ <h2>Install</h2>
+ <p> It's a plain perl script. You do not have to do anything to run.</p>
+ <p>To test,</p>
+ <pre>perl mlconf_curses.pl</pre>
+ <p>To install,</p>
+ <pre>make&amp;make install</pre>
+
+ <h2>ToDo</h2>
+ <ul>
+  <li>Implement file selector (someday)</li>
+  <li>Handle errors (REQUIRED)</li>
+  <li>Write documents (who reads?)</li>
+  <li>NLS (impossible?)</li>
+  <li>Get rid of curses (I *know* TERM is mlterm...)</li>
+  <li>Support non-standard colors (pink, lightgray etc.)</li>
+ </ul>
+ <h2>Author</h2>
+ MINAMI Hirokazu (minami@chem.s.u-tokyo.ac.jp)
+ </BODY>
+</HTML>
+

@@ -171,13 +171,13 @@ comment $Id$
       o wall_picture   ... 壁紙にする画像ファイルのパス(*なし*)
 
       o fontsize       ... デフォルトフォントサイズ(*16*)
-
       o font_size_range  ... 使用するフォントサイズの範囲(*6-30*)
         フォーマットは以下のとおり。
         [min]-[max]
 
         e.g.) 10-24
               10から24
+      o font_larger_smaller_size ... larger/smaller ボタンで、フォントサイズがどれだけ変わるか(*1*)
 
       o ENCODING       ... エンコーディングの指定(*auto*)
         サポートしているエンコーディング
@@ -403,6 +403,7 @@ comment $Id$
     -y/--term=value    : 端末タイプ
     -w/--fontsize=value : フォントサイズ
     -x/--tw=value      : タブサイズ
+    -z/--largesmall=value : larger/smaller ボタンで、フォントサイズがどれだけ変わるか
 
     -e ... : 指定したコマンドを起動
 
@@ -489,3 +490,6 @@ comment $Id$
 
   o 2001/9/15
     1.9.13リリース。またいじりはじめる。
+
+  o 2001/11/29
+    2.0.0リリース。sourceforge に移転。

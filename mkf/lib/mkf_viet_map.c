@@ -41,33 +41,7 @@ mkf_map_viscii_to_tcvn5712_3_1993(
 	mkf_char_t *  viscii
 	)
 {
-	u_int16_t  viscii_code ;
-	u_int32_t  ucs4_code ;
-
-	mkf_char_t  ch ;
-
-	viscii_code = mkf_char_to_int( viscii) ;
-
-	if( mkf_map_viscii_to_ucs4( &ch , viscii_code) == 0)
-	{
-		return  0 ;
-	}
-
-	ucs4_code = mkf_char_to_int( &ch) ;
-
-	if( mkf_map_ucs4_to_tcvn5712_3_1993( &ch , ucs4_code) == 0)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG ,
-			" u%.4x is not mapped to tcvn5712.\n" , ucs4_code) ;
-	#endif
-
-		return  0 ;
-	}
-
-	*tcvn = ch ;
-
-	return  1 ;
+	return  mkf_map_via_ucs( tcvn , viscii , TCVN5712_3_1993) ;
 }
 
 int
@@ -76,25 +50,5 @@ mkf_map_tcvn5712_3_1993_to_viscii(
 	mkf_char_t *  tcvn
 	)
 {
-	u_int16_t  tcvn_code ;
-	u_int32_t  ucs4_code ;
-	mkf_char_t  ch ;
-
-	tcvn_code = (u_int16_t) mkf_char_to_int( tcvn) ;
-
-	if( mkf_map_tcvn5712_3_1993_to_ucs4( &ch , tcvn_code) == 0)
-	{
-		return  0 ;
-	}
-
-	ucs4_code = mkf_char_to_int( &ch) ;
-
-	if( mkf_map_ucs4_to_viscii( &ch , ucs4_code) == 0)
-	{
-		return  0 ;
-	}
-
-	*viscii = ch ;
-
-	return  1 ;
+	return  mkf_map_via_ucs( viscii , tcvn , VISCII) ;
 }
