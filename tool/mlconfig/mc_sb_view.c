@@ -55,6 +55,25 @@ sb_view_name_selected(
 }
 
 static int
+has_rc_file(char *dirname, char *sbdirname)
+{
+	DIR *d;
+	struct dirent *e;
+	char path[PATH_MAX];
+
+	snprintf(path, PATH_MAX, "%s/%s", dirname, sbdirname);
+	if(!(d = opendir(path))) return 0;
+
+	while ((e = readdir(d))) {
+		if (strcmp("rc", e->d_name) == 0) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static int
 read_sb_names(char *dirname, char **sbnames, int n)
 {
     int n0, j;
@@ -70,7 +89,7 @@ read_sb_names(char *dirname, char **sbnames, int n)
     ignore:
 	e = readdir(d);
 	if (!e) break;
-	if (e->d_name[0] == '.') continue;
+	if (e->d_name[0] == '.' || !has_rc_file(dirname, e->d_name)) continue;
 	sbnames[n] = strdup(e->d_name);
 	if (!sbnames[n]) break;
 	for(j=0; j<n0; j++){

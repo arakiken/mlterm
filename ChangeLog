@@ -1,5 +1,10 @@
 2004-09-13 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* tool/mlconfig/mc_sb_view.c (has_rc_file): new function to check
+	scrollbar has 'rc' file.
+
+2004-09-13 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* tool/mlconfig/mc_im.c(iiimf_best_match_index): select default language
 	automatically. (according to current locale)
 
