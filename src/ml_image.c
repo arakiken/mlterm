@@ -122,9 +122,21 @@ get_pos(
 	{
 		if( image->wraparound_ready_line == &IMAGE_LINE(image,end_row))
 		{
+			IMAGE_LINE(image,*row).is_continued_to_next = 1 ;
+			
 			if( *row == image->num_of_rows - 1)
 			{
 				ml_imgscrl_scroll_upward( image , 1) ;
+
+				if( break_row_boundary( image , 1) != 1)
+				{
+				#ifdef  DEBUG
+					kik_warn_printf( KIK_DEBUG_TAG
+						" it failed to break_row_boundary.\n") ;
+				#endif
+
+					return  0 ;
+				}
 			}
 			else
 			{
@@ -147,15 +159,13 @@ get_pos(
 			{
 				kik_warn_printf( KIK_DEBUG_TAG " image->prev_recv_ch is NULL.\n") ;
 			}
-			else
 		#endif
-			{
-				ml_imgline_overwrite_chars( &IMAGE_LINE(image,*row) , 0 ,
-					&image->prev_recv_ch , 1 , ml_char_cols( &image->prev_recv_ch) ,
-					&image->sp_ch) ;
-				
-				*char_index = 1 ;
-			}
+
+			ml_imgline_overwrite_chars( &IMAGE_LINE(image,*row) , 0 ,
+				&image->prev_recv_ch , 1 , ml_char_cols( &image->prev_recv_ch) ,
+				&image->sp_ch) ;
+
+			*char_index = 1 ;
 
 			reset_wraparound_checker( image) ;
 		}

@@ -6,6 +6,7 @@
 
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_util.h>
 
 
@@ -17,7 +18,77 @@
 #endif
 
 
+/* --- static variables --- */
+
+static char *  word_separators = " ,.:;/@" ;
+static int  separators_are_allocated = 0 ;
+
+
+/* --- static functions --- */
+
+static int
+is_word_separator(
+	ml_char_t *  ch
+	)
+{
+	char *  p ;
+	char  c ;
+
+	if( ml_char_cs(ch) != US_ASCII)
+	{
+		return  0 ;
+	}
+
+	p = word_separators ;
+	c = ml_char_bytes(ch)[0] ;
+
+	while( *p)
+	{
+		if( c == *p)
+		{
+			return  1 ;
+		}
+
+		p ++ ;
+	}
+
+	return  0 ;
+}
+
+
 /* --- global functions --- */
+
+int
+ml_set_word_separators(
+	char *  seps
+	)
+{
+	if( separators_are_allocated)
+	{
+		free( word_separators) ;
+	}
+	else
+	{
+		separators_are_allocated = 1 ;
+	}
+	
+	word_separators = strdup( seps) ;
+
+	return  1 ;
+}
+
+int
+ml_free_word_separators(void)
+{
+	if( separators_are_allocated)
+	{
+		free( word_separators) ;
+		separators_are_allocated = 0 ;
+	}
+
+	return  1 ;
+}
+
 
 int
 ml_bs_init(
@@ -87,6 +158,15 @@ ml_unset_backscroll_mode(
 	bs_image->backscroll_rows = 0 ;
 }
 	
+int
+ml_convert_row_to_bs_row(
+	ml_bs_image_t *  bs_image ,
+	int  row
+	)
+{
+	return row - bs_image->backscroll_rows ;
+}
+
 ml_image_line_t *
 ml_bs_get_image_line_in_all(
 	ml_bs_image_t *  bs_image ,
@@ -478,10 +558,186 @@ ml_bs_get_region_size(
 }
 
 int
-ml_convert_row_to_bs_row(
+ml_bs_get_line_region(
 	ml_bs_image_t *  bs_image ,
-	int  row
+	int *  beg_row ,
+	int *  end_char_index ,
+	int *  end_row ,
+	int  base_row
 	)
 {
-	return row - bs_image->backscroll_rows ;
+	int  row ;
+	ml_image_line_t *  line ;
+	ml_image_line_t *  next_line ;
+
+	/*
+	 * finding the end of line.
+	 */
+	row = base_row ;
+
+	if( ( line = ml_bs_get_image_line_in_all( bs_image , row)) == NULL || ml_imgline_is_empty( line))
+	{
+		return  0 ;
+	}
+
+	while( 1)
+	{
+		if( ! line->is_continued_to_next)
+		{
+			break ;
+		}
+
+		if( ( next_line = ml_bs_get_image_line_in_all( bs_image , row + 1)) == NULL ||
+			ml_imgline_is_empty( next_line))
+		{
+			break ;
+		}
+
+		line = next_line ;
+		row ++ ;
+	}
+
+	*end_char_index = line->num_of_filled_chars - 1 ;
+	*end_row = row ;
+
+	/*
+	 * finding the beginning of line.
+	 */
+	row = base_row ;
+	
+	while( 1)
+	{
+		if( ( line = ml_bs_get_image_line_in_all( bs_image , row - 1)) == NULL ||
+			ml_imgline_is_empty( line) ||
+			! line->is_continued_to_next)
+		{
+			break ;
+		}
+
+		row -- ;
+	}
+
+	*beg_row = row ;
+
+	return  1 ;
+}
+
+int
+ml_bs_get_word_region(
+	ml_bs_image_t *  bs_image ,
+	int *  beg_char_index ,
+	int *  beg_row ,
+	int *  end_char_index ,
+	int *  end_row ,
+	int  base_char_index ,
+	int  base_row
+	)
+{
+	int  row ;
+	int  char_index ;
+	ml_image_line_t *  line ;
+	ml_image_line_t *  base_line ;
+	ml_char_t *  ch ;
+
+	if( ( base_line = ml_bs_get_image_line_in_all( bs_image , base_row)) == NULL ||
+		ml_imgline_is_empty( base_line))
+	{
+		return  0 ;
+	}
+
+	if( is_word_separator(&base_line->chars[base_char_index]))
+	{
+		*beg_char_index = base_char_index ;
+		*end_char_index = base_char_index ;
+		*beg_row = base_row ;
+		*end_row = base_row ;
+
+		return  1 ;
+	}
+	
+	/*
+	 * search the beg of word
+	 */
+	row = base_row ;
+	char_index = base_char_index ;
+	line = base_line ;
+	
+	while( 1)
+	{
+		if( char_index == 0)
+		{
+			if( ( line = ml_bs_get_image_line_in_all( bs_image , row - 1)) == NULL ||
+				ml_imgline_is_empty( line) || ! line->is_continued_to_next)
+			{
+				*beg_char_index = char_index ;
+				
+				break ;
+			}
+
+			row -- ;
+			char_index = line->num_of_filled_chars - 1 ;
+		}
+		else
+		{
+			char_index -- ;
+		}
+		
+		ch = &line->chars[char_index] ;
+
+		if( is_word_separator(ch))
+		{
+			*beg_char_index = char_index + 1 ;
+			
+			break ;
+		}
+	}
+
+	*beg_row = row ;
+
+	/*
+	 * search the end of word.
+	 */
+	row = base_row ;
+	char_index = base_char_index ;
+	line = base_line ;
+	
+	while( 1)
+	{
+		if( char_index == line->num_of_filled_chars - 1)
+		{
+			if( ! line->is_continued_to_next ||
+				( line = ml_bs_get_image_line_in_all( bs_image , row + 1)) == NULL ||
+				ml_imgline_is_empty( line))
+			{
+				*end_char_index = char_index ;
+				
+				break ;
+			}
+			
+			row ++ ;
+			char_index = 0 ;
+		}
+		else
+		{
+			char_index ++ ;
+		}
+		
+		ch = &line->chars[char_index] ;
+
+		if( is_word_separator(ch))
+		{
+			*end_char_index = char_index - 1 ;
+
+			break ;
+		}
+	}
+
+	*end_row = row ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " selected word region: %d %d => %d %d %d %d\n" ,
+		base_char_index , base_row , *beg_char_index , *beg_row , *end_char_index , *end_row) ;
+#endif
+
+	return  1 ;
 }

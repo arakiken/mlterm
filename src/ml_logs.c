@@ -220,8 +220,9 @@ ml_log_add(
 
 	ml_imgline_final( &logs->lines[at]) ;
 
+	/* logs->lines[at] becomes completely the same one as line */
 	ml_imgline_clone( &logs->lines[at] , line , line->num_of_filled_chars) ;
-	
+
 	ml_imgline_is_updated( &logs->lines[at]) ;
 
 	/*

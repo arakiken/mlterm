@@ -26,7 +26,7 @@
 /* --- static variables --- */
 
 static Display *  xim_display ;
-static char *  default_xim_name ;
+static char *  default_xim_name ;	/* this can be NULL */
 
 static ml_xim_t  xims[MAX_XIMS_SAME_TIME] ;
 static u_int  num_of_xims ;
@@ -135,11 +135,9 @@ open_xim(
 		}
 	}
 
-	XSetLocaleModifiers(xmod) ;
-
 	result = 0 ;
 
-	if( xmod && *xmod && ( xim->im = XOpenIM( xim_display , NULL , NULL , NULL)))
+	if( XSetLocaleModifiers(xmod) && ( xim->im = XOpenIM( xim_display , NULL , NULL , NULL)))
 	{
 		XIMCallback  callback = { NULL , xim_server_destroyed } ;
 
@@ -312,20 +310,18 @@ ml_xim_init(
 	xmod = XSetLocaleModifiers("") ;
 
 	/* 4 is the length of "@im=" */
-	if( strlen( xmod) < 4 || ( p = strstr( xmod , "@im=")) == NULL)
+	if( xmod == NULL || strlen( xmod) < 4 || ( p = strstr( xmod , "@im=")) == NULL ||
+		( default_xim_name = strdup( p + 4)) == NULL)
 	{
-		return  0 ;
+		default_xim_name = NULL ;
 	}
-
-	if( ( default_xim_name = strdup( p + 4)) == NULL)
+	else
 	{
-		return  0 ;
-	}
-
-	if( ( p = strstr( default_xim_name , "@")))
-	{
-		/* only the first entry is used , others are ignored. */
-		*p = '\0' ;
+		if( ( p = strstr( default_xim_name , "@")))
+		{
+			/* only the first entry is used , others are ignored. */
+			*p = '\0' ;
+		}
 	}
 
 	XRegisterIMInstantiateCallback( xim_display , NULL , NULL , NULL ,
@@ -344,7 +340,10 @@ ml_xim_final(void)
 		close_xim( &xims[counter]) ;
 	}
 
-	free( default_xim_name) ;
+	if( default_xim_name)
+	{
+		free( default_xim_name) ;
+	}
 
 	XUnregisterIMInstantiateCallback( xim_display , NULL , NULL , NULL ,
 		xim_server_instantiated , NULL) ;
@@ -381,11 +380,22 @@ ml_add_xim_listener(
 
 	if( *xim_name == '\0')
 	{
-		/*
-		 * default xim name is used
-		 */
-
-		xim_name = default_xim_name ;
+		if( default_xim_name == NULL)
+		{
+			/*
+			 * no default xims are set as XMODIFIERS.
+			 */
+			 
+			return  0 ;
+		}
+		else
+		{
+			/*
+			 * default xim name is used
+			 */
+			
+			xim_name = default_xim_name ;
+		}
 	}
 	
 	if( ( win->xim = get_xim( xim_name , xim_locale)) == NULL)

@@ -2012,12 +2012,13 @@ selecting_word(
 	Time  time
 	)
 {
-	int  beg_char_index ;
-	int  end_char_index ;
 	int  char_index ;
 	int  row ;
 	u_int  x_rest ;
-
+	int  beg_row ;
+	int  beg_char_index ;
+	int  end_row ;
+	int  end_char_index ;
 	ml_image_line_t *  line ;
 
 	row = ml_convert_row_to_bs_row( &termscr->bs_image , ml_convert_y_to_row( termscr , NULL , y)) ;
@@ -2037,7 +2038,8 @@ selecting_word(
 		return ;
 	}
 
-	if( ml_imgline_get_word_pos( line , &beg_char_index , &end_char_index , char_index) == 0)
+	if( ml_bs_get_word_region( &termscr->bs_image , &beg_char_index , &beg_row , &end_char_index ,
+		&end_row , char_index , row) == 0)
 	{
 		return ;
 	}
@@ -2054,10 +2056,10 @@ selecting_word(
 			}
 		}
 		
-		start_selection( termscr , beg_char_index , row) ;
+		start_selection( termscr , beg_char_index , beg_row) ;
 	}
 
-	ml_selecting( &termscr->sel , end_char_index , row) ;
+	ml_selecting( &termscr->sel , end_char_index , end_row) ;
 }
 
 static void
@@ -2067,61 +2069,18 @@ selecting_line(
 	Time  time
 	)
 {
-	int  end_char_index ;
+	int  row ;
 	int  beg_row ;
+	int  end_char_index ;
 	int  end_row ;
-	ml_image_line_t *  line ;
 
-	beg_row = end_row =
-		ml_convert_row_to_bs_row( &termscr->bs_image , ml_convert_y_to_row( termscr , NULL , y)) ;
+	row = ml_convert_row_to_bs_row( &termscr->bs_image , ml_convert_y_to_row( termscr , NULL , y)) ;
 
-	if( ( line = ml_bs_get_image_line_in_all( &termscr->bs_image , end_row)) == NULL ||
-		ml_imgline_is_empty( line))
+	if( ml_bs_get_line_region( &termscr->bs_image , &beg_row , &end_char_index , &end_row , row) == 0)
 	{
 		return ;
 	}
-
-	/*
-	 * finding the end of line.
-	 */
-	while( 1)
-	{
-		ml_image_line_t *  next_line ;
-
-		if( ! line->is_continued_to_next)
-		{
-			break ;
-		}
-
-		if( ( next_line = ml_bs_get_image_line_in_all( &termscr->bs_image , end_row + 1))
-			== NULL ||
-			ml_imgline_is_empty( next_line))
-		{
-			break ;
-		}
-
-		line = next_line ;
-		end_row ++ ;
-	}
-
-	end_char_index = line->num_of_filled_chars - 1 ;
-
-	/*
-	 * finding the beginning of line.
-	 */
-	while( 1)
-	{
-		if( ( line = ml_bs_get_image_line_in_all( &termscr->bs_image , beg_row - 1))
-			== NULL ||
-			ml_imgline_is_empty( line) ||
-			! line->is_continued_to_next)
-		{
-			break ;
-		}
-
-		beg_row -- ;
-	}
-
+	
 	if( ! termscr->sel.is_selecting)
 	{
 		ml_restore_selected_region_color( &termscr->sel) ;

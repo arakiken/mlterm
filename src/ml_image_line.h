@@ -48,15 +48,12 @@ typedef struct  ml_image_line
 	/* public(read only) */
 	int8_t  is_cleared_to_end ;
 	int8_t  is_modified ;
-	int8_t  is_continued_to_next ;
 	int8_t  is_bidi ;
 
+	/* public */	
+	int8_t  is_continued_to_next ;
+
 } ml_image_line_t ;
-
-
-int  ml_set_word_separators( char *  seps) ;
-
-int  ml_free_word_separators(void) ;
 
 
 int  ml_imgline_init( ml_image_line_t *  line , u_int  num_of_chars) ;

@@ -7,7 +7,6 @@
 #include  <stdio.h>		/* fprintf */
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_mem.h>	/* alloca */
-#include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>
 
@@ -28,77 +27,7 @@
 #endif
 
 
-/* --- static variables --- */
-
-static char *  word_separators = " ,.:;/@" ;
-static int  separators_are_allocated = 0 ;
-
-
-/* --- static functions --- */
-
-static int
-is_word_separator(
-	ml_char_t *  ch
-	)
-{
-	char *  p ;
-	char  c ;
-
-	if( ml_char_cs(ch) != US_ASCII)
-	{
-		return  0 ;
-	}
-
-	p = word_separators ;
-	c = ml_char_bytes(ch)[0] ;
-
-	while( *p)
-	{
-		if( c == *p)
-		{
-			return  1 ;
-		}
-
-		p ++ ;
-	}
-
-	return  0 ;
-}
-
-
 /* --- global functions --- */
-
-int
-ml_set_word_separators(
-	char *  seps
-	)
-{
-	if( separators_are_allocated)
-	{
-		free( word_separators) ;
-	}
-	else
-	{
-		separators_are_allocated = 1 ;
-	}
-	
-	word_separators = strdup( seps) ;
-
-	return  1 ;
-}
-
-int
-ml_free_word_separators(void)
-{
-	if( separators_are_allocated)
-	{
-		free( word_separators) ;
-		separators_are_allocated = 0 ;
-	}
-
-	return  1 ;
-}
-
 
 int
 ml_imgline_init(
@@ -759,7 +688,6 @@ ml_imgline_copy_line(
 
 	/* getting normalized str */
 	ml_imgline_copy_str( src , dst->chars , 0 , copy_len) ;
-
 	dst->num_of_filled_chars = copy_len ;
 
 	if( copy_len == src->num_of_filled_chars)
@@ -864,83 +792,6 @@ ml_get_num_of_filled_chars_except_end_space(
 	}
 
 	return  0 ;
-}
-
-int
-ml_imgline_get_word_pos(
-	ml_image_line_t *  line ,
-	int *  beg_char_index ,
-	int *  end_char_index ,
-	int  char_index
-	)
-{
-	int  orig_char_index ;
-	ml_char_t *  ch ;
-
-	if( is_word_separator(&line->chars[char_index]))
-	{
-		*beg_char_index = char_index ;
-		*end_char_index = char_index ;
-
-		return  1 ;
-	}
-	
-	orig_char_index = char_index ;
-
-	/*
-	 * search the beg of word
-	 */
-	while( 1)
-	{
-		ch = &line->chars[char_index] ;
-
-		if( is_word_separator(ch))
-		{
-			*beg_char_index = char_index + 1 ;
-
-			break ;
-		}
-
-		if( char_index == 0)
-		{
-			*beg_char_index = 0 ;
-			
-			break ;
-		}
-		else
-		{
-			char_index -- ;
-		}
-	}
-
-	/*
-	 * search the end of word.
-	 */
-	char_index = orig_char_index ;
-	while( 1)
-	{
-		ch = &line->chars[char_index] ;
-
-		if( is_word_separator(ch))
-		{
-			*end_char_index = char_index - 1 ;
-
-			break ;
-		}
-
-		if( char_index == END_CHAR_INDEX(line))
-		{
-			*end_char_index = char_index ;
-
-			break ;
-		}
-		else
-		{
-			char_index ++ ;
-		}
-	}
-
-	return  1 ;
 }
 
 int
