@@ -1,3 +1,14 @@
+[20020106]
+* ISCII support codes are added. (still unstable)
+* INIT_PARSER short cut key is removed and "Full Rest" button is added to mlconfig. 
+* when color rgb is explicitly assigned in ~/.mlterm/color , reversed color is not
+  drawn correctly under Anti Alias mode. fixed. (thanks to nekoie san)
+* ISO-8859-11 can be used as a -E option value.
+* ~/.mlterm/vlfont is renamed to ~/.mlterm/vfont
+* -V/--varlen/use_variable_length_column option is renamed to 
+  -V/--varwidth/use_variable_column_width
+* Kochi Mincho sample is added to etc/aafont.
+
 [20020102]
 * variable length column is supported. (-V/--verlen/use_variable_length_column option)
 * DEC_SPECIAL characters are not shown under TERM=kterm and non-iso2022 encoding. fixed.

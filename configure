@@ -18,6 +18,8 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-fribidi        fribidi[disabled]"
 ac_help="$ac_help
+  --enable-iscii          iscii[disabled]"
+ac_help="$ac_help
   --enable-imlib          imlib[disabled]"
 ac_help="$ac_help
   --enable-anti-alias     anti alias[disabled]"
@@ -579,6 +581,12 @@ fi
 # Check whether --enable-fribidi or --disable-fribidi was given.
 if test "${enable_fribidi+set}" = set; then
   enableval="$enable_fribidi"
+  :
+fi
+
+# Check whether --enable-iscii or --disable-iscii was given.
+if test "${enable_iscii+set}" = set; then
+  enableval="$enable_iscii"
   :
 fi
 
