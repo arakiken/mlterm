@@ -24,6 +24,8 @@ AC_ARG_ENABLE(imlib,
 	[  --enable-imlib          imlib[disabled]])
 AC_ARG_ENABLE(anti_alias,
 	[  --enable-anti-alias     anti alias[disabled]])
+AC_ARG_ENABLE(utmp,
+	[  --enable-utmp           utmp[disabled]])
 AC_ARG_ENABLE(ucs4,
 	[  --enable-ucs4           ucs4[disabled]])
 AC_ARG_ENABLE(shared,

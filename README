@@ -25,12 +25,15 @@ Options for configure
   --enable-ind
     Use libind for ISCII rendering
 
-  --enable-debug
-    Build debug version
+  --enable-utmp
+    Use utmp,wtmp,lastlog
 
   --enable-ucs4
     Use UCS4 instead of UCS2 for internal encoding (not recommended).
     No merits so far.
+
+  --enable-debug
+    Build debug version
 
   --disable-shared
     Disable shared libraries

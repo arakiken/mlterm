@@ -24,6 +24,8 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-anti-alias     anti alias[disabled]"
 ac_help="$ac_help
+  --enable-utmp           utmp[disabled]"
+ac_help="$ac_help
   --enable-ucs4           ucs4[disabled]"
 ac_help="$ac_help
   --disable-shared        shared libraries[enabled]"
@@ -603,6 +605,12 @@ fi
 # Check whether --enable-anti_alias or --disable-anti_alias was given.
 if test "${enable_anti_alias+set}" = set; then
   enableval="$enable_anti_alias"
+  :
+fi
+
+# Check whether --enable-utmp or --disable-utmp was given.
+if test "${enable_utmp+set}" = set; then
+  enableval="$enable_utmp"
   :
 fi
 
