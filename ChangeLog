@@ -1,5 +1,10 @@
 2003-2-2 Araki Ken <arakiken@users.sf.net>
 
+	* Added EXT_KBD shortcut in ~/.mlterm/key.
+	  This shortcut activate or deactivate arabic or iscii input method.
+
+2003-2-2 Araki Ken <arakiken@users.sf.net>
+
 	* Added --without-map-table,--without-prop-table options to configure.
 	  These options remove character mapping table and character property table.
 
