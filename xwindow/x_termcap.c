@@ -307,6 +307,11 @@ x_termcap_read_conf(
 	while( ( line = kik_file_get_line( from , &len)))
 	{
 		void *  p ;
+		
+		if( len < 2) /* skip empty(LF-only) line */
+		{
+			continue ;
+		}
 		if( *line == '#')
 		{
 			continue ;
