@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 2.1.1
+%define version 2.1.2
 %define release 1
 %define prefix /usr
 %define bindir /usr/X11R6/bin
@@ -78,6 +78,9 @@ rm -rf $RPM_BUILD_ROOT
 %{mandir}/man1/mlterm.1*
 
 %changelog
+* Wed Jan 2 2001 Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
+- Source version 2.1.2
+
 * Sun Dec 30 2001 Araki Ken <j00v0113@ip.media.kyoto-u.ac.jp>
 - Source version 2.1.1
 
