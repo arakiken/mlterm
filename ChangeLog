@@ -1,4 +1,4 @@
-2004-10-21 Seiichi SATO <ssato@sh.rim.or.jp>
+2004-10-22 MINAMI Hirokazu <minami@mistfall.net>
 
         * kiklib/src/kik_net.h: when neither PF_LOCAL nor PF_UNIX was defined, 
 	use AF_LOCAL (which may be an alias of AF_UNIX) instead.
