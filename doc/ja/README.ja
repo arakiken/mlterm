@@ -259,6 +259,13 @@ comment $Id$
       o iso88591_font_for_usascii (true/*false*)
         US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
 
+      o compose_dec_special_font (true/*false*)
+	DEC_SPECIAL フォントの罫線文字のグリフを動的に合成
+
+	背景透過や壁紙を使用する場合、または、DEC_SPECIAL フォントの特殊文字を
+	使用する場合は、問題が生じますが、それ以外の使い方をされる方は、true に
+	設定することを推奨します。
+
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)
         背景透過する
@@ -571,6 +578,7 @@ comment $Id$
     -V/--varwidth(=bool): 可変長コラム幅を使用
     -W/--sep=value     : 単語の区切り文字
     -X/--openim(=bool) : 起動時に XIM を open
+    -Y/--decsp(=bool)  : DEC_SPECIAL フォントを動的合成
     -Z/--multicol(=bool): 全角文字の処理
     -a/--ac=value      : EastAsianWidth.txt の A プロパティ文字のコラム数
     -b/--bg=value      : 背景色

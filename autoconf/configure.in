@@ -140,7 +140,7 @@ else
 fi
 AC_SUBST(GTK_CONFIG)
 
-MAKE_DIRS="${TOPDIR}/src ${TOPDIR}/man ${TOPDIR}/etc ${TOPDIR}/scrollbar/sample ${MAKE_DIRS}"
+MAKE_DIRS="${TOPDIR}/src ${TOPDIR}/tool/mlclient ${TOPDIR}/man ${TOPDIR}/etc ${TOPDIR}/scrollbar/sample ${MAKE_DIRS}"
 AC_SUBST(MAKE_DIRS)
 
-AC_OUTPUT(Makefile ../src/Makefile ../tool/mlconfig/Makefile ../man/Makefile ../etc/Makefile ../scrollbar/sample/Makefile)
+AC_OUTPUT(Makefile ../src/Makefile ../tool/mlconfig/Makefile ../tool/mlclient/Makefile ../man/Makefile ../etc/Makefile ../scrollbar/sample/Makefile)

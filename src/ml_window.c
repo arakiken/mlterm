@@ -3239,7 +3239,27 @@ ml_window_draw_str(
 	u_int	height_to_baseline
 	)
 {
-	return  draw_str( win , NULL , chars , num_of_chars , x , y , height , height_to_baseline) ;
+	u_int  updated_width ;
+	
+	if( ! draw_str( win , &updated_width , chars , num_of_chars ,
+		x , y , height , height_to_baseline))
+	{
+		return  0 ;
+	}
+
+#if  1
+	if( x == 0)
+	{
+		ml_window_clear( win , - (int)win->margin , y , win->margin , height) ;
+	}
+	
+	if( updated_width >= win->width)
+	{
+		ml_window_clear( win , win->width + win->margin , y , win->margin , height) ;
+	}
+#endif
+
+	return  1 ;
 }
 
 int
@@ -3261,6 +3281,13 @@ ml_window_draw_str_to_eol(
 		return	0 ;
 	}
 
+#if  1
+	if( x == 0)
+	{
+		ml_window_clear( win , - (int)win->margin , y , win->margin , height) ;
+	}
+#endif
+	
 	if( updated_width < win->width)
 	{
 		ml_window_clear( win , updated_width , y , win->width - updated_width , height) ;

@@ -6394,7 +6394,7 @@ fi
 fi
 
 
-MAKE_DIRS="${TOPDIR}/src ${TOPDIR}/man ${TOPDIR}/etc ${TOPDIR}/scrollbar/sample ${MAKE_DIRS}"
+MAKE_DIRS="${TOPDIR}/src ${TOPDIR}/tool/mlclient ${TOPDIR}/man ${TOPDIR}/etc ${TOPDIR}/scrollbar/sample ${MAKE_DIRS}"
 
 
 trap '' 1 2 15
@@ -6510,7 +6510,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "Makefile ../src/Makefile ../tool/mlconfig/Makefile ../man/Makefile ../etc/Makefile ../scrollbar/sample/Makefile" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+trap 'rm -fr `echo "Makefile ../src/Makefile ../tool/mlconfig/Makefile ../tool/mlclient/Makefile ../man/Makefile ../etc/Makefile ../scrollbar/sample/Makefile" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -6635,7 +6635,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"Makefile ../src/Makefile ../tool/mlconfig/Makefile ../man/Makefile ../etc/Makefile ../scrollbar/sample/Makefile"}
+CONFIG_FILES=\${CONFIG_FILES-"Makefile ../src/Makefile ../tool/mlconfig/Makefile ../tool/mlclient/Makefile ../man/Makefile ../etc/Makefile ../scrollbar/sample/Makefile"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then

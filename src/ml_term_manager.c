@@ -11,7 +11,9 @@
 #include  <unistd.h>		/* getpid/select */
 #include  <sys/wait.h>		/* wait */
 #include  <signal.h>		/* kill */
-#include  <stdlib.h>		/* getenv() */
+#include  <stdlib.h>		/* getenv */
+#include  <sys/socket.h>	/* socket/bind/listen */
+#include  <sys/un.h>		/* sockaddr_un */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/kik_str_alloca_dup */
 #include  <kiklib/kik_path.h>	/* kik_basename */
@@ -110,19 +112,19 @@ open_new_term(
 		return  0 ;
 	}
 
-	if( term_man->not_use_unicode_font || term_man->iso88591_font_for_usascii)
+	if( term_man->conf.not_use_unicode_font || term_man->conf.iso88591_font_for_usascii)
 	{
 		usascii_font_cs = ml_get_usascii_font_cs( ML_ISO8859_1) ;
 		usascii_font_cs_changable = 0 ;
 	}
-	else if( term_man->only_use_unicode_font)
+	else if( term_man->conf.only_use_unicode_font)
 	{
 		usascii_font_cs = ml_get_usascii_font_cs( ML_UTF8) ;
 		usascii_font_cs_changable = 0 ;
 	}
 	else
 	{
-		usascii_font_cs = ml_get_usascii_font_cs( term_man->encoding) ;
+		usascii_font_cs = ml_get_usascii_font_cs( term_man->conf.encoding) ;
 		usascii_font_cs_changable = 1 ;
 	}
 	
@@ -133,9 +135,9 @@ open_new_term(
 	#else
 		NULL , NULL , NULL ,
 	#endif
-		term_man->font_size , term_man->line_space , usascii_font_cs ,
-		usascii_font_cs_changable , term_man->use_multi_col_char ,
-		term_man->step_in_changing_font_size)) == NULL)
+		term_man->conf.font_size , term_man->conf.line_space , usascii_font_cs ,
+		usascii_font_cs_changable , term_man->conf.use_multi_col_char ,
+		term_man->conf.step_in_changing_font_size)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_font_manager_new() failed.\n") ;
@@ -144,16 +146,20 @@ open_new_term(
 		goto  error ;
 	}
 
-	if( ( termscr = ml_term_screen_new( term_man->cols , term_man->rows , font_man ,
-		ml_color_table_new( &term_man->color_man , term_man->fg_color , term_man->bg_color) ,
-		term_man->brightness , term_man->fade_ratio , &term_man->keymap , &term_man->termcap ,
-		term_man->num_of_log_lines , term_man->tab_size ,
-		term_man->screen_width_ratio , term_man->screen_height_ratio ,
-		term_man->xim_open_in_startup , term_man->mod_meta_mode , term_man->bel_mode ,
-		term_man->copy_paste_via_ucs , term_man->pic_file_path ,
-		term_man->use_transbg , term_man->font_present , term_man->use_bidi ,
-		term_man->vertical_mode , term_man->use_vertical_cursor ,
-		term_man->big5_buggy , term_man->conf_menu_path , term_man->iscii_lang)) == NULL)
+	if( ( termscr = ml_term_screen_new( term_man->conf.cols , term_man->conf.rows , font_man ,
+		ml_color_table_new( &term_man->color_man ,
+			term_man->conf.fg_color , term_man->conf.bg_color) ,
+		term_man->conf.brightness , term_man->conf.fade_ratio ,
+		&term_man->keymap , &term_man->termcap ,
+		term_man->conf.num_of_log_lines , term_man->conf.tab_size ,
+		term_man->conf.screen_width_ratio , term_man->conf.screen_height_ratio ,
+		term_man->conf.xim_open_in_startup , term_man->conf.mod_meta_mode ,
+		term_man->conf.bel_mode , term_man->conf.copy_paste_via_ucs ,
+		term_man->conf.pic_file_path , term_man->conf.use_transbg ,
+		term_man->conf.font_present , term_man->conf.use_bidi ,
+		term_man->conf.vertical_mode , term_man->conf.use_vertical_cursor ,
+		term_man->conf.big5_buggy , term_man->conf.conf_menu_path ,
+		term_man->conf.iscii_lang)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_term_screen_new() failed.\n") ;
@@ -167,13 +173,13 @@ open_new_term(
 		goto  error ;
 	}
 
-	if( term_man->use_scrollbar)
+	if( term_man->conf.use_scrollbar)
 	{
-		if( ( sb_termscr = ml_sb_term_screen_new( termscr , term_man->scrollbar_view_name ,
+		if( ( sb_termscr = ml_sb_term_screen_new( termscr ,
+					term_man->conf.scrollbar_view_name ,
 					ml_color_table_new( &term_man->color_man ,
-						term_man->sb_fg_color , term_man->sb_bg_color) ,
-					term_man->sb_mode))
-					== NULL)
+						term_man->conf.sb_fg_color , term_man->conf.sb_bg_color) ,
+					term_man->conf.sb_mode)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_sb_term_screen_new() failed.\n") ;
@@ -190,9 +196,9 @@ open_new_term(
 		root = &termscr->window ;
 	}
 
-	if( ( vt100_parser = ml_vt100_parser_new( termscr , term_man->encoding ,
-		term_man->not_use_unicode_font , term_man->only_use_unicode_font ,
-		term_man->col_size_a)) == NULL)
+	if( ( vt100_parser = ml_vt100_parser_new( termscr , term_man->conf.encoding ,
+		term_man->conf.not_use_unicode_font , term_man->conf.only_use_unicode_font ,
+		term_man->conf.col_size_a)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_vt100_parser_new() failed.\n") ;
@@ -202,7 +208,7 @@ open_new_term(
 	}
 
 	if( ! ml_window_manager_show_root( &term_man->win_man , root ,
-		term_man->x , term_man->y , term_man->geom_hint))
+		term_man->conf.x , term_man->conf.y , term_man->conf.geom_hint))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_window_manager_show_root() failed.\n") ;
@@ -211,21 +217,21 @@ open_new_term(
 		goto  error ;
 	}
 
-	if( term_man->app_name)
+	if( term_man->conf.app_name)
 	{
-		ml_set_window_name( &termscr->window , term_man->app_name) ;
-		ml_set_icon_name( &termscr->window , term_man->icon_name) ;
+		ml_set_window_name( &termscr->window , term_man->conf.app_name) ;
+		ml_set_icon_name( &termscr->window , term_man->conf.icon_name) ;
 	}
 	else
 	{
-		if( term_man->title)
+		if( term_man->conf.title)
 		{
-			ml_set_window_name( &termscr->window , term_man->title) ;
+			ml_set_window_name( &termscr->window , term_man->conf.title) ;
 		}
 		
-		if( term_man->icon_name)
+		if( term_man->conf.icon_name)
 		{
-			ml_set_icon_name( &termscr->window , term_man->icon_name) ;
+			ml_set_icon_name( &termscr->window , term_man->conf.icon_name) ;
 		}
 	}
 
@@ -248,19 +254,20 @@ open_new_term(
 	}
 
 	/* "TERM="(5) + NULL(1) */
-	if( ( term = alloca( 5 + strlen( term_man->term_type) + 1)))
+	if( ( term = alloca( 5 + strlen( term_man->conf.term_type) + 1)))
 	{
-		sprintf( term , "TERM=%s" , term_man->term_type) ;
+		sprintf( term , "TERM=%s" , term_man->conf.term_type) ;
 		*(env_p ++) = term ;
 	}
 
 	/* NULL terminator */
 	*env_p = NULL ;
 	
-	if( term_man->cmd_path && term_man->cmd_argv)
+	if( term_man->conf.cmd_path && term_man->conf.cmd_argv)
 	{
-		if( ( pty = ml_pty_new( term_man->cmd_path , term_man->cmd_argv , env , disp_str ,
-			ml_term_screen_get_cols( termscr) , ml_term_screen_get_rows( termscr))) == NULL)
+		if( ( pty = ml_pty_new( term_man->conf.cmd_path , term_man->conf.cmd_argv ,
+				env , disp_str , ml_term_screen_get_cols( termscr) ,
+				ml_term_screen_get_rows( termscr))) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new() failed.\n") ;
@@ -305,7 +312,7 @@ open_new_term(
 			goto  error ;
 		}
 
-		if( term_man->use_login_shell)
+		if( term_man->conf.use_login_shell)
 		{
 			sprintf( cmd_argv[0] , "-%s" , cmd_file) ;
 		}
@@ -317,7 +324,8 @@ open_new_term(
 		cmd_argv[1] = NULL ;
 
 		if( ( pty = ml_pty_new( cmd_path , cmd_argv , env , disp_str ,
-			ml_term_screen_get_cols( termscr) , ml_term_screen_get_rows( termscr))) == NULL)
+			ml_term_screen_get_cols( termscr) ,
+			ml_term_screen_get_rows( termscr))) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new() failed.\n") ;
@@ -394,7 +402,7 @@ delete_term(
 
 	ml_font_manager_delete( term->font_man) ;
 
-	if( term_man->num_of_terms == 1)
+	if( term_man->num_of_terms == 1 && ! term_man->is_genuine_daemon)
 	{
 		exit( 0) ;
 	}
@@ -533,103 +541,92 @@ signal_dispatcher( int  sig)
 	kill( getpid() , sig) ;
 }
 
-static void
-receive_next_event(
+static int
+start_daemon(
 	ml_term_manager_t *  term_man
 	)
 {
-	int  counter ;
-	int  ptyfd ;
-	int  xfd ;
-	int  maxfd ;
-	int  ret ;
-	fd_set  read_fds ;
+	pid_t  pid ;
+	int  sock_fd ;
+	char *  path = "/tmp/mlterm.unix" ;
+	struct sockaddr_un  servaddr ;
 
-	struct timeval  tval ;
+	pid = fork() ;
 
+	if( pid == -1)
+	{
+		return  -1 ;
+	}
+
+	if( pid != 0)
+	{
+		exit(0) ;
+	}
+	
 	/*
-	 * flush buffer
+	 * child
 	 */
 
-	for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
+	/*
+	 * This process becomes a session leader and purged from control terminal.
+	 */
+	setsid() ;
+
+	/*
+	 * SIGHUP signal when the child process exits must not be sent to
+	 * the grandchild process.
+	 */
+	signal( SIGHUP , SIG_IGN) ;
+
+	pid = fork() ;
+
+	if( pid == -1)
 	{
-		ml_flush_pty( term_man->terms[counter].pty) ;
+		exit(1) ;
+	}
+
+	if( pid != 0)
+	{
+		exit(0) ;
+	}
+
+	/*
+	 * grandchild
+	 */
+
+	if( ( sock_fd = socket( AF_LOCAL , SOCK_STREAM , 0)) < 0)
+	{
+		return  -1 ;
+	}
+
+	unlink( path) ;
+
+	memset( &servaddr , 0 , sizeof( servaddr)) ;
+	servaddr.sun_family = AF_LOCAL ;
+	strcpy( servaddr.sun_path , path) ;
+
+	if( bind( sock_fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) < 0)
+	{
+		return  -1 ;
 	}
 	
-	while( 1)
+	if( listen( sock_fd , 1024) < 0)
 	{
-		/* on Linux tv_usec,tv_sec members are zero cleared after select() */
-		tval.tv_usec = 50000 ;	/* 0.05 sec */
-		tval.tv_sec = 0 ;
-
-		/* it is necessary to flush events here since some events may have happened in idling */
-		ml_window_manager_receive_next_event( &term_man->win_man) ;
-		
-		FD_ZERO( &read_fds) ;
-
-		maxfd = xfd = XConnectionNumber( term_man->win_man.display) ;
-		FD_SET( xfd , &read_fds) ;
-
-		for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
-		{
-			ptyfd = term_man->terms[counter].pty->fd ;
-			FD_SET( ptyfd , &read_fds) ;
-
-			if( ptyfd > maxfd)
-			{
-				maxfd = ptyfd ;
-			}
-		}
-
-		if( ( ret = select( maxfd + 1 , &read_fds , NULL , NULL , &tval)) != 0)
-		{
-			break ;
-		}
-		
-		ml_window_manager_idling( &term_man->win_man) ;
-	}
-	
-	if( ret < 0)
-	{
-		/* error happened */
-		
-		return ;
+		return  -1 ;
 	}
 
-	if( FD_ISSET( xfd , &read_fds))
-	{
-		ml_window_manager_receive_next_event( &term_man->win_man) ;
-	}
-
-	for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
-	{
-		if( FD_ISSET( term_man->terms[counter].pty->fd , &read_fds))
-		{
-			ml_parse_vt100_sequence( term_man->terms[counter].vt100_parser) ;
-		}
-	}
+	return  sock_fd ;
 }
 
-
-/* --- global functions --- */
-
-int
-ml_term_manager_init(
-	ml_term_manager_t *  term_man ,
+static kik_conf_t *
+get_conf(
 	int  argc ,
 	char **  argv
 	)
 {
 	kik_conf_t *  conf ;
-	int  use_xim ;
 	char *  rcpath ;
-	u_int  min_font_size ;
-	u_int  max_font_size ;
-	char *  font_rcfile ;
-	char *  value ;
-	char *  kterm = "kterm" ;
-	char *  xterm = "xterm" ;
-
+	
 	if( ( conf = kik_conf_new( "mlterm" ,
 		MAJOR_VERSION , MINOR_VERSION , REVISION , PATCH_LEVEL)) == NULL)
 	{
@@ -637,7 +634,7 @@ ml_term_manager_init(
 		kik_warn_printf( KIK_DEBUG_TAG " kik_conf_new() failed.\n") ;
 	#endif
 	
-		return  0 ;
+		return  NULL ;
 	}
 
 	/*
@@ -751,6 +748,8 @@ ml_term_manager_init(
 		"size (in characters) and position") ;
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
 		"use XIM (X Input Method)") ;
+	kik_conf_add_opt( conf , 'j' , "daemon" , 0 , "daemon_mode" ,
+		"start as a daemon") ;
 	kik_conf_add_opt( conf , 'k' , "meta" , 0 , "mod_meta_mode" , 
 		"mode in pressing meta key") ;
 	kik_conf_add_opt( conf , 'l' , "sl" , 0 , "logsize" , 
@@ -783,8 +782,883 @@ ml_term_manager_init(
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
 
+	return  conf ;	
+}
+
+static int
+config_init(
+	ml_term_manager_t *  term_man ,
+	kik_conf_t *  conf ,
+	int  argc ,
+	char **  argv
+	)
+{
+	char *  kterm = "kterm" ;
+	char *  xterm = "xterm" ;
+	char *  value ;
+	
+	if( ( value = kik_conf_get_value( conf , "fontsize")) == NULL)
+	{
+		term_man->conf.font_size = 16 ;
+	}
+	else if( ! kik_str_to_uint( &term_man->conf.font_size , value))
+	{
+		kik_msg_printf( "font size %s is not valid.\n" , value) ;
+
+		/* default value is used. */
+		term_man->conf.font_size = 16 ;
+	}
+
+	if( term_man->conf.font_size > term_man->normal_font_custom.max_font_size)
+	{
+		kik_msg_printf( "font size %d is too large. %d is used.\n" ,
+			term_man->conf.font_size , term_man->normal_font_custom.max_font_size) ;
+		
+		term_man->conf.font_size = term_man->normal_font_custom.max_font_size ;
+	}
+	else if( term_man->conf.font_size < term_man->normal_font_custom.min_font_size)
+	{
+		kik_msg_printf( "font size %d is too small. %d is used.\n" ,
+			term_man->conf.font_size , term_man->normal_font_custom.min_font_size) ;
+			
+		term_man->conf.font_size = term_man->normal_font_custom.min_font_size ;
+	}
+
+	term_man->conf.app_name = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "app_name")))
+	{
+		term_man->conf.app_name = strdup( value) ;
+	}
+
+	term_man->conf.title = NULL ;
+	
+	if( ( value = kik_conf_get_value( conf , "title")))
+	{
+		term_man->conf.title = strdup( value) ;
+	}
+
+	term_man->conf.icon_name = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "icon_name")))
+	{
+		term_man->conf.icon_name = strdup( value) ;
+	}
+	
+	term_man->conf.conf_menu_path = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "conf_menu_path")))
+	{
+		term_man->conf.conf_menu_path = strdup( value) ;
+	}
+
+	/* use default value */
+	term_man->conf.scrollbar_view_name = NULL ;
+	
+	if( ( value = kik_conf_get_value( conf , "scrollbar_view_name")))
+	{
+		term_man->conf.scrollbar_view_name = strdup( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_combining")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			ml_use_char_combining() ;
+		}
+	}
+	else
+	{
+		/* combining is used as default */
+		ml_use_char_combining() ;
+	}
+
+	term_man->conf.font_present = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_variable_column_width")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.font_present |= FONT_VAR_WIDTH ;
+		}
+	}
+
+	term_man->conf.step_in_changing_font_size = 1 ;
+	
+	if( ( value = kik_conf_get_value( conf , "step_in_changing_font_size")))
+	{
+		u_int  size ;
+		
+		if( kik_str_to_uint( &size , value))
+		{
+			term_man->conf.step_in_changing_font_size = size ;
+		}
+		else
+		{
+			kik_msg_printf( "step in changing font size %s is not valid.\n" , value) ;
+		}
+	}
+
+#ifdef  ANTI_ALIAS
+	term_man->conf.font_present &= ~FONT_AA ;
+	
+	if( ( value = kik_conf_get_value( conf , "use_anti_alias")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.font_present |= FONT_AA ;
+		}
+	}
+#endif
+
+	term_man->conf.fg_color = MLC_BLACK ;
+	
+	if( ( value = kik_conf_get_value( conf , "fg_color")))
+	{
+		ml_color_t  fg_color ;
+
+		if( ( fg_color = ml_get_color( value)) != MLC_UNKNOWN_COLOR)
+		{
+			term_man->conf.fg_color = fg_color ;
+		}
+	}
+
+	term_man->conf.bg_color = MLC_WHITE ;
+	
+	if( ( value = kik_conf_get_value( conf , "bg_color")))
+	{
+		ml_color_t  bg_color ;
+
+		if( ( bg_color = ml_get_color( value)) != MLC_UNKNOWN_COLOR)
+		{
+			term_man->conf.bg_color = bg_color ;
+		}
+	}
+
+	if( term_man->conf.fg_color == term_man->conf.bg_color)
+	{
+		u_short  red ;
+		u_short  blue ;
+		u_short  green ;
+		
+		kik_msg_printf( "fg and bg colors are the same. is this ok ?\n") ;
+		
+		/*
+		 * if fg and bg colors are the same , users will want to see characters anyway.
+		 */
+		
+		ml_get_color_rgb( &term_man->color_man , &red , &blue , &green , term_man->conf.fg_color) ;
+
+		red = (red > 0x8000) ? 0x0 : 0xffff ;
+		green = (green > 0x8000) ? 0x0 : 0xffff ;
+		blue = (blue > 0x8000) ? 0x0 : 0xffff ;
+		
+		ml_color_manager_change_rgb( &term_man->color_man , MLC_PRIVATE_BG_COLOR ,
+			red , blue , green) ;
+		
+		term_man->conf.bg_color = MLC_PRIVATE_BG_COLOR ;
+	}
+	
+	if( ( value = kik_conf_get_value( conf , "sb_fg_color")))
+	{
+		term_man->conf.sb_fg_color = ml_get_color( value) ;
+	}
+	else
+	{
+		term_man->conf.sb_fg_color = MLC_UNKNOWN_COLOR ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "sb_bg_color")))
+	{
+		term_man->conf.sb_bg_color = ml_get_color( value) ;
+	}
+	else
+	{
+		term_man->conf.sb_bg_color = MLC_UNKNOWN_COLOR ;
+	}
+	
+	if( ( value = kik_conf_get_value( conf , "termtype")))
+	{
+		if( strcasecmp( value , kterm) == 0)
+		{
+			term_man->conf.term_type = kterm ;
+		}
+		else if( strcasecmp( value , xterm) == 0)
+		{
+			term_man->conf.term_type = xterm ;
+		}
+		else
+		{
+			kik_msg_printf(
+				"supported terminal types are only xterm or kterm , xterm is used.\n") ;
+
+			term_man->conf.term_type = xterm ;
+		}
+	}
+	else
+	{
+		term_man->conf.term_type = xterm ;
+	}
+	
+	term_man->conf.x = 0 ;
+	term_man->conf.y = 0 ;
+	term_man->conf.cols = 80 ;
+	term_man->conf.rows = 30 ;
+	if( ( value = kik_conf_get_value( conf , "geometry")))
+	{
+		/* For each value not found, the argument is left unchanged.(see man XParseGeometry(3)) */
+		term_man->conf.geom_hint = XParseGeometry( value , &term_man->conf.x , &term_man->conf.y ,
+						&term_man->conf.cols , &term_man->conf.rows) ;
+
+		if( term_man->conf.cols == 0 || term_man->conf.rows == 0)
+		{
+			kik_msg_printf( "geometry option %s is illegal.\n" , value) ;
+			
+			term_man->conf.cols = 80 ;
+			term_man->conf.rows = 30 ;
+		}
+	}
+	else
+	{
+		term_man->conf.geom_hint = 0 ;
+	}
+
+	term_man->conf.screen_width_ratio = 100 ;
+	
+	if( ( value = kik_conf_get_value( conf , "screen_width_ratio")))
+	{
+		u_int  ratio ;
+
+		if( kik_str_to_uint( &ratio , value))
+		{
+			term_man->conf.screen_width_ratio = ratio ;
+		}
+	}
+
+	term_man->conf.screen_height_ratio = 100 ;
+	
+	if( ( value = kik_conf_get_value( conf , "screen_height_ratio")))
+	{
+		u_int  ratio ;
+
+		if( kik_str_to_uint( &ratio , value))
+		{
+			term_man->conf.screen_height_ratio = ratio ;
+		}
+	}
+	
+	term_man->conf.use_multi_col_char = 1 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_multi_column_char")))
+	{
+		if( strcmp( value , "false") == 0)
+		{
+			term_man->conf.use_multi_col_char = 0 ;
+		}
+	}
+
+	term_man->conf.line_space = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "line_space")))
+	{
+		u_int  size ;
+
+		if( kik_str_to_uint( &size , value))
+		{
+			term_man->conf.line_space = size ;
+		}
+		else
+		{
+			kik_msg_printf( "line space %s is not valid.\n" , value) ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "logsize")) == NULL)
+	{
+		term_man->conf.num_of_log_lines = 128 ;
+	}
+	else if( ! kik_str_to_uint( &term_man->conf.num_of_log_lines , value))
+	{
+		kik_msg_printf( "log size %s is not valid.\n" , value) ;
+
+		/* default value is used. */
+		term_man->conf.num_of_log_lines = 128 ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "tabsize")) == NULL)
+	{
+		/* default value is used. */
+		term_man->conf.tab_size = 8 ;
+	}
+	else if( ! kik_str_to_uint( &term_man->conf.tab_size , value))
+	{
+		kik_msg_printf( "tab size %s is not valid.\n" , value) ;
+
+		/* default value is used. */
+		term_man->conf.tab_size = 8 ;
+	}
+	
+	term_man->conf.use_login_shell = 0 ;
+	
+	if( ( value = kik_conf_get_value( conf , "use_login_shell")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.use_login_shell = 1 ;
+		}
+	}
+
+	term_man->conf.big5_buggy = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "big5_buggy")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.big5_buggy = 1 ;
+		}
+	}
+
+	term_man->conf.use_scrollbar = 1 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_scrollbar")))
+	{
+		if( strcmp( value , "false") == 0)
+		{
+			term_man->conf.use_scrollbar = 0 ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "scrollbar_mode")))
+	{
+		term_man->conf.sb_mode = ml_get_sb_mode( value) ;
+	}
+	else
+	{
+		term_man->conf.sb_mode = SB_LEFT ;
+	}
+
+	term_man->conf.iso88591_font_for_usascii = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "iso88591_font_for_usascii")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.iso88591_font_for_usascii = 1 ;
+		}
+	}
+
+	term_man->conf.not_use_unicode_font = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "not_use_unicode_font")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.not_use_unicode_font = 1 ;
+		}
+	}
+
+	term_man->conf.only_use_unicode_font = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "only_use_unicode_font")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.only_use_unicode_font = 1 ;
+		}
+	}
+
+	if( term_man->conf.only_use_unicode_font && term_man->conf.not_use_unicode_font)
+	{
+		kik_msg_printf(
+			"only_use_unicode_font and not_use_unicode_font options cannot be used "
+			"at the same time.\n") ;
+
+		/* default values are used */
+		term_man->conf.only_use_unicode_font = 0 ;
+		term_man->conf.not_use_unicode_font = 0 ;
+	}
+
+	term_man->conf.copy_paste_via_ucs = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "copy_paste_via_ucs")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.copy_paste_via_ucs = 1 ;
+		}
+	}
+	
+	/* default value is used */
+	term_man->conf.col_size_a = 1 ;
+	
+	if( ( value = kik_conf_get_value( conf , "col_size_of_width_a")))
+	{
+		u_int  col_size_a ;
+		
+		if( kik_str_to_uint( &col_size_a , value))
+		{
+			term_man->conf.col_size_a = col_size_a ;
+		}
+		else
+		{
+			kik_msg_printf( "col size of width a %s is not valid.\n" , value) ;
+		}
+	}
+
+	term_man->conf.pic_file_path = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "wall_picture")))
+	{
+		term_man->conf.pic_file_path = strdup( value) ;
+	}
+
+	term_man->conf.use_transbg = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_transbg")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.use_transbg = 1 ;
+		}
+	}
+
+	if( term_man->conf.pic_file_path && term_man->conf.use_transbg)
+	{
+		kik_msg_printf(
+			"wall picture and transparent background cannot be used at the same time.\n") ;
+
+		/* using wall picture */
+		term_man->conf.use_transbg = 0 ;
+	}
+
+	term_man->conf.brightness = 100 ;
+
+	if( ( value = kik_conf_get_value( conf , "brightness")))
+	{
+		u_int  brightness ;
+		
+		if( kik_str_to_uint( &brightness , value))
+		{
+			term_man->conf.brightness = brightness ;
+		}
+		else
+		{
+			kik_msg_printf( "shade ratio %s is not valid.\n" , value) ;
+		}
+	}
+	
+	term_man->conf.fade_ratio = 100 ;
+	
+	if( ( value = kik_conf_get_value( conf , "fade_ratio")))
+	{
+		u_int  fade_ratio ;
+		
+		if( kik_str_to_uint( &fade_ratio , value))
+		{
+			term_man->conf.fade_ratio = fade_ratio ;
+		}
+		else
+		{
+			kik_msg_printf( "fade ratio %s is not valid.\n" , value) ;
+		}
+	}
+
+	if( ( term_man->conf.encoding = ml_get_char_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING)
+	{
+		term_man->conf.encoding = ML_ISO8859_1 ;
+	}
+	
+	if( ( value = kik_conf_get_value( conf , "ENCODING")))
+	{
+		ml_char_encoding_t  encoding ;
+
+		if( strcasecmp( value , "AUTO") != 0)
+		{
+			if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
+			{
+				kik_msg_printf(
+					"%s encoding is not supported. Auto detected encoding is used.\n" ,
+					value) ;
+			}
+			else
+			{
+				term_man->conf.encoding = encoding ;
+			}
+		}
+	}
+
+	term_man->conf.xim_open_in_startup = 1 ;
+	
+	if( ( value = kik_conf_get_value( conf , "xim_open_in_startup")))
+	{
+		if( strcmp( value , "false") == 0)
+		{
+			term_man->conf.xim_open_in_startup = 0 ;
+		}
+	}
+
+	term_man->conf.use_bidi = 1 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_bidi")))
+	{
+		if( strcmp( value , "false") == 0)
+		{
+			term_man->conf.use_bidi = 0 ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "mod_meta_mode")))
+	{
+		term_man->conf.mod_meta_mode = ml_get_mod_meta_mode( value) ;
+	}
+	else
+	{
+		term_man->conf.mod_meta_mode = MOD_META_NONE ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "bel_mode")))
+	{
+		term_man->conf.bel_mode = ml_get_bel_mode( value) ;
+	}
+	else
+	{
+		term_man->conf.bel_mode = BEL_SOUND ;
+	}
+
+	term_man->conf.vertical_mode = 0 ;
+	
+	if( ( value = kik_conf_get_value( conf , "vertical_mode")))
+	{
+		term_man->conf.vertical_mode = ml_get_vertical_mode( value) ;
+	}
+
+	term_man->conf.use_vertical_cursor = 0 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_vertical_cursor")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			term_man->conf.use_vertical_cursor = 1 ;
+		}
+	}
+	
+	term_man->conf.iscii_lang = ISCIILANG_MALAYALAM ;
+	
+	if( ( value = kik_conf_get_value( conf , "iscii_lang")))
+	{
+		ml_iscii_lang_t  lang ;
+		
+		if( ( lang = ml_iscii_get_lang( strdup( value))) != ISCIILANG_UNKNOWN)
+		{
+			term_man->conf.iscii_lang = lang ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , "true") == 0)
+	{
+		if( ( term_man->conf.cmd_argv = alloca( sizeof( char*) * (argc + 2))) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+		#endif
+		
+			term_man->conf.cmd_path = NULL ;
+			term_man->conf.cmd_argv = NULL ;
+		}
+		else
+		{
+			/*
+			 * !! Notice !!
+			 * cmd_path and strings in cmd_argv vector should be allocated
+			 * by the caller.
+			 */
+			 
+			term_man->conf.cmd_path = argv[0] ;
+			
+			memcpy( &term_man->conf.cmd_argv[0] , argv , sizeof( char*) * argc) ;
+			term_man->conf.cmd_argv[argc + 1] = NULL ;
+		}
+	}
+	else
+	{
+		term_man->conf.cmd_path = NULL ;
+		term_man->conf.cmd_argv = NULL ;
+	}
+	
+	return  1 ;
+}
+
+static int
+config_final(
+	ml_term_manager_t *  term_man
+	)
+{
+	free( term_man->conf.app_name) ;
+	free( term_man->conf.title) ;
+	free( term_man->conf.icon_name) ;
+	free( term_man->conf.conf_menu_path) ;
+	free( term_man->conf.pic_file_path) ;
+	free( term_man->conf.scrollbar_view_name) ;
+	free( term_man->conf.cmd_argv) ;
+
+	return  1 ;
+}
+
+static void
+client_connected(
+	ml_term_manager_t *  term_man
+	)
+{
+	struct sockaddr_un  addr ;
+	socklen_t  sock_len ;
+	int  fd ;
+	FILE *  fp ;
+	kik_file_t *  from ;
+	char *  line ;
+	size_t  line_len ;
+	char *  args ;
+	char **  argv ;
+	int  argc ;
+	kik_conf_t *  conf ;
+	struct ml_config  orig_conf ;
+
+	if( ( fd = accept( term_man->sock_fd , (struct sockaddr *) &addr , &sock_len)) < 0)
+	{
+		return ;
+	}
+
+	if( ( fp = fdopen( fd , "r")) == NULL)
+	{
+		close( fd) ;
+		
+		return ;
+	}
+
+	if( ( from = kik_file_new( fp)) == NULL)
+	{
+		fclose( fp) ;
+	
+		return ;
+	}
+
+	if( ( line = kik_file_get_line( from , &line_len)) == NULL)
+	{
+		kik_file_delete( from) ;
+		fclose( fp) ;
+
+		return ;
+	}
+
+	if( ( args = alloca( line_len)) == NULL)
+	{
+		return ;
+	}
+
+	/* replacing '\n' by '\0' */
+	args[line_len - 1] = '\0' ;
+	strncpy( args , line , line_len - 1) ;
+
+	kik_file_delete( from) ;
+	fclose( fp) ;
+
+
+	/*
+	 * parsing options.
+	 */
+
+	argc = 0 ;
+	if( ( argv = alloca( sizeof( char*) * line_len)) == NULL)
+	{
+		return ;
+	}
+
+	while( ( argv[argc] = kik_str_sep( &args , " \t")))
+	{
+		argc ++ ;
+	}
+
+	if( ( conf = get_conf( argc , argv)) == NULL)
+	{
+		return ;
+	}
+
+#ifdef  __DEBUG
+	{
+		int  i ;
+
+		for( i = 0 ; i < argc ; i ++)
+		{
+			kik_msg_printf( "%s\n" , argv[i]) ;
+		}
+	}
+#endif
+
 	kik_conf_parse_args( conf , &argc , &argv) ;
 
+	orig_conf = term_man->conf ;
+	
+	config_init( term_man , conf , argc , argv) ;
+
+	open_new_term( term_man) ;
+
+	config_final( term_man) ;
+
+	term_man->conf = orig_conf ;
+}
+
+static void
+receive_next_event(
+	ml_term_manager_t *  term_man
+	)
+{
+	int  counter ;
+	int  ptyfd ;
+	int  xfd ;
+	int  maxfd ;
+	int  ret ;
+	fd_set  read_fds ;
+
+	struct timeval  tval ;
+
+	/*
+	 * flush buffer
+	 */
+
+	for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
+	{
+		ml_flush_pty( term_man->terms[counter].pty) ;
+	}
+	
+	while( 1)
+	{
+		/* on Linux tv_usec,tv_sec members are zero cleared after select() */
+		tval.tv_usec = 50000 ;	/* 0.05 sec */
+		tval.tv_sec = 0 ;
+
+		/* it is necessary to flush events here since some events may have happened in idling */
+		ml_window_manager_receive_next_event( &term_man->win_man) ;
+		
+		FD_ZERO( &read_fds) ;
+
+		maxfd = xfd = XConnectionNumber( term_man->win_man.display) ;
+		FD_SET( xfd , &read_fds) ;
+
+		for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
+		{
+			ptyfd = term_man->terms[counter].pty->fd ;
+			FD_SET( ptyfd , &read_fds) ;
+
+			if( ptyfd > maxfd)
+			{
+				maxfd = ptyfd ;
+			}
+		}
+
+		if( term_man->sock_fd >= 0)
+		{
+			FD_SET( term_man->sock_fd , &read_fds) ;
+			
+			if( term_man->sock_fd > maxfd)
+			{
+				maxfd = term_man->sock_fd ;
+			}
+		}
+
+		if( ( ret = select( maxfd + 1 , &read_fds , NULL , NULL , &tval)) != 0)
+		{
+			break ;
+		}
+		
+		ml_window_manager_idling( &term_man->win_man) ;
+	}
+	
+	if( ret < 0)
+	{
+		/* error happened */
+		
+		return ;
+	}
+
+	if( FD_ISSET( xfd , &read_fds))
+	{
+		ml_window_manager_receive_next_event( &term_man->win_man) ;
+	}
+
+	for( counter = 0 ; counter < term_man->num_of_terms ; counter ++)
+	{
+		if( FD_ISSET( term_man->terms[counter].pty->fd , &read_fds))
+		{
+			ml_parse_vt100_sequence( term_man->terms[counter].vt100_parser) ;
+		}
+	}
+
+	if( term_man->sock_fd >= 0)
+	{
+		if( FD_ISSET( term_man->sock_fd , &read_fds))
+		{
+			client_connected( term_man) ;
+		}
+	}
+}
+
+
+/* --- global functions --- */
+
+int
+ml_term_manager_init(
+	ml_term_manager_t *  term_man ,
+	int  argc ,
+	char **  argv
+	)
+{
+	kik_conf_t *  conf ;
+	int  use_xim ;
+	u_int  min_font_size ;
+	u_int  max_font_size ;
+	char *  font_rcfile ;
+	char *  rcpath ;
+	char *  value ;
+
+	if( ( conf = get_conf( argc , argv)) == NULL)
+	{
+		return  0 ;
+	}
+
+	kik_conf_parse_args( conf , &argc , &argv) ;
+
+	/*
+	 * daemon
+	 */
+
+	term_man->is_genuine_daemon = 0 ;
+	term_man->sock_fd = -1 ;
+	
+	if( ( value = kik_conf_get_value( conf , "daemon_mode")))
+	{
+		if( strcmp( value , "genuine") == 0)
+		{
+			if( ( term_man->sock_fd = start_daemon( term_man)) < 0)
+			{
+				kik_msg_printf( "mlterm failed to be daemon.\n") ;
+			}
+			else
+			{
+				term_man->is_genuine_daemon = 1 ;
+			}
+		}
+		else if( strcmp( value , "blend") == 0)
+		{
+			if( ( term_man->sock_fd = start_daemon( term_man)) < 0)
+			{
+				kik_msg_printf( "mlterm failed to be daemon.\n") ;
+			}
+		}
+	#if  0
+		else if( strcmp( value , "none")
+		{
+		}
+	#endif
+	}
 
 	/*
 	 * window manager
@@ -816,11 +1690,10 @@ ml_term_manager_init(
 		}
 	}
 
-	
 	/*
-	 * font
+	 * font manager
 	 */
-
+	
 	if( ( value = kik_conf_get_value( conf , "font_size_range")))
 	{
 		if( ! get_font_size_range( &min_font_size , &max_font_size , value))
@@ -838,7 +1711,6 @@ ml_term_manager_init(
 		min_font_size = 6 ;
 		max_font_size = 30 ;
 	}
-
 
 	if( ! ml_font_custom_init( &term_man->normal_font_custom , min_font_size , max_font_size))
 	{
@@ -992,16 +1864,6 @@ ml_term_manager_init(
 	}
 #endif
 		
-	term_man->font_present = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "use_variable_column_width")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->font_present |= FONT_VAR_WIDTH ;
-		}
-	}
-
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -1010,58 +1872,7 @@ ml_term_manager_init(
 		}
 	}
 
-	if( ( value = kik_conf_get_value( conf , "fontsize")) == NULL)
-	{
-		term_man->font_size = 16 ;
-	}
-	else if( ! kik_str_to_uint( &term_man->font_size , value))
-	{
-		kik_msg_printf( "font size %s is not valid.\n" , value) ;
-
-		/* default value is used. */
-		term_man->font_size = 16 ;
-	}
-
-	if( term_man->font_size > max_font_size)
-	{
-		kik_msg_printf( "font size %d is too large. %d is used.\n" ,
-			term_man->font_size , max_font_size) ;
-		
-		term_man->font_size = max_font_size ;
-	}
-	else if( term_man->font_size < min_font_size)
-	{
-		kik_msg_printf( "font size %d is too small. %d is used.\n" ,
-			term_man->font_size , min_font_size) ;
-			
-		term_man->font_size = min_font_size ;
-	}
-
-	term_man->step_in_changing_font_size = 1 ;
-	
-	if( ( value = kik_conf_get_value( conf , "step_in_changing_font_size")))
-	{
-		u_int  size ;
-		
-		if( kik_str_to_uint( &size , value))
-		{
-			term_man->step_in_changing_font_size = size ;
-		}
-		else
-		{
-			kik_msg_printf( "step in changing font size %s is not valid.\n" , value) ;
-		}
-	}
-
 #ifdef  ANTI_ALIAS
-	if( ( value = kik_conf_get_value( conf , "use_anti_alias")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->font_present |= FONT_AA ;
-		}
-	}
-
 	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")) == NULL ||
 		strcmp( value , "true") == 0)
 	{
@@ -1070,7 +1881,7 @@ ml_term_manager_init(
 #endif
 
 	/*
-	 * color
+	 * color manager
 	 */
 	
 	if( ! ml_color_manager_init( &term_man->color_man ,
@@ -1104,72 +1915,6 @@ ml_term_manager_init(
 	#endif
 	
 		return  0 ;
-	}
-
-	term_man->fg_color = MLC_BLACK ;
-	
-	if( ( value = kik_conf_get_value( conf , "fg_color")))
-	{
-		ml_color_t  fg_color ;
-
-		if( ( fg_color = ml_get_color( value)) != MLC_UNKNOWN_COLOR)
-		{
-			term_man->fg_color = fg_color ;
-		}
-	}
-
-	term_man->bg_color = MLC_WHITE ;
-	
-	if( ( value = kik_conf_get_value( conf , "bg_color")))
-	{
-		ml_color_t  bg_color ;
-
-		if( ( bg_color = ml_get_color( value)) != MLC_UNKNOWN_COLOR)
-		{
-			term_man->bg_color = bg_color ;
-		}
-	}
-
-	if( term_man->fg_color == term_man->bg_color)
-	{
-		u_short  red ;
-		u_short  blue ;
-		u_short  green ;
-		
-		kik_msg_printf( "fg and bg colors are the same. is this ok ?\n") ;
-		
-		/*
-		 * if fg and bg colors are the same , users will want to see characters anyway.
-		 */
-		
-		ml_get_color_rgb( &term_man->color_man , &red , &blue , &green , term_man->fg_color) ;
-
-		red = (red > 0x8000) ? 0x0 : 0xffff ;
-		green = (green > 0x8000) ? 0x0 : 0xffff ;
-		blue = (blue > 0x8000) ? 0x0 : 0xffff ;
-		
-		ml_color_manager_change_rgb( &term_man->color_man , MLC_PRIVATE_BG_COLOR ,
-			red , blue , green) ;
-		
-		term_man->bg_color = MLC_PRIVATE_BG_COLOR ;
-	}
-	
-	if( ( value = kik_conf_get_value( conf , "sb_fg_color")))
-	{
-		term_man->sb_fg_color = ml_get_color( value) ;
-	}
-	else
-	{
-		term_man->sb_fg_color = MLC_UNKNOWN_COLOR ;
-	}
-
-	if( ( value = kik_conf_get_value( conf , "sb_bg_color")))
-	{
-		term_man->sb_bg_color = ml_get_color( value) ;
-	}
-	else
-	{
-		term_man->sb_bg_color = MLC_UNKNOWN_COLOR ;
 	}
 
 	/*
@@ -1222,424 +1967,9 @@ ml_term_manager_init(
 		free( rcpath) ;
 	}
 	
-
 	/*
-	 * miscellaneous
+	 * others
 	 */
-
-	if( ( value = kik_conf_get_value( conf , "termtype")))
-	{
-		if( strcasecmp( value , kterm) == 0)
-		{
-			term_man->term_type = kterm ;
-		}
-		else if( strcasecmp( value , xterm) == 0)
-		{
-			term_man->term_type = xterm ;
-		}
-		else
-		{
-			kik_msg_printf(
-				"supported terminal types are only xterm or kterm , xterm is used.\n") ;
-
-			term_man->term_type = xterm ;
-		}
-	}
-	else
-	{
-		term_man->term_type = xterm ;
-	}
-
-	term_man->app_name = NULL ;
-
-	if( ( value = kik_conf_get_value( conf , "app_name")))
-	{
-		term_man->app_name = strdup( value) ;
-	}
-
-	term_man->title = NULL ;
-	
-	if( ( value = kik_conf_get_value( conf , "title")))
-	{
-		term_man->title = strdup( value) ;
-	}
-
-	term_man->icon_name = NULL ;
-
-	if( ( value = kik_conf_get_value( conf , "icon_name")))
-	{
-		term_man->icon_name = strdup( value) ;
-	}
-	
-	/* use default value */
-	term_man->scrollbar_view_name = NULL ;
-	
-	if( ( value = kik_conf_get_value( conf , "scrollbar_view_name")))
-	{
-		term_man->scrollbar_view_name = strdup( value) ;
-	}
-
-	if( ( value = kik_conf_get_value( conf , "use_combining")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			ml_use_char_combining() ;
-		}
-	}
-	else
-	{
-		/* combining is used as default */
-		ml_use_char_combining() ;
-	}
-
-	term_man->x = 0 ;
-	term_man->y = 0 ;
-	term_man->cols = 80 ;
-	term_man->rows = 30 ;
-	if( ( value = kik_conf_get_value( conf , "geometry")))
-	{
-		/* For each value not found, the argument is left unchanged.(see man XParseGeometry(3)) */
-		term_man->geom_hint = XParseGeometry( value , &term_man->x , &term_man->y ,
-						&term_man->cols , &term_man->rows) ;
-
-		if( term_man->cols == 0 || term_man->rows == 0)
-		{
-			kik_msg_printf( "geometry option %s is illegal.\n" , value) ;
-			
-			term_man->cols = 80 ;
-			term_man->rows = 30 ;
-		}
-	}
-	else
-	{
-		term_man->geom_hint = 0 ;
-	}
-
-	term_man->screen_width_ratio = 100 ;
-	
-	if( ( value = kik_conf_get_value( conf , "screen_width_ratio")))
-	{
-		u_int  ratio ;
-
-		if( kik_str_to_uint( &ratio , value))
-		{
-			term_man->screen_width_ratio = ratio ;
-		}
-	}
-
-	term_man->screen_height_ratio = 100 ;
-	
-	if( ( value = kik_conf_get_value( conf , "screen_height_ratio")))
-	{
-		u_int  ratio ;
-
-		if( kik_str_to_uint( &ratio , value))
-		{
-			term_man->screen_height_ratio = ratio ;
-		}
-	}
-	
-	term_man->use_multi_col_char = 1 ;
-
-	if( ( value = kik_conf_get_value( conf , "use_multi_column_char")))
-	{
-		if( strcmp( value , "false") == 0)
-		{
-			term_man->use_multi_col_char = 0 ;
-		}
-	}
-
-	term_man->line_space = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "line_space")))
-	{
-		u_int  size ;
-
-		if( kik_str_to_uint( &size , value))
-		{
-			term_man->line_space = size ;
-		}
-		else
-		{
-			kik_msg_printf( "line space %s is not valid.\n" , value) ;
-		}
-	}
-
-	if( ( value = kik_conf_get_value( conf , "logsize")) == NULL)
-	{
-		term_man->num_of_log_lines = 128 ;
-	}
-	else if( ! kik_str_to_uint( &term_man->num_of_log_lines , value))
-	{
-		kik_msg_printf( "log size %s is not valid.\n" , value) ;
-
-		/* default value is used. */
-		term_man->num_of_log_lines = 128 ;
-	}
-
-	if( ( value = kik_conf_get_value( conf , "tabsize")) == NULL)
-	{
-		/* default value is used. */
-		term_man->tab_size = 8 ;
-	}
-	else if( ! kik_str_to_uint( &term_man->tab_size , value))
-	{
-		kik_msg_printf( "tab size %s is not valid.\n" , value) ;
-
-		/* default value is used. */
-		term_man->tab_size = 8 ;
-	}
-	
-	term_man->use_login_shell = 0 ;
-	
-	if( ( value = kik_conf_get_value( conf , "use_login_shell")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->use_login_shell = 1 ;
-		}
-	}
-
-	term_man->big5_buggy = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "big5_buggy")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->big5_buggy = 1 ;
-		}
-	}
-
-	term_man->use_scrollbar = 1 ;
-
-	if( ( value = kik_conf_get_value( conf , "use_scrollbar")))
-	{
-		if( strcmp( value , "false") == 0)
-		{
-			term_man->use_scrollbar = 0 ;
-		}
-	}
-
-	if( ( value = kik_conf_get_value( conf , "scrollbar_mode")))
-	{
-		term_man->sb_mode = ml_get_sb_mode( value) ;
-	}
-	else
-	{
-		term_man->sb_mode = SB_LEFT ;
-	}
-
-	term_man->iso88591_font_for_usascii = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "iso88591_font_for_usascii")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->iso88591_font_for_usascii = 1 ;
-		}
-	}
-
-	term_man->not_use_unicode_font = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "not_use_unicode_font")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->not_use_unicode_font = 1 ;
-		}
-	}
-
-	term_man->only_use_unicode_font = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "only_use_unicode_font")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->only_use_unicode_font = 1 ;
-		}
-	}
-
-	if( term_man->only_use_unicode_font && term_man->not_use_unicode_font)
-	{
-		kik_msg_printf(
-			"only_use_unicode_font and not_use_unicode_font options cannot be used "
-			"at the same time.\n") ;
-
-		/* default values are used */
-		term_man->only_use_unicode_font = 0 ;
-		term_man->not_use_unicode_font = 0 ;
-	}
-
-	term_man->copy_paste_via_ucs = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "copy_paste_via_ucs")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->copy_paste_via_ucs = 1 ;
-		}
-	}
-	
-	/* default value is used */
-	term_man->col_size_a = 1 ;
-	
-	if( ( value = kik_conf_get_value( conf , "col_size_of_width_a")))
-	{
-		u_int  col_size_a ;
-		
-		if( kik_str_to_uint( &col_size_a , value))
-		{
-			term_man->col_size_a = col_size_a ;
-		}
-		else
-		{
-			kik_msg_printf( "col size of width a %s is not valid.\n" , value) ;
-		}
-	}
-
-	term_man->pic_file_path = NULL ;
-
-	if( ( value = kik_conf_get_value( conf , "wall_picture")))
-	{
-		term_man->pic_file_path = strdup( value) ;
-	}
-
-	term_man->use_transbg = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "use_transbg")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->use_transbg = 1 ;
-		}
-	}
-
-	if( term_man->pic_file_path && term_man->use_transbg)
-	{
-		kik_msg_printf(
-			"wall picture and transparent background cannot be used at the same time.\n") ;
-
-		/* using wall picture */
-		term_man->use_transbg = 0 ;
-	}
-
-	term_man->brightness = 100 ;
-
-	if( ( value = kik_conf_get_value( conf , "brightness")))
-	{
-		u_int  brightness ;
-		
-		if( kik_str_to_uint( &brightness , value))
-		{
-			term_man->brightness = brightness ;
-		}
-		else
-		{
-			kik_msg_printf( "shade ratio %s is not valid.\n" , value) ;
-		}
-	}
-	
-	term_man->fade_ratio = 100 ;
-	
-	if( ( value = kik_conf_get_value( conf , "fade_ratio")))
-	{
-		u_int  fade_ratio ;
-		
-		if( kik_str_to_uint( &fade_ratio , value))
-		{
-			term_man->fade_ratio = fade_ratio ;
-		}
-		else
-		{
-			kik_msg_printf( "fade ratio %s is not valid.\n" , value) ;
-		}
-	}
-
-	if( ( term_man->encoding = ml_get_char_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING)
-	{
-		term_man->encoding = ML_ISO8859_1 ;
-	}
-	
-	if( ( value = kik_conf_get_value( conf , "ENCODING")))
-	{
-		ml_char_encoding_t  encoding ;
-
-		if( strcasecmp( value , "AUTO") != 0)
-		{
-			if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
-			{
-				kik_msg_printf(
-					"%s encoding is not supported. Auto detected encoding is used.\n" ,
-					value) ;
-			}
-			else
-			{
-				term_man->encoding = encoding ;
-			}
-		}
-	}
-
-	term_man->conf_menu_path = NULL ;
-
-	if( ( value = kik_conf_get_value( conf , "conf_menu_path")))
-	{
-		term_man->conf_menu_path = strdup( value) ;
-	}
-
-	term_man->xim_open_in_startup = 1 ;
-	
-	if( ( value = kik_conf_get_value( conf , "xim_open_in_startup")))
-	{
-		if( strcmp( value , "false") == 0)
-		{
-			term_man->xim_open_in_startup = 0 ;
-		}
-	}
-
-	term_man->use_bidi = 1 ;
-
-	if( ( value = kik_conf_get_value( conf , "use_bidi")))
-	{
-		if( strcmp( value , "false") == 0)
-		{
-			term_man->use_bidi = 0 ;
-		}
-	}
-
-	if( ( value = kik_conf_get_value( conf , "mod_meta_mode")))
-	{
-		term_man->mod_meta_mode = ml_get_mod_meta_mode( value) ;
-	}
-	else
-	{
-		term_man->mod_meta_mode = MOD_META_NONE ;
-	}
-
-	if( ( value = kik_conf_get_value( conf , "bel_mode")))
-	{
-		term_man->bel_mode = ml_get_bel_mode( value) ;
-	}
-	else
-	{
-		term_man->bel_mode = BEL_SOUND ;
-	}
-
-	term_man->vertical_mode = 0 ;
-	
-	if( ( value = kik_conf_get_value( conf , "vertical_mode")))
-	{
-		term_man->vertical_mode = ml_get_vertical_mode( value) ;
-	}
-
-	term_man->use_vertical_cursor = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "use_vertical_cursor")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			term_man->use_vertical_cursor = 1 ;
-		}
-	}
 
 	term_man->max_terms = 5 ;
 
@@ -1667,7 +1997,8 @@ ml_term_manager_init(
 	{
 		u_int  ptys ;
 		
-		if( ! kik_str_to_uint( &ptys , value) || ptys > term_man->max_terms)
+		if( ! kik_str_to_uint( &ptys , value) || ptys > term_man->max_terms ||
+			( ! term_man->is_genuine_daemon && ptys == 0))
 		{
 			kik_msg_printf( "ptys %s is not valid.\n" , value) ;
 		}
@@ -1682,41 +2013,8 @@ ml_term_manager_init(
 		ml_set_word_separators( value) ;
 	}
 
-	term_man->iscii_lang = ISCIILANG_MALAYALAM ;
-	
-	if( ( value = kik_conf_get_value( conf , "iscii_lang")))
-	{
-		ml_iscii_lang_t  lang ;
-		
-		if( ( lang = ml_iscii_get_lang( strdup( value))) != ISCIILANG_UNKNOWN)
-		{
-			term_man->iscii_lang = lang ;
-		}
-	}
+	config_init( term_man , conf , argc , argv) ;
 
-	term_man->cmd_path = NULL ;
-	term_man->cmd_argv = NULL ;
-
-	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , "true") == 0)
-	{
-		term_man->cmd_path = argv[0] ;
-
-		if( ( term_man->cmd_argv = malloc( sizeof( char*) * (argc + 2))) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
-		#endif
-		
-			term_man->cmd_path = NULL ;
-			term_man->cmd_argv = NULL ;
-		}
-		else
-		{
-			memcpy( &term_man->cmd_argv[0] , argv , sizeof( char*) * argc) ;
-			term_man->cmd_argv[argc + 1] = NULL ;
-		}
-	}
-	
 	kik_conf_delete( conf) ;
 
 	if( ( term_man->terms = malloc( sizeof( ml_term_t) * term_man->max_terms)) == NULL)
@@ -1756,13 +2054,7 @@ ml_term_manager_final(
 {
 	int  counter ;
 
-	free( term_man->app_name) ;
-	free( term_man->title) ;
-	free( term_man->icon_name) ;
-	free( term_man->conf_menu_path) ;
-	free( term_man->pic_file_path) ;
-	free( term_man->cmd_argv) ;
-	free( term_man->scrollbar_view_name) ;
+	config_final( term_man) ;
 	
 	ml_free_word_separators() ;
 	

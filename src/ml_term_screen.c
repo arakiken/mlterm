@@ -2350,12 +2350,15 @@ selecting_with_motion(
 {
 	int  char_index ;
 	int  bs_row ;
+	int  x_is_minus ;
 	u_int  x_rest ;
 	ml_image_line_t *  line ;
 
+	x_is_minus = 0 ;
 	if( x < 0)
 	{
 		x = 0 ;
+		x_is_minus = 1 ;
 	}
 	else if( x > termscr->window.width)
 	{
@@ -2436,7 +2439,7 @@ selecting_with_motion(
 		}
 		else if( ml_is_before_sel_left_base_pos( &termscr->sel , char_index , bs_row))
 		{
-			if( char_index < line->num_of_filled_chars - 1)
+			if( ! x_is_minus && char_index < line->num_of_filled_chars - 1)
 			{
 				char_index ++ ;
 			}

@@ -1,0 +1,28 @@
+prefix = @prefix@
+bindir = @bindir@
+
+CC = @CC@
+CFLAGS = @CFLAGS@
+INSTALL = @INSTALL@
+
+BINDIR = $(DESTDIR)$(bindir)
+
+OBJ = main.o
+
+PROG = mlclient
+
+all: $(PROG)
+
+$(PROG): $(OBJ)
+	$(CC) -o $(PROG) $(OBJ)
+
+.SUFFIXES: .c.o
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+clean:
+	rm -f $(OBJ) $(PROG)
+
+install:
+	$(INSTALL) -m 755 $(PROG) $(BINDIR)
