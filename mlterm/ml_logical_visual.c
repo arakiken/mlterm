@@ -889,7 +889,7 @@ search_same_line(
 	for( row = search_beg ; row < num_of_lines ; row ++)
 	{
 		if( lines[row].num_of_filled_chars == line->num_of_filled_chars &&
-			ml_str_equal( lines[row].chars , line->chars , line->num_of_filled_chars))
+			ml_str_bytes_equal( lines[row].chars , line->chars , line->num_of_filled_chars))
 		{
 			return  row ;
 		}
@@ -898,7 +898,7 @@ search_same_line(
 	for( row = 0 ; row < search_beg ; row ++)
 	{
 		if( lines[row].num_of_filled_chars == line->num_of_filled_chars &&
-			ml_str_equal( lines[row].chars , line->chars , line->num_of_filled_chars))
+			ml_str_bytes_equal( lines[row].chars , line->chars , line->num_of_filled_chars))
 		{
 			return  row ;
 		}
@@ -906,6 +906,25 @@ search_same_line(
 
 	/* not found */
 	return  -1 ;
+}
+
+static int
+copy_color_reversed_flag(
+	ml_line_t *  dst ,
+	ml_line_t *  src
+	)
+{
+	int  col ;
+	u_int  copy_len ;
+	
+	copy_len = K_MIN(src->num_of_filled_chars,dst->num_of_filled_chars) ;
+
+	for( col = 0 ; col < copy_len ; col ++)
+	{
+		ml_char_copy_color_reversed_flag( dst->chars + col , src->chars + col) ;
+	}
+
+	return  1 ;
 }
 
 static int
@@ -986,7 +1005,6 @@ iscii_visual(
 	
 	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
-		int  is_cache_active ;
 		int  hit_row ;
 
 		line = ml_model_get_line( logvis->model , row) ;
@@ -1003,7 +1021,16 @@ iscii_visual(
 			__miss_num ++ ;
 		#endif
 		
-			is_cache_active = 0 ;
+			/* caching */
+			ml_line_copy_line( &iscii_logvis->logical_lines[row] , line) ;
+
+			ml_line_iscii_visual( line , iscii_logvis->iscii_lang) ;
+
+			/* XXX Adhoc implementation for shrinking the amount of memory usage XXX */
+			copy_color_reversed_flag( line , &iscii_logvis->logical_lines[row]) ;
+
+			/* caching */
+			ml_line_copy_line( &iscii_logvis->visual_lines[row] , line) ;
 		}
 		else
 		{
@@ -1046,23 +1073,8 @@ iscii_visual(
 					&iscii_logvis->visual_lines[hit_row]) ;
 			}
 			
-			is_cache_active = 1 ;
-		}
-		
-		if( is_cache_active)
-		{
 			/* using cached line */
 			ml_line_copy_line( line , &iscii_logvis->visual_lines[row]) ;
-		}
-		else
-		{
-			/* caching */
-			ml_line_copy_line( &iscii_logvis->logical_lines[row] , line) ;
-
-			ml_line_iscii_visual( line , iscii_logvis->iscii_lang) ;
-
-			/* caching */
-			ml_line_copy_line( &iscii_logvis->visual_lines[row] , line) ;
 		}
 	}
 
@@ -1108,12 +1120,13 @@ iscii_logical(
 		vis_line = ml_model_get_line( logvis->model , row) ;
 
 		/*
-		 * XXX
+		 * XXX Adhoc implementation for shrinking the amount of memory usage XXX
+		 *
 		 * If logical lines are changed by vt sequences,
 		 * reversed flag will be all cleared.
 		 */
-		ml_line_copy_color_reversed_flag( &iscii_logvis->logical_lines[row] , vis_line) ;
-		ml_line_copy_color_reversed_flag( &iscii_logvis->visual_lines[row] , vis_line) ;
+		copy_color_reversed_flag( &iscii_logvis->logical_lines[row] , vis_line) ;
+		copy_color_reversed_flag( &iscii_logvis->visual_lines[row] , vis_line) ;
 
 		ml_line_copy_line( vis_line , &iscii_logvis->logical_lines[row]) ;
 	}

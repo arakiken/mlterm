@@ -136,7 +136,7 @@ inline int  ml_char_reverse_color( ml_char_t *  ch) ;
 
 inline int  ml_char_restore_color( ml_char_t *  ch) ;
 
-inline int  ml_char_is_color_reversed( ml_char_t *  ch) ;
+inline int  ml_char_copy_color_reversed_flag( ml_char_t *  dst , ml_char_t *  src) ;
 
 inline int  ml_char_is_null( ml_char_t *  ch) ;
 

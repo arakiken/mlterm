@@ -353,8 +353,9 @@ shape_iscii(
 	{
 		return  0 ;
 	}
-	
-	if( ( font_buf = alloca( dst_len * (MAX_COMB_SIZE + 1))) == NULL)
+
+#define  DST_LEN  (dst_len * (MAX_COMB_SIZE + 1))
+	if( ( font_buf = alloca( DST_LEN)) == NULL)
 	{
 		return  0 ;
 	}
@@ -400,8 +401,18 @@ shape_iscii(
 			{
 				iscii_buf[iscii_filled] = '\0' ;
 				font_filled = ml_iscii_shape( iscii_shape->iscii_lang ,
-						font_buf , dst_len , iscii_buf) ;
+						font_buf , DST_LEN , iscii_buf) ;
 
+				/*
+				 * If EOL char is a iscii byte which presents two glyphs and its second
+				 * glyph is out of screen, 'font_filled' is greater then
+				 * 'dst + dst_len - dst_shaped'.
+				 */
+				if( font_filled > dst + dst_len - dst_shaped)
+				{
+					font_filled = dst + dst_len - dst_shaped ;
+				}
+		
 			#ifdef  __DEBUG
 				{
 					int  i ;
@@ -441,7 +452,17 @@ shape_iscii(
 	if( iscii_filled)
 	{
 		iscii_buf[iscii_filled] = '\0' ;
-		font_filled = ml_iscii_shape( iscii_shape->iscii_lang , font_buf , dst_len , iscii_buf) ;
+		font_filled = ml_iscii_shape( iscii_shape->iscii_lang , font_buf , DST_LEN , iscii_buf) ;
+
+		/*
+		 * If EOL char is a iscii byte which presents two glyphs and its second
+		 * glyph is out of screen, 'font_filled' is greater then
+		 * 'dst + dst_len - dst_shaped'.
+		 */	
+		if( font_filled > dst + dst_len - dst_shaped)
+		{
+			font_filled = dst + dst_len - dst_shaped ;
+		}
 		
 		for( count = 0 ; count < font_filled ; count ++)
 		{

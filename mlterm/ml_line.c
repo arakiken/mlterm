@@ -990,33 +990,6 @@ ml_line_copy_line(
 	return  1 ;
 }
 
-/* XXX only used for iscii_logical() */
-int
-ml_line_copy_color_reversed_flag(
-	ml_line_t *  dst ,
-	ml_line_t *  src
-	)
-{
-	int  col ;
-	u_int  copy_len ;
-	
-	copy_len = K_MIN(src->num_of_filled_chars,dst->num_of_filled_chars) ;
-
-	for( col = 0 ; col < copy_len ; col ++)
-	{
-		if( ml_char_is_color_reversed( src->chars + col))
-		{
-			ml_char_reverse_color( dst->chars + col) ;
-		}
-		else
-		{
-			ml_char_restore_color( dst->chars + col) ;
-		}
-	}
-
-	return  1 ;
-}
-
 int
 ml_line_share(
 	ml_line_t *  dst ,
@@ -1703,15 +1676,17 @@ ml_iscii_convert_logical_char_index_to_visual(
 		visual_char_index ++ ;
 	}
 
-	while( ml_char_is_null( line->chars + count))
+	do
 	{
-		if( ++ count >= line->num_of_filled_chars)
+		if( count >= line->num_of_filled_chars || ! ml_char_is_null( line->chars + count))
 		{
 			break ;
 		}
-		
+
+		count ++ ;
 		visual_char_index ++ ;
 	}
+	while( 1) ;
 
 end:
 	if( visual_char_index >= line->num_of_filled_chars)

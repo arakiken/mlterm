@@ -704,20 +704,35 @@ ml_char_restore_color(
 	}
 }
 
-/* XXX only used for ml_line_copy_color_reversed_flag() */
+/* XXX only used in iscii_logical() */
 inline int
-ml_char_is_color_reversed(
-	ml_char_t *  ch
+ml_char_copy_color_reversed_flag(
+	ml_char_t *  dst ,
+	ml_char_t *  src
 	)
 {
-	if( IS_SINGLE_CH(ch->u.ch.attr))
+	if( IS_SINGLE_CH(src->u.ch.attr))
 	{
-		return  IS_REVERSED(ch->u.ch.attr) ;
+		if( IS_REVERSED(src->u.ch.attr))
+		{
+			return  ml_char_reverse_color( dst) ;
+		}
+		else
+		{
+			return  ml_char_restore_color( dst) ;
+		}
 	}
 	else
 	{
-		/* See the first character */
-		return  IS_REVERSED(ch->u.multi_ch->u.ch.attr) ;
+		/* See the first character only */
+		if( IS_REVERSED(src->u.multi_ch->u.ch.attr))
+		{
+			return  ml_char_reverse_color( dst) ;
+		}
+		else
+		{
+			return  ml_char_restore_color( dst) ;
+		}
 	}
 }
 
