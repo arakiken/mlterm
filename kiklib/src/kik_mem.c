@@ -142,7 +142,7 @@ kik_mem_calloc(
 	)
 {
 	void *  ptr = NULL ;
-	size_t  totol_size ;
+	size_t  total_size ;
 	
 	total_size =  number * size ;
 	if( number && size && !total_size){
