@@ -1399,6 +1399,8 @@ window_realized(
 		}
 		else
 		{
+			x_xic_activate( &screen->window , "none" , "");
+
 			if( ! ( screen->im = x_im_new(
 					ml_term_get_encoding( screen->term) ,
 					&screen->im_listener ,
@@ -4204,6 +4206,8 @@ change_im(
 	}
 	else
 	{
+		x_xic_activate( &screen->window , "none" , "");
+
 		if( ( screen->im = x_im_new(
 				ml_term_get_encoding( screen->term) ,
 				&screen->im_listener ,
