@@ -67,6 +67,8 @@ int  x_scrollbar_init( x_scrollbar_t *  sb , x_scrollbar_event_listener_t *  sb_
 
 int  x_scrollbar_final( x_scrollbar_t *  sb) ;
 
+int  x_scrollbar_set_logged_lines( x_scrollbar_t *  sb , u_int  lines) ;
+
 int  x_scrollbar_line_is_added( x_scrollbar_t *  sb) ;
 
 int  x_scrollbar_reset( x_scrollbar_t *  sb) ;

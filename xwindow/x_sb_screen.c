@@ -219,8 +219,6 @@ scrolled_out_line_received(
 	sb_screen = (x_sb_screen_t*)((x_window_t*)p)->parent ;
 
 	x_scrollbar_line_is_added( &sb_screen->scrollbar) ;
-
-	return ;
 }
 
 
@@ -548,6 +546,12 @@ x_sb_screen_new(
 	#endif
 
 		goto  error ;
+	}
+
+	if( ml_term_get_num_of_logged_lines( screen->term) > 0)
+	{
+		x_scrollbar_set_logged_lines( &sb_screen->scrollbar ,
+			ml_term_get_num_of_logged_lines( screen->term)) ;
 	}
 
 	sb_screen->screen = screen ;

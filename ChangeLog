@@ -1,3 +1,8 @@
+2002-05-19 Araki Ken <arakiken@users.sf.net>
+
+	* a bug of shaping arabic combining characters is fixed.
+	* scrollbar's height was incorrect when screen was revived. fixed.
+
 2002-05-18 Araki Ken <arakiken@users.sf.net>
 
 	* compilation failed if ./configure is done with --disable-shared. fixed.

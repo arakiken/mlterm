@@ -52,7 +52,7 @@ ml_logical_visual_t *  ml_logvis_container_new(void) ;
 
 int  ml_logvis_container_add( ml_logical_visual_t *  logvis , ml_logical_visual_t *  child) ;
 
-ml_logical_visual_t *  ml_logvis_bidi_new(void) ;
+ml_logical_visual_t *  ml_logvis_bidi_new( int  adhoc_right_align) ;
 
 ml_logical_visual_t *  ml_logvis_comb_new(void) ;
 

@@ -110,6 +110,8 @@ inline int  ml_combine_chars( ml_char_t *  ch , ml_char_t *  comb) ;
 
 inline int  ml_remove_combining_char( ml_char_t *  ch) ;
 
+inline ml_char_t *  ml_get_base_char( ml_char_t *  ch) ;
+
 inline ml_char_t *  ml_get_combining_chars( ml_char_t *  ch , u_int *  size) ;
 
 inline int  ml_char_move( ml_char_t *  dst , ml_char_t *  src) ;

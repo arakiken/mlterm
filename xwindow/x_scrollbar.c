@@ -722,6 +722,31 @@ x_scrollbar_final(
 }
 
 int
+x_scrollbar_set_logged_lines(
+	x_scrollbar_t *  sb ,
+	u_int  lines
+	)
+{
+	if( lines > sb->num_of_log_lines)
+	{
+		lines = sb->num_of_log_lines ;
+	}
+
+	if( sb->num_of_filled_log_lines == lines)
+	{
+		return  1 ;
+	}
+	
+	sb->num_of_filled_log_lines = lines ;
+
+	sb->bar_height = calculate_bar_height( sb) ;
+
+	sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
+	
+	return  1 ;
+}
+
+int
 x_scrollbar_line_is_added(
 	x_scrollbar_t *  sb
 	)

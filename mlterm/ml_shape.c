@@ -228,12 +228,12 @@ shape_arabic(
 		{
 			u_char  bytes[4] ;
 
-			ml_char_copy( &dst[count] , cur) ;
+			ml_char_copy( &dst[count] , ml_get_base_char(cur)) ;
 			ml_char_set_bytes( &dst[count] , mkf_int_to_bytes( bytes , ml_char_size(cur) , code)) ;
 		}
 		else
 		{
-			ml_char_copy( &dst[count] , cur) ;
+			ml_char_copy( &dst[count] , ml_get_base_char(cur)) ;
 
 			if( list[count])
 			{

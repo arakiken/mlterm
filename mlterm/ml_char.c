@@ -423,6 +423,21 @@ ml_combine_chars(
 }
 
 inline ml_char_t *
+ml_get_base_char(
+	ml_char_t *  ch
+	)
+{
+	if( COMB_SIZE(ch->attr) > 0)
+	{
+		return  &ch->u.multi_ch[0] ;
+	}
+	else
+	{
+		return  ch ;
+	}
+}
+
+inline ml_char_t *
 ml_get_combining_chars(
 	ml_char_t *  ch ,
 	u_int *  size

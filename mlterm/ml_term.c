@@ -423,6 +423,7 @@ int
 ml_term_enable_special_visual(
 	ml_term_t *  term ,
 	ml_special_visual_t  visual ,
+	int  adhoc_right_align ,
 	ml_iscii_state_t  iscii_state ,
 	ml_vertical_mode_t  vertical_mode
 	)
@@ -478,7 +479,7 @@ ml_term_enable_special_visual(
 		
 		if( visual & VIS_BIDI)
 		{
-			if( ( logvis = ml_logvis_bidi_new()) == NULL)
+			if( ( logvis = ml_logvis_bidi_new( adhoc_right_align)) == NULL)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_bidi_new() failed.\n") ;

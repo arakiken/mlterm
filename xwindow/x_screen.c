@@ -2008,7 +2008,7 @@ update_encoding_proper_aux(
 		}
 
 		if( ! ml_term_enable_special_visual( screen->term , VIS_ISCII ,
-			screen->iscii_state , 0))
+			0 , screen->iscii_state , 0))
 		{
 			goto  iscii_error ;
 		}
@@ -2064,7 +2064,7 @@ update_encoding_proper_aux(
 		screen->shape = shape ;
 
 		if( ! ml_term_enable_special_visual( screen->term , visual ,
-			NULL , screen->vertical_mode))
+			1 , NULL , screen->vertical_mode))
 		{
 			goto  error ;
 		}
@@ -3225,6 +3225,25 @@ xct_selection_notified(
 
 	screen = (x_screen_t*) win ;
 
+#if  1
+	/*
+	 * XXX
+	 * parsing UTF-8 sequence designated by ESC % G.
+	 */
+	if( len > 3 && strncmp( str , "\x1b%G" , 3) == 0)
+	{
+	#if  0
+		int  i;
+		for( i = 0 ; i < len ; i ++)
+		{
+			kik_msg_printf( "%.2x " , str[i]) ;
+		}
+	#endif
+	
+		write_to_pty( screen , str + 3 , len - 3 , screen->utf8_parser) ;
+	}
+	else
+#endif
 	if( copy_paste_via_ucs(screen))
 	{
 		/* XCOMPOUND TEXT -> UCS -> PTY ENCODING */
@@ -3255,8 +3274,6 @@ xct_selection_notified(
 		
 		write_to_pty( screen , str , len , screen->xct_parser) ;
 	}
-
-	return ;
 }
 
 static void

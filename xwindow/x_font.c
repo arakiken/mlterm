@@ -585,7 +585,7 @@ x_font_set_xft_font(
 		weight = XFT_WEIGHT_MEDIUM ;
 	}
 	
-	if( fontname != NULL)
+	if( fontname)
 	{
 		char *  p ;
 		char *  font_family ;
@@ -670,9 +670,7 @@ x_font_set_xft_font(
 			}
 		}
 		
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " %s font couln't be loaded.\n" , fontname) ;
-	#endif
+		kik_msg_printf( " font %s (for size %d) couln't be loaded.\n" , fontname , fontsize) ;
 	}
 	
 	if( col_width == 0)
@@ -830,7 +828,7 @@ x_font_set_xfont(
 		font->is_double_drawing = 0 ;
 	}
 
-	if( fontname != NULL)
+	if( fontname)
 	{
 		char *  p ;
 		char *  font_xlfd ;
@@ -860,10 +858,8 @@ x_font_set_xfont(
 
 				goto  font_found ;
 			}
-
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " %s font couln't be loaded.\n" , font_xlfd) ;
-		#endif
+			
+			kik_msg_printf( " font %s couln't be loaded.\n" , font_xlfd) ;
 		}
 	}
 	

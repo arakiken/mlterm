@@ -32,6 +32,8 @@ typedef struct  bidi_logical_visual
 	int  cursor_logical_col ;
 	int  ltr_rtl_meet_pos ;
 
+	int8_t  adhoc_right_align ;
+
 } bidi_logical_visual_t ;
 
 typedef struct  comb_logical_visual
@@ -348,7 +350,7 @@ bidi_render(
 
 		need_render = 0 ;
 		
-		if( line->num_of_filled_chars > 0)
+		if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align && line->num_of_filled_chars > 0)
 		{
 			for( cols = ml_line_get_num_of_filled_cols( line) ;
 				cols < edit->model.num_of_cols ; cols ++)
@@ -486,7 +488,7 @@ bidi_visual_line(
 
 	need_render = 0 ;
 	
-	if( line->num_of_filled_chars > 0)
+	if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align && line->num_of_filled_chars > 0)
 	{
 		int  cols ;
 
@@ -725,7 +727,7 @@ comb_logical(
 			{
 				int  count ;
 
-				ml_char_copy( &line->chars[dst_pos ++] , c) ;
+				ml_char_copy( &line->chars[dst_pos ++] , ml_get_base_char(c)) ;
 
 				for( count = 0 ; count < size ; count ++)
 				{
@@ -1483,7 +1485,9 @@ ml_logvis_container_add(
 }
 
 ml_logical_visual_t *
-ml_logvis_bidi_new(void)
+ml_logvis_bidi_new(
+	int  adhoc_right_align
+	)
 {
 	bidi_logical_visual_t *  bidi_logvis ;
 
@@ -1495,6 +1499,7 @@ ml_logvis_bidi_new(void)
 	bidi_logvis->cursor_logical_char_index = 0 ;
 	bidi_logvis->cursor_logical_col = 0 ;
 	bidi_logvis->ltr_rtl_meet_pos = 0 ;
+	bidi_logvis->adhoc_right_align = adhoc_right_align ;
 
 	bidi_logvis->logvis.edit = NULL ;
 	bidi_logvis->logvis.is_visual = 0 ;
