@@ -1646,6 +1646,8 @@ x_imagelib_get_transparent_background(
  *\param cardinal Returns pointer to a data structure for the extended WM hint spec.
  *\param pixmap Returns an image pixmap for the old WM hint.
  *\param mask Returns a mask bitmap for the old WM hint.
+ *\param width Pointer to the desired width. If *width is 0, the returned image would not be scaled and *width would be overwritten by its width. "width" can be NULL and the image would not be scaled and nothing would be returned in this case.   
+ *\param height Pointer to the desired height. *height can be 0 and height can be NULL(see "width" 's description)
  *
  *\return  Success => 1, Failure => 0
  */
