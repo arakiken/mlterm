@@ -166,7 +166,7 @@ comment $Id$
       o use_transbg    ... 背景透過する(true/*false*)
 
       o use_scrollbar       ... スクロールバーをつける(*true*/false)
-      o scrollbar_mode      ... スクロールバーのつけ方(*none*/left/right)
+      o scrollbar_mode      ... スクロールバーのつけ方(none/*left*/right)
       o scrollbar_view_name ... 使いたいスクロールバーの名前(*simple*)
       
       o copy_paste_via_ucs      ... copy and paste で受け取った XCOMPOUND TEXT を一度 UNICODE を

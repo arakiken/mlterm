@@ -1434,7 +1434,7 @@ ml_term_manager_init(
 	}
 	else
 	{
-		term_man->sb_mode = SB_NONE ;
+		term_man->sb_mode = SB_LEFT ;
 	}
 
 	term_man->iso88591_font_for_usascii = 0 ;
