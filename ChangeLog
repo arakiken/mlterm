@@ -1,3 +1,8 @@
+[20020109]
+* -r/--fade/fade_ratio option is added.
+* infinite loop owing to malformed escape sequence like "ESC ] ;"
+  can be escaped by pressing LF.(Minami Hirokazu san)
+
 [20020108]
 * fribidi 0.10.0(where FriBidiStrIndex is 32bit , not 16bit) is supported.
 * selecting region policy is changed(character is selected after mouse
