@@ -1,3 +1,8 @@
+2004-10-21 Seiichi SATO <ssato@sh.rim.or.jp>
+
+        * kiklib/src/kik_net.h: when neither PF_LOCAL nor PF_UNIX was defined, 
+	use AF_LOCAL (which may be an alias of AF_UNIX) instead.
+
 2004-10-22 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/uim/im_uim.c:

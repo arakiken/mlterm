@@ -18,7 +18,11 @@
 #endif
 
 #ifndef  PF_LOCAL
+#ifdef PF_UNIX
 #define  PF_LOCAL  PF_UNIX
+#else
+#define  PF_LOCAL  AF_LOCAL
+#endif
 #endif
 
 #endif
