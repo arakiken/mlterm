@@ -117,11 +117,14 @@ x_imagelib_get_transparent_background(
 }
 
 int x_imagelib_load_file(
-	Display * display,
-	char * path,
-	u_int32_t **cardinal,
-	Pixmap *pixmap,
-	Pixmap *mask)
+	Display *  display,
+	char *  path,
+	u_int32_t **  cardinal,
+	Pixmap *  pixmap,
+	Pixmap *  mask
+	int  width,
+	int  height
+	)
 {
 	return 0 ;
 }

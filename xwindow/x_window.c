@@ -2700,11 +2700,9 @@ x_window_set_icon(
 		return 0 ;
 	}
 
-	if (! x_imagelib_load_file( win->display ,
-				   file_path,
-				   &cardinal,
-				   &icon,
-				   &mask))
+	if (! x_imagelib_load_file( win->display , file_path,
+				   &cardinal, &icon, &mask,
+				   48 ,48))
 	{
 		return 0 ;
 	}
@@ -2719,7 +2717,8 @@ x_window_set_icon(
 					      False),
 				 XA_CARDINAL, 32, PropModeReplace,
 				 (unsigned char *)(cardinal),
-				 (cardinal[0])*(cardinal[1]) +2) ; /* (cardinal[0])*(cardinal[1]) = width * height */
+/* (cardinal[0])*(cardinal[1]) = width * height */
+				 (cardinal[0])*(cardinal[1]) +2) ; 
 		free(cardinal) ; /* not used anymore */
 	}
 /* set old style window manager hint's icon */		

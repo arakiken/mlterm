@@ -1473,11 +1473,13 @@ int x_imagelib_load_file(
 	char *  path,
 	u_int32_t **  cardinal,
 	Pixmap *  pixmap,
-	Pixmap *  mask
+	Pixmap *  mask,
+	int  width,
+	int  height
 	)
 {
 	GdkPixbuf *  pixbuf ;
-	int width, height, rowstride ;
+	int  rowstride ;
 #ifndef OLD_GDK_PIXBUF
 	pixbuf = gdk_pixbuf_new_from_file( path, NULL ) ;
 #else
@@ -1485,9 +1487,24 @@ int x_imagelib_load_file(
 #endif /*OLD_GDK_PIXBUF*/
 	if ( !pixbuf )
 		return 0 ;
+	if( width == 0)
+		width = gdk_pixbuf_get_width( pixbuf) ;
+	if( height == 0)
+		height = gdk_pixbuf_get_height( pixbuf) ;
 
-	width = gdk_pixbuf_get_width (pixbuf) ;
-	height = gdk_pixbuf_get_height (pixbuf) ;
+	if( ( width != gdk_pixbuf_get_width( pixbuf) ) ||
+	    ( height != gdk_pixbuf_get_height( pixbuf) ) )
+	{
+		GdkPixbuf * scaled;
+/* use one of _NEAREST, _TILES, _BILINEAR, _HYPER (speed<->quality) */
+		scaled = gdk_pixbuf_scale_simple(pixbuf, width, height,
+						 GDK_INTERP_TILES); 
+		if( scaled)
+		{
+			gdk_pixbuf_unref( pixbuf) ;
+			pixbuf = scaled ;
+		}
+	}
 	if ( cardinal){
 		unsigned char *line ;
 		unsigned char *pixel ;
