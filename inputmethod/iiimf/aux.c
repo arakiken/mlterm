@@ -59,6 +59,7 @@
 #include  <sys/stat.h>
 #include  <limits.h>
 #include  <fcntl.h>
+#include  <kiklib/kik_unistd.h>
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_snprintf/kik_str_alloca_dup/kik_str_sep*/
 #include  <kiklib/kik_dlfcn.h>	/* kik_dl_open() */
@@ -257,6 +258,8 @@ is_conf_file(
 	{
 		return  1 ;
 	}
+
+	return  0 ;
 }
 
 
@@ -269,7 +272,7 @@ load_module(
 	char *  file_name
 	)
 {
-	aux_module_t *  module ;
+	aux_module_t *  module = NULL ;
 	aux_info_t *  aux_info = NULL ;
 	aux_dir_t *  aux_dir = NULL ;
 	int  num_of_aux_dir ;
@@ -302,7 +305,6 @@ load_module(
 	{
 		if( ( basename = strrchr( dirname , '/')))
 		{
-			char *  p;
 			size_t  len ;
 			basename[0] = '\0' ;
 			basename ++ ;
@@ -663,9 +665,9 @@ create_composed_from_event(
 	int  aux_data_t_n ;
 	int  aux_name_len ;
 	int  aux_name_n ;
-	int  integer_list_n ;
-	int  string_list_n ;
-	int  string_n ;
+	int  integer_list_n = 0 ;
+	int  string_list_n = 0 ;
+	int  string_n = 0 ;
 	int  *pstring_len ;
 
 	if( iiimcf_get_aux_event_value( event , &aux_name , &class_index ,
@@ -778,7 +780,8 @@ create_composed_from_aux_data(
 	int  n ;
 	int  aux_data_t_n ;
 	int  aux_name_n ;
-	int  integer_list_n, string_list_n ;
+	int  integer_list_n ;
+	int  string_list_n ;
 	int  string_n ;
 
 
@@ -1311,6 +1314,17 @@ service_decompose_free(
 	}
 }
 
+/* XXX: taken from xc/lib/X11/Xlcint.h */
+void _XRegisterFilterByType( Display *  display , Window  window ,
+			     int  start_type , int  end_type ,
+			     Bool (* filter)( Display * , Window ,
+					      XEvent * , XPointer) ,
+			     XPointer  client_data) ;
+void _XUnregisterFilter( Display *  display , Window  window ,
+			 Bool (* filter)( Display * , Window ,
+					  XEvent * , XPointer) ,
+			 XPointer  client_data) ;
+
 static void
 service_register_X_filter(
 	Display *  display ,
@@ -1498,8 +1512,6 @@ service_get_conversion_mode(
 	aux_t *  aux
 	)
 {
-	int  on ;
-
 #ifdef  AUX_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG "\n") ;
 #endif

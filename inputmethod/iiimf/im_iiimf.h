@@ -279,9 +279,9 @@ void aux_delete( aux_t *  aux) ;
 
 void aux_event( aux_t *  aux , IIIMCF_event  ev , IIIMCF_event_type) ;
 
-void aux_set_icfocus( aux_t *  aux) ;
+void aux_set_focus( aux_t *  aux) ;
 
-void aux_unset_icfocus( aux_t *  aux) ;
+void aux_unset_focus( aux_t *  aux) ;
 
 #endif
 

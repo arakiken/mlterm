@@ -522,28 +522,28 @@ xksym_to_iiimfkey(
 	/* TTY Functions */
 	case  XK_BackSpace:
 		*kcode = IIIMF_KEYCODE_BACK_SPACE ;
-		return ;
+		break ;
 	case  XK_Tab:
 		*kcode = IIIMF_KEYCODE_TAB ;
-		return ;
+		break ;
 	case  XK_Clear:
 		*kcode = IIIMF_KEYCODE_CLEAR ;
-		return ;
+		break ;
 	case  XK_Return:
 		*kcode = IIIMF_KEYCODE_ENTER ;
-		return ;
+		break ;
 	case  XK_Pause:
 		*kcode = IIIMF_KEYCODE_PAUSE ;
-		return ;
+		break ;
 	case  XK_Scroll_Lock:
 		*kcode = IIIMF_KEYCODE_SCROLL_LOCK ;
-		return ;
+		break ;
 	case  XK_Escape:
 		*kcode = IIIMF_KEYCODE_ESCAPE ;
-		return ;
+		break ;
 	case  XK_Delete:
 		*kcode =  IIIMF_KEYCODE_DELETE ;
-		return ;
+		break ;
 	/* TODO:
 	 * - International & multi-key character composition
 	 * - Japanese keyboard support

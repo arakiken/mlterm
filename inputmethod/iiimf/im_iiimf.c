@@ -204,8 +204,6 @@ find_language_engine(
 							  &hrn ,
 							  &domain) == IIIMF_STATUS_SUCCESS)
 			{
-				size_t  len ;
-				u_int  filled_len ;
 				u_char *  str ;
 
 				PARSER_INIT_WITH_BOM( parser_utf16) ;
@@ -268,8 +266,6 @@ candidate_selected(
 	u_int  index
 	)
 {
-	im_iiimf_t *  iiimf ;
-
 #ifdef  IM_IIIMF_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " index : %d\n" , index) ;
 #endif
@@ -659,8 +655,6 @@ lookup_choice_change(
 	int  index_first ;
 	int  index_last ;
 	int  index_current ;
-	int  is_vertical ;
-	u_int  line_height ;
 	int  x ;
 	int  y ;
 	int  i ;
@@ -1166,6 +1160,7 @@ switch_mode(
 	x_im_t *  im
 	)
 {
+	return  0 ;
 }
 
 static void
@@ -1222,7 +1217,7 @@ unfocused(
 
 	if( iiimf->aux)
 	{
-		aux_set_focus( iiimf->aux) ;
+		aux_unset_focus( iiimf->aux) ;
 	}
 
 	if( iiimcf_create_unseticfocus_event( &event) == IIIMF_STATUS_SUCCESS)
@@ -1613,7 +1608,7 @@ im_iiimf_get_info(
 		const  IIIMP_card16 *  im_id ;
 		const  IIIMP_card16 *  im_hrn ;
 		const  IIIMP_card16 *  im_domain ;
-		char *  im ;
+		u_char *  im ;
 
 		if( iiimcf_get_input_method_desc( input_methods[i],
 						  &im_id,
@@ -1632,7 +1627,7 @@ im_iiimf_get_info(
 
 		PARSER_INIT_WITH_BOM( parser_utf16) ;
 		im_convert_encoding( parser_utf16 , conv , (u_char*)im_id  ,
-				     (u_char**)&im , strlen_utf16( im_id) + 1) ;
+				     &im , strlen_utf16( im_id) + 1) ;
 
 		for( j = 0 ; j < num_of_langs ; j++)
 		{
