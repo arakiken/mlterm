@@ -1,3 +1,9 @@
+2003-06-30 Araki Ken <arakiken@users.sf.net>
+
+	* Compiled mlcc and pixmap_engine by default.
+	* Added sample3 description to doc/en/README.ja and man/mlterm.1.
+	* Added sample3 to mc_sb_view.c.
+
 2003-06-29 Araki Ken <arakiken@users.sf.net>
 
 	* If 5380 request is denied as a result of challenge failure,

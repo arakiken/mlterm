@@ -177,9 +177,9 @@ else
 fi
 AC_SUBST(GTK_CONFIG)
 
-tools="mlclient,mlconfig,mlterm-menu"
+tools="mlclient,mlconfig,mlterm-menu,mlcc"
 AC_ARG_WITH(tools,
-	[  --with-tools[=ARG]      external tools [mlclient,mlconfig,mlterm-menu]],
+	[  --with-tools[=ARG]      external tools [mlclient,mlconfig,mlterm-menu,mlcc]],
 	[
 	# If given --without-tools or --with-tools with no args.
 	if test "${with_tools}" = "no" ; then
@@ -220,9 +220,9 @@ mlcc)
 esac
 done
 
-scrollbars="sample,extra"
+scrollbars="sample,extra,pixmap_engine"
 AC_ARG_WITH(scrollbars,
-	[  --with-scrollbars[=ARG] scrollbar plugins [sample,extra]],
+	[  --with-scrollbars[=ARG] scrollbar plugins [sample,extra,pixmap_engine]],
 	[
 	# If given --without-scrollbars or --with-scrollbars with no args.
 	if test "${with_scrollbars}" = "no" ; then

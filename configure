@@ -199,9 +199,9 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-utmp           utmp[disabled]"
 ac_help="$ac_help
-  --with-tools[=ARG]      external tools [mlclient,mlconfig,mlterm-menu]"
+  --with-tools[=ARG]      external tools [mlclient,mlconfig,mlterm-menu,mlcc]"
 ac_help="$ac_help
-  --with-scrollbars[=ARG] scrollbar plugins [sample,extra]"
+  --with-scrollbars[=ARG] scrollbar plugins [sample,extra,pixmap_engine]"
 ac_help="$ac_help
   --disable-dependency-tracking Speeds up one-time builds
   --enable-dependency-tracking  Do not reject slow dependency extractors"
@@ -6920,7 +6920,7 @@ fi
 fi
 
 
-tools="mlclient,mlconfig,mlterm-menu"
+tools="mlclient,mlconfig,mlterm-menu,mlcc"
 # Check whether --with-tools or --without-tools was given.
 if test "${with_tools+set}" = set; then
   withval="$with_tools"
@@ -6966,7 +6966,7 @@ mlcc)
 esac
 done
 
-scrollbars="sample,extra"
+scrollbars="sample,extra,pixmap_engine"
 # Check whether --with-scrollbars or --without-scrollbars was given.
 if test "${with_scrollbars+set}" = set; then
   withval="$with_scrollbars"
