@@ -474,11 +474,10 @@ init_candidates(
 }
 
 static int
-set_candidates(
+set_candidate(
 	x_im_candidate_screen_t *  cand_screen ,
 	mkf_parser_t *  parser ,
-	mkf_conv_t *  conv ,
-	char *  str ,
+	u_char *  str ,
 	u_int index
 	)
 {
@@ -531,7 +530,7 @@ set_candidates(
 	 */
 
 	(*parser->init)( parser) ;
-	(*parser->set_str)( parser , (char*)str , strlen(str)) ;
+	(*parser->set_str)( parser , str , strlen(str)) ;
 
 	p = cand_screen->candidates[index].chars;
 
@@ -857,7 +856,7 @@ x_im_candidate_screen_new(
 	cand_screen->hide = hide ;
 	cand_screen->set_spot = set_spot ;
 	cand_screen->init = init_candidates ;
-	cand_screen->set = set_candidates ;
+	cand_screen->set = set_candidate ;
 	cand_screen->select = select_candidate ;
 
 	/* callbacks for events of candidate_screen */

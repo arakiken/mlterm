@@ -1,3 +1,25 @@
+2004-09-07 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	some improvements around input method:
+
+	* x_im.h:
+	- increased IM_API_VERSION.
+	- expanded IM_API_COMPAT_CHECK_MAGIC to 64bits.
+
+	* x_im_candidate_screen.c (set_candidates): renamed to..
+	* x_im_candidate_screen.c (set_candidate): ..this
+
+	* x_im_candidate_screen.c (set_candidate): removed a unused argument.
+
+	* x_im_candidate_screen.h: removed func_ prefix from x_im_export_syms_t.
+
+	* inputmethod/uim/im_uim.c (convert_encoding): new function to convert
+	received strings to term encoding.
+
+	* inputmethod/uim/im_uim.c:
+	- fixed some wrong comments.
+	- minor cleanups.
+
 2004-09-06 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* x_draw_str.c: fixed an incorrect position of #endif.
@@ -127,7 +149,7 @@
 
 	* x_im.c, x_im.h:
 	- added a symbol for ml_is_msg_set() to x_im_export_syms_t.
-	- incremented IM_API_VERSION.
+	- increased IM_API_VERSION.
 
 	* inputmethod/uim/im_uim.c(preedit_pushback): In encoding conversion,
 	set msb if need be.

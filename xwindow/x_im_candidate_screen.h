@@ -54,7 +54,7 @@ typedef struct x_im_candidate_screen
 	int (*set_spot)( struct x_im_candidate_screen * , int  , int) ;
 	int (*init)( struct x_im_candidate_screen * , u_int) ;
 	int (*set)( struct x_im_candidate_screen * ,
-		    mkf_parser_t * , mkf_conv_t * , char * , u_int) ;
+		    mkf_parser_t * , u_char * , u_int) ;
 	int (*select)( struct x_im_candidate_screen *  cand_screen , u_int) ;
 
 } x_im_candidate_screen_t ;

@@ -15,7 +15,7 @@
 #endif
 
 
-typedef  x_im_t * (*x_im_new_func_t)( u_int32_t  magic ,
+typedef  x_im_t * (*x_im_new_func_t)( u_int64_t  magic ,
 				      ml_char_encoding_t  term_encoding ,
 				      x_im_event_listener_t *  im_listener ,
 				      x_im_export_syms_t *  syms ,

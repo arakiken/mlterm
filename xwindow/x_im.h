@@ -47,25 +47,25 @@ typedef struct x_im_event_listener
  */
 typedef struct x_im_export_syms
 {
-	int (*func_ml_str_init)( ml_char_t * , u_int) ;
-	int (*func_ml_str_delete)( ml_char_t * , u_int) ;
-	int (*func_ml_char_combine)( ml_char_t * , u_char * , size_t ,
-				     mkf_charset_t , int , int , ml_color_t ,
-				     ml_color_t , int , int) ;
-	int (*func_ml_char_set)( ml_char_t * , u_char * , size_t ,
-				 mkf_charset_t  cs , int , int , ml_color_t ,
-				 ml_color_t , int , int) ;
-	int (*func_ml_get_char_encoding)( char *) ;
-	int (*func_ml_is_msb_set)( mkf_charset_t  cs) ;
-	mkf_parser_t * (*func_ml_parser_new)( ml_char_encoding_t) ;
-	mkf_conv_t * (*func_ml_conv_new)( ml_char_encoding_t) ;
-	x_im_candidate_screen_t *  (*func_x_im_candidate_screen_new)(
+	int (*ml_str_init)( ml_char_t * , u_int) ;
+	int (*ml_str_delete)( ml_char_t * , u_int) ;
+	int (*ml_char_combine)( ml_char_t * , u_char * , size_t ,
+				mkf_charset_t , int , int , ml_color_t ,
+				ml_color_t , int , int) ;
+	int (*ml_char_set)( ml_char_t * , u_char * , size_t ,
+			    mkf_charset_t  cs , int , int , ml_color_t ,
+			    ml_color_t , int , int) ;
+	int (*ml_get_char_encoding)( char *) ;
+	int (*ml_is_msb_set)( mkf_charset_t  cs) ;
+	mkf_parser_t * (*ml_parser_new)( ml_char_encoding_t) ;
+	mkf_conv_t * (*ml_conv_new)( ml_char_encoding_t) ;
+	x_im_candidate_screen_t *  (*x_im_candidate_screen_new)(
 						x_window_manager_t * ,
 						x_font_manager_t * ,
 						x_color_manager_t * ,
 						int , u_int , int , int) ;
-	int  (*func_x_term_manager_add_fd)( int , void (*handler)(void)) ;
-	int  (*func_x_term_manager_remove_fd)( int) ;
+	int  (*x_term_manager_add_fd)( int , void (*handler)(void)) ;
+	int  (*x_term_manager_remove_fd)( int) ;
 
 } x_im_export_syms_t ;
 
@@ -93,11 +93,12 @@ x_im_t *  x_im_new( ml_char_encoding_t  term_encoding ,
 		    x_im_event_listener_t *  im_listener ,
 		    char *  input_method) ;
 
-#define  IM_API_VERSION  0x1
+#define  IM_API_VERSION  0x02
 #define  IM_API_COMPAT_CHECK_MAGIC			\
-	(IM_API_VERSION & 0xf << 28 |			\
+	 (IM_API_VERSION & 0xff << 28 |			\
 	 ((sizeof( x_im_t) & 0xff) << 20) |		\
 	 ((sizeof( x_im_export_syms_t) & 0xff) << 12) |	\
 	 (sizeof( x_im_candidate_screen_t) & 0xfff))
 
 #endif
+

@@ -11,18 +11,20 @@
 
 #include  "x_im.h"
 
-#if 0
+#if  0
 #define IM_UIM_DEBUG 1
-#endif
-
-#if 0
-#define IM_UIM_DEBUG_COMB 1
 #endif
 
 #if 1	/* XXX: should be removed? */
 #define IM_UIM_COMPAT_0_3_8 1
 /* see http://www.freedesktop.org/pipermail/uim/2004-June/000383.html */
 #endif
+
+/*
+ * When uim encoding is same as term, parser_uim and conv are NULL,
+ * so recived string encoding will not be converted.
+ */
+#define  NEED_TO_CONV(uim)  ((uim)->parser_uim && (uim)->conv)
 
 typedef struct im_uim
 {
@@ -31,10 +33,12 @@ typedef struct im_uim
 
 	uim_context  context ;
 
-	char *  encoding_name ;		/* "anthy", "py", ... */
+	/* native encoding of conversion engine */
+	char *  encoding_name ;
 
-	mkf_parser_t *  parser ;	/* uim encoding  */
-	mkf_conv_t *  conv ;		/* term encoding */
+	mkf_parser_t *  parser_uim ;	/* for uim encoding  */
+	mkf_parser_t *  parser_term ;	/* for term encoding  */
+	mkf_conv_t *  conv ;		/* uim -> term */
 
 }  im_uim_t ;
 
@@ -55,14 +59,14 @@ static x_im_export_syms_t *  mlterm_syms = NULL ;
 static int
 find_engine(
 	char *  engine ,
-	char **  encoding
+	char **  encoding_name
 	)
 {
 	uim_context  u ;
 	int  i ;
 	int  result ;
 	
-	if( engine == NULL || encoding == NULL)
+	if( engine == NULL || encoding_name == NULL)
 	{
 		return  0 ;
 	}
@@ -79,13 +83,14 @@ find_engine(
 	{
 		if( strcmp( uim_get_im_name( u , i) , engine) == 0)
 		{
-			*encoding = (char*) uim_get_im_encoding( u , i) ;
-		#ifdef  IM_UIM_DEBUG_COMB
-			*encoding = strdup( "UTF-8");
-		#endif
+			*encoding_name = (char*) uim_get_im_encoding( u , i) ;
 
-			if( encoding)
+			if( encoding_name)
 			{
+			#ifdef  IM_UIM_DEBUG
+				kik_debug_printf("conversion engine: %s, native encoding: %s\n" , engine , *encoding_name);
+			#endif
+
 				result = 1 ;
 
 				break ;
@@ -291,6 +296,74 @@ xksym_to_ukey(
 	}
 }
 
+static u_int
+convert_encoding(
+	mkf_parser_t *  parser ,
+	mkf_conv_t *  conv ,
+	u_char *  from ,
+	u_char **  to		/* *to must be NULL */
+	)
+{
+	u_int  len ;
+	u_int  filled_len ;
+
+	if( from == NULL || parser == NULL || conv == NULL || *to)
+	{
+		return  0 ;
+	}
+
+	len = 0 ;
+
+	(*parser->init)( parser) ;
+	(*parser->set_str)( parser , from , strlen(from)) ;
+
+#define  __UNIT 1024
+
+	while( ! parser->is_eos)
+	{
+		u_char *  p ;
+
+		if( ! ( p = realloc( *to , __UNIT)))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
+		#endif
+
+			if( *to)
+			{
+				free( *to) ;
+			}
+
+			return  0 ;
+		}
+
+		*to = p ;
+
+		p = *to + len ;
+
+		filled_len = (*conv->convert)( conv , p , __UNIT - 1 , parser) ;
+
+		len += filled_len ;
+
+		if( filled_len == 0)
+		{
+			/* finished converting */
+
+			break ;
+		}
+
+	}
+
+#undef  __UNIT
+
+	if( len)
+	{
+		(*to)[len] = '\0' ;
+	}
+
+	return  len ;
+}
+
 static void
 helper_disconnected( void)
 {
@@ -298,14 +371,14 @@ helper_disconnected( void)
 	kik_debug_printf("helper was disconnected\n");
 #endif
 
-	(*mlterm_syms->func_x_term_manager_remove_fd)( helper_fd) ;
+	(*mlterm_syms->x_term_manager_remove_fd)( helper_fd) ;
 
 	helper_fd = -1 ;
 }
 
 static void
 prop_list_update(
-	void *  p ,	/* uim 0.3.8 p == uim->context, 0.3.9 p == uim */
+	void *  p ,	/* uim 0.3.8: p == uim->context, 0.3.9: p == uim */
 	const char *  str
 	)
 {
@@ -394,23 +467,34 @@ commit(
 	u_char  conv_buf[256] ;
 	size_t  filled_len ;
 
+#ifdef  IM_UIM_DEBUG
+	kik_debug_printf("commit(), str: %s\n", str);
+#endif
+
 	uim = (im_uim_t*) p ;
 
-	(*uim->parser->init)( uim->parser) ;
-#if  0
-	(*uim->parser->set_str)( uim->parser , str , strlen(str)) ;
-#else
-	(*uim->parser->set_str)( uim->parser , (char*)str , strlen(str)) ;
-#endif
+	if( ! NEED_TO_CONV(uim))
+	{
+		(*uim->im.listener->write_to_term)( uim->im.listener->self ,
+						    (u_char*)str ,
+						    strlen( str)) ;
+
+		return ;
+	}
+
+	(*uim->parser_uim->init)( uim->parser_uim) ;
+	(*uim->parser_uim->set_str)( uim->parser_uim ,
+				     (u_char*)str ,
+				     strlen(str)) ;
 
 	(*uim->conv->init)( uim->conv) ;
 
-	while( ! uim->parser->is_eos)
+	while( ! uim->parser_uim->is_eos)
 	{
 		filled_len = (*uim->conv->convert)( uim->conv ,
 						    conv_buf ,
 						    sizeof( conv_buf) ,
-						    uim->parser) ;
+						    uim->parser_uim) ;
 
 		if( filled_len == 0)
 		{
@@ -440,7 +524,7 @@ preedit_clear(
 
 	if( uim->im.preedit.chars)
 	{
-		(*mlterm_syms->func_ml_str_delete)(
+		(*mlterm_syms->ml_str_delete)(
 						uim->im.preedit.chars ,
 						uim->im.preedit.num_of_chars) ;
 		uim->im.preedit.chars = NULL ;
@@ -456,10 +540,11 @@ static void
 preedit_pushback(
 	void *  ptr ,
 	int  attr ,
-	const char *  str
+	const char *  _str
 	)
 {
 	im_uim_t *  uim ;
+	u_char *  str = NULL ;
 	ml_char_t *  p ;
 	mkf_char_t  ch ;
 	ml_color_t  fg_color = ML_FG_COLOR ;
@@ -467,29 +552,8 @@ preedit_pushback(
 	int  is_underline = 0 ;
 	u_int  count = 0 ;
 
-#ifdef IM_UIM_DEBUG_COMB
-	char _str[512];
-	static int n = 1;
-	if( attr & UPreeditAttr_UnderLine && strlen(str))
-	{
-		printf("str:%s\n", str);
-		int i;
-		for (i = 0; i < n * 6; i+=6) {
-			_str[i] = 0xe3;
-			_str[i+1] = 0x83;
-			_str[i+2] = 0xbd;
-			_str[i+3] = 0xe3;
-			_str[i+4] = 0x82;
-			_str[i+5] = 0x99;
-		}
-		_str[i] = '\0';
-		str = &_str[0];
-		n++;
-	}
-#endif
-
 #ifdef  IM_UIM_DEBUG
-	kik_debug_printf( "preedit_pushback attr: %d, str:%s, length:%d\n" , attr , str, strlen( str)) ;
+	kik_debug_printf( "preedit_pushback attr: %d, _str:%s, length:%d\n" , attr , _str, strlen( _str)) ;
 #endif
 
 	uim = (im_uim_t*) ptr ;
@@ -499,7 +563,7 @@ preedit_pushback(
 		uim->im.preedit.cursor_offset = uim->im.preedit.filled_len ;
 	}
 
-	if( ! strlen( str))
+	if( ! strlen( _str))
 	{
 		return ;
 	}
@@ -519,14 +583,30 @@ preedit_pushback(
 
 	/* TODO: UPreeditAttr_Separator */
 
+	if( NEED_TO_CONV(uim))
+	{
+		/* uim encoding -> term encoding */
+		if( ! (convert_encoding( uim->parser_uim , uim->conv ,
+					 (u_char*)_str , &str)))
+		{
+			return ;
+		}
+	}
+	else
+	{
+		str = _str ;
+	}
+
 	/*
 	 * count number of characters to re-allocate im.preedit.chars
 	 */
-	
-	(*uim->parser->init)( uim->parser) ;
-	(*uim->parser->set_str)( uim->parser , (char*) str , strlen( str)) ;
 
-	while( (*uim->parser->next_char)( uim->parser , &ch))
+	(*uim->parser_term->init)( uim->parser_term) ;
+	(*uim->parser_term->set_str)( uim->parser_term ,
+				      (u_char*) str ,
+				      strlen( str)) ;
+
+	while( (*uim->parser_term->next_char)( uim->parser_term , &ch))
 	{
 		count++ ;
 	}
@@ -534,18 +614,21 @@ preedit_pushback(
 	/* no space left? (current array size < new array size?)*/
 	if( uim->im.preedit.num_of_chars < uim->im.preedit.filled_len + count)
 	{
-		if( ! ( p = realloc( uim->im.preedit.chars , sizeof(ml_char_t) * ( uim->im.preedit.filled_len + count))))
+		if( ! ( p = realloc( uim->im.preedit.chars ,
+				     sizeof(ml_char_t) * ( uim->im.preedit.filled_len + count))))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
 		#endif
 
-			(*mlterm_syms->func_ml_str_delete)(
+			(*mlterm_syms->ml_str_delete)(
 						uim->im.preedit.chars ,
 						uim->im.preedit.num_of_chars) ;
 			uim->im.preedit.chars = NULL ;
 			uim->im.preedit.num_of_chars = 0 ;
 			uim->im.preedit.filled_len = 0 ;
+
+			free( str) ;
 
 			return ;
 		}
@@ -555,17 +638,20 @@ preedit_pushback(
 	}
 
 	p = &uim->im.preedit.chars[uim->im.preedit.filled_len];
-	(*mlterm_syms->func_ml_str_init)( p , count);
+	(*mlterm_syms->ml_str_init)( p , count);
 
 	/*
-	 * uim encoding -> term encoding
+	 * u_char --> ml_char_t
 	 */
-	(*uim->parser->init)( uim->parser) ;
-	(*uim->parser->set_str)( uim->parser , (char*)str , strlen( str)) ;
+
+	(*uim->parser_term->init)( uim->parser_term) ;
+	(*uim->parser_term->set_str)( uim->parser_term ,
+				      (u_char*)str ,
+				      strlen( str)) ;
 
 	count = 0 ;
 
-	while( (*uim->parser->next_char)( uim->parser , &ch))
+	while( (*uim->parser_term->next_char)( uim->parser_term , &ch))
 	{
 		int  is_biwidth = 0 ;
 		int  is_comb = 0 ;
@@ -590,12 +676,13 @@ preedit_pushback(
 
 		if( is_comb)
 		{
-			if( (*mlterm_syms->func_ml_char_combine)(
-							p - 1 , ch.ch ,
-							ch.size , ch.cs ,
-							is_biwidth , is_comb ,
-							fg_color , bg_color ,
-							0 , is_underline))
+			if( (*mlterm_syms->ml_char_combine)( p - 1 , ch.ch ,
+							     ch.size , ch.cs ,
+							     is_biwidth ,
+							     is_comb ,
+							     fg_color ,
+							     bg_color ,
+							     0 , is_underline))
 			{
 				continue;
 			}
@@ -605,18 +692,23 @@ preedit_pushback(
 			 */
 		}
 
-		if( (*mlterm_syms->func_ml_is_msb_set)( ch.cs))
+		if( (*mlterm_syms->ml_is_msb_set)( ch.cs))
 		{
 			SET_MSB( ch.ch[0]) ;
 		}
 
-		(*mlterm_syms->func_ml_char_set)( p , ch.ch , ch.size , ch.cs ,
-						  is_biwidth , is_comb ,
-						  fg_color , bg_color ,
-						  0 , is_underline) ;
+		(*mlterm_syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
+					     is_biwidth , is_comb ,
+					     fg_color , bg_color ,
+					     0 , is_underline) ;
 
 		p++ ;
 		uim->im.preedit.filled_len++;
+	}
+
+	if( NEED_TO_CONV( uim))
+	{
+		free( str) ;
 	}
 }
 
@@ -690,7 +782,7 @@ candidate_activate(
 					       uim->im.preedit.segment_offset ,
 					       &x , &y) ;
 
-		if( ! ( uim->im.cand_screen = (*mlterm_syms->func_x_im_candidate_screen_new)(
+		if( ! ( uim->im.cand_screen = (*mlterm_syms->x_im_candidate_screen_new)(
 				(*uim->im.listener->get_win_man)(uim->im.listener->self) ,
 				(*uim->im.listener->get_font_man)(uim->im.listener->self) ,
 				(*uim->im.listener->get_color_man)(uim->im.listener->self) ,
@@ -723,18 +815,32 @@ candidate_activate(
 	for( i = 0 ; i < num ; i++)
 	{
 		uim_candidate  c ;
-		u_char *  s ;
+		u_char *  _p ;
+		u_char *  p = NULL ;
 
 		c = uim_get_candidate( uim->context , i , i) ;
-		s = (u_char*)uim_candidate_get_cand_str( c) ;
+		_p = (u_char*)uim_candidate_get_cand_str( c) ;
 
 	#ifdef  IM_UIM_DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " %d| %s\n", i , s) ;
+		kik_debug_printf( KIK_DEBUG_TAG " %d| %s\n", i , _p) ;
 	#endif
 
-		(*uim->im.cand_screen->set)( uim->im.cand_screen ,
-					uim->parser , uim->conv ,
-					s , i) ;
+		if( NEED_TO_CONV( uim))
+		{
+			if( ( convert_encoding( uim->parser_uim , uim->conv , (u_char*)_p , &p)))
+			{
+				(*uim->im.cand_screen->set)( uim->im.cand_screen ,
+							     uim->parser_term ,
+							     p , i) ;
+				free( p) ;
+			}
+		}
+		else
+		{
+			(*uim->im.cand_screen->set)( uim->im.cand_screen ,
+						     uim->parser_term ,
+						     _p , i) ;
+		}
 
 		uim_candidate_free( c) ;
 	}
@@ -818,8 +924,17 @@ delete(
 		last_focused_uim = NULL ;
 	}
 
-	(*uim->parser->delete)( uim->parser) ;
-	(*uim->conv->delete)( uim->conv) ;
+	if( uim->parser_uim)
+	{
+		(*uim->parser_uim->delete)( uim->parser_uim) ;
+	}
+
+	(*uim->parser_term->delete)( uim->parser_term) ;
+
+	if( uim->conv)
+	{
+		(*uim->conv->delete)( uim->conv) ;
+	}
 
 	if( uim->im.cand_screen)
 	{
@@ -839,7 +954,7 @@ delete(
 	if( ref_count == 0 && initialized)
 	{
 		uim_helper_close_client_fd( helper_fd) ;
-		(*mlterm_syms->func_x_term_manager_remove_fd)( helper_fd) ;
+		(*mlterm_syms->x_term_manager_remove_fd)( helper_fd) ;
 		helper_fd = -1 ;
 
 		uim_quit() ;
@@ -946,29 +1061,31 @@ draw_preedit(
 					       uim->im.preedit.filled_len ,
 					       uim->im.preedit.cursor_offset) ;
 
-	if( uim->im.cand_screen)
+	if( ! uim->im.cand_screen)
+	{
+		return ;
+	}
+
+	if( is_focused)
 	{
 		int  x ;
 		int  y ;
 
-		if( is_focused)
+		if( (*uim->im.listener->get_spot)(
+					uim->im.listener->self ,
+					uim->im.preedit.chars ,
+					uim->im.preedit.segment_offset ,
+					&x , &y))
 		{
-			if( (*uim->im.listener->get_spot)(
-						uim->im.listener->self ,
-						uim->im.preedit.chars ,
-						uim->im.preedit.segment_offset ,
-						&x , &y))
-			{
-				(*uim->im.cand_screen->show)(
-							uim->im.cand_screen) ;
-				(*uim->im.cand_screen->set_spot)(
-							uim->im.cand_screen ,
-							x , y) ;
-
-				return ;
-			}
+			(*uim->im.cand_screen->show)(
+						uim->im.cand_screen) ;
+			(*uim->im.cand_screen->set_spot)(
+						uim->im.cand_screen ,
+						x , y) ;
 		}
-
+	}
+	else
+	{
 		(*uim->im.cand_screen->hide)( uim->im.cand_screen) ;
 	}
 }
@@ -1013,7 +1130,7 @@ helper_read_handler( void)
 
 x_im_t *
 im_new(
-	u_int32_t  magic ,
+	u_int64_t  magic ,
 	ml_char_encoding_t  term_encoding ,
 	x_im_event_listener_t *  im_listener ,
 	x_im_export_syms_t *  export_syms ,
@@ -1054,8 +1171,8 @@ im_new(
 	 */
 	if( helper_fd == -1 &&
 	    mlterm_syms &&
-	    mlterm_syms->func_x_term_manager_add_fd &&
-	    mlterm_syms->func_x_term_manager_remove_fd)
+	    mlterm_syms->x_term_manager_add_fd &&
+	    mlterm_syms->x_term_manager_remove_fd)
 	{
 		void * hold_handler;
 
@@ -1065,9 +1182,8 @@ im_new(
 
 		signal(SIGCHLD, hold_handler) ;
 
-		(*mlterm_syms->func_x_term_manager_add_fd)(
-							helper_fd ,
-							helper_read_handler) ;
+		(*mlterm_syms->x_term_manager_add_fd)(helper_fd ,
+						      helper_read_handler) ;
 	}
 
 	if( engine == NULL)
@@ -1082,7 +1198,7 @@ im_new(
 		goto  error ;
 	}
 
-	if( (encoding = (*mlterm_syms->func_ml_get_char_encoding)( encoding_name)) == ML_UNKNOWN_ENCODING)
+	if( (encoding = (*mlterm_syms->ml_get_char_encoding)( encoding_name)) == ML_UNKNOWN_ENCODING)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " %s is unknown encoding.\n" , encoding_name) ;
@@ -1100,15 +1216,24 @@ im_new(
 	}
 
 	uim->encoding_name = encoding_name ;
-	uim->parser = NULL ;
+	uim->parser_uim = NULL ;
+	uim->parser_term = NULL ;
 	uim->conv = NULL ;
 
-	if( ! ( uim->parser = (*mlterm_syms->func_ml_parser_new)( encoding)))
+	if( term_encoding != encoding)
 	{
-		goto  error ;
+		if( ! ( uim->parser_uim = (*mlterm_syms->ml_parser_new)( encoding)))
+		{
+			goto  error ;
+		}
+
+		if( ! ( uim->conv = (*mlterm_syms->ml_conv_new)( term_encoding)))
+		{
+			goto  error ;
+		}
 	}
 
-	if( ! ( uim->conv = (*mlterm_syms->func_ml_conv_new)( term_encoding)))
+	if( ! ( uim->parser_term = (*mlterm_syms->ml_parser_new)( term_encoding)))
 	{
 		goto  error ;
 	}
@@ -1117,11 +1242,7 @@ im_new(
 						   encoding_name ,
 						   NULL ,
 						   engine ,
-#if 0
-						   uim_iconv ,
-#else
 						   NULL ,
-#endif
 						   commit)))
 	{
 	#ifdef  DEBUG
@@ -1182,7 +1303,7 @@ error:
 	{
 		uim_helper_close_client_fd( helper_fd) ;
 
-		(*mlterm_syms->func_x_term_manager_remove_fd)( helper_fd) ;
+		(*mlterm_syms->x_term_manager_remove_fd)( helper_fd) ;
 
 		helper_fd = -1 ;
 	}
@@ -1196,9 +1317,14 @@ error:
 
 	if( uim)
 	{
-		if( uim->parser)
+		if( uim->parser_uim)
 		{
-			(*uim->parser->delete)( uim->parser) ;
+			(*uim->parser_uim->delete)( uim->parser_uim) ;
+		}
+
+		if( uim->parser_term)
+		{
+			(*uim->parser_term->delete)( uim->parser_term) ;
 		}
 
 		if( uim->conv)
