@@ -235,16 +235,10 @@ dnl
 dnl defaut settings
 DL_LIBS=
 DL_SELF=
-if test "x$allow_undefined_flag" = "xunsupported" ; then
-	# pixmap_engine has the undefined symbol. But some platforms, such as
-	# AIX, do not allow it.
-	scrollbars="sample,extra"
-else
-	scrollbars="sample,extra,pixmap_engine"
-fi
+scrollbars="sample,extra"
 
 AC_ARG_WITH(scrollbars,
-	[  --with-scrollbars[=ARG] scrollbar plugins [sample,extra,pixmap_engine]],
+	[  --with-scrollbars[=ARG] scrollbar plugins [sample,extra]],
 	[
 	# If given --without-scrollbars or --with-scrollbars with no args.
 	if test "${with_scrollbars}" = "no" ; then
@@ -277,7 +271,7 @@ extra)
 pixmap_engine)
 	if test "x$allow_undefined_flag" = "xunsupported" ; then
 		echo ""
-		echo "pixmap_engine has undefined symbol. $host_os does NOT allow it. Please retry"
+		echo "pixmap_engine has undefined symbols. $host_os does NOT allow it. Please retry"
 		echo "to run configure scripts without pixmap_engine"
 		echo "(e.g.  --with-scrllbars=sample,extra)"
 		echo ""
