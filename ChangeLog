@@ -1,3 +1,11 @@
+2002-04-30 Araki Ken <arakiken@users.sf.net>
+
+	* etc/termcap format is changed and it is possible to define entries for
+	  multiple terminals.
+	* ut field(a.k.a bce in terminfo) is added to etc/termcap and --bce option
+	  is removed.
+	* -ldl is linked to libkik.so.
+
 2002-04-29 MINAMI Hirokazu <minami@chem.s.u-tokyo.ac.jp>
 
 	* Added documentations for background picture processing.
