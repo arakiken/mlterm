@@ -580,6 +580,9 @@ close_screen_intern(
  * EXIT_PROGRAM shortcut calls this at last.
  * this is for debugging.
  */
+#ifdef  KIK_DEBUG
+#include  <kiklib/kik_locale.h>		/* kik_locale_final */
+#endif
 static void
 __exit(
 	void *  p ,

@@ -7,7 +7,7 @@
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_util.h>
+#include  <kiklib/kik_util.h>	/* K_MIN */
 
 #include  "ml_iscii.h"
 
@@ -18,7 +18,8 @@
 		kik_warn_printf( "END_CHAR_INDEX()[" __FUNCTION__  "] num_of_filled_chars is 0.\n") ? \
 		0 : (line)->num_of_filled_chars - 1 )
 #else
-#define  END_CHAR_INDEX(line)  ((line)->num_of_filled_chars - 1)
+#define  END_CHAR_INDEX(line) \
+	( (line)->num_of_filled_chars == 0 ? 0 : (line)->num_of_filled_chars - 1 )
 #endif
 
 #define  IS_MODIFIED(flag)  ((flag) & 0x1)
@@ -40,7 +41,7 @@
 /* --- global functions --- */
 
 /*
- * functions which doesn't have to care about visual order.
+ * Functions which doesn't have to care about visual order.
  */
  
 int
@@ -69,7 +70,6 @@ ml_line_clone(
 	)
 {
 	ml_line_init( clone , num_of_chars) ;
-	
 	ml_line_copy_line( clone , orig) ;
 
 	return  1 ;
@@ -94,7 +94,7 @@ ml_line_final(
 }
 
 /*
- * return: actually broken rows.
+ * return: actually broken chars.
  */
 u_int
 ml_line_break_boundary(
@@ -110,7 +110,7 @@ ml_line_break_boundary(
 
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " breaking from col %d by size %d failed." ,
-			END_CHAR_INDEX(line) , size) ;
+			line->num_of_filled_chars , size) ;
 	#endif
 
 		size = line->num_of_chars - line->num_of_filled_chars ;
@@ -128,19 +128,42 @@ ml_line_break_boundary(
 	}
 
 	/* padding spaces */
-	for( count = line->num_of_filled_chars ; count < line->num_of_filled_chars + size ;
-		count ++)
+	for( count = line->num_of_filled_chars ; count < line->num_of_filled_chars + size ; count ++)
 	{
 		ml_char_copy( &line->chars[count] , ml_sp_ch()) ;
 	}
 
-	line->num_of_filled_chars += size ;
-
 	/*
 	 * change char index is not updated , because space has no glyph.
 	 */
+#if  0
+	ml_line_set_modified( line , END_CHAR_INDEX(line) + 1 , END_CHAR_INDEX(line) + size) ;
+#endif
+
+	line->num_of_filled_chars += size ;
 
 	return  size ;
+}
+
+int
+ml_line_assure_boundary(
+	ml_line_t *  line ,
+	int  char_index
+	)
+{
+	if( char_index >= line->num_of_filled_chars)
+	{
+		u_int  brk_size ;
+
+		brk_size = char_index - line->num_of_filled_chars + 1 ;
+		
+		if( ml_line_break_boundary( line , brk_size) < brk_size)
+		{
+			return  0 ;
+		}
+	}
+
+	return  1 ;
 }
 
 int
@@ -148,18 +171,15 @@ ml_line_reset(
 	ml_line_t *  line
 	)
 {
-#if  0
-	/*
-	 * If this check is enabled, ml_edit_clear_lines() in
-	 * ml_edit_scroll.c:scroll_{up|down}ward_region() possibly cannot
-	 * set modified flag of the lines.
-	 */
-	if( line->num_of_filled_chars > 0)
-#endif
+	if( IS_EMPTY(line))
 	{
-		ml_line_set_modified_all( line) ;
+		/* already reset */
+		
+		return  1 ;
 	}
-
+	
+	ml_line_set_modified( line , 0 , END_CHAR_INDEX(line)) ;
+	
 	line->num_of_filled_chars = 0 ;
 
 	if( line->bidi_state)
@@ -178,24 +198,8 @@ ml_line_clear(
 	int  char_index
 	)
 {
-	if( char_index == 0)
+	if( char_index < line->num_of_filled_chars)
 	{
-		ml_line_reset( line) ;
-
-		ml_char_copy( &line->chars[0] , ml_sp_ch()) ;
-		line->num_of_filled_chars = 1 ;
-	}
-	else
-	{
-		if( char_index >= line->num_of_filled_chars)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " nothing is cleared.\n") ;
-		#endif
-
-			return  1 ;
-		}
-
 		ml_line_set_modified( line , char_index , END_CHAR_INDEX(line)) ;
 
 		ml_char_copy( &line->chars[char_index] , ml_sp_ch()) ;
@@ -215,11 +219,12 @@ ml_line_overwrite(
 	)
 {
 	int  count ;
-	int  char_index ;	/* points after overwritten chars */
+	u_int  cols_to_beg ;
 	u_int  cols_rest ;
 	u_int  padding ;
 	u_int  new_len ;
 	u_int  copy_len ;
+	ml_char_t *  copy_src ;
 
 	if( beg_char_index > line->num_of_filled_chars)
 	{
@@ -228,7 +233,7 @@ ml_line_overwrite(
 			beg_char_index) ;
 	#endif
 	
-		beg_char_index = END_CHAR_INDEX(line) ;
+		beg_char_index = line->num_of_filled_chars ;
 	}
 	
 	if( beg_char_index + len > line->num_of_chars)
@@ -241,26 +246,40 @@ ml_line_overwrite(
 		len = line->num_of_chars - beg_char_index ;
 	}
 
-	char_index = ml_convert_col_to_char_index( line , &cols_rest ,
-			ml_str_cols( line->chars , beg_char_index) + cols , 0) ;
+	cols_to_beg = ml_str_cols( line->chars , beg_char_index) ;
 
-	if( 1 <= cols_rest && cols_rest < ml_char_cols( &line->chars[char_index]))
+	if( cols_to_beg + cols < line->num_of_chars)
 	{
-		padding = ml_char_cols( &line->chars[char_index]) - cols_rest ;
-		char_index += padding ;
+		int  char_index ;
+		
+		char_index = ml_convert_col_to_char_index( line , &cols_rest , cols_to_beg + cols , 0) ;
+
+		if( 1 <= cols_rest && cols_rest < ml_char_cols( &line->chars[char_index]))
+		{
+			padding = ml_char_cols( &line->chars[char_index]) - cols_rest ;
+			char_index ++ ;
+		}
+		else
+		{
+			padding = 0 ;
+		}
+
+		if( line->num_of_filled_chars > char_index)
+		{
+			copy_len = line->num_of_filled_chars - char_index ;
+		}
+		else
+		{
+			copy_len = 0 ;
+		}
+
+		copy_src = &line->chars[char_index] ;
 	}
 	else
 	{
 		padding = 0 ;
-	}
-
-	if( line->num_of_filled_chars > char_index)
-	{
-		copy_len = line->num_of_filled_chars - char_index ;
-	}
-	else
-	{
 		copy_len = 0 ;
+		copy_src = NULL ;
 	}
 	
 	new_len = beg_char_index + len + padding + copy_len ;
@@ -269,17 +288,8 @@ ml_line_overwrite(
 	{
 	#ifdef  DEBUG
 		kik_warn_printf(
-			KIK_DEBUG_TAG " new line len %d(ow %d copy %d) is overflowed\n" ,
-			new_len , len , copy_len) ;
-
-		if( line->num_of_chars < padding + copy_len)
-		{
-			kik_warn_printf( KIK_DEBUG_TAG
-				" padding(%d) + copy_len(%d) is over max chars(%d).\n" ,
-				padding , copy_len , line->num_of_chars) ;
-
-			abort() ;
-		}
+			KIK_DEBUG_TAG " new line len %d(beg %d ow %d padding %d copy %d) is overflowed\n" ,
+			new_len , beg_char_index , len , padding , copy_len) ;
 	#endif
 		
 		new_len = line->num_of_chars ;
@@ -291,6 +301,7 @@ ml_line_overwrite(
 		else
 		{
 			copy_len = 0 ;
+			padding = new_len - beg_char_index - len ;
 		}
 
 	#ifdef  DEBUG
@@ -301,8 +312,7 @@ ml_line_overwrite(
 	if( copy_len > 0)
 	{
 		/* making space */
-		ml_str_copy( &line->chars[beg_char_index + len + padding] ,
-			&line->chars[char_index] , copy_len) ;
+		ml_str_copy( &line->chars[beg_char_index + len + padding] , copy_src , copy_len) ;
 	}
 
 	for( count = 0 ; count < padding ; count ++)
@@ -351,6 +361,10 @@ ml_line_fill(
 
 	if( beg > line->num_of_filled_chars || beg >= line->num_of_chars)
 	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " illegal beg[%d].\n" , beg) ;
+	#endif
+	
 		return  0 ;
 	}
 
@@ -434,7 +448,7 @@ ml_line_get_char(
 	int  char_index
 	)
 {
-	if( char_index > END_CHAR_INDEX(line))
+	if( char_index >= line->num_of_filled_chars)
 	{
 		return  NULL ;
 	}
@@ -642,7 +656,7 @@ ml_convert_char_index_to_col(
 	int  count ;
 	int  col ;
 
-	if( line->num_of_filled_chars == 0)
+	if( IS_EMPTY(line))
 	{
 		return  0 ;
 	}
@@ -651,8 +665,8 @@ ml_convert_char_index_to_col(
 	{
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG
-			" char index %d is larger than num_of_chars(%d)\n" ,
-			char_index , line->num_of_chars) ;
+			" char index %d is larger than num_of_chars(%d) ... modified -> %d.\n" ,
+			char_index , line->num_of_chars , line->num_of_chars - 1) ;
 	#endif
 
 		char_index = line->num_of_chars - 1 ;
@@ -678,22 +692,13 @@ ml_convert_char_index_to_col(
 
 		col += (char_index - count) ;
 	}
-	else
+	else if( line->num_of_filled_chars > 0)
 	{
 		/*
 		 * excluding the width of the last char.
 		 */
 		for( count = 0 ; count < K_MIN(char_index,END_CHAR_INDEX(line)) ; count ++)
 		{
-		#ifdef  DEBUG
-			if( ml_char_cols( &line->chars[count]) == 0)
-			{
-				kik_warn_printf( KIK_DEBUG_TAG " ml_char_cols returns 0.\n") ;
-				
-				continue ;
-			}
-		#endif
-
 			col += ml_char_cols( &line->chars[count]) ;
 		}
 	}
@@ -711,11 +716,6 @@ ml_convert_col_to_char_index(
 {
 	int  char_index ;
 
-	if( line->num_of_filled_chars == 0)
-	{
-		return  0 ;
-	}
-
 #ifdef  DEBUG
 	if( col >= line->num_of_chars * 2 && cols_rest)
 	{
@@ -725,12 +725,10 @@ ml_convert_col_to_char_index(
 			col , line->num_of_chars * 2) ;
 	}
 #endif
-
-	char_index = 0 ;
 	
-	for( ; char_index < END_CHAR_INDEX(line) ; char_index ++)
+	for( char_index = 0 ; char_index + 1 < line->num_of_filled_chars ; char_index ++)
 	{
-		int  cols ; /* cache ml_char_cols*/
+		int  cols ;
 
 		cols = ml_char_cols( &line->chars[char_index]);
 		if( col < cols)
@@ -741,19 +739,10 @@ ml_convert_col_to_char_index(
 		col -= cols ;
 	}
 	
-	if( col < ml_char_cols( &line->chars[char_index]))
-	{
-		goto  end ;
-	}
-	else if( flag & BREAK_BOUNDARY)
+	if( col >= ml_char_cols( &line->chars[char_index]) && (flag & BREAK_BOUNDARY))
 	{
 		col -= ml_char_cols( &line->chars[char_index++]) ;
-		
-		while( col > 0)
-		{
-			col -- ;
-			char_index ++ ;
-		}
+		char_index += col ;
 	}
 
 end:
@@ -771,7 +760,7 @@ ml_line_reverse_color(
 	int  char_index
 	)
 {
-	if( char_index > END_CHAR_INDEX(line))
+	if( char_index >= line->num_of_filled_chars)
 	{
 		return  0 ;
 	}
@@ -789,7 +778,7 @@ ml_line_restore_color(
 	int  char_index
 	)
 {
-	if( char_index > END_CHAR_INDEX(line))
+	if( char_index >= line->num_of_filled_chars)
 	{
 		return  0 ;
 	}
@@ -878,7 +867,7 @@ ml_line_end_char_index(
 	ml_line_t *  line
 	)
 {
-	if( line->num_of_filled_chars == 0)
+	if( IS_EMPTY(line))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " num_of_filled_chars is 0.\n") ;
@@ -920,7 +909,11 @@ ml_get_num_of_filled_chars_except_spaces(
 {
 	int  char_index ;
 
-	if( ml_line_is_rtl( line))
+	if( IS_EMPTY(line))
+	{
+		return  0 ;
+	}
+	else if( ml_line_is_rtl( line))
 	{
 		return  line->num_of_filled_chars ;
 	}
@@ -940,7 +933,7 @@ ml_get_num_of_filled_chars_except_spaces(
 
 
 /*
- * visual <=> logical functions , which must care about visual order.
+ * Functions which must care about visual order.
  */
 
 int
@@ -1487,6 +1480,11 @@ ml_iscii_convert_logical_char_index_to_visual(
 	int  visual_char_index ;
 	u_int  comb_size ;
 
+	if( IS_EMPTY(line))
+	{
+		return  0 ;
+	}
+
 	visual_char_index = 0 ;
 
 	for( count = 0 ; count < logical_char_index && count < END_CHAR_INDEX(line) ; count ++)
@@ -1538,8 +1536,8 @@ end:
 	#ifdef  __DEBUG
 		/*
 		 * XXX
-		 * This must never happens that abort() should be done here.
-		 * But this happens not a few times ....
+		 * This must never happens, so abort() should be done here.
+		 * But since this happens not a few times, this is enclosed by __DEBUG.
 		 */
 		abort() ;
 	#endif

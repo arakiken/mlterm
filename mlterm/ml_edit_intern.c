@@ -9,41 +9,6 @@
 
 /* --- global functions --- */
 
-int
-ml_edit_clear_line(
-	ml_edit_t *  edit ,
-	int  row ,
-	int  char_index
-	)
-{
-	ml_line_t *  line ;
-	
-	if( row > ml_model_end_row( &edit->model))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " row %d is over END_ROW %d. nothing is cleared.\n" ,
-			row , ml_model_end_row( &edit->model)) ;
-	#endif
-
-		return  1 ;
-	}
-
-	line = ml_model_get_line( &edit->model , row) ;
-
-	ml_line_clear( line , char_index) ;
-	
-	if( row == edit->cursor.row)
-	{
-		if( edit->cursor.char_index > char_index)
-		{
-			edit->cursor.char_index = char_index ;
-			edit->cursor.col = ml_convert_char_index_to_col( line , char_index , 0) ;
-		}
-	}
-
-	return  1 ;
-}
-
 /*
  * used in ml_edit/ml_edit_scroll
  */
@@ -58,10 +23,6 @@ ml_edit_clear_lines(
 
 	if( size == 0)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " size %d should be larger than 0.\n" , size) ;
-	#endif
-	
 		return  0 ;
 	}
 
@@ -74,35 +35,29 @@ ml_edit_clear_lines(
 		return  0 ;
 	}
 
-	ml_edit_clear_line( edit , beg_row , 0) ;
-
-	if( beg_row + size < edit->model.num_of_filled_rows)
+	for( count = 0 ; count < size ; count ++)
 	{
-		/*
-		 * there will still be some lines after the cleared lines.
-		 */
-		 
-		for( count = 1 ; count < size ; count ++)
-		{
-			ml_edit_clear_line( edit , beg_row + count , 0) ;
-		}
-
-		if( beg_row <= edit->cursor.row && edit->cursor.row <= beg_row + size - 1)
-		{
-			edit->cursor.char_index = 0 ;
-			edit->cursor.col = 0 ;
-		}
+		ml_line_reset( ml_model_get_line( &edit->model , beg_row + count)) ;
 	}
-	else
+
+	if( beg_row <= edit->cursor.row && edit->cursor.row <= beg_row + size - 1)
 	{
-		ml_model_shrink_boundary( &edit->model , edit->model.num_of_filled_rows - beg_row - 1) ;
-		
-		if( edit->cursor.row >= beg_row)
+		u_int  brk_size ;
+
+		if( ( brk_size = ml_line_break_boundary( CURSOR_LINE(edit) , edit->cursor.col + 1)) == 0)
 		{
-			edit->cursor.row = beg_row ;
-			edit->cursor.char_index = 0 ;
-			edit->cursor.col = 0 ;
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " critical error.\n") ;
+		#endif
+
+			edit->cursor.char_index = edit->cursor.col = 0 ;
 		}
+		else
+		{
+			edit->cursor.char_index = edit->cursor.col = brk_size - 1 ;
+		}
+		
+		edit->cursor.col_in_char = 0 ;
 	}
 
 	return  1 ;

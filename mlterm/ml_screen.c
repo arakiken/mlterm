@@ -27,45 +27,6 @@ static int  separators_are_allocated = 0 ;
 
 /* --- static functions --- */
 
-#if  0
-
-static int
-get_n_prev_char_pos(
-	mlx_term_screen_t *  screen ,
-	int *  char_index ,
-	int *  row ,
-	int  n
-	)
-{
-	int  count ;
-	ml_cursor_t  cursor ;
-	int  result ;
-
-	cursor = screen->edit->cursor ;
-
-	for( count = 0 ; count < n ; count ++)
-	{
-		if( ! ml_edit_go_back( screen->edit , WRAPAROUND))
-		{
-			result = 0 ;
-
-			goto  end ;
-		}
-	}
-
-	*char_index = screen->edit->cursor.char_index ;
-	*row = screen->edit->cursor.row ;
-
-	result = 1 ;
-
-end:
-	screen->edit->cursor = cursor ;
-
-	return  result ;
-}
-
-#else
-
 static int
 get_n_prev_char_pos(
 	ml_screen_t *  screen ,
@@ -91,8 +52,6 @@ get_n_prev_char_pos(
 
 	return  1 ;
 }
-
-#endif	
 
 static int
 is_word_separator(
@@ -1608,7 +1567,7 @@ ml_screen_line_feed(
 	ml_screen_t *  screen
 	)
 {	
-	return  ml_edit_go_downward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
+	return  ml_edit_go_downward( screen->edit , SCROLL) ;
 }
 
 int
@@ -1751,7 +1710,7 @@ ml_screen_index(
 	ml_screen_t *  screen
 	)
 {
-	return  ml_edit_go_downward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
+	return  ml_edit_go_downward( screen->edit , SCROLL) ;
 }
 
 int
@@ -1759,7 +1718,7 @@ ml_screen_reverse_index(
 	ml_screen_t *  screen
 	)
 {
-	return  ml_edit_go_upward( screen->edit , SCROLL | BREAK_BOUNDARY) ;
+	return  ml_edit_go_upward( screen->edit , SCROLL) ;
 }
 
 int
@@ -1790,7 +1749,7 @@ ml_screen_go_forward(
 
 	for( count = 0 ; count < size ; count ++)
 	{
-		if( ! ml_edit_go_forward( screen->edit , BREAK_BOUNDARY))
+		if( ! ml_edit_go_forward( screen->edit , 0))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot go forward any more.\n") ;
@@ -1836,7 +1795,7 @@ ml_screen_go_upward(
 	
 	for( count = 0 ; count < size ; count ++)
 	{
-		if( ! ml_edit_go_upward( screen->edit , BREAK_BOUNDARY))
+		if( ! ml_edit_go_upward( screen->edit , 0))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot go upward any more.\n") ;
@@ -1859,7 +1818,7 @@ ml_screen_go_downward(
 	
 	for( count = 0 ; count < size ; count ++)
 	{
-		if( ! ml_edit_go_downward( screen->edit , BREAK_BOUNDARY))
+		if( ! ml_edit_go_downward( screen->edit , 0))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " cursor cannot go downward any more.\n") ;
@@ -1913,7 +1872,7 @@ ml_screen_goto(
 	int  row
 	)
 {
-	return  ml_edit_goto( screen->edit , col , row , BREAK_BOUNDARY) ;
+	return  ml_edit_goto( screen->edit , col , row) ;
 }
 
 int

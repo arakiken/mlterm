@@ -398,7 +398,7 @@ bidi_visual(
 		logvis->cursor->char_index , logvis->cursor->col , logvis->cursor->row) ;
 #endif
 
-	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
 		if( ! ml_line_bidi_visual( ml_model_get_line( logvis->model , row)))
 		{
@@ -450,7 +450,7 @@ bidi_logical(
 		logvis->cursor->char_index , logvis->cursor->col , logvis->cursor->row) ;
 #endif
 
-	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
 		if( ! ml_line_bidi_logical( ml_model_get_line( logvis->model , row)))
 		{
@@ -584,7 +584,7 @@ comb_visual(
 	((comb_logical_visual_t*)logvis)->cursor_logical_char_index = logvis->cursor->char_index ;
 	((comb_logical_visual_t*)logvis)->cursor_logical_col = logvis->cursor->col ;
 	
-	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
 		ml_line_t *  line ;
 		int  dst_pos ;
@@ -680,7 +680,7 @@ comb_logical(
 		return  0 ;
 	}
 
-	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
 		ml_line_t *  line ;
 		int  dst_pos ;
@@ -960,7 +960,7 @@ iscii_visual(
 		iscii_logvis->logical_num_of_cols = logvis->model->num_of_cols ;
 	}
 	
-	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
 		int  is_cache_active ;
 
@@ -1058,7 +1058,7 @@ iscii_logical(
 
 	iscii_logvis = (iscii_logical_visual_t*) logvis ;
 	
-	for( row = 0 ; row < logvis->model->num_of_filled_rows ; row ++)
+	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
 	{
 		ml_line_copy_line( ml_model_get_line( logvis->model , row) ,
 			&iscii_logvis->logical_lines[row]) ;
@@ -1218,7 +1218,6 @@ vert_visual_intern(
 	}
 
 	ml_model_reset( &vert_logvis->visual_model) ;
-	ml_model_reserve_boundary( &vert_logvis->visual_model , vert_logvis->visual_model.num_of_rows) ;
 
 	if( mode & VERT_LTR)
 	{
@@ -1568,10 +1567,6 @@ ml_logvis_vert_new(
 	}
 
 	vert_logvis->is_init = 0 ;
-#if  0
-	memset( &vert_logvis->logical_model , 0 , sizeof( vert_logvis->logical_model)) ;
-	memset( &vert_logvis->visual_model , 0 , sizeof( vert_logvis->visual_model)) ;
-#endif
 	
 	vert_logvis->cursor_logical_char_index = 0 ;
 	vert_logvis->cursor_logical_col = 0 ;

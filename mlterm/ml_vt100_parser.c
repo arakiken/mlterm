@@ -39,11 +39,15 @@
 	((vt100_parser)->config_listener && ((vt100_parser)->config_listener->method))
 
 #if  0
-#define  __DEBUG
+#define  EDIT_DEBUG
 #endif
 
 #if  0
 #define  ESCSEQ_DEBUG
+#endif
+
+#if  0
+#define  INPUT_DEBUG
 #endif
 
 #if  0
@@ -126,23 +130,20 @@ receive_bytes(
 
 	vt100_parser->len = ( vt100_parser->left += ret) ;
 
-#ifdef  __DEBUG
+#ifdef  INPUT_DEBUG
 	{
 		int  count ;
 
 		kik_debug_printf( KIK_DEBUG_TAG " pty msg (len %d) is received:" , vt100_parser->left) ;
 
-	#ifdef  DUMP_HEX
 		for( count = 0 ; count < vt100_parser->left ; count ++)
 		{
+		#ifdef  DUMP_HEX
 			kik_msg_printf( "[%.2x]" , vt100_parser->seq[count]) ;
-		}
-	#else
-		for( count = 0 ; count < vt100_parser->left ; count ++)
-		{
+		#else
 			kik_msg_printf( "%c" , vt100_parser->seq[count]) ;
+		#endif
 		}
-	#endif
 	
 		kik_msg_printf( "[END]\n") ;
 	}
@@ -203,7 +204,7 @@ flush_buffer(
 	/* buffer is cleared */
 	vt100_parser->buffer.len = 0 ;
 
-#ifdef __DEBUG
+#ifdef  EDIT_DEBUG
 	ml_edit_dump( vt100_parser->screen->edit) ;
 #endif
 
@@ -2234,7 +2235,7 @@ parse_vt100_escape_sequence(
 		}
 		else if( *str_p == CTLKEY_CR)
 		{
-		#ifdef  __DEBUG
+		#ifdef  ESCSEQ_DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " receiving CR\n") ;
 		#endif
 
@@ -2242,7 +2243,7 @@ parse_vt100_escape_sequence(
 		}
 		else if( *str_p == CTLKEY_TAB)
 		{
-		#ifdef  __DEBUG
+		#ifdef  ESCSEQ_DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " receiving TAB\n") ;
 		#endif
 
@@ -2279,8 +2280,7 @@ parse_vt100_escape_sequence(
 		left -- ;
 		str_p ++ ;
 		
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " --> dumping\n") ;
+	#ifdef  EDIT_DEBUG
 		ml_edit_dump( vt100_parser->screen->edit) ;
 	#endif
 

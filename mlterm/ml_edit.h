@@ -13,6 +13,20 @@
 #include  "ml_model.h"
 
 
+typedef struct  ml_cursor
+{
+	int  row ;
+	int  char_index ;
+	int  col ;
+	int  col_in_char ;
+	
+	int  saved_row ;
+	int  saved_char_index ;
+	int  saved_col ;
+	int8_t  is_saved ;
+	
+} ml_cursor_t ;
+
 typedef struct ml_edit_scroll_event_listener
 {
 	void *  self ;
@@ -128,11 +142,7 @@ int  ml_edit_goto_beg_of_line( ml_edit_t *  edit) ;
 
 int  ml_edit_goto_home( ml_edit_t *  edit) ;
 
-int  ml_edit_goto_end( ml_edit_t *  edit) ;
-
-int  ml_edit_goto( ml_edit_t *  edit , int  col , int  row , int  flag) ;
-
-int  ml_cursor_is_beg_of_line( ml_edit_t *  edit) ;
+int  ml_edit_goto( ml_edit_t *  edit , int  col , int  row) ;
 
 int  ml_cursor_save( ml_edit_t *  edit) ;
 

@@ -19,29 +19,3 @@
 * Gnome + Sawfish 0.36-7 にて、app_name または title を指定しないと、Window
   タイトルが化ける。
   (reported by K.Kawabata san)
-
-* Ctrl+F1連打して、端末をいっぱい開くとcoreダンプします。
-  OS: FreeBSD4.5
-  X: XFree86 4.1.0
-  ウィンドウマネージャー: fvwm2  2.2 国際化版
-  ver: 2.3.1
-  configerオプション: --enable-ind --enable-imlib --enable-anti-alias
-
-  GNU gdb 4.18
-  Reading symbols from /usr/libexec/ld-elf.so.1...done.
-  #0  0x804facc in ml_window_receive_event (win=0x828d400, event=0xbfbff900)
-      at ml_window.c:2602
-  2602            for( counter = 0 ; counter < win->num_of_children ; counter ++)
-  (gdb) bt
-  #0  0x804facc in ml_window_receive_event (win=0x828d400, event=0xbfbff900)
-      at ml_window.c:2602
-  #1  0x804d317 in ml_window_manager_receive_next_event (win_man=0x8075008)
-      at ml_window_manager.c:236
-  #2  0x8065fd6 in receive_next_event (term_man=0xbfbffa88)
-      at ml_term_manager.c:1784
-  #3  0x8066b29 in ml_term_manager_event_loop (term_man=0xbfbffa88)
-      at ml_term_manager.c:2312
-  #4  0x805e71f in main (argc=1, argv=0xbfbffc84) at main.c:51
-  #5  0x804d01d in _start ()
-
-  max_ptysは32です。

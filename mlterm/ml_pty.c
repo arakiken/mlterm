@@ -14,7 +14,11 @@
 #include  <kiklib/kik_mem.h>	/* realloc/alloca */
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_pty.h>
-#include  <kiklib/kik_unistd.h>	/* kik_unsetenv */
+
+
+#if  0
+#define  __DEBUG
+#endif
 
 
 /* --- global functions --- */

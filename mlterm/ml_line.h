@@ -13,7 +13,7 @@
 
 enum
 {
-	WRAPAROUND   = 0x01 ,
+	WRAPAROUND     = 0x01 ,
 	BREAK_BOUNDARY = 0x02 ,
 	SCROLL         = 0x04 ,
 } ;
@@ -59,6 +59,8 @@ int  ml_line_clone( ml_line_t *  clone , ml_line_t *  orig , u_int  num_of_chars
 int  ml_line_final( ml_line_t *  line) ;
 
 u_int  ml_line_break_boundary( ml_line_t *  line , u_int  size) ;
+
+int  ml_line_assure_boundary( ml_line_t *  line , int  char_index) ;
 
 int  ml_line_reset( ml_line_t *  line) ;
 

@@ -101,6 +101,25 @@ copy_lines(
 }
 
 static int
+clear_lines_to_eol(
+	ml_edit_t *  edit ,
+	int  beg_row ,
+	u_int  size
+	)
+{
+	int  count ;
+
+	ml_edit_clear_lines( edit , beg_row , size) ;
+
+	for( count = 0 ; count < size ; count ++)
+	{
+		ml_line_set_modified_all( ml_model_get_line( &edit->model , beg_row + count)) ;
+	}
+
+	return  1 ;
+}
+
+static int
 scroll_upward_region(
 	ml_edit_t *  edit ,
 	int  boundary_beg ,
@@ -131,7 +150,7 @@ scroll_upward_region(
 		edit->cursor.col = 0 ;
 		edit->cursor.char_index = 0 ;
 
-		return  ml_edit_clear_lines( edit , boundary_beg , boundary_end - boundary_beg + 1) ;
+		return  clear_lines_to_eol( edit , boundary_beg , boundary_end - boundary_beg + 1) ;
 	}
 	
 	/*
@@ -180,7 +199,7 @@ scroll_upward_region(
 	 * scrolling up in edit.
 	 */
 	 
-	if( boundary_beg == 0 && boundary_end == edit->model.num_of_rows - 1)
+	if( boundary_beg == 0 && boundary_end == ml_model_end_row( &edit->model))
 	{
 		ml_model_scroll_upward( &edit->model , size) ;
 	}
@@ -190,16 +209,20 @@ scroll_upward_region(
 			boundary_end - (boundary_beg + size) + 1 , 0) ;
 	}
 	
-	ml_edit_clear_lines( edit , boundary_end - size + 1 , size) ;
-	
 	if( ! window_is_scrolled)
 	{
 		int  count ;
+
+		ml_edit_clear_lines( edit , boundary_end - size + 1 , size) ;
 
 		for( count = boundary_beg ; count <= boundary_end ; count ++)
 		{
 			ml_line_set_modified_all( ml_model_get_line( &edit->model , count)) ;
 		}
+	}
+	else
+	{
+		clear_lines_to_eol( edit , boundary_end - size + 1 , size) ;
 	}
 
 	return  1 ;
@@ -225,7 +248,7 @@ scroll_downward_region(
 		edit->cursor.col = 0 ;
 		edit->cursor.char_index = 0 ;
 		
-		return  ml_edit_clear_lines( edit , boundary_beg , boundary_end - boundary_beg + 1) ;
+		return  clear_lines_to_eol( edit , boundary_beg , boundary_end - boundary_beg + 1) ;
 	}
 
 	/*
@@ -258,23 +281,8 @@ scroll_downward_region(
 	/*
 	 * scrolling down in edit.
 	 */
-	if( ml_model_end_row( &edit->model) < boundary_end)
-	{
-		u_int  brk_size ;
-
-		if( ml_model_end_row( &edit->model) + size > boundary_end)
-		{
-			brk_size = ml_model_end_row( &edit->model) - boundary_end ;
-		}
-		else
-		{
-			brk_size = size ;
-		}
-
-		ml_model_reserve_boundary( &edit->model , brk_size) ;
-	}
 	
-	if( boundary_beg == 0 && boundary_end == edit->model.num_of_rows - 1)
+	if( boundary_beg == 0 && boundary_end == ml_model_end_row( &edit->model))
 	{
 		ml_model_scroll_downward( &edit->model , size) ;
 	}
@@ -284,16 +292,20 @@ scroll_downward_region(
 			(boundary_end - size) - boundary_beg + 1 , 0) ;
 	}
 
-	ml_edit_clear_lines( edit , boundary_beg , size) ;
-	
 	if( ! window_is_scrolled)
 	{
 		int  count ;
 		
+		ml_edit_clear_lines( edit , boundary_beg , size) ;
+
 		for( count = boundary_beg ; count <= boundary_end ; count ++)
 		{
 			ml_line_set_modified_all( ml_model_get_line( &edit->model , count)) ;
 		}
+	}
+	else
+	{
+		clear_lines_to_eol( edit , boundary_beg , size) ;
 	}
 
 	return  1 ;

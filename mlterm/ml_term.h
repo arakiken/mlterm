@@ -65,8 +65,7 @@ ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  l
 
 int  ml_term_delete( ml_term_t *  term) ;
 
-int  ml_term_open_pty( ml_term_t *  term , char *  cmd_path , char **  argv ,
-	char **  env , char *  host) ;
+int  ml_term_open_pty( ml_term_t *  term , char *  cmd_path , char **  argv , char **  env , char *  host) ;
 
 int  ml_term_attach( ml_term_t *  term , ml_xterm_event_listener_t *  xterm_listener ,
 	ml_config_event_listener_t *  config_listener , ml_screen_event_listener_t *  screen_listener ,
@@ -200,8 +199,7 @@ char *  ml_term_window_name( ml_term_t *  term) ;
 
 char *  ml_term_icon_name( ml_term_t *  term) ;
 
-int  ml_term_start_config_menu( ml_term_t *  term ,
-	char *  cmd_path , int  x , int  y , char *  display) ;
+int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path , int  x , int  y , char *  display) ;
 
 
 #endif
