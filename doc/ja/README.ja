@@ -86,7 +86,6 @@ comment $Id$
 
   o マルチPTY
     単一プロセス中から、最大 32 個まで、ptyウィンドウを起動できます。
-    最大数は、-K オプションで指定できます。
     -P オプションを指定すると、そこで指定した数だけの pty ウィンドウが同時に起動
     します。
     また、起動後は、Ctrl+F1(デフォルト)で、新しいptyウィンドウが起動します。
@@ -167,11 +166,6 @@ comment $Id$
       o termtype  (*xterm*/kterm)
         端末タイプ
         kterm の方が無難
-        
-      o max_ptys  (*5)
-        pty ウィンドウの最大数
-        
-        指定できる値は、1 から 32 までです。
         
       o ptys  (*1*)
         起動時に立ち上げるptyウィンドウの数
@@ -616,7 +610,6 @@ comment $Id$
     -G/--vertical=value: 縦表示のスタイル
     -H/--bright=value  : 背景画像の輝度
     -I/--icon=value    : アイコン 名
-    -K/--maxptys=value : pty window の最大数 (X)
     -L/--ls(=bool)     : ログインシェルを使用
     -M/--menu=value     : mlconfig のパス
     -N/--name=value    : アプリケーション名

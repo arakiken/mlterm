@@ -630,7 +630,18 @@ ml_screen_set_modified_all(
 	ml_screen_t *  screen
 	)
 {
-	ml_edit_set_modified_all( screen->edit) ;
+	int  row ;
+	ml_line_t *  line ;
+
+	for( row = 0 ; row < ml_edit_get_rows( screen->edit) ; row ++)
+	{
+		if( ( line = ml_screen_get_line_in_screen( screen , row)) == NULL)
+		{
+			return  0 ;
+		}
+		
+		ml_line_set_modified_all( line) ;
+	}
 
 	return  1 ;
 }

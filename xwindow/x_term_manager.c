@@ -156,6 +156,7 @@ open_term(
 	int  usascii_font_cs_changable ;
 	x_termcap_entry_t *  termcap ;
 	ml_term_t *  term ;
+	void *  p ;
 	char *  env[5] ;	/* MLTERM,TERM,WINDOWID,DISPLAY,NULL */
 	char **  env_p ;
 	char  wid_env[9 + DIGIT_STR_LEN(Window) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
@@ -165,7 +166,7 @@ open_term(
 	char *  cmd_path ;
 	char **  cmd_argv ;
 	
-	if( term_man->num_of_terms == term_man->max_terms
+	if( term_man->num_of_terms == MAX_TERMS
 		/* block until dead_mask is cleared */
 		|| term_man->dead_mask)
 	{
@@ -413,6 +414,12 @@ open_term(
 		goto  error ;
 	}
 
+	if( ( p = realloc( term_man->terms , sizeof( x_term_t) * (term_man->num_of_terms + 1))) == NULL)
+	{
+		goto  error ;
+	}
+
+	term_man->terms = p ;
 	term_man->terms[term_man->num_of_terms].display = disp ;
 	term_man->terms[term_man->num_of_terms].root_window = root ;
 	term_man->terms[term_man->num_of_terms].font_man = font_man ;
@@ -481,7 +488,7 @@ close_dead_terms(
 {
 	int  count ;
 	
-	for( count = term_man->max_terms - 1 ; count >= 0 ; count --)
+	for( count = MAX_TERMS - 1 ; count >= 0 ; count --)
 	{
 		if( term_man->dead_mask & (0x1 << count))
 		{
@@ -1783,8 +1790,6 @@ x_term_manager_init(
 		return  0 ;
 	}
 
-	kik_conf_add_opt( conf , 'K' , "maxptys" , 0 , "max_ptys" ,
-		"max ptys to use [5]") ;
 	kik_conf_add_opt( conf , 'h' , "help" , 1 , "help" ,
 		"show this help message") ;
 	kik_conf_add_opt( conf , 'v' , "version" , 1 , "version" ,
@@ -2118,33 +2123,13 @@ x_term_manager_init(
 	 * others
 	 */
 
-	term_man->max_terms = 5 ;
-
-	if( ( value = kik_conf_get_value( conf , "max_ptys")))
-	{
-		u_int  max ;
-
-		/*
-		 * max_ptys is 1 - 32.
-		 * 32 is the limit of dead_mask(32bit).
-		 */
-		if( ! kik_str_to_uint( &max , value) || max == 0 || max > 32)
-		{
-			kik_msg_printf( "max ptys %s is not valid.\n" , value) ;
-		}
-		else
-		{
-			term_man->max_terms = max ;
-		}
-	}
-
 	term_man->num_of_startup_terms = 1 ;
 	
 	if( ( value = kik_conf_get_value( conf , "ptys")))
 	{
 		u_int  ptys ;
 		
-		if( ! kik_str_to_uint( &ptys , value) || ptys > term_man->max_terms ||
+		if( ! kik_str_to_uint( &ptys , value) || ptys > MAX_TERMS ||
 			( ! term_man->is_genuine_daemon && ptys == 0))
 		{
 			kik_msg_printf( "ptys %s is not valid.\n" , value) ;
@@ -2189,15 +2174,7 @@ x_term_manager_init(
 	term_man->displays = NULL ;
 	term_man->num_of_displays = 0 ;
 	
-	if( ( term_man->terms = malloc( sizeof( x_term_t) * term_man->max_terms)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " malloc failed.\n") ;
-	#endif
-		
-		return  0 ;
-	}
-
+	term_man->terms = NULL ;
 	term_man->num_of_terms = 0 ;
 	term_man->dead_mask = 0 ;
 

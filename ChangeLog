@@ -1,3 +1,9 @@
+2002-06-06 Araki Ken <arakiken@users.sf.net>
+
+	* -K/--maxptys option is removed.
+	* Logged lines are not faded when screen is not focued.
+	* If 0 is specified as value of -sl option, mlterm died. fixed.
+
 2002-06-05 Tomohiro KUBOTA <kubota@debian.org>
 
 	* renewal of mlconfig.

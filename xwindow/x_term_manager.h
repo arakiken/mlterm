@@ -21,6 +21,12 @@
 #include  "x_termcap.h"
 
 
+/*
+ * max_ptys is 32 , which is the limit of dead_mask(32bit).
+ */
+#define  MAX_TERMS  32
+
+
 typedef struct x_term
 {
 	x_display_t *  display ;
@@ -97,7 +103,6 @@ typedef struct  x_term_manager
 	u_int  num_of_displays ;
 	
 	x_term_t *  terms ;
-	u_int  max_terms ;
 	u_int  num_of_terms ;
 	u_int  num_of_startup_terms ;
 	

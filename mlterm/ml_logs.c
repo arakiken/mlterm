@@ -15,34 +15,6 @@
 #endif
 
 
-/* --- static functions --- */
-
-static ml_line_t *
-get_log_line(
-	ml_logs_t *  logs ,
-	int  at
-	)
-{
-	int  _at ;
-	
-	if( at < 0 || ml_get_num_of_logged_lines( logs) <= at)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " row %d is overflowed in logs.\n" , at) ;
-	#endif
-	
-		return  NULL ;
-	}
-
-	if( ( _at = kik_cycle_index_of( logs->index , at)) == -1)
-	{
-		return  NULL ;
-	}
-
-	return  &logs->lines[_at] ;
-}
-
-
 /* --- global functions --- */
 
 int
@@ -51,25 +23,33 @@ ml_log_init(
 	u_int  num_of_rows
 	)
 {
-	if( ( logs->lines = malloc( sizeof( ml_line_t) * num_of_rows)) == NULL)
+	if( num_of_rows == 0)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
-	#endif
-
-		return  0 ;
+		logs->lines = NULL ;
+		logs->index = NULL ;
 	}
-	memset( logs->lines , 0 , sizeof( ml_line_t) * num_of_rows) ;
-
-	if( ( logs->index = kik_cycle_index_new( num_of_rows)) == NULL)
+	else
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " kik_cycle_index_new() failed.\n") ;
-	#endif
-	
-		free( logs->lines) ;
-		
-		return  0 ;
+		if( ( logs->lines = malloc( sizeof( ml_line_t) * num_of_rows)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
+		#endif
+
+			return  0 ;
+		}
+		memset( logs->lines , 0 , sizeof( ml_line_t) * num_of_rows) ;
+
+		if( ( logs->index = kik_cycle_index_new( num_of_rows)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " kik_cycle_index_new() failed.\n") ;
+		#endif
+
+			free( logs->lines) ;
+
+			return  0 ;
+		}
 	}
 
 	logs->num_of_rows = num_of_rows ;
@@ -84,6 +64,11 @@ ml_log_final(
 {
 	int  count ;
 
+	if( logs->num_of_rows == 0)
+	{
+		return  1 ;
+	}
+	
 	for( count = 0 ; count < logs->num_of_rows ; count ++)
 	{
 		ml_line_final( &logs->lines[count]) ;
@@ -108,6 +93,18 @@ ml_change_log_size(
 
 	if( new_num_of_rows == logs->num_of_rows)
 	{
+		return  1 ;
+	}
+	else if( new_num_of_rows == 0)
+	{
+		free( logs->lines) ;
+		logs->lines = NULL ;
+
+		kik_cycle_index_delete( logs->index) ;
+		logs->index = NULL ;
+
+		logs->num_of_rows = 0 ;
+
 		return  1 ;
 	}
 	else if( new_num_of_rows > logs->num_of_rows)
@@ -161,7 +158,7 @@ ml_change_log_size(
 		 */
 		for( count = 0 ; count < start ; count ++)
 		{
-			if( ( line = get_log_line( logs , count)) == NULL)
+			if( ( line = ml_log_get( logs , count)) == NULL)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " this is impossible.\n") ;
@@ -178,7 +175,7 @@ ml_change_log_size(
 		 */
 		for( count = 0 ; count < new_num_of_rows ; count ++)
 		{
-			if( ( line = get_log_line( logs , count + start)) == NULL)
+			if( ( line = ml_log_get( logs , count + start)) == NULL)
 			{
 				break ;
 			}
@@ -190,14 +187,24 @@ ml_change_log_size(
 		free( logs->lines) ;
 		logs->lines = new_lines ;
 	}
-	
-	logs->num_of_rows = new_num_of_rows ;
-	
-	if( ! kik_cycle_index_change_size( logs->index , new_num_of_rows))
+
+	if( logs->index)
 	{
-		return  0 ;
+		if( ! kik_cycle_index_change_size( logs->index , new_num_of_rows))
+		{
+			return  0 ;
+		}
+	}
+	else
+	{
+		if( ( logs->index = kik_cycle_index_new( new_num_of_rows)) == NULL)
+		{
+			return  0 ;
+		}
 	}
 
+	logs->num_of_rows = new_num_of_rows ;
+	
 	return  1 ;
 }
 
@@ -209,6 +216,11 @@ ml_log_add(
 {
 	int  at ;
 
+	if( logs->num_of_rows == 0)
+	{
+		return  1 ;
+	}
+	
 	at = kik_next_cycle_index( logs->index) ;
 	
 #ifdef  __DEBUG
@@ -232,7 +244,23 @@ ml_log_get(
 	int  at
 	)
 {
-	return  get_log_line( logs , at) ;
+	int  _at ;
+	
+	if( at < 0 || ml_get_num_of_logged_lines( logs) <= at)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " row %d is overflowed in logs.\n" , at) ;
+	#endif
+	
+		return  NULL ;
+	}
+
+	if( ( _at = kik_cycle_index_of( logs->index , at)) == -1)
+	{
+		return  NULL ;
+	}
+
+	return  &logs->lines[_at] ;
 }
 
 u_int
@@ -240,7 +268,14 @@ ml_get_num_of_logged_lines(
 	ml_logs_t *  logs
 	)
 {
-	return  kik_get_filled_cycle_index( logs->index) ;
+	if( logs->num_of_rows == 0)
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  kik_get_filled_cycle_index( logs->index) ;
+	}
 }
 
 u_int
@@ -260,7 +295,10 @@ ml_log_reverse_color(
 {
 	ml_line_t *  line ;
 
-	line = ml_log_get( logs , row) ;
+	if( ( line = ml_log_get( logs , row)) == NULL)
+	{
+		return  0 ;
+	}
 	
 	ml_char_reverse_color( &line->chars[char_index]) ;
 
@@ -278,7 +316,10 @@ ml_log_restore_color(
 {
 	ml_line_t *  line ;
 
-	line = ml_log_get( logs , row) ;
+	if( ( line = ml_log_get( logs , row)) == NULL)
+	{
+		return  0 ;
+	}
 
 	ml_char_restore_color( &line->chars[char_index]) ;
 
