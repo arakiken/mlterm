@@ -1,28 +1,79 @@
 comment -*- mode: text -*-
 comment $Id$
 
+supported platforms (mlterm-2.8.0 post/cvs-1.740)
+
+* tested by Seiichi SATO <ssato@sh.rim.or.jp>
+
+  HP-UX 11.11 (PA-RISC), gcc-3.4.1
+    configure options: --with-type-engines=xcore --with-tools=mlclient,mlcc
+    Notes:
+    - compilation succeeded, but I don't know whether it works or not.
+
+  HP-UX 11.11 (PA-RISC), CC="cc -Dinline="
+    configure options: --with-type-engines=xcore --with-tools=mlclient,mlcc
+    Notes:
+    - "mlterm --help" and mlcc seem to work, but I don't know whether mletrm
+      itself works or not.
+    - CC="cc -Dinline= " is a quick and durty hack! gcc is recomended now.
+
+  SuSE Linux 8 ES (x86_64), gcc-3.2.2, gtk+-1.2.10
+    configure options: --with-type-engines=xcore
+                       --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
+                       --with-scrollbars=sample,extra
+
+  Solaris 8 (x86), gcc-3.4.2
+    configure options: --with-type-engines=xcore
+                       --with-tools=mlclient,mlcc
+                       --with-scrollbars=sample,extra
+    Notes:
+    - Multiple XIM seems to be buggy on Xsun with multiple displays.
+    - configure scripts could not find libiiimcf, (Solaris 8 doesn't have it?)
+
+  Solaris 9 (Sparc), gcc-3.3.2
+    configure options: --with-type-engines=xcore
+                       --with-tools=mlclient,mlcc
+                       --with-scrollbars=sample,extra
+    Note: compilation succeeded, but I don't know whether it works or not.
+
+  Solaris 9 (x86) Sun ONE Studio 8 C compiler (CC="cc -Dinline="), gtk+-2.1.0
+    configure options: --with-type-engines=xcore
+                       --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
+                       --with-scrollbars=sample,extra
+    Notes:
+    - "mlterm --help" seems to work, but I don't know whether mletrm itself
+      works or not.
+    - CC="cc -Dinline= " is a quick and durty hack! gcc is recomended now.
+
+  Mac OS X 10.2 Server (PowerPC G4), gcc version 3.3 20030304
+    configure options: --with-type-engines=xcore
+                       --with-tools=mlclient,mlcc
+                       --with-scrollbars=sample,extra
+
+
 supported platforms (mlterm-2.8.0 post/cvs-1.737)
 
 * tested by Seiichi SATO <ssato@sh.rim.or.jp>
-  NetBSD 1.6.2 (i386)
-    configure options: --with-type-engines=xcore, --with-tools=mlclient,mlcc
-    termtype: xterm
+
+  NetBSD 1.6.2 (x86)
+    configure options: --with-type-engines=xcore --with-tools=mlclient,mlcc
 
 
 supported platforms (mlterm-2.8.0 post/cvs-1.735)
 
 * tested by Seiichi SATO <ssato@sh.rim.or.jp>
-  Fedora Core 2 (i386)
+
+  Fedora Core 2 (x86)
     configure options: --with-type-engines=xft,xcore
                        --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
                        --enable-iiimf
-    termtype: mlterm
 
 
 supported platforms (mlterm-2.8.0 post/cvs-1.732)
 
 * tested by Seiichi SATO <ssato@sh.rim.or.jp>
-  Debian GNU/Linux Sid, GNU libc 2.3.2, gcc-3.3.5 (i386)
+
+  Debian GNU/Linux Sid, GNU libc 2.3.2, gcc-3.3.5 (x86)
     configure options:
       --enable-fribidi
       --enable-ind
@@ -35,22 +86,21 @@ supported platforms (mlterm-2.8.0 post/cvs-1.732)
       --enable-iiimf
       --enable-m17nlib
       --enable-utmp
-    termtype: mlterm
-  OpenBSD 3.5, gcc-2.95.3 (i386)
+
+  OpenBSD 3.5, gcc-2.95.3 (x86)
     configure options: --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
                        --with-scrollbars=sample,extra
                        --with-type-engines=xcore
-    termtype: mlterm
-  MS Windows 98/Cygwin-1.5.11 with x-org 6.8.1.0-3 (i386)
+
+  MS Windows 98/Cygwin-1.5.11 with x-org 6.8.1.0-3 (x86)
     configure options: --with-type-engines=xft,xcore
                        --with-scrollbars=sample,extra
                        --with-tools=mlclient,mlconfig,mlcc
-    termtype: xterm
-  SuSE LINUX 9.1 (i386)
+
+  SuSE LINUX 9.1 (x86)
     configure options: --with-type-engines=xcore,xft
                        --with-tools=mlclient,mlconfig
                        --with-scrollbars=sample,extra,pixmap_engine
-    termtype: xterm
 
 
 supported platforms (mlterm-2.2.0pl1)

@@ -1,3 +1,22 @@
+2004-10-21 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* configure.in: removed "echo -n" for portability.
+
+	* doc/ja/BUGS: updated.
+
+	* README, doc/en/PLATFORM: updated supported platforms.
+
+	* inputmethod/uim/im_uim.c (im_new):
+	  - added workaround for setlocale() in make_locale() of m17nlib.
+	  - save/restore a signal handler for SIGCHLD when prime is specifed.
+
+	* inputmethod/m17nlib/im_m17nlib.c (im_new): added workaround for
+	  setlocale() in make_locale() of m17nlib.
+
+	* tool/mlconfig/po/ja.po: updated.
+
+	* man/mlterm.1: minor cleanup.
+
 2004-10-20  Araki Ken  <arakiken@users.sf.net>
 
 	* xwindow/x_shortcut.h: Removed XIM_OPEN XIM_CLOSE from x_key_func.

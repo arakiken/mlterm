@@ -1311,12 +1311,15 @@ im_new(
 
 	uim = NULL ;
 
+#if 1
+#define  RESOTORE_LOCALE
+#endif
+
 	if( ! initialized)
 	{
-	#if  0
+	#ifdef  RESOTORE_LOCALE
 		/*
-		 * Workaround against setlocale() in uim(intl.c).
-		 * The problem has been fixed at r1368.
+		 * Workaround against make_locale() of m17nlib.
 		 */
 		char *  cur_locale ;
 		cur_locale = kik_str_alloca_dup( kik_get_locale()) ;
@@ -1331,8 +1334,13 @@ im_new(
 			return  NULL ;
 		}
 
-	#if  0
+	#ifdef  RESOTORE_LOCALE
 		/* restoring */
+		/*
+		 * TODO: remove valgrind warning.
+		 * The memory space pointed to by sys_locale in kik_locale.c
+		 * was freed by setlocale() in m17nlib.
+		 */
 		kik_locale_init( cur_locale) ;
 	#endif
 
@@ -1361,6 +1369,8 @@ im_new(
 		(*mlterm_syms->x_term_manager_add_fd)(helper_fd ,
 						      helper_read_handler) ;
 	}
+
+	hold_handler = NULL ;
 
 	if( engine == NULL || strlen( engine) == 0)
 	{
@@ -1421,7 +1431,11 @@ im_new(
 		goto  error ;
 	}
 
-	hold_handler = signal(SIGCHLD, SIG_DFL) ;
+	/* XXX */
+	if( strcmp( engine , "prime") == 0 && ref_count == 0)
+	{
+		hold_handler = signal(SIGCHLD, SIG_DFL) ;
+	}
 
 	if( ! ( uim->context = uim_create_context( uim ,
 						   encoding_name ,
@@ -1434,14 +1448,14 @@ im_new(
 		kik_warn_printf( KIK_DEBUG_TAG " could not create uim context.\n") ;
 	#endif
 
-		/* restoring */
-		signal(SIGCHLD, hold_handler) ;
-
 		goto  error ;
 	}
 
 	/* restoring */
-	signal(SIGCHLD, hold_handler) ;
+	if( hold_handler)
+	{
+		signal(SIGCHLD, hold_handler) ;
+	}
 
 	uim_set_preedit_cb( uim->context ,
 			    preedit_clear ,
@@ -1473,7 +1487,7 @@ im_new(
 
 	kik_list_insert_head( im_uim_t , uim_list , uim) ;
 
-	ref_count++;
+	ref_count ++;
 
 #ifdef  IM_UIM_DEBUG
 	kik_debug_printf("New object was created. ref_count is %d.\n", ref_count) ;
@@ -1482,6 +1496,12 @@ im_new(
 	return  (x_im_t*) uim ;
 
 error:
+	/* restoring */
+	if( hold_handler)
+	{
+		signal(SIGCHLD, hold_handler) ;
+	}
+
 	if( helper_fd != -1)
 	{
 		uim_helper_close_client_fd( helper_fd) ;

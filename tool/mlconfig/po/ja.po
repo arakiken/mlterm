@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-09-13 16:24+0900\n"
+"POT-Creation-Date: 2004-10-20 05:26+0900\n"
 "PO-Revision-Date: 2002-11-25 19:24+0100\n"
 "Last-Translator: Tomohiro KUBOTA <kubota@debian.org>\n"
 "Language-Team: Japanese <mlterm-dev-ja@lists.sourceforge.net>\n"
@@ -97,7 +97,6 @@ msgstr "ベル"
 
 #: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
 #: tool/mlconfig/mc_sb.c:94 tool/mlconfig/mc_vertical.c:94
-#: tool/mlconfig/mc_im.c:711
 msgid "None"
 msgstr "なし"
 
@@ -161,8 +160,9 @@ msgstr "--- 中国語(繁体字) ---"
 msgid "--- simplified Chinese ---"
 msgstr "--- 中国語(簡体字) ---"
 
-#: tool/mlconfig/mc_char_encoding.c:194 tool/mlconfig/mc_im.c:174
-#: tool/mlconfig/mc_im.c:227
+#: tool/mlconfig/mc_char_encoding.c:194 tool/mlconfig/mc_im.c:239
+#: tool/mlconfig/mc_im.c:291 tool/mlconfig/mc_im.c:370
+#: tool/mlconfig/mc_im.c:375
 #, c-format
 msgid "auto (currently %s)"
 msgstr "自動 (現在 %s)"
@@ -303,7 +303,7 @@ msgstr "左"
 msgid "Right"
 msgstr "右"
 
-#: tool/mlconfig/mc_sb_view.c:118
+#: tool/mlconfig/mc_sb_view.c:137
 msgid "View"
 msgstr "見かけ"
 
@@ -331,42 +331,19 @@ msgstr "日中韓"
 msgid "Mongol"
 msgstr "モンゴル"
 
-#: tool/mlconfig/mc_im.c:237
+#: tool/mlconfig/mc_im.c:300
 msgid "XIM Server"
 msgstr "XIMサーバ"
 
-#: tool/mlconfig/mc_im.c:240
+#: tool/mlconfig/mc_im.c:303
 msgid "XIM locale"
 msgstr "入力ロケール"
 
-#: tool/mlconfig/mc_im.c:333
-msgid "Conversion engine"
-msgstr "変換エンジン"
+#: tool/mlconfig/mc_im.c:385
+msgid "Option"
+msgstr "オプション"
 
-#: tool/mlconfig/mc_im.c:345
-msgid "uim is disabled."
-msgstr "uimは無効です。"
-
-#: tool/mlconfig/mc_im.c:456
-msgid "IIIMCF initialization failed."
-msgstr "IIIMCFの初期化に失敗しました。"
-
-#: tool/mlconfig/mc_im.c:510
-msgid "Language (Language engine)"
-msgstr "言語 (言語エンジン)"
-
-#: tool/mlconfig/mc_im.c:541
-msgid "Cound not create language list."
-msgstr "言語リストが作成できませんでした。"
-
-#: tool/mlconfig/mc_im.c:543
-msgid "Language selector depends on glib-2.0 or later."
-msgstr "言語の選択にはglib-2.0以降が必要です。"
-
-#: tool/mlconfig/mc_im.c:546
-msgid "IIIMF is disabled."
-msgstr "IIIMFは無効です。"
-
-#: tool/mlconfig/mc_im.c:670
+#: tool/mlconfig/mc_im.c:497
 msgid "Input Method"
 msgstr "入力メソッド"
+
