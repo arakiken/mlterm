@@ -297,7 +297,7 @@ open_term(void)
 
 	if( MAX_TERMS <= num_of_xterms)
 	{
-		return  NULL ;
+		return  0 ;
 	}
 
 	tent = x_termcap_get_entry( &termcap , main_config.term_type) ;
@@ -309,7 +309,7 @@ open_term(void)
 			main_config.use_char_combining , main_config.use_multi_col_char ,
 			x_termcap_get_bool_field( tent , ML_BCE))) == NULL)
 	{
-		return  NULL ;
+		return  0 ;
 	}
 	
 	if( ( disp = x_display_open( main_config.disp_name)) == NULL)

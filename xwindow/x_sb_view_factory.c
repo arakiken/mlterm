@@ -231,5 +231,5 @@ x_unload_scrollbar_view_lib(
 		}
 	}
 
-	return  NULL ;
+	return  0 ;
 }

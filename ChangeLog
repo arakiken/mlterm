@@ -1,3 +1,7 @@
+2002-09-16  Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* Cleaned up to get rid of compiler warning messages with gcc.
+
 2002-09-16  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
 
 	* Major rewrite of icon handling
