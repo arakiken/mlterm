@@ -198,6 +198,7 @@ parse_mlterm_config(
 	if( !value)
 		return 0 ;
 	*value = 0 ;
+
 	(*win->config_listener)( win , 
 				 NULL, /* dev */
 				 src, /* key */
@@ -286,8 +287,7 @@ is_pref(
 	int i ;
 	for( i = 0 ; i < num ; i++)
 		if( atom[i] == type)
-			return i ;
-
+			return i ;			
 	return  -1 ;
 }
 
@@ -299,8 +299,8 @@ reply(
 	x_window_t * win
 	)
 {
-	XClientMessageEvent  msg ;
-	
+	XClientMessageEvent  msg ;	
+
 	msg.type = ClientMessage ;
 	msg.display = win->display ;
 	msg.format = 32 ;
@@ -409,11 +409,9 @@ choose_atom(
 	int  i = -1 ;
 	
 	for( proc_entry = dnd_parsers ; proc_entry->atomname ;proc_entry++)
-	{
-		if( (i = is_pref( XInternAtom( win->display, proc_entry->atomname, False), atom, num) >= 0))
+		if( (i = is_pref( XInternAtom( win->display, proc_entry->atomname, False), atom, num) > 0))
 			break ;	
-	}
-		
+	
 	if( i < 0)
 	{
 #ifdef  DEBUG
@@ -508,7 +506,7 @@ x_dnd_process_enter(
 		/* less than 3 candiates */
 		to_wait = choose_atom( win , (event->xclient.data.l)+2 , 3);
 	}
-	
+
 	if( to_wait)
 	{
 		if( !(win->dnd))
@@ -543,6 +541,9 @@ x_dnd_process_position(
 {
 	if( !(win->dnd))
 	{
+#ifdef  DEBUG
+		kik_debug_printf("DND session nonexistent\n");
+#endif
 		return 1 ;
 	}
 
