@@ -23,7 +23,8 @@ comment $Id$
     freetype 2.0.2 以上
     が必要です。
 
-    壁紙を貼るには、imlib (1.9.x ?)が必要です。
+    壁紙を貼るには、imlib (1.9.x ?) または gdk-pixbuf (0.16 以上) または
+    GTK+ (2.0.1 以上) が必要です。
 
     Unicode の Bidi レンダリングには、Fribidi 0.9.x 以上(?) が必要です。
 
@@ -37,6 +38,9 @@ comment $Id$
 
     --enable-imlib
       imlibを使って、壁紙を貼れるようにします。
+
+    --enable-gdk-pixbuf
+      gdk-pixbufを使って、壁紙を貼れるようにします。
 
     --enable-anti-alias
       TrueTypeフォントをantialisします。
@@ -80,10 +84,10 @@ comment $Id$
     問題が発生した場合は、KDE と同じように対処してください。
 
   o 壁紙、背景透過
-    imlib がインストールされている環境で、imlib を組み込んでビルドした mlterm には、
-    壁紙をはり付けることができます。
-    背景透過も可能です。imlib がリンクされていれば、透過した背景の輝度を調節するこ
-    ともできます。
+    imlib または gdk-pixbuf がインストールされている環境で、いずれかを組み込ん
+    でビルドした mlterm には、壁紙をはり付けることができます。
+    背景透過も可能です。imlib または gdk-pixbuf がリンクされていれば、透過した
+    背景の輝度を調節することもできます。
 
   o マルチPTY
     単一プロセス中から、最大 32 個まで、ptyウィンドウを起動できます。

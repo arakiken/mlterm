@@ -16,6 +16,9 @@ Options for configure
   --enable-imlib
     Background image (aka wallpaper) using imlib
 
+  --enable-gdk-pixbuf
+    Background image (aka wallpaper) using imlib
+
   --enable-anti-alias
     Use FreeType for anti-alias of TrueType fonts
 
@@ -51,7 +54,7 @@ What you need for compilation
   XFree86 4.0.2 or above and FreeType 2.0.2 or above are needed for
   anti-alias.
 
-  Imlib (1.9.x ?) for background image.
+  Imlib (1.9.x ?) or gdk-pixbuf (0.16 or higher) for background image.
 
   Gtk+ (1.2.x ?) for GUI configurator "mlconfig".
 
