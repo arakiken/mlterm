@@ -1,5 +1,11 @@
+[20020114]
+* fade_ratio can be dynamically changed.
+* ESC]5379;fade_ratio=<value>BEL , ESC]5380;fade_ratioBEL , ESC]5380;wall_pictureBEL
+  are supported.(see doc/en/PROTOCOL)
+* FocusIn/FocusOut events to windows except a top window are ignored.
+
 [20020113]
-* MSB of single shifted G3 characters in EUCJP(EUCJISX0213) is set.
+* MSB of single shifted G3 characters in EUCJP(EUCJISX0213) is set.(thanks to Kubota Tomohiro san)
 * ESC]5379;wall_picture=BEL stops wall picture.
 
 [20020113]
