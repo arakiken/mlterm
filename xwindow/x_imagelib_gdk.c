@@ -1395,7 +1395,7 @@ modify_pixmap(
 
 			data = (u_int8_t *)(image->data) ;
 
-			value_table_refresh( pic_mod->gamma) ;
+			value_table_refresh( pic_mod) ;
 			for (i = 0; i < height; i++)
 			{
 				for (j = 0; j < width; j++)
