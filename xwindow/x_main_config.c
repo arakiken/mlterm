@@ -344,6 +344,7 @@ x_main_config_init(
 		{
 			main_config->type_engine = TYPE_XFT ;
 		}
+		else
 	#endif
 
 	#ifdef  USE_TYPE_XCORE
@@ -351,9 +352,11 @@ x_main_config_init(
 		{
 			main_config->type_engine = TYPE_XCORE ;
 		}
+		else
 	#endif
-
-		kik_msg_printf( "%s is unsupported type engine.\n" , value) ;
+		{
+			kik_msg_printf( "%s is unsupported type engine.\n" , value) ;
+		}
 	}
 
 #ifdef  USE_TYPE_XFT

@@ -1,7 +1,11 @@
+2004-01-07  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* xwindow/x_main_config.c: minor bugfix.
+
 2004-01-06  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* mlterm/ml_vt100_parser.c: replaced magic constant "20" by DIGIT_STR_LEN(int).
-	* xwindow/x_screen.c: mod_meta_mode = 8bit (set MSB) was not working. fixed.  
+	* xwindow/x_screen.c: mod_meta_mode = 8bit (set MSB) was not working. fixed.
 
 2004-01-05  Seiichi SATO  <ssato@sh.rim.or.jp>
 
