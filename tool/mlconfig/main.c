@@ -289,7 +289,7 @@ pty_list(void)
 	gtk_widget_show(hbox) ;
 	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
 	
-	button = gtk_button_new_with_label( "Select") ;
+	button = gtk_button_new_with_label( _(" Select ")) ;
 	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(pty_button_clicked) , NULL) ;
 	gtk_widget_show(button) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;
