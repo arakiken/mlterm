@@ -9,7 +9,13 @@ This document describes how to implement your own scrollbar.
   3. place it in certain directory.
 
 * Requirement
-  dl*/sh*() APIs.
+  Any interface of the following:
+
+  o UNIX98 dlopen interface
+  o HP-UX sh_load interface
+  o Win32API LoadLibrary
+  o Mac OS X NSModule interface (EXPERIMENTAL)
+  o libltdl library
 
 * Members of x_sb_view_t
   o void (*get_geometry_hints)( struct  x_sb_view * , unsigned int *  width , 

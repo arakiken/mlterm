@@ -19,8 +19,11 @@ Options for configure
   --without-prop-table
     Remove character property table
 
-  --with-imagelib=[imlib,gdk-pixbuf2,gdk-pixbuf1]
+  --with-imagelib=(imlib|gdk-pixbuf2|gdk-pixbuf1)
     Image library
+
+  --with-libltdl
+    load modules with libltdl
 
   --enable-anti-alias
     Use FreeType for anti-alias of TrueType fonts

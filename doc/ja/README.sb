@@ -12,7 +12,13 @@ mltermでは、オリジナルのスクロールバーを比較的簡単に実装するためのフレームワーク
   3. 所定のディレクトリに、ライブラリを配置
 
 * 必要な環境
-  dl*/sh*()関数が使用可能であること。
+  下記のいずれが使用可能であること。
+
+  o UNIX98 dlopen インターフェース
+  o HP-UX sh_load インターフェース
+  o Win32API LoadLibrary
+  o Mac OS X NSModule インターフェース (EXPERIMENTAL)
+  o libltdl ライブラリ
 
 * x_sb_view_t
   現在定義されているイベント

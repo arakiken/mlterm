@@ -45,9 +45,12 @@ comment $Id$
       文字プロパティテーブルを組み込みません。
       この場合、結合文字や BIDI 等を扱えなくなります。
 
-    --with-imagelib=[imlib, gdk-pixbuf2, gdk-pixbuf1]
+    --with-imagelib=(imlib|gdk-pixbuf2|gdk-pixbuf1)
       imlib/gdk-pixbuf(gtk2附属)/gdk-pixbuf(0.1x) を使って、
       壁紙を貼れるようにします。
+
+    --with-libltdl
+      モジュールの動的ローディングに libltdl を使用します。
 
     --enable-anti-alias
       TrueTypeフォントをantialisします。
