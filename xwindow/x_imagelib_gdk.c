@@ -955,10 +955,6 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 						       DisplayWidth( win->display, win->screen) ,
 						       DisplayHeight( win->display, win->screen),
 						       DefaultDepth( win->display , win->screen));
-			XCopyArea( win->display, cache->root, pixmap, gc, 0, 0,
-				   DisplayWidth( win->display, win->screen) ,
-				   DisplayHeight( win->display, win->screen),
-				   0, 0);
 		}
 		if ( !is_picmod_eq( &(cache->pic_mod), pic_mod)){
 			memcpy( &(cache->pic_mod), pic_mod, sizeof(x_picture_modifier_t));
@@ -968,11 +964,14 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
 				   0, 0);
 			modify_pixmap( win->display, win->screen, cache->cooked , pic_mod);
 		}
-		XCopyArea( win->display, cache->cooked, pixmap, gc, x, y, width , height, pix_x, pix_y);
+		XSetTile( win->display, gc, cache->cooked) ;
 	}else{
-		XCopyArea( win->display, cache->root, pixmap, gc, x, y, width , height, pix_x, pix_y);
+		XSetTile( win->display, gc, cache->root) ;
 	}
-	XFreeGC( win->display , gc );
+	XSetTSOrigin( win->display, gc, -x+pix_x, -y) ;
+	XSetFillStyle( win->display, gc, FillTiled) ;
+	XFillRectangle( win->display, pixmap, gc, 0, 0, width +pix_x, height) ;
+	XFreeGC( win->display , gc ) ;
 	return pixmap;
 }
 

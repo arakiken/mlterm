@@ -1,3 +1,9 @@
+2002-11-15  MINAMI Hirokazu  <minami@lissie.chem.s.u-tokyo.ac.jp>
+
+	* added support for some lazy WM which does only set a part of
+	root image as _XROOTPMAP_ID.
+	(Thanks to Wang WenRui)
+
 2002-11-14 Araki Ken <arakiken@users.sf.net>
 
 	* screen->xct_parser->is_eos is replaced by parser->is_eos in x_screen.c:key_pressed().
