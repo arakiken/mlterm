@@ -2,14 +2,14 @@
 
 use strict;
 use Curses;
-use Data::Dumper;
+#use Data::Dumper;
 
 
 ###########
 # global variables
 ###########
 #
-my $VERSION="0.1.2";
+my $VERSION="0.1-2.3.0";
 my $TITLE = "mlterm configurator on Curses v.$VERSION";
 my $TERM="mlterm" || $ENV{TERM}; ### XXX:drop support for other T.E.s ?
 my $TTY = "/dev/tty"; ### XXX TBD:support remote control!
@@ -20,6 +20,17 @@ my $EDIT_COLOR = 'red';
 my $SELECT_COLOR = 'green';
 
 my $MAGIC_ERROR = "error"; ## XXX
+
+my %vartical_enum=(
+		   'none' => 0,
+		   'cjk' => 1,
+		   'mongol' => 2,
+);
+
+my @LOGICAL_UP    = (KEY_UP,    KEY_RIGHT, KEY_LEFT);
+my @LOGICAL_DOWN  = (KEY_DOWN,  KEY_LEFT,  KEY_RIGHT);
+my @LOGICAL_RIGHT = (KEY_RIGHT, KEY_UP,    KEY_DOWN);
+my @LOGICAL_LEFT  = (KEY_LEFT,  KEY_DOWN,  KEY_UP);
 
 ### variables below should  not be touched outside config*
 my %config_tree; 
@@ -1172,7 +1183,12 @@ my %entry2key_mlterm = ### XXX FixMe: combine %config_tree structure?
  'Line Space'=>'line_space',
  'Brightness'=>'brightness',
  'Vertical' => "vertical_mode",
- 'Scrollbar Mode' => 'scrollbar_mode'
+ 'Scrollbar Mode' => 'scrollbar_mode',
+ 'Scrollbar Type' =>'scrollbar_view_name',
+ 'Scrollbar FG Color' =>'sb_fg_color',
+ 'Scrollbar BG Color' =>'sb_bg_color',
+ 'Width Ratio' =>'screen_width_ratio',
+ 'Height Ratio' =>'screen_height_ratio',
 );
 
 sub comm_dummy(){
@@ -1253,9 +1269,8 @@ sub comm_setparam_internal(@){
 
 config_section_add(
 		   "Encoding",
-		   "Cut & Paste",
 		   "Appearance",
-		   "Font",
+		   "Scrollbar",
 		   "Others",
 		   "Configuration",
 	       );
@@ -1328,6 +1343,12 @@ config_entry_add_from_list(
 		       \&display_entry_text ,
 		       ["ja_JP.eucJP", "ja_JP.UTF-8"] ],
 		      ["Encoding" ,
+		       "Vertical" , 
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_radio ,
+		       ["none", "cjk", "mongol"] ],
+		      ["Encoding" ,
 		       "BiDi" , 
 		       \&comm_getparam_mlterm ,
 		       \&comm_setparam_mlterm ,
@@ -1340,17 +1361,17 @@ config_entry_add_from_list(
 		       \&display_entry_bool ,
 		       undef ],
 		      ["Encoding" ,
-		       "Vertical" , 
-		       \&comm_getparam_mlterm ,
-		       \&comm_setparam_mlterm ,
-		       \&display_entry_radio ,
-		       ["none", "cjk", "mongol"] ],
-		      ["Cut & Paste" ,
 		       "process via UCS" ,
 		       \&comm_getparam_mlterm ,
 		       \&comm_setparam_mlterm ,
 		       \&display_entry_bool ,
 		       undef ],
+		      ["Apperance" ,
+		       "Font Size" ,
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_numeric ,
+		       [8, 48, 1, 0] ],### XXX needs max_font_size?
 		      ["Appearance" ,
 		       "Foreground" ,
 		       \&comm_getparam_mlterm ,
@@ -1363,42 +1384,12 @@ config_entry_add_from_list(
 		       \&comm_setparam_mlterm ,
 		       \&display_entry_color ,
 		       undef ],
-		      ["Font" ,
-		       "Font Size" ,
-		       \&comm_getparam_mlterm ,
-		       \&comm_setparam_mlterm ,
-		       \&display_entry_numeric ,
-		       [8, 48, 1, 0] ],### XXX needs max_font_size?
 		      ["Appearance" ,
 		       "Fade Ratio" ,
 		       \&comm_getparam_mlterm ,
 		       \&comm_setparam_mlterm ,
 		       \&display_entry_numeric ,
 		       [0, 100, 1, 1] ], ## XXX 10% step should be enough ?
-		      ["Font" ,
-		       "Variable Width" ,
-		       \&comm_getparam_mlterm ,
-		       \&comm_setparam_mlterm ,
-		       \&display_entry_bool ,
-		       undef ],
-		      ["Font" ,
-		       "Anti Alias" ,
-		       \&comm_getparam_mlterm ,
-		       \&comm_setparam_mlterm ,
-		       \&display_entry_bool ,
-		       undef ],
-		      ["Appearance" ,
-		       "Transparent" ,
-		       \&comm_getparam_mlterm ,
-		       \&comm_setparam_mlterm ,
-		       \&display_entry_bool ,
-		       undef ],
-		      ["Appearance" ,
-		       "Line Space" ,
-		       \&comm_getparam_mlterm ,
-		       \&comm_setparam_mlterm ,
-		       \&display_entry_numeric ,
-		       [0, 100, 1, 0] ],
 		      ["Appearance" ,
 		       "Brightness" ,
 		       \&comm_getparam_mlterm ,
@@ -1411,6 +1402,66 @@ config_entry_add_from_list(
 		       \&comm_setparam_mlterm ,
 		       \&display_entry_text ,
 		       undef ],
+		      ["Appearance" ,
+		       "Variable Width" ,
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_bool ,
+		       undef ],
+		      ["Appearance" ,
+		       "Anti Alias" ,
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_bool ,
+		       undef ],
+		      ["Appearance" ,
+		       "Transparent" ,
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_bool ,
+		       undef ],
+		       ["Scrollbar" ,
+			"Scrollbar Mode" ,
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_radio ,
+			["none", "left", "right"] ],
+		       ["Scrollbar" ,
+			'Scrollbar Type',
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_text ,
+			undef ],
+		       ["Scrollbar" ,
+			'Scrollbar FG Color',
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_color ,
+			undef ],
+		       ["Scrollbar" ,
+			'Scrollbar FG Color',
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_color ,
+			undef ],
+		       ["Others" ,
+		       "Width Ratio" ,
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_numeric ,
+		       [1, 100, 1, 0] ],
+		       ["Others" ,
+		       "Height Ratio" ,
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_numeric ,
+		       [1, 100, 1, 0] ],
+		       ["Others" ,
+		       "Line Space" ,
+		       \&comm_getparam_mlterm ,
+		       \&comm_setparam_mlterm ,
+		       \&display_entry_numeric ,
+		       [0, 100, 1, 0] ],
 		       ["Others" ,
 			"Tab Size" ,
 		       \&comm_getparam_mlterm ,
@@ -1435,12 +1486,6 @@ config_entry_add_from_list(
 		       \&comm_setparam_mlterm ,
 		       \&display_entry_radio ,
 			["none", "sound", "visual"] ],
-		       ["Others" ,
-			"Scrollbar Mode" ,
-		       \&comm_getparam_mlterm ,
-		       \&comm_setparam_mlterm ,
-		       \&display_entry_radio ,
-			["none", "left", "right"] ],
 		       ["Configuration" ,
 			"Quit (discard changes)" ,
 			\&comm_dummy , \&comm_dummy ,
@@ -1485,9 +1530,8 @@ config_entry_add_from_list(
 		     );
 my $section;
 foreach $section ( "Encoding",
-		   "Cut & Paste",
 		   "Appearance",
-		   "Font",
+		   "Scrollbar",
 		   "Others",
 		   "Configuration",){
     config_entry_add_from_list(

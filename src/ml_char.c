@@ -762,14 +762,6 @@ ml_char_restore_color(
 }
 
 inline int
-ml_char_is_reversed(
-	ml_char_t *  ch
-	)
-{
-	return  IS_REVERSED(ch->attr) ;
-}
-
-inline int
 ml_char_bytes_equal(
 	ml_char_t *  ch1 ,
 	ml_char_t *  ch2

@@ -35,7 +35,7 @@ ml_bidi(
 
 	if( size == 0)
 	{
-		return  0 ;
+		return  1 ;
 	}
 
 	if( ( fri_src = alloca( sizeof( FriBidiChar) * size)) == NULL)
@@ -149,11 +149,6 @@ ml_bidi(
 	)
 {
 	int  counter ;
-
-	if( size == 0)
-	{
-		return  0 ;
-	}
 
 	for( counter = 0 ; counter < size ; counter ++)
 	{

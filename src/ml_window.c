@@ -167,7 +167,6 @@ xft_draw_str(
 	ml_font_decor_t	 decor ;
 	ml_char_t *  comb_chars ;
 	u_int  comb_size ;
-	int  is_reversed ;
 
 	size_t  next_ch_size ;
 	u_int  next_ch_width ;
@@ -287,8 +286,6 @@ xft_draw_str(
 
 		comb_chars = ml_get_combining_chars( &chars[counter] , &comb_size) ;
 
-		is_reversed = ml_char_is_reversed( &chars[counter]) ;
-
 		/*
 		 * next character.
 		 */
@@ -355,7 +352,7 @@ xft_draw_str(
 			/*
 			 * clearing background
 			 */
-			if( win->wall_picture_is_set && ! is_reversed)
+			if( win->wall_picture_is_set && bg_color->pixel == BG_COLOR_PIXEL(win))
 			{
 				XClearArea( win->display , win->drawable ,
 					x , y , current_width - x , height , 0) ;
@@ -690,7 +687,6 @@ draw_str(
 	u_long  fg_color ;
 	u_long  bg_color ;
 	ml_font_decor_t	 decor ;
-	int  is_reversed ;
 
 	size_t  next_ch_size ;
 	u_int  next_ch_width ;
@@ -826,8 +822,6 @@ draw_str(
 
 		comb_chars = ml_get_combining_chars( &chars[counter] , &comb_size) ;
 
-		is_reversed = ml_char_is_reversed( &chars[counter]) ;
-
 		/*
 		 * next character.
 		 */
@@ -892,11 +886,11 @@ draw_str(
 				height_to_baseline = std_height_to_baseline ;
 			}
 
-			if( ( win->wall_picture_is_set && ! is_reversed) ||
-				(win->font->is_proportional && ! win->font->is_var_col_width) ||
+			if( ( win->wall_picture_is_set && bg_color == BG_COLOR_PIXEL(win)) ||
+				( win->font->is_proportional && ! win->font->is_var_col_width) ||
 				win->font->decsp_font)
 			{
-				if( win->wall_picture_is_set && ! is_reversed)
+				if( win->wall_picture_is_set && bg_color == BG_COLOR_PIXEL(win))
 				{
 					XClearArea( win->display , win->drawable ,
 						x , y , current_width - x , height , 0) ;
@@ -2168,6 +2162,9 @@ ml_window_show(
 	if( win->parent == NULL)
 	{
 		XSizeHints  size_hints ;
+	#if  1
+		XClassHint  class_hint ;
+	#endif
 		XWMHints  wm_hints ;
 		int  argc = 1 ;
 		char *  argv[] = { "mlterm" , NULL , } ;
@@ -2219,14 +2216,24 @@ ml_window_show(
 			size_hints.flags |= PPosition ;
 		}
 
+	#if  1
+		class_hint.res_name = "mlterm" ;
+		class_hint.res_class = "mlterm" ;
+	#endif
+	
 		wm_hints.window_group = win->my_window ;
 		wm_hints.initial_state = NormalState ;	/* or IconicState */
 		wm_hints.input = True ;			/* wants FocusIn/FocusOut */
 		wm_hints.flags = WindowGroupHint | StateHint | InputHint ;
-		
+
 		/* notify to window manager */
+	#if  1
+		XmbSetWMProperties( win->display , win->my_window , "mlterm" , "mlterm" ,
+			argv , argc , &size_hints , &wm_hints , &class_hint) ;
+	#else
 		XmbSetWMProperties( win->display , win->my_window , "mlterm" , "mlterm" ,
 			argv , argc , &size_hints , &wm_hints , NULL) ;
+	#endif
 
 		protocols[0] = XA_DELETE_WINDOW(win->display) ;
 		

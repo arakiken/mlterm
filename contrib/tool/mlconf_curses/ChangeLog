@@ -1,3 +1,23 @@
+2002-02-18 09:34  minami
+
+	* mlconf_curses.pl: support width/hight ratio
+
+2002-02-18 08:53  minami
+
+	* mlconf_curses.pl: adopt changes for mlterm 2.3.0
+
+2002-02-18 08:19  minami
+
+	* LICENCE: fix typo
+
+2002-02-06 14:36  minami
+
+	* mlconf_curses.pl: add new paramater: scrollbar & vertical writing
+
+2002-01-27 12:02  minami
+
+	* mlcc.html: conform to HTML 4.01
+
 2002-01-26 21:57  minami
 
 	* mlconf_curses.pl: minor bugfix (replaced == by ne to eliminate

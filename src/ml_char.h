@@ -155,8 +155,6 @@ inline int  ml_char_reverse_color( ml_char_t *  ch) ;
 
 inline int  ml_char_restore_color( ml_char_t *  ch) ;
 
-inline int  ml_char_is_reversed( ml_char_t *  ch) ;
-
 inline int  ml_char_bytes_equal( ml_char_t *  ch1 , ml_char_t *  ch2) ;
 
 #ifdef  DEBUG

@@ -19,6 +19,8 @@ utf8_parser_next_char(
 	)
 {
 	u_char *  utf8_ch ;
+	u_int32_t  ucs4_int ;
+	size_t  bytes ;
 
 	if( utf8_parser->is_eos)
 	{
@@ -29,149 +31,127 @@ utf8_parser_next_char(
 	
 	if( ( utf8_ch[0] & 0xc0) == 0x80)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" %x is not the first byte of utf8 character.\n" , utf8_ch[0]) ;
-	#endif
-
-		mkf_parser_increment( utf8_parser) ;
-
-		return  0 ;
+		goto  utf8_err ;
 	}
-	
-	if( ( utf8_ch[0] & 0x80) == 0)
+	else if( ( utf8_ch[0] & 0x80) == 0)
 	{
 		/* 0x00 - 0x7f */
-		ucs4_ch->ch[0] = '\x00' ;
-		ucs4_ch->ch[1] = '\x00' ;
-		ucs4_ch->ch[2] = '\x00' ;
-		ucs4_ch->ch[3] = utf8_ch[0] ;
 		
-		mkf_parser_increment( utf8_parser) ;
+		bytes = 1 ;
+		ucs4_int = utf8_ch[0] ;
+	}
+	else if( ( utf8_ch[0] & 0xe0) == 0xc0)
+	{
+		bytes = 2 ;
+		if( utf8_parser->left < bytes)
+		{
+			utf8_parser->is_eos = 1 ;
+
+			return  0 ;
+		}
+
+		ucs4_int = (((utf8_ch[0] & 0x1f) << 6) & 0xffffffc0) |
+			(utf8_ch[1] & 0x3f) ;
+
+
+		if( ucs4_int < 0x80)
+		{
+			goto  utf8_err ;
+		}
+	}
+	else if( ( utf8_ch[0] & 0xf0) == 0xe0)
+	{
+		bytes = 3 ;
+		if( utf8_parser->left < bytes)
+		{
+			utf8_parser->is_eos = 1 ;
+
+			return  0 ;
+		}
+
+		ucs4_int = (((utf8_ch[0] & 0x0f) << 12) & 0xffff000) |
+			(((utf8_ch[1] & 0x3f) << 6) & 0xffffffc0) |
+			(utf8_ch[2] & 0x3f) ;
+
+		if( ucs4_int < 0x800)
+		{
+			goto  utf8_err ;
+		}
+	}
+	else if( ( utf8_ch[0] & 0xf8) == 0xf0)
+	{
+		bytes = 4 ;
+		if( utf8_parser->left < bytes)
+		{
+			utf8_parser->is_eos = 1 ;
+
+			return  0 ;
+		}
+
+		ucs4_int = (((utf8_ch[0] & 0x07) << 18) & 0xfffc0000) |
+			(((utf8_ch[1] & 0x3f) << 12) & 0xffff000) |
+			(((utf8_ch[2] & 0x3f) << 6) & 0xffffffc0) |
+			(utf8_ch[3] & 0x3f) ;
+
+		if( ucs4_int < 0x10000)
+		{
+			goto  utf8_err ;
+		}
+	}
+	else if( ( utf8_ch[0] & 0xfc) == 0xf8)
+	{
+		bytes = 5 ;
+		if( utf8_parser->left < bytes)
+		{
+			utf8_parser->is_eos = 1 ;
+
+			return  0 ;
+		}
+
+		ucs4_int = (((utf8_ch[0] & 0x03) << 24) & 0xff000000) |
+			(((utf8_ch[1] & 0x3f) << 18) & 0xfffc0000) |
+			(((utf8_ch[2] & 0x3f) << 12) & 0xffff000) |
+			(((utf8_ch[3] & 0x3f) << 6) & 0xffffffc0) |
+			(utf8_ch[4] & 0x3f) ;
+
+		if( ucs4_int < 0x200000)
+		{
+			goto  utf8_err ;
+		}
+	}
+	else if( ( utf8_ch[0] & 0xfe) == 0xfc)
+	{
+		bytes = 6 ;
+		if( utf8_parser->left < bytes)
+		{
+			utf8_parser->is_eos = 1 ;
+
+			return  0 ;
+		}
+
+		ucs4_int = (((utf8_ch[0] & 0x01 << 30) & 0xc0000000)) |
+			(((utf8_ch[1] & 0x3f) << 24) & 0xff000000) |
+			(((utf8_ch[2] & 0x3f) << 18) & 0xfffc0000) |
+			(((utf8_ch[3] & 0x3f) << 12) & 0xffff000) |
+			(((utf8_ch[4] & 0x3f) << 6) & 0xffffffc0) |
+			(utf8_ch[4] & 0x3f) ;
+
+		if( ucs4_int < 0x4000000)
+		{
+			goto  utf8_err ;
+		}
 	}
 	else
 	{
-		u_int32_t  ucs4_int ;
-		size_t  bytes ;
-
-		if( ( utf8_ch[0] & 0xe0) == 0xc0)
-		{
-			bytes = 2 ;
-			if( utf8_parser->left < bytes)
-			{
-				utf8_parser->is_eos = 1 ;
-				
-				return  0 ;
-			}
-			
-			ucs4_int = (((utf8_ch[0] & 0x1f) << 6) & 0xffffffc0) |
-				(utf8_ch[1] & 0x3f) ;
-
-
-			if( ucs4_int < 0x80)
-			{
-				goto  utf8_err ;
-			}
-		}
-		else if( ( utf8_ch[0] & 0xf0) == 0xe0)
-		{
-			bytes = 3 ;
-			if( utf8_parser->left < bytes)
-			{
-				utf8_parser->is_eos = 1 ;
-
-				return  0 ;
-			}
-
-			ucs4_int = (((utf8_ch[0] & 0x0f) << 12) & 0xffff000) |
-				(((utf8_ch[1] & 0x3f) << 6) & 0xffffffc0) |
-				(utf8_ch[2] & 0x3f) ;
-
-			if( ucs4_int < 0x800)
-			{
-				goto  utf8_err ;
-			}
-		}
-		else if( ( utf8_ch[0] & 0xf8) == 0xf0)
-		{
-			bytes = 4 ;
-			if( utf8_parser->left < bytes)
-			{
-				utf8_parser->is_eos = 1 ;
-
-				return  0 ;
-			}
-
-			ucs4_int = (((utf8_ch[0] & 0x07) << 18) & 0xfffc0000) |
-				(((utf8_ch[1] & 0x3f) << 12) & 0xffff000) |
-				(((utf8_ch[2] & 0x3f) << 6) & 0xffffffc0) |
-				(utf8_ch[3] & 0x3f) ;
-
-			if( ucs4_int < 0x10000)
-			{
-				goto  utf8_err ;
-			}
-		}
-		else if( ( utf8_ch[0] & 0xfc) == 0xf8)
-		{
-			bytes = 5 ;
-			if( utf8_parser->left < bytes)
-			{
-				utf8_parser->is_eos = 1 ;
-
-				return  0 ;
-			}
-
-			ucs4_int = (((utf8_ch[0] & 0x03) << 24) & 0xff000000) |
-				(((utf8_ch[1] & 0x3f) << 18) & 0xfffc0000) |
-				(((utf8_ch[2] & 0x3f) << 12) & 0xffff000) |
-				(((utf8_ch[3] & 0x3f) << 6) & 0xffffffc0) |
-				(utf8_ch[4] & 0x3f) ;
-
-			if( ucs4_int < 0x200000)
-			{
-				goto  utf8_err ;
-			}
-		}
-		else if( ( utf8_ch[0] & 0xfe) == 0xfc)
-		{
-			bytes = 6 ;
-			if( utf8_parser->left < bytes)
-			{
-				utf8_parser->is_eos = 1 ;
-
-				return  0 ;
-			}
-
-			ucs4_int = (((utf8_ch[0] & 0x01 << 30) & 0xc0000000)) |
-				(((utf8_ch[1] & 0x3f) << 24) & 0xff000000) |
-				(((utf8_ch[2] & 0x3f) << 18) & 0xfffc0000) |
-				(((utf8_ch[3] & 0x3f) << 12) & 0xffff000) |
-				(((utf8_ch[4] & 0x3f) << 6) & 0xffffffc0) |
-				(utf8_ch[4] & 0x3f) ;
-
-			if( ucs4_int < 0x4000000)
-			{
-				goto  utf8_err ;
-			}
-		}
-		else
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" 0x%x is a strange as the first utf8 byte.\n" , utf8_ch[0]) ;
-		#endif
-
-			goto  utf8_err ;
-		}
-
-		ucs4_ch->ch[0] = ((ucs4_int >> 24) & 0xff) ;
-		ucs4_ch->ch[1] = ((ucs4_int >> 16) & 0xff) ;
-		ucs4_ch->ch[2] = ((ucs4_int >> 8) & 0xff) ;
-		ucs4_ch->ch[3] = (ucs4_int & 0xff) ;
-		
-		mkf_parser_n_increment( utf8_parser , bytes) ;
+		goto  utf8_err ;
 	}
+
+	ucs4_ch->ch[0] = ((ucs4_int >> 24) & 0xff) ;
+	ucs4_ch->ch[1] = ((ucs4_int >> 16) & 0xff) ;
+	ucs4_ch->ch[2] = ((ucs4_int >> 8) & 0xff) ;
+	ucs4_ch->ch[3] = (ucs4_int & 0xff) ;
+
+	mkf_parser_n_increment( utf8_parser , bytes) ;
 
 	ucs4_ch->size = 4 ;
 	ucs4_ch->cs = ISO10646_UCS4_1 ;
@@ -181,10 +161,10 @@ utf8_parser_next_char(
 	
 utf8_err:
 #ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " illegal utf8 format.\n") ;
+	kik_warn_printf( KIK_DEBUG_TAG " illegal utf8 sequence [0x%.2x ...].\n" , utf8_ch[0]) ;
 #endif
 
-	mkf_parser_n_increment( utf8_parser , 1) ;
+	mkf_parser_increment( utf8_parser) ;
 
 	return  0 ;
 }

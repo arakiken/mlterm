@@ -1627,9 +1627,8 @@ client_connected(
 		return ;
 	}
 
-	/* replacing '\n' by '\0' */
-	args[line_len - 1] = '\0' ;
 	strncpy( args , line , line_len - 1) ;
+	args[line_len - 1] = '\0' ;
 
 	kik_file_delete( from) ;
 	fclose( fp) ;
@@ -1647,7 +1646,10 @@ client_connected(
 
 	while( ( argv[argc] = kik_str_sep( &args , " \t")))
 	{
-		argc ++ ;
+		if( *argv[argc] != '\0')
+		{
+			argc ++ ;
+		}
 	}
 
 	if( ( conf = get_min_conf( argc , argv)) == NULL)
