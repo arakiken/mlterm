@@ -1,3 +1,7 @@
+2003-07-06  Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* pixmap_engine.c: minor cleanup
+
 2003-07-06  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit.c, ml_line.c: Optimized the way of redrawing.

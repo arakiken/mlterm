@@ -13,6 +13,8 @@
 #include  <X11/extensions/shape.h>
 #include  <x_sb_view.h>
 
+#define MAX_IMAGE_SIZE 0xffff
+
 #define free_pixmap( d , p) \
 	do { \
 		if( p) \
@@ -20,6 +22,20 @@
 			XFreePixmap( d , p) ; \
 		} \
 		p = None ; \
+	} while ( 0)
+
+#define STR2NUM_WITH_RANGE_CHECK(str , variables) \
+	do { \
+		int  v ; \
+		sscanf( (str) , "%d" , &v) ; \
+		if( v > 1 && v < MAX_IMAGE_SIZE) \
+		{ \
+			(variables) = v ; \
+		} \
+		else \
+		{ \
+			(variables) = 0 ; \
+		} \
 	} while ( 0)
 
 /* --- static variables --- */
@@ -123,15 +139,13 @@ load_image(
 	path = malloc( sizeof( char) * ( len + 1)) ;
 	sprintf( path , "%s/%s.png" , dir , file);
 
-#ifdef __DEBUG
 	if( ! x_imagelib_load_file( display , path , NULL , pixmap , mask ,
 				width , height))
 	{
+#ifdef __DEBUG
 		printf("x_imagelib_load_file() failed\n");;
-	}
-#else
-	x_imagelib_load_file( display , path , NULL , pixmap , mask , width , height) ;
 #endif
+	}
 
 #ifdef __DEBUG
 	printf(" path: %s, width: %d, height: %d\n", path , *width, *height) ;
@@ -408,12 +422,6 @@ realized(
 	{
 		ps->slider_width = ps->width ;
 	}
-
-	if( ps->btn_layout == BTN_NONE && ( ps->btn_up_h || ps->btn_dw_h))
-	{
-		ps->btn_up_h = 0 ;
-		ps->btn_dw_h = 0 ;
-	}
 }
 
 static void
@@ -492,8 +500,8 @@ draw_button(
 	Display *  d ;
 	Window  w ;
 	GC  gc ;
-	unsigned int  up_y ;
-	unsigned int  dw_y ;
+	unsigned int  up_y = 0 ;
+	unsigned int  dw_y = 0 ;
 	unsigned int  y ;
 	unsigned int  h ;
 	Pixmap  src ;
@@ -625,8 +633,8 @@ draw_scrollbar(
 	pixmap_sb_view_t *  ps ;
 	Display *  d ;
 	Window  win ;
-	unsigned int  bg_h ;
-	unsigned int  bg_y ;
+	unsigned int  bg_h = 0 ;
+	unsigned int  bg_y = 0 ;
 	unsigned int  offset_x ;
 	int  slr_body_h ;
 	GC  gc ;
@@ -761,27 +769,23 @@ parse(
 	{
 		if( strcmp( p->key , "width") == 0)
 		{
-			sscanf( p->value , "%d" , &ps->width) ;
-		}
-		else if( strcmp( p->key , "slider_width") == 0)
-		{
-			sscanf( p->value , "%d" , &ps->slider_width) ;
+			STR2NUM_WITH_RANGE_CHECK(p->value , ps->width) ;
 		}
 		else if( strcmp( p->key , "button_up_height") == 0)
 		{
-			sscanf( p->value , "%d" , &ps->btn_up_h) ;
+			STR2NUM_WITH_RANGE_CHECK(p->value , ps->btn_up_h) ;
 		}
 		else if( strcmp( p->key , "button_down_height") == 0)
 		{
-			sscanf( p->value , "%d" , &ps->btn_dw_h) ;
+			STR2NUM_WITH_RANGE_CHECK(p->value , ps->btn_dw_h) ;
 		}
 		else if( strcmp( p->key , "top_margin") == 0)
 		{
-			sscanf( p->value , "%d" , &ps->top_margin) ;
+			STR2NUM_WITH_RANGE_CHECK(p->value , ps->top_margin) ;
 		}
 		else if( strcmp( p->key , "bottom_margin") == 0)
 		{
-			sscanf( p->value , "%d" , &ps->bottom_margin) ;
+			STR2NUM_WITH_RANGE_CHECK(p->value , ps->bottom_margin) ;
 		}
 		else if( strcmp( p->key , "bg_tile") == 0)
 		{
@@ -879,6 +883,19 @@ x_pixmap_engine_sb_engine_new(
 	{
 		free( ps) ;
 		return  NULL ;
+	}
+
+	/* verify the values */
+	if( ps->width == 0)
+	{
+		free( ps) ;
+		return  NULL ;
+	}
+
+	if( ps->btn_layout == BTN_NONE && ( ps->btn_up_h || ps->btn_dw_h))
+	{
+		ps->btn_up_h = 0 ;
+		ps->btn_dw_h = 0 ;
 	}
 
 	/* event handlers */

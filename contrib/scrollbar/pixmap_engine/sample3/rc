@@ -20,7 +20,6 @@ button_down_height = 11
 button_use_mask = true
 
 # slider
-slider_width = 10
 slider_tile = true
 slider_use_mask = true
 
