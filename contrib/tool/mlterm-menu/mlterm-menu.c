@@ -61,7 +61,7 @@ int append_pty_list(GtkMenu* menu);
 
 void activate_callback(GtkWidget* widget, gpointer data);
 void toggled_callback(GtkWidget* widget, gpointer data);
-char* get_value(char* key);
+char* get_value(char* dev, char* key);
 
 int main(int argc, char* argv[])
 {
@@ -198,16 +198,17 @@ int append_pty_list(GtkMenu* menu)
 {
     GtkWidget* item;
     char* pty_list;
+    char* name;
     char* pty;
     char* command;
     int is_active;
     GSList* group = NULL;
 
-    if ((pty_list = get_value("pty_list")) == NULL)
+    if ((pty_list = get_value(NULL, "pty_list")) == NULL)
         return 1;
 
     while (pty_list) {
-        pty = pty_list + 5;
+        pty = pty_list;
         pty_list = strchr(pty_list, ':');
         if (pty_list)
             *pty_list = 0;
@@ -221,10 +222,15 @@ int append_pty_list(GtkMenu* menu)
         if (pty_list)
             pty_list++;
 
-        command = malloc(strlen(pty) + 17);
-        sprintf(command, "select_pty=/dev/%s", pty);
+        if ((name = get_value(pty, "pty_name")) == NULL)
+            name = pty;
+        if (strncmp(name, "/dev/", 5) == 0)
+            name += 5;
 
-        item = gtk_radio_menu_item_new_with_label(group, pty);
+        command = malloc(strlen(pty) + 12);
+        sprintf(command, "select_pty=%s", pty);
+
+        item = gtk_radio_menu_item_new_with_label(group, name);
         group = gtk_radio_menu_item_group(GTK_RADIO_MENU_ITEM(item));
 
         gtk_signal_connect(GTK_OBJECT(item), "toggled",
@@ -260,13 +266,16 @@ void toggled_callback(GtkWidget* widget, gpointer data)
 }
 
 
-char* get_value(char* key)
+char* get_value(char* dev, char* key)
 {
     int count;
     char ret[1024];
     char c;
 
-    printf("\x1b]5381;%s\x07", key);
+    if (dev)
+        printf("\x1b]5381;%s:%s\x07", dev, key);
+    else
+        printf("\x1b]5381;%s\x07", key);
     fflush(stdout);
 
     for (count = 0; count < 1024; count++) {
