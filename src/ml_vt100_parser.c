@@ -124,7 +124,7 @@ receive_bytes(
 	#if  1
 		for( counter = 0 ; counter < vt100_parser->left ; counter ++)
 		{
-			fprintf( stderr , "%.2x" , vt100_parser->seq[counter]) ;
+			fprintf( stderr , "[%.2x]" , vt100_parser->seq[counter]) ;
 		}
 		fprintf( stderr , "[END]\n") ;
 	#endif
@@ -1019,6 +1019,11 @@ parse_vt100_escape_sequence(
 							ml_term_screen_reverse_video(
 								vt100_parser->termscr) ;
 						}
+						else if( ps[0] == 25)
+						{
+							ml_term_screen_cursor_visible(
+								vt100_parser->termscr) ;
+						}
 						else if( ps[0] == 47)
 						{
 							/* Use Alternate Screen Buffer */
@@ -1063,6 +1068,11 @@ parse_vt100_escape_sequence(
 						else if( ps[0] == 5)
 						{
 							ml_term_screen_restore_video(
+								vt100_parser->termscr) ;
+						}
+						else if( ps[0] == 25)
+						{
+							ml_term_screen_cursor_invisible(
 								vt100_parser->termscr) ;
 						}
 						else if( ps[0] == 47)
@@ -1549,6 +1559,10 @@ parse_vt100_escape_sequence(
 					return  0 ;
 				}
 				
+			#ifdef  ESCSEQ_DEBUG
+				fprintf( stderr , " - %c" , *str_p) ;
+			#endif
+			
 				if( *str_p == '0')
 				{
 					vt100_parser->is_graphic_char_in_gl = 1 ;
@@ -1732,7 +1746,17 @@ init_pty_encoding(
 	vt100_parser = p ;
 
 	(*vt100_parser->cc_conv->init)( vt100_parser->cc_conv) ;
-	(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
+	
+	if( IS_STATEFUL_ENCODING(vt100_parser->encoding))
+	{
+		/*
+		 * XXX
+		 * this causes unexpected behaviors in some applications(e.g. biew) ,
+		 * but this is necessary since 0x0 - 0x7f is not necessarily US-ASCII
+		 * in these encodings.
+		 */
+		(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
+	}
 
 	return  1 ;
 }

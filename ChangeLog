@@ -1,3 +1,8 @@
+[20011227]
+* if pty encoding is stateless , state of pty encoding parser is not
+  reset when key is pressed.
+* "ESC [ ? 25 h" , "ESC [ ? 25 l" sequences are supported.
+
 [20011226]
 * typos in mlterm.1 are fixed.(thanks to Kubota Tomohiro san)
 * something like "ESC [ 34 ; 0 ; m" sequence is parsed incorrectly.fixed.

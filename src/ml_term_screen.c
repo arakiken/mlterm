@@ -284,6 +284,8 @@ write_to_pty(
 		(*parser->set_str)( parser , str , len) ;
 	}
 
+	(*termscr->encoding_listener->init)( termscr->encoding_listener->self) ;
+
 	if( parser)
 	{
 		u_char  conv_buf[512] ;
@@ -347,8 +349,6 @@ write_to_pty(
 	{
 		return ;
 	}
-	
-	(*termscr->encoding_listener->init)( termscr->encoding_listener->self) ;
 }
 
 static int
@@ -3094,6 +3094,7 @@ ml_term_screen_new(
 	termscr->scroll_cache_boundary_end = 0 ;
 
 	termscr->is_reverse = 0 ;
+	termscr->is_cursor_visible = 1 ;
 	termscr->is_app_keypad = 0 ;
 	termscr->is_app_cursor_keys = 0 ;
 	termscr->is_mouse_pos_sending = 0 ;
@@ -3459,6 +3460,11 @@ ml_term_screen_highlight_cursor(
 	ml_term_screen_t *  termscr
 	)
 {
+	if( ! termscr->is_cursor_visible)
+	{
+		return  1 ;
+	}
+
 	flush_scroll_cache( termscr) ;
 
 	ml_term_screen_start_bidi( termscr) ;
@@ -3480,6 +3486,11 @@ ml_term_screen_unhighlight_cursor(
 	ml_term_screen_t *  termscr
 	)
 {
+	if( ! termscr->is_cursor_visible)
+	{
+		return  1 ;
+	}
+	
 	flush_scroll_cache( termscr) ;
 
 	ml_term_screen_start_bidi( termscr) ;
@@ -4185,6 +4196,26 @@ ml_term_screen_use_alternative_image(
 
 	ml_window_clear_all( &termscr->window) ;
 	
+	return  1 ;
+}
+
+int
+ml_term_screen_cursor_visible(
+	ml_term_screen_t *  termscr
+	)
+{
+	termscr->is_cursor_visible = 1 ;
+
+	return  1 ;
+}
+
+int
+ml_term_screen_cursor_invisible(
+	ml_term_screen_t *  termscr
+	)
+{
+	termscr->is_cursor_visible = 0 ;
+
 	return  1 ;
 }
 

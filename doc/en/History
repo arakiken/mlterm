@@ -4,6 +4,8 @@ ver 2.1.0()
 * BIG5HKSCS is supported.
 * most of vttest items are passed.
 * processing encodings of copy&paste text is improved.
+* mlconfig is improved.(e.g. it works asynchronous with mlterm itself)
+* mlterm icons(doc/icon/) are contributed by Kubota Tomohiro san:)
 * and many minor fixes/improvement.
 
 ver 2.0.0(2001/11/29)

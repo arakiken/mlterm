@@ -116,6 +116,7 @@ typedef struct  ml_term_screen
 
 	int8_t  copy_paste_via_ucs ;
 	int8_t  is_reverse ;
+	int8_t  is_cursor_visible ;
 	int8_t  is_app_keypad ;
 	int8_t  is_app_cursor_keys ;
 	int8_t  is_mouse_pos_sending ;
@@ -274,6 +275,10 @@ int  ml_term_screen_unset_mouse_pos_sending( ml_term_screen_t *  termscr) ;
 int  ml_term_screen_use_normal_image( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_use_alternative_image( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_cursor_visible( ml_term_screen_t *  termscr) ;
+
+int  ml_term_screen_cursor_invisible( ml_term_screen_t *  termscr) ;
 
 int  ml_term_screen_send_device_attr( ml_term_screen_t *  termscr) ;
 
