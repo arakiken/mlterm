@@ -104,9 +104,8 @@ Supported platforms
   * Mac OS X 10.2 (ppc)
   * OpenBSD 3.5 (x86)
   * Fedora Core 2 (x86)
-  * SuSE Linux 8 (x86_64)
   * SuSE Linux 9.1 (x86)
-  * MS Windows 98/Cygwin 1.5.11 with x-org 6.8.1.0-3 (x86)
+  * MS Windows 98/Cygwin 1.5.13 with x-org 6.8.2.0-1 (x86)
 
   Following platforms are not actually tested by the author, but were supported
   in the past and are probably supported now.
