@@ -30,6 +30,8 @@ typedef struct display_store_tag {
 static int display_count = 0;
 static unsigned char gamma_cache[256 +1];
 static display_store_t * display_store = NULL;
+static char * wallpaper_cache_name = NULL;
+static char * wallpaper_cache_data = NULL;
 
 /* --- static functions --- */
 
@@ -776,7 +778,7 @@ x_imagelib_get_transparent_background( x_window_t * win , x_picture_modifier_t *
  *\param path File full path.
  *\param cardinal Returns pointer to a data structure for the extended WM hint spec.
  *\param pixmap Returns image pixmap for the old WM hint.
- *\param mask Returns mask bitmap for the old WM hint. */
+ *\param mask Returns mask bitmap for the old WM hint. 
  * 
  *\return Success => 1, Failure => 0
  */
