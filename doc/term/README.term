@@ -1,0 +1,9 @@
+$Id$
+
+This directory contains data for terminfo/termcap.
+
+* mlterm.ti : for terminfo
+* mlterm.tc : for termcap
+
+Note that these two file are not perfectly coincide. Some function of mlterm could not be mentioned in mlterm.tc because the size of an termcap entry cannot exceed 1K. 
+
