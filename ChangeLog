@@ -1,3 +1,8 @@
+2003-06-23  Araki Ken <arakiken@users.sf.net>
+
+	* Added authorization mechanism by ~/.mlterm/challenge and
+	  revived protocol 5380.
+
 2003-06-23  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* Priority of "text/plain" in XDND is degraded 
