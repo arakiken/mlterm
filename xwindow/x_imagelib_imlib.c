@@ -503,17 +503,16 @@ int x_imagelib_load_file(
 
 	if( (!height) || *height == 0)
 	{
-		height = img->rgb_height ;
-	}
-	else
-	{
-		dst_height = *height ;
+		dst_height = img->rgb_height;
 		if( height)
 		{
 			*height = dst_height ;
 		}
 	}
-
+	else
+	{
+		dst_height = *height ;
+	}
 
 	Imlib_render( imlib, img, dst_width, dst_height);
 	

@@ -1,5 +1,9 @@
 2003-07-08  Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* x_imagelib_imlib.c: fixed a small bug in x_imagelib_load_file().
+
+2003-07-08  Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* My fix for sizehints bug (2002-08-29) seems not to be enough. Fixed.
 
 2003-07-06  Araki Ken  <arakiken@users.sf.net>
