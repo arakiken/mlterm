@@ -223,19 +223,26 @@ parse_prop_bgimage(
 {
 	char *  head ;
         if( !(win->set_xdnd_config))
-                return 0 ;
+                return  0 ;
         if( head = strstr( src, "file://"))
         {
+		/* format should be file://<host>/<path> */
                 src = head +7;
-        }
-        if( head = strstr( src, "\r"))
-        {
-                *head = 0 ;
-        }
-        if( head = strstr( src, "\n"))
-        {
-                *head = 0 ;
-        }
+		if( !(head = strstr( src, "/")))
+			return  0 ;
+		/* and <host> should be localhost and safely ignored.*/
+		src = head ;
+
+		/* remove trailing garbage */
+		if( head = strstr( src, "\r"))
+			*head = 0 ;
+		if( head = strstr( src, "\n"))
+			*head = 0 ;
+	}
+	else
+	{
+		/* other schemas may be supprted here */
+	}
 #ifdef  DEBUG
         kik_debug_printf( "bgimage: %s\n" , src) ;
 #endif
