@@ -1,3 +1,8 @@
+2005-03-31 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/iiimf/aux.c:
+	applied a patch from Andreas Jochens. (Debian BTS #302231)
+
 2005-03-18 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/kbd/im_kbd.c: added Hebrew key mapping table.

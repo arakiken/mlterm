@@ -142,7 +142,7 @@ typedef struct  filter_info
 KIK_LIST_TYPEDEF( aux_module_info_t) ;
 KIK_LIST_TYPEDEF( aux_id_info_t) ;
 
-extern aux_service_t  aux_service ;
+static aux_service_t  aux_service ;
 
 /* --- static variables --- */
 
