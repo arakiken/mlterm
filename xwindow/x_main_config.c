@@ -177,7 +177,10 @@ x_prepare_for_main_config(
 		"step in changing font size in GUI configurator [1]") ;
 	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
 		"input method (xim/kbd/uim/iiimf/m17nlib/scim/none) [xim]") ;
-
+#if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
+       kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
+		"path to an imagefile to be use as an window icon") ;
+#endif
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
 
