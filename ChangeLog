@@ -1,5 +1,9 @@
 2002-10-06 Araki Ken <arakiken@users.sf.net>
 
+	* Fixed a bug in deleting multi-byte characters by ESC [ P.
+
+2002-10-06 Araki Ken <arakiken@users.sf.net>
+
 	* ESC [ x sequence is supported.
 
 2002-10-06 Araki Ken <arakiken@users.sf.net>

@@ -314,7 +314,7 @@ ml_line_overwrite(
 
 	line->num_of_filled_chars = new_len ;
 
-	ml_line_set_modified( line , beg_char_index , beg_char_index + len - 1) ;
+	ml_line_set_modified( line , beg_char_index , beg_char_index + len + padding - 1) ;
 
 	return  1 ;
 }
@@ -375,14 +375,12 @@ ml_line_fill(
 				left_cols = line->num_of_chars - beg - num ;
 				copy_len = 0 ;
 			}
-			else if( beg + num + left_cols + copy_len > line->num_of_chars)
-			{
-				copy_len = 0 ;
-			}
 			else
 			{
 				copy_len = line->num_of_filled_chars - char_index - left_cols ;
 			}
+			
+			char_index ++ ;
 			
 			break ;
 		}

@@ -391,12 +391,8 @@ clear_line_to_left(
 	int  use_bce
 	)
 {
-	ml_char_t *  sp_ch ;
-	int  count ;
-	u_int  num_of_sp ;
-	ml_char_t *  buf ;
-	u_int  buf_size ;
 	ml_line_t *  cursor_line ;
+	ml_char_t *  sp_ch ;
 
 	cursor_line = CURSOR_LINE(edit) ;
 
@@ -409,69 +405,9 @@ clear_line_to_left(
 		sp_ch = ml_sp_ch() ;
 	}
 
-	/* XXX cursor char will be cleared , is this ok? */
-	buf_size = cursor_line->num_of_filled_chars - (edit->cursor.char_index + 1) ;
-	if( buf_size > 0)
-	{
-		u_int  padding ;
-		u_int  filled ;
+	edit->cursor.char_index = edit->cursor.col ;
 		
-		if( ml_char_cols( CURSOR_CHAR(edit)) > 1)
-		{
-			ml_convert_col_to_char_index( cursor_line , &padding ,
-				edit->cursor.col , 0) ;
-			buf_size += padding ;
-		}
-		else
-		{
-			padding = 0 ;
-		}
-
-		if( ( buf = ml_str_new( buf_size)) == NULL)
-		{
-			return  0 ;
-		}
-
-		filled = 0 ;
-
-		if( padding)
-		{
-			/*
-			 * padding spaces.
-			 */
-			for( count = 0 ; count < padding ; count ++)
-			{
-				ml_char_copy( &buf[filled++] , sp_ch) ;
-			}
-		}
-
-		/* excluding cursor char */
-		ml_str_copy( &buf[filled] , CURSOR_CHAR(edit) + 1 , buf_size - padding) ;
-	}
-
-	num_of_sp = edit->cursor.col / ml_char_cols( sp_ch) ;
-	edit->cursor.col = 0 ;
-	for( count = 0 ; count < num_of_sp ; count ++)
-	{
-		ml_char_copy( &cursor_line->chars[count] , sp_ch) ;
-		edit->cursor.col += ml_char_cols( sp_ch) ;
-	}
-
-	edit->cursor.char_index = count ;
-
-	/* char on cursor */
-	ml_char_copy( &cursor_line->chars[count++] , sp_ch) ;
-
-	if( buf_size > 0)
-	{
-		ml_str_copy( &cursor_line->chars[count] , buf , buf_size) ;
-		
-		cursor_line->num_of_filled_chars = count + buf_size ;
-
-		ml_str_delete( buf , buf_size) ;
-	}
-
-	ml_line_set_modified( cursor_line , 0 , edit->cursor.char_index) ;
+	ml_line_fill( cursor_line , sp_ch , 0 , edit->cursor.char_index + 1) ;
 
 	return  1 ;
 }
@@ -915,7 +851,7 @@ ml_edit_delete_cols(
 
 	filled_len = 0 ;
 
-	/* before cursor(excluding cursor) */
+	/* before cursor(including cursor) */
 
 	ml_convert_col_to_char_index( cursor_line , &cols_rest , edit->cursor.col , 0) ;
 	if( cols_rest)
@@ -956,12 +892,16 @@ ml_edit_delete_cols(
 				ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
 			}
 		}
+		
+		char_index = edit->cursor.char_index + 1 ;
+	}
+	else
+	{
+		char_index = edit->cursor.char_index ;
 	}
 
 	/* after cursor(excluding cursor) + delete_cols */
 
-	char_index = edit->cursor.char_index ;
-	
 	if( delete_cols)
 	{
 		u_int  cols ;
