@@ -1,3 +1,8 @@
+2003-03-02 MINAMI Hirokazu <minami@mistfall.net>
+
+	* fixed a pixmap cache corruption with gdk-pixbuf
+	 (Thanks to Sato san and Kubota san)
+	
 2003-03-02 Araki Ken <arakiken@users.sf.net>
 
 	* The point where column width changed is regarded as the boundary of words.

@@ -1693,11 +1693,12 @@ x_imagelib_get_transparent_background(
 /* discard old info */
 		if ( cache->root !=  current_root)
 		{
-			cache->root = current_root ;
 			if((cache->cooked != None) && (cache->cooked != cache->root))
 			{
 				XFreePixmap( win->display, cache->cooked) ;
 			}
+			cache->root = current_root ;
+
 			cache->cooked = None ;
 			if ( cache->pic_mod)
 				free(cache->pic_mod) ;
