@@ -1,5 +1,11 @@
 2002-09-27 Araki Ken <arakiken@users.sf.net>
 
+	* GDK_PIXBUF_CFLAGS and IMILB_CFLAGS are renamed to IMAGELIB_CFLAGS in 
+	  tool/mlconfig/Makefile.in.
+	  (Thanks to Muto Kenshi san)
+
+2002-09-27 Araki Ken <arakiken@users.sf.net>
+
 	* The last character of a wraparound line was not deleted by BS + ' '. fixed.
 
 2002-09-27 Araki Ken <arakiken@users.sf.net>
