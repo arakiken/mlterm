@@ -1,6 +1,8 @@
 2003-12-28  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* configure.in, configure: changed VERSION from 2.7.0->2.8.0
+	* xwindow/x_screen.c: fixed segv (use_anti_alias should do nothing
+	 when USE_TYPE_XFT is not defined).
 
 2003-12-27  Seiichi SATO  <ssato@sh.rim.or.jp>
 
