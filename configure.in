@@ -144,7 +144,7 @@ AC_ARG_ENABLE(anti_alias,
 	anti_alias=$enable_anti_alias)
 	
 AC_ARG_WITH(type_engines,
-	[  --with-type-engines     type engines[default=xcore]],
+	[  --with-type-engines     type engines(xcore, xft)[default=xcore]],
 	type_engines=$with_type_engines)
 
 if test "$anti_alias" = "yes" ; then
@@ -502,7 +502,7 @@ DL_LIBS_SB=""
 scrollbars="sample,extra"  # default
 
 AC_ARG_WITH(scrollbars,
-	[  --with-scrollbars[=ARG] scrollbar plugins [default=sample,extra]],
+	[  --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine)[default=sample,extra]],
 	[
 	# If given --without-scrollbars or --with-scrollbars with no args.
 	if test "${with_scrollbars}" = "no" ; then
