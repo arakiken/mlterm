@@ -14,6 +14,11 @@
 
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 
+typedef struct x_dnd_context {
+	Window  source ;
+	Atom  waiting_atom ;
+} x_dnd_context_t ;
+
 typedef struct dnd_parser {
 	char *  atomname ;
 	int  (*parser)(x_window_t *, unsigned char *, int) ;
@@ -143,10 +148,11 @@ parse_text(
 	unsigned char *  src,
 	int  len)
 {
-		if( !(win->utf8_selection_notified))
-			return 0 ;
-		(*win->utf8_selection_notified)( win , src , len) ;
-		return 1 ;
+	if( !(win->utf8_selection_notified))
+		return 0 ;
+	(*win->utf8_selection_notified)( win , src , len) ;
+	
+	return 1 ;
 }
 
 static int
@@ -158,6 +164,7 @@ parse_utf8_string(
 	if( !(win->utf8_selection_notified))
 		return 0 ;
 	(*win->utf8_selection_notified)( win , src , len) ;
+
 	return 1 ;
 }
 
@@ -176,7 +183,7 @@ parse_mlterm_config(
 		return 0 ;
 	*value = 0 ;
 #ifdef  DEBUG
-	kik_debug_printf("key %s val %s",src, value);
+	kik_debug_printf("conf key %s val %s\n",src, value);
 #endif
 	(*win->set_xdnd_config)( win ,
 				 NULL, /* dev */
@@ -199,9 +206,9 @@ parse_app_color(
 	g = r + 1 ;
 	b = r + 2 ;
 
-	sprintf( buffer, "bg_color=#%04x%04x%04x", *r, *g, *b) ;
+	sprintf( buffer, "bg_color=#%02x%02x%02x", (*r) >> 8 , (*g) >> 8, (*b) >> 8) ;
 #ifdef  DEBUG
-	kik_debug_printf( "%s\n" , buffer) ;
+	kik_debug_printf( "bgcolor: %s\n" , buffer) ;
 #endif
 	parse_mlterm_config( win, buffer, 0);
 
@@ -214,18 +221,22 @@ parse_prop_bgimage(
 	unsigned char *  src,
 	int  len)
 {
-	/* XXX: DO SANITY CHECK */
-	if( !(win->set_xdnd_config))
-		return 0 ;
+	char *  head ;
+        if( !(win->set_xdnd_config))
+                return 0 ;
+        if( head = strstr( src, "file://"))
+        {
+                src = head +7;
+        }
 #ifdef  DEBUG
-	kik_debug_printf( "%s\n" , src +7) ;
+        kik_debug_printf( "bgimage: %s\n" , src) ;
 #endif
-	(*win->set_xdnd_config)( win ,
-				 NULL, /* dev */
-				 "wall_picture", /* key */
-				 src + 7 /* value */) ;
+        (*win->set_xdnd_config)( win ,
+                                 NULL, /* dev */
+                                 "wall_picture", /* key */
+                                 src /* value */) ;
 
-	return 1 ;
+        return 1 ;
 }
 
 #ifdef  DEBUG

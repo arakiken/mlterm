@@ -1,3 +1,7 @@
+2003-07-17  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* x_dnd.c: fixed bugs in the parsing of configuration protocol.
+
 2003-07-17  Seiichi SATO  <ssato@sh.rim.or.jp>
 
 	* Started porting to MS Windows.
