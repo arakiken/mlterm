@@ -1,3 +1,8 @@
+2004-12-29 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* configure.in: applied a patch from Ken'ichi Handa.
+	<http://sourceforge.net/mailarchive/message.php?msg_id=10412050>
+
 2004-12-22 MINAMI Hirokazu <minami@mistfall.net>
 
         * configure.in: noted about --with-type-engines in the
