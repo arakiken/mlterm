@@ -1,7 +1,9 @@
 2004-11-18 MINAMI Hirokazu <minami@mistfall.net>
 
 	* configure.in, mkf/configure.in: added AC_C_INLINE.
-
+	* xwindow/x_window.c: added workaround for
+	stupid application which sends Atom "NONE" instead of None.  
+	
 2004-11-17 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* doc/en/PLATFORM: updated supported platforms.

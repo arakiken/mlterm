@@ -37,6 +37,7 @@
 #endif
 #define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
 #define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
+#define  XA_NONE(display)  (XInternAtom(display , "NONE" , False))
 #define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
 #define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
 #define  XA_TAKE_FOCUS(display) (XInternAtom(display , "WM_TAKE_FOCUS" , False))
@@ -2119,7 +2120,7 @@ x_window_receive_event(
 		xa_utf8_string = XA_UTF8_STRING(win->display) ;
 		xa_selection = XA_SELECTION(win->display) ;
 
-		if( event->xselection.property == None)
+		if( event->xselection.property == None ||  event->xselection.property == XA_NONE(win->display))
 		{
 			/*
 			 * Selection request failed.
