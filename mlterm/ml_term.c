@@ -40,7 +40,8 @@ ml_term_new(
 		return  NULL ;
 	}
 
-	memset( term , 0 , sizeof( ml_term_t)) ;
+	term->pty = NULL ;
+	term->pty_listener = NULL ;
 
 	if( ( term->screen = ml_screen_new( cols , rows , tab_size , log_size , use_bce)) == NULL)
 	{
@@ -96,6 +97,11 @@ ml_term_delete(
 {
 	if( term->pty)
 	{
+		if( term->pty_listener && term->pty_listener->closed)
+		{
+			(*term->pty_listener->closed)( term->pty_listener->self) ;
+		}
+
 		ml_pty_delete( term->pty) ;
 	}
 	
@@ -146,12 +152,15 @@ ml_term_set_listener(
 	ml_term_t *  term ,
 	ml_xterm_event_listener_t *  xterm_listener ,
 	ml_config_event_listener_t *  config_listener ,
-	ml_screen_event_listener_t *  screen_listener
+	ml_screen_event_listener_t *  screen_listener ,
+	ml_pty_event_listener_t *  pty_listener
 	)
 {
 	ml_vt100_parser_set_xterm_listener( term->parser , xterm_listener) ;
 	ml_vt100_parser_set_config_listener( term->parser , config_listener) ;
 	ml_screen_set_listener( term->screen , screen_listener) ;
+
+	term->pty_listener = pty_listener ;
 
 	return  1 ;
 }

@@ -12,16 +12,17 @@ version 20020206
   set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_key | mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
-                     wall_picture | full_reset | brightness | line_space | screen_width_ratio |
-                     screen_height_ratio | vertical_mode | scrollbar_mode | use_multi_column_char |
-                     scrollbar_view_name | sb_fg_color | sb_bg_color | iscii_lang | use_dynamic_comb
+                     wall_picture | full_reset | brightness | gamma | contrast | line_space |
+		     screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
+		     use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
+		     iscii_lang | use_dynamic_comb
   get key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize | fade_ratio |
                      mod_meta_key | mod_meta_mode | bel_mode | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | copy_paste_via_ucs | xim |
-                     locale | wall_picture | pwd | brightness | line_space | screen_width_ratio |
-                     screen_height_ratio | vertical_mode | scrollbar_mode | use_multi_column_char |
-                     scrollbar_view_name | sb_fg_color | sb_bg_color | iscii_lang | use_dynamic_comb |
-		     rows | cols
+                     locale | wall_picture | pwd | brightness | gamma | contrast | line_space | 
+		     screen_width_ratio | screen_height_ratio | vertical_mode | scrollbar_mode |
+		     use_multi_column_char | scrollbar_view_name | sb_fg_color | sb_bg_color |
+		     iscii_lang | use_dynamic_comb | rows | cols
   value            = <values for each key>
 
 * compatible with other terminals
@@ -55,6 +56,8 @@ version 20020206
   full_reset = <none>
   pwd = <current working directory>
   brightness = <any ASCII decimal digit>
+  gamma = <any ASCII decimal digit>
+  contrast = <any ASCII decimal digit>
   line_space = <any ASCII decimal digit>
   screen_width_ratio = <any ASCII decimal digit>
   screen_height_ratio = <any ASCII decimal digit>

@@ -105,14 +105,16 @@ kik_add_sig_child_listener(
 
 int
 kik_remove_sig_child_listener(
-	void *  self
+	void *  self ,
+	void (*exited)( void * , pid_t)
 	)
 {
 	int  count ;
 
 	for( count = 0 ; count < num_of_listeners ; count ++)
 	{
-		if( listeners[count].self == self)
+		if( listeners[count].self == self &&
+			listeners[count].exited == exited)
 		{
 			listeners[count] = listeners[-- num_of_listeners] ;
 

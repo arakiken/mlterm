@@ -15,7 +15,7 @@ int  kik_sig_child_final(void) ;
 
 int  kik_add_sig_child_listener( void *  self , void (*exited)( void * , pid_t)) ;
 
-int  kik_remove_sig_child_listener( void *  self) ;
+int  kik_remove_sig_child_listener( void *  self , void (*exited)( void * , pid_t)) ;
 
 
 #endif

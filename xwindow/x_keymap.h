@@ -18,7 +18,8 @@ typedef enum  x_key_func
 {
 	XIM_OPEN ,
 	XIM_CLOSE ,
-	NEW_PTY ,
+	OPEN_PTY ,
+	OPEN_SCREEN ,
 	PAGE_UP ,
 	PAGE_DOWN ,
 	SCROLL_UP ,

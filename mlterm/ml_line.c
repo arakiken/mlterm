@@ -222,6 +222,11 @@ ml_line_overwrite(
 	u_int  new_len ;
 	u_int  copy_len ;
 
+	if( len > line->num_of_chars)
+	{
+		len = line->num_of_chars ;
+	}
+
 	orig_filled_cols = ml_line_get_num_of_filled_cols( line) ;
 
 	if( IS_EMPTY( line) || cols >= orig_filled_cols)
@@ -267,11 +272,10 @@ ml_line_overwrite(
 	#endif
 		
 		new_len = line->num_of_chars ;
-
-		len = new_len - padding - copy_len ;
+		copy_len = new_len - padding - len ;
 
 	#ifdef  DEBUG
-		kik_msg_printf( " ... modified -> new_len %d , ow len %d\n" , new_len , len) ;
+		kik_msg_printf( " ... modified -> new_len %d , copy_len %d\n" , new_len , len) ;
 	#endif
 	}
 

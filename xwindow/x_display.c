@@ -12,10 +12,16 @@
 #include  "x_picture.h"
 
 
-/* --- global functions --- */
+/* --- static variables --- */
 
-x_display_t *
-x_display_open(
+static u_int  num_of_displays ;
+static x_display_t **  displays ;
+
+
+/* --- static functions --- */
+
+static x_display_t *
+open_display(
 	char *  name
 	)
 {
@@ -64,8 +70,8 @@ error1:
 	return  NULL ;
 }
 
-int
-x_display_close(
+static int
+close_display(
 	x_display_t *  disp
 	)
 {
@@ -78,6 +84,96 @@ x_display_close(
 	free( disp) ;
 
 	return  1 ;
+}
+
+
+/* --- global functions --- */
+
+x_display_t *
+x_display_open(
+	char *  disp_name
+	)
+{
+	int  count ;
+	x_display_t *  disp ;
+	void *  p ;
+
+	for( count = 0 ; count < num_of_displays ; count ++)
+	{
+		if( strcmp( displays[count]->name , disp_name) == 0)
+		{
+			return  displays[count] ;
+		}
+	}
+
+	if( ( disp = open_display( disp_name)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	if( ( p = realloc( displays , sizeof( x_display_t*) * (num_of_displays + 1))) == NULL)
+	{
+		x_display_close( disp) ;
+
+		return  NULL ;
+	}
+
+	displays = p ;
+	displays[num_of_displays ++] = disp ;
+
+	return  disp ;
+}
+
+int
+x_display_close(
+	x_display_t *  disp
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < num_of_displays ; count ++)
+	{
+		if( displays[count] == disp)
+		{
+			close_display( disp) ;
+			displays[count] = displays[-- num_of_displays] ;
+
+		#ifdef  DEBUG
+			kik_debug_printf( "X connection closed.\n") ;
+		#endif
+
+			return  1 ;
+		}
+	}
+	
+	return  0 ;
+}
+
+int
+x_display_close_all(void)
+{
+	int  count ;
+	
+	for( count = 0 ; count < num_of_displays ; count ++)
+	{
+		x_display_close( displays[count]) ;
+	}
+	
+	free( displays) ;
+
+	displays = NULL ;
+
+	return  1 ;
+}
+
+x_display_t **
+x_get_opened_displays(
+	u_int *  num
+	)
+{
+	*num = num_of_displays ;
+
+	return  displays ;
 }
 
 int

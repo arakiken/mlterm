@@ -1,3 +1,10 @@
+2002-07-29  Araki Ken <arakiken@users.sf.net>
+
+	* If bce enabled in termcap config, mlterm hung up when multi-byte
+	  characters are shown in screen. fixed.
+	* NEW_PTY short cut key is renamed to OPEN_SCREEN.
+	* OPEN_PTY option is added.
+
 2002-07-15  Tomohiro KUBOTA  <kubota@debian.org>
 
 	* Update background/wall_picture/transparent handling in mlconfig.

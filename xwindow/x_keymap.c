@@ -34,13 +34,17 @@ static key_func_table_t  key_func_table[] =
 {
 	{ "XIM_OPEN" , XIM_OPEN , } ,
 	{ "XIM_CLOSE" , XIM_CLOSE , } ,
-	{ "NEW_PTY" , NEW_PTY , } ,
+	{ "OPEN_SCREEN" , OPEN_SCREEN , } ,
+	{ "OPEN_PTY" , OPEN_PTY , } ,
 	{ "PAGE_UP" , PAGE_UP , } ,
 	{ "PAGE_DOWN" , PAGE_DOWN , } ,
 	{ "SCROLL_UP" , SCROLL_UP , } ,
 	{ "SCROLL_DOWN" , SCROLL_DOWN , } ,
 	{ "INSERT_SELECTION" , INSERT_SELECTION , } ,
 	{ "EXIT_PROGRAM" , EXIT_PROGRAM , } ,
+
+	/* obsoleted: alias of OPEN_SCREEN */
+	{ "NEW_PTY" , OPEN_SCREEN , } ,
 } ;
 
 
@@ -157,8 +161,6 @@ parse(
 				keymap->map[key_func_table[count].func].is_used = 1 ;
 			}
 
-			kik_debug_printf( "%s\n" , oper) ;
-
 			keymap->map[key_func_table[count].func].state = state ;
 
 			return  1 ;
@@ -184,8 +186,11 @@ x_keymap_init(
 		/* XIM_CLOSE(not used) */
 		{ 0 , 0 , 0 , } ,
 
-		/* NEW PTY */
+		/* OPEN SCREEN */
 		{ XK_F1 , ControlMask , 1 , } ,
+
+		/* OPEN PTY */
+		{ XK_F2 , ControlMask , 1 , } ,
 
 		/* PAGE_UP(compatible with kterm) */
 		{ XK_Prior , ShiftMask , 1 , } ,

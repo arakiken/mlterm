@@ -21,9 +21,18 @@ typedef enum  ml_special_visual
 	
 } ml_special_visual_t ;
 
+typedef struct ml_pty_event_listener
+{
+	void *  self ;
+	void  (*closed)( void *) ;
+	
+} ml_pty_event_listener_t ;
+
 typedef struct ml_term
 {
 	ml_pty_t *  pty ;
+	ml_pty_event_listener_t *  pty_listener ;
+	
 	ml_vt100_parser_t *  parser ;
 	ml_screen_t *  screen ;
 	ml_config_menu_t  config_menu ;
@@ -38,12 +47,12 @@ ml_term_t *  ml_term_new( u_int  cols , u_int  rows ,
 
 int  ml_term_delete( ml_term_t *  term) ;
 
-
 int  ml_term_open_pty( ml_term_t *  term , char *  cmd_path , char **  argv ,
 	char **  env , char *  host) ;
 
 int  ml_term_set_listener( ml_term_t *  term , ml_xterm_event_listener_t *  xterm_listener ,
-	ml_config_event_listener_t *  config_listener , ml_screen_event_listener_t *  screen_listener) ;
+	ml_config_event_listener_t *  config_listener , ml_screen_event_listener_t *  screen_listener ,
+	ml_pty_event_listener_t *  pty_listner) ;
 
 int  ml_term_parse_vt100_sequence( ml_term_t *  term) ;
 

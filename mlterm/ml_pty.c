@@ -42,8 +42,6 @@ ml_pty_new(
 
 	if( pid == -1)
 	{
-		free( pty) ;
-
 		return  NULL ;
 	}
 
@@ -148,7 +146,7 @@ ml_pty_delete(
 
 	close( pty->master) ;
 	close( pty->slave) ;
-	
+		
 	free( pty) ;
 
 	return  1 ;

@@ -7,6 +7,8 @@
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_locale.h>
 #include  <kiklib/kik_privilege.h>
+#include  <kiklib/kik_sig_child.h>
+#include  <kiklib/kik_debug.h>
 
 #include  "x_term_manager.h"
 
@@ -26,8 +28,8 @@ main(
 	char **  argv
 	)
 {
-	x_term_manager_t  term_man ;
-
+	kik_sig_child_init() ;
+	
 	/* normal user */
 	kik_priv_change_euid( getuid()) ;
 	kik_priv_change_egid( getgid()) ;
@@ -39,7 +41,7 @@ main(
 
 	kik_set_sys_conf_dir( CONFIG_PATH) ;
 
-	if( ! x_term_manager_init( &term_man , argc , argv))
+	if( ! x_term_manager_init( argc , argv))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_term_manager_init() failed.\n") ;
@@ -48,13 +50,13 @@ main(
 		return  1 ;
 	}
 
-	x_term_manager_event_loop( &term_man) ;
+	x_term_manager_event_loop() ;
 
 	/*
 	 * not reachable.
 	 */
 
-	x_term_manager_final( &term_man) ;	
+	x_term_manager_final() ;
 	kik_locale_final() ;
 
 	return  0 ;

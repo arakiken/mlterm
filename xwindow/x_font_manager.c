@@ -261,7 +261,7 @@ get_font(
 	{
 		col_width = font_man->usascii_font->width ;
 	}
-	
+
 	kik_map_get( result , font_man->font_cache_table , font , fn_pair) ;
 	if( result)
 	{

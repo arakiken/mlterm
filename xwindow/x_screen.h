@@ -19,12 +19,19 @@
 #include  "x_sb_mode.h"
 
 
-typedef struct  x_system_event_listener
+typedef struct x_screen *  x_screen_ptr_t ;
+
+typedef struct x_system_event_listener
 {
 	void *  self ;
 
-	void  (*open_pty)( void *) ;
-	void  (*close_pty)( void * , x_window_t *) ;
+	void  (*open_screen)( void *) ;
+	void  (*close_screen)( void * , x_window_t *) ;
+	
+	void  (*open_pty)( void * , x_screen_ptr_t) ;
+	void  (*close_pty)( void * , x_screen_ptr_t) ;
+	
+	void  (*pty_closed)( void * , x_screen_ptr_t) ;
 	
 	/* for debug */
 	void  (*exit)( void * , int) ;
@@ -67,6 +74,7 @@ typedef struct  x_screen
 	ml_screen_event_listener_t  screen_listener ;
 	ml_xterm_event_listener_t  xterm_listener ;
 	ml_config_event_listener_t  config_listener ;
+	ml_pty_event_listener_t  pty_listener ;
 
 	x_sel_event_listener_t  sel_listener ;
 	x_xim_event_listener_t  xim_listener ;
@@ -141,7 +149,9 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 
 int  x_screen_delete( x_screen_t *  screen) ;
 
-int  x_screen_activate( x_screen_t *  screen , ml_term_t *  term) ;
+int  x_screen_attach( x_screen_t *  screen , ml_term_t *  term) ;
+
+int  x_screen_detach( x_screen_t *  screen) ;
 
 int  x_set_system_listener( x_screen_t *  screen ,
 	x_system_event_listener_t *  system_listener) ;

@@ -2125,11 +2125,8 @@ select_iscii_lang(
 	return  1 ;
 }
 
-/*
- * updating  ml_logical_visual_t/x_shape_t/ml_iscii_state_t
- */
 static int
-update_encoding_proper_aux(
+update_special_visual(
 	x_screen_t *  screen
 	)
 {
@@ -2458,9 +2455,9 @@ window_deleted(
 
 	screen = (x_screen_t*) win ;
 
-	if( HAS_SYSTEM_LISTENER(screen,close_pty))
+	if( HAS_SYSTEM_LISTENER(screen,close_screen))
 	{
-		(*screen->system_listener->close_pty)( screen->system_listener->self ,
+		(*screen->system_listener->close_screen)( screen->system_listener->self ,
 			x_get_root_window( &screen->window)) ;
 	}
 }
@@ -2619,11 +2616,20 @@ key_pressed(
 
 		return ;
 	}
-	else if( x_keymap_match( screen->keymap , NEW_PTY , ksym , event->state))
+	else if( x_keymap_match( screen->keymap , OPEN_SCREEN , ksym , event->state))
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_pty))
 		{
-			screen->system_listener->open_pty( screen->system_listener->self) ;
+			(*screen->system_listener->open_pty)( screen->system_listener->self , screen) ;
+		}
+
+		return ;
+	}
+	else if( x_keymap_match( screen->keymap , OPEN_PTY , ksym , event->state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,open_screen))
+		{
+			(*screen->system_listener->open_screen)( screen->system_listener->self) ;
 		}
 
 		return ;
@@ -3422,7 +3428,8 @@ start_selection(
 		if( ( line = ml_term_get_line( screen->term , row_r - 1)) == NULL ||
 			ml_line_is_empty( line))
 		{
-			col_l = col_r ;
+			/* XXX col_l can be underflowed, but anyway it works. */
+			col_l = col_r - 1 ;
 			row_l = row_r ;
 		}
 		else
@@ -4066,6 +4073,25 @@ change_font_present(
 	ml_term_set_modified_all( screen->term) ;
 }
 
+static int
+usascii_font_cs_changed(
+	x_screen_t *  screen ,
+	ml_char_encoding_t  encoding
+	)
+{
+	x_font_manager_usascii_font_cs_changed( screen->font_man , encoding) ;
+	
+	font_size_changed( screen) ;
+
+	/*
+	 * this is because font_man->font_set may have changed in
+	 * x_font_manager_usascii_font_cs_changed()
+	 */
+	x_xic_font_set_changed( &screen->window) ;
+
+	return  1 ;
+}
+
 static void
 change_char_encoding(
 	x_screen_t *  screen ,
@@ -4093,23 +4119,15 @@ change_char_encoding(
 
 		ml_term_set_char_combining_flag( screen->term , 1) ;
 	}
-	
-	x_font_manager_usascii_font_cs_changed( screen->font_man , x_get_usascii_font_cs( encoding)) ;
-	
-	font_size_changed( screen) ;
 
-	/*
-	 * this is because font_man->font_set may have changed in
-	 * x_font_manager_usascii_font_cs_changed()
-	 */
-	x_xic_font_set_changed( &screen->window) ;
+	usascii_font_cs_changed( screen , encoding) ;
 
 	if( ! ml_term_change_encoding( screen->term , encoding))
 	{
 		kik_error_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
 	}
 	
-	update_encoding_proper_aux( screen) ;
+	update_special_visual( screen) ;
 	
 	ml_term_set_modified_all( screen->term) ;
 }
@@ -4261,7 +4279,7 @@ change_vertical_mode(
 
 	screen->vertical_mode = vertical_mode ;
 	
-	update_encoding_proper_aux( screen) ;
+	update_special_visual( screen) ;
 	
 	/* redrawing under new vertical mode. */
 	ml_term_set_modified_all( screen->term) ;
@@ -4318,7 +4336,7 @@ change_dynamic_comb_flag(
 
 	screen->use_dynamic_comb = use_dynamic_comb ;
 
-	update_encoding_proper_aux( screen) ;
+	update_special_visual( screen) ;
 	
 	ml_term_set_modified_all( screen->term) ;
 }
@@ -4499,7 +4517,7 @@ change_bidi_flag(
 	
 	ml_term_set_modified_all( screen->term) ;
 
-	update_encoding_proper_aux( screen) ;
+	update_special_visual( screen) ;
 }
 
 static void
@@ -5812,6 +5830,23 @@ xterm_bel(
 }
 
 
+/*
+ * callbacks of ml_pty_event_listener_t
+ */
+
+static void
+pty_closed(
+	void *  p
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+	(*screen->system_listener->pty_closed)( screen->system_listener->self , screen) ;
+}
+
+
 /* --- global functions --- */
 
 x_screen_t *
@@ -5880,8 +5915,11 @@ x_screen_new(
 	screen->config_listener.set = set_config ;
 	screen->config_listener.get = get_config ;
 
+	screen->pty_listener.self = screen ;
+	screen->pty_listener.closed = pty_closed ;
+
 	ml_term_set_listener( term , &screen->xterm_listener , &screen->config_listener ,
-		&screen->screen_listener) ;
+		&screen->screen_listener , &screen->pty_listener) ;
 	
 	screen->term = term ;
 	
@@ -6082,7 +6120,7 @@ x_screen_new(
 	screen->is_app_cursor_keys = 0 ;
 	screen->is_mouse_pos_sending = 0 ;
 
-	update_encoding_proper_aux( screen) ;
+	update_special_visual( screen) ;
 
 	return  screen ;
 
@@ -6125,7 +6163,7 @@ x_screen_delete(
 	x_screen_t *  screen
 	)
 {
-	ml_term_set_listener( screen->term , NULL , NULL , NULL) ;
+	ml_term_set_listener( screen->term , NULL , NULL , NULL , NULL) ;
 
 	x_sel_final( &screen->sel) ;
 
@@ -6180,14 +6218,62 @@ x_screen_delete(
 }
 
 int
-x_screen_activate(
+x_screen_attach(
 	x_screen_t *  screen ,
 	ml_term_t *  term
 	)
 {
-	screen->term = term ;
+	if( screen->term)
+	{
+		return  0 ;
+	}
 	
-	ml_term_set_listener( screen->term , NULL , NULL , &screen->screen_listener) ;
+	screen->term = term ;
+
+	ml_term_set_listener( term , &screen->xterm_listener , &screen->config_listener ,
+		&screen->screen_listener , &screen->pty_listener) ;
+
+	if( ml_term_get_encoding( screen->term) == ML_ISCII)
+	{
+		/*
+		 * ISCII needs variable column width and character combining.
+		 */
+
+		if( ! ( x_font_manager_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
+		{
+			change_font_present( screen ,
+				x_font_manager_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
+		}
+
+		ml_term_set_char_combining_flag( screen->term , 1) ;
+	}
+
+	usascii_font_cs_changed( screen , x_get_usascii_font_cs( ml_term_get_encoding( screen->term))) ;
+
+	update_special_visual( screen) ;
+
+	ml_term_set_modified_all( screen->term) ;
+
+	redraw_screen( screen) ;
+	highlight_cursor( screen) ;
+	
+	return  1 ;
+}
+
+int
+x_screen_detach(
+	x_screen_t *  screen
+	)
+{
+	if( screen->term == NULL)
+	{
+		return  0 ;
+	}
+	
+	ml_term_set_listener( screen->term , NULL , NULL , NULL , NULL) ;
+	screen->term = NULL ;
+
+	x_window_clear_all( &screen->window) ;
 
 	return  1 ;
 }
