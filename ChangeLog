@@ -1,3 +1,8 @@
+2004-02-16  Seiichi SATO  <ssato@sh.rim.or.jp>
+
+	* Don't use -no-undefined libtool option, expect that
+	$allow_undefined_flag is "unsupported".
+
 2004-02-13  Tomohiro KUBOTA  <kubota@debian.org>
 
 	* configure: synchronized with configure.in (2004-01-31).

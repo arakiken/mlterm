@@ -49,6 +49,22 @@ if test "$prop_table" = "no" ; then
 fi
 AC_SUBST(TABLE_CFLAGS)
 
+#
+# --- check for undefined symbol ---
+#
+AC_MSG_CHECKING([for undefined symbol])
+if test "x$allow_undefined_flag" = "xunsupported" ; then
+	AC_MSG_RESULT([not supported])
+	NO_UNDEFINED_FLAG="-no-undefined"
+	KIK_LDFLAGS='-L${top_builddir}/kiklib/src/ ${top_builddir}/kiklib/src/libkik.la'
+else
+	AC_MSG_RESULT(supported)
+	NO_UNDEFINED_FLAG=""
+	KIK_LDFLAGS=""
+fi
+AC_SUBST(NO_UNDEFINED_FLAG)
+AC_SUBST(KIK_LDFLAGS)
+
 # This should be uncommented if mkf and kiklib alone are distributed in a package.
 #if test "${SUBDIRS}" != "" ; then
 #	AC_CONFIG_SUBDIRS(${SUBDIRS})

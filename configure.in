@@ -263,18 +263,18 @@ mlterm-zoom)
 esac
 done
 
-dnl
-dnl --- libltdl ---
-dnl
+#
+# --- libltdl ---
+#
 AC_ARG_WITH(libltdl,
 	[  --with-libltdl[=PREFIX] load modules with libltdl[default=without]],,
 	[with_libltdl=no])
 # We don't check here wheter libltdl is installed. (See kiklib/src/configure.in)
 
-dnl
-dnl --- scrollbar plugins ---
-dnl
-dnl defaut settings
+#
+# --- scrollbar plugins ---
+#
+# defaut settings
 DL_LIBS=
 DL_SELF=
 scrollbars="sample,extra"
@@ -361,16 +361,19 @@ mingw32*)
 #	OUTPUT_FILES="Makefile mlterm/Makefile win32/Makefile etc/Makefile"
 	OUTPUT_FILES="Makefile mlterm/Makefile etc/Makefile"
 	ML_PTY_OBJ="ml_pty_win32.o"
+	PLATFORM_LIB_LDFLAGS="-no-undefined"
 	;;
 *)
 	MAKE_DIRS="mlterm ${MAKE_DIRS} xwindow man etc"
 	OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
 	ML_PTY_OBJ="ml_pty.o"
+	PLATFORM_LIB_LDFLAGS=""
 	;;
 esac
 AC_SUBST(ML_PTY_OBJ)
 AC_SUBST(MAKE_DIRS)
 AC_SUBST(OUTPUT_FILES)
+AC_SUBST(PLATFORM_LIB_LDFLAGS)
 
 # gettext
 AM_INIT_AUTOMAKE(mlterm,2.8.0)
@@ -384,6 +387,19 @@ if test "${USE_NLS}" = "yes" ; then
 		])
 fi
 AC_SUBST(INTL_LIBS)
+
+#
+# --- check for undefined symbol ---
+#
+AC_MSG_CHECKING([for undefined symbol])
+if test "x$allow_undefined_flag" = "xunsupported" ; then
+	AC_MSG_RESULT([not supported])
+	NO_UNDEFINED_FLAG="-no-undefined"
+else
+	AC_MSG_RESULT(supported)
+	NO_UNDEFINED_FLAG=""
+fi
+AC_SUBST(NO_UNDEFINED_FLAG)
 
 # CVS revision
 CVS_REVISION=`tail -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^.Id: .* \(.*\) .* .* .* Exp .$/\1/p'`

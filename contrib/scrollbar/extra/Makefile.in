@@ -30,22 +30,22 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 all: athena motif mozmodern next
 athena: $(ATHENA_OBJ)
 	$(LIBTOOL_LINK) -o libathena.la $(ATHENA_OBJ:.o=.lo) -rpath $(LIBDIR) \
-	-module -avoid-version -no-undefined \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ \
 	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 
 motif: $(MOTIF_OBJ)
 	$(LIBTOOL_LINK) -o libmotif.la $(MOTIF_OBJ:.o=.lo) -rpath $(LIBDIR) \
-	-module -avoid-version -no-undefined \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ \
 	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 
 mozmodern: $(MOZMODERN_OBJ)
 	$(LIBTOOL_LINK) -o libmozmodern.la $(MOZMODERN_OBJ:.o=.lo) -rpath $(LIBDIR) \
-	-module -avoid-version -no-undefined \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ \
 	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 
 next: $(NEXT_OBJ)
 	$(LIBTOOL_LINK) -o libnext.la $(NEXT_OBJ:.o=.lo) -rpath $(LIBDIR) \
-	-module -avoid-version -no-undefined \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ \
 	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 
 .c.o:
