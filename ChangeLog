@@ -1,5 +1,9 @@
 2004-11-21 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* mlterm/ml_term_manager.c (sig_child): if(pid == -1) --> if(pid <= 0)
+
+2004-11-21 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* kiklib/configure.in, kiklib/src/kik_config.h.in: added check for
 	stdint.h.
 

@@ -33,8 +33,13 @@ sig_child(
 {
 	int  count ;
 
-	if( pid == -1)
+	if( pid <= 0)
 	{
+		/*
+		 * Note:
+		 * If term->pty is NULL, ml_term_get_child_pid() returns -1.
+		 */
+
 		return ;
 	}
 
