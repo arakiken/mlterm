@@ -2586,6 +2586,15 @@ key_pressed(
 
 		return ;
 	}
+	else if( x_shortcut_match( screen->shortcut , PREV_PTY , ksym , event->state))
+	{
+		if( HAS_SYSTEM_LISTENER(screen,prev_pty))
+		{
+			(*screen->system_listener->prev_pty)( screen->system_listener->self , screen) ;
+		}
+
+		return ;
+	}
 #ifdef  DEBUG
 	else if( x_shortcut_match( screen->shortcut , EXIT_PROGRAM , ksym , event->state))
 	{
@@ -6320,8 +6329,6 @@ x_screen_attach(
 	ml_term_t *  term
 	)
 {
-	char *  name ;
-	
 	if( screen->term)
 	{
 		return  0 ;

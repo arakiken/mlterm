@@ -22,6 +22,7 @@ typedef enum  x_key_func
 	OPEN_SCREEN ,
 	OPEN_PTY ,
 	NEXT_PTY ,
+	PREV_PTY ,
 	PAGE_UP ,
 	PAGE_DOWN ,
 	SCROLL_UP ,

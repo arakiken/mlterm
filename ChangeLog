@@ -1,3 +1,8 @@
+2003-03-02 Araki Ken <arakiken@users.sf.net>
+
+	* Added PREV_PTY shortcut.
+	  (Thanks to Minami Hirokazu san)
+
 2003-03-01 Araki Ken <arakiken@users.sf.net>
 
 	* Mlconfig writes changed configs alone to ~/.mlterm/main.

@@ -700,6 +700,42 @@ next_pty(
 
 	return ;
 }
+
+static void
+prev_pty(
+	void *  p ,
+	x_screen_t *  screen
+	)
+{
+	int  count ;
+	
+	for( count = 0 ; count < num_of_screens ; count ++)
+	{
+		if( screen == screens[count])
+		{
+			ml_term_t *  old ;
+			ml_term_t *  new ;
+
+			if( ( old = x_screen_detach( screen)) == NULL)
+			{
+				return ;
+			}
+			
+			if( ( new = ml_prev_term( old)) == NULL)
+			{
+				x_screen_attach( screen , old) ;
+			}
+			else
+			{
+				x_screen_attach( screen , new) ;
+			}
+			
+			return ;
+		}
+	}
+
+	return ;
+}
 	
 static void
 pty_closed(
@@ -2623,6 +2659,7 @@ x_term_manager_init(
 	system_listener.close_screen = close_screen ;
 	system_listener.open_pty = open_pty ;
 	system_listener.next_pty = next_pty ;
+	system_listener.prev_pty = prev_pty ;
 	system_listener.close_pty = NULL ;
 	system_listener.pty_closed = pty_closed ;
 	system_listener.pty_list = pty_list ;

@@ -38,6 +38,7 @@ static key_func_table_t  key_func_table[] =
 	{ "OPEN_SCREEN" , OPEN_SCREEN , } ,
 	{ "OPEN_PTY" , OPEN_PTY , } ,
 	{ "NEXT_PTY" , NEXT_PTY , } ,
+	{ "PREV_PTY" , PREV_PTY , } ,
 	{ "PAGE_UP" , PAGE_UP , } ,
 	{ "PAGE_DOWN" , PAGE_DOWN , } ,
 	{ "SCROLL_UP" , SCROLL_UP , } ,
@@ -198,6 +199,9 @@ x_shortcut_init(
 		{ 0 , 0 , 0 , } ,
 
 		/* NEXT_PTY */
+		{ 0 , 0 , 0 , } ,
+
+		/* PREV_PTY */
 		{ 0 , 0 , 0 , } ,
 
 		/* PAGE_UP(compatible with kterm) */

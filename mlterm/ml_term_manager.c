@@ -178,6 +178,50 @@ ml_next_term(
 	return  NULL ;
 }
 
+ml_term_t *
+ml_prev_term(
+	ml_term_t *  term	/* is detached */
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < num_of_terms ; count ++)
+	{
+		if( terms[count] == term)
+		{
+			int  old ;
+			
+			old = count ;
+
+			for( ; count >= 0 ; count --)
+			{
+				if( ! is_active[count])
+				{
+					goto  found ;
+				}
+			}
+
+			for( count = num_of_terms - 1 ; count > old ; count --)
+			{
+				if( ! is_active[count])
+				{
+					goto  found ;
+				}
+			}
+
+			return  NULL ;
+			
+		found:
+			is_active[count] = 1 ;
+			is_active[old] = 0 ;
+
+			return  terms[count] ;
+		}
+	}
+	
+	return  NULL ;
+}
+
 int
 ml_put_back_term(
 	ml_term_t *  term
