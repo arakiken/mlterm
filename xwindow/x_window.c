@@ -59,12 +59,17 @@ enum
 	STATE_FLAG_MAXIMIZED_HORZ
 } ;
 
-#define  DOUBLE_CLICK_INTERVAL  250	/* millisecond, same as xterm. */
 #define  MAX_CLICK  3			/* max is triple click */
 
 #if  0
 #define  __DEBUG
 #endif
+
+
+/* --- static variables --- */
+
+static int  click_interval = 250 ;	/* millisecond, same as xterm. */
+
 
 /* --- static functions --- */
 
@@ -1706,7 +1711,7 @@ x_window_receive_event(
 			win->click_num = 0 ;
 		}
 
-		if( win->prev_clicked_time + DOUBLE_CLICK_INTERVAL >= event->xbutton.time &&
+		if( win->prev_clicked_time + click_interval >= event->xbutton.time &&
 			event->xbutton.button == win->prev_clicked_button)
 		{
 			win->click_num ++ ;
@@ -2884,6 +2889,16 @@ x_window_get_visible_geometry(
 	{
 		*height = screen_height - *y ;
 	}
+
+	return  1 ;
+}
+
+int
+x_set_click_interval(
+	int  interval
+	)
+{
+	click_interval = interval ;
 
 	return  1 ;
 }

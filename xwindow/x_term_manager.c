@@ -978,6 +978,8 @@ get_min_conf(
 
 	kik_conf_add_opt( conf , '#' , "initstr" , 0 , "init_str" ,
 		"initial string sent to pty") ;
+	kik_conf_add_opt( conf , '$' , "mc" , 0 , "click_interval" ,
+		"click interval(milisecond)[250]") ;
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
 		"screen width in percent against font width [default = 100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
@@ -2326,6 +2328,16 @@ x_term_manager_init(
 		/* default values are used */
 		min_font_size = 6 ;
 		max_font_size = 30 ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "click_interval")))
+	{
+		int  interval ;
+
+		if( kik_str_to_int( &interval , value))
+		{
+			x_set_click_interval( interval) ;
+		}
 	}
 
 	if( ! x_font_custom_init( &normal_font_custom , min_font_size , max_font_size))

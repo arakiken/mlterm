@@ -289,6 +289,8 @@ int  x_window_set_icon( x_window_t *  win, char * file_path) ;
 int  x_window_get_visible_geometry( x_window_t *  win ,
 	int *  x , int *  y , int *  my_x , int *  my_y , u_int *  width , u_int *  height) ;
 
+int  x_set_click_interval( int  interval) ;
+
 #if  0
 /* not used */
 int  x_window_paste( x_window_t *  win , Drawable  src , int  src_x , int  src_y ,
