@@ -716,6 +716,8 @@ parse_vt100_escape_sequence(
 
 				/* XXX  is this necessary ? */
 				change_char_attr( vt100_parser , 0) ;
+
+				ml_init_encoding_parser( vt100_parser) ;
 			}
 			else if( *str_p == 'l')
 			{
