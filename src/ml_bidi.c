@@ -17,7 +17,22 @@
 #include  <fribidi/fribidi.h>
 
 
+/* --- static variables --- */
+
+static int  base_dir_is_rtl ;
+
+
 /* --- global functions --- */
+
+int
+ml_bidi_set_base_dir(
+	int  is_rtl
+	)
+{
+	base_dir_is_rtl = is_rtl ;
+
+	return  1 ;
+}
 
 int
 ml_bidi_support_level(void)
@@ -98,7 +113,14 @@ ml_bidi(
 #endif
 
 	/* initial state */
-	fri_type = FRIBIDI_TYPE_LTR ;
+	if( base_dir_is_rtl)
+	{
+		fri_type = FRIBIDI_TYPE_RTL ;
+	}
+	else
+	{
+		fri_type = FRIBIDI_TYPE_LTR ;
+	}
 
 	fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
 

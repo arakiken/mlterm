@@ -14,6 +14,7 @@
 #include  <kiklib/kik_mem.h>	/* realloc/alloca */
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_pty.h>
+#include  <kiklib/kik_unistd.h>	/* kik_unsetenv */
 
 
 /* --- global functions --- */
@@ -60,6 +61,9 @@ ml_pty_new(
 
 			env ++ ;
 		}
+
+		/* for slang */
+		kik_unsetenv( "COLORTERM_BCE") ;
 		
 		/* reset signals and spin off the command interpreter */
 		signal(SIGINT, SIG_DFL) ;

@@ -92,7 +92,7 @@ reset_wraparound_checker(
 /*
  * if len is over IMAGE_LINE(image,end_row).num_of_filled_chars , *char_index points over it.
  */
-static int
+static ml_image_line_t *
 get_pos(
 	ml_image_t *  image ,
 	int *  row ,
@@ -109,9 +109,7 @@ get_pos(
 	{
 		if( *char_index < IMAGE_LINE(image,*row).num_of_filled_chars)
 		{
-			reset_wraparound_checker( image) ;
-			
-			return  1 ;
+			return  NULL ;
 		}
 
 		*char_index -= IMAGE_LINE(image,*row).num_of_filled_chars ;
@@ -122,14 +120,10 @@ get_pos(
 	{
 		*char_index = ml_imgline_end_char_index( &IMAGE_LINE(image,end_row)) ;
 		
-		image->wraparound_ready_line = &IMAGE_LINE(image,end_row) ;
-	}
-	else
-	{
-		reset_wraparound_checker( image) ;
+		return  &IMAGE_LINE(image,end_row) ;
 	}
 
-	return  1 ;
+	return  NULL ;
 }
 
 static int
@@ -484,6 +478,7 @@ insert_chars(
 	int  cols_rest ;
 	int  cols_after ;
 	int  counter ;
+	ml_image_line_t *  wraparound ;
 
 #ifdef  CURSOR_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
@@ -637,23 +632,17 @@ line_full:
 
 	ml_str_final( buffer , buf_len) ;
 
-	/* this is necessary before get_pos() since insert_chars() should affect only this line */
 	reset_wraparound_checker( image) ;
 
 	/* wraparound_ready_line member is set in this function */
-	get_pos( image , &new_row , &new_char_index , image->cursor.row , 0 ,
-		image->cursor.row , cursor_index) ;
-
-	/* for wraparound line checking */
-	if( image->wraparound_ready_line)
+	if( ( wraparound = get_pos( image , &new_row , &new_char_index , image->cursor.row , 0 ,
+				image->cursor.row , cursor_index)))
 	{
+		/* for wraparound line checking */
 		if( num_of_ins_chars == 1)
 		{
+			image->wraparound_ready_line = wraparound ;
 			ml_char_copy( &image->prev_recv_ch , ins_chars) ;
-		}
-		else
-		{
-			reset_wraparound_checker( image) ;
 		}
 	}
 	
@@ -966,6 +955,7 @@ ml_image_overwrite_chars(
 	u_int  buf_len ;
 	u_int  filled_len ;
 	int  cols_rest ;
+	ml_image_line_t *  wraparound ;
 
 #ifdef  CURSOR_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
@@ -1031,20 +1021,17 @@ ml_image_overwrite_chars(
 
 	ml_str_final( buffer , buf_len) ;
 
-	/* wraparound_ready_line member is set in this function */
-	get_pos( image , &new_row , &new_char_index , image->cursor.row , 0 ,
-		ml_get_num_of_lines_by_hints( &image->line_hints) + image->cursor.row - 1 , cursor_index) ;
+	reset_wraparound_checker( image) ;
 
-	/* for wraparound line checking */
-	if( image->wraparound_ready_line != NULL)
+	/* wraparound_ready_line member is set in this function */
+	if( ( wraparound = get_pos( image , &new_row , &new_char_index , image->cursor.row , 0 ,
+		ml_get_num_of_lines_by_hints( &image->line_hints) + image->cursor.row - 1 , cursor_index)))
 	{
+		/* for wraparound line checking */
 		if( num_of_ow_chars == 1)
 		{
+			image->wraparound_ready_line = wraparound ;
 			ml_char_copy( &image->prev_recv_ch , ow_chars) ;
-		}
-		else
-		{
-			reset_wraparound_checker( image) ;
 		}
 	}
 	

@@ -7,19 +7,29 @@
 #include  <string.h>		/* strncpy */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>	/* kik_msg_printf */
+#include  <mkf/mkf_char.h>	/* mkf_bytes_to_int */
 
 
 typedef struct arabic_present
 {
 	u_int16_t  base_arabic ;
 
-	/* presentations */
+	/* presentations. right or left is visual order's one. */
 	u_int16_t  no_joining_present ;
 	u_int16_t  right_joining_present ;
 	u_int16_t  left_joining_present ;
 	u_int16_t  both_joining_present ;
 	
 } arabic_present_t ;
+
+typedef struct arabic_comb
+{
+	/* first or second is logical order's one */
+	u_int16_t  first ;
+	u_int16_t  second ;
+	u_int16_t  comb ;
+
+} arabic_comb_t ;
 
 typedef struct iscii_shape
 {
@@ -111,6 +121,12 @@ static arabic_present_t  arabic_present_table[] =
 	
 } ;
 
+static arabic_comb_t  arabic_comb_table[] =
+{
+	{ 0x0644 , 0x0627 , 0xFEFB , } ,
+	
+} ;
+
 
 /* --- static functions --- */
 
@@ -164,6 +180,8 @@ shape_arabic(
 	arabic_present_t **  list ;
 	u_int16_t  code ;
 	u_char *  bytes ;
+	ml_char_t *  comb ;
+	u_int  size ;
 
 	if( ( list = alloca( sizeof( arabic_present_t*) * (src_len + 2))) == NULL)
 	{
@@ -181,27 +199,56 @@ shape_arabic(
 
 	for( counter = 0 ; counter < src_len && counter < dst_len ; counter ++)
 	{
-		ml_char_copy( &dst[counter] , &src[counter]) ;
-		
-		if( list[counter])
+		if( ( comb = ml_get_combining_chars( &src[counter] , &size)) &&
+			( code = ml_is_arabic_combining( &src[counter] , comb)))
 		{
-			int  status ;
+			u_char  bytes[4] ;
 
-			status = 0 ;
+			ml_char_set( &dst[counter] ,
+				mkf_int_to_bytes( bytes , ml_char_size( &src[counter]) , code) ,
+				ml_char_size( &src[counter]) , ml_char_font( &src[counter]) ,
+				ml_char_font_decor( &src[counter]) ,
+				ml_char_fg_color( &src[counter]) , ml_char_bg_color( &src[counter])) ;
+		}
+		else
+		{
+			ml_char_copy( &dst[counter] , &src[counter]) ;
 
-			if( list[counter - 1] && list[counter - 1]->right_joining_present)
+			if( list[counter])
 			{
-				if( list[counter + 1] && list[counter + 1]->left_joining_present)
+				if( list[counter - 1] && list[counter - 1]->right_joining_present)
 				{
-					if( list[counter]->both_joining_present)
+					if( list[counter + 1] && list[counter + 1]->left_joining_present)
 					{
-						code = list[counter]->both_joining_present ;
+						if( list[counter]->both_joining_present)
+						{
+							code = list[counter]->both_joining_present ;
+						}
+						else if( list[counter]->left_joining_present)
+						{
+							code = list[counter]->left_joining_present ;
+						}
+						else if( list[counter]->right_joining_present)
+						{
+							code = list[counter]->right_joining_present ;
+						}
+						else
+						{
+							code = list[counter]->no_joining_present ;
+						}
 					}
 					else if( list[counter]->left_joining_present)
 					{
 						code = list[counter]->left_joining_present ;
 					}
-					else if( list[counter]->right_joining_present)
+					else
+					{
+						code = list[counter]->no_joining_present ;
+					}
+				}
+				else if( list[counter + 1] && list[counter + 1]->left_joining_present)
+				{
+					if( list[counter]->right_joining_present)
 					{
 						code = list[counter]->right_joining_present ;
 					}
@@ -210,46 +257,27 @@ shape_arabic(
 						code = list[counter]->no_joining_present ;
 					}
 				}
-				else if( list[counter]->left_joining_present)
-				{
-					code = list[counter]->left_joining_present ;
-				}
 				else
 				{
 					code = list[counter]->no_joining_present ;
 				}
-			}
-			else if( list[counter + 1] && list[counter + 1]->left_joining_present)
-			{
-				if( list[counter]->right_joining_present)
-				{
-					code = list[counter]->right_joining_present ;
-				}
-				else
-				{
-					code = list[counter]->no_joining_present ;
-				}
-			}
-			else
-			{
-				code = list[counter]->no_joining_present ;
-			}
 
-			if( code)
-			{
-				bytes = ml_char_bytes( &dst[counter]) ;
-				
-				if( ml_char_cs( &dst[counter]) == ISO10646_UCS2_1)
+				if( code)
 				{
-					bytes[0] = (code >> 8) & 0xff ;
-					bytes[1] = code & 0xff ;
-				}
-				else /* if( ml_char_cs( &dst[counter]) == ISO10646_UCS4_1) */
-				{
-					bytes[0] = 0x0 ;
-					bytes[1] = 0x0 ;
-					bytes[2] = (code >> 8) & 0xff ;
-					bytes[3] = code & 0xff ;
+					bytes = ml_char_bytes( &dst[counter]) ;
+
+					if( ml_char_cs( &dst[counter]) == ISO10646_UCS2_1)
+					{
+						bytes[0] = (code >> 8) & 0xff ;
+						bytes[1] = code & 0xff ;
+					}
+					else /* if( ml_char_cs( &dst[counter]) == ISO10646_UCS4_1) */
+					{
+						bytes[0] = 0x0 ;
+						bytes[1] = 0x0 ;
+						bytes[2] = (code >> 8) & 0xff ;
+						bytes[3] = code & 0xff ;
+					}
 				}
 			}
 		}
@@ -416,6 +444,48 @@ ml_arabic_shape_new(void)
 	shape->delete = delete ;
 
 	return  shape ;
+}
+
+u_int16_t
+ml_is_arabic_combining(
+	ml_char_t *  prev ,
+	ml_char_t *  ch
+	)
+{
+	ml_char_t *  target[2] ;
+	u_int16_t  ucs_str[2] ;
+	int  counter ;
+	
+	target[0] = prev ;
+	target[1] = ch ;
+	
+	for( counter = 0 ; counter < 2 ; counter ++)
+	{
+		if( ml_char_cs( target[counter]) == ISO10646_UCS2_1)
+		{
+			ucs_str[counter] = mkf_bytes_to_int( ml_char_bytes( target[counter]) , 2) ;
+		}
+		else if( ml_char_cs( target[counter]) == ISO10646_UCS4_1)
+		{
+			ucs_str[counter] = mkf_bytes_to_int( ml_char_bytes( target[counter]) , 4) ;
+		}
+		else
+		{
+			return  0 ;
+		}
+	}
+
+	for( counter = 0 ; counter < sizeof( arabic_comb_table) / sizeof( arabic_comb_table[0]) ;
+		counter ++)
+	{
+		if( ucs_str[0] == arabic_comb_table[counter].first &&
+			ucs_str[1] == arabic_comb_table[counter].second)
+		{
+			return  arabic_comb_table[counter].comb ;
+		}
+	}
+
+	return  0 ;
 }
 
 ml_shape_t *

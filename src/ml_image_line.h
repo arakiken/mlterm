@@ -69,12 +69,12 @@ int  ml_imgline_clear( ml_image_line_t *  line , int  char_index , ml_char_t *  
 
 int  ml_imgline_overwrite_chars( ml_image_line_t *  line , int  change_char_index ,
 	ml_char_t *  chars , u_int  len , u_int  cols , ml_char_t *  sp_ch) ;
-	
+
 int  ml_imgline_overwrite_all( ml_image_line_t *  line , int  change_char_index ,
 	ml_char_t *  chars , int  len , u_int  cols) ;
 
 int  ml_imgline_fill_all( ml_image_line_t *  line , ml_char_t *  ch , u_int  num) ;
-	
+
 void  ml_imgline_set_modified( ml_image_line_t *  line ,
 	int  beg_char_index , int  end_char_index , int  is_cleared_to_end) ;
 

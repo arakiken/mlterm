@@ -1061,15 +1061,21 @@ update_encoding_proper_aux(
 	{
 		(*termscr->logvis->logical)( termscr->logvis) ;
 		(*termscr->logvis->delete)( termscr->logvis) ;
+		termscr->logvis = NULL ;
 	}
 	
 	if( termscr->shape)
 	{
 		(*termscr->shape->delete)( termscr->shape) ;
+		termscr->shape = NULL ;
 	}
 
 	if( (*termscr->encoding_listener->encoding)(termscr->encoding_listener->self) == ML_ISCII)
 	{
+		/*
+		 * It is impossible to process ISCII with other encoding proper auxes.
+		 */
+		 
 		if( termscr->iscii_state == NULL)
 		{
 			if( ( termscr->iscii_state = ml_iscii_new()) == NULL)
@@ -1086,11 +1092,8 @@ update_encoding_proper_aux(
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " select_iscii_lang() failed.\n") ;
 			#endif
-			
-				ml_iscii_delete( termscr->iscii_state) ;
-				termscr->iscii_state = NULL ;
 
-				return  0 ;
+				goto  iscii_error ;
 			}
 		}
 		
@@ -1101,7 +1104,7 @@ update_encoding_proper_aux(
 			kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_iscii_new() failed.\n") ;
 		#endif
 
-			return  0 ;
+			goto  iscii_error ;
 		}
 		
 		if( ( termscr->shape = ml_iscii_shape_new( termscr->iscii_state)) == NULL)
@@ -1109,12 +1112,36 @@ update_encoding_proper_aux(
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_shape_new() failed.\n") ;
 		#endif
-		
-			return  0 ;
+
+			goto  iscii_error ;
 		}
+
+		goto  success ;
+
+	iscii_error:
+		if( termscr->iscii_state)
+		{
+			ml_iscii_delete( termscr->iscii_state) ;
+			termscr->iscii_state = NULL ;
+		}
+
+		if( termscr->logvis)
+		{		
+			(*termscr->logvis->delete)( termscr->logvis) ;
+			termscr->logvis = NULL ;
+		}
+
+		return  0 ;
 	}
 	else
 	{
+		ml_logical_visual_t *  container ;
+		ml_logical_visual_t *  logvis ;
+		ml_shape_t *  shape ;
+
+		container = logvis = NULL ;
+		shape = NULL ;
+
 		if( termscr->iscii_state)
 		{
 			ml_iscii_delete( termscr->iscii_state) ;
@@ -1126,71 +1153,134 @@ update_encoding_proper_aux(
 				termscr->encoding_listener->self) == ML_UTF8 &&
 			ml_bidi_support_level() > 0)
 		{
-			if( ( termscr->logvis = ml_logvis_bidi_new( termscr->image)) == NULL)
+			if( logvis)
+			{
+				if( container == NULL &&
+					( container = ml_logvis_container_new( termscr->image)) == NULL)
+				{
+					goto  error ;
+				}
+
+				ml_logvis_container_add( container , logvis) ;
+			}
+			
+			if( ( logvis = ml_logvis_comb_new( termscr->image)) == NULL)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_bidi_new() failed.\n") ;
 			#endif
 
-				return  0 ;
+				goto  error ;
+			}
+			
+			if( logvis)
+			{
+				if( container == NULL &&
+					( container = ml_logvis_container_new( termscr->image)) == NULL)
+				{
+					goto  error ;
+				}
+
+				ml_logvis_container_add( container , logvis) ;
+			}
+			
+			if( ( logvis = ml_logvis_bidi_new( termscr->image)) == NULL)
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_bidi_new() failed.\n") ;
+			#endif
+
+				goto  error ;
 			}
 
-			if( ( termscr->shape = ml_arabic_shape_new()) == NULL)
+			if( ( shape = ml_arabic_shape_new()) == NULL)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " ml_arabic_shape_new() failed.\n") ;
 			#endif
 
-				return  0 ;
+				goto  error ;
 			}
-		}
-		else
-		{
-			termscr->logvis = NULL ;
-			termscr->shape = NULL ;
 		}
 
 		if( termscr->vertical_mode)
 		{
-			ml_logical_visual_t *  logvis ;
+			if( logvis)
+			{
+				if( container == NULL &&
+					( container = ml_logvis_container_new( termscr->image)) == NULL)
+				{
+					goto  error ;
+				}
+
+				ml_logvis_container_add( container , logvis) ;
+			}
 			
 			if( ( logvis = ml_logvis_vert_new( termscr->image , termscr->vertical_mode))
-				== NULL)
+					== NULL)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_vert_new() failed.\n") ;
 			#endif
 
-				return  0 ;
+				goto  error ;
 			}
 
-			if( termscr->logvis)
+			if( shape)
 			{
-				ml_logical_visual_t *  container ;
-
-				if( ( container = ml_logvis_container_new( termscr->image)) == NULL)
-				{
-					return  0 ;
-				}
-
-				ml_logvis_container_add( container , termscr->logvis) ;
-				ml_logvis_container_add( container , logvis) ;
-
-				termscr->logvis = container ;
-			}
-			else
-			{
-				termscr->logvis = logvis ;
-			}
-
-			if( termscr->shape)
-			{
-				(*termscr->shape->delete)( termscr->shape) ;
-				termscr->shape = NULL ;
+				/*
+				 * shaping processing is impossible in vertical mode.
+				 */
+				 
+				(*shape->delete)( shape) ;
+				shape = NULL ;
 			}
 		}
-	}
+		
+		if( logvis && container)
+		{
+			ml_logvis_container_add( container , logvis) ;
+		}
 
+		if( container)
+		{
+			termscr->logvis = container ;
+		}
+		else
+		{
+			termscr->logvis = logvis ;
+		}
+
+		termscr->shape = shape ;
+
+		if( is_visual && termscr->logvis)
+		{
+			(*termscr->logvis->render)( termscr->logvis) ;
+			(*termscr->logvis->visual)( termscr->logvis) ;
+		}
+
+		goto  success ;
+		
+	error:
+		if( container)
+		{
+			(*container->delete)( container) ;
+		}
+
+		if( logvis)
+		{
+			(*logvis->delete)( logvis) ;
+		}
+		
+		if( shape)
+		{
+			(*shape->delete)( termscr->shape) ;
+		}
+
+		return  0 ;
+	}
+	
+success:
 	if( is_visual && termscr->logvis)
 	{
 		(*termscr->logvis->render)( termscr->logvis) ;

@@ -33,3 +33,14 @@ __kik_usleep(
 }
 
 #endif
+
+#ifndef  HAVE_UNSETENV
+
+void
+__kik_unsetenv(
+	char *  name
+	)
+{
+}
+
+#endif

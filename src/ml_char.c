@@ -809,7 +809,7 @@ ml_char_bytes_equal(
 
 #ifdef  DEBUG
 
-#if  0
+#if  1
 #define  DUMP_HEX
 #endif
 

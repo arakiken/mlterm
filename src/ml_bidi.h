@@ -11,6 +11,8 @@
 #include  "ml_char.h"
 
 
+int  ml_bidi_set_base_dir( int  is_rtl) ;
+
 int  ml_bidi_support_level(void) ;
 
 int  ml_bidi( u_int16_t *  order , ml_char_t *  src , u_int  size) ;

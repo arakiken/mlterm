@@ -48,6 +48,8 @@
 
 #undef  HAVE_USLEEP
 
+#undef  HAVE_UNSETENV
+
 #undef  PTY_STREAMS
 
 #undef  PTY_BSD

@@ -951,11 +951,20 @@ ml_imgline_bidi_render(
 
 		return  0 ;
 	}
+#if  0
 	else if( line->num_of_filled_chars == 0 ||
 		(len = ml_get_num_of_filled_chars_except_end_space( line)) == 0)
 	{
 		return  1 ;
 	}
+#else
+	else if( line->num_of_filled_chars == 0)
+	{
+		return  1 ;
+	}
+
+	len = line->num_of_filled_chars ;
+#endif
 
 	if( ! ml_bidi( line->visual_order , line->chars , len))
 	{
@@ -1014,7 +1023,7 @@ ml_imgline_bidi_visual(
 			abort() ;
 		}
 	#endif
-	
+
 		ml_char_copy( &line->chars[line->visual_order[counter]] , &src[counter]) ;
 	}
 
@@ -1058,7 +1067,7 @@ ml_imgline_bidi_logical(
 	{
 		return  0 ;
 	}
-
+	
 	ml_str_copy( src , line->chars , line->num_of_filled_visual_order) ;
 
 	for( counter = 0 ; counter < line->num_of_filled_visual_order ; counter ++)

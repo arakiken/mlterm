@@ -19,7 +19,7 @@ typedef struct  container_logical_visual
 	 * visual : children[0] => children[1] => ... => children[n]
 	 * logical: children[n] => ... => children[1] => children[0]
 	 */
-	ml_logical_visual_t *  children[2] ;
+	ml_logical_visual_t **  children ;
 	u_int  num_of_children ;
 
 } container_logical_visual_t ;
@@ -29,9 +29,18 @@ typedef struct  bidi_logical_visual
 	ml_logical_visual_t  logvis ;
 	
 	int  cursor_logical_char_index ;
-	int  cursor_logical_col ;	
+	int  cursor_logical_col ;
 
 } bidi_logical_visual_t ;
+
+typedef struct  comb_logical_visual
+{
+	ml_logical_visual_t  logvis ;
+	
+	int  cursor_logical_char_index ;
+	int  cursor_logical_col ;	
+
+} comb_logical_visual_t ;
 
 typedef struct  iscii_logical_visual
 {
@@ -65,7 +74,7 @@ typedef struct  vert_logical_visual
 
 	int  cursor_logical_char_index ;
 	int  cursor_logical_col ;
-	u_int  cursor_logical_row ;
+	int  cursor_logical_row ;
 
 } vert_logical_visual_t ;
 
@@ -89,6 +98,8 @@ container_delete(
 			(*container->children[counter]->delete)( container->children[counter]) ;
 		}
 	}
+
+	free( container->children) ;
 	
 	free( logvis) ;
 
@@ -315,12 +326,28 @@ bidi_render(
 	ml_logical_visual_t *  logvis
 	)
 {
+#if  0
+	int  dummy_cursor ;
+#endif
 	ml_image_t *  image ;
 	ml_image_line_t *  line ;
 	int  row ;
 
 	image = logvis->image ;
 
+#if  0
+	if( ml_char_cs( &CURSOR_CHAR(image)) == US_ASCII &&
+		strcmp( ml_char_bytes( &CURSOR_CHAR(image)) , " ") == 0)
+	{
+		ml_char_set_bytes( &CURSOR_CHAR(image) , "a" , 1) ;
+		dummy_cursor = 1 ;
+	}
+	else
+	{
+		dummy_cursor = 0 ;
+	}
+#endif
+	
 	/*
 	 * all lines(not only filled lines) should be rendered.
 	 */
@@ -330,6 +357,14 @@ bidi_render(
 		
 		if( ml_imgline_is_modified( line))
 		{
+			int  cols ;
+
+			for( cols = ml_imgline_get_num_of_filled_cols( line) ;
+				cols < image->num_of_cols ; cols ++)
+			{
+				ml_char_copy( &line->chars[line->num_of_filled_chars++] , &image->sp_ch) ;
+			}
+		
 			if( ! ml_imgline_is_using_bidi( line))
 			{
 				ml_imgline_use_bidi( line) ;
@@ -339,6 +374,12 @@ bidi_render(
 		}
 	}
 
+#if  0
+	if( dummy_cursor)
+	{
+		ml_char_set_bytes( &CURSOR_CHAR(image) , " " , 1) ;
+	}
+#endif	
 	return  1 ;
 }
 
@@ -456,6 +497,242 @@ bidi_visual_line(
 #endif
 
 	ml_imgline_bidi_visual( line) ;
+
+	return  1 ;
+}
+
+
+/*
+ * dynamic combining
+ */
+ 
+static int
+comb_delete(
+	ml_logical_visual_t *  logvis
+	)
+{
+	free( logvis) ;
+	
+	return  1 ;
+}
+
+static int
+comb_change_image(
+	ml_logical_visual_t *  logvis ,
+	ml_image_t *  new_image
+	)
+{
+	logvis->image = new_image ;
+	
+	return  1 ;
+}
+
+static u_int
+comb_logical_cols(
+	ml_logical_visual_t *  logvis
+	)
+{
+	return  ml_image_get_cols( logvis->image) ;
+}
+
+static u_int
+comb_logical_rows(
+	ml_logical_visual_t *  logvis
+	)
+{
+	return  ml_image_get_rows( logvis->image) ;
+}
+
+static int
+comb_render(
+	ml_logical_visual_t *  logvis
+	)
+{
+	return  (*logvis->visual)( logvis) ;
+}
+
+static int
+comb_visual(
+	ml_logical_visual_t *  logvis
+	)
+{
+	ml_image_t *  image ;
+	int  row ;
+	u_int  cols_rest ;
+
+	if( logvis->is_visual)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " is called continuously.\n") ;
+	#endif
+			
+		return  0 ;
+	}
+	
+	image = logvis->image ;
+
+	((comb_logical_visual_t*)logvis)->cursor_logical_char_index = image->cursor.char_index ;
+	((comb_logical_visual_t*)logvis)->cursor_logical_col = image->cursor.col ;
+	
+	ml_convert_col_to_char_index( &CURSOR_LINE(image) , &cols_rest ,
+		image->cursor.col , 0) ;
+
+	for( row = 0 ; row < image->num_of_filled_rows ; row ++)
+	{
+		ml_image_line_t *  line ;
+		int  dst_pos ;
+		int  src_pos ;
+
+		line = &IMAGE_LINE(image,row) ;
+		
+		dst_pos = 0 ;
+		for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
+		{
+			if( row == image->cursor.row && src_pos == image->cursor.char_index)
+			{
+				image->cursor.char_index = dst_pos ;
+				image->cursor.col = ml_convert_char_index_to_col( &CURSOR_LINE(image) ,
+							image->cursor.char_index , 0) + cols_rest ;
+			}
+
+			if( src_pos > 0 &&
+				ml_is_arabic_combining( &line->chars[src_pos - 1] , &line->chars[src_pos]))
+			{
+				ml_char_t *  c ;
+
+				c = &line->chars[src_pos] ;
+				ml_char_combine( &line->chars[dst_pos - 1] ,
+					ml_char_bytes( c) , ml_char_size( c) ,
+					ml_char_font( c) , ml_char_font_decor( c) ,
+					ml_char_fg_color( c) , ml_char_bg_color( c)) ;
+			}
+			else
+			{
+				ml_char_copy( &line->chars[dst_pos ++] , &line->chars[src_pos]) ;
+			}
+		}
+
+		line->num_of_filled_chars = dst_pos ;
+	}
+
+	logvis->is_visual = 1 ;
+
+	return  1 ;
+}
+
+static int
+comb_logical(
+	ml_logical_visual_t *  logvis
+	)
+{
+	ml_image_t *  image ;
+	ml_char_t *  buf ;
+	int  row ;
+
+	if( ! logvis->is_visual)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " is called continuously.\n") ;
+	#endif
+			
+		return  0 ;
+	}
+	
+	image = logvis->image ;
+
+	if( ( buf = ml_str_alloca( image->num_of_cols)) == NULL)
+	{
+		return  0 ;
+	}
+
+	for( row = 0 ; row < image->num_of_filled_rows ; row ++)
+	{
+		ml_image_line_t *  line ;
+		int  dst_pos ;
+		int  src_pos ;
+
+		line = &IMAGE_LINE(image,row) ;
+
+		ml_str_copy( buf , line->chars , line->num_of_filled_chars) ;
+
+		dst_pos = 0 ;
+		for( src_pos = 0 ;
+			src_pos < line->num_of_filled_chars && dst_pos < line->num_of_chars ;
+			src_pos ++)
+		{
+			ml_char_t *  c ;
+			ml_char_t *  comb ;
+			u_int  size ;
+
+			c = &buf[src_pos] ;
+
+			if( ( comb = ml_get_combining_chars( c , &size)) &&
+				ml_is_arabic_combining( c , comb))
+			{
+				ml_char_set( &line->chars[dst_pos ++] ,
+					ml_char_bytes( c) , ml_char_size( c) ,
+					ml_char_font( c) , ml_char_font_decor( c) ,
+					ml_char_fg_color( c) , ml_char_bg_color( c)) ;
+
+				if( dst_pos >= line->num_of_filled_chars)
+				{
+					break ;
+				}
+
+				ml_char_set( &line->chars[dst_pos ++] ,
+						ml_char_bytes( comb) , ml_char_size( comb) ,
+						ml_char_font( comb) , ml_char_font_decor( comb) ,
+						ml_char_fg_color( comb) , ml_char_bg_color( comb)) ;
+			}
+			else
+			{
+				ml_char_copy( &line->chars[dst_pos ++] , &buf[src_pos]) ;
+			}
+		}
+
+		line->num_of_filled_chars = dst_pos ;
+	}
+	
+	ml_str_final( buf , image->num_of_cols) ;
+
+	image->cursor.char_index = ((bidi_logical_visual_t*)logvis)->cursor_logical_char_index ;
+	image->cursor.col = ((bidi_logical_visual_t*)logvis)->cursor_logical_col ;
+	
+	logvis->is_visual = 0 ;
+	
+	return  1 ;
+}
+
+static int
+comb_visual_line(
+	ml_logical_visual_t *  logvis ,
+	ml_image_line_t *  line
+	)
+{
+	int  dst_pos ;
+	int  src_pos ;
+
+	dst_pos = 0 ;
+	for( src_pos = 0 ; src_pos < line->num_of_filled_chars ; src_pos ++)
+	{
+		if( src_pos > 0 &&
+			ml_is_arabic_combining( &line->chars[src_pos - 1] , &line->chars[src_pos]))
+		{
+			ml_char_t *  c ;
+
+			c = &line->chars[src_pos] ;
+			ml_char_combine( &line->chars[dst_pos - 1] ,
+				ml_char_bytes( c) , ml_char_size( c) ,
+				ml_char_font( c) , ml_char_font_decor( c) ,
+				ml_char_fg_color( c) , ml_char_bg_color( c)) ;
+		}
+		else
+		{
+			ml_char_copy( &line->chars[dst_pos ++] , &line->chars[src_pos]) ;
+		}
+	}
+
+	line->num_of_filled_chars = dst_pos ;
 
 	return  1 ;
 }
@@ -1151,7 +1428,8 @@ ml_logvis_container_new(
 	{
 		return  NULL ;
 	}
-	
+
+	container->children = NULL ;
 	container->num_of_children = 0 ;
 	
 	container->logvis.image = image ;
@@ -1176,15 +1454,19 @@ ml_logvis_container_add(
 	ml_logical_visual_t *  child
 	)
 {
+	void *  p ;
 	container_logical_visual_t *  container ;
 
 	container = (container_logical_visual_t*) logvis ;
 
-	if( container->num_of_children == 2)
+	if( ( p = realloc( container->children ,
+		(container->num_of_children + 1) * sizeof( ml_logical_visual_t))) == NULL)
 	{
 		return  0 ;
 	}
 
+	container->children = p ;
+	
 	container->children[container->num_of_children ++] = child ;
 
 	return  1 ;
@@ -1218,6 +1500,36 @@ ml_logvis_bidi_new(
 	bidi_logvis->logvis.visual_line = bidi_visual_line ;
 
 	return  (ml_logical_visual_t*) bidi_logvis ;
+}
+
+ml_logical_visual_t *
+ml_logvis_comb_new(
+	ml_image_t *  image
+	)
+{
+	comb_logical_visual_t *  comb_logvis ;
+
+	if( ( comb_logvis = malloc( sizeof( comb_logical_visual_t))) == NULL)
+	{
+		return  NULL ;
+	}
+	
+	comb_logvis->cursor_logical_char_index = 0 ;
+	comb_logvis->cursor_logical_col = 0 ;
+
+	comb_logvis->logvis.image = image ;
+	comb_logvis->logvis.is_visual = 0 ;
+	
+	comb_logvis->logvis.delete = comb_delete ;
+	comb_logvis->logvis.change_image = comb_change_image ;
+	comb_logvis->logvis.logical_cols = comb_logical_cols ;
+	comb_logvis->logvis.logical_rows = comb_logical_rows ;
+	comb_logvis->logvis.render = comb_render ;
+	comb_logvis->logvis.visual = comb_visual ;
+	comb_logvis->logvis.logical = comb_logical ;
+	comb_logvis->logvis.visual_line = comb_visual_line ;
+
+	return  (ml_logical_visual_t*) comb_logvis ;
 }
 
 ml_logical_visual_t *

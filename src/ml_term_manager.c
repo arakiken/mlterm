@@ -28,6 +28,7 @@
 #include  "ml_xim.h"
 #include  "ml_sb_term_screen.h"
 #include  "ml_sig_child.h"
+#include  "ml_bidi.h"		/* ml_bidi_set_base_dir */
 
 
 /* --- static variables --- */
@@ -1851,6 +1852,8 @@ ml_term_manager_init(
 		"word separator characters") ;
 	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
 		"compose dec special font") ;
+	kik_conf_add_opt( conf , 'J' , "rtl" , 1 , "bidi_base_direction_rtl" ,
+		"base direction of bidi is rtl") ;
 #ifdef  ANTI_ALIAS
 	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
 		"CP932 mapping table for JISX0208-Unicode conversion") ;
@@ -2088,6 +2091,14 @@ ml_term_manager_init(
 		if( strcmp( value , "true") == 0)
 		{
 			ml_compose_dec_special_font() ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "bidi_base_direction_rtl")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			ml_bidi_set_base_dir( 1) ;
 		}
 	}
 

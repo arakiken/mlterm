@@ -25,4 +25,19 @@ int  __kik_usleep( u_int  microseconds) ;
 #endif
 
 
+#ifdef  HAVE_UNSETENV
+
+#include  <stdlib.h>
+
+#define  kik_unsetenv( name)  unsetenv( name)
+
+#else
+
+#define  kik_unsetenv( name)  __kik_unsetenv( name)
+
+void  __kik_unsetenv( char *  name) ;
+
+#endif
+
+
 #endif
