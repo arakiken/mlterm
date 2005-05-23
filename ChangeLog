@@ -1,3 +1,8 @@
+2005-05-23 MINAMI Hirokazu <minami@mistfall.nrt>
+
+	* xwindow/x_scrollbar.c:
+	applied a patch from Takeshi Hakamata. (SF Bug #1206515)
+
 2005-03-31 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/iiimf/aux.c:

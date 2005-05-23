@@ -538,6 +538,11 @@ button_released(
 		
 		sb->is_pressing_down_button = 0 ;
 	}
+
+	if( sb->is_motion)
+	{
+		sb->is_motion = 0 ;
+	}
 }
 
 
