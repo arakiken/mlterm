@@ -1,3 +1,8 @@
+2005-08-31 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* kiklib/configure.in: fixed a bug that kiklib doesn't link libutmpter
+	even if available. (SUSE Bug #105320)
+
 2005-05-23 MINAMI Hirokazu <minami@mistfall.nrt>
 
 	* xwindow/x_scrollbar.c:
