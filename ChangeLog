@@ -1,6 +1,10 @@
+2005-09-01 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* contrib/scrollbar/pixmap_engine/HOWTO.html: fixed typo.
+
 2005-08-31 Seiichi SATO <ssato@sh.rim.or.jp>
 
-	* kiklib/configure.in: fixed a bug that kiklib doesn't link libutmpter
+	* kiklib/configure.in: fixed a bug that kiklib didn't link libutmpter
 	even if available. (SUSE Bug #105320)
 
 2005-05-23 MINAMI Hirokazu <minami@mistfall.nrt>
