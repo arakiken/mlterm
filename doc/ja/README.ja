@@ -274,7 +274,7 @@ comment $Id$
         o KOI8_T, GEORGIAN_PS, CP1251, CP1255 については、専用のフォントは存在せ
           ず、Unicode 経由でしか利用できないため、必ず -u オプションを併用してく
           ださい。
-        o AUTO を指定した場合、nl_langinfo -> LC_ALL -> LC_TYPE -> LANGを順番に
+        o AUTO を指定した場合、nl_langinfo -> LC_ALL -> LC_CTYPE -> LANGを順番に
           調べ、適当なエンコーディングを選択します。
           ENCODING 指定を行なわなかった場合も同様です。
 
