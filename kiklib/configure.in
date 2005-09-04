@@ -115,9 +115,11 @@ fi
 #
 # --- Check for libxpg4 (for FreeBSD) ---
 #
-AC_CHECK_LIB(xpg4, setlocale, XPG4_LIBS=-lxpg4)
-AC_SUBST(XPG4_LIBS)
-
+AC_CHECK_FUNCS(setlocale)
+if test "x$ac_cv_func_setlocale" = xno ; then
+	AC_CHECK_LIB(xpg4, setlocale, XPG4_LIBS=-lxpg4)
+	AC_SUBST(XPG4_LIBS)
+fi
 
 #
 # --- Checks for dynamic linking loader ---
