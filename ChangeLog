@@ -1,5 +1,10 @@
 2005-09-04 Seiichi SATO <ssato@sh.rim.or.jp>
 
+	* kiklib/configure.in:
+	applied a patch from Mike FABIAN. (SUSE Bug #105320)
+
+2005-09-04 Seiichi SATO <ssato@sh.rim.or.jp>
+
 	* kiklib/configure.in: suppress libxpg4 check, if setlocale() is
 	available in libc. (Thanks to SHIOTA Shoichi and MANTANI Nobutaka)
 

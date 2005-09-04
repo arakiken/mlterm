@@ -207,19 +207,20 @@ if test "$kik_cv_mingw32" = yes -o "$kik_cv_cygwin" = yes ; then
 	UTMP_NAME=none
 	UTMP_LIBS=
 fi
+#  libutempter
+if test -z "$UTMP_NAME" ; then
+	AC_CHECK_LIB(utempter, addToUtmp,
+		[
+		UTMP_NAME=utmper
+		UTMP_LIBS="-lutempter -lutil"
+		], [])
+fi
 #  libutil
 if test -z "$UTMP_NAME" ; then
 	AC_CHECK_LIB(util, logout,
 		[
-		#  libutempter
-		AC_CHECK_LIB(utempter, addToUtmp,
-			[
-			UTMP_NAME=utmper
-			UTMP_LIBS="-lutempter -lutil"
-			], [
-			UTMP_NAME=login
-			UTMP_LIBS=-lutil
-			])
+		UTMP_NAME=login
+		UTMP_LIBS=-lutil
 		], [])
 fi
 #  setutent()  (SysV)
