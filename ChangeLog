@@ -1,3 +1,8 @@
+2005-09-03 Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* tool/mlconfig/po/de.po:
+	applied a patch from Jens Seidel. (Debian BTS #313970)
+
 2005-09-04 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* kiklib/configure.in:

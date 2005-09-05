@@ -205,7 +205,7 @@ msgstr "Cyan"
 
 #: tool/mlconfig/mc_color.c:53
 msgid "white"
-msgstr "Weiss"
+msgstr "Weiß"
 
 #: tool/mlconfig/mc_color.c:54
 msgid "gray"
