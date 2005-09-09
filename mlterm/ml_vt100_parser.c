@@ -1328,26 +1328,26 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 1047)
 						{
-							// if( !titeInhibit)
+							/* if( !titeInhibit)*/
 							save_cursor( vt100_parser) ;
 							ml_screen_use_alternative_edit(
 								vt100_parser->screen) ;
-							//
+							/* */
 						}
 						else if( ps[0] == 1048)
 						{
-							// if( !titeInhibit)
+							/* if( !titeInhibit)*/
 							save_cursor( vt100_parser) ;
-							//
+							/* */
 						}
 						else if( ps[0] == 1049)
 						{
-							// if( !titeInhibit)
+							/* if( !titeInhibit)*/
 							save_cursor( vt100_parser) ;
 							ml_screen_use_alternative_edit(
 								vt100_parser->screen) ;
 							clear_display_all( vt100_parser) ;
-							//
+							/* */
 						}
 						else
 						{
@@ -1496,26 +1496,26 @@ parse_vt100_escape_sequence(
 					#endif
 						else if( ps[0] == 1047)
 						{
-							// if( !titeInhibit)
+							/* if( !titeInhibit)*/
 							clear_display_all( vt100_parser) ;
 							ml_screen_use_normal_edit(
 								vt100_parser->screen) ;
 							restore_cursor( vt100_parser) ;
-							//
+							/* */
 						}
 						else if( ps[0] == 1048)
 						{
-							// if( !titeInhibit)
+							/* if( !titeInhibit)*/
 							restore_cursor( vt100_parser) ;
-							//
+							/* */
 						}
 						else if( ps[0] == 1049)
 						{
-							// if( !titeInhibit)
+							/*  if( !titeInhibit)*/
 							ml_screen_use_normal_edit(
 								vt100_parser->screen) ;
 							restore_cursor( vt100_parser) ;
-							//
+							/* */
 						}
 						else
 						{

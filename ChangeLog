@@ -1,3 +1,7 @@
+2005-09-09 MINAMI Hirokazu <minami@mistfall.net>
+
+	* mlterm/ml=vt100_parser.c: // -> /**/
+
 2005-09-03 Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* tool/mlconfig/po/de.po:
