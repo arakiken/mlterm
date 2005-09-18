@@ -467,6 +467,7 @@ save_cursor(
 	vt100_parser->saved_is_bold = vt100_parser->is_bold ;
 	vt100_parser->saved_is_underlined = vt100_parser->is_underlined ;
 	vt100_parser->saved_is_reversed = vt100_parser->is_reversed ;
+	vt100_parser->saved_cs = vt100_parser->cs ;
 
 	ml_screen_save_cursor( vt100_parser->screen) ;
 }
@@ -482,6 +483,14 @@ restore_cursor(
 		vt100_parser->is_bold = vt100_parser->saved_is_bold ;
 		vt100_parser->is_underlined = vt100_parser->saved_is_underlined ;
 		vt100_parser->is_reversed = vt100_parser->saved_is_reversed ;
+		if( vt100_parser->saved_cs == DEC_SPECIAL &&
+		    !(IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))){
+			vt100_parser->is_dec_special_in_gl = 1;
+		}
+		else
+		{
+			vt100_parser->is_dec_special_in_gl = 0;
+		}
 	}
 	ml_screen_restore_cursor( vt100_parser->screen) ;
 }
@@ -1114,7 +1123,7 @@ parse_vt100_escape_sequence(
 					}
 					if( '0' <= *str_p && *str_p <= '9')
 					{
-						u_char  digit[DIGIT_STR_LEN(int)] ;
+						char  digit[DIGIT_STR_LEN(int)] ;
 						int  count ;
 
 						digit[0] = *str_p ;
@@ -1511,7 +1520,7 @@ parse_vt100_escape_sequence(
 						}
 						else if( ps[0] == 1049)
 						{
-							/*  if( !titeInhibit)*/
+							/* if( !titeInhibit)*/
 							ml_screen_use_normal_edit(
 								vt100_parser->screen) ;
 							restore_cursor( vt100_parser) ;
@@ -1971,7 +1980,7 @@ parse_vt100_escape_sequence(
 			}
 			else if( *str_p == ']')
 			{
-				u_char  digit[10] ;
+				char  digit[10] ;
 				int  count ;
 				int  ps ;
 				u_char *  pt ;
@@ -2291,7 +2300,7 @@ parse_vt100_escape_sequence(
 		#ifdef  ESCSEQ_DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " receiving SI\n") ;
 		#endif
-		
+
 			vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g0 ;
 			vt100_parser->is_so = 0 ;
 		}
@@ -2307,7 +2316,7 @@ parse_vt100_escape_sequence(
 		#ifdef  ESCSEQ_DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " receiving SO\n") ;
 		#endif
-		
+
 			vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g1 ;
 			vt100_parser->is_so = 1 ;
 		}
@@ -2547,15 +2556,13 @@ ml_parse_vt100_sequence(
 			/*
 			 * parsing character encoding.
 			 */
-
 			(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser ,
 				CURRENT_STR_P(vt100_parser) , vt100_parser->left) ;
-
 			while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 			{
 				/*
 				 * UCS <-> OTHER CS
-				 */ 
+				 */
 				if( ch.cs == ISO10646_UCS4_1)
 				{
 					if( ch.ch[0] == 0x00 && ch.ch[1] == 0x00 &&
@@ -2685,7 +2692,6 @@ ml_parse_vt100_sequence(
 					{
 						SET_MSB( ch.ch[0]) ;
 					}
-
 					if( ( ch.cs == US_ASCII && vt100_parser->is_dec_special_in_gl) ||
 						ch.cs == DEC_SPECIAL)
 					{

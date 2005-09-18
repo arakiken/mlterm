@@ -1,3 +1,17 @@
+2005-09-18 MINAMI Hirokazu <minami@mistfall.net>
+
+	* mlterm/ml_vt100_parser.c: try to restore a perser's GL when
+	restore_cursor() was called.
+	- only works on non-iso2022 locales at present.
+	(I'm not yet sure how the parser's internal states should be
+	 save/restored on iso2022 locales.)
+	- test#2 of the vttest shold be passes on UTF-8 locales.
+	(Thanks to Thomas Dickey for suggestions)
+
+	* mlterm/ml_vt100_parser.c: declare digits[] as char[]
+	since atoi() expects maybe-(un)signed-char and not u_char.
+	(We should add some more casts to make gcc4 happy, though.)
+	
 2005-09-09 MINAMI Hirokazu <minami@mistfall.net>
 
 	* mlterm/ml=vt100_parser.c: // -> /**/

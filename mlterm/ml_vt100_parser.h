@@ -117,6 +117,7 @@ typedef struct  ml_vt100_parser
 	int8_t  saved_is_bold ;
 	int8_t  saved_is_underlined ;
 	int8_t  saved_is_reversed ;
+	mkf_charset_t  saved_cs ;
 
 } ml_vt100_parser_t ;
 
