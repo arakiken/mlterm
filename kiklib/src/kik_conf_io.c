@@ -55,6 +55,14 @@ kik_get_user_rc_path(
 {
 	char *  homedir ;
 	char *  dotrcpath ;
+
+#ifdef  DEBUG
+	if( ( homedir = getenv( "CONF_DIR")))
+	{
+		kik_msg_printf("using %s as an user config dir.\n", homedir);
+		/* conf path is overridden */ ;
+	}else
+#endif
 	
 	if( ( homedir = getenv( "HOME")) == NULL)
 	{
