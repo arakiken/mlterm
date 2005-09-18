@@ -1,5 +1,11 @@
 2005-09-18 MINAMI Hirokazu <minami@mistfall.net>
 
+	* contrib/tool/mlcc/main.c: mlcc [parameter name] now
+	generates a corresponding query sequence so that
+	you can get a list of ptys by "mlcc pty_list".
+
+2005-09-18 MINAMI Hirokazu <minami@mistfall.net>
+
 	* mlterm/ml_vt100_parser.c: try to restore a perser's GL when
 	restore_cursor() was called.
 	- only works on non-iso2022 locales at present.

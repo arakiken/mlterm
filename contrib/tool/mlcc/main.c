@@ -56,8 +56,8 @@ int init_data(config_data_t *data);
 /* recover terminal settings and die gracefully */
 static void _finalize(void){
 	termios_final();
-	unset_altscr();	
-	unset_keypad();	
+	unset_altscr();
+	unset_keypad();
 	normal_char();
 	cursor_show();
 	exit(0);
@@ -144,7 +144,9 @@ int display_section(window_t *window, config_data_t *data){
 		}else{
 			display_str(window, pos+1, skip +1,
 				    (data->section[cur].name),
-			    (data->selected == cur) ? (data->state == DS_SELECT ? DC_POINTED:DC_CHOOSED):DC_NORMAL);
+				    (data->selected == cur) ?
+				    (data->state == DS_SELECT ?
+				     DC_POINTED:DC_CHOOSED):DC_NORMAL);
 			pos += len;
 		}
 		cur ++;
@@ -169,10 +171,13 @@ int edit_entry(window_t * window, config_data_t *data){
 	section_t * section;
 	entry_t * entry;
 	int result = 0xDEADBEEF;
-	
+
 	section = current_section(data);
 	entry = &(section->entry[section->selected]);
-	result = entry_edit(window, entry, section->maxwidth +4, section->selected*2);
+	result = entry_edit(window,
+			    entry,
+			    section->maxwidth +4,
+			    section->selected*2);
 	if (result == 0)
 		return 0;
 	if (result < 0)
@@ -192,7 +197,9 @@ int display_entry(window_t *window, config_data_t *data){
 	for(i = 0; i < current->size; i++){
 		display_str(window, 1, i*2  ,
 			    (current->entry[i].name),
-			    (current->selected == i) ? (data->state == DS_SELECT ? DC_CHOOSED:DC_POINTED):DC_NORMAL);
+			    (current->selected == i) ?
+			    (data->state == DS_SELECT ?
+			     DC_CHOOSED:DC_POINTED):DC_NORMAL);
 
 		window_addstr(window, current->maxwidth +3, i*2, ":");
 		if ((i == current->selected) && (data->state == DS_EDIT))
@@ -201,7 +208,6 @@ int display_entry(window_t *window, config_data_t *data){
 		else
 			entry_display(window, &(current->entry[i]),
 				      current->maxwidth +4, i*2, 0);
-		
 	}
 	return 0;
 }
@@ -247,8 +253,10 @@ int query_exit(window_t *parent){
 	int state = 0;
 
 	flag = 1;
-	query = window_new((parent->right - parent->left)/2 -7, (parent->bottom - parent->top)/2 -2,
-			   (parent->right - parent->left)/2 +7, (parent->bottom - parent->top)/2 +3,
+	query = window_new((parent->right - parent->left)/2 -7,
+			   (parent->bottom - parent->top)/2 -2,
+			   (parent->right - parent->left)/2 +7,
+			   (parent->bottom - parent->top)/2 +3,
 			   1, parent);
 	while(1){
 		if (flag){
@@ -279,7 +287,7 @@ int query_exit(window_t *parent){
 			break;
 		case 10: /* ret */
 			window_free(query);
-  			return state;
+			return state;
 		default:
 			break;
 		}
@@ -340,14 +348,19 @@ int init_data(config_data_t *data){
 
 int main(int argc, char **argv){
 	static config_data_t data;
-	struct sigaction act;	
+	struct sigaction act;
 	window_t *win_root =0, *win_section = 0, *win_entry = 0;
+
+	if(argc == 2){
+		mlterm_get_param(argv[1]);
+		exit(0);
+	}
 
 	if(argc == 3){
 		mlterm_set_param(argv[1], argv[2]);
 		exit(0);
 	}
-	
+
 	sigemptyset(&(act.sa_mask));
 	sigaddset(&act.sa_mask,SIGINT | SIGWINCH);
 	act.sa_flags = SA_RESTART;
@@ -363,7 +376,7 @@ int main(int argc, char **argv){
 	termios_init();
 
 	init_data(&data);
-  	term_size(&_cols, &_rows);
+	term_size(&_cols, &_rows);
 	_redraw_all = 1;
 	while(1){
 		if (_redraw_all){
@@ -371,35 +384,35 @@ int main(int argc, char **argv){
 			window_free(win_section);
 			window_free(win_entry);
 			window_free(win_root);
-			
+
 			win_root = window_new(0, 0, _cols-1, _rows-1, 0, 0);
 			window_clear(win_root);
-			
+
 			win_section = section_window_new(win_root, &data);
 			window_clear(win_section);
-			
+
 			win_entry = entry_window_new(win_section);
 			window_clear(win_entry);
 			display_section(win_section, &data);
-			display_entry(win_entry, &data);			
+			display_entry(win_entry, &data);
 			flush_stdout();
 		}
 		switch(data.state){
 		case DS_SELECT:
 			if (select_entry(&data)){
-  				window_clear(win_entry);/* clear garbage */
+				window_clear(win_entry);/* clear garbage */
 				display_section(win_section, &data);
 				display_entry(win_entry, &data);
 				flush_stdout();
-			}			
+			}
 			break;
 		case DS_EDIT:
-			if (edit_entry(win_entry, &data)){	
+			if (edit_entry(win_entry, &data)){
 				window_clear(win_entry); /* clear garbage */
 				display_section(win_section, &data); /* change color */
 				display_entry(win_entry, &data);
 				flush_stdout();
-			}			
+			}
 			break;
 		case DS_CANCEL:
 			switch(query_exit(win_entry)){
@@ -414,11 +427,10 @@ int main(int argc, char **argv){
 			break;
 		}
 	}
- CANCEL:
+CANCEL:
 	/*XXX reset params to initial state*/
 	data_reset(&data);
-	
- FIN:
+FIN:
 	data_free(&data); /* destruct date tree. segv should be caught here if there are bugs*/
 	_finalize(); /*recover terminal setting*/
 	return 0;
