@@ -34,7 +34,7 @@ linear_to_bytes(
 	u_int32_t  linear
 	)
 {
-	linear -= bytes_to_linear( "\x81\x30\x81\x30") ;
+	linear -= bytes_to_linear( (u_char *)"\x81\x30\x81\x30") ;
 
 	bytes[3] = 0x30 + linear % 10 ;
 	linear /= 10 ;
