@@ -82,13 +82,13 @@ main(
 			{
 				help() ;
 
-				exit(0) ;
+				return  0 ;
 			}
 			else if( strcmp( p , "version") == 0 || strcmp( p , "v") == 0)
 			{
 				version() ;
 
-				exit(0) ;
+				return  0 ;
 			}
 			else if( strcmp( p , "e") == 0)
 			{

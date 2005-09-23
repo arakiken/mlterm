@@ -5,8 +5,9 @@
 #include  "kik_utmp.h"
 
 #include  <stdio.h>	/* NULL */
+#include  <utempter.h>
 #include  "kik_mem.h"		/* malloc/free */
-
+#include  "kik_str.h"		/* strdup */
 
 struct  kik_utmp
 {
@@ -30,13 +31,13 @@ kik_utmp_new(
 	{
 		return  NULL ;
 	}
-		
-	if( ( utmp->tty = (char *) malloc( strlen( tty ) + 1)) == NULL)
+
+	if( ( utmp->tty = strdup( tty )) == NULL)
 	{
+		free( utmp) ;
 		return  NULL ;
 	}
 
-	strcpy(utmp->tty, tty);
 	utmp->fd = pty_fd;
 
 	addToUtmp(tty, host, pty_fd);

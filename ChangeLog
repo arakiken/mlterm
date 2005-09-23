@@ -1,3 +1,9 @@
+2005-09-23  Mike FABIAN  <mfabian@suse.de>
+
+	* kiklib/src/kik_utmp_utmper.c, tool/mlclient/main.c:
+	fix implicit function declarations (patch by
+	MINAMI Hirokazu <minami@mistfall.net>).
+
 2005-09-19 MINAMI Hirokazu <minami@mistfall.net>
 	
 	* kiklib/src/kik_conf_io.c: added a debugging feature.
