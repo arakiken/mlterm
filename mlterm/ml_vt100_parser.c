@@ -477,19 +477,40 @@ restore_cursor(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	if( vt100_parser->is_saved){
+	if( vt100_parser->is_saved)
+	{
 		vt100_parser->fg_color = vt100_parser->saved_fg_color ;
 		vt100_parser->bg_color = vt100_parser->saved_bg_color ;
 		vt100_parser->is_bold = vt100_parser->saved_is_bold ;
 		vt100_parser->is_underlined = vt100_parser->saved_is_underlined ;
 		vt100_parser->is_reversed = vt100_parser->saved_is_reversed ;
-		if( vt100_parser->saved_cs == DEC_SPECIAL &&
-		    !(IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))){
-			vt100_parser->is_dec_special_in_gl = 1;
+		if( vt100_parser->saved_cs == DEC_SPECIAL){
+			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+			{
+				u_char  DEC_SEQ[3] = { 0x1b, '(', '0'} ;
+				mkf_char_t  ch ;
+				ml_init_encoding_parser( vt100_parser) ;
+				(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser ,
+								     DEC_SEQ,
+								     sizeof(DEC_SEQ)) ;
+				(*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser ,
+								       &ch) ;
+			}
+			else
+			{
+				vt100_parser->is_dec_special_in_gl = 1;
+			}
 		}
 		else
 		{
-			vt100_parser->is_dec_special_in_gl = 0;
+			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+			{
+				ml_init_encoding_parser( vt100_parser) ;
+			}
+			else
+			{
+				vt100_parser->is_dec_special_in_gl = 0;
+			}
 		}
 	}
 	ml_screen_restore_cursor( vt100_parser->screen) ;

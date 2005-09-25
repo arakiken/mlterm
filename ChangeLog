@@ -1,3 +1,8 @@
+2005-09-25    <minami@snownotes.org>
+
+	* mlterm/ml_vt100_parser.c: now passes test #2 of the vttest
+	on ja_JP.EUC-JP.
+
 2005-09-23  MINAMI Hirokazu <minami@mistfall.net>
 
 	* mkf/lib/mkf_gb18030_2000_intern.c, mkf/lib/mkf_xct_parser.c:
