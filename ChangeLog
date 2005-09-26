@@ -1,4 +1,11 @@
-2005-09-25    <minami@snownotes.org>
+2005-09-26  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* doc/term/mlterm.t[ic]: use xterm like sequences for 
+	rmcup/smcup since 
+	- length of termcap/terminfo entries can be a bit shorter.
+	- we may implement titeInhibit in the furter.
+
+2005-09-25  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* mlterm/ml_vt100_parser.c: now passes test #2 of the vttest
 	on ja_JP.EUC-JP.
@@ -32,7 +39,7 @@
 	- only works on non-iso2022 locales at present.
 	(I'm not yet sure how the parser's internal states should be
 	 save/restored on iso2022 locales.)
-	- test#2 of the vttest shold be passes on UTF-8 locales.
+	- test#2 of the vttest shold be passed on UTF-8 locales.
 	(Thanks to Thomas Dickey for suggestions)
 
 	* mlterm/ml_vt100_parser.c: declare digits[] as char[]
