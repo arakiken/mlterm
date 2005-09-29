@@ -29,8 +29,8 @@
 #define  CTLKEY_LF	0x0a
 #define  CTLKEY_VT	0x0b
 #define  CTLKEY_CR	0x0d
-#define  CTLKEY_SO      0x0e
-#define  CTLKEY_SI      0x0f
+#define  CTLKEY_SO	0x0e
+#define  CTLKEY_SI	0x0f
 #define  CTLKEY_ESC	0x1b
 
 #define  CURRENT_STR_P(vt100_parser)  (&vt100_parser->seq[(vt100_parser)->len - (vt100_parser)->left])
@@ -484,28 +484,29 @@ restore_cursor(
 		vt100_parser->is_bold = vt100_parser->saved_is_bold ;
 		vt100_parser->is_underlined = vt100_parser->saved_is_underlined ;
 		vt100_parser->is_reversed = vt100_parser->saved_is_reversed ;
-		if( vt100_parser->saved_cs == DEC_SPECIAL){
-			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+		if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+		{
+			if( vt100_parser->saved_cs != vt100_parser->cs)
 			{
-				u_char  DEC_SEQ[3] = { 0x1b, '(', '0'} ;
-				mkf_char_t  ch ;
-				ml_init_encoding_parser( vt100_parser) ;
-				(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser ,
-								     DEC_SEQ,
-								     sizeof(DEC_SEQ)) ;
-				(*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser ,
-								       &ch) ;
-			}
-			else
-			{
-				vt100_parser->is_dec_special_in_gl = 1;
+				if( vt100_parser->saved_cs == DEC_SPECIAL)
+				{
+					/* force grapchics mode by sending \E(0 to current parser*/
+					u_char  DEC_SEQ[] = { CTLKEY_ESC, '(', '0'} ;
+					mkf_char_t  ch ;
+					mkf_parser_t *  parser;
+					
+					ml_init_encoding_parser( vt100_parser) ;
+					parser = vt100_parser->cc_parser;
+					(*parser->set_str)( parser, DEC_SEQ, sizeof(DEC_SEQ)) ;
+					(*parser->next_char)( parser, &ch) ;
+				}
 			}
 		}
 		else
 		{
-			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
-			{
-				ml_init_encoding_parser( vt100_parser) ;
+			/* XXX: what to do for g0/g1? */
+			if( vt100_parser->saved_cs == DEC_SPECIAL){
+				vt100_parser->is_dec_special_in_gl = 1;
 			}
 			else
 			{
@@ -2880,11 +2881,7 @@ ml_init_encoding_conv(
 	 */
 	if( IS_STATEFUL_ENCODING(vt100_parser->encoding))
 	{
-		(*vt100_parser->cc_parser->init)( vt100_parser->cc_parser) ;
-		vt100_parser->is_dec_special_in_gl = 0 ;
-		vt100_parser->is_so = 0 ;
-		vt100_parser->is_dec_special_in_g0 = 0 ;
-		vt100_parser->is_dec_special_in_g1 = 1 ;
+		ml_init_encoding_parser(vt100_parser) ;
 	}
 
 	return  1 ;

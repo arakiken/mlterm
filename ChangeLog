@@ -1,3 +1,8 @@
+2005-09-29  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* mlterm/ml_vt100_parser.c: do not reset parser state in 
+	restore_cursor().
+
 2005-09-26  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* doc/term/mlterm.t[ic]: use xterm like sequences for 
