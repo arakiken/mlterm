@@ -63,7 +63,7 @@ static void reload_passwd(){
 
 int read_one(){
 	int count;
-	char buf[3] = {0};
+	char buf[4] = {0};
 	count = read(STDIN_FILENO, buf, 4);
 	if(buf[0]==127)
 		return KEY_BS;
