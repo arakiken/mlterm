@@ -3,6 +3,8 @@
 	* mlterm/ml_vt100_parser.c: do not reset parser state in 
 	restore_cursor().
 
+	* xwindow/x_im.h: #include <stdio.h> for sprintf.
+
 2005-09-26  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* doc/term/mlterm.t[ic]: use xterm like sequences for 

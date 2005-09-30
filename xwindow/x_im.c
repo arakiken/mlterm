@@ -1,9 +1,9 @@
 /*
  *	$Id$
  */
-
+#include  <stdio.h>		/* sprintf */
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
-#include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep kik_snprintf*/
+#include  <kiklib/kik_str.h>	/* kik_str_alloca_dup kik_str_sep */
 #include  <kiklib/kik_locale.h>
 
 #include  "x_im.h"
