@@ -10,7 +10,7 @@ LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
 VPATH = ${top_srcdir}/inputmethod/iiimf
 
-IM_IIIMF_OBJ = im_iiimf.o keymap.o aux.o
+IM_IIIMF_OBJ = im_iiimf.o im_iiimf_aux.o keymap.o
 
 CFLAGS = $(CFLAGS_LOCAL)		\
 	 @KIK_CFLAGS@			\

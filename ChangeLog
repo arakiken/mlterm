@@ -1,3 +1,9 @@
+2005-10-05  Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/iiimf/aux.c: renamed to ..
+	* inputmethod/iiimf/im_iiimf_aux.c: this.
+	(see http://www.cygwin.com/faq/faq_toc.html#TOC58)
+
 2005-09-29  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* mlterm/ml_vt100_parser.c: do not reset parser state in 
