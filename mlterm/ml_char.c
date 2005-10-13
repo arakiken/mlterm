@@ -78,8 +78,6 @@
 
 static int  use_char_combining = 1 ;
 static int  use_multi_col_char = 1 ;
-static ml_char_t  sp_ch ;
-static ml_char_t  nl_ch ;
 
 
 /* --- global functions --- */
@@ -251,7 +249,7 @@ ml_char_combine(
 
 			return  0 ;
 		}
-
+#if !defined(__GLIBC__)
 		if( sizeof( multi_ch) >= 8 && ((long)( multi_ch) & 0x1UL) != 0)
 		{
 			kik_msg_printf( "Your malloc() doesn't return 2 byte aligned address."
@@ -259,7 +257,7 @@ ml_char_combine(
 
 			return  0 ;
 		}
-
+#endif
 		ml_char_init( multi_ch) ;
 		ml_char_copy( multi_ch , ch) ;
 
@@ -888,10 +886,12 @@ ml_char_bytes_equal(
 ml_char_t *
 ml_sp_ch(void)
 {
+	static ml_char_t  sp_ch ;
+
 	if( sp_ch.u.ch.attr == 0)
 	{
 		ml_char_init( &sp_ch) ;
-		ml_char_set( &sp_ch , " " , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
+		ml_char_set( &sp_ch , (u_char *)" " , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
 	}
 
 	return  &sp_ch ;
@@ -900,10 +900,12 @@ ml_sp_ch(void)
 ml_char_t *
 ml_nl_ch(void)
 {
+	static ml_char_t  nl_ch ;
+
 	if( nl_ch.u.ch.attr == 0)
 	{
 		ml_char_init( &nl_ch) ;
-		ml_char_set( &nl_ch , "\n" , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR ,
+		ml_char_set( &nl_ch , (u_char *)"\n" , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR ,
 			0 , 0) ;
 	}
 
