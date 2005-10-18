@@ -1,10 +1,16 @@
+2005-10-17  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* doc/term/mlterm.t[ci]: disable mouse position reporting
+	in "reset" sequence for Debian BTS#55637.
+	(stolen from ncurses-5.5/misc/terminfo.src)
+
 2005-10-13  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* mlterm/ml_char.c:
-	  - Since LP64 glibc's malloc() is known to always return
-	  16-byte aligned chunk, sanity check can be omitted
+	- Since LP64 glibc's malloc() is known to always return
+	16-byte aligned chunks, sanity check can be omitted.
 
-	  - changed nl_ch and sp_ch from file-local to fuction-local.
+	- changed nl_ch and sp_ch from file-local to fuction-local.
 
 2005-10-05  Seiichi SATO <ssato@sh.rim.or.jp>
 
@@ -14,15 +20,15 @@
 
 2005-09-29  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* mlterm/ml_vt100_parser.c: do not reset parser state in 
+	* mlterm/ml_vt100_parser.c: do not reset parser state in
 	restore_cursor().
 
 	* xwindow/x_im.h: #include <stdio.h> for sprintf.
 
 2005-09-26  MINAMI Hirokazu  <minami@mistfall.net>
 
-	* doc/term/mlterm.t[ic]: use xterm like sequences for 
-	rmcup/smcup since 
+	* doc/term/mlterm.t[ic]: use xterm like sequences for
+	rmcup/smcup since
 	- length of termcap/terminfo entries can be a bit shorter.
 	- we may implement titeInhibit someday.
 
