@@ -1,5 +1,11 @@
-2005-10-17  MINAMI Hirokazu  <minami@mistfall.net>
+2005-10-19  MINAMI Hirokazu  <minami@mistfall.net>
 
+	* xwindow/x_window.c: do not try to align full-width chars
+	to a half-witdh char when variable column width is enabled
+	(Thanks to "Oibane" for reporting and helping to fix this).
+
+2005-10-17  MINAMI Hirokazu  <minami@mistfall.net>
+	
 	* doc/term/mlterm.t[ci]: disable mouse position reporting
 	in "reset" sequence for Debian BTS#55637.
 	(stolen from ncurses-5.5/misc/terminfo.src)

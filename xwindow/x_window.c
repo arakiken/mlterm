@@ -2612,12 +2612,14 @@ x_window_draw_string(
 	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
 
 	XDrawString( win->display , win->drawable , win->ch_gc ,
-		x + font->x_off + win->margin , y + win->margin , str , len) ;
+		x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
+		y + win->margin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString( win->display , win->drawable , win->ch_gc ,
-			x + font->x_off + win->margin + 1 , y + win->margin , str , len) ;
+			x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
+			y + win->margin , (char *)str , len) ;
 	}
 
 	return  1 ;
@@ -2638,12 +2640,14 @@ x_window_draw_string16(
 	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
 
 	XDrawString16( win->display , win->drawable , win->ch_gc ,
-		x + font->x_off + win->margin , y + win->margin , str , len) ;
+		       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
+		       y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString16( win->display , win->drawable , win->ch_gc ,
-			x + font->x_off + win->margin + 1 , y + win->margin , str , len) ;
+			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
+			       y + win->margin , str , len) ;
 	}
 
 	return  1 ;
@@ -2666,12 +2670,14 @@ x_window_draw_image_string(
 	XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
 
 	XDrawImageString( win->display , win->drawable , win->ch_gc ,
-		x + font->x_off + win->margin , y + win->margin , str , len) ;
+			  x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
+			  y + win->margin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString( win->display , win->drawable , win->ch_gc ,
-			x + font->x_off + win->margin + 1 , y + win->margin , str , len) ;
+			     x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
+			     y + win->margin , (char *)str , len) ;
 	}
 
 	return  1 ;
@@ -2694,12 +2700,14 @@ x_window_draw_image_string16(
 	XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
 
 	XDrawImageString16( win->display , win->drawable , win->ch_gc ,
-		x + font->x_off + win->margin , y + win->margin , str , len) ;
+			    x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
+			    y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
 		XDrawString16( win->display , win->drawable , win->ch_gc ,
-			x + font->x_off + win->margin + 1 , y + win->margin , str , len) ;
+			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
+			       y + win->margin , str , len) ;
 	}
 
 	return  1 ;
