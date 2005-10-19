@@ -6,6 +6,10 @@
 
 	* xwindow/x_dnd.c: added sanity checks.
 
+	*  xwindw/x_screen.c: while pseudo-transparency or wallpaper
+	is in use, draw cursor as using background
+	(this looks better in most case IMHO).
+
 2005-10-17  MINAMI Hirokazu  <minami@mistfall.net>
 	
 	* doc/term/mlterm.t[ci]: disable mouse position reporting

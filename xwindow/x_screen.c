@@ -565,26 +565,12 @@ draw_cursor(
 		}
 	}
 
-	if( screen->window.wall_picture_is_set)
-	{
-		screen->window.wall_picture_is_set = 0 ;
-		x_draw_str( &screen->window , screen->font_man ,
-			screen->color_man , &ch , 1 , x , y ,
-			x_line_height( screen) ,
-			x_line_height_to_baseline( screen) ,
-			x_line_top_margin( screen) ,
-			x_line_bottom_margin( screen));
-		screen->window.wall_picture_is_set = 1 ;
-	}
-	else
-	{
-		x_draw_str( &screen->window , screen->font_man ,
-			screen->color_man , &ch , 1 , x , y ,
-			x_line_height( screen) ,
-			x_line_height_to_baseline( screen) ,
-			x_line_top_margin( screen) ,
-			x_line_bottom_margin( screen));
-	}
+	x_draw_str( &screen->window , screen->font_man ,
+		screen->color_man , &ch , 1 , x , y ,
+		x_line_height( screen) ,
+		x_line_height_to_baseline( screen) ,
+		x_line_top_margin( screen) ,
+		x_line_bottom_margin( screen));
 
 	if( screen->is_focused)
 	{
