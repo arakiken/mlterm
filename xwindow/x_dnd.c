@@ -7,6 +7,7 @@
 #include  "x_window.h"
 #include  "x_dnd.h"
 #include  <stdio.h>
+#include  <string.h>
 #include  <X11/Xatom.h>
 #include  <X11/Xutil.h>
 #include  <mkf/mkf_utf8_conv.h>
@@ -47,12 +48,13 @@ parse_text_unicode(
 	int filled_len ;
 	mkf_parser_t * parser ;
 	mkf_conv_t * conv ;
-	char conv_buf[512] = {0};
+	unsigned char conv_buf[512] = {0};
 
 	if( !(win->utf8_selection_notified))
 		return  FAILURE ;
 
-	if( (conv = win->dnd->conv) && (parser = win->dnd->parser))
+	if( (conv = win->dnd->conv) &&
+	    (parser = win->dnd->parser) && (win->dnd->is_incr))
 	{
 		if( len == 0)
 		{
@@ -75,6 +77,11 @@ parse_text_unicode(
 	}
 	else
 	{
+		if( win->dnd->conv)
+			(win->dnd->conv->delete)(win->dnd->conv) ;
+		if( win->dnd->parser)
+			(win->dnd->parser->delete)(win->dnd->parser) ;
+
 		if( !(conv = mkf_utf8_conv_new()))
 			return  FAILURE ;
 		if( !(parser = mkf_utf16_parser_new()))
@@ -82,7 +89,7 @@ parse_text_unicode(
 			(conv->delete)(conv) ;
 			return  FAILURE ;
 		}
-		
+
 		/* initialize the parser's endian. */
 		(parser->init)( parser) ;
 		if ( (src[0] == 0xFF || src[0] == 0xFE)
@@ -96,10 +103,10 @@ parse_text_unicode(
 		{
 			/* try to set parser state depending on
 			   your machine's endianess by sending BOM */
-			/* XXX: its'n not comforming spen and sometimes do not work */
+			/* XXX: it's not spec comformant and someteime fails */
 			u_int16_t BOM[] =  {0xFEFF};
 
-			(parser->set_str)( parser , (char *)BOM , 2) ;
+			(parser->set_str)( parser , (unsigned char *)BOM , 2) ;
 			(parser->next_char)( parser , 0) ;
 		}
 	}
@@ -127,7 +134,9 @@ parse_text_unicode(
 	else
 	{
 		(conv->delete)( conv) ;
+		win->dnd->conv = NULL ;
 		(parser->delete)( parser) ;
+		win->dnd->parser = NULL ;
 	}
 
 	return  SUCCESS ;
@@ -140,15 +149,17 @@ parse_text_uri_list(
 	int  len)
 {
 	int pos ;
-	unsigned char *delim ;
+	unsigned char *  delim ;
 
 	if( !(win->utf8_selection_notified))
 		return  FAILURE ;
 	pos = 0 ;
+	src[len-1] = '\0'; /* force termination for malicious peers */
+
 	delim = src ;
-	while( pos < len){
+	while( pos < len -1){
 		/* according to RFC, 0x0d is the delimiter */
-		delim = strchr( &(src[pos]), 13) ;
+		delim = (unsigned char *)strchr( (char *)(src + pos), 13) ;
 		if( delim )
 		{
 			/* output one ' ' as a separator */
@@ -156,22 +167,22 @@ parse_text_uri_list(
 		}
 		else
 		{
-			delim = &(src[len -1]) ;
+			delim = src + len -1 ;
 		}
-		if( strncmp( &(src[pos]), "file:",5) == 0)
+		if( strncmp( (char *)(src + pos), "file:",5) == 0)
 		{
 			/* remove garbage("file:").
 			   new length should be (length - "file:" + " ")*/
 			(*win->utf8_selection_notified)( win ,
-							 &(src[pos+5]),
-							 (delim - &(src[pos])) -5 +1 ) ;
+				(unsigned char *)(src + pos + 5),
+				delim -  src- pos -5 +1 ) ;
 		}
 		else
 		{
 			/* original string + " " */
 			(*win->utf8_selection_notified)( win ,
-							 &(src[pos]),
-							 (delim - &(src[pos])) +1) ;
+				(unsigned char *)(src + pos),
+				delim - src- pos +1) ;
 		}
 		/* skip trailing 0x0A */
 		pos = (delim - src) +2 ;
@@ -227,9 +238,11 @@ parse_mlterm_config(
 {
 	char *  value ;
 
+	src[len-1] = '\0'; /* force termination for malicious peers */
+
 	if( !(win->set_xdnd_config))
 		return  FAILURE ;
-	value = strchr( src, '=') ;
+	value = strchr( (char *)src, '=') ;
 	if( !value)
 		return  FAILURE ;
 	*value = 0 ;
@@ -238,7 +251,7 @@ parse_mlterm_config(
 #endif
 	(*win->set_xdnd_config)( win ,
 				 NULL, /* dev */
-				 src, /* key */
+				 (char *)src, /* key */
 				 value +1 /* value */) ;
 
 	return  SUCCESS ;
@@ -251,12 +264,15 @@ parse_app_color(
 	int  len)
 {
 	u_int16_t *r, *g, *b;
-	char buffer[25];
+	unsigned char buffer[25];
 
 	r = (u_int16_t *)src ;
 	g = r + 1 ;
 	b = r + 2 ;
-	sprintf( buffer, "bg_color=#%02x%02x%02x", (*r) >> 8 , (*g) >> 8, (*b) >> 8) ;
+	sprintf( (char *)buffer, "bg_color=#%02x%02x%02x",
+		 (*r) >> 8,
+		 (*g) >> 8,
+		 (*b) >> 8) ;
 #ifdef  DEBUG
 	kik_debug_printf( "bgcolor: %s\n" , buffer) ;
 #endif
@@ -272,28 +288,34 @@ parse_prop_bgimage(
 	int  len)
 {
 	char *  head ;
+	char  tail;
 
 	if( !(win->set_xdnd_config))
 		return  FAILURE ;
 
-	if( (head = strstr( src, "file://")))
+	tail = src[len -1] ;
+	src[len -1] = 0 ;
+
+	if( (head = strstr( (char *)src, "file://")))
 	{
 /* format should be file://<host>/<path> */
-		src = head +7;
-		if( !(head = strstr( src, "/")))
+		memmove( src, head+7, len - 6 - ((char *)src - head));
+		src[strlen( (char *)src)] = tail ;
+		src[strlen( (char *)src)] = 0 ;
+		if( !(head = strstr( (char *)src, "/")))
 			return  FAILURE ;
 		/* and <host> should be localhost and safely ignored.*/
-		src = head ;
+		src = (unsigned char *)head ;
 
 		/* remove trailing garbage */
-		if( (head = strstr( src, "\r")))
+		if( (head = strstr( (char *)src, "\r")))
 			*head = 0 ;
-		if( (head = strstr( src, "\n")))
+		if( (head = strstr( (char *)src, "\n")))
 			*head = 0 ;
 	}
 	else
 	{
-		/* other schemas (like "http" --call wget?) may be supported here */
+/* other schemas (like "http" --call wget?) may be supported here */
 	}
 #ifdef  DEBUG
 	kik_debug_printf( "bgimage: %s\n" , src) ;
@@ -301,7 +323,7 @@ parse_prop_bgimage(
 	(*win->set_xdnd_config)( win ,
 				 NULL, /* dev */
 				 "wall_picture", /* key */
-				 src /* value */) ;
+				 (char *)src /* value */) ;
 
 	return  SUCCESS ;
 }
@@ -314,7 +336,8 @@ parse_debug(
 	int  len)
 {
 	int i;
-	kik_debug_printf(src) ;
+
+	kik_debug_printf( ">%s<\n", (char *)src) ;
 	for( i = 0 ; i < 100 && i < len ; i++)
 		kik_debug_printf( "\n%d %x" ,i, src[i]) ;
 
@@ -549,18 +572,36 @@ choose_atom(
 	int  num
 	)
 {
+	dnd_parser_t *  proc_entry ;
+	int  i;
+
 #ifdef  DEBUG
 	char *  atom_name ;
+	for( i = 0; i < num; i++){
+		if( !atom_list[i])
+			break;
+		atom_name = XGetAtomName( win->display, atom_list[i]) ;
+		if( atom_name)
+		{
+			kik_debug_printf( KIK_DEBUG_TAG "candidate #%d: %s\n",
+					  i, atom_name) ;
+			XFree( atom_name) ;
+		}
+	}
 #endif
-	dnd_parser_t *  proc_entry ;
-	int  i = -1 ;
 
+	i = -1;
 	for( proc_entry = dnd_parsers; i< 0 && proc_entry->atomname ;proc_entry++)
+	{
+#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG "ckecking against : %s\n",
+				  proc_entry->atomname) ;
+#endif
 		i = is_pref( XInternAtom( win->display,
 					  proc_entry->atomname,
 					  False),
 			     atom_list, num) ;
-
+	}
 	if( i < 0)
 		return (Atom)0  ;/* 0 would never be used for Atom */
 
@@ -642,7 +683,9 @@ enter(
 	else
 	{
 		/* less than 3 candidates */
-		to_wait = choose_atom( win , (event->xclient.data.l)+2 , 3) ;
+		to_wait = choose_atom( win ,
+				       (Atom *)(event->xclient.data.l+2),
+				       3) ;
 	}
 
 	if( !(to_wait))
@@ -851,7 +894,14 @@ selection(
 		set_badwin_handler(0) ;
 
 		if(result != Success)
-			break ;
+		{
+#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG "couldn't get property. \n") ;
+#endif
+			finalize_context( win) ;
+
+			return  FAILURE ;
+		}
 		parse( win, ct.value, ct.nitems) ;
 		XFree( ct.value) ;
 

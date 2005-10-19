@@ -4,6 +4,8 @@
 	to a half-witdh char when variable column width is enabled
 	(Thanks to "Oibane" for reporting and helping to fix this).
 
+	* xwindow/x_dnd.c: added sanity checks.
+
 2005-10-17  MINAMI Hirokazu  <minami@mistfall.net>
 	
 	* doc/term/mlterm.t[ci]: disable mouse position reporting
