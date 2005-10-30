@@ -1,3 +1,9 @@
+2005-10-30  MINAMI Hirokazu  <minami@mistfall.net>
+
+	* doc/term/mlterm.t[ic]:
+	- dropped unused entries from acsc.
+	- made sgr0 to be xterm compatible.
+
 2005-10-19  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_window.c: do not try to align full-width chars
