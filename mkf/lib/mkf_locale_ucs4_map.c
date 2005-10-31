@@ -6,18 +6,17 @@
 
 #include  <string.h>		/* strncmp */
 #include  <kiklib/kik_locale.h>
-#include  <kiklib/kik_util.h>	/* K_MIN */
 
 #include  "mkf_ucs4_map.h"
 #include  "mkf_ja_jp_map.h"
-#include  "mkf_zh_tw_map.h"
+#include  "mkf_ko_kr_map.h"
+#include  "mkf_ru_map.h"
+#include  "mkf_tg_map.h"
+#include  "mkf_uk_map.h"
+#include  "mkf_viet_map.h"
 #include  "mkf_zh_cn_map.h"
 #include  "mkf_zh_hk_map.h"
-#include  "mkf_ko_kr_map.h"
-#include  "mkf_viet_map.h"
-#include  "mkf_ru_map.h"
-#include  "mkf_uk_map.h"
-#include  "mkf_tg_map.h"
+#include  "mkf_zh_tw_map.h"
 
 
 typedef int (*map_func_t)( mkf_char_t *  , mkf_char_t *) ;
@@ -45,13 +44,13 @@ static map_ucs4_to_func_table_t  map_ucs4_to_func_table[] =
 	{ "ja" , NULL , mkf_map_ucs4_to_ja_jp } ,
 	{ "ko" , NULL , mkf_map_ucs4_to_ko_kr } ,
 	{ "ru" , NULL , mkf_map_ucs4_to_ru } ,
-	{ "uk" , NULL , mkf_map_ucs4_to_uk } ,
 	{ "tg" , NULL , mkf_map_ucs4_to_tg } ,
+	{ "uk" , NULL , mkf_map_ucs4_to_uk } ,
 	{ "vi" , NULL , mkf_map_ucs4_to_viet } ,
 	{ "zh" , "CN" , mkf_map_ucs4_to_zh_cn } ,
-	{ "zh" , "TW" , mkf_map_ucs4_to_zh_tw } ,
 	{ "zh" , "HK" , mkf_map_ucs4_to_zh_hk } ,
-	{ "zh" , NULL , mkf_map_ucs4_to_zh_cn } ,
+	{ "zh" , "TW" , mkf_map_ucs4_to_zh_tw } ,
+	{ "zh" , NULL , mkf_map_ucs4_to_zh_tw } ,
 } ;
 
 

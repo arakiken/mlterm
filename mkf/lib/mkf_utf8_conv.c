@@ -68,7 +68,8 @@ convert_to_utf8(
 					(ch.ch[1] & 0x00ff) ;
 			}
 			
-			if( 0x00 <= ucs_ch && ucs_ch <= 0x7f)
+			/* ucs_ch is unsigned */
+			if( /* 0x00 <= ucs_ch && */ ucs_ch <= 0x7f)
 			{
 				/* encoded to 8 bit */
 				

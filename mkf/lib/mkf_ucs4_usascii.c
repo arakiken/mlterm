@@ -35,7 +35,7 @@ mkf_map_ucs4_to_us_ascii(
 	u_int32_t  ucs4_code
 	)
 {
-	if( ! (0x00 <= ucs4_code && ucs4_code <= 0x7f))
+	if( !(/* 0x0 <= ucs4_code && */ ucs4_code <= 0x7f))
 	{
 		return  0 ;
 	}

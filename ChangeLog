@@ -1,3 +1,9 @@
+2005-10-31 MINAMI Hirokazu  <minami@mistfall.net>
+
+	* mkf/lib/mlf_locale_to_ucs4.c: minor code cleanup.
+	- K_MIN is no longer used here.
+	- sorted candidates alphabetically.
+
 2005-10-30  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* doc/term/mlterm.t[ic]:
