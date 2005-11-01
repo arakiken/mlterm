@@ -246,6 +246,30 @@ read_conf(
 	return  1 ;
 }
 
+static int
+is_valid_format(
+	char *  format
+	)
+{
+	char *  p;
+
+	if( p = strchr( format, '%'))
+	{
+		/* '%' can happen only once at most */
+		if( p != strrchr( format, '%'))
+		{
+			return  0 ;
+		}
+
+		/* force to be '%d' */
+		if( p[1] != 'd')
+		{
+			return  0 ;
+		}
+	}
+
+	return 1;
+}
 
 /* --- global functions --- */
 
@@ -622,6 +646,11 @@ x_get_config_font_name(
 		return  NULL ;
 	}
 
+	if( !is_valid_format( fa_pair->value))
+	{
+		return  NULL ;
+	}
+
 	/* -2 is for "%d" */
 	if( ( font_name = malloc( strlen( fa_pair->value) - 2 + DIGIT_STR_LEN(font_size) + 1)) == NULL)
 	{
@@ -684,9 +713,12 @@ x_get_all_config_font_names(
 
 	for( count = 0 ; count < d_size ; count ++)
 	{
-		sprintf( p , d_array[count]->value , font_size) ;
-		p += strlen( p) ;
-		*(p ++) = ',' ;
+		if( is_valid_format( d_array[count]->value))
+		{
+			sprintf( p , d_array[count]->value , font_size) ;
+			p += strlen( p) ;
+			*(p ++) = ',' ;
+		}
 	}
 
 	*(p - 1) = '\0' ;

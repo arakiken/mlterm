@@ -1,3 +1,8 @@
+2005-11-01  MIANMI Hirokazu <minami@mistfall.net>
+
+	* xwindow/x_font_config.c: added sanity checks for
+	fontname templates.
+
 2005-10-31 MINAMI Hirokazu  <minami@mistfall.net>
 
 	* mkf/lib/mlf_locale_to_ucs4.c: minor code cleanup.
