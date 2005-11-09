@@ -475,7 +475,8 @@ candidate_update(
 	}
 
 	if( ! (*scim->im.cand_screen->init)( scim->im.cand_screen ,
-					     num_of_candiate , 10)) /* 16? */
+					     num_of_candiate ,
+					     num_of_candiate))
 	{
 		(*scim->im.cand_screen->delete)( scim->im.cand_screen) ;
 		scim->im.cand_screen = NULL ;

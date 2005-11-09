@@ -1,3 +1,8 @@
+2005-11-10  Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/scim/im_scim_1.4.cpp: new file
+	* inputmethod/scim/im_scim_1.0.cpp: removed
+
 2005-11-01  MIANMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_font_config.c: added sanity checks for
