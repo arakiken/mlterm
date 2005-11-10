@@ -1,3 +1,13 @@
+2005-11-01  MIANMI Hirokazu <minami@mistfall.net>
+
+	* kiklib/configure.in, kiklib/src/kik_pty_streams.c:
+	use posix_openpt() instead of open(/dev/ptmx", ...) whenever possible.
+	
+	# according to IEEE Std 1003.1-2001, the name of a device to clone
+	master pseudo-terminals can be other than /dev/ptmx.
+
+	* kiklib/configure: regenerated.
+
 2005-11-10  Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/scim/im_scim_1.4.cpp: new file

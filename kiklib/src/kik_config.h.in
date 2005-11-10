@@ -61,6 +61,8 @@
 
 #undef  HAVE_FLOCK
 
+#undef  HAVE_POSIX_OPENPT
+
 #undef  PTY_STREAMS
 
 #undef  PTY_BSD

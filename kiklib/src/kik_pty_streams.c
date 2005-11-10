@@ -65,9 +65,14 @@ kik_pty_fork(
 	struct  termios  tio ;
 	int fd;
 
-	if( ( *master = open("/dev/ptmx", O_RDWR | O_NOCTTY, 0)) == -1)
+#ifdef  HAVE_POSIX_OPENPT 
+	*master = posix_openpt( O_RDWR | O_NOCTTY);
+#else
+	*master = open( "dev/ptmx", O_RDWR | O_NOCTTY, 0);
+#endif
+	if( *master  < 0)
 	{
-		kik_msg_printf( "Unable to open /dev/ptmx\n") ;
+		kik_msg_printf( "Unable to open a master pseudo-terminal device.\n") ;
 		return  -1;
 	}
 	/*
@@ -91,10 +96,10 @@ kik_pty_fork(
 	}
 	if( ( ttydev = ptsname(*master)) == NULL)
 	{
-		kik_msg_printf( "Unable to open slave pseudo-terminal device\n") ;
+		kik_msg_printf( "Unable to open a slave pseudo-terminal device.\n") ;
 #ifdef  __linux__
 		kik_msg_printf( "If your operating system is Linux, make sure your kernel was compiled with\n"
-			        "'CONFIG_UNIX98_PTYS=y' and devpts file system was mounted\n");
+			        "'CONFIG_UNIX98_PTYS=y' and devpts file system was mounted.\n");
 #endif
 		return  -1;
 	}

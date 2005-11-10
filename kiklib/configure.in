@@ -249,11 +249,15 @@ AC_CACHE_VAL(kik_cv_pty,
 	if test "$kik_cv_mingw32" = yes ; then
 		kik_cv_pty=win32
 	else
-		if test -c /dev/ptmx ; then
-			kik_cv_pty=streams
-		else
-			kik_cv_pty=bsd
-		fi
+		AC_CHECK_FUNC( posix_openpt,
+			AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
+			kik_cv_pty=streams,
+			if test -c /dev/ptmx ; then
+				kik_cv_pty=streams
+			else
+				kik_cv_pty=bsd
+			fi
+		)
 	fi])
 AC_MSG_RESULT($kik_cv_pty)
 PTY_NAME="${kik_cv_pty}"
