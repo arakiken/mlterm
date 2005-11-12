@@ -1,5 +1,5 @@
 //
-// im_scim_1.2.cpp - SCIM plugin for mlterm (c++ part)
+// im_scim_1.4.cpp - SCIM plugin for mlterm (c++ part)
 //
 // Copyright (C) 2005 Seiichi SATO <ssato@sh.rim.or.jp>
 //
@@ -302,7 +302,9 @@ cb_prop_register(
 
 	if( context && panel_client.is_connected())
 	{
+		panel_client.prepare( context->id) ;
 		panel_client.register_properties( context->id , props) ;
+		panel_client.send() ;
 	}
 }
 
@@ -318,7 +320,9 @@ cb_prop_update(
 
 	if( context && panel_client.is_connected())
 	{
+		panel_client.prepare( context->id) ;
 		panel_client.update_property( context->id , prop) ;
+		panel_client.send() ;
 	}
 }
 
@@ -328,12 +332,16 @@ set_callbacks(
 	)
 {
 	context->instance->signal_connect_commit_string( slot( cb_commit)) ;
+
 	context->instance->signal_connect_update_preedit_string( slot( cb_preedit_update)) ;
 	context->instance->signal_connect_hide_preedit_string( slot( cb_preedit_hide)) ;
+
 	context->instance->signal_connect_update_preedit_caret( slot( cb_preedit_caret)) ;
+
 	context->instance->signal_connect_update_lookup_table( slot( cb_lookup_update)) ;
 	context->instance->signal_connect_show_lookup_table( slot( cb_lookup_show)) ;
 	context->instance->signal_connect_hide_lookup_table( slot( cb_lookup_hide)) ;
+
 	context->instance->signal_connect_register_properties( slot( cb_prop_register)) ;
 	context->instance->signal_connect_update_property( slot( cb_prop_update)) ;
 
@@ -346,7 +354,9 @@ set_callbacks(
 //
 
 static void
-cb_panel_request_factory_menu( int  id)
+cb_panel_request_factory_menu(
+	int  id
+	)
 {
 	im_scim_context_private_t *  context ;
 	std::vector<IMEngineFactoryPointer>  factories ;
@@ -371,7 +381,9 @@ cb_panel_request_factory_menu( int  id)
 }
 
 static void
-cb_panel_request_help( int  id)
+cb_panel_request_help(
+	int  id
+	)
 {
 	im_scim_context_private_t *  context ;
 	String  desc ;
@@ -395,7 +407,10 @@ cb_panel_request_help( int  id)
 }
 
 static void
-cb_panel_change_factory( int  id , const String &  uuid)
+cb_panel_change_factory(
+	int  id ,
+	const String &  uuid
+	)
 {
 	im_scim_context_private_t *  context ;
 	IMEngineFactoryPointer  factory ;
@@ -432,6 +447,21 @@ cb_panel_change_factory( int  id , const String &  uuid)
 	panel_client.update_factory_info( id, info) ;
 	panel_client.send() ;
 	context->instance->focus_in() ;
+}
+
+static void
+cb_panel_trigger_property(
+	int  id ,
+	const String &  prop
+	)
+{
+	im_scim_context_private_t *  context ;
+
+	context = id_to_context( id) ;
+
+	panel_client.prepare( id) ;
+	context->instance->trigger_property( prop);
+	panel_client.send() ;
 }
 
 
@@ -524,6 +554,8 @@ im_scim_initialize( char *  locale)
 	panel_client.signal_connect_request_factory_menu( slot (cb_panel_request_factory_menu));
 	panel_client.signal_connect_request_help( slot (cb_panel_request_help)) ;
 	panel_client.signal_connect_change_factory( slot (cb_panel_change_factory)) ;
+
+	panel_client.signal_connect_trigger_property( slot (cb_panel_trigger_property)) ;
 
 	if (panel_client.open_connection( config->get_name() , getenv( "DISPLAY")) == false)
 	{

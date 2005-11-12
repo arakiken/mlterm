@@ -1,4 +1,8 @@
-2005-11-01  MIANMI Hirokazu <minami@mistfall.net>
+2005-11-12  Seiichi SATO <ssato@sh.rim.or.jp>
+
+	* inputmethod/scim/im_scim_1.4.cpp: allowed to switch property.
+
+2005-11-11  MIANMI Hirokazu <minami@mistfall.net>
 
 	* kiklib/configure.in, kiklib/src/kik_pty_streams.c:
 	use posix_openpt() instead of open(/dev/ptmx", ...) whenever possible.
