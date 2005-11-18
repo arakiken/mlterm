@@ -26,7 +26,7 @@ static const char *  color_name_table[] =
 
 static const char color_name_error[]="(error)";
 
-struct termios _oldtio;
+static struct termios oldtio;
 
 /*
  * communication functions
@@ -380,8 +380,8 @@ void window_clear(window_t * window){
 
 int termios_init(){
 	struct termios newtio;
-	tcgetattr(0, &_oldtio);
-	newtio = _oldtio;
+	tcgetattr(0, &oldtio);
+	newtio = oldtio;
 	newtio.c_lflag &= ~ICANON;
 	newtio.c_lflag &= ~ECHO;
 	newtio.c_cc[VMIN] = 1;
@@ -391,7 +391,7 @@ int termios_init(){
 }
 
 int termios_final(){
-	tcsetattr(0, TCSAFLUSH, &_oldtio);
+	tcsetattr(0, TCSAFLUSH, &oldtio);
 	return 0;
 }
 

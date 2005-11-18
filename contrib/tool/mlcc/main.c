@@ -27,9 +27,9 @@ typedef struct {
  */
 
 /* must be global to be changed by signal handler */
-static int _cols;
-static int _rows;
-static int _redraw_all = 0;
+static int cols;
+static int rows;
+static int redraw_all = 0;
 
 
 section_t * current_section(config_data_t *data);
@@ -54,7 +54,7 @@ int init_data(config_data_t *data);
  */
 
 /* recover terminal settings and die gracefully */
-static void _finalize(void){
+static void finalize(void){
 	termios_final();
 	unset_altscr();
 	unset_keypad();
@@ -67,13 +67,13 @@ static void _finalize(void){
  *  signal handler
  */
 
-static void _signal_int(int signo){
-	_finalize();
+static void signal_int(int signo){
+	finalize();
 }
 
-static void _signal_winch(int signo){
-	term_size(&_cols, &_rows);
-	_redraw_all = 1; /* do not redraw immediately to avoid overload */
+static void signal_winch(int signo){
+	term_size(&cols, &rows);
+	redraw_all = 1; /* do not redraw immediately to avoid overload */
 }
 
 /*
@@ -365,9 +365,9 @@ int main(int argc, char **argv){
 	sigaddset(&act.sa_mask,SIGINT | SIGWINCH);
 	act.sa_flags = SA_RESTART;
 
-	act.sa_handler = _signal_int;
+	act.sa_handler = signal_int;
 	sigaction(SIGINT, &act, 0);
-	act.sa_handler = _signal_winch;
+	act.sa_handler = signal_winch;
 	sigaction(SIGWINCH, &act, 0);
 
 	cursor_hide();
@@ -376,16 +376,16 @@ int main(int argc, char **argv){
 	termios_init();
 
 	init_data(&data);
-	term_size(&_cols, &_rows);
-	_redraw_all = 1;
+	term_size(&cols, &rows);
+	redraw_all = 1;
 	while(1){
-		if (_redraw_all){
-			_redraw_all = 0;
+		if (redraw_all){
+			redraw_all = 0;
 			window_free(win_section);
 			window_free(win_entry);
 			window_free(win_root);
 
-			win_root = window_new(0, 0, _cols-1, _rows-1, 0, 0);
+			win_root = window_new(0, 0, cols-1, rows-1, 0, 0);
 			window_clear(win_root);
 
 			win_section = section_window_new(win_root, &data);
@@ -422,7 +422,7 @@ int main(int argc, char **argv){
 				goto FIN;
 			case -1:
 				data.state = DS_SELECT;
-				_redraw_all = 1;
+				redraw_all = 1;
 			}
 			break;
 		}
@@ -432,7 +432,7 @@ CANCEL:
 	data_reset(&data);
 FIN:
 	data_free(&data); /* destruct date tree. segv should be caught here if there are bugs*/
-	_finalize(); /*recover terminal setting*/
+	finalize(); /*recover terminal setting*/
 	return 0;
 }
 

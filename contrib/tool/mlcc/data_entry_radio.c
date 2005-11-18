@@ -33,7 +33,7 @@ int entry_radio_edit(window_t *window, entry_t *entry, int x, int y){
 	}
 }
 
-static int _which_one(char *str, char **terms){
+static int get_sel(char *str, char **terms){
 	int i = 0;
 	if (!str)
 		return 0;
@@ -80,7 +80,7 @@ entry_radio_t *entry_radio_new(const char *key, const char *terms){
 	}
 	entry->term[0] = strdup(src);
 	free(src);
-	entry->initial = _which_one(mlterm_get_param(key), entry->term);
+	entry->initial = get_sel(mlterm_get_param(key), entry->term);
 	entry->current = entry->initial;
 	return entry;
 }

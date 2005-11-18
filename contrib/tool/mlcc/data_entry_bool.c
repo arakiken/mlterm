@@ -4,7 +4,7 @@
 #include "data.h"
 #include "data_entry_bool.h"
 
-static int _is_true(const char *str){
+static int is_true(const char *str){
 	if (!str)
 		return 0;
 
@@ -28,7 +28,7 @@ entry_bool_t *entry_bool_new(const char *key){
 	entry_bool_t *entry;
 	
 	entry = malloc(sizeof(entry_bool_t));
-	entry->initial = _is_true(mlterm_get_param(key));
+	entry->initial = is_true(mlterm_get_param(key));
 	entry->current = entry->initial;;
 	return entry;
 }
