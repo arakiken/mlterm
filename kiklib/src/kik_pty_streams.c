@@ -68,7 +68,7 @@ kik_pty_fork(
 #ifdef  HAVE_POSIX_OPENPT 
 	*master = posix_openpt( O_RDWR | O_NOCTTY);
 #else
-	*master = open( "dev/ptmx", O_RDWR | O_NOCTTY, 0);
+	*master = open( "/dev/ptmx", O_RDWR | O_NOCTTY, 0);
 #endif
 	if( *master  < 0)
 	{

@@ -1,3 +1,7 @@
+2005-11-21  MINAMI Hirokazu <minami@mistfall.net>
+
+	* kiklib/src/kik_pty_streams.c: fixed typo.
+
 2005-11-12  Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* inputmethod/scim/im_scim_1.4.cpp: allowed to switch property.
