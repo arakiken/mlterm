@@ -22,7 +22,7 @@ version 20030301
                      scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | cursor_fg_color |
                      cursor_bg_color | open_pty | open_screen | select_pty |
-                     snapshot | gen_proto_challenge | icon_path
+                     snapshot | gen_proto_challenge | icon_path | logging_vt_seq
   get key          = encoding | is_auto_encoding | fg_color | bg_color |
                      tabsize | logsize | fontsize | fade_ratio | mod_meta_key |
                      mod_meta_mode | bel_mode | use_anti_alias |
@@ -34,7 +34,7 @@ version 20030301
                      scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | rows | cols |
                      cursor_fg_color | cursor_bg_color | pty_list | pty_name
-		     icon_path
+		     icon_path | logging_vt_seq
 
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
@@ -92,6 +92,7 @@ version 20030301
   use_variable_column_width = true | false
   vertical_mode = none | cjk | mongol
   wall_picture = <file path>
+  logging_vt_seq = true | false
 
 * Note
   o Encoding names are regularized , that is , `-' , `_' are removed , and only

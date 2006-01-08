@@ -310,11 +310,12 @@ ml_term_init_encoding_conv(
 }
 
 int
-ml_term_enable_logging_vt_seq(
-	ml_term_t *  term
+ml_term_set_logging_vt_seq(
+	ml_term_t *  term ,
+	int  flag
 	)
 {
-	return  ml_vt100_parser_enable_logging_vt_seq( term->parser) ;
+	return  ml_vt100_parser_set_logging_vt_seq( term->parser , flag) ;
 }
 
 int

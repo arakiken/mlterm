@@ -4847,6 +4847,25 @@ set_config(
 	{
 		change_icon( screen, value) ;
 	}
+	else if( strcmp( key , "logging_vt_seq") == 0)
+	{
+		int  flag ;
+
+		if( strcmp( value , true) == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return ;
+		}
+
+		ml_term_set_logging_vt_seq( screen->term , flag) ;
+	}
 }
 
 static void
@@ -5212,6 +5231,17 @@ get_config(
 	else if( strcmp( key , "icon_path") == 0)
 	{
 		value = ml_term_icon_path( term) ;
+	}
+	else if( strcmp( key , "logging_vt_seq") == 0)
+	{
+		if( term->parser->logging_vt_seq)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
 	}
 
 	if( value == NULL)

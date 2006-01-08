@@ -173,7 +173,7 @@ create_term_intern(void)
 
 	if( main_config.logging_vt_seq)
 	{
-		ml_term_enable_logging_vt_seq( term) ;
+		ml_term_set_logging_vt_seq( term , main_config.logging_vt_seq) ;
 	}
 
 	return  term ;

@@ -173,7 +173,7 @@ receive_bytes(
 			}
 
 			if( ( vt100_parser->log_file =
-				open( path , O_CREAT | O_TRUNC | O_WRONLY , 0600)) == -1)
+				open( path , O_CREAT | O_APPEND | O_WRONLY , 0600)) == -1)
 			{
 				free( path) ;
 
@@ -187,7 +187,12 @@ receive_bytes(
 	#if  1
 		fsync( vt100_parser->log_file) ;
 	#endif
-	}
+	} else {
+		if ( vt100_parser->log_file != -1) {
+			close( vt100_parser->log_file) ;
+			vt100_parser->log_file = -1;
+		}
+        }
 
 end:
 	vt100_parser->len = ( vt100_parser->left += ret) ;
@@ -2888,11 +2893,12 @@ ml_init_encoding_conv(
 }
 
 int
-ml_vt100_parser_enable_logging_vt_seq(
-	ml_vt100_parser_t *  vt100_parser
+ml_vt100_parser_set_logging_vt_seq(
+        ml_vt100_parser_t *  vt100_parser ,
+        int  flag
 	)
 {
-	vt100_parser->logging_vt_seq = 1 ;
+	vt100_parser->logging_vt_seq = flag ;
 
 	return  1 ;
 }

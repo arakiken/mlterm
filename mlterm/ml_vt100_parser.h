@@ -152,7 +152,7 @@ int  ml_init_encoding_parser( ml_vt100_parser_t *  vt100_parser) ;
 
 int  ml_init_encoding_conv( ml_vt100_parser_t *  vt100_parser) ;
 
-int  ml_vt100_parser_enable_logging_vt_seq( ml_vt100_parser_t *  vt100_parser) ;
+int  ml_vt100_parser_set_logging_vt_seq( ml_vt100_parser_t *  vt100_parser , int  size) ;
 
 
 #endif

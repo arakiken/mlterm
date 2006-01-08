@@ -1,3 +1,20 @@
+2006-01-08  KATO Kazuyoshi  <kzys@8-p.info>
+
+	* doc/en/PROTOCOL: added "logging_vt_seq" to configuration protocol.
+
+	* xwindow/x_screen.c (set_config),
+	  xwindow/x_screen.c (get_config): added logging_vt_seq.
+
+	* mlterm/ml_term.c (ml_term_set_logging_vt_seq),
+	  xwindow/x_term_manager.c (create_term_intern):
+	use ml_term_set_logging_vt_seq instead of ml_term_enable_logging_vt_seq.
+
+	* mlterm/ml_vt100_parser.h,
+	  mlterm/ml_vt100_parser.c (ml_vt100_parser_set_logging_vt_seq):
+	use ml_vt100_parser_set_logging_vt_seq instead of ml_vt100_parser_enable_logging_vt_seq.
+
+	* mlterm/ml_vt100_parser.c (receive_bytes): changed to be more compatible with xterm.
+
 2005-11-12  Seiichi SATO <ssato@sh.rim.or.jp>
 
 	* xwindow/version.h.in: 2.9.2 post -> 2.9.3 pre
@@ -107,7 +124,7 @@
 2005-09-19 MINAMI Hirokazu <minami@mistfall.net>
 	
 	* kiklib/src/kik_conf_io.c: added a debugging feature.
-	The user configuration directory can be overridden using CONF_DIR.
+	The user configurtaion directory can be overridden using CONF_DIR.
 
 2005-09-18 MINAMI Hirokazu <minami@mistfall.net>
 
