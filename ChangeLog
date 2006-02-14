@@ -1,3 +1,8 @@
+2006-02-06 MINAMI Hirokazu  <minami@mistfall.net>
+
+	* xwindow/x_window.c: Don't trust the value of 'property' from
+	a selection requester. Some outdated client may fill 'None' to it.
+
 2006-01-08  KATO Kazuyoshi  <kzys@8-p.info>
 
 	* doc/en/PROTOCOL: added "logging_vt_seq" to configuration protocol.

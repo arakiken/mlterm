@@ -2845,9 +2845,18 @@ x_window_send_selection(
 	}
 	else
 	{
-		XChangeProperty( win->display , req_ev->requestor ,
-			req_ev->property , sel_type ,
-			8 , PropModeReplace , sel_str , sel_len) ;
+		if( req_ev->property == None)
+		{
+			/* An obsolete client may fill None as a property.
+			 * Try to deal with them by using 'target' instead.
+			 */
+			req_ev->property = req_ev->target;
+		}
+		if( req_ev->property != None){
+			XChangeProperty( win->display , req_ev->requestor ,
+				req_ev->property , sel_type ,
+				8 , PropModeReplace , sel_str , sel_len) ;
+		}
 		res_ev.xselection.property = req_ev->property ;
 	}
 
