@@ -524,6 +524,9 @@ set_xft_font(
 
 font_found:
 
+#ifdef FC_EMBOLDEN /* Synthetic emboldening (fontconfig >= 2.3.0) */
+	font->is_double_drawing = 0 ;
+#else
 	if( weight == XFT_WEIGHT_BOLD &&
 		XftPatternGetInteger( xfont->pattern , XFT_WEIGHT , 0 , &weight) == XftResultMatch &&
 		weight != XFT_WEIGHT_BOLD)
@@ -534,6 +537,7 @@ font_found:
 	{
 		font->is_double_drawing = 0 ;
 	}
+#endif
 
 	font->xft_font = xfont ;
 

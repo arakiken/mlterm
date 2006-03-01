@@ -1,3 +1,9 @@
+2006-03-01 Seiichi SATO <me@seiichisato.jp>
+
+	* xwindow/x_font.c (set_xft_font): added workaround for Debian Bug
+	  #350590.
+	# The latest fontconfig (>= 2.3.0?) has 'Synthetic emboldening'.
+
 2006-02-06 MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_window.c: Don't trust the value of 'property' from
