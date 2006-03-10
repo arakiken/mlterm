@@ -1,10 +1,20 @@
-2006-03-01 Seiichi SATO <me@seiichisato.jp>
+2006-03-10  MINAMI Hirokazu <mianmi@mistfall.net>
+	
+	* configure.in: allow pkg-config to be a wrapper script
+	for happy cross-compiling.
+
+	* tool/cross/cross-pkg-config: (NEW) a sample wrapper
+	to make pkg-config search only under
+	 /usr/$PKG_CONFIG_CROSS_TARGET/lib/pkgconfig
+	, where recent dpkg-cross places converted config files (*.pc).
+
+2006-03-01  Seiichi SATO <me@seiichisato.jp>
 
 	* xwindow/x_font.c (set_xft_font): added workaround for Debian Bug
 	  #350590.
 	# The latest fontconfig (>= 2.3.0?) has 'Synthetic emboldening'.
 
-2006-02-06 MINAMI Hirokazu  <minami@mistfall.net>
+2006-02-06  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_window.c: Don't trust the value of 'property' from
 	a selection requester. Some outdated client may fill 'None' to it.

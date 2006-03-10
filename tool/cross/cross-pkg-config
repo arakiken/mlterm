@@ -1,0 +1,7 @@
+#!/bin/sh
+#env > /tmp/pkg-config-cross-debug.$$
+
+PKG_CONFIG_ORIG=/usr/bin/pkg-config
+
+PKG_CONFIG_LIBDIR=/usr/$PKG_CONFIG_CROSS_TARGET/lib/pkgconfig $PKG_CONFIG_ORIG $@
+

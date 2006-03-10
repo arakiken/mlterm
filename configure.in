@@ -24,6 +24,20 @@ AC_SUBST(KIK_CFLAGS)
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
+dnl For cross-compile,  
+dnl PKG_CONFIG must be overridden by a full path to pkg-config
+dnl but AC_PATH_TOOL does not exist in autoconf 2.13.
+dnl Try to find something usable by AC_PATH_PROG for now.
+dnl The ugly part should be replaced by:
+dnl  AC_PATH_TOOL(PKG_CONFIG, pkg-config)
+
+if test x"${build}" != x"${host}"; then
+	export PKG_CONFIG_CROSS_TARGET=$target_alias
+	AC_CHECK_TOOL(CC, gcc)
+	AC_CHECK_TOOL(PKG_CONFIG, pkg-config)
+	AC_PATH_PROG(PKG_CONFIG, $PKG_CONFIG, :)
+fi
+
 AC_PROG_CC
 AC_PROG_INSTALL
 
@@ -220,7 +234,7 @@ AC_SUBST(INSTALL_OPT)
 PKG_CHECK_MODULES(GTK, gtk+-2.0, have_gtk2=yes, have_gtk2=no)
 if test "$have_gtk2" = "yes" ; then
 	gtk_config=yes
-	GTK_CONFIG="pkg-config gtk+-2.0"
+	GTK_CONFIG="$PKG_CONFIG gtk+-2.0"
 else
 	AC_CHECK_PROG(gtk_config,gtk-config,yes)
 	if test "$gtk_config" = "yes" ; then
