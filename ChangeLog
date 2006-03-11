@@ -1,3 +1,7 @@
+2006-03-12  MINAMI Hirokazu <minami@mistfall.net>
+
+	* configure.in: try to trick pkg-config in the right manner.
+
 2006-03-10  MINAMI Hirokazu <mianmi@mistfall.net>
 	
 	* configure.in: allow pkg-config to be a wrapper script

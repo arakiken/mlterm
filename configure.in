@@ -32,10 +32,19 @@ dnl The ugly part should be replaced by:
 dnl  AC_PATH_TOOL(PKG_CONFIG, pkg-config)
 
 if test x"${build}" != x"${host}"; then
-	export PKG_CONFIG_CROSS_TARGET=$target_alias
 	AC_CHECK_TOOL(CC, gcc)
-	AC_CHECK_TOOL(PKG_CONFIG, pkg-config)
-	AC_PATH_PROG(PKG_CONFIG, $PKG_CONFIG, :)
+	AC_CHECK_TOOL(AR, ar)
+	AC_CHECK_TOOL(RANLIB, ranlib)
+	AC_CHECK_TOOL(LD, ld)
+	if test -d "/usr/$target_alias/lib/pkgconfig"; then
+		PKG_CONFIG_LIBDIR="/usr/$target_alias/lib/pkgconfig"
+		export PKG_CONFIG_LIBDIR
+	else
+	        PKG_CONFIG_CROSS_TARGET=$target_alias
+	        export PKG_CONFIG_CROSS_TARGET
+		AC_CHECK_TOOL(PKG_CONFIG, pkg-config)
+		AC_PATH_PROG(PKG_CONFIG, $PKG_CONFIG, :)
+	fi
 fi
 
 AC_PROG_CC
