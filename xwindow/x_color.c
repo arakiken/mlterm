@@ -4,7 +4,7 @@
 
 #include  "x_color.h"
 
-#include  <string.h>		/* memcpy */
+#include  <string.h>		/* memcpy,strcmp */
 #include  <stdio.h>		/* sscanf */
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
@@ -114,7 +114,7 @@ alloc_closest_xcolor_pseudo(
 }
 
 static int
-is_rgb_color_name(
+parse_rgb_color_name(
 	u_short *  red ,
 	u_short *  green ,
 	u_short *  blue ,
@@ -126,19 +126,30 @@ is_rgb_color_name(
 		u_int  _red ;
 		u_int  _green ;
 		u_int  _blue ;
+
+		name++;
 		
-		if( strlen( name + 1) == 6 &&
-			sscanf( name + 1 , "%2x%2x%2x" , &_red , &_green , &_blue) == 3)
+		if( strlen( name) == 6 &&
+			sscanf( name, "%2x%2x%2x" , &_red , &_green , &_blue) == 3)
 		{
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " %x %x %x\n" , _red , _green , _blue) ;
 		#endif
 
-			*red = _red << 8 ;
-			*green = _green << 8 ;
-			*blue = _blue << 8 ;
+			*red = (_red << 8) + _red;
+			*green = (_green << 8) + _green ;
+			*blue = (_blue << 8) + _blue ;
 			
 			return  1 ;
+		}
+		else if( (strlen( name) == 12) &&
+			(sscanf( name, "%4x%4x%4x" , &_red , &_green , &_blue) == 3) )
+		{
+			*red = _red ;
+			*green = _green ;
+			*blue = _blue ;
+
+			return 1;
 		}
 	}
 	
@@ -162,7 +173,7 @@ x_load_named_xcolor(
 	u_short  green ;
 	u_short  blue ;
 	
-	if( is_rgb_color_name( &red , &green , &blue , name))
+	if( parse_rgb_color_name( &red , &green , &blue , name))
 	{
 		return  x_load_rgb_xcolor( display , screen , xcolor , red , green , blue) ;
 	}
@@ -179,6 +190,21 @@ x_load_named_xcolor(
 			return  alloc_closest_xcolor_pseudo( display , screen ,
 					exact.red , exact.green , exact.blue ,
 					xcolor) ;
+		}
+		else
+		{
+			/* fallback to sane defaults */
+			if( strcmp( name, "white") == 0)
+			{
+				return  x_load_rgb_xcolor( display, screen, xcolor,
+						0xFFFF,
+						0xFFFF,
+						0xFFFF) ;
+			}
+			else if ( strcmp( name, "black") == 0)
+			{
+				return  x_load_rgb_xcolor( display, screen, xcolor, 0,0,0) ;
+			}
 		}
 
 		return 0 ;
@@ -261,7 +287,7 @@ x_load_named_xcolor(
 	u_short  green ;
 	u_short  blue ;
 	
-	if( is_rgb_color_name( &red , &green , &blue , name))
+	if( parse_rgb_color_name( &red , &green , &blue , name))
 	{
 		return  x_load_rgb_xcolor( display , screen , xcolor , red , green , blue) ;
 	}

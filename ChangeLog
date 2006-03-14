@@ -3,6 +3,9 @@
 	* xwindow/x_screen.c: set PATH_MAX if it's not already defined
 	in limits.h.
 
+	* xwindow/x_color.c: added fallbacks for "black"/"white"
+        i.e. don't die even if rgb.txt was missing.
+
 2006-03-12  MINAMI Hirokazu <minami@mistfall.net>
 
 	* configure.in: try to trick pkg-config in the right manner.
