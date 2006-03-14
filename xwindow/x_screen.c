@@ -8,6 +8,12 @@
 #include  <stdio.h>		/* sprintf */
 #include  <unistd.h>            /* getcwd */
 #include  <limits.h>            /* PATH_MAX */
+#ifndef PATH_MAX
+#ifndef _POSIX_PATH_MAX
+# define _POSIX_PATH_MAX 255
+#endif
+#define PATH_MAX _POSIX_PATH_MAX
+#endif
 #include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
@@ -5195,7 +5201,7 @@ get_config(
 	}
 	else if( strcmp( key , "pwd") == 0)
 	{
-		value = getcwd( cwd , PATH_MAX) ;
+		value = getcwd( cwd , sizeof(cwd)) ;
 	}
 	else if( strcmp( key , "rows") == 0)
 	{
