@@ -1,3 +1,7 @@
+2006-03-15  MINAMI Hirokazu <minami@mistfall.net>
+
+	* kklib/configure.in: POSIX_OPENPT shoukd be chacked unconditionally.
+
 2006-03-14  MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_screen.c: set PATH_MAX if it's not already defined
