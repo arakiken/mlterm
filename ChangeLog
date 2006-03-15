@@ -1,6 +1,8 @@
 2006-03-15  MINAMI Hirokazu <minami@mistfall.net>
 
-	* kklib/configure.in: POSIX_OPENPT shoukd be chacked unconditionally.
+	* kiklib/configure.in: POSIX_OPENPT shoukd be chacked unconditionally.
+	* configure.in: use literals for AC_CONFIG_SUBDIRS() to make 
+	./configure --help=recursive work witj autoconf 2.5x.
 
 2006-03-14  MINAMI Hirokazu <minami@mistfall.net>
 

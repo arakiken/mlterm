@@ -685,7 +685,7 @@ AC_SUBST(CVS_REVISION)
 OUTPUT_FILES="xwindow/version.h ${OUTPUT_FILES}"
 
 if test "${SUBDIRS}" != "" ; then
-	AC_CONFIG_SUBDIRS(${SUBDIRS})
+	AC_CONFIG_SUBDIRS(kiklib, mkf)
 fi
 
 if test "${MAKE_DIRS}" != "" ; then
