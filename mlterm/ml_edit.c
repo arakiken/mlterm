@@ -1049,35 +1049,56 @@ ml_edit_set_scroll_region(
 	int  end
 	)
 {
-	if( 0 > beg)
+	/*
+	 * for compatibility with xterm:
+	 *
+	 *   1. if beg and end is -1, use default.
+	 *   2. if beg and end are smaller than 0, ignore the sequence.
+	 *   3. if end is smaller than beg, ignore the sequence.
+	 *   4. if beg and end are out of window, ignore the sequence.
+	 *   5. finally reset cursor position.
+	 *
+	 *   (default = full size of window)
+	 */
+
+	if ( beg == -1)
 	{
-		beg = 0 ;
-	}
-	else if( beg >= edit->model.num_of_rows)
-	{
-		beg = ml_model_end_row( &edit->model) ;
+		beg = 0;
 	}
 
-	if( 0 > end)
-	{
-		end = 0 ;
-	}
-	else if( end >= edit->model.num_of_rows)
+	if ( end == -1)
 	{
 		end = ml_model_end_row( &edit->model) ;
 	}
 
-	if( beg > end)
+	if ( beg < 0 || end < 0)
 	{
-		/* illegal */
-		
 		return  0 ;
+	}
+
+	if ( beg > end)
+	{
+		return  0 ;
+	}
+
+	if ( beg >= edit->model.num_of_rows && end >= edit-> model.num_of_rows)
+	{
+		return  0 ;
+	}
+
+	if( beg >= edit->model.num_of_rows)
+	{
+		beg = ml_model_end_row( &edit->model) ;
+	}
+
+	if( end >= edit->model.num_of_rows)
+	{
+		end = ml_model_end_row( &edit->model) ;
 	}
 
 	edit->scroll_region_beg = beg ;
 	edit->scroll_region_end = end ;
 
-	/* cursor position is reset(the same behavior of xterm 4.0.3, kterm 6.2.0 or so) */
 	ml_edit_goto( edit , 0 , 0) ;
 
 	return  1 ;

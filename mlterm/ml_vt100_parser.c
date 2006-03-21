@@ -1947,19 +1947,6 @@ parse_vt100_escape_sequence(
 						
 						if( num == 2)
 						{
-							/*
-							 * in case 0 is used.
-							 */
-							if( ps[0] == 0)
-							{
-								ps[0] = 1 ;
-							}
-
-							if( ps[1] == 0)
-							{
-								ps[1] = 1 ;
-							}
-
 							ml_screen_set_scroll_region(
 								vt100_parser->screen ,
 								ps[0] - 1 , ps[1] - 1) ;
