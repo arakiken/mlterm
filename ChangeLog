@@ -1,10 +1,14 @@
+2006-04-05  Seiichi SATO  <me@seiichisato.jp>
+
+	* mkf/lib/mkf_iso2022_parser.c (parse_escape): fixed typo.
+
 2006-03-21  Seiichi SATO <me@seiichisato.jp>
 
 	* mlterm/ml_edit.c (ml_edit_set_scroll_region): changed to be more
 	compatibile with xterm. (ESC [ Ps ; Ps r)
 
-	* mlterm/ml_vt100_parser.c (): removed checks for ps[0] and ps[1] for
-	ml_screen_set_scroll_region().
+	* mlterm/ml_vt100_parser.c (parse_vt100_escape_sequence): removed
+	checks for ps[0] and ps[1] for ml_screen_set_scroll_region().
 
 2006-03-15  MINAMI Hirokazu <minami@mistfall.net>
 

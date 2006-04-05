@@ -428,7 +428,7 @@ parse_escape(
 				}
 				else if( to_GN == CS94_TO_G3)
 				{
-					iso2022_parser->g2 = get_charset( ft , is_mb , 94 , rev) ;
+					iso2022_parser->g3 = get_charset( ft , is_mb , 94 , rev) ;
 				}
 				else if( to_GN == CS96_TO_G1)
 				{
