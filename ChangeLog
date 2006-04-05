@@ -4,6 +4,12 @@
 
 	* aclocal.m4 (PKG_CHECK_MODULES): added AC_MSG_RESULT(no).
 
+	* mkf/script/config.guess, kiklib/script/config.guess,
+	  script/config.guess: updated (timestamp='2005-08-03')
+
+	* mkf/script/config.sub, kiklib/script/config.sub,
+	  script/config.sub: updated (timestamp='2005-07-08')
+
 2006-03-21  Seiichi SATO <me@seiichisato.jp>
 
 	* mlterm/ml_edit.c (ml_edit_set_scroll_region): changed to be more
