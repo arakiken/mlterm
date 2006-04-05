@@ -389,22 +389,11 @@ AC_ARG_ENABLE(uim,
 	[  --enable-uim            uim (Experimental) [default=disabled]],
 	uim=$enable_uim)
 if test "x$uim" = xyes ; then
-	PKG_CHECK_MODULES(UIM, uim, have_uim=yes, have_uim=no)
+	PKG_CHECK_MODULES(UIM, uim >= 1.0.0, have_uim=yes, have_uim=no)
 	if test "x$have_uim" = xyes ; then
 		IM_CFLAGS="$IM_CFLAGS -DUSE_UIM"
 		MAKE_DIRS="inputmethod/uim ${MAKE_DIRS}"
 		OUTPUT_FILES="inputmethod/uim/Makefile ${OUTPUT_FILES}"
-		ml_saved_libs="$LIBS"
-		LIBS="$UIM_LIBS"
-		AC_CHECK_LIB(uim, uim_get_default_im_name,
-			     [
-			     UIM_CFLAGS="$UIM_CFLAGS -DUIM_0_4_4_OR_LATER"
-			     ])
-		AC_CHECK_LIB(uim, uim_prop_update_custom,
-			     [
-			     UIM_CFLAGS="$UIM_CFLAGS -DUIM_0_4_6_OR_LATER"
-			     ])
-		LIBS="$ml_saved_libs"
 		if test "x$with_libltdl" != xno ; then
 			DL_LIBS_IM="-dlopen \$(top_builddir)/inputmethod/uim/libim-uim.la ${DL_LIBS_IM}"
 		fi
@@ -685,7 +674,7 @@ AC_SUBST(CVS_REVISION)
 OUTPUT_FILES="xwindow/version.h ${OUTPUT_FILES}"
 
 if test "${SUBDIRS}" != "" ; then
-	AC_CONFIG_SUBDIRS(kiklib, mkf)
+	AC_CONFIG_SUBDIRS([kiklib mkf])
 fi
 
 if test "${MAKE_DIRS}" != "" ; then

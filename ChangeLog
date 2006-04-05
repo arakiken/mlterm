@@ -10,6 +10,11 @@
 	* mkf/script/config.sub, kiklib/script/config.sub,
 	  script/config.sub: updated (timestamp='2005-07-08')
 
+	* configure.in, inputmethod/uim/im_uim.c: removed support for old uim.
+
+	* configure.in:
+	AC_CONFIG_SUBDIRS(kiklib, mkf) -> AC_CONFIG_SUBDIRS([kiklib mkf])
+
 2006-03-21  Seiichi SATO <me@seiichisato.jp>
 
 	* mlterm/ml_edit.c (ml_edit_set_scroll_region): changed to be more

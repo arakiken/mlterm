@@ -33,9 +33,7 @@
 
 #include  <uim.h>
 #include  <uim-helper.h>
-#ifdef  UIM_0_4_4_OR_LATER
-# include <uim-im-switcher.h>
-#endif
+#include <uim-im-switcher.h>
 
 #include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
@@ -49,11 +47,6 @@
 
 #if  0
 #define  IM_UIM_DEBUG  1
-#endif
-
-#ifndef  UIM_0_4_4_OR_LATER
-#define  UIM_0_3_8_COMPAT  1
-/* see http://www.freedesktop.org/pipermail/uim/2004-June/000383.html */
 #endif
 
 
@@ -352,7 +345,7 @@ helper_disconnected( void)
 
 static void
 prop_list_update(
-	void *  p ,	/* uim 0.3.8: p == uim->context, 0.3.9: p == uim */
+	void *  p ,
 	const char *  str
 	)
 {
@@ -365,13 +358,6 @@ prop_list_update(
 #endif
 
 	uim = (im_uim_t*) p ;
-
-#ifdef  UIM_0_3_8_COMPAT
-	if( focused_uim->context == p)
-	{
-		uim = (im_uim_t*) focused_uim ;
-	}
-#endif
 
 	if( focused_uim != uim)
 	{
@@ -414,13 +400,6 @@ prop_label_update(
 #endif
 
 	uim = (im_uim_t*) p ;
-
-#ifdef  UIM_0_3_8_COMPAT
-	if( focused_uim->context == p)
-	{
-		uim = focused_uim ;
-	}
-#endif
 
 	if( focused_uim != uim)
 	{
@@ -1162,7 +1141,6 @@ unfocused(
 static void
 helper_send_imlist(void)
 {
-#ifdef  UIM_0_4_4_OR_LATER
 	const char *  selected_name ;
 	const char *  name ;
 	const char *  lang ;
@@ -1232,7 +1210,6 @@ helper_send_imlist(void)
 #endif
 
 	uim_helper_send_message( helper_fd , buf) ;
-#endif
 }
 
 static void
@@ -1241,7 +1218,6 @@ helper_im_changed(
 	char *  engine_name
 	)
 {
-#ifdef  UIM_0_4_4_OR_LATER
 	char *  buf ;
 	size_t  len ;
 
@@ -1298,7 +1274,6 @@ helper_im_changed(
 			iterator = kik_iterator_next( iterator) ;
 		}
 	}
-#endif  /* UIM_0_4_4_OR_LATER */
 }
 
 static void
@@ -1307,7 +1282,6 @@ helper_update_custom(
 	char *  value
 	)
 {
-#ifdef  UIM_0_4_6_OR_LATER
 	KIK_ITERATOR( im_uim_t)  iterator = NULL ;
 
 	iterator = kik_list_first( uim_list) ;
@@ -1329,7 +1303,6 @@ helper_update_custom(
 		iterator = kik_iterator_next( iterator) ;
 	}
 
-#endif  /* UIM_0_4_6_OR_LATER */
 }
 
 static void
@@ -1538,11 +1511,7 @@ im_uim_new(
 
 	if( engine == NULL || strlen( engine) == 0)
 	{
-	#ifdef  UIM_0_4_4_OR_LATER
 		engine = (char*)uim_get_default_im_name( kik_get_locale()) ;
-	#else
-		engine = "default" ;
-	#endif
 	}
 
 	if( ! find_engine( engine , &encoding_name))
@@ -1733,11 +1702,7 @@ im_uim_get_info(
 	}
 
 	result->args[0] = strdup( "") ;
-#ifdef  UIM_0_4_4_OR_LATER
 	result->readable_args[0] = strdup( uim_get_default_im_name( locale)) ;
-#else
-	result->readable_args[0] = strdup( "default") ;
-#endif
 
 	for( i = 1 ; i < result->num_of_args; i++)
 	{
