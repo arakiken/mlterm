@@ -2,6 +2,8 @@
 
 	* mkf/lib/mkf_iso2022_parser.c (parse_escape): fixed typo.
 
+	* aclocal.m4 (PKG_CHECK_MODULES): added AC_MSG_RESULT(no).
+
 2006-03-21  Seiichi SATO <me@seiichisato.jp>
 
 	* mlterm/ml_edit.c (ml_edit_set_scroll_region): changed to be more
