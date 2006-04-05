@@ -1,3 +1,11 @@
+2006-04-06  Seiichi SATO  <me@seiichisato.jp>
+
+	* configure.in, kiklib/configure.in, mkf/configure.in: fixed
+	a few compilation errors with /usr/ccs/bin/ld of Solaris 9.
+	- AC_CANONICAL_TARGET -> AC_CANONICAL_BUILD.
+	- HAVE_POSIX_OPENPT should not be defined, when posix_openpt() is
+	  not available.
+
 2006-04-05  Seiichi SATO  <me@seiichisato.jp>
 
 	* mkf/lib/mkf_iso2022_parser.c (parse_escape): fixed typo.

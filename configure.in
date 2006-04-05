@@ -22,7 +22,7 @@ AC_SUBST(KIK_LIBS)
 AC_SUBST(KIK_CFLAGS)
 
 AC_CANONICAL_HOST
-AC_CANONICAL_TARGET
+AC_CANONICAL_BUILD
 
 dnl For cross-compile,  
 dnl PKG_CONFIG must be overridden by a full path to pkg-config

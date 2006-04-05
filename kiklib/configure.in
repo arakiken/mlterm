@@ -4,7 +4,7 @@ AC_CONFIG_HEADER(src/kik_config.h)
 AC_CONFIG_AUX_DIR(script)
 
 AC_CANONICAL_HOST
-AC_CANONICAL_TARGET
+AC_CANONICAL_BUILD
 
 AC_PROG_CC
 #  if --with-libtool is specified, cpp isn't detected.
@@ -241,23 +241,24 @@ AC_SUBST(UTMP_LIBS)
 
 
 #
-# --- pty checks ---
+# --- pty check ---
 #
 AC_MSG_CHECKING(for pty/tty type)
-AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
 AC_CACHE_VAL(kik_cv_pty,
 	[
 	if test "$kik_cv_mingw32" = yes ; then
 		kik_cv_pty=win32
 	else
 		AC_CHECK_FUNC( posix_openpt,
-			kik_cv_pty=streams,
+			[
+			AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
+			kik_cv_pty=streams
+			], [
 			if test -c /dev/ptmx ; then
 				kik_cv_pty=streams
 			else
 				kik_cv_pty=bsd
-			fi
-		)
+			fi])
 	fi])
 AC_MSG_RESULT($kik_cv_pty)
 PTY_NAME="${kik_cv_pty}"
