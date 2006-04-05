@@ -1,6 +1,18 @@
 comment -*- mode: text -*-
 comment $Id$
 
+supported platforms (mlterm-2.9.3 pre/cvs-1.922)
+
+* tested by Seiichi SATO <me@seiichisato.jp>
+
+  NetBSD 2.0.2 (x86)
+    configure options: --with-tools=
+    Notes: compilation succeeded, but I don't know whether it works or not.
+
+  Solaris 9 (Sparc)
+    configure options: --with-tools=
+    Notes: compilation succeeded, but I don't know whether it works or not.
+
 supported platforms (mlterm-2.9.2 pre/cvs-1.865)
 
 * tested by Seiichi SATO <ssato@sh.rim.or.jp>
@@ -174,13 +186,17 @@ supported platforms (mlterm-2.8.0 post/cvs-1.740)
                        --with-scrollbars=sample,extra
 
 
-supported platforms (mlterm-2.8.0 post/cvs-1.737)
+supported platforms (mlterm-2.8.0 post/cvs-1.738)
 
 * tested by Seiichi SATO <ssato@sh.rim.or.jp>
 
   NetBSD 1.6.2 (x86)
-    configure options: --with-type-engines=xcore --with-tools=mlclient,mlcc
+    configure options: --with-type-engines=xcore --with-tools=mlcc
+    Notes: compilation succeeded, but I don't know whether it works or not.
 
+  Solaris 9 (Sparc)
+    configure options: --with-type-engines=xcore --with-tools=mlcc
+    Notes: compilation succeeded, but I don't know whether it works or not.
 
 supported platforms (mlterm-2.8.0 post/cvs-1.735)
 
