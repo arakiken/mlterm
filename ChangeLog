@@ -6,6 +6,9 @@
 	* xwindow/x_screen.c (key_pressed): changed to be more compatibile
 	with xterm. (e.g., Shift + F5: ESC [ 15 ; 2 ~)
 
+	* doc/term/mlterm.ti: added kf13-63, kDN, kDN5, kDN6, kLFT5, kLFT6,
+	kRIT5, kRIT6, kUP, kUP5 and kUP6.
+
 2006-04-06  Seiichi SATO  <me@seiichisato.jp>
 
 	* configure.in, kiklib/configure.in, mkf/configure.in: fixed
