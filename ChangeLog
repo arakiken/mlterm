@@ -1,3 +1,11 @@
+2006-04-09  Seiichi SATO  <me@seiichisato.jp>
+
+	* xwindow/x_screen.c (compare_key_state_with_modmap): allowed NULL
+	as arguments such as is_shift and is_meta.
+
+	* xwindow/x_screen.c (key_pressed): changed to be more compatibile
+	with xterm. (e.g., Shift + F5: ESC [ 15 ; 2 ~)
+
 2006-04-06  Seiichi SATO  <me@seiichisato.jp>
 
 	* configure.in, kiklib/configure.in, mkf/configure.in: fixed
