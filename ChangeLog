@@ -12,10 +12,15 @@
 	* xwindow/x_screen.c (im_changed), xwindow/x_im.h (im_changed):
 	u_char -> char
 
+	* xwindow/x_screen.c (key_pressed): allowed 'OSI <modifier> <final>'
+	format as escape sequence.
+
+	* configure, kiklib/configure, mkf/configure: regenerated.
+
 2006-04-06  Seiichi SATO  <me@seiichisato.jp>
 
 	* configure.in, kiklib/configure.in, mkf/configure.in: fixed
-	a few compilation errors with /usr/ccs/bin/ld of Solaris 9.
+	a few of compilation errors with /usr/ccs/bin/ld of Solaris 9.
 	- AC_CANONICAL_TARGET -> AC_CANONICAL_BUILD.
 	- HAVE_POSIX_OPENPT should not be defined, when posix_openpt() is
 	  not available.
