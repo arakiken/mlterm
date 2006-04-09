@@ -9,6 +9,9 @@
 
 	* doc/term/mlterm.ti: added kf13-63.
 
+	* xwindow/x_screen.c (im_changed), xwindow/x_im.h (im_changed):
+	u_char -> char
+
 2006-04-06  Seiichi SATO  <me@seiichisato.jp>
 
 	* configure.in, kiklib/configure.in, mkf/configure.in: fixed

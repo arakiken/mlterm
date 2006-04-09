@@ -36,7 +36,7 @@ typedef struct x_im_event_listener
 	u_int (*get_line_height)( void *) ;
 	int (*is_vertical)( void *) ;
 	int (*draw_preedit_str)( void * , ml_char_t * , u_int , int) ;
-	void (*im_changed)( void * , u_char *) ;
+	void (*im_changed)( void * , char *) ;
 	int (*compare_key_state_with_modmap)( void * , u_int , int * , int * ,
 					      int * , int * , int * , int * ,
 					      int *) ;

@@ -6098,7 +6098,7 @@ draw_preedit_str(
 static void
 im_changed(
 	void *  p ,
-	u_char *  input_method
+	char *  input_method
 	)
 {
 	x_screen_t *  screen ;
