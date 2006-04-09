@@ -5,9 +5,9 @@
 
 	* xwindow/x_screen.c (key_pressed): changed to be more compatibile
 	with xterm. (e.g., Shift + F5: ESC [ 15 ; 2 ~)
+	(Thanks to Konosuke Watanabe)
 
-	* doc/term/mlterm.ti: added kf13-63, kDN, kDN5, kDN6, kLFT5, kLFT6,
-	kRIT5, kRIT6, kUP, kUP5 and kUP6.
+	* doc/term/mlterm.ti: added kf13-63.
 
 2006-04-06  Seiichi SATO  <me@seiichisato.jp>
 
@@ -40,6 +40,7 @@
 
 	* mlterm/ml_edit.c (ml_edit_set_scroll_region): changed to be more
 	compatibile with xterm. (ESC [ Ps ; Ps r)
+	(Thanks to SHIOTA Shoichi and Takashi SHIRAI)
 
 	* mlterm/ml_vt100_parser.c (parse_vt100_escape_sequence): removed
 	checks for ps[0] and ps[1] for ml_screen_set_scroll_region().
