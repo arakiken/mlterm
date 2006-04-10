@@ -12,7 +12,7 @@ ver 2.9.2
 * Xterm-like color scheme for cursor and selection. [minami]
   (Thanks to Ian Ward)
 * SCIM input method plugin (Experimental) [seiichi]
-* Updated documentations. (#1110868) [mfabian, minami, seiichi]
+* Updated documents. (#1110868) [mfabian, minami, seiichi]
 * IIIMF X aux object handling. [seiichi]
 * Implemented some xterm private esc sequences (1047/1048/1049). [minami]
 * Fixed a shortcut key bug [minami] (Thanks to Yusuke Sakai)
