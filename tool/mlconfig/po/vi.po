@@ -1,0 +1,349 @@
+# Vietnamese translation for mlterm
+# This file is distributed under the same license as the mlterm package.
+#
+# Pham Thanh Long <ptlong@gmail.com>, 2006.
+msgid ""
+msgstr ""
+"Project-Id-Version: mlterm\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-10-26 17:41+0900\n"
+"PO-Revision-Date: 2006-04-17 21:11+0700\n"
+"Last-Translator: Pham Thanh Long <ptlong@gmail.com>\n"
+"Language-Team: Vietnam <gnome-vi-list@gnome.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.1\n"
+
+#: tool/mlconfig/main.c:220
+msgid "Save&Exit"
+msgstr "Lưu & Thoát"
+
+#: tool/mlconfig/main.c:221
+msgid "Apply&Exit"
+msgstr "Áp dụng & Thoát"
+
+#: tool/mlconfig/main.c:222
+msgid "Apply"
+msgstr "Áp dụng"
+
+#: tool/mlconfig/main.c:223
+msgid "Cancel"
+msgstr "Thôi"
+
+#: tool/mlconfig/main.c:234
+msgid "Font size (temporary)"
+msgstr "Cỡ phông (tạm thời)"
+
+#: tool/mlconfig/main.c:242
+msgid "Larger"
+msgstr "Lớn hơn"
+
+#: tool/mlconfig/main.c:243
+msgid "Smaller"
+msgstr "Nhỏ hơn"
+
+#: tool/mlconfig/main.c:254 tool/mlconfig/main.c:262
+msgid "Full reset"
+msgstr "Lập lại toàn bộ"
+
+#: tool/mlconfig/main.c:280
+msgid "PTY List"
+msgstr "Danh sách PTY"
+
+#: tool/mlconfig/main.c:288
+msgid " New "
+msgstr " Mới "
+
+#: tool/mlconfig/main.c:289 tool/mlconfig/mc_wall_pic.c:91
+msgid " Select "
+msgstr " Chọn "
+
+#: tool/mlconfig/main.c:316
+msgid "mlterm configuration"
+msgstr "Cấu hình mlterm"
+
+#: tool/mlconfig/main.c:352 tool/mlconfig/mc_char_encoding.c:200
+msgid "Encoding"
+msgstr "Mã hoá"
+
+#: tool/mlconfig/main.c:404
+msgid "Font"
+msgstr "Phông"
+
+#: tool/mlconfig/main.c:422
+msgid "Screen ratio against font size"
+msgstr "Tỉ lệ màn hình với cỡ phông"
+
+#: tool/mlconfig/main.c:471
+msgid "Background"
+msgstr "Nền"
+
+#: tool/mlconfig/main.c:484
+msgid "Picture/Transparent"
+msgstr "Ảnh/Trong suốt"
+
+#: tool/mlconfig/main.c:519
+msgid "Scrollbar"
+msgstr "Thanh cuộn"
+
+#: tool/mlconfig/main.c:550
+msgid "Others"
+msgstr "Khác"
+
+#: tool/mlconfig/mc_bel.c:87
+msgid " Bel mode "
+msgstr " Chế độ chuông "
+
+#: tool/mlconfig/mc_bel.c:93 tool/mlconfig/mc_mod_meta.c:94
+#: tool/mlconfig/mc_sb.c:94 tool/mlconfig/mc_vertical.c:94
+msgid "None"
+msgstr "Không"
+
+#: tool/mlconfig/mc_bel.c:104
+msgid "Sound"
+msgstr "Âm thanh"
+
+#: tool/mlconfig/mc_bel.c:115
+msgid "Visual"
+msgstr "Trực quan"
+
+#: tool/mlconfig/mc_bgtype.c:118
+msgid "Background type"
+msgstr "Kiểu nền"
+
+#: tool/mlconfig/mc_bgtype.c:125
+msgid "Color"
+msgstr "Màu sắc"
+
+#: tool/mlconfig/mc_bgtype.c:139 tool/mlconfig/mc_wall_pic.c:81
+msgid "Picture"
+msgstr "Hình ảnh"
+
+#: tool/mlconfig/mc_bgtype.c:156
+msgid "Transparent"
+msgstr "Trong suốt"
+
+#: tool/mlconfig/mc_brightness.c:71
+msgid "Brightness"
+msgstr "Độ sáng"
+
+#: tool/mlconfig/mc_char_encoding.c:32
+msgid "auto"
+msgstr "tự động"
+
+#: tool/mlconfig/mc_char_encoding.c:34
+msgid "--- Unicode ---"
+msgstr "--- Unicode ---"
+
+#: tool/mlconfig/mc_char_encoding.c:37
+msgid "--- ISO 8859 encodings ---"
+msgstr "--- Mã ISO 8859 ---"
+
+#: tool/mlconfig/mc_char_encoding.c:54
+msgid "--- Other 8bit ---"
+msgstr "--- Mã 8bit khác ---"
+
+#: tool/mlconfig/mc_char_encoding.c:65
+msgid "--- Japanese ---"
+msgstr "--- Nhật Bản ---"
+
+#: tool/mlconfig/mc_char_encoding.c:74
+msgid "--- Korean ---"
+msgstr "--- Hàn Quốc ---"
+
+#: tool/mlconfig/mc_char_encoding.c:80
+msgid "--- traditional Chinese ---"
+msgstr "--- Hán phồn thể ---"
+
+#: tool/mlconfig/mc_char_encoding.c:85
+msgid "--- simplified Chinese ---"
+msgstr "--- Hán giản thể ---"
+
+#: tool/mlconfig/mc_char_encoding.c:194 tool/mlconfig/mc_im.c:239
+#: tool/mlconfig/mc_im.c:291 tool/mlconfig/mc_im.c:370
+#: tool/mlconfig/mc_im.c:375
+#, c-format
+msgid "auto (currently %s)"
+msgstr "tự động (hiện tại %s)"
+
+#: tool/mlconfig/mc_color.c:39 tool/mlconfig/mc_color.c:41
+msgid "Foreground color"
+msgstr "Màu chữ"
+
+#: tool/mlconfig/mc_color.c:40 tool/mlconfig/mc_color.c:42
+msgid "Background color"
+msgstr "Màu nền"
+
+#: tool/mlconfig/mc_color.c:46
+msgid "black"
+msgstr "đen"
+
+#: tool/mlconfig/mc_color.c:47
+msgid "red"
+msgstr "đỏ"
+
+#: tool/mlconfig/mc_color.c:48
+msgid "green"
+msgstr "xanh lá cây"
+
+#: tool/mlconfig/mc_color.c:49
+msgid "yellow"
+msgstr "vàng"
+
+#: tool/mlconfig/mc_color.c:50
+msgid "blue"
+msgstr "xanh da trời"
+
+#: tool/mlconfig/mc_color.c:51
+msgid "magenta"
+msgstr "đỏ tươi"
+
+#: tool/mlconfig/mc_color.c:52
+msgid "cyan"
+msgstr "xanh cyan"
+
+#: tool/mlconfig/mc_color.c:53
+msgid "white"
+msgstr "trắng"
+
+#: tool/mlconfig/mc_color.c:54
+msgid "gray"
+msgstr "xám"
+
+#: tool/mlconfig/mc_color.c:55
+msgid "lightgray"
+msgstr "xám nhạt"
+
+#: tool/mlconfig/mc_color.c:56
+msgid "pink"
+msgstr "hồng"
+
+#: tool/mlconfig/mc_color.c:57
+msgid "brown"
+msgstr "nâu"
+
+#: tool/mlconfig/mc_contrast.c:69
+msgid "Contrast"
+msgstr "Độ tương phản"
+
+#: tool/mlconfig/mc_fade.c:69
+msgid "Fade ratio on unfocus"
+msgstr "Tỉ lệ mờ dần khi rời bỏ tiêu điểm"
+
+#: tool/mlconfig/mc_flags.c:35
+msgid "Anti Alias"
+msgstr "Chống răng cưa"
+
+#: tool/mlconfig/mc_flags.c:36
+msgid "Variable column width"
+msgstr "Độ rộng cột linh hoạt"
+
+#: tool/mlconfig/mc_flags.c:37
+msgid "Combining"
+msgstr "Tổ hợp"
+
+#: tool/mlconfig/mc_flags.c:38
+msgid "Combining = 1 (or 0) logical column(s)"
+msgstr "Tổ hợp = 1 (hoặc 0) cột logic"
+
+#: tool/mlconfig/mc_flags.c:39
+msgid "Process received strings via Unicode"
+msgstr "Xử lí chuỗi nhận được qua Unicode"
+
+#: tool/mlconfig/mc_flags.c:40
+msgid "Fullwidth = 2 (or 1) logical column(s)"
+msgstr "Độ rộng đầy đủ = 2 (hoặc 1) cột logic"
+
+#: tool/mlconfig/mc_flags.c:41
+msgid "Bidi (UTF8 only)"
+msgstr "Bidi (chỉ UTF8)"
+
+#: tool/mlconfig/mc_fontsize.c:62
+msgid "Font size (pixels)"
+msgstr "Cỡ chữ (pixel)"
+
+#: tool/mlconfig/mc_gamma.c:69
+msgid "Gamma"
+msgstr "Gamma"
+
+#: tool/mlconfig/mc_iscii_lang.c:71
+msgid "ISCII language"
+msgstr "Ngôn ngữ ISCII"
+
+#: tool/mlconfig/mc_line_space.c:65
+msgid "Line space (pixels)"
+msgstr "Khoảng cách dòng (pixel)"
+
+#: tool/mlconfig/mc_logsize.c:63
+msgid "Backlog size (lines)"
+msgstr "Số dòng cuộn"
+
+#: tool/mlconfig/mc_mod_meta.c:88
+msgid "Meta key outputs:"
+msgstr "Meta key outputs:"
+
+#: tool/mlconfig/mc_mod_meta.c:105
+msgid "Esc"
+msgstr "Esc"
+
+#: tool/mlconfig/mc_mod_meta.c:116
+msgid "8bit"
+msgstr "8bit"
+
+#: tool/mlconfig/mc_sb.c:88
+msgid "Position"
+msgstr "Vị trí"
+
+#: tool/mlconfig/mc_sb.c:105
+msgid "Left"
+msgstr "Trái"
+
+#: tool/mlconfig/mc_sb.c:116
+msgid "Right"
+msgstr "Phải"
+
+#: tool/mlconfig/mc_sb_view.c:137
+msgid "View"
+msgstr "Xem"
+
+#: tool/mlconfig/mc_screen_ratio.c:101
+msgid "Width"
+msgstr "Rộng"
+
+#: tool/mlconfig/mc_screen_ratio.c:110
+msgid "Height"
+msgstr "Cao"
+
+#: tool/mlconfig/mc_tabsize.c:62
+msgid "Tab width (columns)"
+msgstr "Độ rộng tab (cột)"
+
+#: tool/mlconfig/mc_vertical.c:88
+msgid " Vertical mode "
+msgstr " Chế độ thẳng đứng "
+
+#: tool/mlconfig/mc_vertical.c:105
+msgid "CJK"
+msgstr "CJK"
+
+#: tool/mlconfig/mc_vertical.c:116
+msgid "Mongol"
+msgstr "Mông Cổ"
+
+#: tool/mlconfig/mc_im.c:300
+msgid "XIM Server"
+msgstr "Máy chủ XIM"
+
+#: tool/mlconfig/mc_im.c:303
+msgid "XIM locale"
+msgstr "XIM bản địa"
+
+#: tool/mlconfig/mc_im.c:385
+msgid "Option"
+msgstr "Tuỳ chọn"
+
+#: tool/mlconfig/mc_im.c:497
+msgid "Input Method"
+msgstr "Phương thức nhập"
+
