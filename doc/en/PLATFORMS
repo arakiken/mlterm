@@ -7,11 +7,18 @@ supported platforms (mlterm-2.9.3 pre/cvs-1.922)
 
   NetBSD 2.0.2 (x86)
     configure options: --with-tools=
-    Notes: compilation succeeded, but I don't know whether it works or not.
+    Note: compilation succeeded, but I don't know whether it works or not.
 
   Solaris 9 (Sparc)
     configure options: --with-tools=
-    Notes: compilation succeeded, but I don't know whether it works or not.
+    Note: compilation succeeded, but I don't know whether it works or not.
+
+  MS Windows XP/Cygwin-1.5.19 with x-org 6.8.2.0-1 (x86)
+    configure options: --with-type-engines=xcore,xft
+                       --with-scrollbars=sample,extra
+                       --with-imagelib=gdk-pixbuf
+                       --with-tools=mlclient,mlconfig,mlterm-menu,mlcc
+
 
 supported platforms (mlterm-2.9.2 pre/cvs-1.865)
 

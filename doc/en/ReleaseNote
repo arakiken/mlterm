@@ -1,3 +1,36 @@
+ver 2.9.3
+* Improvements for compatibility with xterm:
+  - Log file handling [kzys]
+  - Function keys [seiichi] (Thanks to Konosuke Watanabe)
+  - Sequence for setting scroll region [seiichi]
+    (Thanks to SHIOTA Shoichi and Takashi SHIRAI)
+  - Behavior of saving/restoring cursor [minami]
+    (Thanks to Thomas Dickey for suggestions)
+  - Termcap and Terminfo [minami, seiichi]
+  - Turn off mouse position reporting by a "reset" sequence [minami]
+    (Debian Bug #55637)
+* Improvement build prosess for cross-compiling [minami]
+* Workaround for missing rgb.txt [minami]
+* Updated documents [kzys, minami, seiichi]
+* Bug fix for broken selection requester [minami]
+* Added support for SCIM-1.4.x [seiichi]
+* Removed support for SCIM-1.0.x [seiichi]
+* Removed support for uim-0.x.x [seiichi]
+* Hebrew mapping table for "kbd" input method [seiich]
+* Revided a scroll caching mechanism [seiichi] (SF Bug #1161050)
+* Suppressed a check for libxpg4 of FreeBSD [seiichi]
+  (Thanks to SHIOTA Shoichi and MANTANI Nobutaka)
+* Fixed a bug of alignment of full width chars when variable column width is
+  enabled [minami] (Thanks to Oibane)
+* Vietnamese translation for mlconfig [Pham Thanh Long]
+* Other Bug fixes:
+  - SF Bug #1206515 [Takeshi Hakamata]
+  - SF Bug #1161055 [seiichi]
+  - Debian Bug #302231 [Andreas Jochens]
+  - Debian Bug #313970 [Jens Seidel]
+  - Debian Bug #350590 [seiichi]
+  - SUSE Bug #105320 [mfabian]
+
 ver 2.9.2
 * [SECURITY] Fixed possible integer overflow.
   Overview  : If a large image file is specified as a background image,

@@ -1,3 +1,13 @@
+2006-05-07  Seiichi SATO  <me@seiichisato.jp>
+
+	* 2.9.3 released.
+	  (tag "rel-2_9_3")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 2.9.3
+	* configure: re-generated
+	* doc/en/PLATFORMS: updated
+
 2006-04-18  Seiichi SATO  <me@seiichisato.jp>
 
 	* tool/mlconfig/po/vi.po: Vietnamese translation contributed by Pham
