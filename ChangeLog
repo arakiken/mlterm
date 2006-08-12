@@ -1,3 +1,9 @@
+2006-08-13  Seiichi SATO  <me@seiichisato.jp>
+
+	* tool/mlconfig/po/ar.po: Arabic translation contributed by Khaled
+	  Hosny.
+	* tool/mlconfig/po/LINGUAS: added 'ar'.
+
 2006-05-07  Seiichi SATO  <me@seiichisato.jp>
 
 	* xwindow/version.h.in: 2.9.3 -> 2.9.3 post
