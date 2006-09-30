@@ -210,14 +210,14 @@ open_pty_intern(
 	*(env_p ++) = wid_env ;
 	
 	/* "DISPLAY="(8) + NULL(1) */
-	if( ( disp_env = alloca( 8 + strlen( display) + 1)))
+	if( display && ( disp_env = alloca( 8 + strlen( display) + 1)))
 	{
 		sprintf( disp_env , "DISPLAY=%s" , display) ;
 		*(env_p ++) = disp_env ;
 	}
 
 	/* "TERM="(5) + NULL(1) */
-	if( ( term_env = alloca( 5 + strlen( term_type) + 1)))
+	if( term_type && ( term_env = alloca( 5 + strlen( term_type) + 1)))
 	{
 		sprintf( term_env , "TERM=%s" , term_type) ;
 		*(env_p ++) = term_env ;
@@ -1753,6 +1753,12 @@ void
 x_term_manager_event_loop(void)
 {
 	int  count ;
+	const char  * display ;
+
+	if( ! *( display = main_config.disp_name) && ( ! ( display = getenv( "DISPLAY")) || ! *display))
+	{
+		display = ":0.0" ;
+	}
 
 	for( count = 0 ; count < num_of_startup_screens ; count ++)
 	{
@@ -1785,7 +1791,7 @@ x_term_manager_event_loop(void)
 		}
 
 		if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
-			":0.0" , 0 , main_config.term_type , main_config.use_login_shell))
+			display , 0 , main_config.term_type , main_config.use_login_shell))
 		{
 			return ;
 		}

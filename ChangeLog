@@ -1,3 +1,7 @@
+2006-09-30  Seiichi SATO  <me@seiichisato.jp>
+
+	* xwindow/x_term_manager.c: applied a patch from Nakada-san. (#1534313)
+
 2006-08-13  Seiichi SATO  <me@seiichisato.jp>
 
 	* tool/mlconfig/po/ar.po: Arabic translation contributed by Khaled
