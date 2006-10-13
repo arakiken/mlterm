@@ -3,6 +3,10 @@
 	* xwindow/x_shortcut.c: fixed typo.
 	(SF Bug#1568596, thanks to nakada-san)
 
+	* kiklib/src/kik_util.h: DIGIT_STR_LEN() macro should be safe
+	for signed types. (SF Patch#1574241, thanks to Christian Biere)
+
+
 2006-09-30  Seiichi SATO  <me@seiichisato.jp>
 
 	* xwindow/x_term_manager.c: applied a patch from Nakada-san. (#1534313)
