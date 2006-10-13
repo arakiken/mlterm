@@ -1,3 +1,8 @@
+2006-10-14  MINAMI Hirokazu <minami@mistfall.net>
+
+	* xwindow/x_shortcut.c: fixed typo.
+	(SF Bug#1568596, thanks to nakada-san)
+
 2006-09-30  Seiichi SATO  <me@seiichisato.jp>
 
 	* xwindow/x_term_manager.c: applied a patch from Nakada-san. (#1534313)

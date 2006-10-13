@@ -103,7 +103,7 @@ parse(
 
 		map_entry = shortcut->map + key_func_table[count].func ;
 		if( (map_entry->ksym == ksym) &&
-		    (map_entry->state = state))
+		    (map_entry->state == state))
 		{
 			map_entry->is_used = 0 ;
 		}
