@@ -75,6 +75,7 @@ kik_pty_fork(
 		kik_msg_printf( "Unable to open a master pseudo-terminal device.\n") ;
 		return  -1;
 	}
+	kik_file_set_cloexec( *master) ;
 	/*
 	 * The behaviour of the grantpt() function is unspecified
 	 * if the application has installed a signal handler to catch SIGCHLD signals.
@@ -104,7 +105,7 @@ kik_pty_fork(
 		return  -1;
 	}
 
-	fcntl(*master, F_SETFL, O_NDELAY);
+	fcntl( *master, F_SETFL, O_NDELAY);
 
 	if( ( *slave = open( ttydev, O_RDWR | O_NOCTTY, 0)) < 0)
 	{
@@ -282,6 +283,8 @@ kik_pty_fork(
 
 		return  0 ;
 	}
+	
+	kik_file_set_cloexec( *slave) ;
 
 	return  pid ;
 }

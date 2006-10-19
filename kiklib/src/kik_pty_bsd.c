@@ -118,6 +118,7 @@ open_pty(
 			}
 			else
 			{
+				kik_file_set_cloexec( *master) ;
 				/*
 				 * we succeeded to open pty master.
 				 * opening pty slave in succession. 
@@ -136,6 +137,7 @@ open_pty(
 					}
 					else
 					{
+						kik_file_set_cloexec( *slave) ;
 						return  1 ;
 					}
 				}
@@ -195,7 +197,6 @@ kik_pty_fork(
 	/*
 	 * parent process
 	 */
-
 	/*
 	 * delaying.
 	 */
@@ -300,6 +301,8 @@ kik_pty_fork(
 		kik_warn_printf( KIK_DEBUG_TAG " tcsetattr() failed.\n") ;
 	#endif
 	}
+	
+	kik_file_set_cloexec( *slave) ;	
 	
 	return  pid ;
 }

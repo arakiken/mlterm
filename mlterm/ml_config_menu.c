@@ -33,6 +33,7 @@ sig_child(
 	if( config_menu->pid == pid)
 	{
 		config_menu->pid = 0 ;
+		close( config_menu->fd) ;
 		config_menu->fd = -1 ;
 	}
 }
@@ -80,6 +81,12 @@ ml_config_menu_start(
 	{
 		/* configuration menu is active now */
 		
+		return  0 ;
+	}
+
+	if( !kik_file_unset_cloexec( pty_fd))
+	{
+		/* configulators require an inherited pty. */
 		return  0 ;
 	}
 
@@ -131,8 +138,14 @@ ml_config_menu_start(
 
 		close( fds[1]) ;
 
-		if( dup2( fds[0] , STDIN_FILENO) == -1 || dup2( pty_fd , STDOUT_FILENO) == -1 ||
-			execv( cmd_path , args) == -1)
+		/* for configulators,
+		 * STDIN => to read replys from mlterm
+		 * STDOUT => to write the "master" side of pty
+		 * STDERR => is retained to be the mlterm's STDERR
+		 */
+		if( dup2( fds[0] , STDIN_FILENO) == -1
+		 || dup2( pty_fd , STDOUT_FILENO) == -1
+	       	 || execv( cmd_path , args) == -1)
 		{
 			/* failed */
 
@@ -148,6 +161,9 @@ ml_config_menu_start(
 
 	config_menu->fd = fds[1] ;
 	config_menu->pid = pid ;
+	
+	kik_file_set_cloexec( pty_fd) ;
+	kik_file_set_cloexec( config_menu->fd) ;
 
 	return  1 ;
 }

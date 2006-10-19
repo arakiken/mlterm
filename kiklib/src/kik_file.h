@@ -33,5 +33,8 @@ int  kik_file_lock( int  fd) ;
 
 int  kik_file_unlock( int  fd) ;
 
+int  kik_file_set_cloexec( int  fd) ;
+
+int  kik_file_unset_cloexec( int  fd) ;
 
 #endif

@@ -2,6 +2,7 @@
  *	$Id$
  */
 
+#include  <fcntl.h>		/* fcntl() */
 #include  "kik_file.h"
 
 #include  "kik_config.h"
@@ -200,3 +201,43 @@ kik_file_unlock(
 }
 
 #endif
+
+int
+kik_file_set_cloexec(
+	int fd
+	)
+{
+	int  old_flags ;
+	
+	old_flags = fcntl( fd, F_GETFD) ;
+	if( old_flags == -1)
+	{
+		return  0 ;
+	}
+	
+	if( !(old_flags & FD_CLOEXEC)
+	 && (fcntl( fd, F_SETFD, old_flags|FD_CLOEXEC) == -1) )
+	{
+		return  0 ;
+	}
+	return  1 ;
+}
+
+kik_file_unset_cloexec(
+	int fd
+	)
+{
+  	int  old_flags ;
+
+	old_flags = fcntl( fd, F_GETFD) ;
+        if( old_flags == -1)
+        {
+		return  0 ;
+	}
+	if( (old_flags & FD_CLOEXEC)
+	 && (fcntl( fd, F_SETFD, old_flags & (~FD_CLOEXEC)) == -1) )
+        {
+		return  0 ;
+	}
+	return  1 ;
+}

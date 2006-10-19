@@ -6,6 +6,8 @@
 
 #include  <stdio.h>		/* sprintf */
 #include  <string.h>		/* strcmp/memset */
+#include  <unistd.h>	 	/* dup/close */
+#include  <kiklib/kik_file.h>	/* kik_set_file_cloexec */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_locale.h>	/* kik_locale_init/kik_get_locale/kik_get_codeset */
@@ -121,6 +123,7 @@ open_xim(
 	char *  xmod ;
 	char *  cur_locale ;
 	int  result ;
+	int  min_fd ; /* to deal with brain-dead XIM implemantations */
 
 	/* 4 is the length of "@im=" */
 	if( ( xmod = alloca( 4 + strlen( xim->name) + 1)) == NULL)
@@ -154,6 +157,12 @@ open_xim(
 
 	result = 0 ;
 
+	min_fd = dup( 0) ;
+	if( min_fd != -1)
+	{
+		/* remember the lowest unused fd */
+		close( min_fd) ;
+	}	
 	if( XSetLocaleModifiers(xmod) && ( xim->im = XOpenIM( display , NULL , NULL , NULL)))
 	{
 		if( ( xim->encoding = ml_get_char_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING ||
@@ -172,7 +181,20 @@ open_xim(
 			result = 1 ;
 		}
 	}
-	
+	if( min_fd > 0)
+	{
+		int  cur_min_fd ;
+	       	cur_min_fd = dup( 0) ;
+		if( cur_min_fd != -1){
+			close( cur_min_fd) ;
+		}else{
+			if( min_fd != cur_min_fd){ 
+				/* if XOpenIM() internally opens a fd,
+				 * we should close it on exec() */
+				kik_file_set_cloexec( min_fd) ;
+			}
+		}
+	}
 	if( cur_locale)
 	{
 		/* restoring */

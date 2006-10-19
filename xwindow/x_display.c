@@ -7,6 +7,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_str.h>	/* strdup */
+#include  <kiklib/kik_file.h>	/* kik_file_set_cloexec */
 
 #include  "x_xim.h"
 #include  "x_picture.h"
@@ -38,6 +39,9 @@ open_display(
 
 		goto  error1 ;
 	}
+
+	/* set close-on-exec flag on the socket connected to X. */
+	kik_file_set_cloexec( XConnectionNumber( disp->display));
 
 	if( ( disp->name = strdup( name)) == NULL)
 	{

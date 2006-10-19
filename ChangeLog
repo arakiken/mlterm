@@ -1,3 +1,16 @@
+2006-10-19  MINAMI Hirokazu <minami@mistfall.net>
+
+	* xwindw/x_term_manager.c, mlterm/ml_conf_menu.c,
+	kiklib/src/kik_pty_stream.c, kiklib/src/kik_pty_bsd.c
+	xwindow/x_display.c, xwindow/x_xim.c:
+	plugged file descriptor leaks.
+	* kiklib/src/kik_file.[ch]: added new functions to
+	add/remove close-on-exec flag on a file descriptor.
+	(SF Patch #1576044, thanks to Christian Biere)
+
+	* kiklib/src/Makefile.am: increased library version
+	to reflact API addtion.
+
 2006-10-14  MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_shortcut.c: fixed typo.
@@ -5,7 +18,6 @@
 
 	* kiklib/src/kik_util.h: DIGIT_STR_LEN() macro should be safe
 	for signed types. (SF Patch#1574241, thanks to Christian Biere)
-
 
 2006-09-30  Seiichi SATO  <me@seiichisato.jp>
 

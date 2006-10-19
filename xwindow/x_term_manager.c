@@ -872,7 +872,8 @@ start_daemon(void)
 	{
 		return  -1 ;
 	}
-
+	kik_file_set_cloexec( sock_fd);
+	
 	while( bind( sock_fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) < 0)
 	{
 		if( errno == EADDRINUSE)
@@ -993,7 +994,7 @@ client_connected(void)
 	 * If this flag off, this fd remained open until the child process forked in
 	 * open_screen_intern()(ml_term_open_pty()) close it.
 	 */
-	fcntl( fd , F_SETFD , 1) ;
+	kik_file_set_cloexec( fd) ;
 
 	if( ( fp = fdopen( fd , "r+")) == NULL)
 	{
