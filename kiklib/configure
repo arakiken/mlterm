@@ -7178,61 +7178,15 @@ else
 fi
 
 fi
-#  libutil
-if test -z "$UTMP_NAME" ; then
-	echo $ac_n "checking for logout in -lutil""... $ac_c" 1>&6
-echo "configure:7185: checking for logout in -lutil" >&5
-ac_lib_var=`echo util'_'logout | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  ac_save_LIBS="$LIBS"
-LIBS="-lutil  $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 7193 "configure"
-#include "confdefs.h"
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char logout();
-
-int main() {
-logout()
-; return 0; }
-EOF
-if { (eval echo configure:7204: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
-fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
-
-fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  
-		UTMP_NAME=login
-		UTMP_LIBS=-lutil
-		
-else
-  echo "$ac_t""no" 1>&6
-fi
-
-fi
 #  setutent()  (SysV)
 if test -z "$UTMP_NAME" ; then
 	echo $ac_n "checking for setutent""... $ac_c" 1>&6
-echo "configure:7231: checking for setutent" >&5
+echo "configure:7185: checking for setutent" >&5
 if eval "test \"`echo '$''{'ac_cv_func_setutent'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 7236 "configure"
+#line 7190 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char setutent(); below.  */
@@ -7255,7 +7209,7 @@ setutent();
 
 ; return 0; }
 EOF
-if { (eval echo configure:7259: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:7213: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_setutent=yes"
 else
@@ -7272,6 +7226,52 @@ if eval "test \"`echo '$ac_cv_func_'setutent`\" = yes"; then
   
 		UTMP_NAME=sysv
 		UTMP_LIBS=
+		
+else
+  echo "$ac_t""no" 1>&6
+fi
+
+fi
+#  libutil
+if test -z "$UTMP_NAME" ; then
+	echo $ac_n "checking for logout in -lutil""... $ac_c" 1>&6
+echo "configure:7239: checking for logout in -lutil" >&5
+ac_lib_var=`echo util'_'logout | sed 'y%./+-%__p_%'`
+if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  ac_save_LIBS="$LIBS"
+LIBS="-lutil  $LIBS"
+cat > conftest.$ac_ext <<EOF
+#line 7247 "configure"
+#include "confdefs.h"
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char logout();
+
+int main() {
+logout()
+; return 0; }
+EOF
+if { (eval echo configure:7258: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=no"
+fi
+rm -f conftest*
+LIBS="$ac_save_LIBS"
+
+fi
+if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+  
+		UTMP_NAME=login
+		UTMP_LIBS=-lutil
 		
 else
   echo "$ac_t""no" 1>&6

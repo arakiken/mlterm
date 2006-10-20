@@ -215,20 +215,20 @@ if test -z "$UTMP_NAME" ; then
 		UTMP_LIBS="-lutempter -lutil"
 		], [])
 fi
-#  libutil
-if test -z "$UTMP_NAME" ; then
-	AC_CHECK_LIB(util, logout,
-		[
-		UTMP_NAME=login
-		UTMP_LIBS=-lutil
-		], [])
-fi
 #  setutent()  (SysV)
 if test -z "$UTMP_NAME" ; then
 	AC_CHECK_FUNC(setutent,
 		[
 		UTMP_NAME=sysv
 		UTMP_LIBS=
+		], [])
+fi
+#  libutil
+if test -z "$UTMP_NAME" ; then
+	AC_CHECK_LIB(util, logout,
+		[
+		UTMP_NAME=login
+		UTMP_LIBS=-lutil
 		], [])
 fi
 #  other (BSD)
