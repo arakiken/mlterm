@@ -123,7 +123,7 @@ open_xim(
 	char *  xmod ;
 	char *  cur_locale ;
 	int  result ;
-	int  min_fd ; /* to deal with brain-dead XIM implemantations */
+	int  next_fd ; /* to deal with brain-dead XIM implemantations */
 
 	/* 4 is the length of "@im=" */
 	if( ( xmod = alloca( 4 + strlen( xim->name) + 1)) == NULL)
@@ -157,11 +157,11 @@ open_xim(
 
 	result = 0 ;
 
-	min_fd = dup( 0) ;
-	if( min_fd != -1)
+	next_fd = dup( 0) ;
+	if( next_fd != -1)
 	{
 		/* remember the lowest unused fd */
-		close( min_fd) ;
+		close( next_fd) ;
 	}	
 	if( XSetLocaleModifiers(xmod) && ( xim->im = XOpenIM( display , NULL , NULL , NULL)))
 	{
@@ -181,19 +181,11 @@ open_xim(
 			result = 1 ;
 		}
 	}
-	if( min_fd > 0)
+	if( next_fd > 0)
 	{
-		int  cur_min_fd ;
-	       	cur_min_fd = dup( 0) ;
-		if( cur_min_fd != -1){
-			close( cur_min_fd) ;
-		}else{
-			if( min_fd != cur_min_fd){ 
-				/* if XOpenIM() internally opens a fd,
-				 * we should close it on exec() */
-				kik_file_set_cloexec( min_fd) ;
-			}
-		}
+		/* if XOpenIM() internally opens a fd,
+		 * we should close it on exec() */
+		kik_file_set_cloexec( next_fd) ;
 	}
 	if( cur_locale)
 	{
