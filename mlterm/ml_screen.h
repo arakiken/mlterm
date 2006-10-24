@@ -261,6 +261,8 @@ int  ml_screen_use_normal_edit( ml_screen_t *  screen) ;
 
 int  ml_screen_use_alternative_edit( ml_screen_t *  screen) ;
 
+int  ml_screen_is_alternative_edit( ml_screen_t *  screen) ;
+
 int  ml_screen_fill_all_with_e( ml_screen_t *  screen) ;
 
 ml_bs_mode_t  ml_screen_is_backscrolling( ml_screen_t *  screen) ;

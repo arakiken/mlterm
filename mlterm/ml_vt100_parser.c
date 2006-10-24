@@ -466,13 +466,18 @@ save_cursor(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	vt100_parser->is_saved = 1 ;
-	vt100_parser->saved_fg_color = vt100_parser->fg_color ;
-	vt100_parser->saved_bg_color = vt100_parser->bg_color ;
-	vt100_parser->saved_is_bold = vt100_parser->is_bold ;
-	vt100_parser->saved_is_underlined = vt100_parser->is_underlined ;
-	vt100_parser->saved_is_reversed = vt100_parser->is_reversed ;
-	vt100_parser->saved_cs = vt100_parser->cs ;
+	ml_vt100_storable_states_t *  dest ;
+
+	dest = (ml_screen_is_alternative_edit(  vt100_parser->screen) ) ?
+		&(vt100_parser->saved_alternate)
+		: &(vt100_parser->saved_normal) ;
+	dest->is_saved = 1 ;
+	dest->fg_color = vt100_parser->fg_color ;
+	dest->bg_color = vt100_parser->bg_color ;
+	dest->is_bold  = vt100_parser->is_bold ;
+	dest->is_underlined = vt100_parser->is_underlined ;
+	dest->is_reversed   = vt100_parser->is_reversed ;
+	dest->cs = vt100_parser->cs ;
 
 	ml_screen_save_cursor( vt100_parser->screen) ;
 }
@@ -482,35 +487,38 @@ restore_cursor(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	if( vt100_parser->is_saved)
+        ml_vt100_storable_states_t *src;
+
+        src = (ml_screen_is_alternative_edit(  vt100_parser->screen) ) ?
+                &(vt100_parser->saved_alternate)
+                : &(vt100_parser->saved_normal) ;
+	if( src->is_saved)
 	{
-		vt100_parser->fg_color = vt100_parser->saved_fg_color ;
-		vt100_parser->bg_color = vt100_parser->saved_bg_color ;
-		vt100_parser->is_bold = vt100_parser->saved_is_bold ;
-		vt100_parser->is_underlined = vt100_parser->saved_is_underlined ;
-		vt100_parser->is_reversed = vt100_parser->saved_is_reversed ;
+		vt100_parser->fg_color = src->fg_color ;
+		vt100_parser->bg_color = src->bg_color ;
+		vt100_parser->is_bold  = src->is_bold ;
+		vt100_parser->is_underlined = src->is_underlined ;
+		vt100_parser->is_reversed = src->is_reversed ;
 		if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 		{
-			if( vt100_parser->saved_cs != vt100_parser->cs)
+			if( ( src->cs == DEC_SPECIAL)
+			 && ( src->cs != vt100_parser->cs) )
 			{
-				if( vt100_parser->saved_cs == DEC_SPECIAL)
-				{
-					/* force grapchics mode by sending \E(0 to current parser*/
-					u_char  DEC_SEQ[] = { CTLKEY_ESC, '(', '0'} ;
-					mkf_char_t  ch ;
-					mkf_parser_t *  parser;
+				/* force grapchics mode by sending \E(0 to current parser*/
+				u_char  DEC_SEQ[] = { CTLKEY_ESC, '(', '0'} ;
+				mkf_char_t  ch ;
+				mkf_parser_t *  parser;
 					
-					ml_init_encoding_parser( vt100_parser) ;
-					parser = vt100_parser->cc_parser;
-					(*parser->set_str)( parser, DEC_SEQ, sizeof(DEC_SEQ)) ;
-					(*parser->next_char)( parser, &ch) ;
-				}
+				ml_init_encoding_parser( vt100_parser) ;
+				parser = vt100_parser->cc_parser;
+				(*parser->set_str)( parser, DEC_SEQ, sizeof(DEC_SEQ)) ;
+				(*parser->next_char)( parser, &ch) ;
 			}
 		}
 		else
 		{
 			/* XXX: what to do for g0/g1? */
-			if( vt100_parser->saved_cs == DEC_SPECIAL){
+			if( src->cs == DEC_SPECIAL){
 				vt100_parser->is_dec_special_in_gl = 1;
 			}
 			else
@@ -993,21 +1001,6 @@ parse_vt100_escape_sequence(
 			else if( *str_p == '7')
 			{
 				/* save cursor */
-
-				/*
-				 * XXX
-				 * rxvt-2.7.7 saves following parameters.
-				 *  col,row,rstyle,charset,char
-				 * (see rxvt_scr_cursor() in screen.c)
-				 *
-				 * on the other hand , mlterm saves only
-				 *   col,row,fg_color,bg_color(in ml_cursor_t),
-				 * in other words , "char" is not saved , but maybe it works.
-				 *
-				 * BTW , owing to this behavior ,
-				 * "2. Test of screen features" - "Test of the SAVE/RESTORE CURSOR feature"
-				 * of vttest fails.
-				 */
 
 				save_cursor( vt100_parser) ;
 			}
@@ -2479,8 +2472,8 @@ ml_vt100_parser_new(
 		vt100_parser->col_size_of_east_asian_width_a = 1 ;
 	}
 
-	vt100_parser->is_saved = 0 ;
-
+	vt100_parser->saved_normal.is_saved = 0 ;
+        vt100_parser->saved_alternate.is_saved = 0 ;
 	return  vt100_parser ;
 
 error:

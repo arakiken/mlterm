@@ -2107,6 +2107,19 @@ ml_screen_is_cursor_visible(
 }
 
 int
+ml_screen_is_alternative_edit(
+	ml_screen_t *  screen
+        )
+{
+	if( screen->edit == &(screen->alt_edit) )
+	{
+		return  1 ;
+	}
+
+	return  0 ;
+}
+
+int
 ml_screen_use_normal_edit(
 	ml_screen_t *  screen
 	)

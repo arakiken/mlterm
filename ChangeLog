@@ -1,6 +1,11 @@
 2006-10-24  MINAMI Hirokazu <minami@mistfall.net>
 
-	* xwindow/x_xim.c: always setting close-on-exec flag is harmless.
+        * mlterm/ml_screen.[ch]: API addition(ml_screen_is_alternate_edit()).
+	* mlterm/ml_vt100_parser.[ch]: states of a screen can now be save/restored
+	separately for normal/alternate screens.
+	(SF Bug#1472143)
+	
+	* xwindow/x_xim.c: always setting close-on-exec flag should be harmless.
 
 2006-10-19  MINAMI Hirokazu <minami@mistfall.net>
 

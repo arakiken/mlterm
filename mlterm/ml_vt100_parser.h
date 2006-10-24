@@ -66,6 +66,19 @@ typedef struct  ml_config_event_listener
 
 } ml_config_event_listener_t ;
 
+typedef struct  ml_vt100_storable_states
+{
+	int is_saved;
+	ml_color_t  fg_color ;
+	ml_color_t  bg_color ;
+	int8_t  is_bold ;
+	int8_t  is_underlined ;
+	int8_t  is_reversed ;
+	mkf_charset_t  cs ;
+
+} ml_vt100_storable_states_t ;
+
+
 typedef struct  ml_vt100_parser
 {
 	u_char  seq[PTYMSG_BUFFER_SIZE] ;
@@ -110,14 +123,10 @@ typedef struct  ml_vt100_parser
 	int8_t  use_char_combining ;
 	int8_t  use_multi_col_char ;
 	int8_t  logging_vt_seq ;
-	
-	int is_saved;
-	ml_color_t  saved_fg_color ;
-	ml_color_t  saved_bg_color ;
-	int8_t  saved_is_bold ;
-	int8_t  saved_is_underlined ;
-	int8_t  saved_is_reversed ;
-	mkf_charset_t  saved_cs ;
+
+	/* for save/restore cursor */
+	ml_vt100_storable_states_t  saved_normal ;
+	ml_vt100_storable_states_t  saved_alternate ;
 
 } ml_vt100_parser_t ;
 
