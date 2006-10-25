@@ -7,6 +7,13 @@
 	
 	* xwindow/x_xim.c: always setting close-on-exec flag should be harmless.
 
+2006-10-20  Seiichi SATO <me@seiichisato.jp>
+
+	* kiklib/configure.in: swapped the order of setutent() and logout().
+	(Debian BUG #329194, thanks to David Kolovratnik)
+
+	* kiklib/configure: regenerated.
+
 2006-10-19  MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindw/x_term_manager.c, mlterm/ml_conf_menu.c,
