@@ -120,7 +120,8 @@ kik_utmp_new(
   ut.ut_type	= USER_PROCESS;
 
 #ifdef UTMPX
-  ut.ut_tv	= timenow;
+  ut.ut_tv.tv_sec	= timenow.tv_sec;
+  ut.ut_tv.tv_usec	= timenow.tv_usec;
 #else
   ut.ut_time	= time(NULL);
 #endif

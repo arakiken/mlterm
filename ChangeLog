@@ -1,3 +1,8 @@
+2006-11-01  Seiichi SATO <me@seiichisato.jp>
+
+	* kiklib/src/kik_utmp_sysv.c: fixed compilation error on biarch
+	systems. (Debian Bug#396532, thanks to Kenshi Muto for sending a patch)
+
 2006-10-24  MINAMI Hirokazu <minami@mistfall.net>
 
         * mlterm/ml_screen.[ch]: API addition(ml_screen_is_alternate_edit()).
