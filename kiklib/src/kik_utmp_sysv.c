@@ -28,6 +28,7 @@
 
 #include "kik_util.h"	/* K_MIN */
 #include "kik_mem.h"	/* malloc/free */
+#include  "kik_privilege.h"
 
 #ifdef UTMPX
 #define LINE_WIDTH 32

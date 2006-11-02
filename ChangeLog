@@ -1,3 +1,6 @@
+2006-11-02  MINAMI Hirokazu <minami@mistfall.net>
+	* kiklib/src/kik_sysv.c: #include missing kik_privilege.h.
+
 2006-11-01  Seiichi SATO <me@seiichisato.jp>
 
 	* kiklib/src/kik_utmp_sysv.c: fixed compilation error on biarch
