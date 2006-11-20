@@ -7,6 +7,8 @@
 	* xwindow/x_term_manager.c (x_term_manager_add_fd):
 	set close-on-exec flag to file descriptor of input method helpers.
 
+	* xwindow/version.h.in: 2.9.3 post -> 2.9.4 pre
+
 2006-11-02  MINAMI Hirokazu <minami@mistfall.net>
 
 	* kiklib/src/kik_sysv.c: #include missing kik_privilege.h.
