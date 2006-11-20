@@ -1856,6 +1856,7 @@ x_term_manager_add_fd(
 		{
 			additional_fds[i].fd = fd ;
 			additional_fds[i].handler = handler ;
+			kik_file_set_cloexec( fd);
 
 			return  0 ;
 		}

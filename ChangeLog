@@ -4,6 +4,9 @@
 	32-bit format in the call to XChangeProperty, when the data is Atom.
 	(thanks to Kusanagi Kouichi for sending a patch)
 
+	* xwindow/x_term_manager.c (x_term_manager_add_fd):
+	set close-on-exec flag to file descriptor of input method helpers.
+
 2006-11-02  MINAMI Hirokazu <minami@mistfall.net>
 
 	* kiklib/src/kik_sysv.c: #include missing kik_privilege.h.
