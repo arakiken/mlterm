@@ -316,7 +316,7 @@ int  x_window_xct_selection_request( x_window_t *  win , Time  time) ;
 int  x_window_utf8_selection_request( x_window_t *  win , Time  time) ;
 
 int  x_window_send_selection( x_window_t *  win , XSelectionRequestEvent *  event ,
-	u_char *  sel_str , size_t  sel_len , Atom  sel_type) ;
+	u_char *  sel_data , size_t  sel_len , Atom  sel_type , int sel_format) ;
 
 int  x_set_window_name( x_window_t *  win , u_char *  name) ;
 

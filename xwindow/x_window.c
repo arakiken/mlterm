@@ -2102,13 +2102,14 @@ x_window_receive_event(
 		}
 		else if( event->xselectionrequest.target == xa_targets)
 		{
-			Atom  targets[4] ;
+			Atom  targets[5] ;
 
-			targets[0] =XA_STRING ;
-			targets[1] =xa_text ;
-			targets[2] =xa_compound_text ;
-			targets[3] =xa_utf8_string ;
-			x_window_send_selection( win , &event->xselectionrequest , (u_char *)(&targets) , sizeof(targets) , XA_ATOM) ;
+			targets[0] =xa_targets ;
+			targets[1] =XA_STRING ;
+			targets[2] =xa_text ;
+			targets[3] =xa_compound_text ;
+			targets[4] =xa_utf8_string ;
+			x_window_send_selection( win , &event->xselectionrequest , (u_char *)(&targets) , sizeof(targets) / sizeof targets[0] , XA_ATOM , 32) ;
 		}
 #ifdef  DEBUG
 		else if( event->xselectionrequest.target == xa_multiple)
@@ -2118,7 +2119,7 @@ x_window_receive_event(
 #endif
 		else
 		{
-			x_window_send_selection( win , &event->xselectionrequest , NULL , 0 , 0) ;
+			x_window_send_selection( win , &event->xselectionrequest , NULL , 0 , 0 , 0) ;
 		}
 	}
 	else if( event->type == SelectionNotify)
@@ -2825,9 +2826,10 @@ int
 x_window_send_selection(
 	x_window_t *  win ,
 	XSelectionRequestEvent *  req_ev ,
-	u_char *  sel_str ,
+	u_char *  sel_data ,
 	size_t  sel_len ,
-	Atom  sel_type
+	Atom  sel_type ,
+	int sel_format
 	)
 {
 	XEvent  res_ev ;
@@ -2839,7 +2841,7 @@ x_window_send_selection(
 	res_ev.xselection.target = req_ev->target ;
 	res_ev.xselection.time = req_ev->time ;
 
-	if( sel_str == NULL)
+	if( sel_data == NULL)
 	{
 		res_ev.xselection.property = None ;
 	}
@@ -2855,7 +2857,7 @@ x_window_send_selection(
 		if( req_ev->property != None){
 			XChangeProperty( win->display , req_ev->requestor ,
 				req_ev->property , sel_type ,
-				8 , PropModeReplace , sel_str , sel_len) ;
+				sel_format , PropModeReplace , sel_data , sel_len) ;
 		}
 		res_ev.xselection.property = req_ev->property ;
 	}

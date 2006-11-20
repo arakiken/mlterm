@@ -2688,7 +2688,7 @@ xct_selection_requested(
 
 	if( screen->sel.sel_str == NULL || screen->sel.sel_len == 0)
 	{
-		x_window_send_selection( win , event , NULL , 0 , 0) ;
+		x_window_send_selection( win , event , NULL , 0 , 0 , 0) ;
 	}
 	else
 	{
@@ -2705,7 +2705,7 @@ xct_selection_requested(
 
 		filled_len = convert_selection_to_xct( screen , xct_str , xct_len) ;
 
-		x_window_send_selection( win , event , xct_str , filled_len , type) ;
+		x_window_send_selection( win , event , xct_str , filled_len , type , 8) ;
 	}
 }
 
@@ -2722,7 +2722,7 @@ utf8_selection_requested(
 
 	if( screen->sel.sel_str == NULL || screen->sel.sel_len == 0)
 	{
-		x_window_send_selection( win , event , NULL , 0 , 0) ;
+		x_window_send_selection( win , event , NULL , 0 , 0 , 0) ;
 	}
 	else
 	{
@@ -2739,7 +2739,7 @@ utf8_selection_requested(
 
 		filled_len = convert_selection_to_utf8( screen , utf8_str , utf8_len) ;
 
-		x_window_send_selection( win , event , utf8_str , filled_len , type) ;
+		x_window_send_selection( win , event , utf8_str , filled_len , type , 8) ;
 	}
 }
 

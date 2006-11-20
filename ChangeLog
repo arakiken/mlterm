@@ -1,4 +1,11 @@
+2006-11-20  Seiichi SATO <me@seiichisato.jp>
+
+	* xwindow/x_window.c, xwindow/x_window.h xwindow/x_screen.c: specify
+	32-bit format in the call to XChangeProperty, when the data is Atom.
+	(thanks to Kusanagi Kouichi for sending a patch)
+
 2006-11-02  MINAMI Hirokazu <minami@mistfall.net>
+
 	* kiklib/src/kik_sysv.c: #include missing kik_privilege.h.
 
 2006-11-01  Seiichi SATO <me@seiichisato.jp>
