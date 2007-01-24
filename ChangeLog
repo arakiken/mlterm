@@ -1,3 +1,9 @@
+2007-01-24  Mike FABIAN  <mfabian@suse.de>
+
+	* kiklib/src/kik_time.c: add missing day of week to avoid
+	that the array subscript gets above the array bounds.
+	Fix by Dominique Leuenberger <dominique.leuenberger@tmf-group.com>.
+
 2006-11-20  Seiichi SATO <me@seiichisato.jp>
 
 	* xwindow/x_window.c, xwindow/x_window.h xwindow/x_screen.c: specify

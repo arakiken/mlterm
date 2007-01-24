@@ -21,7 +21,7 @@
 
 static char *  abbrev_wdays[] = { "Sun" , "Mon" , "Tue" , "Wed" , "Thu" , "Fri" , "Sat" } ;
 
-static char *  wdays[] = { "Sunday" , "Monday" , "Tuesday" , "Wednesday" , "Thursday" , "Saturday" } ;
+static char *  wdays[] = { "Sunday" , "Monday" , "Tuesday" , "Wednesday" , "Thursday" , "Friday", "Saturday" } ;
 
 static char *  abbrev_months[] = { "Jan" , "Feb" , "Mar" , "Apr" , "May" , "Jun" , "Jul" , "Aug" ,
 	"Sep" , "Oct" , "Nov" , "Dec" } ;
