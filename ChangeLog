@@ -1,3 +1,8 @@
+2007-04-13  MINAMI Hirokazu <minami@mistfall.net>
+
+	* xwindow/x_screen.c: selection can be expanded on middle-click.
+	(Thanks to ssakane)
+
 2007-01-24  Mike FABIAN  <mfabian@suse.de>
 
 	* kiklib/src/kik_time.c: add missing day of week to avoid

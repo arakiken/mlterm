@@ -3438,6 +3438,17 @@ button_pressed(
 			config_menu( screen , event->x , event->y , MLCONFIG_PATH) ;
 		}
 	}
+	else if( event->button == 3)
+	{
+		/* expand if current selection exists. */
+		/* FIXME: move sel.* stuff should be in x_selection.c */
+		if(screen->sel.is_reversed)
+		{
+			screen->sel.is_selecting = 1 ;
+			selecting_with_motion( screen, event->x, event->y, event->time);
+			/* keep sel as selected to handle succeeding MotionNotify */
+		}
+	}
 	else if ( event->button == 4)
 	{
 		/* wheel mouse */
