@@ -1,3 +1,7 @@
+2007-04-27  MINAMI Hirokazu <minami@mistfall.net>
+
+	* mlter/ml_term.h: updated for ml_vt100_parser_set_logging_vt_seq.
+
 2007-04-13  MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_screen.c: selection can be expanded on middle-click.
