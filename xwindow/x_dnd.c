@@ -151,6 +151,8 @@ parse_text_uri_list(
 	int pos ;
 	unsigned char *  delim ;
 
+	if( len <= 0)
+		return  FAILURE ;
 	if( !(win->utf8_selection_notified))
 		return  FAILURE ;
 	pos = 0 ;
@@ -238,10 +240,11 @@ parse_mlterm_config(
 {
 	char *  value ;
 
-	src[len-1] = '\0'; /* force termination for malicious peers */
-
+	if( len <= 0)
+		return  FAILURE ;
 	if( !(win->set_xdnd_config))
 		return  FAILURE ;
+	src[len-1] = '\0'; /* force termination for malicious peers */
 	value = strchr( (char *)src, '=') ;
 	if( !value)
 		return  FAILURE ;
@@ -276,7 +279,7 @@ parse_app_color(
 #ifdef  DEBUG
 	kik_debug_printf( "bgcolor: %s\n" , buffer) ;
 #endif
-	parse_mlterm_config( win, buffer, 0) ;
+	parse_mlterm_config( win, buffer, strlen(buffer)) ;
 
 	return  SUCCESS ;
 }
@@ -290,11 +293,13 @@ parse_prop_bgimage(
 	char *  head ;
 	char  tail;
 
+	if( len <= 0 )
+		return  FAILURE ;
 	if( !(win->set_xdnd_config))
 		return  FAILURE ;
 
 	tail = src[len -1] ;
-	src[len -1] = 0 ;
+	src[len-1] = 0 ;
 
 	if( (head = strstr( (char *)src, "file://")))
 	{
@@ -338,7 +343,7 @@ parse_debug(
 	int i;
 
 	kik_debug_printf( ">%s<\n", (char *)src) ;
-	for( i = 0 ; i < 100 && i < len ; i++)
+	for( i = 0 ; (i < 100) && (i < len) ; i++)
 		kik_debug_printf( "\n%d %x" ,i, src[i]) ;
 
 	return  SUCCESS ;
