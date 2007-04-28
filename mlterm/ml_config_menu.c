@@ -11,7 +11,7 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 #include  <kiklib/kik_mem.h>	/* malloc */
-
+#include  <kiklib/kik_file.h>   /* kik_file_set_cloexec, kik_file_unset_cloexec */
 
 #ifndef  LIBEXECDIR
 #define  LIBEXECDIR  /usr/local/libexec
