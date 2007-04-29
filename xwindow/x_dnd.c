@@ -279,7 +279,7 @@ parse_app_color(
 #ifdef  DEBUG
 	kik_debug_printf( "bgcolor: %s\n" , buffer) ;
 #endif
-	parse_mlterm_config( win, buffer, strlen(buffer)) ;
+	parse_mlterm_config( win, buffer, strlen(buffer)+1) ;
 
 	return  SUCCESS ;
 }
