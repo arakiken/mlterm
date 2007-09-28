@@ -4956,6 +4956,12 @@ set_config(
 	{
 		change_icon( screen, value) ;
 	}
+	else if( strcmp( key , "title") == 0)
+	{
+		if(screen->xterm_listener.set_window_name){
+			screen->xterm_listener.set_window_name( screen, value) ;
+		}
+	}
 	else if( strcmp( key , "logging_vt_seq") == 0)
 	{
 		int  flag ;
