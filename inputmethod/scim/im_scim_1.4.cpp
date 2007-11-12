@@ -30,6 +30,7 @@
 #include  <iostream>
 #include  <stdio.h>
 #include  <X11/Xlib.h>  // KeySym, XKeyEvent
+#include  <string.h>
 
 #include  "im_scim.h"
 

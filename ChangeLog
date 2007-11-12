@@ -1,3 +1,8 @@
+2007-11-12  Mike FABIAN  <mfabian@suse.de>
+
+	* inputmethod/scim/im_scim_1.4.cpp: add "#include <string.h>"
+	to fix the build with gcc 4.3.
+
 2007-09-28  MINAMI Hirokazu <minami@mistfall.net>
 
 	* mlterm/x_screen.c: added config key string "title" to allow 
