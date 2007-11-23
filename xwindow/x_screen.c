@@ -3102,8 +3102,9 @@ button_motion(
 	{
 		return ;
 	}
-
-	selecting_with_motion( screen , event->x , event->y , event->time) ;
+	if(!(event->state & Button2Mask)){
+		selecting_with_motion( screen , event->x , event->y , event->time) ;
+	}
 }
 
 static void
@@ -3397,12 +3398,7 @@ button_pressed(
 		{
 			config_menu( screen , event->x , event->y , screen->conf_menu_path_2) ;
 		}
-		else
-		{
-			restore_selected_region_color( screen) ;
-
-			yank_event_received( screen , event->time) ;
-		}
+		return ;
 	}
 	else if( click_num == 2 && event->button == 1)
 	{
@@ -3504,12 +3500,26 @@ button_released(
 	if( ml_term_is_mouse_pos_sending( screen->term) && ! (event->state & ShiftMask))
 	{
 		report_mouse_tracking( screen , event , 1) ;
+		return ;
 	}
-	else
+
+	if( event->button == 2)
 	{
-		x_stop_selecting( &screen->sel) ;
-		highlight_cursor( screen) ;
+		if( (event->state & ControlMask) && screen->conf_menu_path_2)
+		{
+			/* FIXME: should check whether a menu is really active? */
+			return ;
+		}
+		else
+		{
+			restore_selected_region_color( screen) ;
+
+			yank_event_received( screen , event->time) ;
+		}
 	}
+
+	x_stop_selecting( &screen->sel) ;
+	highlight_cursor( screen) ;
 }
 
 
