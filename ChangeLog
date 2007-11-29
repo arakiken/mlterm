@@ -15,12 +15,12 @@
 
 2007-04-27  MINAMI Hirokazu <minami@mistfall.net>
 
-	* mlter/ml_term.h: updated for ml_vt100_parser_set_logging_vt_seq.
+	* mlterm/ml_term.h: updated for ml_vt100_parser_set_logging_vt_seq.
 	* xwindow/x_dnd.h: handle zero-length property properly.
 
 2007-04-13  MINAMI Hirokazu <minami@mistfall.net>
 
-	* xwindow/x_screen.c: selection can be expanded on middle-click.
+	* xwindow/x_screen.c: selection can be expanded on right-click.
 	(Thanks to ssakane)
 
 2007-01-24  Mike FABIAN  <mfabian@suse.de>
@@ -67,7 +67,7 @@
 
 2006-10-19  MINAMI Hirokazu <minami@mistfall.net>
 
-	* xwindw/x_term_manager.c, mlterm/ml_conf_menu.c,
+	* xwindow/x_term_manager.c, mlterm/ml_conf_menu.c,
 	kiklib/src/kik_pty_stream.c, kiklib/src/kik_pty_bsd.c
 	xwindow/x_display.c, xwindow/x_xim.c:
 	plugged file descriptor leaks.
@@ -76,7 +76,7 @@
 	(SF Patch #1576044, thanks to Christian Biere)
 
 	* kiklib/src/Makefile.am: increased library version
-	to reflect API addtion.
+	to reflect API addition.
 
 2006-10-14  MINAMI Hirokazu <minami@mistfall.net>
 
@@ -122,7 +122,7 @@
 	* xwindow/x_screen.c (compare_key_state_with_modmap): allowed NULL
 	as arguments such as is_shift and is_meta.
 
-	* xwindow/x_screen.c (key_pressed): changed to be more compatibile
+	* xwindow/x_screen.c (key_pressed): changed to be more compatible
 	with xterm. (e.g., Shift + F5: ESC [ 15 ; 2 ~)
 	(Thanks to Konosuke Watanabe)
 
@@ -166,7 +166,7 @@
 2006-03-21  Seiichi SATO <me@seiichisato.jp>
 
 	* mlterm/ml_edit.c (ml_edit_set_scroll_region): changed to be more
-	compatibile with xterm. (ESC [ Ps ; Ps r)
+	compatible with xterm. (ESC [ Ps ; Ps r)
 	(Thanks to SHIOTA Shoichi and Takashi SHIRAI)
 
 	* mlterm/ml_vt100_parser.c (parse_vt100_escape_sequence): removed
@@ -174,16 +174,16 @@
 
 2006-03-15  MINAMI Hirokazu <minami@mistfall.net>
 
-	* kiklib/configure.in: POSIX_OPENPT shoukd be chacked unconditionally.
+	* kiklib/configure.in: POSIX_OPENPT should be checked unconditionally.
 	* configure.in: use literals for AC_CONFIG_SUBDIRS() to make 
-	./configure --help=recursive work witj autoconf 2.5x.
+	./configure --help=recursive work with autoconf 2.5x.
 
 2006-03-14  MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_screen.c: set PATH_MAX if it's not already defined
 	in limits.h.
 
-	* xwindow/x_color.c: added fallbacks for "black"/"white"
+	* xwindow/x_color.c: added fall-backs for "black"/"white"
         i.e. don't die even if rgb.txt was missing.
 
 2006-03-12  MINAMI Hirokazu <minami@mistfall.net>
@@ -241,7 +241,7 @@
 
 	* inputmethod/scim/im_scim_1.4.cpp: allowed to switch property.
 
-2005-11-11  MIANMI Hirokazu <minami@mistfall.net>
+2005-11-11  MINAMI Hirokazu <minami@mistfall.net>
 
 	* kiklib/configure.in, kiklib/src/kik_pty_streams.c:
 	use posix_openpt() instead of open(/dev/ptmx", ...) whenever possible.
@@ -256,7 +256,7 @@
 	* inputmethod/scim/im_scim_1.4.cpp: new file
 	* inputmethod/scim/im_scim_1.0.cpp: removed
 
-2005-11-01  MIANMI Hirokazu <minami@mistfall.net>
+2005-11-01  MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_font_config.c: added sanity checks for
 	fontname templates.
@@ -276,12 +276,12 @@
 2005-10-19  MINAMI Hirokazu  <minami@mistfall.net>
 
 	* xwindow/x_window.c: do not try to align full-width chars
-	to a half-witdh char when variable column width is enabled
+	to a half-width char when variable column width is enabled
 	(Thanks to "Oibane" for reporting and helping to fix this).
 
 	* xwindow/x_dnd.c: added sanity checks.
 
-	*  xwindw/x_screen.c: while pseudo-transparency or wallpaper
+	*  xwindow/x_screen.c: while pseudo-transparency or wallpaper
 	is in use, draw cursor as using background
 	(this looks better in most case IMHO).
 
@@ -297,7 +297,7 @@
 	- Since LP64 glibc's malloc() is known to always return
 	16-byte aligned chunks, sanity check can be omitted.
 
-	- changed nl_ch and sp_ch from file-local to fuction-local.
+	- changed nl_ch and sp_ch from file-local to function-local.
 
 2005-10-05  Seiichi SATO <ssato@sh.rim.or.jp>
 
@@ -338,7 +338,7 @@
 2005-09-19 MINAMI Hirokazu <minami@mistfall.net>
 	
 	* kiklib/src/kik_conf_io.c: added a debugging feature.
-	The user configurtaion directory can be overridden using CONF_DIR.
+	The user configuration directory can be overridden using CONF_DIR.
 
 2005-09-18 MINAMI Hirokazu <minami@mistfall.net>
 
@@ -348,12 +348,12 @@
 
 2005-09-18 MINAMI Hirokazu <minami@mistfall.net>
 
-	* mlterm/ml_vt100_parser.c: try to restore a perser's GL when
+	* mlterm/ml_vt100_parser.c: try to restore a parser's GL when
 	restore_cursor() was called.
 	- only works on non-iso2022 locales at present.
 	(I'm not yet sure how the parser's internal states should be
 	 save/restored on iso2022 locales.)
-	- test#2 of the vttest shold be passed on UTF-8 locales.
+	- test#2 of the vttest should be passed on UTF-8 locales.
 	(Thanks to Thomas Dickey for suggestions)
 
 	* mlterm/ml_vt100_parser.c: declare digits[] as char[]
@@ -466,7 +466,7 @@
 	* inputmethod/iiimf/keymap.c: added key mappings for auxiliary
 	functions (XK_F*) and keypad (XK_KP_*).
 
-	* tool/mlconfig/mc_im.c: minor code cleaup.
+	* tool/mlconfig/mc_im.c: minor code cleanup.
 
 2005-03-01 Seiichi SATO <ssato@sh.rim.or.jp>
 
@@ -481,13 +481,13 @@
 	  inputmethod/scim/im_scim_1.0.cpp, inputmethod/scim/im_scim_1.2.cpp:
 	  get rid of compiler warning.
 
-	* kiklib/src/kik_dlfcn_dyld.c: fixed a segfault that occured when the
+	* kiklib/src/kik_dlfcn_dyld.c: fixed a segfault that occurred when the
 	module was loaded multiply. (Thanks to Etsushi Kato for report)
 
 	* contrib/scrollbar/extra/exsb_comon.c:
 	  - removed.
 	  - To avoid multiple definitions problem on Mac OS X, exsb_get_pixel()
-	    was moved to exsb_comon.h as static function.
+	    was moved to exsb_common.h as static function.
 
 	* contrib/scrollbar/extra/Makefile.in: removed exsb_common.o
 
@@ -559,7 +559,7 @@
 
 2005-02-23 MINAMI Hirokazu <minami@mistfall.net>
 
-	* xwindow/x_screen.c: reprt meta while mouse tracking mode.
+	* xwindow/x_screen.c: report meta while mouse tracking mode.
 	* mlterm/ml_screen.h: modified definitions for back scroll mode.
 	* mlterm/ml_vt100_parser.c: fixed typo.
 
@@ -571,7 +571,7 @@
 
 	* x_term_manager.c: mlterm daemon can be killed by 
 	"mlclient --kill".
-	* tool/mlclient/main.c: _K/--maxpts optios was removed long ago...
+	* tool/mlclient/main.c: _K/--maxpts options was removed long ago...
 	* mlterm/ml_vt100_parser.c: try to mimic term's extended 
 	escape sequences(1047/1048/1049).
 
@@ -579,7 +579,7 @@
 
 	made a window icon to belong a pty not a window.
 	* xwindow/x_screen.c: added change_icon() and
-	  set/reset an icon when a term is attache/dettached.
+	  set/reset an icon when a term is attache/detached.
 	* xwindow/x_term_manager.c: handle term->icon_path.
 	* xwindow/x_window_manager.c: added x_window_manager_set_icon.
 	* xwindow/xwindow.c: added x_window_remove_icon() and
@@ -608,11 +608,11 @@
 	* mlterm/ml_logs.c: use calloc to fail when integer overflow.
 	* kiklib/src/kik_mem.c: detect integer overflow in calloc()  while debugging.
 	* mlterm/ml_term.[ch]: added a new member "icon_path" to ml_term_t for
-	furture expansion.
+	future expansion.
 	
 2005-02-15 Seiichi SATO <ssato@sh.rim.or.jp>
 
-	* inputmethod/uim/im_uim.c, configure.in: uim_prop_update_custrom()
+	* inputmethod/uim/im_uim.c, configure.in: uim_prop_update_custom()
 
 	* xwindow/x_im_candidate_screen.c (draw_screen_vertical):
 	  10 -> num_per_window
@@ -674,7 +674,7 @@
 	* xwindow/x_screen.c: During mouse tracking,
 	try to report sane location even if there was no character
 	under clicked column.
-	(This is not perfect when varible-width font is used, though)
+	(This is not perfect when variable-width font is used, though)
 
 2005-02-04 MINAMI Hirokazu <minami@mistfall.net>
 
@@ -700,11 +700,11 @@
 	- removed xim_open_in_startup. (#1115198)
 	- added input_method
 
-2005-02-02 MINAMI Hiroakzu <minami@mistfall.net>
+2005-02-02 MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_screen.c: For mouse tracking, 
 	report the maximum value, not random value, when the clicked
-	position was out of protocol-suppoted range.
+	position was out of protocol-supported range.
 
 2005-01-31 Seiichi SATO <ssato@sh.rim.or.jp>
 
@@ -746,7 +746,7 @@
 
 	* inputmethod/kbd/im_kbd.c (mlterm_syms): renamed to syms.
 
-	* inputmethod/scim/im_scim.cpp (send_help_description): impremented.
+	* inputmethod/scim/im_scim.cpp (send_help_description): implemented.
 
 	* inputmethod/scim/im_scim_mod_if.c (im_scim_get_info): num_of_args = 0
 
@@ -756,7 +756,7 @@
 
 	* inputmethod/uim/im_uim.c
 	  (xksym_to_ukey): fixed typo.
-	  (candidate_shift_page): impremented.
+	  (candidate_shift_page): implemented.
 
 	* inputmethod/scim/im_scim_mod_if.c (im_scim_get_info):
 	  fixed a segfault when scim daemon is not running.
@@ -789,7 +789,7 @@
 
 2005-01-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
-	* inputmethod/scim/im_scim.cpp: impremented property.
+	* inputmethod/scim/im_scim.cpp: implemented property.
 
 2005-01-23 MINAMI Hirokazu <minami@mistfall.net>
 
@@ -799,7 +799,7 @@
 
 	* inputmethod/scim/im_scim.cpp (im_scim_create_context): moved
 	be->signal_connect_*() into
-	* nputmethod/scim/im_scim.cpp (im_scim_initialize): this.
+	* inputmethod/scim/im_scim.cpp (im_scim_initialize): this.
 
 2005-01-23 Seiichi SATO <ssato@sh.rim.or.jp>
 
@@ -815,12 +815,12 @@
 	* inputmethod/uim/im_uim.c, xwindow/x_im.c, xwindow/x_im.h:
 	minor code cleanup.
 
-2005-01-23 MINAAMI Hirokazu <minami@mistfall.net>
+2005-01-23 MINAMI Hirokazu <minami@mistfall.net>
 
         Made cursor looks better (thanks to Ian Ward). 
 	* mlterm/ml_vt100_parser.c: stopped to unify cursor color.
 	* xwindow/x_screen.c, xwindow/x_color_manager.*: cursors are now 
-	drawn using the colors of charecters under them.
+	drawn using the colors of characters under them.
 	
 2005-01-21 Seiichi SATO <ssato@sh.rim.or.jp>
 
