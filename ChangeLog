@@ -1,3 +1,11 @@
+2006-11-30  Seiichi SATO <me@seiichisato.jp>
+
+	* mkf/script/config.guess, kiklib/script/config.guess,
+	  script/config.guess: updated (timestamp='2007-07-22')
+
+	* mkf/script/config.sub, kiklib/script/config.sub,
+	  script/config.sub: updated (timestamp='2007-06-28')
+
 2007-11-22  MINAMI Hirokazu <minami@mistfall.net>
 
 	* xwindow/x_screen.c: yank(paste) of a selection is now done
