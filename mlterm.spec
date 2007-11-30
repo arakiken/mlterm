@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 2.9.3
+%define version 2.9.4
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
@@ -76,6 +76,9 @@ rm -rf $RPM_BUILD_ROOT
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
 
 %changelog
+* Fri Nov 30 2007 Seiichi SATO <me@seiichisato.jp>
+- Source version 2.9.4
+
 * Sun May 07 2006 Seiichi SATO <me@seiichisato.jp>
 - Source version 2.9.3
 

@@ -1,4 +1,13 @@
-2006-11-30  Seiichi SATO <me@seiichisato.jp>
+2007-11-30  Seiichi SATO  <me@seiichisato.jp>
+
+	* 2.9.4 released.
+	  (tag "rel-2_9_4")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 2.9.4
+	* configure: re-generated
+
+2007-11-30  Seiichi SATO <me@seiichisato.jp>
 
 	* mkf/script/config.guess, kiklib/script/config.guess,
 	  script/config.guess: updated (timestamp='2007-07-22')
