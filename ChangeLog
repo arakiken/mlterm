@@ -1,5 +1,9 @@
 2007-11-30  Seiichi SATO  <me@seiichisato.jp>
 
+	* xwindow/version.h.in: 2.9.4 -> 2.9.4 post
+
+2007-11-30  Seiichi SATO  <me@seiichisato.jp>
+
 	* 2.9.4 released.
 	  (tag "rel-2_9_4")
 
