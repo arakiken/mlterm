@@ -1,3 +1,21 @@
+ver 2.9.4
+* Arabic translation of mlconfig [Khaled Hosny]
+* Selected region can be expanded by right-clicking [minami]
+  (Thanks to ssakane)
+* New config key string "title" to allow change pty title [minami]
+* Set DISPLAY correctly for ptys opened by -P option [nokada] (SF Bug #1534313)
+* Fixed compile errors with gcc 4.3 [mfabian]
+* Fixed a potentiol off-by-one bug [mfabian] (Thanks to Dominique Leuenberger)
+* Fixed compile errors on biarch systems [Kenshi Muto] (Debian Bug #396532)
+* Plugged file-desctiptor leaks [Christian Biere] (SF Patch #1576044)
+* Made "restore cursor" work properly with alternate screens [minami]
+  (SF Bug#1472143)
+* Fixed broken handling of Atom [Kusanagi Kouichi]
+* Other bug fixes:
+ - Debian BUG #329194 [David Kolovratnik]
+ - SF Bug #1568596 [nokada]
+ - SF Patch #1574241 [Christian Biere]
+
 ver 2.9.3
 * Improvements for compatibility with xterm:
   - Log file handling [kzys]
