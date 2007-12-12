@@ -4,7 +4,9 @@
 
 /* ptsname/grantpt/unlockpt are not available without _XOPEN_SOURCE
  * on GNU libc based systems. (It may have some ill side-effect though) */
+#ifndef __APPLE__
 #define  _XOPEN_SOURCE 500
+#endif
 
 /* When _XOPEN_SOURCE is defined,
  * u_int/u_long/... may not be defined without _BSD_SOURCE */
@@ -245,6 +247,13 @@ kik_pty_fork(
 		}
 #endif /*TIOCNOTTY*/
 #endif /*HAVE_SETSID*/
+
+#ifdef TIOCSCTTY /* BSD (in addition Linux also knows TIOCSCTTY) */
+		if(ioctl(*slave, TIOCSCTTY, NULL) < 0)
+		{
+			return -1 ;
+		}
+#else /* no TIOCSCTTY (SysV) */
 		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
 		if (fd >= 0)
 		{
@@ -261,6 +270,7 @@ kik_pty_fork(
 			return -1;
 		}
 		close(fd);
+#endif /* no TIOCSCTTY (SysV) */
 
 		dup2( *slave , 0) ;
 		dup2( *slave , 1) ;

@@ -1,3 +1,12 @@
+2007-12-11  KATO Kazuyoshi  <kzys@8-p.info>
+
+	* kiklib/src/kik_pty_streams.c:
+	don't define _XOPEN_SOURCE on Mac OS X.
+	* kiklib/src/kik_pty_streams.c (kik_pty_fork):
+	MacOS X >= 10.4 has posix_openpt() but needs ioctl(TIOCSTTY)
+	instead of open(slavetty) to acquire a controlling tty.
+	(thanks to AIDA Shinra for sending a patch)
+
 2007-11-30  Seiichi SATO  <me@seiichisato.jp>
 
 	* xwindow/version.h.in: 2.9.4 -> 2.9.4 post
