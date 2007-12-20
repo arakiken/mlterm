@@ -140,6 +140,7 @@ ml_term_delete(
 
 	free( term->win_name) ;
 	free( term->icon_name) ;
+	free( term->icon_path) ;
 
 	ml_screen_delete( term->screen) ;
 	ml_vt100_parser_delete( term->parser) ;
