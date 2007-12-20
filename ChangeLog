@@ -1,3 +1,7 @@
+2007-12-20  MINAMI Hirokazu <minami@mistfall.net>
+
+	* mlterm/ml_term.c: plugged a memory leak.
+
 2007-12-11  KATO Kazuyoshi  <kzys@8-p.info>
 
 	* kiklib/src/kik_pty_streams.c:
