@@ -31,13 +31,13 @@ mkf_set_sjis_output_type(
 }
 
 mkf_sjis_type_t
-mkf_get_sjis_input_type()
+mkf_get_sjis_input_type(void)
 {
 	return  input_type ;
 }
 
 mkf_sjis_type_t
-mkf_get_sjis_output_type()
+mkf_get_sjis_output_type(void)
 {
 	return  output_type ;
 }

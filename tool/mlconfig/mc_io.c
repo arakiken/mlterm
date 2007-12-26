@@ -12,7 +12,7 @@
 
 /* --- static variables --- */
 
-char *  message ;
+static char *  message ;
 
 
 /* --- static functions --- */

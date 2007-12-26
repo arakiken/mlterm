@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "mkf_conv.h"
+#include  "mkf_viscii_conv.h"
 
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>

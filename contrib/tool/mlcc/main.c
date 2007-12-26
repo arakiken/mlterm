@@ -90,12 +90,12 @@ section_t * section_from_name(config_data_t *data, char *name){
 	for(i = 0; i < data->filled; i++)
 		if (strcmp(data->section[i].name, name) == 0)
 			return &(data->section[i]);
-	return 0;
+	return NULL;
 }
 
 section_t * section_add(config_data_t *data, const char *name){
 	if (data->filled > MAX_SECTION -2)
-		return 0;
+		return NULL;
 	data->section[data->filled].name = name;
 	data->section[data->filled].size = 0;
 	data->section[data->filled].selected = 0;
@@ -349,7 +349,7 @@ int init_data(config_data_t *data){
 int main(int argc, char **argv){
 	static config_data_t data;
 	struct sigaction act;
-	window_t *win_root =0, *win_section = 0, *win_entry = 0;
+	window_t *win_root =NULL, *win_section = NULL, *win_entry = NULL;
 
 	if(argc == 2){
 		mlterm_get_param(argv[1]);
@@ -366,9 +366,9 @@ int main(int argc, char **argv){
 	act.sa_flags = SA_RESTART;
 
 	act.sa_handler = signal_int;
-	sigaction(SIGINT, &act, 0);
+	sigaction(SIGINT, &act, NULL);
 	act.sa_handler = signal_winch;
-	sigaction(SIGWINCH, &act, 0);
+	sigaction(SIGWINCH, &act, NULL);
 
 	cursor_hide();
 	set_keypad();
@@ -385,7 +385,7 @@ int main(int argc, char **argv){
 			window_free(win_entry);
 			window_free(win_root);
 
-			win_root = window_new(0, 0, cols-1, rows-1, 0, 0);
+			win_root = window_new(0, 0, cols-1, rows-1, 0, NULL);
 			window_clear(win_root);
 
 			win_section = section_window_new(win_root, &data);

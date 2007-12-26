@@ -356,7 +356,7 @@ int x_window_manager_set_icon(
 
 	if( !win_man->icon_path)
 	{
-		x_window_t  dummy = {0};
+		x_window_t  dummy = {NULL};
 
 		/* register the default icon */
 		if(!(win_man->icon_path = strdup( icon_path)))

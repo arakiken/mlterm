@@ -678,7 +678,7 @@ load_xfont(
 
 	if( ( fontname = alloca( max_len)) == NULL)
 	{
-		return  0 ;
+		return  NULL ;
 	}
 
 	kik_snprintf( fontname , max_len , "-*-%s-%s-%s-%s--%d-*-*-*-%s-*-%s" ,

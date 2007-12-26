@@ -576,7 +576,7 @@ x_xim_create_ic(
 {
 	if( win->xim == NULL)
 	{
-		return  0 ;
+		return  NULL ;
 	}
 	
 	if( preedit_attr)

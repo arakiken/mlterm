@@ -1754,7 +1754,7 @@ void
 x_term_manager_event_loop(void)
 {
 	int  count ;
-	const char  * display ;
+	char  * display ;
 
 	if( ! *( display = main_config.disp_name) && ( ! ( display = getenv( "DISPLAY")) || ! *display))
 	{

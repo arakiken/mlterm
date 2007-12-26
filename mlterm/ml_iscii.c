@@ -367,15 +367,6 @@ ml_iscii_lang_delete(
 	return  0 ;
 }
 
-int
-ml_iscii_select_lang(
-	ml_iscii_lang_t  lang ,
-	ml_iscii_lang_t  type
-	)
-{
-	return  0 ;
-}
-
 char *
 ml_iscii_get_font_name(
 	ml_iscii_lang_t  lang ,

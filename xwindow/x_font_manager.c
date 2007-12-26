@@ -572,7 +572,6 @@ x_deactivate_local_font_config(
 
 	x_font_config_delete( font_man->font_config) ;
 	font_man->font_config = font_config ;
-	font_man->font_config = 0 ;
 
 	return  1 ;
 }

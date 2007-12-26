@@ -49,7 +49,7 @@ brightness_selected(
 
 GtkWidget *
 mc_brightness_config_widget_new(
-	
+	void	
 	)
 {
 	char *  brightnesses[] =

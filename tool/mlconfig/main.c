@@ -197,7 +197,7 @@ pty_button_clicked(
  */
 
 static void
-addbutton(char *label, gint (func)(), GtkWidget *box)
+addbutton(char *label, gint (func)(GtkWidget *, gpointer), GtkWidget *box)
 {
 	GtkWidget *button;
 	button = gtk_button_new_with_label(label);

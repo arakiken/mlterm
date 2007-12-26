@@ -34,7 +34,7 @@ selected(
 	return  1 ;
 }
 
-char *
+static char *
 get_pty_title(char *dev)
 {
 	char query[256], *name;
@@ -46,7 +46,7 @@ get_pty_title(char *dev)
 	return name;
 }
 
-char *
+static char *
 get_pty_entry(char *dev)
 {
 	char *title, *entry;

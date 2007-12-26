@@ -3,6 +3,7 @@
  */
 
 #include  <fcntl.h>		/* fcntl() */
+#include  <sys/file.h>          /* flock() */
 #include  "kik_file.h"
 
 #include  "kik_config.h"
@@ -56,7 +57,7 @@ kik_file_open(
 	
 	if( ( fp = fopen( file_path , mode)) == NULL)
 	{
-		return  0 ;
+		return  NULL ;
 	}
 
 	return  kik_file_new( fp) ;
@@ -223,6 +224,7 @@ kik_file_set_cloexec(
 	return  1 ;
 }
 
+int
 kik_file_unset_cloexec(
 	int fd
 	)

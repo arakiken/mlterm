@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "mkf_ucs4_jisx0212.h"
+#include  "mkf_ucs4_jisx0213.h"
 
 #include  "table/mkf_ucs4_alphabet_to_jisx0213_2000_1.table"
 #include  "table/mkf_ucs4_cjk_to_jisx0213_2000_1.table"

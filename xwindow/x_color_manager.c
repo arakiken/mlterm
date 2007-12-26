@@ -314,7 +314,7 @@ x_get_color(
 	{
 		if( ( tag = malloc( strlen(name) + 4)) == NULL)
 		{
-			return  0 ;
+			return  NULL ;
 		}
 
 		sprintf( tag , "hl_%s" , name) ;

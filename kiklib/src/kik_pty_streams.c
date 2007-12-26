@@ -5,7 +5,7 @@
 /* ptsname/grantpt/unlockpt are not available without _XOPEN_SOURCE
  * on GNU libc based systems. (It may have some ill side-effect though) */
 #ifndef __APPLE__
-#define  _XOPEN_SOURCE 500
+#define  _XOPEN_SOURCE 600
 #endif
 
 /* When _XOPEN_SOURCE is defined,
@@ -38,6 +38,7 @@
 #endif
 
 #include  "kik_str.h"		/* strdup */
+#include  "kik_file.h"
 #include  "kik_debug.h"
 #include  "kik_sig_child.h"
 

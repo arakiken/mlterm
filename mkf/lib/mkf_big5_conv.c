@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "mkf_conv.h"
+#include  "mkf_big5_conv.h"
 
 #include  <string.h>		/* strncmp */
 #include  <kiklib/kik_mem.h>

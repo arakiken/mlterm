@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 }
 
 
-GtkWidget* create_menu()
+GtkWidget* create_menu(void)
 {
     GtkWidget* menu;
     char* rc_path;

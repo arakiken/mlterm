@@ -107,7 +107,7 @@ parse_text_unicode(
 			u_int16_t BOM[] =  {0xFEFF};
 
 			(parser->set_str)( parser , (unsigned char *)BOM , 2) ;
-			(parser->next_char)( parser , 0) ;
+			(parser->next_char)( parser , NULL) ;
 		}
 	}
 
@@ -351,7 +351,7 @@ parse_debug(
 #endif
 
 /* new mime type and parser pair should be added into this table */
-dnd_parser_t dnd_parsers[] ={
+static dnd_parser_t dnd_parsers[] ={
 	{"text/x-mlterm.config"  , parse_mlterm_config } ,
 	{"UTF8_STRING"  , parse_utf8_string } ,
 	{"COMPOUND_TEXT", parse_compound_text } ,

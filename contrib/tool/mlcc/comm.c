@@ -37,7 +37,7 @@ static void csi(const char *str){
 	write(STDOUT_FILENO, str, strlen(str));
 }
 
-static void reload_passwd(){
+static void reload_passwd(void){
 	FILE * file;
 	char local_buffer[256];
 	if( mlterm_pass[0])
@@ -61,7 +61,7 @@ static void reload_passwd(){
 	fclose(file);
 }
 
-int read_one(){
+int read_one(void){
 	int count;
 	char buf[4] = {0};
 	count = read(STDIN_FILENO, buf, 4);
@@ -92,15 +92,15 @@ int read_one(){
 }
 
 
-void flush_stdout(){
+void flush_stdout(void){
 	fsync(STDOUT_FILENO);
 }
 
-void dec_char(){
+void dec_char(void){
 	csi("(0"); 
 }
 
-void normal_char(){
+void normal_char(void){
 	csi("(B"); 
 }
 
@@ -120,7 +120,7 @@ void set_fg_color(int colorid){
 	csi(cmd);
 }
 
-void set_fg_color_default(){
+void set_fg_color_default(void){
 	csi("[39m");
 }
 
@@ -134,31 +134,31 @@ void set_bg_color(int colorid){
 	csi(cmd);
 }
 
-void set_altscr(){
+void set_altscr(void){
 	csi("7");
 	csi("[?47h");
 }
 
-void unset_altscr(){
+void unset_altscr(void){
 	csi("[?47l");
 	csi("8");
 }
 
-void set_keypad(){
+void set_keypad(void){
 	csi("[?1h");
 	csi("=");
 }
 
-void unset_keypad(){
+void unset_keypad(void){
 	csi("[?1l");
 	csi(">");
 }
 
-void cursor_show(){
+void cursor_show(void){
 	csi("[?25h");
 }
 
-void cursor_hide(){
+void cursor_hide(void){
 	csi("[?25l");
 }
 
@@ -378,7 +378,7 @@ void window_clear(window_t * window){
 	flush_stdout();
 }
 
-int termios_init(){
+int termios_init(void){
 	struct termios newtio;
 	tcgetattr(0, &oldtio);
 	newtio = oldtio;
@@ -390,7 +390,7 @@ int termios_init(){
 	return 0;
 }
 
-int termios_final(){
+int termios_final(void){
 	tcsetattr(0, TCSAFLUSH, &oldtio);
 	return 0;
 }

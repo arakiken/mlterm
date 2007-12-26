@@ -151,12 +151,3 @@ kik_path_cleanname(
 	return  1 ;
 }
 
-int
-kik_path_resolve(
-	char *  resolved_path ,
-	size_t  size ,
-	char *  path
-	)
-{
-	return  0 ;
-}

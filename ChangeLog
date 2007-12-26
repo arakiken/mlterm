@@ -1,3 +1,9 @@
+2007-12-26  MINAMI Hirokazu <minami@mistfall.net>
+
+	* code cleanup using Sparse.
+	 - use NULL properly insted of (int)0.
+	 - added/fixed typos for #include.
+
 2007-12-20  MINAMI Hirokazu <minami@mistfall.net>
 
 	* mlterm/ml_term.c: plugged a memory leak.

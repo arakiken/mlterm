@@ -7,7 +7,7 @@
 int entry_string_edit(window_t *window, entry_t *entry, int x, int y){
 	entry_string_t *data;
 	int result;
-	char * str_new = 0;
+	char * str_new = NULL;
 	window_t * edit;
 	data = entry->data;
 	edit = window_new(x+1, y, window->right, y+2, 1, window); /*XXX*/
@@ -137,7 +137,7 @@ int string_edit(window_t *window, char *src, char **result){
 		case KEY_ESC:
 			cursor_hide();
 			free(work);
-			*result = 0;
+			*result = NULL;
 			return 0; /* discard */
 		case KEY_DOWN:
 		case KEY_RIGHT:

@@ -1666,7 +1666,7 @@ x_imagelib_get_transparent_background(
 	pixmap = XCreatePixmap( win->display, win->my_window, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
 				DefaultDepth( win->display, win->screen)) ;
 
-	gc = XCreateGC( win->display, win->my_window, 0, 0) ;
+	gc = XCreateGC( win->display, win->my_window, 0, NULL) ;
 
 	if ( !is_picmod_eq( cache->pic_mod, pic_mod))
 	{

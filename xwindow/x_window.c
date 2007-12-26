@@ -462,8 +462,8 @@ x_window_init(
 	win->xft_draw = NULL ;
 #endif
 
-	win->gc = None ;
-	win->ch_gc = None ;
+	win->gc = NULL ;
+	win->ch_gc = NULL ;
 
 	win->fg_color = 0 ;
 	win->bg_color = 0 ;
