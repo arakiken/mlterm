@@ -1,3 +1,9 @@
+2008-03-13  MINAMI Hirokazu <minami@mistfall.net>
+
+	* mlterm/ml_vt100_parser.c: fixed infinite loop.
+	 when a sequence-like input was actually so looooong, mlterm should
+	 assume it was just not properly terminated (Thanks to shinichiro.h).
+
 2007-12-26  MINAMI Hirokazu <minami@mistfall.net>
 
 	* code cleanup using Sparse.

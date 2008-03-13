@@ -978,7 +978,7 @@ parse_vt100_escape_sequence(
 		if( *str_p == CTLKEY_ESC)
 		{
 		#ifdef  ESCSEQ_DEBUG
-			kik_msg_printf( "RECEIVED ESCAPE SEQUENCE: ESC") ;
+            kik_msg_printf( "RECEIVED ESCAPE SEQUENCE(current left = %d: ESC", left) ;
 		#endif
 
 			if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) == 0)
@@ -2736,8 +2736,19 @@ ml_parse_vt100_sequence(
 			if( ! parse_vt100_escape_sequence( vt100_parser))
 			{
 				/* shortage of chars */
-
-				break ;
+				if(vt100_parser->left >= PTYMSG_BUFFER_SIZE){
+					/* the sequence seems to be	 longer than PTY buffer, or
+					 * broken/unsupported.
+					 * try to recover from error by dropping bytes... */
+#ifdef DEBUG
+					kik_debug_printf( KIK_DEBUG_TAG
+									  "escape sequence too long. dropped\n") ;
+#endif
+					vt100_parser->left--;
+				}else{
+					/* expect more input */
+					break ;
+				}
 			}
 
 		#ifdef  EDIT_ROUGH_DEBUG
