@@ -770,7 +770,7 @@ ml_edit_overwrite_chars(
 				edit->cursor.row ++ ;
 			}
 
-			if( ml_char_cols( &buffer[count]) > edit->model.num_of_cols)
+			if( ml_char_cols( &buffer[count]) >= edit->model.num_of_cols)
 			{
 				/* next char is too wide. giving up. */
 				break ;

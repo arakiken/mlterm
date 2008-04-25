@@ -1,3 +1,7 @@
+2008-04-26  MINAMI Hirokazu <minami@mistfall.net>
+
+	* mlterm/ml_edit.c: should not loop forever when window was too narrow.
+
 2008-03-13  MINAMI Hirokazu <minami@mistfall.net>
 
 	* mlterm/ml_vt100_parser.c: fixed infinite loop.
