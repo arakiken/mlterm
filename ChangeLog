@@ -1,3 +1,7 @@
+2008-05-28  MINAMI Hirokazu <minami@mistfall.net>
+
+	* inputmethod/uim/im_uim.c: add stdio.h to includes for BUFSIZ.
+
 2008-04-26  MINAMI Hirokazu <minami@mistfall.net>
 
 	* mlterm/ml_edit.c: should not loop forever when window was too narrow.

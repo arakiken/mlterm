@@ -31,9 +31,10 @@
  *	$Id$
  */
 
+#include  <stdio.h>
 #include  <uim.h>
 #include  <uim-helper.h>
-#include <uim-im-switcher.h>
+#include  <uim-im-switcher.h>
 
 #include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
