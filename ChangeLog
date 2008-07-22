@@ -1,3 +1,13 @@
+2008-07-22 MINAMI Hirokazu  <minami@mistfall.net>
+
+	* inputmethod/uim/im_uim.c: tweaked initialization order to make
+	automatic engine detection work again.
+
+	uim_get_default_im_name() seems to return a non-GC-protected string
+	which do not survive uim_create_context(). though it seems like a
+	uim's bug, calling uim_get_default_im_name() iff uim_create_context()
+	should be efficient anyway.
+
 2008-05-28  MINAMI Hirokazu <minami@mistfall.net>
 
 	* inputmethod/uim/im_uim.c: add stdio.h to includes for BUFSIZ.
