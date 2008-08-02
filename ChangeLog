@@ -1,3 +1,13 @@
+2008-08-02 MINAMI Hirokazu  <minami@mistfall.net>
+
+	* kiklib/configure.in: added GNU libc detection. 
+	* kik_src/kik_pty_sterams.c:
+	 - no longer define _XOPEN_SOURCE to avoid problems on misc. platforms.
+	  - define _GNU_SOURCE iff compiled with glibc to get ptsname()
+	    prototype (its mandantory on LP64).
+	  - #define for _BSD_SOURCE/__EXTENSIONS__ should be no longer needed.
+	(SF Bug#1999220, thanks to Christian Biere).
+
 2008-07-22 MINAMI Hirokazu  <minami@mistfall.net>
 
 	* inputmethod/uim/im_uim.c: tweaked initialization order to make

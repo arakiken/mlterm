@@ -10,6 +10,7 @@
 #ifndef  __KIK_CONFIG_H__
 #define  __KIK_CONFIG_H__
 
+#undef  HAVE_GNU_SOURCE
 
 #undef  HAVE_LANGINFO_H
 

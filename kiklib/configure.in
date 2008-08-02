@@ -11,6 +11,16 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
 
+#detect glibc
+AC_TRY_COMPILE([#include <features.h>],
+[
+#ifdef __GLIBC__
+#else
+#error
+int boil\[-1\];
+#endif
+], AC_DEFINE(HAVE_GNU_SOURCE))
+
 #
 # --- libtool ---
 #

@@ -2,18 +2,13 @@
  *	$Id$
  */
 
-/* ptsname/grantpt/unlockpt are not available without _XOPEN_SOURCE
- * on GNU libc based systems. (It may have some ill side-effect though) */
-#ifndef __APPLE__
-#define  _XOPEN_SOURCE 600
+/* _GNU_SOURCE must be defined before including <features.h> to take effect.
+ * since standard headers/kik_types.h #includes features.h indirectly,
+ * ecplicitly evaluate only the autoconf's result here */
+#include "kik_config.h"
+#ifdef HAVE_GNU_SOURCE
+#define _GNU_SOURCE
 #endif
-
-/* When _XOPEN_SOURCE is defined,
- * u_int/u_long/... may not be defined without _BSD_SOURCE */
-#define  _BSD_SOURCE 1
-
-/* for solaris */
-#define __EXTENSIONS__
 
 #include  "kik_pty.h"
 
@@ -41,7 +36,6 @@
 #include  "kik_file.h"
 #include  "kik_debug.h"
 #include  "kik_sig_child.h"
-
 
 /* Disable special character functions */
 #ifdef  _POSIX_VDISABLE
