@@ -1,5 +1,11 @@
 2008-08-17  Seiichi SATO  <seiichi@pylone.jp>
 
+	* mkf/script/config.guess, kiklib/script/config.guess,
+	  script/config.guess: updated (timestamp='2008-01-23')
+
+	* mkf/script/config.sub, kiklib/script/config.sub,
+	  script/config.sub: updated (timestamp='2008-01-16')
+
 	* contrib/tool/mlterm-menu/mlterm-menu.c: apply the patch from FreeBSD
 	ports x11/mlterm. (files/patch-contrib_tool_mlterm-memu_mlterm-menu.c)
 
