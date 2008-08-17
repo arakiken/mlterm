@@ -200,7 +200,8 @@ int append_pty_list(GtkMenu* menu)
 {
     GtkWidget* item;
     char* pty_list;
-    char* name;
+    char* name_locale;
+    char* name_utf8;
     char* pty;
     char* command;
     int is_active;
@@ -224,15 +225,16 @@ int append_pty_list(GtkMenu* menu)
         if (pty_list)
             pty_list++;
 
-        if ((name = get_value(pty, "pty_name")) == NULL)
-            name = pty;
-        if (strncmp(name, "/dev/", 5) == 0)
-            name += 5;
+        if ((name_locale = get_value(pty, "pty_name")) == NULL)
+            name_locale = pty;
+        if (strncmp(name_locale, "/dev/", 5) == 0)
+            name_locale += 5;
+        name_utf8 = g_locale_to_utf8(name_locale, -1, NULL, NULL, NULL);
 
         command = malloc(strlen(pty) + 12);
         sprintf(command, "select_pty=%s", pty);
 
-        item = gtk_radio_menu_item_new_with_label(group, name);
+        item = gtk_radio_menu_item_new_with_label(group, name_utf8);
         group = gtk_radio_menu_item_group(GTK_RADIO_MENU_ITEM(item));
 
         gtk_signal_connect(GTK_OBJECT(item), "toggled",
@@ -240,9 +242,10 @@ int append_pty_list(GtkMenu* menu)
                            (gpointer) command);
 
         gtk_menu_append(menu, item);
+        g_free(name_utf8);
+
         if (is_active) {
-            gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item),
-                                           TRUE);
+            gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), TRUE);
         }
     }
 
