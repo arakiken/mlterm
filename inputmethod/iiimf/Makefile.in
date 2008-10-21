@@ -20,12 +20,12 @@ CFLAGS = $(CFLAGS_LOCAL)		\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
 	 @IM_CFLAGS@			\
-	 @IIIMF_CFLAGS@			\
+	 @IIIMCF_CFLAGS@		\
 	 -I$(top_srcdir)/mlterm		\
 	 -I${top_srcdir}/xwindow	\
 	 -I/usr/local/include
 
-LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @IIIMF_LIBS@
+LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @MKF_LIBS_FOR_MODULE@ @IIIMCF_LIBS@
 
 CC      = @CC@
 INSTALL = @INSTALL@

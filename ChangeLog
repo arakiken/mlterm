@@ -1,3 +1,8 @@
+2008-10-21  Seiichi SATO  <seiichi@pylone.jp>
+
+	* inputmethod/iiimf/Makefile.in, configure.in: To detect libiiimcf,
+	use pkg-config if available.
+
 2008-08-17  Seiichi SATO  <seiichi@pylone.jp>
 
 	* mkf/script/config.guess, kiklib/script/config.guess,

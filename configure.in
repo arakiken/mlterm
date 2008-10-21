@@ -410,20 +410,23 @@ AC_ARG_ENABLE(iiimf,
 	[  --enable-iiimf          IIIMF (Experimental) [default=disabled]],
 	iiimf=$enable_iiimf)
 if test "x$iiimf" = xyes ; then
-	if test -d /usr/lib/im/lib ; then
+	PKG_CHECK_MODULES(IIIMCF, iiimf-lib-client, have_iiimcf=yes, have_iiimcf=no)
+	if test "x$have_iiimcf" = xyes ; then
+		found_iiimcf=yes
+	elif test -d /usr/lib/im/lib ; then
 		LIBS="$LIBS -L/usr/lib/im/lib"
 		AC_CHECK_LIB(iiimcf, iiimcf_create_context,
 			[
 			found_iiimcf=yes
-			IIIMF_CFLAGS="-I/usr/lib/im/include"
-			IIIMF_LIBS="-L/usr/lib/im/lib -liiimcf"
+			IIIMCF_CFLAGS="-I/usr/lib/im/include"
+			IIIMCF_LIBS="-L/usr/lib/im/lib -liiimcf"
 			])
 	else
 		AC_CHECK_LIB(iiimcf, iiimcf_create_context,
 			[
 			found_iiimcf=yes
-			IIIMF_CFLAGS=""
-			IIIMF_LIBS="-liiimcf"
+			IIIMCF_CFLAGS=""
+			IIIMCF_LIBS="-liiimcf"
 			])
 	fi
 
@@ -442,16 +445,16 @@ if test "x$iiimf" = xyes ; then
 		fi
 		AC_CHECK_LIB(iiimcf, iiimcf_create_hotkey_notify_event,
 			[
-			IIIMF_CFLAGS="$IIIMF_CFLAGS -DHAVE_HOTKEY_NOTFY_EVENT"
+			IIIMCF_CFLAGS="$IIIMCF_CFLAGS -DHAVE_HOTKEY_NOTFY_EVENT"
 			])
 		AC_CHECK_LIB(iiimcf, iiimcf_create_aux_getvalues_event,
 			[
-			IIIMF_CFLAGS="$IIIMF_CFLAGS -DHAVE_AUX_GETVALUES_EVENT"
+			IIIMCF_CFLAGS="$IIIMCF_CFLAGS -DHAVE_AUX_GETVALUES_EVENT"
 			])
 	fi
 fi
-AC_SUBST(IIIMF_CFLAGS)
-AC_SUBST(IIIMF_LIBS)
+AC_SUBST(IIIMCF_CFLAGS)
+AC_SUBST(IIIMCF_LIBS)
 
 #
 # --- m17n library ---
