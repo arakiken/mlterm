@@ -116,11 +116,6 @@ find_engine(
 	{
 		return  0 ;
 	}
-
-	if( (engine == NULL) || (strlen( engine) == 0))
-	{ 
-	        engine = uim_get_default_im_name( kik_get_locale()) ;
-	}
 	result = 0 ;
 
 	for( i = 0 ; i < uim_get_nr_im( u) ; i++)
@@ -1512,6 +1507,14 @@ im_uim_new(
 		helper_fd = uim_helper_init_client_fd( helper_disconnected) ;
 
 		(*syms->x_term_manager_add_fd)( helper_fd , helper_read_handler) ;
+	}
+
+	if( (engine == NULL) || (strlen( engine) == 0))
+	{ 
+	        engine = uim_get_default_im_name( kik_get_locale()) ;
+		/* The returned string's storage is invalidated when we
+		 * call uim next, so we need to make a copy.  */
+		engine = kik_str_alloca_dup (engine);
 	}
 
 	if( ! find_engine( engine , &encoding_name))
