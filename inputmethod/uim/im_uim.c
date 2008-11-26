@@ -124,7 +124,7 @@ find_engine(
 		{
 			*encoding_name = (char*) uim_get_im_encoding( u , i) ;
 
-			if( encoding_name)
+			if( *encoding_name && (*encoding_name = strdup(*encoding_name)))
 			{
 			#ifdef  IM_UIM_DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG "conversion engine: %s, native encoding: %s\n" , engine , *encoding_name);
@@ -942,6 +942,7 @@ delete(
 
 	kik_list_search_and_remove( im_uim_t , uim_list , uim) ;
 
+	free( uim->encoding_name);
 	free( uim) ;
 
 	if( ref_count == 0 && initialized)
@@ -1452,6 +1453,7 @@ im_uim_new(
 	}
 
 	uim = NULL ;
+	encoding_name = NULL ;
 
 	if( getenv( "MOD_KEY_DEBUG"))
 	{
@@ -1633,6 +1635,8 @@ error:
 
 		initialized = 0 ;
 	}
+
+	free( encoding_name);
 
 	if( uim)
 	{
