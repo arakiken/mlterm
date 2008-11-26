@@ -259,10 +259,15 @@ draw_screen_vertical(
 		/*
 		 * digits
 		 * +----------+
-		 * |1 cand0   |
+		 * |1 cand0	  |
 		 *  ^
 		 */
-		kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i    " , i - top + 1) ;
+		if( cand_screen->candidates[i].info){
+			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%c    " , (char)cand_screen->candidates[i].info) ;
+			num_of_digits = 1;
+		}else{
+			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i    " , i - top + 1) ;
+		}
 
 		for( j = 0 ; j < num_of_digits + 1 ; j++)
 		{
@@ -434,7 +439,12 @@ draw_screen_horizontal(
 		 *  ^^
 		 */
 		NUM_OF_DIGITS( num_of_digits , (i - top + 1)) ;
-		kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i." , i - top + 1) ;
+		if( cand_screen->candidates[i].info){
+			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%c." , cand_screen->candidates[i].info) ;
+			num_of_digits = 1;
+		}else{
+			kik_snprintf( digit , MAX_NUM_OF_DIGITS + 1 , "%i." , i - top + 1) ;
+		}
 
 		for( j = 0 ; j < num_of_digits + 1 ; j++)
 		{
@@ -679,6 +689,11 @@ set_candidate(
 	mkf_char_t  ch ;
 	ml_char_t *  p ;
 
+	u_short info;
+
+	info = index >> 16;
+	index &= 0xFF;
+
 	if( index >= cand_screen->num_of_candidates)
 	{
 	#ifdef  DEBUG
@@ -686,6 +701,8 @@ set_candidate(
 	#endif
 		return  0 ;
 	}
+
+	cand_screen->candidates[index].info = info;
 
 	/*
 	 * count number of characters to allocate candidates[index].chars

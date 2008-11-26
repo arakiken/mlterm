@@ -776,9 +776,17 @@ candidate_activate(
 		uim_candidate  c ;
 		u_char *  _p ;
 		u_char *  p = NULL ;
+		const char * heading;
+		u_int info;
 
 		c = uim_get_candidate( uim->context , i , i) ;
 		_p = (u_char*)uim_candidate_get_cand_str( c) ;
+		heading = uim_candidate_get_heading_label( c);
+		if(heading && (heading[0])){
+			info = (((u_int)heading[0]) << 16) | i;
+		}else{
+			info = (((u_int)' ') << 16) | i;
+		}
 
 	#ifdef  IM_UIM_DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " %d| %s\n", i , _p) ;
@@ -792,7 +800,7 @@ candidate_activate(
 			{
 				(*uim->im.cand_screen->set)( uim->im.cand_screen ,
 							     uim->parser_term ,
-							     p , i) ;
+							     p , info) ;
 				free( p) ;
 			}
 		}

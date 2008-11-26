@@ -10,6 +10,8 @@
 
 typedef struct x_im_candidate
 {
+    u_short  info ; /* to store misc. info from IM plugins */
+
 	ml_char_t *  chars ;
 	u_int  num_of_chars ; /* == array size */
 	u_int  filled_len ;

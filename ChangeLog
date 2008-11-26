@@ -1,3 +1,7 @@
+2008-11-26  MINAMI Hirokazu  <minami@mistfall.net>, Seiichi SATO  <seiichi@pylone.jp>
+
+	* inputmethod/uim/im_uim.h, xwindow/x_im_candidate_screen.[ch]: honor heading labels.
+
 2008-11-22  Jun Inoue  <jun.lambda@gmail.com>
 
 	* inputmethod/uim/im_uim.c: fix dangling pointer dereference that
