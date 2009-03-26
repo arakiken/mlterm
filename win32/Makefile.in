@@ -1,0 +1,42 @@
+top_srcdir = @top_srcdir@
+top_builddir = ..
+OBJ = main.o
+TARGET = mlterm.exe
+LKIK = ${top_builddir}/kiklib/src/.libs/libkik.a
+LMKF = ${top_builddir}/mkf/lib/.libs/libmkf.a
+LMLTERM = ../mlterm/libmlterm.a
+
+VPATH = $(top_srcdir)/win32
+
+all: $(OBJ)
+	libtool --mode=link gcc -mwindows -o $(TARGET) $(OBJ) \
+	$(LMLTERM) $(LMKF) $(LKIK)
+
+.SUFFIXES: .c.o
+
+.c.o:
+	gcc -I$(top_builddir)/kiklib/include -I$(top_builddir)/mkf/include -I$(top_srcdir)/mlterm -Wall -c $<
+
+clean:
+	rm $(OBJ) $(TARGET)
+
+distclean:
+	rm $(OBJ) $(TARGET) Makefile
+MAKE_DIRS=@MAKE_DIRS@
+
+all .DEFAULT:
+	if [ -d kiklib ]; then cd kiklib ; $(MAKE) $@ ; fi
+	if [ -d mkf ]; then cd mkf ; $(MAKE) $@ ; fi
+	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
+
+install:
+	if [ -d kiklib ]; then cd kiklib ; $(MAKE) install-la ; fi
+	if [ -d mkf ]; then cd mkf ; $(MAKE) install-la ; fi
+	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
+
+distclean:
+	if [ -d kiklib ]; then cd kiklib ; $(MAKE) $@ ; fi
+	if [ -d mkf ]; then cd mkf ; $(MAKE) $@ ; fi
+	for dir in $(MAKE_DIRS) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
+	rm -f config.log config.cache config.status libtool Makefile \
+		common/c_config.h xwindow/version.h

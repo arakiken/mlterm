@@ -1,0 +1,28 @@
+Common subdirectories: putty-src/WINDOWS/MSVC and mlterm/putty-src/WINDOWS/MSVC
+diff -u putty-src/WINDOWS/WINPLINK.C mlterm/putty-src/WINDOWS/WINPLINK.C
+--- putty-src/WINDOWS/WINPLINK.C	Wed Mar 18 00:06:07 2009
++++ mlterm/putty-src/WINDOWS/WINPLINK.C	Mon Mar 16 20:03:32 2009
+@@ -240,6 +240,23 @@
+     noise_ultralight(len);
+     if (connopen && back->connected(backhandle)) {
+ 	if (len > 0) {
++            int  i ;
++            unsigned char *d = data ;
++            for( i = 0 ; i < len ; i++) {
++              	if( d[i] == 0xff && i + 5 <= len) {
++                  	int  col ;
++                  	int  row ;
++                  	int  ret = 0 ;
++                  	if( i > 0) ret += back->send(backhandle, data, i) ;
++                  	col = ((d[++i] << 8) & 0xff) + d[++i] ;
++                  	row = ((d[++i] << 8) & 0xff) + d[++i] ;
++                  	back->size( backhandle, col, row) ;
++                  	if( ++i < len) ret += back->send(backhandle, d + i, len - i) ;
++                  	fprintf( stderr, "RET VALUE %d\n", ret) ;
++                  	return  ret ;
++                }
++            }
++            
+ 	    return back->send(backhandle, data, len);
+ 	} else {
+ 	    back->special(backhandle, TS_EOF);
