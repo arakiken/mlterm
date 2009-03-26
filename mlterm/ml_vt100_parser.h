@@ -87,7 +87,7 @@ typedef struct  ml_vt100_parser
 
 	ml_char_buffer_t  buffer ;
 	
-	ml_pty_t *  pty ;
+	ml_pty_ptr_t  pty ;
 	
 	ml_screen_t *  screen ;
 
@@ -137,7 +137,7 @@ ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encodi
 
 int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
 
-int  ml_vt100_parser_set_pty( ml_vt100_parser_t *  vt100_parser , ml_pty_t *  pty) ;
+int  ml_vt100_parser_set_pty( ml_vt100_parser_t *  vt100_parser , ml_pty_ptr_t  pty) ;
 
 int  ml_vt100_parser_set_xterm_listener( ml_vt100_parser_t *  vt100_parser ,
 	ml_xterm_event_listener_t *  xterm_listener) ;

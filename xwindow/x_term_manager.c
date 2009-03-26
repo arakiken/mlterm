@@ -337,6 +337,11 @@ open_screen_intern(
 		}
 	}
 
+	if( main_config.init_str)
+	{
+		ml_term_write( term , main_config.init_str , strlen( main_config.init_str) , 0) ;
+	}
+	
 	if( ( disp = x_display_open( main_config.disp_name)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -473,11 +478,6 @@ open_screen_intern(
 		goto  error ;
 	}
 
-	if( main_config.icon_path)
-	{
-		x_window_manager_set_icon( root, main_config.icon_path);
-	}
-
 	if( pty && main_config.cmd_argv)
 	{
 		int  count ;
@@ -500,11 +500,11 @@ open_screen_intern(
 		}
 	}
 
-	if( main_config.init_str)
+	if( main_config.icon_path)
 	{
-		ml_term_write( term , main_config.init_str , strlen( main_config.init_str) , 0) ;
+		x_window_manager_set_icon( root, main_config.icon_path);
 	}
-	
+
 	if( ( p = realloc( screens , sizeof( x_screen_t*) * (num_of_screens + 1))) == NULL)
 	{
 		goto  error ;

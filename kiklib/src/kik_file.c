@@ -203,6 +203,9 @@ kik_file_unlock(
 
 #endif
 
+
+#ifdef  F_GETFD
+
 int
 kik_file_set_cloexec(
 	int fd
@@ -243,3 +246,27 @@ kik_file_unset_cloexec(
 	}
 	return  1 ;
 }
+
+#else /* F_GETFD */
+
+int
+kik_file_set_cloexec(
+	int fd
+	)
+{
+	/* do nothing */
+
+	return  0 ;
+}
+
+int
+kik_file_unset_cloexec(
+	int fd
+	)
+{
+  	/* do nothing */
+
+  	return  0 ;
+}
+
+#endif

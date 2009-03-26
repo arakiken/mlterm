@@ -6,14 +6,14 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mlterm 2.6.3\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-10-20 05:26+0900\n"
+"POT-Creation-Date: 2004-10-26 17:41+0900\n"
 "PO-Revision-Date: 2002-11-25 19:24+0100\n"
 "Last-Translator: Tomohiro KUBOTA <kubota@debian.org>\n"
 "Language-Team: Japanese <mlterm-dev-ja@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=euc-jp\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Report-Msgid-Bugs-To: \n"
 
 #: tool/mlconfig/main.c:220
 msgid "Save&Exit"
@@ -346,4 +346,3 @@ msgstr "オプション"
 #: tool/mlconfig/mc_im.c:497
 msgid "Input Method"
 msgstr "入力メソッド"
-

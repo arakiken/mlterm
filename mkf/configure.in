@@ -22,9 +22,16 @@ fi
 AC_SUBST(LIBTOOL)
 
 if test -d ${top_srcdir-$srcdir}/kiklib ; then
-	KIK_CFLAGS='-I${top_builddir}/kiklib/include'
+	KIKLIB_BUILDDIR='${top_builddir}/kiklib'
 	SUBDIRS="kiklib"
+elif test -d ${top_srcdir-$srcdir}/../kiklib ; then
+	KIKLIB_BUILDDIR='${top_builddir}/../kiklib'
+	SUBDIRS="../kiklib"
+else
+	KIKLIB_BUILDDIR=""
+	SUBDIRS=""
 fi
+KIK_CFLAGS="-I${KIKLIB_BUILDDIR}/include"
 AC_SUBST(KIK_CFLAGS)
 
 AC_ARG_ENABLE(debug,
@@ -57,7 +64,11 @@ AC_MSG_CHECKING([for undefined symbol])
 if test "x$allow_undefined_flag" = "xunsupported" ; then
 	AC_MSG_RESULT([not supported])
 	NO_UNDEFINED_FLAG="-no-undefined"
-	KIK_LIBS='-L${top_builddir}/kiklib/src -lkik'
+	if test "x${KIKLIB_BUILDDIR}" = "x" ; then
+		KIK_LIBS="-L${KIKLIB_BUILDDIR}/src -lkik"
+	else
+		KIK_LIBS='-lkik'
+	fi
 else
 	AC_MSG_RESULT(supported)
 	NO_UNDEFINED_FLAG=""

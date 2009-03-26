@@ -20,6 +20,26 @@
 #define  __DEBUG
 #endif
 
+typedef struct  ml_pty
+{
+	int  master ;		/* master pty fd */
+	int  slave ;
+	char *  slave_name ;
+	pid_t  child_pid ;
+
+#ifdef  USE_UTMP
+	kik_utmp_t  utmp ;
+#endif
+
+	/* model to be written */
+	u_char *  buf ;
+	size_t  left ;
+
+  	ml_pty_event_listener_t *  pty_listener ;
+
+} ml_pty_t ;
+
+
 
 /* --- global functions --- */
 
@@ -40,7 +60,7 @@ ml_pty_new(
 	{
 		return  NULL ;
 	}
-	
+
 	pid = kik_pty_fork( &pty->master , &pty->slave , &pty->slave_name) ;
 
 	if( pid == -1)
@@ -119,6 +139,8 @@ ml_pty_new(
 	pty->child_pid = pid ;
 	pty->buf = NULL ;
 	pty->left = 0 ;
+
+  	pty->pty_listener = NULL ;
 	
 	if( ml_set_pty_winsize( pty , cols , rows) == 0)
 	{
@@ -135,6 +157,11 @@ ml_pty_delete(
 	ml_pty_t *  pty
 	)
 {
+	if( pty->pty_listener && pty->pty_listener->closed)
+	{
+		(*pty->pty_listener->closed)( pty->pty_listener->self) ;
+	}
+
 #ifdef  USE_UTMP
 	if( pty->utmp)
 	{
@@ -187,6 +214,21 @@ ml_set_pty_winsize(
 	return  1 ;
 }
 
+int
+ml_pty_set_listener(
+  	ml_pty_t *  pty,
+  	ml_pty_event_listener_t *  pty_listener
+	)
+{
+  	pty->pty_listener = pty_listener ;
+
+  	return  1 ;
+}
+
+/*
+ * Return size of not written bytes.
+ * Notice that this function can return larger size than 'len' argument if pty->left > 0.
+ */
 size_t
 ml_write_to_pty(
 	ml_pty_t *  pty ,
@@ -204,23 +246,23 @@ ml_write_to_pty(
 		return  0 ;
 	}
 
-	if( ( w_buf = alloca( w_buf_size)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" alloca() failed and , bytes to be written to pty are lost.\n") ;
-	#endif
+  	if( pty->buf == NULL && pty->left == 0)
+        {
+          	w_buf = buf ;
+        }
+  	else
+        {
+		if( ( w_buf = alloca( w_buf_size)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG
+				" alloca() failed and , bytes to be written to pty are lost.\n") ;
+		#endif
 	
-		return  pty->left ;
-	}
+			return  0 ;
+		}
 
-	if( pty->buf && pty->left > 0)
-	{
-		memcpy( w_buf , pty->buf , pty->left) ;
-	}
-
-	if( len > 0)
-	{
+          	memcpy( w_buf , pty->buf , pty->left) ;
 		memcpy( &w_buf[pty->left] , buf , len) ;
 	}
 
@@ -236,21 +278,20 @@ ml_write_to_pty(
 #endif
 
 	written_size = write( pty->master , w_buf , w_buf_size) ;
+	if( written_size < 0)
+	{
+		kik_warn_printf( KIK_DEBUG_TAG " write() failed.\n") ;
+		written_size = 0 ;
+	}
+
 	if( written_size == w_buf_size)
 	{
 		if( pty->buf)
 		{
-			/* reset */
-			free( pty->buf) ;
-			pty->buf = NULL ;
 			pty->left = 0 ;
 		}
 	
-		return  0 ;
-	}
-	else if( written_size < 0)
-	{
-		written_size = 0 ;
+		return  written_size ;
 	}
 
 	pty->left = w_buf_size - written_size ;
@@ -260,18 +301,20 @@ ml_write_to_pty(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
 	#endif
-	
-		return  0 ;
+
+          	pty->left = 0 ;
+        
+		return  written_size ;
 	}
 
 	pty->buf = p ;
 	
 	memcpy( pty->buf , &w_buf[written_size] , pty->left) ;
 
-	return  pty->left ;
+	return  written_size ;
 }
 
-int
+size_t
 ml_flush_pty(
 	ml_pty_t *  pty
 	)
@@ -304,4 +347,37 @@ ml_read_pty(
 			left -= ret ;
 		}
 	}
+}
+
+pid_t
+ml_pty_get_pid(
+  	ml_pty_t *  pty
+  	)
+{
+  	/* Cast HANDLE => pid_t */
+  	return  (pid_t)pty->child_pid ;
+}
+
+int
+ml_pty_get_master_fd(
+	ml_pty_t *  pty
+	)
+{
+	return  pty->master ;
+}
+
+int
+ml_pty_get_slave_fd(
+	ml_pty_t *  pty
+	)
+{
+	return  pty->slave ;
+}
+
+char *
+ml_pty_get_slave_name(
+	ml_pty_t *  pty
+	)
+{
+	return  pty->slave_name ;
 }

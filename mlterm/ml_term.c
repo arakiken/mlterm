@@ -118,15 +118,7 @@ ml_term_delete(
 	ml_term_t *  term
 	)
 {
-	if( term->pty)
-	{
-		if( term->pty_listener && term->pty_listener->closed)
-		{
-			(*term->pty_listener->closed)( term->pty_listener->self) ;
-		}
-
-		ml_pty_delete( term->pty) ;
-	}
+	ml_pty_delete( term->pty) ;
 	
 	if( term->shape)
 	{
@@ -180,6 +172,12 @@ ml_term_open_pty(
 			return  0 ;
 		}
 
+		if( term->pty_listener)
+		{
+			ml_pty_set_listener( term->pty, term->pty_listener) ;
+			term->pty_listener = NULL ;
+		}
+
 		ml_vt100_parser_set_pty( term->parser , term->pty) ;
 
 		return  1 ;
@@ -195,11 +193,24 @@ ml_term_attach(
 	ml_pty_event_listener_t *  pty_listener
 	)
 {
+  	if( term->is_attached)
+        {
+          	/* already attached or pty not opened. */
+          	return  0 ;
+        }
+
 	ml_vt100_parser_set_xterm_listener( term->parser , xterm_listener) ;
 	ml_vt100_parser_set_config_listener( term->parser , config_listener) ;
 	ml_screen_set_listener( term->screen , screen_listener) ;
-
-	term->pty_listener = pty_listener ;
+	
+	if( term->pty)
+	{
+		ml_pty_set_listener( term->pty, pty_listener) ;
+	}
+	else
+	{
+		term->pty_listener = pty_listener ;
+	}
 
 	term->is_attached = 1 ;
 
@@ -211,11 +222,24 @@ ml_term_detach(
 	ml_term_t *  term
 	)
 {
+  	if( ! term->is_attached)
+        {
+          	/* already detached or pty not opened. */
+          	return  0 ;
+        }
+
 	ml_vt100_parser_set_xterm_listener( term->parser , NULL) ;
 	ml_vt100_parser_set_config_listener( term->parser , NULL) ;
 	ml_screen_set_listener( term->screen , NULL) ;
 
-	term->pty_listener = NULL ;
+	if( term->pty)
+	{
+		ml_pty_set_listener( term->pty, NULL) ;
+	}
+	else
+	{
+		term->pty_listener = NULL ;
+	}
 
 	term->is_attached = 0 ;
 
@@ -328,8 +352,8 @@ ml_term_get_pty_fd(
 	{
 		return  -1 ;
 	}
-	 
-	return  term->pty->master ;
+	
+	return  ml_pty_get_master_fd( term->pty) ;
 }
 
 char *
@@ -342,7 +366,7 @@ ml_term_get_slave_name(
 		return  NULL ;
 	}
 
-	return  term->pty->slave_name ;
+	return  ml_pty_get_slave_name( term->pty) ;
 }
 
 pid_t
@@ -355,7 +379,7 @@ ml_term_get_child_pid(
 		return  -1 ;
 	}
 	
-	return  term->pty->child_pid ;
+	return  ml_pty_get_pid( term->pty) ;
 }
 
 size_t
@@ -1196,5 +1220,5 @@ ml_term_start_config_menu(
 	char *  display
 	)
 {
-	return  ml_config_menu_start( &term->config_menu , cmd_path , x , y , display, term->pty->slave) ;
+	return  ml_config_menu_start( &term->config_menu , cmd_path , x , y , display, ml_pty_get_slave_fd( term->pty)) ;
 }

@@ -147,14 +147,14 @@ receive_bytes(
 			char *  path ;
 			char *  p ;
 
-			if( ( path = alloca( 11 + strlen( vt100_parser->pty->slave_name + 5) + 1))
+			if( ( path = alloca( 11 + strlen( ml_pty_get_slave_name( vt100_parser->pty) + 5) + 1))
 				== NULL)
 			{
 				goto  end ;
 			}
 
 			/* +5 removes "/dev/" */
-			sprintf( path , "mlterm/%s.log" , vt100_parser->pty->slave_name + 5) ;
+			sprintf( path , "mlterm/%s.log" , ml_pty_get_slave_name( vt100_parser->pty) + 5) ;
 
 			p = path + 7 ;
 			while( *p)
@@ -184,7 +184,7 @@ receive_bytes(
 		}
 
 		write( vt100_parser->log_file , &vt100_parser->seq[vt100_parser->left] , ret) ;
-	#if  1
+	#ifndef  USE_WIN32API
 		fsync( vt100_parser->log_file) ;
 	#endif
 	} else {
@@ -769,6 +769,12 @@ inc_str_in_esc_seq(
 			if( **str_p == CTLKEY_LF || **str_p == CTLKEY_VT)
 			{
 				ml_screen_line_feed( screen) ;
+                        /*
+                         * XXX following hack is necessary if you use bash.exe in msys.
+                         */
+			#ifdef  USE_WIN32API
+				ml_screen_goto_beg_of_line(screen) ;
+			#endif
 			}
 			else if( **str_p == CTLKEY_CR)
 			{
@@ -978,7 +984,7 @@ parse_vt100_escape_sequence(
 		if( *str_p == CTLKEY_ESC)
 		{
 		#ifdef  ESCSEQ_DEBUG
-            kik_msg_printf( "RECEIVED ESCAPE SEQUENCE(current left = %d: ESC", left) ;
+            		kik_msg_printf( "RECEIVED ESCAPE SEQUENCE(current left = %d: ESC", left) ;
 		#endif
 
 			if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) == 0)
@@ -2334,6 +2340,13 @@ parse_vt100_escape_sequence(
 		#endif
 
 			ml_screen_line_feed( vt100_parser->screen) ;
+                  
+                        /*
+                         * XXX following hack is necessary if you use bash.exe in msys.
+                         */
+		#ifdef  USE_WIN32API
+	                ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+		#endif
 		}
 		else if( *str_p == CTLKEY_CR)
 		{
@@ -2499,7 +2512,7 @@ ml_vt100_parser_delete(
 int
 ml_vt100_parser_set_pty(
 	ml_vt100_parser_t *  vt100_parser ,
-	ml_pty_t *  pty
+	ml_pty_ptr_t  pty
 	)
 {
 	vt100_parser->pty = pty ;
@@ -2548,232 +2561,234 @@ ml_parse_vt100_sequence(
 	mkf_char_t  ch ;
 	size_t  prev_left ;
 
-	if( receive_bytes( vt100_parser))
+	if( receive_bytes( vt100_parser) == 0)
+        {
+            	return  0 ;
+        }
+  
+	start_vt100_cmd( vt100_parser) ;
+
+	/*
+	 * bidi and visual-indian is always stopped from here.
+	 */
+		 
+	while( 1)
 	{
-		start_vt100_cmd( vt100_parser) ;
+		prev_left = vt100_parser->left ;
 
 		/*
-		 * bidi and visual-indian is always stopped from here.
+		 * parsing character encoding.
 		 */
-		 
-		while( 1)
+		(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser ,
+			CURRENT_STR_P(vt100_parser) , vt100_parser->left) ;
+		while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
 		{
-			prev_left = vt100_parser->left ;
-
 			/*
-			 * parsing character encoding.
+			 * UCS <-> OTHER CS
 			 */
-			(*vt100_parser->cc_parser->set_str)( vt100_parser->cc_parser ,
-				CURRENT_STR_P(vt100_parser) , vt100_parser->left) ;
-			while( (*vt100_parser->cc_parser->next_char)( vt100_parser->cc_parser , &ch))
+			if( ch.cs == ISO10646_UCS4_1)
 			{
-				/*
-				 * UCS <-> OTHER CS
-				 */
-				if( ch.cs == ISO10646_UCS4_1)
-				{
-					if( ch.ch[0] == 0x00 && ch.ch[1] == 0x00 &&
-						ch.ch[2] == 0x00 && ch.ch[3] <= 0x7f
-						)
-					{
-						/* this is always done */
-						ch.ch[0] = ch.ch[3] ;
-						ch.size = 1 ;
-						ch.cs = US_ASCII ;
-					}
-					else if( vt100_parser->unicode_font_policy == NOT_USE_UNICODE_FONT)
-					{
-						/* convert ucs4 to appropriate charset */
-
-						mkf_char_t  non_ucs ;
-
-						if( mkf_map_locale_ucs4_to( &non_ucs , &ch) == 0)
-						{
-						#ifdef  DEBUG
-							kik_warn_printf( KIK_DEBUG_TAG
-							" failed to convert ucs4 to other cs.\n") ;
-						#endif
-							continue ;
-						}
-						else
-						{
-							ch = non_ucs ;
-						}
-					}
-				}
-				else if( ( (vt100_parser->unicode_font_policy == ONLY_USE_UNICODE_FONT)
-					&& ch.cs != US_ASCII)
-				#if  0
-					/* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
-					|| ( vt100_parser->encoding == ML_GB18030 && ch.cs == GBK)
-				#endif
-					/*
-					 * XXX
-					 * converting japanese gaiji to ucs.
-					 */
-					|| ch.cs == JISC6226_1978_NEC_EXT
-					|| ch.cs == JISC6226_1978_NECIBM_EXT
-					|| ch.cs == JISX0208_1983_MAC_EXT
-					|| ch.cs == SJIS_IBM_EXT
+				if( ch.ch[0] == 0x00 && ch.ch[1] == 0x00 &&
+					ch.ch[2] == 0x00 && ch.ch[3] <= 0x7f
 					)
 				{
-					mkf_char_t  ucs ;
+					/* this is always done */
+					ch.ch[0] = ch.ch[3] ;
+					ch.size = 1 ;
+					ch.cs = US_ASCII ;
+				}
+				else if( vt100_parser->unicode_font_policy == NOT_USE_UNICODE_FONT)
+				{
+					/* convert ucs4 to appropriate charset */
 
-					if( mkf_map_to_ucs4( &ucs , &ch))
+					mkf_char_t  non_ucs ;
+                                
+					if( mkf_map_locale_ucs4_to( &non_ucs , &ch) == 0)
 					{
-						ucs.property = mkf_get_ucs_property(
-								mkf_bytes_to_int( ucs.ch , ucs.size)) ;
-						
-						ch = ucs ;
+					#ifdef  DEBUG
+						kik_warn_printf( KIK_DEBUG_TAG
+						" failed to convert ucs4 to other cs.\n") ;
+					#endif
+						continue ;
 					}
-				#ifdef  DEBUG
 					else
 					{
-						kik_warn_printf( KIK_DEBUG_TAG
-							" mkf_convert_to_ucs4_char() failed.\n") ;
+						ch = non_ucs ;
 					}
-				#endif
-				}
-
-				/*
-				 * NON UCS <-> NON UCS
-				 */
-				
-				{
-					/*
-					 * XXX hack
-					 * how to deal with johab 10-4-4(8-4-4) font ?
-					 * is there any uhc font ?
-					 */
-					 
-					mkf_char_t  uhc ;
-
-					if( ch.cs == JOHAB)
-					{
-						if( mkf_map_johab_to_uhc( &uhc , &ch) == 0)
-						{
-							continue ;
-						}
-
-						ch = uhc ;
-					}
-
-					/*
-					 * XXX
-					 * switching option whether this conversion is done should
-					 * be introduced.
-					 */
-					if( ch.cs == UHC)
-					{
-						if( mkf_map_uhc_to_ksc5601_1987( &ch , &uhc) == 0)
-						{
-							continue ;
-						}
-					}
-				}
-
-				if( ch.size == 1 && ch.ch[0] == 0x0)
-				{
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" 0x0 sequence is received , ignored...\n") ;
-				#endif
-				}
-				else if( ch.size == 1 && 0x1 <= ch.ch[0] && ch.ch[0] <= 0x1f)
-				{
-					/*
-					 * this is a control sequence.
-					 * reparsing this char in vt100_escape_sequence() ...
-					 */
-
-					vt100_parser->cc_parser->left ++ ;
-					vt100_parser->cc_parser->is_eos = 0 ;
-
-					break ;
-				}
-				else
-				{
-					vt100_parser->left = vt100_parser->cc_parser->left ;
-
-					if( ml_is_msb_set( ch.cs))
-					{
-						SET_MSB( ch.ch[0]) ;
-					}
-					if( ( ch.cs == US_ASCII && vt100_parser->is_dec_special_in_gl) ||
-						ch.cs == DEC_SPECIAL)
-					{
-						if( ch.ch[0] == 0x5f)
-						{
-							ch.ch[0] = 0x7f ;
-						}
-						else if( 0x5f < ch.ch[0] && ch.ch[0] < 0x7f)
-						{
-							ch.ch[0] -= 0x5f ;
-						}
-
-						ch.cs = DEC_SPECIAL ;
-						ch.property = 0 ;
-					}
-
-					put_char( vt100_parser , ch.ch , ch.size , ch.cs ,
-						ch.property) ;
 				}
 			}
-
-			vt100_parser->left = vt100_parser->cc_parser->left ;
-
-			flush_buffer( vt100_parser) ;
-
-			if( vt100_parser->cc_parser->is_eos)
+			else if( ( (vt100_parser->unicode_font_policy == ONLY_USE_UNICODE_FONT)
+				&& ch.cs != US_ASCII)
+			#if  0
+				/* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
+				|| ( vt100_parser->encoding == ML_GB18030 && ch.cs == GBK)
+			#endif
+				/*
+				 * XXX
+				 * converting japanese gaiji to ucs.
+				 */
+				|| ch.cs == JISC6226_1978_NEC_EXT
+				|| ch.cs == JISC6226_1978_NECIBM_EXT
+				|| ch.cs == JISX0208_1983_MAC_EXT
+				|| ch.cs == SJIS_IBM_EXT
+				)
 			{
-				break ;
+				mkf_char_t  ucs ;
+
+				if( mkf_map_to_ucs4( &ucs , &ch))
+				{
+					ucs.property = mkf_get_ucs_property(
+							mkf_bytes_to_int( ucs.ch , ucs.size)) ;
+					
+					ch = ucs ;
+				}
+			#ifdef  DEBUG
+				else
+				{
+					kik_warn_printf( KIK_DEBUG_TAG
+						" mkf_convert_to_ucs4_char() failed.\n") ;
+				}
+			#endif
 			}
 
 			/*
-			 * parsing other vt100 sequences.
+			 * NON UCS <-> NON UCS
 			 */
-
-			if( ! parse_vt100_escape_sequence( vt100_parser))
+			
 			{
-				/* shortage of chars */
-				if(vt100_parser->left >= PTYMSG_BUFFER_SIZE){
-					/* the sequence seems to be	 longer than PTY buffer, or
-					 * broken/unsupported.
-					 * try to recover from error by dropping bytes... */
-#ifdef DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG
-									  "escape sequence too long. dropped\n") ;
-#endif
-					vt100_parser->left--;
-				}else{
-					/* expect more input */
-					break ;
+				/*
+				 * XXX hack
+				 * how to deal with johab 10-4-4(8-4-4) font ?
+				 * is there any uhc font ?
+				 */
+				 
+				mkf_char_t  uhc ;
+
+				if( ch.cs == JOHAB)
+				{
+					if( mkf_map_johab_to_uhc( &uhc , &ch) == 0)
+					{
+						continue ;
+					}
+
+					ch = uhc ;
+				}
+
+				/*
+				 * XXX
+				 * switching option whether this conversion is done should
+				 * be introduced.
+				 */
+				if( ch.cs == UHC)
+				{
+					if( mkf_map_uhc_to_ksc5601_1987( &ch , &uhc) == 0)
+					{
+						continue ;
+					}
 				}
 			}
 
-		#ifdef  EDIT_ROUGH_DEBUG
-			ml_edit_dump( vt100_parser->screen->edit) ;
-		#endif
-
-			if( vt100_parser->left == prev_left)
+			if( ch.size == 1 && ch.ch[0] == 0x0)
 			{
 			#ifdef  DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					" unrecognized sequence[%.2x] is received , ignored...\n" ,
-					*CURRENT_STR_P(vt100_parser)) ;
+				kik_warn_printf( KIK_DEBUG_TAG
+					" 0x0 sequence is received , ignored...\n") ;
 			#endif
-
-				vt100_parser->left -- ;
 			}
-
-			if( vt100_parser->left == 0)
+			else if( ch.size == 1 && 0x1 <= ch.ch[0] && ch.ch[0] <= 0x1f)
 			{
+				/*
+				 * this is a control sequence.
+				 * reparsing this char in vt100_escape_sequence() ...
+				 */
+
+				vt100_parser->cc_parser->left ++ ;
+				vt100_parser->cc_parser->is_eos = 0 ;
+
+				break ;
+			}
+			else
+			{
+				vt100_parser->left = vt100_parser->cc_parser->left ;
+
+				if( ml_is_msb_set( ch.cs))
+				{
+					SET_MSB( ch.ch[0]) ;
+				}
+				if( ( ch.cs == US_ASCII && vt100_parser->is_dec_special_in_gl) ||
+					ch.cs == DEC_SPECIAL)
+				{
+					if( ch.ch[0] == 0x5f)
+					{
+						ch.ch[0] = 0x7f ;
+					}
+					else if( 0x5f < ch.ch[0] && ch.ch[0] < 0x7f)
+					{
+						ch.ch[0] -= 0x5f ;
+					}
+
+					ch.cs = DEC_SPECIAL ;
+					ch.property = 0 ;
+				}
+
+				put_char( vt100_parser , ch.ch , ch.size , ch.cs ,
+					ch.property) ;
+			}
+		}
+
+		vt100_parser->left = vt100_parser->cc_parser->left ;
+
+		flush_buffer( vt100_parser) ;
+
+		if( vt100_parser->cc_parser->is_eos)
+		{
+			break ;
+		}
+
+		/*
+		 * parsing other vt100 sequences.
+		 */
+
+		if( ! parse_vt100_escape_sequence( vt100_parser))
+		{
+			/* shortage of chars */
+			if(vt100_parser->left >= PTYMSG_BUFFER_SIZE){
+				/* the sequence seems to be	 longer than PTY buffer, or
+				 * broken/unsupported.
+				 * try to recover from error by dropping bytes... */
+#ifdef DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					  "escape sequence too long. dropped\n") ;
+#endif
+				vt100_parser->left--;
+			}else{
+				/* expect more input */
 				break ;
 			}
 		}
-		
-		stop_vt100_cmd( vt100_parser) ;
+
+	#ifdef  EDIT_ROUGH_DEBUG
+		ml_edit_dump( vt100_parser->screen->edit) ;
+	#endif
+
+		if( vt100_parser->left == prev_left)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" unrecognized sequence[%.2x] is received , ignored...\n" ,
+				*CURRENT_STR_P(vt100_parser)) ;
+		#endif
+
+			vt100_parser->left -- ;
+		}
+
+		if( vt100_parser->left == 0)
+		{
+			break ;
+		}
 	}
+		
+	stop_vt100_cmd( vt100_parser) ;
 
 	return  1 ;
 }

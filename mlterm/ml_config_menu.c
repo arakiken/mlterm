@@ -74,6 +74,7 @@ ml_config_menu_start(
 	int  pty_fd
 	)
 {
+#ifndef  USE_WIN32API
 	pid_t  pid ;
 	int  fds[2] ;
 
@@ -166,6 +167,9 @@ ml_config_menu_start(
 	kik_file_set_cloexec( config_menu->fd) ;
 
 	return  1 ;
+#else
+	return  0 ;
+#endif
 }
 
 int

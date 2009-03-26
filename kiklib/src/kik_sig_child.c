@@ -7,8 +7,10 @@
 #ifndef  USE_WIN32API
 
 #include  <errno.h>		/* EINTR */
-#include  <sys/wait.h>
 #include  <signal.h>
+#include  <sys/wait.h>
+
+#endif
 
 #include  "kik_debug.h"
 #include  "kik_mem.h"		/* realloc/free */
@@ -31,13 +33,14 @@ static int  is_init ;
 
 /* --- static functions --- */
 
+#ifndef  USE_WIN32API
+
 static void
 sig_child(
 	int  sig
 	)
 {
 	pid_t  pid ;
-	int  count ;
 	
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " SIG CHILD received.\n") ;
@@ -48,14 +51,13 @@ sig_child(
 		errno = 0 ;
 	}
 
-	for( count = 0 ; count < num_of_listeners ; count ++)
-	{
-		(*listeners[count].exited)( listeners[count].self , pid) ;
-	}
+  	kik_trigger_sig_child( pid) ;
 	
 	/* reset */
 	signal( SIGCHLD , sig_child) ;
 }
+
+#endif
 
 
 /* --- global functions --- */
@@ -63,7 +65,10 @@ sig_child(
 int
 kik_sig_child_init(void)
 {
-	signal( SIGCHLD , sig_child) ;
+#ifndef  USE_WIN32API
+  	signal( SIGCHLD , sig_child) ;
+#endif
+
 	is_init = 1 ;
 
 	return  1 ;
@@ -85,7 +90,9 @@ kik_sig_child_suspend(void)
 {
 	if( is_init)
 	{
+#ifndef  USE_WIN32API
 		signal( SIGCHLD , SIG_DFL) ;
+#endif
 	}
 
 	return  1 ;
@@ -96,7 +103,9 @@ kik_sig_child_resume(void)
 {
 	if( is_init)
 	{
+#ifndef  USE_WIN32API
 		signal( SIGCHLD , sig_child) ;
+#endif
 	}
 
 	return  1 ;
@@ -109,6 +118,11 @@ kik_add_sig_child_listener(
 	)
 {
 	void *  p ;
+
+	if( ! is_init)
+        {
+          	return  0 ;
+        }
 	
 	if( ( p = realloc( listeners , sizeof( *listeners) * (num_of_listeners + 1))) == NULL)
 	{
@@ -155,4 +169,16 @@ kik_remove_sig_child_listener(
 	return  0 ;
 }
 
-#endif  /* USE_WIN32API */
+void
+kik_trigger_sig_child(
+  	pid_t  pid
+  	)
+{
+	int  count ;
+	
+	for( count = 0 ; count < num_of_listeners ; count ++)
+	{
+		(*listeners[count].exited)( listeners[count].self , pid) ;
+	}
+}
+

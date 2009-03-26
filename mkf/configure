@@ -1803,7 +1803,7 @@ else
   if { (eval echo configure:1804: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
     for file in conftest.*; do
       case $file in
-      *.$ac_ext | *.c | *.o | *.obj) ;;
+      *.c | *.o | *.obj) ;;
       *) ac_cv_exeext=`echo $file | sed -e s/conftest//` ;;
       esac
     done
@@ -5542,9 +5542,16 @@ fi
 
 
 if test -d ${top_srcdir-$srcdir}/kiklib ; then
-	KIK_CFLAGS='-I${top_builddir}/kiklib/include'
+	KIKLIB_BUILDDIR='${top_builddir}/kiklib'
 	SUBDIRS="kiklib"
+elif test -d ${top_srcdir-$srcdir}/../kiklib ; then
+	KIKLIB_BUILDDIR='${top_builddir}/../kiklib'
+	SUBDIRS="../kiklib"
+else
+	KIKLIB_BUILDDIR=""
+	SUBDIRS=""
 fi
+KIK_CFLAGS="-I${KIKLIB_BUILDDIR}/include"
 
 
 # Check whether --enable-debug or --disable-debug was given.
@@ -5587,11 +5594,15 @@ fi
 # --- check for undefined symbol ---
 #
 echo $ac_n "checking for undefined symbol""... $ac_c" 1>&6
-echo "configure:5591: checking for undefined symbol" >&5
+echo "configure:5598: checking for undefined symbol" >&5
 if test "x$allow_undefined_flag" = "xunsupported" ; then
 	echo "$ac_t""not supported" 1>&6
 	NO_UNDEFINED_FLAG="-no-undefined"
-	KIK_LIBS='-L${top_builddir}/kiklib/src -lkik'
+	if test "x${KIKLIB_BUILDDIR}" = "x" ; then
+		KIK_LIBS="-L${KIKLIB_BUILDDIR}/src -lkik"
+	else
+		KIK_LIBS='-lkik'
+	fi
 else
 	echo "$ac_t""supported" 1>&6
 	NO_UNDEFINED_FLAG=""

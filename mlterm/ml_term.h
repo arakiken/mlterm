@@ -18,20 +18,13 @@
 #include  "ml_config_menu.h"
 
 
-typedef struct ml_pty_event_listener
-{
-	void *  self ;
-	void  (*closed)( void *) ;
-	
-} ml_pty_event_listener_t ;
-
 typedef struct ml_term
 {
 	/*
 	 * private
 	 */
-	ml_pty_t *  pty ;
-	ml_pty_event_listener_t *  pty_listener ;
+	ml_pty_ptr_t  pty ;
+	ml_pty_event_listener_t *  pty_listener ; /* pool until pty opened. */
 	
 	ml_vt100_parser_t *  parser ;
 	ml_screen_t *  screen ;

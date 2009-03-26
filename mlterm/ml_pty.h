@@ -8,41 +8,43 @@
 
 #include  <kiklib/kik_types.h>		/* u_int/u_char/uid_t/gid_t */
 
-#ifdef  USE_UTMP
-#include  <kiklib/kik_utmp.h>
-#endif
 
-
-typedef struct  ml_pty
+typedef struct  ml_pty_event_listener
 {
-	int  master ;		/* master pty fd */
-	int  slave ;
-	char *  slave_name ;
-	pid_t  child_pid ;
+	void *  self ;
 
-#ifdef  USE_UTMP
-	kik_utmp_t  utmp ;
-#endif
+	/* Called when ml_pty_delete. */
+  	void  (*closed)( void *) ;
+  	/* Called when ml_read_pty() is ready. */
+  	void  (*read_ready)( void *) ;
 
-	/* model to be written */
-	u_char *  buf ;
-	size_t  left ;
+} ml_pty_event_listener_t ;
 
-} ml_pty_t ;
+typedef struct  ml_pty *  ml_pty_ptr_t ;
 
 
-ml_pty_t *  ml_pty_new( char *  cmd_path , char **  cmd_argv , char **  env , char *  host ,
+ml_pty_ptr_t  ml_pty_new( char *  cmd_path , char **  cmd_argv , char **  env , char *  host ,
 	u_int  cols , u_int  rows) ;
 
-int  ml_pty_delete( ml_pty_t *  pty) ;
+int  ml_pty_delete( ml_pty_ptr_t  pty) ;
 
-int  ml_set_pty_winsize( ml_pty_t *  pty , u_int  cols , u_int  rows) ;
+int  ml_pty_set_listener( ml_pty_ptr_t  pty,  ml_pty_event_listener_t *  pty_listener) ;
 
-size_t  ml_write_to_pty( ml_pty_t *  pty , u_char *  buf , size_t  len) ;
+int  ml_set_pty_winsize( ml_pty_ptr_t  pty , u_int  cols , u_int  rows) ;
 
-int  ml_flush_pty( ml_pty_t *  pty) ;
+size_t  ml_write_to_pty( ml_pty_ptr_t  pty , u_char *  buf , size_t  len) ;
 
-size_t  ml_read_pty( ml_pty_t *  pty , u_char *  bytes , size_t  left) ;
+size_t  ml_flush_pty( ml_pty_ptr_t  pty) ;
+
+size_t  ml_read_pty( ml_pty_ptr_t  pty , u_char *  bytes , size_t  left) ;
+
+pid_t  ml_pty_get_pid( ml_pty_ptr_t  pty) ;
+
+int  ml_pty_get_master_fd( ml_pty_ptr_t  pty) ;
+
+int  ml_pty_get_slave_fd( ml_pty_ptr_t  pty) ;
+
+char *  ml_pty_get_slave_name( ml_pty_ptr_t  pty) ;
 
 
 #endif
