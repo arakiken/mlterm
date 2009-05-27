@@ -43,7 +43,11 @@ typedef enum  ml_char_encoding
 	ML_KOI8_T ,
 	ML_GEORGIAN_PS ,
 	ML_CP1251 ,
+	ML_CP1253 ,
+	ML_CP1254 ,
 	ML_CP1255 ,
+	ML_CP1256 ,
+	ML_CP1257 ,
 	
 	ML_UTF8 ,
 

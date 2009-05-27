@@ -6,8 +6,12 @@
 #define  __X_FONT_H__
 
 
-/* This must be included ahead of Xft.h on XFree86-4.0.x or before. */
-#include  <X11/Xlib.h>
+/* X11/Xlib.h must be included ahead of Xft.h on XFree86-4.0.x or before. */
+#include  "x.h"
+
+#ifdef  USE_WIN32API
+#include  <mkf/mkf_conv.h>
+#endif
 
 #ifdef  USE_TYPE_XFT
 #include  <X11/Xft/Xft.h>
@@ -49,9 +53,13 @@ typedef struct x_font
 #ifdef  USE_TYPE_XFT
 	XftFont *  xft_font ;
 #endif
-#ifdef  USE_TYPE_XCORE
+#ifdef  USE_WIN32API
+	HFONT  xfont ;
+	mkf_conv_t *  conv ;
+#elif   USE_TYPE_XCORE
 	XFontStruct *  xfont ;
 #endif
+
 	x_decsp_font_t *  decsp_font ;
 
 	/*

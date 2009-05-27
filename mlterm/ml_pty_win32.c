@@ -116,8 +116,9 @@ wait_pty_read(
                   	break ;
          	}
 
-  		printf( "ReadFile\n") ;
-  		fflush(NULL) ;
+	#ifdef  __DEBUG
+  		kik_debug_printf( "ReadFile\n") ;
+	#endif
 
           	if( pty->pty_listener && pty->pty_listener->read_ready)
                 {
@@ -248,12 +249,12 @@ pty_open(
 
   	if( cmd_argv)
         {
-  		int  cnt ;
+  		int  count ;
         
 	  	cmd_line_len = strlen(cmd_path) + 1 ;
-  		for( cnt = 0 ; cmd_argv[cnt] != NULL ; cnt ++)
+  		for( count = 0 ; cmd_argv[count] != NULL ; count++)
         	{
-          		cmd_line_len += (strlen(cmd_argv[cnt]) + 1) ;
+          		cmd_line_len += (strlen(cmd_argv[count]) + 1) ;
         	}
 
   		if( ( cmd_line = alloca( sizeof(char) * cmd_line_len)) == NULL)
@@ -262,10 +263,10 @@ pty_open(
         	}
 
   		strcpy( cmd_line, cmd_path) ;
-		for( cnt = 0 ; cmd_argv[cnt] != NULL ; cnt ++)
+		for( count = 0 ; cmd_argv[count] != NULL ; count ++)
         	{
           		strcat( cmd_line, " ") ;
-          		strcat( cmd_line, cmd_argv[cnt]) ;
+          		strcat( cmd_line, cmd_argv[count]) ;
         	}
         }
   	else
@@ -386,8 +387,9 @@ ml_pty_new(
                             	*p = '\0' ;
                             	val = ++p ;
                     		SetEnvironmentVariable( key, val) ;
-                          	printf( "%s=%s\n" , key , val) ;
-                          	fflush(NULL);
+			#ifdef  __DEBUG
+                          	kik_debug_printf( "Env: %s=%s\n" , key , val) ;
+			#endif
                         }
                           
                         env ++ ;
@@ -685,14 +687,13 @@ ml_read_pty(
                 {
                   	if( buf[i] == 0xff)
                         {
-                          	printf( "Server Option => ") ;
-                          	printf( "%d ", buf[i++]) ;
+                          	kik_msg_printf( "Server Option => ") ;
+                          	kik_msg_printf( "%d ", buf[i++]) ;
                           	if( i < n_rd) printf( "%d ", buf[i++]) ;
                           	if( i < n_rd) printf( "%d ", buf[i++]) ;
                           	if( i < n_rd) printf( "%d ", buf[i++]) ;
                           	if( i < n_rd) printf( "%d ", buf[i++]) ;
                         }
-                  	fflush( NULL) ;
                 }
         }
 #endif

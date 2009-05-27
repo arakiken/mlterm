@@ -37,6 +37,11 @@ kik_get_sys_rc_path(
 	)
 {
 	char *  rcpath ;
+
+	if( sysconfdir == NULL)
+	{
+		return  NULL ;
+	}
 	
 	if( ( rcpath = malloc( strlen( sysconfdir) + 1 + strlen( rcfile) + 1)) == NULL)
 	{

@@ -447,6 +447,9 @@ x_get_fontset(
 	x_font_manager_t *  font_man
 	)
 {
+#ifdef  USE_WIN32API
+	return  NULL ;
+#else
 	XFontSet  fontset ;
 	char *  list_str ;
 	char **  missing ;
@@ -483,6 +486,7 @@ x_get_fontset(
 	XFreeStringList( missing) ;
 
 	return  fontset ;
+#endif
 }
 
 mkf_charset_t

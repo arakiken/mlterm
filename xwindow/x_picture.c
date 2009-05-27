@@ -4,7 +4,7 @@
 
 #include  "x_picture.h"
 
-#include  <X11/Xatom.h>			/* XA_PIXMAP */
+
 #include  <kiklib/kik_debug.h>
 
 #include  "x_window.h"
@@ -23,8 +23,10 @@ x_picture_display_opened(
 		return  0 ;
 	}
 
+#ifndef  USE_WIN32API
 	/* Want _XROOTPIAMP_ID changed events. */
 	XSelectInput( display , DefaultRootWindow(display) , PropertyChangeMask) ;
+#endif
 
 	return  1 ;
 }
@@ -66,7 +68,9 @@ x_picture_final(
 {
 	if( pic->pixmap)
 	{
+	#ifndef  USE_WIN32API
 		XFreePixmap( pic->win->display , pic->pixmap) ;
+	#endif
 	}
 
 	return  1 ;

@@ -579,7 +579,7 @@ x_main_config_init(
 	}
 	else
 	{
-		main_config->sb_mode = SB_LEFT ;
+		main_config->sb_mode = SBM_LEFT ;
 	}
 
 	main_config->iso88591_font_for_usascii = 0 ;

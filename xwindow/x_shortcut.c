@@ -6,11 +6,16 @@
 
 #include  <stdio.h>		/* sscanf */
 #include  <string.h>		/* strchr/memcpy */
-#include  <X11/keysym.h>
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_conf_io.h>
+
+
+/*
+ * !! Notice !!
+ * Mod1Mask - Mod5Mask are not distinguished.
+ */
 
 
 typedef struct  key_func_table
@@ -19,13 +24,6 @@ typedef struct  key_func_table
 	x_key_func_t  func ;
 	
 } key_func_table_t ;
-
-
-/*
- * !! Notice !!
- * these are not distinguished.
- */
-#define  ModMask  (Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask)
 
 
 /* --- static variables --- */

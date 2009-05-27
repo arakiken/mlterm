@@ -15,6 +15,11 @@
 #endif
 
 
+/* --- static variables --- */
+
+static x_window_manager_t *  _win_man ;
+
+
 /* --- static functions --- */
 
 #ifdef  __DEBUG
@@ -47,6 +52,32 @@ ioerror_handler(
 }
 #endif
 
+static LRESULT CALLBACK window_proc(
+  	HWND hwnd,
+  	UINT msg,
+  	WPARAM wparam,
+  	LPARAM lparam
+  	)
+{
+	XEvent  event ;
+	int  count ;
+
+	event.window = hwnd ;
+	event.msg = msg ;
+	event.wparam = wparam ;
+	event.lparam = lparam ;
+	
+	for( count = 0 ; count < _win_man->num_of_roots ; count ++)
+	{
+		if( x_window_receive_event( _win_man->roots[count] , &event))
+		{
+			return  0 ;
+		}
+	}
+
+	return  DefWindowProc( hwnd, msg, wparam, lparam) ;
+}
+
 static void
 modmap_init(
 	Display *  display ,
@@ -54,7 +85,11 @@ modmap_init(
 	)
 {
 	modmap->serial = 0 ;
+#ifdef  USE_WIN32API
+	modmap->map = NULL ;
+#else
 	modmap->map = XGetModifierMapping( display) ;
+#endif
 }
 
 static void
@@ -64,7 +99,9 @@ modmap_final(
 {
 	if( modmap->map)
 	{
+#ifndef  USE_WIN32API
 		XFreeModifiermap( modmap->map);
+#endif
 	}
 }
 
@@ -77,13 +114,48 @@ x_window_manager_init(
 	Display *  display
 	)
 {
+	WNDCLASS  wc ;
+	
+	if( _win_man != NULL)
+	{
+		/* win_man is singleton in win32 .*/
+
+		return  0 ;
+	}
+
+	_win_man = win_man ;
+
+  	/* Prepare window class */
+  	ZeroMemory(&wc,sizeof(WNDCLASS)) ;
+  	wc.lpfnWndProc = window_proc ;
+	wc.style = CS_HREDRAW | CS_VREDRAW ;
+  	wc.hInstance = display->hinst ;
+  	wc.hIcon = 0 ;
+  	wc.hCursor = LoadCursor(NULL,IDC_ARROW) ;
+  	wc.hbrBackground = 0 ;
+  	wc.lpszClassName = "MLTERM" ;
+
+	if( ! RegisterClass(&wc))
+	{
+		MessageBox(NULL,"Failed to register class", NULL, MB_ICONSTOP) ;
+
+		return  0 ;
+	}
+	
 	win_man->display = display ;
+
+#ifdef  USE_WIN32API
+	win_man->screen = 0 ;
+	win_man->my_window = None ;
+	win_man->group_leader = None ;
+#else
 	win_man->screen = DefaultScreen( win_man->display) ;
 	win_man->my_window = DefaultRootWindow( win_man->display) ;
-
 	win_man->group_leader = XCreateSimpleWindow( win_man->display,
 						     win_man->my_window,
 						     0, 0, 1, 1, 0, 0, 0) ;
+#endif
+
 	win_man->icon_path = NULL;
 	win_man->icon = None ;
 	win_man->mask = None ;
@@ -107,19 +179,22 @@ x_window_manager_init(
 int
 x_window_manager_final(
 	x_window_manager_t *  win_man
-	)
+	)	
 {
 	int  count ;
 
 	modmap_final( &(win_man->modmap)) ;
 
+#ifndef  USE_WIN32API
 	if(  win_man->group_leader)
 	{
 		XDestroyWindow( win_man->display, win_man->group_leader) ;
 	}
+#endif
 
 	free(  win_man->icon_path);
 
+#ifndef  USE_WIN32API
 	if( win_man->icon)
 	{
 		XFreePixmap( win_man->display, win_man->icon) ;
@@ -128,6 +203,7 @@ x_window_manager_final(
 	{
 		XFreePixmap( win_man->display, win_man->mask) ;
 	}
+#endif
 
 	free( win_man->cardinal) ;
 
@@ -180,9 +256,7 @@ x_window_manager_show_root(
 
 	win_man->roots[win_man->num_of_roots++] = root ;
 
-	x_window_show( root , hint) ;
-
-	return  1 ;
+	return  x_window_show( root , hint) ;
 }
 
 int
@@ -226,12 +300,14 @@ x_window_manager_own_selection(
 	x_window_t *  win
 	)
 {
+#ifndef  USE_WIN32API
 	if( win_man->selection_owner)
 	{
 		x_window_manager_clear_selection( win_man , win_man->selection_owner) ;
 	}
 
 	win_man->selection_owner = win ;
+#endif
 
 	return  1 ;
 }
@@ -242,6 +318,7 @@ x_window_manager_clear_selection(
 	x_window_t *  win
 	)
 {
+#ifndef  USE_WIN32API
 	if( win_man->selection_owner == NULL || win_man->selection_owner != win)
 	{
 		return  0 ;
@@ -253,6 +330,7 @@ x_window_manager_clear_selection(
 	}
 
 	win_man->selection_owner = NULL ;
+#endif
 
 	return  1 ;
 }
@@ -275,34 +353,17 @@ x_window_manager_receive_next_event(
 	x_window_manager_t *  win_man
 	)
 {
-	if( XEventsQueued( win_man->display , QueuedAfterReading))
-	{
-		XEvent  event ;
-		int  count ;
-
-		do
-		{
-			XNextEvent( win_man->display , &event) ;
-
-			if( ! XFilterEvent( &event , None))
-			{
-				for( count = 0 ; count < win_man->num_of_roots ; count ++)
-				{
-					x_window_receive_event( win_man->roots[count] , &event) ;
-				}
-			}
-		}
-		while( XEventsQueued( win_man->display , QueuedAfterReading)) ;
-
-		XFlush( win_man->display) ;
+	MSG  msg ;
+	
+  	if( GetMessage( &msg,NULL,0,0))
+        {
+          	TranslateMessage(&msg) ;
+          	DispatchMessage(&msg) ;
 
 		return  1 ;
-	}
+        }
 	else
 	{
-		/* events should be flushed before waiting in select() */
-		XFlush( win_man->display) ;
-
 		return  0 ;
 	}
 }
@@ -330,12 +391,14 @@ x_window_manager_update_modifier_mapping(
 	u_int  serial
 	)
 {
+#ifndef  USE_WIN32API
 	if( serial != win_man->modmap.serial)
 	{
 		modmap_final( &(win_man->modmap)) ;
 		win_man->modmap.map = XGetModifierMapping( win_man->display) ;
 		win_man->modmap.serial = serial ;
 	}
+#endif
 }
 
 int x_window_manager_set_icon(

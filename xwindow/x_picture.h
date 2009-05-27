@@ -6,7 +6,8 @@
 #define  __X_PICTURE_H__
 
 
-#include  <X11/Xlib.h>
+#include  "x.h"				/* XA_PIXMAP */
+
 #include  <kiklib/kik_types.h>		/* u_int16_t */
 
 

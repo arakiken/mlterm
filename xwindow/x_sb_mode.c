@@ -15,15 +15,15 @@ x_get_sb_mode(
 {
 	if( strcmp( name , "right") == 0)
 	{
-		return  SB_RIGHT ;
+		return  SBM_RIGHT ;
 	}
 	else if( strcmp( name , "left") == 0)
 	{
-		return  SB_LEFT ;
+		return  SBM_LEFT ;
 	}
 	else /* if( strcmp( name , "none") == 0) */
 	{
-		return  SB_NONE ;
+		return  SBM_NONE ;
 	}
 }
 
@@ -32,15 +32,15 @@ x_get_sb_mode_name(
 	x_sb_mode_t  mode
 	)
 {
-	if( mode == SB_RIGHT)
+	if( mode == SBM_RIGHT)
 	{
 		return  "right" ;
 	}
-	else if( mode == SB_LEFT)
+	else if( mode == SBM_LEFT)
 	{
 		return  "left" ;
 	}
-	else /* if( mode == SB_NONE) */
+	else /* if( mode == SBM_NONE) */
 	{
 		return  "none" ;
 	}

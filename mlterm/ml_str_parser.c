@@ -145,10 +145,7 @@ init(
 
 	ml_str_parser = (ml_str_parser_t*) mkf_parser ;
 
-	ml_str_parser->parser.str = NULL ;
-	ml_str_parser->parser.marked_left = 0 ;
-	ml_str_parser->parser.left = 0 ;
-	ml_str_parser->parser.is_eos = 0 ;
+	mkf_parser_init( mkf_parser) ;
 
 	ml_str_parser->str = NULL ;
 	ml_str_parser->left = 0 ;

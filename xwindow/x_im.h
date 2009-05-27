@@ -6,7 +6,7 @@
 #define  __X_IM_H__
 
 #include  <kiklib/kik_dlfcn.h>
-#include  <X11/Xlib.h>	/* KeySym, XKeyEvent */
+#include  "x.h"			/* KeySym, XKeyEvent */
 
 #include  "ml_term.h"
 #include  "x_im_candidate_screen.h"

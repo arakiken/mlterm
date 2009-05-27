@@ -30,6 +30,7 @@ kik_debug_printf(
 	va_list  arg_list ;
 	char  prefix[] = "DEBUG: " ;
 	char *  new_format = NULL ;
+	int  ret ;
 
 	va_start( arg_list , format) ;
 
@@ -44,7 +45,12 @@ kik_debug_printf(
 		sprintf( new_format , "%s%s" , prefix , format) ;
 	}
 
-	return  vfprintf( stderr , new_format , arg_list) ;
+	ret = vfprintf( stderr , new_format , arg_list) ;
+#ifdef  USE_WIN32API
+	fflush(stderr) ;
+#endif
+
+	return  ret ;
 }
 
 /*
@@ -59,6 +65,7 @@ kik_warn_printf(
 	va_list  arg_list ;
 	char  prefix[] = "WARN: " ;
 	char *  new_format = NULL ;
+	int  ret ;
 
 	va_start( arg_list , format) ;
 
@@ -73,7 +80,13 @@ kik_warn_printf(
 		sprintf( new_format , "%s%s" , prefix , format) ;
 	}
 
-	return  vfprintf( stderr , new_format , arg_list) ;
+	ret = vfprintf( stderr , new_format , arg_list) ;
+#ifdef  USE_WIN32API
+	fflush(stderr) ;
+#endif
+
+	return  ret ;
+
 }
 
 /*
@@ -88,6 +101,7 @@ kik_error_printf(
 	va_list  arg_list ;
 	char  prefix[] = "*** ERROR HAPPEND ***  " ;
 	char *  new_format = NULL ;
+	int  ret ;
 
 	va_start( arg_list , format) ;
 
@@ -102,7 +116,12 @@ kik_error_printf(
 		sprintf( new_format , "%s%s" , prefix , format) ;
 	}
 
-	return  vfprintf( stderr , new_format , arg_list) ;
+	ret = vfprintf( stderr , new_format , arg_list) ;
+#ifdef  USE_WIN32API
+	fflush(stderr) ;
+#endif
+
+	return  ret ;
 }
 
 /*
@@ -115,8 +134,14 @@ kik_msg_printf(
 	)
 {
 	va_list  arg_list ;
+	int  ret ;
 
 	va_start( arg_list , format) ;
 
-	return  vfprintf( stderr , format , arg_list) ;
+	ret = vfprintf( stderr , format , arg_list) ;
+#ifdef  USE_WIN32API
+	fflush(stderr) ;
+#endif
+
+	return  ret ;
 }

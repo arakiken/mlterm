@@ -10,7 +10,7 @@
 #define  __X_SHORTCUT_H__
 
 
-#include  <X11/Xlib.h>
+#include  "x.h"
 #include  <kiklib/kik_types.h>
 
 

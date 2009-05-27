@@ -6,8 +6,11 @@
 #define  __X_WINDOW_H__
 
 
-#include  <X11/Xlib.h>
+#include  "x.h"
+
+#ifndef  USE_WIN32API
 #include  <X11/cursorfont.h>	/* for cursor shape */
+#endif
 
 #ifdef  USE_TYPE_XFT
 #include  <X11/Xft/Xft.h>
@@ -64,7 +67,7 @@ typedef struct  x_window
 
 	Drawable  drawable ;
 
-	Pixmap  pixmap ;
+	Pixmap  buffer ;
 
 #ifdef  USE_TYPE_XFT
 	XftDraw *  xft_draw ;
@@ -73,10 +76,10 @@ typedef struct  x_window
 #endif
 
 	GC  gc ;	/* for generic use */
-	GC  ch_gc ;	/* for drawing string */
-
 	u_long  fg_color ;
 	u_long  bg_color ;
+
+	GC  ch_gc ;	/* for drawing string(used on X Window System alone) */
 
 	x_window_manager_ptr_t  win_man ;
 
@@ -103,9 +106,15 @@ typedef struct  x_window
 	u_int  margin ;
 
 	/* used by x_xim */
-	x_xic_ptr_t  xic ;
 	x_xim_ptr_t  xim ;
 	x_xim_event_listener_t *  xim_listener ;
+	x_xic_ptr_t  xic ;
+
+#ifdef  USE_WIN32API
+	mkf_parser_t *  cp_parser ;
+	
+	WORD  prev_keydown_wparam ;
+#endif
 
 	/* button */
 	Time  prev_clicked_time ;
@@ -140,7 +149,7 @@ typedef struct  x_window
 	 * flags etc.
 	 */
 
-	int8_t  use_pixmap ;
+	int8_t  use_buffer ;
 	int8_t  wall_picture_is_set ;
 	int8_t  is_transparent ;
 	int8_t  is_scrollable ;
@@ -153,6 +162,7 @@ typedef struct  x_window
 	void (*window_realized)( struct x_window *) ;
 	void (*window_finalized)( struct x_window *) ;
 	void (*window_exposed)( struct x_window * , int , int , u_int , u_int) ;
+	void (*update_window)( struct x_window *) ;
 	void (*window_focused)( struct x_window *) ;
 	void (*window_unfocused)( struct x_window *) ;
 	void (*key_pressed)( struct x_window * , XKeyEvent *) ;
@@ -191,7 +201,7 @@ int  x_window_set_transparent( x_window_t *  win , x_picture_modifier_t *  pic_m
 
 int  x_window_unset_transparent( x_window_t *  win) ;
 
-int  x_window_use_pixmap( x_window_t *  win) ;
+int  x_window_use_buffer( x_window_t *  win) ;
 
 int  x_window_set_cursor( x_window_t *  win , u_int  cursor_shape) ;
 
@@ -208,6 +218,10 @@ int  x_window_init_event_mask( x_window_t *  win , long  event_mask) ;
 int  x_window_add_event_mask( x_window_t *  win , long  event_mask) ;
 
 int  x_window_remove_event_mask( x_window_t *  win , long  event_mask) ;
+
+/* int  x_window_grab_pointer( x_window_t *  win) ; */
+
+int  x_window_ungrab_pointer( x_window_t *  win) ;
 
 int  x_window_show( x_window_t *  win , int  hint) ;
 
@@ -244,9 +258,7 @@ int  x_window_fill_all( x_window_t *  win) ;
 
 int  x_window_fill_all_with( x_window_t *  win , u_long  color) ;
 
-int  x_window_update_view( x_window_t *  win , int  x , int  y , u_int  width , u_int  height) ;
-
-int  x_window_update_view_all( x_window_t *  win) ;
+int  x_window_update( x_window_t *  win) ;
 
 void  x_window_idling( x_window_t *  win) ;
 
@@ -281,6 +293,11 @@ int  x_window_draw_decsp_string( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , x_color_t *  bg_color , int  x , int  y ,
 	u_char *  str , u_int  len) ;
 
+/*
+ * x_window_draw_*_string functions are used by x_draw_str.[ch].
+ * Use x_draw_str* functions usually.
+ */
+
 #ifdef  USE_TYPE_XCORE
 int  x_window_draw_string( x_window_t *  win , x_font_t *  font , x_color_t *  fg_color ,
 	int  x , int  y , u_char *  str , u_int  len) ;
@@ -306,6 +323,8 @@ int  x_window_xft_draw_string32( x_window_t *  win , x_font_t *  font ,
 #endif
 
 int  x_window_draw_rect_frame( x_window_t *  win , int  x1 , int  y1 , int  x2 , int  y2) ;
+
+int  x_window_draw_line( x_window_t *  win, int  x1, int  y1, int  x2, int  y2) ;
 
 int  x_window_set_selection_owner( x_window_t *  win , Time  time) ;
 
@@ -334,6 +353,12 @@ int  x_window_get_visible_geometry( x_window_t *  win ,
 int  x_set_click_interval( int  interval) ;
 
 XModifierKeymap *  x_window_get_modifier_mapping( x_window_t *  win) ;
+
+int  x_window_bell( x_window_t *  win) ;
+
+int  x_window_translate_coordinates( x_window_t *  win, int x, int y,
+	int *  global_x, int *  global_y, Window *  child) ;
+
 
 #if  0
 /* not used */

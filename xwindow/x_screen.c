@@ -10,11 +10,10 @@
 #include  <limits.h>            /* PATH_MAX */
 #ifndef PATH_MAX
 #ifndef _POSIX_PATH_MAX
-# define _POSIX_PATH_MAX 255
+#define _POSIX_PATH_MAX 255
 #endif
 #define PATH_MAX _POSIX_PATH_MAX
 #endif
-#include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup, kik_snprintf */
@@ -344,6 +343,7 @@ screen_height(
 	return  (height * screen->screen_height_ratio) / 100 ;
 }
 
+#ifndef  USE_WIN32API
 static int
 activate_xic(
 	x_screen_t *  screen
@@ -381,6 +381,7 @@ activate_xic(
 
 	return  1 ;
 }
+#endif
 
 /*
  * drawing screen functions.
@@ -744,6 +745,10 @@ set_scroll_boundary(
 	screen->scroll_cache_boundary_end = boundary_end ;
 }
 
+/*
+ * Don't call this function except from window_exposed or update_window.
+ * Call this function via x_window_update.
+ */
 static int
 redraw_screen(
 	x_screen_t *  screen
@@ -814,14 +819,20 @@ redraw_screen(
 
 	ml_term_updated_all( screen->term) ;
 
+#ifndef  USE_WIN32API
 	if( screen->im)
 	{
 		x_im_redraw_preedit( screen->im , screen->is_focused) ;
 	}
+#endif
 
 	return  1 ;
 }
 
+/*
+ * Don't call this function except from window_exposed or update_window.
+ * Call this function via x_window_update.
+ */
 static int
 highlight_cursor(
 	x_screen_t *  screen
@@ -831,7 +842,9 @@ highlight_cursor(
 
 	draw_cursor( screen) ;
 
+#ifndef  USE_WIN32API
 	x_xic_set_spot( &screen->window) ;
+#endif
 
 	return  1 ;
 }
@@ -897,8 +910,12 @@ bs_scroll_upward(
 	if( ml_term_backscroll_upward( screen->term , 1))
 	{
 		unhighlight_cursor( screen) ;
+	#if  0
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
+	#else
+		x_window_update( &screen->window) ;
+	#endif
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
@@ -916,8 +933,12 @@ bs_scroll_downward(
 	if( ml_term_backscroll_downward( screen->term , 1))
 	{
 		unhighlight_cursor( screen) ;
+	#if  0
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
+	#else
+		x_window_update( &screen->window) ;
+	#endif
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
@@ -935,8 +956,12 @@ bs_half_page_upward(
 	if( ml_term_backscroll_upward( screen->term , ml_term_get_rows( screen->term) / 2))
 	{
 		unhighlight_cursor( screen) ;
+	#if  0
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
+	#else
+		x_window_update( &screen->window) ;
+	#endif
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
@@ -956,8 +981,12 @@ bs_half_page_downward(
 	if( ml_term_backscroll_downward( screen->term , ml_term_get_rows( screen->term) / 2))
 	{
 		unhighlight_cursor( screen) ;
+	#if  0
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
+	#else
+		x_window_update( &screen->window) ;
+	#endif
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
@@ -977,8 +1006,12 @@ bs_page_upward(
 	if( ml_term_backscroll_upward( screen->term , ml_term_get_rows( screen->term)))
 	{
 		unhighlight_cursor( screen) ;
+	#if  0
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
+	#else
+		x_window_update( &screen->window) ;
+	#endif
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
@@ -998,8 +1031,12 @@ bs_page_downward(
 	if( ml_term_backscroll_downward( screen->term , ml_term_get_rows( screen->term)))
 	{
 		unhighlight_cursor( screen) ;
+	#if  0
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
+	#else
+		x_window_update( &screen->window) ;
+	#endif
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
@@ -1039,8 +1076,12 @@ restore_selected_region_color(
 {
 	if( x_restore_selected_region_color( &screen->sel))
 	{
+	#if  0
 		redraw_screen( screen) ;
 		highlight_cursor( screen) ;
+	#else
+		x_window_update( &screen->window) ;
+	#endif
 	}
 }
 
@@ -1194,7 +1235,12 @@ get_mod_ignore_mask(
 	{
 		keysyms = default_keysyms ;
 	}
-	mod_map = x_window_get_modifier_mapping( x_get_root_window( win)) ;
+	
+	if( ( mod_map = x_window_get_modifier_mapping( x_get_root_window( win))) == NULL)
+	{
+		return  ~0 ;
+	}
+	
 	ignore = 0 ;
 
 	count = 0 ;
@@ -1219,7 +1265,9 @@ get_mod_ignore_mask(
 				if( key_codes[kc_count] == kc)
 				{
 #ifdef  DEBUG
-					kik_debug_printf("keycode = %d, mod%d  idx %d  (by %s)\n", kc,  ks_count+1, kc_count+1, XKeysymToString(keysyms[count]));
+					kik_debug_printf("keycode = %d, mod%d  idx %d  (by %s)\n",
+						kc,  ks_count+1, kc_count+1,
+						XKeysymToString(keysyms[count]));
 #endif
 					ignore |= masks[ks_count] ;
 					break ;
@@ -1258,7 +1306,15 @@ get_mod_meta_mask(
 		}
 	}
 
-	mod_map = x_window_get_modifier_mapping( x_get_root_window( win)) ;
+	if( ( mod_map = x_window_get_modifier_mapping( x_get_root_window( win))) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " x_window_get_modifier_mapping failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+	
 	key_codes = mod_map->modifiermap ;
 
 	for( mask_count = 0 ; mask_count < sizeof(mod_masks)/sizeof(mod_masks[0]) ; mask_count++)
@@ -1304,6 +1360,7 @@ get_mod_meta_mask(
 			kc_count ++ ;
 		}
 	}
+
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " No meta key was found.\n") ;
 #endif
@@ -1402,6 +1459,7 @@ window_realized(
 	screen->mod_meta_mask = get_mod_meta_mask( win, screen->mod_meta_key) ;
 	screen->mod_ignore_mask = get_mod_ignore_mask( win, NULL) ;
 
+#ifndef  USE_WIN32API
 	if( screen->input_method)
 	{
 		/* XIM or other input methods? */
@@ -1424,6 +1482,7 @@ window_realized(
 			}
 		}
 	}
+#endif
 
 	x_window_set_fg_color( win , x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
 	x_window_set_bg_color( win , x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
@@ -1487,7 +1546,8 @@ window_exposed(
 		}
 
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " exposed [row] from %d to %d [x] from %d to %d\n" ,
+		kik_debug_printf( KIK_DEBUG_TAG
+			" exposed [row] from %d to %d [x] from %d to %d\n" ,
 			beg_row , end_row , x , x + width) ;
 	#endif
 	}
@@ -1497,12 +1557,26 @@ window_exposed(
 		end_row = convert_y_to_row( screen , NULL , y + height) ;
 
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " exposed [row] from %d to %d [y] from %d to %d\n" ,
+		kik_debug_printf( KIK_DEBUG_TAG
+			" exposed [row] from %d to %d [y] from %d to %d\n" ,
 			beg_row , end_row , y , y + height) ;
 	#endif
 	}
 
 	ml_term_set_modified_lines_in_screen( screen->term , beg_row , end_row) ;
+	
+	redraw_screen( screen) ;
+	highlight_cursor( screen) ;
+}
+
+static void
+update_window(
+	x_window_t *  win
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = (x_screen_t*)win ;
 
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
@@ -1555,10 +1629,16 @@ window_resized(
 
 	set_wall_picture( screen) ;
 
+#if  0
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
+#else
+	x_window_update( &screen->window) ;
+#endif
 
+#ifndef  USE_WIN32API
 	x_xic_resized( &screen->window) ;
+#endif
 }
 
 static void
@@ -1587,10 +1667,17 @@ window_focused(
 			x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
+
+#if  0
 		redraw_screen( screen) ;
 	}
 
 	highlight_cursor( screen) ;
+#else
+	}
+
+	x_window_update( &screen->window) ;
+#endif
 
 	if( screen->im)
 	{
@@ -1624,10 +1711,16 @@ window_unfocused(
 			x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
+#if   0
 		redraw_screen( screen) ;
 	}
 
 	highlight_cursor( screen) ;
+#else
+	}
+	
+	x_window_update( &screen->window) ;
+#endif
 
 	if( screen->im)
 	{
@@ -1687,12 +1780,10 @@ config_menu(
 	int  global_y ;
 	Window  child ;
 
-	XTranslateCoordinates( screen->window.display , screen->window.my_window ,
-		DefaultRootWindow( screen->window.display) , x , y ,
-		&global_x , &global_y , &child) ;
+	x_window_translate_coordinates( &screen->window, x, y, &global_x, &global_y, &child) ;
 
 	/* XXX I don't know why but XGrabPointer() in child processes fails without this. */
-	XUngrabPointer( screen->window.display , CurrentTime) ;
+	x_window_ungrab_pointer( &screen->window) ;
 
 	ml_term_start_config_menu( screen->term , conf_menu_path , global_x , global_y ,
 		DisplayString(screen->window.display)) ;
@@ -1819,6 +1910,10 @@ key_pressed(
 
 	size = x_window_get_str( win , seq , sizeof(seq) , &parser , &ksym , event) ;
 
+#if  0
+	kik_debug_printf( "%x %x\n", masked_state, ksym) ;
+#endif
+
 	if( screen->im)
 	{
 		u_char  kchar = 0 ;
@@ -1850,7 +1945,11 @@ key_pressed(
 			if( ml_term_is_backscrolling( screen->term))
 			{
 				exit_backscroll_mode( screen) ;
+			#if  0
 				redraw_screen( screen) ;
+			#else
+				x_window_update( &screen->window) ;
+			#endif
 			}
 
 			return ;
@@ -2020,7 +2119,11 @@ key_pressed(
 
 		/* x_image_xxx( screen->image) ; */
 
+	#if  0
 		redraw_screen( screen) ;
+	#else
+		x_window_update( &screen->window) ;
+	#endif
 	}
 #endif
 	else
@@ -2168,8 +2271,12 @@ key_pressed(
 					key = p ;
 				}
 
+			#if  0
 				redraw_screen( screen) ;
 				highlight_cursor( screen) ;
+			#else
+				x_window_update( &screen->window) ;
+			#endif
 
 				return  ;
 			}
@@ -2862,8 +2969,12 @@ set_xdnd_config(
 
 	set_config( screen, key, dev, value) ;
 
+#if  0
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
+#else
+	x_window_update( &screen->window) ;
+#endif
 }
 #endif
 
@@ -2926,7 +3037,11 @@ start_selection(
 
 	if( x_start_selection( &screen->sel , col_l , row_l , col_r , row_r))
 	{
+	#if  0
 		redraw_screen( screen) ;
+	#else
+		x_window_update( &screen->window) ;
+	#endif
 	}
 }
 
@@ -2947,7 +3062,11 @@ selecting(
 	
 	if( x_selecting( &screen->sel , char_index , row))
 	{
+	#if  0
 		redraw_screen( screen) ;
+	#else
+		x_window_update( &screen->window) ;
+	#endif
 	}
 }
 
@@ -3581,8 +3700,10 @@ change_font_size(
 
 	font_size_changed( screen) ;
 
+#ifndef  USE_WIN32API
 	/* this is because font_man->font_set may have changed in x_change_font_size() */
 	x_xic_font_set_changed( &screen->window) ;
+#endif
 }
 
 static void
@@ -3693,11 +3814,13 @@ usascii_font_cs_changed(
 
 	font_size_changed( screen) ;
 
+#ifndef  USE_WIN32API
 	/*
 	 * this is because font_man->font_set may have changed in
 	 * x_font_manager_usascii_font_cs_changed()
 	 */
 	x_xic_font_set_changed( &screen->window) ;
+#endif
 
 	return  1 ;
 }
@@ -3963,7 +4086,9 @@ change_fg_color(
 	x_window_set_fg_color( &screen->window ,
 		x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
 
+#ifndef  USE_WIN32API
 	x_xic_fg_color_changed( &screen->window) ;
+#endif
 
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
@@ -3984,7 +4109,9 @@ change_bg_color(
 	x_window_set_bg_color( &screen->window ,
 		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
+#ifndef  USE_WIN32API
 	x_xic_bg_color_changed( &screen->window) ;
+#endif
 
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
@@ -4076,8 +4203,10 @@ larger_font_size(
 
 	font_size_changed( screen) ;
 
+#ifndef  USE_WIN32API
 	/* this is because font_man->font_set may have changed in x_larger_font() */
 	x_xic_font_set_changed( &screen->window) ;
+#endif
 
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -4092,8 +4221,10 @@ smaller_font_size(
 
 	font_size_changed( screen) ;
 
+#ifndef  USE_WIN32API
 	/* this is because font_man->font_set may have changed in x_smaller_font() */
 	x_xic_font_set_changed( &screen->window) ;
+#endif
 
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -4310,8 +4441,10 @@ change_fade_ratio(
 	x_window_set_bg_color( &screen->window ,
 		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
+#ifndef  USE_WIN32API
 	x_xic_fg_color_changed( &screen->window) ;
 	x_xic_bg_color_changed( &screen->window) ;
+#endif
 
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
@@ -4322,6 +4455,7 @@ change_im(
 	char *  input_method
 	)
 {
+#ifndef  USE_WIN32API
 	x_xic_deactivate( &screen->window) ;
 
 	if( screen->im)
@@ -4329,6 +4463,7 @@ change_im(
 		x_im_delete( screen->im) ;
 		screen->im = NULL ;
 	}
+#endif
 
 	free( screen->input_method) ;
 	screen->input_method = NULL ;
@@ -4340,6 +4475,7 @@ change_im(
 
 	screen->input_method = strdup( input_method) ;
 
+#ifndef  USE_WIN32API
 	if( strncmp( screen->input_method , "xim" , 3) == 0)
 	{
 		activate_xic( screen) ;
@@ -4347,7 +4483,7 @@ change_im(
 	else
 	{
 		x_xic_activate( &screen->window , "none" , "");
-
+	
 		if( ( screen->im = x_im_new(
 				ml_term_get_encoding( screen->term) ,
 				&screen->im_listener ,
@@ -4365,6 +4501,7 @@ change_im(
 			screen->input_method = NULL ;
 		}
 	}
+#endif
 }
 
 static void
@@ -5164,7 +5301,7 @@ get_config(
 		}
 		else
 		{
-			value = x_get_sb_mode_name( SB_NONE) ;
+			value = x_get_sb_mode_name( SBM_NONE) ;
 		}
 	}
 	else if( strcmp( key , "use_combining") == 0)
@@ -5290,7 +5427,11 @@ get_config(
 	}
 	else if( strcmp( key , "default_xim_name") == 0)
 	{
+	#ifdef  USE_WIN32API
+		value = "" ;
+	#else
 		value = x_xic_get_default_xim_name() ;
+	#endif
 	}
 	else if( strcmp( key , "locale") == 0)
 	{
@@ -5832,10 +5973,7 @@ get_im_spot(
 		}
 	}
 
-	XTranslateCoordinates( screen->window.display ,
-			screen->window.my_window ,
-			DefaultRootWindow( screen->window.display) , 0 , 0 ,
-			&win_x , &win_y , &unused) ;
+	x_window_translate_coordinates( &screen->window, 0, 0, &win_x, &win_y, &unused) ;
 
 	*x += win_x + screen->window.margin ;
 	*y += win_y + screen->window.margin ;
@@ -5906,7 +6044,11 @@ draw_preedit_str(
 		}
 		else
 		{
+		#if  0
 			redraw_screen( screen) ;
+		#else
+			x_window_update( &screen->window) ;
+		#endif
 		}
 	}
 
@@ -6093,9 +6235,7 @@ draw_preedit_str(
 	{
 		if( ! screen->term->vertical_mode)
 		{
-			XDrawLine( screen->window.display ,
-				screen->window.drawable ,
-				screen->window.gc ,
+			x_window_draw_line( &screen->window,
 				preedit_cursor_x + 1 ,
 				preedit_cursor_y + x_line_top_margin( screen) + 2 ,
 				preedit_cursor_x + 1,
@@ -6103,9 +6243,7 @@ draw_preedit_str(
 		}
 		else
 		{
-			XDrawLine( screen->window.display ,
-				screen->window.drawable ,
-				screen->window.gc ,
+			x_window_draw_line( &screen->window,
 				preedit_cursor_x + x_line_top_margin( screen) + 2 ,
 				preedit_cursor_y + 2 ,
 				preedit_cursor_x + x_line_top_margin( screen) + xfont->height ,
@@ -6128,6 +6266,7 @@ im_changed(
 	char *  input_method
 	)
 {
+#ifndef  USE_WIN32API
 	x_screen_t *  screen ;
 	x_im_t *  new ;
 
@@ -6151,6 +6290,7 @@ im_changed(
 
 	x_im_delete( screen->im) ;
 	screen->im = new ;
+#endif
 }
 
 static int
@@ -6371,8 +6511,12 @@ stop_vt100_cmd(
 		x_reverse_selected_region_color_except_logs( &screen->sel) ;
 	}
 
+#if  0
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;
+#else
+	x_window_update( &screen->window) ;
+#endif
 }
 
 static void
@@ -6531,14 +6675,16 @@ xterm_bel(
 
 	if( screen->bel_mode == BEL_SOUND)
 	{
-		XBell( screen->window.display , 0) ;
+		x_window_bell( &screen->window) ;
 	}
 	else if( screen->bel_mode == BEL_VISUAL)
 	{
 		x_window_fill_all( &screen->window) ;
 
+	#ifndef  USE_WIN32API
 		XFlush( screen->window.display) ;
-
+	#endif
+	
 		x_window_clear_all( &screen->window) ;
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 		redraw_screen( screen) ;
@@ -6565,6 +6711,19 @@ pty_closed(
 	screen->term = NULL ;
 	(*screen->system_listener->pty_closed)( screen->system_listener->self , screen) ;
 }
+
+#ifdef  USE_WIN32API
+static void
+pty_read_ready(
+  	void *  p
+  	)
+{
+	x_screen_t *  screen = p ;
+
+	x_window_update( &screen->window) ;
+}
+#endif
+
 
 /* --- global functions --- */
 
@@ -6635,6 +6794,9 @@ x_screen_new(
 
 	screen->pty_listener.self = screen ;
 	screen->pty_listener.closed = pty_closed ;
+#ifdef  USE_WIN32API
+	screen->pty_listener.read_ready = pty_read_ready ;
+#endif
 
 	ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
 		&screen->screen_listener , &screen->pty_listener) ;
@@ -6752,6 +6914,7 @@ x_screen_new(
 	screen->window.window_realized = window_realized ;
 	screen->window.window_finalized = window_finalized ;
 	screen->window.window_exposed = window_exposed ;
+	screen->window.update_window = update_window ;
 	screen->window.window_focused = window_focused ;
 	screen->window.window_unfocused = window_unfocused ;
 	screen->window.key_pressed = key_pressed ;
@@ -6967,10 +7130,12 @@ x_screen_delete(
 
 	free( screen->input_method) ;
 
+#ifndef  USE_WIN32API
 	if( screen->im)
 	{
 		x_im_delete( screen->im) ;
 	}
+#endif
 
 	free( screen) ;
 
@@ -7033,6 +7198,7 @@ x_screen_attach(
 	/* reset icon to screen->term's one */
 	change_icon( screen, NULL) ;
 
+#ifndef  USE_WIN32API
 	if( screen->im)
 	{
 		x_window_t *  root ;
@@ -7044,6 +7210,7 @@ x_screen_attach(
 				&screen->im_listener , screen->input_method ,
 				screen->mod_ignore_mask) ;
 	}
+#endif
 
 	redraw_screen( screen) ;
 	highlight_cursor( screen) ;

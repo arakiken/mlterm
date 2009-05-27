@@ -63,4 +63,6 @@ XModifierKeymap *  x_window_manager_get_modifier_mapping( x_window_manager_t *  
 void  x_window_manager_update_modifier_mapping( x_window_manager_t *  win_man ,	u_int  serial) ;
 
 int x_window_manager_set_icon( x_window_t *  win , char *  icon_path) ;
+
+
 #endif

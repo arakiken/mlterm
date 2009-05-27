@@ -6,7 +6,7 @@
 #define  __X_XIC_H__
 
 
-#include  <X11/Xlib.h>
+#include  "x.h"
 #include  <kiklib/kik_types.h>		/* size_t */
 
 #include  "x_window.h"
@@ -14,9 +14,15 @@
 
 typedef struct  x_xic
 {
+#ifdef  USE_WIN32API
+	WORD  prev_keydown_wparam ;
+	mkf_parser_t *  parser ;
+	ml_char_encoding_t  encoding ;
+#else
 	XIC   ic ;
 	XFontSet  fontset ;
 	XIMStyle  style ;
+#endif
 	
 } x_xic_t ;
 
@@ -44,6 +50,8 @@ size_t  x_xic_get_str( x_window_t *  win , u_char *  seq , size_t  seq_len ,
 
 size_t  x_xic_get_utf8_str( x_window_t *  win , u_char *  seq , size_t  seq_len ,
 	mkf_parser_t **  parser , KeySym *  keysym , XKeyEvent *  event) ;
+
+int  x_xic_filter_event( x_window_t *  win, XEvent *  event) ;
 
 int  x_xic_set_focus( x_window_t *  win) ;
 

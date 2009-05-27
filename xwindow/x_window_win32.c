@@ -12,8 +12,6 @@
 
 #include  <stdlib.h>		/* abs */
 #include  <string.h>		/* memset/memcpy */
-#include  <X11/Xutil.h>		/* for XSizeHints */
-#include  <X11/Xatom.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* realloc/free */
 
@@ -25,47 +23,6 @@
 #include  "x_dnd.h"
 #endif
 
-/*
- * Atom macros.
- * Not cached because Atom may differ on each display
- */
-
-#define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
-#define  XA_TARGETS(display)  (XInternAtom(display , "TARGETS" , False))
-#ifdef  DEBUG
-#define  XA_MULTIPLE(display)  (XInternAtom(display , "MULTIPLE" , False))
-#endif
-#define  XA_TEXT(display)  (XInternAtom( display , "TEXT" , False))
-#define  XA_UTF8_STRING(display)  (XInternAtom(display , "UTF8_STRING" , False))
-#define  XA_NONE(display)  (XInternAtom(display , "NONE" , False))
-#define  XA_SELECTION(display) (XInternAtom(display , "MLTERM_SELECTION" , False))
-#define  XA_DELETE_WINDOW(display) (XInternAtom(display , "WM_DELETE_WINDOW" , False))
-#define  XA_TAKE_FOCUS(display) (XInternAtom(display , "WM_TAKE_FOCUS" , False))
-#define  XA_INCR(display) (XInternAtom(display, "INCR", False))
-#define  XA_XROOTPMAP_ID(display) (XInternAtom(display, "_XROOTPMAP_ID", False))
-
-/*
- * Extended Window Manager Hint support
- */
-#define  XA_NET_WM_ICON(display) (XInternAtom(display, "_NET_WM_ICON", False))
-
-
-/*
- * Motif Window Manager Hint (for borderless window)
- */
-#define  XA_MWM_INFO(display) (XInternAtom(display, "_MOTIF_WM_INFO", True))
-#define  XA_MWM_HINTS(display) (XInternAtom(display, "_MOTIF_WM_HINTS", True))
-
-typedef struct {
-	u_int32_t  flags ;
-	u_int32_t  functions ;
-	u_int32_t  decorations ;
-	int32_t  inputMode ;
-	u_int32_t  status ;
-} MWMHints_t ;
-
-#define MWM_HINTS_DECORATIONS   (1L << 1)
-
 
 #define  MAX_CLICK  3			/* max is triple click */
 
@@ -74,12 +31,130 @@ typedef struct {
 #endif
 
 
+typedef struct cp_parser
+{
+	mkf_parser_t  parser ;
+	
+	mkf_charset_t  cs ;
+	size_t  cp_size ;
+	
+} cp_parser_t ;
+
+
 /* --- static variables --- */
 
 static int  click_interval = 250 ;	/* millisecond, same as xterm. */
 
 
 /* --- static functions --- */
+
+/*
+ * For code point parser.
+ */
+ 
+static void
+cp_parser_init(
+	mkf_parser_t *  parser
+	)
+{
+	cp_parser_t *  cp_parser ;
+
+	cp_parser = (cp_parser_t*) parser ;
+	
+	mkf_parser_init( parser) ;
+	cp_parser->cs = UNKNOWN_CS ;
+	cp_parser->cp_size = 1 ;
+}
+
+static void
+cp_parser_set_str_dummy(
+	mkf_parser_t *  parser ,
+	u_char *  str ,
+	size_t  size
+	)
+{
+	/* do nothing */
+}
+
+static int
+cp_parser_set_str(
+	mkf_parser_t *  parser ,
+	u_char *  str ,
+	size_t  size ,
+	mkf_charset_t  cs
+	)
+{
+	cp_parser_t *  cp_parser ;
+
+	cp_parser = (cp_parser_t*) parser ;
+
+	cp_parser->parser.str = str ;
+	cp_parser->parser.left = size ;
+	cp_parser->parser.marked_left = 0 ;
+	cp_parser->parser.is_eos = 0 ;
+	cp_parser->cs = cs ;
+
+	if( cs == ISO10646_UCS4_1)
+	{
+		cp_parser->cp_size = 4 ;
+	}
+	else if( IS_BIWIDTH_CS(cs))
+	{
+		cp_parser->cp_size = 2 ;
+	}
+	else
+	{
+		cp_parser->cp_size = 1 ;
+	}
+
+	return  1 ;
+}
+
+static void
+cp_parser_delete(
+	mkf_parser_t *  parser
+	)
+{
+	free( parser) ;
+}
+
+static int
+cp_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	cp_parser_t *  cp_parser ;
+	size_t  count ;
+
+	cp_parser = (cp_parser_t*) parser ;
+
+	if( cp_parser->parser.is_eos)
+	{
+		return  0 ;
+	}
+
+	if( cp_parser->parser.left < cp_parser->cp_size)
+	{
+		cp_parser->parser.is_eos = 1 ;
+		
+		return  0 ;
+	}
+
+	for( count = 0 ; count < cp_parser->cp_size ; count ++)
+	{
+		ch->ch[count] = cp_parser->parser.str[count] ;
+	}
+
+	mkf_parser_n_increment( cp_parser, count) ;
+	
+	ch->size = count ;
+	ch->cs = cp_parser->cs ;
+	ch->property = 0 ;
+
+	return  1 ;
+}
+
 
 /*
  * only for double buffering
@@ -93,6 +168,7 @@ restore_view(
 	u_int	height
 	)
 {
+#ifndef  USE_WIN32API
 	if( win->buffer == win->drawable)
 	{
 		if( win->width < x + width)
@@ -132,6 +208,7 @@ restore_view(
 		return  1 ;
 	}
 	else
+#endif
 	{
 		return  0 ;
 	}
@@ -144,6 +221,7 @@ restore_view_all(
 {
 	return	restore_view( win , 0 , 0 , win->width , win->height) ;
 }
+
 
 static int
 set_transparent(
@@ -493,6 +571,77 @@ total_height_inc(
 	return  height_inc ;
 }
 
+static u_int
+get_key_state(void)
+{
+	u_int  state ;
+
+	state = 0 ;
+	if( GetKeyState(VK_SHIFT) < 0)
+	{
+		state |= ShiftMask ;
+	}
+	if( GetKeyState(VK_CONTROL) < 0)
+	{
+		state |= ControlMask ;
+	}
+	if( GetKeyState(VK_MENU) < 0)
+	{
+		state |= ModMask ;
+	}
+
+	return  state ;
+}
+
+static int
+draw_string(
+	x_window_t *  win ,
+	x_font_t *  font ,
+	int  x ,
+	int  y ,
+	u_char *  str ,
+	u_int  len
+	)
+{
+	u_char *  str2 ;
+
+	str2 = NULL ;
+
+	if( font->conv)
+	{
+		if( ( str2 = malloc( len * 8)))	/* assume utf8 */
+		{
+			cp_parser_set_str( win->cp_parser, str, len, FONT_CS(font->id)) ;
+			len = (*font->conv->convert)( font->conv, str2, len * 8, win->cp_parser) ;
+
+			str2[len] = '\0' ;
+			kik_debug_printf( "%s\n", str2) ;
+			
+			if( len > 0)
+			{
+				str = str2 ;
+			}
+		}
+	}
+
+	TextOut( win->gc, x + (font->is_var_col_width ? 0 : font->x_off) + win->margin,
+		y + win->margin, str, len) ;
+		
+	if( font->is_double_drawing)
+	{
+		TextOut( win->gc, x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1,
+				y + win->margin, str, len) ;
+	}
+
+	if( str2)
+	{
+		free( str2) ;
+	}
+
+	return  1 ;
+}
+
+
 /* --- global functions --- */
 
 int
@@ -513,22 +662,14 @@ x_window_init(
 	 * these values are set later
 	 */
 
-	win->display = NULL ;
-	win->screen = 0 ;
-
 	win->parent_window = None ;
 	win->my_window = None ;
 
 	win->drawable = None ;
 	win->buffer = None ;
 
-	win->xft_draw = NULL ;
-
-	win->gc = NULL ;
-	win->ch_gc = NULL ;
-
-	win->fg_color = RGB_BLACK ;
-	win->bg_color = RGB_WHITE ;
+	win->fg_color = RGB_BLACK ;	/* black */
+	win->bg_color = RGB_WHITE ;	/* white */
 
 	win->parent = NULL ;
 	win->children = NULL ;
@@ -543,12 +684,16 @@ x_window_init(
 
 	win->cursor_shape = 0 ;
 
+#ifdef  USE_WIN32API
+	win->event_mask = 0 ;
+#else
 	win->event_mask = ExposureMask | VisibilityChangeMask | FocusChangeMask | PropertyChangeMask ;
+#endif
 
 	/* if visibility is partially obscured , scrollable will be 0. */
 	win->is_scrollable = 1 ;
 
-	/* This flag will map window automatically in x_window_show() */
+	/* This flag will map window automatically in x_window_show(). */
 	win->is_mapped = 1 ;
 
 	win->x = 0 ;
@@ -563,9 +708,31 @@ x_window_init(
 	win->height_inc = height_inc ;
 	win->margin = margin ;
 
-	win->xic = NULL ;
 	win->xim = NULL ;
 	win->xim_listener = NULL ;
+	
+#ifdef  USE_WIN32API
+	x_xic_activate( win, NULL, NULL) ;
+	
+	if( ( win->cp_parser = malloc( sizeof( cp_parser_t))) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG " cp_parser_t malloc failed.\n") ;
+	#endif
+	}
+	else
+	{
+		cp_parser_init( win->cp_parser) ;
+		win->cp_parser->init = cp_parser_init ;
+		win->cp_parser->set_str = cp_parser_set_str_dummy ;
+		win->cp_parser->delete = cp_parser_delete ;
+		win->cp_parser->next_char = cp_parser_next_char ;
+	}
+
+	win->prev_keydown_wparam = 0 ;
+#else
+	win->xic = NULL ;
+#endif
 
 	win->prev_clicked_time = 0 ;
 	win->prev_clicked_button = -1 ;
@@ -622,19 +789,18 @@ x_window_final(
 
 	free( win->children) ;
 
+#ifdef  USE_WIN32API
+	if( win->bg_color != RGB_WHITE)
+	{
+		DeleteObject( (HBRUSH)GetClassLong( win->my_window, GCL_HBRBACKGROUND)) ;
+	}
+#else
 	x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
-
-	XFreeGC( win->display , win->gc) ;
-	XFreeGC( win->display , win->ch_gc) ;
 
 	if( win->buffer)
 	{
 		XFreePixmap( win->display , win->buffer) ;
 	}
-
-#ifdef  USE_TYPE_XFT
-	XftDrawDestroy( win->xft_draw) ;
-#endif
 
 	XDestroyWindow( win->display , win->my_window) ;
 
@@ -645,8 +811,11 @@ x_window_final(
 		XFreePixmap( win->display , win->icon_mask) ;
 	}
 	free( win->icon_card) ;
+#endif
 	
 	x_xic_deactivate( win) ;
+
+	(*win->cp_parser->delete)( win->cp_parser) ;
 
 	if( win->window_finalized)
 	{
@@ -669,16 +838,16 @@ x_window_init_event_mask(
 		return  0 ;
 	}
 
-#if  0
+#ifndef  USE_WIN32API
 	if( event_mask & ButtonMotionMask)
 	{
 		event_mask &= ~ButtonMotionMask ;
 		event_mask |= ( Button1MotionMask | Button2MotionMask |
 			Button3MotionMask | Button4MotionMask | Button5MotionMask) ;
 	}
-#endif
 
 	win->event_mask |= event_mask ;
+#endif
 
 	return  1 ;
 }
@@ -689,18 +858,18 @@ x_window_add_event_mask(
 	long  event_mask
 	)
 {
-#if  0
+#ifndef  USE_WIN32API
 	if( event_mask & ButtonMotionMask)
 	{
 		event_mask &= ~ButtonMotionMask ;
 		event_mask |= ( Button1MotionMask | Button2MotionMask |
 			Button3MotionMask | Button4MotionMask | Button5MotionMask) ;
 	}
-#endif
 
 	win->event_mask |= event_mask ;
 
 	XSelectInput( win->display , win->my_window , win->event_mask) ;
+#endif
 
 	return  1 ;
 }
@@ -711,18 +880,18 @@ x_window_remove_event_mask(
 	long  event_mask
 	)
 {
-#if  0
+#ifndef  USE_WIN32API
 	if( event_mask & ButtonMotionMask)
 	{
 		event_mask &= ~ButtonMotionMask ;
 		event_mask |= ( Button1MotionMask | Button2MotionMask |
 			Button3MotionMask | Button4MotionMask | Button5MotionMask) ;
 	}
-#endif
 
 	win->event_mask &= ~event_mask ;
 
 	XSelectInput( win->display , win->my_window , win->event_mask) ;
+#endif
 
 	return  1 ;
 }
@@ -732,8 +901,6 @@ x_window_ungrab_pointer(
 	x_window_t *  win
 	)
 {
-	XUngrabPointer( win->display , CurrentTime) ;
-	
 	return  0 ;
 }
 
@@ -743,6 +910,7 @@ x_window_set_wall_picture(
 	Pixmap  pic
 	)
 {
+#ifndef  USE_WIN32API
 	if( win->drawable != win->my_window)
 	{
 		/*
@@ -778,6 +946,7 @@ x_window_set_wall_picture(
 		x_window_clear_all( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -787,6 +956,7 @@ x_window_unset_wall_picture(
 	x_window_t *  win
 	)
 {
+#ifndef  USE_WIN32API
 	if( win->drawable != win->my_window)
 	{
 		/*
@@ -833,6 +1003,7 @@ x_window_unset_wall_picture(
 		x_window_clear_all( win) ;
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -843,6 +1014,7 @@ x_window_set_transparent(
 	x_picture_modifier_t *  pic_mod
 	)
 {
+#ifndef  USE_WIN32API
 	Window  parent ;
 	Window  root ;
 	Window *  list ;
@@ -901,6 +1073,7 @@ end:
 	{
 		x_window_set_transparent( win->children[count] , win->pic_mod) ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -910,13 +1083,8 @@ x_window_unset_transparent(
 	x_window_t *  win
 	)
 {
+#ifndef  USE_WIN32API
 	int  count ;
-#if  0
-	Window  parent ;
-	Window  root ;
-	Window *  list ;
-	int  n ;
-#endif
 
 	if( ! win->is_transparent)
 	{
@@ -926,26 +1094,6 @@ x_window_unset_transparent(
 	}
 
 	unset_transparent( win) ;
-
-#if  0
-	/*
-	 * XXX
-	 * is this necessary ?
-	 */
-	parent = win->my_window ;
-
-	for( count = 0 ; count < 2 ; count ++)
-	{
-		XQueryTree( win->display , parent , &root , &parent , &list , &n) ;
-		XFree(list) ;
-		if( parent == DefaultRootWindow(win->display))
-		{
-			break ;
-		}
-
-		XSetWindowBackgroundPixmap( win->display , parent , None) ;
-	}
-#endif
 
 	if( win->window_exposed)
 	{
@@ -957,6 +1105,7 @@ x_window_unset_transparent(
 	{
 		x_window_unset_transparent( win->children[count]) ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -969,12 +1118,14 @@ x_window_use_buffer(
 	x_window_t *  win
 	)
 {
+#ifndef  USE_WIN32API
 	win->use_buffer = 1 ;
 
 	win->event_mask &= ~VisibilityChangeMask ;
 
 	/* always true */
 	win->is_scrollable = 1 ;
+#endif
 
 	return  1 ;
 }
@@ -996,7 +1147,10 @@ x_window_set_fg_color(
 	u_long  fg_color
 	)
 {
+#ifndef  USE_WIN32API
 	XSetForeground( win->display , win->gc , fg_color) ;
+#endif
+	
 	win->fg_color = fg_color ;
 
 	return  1 ;
@@ -1008,13 +1162,20 @@ x_window_set_bg_color(
 	u_long  bg_color
 	)
 {
-	XSetBackground( win->display , win->gc , bg_color) ;
+	HBRUSH  old_br ;
 
-	if( ! win->is_transparent && ! win->wall_picture_is_set)
+	if( win->my_window != None)
 	{
-		XSetWindowBackground( win->display , win->my_window , bg_color) ;
-	}
+		old_br = (HBRUSH)SetClassLong( win->my_window, GCL_HBRBACKGROUND,
+						(LONG)CreateSolidBrush(bg_color)) ;
+		if( win->bg_color != RGB_WHITE)
+		{
+			DeleteObject( old_br) ;
+		}
 
+		InvalidateRect( win->my_window, NULL, FALSE) ;
+	}
+	
 	win->bg_color = bg_color ;
 
 	return  1 ;
@@ -1076,8 +1237,9 @@ x_window_show(
 	int  hint
 	)
 {
-	XGCValues  gc_value ;
 	int  count ;
+	u_int  width ;
+	u_int  height ;
 
 	if( win->my_window)
 	{
@@ -1093,6 +1255,7 @@ x_window_show(
 		win->parent_window = win->parent->my_window ;
 	}
 
+#ifndef  USE_WIN32API
 	if( hint & XNegative)
 	{
 		win->x += (DisplayWidth( win->display , win->screen) - ACTUAL_WIDTH(win)) ;
@@ -1102,12 +1265,36 @@ x_window_show(
 	{
 		win->y += (DisplayHeight( win->display , win->screen) - ACTUAL_HEIGHT(win)) ;
 	}
+#endif
 
-	win->my_window = XCreateSimpleWindow(
-		win->display , win->parent_window ,
-		win->x , win->y , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-		0 , win->fg_color , win->bg_color) ;
+	width = ACTUAL_WIDTH(win) + GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CXFRAME) ;
+	height = ACTUAL_HEIGHT(win) + GetSystemMetrics(SM_CYEDGE) + GetSystemMetrics(SM_CYFRAME)
+			+ GetSystemMetrics(SM_CYCAPTION) ;
+#if  1
+	kik_debug_printf( "%d %d %d %d %d %d %d\n", GetSystemMetrics(SM_CXEDGE),
+		GetSystemMetrics(SM_CXBORDER), GetSystemMetrics(SM_CYEDGE),
+		GetSystemMetrics(SM_CXFRAME),
+		GetSystemMetrics(SM_CYBORDER), GetSystemMetrics(SM_CYCAPTION),
+		GetSystemMetrics(SM_CYFRAME)) ;
+#endif
 
+        win->my_window = CreateWindow("MLTERM", "mlterm", WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT, CW_USEDEFAULT,
+        		width, height, NULL, NULL,
+			win->display->hinst, NULL) ;
+
+  	if( ! win->my_window)
+        {
+          	MessageBox(NULL,"Failed to create window.",NULL,MB_ICONSTOP) ;
+
+          	return  0 ;
+        }
+
+	SetClassLong( win->my_window, GCL_HBRBACKGROUND,
+		win->bg_color == RGB_BLACK ? (LONG)GetStockObject(WHITE_BRUSH) :
+					(LONG)CreateSolidBrush(win->bg_color)) ;
+
+#ifndef  USE_WIN32API
 	if( win->use_buffer)
 	{
 		win->drawable = win->buffer = XCreatePixmap( win->display , win->parent_window ,
@@ -1115,117 +1302,10 @@ x_window_show(
 				DefaultDepth( win->display , win->screen)) ;
 	}
 	else
+#endif
 	{
 		win->drawable = win->my_window ;
 		win->buffer = 0 ;
-	}
-
-	if( win->cursor_shape)
-	{
-		XDefineCursor( win->display , win->my_window ,
-			XCreateFontCursor( win->display , win->cursor_shape)) ;
-	}
-
-#ifdef  USE_TYPE_XFT
-	win->xft_draw = XftDrawCreate( win->display , win->drawable ,
-					DefaultVisual( win->display , win->screen) ,
-					DefaultColormap( win->display , win->screen)) ;
-#endif
-
-	/*
-	 * graphic context.
-	 */
-
-	gc_value.graphics_exposures = 0 ;
-
-	win->gc = XCreateGC( win->display , win->my_window ,
-			GCGraphicsExposures , &gc_value) ;
-	win->ch_gc = XCreateGC( win->display , win->my_window ,
-			GCGraphicsExposures , &gc_value) ;
-
-	if( win->parent == NULL)
-	{
-		XSizeHints  size_hints ;
-		XClassHint  class_hint ;
-		XWMHints  wm_hints ;
-		int  argc = 1 ;
-		char *  argv[] = { "mlterm" , NULL , } ;
-		Atom  protocols[2] ;
-
-		win->event_mask |= StructureNotifyMask ;
-
-		/*
-		 * XXX
-		 * x/y/width/height are obsoleted. (see XSizeHints(3))
-		 */
-		size_hints.x = win->x ;
-		size_hints.y = win->y ;
-		size_hints.width = ACTUAL_WIDTH(win) ;
-		size_hints.height = ACTUAL_HEIGHT(win) ;
-
-		size_hints.width_inc = total_width_inc( win) ;
-		size_hints.height_inc = total_height_inc( win) ;
-		size_hints.min_width = total_min_width( win) ;
-		size_hints.min_height = total_min_height( win) ;
-		size_hints.base_width = total_base_width( win) ;
-		size_hints.base_height = total_base_height( win) ;
-
-		if( hint & XNegative)
-		{
-			if( hint & YNegative)
-			{
-				size_hints.win_gravity = SouthEastGravity ;
-			}
-			else
-			{
-				size_hints.win_gravity = NorthEastGravity ;
-			}
-		}
-		else
-		{
-			if( hint & YNegative)
-			{
-				size_hints.win_gravity = SouthWestGravity ;
-			}
-			else
-			{
-				size_hints.win_gravity = NorthWestGravity ;
-			}
-		}
-
-		size_hints.flags = PSize | PMinSize | PResizeInc | PBaseSize | PWinGravity ;
-
-		if( hint & (XValue | YValue))
-		{
-			size_hints.flags |= PPosition ;
-			size_hints.flags |= USPosition ;
-		}
-
-		class_hint.res_name = win->app_name ;
-		class_hint.res_class = win->app_name ;
-
-		wm_hints.window_group = x_window_manager_get_group( win->win_man) ;
-		wm_hints.initial_state = NormalState ;	/* or IconicState */
-		wm_hints.input = True ;			/* wants FocusIn/FocusOut */
-		wm_hints.flags = WindowGroupHint | StateHint | InputHint ;
-		XChangeProperty( win->display, win->my_window,
-				 XInternAtom( win->display, "WM_CLIENT_LEADER", False),
-				 XA_WINDOW, 32, PropModeReplace,
-				 (unsigned char *)(&wm_hints.window_group), 1) ;
-
-		/* notify to window manager */
-	#if  1
-		XmbSetWMProperties( win->display , win->my_window , win->app_name , win->app_name ,
-			argv , argc , &size_hints , &wm_hints , &class_hint) ;
-	#else
-		XmbSetWMProperties( win->display , win->my_window , win->app_name , win->app_name ,
-			argv , argc , &size_hints , &wm_hints , NULL) ;
-	#endif
-
-		protocols[0] = XA_DELETE_WINDOW(win->display) ;
-		protocols[1] = XA_TAKE_FOCUS(win->display) ;
-
-		XSetWMProtocols( win->display , win->my_window , protocols , 2) ;
 	}
 
 	/*
@@ -1237,20 +1317,8 @@ x_window_show(
 		(*win->window_realized)( win) ;
 	}
 
+#ifndef  USE_WIN32API
 	XSelectInput( win->display , win->my_window , win->event_mask) ;
-
-#if  0
-	{
-		char *  locale ;
-
-		if( ( locale = kik_get_locale()))
-		{
-			XChangeProperty( win->display , win->my_window ,
-				XInternAtom( win->display , "WM_LOCALE_NAME" , False) ,
-				XA_STRING , 8 , PropModeReplace ,
-				locale , strlen( locale)) ;
-		}
-	}
 #endif
 
 	/*
@@ -1268,7 +1336,7 @@ x_window_show(
 
 	if( win->is_mapped)
 	{
-		XMapWindow( win->display , win->my_window) ;
+		ShowWindow( win->my_window , SW_SHOWNORMAL) ;
 
 	#if  0
 		x_window_clear_all( win) ;
@@ -1288,7 +1356,7 @@ x_window_map(
 		return  1 ;
 	}
 
-	XMapWindow( win->display , win->my_window) ;
+  	ShowWindow( win->my_window , SW_SHOWNORMAL) ;
 	win->is_mapped = 1 ;
 
 	return  1 ;
@@ -1304,7 +1372,10 @@ x_window_unmap(
 		return  1 ;
 	}
 
+#ifndef  USE_WIN32API
 	XUnmapWindow( win->display , win->my_window) ;
+#endif
+
 	win->is_mapped = 0 ;
 
 	return  1 ;
@@ -1326,6 +1397,7 @@ x_window_resize(
 	win->width = width ;
 	win->height = height ;
 
+#ifndef  USE_WIN32API
 	if( win->buffer)
 	{
 		XFreePixmap( win->display , win->buffer) ;
@@ -1333,18 +1405,17 @@ x_window_resize(
 			win->parent_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 			DefaultDepth( win->display , win->screen)) ;
 		win->drawable = win->buffer ;
-
-	#ifdef  USE_TYPE_XFT
-		XftDrawChange( win->xft_draw , win->drawable) ;
-	#endif
 	}
+#endif
 
 	if( (flag & NOTIFY_TO_PARENT) && win->parent && win->parent->child_window_resized)
 	{
 		(*win->parent->child_window_resized)( win->parent , win) ;
 	}
 
+#ifndef  USE_WIN32API
 	XResizeWindow( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+#endif
 
 	if( (flag & NOTIFY_TO_MYSELF) && win->window_resized)
 	{
@@ -1381,6 +1452,7 @@ x_window_set_normal_hints(
 	u_int  height_inc
 	)
 {
+#ifndef  USE_WIN32API
 	XSizeHints  size_hints ;
 	x_window_t *  root ;
 
@@ -1405,6 +1477,7 @@ x_window_set_normal_hints(
 	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
 
 	XSetWMNormalHints( root->display , root->my_window , &size_hints) ;
+#endif
 
 	return  1 ;
 }
@@ -1415,6 +1488,7 @@ x_window_set_override_redirect(
 	int  flag
 	)
 {
+#ifndef  USE_WIN32API
 	x_window_t *  root ;
 	XSetWindowAttributes  s_attr ;
 	XWindowAttributes  g_attr ;
@@ -1444,6 +1518,7 @@ x_window_set_override_redirect(
 		XUnmapWindow( root->display , root->my_window) ;
 		XMapWindow( root->display , root->my_window) ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -1454,6 +1529,7 @@ x_window_set_borderless_flag(
 	int  flag
 	)
 {
+#ifndef  USE_WIN32API
 	/*
 	 * XXX
 	 * Support borderless with _MOTIF_WM_HINTS.
@@ -1490,6 +1566,7 @@ x_window_set_borderless_flag(
 		/* fall back to override redirect */
 		x_window_set_override_redirect( win , flag) ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -1501,7 +1578,9 @@ x_window_move(
 	int  y
 	)
 {
+#ifndef  USE_WIN32API
 	XMoveWindow( win->display , win->my_window , x , y) ;
+#endif
 
 	return  1 ;
 }
@@ -1511,28 +1590,47 @@ x_window_clear(
 	x_window_t *  win ,
 	int  x ,
 	int  y ,
-	u_int	width ,
-	u_int	height
+	u_int  width ,
+	u_int  height
 	)
 {
-	if( win->drawable == win->buffer)
+	RECT  r ;
+
+	r.left = x + win->margin ;
+	r.top = y + win->margin ;
+	r.right = x + width + win->margin * 2 ;
+	r.bottom = y + height + win->margin * 2 ;
+	
+	if( win->gc == None)
 	{
+		InvalidateRect( win->my_window, &r, TRUE) ;
+		/* XXX ValidateRect( win->my_window, &r) ; */
+
+		return  1 ;
+	}
+	else if( win->drawable == win->buffer)
+	{
+	#ifndef  USE_WIN32API
 		XSetForeground( win->display , win->gc , win->bg_color) ;
 		XFillRectangle( win->display , win->drawable , win->gc ,
 			x + win->margin , y + win->margin , width , height) ;
 		XSetForeground( win->display , win->gc , win->fg_color) ;
+	#endif
+
+		return  0 ;
 	}
 	else if( win->drawable == win->my_window)
 	{
-		XClearArea( win->display , win->drawable , x + win->margin , y + win->margin ,
-			width , height , 0) ;
+		SelectObject( win->gc, GetStockObject(NULL_PEN)) ;
+		SelectObject( win->gc, (HBRUSH)GetClassLong( win->my_window, GCL_HBRBACKGROUND)) ;
+		Rectangle( win->gc, r.left, r.top, r.right, r.bottom) ;
+
+		return  1 ;
 	}
 	else
 	{
 		return  0 ;
 	}
-
-	return  1 ;
 }
 
 int
@@ -1540,8 +1638,13 @@ x_window_clear_margin_area(
 	x_window_t *  win
 	)
 {
-	if( win->drawable == win->buffer)
+	if( win->gc == None)
 	{
+		return  0 ;
+	}
+	else if( win->drawable == win->buffer)
+	{
+	#ifndef  USE_WIN32API
 		XSetForeground( win->display , win->gc , win->bg_color) ;
 
 		XFillRectangle( win->display , win->drawable , win->gc ,
@@ -1554,24 +1657,27 @@ x_window_clear_margin_area(
 			win->margin , win->height + win->margin , win->width , win->margin) ;
 
 		XSetForeground( win->display , win->gc , win->fg_color) ;
+	#endif
+
+		return  0 ;
 	}
 	else if( win->drawable == win->my_window)
 	{
-		XClearArea( win->display , win->drawable ,
-			0 , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-		XClearArea( win->display , win->drawable ,
-			win->margin , 0 , win->width , win->margin , 0) ;
-		XClearArea( win->display , win->drawable ,
-			win->width + win->margin , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-		XClearArea( win->display , win->drawable ,
-			win->margin , win->height + win->margin , win->width , win->margin , 0) ;
+		SelectObject( win->gc, GetStockObject(NULL_PEN)) ;
+		SelectObject( win->gc, (HBRUSH)GetClassLong( win->my_window, GCL_HBRBACKGROUND)) ;
+		Rectangle( win->gc, 0, 0, win->margin, ACTUAL_HEIGHT(win)) ;
+		Rectangle( win->gc, win->margin, 0, win->width + win->margin, win->margin) ;
+		Rectangle( win->gc, win->width + win->margin, 0,
+			ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)) ;
+		Rectangle( win->gc, win->margin, win->height + win->margin,
+			win->width + win->margin, ACTUAL_HEIGHT(win)) ;
+
+		return  1 ;
 	}
 	else
 	{
 		return  0 ;
 	}
-
-	return  1 ;
 }
 
 int
@@ -1579,24 +1685,7 @@ x_window_clear_all(
 	x_window_t *  win
 	)
 {
-	if( win->drawable == win->buffer)
-	{
-		XSetForeground( win->display , win->gc , win->bg_color) ;
-		XFillRectangle( win->display , win->drawable , win->gc ,
-			0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-		XSetForeground( win->display , win->gc , win->fg_color) ;
-	}
-	else if( win->drawable == win->my_window)
-	{
-		XClearArea( win->display , win->drawable , 0 , 0 ,
-			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , 0) ;
-	}
-	else
-	{
-		return  0 ;
-	}
-
-	return  1 ;
+	return  x_window_clear( win, 0, 0, win->width, win->height) ;
 }
 
 int
@@ -1608,8 +1697,10 @@ x_window_fill(
 	u_int	height
 	)
 {
-	XFillRectangle( win->display , win->drawable , win->gc ,
-		x + win->margin , y + win->margin , width , height) ;
+#ifndef  USE_WIN32API
+	XFillRectangle( win->display , win->drawable , win->gc , x + win->margin , y + win->margin ,
+		width , height) ;
+#endif
 
 	return  1 ;
 }
@@ -1624,6 +1715,7 @@ x_window_fill_with(
 	u_int	height
 	)
 {
+#ifndef  USE_WIN32API
 	if( color != win->fg_color)
 	{
 		XSetForeground( win->display , win->gc , color) ;
@@ -1636,6 +1728,7 @@ x_window_fill_with(
 	{
 		XSetForeground( win->display , win->gc , win->fg_color) ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -1645,8 +1738,10 @@ x_window_fill_all(
 	x_window_t *  win
 	)
 {
+#ifndef  USE_WIN32API
 	XFillRectangle( win->display , win->drawable , win->gc , 0 , 0 ,
 		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+#endif
 
 	return  1 ;
 }
@@ -1657,6 +1752,7 @@ x_window_fill_all_with(
 	u_long  color
 	)
 {
+#ifndef  USE_WIN32API
 	if( color != win->fg_color)
 	{
 		XSetForeground( win->display , win->gc , color) ;
@@ -1669,6 +1765,7 @@ x_window_fill_all_with(
 	{
 		XSetForeground( win->display , win->gc , win->fg_color) ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -1678,7 +1775,8 @@ x_window_update(
 	x_window_t *  win
 	)
 {
-	win->update_window( win) ;
+	/* Post WM_PAINT without erasing background. */
+	InvalidateRect( win->my_window, NULL, FALSE) ;
 
 	return  1 ;
 }
@@ -1723,6 +1821,135 @@ x_window_receive_event(
 			return  1 ;
 		}
 	}
+
+	if( event->window != win->my_window)
+	{
+		return  0 ;
+	}
+
+	x_xic_filter_event( win, event) ;
+
+  	switch(event->msg)
+        {
+        case WM_DESTROY:
+		if( win->window_deleted)
+		{
+			(*win->window_deleted)( win) ;
+		}
+
+          	return  1 ;
+
+        case WM_PAINT:
+		if( win->window_exposed && win->update_window)
+		{
+			PAINTSTRUCT  ps ;
+			
+			win->ch_gc = win->gc = BeginPaint( win->my_window, &ps) ;
+
+			SetTextAlign( win->gc, TA_LEFT|TA_BASELINE) ;
+
+			if( ps.fErase == FALSE)
+			{
+				(*win->update_window)( win) ;
+			}
+			else
+			{
+				int  x ;
+				int  y ;
+				u_int  width ;
+				u_int  height ;
+				
+				if( ps.rcPaint.left < win->margin)
+				{
+					x = 0 ;
+				}
+				else
+				{
+					x = ps.rcPaint.left - win->margin ;
+				}
+			
+				if( ps.rcPaint.top < win->margin)
+				{
+					y = 0 ;
+				}
+				else
+				{
+					y = ps.rcPaint.top - win->margin ;
+				}
+
+				if( ps.rcPaint.right > win->width - win->margin)
+				{
+					width = win->width - win->margin - x ;
+				}
+				else
+				{
+					width = ps.rcPaint.right - x ;
+				}
+				
+				if( ps.rcPaint.bottom > win->height - win->margin)
+				{
+					height = win->height - win->margin - y ;
+				}
+				else
+				{
+					height = ps.rcPaint.bottom - y ;
+				}
+			
+				(*win->window_exposed)( win, x, y, width, height) ;
+			}
+
+			win->ch_gc = win->gc = None ;
+			EndPaint( win->my_window, &ps) ;
+
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG "WM_PAINT_END\n") ;
+		#endif
+		}
+		
+        	return  1 ;
+
+	case WM_KEYDOWN:
+		if( win->key_pressed)
+		{
+			if( ( 0x30 <= event->wparam && event->wparam <= VK_DIVIDE) ||
+				event->wparam == VK_BACK || event->wparam == VK_TAB ||
+				event->wparam == VK_RETURN || event->wparam == VK_ESCAPE ||
+				event->wparam == VK_SPACE)
+			{
+				/* wait for WM_**_CHAR message. */
+				break ;
+			}
+			else
+			{
+				XKeyEvent  kev ;
+				
+				kev.state = get_key_state() ;
+				kev.ch = 0 ;
+				
+				(*win->key_pressed)( win, &kev) ;
+			}
+		}
+
+		break ;
+		
+	case WM_IME_CHAR:
+        case WM_CHAR:
+		if( win->key_pressed)
+		{
+			XKeyEvent  kev ;
+
+			kev.state = get_key_state() ;
+			kev.ch = event->wparam ;
+
+			(*win->key_pressed)( win, &kev) ;
+		}
+		
+		return  1 ;
+        }
+
+	return  0 ;
+
+#ifndef  USE_WIN32API
 	if( win->my_window != event->xany.window)
 	{
 		/*
@@ -2360,6 +2587,8 @@ x_window_receive_event(
 #endif
 
 	return  1 ;
+
+#endif /* USE_WIN32API */
 }
 
 size_t
@@ -2372,28 +2601,7 @@ x_window_get_str(
 	XKeyEvent *  event
 	)
 {
-	size_t  len ;
-
-	*keysym = 0 ;
-
-	if( ( len = x_xic_get_str( win , seq , seq_len , parser , keysym , event)) > 0)
-	{
-		return  len ;
-	}
-
-	if( ( len = XLookupString( event , seq , seq_len , keysym , NULL)) > 0)
-	{
-		*parser = NULL ;
-
-                return  len ;
-	}
-
-	if( ( len = x_xic_get_utf8_str( win , seq , seq_len , parser , keysym , event)) > 0)
-	{
-		return  len ;
-	}
-
-	return  0 ;
+	return  x_xic_get_str( win, seq, seq_len, parser, keysym, event) ;
 }
 
 int
@@ -2442,10 +2650,10 @@ x_window_scroll_upward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
-		win->margin , win->margin + boundary_start + height ,	/* src */
-		win->width , boundary_end - boundary_start - height ,	/* size */
-		win->margin , win->margin + boundary_start) ;		/* dst */
+	BitBlt( win->gc, win->margin, win->margin + boundary_start,		/* dst */
+		win->width, boundary_end - boundary_start - height,		/* size */
+		win->gc, win->margin, win->margin + boundary_start + height,	/* src */
+		SRCCOPY) ;
 
 	return  1 ;
 }
@@ -2482,10 +2690,10 @@ x_window_scroll_downward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
-		win->margin , win->margin + boundary_start ,
-		win->width , boundary_end - boundary_start - height ,
-		win->margin , win->margin + boundary_start + height) ;
+	BitBlt( win->gc, win->margin, win->margin + boundary_start + height,	/* dst */
+		win->width, boundary_end - boundary_start - height,		/* size */
+		win->gc, win->margin , win->margin + boundary_start,		/* src */
+		SRCCOPY) ;
 
 	return  1 ;
 }
@@ -2523,10 +2731,12 @@ x_window_scroll_leftward_region(
 		return  0 ;
 	}
 
+#ifndef  USE_WIN32API
 	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
 		win->margin + boundary_start + width , win->margin ,	/* src */
 		boundary_end - boundary_start - width , win->height ,	/* size */
 		win->margin + boundary_start , win->margin) ;		/* dst */
+#endif
 
 	return  1 ;
 }
@@ -2563,10 +2773,12 @@ x_window_scroll_rightward_region(
 		return  0 ;
 	}
 
+#ifndef  USE_WIN32API
 	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
 		win->margin + boundary_start , win->margin ,
 		boundary_end - boundary_start - width , win->height ,
 		win->margin + boundary_start + width , win->margin) ;
+#endif
 
 	return  1 ;
 }
@@ -2583,6 +2795,7 @@ x_window_draw_decsp_string(
 	u_int  len
 	)
 {
+#ifndef  USE_WIN32API
 	if( font->decsp_font)
 	{
 		if( fg_color)
@@ -2605,7 +2818,6 @@ x_window_draw_decsp_string(
 		}
 		return  1 ;
 	}
-#ifdef  USE_TYPE_XCORE
 	else if( font->xfont)
 	{
 		if( bg_color)
@@ -2618,14 +2830,13 @@ x_window_draw_decsp_string(
 			return  x_window_draw_string( win , font , fg_color , x , y , str , len) ;
 		}
 	}
-#endif
 	else
+#endif
 	{
 		return  0 ;
 	}
 }
 
-#ifdef  USE_TYPE_XCORE
 int
 x_window_draw_string(
 	x_window_t *  win ,
@@ -2637,19 +2848,18 @@ x_window_draw_string(
 	u_int  len
 	)
 {
-	XSetFont( win->display , win->ch_gc , font->xfont->fid) ;
-	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
-
-	XDrawString( win->display , win->drawable , win->ch_gc ,
-		x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
-		y + win->margin , (char *)str , len) ;
-
-	if( font->is_double_drawing)
+	if( win->gc == None)
 	{
-		XDrawString( win->display , win->drawable , win->ch_gc ,
-			x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
-			y + win->margin , (char *)str , len) ;
+		return  0 ;
 	}
+
+	SelectObject( win->gc, font->xfont) ;
+	SetTextColor( win->gc, fg_color->pixel) ;
+	SetBkMode( win->gc, TRANSPARENT) ;
+
+	draw_string( win, font, x, y, str, len) ;
+	
+	SetBkMode( win->gc, OPAQUE) ;
 
 	return  1 ;
 }
@@ -2665,21 +2875,7 @@ x_window_draw_string16(
 	u_int  len
 	)
 {
-	XSetFont( win->display , win->ch_gc , font->xfont->fid) ;
-	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
-
-	XDrawString16( win->display , win->drawable , win->ch_gc ,
-		       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
-		       y + win->margin , str , len) ;
-
-	if( font->is_double_drawing)
-	{
-		XDrawString16( win->display , win->drawable , win->ch_gc ,
-			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
-			       y + win->margin , str , len) ;
-	}
-
-	return  1 ;
+	return  x_window_draw_string( win, font, fg_color, x, y, (u_char*)str, len * 2) ;
 }
 
 int
@@ -2694,20 +2890,16 @@ x_window_draw_image_string(
 	u_int  len
 	)
 {
-	XSetFont( win->display , win->ch_gc , font->xfont->fid) ;
-	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
-	XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
-
-	XDrawImageString( win->display , win->drawable , win->ch_gc ,
-			  x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
-			  y + win->margin , (char *)str , len) ;
-
-	if( font->is_double_drawing)
+	if( win->gc == None)
 	{
-		XDrawString( win->display , win->drawable , win->ch_gc ,
-			     x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
-			     y + win->margin , (char *)str , len) ;
+		return  0 ;
 	}
+
+	SelectObject( win->gc, font->xfont) ;
+	SetTextColor( win->gc, fg_color->pixel) ;
+	SetBkColor( win->gc, bg_color->pixel) ;
+
+	draw_string( win, font, x, y, str, len) ;
 
 	return  1 ;
 }
@@ -2724,72 +2916,9 @@ x_window_draw_image_string16(
 	u_int  len
 	)
 {
-	XSetFont( win->display , win->ch_gc , font->xfont->fid) ;
-	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
-	XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
-
-	XDrawImageString16( win->display , win->drawable , win->ch_gc ,
-			    x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
-			    y + win->margin , str , len) ;
-
-	if( font->is_double_drawing)
-	{
-		XDrawString16( win->display , win->drawable , win->ch_gc ,
-			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
-			       y + win->margin , str , len) ;
-	}
-
-	return  1 ;
+	return  x_window_draw_image_string( win, font, fg_color, bg_color,
+						x, y, (u_char*)str, len * 2) ;
 }
-#endif
-
-#ifdef  USE_TYPE_XFT
-int
-x_window_xft_draw_string8(
-	x_window_t *  win ,
-	x_font_t *  font ,
-	x_color_t *  fg_color ,
-	int  x ,
-	int  y ,
-	u_char *  str ,
-	size_t  len
-	)
-{
-	XftDrawString8( win->xft_draw , fg_color , font->xft_font ,
-		x + win->margin , y + win->margin , str , len) ;
-
-	if( font->is_double_drawing)
-	{
-		XftDrawString8( win->xft_draw , fg_color , font->xft_font ,
-			x + win->margin + 1 , y + win->margin , str , len) ;
-	}
-
-	return  1 ;
-}
-
-int
-x_window_xft_draw_string32(
-	x_window_t *  win ,
-	x_font_t *  font ,
-	x_color_t *  fg_color ,
-	int  x ,
-	int  y ,
-	XftChar32 *  str ,
-	u_int  len
-	)
-{
-	XftDrawString32( win->xft_draw , fg_color , font->xft_font ,
-		x + win->margin , y + win->margin , str , len) ;
-
-	if( font->is_double_drawing)
-	{
-		XftDrawString32( win->xft_draw , fg_color , font->xft_font ,
-			x + win->margin + 1 , y + win->margin , str , len) ;
-	}
-
-	return  1 ;
-}
-#endif
 
 int
 x_window_draw_rect_frame(
@@ -2800,10 +2929,12 @@ x_window_draw_rect_frame(
 	int  y2
 	)
 {
+#ifndef  USE_WIN32API
 	XDrawLine( win->display , win->drawable , win->gc , x1 , y1 , x2 , y1) ;
 	XDrawLine( win->display , win->drawable , win->gc , x1 , y1 , x1 , y2) ;
 	XDrawLine( win->display , win->drawable , win->gc , x2 , y2 , x2 , y1) ;
 	XDrawLine( win->display , win->drawable , win->gc , x2 , y2 , x1 , y2) ;
+#endif
 
 	return  1 ;
 }
@@ -2817,7 +2948,9 @@ x_window_draw_line(
 	int  y2
 	)
 {
+#ifndef  USE_WIN32API
 	XDrawLine( win->display, win->drawable, win->gc, x1, y1, x2, y2) ;
+#endif
 
 	return  1 ;
 }
@@ -2828,6 +2961,7 @@ x_window_set_selection_owner(
 	Time  time
 	)
 {
+#ifndef  USE_WIN32API
 	XSetSelectionOwner( win->display , XA_PRIMARY , win->my_window , time) ;
 
 	if( win->my_window != XGetSelectionOwner( win->display , XA_PRIMARY))
@@ -2838,6 +2972,9 @@ x_window_set_selection_owner(
 	{
 		return  x_window_manager_own_selection( x_get_root_window( win)->win_man , win) ;
 	}
+#endif
+
+	return  0 ;
 }
 
 int
@@ -2846,8 +2983,10 @@ x_window_xct_selection_request(
 	Time  time
 	)
 {
+#ifndef  USE_WIN32API
 	XConvertSelection( win->display , XA_PRIMARY , XA_COMPOUND_TEXT(win->display) ,
 		XA_SELECTION(win->display) , win->my_window , time) ;
+#endif
 
 	return  1 ;
 }
@@ -2858,8 +2997,10 @@ x_window_utf8_selection_request(
 	Time  time
 	)
 {
+#ifndef  USE_WIN32API
 	XConvertSelection( win->display , XA_PRIMARY , XA_UTF8_STRING(win->display) ,
 		XA_SELECTION(win->display) , win->my_window , time) ;
+#endif
 
 	return  1 ;
 }
@@ -2874,6 +3015,7 @@ x_window_send_selection(
 	int sel_format
 	)
 {
+#ifndef  USE_WIN32API
 	XEvent  res_ev ;
 
 	res_ev.xselection.type = SelectionNotify ;
@@ -2905,6 +3047,7 @@ x_window_send_selection(
 	}
 
 	XSendEvent( win->display , res_ev.xselection.requestor , False , 0 , &res_ev) ;
+#endif
 
 	return  1 ;
 }
@@ -2915,6 +3058,7 @@ x_set_window_name(
 	u_char *  name
 	)
 {
+#ifndef  USE_WIN32API
 	x_window_t *  root ;
 	XTextProperty  prop ;
 
@@ -2937,6 +3081,7 @@ x_set_window_name(
 		/* XXX which is better , doing this or return 0 without doing anything ? */
 		XStoreName( root->display , root->my_window , name) ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -2947,6 +3092,7 @@ x_set_icon_name(
 	u_char *  name
 	)
 {
+#ifndef  USE_WIN32API
 	x_window_t *  root ;
 	XTextProperty  prop ;
 
@@ -2969,6 +3115,7 @@ x_set_icon_name(
 		/* XXX which is better , doing this or return 0 without doing anything ? */
 		XSetIconName( root->display , root->my_window , name) ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -2978,6 +3125,7 @@ x_window_remove_icon(
 	x_window_t *  win
 	)
 {
+#ifndef  USE_WIN32API
 	XWMHints *hints ;
 
 	hints = XGetWMHints( win->display, win->my_window) ;
@@ -3006,6 +3154,7 @@ x_window_remove_icon(
 	win->icon_card = NULL ;
 
 	XDeleteProperty( win->display, win->my_window,XA_NET_WM_ICON( win->display)) ;
+#endif
 
 	return  1 ;
 }
@@ -3018,6 +3167,7 @@ x_window_set_icon(
 	u_int32_t *  cardinal
 	)
 {
+#ifndef  USE_WIN32API
 	XWMHints *  hints = NULL ;
 
 	/* set extended window manager hint's icon */
@@ -3057,6 +3207,7 @@ x_window_set_icon(
 
 	XSetWMHints( win->display, win->my_window, hints) ;
 	XFree( hints) ;
+#endif
 
 	return 1 ;
 }
@@ -3067,6 +3218,7 @@ x_window_set_icon_from_file(
 	char *  path
 	)
 {
+#ifndef  USE_WIN32API
 	int icon_size = 48;
 
 	x_window_remove_icon( win);
@@ -3080,6 +3232,7 @@ x_window_set_icon_from_file(
 	{
 		return  0 ;
 	}
+#endif
 
 	return x_window_set_icon( win,
 				  win->icon_pix,
@@ -3098,6 +3251,7 @@ x_window_get_visible_geometry(
 	u_int *  height
 	)
 {
+#ifndef  USE_WIN32API
 	Window  child ;
 	int screen_width ;
 	int screen_height ;
@@ -3165,6 +3319,7 @@ x_window_get_visible_geometry(
 	{
 		*height = screen_height - *y ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -3192,9 +3347,7 @@ x_window_bell(
 	x_window_t *  win
 	)
 {
-	XBell( win->display , 0) ;
-
-	return  1 ;
+	return  0 ;
 }
 
 int
@@ -3207,10 +3360,11 @@ x_window_translate_coordinates(
 	Window *  child
 	)
 {
-	XTranslateCoordinates( win->display, win->my_window, DefaultRootWindow( win->display) ,
-		x , y , global_x , global_y , child) ;
+	*global_x = 0 ;
+	*global_y = 0 ;
+	*child = None ;
 	
-	return  1 ;
+	return  0 ;
 }
 
 

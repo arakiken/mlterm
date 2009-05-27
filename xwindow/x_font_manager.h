@@ -6,7 +6,8 @@
 #define  __X_FONT_MANAGER_H__
 
 
-#include  <X11/Xlib.h>
+#include  "x.h"
+
 #include  <kiklib/kik_types.h>
 #include  <ml_char_encoding.h>
 

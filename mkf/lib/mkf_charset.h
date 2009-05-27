@@ -148,6 +148,10 @@ typedef enum  mkf_charset
 	GEORGIAN_PS = 0x313 ,		/* Excluding US_ASCII(0x0-0x7f) */
 	CP1251 = 0x314 ,		/* Excluding US_ASCII(0x0-0x7f) */
 	CP1255 = 0x315 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	CP1253 = 0x316 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	CP1254 = 0x317 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	CP1256 = 0x318 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	CP1257 = 0x319 ,		/* Excluding US_ASCII(0x0-0x7f) */
 
 	/* Followings are ISO2022 based charsets with revisions. */
 

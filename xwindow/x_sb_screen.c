@@ -82,7 +82,7 @@ window_resized(
 
 	sb_screen = (x_sb_screen_t*) win ;
 
-	if( sb_screen->sb_mode == SB_NONE)
+	if( sb_screen->sb_mode == SBM_NONE)
 	{
 		actual_width = ACTUAL_WIDTH(win) ;
 	}
@@ -99,7 +99,7 @@ window_resized(
 		ACTUAL_WIDTH( &sb_screen->scrollbar.window) ,
 		ACTUAL_HEIGHT(win) , NOTIFY_TO_MYSELF) ;
 		
-	if( sb_screen->sb_mode == SB_RIGHT)
+	if( sb_screen->sb_mode == SBM_RIGHT)
 	{
 		move_scrollbar( sb_screen , 1) ;
 	}
@@ -118,7 +118,7 @@ child_window_resized(
 
 	if( &sb_screen->screen->window == child)
 	{
-		if( sb_screen->sb_mode == SB_NONE)
+		if( sb_screen->sb_mode == SBM_NONE)
 		{
 			actual_width = ACTUAL_WIDTH(child) ;
 		}
@@ -135,14 +135,14 @@ child_window_resized(
 			ACTUAL_WIDTH( &sb_screen->scrollbar.window) ,
 			ACTUAL_HEIGHT(child) , NOTIFY_TO_MYSELF) ;
 
-		if( sb_screen->sb_mode == SB_RIGHT)
+		if( sb_screen->sb_mode == SBM_RIGHT)
 		{
 			move_scrollbar( sb_screen , 1) ;
 		}
 	}
 	else if( &sb_screen->scrollbar.window == child)
 	{
-		if( sb_screen->sb_mode == SB_NONE)
+		if( sb_screen->sb_mode == SBM_NONE)
 		{
 			return ;
 		}
@@ -151,7 +151,7 @@ child_window_resized(
 			ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_screen->screen->window) + SEPARATOR_WIDTH ,
 			ACTUAL_HEIGHT(child) , NOTIFY_TO_NONE) ;
 
-		if( sb_screen->sb_mode == SB_LEFT)
+		if( sb_screen->sb_mode == SBM_LEFT)
 		{
 			move_term_screen( sb_screen , 1) ;
 		}
@@ -534,7 +534,7 @@ change_sb_mode(
 		return ;
 	}
 	
-	if( mode == SB_NONE)
+	if( mode == SBM_NONE)
 	{
 		x_window_unmap( &sb_screen->scrollbar.window) ;
 	
@@ -549,7 +549,7 @@ change_sb_mode(
 	}
 	else
 	{
-		if( sb_screen->sb_mode == SB_NONE) ;
+		if( sb_screen->sb_mode == SBM_NONE) ;
 		{
 			x_window_map( &sb_screen->scrollbar.window) ;
 			
@@ -565,12 +565,12 @@ change_sb_mode(
 				SEPARATOR_WIDTH , sb_screen->window.min_height , 0 , 0) ;
 		}
 		
-		if( mode == SB_LEFT)
+		if( mode == SBM_LEFT)
 		{
 			move_term_screen( sb_screen , 1) ;
 			move_scrollbar( sb_screen , 0) ;
 		}
-		else /* if( mode == SB_RIGHT) */
+		else /* if( mode == SBM_RIGHT) */
 		{
 			move_term_screen( sb_screen , 0) ;
 			move_scrollbar( sb_screen , 1) ;
@@ -669,7 +669,7 @@ x_sb_screen_new(
 
 	sb_screen->sb_mode = mode ;
 
-	if( sb_screen->sb_mode == SB_NONE)
+	if( sb_screen->sb_mode == SBM_NONE)
 	{
 		actual_width = ACTUAL_WIDTH( &screen->window) ;
 		
@@ -694,7 +694,7 @@ x_sb_screen_new(
 		goto  error ;
 	}
 
-	if( sb_screen->sb_mode == SB_RIGHT)
+	if( sb_screen->sb_mode == SBM_RIGHT)
 	{
 		if( x_window_add_child( &sb_screen->window , &screen->window ,
 			0 , 0 , 1) == 0)
@@ -708,7 +708,7 @@ x_sb_screen_new(
 			goto  error ;
 		}
 	}
-	else if( sb_screen->sb_mode == SB_LEFT)
+	else if( sb_screen->sb_mode == SBM_LEFT)
 	{
 		if( x_window_add_child( &sb_screen->window , &sb_screen->scrollbar.window , 0 , 0 , 1) == 0)
 		{
@@ -721,7 +721,7 @@ x_sb_screen_new(
 			goto  error ;
 		}
 	}
-	else /* if( sb_screen->sb_mode == SB_NONE) */
+	else /* if( sb_screen->sb_mode == SBM_NONE) */
 	{
 		if( x_window_add_child( &sb_screen->window , &sb_screen->scrollbar.window , 0 , 0 , 0) == 0)
 		{

@@ -6,13 +6,14 @@
 #define  __X_COLOR_H__
 
 
-/* This must be included ahead of Xft.h on XFree86-4.0.x or before. */
-#include  <X11/Xlib.h>
+#include  "x.h"
 
 #ifdef  USE_TYPE_XFT
 #include  <X11/Xft/Xft.h>
 #endif
 
+#define  RGB_WHITE  0xffffff
+#define  RGB_BLACK  0x0
 
 #ifdef  USE_TYPE_XFT
 typedef XftColor  x_color_t ;

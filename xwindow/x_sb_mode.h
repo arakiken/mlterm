@@ -8,11 +8,11 @@
 
 typedef enum  x_sb_mode
 {
-	SB_NONE ,
-	SB_LEFT ,
-	SB_RIGHT ,
+	SBM_NONE ,
+	SBM_LEFT ,
+	SBM_RIGHT ,
 
-	SB_MODE_MAX
+	SBM_MAX
 
 } x_sb_mode_t ;
 

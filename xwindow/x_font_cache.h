@@ -6,7 +6,8 @@
 #define  __X_FONT_CACHE_H__
 
 
-#include  <X11/Xlib.h>
+#include  "x.h"
+
 #include  <kiklib/kik_map.h>
 #include  <kiklib/kik_types.h>
 #include  <mkf/mkf_charset.h>
