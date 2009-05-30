@@ -1289,7 +1289,7 @@ x_font_new(
 		gc = GetDC( win) ;
 		SelectObject( gc, font->xfont) ;
 		GetTextMetrics( gc, &tm) ;
-		font->width = tm.tmAveCharWidth ;	/* XXX tmMaxCharWidth ? */
+		font->width = tm.tmAveCharWidth * font->cols ;
 		font->height = tm.tmHeight ;
 		font->height_to_baseline = tm.tmAscent ;
 		ReleaseDC( win, gc) ;
@@ -1298,7 +1298,7 @@ x_font_new(
 		gc = CreateIC( "Display", NULL, NULL, NULL) ;
 		SelectObject( gc, font->xfont) ;
 		GetTextMetrics( gc, &tm) ;
-		font->width = tm.tmAveCharWidth ;	/* XXX tmMaxCharWidth ? */
+		font->width = tm.tmAveCharWidth * font->cols ;
 		font->height = tm.tmHeight ;
 		font->height_to_baseline = tm.tmAscent ;
 		DeleteDC( gc) ;
@@ -1324,15 +1324,14 @@ x_font_new(
 		return  0 ;
 	}
 	
-#ifndef  USE_WIN32API
-#ifdef  USE_TYPE_XCORE
-	font->xfont = NULL ;
-#endif
-#ifdef  USE_TYPE_XFT
-	font->xft_font = NULL ;
-#endif
 	font->decsp_font = NULL ;
 
+	font->x_off = 0 ;
+	font->is_proportional = 0 ;
+	
+	font->is_double_drawing = 0 ;
+
+#ifndef  USE_WIN32API
 	switch( type_engine)
 	{
 	default:
@@ -1367,7 +1366,7 @@ x_font_new(
 		break ;
 #endif
 	}
-#endif  /* USE_WIN32API */
+#endif	/* USE_WIN32API */
 
 	return  font ;
 }

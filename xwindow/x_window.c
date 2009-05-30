@@ -1675,10 +1675,11 @@ x_window_fill_all_with(
 
 int
 x_window_update(
-	x_window_t *  win
+	x_window_t *  win ,
+	int  flag
 	)
 {
-	win->update_window( win) ;
+	(*win->update_window)( win, flag) ;
 
 	return  1 ;
 }

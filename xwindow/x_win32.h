@@ -100,8 +100,11 @@ typedef struct
 	u_short red ;
 	u_short green ;
 	u_short blue ;
+	HPEN  pen ;
+	HBRUSH  brush ;
 
 } XColor ;
+
 
 #define None		0L	/* Same as definition in X11/X.h */
 #define NoSymbol	0L	/* Same as definition in X11/X.h */
@@ -290,6 +293,7 @@ typedef struct
 #define XKeysymToKeycode(disp,ks)  (ks)
 #define XKeycodeToKeysym(disp,kc,i)  (kc)
 #define XStringToKeysym(str)	(1)
+#define XKeysymToString(ks)	""
 #define DisplayString(disp) ":0.0"
 
 /* Same as definition in X11/cursorfont.h */

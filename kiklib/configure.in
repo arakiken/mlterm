@@ -6,6 +6,9 @@ AC_CONFIG_AUX_DIR(script)
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
+# for CFLAGS="..." ./configure ...
+AC_SUBST(CFLAGS)
+
 AC_PROG_CC
 #  if --with-libtool is specified, cpp isn't detected.
 AC_PROG_CPP

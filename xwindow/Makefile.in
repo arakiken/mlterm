@@ -35,8 +35,8 @@ OBJ2_win32 = x_imagelib_win32.o
 
 OBJ = $(OBJ1) $(OBJ2@WIN32TAG@)
 
-LKIK = @KIK_LIBS@
-LMKF = @MKF_LIBS@
+LKIK = @LKIK@
+LMKF = @LMKF@
 LMLTERM = ../mlterm/libmlterm.a
 LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
@@ -67,11 +67,11 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all: $(PROG)
 
-debug:	
+debug:
 	$(MAKE) LKIK="$(LKIK_DEB)" LMKF="$(LMKF_DEB)" all
 
 $(PROG): $(OBJ) $(LMLTERM)
-	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) $(OBJ) $(LIBS)
+	$(LIBTOOL_LINK) $(CFLAGS) @STATIC_FLAG@ -o $(PROG) $(OBJ) $(LIBS)
 
 .SUFFIXES: .c .o
 

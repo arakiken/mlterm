@@ -2345,7 +2345,7 @@ parse_vt100_escape_sequence(
                          * XXX following hack is necessary if you use bash.exe in msys.
                          */
 		#ifdef  USE_WIN32API
-	                ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+			ml_screen_goto_beg_of_line( vt100_parser->screen) ;
 		#endif
 		}
 		else if( *str_p == CTLKEY_CR)

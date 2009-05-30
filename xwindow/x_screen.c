@@ -8,12 +8,6 @@
 #include  <stdio.h>		/* sprintf */
 #include  <unistd.h>            /* getcwd */
 #include  <limits.h>            /* PATH_MAX */
-#ifndef PATH_MAX
-#ifndef _POSIX_PATH_MAX
-#define _POSIX_PATH_MAX 255
-#endif
-#define PATH_MAX _POSIX_PATH_MAX
-#endif
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup, kik_snprintf */
@@ -68,6 +62,12 @@
 #define  MLCONFIG_PATH    LIBEXECDIR "/mlconfig"
 #define  MLTERMMENU_PATH  LIBEXECDIR "/mlterm-menu"
 #endif
+
+enum
+{
+	UPDATE_SCREEN = 0x1 ,
+	UPDATE_CURSOR = 0x2 ,
+} ;
 
 
 #if  0
@@ -497,6 +497,10 @@ draw_line(
 	return  1 ;
 }
 
+/*
+ * Don't call this function directly.
+ * Call this function via highlight_cursor.
+ */
 static int
 draw_cursor(
 	x_screen_t *  screen
@@ -910,12 +914,7 @@ bs_scroll_upward(
 	if( ml_term_backscroll_upward( screen->term , 1))
 	{
 		unhighlight_cursor( screen) ;
-	#if  0
-		redraw_screen( screen) ;
-		highlight_cursor( screen) ;
-	#else
-		x_window_update( &screen->window) ;
-	#endif
+		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
@@ -933,12 +932,7 @@ bs_scroll_downward(
 	if( ml_term_backscroll_downward( screen->term , 1))
 	{
 		unhighlight_cursor( screen) ;
-	#if  0
-		redraw_screen( screen) ;
-		highlight_cursor( screen) ;
-	#else
-		x_window_update( &screen->window) ;
-	#endif
+		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
@@ -956,12 +950,7 @@ bs_half_page_upward(
 	if( ml_term_backscroll_upward( screen->term , ml_term_get_rows( screen->term) / 2))
 	{
 		unhighlight_cursor( screen) ;
-	#if  0
-		redraw_screen( screen) ;
-		highlight_cursor( screen) ;
-	#else
-		x_window_update( &screen->window) ;
-	#endif
+		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
@@ -981,12 +970,7 @@ bs_half_page_downward(
 	if( ml_term_backscroll_downward( screen->term , ml_term_get_rows( screen->term) / 2))
 	{
 		unhighlight_cursor( screen) ;
-	#if  0
-		redraw_screen( screen) ;
-		highlight_cursor( screen) ;
-	#else
-		x_window_update( &screen->window) ;
-	#endif
+		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
@@ -1006,12 +990,7 @@ bs_page_upward(
 	if( ml_term_backscroll_upward( screen->term , ml_term_get_rows( screen->term)))
 	{
 		unhighlight_cursor( screen) ;
-	#if  0
-		redraw_screen( screen) ;
-		highlight_cursor( screen) ;
-	#else
-		x_window_update( &screen->window) ;
-	#endif
+		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
 		{
@@ -1031,12 +1010,7 @@ bs_page_downward(
 	if( ml_term_backscroll_downward( screen->term , ml_term_get_rows( screen->term)))
 	{
 		unhighlight_cursor( screen) ;
-	#if  0
-		redraw_screen( screen) ;
-		highlight_cursor( screen) ;
-	#else
-		x_window_update( &screen->window) ;
-	#endif
+		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
 		{
@@ -1076,12 +1050,7 @@ restore_selected_region_color(
 {
 	if( x_restore_selected_region_color( &screen->sel))
 	{
-	#if  0
-		redraw_screen( screen) ;
-		highlight_cursor( screen) ;
-	#else
-		x_window_update( &screen->window) ;
-	#endif
+		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 	}
 }
 
@@ -1571,15 +1540,23 @@ window_exposed(
 
 static void
 update_window(
-	x_window_t *  win
+	x_window_t *  win ,
+	int  flag
 	)
 {
 	x_screen_t *  screen ;
 
 	screen = (x_screen_t*)win ;
 
-	redraw_screen( screen) ;
-	highlight_cursor( screen) ;
+	if( flag & UPDATE_SCREEN)
+	{
+		redraw_screen( screen) ;
+	}
+
+	if( flag & UPDATE_CURSOR)
+	{
+		highlight_cursor( screen) ;
+	}
 }
 
 static void
@@ -1629,12 +1606,7 @@ window_resized(
 
 	set_wall_picture( screen) ;
 
-#if  0
-	redraw_screen( screen) ;
-	highlight_cursor( screen) ;
-#else
-	x_window_update( &screen->window) ;
-#endif
+	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 #ifndef  USE_WIN32API
 	x_xic_resized( &screen->window) ;
@@ -1668,21 +1640,17 @@ window_focused(
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
-#if  0
-		redraw_screen( screen) ;
+		x_window_update( &screen->window, UPDATE_SCREEN) ;
 	}
 
-	highlight_cursor( screen) ;
-#else
-	}
+	x_window_update( &screen->window, UPDATE_CURSOR) ;
 
-	x_window_update( &screen->window) ;
-#endif
-
+#ifndef  USE_WIN32API
 	if( screen->im)
 	{
 		(*screen->im->focused)( screen->im) ;
 	}
+#endif
 }
 
 static void
@@ -1711,21 +1679,18 @@ window_unfocused(
 			x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
-#if   0
-		redraw_screen( screen) ;
+
+		x_window_update( &screen->window, UPDATE_SCREEN) ;
 	}
 
-	highlight_cursor( screen) ;
-#else
-	}
-	
-	x_window_update( &screen->window) ;
-#endif
+	x_window_update( &screen->window, UPDATE_CURSOR) ;
 
+#ifndef  USE_WIN32API
 	if( screen->im)
 	{
 		(*screen->im->unfocused)( screen->im) ;
 	}
+#endif
 }
 
 /*
@@ -1914,6 +1879,7 @@ key_pressed(
 	kik_debug_printf( "%x %x\n", masked_state, ksym) ;
 #endif
 
+#ifndef  USE_WIN32API
 	if( screen->im)
 	{
 		u_char  kchar = 0 ;
@@ -1945,16 +1911,13 @@ key_pressed(
 			if( ml_term_is_backscrolling( screen->term))
 			{
 				exit_backscroll_mode( screen) ;
-			#if  0
-				redraw_screen( screen) ;
-			#else
-				x_window_update( &screen->window) ;
-			#endif
+				x_window_update( &screen->window, UPDATE_SCREEN) ;
 			}
 
 			return ;
 		}
 	}
+#endif
 
 #ifdef  __DEBUG
 	{
@@ -2119,11 +2082,7 @@ key_pressed(
 
 		/* x_image_xxx( screen->image) ; */
 
-	#if  0
-		redraw_screen( screen) ;
-	#else
-		x_window_update( &screen->window) ;
-	#endif
+		x_window_update( &screen->window, UPDATE_SCREEN) ;
 	}
 #endif
 	else
@@ -2271,12 +2230,7 @@ key_pressed(
 					key = p ;
 				}
 
-			#if  0
-				redraw_screen( screen) ;
-				highlight_cursor( screen) ;
-			#else
-				x_window_update( &screen->window) ;
-			#endif
+				x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 				return  ;
 			}
@@ -2969,12 +2923,7 @@ set_xdnd_config(
 
 	set_config( screen, key, dev, value) ;
 
-#if  0
-	redraw_screen( screen) ;
-	highlight_cursor( screen) ;
-#else
-	x_window_update( &screen->window) ;
-#endif
+	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 }
 #endif
 
@@ -3037,11 +2986,7 @@ start_selection(
 
 	if( x_start_selection( &screen->sel , col_l , row_l , col_r , row_r))
 	{
-	#if  0
-		redraw_screen( screen) ;
-	#else
-		x_window_update( &screen->window) ;
-	#endif
+		x_window_update( &screen->window, UPDATE_SCREEN) ;
 	}
 }
 
@@ -3062,11 +3007,7 @@ selecting(
 	
 	if( x_selecting( &screen->sel , char_index , row))
 	{
-	#if  0
-		redraw_screen( screen) ;
-	#else
-		x_window_update( &screen->window) ;
-	#endif
+		x_window_update( &screen->window, UPDATE_SCREEN) ;
 	}
 }
 
@@ -3865,10 +3806,12 @@ change_char_encoding(
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 
+#ifndef  USE_WIN32API
 	if( screen->im)
 	{
 		change_im( screen , kik_str_alloca_dup( screen->input_method)) ;
 	}
+#endif
 }
 
 static void
@@ -4463,7 +4406,6 @@ change_im(
 		x_im_delete( screen->im) ;
 		screen->im = NULL ;
 	}
-#endif
 
 	free( screen->input_method) ;
 	screen->input_method = NULL ;
@@ -4475,7 +4417,6 @@ change_im(
 
 	screen->input_method = strdup( input_method) ;
 
-#ifndef  USE_WIN32API
 	if( strncmp( screen->input_method , "xim" , 3) == 0)
 	{
 		activate_xic( screen) ;
@@ -6044,11 +5985,7 @@ draw_preedit_str(
 		}
 		else
 		{
-		#if  0
-			redraw_screen( screen) ;
-		#else
-			x_window_update( &screen->window) ;
-		#endif
+			x_window_update( &screen->window, UPDATE_SCREEN) ;
 		}
 	}
 
@@ -6511,12 +6448,7 @@ stop_vt100_cmd(
 		x_reverse_selected_region_color_except_logs( &screen->sel) ;
 	}
 
-#if  0
-	redraw_screen( screen) ;
-	highlight_cursor( screen) ;
-#else
-	x_window_update( &screen->window) ;
-#endif
+	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 }
 
 static void
@@ -6720,7 +6652,8 @@ pty_read_ready(
 {
 	x_screen_t *  screen = p ;
 
-	x_window_update( &screen->window) ;
+	/* Occur dummy event(WM_USER_PAINT) to exit GetMessage() loop. */
+	x_window_update( &screen->window, 0) ;
 }
 #endif
 

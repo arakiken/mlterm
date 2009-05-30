@@ -247,10 +247,12 @@ x_xic_activate(
 	{
 		return  0 ;
 	}
-	memset( win->xic, 0, sizeof( x_xic_t)) ;
+
+	win->xic->prev_keydown_wparam = 0 ;
 
 	/* XXX */
 	win->xic->encoding = ML_SJIS ;
+	
 	if( ( win->xic->parser = ml_parser_new( win->xic->encoding)) == NULL)
 	{
 		free( win->xic) ;
@@ -279,7 +281,7 @@ x_xic_deactivate(
 
 #ifdef  USE_WIN32API
 
-	win->xic->parser->delete( win->xic->parser) ;
+	(*win->xic->parser->delete)( win->xic->parser) ;
 	free( win->xic) ;
 	win->xic = NULL ;
 

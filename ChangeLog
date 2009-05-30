@@ -1,3 +1,9 @@
+2009-05-31  Araki Ken  <arakiken@users.sf.net>
+
+	* Fixed many bugs.
+
+	* configure.in: --enable-monolithic option added.
+
 2009-05-28    Araki Ken  <arakiken@users.sf.net>
 
 	* win32/Makefile.in,main.c: deleted.

@@ -113,7 +113,7 @@ typedef struct  x_window
 #ifdef  USE_WIN32API
 	mkf_parser_t *  cp_parser ;
 	
-	WORD  prev_keydown_wparam ;
+	WORD  update_window_flag ;
 #endif
 
 	/* button */
@@ -162,7 +162,7 @@ typedef struct  x_window
 	void (*window_realized)( struct x_window *) ;
 	void (*window_finalized)( struct x_window *) ;
 	void (*window_exposed)( struct x_window * , int , int , u_int , u_int) ;
-	void (*update_window)( struct x_window *) ;
+	void (*update_window)( struct x_window * , int) ;
 	void (*window_focused)( struct x_window *) ;
 	void (*window_unfocused)( struct x_window *) ;
 	void (*key_pressed)( struct x_window * , XKeyEvent *) ;
@@ -258,7 +258,8 @@ int  x_window_fill_all( x_window_t *  win) ;
 
 int  x_window_fill_all_with( x_window_t *  win , u_long  color) ;
 
-int  x_window_update( x_window_t *  win) ;
+/* if flag is 0, no update. */
+int  x_window_update( x_window_t *  win , int  flag) ;
 
 void  x_window_idling( x_window_t *  win) ;
 

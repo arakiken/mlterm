@@ -66,7 +66,7 @@ static LRESULT CALLBACK window_proc(
 	event.msg = msg ;
 	event.wparam = wparam ;
 	event.lparam = lparam ;
-	
+
 	for( count = 0 ; count < _win_man->num_of_roots ; count ++)
 	{
 		if( x_window_receive_event( _win_man->roots[count] , &event))
@@ -353,19 +353,7 @@ x_window_manager_receive_next_event(
 	x_window_manager_t *  win_man
 	)
 {
-	MSG  msg ;
-	
-  	if( GetMessage( &msg,NULL,0,0))
-        {
-          	TranslateMessage(&msg) ;
-          	DispatchMessage(&msg) ;
-
-		return  1 ;
-        }
-	else
-	{
-		return  0 ;
-	}
+	return  1 ;
 }
 
 XID

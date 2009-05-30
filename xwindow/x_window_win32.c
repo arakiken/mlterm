@@ -25,6 +25,8 @@
 
 
 #define  MAX_CLICK  3			/* max is triple click */
+#define  WM_USER_PAINT  WM_USER
+
 
 #if  0
 #define  __DEBUG
@@ -614,9 +616,6 @@ draw_string(
 			cp_parser_set_str( win->cp_parser, str, len, FONT_CS(font->id)) ;
 			len = (*font->conv->convert)( font->conv, str2, len * 8, win->cp_parser) ;
 
-			str2[len] = '\0' ;
-			kik_debug_printf( "%s\n", str2) ;
-			
 			if( len > 0)
 			{
 				str = str2 ;
@@ -712,12 +711,13 @@ x_window_init(
 	win->xim_listener = NULL ;
 	
 #ifdef  USE_WIN32API
+	win->xic = NULL ;
 	x_xic_activate( win, NULL, NULL) ;
 	
 	if( ( win->cp_parser = malloc( sizeof( cp_parser_t))) == NULL)
 	{
 	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG " cp_parser_t malloc failed.\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " cp_parser_t malloc failed.\n") ;
 	#endif
 	}
 	else
@@ -729,7 +729,7 @@ x_window_init(
 		win->cp_parser->next_char = cp_parser_next_char ;
 	}
 
-	win->prev_keydown_wparam = 0 ;
+	win->update_window_flag = 0 ;
 #else
 	win->xic = NULL ;
 #endif
@@ -1604,7 +1604,6 @@ x_window_clear(
 	if( win->gc == None)
 	{
 		InvalidateRect( win->my_window, &r, TRUE) ;
-		/* XXX ValidateRect( win->my_window, &r) ; */
 
 		return  1 ;
 	}
@@ -1772,11 +1771,22 @@ x_window_fill_all_with(
 
 int
 x_window_update(
-	x_window_t *  win
+	x_window_t *  win ,
+	int  flag
 	)
 {
-	/* Post WM_PAINT without erasing background. */
-	InvalidateRect( win->my_window, NULL, FALSE) ;
+	if( win->update_window_flag)
+	{
+		win->update_window_flag |= flag ;
+		
+		return  1 ;
+	}
+	else
+	{
+		win->update_window_flag = flag ;
+	}
+	
+	PostMessage( win->my_window, WM_USER_PAINT, 0, 0) ;
 
 	return  1 ;
 }
@@ -1839,67 +1849,77 @@ x_window_receive_event(
 
           	return  1 ;
 
-        case WM_PAINT:
-		if( win->window_exposed && win->update_window)
+	case WM_USER_PAINT:
+		if( win->update_window)
 		{
-			PAINTSTRUCT  ps ;
-			
-			win->ch_gc = win->gc = BeginPaint( win->my_window, &ps) ;
-
+			win->gc = GetDC( win->my_window) ;
 			SetTextAlign( win->gc, TA_LEFT|TA_BASELINE) ;
 
-			if( ps.fErase == FALSE)
+			(*win->update_window)( win , win->update_window_flag) ;
+
+			ReleaseDC( win->my_window, win->gc) ;
+			win->gc = None ;
+			win->update_window_flag = 0 ;
+			
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG "WM_USER_PAINT_END\n") ;
+		#endif
+		}
+
+		return  1 ;
+		
+        case WM_PAINT:
+		if( win->window_exposed)
+		{
+			PAINTSTRUCT  ps ;
+			int  x ;
+			int  y ;
+			u_int  width ;
+			u_int  height ;
+
+			win->gc = BeginPaint( win->my_window, &ps) ;
+			SetTextAlign( win->gc, TA_LEFT|TA_BASELINE) ;
+
+			if( ps.rcPaint.left < win->margin)
 			{
-				(*win->update_window)( win) ;
+				x = 0 ;
 			}
 			else
 			{
-				int  x ;
-				int  y ;
-				u_int  width ;
-				u_int  height ;
-				
-				if( ps.rcPaint.left < win->margin)
-				{
-					x = 0 ;
-				}
-				else
-				{
-					x = ps.rcPaint.left - win->margin ;
-				}
-			
-				if( ps.rcPaint.top < win->margin)
-				{
-					y = 0 ;
-				}
-				else
-				{
-					y = ps.rcPaint.top - win->margin ;
-				}
-
-				if( ps.rcPaint.right > win->width - win->margin)
-				{
-					width = win->width - win->margin - x ;
-				}
-				else
-				{
-					width = ps.rcPaint.right - x ;
-				}
-				
-				if( ps.rcPaint.bottom > win->height - win->margin)
-				{
-					height = win->height - win->margin - y ;
-				}
-				else
-				{
-					height = ps.rcPaint.bottom - y ;
-				}
-			
-				(*win->window_exposed)( win, x, y, width, height) ;
+				x = ps.rcPaint.left - win->margin ;
 			}
 
-			win->ch_gc = win->gc = None ;
+			if( ps.rcPaint.top < win->margin)
+			{
+				y = 0 ;
+			}
+			else
+			{
+				y = ps.rcPaint.top - win->margin ;
+			}
+
+			if( ps.rcPaint.right > win->width - win->margin)
+			{
+				width = win->width - win->margin - x ;
+			}
+			else
+			{
+				width = ps.rcPaint.right - x ;
+			}
+
+			if( ps.rcPaint.bottom > win->height - win->margin)
+			{
+				height = win->height - win->margin - y ;
+			}
+			else
+			{
+				height = ps.rcPaint.bottom - y ;
+			}
+
+			(*win->window_exposed)( win, x, y, width, height) ;
+
 			EndPaint( win->my_window, &ps) ;
+			win->gc = None ;
 
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG "WM_PAINT_END\n") ;
@@ -1908,6 +1928,12 @@ x_window_receive_event(
 		
         	return  1 ;
 
+#if  0
+	case WM_ERASEBKGND:
+		/* Stop erase background. */
+		return  1 ;
+#endif
+	
 	case WM_KEYDOWN:
 		if( win->key_pressed)
 		{
@@ -1922,10 +1948,10 @@ x_window_receive_event(
 			else
 			{
 				XKeyEvent  kev ;
-				
+
 				kev.state = get_key_state() ;
 				kev.ch = 0 ;
-				
+
 				(*win->key_pressed)( win, &kev) ;
 			}
 		}
@@ -1945,6 +1971,36 @@ x_window_receive_event(
 		}
 		
 		return  1 ;
+
+	case WM_SETFOCUS:
+	#ifdef  __DEBUG
+		kik_debug_printf( "FOCUS IN %p\n" , win->my_window) ;
+	#endif
+
+	#if  1
+		/* root window event only */
+		if( win->parent == NULL)
+	#endif
+		{
+			notify_focus_in_to_children( win) ;
+		}
+
+		break ;
+
+	case WM_KILLFOCUS:
+	#ifdef  __DEBUG
+		kik_debug_printf( "FOCUS OUT %p\n" , win->my_window) ;
+	#endif
+
+	#if  1
+		/* root window event only */
+		if( win->parent == NULL)
+	#endif
+		{
+			notify_focus_out_to_children( win) ;
+		}
+
+		break ;
         }
 
 	return  0 ;
@@ -1985,11 +2041,12 @@ x_window_receive_event(
 			if( win->win_man)
 			{
 #ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-						 " MappingNotify serial #%d\n", event->xmapping.serial) ;
+				kik_warn_printf( KIK_DEBUG_TAG " MappingNotify serial #%d\n",
+					event->xmapping.serial) ;
 #endif
 				XRefreshKeyboardMapping( &(event->xmapping));
-				x_window_manager_update_modifier_mapping( win->win_man, event->xmapping.serial) ;
+				x_window_manager_update_modifier_mapping(
+					win->win_man, event->xmapping.serial) ;
 				/* have to  rocess only once */
 				return 1 ;
 			}
@@ -2389,7 +2446,8 @@ x_window_receive_event(
 		xa_utf8_string = XA_UTF8_STRING(win->display) ;
 		xa_selection = XA_SELECTION(win->display) ;
 
-		if( event->xselection.property == None ||  event->xselection.property == XA_NONE(win->display))
+		if( event->xselection.property == None ||
+			event->xselection.property == XA_NONE(win->display))
 		{
 			/*
 			 * Selection request failed.
@@ -2929,12 +2987,17 @@ x_window_draw_rect_frame(
 	int  y2
 	)
 {
-#ifndef  USE_WIN32API
-	XDrawLine( win->display , win->drawable , win->gc , x1 , y1 , x2 , y1) ;
-	XDrawLine( win->display , win->drawable , win->gc , x1 , y1 , x1 , y2) ;
-	XDrawLine( win->display , win->drawable , win->gc , x2 , y2 , x2 , y1) ;
-	XDrawLine( win->display , win->drawable , win->gc , x2 , y2 , x1 , y2) ;
-#endif
+	if( win->gc == None)
+	{
+		return  0 ;
+	}
+
+	/* XXX */
+	SelectObject( win->gc, GetStockObject(BLACK_PEN)) ;
+
+	SelectObject( win->gc, GetStockObject(NULL_BRUSH)) ;
+	
+	Rectangle( win->gc, x1, y1, x2, y2) ;
 
 	return  1 ;
 }
@@ -2948,9 +3011,16 @@ x_window_draw_line(
 	int  y2
 	)
 {
-#ifndef  USE_WIN32API
-	XDrawLine( win->display, win->drawable, win->gc, x1, y1, x2, y2) ;
-#endif
+	if( win->gc == None)
+	{
+		return  0 ;
+	}
+
+	/* XXX */
+	SelectObject( win->gc, GetStockObject(BLACK_PEN)) ;
+
+	MoveToEx( win->gc, x1, y1, NULL) ;
+	LineTo( win->gc, x2, y2) ;
 
 	return  1 ;
 }

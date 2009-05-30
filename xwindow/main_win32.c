@@ -1,5 +1,4 @@
-
-	/*
+/*
  *	$Id$
  */
 
@@ -42,7 +41,7 @@ sig_child(
 {
 	x_window_t *  win = p ;
 
-#ifdef  __DEBUG
+#ifdef  DEBUG
   	kik_debug_printf( KIK_DEBUG_TAG " SIG_CHILD received.\n") ;
 #endif
 
@@ -77,7 +76,8 @@ int PASCAL WinMain(
   	char  wid[50] ;
         char  lines[12] ;
         char  columns[15] ;
-
+	MSG  msg ;
+	
   	protocol = NULL ;
   	host = NULL ;
   
@@ -135,7 +135,7 @@ int PASCAL WinMain(
 	disp.hinst = hinst ;
 
   	term = ml_term_new( COLUMNS, LINES, 8, 50, ML_EUCJP, 1, NO_UNICODE_FONT_POLICY,
-			1, 0, 0, 0, 0, 0, BSM_VOLATILE, 0, ISCIILANG_UNKNOWN) ;
+			1, 0, 0, 0, 1, 0, BSM_VOLATILE, 0, ISCIILANG_UNKNOWN) ;
 
 	if( ! x_window_manager_init( &win_man, &disp))
 	{
@@ -162,7 +162,7 @@ int PASCAL WinMain(
 	}
 
 	if( ! ( color_man = x_color_manager_new( &disp, 0, &color_config, "black", "white",
-				"black", "white")))
+				"white", "black")))
 	{
 		kik_warn_printf( " x_color_manager_new failed.\n") ;
 
@@ -188,7 +188,7 @@ int PASCAL WinMain(
 				100, 100, 100, 100, &shortcut, 100, 100,
 				NULL, MOD_META_SET_MSB, BEL_SOUND, 0,
 				NULL, 0, 0, 0, NULL, NULL, NULL,
-				1, 0, 0, "xim")))
+				1, 0, 0, NULL)))
 	{
 		kik_warn_printf( " x_screen_new failed.\n") ;
 
@@ -249,20 +249,30 @@ int PASCAL WinMain(
   	kik_sig_child_init() ;
   	kik_add_sig_child_listener( &screen->window, sig_child) ;
 
-	while( x_window_manager_receive_next_event( &win_man))
-	{
+  	while( GetMessage( &msg,NULL,0,0))
+        {
 		if( ml_term_parse_vt100_sequence( term))
 		{
 			while( ml_term_parse_vt100_sequence( term)) ;
-			InvalidateRect( screen->window.my_window, NULL, FALSE) ;
 		}
-	}
+		
+          	TranslateMessage(&msg) ;
+          	DispatchMessage(&msg) ;
+        }
 
 	x_window_manager_final( &win_man) ;
-	x_screen_delete(screen) ;
+	x_font_manager_delete( font_man) ;
+	x_color_manager_delete( color_man) ;
+	x_color_config_final( &color_config) ;
+	x_termcap_final( &termcap) ;
+	x_shortcut_final( &termcap) ;
 	ml_term_delete(term) ;
-	
+		
   	kik_sig_child_final() ;
+
+#ifdef  KIK_DEBUG
+	kik_mem_free_all() ;
+#endif
 
   	return  0 ;
 }
