@@ -97,14 +97,6 @@ fi
 AC_SUBST(DEB_CFLAGS)
 AC_SUBST(OPT_CFLAGS)
 
-AC_ARG_ENABLE(monolithic,
-	[  --enable-monolithic     monolithic[default=disabled]],
-	monolithic=$enable_monolithic)
-if test "$monolithic" = "yes" ; then
-	STATIC_FLAG="-static"
-fi
-AC_SUBST(STATIC_FLAG)
-
 AC_ARG_ENABLE(fribidi,
 	[  --enable-fribidi        bidi[default=disabled]],
 	fribidi=$enable_fribidi, fribidi="no")

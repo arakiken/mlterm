@@ -21,8 +21,8 @@ LIBEXECDIR = $(DESTDIR)$(libexecdir)
 SYSCONFDIR = $(DESTDIR)$(sysconfdir)
 LOCALEDIR = $(DESTDIR)$(datadir)/locale
 
-LKIK = @KIK_LIBS@
-LMKF = @MKF_LIBS@
+LKIK = @LKIK@
+LMKF = @LMKF@
 
 GTK_CONFIG=@GTK_CONFIG@
 CFLAGS = `$(GTK_CONFIG) --cflags` $(CFLAGS_LOCAL) \
