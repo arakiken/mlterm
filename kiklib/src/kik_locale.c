@@ -160,6 +160,7 @@ kik_locale_init(
 	sys_country = kik_str_sep( &locale_p , ".") ;
 
 	sys_codeset = kik_langinfo( CODESET) ;
+	
 	if( strcmp( sys_codeset , "") == 0)
 	{
 		if( locale_p && *locale_p)

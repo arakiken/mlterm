@@ -18,6 +18,10 @@
 #include  <mkf/mkf_xct_conv.h>
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf8_parser.h>
+#ifdef  USE_WIN32API
+#include  <mkf/mkf_utf16_conv.h>
+#include  <mkf/mkf_utf16_parser.h>
+#endif
 
 #include  "ml_str_parser.h"
 #include  "x_xic.h"
@@ -1187,156 +1191,6 @@ error:
 	return  0 ;
 }
 
-static u_int
-get_mod_ignore_mask(
-	x_window_t *  win ,
-	KeySym *  keysyms
-	)
-{
-	XModifierKeymap *  mod_map ;
-	int  count ;
-	u_int  ignore ;
-	u_int  masks[] = { Mod1Mask , Mod2Mask , Mod3Mask , Mod4Mask , Mod5Mask } ;
-	KeySym default_keysyms[] = { XK_Num_Lock, XK_Scroll_Lock, XK_ISO_Level3_Lock,
-				     NoSymbol} ;
-
-	if( !keysyms)
-	{
-		keysyms = default_keysyms ;
-	}
-	
-	if( ( mod_map = x_window_get_modifier_mapping( x_get_root_window( win))) == NULL)
-	{
-		return  ~0 ;
-	}
-	
-	ignore = 0 ;
-
-	count = 0 ;
-	while( keysyms[count] != NoSymbol)
-	{
-		int  ks_count ;
-		KeyCode  kc ;
-
-		kc = XKeysymToKeycode( win->display, keysyms[count]);
-		for( ks_count = 0; ks_count < sizeof(masks)/sizeof(masks[0]); ks_count++)
-		{
-			int  kc_count ;
-			KeyCode *  key_codes ;
-
-			key_codes = &(mod_map->modifiermap[(ks_count+3)*mod_map->max_keypermod]) ;
-			for( kc_count = 0; kc_count < mod_map->max_keypermod; kc_count++)
-			{
-				if( key_codes[kc_count] == 0)
-				{
-					break ;
-				}
-				if( key_codes[kc_count] == kc)
-				{
-#ifdef  DEBUG
-					kik_debug_printf("keycode = %d, mod%d  idx %d  (by %s)\n",
-						kc,  ks_count+1, kc_count+1,
-						XKeysymToString(keysyms[count]));
-#endif
-					ignore |= masks[ks_count] ;
-					break ;
-				}
-			}
-		}
-		count++ ;
-	}
-
-	return  ~ignore ;
-}
-
-static u_int
-get_mod_meta_mask(
-	x_window_t *  win ,
-	char *  mod_key
-	)
-{
-	int  mask_count ;
-	int  kc_count ;
-	XModifierKeymap *  mod_map ;
-	KeyCode *  key_codes ;
-	KeySym  sym ;
-	char *  mod_keys[] = { "mod1" , "mod2" , "mod3" , "mod4" , "mod5" } ;
-	u_int  mod_masks[] = { Mod1Mask , Mod2Mask , Mod3Mask , Mod4Mask , Mod5Mask } ;
-	if( mod_key)
-	{
-		int  count ;
-
-		for( count = 0 ; count < sizeof( mod_keys) / sizeof( mod_keys[0]) ; count ++)
-		{
-			if( strcmp( mod_key , mod_keys[count]) == 0)
-			{
-				return  mod_masks[count] ;
-			}
-		}
-	}
-
-	if( ( mod_map = x_window_get_modifier_mapping( x_get_root_window( win))) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " x_window_get_modifier_mapping failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-	
-	key_codes = mod_map->modifiermap ;
-
-	for( mask_count = 0 ; mask_count < sizeof(mod_masks)/sizeof(mod_masks[0]) ; mask_count++)
-	{
-		int  count ;
-
-		/*
-		 * KeyCodes order is like this.
-		 * Shift[max_keypermod] Lock[max_keypermod] Control[max_keypermod]
-		 * Mod1[max_keypermod] Mod2[max_keypermod] Mod3[max_keypermod]
-		 * Mod4[max_keypermod] Mod5[max_keypermod]
-		 */
-
-		/*
-		 * this modmap handling is tested with Xsun and XFree86-4.x
-		 * it works fine on both X servers. (2004-10-19 seiichi)
-		 */
-
-		/* skip shift/lock/control */
-		kc_count = (mask_count + 3) * mod_map->max_keypermod ;
-
-		for( count = 0 ; count < mod_map->max_keypermod ; count++)
-		{
-			if( key_codes[kc_count] == 0)
-			{
-				break ;
-			}
-
-			sym = XKeycodeToKeysym( win->display , key_codes[kc_count] , 0) ;
-
-			if( ( ( mod_key == NULL || strcmp( mod_key , "meta") == 0) &&
-					( sym == XK_Meta_L || sym == XK_Meta_R)) ||
-				( ( mod_key == NULL || strcmp( mod_key , "alt") == 0) &&
-					( sym == XK_Alt_L || sym == XK_Alt_R)) ||
-				( ( mod_key == NULL || strcmp( mod_key , "super") == 0) &&
-					( sym == XK_Super_L || sym == XK_Super_R)) ||
-				( ( mod_key == NULL || strcmp( mod_key , "hyper") == 0) &&
-					( sym == XK_Hyper_L || sym == XK_Hyper_R)) )
-			{
-				return  mod_masks[mask_count] ;
-			}
-
-			kc_count ++ ;
-		}
-	}
-
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " No meta key was found.\n") ;
-#endif
-
-	return  0 ;
-}
-
 /* referred in update_special_visual */
 static void  change_font_present( x_screen_t *  screen , x_font_present_t  font_present) ;
 
@@ -1425,8 +1279,8 @@ window_realized(
 
 	screen = (x_screen_t*) win ;
 
-	screen->mod_meta_mask = get_mod_meta_mask( win, screen->mod_meta_key) ;
-	screen->mod_ignore_mask = get_mod_ignore_mask( win, NULL) ;
+	screen->mod_meta_mask = x_window_get_mod_meta_mask( win, screen->mod_meta_key) ;
+	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win, NULL) ;
 
 #ifndef  USE_WIN32API
 	if( screen->input_method)
@@ -1729,8 +1583,8 @@ mapping_notify(
 	x_screen_t *  screen ;
 	screen = (x_screen_t*) win ;
 
-	screen->mod_meta_mask = get_mod_meta_mask( win, screen->mod_meta_key) ;
-	screen->mod_ignore_mask = get_mod_ignore_mask( win, NULL) ;
+	screen->mod_meta_mask = x_window_get_mod_meta_mask( win, screen->mod_meta_key) ;
+	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win, NULL) ;
 }
 
 static void
@@ -1876,7 +1730,20 @@ key_pressed(
 	size = x_window_get_str( win , seq , sizeof(seq) , &parser , &ksym , event) ;
 
 #if  0
-	kik_debug_printf( "%x %x\n", masked_state, ksym) ;
+	kik_debug_printf( "state %x ksym %x str ", masked_state, ksym) ;
+	{
+		int  i ;
+		for( i = 0 ; i < size ; i++)
+		{
+			kik_msg_printf( "%c", seq[i]) ;
+		}
+		kik_msg_printf( " hex ") ;
+		for( i = 0 ; i < size ; i++)
+		{
+			kik_msg_printf( "%x", seq[i]) ;
+		}
+		kik_msg_printf( "\n") ;
+	}
 #endif
 
 #ifndef  USE_WIN32API
@@ -2075,16 +1942,6 @@ key_pressed(
 	{
 		yank_event_received( screen , CurrentTime) ;
 	}
-#ifdef  __DEBUG
-	else if( ksym == XK_F12)
-	{
-		/* this is for tests of x_image_xxx functions */
-
-		/* x_image_xxx( screen->image) ; */
-
-		x_window_update( &screen->window, UPDATE_SCREEN) ;
-	}
-#endif
 	else
 	{
 		int  is_app_keypad ;
@@ -2122,18 +1979,19 @@ key_pressed(
 			int  is_alt ;
 			int  is_ctl ;
 
-			compare_key_state_with_modmap( screen , event->state ,
+			if( compare_key_state_with_modmap( screen , event->state ,
 						       &is_shift , NULL ,
 						       &is_ctl , &is_alt ,
 						       &is_meta , NULL ,
-						       NULL) ;
-
-			/* compatible with xterm (Modifier codes in input.c) */
-			modcode = (is_shift ? 1 : 0) + (is_alt   ? 2 : 0) +
-				  (is_ctl   ? 4 : 0) + (is_meta  ? 8 : 0) ;
-			if( modcode)
+						       NULL))
 			{
-				modcode++ ;
+				/* compatible with xterm (Modifier codes in input.c) */
+				modcode = (is_shift ? 1 : 0) + (is_alt   ? 2 : 0) +
+					  (is_ctl   ? 4 : 0) + (is_meta  ? 8 : 0) ;
+				if( modcode)
+				{
+					modcode++ ;
+				}
 			}
 		}
 
@@ -2639,8 +2497,7 @@ key_pressed(
 
 static void
 selection_cleared(
-	x_window_t *  win ,
-	XSelectionClearEvent *  event
+	x_window_t *  win
 	)
 {
 	x_sel_clear( &((x_screen_t*)win)->sel) ;
@@ -3903,7 +3760,8 @@ change_mod_meta_key(
 		screen->mod_meta_key = strdup( key) ;
 	}
 
-	screen->mod_meta_mask = get_mod_meta_mask( &(screen->window) , screen->mod_meta_key) ;
+	screen->mod_meta_mask = x_window_get_mod_meta_mask( &(screen->window) ,
+					screen->mod_meta_key) ;
 }
 
 static void
@@ -6250,7 +6108,10 @@ compare_key_state_with_modmap(
 
 	screen = p ;
 
-	mod_map = x_window_get_modifier_mapping( x_get_root_window( &screen->window)) ;
+	if( ( mod_map = x_window_get_modifier_mapping( &screen->window)) == NULL)
+	{
+		return  0 ;
+	}
 
 	if( is_shift)
 	{
@@ -6355,7 +6216,7 @@ compare_key_state_with_modmap(
 		}
 	}
 
-	return  0 ;
+	return  1 ;
 }
 
 static void
@@ -6736,7 +6597,7 @@ x_screen_new(
 
 	screen->term = term ;
 
-	/* allocated dynamically */
+	/* NULL initialization here for error: processing. */
 	screen->utf8_parser = NULL ;
 	screen->xct_parser = NULL ;
 	screen->ml_str_parser = NULL ;
@@ -6932,6 +6793,18 @@ x_screen_new(
 	 * for receiving selection.
 	 */
 
+#ifdef  USE_WIN32API
+	if( ( screen->utf8_parser = mkf_utf16_parser_new()) == NULL)
+	{
+		goto  error ;
+	}
+
+	if( ( screen->xct_parser = ml_parser_new( ml_get_char_encoding( kik_get_codeset())))
+		== NULL)
+	{
+		goto  error ;
+	}
+#else
 	if( ( screen->utf8_parser = mkf_utf8_parser_new()) == NULL)
 	{
 		goto  error ;
@@ -6941,6 +6814,7 @@ x_screen_new(
 	{
 		goto  error ;
 	}
+#endif
 
 	/*
 	 * for sending selection
@@ -6951,6 +6825,17 @@ x_screen_new(
 		goto  error ;
 	}
 
+#ifdef  USE_WIN32API
+	if( ( screen->utf8_conv = mkf_utf16_conv_new()) == NULL)
+	{
+		goto  error ;
+	}
+
+	if( ( screen->xct_conv = ml_conv_new( ml_get_char_encoding( kik_get_codeset()))) == NULL)
+	{
+		goto  error ;
+	}
+#else
 	if( ( screen->utf8_conv = mkf_utf8_conv_new()) == NULL)
 	{
 		goto  error ;
@@ -6967,6 +6852,7 @@ x_screen_new(
 	{
 		goto  error ;
 	}
+#endif
 
 	screen->receive_string_via_ucs = receive_string_via_ucs ;
 

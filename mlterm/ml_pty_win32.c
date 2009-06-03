@@ -78,7 +78,9 @@ wait_child_exited(
         }
 
   	free( child_procs) ;
-  
+	num_of_child_procs = 0 ;
+	child_procs = NULL ;
+ 
   	ExitThread( 0) ;
 
   	return  0 ;
@@ -464,6 +466,8 @@ ml_pty_delete(
 	ml_pty_t *  pty
 	)
 {
+	int  count ;
+	
   	if( pty->pty_listener && pty->pty_listener->closed)
         {
           	(*pty->pty_listener->closed)( pty->pty_listener->self) ;
@@ -473,7 +477,9 @@ ml_pty_delete(
   	CloseHandle( pty->master_output) ;
   	CloseHandle( pty->slave_stdout) ;
   	CloseHandle( pty->rd_ev) ;
-	TerminateProcess( pty->child_proc,0) ;
+	
+	TerminateProcess( pty->child_proc , 0) ;
+	
 	free( pty->buf) ;
 	free( pty) ;
 

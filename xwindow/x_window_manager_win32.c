@@ -294,6 +294,32 @@ x_window_manager_remove_root(
 	return  0 ;
 }
 
+void
+x_window_manager_idling(
+	x_window_manager_t *  win_man
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < win_man->num_of_roots ; count ++)
+	{
+		x_window_idling( win_man->roots[count]) ;
+	}
+}
+
+int
+x_window_manager_receive_next_event(
+	x_window_manager_t *  win_man
+	)
+{
+	return  1 ;
+}
+
+
+/*
+ * Folloing functions called from x_window.c
+ */
+
 int
 x_window_manager_own_selection(
 	x_window_manager_t *  win_man ,
@@ -326,33 +352,12 @@ x_window_manager_clear_selection(
 
 	if( win_man->selection_owner->selection_cleared)
 	{
-		(*win_man->selection_owner->selection_cleared)( win_man->selection_owner , NULL) ;
+		(*win_man->selection_owner->selection_cleared)( win_man->selection_owner) ;
 	}
 
 	win_man->selection_owner = NULL ;
 #endif
 
-	return  1 ;
-}
-
-void
-x_window_manager_idling(
-	x_window_manager_t *  win_man
-	)
-{
-	int  count ;
-
-	for( count = 0 ; count < win_man->num_of_roots ; count ++)
-	{
-		x_window_idling( win_man->roots[count]) ;
-	}
-}
-
-int
-x_window_manager_receive_next_event(
-	x_window_manager_t *  win_man
-	)
-{
 	return  1 ;
 }
 

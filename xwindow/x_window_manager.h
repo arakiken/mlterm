@@ -21,8 +21,8 @@ typedef struct  x_modifier_mapping
 typedef struct  x_window_manager
 {
 	Display *  display ;
-	int  screen ;
-	Window  my_window ;
+	int  screen ;		/* DefaultScreen */
+	Window  my_window ;	/* DefaultRootWindow */
 
 	Window group_leader ;
 	char *icon_path;
@@ -48,13 +48,18 @@ int  x_window_manager_show_root( x_window_manager_t *  win_man , x_window_t *  r
 
 int  x_window_manager_remove_root( x_window_manager_t *  win_man , x_window_t *  root) ;
 
-int  x_window_manager_own_selection( x_window_manager_t *  win_man , x_window_t *  win) ;
-
-int  x_window_manager_clear_selection( x_window_manager_t *  win_man , x_window_t *  win) ;
-
 void  x_window_manager_idling( x_window_manager_t *  win_man) ;
 
 int  x_window_manager_receive_next_event( x_window_manager_t *  win_man) ;
+
+
+/*
+ * Folloing functions called from x_window.c
+ */
+
+int  x_window_manager_own_selection( x_window_manager_t *  win_man , x_window_t *  win) ;
+
+int  x_window_manager_clear_selection( x_window_manager_t *  win_man , x_window_t *  win) ;
 
 XID  x_window_manager_get_group( x_window_manager_t *  win_man) ;
 

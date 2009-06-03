@@ -1275,7 +1275,11 @@ receive_next_event(void)
 	while( 1)
 	{
 		/* on Linux tv_usec,tv_sec members are zero cleared after select() */
+	#if  0
 		tval.tv_usec = 50000 ;	/* 0.05 sec */
+	#else
+		tval.tv_usec = 100000 ;	/* 0.1 sec */
+	#endif
 		tval.tv_sec = 0 ;
 
 		maxfd = 0 ;

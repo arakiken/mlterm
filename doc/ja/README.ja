@@ -316,11 +316,11 @@ comment $Id$
         下 => 左
         に割当て直します。
 
-      o use_multi_column_char  (true/*false*)  (#)
+      o use_multi_column_char  (*true*/false)  (#)
         1 文字で複数コラムを占有する文字の処理を行なう
 
         いわゆる全角文字を処理するかどうかを指定します。 w3m-m17n を縦表示で使
-        用する場合には、このオプションを有効にしてください。
+        用する場合には、このオプションを無効にしてください。
 
       o receive_string_via_ucs  (true/*false*) (#)
         copy and paste で受け取った XCOMPOUND TEXT や、XIM から入力された文字列

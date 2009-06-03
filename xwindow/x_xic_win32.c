@@ -250,8 +250,9 @@ x_xic_activate(
 
 	win->xic->prev_keydown_wparam = 0 ;
 
-	/* XXX */
-	win->xic->encoding = ML_SJIS ;
+	kik_locale_init(NULL) ;
+	win->xic->encoding = ml_get_char_encoding( kik_get_codeset()) ;
+	kik_locale_final() ;
 	
 	if( ( win->xic->parser = ml_parser_new( win->xic->encoding)) == NULL)
 	{

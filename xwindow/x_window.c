@@ -1758,22 +1758,25 @@ x_window_receive_event(
 		{
 			if( win->win_man)
 			{
-#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-						 " MappingNotify serial #%d\n", event->xmapping.serial) ;
-#endif
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " MappingNotify serial #%d\n",
+					event->xmapping.serial) ;
+			#endif
 				XRefreshKeyboardMapping( &(event->xmapping));
-				x_window_manager_update_modifier_mapping( win->win_man, event->xmapping.serial) ;
-				/* have to  rocess only once */
+				x_window_manager_update_modifier_mapping( win->win_man,
+					event->xmapping.serial) ;
+				/* have to process only once */
 				return 1 ;
 			}
 
-			if( win->mapping_notify){
+			if( win->mapping_notify)
+			{
 				(*win->mapping_notify)( win);
 			}
 		}
 		return  0 ;
 	}
+	
 #ifndef  DISABLE_XDND
 	if( x_dnd_filter_event( event, win) != 0)
 	{
@@ -1781,6 +1784,7 @@ x_window_receive_event(
 		return 1 ;
 	}
 #endif
+
 	if( event->type == KeyPress)
 	{
 		if( win->key_pressed)
@@ -1824,7 +1828,8 @@ x_window_receive_event(
 		{
 			XPeekEvent( win->display , &ahead) ;
 
-			if( ahead.type != MotionNotify || ahead.xmotion.window != event->xmotion.window)
+			if( ahead.type != MotionNotify ||
+				ahead.xmotion.window != event->xmotion.window)
 			{
 				break ;
 			}
@@ -1832,11 +1837,11 @@ x_window_receive_event(
 			XNextEvent( win->display , event) ;
 		}
 
-		event->xmotion.x -= win->margin ;
-		event->xmotion.y -= win->margin ;
-
 		if( win->button_motion)
 		{
+			event->xmotion.x -= win->margin ;
+			event->xmotion.y -= win->margin ;
+
 			(*win->button_motion)( win , &event->xmotion) ;
 		}
 
@@ -1851,44 +1856,44 @@ x_window_receive_event(
 	}
 	else if( event->type == ButtonRelease)
 	{
-		event->xbutton.x -= win->margin ;
-		event->xbutton.y -= win->margin ;
-
 		if( win->button_released)
 		{
+			event->xbutton.x -= win->margin ;
+			event->xbutton.y -= win->margin ;
+
 			(*win->button_released)( win , &event->xbutton) ;
 		}
-
+		
 		win->button_is_pressing = 0 ;
 	}
 	else if( event->type == ButtonPress)
 	{
-		event->xbutton.x -= win->margin ;
-		event->xbutton.y -= win->margin ;
-
-		if( win->click_num == MAX_CLICK)
-		{
-			win->click_num = 0 ;
-		}
-
-		if( win->prev_clicked_time + click_interval >= event->xbutton.time &&
-			event->xbutton.button == win->prev_clicked_button)
-		{
-			win->click_num ++ ;
-			win->prev_clicked_time = event->xbutton.time ;
-		}
-		else
-		{
-			win->click_num = 1 ;
-			win->prev_clicked_time = event->xbutton.time ;
-			win->prev_clicked_button = event->xbutton.button ;
-		}
-
 		if( win->button_pressed)
 		{
+			event->xbutton.x -= win->margin ;
+			event->xbutton.y -= win->margin ;
+
+			if( win->click_num == MAX_CLICK)
+			{
+				win->click_num = 0 ;
+			}
+
+			if( win->prev_clicked_time + click_interval >= event->xbutton.time &&
+				event->xbutton.button == win->prev_clicked_button)
+			{
+				win->click_num ++ ;
+				win->prev_clicked_time = event->xbutton.time ;
+			}
+			else
+			{
+				win->click_num = 1 ;
+				win->prev_clicked_time = event->xbutton.time ;
+				win->prev_clicked_button = event->xbutton.button ;
+			}
+
 			(*win->button_pressed)( win , &event->xbutton , win->click_num) ;
 		}
-
+		
 		if( win->event_mask & ButtonReleaseMask)
 		{
 			/*
@@ -2073,11 +2078,6 @@ x_window_receive_event(
 	}
 	else if( event->type == SelectionClear)
 	{
-		if( win->selection_cleared)
-		{
-			(*win->selection_cleared)( win , &event->xselectionclear) ;
-		}
-
 		x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
 	}
 	else if( event->type == SelectionRequest)
@@ -2138,7 +2138,10 @@ x_window_receive_event(
 			targets[2] =xa_text ;
 			targets[3] =xa_compound_text ;
 			targets[4] =xa_utf8_string ;
-			x_window_send_selection( win , &event->xselectionrequest , (u_char *)(&targets) , sizeof(targets) / sizeof targets[0] , XA_ATOM , 32) ;
+			
+			x_window_send_selection( win , &event->xselectionrequest ,
+				(u_char *)(&targets) , sizeof(targets) / sizeof targets[0] ,
+				XA_ATOM , 32) ;
 		}
 #ifdef  DEBUG
 		else if( event->xselectionrequest.target == xa_multiple)
@@ -3185,7 +3188,157 @@ x_window_get_modifier_mapping(
 	x_window_t *  win
 	)
 {
-	return  x_window_manager_get_modifier_mapping( win->win_man) ;
+	return  x_window_manager_get_modifier_mapping( x_get_root_window( win)->win_man) ;
+}
+
+u_int
+x_window_get_mod_ignore_mask(
+	x_window_t *  win ,
+	KeySym *  keysyms
+	)
+{
+	XModifierKeymap *  mod_map ;
+	int  count ;
+	u_int  ignore ;
+	u_int  masks[] = { Mod1Mask , Mod2Mask , Mod3Mask , Mod4Mask , Mod5Mask } ;
+	KeySym default_keysyms[] = { XK_Num_Lock, XK_Scroll_Lock, XK_ISO_Level3_Lock,
+				     NoSymbol} ;
+
+	if( !keysyms)
+	{
+		keysyms = default_keysyms ;
+	}
+	
+	if( ( mod_map = x_window_get_modifier_mapping( win)) == NULL)
+	{
+		return  ~0 ;
+	}
+	
+	ignore = 0 ;
+
+	count = 0 ;
+	while( keysyms[count] != NoSymbol)
+	{
+		int  ks_count ;
+		KeyCode  kc ;
+
+		kc = XKeysymToKeycode( win->display, keysyms[count]);
+		for( ks_count = 0; ks_count < sizeof(masks)/sizeof(masks[0]); ks_count++)
+		{
+			int  kc_count ;
+			KeyCode *  key_codes ;
+
+			key_codes = &(mod_map->modifiermap[(ks_count+3)*mod_map->max_keypermod]) ;
+			for( kc_count = 0; kc_count < mod_map->max_keypermod; kc_count++)
+			{
+				if( key_codes[kc_count] == 0)
+				{
+					break ;
+				}
+				if( key_codes[kc_count] == kc)
+				{
+				#ifdef  DEBUG
+					kik_debug_printf("keycode = %d, mod%d  idx %d  (by %s)\n",
+						kc,  ks_count+1, kc_count+1,
+						XKeysymToString(keysyms[count]));
+				#endif
+					ignore |= masks[ks_count] ;
+					break ;
+				}
+			}
+		}
+		count++ ;
+	}
+
+	return  ~ignore ;
+}
+
+u_int
+x_window_get_mod_meta_mask(
+	x_window_t *  win ,
+	char *  mod_key
+	)
+{
+	int  mask_count ;
+	int  kc_count ;
+	XModifierKeymap *  mod_map ;
+	KeyCode *  key_codes ;
+	KeySym  sym ;
+	char *  mod_keys[] = { "mod1" , "mod2" , "mod3" , "mod4" , "mod5" } ;
+	u_int  mod_masks[] = { Mod1Mask , Mod2Mask , Mod3Mask , Mod4Mask , Mod5Mask } ;
+	if( mod_key)
+	{
+		int  count ;
+
+		for( count = 0 ; count < sizeof( mod_keys) / sizeof( mod_keys[0]) ; count ++)
+		{
+			if( strcmp( mod_key , mod_keys[count]) == 0)
+			{
+				return  mod_masks[count] ;
+			}
+		}
+	}
+
+	if( ( mod_map = x_window_get_modifier_mapping( win)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " x_window_get_modifier_mapping failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+	
+	key_codes = mod_map->modifiermap ;
+
+	for( mask_count = 0 ; mask_count < sizeof(mod_masks)/sizeof(mod_masks[0]) ; mask_count++)
+	{
+		int  count ;
+
+		/*
+		 * KeyCodes order is like this.
+		 * Shift[max_keypermod] Lock[max_keypermod] Control[max_keypermod]
+		 * Mod1[max_keypermod] Mod2[max_keypermod] Mod3[max_keypermod]
+		 * Mod4[max_keypermod] Mod5[max_keypermod]
+		 */
+
+		/*
+		 * this modmap handling is tested with Xsun and XFree86-4.x
+		 * it works fine on both X servers. (2004-10-19 seiichi)
+		 */
+
+		/* skip shift/lock/control */
+		kc_count = (mask_count + 3) * mod_map->max_keypermod ;
+
+		for( count = 0 ; count < mod_map->max_keypermod ; count++)
+		{
+			if( key_codes[kc_count] == 0)
+			{
+				break ;
+			}
+
+			sym = XKeycodeToKeysym( win->display , key_codes[kc_count] , 0) ;
+
+			if( ( ( mod_key == NULL || strcmp( mod_key , "meta") == 0) &&
+					( sym == XK_Meta_L || sym == XK_Meta_R)) ||
+				( ( mod_key == NULL || strcmp( mod_key , "alt") == 0) &&
+					( sym == XK_Alt_L || sym == XK_Alt_R)) ||
+				( ( mod_key == NULL || strcmp( mod_key , "super") == 0) &&
+					( sym == XK_Super_L || sym == XK_Super_R)) ||
+				( ( mod_key == NULL || strcmp( mod_key , "hyper") == 0) &&
+					( sym == XK_Hyper_L || sym == XK_Hyper_R)) )
+			{
+				return  mod_masks[mask_count] ;
+			}
+
+			kc_count ++ ;
+		}
+	}
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " No meta key was found.\n") ;
+#endif
+
+	return  0 ;
 }
 
 int

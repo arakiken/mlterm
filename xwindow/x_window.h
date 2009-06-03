@@ -81,8 +81,8 @@ typedef struct  x_window
 
 	GC  ch_gc ;	/* for drawing string(used on X Window System alone) */
 
+	/* Either win_man or parent memmber must be NULL */
 	x_window_manager_ptr_t  win_man ;
-
 	struct x_window *  parent ;
 	struct x_window **  children ;
 	u_int  num_of_children ;
@@ -172,7 +172,7 @@ typedef struct  x_window
 	void (*button_press_continued)( struct x_window * , XButtonEvent *) ;
 	void (*window_resized)( struct x_window *) ;
 	void (*child_window_resized)( struct x_window * , struct x_window *) ;
-	void (*selection_cleared)( struct x_window * , XSelectionClearEvent *) ;
+	void (*selection_cleared)( struct x_window *) ;
 	void (*xct_selection_requested)( struct x_window * , XSelectionRequestEvent * , Atom) ;
 	void (*utf8_selection_requested)( struct x_window * , XSelectionRequestEvent * , Atom) ;
 	void (*xct_selection_notified)( struct x_window * , u_char * , size_t) ;
@@ -354,6 +354,10 @@ int  x_window_get_visible_geometry( x_window_t *  win ,
 int  x_set_click_interval( int  interval) ;
 
 XModifierKeymap *  x_window_get_modifier_mapping( x_window_t *  win) ;
+
+u_int  x_window_get_mod_ignore_mask( x_window_t *  win , KeySym *  keysyms) ;
+
+u_int  x_window_get_mod_meta_mask( x_window_t *  win , char *  mod_key) ;
 
 int  x_window_bell( x_window_t *  win) ;
 

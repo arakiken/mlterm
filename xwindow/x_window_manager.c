@@ -154,7 +154,8 @@ x_window_manager_show_root(
 {
 	void *  p ;
 
-	if( ( p = realloc( win_man->roots , sizeof( x_window_t*) * (win_man->num_of_roots + 1))) == NULL)
+	if( ( p = realloc( win_man->roots ,
+			sizeof( x_window_t*) * (win_man->num_of_roots + 1))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
@@ -220,43 +221,6 @@ x_window_manager_remove_root(
 	return  0 ;
 }
 
-int
-x_window_manager_own_selection(
-	x_window_manager_t *  win_man ,
-	x_window_t *  win
-	)
-{
-	if( win_man->selection_owner)
-	{
-		x_window_manager_clear_selection( win_man , win_man->selection_owner) ;
-	}
-
-	win_man->selection_owner = win ;
-
-	return  1 ;
-}
-
-int
-x_window_manager_clear_selection(
-	x_window_manager_t *  win_man ,
-	x_window_t *  win
-	)
-{
-	if( win_man->selection_owner == NULL || win_man->selection_owner != win)
-	{
-		return  0 ;
-	}
-
-	if( win_man->selection_owner->selection_cleared)
-	{
-		(*win_man->selection_owner->selection_cleared)( win_man->selection_owner , NULL) ;
-	}
-
-	win_man->selection_owner = NULL ;
-
-	return  1 ;
-}
-
 void
 x_window_manager_idling(
 	x_window_manager_t *  win_man
@@ -305,6 +269,48 @@ x_window_manager_receive_next_event(
 
 		return  0 ;
 	}
+}
+
+
+/*
+ * Folloing functions called from x_window.c
+ */
+ 
+int
+x_window_manager_own_selection(
+	x_window_manager_t *  win_man ,
+	x_window_t *  win
+	)
+{
+	if( win_man->selection_owner)
+	{
+		x_window_manager_clear_selection( win_man , win_man->selection_owner) ;
+	}
+
+	win_man->selection_owner = win ;
+
+	return  1 ;
+}
+
+int
+x_window_manager_clear_selection(
+	x_window_manager_t *  win_man ,
+	x_window_t *  win
+	)
+{
+	if( win_man->selection_owner == NULL || win_man->selection_owner != win)
+	{
+		return  0 ;
+	}
+
+	if( win_man->selection_owner->selection_cleared)
+	{
+		(*win_man->selection_owner->selection_cleared)( win_man->selection_owner) ;
+	}
+
+	win_man->selection_owner = NULL ;
+
+	return  1 ;
 }
 
 XID

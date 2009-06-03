@@ -1,3 +1,12 @@
+2009-06-04  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: mlterm-menu is not compiled without gtk2.
+
+	* win32: Supported mouse and clipboard.
+	
+	* README.ja: Fixed explanation of default value of
+	  use_multi_column_char option.
+
 2009-05-31  Araki Ken  <arakiken@users.sf.net>
 
 	* Fixed many bugs.
@@ -16,7 +25,7 @@
 
 2009-03-24  Araki Ken  <arakiken@users.sf.net>
 
-	* Incompleted win32 support added.
+	* Incomplete win32 support added.
 
 	* win32/: added.
 

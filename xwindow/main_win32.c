@@ -6,6 +6,7 @@
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_sig_child.h>
 #include <kiklib/kik_util.h>
+#include <kiklib/kik_conf_io.h>
 #include <ml_term.h>
 #include <ml_str_parser.h>
 #include <ml_char_encoding.h>
@@ -16,6 +17,8 @@ ml_term_t *  term ;
 x_color_config_t  color_config ;
 x_shortcut_t  shortcut ;
 x_termcap_t  termcap ;
+x_window_manager_t  win_man ;
+
 
 #if  0
 #define  __DEBUG
@@ -57,6 +60,16 @@ close_screen(
         PostQuitMessage(0) ;
 }
 
+VOID CALLBACK timer_proc(
+	HWND  hwnd,
+	UINT  msg,
+	UINT  timerid,
+	DWORD  time
+	)
+{
+	x_window_manager_idling( &win_man) ;
+}
+
 int PASCAL WinMain(
   	HINSTANCE hinst,
   	HINSTANCE hprev,
@@ -71,7 +84,6 @@ int PASCAL WinMain(
 	x_screen_t *  screen ;
 	x_font_manager_t *  font_man ;
 	x_color_manager_t *  color_man ;
-	x_window_manager_t  win_man ;
 	x_system_event_listener_t  sys_listener ;
   	char  wid[50] ;
         char  lines[12] ;
@@ -135,7 +147,7 @@ int PASCAL WinMain(
 	disp.hinst = hinst ;
 
   	term = ml_term_new( COLUMNS, LINES, 8, 50, ML_EUCJP, 1, NO_UNICODE_FONT_POLICY,
-			1, 0, 0, 0, 1, 0, BSM_VOLATILE, 0, ISCIILANG_UNKNOWN) ;
+			1, 0, 1, 0, 1, 0, BSM_VOLATILE, 0, ISCIILANG_UNKNOWN) ;
 
 	if( ! x_window_manager_init( &win_man, &disp))
 	{
@@ -249,6 +261,9 @@ int PASCAL WinMain(
   	kik_sig_child_init() ;
   	kik_add_sig_child_listener( &screen->window, sig_child) ;
 
+	/* x_window_manager_idling() called in 0.1sec. */
+	SetTimer( NULL, 0, 100, timer_proc) ;
+
   	while( GetMessage( &msg,NULL,0,0))
         {
 		if( ml_term_parse_vt100_sequence( term))
@@ -265,7 +280,7 @@ int PASCAL WinMain(
 	x_color_manager_delete( color_man) ;
 	x_color_config_final( &color_config) ;
 	x_termcap_final( &termcap) ;
-	x_shortcut_final( &termcap) ;
+	x_shortcut_final( &shortcut) ;
 	ml_term_delete(term) ;
 		
   	kik_sig_child_final() ;

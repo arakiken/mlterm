@@ -25,7 +25,8 @@
 
 
 #define  MAX_CLICK  3			/* max is triple click */
-#define  WM_USER_PAINT  WM_USER
+
+#define  WM_APP_PAINT  (WM_APP + 0x0)
 
 
 #if  0
@@ -1267,15 +1268,17 @@ x_window_show(
 	}
 #endif
 
-	width = ACTUAL_WIDTH(win) + GetSystemMetrics(SM_CXEDGE) + GetSystemMetrics(SM_CXFRAME) ;
-	height = ACTUAL_HEIGHT(win) + GetSystemMetrics(SM_CYEDGE) + GetSystemMetrics(SM_CYFRAME)
-			+ GetSystemMetrics(SM_CYCAPTION) ;
+	/* XXX */
+	width = ACTUAL_WIDTH(win) + GetSystemMetrics(SM_CXEDGE) * 2 +
+			/* GetSystemMetrics(SM_CXBORDER) * 2 + */ GetSystemMetrics(SM_CXFRAME) ;
+	height = ACTUAL_HEIGHT(win) + GetSystemMetrics(SM_CYEDGE) * 2 +
+			/* GetSystemMetrics(SM_CXBORDER) * 2 + */
+			GetSystemMetrics(SM_CYFRAME) + GetSystemMetrics(SM_CYCAPTION) ;
 #if  1
 	kik_debug_printf( "%d %d %d %d %d %d %d\n", GetSystemMetrics(SM_CXEDGE),
-		GetSystemMetrics(SM_CXBORDER), GetSystemMetrics(SM_CYEDGE),
-		GetSystemMetrics(SM_CXFRAME),
-		GetSystemMetrics(SM_CYBORDER), GetSystemMetrics(SM_CYCAPTION),
-		GetSystemMetrics(SM_CYFRAME)) ;
+		GetSystemMetrics(SM_CXBORDER), GetSystemMetrics(SM_CXFRAME),
+		GetSystemMetrics(SM_CYEDGE), GetSystemMetrics(SM_CYBORDER),
+		GetSystemMetrics(SM_CYFRAME), GetSystemMetrics(SM_CYCAPTION)) ;
 #endif
 
         win->my_window = CreateWindow("MLTERM", "mlterm", WS_OVERLAPPEDWINDOW,
@@ -1786,7 +1789,7 @@ x_window_update(
 		win->update_window_flag = flag ;
 	}
 	
-	PostMessage( win->my_window, WM_USER_PAINT, 0, 0) ;
+	PostMessage( win->my_window, WM_APP_PAINT, 0, 0) ;
 
 	return  1 ;
 }
@@ -1849,7 +1852,7 @@ x_window_receive_event(
 
           	return  1 ;
 
-	case WM_USER_PAINT:
+	case WM_APP_PAINT:
 		if( win->update_window)
 		{
 			win->gc = GetDC( win->my_window) ;
@@ -1862,7 +1865,7 @@ x_window_receive_event(
 			win->update_window_flag = 0 ;
 			
 		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG "WM_USER_PAINT_END\n") ;
+			kik_debug_printf( KIK_DEBUG_TAG "WM_APP_PAINT_END\n") ;
 		#endif
 		}
 
@@ -1943,7 +1946,6 @@ x_window_receive_event(
 				event->wparam == VK_SPACE)
 			{
 				/* wait for WM_**_CHAR message. */
-				break ;
 			}
 			else
 			{
@@ -2001,7 +2003,249 @@ x_window_receive_event(
 		}
 
 		break ;
-        }
+
+	case WM_LBUTTONDOWN:
+	case WM_MBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+		if( ! win->button_pressed)
+		{
+			return  1 ;
+		}
+		
+		goto  BUTTON_MSG ;
+		
+	case WM_LBUTTONUP:
+	case WM_MBUTTONUP:
+	case WM_RBUTTONUP:
+		if( ! win->button_released)
+		{
+			return  1 ;
+		}
+
+		BUTTON_MSG:
+		{
+			XButtonEvent  bev ;
+
+			bev.time = GetMessageTime() ;
+
+			bev.x = LOWORD(event->lparam) - win->margin ;
+			bev.y = HIWORD(event->lparam) - win->margin ;
+
+			bev.state = 0 ;
+			if( event->wparam & MK_LBUTTON)
+			{
+				bev.state |= Button1Mask ;
+			}
+			if( event->wparam & MK_RBUTTON)
+			{
+				bev.state |= Button2Mask ;
+			}
+			if( event->wparam & MK_MBUTTON)
+			{
+				bev.state |= Button3Mask ;
+			}
+			if( event->wparam & MK_SHIFT)
+			{
+				bev.state |= ShiftMask ;
+			}
+			if( event->wparam & MK_CONTROL)
+			{
+				bev.state |= ControlMask ;
+			}
+			
+			if( event->msg == WM_LBUTTONDOWN || event->msg == WM_LBUTTONUP)
+			{
+				bev.button = 1 ;
+			}
+			else if( event->msg == WM_RBUTTONDOWN || event->msg == WM_RBUTTONUP)
+			{
+				bev.button = 2 ;
+			}
+			else /* if( event->msg == WM_MBUTTONDOWN) || event->msg == WM_MBUTTONUP) */
+			{
+				bev.button = 3 ;
+			}
+
+			if( event->msg == WM_LBUTTONDOWN || event->msg == WM_RBUTTONDOWN ||
+				event->msg == WM_MBUTTONDOWN)
+			{
+				if( win->click_num == MAX_CLICK)
+				{
+					win->click_num = 0 ;
+				}
+
+				if( win->prev_clicked_time + click_interval >= bev.time &&
+					bev.button == win->prev_clicked_button)
+				{
+					win->click_num ++ ;
+					win->prev_clicked_time = bev.time ;
+				}
+				else
+				{
+					win->click_num = 1 ;
+					win->prev_clicked_time = bev.time ;
+					win->prev_clicked_button = bev.button ;
+				}
+
+				(*win->button_pressed)( win , &bev , win->click_num) ;
+				
+				win->button_is_pressing = 1 ;
+				win->prev_button_press_event = bev ;
+				
+			#if  1
+				kik_debug_printf( KIK_DEBUG_TAG
+					" mouse pressed btn %d stat %d x %d y %d click_num %d\n",
+					bev.button, bev.state, bev.x, bev.y, win->click_num) ;
+			#endif
+			}
+			else /* if( event->msg == WM_LBUTTONUP || event->msg == WM_RBUTTONUP ||
+				event->msg == WM_MBUTTONUP) */
+			{
+				(*win->button_released)( win , &bev) ;
+				
+				win->button_is_pressing = 0 ;
+				
+			#if  1
+				kik_debug_printf( KIK_DEBUG_TAG
+					" mouse released... state %d x %d y %d\n",
+					bev.state, bev.x, bev.y) ;
+			#endif
+			}
+		}
+
+		return  1 ;
+
+	case  WM_MOUSEMOVE:
+		if( win->button_is_pressing)
+		{
+			XMotionEvent  mev ;
+
+			mev.time = GetMessageTime() ;
+
+			mev.x = LOWORD(event->lparam) - win->margin ;
+			mev.y = HIWORD(event->lparam) - win->margin ;
+
+			mev.state = 0 ;
+			if( event->wparam & MK_LBUTTON)
+			{
+				mev.state |= Button1Mask ;
+			}
+			if( event->wparam & MK_RBUTTON)
+			{
+				mev.state |= Button2Mask ;
+			}
+			if( event->wparam & MK_MBUTTON)
+			{
+				mev.state |= Button3Mask ;
+			}
+			if( event->wparam & MK_SHIFT)
+			{
+				mev.state |= ShiftMask ;
+			}
+			if( event->wparam & MK_CONTROL)
+			{
+				mev.state |= ControlMask ;
+			}
+
+			if( win->button_motion)
+			{
+				(*win->button_motion)( win , &mev) ;
+			}
+		
+			/* following button motion ... */
+			win->prev_button_press_event.x = mev.x ;
+			win->prev_button_press_event.y = mev.y ;
+			win->prev_button_press_event.time = mev.time ;
+
+		#if  1
+			kik_debug_printf( KIK_DEBUG_TAG " mouse motion... state %d x %d y %d\n",
+				mev.state, mev.x, mev.y) ;
+		#endif
+		}
+		
+		return  1 ;
+		
+	case  WM_RENDERALLFORMATS:
+		OpenClipboard( win->my_window) ;
+		EmptyClipboard() ;
+
+	case  WM_RENDERFORMAT:
+		if( event->wparam == CF_UNICODETEXT)
+		{
+			if( win->utf8_selection_requested)
+			{
+				(*win->utf8_selection_requested)( win, NULL, CF_UNICODETEXT) ;
+
+			#if  1
+				kik_debug_printf( KIK_DEBUG_TAG "utf8_selection_requested\n") ;
+			#endif
+			}
+		}
+		else if( event->wparam == CF_TEXT)
+		{
+			if( win->xct_selection_requested)
+			{
+				(*win->xct_selection_requested)( win, NULL, CF_TEXT) ;
+			}
+		}
+
+		if( event->msg == WM_RENDERALLFORMATS)
+		{
+			CloseClipboard() ;
+		}
+
+		return  1 ;
+
+	case  WM_DESTROYCLIPBOARD:
+		if( win->selection_cleared)
+		{
+			(*win->selection_cleared)( win) ;
+		}
+
+		return  1 ;
+		
+	case  WM_SIZE:
+		if( win->window_resized)
+		{
+			u_int  width ;
+			u_int  height ;
+
+			width = LOWORD(event->lparam) ;
+			height = HIWORD(event->lparam) ;
+
+		#if  0
+			kik_debug_printf( "resized from %d %d to %d %d\n" ,
+				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), width, height) ;
+		#endif
+			if( width != ACTUAL_WIDTH(win) || height != ACTUAL_HEIGHT(win))
+			{
+				win->width = width - win->margin * 2 ;
+				win->height = height - win->margin * 2 ;
+
+			#ifndef  USE_WIN32API
+				if( win->buffer)
+				{
+					XFreePixmap( win->display , win->buffer) ;
+					win->buffer = XCreatePixmap( win->display ,
+						win->parent_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+						DefaultDepth( win->display , win->screen)) ;
+					win->drawable = win->buffer ;
+
+				#ifdef  USE_TYPE_XFT
+					XftDrawChange( win->xft_draw , win->drawable) ;
+				#endif
+				}
+			#endif
+
+				x_window_clear_all( win) ;
+
+				(*win->window_resized)( win) ;
+				
+			}
+		}
+		
+		return  1 ;
+	}
 
 	return  0 ;
 
@@ -2057,6 +2301,7 @@ x_window_receive_event(
 		}
 		return  0 ;
 	}
+
 #ifndef  DISABLE_XDND
 	if( x_dnd_filter_event( event, win) != 0)
 	{
@@ -2064,125 +2309,7 @@ x_window_receive_event(
 		return 1 ;
 	}
 #endif
-	if( event->type == KeyPress)
-	{
-		if( win->key_pressed)
-		{
-			(*win->key_pressed)( win , &event->xkey) ;
-		}
-	}
-	else if( event->type == FocusIn)
-	{
-	#ifdef  __DEBUG
-		kik_debug_printf( "FOCUS IN %p\n" , event->xany.window) ;
-	#endif
 
-	#if  1
-		/* root window event only */
-		if( win->parent == NULL)
-	#endif
-		{
-			notify_focus_in_to_children( win) ;
-		}
-	}
-	else if( event->type == FocusOut)
-	{
-	#ifdef  __DEBUG
-		kik_debug_printf( "FOCUS OUT %p\n" , event->xany.window) ;
-	#endif
-
-	#if  1
-		/* root window event only */
-		if( win->parent == NULL)
-	#endif
-		{
-			notify_focus_out_to_children( win) ;
-		}
-	}
-	else if( event->type == MotionNotify)
-	{
-		XEvent  ahead ;
-
-		while( XEventsQueued(win->display , QueuedAfterReading))
-		{
-			XPeekEvent( win->display , &ahead) ;
-
-			if( ahead.type != MotionNotify || ahead.xmotion.window != event->xmotion.window)
-			{
-				break ;
-			}
-
-			XNextEvent( win->display , event) ;
-		}
-
-		event->xmotion.x -= win->margin ;
-		event->xmotion.y -= win->margin ;
-
-		if( win->button_motion)
-		{
-			(*win->button_motion)( win , &event->xmotion) ;
-		}
-
-		if( win->button_is_pressing)
-		{
-			/* following button motion ... */
-
-			win->prev_button_press_event.x = event->xmotion.x ;
-			win->prev_button_press_event.y = event->xmotion.y ;
-			win->prev_button_press_event.time = event->xmotion.time ;
-		}
-	}
-	else if( event->type == ButtonRelease)
-	{
-		event->xbutton.x -= win->margin ;
-		event->xbutton.y -= win->margin ;
-
-		if( win->button_released)
-		{
-			(*win->button_released)( win , &event->xbutton) ;
-		}
-
-		win->button_is_pressing = 0 ;
-	}
-	else if( event->type == ButtonPress)
-	{
-		event->xbutton.x -= win->margin ;
-		event->xbutton.y -= win->margin ;
-
-		if( win->click_num == MAX_CLICK)
-		{
-			win->click_num = 0 ;
-		}
-
-		if( win->prev_clicked_time + click_interval >= event->xbutton.time &&
-			event->xbutton.button == win->prev_clicked_button)
-		{
-			win->click_num ++ ;
-			win->prev_clicked_time = event->xbutton.time ;
-		}
-		else
-		{
-			win->click_num = 1 ;
-			win->prev_clicked_time = event->xbutton.time ;
-			win->prev_clicked_button = event->xbutton.button ;
-		}
-
-		if( win->button_pressed)
-		{
-			(*win->button_pressed)( win , &event->xbutton , win->click_num) ;
-		}
-
-		if( win->event_mask & ButtonReleaseMask)
-		{
-			/*
-			 * if ButtonReleaseMask is not set and x_window_t doesn't receive
-			 * ButtonRelease event , button_is_pressing flag must never be set ,
-			 * since once it is set , it will never unset.
-			 */
-			win->button_is_pressing = 1 ;
-			win->prev_button_press_event = event->xbutton ;
-		}
-	}
 	else if( event->type == Expose /* && event->xexpose.count == 0 */)
 	{
 		int  x ;
@@ -2353,86 +2480,6 @@ x_window_receive_event(
 	else if( event->type == MapNotify)
 	{
 		notify_reparent_to_children( win) ;
-	}
-	else if( event->type == SelectionClear)
-	{
-		if( win->selection_cleared)
-		{
-			(*win->selection_cleared)( win , &event->xselectionclear) ;
-		}
-
-		x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
-	}
-	else if( event->type == SelectionRequest)
-	{
-		Atom  xa_utf8_string ;
-		Atom  xa_compound_text ;
-	#ifdef  DEBUG
-		Atom  xa_multiple ;
-	#endif
-		Atom  xa_targets ;
-		Atom  xa_text ;
-
-		xa_compound_text = XA_COMPOUND_TEXT(win->display) ;
-		xa_targets = XA_TARGETS(win->display) ;
-#ifdef  DEBUG
-		xa_multiple = XA_MULTIPLE(win->display) ;
-#endif
-		xa_text = XA_TEXT(win->display) ;
-		xa_utf8_string = XA_UTF8_STRING(win->display) ;
-
-		if( event->xselectionrequest.target == XA_STRING)
-		{
-			if( win->xct_selection_requested)
-			{
-				(*win->xct_selection_requested)( win , &event->xselectionrequest ,
-					event->xselectionrequest.target) ;
-			}
-		}
-		else if( event->xselectionrequest.target == xa_text ||
-			event->xselectionrequest.target == xa_compound_text)
-		{
-			if( win->xct_selection_requested)
-			{
-				/*
-				 * kterm requests selection with "TEXT" atom , but
-				 * wants it to be sent back with "COMPOUND_TEXT" atom.
-				 * why ?
-				 */
-
-				(*win->xct_selection_requested)( win , &event->xselectionrequest ,
-					xa_compound_text) ;
-			}
-		}
-		else if( event->xselectionrequest.target == xa_utf8_string)
-		{
-			if( win->utf8_selection_requested)
-			{
-				(*win->utf8_selection_requested)( win , &event->xselectionrequest ,
-					xa_utf8_string) ;
-			}
-		}
-		else if( event->xselectionrequest.target == xa_targets)
-		{
-			Atom  targets[5] ;
-
-			targets[0] =xa_targets ;
-			targets[1] =XA_STRING ;
-			targets[2] =xa_text ;
-			targets[3] =xa_compound_text ;
-			targets[4] =xa_utf8_string ;
-			x_window_send_selection( win , &event->xselectionrequest , (u_char *)(&targets) , sizeof(targets) / sizeof targets[0] , XA_ATOM , 32) ;
-		}
-#ifdef  DEBUG
-		else if( event->xselectionrequest.target == xa_multiple)
-		{
-			kik_debug_printf("MULTIPLE requested(not yet implemented)\n") ;
-		}
-#endif
-		else
-		{
-			x_window_send_selection( win , &event->xselectionrequest , NULL , 0 , 0 , 0) ;
-		}
 	}
 	else if( event->type == SelectionNotify)
 	{
@@ -3031,20 +3078,21 @@ x_window_set_selection_owner(
 	Time  time
 	)
 {
-#ifndef  USE_WIN32API
-	XSetSelectionOwner( win->display , XA_PRIMARY , win->my_window , time) ;
-
-	if( win->my_window != XGetSelectionOwner( win->display , XA_PRIMARY))
+	if( OpenClipboard( win->my_window) == FALSE)
 	{
 		return  0 ;
 	}
-	else
-	{
-		return  x_window_manager_own_selection( x_get_root_window( win)->win_man , win) ;
-	}
+	
+	EmptyClipboard() ;
+	SetClipboardData( CF_TEXT, NULL) ;
+	SetClipboardData( CF_UNICODETEXT, NULL) ;
+	CloseClipboard() ;
+
+#if  1
+	kik_debug_printf( KIK_DEBUG_TAG " x_window_set_selection_owner.\n") ;
 #endif
 
-	return  0 ;
+	return  1 ;
 }
 
 int
@@ -3053,11 +3101,41 @@ x_window_xct_selection_request(
 	Time  time
 	)
 {
-#ifndef  USE_WIN32API
-	XConvertSelection( win->display , XA_PRIMARY , XA_COMPOUND_TEXT(win->display) ,
-		XA_SELECTION(win->display) , win->my_window , time) ;
+	HGLOBAL  hmem ;
+	u_char *  l_data ;
+	u_char *  g_data ;
+	size_t  len ;
+	
+	if( IsClipboardFormatAvailable( CF_TEXT) == FALSE)
+	{
+		return  0 ;
+	}
+
+	OpenClipboard( win->my_window) ;
+	hmem = GetClipboardData( CF_TEXT) ;
+
+	len = GlobalSize(hmem) ;
+	if( ( l_data = malloc( len)) == NULL)
+	{
+		CloseClipboard() ;
+		
+		return  0 ;
+	}
+
+	g_data = GlobalLock( hmem) ;
+	strcpy( l_data, g_data) ;
+	GlobalUnlock( hmem) ;
+
+	CloseClipboard() ;
+
+#if  0
+	kik_debug_printf( "XCT SELECTION: %s %d\n", l_data, len) ;
 #endif
 
+	(*win->xct_selection_notified)( win, l_data, len) ;
+
+	free( l_data) ;
+	
 	return  1 ;
 }
 
@@ -3067,11 +3145,37 @@ x_window_utf8_selection_request(
 	Time  time
 	)
 {
-#ifndef  USE_WIN32API
-	XConvertSelection( win->display , XA_PRIMARY , XA_UTF8_STRING(win->display) ,
-		XA_SELECTION(win->display) , win->my_window , time) ;
-#endif
+	HGLOBAL  hmem ;
+	u_char *  l_data ;
+	u_char *  g_data ;
+	size_t  len ;
+	
+	if( IsClipboardFormatAvailable( CF_UNICODETEXT) == FALSE)
+	{
+		return  0 ;
+	}
 
+	OpenClipboard( win->my_window) ;
+	hmem = GetClipboardData( CF_UNICODETEXT) ;
+
+	len = GlobalSize(hmem) ;
+	if( ( l_data = malloc( len)) == NULL)
+	{
+		CloseClipboard() ;
+		
+		return  0 ;
+	}
+
+	g_data = GlobalLock( hmem) ;
+	strcpy( l_data, g_data) ;
+	GlobalUnlock( hmem) ;
+
+	CloseClipboard() ;
+
+	(*win->utf8_selection_notified)( win, l_data, len) ;
+
+	free( l_data) ;
+	
 	return  1 ;
 }
 
@@ -3085,38 +3189,33 @@ x_window_send_selection(
 	int sel_format
 	)
 {
-#ifndef  USE_WIN32API
-	XEvent  res_ev ;
+	HGLOBAL  hmem ;
+	u_char *  g_data ;
+	int  count ;
 
-	res_ev.xselection.type = SelectionNotify ;
-	res_ev.xselection.display = req_ev->display ;
-	res_ev.xselection.requestor = req_ev->requestor ;
-	res_ev.xselection.selection = req_ev->selection ;
-	res_ev.xselection.target = req_ev->target ;
-	res_ev.xselection.time = req_ev->time ;
-
-	if( sel_data == NULL)
+	if( sel_data == NULL || sel_len == 0)
 	{
-		res_ev.xselection.property = None ;
-	}
-	else
-	{
-		if( req_ev->property == None)
-		{
-			/* An obsolete client may fill None as a property.
-			 * Try to deal with them by using 'target' instead.
-			 */
-			req_ev->property = req_ev->target;
-		}
-		if( req_ev->property != None){
-			XChangeProperty( win->display , req_ev->requestor ,
-				req_ev->property , sel_type ,
-				sel_format , PropModeReplace , sel_data , sel_len) ;
-		}
-		res_ev.xselection.property = req_ev->property ;
+		return  0 ;
 	}
 
-	XSendEvent( win->display , res_ev.xselection.requestor , False , 0 , &res_ev) ;
+	if( ( hmem = GlobalAlloc( GHND, sel_len + 1)) == NULL)
+	{
+		return  0 ;
+	}
+
+	g_data = GlobalLock( hmem) ;
+
+	for( count = 0 ; count < sel_len ; count ++)
+	{
+		*(g_data++) = *(sel_data++) ;
+	}
+
+	GlobalUnlock( hmem) ;
+
+	SetClipboardData( sel_type, hmem) ;
+
+#if  1
+	kik_debug_printf( KIK_DEBUG_TAG " x_window_send_selection.\n") ;
 #endif
 
 	return  1 ;
@@ -3410,6 +3509,24 @@ x_window_get_modifier_mapping(
 	)
 {
 	return  x_window_manager_get_modifier_mapping( win->win_man) ;
+}
+
+u_int
+x_window_get_mod_ignore_mask(
+	x_window_t *  win ,
+	KeySym *  keysyms
+	)
+{
+	return  ~0 ;
+}
+
+u_int
+x_window_get_mod_meta_mask(
+	x_window_t *  win ,
+	char *  mod_key
+	)
+{
+	return  0 ;
 }
 
 int

@@ -60,7 +60,6 @@ typedef struct
 typedef u_long Time ;	/* Same as definition in X11/X.h */
 typedef u_long Atom ;	/* Same as definition in X11/X.h */
 
-/* dummy */
 typedef struct
 {
 	Time  time ;
@@ -71,7 +70,6 @@ typedef struct
 
 } XButtonEvent ;
 
-/* dummy */
 typedef struct
 {
 	Time  time ;
@@ -81,7 +79,6 @@ typedef struct
 
 } XMotionEvent ;
 
-typedef int XSelectionClearEvent ;	/* dummy */
 typedef int XSelectionRequestEvent ;	/* dummy */
 
 typedef struct

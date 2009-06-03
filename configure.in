@@ -274,7 +274,10 @@ else
 fi
 AC_SUBST(GTK_CONFIG)
 
-tools="mlclient,mlconfig,mlterm-menu,mlcc"
+tools="mlclient,mlconfig,mlcc"
+if test "$have_gtk2" = "yes" ; then
+	tools="$tools,mlterm-menu"
+fi
 AC_ARG_WITH(tools,
 	[  --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlterm-menu,mlcc]],
 	[
@@ -622,7 +625,7 @@ fi
 
 case "${host_os}" in
 mingw32*)
-	MAKE_DIRS="mlterm xwindow ${MAKE_DIRS}"
+	MAKE_DIRS="mlterm xwindow etc"
 	OUTPUT_FILES="Makefile mlterm/Makefile etc/Makefile xwindow/Makefile"
 	WIN32TAG="_win32"
 	PLATFORM_LIB_LDFLAGS="-no-undefined"
