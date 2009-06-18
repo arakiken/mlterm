@@ -16,7 +16,7 @@
 
 
 #define  MAX_CHAR_SIZE  4
-#define  MAX_COMB_SIZE  7
+#define  MAX_COMB_SIZE  7	/* Used in ml_shape.c */
 
 
 /*
@@ -36,30 +36,29 @@ typedef struct ml_char
 	{
 		struct
 		{
-		#ifdef  WORDS_BIGENDIAN
-			/* 32 bit */
-			u_char  bytes[MAX_CHAR_SIZE] ;
-			
 			/*
-			 * Total 32 bit
-			 * 3 bit : free
-			 * 2 bit : size(0x0 - 0x3)
-			 * 11 bit: charset(0x0 - 0x7ff)
+			 * attr member contents.
+			 * Total 16 bit
+			 * 9 bit : charset(0x0 - 0x1ff)
 			 * 1 bit : is_biwidth(0 or 1)
 			 * 1 bit : is_reversed(0 or 1)	... used for X Selection
-			 * 4 bit : fg_color(0x0 - 0xf)
-			 * 4 bit : bg_color(0x0 - 0xf)
 			 * 1 bit : is_bold(0 or 1)
 			 * 1 bit : is_underlined(0 or 1)
-			 * 3 bit : comb_size(0x0 - 0x7)
 			 * 1 bit : is_comb(0 or 1)
+			 * 1 bit : is_comb_trailing(0 or 1)
 			 * ---
 			 * 1 bit : is_single_ch(0 or 1)
 			 */
-			u_int32_t  attr ;
+		#ifdef  WORDS_BIGENDIAN
+			u_char  bytes[MAX_CHAR_SIZE] ;	/* 32 bit */
+			u_int8_t  fg_color ;
+			u_int8_t  bg_color ;
+			u_int16_t  attr ;
 		#else
-			u_int32_t  attr ;
-			u_char  bytes[MAX_CHAR_SIZE] ;
+			u_int16_t  attr ;
+			u_int8_t  fg_color ;
+			u_int8_t  bg_color ;
+			u_char  bytes[MAX_CHAR_SIZE] ;	/* 32 bit */
 		#endif
 		} ch ;
 

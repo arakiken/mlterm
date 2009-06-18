@@ -69,6 +69,11 @@ typedef struct {
 
 #define  MAX_CLICK  3			/* max is triple click */
 
+
+#define  restore_fg_color(win)  x_gc_set_fg_color((win)->gc,(win)->fg_color)
+#define  restore_bg_color(win)  x_gc_set_bg_color((win)->gc,(win)->bg_color)
+
+
 #if  0
 #define  __DEBUG
 #endif
@@ -125,7 +130,7 @@ restore_view(
 		#endif
 		}
 
-		XCopyArea( win->display , win->drawable , win->my_window , win->gc ,
+		XCopyArea( win->display , win->drawable , win->my_window , win->gc->gc ,
 			x + win->margin , y + win->margin , width , height ,
 			x + win->margin , y + win->margin) ;
 
@@ -506,7 +511,8 @@ x_window_init(
 	u_int  base_height ,
 	u_int  width_inc ,
 	u_int  height_inc ,
-	u_int  margin
+	u_int  margin ,
+	int  create_gc
 	)
 {
 	/*
@@ -525,7 +531,6 @@ x_window_init(
 	win->xft_draw = NULL ;
 
 	win->gc = NULL ;
-	win->ch_gc = NULL ;
 
 	win->fg_color = RGB_BLACK ;
 	win->bg_color = RGB_WHITE ;
@@ -550,6 +555,8 @@ x_window_init(
 
 	/* This flag will map window automatically in x_window_show() */
 	win->is_mapped = 1 ;
+
+	win->create_gc = create_gc ;
 
 	win->x = 0 ;
 	win->y = 0 ;
@@ -624,9 +631,6 @@ x_window_final(
 
 	x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
 
-	XFreeGC( win->display , win->gc) ;
-	XFreeGC( win->display , win->ch_gc) ;
-
 	if( win->buffer)
 	{
 		XFreePixmap( win->display , win->buffer) ;
@@ -648,6 +652,11 @@ x_window_final(
 	
 	x_xic_deactivate( win) ;
 
+	if( win->create_gc)
+	{
+		x_gc_delete( win->gc) ;
+	}
+
 	if( win->window_finalized)
 	{
 		(*win->window_finalized)( win) ;
@@ -664,7 +673,10 @@ x_window_init_event_mask(
 {
 	if( win->my_window)
 	{
-		/* this can be used before x_window_show() */
+		/*
+		 * Don't use this function after x_window_show().
+		 * After x_window_show(), use x_window_{add|remove}_event_mask().
+		 */
 
 		return  0 ;
 	}
@@ -996,8 +1008,8 @@ x_window_set_fg_color(
 	u_long  fg_color
 	)
 {
-	XSetForeground( win->display , win->gc , fg_color) ;
 	win->fg_color = fg_color ;
+	restore_fg_color(win) ;
 
 	return  1 ;
 }
@@ -1008,14 +1020,13 @@ x_window_set_bg_color(
 	u_long  bg_color
 	)
 {
-	XSetBackground( win->display , win->gc , bg_color) ;
-
 	if( ! win->is_transparent && ! win->wall_picture_is_set)
 	{
 		XSetWindowBackground( win->display , win->my_window , bg_color) ;
 	}
 
 	win->bg_color = bg_color ;
+	restore_bg_color(win) ;
 
 	return  1 ;
 }
@@ -1076,7 +1087,6 @@ x_window_show(
 	int  hint
 	)
 {
-	XGCValues  gc_value ;
 	int  count ;
 
 	if( win->my_window)
@@ -1091,6 +1101,24 @@ x_window_show(
 		win->display = win->parent->display ;
 		win->screen = win->parent->screen ;
 		win->parent_window = win->parent->my_window ;
+		win->gc = win->parent->gc ;
+	}
+	
+	if( win->create_gc)
+	{
+		x_gc_t *  gc ;
+
+		if( ( gc = x_gc_new( win->display)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " x_gc_new failed.\n") ;
+		#endif
+			win->create_gc = 0 ;
+		}
+		else
+		{
+			win->gc = gc ;
+		}
 	}
 
 	if( hint & XNegative)
@@ -1131,17 +1159,6 @@ x_window_show(
 					DefaultVisual( win->display , win->screen) ,
 					DefaultColormap( win->display , win->screen)) ;
 #endif
-
-	/*
-	 * graphic context.
-	 */
-
-	gc_value.graphics_exposures = 0 ;
-
-	win->gc = XCreateGC( win->display , win->my_window ,
-			GCGraphicsExposures , &gc_value) ;
-	win->ch_gc = XCreateGC( win->display , win->my_window ,
-			GCGraphicsExposures , &gc_value) ;
 
 	if( win->parent == NULL)
 	{
@@ -1517,10 +1534,10 @@ x_window_clear(
 {
 	if( win->drawable == win->buffer)
 	{
-		XSetForeground( win->display , win->gc , win->bg_color) ;
-		XFillRectangle( win->display , win->drawable , win->gc ,
+		x_gc_set_fg_color(win->gc, win->bg_color) ;
+		
+		XFillRectangle( win->display , win->drawable , win->gc->gc ,
 			x + win->margin , y + win->margin , width , height) ;
-		XSetForeground( win->display , win->gc , win->fg_color) ;
 	}
 	else if( win->drawable == win->my_window)
 	{
@@ -1542,18 +1559,16 @@ x_window_clear_margin_area(
 {
 	if( win->drawable == win->buffer)
 	{
-		XSetForeground( win->display , win->gc , win->bg_color) ;
+		x_gc_set_fg_color(win->gc, win->bg_color) ;
 
-		XFillRectangle( win->display , win->drawable , win->gc ,
+		XFillRectangle( win->display , win->drawable , win->gc->gc ,
 			0 , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
-		XFillRectangle( win->display , win->drawable , win->gc ,
+		XFillRectangle( win->display , win->drawable , win->gc->gc ,
 			win->margin , 0 , win->width , win->margin) ;
-		XFillRectangle( win->display , win->drawable , win->gc ,
+		XFillRectangle( win->display , win->drawable , win->gc->gc ,
 			win->width + win->margin , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
-		XFillRectangle( win->display , win->drawable , win->gc ,
+		XFillRectangle( win->display , win->drawable , win->gc->gc ,
 			win->margin , win->height + win->margin , win->width , win->margin) ;
-
-		XSetForeground( win->display , win->gc , win->fg_color) ;
 	}
 	else if( win->drawable == win->my_window)
 	{
@@ -1581,10 +1596,10 @@ x_window_clear_all(
 {
 	if( win->drawable == win->buffer)
 	{
-		XSetForeground( win->display , win->gc , win->bg_color) ;
-		XFillRectangle( win->display , win->drawable , win->gc ,
+		x_gc_set_fg_color(win->gc, win->bg_color) ;
+		
+		XFillRectangle( win->display , win->drawable , win->gc->gc ,
 			0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-		XSetForeground( win->display , win->gc , win->fg_color) ;
 	}
 	else if( win->drawable == win->my_window)
 	{
@@ -1608,7 +1623,9 @@ x_window_fill(
 	u_int	height
 	)
 {
-	XFillRectangle( win->display , win->drawable , win->gc ,
+	restore_fg_color( win) ;
+	
+	XFillRectangle( win->display , win->drawable , win->gc->gc ,
 		x + win->margin , y + win->margin , width , height) ;
 
 	return  1 ;
@@ -1624,18 +1641,10 @@ x_window_fill_with(
 	u_int	height
 	)
 {
-	if( color != win->fg_color)
-	{
-		XSetForeground( win->display , win->gc , color) ;
-	}
+	x_gc_set_fg_color( win->gc, color) ;
 
-	XFillRectangle( win->display , win->drawable , win->gc , x + win->margin , y + win->margin ,
-		width , height) ;
-
-	if( color != win->fg_color)
-	{
-		XSetForeground( win->display , win->gc , win->fg_color) ;
-	}
+	XFillRectangle( win->display , win->drawable , win->gc->gc ,
+		x + win->margin , y + win->margin , width , height) ;
 
 	return  1 ;
 }
@@ -1645,7 +1654,9 @@ x_window_fill_all(
 	x_window_t *  win
 	)
 {
-	XFillRectangle( win->display , win->drawable , win->gc , 0 , 0 ,
+	restore_fg_color( win) ;
+	
+	XFillRectangle( win->display , win->drawable , win->gc->gc , 0 , 0 ,
 		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 
 	return  1 ;
@@ -1657,18 +1668,10 @@ x_window_fill_all_with(
 	u_long  color
 	)
 {
-	if( color != win->fg_color)
-	{
-		XSetForeground( win->display , win->gc , color) ;
-	}
+	x_gc_set_fg_color( win->gc, color) ;
 
-	XFillRectangle( win->display , win->drawable , win->gc ,
+	XFillRectangle( win->display , win->drawable , win->gc->gc ,
 		0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-
-	if( color != win->fg_color)
-	{
-		XSetForeground( win->display , win->gc , win->fg_color) ;
-	}
 
 	return  1 ;
 }
@@ -2446,7 +2449,7 @@ x_window_scroll_upward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
+	XCopyArea( win->display , win->drawable , win->drawable , win->gc->gc ,
 		win->margin , win->margin + boundary_start + height ,	/* src */
 		win->width , boundary_end - boundary_start - height ,	/* size */
 		win->margin , win->margin + boundary_start) ;		/* dst */
@@ -2476,7 +2479,8 @@ x_window_scroll_downward_region(
 		return  0 ;
 	}
 
-	if( boundary_start < 0 || boundary_end > win->height || boundary_end <= boundary_start + height)
+	if( boundary_start < 0 || boundary_end > win->height ||
+		boundary_end <= boundary_start + height)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " boundary start %d end %d height %d\n" ,
@@ -2486,7 +2490,7 @@ x_window_scroll_downward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
+	XCopyArea( win->display , win->drawable , win->drawable , win->gc->gc ,
 		win->margin , win->margin + boundary_start ,
 		win->width , boundary_end - boundary_start - height ,
 		win->margin , win->margin + boundary_start + height) ;
@@ -2527,7 +2531,7 @@ x_window_scroll_leftward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
+	XCopyArea( win->display , win->drawable , win->drawable , win->gc->gc ,
 		win->margin + boundary_start + width , win->margin ,	/* src */
 		boundary_end - boundary_start - width , win->height ,	/* size */
 		win->margin + boundary_start , win->margin) ;		/* dst */
@@ -2567,7 +2571,7 @@ x_window_scroll_rightward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
+	XCopyArea( win->display , win->drawable , win->drawable , win->gc->gc ,
 		win->margin + boundary_start , win->margin ,
 		boundary_end - boundary_start - width , win->height ,
 		win->margin + boundary_start + width , win->margin) ;
@@ -2591,20 +2595,20 @@ x_window_draw_decsp_string(
 	{
 		if( fg_color)
 		{
-			XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
+			x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 		}
 
 		if( bg_color)
 		{
-			XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
+			x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 			x_decsp_font_draw_image_string( font->decsp_font ,
-						  win->display , win->drawable , win->ch_gc ,
+						  win->display , win->drawable , win->gc->gc ,
 						  x + win->margin , y + win->margin , str , len) ;
 		}
 		else
 		{
 			x_decsp_font_draw_string( font->decsp_font ,
-						  win->display , win->drawable , win->ch_gc ,
+						  win->display , win->drawable , win->gc->gc ,
 						  x + win->margin , y + win->margin , str , len) ;
 		}
 		return  1 ;
@@ -2641,16 +2645,16 @@ x_window_draw_string(
 	u_int  len
 	)
 {
-	XSetFont( win->display , win->ch_gc , font->xfont->fid) ;
-	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
+	x_gc_set_fid( win->gc, font->xfont->fid) ;
+	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
-	XDrawString( win->display , win->drawable , win->ch_gc ,
+	XDrawString( win->display , win->drawable , win->gc->gc ,
 		x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 		y + win->margin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString( win->display , win->drawable , win->ch_gc ,
+		XDrawString( win->display , win->drawable , win->gc->gc ,
 			x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			y + win->margin , (char *)str , len) ;
 	}
@@ -2669,16 +2673,16 @@ x_window_draw_string16(
 	u_int  len
 	)
 {
-	XSetFont( win->display , win->ch_gc , font->xfont->fid) ;
-	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
+	x_gc_set_fid( win->gc, font->xfont->fid) ;
+	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
-	XDrawString16( win->display , win->drawable , win->ch_gc ,
+	XDrawString16( win->display , win->drawable , win->gc->gc ,
 		       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 		       y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString16( win->display , win->drawable , win->ch_gc ,
+		XDrawString16( win->display , win->drawable , win->gc->gc ,
 			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			       y + win->margin , str , len) ;
 	}
@@ -2698,17 +2702,17 @@ x_window_draw_image_string(
 	u_int  len
 	)
 {
-	XSetFont( win->display , win->ch_gc , font->xfont->fid) ;
-	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
-	XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
+	x_gc_set_fid( win->gc, font->xfont->fid) ;
+	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
+	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
-	XDrawImageString( win->display , win->drawable , win->ch_gc ,
+	XDrawImageString( win->display , win->drawable , win->gc->gc ,
 			  x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 			  y + win->margin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString( win->display , win->drawable , win->ch_gc ,
+		XDrawString( win->display , win->drawable , win->gc->gc ,
 			     x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			     y + win->margin , (char *)str , len) ;
 	}
@@ -2728,17 +2732,17 @@ x_window_draw_image_string16(
 	u_int  len
 	)
 {
-	XSetFont( win->display , win->ch_gc , font->xfont->fid) ;
-	XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
-	XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
+	x_gc_set_fid( win->gc, font->xfont->fid) ;
+	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
+	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
-	XDrawImageString16( win->display , win->drawable , win->ch_gc ,
+	XDrawImageString16( win->display , win->drawable , win->gc->gc ,
 			    x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 			    y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString16( win->display , win->drawable , win->ch_gc ,
+		XDrawString16( win->display , win->drawable , win->gc->gc ,
 			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			       y + win->margin , str , len) ;
 	}
@@ -2804,10 +2808,12 @@ x_window_draw_rect_frame(
 	int  y2
 	)
 {
-	XDrawLine( win->display , win->drawable , win->gc , x1 , y1 , x2 , y1) ;
-	XDrawLine( win->display , win->drawable , win->gc , x1 , y1 , x1 , y2) ;
-	XDrawLine( win->display , win->drawable , win->gc , x2 , y2 , x2 , y1) ;
-	XDrawLine( win->display , win->drawable , win->gc , x2 , y2 , x1 , y2) ;
+	restore_fg_color(win) ;
+	
+	XDrawLine( win->display , win->drawable , win->gc->gc , x1 , y1 , x2 , y1) ;
+	XDrawLine( win->display , win->drawable , win->gc->gc , x1 , y1 , x1 , y2) ;
+	XDrawLine( win->display , win->drawable , win->gc->gc , x2 , y2 , x2 , y1) ;
+	XDrawLine( win->display , win->drawable , win->gc->gc , x2 , y2 , x1 , y2) ;
 
 	return  1 ;
 }
@@ -2821,7 +2827,9 @@ x_window_draw_line(
 	int  y2
 	)
 {
-	XDrawLine( win->display, win->drawable, win->gc, x1, y1, x2, y2) ;
+	restore_fg_color(win) ;
+	
+	XDrawLine( win->display, win->drawable, win->gc->gc, x1, y1, x2, y2) ;
 
 	return  1 ;
 }
@@ -3409,7 +3417,7 @@ x_window_paste(
 		kik_warn_printf( KIK_DEBUG_TAG " height is modified -> %d\n" , src_height) ;
 	}
 
-	XCopyArea( win->display , src , win->drawable , win->gc ,
+	XCopyArea( win->display , src , win->drawable , win->gc->gc ,
 		src_x , src_y , src_width , src_height ,
 		dst_x + win->margin , dst_y + win->margin) ;
 

@@ -229,7 +229,11 @@ int append_pty_list(GtkMenu* menu)
             name_locale = pty;
         if (strncmp(name_locale, "/dev/", 5) == 0)
             name_locale += 5;
+#ifdef  NO_G_LOCALE
+	name_utf8 = name_locale ;
+#else
         name_utf8 = g_locale_to_utf8(name_locale, -1, NULL, NULL, NULL);
+#endif
 
         command = malloc(strlen(pty) + 12);
         sprintf(command, "select_pty=%s", pty);

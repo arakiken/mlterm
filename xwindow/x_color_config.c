@@ -139,14 +139,14 @@ x_read_color_config(
 		if( strlen( rgb) >= 14 &&
 			sscanf( rgb , "%4x-%4x-%4x" , &red , &green , &blue) == 3)
 		{
-			/* do nothing */
+			red = ((red >> 8) & 0xff) ;
+			green = ((green >> 8) & 0xff) ;
+			blue = ((blue >> 8) & 0xff) ;
 		}
 		else if( strlen( rgb) == 7 &&
 				sscanf( rgb , "#%2x%2x%2x" , &red , &green , &blue) == 3)
 		{
-			red <<= 8 ;
-			green <<= 8 ;
-			blue <<= 8 ;
+			/* do nothing */
 		}
 		else
 		{

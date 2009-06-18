@@ -54,7 +54,7 @@ typedef struct x_font
 	XftFont *  xft_font ;
 #endif
 #ifdef  USE_WIN32API
-	HFONT  xfont ;
+	Font  fid ;
 	mkf_conv_t *  conv ;
 #elif   USE_TYPE_XCORE
 	XFontStruct *  xfont ;

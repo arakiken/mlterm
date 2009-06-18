@@ -98,10 +98,6 @@ typedef enum  ml_char_encoding
 	( (encoding) == ML_ISO2022JP || (encoding) == ML_ISO2022JP2 || (encoding) == ML_ISO2022JP3 || \
 		(encoding) == ML_ISO2022KR || (encoding) == ML_ISO2022CN || (encoding) == ML_HZ )
 
-#define  IS_BIWIDTH_CS(cs) \
-	(IS_CS94MB(cs) || IS_CS96MB(cs) || (cs) == UHC || (cs) == JOHAB || \
-	(cs) == GBK || (cs) == BIG5 || (cs) == HKSCS)
-
 
 char *  ml_get_char_encoding_name( ml_char_encoding_t  encoding) ;
 

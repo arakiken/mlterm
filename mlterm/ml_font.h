@@ -15,7 +15,7 @@
 
 typedef enum ml_font
 {
-	/* 0x00 - MAX_CHARSET(0x7ff) is reserved for mkf_charset_t */
+	/* 0x00 - MAX_CHARSET(0x2ff) is reserved for mkf_charset_t */
 
 	/* 0x1000 is reserved for unicode half or full width tag */
 	FONT_BIWIDTH = 0x1000u ,	/* (default) half width */

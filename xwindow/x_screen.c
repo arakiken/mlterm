@@ -599,7 +599,7 @@ draw_cursor(
 		xfont = x_get_font( screen->font_man , ml_char_font( &ch)) ;
 
 		x_window_set_fg_color( &screen->window ,
-			x_get_color( screen->color_man , ml_char_fg_color(&ch))->pixel) ;
+			x_get_xcolor( screen->color_man , ml_char_fg_color(&ch))->pixel) ;
 
 		x_window_draw_rect_frame( &screen->window ,
 			x + 2 , y + x_line_top_margin( screen) + 2 ,
@@ -1307,8 +1307,8 @@ window_realized(
 	}
 #endif
 
-	x_window_set_fg_color( win , x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
-	x_window_set_bg_color( win , x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
+	x_window_set_fg_color( win , x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
+	x_window_set_bg_color( win , x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 	if( ( name = ml_term_window_name( screen->term)))
 	{
@@ -1488,9 +1488,9 @@ window_focused(
 		x_color_manager_unfade( screen->color_man) ;
 
 		x_window_set_fg_color( &screen->window ,
-			x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
+			x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
 		x_window_set_bg_color( &screen->window ,
-			x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
+			x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
@@ -1528,9 +1528,9 @@ window_unfocused(
 		x_color_manager_fade( screen->color_man , screen->fade_ratio) ;
 
 		x_window_set_fg_color( &screen->window ,
-			x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
+			x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
 		x_window_set_bg_color( &screen->window ,
-			x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
+			x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
@@ -2968,7 +2968,9 @@ selecting_with_motion(
 	{
 		restore_selected_region_color( screen) ;
 
+	#ifndef  USE_WIN32API
 		if( ! screen->sel.is_owner)
+	#endif
 		{
 			if( x_window_set_selection_owner( &screen->window , time) == 0)
 			{
@@ -3094,7 +3096,9 @@ selecting_word(
 	{
 		restore_selected_region_color( screen) ;
 
+	#ifndef  USE_WIN32API
 		if( ! screen->sel.is_owner)
+	#endif
 		{
 			if( x_window_set_selection_owner( &screen->window , time) == 0)
 			{
@@ -3147,7 +3151,9 @@ selecting_line(
 	{
 		restore_selected_region_color( screen) ;
 
+	#ifndef  USE_WIN32API
 		if( ! screen->sel.is_owner)
+	#endif
 		{
 			if( x_window_set_selection_owner( &screen->window , time) == 0)
 			{
@@ -3885,7 +3891,7 @@ change_fg_color(
 	x_color_manager_set_fg_color( screen->color_man , name) ;
 
 	x_window_set_fg_color( &screen->window ,
-		x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
 
 #ifndef  USE_WIN32API
 	x_xic_fg_color_changed( &screen->window) ;
@@ -3908,7 +3914,7 @@ change_bg_color(
 	x_color_manager_set_bg_color( screen->color_man , name) ;
 
 	x_window_set_bg_color( &screen->window ,
-		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 #ifndef  USE_WIN32API
 	x_xic_bg_color_changed( &screen->window) ;
@@ -4238,9 +4244,9 @@ change_fade_ratio(
 	}
 
 	x_window_set_fg_color( &screen->window ,
-		x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
 	x_window_set_bg_color( &screen->window ,
-		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 #ifndef  USE_WIN32API
 	x_xic_fg_color_changed( &screen->window) ;
@@ -5638,7 +5644,7 @@ get_fg_color(
 
 	screen = p ;
 
-	return  x_get_color( screen->color_man , ML_FG_COLOR)->pixel ;
+	return  x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel ;
 }
 
 static u_long
@@ -5650,7 +5656,7 @@ get_bg_color(
 
 	screen = p ;
 
-	return  x_get_color( screen->color_man , ML_BG_COLOR)->pixel ;
+	return  x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel ;
 }
 
 /*
@@ -6401,9 +6407,9 @@ xterm_reverse_video(
 	}
 
 	x_window_set_fg_color( &screen->window ,
-		x_get_color( screen->color_man , ML_FG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
 	x_window_set_bg_color( &screen->window ,
-		x_get_color( screen->color_man , ML_BG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	redraw_screen( screen) ;
@@ -6653,7 +6659,7 @@ x_screen_new(
 	if( x_window_init( &screen->window ,
 		screen_width( screen) , screen_height( screen) ,
 		x_col_width( screen) , x_line_height( screen) , 0 , 0 ,
-		x_col_width( screen) , x_line_height( screen) , 2) == 0)	/* min: 1x1 */
+		x_col_width( screen) , x_line_height( screen) , 2, 0) == 0)	/* min: 1x1 */
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;
@@ -6794,7 +6800,7 @@ x_screen_new(
 	 */
 
 #ifdef  USE_WIN32API
-	if( ( screen->utf8_parser = mkf_utf16_parser_new()) == NULL)
+	if( ( screen->utf8_parser = mkf_utf16le_parser_new()) == NULL)
 	{
 		goto  error ;
 	}
@@ -6826,7 +6832,7 @@ x_screen_new(
 	}
 
 #ifdef  USE_WIN32API
-	if( ( screen->utf8_conv = mkf_utf16_conv_new()) == NULL)
+	if( ( screen->utf8_conv = mkf_utf16le_conv_new()) == NULL)
 	{
 		goto  error ;
 	}

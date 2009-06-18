@@ -23,6 +23,7 @@
 #include  "x_font_manager.h"
 #include  "x_color_manager.h"
 #include  "x_picture.h"
+#include  "x_gc.h"
 
 
 #define  ACTUAL_WIDTH(win)  ((win)->width + (win)->margin * 2)
@@ -75,11 +76,10 @@ typedef struct  x_window
 	void *  xft_draw ; /* dummy to keep the size of x_window_t */
 #endif
 
-	GC  gc ;	/* for generic use */
 	u_long  fg_color ;
 	u_long  bg_color ;
 
-	GC  ch_gc ;	/* for drawing string(used on X Window System alone) */
+	x_gc_t *  gc ;
 
 	/* Either win_man or parent memmber must be NULL */
 	x_window_manager_ptr_t  win_man ;
@@ -154,6 +154,7 @@ typedef struct  x_window
 	int8_t  is_transparent ;
 	int8_t  is_scrollable ;
 	int8_t  is_mapped ;
+	int8_t  create_gc ;
 
 	/* button */
 	int8_t  button_is_pressing ;
@@ -189,7 +190,8 @@ typedef struct  x_window
 
 int  x_window_init( x_window_t *  win ,
 	u_int  width , u_int  height , u_int  min_width , u_int  min_height ,
-	u_int  base_width , u_int  base_height , u_int  width_inc , u_int  height_inc , u_int  margin) ;
+	u_int  base_width , u_int  base_height , u_int  width_inc ,
+	u_int  height_inc , u_int  margin, int  create_gc) ;
 
 int  x_window_final( x_window_t *  win) ;
 

@@ -81,6 +81,11 @@ x_window_manager_init(
 	win_man->screen = DefaultScreen( win_man->display) ;
 	win_man->my_window = DefaultRootWindow( win_man->display) ;
 
+	if( ( win_man->gc = x_gc_new( display)) == NULL)
+	{
+		return  0 ;
+	}
+	
 	win_man->group_leader = XCreateSimpleWindow( win_man->display,
 						     win_man->my_window,
 						     0, 0, 1, 1, 0, 0, 0) ;
@@ -111,6 +116,8 @@ x_window_manager_final(
 {
 	int  count ;
 
+	x_gc_delete( win_man->gc) ;
+
 	modmap_final( &(win_man->modmap)) ;
 
 	if(  win_man->group_leader)
@@ -118,7 +125,7 @@ x_window_manager_final(
 		XDestroyWindow( win_man->display, win_man->group_leader) ;
 	}
 
-	free(  win_man->icon_path);
+	free(  win_man->icon_path) ;
 
 	if( win_man->icon)
 	{
@@ -171,6 +178,7 @@ x_window_manager_show_root(
 	root->parent_window = win_man->my_window ;
 	root->display = win_man->display ;
 	root->screen = win_man->screen ;
+	root->gc = win_man->gc ;
 	root->x = x ;
 	root->y = y ;
 

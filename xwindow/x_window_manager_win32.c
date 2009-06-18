@@ -22,36 +22,6 @@ static x_window_manager_t *  _win_man ;
 
 /* --- static functions --- */
 
-#ifdef  __DEBUG
-static int
-error_handler(
-	Display *  display ,
-	XErrorEvent *  event
-	)
-{
-	char  buffer[1024] ;
-
-	XGetErrorText( display , event->error_code , buffer , 1024) ;
-
-	kik_error_printf( "%s\n" , buffer) ;
-
-	abort() ;
-
-	return  1 ;
-}
-
-static int
-ioerror_handler(
-	Display *  display
-	)
-{
-	kik_error_printf( "X IO Error.\n") ;
-	abort() ;
-
-	return  1 ;
-}
-#endif
-
 static LRESULT CALLBACK window_proc(
   	HWND hwnd,
   	UINT msg,
@@ -141,20 +111,17 @@ x_window_manager_init(
 
 		return  0 ;
 	}
-	
-	win_man->display = display ;
 
-#ifdef  USE_WIN32API
+	win_man->display = display ;
+	
+	if( ( win_man->gc = x_gc_new( display)) == NULL)
+	{
+		return  0 ;
+	}
+
 	win_man->screen = 0 ;
 	win_man->my_window = None ;
 	win_man->group_leader = None ;
-#else
-	win_man->screen = DefaultScreen( win_man->display) ;
-	win_man->my_window = DefaultRootWindow( win_man->display) ;
-	win_man->group_leader = XCreateSimpleWindow( win_man->display,
-						     win_man->my_window,
-						     0, 0, 1, 1, 0, 0, 0) ;
-#endif
 
 	win_man->icon_path = NULL;
 	win_man->icon = None ;
@@ -168,11 +135,6 @@ x_window_manager_init(
 
 	modmap_init( display, &(win_man->modmap)) ;
 
-#ifdef  __DEBUG
-	XSetErrorHandler( error_handler) ;
-	XSetIOErrorHandler( ioerror_handler) ;
-#endif
-
 	return  1 ;
 }
 
@@ -183,14 +145,8 @@ x_window_manager_final(
 {
 	int  count ;
 
+	x_gc_delete( win_man->gc) ;
 	modmap_final( &(win_man->modmap)) ;
-
-#ifndef  USE_WIN32API
-	if(  win_man->group_leader)
-	{
-		XDestroyWindow( win_man->display, win_man->group_leader) ;
-	}
-#endif
 
 	free(  win_man->icon_path);
 
@@ -246,6 +202,7 @@ x_window_manager_show_root(
 	root->parent_window = win_man->my_window ;
 	root->display = win_man->display ;
 	root->screen = win_man->screen ;
+	root->gc = win_man->gc ;
 	root->x = x ;
 	root->y = y ;
 

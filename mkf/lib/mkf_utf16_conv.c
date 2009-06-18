@@ -160,6 +160,34 @@ convert_to_utf16(
 	}
 }
 
+static size_t
+convert_to_utf16le(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	size_t  size ;
+	int  count ;
+
+	if( ( size = convert_to_utf16( conv, dst, dst_size, parser)) == 0)
+	{
+		return  0 ;
+	}
+
+	for( count = 0 ; count < size - 1 ; count += 2)
+	{
+		u_char  c ;
+		
+		c = dst[count] ;
+		dst[count] = dst[count+1] ;
+		dst[count+1] = c ;
+	}
+
+	return  size ;
+}
+
 static void
 conv_init(
 	mkf_conv_t *  conv
@@ -194,6 +222,26 @@ mkf_utf16_conv_new(void)
 	}
 
 	utf16_conv->conv.convert = convert_to_utf16 ;
+	utf16_conv->conv.init = conv_init ;
+	utf16_conv->conv.delete = conv_delete ;
+	utf16_conv->conv.illegal_char = NULL ;
+	
+	utf16_conv->is_bof = 1 ;
+
+	return  (mkf_conv_t*)utf16_conv ;
+}
+
+mkf_conv_t *
+mkf_utf16le_conv_new(void)
+{
+	mkf_utf16_conv_t *  utf16_conv ;
+
+	if( ( utf16_conv = malloc( sizeof( mkf_utf16_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	utf16_conv->conv.convert = convert_to_utf16le ;
 	utf16_conv->conv.init = conv_init ;
 	utf16_conv->conv.delete = conv_delete ;
 	utf16_conv->conv.illegal_char = NULL ;

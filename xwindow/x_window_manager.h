@@ -23,6 +23,7 @@ typedef struct  x_window_manager
 	Display *  display ;
 	int  screen ;		/* DefaultScreen */
 	Window  my_window ;	/* DefaultRootWindow */
+	x_gc_t *  gc ;
 
 	Window group_leader ;
 	char *icon_path;

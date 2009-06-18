@@ -13,71 +13,109 @@
 
 /*
  * !! Notice !!
- * Internal size representation is as follows.
- * 0x0 = size 1 , 0x1 = size 2 , 0x2 = size 3 , 0x3 = size 4.
  */
-#define  SIZE(attr) ((((attr) >> 28) & 0x3) + 1)
+#define  CHARSET(attr)  (((attr) >> 7) & 0x1ff)
+#define  SIZE(attr) (CS_SIZE(CHARSET(attr)))
 
-#define  CHARSET(attr)  (((attr) >> 17) & 0x7ff)
+#define  IS_BIWIDTH(attr)  (((attr) >> 6) & 0x1)
 
-#define  IS_BIWIDTH(attr)  (((attr) >> 16) & 0x1)
+#define  IS_REVERSED(attr)  (((attr) >> 5) & 0x1)
+#define  REVERSE_COLOR(attr) ((attr) |= (0x1 << 5))
+#define  RESTORE_COLOR(attr) ((attr) &= ~(0x1 << 5))
 
-#define  IS_REVERSED(attr)  (((attr) >> 15) & 0x1)
+#define  IS_BOLD(attr)  (((attr) >> 4) & 0x1)
 
-#define  REVERSE_COLOR(attr) ((attr) |= (0x1 << 15))
+#define  IS_UNDERLINED(attr)  (((attr) >> 3) & 0x1)
 
-#define  RESTORE_COLOR(attr) ((attr) &= ~(0x1 << 15))
+#define  IS_COMB(attr)  (((attr) >> 2) & 0x1)
 
-/*
- * !! Notice !!
- * Internal color representation is as follows.
- * ML_BLACK - ML_WHITE: as they are
- * ML_FG_COLOR        : 0x8
- * ML_BG_COLOR        : 0x9
- */
-#define  INTERN_COLOR(color) \
-	((color) = ((color) == ML_FG_COLOR ? 0x8 : \
-		(color) == ML_BG_COLOR ? 0x9 : (color) & ~ML_BOLD_COLOR_MASK))
-
-#define  IS_VALID_INTERN_COLOR(color) ((ML_BLACK <=color) && (color <=0x9))
-
-#define  EXTERN_COLOR(color) \
-	((color) = ((color) == 0x8 ? ML_FG_COLOR : \
-		(color) == 0x9 ? ML_BG_COLOR : (color)))
-
-#define  FG_COLOR(attr)  (((attr) >> 11) & 0xf)
-
-#define  SET_FG_COLOR(attr,color)  ((attr) = (((attr) & 0xffff87ff) | ((color) << 11)))
-
-#define  BG_COLOR(attr)  (((attr) >> 7) & 0xf)
-
-#define  SET_BG_COLOR(attr,color)  ((attr) = (((attr) & 0xfffff87f) | ((color) << 7)))
-
-#define  IS_BOLD(attr)  (((attr) >> 6) & 0x1)
-
-#define  IS_UNDERLINED(attr)  (((attr) >> 5) & 0x1)
-
-#define  COMB_SIZE(attr)  (((attr) >> 2) & 0x7)
-
-#define  SET_COMB_SIZE(attr,size)  ((attr) = (((attr) & 0xffffffe3) | ((size) << 2)))
-
-#define  IS_COMB(attr)  (((attr) >> 1) & 0x1)
+#define  IS_COMB_TRAILING(attr)  (((attr) >> 1) & 0x1)
+#define  SET_COMB_TRAILING(attr)  ((attr) |= 0x2)
+#define  UNSET_COMB_TRAILING(attr)  ((attr) &= 0xfffd)
 
 #define  IS_SINGLE_CH(attr)  ((attr) & 0x1)
+#define  USE_MULTI_CH(attr)  ((attr) &= 0xfffe)
+#define  UNUSE_MULTI_CH(attr)  ((attr) |= 0x1)
 
-#define  USE_MULTI_CH(attr)  ((attr) &= 0xfffffffe)
-
-#define  COMPOUND_ATTR(size,charset,is_biwidth,fg_color,bg_color,is_bold,is_underlined,is_comb) \
-	( ((size - 1) << 28) | ((charset) << 17) | ((is_biwidth) << 16) | \
-	((0x0) << 15) | ((fg_color) << 11) | ((bg_color) << 7) | \
-	((is_bold) << 6) | ((is_underlined) << 5) | (0x0 << 2) | \
-	(is_comb << 1) | 0x1 )
+#define  COMPOUND_ATTR(charset,is_biwidth,is_bold,is_underlined,is_comb) \
+	( ((charset) << 7) | ((is_biwidth) << 6) | \
+	( 0x0 << 5) | ((is_bold) << 4) | ((is_underlined) << 3) | \
+	( (is_comb) << 2) | ( 0x0 << 1) | 0x1)
 
 
 /* --- static variables --- */
 
 static int  use_char_combining = 1 ;
 static int  use_multi_col_char = 1 ;
+
+
+/* --- static functions --- */
+
+inline static u_int
+get_comb_size(
+	ml_char_t *  multi_ch
+	)
+{
+	u_int  size ;
+
+	size = 0 ;
+	while( IS_COMB_TRAILING( multi_ch->u.ch.attr))
+	{
+		size ++ ;
+		multi_ch ++ ;
+	}
+
+	return  size ;
+}
+
+inline static u_int8_t
+intern_color(
+	ml_color_t  ex_color
+	)
+{
+	if( ex_color == ML_FG_COLOR)
+	{
+		return  0x10 ;
+	}
+	else if( ex_color == ML_BG_COLOR)
+	{
+		return  0xe7 ;
+	}
+	else if( IS_256_COLOR(ex_color))
+	{
+		if( ex_color == 0x10)
+		{
+			/* avoid batting internal presentation of ML_FG_COLOR. */
+			return  0x00 ;
+		}
+		else if( ex_color == 0xe7)
+		{
+			/* avoid batting internal presentation of ML_BG_COLOR. */
+			return  0x07 ;
+		}
+	}
+	
+	return  ex_color ;
+}
+
+inline static ml_color_t
+extern_color(
+	u_int8_t  in_color
+	)
+{
+	if( in_color == 0x10)
+	{
+		return  ML_FG_COLOR ;
+	}
+	else if( in_color == 0xe7)
+	{
+		return  ML_BG_COLOR ;
+	}
+	else
+	{
+		return  in_color ;
+	}
+}
 
 
 /* --- global functions --- */
@@ -168,19 +206,30 @@ ml_char_set(
 	int  is_underlined
 	)
 {
+	if( CS_SIZE(cs) != size)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " char size error => size %d <=> CS_SIZE %d\n",
+			size, CS_SIZE(cs)) ;
+	#endif
+		return  0 ;
+	}
+
+	if( size > MAX_CHAR_SIZE)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " size %d is over MAX CHAR SIZE %d\n",
+			size, MAX_CHAR_SIZE) ;
+	#endif
+		return  0 ;
+	}
+	
 	ml_char_final( ch) ;
 
 	memcpy( ch->u.ch.bytes , bytes , size) ;
 	memset( ch->u.ch.bytes + size , 0 , MAX_CHAR_SIZE - size) ;
 
-	INTERN_COLOR(fg_color) ;
-	INTERN_COLOR(bg_color) ;
-
 #ifdef  DEBUG
-	if( size > MAX_CHAR_SIZE)
-	{
-		kik_warn_printf(KIK_DEBUG_TAG "size(%d) too large\n", size) ;
-	}
 	if( cs >= MAX_CHARSET)
 	{
 		kik_warn_printf(KIK_DEBUG_TAG "charset(%x) is out of range\n", cs) ;
@@ -193,14 +242,6 @@ ml_char_set(
 	{
 		kik_warn_printf(KIK_DEBUG_TAG "is_comb should be 0/1\n") ;
 	}
-	if( !IS_VALID_INTERN_COLOR(fg_color))
-	{
-		kik_warn_printf(KIK_DEBUG_TAG "fg_color is not valid\n") ;
-	}
-	if( !IS_VALID_INTERN_COLOR(bg_color))
-	{
-		kik_warn_printf(KIK_DEBUG_TAG "bg_color is not valid\n") ;
-	}
 	if( is_bold > 1 || is_bold < 0)
 	{
 		kik_warn_printf(KIK_DEBUG_TAG "is_bold should be 0/1\n") ;
@@ -211,8 +252,9 @@ ml_char_set(
 	}
 #endif
 
-	ch->u.ch.attr =
-		COMPOUND_ATTR(size,cs,is_biwidth,fg_color,bg_color,is_bold,is_underlined,is_comb) ;
+	ch->u.ch.attr = COMPOUND_ATTR(cs,is_biwidth,is_bold,is_underlined,is_comb) ;
+	ch->u.ch.fg_color = intern_color(fg_color) ;
+	ch->u.ch.bg_color = intern_color(bg_color) ;
 
 	return  1 ;
 }
@@ -232,9 +274,13 @@ ml_char_combine(
 	)
 {
 	ml_char_t *  multi_ch ;
-	u_int  comb_size ;
 
 	if( ! use_char_combining)
+	{
+		return  0 ;
+	}
+
+	if( ! is_comb)
 	{
 		return  0 ;
 	}
@@ -249,17 +295,20 @@ ml_char_combine(
 
 			return  0 ;
 		}
+		
 #if !defined(__GLIBC__)
 		if( sizeof( multi_ch) >= 8 && ((long)( multi_ch) & 0x1UL) != 0)
 		{
-			kik_msg_printf( "Your malloc() doesn't return 2 byte aligned address."
+			kik_msg_printf( "Your malloc() doesn't return 2 bits aligned address."
 			                "Character combining is not supported.\n") ;
 
 			return  0 ;
 		}
 #endif
+
 		ml_char_init( multi_ch) ;
 		ml_char_copy( multi_ch , ch) ;
+		SET_COMB_TRAILING( multi_ch->u.ch.attr) ;
 
 		ml_char_init( multi_ch + 1) ;
 		if( ml_char_set( multi_ch + 1 , bytes , size , cs , is_biwidth , is_comb ,
@@ -267,41 +316,46 @@ ml_char_combine(
 		{
 			return  0 ;
 		}
-
-		comb_size = 1 ;
 	}
 	else
 	{
-		if( ( comb_size = COMB_SIZE(ch->u.multi_ch->u.ch.attr)) >= MAX_COMB_SIZE)
+		u_int  comb_size ;
+		
+		if( ( comb_size = get_comb_size( ch->u.multi_ch)) >= MAX_COMB_SIZE)
 		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+			" This char is already combined by %d chars, so no more combined.\n",
+			comb_size) ;
+		#endif
+		
 			return  0 ;
 		}
 		
-		if( ( multi_ch = realloc( ch->u.multi_ch , sizeof( ml_char_t) * (comb_size + 2))) == NULL)
+		if( ( multi_ch = realloc( ch->u.multi_ch ,
+			sizeof( ml_char_t) * (comb_size + 2))) == NULL)
 		{
 			return  0 ;
 		}
 
+#if !defined(__GLIBC__)
 		if( sizeof( multi_ch) >= 8 && ((long)( multi_ch) & 0x1UL) != 0)
 		{
-			kik_msg_printf( "Your malloc() doesn't return 2 bytes aligned address."
+			kik_msg_printf( "Your malloc() doesn't return 2 bits aligned address."
 			                "Character combining is not supported.\n") ;
 
 			return  0 ;
 		}
-		
-		ml_char_init( &multi_ch[comb_size + 1]) ;
+#endif
 
-		if( ml_char_set( &multi_ch[comb_size + 1] , bytes , size , cs , is_biwidth , is_comb ,
-			fg_color , bg_color , is_bold , is_underlined) == 0)
+		SET_COMB_TRAILING( multi_ch[comb_size].u.ch.attr) ;
+		ml_char_init( multi_ch + comb_size + 1) ;
+		if( ml_char_set( multi_ch + comb_size + 1 , bytes , size , cs , is_biwidth ,
+			is_comb , fg_color , bg_color , is_bold , is_underlined) == 0)
 		{
 			return  0 ;
 		}
-
-		comb_size ++ ;
 	}
-
-	SET_COMB_SIZE(multi_ch->u.ch.attr,comb_size) ;
 
 	ch->u.multi_ch = multi_ch ;
 	USE_MULTI_CH(ch->u.ch.attr) ;
@@ -318,7 +372,7 @@ ml_combine_chars(
 	return  ml_char_combine( ch , ml_char_bytes( comb) , SIZE(comb->u.ch.attr) ,
 			CHARSET(comb->u.ch.attr) ,
 			IS_BIWIDTH(comb->u.ch.attr) , IS_COMB(comb->u.ch.attr) ,
-			FG_COLOR(comb->u.ch.attr) , BG_COLOR(comb->u.ch.attr) ,
+			comb->u.ch.fg_color , comb->u.ch.bg_color ,
 			IS_BOLD(comb->u.ch.attr) , IS_UNDERLINED(comb->u.ch.attr)) ;
 }
 
@@ -351,7 +405,7 @@ ml_get_combining_chars(
 	}
 	else
 	{
-		*size = COMB_SIZE(ch->u.multi_ch->u.ch.attr) ;
+		*size = get_comb_size( ch->u.multi_ch) ;
 
 		return  ch->u.multi_ch + 1 ;
 	}
@@ -400,7 +454,7 @@ ml_char_copy(
 		ml_char_t *  multi_ch ;
 		u_int  comb_size ;
 
-		comb_size = COMB_SIZE(src->u.multi_ch->u.ch.attr) ;
+		comb_size = get_comb_size( src->u.multi_ch) ;
 		
 		if( ( multi_ch = malloc( sizeof( ml_char_t) * (comb_size + 1))) == NULL)
 		{
@@ -571,16 +625,14 @@ ml_char_fg_color(
 
 		if( IS_REVERSED(ch->u.ch.attr))
 		{
-			color = BG_COLOR(ch->u.ch.attr) ;
+			color = extern_color( ch->u.ch.bg_color) ;
 		}
 		else
 		{
-			color = FG_COLOR(ch->u.ch.attr) ;
+			color = extern_color( ch->u.ch.fg_color) ;
 		}
 
-		EXTERN_COLOR(color) ;
-
-		if( color < MAX_VT_COLORS && IS_BOLD(ch->u.ch.attr))
+		if( color < MAX_VTSYS_COLORS && IS_BOLD(ch->u.ch.attr))
 		{
 			color |= ML_BOLD_COLOR_MASK ;
 		}
@@ -601,17 +653,17 @@ ml_char_set_fg_color(
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		INTERN_COLOR(color) ;
-
-		SET_FG_COLOR(ch->u.ch.attr,color) ;
+		ch->u.ch.fg_color = intern_color(color) ;
 
 		return  1 ;
 	}
 	else
 	{
 		int  count ;
+		u_int  comb_size ;
 
-		for( count = 0 ; count < COMB_SIZE(ch->u.multi_ch->u.ch.attr) + 1 ; count ++)
+		comb_size = get_comb_size( ch->u.multi_ch) ;
+		for( count = 0 ; count < comb_size + 1 ; count ++)
 		{
 			ml_char_set_fg_color( ch->u.multi_ch + count , color) ;
 		}
@@ -631,14 +683,17 @@ ml_char_bg_color(
 
 		if( IS_REVERSED(ch->u.ch.attr))
 		{
-			color = FG_COLOR(ch->u.ch.attr) ;
+			color = extern_color(ch->u.ch.fg_color) ;
 		}
 		else
 		{
-			color = BG_COLOR(ch->u.ch.attr) ;
+			color = extern_color(ch->u.ch.bg_color) ;
 		}
 
-		EXTERN_COLOR(color) ;
+		if( color < MAX_VTSYS_COLORS && IS_BOLD(ch->u.ch.attr))
+		{
+			color |= ML_BOLD_COLOR_MASK ;
+		}
 
 		return  color ;
 	}
@@ -656,17 +711,17 @@ ml_char_set_bg_color(
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		INTERN_COLOR(color) ;
-
-		SET_BG_COLOR(ch->u.ch.attr,color) ;
+		ch->u.ch.bg_color = intern_color(color) ;
 
 		return  1 ;
 	}
 	else
 	{
 		int  count ;
+		u_int  comb_size ;
 
-		for( count = 0 ; count < COMB_SIZE(ch->u.multi_ch->u.ch.attr) + 1 ; count ++)
+		comb_size = get_comb_size( ch->u.multi_ch) ;
+		for( count = 0 ; count < comb_size + 1 ; count ++)
 		{
 			ml_char_set_bg_color( ch->u.multi_ch + count , color) ;
 		}
@@ -709,8 +764,10 @@ ml_char_reverse_color(
 	else
 	{
 		int  count ;
+		u_int  comb_size ;
 
-		for( count = 0 ; count < COMB_SIZE(ch->u.multi_ch->u.ch.attr) + 1 ; count ++)
+		comb_size = get_comb_size( ch->u.multi_ch) ;
+		for( count = 0 ; count < comb_size + 1 ; count ++)
 		{
 			ml_char_reverse_color( ch->u.multi_ch + count) ;
 		}
@@ -738,8 +795,10 @@ ml_char_restore_color(
 	else
 	{
 		int  count ;
+		u_int  comb_size ;
 
-		for( count = 0 ; count < COMB_SIZE(ch->u.multi_ch->u.ch.attr) + 1 ; count ++)
+		comb_size = get_comb_size( ch->u.multi_ch) ;
+		for( count = 0 ; count < comb_size + 1 ; count ++)
 		{
 			ml_char_restore_color( ch->u.multi_ch + count) ;
 		}
@@ -915,7 +974,7 @@ ml_nl_ch(void)
 
 #ifdef  DEBUG
 
-#if  0
+#if  1
 #define  DUMP_HEX
 #endif
 

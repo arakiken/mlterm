@@ -24,6 +24,7 @@ typedef HANDLE Window ;
 typedef HANDLE Drawable ;
 typedef HANDLE Pixmap ;
 typedef HDC GC ;
+typedef HFONT Font ;
 typedef WORD KeyCode ;	/* Same as type of wparam */
 typedef WORD KeySym ;	/* Same as type of wparam */
 
@@ -81,22 +82,11 @@ typedef struct
 
 typedef int XSelectionRequestEvent ;	/* dummy */
 
-typedef struct
-{
-	char *  fontname ;
-	DWORD  fontsize ;
-	HFONT  font ;
-
-} XFontStruct ;
-
 typedef int XFontSet ;	/* dummy */
 
 typedef struct
 {
 	u_long  pixel ;
-	u_short red ;
-	u_short green ;
-	u_short blue ;
 	HPEN  pen ;
 	HBRUSH  brush ;
 

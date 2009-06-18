@@ -6,9 +6,15 @@
 #define  __ML_COLOR_H__
 
 
-#define  MAX_COLORS     18
-#define  MAX_VT_COLORS  16
-#define  MAX_BASIC_VT_COLORS  8
+#include  <kiklib/kik_types.h>
+
+
+#define  MAX_VTSYS_COLORS  16
+#define  MAX_BASIC_VTSYS_COLORS  8
+
+#define  IS_VTSYS_COLOR(color)  (0x0 <= (color) && (color) <= 0xf)
+#define  IS_256_COLOR(color)  (0x10 <= (color) && (color) <= 0xff)
+#define  IS_VALID_COLOR(color)  (0x0 <= (color) && (color) <= 0x101)
 
 
 typedef enum  ml_color
@@ -25,14 +31,31 @@ typedef enum  ml_color
 	ML_WHITE = 0x7 ,
 
 	ML_BOLD_COLOR_MASK = 0x8 ,
-	
-	ML_FG_COLOR = 0x10 ,
-	ML_BG_COLOR = 0x11
 
+	/*
+	 * 0x8 - 0xf: bold vt colors.
+	 */
+	
+	/*
+	 * 0x10 - 0xff: 240 colors.
+	 */
+
+	ML_FG_COLOR = 0x100 ,
+	ML_BG_COLOR = 0x101
+	
 } ml_color_t ;
 
 
+/* For VT color only(ignore ML_BOLD_COLOR_MASK) */
+
 char *  ml_get_color_name( ml_color_t  color) ;
+
+ml_color_t  ml_get_color( char *  name) ;
+
+
+int  ml_get_color_rgb( ml_color_t  color, u_short *  red, u_short *  green, u_short *  blue) ;
+
+int  ml_change_color_rgb( ml_color_t  color, u_short  red, u_short  green, u_short  blue) ;
 
 
 #endif

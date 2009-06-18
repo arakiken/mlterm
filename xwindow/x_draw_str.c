@@ -72,14 +72,14 @@ xft_draw_combining_chars(
 		{
 			x_window_draw_decsp_string( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_color( color_man , ml_char_fg_color( &chars[count])) ,
+				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				NULL , x , y , ch_bytes , ch_size) ;
 		}
 		else if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
 		{
 			x_window_xft_draw_string8( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_color( color_man , ml_char_fg_color( &chars[count])) ,
+				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , ch_bytes , ch_size) ;
 		}
 		else
@@ -100,7 +100,7 @@ xft_draw_combining_chars(
 
 			x_window_xft_draw_string32( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_color( color_man , ml_char_fg_color( &chars[count])) ,
+				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , &xch , 1) ;
 		}
 	}
@@ -351,7 +351,7 @@ xft_draw_str(
 			else
 			{
 				x_window_fill_with( window ,
-					x_get_color( color_man , bg_color)->pixel ,
+					x_get_xcolor( color_man , bg_color)->pixel ,
 					x , y , current_width - x , height) ;
 			}
 
@@ -361,19 +361,19 @@ xft_draw_str(
 			if( state == 0)
 			{
 				x_window_xft_draw_string8( window ,
-					xfont , x_get_color( color_man , fg_color) ,
+					xfont , x_get_xcolor( color_man , fg_color) ,
 					x , y + height_to_baseline , str8 , str_len) ;
 			}
 			else if( state == 1)
 			{
 				x_window_draw_decsp_string( window , xfont ,
-					x_get_color( color_man , fg_color) , NULL ,
+					x_get_xcolor( color_man , fg_color) , NULL ,
 					x , y + height_to_baseline , str8 , str_len) ;
 			}
 			else /* if( state == 2) */
 			{
 				x_window_xft_draw_string32( window ,
-					xfont , x_get_color( color_man , fg_color) ,
+					xfont , x_get_xcolor( color_man , fg_color) ,
 					x , y + height_to_baseline , str32 , str_len) ;
 			}
 
@@ -388,13 +388,13 @@ xft_draw_str(
 				if( xfont->is_vertical)
 				{
 					x_window_fill_with( window ,
-						x_get_color( color_man , fg_color)->pixel ,
+						x_get_xcolor( color_man , fg_color)->pixel ,
 						x , y , (ch_width>>4) + 1 , height) ;
 				}
 				else
 				{
 					x_window_fill_with( window ,
-						x_get_color( color_man , fg_color)->pixel ,
+						x_get_xcolor( color_man , fg_color)->pixel ,
 						x , y + height_to_baseline ,
 						current_width - x , ((height_to_baseline - bottom_margin)>>4) +1 ) ;
 				}
@@ -459,14 +459,14 @@ xcore_draw_combining_chars(
 		{
 			x_window_draw_decsp_string( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_color( color_man , ml_char_fg_color( &chars[count])) ,
+				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				NULL , x , y , ch_bytes , 1) ;
 		}
 		else if( ch_size == 1)
 		{
 			x_window_draw_string( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_color( color_man , ml_char_fg_color( &chars[count])) ,
+				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , ch_bytes , 1) ;
 		}
 		else if( ch_size == 2)
@@ -478,7 +478,7 @@ xcore_draw_combining_chars(
 
 			x_window_draw_string16( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_color( color_man , ml_char_fg_color( &chars[count])) ,
+				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , &xch , 1) ;
 		}
 		else if( ch_size == 4 && ch_bytes[0] == '\0' && ch_bytes[1] == '\0')
@@ -492,7 +492,7 @@ xcore_draw_combining_chars(
 
 			x_window_draw_string16( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_color( color_man , ml_char_fg_color( &chars[count])) ,
+				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , &xch , 1) ;
 		}
 	#ifdef  DEBUG
@@ -760,26 +760,26 @@ xcore_draw_str(
 				#endif
 
 					x_window_fill_with( window ,
-						x_get_color( color_man , bg_color)->pixel ,
+						x_get_xcolor( color_man , bg_color)->pixel ,
 						x , y , current_width - x , height) ;
 				}
 
 				if( state == 2)
 				{
 					x_window_draw_string16( window , xfont ,
-						x_get_color( color_man , fg_color) ,
+						x_get_xcolor( color_man , fg_color) ,
 						x , y + height_to_baseline , str2b , str_len) ;
 				}
 				else if( state == 1)
 				{
 					x_window_draw_decsp_string( window , xfont ,
-						x_get_color( color_man , fg_color) , NULL ,
+						x_get_xcolor( color_man , fg_color) , NULL ,
 						x , y + height_to_baseline , str , str_len) ;
 				}
 				else /* if( state == 0) */
 				{
 					x_window_draw_string( window , xfont ,
-						x_get_color( color_man , fg_color) ,
+						x_get_xcolor( color_man , fg_color) ,
 						x , y + height_to_baseline , str , str_len) ;
 				}
 			}
@@ -788,22 +788,22 @@ xcore_draw_str(
 				if( state == 2)
 				{
 					x_window_draw_image_string16( window , xfont ,
-						x_get_color( color_man , fg_color) ,
-						x_get_color( color_man , bg_color) ,
+						x_get_xcolor( color_man , fg_color) ,
+						x_get_xcolor( color_man , bg_color) ,
 						x , y + height_to_baseline , str2b , str_len) ;
 				}
 				else if( state == 1)
 				{
 					x_window_draw_decsp_string( window , xfont ,
-						x_get_color( color_man , fg_color) ,
-						x_get_color( color_man , bg_color) ,
+						x_get_xcolor( color_man , fg_color) ,
+						x_get_xcolor( color_man , bg_color) ,
 						x , y + height_to_baseline , str , str_len) ;
 				}
 				else /* if( state == 0) */
 				{
 					x_window_draw_image_string( window , xfont ,
-						x_get_color( color_man , fg_color) ,
-						x_get_color( color_man , bg_color) ,
+						x_get_xcolor( color_man , fg_color) ,
+						x_get_xcolor( color_man , bg_color) ,
 						x , y + height_to_baseline , str , str_len) ;
 				}
 			}
@@ -819,13 +819,13 @@ xcore_draw_str(
 				if( xfont->is_vertical)
 				{
 					x_window_fill_with( window ,
-						x_get_color( color_man , fg_color)->pixel ,
+						x_get_xcolor( color_man , fg_color)->pixel ,
 						x , y , (ch_width>>4) + 1 , height) ;
 				}
 				else
 				{
 					x_window_fill_with( window ,
-						x_get_color( color_man , fg_color)->pixel ,
+						x_get_xcolor( color_man , fg_color)->pixel ,
 						x , y + height_to_baseline,
 						current_width - x , ((height_to_baseline - bottom_margin)>>4) +1 ) ;
 				}

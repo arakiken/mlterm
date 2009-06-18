@@ -687,6 +687,72 @@ change_char_attr(
 	}
 }
 
+static int
+change_color_rgb(
+	ml_vt100_parser_t *  vt100_parser,
+	u_char *  pt
+	)
+{
+#if  0
+	int  color ;
+	int  red ;
+	int  green ;
+	int  blue ;
+
+	if( sscanf( ( char*)pt, "%d;rgb:%x/%x/%x", &color, &red, &green, &blue))
+	{
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " change color %x r%x g%x b%x\n",
+			color, red, green, blue) ;
+	#endif
+
+		ml_screen_set_modified_all( vt100_parser->screen) ;
+		ml_change_color_rgb( color, red, green, blue) ;
+
+		/*
+		 * XXX
+		 * Should invoke rgb-changed event to x_color_cache
+		 * and all x_screens which share x_color_cache.
+		 */
+
+		return  1 ;
+	}
+	else
+	{
+		char  name[8] ;
+		int  count ;
+
+		for( count = 0 ; count < 8 ; count++)
+		{
+			if( pt[count] == ';')
+			{
+				if( sscanf( (char*)pt, "%s;rgb:%x/%x/%x",
+					name, &red, &green, &blue) &&
+					( color = ml_get_color( name)) != ML_UNKNOWN_COLOR)
+				{
+					ml_screen_set_modified_all( vt100_parser->screen) ;
+					ml_change_color_rgb( color, red, green, blue) ;
+
+					/*
+					 * XXX
+					 * Should invoke rgb-changed event to x_color_cache
+					 * and all x_screens which share x_color_cache.
+					 */
+
+					return  1 ;
+				}
+				else
+				{
+					return  0 ;
+				}
+			}
+		}
+	}
+#endif
+
+	return  0 ;
+}
+
 static void
 clear_line_all(
 	ml_vt100_parser_t *  vt100_parser
@@ -769,11 +835,13 @@ inc_str_in_esc_seq(
 			if( **str_p == CTLKEY_LF || **str_p == CTLKEY_VT)
 			{
 				ml_screen_line_feed( screen) ;
+			#if  0
                         /*
                          * XXX following hack is necessary if you use bash.exe in msys.
                          */
 			#ifdef  USE_WIN32API
 				ml_screen_goto_beg_of_line(screen) ;
+			#endif
 			#endif
 			}
 			else if( **str_p == CTLKEY_CR)
@@ -1913,7 +1981,25 @@ parse_vt100_escape_sequence(
 
 						for( count = 0 ; count < num ; count ++)
 						{
-							change_char_attr( vt100_parser , ps[count]) ;
+							if( ps[count] == 38 && num >= 3
+								&& ps[count + 1] == 5)
+							{
+								vt100_parser->fg_color =
+									ps[count + 2] ;
+								count += 2 ;
+							}
+							else if( ps[count] == 48 && num >= 3
+								&& ps[count + 1] == 5)
+							{
+								vt100_parser->bg_color =
+									ps[count + 2] ;
+								count += 2 ;
+							}
+							else
+							{
+								change_char_attr( vt100_parser ,
+									ps[count]) ;
+							}
 						}
 					}
 					else if( *str_p == 'n')
@@ -2022,6 +2108,8 @@ parse_vt100_escape_sequence(
 
 				if( *str_p == ';')
 				{
+					u_char  prev_ch ;
+					
 					if( inc_str_in_esc_seq( vt100_parser->screen ,
 						&str_p , &left , 1) == 0)
 					{
@@ -2029,8 +2117,13 @@ parse_vt100_escape_sequence(
 					}
 					
 					pt = str_p ;
-					while( *str_p != CTLKEY_BEL)
+					prev_ch = 0 ;
+					/* OSC is terminated by BEL or ST(ESC \) */
+					while( *str_p != CTLKEY_BEL &&
+						( prev_ch != CTLKEY_ESC || *str_p != '\\'))
 					{
+						prev_ch = *str_p ;
+						
 						if( *str_p == CTLKEY_LF)
 						{
 							/* stop to parse as escape seq. */
@@ -2044,7 +2137,14 @@ parse_vt100_escape_sequence(
 						}
 					}
 
-					*str_p = '\0' ;
+					if( *str_p == '\\')
+					{
+						*(str_p - 1) = '\0' ;
+					}
+					else
+					{
+						*str_p = '\0' ;
+					}
 
 					if( ps == 0)
 					{
@@ -2088,6 +2188,17 @@ parse_vt100_escape_sequence(
 							(*vt100_parser->xterm_listener->set_window_name)(
 								vt100_parser->xterm_listener->self , pt) ;
 							start_vt100_cmd( vt100_parser) ;
+						}
+					}
+					else if( ps == 4)
+					{
+						/* change 256 color */
+						if( ! change_color_rgb( vt100_parser, pt))
+						{
+						#ifdef  DEBUG
+							kik_debug_printf( KIK_DEBUG_TAG
+							" change_256_color_rgb failed.\n") ;
+						#endif
 						}
 					}
 					else if( ps == 20)
@@ -2340,12 +2451,14 @@ parse_vt100_escape_sequence(
 		#endif
 
 			ml_screen_line_feed( vt100_parser->screen) ;
-                  
+
+		#if  0
                         /*
                          * XXX following hack is necessary if you use bash.exe in msys.
                          */
 		#ifdef  USE_WIN32API
 			ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+		#endif
 		#endif
 		}
 		else if( *str_p == CTLKEY_CR)

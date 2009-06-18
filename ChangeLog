@@ -1,6 +1,15 @@
-2009-06-04  Araki Ken  <arakiken@users.sf.net>
+2009-06-16  Araki Ken  <arakiken@users.sf.net>
 
-	* configure.in: mlterm-menu is not compiled without gtk2.
+	* mkf_utf16_conv.[ch]: Added mkf_utf16le_conv_new()
+
+	* Support 256 color sequence(ESC[38;...m,ESC[48;...m).
+	  (Thanks to shinichiro.h).
+
+	* x_gc.[ch]: added(for sharing GC with all x_window except scrollbar and xim).
+
+	* x_color_cache.[ch]: added.
+
+2009-06-04  Araki Ken  <arakiken@users.sf.net>
 
 	* win32: Supported mouse and clipboard.
 	

@@ -1251,10 +1251,12 @@ x_font_new(
 			FONT_CS(font->id)) ;
 	#endif
 
-		return  0 ;
+		free( font) ;
+		
+		return  NULL ;
 	}
 
-  	font->xfont = CreateFont( fontsize, fontsize / 2,
+  	font->fid = CreateFont( fontsize, fontsize / 2,
                            0, /* text angle */
                            0, /* char angle */
                            font->id & FONT_BOLD ? FW_BOLD : FW_REGULAR, /* weight */
@@ -1270,11 +1272,12 @@ x_font_new(
 		#endif
 			   ) ;
 
-	if( ! font->xfont)
+	if( ! font->fid)
 	{
 		kik_warn_printf( KIK_DEBUG_TAG " CreateFont failed.\n") ;
+		free( font) ;
 	
-		return  0 ;
+		return  NULL ;
 	}
 	else
 	{
@@ -1287,7 +1290,7 @@ x_font_new(
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 			NULL, NULL, font->display->hinst, NULL) ;
 		gc = GetDC( win) ;
-		SelectObject( gc, font->xfont) ;
+		SelectObject( gc, font->fid) ;
 		GetTextMetrics( gc, &tm) ;
 		font->width = tm.tmAveCharWidth * font->cols ;
 		font->height = tm.tmHeight ;
@@ -1296,7 +1299,7 @@ x_font_new(
 		DestroyWindow( win) ;
 	#else
 		gc = CreateIC( "Display", NULL, NULL, NULL) ;
-		SelectObject( gc, font->xfont) ;
+		SelectObject( gc, font->fid) ;
 		GetTextMetrics( gc, &tm) ;
 		font->width = tm.tmAveCharWidth * font->cols ;
 		font->height = tm.tmHeight ;
@@ -1319,9 +1322,10 @@ x_font_new(
 	{
 		kik_warn_printf( KIK_DEBUG_TAG " ml_conv_new failed.\n") ;
 		
-		DeleteObject( font->xfont) ;
+		DeleteObject( font->fid) ;
+		free( font) ;
 
-		return  0 ;
+		return  NULL ;
 	}
 	
 	font->decsp_font = NULL ;
@@ -1377,10 +1381,11 @@ x_font_delete(
 	)
 {
 #ifdef  USE_WIN32API
-	if( font->xfont)
+	if( font->fid)
 	{
-		DeleteObject(font->xfont) ;
+		DeleteObject(font->fid) ;
 	}
+	
 	if( font->conv)
 	{
 		font->conv->delete( font->conv) ;
@@ -1507,13 +1512,16 @@ x_font_dump(
 	x_font_t *  font
 	)
 {
+#ifdef  USE_WIN32API
+	kik_msg_printf( "  id %x: XFont %p" , font->id , font->fid) ;
+#else
 #ifdef  USE_TYPE_XCORE
 	kik_msg_printf( "  id %x: XFont %p" , font->id , font->xfont) ;
 #endif
 #ifdef  USE_TYPE_XFT
 	kik_msg_printf( " XftFont %p" , font->id , font->xft_font) ;
 #endif
-
+#endif
 	if( font->is_proportional)
 	{
 		kik_msg_printf( " (proportional)") ;

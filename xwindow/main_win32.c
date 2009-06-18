@@ -174,7 +174,7 @@ int PASCAL WinMain(
 	}
 
 	if( ! ( color_man = x_color_manager_new( &disp, 0, &color_config, "black", "white",
-				"white", "black")))
+				NULL, NULL)))
 	{
 		kik_warn_printf( " x_color_manager_new failed.\n") ;
 

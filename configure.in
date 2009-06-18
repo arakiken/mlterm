@@ -274,10 +274,7 @@ else
 fi
 AC_SUBST(GTK_CONFIG)
 
-tools="mlclient,mlconfig,mlcc"
-if test "$have_gtk2" = "yes" ; then
-	tools="$tools,mlterm-menu"
-fi
+tools="mlclient,mlconfig,mlcc,mlterm-menu"
 AC_ARG_WITH(tools,
 	[  --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlterm-menu,mlcc]],
 	[
@@ -305,6 +302,9 @@ mlconfig)
 	;;
 mlterm-menu)
 	if test "${gtk_config}" = "yes" ; then
+		AC_CHECK_LIB(glib, g_locale_to_utf8,
+			G_LOCALE_CFLAGS="", G_LOCALE_CFLAGS="-DNO_G_LOCALE")
+		AC_SUBST(G_LOCALE_CFLAGS)
 		MAKE_DIRS="contrib/tool/mlterm-menu ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"

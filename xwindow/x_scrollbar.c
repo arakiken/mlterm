@@ -205,7 +205,7 @@ window_realized(
 	if( sb->view->realized)
 	{
 		(*sb->view->realized)( sb->view , sb->window.display , sb->window.screen ,
-			sb->window.my_window , sb->window.gc , sb->window.height) ;
+			sb->window.my_window , sb->window.gc->gc , sb->window.height) ;
 	}
 	
 	draw_decoration( sb) ;
@@ -660,7 +660,8 @@ view_created:
 	sb->is_pressing_up_button = 0 ;
 	sb->is_pressing_down_button = 0 ;
 
-	if( x_window_init( &sb->window , width , height , width , 0 , width , 0 , 0 , 0 , 0) == 0)
+	if( x_window_init( &sb->window , width , height , width ,
+		0 , width , 0 , 0 , 0 , 0 , /* create gc */ 1) == 0)
 	{
 		goto  error ;
 	}
@@ -1029,7 +1030,7 @@ x_scrollbar_change_view(
 	if( sb->view->realized)
 	{
 		(*sb->view->realized)( sb->view , sb->window.display , sb->window.screen ,
-			sb->window.my_window , sb->window.gc , sb->window.height) ;
+			sb->window.my_window , sb->window.gc->gc , sb->window.height) ;
 	}
 
 	if( sb->window.width != width)
@@ -1084,7 +1085,7 @@ x_scrollbar_set_transparent(
 		 * exposed event.
 		 */
 		(*sb->view->realized)( sb->view , sb->window.display , sb->window.screen ,
-			sb->window.my_window , sb->window.gc , sb->window.height) ;
+			sb->window.my_window , sb->window.gc->gc , sb->window.height) ;
 	}
 
 	x_window_set_transparent( &sb->window , pic_mod) ;
@@ -1130,7 +1131,7 @@ x_scrollbar_unset_transparent(
 		 * exposed event.
 		 */
 		(*sb->view->realized)( sb->view , sb->window.display , sb->window.screen ,
-			sb->window.my_window , sb->window.gc , sb->window.height) ;
+			sb->window.my_window , sb->window.gc->gc , sb->window.height) ;
 	}
 
 	x_window_unset_transparent( &sb->window) ;

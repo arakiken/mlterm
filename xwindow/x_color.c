@@ -110,6 +110,7 @@ alloc_closest_xcolor_pseudo(
 	ret_xcolor->green = closest_color.green ;
 	ret_xcolor->blue = closest_color.blue ;
 #endif
+
 	return 1 ;
 }
 
@@ -136,7 +137,7 @@ parse_rgb_color_name(
 			kik_debug_printf( KIK_DEBUG_TAG " %x %x %x\n" , _red , _green , _blue) ;
 		#endif
 
-			*red = (_red << 8) + _red;
+			*red = (_red << 8) + _red ;
 			*green = (_green << 8) + _green ;
 			*blue = (_blue << 8) + _blue ;
 			
@@ -197,9 +198,7 @@ x_load_named_xcolor(
 			if( strcmp( name, "white") == 0)
 			{
 				return  x_load_rgb_xcolor( display, screen, xcolor,
-						0xFFFF,
-						0xFFFF,
-						0xFFFF) ;
+						0xFF, 0xFF, 0xFF) ;
 			}
 			else if ( strcmp( name, "black") == 0)
 			{
@@ -226,9 +225,9 @@ x_load_rgb_xcolor(
 {
 	XRenderColor  rend_color ;
 	
-	rend_color.red = red ;
-	rend_color.green = green ;
-	rend_color.blue = blue ;
+	rend_color.red = (red << 8) ;
+	rend_color.green = (green << 8) ;
+	rend_color.blue = (blue << 8) ;
 	rend_color.alpha = 0xffff ;
 
 	if( ! XftColorAllocValue( display , DefaultVisual( display , screen) ,
@@ -265,9 +264,9 @@ x_get_xcolor_rgb(
 	XftColor *  xcolor
 	)
 {
-	*red = xcolor->color.red ;
-	*blue = xcolor->color.blue ;
-	*green = xcolor->color.green ;
+	*red = ((xcolor->color.red >> 8) & 0xff) ;
+	*blue = ((xcolor->color.blue >> 8) & 0xff) ;
+	*green = ((xcolor->color.green >> 8) & 0xff) ;
 
 	return  1 ;
 }
@@ -322,9 +321,9 @@ x_load_rgb_xcolor(
 	u_short  blue
 	)
 {
-	xcolor->red = red ;
-	xcolor->green = green ;
-	xcolor->blue = blue ;
+	xcolor->red = (red << 8) ;
+	xcolor->green = (green << 8) ;
+	xcolor->blue = (blue << 8) ;
 	xcolor->flags = 0 ;
 
 	if( ! XAllocColor( display , DefaultColormap( display , screen) , xcolor))
@@ -363,9 +362,9 @@ x_get_xcolor_rgb(
 	XColor *  xcolor
 	)
 {
-	*red = xcolor->red ;
-	*blue = xcolor->blue ;
-	*green = xcolor->green ;
+	*red = (xcolor->red >> 8) & 0xff ;
+	*blue = (xcolor->blue >> 8) & 0xff ;
+	*green = (xcolor->green >> 8) & 0xff ;
 
 	return  1 ;
 }
@@ -392,5 +391,5 @@ x_xcolor_fade(
 
 	x_unload_xcolor( display , screen , xcolor) ;
 
-	return  x_load_rgb_xcolor( display , screen , xcolor , red , green , blue) ;
+	return  x_load_rgb_xcolor( display , screen , xcolor , red, green , blue) ;
 }

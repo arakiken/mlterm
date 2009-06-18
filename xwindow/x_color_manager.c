@@ -11,27 +11,64 @@
 #include  <kiklib/kik_str.h>	/* strdup */
 
 
+enum
+{
+	_FG_COLOR = 0x0 ,
+	_BG_COLOR = 0x1 ,
+	_CUR_FG_COLOR = 0x2 ,
+	_CUR_BG_COLOR = 0x3 ,
+	MAX_SYS_COLORS = 0x4 ,
+} ;
+
+
+/* --- static variables --- */
+
+static char *  default_fg_color = "black" ;
+static char *  default_bg_color = "white" ;
+
+
 /* --- static functions --- */
 
 static int
-unload_all_colors(
-	x_color_manager_t *  color_man
+sys_color_set(
+	x_color_manager_t *   color_man,
+	char *  name,
+	int  color
 	)
 {
-	ml_color_t  color ;
-
-	for( color = 0 ; color < MAX_COLORS ; color ++)
+	free( color_man->sys_colors[color].name) ;
+	
+	if( color_man->sys_colors[color].is_loaded)
 	{
-		if( color_man->is_loaded[color])
+		x_unload_xcolor( color_man->color_cache->display ,
+			color_man->color_cache->screen ,
+			&color_man->sys_colors[color].xcolor) ;
+		color_man->sys_colors[color].is_loaded = 0 ;
+	}
+
+	if( name == NULL)
+	{
+		if( color == _CUR_FG_COLOR || color == _CUR_BG_COLOR)
 		{
-			x_unload_xcolor( color_man->display , color_man->screen ,
-				&color_man->xcolors[color]) ;
-			color_man->is_loaded[color] = 0 ;
+			color_man->sys_colors[color].name = NULL ;
 		}
+		else if( color == _FG_COLOR)
+		{
+			color_man->sys_colors[color].name = strdup( default_fg_color) ;
+		}
+		else /* if( color == _BG_COLOR) */
+		{
+			color_man->sys_colors[color].name = strdup( default_bg_color) ;
+		}
+	}
+	else
+	{
+		color_man->sys_colors[color].name = strdup( name) ;
 	}
 
 	return  1 ;
 }
+
 
 /* --- global functions --- */
 
@@ -40,12 +77,13 @@ x_color_manager_new(
 	Display *  display ,
 	int  screen ,
 	x_color_config_t *  color_config ,
-	char *  fg_color ,
-	char *  bg_color ,
-	char *  cursor_fg_color ,
-	char *  cursor_bg_color
+	char *  fg_color ,	/* can be NULL(If NULL, use "black".) */
+	char *  bg_color ,	/* can be NULL(If NULL, use "white".) */
+	char *  cursor_fg_color , /* can be NULL(If NULL, use reversed one of the char color.) */
+	char *  cursor_bg_color	  /* can be NULL(If NULL, use reversed one of the char color.) */
 	)
 {
+	int  count ;
 	x_color_manager_t *  color_man ;
 
 	if( ( color_man = malloc( sizeof( x_color_manager_t))) == NULL)
@@ -53,17 +91,13 @@ x_color_manager_new(
 		return  NULL ;
 	}
 
-	memset( color_man->is_loaded , 0 , sizeof( color_man->is_loaded)) ;
-	
-	color_man->display = display ;
-	color_man->screen = screen ;
-
-	color_man->color_config = color_config ;
-	color_man->fade_ratio = 100 ;
-	color_man->is_reversed = 0 ;
-
-	if( ! x_load_named_xcolor( color_man->display , color_man->screen , &color_man->black , "black"))
+	if( ( color_man->color_cache = x_acquire_color_cache( display, screen, color_config, 100))
+					== NULL)
 	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " x_aquire_color_cache failed.\n") ;
+	#endif
+	
 		free( color_man) ;
 		
 		return  NULL ;
@@ -71,37 +105,42 @@ x_color_manager_new(
 
 	if( fg_color == NULL)
 	{
-		fg_color = "black" ;
-	}
-
-	if( bg_color == NULL)
-	{
-		bg_color = "white" ;
+		fg_color = default_fg_color ;
 	}
 	
-	color_man->fg_color = strdup( fg_color) ;
-	color_man->bg_color = strdup( bg_color) ;
-
+	if( bg_color == NULL)
+	{
+		bg_color = default_bg_color ;
+	}
+	
+	color_man->sys_colors[_FG_COLOR].name = strdup( fg_color) ;
+	color_man->sys_colors[_BG_COLOR].name = strdup( bg_color) ;
+	
 	if( cursor_fg_color)
 	{
-		color_man->cursor_colors[0].color = strdup( cursor_fg_color) ;
+		color_man->sys_colors[_CUR_FG_COLOR].name = strdup( cursor_fg_color) ;
 	}
 	else
 	{
-		color_man->cursor_colors[0].color = NULL ;
+		color_man->sys_colors[_CUR_FG_COLOR].name = NULL ;
 	}
-	color_man->cursor_colors[0].is_loaded = 0 ;
 	
 	if( cursor_bg_color)
 	{
-		color_man->cursor_colors[1].color = strdup( cursor_bg_color) ;
+		color_man->sys_colors[_CUR_BG_COLOR].name = strdup( cursor_bg_color) ;
 	}
 	else
 	{
-		color_man->cursor_colors[1].color = NULL ;
+		color_man->sys_colors[_CUR_BG_COLOR].name = NULL ;
 	}
-	color_man->cursor_colors[1].is_loaded = 0 ;
 	
+	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
+	{
+		color_man->sys_colors[count].is_loaded = 0 ;
+	}
+		
+	color_man->is_reversed = 0 ;
+		
 	return  color_man ;
 }
 
@@ -112,23 +151,20 @@ x_color_manager_delete(
 {
 	int  count ;
 	
-	unload_all_colors( color_man) ;
+	x_release_color_cache( color_man->color_cache) ;
 
-	x_unload_xcolor( color_man->display , color_man->screen , &color_man->black) ;
-	
-	free( color_man->fg_color) ;
-	free( color_man->bg_color) ;
-
-	for( count = 0 ; count < 2 ; count ++)
+	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
 	{
-		if( color_man->cursor_colors[count].is_loaded)
+		free( color_man->sys_colors[count].name) ;
+		
+		if( color_man->sys_colors[count].is_loaded)
 		{
-			x_unload_xcolor( color_man->display , color_man->screen ,
-				&color_man->cursor_colors[count].xcolor) ;
+			x_unload_xcolor( color_man->color_cache->display,
+				color_man->color_cache->screen,
+				&color_man->sys_colors[count].xcolor) ;
 		}
-		free( color_man->cursor_colors[count].color) ;
 	}
-	
+
 	free( color_man) ;
 
 	return  1 ;
@@ -137,103 +173,37 @@ x_color_manager_delete(
 int
 x_color_manager_set_fg_color(
 	x_color_manager_t *  color_man ,
-	char *  fg_color
+	char *  name
 	)
 {
-	free( color_man->fg_color) ;
-	
-	if( color_man->is_loaded[ML_FG_COLOR])
-	{
-		x_unload_xcolor( color_man->display , color_man->screen ,
-			&color_man->xcolors[ML_FG_COLOR]) ;
-
-		color_man->is_loaded[ML_FG_COLOR] = 0 ;
-	}
-	
-	color_man->fg_color = strdup( fg_color) ;
-
-	return  1 ;
+	return  sys_color_set( color_man, name, _FG_COLOR) ;
 }
 
 int
 x_color_manager_set_bg_color(
 	x_color_manager_t *  color_man ,
-	char *  bg_color
+	char *  name
 	)
 {
-	free( color_man->bg_color) ;
-	
-	if( color_man->is_loaded[ML_BG_COLOR])
-	{
-		x_unload_xcolor( color_man->display , color_man->screen ,
-			&color_man->xcolors[ML_BG_COLOR]) ;
-
-		color_man->is_loaded[ML_BG_COLOR] = 0 ;
-	}
-
-	color_man->bg_color = strdup( bg_color) ;
-	
-	return  1 ;
+	return  sys_color_set( color_man, name, _BG_COLOR) ;
 }
 
 int
 x_color_manager_set_cursor_fg_color(
 	x_color_manager_t *  color_man ,
-	char *  fg_color
+	char *  name
 	)
 {
-	if( color_man->cursor_colors[0].color)
-	{
-		free( color_man->cursor_colors[0].color) ;
-
-		if( color_man->cursor_colors[0].is_loaded)
-		{
-			x_unload_xcolor( color_man->display , color_man->screen ,
-				&color_man->cursor_colors[0].xcolor) ;
-		}
-	}
-
-	if( fg_color)
-	{
-		color_man->cursor_colors[0].color = strdup( fg_color) ;
-		color_man->cursor_colors[0].is_loaded = 0 ;
-	}
-	else
-	{
-		color_man->cursor_colors[0].color = NULL ;
-	}
-
-	return  1 ;
+	return  sys_color_set( color_man, name, _CUR_FG_COLOR) ;
 }
 
 int
 x_color_manager_set_cursor_bg_color(
 	x_color_manager_t *  color_man ,
-	char *  bg_color
+	char *  name
 	)
 {
-	if( color_man->cursor_colors[1].color)
-	{
-		free( color_man->cursor_colors[1].color) ;
-
-		if( color_man->cursor_colors[1].is_loaded)
-		{
-			x_unload_xcolor( color_man->display , color_man->screen ,
-				&color_man->cursor_colors[1].xcolor) ;
-		}
-	}
-
-	if( bg_color)
-	{
-		color_man->cursor_colors[1].color = strdup( bg_color) ;
-		color_man->cursor_colors[1].is_loaded = 0 ;
-	}
-	else
-	{
-		color_man->cursor_colors[1].color = NULL ;
-	}
-
-	return  1 ;
+	return  sys_color_set( color_man, name, _CUR_BG_COLOR) ;
 }
 
 char *
@@ -241,7 +211,7 @@ x_color_manager_get_fg_color(
 	x_color_manager_t *  color_man
 	)
 {
-	return  color_man->fg_color ;
+	return  color_man->sys_colors[_FG_COLOR].name ;
 }
 
 char *
@@ -249,7 +219,7 @@ x_color_manager_get_bg_color(
 	x_color_manager_t *  color_man
 	)
 {
-	return  color_man->bg_color ;
+	return  color_man->sys_colors[_BG_COLOR].name ;
 }
 
 char *
@@ -257,7 +227,7 @@ x_color_manager_get_cursor_fg_color(
 	x_color_manager_t *  color_man
 	)
 {
-	return  color_man->cursor_colors[0].color ;
+	return  color_man->sys_colors[_CUR_FG_COLOR].name ;
 }
 
 char *
@@ -265,21 +235,15 @@ x_color_manager_get_cursor_bg_color(
 	x_color_manager_t *  color_man
 	)
 {
-	return  color_man->cursor_colors[1].color ;
+	return  color_man->sys_colors[_CUR_BG_COLOR].name ;
 }
 
 x_color_t *
-x_get_color(
+x_get_xcolor(
 	x_color_manager_t *  color_man ,
 	ml_color_t  color
 	)
 {
-	u_short  red ;
-	u_short  green ;
-	u_short  blue ;
-	char *  tag ;
-	char *  name ;
-
 	if( color_man->is_reversed)
 	{
 		if( color == ML_FG_COLOR)
@@ -292,94 +256,42 @@ x_get_color(
 		}
 	}
 
-	if( color_man->is_loaded[color])
-	{
-		return  &color_man->xcolors[color] ;
-	}
-	
 	if( color == ML_FG_COLOR)
 	{
-		name = color_man->fg_color ;
+		if( ! color_man->sys_colors[_FG_COLOR].is_loaded)
+		{
+			if( ! x_load_xcolor( color_man->color_cache,
+				&color_man->sys_colors[_FG_COLOR].xcolor,
+				color_man->sys_colors[_FG_COLOR].name))
+			{
+				return  &color_man->color_cache->black ;
+			}
+		}
+
+		color_man->sys_colors[_FG_COLOR].is_loaded = 1 ;
+		
+		return  &color_man->sys_colors[_FG_COLOR].xcolor ;
 	}
 	else if( color == ML_BG_COLOR)
 	{
-		name = color_man->bg_color ;
-	}
-	else if( ( name = ml_get_color_name( color)) == NULL)
-	{
-		goto  not_found ;
-	}
-
-	if( color & ML_BOLD_COLOR_MASK)
-	{
-		if( ( tag = malloc( strlen(name) + 4)) == NULL)
+		if( ! color_man->sys_colors[_BG_COLOR].is_loaded)
 		{
-			return  NULL ;
+			if( ! x_load_xcolor( color_man->color_cache,
+				&color_man->sys_colors[_BG_COLOR].xcolor,
+				color_man->sys_colors[_BG_COLOR].name))
+			{
+				return  &color_man->color_cache->black ;
+			}
 		}
-
-		sprintf( tag , "hl_%s" , name) ;
+		
+		color_man->sys_colors[_BG_COLOR].is_loaded = 1 ;
+		
+		return  &color_man->sys_colors[_BG_COLOR].xcolor ;
 	}
 	else
 	{
-		tag = name ;
+		return  x_get_cached_xcolor( color_man->color_cache, color) ;
 	}
-	
-	if( x_color_config_get_rgb( color_man->color_config , &red , &green , &blue , tag))
-	{
-		if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
-			&color_man->xcolors[color] , red , green , blue))
-		{
-			goto  found ;
-		}
-	}
-
-	if( tag != name)
-	{
-		free( tag) ;
-	}
-
-	if( x_load_named_xcolor( color_man->display , color_man->screen , &color_man->xcolors[color] , name))
-	{
-		if( color < MAX_BASIC_VT_COLORS)
-		{
-			x_get_xcolor_rgb( &red , &green , &blue , &color_man->xcolors[color]) ;
-
-			x_unload_xcolor( color_man->display , color_man->screen ,
-				&color_man->xcolors[color]) ;
-			
-			if( x_load_rgb_xcolor( color_man->display , color_man->screen ,
-				&color_man->xcolors[color] ,
-				red * 90 / 100 , green * 90 / 100 , blue * 90 / 100))
-			{
-				goto  found ;
-			}
-		}
-		else
-		{
-			goto  found ;
-		}
-	}
-
-	goto  not_found ;
-
-found:
-	if( color_man->fade_ratio < 100)
-	{
-		if( ! x_xcolor_fade( color_man->display , color_man->screen ,
-			&color_man->xcolors[color] , color_man->fade_ratio))
-		{
-			goto  not_found ;
-		}
-	}
-	
-	color_man->is_loaded[color] = 1 ;
-
-	return  &color_man->xcolors[color] ;
-
-not_found:
-	kik_msg_printf( " Loading color %s failed. Using black color instead.\n" , name) ;
-
-	return  &color_man->black ;
 }
 
 int
@@ -388,14 +300,30 @@ x_color_manager_fade(
 	u_int  fade_ratio	/* valid value is 0 - 99 */
 	)
 {
+	x_color_cache_t *  color_cache ;
+	
 	if( fade_ratio >= 100)
 	{
 		return  0 ;
 	}
 	
-	unload_all_colors( color_man) ;
-	color_man->fade_ratio = fade_ratio ;
+	if( fade_ratio == color_man->color_cache->fade_ratio)
+	{
+		return  1 ;
+	}
 
+	if( ( color_cache = x_acquire_color_cache( color_cache->display, color_cache->screen,
+				color_cache->color_config, fade_ratio)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " x_aquire_color_cache failed.\n") ;
+	#endif
+		return  0 ;
+	}
+	
+	x_release_color_cache( color_man->color_cache) ;
+	color_man->color_cache = color_cache ;
+	
 	return  1 ;
 }
 
@@ -404,9 +332,25 @@ x_color_manager_unfade(
 	x_color_manager_t *  color_man
 	)
 {
-	unload_all_colors( color_man) ;
-	color_man->fade_ratio = 100 ;
+	x_color_cache_t *  color_cache ;
+	
+	if( color_man->color_cache->fade_ratio == 100)
+	{
+		return  1 ;
+	}
 
+	if( ( color_cache = x_acquire_color_cache( color_cache->display, color_cache->screen,
+				color_cache->color_config, 100)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " x_aquire_color_cache failed.\n") ;
+	#endif
+		return  0 ;
+	}
+	
+	x_release_color_cache( color_man->color_cache) ;
+	color_man->color_cache = color_cache ;
+	
 	return  1 ;
 }
 
@@ -440,58 +384,48 @@ x_color_manager_restore_video(
 	return  1 ;
 }
 
+/*
+ * Swap the color of ML_BG_COLOR <=> that of cursor fg color.
+ * Deal ML_BG_COLOR as cursor fg color.
+ */
 int
 x_color_manager_adjust_cursor_fg(
 	x_color_manager_t *  color_man
 	)
 {
-	char *  color ;
-	x_color_t  xcolor ;
-	int  is_loaded ;
+	struct sys_color  tmp_color ;
 
-	if( !color_man->cursor_colors[1].color){
+	if( ! color_man->sys_colors[_CUR_FG_COLOR].name)
+	{
 		return  0 ;
 	}
 
-	color = color_man->cursor_colors[1].color ;
-	xcolor = color_man->cursor_colors[1].xcolor ;
-	is_loaded = color_man->cursor_colors[1].is_loaded ;
-
-	color_man->cursor_colors[1].color = color_man->fg_color ;
-	color_man->cursor_colors[1].is_loaded = color_man->is_loaded[ML_FG_COLOR] ;
-	color_man->cursor_colors[1].xcolor = color_man->xcolors[ML_FG_COLOR] ;
-
-	color_man->fg_color = color ;
-	color_man->xcolors[ML_FG_COLOR] = xcolor ;
-	color_man->is_loaded[ML_FG_COLOR] = is_loaded ;
-
+	tmp_color = color_man->sys_colors[_BG_COLOR] ;
+	color_man->sys_colors[_BG_COLOR] = color_man->sys_colors[_CUR_FG_COLOR] ;
+	color_man->sys_colors[_CUR_FG_COLOR] = tmp_color ;
+	
 	return  1 ;
 }
 
+/*
+ * Swap the color of ML_FG_COLOR <=> that of cursor bg color.
+ * Deal ML_FG_COLOR as cursor bg color.
+ */
 int
 x_color_manager_adjust_cursor_bg(
 	x_color_manager_t *  color_man
 	)
 {
-	char *  color ;
-	x_color_t  xcolor ;
-	int  is_loaded ;
+	struct sys_color  tmp_color ;
 
-	if( !color_man->cursor_colors[0].color){
+	if( ! color_man->sys_colors[_CUR_BG_COLOR].name)
+	{
 		return  0 ;
 	}
 
-	color = color_man->cursor_colors[0].color ;
-	xcolor = color_man->cursor_colors[0].xcolor ;
-	is_loaded = color_man->cursor_colors[0].is_loaded ;
-
-	color_man->cursor_colors[0].color = color_man->bg_color ;
-	color_man->cursor_colors[0].is_loaded = color_man->is_loaded[ML_BG_COLOR] ;
-	color_man->cursor_colors[0].xcolor = color_man->xcolors[ML_BG_COLOR] ;
-
-	color_man->bg_color = color ;
-	color_man->xcolors[ML_BG_COLOR] = xcolor ;
-	color_man->is_loaded[ML_BG_COLOR] = is_loaded ;
-
+	tmp_color = color_man->sys_colors[_FG_COLOR] ;
+	color_man->sys_colors[_FG_COLOR] = color_man->sys_colors[_CUR_BG_COLOR] ;
+	color_man->sys_colors[_CUR_BG_COLOR] = tmp_color ;
+	
 	return  1 ;
 }

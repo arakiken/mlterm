@@ -29,7 +29,7 @@ typedef enum  ml_iscii_lang_type
 	ISCIILANG_TAMIL ,
 	ISCIILANG_TELUGU ,
 
-	MAX_ISCIILANG
+	MAX_ISCIILANGS
 
 } ml_iscii_lang_type_t ;
 

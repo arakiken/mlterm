@@ -9,49 +9,53 @@
 #include  <kiklib/kik_types.h>		/* u_xxx */
 
 
-/* ISO2022 Ft should be within 0x30 and 0x7e */
+/*
+ * ISO2022 Ft should be within 0x40('@') and 0x7e('~') except DEC_SPECIAL(Ft='0').
+ */
 
-/* 0x00 - 0x4e */
+/* 0x00 - 0x4e (Ft is within 0x30 and 0x7e) */
 #define  CS94SB_ID(c)  ( (u_char)(c) - 0x30)
-/* 0x50 - 0x9e */
-#define  CS96SB_ID(c)  ( (u_char)(c) + 0x20)
-/* 0xa0 - 0xde */
-#define  CS94MB_ID(c)  ( (u_char)(c) + 0x70)
-/* 0xf0 - 0x13e */
-#define  CS96MB_ID(c)  ( (u_char)(c) + 0xc0)
+/* 0x50 - 0x7f (Ft is within 0x40 and 0x6f) */
+#define  CS96SB_ID(c)  ( (u_char)(c) + 0x10)
+/* 0x80 - 0x9f (Ft is within 0x40 and 0x5f) */
+#define  CS94MB_ID(c)  ( (u_char)(c) + 0x40)
+/* No 96^n cs exists. */
+#define  CS96MB_ID(c)  UNKNOWN_CS
+/* 0xa0 - 0xaf (Ft is within 0x40 and 0x4f) */
+#define  NON_ISO2022_1_ID(c)  ( (u_char)(c) + 0x60)
+/* 0xb0 - 0xbf (Ft is within 0x40 and 0x4f) */
+#define  NON_ISO2022_2_ID(c)  ( (u_char)(c) + 0x70)
 
-/* 0x140 - 0x18e */
-#define  NON_ISO2022_1_ID(c)  ( (u_char)(c) + 0x110)
-/* 0x190 - 0x1de */
-#define  NON_ISO2022_2_ID(c)  ( (u_char)(c) + 0x160)
-
-/* 0x400 - 0x53e (= 0x400 | CS9XXB_ID) */
-#define  CS_REVISION_1(cs)	( (cs) + 0x400)
-/* 0x600 - 0x73e (= 0x600 | CS9XXB_ID) */
-#define  CS_REVISION_2(cs)	( (cs) + 0x600)
-
-#define  CS94SB_FT(i)  ( (int)(i) + 0x30)
-#define  CS96SB_FT(i)  ( (int)(i) - 0x20)
-#define  CS94MB_FT(i)  ( (int)(i) - 0x70)
-#define  CS96MB_FT(i)  ( (int)(i) - 0xc0)
+/* 0x100 - 0x1bf (= 0x100 | CS9XXB_ID) */
+#define  CS_REVISION_1(cs)	( (cs) + 0x100)
+/* 0x200 - 0x2bf (= 0x200 | CS9XXB_ID) */
+#define  CS_REVISION_2(cs)	( (cs) + 0x200)
 
 /*
- * 'and 0x3ff' should be done because 0x400 - region is used for 'or cs_revision'
+ * 'and 0xff' should be done because 0x100 - region is used for 'or cs_revision'
  */
- 
-#define  IS_CS94SB(cs)  (0x00 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0x4e)
-#define  IS_CS96SB(cs)  (0x50 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0x9e)
-#define  IS_CS94MB(cs)  (0xa0 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0xde)
-#define  IS_CS96MB(cs)  (0xf0 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0x13e)
 
-#define  IS_NON_ISO2022(cs)  (0x140 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0x1de)
+#define  CS94SB_FT(cs)  ( ((cs) & 0xff) + 0x30)
+#define  CS96SB_FT(cs)  ( ((cs) & 0xff) - 0x10)
+#define  CS94MB_FT(cs)  ( ((cs) & 0xff) - 0x40)
+#define  CS96MB_FT(cs)  ' '			/* dummy */
 
-#define  IS_CS_BASED_ON_ISO2022(cs)  ( 0x0 <= ((cs) & 0x3ff) && ((cs) & 0x3ff) <= 0x13e)
+#define  IS_CS94SB(cs)  (0x00 <= ((cs) & 0xff) && ((cs) & 0xff) <= 0x4e)
+#define  IS_CS96SB(cs)  (0x50 <= ((cs) & 0xff) && ((cs) & 0xff) <= 0x7f)
+#define  IS_CS94MB(cs)  (0x80 <= ((cs) & 0xff) && ((cs) & 0xff) <= 0x9f)
+#define  IS_CS96MB(cs)  (0)			/* always false */
+#define  IS_CS_BASED_ON_ISO2022(cs)  ( 0x0 <= ((cs) & 0xff) && ((cs) & 0xff) <= 0x9f)
+
+#define  IS_NON_ISO2022(cs)  (0xa0 <= (cs) && (cs) <= 0xff)
+
+#define  IS_BIWIDTH_CS(cs) (IS_CS94MB(cs) || IS_CS96MB(cs) || (0xf0 <= (cs) && (cs) <= 0xff))
+#define  CS_SIZE(cs) \
+	((cs) == ISO10646_UCS4_1 ? 4 : ((IS_BIWIDTH_CS(cs) || (cs) == ISO10646_UCS2_1) ? 2 : 1))
 
 
 /*
  * These enumeration numbers are based on iso2022 Ft(0x30-0x7e).
- * Total range is -1 <-> 0x7fff(int16).
+ * Total range is -1 <-> 0x2ff(int16).
  */
 typedef enum  mkf_charset
 {
@@ -105,60 +109,66 @@ typedef enum  mkf_charset
 
 	/* 96 mb cs */
 
-	/* NOT ISO2022 - class 1 (ESC 2/5 Ft) */
+	/* NOT ISO2022 class 1 (ESC 2/5 Ft) */
 	UTF1 = NON_ISO2022_1_ID('B') ,
 	UTF8 = NON_ISO2022_1_ID('G') ,
 
-	/* NOT ISO2022 - class 2 (ESC 2/5 2/15 Ft) */
+	/* NOT ISO2022 class 2 (ESC 2/5 2/15 Ft) */
 	XCT_NON_ISO2022_CS_1 = NON_ISO2022_2_ID('1') ,	/* CTEXT */
 	XCT_NON_ISO2022_CS_2 = NON_ISO2022_2_ID('2') ,	/* CTEXT */
 	ISO10646_UCS2_1 = NON_ISO2022_2_ID('@') ,	/* Including US_ASCII(0x0-0x7f) */
 	ISO10646_UCS4_1 = NON_ISO2022_2_ID('A') ,	/* Including US_ASCII(0x0-0x7f) */
 
+	
 	/* Followings are mkf original classifications */
 	
 	/*
-	 * Those who are not ISO2022 registed characterset but confirm to ISO2022.
-	 * 0x200 - 0x2ff
+	 * Those who are not ISO2022 registed characterset or do not confirm to ISO2022.
+	 * 0xe0 - 0xef
 	 */
-	JISC6226_1978_NEC_EXT = 0x200 ,
-	JISC6226_1978_NECIBM_EXT = 0x201 ,
-	JISX0208_1983_MAC_EXT = 0x202 ,
+	VISCII = 0xe0 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	TCVN5712_1_1993 = 0xe1 ,	/* ISO2022 compat */
+	KOI8_R = 0xe2 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	KOI8_U = 0xe3 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII = 0xe4 ,
+	KOI8_T = 0xe5 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	GEORGIAN_PS = 0xe6 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	CP1251 = 0xe7 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1255 = 0xe8 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1253 = 0xe9 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1254 = 0xea ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1256 = 0xeb ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1257 = 0xec ,			/* Excluding US_ASCII(0x0-0x7f) */
+
+	/*
+	 * Those who are not ISO2022 registed characterset but confirm to ISO2022.
+	 * (Bi-width)
+	 * 0xf0 - 0xf2
+	 */
+	JISC6226_1978_NEC_EXT = 0xf0 ,
+	JISC6226_1978_NECIBM_EXT = 0xf1 ,
+	JISX0208_1983_MAC_EXT = 0xf2 ,
 
 	/*
 	 * Those who are not ISO2022 registed characterset or do not confirm to ISO2022.
-	 * 0x300 - 0x3ff.
-	 *
-	 * XXX
-	 * Should be reordered.
+	 * (Bi-width)
+	 * 0xf3 - 0xff
 	 */
-	SJIS_IBM_EXT = 0x300 ,
-	UHC = 0x301 ,
-	BIG5 = 0x302 ,
-	CNS11643_1992_EUCTW_G2 = 0x303 ,
-	GBK = 0x304 ,
-	JOHAB = 0x305 ,
-	VISCII = 0x306 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	TCVN5712_1_1993 = 0x307 ,	/* ISO2022 compat */
-	KOI8_R = 0x308 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	KOI8_U = 0x309 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	HKSCS = 0x310 ,
-	ISCII = 0x311 ,
-	KOI8_T = 0x312 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	GEORGIAN_PS = 0x313 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	CP1251 = 0x314 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	CP1255 = 0x315 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	CP1253 = 0x316 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	CP1254 = 0x317 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	CP1256 = 0x318 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	CP1257 = 0x319 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	SJIS_IBM_EXT = 0xf3 ,
+	UHC = 0xf4 ,
+	BIG5 = 0xf5 ,
+	CNS11643_1992_EUCTW_G2 = 0xf6 ,
+	GBK = 0xf7 ,
+	JOHAB = 0xf8 ,
+	HKSCS = 0xf9 ,
+
 
 	/* Followings are ISO2022 based charsets with revisions. */
-
-	/* Revision 1 */
-	JISX0208_1990 = CS_REVISION_1( CS94MB_ID('B')) ,
 	
-	MAX_CHARSET = 0x7ff
+	/* Revision 1 */
+	JISX0208_1990 = CS_REVISION_1( JISX0208_1983) ,
+
+	MAX_CHARSET = 0x2ff
 	
 } mkf_charset_t ;
 

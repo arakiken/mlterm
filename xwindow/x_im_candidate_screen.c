@@ -864,9 +864,9 @@ window_realized(
 
 	cand_screen = (x_im_candidate_screen_t*) win ;
 
-	x_window_set_fg_color( win , x_get_color( cand_screen->color_man ,
+	x_window_set_fg_color( win , x_get_xcolor( cand_screen->color_man ,
 						  ML_FG_COLOR)->pixel) ;
-	x_window_set_bg_color( win , x_get_color( cand_screen->color_man ,
+	x_window_set_bg_color( win , x_get_xcolor( cand_screen->color_man ,
 						  ML_BG_COLOR)->pixel) ;
 
 	x_window_set_override_redirect( &cand_screen->window , 1) ;
@@ -1005,7 +1005,7 @@ x_im_candidate_screen_new(
 
 	if( ! x_window_init( &cand_screen->window , MARGIN * 2 , MARGIN * 2 ,
 			     MARGIN * 2 , MARGIN * 2 , MARGIN * 2 , MARGIN * 2 ,
-			     1 , 1 , MARGIN))
+			     1 , 1 , MARGIN, /* ceate_gc */ 1))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;

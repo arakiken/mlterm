@@ -43,7 +43,7 @@ ml_iscii_get_lang(
 {
 	ml_iscii_lang_type_t  lang ;
 
-	for( lang = 0 ; lang < MAX_ISCIILANG ; lang ++)
+	for( lang = 0 ; lang < MAX_ISCIILANGS ; lang ++)
 	{
 		if( strcasecmp( iscii_langs[lang] , name) == 0)
 		{
@@ -59,7 +59,7 @@ ml_iscii_get_lang_name(
 	ml_iscii_lang_type_t  type
 	)
 {
-	if( ISCIILANG_UNKNOWN < type && type < MAX_ISCIILANG)
+	if( ISCIILANG_UNKNOWN < type && type < MAX_ISCIILANGS)
 	{
 		return  iscii_langs[type] ;
 	}
@@ -118,7 +118,7 @@ ml_iscii_lang_new(
 	int  count ;
 	ml_iscii_lang_t  lang ;
 	
-	if( type < 0 || MAX_ISCIILANG <= type)
+	if( type < 0 || MAX_ISCIILANGS <= type)
 	{
 		return  NULL ;
 	}
