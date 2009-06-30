@@ -8,7 +8,7 @@
 
 #include  "x.h"
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 #include  <X11/cursorfont.h>	/* for cursor shape */
 #endif
 
@@ -110,7 +110,7 @@ typedef struct  x_window
 	x_xim_event_listener_t *  xim_listener ;
 	x_xic_ptr_t  xic ;
 
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	mkf_parser_t *  cp_parser ;
 	
 	WORD  update_window_flag ;
@@ -175,9 +175,9 @@ typedef struct  x_window
 	void (*child_window_resized)( struct x_window * , struct x_window *) ;
 	void (*selection_cleared)( struct x_window *) ;
 	void (*xct_selection_requested)( struct x_window * , XSelectionRequestEvent * , Atom) ;
-	void (*utf8_selection_requested)( struct x_window * , XSelectionRequestEvent * , Atom) ;
+	void (*utf_selection_requested)( struct x_window * , XSelectionRequestEvent * , Atom) ;
 	void (*xct_selection_notified)( struct x_window * , u_char * , size_t) ;
-	void (*utf8_selection_notified)( struct x_window * , u_char * , size_t) ;
+	void (*utf_selection_notified)( struct x_window * , u_char * , size_t) ;
 #ifndef  DISABLE_XDND
 	void (*set_xdnd_config)( struct x_window * , char * ,  char * , char * ) ;
 #else
@@ -335,7 +335,7 @@ int  x_window_string_selection_request( x_window_t *  win , Time  time) ;
 
 int  x_window_xct_selection_request( x_window_t *  win , Time  time) ;
 
-int  x_window_utf8_selection_request( x_window_t *  win , Time  time) ;
+int  x_window_utf_selection_request( x_window_t *  win , Time  time) ;
 
 int  x_window_send_selection( x_window_t *  win , XSelectionRequestEvent *  event ,
 	u_char *  sel_data , size_t  sel_len , Atom  sel_type , int sel_format) ;

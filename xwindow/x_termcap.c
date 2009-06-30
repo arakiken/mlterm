@@ -42,6 +42,8 @@ static bool_field_table_t  bool_field_table[] =
 	{ "ut" , ML_BCE , } ,
 } ;
 
+static char *  tc_file = "mlterm/termcap" ;
+
 
 /* --- static functions --- */
 
@@ -240,48 +242,8 @@ search_entry(
 	return  NULL ;
 }
 
-
-/* --- global functions --- */
-
-int
-x_termcap_init(
-	x_termcap_t *  termcap
-	)
-{
-	if( ( termcap->entries = malloc( sizeof( x_termcap_entry_t))) == NULL)
-	{
-		return  0 ;
-	}
-	
-	if( ! entry_init( termcap->entries , "*"))
-	{
-		return  0 ;
-	}
-	
-	termcap->num_of_entries = 1 ;
-
-	return  1 ;
-}
-
-int
-x_termcap_final(
-	x_termcap_t *  termcap
-	)
-{
-	int  count ;
-
-	for( count = 0 ; count < termcap->num_of_entries ; count ++)
-	{
-		entry_final( &termcap->entries[count]) ;
-	}
-
-	free( termcap->entries) ;
-
-	return  1 ;
-}
-
-int
-x_read_termcap_config(
+static int
+read_conf(
 	x_termcap_t *  termcap ,
 	char *  filename
 	)
@@ -383,6 +345,60 @@ x_read_termcap_config(
 
 	kik_file_close( from) ;
 	
+	return  1 ;
+}
+
+
+/* --- global functions --- */
+
+int
+x_termcap_init(
+	x_termcap_t *  termcap
+	)
+{
+	char *  rcpath ;
+	
+	if( ( termcap->entries = malloc( sizeof( x_termcap_entry_t))) == NULL)
+	{
+		return  0 ;
+	}
+	
+	if( ! entry_init( termcap->entries , "*"))
+	{
+		return  0 ;
+	}
+	
+	termcap->num_of_entries = 1 ;
+
+	if( ( rcpath = kik_get_sys_rc_path( tc_file)))
+	{
+		read_conf( termcap , rcpath) ;
+		free( rcpath) ;
+	}
+	
+	if( ( rcpath = kik_get_user_rc_path( tc_file)))
+	{
+		read_conf( termcap , rcpath) ;
+		free( rcpath) ;
+	}
+
+	return  1 ;
+}
+
+int
+x_termcap_final(
+	x_termcap_t *  termcap
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < termcap->num_of_entries ; count ++)
+	{
+		entry_final( &termcap->entries[count]) ;
+	}
+
+	free( termcap->entries) ;
+
 	return  1 ;
 }
 

@@ -171,7 +171,7 @@ restore_view(
 	u_int	height
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( win->buffer == win->drawable)
 	{
 		if( win->width < x + width)
@@ -757,9 +757,9 @@ x_window_init(
 	win->child_window_resized = NULL ;
 	win->selection_cleared = NULL ;
 	win->xct_selection_requested = NULL ;
-	win->utf8_selection_requested = NULL ;
+	win->utf_selection_requested = NULL ;
 	win->xct_selection_notified = NULL ;
-	win->utf8_selection_notified = NULL ;
+	win->utf_selection_notified = NULL ;
 	win->window_deleted = NULL ;
 	win->mapping_notify = NULL ;
 	win->set_xdnd_config = NULL ;
@@ -786,7 +786,7 @@ x_window_final(
 
 	free( win->children) ;
 
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	if( win->bg_color != RGB_WHITE)
 	{
 		DeleteObject( (HBRUSH)GetClassLong( win->my_window, GCL_HBRBACKGROUND)) ;
@@ -863,7 +863,7 @@ x_window_set_wall_picture(
 	Pixmap  pic
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( win->drawable != win->my_window)
 	{
 		/*
@@ -909,7 +909,7 @@ x_window_unset_wall_picture(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( win->drawable != win->my_window)
 	{
 		/*
@@ -967,7 +967,7 @@ x_window_set_transparent(
 	x_picture_modifier_t *  pic_mod
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	Window  parent ;
 	Window  root ;
 	Window *  list ;
@@ -1036,7 +1036,7 @@ x_window_unset_transparent(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	int  count ;
 
 	if( ! win->is_transparent)
@@ -1071,7 +1071,7 @@ x_window_use_buffer(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	win->use_buffer = 1 ;
 
 	win->event_mask &= ~VisibilityChangeMask ;
@@ -1100,7 +1100,7 @@ x_window_set_fg_color(
 	u_long  fg_color
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XSetForeground( win->display , win->gc , fg_color) ;
 #endif
 	
@@ -1209,7 +1209,7 @@ x_window_show(
 		win->gc = win->parent->gc ;
 	}
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( hint & XNegative)
 	{
 		win->x += (DisplayWidth( win->display , win->screen) - ACTUAL_WIDTH(win)) ;
@@ -1246,7 +1246,7 @@ x_window_show(
           	return  0 ;
         }
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( win->use_buffer)
 	{
 		win->drawable = win->buffer = XCreatePixmap( win->display , win->parent_window ,
@@ -1320,7 +1320,7 @@ x_window_unmap(
 		return  1 ;
 	}
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XUnmapWindow( win->display , win->my_window) ;
 #endif
 
@@ -1345,7 +1345,7 @@ x_window_resize(
 	win->width = width ;
 	win->height = height ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( win->buffer)
 	{
 		XFreePixmap( win->display , win->buffer) ;
@@ -1361,7 +1361,7 @@ x_window_resize(
 		(*win->parent->child_window_resized)( win->parent , win) ;
 	}
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XResizeWindow( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 #endif
 
@@ -1400,7 +1400,7 @@ x_window_set_normal_hints(
 	u_int  height_inc
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XSizeHints  size_hints ;
 	x_window_t *  root ;
 
@@ -1436,7 +1436,7 @@ x_window_set_override_redirect(
 	int  flag
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	x_window_t *  root ;
 	XSetWindowAttributes  s_attr ;
 	XWindowAttributes  g_attr ;
@@ -1477,7 +1477,7 @@ x_window_set_borderless_flag(
 	int  flag
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	/*
 	 * XXX
 	 * Support borderless with _MOTIF_WM_HINTS.
@@ -1526,7 +1526,7 @@ x_window_move(
 	int  y
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XMoveWindow( win->display , win->my_window , x , y) ;
 #endif
 
@@ -1624,7 +1624,7 @@ x_window_fill(
 	u_int	height
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XFillRectangle( win->display , win->drawable , win->gc , x + win->margin , y + win->margin ,
 		width , height) ;
 #endif
@@ -1642,7 +1642,7 @@ x_window_fill_with(
 	u_int	height
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( color != win->fg_color)
 	{
 		XSetForeground( win->display , win->gc , color) ;
@@ -1665,7 +1665,7 @@ x_window_fill_all(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XFillRectangle( win->display , win->drawable , win->gc , 0 , 0 ,
 		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 #endif
@@ -1679,7 +1679,7 @@ x_window_fill_all_with(
 	u_long  color
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( color != win->fg_color)
 	{
 		XSetForeground( win->display , win->gc , color) ;
@@ -2110,12 +2110,12 @@ x_window_receive_event(
 	case  WM_RENDERFORMAT:
 		if( event->wparam == CF_UNICODETEXT)
 		{
-			if( win->utf8_selection_requested)
+			if( win->utf_selection_requested)
 			{
-				(*win->utf8_selection_requested)( win, NULL, CF_UNICODETEXT) ;
+				(*win->utf_selection_requested)( win, NULL, CF_UNICODETEXT) ;
 
 			#if  1
-				kik_debug_printf( KIK_DEBUG_TAG "utf8_selection_requested\n") ;
+				kik_debug_printf( KIK_DEBUG_TAG "utf_selection_requested\n") ;
 			#endif
 			}
 		}
@@ -2160,7 +2160,7 @@ x_window_receive_event(
 				win->width = width - win->margin * 2 ;
 				win->height = height - win->margin * 2 ;
 
-			#ifndef  USE_WIN32API
+			#ifndef  USE_WIN32GUI
 				if( win->buffer)
 				{
 					XFreePixmap( win->display , win->buffer) ;
@@ -2187,7 +2187,7 @@ x_window_receive_event(
 
 	return  0 ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( win->my_window != event->xany.window)
 	{
 		/*
@@ -2502,9 +2502,9 @@ x_window_receive_event(
 				}
 				else if( ct.encoding == xa_utf8_string)
 				{
-					if( win->utf8_selection_notified)
+					if( win->utf_selection_notified)
 					{
-						(*win->utf8_selection_notified)(
+						(*win->utf_selection_notified)(
 							win , ct.value , ct.nitems) ;
 					}
 				}
@@ -2607,9 +2607,9 @@ x_window_receive_event(
 				}
 				else if(ct.encoding == XA_UTF8_STRING(win->display))
 				{
-					if( win->utf8_selection_notified)
+					if( win->utf_selection_notified)
 					{
-						(*win->utf8_selection_notified)(
+						(*win->utf_selection_notified)(
 							win , ct.value , ct.nitems) ;
 					}
 				}
@@ -2631,7 +2631,7 @@ x_window_receive_event(
 
 	return  1 ;
 
-#endif /* USE_WIN32API */
+#endif /* USE_WIN32GUI */
 }
 
 size_t
@@ -2774,7 +2774,7 @@ x_window_scroll_leftward_region(
 		return  0 ;
 	}
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
 		win->margin + boundary_start + width , win->margin ,	/* src */
 		boundary_end - boundary_start - width , win->height ,	/* size */
@@ -2816,7 +2816,7 @@ x_window_scroll_rightward_region(
 		return  0 ;
 	}
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
 		win->margin + boundary_start , win->margin ,
 		boundary_end - boundary_start - width , win->height ,
@@ -2838,7 +2838,7 @@ x_window_draw_decsp_string(
 	u_int  len
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( font->decsp_font)
 	{
 		if( fg_color)
@@ -3078,7 +3078,7 @@ x_window_xct_selection_request(
 }
 
 int
-x_window_utf8_selection_request(
+x_window_utf_selection_request(
 	x_window_t *  win ,
 	Time  time
 	)
@@ -3110,7 +3110,7 @@ x_window_utf8_selection_request(
 
 	CloseClipboard() ;
 
-	(*win->utf8_selection_notified)( win, l_data, len) ;
+	(*win->utf_selection_notified)( win, l_data, len) ;
 
 	free( l_data) ;
 	
@@ -3166,7 +3166,7 @@ x_set_window_name(
 	u_char *  name
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	x_window_t *  root ;
 	XTextProperty  prop ;
 
@@ -3200,7 +3200,7 @@ x_set_icon_name(
 	u_char *  name
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	x_window_t *  root ;
 	XTextProperty  prop ;
 
@@ -3233,7 +3233,7 @@ x_window_remove_icon(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XWMHints *hints ;
 
 	hints = XGetWMHints( win->display, win->my_window) ;
@@ -3275,7 +3275,7 @@ x_window_set_icon(
 	u_int32_t *  cardinal
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XWMHints *  hints = NULL ;
 
 	/* set extended window manager hint's icon */
@@ -3326,7 +3326,7 @@ x_window_set_icon_from_file(
 	char *  path
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	int icon_size = 48;
 
 	x_window_remove_icon( win);
@@ -3359,7 +3359,7 @@ x_window_get_visible_geometry(
 	u_int *  height
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	Window  child ;
 	int screen_width ;
 	int screen_height ;

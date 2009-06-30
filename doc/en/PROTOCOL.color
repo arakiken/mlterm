@@ -1,0 +1,12 @@
+comment -*- mode: text -*-
+comment $Id$
+
+mlterm configuration protocol(color)
+version 20090628
+
+* Protocol
+  set              = "\x1b" "]" "5386" ";" <key> "=" <value> "\x07"
+  set&save         = "\x1b" "]" "5387" ";" <key> "=" <value> "\x07"
+  key		   = see doc/en/README.ja
+  value		   = see doc/en/README.ja
+  

@@ -530,9 +530,240 @@ restore_cursor(
 	ml_screen_restore_cursor( vt100_parser->screen) ;
 }
 
+
 /*
  * VT100_PARSER Escape Sequence Commands.
  */
+
+/*
+ * This function will destroy the content of pt.
+ */
+static int
+config_protocol_set(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  pt
+	)
+{
+	if( HAS_CONFIG_LISTENER(vt100_parser,set))
+	{
+		char *  dev ;
+		char *  key ;
+		char *  val ;
+
+		stop_vt100_cmd( vt100_parser) ;
+
+		/*
+		 * accept multiple key=value pairs.
+		 */
+		while( pt)
+		{
+			if( ! ml_parse_proto( &dev , &key , &val , &pt , 0))
+			{
+				break ;
+			}
+
+			if( strcmp( key , "gen_proto_challenge") == 0)
+			{
+				ml_gen_proto_challenge() ;
+			}
+			else
+			{
+				(*vt100_parser->config_listener->set)(
+					vt100_parser->config_listener->self , dev , key , val) ;
+			}
+
+			/* XXX */
+			if( vt100_parser->config_listener == NULL)
+			{
+				/*
+				 * pty changed.
+				 */
+				break ;
+			}
+		}
+
+		start_vt100_cmd( vt100_parser) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+/*
+ * This function will destroy the content of pt.
+ */
+static int
+config_protocol_save(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  pt
+	)
+{
+	char *  file ;
+	kik_conf_write_t *  conf ;
+	char *  key ;
+	char *  val ;
+
+	/* XXX */
+	if( ( file = kik_get_user_rc_path( "mlterm/main")) == NULL)
+	{
+		return  0 ;
+	}
+
+	conf = kik_conf_write_open( file) ;
+	free( file) ;
+	if( conf == NULL)
+	{
+		return  0 ;
+	}
+
+	/*
+	 * accept multiple key=value pairs.
+	 */
+	while( pt)
+	{
+		if( ! ml_parse_proto( NULL , &key , &val , &pt , 0))
+		{
+			break ;
+		}
+
+		/* XXX */
+		if( strcmp( key , "encoding") == 0)
+		{
+			key = "ENCODING" ;
+		}
+
+		/* XXX */
+		if( strcmp( key , "xim") != 0)
+		{
+			kik_conf_io_write( conf , key , val) ;
+		}
+	}
+
+	kik_conf_write_close( conf) ;
+
+	if( HAS_CONFIG_LISTENER(vt100_parser,saved))
+	{
+		(*vt100_parser->config_listener->saved)() ;
+	}
+
+	return  1 ;
+}
+
+/*
+ * This function will destroy the content of pt.
+ */
+static int
+config_protocol_get(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  pt ,
+	int  to_menu
+	)
+{
+	if( HAS_CONFIG_LISTENER(vt100_parser,get))
+	{
+		char *  dev ;
+		char *  key ;
+		int  ret ;
+		
+		stop_vt100_cmd( vt100_parser) ;
+
+		ret = ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0) ;
+		if( ret > 0)
+		{
+			(*vt100_parser->config_listener->get)( vt100_parser->config_listener->self ,
+				dev , key , to_menu) ;
+		}
+		else if( ret == -1)
+		{
+			/* to_menu is necessarily 0, so it is pty that msg should be returned to. */
+
+			char  msg[] = "#forbidden\n" ;
+
+			ml_write_to_pty( vt100_parser->pty , msg , sizeof( msg) - 1) ;
+		}
+
+		start_vt100_cmd( vt100_parser) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+/*
+ * This function will destroy the content of pt.
+ */
+static int
+config_protocol_set_font(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  pt ,
+	int  save
+	)
+{
+	if( HAS_CONFIG_LISTENER(vt100_parser,set_font))
+	{
+		char *  file ;
+		char *  key ;
+		char *  val ;
+
+		stop_vt100_cmd( vt100_parser) ;
+
+		if( ! ml_parse_proto2( &file , &key , &val , &pt))
+		{
+			return  0 ;
+		}
+
+		(*vt100_parser->config_listener->set_font)( file , key , val, save) ;
+
+		start_vt100_cmd( vt100_parser) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+/*
+ * This function will destroy the content of pt.
+ */
+static int
+config_protocol_set_color(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  pt ,
+	int  save
+	)
+{
+	if( HAS_CONFIG_LISTENER(vt100_parser,set_color))
+	{
+		char *  file ;
+		char *  key ;
+		char *  val ;
+
+		stop_vt100_cmd( vt100_parser) ;
+
+		if( ! ml_parse_proto2( &file , &key , &val , &pt))
+		{
+			return  0 ;
+		}
+
+		(*vt100_parser->config_listener->set_color)( file , key , val, save) ;
+
+		start_vt100_cmd( vt100_parser) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
 
 static void
 change_char_attr(
@@ -687,70 +918,49 @@ change_char_attr(
 	}
 }
 
+/*
+ * This function will destroy the content of pt.
+ */
 static int
 change_color_rgb(
 	ml_vt100_parser_t *  vt100_parser,
 	u_char *  pt
 	)
 {
-#if  0
-	int  color ;
+	char *  name ;
 	int  red ;
 	int  green ;
 	int  blue ;
+	char  _pt[19] ;	/* Max length is "hl_magenta=#FFFFFF" */
 
-	if( sscanf( ( char*)pt, "%d;rgb:%x/%x/%x", &color, &red, &green, &blue))
+	name = pt ;
+	if( ( pt = strchr( pt, ';')) == NULL)
 	{
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " change color %x r%x g%x b%x\n",
-			color, red, green, blue) ;
-	#endif
-
-		ml_screen_set_modified_all( vt100_parser->screen) ;
-		ml_change_color_rgb( color, red, green, blue) ;
-
-		/*
-		 * XXX
-		 * Should invoke rgb-changed event to x_color_cache
-		 * and all x_screens which share x_color_cache.
-		 */
-
-		return  1 ;
+		return  0 ;
 	}
-	else
+	
+	*(pt++) = '\0' ;
+
+	if( sscanf( ( char*)pt, "rgb:%02x/%02x/%02x", &red, &green, &blue) != 3)
 	{
-		char  name[8] ;
-		int  count ;
-
-		for( count = 0 ; count < 8 ; count++)
-		{
-			if( pt[count] == ';')
-			{
-				if( sscanf( (char*)pt, "%s;rgb:%x/%x/%x",
-					name, &red, &green, &blue) &&
-					( color = ml_get_color( name)) != ML_UNKNOWN_COLOR)
-				{
-					ml_screen_set_modified_all( vt100_parser->screen) ;
-					ml_change_color_rgb( color, red, green, blue) ;
-
-					/*
-					 * XXX
-					 * Should invoke rgb-changed event to x_color_cache
-					 * and all x_screens which share x_color_cache.
-					 */
-
-					return  1 ;
-				}
-				else
-				{
-					return  0 ;
-				}
-			}
-		}
+		return  0 ;
 	}
+
+	/* Max length name is "hl_magenta" */
+	if( strlen( name) > 10)
+	{
+		return  0 ;
+	}
+
+	sprintf( _pt, "%s=#%02x%02x%02x", name, red, green, blue) ;
+	
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s\n", _pt) ;
 #endif
 
-	return  0 ;
+	config_protocol_set_color( vt100_parser, _pt , 0) ;
+
+	return  1 ;
 }
 
 static void
@@ -835,14 +1045,6 @@ inc_str_in_esc_seq(
 			if( **str_p == CTLKEY_LF || **str_p == CTLKEY_VT)
 			{
 				ml_screen_line_feed( screen) ;
-			#if  0
-                        /*
-                         * XXX following hack is necessary if you use bash.exe in msys.
-                         */
-			#ifdef  USE_WIN32API
-				ml_screen_goto_beg_of_line(screen) ;
-			#endif
-			#endif
 			}
 			else if( **str_p == CTLKEY_CR)
 			{
@@ -871,163 +1073,6 @@ inc_str_in_esc_seq(
 	}
 }
 
-/*
- * This function will destroy the content of pt.
- */
-static int
-config_protocol_set(
-	ml_vt100_parser_t *  vt100_parser ,
-	char *  pt
-	)
-{
-	if( HAS_CONFIG_LISTENER(vt100_parser,set))
-	{
-		char *  dev ;
-		char *  key ;
-		char *  val ;
-
-		stop_vt100_cmd( vt100_parser) ;
-
-		/*
-		 * accept multiple key=value pairs.
-		 */
-		while( pt)
-		{
-			if( ! ml_parse_proto( &dev , &key , &val , &pt , 0))
-			{
-				break ;
-			}
-
-			if( strcmp( key , "gen_proto_challenge") == 0)
-			{
-				ml_gen_proto_challenge() ;
-			}
-			else
-			{
-				(*vt100_parser->config_listener->set)(
-					vt100_parser->config_listener->self , dev , key , val) ;
-			}
-
-			/* XXX */
-			if( vt100_parser->config_listener == NULL)
-			{
-				/*
-				 * pty changed.
-				 */
-				break ;
-			}
-		}
-
-		start_vt100_cmd( vt100_parser) ;
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
-/*
- * This function will destroy the content of pt.
- */
-static int
-config_protocol_save(
-	ml_vt100_parser_t *  vt100_parser ,
-	char *  pt
-	)
-{
-	char *  file ;
-	kik_conf_write_t *  conf ;
-	char *  key ;
-	char *  val ;
-
-	if( ( file = kik_get_user_rc_path( "mlterm/main")) == NULL)
-	{
-		return  0 ;
-	}
-
-	if( ( conf = kik_conf_write_open( file)) == NULL)
-	{
-		return  0 ;
-	}
-
-	/*
-	 * accept multiple key=value pairs.
-	 */
-	while( pt)
-	{
-		if( ! ml_parse_proto( NULL , &key , &val , &pt , 0))
-		{
-			break ;
-		}
-
-		/* XXX */
-		if( strcmp( key , "encoding") == 0)
-		{
-			key = "ENCODING" ;
-		}
-
-		/* XXX */
-		if( strcmp( key , "xim") != 0)
-		{
-			kik_conf_io_write( conf , key , val) ;
-		}
-	}
-
-	kik_conf_write_close( conf) ;
-	free( file) ;
-
-	if( HAS_CONFIG_LISTENER(vt100_parser,saved))
-	{
-		(*vt100_parser->config_listener->saved)( vt100_parser->config_listener->self) ;
-	}
-
-	return  1 ;
-}
-
-/*
- * This function will destroy the content of pt.
- */
-static int
-config_protocol_get(
-	ml_vt100_parser_t *  vt100_parser ,
-	char *  pt ,
-	int  to_menu
-	)
-{
-	if( HAS_CONFIG_LISTENER(vt100_parser,get))
-	{
-		char *  dev ;
-		char *  key ;
-		int  ret ;
-		
-		stop_vt100_cmd( vt100_parser) ;
-
-		ret = ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0) ;
-		if( ret > 0)
-		{
-			(*vt100_parser->config_listener->get)( vt100_parser->config_listener->self ,
-				dev , key , to_menu) ;
-		}
-		else if( ret == -1)
-		{
-			/* to_menu is necessarily 0, so it is pty that msg should be returned to. */
-
-			char  msg[] = "#forbidden\n" ;
-
-			ml_write_to_pty( vt100_parser->pty , msg , sizeof( msg) - 1) ;
-		}
-
-		start_vt100_cmd( vt100_parser) ;
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
 
 static int
 parse_vt100_escape_sequence(
@@ -2197,7 +2242,7 @@ parse_vt100_escape_sequence(
 						{
 						#ifdef  DEBUG
 							kik_debug_printf( KIK_DEBUG_TAG
-							" change_256_color_rgb failed.\n") ;
+							" change_color_rgb failed.\n") ;
 						#endif
 						}
 					}
@@ -2305,6 +2350,28 @@ parse_vt100_escape_sequence(
 						{
 							config_protocol_save( vt100_parser , p) ;
 						}
+					}
+					else if( ps == 5384)
+					{
+						/* set font */
+
+						config_protocol_set_font( vt100_parser, pt, 0) ;
+					}
+					else if( ps == 5385)
+					{
+						/* set&save font */
+						config_protocol_set_font( vt100_parser, pt, 1) ;
+					}
+					else if( ps == 5386)
+					{
+						/* set font */
+
+						config_protocol_set_color( vt100_parser, pt, 0) ;
+					}
+					else if( ps == 5387)
+					{
+						/* set&save font */
+						config_protocol_set_color( vt100_parser, pt, 1) ;
 					}
 				#ifdef  DEBUG
 					else
@@ -2451,15 +2518,6 @@ parse_vt100_escape_sequence(
 		#endif
 
 			ml_screen_line_feed( vt100_parser->screen) ;
-
-		#if  0
-                        /*
-                         * XXX following hack is necessary if you use bash.exe in msys.
-                         */
-		#ifdef  USE_WIN32API
-			ml_screen_goto_beg_of_line( vt100_parser->screen) ;
-		#endif
-		#endif
 		}
 		else if( *str_p == CTLKEY_CR)
 		{

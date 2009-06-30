@@ -6,9 +6,9 @@
 #define  __X_H__
 
 
-#include  <kiklib/kik_def.h>	/* for USE_WIN32API */
+#include  <kiklib/kik_def.h>	/* for USE_WIN32GUI */
 
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 #include  "x_win32.h"
 #else
 /* This must be included ahead of Xft.h on XFree86-4.0.x or before. */

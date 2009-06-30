@@ -55,7 +55,7 @@ modmap_init(
 	)
 {
 	modmap->serial = 0 ;
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	modmap->map = NULL ;
 #else
 	modmap->map = XGetModifierMapping( display) ;
@@ -69,7 +69,7 @@ modmap_final(
 {
 	if( modmap->map)
 	{
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 		XFreeModifiermap( modmap->map);
 #endif
 	}
@@ -150,7 +150,7 @@ x_window_manager_final(
 
 	free(  win_man->icon_path);
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( win_man->icon)
 	{
 		XFreePixmap( win_man->display, win_man->icon) ;
@@ -283,7 +283,7 @@ x_window_manager_own_selection(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( win_man->selection_owner)
 	{
 		x_window_manager_clear_selection( win_man , win_man->selection_owner) ;
@@ -301,7 +301,7 @@ x_window_manager_clear_selection(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( win_man->selection_owner == NULL || win_man->selection_owner != win)
 	{
 		return  0 ;
@@ -341,7 +341,7 @@ x_window_manager_update_modifier_mapping(
 	u_int  serial
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( serial != win_man->modmap.serial)
 	{
 		modmap_final( &(win_man->modmap)) ;

@@ -58,6 +58,57 @@ font_compare(
 	return  (key1 == key2) ;
 }
 
+/*
+ * Call this function after init all members except font_table
+ */
+static int
+init_usascii_font(
+	x_font_cache_t *  font_cache
+	)
+{
+	u_int  beg_font_size ;
+	
+	beg_font_size = font_cache->font_size ;
+	while( ( font_cache->usascii_font = x_font_cache_get_xfont( font_cache ,
+					DEFAULT_FONT(font_cache->usascii_font_cs))) == NULL)
+	{
+		if( ++ font_cache->font_size > x_get_max_font_size())
+		{
+			font_cache->font_size = x_get_min_font_size() ;
+		}
+		else if( font_cache->font_size == beg_font_size)
+		{
+			return  0 ;
+		}
+	}
+
+	return  1 ;
+}
+
+static int
+xfont_table_delete(
+	KIK_MAP( x_font)  xfont_table
+	)
+{
+	int  count ;
+	u_int  size ;
+	KIK_PAIR( x_font) *  f_array ;
+
+	kik_map_get_pairs_array( xfont_table , f_array , size) ;
+	
+	for( count = 0 ; count < size ; count ++)
+	{
+		if( f_array[count]->value != NULL)
+		{
+			x_font_delete( f_array[count]->value) ;
+		}
+	}
+
+	kik_map_delete( xfont_table) ;
+
+	return  1 ;
+}
+
 
 /* --- global functions --- */
 
@@ -73,7 +124,6 @@ x_acquire_font_cache(
 	int  count ;
 	x_font_cache_t *  font_cache ;
 	void *  p ;
-	u_int  beg_font_size ;
 
 	for( count = 0 ; count < num_of_caches ; count ++)
 	{
@@ -104,34 +154,24 @@ x_acquire_font_cache(
 	font_cache->font_config = font_config ;
 
 	kik_map_new( ml_font_t , x_font_t * , font_cache->xfont_table , font_hash , font_compare) ;
-	
+
 	font_cache->display = display ;
 	font_cache->font_size = font_size ;
 	font_cache->usascii_font_cs = usascii_font_cs ;
 	font_cache->use_multi_col_char = use_multi_col_char ;
 	font_cache->ref_count = 1 ;
 
-	/*
-	 * Initialized all members of x_font_cache_t here.
-	 */
-	 
-	beg_font_size = font_size ;
-	
-	while( ( font_cache->usascii_font =
-			x_font_cache_get_xfont( font_cache , DEFAULT_FONT(US_ASCII))) == NULL)
+	if( ! init_usascii_font( font_cache))
 	{
-		if( ++ font_cache->font_size > x_get_max_font_size())
-		{
-			font_cache->font_size = x_get_min_font_size() ;
-		}
-		else if( font_cache->font_size == beg_font_size)
-		{
-			x_release_font_cache( font_cache) ;
-			
-			return  NULL ;
-		}
+		free( font_cache) ;
+		kik_map_delete( font_cache->xfont_table) ;
+
+		return  NULL ;
 	}
 
+	font_cache->prev_cache.font = 0 ;
+	font_cache->prev_cache.xfont = NULL ;
+	
 	return  font_caches[num_of_caches++] = font_cache ;
 }
 
@@ -151,23 +191,9 @@ x_release_font_cache(
 	{
 		if( font_caches[count] == font_cache)
 		{
-			int  __count ;
-			u_int  size ;
-			KIK_PAIR( x_font) *  f_array ;
-
 			font_caches[count] = font_caches[--num_of_caches] ;
-
-			kik_map_get_pairs_array( font_cache->xfont_table , f_array , size) ;
-			for( __count = 0 ; __count < size ; __count++)
-			{
-				if( f_array[__count]->value != NULL)
-				{
-					x_font_delete( f_array[__count]->value) ;
-				}
-			}
-
-			kik_map_delete( font_cache->xfont_table) ;
-
+			
+			xfont_table_delete( font_cache->xfont_table) ;
 			free( font_cache) ;
 
 			if( num_of_caches == 0)
@@ -181,6 +207,49 @@ x_release_font_cache(
 	}
 
 	return  0 ;
+}
+
+int
+x_font_cache_unload(
+	x_font_cache_t *  font_cache
+	)
+{
+	/*
+	 * Discarding existing cache.
+	 */
+	xfont_table_delete( font_cache->xfont_table) ;
+	font_cache->usascii_font = NULL ;
+	font_cache->prev_cache.font = 0 ;
+	font_cache->prev_cache.xfont = NULL ;
+
+	/*
+	 * Creating new cache.
+	 */
+	kik_map_new( ml_font_t , x_font_t * , font_cache->xfont_table , font_hash , font_compare) ;
+	if( ! init_usascii_font( font_cache))
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG
+		" x_font_cache_unload failed. Should x_release_font_cache this font cache.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+	
+	return  1 ;
+}
+
+int
+x_font_cache_unload_all(void)
+{
+	int  count ;
+
+	for( count = 0 ; count < num_of_caches ; count++)
+	{
+		x_font_cache_unload( font_caches[count]) ;
+	}
+
+	return  1 ;
 }
 
 x_font_t *
@@ -200,6 +269,11 @@ x_font_cache_get_xfont(
 	{
 		font &= ~US_ASCII ;
 		font |= font_cache->usascii_font_cs ;
+	}
+
+	if( font_cache->prev_cache.xfont && font_cache->prev_cache.font == font)
+	{
+		return  font_cache->prev_cache.xfont ;
 	}
 
 	if( font == DEFAULT_FONT(font_cache->usascii_font_cs))
@@ -254,6 +328,9 @@ x_font_cache_get_xfont(
 	 * If this font doesn't exist, NULL(which indicates it) is cached.
 	 */
 	kik_map_set( result , font_cache->xfont_table , font , xfont) ;
+
+	font_cache->prev_cache.font = font ;
+	font_cache->prev_cache.xfont = xfont ;
 
 #ifdef  DEBUG
 	kik_warn_printf( KIK_DEBUG_TAG " font %x for id %x was cached.\n" , xfont , font) ;

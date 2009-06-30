@@ -38,8 +38,6 @@ typedef struct x_system_event_listener
 
 	char *  (*pty_list)( void *) ;
 
-	void  (*config_saved)( void *) ;
-	
 	/* for debug */
 	void  (*exit)( void * , int) ;
 
@@ -114,10 +112,10 @@ typedef struct  x_screen
 	x_screen_scroll_event_listener_t *  screen_scroll_listener ;
 
 	mkf_parser_t *  xct_parser ;
-	mkf_parser_t *  utf8_parser ;
+	mkf_parser_t *  utf_parser ;	/* UTF8 in X, UTF16 in Win32. */
 	
 	mkf_parser_t *  ml_str_parser ;
-	mkf_conv_t *  utf8_conv ;
+	mkf_conv_t *  utf_conv ;	/* UTF8 in X, UTF16 in Win32. */
 	mkf_conv_t *  xct_conv ;
 	
 	int  scroll_cache_rows ;
@@ -186,6 +184,14 @@ u_int  x_line_height_to_baseline( x_screen_t *  screen) ;
 u_int  x_line_top_margin( x_screen_t *  screen) ;
 
 u_int  x_line_bottom_margin( x_screen_t *  screen) ;
+
+
+void  x_screen_set_config( x_screen_t *  screen, char *  dev , char *  key , char *  value) ;
+
+void  x_screen_get_config( x_screen_t *  screen , char *  dev , char *  key , int  to_menu) ;
+
+
+int  x_screen_reset_view( x_screen_t *  screen) ;
 
 
 x_picture_modifier_t *  x_screen_get_picture_modifier( x_screen_t *  screen) ;

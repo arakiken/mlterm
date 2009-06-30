@@ -9,7 +9,7 @@
 /* X11/Xlib.h must be included ahead of Xft.h on XFree86-4.0.x or before. */
 #include  "x.h"
 
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 #include  <mkf/mkf_conv.h>
 #endif
 
@@ -53,7 +53,7 @@ typedef struct x_font
 #ifdef  USE_TYPE_XFT
 	XftFont *  xft_font ;
 #endif
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	Font  fid ;
 	mkf_conv_t *  conv ;
 #elif   USE_TYPE_XCORE

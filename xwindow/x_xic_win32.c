@@ -14,7 +14,7 @@
 
 /* --- static functions --- */
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 static void
 get_rect(
 	x_window_t *  win ,
@@ -223,7 +223,7 @@ create_xic(
 
 	return  1 ;
 }
-#endif	/* USE_WIN32API */
+#endif	/* USE_WIN32GUI */
 
 
 /* --- global functions --- */
@@ -242,7 +242,7 @@ x_xic_activate(
 		return  0 ;
 	}
 
-#ifdef  USE_WIN32API	
+#ifdef  USE_WIN32GUI	
 	if( ( win->xic = malloc( sizeof( x_xic_t))) == NULL)
 	{
 		return  0 ;
@@ -250,9 +250,7 @@ x_xic_activate(
 
 	win->xic->prev_keydown_wparam = 0 ;
 
-	kik_locale_init(NULL) ;
 	win->xic->encoding = ml_get_char_encoding( kik_get_codeset()) ;
-	kik_locale_final() ;
 	
 	if( ( win->xic->parser = ml_parser_new( win->xic->encoding)) == NULL)
 	{
@@ -280,7 +278,7 @@ x_xic_deactivate(
 		return  0 ;
 	}
 
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 
 	(*win->xic->parser->delete)( win->xic->parser) ;
 	free( win->xic) ;
@@ -288,7 +286,7 @@ x_xic_deactivate(
 
 	return  1 ;
 
-#else /* USE_WIN32API */
+#else /* USE_WIN32GUI */
 
 #if  0
 	{
@@ -316,7 +314,7 @@ x_xic_deactivate(
 #endif
 
 	return  1 ;
-#endif	/* USE_WIN32API */
+#endif	/* USE_WIN32GUI */
 }
 
 char *
@@ -324,7 +322,7 @@ x_xic_get_xim_name(
 	x_window_t *  win
 	)
 {
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	return  "" ;
 #else
 	return  x_get_xim_name( win) ;
@@ -334,7 +332,7 @@ x_xic_get_xim_name(
 char *
 x_xic_get_default_xim_name(void)
 {
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	return  "" ;
 #else
 	return  x_get_default_xim_name() ;
@@ -346,7 +344,7 @@ x_xic_fg_color_changed(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XVaNestedList  preedit_attr ;
 
 	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
@@ -373,7 +371,7 @@ x_xic_bg_color_changed(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XVaNestedList  preedit_attr ;
 
 	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
@@ -400,7 +398,7 @@ x_xic_font_set_changed(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XVaNestedList  preedit_attr ;
 	XFontSet  fontset ;
 
@@ -437,7 +435,7 @@ x_xic_resized(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XVaNestedList  preedit_attr ;
 	XRectangle  rect ;
 	XPoint  spot ;
@@ -478,7 +476,7 @@ x_xic_set_spot(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XVaNestedList  preedit_attr ;
 	XPoint  spot ;
 
@@ -565,7 +563,7 @@ end:
 
 	return  len ;
 	
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	Status  stat ;
 	size_t  len ;
 
@@ -663,7 +661,7 @@ x_xic_set_focus(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( ! win->xic)
 	{
 		return  0 ;
@@ -680,7 +678,7 @@ x_xic_unset_focus(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( ! win->xic)
 	{
 		return  0 ;
@@ -701,7 +699,7 @@ x_xim_activated(
 	x_window_t *  win
 	)
 {
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	return  1 ;
 #else
 	return  create_xic( win) ;
@@ -713,7 +711,7 @@ x_xim_destroyed(
 	x_window_t *  win
 	)
 {
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	return  1 ;
 #else
 	return  destroy_xic( win) ;

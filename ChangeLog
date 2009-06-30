@@ -1,3 +1,15 @@
+2009-06-30  Araki Ken  <arakiken@users.sf.net>
+
+	* Supported "ESC ] 4 ; ... ; rgb:%02x/%02x/%02x BEL" sequence.
+
+	* Added 5384-5387 protocol(see doc/en/PROTOCOL.font and PROTOCOL.color).
+	
+	* configure: Added --with-gui option.
+
+	* xwindow/*.[ch]: USE_WIN32API => USE_WIN32GUI
+
+	* ml_pty_win32.c: Renamed to ml_pty_pipewin32.c.
+
 2009-06-16  Araki Ken  <arakiken@users.sf.net>
 
 	* mkf_utf16_conv.[ch]: Added mkf_utf16le_conv_new()

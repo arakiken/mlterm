@@ -24,9 +24,8 @@ static char *  color_name_table[] =
 
 static char  color_name_256[4] ;
 
-static u_int8_t color_rgb_table[][3] =
+static u_int8_t vtsys_color_rgb_table[][3] =
 {
-	/* VT SYS COLOR */
 	{ 0x00, 0x00, 0x00 },
 	{ 0xff, 0x00, 0x00 },
 	{ 0x00, 0xff, 0x00 },
@@ -35,17 +34,11 @@ static u_int8_t color_rgb_table[][3] =
 	{ 0xff, 0x00, 0xff },
 	{ 0x00, 0xff, 0xff },
 	{ 0xff, 0xff, 0xff },
+} ;
 
-	/* VT SYS COLOR(BOLD) */
-	{ 0x00, 0x00, 0x00 },
-	{ 0xff, 0x00, 0x00 },
-	{ 0x00, 0xff, 0x00 },
-	{ 0xff, 0xff, 0x00 },
-	{ 0x00, 0x00, 0xff },
-	{ 0xff, 0x00, 0xff },
-	{ 0x00, 0xff, 0xff },
-	{ 0xff, 0xff, 0xff },
-
+#if  0
+static u_int8_t color256_rgb_table[][3] =
+{
 	/* CUBE COLOR(0x10-0xe7) */
 	{ 0x00, 0x00, 0x00 },
 	{ 0x00, 0x00, 0x5f },
@@ -290,6 +283,7 @@ static u_int8_t color_rgb_table[][3] =
 	{ 0xe4, 0xe4, 0xe4 },
 	{ 0xee, 0xee, 0xee },
 };
+#endif
 
 
 /* --- global functions --- */
@@ -343,6 +337,14 @@ ml_get_color(
 		}
 	}
 
+	if( sscanf( name, "%d", (int*) &color) == 1)
+	{
+		if( IS_256_COLOR(color))
+		{
+			return  color ;
+		}
+	}
+
 	return  ML_UNKNOWN_COLOR ;
 }
 
@@ -358,30 +360,36 @@ ml_get_color_rgb(
 	{
 		return  0 ;
 	}
-	
-	*red = color_rgb_table[color][0] ;
-	*green = color_rgb_table[color][1] ;
-	*blue = color_rgb_table[color][2] ;
-	
-	return 1 ;
-}
 
-int
-ml_change_color_rgb(
-	ml_color_t  color,
-	u_short  red,
-	u_short  green,
-	u_short  blue
-	)
-{
-	if( ! IS_VALID_COLOR(color))
+	if( IS_VTSYS_COLOR(color))
 	{
-		return  0 ;
+		*red = vtsys_color_rgb_table[ color & ~ML_BOLD_COLOR_MASK ][0] ;
+		*green = vtsys_color_rgb_table[ color & ~ML_BOLD_COLOR_MASK ][1] ;
+		*blue = vtsys_color_rgb_table[ color & ~ML_BOLD_COLOR_MASK ][2] ;
 	}
+	else if( color <= 0xe7)
+	{
+		u_short  tmp ;
 
-	color_rgb_table[color][0] = red ;
-	color_rgb_table[color][1] = green ;
-	color_rgb_table[color][2] = blue ;
+		tmp = (color - 0x10) % 6 ;
+		*blue = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
+
+		tmp = ((color - 0x10) / 6) % 6 ;
+		*green = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
+
+		tmp = ((color - 0x10) / 36) % 6 ;
+		*red = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
+	}
+	else /* if( color >= 0xe8) */
+	{
+		u_short  tmp ;
+
+		tmp = (color - 0xe8) * 10 + 8 ;
+
+		*blue = tmp ;
+		*green = tmp ;
+		*red = tmp ;
+	}
 	
 	return 1 ;
 }

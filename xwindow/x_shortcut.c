@@ -28,6 +28,11 @@ typedef struct  key_func_table
 
 /* --- static variables --- */
 
+static char *  key_file = "mlterm/key" ;
+
+
+/* --- static variables --- */
+
 static key_func_table_t  key_func_table[] =
 {
 	{ "IM_HOTKEY" , IM_HOTKEY , } ,
@@ -220,80 +225,8 @@ parse(
 	return  0 ;
 }
 
-
-/* --- global functions --- */
-
-int
-x_shortcut_init(
-	x_shortcut_t *  shortcut
-	)
-{
-	x_key_t  default_key_map[] =
-	{
-		/* IM_HOTKEY */
-		{ 0 , 0 , 0 , } ,
-
-		/* EXT_KBD(obsolete) */
-		{ 0 , 0 , 0 , } ,
-		
-		/* OPEN_SCREEN */
-		{ XK_F1 , ControlMask , 1 , } ,
-
-		/* OPEN_PTY */
-		{ XK_F2 , ControlMask , 1 , } ,
-
-		/* NEXT_PTY */
-		{ XK_F3 , ControlMask , 1 , } ,
-
-		/* PREV_PTY */
-		{ XK_F4 , ControlMask , 1 , } ,
-
-		/* PAGE_UP(compatible with kterm) */
-		{ XK_Prior , ShiftMask , 1 , } ,
-
-		/* PAGE_DOWN(compatible with kterm) */
-		{ XK_Next , ShiftMask , 1 , } ,
-
-		/* SCROLL_UP */
-		{ XK_Up , ShiftMask , 1 , } ,
-
-		/* SCROLL_DOWN */
-		{ XK_Down , ShiftMask , 1 , } ,
-
-		/* INSERT_SELECTION */
-		{ XK_Insert , ShiftMask , 1 , } ,
-
-		/* EXIT PROGRAM(only for debug) */
-		{ XK_F1 , ControlMask | ShiftMask , 1 , } ,
-	} ;
-
-	memcpy( &shortcut->map , &default_key_map , sizeof( default_key_map)) ;
-
-	shortcut->str_map = NULL ;
-	shortcut->str_map_size = 0 ;
-
-	return  1 ;
-}
-
-int
-x_shortcut_final(
-	x_shortcut_t *  shortcut
-	)
-{
-	int  count ;
-	
-	for( count = 0 ; count < shortcut->str_map_size ; count ++)
-	{
-		free( shortcut->str_map[count].str) ;
-	}
-
-	free( shortcut->str_map) ;
-
-	return  1 ;
-}
-
-int
-x_read_shortcut_config(
+static int
+read_conf(
 	x_shortcut_t *  shortcut ,
 	char *  filename
 	)
@@ -341,6 +274,92 @@ x_read_shortcut_config(
 
 	kik_file_close( from) ;
 	
+	return  1 ;
+}
+
+
+/* --- global functions --- */
+
+int
+x_shortcut_init(
+	x_shortcut_t *  shortcut
+	)
+{
+	char *  rcpath ;
+	
+	x_key_t  default_key_map[] =
+	{
+		/* IM_HOTKEY */
+		{ 0 , 0 , 0 , } ,
+
+		/* EXT_KBD(obsolete) */
+		{ 0 , 0 , 0 , } ,
+		
+		/* OPEN_SCREEN */
+		{ XK_F1 , ControlMask , 1 , } ,
+
+		/* OPEN_PTY */
+		{ XK_F2 , ControlMask , 1 , } ,
+
+		/* NEXT_PTY */
+		{ XK_F3 , ControlMask , 1 , } ,
+
+		/* PREV_PTY */
+		{ XK_F4 , ControlMask , 1 , } ,
+
+		/* PAGE_UP(compatible with kterm) */
+		{ XK_Prior , ShiftMask , 1 , } ,
+
+		/* PAGE_DOWN(compatible with kterm) */
+		{ XK_Next , ShiftMask , 1 , } ,
+
+		/* SCROLL_UP */
+		{ XK_Up , ShiftMask , 1 , } ,
+
+		/* SCROLL_DOWN */
+		{ XK_Down , ShiftMask , 1 , } ,
+
+		/* INSERT_SELECTION */
+		{ XK_Insert , ShiftMask , 1 , } ,
+
+		/* EXIT PROGRAM(only for debug) */
+		{ XK_F1 , ControlMask | ShiftMask , 1 , } ,
+	} ;
+
+	memcpy( &shortcut->map , &default_key_map , sizeof( default_key_map)) ;
+
+	shortcut->str_map = NULL ;
+	shortcut->str_map_size = 0 ;
+
+	if( ( rcpath = kik_get_sys_rc_path( key_file)))
+	{
+		read_conf( shortcut , rcpath) ;
+		free( rcpath) ;
+	}
+	
+	if( ( rcpath = kik_get_user_rc_path( key_file)))
+	{
+		read_conf( shortcut , rcpath) ;
+		free( rcpath) ;
+	}
+
+	return  1 ;
+}
+
+int
+x_shortcut_final(
+	x_shortcut_t *  shortcut
+	)
+{
+	int  count ;
+	
+	for( count = 0 ; count < shortcut->str_map_size ; count ++)
+	{
+		free( shortcut->str_map[count].str) ;
+	}
+
+	free( shortcut->str_map) ;
+
 	return  1 ;
 }
 

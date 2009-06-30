@@ -13,6 +13,7 @@
 #include "x_window_manager.h"
 #include "x_screen.h"
 
+x_screen_t *  screen ;
 ml_term_t *  term ;
 x_color_config_t  color_config ;
 x_shortcut_t  shortcut ;
@@ -51,6 +52,43 @@ sig_child(
 	PostMessage(win->my_window, WM_DESTROY, 0, 0) ;
 }
 
+static void
+set_font_config(
+	char *  file ,
+	char *  key ,
+	char *  val ,
+	int  save
+	)
+{
+	if( ! x_customize_font_file( file, key, val, save))
+	{
+		return  ;
+	}
+	
+	x_font_cache_unload_all() ;
+
+	x_screen_reset_view( screen) ;
+}
+
+static void
+set_color_config(
+	char *  file ,
+	char *  key ,
+	char *  val ,
+	int  save
+	)
+{
+	kik_debug_printf( "HELO\n") ;
+	if( ! x_customize_color_file( &color_config, key, val, save))
+	{
+		return  ;
+	}
+	
+	x_color_cache_unload_all() ;
+
+	x_screen_reset_view( screen) ;
+}
+
 void
 close_screen(
 	void *  p ,
@@ -81,7 +119,6 @@ int PASCAL WinMain(
   	char *  protocol ;
   	char *  host ;
 	Display  disp ;
-	x_screen_t *  screen ;
 	x_font_manager_t *  font_man ;
 	x_color_manager_t *  color_man ;
 	x_system_event_listener_t  sys_listener ;
@@ -95,8 +132,14 @@ int PASCAL WinMain(
   
 	p = cmdline ;
 
-#if  0
+	if( ! kik_locale_init(""))
+	{
+		kik_msg_printf( "locale settings failed.\n") ;
+	}
+
+#if  1
         kik_debug_printf( "cmd_line => %s\n", cmdline) ;
+	kik_debug_printf( "GetCommandLine() => %s\n", GetCommandLine()) ;
 #endif
   	while( 1)
         {
@@ -146,8 +189,8 @@ int PASCAL WinMain(
 
 	disp.hinst = hinst ;
 
-  	term = ml_term_new( COLUMNS, LINES, 8, 50, ML_EUCJP, 1, NO_UNICODE_FONT_POLICY,
-			1, 0, 1, 0, 1, 0, BSM_VOLATILE, 0, ISCIILANG_UNKNOWN) ;
+  	term = ml_term_new( COLUMNS, LINES, 8, 50, ml_get_char_encoding( "auto"), 1,
+		NO_UNICODE_FONT_POLICY, 1, 0, 1, 0, 1, 0, BSM_VOLATILE, 0, ISCIILANG_UNKNOWN) ;
 
 	if( ! x_window_manager_init( &win_man, &disp))
 	{
@@ -207,6 +250,10 @@ int PASCAL WinMain(
 		return  -1 ;
 	}
 
+	/* Override config event listener */
+	screen->config_listener.set_font = set_font_config ;
+	screen->config_listener.set_color = set_color_config ;
+
 	sys_listener.exit = NULL ;
 	sys_listener.open_screen = NULL ;
 	sys_listener.close_screen = close_screen ;
@@ -252,7 +299,7 @@ int PASCAL WinMain(
                 {
         		char *  env[] = { lines, columns, wid, NULL } ;
         		char *  argv[] = { "--login", "-i" , NULL } ;
-                  
+
   			ml_term_open_pty( term, "C:\\msys\\1.0\\bin\\sh.exe", argv, env, NULL) ;
                   	CloseHandle(file) ;
                 }
@@ -284,6 +331,7 @@ int PASCAL WinMain(
 	ml_term_delete(term) ;
 		
   	kik_sig_child_final() ;
+	kik_locale_final() ;
 
 #ifdef  KIK_DEBUG
 	kik_mem_free_all() ;

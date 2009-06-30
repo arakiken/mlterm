@@ -18,5 +18,7 @@ int  ml_gen_proto_challenge(void) ;
 
 int  ml_parse_proto( char **  dev , char **  key , char **  val , char **  str , int  do_challenge) ;
 
+int  ml_parse_proto2( char **  file , char **  key , char **  val , char **  str) ;
+
 
 #endif

@@ -18,13 +18,6 @@ typedef struct  x_font_manager
 {
 	x_font_cache_t *  font_cache ;
 	
-	struct
-	{
-		ml_font_t  font ;
-		x_font_t *  xfont ;
-		
-	} prev_cache ;
-
 	x_font_config_t *  font_config ;
 	int8_t  is_local_font_config ;
 

@@ -164,7 +164,7 @@ get_wincs_info(
 }
 
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 
 static int
 set_decsp_font(
@@ -1172,7 +1172,7 @@ font_found:
 
 #endif	/* USE_TYPE_XCORE */
 
-#endif  /* USE_WIN32API */
+#endif  /* USE_WIN32GUI */
 
 
 /* --- global functions --- */
@@ -1180,7 +1180,7 @@ font_found:
 int
 x_compose_dec_special_font(void)
 {
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	return  0 ;
 #else
 	compose_dec_special_font = 1 ;
@@ -1264,13 +1264,7 @@ x_font_new(
                            FALSE, /* underline */
                            FALSE, /* eraseline */
                            wincsinfo->cs, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                           PROOF_QUALITY, FIXED_PITCH | FF_MODERN,
-		#if  0
-			   fontname
-		#else
-			   "‚l‚r ƒSƒVƒbƒN"
-		#endif
-			   ) ;
+                           PROOF_QUALITY, FIXED_PITCH | FF_MODERN, fontname) ;
 
 	if( ! font->fid)
 	{
@@ -1335,7 +1329,7 @@ x_font_new(
 	
 	font->is_double_drawing = 0 ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	switch( type_engine)
 	{
 	default:
@@ -1370,7 +1364,7 @@ x_font_new(
 		break ;
 #endif
 	}
-#endif	/* USE_WIN32API */
+#endif	/* USE_WIN32GUI */
 
 	return  font ;
 }
@@ -1380,7 +1374,7 @@ x_font_delete(
 	x_font_t *  font
 	)
 {
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	if( font->fid)
 	{
 		DeleteObject(font->fid) ;
@@ -1411,7 +1405,7 @@ x_font_delete(
 		x_decsp_font_delete( font->decsp_font , font->display) ;
 		font->decsp_font = NULL ;
 	}
-#endif	/* USE_WIN32API */
+#endif	/* USE_WIN32GUI */
 
 	free( font) ;
 
@@ -1451,7 +1445,7 @@ x_calculate_char_width(
 	mkf_charset_t  cs
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( font->is_var_col_width && ! font->decsp_font)
 	{
 	#ifdef  USE_TYPE_XFT
@@ -1492,7 +1486,7 @@ x_font_get_cs_names(
 	mkf_charset_t  cs
 	)
 {
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	static char *  csnames[] = { "iso8859-1" } ;	/* dummy */
 	
 	return  csnames ;
@@ -1512,7 +1506,7 @@ x_font_dump(
 	x_font_t *  font
 	)
 {
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	kik_msg_printf( "  id %x: XFont %p" , font->id , font->fid) ;
 #else
 #ifdef  USE_TYPE_XCORE

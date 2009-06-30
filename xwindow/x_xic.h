@@ -14,7 +14,7 @@
 
 typedef struct  x_xic
 {
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	WORD  prev_keydown_wparam ;
 	mkf_parser_t *  parser ;
 	ml_char_encoding_t  encoding ;

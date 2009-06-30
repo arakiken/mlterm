@@ -10,6 +10,12 @@
 #include  <kiklib/kik_types.h>
 
 
+/* for msys-1.0 dvlpr */
+#ifndef  WM_IME_CHAR
+#define  WM_IME_CHAR 0x286
+#endif
+
+
 typedef struct
 {
 	HINSTANCE  hinst ;

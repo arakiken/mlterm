@@ -56,13 +56,22 @@ typedef struct  ml_xterm_event_listener
 
 } ml_xterm_event_listener_t ;
 
+/*
+ * !! Notice !!
+ * Validation of Keys and vals is not checked before these event called by ml_vt100_parser.
+ */
 typedef struct  ml_config_event_listener
 {
 	void *  self ;
 
+	/* Assume that set and get affect each window. */
 	void (*set)( void * , char * , char * , char *) ;
 	void (*get)( void * , char * , char * , int) ;
-	void (*saved)( void *) ;
+
+	/* Assume that saved, set_font and set_color affect all window. */
+	void (*saved)(void) ;		/* Event that mlterm/main file was changed. */
+	void (*set_font)( char * , char * , char * , int) ;
+	void (*set_color)( char * , char * , char * , int) ;
 
 } ml_config_event_listener_t ;
 

@@ -16,9 +16,10 @@
 #include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
 #include  <mkf/mkf_xct_parser.h>
 #include  <mkf/mkf_xct_conv.h>
+#ifndef  USE_WIN32GUI
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf8_parser.h>
-#ifdef  USE_WIN32API
+#else
 #include  <mkf/mkf_utf16_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
 #endif
@@ -32,8 +33,9 @@
  * XXX
  * char length is max 8 bytes.
  * I think this is enough , but I'm not sure.
+ * This macro used for UTF8 and UTF16.
  */
-#define  UTF8_MAX_CHAR_SIZE  (8 * (MAX_COMB_SIZE + 1))
+#define  UTF_MAX_CHAR_SIZE  (8 * (MAX_COMB_SIZE + 1))
 
 /*
  * XXX
@@ -347,7 +349,7 @@ screen_height(
 	return  (height * screen->screen_height_ratio) / 100 ;
 }
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 static int
 activate_xic(
 	x_screen_t *  screen
@@ -827,7 +829,7 @@ redraw_screen(
 
 	ml_term_updated_all( screen->term) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		x_im_redraw_preedit( screen->im , screen->is_focused) ;
@@ -850,7 +852,7 @@ highlight_cursor(
 
 	draw_cursor( screen) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	x_xic_set_spot( &screen->window) ;
 #endif
 
@@ -1027,22 +1029,6 @@ bs_page_downward(
 }
 
 
-static x_picture_modifier_t *
-get_picture_modifier(
-	x_screen_t *  screen
-	)
-{
-	if( x_picture_modifier_is_normal( &screen->pic_mod))
-	{
-		return  NULL ;
-	}
-	else
-	{
-		return  &screen->pic_mod ;
-	}
-}
-
-
 /*
  * !! Notice !!
  * don't call x_restore_selected_region_color() directly.
@@ -1154,7 +1140,7 @@ set_wall_picture(
 		return  0 ;
 	}
 
-	if( ! x_picture_init( &pic , &screen->window , get_picture_modifier( screen)))
+	if( ! x_picture_init( &pic , &screen->window , x_screen_get_picture_modifier( screen)))
 	{
 		goto  error ;
 	}
@@ -1282,7 +1268,7 @@ window_realized(
 	screen->mod_meta_mask = x_window_get_mod_meta_mask( win, screen->mod_meta_key) ;
 	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win, NULL) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( screen->input_method)
 	{
 		/* XIM or other input methods? */
@@ -1462,7 +1448,7 @@ window_resized(
 
 	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	x_xic_resized( &screen->window) ;
 #endif
 }
@@ -1499,7 +1485,7 @@ window_focused(
 
 	x_window_update( &screen->window, UPDATE_CURSOR) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		(*screen->im->focused)( screen->im) ;
@@ -1539,7 +1525,7 @@ window_unfocused(
 
 	x_window_update( &screen->window, UPDATE_CURSOR) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		(*screen->im->unfocused)( screen->im) ;
@@ -1609,7 +1595,7 @@ config_menu(
 }
 
 static int
-use_utf8_selection(
+use_utf_selection(
 	x_screen_t *  screen
 	)
 {
@@ -1672,9 +1658,9 @@ yank_event_received(
 	}
 	else
 	{
-		if( use_utf8_selection(screen))
+		if( use_utf_selection(screen))
 		{
-			return  x_window_utf8_selection_request( &screen->window , time) ;
+			return  x_window_utf_selection_request( &screen->window , time) ;
 		}
 		else
 		{
@@ -1702,8 +1688,6 @@ receive_string_via_ucs(
 	}
 }
 
-/* referred in key_pressed and set_xdnd_config. */
-static void set_config( void *  p , char *  dev , char *  key , char *  value) ;
 /* referred in key_pressed. */
 static void change_im( x_screen_t * , char *) ;
 static int compare_key_state_with_modmap( void *  p , u_int  state ,
@@ -1746,7 +1730,7 @@ key_pressed(
 	}
 #endif
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		u_char  kchar = 0 ;
@@ -2082,7 +2066,7 @@ key_pressed(
 						val = "" ;
 					}
 
-					set_config( screen , dev , key , val) ;
+					x_screen_set_config( screen , dev , key , val) ;
 
 				next:
 					key = p ;
@@ -2473,18 +2457,18 @@ key_pressed(
 				(*parser->init)( parser) ;
 				(*parser->set_str)( parser , seq , size) ;
 
-				(*screen->utf8_conv->init)( screen->utf8_conv) ;
+				(*screen->utf_conv->init)( screen->utf_conv) ;
 
 				while( ! parser->is_eos)
 				{
-					if( ( filled_len = (*screen->utf8_conv->convert)(
-						screen->utf8_conv , conv_buf , sizeof( conv_buf) ,
+					if( ( filled_len = (*screen->utf_conv->convert)(
+						screen->utf_conv , conv_buf , sizeof( conv_buf) ,
 						parser)) == 0)
 					{
 						break ;
 					}
 
-					write_to_pty( screen , conv_buf , filled_len , screen->utf8_parser) ;
+					write_to_pty( screen , conv_buf , filled_len , screen->utf_parser) ;
 				}
 			}
 			else
@@ -2549,7 +2533,7 @@ convert_selection_to_xct(
 }
 
 static size_t
-convert_selection_to_utf8(
+convert_selection_to_utf(
 	x_screen_t *  screen ,
 	u_char *  str ,
 	size_t  len
@@ -2573,15 +2557,15 @@ convert_selection_to_utf8(
 	(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
 	ml_str_parser_set_str( screen->ml_str_parser , screen->sel.sel_str , screen->sel.sel_len) ;
 
-	(*screen->utf8_conv->init)( screen->utf8_conv) ;
-	filled_len = (*screen->utf8_conv->convert)( screen->utf8_conv ,
+	(*screen->utf_conv->init)( screen->utf_conv) ;
+	filled_len = (*screen->utf_conv->convert)( screen->utf_conv ,
 		str , len , screen->ml_str_parser) ;
 
 #ifdef  __DEBUG
 	{
 		int  i ;
 
-		kik_debug_printf( KIK_DEBUG_TAG " sending utf8 str: ") ;
+		kik_debug_printf( KIK_DEBUG_TAG " sending utf str: ") ;
 		for( i = 0 ; i < filled_len ; i ++)
 		{
 			kik_msg_printf( "%.2x" , str[i]) ;
@@ -2628,7 +2612,7 @@ xct_selection_requested(
 }
 
 static void
-utf8_selection_requested(
+utf_selection_requested(
 	x_window_t * win ,
 	XSelectionRequestEvent *  event ,
 	Atom  type
@@ -2644,20 +2628,20 @@ utf8_selection_requested(
 	}
 	else
 	{
-		u_char *  utf8_str ;
-		size_t  utf8_len ;
+		u_char *  utf_str ;
+		size_t  utf_len ;
 		size_t  filled_len ;
 
-		utf8_len = screen->sel.sel_len * UTF8_MAX_CHAR_SIZE ;
+		utf_len = screen->sel.sel_len * UTF_MAX_CHAR_SIZE ;
 
-		if( ( utf8_str = alloca( utf8_len)) == NULL)
+		if( ( utf_str = alloca( utf_len)) == NULL)
 		{
 			return ;
 		}
 
-		filled_len = convert_selection_to_utf8( screen , utf8_str , utf8_len) ;
+		filled_len = convert_selection_to_utf( screen , utf_str , utf_len) ;
 
-		x_window_send_selection( win , event , utf8_str , filled_len , type , 8) ;
+		x_window_send_selection( win , event , utf_str , filled_len , type , 8) ;
 	}
 }
 
@@ -2688,7 +2672,7 @@ xct_selection_notified(
 
 	screen = (x_screen_t*) win ;
 
-#if  1
+#ifndef  USE_WIN32GUI
 	/*
 	 * XXX
 	 * parsing UTF-8 sequence designated by ESC % G.
@@ -2703,7 +2687,7 @@ xct_selection_notified(
 		}
 	#endif
 
-		write_to_pty( screen , str + 3 , len - 3 , screen->utf8_parser) ;
+		write_to_pty( screen , str + 3 , len - 3 , screen->utf_parser) ;
 	}
 	else
 #endif
@@ -2717,18 +2701,18 @@ xct_selection_notified(
 		(*screen->xct_parser->init)( screen->xct_parser) ;
 		(*screen->xct_parser->set_str)( screen->xct_parser , str , len) ;
 
-		(*screen->utf8_conv->init)( screen->utf8_conv) ;
+		(*screen->utf_conv->init)( screen->utf_conv) ;
 
 		while( ! screen->xct_parser->is_eos)
 		{
-			if( ( filled_len = (*screen->utf8_conv->convert)(
-				screen->utf8_conv , conv_buf , sizeof( conv_buf) ,
+			if( ( filled_len = (*screen->utf_conv->convert)(
+				screen->utf_conv , conv_buf , sizeof( conv_buf) ,
 				screen->xct_parser)) == 0)
 			{
 				break ;
 			}
 
-			write_to_pty( screen , conv_buf , filled_len , screen->utf8_parser) ;
+			write_to_pty( screen , conv_buf , filled_len , screen->utf_parser) ;
 		}
 	}
 	else
@@ -2740,7 +2724,7 @@ xct_selection_notified(
 }
 
 static void
-utf8_selection_notified(
+utf_selection_notified(
 	x_window_t *  win ,
 	u_char *  str ,
 	size_t  len
@@ -2762,7 +2746,7 @@ utf8_selection_notified(
 	}
 #endif
 
-	write_to_pty( (x_screen_t*) win , str , len , ( (x_screen_t*) win)->utf8_parser) ;
+	write_to_pty( (x_screen_t*) win , str , len , ( (x_screen_t*) win)->utf_parser) ;
 }
 
 #ifndef  DISABLE_XDND
@@ -2778,7 +2762,7 @@ set_xdnd_config(
 
 	screen = (x_screen_t*)win ;
 
-	set_config( screen, key, dev, value) ;
+	x_screen_set_config( screen, key, dev, value) ;
 
 	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 }
@@ -2968,7 +2952,7 @@ selecting_with_motion(
 	{
 		restore_selected_region_color( screen) ;
 
-	#ifndef  USE_WIN32API
+	#ifndef  USE_WIN32GUI
 		if( ! screen->sel.is_owner)
 	#endif
 		{
@@ -3096,7 +3080,7 @@ selecting_word(
 	{
 		restore_selected_region_color( screen) ;
 
-	#ifndef  USE_WIN32API
+	#ifndef  USE_WIN32GUI
 		if( ! screen->sel.is_owner)
 	#endif
 		{
@@ -3151,7 +3135,7 @@ selecting_line(
 	{
 		restore_selected_region_color( screen) ;
 
-	#ifndef  USE_WIN32API
+	#ifndef  USE_WIN32GUI
 		if( ! screen->sel.is_owner)
 	#endif
 		{
@@ -3457,7 +3441,8 @@ font_size_changed(
 			screen->screen_scroll_listener->self , x_line_height( screen)) ;
 	}
 
-	x_window_set_normal_hints( &screen->window , x_col_width( screen) , x_line_height( screen) , 0 , 0 ,
+	x_window_set_normal_hints( &screen->window ,
+		x_col_width( screen) , x_line_height( screen) , 0 , 0 ,
 		x_col_width( screen) , x_line_height( screen)) ;
 
 	/* screen will redrawn in window_resized() */
@@ -3504,7 +3489,7 @@ change_font_size(
 
 	font_size_changed( screen) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	/* this is because font_man->font_set may have changed in x_change_font_size() */
 	x_xic_font_set_changed( &screen->window) ;
 #endif
@@ -3608,7 +3593,7 @@ change_font_present(
 	font_size_changed( screen) ;
 }
 
-static int
+static void
 usascii_font_cs_changed(
 	x_screen_t *  screen ,
 	ml_char_encoding_t  encoding
@@ -3618,15 +3603,13 @@ usascii_font_cs_changed(
 
 	font_size_changed( screen) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	/*
 	 * this is because font_man->font_set may have changed in
 	 * x_font_manager_usascii_font_cs_changed()
 	 */
 	x_xic_font_set_changed( &screen->window) ;
 #endif
-
-	return  1 ;
 }
 
 static void
@@ -3669,7 +3652,7 @@ change_char_encoding(
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		change_im( screen , kik_str_alloca_dup( screen->input_method)) ;
@@ -3893,7 +3876,7 @@ change_fg_color(
 	x_window_set_fg_color( &screen->window ,
 		x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	x_xic_fg_color_changed( &screen->window) ;
 #endif
 
@@ -3916,7 +3899,7 @@ change_bg_color(
 	x_window_set_bg_color( &screen->window ,
 		x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	x_xic_bg_color_changed( &screen->window) ;
 #endif
 
@@ -4010,7 +3993,7 @@ larger_font_size(
 
 	font_size_changed( screen) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	/* this is because font_man->font_set may have changed in x_larger_font() */
 	x_xic_font_set_changed( &screen->window) ;
 #endif
@@ -4028,7 +4011,7 @@ smaller_font_size(
 
 	font_size_changed( screen) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	/* this is because font_man->font_set may have changed in x_smaller_font() */
 	x_xic_font_set_changed( &screen->window) ;
 #endif
@@ -4052,7 +4035,8 @@ change_transparent_flag(
 
 	if( is_transparent)
 	{
-		x_window_set_transparent( &screen->window , get_picture_modifier( screen)) ;
+		x_window_set_transparent( &screen->window ,
+			x_screen_get_picture_modifier( screen)) ;
 	}
 	else
 	{
@@ -4064,7 +4048,7 @@ change_transparent_flag(
 	{
 		(*screen->screen_scroll_listener->transparent_state_changed)(
 			screen->screen_scroll_listener->self , is_transparent ,
-			get_picture_modifier( screen)) ;
+			x_screen_get_picture_modifier( screen)) ;
 	}
 }
 
@@ -4150,12 +4134,14 @@ picture_modifier_changed(
 {
 	if( screen->window.is_transparent)
 	{
-		x_window_set_transparent( &screen->window , get_picture_modifier( screen)) ;
+		x_window_set_transparent( &screen->window ,
+			x_screen_get_picture_modifier( screen)) ;
 
 		if( HAS_SCROLL_LISTENER(screen,transparent_state_changed))
 		{
 			(*screen->screen_scroll_listener->transparent_state_changed)(
-				screen->screen_scroll_listener->self , 1 , get_picture_modifier( screen)) ;
+				screen->screen_scroll_listener->self , 1 ,
+				x_screen_get_picture_modifier( screen)) ;
 		}
 	}
 	else
@@ -4248,7 +4234,7 @@ change_fade_ratio(
 	x_window_set_bg_color( &screen->window ,
 		x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	x_xic_fg_color_changed( &screen->window) ;
 	x_xic_bg_color_changed( &screen->window) ;
 #endif
@@ -4262,7 +4248,7 @@ change_im(
 	char *  input_method
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	x_xic_deactivate( &screen->window) ;
 
 	if( screen->im)
@@ -4409,6 +4395,11 @@ change_icon(
 					   ml_term_icon_path( screen->term));
 }
 
+
+/*
+ * Callbacks of x_config_event_listener_t events.
+ */
+ 
 static void
 set_config(
 	void *  p ,
@@ -4417,522 +4408,7 @@ set_config(
 	char *  value		/* can be NULL */
 	)
 {
-	x_screen_t *  screen ;
-	char *  true = "true" ;
-	char *  false = "false" ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
-#endif
-
-	if( value == NULL)
-	{
-		value = "" ;
-	}
-
-	screen = p ;
-
-	/*
-	 * XXX
-	 * 'dev' is not used for now, since many static functions used below uses
-	 * screen->term internally.
-	 */
-#if  0
-	if( dev)
-	{
-		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
-				dev)) == NULL)
-		{
-			return ;
-		}
-	}
-	else
-	{
-		term = screen->term ;
-	}
-#endif
-
-	/*
-	 * x_screen_{start|stop}_term_screen are necessary since
-	 * window is redrawn in change_wall_picture().
-	 */
-
-	if( strcmp( key , "encoding") == 0)
-	{
-		ml_char_encoding_t  encoding ;
-
-		if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
-		{
-			return ;
-		}
-
-		if( strcasecmp( value , "auto") == 0)
-		{
-			ml_term_set_auto_encoding( screen->term , 1) ;
-		}
-		else
-		{
-			ml_term_set_auto_encoding( screen->term , 0) ;
-		}
-
-		change_char_encoding( screen , encoding) ;
-	}
-	else if( strcmp( key , "iscii_lang") == 0)
-	{
-		ml_iscii_lang_type_t  type ;
-
-		if( ( type = ml_iscii_get_lang( value)) == ISCIILANG_UNKNOWN)
-		{
-			return ;
-		}
-
-		change_iscii_lang( screen , type) ;
-	}
-	else if( strcmp( key , "fg_color") == 0)
-	{
-		change_fg_color( screen , value) ;
-	}
-	else if( strcmp( key , "bg_color") == 0)
-	{
-		change_bg_color( screen , value) ;
-	}
-	else if( strcmp( key , "cursor_fg_color") == 0)
-	{
-		change_cursor_fg_color( screen , value) ;
-	}
-	else if( strcmp( key , "cursor_bg_color") == 0)
-	{
-		change_cursor_bg_color( screen , value) ;
-	}
-	else if( strcmp( key , "sb_fg_color") == 0)
-	{
-		change_sb_fg_color( screen , value) ;
-	}
-	else if( strcmp( key , "sb_bg_color") == 0)
-	{
-		change_sb_bg_color( screen , value) ;
-	}
-	else if( strcmp( key , "tabsize") == 0)
-	{
-		u_int  tab_size ;
-
-		if( ! kik_str_to_uint( &tab_size , value))
-		{
-			return ;
-		}
-
-		change_tab_size( screen , tab_size) ;
-	}
-	else if( strcmp( key , "logsize") == 0)
-	{
-		u_int  log_size ;
-
-		if( ! kik_str_to_uint( &log_size , value))
-		{
-			return ;
-		}
-
-		change_log_size( screen , log_size) ;
-	}
-	else if( strcmp( key , "fontsize") == 0)
-	{
-		u_int  font_size ;
-
-		if( strcmp( value , "larger") == 0)
-		{
-			larger_font_size( screen) ;
-		}
-		else if( strcmp( value , "smaller") == 0)
-		{
-			smaller_font_size( screen) ;
-		}
-		else
-		{
-			if( ! kik_str_to_uint( &font_size , value))
-			{
-				return ;
-			}
-
-			change_font_size( screen , font_size) ;
-		}
-	}
-	else if( strcmp( key , "line_space") == 0)
-	{
-		u_int  line_space ;
-
-		if( ! kik_str_to_uint( &line_space , value))
-		{
-			return ;
-		}
-
-		change_line_space( screen , line_space) ;
-	}
-	else if( strcmp( key , "screen_width_ratio") == 0)
-	{
-		u_int  ratio ;
-
-		if( ! kik_str_to_uint( &ratio , value))
-		{
-			return ;
-		}
-
-		change_screen_width_ratio( screen , ratio) ;
-	}
-	else if( strcmp( key , "screen_height_ratio") == 0)
-	{
-		u_int  ratio ;
-
-		if( ! kik_str_to_uint( &ratio , value))
-		{
-			return ;
-		}
-
-		change_screen_height_ratio( screen , ratio) ;
-	}
-	else if( strcmp( key , "scrollbar_view_name") == 0)
-	{
-		change_sb_view( screen , value) ;
-	}
-	else if( strcmp( key , "mod_meta_key") == 0)
-	{
-		change_mod_meta_key( screen , value) ;
-	}
-	else if( strcmp( key , "mod_meta_mode") == 0)
-	{
-		change_mod_meta_mode( screen , x_get_mod_meta_mode( value)) ;
-	}
-	else if( strcmp( key , "bel_mode") == 0)
-	{
-		change_bel_mode( screen , x_get_bel_mode( value)) ;
-	}
-	else if( strcmp( key , "vertical_mode") == 0)
-	{
-		change_vertical_mode( screen , ml_get_vertical_mode( value)) ;
-	}
-	else if( strcmp( key , "scrollbar_mode") == 0)
-	{
-		change_sb_mode( screen , x_get_sb_mode( value)) ;
-	}
-	else if( strcmp( key , "use_combining") == 0)
-	{
-		int  flag ;
-
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
-		{
-			return ;
-		}
-
-		change_char_combining_flag( screen , flag) ;
-	}
-	else if( strcmp( key , "use_dynamic_comb") == 0)
-	{
-		int  flag ;
-
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
-		{
-			return ;
-		}
-
-		change_dynamic_comb_flag( screen , flag) ;
-	}
-	else if( strcmp( key , "receive_string_via_ucs") == 0 ||
-		/* backward compatibility with 2.6.1 or before */
-		strcmp( key , "copy_paste_via_ucs") == 0)
-	{
-		int  flag ;
-
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
-		{
-			return ;
-		}
-
-		change_receive_string_via_ucs_flag( screen , flag) ;
-	}
-	else if( strcmp( key , "use_transbg") == 0)
-	{
-		int  flag ;
-
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
-		{
-			return ;
-		}
-
-		change_transparent_flag( screen , flag) ;
-	}
-	else if( strcmp( key , "brightness") == 0)
-	{
-		u_int  brightness ;
-
-		if( ! kik_str_to_uint( &brightness , value))
-		{
-			return ;
-		}
-
-		change_brightness( screen , brightness) ;
-	}
-	else if( strcmp( key , "contrast") == 0)
-	{
-		u_int  contrast ;
-
-		if( ! kik_str_to_uint( &contrast , value))
-		{
-			return ;
-		}
-
-		change_contrast( screen , contrast) ;
-	}
-	else if( strcmp( key , "gamma") == 0)
-	{
-		u_int  gamma ;
-
-		if( ! kik_str_to_uint( &gamma , value))
-		{
-			return ;
-		}
-
-		change_gamma( screen , gamma) ;
-	}
-	else if( strcmp( key , "fade_ratio") == 0)
-	{
-		u_int  fade_ratio ;
-
-		if( ! kik_str_to_uint( &fade_ratio , value))
-		{
-			return ;
-		}
-
-		change_fade_ratio( screen , fade_ratio) ;
-	}
-	else if( strcmp( key , "use_anti_alias") == 0)
-	{
-		x_font_present_t  font_present ;
-
-		font_present = x_get_font_present( screen->font_man) ;
-
-		if( strcmp( value , true) == 0)
-		{
-			font_present |= FONT_AA ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			font_present &= ~FONT_AA ;
-		}
-		else
-		{
-			return ;
-		}
-
-		change_font_present( screen , font_present) ;
-	}
-	else if( strcmp( key , "use_variable_column_width") == 0)
-	{
-		x_font_present_t  font_present ;
-
-		font_present = x_get_font_present( screen->font_man) ;
-
-		if( strcmp( value , true) == 0)
-		{
-			font_present |= FONT_VAR_WIDTH ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			font_present &= ~FONT_VAR_WIDTH ;
-		}
-		else
-		{
-			return ;
-		}
-
-		change_font_present( screen , font_present) ;
-	}
-	else if( strcmp( key , "use_multi_column_char") == 0)
-	{
-		int  flag ;
-
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
-		{
-			return ;
-		}
-
-		change_multi_col_char_flag( screen , flag) ;
-	}
-	else if( strcmp( key , "use_bidi") == 0)
-	{
-		int  flag ;
-
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
-		{
-			return ;
-		}
-
-		change_bidi_flag( screen , flag) ;
-	}
-	else if( strcmp( key , "input_method") == 0)
-	{
-		change_im( screen , value) ;
-	}
-	else if( strcmp( key , "borderless") == 0)
-	{
-		int  flag ;
-
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
-		{
-			return ;
-		}
-
-		change_borderless_flag( screen , flag) ;
-	}
-	else if( strcmp( key , "wall_picture") == 0)
-	{
-		change_wall_picture( screen , value) ;
-	}
-	else if( strcmp( key , "full_reset") == 0)
-	{
-		full_reset( screen) ;
-	}
-	else if( strcmp( key , "select_pty") == 0)
-	{
-		if( HAS_SYSTEM_LISTENER(screen,open_pty))
-		{
-			(*screen->system_listener->open_pty)( screen->system_listener->self , screen ,
-				value) ;
-		}
-	}
-	else if( strcmp( key , "open_pty") == 0)
-	{
-		if( HAS_SYSTEM_LISTENER(screen,open_pty))
-		{
-			(*screen->system_listener->open_pty)(
-				screen->system_listener->self , screen , NULL) ;
-		}
-	}
-	else if( strcmp( key , "open_screen") == 0)
-	{
-		if( HAS_SYSTEM_LISTENER(screen,open_screen))
-		{
-			(*screen->system_listener->open_screen)( screen->system_listener->self) ;
-		}
-	}
-	else if( strcmp( key , "snapshot") == 0)
-	{
-		char *  encoding ;
-		char *  file ;
-		char *  p ;
-
-		encoding = value ;
-
-		if( ( p = strchr( value , ':')) == NULL || *(p + 1) == '\0')
-		{
-			/* skip /dev/ */
-			p = ml_term_get_slave_name( screen->term) + 5 ;
-		}
-		else
-		{
-			*(p ++) = '\0' ;
-
-			if( strstr( p , "..") != NULL)
-			{
-				/* insecure file name */
-
-				kik_msg_printf( "%s is insecure file name.\n" , p) ;
-
-				return ;
-			}
-		}
-
-		if( ( file = alloca( 7 + strlen( p) + 4 + 1)) == NULL)
-		{
-			return ;
-		}
-		sprintf( file , "mlterm/%s.snp" , p) ;
-
-		snapshot( screen , ml_get_char_encoding( encoding) , file) ;
-	}
-	else if( strcmp( key , "icon_path") == 0)
-	{
-		change_icon( screen, value) ;
-	}
-	else if( strcmp( key , "title") == 0)
-	{
-		if(screen->xterm_listener.set_window_name){
-			screen->xterm_listener.set_window_name( screen, value) ;
-		}
-	}
-	else if( strcmp( key , "logging_vt_seq") == 0)
-	{
-		int  flag ;
-
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
-		{
-			return ;
-		}
-
-		ml_term_set_logging_vt_seq( screen->term , flag) ;
-	}
+	x_screen_set_config( p, dev, key, value) ;
 }
 
 static void
@@ -4943,418 +4419,7 @@ get_config(
 	int  to_menu
 	)
 {
-	x_screen_t *  screen ;
-	ml_term_t *  term ;
-	char *  value = NULL ;
-	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
-	char *  true = "true" ;
-	char *  false = "false" ;
-	char  cwd[PATH_MAX] ;
-
-	screen = p ;
-
-	if( dev)
-	{
-		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
-				dev)) == NULL)
-		{
-			goto  error ;
-		}
-	}
-	else
-	{
-		term = screen->term ;
-	}
-
-	if( strcmp( key , "encoding") == 0)
-	{
-		value = ml_get_char_encoding_name( ml_term_get_encoding( term)) ;
-	}
-	else if( strcmp( key , "is_auto_encoding") == 0)
-	{
-		if( ml_term_is_auto_encoding( term))
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "iscii_lang") == 0)
-	{
-		value = ml_iscii_get_lang_name( term->iscii_lang_type) ;
-	}
-	else if( strcmp( key , "fg_color") == 0)
-	{
-		value = x_color_manager_get_fg_color( screen->color_man) ;
-	}
-	else if( strcmp( key , "bg_color") == 0)
-	{
-		value = x_color_manager_get_bg_color( screen->color_man) ;
-	}
-	else if( strcmp( key , "cursor_fg_color") == 0)
-	{
-		if( ( value = x_color_manager_get_cursor_fg_color( screen->color_man)) == NULL)
-		{
-			value = "" ;
-		}
-	}
-	else if( strcmp( key , "cursor_bg_color") == 0)
-	{
-		if( ( value = x_color_manager_get_cursor_bg_color( screen->color_man)) == NULL)
-		{
-			value = "" ;
-		}
-	}
-	else if( strcmp( key , "sb_fg_color") == 0)
-	{
-		if( screen->screen_scroll_listener && screen->screen_scroll_listener->fg_color)
-		{
-			value = (*screen->screen_scroll_listener->fg_color)(
-					screen->screen_scroll_listener->self) ;
-		}
-		else
-		{
-			value = NULL ;
-		}
-	}
-	else if( strcmp( key , "sb_bg_color") == 0)
-	{
-		if( screen->screen_scroll_listener && screen->screen_scroll_listener->bg_color)
-		{
-			value = (*screen->screen_scroll_listener->bg_color)(
-					screen->screen_scroll_listener->self) ;
-		}
-		else
-		{
-			value = NULL ;
-		}
-	}
-	else if( strcmp( key , "tabsize") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_tab_size( term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "logsize") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_log_size( term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "fontsize") == 0)
-	{
-		sprintf( digit , "%d" , x_get_font_size( screen->font_man)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "line_space") == 0)
-	{
-		sprintf( digit , "%d" , screen->line_space) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "screen_width_ratio") == 0)
-	{
-		sprintf( digit , "%d" , screen->screen_width_ratio) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "screen_height_ratio") == 0)
-	{
-		sprintf( digit , "%d" , screen->screen_height_ratio) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "scrollbar_view_name") == 0)
-	{
-		if( screen->screen_scroll_listener && screen->screen_scroll_listener->view_name)
-		{
-			value = (*screen->screen_scroll_listener->view_name)(
-					screen->screen_scroll_listener->self) ;
-		}
-		else
-		{
-			value = NULL ;
-		}
-	}
-	else if( strcmp( key , "mod_meta_key") == 0)
-	{
-		if( screen->mod_meta_key == NULL)
-		{
-			value = "none" ;
-		}
-		else
-		{
-			value = screen->mod_meta_key ;
-		}
-	}
-	else if( strcmp( key , "mod_meta_mode") == 0)
-	{
-		value = x_get_mod_meta_mode_name( screen->mod_meta_mode) ;
-	}
-	else if( strcmp( key , "bel_mode") == 0)
-	{
-		value = x_get_bel_mode_name( screen->bel_mode) ;
-	}
-	else if( strcmp( key , "vertical_mode") == 0)
-	{
-		value = ml_get_vertical_mode_name( term->vertical_mode) ;
-	}
-	else if( strcmp( key , "scrollbar_mode") == 0)
-	{
-		if( screen->screen_scroll_listener &&
-			screen->screen_scroll_listener->sb_mode)
-		{
-			value = x_get_sb_mode_name( (*screen->screen_scroll_listener->sb_mode)(
-				screen->screen_scroll_listener->self)) ;
-		}
-		else
-		{
-			value = x_get_sb_mode_name( SBM_NONE) ;
-		}
-	}
-	else if( strcmp( key , "use_combining") == 0)
-	{
-		if( ml_term_is_using_char_combining( term))
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "use_dynamic_comb") == 0)
-	{
-		if( term->use_dynamic_comb)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "receive_string_via_ucs") == 0 ||
-		/* backward compatibility with 2.6.1 or before */
-		strcmp( key , "copy_paste_via_ucs") == 0)
-	{
-		if( screen->receive_string_via_ucs)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "use_transbg") == 0)
-	{
-		if( screen->window.is_transparent)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "brightness") == 0)
-	{
-		sprintf( digit , "%d" , screen->pic_mod.brightness) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "contrast") == 0)
-	{
-		sprintf( digit , "%d" , screen->pic_mod.contrast) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "gamma") == 0)
-	{
-		sprintf( digit , "%d" , screen->pic_mod.gamma) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "fade_ratio") == 0)
-	{
-		sprintf( digit , "%d" , screen->fade_ratio) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "use_anti_alias") == 0)
-	{
-		if( x_get_font_present( screen->font_man) & FONT_AA)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "use_variable_column_width") == 0)
-	{
-		if( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "use_multi_column_char") == 0)
-	{
-		if( x_is_using_multi_col_char( screen->font_man))
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "use_bidi") == 0)
-	{
-		if( term->use_bidi)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "input_method") == 0)
-	{
-		if( screen->input_method)
-		{
-			value = screen->input_method ;
-		}
-		else
-		{
-			value = "none" ;
-		}
-	}
-	else if( strcmp( key , "default_xim_name") == 0)
-	{
-	#ifdef  USE_WIN32API
-		value = "" ;
-	#else
-		value = x_xic_get_default_xim_name() ;
-	#endif
-	}
-	else if( strcmp( key , "locale") == 0)
-	{
-		value = kik_get_locale() ;
-	}
-	else if( strcmp( key , "borderless") == 0)
-	{
-		if( screen->borderless)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "wall_picture") == 0)
-	{
-		if( screen->pic_file_path)
-		{
-			value = screen->pic_file_path ;
-		}
-		else
-		{
-			value = "" ;
-		}
-	}
-	else if( strcmp( key , "pwd") == 0)
-	{
-		value = getcwd( cwd , sizeof(cwd)) ;
-	}
-	else if( strcmp( key , "rows") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_rows( term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "cols") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_cols( term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "pty_list") == 0)
-	{
-		if( HAS_SYSTEM_LISTENER(screen,pty_list))
-		{
-			value = (*screen->system_listener->pty_list)( screen->system_listener->self) ;
-		}
-	}
-	else if( strcmp( key , "pty_name") == 0)
-	{
-		if( dev)
-		{
-			if( ( value = ml_term_window_name( term)) == NULL)
-			{
-				value = dev ;
-			}
-		}
-		else
-		{
-			value = ml_term_get_slave_name( term) ;
-		}
-	}
-	else if( strcmp( key , "icon_path") == 0)
-	{
-		value = ml_term_icon_path( term) ;
-	}
-	else if( strcmp( key , "logging_vt_seq") == 0)
-	{
-		if( term->parser->logging_vt_seq)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-
-	if( value == NULL)
-	{
-		goto  error ;
-	}
-
-	ml_term_write( screen->term , "#" , 1 , to_menu) ;
-	ml_term_write( screen->term , key , strlen( key) , to_menu) ;
-	ml_term_write( screen->term , "=" , 1 , to_menu) ;
-	ml_term_write( screen->term , value , strlen( value) , to_menu) ;
-	ml_term_write( screen->term , "\n" , 1 , to_menu) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
-#endif
-
-	return ;
-
-error:
-	ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " #error\n") ;
-#endif
-
-	return ;
-}
-
-static void
-config_saved(
-	void *  p
-	)
-{
-	x_screen_t *  screen ;
-
-	screen = p ;
-
-	if( HAS_SYSTEM_LISTENER(screen,config_saved))
-	{
-		(*screen->system_listener->config_saved)( screen->system_listener->self) ;
-	}
+	x_screen_get_config( p, dev, key, to_menu) ;
 }
 
 
@@ -6067,7 +5132,7 @@ im_changed(
 	char *  input_method
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	x_screen_t *  screen ;
 	x_im_t *  new ;
 
@@ -6480,7 +5545,7 @@ xterm_bel(
 	{
 		x_window_fill_all( &screen->window) ;
 
-	#ifndef  USE_WIN32API
+	#ifndef  USE_WIN32GUI
 		XFlush( screen->window.display) ;
 	#endif
 	
@@ -6511,7 +5576,7 @@ pty_closed(
 	(*screen->system_listener->pty_closed)( screen->system_listener->self , screen) ;
 }
 
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 static void
 pty_read_ready(
   	void *  p
@@ -6587,14 +5652,14 @@ x_screen_new(
 	screen->xterm_listener.set_icon_name = xterm_set_icon_name ;
 	screen->xterm_listener.bel = xterm_bel ;
 
+	memset( &screen->config_listener, 0, sizeof( ml_config_event_listener_t)) ;
 	screen->config_listener.self = screen ;
-	screen->config_listener.set = set_config ;
 	screen->config_listener.get = get_config ;
-	screen->config_listener.saved = config_saved ;
+	screen->config_listener.set = set_config ;
 
 	screen->pty_listener.self = screen ;
 	screen->pty_listener.closed = pty_closed ;
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	screen->pty_listener.read_ready = pty_read_ready ;
 #endif
 
@@ -6604,10 +5669,10 @@ x_screen_new(
 	screen->term = term ;
 
 	/* NULL initialization here for error: processing. */
-	screen->utf8_parser = NULL ;
+	screen->utf_parser = NULL ;
 	screen->xct_parser = NULL ;
 	screen->ml_str_parser = NULL ;
-	screen->utf8_conv = NULL ;
+	screen->utf_conv = NULL ;
 	screen->xct_conv = NULL ;
 
 	screen->use_vertical_cursor = use_vertical_cursor ;
@@ -6725,9 +5790,9 @@ x_screen_new(
 	screen->window.button_press_continued = button_press_continued ;
 	screen->window.selection_cleared = selection_cleared ;
 	screen->window.xct_selection_requested = xct_selection_requested ;
-	screen->window.utf8_selection_requested = utf8_selection_requested ;
+	screen->window.utf_selection_requested = utf_selection_requested ;
 	screen->window.xct_selection_notified = xct_selection_notified ;
-	screen->window.utf8_selection_notified = utf8_selection_notified ;
+	screen->window.utf_selection_notified = utf_selection_notified ;
 	screen->window.window_deleted = window_deleted ;
 	screen->window.mapping_notify = mapping_notify ;
 #ifndef  DISABLE_XDND
@@ -6735,7 +5800,8 @@ x_screen_new(
 #endif
 	if( use_transbg)
 	{
-		x_window_set_transparent( &screen->window , get_picture_modifier( screen)) ;
+		x_window_set_transparent( &screen->window ,
+			x_screen_get_picture_modifier( screen)) ;
 	}
 
 	if( pic_file_path)
@@ -6799,8 +5865,8 @@ x_screen_new(
 	 * for receiving selection.
 	 */
 
-#ifdef  USE_WIN32API
-	if( ( screen->utf8_parser = mkf_utf16le_parser_new()) == NULL)
+#ifdef  USE_WIN32GUI
+	if( ( screen->utf_parser = mkf_utf16le_parser_new()) == NULL)
 	{
 		goto  error ;
 	}
@@ -6811,7 +5877,7 @@ x_screen_new(
 		goto  error ;
 	}
 #else
-	if( ( screen->utf8_parser = mkf_utf8_parser_new()) == NULL)
+	if( ( screen->utf_parser = mkf_utf8_parser_new()) == NULL)
 	{
 		goto  error ;
 	}
@@ -6831,8 +5897,8 @@ x_screen_new(
 		goto  error ;
 	}
 
-#ifdef  USE_WIN32API
-	if( ( screen->utf8_conv = mkf_utf16le_conv_new()) == NULL)
+#ifdef  USE_WIN32GUI
+	if( ( screen->utf_conv = mkf_utf16le_conv_new()) == NULL)
 	{
 		goto  error ;
 	}
@@ -6842,7 +5908,7 @@ x_screen_new(
 		goto  error ;
 	}
 #else
-	if( ( screen->utf8_conv = mkf_utf8_conv_new()) == NULL)
+	if( ( screen->utf_conv = mkf_utf8_conv_new()) == NULL)
 	{
 		goto  error ;
 	}
@@ -6874,9 +5940,9 @@ x_screen_new(
 	return  screen ;
 
 error:
-	if( screen->utf8_parser)
+	if( screen->utf_parser)
 	{
-		(*screen->utf8_parser->delete)( screen->utf8_parser) ;
+		(*screen->utf_parser->delete)( screen->utf_parser) ;
 	}
 
 	if( screen->xct_parser)
@@ -6889,9 +5955,9 @@ error:
 		(*screen->ml_str_parser->delete)( screen->ml_str_parser) ;
 	}
 
-	if( screen->utf8_conv)
+	if( screen->utf_conv)
 	{
-		(*screen->utf8_conv->delete)( screen->utf8_conv) ;
+		(*screen->utf_conv->delete)( screen->utf_conv) ;
 	}
 
 	if( screen->xct_conv)
@@ -6928,9 +5994,9 @@ x_screen_delete(
 	free( screen->conf_menu_path_2) ;
 	free( screen->conf_menu_path_3) ;
 
-	if( screen->utf8_parser)
+	if( screen->utf_parser)
 	{
-		(*screen->utf8_parser->delete)( screen->utf8_parser) ;
+		(*screen->utf_parser->delete)( screen->utf_parser) ;
 	}
 
 	if( screen->xct_parser)
@@ -6943,9 +6009,9 @@ x_screen_delete(
 		(*screen->ml_str_parser->delete)( screen->ml_str_parser) ;
 	}
 
-	if( screen->utf8_conv)
+	if( screen->utf_conv)
 	{
-		(*screen->utf8_conv->delete)( screen->utf8_conv) ;
+		(*screen->utf_conv->delete)( screen->utf_conv) ;
 	}
 
 	if( screen->xct_conv)
@@ -6955,7 +6021,7 @@ x_screen_delete(
 
 	free( screen->input_method) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		x_im_delete( screen->im) ;
@@ -7023,7 +6089,7 @@ x_screen_attach(
 	/* reset icon to screen->term's one */
 	change_icon( screen, NULL) ;
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
 		x_window_t *  root ;
@@ -7225,10 +6291,961 @@ x_line_bottom_margin(
 }
 
 
+void
+x_screen_set_config(
+	x_screen_t *  screen,
+	char *  dev ,		/* can be NULL */
+	char *  key ,
+	char *  value		/* can be NULL */
+	)
+{
+	char *  true = "true" ;
+	char *  false = "false" ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
+#endif
+
+	if( value == NULL)
+	{
+		value = "" ;
+	}
+
+	/*
+	 * XXX
+	 * 'dev' is not used for now, since many static functions used below uses
+	 * screen->term internally.
+	 */
+#if  0
+	if( dev)
+	{
+		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
+				dev)) == NULL)
+		{
+			return ;
+		}
+	}
+	else
+	{
+		term = screen->term ;
+	}
+#endif
+
+	/*
+	 * x_screen_{start|stop}_term_screen are necessary since
+	 * window is redrawn in change_wall_picture().
+	 */
+
+	if( strcmp( key , "encoding") == 0)
+	{
+		ml_char_encoding_t  encoding ;
+
+		if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
+		{
+			return ;
+		}
+
+		if( strcasecmp( value , "auto") == 0)
+		{
+			ml_term_set_auto_encoding( screen->term , 1) ;
+		}
+		else
+		{
+			ml_term_set_auto_encoding( screen->term , 0) ;
+		}
+
+		change_char_encoding( screen , encoding) ;
+	}
+	else if( strcmp( key , "iscii_lang") == 0)
+	{
+		ml_iscii_lang_type_t  type ;
+
+		if( ( type = ml_iscii_get_lang( value)) == ISCIILANG_UNKNOWN)
+		{
+			return ;
+		}
+
+		change_iscii_lang( screen , type) ;
+	}
+	else if( strcmp( key , "fg_color") == 0)
+	{
+		change_fg_color( screen , value) ;
+	}
+	else if( strcmp( key , "bg_color") == 0)
+	{
+		change_bg_color( screen , value) ;
+	}
+	else if( strcmp( key , "cursor_fg_color") == 0)
+	{
+		change_cursor_fg_color( screen , value) ;
+	}
+	else if( strcmp( key , "cursor_bg_color") == 0)
+	{
+		change_cursor_bg_color( screen , value) ;
+	}
+	else if( strcmp( key , "sb_fg_color") == 0)
+	{
+		change_sb_fg_color( screen , value) ;
+	}
+	else if( strcmp( key , "sb_bg_color") == 0)
+	{
+		change_sb_bg_color( screen , value) ;
+	}
+	else if( strcmp( key , "tabsize") == 0)
+	{
+		u_int  tab_size ;
+
+		if( ! kik_str_to_uint( &tab_size , value))
+		{
+			return ;
+		}
+
+		change_tab_size( screen , tab_size) ;
+	}
+	else if( strcmp( key , "logsize") == 0)
+	{
+		u_int  log_size ;
+
+		if( ! kik_str_to_uint( &log_size , value))
+		{
+			return ;
+		}
+
+		change_log_size( screen , log_size) ;
+	}
+	else if( strcmp( key , "fontsize") == 0)
+	{
+		u_int  font_size ;
+
+		if( strcmp( value , "larger") == 0)
+		{
+			larger_font_size( screen) ;
+		}
+		else if( strcmp( value , "smaller") == 0)
+		{
+			smaller_font_size( screen) ;
+		}
+		else
+		{
+			if( ! kik_str_to_uint( &font_size , value))
+			{
+				return ;
+			}
+
+			change_font_size( screen , font_size) ;
+		}
+	}
+	else if( strcmp( key , "line_space") == 0)
+	{
+		u_int  line_space ;
+
+		if( ! kik_str_to_uint( &line_space , value))
+		{
+			return ;
+		}
+
+		change_line_space( screen , line_space) ;
+	}
+	else if( strcmp( key , "screen_width_ratio") == 0)
+	{
+		u_int  ratio ;
+
+		if( ! kik_str_to_uint( &ratio , value))
+		{
+			return ;
+		}
+
+		change_screen_width_ratio( screen , ratio) ;
+	}
+	else if( strcmp( key , "screen_height_ratio") == 0)
+	{
+		u_int  ratio ;
+
+		if( ! kik_str_to_uint( &ratio , value))
+		{
+			return ;
+		}
+
+		change_screen_height_ratio( screen , ratio) ;
+	}
+	else if( strcmp( key , "scrollbar_view_name") == 0)
+	{
+		change_sb_view( screen , value) ;
+	}
+	else if( strcmp( key , "mod_meta_key") == 0)
+	{
+		change_mod_meta_key( screen , value) ;
+	}
+	else if( strcmp( key , "mod_meta_mode") == 0)
+	{
+		change_mod_meta_mode( screen , x_get_mod_meta_mode( value)) ;
+	}
+	else if( strcmp( key , "bel_mode") == 0)
+	{
+		change_bel_mode( screen , x_get_bel_mode( value)) ;
+	}
+	else if( strcmp( key , "vertical_mode") == 0)
+	{
+		change_vertical_mode( screen , ml_get_vertical_mode( value)) ;
+	}
+	else if( strcmp( key , "scrollbar_mode") == 0)
+	{
+		change_sb_mode( screen , x_get_sb_mode( value)) ;
+	}
+	else if( strcmp( key , "use_combining") == 0)
+	{
+		int  flag ;
+
+		if( strcmp( value , true) == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return ;
+		}
+
+		change_char_combining_flag( screen , flag) ;
+	}
+	else if( strcmp( key , "use_dynamic_comb") == 0)
+	{
+		int  flag ;
+
+		if( strcmp( value , true) == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return ;
+		}
+
+		change_dynamic_comb_flag( screen , flag) ;
+	}
+	else if( strcmp( key , "receive_string_via_ucs") == 0 ||
+		/* backward compatibility with 2.6.1 or before */
+		strcmp( key , "copy_paste_via_ucs") == 0)
+	{
+		int  flag ;
+
+		if( strcmp( value , true) == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return ;
+		}
+
+		change_receive_string_via_ucs_flag( screen , flag) ;
+	}
+	else if( strcmp( key , "use_transbg") == 0)
+	{
+		int  flag ;
+
+		if( strcmp( value , true) == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return ;
+		}
+
+		change_transparent_flag( screen , flag) ;
+	}
+	else if( strcmp( key , "brightness") == 0)
+	{
+		u_int  brightness ;
+
+		if( ! kik_str_to_uint( &brightness , value))
+		{
+			return ;
+		}
+
+		change_brightness( screen , brightness) ;
+	}
+	else if( strcmp( key , "contrast") == 0)
+	{
+		u_int  contrast ;
+
+		if( ! kik_str_to_uint( &contrast , value))
+		{
+			return ;
+		}
+
+		change_contrast( screen , contrast) ;
+	}
+	else if( strcmp( key , "gamma") == 0)
+	{
+		u_int  gamma ;
+
+		if( ! kik_str_to_uint( &gamma , value))
+		{
+			return ;
+		}
+
+		change_gamma( screen , gamma) ;
+	}
+	else if( strcmp( key , "fade_ratio") == 0)
+	{
+		u_int  fade_ratio ;
+
+		if( ! kik_str_to_uint( &fade_ratio , value))
+		{
+			return ;
+		}
+
+		change_fade_ratio( screen , fade_ratio) ;
+	}
+	else if( strcmp( key , "use_anti_alias") == 0)
+	{
+		x_font_present_t  font_present ;
+
+		font_present = x_get_font_present( screen->font_man) ;
+
+		if( strcmp( value , true) == 0)
+		{
+			font_present |= FONT_AA ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			font_present &= ~FONT_AA ;
+		}
+		else
+		{
+			return ;
+		}
+
+		change_font_present( screen , font_present) ;
+	}
+	else if( strcmp( key , "use_variable_column_width") == 0)
+	{
+		x_font_present_t  font_present ;
+
+		font_present = x_get_font_present( screen->font_man) ;
+
+		if( strcmp( value , true) == 0)
+		{
+			font_present |= FONT_VAR_WIDTH ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			font_present &= ~FONT_VAR_WIDTH ;
+		}
+		else
+		{
+			return ;
+		}
+
+		change_font_present( screen , font_present) ;
+	}
+	else if( strcmp( key , "use_multi_column_char") == 0)
+	{
+		int  flag ;
+
+		if( strcmp( value , true) == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return ;
+		}
+
+		change_multi_col_char_flag( screen , flag) ;
+	}
+	else if( strcmp( key , "use_bidi") == 0)
+	{
+		int  flag ;
+
+		if( strcmp( value , true) == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return ;
+		}
+
+		change_bidi_flag( screen , flag) ;
+	}
+	else if( strcmp( key , "input_method") == 0)
+	{
+		change_im( screen , value) ;
+	}
+	else if( strcmp( key , "borderless") == 0)
+	{
+		int  flag ;
+
+		if( strcmp( value , true) == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return ;
+		}
+
+		change_borderless_flag( screen , flag) ;
+	}
+	else if( strcmp( key , "wall_picture") == 0)
+	{
+		change_wall_picture( screen , value) ;
+	}
+	else if( strcmp( key , "full_reset") == 0)
+	{
+		full_reset( screen) ;
+	}
+	else if( strcmp( key , "select_pty") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,open_pty))
+		{
+			(*screen->system_listener->open_pty)( screen->system_listener->self , screen ,
+				value) ;
+		}
+	}
+	else if( strcmp( key , "open_pty") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,open_pty))
+		{
+			(*screen->system_listener->open_pty)(
+				screen->system_listener->self , screen , NULL) ;
+		}
+	}
+	else if( strcmp( key , "open_screen") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,open_screen))
+		{
+			(*screen->system_listener->open_screen)( screen->system_listener->self) ;
+		}
+	}
+	else if( strcmp( key , "snapshot") == 0)
+	{
+		char *  encoding ;
+		char *  file ;
+		char *  p ;
+
+		encoding = value ;
+
+		if( ( p = strchr( value , ':')) == NULL || *(p + 1) == '\0')
+		{
+			/* skip /dev/ */
+			p = ml_term_get_slave_name( screen->term) + 5 ;
+		}
+		else
+		{
+			*(p ++) = '\0' ;
+
+			if( strstr( p , "..") != NULL)
+			{
+				/* insecure file name */
+
+				kik_msg_printf( "%s is insecure file name.\n" , p) ;
+
+				return ;
+			}
+		}
+
+		if( ( file = alloca( 7 + strlen( p) + 4 + 1)) == NULL)
+		{
+			return ;
+		}
+		sprintf( file , "mlterm/%s.snp" , p) ;
+
+		snapshot( screen , ml_get_char_encoding( encoding) , file) ;
+	}
+	else if( strcmp( key , "icon_path") == 0)
+	{
+		change_icon( screen, value) ;
+	}
+	else if( strcmp( key , "title") == 0)
+	{
+		if(screen->xterm_listener.set_window_name){
+			screen->xterm_listener.set_window_name( screen, value) ;
+		}
+	}
+	else if( strcmp( key , "logging_vt_seq") == 0)
+	{
+		int  flag ;
+
+		if( strcmp( value , true) == 0)
+		{
+			flag = 1 ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			flag = 0 ;
+		}
+		else
+		{
+			return ;
+		}
+
+		ml_term_set_logging_vt_seq( screen->term , flag) ;
+	}
+}
+
+void
+x_screen_get_config(
+	x_screen_t *  screen ,
+	char *  dev ,
+	char *  key ,
+	int  to_menu
+	)
+{
+	ml_term_t *  term ;
+	char *  value = NULL ;
+	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
+	char *  true = "true" ;
+	char *  false = "false" ;
+	char  cwd[PATH_MAX] ;
+
+	if( dev)
+	{
+		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
+				dev)) == NULL)
+		{
+			goto  error ;
+		}
+	}
+	else
+	{
+		term = screen->term ;
+	}
+
+	if( strcmp( key , "encoding") == 0)
+	{
+		value = ml_get_char_encoding_name( ml_term_get_encoding( term)) ;
+	}
+	else if( strcmp( key , "is_auto_encoding") == 0)
+	{
+		if( ml_term_is_auto_encoding( term))
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "iscii_lang") == 0)
+	{
+		value = ml_iscii_get_lang_name( term->iscii_lang_type) ;
+	}
+	else if( strcmp( key , "fg_color") == 0)
+	{
+		value = x_color_manager_get_fg_color( screen->color_man) ;
+	}
+	else if( strcmp( key , "bg_color") == 0)
+	{
+		value = x_color_manager_get_bg_color( screen->color_man) ;
+	}
+	else if( strcmp( key , "cursor_fg_color") == 0)
+	{
+		if( ( value = x_color_manager_get_cursor_fg_color( screen->color_man)) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "cursor_bg_color") == 0)
+	{
+		if( ( value = x_color_manager_get_cursor_bg_color( screen->color_man)) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "sb_fg_color") == 0)
+	{
+		if( screen->screen_scroll_listener && screen->screen_scroll_listener->fg_color)
+		{
+			value = (*screen->screen_scroll_listener->fg_color)(
+					screen->screen_scroll_listener->self) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "sb_bg_color") == 0)
+	{
+		if( screen->screen_scroll_listener && screen->screen_scroll_listener->bg_color)
+		{
+			value = (*screen->screen_scroll_listener->bg_color)(
+					screen->screen_scroll_listener->self) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "tabsize") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_tab_size( term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "logsize") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_log_size( term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "fontsize") == 0)
+	{
+		sprintf( digit , "%d" , x_get_font_size( screen->font_man)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "line_space") == 0)
+	{
+		sprintf( digit , "%d" , screen->line_space) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "screen_width_ratio") == 0)
+	{
+		sprintf( digit , "%d" , screen->screen_width_ratio) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "screen_height_ratio") == 0)
+	{
+		sprintf( digit , "%d" , screen->screen_height_ratio) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "scrollbar_view_name") == 0)
+	{
+		if( screen->screen_scroll_listener && screen->screen_scroll_listener->view_name)
+		{
+			value = (*screen->screen_scroll_listener->view_name)(
+					screen->screen_scroll_listener->self) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "mod_meta_key") == 0)
+	{
+		if( screen->mod_meta_key == NULL)
+		{
+			value = "none" ;
+		}
+		else
+		{
+			value = screen->mod_meta_key ;
+		}
+	}
+	else if( strcmp( key , "mod_meta_mode") == 0)
+	{
+		value = x_get_mod_meta_mode_name( screen->mod_meta_mode) ;
+	}
+	else if( strcmp( key , "bel_mode") == 0)
+	{
+		value = x_get_bel_mode_name( screen->bel_mode) ;
+	}
+	else if( strcmp( key , "vertical_mode") == 0)
+	{
+		value = ml_get_vertical_mode_name( term->vertical_mode) ;
+	}
+	else if( strcmp( key , "scrollbar_mode") == 0)
+	{
+		if( screen->screen_scroll_listener &&
+			screen->screen_scroll_listener->sb_mode)
+		{
+			value = x_get_sb_mode_name( (*screen->screen_scroll_listener->sb_mode)(
+				screen->screen_scroll_listener->self)) ;
+		}
+		else
+		{
+			value = x_get_sb_mode_name( SBM_NONE) ;
+		}
+	}
+	else if( strcmp( key , "use_combining") == 0)
+	{
+		if( ml_term_is_using_char_combining( term))
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_dynamic_comb") == 0)
+	{
+		if( term->use_dynamic_comb)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "receive_string_via_ucs") == 0 ||
+		/* backward compatibility with 2.6.1 or before */
+		strcmp( key , "copy_paste_via_ucs") == 0)
+	{
+		if( screen->receive_string_via_ucs)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_transbg") == 0)
+	{
+		if( screen->window.is_transparent)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "brightness") == 0)
+	{
+		sprintf( digit , "%d" , screen->pic_mod.brightness) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "contrast") == 0)
+	{
+		sprintf( digit , "%d" , screen->pic_mod.contrast) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "gamma") == 0)
+	{
+		sprintf( digit , "%d" , screen->pic_mod.gamma) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "fade_ratio") == 0)
+	{
+		sprintf( digit , "%d" , screen->fade_ratio) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "use_anti_alias") == 0)
+	{
+		if( x_get_font_present( screen->font_man) & FONT_AA)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_variable_column_width") == 0)
+	{
+		if( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_multi_column_char") == 0)
+	{
+		if( x_is_using_multi_col_char( screen->font_man))
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_bidi") == 0)
+	{
+		if( term->use_bidi)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "input_method") == 0)
+	{
+		if( screen->input_method)
+		{
+			value = screen->input_method ;
+		}
+		else
+		{
+			value = "none" ;
+		}
+	}
+	else if( strcmp( key , "default_xim_name") == 0)
+	{
+	#ifdef  USE_WIN32GUI
+		value = "" ;
+	#else
+		value = x_xic_get_default_xim_name() ;
+	#endif
+	}
+	else if( strcmp( key , "locale") == 0)
+	{
+		value = kik_get_locale() ;
+	}
+	else if( strcmp( key , "borderless") == 0)
+	{
+		if( screen->borderless)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "wall_picture") == 0)
+	{
+		if( screen->pic_file_path)
+		{
+			value = screen->pic_file_path ;
+		}
+		else
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "pwd") == 0)
+	{
+		value = getcwd( cwd , sizeof(cwd)) ;
+	}
+	else if( strcmp( key , "rows") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_rows( term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "cols") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_cols( term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "pty_list") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,pty_list))
+		{
+			value = (*screen->system_listener->pty_list)( screen->system_listener->self) ;
+		}
+	}
+	else if( strcmp( key , "pty_name") == 0)
+	{
+		if( dev)
+		{
+			if( ( value = ml_term_window_name( term)) == NULL)
+			{
+				value = dev ;
+			}
+		}
+		else
+		{
+			value = ml_term_get_slave_name( term) ;
+		}
+	}
+	else if( strcmp( key , "icon_path") == 0)
+	{
+		value = ml_term_icon_path( term) ;
+	}
+	else if( strcmp( key , "logging_vt_seq") == 0)
+	{
+		if( term->parser->logging_vt_seq)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+
+	if( value == NULL)
+	{
+		goto  error ;
+	}
+
+	ml_term_write( screen->term , "#" , 1 , to_menu) ;
+	ml_term_write( screen->term , key , strlen( key) , to_menu) ;
+	ml_term_write( screen->term , "=" , 1 , to_menu) ;
+	ml_term_write( screen->term , value , strlen( value) , to_menu) ;
+	ml_term_write( screen->term , "\n" , 1 , to_menu) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
+#endif
+
+	return ;
+
+error:
+	ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " #error\n") ;
+#endif
+
+	return ;
+}
+
+
+int
+x_screen_reset_view(
+	x_screen_t *  screen
+	)
+{
+	x_color_manager_unload( screen->color_man) ;
+	
+	ml_term_set_modified_all_lines_in_screen( screen->term) ;
+	font_size_changed( screen) ;
+	x_window_update( &screen->window, UPDATE_SCREEN | UPDATE_CURSOR) ;
+
+	return  1 ;
+}
+
+
 x_picture_modifier_t *
 x_screen_get_picture_modifier(
 	x_screen_t *  screen
 	)
 {
-	return  get_picture_modifier( screen) ;
+	if( x_picture_modifier_is_normal( &screen->pic_mod))
+	{
+		return  NULL ;
+	}
+	else
+	{
+		return  &screen->pic_mod ;
+	}
 }
+

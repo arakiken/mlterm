@@ -73,9 +73,6 @@ change_font_cache(
 	x_release_font_cache( font_man->font_cache) ;
 	font_man->font_cache = font_cache ;
 
-	font_man->prev_cache.font = 0 ;
-	font_man->prev_cache.xfont = NULL ;
-
 	return  1 ;
 }
 
@@ -144,9 +141,6 @@ x_font_manager_new(
 
 	font_man->is_local_font_config = 0 ;
 	
-	font_man->prev_cache.font = 0 ;
-	font_man->prev_cache.xfont = NULL ;
-
 	font_man->usascii_font_cs_changable = usascii_font_cs_changable ;
 	if(  x_get_max_font_size() - x_get_min_font_size() >= step_in_changing_font_size)
 	{
@@ -182,16 +176,8 @@ x_get_font(
 {
 	x_font_t *  xfont ;
 
-	if( font && (font_man->prev_cache.font == font))
-	{
-		return  font_man->prev_cache.xfont ;
-	}
-
 	if( ( xfont = x_font_cache_get_xfont( font_man->font_cache , font)))
 	{
-		font_man->prev_cache.font = font ;
-		font_man->prev_cache.xfont = xfont ;
-
 		return  xfont ;
 	}
 	else
@@ -447,7 +433,7 @@ x_get_fontset(
 	x_font_manager_t *  font_man
 	)
 {
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	return  NULL ;
 #else
 	XFontSet  fontset ;

@@ -254,7 +254,7 @@ x_release_color_cache(
 		{
 			color_caches[count] = color_caches[--num_of_caches] ;
 
-			x_color_cache_unload_all( color_cache) ;
+			x_color_cache_unload( color_cache) ;
 			x_unload_xcolor( color_cache->display , color_cache->screen ,
 				&color_cache->black) ;
 
@@ -274,7 +274,7 @@ x_release_color_cache(
 }
 
 int
-x_color_cache_unload_all(
+x_color_cache_unload(
 	x_color_cache_t *  color_cache
 	)
 {
@@ -294,6 +294,20 @@ x_color_cache_unload_all(
 	{
 		x_unload_xcolor( color_cache->display , color_cache->screen ,
 			&color_cache->xcolor_256) ;
+		color_cache->color_256 = ML_UNKNOWN_COLOR ;
+	}
+
+	return  1 ;
+}
+
+int
+x_color_cache_unload_all(void)
+{
+	int  count ;
+
+	for( count = 0 ; count < num_of_caches ; count++)
+	{
+		x_color_cache_unload( color_caches[count]) ;
 	}
 
 	return  1 ;

@@ -8,7 +8,11 @@
 #ifdef  USE_BUILTIN_LANGINFO
 
 
-#ifdef  USE_WIN32API
+/*
+ * Even if USE_WIN32API not defined, use GetACP() for codeset judgement
+ * if <windows.h> exists.
+ */
+#ifdef  HAVE_WINDOWS_H
 
 #include  <windows.h>
 
@@ -35,7 +39,7 @@ static cp_cs_table_t  cp_cs_table[] =
 	{ 950 ,	"BIG5" , } ,		/* CHINESEBIG5_CHARSET */
 } ;
 
-#endif	/* USE_WIN32API */
+#endif	/* HAVE_WINDOWS_H */
 
 
 /* --- global functions --- */
@@ -45,7 +49,7 @@ __kik_langinfo(
 	nl_item  item
 	)
 {
-#ifdef  USE_WIN32API
+#ifdef  HAVE_WINDOWS_H
 	if( item == CODESET)
 	{
 		int  count ;
@@ -61,7 +65,7 @@ __kik_langinfo(
 			}
 		}
 	}
-#endif /* USE_WIN32API */
+#endif /* HAVE_WINDOWS_H */
 
 	return  "" ;
 }

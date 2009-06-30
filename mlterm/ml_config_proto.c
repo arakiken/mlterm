@@ -135,10 +135,11 @@ ml_gen_proto_challenge(void)
 /*
  * Returns 0 if error happens.
  * Returns -1 if do_challenge is 1 and challenge failed.
+ * If finished parsing str, *str is set NULL(see *str = strchr( p , ';')).
  */
 int
 ml_parse_proto(
-	char **  dev ,
+	char **  dev ,	/* can be NULL */
 	char **  key ,
 	char **  val ,
 	char **  str ,
@@ -209,7 +210,7 @@ ml_parse_proto(
 			*dev = NULL ;
 		}
 	}
-	
+
 	if( key)
 	{
 		*key = p ;
@@ -234,6 +235,64 @@ ml_parse_proto(
 	
 #ifdef  __DEBUG
 	kik_debug_printf( "%s %s %s\n" , key ? *key : NULL , val ? *val : NULL , dev ? *dev : NULL) ;
+#endif
+
+	return  1 ;
+}
+
+int
+ml_parse_proto2(
+	char **  file ,	/* can be NULL */
+	char **  key ,
+	char **  val ,
+	char **  str
+	)
+{
+	char *  p ;
+
+	if( ( p = strchr( *str, ':')))
+	{
+		if( file)
+		{
+			*file = *str ;
+		}
+
+		*(p ++) = '\0' ;
+	}
+	else
+	{
+		if( file)
+		{
+			*file = NULL ;
+		}
+
+		p = *str ;
+	}
+
+	if( key)
+	{
+		*key = p ;
+	}
+
+	if( ( p = strchr( p , '=')))
+	{
+		*(p ++) = '\0' ;
+
+		if( val)
+		{
+			*val = p ;
+		}
+	}
+	else
+	{
+		if( val)
+		{
+			*val = NULL ;
+		}
+	}
+	
+#ifdef  __DEBUG
+	kik_debug_printf( "%s %s %s\n" , key ? *key : NULL , val ? *val : NULL , file ? *file : NULL) ;
 #endif
 
 	return  1 ;

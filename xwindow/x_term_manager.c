@@ -39,6 +39,7 @@
 
 #define MAX_ADDTIONAL_FDS  3
 
+
 /* --- static variables --- */
 
 static x_screen_t **  screens ;
@@ -69,8 +70,13 @@ static struct
 
 } additional_fds[MAX_ADDTIONAL_FDS] ;
 
+
 /* --- static functions --- */
 
+/*
+ * Callbacks of ml_config_event_listener_t events.
+ */
+ 
 static kik_conf_t *
 conf_new(void)
 {
@@ -87,6 +93,76 @@ conf_new(void)
 	}
 
 	return  conf ;
+}
+
+/*
+ * Reload mlterm/main file and reset main_config.
+ * Notice: Saved changes are not applied to the screens already opened.
+ */
+static void
+config_saved(void)
+{
+	kik_conf_t *  conf ;
+	char *  argv[] = { "mlterm" , NULL } ;
+
+	x_main_config_final( &main_config) ;
+
+	if( ( conf = conf_new()) == NULL)
+	{
+		return ;
+	}
+	
+	x_prepare_for_main_config( conf) ;
+	x_main_config_init( &main_config , conf , 1 , argv) ;
+
+	kik_conf_delete( conf) ;
+}
+
+static void
+set_font_config(
+	char *  file ,
+	char *  key ,
+	char *  val ,
+	int  save
+	)
+{
+	int  count ;
+	
+	if( ! x_customize_font_file( file, key, val, save))
+	{
+		return ;
+	}
+	
+	x_font_cache_unload_all() ;
+
+	for( count = 0 ; count < num_of_screens ; count++)
+	{
+		x_screen_reset_view( screens[count]) ;
+	}
+}
+
+static void
+set_color_config(
+	char *  file ,	/* ignored */
+	char *  key ,
+	char *  val ,
+	int  save
+	)
+
+{
+	int  count ;
+	
+	if( ! x_customize_color_file( &color_config, key, val, save))
+	{
+		return  0 ;
+	}
+	
+	x_color_cache_unload_all() ;
+
+	for( count = 0 ; count < num_of_screens ; count++)
+	{
+		x_screen_reset_view( screens[count]) ;
+	}
 }
 
 static int
@@ -442,6 +518,11 @@ open_screen_intern(
 		goto  error ;
 	}
 
+	/* Override config event listener. */
+	screen->config_listener.saved = config_saved ;
+	screen->config_listener.set_font = set_font_config ;
+	screen->config_listener.set_color = set_color_config ;
+	
 	if( ! x_set_system_listener( screen , &system_listener))
 	{
 		goto  error ;
@@ -809,27 +890,6 @@ pty_list(
 	)
 {
 	return  ml_get_pty_list() ;
-}
-
-static void
-config_saved(
-	void *  p
-	)
-{
-	kik_conf_t *  conf ;
-	char *  argv[] = { "mlterm" , NULL } ;
-
-	x_main_config_final( &main_config) ;
-
-	if( ( conf = conf_new()) == NULL)
-	{
-		return ;
-	}
-	
-	x_prepare_for_main_config( conf) ;
-	x_main_config_init( &main_config , conf , 1 , argv) ;
-
-	kik_conf_delete( conf) ;
 }
 
 
@@ -1415,8 +1475,7 @@ x_term_manager_init(
 	int  use_xim ;
 	u_int  min_font_size ;
 	u_int  max_font_size ;
-	char *  rcpath ;
-	int  i ;
+	int  count ;
 
 	if( ! x_color_config_init( &color_config))
 	{
@@ -1427,18 +1486,6 @@ x_term_manager_init(
 		return  0 ;
 	}
 	
-	if( ( rcpath = kik_get_sys_rc_path( "mlterm/color")))
-	{
-		x_read_color_config( &color_config , rcpath) ;
-		free( rcpath) ;
-	}
-	
-	if( ( rcpath = kik_get_user_rc_path( "mlterm/color")))
-	{
-		x_read_color_config( &color_config , rcpath) ;
-		free( rcpath) ;
-	}
-
 	if( ! x_shortcut_init( &shortcut))
 	{
 	#ifdef  DEBUG
@@ -1448,18 +1495,6 @@ x_term_manager_init(
 		return  0 ;
 	}
 
-	if( ( rcpath = kik_get_sys_rc_path( "mlterm/key")))
-	{
-		x_read_shortcut_config( &shortcut , rcpath) ;
-		free( rcpath) ;
-	}
-	
-	if( ( rcpath = kik_get_user_rc_path( "mlterm/key")))
-	{
-		x_read_shortcut_config( &shortcut , rcpath) ;
-		free( rcpath) ;
-	}
-
 	if( ! x_termcap_init( &termcap))
 	{
 	#ifdef  DEBUG
@@ -1467,18 +1502,6 @@ x_term_manager_init(
 	#endif
 	
 		return  0 ;
-	}
-
-	if( ( rcpath = kik_get_sys_rc_path( "mlterm/termcap")))
-	{
-		x_read_termcap_config( &termcap , rcpath) ;
-		free( rcpath) ;
-	}
-	
-	if( ( rcpath = kik_get_user_rc_path( "mlterm/termcap")))
-	{
-		x_read_termcap_config( &termcap , rcpath) ;
-		free( rcpath) ;
 	}
 
 
@@ -1699,7 +1722,6 @@ x_term_manager_init(
 	system_listener.pty_closed = pty_closed ;
 	system_listener.get_pty = get_pty ;
 	system_listener.pty_list = pty_list ;
-	system_listener.config_saved = config_saved ;
 
 	signal( SIGHUP , sig_fatal) ;
 	signal( SIGINT , sig_fatal) ;
@@ -1711,10 +1733,10 @@ x_term_manager_init(
 	
 	kik_alloca_garbage_collect() ;
 	
-	for( i = 0 ; i < MAX_ADDTIONAL_FDS ; i++)
+	for( count = 0 ; count < MAX_ADDTIONAL_FDS ; count++)
 	{
-		additional_fds[i].fd = -1 ;
-		additional_fds[i].handler = NULL ;
+		additional_fds[count].fd = -1 ;
+		additional_fds[count].handler = NULL ;
 	}
 
 	return  1 ;

@@ -69,4 +69,7 @@ int  x_color_manager_adjust_cursor_fg( x_color_manager_t *  color_man) ;
 
 int  x_color_manager_adjust_cursor_bg( x_color_manager_t *  color_man) ;
 
+int  x_color_manager_unload( x_color_manager_t *  color_man) ;
+
+
 #endif

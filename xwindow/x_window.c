@@ -600,9 +600,9 @@ x_window_init(
 	win->child_window_resized = NULL ;
 	win->selection_cleared = NULL ;
 	win->xct_selection_requested = NULL ;
-	win->utf8_selection_requested = NULL ;
+	win->utf_selection_requested = NULL ;
 	win->xct_selection_notified = NULL ;
-	win->utf8_selection_notified = NULL ;
+	win->utf_selection_notified = NULL ;
 	win->window_deleted = NULL ;
 	win->mapping_notify = NULL ;
 	win->set_xdnd_config = NULL ;
@@ -2095,9 +2095,9 @@ x_window_receive_event(
 
 		xa_compound_text = XA_COMPOUND_TEXT(win->display) ;
 		xa_targets = XA_TARGETS(win->display) ;
-#ifdef  DEBUG
+	#ifdef  DEBUG
 		xa_multiple = XA_MULTIPLE(win->display) ;
-#endif
+	#endif
 		xa_text = XA_TEXT(win->display) ;
 		xa_utf8_string = XA_UTF8_STRING(win->display) ;
 
@@ -2126,9 +2126,9 @@ x_window_receive_event(
 		}
 		else if( event->xselectionrequest.target == xa_utf8_string)
 		{
-			if( win->utf8_selection_requested)
+			if( win->utf_selection_requested)
 			{
-				(*win->utf8_selection_requested)( win , &event->xselectionrequest ,
+				(*win->utf_selection_requested)( win , &event->xselectionrequest ,
 					xa_utf8_string) ;
 			}
 		}
@@ -2239,9 +2239,9 @@ x_window_receive_event(
 				}
 				else if( ct.encoding == xa_utf8_string)
 				{
-					if( win->utf8_selection_notified)
+					if( win->utf_selection_notified)
 					{
-						(*win->utf8_selection_notified)(
+						(*win->utf_selection_notified)(
 							win , ct.value , ct.nitems) ;
 					}
 				}
@@ -2344,9 +2344,9 @@ x_window_receive_event(
 				}
 				else if(ct.encoding == XA_UTF8_STRING(win->display))
 				{
-					if( win->utf8_selection_notified)
+					if( win->utf_selection_notified)
 					{
-						(*win->utf8_selection_notified)(
+						(*win->utf_selection_notified)(
 							win , ct.value , ct.nitems) ;
 					}
 				}
@@ -2865,7 +2865,7 @@ x_window_xct_selection_request(
 }
 
 int
-x_window_utf8_selection_request(
+x_window_utf_selection_request(
 	x_window_t *  win ,
 	Time  time
 	)

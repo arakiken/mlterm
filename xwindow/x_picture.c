@@ -23,7 +23,7 @@ x_picture_display_opened(
 		return  0 ;
 	}
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	/* Want _XROOTPIAMP_ID changed events. */
 	XSelectInput( display , DefaultRootWindow(display) , PropertyChangeMask) ;
 #endif
@@ -68,7 +68,7 @@ x_picture_final(
 {
 	if( pic->pixmap)
 	{
-	#ifndef  USE_WIN32API
+	#ifndef  USE_WIN32GUI
 		XFreePixmap( pic->win->display , pic->pixmap) ;
 	#endif
 	}

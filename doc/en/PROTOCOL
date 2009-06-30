@@ -1,7 +1,7 @@
 comment -*- mode: text -*-
 comment $Id$
 
-mlterm configuration protocol
+mlterm configuration protocol(main)
 version 20030301
 
 * Protocol

@@ -40,7 +40,9 @@ x_color_cache_t *  x_acquire_color_cache( Display *  display, int  screen,
 
 int  x_release_color_cache( x_color_cache_t *  color_cache) ;
 
-int  x_color_cache_unload_all( x_color_cache_t *  color_cache) ;
+int  x_color_cache_unload( x_color_cache_t *  color_cache) ;
+
+int  x_color_cache_unload_all(void) ;
 
 int  x_load_xcolor( x_color_cache_t *  color_cache , x_color_t *  xcolor, char *  name) ;
 

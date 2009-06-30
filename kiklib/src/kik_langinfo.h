@@ -10,16 +10,15 @@
 
 
 #ifdef  HAVE_LANGINFO_H
-
 #include  <langinfo.h>
-
 #endif
 
-#ifdef CODESET 
+
+#ifdef CODESET
 
 #define  kik_langinfo( item)  nl_langinfo( item)
 
-#else
+#else	/* CODESET */
 
 /*
  * same as NetBSD 1.5 langinfo.h (revision 1.5)
@@ -96,7 +95,7 @@ typedef  long  nl_item ;
 
 char *  __kik_langinfo( nl_item  item) ;
 
-#endif
+#endif	/* CODESET */
 
 
 #endif

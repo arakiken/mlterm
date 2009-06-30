@@ -16,7 +16,7 @@
 
 
 #define  MAX_CHAR_SIZE  4
-#define  MAX_COMB_SIZE  7	/* Used in ml_shape.c */
+#define  MAX_COMB_SIZE  7	/* Used in ml_shape.c,x_screen.c */
 
 
 /*

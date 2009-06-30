@@ -10,6 +10,91 @@
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_str.h>	/* strdup */
+#include  <ml_color.h>
+
+
+/* --- static variables --- */
+
+static char *  color_file = "mlterm/color" ;
+
+
+/* --- static functions --- */
+
+static int
+parse_conf(
+	x_color_config_t *  color_config ,
+	char *  color ,
+	char *  rgb
+	)
+{
+	u_int  red ;
+	u_int  green ;
+	u_int  blue ;
+
+	/*
+	 * XXX
+	 * "RRRR-GGGG-BBBB" length is 14, but 2.4.0 or before accepts
+	 * "RRRR-GGGG-BBBB....."(trailing any characters) format and
+	 * what is worse "RRRR-GGGG-BBBB;" appears in etc/color sample file.
+	 * So, more than 14 length is also accepted for backward compatiblity.
+	 */
+	if( strlen( rgb) >= 14 &&
+		sscanf( rgb , "%4x-%4x-%4x" , &red , &green , &blue) == 3)
+	{
+		red = ((red >> 8) & 0xff) ;
+		green = ((green >> 8) & 0xff) ;
+		blue = ((blue >> 8) & 0xff) ;
+	}
+	else if( strlen( rgb) == 7 &&
+			sscanf( rgb , "#%2x%2x%2x" , &red , &green , &blue) == 3)
+	{
+		/* do nothing */
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " illegal rgblist format (%s,%s)\n" ,
+			color , rgb) ;
+	#endif
+
+		return  0 ;
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( "%s = red %x green %x blue %x\n" , color , red , green , blue) ;
+#endif
+
+	return  x_color_config_set_rgb( color_config , color , red , green , blue) ;
+}
+
+static int
+read_conf(
+	x_color_config_t *  color_config ,
+	char *  filename
+	)
+{
+	kik_file_t *  from ;
+	char *  color ;
+	char *  rgb ;
+
+	if( ! ( from = kik_file_open( filename , "r")))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " %s couldn't be opened.\n" , filename) ;
+	#endif
+	
+		return  0 ;
+	}
+
+	while( kik_conf_io_read( from , &color , &rgb))
+	{
+		parse_conf( color_config, color, rgb) ;
+	}
+
+	kik_file_close( from) ;
+
+	return  1 ;
+}
 
 
 /* --- global functions --- */
@@ -19,8 +104,22 @@ x_color_config_init(
 	x_color_config_t *  color_config
 	)
 {
+	char *  rcpath ;
+	
 	kik_map_new_with_size( char * , x_rgb_t , color_config->color_rgb_table ,
 		kik_map_hash_str , kik_map_compare_str , 16) ;
+
+	if( ( rcpath = kik_get_sys_rc_path( color_file)))
+	{
+		read_conf( color_config , rcpath) ;
+		free( rcpath) ;
+	}
+	
+	if( ( rcpath = kik_get_user_rc_path( color_file)))
+	{
+		read_conf( color_config , rcpath) ;
+		free( rcpath) ;
+	}
 	
 	return  1 ;
 }
@@ -55,10 +154,57 @@ x_color_config_set_rgb(
 	u_short  blue
 	)
 {
+	ml_color_t  _color ;
 	int  result ;
 	KIK_PAIR( x_color_rgb)  pair ;
 	x_rgb_t  rgb ;
 
+	/*
+	 * Illegal color name is rejected.
+	 */
+	if( ( _color = ml_get_color( color)) == ML_UNKNOWN_COLOR)
+	{
+		return  0 ;
+	}
+
+	/*
+	 * 256 color: Same rgb as default is rejected.
+	 * Sys color: Any rgb is accepted, because RGB of ml_get_color_rgb is not
+	 *            always same as that of XAllocNamedColor(=rgb.txt)
+	 */
+	if( IS_256_COLOR( _color))
+	{
+		u_short  _red ;
+		u_short  _green ;
+		u_short  _blue ;
+		
+		if( ! ml_get_color_rgb( _color, &_red, &_green, &_blue))
+		{
+			return  0 ;
+		}
+
+		if( red == _red && green == _green && blue == _blue)
+		{
+			/* Not changed */
+			
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" color %d'rgb(%02x%02x%02x) not changed.\n",
+				_color, red, green, blue) ;
+		#endif
+
+			return  0 ;
+		}
+	#ifdef  DEBUG
+		else
+		{
+			kik_debug_printf( KIK_DEBUG_TAG
+				" color %d's rgb(%02x%02x%02x) changed => %02x%02x%02x.\n",
+				_color, _red, _green, _blue, red, green, blue) ;
+		}
+	#endif
+	}
+	
 	rgb.red = red ;
 	rgb.green = green ;
 	rgb.blue = blue ;
@@ -102,70 +248,51 @@ x_color_config_get_rgb(
 	*blue = pair->value.blue ;
 	*green = pair->value.green ;
 
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s's rgb => %d %d %d\n", color , *red, *blue, *green) ;
+#endif
+
 	return  1 ;
 }
 
+/*
+ * Return value 0 means customization failed.
+ * Return value -1 means saving failed.
+ */
 int
-x_read_color_config(
+x_customize_color_file(
 	x_color_config_t *  color_config ,
-	char *  filename
+	char *  color ,
+	char *  rgb ,
+	int  save
 	)
 {
-	kik_file_t *  from ;
-	char *  color ;
-	char *  rgb ;
-	u_int  red ;
-	u_int  green ;
-	u_int  blue ;
-
-	if( ! ( from = kik_file_open( filename , "r")))
+	if( ! parse_conf( color_config, color, rgb))
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " %s couldn't be opened.\n" , filename) ;
-	#endif
-	
 		return  0 ;
 	}
-
-	while( kik_conf_io_read( from , &color , &rgb))
+	
+	if( save)
 	{
-		/*
-		 * XXX
-		 * "RRRR-GGGG-BBBB" length is 14, but 2.4.0 or before accepts
-		 * "RRRR-GGGG-BBBB....."(trailing any characters) format and
-		 * what is worse "RRRR-GGGG-BBBB;" appears in etc/color sample file.
-		 * So, more than 14 length is also accepted for backward compatiblity.
-		 */
-		if( strlen( rgb) >= 14 &&
-			sscanf( rgb , "%4x-%4x-%4x" , &red , &green , &blue) == 3)
-		{
-			red = ((red >> 8) & 0xff) ;
-			green = ((green >> 8) & 0xff) ;
-			blue = ((blue >> 8) & 0xff) ;
-		}
-		else if( strlen( rgb) == 7 &&
-				sscanf( rgb , "#%2x%2x%2x" , &red , &green , &blue) == 3)
-		{
-			/* do nothing */
-		}
-		else
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " illegal rgblist format (%s,%s)\n" ,
-				color , rgb) ;
-		#endif
+		char *  path ;
+		kik_conf_write_t *  conf ;
 
-			continue ;
+		if( ( path = kik_get_user_rc_path( color_file)) == NULL)
+		{
+			return  -1 ;
 		}
 
-	#ifdef  __DEBUG
-		kik_debug_printf( "%s = red %x green %x blue %x\n" , color , red , green , blue) ;
-	#endif
+		conf = kik_conf_write_open( path) ;
+		free( path) ;
+		if( conf == NULL)
+		{
+			return  -1 ;
+		}
 
-		x_color_config_set_rgb( color_config , color , red , green , blue) ;
+		kik_conf_io_write( conf , color , rgb) ;
+
+		kik_conf_write_close( conf) ;
 	}
-
-	kik_file_close( from) ;
 
 	return  1 ;
 }

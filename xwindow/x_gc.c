@@ -15,7 +15,7 @@ x_gc_new(
 	)
 {
 	x_gc_t *  gc ;
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XGCValues  gc_value ;
 #endif
 
@@ -29,7 +29,7 @@ x_gc_new(
 	gc->bg_color = RGB_WHITE ;
 	gc->fid = None ;
 	
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	gc->gc = None ;
 	gc->pen = None ;
 	gc->brush = None ;
@@ -47,7 +47,7 @@ x_gc_delete(
 	x_gc_t *  gc
 	)
 {
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 	XFreeGC( gc->display , gc->gc) ;
 #endif
 
@@ -56,7 +56,7 @@ x_gc_delete(
 	return  1 ;
 }
 
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 
 int
 x_set_gc(

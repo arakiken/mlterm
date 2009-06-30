@@ -12,7 +12,7 @@ typedef enum x_type_engine
 	TYPE_XFT ,
 	TYPE_STSF ,
 
-	TYPE_MAX
+	MAX_TYPE_ENGINES
 
 } x_type_engine_t ;
 

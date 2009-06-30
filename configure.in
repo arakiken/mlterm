@@ -623,25 +623,45 @@ if test "$optimize_redrawing" = "yes" ; then
 	CFLAGS="$CFLAGS -DOPTIMIZE_REDRAWING"
 fi
 
+AC_ARG_WITH(gui,
+	[  --with-gui              gui library(xlib|win32)],
+	gui=$with_gui)
+
 case "${host_os}" in
 mingw32*)
 	MAKE_DIRS="mlterm xwindow etc"
 	OUTPUT_FILES="Makefile mlterm/Makefile etc/Makefile xwindow/Makefile"
-	WIN32TAG="_win32"
 	PLATFORM_LIB_LDFLAGS="-no-undefined"
+	if test -f "/lib/libmsys-1.0.dll.a" ; then
+		ML_PTY_OBJ="ml_pty.o"
+	else
+		ML_PTY_OBJ="ml_pty_pipewin32.o"
+	fi
+	WIN32TAG="_win32"
+	GUI_CFLAGS="-DUSE_WIN32GUI"
+	if test "$gui" != "win32" -a "$gui" != "" ; then
+		echo "$gui is not supported in ${host_os}. Use win32."
+	fi
 	;;
 *)
 	MAKE_DIRS="mlterm ${MAKE_DIRS} xwindow man etc"
 	OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
-	WIN32TAG=""
 	PLATFORM_LIB_LDFLAGS=""
+	ML_PTY_OBJ="ml_pty.o"
+	if test "$gui" = "win32" ; then
+		WIN32TAG="_win32"
+		GUI_CFLAGS="-DUSE_WIN32GUI"
+	elif test "$gui" != "" -o "$gui" != "xlib" ; then
+		echo "$gui is not supported in ${host_os}. Use xlib."
+	fi
 	;;
 esac
-AC_SUBST(ML_PTY_OBJ)
-AC_SUBST(WIN32TAG)
 AC_SUBST(MAKE_DIRS)
 AC_SUBST(OUTPUT_FILES)
 AC_SUBST(PLATFORM_LIB_LDFLAGS)
+AC_SUBST(WIN32TAG)
+AC_SUBST(GUI_CFLAGS)
+AC_SUBST(ML_PTY_OBJ)
 
 # gettext
 AM_INIT_AUTOMAKE(mlterm,2.9.4)

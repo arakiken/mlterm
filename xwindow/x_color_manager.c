@@ -429,3 +429,24 @@ x_color_manager_adjust_cursor_bg(
 	
 	return  1 ;
 }
+
+int
+x_color_manager_unload(
+	x_color_manager_t *  color_man
+	)
+{
+	int  count ;
+	
+	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
+	{
+		if( color_man->sys_colors[count].is_loaded)
+		{
+			x_unload_xcolor( color_man->color_cache->display,
+				color_man->color_cache->screen,
+				&color_man->sys_colors[count].xcolor) ;
+			color_man->sys_colors[count].is_loaded = 0 ;
+		}
+	}
+
+	return  1 ;
+}

@@ -16,7 +16,7 @@ typedef struct x_gc
 	u_long  fg_color ;
 	u_long  bg_color ;
 	Font  fid ;
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 	HPEN  pen ;
 	HBRUSH  brush ;
 #endif
@@ -34,7 +34,7 @@ int  x_gc_set_bg_color( x_gc_t *  gc, u_long  bg_color) ;
 
 int  x_gc_set_fid( x_gc_t *  gc, Font  fid) ;
 
-#ifdef  USE_WIN32API
+#ifdef  USE_WIN32GUI
 
 int  x_set_gc( x_gc_t *  gc, GC  _gc) ;
 

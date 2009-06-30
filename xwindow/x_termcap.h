@@ -49,8 +49,6 @@ int  x_termcap_init( x_termcap_t *  termcap) ;
 
 int  x_termcap_final( x_termcap_t *  termcap) ;
 
-int  x_read_termcap_config( x_termcap_t *  termcap , char *  filename) ;
-
 x_termcap_entry_t *  x_termcap_get_entry( x_termcap_t *  termcap , char *  name) ;
 
 char *   x_termcap_get_str_field( x_termcap_entry_t *  entry , x_termcap_str_field_t  field) ;

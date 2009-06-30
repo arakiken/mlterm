@@ -96,7 +96,7 @@ kik_locale_init(
 	char *  locale_p ;
 	int  result ;
 
-	if( sys_locale && strcmp( locale , sys_locale) == 0)
+	if( sys_locale && locale && strcmp( locale , sys_locale) == 0)
 	{
 		return  1 ;
 	}
