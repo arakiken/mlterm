@@ -1521,7 +1521,7 @@ im_uim_new(
 
 	if( (engine == NULL) || (strlen( engine) == 0))
 	{ 
-	        engine = uim_get_default_im_name( kik_get_locale()) ;
+		engine = (char*)uim_get_default_im_name(kik_get_locale()) ;
 		/* The returned string's storage is invalidated when we
 		 * call uim next, so we need to make a copy.  */
 		engine = kik_str_alloca_dup (engine);

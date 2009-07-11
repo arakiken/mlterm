@@ -154,7 +154,7 @@ set_color_config(
 	
 	if( ! x_customize_color_file( &color_config, key, val, save))
 	{
-		return  0 ;
+		return ;
 	}
 	
 	x_color_cache_unload_all() ;
