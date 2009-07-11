@@ -1,5 +1,13 @@
 2009-07-11  Seiichi SATO  <seiichi@pylone.jp>
 
+	* mkf/script/config.guess, kiklib/script/config.guess,
+	  script/config.guess: updated (timestamp='2009-04-27')
+
+	* mkf/script/config.sub, kiklib/script/config.sub,
+	  script/config.sub: updated (timestamp='2009-04-17')
+
+2009-07-11  Seiichi SATO  <seiichi@pylone.jp>
+
 	* x_sb_screen.c, x_dnd.c: s/utf8_selection_notified/utf_selection_notified/
 	(see x_window.h rev 1.42)
 
