@@ -1,3 +1,8 @@
+2009-07-11  Seiichi SATO  <seiichi@pylone.jp>
+
+	* x_sb_screen.c, x_dnd.c: s/utf8_selection_notified/utf_selection_notified/
+	(see x_window.h rev 1.42)
+
 2009-06-30  Araki Ken  <arakiken@users.sf.net>
 
 	* Supported "ESC ] 4 ; ... ; rgb:%02x/%02x/%02x BEL" sequence.

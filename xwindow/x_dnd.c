@@ -50,7 +50,7 @@ parse_text_unicode(
 	mkf_conv_t * conv ;
 	unsigned char conv_buf[512] = {0};
 
-	if( !(win->utf8_selection_notified))
+	if( !(win->utf_selection_notified))
 		return  FAILURE ;
 
 	if( (conv = win->dnd->conv) &&
@@ -121,7 +121,7 @@ parse_text_unicode(
 					      parser) ;
 		if(filled_len ==0)
 			break ;
-		(*win->utf8_selection_notified)( win,
+		(*win->utf_selection_notified)( win,
 						 conv_buf,
 						 filled_len) ;
 	}
@@ -153,7 +153,7 @@ parse_text_uri_list(
 
 	if( len <= 0)
 		return  FAILURE ;
-	if( !(win->utf8_selection_notified))
+	if( !(win->utf_selection_notified))
 		return  FAILURE ;
 	pos = 0 ;
 	src[len-1] = '\0'; /* force termination for malicious peers */
@@ -175,14 +175,14 @@ parse_text_uri_list(
 		{
 			/* remove garbage("file:").
 			   new length should be (length - "file:" + " ")*/
-			(*win->utf8_selection_notified)( win ,
+			(*win->utf_selection_notified)( win ,
 				(unsigned char *)(src + pos + 5),
 				delim -  src- pos -5 +1 ) ;
 		}
 		else
 		{
 			/* original string + " " */
-			(*win->utf8_selection_notified)( win ,
+			(*win->utf_selection_notified)( win ,
 				(unsigned char *)(src + pos),
 				delim - src- pos +1) ;
 		}
@@ -212,9 +212,9 @@ parse_text(
 	unsigned char *  src,
 	int  len)
 {
-	if( !(win->utf8_selection_notified))
+	if( !(win->utf_selection_notified))
 		return  FAILURE ;
-	(*win->utf8_selection_notified)( win , src , len) ;
+	(*win->utf_selection_notified)( win , src , len) ;
 
 	return  SUCCESS ;
 }
@@ -225,9 +225,9 @@ parse_utf8_string(
 	unsigned char *  src,
 	int  len)
 {
-	if( !(win->utf8_selection_notified))
+	if( !(win->utf_selection_notified))
 		return  FAILURE ;
-	(*win->utf8_selection_notified)( win , src , len) ;
+	(*win->utf_selection_notified)( win , src , len) ;
 
 	return  SUCCESS ;
 }
