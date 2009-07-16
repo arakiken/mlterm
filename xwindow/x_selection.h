@@ -38,9 +38,8 @@ typedef struct  x_selection
 	int  prev_col ;
 	int  prev_row ;
 	
-	int  is_selecting ;
-	int  is_reversed ;
-	int  is_owner ;
+	int8_t  is_selecting ;
+	int8_t  is_reversed ;
 
 }  x_selection_t ;
 

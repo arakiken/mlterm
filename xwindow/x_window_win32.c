@@ -14,6 +14,8 @@
 #include  <string.h>		/* memset/memcpy */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* realloc/free */
+#include  <kiklib/kik_util.h>	/* K_MIN/K_MAX */
+#include  <mkf/mkf_codepoint_parser.h>
 
 #include  "x_xic.h"
 #include  "x_window_manager.h"
@@ -28,136 +30,29 @@
 
 #define  WM_APP_PAINT  (WM_APP + 0x0)
 
+/* ACTUAL_WIDTH is the width of client area, ACTUAL_WINDOW_WIDTH is that of window area. */
+#define  ACTUAL_WINDOW_WIDTH(win) \
+	ACTUAL_WIDTH(win) + GetSystemMetrics(SM_CXEDGE) * 2 + \
+	/* GetSystemMetrics(SM_CXBORDER) * 2 + */ GetSystemMetrics(SM_CXFRAME)
+/* ACTUAL_HEIGHT is the height of client area, ACTUAL_WINDOW_HEIGHT is that of window area. */
+#define  ACTUAL_WINDOW_HEIGHT(win) \
+	ACTUAL_HEIGHT(win) + GetSystemMetrics(SM_CYEDGE) * 2 + \
+	/* GetSystemMetrics(SM_CXBORDER) * 2 + */ GetSystemMetrics(SM_CYFRAME) + \
+	GetSystemMetrics(SM_CYCAPTION)
+
 
 #if  0
 #define  __DEBUG
 #endif
 
 
-typedef struct cp_parser
-{
-	mkf_parser_t  parser ;
-	
-	mkf_charset_t  cs ;
-	size_t  cp_size ;
-	
-} cp_parser_t ;
-
-
 /* --- static variables --- */
 
 static int  click_interval = 250 ;	/* millisecond, same as xterm. */
+static mkf_parser_t *  m_cp_parser ;
 
 
 /* --- static functions --- */
-
-/*
- * For code point parser.
- */
- 
-static void
-cp_parser_init(
-	mkf_parser_t *  parser
-	)
-{
-	cp_parser_t *  cp_parser ;
-
-	cp_parser = (cp_parser_t*) parser ;
-	
-	mkf_parser_init( parser) ;
-	cp_parser->cs = UNKNOWN_CS ;
-	cp_parser->cp_size = 1 ;
-}
-
-static void
-cp_parser_set_str_dummy(
-	mkf_parser_t *  parser ,
-	u_char *  str ,
-	size_t  size
-	)
-{
-	/* do nothing */
-}
-
-static int
-cp_parser_set_str(
-	mkf_parser_t *  parser ,
-	u_char *  str ,
-	size_t  size ,
-	mkf_charset_t  cs
-	)
-{
-	cp_parser_t *  cp_parser ;
-
-	cp_parser = (cp_parser_t*) parser ;
-
-	cp_parser->parser.str = str ;
-	cp_parser->parser.left = size ;
-	cp_parser->parser.marked_left = 0 ;
-	cp_parser->parser.is_eos = 0 ;
-	cp_parser->cs = cs ;
-
-	if( cs == ISO10646_UCS4_1)
-	{
-		cp_parser->cp_size = 4 ;
-	}
-	else if( IS_BIWIDTH_CS(cs))
-	{
-		cp_parser->cp_size = 2 ;
-	}
-	else
-	{
-		cp_parser->cp_size = 1 ;
-	}
-
-	return  1 ;
-}
-
-static void
-cp_parser_delete(
-	mkf_parser_t *  parser
-	)
-{
-	free( parser) ;
-}
-
-static int
-cp_parser_next_char(
-	mkf_parser_t *  parser ,
-	mkf_char_t *  ch
-	)
-{
-	cp_parser_t *  cp_parser ;
-	size_t  count ;
-
-	cp_parser = (cp_parser_t*) parser ;
-
-	if( cp_parser->parser.is_eos)
-	{
-		return  0 ;
-	}
-
-	if( cp_parser->parser.left < cp_parser->cp_size)
-	{
-		cp_parser->parser.is_eos = 1 ;
-		
-		return  0 ;
-	}
-
-	for( count = 0 ; count < cp_parser->cp_size ; count ++)
-	{
-		ch->ch[count] = cp_parser->parser.str[count] ;
-	}
-
-	mkf_parser_n_increment( cp_parser, count) ;
-	
-	ch->size = count ;
-	ch->cs = cp_parser->cs ;
-	ch->property = 0 ;
-
-	return  1 ;
-}
-
 
 /*
  * only for double buffering
@@ -614,8 +509,10 @@ draw_string(
 	{
 		if( ( str2 = malloc( len * 8)))	/* assume utf8 */
 		{
-			cp_parser_set_str( win->cp_parser, str, len, FONT_CS(font->id)) ;
-			len = (*font->conv->convert)( font->conv, str2, len * 8, win->cp_parser) ;
+			/* 3rd argument of cp_parser->set_str is len(16bit) + cs(16bit) */
+			(*m_cp_parser->set_str)( m_cp_parser, str,
+				len | (FONT_CS(font->id) << 16) ) ;
+			len = (*font->conv->convert)( font->conv, str2, len * 8, m_cp_parser) ;
 
 			if( len > 0)
 			{
@@ -694,6 +591,8 @@ x_window_init(
 	/* This flag will map window automatically in x_window_show(). */
 	win->is_mapped = 1 ;
 
+	win->is_sel_owner = 0 ;
+
 	win->create_gc = create_gc ;
 
 	win->x = 0 ;
@@ -712,21 +611,11 @@ x_window_init(
 	win->xim_listener = NULL ;
 	
 	win->xic = NULL ;
-	x_xic_activate( win, NULL, NULL) ;	/* win->xic is set */
-	
-	if( ( win->cp_parser = malloc( sizeof( cp_parser_t))) == NULL)
+
+	/* Not freed explicitly. Expect to be freed on process exited. */
+	if( ! m_cp_parser && ( m_cp_parser = mkf_codepoint_parser_new()) == NULL)
 	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " cp_parser_t malloc failed.\n") ;
-	#endif
-	}
-	else
-	{
-		cp_parser_init( win->cp_parser) ;
-		win->cp_parser->init = cp_parser_init ;
-		win->cp_parser->set_str = cp_parser_set_str_dummy ;
-		win->cp_parser->delete = cp_parser_delete ;
-		win->cp_parser->next_char = cp_parser_next_char ;
+		return  0 ;
 	}
 
 	win->update_window_flag = 0 ;
@@ -809,10 +698,12 @@ x_window_final(
 	}
 	free( win->icon_card) ;
 #endif
-	
+
 	x_xic_deactivate( win) ;
 
-	(*win->cp_parser->delete)( win->cp_parser) ;
+#if  0
+	(*m_cp_parser.delete)( &m_cp_parser) ;
+#endif
 
 	if( win->window_finalized)
 	{
@@ -1191,8 +1082,6 @@ x_window_show(
 	)
 {
 	int  count ;
-	u_int  width ;
-	u_int  height ;
 
 	if( win->my_window)
 	{
@@ -1208,6 +1097,10 @@ x_window_show(
 		win->parent_window = win->parent->my_window ;
 		win->gc = win->parent->gc ;
 	}
+	else
+	{
+		x_xic_activate( win, NULL, NULL) ;
+	}
 
 #ifndef  USE_WIN32GUI
 	if( hint & XNegative)
@@ -1221,23 +1114,21 @@ x_window_show(
 	}
 #endif
 
-	/* XXX */
-	width = ACTUAL_WIDTH(win) + GetSystemMetrics(SM_CXEDGE) * 2 +
-			/* GetSystemMetrics(SM_CXBORDER) * 2 + */ GetSystemMetrics(SM_CXFRAME) ;
-	height = ACTUAL_HEIGHT(win) + GetSystemMetrics(SM_CYEDGE) * 2 +
-			/* GetSystemMetrics(SM_CXBORDER) * 2 + */
-			GetSystemMetrics(SM_CYFRAME) + GetSystemMetrics(SM_CYCAPTION) ;
 #ifdef  __DEBUG
-	kik_debug_printf( "%d %d %d %d %d %d %d\n", GetSystemMetrics(SM_CXEDGE),
+	kik_debug_printf( "X: EDGE%d BORDER%d FRAME%d Y: EDGE%d BORDER%d FRAME%d CAPTION%d\n",
+		GetSystemMetrics(SM_CXEDGE),
 		GetSystemMetrics(SM_CXBORDER), GetSystemMetrics(SM_CXFRAME),
 		GetSystemMetrics(SM_CYEDGE), GetSystemMetrics(SM_CYBORDER),
 		GetSystemMetrics(SM_CYFRAME), GetSystemMetrics(SM_CYCAPTION)) ;
 #endif
 
-        win->my_window = CreateWindow("MLTERM", "mlterm", WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT,
-        		width, height, NULL, NULL,
-			win->display->hinst, NULL) ;
+        win->my_window = CreateWindow("MLTERM", "mlterm",
+			win->parent_window ? WS_CHILD | WS_VISIBLE : WS_OVERLAPPEDWINDOW,
+			win->parent_window ? win->x : CW_USEDEFAULT,
+			win->parent_window ? win->y : CW_USEDEFAULT,
+        		win->parent_window ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win),
+			win->parent_window ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win),
+			win->parent_window, NULL, win->display->hinst, NULL) ;
 
   	if( ! win->my_window)
         {
@@ -1361,10 +1252,11 @@ x_window_resize(
 		(*win->parent->child_window_resized)( win->parent , win) ;
 	}
 
-#ifndef  USE_WIN32GUI
-	XResizeWindow( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-#endif
-
+	SetWindowPos( win->my_window, 0, 0, 0,
+		win->parent ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win),
+		win->parent ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win),
+		SWP_NOMOVE | SWP_NOZORDER) ;
+		
 	if( (flag & NOTIFY_TO_MYSELF) && win->window_resized)
 	{
 		(*win->window_resized)( win) ;
@@ -1403,6 +1295,7 @@ x_window_set_normal_hints(
 #ifndef  USE_WIN32GUI
 	XSizeHints  size_hints ;
 	x_window_t *  root ;
+#endif
 
 	win->min_width = min_width ;
 	win->min_height = min_height  ;
@@ -1411,6 +1304,7 @@ x_window_set_normal_hints(
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
 
+#ifndef  USE_WIN32GUI
 	root = x_get_root_window(win) ;
 
 	/*
@@ -1526,9 +1420,9 @@ x_window_move(
 	int  y
 	)
 {
-#ifndef  USE_WIN32GUI
-	XMoveWindow( win->display , win->my_window , x , y) ;
-#endif
+	SetWindowPos( win->my_window, 0, x, y,
+		ACTUAL_WINDOW_WIDTH(win), ACTUAL_WINDOW_HEIGHT(win),
+		SWP_NOSIZE | SWP_NOZORDER) ;
 
 	return  1 ;
 }
@@ -2135,18 +2029,25 @@ x_window_receive_event(
 		return  1 ;
 
 	case  WM_DESTROYCLIPBOARD:
-		if( win->selection_cleared)
-		{
-			(*win->selection_cleared)( win) ;
-		}
+		/*
+		 * Call win->selection_cleared and win->is_sel_owner is set 0
+		 * in x_window_manager_clear_selection.
+		 */
+		x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
 
 		return  1 ;
 		
 	case  WM_SIZE:
 		if( win->window_resized)
 		{
+			/*
+			 * Assume that win == root.
+			 */
+			 
 			u_int  width ;
 			u_int  height ;
+			u_int  min_width ;
+			u_int  min_height ;
 
 			width = LOWORD(event->lparam) ;
 			height = HIWORD(event->lparam) ;
@@ -2155,30 +2056,78 @@ x_window_receive_event(
 			kik_debug_printf( "resized from %d %d to %d %d\n" ,
 				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), width, height) ;
 		#endif
-			if( width != ACTUAL_WIDTH(win) || height != ACTUAL_HEIGHT(win))
+		
+			min_width = total_min_width(win) ;
+			min_height = total_min_height(win) ;
+
+			if( width < min_width || height < min_height)
 			{
-				win->width = width - win->margin * 2 ;
-				win->height = height - win->margin * 2 ;
+				x_window_resize( win,
+					K_MAX(min_width,width) - win->margin * 2,
+					K_MAX(min_height,height) - win->margin * 2,
+					NOTIFY_TO_MYSELF) ;
+			}
+			else if( width != ACTUAL_WIDTH(win) || height != ACTUAL_HEIGHT(win))
+			{
+				u_int  width_surplus ;
+				u_int  height_surplus ;
 
-			#ifndef  USE_WIN32GUI
-				if( win->buffer)
+				if( width > ACTUAL_WIDTH(win))
 				{
-					XFreePixmap( win->display , win->buffer) ;
-					win->buffer = XCreatePixmap( win->display ,
-						win->parent_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-						DefaultDepth( win->display , win->screen)) ;
-					win->drawable = win->buffer ;
-
-				#ifdef  USE_TYPE_XFT
-					XftDrawChange( win->xft_draw , win->drawable) ;
-				#endif
+					width_surplus = (width - ACTUAL_WIDTH(win)) %
+							total_width_inc(win) ;
 				}
-			#endif
+				else
+				{
+					width_surplus = total_width_inc(win) -
+							( (ACTUAL_WIDTH(win) - width) %
+							  total_width_inc(win) ) ;
+				}
 
-				x_window_clear_all( win) ;
-
-				(*win->window_resized)( win) ;
+				if( height > ACTUAL_HEIGHT(win))
+				{
+					height_surplus = (height - ACTUAL_HEIGHT(win)) %
+							total_height_inc(win) ;
+				}
+				else
+				{
+					height_surplus = total_height_inc(win) -
+							( (ACTUAL_HEIGHT(win) - height) %
+							  total_height_inc(win) ) ;
+				}
 				
+				if( width_surplus > 0 || height_surplus > 0)
+				{
+					x_window_resize( win,
+						width - win->margin * 2 - width_surplus,
+						height - win->margin * 2 - height_surplus,
+						NOTIFY_TO_MYSELF) ;
+				}
+				else
+				{
+					win->width = width - win->margin * 2 ;
+					win->height = height - win->margin * 2 ;
+
+				#ifndef  USE_WIN32GUI
+					if( win->buffer)
+					{
+						XFreePixmap( win->display , win->buffer) ;
+						win->buffer = XCreatePixmap( win->display ,
+							win->parent_window ,
+							ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+							DefaultDepth( win->display , win->screen)) ;
+						win->drawable = win->buffer ;
+
+					#ifdef  USE_TYPE_XFT
+						XftDrawChange( win->xft_draw , win->drawable) ;
+					#endif
+					}
+				#endif
+
+					x_window_clear_all( win) ;
+
+					(*win->window_resized)( win) ;
+				}
 			}
 		}
 		
@@ -2644,7 +2593,7 @@ x_window_get_str(
 	XKeyEvent *  event
 	)
 {
-	return  x_xic_get_str( win, seq, seq_len, parser, keysym, event) ;
+	return  x_xic_get_str( x_get_root_window( win), seq, seq_len, parser, keysym, event) ;
 }
 
 int
@@ -3016,21 +2965,30 @@ x_window_set_selection_owner(
 	Time  time
 	)
 {
+	/*
+	 * Whether win->is_sel_owner is 1 or 0, set clipboard NULL
+	 * whenever x_window_set_selection_owner is called.
+	 */
+	 
 	if( OpenClipboard( win->my_window) == FALSE)
 	{
+		win->is_sel_owner = 0 ;
+		
 		return  0 ;
 	}
 	
+#if  0
+	kik_debug_printf( KIK_DEBUG_TAG " x_window_set_selection_owner.\n") ;
+#endif
+
 	EmptyClipboard() ;
 	SetClipboardData( CF_TEXT, NULL) ;
 	SetClipboardData( CF_UNICODETEXT, NULL) ;
 	CloseClipboard() ;
 
-#if  0
-	kik_debug_printf( KIK_DEBUG_TAG " x_window_set_selection_owner.\n") ;
-#endif
-
-	return  1 ;
+	win->is_sel_owner = 1 ;
+	
+	return  x_window_manager_own_selection( x_get_root_window( win)->win_man , win) ;
 }
 
 int
@@ -3447,7 +3405,7 @@ x_window_get_modifier_mapping(
 	x_window_t *  win
 	)
 {
-	return  x_window_manager_get_modifier_mapping( win->win_man) ;
+	return  x_window_manager_get_modifier_mapping( x_get_root_window( win)->win_man) ;
 }
 
 u_int

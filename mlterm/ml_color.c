@@ -351,9 +351,9 @@ ml_get_color(
 int
 ml_get_color_rgb(
 	ml_color_t  color,
-	u_short *  red,
-	u_short *  green,
-	u_short *  blue
+	u_int8_t *  red,
+	u_int8_t *  green,
+	u_int8_t *  blue
 	)
 {
 	if( ! IS_VALID_COLOR(color))
@@ -369,7 +369,7 @@ ml_get_color_rgb(
 	}
 	else if( color <= 0xe7)
 	{
-		u_short  tmp ;
+		u_int8_t  tmp ;
 
 		tmp = (color - 0x10) % 6 ;
 		*blue = tmp ? (tmp * 40 + 55) & 0xff : 0 ;
@@ -382,7 +382,7 @@ ml_get_color_rgb(
 	}
 	else /* if( color >= 0xe8) */
 	{
-		u_short  tmp ;
+		u_int8_t  tmp ;
 
 		tmp = (color - 0xe8) * 10 + 8 ;
 
@@ -393,3 +393,57 @@ ml_get_color_rgb(
 	
 	return 1 ;
 }
+
+int
+ml_color_parse_rgb_name(
+	u_int8_t *  red ,
+	u_int8_t *  green ,
+	u_int8_t *  blue ,
+	char *  name
+	)
+{
+	int  _red ;
+	int  _green ;
+	int  _blue ;
+	size_t  name_len ;
+
+	name_len = strlen( name) ;
+	
+	if( ( name_len == 7 && sscanf( name, "#%2x%2x%2x" , &_red , &_green , &_blue) == 3) ||
+		( name_len == 12 && sscanf( name, "rgb:%2x/%2x/%2x", &_red, &_green, &_blue) == 3))
+	{
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " %x %x %x\n" , _red , _green , _blue) ;
+	#endif
+
+		*red = _red ;
+		*green = _green ;
+		*blue = _blue ;
+
+		return  1 ;
+	}
+	else if( ( name_len == 13 && sscanf( name, "#%4x%4x%4x" , &_red , &_green , &_blue) == 3) ||
+		( name_len == 18 && sscanf( name, "rgb:/%4x/%4x/%4x", &_red, &_green, &_blue) == 3) ||
+		/*
+		 * XXX
+		 * "RRRR-GGGG-BBBB" length is 14, but 2.4.0 or before accepts
+		 * "RRRR-GGGG-BBBB....."(trailing any characters) format and
+		 * what is worse "RRRR-GGGG-BBBB;" appears in etc/color sample file.
+		 * So, more than 14 length is also accepted for backward compatiblity.
+		 */
+		( name_len >= 14 && sscanf( name, "%4x-%4x-%4x" , &_red , &_green , &_blue) == 3))
+	{
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " %x %x %x\n" , _red , _green , _blue) ;
+	#endif
+	
+		*red = (_red >> 4) & 0xff ;
+		*green = (_green >> 4) & 0xff ;
+		*blue = (_blue >> 4) & 0xff ;
+
+		return 1 ;
+	}
+	
+	return  0 ;
+}
+

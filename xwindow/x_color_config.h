@@ -13,9 +13,9 @@
 
 typedef struct x_rgb
 {
-	u_short  red ;
-	u_short  green ;
-	u_short  blue ;
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
 	
 } x_rgb_t ;
 
@@ -33,10 +33,10 @@ int  x_color_config_init( x_color_config_t *  color_config) ;
 int  x_color_config_final( x_color_config_t *  color_config) ;
 
 int  x_color_config_set_rgb( x_color_config_t *  color_config , char *  color ,
-	u_short  red , u_short  green , u_short  blue) ;
+	u_int8_t  red , u_int8_t  green , u_int8_t  blue) ;
 
 int  x_color_config_get_rgb( x_color_config_t *  color_config ,
-	u_short *  red , u_short *  green , u_short *  blue , char *  color) ;
+	u_int8_t *  red , u_int8_t *  green , u_int8_t *  blue , char *  color) ;
 
 int  x_customize_color_file( x_color_config_t *  color_config,
 	char *  color, char *  rgb, int  save) ;

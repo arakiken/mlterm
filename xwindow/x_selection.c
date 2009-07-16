@@ -166,7 +166,6 @@ x_sel_init(
 	
 	sel->is_reversed = 0 ;
 	sel->is_selecting = 0 ;
-	sel->is_owner = 0 ;
 	
 	sel->sel_str = NULL ;
 	sel->sel_len = 0 ;
@@ -196,7 +195,6 @@ x_start_selection(
 	int  row_r
 	)
 {
-	sel->is_owner = 1 ;
 	sel->is_reversed = 1 ;
 	sel->is_selecting = 1 ;
 
@@ -293,11 +291,6 @@ x_sel_clear(
 	kik_debug_printf( KIK_DEBUG_TAG " selection is cleared.\n") ;
 #endif
 
-	if( ! sel->is_owner)
-	{
-		return  0 ;
-	}
-	
 	if( sel->is_selecting)
 	{
 		if( sel->sel_str)
@@ -310,8 +303,6 @@ x_sel_clear(
 		sel->is_selecting = 0 ;
 	}
 	
-	sel->is_owner = 0 ;
-
 	return  x_restore_selected_region_color( sel) ;
 }
 
@@ -411,7 +402,7 @@ x_reverse_selected_region_color(
 	x_selection_t *  sel
 	)
 {
-	if( ! sel->is_owner || ! sel->is_selecting || sel->is_reversed)
+	if( ! sel->is_selecting || sel->is_reversed)
 	{
 		return  0 ;
 	}

@@ -27,30 +27,11 @@ parse_conf(
 	char *  rgb
 	)
 {
-	u_int  red ;
-	u_int  green ;
-	u_int  blue ;
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
 
-	/*
-	 * XXX
-	 * "RRRR-GGGG-BBBB" length is 14, but 2.4.0 or before accepts
-	 * "RRRR-GGGG-BBBB....."(trailing any characters) format and
-	 * what is worse "RRRR-GGGG-BBBB;" appears in etc/color sample file.
-	 * So, more than 14 length is also accepted for backward compatiblity.
-	 */
-	if( strlen( rgb) >= 14 &&
-		sscanf( rgb , "%4x-%4x-%4x" , &red , &green , &blue) == 3)
-	{
-		red = ((red >> 8) & 0xff) ;
-		green = ((green >> 8) & 0xff) ;
-		blue = ((blue >> 8) & 0xff) ;
-	}
-	else if( strlen( rgb) == 7 &&
-			sscanf( rgb , "#%2x%2x%2x" , &red , &green , &blue) == 3)
-	{
-		/* do nothing */
-	}
-	else
+	if( ! ml_color_parse_rgb_name( &red, &green, &blue, rgb))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " illegal rgblist format (%s,%s)\n" ,
@@ -149,9 +130,9 @@ int
 x_color_config_set_rgb(
 	x_color_config_t *  color_config ,
 	char *  color ,
-	u_short  red ,
-	u_short  green ,
-	u_short  blue
+	u_int8_t  red ,
+	u_int8_t  green ,
+	u_int8_t  blue
 	)
 {
 	ml_color_t  _color ;
@@ -174,9 +155,9 @@ x_color_config_set_rgb(
 	 */
 	if( IS_256_COLOR( _color))
 	{
-		u_short  _red ;
-		u_short  _green ;
-		u_short  _blue ;
+		u_int8_t  _red ;
+		u_int8_t  _green ;
+		u_int8_t  _blue ;
 		
 		if( ! ml_get_color_rgb( _color, &_red, &_green, &_blue))
 		{
@@ -229,9 +210,9 @@ x_color_config_set_rgb(
 int
 x_color_config_get_rgb(
 	x_color_config_t *  color_config ,
-	u_short *  red ,
-	u_short *  green ,
-	u_short *  blue ,
+	u_int8_t *  red ,
+	u_int8_t *  green ,
+	u_int8_t *  blue ,
 	char *  color
 	)
 {

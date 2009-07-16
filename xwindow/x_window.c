@@ -556,6 +556,8 @@ x_window_init(
 	/* This flag will map window automatically in x_window_show() */
 	win->is_mapped = 1 ;
 
+	win->is_sel_owner = 0 ;
+
 	win->create_gc = create_gc ;
 
 	win->x = 0 ;
@@ -630,7 +632,7 @@ x_window_final(
 	free( win->children) ;
 
 	x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
-
+	
 	if( win->buffer)
 	{
 		XFreePixmap( win->display , win->buffer) ;
@@ -2081,6 +2083,10 @@ x_window_receive_event(
 	}
 	else if( event->type == SelectionClear)
 	{
+		/*
+		 * Call win->selection_cleared and win->is_sel_owner is set 0
+		 * in x_window_manager_clear_selection.
+		 */
 		x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
 	}
 	else if( event->type == SelectionRequest)
@@ -2840,6 +2846,13 @@ x_window_set_selection_owner(
 	Time  time
 	)
 {
+	if( win->is_sel_owner)
+	{
+		/* Already owner */
+		
+		return  1 ;
+	}
+	
 	XSetSelectionOwner( win->display , XA_PRIMARY , win->my_window , time) ;
 
 	if( win->my_window != XGetSelectionOwner( win->display , XA_PRIMARY))
@@ -2848,6 +2861,8 @@ x_window_set_selection_owner(
 	}
 	else
 	{
+		win->is_sel_owner = 1 ;
+		
 		return  x_window_manager_own_selection( x_get_root_window( win)->win_man , win) ;
 	}
 }

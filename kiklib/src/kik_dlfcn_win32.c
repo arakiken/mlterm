@@ -22,7 +22,7 @@ kik_dl_open(
 {
 	HMODULE  module ;
 	char *  path ;
-#ifdef __CYGWIN__
+#if defined(__CYGWIN__) || defined(__MSYS__)
 	char  winpath[MAX_PATH];
 #endif
 
@@ -31,9 +31,13 @@ kik_dl_open(
 		return  NULL ;
 	}
 
-#ifdef __CYGWIN__
+#if defined(__CYGWIN__)
 	sprintf( path , "%scyg%s.dll" , dirpath , name) ;
 	cygwin_conv_to_win32_path( path , winpath);
+	path = winpath ;
+#elif  defined(__MSYS__)
+	sprintf( path , "%slib%s.dll" , dirpath , name) ;
+	cygwin_conv_to_win32_path( path , winpath) ;
 	path = winpath ;
 #else
 	sprintf( path , "%slib%s.dll" , dirpath , name) ;
@@ -44,7 +48,7 @@ kik_dl_open(
 		return  ( kik_dl_handle_t)module ;
 	}
 
-#ifdef __CYGWIN__
+#if defined(__CYGWIN__) || defined(__MSYS__)
 	sprintf( path , "%s%s.dll" , dirpath , name) ;
 	cygwin_conv_to_win32_path( path , winpath);
 	path = winpath ;

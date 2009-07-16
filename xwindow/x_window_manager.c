@@ -311,6 +311,8 @@ x_window_manager_clear_selection(
 		return  0 ;
 	}
 
+	win_man->selection_owner->is_sel_owner = 0 ;
+
 	if( win_man->selection_owner->selection_cleared)
 	{
 		(*win_man->selection_owner->selection_cleared)( win_man->selection_owner) ;
@@ -320,6 +322,7 @@ x_window_manager_clear_selection(
 
 	return  1 ;
 }
+
 
 XID
 x_window_manager_get_group(

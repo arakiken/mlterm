@@ -13,7 +13,7 @@
 #define  __X_SB_VIEW_H__
 
 
-#include  <X11/Xlib.h>
+#include  "x.h"
 
 
 typedef struct  x_sb_view

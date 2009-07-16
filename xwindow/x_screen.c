@@ -1623,7 +1623,7 @@ yank_event_received(
 	Time  time
 	)
 {
-	if( screen->sel.is_owner)
+	if( screen->window.is_sel_owner)
 	{
 		if( screen->sel.sel_str == NULL || screen->sel.sel_len == 0)
 		{
@@ -2952,14 +2952,9 @@ selecting_with_motion(
 	{
 		restore_selected_region_color( screen) ;
 
-	#ifndef  USE_WIN32GUI
-		if( ! screen->sel.is_owner)
-	#endif
+		if( ! x_window_set_selection_owner( &screen->window , time))
 		{
-			if( x_window_set_selection_owner( &screen->window , time) == 0)
-			{
-				return ;
-			}
+			return ;
 		}
 
 		start_selection( screen , char_index , row) ;
@@ -3080,14 +3075,9 @@ selecting_word(
 	{
 		restore_selected_region_color( screen) ;
 
-	#ifndef  USE_WIN32GUI
-		if( ! screen->sel.is_owner)
-	#endif
+		if( ! x_window_set_selection_owner( &screen->window , time))
 		{
-			if( x_window_set_selection_owner( &screen->window , time) == 0)
-			{
-				return ;
-			}
+			return ;
 		}
 
 		start_selection( screen , beg_char_index , beg_row) ;
@@ -3135,14 +3125,9 @@ selecting_line(
 	{
 		restore_selected_region_color( screen) ;
 
-	#ifndef  USE_WIN32GUI
-		if( ! screen->sel.is_owner)
-	#endif
+		if( ! x_window_set_selection_owner( &screen->window , time))
 		{
-			if( x_window_set_selection_owner( &screen->window , time) == 0)
-			{
-				return ;
-			}
+			return ;
 		}
 
 		start_selection( screen , beg_char_index , beg_row) ;
@@ -5477,7 +5462,8 @@ xterm_reverse_video(
 		x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
 
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
-	redraw_screen( screen) ;
+	
+	x_window_update( &screen->window, UPDATE_SCREEN) ;
 }
 
 static void
@@ -5551,7 +5537,8 @@ xterm_bel(
 	
 		x_window_clear_all( &screen->window) ;
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
-		redraw_screen( screen) ;
+		
+		x_window_update( &screen->window, UPDATE_SCREEN) ;
 	}
 }
 
@@ -6103,8 +6090,7 @@ x_screen_attach(
 	}
 #endif
 
-	redraw_screen( screen) ;
-	highlight_cursor( screen) ;
+	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 	return  1 ;
 }
@@ -6200,8 +6186,7 @@ x_screen_scroll_upward(
 
 	ml_term_backscroll_upward( screen->term , size) ;
 
-	redraw_screen( screen) ;
-	highlight_cursor( screen) ;
+	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 	return  1 ;
 }
@@ -6221,8 +6206,7 @@ x_screen_scroll_downward(
 
 	ml_term_backscroll_downward( screen->term , size) ;
 
-	redraw_screen( screen) ;
-	highlight_cursor( screen) ;
+	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 	return  1 ;
 }
@@ -6242,8 +6226,7 @@ x_screen_scroll_to(
 
 	ml_term_backscroll_to( screen->term , row) ;
 
-	redraw_screen( screen) ;
-	highlight_cursor( screen) ;
+	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 	return  1 ;
 }

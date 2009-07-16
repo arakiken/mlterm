@@ -1,0 +1,63 @@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+PREFIX = $(DESTDIR)$(prefix)
+LIBDIR = $(DESTDIR)$(libdir)
+INCDIR = $(DESTDIR)$(prefix)/include
+
+VPATH = $(top_srcdir)/libtbl
+
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @TABLE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -DLIBDIR=\"$(LIBDIR)\" -I/usr/local/include
+
+JAJP_TABLE_OBJ = mkf_ucs4_jisx0208.o mkf_ucs4_jisx0212.o mkf_ucs4_jisx0213.o
+KOKR_TABLE_OBJ = mkf_ucs4_uhc.o mkf_uhc_johab.o
+ZH_TABLE_OBJ = mkf_ucs4_gbk.o mkf_ucs4_big5.o mkf_ucs4_cns11643.o
+BYTE_TABLE_OBJ = mkf_ucs4_cp1251.o mkf_ucs4_cp1255.o mkf_ucs4_koi8.o mkf_ucs4_georgian_ps.o \
+		mkf_ucs4_iso8859.o mkf_ucs4_tcvn5712_1.o mkf_ucs4_viscii.o
+
+OBJ = $(JAJP_TABLE_OBJ) $(KOKR_TABLE_OBJ) $(ZH_TABLE_OBJ) $(BYTE_TABLE_OBJ)
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+all: jajp_table kokr_table zh_table byte_table
+
+jajp_table: $(JAJP_TABLE_OBJ)
+	$(LIBTOOL_LINK) -o libmkf_jajp.la $(JAJP_TABLE_OBJ:.o=.lo) @MKF_CHAR_LO@ \
+	-rpath $(libdir)/mkf -module -avoid-version @NO_UNDEFINED_FLAG@
+
+kokr_table: $(KOKR_TABLE_OBJ)
+	$(LIBTOOL_LINK) -o libmkf_kokr.la $(KOKR_TABLE_OBJ:.o=.lo) @MKF_CHAR_LO@ \
+	-rpath $(libdir)/mkf -module -avoid-version @NO_UNDEFINED_FLAG@
+
+zh_table: $(ZH_TABLE_OBJ)
+	$(LIBTOOL_LINK) -o libmkf_zh.la $(ZH_TABLE_OBJ:.o=.lo) @MKF_CHAR_LO@ \
+	-rpath $(libdir)/mkf -module -avoid-version @NO_UNDEFINED_FLAG@
+
+byte_table: $(BYTE_TABLE_OBJ)
+	$(LIBTOOL_LINK) -o libmkf_8bits.la $(BYTE_TABLE_OBJ:.o=.lo) @MKF_CHAR_LO@ \
+	-rpath $(libdir)/mkf -module -avoid-version @NO_UNDEFINED_FLAG@
+
+install: install-la
+
+install-la: $(LIBDIR)/mkf
+	$(LIBTOOL_INSTALL) *.la $(LIBDIR)/mkf
+
+$(LIBDIR)/mkf :
+	mkdir -p $(LIBDIR)/mkf
+
+clean :
+	rm -rf $(OBJ) $(OBJ:.o=.lo) .libs *.la *.a
+
+.SUFFIXES : .c.o
+
+.c.o :
+	$(LIBTOOL_CC) -c $<

@@ -624,7 +624,7 @@ config_protocol_save(
 	 */
 	while( pt)
 	{
-		if( ! ml_parse_proto( NULL , &key , &val , &pt , 0))
+		if( ! ml_parse_proto( NULL , &key , &val , &pt , 0) || key == NULL)
 		{
 			break ;
 		}
@@ -713,7 +713,8 @@ config_protocol_set_font(
 
 		stop_vt100_cmd( vt100_parser) ;
 
-		if( ! ml_parse_proto2( &file , &key , &val , &pt))
+		if( ! ml_parse_proto2( &file , &key , &val , &pt) ||
+			key == NULL || val == NULL)
 		{
 			return  0 ;
 		}
@@ -748,7 +749,8 @@ config_protocol_set_color(
 
 		stop_vt100_cmd( vt100_parser) ;
 
-		if( ! ml_parse_proto2( &file , &key , &val , &pt))
+		if( ! ml_parse_proto2( &file , &key , &val , &pt) ||
+			key == NULL || val == NULL)
 		{
 			return  0 ;
 		}
@@ -927,38 +929,15 @@ change_color_rgb(
 	u_char *  pt
 	)
 {
-	char *  name ;
-	int  red ;
-	int  green ;
-	int  blue ;
-	char  _pt[19] ;	/* Max length is "hl_magenta=#FFFFFF" */
-
-	name = pt ;
-	if( ( pt = strchr( pt, ';')) == NULL)
-	{
-		return  0 ;
-	}
+	char *  p ;
 	
-	*(pt++) = '\0' ;
-
-	if( sscanf( ( char*)pt, "rgb:%02x/%02x/%02x", &red, &green, &blue) != 3)
+	if( ( p = strchr( pt, ';')) == NULL)
 	{
 		return  0 ;
 	}
+	*p = '=' ;
 
-	/* Max length name is "hl_magenta" */
-	if( strlen( name) > 10)
-	{
-		return  0 ;
-	}
-
-	sprintf( _pt, "%s=#%02x%02x%02x", name, red, green, blue) ;
-	
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s\n", _pt) ;
-#endif
-
-	config_protocol_set_color( vt100_parser, _pt , 0) ;
+	config_protocol_set_color( vt100_parser, pt , 0) ;
 
 	return  1 ;
 }

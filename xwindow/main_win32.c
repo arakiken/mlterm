@@ -7,11 +7,13 @@
 #include <kiklib/kik_sig_child.h>
 #include <kiklib/kik_util.h>
 #include <kiklib/kik_conf_io.h>
+#include <kiklib/kik_locale.h>
 #include <ml_term.h>
 #include <ml_str_parser.h>
 #include <ml_char_encoding.h>
 #include "x_window_manager.h"
 #include "x_screen.h"
+#include "x_sb_screen.h"
 
 x_screen_t *  screen ;
 ml_term_t *  term ;
@@ -78,7 +80,6 @@ set_color_config(
 	int  save
 	)
 {
-	kik_debug_printf( "HELO\n") ;
 	if( ! x_customize_color_file( &color_config, key, val, save))
 	{
 		return  ;
@@ -122,6 +123,7 @@ int PASCAL WinMain(
 	x_font_manager_t *  font_man ;
 	x_color_manager_t *  color_man ;
 	x_system_event_listener_t  sys_listener ;
+	x_sb_screen_t *  sb_screen ;
   	char  wid[50] ;
         char  lines[12] ;
         char  columns[15] ;
@@ -267,11 +269,18 @@ int PASCAL WinMain(
 
 	x_set_system_listener( screen, &sys_listener) ;
 
-	if( ! x_window_manager_show_root( &win_man, &screen->window, 0, 0, 0, "mlterm"))
+	if( ! ( sb_screen = x_sb_screen_new( screen, "simple", "black", "white", SBM_RIGHT)))
+	{
+		kik_warn_printf( " x_sb_screen_new failed.\n") ;
+
+		return  -1 ;
+	}
+
+	if( ! x_window_manager_show_root( &win_man, &sb_screen->window, 0, 0, 0, "mlterm"))
 	{
 		kik_warn_printf( " x_window_manager_show_root failed.\n") ;
 		
-		return  0 ;
+		return  -1 ;
 	}
 
   	snprintf( wid, 50, "WINDOWID=%d", screen->window.my_window) ;

@@ -6,7 +6,6 @@
 #define  __X_COLOR_MANAGER_H__
 
 
-#include  <kiklib/kik_types.h>		/* u_long/u_short */
 #include  <ml_color.h>
 
 #include  "x_color.h"

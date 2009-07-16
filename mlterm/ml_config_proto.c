@@ -140,8 +140,8 @@ ml_gen_proto_challenge(void)
 int
 ml_parse_proto(
 	char **  dev ,	/* can be NULL */
-	char **  key ,
-	char **  val ,
+	char **  key ,	/* can be NULL */
+	char **  val ,	/* can be NULL */
 	char **  str ,
 	int  do_challenge
 	)
@@ -243,13 +243,35 @@ ml_parse_proto(
 int
 ml_parse_proto2(
 	char **  file ,	/* can be NULL */
-	char **  key ,
-	char **  val ,
+	char **  key ,	/* can be NULL */
+	char **  val ,	/* can be NULL */
 	char **  str
 	)
 {
 	char *  p ;
 
+	if( key)
+	{
+		*key = *str ;
+	}
+
+	if( ( p = strchr( *str , '=')))
+	{
+		*(p ++) = '\0' ;
+
+		if( val)
+		{
+			*val = p ;
+		}
+	}
+	else
+	{
+		if( val)
+		{
+			*val = NULL ;
+		}
+	}
+	
 	if( ( p = strchr( *str, ':')))
 	{
 		if( file)
@@ -269,28 +291,6 @@ ml_parse_proto2(
 		p = *str ;
 	}
 
-	if( key)
-	{
-		*key = p ;
-	}
-
-	if( ( p = strchr( p , '=')))
-	{
-		*(p ++) = '\0' ;
-
-		if( val)
-		{
-			*val = p ;
-		}
-	}
-	else
-	{
-		if( val)
-		{
-			*val = NULL ;
-		}
-	}
-	
 #ifdef  __DEBUG
 	kik_debug_printf( "%s %s %s\n" , key ? *key : NULL , val ? *val : NULL , file ? *file : NULL) ;
 #endif

@@ -10,9 +10,7 @@
 #include  "mkf_ucs4_ksc5601.h"
 #include  "mkf_ucs4_uhc.h"
 #include  "mkf_ucs4_johab.h"
-
-#include  "table/mkf_johab_to_uhc.table"
-#include  "table/mkf_uhc_to_johab.table"
+#include  "mkf_map_loader.h"
 
 
 /*
@@ -76,48 +74,14 @@ mkf_map_ksc5601_1987_to_uhc(
 	return  1 ;
 }
 
-int
-mkf_map_johab_to_uhc(
-	mkf_char_t *  uhc ,
-	mkf_char_t *  johab
-	)
-{
-	u_int16_t  johab_code ;
-	u_int16_t  c ;
+#ifdef  NO_DYNAMIC_LOAD_TABLE
 
-	johab_code = mkf_char_to_int( johab) ;
-	
-	if( ( c = CONV_JOHAB_TO_UHC(johab_code)))
-	{
-		mkf_int_to_bytes( uhc->ch , 2 , c) ;
-		uhc->size = 2 ;
-		uhc->cs = UHC ;
-		
-		return  1 ;
-	}
-	
-	return  0 ;
-}
+#include  "../libtbl/mkf_uhc_johab.c"
 
-int
-mkf_map_uhc_to_johab(
-	mkf_char_t *  johab ,
-	mkf_char_t *  uhc
-	)
-{
-	u_int16_t  uhc_code ;
-	u_int16_t  c ;
+#else
 
-	uhc_code = mkf_char_to_int( uhc) ;
+mkf_map_func2( "mkf_kokr", mkf_map_johab_to_uhc)
 
-	if( ( c = CONV_UHC_TO_JOHAB(uhc_code)))
-	{
-		mkf_int_to_bytes( johab->ch , 2 , c) ;
-		johab->size = 2 ;
-		johab->cs = JOHAB ;
+mkf_map_func2( "mkf_kokr", mkf_map_uhc_to_johab)
 
-		return  1 ;
-	}
-	
-	return  0 ;
-}
+#endif

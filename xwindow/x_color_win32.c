@@ -12,52 +12,6 @@
 #include  <ml_color.h>
 
 
-/* --- static functions --- */
-
-static int
-parse_rgb_color_name(
-	u_short *  red ,
-	u_short *  green ,
-	u_short *  blue ,
-	char *  name
-	)
-{
-	if( *name == '#')
-	{
-		u_int  _red ;
-		u_int  _green ;
-		u_int  _blue ;
-
-		name++;
-		
-		if( strlen( name) == 6 &&
-			sscanf( name, "%2x%2x%2x" , &_red , &_green , &_blue) == 3)
-		{
-		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " %x %x %x\n" , _red , _green , _blue) ;
-		#endif
-
-			*red = (_red << 8) + _red;
-			*green = (_green << 8) + _green ;
-			*blue = (_blue << 8) + _blue ;
-			
-			return  1 ;
-		}
-		else if( (strlen( name) == 12) &&
-			(sscanf( name, "%4x%4x%4x" , &_red , &_green , &_blue) == 3) )
-		{
-			*red = _red ;
-			*green = _green ;
-			*blue = _blue ;
-
-			return 1;
-		}
-	}
-	
-	return  0 ;
-}
-
-
 /* --- global functions --- */
 
 int
@@ -69,11 +23,11 @@ x_load_named_xcolor(
 	)
 {
 	ml_color_t  color ;
-	u_short  red ;
-	u_short  green ;
-	u_short  blue ;
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
 
-	if( parse_rgb_color_name( &red , &green , &blue , name))
+	if( ml_color_parse_rgb_name( &red , &green , &blue , name))
 	{
 		return  x_load_rgb_xcolor( display , screen , xcolor , red , green , blue) ;
 	}
@@ -92,9 +46,9 @@ x_load_rgb_xcolor(
 	Display *  display ,
 	int  screen ,
 	XColor *  xcolor ,
-	u_short  red ,
-	u_short  green ,
-	u_short  blue
+	u_int8_t  red ,
+	u_int8_t  green ,
+	u_int8_t  blue
 	)
 {
 	xcolor->pixel = RGB(red,green,blue) ;
@@ -114,9 +68,9 @@ x_unload_xcolor(
 
 int
 x_get_xcolor_rgb(
-	u_short *  red ,
-	u_short *  green ,
-	u_short *  blue ,
+	u_int8_t *  red ,
+	u_int8_t *  green ,
+	u_int8_t *  blue ,
 	XColor *  xcolor
 	)
 {
@@ -135,9 +89,9 @@ x_xcolor_fade(
 	u_int  fade_ratio
 	)
 {
-	u_short  red ;
-	u_short  green ;
-	u_short  blue ;
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
 	
 	x_get_xcolor_rgb( &red , &green , &blue , xcolor) ;
 

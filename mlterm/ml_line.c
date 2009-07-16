@@ -15,7 +15,7 @@
 #ifdef  DEBUG
 #define  END_CHAR_INDEX(line) \
 	( (line)->num_of_filled_chars == 0 && \
-		kik_warn_printf( "END_CHAR_INDEX()[" __FUNCTION__  "] num_of_filled_chars is 0.\n") ? \
+		kik_warn_printf( "END_CHAR_INDEX()" KIK_DEBUG_TAG " num_of_filled_chars is 0.\n") ? \
 		0 : (line)->num_of_filled_chars - 1 )
 #else
 #define  END_CHAR_INDEX(line) \

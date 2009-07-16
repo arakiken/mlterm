@@ -35,6 +35,7 @@ typedef struct  x_window_manager
 	u_int  num_of_roots ;
 
 	x_window_t *  selection_owner ;
+
 	x_modifier_mapping_t  modmap ;
 
 } x_window_manager_t ;

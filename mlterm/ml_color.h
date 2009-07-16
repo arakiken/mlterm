@@ -53,9 +53,11 @@ char *  ml_get_color_name( ml_color_t  color) ;
 ml_color_t  ml_get_color( char *  name) ;
 
 
-int  ml_get_color_rgb( ml_color_t  color, u_short *  red, u_short *  green, u_short *  blue) ;
+int  ml_get_color_rgb( ml_color_t  color, u_int8_t *  red, u_int8_t *  green, u_int8_t *  blue) ;
 
-int  ml_change_color_rgb( ml_color_t  color, u_short  red, u_short  green, u_short  blue) ;
+int  ml_change_color_rgb( ml_color_t  color, u_int8_t  red, u_int8_t  green, u_int8_t  blue) ;
+
+int  ml_color_parse_rgb_name( u_int8_t *  red, u_int8_t *  green, u_int8_t *  blue, char *  name) ;
 
 
 #endif

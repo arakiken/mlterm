@@ -23,7 +23,7 @@ PARSER_OBJ = mkf_parser.o mkf_iso2022_parser.o mkf_iso8859_parser.o mkf_xct_pars
 	mkf_iso2022kr_parser.o mkf_sjis_parser.o mkf_big5_parser.o mkf_euctw_parser.o \
 	mkf_utf16_parser.o mkf_iso2022cn_parser.o mkf_hz_parser.o mkf_utf8_parser.o \
 	mkf_johab_parser.o mkf_viscii_parser.o mkf_8bit_parser.o mkf_iscii_parser.o \
-	mkf_utf32_parser.o
+	mkf_utf32_parser.o mkf_codepoint_parser.o
 
 CONV_OBJ = mkf_iso8859_conv.o mkf_iso2022_conv.o mkf_iso2022jp_conv.o mkf_iso2022kr_conv.o \
 	mkf_sjis_conv.o mkf_utf8_conv.o mkf_big5_conv.o mkf_euctw_conv.o mkf_iso2022cn_conv.o \

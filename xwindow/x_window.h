@@ -108,11 +108,9 @@ typedef struct  x_window
 	/* used by x_xim */
 	x_xim_ptr_t  xim ;
 	x_xim_event_listener_t *  xim_listener ;
-	x_xic_ptr_t  xic ;
+	x_xic_ptr_t  xic ;	/* Only root window manages xic in win32 */
 
 #ifdef  USE_WIN32GUI
-	mkf_parser_t *  cp_parser ;
-	
 	WORD  update_window_flag ;
 #endif
 
@@ -149,6 +147,7 @@ typedef struct  x_window
 	 * flags etc.
 	 */
 
+	int8_t  is_sel_owner ;
 	int8_t  use_buffer ;
 	int8_t  wall_picture_is_set ;
 	int8_t  is_transparent ;

@@ -4,6 +4,8 @@
 
 #include  "x_gc.h"
 
+#include  <kiklib/kik_mem.h>	/* malloc */
+
 #include  "x_color.h"
 
 

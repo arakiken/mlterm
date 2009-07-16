@@ -5,7 +5,6 @@
 #include  "mkf_char.h"
 
 #include  <stdio.h>		/* NULL */
-#include  <kiklib/kik_debug.h>
 
 
 /* --- global functions --- */
@@ -30,10 +29,6 @@ mkf_char_to_int(
 	}
 	else
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " mkf_char_t couldn't be converted to int.\n") ;
-	#endif
-	
 		return  0 ;
 	}
 }

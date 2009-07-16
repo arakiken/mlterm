@@ -6,11 +6,15 @@
 #define  __KIK_DEBUG_H__
 
 
-#include  "kik_def.h"
+#include  "kik_config.h"
 
 
 /* for kik_{debug|warn}_printf */
+#ifdef  CONCATABLE_FUNCTION
 #define  KIK_DEBUG_TAG  "[" __FUNCTION__ "()]"
+#else
+#define  KIK_DEBUG_TAG  ""
+#endif
 
 
 int  kik_debug_printf( const char *  format , ...) ;

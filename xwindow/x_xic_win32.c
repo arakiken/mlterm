@@ -557,7 +557,7 @@ end:
 	{
 		*parser = win->xic->parser ;
 	}
-	
+
 	*keysym = win->xic->prev_keydown_wparam ;
 	win->xic->prev_keydown_wparam = 0 ;
 

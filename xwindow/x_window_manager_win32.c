@@ -283,14 +283,12 @@ x_window_manager_own_selection(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
 	if( win_man->selection_owner)
 	{
 		x_window_manager_clear_selection( win_man , win_man->selection_owner) ;
 	}
 
 	win_man->selection_owner = win ;
-#endif
 
 	return  1 ;
 }
@@ -301,11 +299,12 @@ x_window_manager_clear_selection(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
 	if( win_man->selection_owner == NULL || win_man->selection_owner != win)
 	{
 		return  0 ;
 	}
+
+	win_man->selection_owner->is_sel_owner = 0 ;
 
 	if( win_man->selection_owner->selection_cleared)
 	{
@@ -313,10 +312,10 @@ x_window_manager_clear_selection(
 	}
 
 	win_man->selection_owner = NULL ;
-#endif
 
 	return  1 ;
 }
+
 
 XID
 x_window_manager_get_group(

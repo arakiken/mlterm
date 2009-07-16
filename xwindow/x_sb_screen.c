@@ -57,7 +57,7 @@ window_realized(
 	)
 {
 	/* seperator color of x_scrollbar_t and x_screen_t */
-	x_window_set_fg_color( win , BlackPixel( win->display , win->screen)) ;
+	x_window_set_fg_color( win , RGB_BLACK) ;
 }
 
 static void

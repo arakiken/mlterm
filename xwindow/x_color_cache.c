@@ -21,9 +21,9 @@ get_cached_256_xcolor(
 	ml_color_t  color
 	)
 {
-	u_short  red ;
-	u_short  green ;
-	u_short  blue ;
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
 	char *  name ;
 
 	if( ! IS_256_COLOR(color))
@@ -82,9 +82,9 @@ get_cached_vtsys_xcolor(
 	ml_color_t  color
 	)
 {
-	u_short  red ;
-	u_short  green ;
-	u_short  blue ;
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
 	char *  name ;
 	char *  tag ;
 
@@ -320,9 +320,9 @@ x_load_xcolor(
 	char *  name
 	)
 {
-	u_short  red ;
-	u_short  green ;
-	u_short  blue ;
+	u_int8_t  red ;
+	u_int8_t  green ;
+	u_int8_t  blue ;
 
 	if( x_color_config_get_rgb( color_cache->color_config , &red , &green , &blue , name))
 	{

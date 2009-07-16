@@ -695,8 +695,10 @@ view_created:
 		x_window_set_transparent( &sb->window , pic_mod) ;
 	}
 
+#ifndef  USE_WIN32GUI
 	/* default scrollbar cursor */	
 	x_window_set_cursor( &sb->window , XC_sb_v_double_arrow) ;
+#endif
 
 	/*
 	 * event callbacks.

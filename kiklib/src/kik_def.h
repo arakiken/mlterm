@@ -9,10 +9,6 @@
 #include  "kik_config.h"
 
 
-#ifndef  HAVE_FUNCTION
-#define  __FUNCTION__ "__FUNCTION__"
-#endif
-
 #ifndef PATH_MAX
 #ifndef _POSIX_PATH_MAX
 #define _POSIX_PATH_MAX 255
