@@ -1947,7 +1947,7 @@ x_window_receive_event(
 				win->button_is_pressing = 1 ;
 				win->prev_button_press_event = bev ;
 				
-			#if  1
+			#if  0
 				kik_debug_printf( KIK_DEBUG_TAG
 					" mouse pressed btn %d stat %d x %d y %d click_num %d\n",
 					bev.button, bev.state, bev.x, bev.y, win->click_num) ;
@@ -1960,7 +1960,7 @@ x_window_receive_event(
 				
 				win->button_is_pressing = 0 ;
 				
-			#if  1
+			#if  0
 				kik_debug_printf( KIK_DEBUG_TAG
 					" mouse released... state %d x %d y %d\n",
 					bev.state, bev.x, bev.y) ;
@@ -2012,7 +2012,7 @@ x_window_receive_event(
 			win->prev_button_press_event.y = mev.y ;
 			win->prev_button_press_event.time = mev.time ;
 
-		#if  1
+		#if  0
 			kik_debug_printf( KIK_DEBUG_TAG " mouse motion... state %d x %d y %d\n",
 				mev.state, mev.x, mev.y) ;
 		#endif
