@@ -6,7 +6,8 @@
 #define  __X_IM_STATUS_SCREEN_H__
 
 #include  "x_window.h"
-#include  "x_window_manager.h"
+#include  "x_display.h"
+
 
 typedef struct x_im_status_screen
 {
@@ -35,7 +36,7 @@ typedef struct x_im_status_screen
 
 } x_im_status_screen_t ;
 
-x_im_status_screen_t * x_im_status_screen_new( x_window_manager_t *  win_man ,
+x_im_status_screen_t * x_im_status_screen_new( x_display_t *  disp ,
 					       x_font_manager_t *  font_man ,
 					       x_color_manager_t *  color_man ,
 					       int  is_vertical ,

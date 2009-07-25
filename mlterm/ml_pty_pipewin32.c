@@ -109,7 +109,8 @@ wait_pty_read(
                         {
                           	/*
                                  * XXX
-                                 * If slave_stdout member is not necessary, do procedure in wait_child_exited here.
+                                 * If slave_stdout member is not necessary, do procedure in
+				 * wait_child_exited here.
                                  * Then, wait_child_exited thread becomes unnecessary.
                                  */
                           	kik_warn_printf( KIK_DEBUG_TAG " ==> ERROR_BROKEN_PIPE.\n") ;
@@ -252,9 +253,11 @@ pty_open(
   	if( cmd_argv)
         {
   		int  count ;
-        
-	  	cmd_line_len = strlen(cmd_path) + 1 ;
-  		for( count = 0 ; cmd_argv[count] != NULL ; count++)
+
+		/* Because cmd_path == cmd_argv[0], cmd_argv[0] is ignored. */
+		
+		cmd_line_len = strlen(cmd_path) + 1 ;
+  		for( count = 1 ; cmd_argv[count] != NULL ; count++)
         	{
           		cmd_line_len += (strlen(cmd_argv[count]) + 1) ;
         	}
@@ -265,7 +268,7 @@ pty_open(
         	}
 
   		strcpy( cmd_line, cmd_path) ;
-		for( count = 0 ; cmd_argv[count] != NULL ; count ++)
+		for( count = 1 ; cmd_argv[count] != NULL ; count ++)
         	{
           		strcat( cmd_line, " ") ;
           		strcat( cmd_line, cmd_argv[count]) ;

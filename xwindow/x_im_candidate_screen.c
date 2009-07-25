@@ -559,10 +559,10 @@ adjust_window_position(
 		return ;
 	}
 
-	dh = DisplayHeight( cand_screen->window.display ,
-			    cand_screen->window.screen) ;
-	dw = DisplayWidth( cand_screen->window.display ,
-			   cand_screen->window.screen) ;
+	dh = DisplayHeight(  cand_screen->window.disp->display ,
+			     cand_screen->window.disp->screen) ;
+	dw = DisplayWidth(  cand_screen->window.disp->display ,
+			     cand_screen->window.disp->screen) ;
 
 
 	if( *y + cand_screen->window.height > dh)
@@ -593,7 +593,7 @@ delete(
 	free_candidates( cand_screen->candidates ,
 			 cand_screen->num_of_candidates) ;
 
-	x_window_manager_remove_root( cand_screen->window.win_man ,
+	x_display_remove_root( cand_screen->window.disp ,
 				      &cand_screen->window) ;
 
 	free( cand_screen) ;
@@ -967,7 +967,7 @@ button_released(
 
 x_im_candidate_screen_t *
 x_im_candidate_screen_new(
-	x_window_manager_t *  win_man ,
+	x_display_t *  disp ,
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
 	int  is_vertical_term ,
@@ -1054,9 +1054,7 @@ x_im_candidate_screen_new(
 	cand_screen->listener.self = NULL ;
 	cand_screen->listener.selected = NULL ;
 
-	if( ! x_window_manager_show_root( win_man ,
-					  &cand_screen->window ,
-					  x , y , 0 ,
+	if( ! x_display_show_root( disp , &cand_screen->window , x , y , 0 ,
 					  "mlterm-candidate-window"))
 	{
 	#ifdef  DEBUG
@@ -1078,7 +1076,7 @@ error:
 
 x_im_candidate_screen_t *
 x_im_candidate_screen_new(
-	x_window_manager_t *  win_man ,
+	x_display_t *  disp ,
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
 	int  is_vertical_term ,

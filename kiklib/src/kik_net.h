@@ -8,6 +8,8 @@
 
 #include  "kik_config.h"	/* socklen_t */
 
+#ifndef  USE_WIN32API
+
 #include  <sys/types.h>
 #include  <sys/socket.h>	
 #include  <sys/un.h>
@@ -24,5 +26,8 @@
 #define  PF_LOCAL  AF_LOCAL
 #endif
 #endif
+
+#endif /* USE_WIN32API */
+
 
 #endif

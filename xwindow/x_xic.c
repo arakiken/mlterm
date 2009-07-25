@@ -105,7 +105,7 @@ destroy_xic(
 
 	if( win->xic->fontset)
 	{
-		XFreeFontSet( win->display , win->xic->fontset) ;
+		XFreeFontSet( win->disp->display , win->xic->fontset) ;
 	}
 	
 	free( win->xic) ;
@@ -167,7 +167,7 @@ create_xic(
 			kik_warn_printf( KIK_DEBUG_TAG " XVaCreateNestedList() failed.\n") ;
 		#endif
 
-			XFreeFontSet( win->display , fontset) ;
+			XFreeFontSet( win->disp->display , fontset) ;
 
 			return  0 ;
 		}
@@ -179,7 +179,7 @@ create_xic(
 		#endif
 
 			XFree( preedit_attr) ;
-			XFreeFontSet( win->display , fontset) ;
+			XFreeFontSet( win->disp->display , fontset) ;
 
 			return  0 ;
 		}
@@ -212,7 +212,7 @@ create_xic(
 	
 		if( fontset)
 		{
-			XFreeFontSet( win->display , fontset) ;
+			XFreeFontSet( win->disp->display , fontset) ;
 		}
 
 		return  0 ;
@@ -378,7 +378,7 @@ x_xic_font_set_changed(
 	
 	if( ( preedit_attr = XVaCreateNestedList( 0 , XNFontSet , fontset , NULL)) == NULL)
 	{
-		XFreeFontSet( win->display , fontset) ;
+		XFreeFontSet( win->disp->display , fontset) ;
 		
 		return  0 ;
 	}
@@ -387,7 +387,7 @@ x_xic_font_set_changed(
 
 	XFree( preedit_attr) ;
 	
-	XFreeFontSet( win->display , win->xic->fontset) ;
+	XFreeFontSet( win->disp->display , win->xic->fontset) ;
 	win->xic->fontset = fontset ;
 	
 	return  1 ;

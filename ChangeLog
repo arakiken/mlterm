@@ -1,3 +1,22 @@
+2009-07-26  Araki Ken  <arakiken@users.sf.net>
+
+	* IME Window pursues cursor position.
+
+	* Added: doc/ja/README.win32.
+
+	* Supported multiple pty, startup options and configuration by 'main' file in win32.
+	  x_term_manager.[ch], main.[ch] and x_main_config.[ch] are built in win32.
+	  x_window_manager*.[ch] are removed and united to x_display*.[ch].
+	  Removed: main_win32.c
+	  Added: x_display_win32.c
+	
+	* Ucs property table is separated from libmkf as a shared library.
+	  Added: mkf/libtbl/mkf_ucs_property.c and libmkf_ucsprop.la.
+	  Moved: mkf/lib/table/mkf_ucs_*_property.table to mkf/libtbl/table/
+	  Renamed: mkf/lib/mkf_map_loader.h to mkf_tblfunc_loader.h
+
+	* kik_debug.h: Use __FILE__:__LINE__ instead of __FUNCTION__.
+	
 2009-07-17  Araki Ken  <arakiken@users.sf.net>
 
 	* libtool: version up to 1.5.26

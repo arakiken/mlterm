@@ -108,7 +108,8 @@ draw_scrollbar(
 	SelectObject( dc, GetStockObject(NULL_PEN)) ;
 	SelectObject( dc, (HBRUSH)GetClassLong( view->window, GCL_HBRBACKGROUND)) ;
 
-	Rectangle( dc, 0, 0, WIDTH, view->height) ;
+	/* XXX Garbage is left in screen in scrolling without +1. Related to NULL_PEN ? */
+	Rectangle( dc, 0, 0, WIDTH + 1, view->height) ;
 
 	SelectObject( dc, GetStockObject(BLACK_PEN)) ;
 	SelectObject( dc, GetStockObject(BLACK_BRUSH)) ;

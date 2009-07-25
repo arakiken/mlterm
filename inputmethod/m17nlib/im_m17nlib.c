@@ -620,7 +620,7 @@ candidates_changed(
 		}
 
 		if( ! ( m17nlib->im.cand_screen = (*syms->x_im_candidate_screen_new)(
-				(*m17nlib->im.listener->get_win_man)(m17nlib->im.listener->self) ,
+				(*m17nlib->im.listener->get_display)(m17nlib->im.listener->self) ,
 				(*m17nlib->im.listener->get_font_man)(m17nlib->im.listener->self) ,
 				(*m17nlib->im.listener->get_color_man)(m17nlib->im.listener->self) ,
 				(*m17nlib->im.listener->is_vertical)(m17nlib->im.listener->self) ,
@@ -836,7 +836,7 @@ switch_mode(
 		if( m17nlib->im.stat_screen == NULL)
 		{
 			if( ! ( m17nlib->im.stat_screen = (*syms->x_im_status_screen_new)(
-					(*m17nlib->im.listener->get_win_man)(m17nlib->im.listener->self) ,
+					(*m17nlib->im.listener->get_display)(m17nlib->im.listener->self) ,
 					(*m17nlib->im.listener->get_font_man)(m17nlib->im.listener->self) ,
 					(*m17nlib->im.listener->get_color_man)(m17nlib->im.listener->self) ,
 					(*m17nlib->im.listener->is_vertical)(m17nlib->im.listener->self) ,

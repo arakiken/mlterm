@@ -26,7 +26,6 @@
 
 #include  "ml_str_parser.h"
 #include  "x_xic.h"
-#include  "x_picture.h"
 #include  "x_draw_str.h"
 
 /*
@@ -852,9 +851,7 @@ highlight_cursor(
 
 	draw_cursor( screen) ;
 
-#ifndef  USE_WIN32GUI
 	x_xic_set_spot( &screen->window) ;
-#endif
 
 	return  1 ;
 }
@@ -1268,7 +1265,9 @@ window_realized(
 	screen->mod_meta_mask = x_window_get_mod_meta_mask( win, screen->mod_meta_key) ;
 	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win, NULL) ;
 
-#ifndef  USE_WIN32GUI
+#ifdef  USE_WIN32GUI
+	x_xic_activate( win, NULL, NULL) ;
+#else
 	if( screen->input_method)
 	{
 		/* XIM or other input methods? */
@@ -1591,7 +1590,7 @@ config_menu(
 	x_window_ungrab_pointer( &screen->window) ;
 
 	ml_term_start_config_menu( screen->term , conf_menu_path , global_x , global_y ,
-		DisplayString(screen->window.display)) ;
+		DisplayString( screen->window.disp->display)) ;
 }
 
 static int
@@ -4376,8 +4375,7 @@ change_icon(
 		ml_term_set_icon_path( screen->term, new_icon);
 	}
 
-	x_window_manager_set_icon( x_get_root_window( &screen->window),
-					   ml_term_icon_path( screen->term));
+	x_display_set_icon( x_get_root_window( &screen->window), ml_term_icon_path( screen->term));
 }
 
 
@@ -4660,8 +4658,12 @@ get_spot(
 		return  0 ;
 	}
 
-	*y = convert_row_to_y( screen , ml_term_cursor_row( screen->term)) +
-		x_line_height( screen) ;
+	*y = convert_row_to_y( screen , ml_term_cursor_row( screen->term))
+	/* XXX */
+	#ifndef  USE_WIN32GUI
+		+ x_line_height( screen)
+	#endif
+		;
 
 	*x = convert_char_index_to_x_with_shape( screen , line ,
 		ml_term_cursor_char_index( screen->term)) ;
@@ -5232,9 +5234,8 @@ compare_key_state_with_modmap(
 		{
 			KeySym  sym ;
 
-			sym = XKeycodeToKeysym( screen->window.display ,
-						mod_map->modifiermap[index] ,
-						0) ;
+			sym = XKeycodeToKeysym(  screen->window.disp->display ,
+						mod_map->modifiermap[index] , 0) ;
 
 			switch (sym)
 			{
@@ -5293,12 +5294,12 @@ write_to_term(
 	ml_term_write( screen->term , str , len , 0) ;
 }
 
-static x_window_manager_t *
-get_win_man(
+static x_display_t *
+get_display(
 	void *  p
 	)
 {
-	return x_get_root_window( &((x_screen_t *)p)->window)->win_man ;
+	return  ((x_screen_t*)p)->window.disp ;
 }
 
 static x_font_manager_t *
@@ -5306,7 +5307,7 @@ get_font_man(
 	void *  p
 	)
 {
-	return((x_screen_t *)p)->font_man ;
+	return  ((x_screen_t*)p)->font_man ;
 }
 
 static x_color_manager_t *
@@ -5532,7 +5533,7 @@ xterm_bel(
 		x_window_fill_all( &screen->window) ;
 
 	#ifndef  USE_WIN32GUI
-		XFlush( screen->window.display) ;
+		XFlush( screen->window.disp->display) ;
 	#endif
 	
 		x_window_clear_all( &screen->window) ;
@@ -5746,7 +5747,7 @@ x_screen_new(
 	screen->im_listener.im_changed = im_changed ;
 	screen->im_listener.compare_key_state_with_modmap = compare_key_state_with_modmap ;
 	screen->im_listener.write_to_term = write_to_term ;
-	screen->im_listener.get_win_man = get_win_man ;
+	screen->im_listener.get_display = get_display ;
 	screen->im_listener.get_font_man = get_font_man ;
 	screen->im_listener.get_color_man = get_color_man ;
 
@@ -6079,10 +6080,6 @@ x_screen_attach(
 #ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
-		x_window_t *  root ;
-
-		root = x_get_root_window( &screen->window) ;
-
 		x_im_delete( screen->im) ;
 		screen->im = x_im_new( ml_term_get_encoding(term) ,
 				&screen->im_listener , screen->input_method ,

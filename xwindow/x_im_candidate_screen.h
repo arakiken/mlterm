@@ -6,11 +6,11 @@
 #define  __X_IM_CANDIDATE_SCREEN_H__
 
 #include  "x_window.h"
-#include  "x_window_manager.h"
+#include  "x_display.h"
 
 typedef struct x_im_candidate
 {
-    u_short  info ; /* to store misc. info from IM plugins */
+	u_short  info ; /* to store misc. info from IM plugins */
 
 	ml_char_t *  chars ;
 	u_int  num_of_chars ; /* == array size */
@@ -65,7 +65,7 @@ typedef struct x_im_candidate_screen
 } x_im_candidate_screen_t ;
 
 x_im_candidate_screen_t * x_im_candidate_screen_new(
-					x_window_manager_t *  win_man ,
+					x_display_t *  disp ,
 					x_font_manager_t *  font_man ,
 					x_color_manager_t *  color_man ,
 					int  is_vertical_term ,

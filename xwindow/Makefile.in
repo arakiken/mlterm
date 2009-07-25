@@ -21,15 +21,15 @@ LIBEXECDIR = $(libexecdir)
 
 VPATH = $(top_srcdir)/xwindow
 
-OBJ1 = x_window_manager@WIN32TAG@.o x_window@WIN32TAG@.o x_screen.o x_xic@WIN32TAG@.o \
+OBJ1 = x_term_manager.o x_display@WIN32TAG@.o x_window@WIN32TAG@.o x_screen.o x_xic@WIN32TAG@.o \
 	x_color_manager.o x_font_manager.o x_picture.o x_font@WIN32TAG@.o x_color@WIN32TAG@.o \
-	x_selection.o x_font_config.o x_color_config.o \
-	x_shortcut.o x_bel_mode.o x_sb_mode.o x_mod_meta_mode.o main@WIN32TAG@.o \
+	x_selection.o x_font_config.o x_color_config.o x_main_config.o \
+	x_shortcut.o x_bel_mode.o x_sb_mode.o x_mod_meta_mode.o main.o \
 	x_termcap.o x_font_cache.o x_draw_str.o x_gc.o x_color_cache.o \
 	x_scrollbar.o x_sb_screen.o x_sb_view_factory.o x_simple_sb_view@WIN32TAG@.o
 
-OBJ2 = x_decsp_font.o x_term_manager.o x_display.o @DND_LIBS@ x_im.o x_im_candidate_screen.o \
-	x_im_status_screen.o x_imagelib_@IMAGELIB_NAME@.o x_xim.o x_main_config.o
+OBJ2 = x_decsp_font.o @DND_LIBS@ x_im.o x_im_candidate_screen.o \
+	x_im_status_screen.o x_imagelib_@IMAGELIB_NAME@.o x_xim.o
 
 OBJ2_win32 = x_imagelib_win32.o
 
@@ -55,7 +55,7 @@ LIBS2 = @IND_LIBS@ @FRIBIDI_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ \
 	@DL_LIBS_IM@ @DL_LIBS_SB@ \
 	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@ 
 
-LIBS2_win32 = -mwindows
+LIBS2_win32 = -mwindows -limm32
 
 LIBS = $(LIBS1) $(LIBS2@WIN32TAG@)
 

@@ -7,7 +7,6 @@
 
 #include  <kiklib/kik_debug.h>
 
-#include  "x_window.h"
 #include  "x_imagelib.h"
 
 
@@ -46,7 +45,7 @@ x_root_pixmap_available(
 {
 	return  x_imagelib_root_pixmap_available( display) ;
 }
-	
+
 int
 x_picture_init(
 	x_picture_t *  pic ,
@@ -69,7 +68,7 @@ x_picture_final(
 	if( pic->pixmap)
 	{
 	#ifndef  USE_WIN32GUI
-		XFreePixmap( pic->win->display , pic->pixmap) ;
+		XFreePixmap(  pic->win->disp->display , pic->pixmap) ;
 	#endif
 	}
 

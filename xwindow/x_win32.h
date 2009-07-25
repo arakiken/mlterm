@@ -7,6 +7,7 @@
 
 
 #include  <windows.h>
+#include  <imm.h>
 #include  <kiklib/kik_types.h>
 
 
@@ -22,7 +23,7 @@ typedef struct
 } Display ;
 
 typedef int  XIM ;		/* dummy */
-typedef int  XIC ;		/* dummy */
+typedef HIMC  XIC ;
 typedef int  XIMStyle ;		/* dummy */
 
 typedef HANDLE XID ;
@@ -97,7 +98,6 @@ typedef struct
 	HBRUSH  brush ;
 
 } XColor ;
-
 
 #define None		0L	/* Same as definition in X11/X.h */
 #define NoSymbol	0L	/* Same as definition in X11/X.h */
@@ -282,12 +282,16 @@ typedef struct
 #define XK_k	0xffda	/* dummy */
 #define XK_j	0xffd9	/* dummy */
 
+/* XPoint(short x, short y) in Xlib. POINT(long x, long y) in win32. */
+#define XPoint  POINT
+
 /* XXX dummy */
 #define XKeysymToKeycode(disp,ks)  (ks)
 #define XKeycodeToKeysym(disp,kc,i)  (kc)
 #define XStringToKeysym(str)	(1)
 #define XKeysymToString(ks)	""
-#define DisplayString(disp) ":0.0"
+#define DisplayString(disp)	":0.0"
+#define DefaultScreen(disp)	(0)
 
 /* Same as definition in X11/cursorfont.h */
 #define XC_xterm 152

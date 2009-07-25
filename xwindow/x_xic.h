@@ -6,20 +6,21 @@
 #define  __X_XIC_H__
 
 
-#include  "x.h"
 #include  <kiklib/kik_types.h>		/* size_t */
 
+#include  "x.h"
 #include  "x_window.h"
 
 
 typedef struct  x_xic
 {
+	XIC  ic ;
+	
 #ifdef  USE_WIN32GUI
 	WORD  prev_keydown_wparam ;
 	mkf_parser_t *  parser ;
 	ml_char_encoding_t  encoding ;
 #else
-	XIC   ic ;
 	XFontSet  fontset ;
 	XIMStyle  style ;
 #endif

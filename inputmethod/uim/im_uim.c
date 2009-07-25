@@ -742,7 +742,7 @@ candidate_activate(
 					       &x , &y) ;
 
 		if( ! ( uim->im.cand_screen = (*syms->x_im_candidate_screen_new)(
-				(*uim->im.listener->get_win_man)(uim->im.listener->self) ,
+				(*uim->im.listener->get_display)(uim->im.listener->self) ,
 				(*uim->im.listener->get_font_man)(uim->im.listener->self) ,
 				(*uim->im.listener->get_color_man)(uim->im.listener->self) ,
 				(*uim->im.listener->is_vertical)(uim->im.listener->self) ,

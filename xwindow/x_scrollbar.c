@@ -197,15 +197,18 @@ window_realized(
 
 	sb = (x_scrollbar_t*) win ;
 
-	x_load_named_xcolor( win->display , win->screen , &sb->fg_xcolor , sb->fg_color) ;
-	x_load_named_xcolor( win->display , win->screen , &sb->bg_xcolor , sb->bg_color) ;
+	x_load_named_xcolor(  win->disp->display ,  win->disp->screen ,
+		&sb->fg_xcolor , sb->fg_color) ;
+	x_load_named_xcolor(  win->disp->display ,  win->disp->screen ,
+		&sb->bg_xcolor , sb->bg_color) ;
 	x_window_set_fg_color( win , sb->fg_xcolor.pixel) ;
 	x_window_set_bg_color( win , sb->bg_xcolor.pixel) ;
 
 	if( sb->view->realized)
 	{
-		(*sb->view->realized)( sb->view , sb->window.display , sb->window.screen ,
-			sb->window.my_window , sb->window.gc->gc , sb->window.height) ;
+		(*sb->view->realized)( sb->view , sb->window.disp->display ,
+			sb->window.disp->screen , sb->window.my_window ,
+			sb->window.gc->gc , sb->window.height) ;
 	}
 	
 	draw_decoration( sb) ;
@@ -735,8 +738,8 @@ x_scrollbar_final(
 	(*sb->view->delete)( sb->view) ;
 	x_unload_scrollbar_view_lib( sb->view_name) ;
 
-	x_unload_xcolor( sb->window.display , sb->window.screen , &sb->fg_xcolor) ;
-	x_unload_xcolor( sb->window.display , sb->window.screen , &sb->bg_xcolor) ;
+	x_unload_xcolor(  sb->window.disp->display , sb->window.disp->screen , &sb->fg_xcolor) ;
+	x_unload_xcolor(  sb->window.disp->display , sb->window.disp->screen , &sb->bg_xcolor) ;
 	free( sb->fg_color) ;
 	free( sb->bg_color) ;
 	free( sb->view_name) ;
@@ -944,10 +947,12 @@ x_scrollbar_set_fg_color(
 	)
 {
 	free( sb->fg_color) ;
-	x_unload_xcolor( sb->window.display , sb->window.screen , &sb->fg_xcolor) ;
+	x_unload_xcolor(  sb->window.disp->display ,
+		 sb->window.disp->screen , &sb->fg_xcolor) ;
 
 	sb->fg_color = strdup( fg_color) ;
-	x_load_named_xcolor( sb->window.display , sb->window.screen , &sb->fg_xcolor , sb->fg_color) ;
+	x_load_named_xcolor(  sb->window.disp->display , sb->window.disp->screen ,
+		&sb->fg_xcolor , sb->fg_color) ;
 	x_window_set_fg_color( &sb->window , sb->fg_xcolor.pixel) ;
 
 	draw_decoration( sb) ;
@@ -963,10 +968,11 @@ x_scrollbar_set_bg_color(
 	)
 {
 	free( sb->bg_color) ;
-	x_unload_xcolor( sb->window.display , sb->window.screen , &sb->bg_xcolor) ;
+	x_unload_xcolor(  sb->window.disp->display , sb->window.disp->screen , &sb->bg_xcolor) ;
 
 	sb->bg_color = strdup( bg_color) ;
-	x_load_named_xcolor( sb->window.display , sb->window.screen , &sb->bg_xcolor , sb->bg_color) ;
+	x_load_named_xcolor(  sb->window.disp->display , sb->window.disp->screen ,
+		&sb->bg_xcolor , sb->bg_color) ;
 	x_window_set_bg_color( &sb->window , sb->bg_xcolor.pixel) ;
 
 	draw_decoration( sb) ;
@@ -1024,15 +1030,17 @@ x_scrollbar_change_view(
 	sb->view_name = name ;
 	
 	(*sb->view->get_geometry_hints)( sb->view , &width , &sb->top_margin , &sb->bottom_margin ,
-		&sb->up_button_y , &sb->up_button_height , &sb->down_button_y , &sb->down_button_height) ;
+		&sb->up_button_y , &sb->up_button_height ,
+		&sb->down_button_y , &sb->down_button_height) ;
 
 	sb->bar_height = calculate_bar_height( sb) ;
 	sb->bar_top_y = calculate_bar_top_y(sb) ;
 
 	if( sb->view->realized)
 	{
-		(*sb->view->realized)( sb->view , sb->window.display , sb->window.screen ,
-			sb->window.my_window , sb->window.gc->gc , sb->window.height) ;
+		(*sb->view->realized)( sb->view , sb->window.disp->display ,
+			sb->window.disp->screen , sb->window.my_window ,
+			sb->window.gc->gc , sb->window.height) ;
 	}
 
 	if( sb->window.width != width)
@@ -1086,8 +1094,9 @@ x_scrollbar_set_transparent(
 		 * this should be done before x_window_set_transparent() , which calls
 		 * exposed event.
 		 */
-		(*sb->view->realized)( sb->view , sb->window.display , sb->window.screen ,
-			sb->window.my_window , sb->window.gc->gc , sb->window.height) ;
+		(*sb->view->realized)( sb->view , sb->window.disp->display ,
+			sb->window.disp->screen , sb->window.my_window ,
+			sb->window.gc->gc , sb->window.height) ;
 	}
 
 	x_window_set_transparent( &sb->window , pic_mod) ;
@@ -1132,8 +1141,9 @@ x_scrollbar_unset_transparent(
 		 * this should be done before x_window_set_transparent() , which calls
 		 * exposed event.
 		 */
-		(*sb->view->realized)( sb->view , sb->window.display , sb->window.screen ,
-			sb->window.my_window , sb->window.gc->gc , sb->window.height) ;
+		(*sb->view->realized)( sb->view , sb->window.disp->display ,
+			sb->window.disp->screen , sb->window.my_window ,
+			sb->window.gc->gc , sb->window.height) ;
 	}
 
 	x_window_unset_transparent( &sb->window) ;

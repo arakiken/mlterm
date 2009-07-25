@@ -42,7 +42,7 @@ typedef struct x_im_event_listener
 					      int *) ;
 	void (*write_to_term)( void * , u_char * , size_t) ;
 
-	x_window_manager_t * (*get_win_man)( void *) ;
+	x_display_t * (*get_display)( void *) ;
 	x_font_manager_t * (*get_font_man)( void *) ;
 	x_color_manager_t * (*get_color_man)( void *) ;
 
@@ -72,12 +72,12 @@ typedef struct x_im_export_syms
 	mkf_conv_t * (*ml_conv_new)( ml_char_encoding_t) ;
 
 	x_im_candidate_screen_t *  (*x_im_candidate_screen_new)(
-						x_window_manager_t * ,
+						x_display_t * ,
 						x_font_manager_t * ,
 						x_color_manager_t * ,
 						int , int , u_int , int , int) ;
 	x_im_status_screen_t *  (*x_im_status_screen_new)(
-						x_window_manager_t * ,
+						x_display_t * ,
 						x_font_manager_t * ,
 						x_color_manager_t * ,
 						int , int , int) ;

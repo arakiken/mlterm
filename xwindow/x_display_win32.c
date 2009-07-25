@@ -7,12 +7,11 @@
 #include  <string.h>		/* memset/memcpy */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
-#include  <kiklib/kik_str.h>	/* strdup */
-#include  <kiklib/kik_file.h>	/* kik_file_set_cloexec */
 
 #include  "x_window.h"
-#include  "x_xim.h"
-#include  "x_picture.h"
+
+
+#define  DISP_IS_INITED   (_disp.display)
 
 
 #if  0
@@ -22,41 +21,44 @@
 
 /* --- static variables --- */
 
-static u_int  num_of_displays ;
-static x_display_t **  displays ;
+static x_display_t  _disp ;	/* Singleton */
+static Display  _display ;
 
 
 /* --- static functions --- */
 
-#ifdef  __DEBUG
-static int
-error_handler(
-	Display *  display ,
-	XErrorEvent *  event
-	)
+static LRESULT CALLBACK window_proc(
+  	HWND hwnd,
+  	UINT msg,
+  	WPARAM wparam,
+  	LPARAM lparam
+  	)
 {
-	char  buffer[1024] ;
+	XEvent  event ;
+	int  count ;
 
-	XGetErrorText( display , event->error_code , buffer , 1024) ;
+	event.window = hwnd ;
+	event.msg = msg ;
+	event.wparam = wparam ;
+	event.lparam = lparam ;
 
-	kik_error_printf( "%s\n" , buffer) ;
+	for( count = 0 ; count < _disp.num_of_roots ; count ++)
+	{
+		int  val ;
 
-	abort() ;
+		val = x_window_receive_event( _disp.roots[count] , &event) ;
+		if( val == 1)
+		{
+			return  0 ;
+		}
+		else if( val == -1)
+		{
+			break ;
+		}
+	}
 
-	return  1 ;
+	return  DefWindowProc( hwnd, msg, wparam, lparam) ;
 }
-
-static int
-ioerror_handler(
-	Display *  display
-	)
-{
-	kik_error_printf( "X IO Error.\n") ;
-	abort() ;
-
-	return  1 ;
-}
-#endif
 
 static void
 modmap_init(
@@ -65,7 +67,11 @@ modmap_init(
 	)
 {
 	modmap->serial = 0 ;
+#ifdef  USE_WIN32GUI
+	modmap->map = NULL ;
+#else
 	modmap->map = XGetModifierMapping( display) ;
+#endif
 }
 
 static void
@@ -75,106 +81,109 @@ modmap_final(
 {
 	if( modmap->map)
 	{
+#ifndef  USE_WIN32GUI
 		XFreeModifiermap( modmap->map);
+#endif
 	}
 }
 
-static x_display_t *
-open_display(
+
+/* --- global functions --- */
+
+int
+x_display_set_hinstance(
+	HINSTANCE  hinst
+	)
+{
+	if( _display.hinst)
+	{
+		return  0 ;
+	}
+	
+	_display.hinst = hinst ;
+
+	return  1 ;
+}
+
+x_display_t *
+x_display_open(
 	char *  name
 	)
 {
-	x_display_t *  disp ;
+	WNDCLASS  wc ;
 
-	if( ( disp = malloc( sizeof( x_display_t))) == NULL)
+	if( ! _display.hinst)
 	{
 		return  NULL ;
 	}
 	
-	if( ( disp->display = XOpenDisplay( name)) == NULL)
+	if( DISP_IS_INITED)
 	{
-		kik_msg_printf( " display %s couldn't be opened.\n" , name) ;
-
-		goto  error1 ;
+		/* Already opened. */
+		return  &_disp ;
 	}
 
-	/* set close-on-exec flag on the socket connected to X. */
-	kik_file_set_cloexec( XConnectionNumber( disp->display));
+  	/* Prepare window class */
+  	ZeroMemory(&wc,sizeof(WNDCLASS)) ;
+  	wc.lpfnWndProc = window_proc ;
+	wc.style = CS_HREDRAW | CS_VREDRAW ;
+  	wc.hInstance = _display.hinst ;
+  	wc.hIcon = 0 ;
+  	wc.hCursor = LoadCursor(NULL,IDC_ARROW) ;
+  	wc.hbrBackground = 0 ;
+  	wc.lpszClassName = "MLTERM" ;
 
-	if( ( disp->name = strdup( name)) == NULL)
+	if( ! RegisterClass(&wc))
 	{
-		goto  error2 ;
-	}
-	
-	disp->screen = DefaultScreen( disp->display) ;
-	disp->my_window = DefaultRootWindow( disp->display) ;
+		MessageBox(NULL,"Failed to register class", NULL, MB_ICONSTOP) ;
 
-	if( ( disp->gc = x_gc_new( disp->display)) == NULL)
+		return  0 ;
+	}
+
+	_disp.screen = 0 ;
+	_disp.my_window = None ;
+	_disp.group_leader = None ;
+
+	_disp.icon_path = NULL;
+	_disp.icon = None ;
+	_disp.mask = None ;
+	_disp.cardinal = NULL ;
+
+	_disp.roots = NULL ;
+	_disp.num_of_roots = 0 ;
+
+	_disp.selection_owner = NULL ;
+
+	modmap_init( &_display, &(_disp.modmap)) ;
+
+	if( ( _disp.gc = x_gc_new( &_display)) == NULL)
 	{
-		goto  error3 ;
+		return  0 ;
 	}
+
+	_disp.display = &_display ;
 	
-	disp->group_leader = XCreateSimpleWindow( disp->display,
-						     disp->my_window,
-						     0, 0, 1, 1, 0, 0, 0) ;
-	disp->icon_path = NULL;
-	disp->icon = None ;
-	disp->mask = None ;
-	disp->cardinal = NULL ;
-
-	disp->roots = NULL ;
-	disp->num_of_roots = 0 ;
-
-	disp->selection_owner = NULL ;
-
-	modmap_init( disp->display, &(disp->modmap)) ;
-
-#ifdef  __DEBUG
-	XSetErrorHandler( error_handler) ;
-	XSetIOErrorHandler( ioerror_handler) ;
-#endif
-
-	x_xim_display_opened( disp->display) ;
-	x_picture_display_opened( disp->display) ;
-	
-#ifdef  DEBUG
-	kik_debug_printf( "X connection opened.\n") ;
-#endif
-
-	return  disp ;
-
-error3:
-	free( disp->name) ;
-
-error2:
-	XCloseDisplay( disp->display) ;
-
-error1:
-	free( disp) ;
-
-	return  NULL ;
+	return  &_disp ;
 }
 
-static int
-close_display(
+int
+x_display_close(
 	x_display_t *  disp
 	)
 {
 	int  count ;
 
-	free( disp->name) ;
-
-	x_gc_delete( disp->gc) ;
-
-	modmap_final( &(disp->modmap)) ;
-
-	if(  disp->group_leader)
+	if( ! DISP_IS_INITED || disp != &_disp)
 	{
-		XDestroyWindow( disp->display, disp->group_leader) ;
+		return  0 ;
 	}
 
-	free(  disp->icon_path) ;
+	x_gc_delete( disp->gc) ;
+	modmap_final( &(disp->modmap)) ;
 
+	free( disp->icon_path);
+
+#ifndef  USE_WIN32GUI
 	if( disp->icon)
 	{
 		XFreePixmap( disp->display, disp->icon) ;
@@ -183,6 +192,7 @@ close_display(
 	{
 		XFreePixmap( disp->display, disp->mask) ;
 	}
+#endif
 
 	free( disp->cardinal) ;
 
@@ -194,91 +204,16 @@ close_display(
 
 	free( disp->roots) ;
 
-	x_xim_display_closed( disp->display) ;
-	x_picture_display_closed( disp->display) ;
-	XCloseDisplay( disp->display) ;
-	
-	free( disp) ;
+	_disp.display = NULL ;
 
 	return  1 ;
-}
-
-
-/* --- global functions --- */
-
-x_display_t *
-x_display_open(
-	char *  disp_name
-	)
-{
-	int  count ;
-	x_display_t *  disp ;
-	void *  p ;
-
-	for( count = 0 ; count < num_of_displays ; count ++)
-	{
-		if( strcmp( displays[count]->name , disp_name) == 0)
-		{
-			return  displays[count] ;
-		}
-	}
-
-	if( ( disp = open_display( disp_name)) == NULL)
-	{
-		return  NULL ;
-	}
-
-	if( ( p = realloc( displays , sizeof( x_display_t*) * (num_of_displays + 1))) == NULL)
-	{
-		x_display_close( disp) ;
-
-		return  NULL ;
-	}
-
-	displays = p ;
-	displays[num_of_displays ++] = disp ;
-
-	return  disp ;
-}
-
-int
-x_display_close(
-	x_display_t *  disp
-	)
-{
-	int  count ;
-
-	for( count = 0 ; count < num_of_displays ; count ++)
-	{
-		if( displays[count] == disp)
-		{
-			close_display( displays[count]) ;
-			displays[count] = displays[-- num_of_displays] ;
-
-		#ifdef  DEBUG
-			kik_debug_printf( "X connection closed.\n") ;
-		#endif
-
-			return  1 ;
-		}
-	}
-	
-	return  0 ;
 }
 
 int
 x_display_close_all(void)
 {
-	while( num_of_displays >0 )
-	{
-		close_display( displays[-- num_of_displays]) ;
-	}
-
-	free( displays) ;
-
-	displays = NULL ;
-
-	return  1 ;
+	/* Not supported */
+	return  0 ;
 }
 
 x_display_t **
@@ -286,9 +221,8 @@ x_get_opened_displays(
 	u_int *  num
 	)
 {
-	*num = num_of_displays ;
-
-	return  displays ;
+	/* Not supported */
+	return  NULL ;
 }
 
 int
@@ -296,7 +230,8 @@ x_display_fd(
 	x_display_t *  disp
 	)
 {
-	return  XConnectionNumber( disp->display) ;
+	/* Not supported */
+	return  -1 ;
 }
 
 int
@@ -311,8 +246,7 @@ x_display_show_root(
 {
 	void *  p ;
 
-	if( ( p = realloc( disp->roots ,
-			sizeof( x_window_t*) * (disp->num_of_roots + 1))) == NULL)
+	if( ( p = realloc( disp->roots , sizeof( x_window_t*) * (disp->num_of_roots + 1))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
@@ -337,9 +271,7 @@ x_display_show_root(
 
 	disp->roots[disp->num_of_roots++] = root ;
 
-	x_window_show( root , hint) ;
-
-	return  1 ;
+	return  x_window_show( root , hint) ;
 }
 
 int
@@ -395,43 +327,14 @@ x_display_receive_next_event(
 	x_display_t *  disp
 	)
 {
-	if( XEventsQueued( disp->display , QueuedAfterReading))
-	{
-		XEvent  event ;
-		int  count ;
-
-		do
-		{
-			XNextEvent( disp->display , &event) ;
-
-			if( ! XFilterEvent( &event , None))
-			{
-				for( count = 0 ; count < disp->num_of_roots ; count ++)
-				{
-					x_window_receive_event( disp->roots[count] , &event) ;
-				}
-			}
-		}
-		while( XEventsQueued( disp->display , QueuedAfterReading)) ;
-
-		XFlush( disp->display) ;
-
-		return  1 ;
-	}
-	else
-	{
-		/* events should be flushed before waiting in select() */
-		XFlush( disp->display) ;
-
-		return  0 ;
-	}
+	return  1 ;
 }
 
 
 /*
  * Folloing functions called from x_window.c
  */
- 
+
 int
 x_display_own_selection(
 	x_display_t *  disp ,
@@ -495,17 +398,18 @@ x_display_update_modifier_mapping(
 	u_int  serial
 	)
 {
+#ifndef  USE_WIN32GUI
 	if( serial != disp->modmap.serial)
 	{
 		modmap_final( &(disp->modmap)) ;
 		disp->modmap.map = XGetModifierMapping( disp->display) ;
 		disp->modmap.serial = serial ;
 	}
+#endif
 }
 
-int
-x_display_set_icon(
-	x_window_t *  win ,
+int x_display_set_icon(
+	x_window_t *  win,
 	char *  icon_path
 	)
 {

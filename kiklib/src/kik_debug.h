@@ -9,11 +9,22 @@
 #include  "kik_config.h"
 
 
+#define  KIK_INT_TO_STR(i)  _KIK_INT_TO_STR(i)
+#define  _KIK_INT_TO_STR(i) #i
+
+#if  0
 /* for kik_{debug|warn}_printf */
+
 #ifdef  CONCATABLE_FUNCTION
 #define  KIK_DEBUG_TAG  "[" __FUNCTION__ "()]"
 #else
-#define  KIK_DEBUG_TAG  ""
+#define  KIK_DEBUG_TAG  "[" __FILE__ "]"
+#endif
+
+#else
+
+#define  KIK_DEBUG_TAG  "[" __FILE__ ":" KIK_INT_TO_STR(__LINE__) "]"
+
 #endif
 
 

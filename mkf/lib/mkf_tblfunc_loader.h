@@ -2,8 +2,8 @@
  *	$Id$
  */
 
-#ifndef  __MKF_MAP_LOADER_H__
-#define  __MKF_MAP_LOADER_H__
+#ifndef  __MKF_TBLFUNC_LOADER_H__
+#define  __MKF_TBLFUNC_LOADER_H__
 
 
 #include  <kiklib/kik_types.h>
@@ -57,5 +57,21 @@
 		return  (*_ ## funcname)( dst_ch, src_ch) ; \
 	}
 
+#define  mkf_prop_func(libname,funcname) \
+	static mkf_ucs_property_t (* _ ## funcname)( u_int32_t) ; \
+	mkf_ucs_property_t funcname( u_int32_t  ch) \
+	{ \
+		if( ! _ ## funcname) \
+		{ \
+			kik_dl_handle_t  handle ; \
+			if( ! ( handle = kik_dl_open( MKFLIB_DIR, libname)) || \
+			    ! ( _ ## funcname = kik_dl_func_symbol( handle, #funcname))) \
+			{ \
+				return  0 ; \
+			} \
+		} \
+		return  (*_ ## funcname)( ch) ; \
+	}
+	
 
 #endif

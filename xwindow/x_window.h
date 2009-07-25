@@ -20,9 +20,9 @@
 #include  <mkf/mkf_parser.h>
 #include  <ml_char.h>
 
+#include  "x_display.h"
 #include  "x_font_manager.h"
 #include  "x_color_manager.h"
-#include  "x_picture.h"
 #include  "x_gc.h"
 
 
@@ -50,24 +50,24 @@ typedef struct  x_xim_event_listener
 
 } x_xim_event_listener_t ;
 
-typedef struct x_window_manager *  x_window_manager_ptr_t ;
-
+/* Defined in x_xic.h */
 typedef struct x_xic *  x_xic_ptr_t ;
 
+/* Defined in x_xim.h */
 typedef struct x_xim *  x_xim_ptr_t ;
 
+/* Defined in x_dnd.h */
 typedef struct x_dnd_context *  x_dnd_context_ptr_t ;
+
+/* Defined in x_picture.h */
+typedef struct x_picture_modifier *  x_picture_modifier_ptr_t ;
 
 typedef struct  x_window
 {
-	Display *  display ;
-	int  screen ;
-
-	Window  parent_window ;
+	x_display_t *  disp ;
+	
 	Window  my_window ;
-
 	Drawable  drawable ;
-
 	Pixmap  buffer ;
 
 #ifdef  USE_TYPE_XFT
@@ -81,9 +81,8 @@ typedef struct  x_window
 
 	x_gc_t *  gc ;
 
-	/* Either win_man or parent memmber must be NULL */
-	x_window_manager_ptr_t  win_man ;
-	struct x_window *  parent ;
+	Window  parent_window ;		/* This member of root window is DefaultRootWindow */
+	struct x_window *  parent ;	/* This member of root window is NULL */
 	struct x_window **  children ;
 	u_int  num_of_children ;
 
@@ -119,7 +118,7 @@ typedef struct  x_window
 	int  prev_clicked_button ;
 	XButtonEvent  prev_button_press_event ;
 
-	x_picture_modifier_t *  pic_mod ;
+	x_picture_modifier_ptr_t  pic_mod ;
 
 	/*
 	 * XDND
@@ -198,7 +197,7 @@ int  x_window_set_wall_picture( x_window_t *  win , Pixmap  pic) ;
 
 int  x_window_unset_wall_picture( x_window_t *  win) ;
 
-int  x_window_set_transparent( x_window_t *  win , x_picture_modifier_t *  pic_mod) ;
+int  x_window_set_transparent( x_window_t *  win , x_picture_modifier_ptr_t  pic_mod) ;
 
 int  x_window_unset_transparent( x_window_t *  win) ;
 
@@ -364,7 +363,6 @@ int  x_window_bell( x_window_t *  win) ;
 
 int  x_window_translate_coordinates( x_window_t *  win, int x, int y,
 	int *  global_x, int *  global_y, Window *  child) ;
-
 
 #if  0
 /* not used */

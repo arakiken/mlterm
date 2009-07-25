@@ -482,7 +482,7 @@ x_add_xim_listener(
 		 * reactivating current xim.
 		 */
 
-		return  activate_xim( win->xim , win->display) ;
+		return  activate_xim( win->xim , win->disp->display) ;
 	}
 	 
 	if( win->xim)
@@ -510,7 +510,7 @@ x_add_xim_listener(
 		}
 	}
 	
-	if( ( win->xim = get_xim( win->display , xim_name , xim_locale)) == NULL)
+	if( ( win->xim = get_xim( win->disp->display , xim_name , xim_locale)) == NULL)
 	{
 		return  0 ;
 	}
@@ -529,7 +529,7 @@ x_add_xim_listener(
 	
 	win->xim->xic_wins[ win->xim->num_of_xic_wins ++] = win ;
 	
-	return  activate_xim( win->xim , win->display) ;
+	return  activate_xim( win->xim , win->disp->display) ;
 }
 
 int

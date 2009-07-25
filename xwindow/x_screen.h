@@ -17,6 +17,8 @@
 #include  "x_bel_mode.h"
 #include  "x_sb_mode.h"
 #include  "x_im.h"
+#include  "x_picture.h"
+
 
 typedef struct x_screen *  x_screen_ptr_t ;
 

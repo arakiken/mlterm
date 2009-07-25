@@ -733,7 +733,7 @@ lookup_choice_change(
 		}
 
 		if( ! ( iiimf->im.cand_screen = (*syms->x_im_candidate_screen_new)(
-				(*iiimf->im.listener->get_win_man)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->get_display)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_color_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->is_vertical)(iiimf->im.listener->self) ,
@@ -861,7 +861,7 @@ status_change(
 	{
 		if( ! ( iiimf->im.stat_screen = (*syms->x_im_status_screen_new)(
 
-				(*iiimf->im.listener->get_win_man)(iiimf->im.listener->self) ,
+				(*iiimf->im.listener->get_display)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_font_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->get_color_man)(iiimf->im.listener->self) ,
 				(*iiimf->im.listener->is_vertical)(iiimf->im.listener->self) ,

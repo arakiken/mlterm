@@ -18,7 +18,7 @@
 #include  <mkf/mkf_codepoint_parser.h>
 
 #include  "x_xic.h"
-#include  "x_window_manager.h"
+#include  "x_picture.h"
 #include  "x_imagelib.h"
 
 #ifndef  DISABLE_XDND
@@ -239,7 +239,7 @@ notify_configure_to_children(
 
 	if( win->is_transparent)
 	{
-		if( win->pic_mod || x_root_pixmap_available( win->display))
+		if( win->pic_mod || x_root_pixmap_available( win->disp->display))
 		{
 			update_pic_transparent( win) ;
 		}
@@ -281,7 +281,7 @@ notify_property_to_children(
 {
 	int  count ;
 
-	if( win->is_transparent && x_root_pixmap_available( win->display))
+	if( win->is_transparent && x_root_pixmap_available( win->disp->display))
 	{
 		update_pic_transparent( win) ;
 	}
@@ -675,14 +675,20 @@ x_window_final(
 
 	free( win->children) ;
 
+	x_display_clear_selection( win->disp , win) ;
+
 #ifdef  USE_WIN32GUI
 	if( win->bg_color != RGB_WHITE)
 	{
 		DeleteObject( (HBRUSH)GetClassLong( win->my_window, GCL_HBRBACKGROUND)) ;
 	}
-#else
-	x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
 
+	/*
+	 * DestroyWindow() is not called here because DestroyWindow internally sends
+	 * WM_DESTROY message which causes window_deleted event again.
+	 * If you want to close window, call SendMessage( WM_CLOSE ) instead of x_window_final().
+	 */
+#else
 	if( win->buffer)
 	{
 		XFreePixmap( win->display , win->buffer) ;
@@ -1048,10 +1054,6 @@ x_window_add_child(
 
 	win->children = p ;
 
-	/*
-	 * on the contrary , the root window does not have the ref of parent , but that of win_man.
-	 */
-	child->win_man = NULL ;
 	child->parent = win ;
 	child->x = x ;
 	child->y = y ;
@@ -1092,14 +1094,9 @@ x_window_show(
 
 	if( win->parent)
 	{
-		win->display = win->parent->display ;
-		win->screen = win->parent->screen ;
+		win->disp = win->parent->disp ;
 		win->parent_window = win->parent->my_window ;
 		win->gc = win->parent->gc ;
-	}
-	else
-	{
-		x_xic_activate( win, NULL, NULL) ;
 	}
 
 #ifndef  USE_WIN32GUI
@@ -1128,7 +1125,7 @@ x_window_show(
 			win->parent_window ? win->y : CW_USEDEFAULT,
         		win->parent_window ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win),
 			win->parent_window ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win),
-			win->parent_window, NULL, win->display->hinst, NULL) ;
+			win->parent_window, NULL, win->disp->display->hinst, NULL) ;
 
   	if( ! win->my_window)
         {
@@ -1440,8 +1437,10 @@ x_window_clear(
 
 	r.left = x + win->margin ;
 	r.top = y + win->margin ;
-	r.right = x + width + win->margin * 2 ;
-	r.bottom = y + height + win->margin * 2 ;
+	
+	/* XXX Garbage is left in screen in scrolling without +1. Related to NULL_PEN ? */
+	r.right = x + win->margin + width + 1 ;
+	r.bottom = y + win->margin + height + 1 ;
 	
 	if( win->gc->gc == None)
 	{
@@ -1458,6 +1457,7 @@ x_window_clear(
 		x_gc_set_pen( win->gc, GetStockObject(NULL_PEN)) ;
 		x_gc_set_brush( win->gc,
 			(HBRUSH)GetClassLong( win->my_window, GCL_HBRBACKGROUND)) ;
+		
 		Rectangle( win->gc->gc, r.left, r.top, r.right, r.bottom) ;
 
 		return  1 ;
@@ -1473,7 +1473,11 @@ x_window_clear_margin_area(
 	x_window_t *  win
 	)
 {
-	if( win->gc->gc == None)
+	if( win->margin == 0)
+	{
+		return  1 ;
+	}
+	else if( win->gc->gc == None)
 	{
 		return  0 ;
 	}
@@ -1486,12 +1490,16 @@ x_window_clear_margin_area(
 		x_gc_set_pen( win->gc, GetStockObject(NULL_PEN)) ;
 		x_gc_set_brush( win->gc,
 			(HBRUSH)GetClassLong( win->my_window, GCL_HBRBACKGROUND)) ;
-		Rectangle( win->gc->gc, 0, 0, win->margin, ACTUAL_HEIGHT(win)) ;
-		Rectangle( win->gc->gc, win->margin, 0, win->width + win->margin, win->margin) ;
+
+		/* XXX -1 is not necessary ? */
+		Rectangle( win->gc->gc, 0, 0,
+			win->margin /* - 1 */, ACTUAL_HEIGHT(win) /* - 1 */) ;
+		Rectangle( win->gc->gc, win->margin, 0,
+			win->width + win->margin /* - 1 */, win->margin /* - 1 */) ;
 		Rectangle( win->gc->gc, win->width + win->margin, 0,
-			ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)) ;
+			ACTUAL_WIDTH(win) /* - 1 */, ACTUAL_HEIGHT(win) /* - 1 */) ;
 		Rectangle( win->gc->gc, win->margin, win->height + win->margin,
-			win->width + win->margin, ACTUAL_HEIGHT(win)) ;
+			win->width + win->margin /* - 1 */, ACTUAL_HEIGHT(win) /* - 1 */) ;
 
 		return  1 ;
 	}
@@ -1518,10 +1526,12 @@ x_window_fill(
 	u_int	height
 	)
 {
-#ifndef  USE_WIN32GUI
-	XFillRectangle( win->display , win->drawable , win->gc , x + win->margin , y + win->margin ,
-		width , height) ;
-#endif
+	/* XXX  Should apply win->fg_color */
+	x_gc_set_pen( win->gc, GetStockObject(BLACK_PEN)) ;
+	x_gc_set_brush( win->gc, GetStockObject(BLACK_BRUSH)) ;
+
+	/* XXX -1 is not necessary ? */
+	Rectangle( win->gc->gc, x, y, x + width /* - 1 */, y + height /* - 1 */) ;
 
 	return  1 ;
 }
@@ -1638,6 +1648,11 @@ x_window_idling(
 	}
 }
 
+/*
+ * Return value: 0 => different window.
+ *               1 => finished processing.
+ *              -1 => continuing default processing.
+ */
 int
 x_window_receive_event(
 	x_window_t *   win ,
@@ -1648,9 +1663,10 @@ x_window_receive_event(
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
-		if( x_window_receive_event( win->children[count] , event))
+		int  val ;
+		if( ( val = x_window_receive_event( win->children[count] , event)) != 0)
 		{
-			return  1 ;
+			return  val ;
 		}
 	}
 
@@ -1659,7 +1675,11 @@ x_window_receive_event(
 		return  0 ;
 	}
 
-	x_xic_filter_event( win, event) ;
+	/*
+	 * Dispatch event to all window in case key was pressed in scrollbar window but
+	 * should be shown in text area.
+	 */
+	x_xic_filter_event( x_get_root_window( win), event) ;
 
   	switch(event->msg)
         {
@@ -1724,7 +1744,8 @@ x_window_receive_event(
 			}
 			else
 			{
-				width = ps.rcPaint.right - x ;
+				/* +1 is not necessary ? */
+				width = ps.rcPaint.right - x /* + 1 */ ;
 			}
 
 			if( ps.rcPaint.bottom > win->height - win->margin)
@@ -1733,7 +1754,8 @@ x_window_receive_event(
 			}
 			else
 			{
-				height = ps.rcPaint.bottom - y ;
+				/* +1 is not necessary ? */
+				height = ps.rcPaint.bottom - y /* + 1 */ ;
 			}
 
 			(*win->window_exposed)( win, x, y, width, height) ;
@@ -1775,6 +1797,7 @@ x_window_receive_event(
 			}
 		}
 
+		/* Continued default processing. */
 		break ;
 		
 	case WM_IME_CHAR:
@@ -2031,9 +2054,9 @@ x_window_receive_event(
 	case  WM_DESTROYCLIPBOARD:
 		/*
 		 * Call win->selection_cleared and win->is_sel_owner is set 0
-		 * in x_window_manager_clear_selection.
+		 * in x_display_clear_selection.
 		 */
-		x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
+		x_display_clear_selection( win->disp , win) ;
 
 		return  1 ;
 		
@@ -2134,7 +2157,7 @@ x_window_receive_event(
 		return  1 ;
 	}
 
-	return  0 ;
+	return  -1 ;
 
 #ifndef  USE_WIN32GUI
 	if( win->my_window != event->xany.window)
@@ -2142,7 +2165,7 @@ x_window_receive_event(
 		/*
 		 * XXX
 		 * if some window invokes xim window open event and it doesn't have any xic ,
-		 * no xim window will be opened at XFilterEvent() in x_window_manager_receive_next_event().
+		 * no xim window will be opened at XFilterEvent() in x_display_receive_next_event().
 		 * but it is desired to open xim window of x_screen when its event is invoked
 		 * on scrollbar or title bar.
 		 * this hack enables it , but this way won't deal with the case that multiple
@@ -2169,15 +2192,15 @@ x_window_receive_event(
 
 		if( event->type == MappingNotify && event->xmapping.request != MappingPointer)
 		{
-			if( win->win_man)
+			if( win->disp)
 			{
 #ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " MappingNotify serial #%d\n",
 					event->xmapping.serial) ;
 #endif
 				XRefreshKeyboardMapping( &(event->xmapping));
-				x_window_manager_update_modifier_mapping(
-					win->win_man, event->xmapping.serial) ;
+				x_display_update_modifier_mapping(
+					win->disp, event->xmapping.serial) ;
 				/* have to  rocess only once */
 				return 1 ;
 			}
@@ -2368,109 +2391,6 @@ x_window_receive_event(
 	{
 		notify_reparent_to_children( win) ;
 	}
-	else if( event->type == SelectionNotify)
-	{
-		Atom  xa_utf8_string ;
-		Atom  xa_compound_text ;
-		Atom  xa_text ;
-		Atom  xa_selection ;
-
-		xa_compound_text = XA_COMPOUND_TEXT(win->display) ;
-		xa_text = XA_TEXT(win->display) ;
-		xa_utf8_string = XA_UTF8_STRING(win->display) ;
-		xa_selection = XA_SELECTION(win->display) ;
-
-		if( event->xselection.property == None ||
-			event->xselection.property == XA_NONE(win->display))
-		{
-			/*
-			 * Selection request failed.
-			 * Retrying with xa_compound_text => xa_text => XA_STRING
-			 */
-
-			if( event->xselection.target == xa_utf8_string)
-			{
-				XConvertSelection( win->display , XA_PRIMARY , xa_compound_text ,
-					xa_selection , win->my_window , CurrentTime) ;
-			}
-			else if( event->xselection.target == xa_compound_text)
-			{
-				XConvertSelection( win->display , XA_PRIMARY , xa_text ,
-					xa_selection , win->my_window , CurrentTime) ;
-			}
-			else if( event->xselection.target == xa_text)
-			{
-				XConvertSelection( win->display , XA_PRIMARY , XA_STRING ,
-					xa_selection , win->my_window , CurrentTime) ;
-			}
-
-			return  1 ;
-		}
-
-		/* SELECTION */
-		if( event->xselection.selection == XA_PRIMARY &&
-		    ( event->xselection.property == xa_selection &&
-		      ( event->xselection.target == XA_STRING ||
-			event->xselection.target == xa_text ||
-			event->xselection.target == xa_compound_text ||
-			event->xselection.target == xa_utf8_string)))
-		{
-			u_long  bytes_after ;
-			XTextProperty  ct ;
-			int  seg ;
-
-			for( seg = 0 ; ; seg += ct.nitems)
-			{
-				/*
-				 * XXX
-				 * long_offset and long_len is the same as rxvt-2.6.3 ,
-				 * but I'm not confident if this is OK.
-				 */
-				if( XGetWindowProperty( win->display , event->xselection.requestor ,
-					event->xselection.property , seg / 4 , 4096 , False ,
-					AnyPropertyType , &ct.encoding , &ct.format ,
-					&ct.nitems , &bytes_after , &ct.value) != Success)
-				{
-					break ;
-				}
-
-				if( ct.value == NULL || ct.nitems == 0)
-				{
-					break ;
-				}
-
-				if( ct.encoding == XA_STRING ||
-					 ct.encoding == xa_text ||
-					 ct.encoding == xa_compound_text)
-				{
-					if( win->xct_selection_notified)
-					{
-						(*win->xct_selection_notified)(
-							win , ct.value , ct.nitems) ;
-					}
-				}
-				else if( ct.encoding == xa_utf8_string)
-				{
-					if( win->utf_selection_notified)
-					{
-						(*win->utf_selection_notified)(
-							win , ct.value , ct.nitems) ;
-					}
-				}
-
-				XFree( ct.value) ;
-
-				if( bytes_after == 0)
-				{
-					break ;
-				}
-			}
-
-		}
-
-		XDeleteProperty( win->display, event->xselection.requestor,
-			event->xselection.property) ;
-	}
 	else if( event->type == VisibilityNotify)
 	{
 		/* this event is changeable in run time. */
@@ -2593,7 +2513,7 @@ x_window_get_str(
 	XKeyEvent *  event
 	)
 {
-	return  x_xic_get_str( x_get_root_window( win), seq, seq_len, parser, keysym, event) ;
+	return  x_xic_get_str( win, seq, seq_len, parser, keysym, event) ;
 }
 
 int
@@ -2988,7 +2908,7 @@ x_window_set_selection_owner(
 
 	win->is_sel_owner = 1 ;
 	
-	return  x_window_manager_own_selection( x_get_root_window( win)->win_man , win) ;
+	return  x_display_own_selection( win->disp , win) ;
 }
 
 int
@@ -3405,7 +3325,7 @@ x_window_get_modifier_mapping(
 	x_window_t *  win
 	)
 {
-	return  x_window_manager_get_modifier_mapping( x_get_root_window( win)->win_man) ;
+	return  x_display_get_modifier_mapping( win->disp) ;
 }
 
 u_int
@@ -3450,7 +3370,6 @@ x_window_translate_coordinates(
 	
 	return  0 ;
 }
-
 
 #if  0
 /*

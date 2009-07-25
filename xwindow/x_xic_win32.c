@@ -11,21 +11,11 @@
 #include  <mkf/mkf_sjis_parser.h>
 
 
+#define  HAS_XIM_LISTENER(win,function) \
+	((win)->xim_listener && (win)->xim_listener->function)
+
 
 /* --- static functions --- */
-
-#ifndef  USE_WIN32GUI
-static void
-get_rect(
-	x_window_t *  win ,
-	XRectangle *  rect
-	)
-{
-	rect->x = 0 ;
-	rect->y = 0 ;
-	rect->width = ACTUAL_WIDTH(win) ;
-	rect->height = ACTUAL_HEIGHT(win) ;
-}
 
 static int
 get_spot(
@@ -50,6 +40,19 @@ get_spot(
 	spot->y = y /* + win->margin */ ;
 
 	return  1 ;
+}
+
+#ifndef  USE_WIN32GUI
+static void
+get_rect(
+	x_window_t *  win ,
+	XRectangle *  rect
+	)
+{
+	rect->x = 0 ;
+	rect->y = 0 ;
+	rect->width = ACTUAL_WIDTH(win) ;
+	rect->height = ACTUAL_HEIGHT(win) ;
 }
 
 static XFontSet
@@ -242,28 +245,21 @@ x_xic_activate(
 		return  0 ;
 	}
 
-#ifdef  USE_WIN32GUI	
 	if( ( win->xic = malloc( sizeof( x_xic_t))) == NULL)
 	{
 		return  0 ;
 	}
 
-	win->xic->prev_keydown_wparam = 0 ;
-
 	win->xic->encoding = ml_get_char_encoding( kik_get_codeset()) ;
-	
 	if( ( win->xic->parser = ml_parser_new( win->xic->encoding)) == NULL)
 	{
-		free( win->xic) ;
-		win->xic = NULL ;
-
 		return  0 ;
 	}
-	
+
+	win->xic->ic = ImmGetContext( win->my_window) ;
+	win->xic->prev_keydown_wparam = 0 ;
+
 	return  1 ;
-#else
-	return  x_add_xim_listener( win , xim_name , xim_locale) ;
-#endif
 }
 
 int
@@ -278,43 +274,12 @@ x_xic_deactivate(
 		return  0 ;
 	}
 
-#ifdef  USE_WIN32GUI
-
+	ImmReleaseContext( win->my_window, win->xic->ic) ;
 	(*win->xic->parser->delete)( win->xic->parser) ;
 	free( win->xic) ;
 	win->xic = NULL ;
 
 	return  1 ;
-
-#else /* USE_WIN32GUI */
-
-#if  0
-	{
-		/*
-		 * this should not be done.
-		 */
-		int  xim_ev_mask ;
-	
-		XGetICValues( win->xic->ic , XNFilterEvents , &xim_ev_mask , NULL) ;
-		x_window_remove_event_mask( win , xim_ev_mask) ;
-	}
-#endif
-	
-	destroy_xic( win) ;
-	
-	if( ! x_remove_xim_listener( win))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_remove_xim_listener() failed.\n") ;
-	#endif
-	}
-
-#ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " XIC deactivated.\n") ;
-#endif
-
-	return  1 ;
-#endif	/* USE_WIN32GUI */
 }
 
 char *
@@ -476,9 +441,29 @@ x_xic_set_spot(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
-	XVaNestedList  preedit_attr ;
 	XPoint  spot ;
+	
+#ifdef  USE_WIN32GUI
+	COMPOSITIONFORM  cf ;
+
+	if( win->xic == NULL)
+	{
+		return  0 ;
+	}
+	
+	if( get_spot( win, &spot) == 0)
+	{
+		return  0 ;
+	}
+
+	MapWindowPoints( win->my_window, x_get_root_window( win)->my_window, &spot, 1) ;
+
+	cf.ptCurrentPos = spot ;
+	cf.dwStyle = CFS_POINT ;
+
+	return  ImmSetCompositionWindow( win->xic->ic, &cf) ;
+#else
+	XVaNestedList  preedit_attr ;
 
 	if( win->xic == NULL || ! (win->xic->style & XIMPreeditPosition))
 	{
@@ -504,9 +489,9 @@ x_xic_set_spot(
 	XSetICValues( win->xic->ic , XNPreeditAttributes , preedit_attr , NULL) ;
 	
 	XFree( preedit_attr) ;
-#endif
-
+	
 	return  1 ;
+#endif
 }
 
 size_t
@@ -639,6 +624,13 @@ x_xic_filter_event(
 	XEvent *  event
 	)
 {
+	int  count ;
+
+	for( count = 0 ; count < win->num_of_children ; count++)
+	{
+		x_xic_filter_event( win->children[count], event) ;
+	}
+	
 	if( ! win->xic)
 	{
 		return  0 ;
@@ -647,13 +639,9 @@ x_xic_filter_event(
 	if( event->msg == WM_KEYDOWN)
 	{
 		win->xic->prev_keydown_wparam = event->wparam ;
-
-		return  1 ;
 	}
-	else
-	{
-		return  0 ;
-	}
+	
+	return  1 ;
 }
 
 int

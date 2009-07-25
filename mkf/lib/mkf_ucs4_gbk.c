@@ -4,7 +4,7 @@
 
 #include  "mkf_ucs4_gbk.h"
 
-#include  "mkf_map_loader.h"
+#include  "mkf_tblfunc_loader.h"
 
 
 /* --- global functions --- */

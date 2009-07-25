@@ -8,6 +8,7 @@
 #include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_util.h>	/* KIK_DIGIT_STR */
+#include  <kiklib/kik_debug.h>
 
 #include  "ml_config_proto.h"
 
@@ -33,6 +34,10 @@ sig_child(
 {
 	int  count ;
 
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " SIG_CHILD received [PID:%d].\n", pid) ;
+#endif
+
 	if( pid <= 0)
 	{
 		/*
@@ -47,6 +52,10 @@ sig_child(
 	{
 		if( pid == ml_term_get_child_pid( terms[count]))
 		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " pty %d is dead.\n") ;
+		#endif
+		
 			dead_mask |= (1 << count) ;
 
 			return ;

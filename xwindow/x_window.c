@@ -18,7 +18,7 @@
 #include  <kiklib/kik_mem.h>	/* realloc/free */
 
 #include  "x_xic.h"
-#include  "x_window_manager.h"
+#include  "x_picture.h"
 #include  "x_imagelib.h"
 
 #ifndef  DISABLE_XDND
@@ -130,7 +130,7 @@ restore_view(
 		#endif
 		}
 
-		XCopyArea( win->display , win->drawable , win->my_window , win->gc->gc ,
+		XCopyArea( win->disp->display , win->drawable , win->my_window , win->gc->gc ,
 			x + win->margin , y + win->margin , width , height ,
 			x + win->margin , y + win->margin) ;
 
@@ -268,7 +268,7 @@ notify_configure_to_children(
 
 	if( win->is_transparent)
 	{
-		if( win->pic_mod || x_root_pixmap_available( win->display))
+		if( win->pic_mod || x_root_pixmap_available( win->disp->display))
 		{
 			update_pic_transparent( win) ;
 		}
@@ -310,7 +310,7 @@ notify_property_to_children(
 {
 	int  count ;
 
-	if( win->is_transparent && x_root_pixmap_available( win->display))
+	if( win->is_transparent && x_root_pixmap_available( win->disp->display))
 	{
 		update_pic_transparent( win) ;
 	}
@@ -519,10 +519,6 @@ x_window_init(
 	 * these values are set later
 	 */
 
-	win->display = NULL ;
-	win->screen = 0 ;
-
-	win->parent_window = None ;
 	win->my_window = None ;
 
 	win->drawable = None ;
@@ -535,6 +531,7 @@ x_window_init(
 	win->fg_color = RGB_BLACK ;
 	win->bg_color = RGB_WHITE ;
 
+	win->parent_window = None ;
 	win->parent = NULL ;
 	win->children = NULL ;
 	win->num_of_children = 0 ;
@@ -631,24 +628,24 @@ x_window_final(
 
 	free( win->children) ;
 
-	x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
+	x_display_clear_selection( win->disp , win) ;
 	
 	if( win->buffer)
 	{
-		XFreePixmap( win->display , win->buffer) ;
+		XFreePixmap( win->disp->display , win->buffer) ;
 	}
 
 #ifdef  USE_TYPE_XFT
 	XftDrawDestroy( win->xft_draw) ;
 #endif
 
-	XDestroyWindow( win->display , win->my_window) ;
+	XDestroyWindow( win->disp->display , win->my_window) ;
 
 	if( win->icon_pix){
-		XFreePixmap( win->display , win->icon_pix) ;
+		XFreePixmap( win->disp->display , win->icon_pix) ;
 	}
 	if( win->icon_mask){
-		XFreePixmap( win->display , win->icon_mask) ;
+		XFreePixmap( win->disp->display , win->icon_mask) ;
 	}
 	free( win->icon_card) ;
 	
@@ -714,7 +711,7 @@ x_window_add_event_mask(
 
 	win->event_mask |= event_mask ;
 
-	XSelectInput( win->display , win->my_window , win->event_mask) ;
+	XSelectInput( win->disp->display , win->my_window , win->event_mask) ;
 
 	return  1 ;
 }
@@ -736,7 +733,7 @@ x_window_remove_event_mask(
 
 	win->event_mask &= ~event_mask ;
 
-	XSelectInput( win->display , win->my_window , win->event_mask) ;
+	XSelectInput( win->disp->display , win->my_window , win->event_mask) ;
 
 	return  1 ;
 }
@@ -746,7 +743,7 @@ x_window_ungrab_pointer(
 	x_window_t *  win
 	)
 {
-	XUngrabPointer( win->display , CurrentTime) ;
+	XUngrabPointer( win->disp->display , CurrentTime) ;
 	
 	return  0 ;
 }
@@ -779,11 +776,11 @@ x_window_set_wall_picture(
 	{
 		/* rejecting VisibilityNotify event. is_scrollable is always false */
 		win->event_mask &= ~VisibilityChangeMask ;
-		XSelectInput( win->display , win->my_window , win->event_mask) ;
+		XSelectInput( win->disp->display , win->my_window , win->event_mask) ;
 		win->is_scrollable = 0 ;
 	}
 
-	XSetWindowBackgroundPixmap( win->display , win->my_window , pic) ;
+	XSetWindowBackgroundPixmap( win->disp->display , win->my_window , pic) ;
 
 	win->wall_picture_is_set = 1 ;
 
@@ -831,14 +828,14 @@ x_window_unset_wall_picture(
 	{
 		/* accepting VisibilityNotify event. is_scrollable is changed dynamically. */
 		win->event_mask |= VisibilityChangeMask ;
-		XSelectInput( win->display , win->my_window , win->event_mask) ;
+		XSelectInput( win->disp->display , win->my_window , win->event_mask) ;
 
 		/* setting 0 in case the current status is VisibilityPartiallyObscured. */
 		win->is_scrollable = 0 ;
 	}
 
-	XSetWindowBackgroundPixmap( win->display , win->my_window , None) ;
-	XSetWindowBackground( win->display , win->my_window , win->bg_color) ;
+	XSetWindowBackgroundPixmap( win->disp->display , win->my_window , None) ;
+	XSetWindowBackground( win->disp->display , win->my_window , win->bg_color) ;
 
 	win->wall_picture_is_set = 0 ;
 
@@ -878,7 +875,7 @@ x_window_set_transparent(
 		goto  end ;
 	}
 
-	if( win->pic_mod || x_root_pixmap_available( win->display))
+	if( win->pic_mod || x_root_pixmap_available( win->disp->display))
 	{
 		update_pic_transparent( win) ;
 	}
@@ -886,21 +883,21 @@ x_window_set_transparent(
 	{
 		set_transparent( win , ParentRelative) ;
 
-		XSetWindowBackgroundPixmap( win->display , win->my_window , ParentRelative) ;
+		XSetWindowBackgroundPixmap( win->disp->display , win->my_window , ParentRelative) ;
 
 		parent = win->my_window ;
 
 		while( 1)
 		{
-			XQueryTree( win->display , parent , &root , &parent , &list , &n) ;
+			XQueryTree( win->disp->display , parent , &root , &parent , &list , &n) ;
 			XFree(list) ;
 
-			if( parent == DefaultRootWindow(win->display))
+			if( parent == DefaultRootWindow(win->disp->display))
 			{
 				break ;
 			}
 
-			XSetWindowBackgroundPixmap( win->display , parent , ParentRelative) ;
+			XSetWindowBackgroundPixmap( win->disp->display , parent , ParentRelative) ;
 		}
 
 		if( win->window_exposed)
@@ -950,14 +947,14 @@ x_window_unset_transparent(
 
 	for( count = 0 ; count < 2 ; count ++)
 	{
-		XQueryTree( win->display , parent , &root , &parent , &list , &n) ;
+		XQueryTree( win->disp->display , parent , &root , &parent , &list , &n) ;
 		XFree(list) ;
-		if( parent == DefaultRootWindow(win->display))
+		if( parent == DefaultRootWindow(win->disp->display))
 		{
 			break ;
 		}
 
-		XSetWindowBackgroundPixmap( win->display , parent , None) ;
+		XSetWindowBackgroundPixmap( win->disp->display , parent , None) ;
 	}
 #endif
 
@@ -1024,7 +1021,7 @@ x_window_set_bg_color(
 {
 	if( ! win->is_transparent && ! win->wall_picture_is_set)
 	{
-		XSetWindowBackground( win->display , win->my_window , bg_color) ;
+		XSetWindowBackground( win->disp->display , win->my_window , bg_color) ;
 	}
 
 	win->bg_color = bg_color ;
@@ -1056,10 +1053,6 @@ x_window_add_child(
 
 	win->children = p ;
 
-	/*
-	 * on the contrary , the root window does not have the ref of parent , but that of win_man.
-	 */
-	child->win_man = NULL ;
 	child->parent = win ;
 	child->x = x ;
 	child->y = y ;
@@ -1100,17 +1093,16 @@ x_window_show(
 
 	if( win->parent)
 	{
-		win->display = win->parent->display ;
-		win->screen = win->parent->screen ;
-		win->parent_window = win->parent->my_window ;
+		win->disp = win->parent->disp ;
 		win->gc = win->parent->gc ;
+		win->parent_window = win->parent->my_window ;
 	}
 	
 	if( win->create_gc)
 	{
 		x_gc_t *  gc ;
 
-		if( ( gc = x_gc_new( win->display)) == NULL)
+		if( ( gc = x_gc_new( win->disp->display)) == NULL)
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " x_gc_new failed.\n") ;
@@ -1125,24 +1117,27 @@ x_window_show(
 
 	if( hint & XNegative)
 	{
-		win->x += (DisplayWidth( win->display , win->screen) - ACTUAL_WIDTH(win)) ;
+		win->x += (DisplayWidth( win->disp->display , win->disp->screen)
+				- ACTUAL_WIDTH(win)) ;
 	}
 
 	if( hint & YNegative)
 	{
-		win->y += (DisplayHeight( win->display , win->screen) - ACTUAL_HEIGHT(win)) ;
+		win->y += (DisplayHeight( win->disp->display , win->disp->screen)
+				- ACTUAL_HEIGHT(win)) ;
 	}
 
 	win->my_window = XCreateSimpleWindow(
-		win->display , win->parent_window ,
+		win->disp->display , win->parent_window ,
 		win->x , win->y , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 		0 , win->fg_color , win->bg_color) ;
 
 	if( win->use_buffer)
 	{
-		win->drawable = win->buffer = XCreatePixmap( win->display , win->parent_window ,
+		win->drawable = win->buffer = XCreatePixmap( win->disp->display ,
+				win->parent_window ,
 				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-				DefaultDepth( win->display , win->screen)) ;
+				DefaultDepth( win->disp->display , win->disp->screen)) ;
 	}
 	else
 	{
@@ -1152,14 +1147,14 @@ x_window_show(
 
 	if( win->cursor_shape)
 	{
-		XDefineCursor( win->display , win->my_window ,
-			XCreateFontCursor( win->display , win->cursor_shape)) ;
+		XDefineCursor( win->disp->display , win->my_window ,
+			XCreateFontCursor( win->disp->display , win->cursor_shape)) ;
 	}
 
 #ifdef  USE_TYPE_XFT
-	win->xft_draw = XftDrawCreate( win->display , win->drawable ,
-					DefaultVisual( win->display , win->screen) ,
-					DefaultColormap( win->display , win->screen)) ;
+	win->xft_draw = XftDrawCreate( win->disp->display , win->drawable ,
+					DefaultVisual( win->disp->display , win->disp->screen) ,
+					DefaultColormap( win->disp->display , win->disp->screen)) ;
 #endif
 
 	if( win->parent == NULL)
@@ -1223,28 +1218,28 @@ x_window_show(
 		class_hint.res_name = win->app_name ;
 		class_hint.res_class = win->app_name ;
 
-		wm_hints.window_group = x_window_manager_get_group( win->win_man) ;
+		wm_hints.window_group = x_display_get_group( win->disp) ;
 		wm_hints.initial_state = NormalState ;	/* or IconicState */
 		wm_hints.input = True ;			/* wants FocusIn/FocusOut */
 		wm_hints.flags = WindowGroupHint | StateHint | InputHint ;
-		XChangeProperty( win->display, win->my_window,
-				 XInternAtom( win->display, "WM_CLIENT_LEADER", False),
+		XChangeProperty( win->disp->display, win->my_window,
+				 XInternAtom( win->disp->display, "WM_CLIENT_LEADER", False),
 				 XA_WINDOW, 32, PropModeReplace,
 				 (unsigned char *)(&wm_hints.window_group), 1) ;
 
 		/* notify to window manager */
 	#if  1
-		XmbSetWMProperties( win->display , win->my_window , win->app_name , win->app_name ,
-			argv , argc , &size_hints , &wm_hints , &class_hint) ;
+		XmbSetWMProperties( win->disp->display , win->my_window , win->app_name ,
+			win->app_name , argv , argc , &size_hints , &wm_hints , &class_hint) ;
 	#else
-		XmbSetWMProperties( win->display , win->my_window , win->app_name , win->app_name ,
-			argv , argc , &size_hints , &wm_hints , NULL) ;
+		XmbSetWMProperties( win->disp->display , win->my_window , win->app_name ,
+			win->app_name , argv , argc , &size_hints , &wm_hints , NULL) ;
 	#endif
 
-		protocols[0] = XA_DELETE_WINDOW(win->display) ;
-		protocols[1] = XA_TAKE_FOCUS(win->display) ;
+		protocols[0] = XA_DELETE_WINDOW(win->disp->display) ;
+		protocols[1] = XA_TAKE_FOCUS(win->disp->display) ;
 
-		XSetWMProtocols( win->display , win->my_window , protocols , 2) ;
+		XSetWMProtocols( win->disp->display , win->my_window , protocols , 2) ;
 	}
 
 	/*
@@ -1256,7 +1251,7 @@ x_window_show(
 		(*win->window_realized)( win) ;
 	}
 
-	XSelectInput( win->display , win->my_window , win->event_mask) ;
+	XSelectInput( win->disp->display , win->my_window , win->event_mask) ;
 
 #if  0
 	{
@@ -1264,8 +1259,8 @@ x_window_show(
 
 		if( ( locale = kik_get_locale()))
 		{
-			XChangeProperty( win->display , win->my_window ,
-				XInternAtom( win->display , "WM_LOCALE_NAME" , False) ,
+			XChangeProperty( win->disp->display , win->my_window ,
+				XInternAtom( win->disp->display , "WM_LOCALE_NAME" , False) ,
 				XA_STRING , 8 , PropModeReplace ,
 				locale , strlen( locale)) ;
 		}
@@ -1287,7 +1282,7 @@ x_window_show(
 
 	if( win->is_mapped)
 	{
-		XMapWindow( win->display , win->my_window) ;
+		XMapWindow( win->disp->display , win->my_window) ;
 
 	#if  0
 		x_window_clear_all( win) ;
@@ -1307,7 +1302,7 @@ x_window_map(
 		return  1 ;
 	}
 
-	XMapWindow( win->display , win->my_window) ;
+	XMapWindow( win->disp->display , win->my_window) ;
 	win->is_mapped = 1 ;
 
 	return  1 ;
@@ -1323,7 +1318,7 @@ x_window_unmap(
 		return  1 ;
 	}
 
-	XUnmapWindow( win->display , win->my_window) ;
+	XUnmapWindow( win->disp->display , win->my_window) ;
 	win->is_mapped = 0 ;
 
 	return  1 ;
@@ -1347,10 +1342,10 @@ x_window_resize(
 
 	if( win->buffer)
 	{
-		XFreePixmap( win->display , win->buffer) ;
-		win->buffer = XCreatePixmap( win->display ,
+		XFreePixmap( win->disp->display , win->buffer) ;
+		win->buffer = XCreatePixmap( win->disp->display ,
 			win->parent_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-			DefaultDepth( win->display , win->screen)) ;
+			DefaultDepth( win->disp->display , win->disp->screen)) ;
 		win->drawable = win->buffer ;
 
 	#ifdef  USE_TYPE_XFT
@@ -1363,7 +1358,7 @@ x_window_resize(
 		(*win->parent->child_window_resized)( win->parent , win) ;
 	}
 
-	XResizeWindow( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+	XResizeWindow( win->disp->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 
 	if( (flag & NOTIFY_TO_MYSELF) && win->window_resized)
 	{
@@ -1423,7 +1418,7 @@ x_window_set_normal_hints(
 	size_hints.base_height = total_base_height( root) ;
 	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
 
-	XSetWMNormalHints( root->display , root->my_window , &size_hints) ;
+	XSetWMNormalHints( root->disp->display , root->my_window , &size_hints) ;
 
 	return  1 ;
 }
@@ -1440,7 +1435,7 @@ x_window_set_override_redirect(
 
 	root = x_get_root_window(win) ;
 
-	XGetWindowAttributes( root->display , root->my_window , &g_attr) ;
+	XGetWindowAttributes( root->disp->display , root->my_window , &g_attr) ;
 	if( flag)
 	{
 		s_attr.override_redirect = True ;
@@ -1455,13 +1450,13 @@ x_window_set_override_redirect(
 		return  1 ;
 	}
 
-	XChangeWindowAttributes( root->display , root->my_window ,
+	XChangeWindowAttributes( root->disp->display , root->my_window ,
 				 CWOverrideRedirect , &s_attr) ;
 
 	if( g_attr.map_state != IsUnmapped)
 	{
-		XUnmapWindow( root->display , root->my_window) ;
-		XMapWindow( root->display , root->my_window) ;
+		XUnmapWindow( root->disp->display , root->my_window) ;
+		XMapWindow( root->disp->display , root->my_window) ;
 	}
 
 	return  1 ;
@@ -1486,22 +1481,22 @@ x_window_set_borderless_flag(
 
 #ifdef  __DEBUG
 	kik_debug_printf( "MOTIF_WM_HINTS: %x\nMOTIF_WM_INFO: %x\n" ,
-		XInternAtom( root->display , "_MOTIF_WM_HINTS" , True) ,
-		XInternAtom( root->display , "_MOTIF_WM_INFO" , True)) ;
+		XInternAtom( root->disp->display , "_MOTIF_WM_HINTS" , True) ,
+		XInternAtom( root->disp->display , "_MOTIF_WM_INFO" , True)) ;
 #endif
 
-	if( ( atom = XA_MWM_HINTS(root->display)) != None)
+	if( ( atom = XA_MWM_HINTS(root->disp->display)) != None)
 	{
 		if( flag)
 		{
 			MWMHints_t  mwmhints = { MWM_HINTS_DECORATIONS, 0, 0, 0, 0 } ;
 
-			XChangeProperty( root->display, root->my_window, atom , atom , 32,
+			XChangeProperty( root->disp->display, root->my_window, atom , atom , 32,
 				PropModeReplace, (u_char *)&mwmhints, sizeof(MWMHints_t)/4) ;
 		}
 		else
 		{
-			XDeleteProperty( root->display, root->my_window, atom) ;
+			XDeleteProperty( root->disp->display, root->my_window, atom) ;
 		}
 	}
 	else
@@ -1520,7 +1515,7 @@ x_window_move(
 	int  y
 	)
 {
-	XMoveWindow( win->display , win->my_window , x , y) ;
+	XMoveWindow( win->disp->display , win->my_window , x , y) ;
 
 	return  1 ;
 }
@@ -1538,12 +1533,12 @@ x_window_clear(
 	{
 		x_gc_set_fg_color(win->gc, win->bg_color) ;
 		
-		XFillRectangle( win->display , win->drawable , win->gc->gc ,
+		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
 			x + win->margin , y + win->margin , width , height) ;
 	}
 	else if( win->drawable == win->my_window)
 	{
-		XClearArea( win->display , win->drawable , x + win->margin , y + win->margin ,
+		XClearArea( win->disp->display , win->drawable , x + win->margin , y + win->margin ,
 			width , height , 0) ;
 	}
 	else
@@ -1559,28 +1554,32 @@ x_window_clear_margin_area(
 	x_window_t *  win
 	)
 {
-	if( win->drawable == win->buffer)
+	if( win->margin == 0)
+	{
+		return  1 ;
+	}
+	else if( win->drawable == win->buffer)
 	{
 		x_gc_set_fg_color(win->gc, win->bg_color) ;
 
-		XFillRectangle( win->display , win->drawable , win->gc->gc ,
+		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
 			0 , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
-		XFillRectangle( win->display , win->drawable , win->gc->gc ,
+		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
 			win->margin , 0 , win->width , win->margin) ;
-		XFillRectangle( win->display , win->drawable , win->gc->gc ,
+		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
 			win->width + win->margin , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
-		XFillRectangle( win->display , win->drawable , win->gc->gc ,
+		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
 			win->margin , win->height + win->margin , win->width , win->margin) ;
 	}
 	else if( win->drawable == win->my_window)
 	{
-		XClearArea( win->display , win->drawable ,
+		XClearArea( win->disp->display , win->drawable ,
 			0 , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-		XClearArea( win->display , win->drawable ,
+		XClearArea( win->disp->display , win->drawable ,
 			win->margin , 0 , win->width , win->margin , 0) ;
-		XClearArea( win->display , win->drawable ,
+		XClearArea( win->disp->display , win->drawable ,
 			win->width + win->margin , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-		XClearArea( win->display , win->drawable ,
+		XClearArea( win->disp->display , win->drawable ,
 			win->margin , win->height + win->margin , win->width , win->margin , 0) ;
 	}
 	else
@@ -1600,12 +1599,12 @@ x_window_clear_all(
 	{
 		x_gc_set_fg_color(win->gc, win->bg_color) ;
 		
-		XFillRectangle( win->display , win->drawable , win->gc->gc ,
+		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
 			0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 	}
 	else if( win->drawable == win->my_window)
 	{
-		XClearArea( win->display , win->drawable , 0 , 0 ,
+		XClearArea( win->disp->display , win->drawable , 0 , 0 ,
 			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , 0) ;
 	}
 	else
@@ -1627,7 +1626,7 @@ x_window_fill(
 {
 	restore_fg_color( win) ;
 	
-	XFillRectangle( win->display , win->drawable , win->gc->gc ,
+	XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
 		x + win->margin , y + win->margin , width , height) ;
 
 	return  1 ;
@@ -1645,7 +1644,7 @@ x_window_fill_with(
 {
 	x_gc_set_fg_color( win->gc, color) ;
 
-	XFillRectangle( win->display , win->drawable , win->gc->gc ,
+	XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
 		x + win->margin , y + win->margin , width , height) ;
 
 	return  1 ;
@@ -1658,7 +1657,7 @@ x_window_fill_all(
 {
 	restore_fg_color( win) ;
 	
-	XFillRectangle( win->display , win->drawable , win->gc->gc , 0 , 0 ,
+	XFillRectangle( win->disp->display , win->drawable , win->gc->gc , 0 , 0 ,
 		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 
 	return  1 ;
@@ -1672,7 +1671,7 @@ x_window_fill_all_with(
 {
 	x_gc_set_fg_color( win->gc, color) ;
 
-	XFillRectangle( win->display , win->drawable , win->gc->gc ,
+	XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
 		0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 
 	return  1 ;
@@ -1714,6 +1713,10 @@ x_window_idling(
 	}
 }
 
+/*
+ * Return value: 0 => different window.
+ *               1 => finished processing.
+ */
 int
 x_window_receive_event(
 	x_window_t *   win ,
@@ -1734,7 +1737,7 @@ x_window_receive_event(
 		/*
 		 * XXX
 		 * if some window invokes xim window open event and it doesn't have any xic ,
-		 * no xim window will be opened at XFilterEvent() in x_window_manager_receive_next_event().
+		 * no xim window will be opened at XFilterEvent() in x_display_receive_next_event().
 		 * but it is desired to open xim window of x_screen when its event is invoked
 		 * on scrollbar or title bar.
 		 * this hack enables it , but this way won't deal with the case that multiple
@@ -1749,10 +1752,10 @@ x_window_receive_event(
 			}
 		}
 
-		if( x_root_pixmap_available( win->display) &&
+		if( x_root_pixmap_available( win->disp->display) &&
 			( event->type == PropertyNotify) &&
 			( win == x_get_root_window( win)) &&
-			( event->xproperty.atom == XA_XROOTPMAP_ID(win->display)))
+			( event->xproperty.atom == XA_XROOTPMAP_ID(win->disp->display)))
 		{
 			notify_property_to_children( win) ;
 
@@ -1761,14 +1764,14 @@ x_window_receive_event(
 
 		if( event->type == MappingNotify && event->xmapping.request != MappingPointer)
 		{
-			if( win->win_man)
+			if( win->disp)
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " MappingNotify serial #%d\n",
 					event->xmapping.serial) ;
 			#endif
 				XRefreshKeyboardMapping( &(event->xmapping));
-				x_window_manager_update_modifier_mapping( win->win_man,
+				x_display_update_modifier_mapping( win->disp,
 					event->xmapping.serial) ;
 				/* have to process only once */
 				return 1 ;
@@ -1779,6 +1782,7 @@ x_window_receive_event(
 				(*win->mapping_notify)( win);
 			}
 		}
+		
 		return  0 ;
 	}
 	
@@ -1829,9 +1833,9 @@ x_window_receive_event(
 	{
 		XEvent  ahead ;
 
-		while( XEventsQueued(win->display , QueuedAfterReading))
+		while( XEventsQueued(win->disp->display , QueuedAfterReading))
 		{
-			XPeekEvent( win->display , &ahead) ;
+			XPeekEvent( win->disp->display , &ahead) ;
 
 			if( ahead.type != MotionNotify ||
 				ahead.xmotion.window != event->xmotion.window)
@@ -1839,7 +1843,7 @@ x_window_receive_event(
 				break ;
 			}
 
-			XNextEvent( win->display , event) ;
+			XNextEvent( win->disp->display , event) ;
 		}
 
 		if( win->button_motion)
@@ -1999,16 +2003,20 @@ x_window_receive_event(
 			/*
 			 * for fvwm2 style virtual screen.
 			 */
-			if( abs( event->xconfigure.x - win->x) % DisplayWidth(win->display , win->screen) != 0 ||
-				abs( event->xconfigure.y - win->y) % DisplayHeight(win->display , win->screen) != 0 ||
-				( event->xconfigure.x < 0 && event->xconfigure.x + (int)ACTUAL_WIDTH(win) > 0) ||
-				( event->xconfigure.x > 0 &&
-					event->xconfigure.x + (int)ACTUAL_WIDTH(win)
-						> DisplayWidth( win->display , win->screen)) ||
-				( event->xconfigure.y < 0 && event->xconfigure.y + (int)ACTUAL_HEIGHT(win) > 0) ||
-				( event->xconfigure.y > 0 &&
-					event->xconfigure.y + (int)ACTUAL_HEIGHT(win)
-						> DisplayHeight( win->display , win->screen)) )
+			if( abs( event->xconfigure.x - win->x) % DisplayWidth(win->disp->display ,
+									win->disp->screen) != 0 ||
+			    abs( event->xconfigure.y - win->y) % DisplayHeight(win->disp->display ,
+									win->disp->screen) != 0 ||
+			   ( event->xconfigure.x < 0 &&
+				event->xconfigure.x + (int)ACTUAL_WIDTH(win) > 0) ||
+			   ( event->xconfigure.x > 0 &&
+				event->xconfigure.x + (int)ACTUAL_WIDTH(win)
+					> DisplayWidth( win->disp->display , win->disp->screen)) ||
+			   ( event->xconfigure.y < 0 &&
+				event->xconfigure.y + (int)ACTUAL_HEIGHT(win) > 0) ||
+			   ( event->xconfigure.y > 0 &&
+				event->xconfigure.y + (int)ACTUAL_HEIGHT(win)
+					> DisplayHeight( win->disp->display , win->disp->screen)) )
 			{
 				is_changed = 1 ;
 			}
@@ -2025,10 +2033,11 @@ x_window_receive_event(
 
 			if( win->buffer)
 			{
-				XFreePixmap( win->display , win->buffer) ;
-				win->buffer = XCreatePixmap( win->display ,
-					win->parent_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-					DefaultDepth( win->display , win->screen)) ;
+				XFreePixmap( win->disp->display , win->buffer) ;
+				win->buffer = XCreatePixmap( win->disp->display ,
+					win->parent_window ,
+					ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+					DefaultDepth( win->disp->display , win->disp->screen)) ;
 				win->drawable = win->buffer ;
 
 			#ifdef  USE_TYPE_XFT
@@ -2051,14 +2060,14 @@ x_window_receive_event(
 		 */
 
 		if( is_changed &&
-			XCheckMaskEvent( win->display , StructureNotifyMask , &next_ev))
+			XCheckMaskEvent( win->disp->display , StructureNotifyMask , &next_ev))
 		{
 			if( next_ev.type == ConfigureNotify)
 			{
 				is_changed = 0 ;
 			}
 
-			XPutBackEvent( win->display , &next_ev) ;
+			XPutBackEvent( win->disp->display , &next_ev) ;
 		}
 
 		if( is_changed)
@@ -2085,9 +2094,9 @@ x_window_receive_event(
 	{
 		/*
 		 * Call win->selection_cleared and win->is_sel_owner is set 0
-		 * in x_window_manager_clear_selection.
+		 * in x_display_clear_selection.
 		 */
-		x_window_manager_clear_selection( x_get_root_window( win)->win_man , win) ;
+		x_display_clear_selection( win->disp , win) ;
 	}
 	else if( event->type == SelectionRequest)
 	{
@@ -2099,13 +2108,13 @@ x_window_receive_event(
 		Atom  xa_targets ;
 		Atom  xa_text ;
 
-		xa_compound_text = XA_COMPOUND_TEXT(win->display) ;
-		xa_targets = XA_TARGETS(win->display) ;
+		xa_compound_text = XA_COMPOUND_TEXT(win->disp->display) ;
+		xa_targets = XA_TARGETS(win->disp->display) ;
 	#ifdef  DEBUG
-		xa_multiple = XA_MULTIPLE(win->display) ;
+		xa_multiple = XA_MULTIPLE(win->disp->display) ;
 	#endif
-		xa_text = XA_TEXT(win->display) ;
-		xa_utf8_string = XA_UTF8_STRING(win->display) ;
+		xa_text = XA_TEXT(win->disp->display) ;
+		xa_utf8_string = XA_UTF8_STRING(win->disp->display) ;
 
 		if( event->xselectionrequest.target == XA_STRING)
 		{
@@ -2170,12 +2179,13 @@ x_window_receive_event(
 		Atom  xa_text ;
 		Atom  xa_selection ;
 
-		xa_compound_text = XA_COMPOUND_TEXT(win->display) ;
-		xa_text = XA_TEXT(win->display) ;
-		xa_utf8_string = XA_UTF8_STRING(win->display) ;
-		xa_selection = XA_SELECTION(win->display) ;
+		xa_compound_text = XA_COMPOUND_TEXT(win->disp->display) ;
+		xa_text = XA_TEXT(win->disp->display) ;
+		xa_utf8_string = XA_UTF8_STRING(win->disp->display) ;
+		xa_selection = XA_SELECTION(win->disp->display) ;
 
-		if( event->xselection.property == None ||  event->xselection.property == XA_NONE(win->display))
+		if( event->xselection.property == None ||
+			event->xselection.property == XA_NONE(win->disp->display))
 		{
 			/*
 			 * Selection request failed.
@@ -2184,17 +2194,18 @@ x_window_receive_event(
 
 			if( event->xselection.target == xa_utf8_string)
 			{
-				XConvertSelection( win->display , XA_PRIMARY , xa_compound_text ,
-					xa_selection , win->my_window , CurrentTime) ;
+				XConvertSelection( win->disp->display , XA_PRIMARY ,
+					xa_compound_text , xa_selection , win->my_window ,
+					CurrentTime) ;
 			}
 			else if( event->xselection.target == xa_compound_text)
 			{
-				XConvertSelection( win->display , XA_PRIMARY , xa_text ,
+				XConvertSelection( win->disp->display , XA_PRIMARY , xa_text ,
 					xa_selection , win->my_window , CurrentTime) ;
 			}
 			else if( event->xselection.target == xa_text)
 			{
-				XConvertSelection( win->display , XA_PRIMARY , XA_STRING ,
+				XConvertSelection( win->disp->display , XA_PRIMARY , XA_STRING ,
 					xa_selection , win->my_window , CurrentTime) ;
 			}
 
@@ -2220,7 +2231,8 @@ x_window_receive_event(
 				 * long_offset and long_len is the same as rxvt-2.6.3 ,
 				 * but I'm not confident if this is OK.
 				 */
-				if( XGetWindowProperty( win->display , event->xselection.requestor ,
+				if( XGetWindowProperty( win->disp->display ,
+					event->xselection.requestor ,
 					event->xselection.property , seg / 4 , 4096 , False ,
 					AnyPropertyType , &ct.encoding , &ct.format ,
 					&ct.nitems , &bytes_after , &ct.value) != Success)
@@ -2262,7 +2274,7 @@ x_window_receive_event(
 
 		}
 
-		XDeleteProperty( win->display, event->xselection.requestor,
+		XDeleteProperty( win->disp->display, event->xselection.requestor,
 			event->xselection.property) ;
 	}
 	else if( event->type == VisibilityNotify)
@@ -2284,7 +2296,7 @@ x_window_receive_event(
 	else if( event->type == ClientMessage)
 	{
 		if( event->xclient.format == 32 &&
-			event->xclient.data.l[0] == XA_DELETE_WINDOW( win->display))
+			event->xclient.data.l[0] == XA_DELETE_WINDOW( win->disp->display))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
@@ -2301,7 +2313,7 @@ x_window_receive_event(
 		}
 #if 0
 		if( event->xclient.format == 32 &&
-			event->xclient.data.l[0] == XA_TAKE_FOCUS( win->display))
+			event->xclient.data.l[0] == XA_TAKE_FOCUS( win->disp->display))
 		{
 			kik_warn_printf( KIK_DEBUG_TAG
 				" TakeFocus message is received.\n") ;
@@ -2311,13 +2323,13 @@ x_window_receive_event(
 	else if( event->type == PropertyNotify)
 	{
 
-		if( event->xproperty.atom == XA_SELECTION( win->display) &&
+		if( event->xproperty.atom == XA_SELECTION( win->disp->display) &&
 		    event->xproperty.state == PropertyNewValue)
 		{
 			XTextProperty  ct ;
 			u_long  bytes_after ;
 
-			XGetWindowProperty( win->display, event->xproperty.window,
+			XGetWindowProperty( win->disp->display, event->xproperty.window,
 					    event->xproperty.atom, 0, 0, False,
 					    AnyPropertyType, &ct.encoding, &ct.format,
 					    &ct.nitems, &bytes_after, &ct.value) ;
@@ -2326,21 +2338,21 @@ x_window_receive_event(
 				XFree( ct.value) ;
 			}
 
-			if( ct.encoding == XA_INCR(win->display)
+			if( ct.encoding == XA_INCR(win->disp->display)
 			    || bytes_after == 0)
 			{
-				XDeleteProperty( win->display, event->xproperty.window,
+				XDeleteProperty( win->disp->display, event->xproperty.window,
 						 ct.encoding) ;
 			}
 			else
 			{
-				XGetWindowProperty( win->display , event->xproperty.window ,
+				XGetWindowProperty( win->disp->display , event->xproperty.window ,
 						    event->xproperty.atom , 0 , bytes_after , True ,
 						    AnyPropertyType , &ct.encoding , &ct.format ,
 						    &ct.nitems , &bytes_after , &ct.value) ;
 				if(ct.encoding == XA_STRING ||
-				   ct.encoding == XA_TEXT(win->display) ||
-				   ct.encoding == XA_COMPOUND_TEXT(win->display))
+				   ct.encoding == XA_TEXT(win->disp->display) ||
+				   ct.encoding == XA_COMPOUND_TEXT(win->disp->display))
 				{
 					if( win->xct_selection_notified)
 					{
@@ -2348,7 +2360,7 @@ x_window_receive_event(
 							win , ct.value , ct.nitems) ;
 					}
 				}
-				else if(ct.encoding == XA_UTF8_STRING(win->display))
+				else if(ct.encoding == XA_UTF8_STRING(win->disp->display))
 				{
 					if( win->utf_selection_notified)
 					{
@@ -2455,7 +2467,7 @@ x_window_scroll_upward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc->gc ,
+	XCopyArea( win->disp->display , win->drawable , win->drawable , win->gc->gc ,
 		win->margin , win->margin + boundary_start + height ,	/* src */
 		win->width , boundary_end - boundary_start - height ,	/* size */
 		win->margin , win->margin + boundary_start) ;		/* dst */
@@ -2496,7 +2508,7 @@ x_window_scroll_downward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc->gc ,
+	XCopyArea( win->disp->display , win->drawable , win->drawable , win->gc->gc ,
 		win->margin , win->margin + boundary_start ,
 		win->width , boundary_end - boundary_start - height ,
 		win->margin , win->margin + boundary_start + height) ;
@@ -2537,7 +2549,7 @@ x_window_scroll_leftward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc->gc ,
+	XCopyArea( win->disp->display , win->drawable , win->drawable , win->gc->gc ,
 		win->margin + boundary_start + width , win->margin ,	/* src */
 		boundary_end - boundary_start - width , win->height ,	/* size */
 		win->margin + boundary_start , win->margin) ;		/* dst */
@@ -2577,7 +2589,7 @@ x_window_scroll_rightward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc->gc ,
+	XCopyArea( win->disp->display , win->drawable , win->drawable , win->gc->gc ,
 		win->margin + boundary_start , win->margin ,
 		boundary_end - boundary_start - width , win->height ,
 		win->margin + boundary_start + width , win->margin) ;
@@ -2608,14 +2620,14 @@ x_window_draw_decsp_string(
 		{
 			x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 			x_decsp_font_draw_image_string( font->decsp_font ,
-						  win->display , win->drawable , win->gc->gc ,
-						  x + win->margin , y + win->margin , str , len) ;
+						win->disp->display , win->drawable , win->gc->gc ,
+						x + win->margin , y + win->margin , str , len) ;
 		}
 		else
 		{
 			x_decsp_font_draw_string( font->decsp_font ,
-						  win->display , win->drawable , win->gc->gc ,
-						  x + win->margin , y + win->margin , str , len) ;
+						win->disp->display , win->drawable , win->gc->gc ,
+						x + win->margin , y + win->margin , str , len) ;
 		}
 		return  1 ;
 	}
@@ -2654,13 +2666,13 @@ x_window_draw_string(
 	x_gc_set_fid( win->gc, font->xfont->fid) ;
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
-	XDrawString( win->display , win->drawable , win->gc->gc ,
+	XDrawString( win->disp->display , win->drawable , win->gc->gc ,
 		x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 		y + win->margin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString( win->display , win->drawable , win->gc->gc ,
+		XDrawString( win->disp->display , win->drawable , win->gc->gc ,
 			x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			y + win->margin , (char *)str , len) ;
 	}
@@ -2682,13 +2694,13 @@ x_window_draw_string16(
 	x_gc_set_fid( win->gc, font->xfont->fid) ;
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
-	XDrawString16( win->display , win->drawable , win->gc->gc ,
+	XDrawString16( win->disp->display , win->drawable , win->gc->gc ,
 		       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 		       y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString16( win->display , win->drawable , win->gc->gc ,
+		XDrawString16( win->disp->display , win->drawable , win->gc->gc ,
 			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			       y + win->margin , str , len) ;
 	}
@@ -2712,13 +2724,13 @@ x_window_draw_image_string(
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
-	XDrawImageString( win->display , win->drawable , win->gc->gc ,
+	XDrawImageString( win->disp->display , win->drawable , win->gc->gc ,
 			  x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 			  y + win->margin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString( win->display , win->drawable , win->gc->gc ,
+		XDrawString( win->disp->display , win->drawable , win->gc->gc ,
 			     x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			     y + win->margin , (char *)str , len) ;
 	}
@@ -2742,13 +2754,13 @@ x_window_draw_image_string16(
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
-	XDrawImageString16( win->display , win->drawable , win->gc->gc ,
+	XDrawImageString16( win->disp->display , win->drawable , win->gc->gc ,
 			    x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 			    y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString16( win->display , win->drawable , win->gc->gc ,
+		XDrawString16( win->disp->display , win->drawable , win->gc->gc ,
 			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			       y + win->margin , str , len) ;
 	}
@@ -2816,10 +2828,10 @@ x_window_draw_rect_frame(
 {
 	restore_fg_color(win) ;
 	
-	XDrawLine( win->display , win->drawable , win->gc->gc , x1 , y1 , x2 , y1) ;
-	XDrawLine( win->display , win->drawable , win->gc->gc , x1 , y1 , x1 , y2) ;
-	XDrawLine( win->display , win->drawable , win->gc->gc , x2 , y2 , x2 , y1) ;
-	XDrawLine( win->display , win->drawable , win->gc->gc , x2 , y2 , x1 , y2) ;
+	XDrawLine( win->disp->display , win->drawable , win->gc->gc , x1 , y1 , x2 , y1) ;
+	XDrawLine( win->disp->display , win->drawable , win->gc->gc , x1 , y1 , x1 , y2) ;
+	XDrawLine( win->disp->display , win->drawable , win->gc->gc , x2 , y2 , x2 , y1) ;
+	XDrawLine( win->disp->display , win->drawable , win->gc->gc , x2 , y2 , x1 , y2) ;
 
 	return  1 ;
 }
@@ -2835,7 +2847,7 @@ x_window_draw_line(
 {
 	restore_fg_color(win) ;
 	
-	XDrawLine( win->display, win->drawable, win->gc->gc, x1, y1, x2, y2) ;
+	XDrawLine( win->disp->display, win->drawable, win->gc->gc, x1, y1, x2, y2) ;
 
 	return  1 ;
 }
@@ -2853,9 +2865,9 @@ x_window_set_selection_owner(
 		return  1 ;
 	}
 	
-	XSetSelectionOwner( win->display , XA_PRIMARY , win->my_window , time) ;
+	XSetSelectionOwner( win->disp->display , XA_PRIMARY , win->my_window , time) ;
 
-	if( win->my_window != XGetSelectionOwner( win->display , XA_PRIMARY))
+	if( win->my_window != XGetSelectionOwner( win->disp->display , XA_PRIMARY))
 	{
 		return  0 ;
 	}
@@ -2863,7 +2875,7 @@ x_window_set_selection_owner(
 	{
 		win->is_sel_owner = 1 ;
 		
-		return  x_window_manager_own_selection( x_get_root_window( win)->win_man , win) ;
+		return  x_display_own_selection( win->disp , win) ;
 	}
 }
 
@@ -2873,8 +2885,8 @@ x_window_xct_selection_request(
 	Time  time
 	)
 {
-	XConvertSelection( win->display , XA_PRIMARY , XA_COMPOUND_TEXT(win->display) ,
-		XA_SELECTION(win->display) , win->my_window , time) ;
+	XConvertSelection( win->disp->display , XA_PRIMARY , XA_COMPOUND_TEXT(win->disp->display) ,
+		XA_SELECTION(win->disp->display) , win->my_window , time) ;
 
 	return  1 ;
 }
@@ -2885,8 +2897,8 @@ x_window_utf_selection_request(
 	Time  time
 	)
 {
-	XConvertSelection( win->display , XA_PRIMARY , XA_UTF8_STRING(win->display) ,
-		XA_SELECTION(win->display) , win->my_window , time) ;
+	XConvertSelection( win->disp->display , XA_PRIMARY , XA_UTF8_STRING(win->disp->display) ,
+		XA_SELECTION(win->disp->display) , win->my_window , time) ;
 
 	return  1 ;
 }
@@ -2924,14 +2936,14 @@ x_window_send_selection(
 			req_ev->property = req_ev->target;
 		}
 		if( req_ev->property != None){
-			XChangeProperty( win->display , req_ev->requestor ,
+			XChangeProperty( win->disp->display , req_ev->requestor ,
 				req_ev->property , sel_type ,
 				sel_format , PropModeReplace , sel_data , sel_len) ;
 		}
 		res_ev.xselection.property = req_ev->property ;
 	}
 
-	XSendEvent( win->display , res_ev.xselection.requestor , False , 0 , &res_ev) ;
+	XSendEvent( win->disp->display , res_ev.xselection.requestor , False , 0 , &res_ev) ;
 
 	return  1 ;
 }
@@ -2952,17 +2964,17 @@ x_set_window_name(
 		name = root->app_name ;
 	}
 
-	if( XmbTextListToTextProperty( root->display , (char**)&name , 1 , XStdICCTextStyle , &prop)
-		>= Success)
+	if( XmbTextListToTextProperty( root->disp->display , (char**)&name , 1 , XStdICCTextStyle ,
+					&prop) >= Success)
 	{
-		XSetWMName( root->display , root->my_window , &prop) ;
+		XSetWMName( root->disp->display , root->my_window , &prop) ;
 
 		XFree( prop.value) ;
 	}
 	else
 	{
 		/* XXX which is better , doing this or return 0 without doing anything ? */
-		XStoreName( root->display , root->my_window , name) ;
+		XStoreName( root->disp->display , root->my_window , name) ;
 	}
 
 	return  1 ;
@@ -2984,17 +2996,17 @@ x_set_icon_name(
 		name = root->app_name ;
 	}
 
-	if( XmbTextListToTextProperty( root->display , (char**)&name , 1 , XStdICCTextStyle , &prop)
-		>= Success)
+	if( XmbTextListToTextProperty( root->disp->display , (char**)&name , 1 , XStdICCTextStyle ,
+				&prop) >= Success)
 	{
-		XSetWMIconName( root->display , root->my_window , &prop) ;
+		XSetWMIconName( root->disp->display , root->my_window , &prop) ;
 
 		XFree( prop.value) ;
 	}
 	else
 	{
 		/* XXX which is better , doing this or return 0 without doing anything ? */
-		XSetIconName( root->display , root->my_window , name) ;
+		XSetIconName( root->disp->display , root->my_window , name) ;
 	}
 
 	return  1 ;
@@ -3007,7 +3019,7 @@ x_window_remove_icon(
 {
 	XWMHints *hints ;
 
-	hints = XGetWMHints( win->display, win->my_window) ;
+	hints = XGetWMHints( win->disp->display, win->my_window) ;
 
 	if( hints)
 	{
@@ -3015,24 +3027,24 @@ x_window_remove_icon(
 		hints->flags &= ~IconPixmapHint ;
 		hints->flags &= ~IconMaskHint ;
 
-		XSetWMHints( win->display, win->my_window, hints) ;
+		XSetWMHints( win->disp->display, win->my_window, hints) ;
 		XFree( hints) ;
 	}
 	/* do not use hints->icon_*. they may be shared! */
 	if( win->icon_pix != None)
 	{
-		XFreePixmap( win->display, win->icon_pix);
+		XFreePixmap( win->disp->display, win->icon_pix);
 		win->icon_pix = None ;
 	}
 	if( win->icon_mask != None)
 	{
-		XFreePixmap( win->display, win->icon_mask);
+		XFreePixmap( win->disp->display, win->icon_mask);
 		win->icon_mask = None ;
 	}
 	free( win->icon_card);
 	win->icon_card = NULL ;
 
-	XDeleteProperty( win->display, win->my_window,XA_NET_WM_ICON( win->display)) ;
+	XDeleteProperty( win->disp->display, win->my_window,XA_NET_WM_ICON( win->disp->display)) ;
 
 	return  1 ;
 }
@@ -3051,8 +3063,8 @@ x_window_set_icon(
 	if( cardinal && cardinal[0] && cardinal[1])
 	{
 		/*it should be possible to set multiple icons...*/
-		XChangeProperty( win->display, win->my_window,
-				 XA_NET_WM_ICON( win->display),
+		XChangeProperty( win->disp->display, win->my_window,
+				 XA_NET_WM_ICON( win->disp->display),
 				 XA_CARDINAL, 32, PropModeReplace,
 				 (unsigned char *)(cardinal),
 				 /* (cardinal[0])*(cardinal[1])
@@ -3062,7 +3074,7 @@ x_window_set_icon(
 	/* set old style window manager hint's icon */
 	if (icon || mask)
 	{
-		hints = XGetWMHints( win->display, win->my_window) ;
+		hints = XGetWMHints( win->disp->display, win->my_window) ;
 	}
 	if (!hints){
 		hints = XAllocWMHints() ;
@@ -3082,7 +3094,7 @@ x_window_set_icon(
 		hints->icon_mask = mask ;
 	}
 
-	XSetWMHints( win->display, win->my_window, hints) ;
+	XSetWMHints( win->disp->display, win->my_window, hints) ;
 	XFree( hints) ;
 
 	return 1 ;
@@ -3098,7 +3110,7 @@ x_window_set_icon_from_file(
 
 	x_window_remove_icon( win);
 
-	if( !x_imagelib_load_file( win->display ,
+	if( !x_imagelib_load_file( win->disp->display ,
 				   path,
 				   &(win->icon_card),
 				   &(win->icon_pix),
@@ -3129,12 +3141,12 @@ x_window_get_visible_geometry(
 	int screen_width ;
 	int screen_height ;
 
-	XTranslateCoordinates( win->display , win->my_window ,
-		DefaultRootWindow( win->display) , 0 , 0 ,
+	XTranslateCoordinates( win->disp->display , win->my_window ,
+		DefaultRootWindow( win->disp->display) , 0 , 0 ,
 		x , y , &child) ;
 
-	screen_width = DisplayWidth( win->display , win->screen) ;
-	screen_height = DisplayHeight( win->display , win->screen) ;
+	screen_width = DisplayWidth( win->disp->display , win->disp->screen) ;
+	screen_height = DisplayHeight( win->disp->display , win->disp->screen) ;
 
 	if( *x >= screen_width || *y >= screen_height)
 	{
@@ -3211,7 +3223,7 @@ x_window_get_modifier_mapping(
 	x_window_t *  win
 	)
 {
-	return  x_window_manager_get_modifier_mapping( x_get_root_window( win)->win_man) ;
+	return  x_display_get_modifier_mapping( win->disp) ;
 }
 
 u_int
@@ -3245,7 +3257,7 @@ x_window_get_mod_ignore_mask(
 		int  ks_count ;
 		KeyCode  kc ;
 
-		kc = XKeysymToKeycode( win->display, keysyms[count]);
+		kc = XKeysymToKeycode( win->disp->display, keysyms[count]);
 		for( ks_count = 0; ks_count < sizeof(masks)/sizeof(masks[0]); ks_count++)
 		{
 			int  kc_count ;
@@ -3339,7 +3351,7 @@ x_window_get_mod_meta_mask(
 				break ;
 			}
 
-			sym = XKeycodeToKeysym( win->display , key_codes[kc_count] , 0) ;
+			sym = XKeycodeToKeysym( win->disp->display , key_codes[kc_count] , 0) ;
 
 			if( ( ( mod_key == NULL || strcmp( mod_key , "meta") == 0) &&
 					( sym == XK_Meta_L || sym == XK_Meta_R)) ||
@@ -3369,7 +3381,7 @@ x_window_bell(
 	x_window_t *  win
 	)
 {
-	XBell( win->display , 0) ;
+	XBell( win->disp->display , 0) ;
 
 	return  1 ;
 }
@@ -3384,12 +3396,11 @@ x_window_translate_coordinates(
 	Window *  child
 	)
 {
-	XTranslateCoordinates( win->display, win->my_window, DefaultRootWindow( win->display) ,
-		x , y , global_x , global_y , child) ;
+	XTranslateCoordinates( win->disp->display, win->my_window,
+		DefaultRootWindow( win->disp->display) , x , y , global_x , global_y , child) ;
 	
 	return  1 ;
 }
-
 
 #if  0
 /*
@@ -3432,7 +3443,7 @@ x_window_paste(
 		kik_warn_printf( KIK_DEBUG_TAG " height is modified -> %d\n" , src_height) ;
 	}
 
-	XCopyArea( win->display , src , win->drawable , win->gc->gc ,
+	XCopyArea( win->disp->display , src , win->drawable , win->gc->gc ,
 		src_x , src_y , src_width , src_height ,
 		dst_x + win->margin , dst_y + win->margin) ;
 

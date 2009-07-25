@@ -455,7 +455,7 @@ candidate_update(
 	if( scim->im.cand_screen == NULL)
 	{
 		if( ! ( scim->im.cand_screen = (*syms->x_im_candidate_screen_new)(
-				(*scim->im.listener->get_win_man)(scim->im.listener->self) ,
+				(*scim->im.listener->get_display)(scim->im.listener->self) ,
 				(*scim->im.listener->get_font_man)(scim->im.listener->self) ,
 				(*scim->im.listener->get_color_man)(scim->im.listener->self) ,
 				(*scim->im.listener->is_vertical)(scim->im.listener->self) ,

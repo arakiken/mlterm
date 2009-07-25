@@ -13,6 +13,7 @@
 #include  "x_sb_view.h"
 #include  "x_sb_mode.h"
 #include  "x_color_manager.h"
+#include  "x_picture.h"
 
 
 typedef struct  x_scrollbar_event_listener

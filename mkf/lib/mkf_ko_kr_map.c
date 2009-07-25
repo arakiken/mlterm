@@ -10,7 +10,7 @@
 #include  "mkf_ucs4_ksc5601.h"
 #include  "mkf_ucs4_uhc.h"
 #include  "mkf_ucs4_johab.h"
-#include  "mkf_map_loader.h"
+#include  "mkf_tblfunc_loader.h"
 
 
 /*

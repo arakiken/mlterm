@@ -3,13 +3,20 @@
  */
 
 #include  <sys/types.h>
+
+#include  <kiklib/kik_config.h>	/* USE_WIN32API */
+
+#ifndef  USE_WIN32API
 #include  <unistd.h>		/* getuid/getgid */
+#endif
+
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_locale.h>
 #include  <kiklib/kik_privilege.h>
 #include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_debug.h>
 
+#include  "x.h"
 #include  "x_term_manager.h"
 
 
@@ -19,17 +26,36 @@
 #define  CONFIG_PATH  SYSCONFDIR
 #endif
 
+#ifdef  USE_WIN32API
+#define  argv  __argv
+#define  argc  __argc
+#endif
+
 
 /* --- global functions --- */
 
+#ifdef  USE_WIN32API
+int PASCAL
+WinMain(
+	HINSTANCE  hinst ,
+	HINSTANCE  hprev ,
+	char *  cmdline ,
+	int  cmdshow
+	)
+#else
 int
 main(
 	int  argc ,
 	char **  argv
 	)
+#endif
 {
 	kik_sig_child_init() ;
-	
+
+#ifdef  USE_WIN32GUI
+	x_display_set_hinstance( GetModuleHandle(NULL)) ;
+#endif
+
 	/* normal user */
 	kik_priv_change_euid( getuid()) ;
 	kik_priv_change_egid( getgid()) ;

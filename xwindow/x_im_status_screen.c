@@ -80,8 +80,7 @@ delete(
 	x_im_status_screen_t *  stat_screen
 	)
 {
-	x_window_manager_remove_root( stat_screen->window.win_man ,
-				      &stat_screen->window) ;
+	x_display_remove_root( stat_screen->window.disp , &stat_screen->window) ;
 
 	if( stat_screen->chars)
 	{
@@ -304,7 +303,7 @@ window_unfocused(
 
 x_im_status_screen_t *
 x_im_status_screen_new(
-	x_window_manager_t *  win_man ,
+	x_display_t *  disp ,
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
 	int  is_vertical ,
@@ -371,13 +370,13 @@ x_im_status_screen_new(
 	stat_screen->set_spot = set_spot ;
 	stat_screen->set = set ;
 
-	if( ! x_window_manager_show_root( win_man ,
-					  &stat_screen->window ,
-					  x , y , 0 ,
-					  "mlterm-status-window"))
+	if( ! x_display_show_root( disp ,
+					&stat_screen->window ,
+					x , y , 0 ,
+					"mlterm-status-window"))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_window_manager_show_root() failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " x_display_show_root() failed.\n") ;
 	#endif
 
 		goto  error ;
@@ -395,7 +394,7 @@ error:
 
 x_im_status_screen_t *
 x_im_status_screen_new(
-	x_window_manager_t *  win_man ,
+	x_display_t *  disp ,
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
 	int  is_vertical ,

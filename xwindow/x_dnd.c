@@ -459,17 +459,17 @@ reply(
 	XClientMessageEvent  msg ;
 
 	msg.type = ClientMessage ;
-	msg.display = win->display ;
+	msg.display = win->disp->display ;
 	msg.format = 32 ;
 	msg.window = win->dnd->source ;
-	msg.message_type = XInternAtom( win->display, "XdndStatus", False) ;
+	msg.message_type = XInternAtom( win->disp->display, "XdndStatus", False) ;
 	msg.data.l[0] = win->my_window ;
 	if( win->dnd->waiting_atom)
 	{
 		msg.data.l[1] = 0x1 | 0x2 ; /* accept the drop | use [2][3] */
 		msg.data.l[2] = 0 ;
 		msg.data.l[3] = 0 ;
-		msg.data.l[4] = XInternAtom( win->display,
+		msg.data.l[4] = XInternAtom( win->disp->display,
 					     "XdndActionCopy", False) ;
 	}
 	else
@@ -481,7 +481,7 @@ reply(
 	}
 
 	set_badwin_handler(1) ;
-	XSendEvent(win->display, msg.window, False, 0, (XEvent*)&msg) ;
+	XSendEvent( win->disp->display, msg.window, False, 0, (XEvent*)&msg) ;
 	set_badwin_handler(0) ;
 }
 
@@ -504,18 +504,18 @@ finish(
 		kik_debug_printf( KIK_DEBUG_TAG "saying good bye\n") ;
 #endif
 
-	msg.message_type = XInternAtom( win->display, "XdndFinished", False) ;
+	msg.message_type = XInternAtom( win->disp->display, "XdndFinished", False) ;
 	msg.data.l[0] = win->my_window ;
 	/* setting bit 0 means success */
 	msg.data.l[1] = 1 ;
-	msg.data.l[2] = XInternAtom( win->display, "XdndActionCopy", False) ;
+	msg.data.l[2] = XInternAtom( win->disp->display, "XdndActionCopy", False) ;
 	msg.type = ClientMessage ;
 	msg.format = 32 ;
 	msg.window = win->dnd->source ;
-	msg.display = win->display ;
+	msg.display = win->disp->display ;
 
 	set_badwin_handler(1) ;
-	XSendEvent(win->display, win->dnd->source, False, 0, (XEvent*)&msg) ;
+	XSendEvent( win->disp->display, win->dnd->source, False, 0, (XEvent*)&msg) ;
 	set_badwin_handler(0) ;
 
 	win->dnd->source = 0 ;
@@ -548,7 +548,7 @@ parse(
 	for( proc_entry = dnd_parsers ; proc_entry->atomname ; proc_entry++)
 	{
 		if( (win->dnd->waiting_atom) ==
-		    XInternAtom( win->display, proc_entry->atomname, False) )
+		    XInternAtom( win->disp->display, proc_entry->atomname, False) )
 			break ;
 	}
 
@@ -585,7 +585,7 @@ choose_atom(
 	for( i = 0; i < num; i++){
 		if( !atom_list[i])
 			break;
-		atom_name = XGetAtomName( win->display, atom_list[i]) ;
+		atom_name = XGetAtomName( win->disp->display, atom_list[i]) ;
 		if( atom_name)
 		{
 			kik_debug_printf( KIK_DEBUG_TAG "candidate #%d: %s\n",
@@ -602,7 +602,7 @@ choose_atom(
 		kik_debug_printf( KIK_DEBUG_TAG "ckecking against : %s\n",
 				  proc_entry->atomname) ;
 #endif
-		i = is_pref( XInternAtom( win->display,
+		i = is_pref( XInternAtom( win->disp->display,
 					  proc_entry->atomname,
 					  False),
 			     atom_list, num) ;
@@ -611,7 +611,7 @@ choose_atom(
 		return (Atom)0  ;/* 0 would never be used for Atom */
 
 #ifdef  DEBUG
-	atom_name = XGetAtomName( win->display, atom_list[i]) ;
+	atom_name = XGetAtomName( win->disp->display, atom_list[i]) ;
 	if( atom_name)
 	{
 		kik_debug_printf( KIK_DEBUG_TAG "accepted: %s(%d)\n",
@@ -636,8 +636,8 @@ awareness(
 	)
 {
 	set_badwin_handler(1) ;
-	XChangeProperty( win->display, win->my_window,
-			 XInternAtom( win->display, "XdndAware", False),
+	XChangeProperty( win->disp->display, win->my_window,
+			 XInternAtom( win->disp->display, "XdndAware", False),
 			 XA_ATOM, 32, PropModeReplace,
 			 (unsigned char *)(&version), 1) ;
 	set_badwin_handler(0) ;
@@ -661,9 +661,9 @@ enter(
 		int  result ;
 
 		set_badwin_handler(1) ;
-		result = XGetWindowProperty( win->display,
+		result = XGetWindowProperty( win->disp->display,
 					     event->xclient.data.l[0],
-					     XInternAtom( win->display,
+					     XInternAtom( win->disp->display,
 							  "XdndTypeList",
 							  False),
 					     0L, 1024L, False, XA_ATOM,
@@ -762,10 +762,10 @@ drop(
 
 	/* data request */
 	set_badwin_handler(1) ;
-	XConvertSelection( win->display, XInternAtom( win->display,
+	XConvertSelection( win->disp->display, XInternAtom( win->disp->display,
 						      "XdndSelection", False),
 			   win->dnd->waiting_atom, /* mime type */
-			   XA_DND_STORE(win->display),
+			   XA_DND_STORE( win->disp->display),
 			   win->my_window,
 			   event->xclient.data.l[2]) ;
 	set_badwin_handler(0) ;
@@ -791,7 +791,7 @@ incr(
 
 	/* dummy read to determine data length */
 	set_badwin_handler(1) ;
-	result = XGetWindowProperty( win->display, event->xproperty.window,
+	result = XGetWindowProperty( win->disp->display, event->xproperty.window,
 				     event->xproperty.atom, 0, 0, False,
 				     AnyPropertyType, &ct.encoding, &ct.format,
 				     &ct.nitems, &bytes_after, &ct.value) ;
@@ -800,7 +800,7 @@ incr(
 		return  FAILURE ;
 
 	/* ignore when ct.encoding != XA_INCR */
-	if( ct.encoding != XA_INCR(win->display))
+	if( ct.encoding != XA_INCR( win->disp->display))
 	{
 #ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG "ignored.\n") ;
@@ -811,7 +811,7 @@ incr(
 	}
 
 	set_badwin_handler(1) ;
-	result = XGetWindowProperty( win->display , event->xproperty.window ,
+	result = XGetWindowProperty( win->disp->display , event->xproperty.window ,
 			    event->xproperty.atom , 0 , bytes_after , False ,
 			    AnyPropertyType , &ct.encoding , &ct.format ,
 			    &ct.nitems , &bytes_after , &ct.value) ;
@@ -840,7 +840,7 @@ incr(
 
 	/* This delete will trigger the next update*/
 	set_badwin_handler(1) ;
-	XDeleteProperty( win->display, event->xproperty.window,
+	XDeleteProperty( win->disp->display, event->xproperty.window,
 			 event->xproperty.atom) ;
 	set_badwin_handler(0) ;
 
@@ -863,7 +863,7 @@ selection(
 
 	/* dummy read to determine data length */
 	set_badwin_handler(1) ;
-	result = XGetWindowProperty( win->display,
+	result = XGetWindowProperty( win->disp->display,
 				     event->xselection.requestor,
 				     event->xselection.property, 0, 0,
 				     False,AnyPropertyType,
@@ -882,13 +882,13 @@ selection(
 	}
 	if( ct.value)
 		XFree( ct.value) ;
-	if( ct.encoding == XA_INCR(win->display))
+	if( ct.encoding == XA_INCR( win->disp->display))
 		return  SUCCESS ;
 
 	while( bytes_after > 0)
 	{
 		set_badwin_handler(1) ;
-		result = XGetWindowProperty( win->display,
+		result = XGetWindowProperty( win->disp->display,
 					     event->xselection.requestor,
 					     event->xselection.property,
 					     seg / 4, 4096, False,
@@ -940,13 +940,13 @@ x_dnd_filter_event(
 		return  0 ;
 
 	case SelectionNotify:
-		if( event->xselection.property != XA_DND_STORE(win->display))
+		if( event->xselection.property != XA_DND_STORE( win->disp->display))
 			return  0 ;
 
 		selection( win, event) ;
 
 		set_badwin_handler(1) ;
-		XDeleteProperty( win->display, event->xselection.requestor,
+		XDeleteProperty( win->disp->display, event->xselection.requestor,
 				 event->xselection.property) ;
 		set_badwin_handler(0) ;
 
@@ -954,22 +954,22 @@ x_dnd_filter_event(
 
 	case ClientMessage:
 		if( event->xclient.message_type ==
-		    XInternAtom( win->display, "XdndEnter", False))
+		    XInternAtom( win->disp->display, "XdndEnter", False))
 		{
 			enter( win, event) ;
 		}
 		else if( event->xclient.message_type ==
-			 XInternAtom( win->display, "XdndPosition", False))
+			 XInternAtom( win->disp->display, "XdndPosition", False))
 		{
 			position( win, event) ;
 		}
 		else if( event->xclient.message_type ==
-			 XInternAtom( win->display, "XdndDrop", False))
+			 XInternAtom( win->disp->display, "XdndDrop", False))
 		{
 			drop( win, event) ;
 		}
 		else if ( event->xclient.data.l[0] ==
-			  (XInternAtom( win->display , "WM_DELETE_WINDOW" , False)))
+			  (XInternAtom( win->disp->display , "WM_DELETE_WINDOW" , False)))
 		{
 			finalize_context( win) ;
 			/* the event should also be processed in main loop */
@@ -983,7 +983,7 @@ x_dnd_filter_event(
 		break ;
 
 	case PropertyNotify:
-		if( event->xproperty.atom != XA_DND_STORE( win->display))
+		if( event->xproperty.atom != XA_DND_STORE( win->disp->display))
 			return  0 ;
 		if( event->xproperty.state == PropertyDelete)
 		{

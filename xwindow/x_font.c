@@ -1345,7 +1345,7 @@ x_calculate_char_width(
 		}
 	#endif
 
-		kik_error_printf( __FUNCTION__ " couldn't calculate correct font width.\n") ;
+		kik_error_printf( KIK_DEBUG_TAG " couldn't calculate correct font width.\n") ;
 	}
 
 	return  font->width ;

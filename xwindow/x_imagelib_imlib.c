@@ -158,7 +158,7 @@ x_imagelib_load_file_for_background(
 	ImlibImage *  img ;
 	Pixmap  pixmap ;
 
-	if( ! ( imlib = get_imlib( win->display)))
+	if( ! ( imlib = get_imlib( win->disp->display)))
 	{
 		return  None ;
 	}
@@ -177,8 +177,9 @@ x_imagelib_load_file_for_background(
 		modify_image( imlib , img , pic_mod) ;
 	}
 	
-	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-			DefaultDepth( win->display , win->screen)) ;
+	pixmap = XCreatePixmap( win->disp->display , win->my_window ,
+			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+			DefaultDepth(  win->disp->display ,  win->disp->screen)) ;
 
 	Imlib_paste_image( imlib , img , pixmap , 0 , 0 ,
 		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
@@ -224,7 +225,7 @@ x_imagelib_get_transparent_background(
 	ImlibImage *  img ;
 	Atom id ;
 	
-	if( ! ( imlib = get_imlib( win->display)))
+	if( ! ( imlib = get_imlib( win->disp->display)))
 	{
 		return  None ;
 	}
@@ -234,7 +235,7 @@ x_imagelib_get_transparent_background(
 		return  None ;
 	}
 	
-	if( ( id = XInternAtom( win->display , "_XROOTPMAP_ID" , True)))
+	if( ( id = XInternAtom( win->disp->display , "_XROOTPMAP_ID" , True)))
 	{
 		Atom act_type ;
 		int  act_format ;
@@ -242,9 +243,9 @@ x_imagelib_get_transparent_background(
 		u_long  bytes_after ;
 		u_char *  prop ;
 		
-		if( XGetWindowProperty( win->display , DefaultRootWindow(win->display) , id , 0 , 1 ,
-			False , XA_PIXMAP , &act_type , &act_format , &nitems , &bytes_after , &prop)
-			== Success)
+		if( XGetWindowProperty( win->disp->display, DefaultRootWindow( win->disp->display),
+			id, 0, 1, False, XA_PIXMAP, &act_type, &act_format, &nitems, &bytes_after,
+			&prop) == Success)
 		{
 			if( prop && *prop)
 			{
@@ -274,25 +275,25 @@ x_imagelib_get_transparent_background(
 	attr.event_mask = ExposureMask ;
 	attr.override_redirect = True ;
 	
-	src = XCreateWindow( win->display , DefaultRootWindow( win->display) ,
+	src = XCreateWindow( win->disp->display , DefaultRootWindow( win->disp->display) ,
 			x , y , width , height , 0 ,
 			CopyFromParent, CopyFromParent, CopyFromParent ,
 			CWBackPixmap|CWBackingStore|CWOverrideRedirect|CWEventMask ,
 			&attr) ;
 	
-	XGrabServer( win->display) ;
-	XMapRaised( win->display , src) ;
-	XSync( win->display , False) ;
+	XGrabServer( win->disp->display) ;
+	XMapRaised( win->disp->display , src) ;
+	XSync( win->disp->display , False) ;
 
 	count = 0 ;
-	while( ! XCheckWindowEvent( win->display , src , ExposureMask, &event))
+	while( ! XCheckWindowEvent( win->disp->display , src , ExposureMask, &event))
 	{
 		kik_usleep( 50000) ;
 
 		if( ++ count >= 10)
 		{
-			XDestroyWindow( win->display , src) ;
-			XUngrabServer( win->display) ;
+			XDestroyWindow( win->disp->display , src) ;
+			XUngrabServer( win->disp->display) ;
 
 			return  None ;
 		}
@@ -300,8 +301,8 @@ x_imagelib_get_transparent_background(
 
 	img = Imlib_create_image_from_drawable( imlib , src , AllPlanes , 0 , 0 , width , height) ;
 
-	XDestroyWindow( win->display , src) ;
-	XUngrabServer( win->display) ;
+	XDestroyWindow( win->disp->display , src) ;
+	XUngrabServer( win->disp->display) ;
 
 	if( ! img)
 	{		
@@ -314,8 +315,9 @@ found:
 		modify_image( imlib , img , pic_mod) ;
 	}
 	
-	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-			DefaultDepth( win->display , win->screen)) ;
+	pixmap = XCreatePixmap( win->disp->display , win->my_window ,
+			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+			DefaultDepth( win->disp->display , win->disp->screen)) ;
 
 	Imlib_paste_image( imlib , img , pixmap , pix_x , pix_y , width , height) ;
 
@@ -355,7 +357,7 @@ x_imagelib_get_transparent_background(
 	u_int  num_of_queued ;
 	XEvent  event ;
 
-	if( ! ( imlib = get_imlib( win->display)))
+	if( ! ( imlib = get_imlib( win->disp->display)))
 	{
 		return  None ;
 	}
@@ -392,14 +394,15 @@ x_imagelib_get_transparent_background(
 	x_window_unmap( root) ;
 
 	/* XXX waiting for all exposed windows actually redrawn. */
-	XSync( root->display , False) ;
+	XSync( root->disp->display , False) ;
 	kik_usleep( 25000) ;
 	
-	img = Imlib_create_image_from_drawable( imlib , DefaultRootWindow( win->display) ,
+	img = Imlib_create_image_from_drawable( imlib , DefaultRootWindow( win->disp->display) ,
 		AllPlanes , x , y , width , height) ;
 
 	/* XXX ingoring all queued Expose events */
-	while( XCheckWindowEvent( root->display , root->my_window , ExposureMask, &event)) ;
+	while( XCheckWindowEvent( root->disp->display , root->my_window ,
+		ExposureMask, &event)) ;
 	
 	x_window_map( root) ;
 
@@ -410,22 +413,24 @@ x_imagelib_get_transparent_background(
 	x_window_add_event_mask( root , StructureNotifyMask /* | SubstructureNotifyMask */) ;
 
 	/* XXX waiting for all StructureNotifyMask events responded */
-	XSync( root->display , False) ;
+	XSync( root->disp->display , False) ;
 	kik_usleep( 25000) ;
 
 	/* XXX ignoreing all queued StructureNotifyMask events */
-	while( XCheckWindowEvent( root->display , root->my_window , StructureNotifyMask , &event)) ;
+	while( XCheckWindowEvent( root->disp->display , root->my_window ,
+		StructureNotifyMask , &event)) ;
 
 	/* XXX restoring all backuped StructureNotifyMask events */
 	for( count = 0 ; count < num_of_queued ; count ++)
 	{
-		XPutBackEvent( root->display , &queued_events[count]) ;
+		XPutBackEvent( root->disp->display , &queued_events[count]) ;
 	}
 	free( queued_events) ;
 	
 	/* XXX waiting for root window actually mapped. */
 	count = 0 ;
-	while( ! XCheckWindowEvent( root->display , root->my_window , ExposureMask, &event))
+	while( ! XCheckWindowEvent( root->disp->display , root->my_window ,
+		ExposureMask, &event))
 	{
 		kik_usleep( 50000) ;
 
@@ -434,7 +439,7 @@ x_imagelib_get_transparent_background(
 			return  None ;
 		}
 	}
-	XPutBackEvent( root->display , &event) ;
+	XPutBackEvent( root->disp->display , &event) ;
 
 	if( ! img)
 	{
@@ -446,8 +451,9 @@ x_imagelib_get_transparent_background(
 		modify_image( imlib , img , pic_mod) ;
 	}
 
-	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-			DefaultDepth( win->display , win->screen)) ;
+	pixmap = XCreatePixmap( win->disp->display , win->my_window ,
+		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+		DefaultDepth( win->disp->display, win->disp->screen)) ;
 
 	Imlib_paste_image( imlib , img , pixmap , pix_x , pix_y , width , height) ;
 

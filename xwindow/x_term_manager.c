@@ -6,14 +6,20 @@
 
 #include  <stdio.h>		/* sprintf */
 #include  <string.h>		/* memset/memcpy */
-#include  <pwd.h>		/* getpwuid */
 #include  <sys/time.h>		/* timeval */
 #include  <unistd.h>		/* getpid/select/unlink */
-#include  <sys/wait.h>		/* wait */
 #include  <signal.h>		/* kill */
 #include  <stdlib.h>		/* getenv */
 #include  <errno.h>
 #include  <fcntl.h>
+
+#include  <kiklib/kik_config.h>	/* USE_WIN32API */
+
+#ifndef  USE_WIN32API
+#include  <pwd.h>		/* getpwuid */
+#include  <sys/wait.h>		/* wait */
+#endif
+
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int/kik_str_alloca_dup/strdup */
 #include  <kiklib/kik_path.h>	/* kik_basename */
@@ -29,11 +35,14 @@
 
 #include  "version.h"
 #include  "x_main_config.h"
-#include  "x_xim.h"
 #include  "x_sb_screen.h"
 #include  "x_display.h"
 #include  "x_termcap.h"
 #include  "x_imagelib.h"
+
+#ifndef  USE_WIN32GUI
+#include  "x_xim.h"
+#endif
 
 #define  MAX_SCREENS  (8*sizeof(dead_mask))
 
@@ -72,6 +81,30 @@ static struct
 
 
 /* --- static functions --- */
+
+/*
+ * signal handlers.
+ */
+#ifndef  USE_WIN32API
+static void
+sig_fatal( int  sig)
+{
+#ifdef  DEBUG
+	kik_warn_printf( KIK_DEBUG_TAG "signal %d is received\n" , sig) ;
+#endif
+
+	if( un_file)
+	{
+		unlink( un_file) ;
+	}
+
+	/* reset */
+	signal( sig , SIG_DFL) ;
+	
+	kill( getpid() , sig) ;
+}
+#endif	/* USE_WIN32API */
+
 
 /*
  * Callbacks of ml_config_event_listener_t events.
@@ -317,8 +350,10 @@ open_pty_intern(
 		 */
 		if( ( cmd_path = getenv( "SHELL")) == NULL || *cmd_path == '\0')
 		{
+		#ifndef  USE_WIN32API
 			if( ( pw = getpwuid(getuid())) == NULL ||
 				*( cmd_path = pw->pw_shell) == '\0')
+		#endif
 			{
 				cmd_path = "/bin/sh" ;
 			}
@@ -357,6 +392,22 @@ open_pty_intern(
 
 		cmd_argv[1] = NULL ;
 	}
+
+#if  0
+	if( cmd_argv)
+	{
+		char **  p ;
+
+		kik_debug_printf( KIK_DEBUG_TAG " %s", cmd_path) ;
+		p = cmd_argv ;
+		while( *p)
+		{
+			kik_msg_printf( " %s", *p) ;
+			p++ ;
+		}
+		kik_msg_printf( "\n") ;
+	}
+#endif
 
 	return  ml_term_open_pty( term , cmd_path , cmd_argv , env , display) ;
 }
@@ -549,11 +600,11 @@ open_screen_intern(
 		root = &screen->window ;
 	}
 
-	if( ! x_window_manager_show_root( &disp->win_man , root ,
-		main_config.x , main_config.y , main_config.geom_hint , main_config.app_name))
+	if( ! x_display_show_root( disp, root, main_config.x, main_config.y,
+		main_config.geom_hint, main_config.app_name))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_window_manager_show_root() failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " x_display_show_root() failed.\n") ;
 	#endif
 	
 		goto  error ;
@@ -574,7 +625,7 @@ open_screen_intern(
 	else
 	{
 		if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
-			XDisplayString( disp->display) , root->my_window ,
+			DisplayString( disp->display) , root->my_window ,
 			main_config.term_type , main_config.use_login_shell))
 		{
 			goto  error ;
@@ -583,7 +634,7 @@ open_screen_intern(
 
 	if( main_config.icon_path)
 	{
-		x_window_manager_set_icon( root, main_config.icon_path);
+		x_display_set_icon( root, main_config.icon_path);
 	}
 
 	if( ( p = realloc( screens , sizeof( x_screen_t*) * (num_of_screens + 1))) == NULL)
@@ -607,10 +658,10 @@ error:
 		x_color_manager_delete( color_man) ;
 	}
 
-	if( ! root || ! x_window_manager_remove_root( &disp->win_man , root))
+	if( ! root || ! x_display_remove_root( disp, root))
 	{
 		/*
-		 * If root is still NULL or is not registered to win_man yet.
+		 * If root is still NULL or is not registered to disp yet.
 		 */
 		 
 		if( screen)
@@ -638,26 +689,21 @@ close_screen_intern(
 	)
 {
 	x_window_t *  root ;
-	x_window_manager_t *  win_man ;
 
 	x_screen_detach( screen) ;
 	x_font_manager_delete( screen->font_man) ;
 	x_color_manager_delete( screen->color_man) ;
 
 	root = x_get_root_window( &screen->window) ;
-	win_man = root->win_man ;
-	
-	if( win_man->num_of_roots == 1)
-	{
-		Display *  display_to_close ;
 
-		display_to_close = root->display ;
-		x_window_manager_remove_root( win_man , root) ;
-		x_display_close_2( display_to_close) ;
+	if( root->disp->num_of_roots == 1)
+	{
+		x_display_remove_root( root->disp, root) ;
+		x_display_close( root->disp) ;
 	}
 	else
 	{
-		x_window_manager_remove_root( win_man , root) ;
+		x_display_remove_root( root->disp, root) ;
 	}
 
 	return  1 ;
@@ -729,8 +775,9 @@ open_pty(
 					return ;
 				}
 
-				if( ! open_pty_intern( new , main_config.cmd_path , main_config.cmd_argv ,
-					XDisplayString( screen->window.display) ,
+				if( ! open_pty_intern( new , main_config.cmd_path ,
+					main_config.cmd_argv ,
+					DisplayString(  screen->window.disp->display) ,
 					x_get_root_window( &screen->window)->my_window ,
 					main_config.term_type , main_config.use_login_shell))
 				{
@@ -822,6 +869,10 @@ pty_closed(
 {
 	int  count ;
 
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " pty_closed.\n") ;
+#endif
+
 	for( count = num_of_screens - 1 ; count >= 0 ; count --)
 	{
 		if( screen == screens[count])
@@ -830,8 +881,13 @@ pty_closed(
 			
 			if( ( term = ml_get_detached_term( NULL)) == NULL)
 			{
+			#ifdef  USE_WIN32GUI
+				SendMessage( x_get_root_window( &screen->window)->my_window,
+					WM_CLOSE, 0, 0) ;
+			#else
 				close_screen_intern( screen) ;
 				screens[count] = screens[--num_of_screens] ;
+			#endif
 			}
 			else
 			{
@@ -855,7 +911,7 @@ open_screen(
 	#endif
 	}
 }
-	
+
 static void
 close_screen(
 	void *  p ,
@@ -893,29 +949,7 @@ pty_list(
 }
 
 
-/*
- * signal handlers.
- */
- 
-static void
-sig_fatal( int  sig)
-{
-#ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG "signal %d is received\n" , sig) ;
-#endif
-
-	if( un_file)
-	{
-		unlink( un_file) ;
-	}
-
-	/* reset */
-	signal( sig , SIG_DFL) ;
-	
-	kill( getpid() , sig) ;
-}
-
-
+#ifndef  USE_WIN32API
 static int
 start_daemon(void)
 {
@@ -1304,11 +1338,39 @@ crit_error:
 		close( fd) ;
 	}
 }
+#endif
+
+
+#ifdef  USE_WIN32GUI
+
+static VOID CALLBACK
+timer_proc(
+	HWND  hwnd,
+	UINT  msg,
+	UINT  timerid,
+	DWORD  time
+	)
+{
+	x_display_t **  displays ;
+	u_int  num_of_displays ;
+	int  count ;
+	
+	displays = x_get_opened_displays( &num_of_displays) ;
+
+	for( count = 0 ; count < num_of_displays ; count ++)
+	{
+		x_display_idling( displays[count]) ;
+	}
+}
+
+#else	/* USE_WIN32GUI */
 
 static void
 receive_next_event(void)
 {
 	int  count ;
+	ml_term_t **  terms ;
+	u_int  num_of_terms ;
 	int  xfd ;
 	int  ptyfd ;
 	int  maxfd ;
@@ -1318,8 +1380,6 @@ receive_next_event(void)
 	struct timeval  tval ;
 	x_display_t **  displays ;
 	u_int  num_of_displays ;
-	ml_term_t **  terms ;
-	u_int  num_of_terms ;
 
 	num_of_terms = ml_get_all_terms( &terms) ;
 	
@@ -1331,7 +1391,7 @@ receive_next_event(void)
 	{
 		ml_term_flush( terms[count]) ;
 	}
-	
+
 	while( 1)
 	{
 		/* on Linux tv_usec,tv_sec members are zero cleared after select() */
@@ -1353,7 +1413,7 @@ receive_next_event(void)
 			 * it is necessary to flush events here since some events
 			 * may have happened in idling
 			 */
-			x_window_manager_receive_next_event( &displays[count]->win_man) ;
+			x_display_receive_next_event( displays[count]) ;
 
 			xfd = x_display_fd( displays[count]) ;
 			
@@ -1406,7 +1466,7 @@ receive_next_event(void)
 
 		for( count = 0 ; count < num_of_displays ; count ++)
 		{
-			x_window_manager_idling( &displays[count]->win_man) ;
+			x_display_idling( displays[count]) ;
 		}
 	}
 	
@@ -1435,7 +1495,7 @@ receive_next_event(void)
 	{
 		if( FD_ISSET( x_display_fd( displays[count]) , &read_fds))
 		{
-			x_window_manager_receive_next_event( &displays[count]->win_man) ;
+			x_display_receive_next_event( displays[count]) ;
 		}
 	}
 
@@ -1460,6 +1520,8 @@ receive_next_event(void)
 		}
 	}
 }
+
+#endif
 
 
 /* --- global functions --- */
@@ -1564,9 +1626,10 @@ x_term_manager_init(
 
 	x_main_config_init( &main_config , conf , argc , argv) ;
 
+#ifndef  USE_WIN32API
 	is_genuine_daemon = 0 ;
 	sock_fd = -1 ;
-	
+
 	if( ( value = kik_conf_get_value( conf , "daemon_mode")))
 	{
 		if( strcmp( value , "genuine") == 0)
@@ -1593,6 +1656,7 @@ x_term_manager_init(
 		}
 	#endif
 	}
+#endif
 
 	use_xim = 1 ;
 	
@@ -1604,7 +1668,9 @@ x_term_manager_init(
 		}
 	}
 
+#ifndef  USE_WIN32GUI
 	x_xim_init( use_xim) ;
+#endif
 
 	if( ( value = kik_conf_get_value( conf , "click_interval")))
 	{
@@ -1723,11 +1789,18 @@ x_term_manager_init(
 	system_listener.get_pty = get_pty ;
 	system_listener.pty_list = pty_list ;
 
+#ifndef  USE_WIN32API
 	signal( SIGHUP , sig_fatal) ;
 	signal( SIGINT , sig_fatal) ;
 	signal( SIGQUIT , sig_fatal) ;
 	signal( SIGTERM , sig_fatal) ;
 	signal( SIGPIPE , SIG_IGN) ;
+#endif
+
+#ifdef  USE_WIN32GUI
+	/* x_window_manager_idling() called in 0.1sec. */
+	SetTimer( NULL, 0, 100, timer_proc) ;
+#endif
 
 	ml_term_manager_init() ;
 	
@@ -1764,7 +1837,9 @@ x_term_manager_final(void)
 
 	x_display_close_all() ;
 
+#ifndef  USE_WIN32GUI
 	x_xim_final() ;
+#endif
 
 	x_color_config_final( &color_config) ;
 	
@@ -1782,7 +1857,8 @@ x_term_manager_event_loop(void)
 	int  count ;
 	char  * display ;
 
-	if( ! *( display = main_config.disp_name) && ( ! ( display = getenv( "DISPLAY")) || ! *display))
+	if( ! *( display = main_config.disp_name) &&
+		( ! ( display = getenv( "DISPLAY")) || ! *display))
 	{
 		display = ":0.0" ;
 	}
@@ -1823,14 +1899,49 @@ x_term_manager_event_loop(void)
 			return ;
 		}
 	}
-	
+
+
 	while( 1)
 	{
 		int  count ;
+	#ifdef  USE_WIN32GUI
+		MSG  msg ;
+		ml_term_t **  terms ;
+		u_int  num_of_terms ;
+	#endif
 		
 		kik_alloca_begin_stack_frame() ;
 
+	#ifdef  USE_WIN32GUI
+		if( ! GetMessage( &msg, NULL, 0, 0))
+		{
+			break ;
+		}
+
+		num_of_terms = ml_get_all_terms( &terms) ;
+
+		for( count = 0 ; count < num_of_terms ; count++)
+		{
+			ml_term_flush( terms[count]) ;
+			
+			if( ml_term_parse_vt100_sequence( terms[count]))
+			{
+				while( ml_term_parse_vt100_sequence( terms[count])) ;
+			}
+		}
+
+		TranslateMessage( &msg) ;
+		DispatchMessage( &msg) ;
+
+		if( num_of_terms == 0)
+		{
+			PostQuitMessage(0) ;
+
+			continue ;
+		}
+	#else
 		receive_next_event() ;
+	#endif
 
 		ml_close_dead_terms() ;
 
@@ -1848,7 +1959,8 @@ x_term_manager_event_loop(void)
 
 			dead_mask = 0 ;
 		}
-		
+
+	#ifndef  USE_WIN32API
 		if( num_of_screens == 0 && ! is_genuine_daemon)
 		{
 			if( un_file)
@@ -1858,7 +1970,8 @@ x_term_manager_event_loop(void)
 			
 			exit( 0) ;
 		}
-
+	#endif
+	
 		kik_alloca_end_stack_frame() ;
 	}
 }

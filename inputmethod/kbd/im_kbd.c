@@ -562,7 +562,7 @@ switch_mode(
 		if( kbd->im.stat_screen == NULL)
 		{
 			if( ! ( kbd->im.stat_screen = (*syms->x_im_status_screen_new)(
-						(*kbd->im.listener->get_win_man)(kbd->im.listener->self) ,
+						(*kbd->im.listener->get_display)(kbd->im.listener->self) ,
 						(*kbd->im.listener->get_font_man)(kbd->im.listener->self) ,
 						(*kbd->im.listener->get_color_man)(kbd->im.listener->self) ,
 						(*kbd->im.listener->is_vertical)(kbd->im.listener->self) ,

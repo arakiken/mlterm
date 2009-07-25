@@ -449,10 +449,37 @@ x_main_config_init(
 	main_config->y = 0 ;
 	main_config->cols = 80 ;
 	main_config->rows = 24 ;
+	
 	if( ( value = kik_conf_get_value( conf , "geometry")))
 	{
-		/* For each value not found, the argument is left unchanged.(see man XParseGeometry(3)) */
-		main_config->geom_hint = XParseGeometry( value , &main_config->x , &main_config->y ,
+	#ifdef  USE_WIN32GUI
+		/*
+		 * "+[x]+[y]" is igonred.
+		 */
+		char *  p ;
+		u_int  cols ;
+		u_int  rows ;
+
+		main_config->geom_hint = 0 ;
+		p = value ;
+
+		if( ( p = strchr( value, '+')))
+		{
+			*p = '\0' ;
+		}
+
+		if( sscanf( value, "%ux%u", &cols, &rows) == 2)
+		{
+			main_config->cols = cols ;
+			main_config->rows = rows ;
+		}
+	#else
+		/*
+		 * For each value not found, the argument is left unchanged.
+		 * (see man XParseGeometry(3))
+		 */
+		main_config->geom_hint = XParseGeometry( value ,
+						&main_config->x , &main_config->y ,
 						&main_config->cols , &main_config->rows) ;
 
 		if( main_config->cols == 0 || main_config->rows == 0)
@@ -462,6 +489,7 @@ x_main_config_init(
 			main_config->cols = 80 ;
 			main_config->rows = 24 ;
 		}
+	#endif
 	}
 	else
 	{
