@@ -11,6 +11,7 @@
 #include  <windows.h>
 #endif
 
+
 /* --- global functions --- */
 
 #ifndef  HAVE_USLEEP
@@ -49,6 +50,28 @@ __kik_unsetenv(
 	char *  name
 	)
 {
+}
+
+#endif
+
+
+#ifndef  HAVE_GETUID
+
+uid_t
+__kik_getuid(void)
+{
+	return  0 ;
+}
+
+#endif
+
+
+#ifndef  HAVE_GETGID
+
+gid_t
+__kik_getgid(void)
+{
+	return  0 ;
 }
 
 #endif

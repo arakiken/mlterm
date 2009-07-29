@@ -48,6 +48,10 @@
 
 #undef  HAVE_SETSID
 
+#undef  HAVE_GETUID
+
+#undef  HAVE_GETGID
+
 #undef  HAVE_SNPRINTF
 
 #undef  CONCATABLE_FUNCTION

@@ -620,11 +620,16 @@ x_xic_get_utf8_str(
 
 int
 x_xic_filter_event(
-	x_window_t *  win,
+	x_window_t *  win,	/* Should be root window. */
 	XEvent *  event
 	)
 {
 	int  count ;
+
+	if( event->msg != WM_KEYDOWN)
+	{
+		return  0 ;
+	}
 
 	for( count = 0 ; count < win->num_of_children ; count++)
 	{
@@ -636,10 +641,7 @@ x_xic_filter_event(
 		return  0 ;
 	}
 	
-	if( event->msg == WM_KEYDOWN)
-	{
-		win->xic->prev_keydown_wparam = event->wparam ;
-	}
+	win->xic->prev_keydown_wparam = event->wparam ;
 	
 	return  1 ;
 }

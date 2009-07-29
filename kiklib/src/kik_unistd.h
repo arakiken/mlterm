@@ -40,4 +40,34 @@ void  __kik_unsetenv( char *  name) ;
 #endif
 
 
+#ifdef  HAVE_GETUID
+
+#include  <unistd.h>
+
+#define  kik_getuid  getuid
+
+#else
+
+#define  kik_getuid  __kik_getuid
+
+uid_t  __kik_getuid( void) ;
+
+#endif
+
+
+#ifdef  HAVE_GETGID
+
+#include  <unistd.h>
+
+#define  kik_getgid  getgid
+
+#else
+
+#define  kik_getgid  __kik_getgid
+
+gid_t  __kik_getgid( void) ;
+
+#endif
+
+
 #endif

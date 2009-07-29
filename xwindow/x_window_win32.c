@@ -203,6 +203,13 @@ notify_focus_in_to_children(
 	}
 
 	x_xic_set_focus( win) ;
+	
+	/*
+	 * XXX
+	 * WM_SETFOCUS/WM_KILL_FOCUS is used for substitution of VisibilityNotify event,
+	 * but incomplete...win->is_scrollable = 0 every time is certain way.
+	 */
+	win->is_scrollable = 1 ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -223,6 +230,13 @@ notify_focus_out_to_children(
 	}
 
 	x_xic_unset_focus( win) ;
+	
+	/*
+	 * XXX
+	 * WM_SETFOCUS/WM_KILL_FOCUS is used for substitution of VisibilityNotify event,
+	 * but incomplete...win->is_scrollable = 0 every time is certain way.
+	 */
+	win->is_scrollable = 0 ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -1834,7 +1848,7 @@ x_window_receive_event(
 		kik_debug_printf( "FOCUS IN %p\n" , win->my_window) ;
 	#endif
 
-	#if  1
+	#if  0
 		/* root window event only */
 		if( win->parent == NULL)
 	#endif
@@ -1849,7 +1863,7 @@ x_window_receive_event(
 		kik_debug_printf( "FOCUS OUT %p\n" , win->my_window) ;
 	#endif
 
-	#if  1
+	#if  0
 		/* root window event only */
 		if( win->parent == NULL)
 	#endif
@@ -2153,7 +2167,7 @@ x_window_receive_event(
 				}
 			}
 		}
-		
+
 		return  1 ;
 	}
 
@@ -2390,22 +2404,6 @@ x_window_receive_event(
 	else if( event->type == MapNotify)
 	{
 		notify_reparent_to_children( win) ;
-	}
-	else if( event->type == VisibilityNotify)
-	{
-		/* this event is changeable in run time. */
-
-		if( win->event_mask & VisibilityChangeMask)
-		{
-			if( event->xvisibility.state == VisibilityPartiallyObscured)
-			{
-				win->is_scrollable = 0 ;
-			}
-			else if( event->xvisibility.state == VisibilityUnobscured)
-			{
-				win->is_scrollable = 1 ;
-			}
-		}
 	}
 	else if( event->type == ClientMessage)
 	{

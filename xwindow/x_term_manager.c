@@ -1539,6 +1539,10 @@ x_term_manager_init(
 	u_int  max_font_size ;
 	int  count ;
 
+#ifdef  USE_WIN32GUI
+	x_display_set_hinstance( GetModuleHandle(NULL)) ;
+#endif
+
 	if( ! x_color_config_init( &color_config))
 	{
 	#ifdef  DEBUG
@@ -1923,22 +1927,15 @@ x_term_manager_event_loop(void)
 		for( count = 0 ; count < num_of_terms ; count++)
 		{
 			ml_term_flush( terms[count]) ;
-			
+
 			if( ml_term_parse_vt100_sequence( terms[count]))
 			{
 				while( ml_term_parse_vt100_sequence( terms[count])) ;
 			}
 		}
-
+		
 		TranslateMessage( &msg) ;
 		DispatchMessage( &msg) ;
-
-		if( num_of_terms == 0)
-		{
-			PostQuitMessage(0) ;
-
-			continue ;
-		}
 	#else
 		receive_next_event() ;
 	#endif
@@ -1952,7 +1949,6 @@ x_term_manager_event_loop(void)
 				if( dead_mask & (0x1 << count))
 				{
 					close_screen_intern( screens[count]) ;
-					
 					screens[count] = screens[--num_of_screens] ;
 				}
 			}
@@ -1960,7 +1956,12 @@ x_term_manager_event_loop(void)
 			dead_mask = 0 ;
 		}
 
-	#ifndef  USE_WIN32API
+	#ifdef  USE_WIN32GUI
+		if( ml_get_all_terms( &terms) == 0)
+		{
+			PostQuitMessage( 0) ;
+		}
+	#else
 		if( num_of_screens == 0 && ! is_genuine_daemon)
 		{
 			if( un_file)

@@ -13,12 +13,18 @@ Options for configure
   --prefix
     Installation prefix
 
+  --disable-dl-table
+    Remove dynamic loading of character mapping or property table.
+  
   --without-map-table
     Remove character mapping table
 
   --without-prop-table
     Remove character property table
 
+  --with-gui=(xlib|win32)
+    Use specified gui library.
+  
   --with-imagelib=(imlib|gdk-pixbuf2|gdk-pixbuf1)
     Use specified image library for image processing
 

@@ -48,7 +48,11 @@ kik_get_sys_rc_path(
 		return  NULL ;
 	}
 
+#ifdef  USE_WIN32API
+	sprintf( rcpath , "%s\\%s" , sysconfdir , rcfile) ;
+#else
 	sprintf( rcpath , "%s/%s" , sysconfdir , rcfile) ;
+#endif
 
 	return  rcpath ;
 }
@@ -68,18 +72,27 @@ kik_get_user_rc_path(
 		/* conf path is overridden */ ;
 	}else
 #endif
-	
+
+#ifdef  USE_WIN32API
+	if( ( homedir = getenv( "HOMEPATH")) == NULL)
+#else
 	if( ( homedir = getenv( "HOME")) == NULL)
+#endif
 	{
 		return  NULL ;
 	}
-	
+
+	/* Enough for "%s/.%s" */
 	if( ( dotrcpath = malloc( strlen( homedir) + 2 + strlen( rcfile) + 1)) == NULL)
 	{
 		return  NULL ;
 	}
 
+#ifdef  USE_WIN32API
+	sprintf( dotrcpath , "%s\\%s" , homedir , rcfile) ;
+#else
 	sprintf( dotrcpath , "%s/.%s" , homedir , rcfile) ;
+#endif
 
 	return  dotrcpath ;
 }

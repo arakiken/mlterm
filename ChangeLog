@@ -1,3 +1,16 @@
+2009-07-29  Araki Ken  <arakiken@users.sf.net>
+
+	* Added: win32/mlterm-win32.bat.
+
+	* README, README.win32: Modified.
+	
+	* kiklib/src/kik_conf_io.c: kik_get_sys_rc_path() returns SYSCONFDIR\mlterm and
+	  kik_get_user_rc_path() returns %HOMEPATH%\mlterm in win32.
+
+	* kiklib/src/kik_util.c: Added kik_getuid() and kik_getgid().
+
+	* x_window_win32.c: win->is_scrollable is 0 in WM_KILLFOCUS and 1 in WM_SETFOCUS.
+
 2009-07-26  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display_win32.c: Implemented x_get_opened_displays().

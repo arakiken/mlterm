@@ -23,7 +23,7 @@ BYTE_TABLE_OBJ = mkf_ucs4_cp1251.o mkf_ucs4_cp1255.o mkf_ucs4_koi8.o mkf_ucs4_ge
 		mkf_ucs4_iso8859.o mkf_ucs4_tcvn5712_1.o mkf_ucs4_viscii.o
 UCSPROP_TABLE_OBJ = mkf_ucs_property.o
 		
-OBJ = $(JAJP_TABLE_OBJ) $(KOKR_TABLE_OBJ) $(ZH_TABLE_OBJ) $(BYTE_TABLE_OBJ)
+OBJ = $(JAJP_TABLE_OBJ) $(KOKR_TABLE_OBJ) $(ZH_TABLE_OBJ) $(BYTE_TABLE_OBJ) $(UCSPROP_TABLE_OBJ)
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)

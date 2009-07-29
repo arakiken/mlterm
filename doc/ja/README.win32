@@ -35,22 +35,21 @@ WIN32 対応に関するメモ
   ~/.mlterm/ 以下のファイルにより環境設定を行うことができます。
 
   (MinGW でビルドした場合)
-  %HOME% 環境変数で指定されたディレクトリ以下のファイルにより環境設定を行う
+  %HOMEPATH%\mlterm ディレクトリ以下のファイルにより環境設定を行う
   ことができます。
 
 * 起動方法
-  コマンドプロンプトから次のとおり起動
+  コマンドプロンプトから次のとおり起動(又は win32/mlterm-win32.bat のような
+  バッチファイルを用意)
   
   (MSYS-DTK でビルドした場合)
   set HOME=c:\msys\...\home\...
-  mlterm.exe --ls [options...]
+  mlterm.exe [options...] -e /bin/sh --login -i
 
   (MinGW でビルドした場合)
-  set HOME=c:\msys\...\home\...
   mlterm.exe [options...] -e plink.exe [-telnet/-ssh/-rlogin/-raw] [host]
   ※ msysライブラリをリンクしないため、sh.exe を起動してもうまく動きません。
      sh.exe を使用したい場合は、MSYS-DTK でビルドしてください。
-     なお、
 
 * WIN32 版の制限(2009/07/25現在)
   o スクロールバープラグインは使用できないため、simple タイプのスクロールバー
@@ -58,7 +57,6 @@ WIN32 対応に関するメモ
   o -g オプションは [COL]x[ROW]+[x]+[y] の x y を無視します。
   o mlterm server 機能は使用できません。
   o 背景透過、背景画像は使用できません。
-  o on the spot での IME 入力はできません。
   o サポートする文字集合・エンコーディングは、当面、英語・日本語関係のもの
     のみです。
 
@@ -66,4 +64,4 @@ WIN32 対応に関するメモ
   o WIN32APIマクロ: MinGW でビルドする際に define されます。
   o WIN32GUIマクロ: --with-gui=win32 の場合 define されます。
   o ファイル名 *_win32.c: --with-gui=win32 の場合に compile されます。
-  
+ 

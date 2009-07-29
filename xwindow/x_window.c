@@ -2279,8 +2279,12 @@ x_window_receive_event(
 	}
 	else if( event->type == VisibilityNotify)
 	{
-		/* this event is changeable in run time. */
+		/* This event is changeable in run time. */
 
+		/*
+		 * VisibilityChangeMask is set or unset in run time(related to wall picture),
+		 * so check current VisibilityChangeMask state.
+		 */
 		if( win->event_mask & VisibilityChangeMask)
 		{
 			if( event->xvisibility.state == VisibilityPartiallyObscured)

@@ -4,12 +4,8 @@
 
 #include  <sys/types.h>
 
-#include  <kiklib/kik_config.h>	/* USE_WIN32API */
-
-#ifndef  USE_WIN32API
-#include  <unistd.h>		/* getuid/getgid */
-#endif
-
+#include  <kiklib/kik_config.h>		/* USE_WIN32API */
+#include  <kiklib/kik_unistd.h>		/* kik_getuid/kik_getgid */
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_locale.h>
 #include  <kiklib/kik_privilege.h>
@@ -52,13 +48,9 @@ main(
 {
 	kik_sig_child_init() ;
 
-#ifdef  USE_WIN32GUI
-	x_display_set_hinstance( GetModuleHandle(NULL)) ;
-#endif
-
 	/* normal user */
-	kik_priv_change_euid( getuid()) ;
-	kik_priv_change_egid( getgid()) ;
+	kik_priv_change_euid( kik_getuid()) ;
+	kik_priv_change_egid( kik_getgid()) ;
 
 	if( ! kik_locale_init(""))
 	{
@@ -79,7 +71,8 @@ main(
 	x_term_manager_event_loop() ;
 
 	/*
-	 * not reachable.
+	 * Not reachable in unix.
+	 * Reachable in win32.
 	 */
 
 	x_term_manager_final() ;
