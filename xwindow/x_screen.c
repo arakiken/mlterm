@@ -2995,11 +2995,18 @@ button_motion(
 
 	screen = (x_screen_t*) win ;
 
+	/*
+	 * event->state is never 0 because this function is 'button'_motion,
+	 * not 'pointer'_motion.
+	 */
+
 	if( ml_term_is_mouse_pos_sending( screen->term) && ! (event->state & ShiftMask))
 	{
 		return ;
 	}
-	if(!(event->state & Button2Mask)){
+
+	if( ! ( event->state & Button2Mask))
+	{
 		selecting_with_motion( screen , event->x , event->y , event->time) ;
 	}
 }

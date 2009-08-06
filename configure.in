@@ -100,6 +100,19 @@ imlib)
 	IMAGELIB_LIBS="`imlib-config --libs`"
 	IMAGELIB_NAME=imlib
 	;;
+imlib2)
+	AC_CHECK_PROG(imlib_config,imlib-config,yes,no)
+	if test "x$imlib2_config" = "xno" ; then
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find imlib2-config."
+		echo ""
+		exit 1
+	fi
+	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DUSE_IMLIB"
+	IMAGELIB_LIBS="`imlib2-config --libs`"
+	IMAGELIB_NAME=imlib2
+	;;
 gdk-pixbuf)
 	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
 		IMAGELIB_NAME=gdk

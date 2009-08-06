@@ -2020,7 +2020,7 @@ x_window_receive_event(
 			{
 				(*win->button_motion)( win , &mev) ;
 			}
-		
+			
 			/* following button motion ... */
 			win->prev_button_press_event.x = mev.x ;
 			win->prev_button_press_event.y = mev.y ;

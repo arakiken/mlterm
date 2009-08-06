@@ -1846,21 +1846,31 @@ x_window_receive_event(
 			XNextEvent( win->disp->display , event) ;
 		}
 
-		if( win->button_motion)
+		/*
+		 * If ButtonReleaseMask is not set to win->event_mask, win->button_is_pressing
+		 * is always 0. So, event->xmotion.state is also checked.
+		 */
+		if( win->button_is_pressing ||
+			( event->xmotion.state &
+			  (Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)))
 		{
-			event->xmotion.x -= win->margin ;
-			event->xmotion.y -= win->margin ;
+			if( win->button_motion)
+			{
+				event->xmotion.x -= win->margin ;
+				event->xmotion.y -= win->margin ;
 
-			(*win->button_motion)( win , &event->xmotion) ;
-		}
+				(*win->button_motion)( win , &event->xmotion) ;
+			}
 
-		if( win->button_is_pressing)
-		{
 			/* following button motion ... */
 
 			win->prev_button_press_event.x = event->xmotion.x ;
 			win->prev_button_press_event.y = event->xmotion.y ;
 			win->prev_button_press_event.time = event->xmotion.time ;
+		}
+		else
+		{
+			/* (*win->pointer_motion)( ... ) */
 		}
 	}
 	else if( event->type == ButtonRelease)
