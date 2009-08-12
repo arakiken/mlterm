@@ -15,7 +15,7 @@ VPATH = ${top_srcdir}/contrib/scrollbar/pixmap_engine
 SAMPLES = sample3
 PIXMAP_ENGINE_OBJ = pixmap_engine.o
 
-CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ -I/usr/include/include
+CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ -I/usr/include/include
 
 CC = @CC@
 INSTALL = @INSTALL@
