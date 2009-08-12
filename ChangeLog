@@ -1,8 +1,14 @@
 2009-08-13  KATO Kazuyoshi  <kzys@8-p.info>
 
+	* scrollbar/sample/Makefile.in: Added @KIK_CFLAGS@.
+	  (Thanks to AIDA Shinra)
+
+	* contrib/scrollbar/*/Makefile.in: Added @KIK_CFLAGS@.
+	  (Thanks to AIDA Shinra)
+
 	* xwindow/x_imagelib_none.c (x_imagelib_get_transparent_background):
-	Follow the changes of x_window_t.
-	(Thanks to AIDA Shinra)
+	  Follow the changes of x_window_t.
+	  (Thanks to AIDA Shinra)
 
 2009-08-06  Araki Ken  <arakiken@users.sf.net>
 
