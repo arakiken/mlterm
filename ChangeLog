@@ -1,3 +1,9 @@
+2009-08-13  KATO Kazuyoshi  <kzys@8-p.info>
+
+	* xwindow/x_imagelib_none.c (x_imagelib_get_transparent_background):
+	Follow the changes of x_window_t.
+	(Thanks to AIDA Shinra)
+
 2009-08-06  Araki Ken  <arakiken@users.sf.net>
 
 	* Added imlib2 support(experimental).

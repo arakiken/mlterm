@@ -79,7 +79,7 @@ x_imagelib_get_transparent_background(
 		return  None ;
 	}
 	
-	if( ( id = XInternAtom( win->display , "_XROOTPMAP_ID" , True)) == None)
+	if( ( id = XInternAtom( win->disp->display , "_XROOTPMAP_ID" , True)) == None)
 	{
 		return  None ;
 	}
@@ -89,7 +89,7 @@ x_imagelib_get_transparent_background(
 		return  None ;
 	}
 	
-	if( XGetWindowProperty( win->display , DefaultRootWindow(win->display) , id , 0 , 1 , False ,
+	if( XGetWindowProperty( win->disp->display , DefaultRootWindow(win->disp->display) , id , 0 , 1 , False ,
 		XA_PIXMAP , &act_type , &act_format , &nitems , &bytes_after , &prop) != Success ||
 		prop == NULL)
 	{
@@ -107,10 +107,10 @@ x_imagelib_get_transparent_background(
 	kik_debug_printf( KIK_DEBUG_TAG " root pixmap %d found.\n" , *prop) ;
 #endif
 
-	pixmap = XCreatePixmap( win->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-			DefaultDepth( win->display , win->screen)) ;
+	pixmap = XCreatePixmap( win->disp->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+			DefaultDepth( win->disp->display , win->disp->screen)) ;
 
-	XCopyArea( win->display , (*(Drawable*)prop) , pixmap , win->gc ,
+	XCopyArea( win->disp->display , (*(Drawable*)prop) , pixmap , win->gc->gc ,
 		x , y , width , height , _x , _y) ;
 
 	return  pixmap ;
