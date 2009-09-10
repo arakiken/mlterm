@@ -613,8 +613,8 @@ AC_ARG_WITH(gui,
 
 case "${host_os}" in
 mingw32*)
-	MAKE_DIRS="mlterm xwindow etc"
-	OUTPUT_FILES="Makefile mlterm/Makefile etc/Makefile xwindow/Makefile"
+	MAKE_DIRS="mlterm xwindow etc scrollbar/sample"
+	OUTPUT_FILES="Makefile mlterm/Makefile etc/Makefile xwindow/Makefile scrollbar/sample/Makefile"
 	PLATFORM_LIB_LDFLAGS="-no-undefined"
 	if test -f "/lib/libmsys-1.0.dll.a" ; then
 		ML_PTY_OBJ="ml_pty.o"

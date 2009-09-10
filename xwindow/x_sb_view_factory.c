@@ -26,11 +26,32 @@
 #define  SB_DIR  DATADIR "/mlterm/scrollbars"
 #endif
 
+#if  1
+#define  COMPAT_VER0
+#endif
+
 
 typedef  x_sb_view_t * (*x_sb_view_new_func_t)(void) ;
 typedef  x_sb_view_t * (*x_sb_engine_new_func_t)( x_sb_view_conf_t *  conf, int is_transparent) ;
 
 KIK_LIST_TYPEDEF( x_sb_view_conf_t) ;
+
+
+#ifdef  COMPAT_VER0
+
+/* For backward binary compatibility */
+typedef struct x_sb_view_wrapper
+{
+	x_sb_view_t   view ;
+	
+	union
+	{
+		x_sb_view_ver0_t *  ver0 ;
+	} u ;
+
+} x_sb_view_wrapper_t ;
+
+#endif
 
 
 /* --- static variables --- */
@@ -39,6 +60,226 @@ static KIK_LIST( x_sb_view_conf_t)  view_conf_list = NULL ;
 
 
 /* --- static functions --- */
+
+#ifdef  COMPAT_VER0
+
+static void
+ver0_get_geometry_hints(
+	x_sb_view_t *  view ,
+	u_int *  width ,
+	u_int *  top_margin ,
+	u_int *  bottom_margin ,
+	int *  up_button_y ,
+	u_int *  up_button_height ,
+	int *  down_button_y ,
+	u_int *  down_button_height
+	)
+{
+	x_sb_view_wrapper_t *  wrapper ;
+
+	wrapper = (x_sb_view_wrapper_t*) view ;
+
+	if( wrapper->u.ver0->get_geometry_hints)
+	{
+		(*wrapper->u.ver0->get_geometry_hints)( wrapper->u.ver0 ,
+			width , top_margin , bottom_margin , up_button_y , up_button_height ,
+			down_button_y , down_button_height) ;
+	}
+}
+
+static void
+ver0_get_default_color(
+	x_sb_view_t *  view ,
+	char **  fg_color ,
+	char **  bg_color
+	)
+{
+	x_sb_view_wrapper_t *  wrapper ;
+
+	wrapper = (x_sb_view_wrapper_t*) view ;
+
+	if( wrapper->u.ver0->get_default_color)
+	{
+		(*wrapper->u.ver0->get_default_color)( wrapper->u.ver0 ,
+			fg_color , bg_color) ;
+	}
+}
+
+static void
+ver0_realized(
+	x_sb_view_t *  view ,
+	Display *  display ,
+	int  screen ,
+	Window  window ,
+	GC  gc ,
+	u_int  height
+	)
+{
+	x_sb_view_wrapper_t *  wrapper ;
+
+	wrapper = (x_sb_view_wrapper_t*) view ;
+
+	if( wrapper->u.ver0->realized)
+	{
+		(*wrapper->u.ver0->realized)( wrapper->u.ver0 ,
+			display , screen , window , gc , height) ;
+	}
+}
+
+static void
+ver0_resized(
+	x_sb_view_t *  view ,
+	Window  window ,
+	u_int  height
+	)
+{
+	x_sb_view_wrapper_t *  wrapper ;
+
+	wrapper = (x_sb_view_wrapper_t*) view ;
+
+	if( wrapper->u.ver0->resized)
+	{
+		(*wrapper->u.ver0->resized)( wrapper->u.ver0 , window , height) ;
+	}
+}
+
+static void
+ver0_delete(
+	x_sb_view_t *  view
+	)
+{
+	x_sb_view_wrapper_t *  wrapper ;
+
+	wrapper = (x_sb_view_wrapper_t*) view ;
+
+	if( wrapper->u.ver0->delete)
+	{
+		(*wrapper->u.ver0->delete)( wrapper->u.ver0) ;
+	}
+
+	free( wrapper) ;
+}
+
+static void
+ver0_draw_scrollbar(
+	x_sb_view_t *  view ,
+	int  bar_top_y ,
+	u_int  bar_height
+	)
+{
+	x_sb_view_wrapper_t *  wrapper ;
+
+	wrapper = (x_sb_view_wrapper_t*) view ;
+
+	if( wrapper->u.ver0->draw_scrollbar)
+	{
+		(*wrapper->u.ver0->draw_scrollbar)( wrapper->u.ver0 ,
+			bar_top_y , bar_height) ;
+	}
+}
+
+static void
+ver0_draw_up_button(
+	x_sb_view_t *  view ,
+	int  pressed
+	)
+{
+	x_sb_view_wrapper_t *  wrapper ;
+
+	wrapper = (x_sb_view_wrapper_t*) view ;
+
+	if( pressed)
+	{
+		if( wrapper->u.ver0->up_button_pressed)
+		{
+			(*wrapper->u.ver0->up_button_pressed)( wrapper->u.ver0) ;
+		}
+	}
+	else
+	{
+		if( wrapper->u.ver0->up_button_released)
+		{
+			(*wrapper->u.ver0->up_button_released)( wrapper->u.ver0) ;
+		}
+	}
+}
+
+static void
+ver0_draw_down_button(
+	x_sb_view_t *  view ,
+	int  pressed
+	)
+{
+	x_sb_view_wrapper_t *  wrapper ;
+
+	wrapper = (x_sb_view_wrapper_t*) view ;
+
+	if( pressed)
+	{
+		if( wrapper->u.ver0->down_button_pressed)
+		{
+			(*wrapper->u.ver0->down_button_pressed)( wrapper->u.ver0) ;
+		}
+	}
+	else
+	{
+		if( wrapper->u.ver0->down_button_released)
+		{
+			(*wrapper->u.ver0->down_button_released)( wrapper->u.ver0) ;
+		}
+	}
+}
+
+#endif	/* COMPAT_VER0 */
+
+static x_sb_view_t *
+check_version(
+	x_sb_view_t *  view
+	)
+{
+	x_sb_view_wrapper_t *  wrapper ;
+	
+	if( view->version == 1)
+	{
+		return  view ;
+	}
+
+#ifdef  COMPAT_VER0
+
+	/* version 0 */
+	
+	if( ( wrapper = malloc( sizeof( x_sb_view_wrapper_t))) == NULL)
+	{
+		(*view->delete)( view) ;
+
+		/* Regardless of transparent or not. */
+		return  x_simple_sb_view_new() ;
+	}
+
+	wrapper->u.ver0 = (x_sb_view_ver0_t*) view ;
+	
+	view = &wrapper->view ;
+	view->version = 0 ;
+	view->get_geometry_hints = ver0_get_geometry_hints ;
+	view->get_default_color = ver0_get_default_color ;
+	view->realized = ver0_realized ;
+	view->resized = ver0_resized ;
+	view->color_changed = NULL ;
+	view->delete = ver0_delete ;
+	view->draw_scrollbar = ver0_draw_scrollbar ;
+	view->draw_background = NULL ;
+	view->draw_up_button = ver0_draw_up_button ;
+	view->draw_down_button = ver0_draw_down_button ;
+
+	return  view ;
+
+#else	/* COMPAT_VER0 */
+
+	return  NULL ;
+
+#endif
+}
+
 
 static x_sb_view_new_func_t
 dlsym_sb_view_new_func(
@@ -51,7 +292,8 @@ dlsym_sb_view_new_func(
 	char *  symbol ;
 	u_int  len ;
 
-	if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL)
+	if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL &&
+		( handle = kik_dl_open( "" , name)) == NULL)
 	{
 		return  NULL ;
 	}
@@ -70,10 +312,13 @@ dlsym_sb_view_new_func(
 	{
 		sprintf( symbol , "x_%s_sb_view_new" , name) ;
 	}
-	
+
 	if( ( func = (x_sb_view_new_func_t) kik_dl_func_symbol( handle , symbol)) == NULL)
 	{
 		/* backward compatible with 2.4.0 or before */
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Loading %s failed.\n" , symbol) ;
+	#endif
 		
 		if( is_transparent)
 		{
@@ -86,6 +331,10 @@ dlsym_sb_view_new_func(
 
 		if( ( func = (x_sb_view_new_func_t) kik_dl_func_symbol( handle , symbol)) == NULL)
 		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Loading %s failed.\n" , symbol) ;
+		#endif
+		
 			return  NULL ;
 		}
 	}
@@ -103,7 +352,8 @@ dlsym_sb_engine_new_func(
 	char *  symbol ;
 	u_int  len ;
 
-	if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL)
+	if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL ||
+		( handle = kik_dl_open( "" , name)) == NULL)
 	{
 		return  NULL ;
 	}
@@ -382,19 +632,19 @@ x_sb_view_new(
 			return  NULL ;
 		}
 
-		return  (*func_engine)( conf , 0) ;
+		return  check_version( (*func_engine)( conf , 0)) ;
 	}
 
 	if( strcmp( name , "simple") == 0)
 	{
-		return  x_simple_sb_view_new() ;
+		return  check_version( x_simple_sb_view_new()) ;
 	}
 	else if( ( func = dlsym_sb_view_new_func( name , 0)) == NULL)
 	{
 		return  NULL ;
 	}
 
-	return  (*func)() ;
+	return  check_version( (*func)()) ;
 }
 
 x_sb_view_t *
@@ -417,19 +667,19 @@ x_transparent_scrollbar_view_new(
 			return  NULL ;
 		}
 
-		return  (*func_engine)( conf , 1) ;
+		return  check_version( (*func_engine)( conf , 1)) ;
 	}
 
 	if( strcmp( name , "simple") == 0)
 	{
-		return  x_simple_transparent_sb_view_new() ;
+		return  check_version( x_simple_transparent_sb_view_new()) ;
 	}
 	else if( ( func = dlsym_sb_view_new_func( name , 1)) == NULL)
 	{
 		return  NULL ;
 	}
 
-	return  (*func)() ;
+	return  check_version( (*func)()) ;
 }
 
 int

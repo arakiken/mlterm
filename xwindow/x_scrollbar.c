@@ -17,6 +17,7 @@
 #endif
 
 
+
 #define  HEIGHT_MARGIN(sb)  ((sb)->top_margin + (sb)->bottom_margin)
 #define  IS_TOO_SMALL(sb)  ((sb)->window.height <= HEIGHT_MARGIN(sb))
 
@@ -30,36 +31,177 @@
 #endif
 
 
+/*
+ * For x_window_update()
+ */
+enum
+{
+	UPDATE_UPBUTTON = 0x1 ,
+	UPDATE_DOWNBUTTON = 0x2 ,
+	UPDATE_BUTTON = UPDATE_UPBUTTON|UPDATE_DOWNBUTTON ,
+	
+	UPDATE_SCROLLBAR = 0x4 ,
+
+	FGCOLOR_CHANGED = 0x8 ,
+	BGCOLOR_CHANGED = 0x10 ,
+} ;
+
+
 /* --- static functions --- */
 
+static void
+set_redraw_area(
+	x_scrollbar_t *  sb ,
+	int  y ,
+	u_int  height	/* Should be over 0. */
+	)
+{
+	if( sb->redraw_height == 0)
+	{
+		sb->redraw_y = y ;
+		sb->redraw_height = height ;
+	}
+	else
+	{
+		if( y < sb->redraw_y)
+		{
+			sb->redraw_height += (sb->redraw_y - y) ;
+			sb->redraw_y = y ;
+		}
+
+		if( y + height > sb->redraw_y + sb->redraw_height)
+		{
+			sb->redraw_height = y + height - sb->redraw_y ;
+		}
+	}
+}
+
+/*
+ * Don't call directly draw_xxx functions.
+ * Call x_window_update() instead.
+ */
 static void
 draw_scrollbar(
 	x_scrollbar_t *  sb
 	)
 {
+	if( IS_TOO_SMALL(sb))
+	{
+		x_window_fill_all( &sb->window) ;
+
+		return ;
+	}
+	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " updating scrollbar from %d height %d\n" ,
 		sb->bar_top_y , sb->bar_height) ;
 #endif
 
-	if( ! IS_TOO_SMALL(sb) && sb->view->draw_scrollbar)
+	if( sb->view->draw_scrollbar)
 	{
-		(*sb->view->draw_scrollbar)( sb->view , sb->top_margin + sb->bar_top_y , sb->bar_height) ;
+		(*sb->view->draw_scrollbar)( sb->view ,
+			sb->top_margin + sb->bar_top_y , sb->bar_height) ;
 	}
 }
 
+/*
+ * Don't call directly draw_xxx functions.
+ * Call x_window_update() instead.
+ */
 static void
-draw_decoration(
+draw_background(
 	x_scrollbar_t *  sb
 	)
 {
-	if( IS_TOO_SMALL(sb) || sb->view->draw_decoration == NULL)
+	if( IS_TOO_SMALL(sb))
 	{
-		x_window_fill_all( &sb->window) ;
+		return ;
 	}
-	else
+	
+	if( sb->view->draw_background && sb->redraw_height > 0)
 	{
-		(*sb->view->draw_decoration)( sb->view) ;
+		int  y ;
+		int  height ;
+		
+		/* Redraw upward area of bar. */
+		if( sb->redraw_y < sb->bar_top_y)
+		{
+			y = sb->redraw_y ;
+			
+			if( sb->redraw_y + sb->redraw_height > sb->bar_top_y)
+			{
+				/* Redraw except bar area. */
+				height = sb->bar_top_y - sb->redraw_y ;
+			}
+			else
+			{
+				height = sb->redraw_height ;
+			}
+			
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" updating background from %d height %d\n" , y , height) ;
+		#endif
+			(*sb->view->draw_background)( sb->view , y + sb->top_margin , height) ;
+		}
+
+		/* Redraw downward area of bar. */
+		if( sb->redraw_y + sb->redraw_height > sb->bar_top_y + sb->bar_height)
+		{
+			if( sb->redraw_y < sb->bar_top_y + sb->bar_height)
+			{
+				/* Redraw except bar area. */
+				y = sb->bar_top_y + sb->bar_height ;
+				height = sb->redraw_y + sb->redraw_height
+						- sb->bar_top_y - sb->bar_height ;
+			}
+			else
+			{
+				y = sb->redraw_y ;
+				height = sb->redraw_height ;
+			}
+			
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" updating background from %d height %d\n" , y , height) ;
+		#endif
+			(*sb->view->draw_background)( sb->view , sb->top_margin + y , height) ;
+		}
+		
+		sb->redraw_y = 0 ;
+		sb->redraw_height = 0 ;
+	}
+	
+}
+
+/*
+ * Don't call directly draw_xxx functions.
+ * Call x_window_update() instead.
+ */
+static void
+draw_button(
+	x_scrollbar_t *  sb ,
+	int  upbutton ,
+	int  downbutton
+	)
+{
+	if( IS_TOO_SMALL(sb))
+	{
+		return ;
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " drawing button.\n") ;
+#endif
+
+	if( upbutton && sb->view->draw_up_button)
+	{
+		(*sb->view->draw_up_button)( sb->view , sb->is_pressing_up_button) ;
+	}
+
+	if( downbutton && sb->view->draw_down_button)
+	{
+		(*sb->view->draw_down_button)( sb->view , sb->is_pressing_down_button) ;
 	}
 }
 
@@ -197,22 +339,26 @@ window_realized(
 
 	sb = (x_scrollbar_t*) win ;
 
-	x_load_named_xcolor(  win->disp->display ,  win->disp->screen ,
-		&sb->fg_xcolor , sb->fg_color) ;
-	x_load_named_xcolor(  win->disp->display ,  win->disp->screen ,
-		&sb->bg_xcolor , sb->bg_color) ;
-	x_window_set_fg_color( win , sb->fg_xcolor.pixel) ;
-	x_window_set_bg_color( win , sb->bg_xcolor.pixel) ;
+	if( x_load_named_xcolor(  win->disp->display ,  win->disp->screen ,
+		&sb->fg_xcolor , sb->fg_color))
+	{
+		x_window_set_fg_color( win , &sb->fg_xcolor) ;
+	}
+	
+	if( x_load_named_xcolor(  win->disp->display ,  win->disp->screen ,
+		&sb->bg_xcolor , sb->bg_color))
+	{
+		x_window_set_bg_color( win , &sb->bg_xcolor) ;
+	}
 
 	if( sb->view->realized)
 	{
 		(*sb->view->realized)( sb->view , sb->window.disp->display ,
 			sb->window.disp->screen , sb->window.my_window ,
-			sb->window.gc->gc , sb->window.height) ;
+			x_window_get_fg_gc( &sb->window) , sb->window.height) ;
 	}
-	
-	draw_decoration( sb) ;
-	draw_scrollbar( sb) ;
+
+	x_window_update( &sb->window , FGCOLOR_CHANGED|BGCOLOR_CHANGED) ;
 }
 
 static void
@@ -249,9 +395,9 @@ window_resized(
 	{
 		(*sb->view->resized)( sb->view , sb->window.my_window , sb->window.height) ;
 	}
-	
-	draw_decoration( sb) ;
-	draw_scrollbar( sb) ;
+
+	set_redraw_area( sb, 0, sb->window.height) ;
+	x_window_update( &sb->window, UPDATE_SCROLLBAR|UPDATE_BUTTON) ;
 }
 
 static void
@@ -267,8 +413,87 @@ window_exposed(
 
 	sb = (x_scrollbar_t*) win ;
 
-	draw_decoration( sb) ;
+	if( y < sb->top_margin)
+	{
+		y = 0 ;
+		height -= y ;
+	}
+	else
+	{
+		y -= sb->top_margin ;
+		height -= sb->top_margin ;
+	}
+	
+	set_redraw_area( sb, y, height) ;
+
+	/*
+	 * XXX
+	 * GC values should be set(in x_window_get_gc) before sb->view->func is called.
+	 * For win32: Current gc is set every time window_exposed and update_window.
+	 */
+	sb->view->gc = x_window_get_bg_gc( &sb->window) ;
+	draw_background( sb) ;
+	
+	sb->view->gc = x_window_get_fg_gc( &sb->window) ;
 	draw_scrollbar( sb) ;
+	draw_button( sb, 1, 1) ;
+}
+
+static void
+update_window(
+	x_window_t *  win,
+	int  flag
+	)
+{
+	x_scrollbar_t *  sb ;
+
+	sb = (x_scrollbar_t*) win ;
+
+	if( flag == 0)
+	{
+		return ;
+	}
+
+	if( flag & (FGCOLOR_CHANGED|BGCOLOR_CHANGED))
+	{
+		if( sb->view->color_changed)
+		{
+			if( flag & FGCOLOR_CHANGED)
+			{
+				sb->view->gc = x_window_get_fg_gc( &sb->window) ;
+				(*sb->view->color_changed)( sb->view , 1) ;
+			}
+			
+			if( flag & BGCOLOR_CHANGED)
+			{
+				sb->view->gc = x_window_get_bg_gc( &sb->window) ;
+				(*sb->view->color_changed)( sb->view , 0) ;
+			}
+		}
+	}
+	
+	if( flag & UPDATE_SCROLLBAR)
+	{
+		/*
+		 * XXX
+		 * GC values should be set(in x_window_get_gc) before sb->view->func is called.
+		 * For win32: Current gc is set every time window_exposed and update_window.
+		 */
+		sb->view->gc = x_window_get_bg_gc( &sb->window) ;
+		draw_background( sb) ;
+		
+		sb->view->gc = x_window_get_fg_gc( &sb->window) ;
+		draw_scrollbar( sb) ;
+	}
+	else
+	{
+		sb->view->gc = x_window_get_fg_gc( &sb->window) ;
+	}
+
+	if( flag & ~UPDATE_SCROLLBAR)
+	{
+		draw_button( sb, (flag & UPDATE_UPBUTTON) != 0, (flag & UPDATE_DOWNBUTTON) != 0) ;
+	}
 }
 
 static void
@@ -283,7 +508,7 @@ up_button_pressed(
 
 	if( sb->sb_listener->screen_scroll_downward)
 	{
-		/* down button scrolls *down* screen */
+		/* up button scrolls *down* screen */
 		(*sb->sb_listener->screen_scroll_downward)( sb->sb_listener->self , 1) ;
 	}
 }
@@ -355,23 +580,15 @@ button_pressed(
 	else if( result == 1)
 	{
 		sb->is_pressing_up_button = 1 ;
-
-		if( sb->view->up_button_pressed)
-		{
-			(*sb->view->up_button_pressed)( sb->view) ;
-		}
-
+		x_window_update( &sb->window, UPDATE_UPBUTTON) ;
+		
 		up_button_pressed( sb) ;
 	}
 	else if( result == -1)
 	{
 		sb->is_pressing_down_button = 1 ;
-
-		if( sb->view->down_button_pressed)
-		{
-			(*sb->view->down_button_pressed)( sb->view) ;
-		}
-
+		x_window_update( &sb->window, UPDATE_DOWNBUTTON) ;
+		
 		down_button_pressed( sb) ;
 	}
 }
@@ -409,6 +626,8 @@ button_motion(
 	int  new_row ;
 	int  up_to_top_now ;
 	int  y ;
+	int  old_bar_top_y ;
+	int  old_bar_height ;
 	
 	sb = (x_scrollbar_t*) win ;
 
@@ -420,6 +639,8 @@ button_motion(
 	}
 
 	y = event->y - sb->top_margin ;
+	old_bar_top_y = sb->bar_top_y ;
+	old_bar_height = sb->bar_height ;
 	
 	if( sb->bar_top_y == 0)
 	{
@@ -509,7 +730,8 @@ button_motion(
 		(*sb->sb_listener->screen_scroll_to)( sb->sb_listener->self , sb->current_row) ;
 	}
 
-	draw_scrollbar( sb) ;
+	set_redraw_area( sb, old_bar_top_y, old_bar_height) ;
+	x_window_update( &sb->window, UPDATE_SCROLLBAR) ;
 }
 
 static void
@@ -524,22 +746,14 @@ button_released(
 
 	if( sb->is_pressing_up_button)
 	{
-		if( sb->view->up_button_released)
-		{
-			(*sb->view->up_button_released)( sb->view) ;
-		}
-
 		sb->is_pressing_up_button = 0 ;
+		x_window_update( &sb->window, UPDATE_UPBUTTON) ;
 	}
 	
 	if( sb->is_pressing_down_button)
 	{
-		if( sb->view->down_button_released)
-		{
-			(*sb->view->down_button_released)( sb->view) ;
-		}
-		
 		sb->is_pressing_down_button = 0 ;
+		x_window_update( &sb->window, UPDATE_DOWNBUTTON) ;
 	}
 
 	if( sb->is_motion)
@@ -625,7 +839,8 @@ view_created:
 	sb->sb_listener = sb_listener ;
 
 	(*sb->view->get_geometry_hints)( sb->view , &width , &sb->top_margin , &sb->bottom_margin ,
-		&sb->up_button_y , &sb->up_button_height , &sb->down_button_y , &sb->down_button_height) ;
+		&sb->up_button_y , &sb->up_button_height ,
+		&sb->down_button_y , &sb->down_button_height) ;
 
 	if( sb->view->get_default_color)
 	{
@@ -663,8 +878,7 @@ view_created:
 	sb->is_pressing_up_button = 0 ;
 	sb->is_pressing_down_button = 0 ;
 
-	if( x_window_init( &sb->window , width , height , width ,
-		0 , width , 0 , 0 , 0 , 0 , /* create gc */ 1) == 0)
+	if( ! x_window_init( &sb->window , width , height , width , 0 , width , 0 , 0 , 0 , 0 , 0))
 	{
 		goto  error ;
 	}
@@ -691,6 +905,8 @@ view_created:
 	sb->bar_top_y = 0 ;
 	sb->y_on_bar = 0 ;
 	sb->current_row = 0 ;
+	sb->redraw_y = 0 ;
+	sb->redraw_height = 0 ;
 	sb->is_motion = 0 ;
 
 	if( use_transbg)
@@ -714,6 +930,7 @@ view_created:
 	sb->window.button_motion = button_motion ;
 	sb->window.window_resized = window_resized ;
 	sb->window.window_exposed = window_exposed ;
+	sb->window.update_window = update_window ;
 
 	return  1 ;
 
@@ -765,11 +982,12 @@ x_scrollbar_set_num_of_log_lines(
 		sb->num_of_filled_log_lines = sb->num_of_log_lines ;
 	}
 
+	set_redraw_area( sb, sb->bar_top_y, sb->bar_height) ;
+	
 	sb->bar_height = calculate_bar_height( sb) ;
-
 	sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
 	
-	draw_scrollbar( sb) ;
+	x_window_update( &sb->window, UPDATE_SCROLLBAR) ;
 
 	return  1 ;
 }
@@ -792,11 +1010,12 @@ x_scrollbar_set_num_of_filled_log_lines(
 	
 	sb->num_of_filled_log_lines = lines ;
 
-	sb->bar_height = calculate_bar_height( sb) ;
+	set_redraw_area( sb, sb->bar_top_y, sb->bar_height) ;
 	
+	sb->bar_height = calculate_bar_height( sb) ;
 	sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
 			
-	draw_scrollbar( sb) ;
+	x_window_update( &sb->window, UPDATE_SCROLLBAR) ;
 
 	return  1 ;
 }
@@ -839,7 +1058,8 @@ x_scrollbar_line_is_added(
 	}
 	else
 	{
-		draw_scrollbar( sb) ;
+		set_redraw_area( sb, old_y, old_bar_height) ;
+		x_window_update( &sb->window, UPDATE_SCROLLBAR) ;
 
 		return  1 ;
 	}
@@ -852,11 +1072,13 @@ x_scrollbar_reset(
 {
 	if( sb->is_motion || sb->bar_top_y + sb->bar_height < MAX_BAR_HEIGHT(sb))
 	{
+		set_redraw_area( sb, sb->bar_top_y, sb->bar_height) ;
+		
 		sb->bar_top_y = MAX_BAR_HEIGHT(sb) - sb->bar_height ;
 		sb->is_motion = 0 ;
 		sb->current_row = 0 ;
 
-		draw_scrollbar( sb) ;
+		x_window_update( &sb->window, UPDATE_SCROLLBAR) ;
 	}
 	
 	return  1 ;
@@ -889,10 +1111,12 @@ x_scrollbar_move_upward(
 	{
 		sb->current_row -= size ;
 	}
+
+	set_redraw_area( sb, sb->bar_top_y, sb->bar_height) ;
 	
 	sb->bar_top_y = calculate_bar_top_y(sb) ;
 
-	draw_scrollbar( sb) ;
+	x_window_update( &sb->window, UPDATE_SCROLLBAR) ;
 
 	return  1 ;
 }
@@ -916,10 +1140,12 @@ x_scrollbar_move_downward(
 	{
 		sb->current_row += size ;
 	}
+
+	set_redraw_area( sb, sb->bar_top_y, sb->bar_height) ;
 	
 	sb->bar_top_y = calculate_bar_top_y(sb) ;
 	
-	draw_scrollbar( sb) ;
+	x_window_update( &sb->window, UPDATE_SCROLLBAR) ;
 
 	return  1 ;
 }
@@ -930,12 +1156,18 @@ x_scrollbar_set_line_height(
 	u_int  line_height
 	)
 {
+	if( sb->line_height == line_height)
+	{
+		return  0 ;
+	}
+	
 	sb->line_height = line_height ;
 
+	set_redraw_area( sb, sb->bar_top_y, sb->bar_height) ;
+	
 	sb->bar_height = calculate_bar_height( sb) ;
 
-	draw_decoration( sb) ;
-	draw_scrollbar( sb) ;
+	x_window_update( &sb->window, UPDATE_SCROLLBAR) ;
 
 	return  1 ;
 }
@@ -951,12 +1183,15 @@ x_scrollbar_set_fg_color(
 		 sb->window.disp->screen , &sb->fg_xcolor) ;
 
 	sb->fg_color = strdup( fg_color) ;
-	x_load_named_xcolor(  sb->window.disp->display , sb->window.disp->screen ,
-		&sb->fg_xcolor , sb->fg_color) ;
-	x_window_set_fg_color( &sb->window , sb->fg_xcolor.pixel) ;
+	
+	if( x_load_named_xcolor(  sb->window.disp->display , sb->window.disp->screen ,
+		&sb->fg_xcolor , sb->fg_color))
+	{
+		x_window_set_fg_color( &sb->window , &sb->fg_xcolor) ;
 
-	draw_decoration( sb) ;
-	draw_scrollbar( sb) ;
+		set_redraw_area( sb, 0, sb->window.height) ;
+		x_window_update( &sb->window, UPDATE_SCROLLBAR|UPDATE_BUTTON|FGCOLOR_CHANGED) ;
+	}
 
 	return  1 ;
 }
@@ -971,12 +1206,15 @@ x_scrollbar_set_bg_color(
 	x_unload_xcolor(  sb->window.disp->display , sb->window.disp->screen , &sb->bg_xcolor) ;
 
 	sb->bg_color = strdup( bg_color) ;
-	x_load_named_xcolor(  sb->window.disp->display , sb->window.disp->screen ,
-		&sb->bg_xcolor , sb->bg_color) ;
-	x_window_set_bg_color( &sb->window , sb->bg_xcolor.pixel) ;
 
-	draw_decoration( sb) ;
-	draw_scrollbar( sb) ;
+	if( x_load_named_xcolor(  sb->window.disp->display , sb->window.disp->screen ,
+		&sb->bg_xcolor , sb->bg_color))
+	{
+		x_window_set_bg_color( &sb->window , &sb->bg_xcolor) ;
+
+		set_redraw_area( sb, 0, sb->window.height) ;
+		x_window_update( &sb->window, UPDATE_SCROLLBAR|UPDATE_BUTTON|BGCOLOR_CHANGED) ;
+	}
 
 	return  1 ;
 }
@@ -1051,9 +1289,9 @@ x_scrollbar_change_view(
 
 		x_window_resize( &sb->window , width , sb->window.height , NOTIFY_TO_PARENT) ;
 	}
-	
-	draw_decoration( sb) ;
-	draw_scrollbar( sb) ;
+
+	set_redraw_area( sb, 0, sb->window.height) ;
+	x_window_update( &sb->window, UPDATE_SCROLLBAR|UPDATE_BUTTON) ;
 	
 	return  1 ;
 }
@@ -1101,8 +1339,8 @@ x_scrollbar_set_transparent(
 
 	x_window_set_transparent( &sb->window , pic_mod) ;
 
-	draw_decoration( sb) ;
-	draw_scrollbar( sb) ;
+	set_redraw_area( sb, 0, sb->window.height) ;
+	x_window_update( &sb->window, UPDATE_SCROLLBAR|UPDATE_BUTTON) ;
 	
 	return  1 ;
 }
@@ -1147,9 +1385,9 @@ x_scrollbar_unset_transparent(
 	}
 
 	x_window_unset_transparent( &sb->window) ;
-	
-	draw_decoration( sb) ;
-	draw_scrollbar( sb) ;
+
+	set_redraw_area( sb, 0, sb->window.height) ;
+	x_window_update( &sb->window, UPDATE_SCROLLBAR|UPDATE_BUTTON) ;
 	
 	return  1 ;
 }

@@ -35,7 +35,18 @@ x_load_named_xcolor(
 	if( ( color = ml_get_color( name)) == ML_UNKNOWN_COLOR ||
 		! ml_get_color_rgb( color, &red, &green, &blue))
 	{
-		return  0 ;
+		if( strcmp( name , "gray") == 0)
+		{
+			red = green = blue = 190 ;
+		}
+		else if( strcmp( name , "lightgray") == 0)
+		{
+			red = green = blue = 211 ;
+		}
+		else
+		{
+			return  0 ;
+		}
 	}
 
 	return  x_load_rgb_xcolor( display, screen, xcolor, red, green, blue) ;

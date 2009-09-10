@@ -27,8 +27,8 @@ x_gc_new(
 	}
 
 	gc->display = display ;
-	gc->fg_color = RGB_BLACK ;
-	gc->bg_color = RGB_WHITE ;
+	gc->fg_color = BlackPixel(gc->display,DefaultScreen(gc->display)) ;	/* black */
+	gc->bg_color = WhitePixel(gc->display,DefaultScreen(gc->display)) ;	/* white */
 	gc->fid = None ;
 	
 #ifdef  USE_WIN32GUI
@@ -70,16 +70,16 @@ x_set_gc(
 
 	SetTextAlign( gc->gc, TA_LEFT|TA_BASELINE) ;
 	
-	gc->fg_color = RGB_BLACK ;
+	gc->fg_color = BlackPixel(gc->display,DefaultScreen(gc->display)) ;	/* black */
 #if  0
-	/* RGB_BLACK is default value */
-	SetTextColor( gc->gc, RGB_BLACK) ;
+	/* black is default value */
+	SetTextColor( gc->gc, gc->fg_color) ;
 #endif
 
-	gc->bg_color = RGB_WHITE ;
+	gc->bg_color = WhitePixel(gc->display,DefaultScreen(gc->display)) ;	/* white */
 #if  0
-	/* RGB_WHITE is default value */
-	SetBkColor( gc->gc, RGB_WHITE) ;
+	/* white is default value */
+	SetBkColor( gc->gc, gc->bg_color) ;
 #endif
 
 	gc->fid = None ;
@@ -134,7 +134,7 @@ x_gc_set_fid(
 	return  1 ;
 }
 
-int
+HPEN
 x_gc_set_pen(
 	x_gc_t *  gc,
 	HPEN  pen
@@ -142,13 +142,15 @@ x_gc_set_pen(
 {
 	if( gc->pen != pen)
 	{
-		SelectObject( gc->gc, pen) ;
+		gc->pen = pen ;
+		
+		return  SelectObject( gc->gc, pen) ;
 	}
-	
-	return  1 ;
+
+	return  None ;
 }
 
-int
+HBRUSH
 x_gc_set_brush(
 	x_gc_t *  gc,
 	HBRUSH  brush
@@ -156,10 +158,12 @@ x_gc_set_brush(
 {
 	if( gc->brush != brush)
 	{
-		SelectObject( gc->gc, brush) ;
+		gc->brush = brush ;
+
+		return  SelectObject( gc->gc, brush) ;
 	}
-	
-	return  1 ;
+
+	return  None ;
 }
 
 #else

@@ -68,13 +68,6 @@
 #define  MLTERMMENU_PATH  LIBEXECDIR "/mlterm-menu"
 #endif
 
-enum
-{
-	UPDATE_SCREEN = 0x1 ,
-	UPDATE_CURSOR = 0x2 ,
-} ;
-
-
 #if  0
 #define  __DEBUG
 #endif
@@ -82,6 +75,14 @@ enum
 #if  1
 #define  NL_TO_CR_IN_PAST_TEXT
 #endif
+
+
+/* For x_window_update() */
+enum
+{
+	UPDATE_SCREEN = 0x1 ,
+	UPDATE_CURSOR = 0x2 ,
+} ;
 
 
 /* --- static functions --- */
@@ -600,7 +601,7 @@ draw_cursor(
 		xfont = x_get_font( screen->font_man , ml_char_font( &ch)) ;
 
 		x_window_set_fg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ml_char_fg_color(&ch))->pixel) ;
+			x_get_xcolor( screen->color_man , ml_char_fg_color(&ch))) ;
 
 		x_window_draw_rect_frame( &screen->window ,
 			x + 2 , y + x_line_top_margin( screen) + 2 ,
@@ -1292,8 +1293,8 @@ window_realized(
 	}
 #endif
 
-	x_window_set_fg_color( win , x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
-	x_window_set_bg_color( win , x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
+	x_window_set_fg_color( win , x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
+	x_window_set_bg_color( win , x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
 	if( ( name = ml_term_window_name( screen->term)))
 	{
@@ -1473,9 +1474,9 @@ window_focused(
 		x_color_manager_unfade( screen->color_man) ;
 
 		x_window_set_fg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
+			x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
 		x_window_set_bg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
+			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
@@ -1513,9 +1514,9 @@ window_unfocused(
 		x_color_manager_fade( screen->color_man , screen->fade_ratio) ;
 
 		x_window_set_fg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
+			x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
 		x_window_set_bg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
+			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
@@ -3865,7 +3866,7 @@ change_fg_color(
 	x_color_manager_set_fg_color( screen->color_man , name) ;
 
 	x_window_set_fg_color( &screen->window ,
-		x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
 
 #ifndef  USE_WIN32GUI
 	x_xic_fg_color_changed( &screen->window) ;
@@ -3888,7 +3889,7 @@ change_bg_color(
 	x_color_manager_set_bg_color( screen->color_man , name) ;
 
 	x_window_set_bg_color( &screen->window ,
-		x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
 #ifndef  USE_WIN32GUI
 	x_xic_bg_color_changed( &screen->window) ;
@@ -4221,9 +4222,9 @@ change_fade_ratio(
 	}
 
 	x_window_set_fg_color( &screen->window ,
-		x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
 	x_window_set_bg_color( &screen->window ,
-		x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
 #ifndef  USE_WIN32GUI
 	x_xic_fg_color_changed( &screen->window) ;
@@ -4694,7 +4695,7 @@ get_fontset(
 	return  x_get_fontset( screen->font_man) ;
 }
 
-static u_long
+static x_color_t *
 get_fg_color(
 	void *  p
 	)
@@ -4703,10 +4704,10 @@ get_fg_color(
 
 	screen = p ;
 
-	return  x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel ;
+	return  x_get_xcolor( screen->color_man , ML_FG_COLOR) ;
 }
 
-static u_long
+static x_color_t *
 get_bg_color(
 	void *  p
 	)
@@ -4715,7 +4716,7 @@ get_bg_color(
 
 	screen = p ;
 
-	return  x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel ;
+	return  x_get_xcolor( screen->color_man , ML_BG_COLOR) ;
 }
 
 /*
@@ -5465,9 +5466,9 @@ xterm_reverse_video(
 	}
 
 	x_window_set_fg_color( &screen->window ,
-		x_get_xcolor( screen->color_man , ML_FG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
 	x_window_set_bg_color( &screen->window ,
-		x_get_xcolor( screen->color_man , ML_BG_COLOR)->pixel) ;
+		x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	

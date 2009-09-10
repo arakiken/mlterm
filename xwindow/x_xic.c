@@ -159,8 +159,8 @@ create_xic(
 		}
 
 		if( ( preedit_attr = XVaCreateNestedList( 0 , XNArea , &rect , XNSpotLocation, &spot,
-			XNForeground , (*win->xim_listener->get_fg_color)( win->xim_listener->self) ,
-			XNBackground , (*win->xim_listener->get_bg_color)( win->xim_listener->self) ,
+			XNForeground , (*win->xim_listener->get_fg_color)( win->xim_listener->self) ->pixel ,
+			XNBackground , (*win->xim_listener->get_bg_color)( win->xim_listener->self) ->pixel ,
 			XNFontSet , fontset , NULL)) == NULL)
 		{
 		#ifdef  DEBUG

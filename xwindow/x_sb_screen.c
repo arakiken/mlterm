@@ -52,15 +52,6 @@ move_term_screen(
  */
 
 static void
-window_realized(
-	x_window_t *  win
-	)
-{
-	/* seperator color of x_scrollbar_t and x_screen_t */
-	x_window_set_fg_color( win , RGB_BLACK) ;
-}
-
-static void
 window_finalized(
 	x_window_t *  win
 	)
@@ -739,7 +730,6 @@ x_sb_screen_new(
 	 * event call backs.
 	 */
 	x_window_init_event_mask( &sb_screen->window , KeyPressMask) ;
-	sb_screen->window.window_realized = window_realized ;
 	sb_screen->window.window_finalized = window_finalized ;
 	sb_screen->window.window_resized = window_resized ;
 	sb_screen->window.child_window_resized = child_window_resized ;

@@ -8,6 +8,10 @@
 
 #include  "x.h"
 
+#ifdef  USE_WIN32GUI
+#include  "x_gdiobj_pool.h"
+#endif
+
 
 typedef struct x_gc
 {
@@ -38,9 +42,9 @@ int  x_gc_set_fid( x_gc_t *  gc, Font  fid) ;
 
 int  x_set_gc( x_gc_t *  gc, GC  _gc) ;
 
-int  x_gc_set_pen( x_gc_t *  gc, HPEN  pen) ;
+HPEN  x_gc_set_pen( x_gc_t *  gc, HPEN  pen) ;
 
-int  x_gc_set_brush( x_gc_t *  gc, HBRUSH  brush) ;
+HBRUSH  x_gc_set_brush( x_gc_t *  gc, HBRUSH  brush) ;
 
 #endif
 

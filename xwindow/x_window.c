@@ -274,7 +274,9 @@ notify_configure_to_children(
 		}
 		else
 		{
+		#if  0
 			x_window_clear_all( win) ;
+		#endif
 			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 		}
 	}
@@ -528,8 +530,8 @@ x_window_init(
 
 	win->gc = NULL ;
 
-	win->fg_color = RGB_BLACK ;
-	win->bg_color = RGB_WHITE ;
+	win->fg_color = 0 ;
+	win->bg_color = 0 ;
 
 	win->parent_window = None ;
 	win->parent = NULL ;
@@ -786,7 +788,9 @@ x_window_set_wall_picture(
 
 	if( win->window_exposed)
 	{
+	#if  0
 		x_window_clear_all( win) ;
+	#endif
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 
@@ -841,7 +845,9 @@ x_window_unset_wall_picture(
 
 	if( win->window_exposed)
 	{
+	#if  0
 		x_window_clear_all( win) ;
+	#endif
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 
@@ -902,7 +908,9 @@ x_window_set_transparent(
 
 		if( win->window_exposed)
 		{
+		#if  0
 			x_window_clear_all( win) ;
+		#endif
 			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 		}
 	}
@@ -960,7 +968,9 @@ x_window_unset_transparent(
 
 	if( win->window_exposed)
 	{
+	#if  0
 		x_window_clear_all( win) ;
+	#endif
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 
@@ -1004,11 +1014,14 @@ x_window_set_cursor(
 int
 x_window_set_fg_color(
 	x_window_t *  win ,
-	u_long  fg_color
+	x_color_t *  fg_color
 	)
 {
-	win->fg_color = fg_color ;
+	win->fg_color = fg_color->pixel ;
+
+#if  0
 	restore_fg_color(win) ;
+#endif
 
 	return  1 ;
 }
@@ -1016,16 +1029,19 @@ x_window_set_fg_color(
 int
 x_window_set_bg_color(
 	x_window_t *  win ,
-	u_long  bg_color
+	x_color_t *  bg_color
 	)
 {
+	win->bg_color = bg_color->pixel ;
+	
 	if( ! win->is_transparent && ! win->wall_picture_is_set)
 	{
-		XSetWindowBackground( win->disp->display , win->my_window , bg_color) ;
+		XSetWindowBackground( win->disp->display , win->my_window , win->bg_color) ;
 	}
 
-	win->bg_color = bg_color ;
+#if  0
 	restore_bg_color(win) ;
+#endif
 
 	return  1 ;
 }
@@ -1074,6 +1090,35 @@ x_get_root_window(
 	}
 
 	return  win ;
+}
+
+GC
+x_window_get_fg_gc(
+	x_window_t *  win
+	)
+{
+	/* Reset */
+	restore_fg_color( win) ;
+
+#if  0
+	restore_bg_color( win) ;
+#endif
+
+	return  win->gc->gc ;
+}
+
+GC
+x_window_get_bg_gc(
+	x_window_t *  win
+	)
+{
+	x_gc_set_fg_color((win)->gc,(win)->bg_color) ;
+
+#if  0
+	x_gc_set_bg_color((win)->gc,(win)->fg_color) ;
+#endif
+
+	return  win->gc->gc ;
 }
 
 int
@@ -1635,14 +1680,14 @@ x_window_fill(
 int
 x_window_fill_with(
 	x_window_t *  win ,
-	u_long  color ,
+	x_color_t *  color ,
 	int  x ,
 	int  y ,
 	u_int	width ,
 	u_int	height
 	)
 {
-	x_gc_set_fg_color( win->gc, color) ;
+	x_gc_set_fg_color( win->gc, color->pixel) ;
 
 	XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
 		x + win->margin , y + win->margin , width , height) ;
@@ -1666,10 +1711,10 @@ x_window_fill_all(
 int
 x_window_fill_all_with(
 	x_window_t *  win ,
-	u_long  color
+	x_color_t *  color
 	)
 {
-	x_gc_set_fg_color( win->gc, color) ;
+	x_gc_set_fg_color( win->gc, color->pixel) ;
 
 	XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
 		0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
@@ -2055,7 +2100,9 @@ x_window_receive_event(
 			#endif
 			}
 
+		#if  0
 			x_window_clear_all( win) ;
+		#endif
 
 			if( win->window_resized)
 			{
@@ -2615,8 +2662,7 @@ int
 x_window_draw_decsp_string(
 	x_window_t *  win ,
 	x_font_t *  font ,
-	x_color_t *  fg_color ,		/* can be NULL */
-	x_color_t *  bg_color ,		/* can be NULL */
+	x_color_t *  fg_color ,
 	int  x ,
 	int  y ,
 	u_char *  str ,
@@ -2625,38 +2671,50 @@ x_window_draw_decsp_string(
 {
 	if( font->decsp_font)
 	{
-		if( fg_color)
-		{
-			x_gc_set_fg_color( win->gc, fg_color->pixel) ;
-		}
+		x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
-		if( bg_color)
-		{
-			x_gc_set_bg_color( win->gc, bg_color->pixel) ;
-			x_decsp_font_draw_image_string( font->decsp_font ,
-						win->disp->display , win->drawable , win->gc->gc ,
-						x + win->margin , y + win->margin , str , len) ;
-		}
-		else
-		{
-			x_decsp_font_draw_string( font->decsp_font ,
-						win->disp->display , win->drawable , win->gc->gc ,
-						x + win->margin , y + win->margin , str , len) ;
-		}
-		return  1 ;
+		return  x_decsp_font_draw_image_string( font->decsp_font , win->disp->display ,
+				win->drawable , win->gc->gc , x + win->margin , y + win->margin ,
+				str , len) ;
 	}
 #ifdef  USE_TYPE_XCORE
 	else if( font->xfont)
 	{
-		if( bg_color)
-		{
-			return  x_window_draw_image_string( win , font , fg_color , bg_color ,
-					x , y , str , len) ;
-		}
-		else
-		{
-			return  x_window_draw_string( win , font , fg_color , x , y , str , len) ;
-		}
+		return  x_window_draw_string( win , font , fg_color , x , y , str , len) ;
+	}
+#endif
+	else
+	{
+		return  0 ;
+	}
+}
+
+int
+x_window_draw_decsp_image_string(
+	x_window_t *  win ,
+	x_font_t *  font ,
+	x_color_t *  fg_color ,
+	x_color_t *  bg_color ,
+	int  x ,
+	int  y ,
+	u_char *  str ,
+	u_int  len
+	)
+{
+	if( font->decsp_font)
+	{
+		x_gc_set_fg_color( win->gc, fg_color->pixel) ;
+		x_gc_set_bg_color( win->gc, bg_color->pixel) ;
+
+		return  x_decsp_font_draw_image_string( font->decsp_font , win->disp->display ,
+				win->drawable , win->gc->gc , x + win->margin , y + win->margin ,
+				str , len) ;
+	}
+#ifdef  USE_TYPE_XCORE
+	else if( font->xfont)
+	{
+		return  x_window_draw_image_string( win , font , fg_color , bg_color ,
+				x , y , str , len) ;
 	}
 #endif
 	else

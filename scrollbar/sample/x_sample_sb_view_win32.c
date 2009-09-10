@@ -4,15 +4,14 @@
 
 #include  <stdio.h>
 #include  <stdlib.h>
-#include  <X11/cursorfont.h>
 #include  <x_sb_view.h>
 
 #include  "x_sample_sb_view_lib.h"
 #include  "x_arrow_data.h"
 
 
-#define  TOP_MARGIN     0
-#define  BOTTOM_MARGIN  28
+#define  TOP_MARGIN     14
+#define  BOTTOM_MARGIN  14
 #define  HEIGHT_MARGIN  (TOP_MARGIN + BOTTOM_MARGIN)
 #define  WIDTH          13
 
@@ -34,10 +33,10 @@ get_geometry_hints(
 	*width = WIDTH ;
 	*top_margin = TOP_MARGIN ;
 	*bottom_margin = BOTTOM_MARGIN ;
-	*up_button_y = -BOTTOM_MARGIN ;
-	*up_button_height = BOTTOM_MARGIN / 2 ;
-	*down_button_y = -(BOTTOM_MARGIN / 2) ;
-	*down_button_height = BOTTOM_MARGIN / 2 ;
+	*up_button_y = 0 ;
+	*up_button_height = TOP_MARGIN ;
+	*down_button_y = -BOTTOM_MARGIN ;
+	*down_button_height = BOTTOM_MARGIN ;
 }
 
 static void
@@ -57,12 +56,11 @@ realized(
 	Display *  display ,
 	int  screen ,
 	Window  window ,
-	GC  gc ,
+	GC  gc ,		/* is None in win32 */
 	unsigned int  height
 	)
 {
 	sample_sb_view_t *  sample ;
-	XGCValues  gc_value ;
 
 	sample = (sample_sb_view_t*) view ;
 	
@@ -72,23 +70,19 @@ realized(
 	view->gc = gc ;
 	view->height = height ;
 
-	XDefineCursor( view->display , view->window , XCreateFontCursor( view->display , XC_left_ptr)) ;
-
-	gc_value.foreground = BlackPixel( view->display , view->screen) ;
-	gc_value.background = WhitePixel( view->display , view->screen) ;
-	gc_value.graphics_exposures = 0 ;
-
-	sample->gc = XCreateGC( view->display , view->window ,
-			GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
+	gc = GetDC(window) ;
+	sample->gc = CreateCompatibleDC( gc) ;
 	
-	sample->arrow_up = x_get_icon_pixmap( view , sample->gc , arrow_up_src ,
-				WIDTH , BOTTOM_MARGIN / 2) ;
-	sample->arrow_down = x_get_icon_pixmap( view , sample->gc , arrow_down_src ,
-				WIDTH , BOTTOM_MARGIN / 2) ;
-	sample->arrow_up_dent = x_get_icon_pixmap( view , sample->gc , arrow_up_dent_src ,
-					WIDTH , BOTTOM_MARGIN / 2) ;
-	sample->arrow_down_dent = x_get_icon_pixmap( view , sample->gc , arrow_down_dent_src ,
-					WIDTH , BOTTOM_MARGIN / 2) ;
+	sample->arrow_up = x_get_icon_pixmap( view , gc , sample->gc , arrow_up_src ,
+					WIDTH , TOP_MARGIN) ;
+	sample->arrow_down = x_get_icon_pixmap( view , gc , sample->gc , arrow_down_src ,
+					WIDTH , BOTTOM_MARGIN) ;
+	sample->arrow_up_dent = x_get_icon_pixmap( view , gc , sample->gc , arrow_up_dent_src ,
+					WIDTH , TOP_MARGIN) ;
+	sample->arrow_down_dent = x_get_icon_pixmap( view , gc , sample->gc , arrow_down_dent_src ,
+					WIDTH , BOTTOM_MARGIN) ;
+
+	ReleaseDC( window , gc) ;
 }
 
 static void
@@ -111,17 +105,29 @@ color_changed(
 	if( is_fg)
 	{
 		sample_sb_view_t *  sample ;
-
+		HPEN  pen ;
+		
 		sample = (sample_sb_view_t*) view ;
 
-		x_draw_icon_pixmap_fg( view , sample->arrow_up , arrow_up_src ,
-			WIDTH , BOTTOM_MARGIN / 2) ;
-		x_draw_icon_pixmap_fg( view , sample->arrow_down , arrow_down_src ,
-			WIDTH , BOTTOM_MARGIN / 2) ;
-		x_draw_icon_pixmap_fg( view , sample->arrow_up_dent , arrow_up_dent_src ,
-			WIDTH , BOTTOM_MARGIN / 2) ;
-		x_draw_icon_pixmap_fg( view , sample->arrow_down_dent , arrow_down_dent_src ,
-			WIDTH , BOTTOM_MARGIN / 2) ;
+		pen = SelectObject( view->gc , GetStockObject(NULL_PEN)) ;
+		SelectObject( sample->gc , pen) ;
+		
+		SelectObject( sample->gc , sample->arrow_up) ;
+		x_draw_icon_pixmap_fg( view , sample->gc , arrow_up_src , WIDTH , TOP_MARGIN) ;
+		
+		SelectObject( sample->gc , sample->arrow_down) ;
+		x_draw_icon_pixmap_fg( view , sample->gc , arrow_down_src ,
+			WIDTH , BOTTOM_MARGIN) ;
+		
+		SelectObject( sample->gc , sample->arrow_up_dent) ;
+		x_draw_icon_pixmap_fg( view , sample->gc , arrow_up_dent_src ,
+			WIDTH , TOP_MARGIN) ;
+		
+		SelectObject( sample->gc , sample->arrow_down_dent) ;
+		x_draw_icon_pixmap_fg( view , sample->gc , arrow_down_dent_src ,
+			WIDTH , BOTTOM_MARGIN) ;
+
+		SelectObject( view->gc , pen) ;
 	}
 }
 
@@ -136,13 +142,15 @@ delete(
 
 	if( sample)
 	{
-		XFreePixmap( view->display , sample->arrow_up) ;
-		XFreePixmap( view->display , sample->arrow_up_dent) ;
-		XFreePixmap( view->display , sample->arrow_down) ;
-		XFreePixmap( view->display , sample->arrow_down_dent) ;
-
-		XFreeGC( view->display , sample->gc) ;
-
+		if( sample->gc)
+		{
+			DeleteDC( sample->gc) ;
+			DeleteObject( sample->arrow_up) ;
+			DeleteObject( sample->arrow_up_dent) ;
+			DeleteObject( sample->arrow_down) ;
+			DeleteObject( sample->arrow_down_dent) ;
+		}
+		
 		free( sample) ;
 	}
 }
@@ -157,7 +165,7 @@ draw_arrow_up_icon(
 	Pixmap  arrow ;
 
 	sample = (sample_sb_view_t*) view ;
-	
+
 	if( is_dent)
 	{
 		arrow = sample->arrow_up_dent ;
@@ -167,8 +175,8 @@ draw_arrow_up_icon(
 		arrow = sample->arrow_up ;
 	}
 	
-	XCopyArea( view->display , arrow , view->window , view->gc ,
-		0 , 0 , WIDTH , BOTTOM_MARGIN / 2 , 0 , view->height - BOTTOM_MARGIN) ;
+	SelectObject( sample->gc , arrow) ;
+	BitBlt( view->gc , 0 , 0 , WIDTH , TOP_MARGIN , sample->gc , 0 , 0 , SRCCOPY) ;
 }
 
 static void
@@ -191,8 +199,9 @@ draw_arrow_down_icon(
 		arrow = sample->arrow_down ;
 	}
 	
-	XCopyArea( view->display , arrow , view->window , view->gc ,
-		0 , 0 , WIDTH , BOTTOM_MARGIN / 2 , 0 , view->height - BOTTOM_MARGIN / 2) ;
+	SelectObject( sample->gc , arrow) ;
+	BitBlt( view->gc , 0 , view->height - BOTTOM_MARGIN , WIDTH , BOTTOM_MARGIN ,
+		sample->gc , 0 , 0 , SRCCOPY) ;
 }
 
 static void
@@ -203,30 +212,32 @@ draw_scrollbar(
 	)
 {
 	sample_sb_view_t *  sample ;
+	HPEN  old_pen ;
 
 	sample = (sample_sb_view_t*) view ;
 	
 	/* drawing bar */
-	XFillRectangle( view->display , view->window , view->gc ,
-		1 , bar_top_y , WIDTH - 1 , bar_height) ;
-		
+	Rectangle( view->gc , 1 , bar_top_y , WIDTH , bar_top_y + bar_height) ;
+	
 	/* left side shade */
-	XSetForeground( view->display , sample->gc , WhitePixel( view->display , view->screen)) ;
-	XDrawLine( view->display , view->window , sample->gc ,
-		0 , bar_top_y , 0 , bar_top_y + bar_height - 1) ;
+	old_pen = SelectObject( view->gc , GetStockObject( WHITE_PEN)) ;
+	MoveToEx( view->gc , 0 , bar_top_y , NULL) ;
+	LineTo( view->gc , 0 , bar_top_y + bar_height) ;
 
 	/* up side shade */
-	XDrawLine( view->display , view->window , sample->gc ,
-		0 , bar_top_y , WIDTH - 1 , bar_top_y) ;
+	MoveToEx( view->gc , 0 , bar_top_y , NULL) ;
+	LineTo( view->gc , WIDTH - 1 , bar_top_y) ;
 
 	/* right side shade */
-	XSetForeground( view->display , sample->gc , BlackPixel( view->display , view->screen)) ;
-	XDrawLine( view->display , view->window , sample->gc ,
-		WIDTH - 1 , bar_top_y , WIDTH - 1 , bar_top_y + bar_height - 1) ;
+	SelectObject( view->gc , GetStockObject( BLACK_PEN)) ;
+	MoveToEx( view->gc , WIDTH - 1 , bar_top_y , NULL) ;
+	LineTo( view->gc , WIDTH - 1 , bar_top_y + bar_height - 1) ;
 
 	/* down side shade */
-	XDrawLine( view->display , view->window , sample->gc ,
-		1 , bar_top_y + bar_height - 1 , WIDTH , bar_top_y + bar_height - 1) ;
+	MoveToEx( view->gc , 1 , bar_top_y + bar_height - 1, NULL) ;
+	LineTo( view->gc , WIDTH , bar_top_y + bar_height - 1) ;
+
+	SelectObject( view->gc , old_pen) ;
 }
 
 static void
@@ -236,7 +247,8 @@ draw_background(
 	unsigned int  height
 	)
 {
-	XClearArea( view->display , view->window , 0 , y , WIDTH , height , 0) ;
+	/* XXX Garbage is left in screen in scrolling without +1. Related to NULL_PEN ? */
+	Rectangle( view->gc , 0 , y , WIDTH + 1 , y + height + 1) ;
 }
 
 static void
@@ -261,7 +273,7 @@ draw_down_button(
 /* --- global functions --- */
 
 x_sb_view_t *
-x_sample2_sb_view_new(void)
+x_sample_sb_view_new(void)
 {
 	sample_sb_view_t *  sample ;
 	
@@ -271,14 +283,14 @@ x_sample2_sb_view_new(void)
 	}
 
 	sample->view.version = 1 ;
-	
+
 	sample->view.get_geometry_hints = get_geometry_hints ;
 	sample->view.get_default_color = get_default_color ;
 	sample->view.realized = realized ;
 	sample->view.resized = resized ;
 	sample->view.color_changed = color_changed ;
 	sample->view.delete = delete ;
-	
+
 	sample->view.draw_scrollbar = draw_scrollbar ;
 	sample->view.draw_background = draw_background ;
 	sample->view.draw_up_button = draw_up_button ;

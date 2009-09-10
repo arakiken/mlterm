@@ -8,6 +8,7 @@
 
 #include  <windows.h>
 #include  <imm.h>
+
 #include  <kiklib/kik_types.h>
 
 
@@ -28,8 +29,8 @@ typedef int  XIMStyle ;		/* dummy */
 
 typedef HANDLE XID ;
 typedef HANDLE Window ;
-typedef HANDLE Drawable ;
-typedef HANDLE Pixmap ;
+typedef HDC Drawable ;
+typedef HBITMAP Pixmap ;
 typedef HDC GC ;
 typedef HFONT Font ;
 typedef WORD KeyCode ;	/* Same as type of wparam */
@@ -44,8 +45,8 @@ typedef struct		/* Same as definition in X11/X.h */
 
 typedef struct		/* Same as definition in X11/X.h */
 {
-	u_char  byte1 ;
-	u_char  byte2 ;
+	unsigned char  byte1 ;
+	unsigned char  byte2 ;
 
 } XChar2b ;
 
@@ -60,8 +61,8 @@ typedef struct
 
 typedef struct
 {
-	u_int  state ;
-	u_int16_t  ch ;
+	unsigned int  state ;
+	WORD  ch ;	/* unsigned short(16bit) defined in windef.h */
 
 } XKeyEvent ;
 
@@ -73,8 +74,8 @@ typedef struct
 	Time  time ;
 	int  x ;
 	int  y ;
-	u_int  state ;
-	u_int  button ;
+	unsigned int  state ;
+	unsigned int  button ;
 
 } XButtonEvent ;
 
@@ -83,7 +84,7 @@ typedef struct
 	Time  time ;
 	int  x ;
 	int  y ;
-	u_int  state ;
+	unsigned int  state ;
 
 } XMotionEvent ;
 
@@ -93,7 +94,7 @@ typedef int XFontSet ;	/* dummy */
 
 typedef struct
 {
-	u_long  pixel ;
+	unsigned long  pixel ;
 	HPEN  pen ;
 	HBRUSH  brush ;
 
@@ -292,6 +293,9 @@ typedef struct
 #define XKeysymToString(ks)	""
 #define DisplayString(disp)	":0.0"
 #define DefaultScreen(disp)	(0)
+
+#define BlackPixel(disp,screen)	RGB(0,0,0)
+#define WhitePixel(disp,screen) RGB(0xff,0xff,0xff)
 
 /* Same as definition in X11/cursorfont.h */
 #define XC_xterm 152

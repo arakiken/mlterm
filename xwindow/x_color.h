@@ -6,14 +6,12 @@
 #define  __X_COLOR_H__
 
 
-#include  "x.h"
-
+#include  <kiklib/kik_types.h>
 #ifdef  USE_TYPE_XFT
 #include  <X11/Xft/Xft.h>
 #endif
 
-#define  RGB_WHITE  0xffffff
-#define  RGB_BLACK  0x0
+#include  "x.h"
 
 #ifdef  USE_TYPE_XFT
 typedef XftColor  x_color_t ;

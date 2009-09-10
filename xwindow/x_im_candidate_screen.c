@@ -864,10 +864,8 @@ window_realized(
 
 	cand_screen = (x_im_candidate_screen_t*) win ;
 
-	x_window_set_fg_color( win , x_get_xcolor( cand_screen->color_man ,
-						  ML_FG_COLOR)->pixel) ;
-	x_window_set_bg_color( win , x_get_xcolor( cand_screen->color_man ,
-						  ML_BG_COLOR)->pixel) ;
+	x_window_set_fg_color( win , x_get_xcolor( cand_screen->color_man , ML_FG_COLOR)) ;
+	x_window_set_bg_color( win , x_get_xcolor( cand_screen->color_man , ML_BG_COLOR)) ;
 
 	x_window_set_override_redirect( &cand_screen->window , 1) ;
 }

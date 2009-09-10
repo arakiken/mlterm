@@ -50,6 +50,8 @@ typedef struct  x_scrollbar
 	int  bar_top_y ;
 	int  y_on_bar ;
 	int  current_row ;
+	int  redraw_y ;
+	u_int  redraw_height ;
 
 	int  up_button_y ;
 	u_int  up_button_height ;
@@ -65,8 +67,8 @@ typedef struct  x_scrollbar
 
 int  x_scrollbar_init( x_scrollbar_t *  sb , x_scrollbar_event_listener_t *  sb_listener ,
 	char *  view_name , char *  fg_color , char *  bg_color ,
-	u_int  height , u_int  line_height , u_int  num_of_log_lines , u_int  num_of_filled_log_lines ,
-	int  use_transbg , x_picture_modifier_t *  pic_mod) ;
+	u_int  height , u_int  line_height , u_int  num_of_log_lines ,
+	u_int  num_of_filled_log_lines , int  use_transbg , x_picture_modifier_t *  pic_mod) ;
 
 int  x_scrollbar_final( x_scrollbar_t *  sb) ;
 

@@ -7,6 +7,8 @@
 #define  __X_DRAW_STR_H__
 
 #include  "x_window.h"
+#include  "x_font_manager.h"
+#include  "x_color_manager.h"
 
 int x_draw_str( x_window_t *  window , x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man , ml_char_t *  chars ,

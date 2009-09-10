@@ -21,8 +21,8 @@
 #include  <ml_char.h>
 
 #include  "x_display.h"
-#include  "x_font_manager.h"
-#include  "x_color_manager.h"
+#include  "x_font.h"
+#include  "x_color.h"
 #include  "x_gc.h"
 
 
@@ -45,8 +45,8 @@ typedef struct  x_xim_event_listener
 
 	int  (*get_spot)( void *  , int * , int *) ;
 	XFontSet  (*get_fontset)( void *) ;
-	u_long  (*get_fg_color)( void *) ;
-	u_long  (*get_bg_color)( void *) ;
+	x_color_t *  (*get_fg_color)( void *) ;
+	x_color_t *  (*get_bg_color)( void *) ;
 
 } x_xim_event_listener_t ;
 
@@ -205,13 +205,17 @@ int  x_window_use_buffer( x_window_t *  win) ;
 
 int  x_window_set_cursor( x_window_t *  win , u_int  cursor_shape) ;
 
-int  x_window_set_fg_color( x_window_t *  win , u_long  fg_color) ;
+int  x_window_set_fg_color( x_window_t *  win , x_color_t *  fg_color) ;
 
-int  x_window_set_bg_color( x_window_t *  win , u_long  bg_color) ;
+int  x_window_set_bg_color( x_window_t *  win , x_color_t *  bg_color) ;
 
 int  x_window_add_child( x_window_t *  win , x_window_t *  child , int  x , int  y , int  map) ;
 
 x_window_t *  x_get_root_window( x_window_t *  win) ;
+
+GC  x_window_get_fg_gc( x_window_t *  win) ;
+
+GC  x_window_get_bg_gc( x_window_t *  win) ;
 
 int  x_window_init_event_mask( x_window_t *  win , long  event_mask) ;
 
@@ -251,12 +255,12 @@ int  x_window_clear_all( x_window_t *  win) ;
 
 int  x_window_fill( x_window_t *  win , int  x , int  y , u_int  width , u_int  height) ;
 
-int  x_window_fill_with( x_window_t *  win , u_long  color ,
+int  x_window_fill_with( x_window_t *  win , x_color_t *  color ,
 	int  x , int  y , u_int  width , u_int  height) ;
 
 int  x_window_fill_all( x_window_t *  win) ;
 
-int  x_window_fill_all_with( x_window_t *  win , u_long  color) ;
+int  x_window_fill_all_with( x_window_t *  win , x_color_t *  color) ;
 
 /* if flag is 0, no update. */
 int  x_window_update( x_window_t *  win , int  flag) ;
@@ -291,6 +295,9 @@ int  x_window_scroll_rightward_region( x_window_t *  win , int  boundary_start ,
 int  x_window_scroll_rightward( x_window_t *  win , u_int  width) ;
 
 int  x_window_draw_decsp_string( x_window_t *  win , x_font_t *  font ,
+	x_color_t *  fg_color , int  x , int  y , u_char *  str , u_int  len) ;
+
+int  x_window_draw_decsp_image_string( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , x_color_t *  bg_color , int  x , int  y ,
 	u_char *  str , u_int  len) ;
 

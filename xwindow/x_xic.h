@@ -8,6 +8,10 @@
 
 #include  <kiklib/kik_types.h>		/* size_t */
 
+#ifdef  USE_WIN32GUI
+#include  <ml_char_encoding.h>
+#endif
+
 #include  "x.h"
 #include  "x_window.h"
 

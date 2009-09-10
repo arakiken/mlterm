@@ -23,7 +23,19 @@ typedef struct  sample_sb_view
 } sample_sb_view_t ;
 
 
-Pixmap  x_get_icon_pixmap( x_sb_view_t *  view , GC  gc_intern ,
+Pixmap  x_get_icon_pixmap( x_sb_view_t *  view ,
+	GC  gc ,
+#ifdef  USE_WIN32GUI
+	GC  memgc ,
+#endif
+	char **  data , unsigned int  width , unsigned int  height) ;
+
+int  x_draw_icon_pixmap_fg( x_sb_view_t *  view ,
+#ifdef  USE_WIN32GUI
+	GC  gc ,
+#else
+	Pixmap  arrow ,
+#endif
 	char **  data , unsigned int  width , unsigned int  height) ;
 
 

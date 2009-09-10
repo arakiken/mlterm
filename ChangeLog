@@ -1,3 +1,20 @@
+2009-09-10  Araki Ken  <arakiken@users.sf.net>
+
+	* x_gdiobj_pool.[ch]: Added.
+
+	* scrollbar/sample/x_sample_sb_view{_lib}_win32.c: Added.
+	  ('sample' scrollbar in win32.)
+
+	* x_window{_win32}.[ch]: Added x_window_get_{fg|bg}_gc() which is
+	  used in x_scrollbar.c.
+
+	* x_sb_view_factory.c:
+	  Added hack for source and binary backward compatibility of x_sb_view_t.
+
+	* x_{transparent_}{simple|sample}_sb_view.c: Adujsted to new x_sb_view_t.
+
+	* x_sb_view: Changed members of x_sb_view_t structure for win32.
+
 2009-08-13  KATO Kazuyoshi  <kzys@8-p.info>
 
 	* scrollbar/sample/Makefile.in: Added @KIK_CFLAGS@.
@@ -4871,9 +4888,3 @@
 	  (Thanks to Nobuyoshi Nakada san)
 	* Please read doc/en/ChangeLog.old for previous changelog information.
 	  (This term was written by Tomohiro KUBOTA in 2002-04-24.)
-
-<<<<<<< ChangeLog
-$Id$
-=======
-$Id$
->>>>>>> 1.978

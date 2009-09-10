@@ -434,7 +434,7 @@ x_get_fontset(
 	)
 {
 #ifdef  USE_WIN32GUI
-	return  NULL ;
+	return  None ;
 #else
 	XFontSet  fontset ;
 	char *  list_str ;
@@ -444,7 +444,7 @@ x_get_fontset(
 
 	if( ( list_str = x_get_font_name_list_for_fontset( font_man->font_cache)) == NULL)
 	{
-		return  NULL ;
+		return  None ;
 	}
 	
 #ifdef  __DEBUG

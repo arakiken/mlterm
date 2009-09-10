@@ -7,6 +7,7 @@
 #include  <stdlib.h>
 #include  <kiklib/kik_mem.h>		/* malloc */
 #include  <kiklib/kik_types.h>
+#include  <kiklib/kik_debug.h>
 
 
 #define  WIDTH          10
@@ -61,7 +62,7 @@ realized(
 	Display *  display ,
 	int  screen ,
 	Window  window ,
-	GC  gc ,
+	GC  gc ,		/* is None in win32. */
 	u_int  height
 	)
 {
@@ -84,49 +85,38 @@ resized(
 }
 
 static void
-draw_decoration(
-	x_sb_view_t *  view
-	)
-{
-	/* do nothing */
-}
-
-static void
 draw_scrollbar(
 	x_sb_view_t *  view ,
 	int  bar_top_y ,
-	u_int  bar_height
+	unsigned int  bar_height
 	)
 {
-	HDC  dc ;
-	
 	x_simple_sb_view_t *  simple_view ;
 
 	simple_view = (x_simple_sb_view_t*) view ;
 
-	dc = GetDC( view->window) ;
-	SelectObject( dc, GetStockObject(NULL_PEN)) ;
-	SelectObject( dc, (HBRUSH)GetClassLong( view->window, GCL_HBRBACKGROUND)) ;
-
-	/* XXX Garbage is left in screen in scrolling without +1. Related to NULL_PEN ? */
-	Rectangle( dc, 0, 0, WIDTH + 1, view->height) ;
-
-	SelectObject( dc, GetStockObject(BLACK_PEN)) ;
-	SelectObject( dc, GetStockObject(BLACK_BRUSH)) ;
-	
 	if( ! simple_view->is_transparent)
 	{
-		Rectangle( dc, 0, bar_top_y, WIDTH, bar_top_y + bar_height) ;
+		Rectangle( view->gc, 0, bar_top_y, WIDTH, bar_top_y + bar_height) ;
 	}
 	else
 	{
-		Rectangle( dc, 0, bar_top_y, 1, bar_top_y + bar_height) ;
-		Rectangle( dc, WIDTH, bar_top_y, WIDTH, bar_top_y + bar_height) ;
-		Rectangle( dc, 0, bar_top_y, WIDTH, bar_top_y) ;
-		Rectangle( dc, 0, bar_top_y + bar_height, WIDTH, bar_top_y + bar_height) ;
+		Rectangle( view->gc, 0, bar_top_y, 1, bar_top_y + bar_height) ;
+		Rectangle( view->gc, WIDTH, bar_top_y, WIDTH, bar_top_y + bar_height) ;
+		Rectangle( view->gc, 0, bar_top_y, WIDTH, bar_top_y) ;
+		Rectangle( view->gc, 0, bar_top_y + bar_height, WIDTH, bar_top_y + bar_height) ;
 	}
+}
 
-	ReleaseDC( view->window, dc) ;
+static void
+draw_background(
+	x_sb_view_t *  view ,
+	int  y ,
+	unsigned int  height
+	)
+{
+	/* XXX Garbage is left in screen in scrolling without +1. Related to NULL_PEN ? */
+	Rectangle( view->gc, 0, y, WIDTH + 1, y + height + 1) ;
 }
 
 static void
@@ -150,19 +140,19 @@ x_simple_sb_view_new(void)
 		return  NULL ;
 	}
 
+	view->view.version = 1 ;
+
 	view->view.get_geometry_hints = get_geometry_hints ;
 	view->view.get_default_color = get_default_color ;
 	view->view.realized = realized ;
 	view->view.resized = resized ;
+	view->view.color_changed = NULL ;
 	view->view.delete = delete ;
 	
-	view->view.draw_decoration = draw_decoration ;
 	view->view.draw_scrollbar = draw_scrollbar ;
-	
-	view->view.up_button_pressed = NULL ;
-	view->view.down_button_pressed = NULL ;
-	view->view.up_button_released = NULL ;
-	view->view.down_button_released = NULL ;
+	view->view.draw_background = draw_background ;
+	view->view.draw_up_button = NULL ;
+	view->view.draw_down_button = NULL ;
 
 	view->is_transparent = 0 ;
 
@@ -179,19 +169,19 @@ x_simple_transparent_sb_view_new(void)
 		return  NULL ;
 	}
 
+	view->view.version = 1 ;
+
 	view->view.get_geometry_hints = get_geometry_hints ;
 	view->view.get_default_color = get_default_color ;
 	view->view.realized = realized ;
 	view->view.resized = resized ;
+	view->view.color_changed = NULL ;
 	view->view.delete = delete ;
 	
-	view->view.draw_decoration = draw_decoration ;
 	view->view.draw_scrollbar = draw_scrollbar ;
-	
-	view->view.up_button_pressed = NULL ;
-	view->view.down_button_pressed = NULL ;
-	view->view.up_button_released = NULL ;
-	view->view.down_button_released = NULL ;
+	view->view.draw_background = draw_background ;
+	view->view.draw_up_button = NULL ;
+	view->view.draw_down_button = NULL ;
 
 	view->is_transparent = 1 ;
 

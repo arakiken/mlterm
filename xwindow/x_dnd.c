@@ -10,6 +10,7 @@
 #include  <string.h>
 #include  <X11/Xatom.h>
 #include  <X11/Xutil.h>
+#include  <kiklib/kik_debug.h>
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
 

@@ -31,7 +31,7 @@ OBJ1 = x_term_manager.o x_display@WIN32TAG@.o x_window@WIN32TAG@.o x_screen.o x_
 OBJ2 = x_decsp_font.o @DND_LIBS@ x_im.o x_im_candidate_screen.o \
 	x_im_status_screen.o x_imagelib_@IMAGELIB_NAME@.o x_xim.o
 
-OBJ2_win32 = x_imagelib_win32.o
+OBJ2_win32 = x_imagelib_win32.o x_gdiobj_pool.o
 
 OBJ = $(OBJ1) $(OBJ2@WIN32TAG@)
 

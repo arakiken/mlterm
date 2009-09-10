@@ -80,8 +80,9 @@ realized(
 
 	sample->gc = XCreateGC( view->display , view->window ,
 			GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
-		
-	sample->arrow_up = x_get_icon_pixmap( view , sample->gc , arrow_up_src , WIDTH , TOP_MARGIN) ;
+
+	sample->arrow_up = x_get_icon_pixmap( view , sample->gc , arrow_up_src ,
+					WIDTH , TOP_MARGIN) ;
 	sample->arrow_down = x_get_icon_pixmap( view , sample->gc , arrow_down_src ,
 					WIDTH , BOTTOM_MARGIN) ;
 	sample->arrow_up_dent = x_get_icon_pixmap( view , sample->gc , arrow_up_dent_src ,
@@ -99,6 +100,29 @@ resized(
 {
 	view->window = window ;
 	view->height = height ;
+}
+
+static void
+color_changed(
+	x_sb_view_t *  view ,
+	int  is_fg		/* 1=fg , 0=bg */
+	)
+{
+	if( is_fg)
+	{
+		sample_sb_view_t *  sample ;
+
+		sample = (sample_sb_view_t*) view ;
+		
+		x_draw_icon_pixmap_fg( view , sample->arrow_up , arrow_up_src ,
+			WIDTH , TOP_MARGIN) ;
+		x_draw_icon_pixmap_fg( view , sample->arrow_down , arrow_down_src ,
+			WIDTH , BOTTOM_MARGIN) ;
+		x_draw_icon_pixmap_fg( view , sample->arrow_up_dent , arrow_up_dent_src ,
+			WIDTH , TOP_MARGIN) ;
+		x_draw_icon_pixmap_fg( view , sample->arrow_down_dent , arrow_down_dent_src ,
+			WIDTH , BOTTOM_MARGIN) ;
+	}
 }
 
 static void
@@ -131,32 +155,16 @@ draw_arrow_up_icon(
 {
 	sample_sb_view_t *  sample ;
 	Pixmap  arrow ;
-	int  x ;
-	int  y ;
-	char **  src ;
 
 	sample = (sample_sb_view_t*) view ;
 	
 	if( is_dent)
 	{
 		arrow = sample->arrow_up_dent ;
-		src = arrow_up_dent_src ;
 	}
 	else
 	{
 		arrow = sample->arrow_up ;
-		src = arrow_up_src ;
-	}
-	
-	for( y = 0 ; y < TOP_MARGIN ; y ++)
-	{
-		for( x = 0 ; x < WIDTH ; x ++)
-		{
-			if( src[y][x] == '-')
-			{
-				XDrawPoint( view->display , arrow , view->gc , x , y) ;
-			}
-		}
 	}
 	
 	XCopyArea( view->display , arrow , view->window , view->gc ,
@@ -171,45 +179,20 @@ draw_arrow_down_icon(
 {
 	sample_sb_view_t *  sample ;
 	Pixmap  arrow ;
-	int  x ;
-	int  y ;
-	char **  src ;
 
 	sample = (sample_sb_view_t*) view ;
 
 	if( is_dent)
 	{
 		arrow = sample->arrow_down_dent ;
-		src = arrow_down_dent_src ;
 	}
 	else
 	{
 		arrow = sample->arrow_down ;
-		src = arrow_down_src ;
-	}
-	
-	for( y = 0 ; y < BOTTOM_MARGIN ; y ++)
-	{
-		for( x = 0 ; x < WIDTH ; x ++)
-		{
-			if( src[y][x] == '-')
-			{
-				XDrawPoint( view->display , arrow , view->gc , x , y) ;
-			}
-		}
 	}
 	
 	XCopyArea( view->display , arrow , view->window , view->gc ,
 		0 , 0 , WIDTH , BOTTOM_MARGIN , 0 , view->height - BOTTOM_MARGIN) ;
-}
-
-static void
-draw_decoration(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 0) ;
-	draw_arrow_down_icon( view , 0) ;
 }
 
 static void
@@ -223,9 +206,6 @@ draw_scrollbar(
 
 	sample = (sample_sb_view_t*) view ;
 	
-	XClearArea( view->display , view->window , 0 , TOP_MARGIN , WIDTH ,
-		view->height - HEIGHT_MARGIN , 0) ;
-
 	/* drawing bar */
 	XFillRectangle( view->display , view->window , view->gc ,
 		1 , bar_top_y , WIDTH - 1 , bar_height) ;
@@ -250,35 +230,31 @@ draw_scrollbar(
 }
 
 static void
-up_button_pressed(
-	x_sb_view_t *  view
+draw_background(
+	x_sb_view_t *  view ,
+	int  y ,
+	unsigned int  height
 	)
 {
-	draw_arrow_up_icon( view , 1) ;
+	XClearArea( view->display , view->window , 0 , y , WIDTH , height , 0) ;
 }
 
 static void
-down_button_pressed(
-	x_sb_view_t *  view
+draw_up_button(
+	x_sb_view_t *  view ,
+	int  is_pressed
 	)
 {
-	draw_arrow_down_icon( view , 1) ;
+	draw_arrow_up_icon( view , is_pressed) ;
 }
 
 static void
-up_button_released(
-	x_sb_view_t *  view
+draw_down_button(
+	x_sb_view_t *  view ,
+	int  is_pressed
 	)
 {
-	draw_arrow_up_icon( view , 0) ;
-}
-
-static void
-down_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_down_icon( view , 0) ;
+	draw_arrow_down_icon( view , is_pressed) ;
 }
 
 
@@ -294,20 +270,21 @@ x_sample_sb_view_new(void)
 		return  NULL ;
 	}
 
+	sample->view.version = 1 ;
+
 	sample->view.get_geometry_hints = get_geometry_hints ;
 	sample->view.get_default_color = get_default_color ;
 	sample->view.realized = realized ;
 	sample->view.resized = resized ;
+	sample->view.color_changed = color_changed ;
 	sample->view.delete = delete ;
-	
-	sample->view.draw_decoration = draw_decoration ;
+
 	sample->view.draw_scrollbar = draw_scrollbar ;
+	sample->view.draw_background = draw_background ;
+	sample->view.draw_up_button = draw_up_button ;
+	sample->view.draw_down_button = draw_down_button ;
 
-	sample->view.up_button_pressed = up_button_pressed ;
-	sample->view.down_button_pressed = down_button_pressed ;
-	sample->view.up_button_released = up_button_released ;
-	sample->view.down_button_released = down_button_released ;
-
+	sample->gc = None ;
 	sample->arrow_up = None ;
 	sample->arrow_up_dent = None ;
 	sample->arrow_down = None ;

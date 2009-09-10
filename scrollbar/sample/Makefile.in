@@ -10,9 +10,24 @@ LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
 VPATH = ${top_srcdir}/scrollbar/sample
 
-SAMPLE_OBJ = x_sample_sb_view.o x_transparent_sample_sb_view.o x_sample_sb_view_lib.o 
-SAMPLE2_OBJ = x_sample2_sb_view.o x_transparent_sample2_sb_view.o x_sample_sb_view_lib.o
-CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ -I/usr/include/include
+_SAMPLE_OBJ = x_sample_sb_view.o x_transparent_sample_sb_view.o x_sample_sb_view_lib.o
+_SAMPLE_OBJ_win32 = x_sample_sb_view_win32.o x_sample_sb_view_lib_win32.o
+SAMPLE_OBJ = $(_SAMPLE_OBJ@WIN32TAG@)
+
+_SAMPLE2_OBJ = x_sample2_sb_view.o x_transparent_sample2_sb_view.o x_sample_sb_view_lib.o
+_SAMPLE2_OBJ_win32 =
+SAMPLE2_OBJ = $(_SAMPLE2_OBJ@WIN32TAG@)
+
+_TARGETS = sample sample2
+_TARGETS_win32 = sample
+TARGETS = $(_TARGETS@WIN32TAG@)
+
+CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ \
+	@GUI_CFLAGS@ -I/usr/include/include
+
+_LIBS = @X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
+_LIBS_win32 = -mwindows
+LIBS = $(_LIBS@WIN32TAG@)
 
 CC = @CC@
 INSTALL = @INSTALL@
@@ -24,16 +39,14 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 .SUFFIXES: .o .c
 
-all: sample sample2
+all: $(TARGETS)
 sample: $(SAMPLE_OBJ)
 	$(LIBTOOL_LINK) -o libsample.la $(SAMPLE_OBJ:.o=.lo) -rpath $(LIBDIR) \
-	-module -avoid-version @NO_UNDEFINED_FLAG@ \
-	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
+	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
 sample2: $(SAMPLE2_OBJ)
 	$(LIBTOOL_LINK) -o libsample2.la $(SAMPLE2_OBJ:.o=.lo) -rpath $(LIBDIR) \
-	-module -avoid-version @NO_UNDEFINED_FLAG@ \
-	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
+	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
 
 .c.o:
 	$(LIBTOOL_CC) -c $<

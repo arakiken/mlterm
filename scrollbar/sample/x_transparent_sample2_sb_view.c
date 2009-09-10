@@ -149,6 +149,9 @@ draw_arrow_up_icon(
 		src = arrow_up_src ;
 	}
 	
+	XClearArea( view->display , view->window , 0 , view->height - BOTTOM_MARGIN ,
+			WIDTH , BOTTOM_MARGIN / 2 , 0) ;
+
 	for( y = 0 ; y < BOTTOM_MARGIN / 2 ; y ++)
 	{
 		for( x = 0 ; x < WIDTH ; x ++)
@@ -191,6 +194,9 @@ draw_arrow_down_icon(
 		src = arrow_down_src ;
 	}
 	
+	XClearArea( view->display , view->window , 0 , view->height - BOTTOM_MARGIN / 2 ,
+			WIDTH , BOTTOM_MARGIN / 2 , 0) ;
+
 	for( y = 0 ; y < BOTTOM_MARGIN / 2 ; y ++)
 	{
 		for( x = 0 ; x < WIDTH ; x ++)
@@ -206,15 +212,6 @@ draw_arrow_down_icon(
 
 	XCopyArea( view->display , arrow , view->window , view->gc ,
 		0 , 0 , WIDTH , BOTTOM_MARGIN / 2 , 0 , view->height - BOTTOM_MARGIN / 2) ;
-}
-
-static void
-draw_decoration(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 0) ;
-	draw_arrow_down_icon( view , 0) ;
 }
 
 static void
@@ -253,35 +250,21 @@ draw_scrollbar(
 }
 
 static void
-up_button_pressed(
-	x_sb_view_t *  view
+draw_up_button(
+	x_sb_view_t *  view ,
+	int  is_pressed
 	)
 {
-	draw_arrow_up_icon( view , 1) ;
+	draw_arrow_up_icon( view , is_pressed) ;
 }
 
 static void
-down_button_pressed(
-	x_sb_view_t *  view
+draw_down_button(
+	x_sb_view_t *  view ,
+	int  is_pressed
 	)
 {
-	draw_arrow_down_icon( view , 1) ;
-}
-
-static void
-up_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 0) ;
-}
-
-static void
-down_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_down_icon( view , 0) ;
+	draw_arrow_down_icon( view , is_pressed) ;
 }
 
 
@@ -297,19 +280,19 @@ x_sample2_transparent_sb_view_new(void)
 		return  NULL ;
 	}
 
+	sample->view.version = 1 ;
+	
 	sample->view.get_geometry_hints = get_geometry_hints ;
 	sample->view.get_default_color = get_default_color ;
 	sample->view.realized = realized ;
 	sample->view.resized = resized ;
+	sample->view.color_changed = NULL ;
 	sample->view.delete = delete ;
 	
-	sample->view.draw_decoration = draw_decoration ;
 	sample->view.draw_scrollbar = draw_scrollbar ;
-
-	sample->view.up_button_pressed = up_button_pressed ;
-	sample->view.down_button_pressed = down_button_pressed ;
-	sample->view.up_button_released = up_button_released ;
-	sample->view.down_button_released = down_button_released ;
+	sample->view.draw_background = NULL ;
+	sample->view.draw_up_button = draw_up_button ;
+	sample->view.draw_down_button = draw_down_button ;
 
 	sample->arrow_up = None ;
 	sample->arrow_up_dent = None ;

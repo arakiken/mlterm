@@ -9,6 +9,7 @@
 #include  <kiklib/kik_mem.h>
 
 #include  "x_window.h"
+#include  "x_gdiobj_pool.h"
 
 
 #define  DISP_IS_INITED   (_disp.display)
@@ -164,6 +165,8 @@ x_display_open(
 	}
 
 	_disp.display = &_display ;
+
+	x_gdiobj_pool_init() ;
 	
 	return  &_disp ;
 }
@@ -207,6 +210,8 @@ x_display_close(
 	free( disp->roots) ;
 
 	_disp.display = NULL ;
+
+	x_gdiobj_pool_final() ;
 
 	return  1 ;
 }

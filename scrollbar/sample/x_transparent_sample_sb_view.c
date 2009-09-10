@@ -82,7 +82,8 @@ realized(
 	sample->gc = XCreateGC( view->display , view->window ,
 			GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
 		
-	sample->arrow_up = x_get_icon_pixmap( view , sample->gc , arrow_up_src , WIDTH , TOP_MARGIN) ;
+	sample->arrow_up = x_get_icon_pixmap( view , sample->gc , arrow_up_src ,
+					WIDTH , TOP_MARGIN) ;
 	sample->arrow_down = x_get_icon_pixmap( view , sample->gc , arrow_down_src ,
 					WIDTH , BOTTOM_MARGIN) ;
 	sample->arrow_up_dent = x_get_icon_pixmap( view , sample->gc , arrow_up_dent_src ,
@@ -148,7 +149,9 @@ draw_arrow_up_icon(
 		arrow = sample->arrow_up ;
 		src = arrow_up_src ;
 	}
-	
+
+	XClearArea( view->display , view->window , 0 , 0 , WIDTH , TOP_MARGIN , 0) ;
+
 	for( y = 0 ; y < TOP_MARGIN ; y ++)
 	{
 		for( x = 0 ; x < WIDTH ; x ++)
@@ -189,7 +192,10 @@ draw_arrow_down_icon(
 		arrow = sample->arrow_down ;
 		src = arrow_down_src ;
 	}
-	
+
+	XClearArea( view->display , view->window , 0 , view->height - BOTTOM_MARGIN ,
+		WIDTH , BOTTOM_MARGIN , 0) ;
+
 	for( y = 0 ; y < BOTTOM_MARGIN ; y ++)
 	{
 		for( x = 0 ; x < WIDTH ; x ++)
@@ -208,15 +214,6 @@ draw_arrow_down_icon(
 }
 
 static void
-draw_decoration(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 0) ;
-	draw_arrow_down_icon( view , 0) ;
-}
-
-static void
 draw_scrollbar(
 	x_sb_view_t *  view ,
 	int  bar_top_y ,
@@ -226,9 +223,9 @@ draw_scrollbar(
 	sample_sb_view_t *  sample ;
 
 	sample = (sample_sb_view_t*) view ;
-	
-	XClearArea( view->display , view->window , 0 , TOP_MARGIN , WIDTH ,
-		view->height - HEIGHT_MARGIN , 0) ;
+
+	XClearArea( view->display , view->window , 0 , TOP_MARGIN ,
+		WIDTH , view->height - HEIGHT_MARGIN , 0) ;
 
 	/* drawing bar */
 	
@@ -252,35 +249,21 @@ draw_scrollbar(
 }
 
 static void
-up_button_pressed(
-	x_sb_view_t *  view
+draw_up_button(
+	x_sb_view_t *  view ,
+	int  is_pressed
 	)
 {
-	draw_arrow_up_icon( view , 1) ;
+	draw_arrow_up_icon( view , is_pressed) ;
 }
 
 static void
-down_button_pressed(
-	x_sb_view_t *  view
+draw_down_button(
+	x_sb_view_t *  view ,
+	int  is_pressed
 	)
 {
-	draw_arrow_down_icon( view , 1) ;
-}
-
-static void
-up_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_up_icon( view , 0) ;
-}
-
-static void
-down_button_released(
-	x_sb_view_t *  view
-	)
-{
-	draw_arrow_down_icon( view , 0) ;
+	draw_arrow_down_icon( view , is_pressed) ;
 }
 
 
@@ -296,19 +279,19 @@ x_sample_transparent_sb_view_new(void)
 		return  NULL ;
 	}
 
+	sample->view.version = 1 ;
+
 	sample->view.get_geometry_hints = get_geometry_hints ;
 	sample->view.get_default_color = get_default_color ;
 	sample->view.realized = realized ;
 	sample->view.resized = resized ;
+	sample->view.color_changed = NULL ;
 	sample->view.delete = delete ;
-	
-	sample->view.draw_decoration = draw_decoration ;
-	sample->view.draw_scrollbar = draw_scrollbar ;
 
-	sample->view.up_button_pressed = up_button_pressed ;
-	sample->view.down_button_pressed = down_button_pressed ;
-	sample->view.up_button_released = up_button_released ;
-	sample->view.down_button_released = down_button_released ;
+	sample->view.draw_scrollbar = draw_scrollbar ;
+	sample->view.draw_background = NULL ;
+	sample->view.draw_up_button = draw_up_button ;
+	sample->view.draw_down_button = draw_down_button ;
 
 	sample->arrow_up = None ;
 	sample->arrow_up_dent = None ;

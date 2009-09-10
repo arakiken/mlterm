@@ -7,6 +7,8 @@
 
 #include  "x_window.h"
 #include  "x_display.h"
+#include  "x_font_manager.h"
+#include  "x_color_manager.h"
 
 typedef struct x_im_candidate
 {

@@ -84,11 +84,11 @@ resized(
 }
 
 static void
-draw_decoration(
+delete(
 	x_sb_view_t *  view
 	)
 {
-	/* do nothing */
+	free( view) ;
 }
 
 static void
@@ -102,8 +102,6 @@ draw_scrollbar(
 
 	simple_view = (x_simple_sb_view_t*) view ;
 	
-	XClearArea( view->display , view->window , 0 , 0 , WIDTH , view->height , 0) ;
-
 	if( ! simple_view->is_transparent)
 	{
 		XFillRectangle( view->display , view->window , view->gc , 0 , bar_top_y ,
@@ -111,21 +109,25 @@ draw_scrollbar(
 	}
 	else
 	{
-		XFillRectangle( view->display , view->window , view->gc , 0 , bar_top_y , 1 , bar_height) ;
+		XFillRectangle( view->display , view->window , view->gc ,
+			0 , bar_top_y , 1 , bar_height) ;
 		XFillRectangle( view->display , view->window , view->gc , WIDTH ,
 			bar_top_y , 1 , bar_height) ;
-		XFillRectangle( view->display , view->window , view->gc , 0 , bar_top_y , WIDTH , 1) ;
+		XFillRectangle( view->display , view->window , view->gc ,
+			0 , bar_top_y , WIDTH , 1) ;
 		XFillRectangle( view->display , view->window , view->gc , 0 ,
 			bar_top_y + bar_height - 1 , WIDTH , 1) ;
 	}
 }
 
 static void
-delete(
-	x_sb_view_t *  view
+draw_background(
+	x_sb_view_t *  view ,
+	int  y ,
+	unsigned int  height
 	)
 {
-	free( view) ;
+	XClearArea( view->display , view->window , 0 , y , WIDTH , height , 0) ;
 }
 
 
@@ -141,19 +143,19 @@ x_simple_sb_view_new(void)
 		return  NULL ;
 	}
 
+	view->view.version = 1 ;
+	
 	view->view.get_geometry_hints = get_geometry_hints ;
 	view->view.get_default_color = get_default_color ;
 	view->view.realized = realized ;
 	view->view.resized = resized ;
+	view->view.color_changed = NULL ;
 	view->view.delete = delete ;
 	
-	view->view.draw_decoration = draw_decoration ;
 	view->view.draw_scrollbar = draw_scrollbar ;
-	
-	view->view.up_button_pressed = NULL ;
-	view->view.down_button_pressed = NULL ;
-	view->view.up_button_released = NULL ;
-	view->view.down_button_released = NULL ;
+	view->view.draw_background = draw_background ;
+	view->view.draw_up_button = NULL ;
+	view->view.draw_down_button = NULL ;
 
 	view->is_transparent = 0 ;
 
@@ -170,19 +172,19 @@ x_simple_transparent_sb_view_new(void)
 		return  NULL ;
 	}
 
+	view->view.version = 1 ;
+	
 	view->view.get_geometry_hints = get_geometry_hints ;
 	view->view.get_default_color = get_default_color ;
 	view->view.realized = realized ;
 	view->view.resized = resized ;
+	view->view.color_changed = NULL ;
 	view->view.delete = delete ;
 	
-	view->view.draw_decoration = draw_decoration ;
 	view->view.draw_scrollbar = draw_scrollbar ;
-	
-	view->view.up_button_pressed = NULL ;
-	view->view.down_button_pressed = NULL ;
-	view->view.up_button_released = NULL ;
-	view->view.down_button_released = NULL ;
+	view->view.draw_background = draw_background ;
+	view->view.draw_up_button = NULL ;
+	view->view.draw_down_button = NULL ;
 
 	view->is_transparent = 1 ;
 

@@ -581,8 +581,8 @@ x_window_init(
 	win->drawable = None ;
 	win->buffer = None ;
 
-	win->fg_color = RGB_BLACK ;	/* black */
-	win->bg_color = RGB_WHITE ;	/* white */
+	win->fg_color = 0 ;
+	win->bg_color = 0 ;
 
 	win->parent = NULL ;
 	win->children = NULL ;
@@ -692,11 +692,6 @@ x_window_final(
 	x_display_clear_selection( win->disp , win) ;
 
 #ifdef  USE_WIN32GUI
-	if( win->bg_color != RGB_WHITE)
-	{
-		DeleteObject( (HBRUSH)GetClassLong( win->my_window, GCL_HBRBACKGROUND)) ;
-	}
-
 	/*
 	 * DestroyWindow() is not called here because DestroyWindow internally sends
 	 * WM_DESTROY message which causes window_deleted event again.
@@ -1008,14 +1003,10 @@ x_window_set_cursor(
 int
 x_window_set_fg_color(
 	x_window_t *  win ,
-	u_long  fg_color
+	x_color_t *  fg_color
 	)
 {
-#ifndef  USE_WIN32GUI
-	XSetForeground( win->display , win->gc , fg_color) ;
-#endif
-	
-	win->fg_color = fg_color ;
+	win->fg_color = fg_color->pixel ;
 
 	return  1 ;
 }
@@ -1023,25 +1014,16 @@ x_window_set_fg_color(
 int
 x_window_set_bg_color(
 	x_window_t *  win ,
-	u_long  bg_color
+	x_color_t *  bg_color
 	)
 {
-	HBRUSH  old_br ;
+	win->bg_color = bg_color->pixel ;
 
 	if( win->my_window != None)
 	{
-		old_br = (HBRUSH)SetClassLong( win->my_window, GCL_HBRBACKGROUND,
-						(LONG)CreateSolidBrush(bg_color)) ;
-		if( win->bg_color != RGB_WHITE)
-		{
-			DeleteObject( old_br) ;
-		}
-
 		InvalidateRect( win->my_window, NULL, FALSE) ;
 	}
 	
-	win->bg_color = bg_color ;
-
 	return  1 ;
 }
 
@@ -1089,6 +1071,38 @@ x_get_root_window(
 	}
 
 	return  win ;
+}
+
+GC
+x_window_get_fg_gc(
+	x_window_t *  win
+	)
+{
+#if  0
+	x_gc_set_fg_color( win->gc , win->fg_color) ;
+	x_gc_set_bg_color( win->gc , win->bg_color) ;
+#endif
+
+	x_release_pen( x_gc_set_pen( win->gc , x_acquire_pen( win->fg_color))) ;
+	x_release_brush( x_gc_set_brush( win->gc , x_acquire_brush( win->fg_color))) ;
+
+	return  win->gc->gc ;
+}
+
+GC
+x_window_get_bg_gc(
+	x_window_t *  win
+	)
+{
+#if  0
+	x_gc_set_fg_color( win->gc , win->bg_color) ;
+	x_gc_set_bg_color( win->gc , win->fg_color) ;
+#endif
+
+	x_release_pen( x_gc_set_pen( win->gc , GetStockObject(NULL_PEN))) ;
+	x_release_brush( x_gc_set_brush( win->gc , x_acquire_brush( win->bg_color))) ;
+
+	return  win->gc->gc ;
 }
 
 int
@@ -1155,12 +1169,7 @@ x_window_show(
 				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 				DefaultDepth( win->display , win->screen)) ;
 	}
-	else
 #endif
-	{
-		win->drawable = win->my_window ;
-		win->buffer = 0 ;
-	}
 
 	/*
 	 * This should be called after Window Manager settings, because
@@ -1168,7 +1177,12 @@ x_window_show(
 	 */
 	if( win->window_realized)
 	{
+		x_set_gc( win->gc, GetDC( win->my_window)) ;
+
 		(*win->window_realized)( win) ;
+		
+		ReleaseDC( win->my_window, win->gc->gc) ;
+		x_set_gc( win->gc, None) ;
 	}
 
 	/*
@@ -1462,23 +1476,14 @@ x_window_clear(
 
 		return  1 ;
 	}
-	else if( win->drawable == win->buffer)
+	else
 	{
-		return  0 ;
-	}
-	else if( win->drawable == win->my_window)
-	{
-		x_gc_set_pen( win->gc, GetStockObject(NULL_PEN)) ;
-		x_gc_set_brush( win->gc,
-			(HBRUSH)GetClassLong( win->my_window, GCL_HBRBACKGROUND)) ;
+		x_release_pen( x_gc_set_pen( win->gc, GetStockObject(NULL_PEN))) ;
+		x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( win->bg_color))) ;
 		
 		Rectangle( win->gc->gc, r.left, r.top, r.right, r.bottom) ;
 
 		return  1 ;
-	}
-	else
-	{
-		return  0 ;
 	}
 }
 
@@ -1495,15 +1500,10 @@ x_window_clear_margin_area(
 	{
 		return  0 ;
 	}
-	else if( win->drawable == win->buffer)
+	else
 	{
-		return  0 ;
-	}
-	else if( win->drawable == win->my_window)
-	{
-		x_gc_set_pen( win->gc, GetStockObject(NULL_PEN)) ;
-		x_gc_set_brush( win->gc,
-			(HBRUSH)GetClassLong( win->my_window, GCL_HBRBACKGROUND)) ;
+		x_release_pen( x_gc_set_pen( win->gc, GetStockObject(NULL_PEN))) ;
+		x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( win->bg_color))) ;
 
 		/* XXX -1 is not necessary ? */
 		Rectangle( win->gc->gc, 0, 0,
@@ -1516,10 +1516,6 @@ x_window_clear_margin_area(
 			win->width + win->margin /* - 1 */, ACTUAL_HEIGHT(win) /* - 1 */) ;
 
 		return  1 ;
-	}
-	else
-	{
-		return  0 ;
 	}
 }
 
@@ -1540,9 +1536,8 @@ x_window_fill(
 	u_int	height
 	)
 {
-	/* XXX  Should apply win->fg_color */
-	x_gc_set_pen( win->gc, GetStockObject(BLACK_PEN)) ;
-	x_gc_set_brush( win->gc, GetStockObject(BLACK_BRUSH)) ;
+	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color))) ;
+	x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( win->fg_color))) ;
 
 	/* XXX -1 is not necessary ? */
 	Rectangle( win->gc->gc, x, y, x + width /* - 1 */, y + height /* - 1 */) ;
@@ -1553,27 +1548,18 @@ x_window_fill(
 int
 x_window_fill_with(
 	x_window_t *  win ,
-	u_long  color ,
+	x_color_t *  color ,
 	int  x ,
 	int  y ,
 	u_int	width ,
 	u_int	height
 	)
 {
-#ifndef  USE_WIN32GUI
-	if( color != win->fg_color)
-	{
-		XSetForeground( win->display , win->gc , color) ;
-	}
+	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( color->pixel))) ;
+	x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( color->pixel))) ;
 
-	XFillRectangle( win->display , win->drawable , win->gc , x + win->margin , y + win->margin ,
-		width , height) ;
-
-	if( color != win->fg_color)
-	{
-		XSetForeground( win->display , win->gc , win->fg_color) ;
-	}
-#endif
+	/* XXX -1 is not necessary ? */
+	Rectangle( win->gc->gc, x, y, x + width /* - 1 */, y + height /* - 1 */) ;
 
 	return  1 ;
 }
@@ -1594,7 +1580,7 @@ x_window_fill_all(
 int
 x_window_fill_all_with(
 	x_window_t *  win ,
-	u_long  color
+	x_color_t *  color
 	)
 {
 #ifndef  USE_WIN32GUI
@@ -1632,6 +1618,9 @@ x_window_update(
 		win->update_window_flag = flag ;
 	}
 	
+	/*
+	 * WM_APP_PAINT message is posted only when update_window_flag is 0.
+	 */
 	PostMessage( win->my_window, WM_APP_PAINT, 0, 0) ;
 
 	return  1 ;
@@ -1784,11 +1773,23 @@ x_window_receive_event(
 		
         	return  1 ;
 
-#if  0
 	case WM_ERASEBKGND:
-		/* Stop erase background. */
-		return  1 ;
-#endif
+		{
+			RECT  rt ;
+			HBRUSH  old ;
+
+			if( win->parent != NULL)	/* XXX Hack for not flashing. */
+			{
+				old = SelectObject( (HDC)event->wparam,
+						x_acquire_brush( win->bg_color)) ;
+				GetClientRect( win->my_window, &rt) ;
+				PatBlt( (HDC)event->wparam, rt.left, rt.top,
+					rt.right-rt.left, rt.bottom-rt.top, PATCOPY) ;
+				x_release_brush( SelectObject( (HDC)event->wparam, old)) ;
+			}
+			
+			return  1 ;
+		}
 	
 	case WM_KEYDOWN:
 		if( win->key_pressed)
@@ -2697,8 +2698,22 @@ int
 x_window_draw_decsp_string(
 	x_window_t *  win ,
 	x_font_t *  font ,
-	x_color_t *  fg_color ,		/* can be NULL */
-	x_color_t *  bg_color ,		/* can be NULL */
+	x_color_t *  fg_color ,
+	int  x ,
+	int  y ,
+	u_char *  str ,
+	u_int  len
+	)
+{
+	return  0 ;
+}
+
+int
+x_window_draw_decsp_image_string(
+	x_window_t *  win ,
+	x_font_t *  font ,
+	x_color_t *  fg_color ,
+	x_color_t *  bg_color ,
 	int  x ,
 	int  y ,
 	u_char *  str ,
@@ -2844,10 +2859,8 @@ x_window_draw_rect_frame(
 		return  0 ;
 	}
 
-	/* XXX black line only */
-	x_gc_set_pen( win->gc, GetStockObject(BLACK_PEN)) ;
-
-	x_gc_set_brush( win->gc, GetStockObject(NULL_BRUSH)) ;
+	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color))) ;
+	x_release_brush( x_gc_set_brush( win->gc, GetStockObject(NULL_BRUSH))) ;
 	
 	Rectangle( win->gc->gc, x1, y1, x2, y2) ;
 
@@ -2868,8 +2881,7 @@ x_window_draw_line(
 		return  0 ;
 	}
 
-	/* XXX black line only. */
-	x_gc_set_pen( win->gc, GetStockObject(BLACK_PEN)) ;
+	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color))) ;
 
 	MoveToEx( win->gc->gc, x1, y1, NULL) ;
 	LineTo( win->gc->gc, x2, y2) ;
