@@ -1,3 +1,53 @@
+2009-10-20  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: Recognize "ESC [ > ..." sequence.
+
+	* x_window_win32.c: Added check_scrollable() function to check if
+	  window is visible or not when window focus, position or size is
+	  changed. And related to this change, is_focused member is added
+	  to x_window_t and remove from x_screen_t.
+
+	* doc/ja/README.ja: Added explanation of -*/--type/type_engine option
+	  at this late date...
+
+	* x_imagelib_gdk.c,x_imagelib_imlib2.c: Renamed win->display and
+	  win->screen to win->disp->display and win->disp->screen.
+
+	* configure.in: Fixed bugs related to imlib2.
+	  
+	* mkf/lib/Makefile.in: Added "-DLIBDIR=\"$(LIBDIR)\" to CFLAGS.
+
+	* x_term_manager.c: mlterm server related codes are excluded if
+	  USE_WIN32GUI is defined.
+
+	* win32/mlterm-msys_cygwin.bat: Added.
+
+	* x_display_win32.c: Added hide_console().
+
+	* configure.in,xwindow/Makefile.in: Added -Wl,--subsystem,console
+	  option to CFLAGS for MSYS-DTK and cygwin.
+
+	* kik_pty_streams.c: Added close(0..2) between fork() and setsid()
+	  for MSYS-DTK.
+
+	* Added -X/--alpha option(effective in win32).
+
+	* x_window_win32.c: Implemented x_window_{un}set_transparent()
+	  (which just uses SetLayeredWindowAttributes()).
+
+	* ml_vt100_parser.c: Added kik_file_set_closexec(vt100_parser->log_file).
+
+	* read_challenge() in ml_config_proto.c: Added fclose( file).
+
+	* x_window_fill{_with}(x_window_win32.c): Added win->margin to x and
+	  y position.
+
+	* kiklib/configure.in: kik_dlfcn_win32.c is always used in cygwin
+	  regardless of libtool decision.
+
+	* kiklib/kik_locale.c: Added kik_get_codeset_win32() which is used
+	  in USE_WIN32GUI.
+
 2009-09-10  Araki Ken  <arakiken@users.sf.net>
 
 	* x_gdiobj_pool.[ch]: Added.

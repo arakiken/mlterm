@@ -322,8 +322,9 @@ x_set_font_size_range(
 		return  0 ;
 	}
 
-	min_font_size = min_fsize;
-	max_font_size = max_fsize;
+	min_font_size = min_fsize ;
+	max_font_size = max_fsize ;
+	
 	return  1 ;
 }
 

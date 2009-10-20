@@ -181,6 +181,8 @@ receive_bytes(
 			}
 
 			free( path) ;
+
+			kik_file_set_cloexec( vt100_parser->log_file) ;
 		}
 
 		write( vt100_parser->log_file , &vt100_parser->seq[vt100_parser->left] , ret) ;
@@ -1204,7 +1206,7 @@ parse_vt100_escape_sequence(
 			}
 			else if( *str_p == '[')
 			{
-				int  is_dec_priv ;
+				u_char  pre_ch ;
 				int  ps[5] ;
 				size_t  num ;
 
@@ -1212,10 +1214,10 @@ parse_vt100_escape_sequence(
 				{
 					return  0 ;
 				}
-				
-				if( *str_p == '?')
+
+				if( *str_p == '?' || *str_p == '>')
 				{
-					is_dec_priv = 1 ;
+					pre_ch = *str_p ;
 
 					if( inc_str_in_esc_seq( vt100_parser->screen ,
 						&str_p , &left , 0) == 0)
@@ -1225,7 +1227,7 @@ parse_vt100_escape_sequence(
 				}
 				else
 				{
-					is_dec_priv = 0 ;
+					pre_ch = '\0' ;
 				}
 
 				num = 0 ;
@@ -1312,10 +1314,8 @@ parse_vt100_escape_sequence(
 					num = 0 ;
 				}
 
-				if( is_dec_priv)
+				if( pre_ch == '?')
 				{
-					/* DEC private mode */
-
 					if( *str_p == 'h')
 					{
 						/* DEC Private Mode Set */
@@ -1681,6 +1681,14 @@ parse_vt100_escape_sequence(
 							, *str_p) ;
 					}
 				#endif
+				}
+				else if( pre_ch == '>')
+				{
+			#ifdef  DEBUG
+					kik_warn_printf( KIK_DEBUG_TAG
+						" received unknown csi sequence ESC - [ - > - %c.\n"
+						, *str_p) ;
+			#endif
 				}
 				else
 				{
@@ -2590,7 +2598,7 @@ ml_vt100_parser_new(
 	vt100_parser->config_listener = NULL ;
 
 	vt100_parser->log_file = -1 ;
-		
+	
 	vt100_parser->cs = UNKNOWN_CS ;
 	vt100_parser->fg_color = ML_FG_COLOR ;
 	vt100_parser->bg_color = ML_BG_COLOR ;
@@ -2653,6 +2661,11 @@ ml_vt100_parser_delete(
 	ml_str_final( vt100_parser->buffer.chars , PTYMSG_BUFFER_SIZE) ;
 	(*vt100_parser->cc_parser->delete)( vt100_parser->cc_parser) ;
 	(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
+
+	if( vt100_parser->log_file != -1)
+	{
+		close( vt100_parser->log_file) ;
+	}
 
 	free( vt100_parser) ;
 	

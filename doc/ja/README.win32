@@ -1,62 +1,63 @@
 comment -*- mode: text -*-
 comment $Id$
 
-WIN32 対応に関するメモ
+WIN32 native GUI 対応に関するメモ
 
 * テスト環境
-  Windows XP SP3
-  MinGW 5.1.4
-  MSYS 1.0.10(MSYS-DTK 1.0.1)
+  Windows XP SP3 + MinGW 5.1.4
+                 + MSYS 1.0.10(MSYS-DTK 1.0.1)
+                 + Cygwin 1.5.25-15(without xlib)
 
 * ビルド
-  ./configure
+  ./configure (--with-gui=win32) (--config-cache)
   make
 
 * configure オプション
   --with-gui=(xlib|win32)
-  xlib の API を使用するか、win32 の API を使用するかを指定します。
-  MSYS 環境では自動的に win32 と判定します。
+  GUI ライブラリとして xlib の API を使用するか win32 の API を使用
+  するかを指定します。
+  このオプションが指定されない場合、MSYS 環境では win32 と判断し、
+  CYGWIN 環境では X がインストールされていれば xlib と、X がインス
+  トールされていなければ win32 と判断します。
 
 * インストール
-  (MSYS-DTK でビルドした場合)
-  make install
-
-  (MinGW でビルドした場合)
   インストールしたいディレクトリに、
   kiklib/src/.libs/libkik-*.dll
   mkf/lib/.libs/libmkf-*.dll
   mkf/libtbl/.libs/libmkf_*.dll
   xwindow/.libs/mlterm.exe
-  putty の plink.exe
   をコピー
+  (MinGW でビルドした場合は、ソースツリーの win32/putty/plink.exe もコピー)
 
 * 環境設定
-  (MSYS-DTK でビルドした場合)
-  ~/.mlterm/ 以下のファイルにより環境設定を行うことができます。
+  (MSYS-DTK/CYGWIN でビルドした場合)
+  $HOME/.mlterm/ 以下に設定ファイル(ソースツリーの etc/ 以下のファイル)を
+  配置することにより環境設定を行うことができます。
 
   (MinGW でビルドした場合)
-  %HOMEPATH%\mlterm ディレクトリ以下のファイルにより環境設定を行う
-  ことができます。
+  %HOMEPATH%\mlterm\ 以下の設定ファイル(ソースツリーの etc/ 以下のファイル)
+  を配置することにより環境設定を行うことができます。
 
 * 起動方法
-  コマンドプロンプトから次のとおり起動(又は win32/mlterm-win32.bat のような
-  バッチファイルを用意)
+  コマンドプロンプト等から次のとおり起動
+  (又は win32/mlterm-{win32|msys_cygwin}.bat のようなバッチファイルを用意)
   
-  (MSYS-DTK でビルドした場合)
+  (MSYS-DTK/Cygwin でビルドした場合)
   set HOME=c:\msys\...\home\...
   mlterm.exe [options...] -e /bin/sh --login -i
 
   (MinGW でビルドした場合)
+  set HOMEPATH=...
   mlterm.exe [options...] -e plink.exe [-telnet/-ssh/-rlogin/-raw] [host]
   ※ msysライブラリをリンクしないため、sh.exe を起動してもうまく動きません。
      sh.exe を使用したい場合は、MSYS-DTK でビルドしてください。
 
-* WIN32 版の制限(2009/07/25現在)
-  o スクロールバープラグインは使用できないため、simple タイプのスクロールバー
-    のみ使用可能です。
+* WIN32 GUI 版の制限(2009/09/29現在)
   o -g オプションは [COL]x[ROW]+[x]+[y] の x y を無視します。
-  o mlterm server 機能は使用できません。
-  o 背景透過、背景画像は使用できません。
+  o mlterm server 機能は使用できません(対応予定もありません。)。
+  o 背景画像は使用できません。
+  o 背景透過は、win32 のレイヤードウィンドウの機能をそのまま使用しているだけ
+    です。
   o サポートする文字集合・エンコーディングは、当面、英語・日本語関係のもの
     のみです。
 
@@ -64,4 +65,11 @@ WIN32 対応に関するメモ
   o WIN32APIマクロ: MinGW でビルドする際に define されます。
   o WIN32GUIマクロ: --with-gui=win32 の場合 define されます。
   o ファイル名 *_win32.c: --with-gui=win32 の場合に compile されます。
- 
+
+* その他
+  o MSYS-DTK 1.0.1 に含まれる winuser.h / libuser32.a は古いため、
+    背景透過に使用する SetLayeredWindowAttributes() が使用できない。
+    背景透過を使用できるようにするためには、mlterm のビルドの前に
+    MSYS-DTK 1.0.1 の winuser.h / libuser32.a を 最新の MinGW の
+    ものに置きかえておく必要がある。
+    

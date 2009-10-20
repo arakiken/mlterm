@@ -137,7 +137,6 @@ open_pty(
 					}
 					else
 					{
-						kik_file_set_cloexec( *slave) ;
 						return  1 ;
 					}
 				}

@@ -120,7 +120,55 @@ restore_view_all(
 	return	restore_view( win , 0 , 0 , win->width , win->height) ;
 }
 
+#ifdef  USE_WIN32GUI
+static int
+set_transparent(
+	x_window_t *  win ,
+	x_picture_modifier_t *  pic_mod
+	)
+{
+/*
+ * XXX
+ * LWA_ALPHA and SetLayeredWindowAttributes() are not defined
+ * in older winuser.h and libuser32.a(e.g. MSYS-DTK 1.0.1).
+ */
+#if  defined(WS_EX_LAYERED) && defined(LWA_ALPHA)
+	int  count ;
 
+	if( ! win->parent)
+	{
+		/* Root Window */
+		if( win->my_window)
+		{
+			LONG  style ;
+
+			style = GetWindowLong( win->my_window , GWL_EXSTYLE) ;
+			SetWindowLong( win->my_window , GWL_EXSTYLE , style | WS_EX_LAYERED) ;
+
+		#if  1
+			SetLayeredWindowAttributes( win->my_window , 0 , pic_mod->alpha ,
+				LWA_ALPHA) ;
+		#else
+			SetLayeredWindowAttributes( win->my_window , win->bg_color ,
+				0 , LWA_COLORKEY) ;
+		#endif
+		}
+	}
+
+	win->is_transparent = 1 ;
+	win->pic_mod = pic_mod ;
+
+	for( count = 0 ; count < win->num_of_children ; count ++)
+	{
+		set_transparent( win->children[count] , win->pic_mod) ;
+	}
+
+	return  1 ;
+#else
+	return  0 ;
+#endif
+}
+#else	/* USE_WIN32GUI */
 static int
 set_transparent(
 	x_window_t *  win ,
@@ -129,9 +177,9 @@ set_transparent(
 {
 	/*
 	 * !! Notice !!
-	 * this must be done before x_window_set_wall_picture() because
+	 * is_transparent must be on before x_window_set_wall_picture() because
 	 * x_window_set_wall_picture() doesn't do anything if is_transparent
-	 * flag is on.
+	 * flag is off.
 	 */
 	win->is_transparent = 0 ;
 
@@ -146,22 +194,60 @@ set_transparent(
 
 	return  1 ;
 }
+#endif
 
 static int
 unset_transparent(
 	x_window_t *  win
 	)
 {
+/*
+ * XXX
+ * LWA_ALPHA and SetLayeredWindowAttributes() are not defined
+ * in older winuser.h and libuser32.a(e.g. MSYS-DTK 1.0.1).
+ */
+#if  defined(WS_EX_LAYERED) && defined(LWA_ALPHA)
+	int  count ;
+	
+	if( ! win->parent)
+	{
+		/* Root Window */
+		
+		if( win->my_window)
+		{
+			LONG  style ;
+
+			style = GetWindowLong( win->my_window , GWL_EXSTYLE) ;
+			SetWindowLong( win->my_window , GWL_EXSTYLE , style & ~WS_EX_LAYERED) ;
+		}
+	}
+	
+	win->is_transparent = 0 ;
+	win->pic_mod = NULL ;
+
+	for( count = 0 ; count < win->num_of_children ; count ++)
+	{
+		unset_transparent( win->children[count]) ;
+	}
+
+	return  1 ;
+#else
+	return  0 ;
+#endif
+
+#ifndef  USE_WIN32GUI
 	/*
 	 * !! Notice !!
-	 * this must be done before x_window_unset_wall_picture() because
+	 * is_transparent must be off before x_window_unset_wall_picture() because
 	 * x_window_unset_wall_picture() doesn't do anything if is_transparent
 	 * flag is on.
 	 */
 	win->is_transparent = 0 ;
+	
 	win->pic_mod = NULL ;
 
 	return  x_window_unset_wall_picture( win) ;
+#endif
 }
 
 static int
@@ -169,6 +255,7 @@ update_pic_transparent(
 	x_window_t *  win
 	)
 {
+#ifndef  USE_WIN32GUI
 	x_picture_t  pic ;
 
 	if( ! x_picture_init( &pic , win , win->pic_mod))
@@ -186,8 +273,155 @@ update_pic_transparent(
 	set_transparent( win , pic.pixmap) ;
 
 	x_picture_final( &pic) ;
+#endif
 
 	return  1 ;
+}
+
+/*
+ * XXX
+ * Adhoc alternative of VisibilityNotify event.
+ */
+static int
+check_scrollable(
+	x_window_t *  win	/* Assume root window. */
+	)
+{
+	if( win->use_buffer)
+	{
+		return  1 ;
+	}
+	else if( win->is_focused)
+	{
+	#if  0
+		kik_debug_printf( "SCREEN W %d H %d WINDOW W %d H %d X %d Y %d " ,
+			GetSystemMetrics( SM_CXSCREEN) , GetSystemMetrics( SM_CYSCREEN) ,
+			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , win->x , win->y) ;
+	#endif
+
+		/*
+		 * If window is outside of screen partially, is_scrollable = 0.
+		 */
+
+		if( win->y < 0 || win->x < 0)
+		{
+		#if  0
+			kik_debug_printf( "NOT SCROLLABLE(1)\n") ;
+		#endif
+			return  0 ;
+		}
+		else
+		{
+			u_int  screen_height ;
+
+			screen_height = GetSystemMetrics( SM_CYSCREEN);
+
+			if( win->y + ACTUAL_HEIGHT(win) > screen_height)
+			{
+			#if  0
+				kik_debug_printf( "NOT SCROLLABLE(2)\n") ;
+			#endif
+				return  0 ;
+			}
+			else
+			{
+				u_int  screen_width ;
+
+				screen_width = GetSystemMetrics( SM_CXSCREEN) ;
+
+				if( win->x + ACTUAL_WIDTH(win) > screen_width)
+				{
+				#if  0
+					kik_debug_printf( "NOT SCROLLABLE(3)\n") ;
+				#endif
+					return  0 ;
+				}
+				else
+				{
+					APPBARDATA  barinfo ;
+
+					ZeroMemory( &barinfo , sizeof( barinfo)) ;
+					barinfo.cbSize = sizeof( barinfo) ;
+					barinfo.hWnd = win->my_window ;
+
+					SHAppBarMessage( ABM_GETTASKBARPOS , &barinfo) ;
+
+				#if  0
+					kik_debug_printf( "TASKBAR t %d b %d l %d r %d " ,
+						barinfo.rc.top , barinfo.rc.bottom ,
+						barinfo.rc.left , barinfo.rc.right) ;
+				#endif
+
+					if( barinfo.rc.top <= 0)
+					{
+						if( barinfo.rc.left <= 0)
+						{
+							if( barinfo.rc.right >= screen_width)
+							{
+								/* North */
+								if( win->y < barinfo.rc.bottom)
+								{
+								#if  0
+									kik_debug_printf(
+									"NOT SCROLLABLE(4)\n") ;
+								#endif
+									return  0 ;
+								}
+							}
+							else
+							{
+								/* West */
+								if( win->x < barinfo.rc.right)
+								{
+								#if  0
+									kik_debug_printf(
+									"NOT SCROLLABLE(5)\n") ;
+								#endif
+									return  0 ;
+								}
+							}
+						}
+						else
+						{
+							/* East */
+							if( win->x + ACTUAL_WIDTH(win)
+								> barinfo.rc.left)
+							{
+							#if  0
+								kik_debug_printf(
+								"NOT SCROLLABLE(6)\n") ;
+							#endif
+								return  0 ;
+							}
+						}
+					}
+					else
+					{
+						/* South */
+						if( win->y + ACTUAL_HEIGHT(win) > barinfo.rc.top)
+						{
+						#if  0
+							kik_debug_printf( "NOT SCROLLABLE(7)\n") ;
+						#endif
+							return  0 ;
+						}
+					}
+				
+				#if  0
+					kik_debug_printf( "SCROLLABLE\n") ;
+				#endif
+					return  1 ;
+				}
+			}
+		}
+	}
+	else
+	{
+	#if  0
+		kik_debug_printf( "NOT SCROLLABLE(4)\n") ;
+	#endif
+		return  0 ;
+	}
 }
 
 static void
@@ -197,19 +431,28 @@ notify_focus_in_to_children(
 {
 	int  count ;
 
+	if( win->is_focused)
+	{
+		return ;
+	}
+
+	win->is_focused = 1 ;
+
+	if( ! win->parent)
+	{
+		win->is_scrollable = check_scrollable( win) ;
+	}
+	else
+	{
+		win->is_scrollable = win->parent->is_scrollable ;
+	}
+	
+	x_xic_set_focus( win) ;
+
 	if( win->window_focused)
 	{
 		(*win->window_focused)( win) ;
 	}
-
-	x_xic_set_focus( win) ;
-	
-	/*
-	 * XXX
-	 * WM_SETFOCUS/WM_KILL_FOCUS is used for substitution of VisibilityNotify event,
-	 * but incomplete...win->is_scrollable = 0 every time is certain way.
-	 */
-	win->is_scrollable = 1 ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -224,23 +467,59 @@ notify_focus_out_to_children(
 {
 	int  count ;
 
+	if( ! win->is_focused)
+	{
+		return ;
+	}
+	
+	win->is_focused = 0 ;
+
+	win->is_scrollable = 0 ;
+
+	x_xic_unset_focus( win) ;
+
 	if( win->window_unfocused)
 	{
 		(*win->window_unfocused)( win) ;
 	}
 
-	x_xic_unset_focus( win) ;
-	
-	/*
-	 * XXX
-	 * WM_SETFOCUS/WM_KILL_FOCUS is used for substitution of VisibilityNotify event,
-	 * but incomplete...win->is_scrollable = 0 every time is certain way.
-	 */
-	win->is_scrollable = 0 ;
-
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		notify_focus_out_to_children( win->children[count]) ;
+	}
+}
+
+static void
+notify_move_to_children(
+	x_window_t *  win
+	)
+{
+	int  count ;
+
+	if( ! win->parent)
+	{
+		int  is_scrollable ;
+
+		if( ( is_scrollable = check_scrollable( win)) == win->is_scrollable)
+		{
+			/*
+			 * If is_scrollable is not changed, nothing should be
+			 * notified to children.
+			 */
+			
+			return ;
+		}
+
+		win->is_scrollable = is_scrollable ;
+	}
+	else
+	{
+		win->is_scrollable = win->parent->is_scrollable ;
+	}
+
+	for( count = 0 ; count < win->num_of_children ; count ++)
+	{
+		notify_move_to_children( win->children[count]) ;
 	}
 }
 
@@ -277,6 +556,11 @@ notify_reparent_to_children(
 {
 	int  count ;
 
+	/*
+	 * XXX
+	 * x_window_set_transparent() must be called once in win32,
+	 * so following code should be modified.
+	 */
 	if( win->is_transparent)
 	{
 		x_window_set_transparent( win , win->pic_mod) ;
@@ -602,6 +886,8 @@ x_window_init(
 	/* if visibility is partially obscured , scrollable will be 0. */
 	win->is_scrollable = 1 ;
 
+	win->is_focused = 1 ;
+
 	/* This flag will map window automatically in x_window_show(). */
 	win->is_mapped = 1 ;
 
@@ -873,7 +1159,15 @@ x_window_set_transparent(
 	x_picture_modifier_t *  pic_mod
 	)
 {
+	if( ! pic_mod)
+	{
+		return  0 ;
+	}
+	
+	return  set_transparent( x_get_root_window( win) , pic_mod) ;
+
 #ifndef  USE_WIN32GUI
+	int  count ;
 	Window  parent ;
 	Window  root ;
 	Window *  list ;
@@ -926,15 +1220,15 @@ x_window_set_transparent(
 			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 		}
 	}
-
+	
 end:
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		x_window_set_transparent( win->children[count] , win->pic_mod) ;
 	}
-#endif
 
 	return  1 ;
+#endif
 }
 
 int
@@ -942,6 +1236,8 @@ x_window_unset_transparent(
 	x_window_t *  win
 	)
 {
+	return  unset_transparent( x_get_root_window( win)) ;
+
 #ifndef  USE_WIN32GUI
 	int  count ;
 
@@ -964,9 +1260,9 @@ x_window_unset_transparent(
 	{
 		x_window_unset_transparent( win->children[count]) ;
 	}
-#endif
 
 	return  1 ;
+#endif
 }
 
 /*
@@ -1205,6 +1501,11 @@ x_window_show(
 	#if  0
 		x_window_clear_all( win) ;
 	#endif
+	}
+
+	if( win->is_transparent)
+	{
+		x_window_set_transparent( win , win->pic_mod) ;
 	}
 
 	return  1 ;
@@ -1505,15 +1806,12 @@ x_window_clear_margin_area(
 		x_release_pen( x_gc_set_pen( win->gc, GetStockObject(NULL_PEN))) ;
 		x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( win->bg_color))) ;
 
-		/* XXX -1 is not necessary ? */
-		Rectangle( win->gc->gc, 0, 0,
-			win->margin /* - 1 */, ACTUAL_HEIGHT(win) /* - 1 */) ;
-		Rectangle( win->gc->gc, win->margin, 0,
-			win->width + win->margin /* - 1 */, win->margin /* - 1 */) ;
+		Rectangle( win->gc->gc, 0, 0, win->margin, ACTUAL_HEIGHT(win)) ;
+		Rectangle( win->gc->gc, win->margin, 0, win->width + win->margin, win->margin) ;
 		Rectangle( win->gc->gc, win->width + win->margin, 0,
-			ACTUAL_WIDTH(win) /* - 1 */, ACTUAL_HEIGHT(win) /* - 1 */) ;
+			ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)) ;
 		Rectangle( win->gc->gc, win->margin, win->height + win->margin,
-			win->width + win->margin /* - 1 */, ACTUAL_HEIGHT(win) /* - 1 */) ;
+			win->width + win->margin, ACTUAL_HEIGHT(win)) ;
 
 		return  1 ;
 	}
@@ -1537,11 +1835,20 @@ x_window_fill(
 	)
 {
 	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color))) ;
-	x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( win->fg_color))) ;
 
-	/* XXX -1 is not necessary ? */
-	Rectangle( win->gc->gc, x, y, x + width /* - 1 */, y + height /* - 1 */) ;
+	if( height == 1)
+	{
+		MoveToEx( win->gc->gc , win->margin + x , win->margin + y , NULL) ;
+		LineTo( win->gc->gc , win->margin + x + width , win->margin + y) ;
+	}
+	else
+	{
+		x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( win->fg_color))) ;
 
+		Rectangle( win->gc->gc, win->margin + x, win->margin + y,
+					win->margin + x + width, win->margin + y + height) ;
+	}
+	
 	return  1 ;
 }
 
@@ -1556,10 +1863,19 @@ x_window_fill_with(
 	)
 {
 	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( color->pixel))) ;
-	x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( color->pixel))) ;
 
-	/* XXX -1 is not necessary ? */
-	Rectangle( win->gc->gc, x, y, x + width /* - 1 */, y + height /* - 1 */) ;
+	if( height == 1)
+	{
+		MoveToEx( win->gc->gc , win->margin + x , win->margin + y , NULL) ;
+		LineTo( win->gc->gc , win->margin + x + width , win->margin + y) ;
+	}
+	else
+	{
+		x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( color->pixel))) ;
+
+		Rectangle( win->gc->gc, win->margin + x, win->margin + y,
+					win->margin + x + width, win->margin + y + height) ;
+	}
 
 	return  1 ;
 }
@@ -1845,7 +2161,7 @@ x_window_receive_event(
 		return  1 ;
 
 	case WM_SETFOCUS:
-	#ifdef  __DEBUG
+	#if  0
 		kik_debug_printf( "FOCUS IN %p\n" , win->my_window) ;
 	#endif
 
@@ -1860,7 +2176,7 @@ x_window_receive_event(
 		break ;
 
 	case WM_KILLFOCUS:
-	#ifdef  __DEBUG
+	#if  0
 		kik_debug_printf( "FOCUS OUT %p\n" , win->my_window) ;
 	#endif
 
@@ -2046,7 +2362,7 @@ x_window_receive_event(
 			{
 				(*win->utf_selection_requested)( win, NULL, CF_UNICODETEXT) ;
 
-			#if  1
+			#if  0
 				kik_debug_printf( KIK_DEBUG_TAG "utf_selection_requested\n") ;
 			#endif
 			}
@@ -2074,7 +2390,22 @@ x_window_receive_event(
 		x_display_clear_selection( win->disp , win) ;
 
 		return  1 ;
-		
+
+	case  WM_MOVE:
+		if( ! win->use_buffer && win->parent == NULL)
+		{
+			win->x = LOWORD(event->lparam) ;
+			win->y = HIWORD(event->lparam) ;
+
+		#if  0
+			kik_debug_printf( "WM_MOVE x %d y %d\n" , win->x , win->y) ;
+		#endif
+
+			notify_move_to_children( win) ;
+		}
+
+		return  1 ;
+	
 	case  WM_SIZE:
 		if( win->window_resized)
 		{
@@ -2091,7 +2422,7 @@ x_window_receive_event(
 			height = HIWORD(event->lparam) ;
 
 		#if  0
-			kik_debug_printf( "resized from %d %d to %d %d\n" ,
+			kik_debug_printf( "WM_SIZE resized from %d %d to %d %d\n" ,
 				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win), width, height) ;
 		#endif
 		
@@ -2167,6 +2498,8 @@ x_window_receive_event(
 					(*win->window_resized)( win) ;
 				}
 			}
+
+			notify_move_to_children( win) ;
 		}
 
 		return  1 ;
@@ -2647,9 +2980,11 @@ x_window_scroll_leftward_region(
 		win->margin + boundary_start + width , win->margin ,	/* src */
 		boundary_end - boundary_start - width , win->height ,	/* size */
 		win->margin + boundary_start , win->margin) ;		/* dst */
-#endif
 
 	return  1 ;
+#else
+	return  0 ;
+#endif
 }
 
 int
@@ -2689,9 +3024,11 @@ x_window_scroll_rightward_region(
 		win->margin + boundary_start , win->margin ,
 		boundary_end - boundary_start - width , win->height ,
 		win->margin + boundary_start + width , win->margin) ;
-#endif
 
 	return  1 ;
+#else
+	return  0 ;
+#endif
 }
 
 int
@@ -3041,7 +3378,7 @@ x_window_send_selection(
 
 	SetClipboardData( sel_type, hmem) ;
 
-#if  1
+#if  0
 	kik_debug_printf( KIK_DEBUG_TAG " x_window_send_selection.\n") ;
 #endif
 

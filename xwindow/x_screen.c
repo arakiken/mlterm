@@ -563,7 +563,7 @@ draw_cursor(
 	ml_char_init( &ch) ;
 	ml_char_copy( &ch , ml_char_at( line , ml_term_cursor_char_index( screen->term))) ;
 
-	if( screen->is_focused)
+	if( screen->window.is_focused)
 	{
 		ml_color_t orig_bg ;
 
@@ -589,7 +589,7 @@ draw_cursor(
 		x_line_top_margin( screen) ,
 		x_line_bottom_margin( screen));
 
-	if( screen->is_focused)
+	if( screen->window.is_focused)
 	{
 		x_color_manager_adjust_cursor_fg( screen->color_man);
 		x_color_manager_adjust_cursor_bg( screen->color_man);
@@ -832,7 +832,7 @@ redraw_screen(
 #ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
-		x_im_redraw_preedit( screen->im , screen->is_focused) ;
+		x_im_redraw_preedit( screen->im , screen->window.is_focused) ;
 	}
 #endif
 
@@ -1462,13 +1462,6 @@ window_focused(
 
 	screen = (x_screen_t *) win ;
 
-	if( screen->is_focused)
-	{
-		return ;
-	}
-
-	screen->is_focused = 1 ;
-
 	if( screen->fade_ratio != 100)
 	{
 		x_color_manager_unfade( screen->color_man) ;
@@ -1501,13 +1494,6 @@ window_unfocused(
 	x_screen_t *  screen ;
 
 	screen = (x_screen_t *) win ;
-
-	if( ! screen->is_focused)
-	{
-		return ;
-	}
-
-	screen->is_focused = 0 ;
 
 	if( screen->fade_ratio != 100)
 	{
@@ -4027,11 +4013,20 @@ change_transparent_flag(
 
 	if( is_transparent)
 	{
+		if( screen->pic_mod.alpha == 255)
+		{
+			/* Default translucent alpha value. */
+			screen->pic_mod.alpha = 210 ;
+		}
+		
 		x_window_set_transparent( &screen->window ,
 			x_screen_get_picture_modifier( screen)) ;
 	}
 	else
 	{
+		/* Reset alpha */
+		screen->pic_mod.alpha = 255 ;
+
 		x_window_unset_transparent( &screen->window) ;
 		set_wall_picture( screen) ;
 	}
@@ -4197,6 +4192,24 @@ change_gamma(
 }
 
 static void
+change_alpha(
+	x_screen_t *  screen ,
+	u_int  alpha
+	)
+{
+	if( screen->pic_mod.alpha == alpha)
+	{
+		/* not changed */
+
+		return ;
+	}
+
+	screen->pic_mod.alpha = alpha ;
+
+	picture_modifier_changed( screen) ;
+}
+
+static void
 change_fade_ratio(
 	x_screen_t *  screen ,
 	u_int  fade_ratio
@@ -4213,7 +4226,7 @@ change_fade_ratio(
 
 	x_color_manager_unfade( screen->color_man) ;
 
-	if( ! screen->is_focused)
+	if( ! screen->window.is_focused)
 	{
 		if( screen->fade_ratio < 100)
 		{
@@ -4273,7 +4286,7 @@ change_im(
 				screen->input_method ,
 				screen->mod_ignore_mask)))
 		{
-			if(screen->is_focused)
+			if(screen->window.is_focused)
 			{
 				screen->im->focused( screen->im) ;
 			}
@@ -5597,6 +5610,7 @@ x_screen_new(
 	u_int  brightness ,
 	u_int  contrast ,
 	u_int  gamma ,
+	u_int  alpha ,
 	u_int  fade_ratio ,
 	x_shortcut_t *  shortcut ,
 	u_int  screen_width_ratio ,
@@ -5703,16 +5717,17 @@ x_screen_new(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_sel_init failed.\n") ;
 	#endif
-
+		
 		goto  error ;
 	}
 
 	screen->pic_mod.brightness = brightness ;
 	screen->pic_mod.contrast = contrast ;
 	screen->pic_mod.gamma = gamma ;
+	screen->pic_mod.blend_color = 0 ;
+	screen->pic_mod.alpha = alpha ;
 
 	screen->fade_ratio = fade_ratio ;
-	screen->is_focused = 0 ;
 
 	screen->screen_width_ratio = screen_width_ratio ;
 	screen->screen_height_ratio = screen_height_ratio ;
@@ -5725,7 +5740,7 @@ x_screen_new(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;
 	#endif
-
+		
 		goto  error ;
 	}
 
@@ -5796,6 +5811,12 @@ x_screen_new(
 #endif
 	if( use_transbg)
 	{
+		if( screen->pic_mod.alpha == 255)
+		{
+			/* Default translucent alpha value. */
+			screen->pic_mod.alpha = 210 ;
+		}
+		
 		x_window_set_transparent( &screen->window ,
 			x_screen_get_picture_modifier( screen)) ;
 	}
@@ -5867,7 +5888,7 @@ x_screen_new(
 		goto  error ;
 	}
 
-	if( ( screen->xct_parser = ml_parser_new( ml_get_char_encoding( kik_get_codeset())))
+	if( ( screen->xct_parser = ml_parser_new( ml_get_char_encoding( kik_get_codeset_win32())))
 		== NULL)
 	{
 		goto  error ;
@@ -5899,7 +5920,7 @@ x_screen_new(
 		goto  error ;
 	}
 
-	if( ( screen->xct_conv = ml_conv_new( ml_get_char_encoding( kik_get_codeset()))) == NULL)
+	if( ( screen->xct_conv = ml_conv_new( ml_get_char_encoding( kik_get_codeset_win32()))) == NULL)
 	{
 		goto  error ;
 	}
@@ -6591,6 +6612,17 @@ x_screen_set_config(
 
 		change_gamma( screen , gamma) ;
 	}
+	else if( strcmp( key , "alpha") == 0)
+	{
+		u_int  alpha ;
+
+		if( ! kik_str_to_uint( &alpha , value))
+		{
+			return ;
+		}
+
+		change_alpha( screen , alpha) ;
+	}
 	else if( strcmp( key , "fade_ratio") == 0)
 	{
 		u_int  fade_ratio ;
@@ -7032,6 +7064,11 @@ x_screen_get_config(
 	else if( strcmp( key , "gamma") == 0)
 	{
 		sprintf( digit , "%d" , screen->pic_mod.gamma) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "alpha") == 0)
+	{
+		sprintf( digit , "%d" , screen->pic_mod.alpha) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "fade_ratio") == 0)

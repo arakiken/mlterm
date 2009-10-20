@@ -6,7 +6,7 @@ version 20030301
 
 * Protocol
   set              = "\x1b" "]" "5379" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
-  get(pty)         = "\x1b" "]" "5380" ";" <challenge> ; [ "/dev/..." ":" ] <key> "\x07"
+  get(pty)         = "\x1b" "]" "5380" ";" <challenge> ";" [ "/dev/..." ":" ] <key> "\x07"
   get(GUI menu)    = "\x1b" "]" "5381" ";" [ "/dev/..." ":" ] <key> "\x07"
   save             = "\x1b" "]" "5382" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
   set&save         = "\x1b" "]" "5383" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"

@@ -9,12 +9,14 @@
 #include  "kik_config.h"
 
 
-#ifdef  HAVE_LANGINFO_H
+#ifdef HAVE_LANGINFO_H
+
 #include  <langinfo.h>
+
 #endif
 
 
-#ifdef CODESET
+#ifdef  CODESET
 
 #define  kik_langinfo( item)  nl_langinfo( item)
 

@@ -70,6 +70,7 @@ typedef struct x_main_config
 	u_int16_t  brightness ;
 	u_int16_t  contrast ;
 	u_int16_t  gamma ;
+	u_int8_t  alpha ;
 	u_int8_t  fade_ratio ;
 	int8_t  use_scrollbar ;
 	int8_t  use_login_shell ;

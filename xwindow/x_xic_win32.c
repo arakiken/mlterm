@@ -250,7 +250,7 @@ x_xic_activate(
 		return  0 ;
 	}
 
-	win->xic->encoding = ml_get_char_encoding( kik_get_codeset()) ;
+	win->xic->encoding = ml_get_char_encoding( kik_get_codeset_win32()) ;
 	if( ( win->xic->parser = ml_parser_new( win->xic->encoding)) == NULL)
 	{
 		return  0 ;

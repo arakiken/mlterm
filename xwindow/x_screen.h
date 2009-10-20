@@ -136,7 +136,6 @@ typedef struct  x_screen
 	char *  conf_menu_path_3 ;
 
 	u_int8_t  fade_ratio ;
-	int8_t  is_focused ;
 	int8_t  receive_string_via_ucs ;
 	int8_t  use_vertical_cursor ;
 	int8_t  use_extended_scroll_shortcut ;
@@ -147,7 +146,7 @@ typedef struct  x_screen
 
 x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man , x_termcap_entry_t *  termcap ,
-	u_int  brightness , u_int contrast , u_int gamma ,
+	u_int  brightness , u_int contrast , u_int gamma , u_int  alpha ,
 	u_int  fade_ratio , x_shortcut_t *  shortcut ,
 	u_int  screen_width_ratio , u_int  screen_height_ratio ,
 	char *  mod_meta_key , x_mod_meta_mode_t  mod_meta_mode ,

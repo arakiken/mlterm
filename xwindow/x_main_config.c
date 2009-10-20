@@ -131,6 +131,8 @@ x_prepare_for_main_config(
 		"process received (pasted) strings via Unicode [false]") ;
 	kik_conf_add_opt( conf , 'V' , "varwidth" , 1 , "use_variable_column_width" ,
 		"variable column width (for proportional/ISCII) [false]") ;
+	kik_conf_add_opt( conf , 'X' , "alpha" , 0 , "alpha" ,
+		"alpha blending for translucent [210]") ;
 	kik_conf_add_opt( conf , 'Z' , "multicol" , 1 , "use_multi_column_char" ,
 		"fullwidth character occupies two logical columns [true]") ;
 	kik_conf_add_opt( conf , 'a' , "ac" , 0 , "col_size_of_width_a" ,
@@ -162,7 +164,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'r' , "fade" , 0 , "fade_ratio" , 
 		"fade ratio in percent when window unfocued [100]") ;
 	kik_conf_add_opt( conf , 's' , "sb" , 1 , "use_scrollbar" , 
-		"use scrollbar [false]") ;
+		"use scrollbar [true]") ;
 	kik_conf_add_opt( conf , 't' , "transbg" , 1 , "use_transbg" , 
 		"use transparent background [false]") ;
 	kik_conf_add_opt( conf , 'u' , "onlyucsfont" , 1 , "only_use_unicode_font" ,
@@ -751,6 +753,22 @@ x_main_config_init(
 		else
 		{
 			kik_msg_printf( "gamma ratio %s is not valid.\n" , value) ;
+		}
+	}
+
+	main_config->alpha = 255 ;
+
+	if( ( value = kik_conf_get_value( conf , "alpha")))
+	{
+		u_int  alpha ;
+		
+		if( kik_str_to_uint( &alpha , value))
+		{
+			main_config->alpha = alpha ;
+		}
+		else
+		{
+			kik_msg_printf( "alpha %s is not valid.\n" , value) ;
 		}
 	}
 	

@@ -29,25 +29,25 @@ LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
-all: jajp_table kokr_table zh_table byte_table ucsprop_table
+all: libmkf_jajp.la libmkf_kokr.la libmkf_zh.la libmkf_8bits.la libmkf_ucsprop.la
 
-jajp_table: $(JAJP_TABLE_OBJ)
+libmkf_jajp.la: $(JAJP_TABLE_OBJ)
 	$(LIBTOOL_LINK) -o libmkf_jajp.la $(JAJP_TABLE_OBJ:.o=.lo) @MKF_CHAR_LO@ \
 	-rpath $(libdir)/mkf -module -avoid-version @NO_UNDEFINED_FLAG@
 
-kokr_table: $(KOKR_TABLE_OBJ)
+libmkf_kokr.la: $(KOKR_TABLE_OBJ)
 	$(LIBTOOL_LINK) -o libmkf_kokr.la $(KOKR_TABLE_OBJ:.o=.lo) @MKF_CHAR_LO@ \
 	-rpath $(libdir)/mkf -module -avoid-version @NO_UNDEFINED_FLAG@
 
-zh_table: $(ZH_TABLE_OBJ)
+libmkf_zh.la: $(ZH_TABLE_OBJ)
 	$(LIBTOOL_LINK) -o libmkf_zh.la $(ZH_TABLE_OBJ:.o=.lo) @MKF_CHAR_LO@ \
 	-rpath $(libdir)/mkf -module -avoid-version @NO_UNDEFINED_FLAG@
 
-byte_table: $(BYTE_TABLE_OBJ)
+libmkf_8bits.la: $(BYTE_TABLE_OBJ)
 	$(LIBTOOL_LINK) -o libmkf_8bits.la $(BYTE_TABLE_OBJ:.o=.lo) @MKF_CHAR_LO@ \
 	-rpath $(libdir)/mkf -module -avoid-version @NO_UNDEFINED_FLAG@
 
-ucsprop_table: $(UCSPROP_TABLE_OBJ)
+libmkf_ucsprop.la: $(UCSPROP_TABLE_OBJ)
 	$(LIBTOOL_LINK) -o libmkf_ucsprop.la $(UCSPROP_TABLE_OBJ:.o=.lo) \
 	-rpath $(libdir)/mkf -module -avoid-version @NO_UNDEFINED_FLAG@
 

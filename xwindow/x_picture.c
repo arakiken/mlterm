@@ -121,7 +121,8 @@ x_picture_modifier_is_normal(
 	x_picture_modifier_t *  pic_mod
 	)
 {
-	if( pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100)
+	if( pic_mod->brightness == 100 && pic_mod->contrast == 100 && pic_mod->gamma == 100
+		&& pic_mod->alpha == 255)
 	{
 		return  1 ;
 	}

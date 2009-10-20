@@ -151,6 +151,7 @@ typedef struct  x_window
 	int8_t  wall_picture_is_set ;
 	int8_t  is_transparent ;
 	int8_t  is_scrollable ;
+	int8_t  is_focused ;
 	int8_t  is_mapped ;
 	int8_t  create_gc ;
 

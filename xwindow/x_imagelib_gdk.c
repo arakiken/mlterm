@@ -9,6 +9,7 @@
 #include <string.h>                      /* memcpy */
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
+#include <kiklib/kik_debug.h>
 #include <kiklib/kik_types.h> /* u_int32_t/u_int16_t, HAVE_STDINT_H */
 #include <kiklib/kik_unistd.h>
 #include <kiklib/kik_str.h>    /* strdup */
@@ -1569,22 +1570,22 @@ x_imagelib_load_file_for_background(
 
 	if( gdk_pixbuf_get_has_alpha ( pixbuf) && (pixmap = x_imagelib_get_transparent_background( win, NULL)))
 	{
-		if( compose_to_pixmap( win->display, win->screen,
+		if( compose_to_pixmap( win->disp->display, win->disp->screen,
 				       pixbuf, pixmap) != SUCCESS)
 		{
-			XFreePixmap( win->display, pixmap) ;
+			XFreePixmap( win->disp->display, pixmap) ;
 			return  None ;
 		}
 	}
 	else
 	{
-		pixmap = XCreatePixmap( win->display, win->my_window,
+		pixmap = XCreatePixmap( win->disp->display, win->my_window,
 					ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
-					DefaultDepth( win->display, win->screen)) ;
-		if( pixbuf_to_pixmap( win->display, win->screen,
+					DefaultDepth( win->disp->display, win->disp->screen)) ;
+		if( pixbuf_to_pixmap( win->disp->display, win->disp->screen,
 				      pixbuf, pixmap) != SUCCESS)
 		{
-			XFreePixmap( win->display, pixmap) ;
+			XFreePixmap( win->disp->display, pixmap) ;
 			return  None ;
 		}
 	}
@@ -1630,19 +1631,19 @@ x_imagelib_get_transparent_background(
 	Pixmap  current_root ;
 	GC  gc ;
 
-	current_root =  root_pixmap( win->display) ;
+	current_root =  root_pixmap( win->disp->display) ;
 
 	if(current_root == None)
 		return  None;
 
-	cache = cache_seek( win->display) ;
+	cache = cache_seek( win->disp->display) ;
 	if( cache)
 	{
 /* discard old info */
 		if ( cache->root !=  current_root)
 		{
 			if((cache->cooked != None) && (cache->cooked != cache->root))
-				XFreePixmap( win->display, cache->cooked) ;
+				XFreePixmap( win->disp->display, cache->cooked) ;
 			cache->root = current_root ;
 
 			cache->cooked = None ;
@@ -1653,7 +1654,7 @@ x_imagelib_get_transparent_background(
 	}
 	else
 	{
-		cache = cache_add( win->display) ;
+		cache = cache_add( win->disp->display) ;
 		if( !cache)
 			return  None ;
 		cache->root = current_root ;
@@ -1663,34 +1664,34 @@ x_imagelib_get_transparent_background(
 		return  None ;
 
 	/* The pixmap to be returned */
-	pixmap = XCreatePixmap( win->display, win->my_window, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
-				DefaultDepth( win->display, win->screen)) ;
+	pixmap = XCreatePixmap( win->disp->display, win->my_window, ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win),
+				DefaultDepth( win->disp->display, win->disp->screen)) ;
 
-	gc = XCreateGC( win->display, win->my_window, 0, NULL) ;
+	gc = XCreateGC( win->disp->display, win->my_window, 0, NULL) ;
 
 	if ( !is_picmod_eq( cache->pic_mod, pic_mod))
 	{
 		if((cache->cooked != None) && (cache->cooked != cache->root))
-			XFreePixmap( win->display, cache->cooked) ;
+			XFreePixmap( win->disp->display, cache->cooked) ;
 
 		/* re-creation */
 		if(pic_mod)
 		{
 			/* we need a copy of pixmap to modify */
-			cache->cooked = tile_pixmap( win->display,
-						     win->screen,
+			cache->cooked = tile_pixmap( win->disp->display,
+						     win->disp->screen,
 						     gc,
 						     current_root
 						     ,1) ;
 			free(cache->pic_mod) ;
 			cache->pic_mod = malloc(sizeof(x_picture_modifier_t)) ;
 			memcpy( cache->pic_mod, pic_mod, sizeof(x_picture_modifier_t)) ;
-			modify_pixmap( win->display, win->screen, cache->cooked, pic_mod) ;
+			modify_pixmap( win->disp->display, win->disp->screen, cache->cooked, pic_mod) ;
 		}
 		else
 		{
-			cache->cooked = tile_pixmap( win->display,
-						     win->screen,
+			cache->cooked = tile_pixmap( win->disp->display,
+						     win->disp->screen,
 						     gc,
 						     current_root,
 						     0) ;
@@ -1700,16 +1701,16 @@ x_imagelib_get_transparent_background(
 	{
 		if( cache->cooked == None)
 		{
-			cache->cooked = tile_pixmap( win->display,
-						     win->screen,
+			cache->cooked = tile_pixmap( win->disp->display,
+						     win->disp->screen,
 						     gc,
 						     current_root,
 						     0) ;
 		}
 	}
 
-	XCopyArea( win->display, cache->cooked, pixmap, gc, x, y, width, height, pix_x, pix_y) ;
-	XFreeGC( win->display, gc) ;
+	XCopyArea( win->disp->display, cache->cooked, pixmap, gc, x, y, width, height, pix_x, pix_y) ;
+	XFreeGC( win->disp->display, gc) ;
 
 	return  pixmap ;
 }

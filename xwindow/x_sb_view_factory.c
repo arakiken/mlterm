@@ -295,6 +295,10 @@ dlsym_sb_view_new_func(
 	if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL &&
 		( handle = kik_dl_open( "" , name)) == NULL)
 	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " kik_dl_open(%s) failed.\n" , name) ;
+	#endif
+	
 		return  NULL ;
 	}
 
@@ -627,6 +631,10 @@ x_sb_view_new(
 		
 		if( ( func_engine = dlsym_sb_engine_new_func( conf->engine_name)) == NULL)
 		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " %s scrollbar failed.\n" , name) ;
+		#endif
+		
 			unregister_view_conf( conf) ;
 			
 			return  NULL ;
@@ -641,6 +649,10 @@ x_sb_view_new(
 	}
 	else if( ( func = dlsym_sb_view_new_func( name , 0)) == NULL)
 	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " %s scrollbar failed.\n" , name) ;
+	#endif
+	
 		return  NULL ;
 	}
 

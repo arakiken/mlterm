@@ -194,6 +194,11 @@ if test "$DL_LOADER" = none ; then
 			DL_LOADER=dyld
 			DL_LIBS=
 			], [])
+	# cygwin hack
+	# (AC_LIBTOOL_DLOPEN tell lt_cv_dlopen == dlopen but use kik_dlcfn_win32.c.)
+	if test "$kik_cv_cygwin" = "yes" ; then
+		DL_LOADER=win32
+	fi
 fi
 AC_SUBST(DL_LOADER)
 AC_SUBST(DL_LIBS)

@@ -107,6 +107,9 @@ comment $Id$
     --with-libtool=[path]
       libtool を自動生成せず、システムのlibtoolを使うよう指定します。
 
+    --with-gui
+      GUI ライブラリとして xlib か win32 のいずれを使用するか指定します。
+
     o Examples
       (最重量版)
       ./configure --with-imagelib=gdk-pixbuf --enable-anti-alias \
@@ -346,6 +349,11 @@ comment $Id$
       o use_variable_column_width  (*false*) (#)
         可変長コラム幅を使用する
 
+      o type_engine (*xcore*/xft)
+        xcore フォントか xft フォントのいずれを使用するかを指定する。
+	なお、use_anti_alias = true にした場合は、自動的に type_engine = xft と
+	なります。
+      
       o use_anti_alias  (true/*false*) (#)
         アンチエイリアスフォントを使用する
 
@@ -428,6 +436,10 @@ comment $Id$
       o gamma (*100*) (#)
         背景画像(透過処理含む)のガンマ値(百分率)
 
+      o alpha (*255*)
+        背景透過のアルファ値[0-255]
+	※ --with-gui=win32 で use_transbg=true の場合のみ使用
+      
       o line_space  (*0*) (#)
         行間の広さ
 
@@ -815,6 +827,7 @@ comment $Id$
     -%/--logseq        : logging_vt_seq
     -$/--mc=value      : click_interval
     -&/--borderless    : borderless
+    -*/--type	       : type engine
     -0/--crbg=value    : cursor_bg_color
     -1/--wscr=value    : screen_width_ratio
     -2/--hscr=value    : screen_height_ratio
@@ -849,6 +862,7 @@ comment $Id$
     -U/--viaucs=value  : receive_string_via_ucs
     -V/--varwidth(=bool): use_variable_column_width
     -W/--sep=value     : word_separators (X)
+    -X/--alpha=value   : alpha
     -Y/--decsp(=bool)  : compose_dec_special_font (X)
     -Z/--multicol(=bool): use_multi_column_char
     -a/--ac=value      : col_size_of_width_a

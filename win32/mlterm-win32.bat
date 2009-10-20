@@ -1,5 +1,5 @@
 rem Modify [] according to your environment.
 
-rem set HOMEPATH=[PATH]
-start mlterm.exe -e plink.exe [-telnet/-ssh/-rlogin/-raw] [HOST]
+set HOMEPATH=[PATH]
+start mlterm.exe -S sample -e plink.exe [-telnet/-ssh/-rlogin/-raw] [HOST]
 exit

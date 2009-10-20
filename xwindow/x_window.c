@@ -226,12 +226,17 @@ notify_focus_in_to_children(
 {
 	int  count ;
 
-	if( win->window_focused)
+	if( ! win->is_focused)
 	{
-		(*win->window_focused)( win) ;
-	}
+		win->is_focused = 1 ;
 
-	x_xic_set_focus( win) ;
+		if( win->window_focused)
+		{
+			(*win->window_focused)( win) ;
+		}
+
+		x_xic_set_focus( win) ;
+	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -246,12 +251,17 @@ notify_focus_out_to_children(
 {
 	int  count ;
 
-	if( win->window_unfocused)
+	if( win->is_focused)
 	{
-		(*win->window_unfocused)( win) ;
-	}
+		win->is_focused = 0 ;
+		
+		if( win->window_unfocused)
+		{
+			(*win->window_unfocused)( win) ;
+		}
 
-	x_xic_unset_focus( win) ;
+		x_xic_unset_focus( win) ;
+	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -551,6 +561,8 @@ x_window_init(
 
 	/* if visibility is partially obscured , scrollable will be 0. */
 	win->is_scrollable = 1 ;
+
+	win->is_focused = 1 ;
 
 	/* This flag will map window automatically in x_window_show() */
 	win->is_mapped = 1 ;

@@ -17,6 +17,9 @@ typedef struct x_picture_modifier
 	u_int16_t  brightness ;		/* 0 - 65536 */
 	u_int16_t  contrast ;		/* 0 - 65536 */
 	u_int16_t  gamma ;		/* 0 - 65536 */
+
+	u_long  blend_color ;		/* Not used */
+	u_int8_t  alpha ;		/* Used only in win32. */
 	
 } x_picture_modifier_t ;
 

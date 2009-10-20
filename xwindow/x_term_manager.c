@@ -17,7 +17,6 @@
 
 #ifndef  USE_WIN32API
 #include  <pwd.h>		/* getpwuid */
-#include  <sys/wait.h>		/* wait */
 #endif
 
 #include  <kiklib/kik_debug.h>
@@ -45,7 +44,6 @@
 #endif
 
 #define  MAX_SCREENS  (8*sizeof(dead_mask))
-
 #define MAX_ADDTIONAL_FDS  3
 
 
@@ -343,14 +341,14 @@ open_pty_intern(
 
 	if( ! cmd_path)
 	{
-		struct passwd *  pw ;
-
 		/*
 		 * SHELL env var -> /etc/passwd -> /bin/sh
 		 */
 		if( ( cmd_path = getenv( "SHELL")) == NULL || *cmd_path == '\0')
 		{
 		#ifndef  USE_WIN32API
+			struct passwd *  pw ;
+
 			if( ( pw = getpwuid(getuid())) == NULL ||
 				*( cmd_path = pw->pw_shell) == '\0')
 		#endif
@@ -535,7 +533,7 @@ open_screen_intern(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_font_manager_new() failed.\n") ;
 	#endif
-	
+
 		goto  error ;
 	}
 
@@ -550,7 +548,7 @@ open_screen_intern(
 	if( ( screen = x_screen_new( term , font_man , color_man ,
 			x_termcap_get_entry( &termcap , main_config.term_type) ,
 			main_config.brightness , main_config.contrast , main_config.gamma ,
-			main_config.fade_ratio , &shortcut ,
+			main_config.alpha , main_config.fade_ratio , &shortcut ,
 			main_config.screen_width_ratio , main_config.screen_height_ratio ,
 			main_config.mod_meta_key ,
 			main_config.mod_meta_mode , main_config.bel_mode ,
@@ -949,12 +947,12 @@ pty_list(
 }
 
 
-#ifndef  USE_WIN32API
+#ifndef  USE_WIN32GUI
 static int
 start_daemon(void)
 {
 	pid_t  pid ;
-	int  sock_fd ;
+	int  fd ;
 	struct sockaddr_un  servaddr ;
 	char * const path = servaddr.sun_path ;
 
@@ -962,19 +960,22 @@ start_daemon(void)
 	servaddr.sun_family = AF_LOCAL ;
 	kik_snprintf( path , sizeof( servaddr.sun_path) - 1 , "/tmp/.mlterm-%d.unix" , getuid()) ;
 
-	if( ( sock_fd = socket( PF_LOCAL , SOCK_STREAM , 0)) < 0)
+	if( ( fd = socket( PF_LOCAL , SOCK_STREAM , 0)) < 0)
 	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " socket failed\n") ;
+	#endif
 		return  -1 ;
 	}
-	kik_file_set_cloexec( sock_fd);
+	kik_file_set_cloexec( fd);
 	
-	while( bind( sock_fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) < 0)
+	while( bind( fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) < 0)
 	{
 		if( errno == EADDRINUSE)
 		{
-			if( connect( sock_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
+			if( connect( fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
 			{
-				close( sock_fd) ;
+				close( fd) ;
 				
 				kik_msg_printf( "daemon is already running.\n") ;
 				
@@ -990,7 +991,7 @@ start_daemon(void)
 		}
 		else
 		{
-			close( sock_fd) ;
+			close( fd) ;
 
 			kik_msg_printf( "failed to lock file %s: %s\n" , path , strerror(errno)) ;
 
@@ -1041,9 +1042,9 @@ start_daemon(void)
 	 * grandchild
 	 */
 
-	if( listen( sock_fd , 1024) < 0)
+	if( listen( fd , 1024) < 0)
 	{
-		close( sock_fd) ;
+		close( fd) ;
 		unlink( path) ;
 		
 		return  -1 ;
@@ -1051,7 +1052,7 @@ start_daemon(void)
 
 	un_file = strdup( path) ;
 
-	return  sock_fd ;
+	return  fd ;
 }
 
 static void
@@ -1338,7 +1339,7 @@ crit_error:
 		close( fd) ;
 	}
 }
-#endif
+#endif	/* USE_WIN32GUI */
 
 
 #ifdef  USE_WIN32GUI
@@ -1596,10 +1597,12 @@ x_term_manager_init(
 	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
 		"use CP932-Unicode mapping table for JISX0208 [false]") ;
 #endif
+#ifndef  USE_WIN32GUI
 	kik_conf_add_opt( conf , 'i' , "xim" , 1 , "use_xim" , 
 		"use XIM (X Input Method) [true]") ;
 	kik_conf_add_opt( conf , 'j' , "daemon" , 0 , "daemon_mode" ,
 		"start as a daemon (none/blend/genuine) [blend]") ;
+#endif
 
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
 	{
@@ -1630,10 +1633,10 @@ x_term_manager_init(
 
 	x_main_config_init( &main_config , conf , argc , argv) ;
 
-#ifndef  USE_WIN32API
 	is_genuine_daemon = 0 ;
 	sock_fd = -1 ;
 
+#ifndef  USE_WIN32GUI
 	if( ( value = kik_conf_get_value( conf , "daemon_mode")))
 	{
 		if( strcmp( value , "genuine") == 0)
@@ -1664,6 +1667,7 @@ x_term_manager_init(
 
 	use_xim = 1 ;
 	
+#ifndef  USE_WIN32GUI
 	if( ( value = kik_conf_get_value( conf , "use_xim")))
 	{
 		if( strcmp( value , "false") == 0)
@@ -1672,7 +1676,6 @@ x_term_manager_init(
 		}
 	}
 
-#ifndef  USE_WIN32GUI
 	x_xim_init( use_xim) ;
 #endif
 
@@ -1809,7 +1812,7 @@ x_term_manager_init(
 	ml_term_manager_init() ;
 	
 	kik_alloca_garbage_collect() ;
-	
+
 	for( count = 0 ; count < MAX_ADDTIONAL_FDS ; count++)
 	{
 		additional_fds[count].fd = -1 ;
@@ -1903,7 +1906,6 @@ x_term_manager_event_loop(void)
 			return ;
 		}
 	}
-
 
 	while( 1)
 	{

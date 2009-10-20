@@ -6,6 +6,9 @@
 #define  __KIK_LOCALE_H__
 
 
+#include  "kik_config.h"	/* HAVE_WINDOWS_H */
+
+
 int  kik_locale_init(char *  locale) ;
 
 int  kik_locale_final(void) ;
@@ -24,7 +27,15 @@ char *  kik_get_lang(void) ;
 
 char *  kik_get_country(void) ;
 
+#ifdef  USE_WIN32API
+#define  kik_get_codeset  kik_get_codeset_win32
+#else
 char *  kik_get_codeset(void) ;
+#endif
+
+#ifdef  HAVE_WINDOWS_H
+char *  kik_get_codeset_win32(void) ;
+#endif
 
 
 #endif

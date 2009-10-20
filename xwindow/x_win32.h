@@ -6,6 +6,7 @@
 #define  __X_WIN32_H__
 
 
+#define  _WIN32_WINNT  0x0500	/* for WS_EX_LAYERED , LWA_XXX , SetLayeredWindowAttributes */
 #include  <windows.h>
 #include  <imm.h>
 
@@ -299,6 +300,5 @@ typedef struct
 
 /* Same as definition in X11/cursorfont.h */
 #define XC_xterm 152
-
 
 #endif

@@ -791,6 +791,7 @@ ac_includes_default="\
 enable_option_checking=no
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+MAKE_DIRS
 subdirs
 CVS_REVISION
 DL_SELF
@@ -830,12 +831,6 @@ AUTOCONF
 ACLOCAL
 VERSION
 PACKAGE
-ML_PTY_OBJ
-GUI_CFLAGS
-WIN32TAG
-PLATFORM_LIB_LDFLAGS
-OUTPUT_FILES
-MAKE_DIRS
 DL_LIBS_SB
 DL_LIBS_IM
 IM_CFLAGS
@@ -870,6 +865,7 @@ IMAGELIB_NAME
 pkg_config
 IMAGELIB_LIBS
 IMAGELIB_CFLAGS
+imlib2_config
 imlib_config
 FRIBIDI_LIBS
 FRIBIDI_CFLAGS
@@ -877,6 +873,10 @@ fribidi_config
 OPT_CFLAGS
 DEB_CFLAGS
 XUTF8_CFLAGS
+GUI_CFLAGS
+WIN32TAG
+SUBSYSTEM
+ML_PTY_OBJ
 X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
@@ -977,6 +977,7 @@ enable_libtool_lock
 with_pic
 with_tags
 with_x
+with_gui
 enable_debug
 enable_fribidi
 with_imagelib
@@ -994,7 +995,6 @@ enable_m17nlib
 enable_scim
 with_scrollbars
 enable_optimize_redrawing
-with_gui
 enable_dependency_tracking
 enable_rpath
 with_libiconv_prefix
@@ -1693,12 +1693,12 @@ Optional Packages:
                           both]
   --with-tags[=TAGS]      include additional configurations [automatic]
   --with-x                use the X Window System
+  --with-gui[=ARG]        gui library(xlib|win32)
   --with-imagelib[=ARG]   image library (imlib|gdk-pixbuf) [default=no]
   --with-type-engines     type engines(xcore, xft) [default=xcore]
   --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlterm-menu,mlcc]
   --with-libltdl[=PREFIX] load modules with libltdl [default=without]
   --with-scrollbars[=ARG] scrollbar plugins (sample, extra, pixmap_engine) [default=sample,extra]
-  --with-gui[=ARG]        gui library(xlib|win32)
   --with-gnu-ld           assume the C compiler uses GNU ld default=no
   --with-libiconv-prefix=DIR  search for libiconv in DIR/include and DIR/lib
   --without-libiconv-prefix     don't search for libiconv in includedir and libdir
@@ -21362,10 +21362,67 @@ fi
 fi
 
 
-# Li18nux Xlib-I18N defines X_HAVE_UTF8_STRING but has no Xutf8LookupString.
-ldflags="$LDFLAGS" cflags="$CFLAGS"
-LDFLAGS="$LDFLAGS $X_PRE_LIBS $X_LIBS $X_EXTRA_LIBS" CFLAGS="$X_CFLAGS $CFLAGS"
-{ $as_echo "$as_me:$LINENO: checking for Xutf8LookupString in -lX11" >&5
+
+# Check whether --with-gui was given.
+if test "${with_gui+set}" = set; then
+  withval=$with_gui; gui=$with_gui
+fi
+
+
+MAKE_DIRS="mlterm ${MAKE_DIRS} xwindow man etc"
+OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
+ML_PTY_OBJ="ml_pty.o"
+IS_POSIX="yes"
+
+case "${host_os}" in
+mingw32*)
+	if test -f "/lib/libmsys-1.0.dll.a" ; then
+		SUBSYSTEM="-Wl,--subsystem,console"
+	else
+		ML_PTY_OBJ="ml_pty_pipewin32.o"
+		IS_POSIX="no"
+	fi
+
+	if test "$gui" != "win32" ; then
+		echo "$gui is not supported in ${host_os}. Use win32."
+		gui="win32"
+	fi
+	;;
+cygwin*)
+	if test "$gui" = "win32" ; then
+		SUBSYSTEM="-Wl,--subsystem,console"
+	elif test "$gui" = "" ; then
+		# $have_x is defined in AC_PATH_XTRA.
+		if test "$have_x" = "yes" ; then
+			gui="xlib"
+		else
+			gui="win32"
+		fi
+	fi
+	;;
+*)
+	if test "$gui" != "xlib" ; then
+		echo "$gui is not supported in ${host_os}. Use xlib."
+		gui="xlib"
+	fi
+	;;
+esac
+
+
+
+
+if test "$gui" = "win32" ; then
+	WIN32TAG="_win32"
+	GUI_CFLAGS="-DUSE_WIN32GUI"
+
+
+else
+	# gui = xlib
+
+	# Li18nux Xlib-I18N defines X_HAVE_UTF8_STRING but has no Xutf8LookupString.
+	ldflags="$LDFLAGS" cflags="$CFLAGS"
+	LDFLAGS="$LDFLAGS $X_PRE_LIBS $X_LIBS $X_EXTRA_LIBS" CFLAGS="$X_CFLAGS $CFLAGS"
+	{ $as_echo "$as_me:$LINENO: checking for Xutf8LookupString in -lX11" >&5
 $as_echo_n "checking for Xutf8LookupString in -lX11... " >&6; }
 if test "${ac_cv_lib_X11_Xutf8LookupString+set}" = set; then
   $as_echo_n "(cached) " >&6
@@ -21434,8 +21491,9 @@ if test "x$ac_cv_lib_X11_Xutf8LookupString" = x""yes; then
   XUTF8_CFLAGS="-DHAVE_XUTF8_LOOKUP_STRING"
 fi
 
-LDFLAGS="$ldflags" CFLAGS="$cflags"
+	LDFLAGS="$ldflags" CFLAGS="$cflags"
 
+fi
 
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then
@@ -21562,15 +21620,15 @@ fi
 	IMAGELIB_NAME=imlib
 	;;
 imlib2)
-	# Extract the first word of "imlib-config", so it can be a program name with args.
-set dummy imlib-config; ac_word=$2
+	# Extract the first word of "imlib2-config", so it can be a program name with args.
+set dummy imlib2-config; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_imlib_config+set}" = set; then
+if test "${ac_cv_prog_imlib2_config+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
-  if test -n "$imlib_config"; then
-  ac_cv_prog_imlib_config="$imlib_config" # Let the user override the test.
+  if test -n "$imlib2_config"; then
+  ac_cv_prog_imlib2_config="$imlib2_config" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -21579,7 +21637,7 @@ do
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_imlib_config="yes"
+    ac_cv_prog_imlib2_config="yes"
     $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -21587,13 +21645,13 @@ done
 done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_prog_imlib_config" && ac_cv_prog_imlib_config="no"
+  test -z "$ac_cv_prog_imlib2_config" && ac_cv_prog_imlib2_config="no"
 fi
 fi
-imlib_config=$ac_cv_prog_imlib_config
-if test -n "$imlib_config"; then
-  { $as_echo "$as_me:$LINENO: result: $imlib_config" >&5
-$as_echo "$imlib_config" >&6; }
+imlib2_config=$ac_cv_prog_imlib2_config
+if test -n "$imlib2_config"; then
+  { $as_echo "$as_me:$LINENO: result: $imlib2_config" >&5
+$as_echo "$imlib2_config" >&6; }
 else
   { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
@@ -22640,9 +22698,11 @@ fi
 	fi
 	;;
 mlclient)
-	MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
-	OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
-	tools_result="$tools_result $tool"
+	if test "$gui" = "xlib" ; then
+		MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
+		OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
+		tools_result="$tools_result $tool"
+	fi
 	;;
 w3mmlconfig)
 	# Extract the first word of "perl", so it can be a program name with args.
@@ -22698,19 +22758,25 @@ fi
 	tools_result="$tools_result $tool"
 	;;
 mlcc)
-	MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
-	OUTPUT_FILES="contrib/tool/mlcc/Makefile ${OUTPUT_FILES}"
-	tools_result="$tools_result $tool"
+	if test "$IS_POSIX" = "yes" ; then
+		MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
+		OUTPUT_FILES="contrib/tool/mlcc/Makefile ${OUTPUT_FILES}"
+		tools_result="$tools_result $tool"
+	fi
 	;;
 mlmenu)
-	MAKE_DIRS="tool/mlmenu ${MAKE_DIRS}"
-	OUTPUT_FILES="tool/mlmenu/Makefile ${OUTPUT_FILES}"
-	tools_result="$tools_result $tool"
+	if test "$gui" = "xlib" ; then
+		MAKE_DIRS="tool/mlmenu ${MAKE_DIRS}"
+		OUTPUT_FILES="tool/mlmenu/Makefile ${OUTPUT_FILES}"
+		tools_result="$tools_result $tool"
+	fi
 	;;
 mlterm-zoom)
-	MAKE_DIRS="contrib/tool/mlterm-zoom ${MAKE_DIRS}"
-	OUTPUT_FILES="contrib/tool/mlterm-zoom/Makefile ${OUTPUT_FILES}"
-	tools_result="$tools_result $tool"
+	if test "$gui" = "xlib" ; then
+		MAKE_DIRS="contrib/tool/mlterm-zoom ${MAKE_DIRS}"
+		OUTPUT_FILES="contrib/tool/mlterm-zoom/Makefile ${OUTPUT_FILES}"
+		tools_result="$tools_result $tool"
+	fi
 	;;
 *)
 	echo "${tool} is unknown tool."
@@ -22761,7 +22827,7 @@ if test "${enable_kbd+set}" = set; then
   enableval=$enable_kbd; kbd=$enable_kbd
 fi
 
-if test "$kbd" != "no" ; then
+if test "$kbd" != "no" -a "$gui" = "xlib" ; then
 	IM_CFLAGS="$IM_CFLAGS -DUSE_KBD"
 	MAKE_DIRS="inputmethod/kbd ${MAKE_DIRS}"
 	OUTPUT_FILES="inputmethod/kbd/Makefile ${OUTPUT_FILES}"
@@ -23963,14 +24029,16 @@ sample)
 	scrollbars_result="$scrollbars_result $scrollbar"
 	;;
 extra)
-	MAKE_DIRS="contrib/scrollbar/extra ${MAKE_DIRS}"
-	OUTPUT_FILES="contrib/scrollbar/extra/Makefile ${OUTPUT_FILES}"
-	if test "x$with_libltdl" != "xno" ; then
-		for name in athena next motif mozmodern ; do
-			DL_LIBS_SB="-dlopen \$(top_builddir)/contrib/scrollbar/extra/lib$name.la ${DL_LIBS_SB}"
-		done
+	if test "$gui" = "xlib" ; then
+		MAKE_DIRS="contrib/scrollbar/extra ${MAKE_DIRS}"
+		OUTPUT_FILES="contrib/scrollbar/extra/Makefile ${OUTPUT_FILES}"
+		if test "x$with_libltdl" != "xno" ; then
+			for name in athena next motif mozmodern ; do
+				DL_LIBS_SB="-dlopen \$(top_builddir)/contrib/scrollbar/extra/lib$name.la ${DL_LIBS_SB}"
+			done
+		fi
+		scrollbars_result="$scrollbars_result $scrollbar"
 	fi
-	scrollbars_result="$scrollbars_result $scrollbar"
 	;;
 pixmap_engine)
 	if test "x$allow_undefined_flag" = "xunsupported" ; then
@@ -23982,7 +24050,7 @@ pixmap_engine)
 		echo ""
 		exit 1
 	fi
-	if test "$IMAGELIB_NAME" = "gdk" -o "$IMAGELIB_NAME" = "imlib" ; then
+	if test "$IMAGELIB_NAME" = "gdk" -o "$IMAGELIB_NAME" = "imlib" -o "$IMAGELIB_NAME" = "imlib2" ; then
 		MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
@@ -24018,49 +24086,6 @@ fi
 if test "$optimize_redrawing" = "yes" ; then
 	CFLAGS="$CFLAGS -DOPTIMIZE_REDRAWING"
 fi
-
-
-# Check whether --with-gui was given.
-if test "${with_gui+set}" = set; then
-  withval=$with_gui; gui=$with_gui
-fi
-
-
-case "${host_os}" in
-mingw32*)
-	MAKE_DIRS="mlterm xwindow etc scrollbar/sample"
-	OUTPUT_FILES="Makefile mlterm/Makefile etc/Makefile xwindow/Makefile scrollbar/sample/Makefile"
-	PLATFORM_LIB_LDFLAGS="-no-undefined"
-	if test -f "/lib/libmsys-1.0.dll.a" ; then
-		ML_PTY_OBJ="ml_pty.o"
-	else
-		ML_PTY_OBJ="ml_pty_pipewin32.o"
-	fi
-	WIN32TAG="_win32"
-	GUI_CFLAGS="-DUSE_WIN32GUI"
-	if test "$gui" != "win32" -a "$gui" != "" ; then
-		echo "$gui is not supported in ${host_os}. Use win32."
-	fi
-	;;
-*)
-	MAKE_DIRS="mlterm ${MAKE_DIRS} xwindow man etc"
-	OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
-	PLATFORM_LIB_LDFLAGS=""
-	ML_PTY_OBJ="ml_pty.o"
-	if test "$gui" = "win32" ; then
-		WIN32TAG="_win32"
-		GUI_CFLAGS="-DUSE_WIN32GUI"
-	elif test "$gui" != "" -o "$gui" != "xlib" ; then
-		echo "$gui is not supported in ${host_os}. Use xlib."
-	fi
-	;;
-esac
-
-
-
-
-
-
 
 # gettext
 { $as_echo "$as_me:$LINENO: checking whether build environment is sane" >&5
@@ -26183,6 +26208,8 @@ if test "${SUBDIRS}" != "" ; then
 subdirs="$subdirs ${SUBDIRS}"
 
 fi
+
+
 
 if test "${MAKE_DIRS}" != "" ; then
 	mkdir -p ${MAKE_DIRS}

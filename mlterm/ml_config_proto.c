@@ -58,6 +58,8 @@ read_challenge(void)
 	fread( challenge , st.st_size , 1 , file) ;
 	challenge[st.st_size] = '\0' ;
 
+	fclose( file) ;
+
 	return  1 ;
 }
 

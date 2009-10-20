@@ -90,23 +90,35 @@ kik_pty_fork(
 	kik_sig_child_resume() ;
 	if( unlockpt(*master) < 0)
 	{
+		close(*master) ;
+		
 		return  -1;
 	}
 	if( ( ttydev = ptsname(*master)) == NULL)
 	{
 		kik_msg_printf( "Unable to open a slave pseudo-terminal device.\n") ;
-#ifdef  __linux__
+	#ifdef  __linux__
 		kik_msg_printf( "If your operating system is Linux, make sure your kernel was compiled with\n"
 			        "'CONFIG_UNIX98_PTYS=y' and devpts file system was mounted.\n");
-#endif
+	#endif
+
+		close(*master) ;
+		
 		return  -1;
 	}
 
-	fcntl( *master, F_SETFL, O_NDELAY);
+	if( fcntl( *master, F_SETFL, O_NDELAY) == -1)
+	{
+		close(*master) ;
+		
+		return  -1 ;
+	}
 
 	if( ( *slave = open( ttydev, O_RDWR | O_NOCTTY, 0)) < 0)
 	{
-		return -1;
+		close(*master) ;
+		
+		return  -1 ;
 	}
 
 	/*
@@ -214,7 +226,7 @@ kik_pty_fork(
 
 		return  -1 ;
 	}
-
+	
 	pid = fork() ;
 
 	if( pid == -1)
@@ -222,6 +234,8 @@ kik_pty_fork(
 		/* fork failed */
 
 		free( *slave_name) ;
+		close( *master) ;
+		close( *slave) ;
 
 		return  -1 ;
 	}
@@ -229,26 +243,46 @@ kik_pty_fork(
 	{
 		/* child */
 
+	#if  defined(__MSYS__)
+		/*
+		 * XXX
+		 * I don't know why but FreeConsole() is called in setsid()
+		 * unless following codes(close(0...2)) are placed between
+		 * fork() and setsid() (before dup2()) in msys.
+		 * If FreeConsole() is called in setsid(), each non-msys program
+		 * which is started by shell in mlterm opens command prompt
+		 * window...
+		 */
+		for( fd = 0 ; fd <= 2 ; fd++)
+		{
+			if( fd != *slave)
+			{
+				close( fd) ;
+			}
+		}
+	#endif
+	
 		close(*master) ;
-#ifdef HAVE_SETSID
+
+	#ifdef HAVE_SETSID
 		setsid() ;
-#else /*HAVE_SETSID*/
-#ifdef TIOCNOTTY
+	#else /* HAVE_SETSID */
+	#ifdef TIOCNOTTY
 		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
 		if (fd >= 0)
 		{
 			ioctl(fd, TIOCNOTTY, NULL);
 			close(fd);
 		}
-#endif /*TIOCNOTTY*/
-#endif /*HAVE_SETSID*/
+	#endif /* TIOCNOTTY */
+	#endif /* HAVE_SETSID */
 
-#ifdef TIOCSCTTY /* BSD (in addition Linux also knows TIOCSCTTY) */
+	#ifdef TIOCSCTTY /* BSD (in addition Linux also knows TIOCSCTTY) */
 		if(ioctl(*slave, TIOCSCTTY, NULL) < 0)
 		{
 			return -1 ;
 		}
-#else /* no TIOCSCTTY (SysV) */
+	#else /* no TIOCSCTTY (SysV) */
 		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
 		if (fd >= 0)
 		{
@@ -265,7 +299,7 @@ kik_pty_fork(
 			return -1;
 		}
 		close(fd);
-#endif /* no TIOCSCTTY (SysV) */
+	#endif /* no TIOCSCTTY (SysV) */
 
 		dup2( *slave , 0) ;
 		dup2( *slave , 1) ;
@@ -288,7 +322,7 @@ kik_pty_fork(
 
 		return  0 ;
 	}
-	
+
 	kik_file_set_cloexec( *slave) ;
 
 	return  pid ;

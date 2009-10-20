@@ -4,6 +4,7 @@
 
 #include  "x_display.h"
 
+#include  <stdio.h>		/* sprintf */
 #include  <string.h>		/* memset/memcpy */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
@@ -90,6 +91,32 @@ modmap_final(
 	}
 }
 
+static void
+hide_console(void)
+{
+	HWND  conwin ;
+	char  app_name[40] ;
+
+	sprintf( app_name, "mlterm%08x", (unsigned int)GetCurrentThreadId()) ;
+
+	LockWindowUpdate( GetDesktopWindow()) ;
+	
+/*
+ * "-Wl,-subsystem,console" is specified in xwindow/Makefile, so AllocConsole()
+ * is not necessary.
+ */
+#if  0
+	AllocConsole() ;
+#endif
+
+	SetConsoleTitle( app_name) ;
+	while( ( conwin = FindWindow( NULL, app_name)) == NULL)
+	{
+		Sleep( 40) ;
+	}
+	ShowWindowAsync( conwin, SW_HIDE);
+	LockWindowUpdate( NULL) ;
+}
 
 /* --- global functions --- */
 
@@ -161,13 +188,17 @@ x_display_open(
 
 	if( ( _disp.gc = x_gc_new( &_display)) == NULL)
 	{
-		return  0 ;
+		return  NULL ;
 	}
 
 	_disp.display = &_display ;
 
 	x_gdiobj_pool_init() ;
-	
+
+#ifndef  USE_WIN32API
+	hide_console() ;
+#endif
+
 	return  &_disp ;
 }
 
