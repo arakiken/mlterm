@@ -260,7 +260,7 @@ msgstr "العرض الكامل = 2 (أو 1) أعمدة منطقية"
 msgid "Bidi (UTF8 only)"
 msgstr "ثنائية اﻹتجاه (UTF8 فقط)"
 
-#: tool/mlconfig/mc_fontsize.c:62
+#: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "حجم الخط (بكسل)"
 
@@ -321,7 +321,7 @@ msgid "Tab width (columns)"
 msgstr "عرض Tab (أعمدة)"
 
 #: tool/mlconfig/mc_vertical.c:88
-msgid " Vertical mode "
+msgid "Vertical mode"
 msgstr " النمط الرأسى "
 
 #: tool/mlconfig/mc_vertical.c:105

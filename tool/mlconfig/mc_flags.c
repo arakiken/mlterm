@@ -22,6 +22,7 @@
 static int old_flag_mode[MC_FLAG_MODES], new_flag_mode[MC_FLAG_MODES];
 static int is_changed[MC_FLAG_MODES];
 static char *configname[MC_FLAG_MODES] = {
+	"type_engine" ,
 	"use_anti_alias",
 	"use_variable_column_width",
 	"use_combining",
@@ -32,6 +33,7 @@ static char *configname[MC_FLAG_MODES] = {
 };
 
 static char *label[MC_FLAG_MODES] = {
+	N_("Xft"),
 	N_("Anti Alias"),
 	N_("Variable column width"),
 	N_("Combining"),
@@ -47,8 +49,16 @@ static GtkWidget *widget[MC_FLAG_MODES];
 
 GtkWidget * mc_flag_config_widget_new(int id) 
 {
-	old_flag_mode[id] = new_flag_mode[id] = 
-		mc_get_flag_value(configname[id]);
+	if( id == MC_FLAG_XFT)
+	{
+		old_flag_mode[id] = new_flag_mode[id] = 
+			( strcmp( mc_get_str_value( configname[id]) , "xft") == 0) ;
+	}
+	else
+	{
+		old_flag_mode[id] = new_flag_mode[id] = 
+			mc_get_flag_value(configname[id]);
+	}
 	is_changed[id] = 0;
 	widget[id] = gtk_check_button_new_with_label(_(label[id]));
 	if (old_flag_mode[id])
@@ -57,13 +67,28 @@ GtkWidget * mc_flag_config_widget_new(int id)
 	return widget[id];
 }
 
-void mc_update_flag_mode(int id) {
+void mc_update_flag_mode(int id)
+{
 	new_flag_mode[id] = GTK_TOGGLE_BUTTON(widget[id])->active;
 
 	if (old_flag_mode[id] != new_flag_mode[id]) is_changed[id] = 1;
 
 	if (is_changed[id]) {
-		mc_set_flag_value(configname[id], new_flag_mode[id]);
+		if( id == MC_FLAG_XFT)
+		{
+			if( new_flag_mode[id])
+			{
+				mc_set_str_value( configname[id] , "xft") ;
+			}
+			else
+			{
+				mc_set_str_value( configname[id] , "xcore") ;
+			}
+		}
+		else
+		{
+			mc_set_flag_value(configname[id], new_flag_mode[id]);
+		}
 		old_flag_mode[id] = new_flag_mode[id];
 	}
 }

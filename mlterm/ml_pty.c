@@ -34,6 +34,7 @@ typedef struct  ml_pty
 	/* model to be written */
 	u_char *  buf ;
 	size_t  left ;
+	size_t  size ;
 
   	ml_pty_event_listener_t *  pty_listener ;
 
@@ -139,6 +140,7 @@ ml_pty_new(
 	pty->child_pid = pid ;
 	pty->buf = NULL ;
 	pty->left = 0 ;
+	pty->size = 0 ;
 
   	pty->pty_listener = NULL ;
 	
@@ -226,14 +228,13 @@ ml_pty_set_listener(
 }
 
 /*
- * Return size of not written bytes.
- * Notice that this function can return larger size than 'len' argument if pty->left > 0.
+ * Return size of lost bytes.
  */
 size_t
 ml_write_to_pty(
 	ml_pty_t *  pty ,
 	u_char *  buf ,
-	size_t  len
+	size_t  len		/* if 0, flushing buffer. */
 	)
 {
 	u_char *  w_buf ;
@@ -241,29 +242,69 @@ ml_write_to_pty(
 	ssize_t  written_size ;
 	void *  p ;
 
-	if( ( w_buf_size = pty->left + len) == 0)
+	w_buf_size = pty->left + len ;
+	if( w_buf_size == 0)
 	{
 		return  0 ;
 	}
+#if  0
+	/*
+	 * Little influence without this buffering.
+	 */
+	else if( len > 0 && w_buf_size < 16)
+	{
+		/*
+		 * Buffering until 16 bytes.
+		 */
 
-  	if( pty->buf == NULL && pty->left == 0)
+		if( pty->size < 16)
+		{
+			if( ( p = realloc( pty->buf , 16)) == NULL)
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" realloc failed. %d characters not written.\n" , len) ;
+			#endif
+
+				return  len ;
+			}
+			
+			pty->size = 16 ;
+			pty->buf = p ;
+		}
+
+		memcpy( &pty->buf[pty->left] , buf , len) ;
+		pty->left = w_buf_size ;
+
+	#if  0
+		kik_debug_printf( "buffered(not written) %d characters.\n" , pty->left) ;
+	#endif
+	
+		return  0 ;
+	}
+#endif
+
+	if( /* pty->buf && */ len == 0)
+	{
+		w_buf = pty->buf ;
+	}
+  	else if( /* pty->buf == NULL && */ pty->left == 0)
         {
           	w_buf = buf ;
         }
-  	else
+  	else if( ( w_buf = alloca( w_buf_size)))
         {
-		if( ( w_buf = alloca( w_buf_size)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" alloca() failed and , bytes to be written to pty are lost.\n") ;
-		#endif
-	
-			return  0 ;
-		}
-
           	memcpy( w_buf , pty->buf , pty->left) ;
 		memcpy( &w_buf[pty->left] , buf , len) ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" alloca() failed. %d characters not written.\n" , len) ;
+	#endif
+	
+		return  len ;
 	}
 
 #ifdef  __DEBUG
@@ -286,39 +327,67 @@ ml_write_to_pty(
 
 	if( written_size == w_buf_size)
 	{
-		if( pty->buf)
-		{
-			pty->left = 0 ;
-		}
+		pty->left = 0 ;
 	
-		return  written_size ;
+		return  0 ;
 	}
 
-	pty->left = w_buf_size - written_size ;
-
-	if( ( p = realloc( pty->buf , pty->left)) == NULL)
+	/* w_buf_size - written_size == not_written_size */
+	if( w_buf_size - written_size > pty->size)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
-	#endif
+		if( ( p = realloc( pty->buf , w_buf_size - written_size)) == NULL)
+		{
+			size_t  lost ;
+			
+			if( pty->size == 0)
+			{
+				lost = w_buf_size - written_size ;
+				pty->left = 0 ;
+			}
+			else
+			{
+				lost = w_buf_size - written_size - pty->size ;
+				memcpy( pty->buf , &w_buf[written_size] , pty->size) ;
+				pty->left = pty->size ;
+			}
 
-          	pty->left = 0 ;
-        
-		return  written_size ;
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG
+				" realloc failed. %d characters are not written.\n" , lost) ;
+		#endif
+
+			return  lost ;
+		}
+		else
+		{
+			pty->size = pty->left = w_buf_size - written_size ;
+			pty->buf = p ;
+		}
 	}
-
-	pty->buf = p ;
+	else
+	{
+		pty->left = w_buf_size - written_size ;
+	}
 	
 	memcpy( pty->buf , &w_buf[written_size] , pty->left) ;
 
-	return  written_size ;
+	kik_debug_printf( "%d is not written.\n" , pty->left) ;
+
+	return  0 ;
 }
 
+/*
+ * Flush pty->buf/pty->left.
+ */
 size_t
 ml_flush_pty(
 	ml_pty_t *  pty
 	)
 {
+#if  0
+	kik_debug_printf( "flushing buffer.\n") ;
+#endif
+
 	return  ml_write_to_pty( pty , NULL , 0) ;
 }
 

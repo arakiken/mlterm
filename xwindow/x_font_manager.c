@@ -228,28 +228,21 @@ x_font_manager_usascii_font_cs_changed(
 int
 x_change_font_present(
 	x_font_manager_t *  font_man ,
+	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present
 	)
 {
 	x_font_config_t *  font_config ;
 	x_font_cache_t *  font_cache ;
-#define  __HACK__
-#ifdef  __HACK__
-	x_type_engine_t  type_engine ;
 
 	/* XXX Hack */
 	if( font_present & FONT_AA)
 	{
 		type_engine = TYPE_XFT ;
 	}
-	else
-	{
-		type_engine = TYPE_XCORE ;
-	}
-#endif
-#undef  __HACK__
 
-	if( font_present == font_man->font_config->font_present)
+	if( font_present == font_man->font_config->font_present &&
+		type_engine == font_man->font_config->type_engine)
 	{
 		return  1 ;
 	}

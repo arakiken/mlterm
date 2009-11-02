@@ -83,11 +83,11 @@ mc_vertical_config_widget_new(void)
 
 	vertical_mode = mc_get_str_value( "vertical_mode") ;
 
-	hbox = gtk_hbox_new(FALSE , 0) ;
+	hbox = gtk_hbox_new(FALSE , 5) ;
 
-	label = gtk_label_new( _(" Vertical mode ")) ;
+	label = gtk_label_new( _("Vertical mode")) ;
 	gtk_widget_show(label) ;
-	gtk_box_pack_start(GTK_BOX(hbox) , label , TRUE , TRUE , 0) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , FALSE , 5) ;
 	
 	group = NULL ;
 
@@ -140,5 +140,18 @@ mc_update_vertical_mode(void)
 		mc_set_str_value( "vertical_mode" , new_vertical_mode) ;
 		free( old_vertical_mode) ;
 		old_vertical_mode = strdup( new_vertical_mode) ;
+	}
+}
+
+int
+mc_is_vertical(void)
+{
+	if( strcmp( new_vertical_mode , "none") == 0)
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  1 ;
 	}
 }

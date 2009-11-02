@@ -5,8 +5,12 @@ mlterm configuration protocol(color)
 version 20090628
 
 * Protocol
-  set              = "\x1b" "]" "5386" ";" <key> "=" <value> "\x07"
-  set&save         = "\x1b" "]" "5387" ";" <key> "=" <value> "\x07"
+  set              = "\x1b" "]" "5388" ";" <key> "=" <value> "\x07"
+#if  0
+  get(pty)	   = "\x1b" "]" "5389" ";" <challenge> ";" <key> "\x07"
+  get(GUI menu)	   = "\x1b" "]" "5390" ";" <key> "\x07"
+#endif
+  set&save         = "\x1b" "]" "5391" ";" <key> "=" <value> "\x07"
   key		   = see doc/en/README.ja
   value		   = see doc/en/README.ja
   

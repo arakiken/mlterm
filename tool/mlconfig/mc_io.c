@@ -54,7 +54,8 @@ append_value(
 
 static char *
 get_value(
-	char *  key
+	char *  key ,
+	mc_io_t  io
 	)
 {
 #define RET_SIZE 1024
@@ -63,7 +64,7 @@ get_value(
 	char  c ;
 	char *p;
 
-	printf( "\x1b]%d;%s\x07" , mc_io_get, key) ;
+	printf( "\x1b]%d;%s\x07" , io , key) ;
 	fflush( stdout) ;
 
 	for( count = 0 ; count < RET_SIZE ; count ++)
@@ -162,7 +163,7 @@ mc_get_str_value(
 {
 	char *  value ;
 	
-	if( ( value = get_value( key)) == NULL)
+	if( ( value = get_value( key , mc_io_get)) == NULL)
 	{
 		return  strdup( "error") ;
 	}
@@ -179,7 +180,7 @@ mc_get_flag_value(
 {
 	char *  value ;
 
-	if( ( value = get_value( key)) == NULL)
+	if( ( value = get_value( key , mc_io_get)) == NULL)
 	{
 		return  0 ;
 	}
@@ -195,5 +196,57 @@ mc_get_flag_value(
 		free( value) ;
 		
 		return  0 ;
+	}
+}
+
+int
+mc_set_font_name(
+	mc_io_t  io ,
+	char *  file ,
+	char *  font_size ,
+	char *  cs ,
+	char *  font_name
+	)
+{
+	printf( "\x1b]%d;%s:%s=%s,%s\x07" , io , file , cs , font_size , font_name) ;
+	fflush( NULL) ;
+
+	return  1 ;
+}
+
+char *
+mc_get_font_name(
+	char *  file ,
+	char *  font_size ,
+	char *  cs
+	)
+{
+	size_t  len ;
+	char *  value ;
+	char *  key ;
+
+	len = strlen(cs) + strlen(font_size) + 2 ;
+	if( file)
+	{
+		len += (strlen(file) + 1) ;
+	}
+	
+	if( ( key = alloca( len)) == NULL)
+	{
+		return  strdup( "error") ;
+	}
+
+	sprintf( key , "%s%s%s,%s" ,
+		file ? file : "" ,
+		file ? ":" : "" ,
+		cs , font_size) ;
+	
+	if( ( value = get_value( key , mc_io_get_font)) == NULL)
+	{
+		return  strdup( "error") ;
+	}
+	else
+	{
+		return  value ;
 	}
 }

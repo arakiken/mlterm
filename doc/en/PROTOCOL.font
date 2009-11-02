@@ -6,8 +6,11 @@ version 20090628
 
 * Protocol
   set              = "\x1b" "]" "5384" ";" [ <filename> ":" ] <key> "=" <value> "\x07"
-  set&save         = "\x1b" "]" "5385" ";" [ <filename> ":" ] <key> "=" <value> "\x07"
+  get(pty)	   = "\x1b" "]" "5385" ";" <challenge> ";" [ <filename> ":" ] <key> "," <fontsize> "\x07"
+  get(GUI menu)	   = "\x1b" "]" "5386" ";" [ <filename> ":" ] <key> "," <fontsize> "\x07"
+  set&save         = "\x1b" "]" "5387" ";" [ <filename> ":" ] <key> "=" <value> "\x07"
+
   filename	   = font | aafont | vfont | tfont | vaafont | taafont
-  key		   = see doc/en/README.ja
-  value		   = see doc/en/README.ja
-  
+  key		   = see doc/ja/README.ja
+  value		   = see doc/ja/README.ja
+  fontsize         = <fontsize digit>

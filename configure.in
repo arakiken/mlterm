@@ -219,7 +219,9 @@ AC_ARG_WITH(type_engines,
 	[  --with-type-engines     type engines(xcore, xft) @<:@default=xcore@:>@],
 	type_engines=$with_type_engines)
 
-if test "$anti_alias" = "yes" ; then
+if test "$gui" = "win32" ; then
+	type_engines="xcore"
+elif  test "$anti_alias" = "yes" ; then
 	type_engines="xcore xft"
 fi
 

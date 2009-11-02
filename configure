@@ -22129,7 +22129,9 @@ if test "${with_type_engines+set}" = set; then
 fi
 
 
-if test "$anti_alias" = "yes" ; then
+if test "$gui" = "win32" ; then
+	type_engines="xcore"
+elif  test "$anti_alias" = "yes" ; then
 	type_engines="xcore xft"
 fi
 

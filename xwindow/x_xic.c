@@ -321,7 +321,7 @@ x_xic_fg_color_changed(
 	}
 
 	if( ( preedit_attr = XVaCreateNestedList( 0 , XNForeground ,
-		(*win->xim_listener->get_fg_color)( win->xim_listener->self) , NULL)) == NULL)
+		(*win->xim_listener->get_fg_color)( win->xim_listener->self)->pixel , NULL)) == NULL)
 	{
 		return  0 ;
 	}
@@ -346,7 +346,7 @@ x_xic_bg_color_changed(
 	}
 
 	if( ( preedit_attr = XVaCreateNestedList( 0 , XNBackground ,
-		(*win->xim_listener->get_bg_color)( win->xim_listener->self) , NULL)) == NULL)
+		(*win->xim_listener->get_bg_color)( win->xim_listener->self)->pixel , NULL)) == NULL)
 	{
 		return  0 ;
 	}

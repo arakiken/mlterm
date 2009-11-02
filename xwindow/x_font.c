@@ -222,74 +222,169 @@ xft_calculate_char_width(
 static int
 parse_xft_font_name(
 	char **  font_family ,
-	char **  font_encoding ,
-	char **  percent ,
-	char *  font_name
+	int *  font_weight ,	/* if weight is not specified in font_name , not changed. */
+	int *  font_slant ,	/* if slant is not specified in font_name , not changed. */
+	double *  font_size ,	/* if size is not specified in font_name , not changed. */
+	char **  font_encoding ,/* if encoding is not specified in font_name , not changed. */
+	u_int *  percent ,	/* if percent is not specified in font_name , not changed. */
+	char *  font_name	/* modified by this function. */
 	)
 {
+	char *  p ;
+	size_t  len ;
+	
 	/*
 	 * XftFont format.
-	 * [Font Family]-[Font Encoding](:[Percentage])
+	 * [Family]( [WEIGHT] [SLANT] [SIZE]-[Encoding]:[Percentage])
 	 */
 
-	if( ( *font_family = font_name))
+	*font_family = font_name ;
+	
+	p = font_name ;
+	while( 1)
 	{
-		/*
-		 * It seems that XftFont format allows hyphens to be escaped.
-		 * (e.g. Foo\-Bold-iso10646-1)
-		 */
-		int  i ;
-		int  j ;
-		char *  s ;
-
-		s = font_name ;
-		for( i = 0 , j = 0 ; s[i] && s[i] != '-' ; i ++ , j ++)
+		if( *p == '\\' && *(p + 1))
 		{
-			/* escaped? */
-			if( s[i] == '\\' && s[i + 1])
+			/*
+			 * It seems that XftFont format allows hyphens to be escaped.
+			 * (e.g. Foo\-Bold-iso10646-1)
+			 */
+
+			/* skip backslash */
+			p ++ ;
+		}
+		else if( *p == '\0')
+		{
+			/* encoding and percentage is not specified. */
+			
+			*font_name = '\0' ;
+			
+			break ;
+		}
+		else if( *p == '-')
+		{
+			/* Parsing "-[Encoding]:[Percentage]" */
+			
+			*font_name = '\0' ;
+
+			*font_encoding = ++p ;
+			
+			kik_str_sep( &p , ":") ;
+			if( p)
 			{
-				/* skip backslash */
-				i ++ ;
+				if( ! kik_str_to_uint( percent , p))
+				{
+				#ifdef  DEBUG
+					kik_warn_printf( KIK_DEBUG_TAG
+						" Percentage(%s) is illegal.\n" , p) ;
+				#endif
+				}
 			}
-			s[j] = s[i] ;
+			
+			break ;
 		}
-		if( !s[i])
+		else if( *p == ':')
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " encoding part is missing(%s).\n" ,
-				font_name) ;
-		#endif
-			return  0 ;
+			/* Parsing ":[Percentage]" */
+			
+			*font_name = '\0' ;
+			
+			if( ! kik_str_to_uint( percent , p + 1))
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" Percentage(%s) is illegal.\n" , p + 1) ;
+			#endif
+			}
+			
+			break ;
 		}
-		/* replace delimiter */
-		s[j] = '\0' ;
-		/* move forward to the next token */
-		font_name = s + i + 1 ;
+
+		*(font_name++) = *(p++) ;
 	}
 
-	if( *font_family == NULL || font_name == NULL)
+	/*
+	 * Parsing "[Family] [WEIGHT] [SLANT] [SIZE]".
+	 */
+
+#if  0
+	kik_debug_printf( "Parsing %s for [Family] [Weight] [Slant]\n" , *font_family) ;
+#endif
+
+	p = kik_str_chop_spaces( *font_family) ;
+	len = strlen( p) ;
+	while( len > 0)
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " illegal true type font name(%s).\n" ,
-			font_name) ;
-	#endif
+		if( *p == ' ')
+		{
+			char *  orig_p ;
+			char  italic[] = "italic" ;
+			char  bold[] = "bold" ;
+		#if  0
+			char  light[] = "light" ;
+		#endif
+			float  size_f ;
 
-		return  0 ;
+			orig_p = p ;
+			do
+			{
+				p ++ ;
+				len -- ;
+			}
+			while( *p == ' ') ;
+
+			/* XXX strncasecmp is not portable? */
+
+			if( len == 0)
+			{
+				*orig_p = '\0' ;
+				break ;
+			}
+			else if( strncasecmp( p , italic , K_MIN(len,sizeof(italic) - 1)) == 0)
+			{
+				*orig_p = '\0' ;
+				*font_slant = XFT_SLANT_ITALIC ;
+				p += (sizeof(italic) - 1) ;
+				len -= (sizeof(italic) - 1) ;
+			}
+			else if( strncasecmp( p , bold , K_MIN(len,(sizeof(bold) - 1))) == 0)
+			{
+				*orig_p = '\0' ;
+				*font_weight = XFT_WEIGHT_BOLD ;
+				p += (sizeof(bold) - 1) ;
+				len -= (sizeof(bold) - 1) ;
+			}
+		#if  0
+			else if( strncasecmp( p , light , K_MIN(len,(sizeof(light) - 1))) == 0)
+			{
+				*orig_p = '\0' ;
+				*font_weight = XFT_WEIGHT_LIGHT ;
+				p += (sizeof(light) - 1) ;
+				len -= (sizeof(light) - 1) ;
+			}
+		#endif
+			else if( sscanf( p , "%f" , &size_f) == 1)
+			{
+				/* If matched with %f, p has no more parameters. */
+
+				*orig_p = '\0' ;
+				*font_size = size_f ;
+				
+				break ;
+			}
+			else
+			{
+				p ++ ;
+				len -- ;
+			}
+		}
+		else
+		{
+			p ++ ;
+			len -- ;
+		}
 	}
-
-	if( ( *font_encoding = kik_str_sep( &font_name , ":")) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " illegal true type font name(%s).\n" ,
-			font_name) ;
-	#endif
-
-		return  0 ;
-	}
-
-	/* may be NULL */
-	*percent = font_name ;
-
+	
 	return  1 ;
 }
 
@@ -297,7 +392,9 @@ static u_int
 get_xft_col_width(
 	x_font_t *  font ,
 	char *  family ,
-	u_int  fontsize
+	int  weight ,
+	int  slant ,
+	double  fontsize
 	)
 {
 	XftFont *  xfont ;
@@ -308,7 +405,9 @@ get_xft_col_width(
 	 */
 	if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
 		XFT_FAMILY , XftTypeString , family ,
-		XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+		XFT_PIXEL_SIZE , XftTypeDouble , fontsize ,
+		XFT_WEIGHT , XftTypeInteger , weight ,
+		XFT_SLANT , XftTypeInteger , slant ,
 		XFT_ENCODING , XftTypeString , "iso8859-1" ,
 		XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , NULL)))
 	{
@@ -318,6 +417,10 @@ get_xft_col_width(
 
 		XftFontClose( font->display , xfont) ;
 
+	#if  0
+		kik_debug_printf( "%s(%f): Max width is %d\n" , family , fontsize , w_width) ;
+	#endif
+	
 		if( w_width > 0)
 		{
 			return  w_width ;
@@ -339,6 +442,7 @@ set_xft_font(
 	)
 {
 	int  weight ;
+	int  slant ;
 	cs_info_t *  csinfo ;
 	u_int  ch_width ;
 	XftFont *  xfont ;
@@ -354,6 +458,10 @@ set_xft_font(
 		return  0 ;
 	}
 
+	/*
+	 * weight and slant can be modified in parse_xft_font_name().
+	 */
+	 
 	if( font->id & FONT_BOLD)
 	{
 		weight = XFT_WEIGHT_BOLD ;
@@ -363,12 +471,14 @@ set_xft_font(
 		weight = XFT_WEIGHT_MEDIUM ;
 	}
 
+	slant = XFT_SLANT_ROMAN ;
+
 	if( fontname)
 	{
 		char *  p ;
 		char *  font_family ;
 		char *  font_encoding ;
-		char *  percent_str ;
+		double  fontsize_d ;
 		u_int  percent ;
 
 		if( ( p = kik_str_alloca_dup( fontname)) == NULL)
@@ -380,20 +490,24 @@ set_xft_font(
 			return  0 ;
 		}
 
-		if( parse_xft_font_name( &font_family , &font_encoding , &percent_str , p))
+		font_encoding = "iso10646-1" ;
+		fontsize_d = (double)fontsize ;
+		percent = 0 ;
+		if( parse_xft_font_name( &font_family , &weight , &slant , &fontsize_d ,
+						&font_encoding , &percent , p))
 		{
 			if( col_width == 0)
 			{
 				/* basic font (e.g. usascii) width */
 
-				if( percent_str == NULL || ! kik_str_to_uint( &percent , percent_str) ||
-					percent == 0)
+				if( percent == 0)
 				{
-					ch_width = get_xft_col_width( font , font_family , fontsize) ;
+					ch_width = get_xft_col_width( font , font_family ,
+							weight , slant , fontsize_d) ;
 				}
 				else
 				{
-					ch_width = (fontsize * font->cols * percent) / 200 ;
+					ch_width = (fontsize_d * font->cols * percent) / 200 ;
 				}
 
 				if( font->is_vertical)
@@ -421,13 +535,22 @@ set_xft_font(
 				}
 			}
 
+		#if  0
+			kik_debug_printf( "Loading font %s%s%s %f\n" , font_family ,
+				weight == XFT_WEIGHT_BOLD ? ":Bold" :
+					weight == XFT_WEIGHT_LIGHT ? " Light" : "" ,
+				slant == XFT_SLANT_ITALIC ? ":Italic" : "" ,
+				fontsize_d) ;
+		#endif
+		
 			if( font->is_var_col_width)
 			{
 				if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
 						XFT_FAMILY , XftTypeString , font_family ,
-						XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+						XFT_PIXEL_SIZE , XftTypeDouble , fontsize_d ,
 						XFT_ENCODING , XftTypeString , font_encoding ,
 						XFT_WEIGHT , XftTypeInteger , weight ,
+						XFT_SLANT , XftTypeInteger , slant ,
 						XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
 						XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,
 						NULL)))
@@ -439,11 +562,12 @@ set_xft_font(
 			{
 				if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
 						XFT_FAMILY , XftTypeString , font_family ,
-						XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+						XFT_PIXEL_SIZE , XftTypeDouble , fontsize_d ,
 						XFT_ENCODING , XftTypeString , font_encoding ,
-						XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
 						XFT_WEIGHT , XftTypeInteger , weight ,
-						XFT_SPACING , XftTypeInteger , XFT_CHARCELL ,
+						XFT_SLANT , XftTypeInteger , slant ,
+						XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
+						XFT_SPACING , XftTypeInteger , XFT_MONO ,
 						XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,
 						NULL)))
 				{
@@ -452,13 +576,14 @@ set_xft_font(
 			}
 		}
 
-		kik_msg_printf( " font %s (for size %d) couln't be loaded.\n" , fontname , fontsize) ;
+		kik_msg_printf( " font %s (for size %f) couln't be loaded.\n" ,
+			fontname , fontsize_d) ;
 	}
 
 	if( col_width == 0)
 	{
 		/* basic font (e.g. usascii) width */
-		ch_width = get_xft_col_width( font , "" , fontsize) ;
+		ch_width = get_xft_col_width( font , "" , weight , slant , (double)fontsize) ;
 
 		/*
 		 * !! Notice !!
@@ -493,6 +618,7 @@ set_xft_font(
 					XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
 					XFT_ENCODING , XftTypeString , *font_encoding_p ,
 					XFT_WEIGHT , XftTypeInteger , weight ,
+					XFT_SLANT , XftTypeInteger , slant ,
 					XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
 					XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,
 					NULL)))
@@ -506,6 +632,7 @@ set_xft_font(
 					XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
 					XFT_ENCODING , XftTypeString , *font_encoding_p ,
 					XFT_WEIGHT , XftTypeInteger , weight ,
+					XFT_SLANT , XftTypeInteger , slant ,
 					XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
 					XFT_SPACING , XftTypeInteger , XFT_CHARCELL ,
 					XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,

@@ -260,7 +260,7 @@ msgstr ""
 msgid "Bidi (UTF8 only)"
 msgstr ""
 
-#: tool/mlconfig/mc_fontsize.c:62
+#: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr ""
 
@@ -321,7 +321,7 @@ msgid "Tab width (columns)"
 msgstr ""
 
 #: tool/mlconfig/mc_vertical.c:88
-msgid " Vertical mode "
+msgid "Vertical mode"
 msgstr ""
 
 #: tool/mlconfig/mc_vertical.c:105

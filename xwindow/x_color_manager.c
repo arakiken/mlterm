@@ -294,6 +294,9 @@ x_get_xcolor(
 	}
 }
 
+/*
+ * If fading status is changed, 1 is returned.
+ */
 int
 x_color_manager_fade(
 	x_color_manager_t *  color_man ,
@@ -301,6 +304,7 @@ x_color_manager_fade(
 	)
 {
 	x_color_cache_t *  color_cache ;
+	int  count ;
 	
 	if( fade_ratio >= 100)
 	{
@@ -309,11 +313,12 @@ x_color_manager_fade(
 	
 	if( fade_ratio == color_man->color_cache->fade_ratio)
 	{
-		return  1 ;
+		return  0 ;
 	}
 
-	if( ( color_cache = x_acquire_color_cache( color_cache->display, color_cache->screen,
-				color_cache->color_config, fade_ratio)) == NULL)
+	if( ( color_cache = x_acquire_color_cache( color_man->color_cache->display,
+				color_man->color_cache->screen,
+				color_man->color_cache->color_config, fade_ratio)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " x_aquire_color_cache failed.\n") ;
@@ -324,23 +329,39 @@ x_color_manager_fade(
 	x_release_color_cache( color_man->color_cache) ;
 	color_man->color_cache = color_cache ;
 	
+	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
+	{
+		if( color_man->sys_colors[count].is_loaded)
+		{
+			x_unload_xcolor( color_man->color_cache->display,
+				color_man->color_cache->screen,
+				&color_man->sys_colors[count].xcolor) ;
+			color_man->sys_colors[count].is_loaded = 0 ;
+		}
+	}
+	
 	return  1 ;
 }
 
+/*
+ * If fading status is changed, 1 is returned.
+ */
 int
 x_color_manager_unfade(
 	x_color_manager_t *  color_man
 	)
 {
 	x_color_cache_t *  color_cache ;
+	int  count ;
 	
 	if( color_man->color_cache->fade_ratio == 100)
 	{
-		return  1 ;
+		return  0 ;
 	}
 
-	if( ( color_cache = x_acquire_color_cache( color_cache->display, color_cache->screen,
-				color_cache->color_config, 100)) == NULL)
+	if( ( color_cache = x_acquire_color_cache( color_man->color_cache->display,
+				color_man->color_cache->screen,
+				color_man->color_cache->color_config, 100)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " x_aquire_color_cache failed.\n") ;
@@ -350,7 +371,18 @@ x_color_manager_unfade(
 	
 	x_release_color_cache( color_man->color_cache) ;
 	color_man->color_cache = color_cache ;
-	
+
+	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
+	{
+		if( color_man->sys_colors[count].is_loaded)
+		{
+			x_unload_xcolor( color_man->color_cache->display,
+				color_man->color_cache->screen,
+				&color_man->sys_colors[count].xcolor) ;
+			color_man->sys_colors[count].is_loaded = 0 ;
+		}
+	}
+
 	return  1 ;
 }
 

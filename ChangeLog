@@ -1,3 +1,28 @@
+2009-11-03  Araki Ken  <arakiken@users.sf.net>
+
+	* x_xic_{fg|bg}_color_changed(x_xic.c): Added ->pixel after
+	  win->xim_listener->get_{fg|bg}_color.
+
+	* Added 'get' method to font configuration protocol(doc/en/PROTOCOL.font).
+	  Changed font and color configuration protocol numbers(not compatible with
+	  cvs-2009/10/20 or before.).
+
+	* mc_font.c: Added font selection dialog.
+
+	* Renamed mc_fontsize.[ch] to mc_font.[ch].
+
+	* "type_engine" configuration is changeable in run time.
+	  (Added to configuration protocol(doc/en/PROTOCOL).)
+	
+	* x_color_manager.c/x_color_cache.c: Color fading was broken. Fixed.
+
+	* Font format of aafont is changed as follows(() is omittable).
+	     [Family]-[Encoding](:[Percentage])
+	  => [Family]( [Weight] [Slant] [Size]-[Encoding]:[Percentage])
+
+	* ml_parse_proto2(ml_config_proto.c): Fixed process of parsing 'key'
+	  and added do_challenge flag.
+
 2009-10-20  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: Recognize "ESC [ > ..." sequence.

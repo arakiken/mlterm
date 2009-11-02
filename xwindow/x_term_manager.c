@@ -1376,22 +1376,12 @@ receive_next_event(void)
 	int  ptyfd ;
 	int  maxfd ;
 	int  ret ;
-	int  i ;
 	fd_set  read_fds ;
 	struct timeval  tval ;
 	x_display_t **  displays ;
 	u_int  num_of_displays ;
 
 	num_of_terms = ml_get_all_terms( &terms) ;
-	
-	/*
-	 * flush buffer
-	 */
-
-	for( count = 0 ; count < num_of_terms ; count ++)
-	{
-		ml_term_flush( terms[count]) ;
-	}
 
 	while( 1)
 	{
@@ -1447,15 +1437,15 @@ receive_next_event(void)
 			}
 		}
 
-		for( i = 0 ; i < MAX_ADDTIONAL_FDS ; i++)
+		for( count = 0 ; count < MAX_ADDTIONAL_FDS ; count++)
 		{
-			if( additional_fds[i].fd >= 0)
+			if( additional_fds[count].fd >= 0)
 			{
-				FD_SET( additional_fds[i].fd , &read_fds) ;
+				FD_SET( additional_fds[count].fd , &read_fds) ;
 				
-				if( additional_fds[i].fd > maxfd)
+				if( additional_fds[count].fd > maxfd)
 				{
-					maxfd = additional_fds[i].fd ;
+					maxfd = additional_fds[count].fd ;
 				}
 			}
 		}
@@ -1481,17 +1471,9 @@ receive_next_event(void)
 	/*
 	 * Processing order should be as follows.
 	 *
-	 * PTY -> X WINDOW -> Socket -> additional_fds
+	 * X Window -> PTY -> Socket -> additional_fds
 	 */
-	 
-	for( count = 0 ; count < num_of_terms ; count ++)
-	{
-		if( FD_ISSET( ml_term_get_pty_fd( terms[count]) , &read_fds))
-		{
-			ml_term_parse_vt100_sequence( terms[count]) ;
-		}
-	}
-	
+
 	for( count = 0 ; count < num_of_displays ; count ++)
 	{
 		if( FD_ISSET( x_display_fd( displays[count]) , &read_fds))
@@ -1500,6 +1482,17 @@ receive_next_event(void)
 		}
 	}
 
+	for( count = 0 ; count < num_of_terms ; count ++)
+	{
+		/* Flushing buffer of keypress event. */
+		ml_term_flush( terms[count]) ;
+		
+		if( FD_ISSET( ml_term_get_pty_fd( terms[count]) , &read_fds))
+		{
+			ml_term_parse_vt100_sequence( terms[count]) ;
+		}
+	}
+	
 	if( sock_fd >= 0)
 	{
 		if( FD_ISSET( sock_fd , &read_fds))
@@ -1508,13 +1501,13 @@ receive_next_event(void)
 		}
 	}
 
-	for( i = 0 ; i < MAX_ADDTIONAL_FDS ; i++)
+	for( count = 0 ; count < MAX_ADDTIONAL_FDS ; count++)
 	{
-		if( additional_fds[i].fd >= 0)
+		if( additional_fds[count].fd >= 0)
 		{
-			if( FD_ISSET( additional_fds[i].fd , &read_fds))
+			if( FD_ISSET( additional_fds[count].fd , &read_fds))
 			{
-				(*additional_fds[i].handler)() ;
+				(*additional_fds[count].handler)() ;
 
 				break ;
 			}
@@ -1924,6 +1917,13 @@ x_term_manager_event_loop(void)
 			break ;
 		}
 
+		/*
+		 * Window -> PTY
+		 */
+		 
+		TranslateMessage( &msg) ;
+		DispatchMessage( &msg) ;
+		
 		num_of_terms = ml_get_all_terms( &terms) ;
 
 		for( count = 0 ; count < num_of_terms ; count++)
@@ -1935,9 +1935,6 @@ x_term_manager_event_loop(void)
 				while( ml_term_parse_vt100_sequence( terms[count])) ;
 			}
 		}
-		
-		TranslateMessage( &msg) ;
-		DispatchMessage( &msg) ;
 	#else
 		receive_next_event() ;
 	#endif

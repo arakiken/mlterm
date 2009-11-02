@@ -1176,7 +1176,8 @@ error:
 }
 
 /* referred in update_special_visual */
-static void  change_font_present( x_screen_t *  screen , x_font_present_t  font_present) ;
+static void  change_font_present( x_screen_t *  screen , x_type_engine_t  type_engine ,
+					x_font_present_t  font_present) ;
 
 static int
 update_special_visual(
@@ -1232,7 +1233,7 @@ update_special_visual(
 	{
 		if( ! ( x_get_font_present( screen->font_man) & FONT_VERTICAL))
 		{
-			change_font_present( screen ,
+			change_font_present( screen , x_get_type_engine( screen->font_man) ,
 				( x_get_font_present( screen->font_man) | FONT_VERTICAL) & ~FONT_VAR_WIDTH) ;
 		}
 	}
@@ -1240,7 +1241,7 @@ update_special_visual(
 	{
 		if( x_get_font_present( screen->font_man) & FONT_VERTICAL)
 		{
-			change_font_present( screen ,
+			change_font_present( screen , x_get_type_engine( screen->font_man) ,
 				x_get_font_present( screen->font_man) & ~FONT_VERTICAL) ;
 		}
 	}
@@ -1464,16 +1465,17 @@ window_focused(
 
 	if( screen->fade_ratio != 100)
 	{
-		x_color_manager_unfade( screen->color_man) ;
+		if( x_color_manager_unfade( screen->color_man))
+		{
+			x_window_set_fg_color( &screen->window ,
+				x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
+			x_window_set_bg_color( &screen->window ,
+				x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
-		x_window_set_fg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
-		x_window_set_bg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
+			ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
-		ml_term_set_modified_all_lines_in_screen( screen->term) ;
-
-		x_window_update( &screen->window, UPDATE_SCREEN) ;
+			x_window_update( &screen->window, UPDATE_SCREEN) ;
+		}
 	}
 
 	x_window_update( &screen->window, UPDATE_CURSOR) ;
@@ -1497,16 +1499,17 @@ window_unfocused(
 
 	if( screen->fade_ratio != 100)
 	{
-		x_color_manager_fade( screen->color_man , screen->fade_ratio) ;
+		if( x_color_manager_fade( screen->color_man , screen->fade_ratio))
+		{
+			x_window_set_fg_color( &screen->window ,
+				x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
+			x_window_set_bg_color( &screen->window ,
+				x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
-		x_window_set_fg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
-		x_window_set_bg_color( &screen->window ,
-			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
+			ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
-		ml_term_set_modified_all_lines_in_screen( screen->term) ;
-
-		x_window_update( &screen->window, UPDATE_SCREEN) ;
+			x_window_update( &screen->window, UPDATE_SCREEN) ;
+		}
 	}
 
 	x_window_update( &screen->window, UPDATE_CURSOR) ;
@@ -3545,6 +3548,7 @@ change_screen_height_ratio(
 static void
 change_font_present(
 	x_screen_t *  screen ,
+	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present
 	)
 {
@@ -3553,18 +3557,19 @@ change_font_present(
 		font_present &= ~FONT_VAR_WIDTH ;
 	}
 
-	if( x_get_font_present( screen->font_man) == font_present)
+	if( x_get_font_present( screen->font_man) == font_present &&
+		x_get_type_engine( screen->font_man) == type_engine)
 	{
 		/* not changed */
 
 		return ;
 	}
 
-	if( ! x_change_font_present( screen->font_man , font_present))
+	if( ! x_change_font_present( screen->font_man , type_engine , font_present))
 	{
 		return ;
 	}
-
+	
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
@@ -3611,7 +3616,7 @@ change_char_encoding(
 
 		if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
 		{
-			change_font_present( screen ,
+			change_font_present( screen , x_get_type_engine( screen->font_man) ,
 				x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
 		}
 
@@ -4239,11 +4244,6 @@ change_fade_ratio(
 	x_window_set_bg_color( &screen->window ,
 		x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
-#ifndef  USE_WIN32GUI
-	x_xic_fg_color_changed( &screen->window) ;
-	x_xic_bg_color_changed( &screen->window) ;
-#endif
-
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
 
@@ -4424,6 +4424,50 @@ get_config(
 	)
 {
 	x_screen_get_config( p, dev, key, to_menu) ;
+}
+
+static void
+get_font_config(
+	void *  p ,
+	char *  file ,
+	char *  font_size_str ,
+	char *  cs ,
+	int  to_menu
+	)
+{
+	x_screen_t *  screen ;
+	char *  font_name ;
+	u_int  font_size ;
+
+	screen = p ;
+
+	if( sscanf( font_size_str , "%u" , &font_size) != 1)
+	{
+		goto  error ;
+	}
+
+	if( ! ( font_name = x_get_config_font_name2( file , font_size , cs)))
+	{
+		font_name = "" ;
+	}
+
+	ml_term_write( screen->term , "#" , 1 , to_menu) ;
+	ml_term_write( screen->term , cs , strlen( cs) , to_menu) ;
+	ml_term_write( screen->term , "," , 1 , to_menu) ;
+	ml_term_write( screen->term , font_size_str , strlen( font_size_str) , to_menu) ;
+	ml_term_write( screen->term , "=" , 1 , to_menu) ;
+	ml_term_write( screen->term , font_name , strlen( font_name) , to_menu) ;
+	ml_term_write( screen->term , "\n" , 1 , to_menu) ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " #%s,%s=%s (%s)\n" , cs , font_size_str , font_name ,
+		to_menu ? "to menu" : "to pty") ;
+#endif
+
+	return ;
+
+error:
+	ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
 }
 
 
@@ -5666,6 +5710,7 @@ x_screen_new(
 	screen->config_listener.self = screen ;
 	screen->config_listener.get = get_config ;
 	screen->config_listener.set = set_config ;
+	screen->config_listener.get_font = get_font_config ;
 
 	screen->pty_listener.self = screen ;
 	screen->pty_listener.closed = pty_closed ;
@@ -5699,6 +5744,7 @@ x_screen_new(
 		if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
 		{
 			x_change_font_present( screen->font_man ,
+				x_get_type_engine( screen->font_man) ,
 				x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
 		}
 
@@ -6075,6 +6121,7 @@ x_screen_attach(
 		if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
 		{
 			change_font_present( screen ,
+				x_get_type_engine( screen->font_man) ,
 				x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
 		}
 
@@ -6634,6 +6681,25 @@ x_screen_set_config(
 
 		change_fade_ratio( screen , fade_ratio) ;
 	}
+	else if( strcmp( key , "type_engine") == 0)
+	{
+		x_type_engine_t  type_engine ;
+		
+		if( strcasecmp( value , "xft") == 0)
+		{
+			type_engine = TYPE_XFT ;
+		}
+		else if( strcasecmp( value , "xcore") == 0)
+		{
+			type_engine = TYPE_XCORE ;
+		}
+		else
+		{
+			return ;
+		}
+
+		change_font_present( screen , type_engine , x_get_font_present(screen->font_man)) ;
+	}
 	else if( strcmp( key , "use_anti_alias") == 0)
 	{
 		x_font_present_t  font_present ;
@@ -6653,7 +6719,8 @@ x_screen_set_config(
 			return ;
 		}
 
-		change_font_present( screen , font_present) ;
+		change_font_present( screen , x_get_type_engine( screen->font_man) ,
+					font_present) ;
 	}
 	else if( strcmp( key , "use_variable_column_width") == 0)
 	{
@@ -6674,7 +6741,8 @@ x_screen_set_config(
 			return ;
 		}
 
-		change_font_present( screen , font_present) ;
+		change_font_present( screen , x_get_type_engine( screen->font_man) ,
+					font_present) ;
 	}
 	else if( strcmp( key , "use_multi_column_char") == 0)
 	{
@@ -7075,6 +7143,20 @@ x_screen_get_config(
 	{
 		sprintf( digit , "%d" , screen->fade_ratio) ;
 		value = digit ;
+	}
+	else if( strcmp( key , "type_engine") == 0)
+	{
+		x_type_engine_t  engine ;
+
+		engine = x_get_type_engine( screen->font_man) ;
+		if( engine == TYPE_XFT)
+		{
+			value = "xft" ;
+		}
+		else if( engine == TYPE_XCORE)
+		{
+			value = "xcore" ;
+		}
 	}
 	else if( strcmp( key , "use_anti_alias") == 0)
 	{

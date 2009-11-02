@@ -259,7 +259,7 @@ msgstr "Volle Breite = 2 (oder 1) logische Spalte(n)"
 msgid "Bidi (UTF8 only)"
 msgstr "Bidirektional (nur in UTF8)"
 
-#: tool/mlconfig/mc_fontsize.c:62
+#: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "Fontgröße (Pixel)"
 
@@ -320,7 +320,7 @@ msgid "Tab width (columns)"
 msgstr "Tabulatorbreite (Spalten)"
 
 #: tool/mlconfig/mc_vertical.c:88
-msgid " Vertical mode "
+msgid "Vertical mode"
 msgstr "Vertikaler Modus"
 
 #: tool/mlconfig/mc_vertical.c:105

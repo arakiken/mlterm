@@ -70,7 +70,9 @@ typedef struct  ml_config_event_listener
 
 	/* Assume that saved, set_font and set_color affect all window. */
 	void (*saved)(void) ;		/* Event that mlterm/main file was changed. */
+	
 	void (*set_font)( char * , char * , char * , int) ;
+	void (*get_font)( void * , char * , char * , char * , int) ;
 	void (*set_color)( char * , char * , char * , int) ;
 
 } ml_config_event_listener_t ;

@@ -621,8 +621,8 @@ comment $Id$
           (*) もしくは、fonts.aliasで定義している省略記法。
 
         o aafont/vaafont/taafont
-          [font family]-[font encoding](:[percentage])
-
+          [font family]( [font weight] [font slant] [font size]-[font encoding]:[percentage])
+	  
           percentage は、そのフォントのグリフを表示するに、フォントサイズの何
           パーセント分の幅をとるかを指定します。
           例えば、フォントサイズが 12 の場合に、percentage として 100 を指定す

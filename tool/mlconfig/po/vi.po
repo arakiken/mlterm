@@ -259,7 +259,7 @@ msgstr "Độ rộng đầy đủ = 2 (hoặc 1) cột logic"
 msgid "Bidi (UTF8 only)"
 msgstr "Bidi (chỉ UTF8)"
 
-#: tool/mlconfig/mc_fontsize.c:62
+#: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "Cỡ chữ (pixel)"
 
@@ -320,7 +320,7 @@ msgid "Tab width (columns)"
 msgstr "Độ rộng tab (cột)"
 
 #: tool/mlconfig/mc_vertical.c:88
-msgid " Vertical mode "
+msgid "Vertical mode"
 msgstr " Chế độ thẳng đứng "
 
 #: tool/mlconfig/mc_vertical.c:105

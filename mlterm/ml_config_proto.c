@@ -247,16 +247,42 @@ ml_parse_proto2(
 	char **  file ,	/* can be NULL */
 	char **  key ,	/* can be NULL */
 	char **  val ,	/* can be NULL */
-	char **  str
+	char **  str ,
+	int  do_challenge
 	)
 {
 	char *  p ;
 
-	if( key)
+	if( do_challenge)
 	{
-		*key = *str ;
-	}
+		char *  chal ;
 
+		chal = p = *str ;
+
+		if( ( p = strchr( p , ';')) == NULL)
+		{
+			/* Illegal format */
+
+		#ifndef  KIK_DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " Illegal protocol format.\n") ;
+		#endif
+
+			return  0 ;
+		}
+
+		*(p ++) = '\0' ;
+
+		if( ! challenge_it( chal))
+		{
+			kik_msg_printf( "Protocol 5385 is not permitted "
+				"because client password is wrong.\n") ;
+
+			return  -1 ;
+		}
+
+		*str = p ;
+	}
+	
 	if( ( p = strchr( *str , '=')))
 	{
 		*(p ++) = '\0' ;
@@ -291,6 +317,11 @@ ml_parse_proto2(
 		}
 
 		p = *str ;
+	}
+
+	if( key)
+	{
+		*key = p ;
 	}
 
 #ifdef  __DEBUG

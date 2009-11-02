@@ -217,7 +217,7 @@ x_acquire_color_cache(
 	color_cache->screen = screen ;
 
 	color_cache->color_config = color_config ;
-	color_cache->fade_ratio = 100 ;
+	color_cache->fade_ratio = fade_ratio ;
 
 	color_cache->color_256 = ML_UNKNOWN_COLOR ;
 
@@ -334,7 +334,7 @@ x_load_xcolor(
 				xcolor->pixel) ;
 		#endif
 		
-			return  1 ;
+			goto  found ;
 		}
 	}
 
@@ -345,10 +345,26 @@ x_load_xcolor(
 			xcolor->pixel) ;
 	#endif
 	
-		return  1 ;
+		goto  found ;
 	}
 
 	return  0 ;
+	
+found:
+	if( color_cache->fade_ratio < 100)
+	{
+		if( ! x_xcolor_fade( color_cache->display , color_cache->screen ,
+			xcolor , color_cache->fade_ratio))
+		{
+			return  0 ;
+		}
+	}
+	
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " new color %s %x\n", name , xcolor->pixel) ;
+#endif
+
+	return  1 ;
 }
 
 /* Always return non-null value. */

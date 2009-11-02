@@ -19,12 +19,11 @@
 #include  "mc_fade.h"
 #include  "mc_tabsize.h"
 #include  "mc_logsize.h"
-#include  "mc_fontsize.h"
+#include  "mc_font.h"
 #include  "mc_line_space.h"
 #include  "mc_screen_ratio.h"
 #include  "mc_mod_meta.h"
 #include  "mc_bel.h"
-#include  "mc_vertical.h"
 #include  "mc_sb.h"
 #include  "mc_im.h"
 #include  "mc_check.h"
@@ -74,13 +73,12 @@ update(
     mc_update_color(MC_COLOR_SBBG) ;
     mc_update_tabsize() ;
     mc_update_logsize() ;
-    mc_update_fontsize() ;
+    mc_update_font_misc() ;
     mc_update_line_space() ;
     mc_update_screen_width_ratio() ;
     mc_update_screen_height_ratio() ;
     mc_update_mod_meta_mode() ;
     mc_update_bel_mode() ;
-    mc_update_vertical_mode() ;
     mc_update_sb_mode() ;
     mc_update_brightness() ;
     mc_update_contrast() ;
@@ -89,8 +87,6 @@ update(
     mc_update_sb_view_name() ;
     mc_update_im() ;
 
-    mc_update_flag_mode(MC_FLAG_AA);
-    mc_update_flag_mode(MC_FLAG_VCOL);
     mc_update_flag_mode(MC_FLAG_COMB);
     mc_update_flag_mode(MC_FLAG_DYNCOMB);
     mc_update_flag_mode(MC_FLAG_RECVUCS);
@@ -98,6 +94,15 @@ update(
     mc_update_flag_mode(MC_FLAG_BIDI);
 
     mc_flush(io) ;
+
+    if( io == mc_io_set)
+    {
+	mc_update_font_name( mc_io_set_font) ;
+    }
+    else if( io == mc_io_set_save)
+    {
+	mc_update_font_name( mc_io_set_save_font) ;
+    }
     
     return  1 ;
 }
@@ -409,10 +414,10 @@ show(void)
 	gtk_widget_show(vbox);
 
 
-	if (!(config_widget = mc_fontsize_config_widget_new())) return 0;
+	if (!(config_widget = mc_font_config_widget_new())) return 0;
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
-
+	
 
 	if (!(config_widget = mc_line_space_config_widget_new())) return 0;
 	gtk_widget_show(config_widget);
@@ -440,30 +445,6 @@ show(void)
 		return 0;
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
-
-	if (!(config_widget = mc_fade_config_widget_new())) return 0;
-	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
-
-
-	hbox = gtk_hbox_new( FALSE , 0) ;
-	gtk_widget_show(hbox);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);	
-	
-	
-	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_AA)))
-	    return 0;
-#ifndef USE_TYPE_XFT
-	gtk_widget_set_sensitive(config_widget, 0);
-#endif
-	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0) ;
-
-
-	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_VCOL)))
-	    return 0;
-	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
 
 
 	/* contents of the "Background" tab */
@@ -512,6 +493,11 @@ show(void)
 #endif
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox2), config_widget, FALSE, FALSE, 0);
+
+
+	if (!(config_widget = mc_fade_config_widget_new())) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
 	/* contents of the "Scrollbar" tab */
@@ -565,11 +551,6 @@ show(void)
 
 
 	if (!(config_widget = mc_mod_meta_config_widget_new())) return 0;
-	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
-
-
-	if (!(config_widget = mc_vertical_config_widget_new())) return 0;
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 

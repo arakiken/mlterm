@@ -41,7 +41,8 @@ x_font_t *  x_get_usascii_font( x_font_manager_t *  font_man) ;
 int  x_font_manager_usascii_font_cs_changed( x_font_manager_t *  font_man ,
 	mkf_charset_t  usascii_font_cs) ;
 
-int  x_change_font_present( x_font_manager_t *  font_man , x_font_present_t  font_present) ;
+int  x_change_font_present( x_font_manager_t *  font_man , x_type_engine_t  type_engine ,
+				x_font_present_t  font_present) ;
 
 x_type_engine_t  x_get_type_engine( x_font_manager_t *  font_man) ;
 

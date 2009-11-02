@@ -343,11 +343,19 @@ x_xcolor_fade(
 	
 	x_get_xcolor_rgb( &red , &green , &blue , xcolor) ;
 
+#if  0
+	kik_msg_printf( "Fading R%d G%d B%d => " , red , green , blue) ;
+#endif
+
 	red = (red * fade_ratio) / 100 ;
 	green = (green * fade_ratio) / 100 ;
 	blue = (blue * fade_ratio) / 100 ;
 
 	x_unload_xcolor( display , screen , xcolor) ;
+
+#if  0
+	kik_msg_printf( "R%d G%d B%d\n" , red , green , blue) ;
+#endif
 
 	return  x_load_rgb_xcolor( display , screen , xcolor , red, green , blue) ;
 }

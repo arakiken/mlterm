@@ -259,7 +259,7 @@ msgstr "全角文字の論理幅を(1ではなく)2にする"
 msgid "Bidi (UTF8 only)"
 msgstr "Bidi (UTF8のみ)"
 
-#: tool/mlconfig/mc_fontsize.c:62
+#: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "フォントサイズ(ピクセル)"
 
@@ -320,7 +320,7 @@ msgid "Tab width (columns)"
 msgstr "タブ幅(文字)"
 
 #: tool/mlconfig/mc_vertical.c:88
-msgid " Vertical mode "
+msgid "Vertical mode"
 msgstr "縦書き"
 
 #: tool/mlconfig/mc_vertical.c:105

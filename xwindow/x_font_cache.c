@@ -134,7 +134,7 @@ x_acquire_font_cache(
 			font_caches[count]->use_multi_col_char == use_multi_col_char)
 		{
 			font_caches[count]->ref_count ++ ;
-			
+
 			return  font_caches[count] ;
 		}
 	}

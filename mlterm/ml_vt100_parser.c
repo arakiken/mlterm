@@ -715,13 +715,49 @@ config_protocol_set_font(
 
 		stop_vt100_cmd( vt100_parser) ;
 
-		if( ! ml_parse_proto2( &file , &key , &val , &pt) ||
-			key == NULL || val == NULL)
+		if( ml_parse_proto2( &file , &key , &val , &pt , 0) && key && val)
 		{
-			return  0 ;
+			(*vt100_parser->config_listener->set_font)( file , key , val, save) ;
 		}
 
-		(*vt100_parser->config_listener->set_font)( file , key , val, save) ;
+		start_vt100_cmd( vt100_parser) ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+/*
+ * This function will destroy the content of pt.
+ */
+static int
+config_protocol_get_font(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  pt ,
+	int  to_menu
+	)
+{
+	if( HAS_CONFIG_LISTENER(vt100_parser,get_font))
+	{
+		char *  file ;
+		char *  key ;
+		char *  cs ;
+
+		stop_vt100_cmd( vt100_parser) ;
+
+		if( ml_parse_proto2( &file , &key , NULL , &pt , to_menu == 0) && key &&
+			( cs = kik_str_sep( &key , ",")) && key)
+		{
+			(*vt100_parser->config_listener->get_font)(
+				vt100_parser->config_listener->self ,
+				file ,
+				key ,	/* font size */
+				cs ,
+				to_menu) ;
+		}
 
 		start_vt100_cmd( vt100_parser) ;
 
@@ -751,13 +787,10 @@ config_protocol_set_color(
 
 		stop_vt100_cmd( vt100_parser) ;
 
-		if( ! ml_parse_proto2( &file , &key , &val , &pt) ||
-			key == NULL || val == NULL)
+		if( ml_parse_proto2( &file , &key , &val , &pt , 0) && key && val)
 		{
-			return  0 ;
+			(*vt100_parser->config_listener->set_color)( file , key , val, save) ;
 		}
-
-		(*vt100_parser->config_listener->set_color)( file , key , val, save) ;
 
 		start_vt100_cmd( vt100_parser) ;
 
@@ -2346,16 +2379,28 @@ parse_vt100_escape_sequence(
 					}
 					else if( ps == 5385)
 					{
+						/* set font(pty) */
+
+						config_protocol_get_font( vt100_parser, pt, 0) ;
+					}
+					else if( ps == 5386)
+					{
+						/* set font(GUI menu) */
+
+						config_protocol_get_font( vt100_parser, pt, 1) ;
+					}
+					else if( ps == 5387)
+					{
 						/* set&save font */
 						config_protocol_set_font( vt100_parser, pt, 1) ;
 					}
-					else if( ps == 5386)
+					else if( ps == 5388)
 					{
 						/* set font */
 
 						config_protocol_set_color( vt100_parser, pt, 0) ;
 					}
-					else if( ps == 5387)
+					else if( ps == 5391)
 					{
 						/* set&save font */
 						config_protocol_set_color( vt100_parser, pt, 1) ;

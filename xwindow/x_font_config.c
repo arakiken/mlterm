@@ -129,22 +129,18 @@ get_font_name_table(
 	return  font_config->font_name_table[font_size - min_font_size] ;
 }
 
-static int
-parse_conf(
-	x_font_config_t *  font_config ,
-	char *  key,
-	char *  value	/* includes multiple entries. */
+static ml_font_t
+parse_key(
+	char *  key
 	)
 {
 	int  count ;
+	size_t  key_len ;
 	mkf_charset_t  cs ;
 	ml_font_t  font ;
-	size_t  key_len ;
-	char *  entry ;
-
+	
 	key_len = strlen( key) ;
 
-	count = 0 ;
 	for( count = 0 ; count < sizeof( cs_table) / sizeof( cs_table[0]) ; count ++)
 	{
 		size_t  nlen ;
@@ -169,7 +165,7 @@ parse_conf(
 		kik_debug_printf( KIK_DEBUG_TAG " %s is not valid charset.\n", key) ;
 	#endif
 	
-		return  0 ;
+		return  UNKNOWN_CS ;
 	}
 
 	font = DEFAULT_FONT(cs) ;
@@ -184,56 +180,96 @@ parse_conf(
 		font |= FONT_BOLD ;
 	}
 
+	return  font ;
+}
+
+static int
+parse_entry(
+	char **  font_name ,	/* if not specified in entry , not changed. */
+	u_int *  font_size ,	/* if not specified in entry , not changed. */
+	char *  entry
+	)
+{
+	if( *entry == '\0')
+	{
+		return  0 ;
+	}
+	else if( strchr( entry , ','))
+	{
+		/*
+		 * for each size.
+		 * [size],[font name]
+		 */
+
+		char *  size_str ;
+
+		if( ( size_str = kik_str_sep( &entry , ",")) == NULL || entry == NULL)
+		{
+			return  0 ;
+		}
+
+		if( ! kik_str_to_uint( font_size , size_str))
+		{
+			kik_msg_printf( "a font size %s is not valid.\n" , size_str) ;
+
+			return  0 ;
+		}
+	}
+	else
+	{
+		*font_size = 0 ;
+	}
+	
+	*font_name = entry ;
+	
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " setting font [font %x size %d name %s]\n" ,
+		font , font_size , font_name) ;
+#endif
+
+	return  1 ;
+}
+
+static int
+parse_conf(
+	x_font_config_t *  font_config ,
+	char *  key,
+	char *  value	/* Includes multiple entries. Destroyed in this function. */
+	)
+{
+	ml_font_t  font ;
+	char *  entry ;
+
+	if( ( font = parse_key( key)) == UNKNOWN_CS)
+	{
+		return  0 ;
+	}
+
 	/*
 	 * [entry];[entry];[entry];....
 	 */
 	while( value != NULL && ( entry = kik_str_sep( &value , ";")) != NULL)
 	{
-		char *  fontname ;
-		u_int  size ;
+		char *  font_name ;
+		u_int  font_size ;
 
-		if( *entry == '\0')
+		if( parse_entry( &font_name , &font_size , entry))
 		{
-			continue ;
-		}
-		else if( strchr( entry , ','))
-		{
-			/*
-			 * for each size.
-			 * [size],[font name]
-			 */
-
-			char *  size_str ;
-
-			if( ( size_str = kik_str_sep( &entry , ",")) == NULL ||
-				( fontname = entry) == NULL)
+			if( font_size == 0)
 			{
-				continue ;
+				/*
+				 * default font.
+				 * [font name]
+				 */
+				x_customize_default_font_name( font_config , font , font_name) ;
 			}
-
-			if( ! kik_str_to_uint( &size , size_str))
+			else
 			{
-				kik_msg_printf( "a font size %s is not valid.\n" , size_str) ;
-
-				continue ;
+				/*
+				 * [font size],[font name]
+				 */
+				x_customize_font_name( font_config , font , font_name , font_size) ;
 			}
-
-		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG
-				" setting font [font %x size %d name %s]\n" ,
-				font , size , fontname) ;
-		#endif
-
-			x_customize_font_name( font_config , font , fontname , size) ;
-		}
-		else
-		{
-			/*
-			 * default font.
-			 * [font name]
-			 */
-
-			x_customize_default_font_name( font_config , font , entry , size) ;
 		}
 	}
 
@@ -266,6 +302,181 @@ read_conf(
 	
 	kik_file_close( from) ;
 	
+	return  1 ;
+}
+
+static u_int
+count_char_in_str(
+	char *  str ,
+	char  ch
+	)
+{
+	u_int  count ;
+
+	count = 0 ;
+	while( *str)
+	{
+		if( *str == ch)
+		{
+			count ++ ;
+		}
+
+		str ++ ;
+	}
+
+	return  count ;
+}
+
+static int
+save_conf(
+	char *  file ,
+	char *  key ,
+	char *  value	/* Includes multiple entries. Destroyed in this function. */
+	)
+{
+	char *  path ;
+	kik_file_t *  kfile ;
+	char *  new_value ;
+	kik_conf_write_t *  conf ;
+
+	if( ( path = kik_get_user_rc_path( file)) == NULL)
+	{
+		return  0 ;
+	}
+
+	new_value = NULL ;
+
+	kfile = kik_file_open( path , "r") ;
+
+	while( kfile)
+	{
+		char *  _key ;
+		char *  _value ;
+
+		if( ! kik_conf_io_read( kfile , &_key , &_value))
+		{
+			break ;
+		}
+		else if( strcmp( key , _key) == 0)
+		{
+			struct
+			{
+				char *  font_name ;
+				u_int  font_size ;
+			} *  values , * _values ;
+			u_int  num ;
+			u_int  _num ;
+			char *  p ;
+			int  count ;
+			int  _count ;
+
+			if( ( values = alloca( sizeof( *values) *
+					( count_char_in_str( value , ';') + 1))) == NULL ||
+			    ( _values = alloca( sizeof( *_values) *
+					( count_char_in_str( _value , ';') + 1))) == NULL ||
+			    /* If value = "a" and _value = "b", new_value = "a;b;" */
+			    ( new_value = malloc( strlen( value) + strlen( _value) + 3)) == NULL)
+			{
+				free( path) ;
+				kik_file_close( kfile) ;
+
+				return  0 ;
+			}
+
+			_num = 0 ;
+			while( _value != NULL && ( p = kik_str_sep( &_value , ";")) != NULL)
+			{
+				if( parse_entry( &(_values[_num].font_name) ,
+						&(_values[_num].font_size) , p))
+				{
+					_num ++ ;
+				}
+			}
+
+			num = 0 ;
+			while( value != NULL && ( p = kik_str_sep( &value , ";")) != NULL)
+			{
+				if( parse_entry( &(values[num].font_name) ,
+						&(values[num].font_size) , p))
+				{
+					num ++ ;
+				}
+			}
+
+			for( count = 0 ; count < num ; count++)
+			{
+				for( _count = 0 ; _count < _num ; _count++)
+				{
+					/* Replace old values. */
+					if( _values[_count].font_size == values[count].font_size)
+					{
+						_values[_count].font_name = NULL ;
+					}
+				}
+			}
+			
+			p = new_value ;
+			for( _count = 0 ; _count < _num ; _count++)
+			{
+				if( _values[_count].font_name)
+				{
+					if( _values[_count].font_size == 0)
+					{
+						sprintf( p , "%s;" , _values[_count].font_name) ;
+					}
+					else
+					{
+						sprintf( p , "%d,%s;" , _values[_count].font_size ,
+							_values[_count].font_name) ;
+					}
+					p += strlen(p) ;
+				}
+			}
+			
+			for( count = 0 ; count < num ; count++)
+			{
+				if( values[count].font_size == 0)
+				{
+					sprintf( p , "%s;" , values[count].font_name) ;
+				}
+				else
+				{
+					sprintf( p , "%d,%s;" , values[count].font_size ,
+						values[count].font_name) ;
+				}
+				p += strlen(p) ;
+			}
+
+			break ;
+		}
+	}
+
+	if( kfile)
+	{
+		kik_file_close( kfile) ;
+	}
+
+	if( new_value)
+	{
+		value = new_value ;
+	}
+
+	conf = kik_conf_write_open( path) ;
+	free( path) ;
+	if( conf == NULL)
+	{
+		return  0 ;
+	}
+
+	kik_conf_io_write( conf , key , value) ;
+
+	kik_conf_write_close( conf) ;
+
+	if( new_value)
+	{
+		free( new_value) ;
+	}
+
 	return  1 ;
 }
 
@@ -358,12 +569,8 @@ x_acquire_font_config(
 
 		for( count = 0 ; count < num_of_configs ; count ++)
 		{
-			/*
-			 * 'type_engine' isn't compared because TYPE_XFT and TYPE_STSF
-			 * config files are the same.
-			 */
-			if( font_configs[count]->font_present == font_present
-				/* && font_configs[count]->type_engine == type_engine */)
+			if( font_configs[count]->font_present == font_present &&
+				font_configs[count]->type_engine == type_engine)
 			{
 				font_configs[count]->ref_count ++ ;
 
@@ -619,8 +826,7 @@ int
 x_customize_default_font_name(
 	x_font_config_t *  font_config ,
 	ml_font_t  font ,
-	char *  fontname ,
-	u_int  font_size
+	char *  fontname
 	)
 {
 	int  result ;
@@ -748,31 +954,22 @@ x_customize_font_file(
 
 	for( count = 0 ; count < num_of_targets ; count++)
 	{
-		parse_conf( targets[count], key, value) ;
+		char *  p ;
+
+		if( ( p = kik_str_alloca_dup( value)))
+		{
+			parse_conf( targets[count], key, p) ;
+		}
 	}
 
 	if( save)
 	{
-		char *  path ;
-		kik_conf_write_t *  conf ;
-
-		if( ( path = kik_get_user_rc_path( file)) == NULL)
+		if( ! save_conf( file , key , value))
 		{
 			return  -1 ;
 		}
-
-		conf = kik_conf_write_open( path) ;
-		free( path) ;
-		if( conf == NULL)
-		{
-			return  -1 ;
-		}
-
-		kik_conf_io_write( conf , key , value) ;
-
-		kik_conf_write_close( conf) ;
 	}
-	
+
 	return  1 ;
 }
 
@@ -816,6 +1013,72 @@ x_get_config_font_name(
 	}
 
 	sprintf( font_name , fa_pair->value , font_size) ;
+
+	return  font_name ;
+}
+
+char *
+x_get_config_font_name2(
+	char *  file ,
+	u_int  font_size ,
+	char *  font_cs
+	)
+{
+	ml_font_t  font ;
+	x_font_config_t *  font_config ;
+	x_type_engine_t  engine ;
+	x_font_present_t  present ;
+	char *  font_name ;
+
+	if( file == NULL || strcmp( file, font_file + 7) == 0)
+	{
+		engine = TYPE_XCORE ;
+		present = 0 ;
+	}
+	else if( strcmp( file, aafont_file + 7) == 0)
+	{
+		engine = TYPE_XFT ;
+		present = FONT_AA ;
+	}
+	else if( strcmp( file, vfont_file + 7) == 0)
+	{
+		engine = TYPE_XCORE ;
+		present = FONT_VAR_WIDTH ;
+	}
+	else if( strcmp( file, tfont_file + 7) == 0)
+	{
+		engine = TYPE_XCORE ;
+		present = FONT_VERTICAL ;
+	}
+	else if( strcmp( file, vaafont_file + 7) == 0)
+	{
+		engine = TYPE_XFT ;
+		present = FONT_AA | FONT_VAR_WIDTH ;
+	}
+	else if( strcmp( file, taafont_file + 7) == 0)
+	{
+		engine = TYPE_XFT ;
+		present = FONT_AA | FONT_VERTICAL ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " font file %s is not found.\n", file) ;
+	#endif
+	
+		return  NULL ;
+	}
+
+	font_config = x_acquire_font_config( engine , present) ;
+	
+	if( ( font = parse_key( font_cs)) == UNKNOWN_CS)
+	{
+		return  NULL ;
+	}
+
+	font_name = x_get_config_font_name( font_config , font_size , font) ;
+
+	x_release_font_config( font_config) ;
 
 	return  font_name ;
 }

@@ -265,7 +265,7 @@ msgstr "全形字佔兩個邏輯直行 (否則只佔一個)"
 msgid "Bidi (UTF8 only)"
 msgstr "Bidi (只限 UTF8)"
 
-#: tool/mlconfig/mc_fontsize.c:62
+#: tool/mlconfig/mc_font.c:62
 msgid "Font size (pixels)"
 msgstr "字型大小 (像素值)"
 
@@ -326,7 +326,7 @@ msgid "Tab width (columns)"
 msgstr "Tab 大小 (字數)"
 
 #: tool/mlconfig/mc_vertical.c:88
-msgid " Vertical mode "
+msgid "Vertical mode"
 msgstr "直行模式"
 
 #: tool/mlconfig/mc_vertical.c:105

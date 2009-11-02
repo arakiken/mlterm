@@ -174,7 +174,7 @@ kik_conf_write_open(
 		}
 		*p = '/' ;
 	}
-	
+
 	if( ( conf->to = fopen( name , "w")) == NULL)
 	{
 		goto  error ;
