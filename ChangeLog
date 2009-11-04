@@ -1,5 +1,7 @@
 2009-11-03  Araki Ken  <arakiken@users.sf.net>
 
+	* x_color_manager.c: Merged id:2879623 patch(Thanks to Kouichi Kusanagi).
+	
 	* x_xic_{fg|bg}_color_changed(x_xic.c): Added ->pixel after
 	  win->xim_listener->get_{fg|bg}_color.
 
