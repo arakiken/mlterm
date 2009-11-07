@@ -780,6 +780,7 @@ x_scrollbar_init(
 	x_picture_modifier_t *  pic_mod
 	)
 {
+	char  default_view_name[] = "simple" ;
 	u_int  width ;
 
 	/* dynamically allocated */
@@ -794,7 +795,7 @@ x_scrollbar_init(
 	}
 	else
 	{
-		sb->view_name = strdup( "simple") ;
+		sb->view_name = strdup( default_view_name) ;
 	}
 
 	if( sb->view_name == NULL)
@@ -915,8 +916,15 @@ view_created:
 	}
 
 #ifndef  USE_WIN32GUI
-	/* default scrollbar cursor */	
-	x_window_set_cursor( &sb->window , XC_sb_v_double_arrow) ;
+	/* default scrollbar cursor */
+	if( strcmp( sb->view_name , default_view_name) == 0)
+	{
+		x_window_set_cursor( &sb->window , XC_sb_v_double_arrow) ;
+	}
+	else
+	{
+		x_window_set_cursor( &sb->window , XC_left_ptr) ;
+	}
 #endif
 
 	/*

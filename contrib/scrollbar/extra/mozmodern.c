@@ -4,7 +4,6 @@
 
 #include  <stdio.h>
 #include  <stdlib.h>
-#include  <X11/cursorfont.h>
 #include  <x_sb_view.h>
 
 #include  "exsb_common.h"
@@ -248,9 +247,6 @@ realized(
 						       view->screen ,
 						       color_name[i]) ;
 	}
-
-	XDefineCursor( view->display , view->window ,
-		XCreateFontCursor( view->display , XC_left_ptr)) ;
 
 	gc_value.foreground = BlackPixel( view->display , view->screen) ;
 	gc_value.background = WhitePixel( view->display , view->screen) ;

@@ -4,7 +4,6 @@
 
 #include  <stdio.h>
 #include  <stdlib.h>
-#include  <X11/cursorfont.h>
 #include  <x_sb_view.h>
 
 #define  WIDTH       14
@@ -70,9 +69,6 @@ realized(
 	view->window = window ;
 	view->gc = gc ;
 	view->height = height ;
-
-	XDefineCursor( view->display , view->window ,
-		XCreateFontCursor( view->display , XC_left_ptr)) ;
 }
 
 static void

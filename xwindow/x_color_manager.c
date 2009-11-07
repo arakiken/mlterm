@@ -151,8 +151,6 @@ x_color_manager_delete(
 {
 	int  count ;
 	
-	x_release_color_cache( color_man->color_cache) ;
-
 	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
 	{
 		free( color_man->sys_colors[count].name) ;
@@ -164,6 +162,8 @@ x_color_manager_delete(
 				&color_man->sys_colors[count].xcolor) ;
 		}
 	}
+
+	x_release_color_cache( color_man->color_cache) ;
 
 	free( color_man) ;
 

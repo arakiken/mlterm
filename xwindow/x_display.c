@@ -129,6 +129,8 @@ open_display(
 
 	modmap_init( disp->display, &(disp->modmap)) ;
 
+	memset( disp->cursors , 0 , sizeof( disp->cursors)) ;
+
 #ifdef  __DEBUG
 	XSetErrorHandler( error_handler) ;
 	XSetIOErrorHandler( ioerror_handler) ;
@@ -185,6 +187,14 @@ close_display(
 	}
 
 	free( disp->cardinal) ;
+
+	for( count = 0 ; count < (sizeof(disp->cursors)/sizeof(disp->cursors[0])) ; count++)
+	{
+		if( disp->cursors[count])
+		{
+			XFreeCursor( disp->display , disp->cursors[count]) ;
+		}
+	}
 
 	for( count = 0 ; count < disp->num_of_roots ; count ++)
 	{
@@ -501,6 +511,45 @@ x_display_update_modifier_mapping(
 		disp->modmap.map = XGetModifierMapping( disp->display) ;
 		disp->modmap.serial = serial ;
 	}
+}
+
+Cursor
+x_display_get_cursor(
+	x_display_t *  disp ,
+	u_int  shape
+	)
+{
+	int  idx ;
+	
+	/*
+	 * XXX
+	 * cursor[0] == XC_xterm / cursor[1] == XC_sb_v_double_arrow / cursor[2] == XC_left_ptr
+	 * Mlterm uses only these shapes.
+	 */
+	 
+	if( shape == XC_xterm)
+	{
+		idx = 0 ;
+	}
+	else if( shape == XC_sb_v_double_arrow)
+	{
+		idx = 1 ;
+	}
+	else if( shape == XC_left_ptr)
+	{
+		idx = 2 ;
+	}
+	else
+	{
+		return  None ;
+	}
+	
+	if( ! disp->cursors[idx])
+	{
+		disp->cursors[idx] = XCreateFontCursor( disp->display , shape) ;
+	}
+
+	return  disp->cursors[idx] ;
 }
 
 int

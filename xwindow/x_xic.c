@@ -490,6 +490,17 @@ x_xic_get_str(
 	{
 		return  0 ;
 	}
+	else if( stat == XBufferOverflow)
+	{
+		/*
+		 * Input string is too large for seq. seq and keysym are not modified.
+		 *
+		 * XXX
+		 * len is required size for input string, but not used for now.
+		 */
+		
+		return  0 ;
+	}
 
 	if( IS_ENCODING_BASED_ON_ISO2022(win->xim->encoding) && *seq < 0x20)
 	{
@@ -530,6 +541,16 @@ x_xic_get_utf8_str(
 	
 	if( ( len = Xutf8LookupString( win->xic->ic , event , seq , seq_len , keysym , &stat)) == 0)
 	{
+		return  0 ;
+	}
+	else if( stat == XBufferOverflow)
+	{
+		/*
+		 * Input string is too large for seq. seq and keysym are not modified.
+		 *
+		 * XXX
+		 * len is required size for input string, but not used for now.
+		 */
 		return  0 ;
 	}
 	

@@ -1019,7 +1019,7 @@ x_get_config_font_name(
 
 char *
 x_get_config_font_name2(
-	char *  file ,
+	char *  file ,		/* can be NULL */
 	u_int  font_size ,
 	char *  font_cs
 	)

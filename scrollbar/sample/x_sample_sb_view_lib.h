@@ -14,6 +14,8 @@ typedef struct  sample_sb_view
 	x_sb_view_t  view ;
 
 	GC  gc ;
+
+	Cursor  cursor ;
 	
 	Pixmap  arrow_up ;
 	Pixmap  arrow_up_dent ;

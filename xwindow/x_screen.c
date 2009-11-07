@@ -4418,8 +4418,8 @@ set_config(
 static void
 get_config(
 	void *  p ,
-	char *  dev ,
-	char *  key ,
+	char *  dev ,	/* can be NULL */
+	char *  key ,	/* can be "error" */
 	int  to_menu
 	)
 {
@@ -4429,9 +4429,9 @@ get_config(
 static void
 get_font_config(
 	void *  p ,
-	char *  file ,
-	char *  font_size_str ,
-	char *  cs ,
+	char *  file ,		/* can be NULL */
+	char *  font_size_str ,	/* can be "error" */
+	char *  cs ,		/* can be "error" */
 	int  to_menu
 	)
 {

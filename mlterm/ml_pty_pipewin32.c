@@ -481,16 +481,16 @@ ml_pty_delete(
 {
   	if( pty->pty_listener && pty->pty_listener->closed)
         {
-          	(*pty->pty_listener->closed)( pty->pty_listener->self) ;
+		(*pty->pty_listener->closed)( pty->pty_listener->self) ;
         }
 
+	TerminateProcess( pty->child_proc , 0) ;
+	
   	CloseHandle( pty->master_input) ;
   	CloseHandle( pty->master_output) ;
   	CloseHandle( pty->slave_stdout) ;
   	CloseHandle( pty->rd_ev) ;
-	
-	TerminateProcess( pty->child_proc , 0) ;
-	
+
 	free( pty->buf) ;
 	free( pty) ;
 

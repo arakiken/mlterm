@@ -85,6 +85,16 @@ ml_term_manager_final(void)
 
 	for( count = num_of_terms - 1 ; count >= 0 ; count --)
 	{
+	#if  0
+		/*
+		 * All windows may be invalid before ml_term_manager_final() is called.
+		 * Without this ml_term_detach(), if terms[count] is not detached,
+		 * pty_listener::pty_closed() which is called in ml_pty_delete() can
+		 * operate invalid window.
+		 */
+		ml_term_detach( terms[count]) ;
+	#endif
+	
 		ml_term_delete( terms[count]) ;
 	}
 

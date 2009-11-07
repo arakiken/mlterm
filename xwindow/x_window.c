@@ -996,6 +996,7 @@ x_window_unset_transparent(
 
 /*
  * Double buffering.
+ * If double buffering is used or not is not changeable after x_window_show().
  */
 int
 x_window_use_buffer(
@@ -1012,6 +1013,9 @@ x_window_use_buffer(
 	return  1 ;
 }
 
+/*
+ * Cursor is not changeable after x_window_show().
+ */
 int
 x_window_set_cursor(
 	x_window_t *  win ,
@@ -1204,8 +1208,12 @@ x_window_show(
 
 	if( win->cursor_shape)
 	{
-		XDefineCursor( win->disp->display , win->my_window ,
-			XCreateFontCursor( win->disp->display , win->cursor_shape)) ;
+		Cursor  cursor ;
+
+		if( ( cursor = x_display_get_cursor( win->disp , win->cursor_shape)))
+		{
+			XDefineCursor( win->disp->display , win->my_window , cursor) ;
+		}
 	}
 
 #ifdef  USE_TYPE_XFT

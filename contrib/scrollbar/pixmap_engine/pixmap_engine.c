@@ -9,7 +9,6 @@
 #include  <stdio.h>
 #include  <stdlib.h>
 #include  <string.h>
-#include  <X11/cursorfont.h>
 #include  <X11/extensions/shape.h>
 #include  <x_sb_view.h>
 
@@ -357,8 +356,6 @@ realized(
 	view->window = window ;
 	view->gc = gc ;
 	view->height = height ;
-
-	XDefineCursor( display , window , XCreateFontCursor( display , XC_left_ptr)) ;
 
 	gc_value.foreground = BlackPixel( display , screen) ;
 	gc_value.background = WhitePixel( display , screen) ;

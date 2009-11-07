@@ -50,6 +50,8 @@ typedef struct  x_display
 
 	x_modifier_mapping_t  modmap ;
 
+	Cursor  cursors[3] ;
+
 } x_display_t ;
 
 
@@ -88,6 +90,8 @@ int  x_display_clear_selection( x_display_t *  disp , x_window_ptr_t  win) ;
 XID  x_display_get_group( x_display_t *  disp) ;
 
 XModifierKeymap *  x_display_get_modifier_mapping( x_display_t *  disp) ;
+
+Cursor  x_display_get_cursor( x_display_t *  disp , u_int  shape) ;
 
 void  x_display_update_modifier_mapping( x_display_t *  disp ,	u_int  serial) ;
 

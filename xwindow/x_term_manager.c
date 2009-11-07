@@ -151,7 +151,7 @@ config_saved(void)
 
 static void
 set_font_config(
-	char *  file ,
+	char *  file ,	/* can be NULL */
 	char *  key ,
 	char *  val ,
 	int  save
@@ -687,21 +687,23 @@ close_screen_intern(
 	)
 {
 	x_window_t *  root ;
+	x_display_t *  disp ;
 
 	x_screen_detach( screen) ;
 	x_font_manager_delete( screen->font_man) ;
 	x_color_manager_delete( screen->color_man) ;
 
 	root = x_get_root_window( &screen->window) ;
-
-	if( root->disp->num_of_roots == 1)
+	disp = root->disp ;
+	
+	if( disp->num_of_roots == 1)
 	{
-		x_display_remove_root( root->disp, root) ;
-		x_display_close( root->disp) ;
+		x_display_remove_root( disp, root) ;
+		x_display_close( disp) ;
 	}
 	else
 	{
-		x_display_remove_root( root->disp, root) ;
+		x_display_remove_root( disp, root) ;
 	}
 
 	return  1 ;
@@ -1955,12 +1957,6 @@ x_term_manager_event_loop(void)
 			dead_mask = 0 ;
 		}
 
-	#ifdef  USE_WIN32GUI
-		if( ml_get_all_terms( &terms) == 0)
-		{
-			PostQuitMessage( 0) ;
-		}
-	#else
 		if( num_of_screens == 0 && ! is_genuine_daemon)
 		{
 			if( un_file)
@@ -1968,9 +1964,12 @@ x_term_manager_event_loop(void)
 				unlink( un_file) ;
 			}
 			
+	#ifdef  USE_WIN32GUI
+			PostQuitMessage( 0) ;
+	#else
 			exit( 0) ;
-		}
 	#endif
+		}
 	
 		kik_alloca_end_stack_frame() ;
 	}

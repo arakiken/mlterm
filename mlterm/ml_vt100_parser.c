@@ -673,18 +673,28 @@ config_protocol_get(
 		stop_vt100_cmd( vt100_parser) ;
 
 		ret = ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0) ;
-		if( ret > 0)
+		if( ret == -1)
 		{
-			(*vt100_parser->config_listener->get)( vt100_parser->config_listener->self ,
-				dev , key , to_menu) ;
-		}
-		else if( ret == -1)
-		{
-			/* to_menu is necessarily 0, so it is pty that msg should be returned to. */
+			/*
+			 * do_challenge is failed.
+			 * to_menu is necessarily 0, so it is pty that msg should be returned to.
+			 */
 
 			char  msg[] = "#forbidden\n" ;
 
 			ml_write_to_pty( vt100_parser->pty , msg , sizeof( msg) - 1) ;
+		}
+		else if( ret > 0)
+		{
+			(*vt100_parser->config_listener->get)( vt100_parser->config_listener->self ,
+				dev , key , to_menu) ;
+		}
+		else /* if( ret < 0) */
+		{
+			char  msg[] = "error" ;
+			
+			(*vt100_parser->config_listener->get)( vt100_parser->config_listener->self ,
+				NULL , msg , to_menu) ;
 		}
 
 		start_vt100_cmd( vt100_parser) ;
@@ -715,7 +725,7 @@ config_protocol_set_font(
 
 		stop_vt100_cmd( vt100_parser) ;
 
-		if( ml_parse_proto2( &file , &key , &val , &pt , 0) && key && val)
+		if( ml_parse_proto2( &file , &key , &val , pt , 0) && key && val)
 		{
 			(*vt100_parser->config_listener->set_font)( file , key , val, save) ;
 		}
@@ -745,11 +755,23 @@ config_protocol_get_font(
 		char *  file ;
 		char *  key ;
 		char *  cs ;
+		int  ret ;
 
 		stop_vt100_cmd( vt100_parser) ;
 
-		if( ml_parse_proto2( &file , &key , NULL , &pt , to_menu == 0) && key &&
-			( cs = kik_str_sep( &key , ",")) && key)
+		ret = ml_parse_proto2( &file , &key , NULL , pt , to_menu == 0) ;
+		if( ret == -1)
+		{
+			/*
+			 * do_challenge is failed.
+			 * to_menu is necessarily 0, so it is pty that msg should be returned to.
+			 */
+
+			char  msg[] = "#forbidden\n" ;
+
+			ml_write_to_pty( vt100_parser->pty , msg , sizeof( msg) - 1) ;
+		}
+		else if( ret > 0 && key && ( cs = kik_str_sep( &key , ",")) && key)
 		{
 			(*vt100_parser->config_listener->get_font)(
 				vt100_parser->config_listener->self ,
@@ -757,6 +779,14 @@ config_protocol_get_font(
 				key ,	/* font size */
 				cs ,
 				to_menu) ;
+		}
+		else
+		{
+			char  msg[] = "error" ;
+			
+			(*vt100_parser->config_listener->get_font)(
+				vt100_parser->config_listener->self ,
+				NULL , msg , msg , to_menu) ;
 		}
 
 		start_vt100_cmd( vt100_parser) ;
@@ -787,7 +817,7 @@ config_protocol_set_color(
 
 		stop_vt100_cmd( vt100_parser) ;
 
-		if( ml_parse_proto2( &file , &key , &val , &pt , 0) && key && val)
+		if( ml_parse_proto2( &file , &key , &val , pt , 0) && key && val)
 		{
 			(*vt100_parser->config_listener->set_color)( file , key , val, save) ;
 		}

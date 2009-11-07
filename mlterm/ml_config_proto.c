@@ -182,6 +182,7 @@ ml_parse_proto(
 
 	if( ( *str = strchr( p , ';')))
 	{
+		/* *str points next key=value. */
 		*((*str) ++) = '\0' ;
 	}
 
@@ -242,12 +243,16 @@ ml_parse_proto(
 	return  1 ;
 }
 
+/*
+ * Returns 0 if error happens.
+ * Returns -1 if do_challenge is 1 and challenge failed.
+ */
 int
 ml_parse_proto2(
 	char **  file ,	/* can be NULL */
 	char **  key ,	/* can be NULL */
 	char **  val ,	/* can be NULL */
-	char **  str ,
+	char *  str ,
 	int  do_challenge
 	)
 {
@@ -257,9 +262,9 @@ ml_parse_proto2(
 	{
 		char *  chal ;
 
-		chal = p = *str ;
+		chal = str ;
 
-		if( ( p = strchr( p , ';')) == NULL)
+		if( ( p = strchr( str , ';')) == NULL)
 		{
 			/* Illegal format */
 
@@ -280,10 +285,10 @@ ml_parse_proto2(
 			return  -1 ;
 		}
 
-		*str = p ;
+		str = p ;
 	}
 	
-	if( ( p = strchr( *str , '=')))
+	if( ( p = strchr( str , '=')))
 	{
 		*(p ++) = '\0' ;
 
@@ -300,14 +305,16 @@ ml_parse_proto2(
 		}
 	}
 	
-	if( ( p = strchr( *str, ':')))
+	if( ( p = strchr( str , ':')))
 	{
 		if( file)
 		{
-			*file = *str ;
+			*file = str ;
 		}
 
 		*(p ++) = '\0' ;
+
+		str = p ;
 	}
 	else
 	{
@@ -315,13 +322,11 @@ ml_parse_proto2(
 		{
 			*file = NULL ;
 		}
-
-		p = *str ;
 	}
 
 	if( key)
 	{
-		*key = p ;
+		*key = str ;
 	}
 
 #ifdef  __DEBUG

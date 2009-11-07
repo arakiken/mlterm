@@ -1,3 +1,26 @@
+2009-11-07  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display.[ch]: Added x_display_get_cursor().
+
+	* scrollbar plugin libraries: Removed XDefineCursor and XCreateFontCursor,
+	  which are called with shape according to scrollbar name in x_scrollbar.c.
+
+	* kik_locale.c: sys_locale is strdup'ed.
+
+	* x_xic_get_{utf8_}string(x_xic.c): If XBufferOverflow happens, overflowed
+	  input string is ignored. This is temporary expedient.
+
+	* ml_pty_delete(ml_pty_pipewin32.c): Moved TerminateProcess() before
+	  CloseHandle().
+
+	* ml_vt100_parser.c: If parsing protocol sequence failed, "#error"
+	  is returned to pty in config_protocol_get() and config_protocol_get_font().
+	  If challenge_it() in ml_config_protocol.c failed, "#forbidden" is returned
+	  to pty in config_protocol_get_font().
+
+	* x_term_manager.c: Process is teminated if all mlterm screens are
+	  closed in win32.
+
 2009-11-03  Araki Ken  <arakiken@users.sf.net>
 
 	* x_color_manager.c: Merged id:2879623 patch(Thanks to Kouichi Kusanagi).

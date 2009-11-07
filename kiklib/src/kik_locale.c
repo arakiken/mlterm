@@ -96,9 +96,17 @@ kik_locale_init(
 	char *  locale_p ;
 	int  result ;
 
-	if( sys_locale && locale && strcmp( locale , sys_locale) == 0)
+	if( sys_locale)
 	{
-		return  1 ;
+		if( locale && strcmp( locale , sys_locale) == 0)
+		{
+			return  1 ;
+		}
+		else
+		{
+			free( sys_locale) ;
+			sys_locale = NULL ;
+		}
 	}
 	
 	if( sys_lang_country)
@@ -139,7 +147,11 @@ kik_locale_init(
 	}
 	else
 	{
-		sys_locale = locale ;
+		/*
+		 * If external library calls setlocale(), this 'locale' variable
+		 * can be free'ed, so strdup() shoule be called.
+		 */
+		sys_locale = strdup( locale) ;
 		result = 1 ;
 	}
 
@@ -206,6 +218,12 @@ kik_locale_init(
 int
 kik_locale_final(void)
 {
+	if( sys_locale)
+	{
+		free( sys_locale) ;
+		sys_locale = NULL ;
+	}
+	
 	if( sys_lang_country)
 	{
 		free( sys_lang_country) ;
