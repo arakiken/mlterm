@@ -18,7 +18,7 @@
 	  If challenge_it() in ml_config_protocol.c failed, "#forbidden" is returned
 	  to pty in config_protocol_get_font().
 
-	* x_term_manager.c: Process is teminated if all mlterm screens are
+	* x_term_manager.c: Process is terminated if all mlterm screens are
 	  closed in win32.
 
 2009-11-03  Araki Ken  <arakiken@users.sf.net>

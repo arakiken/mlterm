@@ -50,7 +50,9 @@ typedef struct  x_display
 
 	x_modifier_mapping_t  modmap ;
 
+#ifndef  USE_WIN32GUI
 	Cursor  cursors[3] ;
+#endif
 
 } x_display_t ;
 
@@ -91,7 +93,9 @@ XID  x_display_get_group( x_display_t *  disp) ;
 
 XModifierKeymap *  x_display_get_modifier_mapping( x_display_t *  disp) ;
 
+#ifndef  USE_WIN32GUI
 Cursor  x_display_get_cursor( x_display_t *  disp , u_int  shape) ;
+#endif
 
 void  x_display_update_modifier_mapping( x_display_t *  disp ,	u_int  serial) ;
 

@@ -513,6 +513,7 @@ x_display_update_modifier_mapping(
 	}
 }
 
+#ifndef  USE_WIN32GUI
 Cursor
 x_display_get_cursor(
 	x_display_t *  disp ,
@@ -551,6 +552,7 @@ x_display_get_cursor(
 
 	return  disp->cursors[idx] ;
 }
+#endif
 
 int
 x_display_set_icon(
