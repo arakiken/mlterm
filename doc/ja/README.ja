@@ -616,7 +616,8 @@ comment $Id$
         aafont , vaafont(Xft用フォント) で異なります。
 
         o font/vfont/tfont
-          [XLFD(*)](:[percentage])
+          [XLFD(*)](:[percentage]) (--with-gui=xlib の場合)
+	  [font family]( [font weight] [font slant] [font size]) (--with-gui=win32 の場合)
 
           (*) もしくは、fonts.aliasで定義している省略記法。
 

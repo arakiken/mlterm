@@ -7,6 +7,11 @@
 #include  <stdio.h>		/* sprintf */
 #include  <locale.h>		/* setlocale() */
 
+/* for kik_get_codeset_win32() */
+#ifdef  HAVE_WINDOWS_H
+#include  <windows.h>
+#endif
+
 #include  "kik_langinfo.h"	/* kik_langinfo() */
 #include  "kik_debug.h"
 #include  "kik_mem.h"		/* alloca */
@@ -333,8 +338,6 @@ kik_get_codeset(void)
 
 #ifdef  HAVE_WINDOWS_H
 
-#include  <windows.h>
-
 typedef struct cp_cs_table
 {
 	int  codepage ;
@@ -373,6 +376,8 @@ kik_get_codeset_win32(void)
 			return  cp_cs_table[count].codeset ;
 		}
 	}
+
+	return  "ISO8859-1" ;
 }
 
 #endif	/* HAVE_WINDOWS_H */

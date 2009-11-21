@@ -82,13 +82,23 @@ AC_TYPE_SIZE_T
 #
 kik_cv_cygwin=no
 kik_cv_mingw32=no
+kik_cv_win32=no
 case "${host_os}" in
 cygwin*)
 	kik_cv_cygwin=yes
+	case "${CC} ${CFLAGS}" in
+	*mno-cygwin*)
+		kik_cv_win32=yes
+		AC_DEFINE(USE_WIN32API,,"USE_WIN32API")
+		;;
+	*)
+		;;
+	esac
 	;;
 mingw32*)
 	kik_cv_mingw32=yes
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
+		kik_cv_win32=yes
 		AC_DEFINE(USE_WIN32API,,"USE_WIN32API")
 	fi
 	;;
@@ -271,12 +281,10 @@ AC_SUBST(UTMP_LIBS)
 AC_MSG_CHECKING(for pty/tty type)
 AC_CACHE_VAL(kik_cv_pty,
 	[
-	if test "$kik_cv_mingw32" = yes ; then
-		if test -f "/lib/libmsys-1.0.dll.a" ; then
-			kik_cv_pty=streams
-		else
-			kik_cv_pty=none
-		fi
+	if test "$kik_cv_win32" = "yes" ; then
+		kik_cv_pty=none
+	elif test "$kik_cv_mingw32" = "yes" ; then
+		kik_cv_pty=streams
 	else
 		AC_CHECK_FUNC( posix_openpt,
 			[

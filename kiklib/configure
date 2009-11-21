@@ -22832,13 +22832,27 @@ fi
 #
 kik_cv_cygwin=no
 kik_cv_mingw32=no
+kik_cv_win32=no
 case "${host_os}" in
 cygwin*)
 	kik_cv_cygwin=yes
+	case "${CC} ${CFLAGS}" in
+	*mno-cygwin*)
+		kik_cv_win32=yes
+
+cat >>confdefs.h <<\_ACEOF
+#define USE_WIN32API /**/
+_ACEOF
+
+		;;
+	*)
+		;;
+	esac
 	;;
 mingw32*)
 	kik_cv_mingw32=yes
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
+		kik_cv_win32=yes
 
 cat >>confdefs.h <<\_ACEOF
 #define USE_WIN32API /**/
@@ -23687,12 +23701,10 @@ if test "${kik_cv_pty+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
 
-	if test "$kik_cv_mingw32" = yes ; then
-		if test -f "/lib/libmsys-1.0.dll.a" ; then
-			kik_cv_pty=streams
-		else
-			kik_cv_pty=none
-		fi
+	if test "$kik_cv_win32" = "yes" ; then
+		kik_cv_pty=none
+	elif test "$kik_cv_mingw32" = "yes" ; then
+		kik_cv_pty=streams
 	else
 		{ $as_echo "$as_me:$LINENO: checking for posix_openpt" >&5
 $as_echo_n "checking for posix_openpt... " >&6; }

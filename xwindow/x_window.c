@@ -562,7 +562,13 @@ x_window_init(
 	/* if visibility is partially obscured , scrollable will be 0. */
 	win->is_scrollable = 1 ;
 
-	win->is_focused = 1 ;
+	/*
+	 * is_focus member shoule be 0 by default in order to call
+	 * XSetICFocus(x_xic_set_focus) in startup FocusIn event.
+	 * If XSetICFocus() is not called, KeyPress event is discarded
+	 * in XFilterEvent.
+	 */
+	win->is_focused = 0 ;
 
 	/* This flag will map window automatically in x_window_show() */
 	win->is_mapped = 1 ;

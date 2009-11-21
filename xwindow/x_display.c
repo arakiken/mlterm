@@ -79,6 +79,35 @@ modmap_final(
 	}
 }
 
+#ifdef  __CYGWIN__
+
+/*
+ * For Cygwin X.
+ */
+
+#include  <windows.h>
+
+static void
+hide_console(void)
+{
+	HWND  conwin ;
+	char  app_name[40] ;
+
+	sprintf( app_name, "mlterm%08x", (unsigned int)GetCurrentThreadId()) ;
+
+	LockWindowUpdate( GetDesktopWindow()) ;
+	
+	SetConsoleTitle( app_name) ;
+	while( ( conwin = FindWindow( NULL, app_name)) == NULL)
+	{
+		Sleep( 40) ;
+	}
+	ShowWindowAsync( conwin, SW_HIDE);
+	LockWindowUpdate( NULL) ;
+}
+
+#endif	/* __CYGWIN__ */
+
 static x_display_t *
 open_display(
 	char *  name
@@ -247,6 +276,13 @@ x_display_open(
 
 	displays = p ;
 	displays[num_of_displays ++] = disp ;
+
+#ifdef  __CYGWIN__
+	/*
+	 * For Cygwin X
+	 */
+	hide_console() ;
+#endif
 
 	return  disp ;
 }
@@ -513,7 +549,6 @@ x_display_update_modifier_mapping(
 	}
 }
 
-#ifndef  USE_WIN32GUI
 Cursor
 x_display_get_cursor(
 	x_display_t *  disp ,
@@ -552,7 +587,6 @@ x_display_get_cursor(
 
 	return  disp->cursors[idx] ;
 }
-#endif
 
 int
 x_display_set_icon(

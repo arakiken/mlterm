@@ -23,6 +23,11 @@
 
 #define MENU_RCFILE "mlterm/menu"
 
+/* XXX Hack */
+#ifdef  NO_G_LOCALE
+#define  g_locale_to_utf8(a,b,c,d,e) (a)
+#endif
+
 static GScannerConfig menu_scanner_config = {
     " \t\n",
     G_CSET_A_2_Z G_CSET_a_2_z "-_",
@@ -229,11 +234,7 @@ int append_pty_list(GtkMenu* menu)
             name_locale = pty;
         if (strncmp(name_locale, "/dev/", 5) == 0)
             name_locale += 5;
-#ifdef  NO_G_LOCALE
-	name_utf8 = name_locale ;
-#else
         name_utf8 = g_locale_to_utf8(name_locale, -1, NULL, NULL, NULL);
-#endif
 
         command = malloc(strlen(pty) + 12);
         sprintf(command, "select_pty=%s", pty);

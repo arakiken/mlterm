@@ -19,10 +19,22 @@ SYSCONFDIR = $(DESTDIR)$(sysconfdir)
 LKIK = @LKIK@
 
 GTK_CONFIG=@GTK_CONFIG@
-CFLAGS = `$(GTK_CONFIG) --cflags` $(CFLAGS_LOCAL) \
+
+# "sed ..." is hack for cygwin(removing \r which is output by pkg-config).
+CFLAGS = `$(GTK_CONFIG) --cflags|sed 's/\\\r//g'` $(CFLAGS_LOCAL) \
 	@KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @G_LOCALE_CFLAGS@ \
 	-DSYSCONFDIR=\"$(SYSCONFDIR)\"
-LIBS = `$(GTK_CONFIG) --libs` $(LIBS_LOCAL) $(LKIK) @DL_SELF@
+
+# "sed ..." is hack for cygwin(removing \r which is output by pkg-config).
+LIBS1 = `$(GTK_CONFIG) --libs|sed 's/\\\r//g'` $(LIBS_LOCAL) @DL_SELF@
+
+LIBS2 = $(LKIK)
+
+# mlconfig is statically linked with libkik.
+# Then it works if installed libkik.dll is compiled with USE_WIN32API or not.
+LIBS2_win32 = -mwindows ${top_builddir}/kiklib/src/.libs/libkik.a
+
+LIBS = $(LIBS1) $(LIBS2@WIN32TAG@)
 
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)

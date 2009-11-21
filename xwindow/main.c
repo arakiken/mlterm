@@ -15,7 +15,6 @@
 #include  "x.h"
 #include  "x_term_manager.h"
 
-
 #ifndef  SYSCONFDIR
 #define  CONFIG_PATH  "/etc"
 #else
@@ -57,7 +56,11 @@ main(
 		kik_msg_printf( "locale settings failed.\n") ;
 	}
 
+#ifdef  USE_WIN32API
+	kik_set_sys_conf_dir( ".") ;
+#else
 	kik_set_sys_conf_dir( CONFIG_PATH) ;
+#endif
 
 	if( ! x_term_manager_init( argc , argv))
 	{

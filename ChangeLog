@@ -1,3 +1,26 @@
+2009-11-21  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_conf_io.c: Search %HOME% directory if %HOMEPATH% directory is not
+	  exists in win32.
+
+	* tool/mlconfig and contrib/tool/mlterm-menu: Possible to be built with
+	  win32 native gtk+-2.0.
+
+	* ml_config_menu.c: Added win32API implementation(which is used when
+	  mlterm is bulit without cygwin.dll and msys.dll.).
+
+	* For the first time, a folder in which mlterm is installed is searched
+	  for configuration files and menu progurams in win32.
+
+	* x_font_win32.c: Format of font file is changed as follows(() is omittable).
+	     [Family] => [Family]( [Weight] [Slant] [Size]:[Percentage])
+
+	* x_window.c: Set is_focus 0 by default in order to call XSetICFocus(x_xic_set_focus)
+	  in startup FocusIn event. (If XSetICFocus() is not called, KeyPress event is discarded
+	  in XFilterEvent.)
+
+	* Added: win32/mlterm-xcygwin.bat
+
 2009-11-07  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display.[ch]: Added x_display_get_cursor().

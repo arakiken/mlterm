@@ -2064,6 +2064,7 @@ parse_vt100_escape_sequence(
 							}
 						}
 					}
+					/* ESC [ m */
 					else if( *str_p == 'm')
 					{
 						int  count ;

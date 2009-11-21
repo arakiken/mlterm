@@ -6,10 +6,13 @@ WIN32 native GUI 対応に関するメモ
 * テスト環境
   Windows XP SP3 + MinGW 5.1.4
                  + MSYS 1.0.10(MSYS-DTK 1.0.1)
-                 + Cygwin 1.5.25-15(without xlib)
+                 + Cygwin 1.5.25-15
+		 + GTK+ 2.12.9(win32 native)
 
 * ビルド
-  ./configure (--with-gui=win32) (--config-cache)
+  (CC="gcc -mno-cygwin") ./configure (--with-gui=win32) (--config-cache) \
+		       (--with-libintl-prefix=[GTK+(win32) installed directory]) \
+		       (--with-libiconv-prefix=[GTK+(win32) installed directory])
   make
 
 * configure オプション
@@ -27,7 +30,13 @@ WIN32 native GUI 対応に関するメモ
   mkf/libtbl/.libs/libmkf_*.dll
   xwindow/.libs/mlterm.exe
   をコピー
-  (MinGW でビルドした場合は、ソースツリーの win32/putty/plink.exe もコピー)
+
+  o MinGW でビルドした場合は、ソースツリーの win32/putty/plink.exe もコピー
+  o mlconfig,mlterm-menu をビルドできた場合(あらかじめ GTK+ をインストール
+    しておく必要があります)は、ソースツリーの
+    tool/mlconfig/.libs/mlconfig.exe
+    contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
+    もコピー
 
 * 環境設定
   (MSYS-DTK/CYGWIN でビルドした場合)
@@ -35,18 +44,19 @@ WIN32 native GUI 対応に関するメモ
   配置することにより環境設定を行うことができます。
 
   (MinGW でビルドした場合)
-  %HOMEPATH%\mlterm\ 以下の設定ファイル(ソースツリーの etc/ 以下のファイル)
-  を配置することにより環境設定を行うことができます。
+  %HOMEPATH%\mlterm\ (%HOMEPATH% が存在しないディレクトリの場合は %HOME%\.mlterm\
+  以下の設定ファイル(ソースツリーの etc/ 以下のファイル) を配置することにより
+  環境設定を行うことができます。
 
 * 起動方法
   コマンドプロンプト等から次のとおり起動
   (又は win32/mlterm-{win32|msys_cygwin}.bat のようなバッチファイルを用意)
   
-  (MSYS-DTK/Cygwin でビルドした場合)
+  (MSYS-DTK / Cygwin でビルドした場合)
   set HOME=c:\msys\...\home\...
   mlterm.exe [options...] -e /bin/sh --login -i
 
-  (MinGW でビルドした場合)
+  (MinGW / Cygwin(-mno-cygwin) でビルドした場合)
   set HOMEPATH=...
   mlterm.exe [options...] -e plink.exe [-telnet/-ssh/-rlogin/-raw] [host]
   ※ msysライブラリをリンクしないため、sh.exe を起動してもうまく動きません。
@@ -62,9 +72,11 @@ WIN32 native GUI 対応に関するメモ
     のみです。
 
 * ソースコード
-  o WIN32APIマクロ: MinGW でビルドする際に define されます。
-  o WIN32GUIマクロ: --with-gui=win32 の場合 define されます。
+  o USE_WIN32APIマクロ: MinGW 又は CYGWIN(-mno-cygwin) でビルドする際に define されます。
+  o USE_WIN32GUIマクロ: --with-gui=win32 の場合 define されます。
   o ファイル名 *_win32.c: --with-gui=win32 の場合に compile されます。
+
+* 問題
 
 * その他
   o MSYS-DTK 1.0.1 に含まれる winuser.h / libuser32.a は古いため、
@@ -72,4 +84,4 @@ WIN32 native GUI 対応に関するメモ
     背景透過を使用できるようにするためには、mlterm のビルドの前に
     MSYS-DTK 1.0.1 の winuser.h / libuser32.a を 最新の MinGW の
     ものに置きかえておく必要がある。
-    
+ 

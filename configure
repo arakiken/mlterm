@@ -846,8 +846,8 @@ UIM_LIBS
 UIM_CFLAGS
 DND_LIBS
 DND_CFLAGS
-PERL
 G_LOCALE_CFLAGS
+PERL
 GTK_CONFIG
 gtk_config
 GTK_LIBS
@@ -870,13 +870,13 @@ imlib_config
 FRIBIDI_LIBS
 FRIBIDI_CFLAGS
 fribidi_config
-OPT_CFLAGS
-DEB_CFLAGS
 XUTF8_CFLAGS
 GUI_CFLAGS
 WIN32TAG
 SUBSYSTEM
 ML_PTY_OBJ
+OPT_CFLAGS
+DEB_CFLAGS
 X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
@@ -21372,15 +21372,24 @@ fi
 MAKE_DIRS="mlterm ${MAKE_DIRS} xwindow man etc"
 OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
 ML_PTY_OBJ="ml_pty.o"
-IS_POSIX="yes"
+ml_cv_is_posix="yes"
+
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then
+  enableval=$enable_debug; debug=$enable_debug
+fi
+
+if test "$debug" = "yes" ; then
+	DEB_CFLAGS="-DDEBUG -DKIK_DEBUG"
+fi
+
+
 
 case "${host_os}" in
 mingw32*)
-	if test -f "/lib/libmsys-1.0.dll.a" ; then
-		SUBSYSTEM="-Wl,--subsystem,console"
-	else
+	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
 		ML_PTY_OBJ="ml_pty_pipewin32.o"
-		IS_POSIX="no"
+		ml_cv_is_posix="no"
 	fi
 
 	if test "$gui" != "win32" ; then
@@ -21389,15 +21398,28 @@ mingw32*)
 	fi
 	;;
 cygwin*)
-	if test "$gui" = "win32" ; then
-		SUBSYSTEM="-Wl,--subsystem,console"
-	elif test "$gui" = "" ; then
-		# $have_x is defined in AC_PATH_XTRA.
-		if test "$have_x" = "yes" ; then
+	case "${CC} ${CFLAGS}" in
+	*mno-cygwin*)
+		ML_PTY_OBJ="ml_pty_pipewin32.o"
+		ml_cv_is_posix="no"
+		;;
+	*)
+		;;
+	esac
+
+	# $have_x is defined in AC_PATH_XTRA.
+	if test "$have_x" = "yes" ; then
+		if test "$gui" = "" ; then
 			gui="xlib"
-		else
+		elif test "$gui" != "xlib" -a "$gui" != "win32" ; then
+			echo "$gui is not supported in ${host_os}. Use win32."
 			gui="win32"
 		fi
+	else
+		if test "$gui" != "" -a "$gui" != "win32" ; then
+			echo "$gui is not supported in ${host_os}. Use win32."
+		fi
+		gui="win32"
 	fi
 	;;
 *)
@@ -21408,12 +21430,17 @@ cygwin*)
 	;;
 esac
 
+if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
+	SUBSYSTEM="-Wl,--subsystem,console"
+fi
+
 
 
 
 if test "$gui" = "win32" ; then
 	WIN32TAG="_win32"
 	GUI_CFLAGS="-DUSE_WIN32GUI"
+	X_CFLAGS=""
 
 
 else
@@ -21494,17 +21521,6 @@ fi
 	LDFLAGS="$ldflags" CFLAGS="$cflags"
 
 fi
-
-# Check whether --enable-debug was given.
-if test "${enable_debug+set}" = set; then
-  enableval=$enable_debug; debug=$enable_debug
-fi
-
-if test "$debug" = "yes" ; then
-	DEB_CFLAGS="-DDEBUG -DKIK_DEBUG"
-fi
-
-
 
 # Check whether --enable-fribidi was given.
 if test "${enable_fribidi+set}" = set; then
@@ -22578,11 +22594,6 @@ fi
 
 		fi
 	fi
-	GTK_CFLAGS='gtk-config --cflags'
-	GTK_LIBS='gtk-config --libs'
-
-
-
 fi
 
 
@@ -22617,78 +22628,6 @@ mlconfig)
 	;;
 mlterm-menu)
 	if test "${gtk_config}" = "yes" ; then
-		{ $as_echo "$as_me:$LINENO: checking for g_locale_to_utf8 in -lglib" >&5
-$as_echo_n "checking for g_locale_to_utf8 in -lglib... " >&6; }
-if test "${ac_cv_lib_glib_g_locale_to_utf8+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lglib  $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char g_locale_to_utf8 ();
-int
-main ()
-{
-return g_locale_to_utf8 ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
-$as_echo "$ac_try_echo") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext && {
-	 test "$cross_compiling" = yes ||
-	 $as_test_x conftest$ac_exeext
-       }; then
-  ac_cv_lib_glib_g_locale_to_utf8=yes
-else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_lib_glib_g_locale_to_utf8=no
-fi
-
-rm -rf conftest.dSYM
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_lib_glib_g_locale_to_utf8" >&5
-$as_echo "$ac_cv_lib_glib_g_locale_to_utf8" >&6; }
-if test "x$ac_cv_lib_glib_g_locale_to_utf8" = x""yes; then
-  G_LOCALE_CFLAGS=""
-else
-  G_LOCALE_CFLAGS="-DNO_G_LOCALE"
-fi
-
-
 		MAKE_DIRS="contrib/tool/mlterm-menu ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -22760,7 +22699,7 @@ fi
 	tools_result="$tools_result $tool"
 	;;
 mlcc)
-	if test "$IS_POSIX" = "yes" ; then
+	if test "$ml_cv_is_posix" = "yes" ; then
 		MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlcc/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
@@ -22785,6 +22724,102 @@ mlterm-zoom)
 	;;
 esac
 done
+
+case ${tools_result} in
+*mlconfig*|*mlterm-menu*)
+	# 2nd argument 'c' is dummy...
+	{ $as_echo "$as_me:$LINENO: checking for library containing g_locale_to_utf8" >&5
+$as_echo_n "checking for library containing g_locale_to_utf8... " >&6; }
+if test "${ac_cv_search_g_locale_to_utf8+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char g_locale_to_utf8 ();
+int
+main ()
+{
+return g_locale_to_utf8 ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' c; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib `$GTK_CONFIG --libs|sed 's/\\\r//g'` $ac_func_search_save_LIBS"
+  fi
+  rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+$as_echo "$ac_try_echo") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 $as_test_x conftest$ac_exeext
+       }; then
+  ac_cv_search_g_locale_to_utf8=$ac_res
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+fi
+
+rm -rf conftest.dSYM
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext
+  if test "${ac_cv_search_g_locale_to_utf8+set}" = set; then
+  break
+fi
+done
+if test "${ac_cv_search_g_locale_to_utf8+set}" = set; then
+  :
+else
+  ac_cv_search_g_locale_to_utf8=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:$LINENO: result: $ac_cv_search_g_locale_to_utf8" >&5
+$as_echo "$ac_cv_search_g_locale_to_utf8" >&6; }
+ac_res=$ac_cv_search_g_locale_to_utf8
+if test "$ac_res" != no; then
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  G_LOCALE_CFLAGS=""
+else
+  G_LOCALE_CFLAGS="-DNO_G_LOCALE"
+fi
+
+
+	;;
+esac
 
 #
 # --- libltdl ---

@@ -10,10 +10,11 @@
 
 
 typedef struct  ml_config_menu
-{	
+{
+	/* These members are regarded as HANDLE in win32. */
 	pid_t  pid ;
 	int  fd ;
-	
+
 } ml_config_menu_t ;
 
 

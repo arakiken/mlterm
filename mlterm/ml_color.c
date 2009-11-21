@@ -423,7 +423,7 @@ ml_color_parse_rgb_name(
 		return  1 ;
 	}
 	else if( ( name_len == 13 && sscanf( name, "#%4x%4x%4x" , &_red , &_green , &_blue) == 3) ||
-		( name_len == 18 && sscanf( name, "rgb:/%4x/%4x/%4x", &_red, &_green, &_blue) == 3) ||
+		( name_len == 18 && sscanf( name, "rgb:%4x/%4x/%4x", &_red, &_green, &_blue) == 3) ||
 		/*
 		 * XXX
 		 * "RRRR-GGGG-BBBB" length is 14, but 2.4.0 or before accepts

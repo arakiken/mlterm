@@ -74,10 +74,25 @@ kik_get_user_rc_path(
 #endif
 
 #ifdef  USE_WIN32API
-	if( ( homedir = getenv( "HOMEPATH")) == NULL)
-#else
-	if( ( homedir = getenv( "HOME")) == NULL)
+	if( ( homedir = getenv( "HOMEPATH")))
+	{
+		struct stat s ;
+
+		/* HOMEPATH is corrupt if built with MSYS-DTK 1.0.1. */
+		if( stat( homedir , &s) == 0)
+		{
+			/* Enough for "%s/.%s" */
+			if( ( dotrcpath = malloc( strlen( homedir) + 2 + strlen( rcfile) + 1)))
+			{
+				sprintf( dotrcpath , "%s\\%s" , homedir , rcfile) ;
+
+				return  dotrcpath ;
+			}
+		}
+	}
 #endif
+
+	if( ( homedir = getenv( "HOME")) == NULL)
 	{
 		return  NULL ;
 	}
@@ -89,7 +104,7 @@ kik_get_user_rc_path(
 	}
 
 #ifdef  USE_WIN32API
-	sprintf( dotrcpath , "%s\\%s" , homedir , rcfile) ;
+	sprintf( dotrcpath , "%s\\.%s" , homedir , rcfile) ;
 #else
 	sprintf( dotrcpath , "%s/.%s" , homedir , rcfile) ;
 #endif
@@ -133,7 +148,8 @@ kik_conf_write_open(
 			{
 				void *  p ;
 
-				if( ( p = realloc( conf->lines , sizeof( char *) * 128 * (++ conf->scale))) == NULL)
+				if( ( p = realloc( conf->lines ,
+					sizeof( char *) * 128 * (++ conf->scale))) == NULL)
 				{
 					goto  error ;
 				}
@@ -156,25 +172,39 @@ kik_conf_write_open(
 	/*
 	 * Prepare directory for creating a configuration file.
 	 */
-	for( p = strchr( name + 1 , '/'); p != NULL; p = strchr(p + 1, '/'))
+	p = name + 1 ;
+	while( *p)
 	{
-		struct stat s;
-
-		*p = 0 ;
-		if( stat( name , &s) != 0)
+		if( *p == '/'
+		#ifdef  USE_WIN32API
+			|| *p == '\\'
+		#endif
+			)
 		{
-			if( errno == ENOENT)
-			{
-				if( mkdir( name , 0755))  goto  error ;
-			}
-			else
-			{
-				goto  error ;
-			}
-		}
-		*p = '/' ;
-	}
+			struct stat  s ;
+			char  c ;
 
+			c = *p ;	/* save */
+			
+			*p = '\0' ;
+			if( stat( name , &s) != 0)
+			{
+				if( errno == ENOENT)
+				{
+					if( mkdir( name , 0755))  goto  error ;
+				}
+				else
+				{
+					goto  error ;
+				}
+			}
+			
+			*p = c ;	/* restore */
+		}
+
+		p ++ ;
+	}
+	
 	if( ( conf->to = fopen( name , "w")) == NULL)
 	{
 		goto  error ;

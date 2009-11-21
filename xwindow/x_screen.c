@@ -7,13 +7,13 @@
 #include  <signal.h>
 #include  <stdio.h>		/* sprintf */
 #include  <unistd.h>            /* getcwd */
-#include  <limits.h>            /* PATH_MAX */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup, kik_snprintf */
 #include  <kiklib/kik_util.h>	/* K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
+#include  <kiklib/kik_def.h>		/* PATH_MAX , HAVE_WINDOWS_H */
 #include  <mkf/mkf_xct_parser.h>
 #include  <mkf/mkf_xct_conv.h>
 #ifndef  USE_WIN32GUI
@@ -59,14 +59,6 @@
 
 #define  HAS_SCROLL_LISTENER(screen,function) \
 	((screen)->screen_scroll_listener && (screen)->screen_scroll_listener->function)
-
-#ifndef  LIBEXECDIR
-#define  MLCONFIG_PATH    "/usr/local/libexec/mlconfig"
-#define  MLTERMMENU_PATH  "/usr/local/libexec/mlterm-menu"
-#else
-#define  MLCONFIG_PATH    LIBEXECDIR "/mlconfig"
-#define  MLTERMMENU_PATH  LIBEXECDIR "/mlterm-menu"
-#endif
 
 #if  0
 #define  __DEBUG
@@ -3308,7 +3300,13 @@ button_pressed(
 		}
 		else
 		{
-			config_menu( screen , event->x , event->y , MLTERMMENU_PATH) ;
+			config_menu( screen , event->x , event->y ,
+			#ifdef  HAVE_WINDOWS_H
+				"mlterm-menu.exe"
+			#else
+				"mlterm-menu"
+			#endif
+				) ;
 		}
 	}
 	else if( event->button == 3 && (event->state & ControlMask))
@@ -3319,7 +3317,13 @@ button_pressed(
 		}
 		else
 		{
-			config_menu( screen , event->x , event->y , MLCONFIG_PATH) ;
+			config_menu( screen , event->x , event->y ,
+			#ifdef  HAVE_WINDOWS_H
+				"mlconfig.exe"
+			#else
+				"mlconfig"
+			#endif
+				) ;
 		}
 	}
 	else if( event->button == 3)

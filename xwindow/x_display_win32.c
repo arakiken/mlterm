@@ -91,6 +91,7 @@ modmap_final(
 	}
 }
 
+#ifndef  USE_WIN32API
 static void
 hide_console(void)
 {
@@ -117,6 +118,7 @@ hide_console(void)
 	ShowWindowAsync( conwin, SW_HIDE);
 	LockWindowUpdate( NULL) ;
 }
+#endif
 
 /* --- global functions --- */
 

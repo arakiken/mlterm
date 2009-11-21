@@ -7,6 +7,7 @@
 
 
 #define  _WIN32_WINNT  0x0500	/* for WS_EX_LAYERED , LWA_XXX , SetLayeredWindowAttributes */
+#define  _WINSOCK2_H		/* Don't include winsock2.h */
 #include  <windows.h>
 #include  <imm.h>
 
@@ -34,6 +35,7 @@ typedef HDC Drawable ;
 typedef HBITMAP Pixmap ;
 typedef HDC GC ;
 typedef HFONT Font ;
+typedef HCURSOR Cursor ;
 typedef WORD KeyCode ;	/* Same as type of wparam */
 typedef WORD KeySym ;	/* Same as type of wparam */
 

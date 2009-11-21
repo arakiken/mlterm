@@ -6,6 +6,8 @@
 #define  __KIK_DEF_H__
 
 
+#include  <limits.h>	/* PATH_MAX */
+
 #include  "kik_config.h"
 
 

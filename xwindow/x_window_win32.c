@@ -886,7 +886,7 @@ x_window_init(
 	/* if visibility is partially obscured , scrollable will be 0. */
 	win->is_scrollable = 1 ;
 
-	win->is_focused = 1 ;
+	win->is_focused = 0 ;
 
 	/* This flag will map window automatically in x_window_show(). */
 	win->is_mapped = 1 ;
@@ -2245,11 +2245,11 @@ x_window_receive_event(
 			}
 			else if( event->msg == WM_RBUTTONDOWN || event->msg == WM_RBUTTONUP)
 			{
-				bev.button = 2 ;
+				bev.button = 3 ;
 			}
 			else /* if( event->msg == WM_MBUTTONDOWN) || event->msg == WM_MBUTTONUP) */
 			{
-				bev.button = 3 ;
+				bev.button = 2 ;
 			}
 
 			if( event->msg == WM_LBUTTONDOWN || event->msg == WM_RBUTTONDOWN ||
