@@ -12,8 +12,8 @@
 #define  KIK_INT_TO_STR(i)  _KIK_INT_TO_STR(i)
 #define  _KIK_INT_TO_STR(i) #i
 
-#if  0
 /* for kik_{debug|warn}_printf */
+#if  0
 
 #ifdef  CONCATABLE_FUNCTION
 #define  KIK_DEBUG_TAG  "[" __FUNCTION__ "()]"

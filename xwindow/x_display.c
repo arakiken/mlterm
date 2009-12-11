@@ -459,18 +459,15 @@ x_display_receive_next_event(
 			}
 		}
 		while( XEventsQueued( disp->display , QueuedAfterReading)) ;
-
-		XFlush( disp->display) ;
-
-		return  1 ;
 	}
-	else
-	{
-		/* events should be flushed before waiting in select() */
-		XFlush( disp->display) ;
 
-		return  0 ;
-	}
+	/*
+	 * If XEventsQueued() return 0, this should be done because events
+	 * should be flushed before waiting in select().
+	 */
+	XFlush( disp->display) ;
+	
+	return  1 ;
 }
 
 

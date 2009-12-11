@@ -56,7 +56,7 @@ wait_child_exited(
 {
 	DWORD  ev ;
 
-#ifdef  DEBUG
+#ifdef  __DEBUG
   	kik_debug_printf( "Starting wait_child_exited thread.\n") ;
 #endif
 
@@ -64,17 +64,17 @@ wait_child_exited(
 	{
 		ev = WaitForMultipleObjects( num_of_child_procs, child_procs, FALSE, INFINITE) ;
 
-	#if  0
-		kik_debug_printf( "WaitForMultipleObjects %dth event signaled.\n", ev) ;
-	#endif
-
 		if( ev > WAIT_OBJECT_0 && ev < WAIT_OBJECT_0 + num_of_child_procs)
 		{
+		#ifdef  __DEBUG
+			kik_debug_printf( "%dth child exited.\n", ev) ;
+		#endif
+
 			/* XXX regarding pid_t as HANDLE */
 			kik_trigger_sig_child( child_procs[ev - WAIT_OBJECT_0]) ;
 
 			CloseHandle( child_procs[ev - WAIT_OBJECT_0]) ;
-
+			
 			child_procs[ev - WAIT_OBJECT_0] = child_procs[ --num_of_child_procs] ;
 		}
 
@@ -87,6 +87,10 @@ wait_child_exited(
 	free( child_procs) ;
 	num_of_child_procs = 0 ;
 	child_procs = NULL ;
+
+#ifdef  __DEBUG
+  	kik_debug_printf( "Exiting wait_child_exited thread.\n") ;
+#endif
 
 	ExitThread( 0) ;
 
@@ -104,7 +108,7 @@ wait_pty_read(
 	ml_pty_t *  pty = (ml_pty_t*)thr_param ;
 	DWORD n_rd ;
 
-#ifdef  DEBUG
+#ifdef  __DEBUG
   	kik_debug_printf( "Starting wait_pty_read thread.\n") ;
 #endif
 
@@ -113,7 +117,7 @@ wait_pty_read(
 		if( ! ReadFile( pty->master_input, &pty->rd_ch, 1, &n_rd, NULL) || n_rd == 0)
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ReadFile() failed.\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG " ReadFile() failed.") ;
 		#endif
 
 			if( GetLastError() == ERROR_BROKEN_PIPE)
@@ -126,16 +130,16 @@ wait_pty_read(
 				 * wait_child_exited thread is necessary.) 
 				 */
 			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " ==> ERROR_BROKEN_PIPE.\n") ;
+				kik_msg_printf( " ==> ERROR_BROKEN_PIPE.") ;
 			#endif
 			}
+			
+		#ifdef  DEBUG
+			kik_msg_printf( "\n") ;
+		#endif
 
 			break ;
 		}
-
-	#ifdef  __DEBUG
-		kik_debug_printf( "ReadFile\n") ;
-	#endif
 
 		if( pty->pty_listener && pty->pty_listener->read_ready)
 		{
@@ -143,11 +147,20 @@ wait_pty_read(
 		}
 
 		WaitForSingleObject( pty->rd_ev, INFINITE) ;
+		
+		if( ! pty->child_proc)
+		{
+			break ;
+		}
 
 	#ifdef  __DEBUG
 		kik_debug_printf( "Exit WaitForSingleObject\n") ;
 	#endif
 	}
+
+#ifdef  __DEBUG
+  	kik_debug_printf( "Exiting wait_pty_read thread.\n") ;
+#endif
 
 	ExitThread(0) ;
 
@@ -167,14 +180,14 @@ pty_open(
 	SECURITY_ATTRIBUTES  sa ;
 	PROCESS_INFORMATION  pi ;
 	STARTUPINFO  si ;
-	char *   cmd_line ;
-	size_t   cmd_line_len ;
 
+	output_read_tmp = input_write_tmp = output_write = input_read = error_write = 0 ;
+	
 	/* Set up the security attributes struct. */
 	sa.nLength= sizeof(SECURITY_ATTRIBUTES) ;
 	sa.lpSecurityDescriptor = NULL ;
 	sa.bInheritHandle = TRUE ;
-
+	
 	/* Create the child output pipe. */
 	if( ! CreatePipe( &output_read_tmp , &output_write , &sa , 0))
 	{
@@ -198,8 +211,7 @@ pty_open(
 		kik_warn_printf( KIK_DEBUG_TAG " DuplicateHandle() failed.\n") ;
 	#endif
 
-		/* XXX Close already opened pipe etc. */
-		return  0 ;
+		goto  error1 ;
 	}
 
 	/* Create the child input pipe. */
@@ -209,8 +221,7 @@ pty_open(
 		kik_warn_printf( KIK_DEBUG_TAG " CreatePipe() failed.\n") ;
 	#endif
 
-		/* XXX Close already opened pipe etc. */
-		return  0 ;
+		goto  error1 ;
 	}
 
 	/*
@@ -222,8 +233,15 @@ pty_open(
 	if( ! DuplicateHandle( GetCurrentProcess() , output_read_tmp ,
 			GetCurrentProcess() , &pty->master_input , /* Address of new handle. */
 			0 , FALSE , /* Make it uninheritable. */
-			DUPLICATE_SAME_ACCESS) ||
-	    ! DuplicateHandle( GetCurrentProcess() , input_write_tmp ,
+			DUPLICATE_SAME_ACCESS))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " DuplicateHandle() failed.\n") ;
+	#endif
+	
+		goto  error1 ;
+	}
+	else if( ! DuplicateHandle( GetCurrentProcess() , input_write_tmp ,
 			GetCurrentProcess() , &pty->master_output , /* Address of new handle. */
 			0 , FALSE , /* Make it uninheritable. */
 			DUPLICATE_SAME_ACCESS))
@@ -231,13 +249,18 @@ pty_open(
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " DuplicateHandle() failed.\n") ;
 	#endif
-		/* XXX Close already opened pipe etc. */
-		return  0 ;
+
+		CloseHandle( pty->master_input) ;
+
+		goto  error1 ;
 	}
 
 	/*
 	 * Close inheritable copies of the handles you do not want to be
 	 * inherited.
+	 *
+	 * !! Notice !!
+	 * After here, goto error2 if error happens.
 	 */
 	CloseHandle(output_read_tmp) ;
 	CloseHandle(input_write_tmp) ;
@@ -260,6 +283,8 @@ pty_open(
 	if( cmd_argv)
 	{
 		int  count ;
+		char *   cmd_line ;
+		size_t   cmd_line_len ;
 
 		/* Because cmd_path == cmd_argv[0], cmd_argv[0] is ignored. */
 
@@ -271,7 +296,10 @@ pty_open(
 
 		if( ( cmd_line = alloca( sizeof(char) * cmd_line_len)) == NULL)
 		{
-			return  0 ;
+			CloseHandle( pty->master_input) ;
+			CloseHandle( pty->master_output) ;
+			
+			goto  error2 ;
 		}
 
 		strcpy( cmd_line, cmd_path) ;
@@ -280,21 +308,34 @@ pty_open(
 			strcat( cmd_line, " ") ;
 			strcat( cmd_line, cmd_argv[count]) ;
 		}
+		
+		if( ! CreateProcess( cmd_path , cmd_line , NULL , NULL , TRUE , CREATE_NO_WINDOW ,
+					NULL , NULL , &si , &pi))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " CreateProcess() failed.\n") ;
+		#endif
+
+			CloseHandle( pty->master_input) ;
+			CloseHandle( pty->master_output) ;
+			
+			goto  error2 ;
+		}
 	}
 	else
 	{
-		cmd_line = cmd_path ;
-	}
+		if( ! CreateProcess( cmd_path , cmd_path , NULL , NULL , TRUE , CREATE_NO_WINDOW ,
+					NULL , NULL , &si , &pi))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " CreateProcess() failed.\n") ;
+		#endif
 
-	if( ! CreateProcess( cmd_path , cmd_line , NULL , NULL , TRUE , CREATE_NO_WINDOW ,
-				NULL , NULL , &si , &pi))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " CreateProcess() failed.\n") ;
-	#endif
-
-		/* XXX Close already opened pipe etc. */
-		return  0 ;
+			CloseHandle( pty->master_input) ;
+			CloseHandle( pty->master_output) ;
+			
+			goto  error2 ;
+		}
 	}
 
 	pty->slave_stdout = output_write ;
@@ -302,7 +343,7 @@ pty_open(
 	/* Set global child process handle to cause threads to exit. */
 	pty->child_proc = pi.hProcess ;
 
-	if( strstr( cmd_line, "plink"))
+	if( strstr( cmd_path, "plink"))
 	{
 		pty->is_plink = 1 ;
 	}
@@ -317,6 +358,35 @@ pty_open(
 	CloseHandle( error_write) ;
 
 	return  1 ;
+
+error1:
+	if( output_read_tmp)
+	{
+		CloseHandle( output_read_tmp) ;
+	}
+
+	if( input_write_tmp)
+	{
+		CloseHandle( input_write_tmp) ;
+	}
+
+error2:	
+	if( output_write)
+	{
+		CloseHandle( output_write) ;
+	}
+
+	if( error_write)
+	{
+		CloseHandle( error_write) ;
+	}
+
+	if( input_read)
+	{
+		CloseHandle( input_read) ;
+	}
+	
+	return  0 ;
 }
 
 
@@ -333,6 +403,7 @@ ml_pty_new(
 	)
 {
 	ml_pty_t *  pty ;
+	HANDLE  thrd ;
 	DWORD  tid ;
 	char  ev_name[25] ;
 	void *  p ;
@@ -352,7 +423,7 @@ ml_pty_new(
 		num_of_child_procs = 1 ;
 
 		/* Launch the thread that wait for child exited. */
-		if( ! CreateThread(NULL,0,wait_child_exited,NULL,0,&tid))
+		if( ! ( thrd = CreateThread(NULL,0,wait_child_exited,NULL,0,&tid)))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
@@ -360,6 +431,8 @@ ml_pty_new(
 
 			return  NULL ;
 		}
+
+		CloseHandle( thrd) ;
 	}
 
 	if( ( pty = malloc( sizeof( ml_pty_t))) == NULL)
@@ -396,18 +469,6 @@ ml_pty_new(
 		return  NULL ;
 	}
 
-	/* Launch the thread that read the child's output. */
-	if( ! CreateThread(NULL,0,wait_pty_read,(LPVOID)pty,0,&tid))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
-	#endif
-
-		ml_pty_delete(pty) ;
-
-		return  NULL ;
-	}
-
 	pty->rd_ch = '\0' ;
 	pty->rd_ready = 0 ;
 
@@ -419,7 +480,7 @@ ml_pty_new(
 	pty->rd_ev = CreateEvent(NULL, FALSE, FALSE, ev_name) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( "pty read event name %s\n", ev_name) ;
+	kik_debug_printf( "Created pty read event: %s\n", ev_name) ;
 #endif
 
 	pty->pty_listener = NULL ;
@@ -430,6 +491,20 @@ ml_pty_new(
 		kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
 	#endif
 	}
+
+	/* Launch the thread that read the child's output. */
+	if( ! ( thrd = CreateThread(NULL,0,wait_pty_read,(LPVOID)pty,0,&tid)))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
+	#endif
+
+		ml_pty_delete(pty) ;
+
+		return  NULL ;
+	}
+
+	CloseHandle( thrd) ;
 
 	/* Add to child_procs */
 
@@ -443,6 +518,10 @@ ml_pty_new(
 	child_procs = p ;
 	child_procs[num_of_child_procs++] = pty->child_proc ;
 
+	/*
+	 * Exit WaitForMultipleObjects in wait_child_proc and do WaitForMultipleObjects again
+	 * with new child_procs
+	 */
 	SetEvent( child_procs[0]) ;
 
 #ifdef  __DEBUG
@@ -458,7 +537,10 @@ ml_pty_delete(
 	ml_pty_t *  pty
 	)
 {
-#ifdef  DEBUG
+	int  count ;
+	DWORD  size ;
+	
+#ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " ml_pty_delete is called for %p.\n" , pty) ;
 #endif
 
@@ -469,14 +551,49 @@ ml_pty_delete(
 
 	/*
 	 * TerminateProcess must be called before CloseHandle.
+	 * If pty->child_proc is not in child_procs, pty->child_proc is already
+	 * closed in wait_child_exited, so TerminateProcess is not called.
 	 */
-	TerminateProcess( pty->child_proc , 0) ;
+	for( count = 0 ; count < num_of_child_procs ; count++)
+	{
+		if( pty->child_proc == child_procs[count])
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Terminate process %d\n" ,
+				pty->child_proc) ;
+		#endif
+			TerminateProcess( pty->child_proc , 0) ;
+
+			break ;
+		}
+	}
+
+	/* Used to check if child process is dead or not in wait_pty_read. */
+	pty->child_proc = 0 ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Trying to terminate wait_pty_read thread.") ;
+#endif
 
 	/*
-	 * slave_stdout must be closed before closing master.
-	 * If closing in opposite order, process is blocked infinitely.
+	 * If wait_pty_read waits in ReadFile( pty->master_input),
+	 * CloseHandle( pty->master_input) causes process to be blocked.
+	 * (Even if child process exits, ReadFile in wait_pty_read doesn't
+	 * exit by ERROR_BROKEN_PIPE, because pty->slave_stdout remains
+	 * opened in parent process.)
+	 * Write a dummy data to child process, and wait_pty_read waits
+	 * in WaitForSingleObject(pty->rd_ev).
+	 * Then close pty->slave_stdout and set pty->rd_ev.
+	 * As a result, wait_pty_read thread exits.
 	 */
+	WriteFile( pty->slave_stdout, "", 1, &size, NULL) ;
 	CloseHandle( pty->slave_stdout) ;
+	SetEvent( pty->rd_ev) ;
+	
+#ifdef  __DEBUG
+	kik_msg_printf( " => Finished.\n") ;
+#endif
+
 	CloseHandle( pty->master_input) ;
 	CloseHandle( pty->master_output) ;
 	CloseHandle( pty->rd_ev) ;
@@ -507,6 +624,10 @@ ml_set_pty_winsize(
 {
 	if( pty->is_plink)
 	{
+		/*
+		 * XXX Hack
+		 */
+		 
 		u_char  opt[5] ;
 
 		opt[0] = 0xff ;
@@ -572,7 +693,7 @@ ml_write_to_pty(
 		memcpy( &pty->buf[pty->left] , buf , len) ;
 		pty->left = w_buf_size ;
 
-	#if  0
+	#ifdef  __DEBUG
 		kik_debug_printf( "buffered(not written) %d characters.\n" , pty->left) ;
 	#endif
 
@@ -675,7 +796,9 @@ ml_write_to_pty(
 	
 	memcpy( pty->buf , &w_buf[written_size] , pty->left) ;
 
-	kik_debug_printf( "%d is not written.\n" , pty->left) ;
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %d is not written.\n" , pty->left) ;
+#endif
 
 	return  0 ;
 }

@@ -1,0 +1,24 @@
+/*
+ *	$Id$
+ */
+
+#include  "x_connect_dialog.h"
+
+ConnectDialog DIALOG 20, 20, 140, 104
+	STYLE WS_POPUP | WS_DLGFRAME | DS_CENTER
+	{
+		LTEXT		"List"		-1,		4,  4,  26,  8
+		COMBOBOX			IDD_LIST,	30, 4,  100, 48, CBS_SORT | CBS_DROPDOWNLIST | WS_GROUP | WS_TABSTOP
+		GROUPBOX	"Protocol"	-1,		4,  20, 130, 24
+		RADIOBUTTON	"&SSH"		IDD_SSH,	8,  30, 40,  12
+		RADIOBUTTON	"&TELNET"	IDD_TELNET,	48, 30, 40,  12
+		RADIOBUTTON	"&RLOGIN"	IDD_RLOGIN,	88, 30, 40,  12
+		LTEXT		"Server"	-1,		4,  46, 26,  8
+		EDITTEXT			IDD_SERVER,	30, 46, 100, 10
+		LTEXT		"User"		-1,		4,  58, 26,  8
+		EDITTEXT			IDD_USER,	30, 58, 100, 10
+		LTEXT		"Pass"		-1,		4,  69, 26,  8
+		EDITTEXT			IDD_PASS,	30, 69, 100, 10
+		DEFPUSHBUTTON	"OK"		IDOK,		20, 84, 40,  12
+		PUSHBUTTON	"Cancel"	IDCANCEL,	80, 84, 40,  12
+	}

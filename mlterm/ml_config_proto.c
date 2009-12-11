@@ -114,6 +114,8 @@ ml_gen_proto_challenge(void)
 
 	if( ( fd = creat( path , 0600)) == -1)
 	{
+		kik_error_printf( "Failed to create %s.\n" , path) ;
+		
 		return  0 ;
 	}
 

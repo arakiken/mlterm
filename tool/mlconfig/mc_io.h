@@ -30,6 +30,8 @@ char *  mc_get_str_value( char *  key) ;
 
 int  mc_get_flag_value( char *  key) ;
 
+int  mc_gui_is_win32(void) ;
+
 int  mc_set_font_name( mc_io_t  io , char *  file , char *  font_size , char *  cs ,
 	char *  font_name) ;
 

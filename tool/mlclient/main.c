@@ -107,7 +107,13 @@ main(
 	
 	memset( &servaddr , 0 , sizeof( servaddr)) ;
 	servaddr.sun_family = AF_LOCAL ;
-	sprintf( servaddr.sun_path , "/tmp/.mlterm-%d.unix" , getuid()) ;
+	sprintf( servaddr.sun_path ,
+	#ifdef  USE_WIN32GUI
+		"/tmp/mlterm-%d.unix" ,
+	#else
+		"/tmp/.mlterm-%d.unix" ,
+	#endif
+		getuid()) ;
 	
 	if( connect( sock_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) < 0)
 	{
@@ -157,11 +163,17 @@ main(
 		}
 	}
 
+#ifndef  USE_WIN32GUI
+	/*
+	 * XXX
+	 * read() is blocked in win32.
+	 */
 	while( ( len = read( sock_fd , buf , sizeof( buf))) > 0)
 	{
 		write( STDOUT_FILENO , buf , len) ;
 	}
-	
+#endif
+
 	close( sock_fd) ;
 
 	return  0 ;

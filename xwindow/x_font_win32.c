@@ -12,6 +12,7 @@
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN/K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_lang() */
+#include  <mkf/mkf_utf16_conv.h>
 
 #include  "ml_char_encoding.h"	/* x_convert_to_xft_ucs4 */
 
@@ -461,18 +462,19 @@ x_font_new(
 	#endif
 	}
 
-	if( wincsinfo->cs == ANSI_CHARSET)
+	if( wincsinfo->cs == ANSI_CHARSET || FONT_CS(font->id) == ISO10646_UCS4_1)
 	{
 		font->conv = NULL ;
 	}
-	else if( ( font->conv = ml_conv_new( wincsinfo->encoding)) == NULL)
+	else
 	{
-		kik_warn_printf( KIK_DEBUG_TAG " ml_conv_new failed.\n") ;
-		
-		DeleteObject( font->fid) ;
-		free( font) ;
+		font->conv = ml_conv_new( wincsinfo->encoding) ;
 
-		return  NULL ;
+		if( ! font->conv)
+		{
+			kik_warn_printf( KIK_DEBUG_TAG " ml_conv_new(font id %x) failed.\n" ,
+				font->id) ;
+		}
 	}
 	
 	font->decsp_font = NULL ;

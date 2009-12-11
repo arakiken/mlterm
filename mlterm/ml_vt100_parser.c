@@ -2800,7 +2800,7 @@ ml_parse_vt100_sequence(
 	mkf_char_t  ch ;
 	size_t  prev_left ;
 
-	if( receive_bytes( vt100_parser) == 0)
+	if( ! vt100_parser->pty || receive_bytes( vt100_parser) == 0)
         {
             	return  0 ;
         }
@@ -2878,7 +2878,7 @@ ml_parse_vt100_sequence(
 				{
 					ucs.property = mkf_get_ucs_property(
 							mkf_bytes_to_int( ucs.ch , ucs.size)) ;
-					
+
 					ch = ucs ;
 				}
 			#ifdef  DEBUG

@@ -74,6 +74,7 @@ case "${host_os}" in
 mingw32*)
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
 		ML_PTY_OBJ="ml_pty_pipewin32.o"
+		WIN32DIALOG_OBJ="x_connect_dialog.o winrs.o"
 		ml_cv_is_posix="no"
 	fi
 
@@ -120,6 +121,7 @@ if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 fi
 
 AC_SUBST(ML_PTY_OBJ)
+AC_SUBST(WIN32DIALOG_OBJ)
 AC_SUBST(SUBSYSTEM)
 
 if test "$gui" = "win32" ; then
@@ -365,7 +367,7 @@ mlterm-menu)
 	fi
 	;;
 mlclient)
-	if test "$gui" = "xlib" ; then
+	if test "$ml_cv_is_posix" = "yes" ; then
 		MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
 		OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"

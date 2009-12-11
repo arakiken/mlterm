@@ -64,5 +64,7 @@ int  kik_str_to_uint( u_int *  i , char *  s) ;
 
 int  kik_str_to_int( int *  i , char *  s) ;
 
+u_int  kik_count_char_in_str( char *  str , char  ch) ;
+
 
 #endif

@@ -1517,7 +1517,7 @@ window_unfocused(
 /*
  * the finalizer of x_screen_t.
  *
- * x_window_final(term_screen) -> window_finalized(term_screen)
+ * x_display_close or x_display_remove_root -> x_window_final -> window_finalized
  */
 static void
 window_finalized(
@@ -2449,7 +2449,8 @@ key_pressed(
 						break ;
 					}
 
-					write_to_pty( screen , conv_buf , filled_len , screen->utf_parser) ;
+					write_to_pty( screen , conv_buf , filled_len ,
+						screen->utf_parser) ;
 				}
 			}
 			else
@@ -5629,11 +5630,16 @@ pty_closed(
 	/* This should be done before screen->term is NULL */
 	x_sel_clear( &screen->sel) ;
 
+	/*
+	 * term is already deleted in this context.
+	 * ml_close_dead_terms => ml_term_delete => ml_pty_delete => pty_closed.
+	 */
 	screen->term = NULL ;
+
 	(*screen->system_listener->pty_closed)( screen->system_listener->self , screen) ;
 }
 
-#ifdef  USE_WIN32GUI
+#ifdef  USE_WIN32API
 static void
 pty_read_ready(
   	void *  p
@@ -5718,7 +5724,7 @@ x_screen_new(
 
 	screen->pty_listener.self = screen ;
 	screen->pty_listener.closed = pty_closed ;
-#ifdef  USE_WIN32GUI
+#ifdef  USE_WIN32API
 	screen->pty_listener.read_ready = pty_read_ready ;
 #endif
 
@@ -7300,6 +7306,14 @@ x_screen_get_config(
 		{
 			value = false ;
 		}
+	}
+	else if( strcmp( key , "gui") == 0)
+	{
+	#ifdef  USE_WIN32GUI
+		value = "win32" ;
+	#else
+		value = "xlib" ;
+	#endif
 	}
 
 	if( value == NULL)

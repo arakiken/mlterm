@@ -82,7 +82,7 @@ kik_get_user_rc_path(
 		if( stat( homedir , &s) == 0)
 		{
 			/* Enough for "%s/.%s" */
-			if( ( dotrcpath = malloc( strlen( homedir) + 2 + strlen( rcfile) + 1)))
+			if( ( dotrcpath = malloc( strlen( homedir) + 1 + strlen( rcfile) + 1)))
 			{
 				sprintf( dotrcpath , "%s\\%s" , homedir , rcfile) ;
 

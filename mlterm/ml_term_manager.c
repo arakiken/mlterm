@@ -15,6 +15,10 @@
 
 #define  MAX_TERMS  (8*sizeof(dead_mask))
 
+#if  0
+#define  __DEBUG
+#endif
+
 
 /* --- static variables --- */
 
@@ -53,7 +57,7 @@ sig_child(
 		if( pid == ml_term_get_child_pid( terms[count]))
 		{
 		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " pty %d is dead.\n") ;
+			kik_debug_printf( KIK_DEBUG_TAG " pty %d is dead.\n" , count) ;
 		#endif
 		
 			dead_mask |= (1 << count) ;
@@ -123,6 +127,16 @@ ml_create_term(
 	ml_iscii_lang_type_t  iscii_lang_type
 	)
 {
+	/*
+	 * Before modifying terms and num_of_terms, do ml_close_dead_terms().
+	 */
+	ml_close_dead_terms() ;
+	
+	/*
+	 * XXX
+	 * If sig_child here...
+	 */
+	
 	if( num_of_terms == MAX_TERMS)
 	{
 		return  NULL ;
@@ -138,6 +152,38 @@ ml_create_term(
 	}
 
 	return  terms[num_of_terms++] ;
+}
+
+int
+ml_destroy_term(
+	ml_term_t *  term
+	)
+{
+	int  count ;
+
+	/*
+	 * Before modifying terms and num_of_terms, do ml_close_dead_terms().
+	 */
+	ml_close_dead_terms() ;
+
+	/*
+	 * XXX
+	 * If sig_child here...
+	 */
+	
+	for( count = 0 ; count < num_of_terms ; count++)
+	{
+		if( terms[count] == term)
+		{
+			terms[count] = terms[--num_of_terms] ;
+
+			break ;
+		}
+	}
+
+	ml_term_delete( term) ;
+	
+	return  1 ;
 }
 
 ml_term_t *
@@ -274,10 +320,25 @@ ml_close_dead_terms(void)
 		{
 			if( dead_mask & (0x1 << count))
 			{
-				ml_term_delete( terms[count]) ;
+				ml_term_t *  term ;
 
-				terms[count] = terms[num_of_terms - 1] ;
-				num_of_terms -- ;
+			#ifdef  __DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " closing dead term %d." ,
+					count) ;
+			#endif
+			
+				term = terms[count] ;
+				/*
+				 * Update terms and num_of_terms before ml_term_delete.
+				 * ml_term_delete calls ml_pty_event_listener::pty_close
+				 * in which ml_term_manager can be used.
+				 */
+				terms[count] = terms[--num_of_terms] ;
+				ml_term_delete( term) ;
+
+			#ifdef  __DEBUG
+				kik_msg_printf( " => Finished.\n") ;
+			#endif
 			}
 		}
 
@@ -293,7 +354,7 @@ ml_get_pty_list(void)
 	int  count ;
 	char *  p ;
 	size_t  len ;
-	
+
 	free( pty_list) ;
 
 	/* The length of pty name is under 50. */

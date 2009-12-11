@@ -13,5 +13,7 @@ mkf_conv_t *  mkf_utf16_conv_new(void) ;
 
 mkf_conv_t *  mkf_utf16le_conv_new(void) ;
 
+int  mkf_utf16_conv_use_bom( mkf_conv_t *  conv) ;
+
 
 #endif

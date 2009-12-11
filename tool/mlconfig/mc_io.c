@@ -13,6 +13,7 @@
 /* --- static variables --- */
 
 static char *  message ;
+static int  gui_is_win32 ;
 
 
 /* --- static functions --- */
@@ -197,6 +198,30 @@ mc_get_flag_value(
 		
 		return  0 ;
 	}
+}
+
+int
+mc_gui_is_win32(void)
+{
+	char *  value ;
+	
+	if( gui_is_win32 != 0)
+	{
+		return  gui_is_win32 == 1 ;
+	}
+
+	if( ( value = get_value( "gui" , mc_io_get)) && strcmp( value , "win32") == 0)
+	{
+		gui_is_win32 = 1 ;
+	}
+	else
+	{
+		gui_is_win32 = -1 ;
+	}
+
+	free( value) ;
+
+	return  gui_is_win32 == 1 ;
 }
 
 int

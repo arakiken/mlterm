@@ -118,7 +118,10 @@ ml_term_delete(
 	ml_term_t *  term
 	)
 {
-	ml_pty_delete( term->pty) ;
+	if( term->pty)
+	{
+		ml_pty_delete( term->pty) ;
+	}
 	
 	if( term->shape)
 	{

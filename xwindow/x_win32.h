@@ -23,6 +23,8 @@
 typedef struct
 {
 	HINSTANCE  hinst ;
+	int  fd ;
+	
 } Display ;
 
 typedef int  XIM ;		/* dummy */

@@ -5,6 +5,7 @@
 #include  "x_main_config.h"
 
 #include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_mem.h>	/* malloc/realloc */
 #include  <kiklib/kik_str.h>	/* kik_str_to_uint */
 
 
@@ -184,8 +185,14 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
 		"input method (xim/kbd/uim/iiimf/m17nlib/scim/none) [xim]") ;
 #if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
-       kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
+	kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
 		"path to an imagefile to be use as an window icon") ;
+#endif
+#ifdef  USE_WIN32API
+	kik_conf_add_opt( conf , '\0' , "servlist" , 0 , "server_list" ,
+		"list of servers to connect") ;
+	kik_conf_add_opt( conf , '\0' , "serv" , 0 , "default_server" ,
+		"connecting server by default") ;
 #endif
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
@@ -983,6 +990,49 @@ x_main_config_init(
 		main_config->init_str = NULL ;
 	}
 
+#ifdef  USE_WIN32API
+	main_config->server_list = NULL ;
+	
+	if( ( value = kik_conf_get_value( conf , "server_list")))
+	{
+		if( ( main_config->server_list = malloc( sizeof( char*) *
+						/* A,B => A B NULL */
+						( kik_count_char_in_str( value , ',') + 2)) ) )
+		{
+			if( ( value = strdup( value)))
+			{
+				int  count ;
+
+				count = 0 ;
+				do
+				{
+					main_config->server_list[count++] =
+								kik_str_sep( &value , ",") ;
+				}
+				while( value) ;
+
+				main_config->server_list[count] = NULL ;
+			}
+			else
+			{
+				free( main_config->server_list) ;
+				main_config->server_list = NULL ;
+			}
+		}
+	}
+	
+	main_config->default_server = NULL ;
+	
+	if( ( value = kik_conf_get_value( conf , "default_server")))
+	{
+		if( ( main_config->default_server = strdup( value)))
+		{
+			x_main_config_add_to_server_list( main_config ,
+				main_config->default_server) ;
+		}
+	}
+#endif
+
 	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , "true") == 0)
 	{
 		if( ( main_config->cmd_argv = malloc( sizeof( char*) * (argc + 1))) == NULL)
@@ -1042,7 +1092,86 @@ x_main_config_final(
 	free( main_config->mod_meta_key) ;
 	free( main_config->input_method) ;
 	free( main_config->init_str) ;
+
+#ifdef  USE_WIN32API
+	if( main_config->server_list)
+	{
+		free( main_config->server_list[0]) ;
+		free( main_config->server_list) ;
+	}
+	free( main_config->default_server) ;
+#endif
+
 	free( main_config->cmd_argv) ;
 
 	return  1 ;
 }
+
+#ifdef  USE_WIN32API
+int
+x_main_config_add_to_server_list(
+	x_main_config_t *  main_config ,
+	char *  server
+	)
+{
+	u_int  nlist ;
+	int  found ;
+	size_t  len ;
+	size_t  add_len ;
+	char *  p ;
+	char **  pp ;
+
+	found = 0 ;
+	nlist = 0 ;
+	len = 0 ;
+	if( main_config->server_list)
+	{
+		while( main_config->server_list[nlist])
+		{
+			len += ( strlen( main_config->server_list[nlist]) + 1) ;
+			
+			if( strcmp( main_config->server_list[nlist++] , server) == 0)
+			{
+				return  1 ;
+			}
+		}
+	}
+
+	add_len = strlen( server) + 1 ;
+	p = NULL ;
+	if( main_config->server_list)
+	{
+		if( ( p = realloc( main_config->server_list[0] , len + add_len)))
+		{
+			memcpy( p + len , server , add_len) ; 
+		}
+	}
+	else
+	{
+		p = strdup( server) ;
+	}
+
+	if( p && ( pp = realloc( main_config->server_list ,
+				sizeof(char*) * (nlist + 2))))
+	{
+		int  count ;
+		
+		main_config->server_list = pp ;
+
+		for( count = 0 ; count < nlist + 1 ; count++)
+		{
+			main_config->server_list[count] = p ;
+			p += ( strlen( p) + 1) ;
+		}
+		main_config->server_list[count] = NULL ;
+
+		return  1 ;
+	}
+	else
+	{
+		free( p) ;
+		
+		return  0 ;
+	}
+}
+#endif

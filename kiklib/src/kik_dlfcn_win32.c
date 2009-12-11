@@ -50,7 +50,7 @@ kik_dl_open(
 
 #if defined(__CYGWIN__) || defined(__MSYS__)
 	sprintf( path , "%s%s.dll" , dirpath , name) ;
-	cygwin_conv_to_win32_path( path , winpath);
+	cygwin_conv_to_win32_path( path , winpath) ;
 	path = winpath ;
 #else
 	sprintf( path , "%s%s.dll" , dirpath , name) ;

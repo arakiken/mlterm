@@ -486,10 +486,22 @@ xcore_draw_combining_chars(
 		{
 			/* UCS4 */
 
+			/*
+			 * XXX
+			 * UCS4 is casted down to UCS2, which can lost information partially.
+			 */
+
 			XChar2b  xch ;
 
+		#ifdef  USE_WIN32GUI
+			/* Little endian */
+			xch.byte1 = ch_bytes[3] ;
+			xch.byte2 = ch_bytes[2] ;
+		#else
+			/* Big endian */
 			xch.byte1 = ch_bytes[2] ;
 			xch.byte2 = ch_bytes[3] ;
+		#endif
 
 			x_window_draw_string16( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
@@ -636,8 +648,21 @@ xcore_draw_str(
 		{
 			/* UCS4 */
 
+			/*
+			 * XXX
+			 * UCS4 is casted down to UCS2, which can lost information partially.
+			 */
+
+		#ifdef  USE_WIN32GUI
+			/* Little endian */
+			str2b[str_len].byte1 = ch_bytes[3] ;
+			str2b[str_len].byte2 = ch_bytes[2] ;
+		#else
+			/* Big endian */
 			str2b[str_len].byte1 = ch_bytes[2] ;
 			str2b[str_len].byte2 = ch_bytes[3] ;
+		#endif
+
 			str_len ++ ;
 		}
 		else
@@ -827,7 +852,7 @@ xcore_draw_str(
 				{
 					x_window_fill_with( window ,
 						x_get_xcolor( color_man , fg_color) ,
-						x , y + height_to_baseline,
+						x , y + height_to_baseline ,
 						current_width - x ,
 						((height_to_baseline - bottom_margin)>>4) +1 ) ;
 				}

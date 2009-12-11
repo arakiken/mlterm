@@ -1,7 +1,41 @@
+2009-12-11  Araki Kena  <arakiken@users.sf.net>
+
+	* mkf_tblfunc_loader.h: 'kik_dl_open( "" , libname)' is added to
+	  mkf_map_func2 and mkf_prop_func.
+
+	* mkf/mkf_utf16_conv.c: use_bom member is added to mkf_utf16_conv_t
+	  and use_bom is false by default.
+
+	* x_window_win32.c: text_out function which outputs text
+	  by TextOutW or TextOutA appropriately is added. UCS2 text encoded
+	  by UTF8 is supported.
+	  
+	* ml_term_manager.c: ml_destroy_term() which is used when
+	  ml_term_open_pty() fails is added.
+
+	* ml_pty_pipewin32.c: Error handling codes are added in pty_open().
+
+	* /dev/windows is used for waiting for windows messages in msys and
+	  cygwin(win32 native GUI). Fixed the problem that mlterm sometimes
+	  hung up in GetMessage() when child process exited.
+
+	* mlterm server and mlclient seems to work in msys and cygwin(win32 native GUI).
+
+	* Dialog box to input server, protocol, user name and password
+	  is introduced to mlterm built in MinGW.
+	  o 'default_server'(--serv) and 'server_list'(--servlist) options
+	    which are shown by default in dialog box are introduced.
+	  o x_connect_dialog.[ch],winrs.rs: added.
+
+	* Configuration protocol(get) 'gui' which mlconfig uses to determine
+	  if mlterm is built with xlib or win32 is added.
+
+	* kik_str.[ch]: kik_count_char_in_str() is added.
+
 2009-11-21  Araki Ken  <arakiken@users.sf.net>
 
-	* kik_conf_io.c: Search %HOME% directory if %HOMEPATH% directory is not
-	  exists in win32.
+	* kik_conf_io.c: Search %HOME% directory if %HOMEPATH% directory does not
+	  exist in win32.
 
 	* tool/mlconfig and contrib/tool/mlterm-menu: Possible to be built with
 	  win32 native gtk+-2.0.

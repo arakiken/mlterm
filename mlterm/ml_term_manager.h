@@ -19,6 +19,8 @@ ml_term_t *  ml_create_term( u_int  cols , u_int  rows , u_int  tab_size , u_int
 	int  use_bce , int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode , ml_iscii_lang_type_t  iscii_lang_type) ;
 
+int  ml_destroy_term( ml_term_t *  term) ;
+
 ml_term_t *  ml_get_term( char *  dev) ;
 
 ml_term_t *  ml_get_detached_term( char *  dev) ;

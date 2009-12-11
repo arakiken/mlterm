@@ -6,6 +6,10 @@
 
 #include  <stdio.h>		/* sprintf */
 #include  <string.h>		/* memset/memcpy */
+#ifndef  USE_WIN32API
+#include  <fcntl.h>		/* open */
+#endif
+#include  <unistd.h>		/* close */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 
@@ -64,33 +68,6 @@ static LRESULT CALLBACK window_proc(
 	return  DefWindowProc( hwnd, msg, wparam, lparam) ;
 }
 
-static void
-modmap_init(
-	Display *  display ,
-	x_modifier_mapping_t *  modmap
-	)
-{
-	modmap->serial = 0 ;
-#ifdef  USE_WIN32GUI
-	modmap->map = NULL ;
-#else
-	modmap->map = XGetModifierMapping( display) ;
-#endif
-}
-
-static void
-modmap_final(
-	x_modifier_mapping_t *  modmap
-	)
-{
-	if( modmap->map)
-	{
-#ifndef  USE_WIN32GUI
-		XFreeModifiermap( modmap->map);
-#endif
-	}
-}
-
 #ifndef  USE_WIN32API
 static void
 hide_console(void)
@@ -120,22 +97,8 @@ hide_console(void)
 }
 #endif
 
+
 /* --- global functions --- */
-
-int
-x_display_set_hinstance(
-	HINSTANCE  hinst
-	)
-{
-	if( _display.hinst)
-	{
-		return  0 ;
-	}
-	
-	_display.hinst = hinst ;
-
-	return  1 ;
-}
 
 x_display_t *
 x_display_open(
@@ -143,20 +106,18 @@ x_display_open(
 	)
 {
 	WNDCLASS  wc ;
+	int  fd ;
 
-	if( ! _display.hinst)
-	{
-		return  NULL ;
-	}
-	
 	if( DISP_IS_INITED)
 	{
 		/* Already opened. */
 		return  &_disp ;
 	}
 
+	_display.hinst = GetModuleHandle(NULL) ;
+	
   	/* Prepare window class */
-  	ZeroMemory(&wc,sizeof(WNDCLASS)) ;
+  	ZeroMemory( &wc , sizeof(WNDCLASS)) ;
   	wc.lpfnWndProc = window_proc ;
 	wc.style = CS_HREDRAW | CS_VREDRAW ;
   	wc.hInstance = _display.hinst ;
@@ -169,7 +130,7 @@ x_display_open(
 	{
 		MessageBox(NULL,"Failed to register class", NULL, MB_ICONSTOP) ;
 
-		return  0 ;
+		return  NULL ;
 	}
 
 	_disp.screen = 0 ;
@@ -180,26 +141,37 @@ x_display_open(
 	_disp.icon = None ;
 	_disp.mask = None ;
 	_disp.cardinal = NULL ;
-
+ 
 	_disp.roots = NULL ;
 	_disp.num_of_roots = 0 ;
 
 	_disp.selection_owner = NULL ;
 
-	modmap_init( &_display, &(_disp.modmap)) ;
+#ifdef  USE_WIN32API
+	fd = -1 ;
+#else
+	if( ( fd = open( "/dev/windows" , O_NONBLOCK , 0)) == -1)
+	{
+		return  NULL ;
+	}
+#endif
 
 	if( ( _disp.gc = x_gc_new( &_display)) == NULL)
 	{
 		return  NULL ;
 	}
 
-	_disp.display = &_display ;
-
+	memset( &_disp.modmap , 0 , sizeof( _disp.modmap)) ;
+	
 	x_gdiobj_pool_init() ;
 
 #ifndef  USE_WIN32API
 	hide_console() ;
 #endif
+
+	/* _disp is initialized successfully. */
+	_display.fd = fd ;
+	_disp.display = &_display ;
 
 	return  &_disp ;
 }
@@ -217,7 +189,6 @@ x_display_close(
 	}
 
 	x_gc_delete( disp->gc) ;
-	modmap_final( &(disp->modmap)) ;
 
 	free( disp->icon_path);
 
@@ -241,6 +212,11 @@ x_display_close(
 	}
 
 	free( disp->roots) ;
+
+	if( _disp.display->fd != -1)
+	{
+		close( _disp.display->fd) ;
+	}
 
 	_disp.display = NULL ;
 
@@ -279,8 +255,7 @@ x_display_fd(
 	x_display_t *  disp
 	)
 {
-	/* Not supported */
-	return  -1 ;
+	return  disp->display->fd ;
 }
 
 int
@@ -335,9 +310,9 @@ x_display_remove_root(
 	{
 		if( disp->roots[count] == root)
 		{
-			x_window_unmap( disp->roots[count]) ;
+			x_window_unmap( root) ;
 			x_window_final( root) ;
-
+		
 			disp->num_of_roots -- ;
 
 			if( count == disp->num_of_roots)
@@ -371,11 +346,40 @@ x_display_idling(
 	}
 }
 
+/*
+ * <Return value>
+ *  0: Receive WM_QUIT
+ *  1: Receive other messages.
+ */
 int
 x_display_receive_next_event(
 	x_display_t *  disp
 	)
 {
+	MSG  msg ;
+
+#ifdef  USE_WIN32API
+	/* 0: WM_QUIT, -1: Error */
+	if( GetMessage( &msg , NULL , 0 , 0) <= 0)
+	{
+		return  0 ;
+	}
+	
+	TranslateMessage( &msg) ;
+	DispatchMessage( &msg) ;
+#else
+	while( PeekMessage( &msg , NULL , 0 , 0 , PM_REMOVE))
+	{
+		if( msg.message == WM_QUIT)
+		{
+			return  0 ;
+		}
+		
+		TranslateMessage( &msg) ;
+		DispatchMessage( &msg) ;
+	}
+#endif
+
 	return  1 ;
 }
 
@@ -447,14 +451,7 @@ x_display_update_modifier_mapping(
 	u_int  serial
 	)
 {
-#ifndef  USE_WIN32GUI
-	if( serial != disp->modmap.serial)
-	{
-		modmap_final( &(disp->modmap)) ;
-		disp->modmap.map = XGetModifierMapping( disp->display) ;
-		disp->modmap.serial = serial ;
-	}
-#endif
+	/* dummy */
 }
 
 int x_display_set_icon(

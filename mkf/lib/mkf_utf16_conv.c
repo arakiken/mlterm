@@ -14,6 +14,7 @@ typedef struct  mkf_utf16_conv
 {
 	mkf_conv_t  conv ;
 	int  is_bof ;		/* beginning of file */
+	int  use_bom ;
 
 }  mkf_utf16_conv_t ;
 
@@ -36,7 +37,7 @@ convert_to_utf16(
 
 	filled_size = 0 ;
 
-	if( utf16_conv->is_bof)
+	if( utf16_conv->use_bom && utf16_conv->is_bof)
 	{
 		if( dst_size < 2)
 		{
@@ -227,6 +228,7 @@ mkf_utf16_conv_new(void)
 	utf16_conv->conv.illegal_char = NULL ;
 	
 	utf16_conv->is_bof = 1 ;
+	utf16_conv->use_bom = 0 ;
 
 	return  (mkf_conv_t*)utf16_conv ;
 }
@@ -247,6 +249,21 @@ mkf_utf16le_conv_new(void)
 	utf16_conv->conv.illegal_char = NULL ;
 	
 	utf16_conv->is_bof = 1 ;
+	utf16_conv->use_bom = 0 ;
 
 	return  (mkf_conv_t*)utf16_conv ;
+}
+
+int
+mkf_utf16_conv_use_bom(
+	mkf_conv_t *  conv
+	)
+{
+	mkf_utf16_conv_t *  utf16_conv ;
+
+	utf16_conv = (mkf_utf16_conv_t*) conv ;
+	
+	utf16_conv->use_bom = 1 ;
+
+	return  1 ;
 }

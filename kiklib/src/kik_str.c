@@ -443,3 +443,25 @@ kik_str_to_int(
 
 	return  1 ;
 }
+
+u_int
+kik_count_char_in_str(
+	char *  str ,
+	char  ch
+	)
+{
+	u_int  count ;
+
+	count = 0 ;
+	while( *str)
+	{
+		if( *str == ch)
+		{
+			count ++ ;
+		}
+
+		str ++ ;
+	}
+
+	return  count ;
+}

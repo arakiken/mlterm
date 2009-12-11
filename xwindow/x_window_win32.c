@@ -789,6 +789,26 @@ get_key_state(void)
 	return  state ;
 }
 
+static BOOL
+text_out(
+	GC  gc ,
+	int  x ,
+	int  y ,
+	u_char *  str ,
+	u_int  len ,
+	mkf_charset_t  cs
+	)
+{
+	if( cs == ISO10646_UCS4_1)
+	{
+		return  TextOutW( gc , x , y , (WCHAR*)str , len / 2) ;
+	} 
+	else
+	{
+		return  TextOutA( gc , x , y , str , len) ;
+	}
+}
+
 static int
 draw_string(
 	x_window_t *  win ,
@@ -800,16 +820,19 @@ draw_string(
 	)
 {
 	u_char *  str2 ;
-
+	
 	str2 = NULL ;
 
 	if( font->conv)
 	{
 		if( ( str2 = malloc( len * 8)))	/* assume utf8 */
 		{
+			(*m_cp_parser->init)( m_cp_parser) ;
 			/* 3rd argument of cp_parser->set_str is len(16bit) + cs(16bit) */
 			(*m_cp_parser->set_str)( m_cp_parser, str,
-				len | (FONT_CS(font->id) << 16) ) ;
+							len | (FONT_CS(font->id) << 16) ) ;
+			
+			(*font->conv->init)( font->conv) ;
 			len = (*font->conv->convert)( font->conv, str2, len * 8, m_cp_parser) ;
 
 			if( len > 0)
@@ -819,14 +842,14 @@ draw_string(
 		}
 	}
 
-	TextOut( win->gc->gc, x + (font->is_var_col_width ? 0 : font->x_off) + win->margin,
-		y + win->margin, str, len) ;
-		
+	text_out( win->gc->gc, x + (font->is_var_col_width ? 0 : font->x_off) + win->margin,
+		y + win->margin, str, len , FONT_CS(font->id)) ;
+	
 	if( font->is_double_drawing)
 	{
-		TextOut( win->gc->gc,
+		text_out( win->gc->gc,
 			x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1,
-			y + win->margin, str, len) ;
+			y + win->margin, str, len , FONT_CS(font->id)) ;
 	}
 
 	if( str2)
@@ -1443,17 +1466,17 @@ x_window_show(
 		GetSystemMetrics(SM_CYFRAME), GetSystemMetrics(SM_CYCAPTION)) ;
 #endif
 
-        win->my_window = CreateWindow("MLTERM", "mlterm",
-			win->parent_window ? WS_CHILD | WS_VISIBLE : WS_OVERLAPPEDWINDOW,
-			win->parent_window ? win->x : CW_USEDEFAULT,
-			win->parent_window ? win->y : CW_USEDEFAULT,
-        		win->parent_window ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win),
-			win->parent_window ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win),
-			win->parent_window, NULL, win->disp->display->hinst, NULL) ;
+        win->my_window = CreateWindow("MLTERM", "mlterm" ,
+			win->parent_window ? WS_CHILD | WS_VISIBLE : WS_OVERLAPPEDWINDOW ,
+			win->parent_window ? win->x : CW_USEDEFAULT ,
+			win->parent_window ? win->y : CW_USEDEFAULT ,
+        		win->parent_window ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win) ,
+			win->parent_window ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win) ,
+			win->parent_window , NULL , win->disp->display->hinst , NULL) ;
 
   	if( ! win->my_window)
         {
-          	MessageBox(NULL,"Failed to create window.",NULL,MB_ICONSTOP) ;
+          	MessageBox(NULL , "Failed to create window." , NULL , MB_ICONSTOP) ;
 
           	return  0 ;
         }

@@ -6,7 +6,8 @@
 #define  __ML_PTY_H__
 
 
-#include  <kiklib/kik_types.h>		/* u_int/u_char/uid_t/gid_t */
+#include  <kiklib/kik_config.h>	/* USE_WIN32API */
+#include  <kiklib/kik_types.h>	/* u_int/u_char/uid_t/gid_t */
 
 
 typedef struct  ml_pty_event_listener
@@ -15,8 +16,10 @@ typedef struct  ml_pty_event_listener
 
 	/* Called when ml_pty_delete. */
   	void  (*closed)( void *) ;
+#ifdef  USE_WIN32API
   	/* Called when ml_read_pty() is ready. */
   	void  (*read_ready)( void *) ;
+#endif
 
 } ml_pty_event_listener_t ;
 

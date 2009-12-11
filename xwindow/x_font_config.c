@@ -305,28 +305,6 @@ read_conf(
 	return  1 ;
 }
 
-static u_int
-count_char_in_str(
-	char *  str ,
-	char  ch
-	)
-{
-	u_int  count ;
-
-	count = 0 ;
-	while( *str)
-	{
-		if( *str == ch)
-		{
-			count ++ ;
-		}
-
-		str ++ ;
-	}
-
-	return  count ;
-}
-
 static int
 save_conf(
 	char *  file ,
@@ -371,9 +349,9 @@ save_conf(
 			int  _count ;
 
 			if( ( values = alloca( sizeof( *values) *
-					( count_char_in_str( value , ';') + 1))) == NULL ||
+					( kik_count_char_in_str( value , ';') + 1))) == NULL ||
 			    ( _values = alloca( sizeof( *_values) *
-					( count_char_in_str( _value , ';') + 1))) == NULL ||
+					( kik_count_char_in_str( _value , ';') + 1))) == NULL ||
 			    /* If value = "a" and _value = "b", new_value = "a;b;" */
 			    ( new_value = malloc( strlen( value) + strlen( _value) + 3)) == NULL)
 			{

@@ -7,7 +7,7 @@ bindir = @bindir@
 VPATH = ${top_srcdir}/tool/mlclient
 
 CC = @CC@
-CFLAGS = @KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@
+CFLAGS = @KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @GUI_CFLAGS@
 LIBS = @SOCK_LIBS@
 INSTALL = @INSTALL@
 

@@ -25,13 +25,16 @@ WIN32 native GUI 対応に関するメモ
 
 * インストール
   インストールしたいディレクトリに、
-  kiklib/src/.libs/libkik-*.dll
-  mkf/lib/.libs/libmkf-*.dll
-  mkf/libtbl/.libs/libmkf_*.dll
+  kiklib/src/.libs/*.dll
+  mkf/lib/.libs/*.dll
+  mkf/libtbl/.libs/*.dll
+  scrollbar/sample/.libs/*.dll
   xwindow/.libs/mlterm.exe
   をコピー
 
   o MinGW でビルドした場合は、ソースツリーの win32/putty/plink.exe もコピー
+  o MSYS, cygwin でビルドした場合は、ソースツリーの tool/mlclient/mlclient.exe
+    もコピー
   o mlconfig,mlterm-menu をビルドできた場合(あらかじめ GTK+ をインストール
     しておく必要があります)は、ソースツリーの
     tool/mlconfig/.libs/mlconfig.exe
@@ -59,12 +62,28 @@ WIN32 native GUI 対応に関するメモ
   (MinGW / Cygwin(-mno-cygwin) でビルドした場合)
   set HOMEPATH=...
   mlterm.exe [options...] -e plink.exe [-telnet/-ssh/-rlogin/-raw] [host]
-  ※ msysライブラリをリンクしないため、sh.exe を起動してもうまく動きません。
-     sh.exe を使用したい場合は、MSYS-DTK でビルドしてください。
+  ※ msysライブラリをリンクしないため、msys / cygwin の sh.exe を起動して
+     もうまく動きません。sh.exe を使用したい場合は、MSYS-DTK でビルドして
+     ください。
+  ※ 起動時に、接続するサーバ、プロトコル、ユーザ名、パスワードを入力する
+     ダイアログが表示されます。
+     なお、main 設定ファイルにおいて、あらかじめ次のオプションを指定する
+     こともできます(括弧書きは mlterm の起動時の引数として指定する場合の
+     オプション名)。
+     o default_server = (<user>@)(<protocol>:)<server> (--serv)
+       ダイアログの既定値として表示するユーザ名、プロトコル及びサーバを
+       指定します(ユーザ名又はプロトコルを省略した場合は、ユーザ名は環境変数
+       USERNAME の値、プロトコルは SSH となります。)。
+       このオプションが指定されていない場合、起動時のダイアログに入力した
+       内容が、その後 pty を開く場合のダイアログの既定値となります。
+     o server_list = (<user>@)(<protocol>:)<server>,(<user>@)(<protocol>:)<server>,... (--servlist)
+       ダイアログの "List" 欄に、接続するサーバの候補を表示します。
+       default_server で指定したサーバが server_list にない場合、自動的に
+       default_server が server_list に追加されます。
 
 * WIN32 GUI 版の制限(2009/09/29現在)
   o -g オプションは [COL]x[ROW]+[x]+[y] の x y を無視します。
-  o mlterm server 機能は使用できません(対応予定もありません。)。
+  o MinGW 版では、mlterm server 機能は使用できません(対応予定もありません。)。
   o 背景画像は使用できません。
   o 背景透過は、win32 のレイヤードウィンドウの機能をそのまま使用しているだけ
     です。
@@ -77,11 +96,16 @@ WIN32 native GUI 対応に関するメモ
   o ファイル名 *_win32.c: --with-gui=win32 の場合に compile されます。
 
 * 問題
+  o daemon_mode = genuine で起動すると、タスクマネージャから強制終了しない
+    限り mlterm プロセスが終了しない。
 
 * その他
   o MSYS-DTK 1.0.1 に含まれる winuser.h / libuser32.a は古いため、
-    背景透過に使用する SetLayeredWindowAttributes() が使用できない。
+    背景透過に使用する SetLayeredWindowAttributes() が使用できません。
     背景透過を使用できるようにするためには、mlterm のビルドの前に
     MSYS-DTK 1.0.1 の winuser.h / libuser32.a を 最新の MinGW の
-    ものに置きかえておく必要がある。
- 
+    ものに置きかえておく必要があります。
+
+  o MinGW / Gtk+(win32 native) でビルドした mlconfig.exe 及び
+    mlterm-menu.exe は、MSYS や Cygwin でビルドした mlterm と
+    一緒に使用することができます。

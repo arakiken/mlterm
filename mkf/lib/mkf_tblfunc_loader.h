@@ -48,7 +48,8 @@
 		if( ! _ ## funcname) \
 		{ \
 			kik_dl_handle_t  handle ; \
-			if( ! ( handle = kik_dl_open( MKFLIB_DIR, libname)) || \
+			if( ( ! ( handle = kik_dl_open( MKFLIB_DIR, libname)) && \
+			      ! ( handle = kik_dl_open( "", libname)) ) || \
 			    ! ( _ ## funcname = kik_dl_func_symbol( handle, #funcname))) \
 			{ \
 				return  0 ; \
@@ -64,7 +65,8 @@
 		if( ! _ ## funcname) \
 		{ \
 			kik_dl_handle_t  handle ; \
-			if( ! ( handle = kik_dl_open( MKFLIB_DIR, libname)) || \
+			if( ( ! ( handle = kik_dl_open( MKFLIB_DIR, libname)) && \
+			      ! ( handle = kik_dl_open( "", libname)) ) || \
 			    ! ( _ ## funcname = kik_dl_func_symbol( handle, #funcname))) \
 			{ \
 				return  0 ; \

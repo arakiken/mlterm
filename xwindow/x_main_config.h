@@ -63,6 +63,10 @@ typedef struct x_main_config
 	char *  icon_path ;
 	char *  input_method ;
 	char *  init_str ;
+#ifdef  USE_WIN32API
+	char **  server_list ;
+	char *  default_server ;
+#endif
 	char *  cmd_path ;
 	char **  cmd_argv ;
 	
@@ -96,5 +100,8 @@ int  x_main_config_init( x_main_config_t *  main_config , kik_conf_t *  conf , i
 
 int  x_main_config_final( x_main_config_t *  main_config) ;
 
+#ifdef  USE_WIN32API
+int  x_main_config_add_to_server_list( x_main_config_t *  main_config , char *  server) ;
+#endif
 
 #endif

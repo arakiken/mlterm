@@ -136,13 +136,14 @@ aa_flag_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-#ifndef  G_PLATFORM_WIN32
-#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 0) ;
-#elif  (GTK_MAJOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 1) ;
-#endif
-#endif
+		if( ! mc_gui_is_win32())
+		{
+		#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
+			gtk_widget_set_sensitive( select_font_button , 0) ;
+		#elif  (GTK_MAJOR_VERSION >= 2)
+			gtk_widget_set_sensitive( select_font_button , 1) ;
+		#endif
+		}
 
 		if( ! GTK_TOGGLE_BUTTON(xft_flag)->active)
 		{
@@ -167,25 +168,27 @@ xft_flag_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-#ifndef  G_PLATFORM_WIN32
-#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 0) ;
-#elif  (GTK_MAJOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 1) ;
-#endif
-#endif
+		if( ! mc_gui_is_win32())
+		{
+		#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
+			gtk_widget_set_sensitive( select_font_button , 0) ;
+		#elif  (GTK_MAJOR_VERSION >= 2)
+			gtk_widget_set_sensitive( select_font_button , 1) ;
+		#endif
+		}
 	}
 	else
 	{
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(aa_flag) , 0) ;
 
-#ifndef  G_PLATFORM_WIN32
-#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 1) ;
-#elif  (GTK_MAJOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 0) ;
-#endif
-#endif
+		if( ! mc_gui_is_win32())
+		{
+		#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
+			gtk_widget_set_sensitive( select_font_button , 1) ;
+		#elif  (GTK_MAJOR_VERSION >= 2)
+			gtk_widget_set_sensitive( select_font_button , 0) ;
+		#endif
+		}
 	}
 
 	gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
@@ -447,6 +450,10 @@ mc_font_config_widget_new(void)
 	gtk_box_pack_start(GTK_BOX(hbox) , xft_flag , TRUE , TRUE , 0) ;
 	gtk_signal_connect(GTK_OBJECT(xft_flag) , "toggled" ,
 		GTK_SIGNAL_FUNC(xft_flag_checked) , NULL) ;
+	if( mc_gui_is_win32())
+	{
+		gtk_widget_set_sensitive(xft_flag, 0);
+	}
 	
 	aa_flag = mc_flag_config_widget_new( MC_FLAG_AA) ;
 #ifndef USE_TYPE_XFT
@@ -498,21 +505,22 @@ mc_font_config_widget_new(void)
 	gtk_signal_connect(GTK_OBJECT(select_font_button) , "clicked" ,
 		GTK_SIGNAL_FUNC(select_font) , NULL) ;
 
-#ifndef  G_PLATFORM_WIN32
-	if( GTK_TOGGLE_BUTTON(xft_flag)->active)
+	if( ! mc_gui_is_win32())
 	{
-#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 0) ;
-#endif
+		if( GTK_TOGGLE_BUTTON(xft_flag)->active)
+		{
+		#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
+			gtk_widget_set_sensitive( select_font_button , 0) ;
+		#endif
+		}
+		else
+		{
+		#if (GTK_MAJOR_VERSION >= 2)
+			gtk_widget_set_sensitive( select_font_button , 0) ;
+		#endif
+		}
 	}
-	else
-	{
-#if (GTK_MAJOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 0) ;
-#endif
-	}
-#endif
-
+	
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
 
 	return  vbox ;

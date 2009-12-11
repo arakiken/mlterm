@@ -14,7 +14,8 @@ Options for configure
     Installation prefix
 
   --disable-dl-table
-    Remove dynamic loading of character mapping or property table.
+    Disable dynamic loading of character mapping or property table,
+    which is statically linked to libmkf.
   
   --without-map-table
     Remove character mapping table

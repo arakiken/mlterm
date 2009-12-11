@@ -15,8 +15,8 @@ comment $Id$
     (たとえば、libc に ja_JP.UTF-8 ローケールがなくても、ja_JP.eucJP ローケール
     があれば、UTF-8 エンコーディングの端末に日本語入力できる、など)
 
-    gtk+ で作られた設定変更ツール (mlconfig) を使用する場合は、GTK+ (1.2.x ?)が
-    必要となります。
+    gtk+ で作られた設定変更ツール (mlconfig) を使用する場合は、GTK+ (1.2 以上)
+    が必要となります。
     (mlterm 本体にはリンクしません)
 
     アンチエイリアスフォントを利用する場合は、
@@ -37,6 +37,10 @@ comment $Id$
     --prefix
       インストールプレフィクス
 
+    --disable-dl-table
+      文字変換テーブルや文字プロパティテーブルを動的にロードせず、
+      libmkf に静的にリンクします。
+      
     --without-map-table
       文字変換テーブルを組込みません。
       この場合、UNICODE <=> 各種文字集合の変換等を扱えなくなります。
@@ -179,7 +183,7 @@ comment $Id$
   o mlterm configuration protocol
     設定変更のための専用シーケンスを定義しています。
     それを使うことによっても、設定の動的変更が可能です。
-    (see doc/en/PROTOCOL,doc/ja/README.confapp)
+    (see doc/en/PROTOCOL, doc/en/PROTOCOL.font, doc/en/PROTOCOL.color, doc/ja/README.confapp)
 
   o mlterm server
     mlterm は daemon process として動作することができます。
@@ -624,8 +628,8 @@ comment $Id$
         o aafont/vaafont/taafont
           [font family]( [font weight] [font slant] [font size]-[font encoding]:[percentage])
 
-	  font size は、実際に表示するサイズであり、小数点数を指定することも
-	  できます。
+	  font size は、実際に表示するピクセルサイズであり、小数点数を指定する
+	  こともできます。
 
 	  e.g.)
 	  ISO8859_1 = 12,Hoge 11.5

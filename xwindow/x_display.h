@@ -57,10 +57,6 @@ typedef struct  x_display
 } x_display_t ;
 
 
-#ifdef  USE_WIN32GUI
-int  x_display_set_hinstance( HINSTANCE  hinst) ;
-#endif
-
 x_display_t *  x_display_open( char *  name) ;
 
 int  x_display_close( x_display_t *  disp) ;

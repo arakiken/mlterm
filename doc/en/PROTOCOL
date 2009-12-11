@@ -2,7 +2,7 @@ comment -*- mode: text -*-
 comment $Id$
 
 mlterm configuration protocol(main)
-version 20030301
+version 20091211
 
 * Protocol
   set              = "\x1b" "]" "5379" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
@@ -35,7 +35,7 @@ version 20030301
                      scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | rows | cols |
                      cursor_fg_color | cursor_bg_color | pty_list | pty_name
-		     icon_path | logging_vt_seq
+		     icon_path | logging_vt_seq | gui
 
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
