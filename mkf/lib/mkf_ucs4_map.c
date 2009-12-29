@@ -12,8 +12,7 @@
 #include  "mkf_ucs4_viscii.h"
 #include  "mkf_ucs4_koi8.h"
 #include  "mkf_ucs4_georgian_ps.h"
-#include  "mkf_ucs4_cp1251.h"
-#include  "mkf_ucs4_cp1255.h"
+#include  "mkf_ucs4_cp125x.h"
 #include  "mkf_ucs4_jisx0201.h"
 #include  "mkf_ucs4_jisx0208.h"
 #include  "mkf_ucs4_jisx0212.h"
@@ -63,8 +62,15 @@ static map_t  map_table[] =
 	{ KOI8_U , mkf_map_ucs4_to_koi8_u , mkf_map_koi8_u_to_ucs4 } ,
 	{ KOI8_T , mkf_map_ucs4_to_koi8_t , mkf_map_koi8_t_to_ucs4 } ,
 	{ GEORGIAN_PS , mkf_map_ucs4_to_georgian_ps , mkf_map_georgian_ps_to_ucs4 } ,
+	{ CP1250 , mkf_map_ucs4_to_cp1250 , mkf_map_cp1250_to_ucs4 } ,
 	{ CP1251 , mkf_map_ucs4_to_cp1251 , mkf_map_cp1251_to_ucs4 } ,
+	{ CP1252 , mkf_map_ucs4_to_cp1252 , mkf_map_cp1252_to_ucs4 } ,
+	{ CP1253 , mkf_map_ucs4_to_cp1253 , mkf_map_cp1253_to_ucs4 } ,
+	{ CP1254 , mkf_map_ucs4_to_cp1254 , mkf_map_cp1254_to_ucs4 } ,
 	{ CP1255 , mkf_map_ucs4_to_cp1255 , mkf_map_cp1255_to_ucs4 } ,
+	{ CP1256 , mkf_map_ucs4_to_cp1256 , mkf_map_cp1256_to_ucs4 } ,
+	{ CP1257 , mkf_map_ucs4_to_cp1257 , mkf_map_cp1257_to_ucs4 } ,
+	{ CP1258 , mkf_map_ucs4_to_cp1258 , mkf_map_cp1258_to_ucs4 } ,
 	
 	{ JISX0201_ROMAN , mkf_map_ucs4_to_jisx0201_roman , mkf_map_jisx0201_roman_to_ucs4 } ,
 	{ JISX0201_KATA , mkf_map_ucs4_to_jisx0201_kata , mkf_map_jisx0201_kata_to_ucs4 } ,

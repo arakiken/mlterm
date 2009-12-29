@@ -8,11 +8,9 @@
 #include  "table/mkf_cns11643_1992_2_to_ucs4.table"
 #include  "table/mkf_cns11643_1992_3_to_ucs4.table"
 
-#include  "table/mkf_ucs4_alphabet_to_cns11643_1992_1.table"
-#include  "table/mkf_ucs4_cjk_to_cns11643_1992_1.table"
-#include  "table/mkf_ucs4_compat_to_cns11643_1992_1.table"
-#include  "table/mkf_ucs4_cjk_to_cns11643_1992_2.table"
-#include  "table/mkf_ucs4_cjk_to_cns11643_1992_3.table"
+#include  "table/mkf_ucs4_to_cns11643_1992_1.table"
+#include  "table/mkf_ucs4_to_cns11643_1992_2.table"
+#include  "table/mkf_ucs4_to_cns11643_1992_3.table"
 
 
 /* --- global functions --- */
@@ -88,9 +86,7 @@ mkf_map_ucs4_to_cns11643_1992_1(
 {
 	u_int16_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_CNS11643_1992_1(ucs4_code)) ||
-		( c = CONV_UCS4_CJK_TO_CNS11643_1992_1(ucs4_code)) ||
-		( c = CONV_UCS4_COMPAT_TO_CNS11643_1992_1(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_CNS11643_1992_1(ucs4_code)))
 	{
 		mkf_int_to_bytes( cns->ch , 2 , c) ;
 		cns->size = 2 ;
@@ -111,7 +107,7 @@ mkf_map_ucs4_to_cns11643_1992_2(
 {
 	u_int16_t  c ;
 
-	if( ( c = CONV_UCS4_CJK_TO_CNS11643_1992_2(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_CNS11643_1992_2(ucs4_code)))
 	{
 		mkf_int_to_bytes( cns->ch , 2 , c) ;
 		cns->size = 2 ;
@@ -132,7 +128,7 @@ mkf_map_ucs4_to_cns11643_1992_3(
 {
 	u_int16_t  c ;
 
-	if( ( c = CONV_UCS4_CJK_TO_CNS11643_1992_3(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_CNS11643_1992_3(ucs4_code)))
 	{
 		mkf_int_to_bytes( cns->ch , 2 , c) ;
 		cns->size = 2 ;

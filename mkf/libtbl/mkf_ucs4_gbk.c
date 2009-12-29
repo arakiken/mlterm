@@ -5,9 +5,7 @@
 #include  "../lib/mkf_ucs4_gbk.h"
 
 #include  "table/mkf_gbk_to_ucs4.table"
-#include  "table/mkf_ucs4_alphabet_to_gbk.table"
-#include  "table/mkf_ucs4_cjk_to_gbk.table"
-#include  "table/mkf_ucs4_compat_to_gbk.table"
+#include  "table/mkf_ucs4_to_gbk.table"
 
 
 /* --- global functions --- */
@@ -41,9 +39,7 @@ mkf_map_ucs4_to_gbk(
 {
 	u_int16_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_GBK(ucs4_code)) ||
-		( c = CONV_UCS4_CJK_TO_GBK(ucs4_code)) ||
-		( c = CONV_UCS4_COMPAT_TO_GBK(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_GBK(ucs4_code)))
 	{
 		mkf_int_to_bytes( gb->ch , 2 , c) ;
 		gb->size = 2 ;

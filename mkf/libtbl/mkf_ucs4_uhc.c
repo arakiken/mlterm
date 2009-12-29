@@ -5,10 +5,7 @@
 #include  "../lib/mkf_ucs4_uhc.h"
 
 #include  "table/mkf_uhc_to_ucs4.table"
-#include  "table/mkf_ucs4_alphabet_to_uhc.table"
-#include  "table/mkf_ucs4_cjk_to_uhc.table"
-#include  "table/mkf_ucs4_unified_hangul_to_uhc.table"
-#include  "table/mkf_ucs4_compat_to_uhc.table"
+#include  "table/mkf_ucs4_to_uhc.table"
 
 
 /* --- global functions --- */
@@ -42,10 +39,7 @@ mkf_map_ucs4_to_uhc(
 {
 	u_int16_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_UHC(ucs4_code)) ||
-		( c = CONV_UCS4_UNIFIED_HANGUL_TO_UHC(ucs4_code)) ||
-		( c = CONV_UCS4_CJK_TO_UHC(ucs4_code)) ||
-		( c = CONV_UCS4_COMPAT_TO_UHC(ucs4_code)) )
+	if( ( c = CONV_UCS4_TO_UHC(ucs4_code)))
 	{
 		mkf_int_to_bytes( ks->ch , 2 , c) ;
 		ks->size = 2 ;

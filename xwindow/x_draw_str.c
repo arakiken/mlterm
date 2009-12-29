@@ -436,6 +436,86 @@ xft_draw_str(
 
 #ifdef  USE_TYPE_XCORE
 
+static u_int		/* Return written size of XChar2b */
+convert_ucs4_to_utf16(
+	XChar2b *  dst ,	/* 2 XChar2b's */
+	u_char *  src		/* 4 bytes. Big endian. */
+	)
+{
+	/*
+	 * WIN32: Little endian utf16.
+	 * Xlib: Big endian utf16.
+	 */
+
+#if  0
+	kik_debug_printf( KIK_DEBUG_TAG "%.8x => " , mkf_bytes_to_int( src , 4)) ;
+#endif
+
+	if( src[0] > 0x0 || src[1] > 0x10)
+	{
+		return  0 ;
+	}
+	else if( src[1] == 0x0)
+	{
+	#ifdef  USE_WIN32GUI
+		dst[0].byte2 = src[2] ;
+		dst[0].byte1 = src[3] ;
+	#else
+		dst[0].byte1 = src[2] ;
+		dst[0].byte2 = src[3] ;
+	#endif
+	
+		return  1 ;
+	}
+	else /* if( src[1] <= 0x10) */
+	{
+		/* surrogate pair */
+
+		u_int32_t  linear ;
+		u_char  c ;
+
+		linear = mkf_bytes_to_int( src , 4) - 0x10000 ;
+
+		c = (u_char)( linear / (0x100 * 0x400)) ;
+		linear -= (c * 0x100 * 0x400) ;
+	#ifdef  USE_WIN32GUI
+		dst[0].byte2 = c + 0xd8 ;
+	#else
+		dst[0].byte1 = c + 0xd8 ;
+	#endif
+	
+		c = (u_char)( linear / 0x400) ;
+		linear -= (c * 0x400) ;
+	#ifdef  USE_WIN32GUI
+		dst[0].byte1 = c ;
+	#else
+		dst[0].byte2 = c ;
+	#endif
+	
+		c = (u_char)( linear / 0x100) ;
+		linear -= (c * 0x100) ;
+	#ifdef  USE_WIN32GUI
+		dst[1].byte2 = c + 0xdc ;
+		dst[1].byte1 = (u_char) linear ;
+	#else
+		dst[1].byte1 = c + 0xdc ;
+		dst[1].byte2 = (u_char) linear ;
+	#endif
+
+	#if  0
+		kik_msg_printf( "%.2x%.2x%.2x%.2x\n" ,
+		#ifdef  USE_WIN32GUI
+			dst[0].byte2 , dst[0].byte1 , dst[1].byte2 , dst[1].byte1
+		#else
+			dst[0].byte1 , dst[0].byte2 , dst[1].byte1 , dst[1].byte2
+		#endif
+			) ;
+	#endif
+	
+		return  2 ;
+	}
+}
+
 static int
 xcore_draw_combining_chars(
 	x_window_t *  window ,
@@ -482,31 +562,21 @@ xcore_draw_combining_chars(
 				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , &xch , 1) ;
 		}
-		else if( ch_size == 4 && ch_bytes[0] == '\0' && ch_bytes[1] == '\0')
+		else if( ch_size == 4)
 		{
 			/* UCS4 */
 
-			/*
-			 * XXX
-			 * UCS4 is casted down to UCS2, which can lost information partially.
-			 */
+			/* [2] is for surroage pair. */
+			XChar2b  xch[2] ;
+			u_int  len ;
 
-			XChar2b  xch ;
-
-		#ifdef  USE_WIN32GUI
-			/* Little endian */
-			xch.byte1 = ch_bytes[3] ;
-			xch.byte2 = ch_bytes[2] ;
-		#else
-			/* Big endian */
-			xch.byte1 = ch_bytes[2] ;
-			xch.byte2 = ch_bytes[3] ;
-		#endif
-
-			x_window_draw_string16( window ,
-				x_get_font( font_man , ml_char_font( &chars[count])) ,
-				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
-				x , y , &xch , 1) ;
+			if( ( len = convert_ucs4_to_utf16( xch , ch_bytes)) > 0)
+			{
+				x_window_draw_string16( window ,
+					x_get_font( font_man , ml_char_font( &chars[count])) ,
+					x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
+					x , y , xch , len) ;
+			}
 		}
 	#ifdef  DEBUG
 		else
@@ -625,7 +695,10 @@ xcore_draw_str(
 		return	0 ;
 	}
 
-	if( ( str2b = alloca( sizeof( XChar2b) * num_of_chars)) == NULL)
+	/*
+	 * '* 2' is for UTF16 surrogate pair.
+	 */
+	if( ( str2b = alloca( sizeof( XChar2b) * num_of_chars * 2)) == NULL)
 	{
 		return	0 ;
 	}
@@ -644,26 +717,11 @@ xcore_draw_str(
 			str2b[str_len].byte2 = ch_bytes[1] ;
 			str_len ++ ;
 		}
-		else if( ch_size == 4 && ch_bytes[0] == '\0' && ch_bytes[1] == '\0')
+		else if( ch_size == 4)
 		{
 			/* UCS4 */
 
-			/*
-			 * XXX
-			 * UCS4 is casted down to UCS2, which can lost information partially.
-			 */
-
-		#ifdef  USE_WIN32GUI
-			/* Little endian */
-			str2b[str_len].byte1 = ch_bytes[3] ;
-			str2b[str_len].byte2 = ch_bytes[2] ;
-		#else
-			/* Big endian */
-			str2b[str_len].byte1 = ch_bytes[2] ;
-			str2b[str_len].byte2 = ch_bytes[3] ;
-		#endif
-
-			str_len ++ ;
+			str_len += convert_ucs4_to_utf16( str2b + str_len , ch_bytes) ;
 		}
 		else
 		{

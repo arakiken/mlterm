@@ -89,7 +89,7 @@ convert_to_utf16(
 				}
 			}
 			
-			if( ch.cs != ISO10646_UCS4_1 || ch.ch[0] > 0x0 || ch.ch[1] > 0x1)
+			if( ch.cs != ISO10646_UCS4_1 || ch.ch[0] > 0x0 || ch.ch[1] > 0x10)
 			{
 				if( conv->illegal_char)
 				{
@@ -125,7 +125,7 @@ convert_to_utf16(
 
 				filled_size += 2 ;
 			}
-			else /* if( ch.ch[1] == 0x1) */
+			else /* if( 0x1 <= ch.ch[1] && ch.ch[1] <= 0x10) */
 			{
 				/* surrogate pair */
 

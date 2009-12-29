@@ -7,15 +7,8 @@
 #include  "table/mkf_big5_to_ucs4.table"
 #include  "table/mkf_hkscs_to_ucs4.table"
 
-#include  "table/mkf_ucs4_alphabet_to_big5.table"
-#include  "table/mkf_ucs4_cjk_to_big5.table"
-#include  "table/mkf_ucs4_compat_to_big5.table"
-#include  "table/mkf_ucs4_pua_to_big5.table"
-#include  "table/mkf_ucs4_alphabet_to_hkscs.table"
-#include  "table/mkf_ucs4_cjk_to_hkscs.table"
-#include  "table/mkf_ucs4_compat_to_hkscs.table"
-#include  "table/mkf_ucs4_extension_a_to_hkscs.table"
-#include  "table/mkf_ucs4_pua_to_hkscs.table"
+#include  "table/mkf_ucs4_to_big5.table"
+#include  "table/mkf_ucs4_to_hkscs.table"
 
 
 /* --- global functions --- */
@@ -70,10 +63,7 @@ mkf_map_ucs4_to_big5(
 {
 	u_int16_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_BIG5(ucs4_code)) ||
-		( c = CONV_UCS4_CJK_TO_BIG5(ucs4_code)) ||
-		( c = CONV_UCS4_COMPAT_TO_BIG5(ucs4_code)) ||
-		( c = CONV_UCS4_PUA_TO_BIG5(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_BIG5(ucs4_code)))
 	{
 		mkf_int_to_bytes( big5->ch , 2 , c) ;
 		big5->size = 2 ;
@@ -94,11 +84,7 @@ mkf_map_ucs4_to_hkscs(
 {
 	u_int16_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_HKSCS(ucs4_code)) ||
-		( c = CONV_UCS4_CJK_TO_HKSCS(ucs4_code)) ||
-		( c = CONV_UCS4_COMPAT_TO_HKSCS(ucs4_code)) ||
-		( c = CONV_UCS4_EXTENSION_A_TO_HKSCS(ucs4_code)) ||
-		( c = CONV_UCS4_PUA_TO_HKSCS(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_HKSCS(ucs4_code)))
 	{
 		mkf_int_to_bytes( hkscs->ch , 2 , c) ;
 		hkscs->size = 2 ;

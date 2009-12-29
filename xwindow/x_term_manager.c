@@ -1671,7 +1671,7 @@ receive_next_event(void)
 		}
 	}
 
-	return  1 ;
+	return ;
 }
 
 #endif
@@ -1751,7 +1751,13 @@ x_term_manager_init(
 #endif
 #ifndef  USE_WIN32API
 	kik_conf_add_opt( conf , 'j' , "daemon" , 0 , "daemon_mode" ,
-		"start as a daemon (none/blend/genuine) [none]") ;
+	#ifdef  USE_WIN32GUI
+		/* 'genuine' is not supported in win32. */
+		"start as a daemon (none/blend) [none]"
+	#else
+		"start as a daemon (none/blend/genuine) [none]"
+	#endif
+		) ;
 #endif
 
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
@@ -1789,6 +1795,8 @@ x_term_manager_init(
 #ifndef  USE_WIN32API
 	if( ( value = kik_conf_get_value( conf , "daemon_mode")))
 	{
+	#ifndef  USE_WIN32GUI
+		/* 'genuine' is not supported in win32. */
 		if( strcmp( value , "genuine") == 0)
 		{
 			if( ( sock_fd = start_daemon()) < 0)
@@ -1800,7 +1808,9 @@ x_term_manager_init(
 				is_genuine_daemon = 1 ;
 			}
 		}
-		else if( strcmp( value , "blend") == 0)
+		else
+	#endif
+		if( strcmp( value , "blend") == 0)
 		{
 			if( ( sock_fd = start_daemon()) < 0)
 			{

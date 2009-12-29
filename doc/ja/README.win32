@@ -83,7 +83,8 @@ WIN32 native GUI 対応に関するメモ
 
 * WIN32 GUI 版の制限(2009/09/29現在)
   o -g オプションは [COL]x[ROW]+[x]+[y] の x y を無視します。
-  o MinGW 版では、mlterm server 機能は使用できません(対応予定もありません。)。
+  o mlterm server 機能で genuine モードは使用できません(対応予定もありません。)。
+    また、MinGW 版では、mlterm server 機能自体が使用できません(対応予定もありません。)。
   o 背景画像は使用できません。
   o 背景透過は、win32 のレイヤードウィンドウの機能をそのまま使用しているだけ
     です。
@@ -94,10 +95,6 @@ WIN32 native GUI 対応に関するメモ
   o USE_WIN32APIマクロ: MinGW 又は CYGWIN(-mno-cygwin) でビルドする際に define されます。
   o USE_WIN32GUIマクロ: --with-gui=win32 の場合 define されます。
   o ファイル名 *_win32.c: --with-gui=win32 の場合に compile されます。
-
-* 問題
-  o daemon_mode = genuine で起動すると、タスクマネージャから強制終了しない
-    限り mlterm プロセスが終了しない。
 
 * その他
   o MSYS-DTK 1.0.1 に含まれる winuser.h / libuser32.a は古いため、

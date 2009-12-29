@@ -4,53 +4,105 @@
 
 #include  "mkf_ucs_property.h"
 
-#include  "mkf_tblfunc_loader.h"
+#ifndef  REMOVE_PROPERTY_TABLE
+#include  "table/mkf_ucs_property.table"
+#endif
+
+/* '(i) | 0x2' is done in order for the result of BIT_SHIFT_32() to be over 0. */
+#define  BIT_SHIFT_32(i)  (( ((i) | 0x2) >> 1) & 0x7fffffff)
+#define  DEFAULT_INTERVAL  BIT_SHIFT_32(sizeof(ucs_property_table) / sizeof(ucs_property_table[0]))
+
+#if  0
+#define  __DEBUG
+#endif
+
+
+#ifdef  __DEBUG
+static int  debug_count ;
+#endif
 
 
 /* --- global functions --- */
-
-#ifdef  NO_DYNAMIC_LOAD_TABLE
-
-#include  "../libtbl/mkf_ucs_property.c"
-
-#else
-
-mkf_prop_func( "mkf_ucsprop", mkf_get_raw_ucs_property) ;
-
-#endif
 
 mkf_property_t
 mkf_get_ucs_property(
 	u_int32_t  ucs
 	)
 {
-	mkf_ucs_property_t  ucs_prop ;
+#ifndef  REMOVE_PROPERTY_TABLE
+	u_int32_t  idx ;
+	u_int32_t  interval ;
 
-	if( ( ucs_prop = mkf_get_raw_ucs_property( ucs)))
+	interval = DEFAULT_INTERVAL ;
+	idx = interval ;
+
+#ifdef  __DEBUG
+	debug_count = 0 ;
+#endif
+
+	while( 1)
 	{
-		mkf_property_t  prop ;
-
-		prop = 0 ;
-		
-		if( UCSPROP_GENERAL(ucs_prop) == MKF_UCSPROP_MC ||
-			UCSPROP_GENERAL(ucs_prop) == MKF_UCSPROP_ME ||
-			UCSPROP_GENERAL(ucs_prop) == MKF_UCSPROP_MN)
+	#ifdef  __DEBUG
+		debug_count ++ ;
+	#endif
+	
+		if( ucs < ucs_property_table[idx].first)
 		{
-			prop |= MKF_COMBINING ;
+			/*
+			 * If idx == 0, 'ucs < ucs_property_table[idx].first'
+			 * is always false because ucs_property_table[0].first
+			 * is 0. So following 'idx - 1' is never minus value.
+			 */
+			if( ucs_property_table[idx - 1].last < ucs)
+			{
+				return  0 ;
+			}
+			else
+			{
+				interval = BIT_SHIFT_32(interval) ;
+			}
+			idx -= interval ;
 		}
-
-		if( UCSPROP_EAST_ASIAN_WIDTH(ucs_prop) == MKF_UCSPROP_EAW_W ||
-			UCSPROP_EAST_ASIAN_WIDTH(ucs_prop) == MKF_UCSPROP_EAW_F)
+		else if( ucs_property_table[idx].last < ucs)
 		{
-			prop |= MKF_BIWIDTH ;
+			/*
+			 * If idx == max value
+			 * ( sizeof(ucs_property_table)/sizeof(ucs_property_table[0]) ),
+			 * 'ucs_property_table[idx].last < ucs' is always false because
+			 * ucs_property_table[max].last is 0xffffffff.
+			 * So following 'idx + 1' is never over max value.
+			 */
+			if( ucs < ucs_property_table[idx + 1].first)
+			{
+				return  0 ;
+			}
+			else
+			{
+				interval = BIT_SHIFT_32(interval) ;
+			}
+			idx += interval ;
 		}
-		else if( UCSPROP_EAST_ASIAN_WIDTH(ucs_prop) == MKF_UCSPROP_EAW_A)
+		else
 		{
-			prop |= MKF_AWIDTH ;
+			return  ucs_property_table[idx].prop ;
 		}
-
-		return  prop ;
 	}
-
+#else
 	return  0 ;
+#endif
 }
+
+#ifdef  __DEBUG
+int
+main(void)
+{
+	u_int32_t  ucs ;
+
+	for( ucs = 0 ; ucs <= 0x10ffff ; ucs++)
+	{
+		mkf_property_t  prop = mkf_get_ucs_property( ucs) ;
+		
+		printf( "UCS %x => PROP %x (Loop %d)\n" , ucs , prop , debug_count) ;
+	}
+}
+#endif

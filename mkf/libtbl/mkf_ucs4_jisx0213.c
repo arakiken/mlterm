@@ -4,16 +4,11 @@
 
 #include  "../lib/mkf_ucs4_jisx0213.h"
 
-#include  "table/mkf_ucs4_alphabet_to_jisx0213_2000_1.table"
-#include  "table/mkf_ucs4_cjk_to_jisx0213_2000_1.table"
-#include  "table/mkf_ucs4_compat_to_jisx0213_2000_1.table"
-#include  "table/mkf_ucs4_extension_a_to_jisx0213_2000_1.table"
-#include  "table/mkf_ucs4_cjk_to_jisx0213_2000_2.table"
-#include  "table/mkf_ucs4_compat_to_jisx0213_2000_2.table"
-#include  "table/mkf_ucs4_extension_a_to_jisx0213_2000_2.table"
-
 #include  "table/mkf_jisx0213_2000_1_to_ucs4.table"
 #include  "table/mkf_jisx0213_2000_2_to_ucs4.table"
+
+#include  "table/mkf_ucs4_to_jisx0213_2000_1.table"
+#include  "table/mkf_ucs4_to_jisx0213_2000_2.table"
 
 
 /* --- global functions --- */
@@ -68,10 +63,7 @@ mkf_map_ucs4_to_jisx0213_2000_1(
 {
 	u_int16_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_JISX0213_2000_1(ucs4_code)) ||
-		( c = CONV_UCS4_CJK_TO_JISX0213_2000_1(ucs4_code)) ||
-		( c = CONV_UCS4_COMPAT_TO_JISX0213_2000_1(ucs4_code)) ||
-		( c = CONV_UCS4_EXTENSION_A_TO_JISX0213_2000_1(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_JISX0213_2000_1(ucs4_code)))
 	{
 		mkf_int_to_bytes( jis->ch , 2 , c) ;
 		jis->size = 2 ;
@@ -92,9 +84,7 @@ mkf_map_ucs4_to_jisx0213_2000_2(
 {
 	u_int16_t  c ;
 
-	if( ( c = CONV_UCS4_CJK_TO_JISX0213_2000_2(ucs4_code)) ||
-		( c = CONV_UCS4_COMPAT_TO_JISX0213_2000_2(ucs4_code)) ||
-		( c = CONV_UCS4_EXTENSION_A_TO_JISX0213_2000_2(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_JISX0213_2000_2(ucs4_code)))
 	{
 		mkf_int_to_bytes( jis->ch , 2 , c) ;
 		jis->size = 2 ;

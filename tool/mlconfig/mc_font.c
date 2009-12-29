@@ -538,9 +538,13 @@ mc_update_font_misc(void)
 		old_fontsize = strdup( new_fontsize) ;
 	}
 
-	mc_update_flag_mode( MC_FLAG_XFT) ;
+	/*
+	 * MC_FLAG_XFT should be updated last because MC_FLAG_XFT is
+	 * invalid in some environments.
+	 */
 	mc_update_flag_mode( MC_FLAG_AA) ;
 	mc_update_flag_mode( MC_FLAG_VCOL) ;
+	mc_update_flag_mode( MC_FLAG_XFT) ;
 	mc_update_vertical_mode() ;
 }
 

@@ -347,17 +347,19 @@ typedef struct cp_cs_table
 
 static cp_cs_table_t  cp_cs_table[] =
 {
-	{ 1252 , "ISO8859-1" , } ,	/* ANSI_CHARSET */
+	{ 1250 , "CP1250" , } ,		/* EastEurope_CHARSET */
 	{ 1251 , "CP1251" , } ,		/* RUSSIAN_CHARSET */
-	{ 1250 , "CP1250" , } ,		/* EE_CHARSET */
+	{ 1252 , "CP1252" , } ,		/* ANSI_CHARSET */
 	{ 1253 , "CP1253" , } ,		/* GREEK_CHARSET */
 	{ 1254 , "CP1254" , } ,		/* TURKISH_CHARSET */
-	{ 1257 , "CP1257" , } ,		/* BALTIC_CHARSET */
 	{ 1255 , "CP1255" , } ,		/* HEBREW_CHARSET */
 	{ 1256 , "CP1256" , } ,		/* ARABIC_CHARSET */
+	{ 1257 , "CP1257" , } ,		/* BALTIC_CHARSET */
+	{ 1258 , "CP1258" , } ,		/* VIETNAMESE_CHARSET */
+	{ 874 , "ISO8859-11" , } ,	/* THAI_CHARSET XXX CP874 is extended from ISO8859-11 */
 	{ 932 ,	"SJIS" , } ,		/* SHIFTJIS_CHARSET */
+	{ 936 ,	"GBK" , } ,		/* GB2313_CHARSET */
 	{ 949 ,	"UHC" , } ,		/* HANGEUL_CHARSET */
-	{ 936 ,	"EUCCN" , } ,		/* GB2313_CHARSET */
 	{ 950 ,	"BIG5" , } ,		/* CHINESEBIG5_CHARSET */
 } ;
 

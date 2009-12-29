@@ -55,3 +55,52 @@ mkf_map_uhc_to_johab(
 	
 	return  0 ;
 }
+
+#ifdef  __DEBUG
+int
+main(void)
+{
+	mkf_char_t  src ;
+	mkf_char_t  dst ;
+
+	src.size = 2 ;
+	src.cs = JOHAB ;
+	for( src.ch[0] = 0x80 ; src.ch[0] <= 0xdf ; src.ch[0]++)
+	{
+		int  i ;
+		for( i = 0 ; i < 0xff ; i++)
+		{
+			src.ch[1] = i ;
+			
+			if( ! mkf_map_johab_to_uhc( &dst , &src))
+			{
+				dst.ch[0] = '\0' ;
+				dst.ch[1] = '\0' ;
+			}
+
+			printf( "JOHAB %.2x%.2x => UHC %.2x%.2x\n" ,
+				src.ch[0] , src.ch[1] , dst.ch[0] , dst.ch[1]) ;
+		}
+	}
+	
+	src.cs = UHC ;
+	for( src.ch[0] = 0xb0 ; src.ch[0] <= 0xc8 ; src.ch[0]++)
+	{
+		int  i ;
+		for( i = 0 ; i < 0xff ; i++)
+		{
+			src.ch[1] = i ;
+			src.cs = JOHAB ;
+			
+			if( ! mkf_map_uhc_to_johab( &dst , &src))
+			{
+				dst.ch[0] = '\0' ;
+				dst.ch[1] = '\0' ;
+			}
+
+			printf( "UHC %.2x%.2x => JOHAB %.2x%.2x\n" ,
+				src.ch[0] , src.ch[1] , dst.ch[0] , dst.ch[1]) ;
+		}
+	}
+}
+#endif

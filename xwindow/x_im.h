@@ -62,7 +62,7 @@ typedef struct x_im_export_syms
 			    mkf_charset_t  cs , int , int , ml_color_t ,
 			    ml_color_t , int , int) ;
 	char * (*ml_get_char_encoding_name)( ml_char_encoding_t) ;
-	int (*ml_get_char_encoding)( char *) ;
+	ml_char_encoding_t (*ml_get_char_encoding)( char *) ;
 	int (*ml_is_msb_set)( mkf_charset_t  cs) ;
 	ml_iscii_keymap_t (*ml_iscii_keymap_new)( int) ;
 	int (*ml_iscii_keymap_delete)( ml_iscii_keymap_t) ;
@@ -122,7 +122,7 @@ void  x_im_redraw_preedit( x_im_t *  im , int  is_focused) ;
 
 #define  IM_API_VERSION  0x08
 #define  IM_API_COMPAT_CHECK_MAGIC			\
-	 ((IM_API_VERSION & 0xff << 28) |		\
+	 ((IM_API_VERSION & 0xf << 28) |		\
 	 ((sizeof( x_im_t) & 0xff) << 20) |		\
 	 ((sizeof( x_im_export_syms_t) & 0xff) << 12) |	\
 	 (sizeof( x_im_candidate_screen_t) & 0xfff))

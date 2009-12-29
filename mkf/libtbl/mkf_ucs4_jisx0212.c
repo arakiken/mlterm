@@ -4,10 +4,9 @@
 
 #include  "../lib/mkf_ucs4_jisx0212.h"
 
-#include  "table/mkf_ucs4_alphabet_to_jisx0212_1990.table"
-#include  "table/mkf_ucs4_cjk_to_jisx0212_1990.table"
-
 #include  "table/mkf_jisx0212_1990_to_ucs4.table"
+
+#include  "table/mkf_ucs4_to_jisx0212_1990.table"
 
 
 /* --- global functions --- */
@@ -41,8 +40,7 @@ mkf_map_ucs4_to_jisx0212_1990(
 {
 	u_int16_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_JISX0212_1990(ucs4_code)) ||
-		( c = CONV_UCS4_CJK_TO_JISX0212_1990(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_JISX0212_1990(ucs4_code)))
 	{
 		mkf_int_to_bytes( jis->ch , 2 , c) ;
 		jis->size = 2 ;

@@ -9,9 +9,7 @@
 #include  "table/mkf_jisx0208_necibm_ext_to_ucs4.table"
 #include  "table/mkf_sjis_ibm_ext_to_ucs4.table"
 
-#include  "table/mkf_ucs4_alphabet_to_jisx0208_1983.table"
-#include  "table/mkf_ucs4_cjk_to_jisx0208_1983.table"
-#include  "table/mkf_ucs4_compat_to_jisx0208_1983.table"
+#include  "table/mkf_ucs4_to_jisx0208_1983.table"
 
 
 /* --- global functions --- */
@@ -108,9 +106,7 @@ mkf_map_ucs4_to_jisx0208_1983(
 {
 	u_int16_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_JISX0208_1983(ucs4_code)) ||
-		( c = CONV_UCS4_CJK_TO_JISX0208_1983(ucs4_code)) ||
-		( c = CONV_UCS4_COMPAT_TO_JISX0208_1983(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_JISX0208_1983(ucs4_code)))
 	{
 		mkf_int_to_bytes( non_ucs->ch , 2 , c) ;
 		non_ucs->size = 2 ;

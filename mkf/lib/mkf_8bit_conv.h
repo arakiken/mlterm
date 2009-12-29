@@ -17,9 +17,23 @@ mkf_conv_t *  mkf_koi8_t_conv_new(void) ;
 
 mkf_conv_t *  mkf_georgian_ps_conv_new(void) ;
 
+mkf_conv_t *  mkf_cp1250_conv_new(void) ;
+
 mkf_conv_t *  mkf_cp1251_conv_new(void) ;
 
+mkf_conv_t *  mkf_cp1252_conv_new(void) ;
+
+mkf_conv_t *  mkf_cp1253_conv_new(void) ;
+
+mkf_conv_t *  mkf_cp1254_conv_new(void) ;
+
 mkf_conv_t *  mkf_cp1255_conv_new(void) ;
+
+mkf_conv_t *  mkf_cp1256_conv_new(void) ;
+
+mkf_conv_t *  mkf_cp1257_conv_new(void) ;
+
+mkf_conv_t *  mkf_cp1258_conv_new(void) ;
 
 
 #endif

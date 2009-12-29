@@ -1,3 +1,25 @@
+2009-12-30  Araki Ken  <arakiken@users.sf.net>
+
+	* CP1250,CP1252,CP1253,CP1254,CP1256,CP1257,CP1259 related codes are
+	  added to mkf. (Binary compatibility is broken.)
+
+	* 'daemon_mode = genuine' is rejected (only 'blend' is accepted) in win32.
+
+	* mkf_utf16_{parser|conv}.c: Processing surrogate pair is fixed.
+
+	* x_draw_str.c: convert_ucs4_to_utf16 which is used to convert
+	  ucs4 code to XChar2b(Xlib) or WCHAR(win32) is added.
+
+	* ucs property table(mkf): Updated and data structure is changed.
+	  mkf/libtbl/mkf_ucs_property.c,table/mkf_ucs_*_property.table
+	  (which becomes libmkf_ucsprop.la) are removed and
+	  mkf/lib/table/mkf_ucs_property.table(statically linked to libmkf.la)
+	  is added.
+
+	* mkf/libtbl/table/mkf_*.table: Shrunk.
+
+	* mkf/table: Scripts which generates mkf tables are added.
+
 2009-12-11  Araki Kena  <arakiken@users.sf.net>
 
 	* mkf_tblfunc_loader.h: 'kik_dl_open( "" , libname)' is added to

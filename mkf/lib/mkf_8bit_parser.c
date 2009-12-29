@@ -89,6 +89,15 @@ georgian_ps_parser_next_char(
 }
 
 static int
+cp1250_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , CP1250) ;
+}
+
+static int
 cp1251_parser_next_char(
 	mkf_parser_t *  parser ,
 	mkf_char_t *  ch
@@ -98,12 +107,66 @@ cp1251_parser_next_char(
 }
 
 static int
+cp1252_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , CP1252) ;
+}
+
+static int
+cp1253_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , CP1253) ;
+}
+
+static int
+cp1254_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , CP1254) ;
+}
+
+static int
 cp1255_parser_next_char(
 	mkf_parser_t *  parser ,
 	mkf_char_t *  ch
 	)
 {
 	return  parser_next_char_intern( parser , ch , CP1255) ;
+}
+
+static int
+cp1256_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , CP1256) ;
+}
+
+static int
+cp1257_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , CP1257) ;
+}
+
+static int
+cp1258_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , CP1258) ;
 }
 
 static void
@@ -211,6 +274,26 @@ mkf_georgian_ps_parser_new(void)
 }
 
 mkf_parser_t *
+mkf_cp1250_parser_new(void)
+{
+	mkf_parser_t *  parser ;
+	
+	if( ( parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( parser) ;
+
+	parser->init = mkf_parser_init ;
+	parser->next_char = cp1250_parser_next_char ;
+	parser->set_str = parser_set_str ;
+	parser->delete = parser_delete ;
+
+	return  parser ;
+}
+
+mkf_parser_t *
 mkf_cp1251_parser_new(void)
 {
 	mkf_parser_t *  parser ;
@@ -231,6 +314,66 @@ mkf_cp1251_parser_new(void)
 }
 
 mkf_parser_t *
+mkf_cp1252_parser_new(void)
+{
+	mkf_parser_t *  parser ;
+	
+	if( ( parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( parser) ;
+
+	parser->init = mkf_parser_init ;
+	parser->next_char = cp1252_parser_next_char ;
+	parser->set_str = parser_set_str ;
+	parser->delete = parser_delete ;
+
+	return  parser ;
+}
+
+mkf_parser_t *
+mkf_cp1253_parser_new(void)
+{
+	mkf_parser_t *  parser ;
+	
+	if( ( parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( parser) ;
+
+	parser->init = mkf_parser_init ;
+	parser->next_char = cp1253_parser_next_char ;
+	parser->set_str = parser_set_str ;
+	parser->delete = parser_delete ;
+
+	return  parser ;
+}
+
+mkf_parser_t *
+mkf_cp1254_parser_new(void)
+{
+	mkf_parser_t *  parser ;
+	
+	if( ( parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( parser) ;
+
+	parser->init = mkf_parser_init ;
+	parser->next_char = cp1254_parser_next_char ;
+	parser->set_str = parser_set_str ;
+	parser->delete = parser_delete ;
+
+	return  parser ;
+}
+
+mkf_parser_t *
 mkf_cp1255_parser_new(void)
 {
 	mkf_parser_t *  parser ;
@@ -244,6 +387,66 @@ mkf_cp1255_parser_new(void)
 
 	parser->init = mkf_parser_init ;
 	parser->next_char = cp1255_parser_next_char ;
+	parser->set_str = parser_set_str ;
+	parser->delete = parser_delete ;
+
+	return  parser ;
+}
+
+mkf_parser_t *
+mkf_cp1256_parser_new(void)
+{
+	mkf_parser_t *  parser ;
+	
+	if( ( parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( parser) ;
+
+	parser->init = mkf_parser_init ;
+	parser->next_char = cp1256_parser_next_char ;
+	parser->set_str = parser_set_str ;
+	parser->delete = parser_delete ;
+
+	return  parser ;
+}
+
+mkf_parser_t *
+mkf_cp1257_parser_new(void)
+{
+	mkf_parser_t *  parser ;
+	
+	if( ( parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( parser) ;
+
+	parser->init = mkf_parser_init ;
+	parser->next_char = cp1257_parser_next_char ;
+	parser->set_str = parser_set_str ;
+	parser->delete = parser_delete ;
+
+	return  parser ;
+}
+
+mkf_parser_t *
+mkf_cp1258_parser_new(void)
+{
+	mkf_parser_t *  parser ;
+	
+	if( ( parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( parser) ;
+
+	parser->init = mkf_parser_init ;
+	parser->next_char = cp1258_parser_next_char ;
 	parser->set_str = parser_set_str ;
 	parser->delete = parser_delete ;
 

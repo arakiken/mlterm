@@ -157,7 +157,7 @@ utf16_parser_next_char(
 					(ch2[0] - 0xdc) * 0x100 + ch2[1] ) + 0x10000 ;
 
 		#ifdef  DEBUG
-			if( ucs4 < 0x10000 || 0x1fffff < ucs4)
+			if( ucs4 < 0x10000 || 0x10ffff < ucs4)
 			{
 				kik_warn_printf( KIK_DEBUG_TAG " illegal UTF-16 surrogate-pair format.\n") ;
 

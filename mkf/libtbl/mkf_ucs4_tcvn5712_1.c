@@ -4,7 +4,7 @@
 
 #include "../lib/mkf_ucs4_tcvn5712_1.h"
 
-#include  "table/mkf_ucs4_alphabet_to_tcvn5712_1993.table"
+#include  "table/mkf_ucs4_to_tcvn5712_1993.table"
 #include  "table/mkf_tcvn5712_1993_to_ucs4.table"
 
 
@@ -22,7 +22,7 @@ mkf_map_ucs4_to_tcvn5712_1_1993(
 {
 	u_int8_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_TCVN5712_1993(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_TCVN5712_1993(ucs4_code)))
 	{
 		non_ucs->ch[0] = c ;
 	}

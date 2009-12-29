@@ -15,13 +15,13 @@
 #include  "table/mkf_iso8859_14_r_to_ucs4.table"
 #include  "table/mkf_iso8859_16_r_to_ucs4.table"
 
-#include  "table/mkf_ucs4_alphabet_to_iso8859_2_r.table"
-#include  "table/mkf_ucs4_alphabet_to_iso8859_3_r.table"
-#include  "table/mkf_ucs4_alphabet_to_iso8859_4_r.table"
-#include  "table/mkf_ucs4_alphabet_to_iso8859_10_r.table"
-#include  "table/mkf_ucs4_alphabet_to_iso8859_13_r.table"
-#include  "table/mkf_ucs4_alphabet_to_iso8859_14_r.table"
-#include  "table/mkf_ucs4_alphabet_to_iso8859_16_r.table"
+#include  "table/mkf_ucs4_to_iso8859_2_r.table"
+#include  "table/mkf_ucs4_to_iso8859_3_r.table"
+#include  "table/mkf_ucs4_to_iso8859_4_r.table"
+#include  "table/mkf_ucs4_to_iso8859_10_r.table"
+#include  "table/mkf_ucs4_to_iso8859_13_r.table"
+#include  "table/mkf_ucs4_to_iso8859_14_r.table"
+#include  "table/mkf_ucs4_to_iso8859_16_r.table"
 
 #include  "../lib/mkf_ucs4_tcvn5712_1.h"
 
@@ -96,7 +96,7 @@ mkf_map_ucs4_to_iso8859_2_r(
 {
 	u_int8_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_2_R(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_ISO8859_2_R(ucs4_code)))
 	{
 		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
@@ -117,7 +117,7 @@ mkf_map_ucs4_to_iso8859_3_r(
 {
 	u_int8_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_3_R(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_ISO8859_3_R(ucs4_code)))
 	{
 		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
@@ -138,7 +138,7 @@ mkf_map_ucs4_to_iso8859_4_r(
 {
 	u_int8_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_4_R(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_ISO8859_4_R(ucs4_code)))
 	{
 		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
@@ -319,7 +319,7 @@ mkf_map_ucs4_to_iso8859_10_r(
 {
 	u_int8_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_10_R(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_ISO8859_10_R(ucs4_code)))
 	{
 		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
@@ -372,7 +372,7 @@ mkf_map_ucs4_to_iso8859_13_r(
 {
 	u_int8_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_13_R(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_ISO8859_13_R(ucs4_code)))
 	{
 		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
@@ -393,7 +393,7 @@ mkf_map_ucs4_to_iso8859_14_r(
 {
 	u_int8_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_14_R(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_ISO8859_14_R(ucs4_code)))
 	{
 		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;
@@ -460,7 +460,7 @@ mkf_map_ucs4_to_iso8859_16_r(
 {
 	u_int8_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_ISO8859_16_R(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_ISO8859_16_R(ucs4_code)))
 	{
 		non_ucs->ch[0] = c - 0x80 ;
 		non_ucs->size = 1 ;

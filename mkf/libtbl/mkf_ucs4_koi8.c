@@ -7,11 +7,11 @@
 #include  "table/mkf_koi8_r_to_ucs4.table"
 #if  0
 /* Not implemented yet */
-#include  "table/mkf_ucs4_alphabet_to_koi8_r.table"
+#include  "table/mkf_ucs4_to_koi8_r.table"
 #endif
 
 #include  "table/mkf_koi8_t_to_ucs4.table"
-#include  "table/mkf_ucs4_alphabet_to_koi8_t.table"
+#include  "table/mkf_ucs4_to_koi8_t.table"
 
 
 /* --- global functions --- */
@@ -212,7 +212,7 @@ mkf_map_ucs4_to_koi8_t(
 {
 	u_int8_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_KOI8_T(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_KOI8_T(ucs4_code)))
 	{
 		non_ucs->ch[0] = c ;
 		non_ucs->size = 1 ;

@@ -1,6 +1,9 @@
 /*
  *	mkf_jisx0208_nec_ext_to_ucs4.table
- *	-- Not automatically generated, maintained by hand.
+ *
+ *	!! Notice !!
+ *	Don't do REMOVE_MAPPING_TABLE because sjis_ibm_ext_to_ucs4_table array
+ *	is accessed directly.
  */
 
 #ifndef  __MKF_JISX0208_NEC_EXT_TO_UCS4_TABLE__

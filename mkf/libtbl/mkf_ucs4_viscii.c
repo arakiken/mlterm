@@ -4,7 +4,7 @@
 
 #include  "../lib/mkf_ucs4_viscii.h"
 
-#include  "table/mkf_ucs4_alphabet_to_viscii.table"
+#include  "table/mkf_ucs4_to_viscii.table"
 #include  "table/mkf_viscii_to_ucs4.table"
 
 
@@ -51,7 +51,7 @@ mkf_map_ucs4_to_viscii(
 {
 	u_int8_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_VISCII(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_VISCII(ucs4_code)))
 	{
 		non_ucs->ch[0] = c ;
 		non_ucs->size = 1 ;

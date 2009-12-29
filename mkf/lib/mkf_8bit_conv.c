@@ -155,6 +155,17 @@ convert_to_georgian_ps(
 }
 
 static size_t
+convert_to_cp1250(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_intern( conv , dst , dst_size , parser , CP1250) ;
+}
+
+static size_t
 convert_to_cp1251(
 	mkf_conv_t *  conv ,
 	u_char *  dst ,
@@ -166,6 +177,39 @@ convert_to_cp1251(
 }
 
 static size_t
+convert_to_cp1252(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_intern( conv , dst , dst_size , parser , CP1252) ;
+}
+
+static size_t
+convert_to_cp1253(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_intern( conv , dst , dst_size , parser , CP1253) ;
+}
+
+static size_t
+convert_to_cp1254(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_intern( conv , dst , dst_size , parser , CP1254) ;
+}
+
+static size_t
 convert_to_cp1255(
 	mkf_conv_t *  conv ,
 	u_char *  dst ,
@@ -174,6 +218,39 @@ convert_to_cp1255(
 	)
 {
 	return  convert_to_intern( conv , dst , dst_size , parser , CP1255) ;
+}
+
+static size_t
+convert_to_cp1256(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_intern( conv , dst , dst_size , parser , CP1256) ;
+}
+
+static size_t
+convert_to_cp1257(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_intern( conv , dst , dst_size , parser , CP1257) ;
+}
+
+static size_t
+convert_to_cp1258(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_intern( conv , dst , dst_size , parser , CP1258) ;
 }
 
 static void
@@ -267,6 +344,24 @@ mkf_georgian_ps_conv_new(void)
 }
 
 mkf_conv_t *
+mkf_cp1250_conv_new(void)
+{
+	mkf_conv_t *  conv ;
+
+	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	conv->convert = convert_to_cp1250 ;
+	conv->init = conv_init ;
+	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
+
+	return  conv ;
+}
+
+mkf_conv_t *
 mkf_cp1251_conv_new(void)
 {
 	mkf_conv_t *  conv ;
@@ -285,6 +380,60 @@ mkf_cp1251_conv_new(void)
 }
 
 mkf_conv_t *
+mkf_cp1252_conv_new(void)
+{
+	mkf_conv_t *  conv ;
+
+	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	conv->convert = convert_to_cp1252 ;
+	conv->init = conv_init ;
+	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
+
+	return  conv ;
+}
+
+mkf_conv_t *
+mkf_cp1253_conv_new(void)
+{
+	mkf_conv_t *  conv ;
+
+	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	conv->convert = convert_to_cp1253 ;
+	conv->init = conv_init ;
+	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
+
+	return  conv ;
+}
+
+mkf_conv_t *
+mkf_cp1254_conv_new(void)
+{
+	mkf_conv_t *  conv ;
+
+	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	conv->convert = convert_to_cp1254 ;
+	conv->init = conv_init ;
+	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
+
+	return  conv ;
+}
+
+mkf_conv_t *
 mkf_cp1255_conv_new(void)
 {
 	mkf_conv_t *  conv ;
@@ -295,6 +444,60 @@ mkf_cp1255_conv_new(void)
 	}
 
 	conv->convert = convert_to_cp1255 ;
+	conv->init = conv_init ;
+	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
+
+	return  conv ;
+}
+
+mkf_conv_t *
+mkf_cp1256_conv_new(void)
+{
+	mkf_conv_t *  conv ;
+
+	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	conv->convert = convert_to_cp1256 ;
+	conv->init = conv_init ;
+	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
+
+	return  conv ;
+}
+
+mkf_conv_t *
+mkf_cp1257_conv_new(void)
+{
+	mkf_conv_t *  conv ;
+
+	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	conv->convert = convert_to_cp1257 ;
+	conv->init = conv_init ;
+	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
+
+	return  conv ;
+}
+
+mkf_conv_t *
+mkf_cp1258_conv_new(void)
+{
+	mkf_conv_t *  conv ;
+
+	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	conv->convert = convert_to_cp1258 ;
 	conv->init = conv_init ;
 	conv->delete = conv_delete ;
 	conv->illegal_char = NULL ;

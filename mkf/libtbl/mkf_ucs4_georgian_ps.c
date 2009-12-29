@@ -5,7 +5,7 @@
 #include  "../lib/mkf_ucs4_georgian_ps.h"
 
 #include  "table/mkf_georgian_ps_to_ucs4.table"
-#include  "table/mkf_ucs4_alphabet_to_georgian_ps.table"
+#include  "table/mkf_ucs4_to_georgian_ps.table"
 
 
 /* --- global functions --- */
@@ -51,7 +51,7 @@ mkf_map_ucs4_to_georgian_ps(
 {
 	u_int8_t  c ;
 
-	if( ( c = CONV_UCS4_ALPHABET_TO_GEORGIAN_PS(ucs4_code)))
+	if( ( c = CONV_UCS4_TO_GEORGIAN_PS(ucs4_code)))
 	{
 		non_ucs->ch[0] = c ;
 		non_ucs->size = 1 ;

@@ -133,12 +133,15 @@ typedef enum  mkf_charset
 	ISCII = 0xe4 ,
 	KOI8_T = 0xe5 ,			/* Excluding US_ASCII(0x0-0x7f) */
 	GEORGIAN_PS = 0xe6 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	CP1251 = 0xe7 ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1255 = 0xe8 ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1253 = 0xe9 ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1254 = 0xea ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1256 = 0xeb ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1257 = 0xec ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1250 = 0xe7 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1251 = 0xe8 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1252 = 0xe9 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1253 = 0xea ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1254 = 0xeb ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1255 = 0xec ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1256 = 0xed ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1257 = 0xee ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1258 = 0xef ,			/* Excluding US_ASCII(0x0-0x7f) */
 
 	/*
 	 * Those who are not ISO2022 registed characterset but confirm to ISO2022.
