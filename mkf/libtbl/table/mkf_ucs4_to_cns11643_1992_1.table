@@ -25066,6 +25066,7 @@ static u_int32_t  ucs4_to_cns11643_1992_1_end = 0xffe5 ;
 static ucs4_to_cns11643_1992_1_table_t ucs4_to_cns11643_1992_1_tables[] =
 {
 	{ ucs4_to_cns11643_1992_1_table_0 , &ucs4_to_cns11643_1992_1_range_0 } ,
+	{ NULL , NULL , } ,
 	{ ucs4_to_cns11643_1992_1_table_2 , &ucs4_to_cns11643_1992_1_range_2 } ,
 	{ ucs4_to_cns11643_1992_1_table_3 , &ucs4_to_cns11643_1992_1_range_3 } ,
 	{ NULL , NULL , } ,

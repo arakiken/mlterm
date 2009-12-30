@@ -149,11 +149,11 @@ EOF
 
 	print TO  "static u_int${bits}_t  ${fromcs}_to_${tocs}_table[] = \n{" ;
 
-	my $code = 0 ;
+	my $code = -1 ;
 	my $start = 0 ;
 	foreach $key ( sort {$a <=> $b} keys %$hash)
 	{
-		if( $code == 0)
+		if( $code == -1)
 		{
 			$start = $code = $key ;
 		}
@@ -258,7 +258,7 @@ typedef struct ${fromcs}_to_${tocs}_table
 EOF
 
 	my @indexes ;
-	my $code = 0 ;
+	my $code = -1 ;
 	my $start = 0 ;
 	my $_start = 0 ;
 	my $hi_code = 0 ;
@@ -266,7 +266,7 @@ EOF
 	{
 		my $next_hi_code = ($key >> 8) & 0xff ;
 		
-		if( $code == 0)
+		if( $code == -1)
 		{
 			$_start = $start = $code = $key ;
 			$hi_code = $next_hi_code ;
@@ -331,11 +331,11 @@ EOF
 	printf TO  "static u_int32_t  ${fromcs}_to_${tocs}_beg = 0x%x ;\n\n" , $start ;
 	printf TO  "static u_int32_t  ${fromcs}_to_${tocs}_end = 0x%x ;\n\n" , $code - 1 ;
 
-	my $prev_idx = 0 ;
+	my $prev_idx = -1 ;
 	print TO "static ${fromcs}_to_${tocs}_table_t ${fromcs}_to_${tocs}_tables[] =\n{\n" ;
 	foreach my $idx (@indexes)
 	{
-		if( $prev_idx == 0)
+		if( $prev_idx == -1)
 		{
 			$prev_idx = $idx ;
 		}

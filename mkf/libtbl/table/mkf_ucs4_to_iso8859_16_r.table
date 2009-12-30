@@ -519,7 +519,7 @@ static ucs4_to_iso8859_16_r_table_t ucs4_to_iso8859_16_r_tables[] =
 	{ ucs4_to_iso8859_16_r_table_20 , &ucs4_to_iso8859_16_r_range_20 } ,
 } ;
 
-/* Assume 'i' is UCS4(32bit) */
+/* 'i' is UCS4(32bit) */
 #define  HI(i)  ( ((i)>>8) & 0xffffff )
 #define  LO(i)  ( (i) & 0xff )
 

@@ -25691,6 +25691,7 @@ static u_int32_t  ucs4_to_big5_end = 0xffe5 ;
 static ucs4_to_big5_table_t ucs4_to_big5_tables[] =
 {
 	{ ucs4_to_big5_table_0 , &ucs4_to_big5_range_0 } ,
+	{ NULL , NULL , } ,
 	{ ucs4_to_big5_table_2 , &ucs4_to_big5_range_2 } ,
 	{ ucs4_to_big5_table_3 , &ucs4_to_big5_range_3 } ,
 	{ NULL , NULL , } ,

@@ -2841,7 +2841,7 @@ ml_parse_vt100_sequence(
 					/* convert ucs4 to appropriate charset */
 
 					mkf_char_t  non_ucs ;
-                                
+
 					if( mkf_map_locale_ucs4_to( &non_ucs , &ch) == 0)
 					{
 					#ifdef  DEBUG

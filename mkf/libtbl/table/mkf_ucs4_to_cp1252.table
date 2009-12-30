@@ -495,7 +495,7 @@ static ucs4_to_cp1252_table_t ucs4_to_cp1252_tables[] =
 	{ ucs4_to_cp1252_table_21 , &ucs4_to_cp1252_range_21 } ,
 } ;
 
-/* Assume 'i' is UCS4(32bit) */
+/* 'i' is UCS4(32bit) */
 #define  HI(i)  ( ((i)>>8) & 0xffffff )
 #define  LO(i)  ( (i) & 0xff )
 

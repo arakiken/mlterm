@@ -431,6 +431,9 @@ static u_int32_t  ucs4_to_koi8_t_end = 0x2122 ;
 static ucs4_to_koi8_t_table_t ucs4_to_koi8_t_tables[] =
 {
 	{ ucs4_to_koi8_t_table_0 , &ucs4_to_koi8_t_range_0 } ,
+	{ NULL , NULL , } ,
+	{ NULL , NULL , } ,
+	{ NULL , NULL , } ,
 	{ ucs4_to_koi8_t_table_4 , &ucs4_to_koi8_t_range_4 } ,
 	{ NULL , NULL , } ,
 	{ NULL , NULL , } ,

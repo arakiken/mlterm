@@ -894,8 +894,14 @@ xcore_draw_str(
 
 			if( comb_chars)
 			{
-				xcore_draw_combining_chars( window , font_man , color_man , comb_chars , comb_size ,
-					current_width - ch_width , y + height_to_baseline) ;
+				xcore_draw_combining_chars( window , font_man , color_man ,
+					comb_chars , comb_size ,
+				#if  0
+					current_width ,	/* Thai comb chars needs this in win32. */
+				#else
+					current_width - ch_width ,
+				#endif
+					y + height_to_baseline) ;
 			}
 
 			if( is_underlined)

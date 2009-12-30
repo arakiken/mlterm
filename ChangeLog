@@ -1,3 +1,10 @@
+2009-12-31  Araki Ken  <arakiken@users.sf.net>
+
+	* output_separated() in ucs_mappings.pm: The way of outputting
+	  "static ${fromcs}_to_${tocs}_table_t ${fromcs}_to_${tocs}_tables[]"
+	  is fixed. According to this, some mkf/libtbl/table/mkf_*.table's are
+	  also fixed.
+
 2009-12-30  Araki Ken  <arakiken@users.sf.net>
 
 	* CP1250,CP1252,CP1253,CP1254,CP1256,CP1257,CP1259 related codes are
