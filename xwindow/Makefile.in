@@ -79,8 +79,8 @@ $(PROG): $(OBJ) $(LMLTERM)
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-winres.o: winres.rs
-	windres @KIK_CFLAGS@ @GUI_CFLAGS@ $< winres.o
+winrs.o: winrs.rs
+	windres @KIK_CFLAGS@ @GUI_CFLAGS@ $< winrs.o
 	
 $(BINDIR):
 	mkdir -p $(BINDIR)

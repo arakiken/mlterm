@@ -1,5 +1,7 @@
 2009-12-31  Araki Ken  <arakiken@users.sf.net>
 
+	* xwindow/Makefile.in: 'winres' is renamed to 'winrs'.
+
 	* output_separated() in ucs_mappings.pm: The way of outputting
 	  "static ${fromcs}_to_${tocs}_table_t ${fromcs}_to_${tocs}_tables[]"
 	  is fixed. According to this, some mkf/libtbl/table/mkf_*.table's are
