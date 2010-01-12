@@ -34,8 +34,15 @@ static char *  aafont_file = "mlterm/aafont" ;
 static char *  vaafont_file = "mlterm/vaafont_file" ;
 static char *  taafont_file = "mlterm/taafont_file" ;
 
+/*
+ * If this table is changed, x_font.c:cs_info_table and mc_font.c:cs_info_table
+ * shoule be also changed.
+ */
 static cs_table_t  cs_table[] =
 {
+	{ "ISO10646_UCS4_1" , ISO10646_UCS4_1 } ,
+	{ "ISO10646_UCS2_1" , ISO10646_UCS2_1 } ,
+
 	{ "DEC_SPECIAL" , DEC_SPECIAL } ,
 	{ "ISO8859_1" , ISO8859_1_R } ,
 	{ "ISO8859_2" , ISO8859_2_R } ,
@@ -57,6 +64,24 @@ static cs_table_t  cs_table[] =
 	{ "VISCII" , VISCII } ,
 	{ "KOI8_R" , KOI8_R } ,
 	{ "KOI8_U" , KOI8_U } ,
+#if  0
+	/*
+	 * Koi8_t and georgian_ps charsets can be shown by unicode font only.
+	 */
+	{ "KOI8_T" , KOI8_T } ,
+	{ "GEORGIAN_PS" , GEORGIAN_PS } ,
+#endif
+#ifdef  USE_WIN32GUI
+	{ "CP1250" , CP1250 } ,
+	{ "CP1251" , CP1251 } ,
+	{ "CP1252" , CP1252 } ,
+	{ "CP1253" , CP1253 } ,
+	{ "CP1254" , CP1254 } ,
+	{ "CP1255" , CP1255 } ,
+	{ "CP1256" , CP1256 } ,
+	{ "CP1257" , CP1257 } ,
+	{ "CP1258" , CP1258 } ,
+#endif
 	{ "JISX0201_KATA" , JISX0201_KATA } ,
 	{ "JISX0201_ROMAN" , JISX0201_ROMAN } ,
 	{ "JISX0208_1978" , JISC6226_1978 } ,
@@ -68,8 +93,15 @@ static cs_table_t  cs_table[] =
 	{ "JISX0213_2000_2" , JISX0213_2000_2 } ,
 	{ "KSC5601_1987" , KSC5601_1987 } ,
 	{ "KSX1001_1997" , KSC5601_1987 } ,
+#if  0
+	/*
+	 * XXX
+	 * UHC and JOHAB fonts are not used at the present time.
+	 * see ml_vt100_parser.c:ml_parse_vt100_sequence().
+	 */
 	{ "UHC" , UHC } ,
 	{ "JOHAB" , JOHAB } ,
+#endif
 	{ "GB2312_80" , GB2312_80 } ,
 	{ "GBK" , GBK } ,
 	{ "BIG5" , BIG5 } ,
@@ -81,8 +113,6 @@ static cs_table_t  cs_table[] =
 	{ "CNS11643_1992_5" , CNS11643_1992_5 } ,
 	{ "CNS11643_1992_6" , CNS11643_1992_6 } ,
 	{ "CNS11643_1992_7" , CNS11643_1992_7 } ,
-	{ "ISO10646_UCS2_1" , ISO10646_UCS4_1 } ,
-	{ "ISO10646_UCS4_1" , ISO10646_UCS4_1 } ,
 
 } ;
 
@@ -223,8 +253,8 @@ parse_entry(
 	*font_name = entry ;
 	
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " setting font [font %x size %d name %s]\n" ,
-		font , font_size , font_name) ;
+	kik_debug_printf( KIK_DEBUG_TAG " setting font [size %d name %s]\n" ,
+		*font_size , *font_name) ;
 #endif
 
 	return  1 ;
@@ -591,11 +621,13 @@ x_acquire_font_config(
 	}
 	else
 	{
+	#ifndef  USE_WIN32GUI
 		if( font_present & FONT_AA)
 		{
 			return  NULL ;
 		}
 		else
+	#endif
 		{
 			switch( font_present)
 			{

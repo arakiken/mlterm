@@ -1,3 +1,35 @@
+2010-01-13  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window_win32.c: US_ASCII characters in utf8 encoding are shown
+	  as unicode. (They are converted to UTF16 in x_window_draw_{image_}string.)
+
+	* button_motin in x_scrollbar.c: A bug in button_motion() which leaves
+	  garbage in scrollbar area if you grab and move scrollbar is fixed.
+
+	* x_display_win32.c, x_window_win32.c, x_xic_win32.c, x_win32.h:
+	  Characters are received as UTF16 by WM_IME_CHAR message if UTF16_IME_CHAR
+	  macro (which is defined by default) is defined.
+
+	* x_screen.c: Memory leak of font_name in get_font_config() is fixed.
+
+	* x_font_win32.c: Double drawing method is used by default to draw
+	  bold characters.
+
+	* parse_{xft_}font_name() in x_font{_win32}.c: "Oblique", "Light",
+	  "Semi-bold", "Heavy" and "Semi-condensed" are acceptable in
+	  Xft and win32 font name.
+
+	* mlconfig/mc_font.c:
+	  If font size is changed, new_fontname_list is reset.
+	  If font name of selected charset is empty and "select" button is
+	  pressed, default font name in font selection dialog is set by
+	  selected font size and charset.
+
+	* x_font_manager.c: usascii_font_cs_table follows ml_char_encoding_t
+	  in ml_char_encoding.h.
+
+	* README.sb: Updated.
+
 2009-12-31  Araki Ken  <arakiken@users.sf.net>
 
 	* xwindow/Makefile.in: 'winres' is renamed to 'winrs'.

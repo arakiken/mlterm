@@ -4451,23 +4451,29 @@ get_font_config(
 		goto  error ;
 	}
 
-	if( ! ( font_name = x_get_config_font_name2( file , font_size , cs)))
-	{
-		font_name = "" ;
-	}
+	font_name = x_get_config_font_name2( file , font_size , cs) ;
 
 	ml_term_write( screen->term , "#" , 1 , to_menu) ;
 	ml_term_write( screen->term , cs , strlen( cs) , to_menu) ;
 	ml_term_write( screen->term , "," , 1 , to_menu) ;
 	ml_term_write( screen->term , font_size_str , strlen( font_size_str) , to_menu) ;
 	ml_term_write( screen->term , "=" , 1 , to_menu) ;
-	ml_term_write( screen->term , font_name , strlen( font_name) , to_menu) ;
+	if( font_name)
+	{
+		ml_term_write( screen->term , font_name , strlen( font_name) , to_menu) ;
+	}
+	else
+	{
+		ml_term_write( screen->term , "" , 1 , to_menu) ;
+	}
 	ml_term_write( screen->term , "\n" , 1 , to_menu) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " #%s,%s=%s (%s)\n" , cs , font_size_str , font_name ,
 		to_menu ? "to menu" : "to pty") ;
 #endif
+
+	free( font_name) ;
 
 	return ;
 

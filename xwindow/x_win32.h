@@ -305,4 +305,10 @@ typedef struct
 /* Same as definition in X11/cursorfont.h */
 #define XC_xterm 152
 
+#if  1
+/* Use xxxxW functions for RegisterClass etc. */
+#define  UTF16_IME_CHAR
+#endif
+
+
 #endif

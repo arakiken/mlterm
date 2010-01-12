@@ -801,6 +801,7 @@ text_out(
 {
 	if( cs == ISO10646_UCS4_1)
 	{
+		/* TextOutW is supported in windows 9x. */
 		return  TextOutW( gc , x , y , (WCHAR*)str , len / 2) ;
 	} 
 	else
@@ -816,7 +817,8 @@ draw_string(
 	int  x ,
 	int  y ,
 	u_char *  str ,
-	u_int  len
+	u_int  len ,
+	int  is_tp
 	)
 {
 	u_char *  str2 ;
@@ -842,14 +844,27 @@ draw_string(
 		}
 	}
 
+	if( is_tp)
+	{
+		SetBkMode( win->gc->gc , TRANSPARENT) ;
+	}
+
 	text_out( win->gc->gc, x + (font->is_var_col_width ? 0 : font->x_off) + win->margin,
 		y + win->margin, str, len , FONT_CS(font->id)) ;
 	
 	if( font->is_double_drawing)
 	{
+		SetBkMode( win->gc->gc , TRANSPARENT) ;
+		
 		text_out( win->gc->gc,
 			x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1,
 			y + win->margin, str, len , FONT_CS(font->id)) ;
+
+		SetBkMode( win->gc->gc , OPAQUE) ;
+	}
+	else if( is_tp)
+	{
+		SetBkMode( win->gc->gc , OPAQUE) ;
 	}
 
 	if( str2)
@@ -1466,7 +1481,11 @@ x_window_show(
 		GetSystemMetrics(SM_CYFRAME), GetSystemMetrics(SM_CYCAPTION)) ;
 #endif
 
-        win->my_window = CreateWindow("MLTERM", "mlterm" ,
+#ifndef  UTF16_IME_CHAR
+	win->my_window = CreateWindowEx( 0 , "MLTERM" , "mlterm" ,
+#else
+	win->my_window = CreateWindowExW( 0 , L"MLTERM" , L"mlterm" ,
+#endif
 			win->parent_window ? WS_CHILD | WS_VISIBLE : WS_OVERLAPPEDWINDOW ,
 			win->parent_window ? win->x : CW_USEDEFAULT ,
 			win->parent_window ? win->y : CW_USEDEFAULT ,
@@ -2177,7 +2196,7 @@ x_window_receive_event(
 			{
 				kev.ch = event->wparam ;
 			}
-		
+
 			(*win->key_pressed)( win, &kev) ;
 		}
 		
@@ -2813,12 +2832,35 @@ x_window_draw_string(
 
 	x_gc_set_fid( win->gc, font->fid) ;
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
-	SetBkMode( win->gc->gc, TRANSPARENT) ;
-
-	draw_string( win, font, x, y, str, len) ;
 	
-	SetBkMode( win->gc->gc, OPAQUE) ;
+	/*
+	 * XXX Hack
+	 * In case US_ASCII characters is drawn by Unicode font.
+	 * 8 bit charcter => 16 bit character.
+	 */
+	if( FONT_CS(font->id) == ISO10646_UCS4_1)
+	{
+		u_char *  dbl_str ;
 
+		if( ( dbl_str = alloca( len * 2)))
+		{
+			int  count ;
+
+			for( count = 0 ; count < len ; count++)
+			{
+				/* Little Endian */
+				dbl_str[count * 2] = str[count] ;
+				dbl_str[count * 2 + 1] = 0x0 ;
+			}
+
+			draw_string( win , font , x , y , dbl_str , len * 2 , 1) ;
+		}
+	}
+	else
+	{
+		draw_string( win , font , x , y , str , len , 1) ;
+	}
+	
 	return  1 ;
 }
 
@@ -2833,7 +2875,17 @@ x_window_draw_string16(
 	u_int  len
 	)
 {
-	return  x_window_draw_string( win, font, fg_color, x, y, (u_char*)str, len * 2) ;
+	if( win->gc->gc == None)
+	{
+		return  0 ;
+	}
+
+	x_gc_set_fid( win->gc, font->fid) ;
+	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
+	
+	draw_string( win , font , x , y , (u_char*)str , len * 2 , 1) ;
+
+	return  1 ;
 }
 
 int
@@ -2857,7 +2909,33 @@ x_window_draw_image_string(
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
-	draw_string( win, font, x, y, str, len) ;
+	/*
+	 * XXX Hack
+	 * In case US_ASCII characters is drawn by Unicode font.
+	 * 8 bit charcter => 16 bit character.
+	 */
+	if( FONT_CS(font->id) == ISO10646_UCS4_1)
+	{
+		u_char *  dbl_str ;
+
+		if( ( dbl_str = alloca( len * 2)))
+		{
+			int  count ;
+
+			for( count = 0 ; count < len ; count++)
+			{
+				/* Little Endian */
+				dbl_str[count * 2] = str[count] ;
+				dbl_str[count * 2 + 1] = 0x0 ;
+			}
+
+			draw_string( win , font , x , y , dbl_str , len * 2 , 0) ;
+		}
+	}
+	else
+	{
+		draw_string( win , font , x , y , str , len , 0) ;
+	}
 
 	return  1 ;
 }
@@ -2874,8 +2952,18 @@ x_window_draw_image_string16(
 	u_int  len
 	)
 {
-	return  x_window_draw_image_string( win, font, fg_color, bg_color,
-						x, y, (u_char*)str, len * 2) ;
+	if( win->gc->gc == None)
+	{
+		return  0 ;
+	}
+
+	x_gc_set_fid( win->gc, font->fid) ;
+	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
+	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
+
+	draw_string( win, font, x, y, (u_char*)str, len * 2 , 0) ;
+
+	return  1 ;
 }
 
 int

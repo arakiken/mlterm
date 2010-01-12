@@ -27,7 +27,8 @@ typedef struct encoding_to_cs_table
 
 /*
  * !!! Notice !!!
- * the order should be the same as ml_char_encoding_t.
+ * The order should be the same as ml_char_encoding_t.
+ * US_ASCII font for encodings after ML_UTF8 is ISO8859_1_R. (see x_get_usascii_font_cs())
  */
 static encoding_to_cs_table_t  usascii_font_cs_table[] =
 {
@@ -54,9 +55,16 @@ static encoding_to_cs_table_t  usascii_font_cs_table[] =
 	{ ML_KOI8_U , KOI8_U } ,
 	{ ML_KOI8_T , KOI8_T } ,
 	{ ML_GEORGIAN_PS , GEORGIAN_PS } ,
+	{ ML_CP1250 , CP1250 } ,
 	{ ML_CP1251 , CP1251 } ,
+	{ ML_CP1252 , CP1252 } ,
+	{ ML_CP1253 , CP1253 } ,
+	{ ML_CP1254 , CP1254 } ,
 	{ ML_CP1255 , CP1255 } ,
-	
+	{ ML_CP1256 , CP1256 } ,
+	{ ML_CP1257 , CP1257 } ,
+	{ ML_CP1258 , CP1258 } ,
+
 	{ ML_UTF8 , ISO10646_UCS4_1 } ,
 	
 } ;
@@ -235,11 +243,13 @@ x_change_font_present(
 	x_font_config_t *  font_config ;
 	x_font_cache_t *  font_cache ;
 
+#ifndef  USE_WIN32GUI
 	/* XXX Hack */
 	if( font_present & FONT_AA)
 	{
 		type_engine = TYPE_XFT ;
 	}
+#endif
 
 	if( font_present == font_man->font_config->font_present &&
 		type_engine == font_man->font_config->type_engine)

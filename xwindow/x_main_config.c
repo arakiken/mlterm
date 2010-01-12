@@ -100,7 +100,7 @@ x_prepare_for_main_config(
 #endif
 #ifdef  USE_FRIBIDI
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , 
-		"use bidi (bi-directional text) [false]") ;
+		"use bidi (bi-directional text) [true]") ;
 #endif
 	kik_conf_add_opt( conf , 'E' , "km" , 0 , "ENCODING" , 
 		"character encoding (AUTO/ISO-8859-*/EUC-*/UTF-8/...) [AUTO]") ;

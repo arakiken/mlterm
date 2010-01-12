@@ -40,8 +40,15 @@ typedef struct  cs_info
 
 /* --- static variables --- */
 
+/*
+ * If this table is changed, x_font_config.c:cs_table and mc_font.c:cs_info_table
+ * shoule be also changed.
+ */
 static cs_info_t  cs_info_table[] =
 {
+	{ ISO10646_UCS4_1 , { "iso10646-1" , NULL , NULL , } , } ,
+	{ ISO10646_UCS2_1 , { "iso10646-1" , NULL , NULL , } , } ,
+
 	{ DEC_SPECIAL , { "iso8859-1" , NULL , NULL , } , } ,
 	{ ISO8859_1_R , { "iso8859-1" , NULL , NULL , } , } ,
 	{ ISO8859_2_R , { "iso8859-2" , NULL , NULL , } , } ,
@@ -53,11 +60,11 @@ static cs_info_t  cs_info_table[] =
 	{ ISO8859_8_R , { "iso8859-8" , NULL , NULL , } , } ,
 	{ ISO8859_9_R , { "iso8859-9" , NULL , NULL , } , } ,
 	{ ISO8859_10_R , { "iso8859-10" , NULL , NULL , } , } ,
-	{ ISCII , { NULL , NULL , NULL , } , } ,
 	{ TIS620_2533 , { "tis620.2533-1" , "tis620.2529-1" , NULL , } , } ,
 	{ ISO8859_13_R , { "iso8859-13" , NULL , NULL , } , } ,
 	{ ISO8859_14_R , { "iso8859-14" , NULL , NULL , } , } ,
 	{ ISO8859_15_R , { "iso8859-15" , NULL , NULL , } , } ,
+	{ ISO8859_16_R , { "iso8859-16" , NULL , NULL , } , } ,
 
 	/*
 	 * XXX
@@ -67,10 +74,17 @@ static cs_info_t  cs_info_table[] =
 	 */
 	{ TCVN5712_3_1993 , { NULL , NULL , NULL , } , } ,
 
+	{ ISCII , { NULL , NULL , NULL , } , } ,
 	{ VISCII , { "viscii-1" , NULL , NULL , } , } ,
 	{ KOI8_R , { "koi8-r" , NULL , NULL , } , } ,
 	{ KOI8_U , { "koi8-u" , NULL , NULL , } , } ,
-	{ KOI8_T , { "koi8-t" , NULL , NULL , } , } ,
+
+#if  0
+	/*
+	 * XXX
+	 * KOI8_T, GEORGIAN_PS and CP125X charset can be shown by unicode font only.
+	 */
+	{ KOI8_T , { NULL , NULL , NULL , } , } ,
 	{ GEORGIAN_PS , { NULL , NULL , NULL , } , } ,
 	{ CP1250 , { NULL , NULL , NULL , } , } ,
 	{ CP1251 , { NULL , NULL , NULL , } , } ,
@@ -81,6 +95,7 @@ static cs_info_t  cs_info_table[] =
 	{ CP1256 , { NULL , NULL , NULL , } , } ,
 	{ CP1257 , { NULL , NULL , NULL , } , } ,
 	{ CP1258 , { NULL , NULL , NULL , } , } ,
+#endif
 
 	{ JISX0201_KATA , { "jisx0201.1976-0" , NULL , NULL , } , } ,
 	{ JISX0201_ROMAN , { "jisx0201.1976-0" , NULL , NULL , } , } ,
@@ -92,13 +107,15 @@ static cs_info_t  cs_info_table[] =
 	{ JISX0213_2000_2 , { "jisx0213.2000-2" , NULL , NULL , } , } ,
 	{ KSC5601_1987 , { "ksc5601.1987-0" , "ksx1001.1997-0" , NULL , } , } ,
 
+#if  0
 	/*
 	 * XXX
 	 * UHC and JOHAB fonts are not used at the present time.
-	 * see ml_term_parser.c:x_parse_vt100_sequence().
+	 * see ml_vt100_parser.c:ml_parse_vt100_sequence().
 	 */
 	{ UHC , { NULL , NULL , NULL , } , } ,
 	{ JOHAB , { "johabsh-1" , /* "johabs-1" , */ "johab-1" , NULL , } , } ,
+#endif
 
 	{ GB2312_80 , { "gb2312.1980-0" , NULL , NULL , } , } ,
 	{ GBK , { "gbk-0" , NULL , NULL , } , } ,
@@ -111,7 +128,6 @@ static cs_info_t  cs_info_table[] =
 	{ CNS11643_1992_5 , { "cns11643.1992-5" , "cns11643.1992.5-0" , NULL , } , } ,
 	{ CNS11643_1992_6 , { "cns11643.1992-6" , "cns11643.1992.6-0" , NULL , } , } ,
 	{ CNS11643_1992_7 , { "cns11643.1992-7" , "cns11643.1992.7-0" , NULL , } , } ,
-	{ ISO10646_UCS4_1 , { "iso10646-1" , NULL , NULL , } , } ,
 
 } ;
 
@@ -312,6 +328,8 @@ parse_xft_font_name(
 
 	/*
 	 * Parsing "[Family] [WEIGHT] [SLANT] [SIZE]".
+	 * Following is the same as x_font_win32.c:parse_font_name()
+	 * except XFT_*.
 	 */
 
 #if  0
@@ -322,14 +340,33 @@ parse_xft_font_name(
 	len = strlen( p) ;
 	while( len > 0)
 	{
+		size_t  step = 0 ;
+		
 		if( *p == ' ')
 		{
 			char *  orig_p ;
+
+			/*
+			 * Portable values.
+			 */
+			/* slant */
 			char  italic[] = "italic" ;
+			/* weight */
 			char  bold[] = "bold" ;
-		#if  0
-			char  light[] = "light" ;
-		#endif
+
+			/*
+			 * Hack for values which can be returned by
+			 * gtk_font_selection_dialog_get_font_name().
+			 */
+			/* slant */
+			char  oblique[] = "oblique" ;
+			/* weight */
+			char  light[] = "light" ;	/* e.g. "Bookman Old Style Light" */
+			char  semibold[] = "semi-bold" ;
+			char  heavy[] = "heavy" ;	/* e.g. "Arial Black Heavy" */
+			/* other */
+			char  semicondensed[] = "semi-condensed" ;
+			
 			float  size_f ;
 
 			orig_p = p ;
@@ -345,31 +382,54 @@ parse_xft_font_name(
 			if( len == 0)
 			{
 				*orig_p = '\0' ;
+				
 				break ;
 			}
 			else if( strncasecmp( p , italic , K_MIN(len,sizeof(italic) - 1)) == 0)
 			{
 				*orig_p = '\0' ;
 				*font_slant = XFT_SLANT_ITALIC ;
-				p += (sizeof(italic) - 1) ;
-				len -= (sizeof(italic) - 1) ;
+				step = sizeof(italic) - 1 ;
 			}
 			else if( strncasecmp( p , bold , K_MIN(len,(sizeof(bold) - 1))) == 0)
 			{
 				*orig_p = '\0' ;
 				*font_weight = XFT_WEIGHT_BOLD ;
-				p += (sizeof(bold) - 1) ;
-				len -= (sizeof(bold) - 1) ;
+				step = sizeof(bold) - 1 ;
 			}
-		#if  0
+			else if( strncasecmp( p , oblique , K_MIN(len,sizeof(oblique) - 1)) == 0)
+			{
+				*orig_p = '\0' ;
+				*font_slant = XFT_SLANT_OBLIQUE ;
+				step = sizeof(oblique) - 1 ;
+			}
 			else if( strncasecmp( p , light , K_MIN(len,(sizeof(light) - 1))) == 0)
 			{
 				*orig_p = '\0' ;
 				*font_weight = XFT_WEIGHT_LIGHT ;
-				p += (sizeof(light) - 1) ;
-				len -= (sizeof(light) - 1) ;
+				step = sizeof(light) - 1 ;
 			}
-		#endif
+			else if( strncasecmp( p , semibold ,
+					K_MIN(len,(sizeof(semibold) - 1))) == 0)
+			{
+				*orig_p = '\0' ;
+				*font_weight = XFT_WEIGHT_DEMIBOLD ;
+				step = sizeof(semibold) - 1 ;
+			}
+			else if( strncasecmp( p , heavy , K_MIN(len,(sizeof(heavy) - 1))) == 0)
+			{
+				*orig_p = '\0' ;
+				*font_weight = XFT_WEIGHT_BOLD ;
+				step = sizeof(heavy) - 1 ;
+			}
+			else if( strncasecmp( p , semicondensed ,
+					K_MIN(len,(sizeof(semicondensed) - 1))) == 0)
+			{
+				/* XXX This style is ingored */
+				
+				*orig_p = '\0' ;
+				step = sizeof(semicondensed) - 1 ;
+			}
 			else if( sscanf( p , "%f" , &size_f) == 1)
 			{
 				/* If matched with %f, p has no more parameters. */
@@ -381,15 +441,16 @@ parse_xft_font_name(
 			}
 			else
 			{
-				p ++ ;
-				len -- ;
+				step = 1 ;
 			}
 		}
 		else
 		{
-			p ++ ;
-			len -- ;
+			step = 1 ;
 		}
+		
+		p += step ;
+		len -= step ;
 	}
 	
 	return  1 ;

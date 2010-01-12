@@ -57,16 +57,16 @@ WIN32 native GUI 対応に関するメモ
   
   (MSYS-DTK / Cygwin でビルドした場合)
   set HOME=c:\msys\...\home\...
-  mlterm.exe [options...] -e /bin/sh --login -i
+  mlterm.exe (options...) -e /bin/sh --login -i
 
   (MinGW / Cygwin(-mno-cygwin) でビルドした場合)
   set HOMEPATH=...
-  mlterm.exe [options...] -e plink.exe [-telnet/-ssh/-rlogin/-raw] [host]
+  mlterm.exe (options...) (-e plink.exe [-telnet/-ssh/-rlogin/-raw] [host])
   ※ msysライブラリをリンクしないため、msys / cygwin の sh.exe を起動して
      もうまく動きません。sh.exe を使用したい場合は、MSYS-DTK でビルドして
      ください。
-  ※ 起動時に、接続するサーバ、プロトコル、ユーザ名、パスワードを入力する
-     ダイアログが表示されます。
+  ※ -e オプションを指定しない場合、起動時に、接続するサーバ、プロトコル、
+     ユーザ名、パスワードを入力するダイアログが表示されます。
      なお、main 設定ファイルにおいて、あらかじめ次のオプションを指定する
      こともできます(括弧書きは mlterm の起動時の引数として指定する場合の
      オプション名)。
@@ -90,6 +90,9 @@ WIN32 native GUI 対応に関するメモ
     です。
   o サポートする文字集合・エンコーディングは、当面、英語・日本語関係のもの
     のみです。
+  o Bold な文字は、設定ファイルで使用するフォントを指定しない限り、基本的には、
+    重ね打ちによる擬似的な bold 表示を行います(Bold と Normal でフォント幅が異
+    なる場合があるため)
 
 * ソースコード
   o USE_WIN32APIマクロ: MinGW 又は CYGWIN(-mno-cygwin) でビルドする際に define されます。

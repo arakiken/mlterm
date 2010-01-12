@@ -66,6 +66,9 @@ static wincs_info_t  wincs_info_table[] =
 
 static cs_info_t  cs_info_table[] =
 {
+	{ ISO10646_UCS4_1 , DEFAULT_CHARSET , } ,
+	{ ISO10646_UCS2_1 , DEFAULT_CHARSET , } ,
+	
 	{ DEC_SPECIAL , DEFAULT_CHARSET , } ,
 	{ ISO8859_1_R , ANSI_CHARSET , } ,
 	{ ISO8859_2_R , DEFAULT_CHARSET , } ,
@@ -77,13 +80,13 @@ static cs_info_t  cs_info_table[] =
 	{ ISO8859_8_R , HEBREW_CHARSET , } ,
 	{ ISO8859_9_R , TURKISH_CHARSET , } ,
 	{ ISO8859_10_R , DEFAULT_CHARSET , } ,
-	{ ISCII , DEFAULT_CHARSET , } ,
 	{ TIS620_2533 , THAI_CHARSET , } ,
 	{ ISO8859_13_R , DEFAULT_CHARSET , } ,
 	{ ISO8859_14_R , DEFAULT_CHARSET , } ,
 	{ ISO8859_15_R , DEFAULT_CHARSET , } ,
+	{ ISO8859_16_R , DEFAULT_CHARSET , } ,
 	{ TCVN5712_3_1993 , VIETNAMESE_CHARSET , } ,
-
+	{ ISCII , DEFAULT_CHARSET , } ,
 	{ VISCII , VIETNAMESE_CHARSET , } ,
 	{ KOI8_R , RUSSIAN_CHARSET , } ,
 	{ KOI8_U , RUSSIAN_CHARSET , } ,
@@ -123,7 +126,6 @@ static cs_info_t  cs_info_table[] =
 	{ CNS11643_1992_5 , GB2312_CHARSET , } ,
 	{ CNS11643_1992_6 , GB2312_CHARSET , } ,
 	{ CNS11643_1992_7 , GB2312_CHARSET , } ,
-	{ ISO10646_UCS4_1 , DEFAULT_CHARSET , } ,
 
 } ;
 
@@ -206,6 +208,8 @@ parse_font_name(
 	
 	/*
 	 * Parsing "[Family] [WEIGHT] [SLANT] [SIZE]".
+	 * Following is the same as x_font.c:parse_xft_font_name()
+	 * except FW_* and is_italic.
 	 */
 
 #if  0
@@ -216,14 +220,33 @@ parse_font_name(
 	len = strlen( p) ;
 	while( len > 0)
 	{
+		size_t  step = 0 ;
+		
 		if( *p == ' ')
 		{
 			char *  orig_p ;
+
+			/*
+			 * Portable values.
+			 */
+			/* slant */
 			char  italic[] = "italic" ;
+			/* weight */
 			char  bold[] = "bold" ;
-		#if  0
-			char  light[] = "light" ;
-		#endif
+
+			/*
+			 * Hack for values which can be returned by
+			 * gtk_font_selection_dialog_get_font_name().
+			 */
+			/* slant */
+			char  oblique[] = "oblique" ;
+			/* weight */
+			char  light[] = "light" ;	/* e.g. "Bookman Old Style Light" */
+			char  semibold[] = "semi-bold" ;
+			char  heavy[] = "heavy" ;	/* e.g. "Arial Black Heavy" */
+			/* other */
+			char  semicondensed[] = "semi-condensed" ;
+			
 			float  size_f ;
 
 			orig_p = p ;
@@ -239,31 +262,55 @@ parse_font_name(
 			if( len == 0)
 			{
 				*orig_p = '\0' ;
+				
 				break ;
 			}
 			else if( strncasecmp( p , italic , K_MIN(len,sizeof(italic) - 1)) == 0)
 			{
 				*orig_p = '\0' ;
 				*is_italic = TRUE ;
-				p += (sizeof(italic) - 1) ;
-				len -= (sizeof(italic) - 1) ;
+				step = sizeof(italic) - 1 ;
 			}
 			else if( strncasecmp( p , bold , K_MIN(len,(sizeof(bold) - 1))) == 0)
 			{
 				*orig_p = '\0' ;
 				*font_weight = FW_BOLD ;
-				p += (sizeof(bold) - 1) ;
-				len -= (sizeof(bold) - 1) ;
+				step = sizeof(bold) - 1 ;
 			}
-		#if  0
+			else if( strncasecmp( p , oblique , K_MIN(len,sizeof(oblique) - 1)) == 0)
+			{
+				/* This style is ignored. */
+				
+				*orig_p = '\0' ;
+				step = sizeof(oblique) - 1 ;
+			}
 			else if( strncasecmp( p , light , K_MIN(len,(sizeof(light) - 1))) == 0)
 			{
 				*orig_p = '\0' ;
 				*font_weight = FW_LIGHT ;
-				p += (sizeof(light) - 1) ;
-				len -= (sizeof(light) - 1) ;
+				step = sizeof(light) - 1 ;
 			}
-		#endif
+			else if( strncasecmp( p , semibold ,
+					K_MIN(len,(sizeof(semibold) - 1))) == 0)
+			{
+				*orig_p = '\0' ;
+				*font_weight = FW_SEMIBOLD ;
+				step = sizeof(semibold) - 1 ;
+			}
+			else if( strncasecmp( p , heavy , K_MIN(len,(sizeof(heavy) - 1))) == 0)
+			{
+				*orig_p = '\0' ;
+				*font_weight = FW_HEAVY ;
+				step = sizeof(heavy) - 1 ;
+			}
+			else if( strncasecmp( p , semicondensed ,
+					K_MIN(len,(sizeof(semicondensed) - 1))) == 0)
+			{
+				/* XXX This style is ingored */
+				
+				*orig_p = '\0' ;
+				step = sizeof(semicondensed) - 1 ;
+			}
 			else if( sscanf( p , "%f" , &size_f) == 1)
 			{
 				/* If matched with %f, p has no more parameters. */
@@ -275,15 +322,16 @@ parse_font_name(
 			}
 			else
 			{
-				p ++ ;
-				len -- ;
+				step = 1 ;
 			}
 		}
 		else
 		{
-			p ++ ;
-			len -- ;
+			step = 1 ;
 		}
+		
+		p += step ;
+		len -= step ;
 	}
 	
 	return  1 ;
@@ -378,7 +426,18 @@ x_font_new(
 
 	if( font->id & FONT_BOLD)
 	{
+	#if  0
 		weight = FW_BOLD ;
+	#else
+		/*
+		 * XXX
+		 * Width of bold font is not necessarily the same as
+		 * that of normal font in win32.
+		 * So ignore weight and if font->id is bold use double-
+		 * drawing method for now.
+		 */
+		weight = FW_DONTCARE ;
+	#endif
 	}
 	else
 	{
@@ -407,9 +466,9 @@ x_font_new(
 		
 		parse_font_name( &font_family , &weight , &is_italic , &fontsize_d , &percent , p) ;
 	}
-	
+
   	font->fid = CreateFont( (int)fontsize_d ,	/* Height */
-				0 ,			/* Width (0=auto) */
+				col_width ,		/* Width (0=auto) */
 				0 ,			/* text angle */
 				0 ,			/* char angle */
 				weight ,		/* weight */
@@ -419,7 +478,7 @@ x_font_new(
 				wincsinfo->cs ,
 				OUT_DEFAULT_PRECIS ,
 				CLIP_DEFAULT_PRECIS ,
-				PROOF_QUALITY ,
+				(font_present & FONT_AA) ? ANTIALIASED_QUALITY : PROOF_QUALITY ,
 				FIXED_PITCH | FF_MODERN ,
 				font_family ) ;
 
@@ -443,7 +502,15 @@ x_font_new(
 		gc = GetDC( win) ;
 		SelectObject( gc, font->fid) ;
 		GetTextMetrics( gc, &tm) ;
-		font->width = tm.tmAveCharWidth * font->cols ;
+		/* XXX */
+		if( font->cols == 2)
+		{
+			font->width = tm.tmMaxCharWidth ;
+		}
+		else
+		{
+			font->width = tm.tmAveCharWidth ;
+		}
 		font->height = tm.tmHeight ;
 		font->height_to_baseline = tm.tmAscent ;
 		ReleaseDC( win, gc) ;
@@ -452,17 +519,46 @@ x_font_new(
 		gc = CreateIC( "Display", NULL, NULL, NULL) ;
 		SelectObject( gc, font->fid) ;
 		GetTextMetrics( gc, &tm) ;
-		font->width = tm.tmAveCharWidth * font->cols ;
+		/* XXX */
+		if( font->cols == 2)
+		{
+			font->width = tm.tmMaxCharWidth ;
+		}
+		else
+		{
+			font->width = tm.tmAveCharWidth ;
+		}
 		font->height = tm.tmHeight ;
 		font->height_to_baseline = tm.tmAscent ;
 		DeleteDC( gc) ;
 	#endif
 	#if  0
 		kik_debug_printf(
-		"AveCharWidth %d MaxCharWidth %d Height %d Ascent %d ExLeading %d InLeading %d\n" ,
-		tm.tmAveCharWidth, tm.tmMaxCharWidth, tm.tmHeight, tm.tmAscent,
-		tm.tmExternalLeading, tm.tmInternalLeading) ;
+		"Family %s Size %d CS %x => AveCharWidth %d MaxCharWidth %d Height %d Ascent %d ExLeading %d InLeading %d Pitch&Family %d Weight %d\n" ,
+		font_family , fontsize , wincsinfo->cs ,
+		tm.tmAveCharWidth , tm.tmMaxCharWidth , tm.tmHeight , tm.tmAscent ,
+		tm.tmExternalLeading , tm.tmInternalLeading ,
+		tm.tmPitchAndFamily , tm.tmWeight) ;
 	#endif
+
+		font->x_off = 0 ;
+		if( tm.tmPitchAndFamily & VARIABLE_PITCH)
+		{
+			font->is_proportional = 1 ;
+		}
+		else
+		{
+			font->is_proportional = 0 ;
+		}
+
+		if( ( font->id & FONT_BOLD) && tm.tmWeight <= FW_MEDIUM)
+		{
+			font->is_double_drawing = 1 ;
+		}
+		else
+		{
+			font->is_double_drawing = 0 ;
+		}
 	}
 
 	if( wincsinfo->cs == ANSI_CHARSET || FONT_CS(font->id) == ISO10646_UCS4_1)
@@ -481,11 +577,6 @@ x_font_new(
 	}
 	
 	font->decsp_font = NULL ;
-
-	font->x_off = 0 ;
-	font->is_proportional = 0 ;
-	
-	font->is_double_drawing = 0 ;
 
 	return  font ;
 }

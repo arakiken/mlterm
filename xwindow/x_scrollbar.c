@@ -171,7 +171,6 @@ draw_background(
 		sb->redraw_y = 0 ;
 		sb->redraw_height = 0 ;
 	}
-	
 }
 
 /*
@@ -720,6 +719,11 @@ button_motion(
 	 */
 	if( ! up_to_top_now && sb->current_row == new_row)
 	{
+		/* Restore bar_top_y and bar_height */
+		
+		sb->bar_top_y = old_bar_top_y ;
+		sb->bar_height = old_bar_height ;
+		
 		return ;
 	}
 	
@@ -730,7 +734,7 @@ button_motion(
 		(*sb->sb_listener->screen_scroll_to)( sb->sb_listener->self , sb->current_row) ;
 	}
 
-	set_redraw_area( sb, old_bar_top_y, old_bar_height) ;
+	set_redraw_area( sb , old_bar_top_y , old_bar_height) ;
 	x_window_update( &sb->window, UPDATE_SCROLLBAR) ;
 }
 
@@ -1121,7 +1125,7 @@ x_scrollbar_move_upward(
 	}
 
 	set_redraw_area( sb, sb->bar_top_y, sb->bar_height) ;
-	
+
 	sb->bar_top_y = calculate_bar_top_y(sb) ;
 
 	x_window_update( &sb->window, UPDATE_SCROLLBAR) ;

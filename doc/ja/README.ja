@@ -593,8 +593,9 @@ comment $Id$
       o ISO10646_UCS4_1    ... UNICODEフォント(1カラム用)
       o ISO10646_UCS4_1_BIWIDTH ... UNICODEフォント(2カラム用)
 
-      (*) KOI8_T,GEORGIAN_PS,CP125[0-8] は Unicode フォントが、
-          UHC,JOHAB は KSX1001 フォントが使用されます。
+      (*) KOI8_T,GEORGIAN_PS,CP125[0-8] は -u オプションを指定して
+          Unicode フォントを使用する必要があります。
+          UHC,JOHAB は 自動的に KSX1001 フォントが使用されます。
 
         それぞれのボールド体のフォントを指定したい場合には、
         ISO8859_1_BOLD
@@ -621,12 +622,12 @@ comment $Id$
 
         o font/vfont/tfont
           [XLFD(*)](:[percentage]) (--with-gui=xlib の場合)
-	  [font family]( [font weight] [font slant] [font size]) (--with-gui=win32 の場合)
+	  [font family]( [font weight(Bold)] [font slant(Italic)] [font size]) (--with-gui=win32 の場合)
 
           (*) もしくは、fonts.aliasで定義している省略記法。
 
         o aafont/vaafont/taafont
-          [font family]( [font weight] [font slant] [font size]-[font encoding]:[percentage])
+          [font family]( [font weight(Bold)] [font slant(Italic)] [font size]-[font encoding]:[percentage])
 
 	  font size は、実際に表示するピクセルサイズであり、小数点数を指定する
 	  こともできます。

@@ -40,15 +40,15 @@ typedef struct  x_scrollbar
 	
 	x_scrollbar_event_listener_t *  sb_listener ;
 
-	u_int  bar_height ;
-	u_int  top_margin ;
-	u_int  bottom_margin ;
+	u_int  bar_height ;	/* Scrollbar height */
+	u_int  top_margin ;	/* Button area */
+	u_int  bottom_margin ;	/* Button area */
 	u_int  line_height ;
 	u_int  num_of_scr_lines ;
 	u_int  num_of_log_lines ;
 	u_int  num_of_filled_log_lines ;
-	int  bar_top_y ;
-	int  y_on_bar ;
+	int  bar_top_y ;	/* Scrollbar position without button area */
+	int  y_on_bar ;		/* Used in button_motion event handler */
 	int  current_row ;
 	int  redraw_y ;
 	u_int  redraw_height ;

@@ -62,7 +62,9 @@ typedef struct  encoding_table
 
 /*
  * !!! Notice !!!
- * the order should be the same as ml_char_encoding_t in ml_char_encoding.h
+ * The order should be the same as ml_char_encoding_t in ml_char_encoding.h
+ * If the order is changed, x_font_manager.c:usascii_font_cs_table should be
+ * also changed.
  */
 static encoding_table_t  encoding_table[] =
 {

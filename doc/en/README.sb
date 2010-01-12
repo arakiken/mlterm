@@ -4,9 +4,9 @@ comment $Id$
 This document describes how to implement your own scrollbar.
 
 * General intructions
-  1. implement member functions of x_sb_view_t.
-  2. compile and make shared library.
-  3. place it in certain directory.
+  1. Implement member functions of x_sb_view_t.
+  2. Compile and make shared library.
+  3. Place it in certain directory.
 
 * Requirement
   Any interface of the following:
@@ -17,7 +17,7 @@ This document describes how to implement your own scrollbar.
   o Mac OS X NSModule interface (EXPERIMENTAL)
   o libltdl library
 
-* Members of x_sb_view_t
+* Member functions of x_sb_view_t
   o void (*get_geometry_hints)( struct  x_sb_view * , unsigned int *  width , 
           unsigned int *  top_margin , unsigned int *  bottom_margin ,
           int *  up_button_y , unsigned int *  up_button_height ,
@@ -44,31 +44,34 @@ This document describes how to implement your own scrollbar.
     x_sb_view_t status should be reset here.
     Don't forget to set window argument to the member of x_sb_view_t.
     (must)
+
+  o void (*color_changed)( struct x_sb_view * , int is_fg) ;
+    This is invoked when forground or background (which is specified by is_fg argument)
+    color of GC is changed.
     
   o void (*delete)( struct  x_sb_view *) ;
     This is invoked when x_sb_view_t is never used.
     Free resources you allocaed.
     (must)
 
-  o void (*draw_decoration)( struct  x_sb_view *) ;
-    This is invoked when scrollbar decoration should be drawn.
-    (recommended)
-    
   o void (*draw_scrollbar)( struct  x_sb_view * , int  bar_top_y ,
          unsigned int  bar_height) ;
     This is invoked when scrollbar should be drawn.
-    You should draw scrollbar of bar_height from bar_top_y position.
+    You should draw scrollbar (without background) of bar_height from bar_top_y position.
     (recommended)
 
-  o void (*up_button_pressed)( struct  x_sb_view *) ;
-  o void (*down_button_pressed)( struct  x_sb_view *) ;
-  o void (*up_button_released)( struct  x_sb_view *) ;
-  o void (*down_button_released)( struct  x_sb_view *) ;
+  o void (*draw_background)( struct  x_sb_view * , int  y , unsigned int  height) ;
+    This is invoked when specified region of background shoule be drawn.
+    (recommended)
+
+  o void (*draw_up_button)( struct x_sb_view * , int  is_pressed)
+  o void (*draw_down_button)( struct x_sb_view * , int  is_pressed)
     These are invoked when up_button or down_button is pressed or released.
     (recommended)
   
-* compilation
-  You must name your scrollbar constructor functions as below.
+* Initialization
+  You must prepare constructor functions which should be named as below and
+  initalizes members of x_sb_view_t. (Note: 'version' member should be set 1.)
 
   x_sb_view_t *  x_[yourbar]_sb_view_new(void) ;  /* normal version */
   x_sb_view_t *  x_[yourbar]_transparent_sb_view_new(void) ;  /* transparent version */

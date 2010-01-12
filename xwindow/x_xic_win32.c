@@ -8,7 +8,10 @@
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
 #include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
-#include  <mkf/mkf_sjis_parser.h>
+
+#ifdef  UTF16_IME_CHAR
+#include  <mkf/mkf_utf16_parser.h>
+#endif
 
 
 #define  HAS_XIM_LISTENER(win,function) \
@@ -64,8 +67,13 @@ x_xic_activate(
 		return  0 ;
 	}
 
-	win->xic->encoding = ml_get_char_encoding( kik_get_codeset_win32()) ;
-	if( ( win->xic->parser = ml_parser_new( win->xic->encoding)) == NULL)
+#ifndef  UTF16_IME_CHAR
+	if( ( win->xic->parser = ml_parser_new(
+					ml_get_char_encoding( kik_get_codeset_win32()))) == NULL)
+#else
+	/* UTF16LE => UTF16BE in x_xic_get_str. */
+	if( ( win->xic->parser = mkf_utf16_parser_new()) == NULL)
+#endif
 	{
 		return  0 ;
 	}
@@ -288,47 +296,49 @@ x_xic_get_str(
 {
 	size_t  len ;
 
-	if( seq_len <= 0)
+	if( seq_len == 0 || event->ch == 0)
 	{
-		return  0 ;
+		goto  zero_return ;
 	}
 
-	if( event->ch == 0)
+#ifndef  UTF16_IME_CHAR
+	len = 1 ;
+	if( event->ch > 0xff)
 	{
-		len = 0 ;
-	}
-	else
-	{
-		len = 1 ;
-		if( event->ch > 0xff)
+		*(seq++) = (char)((event->ch >> 8) & 0xff) ;
+
+		if( seq_len == 1)
 		{
-			*(seq++) = (char)((event->ch >> 8) & 0xff) ;
-
-			if( seq_len == 1)
-			{
-				goto  end ;
-			}
-		
-			len ++ ;
+			goto  zero_return ;
 		}
-		
-		*seq = (char)(event->ch & 0xff) ;
-	}
-	
-end:
-	if( len == 1)
-	{
-		*parser = NULL ;
-	}
-	else
-	{
-		*parser = win->xic->parser ;
+
+		len ++ ;
 	}
 
+	*seq = (char)(event->ch & 0xff) ;
+#else
+	if( seq_len == 1)
+	{
+		goto  zero_return ;
+	}
+
+	*(seq++) = (char)((event->ch >> 8) & 0xff) ;
+	*seq = (char)(event->ch & 0xff) ;
+	len = 2 ;
+#endif
+
+	*parser = win->xic->parser ;
 	*keysym = win->xic->prev_keydown_wparam ;
 	win->xic->prev_keydown_wparam = 0 ;
 
 	return  len ;
+
+zero_return:
+	*parser = NULL ;
+	*keysym = win->xic->prev_keydown_wparam ;
+	win->xic->prev_keydown_wparam = 0 ;
+
+	return  0 ;
 }
 
 size_t
