@@ -40,26 +40,34 @@ WIN32 native GUI 対応に関するメモ
     tool/mlconfig/.libs/mlconfig.exe
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
     もコピー
+    なお、mlterm-menu は、MinGW でビルドする場合には win32 native の GTK+ と、
+    Cygwin でビルドする場合には Cygwin 用の GTK+ とリンクしないと、設定ファイ
+    ル(menu)の読み込みができず正常に動作しません。
 
 * 環境設定
-  (MSYS-DTK/CYGWIN でビルドした場合)
+  (MSYS-DTK or Cygwin でビルドした場合)
   $HOME/.mlterm/ 以下に設定ファイル(ソースツリーの etc/ 以下のファイル)を
   配置することにより環境設定を行うことができます。
 
-  (MinGW でビルドした場合)
+  (MinGW or Cygwin(-mno-cygwin) でビルドした場合)
   %HOMEPATH%\mlterm\ (%HOMEPATH% が存在しないディレクトリの場合は %HOME%\.mlterm\
   以下の設定ファイル(ソースツリーの etc/ 以下のファイル) を配置することにより
   環境設定を行うことができます。
+
+  (フォント指定)
+  font,vfont,tfont は、次のフォーマットとなります。
+  [font family]( Bold Italic [font size]:[percentage])
+  ※ aafont,vaafont,taafont は使用しません。
 
 * 起動方法
   コマンドプロンプト等から次のとおり起動
   (又は win32/mlterm-{win32|msys_cygwin}.bat のようなバッチファイルを用意)
   
-  (MSYS-DTK / Cygwin でビルドした場合)
+  (MSYS-DTK or Cygwin でビルドした場合)
   set HOME=c:\msys\...\home\...
   mlterm.exe (options...) -e /bin/sh --login -i
 
-  (MinGW / Cygwin(-mno-cygwin) でビルドした場合)
+  (MinGW or Cygwin(-mno-cygwin) でビルドした場合)
   set HOMEPATH=...
   mlterm.exe (options...) (-e plink.exe [-telnet/-ssh/-rlogin/-raw] [host])
   ※ msysライブラリをリンクしないため、msys / cygwin の sh.exe を起動して
@@ -81,18 +89,17 @@ WIN32 native GUI 対応に関するメモ
        default_server で指定したサーバが server_list にない場合、自動的に
        default_server が server_list に追加されます。
 
-* WIN32 GUI 版の制限(2009/09/29現在)
+* WIN32 GUI 版の制限
   o -g オプションは [COL]x[ROW]+[x]+[y] の x y を無視します。
   o mlterm server 機能で genuine モードは使用できません(対応予定もありません。)。
     また、MinGW 版では、mlterm server 機能自体が使用できません(対応予定もありません。)。
   o 背景画像は使用できません。
   o 背景透過は、win32 のレイヤードウィンドウの機能をそのまま使用しているだけ
     です。
-  o サポートする文字集合・エンコーディングは、当面、英語・日本語関係のもの
-    のみです。
   o Bold な文字は、設定ファイルで使用するフォントを指定しない限り、基本的には、
     重ね打ちによる擬似的な bold 表示を行います(Bold と Normal でフォント幅が異
     なる場合があるため)
+  o use_variable_column_width オプションは無視します。
 
 * ソースコード
   o USE_WIN32APIマクロ: MinGW 又は CYGWIN(-mno-cygwin) でビルドする際に define されます。

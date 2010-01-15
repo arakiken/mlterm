@@ -614,8 +614,19 @@ Configurations related to appearance (or look&feel) are located
 in this page.
 .TP
 Font size
-Font size in pixel. (\fB\-w\fR, \fB\-\-fontsize\fR) 
+Font size in pixel. (\fB\-w\fR, \fB\-\-fontsize\fR)
 .TP
+Xft
+Use xft for rendering engine. (\fB\-*\fR, \fB\-\-type\fR)
+.TP
+Anti alias
+Use anti-alias fonts by using Xft. (\fB\-A\fR, \fB\-\-aa\fR) 
+.TP
+Variable column width
+Use variable column width. (\fB\-V\fR, \fB\-\-varwidth\fR) 
+.TP
+Vertical mode
+Vertical writing mode. (\fB\-G\fR, \fB\-\-vertical\fR)
 Line space
 Specify number of extra dots between lines. (\fB\-o\fR, \fB\-\-lsp\fR) 
 .TP
@@ -625,34 +636,31 @@ Specify actual screen width. (\fB\-1\fR, \fB\-\-wscr\fR)
 Height ratio
 Specify actual screen height. (\fB\-2\fR, \fB\-\-hscr\fR) 
 .TP
-Anti alias
-Use anti-alias fonts by using Xft. (\fB\-A\fR, \fB\-\-aa\fR) 
-.TP
-Variable column width
-Use variable column width. (\fB\-V\fR, \fB\-\-varwidth\fR) 
-.\" ******************************************************
-.SS Color page
-Configurations related to color and background are
-located in this page.
-.TP
 Foreground color
 Foreground color for letters. (\fB\-f\fR, \fB\-\-fg\fR) 
+.\" ******************************************************
+.SS Background page
+Configurations related to color and background are
+located in this page.
 .TP
 Background color
 Background color. (\fB\-b\fR, \fB\-\-bg\fR) 
 .TP
-Fade ratio on unfocus
-Fading ratio when window is unfocused. (\fB\-r\fR, \fB\-\-fade\fR) 
-.TP
-Wall picture
+Picture
 Specify the image file to be used for background image.
 (\fB\-p\fR, \fB\-\-pic\fR) 
 .TP
-Wall picture brightness
-Brightness of the background image. (\fB\-H\fR, \fB\-\-bright\fR) 
-.TP
-Transparent background
+Transparent
 Transparent background. (\fB\-t\fR, \fB\-\-transbg\fR) 
+.TP
+Picture/Transparent Brightness, Contrast and Gamma.
+Brightness, contrast and gamma of the background image.
+(\fB\-H\fR, \fB\-\-bright\fR)
+(\fB\-3\fR, \fB\-\-contrast\fR)
+(\fB\-4\fR, \fB\-\-gamma\fR)
+.TP
+Fade ratio on unfocus
+Fading ratio when window is unfocused. (\fB\-r\fR, \fB\-\-fade\fR) 
 .\" ******************************************************
 .SS Scrollbar page
 Configurations related to scrollbar are located in this page.
@@ -992,6 +1000,9 @@ The main configuration file "\fBmain\fR" has the following keys.
 Parentheses show the corresponding command-line options.
 See the explanation on these command-line options for detail.
 .TP
+\fBalpha=\fIname\fR
+Alpha in transparent. (--with-gui=win32 only)
+.TP
 \fBapp_name=\fIname\fR (\fB\-N\fR, \fB\-\-name\fR) 
 Application name.
 .TP
@@ -1236,8 +1247,8 @@ If the first "\fINAME\fR" contains "%d", it is replaced by an appropriate font s
 If ":\fIPERCENT\fR" is omitted, max font width is used for it.
 .PP
 In "\fBaafont\fR", "\fBvaafont\fR", "\fBtaafont\fR" files, "\fIfont\fR" is specified in
-"\fIFAMILY\fR-\fIENCODING\fR:\fIPERCENT\fR;\fISIZE\fR,\fIFAMILY\fR-\fIENCODING\fR:\fIPERCENT\fR;\fISIZE\fR,\fIFAMILY\fR-\fIENCODING\fR:\fIPERCENT\fR;\fI...\fR"
-format.  The first pair of \fIFAMILY\fR and \fIENCODING\fR specifies
+"\fIFAMILY WEIGHT SLANT SIZE\fR-\fIENCODING\fR:\fIPERCENT\fR;\fISIZE\fR,\fIFAMILY WEIGHT SLANT SIZE\fR-\fIENCODING\fR:\fIPERCENT\fR;\fISIZE\fR,\fIFAMILY WEIGHT SLANT SIZE\fR-\fIENCODING\fR:\fIPERCENT\fR;\fI...\fR"
+format.  The first pair of \fIFAMILY WEIGHT SLANT SIZE\fR and \fIENCODING\fR specifies
 the default font and the others with \fISIZE\fR are for specific sizes.
 ":\fIPERCENT\fR" is multiplied by font size and decides character width of a font.
 If ":\fIPERCENT\fR" is omitted, 'W' width is used for it.

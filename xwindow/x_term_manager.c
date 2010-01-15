@@ -778,6 +778,13 @@ open_screen_intern(
 			ml_destroy_term( term) ;
 
 		#ifdef  USE_WIN32GUI
+			/*
+			 * XXX Hack
+			 * In case SendMessage(WM_CLOSE) causes WM_KILLFOCUS
+			 * and operates screen->term which was already deleted.
+			 * (see window_unfocused())
+			 */
+			screen->fade_ratio = 100 ;
 			SendMessage( root->my_window , WM_CLOSE , 0 , 0) ;
 		#else
 			close_screen_intern( screen) ;
@@ -1021,6 +1028,13 @@ pty_closed(
 			#endif
 			
 			#ifdef  USE_WIN32GUI
+				/*
+				 * XXX Hack
+				 * In case SendMessage(WM_CLOSE) causes WM_KILLFOCUS
+				 * and operates screen->term which was already deleted.
+				 * (see window_unfocused())
+				 */
+				screen->fade_ratio = 100 ;
 				SendMessage( x_get_root_window( &screen->window)->my_window,
 					WM_CLOSE, 0, 0) ;
 			#else

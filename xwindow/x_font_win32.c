@@ -394,11 +394,13 @@ x_font_new(
 		font->cols = 1 ;
 	}
 
+#if  0
 	if( font_present & FONT_VAR_WIDTH)
 	{
 		font->is_var_col_width = 1 ;
 	}
 	else
+#endif
 	{
 		font->is_var_col_width = 0 ;
 	}
@@ -468,7 +470,12 @@ x_font_new(
 	}
 
   	font->fid = CreateFont( (int)fontsize_d ,	/* Height */
-				col_width ,		/* Width (0=auto) */
+			#if  0
+				col_width ? (font->is_vertical ? col_width / 2 : col_width) :
+					(int)fontsize_d / 2 ,
+			#else
+				0 ,			/* Width (0=auto) */
+			#endif
 				0 ,			/* text angle */
 				0 ,			/* char angle */
 				weight ,		/* weight */
@@ -541,7 +548,6 @@ x_font_new(
 		tm.tmPitchAndFamily , tm.tmWeight) ;
 	#endif
 
-		font->x_off = 0 ;
 		if( tm.tmPitchAndFamily & VARIABLE_PITCH)
 		{
 			font->is_proportional = 1 ;
@@ -560,6 +566,108 @@ x_font_new(
 			font->is_double_drawing = 0 ;
 		}
 	}
+
+	/*
+	 * Following processing is same as x_font.c:set_xfont()
+	 */
+	 
+	font->x_off = 0 ;
+
+	if( col_width == 0)
+	{
+		/* standard(usascii) font */
+
+		if( percent > 0)
+		{
+			u_int  ch_width ;
+
+			if( font->is_vertical)
+			{
+				/*
+				 * !! Notice !!
+				 * The width of full and half character font is the same.
+				 */
+				ch_width = fontsize * percent / 100 ;
+			}
+			else
+			{
+				ch_width = fontsize * percent / 200 ;
+			}
+
+			if( font->width != ch_width)
+			{
+				font->is_proportional = 1 ;
+
+				if( font->width < ch_width)
+				{
+					font->x_off = (ch_width - font->width) / 2 ;
+				}
+
+				font->width = ch_width ;
+			}
+		}
+		else if( font->is_vertical)
+		{
+			/*
+			 * !! Notice !!
+			 * The width of full and half character font is the same.
+			 */
+
+			font->is_proportional = 1 ;
+			font->x_off = font->width / 2 ;
+			font->width *= 2 ;
+		}
+	}
+	else
+	{
+		/* not a standard(usascii) font */
+
+		/*
+		 * XXX hack
+		 * forcibly conforming non standard font width to standard font width.
+		 */
+
+		if( font->is_vertical)
+		{
+			/*
+			 * !! Notice !!
+			 * The width of full and half character font is the same.
+			 */
+
+			if( font->width != col_width)
+			{
+				font->is_proportional = 1 ;
+
+				if( font->width < col_width)
+				{
+					font->x_off = (col_width - font->width) / 2 ;
+				}
+
+				font->width = col_width ;
+			}
+		}
+		else
+		{
+			if( font->width != col_width * font->cols)
+			{
+				kik_warn_printf(
+					"Font width(%d) is not matched with standard width(%d).\n"
+					"Because of this, characters are drawn one by one in order"
+					"to fit standard width.\n" ,
+					font->width , col_width * font->cols) ;
+
+				font->is_proportional = 1 ;
+
+				if( font->width < col_width * font->cols)
+				{
+					font->x_off = (col_width * font->cols - font->width) / 2 ;
+				}
+
+				font->width = col_width * font->cols ;
+			}
+		}
+	}
+
 
 	if( wincsinfo->cs == ANSI_CHARSET || FONT_CS(font->id) == ISO10646_UCS4_1)
 	{
@@ -642,7 +750,18 @@ x_calculate_char_width(
 	mkf_charset_t  cs
 	)
 {
-	return  font->width ;
+#if  0
+	if( font->is_var_col_width)
+	{
+		/* XXX */
+		
+		return  font->width ;
+	}
+	else
+#endif
+	{
+		return  font->width ;
+	}
 }
 
 char **

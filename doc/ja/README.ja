@@ -621,13 +621,15 @@ comment $Id$
         aafont , vaafont(Xft用フォント) で異なります。
 
         o font/vfont/tfont
-          [XLFD(*)](:[percentage]) (--with-gui=xlib の場合)
-	  [font family]( [font weight(Bold)] [font slant(Italic)] [font size]) (--with-gui=win32 の場合)
+	  (--with-gui=xlib の場合)
+          [XLFD(*)](:[percentage])
+	  (--with-gui=win32 の場合)
+	  [font family]( Bold Italic [font size]:[percentage])
 
           (*) もしくは、fonts.aliasで定義している省略記法。
 
         o aafont/vaafont/taafont
-          [font family]( [font weight(Bold)] [font slant(Italic)] [font size]-[font encoding]:[percentage])
+          [font family]( Bold Italic [font size]-[font encoding]:[percentage])
 
 	  font size は、実際に表示するピクセルサイズであり、小数点数を指定する
 	  こともできます。

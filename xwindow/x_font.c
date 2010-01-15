@@ -805,7 +805,7 @@ calculate_char_width(
 
 		XChar2b  c ;
 
-		/* dealing as UCS2 */
+		/* XXX dealing as UCS2 */
 
 		c.byte1 = ch[2] ;
 		c.byte2 = ch[3] ;
@@ -1276,11 +1276,11 @@ font_found:
 		{
 			if( font->width != col_width * font->cols)
 			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" font width(%d) is not matched with standard width(%d).\n" ,
+				kik_warn_printf(
+					"Font width(%d) is not matched with standard width(%d).\n"
+					"Because of this, characters are drawn one by one in order"
+					"to fit standard width.\n" ,
 					font->width , col_width * font->cols) ;
-			#endif
 
 				font->is_proportional = 1 ;
 

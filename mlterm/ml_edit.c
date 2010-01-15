@@ -23,6 +23,13 @@
 #define  CURSOR_DEBUG
 #endif
 
+/*
+ * ml_edit_t::tab_stops
+ * e.g.)
+ * 1 line = 40 columns
+ * => tab_stops = u_int8_t * 5 (40bits)
+ * => Check tab_stops bits if you want to know whether a column is set tab stop or not.
+ */
 #define  TAB_STOPS_SIZE(edit)  (((edit)->model.num_of_cols - 1) / 8 + 1)
 
 

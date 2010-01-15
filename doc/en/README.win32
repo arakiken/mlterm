@@ -1,0 +1,67 @@
+comment -*- mode: text -*-
+comment $Id$
+
+Memo about WIN32 native GUI.
+
+* Tested environments.
+  Windows XP SP3 + MinGW 5.1.4
+                 + MSYS 1.0.10(MSYS-DTK 1.0.1)
+                 + Cygwin 1.5.25-15
+		 + GTK+ 2.12.9(win32 native)
+
+* Build
+  (CC="gcc -mno-cygwin") ./configure (--with-gui=win32) (--config-cache) \
+		       (--with-libintl-prefix=[GTK+(win32) installed directory]) \
+		       (--with-libiconv-prefix=[GTK+(win32) installed directory])
+  make
+
+* Install
+  Copy these files to a directory where you want to install mlterm.
+  kiklib/src/.libs/*.dll
+  mkf/lib/.libs/*.dll
+  mkf/libtbl/.libs/*.dll
+  scrollbar/sample/.libs/*.dll
+  xwindow/.libs/mlterm.exe
+
+  o (Built with MinGW)
+    Copy win32/putty/plink.exe.
+  o (Built with MSYS or cygwin)
+    Copy tool/mlclient/mlclient.exe.
+  o If you can build mlconfig and mlterm-menu which require GTK+,
+    Copy tool/mlconfig/.libs/mlconfig.exe and
+    contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
+
+* Configuration
+  (Built with MSYS-DTK or Cygwin)
+  Place configuration files in $HOME/.mlterm/ directory.
+  
+  (Built with MinGW)
+  Place configuration files in %HOMEPATH%\mlterm\ or %HOME%\.mlterm\ directory.
+
+  (Font Configuration)
+  Format of font,vfont,tfont is as follows.
+  [font family]( Bold Italic [font size]:[percentage])
+  
+  aafont, vaafont, taafont files are not used.
+
+* Start
+  (Built with MSYS-DTK or Cygwin)
+  set HOME=c:\msys\...\home\...
+  mlterm.exe (options...) -e /bin/sh --login -i
+
+  (Built with MinGW / Cygwin(-mno-cygwin))
+  set HOMEPATH=...
+  mlterm.exe (options...) (-e plink.exe [-telnet/-ssh/-rlogin/-raw] [host])
+
+  If -e option is not specified, a dialog window which decides server to connect
+  is shown.
+  You can specify following options which customize a dialog in ~/.mlterm/main file.
+  o default_server = (<user>@)(<protocol>:)<server> (--serv)
+  o server_list = (<user>@)(<protocol>:)<server>,(<user>@)(<protocol>:)<server>,... (--servlist)
+
+* Caution
+  o -g [column]x[row] option is ignored.
+  o 'genuine' of daemon mode is not supported in MSYS-DTK or Cygwin version.
+    Daemon mode itself is not supported in MinGW version.
+  o Background image is not supported.
+  o use_variable_column_width option is ignored.

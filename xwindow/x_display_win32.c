@@ -65,7 +65,7 @@ static LRESULT CALLBACK window_proc(
 		}
 	}
 
-#ifndef  UTF16_IME_CHAR	
+#ifndef  UTF16_IME_CHAR
 	return  DefWindowProc( hwnd, msg, wparam, lparam) ;
 #else
 	return  DefWindowProcW( hwnd, msg, wparam, lparam) ;
@@ -371,6 +371,7 @@ x_display_receive_next_event(
 	MSG  msg ;
 
 #ifdef  USE_WIN32API
+
 	/* 0: WM_QUIT, -1: Error */
   #ifndef  UTF16_IME_CHAR
 	if( GetMessage( &msg , NULL , 0 , 0) <= 0)
@@ -382,12 +383,15 @@ x_display_receive_next_event(
 	}
 
 	TranslateMessage( &msg) ;
+	
   #ifndef  UTF16_IME_CHAR
 	DispatchMessage( &msg) ;
   #else
 	DispatchMessageW( &msg) ;
   #endif
+  
 #else
+
   #ifndef  UTF16_IME_CHAR
 	while( PeekMessage( &msg , NULL , 0 , 0 , PM_REMOVE))
   #else
@@ -407,7 +411,8 @@ x_display_receive_next_event(
 		DispatchMessageW( &msg) ;
   #endif
 	}
-#endif
+	
+#endif	/* USE_WIN32API */
 
 	return  1 ;
 }

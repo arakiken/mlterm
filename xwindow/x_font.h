@@ -38,18 +38,15 @@ typedef enum x_font_present
 typedef struct x_font
 {
 	/*
-	 * private
+	 * Private
 	 */
 	Display *  display ;
 	
 	ml_font_t  id ;
 
 	/*
-	 * public(readonly)
+	 * Public(readonly)
 	 */
-	int8_t  is_vertical ;
-	int8_t  is_var_col_width ;
-	
 #ifdef  USE_TYPE_XFT
 	XftFont *  xft_font ;
 #endif
@@ -63,19 +60,26 @@ typedef struct x_font
 	x_decsp_font_t *  decsp_font ;
 
 	/*
-	 * these members are never zero.
+	 * These members are never zero.
 	 */
 	u_int  cols ;
 	u_int  width ;
 	u_int  height ;
 	u_int  height_to_baseline ;
 
-	/* this is not zero only when is_proportional is true and xfont is set. */
+	/* This is not zero only when is_proportional is true and xfont is set. */
 	int  x_off ;
 
-	int8_t  is_double_drawing ;
+	/*
+	 * If is_var_col_width is false and is_proportional is true,
+	 * characters are drawn one by one. (see {xft_}draw_str())
+	 */
+	int8_t  is_var_col_width ;
 	int8_t  is_proportional ;
 	
+	int8_t  is_vertical ;
+	int8_t  is_double_drawing ;
+
 } x_font_t ;
 
 

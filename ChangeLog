@@ -1,3 +1,19 @@
+2010-01-16  Araki Ken  <arakiken@users.sf.net>
+
+	* version.h.in: 2.9.4 post XXX => 3.0.0 pre XXX
+
+	* man/mlterm.1: Updated.
+	
+	* doc/en/README.win32: Added.
+
+	* x_term_manager.c: Fixed a bug around SendMessage(WM_CLOSE) which
+	  causes mlterm (win32 GUI) to dump core in exiting if fade_ratio
+	  is less than 100.
+	  
+	* x_font_win32.c: ':[percentage]' format of ~/.mlterm/font font name
+	  is validated. And width of each font is adjusted to that of US-ASCII
+	  font if at all possible.
+
 2010-01-13  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window_win32.c: US_ASCII characters in utf8 encoding are shown
@@ -5108,3 +5124,5 @@
 	  (Thanks to Nobuyoshi Nakada san)
 	* Please read doc/en/ChangeLog.old for previous changelog information.
 	  (This term was written by Tomohiro KUBOTA in 2002-04-24.)
+
+$Id$
