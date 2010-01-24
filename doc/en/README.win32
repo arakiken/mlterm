@@ -35,7 +35,7 @@ Memo about WIN32 native GUI.
   (Built with MSYS-DTK or Cygwin)
   Place configuration files in $HOME/.mlterm/ directory.
   
-  (Built with MinGW)
+  (Built with MinGW or Cygwin(-mno-cygwin))
   Place configuration files in %HOMEPATH%\mlterm\ or %HOME%\.mlterm\ directory.
 
   (Font Configuration)
@@ -44,20 +44,26 @@ Memo about WIN32 native GUI.
   
   aafont, vaafont, taafont files are not used.
 
+  (Encoding)
+  If -E/--km/encoding option is "AUTO" or not specified, encoding of mlterm
+  is set as follows.
+  Built with MSYS-DTK or Cygwin           => UTF-8
+  Built with MinGW or Cygwin(-mno-cygwin) => Conforming with windows codepage.
+  
 * Start
   (Built with MSYS-DTK or Cygwin)
   set HOME=c:\msys\...\home\...
   mlterm.exe (options...) -e /bin/sh --login -i
 
-  (Built with MinGW / Cygwin(-mno-cygwin))
+  (Built with MinGW or Cygwin(-mno-cygwin))
   set HOMEPATH=...
   mlterm.exe (options...) (-e plink.exe [-telnet/-ssh/-rlogin/-raw] [host])
 
   If -e option is not specified, a dialog window which decides server to connect
   is shown.
   You can specify following options which customize a dialog in ~/.mlterm/main file.
-  o default_server = (<user>@)(<protocol>:)<server> (--serv)
-  o server_list = (<user>@)(<protocol>:)<server>,(<user>@)(<protocol>:)<server>,... (--servlist)
+  o default_server(--serv) = (<user>@)(<protocol>:)<server>(:<encoding>)
+  o server_list(--servlist) = (<user>@)(<protocol>:)<server>(:<encoding>),(<user>@)(<protocol>:)<server>(:<encoding>),...
 
 * Caution
   o -g [column]x[row] option is ignored.

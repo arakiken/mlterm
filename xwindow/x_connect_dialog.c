@@ -21,16 +21,21 @@ static char *  selected_server ;
 
 static char *  selected_user ;
 static char *  selected_pass ;
+static char *  selected_encoding ;
 
 
 /* --- static functions --- */
 
+/*
+ * Parsing "<user>@<proto>:<host>:<encoding>".
+ */
 static int
 parse(
-	char **  user ,		/* can be NULL */
-	int *  proto ,	/* can be -1 */
+	char **  user ,		/* If seq doesn't have user, NULL is set. */
+	int *  proto ,		/* If seq doesn't have proto, -1 is set. */
 	char **  server ,
-	char *  seq
+	char **  encoding ,	/* If seq doesn't have encoding, NULL is set. */
+	char *  seq		/* broken in this function. */
 	)
 {
 	char *  p ;
@@ -78,7 +83,17 @@ parse(
 	}
 
 	*server = seq ;
-
+	
+	if( ( p = strchr( seq , ':')))
+	{
+		*p = '\0' ;
+		*encoding = p + 1 ;
+	}
+	else
+	{
+		*encoding = NULL ;
+	}
+	
 	return  1 ;
 }
 
@@ -130,6 +145,7 @@ LRESULT CALLBACK dialog_proc(
 				char *  user ;
 				int  proto ;
 				char *  server ;
+				char *  encoding ;
 
 				res = SendMessage( win , CB_FINDSTRINGEXACT , 0 ,
 						(LPARAM)default_server) ;
@@ -138,12 +154,12 @@ LRESULT CALLBACK dialog_proc(
 					SendMessage( win , CB_SETCURSEL , res , 0) ;
 				}
 
-				if( parse( &user , &proto , &server ,
+				if( parse( &user , &proto , &server , &encoding ,
 						kik_str_alloca_dup( default_server)) )
 				{
 					SetWindowText( GetDlgItem( dlgwin , IDD_SERVER) , server) ;
 
-					if( user || ( user = user_env) )
+					if( user || ( user = user_env))
 					{
 						SetWindowText( GetDlgItem( dlgwin , IDD_USER) ,
 							user) ;
@@ -152,6 +168,12 @@ LRESULT CALLBACK dialog_proc(
 					if( proto != -1)
 					{
 						selected_proto = proto ;
+					}
+
+					if( encoding)
+					{
+						SetWindowText( GetDlgItem( dlgwin , IDD_ENCODING) ,
+							encoding) ;
 					}
 				}
 			}
@@ -225,6 +247,20 @@ LRESULT CALLBACK dialog_proc(
 					}
 				}
 				
+				win = GetDlgItem( dlgwin , IDD_ENCODING) ;
+				if( ( len = GetWindowTextLength( win)) > 0 &&
+					( p = malloc( len + 1)) )
+				{
+					if( GetWindowText( win , p , len + 1) == 0)
+					{
+						free( p) ;
+					}
+					else
+					{
+						selected_encoding = p ;
+					}
+				}
+				
 				EndDialog( dlgwin , IDOK) ;
 				
 				break ;
@@ -246,6 +282,7 @@ LRESULT CALLBACK dialog_proc(
 				char *  user ;
 				int  proto ;
 				char *  server ;
+				char *  encoding ;
 
 				win = GetDlgItem( dlgwin , IDD_LIST) ;
 
@@ -257,11 +294,11 @@ LRESULT CALLBACK dialog_proc(
 					seq = NULL ;
 				}
 
-				if( seq && parse( &user , &proto , &server , seq))
+				if( seq && parse( &user , &proto , &server , &encoding , seq))
 				{
 					SetWindowText( GetDlgItem( dlgwin , IDD_SERVER) , server) ;
 
-					if( user || ( user = getenv( "USERNAME")) )
+					if( user || ( user = getenv( "USERNAME")) || ( user = ""))
 					{
 						SetWindowText( GetDlgItem( dlgwin , IDD_USER) ,
 							user) ;
@@ -274,6 +311,12 @@ LRESULT CALLBACK dialog_proc(
 					else
 					{
 						selected_proto = proto ;
+					}
+					
+					if( encoding || ( encoding = ""))
+					{
+						SetWindowText( GetDlgItem( dlgwin , IDD_ENCODING) ,
+							encoding) ;
 					}
 					
 					CheckRadioButton( dlgwin , IDD_SSH , IDD_RLOGIN ,
@@ -310,6 +353,7 @@ x_connect_dialog(
 	char **  server ,/* Should be free'ed by those who call this. Format:<proto>:<server> */
 	char **  user ,		/* Same as above. If user is not input, NULL is set. */
 	char **  pass ,		/* Same as above. If pass is not input, NULL is set. */
+	char **  encoding ,	/* Same as above. If encoding is not input, NULL is set. */
 	Window  parent_window ,
 	char **  sv_list ,
 	char *   def_server	/* (<user>@)(<proto>:)<server address>. */
@@ -377,6 +421,7 @@ x_connect_dialog(
 	sprintf( *server , format , selected_server) ;
 	*user = selected_user ;
 	*pass = selected_pass ;
+	*encoding = selected_encoding ;
 
 	/* Successfully */
 	ret = 1 ;
@@ -397,6 +442,7 @@ end:
 	}
 	selected_user = NULL ;
 	selected_pass = NULL ;
+	selected_encoding = NULL ;
 	
 	return  ret ;
 }

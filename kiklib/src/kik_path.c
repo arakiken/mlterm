@@ -44,11 +44,13 @@ __kik_basename(
 
 #endif
 
+#ifndef  REMOVE_FUNCS_MLTERM_UNUSE
+
 int
 kik_path_cleanname(
 	char *  cleaned_path ,
 	size_t  size ,
-	char *  path
+	const char *  path
 	)
 {
 	char *  src ;
@@ -151,3 +153,4 @@ kik_path_cleanname(
 	return  1 ;
 }
 
+#endif /* REMOVE_FUNCS_MLTERM_UNUSE */

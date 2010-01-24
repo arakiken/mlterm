@@ -15,8 +15,8 @@
 
 kik_dl_handle_t
 kik_dl_open(
-	char *  dirpath ,
-	char *  name
+	const char *  dirpath ,
+	const char *  name
 	)
 {
 	char *  path ;
@@ -58,7 +58,7 @@ kik_dl_close(
 void *
 kik_dl_func_symbol(
 	kik_dl_handle_t  handle ,
-	char *  symbol
+	const char *  symbol
 	)
 {
 	void *  func ;
@@ -73,7 +73,7 @@ kik_dl_func_symbol(
 
 int
 kik_dl_is_module(
-	char * name
+	const char * name
 	)
 {
 	size_t  len ;

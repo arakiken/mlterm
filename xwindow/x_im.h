@@ -62,7 +62,7 @@ typedef struct x_im_export_syms
 			    mkf_charset_t  cs , int , int , ml_color_t ,
 			    ml_color_t , int , int) ;
 	char * (*ml_get_char_encoding_name)( ml_char_encoding_t) ;
-	ml_char_encoding_t (*ml_get_char_encoding)( char *) ;
+	ml_char_encoding_t (*ml_get_char_encoding)( const char *) ;
 	int (*ml_is_msb_set)( mkf_charset_t  cs) ;
 	ml_iscii_keymap_t (*ml_iscii_keymap_new)( int) ;
 	int (*ml_iscii_keymap_delete)( ml_iscii_keymap_t) ;

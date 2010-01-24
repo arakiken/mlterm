@@ -4,6 +4,8 @@
 
 #include  "kik_time.h"
 
+#ifndef  REMOVE_FUNCS_MLTERM_UNUSE
+
 #include  <string.h>	/* strncmp()/memset() */
 #include  <stdio.h>
 #include  <ctype.h>	/* isdigit() */
@@ -408,3 +410,5 @@ kik_time_int_month_to_abbrev_string(
 		return  NULL ;
 	}
 }
+
+#endif /* REMOVE_FUNCS_MLTERM_UNUSE */

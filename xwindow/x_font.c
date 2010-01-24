@@ -203,7 +203,7 @@ static u_int
 xft_calculate_char_width(
 	Display *  display ,
 	XftFont *  xfont ,
-	u_char *  ch ,		/* US-ASCII or Unicode */
+	const u_char *  ch ,		/* US-ASCII or Unicode */
 	size_t  len
 	)
 {
@@ -459,7 +459,7 @@ parse_xft_font_name(
 static u_int
 get_xft_col_width(
 	x_font_t *  font ,
-	char *  family ,
+	const char *  family ,
 	int  weight ,
 	int  slant ,
 	double  fontsize
@@ -502,7 +502,7 @@ get_xft_col_width(
 static int
 set_xft_font(
 	x_font_t *  font ,
-	char *  fontname ,
+	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
 	int  use_medium_for_bold ,
@@ -782,7 +782,7 @@ static u_int
 calculate_char_width(
 	Display *  display ,
 	XFontStruct *  xfont ,
-	u_char *  ch ,
+	const u_char *  ch ,
 	size_t  len
 	)
 {
@@ -826,7 +826,7 @@ static int
 parse_xfont_name(
 	char **  font_xlfd ,
 	char **  percent ,
-	char *  font_name
+	char *  font_name	/* broken in this function */
 	)
 {
 	/*
@@ -853,13 +853,13 @@ parse_xfont_name(
 static XFontStruct *
 load_xfont(
 	Display *  display ,
-	char *  family ,
-	char *  weight ,
-	char *  slant ,
-	char *  width ,
+	const char *  family ,
+	const char *  weight ,
+	const char *  slant ,
+	const char *  width ,
 	u_int  fontsize ,
-	char *  spacing ,
-	char *  encoding
+	const char *  spacing ,
+	const char *  encoding
 	)
 {
 	XFontStruct *  xfont ;
@@ -939,7 +939,7 @@ load_xfont(
 static int
 set_xfont(
 	x_font_t *  font ,
-	char *  fontname ,
+	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set */
 	int  use_medium_for_bold
@@ -1355,7 +1355,7 @@ x_font_new(
 	ml_font_t  id ,
 	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present ,
-	char *  fontname ,
+	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,
 	int  use_medium_for_bold
@@ -1507,7 +1507,7 @@ x_change_font_cols(
 u_int
 x_calculate_char_width(
 	x_font_t *  font ,
-	u_char *  ch ,
+	const u_char *  ch ,
 	size_t  len ,
 	mkf_charset_t  cs
 	)

@@ -95,7 +95,7 @@ static alias_codeset_table_t  alias_codeset_table[] =
 
 int
 kik_locale_init(
-	char *  locale
+	const char *  locale
 	)
 {
 	char *  locale_p ;

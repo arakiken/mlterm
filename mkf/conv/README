@@ -1,0 +1,14 @@
+comment -*- mode: txt -*-
+comment $Id$
+
+* Build
+  $ make
+  $ make install
+
+* Options
+  -h: help
+  -i [input code]: Specify input encoding.
+  -o [output code]: Specify outout encoding.
+
+* Notice
+  Encoding is not automatically recognized, so -i option is always required.

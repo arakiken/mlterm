@@ -1,3 +1,19 @@
+2010-01-25  Araki Ken  <arakiken@users.sf.net>
+
+	* winrs.rs: Input characters of password entry is masked.
+
+	* x_connect_dialog.c,winrs.rs,x_term_manager.c:
+	  Format of default_server(--serv) and server_list(--servlist) options
+	  is changed.
+	  (<user>@)(<protocol>:)<server> => (<user>@)(<protocol>:)<server>(:<encoding>)
+
+	* x_display.c: If BadValue error happens in XLoad(Query)Font function,
+	  mlterm doesn't stop(Thanks to Hirose Masaaki san).
+
+	* ml_char_encoding.c: If -E/--km/encoding option is "AUTO" or not specified,
+	  encoding is set UTF8 regardless of kik_get_codeset() in mlterm built with
+	  MSYS-DTK or Cygwin.
+
 2010-01-16  Araki Ken  <arakiken@users.sf.net>
 
 	* version.h.in: 2.9.4 post XXX => 3.0.0 pre XXX

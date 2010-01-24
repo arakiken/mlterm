@@ -10,12 +10,13 @@
 
 typedef void *  kik_dl_handle_t ;
 
-kik_dl_handle_t  kik_dl_open( char *  dirpath , char * name) ;
+kik_dl_handle_t  kik_dl_open( const char *  dirpath , const char * name) ;
 
 int  kik_dl_close( kik_dl_handle_t  handle) ;
 
-void *  kik_dl_func_symbol( kik_dl_handle_t  handle , char *  symbol) ;
+void *  kik_dl_func_symbol( kik_dl_handle_t  handle , const char *  symbol) ;
 
-int  kik_dl_is_module( char * name) ;
+int  kik_dl_is_module( const char * name) ;
+
 
 #endif

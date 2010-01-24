@@ -74,7 +74,7 @@ int
 kik_snprintf(
 	char *  str ,
 	size_t  size ,
-	char *  format ,
+	const char *  format ,
 	...
 	)
 {
@@ -117,7 +117,7 @@ kik_str_dup(
 char *
 __kik_str_copy(
 	char *  dst ,	/* alloca()-ed memory (see kik_str.h) */
-	char *  src
+	const char *  src
 	)
 {
 	if( dst == NULL)
@@ -139,7 +139,7 @@ size_t
 kik_str_tabify(
 	u_char *  dst ,
 	size_t  dst_len ,
-	u_char *  src ,
+	const u_char *  src ,
 	size_t  src_len ,
 	size_t  tab_len 
 	)
@@ -280,7 +280,7 @@ kik_str_chop_spaces(
 int
 kik_str_n_to_uint(
 	u_int *  i ,
-	char *  s ,
+	const char *  s ,
 	size_t  n
 	)
 {
@@ -312,7 +312,7 @@ kik_str_n_to_uint(
 int
 kik_str_n_to_int(
 	int *  i ,
-	char *  s ,
+	const char *  s ,
 	size_t  n
 	)
 {
@@ -365,7 +365,7 @@ kik_str_n_to_int(
 int
 kik_str_to_uint(
 	u_int *  i ,
-	char *  s
+	const char *  s
 	)
 {
 	u_int  _i ;
@@ -397,7 +397,7 @@ kik_str_to_uint(
 int
 kik_str_to_int(
 	int *  i ,
-	char *  s
+	const char *  s
 	)
 {
 	u_int  _i ;
@@ -446,7 +446,7 @@ kik_str_to_int(
 
 u_int
 kik_count_char_in_str(
-	char *  str ,
+	const char *  str ,
 	char  ch
 	)
 {

@@ -80,6 +80,8 @@
 
 #undef  HAVE_STDINT_H
 
+#undef  REMOVE_FUNCS_MLTERM_UNUSE
+
 #undef  inline
 
 #undef  const

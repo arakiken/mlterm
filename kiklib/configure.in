@@ -313,4 +313,15 @@ if test "$debug" = yes ; then
 fi
 AC_SUBST(DEB_CFLAGS)
 
+#
+# --- remove functions mlterm doesn't use ---
+#
+AC_ARG_WITH(funcs-mlterm-unuse,
+	[  --without-funcs-mlterm-unuse remove functions mlterm doesn't use @<:@default=with@:>@],
+	funcs_mlterm_unuse=$with_funcs_mlterm_unuse,funcs_mlterm_unuse="yes")
+if test "$funcs_mlterm_unuse" = "no" ; then
+	AC_DEFINE(REMOVE_FUNCS_MLTERM_UNUSE,,"REMOVE_FUNCS_MLTERM_UNUSE")
+fi
+
+
 AC_OUTPUT(Makefile src/Makefile)

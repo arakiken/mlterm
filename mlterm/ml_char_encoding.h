@@ -104,7 +104,7 @@ typedef enum  ml_char_encoding
 
 char *  ml_get_char_encoding_name( ml_char_encoding_t  encoding) ;
 
-ml_char_encoding_t  ml_get_char_encoding( char *  name) ;
+ml_char_encoding_t  ml_get_char_encoding( const char *  name) ;
 
 mkf_parser_t *  ml_parser_new( ml_char_encoding_t  encoding) ;
 
@@ -112,12 +112,12 @@ mkf_conv_t *  ml_conv_new( ml_char_encoding_t  encoding) ;
 
 int  ml_is_msb_set( mkf_charset_t  cs) ;
 
-int  ml_convert_to_ucs4( u_char *  ucs4_bytes , u_char *  src_bytes , size_t  src_size ,
+int  ml_convert_to_ucs4( u_char *  ucs4_bytes , const u_char *  src_bytes , size_t  src_size ,
 	mkf_charset_t  cs) ;
 
 int  ml_use_cp932_ucs_for_xft(void) ;
 
-int  ml_convert_to_xft_ucs4( u_char *  ucs4_bytes , u_char *  src_bytes , size_t  src_size ,
+int  ml_convert_to_xft_ucs4( u_char *  ucs4_bytes , const u_char *  src_bytes , size_t  src_size ,
 	mkf_charset_t  cs) ;
 
 

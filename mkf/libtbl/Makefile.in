@@ -51,6 +51,8 @@ install: install-la
 install-la: $(LIBDIR)/mkf
 	$(LIBTOOL_INSTALL) *.la $(LIBDIR)/mkf
 
+install-inc:
+
 $(LIBDIR)/mkf :
 	mkdir -p $(LIBDIR)/mkf
 

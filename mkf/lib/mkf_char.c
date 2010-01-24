@@ -66,7 +66,7 @@ mkf_int_to_bytes(
 
 u_int32_t
 mkf_bytes_to_int(
-	u_char *  bytes ,
+	const u_char *  bytes ,
 	size_t  len
 	)
 {

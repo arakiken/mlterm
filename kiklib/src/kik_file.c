@@ -49,8 +49,8 @@ kik_file_delete(
 
 kik_file_t *
 kik_file_open(
-	char *  file_path ,
-	char *  mode
+	const char *  file_path ,
+	const char *  mode
 	)
 {
 	FILE *  fp ;

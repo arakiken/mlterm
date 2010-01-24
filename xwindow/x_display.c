@@ -5,6 +5,7 @@
 #include  "x_display.h"
 
 #include  <string.h>		/* memset/memcpy */
+#include  <X11/Xproto.h>	/* X_OpenFont */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_str.h>	/* strdup */
@@ -24,11 +25,13 @@
 
 static u_int  num_of_displays ;
 static x_display_t **  displays ;
+static int (*default_error_handler)( Display * , XErrorEvent *) ;
 
 
 /* --- static functions --- */
 
 #ifdef  __DEBUG
+
 static int
 error_handler(
 	Display *  display ,
@@ -39,7 +42,7 @@ error_handler(
 
 	XGetErrorText( display , event->error_code , buffer , 1024) ;
 
-	kik_error_printf( "%s\n" , buffer) ;
+	kik_msg_printf( "%s\n" , buffer) ;
 
 	abort() ;
 
@@ -56,6 +59,43 @@ ioerror_handler(
 
 	return  1 ;
 }
+
+#else	/* __DEBUG */
+
+static int
+error_handler(
+	Display *  display ,
+	XErrorEvent *  event
+	)
+{
+#if  defined(BadValue) && defined(X_OpenFont)
+	if( event->error_code == BadValue && event->request_code == X_OpenFont)
+	{
+		/*
+		 * XXX Hack
+		 * If BadValue error happens in XLoad(Query)Font function,
+		 * mlterm doesn't stop.
+		 */
+		 
+		kik_error_printf( KIK_DEBUG_TAG "XLoad(Query)Font function is failed.\n") ;
+
+		/* ignored anyway */
+		return  0 ;
+	}
+	else
+#endif
+	if( default_error_handler)
+	{
+		return  (*default_error_handler)( display , event) ;
+	}
+	else
+	{
+		exit( 1) ;
+
+		return  1 ;
+	}
+}
+
 #endif
 
 static void
@@ -160,8 +200,8 @@ open_display(
 
 	memset( disp->cursors , 0 , sizeof( disp->cursors)) ;
 
+	default_error_handler = XSetErrorHandler( error_handler) ;
 #ifdef  __DEBUG
-	XSetErrorHandler( error_handler) ;
 	XSetIOErrorHandler( ioerror_handler) ;
 #endif
 

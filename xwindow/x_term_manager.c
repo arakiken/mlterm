@@ -353,9 +353,10 @@ open_pty_intern(
 		char *  server ;
 		char *  user ;
 		char *  pass ;
+		char *  encoding ;
 		int  ret ;
 
-		if( ! x_connect_dialog( &server , &user , &pass , window ,
+		if( ! x_connect_dialog( &server , &user , &pass , &encoding , window ,
 				main_config.server_list , main_config.default_server))
 		{
 			kik_warn_printf( "Connect dialog is canceled.\n") ;
@@ -364,8 +365,8 @@ open_pty_intern(
 		}
 
 	#ifdef  __DEBUG
-		kik_debug_printf( "Connect dialog: Server %s user %s pass %s\n" ,
-			server , user , pass) ;
+		kik_debug_printf( "Connect dialog: Server %s user %s pass %s encoding %s\n" ,
+			server , user , pass , encoding) ;
 	#endif
 
 		ret = 0 ;
@@ -387,6 +388,14 @@ open_pty_intern(
 					if( *(server + protolen) == ':')
 					{
 						int  idx ;
+						ml_char_encoding_t  enc ;
+						
+						if( encoding &&
+							( enc = ml_get_char_encoding( encoding)) !=
+								ML_UNKNOWN_ENCODING)
+						{
+							ml_term_change_encoding( term ,	enc) ;
+						}
 						
 						cmd_path = "plink.exe" ;
 						
@@ -420,10 +429,27 @@ open_pty_intern(
 			size_t  len ;
 			char *  p ;
 
-			len = strlen( user) + 1 + strlen( server) + 1 ;
+			len = (user ? (strlen( user) + 1) : 0) + strlen( server) +
+				(encoding ? ( 1 + strlen(encoding)) : 0) + 1 ;
+			
 			if( ( p = malloc( len)))
 			{
-				sprintf( p , "%s@%s" , user , server) ;
+				char  format[] = "%s@%s:%s" ;
+
+				if( ! encoding)
+				{
+					/* Removing ";%s" from format. */
+					format[5] = '\0' ;
+				}
+				
+				if( user)
+				{
+					sprintf( p , format , user , server , encoding) ;
+				}
+				else
+				{
+					sprintf( p , &format[3] , server , encoding) ;
+				}
 
 				x_main_config_add_to_server_list( &main_config , p) ;
 			}
@@ -441,6 +467,7 @@ open_pty_intern(
 		free( server) ;
 		free( user) ;
 		free( pass) ;
+		free( encoding) ;
 		
 		return  ret ;
 #else

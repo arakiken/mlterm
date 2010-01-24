@@ -9,7 +9,7 @@
 #include  "kik_config.h"	/* HAVE_WINDOWS_H */
 
 
-int  kik_locale_init(char *  locale) ;
+int  kik_locale_init( const char *  locale) ;
 
 int  kik_locale_final(void) ;
 

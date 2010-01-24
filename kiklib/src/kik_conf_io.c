@@ -16,14 +16,14 @@
 
 /* --- static variables --- */
 
-static char *  sysconfdir ;
+static const char *  sysconfdir ;
 
 
 /* --- global functions --- */
 
 int
 kik_set_sys_conf_dir(
-	char *  dir
+	const char *  dir
 	)
 {
 	sysconfdir = dir ;
@@ -33,7 +33,7 @@ kik_set_sys_conf_dir(
 
 char *
 kik_get_sys_rc_path(
-	char *  rcfile
+	const char *  rcfile
 	)
 {
 	char *  rcpath ;
@@ -59,7 +59,7 @@ kik_get_sys_rc_path(
 
 char *
 kik_get_user_rc_path(
-	char *  rcfile
+	const char *  rcfile
 	)
 {
 	char *  homedir ;
@@ -114,7 +114,7 @@ kik_get_user_rc_path(
 
 kik_conf_write_t *
 kik_conf_write_open(
-	char *  name
+	char *  name	/* can break in this function. */
 	)
 {
 	kik_conf_write_t *  conf ;
@@ -233,8 +233,8 @@ error:
 int
 kik_conf_io_write(
 	kik_conf_write_t *  conf ,
-	char *  key ,
-	char *  val
+	const char *  key ,
+	const char *  val
 	)
 {
 	int  count ;

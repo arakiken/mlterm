@@ -531,4 +531,4 @@ kik_alloca_garbage_collect(void)
 	return  1 ;
 }
 
-#endif
+#endif	/* HAVE_ALLOCA */

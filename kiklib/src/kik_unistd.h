@@ -35,7 +35,7 @@ int  __kik_usleep( u_int  microseconds) ;
 
 #define  kik_unsetenv( name)  __kik_unsetenv( name)
 
-void  __kik_unsetenv( char *  name) ;
+void  __kik_unsetenv( const char *  name) ;
 
 #endif
 

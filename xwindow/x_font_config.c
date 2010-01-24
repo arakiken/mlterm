@@ -161,7 +161,7 @@ get_font_name_table(
 
 static ml_font_t
 parse_key(
-	char *  key
+	const char *  key
 	)
 {
 	int  count ;
@@ -309,7 +309,7 @@ parse_conf(
 static int
 read_conf(
 	x_font_config_t *  font_config ,
-	char *  filename
+	const char *  filename
 	)
 {
 	kik_file_t *  from ;
@@ -337,8 +337,8 @@ read_conf(
 
 static int
 save_conf(
-	char *  file ,
-	char *  key ,
+	const char *  file ,
+	const char *  key ,
 	char *  value	/* Includes multiple entries. Destroyed in this function. */
 	)
 {
@@ -490,7 +490,7 @@ save_conf(
 
 static int
 is_valid_format(
-	char *  format
+	const char *  format
 	)
 {
 	char *  p;
@@ -865,7 +865,7 @@ x_customize_default_font_name(
  */
 int
 x_customize_font_file(
-	char *  file ,	/* if null, use "mlterm/font" file. */
+	const char *  file ,	/* if null, use "mlterm/font" file. */
 	char *  key ,	/* charset name */
 	char *  value ,	/* font list */
 	int  save
@@ -1029,7 +1029,7 @@ x_get_config_font_name(
 
 char *
 x_get_config_font_name2(
-	char *  file ,		/* can be NULL */
+	const char *  file ,		/* can be NULL */
 	u_int  font_size ,
 	char *  font_cs
 	)

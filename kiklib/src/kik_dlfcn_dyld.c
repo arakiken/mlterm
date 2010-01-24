@@ -35,8 +35,8 @@ static KIK_LIST( loaded_module_t)  module_list = NULL ;
 
 kik_dl_handle_t
 kik_dl_open(
-	char *  dirpath ,
-	char *  name
+	const char *  dirpath ,
+	const char *  name
 	)
 {
 	NSObjectFileImage  file_image;
@@ -201,7 +201,7 @@ kik_dl_close(
 void *
 kik_dl_func_symbol(
 	kik_dl_handle_t  unused ,
-	char *  symbol
+	const char *  symbol
 	)
 {
 	NSSymbol  nssymbol = NULL ;
@@ -238,7 +238,7 @@ kik_dl_func_symbol(
 
 int
 kik_dl_is_module(
-	char * name
+	const char *  name
 	)
 {
 	size_t  len ;

@@ -7,6 +7,9 @@
 
 
 #include  <time.h>
+#include  "kik_config.h"	/* REMOVE_FUNCS_MLTERM_UNUSE */
+
+#ifndef  REMOVE_FUNCS_MLTERM_UNUSE
 
 
 time_t  kik_time_string_date_to_time_t( const char *  format , const char *  date) ;
@@ -26,4 +29,6 @@ char *  kik_time_int_month_to_string( int  month) ;
 char *  kik_time_int_month_to_abbrev_string( int  month) ;
 
 
-#endif
+#endif	/* REMOVE_FUNCS_MLTERM_UNUSE */
+
+#endif	/* __KIK_TIME_H__ */

@@ -51,7 +51,7 @@ parse_conf(
 static int
 read_conf(
 	x_color_config_t *  color_config ,
-	char *  filename
+	const char *  filename
 	)
 {
 	kik_file_t *  from ;

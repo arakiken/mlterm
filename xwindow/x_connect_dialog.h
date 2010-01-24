@@ -17,10 +17,11 @@
 #define IDD_SERVER	14
 #define IDD_USER	15
 #define IDD_PASS	16
+#define IDD_ENCODING	17
 
 
-int  x_connect_dialog( char **  server , char **  user , char **  pass ,
-		Window  parent_window , char **  server_list , char *  default_server) ;
+int  x_connect_dialog( char **  server , char **  user , char **  pass , char **  encoding ,
+	Window  parent_window , char **  server_list , char *  default_server) ;
 
 
 #endif

@@ -650,6 +650,8 @@ x_window_final(
 
 	x_display_clear_selection( win->disp , win) ;
 	
+	x_xic_deactivate( win) ;
+
 	if( win->buffer)
 	{
 		XFreePixmap( win->disp->display , win->buffer) ;
@@ -659,8 +661,6 @@ x_window_final(
 	XftDrawDestroy( win->xft_draw) ;
 #endif
 
-	XDestroyWindow( win->disp->display , win->my_window) ;
-
 	if( win->icon_pix){
 		XFreePixmap( win->disp->display , win->icon_pix) ;
 	}
@@ -668,13 +668,13 @@ x_window_final(
 		XFreePixmap( win->disp->display , win->icon_mask) ;
 	}
 	free( win->icon_card) ;
-	
-	x_xic_deactivate( win) ;
 
 	if( win->create_gc)
 	{
 		x_gc_delete( win->gc) ;
 	}
+
+	XDestroyWindow( win->disp->display , win->my_window) ;
 
 	if( win->window_finalized)
 	{

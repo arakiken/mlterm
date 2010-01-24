@@ -217,7 +217,7 @@ kik_conf_new(
 	int  minor_version ,
 	int  revision ,
 	int  patch_level ,
-	char *  version_aux_info
+	char *  version_aux_info	/* should be static data */
 	)
 {
 	kik_conf_t *  conf ;

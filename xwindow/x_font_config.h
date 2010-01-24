@@ -49,11 +49,11 @@ int  x_customize_font_name( x_font_config_t *  font_config , ml_font_t  font ,
 int  x_customize_default_font_name( x_font_config_t *  font_config , ml_font_t  font ,
 	char *  fontname) ;
 
-int  x_customize_font_file( char *  file, char *  key, char *  value, int  save) ;
+int  x_customize_font_file( const char *  file, char *  key, char *  value, int  save) ;
 
 char *  x_get_config_font_name( x_font_config_t *  font_config , u_int  font_size , ml_font_t  font) ;
 
-char *  x_get_config_font_name2( char *  file , u_int  font_size , char *  font_cs) ;
+char *  x_get_config_font_name2( const char *  file , u_int  font_size , char *  font_cs) ;
 
 char *  x_get_all_config_font_names( x_font_config_t *  font_config , u_int  font_size) ;
 

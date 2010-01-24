@@ -19,15 +19,15 @@ typedef struct kik_conf_write
 } kik_conf_write_t ;
 
 
-int  kik_set_sys_conf_dir( char *  dir) ;
+int  kik_set_sys_conf_dir( const char *  dir) ;
 
-char *  kik_get_sys_rc_path( char *  rcfile) ;
+char *  kik_get_sys_rc_path( const char *  rcfile) ;
 
-char *  kik_get_user_rc_path( char *  rcfile) ;
+char *  kik_get_user_rc_path( const char *  rcfile) ;
 
 kik_conf_write_t *  kik_conf_write_open( char *  name) ;
 
-int  kik_conf_io_write( kik_conf_write_t *  conf , char *  key , char *  val) ;
+int  kik_conf_io_write( kik_conf_write_t *  conf , const char *  key , const char *  val) ;
 
 int  kik_conf_write_close( kik_conf_write_t *  conf) ;
 

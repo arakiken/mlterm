@@ -23,7 +23,7 @@ kik_file_t *  kik_file_new( FILE *  fp) ;
 
 int  kik_file_delete( kik_file_t *  file) ;
 
-kik_file_t *  kik_file_open( char *  file_path , char *  mode) ;
+kik_file_t *  kik_file_open( const char *  file_path , const char *  mode) ;
 
 int  kik_file_close( kik_file_t *  file) ;
 

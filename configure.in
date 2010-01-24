@@ -741,6 +741,7 @@ AC_SUBST(CVS_REVISION)
 OUTPUT_FILES="xwindow/version.h ${OUTPUT_FILES}"
 
 if test "${SUBDIRS}" != "" ; then
+	ac_configure_args="${ac_configure_args} --without-funcs-mlterm-unuse"
 	AC_CONFIG_SUBDIRS(${SUBDIRS})
 fi
 

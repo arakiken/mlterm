@@ -25,7 +25,11 @@ char *  __kik_basename( char *  path) ;
 #endif
 
 
-int  kik_path_cleanname( char *  cleaned_path , size_t  size , char *  path) ;
+#ifndef  REMOVE_FUNCS_MLTERM_UNUSE
+
+int  kik_path_cleanname( char *  cleaned_path , size_t  size , const char *  path) ;
+
+#endif
 
 
 #endif

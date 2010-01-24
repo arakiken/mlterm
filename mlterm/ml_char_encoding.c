@@ -253,7 +253,7 @@ ml_get_char_encoding_name(
 
 ml_char_encoding_t
 ml_get_char_encoding(
-	char *  name		/* '_' and '-' are ignored. */
+	const char *  name		/* '_' and '-' are ignored. */
 	)
 {
 	int  count ;
@@ -297,7 +297,15 @@ ml_get_char_encoding(
 
 	if( strcasecmp( encoding , "auto") == 0)
 	{
+	#if  defined(__CYGWIN__) || defined(__MSYS__)
+		/*
+		 * XXX
+		 * UTF-8 is used by default in cygwin and msys.
+		 */
+		return  ML_UTF8 ;
+	#else
 		return  ml_get_char_encoding( kik_get_codeset()) ;
+	#endif
 	}
 	
 	for( count = 0 ; count < sizeof( encoding_table) / sizeof( encoding_table_t) ;
@@ -412,7 +420,7 @@ ml_is_msb_set(
 int
 ml_convert_to_ucs4(
 	u_char *  ucs4_bytes ,
-	u_char *  src_bytes ,
+	const u_char *  src_bytes ,
 	size_t  src_size ,
 	mkf_charset_t  cs
 	)
@@ -471,7 +479,7 @@ ml_use_cp932_ucs_for_xft(void)
 int
 ml_convert_to_xft_ucs4(
 	u_char *  ucs4_bytes ,
-	u_char *  src_bytes ,
+	const u_char *  src_bytes ,
 	size_t  src_size ,
 	mkf_charset_t  cs	/* US_ASCII and ISO8859_1_R is not accepted */
 	)

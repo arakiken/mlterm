@@ -87,7 +87,7 @@ int  x_compose_dec_special_font(void) ;
 
 
 x_font_t *  x_font_new( Display *  display , ml_font_t  id , x_type_engine_t  type_engine ,
-	x_font_present_t  font_present , char *  fontname , u_int  fontsize ,
+	x_font_present_t  font_present , const char *  fontname , u_int  fontsize ,
 	u_int  col_width , int  use_medium_for_bold) ;
 
 int  x_font_delete( x_font_t *  font) ;
@@ -102,7 +102,8 @@ int  x_font_load_xfont( x_font_t *  font , char *  fontname , u_int  fontsize ,
 
 int  x_change_font_cols( x_font_t *  font , u_int  cols) ;
 
-u_int  x_calculate_char_width( x_font_t *  font , u_char *  ch , size_t  len , mkf_charset_t  cs) ;
+u_int  x_calculate_char_width( x_font_t *  font ,
+		const u_char *  ch , size_t  len , mkf_charset_t  cs) ;
 
 char **  x_font_get_cs_names( mkf_charset_t  cs) ;
 

@@ -47,7 +47,7 @@ __kik_usleep(
 
 void
 __kik_unsetenv(
-	char *  name
+	const char *  name
 	)
 {
 }

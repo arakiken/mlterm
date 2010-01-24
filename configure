@@ -26243,6 +26243,7 @@ CVS_REVISION=`tail -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^.Id: .* \(.
 OUTPUT_FILES="xwindow/version.h ${OUTPUT_FILES}"
 
 if test "${SUBDIRS}" != "" ; then
+	ac_configure_args="${ac_configure_args} --without-funcs-mlterm-unuse"
 
 
 subdirs="$subdirs ${SUBDIRS}"
