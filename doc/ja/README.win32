@@ -8,6 +8,7 @@ WIN32 native GUI 対応に関するメモ
                  + MSYS 1.0.10(MSYS-DTK 1.0.1)
                  + Cygwin 1.5.25-15
 		 + GTK+ 2.12.9(win32 native)
+		 + Fribidi 0.19.2(win32 native)
 
 * ビルド
   (CC="gcc -mno-cygwin") ./configure (--with-gui=win32) (--config-cache) \
@@ -30,16 +31,18 @@ WIN32 native GUI 対応に関するメモ
   mkf/libtbl/.libs/*.dll
   scrollbar/sample/.libs/*.dll
   xwindow/.libs/mlterm.exe
-  をコピー
+  をコピーしてください。
 
-  o MinGW でビルドした場合は、ソースツリーの win32/putty/plink.exe もコピー
+  o MinGW or Cygwin(-mno-cygwin) でビルドした場合は、win32/plink/plink.exe も
+    コピーしてください。今のところ、リモートホストへの接続には plink.exe を
+    使用しています。
   o MSYS, cygwin でビルドした場合は、ソースツリーの tool/mlclient/mlclient.exe
-    もコピー
+    もコピーしてください。
   o mlconfig,mlterm-menu をビルドできた場合(あらかじめ GTK+ をインストール
     しておく必要があります)は、ソースツリーの
     tool/mlconfig/.libs/mlconfig.exe
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
-    もコピー
+    もコピーしてください。
     なお、mlterm-menu は、MinGW でビルドする場合には win32 native の GTK+ と、
     Cygwin でビルドする場合には Cygwin 用の GTK+ とリンクしないと、設定ファイ
     ル(menu)の読み込みができず正常に動作しません。

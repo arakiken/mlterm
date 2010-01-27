@@ -2,6 +2,12 @@
  *	$Id$
  */
 
+MLTERM_ICON ICON "mlterm-icon-win32.ico"
+
+#include  <kiklib/kik_config.h>		/* USE_WIN32API */
+
+#ifdef  USE_WIN32API
+
 #include  "x_connect_dialog.h"
 
 ConnectDialog DIALOG 20, 20, 134, 115
@@ -24,3 +30,5 @@ ConnectDialog DIALOG 20, 20, 134, 115
 		DEFPUSHBUTTON	"OK"		IDOK,		20, 95, 40,  12
 		PUSHBUTTON	"Cancel"	IDCANCEL,	80, 95, 40,  12
 	}
+
+#endif	/* USE_WIN32API */

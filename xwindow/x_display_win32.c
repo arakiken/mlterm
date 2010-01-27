@@ -129,7 +129,7 @@ x_display_open(
   	wc.lpfnWndProc = window_proc ;
 	wc.style = CS_HREDRAW | CS_VREDRAW ;
   	wc.hInstance = _display.hinst ;
-  	wc.hIcon = 0 ;
+  	wc.hIcon = LoadIcon( _display.hinst , "MLTERM_ICON") ;
   	wc.hCursor = LoadCursor(NULL,IDC_ARROW) ;
   	wc.hbrBackground = 0 ;
   	wc.lpszClassName = L"MLTERM" ;

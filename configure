@@ -867,9 +867,9 @@ IMAGELIB_LIBS
 IMAGELIB_CFLAGS
 imlib2_config
 imlib_config
+fribidi_config
 FRIBIDI_LIBS
 FRIBIDI_CFLAGS
-fribidi_config
 XUTF8_CFLAGS
 GUI_CFLAGS
 WIN32TAG
@@ -1019,6 +1019,8 @@ F77
 FFLAGS
 XMKMF
 PKG_CONFIG
+FRIBIDI_CFLAGS
+FRIBIDI_LIBS
 IMAGELIB_CFLAGS
 IMAGELIB_LIBS
 XFT_CFLAGS
@@ -1722,6 +1724,10 @@ Some influential environment variables:
   FFLAGS      Fortran 77 compiler flags
   XMKMF       Path to xmkmf, Makefile generator for X Window System
   PKG_CONFIG  path to pkg-config utility
+  FRIBIDI_CFLAGS
+              C compiler flags for FRIBIDI, overriding pkg-config
+  FRIBIDI_LIBS
+              linker flags for FRIBIDI, overriding pkg-config
   IMAGELIB_CFLAGS
               C compiler flags for IMAGELIB, overriding pkg-config
   IMAGELIB_LIBS
@@ -4270,7 +4276,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4273 "configure"' > conftest.$ac_ext
+  echo '#line 4279 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7520,11 +7526,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7523: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7529: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7527: \$? = $ac_status" >&5
+   echo "$as_me:7533: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7810,11 +7816,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7813: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7819: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7817: \$? = $ac_status" >&5
+   echo "$as_me:7823: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7914,11 +7920,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7917: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7923: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7921: \$? = $ac_status" >&5
+   echo "$as_me:7927: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -10314,7 +10320,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 10317 "configure"
+#line 10323 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -10414,7 +10420,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 10417 "configure"
+#line 10423 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12823,11 +12829,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12826: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12832: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12830: \$? = $ac_status" >&5
+   echo "$as_me:12836: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12927,11 +12933,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12930: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12936: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12934: \$? = $ac_status" >&5
+   echo "$as_me:12940: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -14510,11 +14516,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14513: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14519: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14517: \$? = $ac_status" >&5
+   echo "$as_me:14523: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -14614,11 +14620,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14617: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14623: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14621: \$? = $ac_status" >&5
+   echo "$as_me:14627: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16829,11 +16835,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16832: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16838: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16836: \$? = $ac_status" >&5
+   echo "$as_me:16842: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -17119,11 +17125,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17122: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17128: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:17126: \$? = $ac_status" >&5
+   echo "$as_me:17132: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -17223,11 +17229,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17226: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17232: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17230: \$? = $ac_status" >&5
+   echo "$as_me:17236: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -21390,7 +21396,7 @@ case "${host_os}" in
 mingw32*)
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
 		ML_PTY_OBJ="ml_pty_pipewin32.o"
-		WIN32DIALOG_OBJ="x_connect_dialog.o winrs.o"
+		WIN32DIALOG_OBJ="x_connect_dialog.o"
 		ml_cv_is_posix="no"
 	fi
 
@@ -21533,162 +21539,6 @@ else
 fi
 
 if test "$fribidi" = "yes" ; then
-	# Extract the first word of "fribidi-config", so it can be a program name with args.
-set dummy fribidi-config; ac_word=$2
-{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_fribidi_config+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$fribidi_config"; then
-  ac_cv_prog_fribidi_config="$fribidi_config" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_fribidi_config="yes"
-    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_fribidi_config" && ac_cv_prog_fribidi_config="fribidi="no""
-fi
-fi
-fribidi_config=$ac_cv_prog_fribidi_config
-if test -n "$fribidi_config"; then
-  { $as_echo "$as_me:$LINENO: result: $fribidi_config" >&5
-$as_echo "$fribidi_config" >&6; }
-else
-  { $as_echo "$as_me:$LINENO: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-	if test "$fribidi_config" = "yes" ; then
-		FRIBIDI_CFLAGS="`fribidi-config --cflags` -DUSE_FRIBIDI"
-		FRIBIDI_LIBS="`fribidi-config --libs`"
-	fi
-fi
-
-
-
-# default value
-IMAGELIB_NAME=none
-
-# Check whether --with-imagelib was given.
-if test "${with_imagelib+set}" = set; then
-  withval=$with_imagelib; imagelib=$with_imagelib
-fi
-
-case ${imagelib} in
-imlib)
-	# Extract the first word of "imlib-config", so it can be a program name with args.
-set dummy imlib-config; ac_word=$2
-{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_imlib_config+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$imlib_config"; then
-  ac_cv_prog_imlib_config="$imlib_config" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_imlib_config="yes"
-    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_imlib_config" && ac_cv_prog_imlib_config="no"
-fi
-fi
-imlib_config=$ac_cv_prog_imlib_config
-if test -n "$imlib_config"; then
-  { $as_echo "$as_me:$LINENO: result: $imlib_config" >&5
-$as_echo "$imlib_config" >&6; }
-else
-  { $as_echo "$as_me:$LINENO: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-	if test "x$imlib_config" = "xno" ; then
-		echo ""
-		echo "** ERROR **"
-		echo "Could not find imlib-config."
-		echo ""
-		exit 1
-	fi
-	IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_IMLIB"
-	IMAGELIB_LIBS="`imlib-config --libs`"
-	IMAGELIB_NAME=imlib
-	;;
-imlib2)
-	# Extract the first word of "imlib2-config", so it can be a program name with args.
-set dummy imlib2-config; ac_word=$2
-{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_imlib2_config+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$imlib2_config"; then
-  ac_cv_prog_imlib2_config="$imlib2_config" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_imlib2_config="yes"
-    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_imlib2_config" && ac_cv_prog_imlib2_config="no"
-fi
-fi
-imlib2_config=$ac_cv_prog_imlib2_config
-if test -n "$imlib2_config"; then
-  { $as_echo "$as_me:$LINENO: result: $imlib2_config" >&5
-$as_echo "$imlib2_config" >&6; }
-else
-  { $as_echo "$as_me:$LINENO: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-	if test "x$imlib2_config" = "xno" ; then
-		echo ""
-		echo "** ERROR **"
-		echo "Could not find imlib2-config."
-		echo ""
-		exit 1
-	fi
-	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DUSE_IMLIB"
-	IMAGELIB_LIBS="`imlib2-config --libs`"
-	IMAGELIB_NAME=imlib2
-	;;
-gdk-pixbuf)
 
 
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
@@ -21805,6 +21655,234 @@ $as_echo "no" >&6; }
 	fi
 
 fi
+
+pkg_failed=no
+{ $as_echo "$as_me:$LINENO: checking for FRIBIDI" >&5
+$as_echo_n "checking for FRIBIDI... " >&6; }
+
+if test -n "$FRIBIDI_CFLAGS"; then
+    pkg_cv_FRIBIDI_CFLAGS="$FRIBIDI_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { ($as_echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"fribidi\"") >&5
+  ($PKG_CONFIG --exists --print-errors "fribidi") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; then
+  pkg_cv_FRIBIDI_CFLAGS=`$PKG_CONFIG --cflags "fribidi" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$FRIBIDI_LIBS"; then
+    pkg_cv_FRIBIDI_LIBS="$FRIBIDI_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { ($as_echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"fribidi\"") >&5
+  ($PKG_CONFIG --exists --print-errors "fribidi") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; then
+  pkg_cv_FRIBIDI_LIBS=`$PKG_CONFIG --libs "fribidi" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        FRIBIDI_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "fribidi" 2>&1`
+        else
+	        FRIBIDI_PKG_ERRORS=`$PKG_CONFIG --print-errors "fribidi" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$FRIBIDI_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+                have_fribidi=no
+elif test $pkg_failed = untried; then
+	have_fribidi=no
+else
+	FRIBIDI_CFLAGS=$pkg_cv_FRIBIDI_CFLAGS
+	FRIBIDI_LIBS=$pkg_cv_FRIBIDI_LIBS
+        { $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_fribidi=yes
+fi
+	if test "$have_fribidi" = "yes" ; then
+		FRIBIDI_CFLAGS="`$PKG_CONFIG --cflags fribidi|sed 's/\\\r//g'` -DUSE_FRIBIDI"
+		FRIBIDI_LIBS="`$PKG_CONFIG --libs fribidi|sed 's/\\\r//g'`"
+	else
+		# Extract the first word of "fribidi-config", so it can be a program name with args.
+set dummy fribidi-config; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_fribidi_config+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$fribidi_config"; then
+  ac_cv_prog_fribidi_config="$fribidi_config" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_fribidi_config="yes"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_fribidi_config" && ac_cv_prog_fribidi_config="fribidi="no""
+fi
+fi
+fribidi_config=$ac_cv_prog_fribidi_config
+if test -n "$fribidi_config"; then
+  { $as_echo "$as_me:$LINENO: result: $fribidi_config" >&5
+$as_echo "$fribidi_config" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+		if test "$fribidi_config" = "yes" ; then
+			FRIBIDI_CFLAGS="`fribidi-config --cflags` -DUSE_FRIBIDI"
+			FRIBIDI_LIBS="`fribidi-config --libs`"
+		fi
+	fi
+fi
+
+
+
+# default value
+IMAGELIB_NAME=none
+
+# Check whether --with-imagelib was given.
+if test "${with_imagelib+set}" = set; then
+  withval=$with_imagelib; imagelib=$with_imagelib
+fi
+
+case ${imagelib} in
+imlib)
+	# Extract the first word of "imlib-config", so it can be a program name with args.
+set dummy imlib-config; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_imlib_config+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$imlib_config"; then
+  ac_cv_prog_imlib_config="$imlib_config" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_imlib_config="yes"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_imlib_config" && ac_cv_prog_imlib_config="no"
+fi
+fi
+imlib_config=$ac_cv_prog_imlib_config
+if test -n "$imlib_config"; then
+  { $as_echo "$as_me:$LINENO: result: $imlib_config" >&5
+$as_echo "$imlib_config" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+	if test "x$imlib_config" = "xno" ; then
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find imlib-config."
+		echo ""
+		exit 1
+	fi
+	IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_IMLIB"
+	IMAGELIB_LIBS="`imlib-config --libs`"
+	IMAGELIB_NAME=imlib
+	;;
+imlib2)
+	# Extract the first word of "imlib2-config", so it can be a program name with args.
+set dummy imlib2-config; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_imlib2_config+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$imlib2_config"; then
+  ac_cv_prog_imlib2_config="$imlib2_config" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_imlib2_config="yes"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_imlib2_config" && ac_cv_prog_imlib2_config="no"
+fi
+fi
+imlib2_config=$ac_cv_prog_imlib2_config
+if test -n "$imlib2_config"; then
+  { $as_echo "$as_me:$LINENO: result: $imlib2_config" >&5
+$as_echo "$imlib2_config" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+	if test "x$imlib2_config" = "xno" ; then
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find imlib2-config."
+		echo ""
+		exit 1
+	fi
+	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DUSE_IMLIB"
+	IMAGELIB_LIBS="`imlib2-config --libs`"
+	IMAGELIB_NAME=imlib2
+	;;
+gdk-pixbuf)
 
 pkg_failed=no
 { $as_echo "$as_me:$LINENO: checking for IMAGELIB" >&5

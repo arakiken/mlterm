@@ -8,6 +8,7 @@ Memo about WIN32 native GUI.
                  + MSYS 1.0.10(MSYS-DTK 1.0.1)
                  + Cygwin 1.5.25-15
 		 + GTK+ 2.12.9(win32 native)
+		 + Fribidi 0.19.2(win32 native)
 
 * Build
   (CC="gcc -mno-cygwin") ./configure (--with-gui=win32) (--config-cache) \
@@ -24,7 +25,7 @@ Memo about WIN32 native GUI.
   xwindow/.libs/mlterm.exe
 
   o (Built with MinGW)
-    Copy win32/putty/plink.exe.
+    Copy win32/plink/plink.exe which mlterm uses to connect remote host for now.
   o (Built with MSYS or cygwin)
     Copy tool/mlclient/mlclient.exe.
   o If you can build mlconfig and mlterm-menu which require GTK+,

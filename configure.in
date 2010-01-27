@@ -74,7 +74,7 @@ case "${host_os}" in
 mingw32*)
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
 		ML_PTY_OBJ="ml_pty_pipewin32.o"
-		WIN32DIALOG_OBJ="x_connect_dialog.o winrs.o"
+		WIN32DIALOG_OBJ="x_connect_dialog.o"
 		ml_cv_is_posix="no"
 	fi
 
@@ -145,10 +145,16 @@ AC_ARG_ENABLE(fribidi,
 	[  --enable-fribidi        bidi @<:@default=disabled@:>@],
 	fribidi=$enable_fribidi, fribidi="no")
 if test "$fribidi" = "yes" ; then
-	AC_CHECK_PROG(fribidi_config,fribidi-config,yes,fribidi="no")
-	if test "$fribidi_config" = "yes" ; then
-		FRIBIDI_CFLAGS="`fribidi-config --cflags` -DUSE_FRIBIDI"
-		FRIBIDI_LIBS="`fribidi-config --libs`"
+	PKG_CHECK_MODULES(FRIBIDI, fribidi, have_fribidi=yes, have_fribidi=no)
+	if test "$have_fribidi" = "yes" ; then
+		FRIBIDI_CFLAGS="`$PKG_CONFIG --cflags fribidi|sed 's/\\\r//g'` -DUSE_FRIBIDI"
+		FRIBIDI_LIBS="`$PKG_CONFIG --libs fribidi|sed 's/\\\r//g'`"
+	else
+		AC_CHECK_PROG(fribidi_config,fribidi-config,yes,fribidi="no")
+		if test "$fribidi_config" = "yes" ; then
+			FRIBIDI_CFLAGS="`fribidi-config --cflags` -DUSE_FRIBIDI"
+			FRIBIDI_LIBS="`fribidi-config --libs`"
+		fi
 	fi
 fi
 AC_SUBST(FRIBIDI_CFLAGS)

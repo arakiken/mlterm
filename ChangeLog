@@ -1,3 +1,13 @@
+2010-01-28  Araki Ken  <arakiken@users.sf.net>
+
+	* winrs.rs,x_display_win32.c: mlterm-icon-win32.ico is loaded as icon of mlterm.exe.
+
+	* contrib/icon/mlterm-icon-win32.ico: Added.
+
+	* Bidi rendering using fribidi is supported in win32.
+
+	* configure.in: 'pkg-config fribidi' instead of 'fribidi-config' is supported.
+
 2010-01-25  Araki Ken  <arakiken@users.sf.net>
 
 	* winrs.rs: Input characters of password entry is masked.
