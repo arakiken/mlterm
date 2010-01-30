@@ -1,3 +1,14 @@
+2010-01-30  Araki Ken  <arakiken@users.sf.net>
+
+	* x_display.c: "#include <X11/Xproto.h>" which causes compiling error
+	  in cygwin-xlib is removed.
+
+	* setup-msys.bat, setup-cygwin.bat: Added. These batch files create
+	  mlterm.bat which starts mlterm.exe in MSYS or Cygwin.
+
+	* x_sb_view_factory.c: Careless mistakes in dlsym_sb_engine_new_func
+	  which causes failure of loading pixmap_engine module.
+
 2010-01-28  Araki Ken  <arakiken@users.sf.net>
 
 	* winrs.rs,x_display_win32.c: mlterm-icon-win32.ico is loaded as icon of mlterm.exe.
