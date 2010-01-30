@@ -37,7 +37,8 @@ Memo about WIN32 native GUI.
   Place configuration files in $HOME/.mlterm/ directory.
   
   (Built with MinGW or Cygwin(-mno-cygwin))
-  Place configuration files in %HOMEPATH%\mlterm\ or %HOME%\.mlterm\ directory.
+  Place configuration files in [Mlterm installed directory]\mlterm\ ,
+  %HOMEPATH%\mlterm\ or %HOME%\.mlterm\ directory.
 
   (Font Configuration)
   Format of font,vfont,tfont is as follows.

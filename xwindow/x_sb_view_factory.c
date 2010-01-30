@@ -356,7 +356,7 @@ dlsym_sb_engine_new_func(
 	char *  symbol ;
 	u_int  len ;
 
-	if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL ||
+	if( ( handle = kik_dl_open( SBLIB_DIR , name)) == NULL &&
 		( handle = kik_dl_open( "" , name)) == NULL)
 	{
 		return  NULL ;
@@ -369,7 +369,7 @@ dlsym_sb_engine_new_func(
 	}
 
 	sprintf( symbol , "x_%s_sb_engine_new" , name) ;
-	
+
 	if( ( func = (x_sb_engine_new_func_t) kik_dl_func_symbol( handle , symbol)) == NULL)
 	{
 		return  NULL ;
@@ -455,7 +455,6 @@ register_new_view_conf(
 	conf->engine_name = NULL ;
 	conf->rc = NULL ;
 	conf->rc_num = 0 ;
-	conf->dir = NULL ;
 	conf->use_count = 0 ;
 
 	/* remove "/rc" /foo/bar/name/rc -> /foo/bar/name */
@@ -472,6 +471,8 @@ register_new_view_conf(
 	{
 		if( strcmp( key , "engine") == 0)
 		{
+			/* Last "engine" parameter is effective. */
+			free( conf->engine_name) ;
 			conf->engine_name = strdup( value) ;
 		}
 		else
@@ -517,7 +518,7 @@ register_new_view_conf(
 	}
 
 	kik_list_insert_head( x_sb_view_conf_t , view_conf_list , conf) ;
-
+	
 	return  conf ;
 }
 
@@ -628,7 +629,7 @@ x_sb_view_new(
 	if( ( conf = find_view_rcfile( name)))
 	{
 		x_sb_engine_new_func_t  func_engine ;
-		
+
 		if( ( func_engine = dlsym_sb_engine_new_func( conf->engine_name)) == NULL)
 		{
 		#ifdef  DEBUG
@@ -640,6 +641,10 @@ x_sb_view_new(
 			return  NULL ;
 		}
 
+		/*
+		 * Increment conf->use_count in func_engine().
+		 * Decrement conf->use_count in x_sb_view_t::delete().
+		 */
 		return  check_version( (*func_engine)( conf , 0)) ;
 	}
 
@@ -694,6 +699,10 @@ x_transparent_scrollbar_view_new(
 	return  check_version( (*func)()) ;
 }
 
+/*
+ * This function cleans up configurations of pixmap_engine.
+ * Call this function after x_sb_view_t::delete() is called.
+ */
 int
 x_unload_scrollbar_view_lib(
 	char *  name
@@ -704,18 +713,14 @@ x_unload_scrollbar_view_lib(
 	/* new style plugin? (requires an rcfile and an engine library) */
 	if( ( conf = search_view_conf( name)))
 	{
-		/* lib@name@.so -> lib@engine_name@.so */
-		name = conf->engine_name ;
-	}
-
-	/* remove unused conf */
-	if( conf)
-	{
+		/* remove unused conf */
+		
 		if( conf->use_count == 0)
 		{
 		#ifdef __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG
-				" %s is no longer used. removing from view_conf_list\n", name);
+			" %s(pixmap_engine) is no longer used. removing from view_conf_list\n" ,
+			name);
 		#endif
 
 			unregister_view_conf( conf) ;
@@ -723,8 +728,9 @@ x_unload_scrollbar_view_lib(
 	#ifdef __DEBUG
 		else
 		{
-			kik_debug_printf( KIK_DEBUG_TAG " %s is still being used. [use_count: %d]\n" ,
-				conf->use_count) ;
+			kik_debug_printf( KIK_DEBUG_TAG
+				" %s(pixmap_engine) is still being used. [use_count: %d]\n" ,
+				name , conf->use_count) ;
 		}
 	#endif
 	}

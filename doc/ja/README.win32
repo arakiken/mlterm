@@ -36,8 +36,8 @@ WIN32 native GUI 対応に関するメモ
   o MinGW or Cygwin(-mno-cygwin) でビルドした場合は、win32/plink/plink.exe も
     コピーしてください。今のところ、リモートホストへの接続には plink.exe を
     使用しています。
-  o MSYS, cygwin でビルドした場合は、ソースツリーの tool/mlclient/mlclient.exe
-    もコピーしてください。
+  o MSYS-DTK or Cygwin でビルドした場合は、ソースツリーの
+    tool/mlclient/mlclient.exe もコピーしてください。
   o mlconfig,mlterm-menu をビルドできた場合(あらかじめ GTK+ をインストール
     しておく必要があります)は、ソースツリーの
     tool/mlconfig/.libs/mlconfig.exe
@@ -53,7 +53,8 @@ WIN32 native GUI 対応に関するメモ
   配置することにより環境設定を行うことができます。
 
   (MinGW or Cygwin(-mno-cygwin) でビルドした場合)
-  %HOMEPATH%\mlterm\ (%HOMEPATH% が存在しないディレクトリの場合は %HOME%\.mlterm\
+  [mlterm がインストールされたディレクトリ]\mlterm\ ,
+  %HOMEPATH%\mlterm\ (%HOMEPATH% が存在しないディレクトリの場合は %HOME%\.mlterm\)
   以下の設定ファイル(ソースツリーの etc/ 以下のファイル) を配置することにより
   環境設定を行うことができます。
 
@@ -80,10 +81,10 @@ WIN32 native GUI 対応に関するメモ
   set HOMEPATH=...
   mlterm.exe (options...) (-e plink.exe [-telnet/-ssh/-rlogin/-raw] [host])
   ※ -e オプションを指定しない場合、起動時に、接続するサーバ、プロトコル、
-     ユーザ名、パスワードを入力するダイアログが表示されます。
-     なお、main 設定ファイルにおいて、あらかじめ次のオプションを指定する
-     こともできます(括弧書きは mlterm の起動時の引数として指定する場合の
-     オプション名)。
+     ユーザ名、パスワード、エンコーディングを入力するダイアログが表示され
+     ます。なお、main 設定ファイルにおいて、あらかじめ次のオプションを指定
+     することもできます(括弧書きは mlterm の起動時の引数として指定する場合
+     のオプション名)。
      o default_server(--serv) = (<user>@)(<protocol>:)<server>(:<encoding>)
        ダイアログの既定値として表示するユーザ名、プロトコル及びサーバを
        指定します(ユーザ名又はプロトコルを省略した場合は、ユーザ名は環境変数

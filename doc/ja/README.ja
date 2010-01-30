@@ -114,15 +114,6 @@ comment $Id$
     --with-gui
       GUI ライブラリとして xlib か win32 のいずれを使用するか指定します。
 
-    o Examples
-      (最重量版)
-      ./configure --with-imagelib=gdk-pixbuf --enable-anti-alias \
-      --enable-fribidi --enable-ind --enable-utmp
-
-      (最軽量版)
-      ./configure --without-map-table --without-prop-table --disable-shared \
-      --disable-dnd
-
 * 主な機能
   o アンチエイリアス
     フォントのアンチエイリアス表示をサポートしています。

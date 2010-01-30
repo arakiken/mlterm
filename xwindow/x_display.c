@@ -5,7 +5,6 @@
 #include  "x_display.h"
 
 #include  <string.h>		/* memset/memcpy */
-#include  <X11/Xproto.h>	/* X_OpenFont */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_str.h>	/* strdup */
@@ -68,8 +67,13 @@ error_handler(
 	XErrorEvent *  event
 	)
 {
-#if  defined(BadValue) && defined(X_OpenFont)
-	if( event->error_code == BadValue && event->request_code == X_OpenFont)
+	/*
+	 * If <X11/Xproto.h> is included for 'X_OpenFont', typedef of BOOL and INT32
+	 * is conflicted in <X11/Xmd.h>(included from <X11/Xproto.h> and
+	 * <w32api/basetsd.h>(included from <windows.h>).
+	 */
+	if( event->error_code == 2 /* BadValue */
+		&& event->request_code == 45 /* X_OpenFont */)
 	{
 		/*
 		 * XXX Hack
@@ -82,9 +86,7 @@ error_handler(
 		/* ignored anyway */
 		return  0 ;
 	}
-	else
-#endif
-	if( default_error_handler)
+	else if( default_error_handler)
 	{
 		return  (*default_error_handler)( display , event) ;
 	}
