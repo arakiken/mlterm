@@ -1,3 +1,21 @@
+2010-02-05  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font_config.c:
+	  Fixed vaafont and taafont file names("vaafont_file" => "vaafont",
+	  "taafont_file" => "taafont") and some bugs.
+
+	* x_font_manager.c: If you set type_engine=xcore in anti-aliased,
+	  use_anti_alias automatically becomes false in order for type_engine
+	  option to be xcore.
+
+	* mlcc/main.c: Font and color configuration protocol is supported in
+	  non-interactive mode.
+	  ex) mlcc font ISO8859_1 *--%d-*-iso8859-1
+	      mlcc font ISO8859_1,12
+
+	* mlcc/main.c,w3mmlconfig/section/appearance: type_engine option is
+	  supported.
+
 2010-01-30  Araki Ken  <arakiken@users.sf.net>
 
 	* x_display.c: "#include <X11/Xproto.h>" which causes compiling error

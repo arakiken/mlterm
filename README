@@ -34,6 +34,7 @@ Options for configure
 
   --with-type-engines=(xcore|xft)
     Use specified type engines for rendering text
+    (--enable-anti-alias == --with-type-engines=xcore,xft)
 
   --enable-fribidi
     Use Fribidi for BiDi rendering

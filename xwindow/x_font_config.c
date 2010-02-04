@@ -19,6 +19,14 @@ typedef struct  cs_table
 
 } cs_table_t ;
 
+typedef struct  custom_cache
+{
+	const char *  file ;
+	char *  key ;
+	char *  value ;
+
+} custom_cache_t ;
+
 
 #if  0
 #define  __DEBUG
@@ -31,8 +39,8 @@ static char *  font_file = "mlterm/font" ;
 static char *  vfont_file = "mlterm/vfont" ;
 static char *  tfont_file = "mlterm/tfont" ;
 static char *  aafont_file = "mlterm/aafont" ;
-static char *  vaafont_file = "mlterm/vaafont_file" ;
-static char *  taafont_file = "mlterm/taafont_file" ;
+static char *  vaafont_file = "mlterm/vaafont" ;
+static char *  taafont_file = "mlterm/taafont" ;
 
 /*
  * If this table is changed, x_font.c:cs_info_table and mc_font.c:cs_info_table
@@ -122,6 +130,12 @@ static u_int  num_of_configs ;
 static u_int  min_font_size = 6 ;
 static u_int  max_font_size = 30 ;
 
+/*
+ * These will be leaked unless operate_custom_cache( ... , 1 [remove]) free them.
+ */
+static custom_cache_t *  custom_cache ;
+static u_int  num_of_customs ;
+
 
 /* --- static functions --- */
 
@@ -177,11 +191,9 @@ parse_key(
 
 		nlen = strlen( cs_table[count].name) ;
 
-		if( key_len >= nlen &&
-			strncmp( cs_table[count].name , key , nlen) == 0 &&
+		if( key_len >= nlen && strncmp( cs_table[count].name , key , nlen) == 0 &&
 			( key[nlen] == '\0' ||
-				/* "_BOLD" or "_BIWIDTH" is trailing */
-				key[nlen] == '_'))
+				/* "_BOLD" or "_BIWIDTH" is trailing */ key[nlen] == '_'))
 		{
 			cs = cs_table[count].cs ;
 
@@ -215,8 +227,8 @@ parse_key(
 
 static int
 parse_entry(
-	char **  font_name ,	/* if not specified in entry , not changed. */
-	u_int *  font_size ,	/* if not specified in entry , not changed. */
+	char **  font_name ,	/* if entry is "" or illegal format, not changed. */
+	u_int *  font_size ,	/* if entry is "" or illegal format, not changed. */
 	char *  entry
 	)
 {
@@ -263,7 +275,7 @@ parse_entry(
 static int
 parse_conf(
 	x_font_config_t *  font_config ,
-	char *  key,
+	const char *  key,
 	char *  value	/* Includes multiple entries. Destroyed in this function. */
 	)
 {
@@ -307,6 +319,35 @@ parse_conf(
 }
 
 static int
+apply_custom_cache(
+	x_font_config_t *  font_config ,
+	const char *  filename
+	)
+{
+	int  count ;
+
+	for( count = 0 ; count < num_of_customs ; count++)
+	{
+		if( filename == custom_cache[count].file)
+		{
+			char *  p ;
+
+		#ifdef  DEBUG
+			kik_debug_printf( "Appling customization %s=%s\n" ,
+				custom_cache[count].key , custom_cache[count].value) ;
+		#endif
+		
+			if( ( p = kik_str_alloca_dup( custom_cache[count].value)))
+			{
+				parse_conf( font_config , custom_cache[count].key , p) ;
+			}
+		}
+	}
+
+	return  1 ;
+}
+
+static int
 read_conf(
 	x_font_config_t *  font_config ,
 	const char *  filename
@@ -315,6 +356,10 @@ read_conf(
 	kik_file_t *  from ;
 	char *  key ;
 	char *  value ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " read_conf( %s)\n" , filename) ;
+#endif
 
 	if( ! ( from = kik_file_open( filename , "r")))
 	{
@@ -336,10 +381,365 @@ read_conf(
 }
 
 static int
+read_all_conf(
+	x_font_config_t *  font_config ,
+	const char *  changed_font_file	/* This function is called after a font file is changed,
+					 * specify it. Otherwise specify NULL. */
+	)
+{
+	char *  font_rcfile ;
+	char *  font_rcfile2 ;	/* prior to font_rcfile */
+	char *  rcpath ;
+	
+	/* '>= XFT' means XFT or STSF */
+	if( font_config->type_engine >= TYPE_XFT)
+	{
+		font_rcfile = aafont_file ;
+		
+		switch( font_config->font_present & ~FONT_AA)
+		{
+		default:
+			font_rcfile2 = NULL ;
+			break ;
+
+		case FONT_VAR_WIDTH:
+			font_rcfile2 = vaafont_file ;
+			break ;
+
+		case FONT_VERTICAL:
+			font_rcfile2 = taafont_file ;
+			break ;
+		}
+	}
+	else
+	{
+	#ifndef  USE_WIN32GUI
+		if( font_config->font_present & FONT_AA)
+		{
+			/* Never reached. */
+			return  0 ;
+		}
+		else
+	#endif
+		{
+			font_rcfile = font_file ;
+
+			switch( font_config->font_present)
+			{
+			default:
+				font_rcfile2 = NULL ;
+				break ;
+
+			case FONT_VAR_WIDTH:
+				font_rcfile2 = vfont_file ;
+				break ;
+
+			case FONT_VERTICAL:
+				font_rcfile2 = tfont_file ;
+				break ;
+			}
+		}
+	}
+
+	if( ! changed_font_file)
+	{
+		if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
+		{
+			read_conf( font_config , rcpath) ;
+			free( rcpath) ;
+		}
+	}
+
+	if( ! changed_font_file || changed_font_file == font_rcfile)
+	{
+		if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
+		{
+			read_conf( font_config , rcpath) ;
+			free( rcpath) ;
+		}
+	}
+
+	apply_custom_cache( font_config , font_rcfile) ;
+
+	if( font_rcfile2)
+	{
+		if( ! changed_font_file)
+		{
+			if( ( rcpath = kik_get_sys_rc_path( font_rcfile2)))
+			{
+				read_conf( font_config , rcpath) ;
+				free( rcpath) ;
+			}
+		}
+
+		if( ( rcpath = kik_get_user_rc_path( font_rcfile2)))
+		{
+			read_conf( font_config , rcpath) ;
+			free( rcpath) ;
+		}
+		
+		apply_custom_cache( font_config , font_rcfile2) ;
+	}
+
+	return  1 ;
+}
+
+static char *
+overwrite_value(
+	int *  is_changed ,	/* can be NULL. If _value is changed, *is_changed becomes 1. */
+	char *  value ,		/* Overwriting value. Destroyed in this function. */
+	char *  _value ,	/* Original value. Destroyed in this function. */
+	int  do_remove		/* If 1, overwritten value is removed. */
+	)
+{
+	char *  new_value ;
+	struct
+	{
+		char *  font_name ;
+		u_int  font_size ;
+	} *  values , * _values ;
+	u_int  num ;
+	u_int  _num ;
+	char *  p ;
+	int  count ;
+	int  _count ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( "Overwriting %s with %s => " , _value , value) ;
+#endif
+
+	if( *value == '\0')
+	{
+		/* _value is completely removed. */
+		
+		if( is_changed)
+		{
+			*is_changed = 1 ;
+		}
+
+		return  strdup( value) ;
+	}
+
+	if( ( values = alloca( sizeof( *values) *
+			( kik_count_char_in_str( value , ';') + 1))) == NULL ||
+	    ( _values = alloca( sizeof( *_values) *
+			( kik_count_char_in_str( _value , ';') + 1))) == NULL ||
+	    /* If value = "a" and _value = "b", new_value = "a;b;" */
+	    ( new_value = malloc( strlen( value) + strlen( _value) + 3)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	_num = 0 ;
+	while( _value != NULL && ( p = kik_str_sep( &_value , ";")) != NULL)
+	{
+		if( parse_entry( &(_values[_num].font_name) , &(_values[_num].font_size) , p))
+		{
+			_num ++ ;
+		}
+	}
+
+	num = 0 ;
+	while( value != NULL && ( p = kik_str_sep( &value , ";")) != NULL)
+	{
+		if( parse_entry( &(values[num].font_name) , &(values[num].font_size) , p))
+		{
+			num ++ ;
+		}
+	}
+
+	*new_value = '\0' ;
+	
+	for( _count = 0 ; _count < _num ; _count++)	/* Original value */
+	{
+		for( count = 0 ; count < num ; count++)	/* Overwriting value */
+		{
+			if( values[count].font_name &&
+				_values[_count].font_size == values[count].font_size)
+			{
+				if( ! do_remove && strcmp( _values[_count].font_name ,
+							values[count].font_name) == 0)
+				{
+					/* Overwriting value is ignored. */
+					values[count].font_name = NULL ;
+				}
+				else
+				{
+					/* Original value is overwritten(removed) */
+					_values[_count].font_name = NULL ;
+					
+					if( _count == 0 && ! do_remove &&
+						values[count].font_size == 0)
+					{
+						/* Overwriting default font name. */
+						sprintf( new_value , "%s;" ,
+							values[count].font_name) ;
+					}
+				}
+
+				/* In case same font_size exists in _values, don't break here. */
+			}
+		}
+
+		/* If default font name isn't overwritten(removed) above, copy original one. */
+		if( _values[_count].font_size == 0 && _values[_count].font_name)
+		{
+			sprintf( new_value , "%s;" , _values[_count].font_name) ;
+		}
+	}
+
+	p = new_value + strlen(new_value) ;
+
+	if( is_changed)
+	{
+		*is_changed = 0 ;
+	}
+	
+	/* Copy original values which are not overwritten(removed). */
+	for( _count = 0 ; _count < _num ; _count++)
+	{
+		/* If _values[count].font_name is NULL , this is overwritten(removed) above. */
+		if( _values[_count].font_name)
+		{
+			if( _values[_count].font_size > 0)
+			{
+				sprintf( p , "%d,%s;" , _values[_count].font_size ,
+					_values[_count].font_name) ;
+				p += strlen(p) ;
+			}
+		}
+		else if( is_changed)
+		{
+			*is_changed = 1 ;
+		}
+	}
+
+	if( ! do_remove)
+	{
+		/* Adding overwriting values. */
+		for( count = 0 ; count < num ; count++)
+		{
+			/*
+			 * If values[count].font_name is NULL, original value is not changed.
+			 * If values[count].font_name is "", original value is not overwritten
+			 * but removed.
+			 */
+			if( values[count].font_name && *values[count].font_name &&
+				values[count].font_size > 0)
+			{
+				sprintf( p , "%d,%s;" , values[count].font_size ,
+					values[count].font_name) ;
+				p += strlen(p) ;
+
+				if( is_changed)
+				{
+					*is_changed = 1 ;
+				}
+			}
+		}
+	}
+
+#ifdef  __DEBUG
+	kik_msg_printf( "%s\n" , new_value) ;
+#endif
+
+	return  new_value ;
+}
+
+static int
+operate_custom_cache(
+	const char *  file ,
+	const char *  key ,
+	char *  value ,
+	int  operate	/* 0=add, 1=remove (according to argument of overwrite_value()). */
+	)
+{
+	void *  p ;
+	int  count ;
+
+	for( count = 0 ; count < num_of_customs ; count++)
+	{
+		if( custom_cache[count].file == file &&
+			strcmp( custom_cache[count].key , key) == 0)
+		{
+			int  is_changed ;
+			char *  new_value ;
+			
+			if( ( new_value = overwrite_value( &is_changed , value ,
+						custom_cache[count].value , operate)) == NULL)
+			{
+				return  0 ;
+			}
+
+			if( *new_value)
+			{
+				free( custom_cache[count].value) ;
+				custom_cache[count].value = new_value ;
+			}
+			else
+			{
+				/*
+				 * value is removed completely in overwrite_value().
+				 */
+				
+				free( new_value) ;
+				free( custom_cache[count].key) ;
+				free( custom_cache[count].value) ;
+				custom_cache[count] = custom_cache[--num_of_customs] ;
+				if( num_of_customs == 0)
+				{
+					free( custom_cache) ;
+					custom_cache = NULL ;
+				}
+			}
+
+			if( ! is_changed)
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " Not changed\n") ;
+			#endif
+			
+				return  0 ;
+			}
+
+		#if  0
+			kik_debug_printf( "%s=%s\n" , key , new_value) ;
+		#endif
+		
+			return  1 ;
+		}
+	}
+
+	if( operate == 1)
+	{
+		/* Nothing to remove. */
+		
+		return  0 ;
+	}
+
+	if( ( p = realloc( custom_cache , sizeof(custom_cache_t) * (num_of_customs + 1))) == NULL)
+	{
+		return  0 ;
+	}
+
+	custom_cache = p ;
+	
+	custom_cache[num_of_customs].file = file ;
+	custom_cache[num_of_customs].key = strdup( key) ;
+	custom_cache[num_of_customs++].value = strdup( value) ;
+
+#if  0
+	kik_debug_printf( "%s=%s\n" , key , value) ;
+#endif
+
+	return  1 ;
+}
+
+static int
 save_conf(
 	const char *  file ,
 	const char *  key ,
-	char *  value	/* Includes multiple entries. Destroyed in this function. */
+	char *  value		/* Includes multiple entries. Destroyed in this function. */
 	)
 {
 	char *  path ;
@@ -367,94 +767,25 @@ save_conf(
 		}
 		else if( strcmp( key , _key) == 0)
 		{
-			struct
-			{
-				char *  font_name ;
-				u_int  font_size ;
-			} *  values , * _values ;
-			u_int  num ;
-			u_int  _num ;
-			char *  p ;
-			int  count ;
-			int  _count ;
+			int  is_changed ;
 
-			if( ( values = alloca( sizeof( *values) *
-					( kik_count_char_in_str( value , ';') + 1))) == NULL ||
-			    ( _values = alloca( sizeof( *_values) *
-					( kik_count_char_in_str( _value , ';') + 1))) == NULL ||
-			    /* If value = "a" and _value = "b", new_value = "a;b;" */
-			    ( new_value = malloc( strlen( value) + strlen( _value) + 3)) == NULL)
+			if( ( new_value = overwrite_value( &is_changed , value , _value , 0))
+						== NULL || ! is_changed)
 			{
+				free( new_value) ;
 				free( path) ;
 				kik_file_close( kfile) ;
 
+				#ifdef  DEBUG
+				if( ! is_changed)
+				{
+					kik_debug_printf( KIK_DEBUG_TAG " Not changed.\n") ;
+				}
+				#endif
+				
 				return  0 ;
 			}
-
-			_num = 0 ;
-			while( _value != NULL && ( p = kik_str_sep( &_value , ";")) != NULL)
-			{
-				if( parse_entry( &(_values[_num].font_name) ,
-						&(_values[_num].font_size) , p))
-				{
-					_num ++ ;
-				}
-			}
-
-			num = 0 ;
-			while( value != NULL && ( p = kik_str_sep( &value , ";")) != NULL)
-			{
-				if( parse_entry( &(values[num].font_name) ,
-						&(values[num].font_size) , p))
-				{
-					num ++ ;
-				}
-			}
-
-			for( count = 0 ; count < num ; count++)
-			{
-				for( _count = 0 ; _count < _num ; _count++)
-				{
-					/* Replace old values. */
-					if( _values[_count].font_size == values[count].font_size)
-					{
-						_values[_count].font_name = NULL ;
-					}
-				}
-			}
 			
-			p = new_value ;
-			for( _count = 0 ; _count < _num ; _count++)
-			{
-				if( _values[_count].font_name)
-				{
-					if( _values[_count].font_size == 0)
-					{
-						sprintf( p , "%s;" , _values[_count].font_name) ;
-					}
-					else
-					{
-						sprintf( p , "%d,%s;" , _values[_count].font_size ,
-							_values[_count].font_name) ;
-					}
-					p += strlen(p) ;
-				}
-			}
-			
-			for( count = 0 ; count < num ; count++)
-			{
-				if( values[count].font_size == 0)
-				{
-					sprintf( p , "%s;" , values[count].font_name) ;
-				}
-				else
-				{
-					sprintf( p , "%d,%s;" , values[count].font_size ,
-						values[count].font_name) ;
-				}
-				p += strlen(p) ;
-			}
-
 			break ;
 		}
 	}
@@ -479,6 +810,9 @@ save_conf(
 	kik_conf_io_write( conf , key , value) ;
 
 	kik_conf_write_close( conf) ;
+
+	/* Remove from config_cache */
+	operate_custom_cache( file , key , value, 1 /* remove */) ;
 
 	if( new_value)
 	{
@@ -513,6 +847,97 @@ is_valid_format(
 	return 1;
 }
 
+static x_font_config_t *
+find_font_config(
+	x_type_engine_t  type_engine ,
+	x_font_present_t  font_present
+	)
+{
+	if( font_configs)
+	{
+		int  count ;
+
+		for( count = 0 ; count < num_of_configs ; count ++)
+		{
+			if( font_configs[count]->font_present == font_present &&
+				font_configs[count]->type_engine == type_engine)
+			{
+				return  font_configs[count] ;
+			}
+		}
+	}
+
+	return  NULL ;
+}
+
+static u_int
+match_font_configs(
+	x_font_config_t **  matched_configs ,
+	u_int  max_size ,	/* must be over 0. */
+	int  is_xcore ,
+	x_font_present_t  present_mask
+	)
+{
+	int  count ;
+	u_int  size ;
+
+	size = 0 ;
+	for( count = 0 ; count < num_of_configs ; count++)
+	{
+		if( (is_xcore ? font_configs[count]->type_engine == TYPE_XCORE :
+				/* '>= XFT' means XFT or STSF */
+				font_configs[count]->type_engine >= TYPE_XFT) &&
+		    (present_mask ? (font_configs[count]->font_present & present_mask) : 1) )
+		{
+			matched_configs[size++] = font_configs[count] ;
+			if( size >= max_size)
+			{
+				break ;
+			}
+		}
+	}
+
+	return  size ;
+}
+
+x_font_config_t *
+create_shared_font_config(
+	x_type_engine_t  type_engine ,
+	x_font_present_t  font_present
+	)
+{
+	int  count ;
+	
+	for( count = 0 ; count < num_of_configs ; count ++)
+	{
+		if( ( type_engine == TYPE_XCORE ? font_configs[count]->type_engine == type_engine :
+						font_configs[count]->type_engine >= type_engine) &&
+		    ( (font_configs[count]->font_present & ~FONT_AA) == (font_present & ~FONT_AA)))
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Found sharable font_config.\n") ;
+		#endif
+
+			x_font_config_t *  font_config ;
+			
+			if( ( font_config = malloc( sizeof( x_font_config_t))) == NULL)
+			{
+				return  NULL ;
+			}
+
+			font_config->type_engine = type_engine ;
+			font_config->font_present = font_present ;
+			font_config->font_name_table = font_configs[count]->font_name_table ;
+			font_config->default_font_name_table =
+				font_configs[count]->default_font_name_table ;
+			font_config->ref_count = 0 ;
+
+			return   font_config ;
+		}
+	}
+
+	return  NULL ;
+}
 
 /* --- global functions --- */
 
@@ -543,6 +968,10 @@ x_set_font_size_range(
 
 	min_font_size = min_fsize ;
 	max_font_size = max_fsize ;
+
+#ifdef  DEBUG
+	TEST_overwrite_value() ;
+#endif
 	
 	return  1 ;
 }
@@ -567,26 +996,14 @@ x_acquire_font_config(
 {
 	x_font_config_t *  font_config ;
 	void *  p ;
-	char *  font_rcfile ;
-	char *  font_rcfile2 ;	/* prior to font_rcfile */
-	char *  rcpath ;
-	
-	if( font_configs)
+
+	if( ( font_config = find_font_config( type_engine , font_present)))
 	{
-		int  count ;
+		font_config->ref_count ++ ;
 
-		for( count = 0 ; count < num_of_configs ; count ++)
-		{
-			if( font_configs[count]->font_present == font_present &&
-				font_configs[count]->type_engine == type_engine)
-			{
-				font_configs[count]->ref_count ++ ;
-
-				return  font_configs[count] ;
-			}
-		}
+		return  font_config ;
 	}
-
+	
 	if( ( p = realloc( font_configs , sizeof( x_font_config_t*) * (num_of_configs + 1))) == NULL)
 	{
 		return  NULL ;
@@ -594,85 +1011,12 @@ x_acquire_font_config(
 
 	font_configs = p ;
 
-	if( ( font_config = x_font_config_new( type_engine , font_present)) == NULL)
+	if( ( font_config = create_shared_font_config( type_engine , font_present)) == NULL)
 	{
-		return  NULL ;
-	}
-
-	if( type_engine == TYPE_XFT || type_engine == TYPE_STSF)
-	{
-		switch( font_present & ~FONT_AA)
-		{
-		default:
-			font_rcfile = aafont_file ;
-			font_rcfile2 = NULL ;
-			break ;
-
-		case FONT_VAR_WIDTH:
-			font_rcfile = aafont_file ;
-			font_rcfile2 = vaafont_file ;
-			break ;
-
-		case FONT_VERTICAL:
-			font_rcfile = aafont_file ;
-			font_rcfile2 = taafont_file ;
-			break ;
-		}
-	}
-	else
-	{
-	#ifndef  USE_WIN32GUI
-		if( font_present & FONT_AA)
+		if( ( font_config = x_font_config_new( type_engine , font_present)) == NULL ||
+			! read_all_conf( font_config , NULL) )
 		{
 			return  NULL ;
-		}
-		else
-	#endif
-		{
-			switch( font_present)
-			{
-			default:
-				font_rcfile = font_file ;
-				font_rcfile2 = NULL ;
-				break ;
-
-			case FONT_VAR_WIDTH:
-				font_rcfile = font_file ;
-				font_rcfile2 = vfont_file ;
-				break ;
-
-			case FONT_VERTICAL:
-				font_rcfile = font_file ;
-				font_rcfile2 = tfont_file ;
-				break ;
-			}
-		}
-	}
-		
-	if( ( rcpath = kik_get_sys_rc_path( font_rcfile)))
-	{
-		read_conf( font_config , rcpath) ;
-		free( rcpath) ;
-	}
-
-	if( ( rcpath = kik_get_user_rc_path( font_rcfile)))
-	{
-		read_conf( font_config , rcpath) ;
-		free( rcpath) ;
-	}
-
-	if( font_rcfile2)
-	{
-		if( ( rcpath = kik_get_sys_rc_path( font_rcfile2)))
-		{
-			read_conf( font_config , rcpath) ;
-			free( rcpath) ;
-		}
-
-		if( ( rcpath = kik_get_user_rc_path( font_rcfile2)))
-		{
-			read_conf( font_config , rcpath) ;
-			free( rcpath) ;
 		}
 	}
 
@@ -687,30 +1031,67 @@ x_release_font_config(
 	)
 {
 	int  count ;
+	int  has_share ;
+	int  found ;
 	
 	if( -- font_config->ref_count > 0)
 	{
 		return  1 ;
 	}
 
-	for( count = 0 ; count < num_of_configs ; count ++)
+	has_share = 0 ;
+	found = 0 ;
+	count = 0 ;
+	while( count < num_of_configs)
 	{
 		if( font_configs[count] == font_config)
 		{
 			font_configs[count] = font_configs[--num_of_configs] ;
-			x_font_config_delete( font_config) ;
+			found = 1 ;
 
-			if( num_of_configs == 0)
-			{
-				free( font_configs) ;
-				font_configs = NULL ;
-			}
-			
-			return  1 ;
+			continue ;
 		}
+		else if( ( font_config->type_engine == TYPE_XCORE ?
+				font_configs[count]->type_engine == font_config->type_engine :
+				font_configs[count]->type_engine >= font_config->type_engine) &&
+			( (font_configs[count]->font_present & ~FONT_AA) ==
+				(font_config->font_present & ~FONT_AA)) )
+		{
+			has_share = 1 ;
+		}
+
+		count ++ ;
 	}
 
-	return  0 ;
+	if( ! found)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " font_config is not found in font_configs.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
+	if( has_share /* && num_of_configs > 0 */)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Sharable font_config exists.\n") ;
+	#endif
+	
+		free( font_config) ;
+
+		return  1 ;
+	}
+
+	x_font_config_delete( font_config) ;
+	
+	if( num_of_configs == 0)
+	{
+		free( font_configs) ;
+		font_configs = NULL ;
+	}
+
+	return  1 ;
 }
 
 x_font_config_t *
@@ -811,16 +1192,28 @@ x_customize_font_name(
 		return  0 ;
 	}
 
-	fontname = strdup( fontname) ;
-
 	kik_map_get( result , get_font_name_table( font_config , font_size) , font , pair) ;
 	if( result)
 	{
-		free( pair->value) ;
-		pair->value = fontname ;
+		/* If new fontname is the same as current one, nothing is done. */
+		if( strcmp( pair->value , fontname) != 0)
+		{
+			if( ( fontname = strdup( fontname)) == NULL)
+			{
+				return  0 ;
+			}
+			
+			free( pair->value) ;
+			pair->value = fontname ;
+		}
 	}
 	else
 	{
+		if( ( fontname = strdup( fontname)) == NULL)
+		{
+			return  0 ;
+		}
+		
 		kik_map_set( result , get_font_name_table( font_config , font_size) ,
 			font , fontname) ;
 	}
@@ -829,7 +1222,7 @@ x_customize_font_name(
 	kik_warn_printf( "fontname %s for size %d\n" , fontname , font_size) ;
 #endif
 
-	return  result ;
+	return  1 ;
 }
 
 int
@@ -859,10 +1252,6 @@ x_customize_default_font_name(
 	return  result ;
 }
 
-/*
- * Return value 0 means customization failed.
- * Return value -1 means saving failed.
- */
 int
 x_customize_font_file(
 	const char *  file ,	/* if null, use "mlterm/font" file. */
@@ -871,83 +1260,49 @@ x_customize_font_file(
 	int  save
 	)
 {
+	/*
+	 * Max number of target font_config is 6.
+	 * [file == aafont_file]
+	 * TYPE_XFT, TYPE_XFT & FONT_VAR_WIDTH , TYPE_XFT & FONT_VERTICAL , TYPE_XFT & FONT_AA ,
+	 * TYPE_XFT & FONT_VAR_WIDTH & FONT_AA , TYPE_XFT & FONT_VERTICAL & FONT_AA
+	 */
 	x_font_config_t *  targets[6] ;
 	u_int  num_of_targets ;
 	int  count ;
 
-	num_of_targets = 0 ;
 	if( file == NULL || strcmp( file, font_file + 7) == 0)
 	{
 		file = font_file ;
-		for( count = 0 ; count < num_of_configs ; count++)
-		{
-			if( font_configs[count]->type_engine == TYPE_XCORE)
-			{
-				targets[num_of_targets++] = font_configs[count] ;
-			}
-		}
+		num_of_targets = match_font_configs( targets , 6 , /* is xcore */ 1 , 0) ;
 	}
 	else if( strcmp( file, aafont_file + 7) == 0)
 	{
 		file = aafont_file ;
-		for( count = 0 ; count < num_of_configs ; count++)
-		{
-			/* '>= XFT' means XFT or STSF */
-			if( font_configs[count]->type_engine >= TYPE_XFT)
-			{
-				targets[num_of_targets++] = font_configs[count] ;
-			}
-		}
+		num_of_targets = match_font_configs( targets , 6 , /* is not xcore */ 0 , 0) ;
 	}
 	else if( strcmp( file, vfont_file + 7) == 0)
 	{
 		file = vfont_file ;
-		for( count = 0 ; count < num_of_configs ; count++)
-		{
-			if( font_configs[count]->type_engine == TYPE_XCORE &&
-				font_configs[count]->font_present & FONT_VAR_WIDTH)
-			{
-				targets[num_of_targets++] = font_configs[count] ;
-			}
-		}
+		num_of_targets = match_font_configs( targets , 6 , /* is xcore */ 1 ,
+							FONT_VAR_WIDTH) ;
 	}
 	else if( strcmp( file, tfont_file + 7) == 0)
 	{
 		file = tfont_file ;
-		for( count = 0 ; count < num_of_configs ; count++)
-		{
-			if( font_configs[count]->type_engine == TYPE_XCORE &&
-				font_configs[count]->font_present & FONT_VERTICAL)
-			{
-				targets[num_of_targets++] = font_configs[count] ;
-			}
-		}
+		num_of_targets = match_font_configs( targets , 6 , /* is xcore */ 1 ,
+							FONT_VERTICAL) ;
 	}
 	else if( strcmp( file, vaafont_file + 7) == 0)
 	{
 		file = vaafont_file ;
-		for( count = 0 ; count < num_of_configs ; count++)
-		{
-			/* '>= XFT' means XFT or STSF */
-			if( font_configs[count]->type_engine >= TYPE_XFT &&
-				font_configs[count]->font_present & FONT_VAR_WIDTH)
-			{
-				targets[num_of_targets++] = font_configs[count] ;
-			}
-		}
+		num_of_targets = match_font_configs( targets , 6 , /* is not xcore */ 0 ,
+							FONT_VAR_WIDTH) ;
 	}
 	else if( strcmp( file, taafont_file + 7) == 0)
 	{
 		file = taafont_file ;
-		for( count = 0 ; count < num_of_configs ; count++)
-		{
-			/* '>= XFT' means XFT or STSF */
-			if( font_configs[count]->type_engine >= TYPE_XFT &&
-				font_configs[count]->font_present & FONT_VERTICAL)
-			{
-				targets[num_of_targets++] = font_configs[count] ;
-			}
-		}
+		num_of_targets = match_font_configs( targets , 6 , /* is not xcore */ 0 ,
+							FONT_VERTICAL) ;
 	}
 	else
 	{
@@ -958,26 +1313,41 @@ x_customize_font_file(
 		return  0 ;
 	}
 
-#ifdef  DBEUG
-	kik_debug_printf( "customize font file %s %s %s\n", file, key, value) ;
-#endif
-
-	for( count = 0 ; count < num_of_targets ; count++)
+#ifdef  DEBUG
+	if( num_of_targets)
 	{
-		char *  p ;
-
-		if( ( p = kik_str_alloca_dup( value)))
-		{
-			parse_conf( targets[count], key, p) ;
-		}
+		kik_debug_printf( "customize font file %s %s %s\n", file, key, value) ;
 	}
+	else
+	{
+		kik_debug_printf( "customize font file %s %s %s(not changed in run time)\n",
+			file, key, value) ;
+	}
+#endif
 
 	if( save)
 	{
+	#ifdef  DEBUG
+		kik_debug_printf( "customization is saved.\n") ;
+	#endif
+		
 		if( ! save_conf( file , key , value))
 		{
-			return  -1 ;
+			return  0 ;
 		}
+	}
+	else
+	{
+		/* Add to custom_cache. */
+		if( ! operate_custom_cache( file , key , value , 0 /* add */))
+		{
+			return  0 ;
+		}
+	}
+
+	for( count = 0 ; count < num_of_targets ; count++)
+	{
+		read_all_conf( targets[count] , file) ;
 	}
 
 	return  1 ;
@@ -1048,7 +1418,12 @@ x_get_config_font_name2(
 	else if( strcmp( file, aafont_file + 7) == 0)
 	{
 		engine = TYPE_XFT ;
-		present = FONT_AA ;
+		
+		/*
+		 * font_config::default_font_name_table and ::font_name_table are
+		 * shared with font_configs whose difference is only FONT_AA.
+		 */
+		present = 0 ;
 	}
 	else if( strcmp( file, vfont_file + 7) == 0)
 	{
@@ -1063,12 +1438,12 @@ x_get_config_font_name2(
 	else if( strcmp( file, vaafont_file + 7) == 0)
 	{
 		engine = TYPE_XFT ;
-		present = FONT_AA | FONT_VAR_WIDTH ;
+		present = FONT_VAR_WIDTH ;
 	}
 	else if( strcmp( file, taafont_file + 7) == 0)
 	{
 		engine = TYPE_XFT ;
-		present = FONT_AA | FONT_VERTICAL ;
+		present = FONT_VERTICAL ;
 	}
 	else
 	{
@@ -1079,7 +1454,14 @@ x_get_config_font_name2(
 		return  NULL ;
 	}
 
-	font_config = x_acquire_font_config( engine , present) ;
+	if( ( font_config = x_acquire_font_config( engine , present)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " x_font_config_t is not found.\n") ;
+	#endif
+	
+		return  NULL ;
+	}
 	
 	if( ( font = parse_key( font_cs)) == UNKNOWN_CS)
 	{
@@ -1156,3 +1538,70 @@ x_get_all_config_font_names(
 
 	return  font_name_list ;
 }
+
+#ifdef  DEBUG
+static int
+TEST_overwrite_value(void)
+{
+	struct
+	{
+		char *  data1 ;
+		char *  data2 ;
+		char *  data3 ;
+		char *  data4 ;
+	} data[] =
+	{
+		{ "a10;12,a12;14,a14" , "12,a13" , "a10;14,a14;12,a13;" , "a10;14,a14;" } ,
+		{ "a10;12,a12;14,a14" , "a12" , "a12;12,a12;14,a14;" , "12,a12;14,a14;" } ,
+		{ "a10;a12;a13" , "a14" , "a14;" , "" } ,
+		{ "a10;12,a12;12,a14" , "12,a16" , "a10;12,a16;" , "a10;" } ,
+		{ "12,a12" , "14,a14" , "12,a12;14,a14;" , "12,a12;" } ,
+		{ "a10" , "12,a12" , "a10;12,a12;" , "a10;" } ,
+	} ;
+	int  count ;
+
+	for( count = 0 ; count < sizeof(data)  / sizeof(data[0]) ; count++)
+	{
+		char * ret ;
+		int  is_changed ;
+		
+		ret = overwrite_value( &is_changed ,
+			kik_str_alloca_dup( data[count].data2) ,
+			kik_str_alloca_dup( data[count].data1) , 0) ;
+
+		if( strcmp( data[count].data3 , ret) != 0)
+		{
+			kik_debug_printf( KIK_DEBUG_TAG " Test failed(%s + %s => %s).\n" ,
+				data[count].data1 , data[count].data2 , ret) ;
+		}
+		else if( is_changed == 0)
+		{
+			kik_debug_printf( KIK_DEBUG_TAG
+				" Test failed(%s + %s => %s is *not* changed?).\n" ,
+				data[count].data1 , data[count].data2 , ret) ;
+		}
+
+		free( ret) ;
+		
+		ret = overwrite_value( &is_changed ,
+			kik_str_alloca_dup( data[count].data2) ,
+			kik_str_alloca_dup( data[count].data1) , 1) ;
+
+		if( strcmp( data[count].data4 , ret) != 0)
+		{
+			kik_debug_printf( KIK_DEBUG_TAG " Test failed(%s - %s => %s).\n" ,
+				data[count].data1 , data[count].data2 , ret) ;
+		}
+		else if( count < 4 && is_changed == 0)
+		{
+			kik_debug_printf( KIK_DEBUG_TAG
+				" Test failed(%s - %s => %s is *not* changed?).\n" ,
+				data[count].data1 , data[count].data2 , ret) ;
+		}
+
+		free( ret) ;
+	}
+
+	return  1 ;
+}
+#endif

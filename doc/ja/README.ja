@@ -56,8 +56,10 @@ comment $Id$
     --with-libltdl
       モジュールの動的ローディングに libltdl を使用します。
 
-    --enable-anti-alias
-      TrueTypeフォントをantialisします。
+    --with-type-engines=(xcore|xft)
+      テキストレンダリングエンジンを指定します。
+      (旧来の --enable-anti-alias オプションは、--with-type-engines=xcore,xft
+      と同義です。)
 
     --enable-fribidi
       Fribidi を用いて Bidi レンダリングを行ないます。

@@ -16,11 +16,14 @@ KIK_MAP_TYPEDEF( x_font_name , ml_font_t , char *) ;
 
 typedef struct  x_font_config
 {
-	/* public(readonly) */
+	/* Public(readonly) */
 	x_type_engine_t  type_engine ;
 	x_font_present_t  font_present ;
 
-	/* private */
+	/*
+	 * Private
+	 * font_configs whose difference is only FONT_AA share these members.
+	 */
 	KIK_MAP( x_font_name) *  font_name_table ;
 	KIK_MAP( x_font_name)  default_font_name_table ;
 

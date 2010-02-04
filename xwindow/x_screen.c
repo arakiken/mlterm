@@ -3562,14 +3562,6 @@ change_font_present(
 		font_present &= ~FONT_VAR_WIDTH ;
 	}
 
-	if( x_get_font_present( screen->font_man) == font_present &&
-		x_get_type_engine( screen->font_man) == type_engine)
-	{
-		/* not changed */
-
-		return ;
-	}
-
 	if( ! x_change_font_present( screen->font_man , type_engine , font_present))
 	{
 		return ;
@@ -4461,10 +4453,6 @@ get_font_config(
 	if( font_name)
 	{
 		ml_term_write( screen->term , font_name , strlen( font_name) , to_menu) ;
-	}
-	else
-	{
-		ml_term_write( screen->term , "" , 1 , to_menu) ;
 	}
 	ml_term_write( screen->term , "\n" , 1 , to_menu) ;
 

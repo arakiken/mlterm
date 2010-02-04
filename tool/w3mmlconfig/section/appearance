@@ -2,6 +2,7 @@ fontsize	text:digit	16	0	Font size (pixels)
 line_space	text:digit	0	0	Line space (pixels)
 screen_width_ratio	text:digit	100	0	Width ratio
 screen_height_ratio	text:digit	100	0	Height ratio
+type_engine	text:lower	left	0	Type engine(xcore,xft)
 use_anti_alias	checkbox	false	0	Anti Alias
 use_variable_column_width	checkbox	false	1	Variable column width
 none		none		-	0	&nbsp;

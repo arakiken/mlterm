@@ -31,8 +31,6 @@ typedef enum x_font_present
 	FONT_AA = 0x02 ,
 	FONT_VERTICAL = 0x04 ,
 
-	FONT_PRESENT_MAX
-
 } x_font_present_t ;
 
 typedef struct x_font

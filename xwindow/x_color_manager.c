@@ -462,6 +462,9 @@ x_color_manager_adjust_cursor_bg(
 	return  1 ;
 }
 
+/*
+ * Unload system colors.
+ */
 int
 x_color_manager_unload(
 	x_color_manager_t *  color_man

@@ -92,11 +92,14 @@ release_font_config(
 	if( font_man->is_local_font_config)
 	{
 		x_font_config_delete( font_man->font_config) ;
+		font_man->is_local_font_config = 0 ;
 	}
 	else
 	{
 		x_release_font_config( font_man->font_config) ;
 	}
+
+	font_man->font_config = NULL ;
 
 	return  1 ;
 }
@@ -233,6 +236,10 @@ x_font_manager_usascii_font_cs_changed(
 	return  1 ;
 }
 
+/*
+ * Return 1 if font present is successfully changed.
+ * Return 0 if not changed.
+ */
 int
 x_change_font_present(
 	x_font_manager_t *  font_man ,
@@ -244,8 +251,14 @@ x_change_font_present(
 	x_font_cache_t *  font_cache ;
 
 #ifndef  USE_WIN32GUI
-	/* XXX Hack */
-	if( font_present & FONT_AA)
+	/*
+	 * FONT_AA is effective in xft, so following hack is necessary in xlib.
+	 */
+	if( ( type_engine == TYPE_XCORE) && ( font_man->font_config->font_present & FONT_AA))
+	{
+		font_present &= ~FONT_AA ;
+	}
+	else if( ( font_present & FONT_AA) && ( font_man->font_config->type_engine == TYPE_XCORE))
 	{
 		type_engine = TYPE_XFT ;
 	}
@@ -254,7 +267,9 @@ x_change_font_present(
 	if( font_present == font_man->font_config->font_present &&
 		type_engine == font_man->font_config->type_engine)
 	{
-		return  1 ;
+		/* Same as current settings. */
+		
+		return  0 ;
 	}
 
 	if( ( font_config = x_acquire_font_config( type_engine , font_present)) == NULL)

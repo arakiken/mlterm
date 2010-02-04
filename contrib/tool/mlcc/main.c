@@ -318,6 +318,7 @@ int init_data(config_data_t *data){
 	entry_numeric_add(section, "Height", "screen_height_ratio", 0, 100, "%");
 	entry_bool_add(section, "Variable column width", "use_variable_column_width");
 	entry_bool_add(section, "Anti alias", "use_anti_alias");
+	entry_string_add(section, "Type engine", "type_engine");
 
 	section = section_add(data, "Color");
 	entry_color_add(section, "Foreground color", "fg_color");
@@ -355,12 +356,39 @@ int main(int argc, char **argv){
 		mlterm_get_param(argv[1]);
 		exit(0);
 	}
-
-	if(argc == 3){
-		mlterm_set_param(argv[1], argv[2]);
-		exit(0);
+	if( argc == 3 || argc == 4){
+		char * p;
+		
+		if( argv[1][0] == 't' || argv[1][0] == 'v'){
+			p = argv[1] + 1;
+		}else{
+			p = argv[1];
+		}
+		
+		if(strcmp(p,"font") == 0 || strcmp(p,"aafont") == 0){
+			if(argc == 3){
+				mlterm_get_font_param(argv[1],argv[2]);
+				exit(0);
+			}
+			if(argc == 4){
+				mlterm_set_font_param(argv[1],argv[2],argv[3]);
+				exit(0);
+			}
+		}else if(strcmp(p,"color") == 0){
+			if(argc == 3){
+				mlterm_get_color_param(argv[2]);
+				exit(0);
+			}
+			if(argc == 4){
+				mlterm_set_color_param(argv[2],argv[3]);
+				exit(0);
+			}
+		}else if(argc == 3){
+			mlterm_set_param(argv[1], argv[2]);
+			exit(0);
+		}
 	}
-
+	
 	sigemptyset(&(act.sa_mask));
 	sigaddset(&act.sa_mask,SIGINT | SIGWINCH);
 	act.sa_flags = SA_RESTART;

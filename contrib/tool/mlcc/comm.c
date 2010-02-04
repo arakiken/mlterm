@@ -61,6 +61,25 @@ static void reload_passwd(void){
 	fclose(file);
 }
 
+static char * read_param(void){
+	char * result;
+
+	fgets(internal_buffer, sizeof(internal_buffer) -1, stdin);
+	result = strchr(internal_buffer, '\n');
+	if (!result){
+		return NULL;
+	}
+	*result = 0; /* terminate */
+	result = strchr(internal_buffer, '=');
+	if (result){ /*XXX check key and error!!*/
+		if (*(result +1))
+			return result +1;
+		else
+			return NULL;
+	}
+	return NULL;
+}
+
 int read_one(void){
 	int count;
 	char buf[4] = {0};
@@ -167,28 +186,55 @@ void term_size(int *w, int *h){
 	*h = atoi(mlterm_get_param("rows"));
 }
 
-char * mlterm_get_param(const char * key){
-	char * result;
+char * mlterm_get_color_param(const char * key){
+#if  0
+	/*
+	 * XXX 5385 sequence is not implemented in mlterm(see doc/en/PROTOCOL.color).
+	 */
+	reload_passwd() ;
 
+	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5389;%s;%s\007",
+		mlterm_pass, key);
+	/*fprintf(stderr, internal_buffer);*/
+	csi(internal_buffer);
+
+	return read_param();
+#else
+	return NULL;
+#endif
+}
+
+char * mlterm_get_font_param(const char * file, const char * key){
+	reload_passwd() ;
+
+	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5385;%s;%s:%s\007",
+		mlterm_pass, file, key);
+	/*fprintf(stderr, internal_buffer);*/
+	csi(internal_buffer);
+
+	return read_param();
+}
+
+char * mlterm_get_param(const char * key){
 	reload_passwd() ;
 
 	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5380;%s;%s\007", mlterm_pass, key);
 	/*fprintf(stderr, internal_buffer);*/
 	csi(internal_buffer);
-	fgets(internal_buffer, sizeof(internal_buffer) -1, stdin);
-	result = strchr(internal_buffer, '\n');
-	if (!result){
-		return NULL;
-	}
-	*result = 0; /* terminate */
-	result = strchr(internal_buffer, '=');
-	if (result){ /*XXX check key and error!!*/
-		if (*(result +1))
-			return result +1;
-		else
-			return NULL;
-	}
-	return NULL;
+
+	return read_param();
+}
+
+void mlterm_set_color_param(const char * key, char *value){
+	snprintf(internal_buffer, sizeof(internal_buffer), "]5388;%s=%s\007", key, value);
+	/*fprintf(stderr, internal_buffer);*/
+	csi(internal_buffer);
+}
+
+void mlterm_set_font_param(const char * file, const char * key, char *value){
+	snprintf(internal_buffer, sizeof(internal_buffer), "]5384;%s:%s=%s\007", file, key, value);
+	/*fprintf(stderr, internal_buffer);*/
+	csi(internal_buffer);
 }
 
 void mlterm_set_value(const char * key, int value){

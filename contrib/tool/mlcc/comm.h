@@ -52,7 +52,11 @@ void normal_char(void);
 
 void term_size(int *w, int *h);
 
+char * mlterm_get_color_param(const char * key);
+char * mlterm_get_font_param(const char * file, const char * key);
 char * mlterm_get_param(const char * key);
+void mlterm_set_color_param(const char * key, char *value);
+void mlterm_set_font_param(const char * file, const char * key, char *value);
 void mlterm_set_param(const char * key, char *value);
 void mlterm_set_value(const char * key, int value);
 
