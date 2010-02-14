@@ -305,7 +305,7 @@ x_color_manager_fade(
 {
 	x_color_cache_t *  color_cache ;
 	int  count ;
-	
+
 	if( fade_ratio >= 100)
 	{
 		return  0 ;

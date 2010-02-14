@@ -223,17 +223,8 @@ get_font_size_range(
 		return  0 ;
 	}
 
-	if( ( p = kik_str_sep( &str_p , "-")) == NULL)
-	{
-		return  0 ;
-	}
-
-	if( ! kik_str_to_uint( min , p))
-	{
-		kik_msg_printf( "min font size %s is not valid.\n" , p) ;
-
-		return  0 ;
-	}
+	/* kik_str_sep() never returns NULL because str_p isn't NULL. */
+	p = kik_str_sep( &str_p , "-") ;
 
 	if( str_p  == NULL)
 	{
@@ -241,6 +232,14 @@ get_font_size_range(
 
 		return 0;
 	}
+	
+	if( ! kik_str_to_uint( min , p))
+	{
+		kik_msg_printf( "min font size %s is not valid.\n" , p) ;
+
+		return  0 ;
+	}
+
 	
 	if( ! kik_str_to_uint( max , str_p))
 	{
@@ -656,10 +655,10 @@ open_screen_intern(
 		usascii_font_cs_changable , main_config.use_multi_col_char ,
 		main_config.step_in_changing_font_size)) == NULL)
 	{
-		char **  csnames;
+		char **  names ;
 
-		csnames = x_font_get_cs_names( usascii_font_cs) ;
-		if( csnames[0] == NULL)
+		names = x_font_get_encoding_names( usascii_font_cs) ;
+		if( names[0] == NULL)
 		{
 			kik_msg_printf(
 			  "Current encoding \"%s\" is supported only with "
@@ -667,25 +666,25 @@ open_screen_intern(
 			  "Please use \"-u\" option.\n",
 			  ml_get_char_encoding_name(ml_term_get_encoding(term))) ;
 		}
-		else if( strcmp( csnames[0] , "iso10646-1" ) == 0 )
+		else if( strcmp( names[0] , "iso10646-1" ) == 0 )
 		{
 			kik_msg_printf(
 			  "No fonts found for charset \"%s\".  "
-			  "Please install fonts.\n" , csnames[0]) ;
+			  "Please install fonts.\n" , names[0]) ;
 		}
-		else if( csnames[1] == NULL)
+		else if( names[1] == NULL)
 		{
 			kik_msg_printf(
 			  "No fonts found for charset \"%s\".  "
 			  "Please install fonts or use Unicode font "
-			  "(\"-u\" option).\n" , csnames[0]) ;
+			  "(\"-u\" option).\n" , names[0]) ;
 		}
 		else
 		{
 			kik_msg_printf(
 			  "No fonts found for charset \"%s\" or \"%s\".  "
 			  "Please install fonts or use Unicode font "
-			  "(\"-u\" option).\n" , csnames[0] , csnames[1] );
+			  "(\"-u\" option).\n" , names[0] , names[1] );
 		}
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_font_manager_new() failed.\n") ;

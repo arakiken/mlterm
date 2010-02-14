@@ -1412,6 +1412,11 @@ x_window_get_fg_gc(
 	x_window_t *  win
 	)
 {
+	if( win->gc->gc == None)
+	{
+		return  None ;
+	}
+	
 #if  0
 	x_gc_set_fg_color( win->gc , win->fg_color) ;
 	x_gc_set_bg_color( win->gc , win->bg_color) ;
@@ -1428,6 +1433,11 @@ x_window_get_bg_gc(
 	x_window_t *  win
 	)
 {
+	if( win->gc->gc == None)
+	{
+		return  None ;
+	}
+	
 #if  0
 	x_gc_set_fg_color( win->gc , win->bg_color) ;
 	x_gc_set_bg_color( win->gc , win->fg_color) ;
@@ -1515,12 +1525,7 @@ x_window_show(
 	 */
 	if( win->window_realized)
 	{
-		x_set_gc( win->gc, GetDC( win->my_window)) ;
-
 		(*win->window_realized)( win) ;
-		
-		ReleaseDC( win->my_window, win->gc->gc) ;
-		x_set_gc( win->gc, None) ;
 	}
 
 	/*
@@ -1795,6 +1800,9 @@ x_window_move(
 	return  1 ;
 }
 
+/*
+ * This function can be used in context except window_exposed and update_window events.
+ */
 int
 x_window_clear(
 	x_window_t *  win ,
@@ -1876,6 +1884,11 @@ x_window_fill(
 	u_int	height
 	)
 {
+	if( win->gc->gc == None)
+	{
+		return  0 ;
+	}
+	
 	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color))) ;
 
 	if( height == 1)
@@ -1904,6 +1917,11 @@ x_window_fill_with(
 	u_int	height
 	)
 {
+	if( win->gc->gc == None)
+	{
+		return  0 ;
+	}
+	
 	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( color->pixel))) ;
 
 	if( height == 1)
@@ -1922,42 +1940,51 @@ x_window_fill_with(
 	return  1 ;
 }
 
+/*
+ * This function can be used in context except window_exposed and update_window events.
+ */
 int
-x_window_fill_all(
+x_window_blank(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
-	XFillRectangle( win->display , win->drawable , win->gc , 0 , 0 ,
-		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-#endif
+	int  get_dc ;
+
+	if( win->gc->gc == None)
+	{
+		x_set_gc( win->gc , GetDC( win->my_window)) ;
+		get_dc = 1 ;
+	}
+	else
+	{
+		get_dc = 0 ;
+	}
+
+	Rectangle( win->gc->gc , 0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+
+	if( get_dc)
+	{
+		ReleaseDC( win->my_window , win->gc->gc) ;
+		x_set_gc( win->gc , None) ;
+	}
 
 	return  1 ;
 }
 
+#if  0
+/*
+ * XXX
+ * at the present time , not used and not maintained.
+ */
 int
 x_window_fill_all_with(
 	x_window_t *  win ,
 	x_color_t *  color
 	)
 {
-#ifndef  USE_WIN32GUI
-	if( color != win->fg_color)
-	{
-		XSetForeground( win->display , win->gc , color) ;
-	}
-
-	XFillRectangle( win->display , win->drawable , win->gc ,
-		0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-
-	if( color != win->fg_color)
-	{
-		XSetForeground( win->display , win->gc , win->fg_color) ;
-	}
-#endif
-
-	return  1 ;
+	return  0 ;
 }
+#endif
 
 int
 x_window_update(
@@ -3482,7 +3509,9 @@ x_window_bell(
 	x_window_t *  win
 	)
 {
-	return  0 ;
+	Beep( 800 , 200) ;
+	
+	return  1 ;
 }
 
 int

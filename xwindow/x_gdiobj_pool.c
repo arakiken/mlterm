@@ -202,7 +202,8 @@ x_acquire_brush(
 			garbage_unused_objects() ;
 		}
 		
-		if( ( p = realloc( stock_brushes , sizeof( stock_brush_t) * (num_of_stock_brushes + 1)))
+		if( ( p = realloc( stock_brushes ,
+					sizeof( stock_brush_t) * (num_of_stock_brushes + 1)))
 			== NULL)
 		{
 			return  None ;

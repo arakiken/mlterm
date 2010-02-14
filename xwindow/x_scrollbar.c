@@ -87,7 +87,7 @@ draw_scrollbar(
 {
 	if( IS_TOO_SMALL(sb))
 	{
-		x_window_fill_all( &sb->window) ;
+		x_window_blank( &sb->window) ;
 
 		return ;
 	}
@@ -330,6 +330,27 @@ is_updown_button_event(
  */
  
 static void
+trigger_sb_view_realized(
+	x_scrollbar_t *  sb
+	)
+{
+	if( sb->view->realized)
+	{
+		(*sb->view->realized)( sb->view , sb->window.disp->display ,
+			sb->window.disp->screen , sb->window.my_window ,
+			x_window_get_fg_gc( &sb->window) , sb->window.height) ;
+	}
+	
+	/*
+	 * FGCOLOR_CHANGED|BGCOLOR_CHANGED is necessary in order for
+	 * x_sb_view_t::color_changed to be called. If it is not called,
+	 * fg or bg color of buttons are not correctly drawn especially
+	 * in changing transparent flag.
+	 */
+	x_window_update( &sb->window, FGCOLOR_CHANGED|BGCOLOR_CHANGED) ;
+}
+
+static void
 window_realized(
 	x_window_t *  win
 	)
@@ -350,14 +371,7 @@ window_realized(
 		x_window_set_bg_color( win , &sb->bg_xcolor) ;
 	}
 
-	if( sb->view->realized)
-	{
-		(*sb->view->realized)( sb->view , sb->window.disp->display ,
-			sb->window.disp->screen , sb->window.my_window ,
-			x_window_get_fg_gc( &sb->window) , sb->window.height) ;
-	}
-
-	x_window_update( &sb->window , FGCOLOR_CHANGED|BGCOLOR_CHANGED) ;
+	trigger_sb_view_realized( sb) ;
 }
 
 static void
@@ -1239,7 +1253,7 @@ x_scrollbar_change_view(
 {
 	x_sb_view_t *  view ;
 	u_int  width ;
-	
+
 	if( strcmp( name , sb->view_name) == 0 || ( name = strdup( name)) == NULL)
 	{
 		return  0 ;
@@ -1286,12 +1300,7 @@ x_scrollbar_change_view(
 	sb->bar_height = calculate_bar_height( sb) ;
 	sb->bar_top_y = calculate_bar_top_y(sb) ;
 
-	if( sb->view->realized)
-	{
-		(*sb->view->realized)( sb->view , sb->window.disp->display ,
-			sb->window.disp->screen , sb->window.my_window ,
-			sb->window.gc->gc , sb->window.height) ;
-	}
+	trigger_sb_view_realized( sb) ;
 
 	if( sb->window.width != width)
 	{
@@ -1303,6 +1312,7 @@ x_scrollbar_change_view(
 	}
 
 	set_redraw_area( sb, 0, sb->window.height) ;
+
 	x_window_update( &sb->window, UPDATE_SCROLLBAR|UPDATE_BUTTON) ;
 	
 	return  1 ;
@@ -1338,16 +1348,8 @@ x_scrollbar_set_transparent(
 
 	sb->view = view ;
 
-	if( sb->view->realized)
-	{
-		/*
-		 * this should be done before x_window_set_transparent() , which calls
-		 * exposed event.
-		 */
-		(*sb->view->realized)( sb->view , sb->window.disp->display ,
-			sb->window.disp->screen , sb->window.my_window ,
-			sb->window.gc->gc , sb->window.height) ;
-	}
+	/* This should be done before x_window_set_untransparent() , which calls exposed event. */
+	trigger_sb_view_realized( sb) ;
 
 	x_window_set_transparent( &sb->window , pic_mod) ;
 
@@ -1385,16 +1387,8 @@ x_scrollbar_unset_transparent(
 
 	sb->view = view ;
 
-	if( sb->view->realized)
-	{
-		/*
-		 * this should be done before x_window_set_transparent() , which calls
-		 * exposed event.
-		 */
-		(*sb->view->realized)( sb->view , sb->window.disp->display ,
-			sb->window.disp->screen , sb->window.my_window ,
-			sb->window.gc->gc , sb->window.height) ;
-	}
+	/* This should be done before x_window_set_untransparent() , which calls exposed event. */
+	trigger_sb_view_realized( sb) ;
 
 	x_window_unset_transparent( &sb->window) ;
 

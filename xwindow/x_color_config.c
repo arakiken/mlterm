@@ -20,6 +20,26 @@ static char *  color_file = "mlterm/color" ;
 
 /* --- static functions --- */
 
+static KIK_PAIR( x_color_rgb)
+get_color_rgb_pair(
+	KIK_MAP( x_color_rgb)  table ,
+	char *  color
+	)
+{
+	int  result ;
+	KIK_PAIR( x_color_rgb)  pair ;
+
+	kik_map_get( result , table , color , pair) ;
+	if( result)
+	{
+		return  pair ;
+	}
+	else
+	{
+		return  NULL ;
+	}
+}
+
 static int
 parse_conf(
 	x_color_config_t *  color_config ,
@@ -31,7 +51,25 @@ parse_conf(
 	u_int8_t  green ;
 	u_int8_t  blue ;
 
-	if( ! ml_color_parse_rgb_name( &red, &green, &blue, rgb))
+	if( *rgb == '\0')
+	{
+		KIK_PAIR(x_color_rgb)  pair ;
+		char *  key ;
+		int  result ;
+
+		if( ( pair = get_color_rgb_pair( color_config->color_rgb_table , color)) == NULL)
+		{
+			return  0 ;
+		}
+		
+		/* pair->key is refered and pair itself is deleted in kik_map_erase.*/
+		key = pair->key ;
+		kik_map_erase_simple( result , color_config->color_rgb_table , color) ;
+		free( key) ;
+		
+		return  1 ;
+	}
+	else if( ! ml_color_parse_rgb_name( &red, &green, &blue, rgb))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " illegal rgblist format (%s,%s)\n" ,
@@ -136,7 +174,6 @@ x_color_config_set_rgb(
 	)
 {
 	ml_color_t  _color ;
-	int  result ;
 	KIK_PAIR( x_color_rgb)  pair ;
 	x_rgb_t  rgb ;
 
@@ -189,18 +226,21 @@ x_color_config_set_rgb(
 	rgb.red = red ;
 	rgb.green = green ;
 	rgb.blue = blue ;
-	
-	kik_map_get( result , color_config->color_rgb_table , color , pair) ;
-	if( result)
+
+	if( ( pair = get_color_rgb_pair( color_config->color_rgb_table , color)))
 	{
 		pair->value = rgb ;
 	}
 	else
 	{
 		char *  _color ;
+		int  result ;
 
-		_color = strdup( color) ;
-
+		if( ! ( _color = strdup( color)))
+		{
+			return  0 ;
+		}
+		
 		kik_map_set( result , color_config->color_rgb_table , _color , rgb) ;
 	}
 
@@ -217,10 +257,8 @@ x_color_config_get_rgb(
 	)
 {
 	KIK_PAIR( x_color_rgb)  pair ;
-	int  result ;
 
-	kik_map_get( result , color_config->color_rgb_table , color , pair) ;
-	if( ! result)
+	if( ( pair = get_color_rgb_pair( color_config->color_rgb_table , color)) == NULL)
 	{
 		return  0 ;
 	}

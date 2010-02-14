@@ -73,3 +73,4 @@ Memo about WIN32 native GUI.
     Daemon mode itself is not supported in MinGW version.
   o Background image is not supported.
   o use_variable_column_width option is ignored.
+  o Supported scrollbars are "simple" and "sample" alone.

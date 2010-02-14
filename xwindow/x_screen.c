@@ -1149,7 +1149,9 @@ set_wall_picture(
 	{
 		x_picture_final( &pic) ;
 
-		goto  error ;
+		/* Because picture is loaded successfully, screen->pic_file_path retains. */
+
+		return  0 ;
 	}
 	else
 	{
@@ -1207,7 +1209,7 @@ update_special_visual(
 				continue ;
 			}
 
-			x_customize_font_name( font_config , DEFAULT_FONT(ISCII) , font_name , font_size) ;
+			x_customize_font_name( font_config , NORMAL_FONT_OF(ISCII) , font_name , font_size) ;
 		}
 
 		x_activate_local_font_config( screen->font_man , font_config) ;
@@ -5594,15 +5596,15 @@ xterm_bel(
 	}
 	else if( screen->bel_mode == BEL_VISUAL)
 	{
-		x_window_fill_all( &screen->window) ;
+		x_window_blank( &screen->window) ;
 
 	#ifndef  USE_WIN32GUI
 		XFlush( screen->window.disp->display) ;
 	#endif
 	
 		x_window_clear_all( &screen->window) ;
-		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 		
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 		x_window_update( &screen->window, UPDATE_SCREEN) ;
 	}
 }

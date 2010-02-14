@@ -27,8 +27,11 @@ x_gc_new(
 	}
 
 	gc->display = display ;
-	gc->fg_color = BlackPixel(gc->display,DefaultScreen(gc->display)) ;	/* black */
-	gc->bg_color = WhitePixel(gc->display,DefaultScreen(gc->display)) ;	/* white */
+	
+	/* Default value of GC. */
+	gc->fg_color = BlackPixel(gc->display,DefaultScreen(gc->display)) ;
+	gc->bg_color = WhitePixel(gc->display,DefaultScreen(gc->display)) ;
+	
 	gc->fid = None ;
 	
 #ifdef  USE_WIN32GUI
@@ -37,8 +40,13 @@ x_gc_new(
 	gc->brush = None ;
 #else
 	gc_value.graphics_exposures = 0 ;
+	/*
+	 * Overwriting default value (1) of backgrond, meanwhile default value (0)
+	 * of foreground is not necessary to overwrite.
+	 */
+	gc_value.background = gc->bg_color ;
 	gc->gc = XCreateGC( gc->display, DefaultRootWindow( gc->display),
-			GCGraphicsExposures, &gc_value) ;
+			GCBackground | GCGraphicsExposures, &gc_value) ;
 #endif
 
 	return  gc ;

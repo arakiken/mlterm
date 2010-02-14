@@ -158,7 +158,7 @@ set_transparent(
 {
 	/*
 	 * !! Notice !!
-	 * this must be done before x_window_set_wall_picture() because
+	 * This must be done before x_window_set_wall_picture() because
 	 * x_window_set_wall_picture() doesn't do anything if is_transparent
 	 * flag is on.
 	 */
@@ -1041,10 +1041,6 @@ x_window_set_fg_color(
 {
 	win->fg_color = fg_color->pixel ;
 
-#if  0
-	restore_fg_color(win) ;
-#endif
-
 	return  1 ;
 }
 
@@ -1060,10 +1056,6 @@ x_window_set_bg_color(
 	{
 		XSetWindowBackground( win->disp->display , win->my_window , win->bg_color) ;
 	}
-
-#if  0
-	restore_bg_color(win) ;
-#endif
 
 	return  1 ;
 }
@@ -1722,7 +1714,7 @@ x_window_fill_with(
 }
 
 int
-x_window_fill_all(
+x_window_blank(
 	x_window_t *  win
 	)
 {
@@ -1734,8 +1726,13 @@ x_window_fill_all(
 	return  1 ;
 }
 
+#if  0
+/*
+ * XXX
+ * At the present time , not used and not maintained.
+ */
 int
-x_window_fill_all_with(
+x_window_blank_with(
 	x_window_t *  win ,
 	x_color_t *  color
 	)
@@ -1747,6 +1744,7 @@ x_window_fill_all_with(
 
 	return  1 ;
 }
+#endif
 
 int
 x_window_update(
@@ -3503,7 +3501,7 @@ x_window_translate_coordinates(
 #if  0
 /*
  * XXX
- * at the present time , not used and not maintained.
+ * At the present time , not used and not maintained.
  */
 int
 x_window_paste(

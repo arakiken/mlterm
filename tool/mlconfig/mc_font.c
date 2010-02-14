@@ -46,6 +46,10 @@ typedef struct  cs_info
  */
 static cs_info_t  cs_info_table[] =
 {
+#if  (GTK_MAJOR_VERSION >= 2)
+	{ "DEFAULT" , NULL , } ,
+#endif
+
 	/*
 	 * ISO10646_1 => ISO10646_UCS4_1 in get_correct_cs().
 	 */
@@ -147,7 +151,7 @@ static char *  old_fontsize = NULL ;
 static int is_fontsize_changed ;
 
 static char *  new_fontname_list[sizeof(cs_info_table)/sizeof(cs_info_table[0])] ;
-static int selected_cs ;	/* 0 = ISO10646_UCS4_1 */
+static int selected_cs ;	/* 0 = ISO10646_UCS4_1(gtk+ < 1.2) or DEFAULT(gtk+ > 2.0) */
 static GtkWidget *  fontname_entry ;
 static GtkWidget *  select_font_button ;
 static GtkWidget *  xft_flag ;
@@ -206,11 +210,11 @@ get_correct_cs(
 	{
 		return  NULL ;
 	}
-	else if( idx == 0)
+	else if( idx == 1)
 	{
 		return  "ISO10646_UCS4_1" ;
 	}
-	else if( idx == 1)
+	else if( idx == 2)
 	{
 		return  "ISO10646_UCS4_1_BIWIDTH" ;
 	}
@@ -316,6 +320,22 @@ xft_flag_checked(
 	#endif
 	}
 
+	reset_fontname_list() ;
+	gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
+		g_locale_to_utf8(
+			mc_get_font_name( get_font_file() , new_fontsize ,
+						get_correct_cs( selected_cs)) ,
+			-1 , NULL , NULL , NULL) ) ;
+
+	return  1 ;
+}
+
+static gint
+vcol_flag_checked(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
 	reset_fontname_list() ;
 	gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
 		g_locale_to_utf8(
@@ -652,6 +672,8 @@ mc_font_config_widget_new(void)
 	vcol_flag = mc_flag_config_widget_new( MC_FLAG_VCOL) ;
 	gtk_widget_show( vcol_flag) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , vcol_flag , TRUE , TRUE , 0) ;
+	gtk_signal_connect(GTK_OBJECT(vcol_flag) , "toggled" ,
+		GTK_SIGNAL_FUNC(vcol_flag_checked) , NULL) ;
 
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
 

@@ -420,6 +420,7 @@ comment $Id$
 
       o wall_picture  (*なし*) (#)
         壁紙にする画像ファイルのパス
+	なお、use_transbg が true となっている間は、壁紙の表示は行なわれません。
 
       o fade_ratio  (*100*) (#)
         Focus から外れたときの前景/背景色の Fade 率(百分率)
@@ -561,6 +562,7 @@ comment $Id$
         xim を指定するとすることで対応してください。
 
     o font/vfont/aafont/vaafont/tfont/taafont
+      o DEFAULT            ... 下記文字集合ごとの指定がない場合のフォント
       o DEC_SPECIAL        ... 罫線文字用のフォント
       o ISO8859_N          ... ISO8859_Nフォント
       o TIS620             ... TIS 620 フォント
@@ -676,6 +678,19 @@ comment $Id$
         せん。
         また、アンチエイリアスフォントについては、いずれにせよ、重ねうちはしませ
         ん。
+
+	DEFAULT を font, vfont 及び tfont で指定した場合は、フォント名の末尾に
+	文字集合ごとに適切な encoding を自動的に末尾に追記しますので、注意して
+	ください。
+	また、DEFAULT を指定したフォント名は、Input Method で使用するフォント
+	(FontSet) には影響しないので、注意してください。
+
+	e.g.)
+	DEFAULT = -kochi-mincho-medium-*--%d-*-;12,-kochi-gothic-medium-*--12-*-
+	=> フォントサイズ 13 で ISO8859_1 を表示する場合、
+	   -kochi-mincho-medium-*--13-*-iso8859-1 となり、
+	   フォントサイズ 12 で ISO8859_1 を表示する場合、
+	   -kochi-gothic-medium-*--12-*-iso8859-1 となります。
 
         DEC_SPECIAL は、罫線文字の含まれている iso8859-1 フォントを指定してくだ
         さい。

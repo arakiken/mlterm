@@ -28,6 +28,9 @@ typedef struct  custom_cache
 } custom_cache_t ;
 
 
+#define  DEFAULT_FONT (MAX_CHARSET + 1)
+
+
 #if  0
 #define  __DEBUG
 #endif
@@ -131,13 +134,21 @@ static u_int  min_font_size = 6 ;
 static u_int  max_font_size = 30 ;
 
 /*
- * These will be leaked unless operate_custom_cache( ... , 1 [remove]) free them.
+ * These will be leaked unless operate_custom_cache( ... , 1 [remove]) deletes them.
+ * operate_custom_cache( ... , 1 [remove]) is called only from save_conf, which means
+ * that they are deleted when all of them are saved to ~/.mlterm/(vt)(aa)font file.
  */
 static custom_cache_t *  custom_cache ;
 static u_int  num_of_customs ;
 
 
 /* --- static functions --- */
+
+#ifdef  DEBUG
+static void  TEST_write_conf(void) ;
+static void  TEST_create_value(void) ;
+#endif
+
 
 static int
 font_hash(
@@ -157,10 +168,58 @@ font_compare(
 	return  (key1 == key2) ;
 }
 
+static KIK_PAIR( x_font_name)
+get_font_name_pair(
+	KIK_MAP( x_font_name)  table ,
+	ml_font_t  font
+	)
+{
+	int  result ;
+	KIK_PAIR( x_font_name)  pair ;
+
+	kik_map_get( result , table , font , pair) ;
+	if( result)
+	{
+		return  pair ;
+	}
+	else
+	{
+		return  NULL ;
+	}
+}
+
+static KIK_PAIR( x_font_name) *
+get_font_name_pairs_array(
+	u_int *  size ,
+	KIK_MAP( x_font_name)  table
+	)
+{
+	KIK_PAIR( x_font_name) *  array ;
+	
+	kik_map_get_pairs_array( table , array , *size)
+
+	return  array ;
+}
+
+static int
+set_font_name_to_table(
+	KIK_MAP( x_font_name)  table ,
+	ml_font_t  font ,
+	char *  fontname
+	)
+{
+	int  result ;
+
+	kik_map_set( result , table , font , fontname) ;
+
+	return  result ;
+}
+
+/* Always returns Not-NULL value. */
 static KIK_MAP( x_font_name)
 get_font_name_table(
 	x_font_config_t *  font_config ,
-	int  font_size
+	int  font_size				/* Check if valid before call this function. */
 	)
 {
 	if( font_config->font_name_table[font_size - min_font_size] == NULL)
@@ -182,9 +241,21 @@ parse_key(
 	size_t  key_len ;
 	mkf_charset_t  cs ;
 	ml_font_t  font ;
-	
+
 	key_len = strlen( key) ;
 
+	if( key_len >= 7 && strncmp( key , "DEFAULT" , 7) == 0)
+	{
+		if( strcmp( key + 7 , "_BOLD") == 0)
+		{
+			return  DEFAULT_FONT | FONT_BOLD ;
+		}
+		else
+		{
+			return  DEFAULT_FONT ;
+		}
+	}
+	
 	for( count = 0 ; count < sizeof( cs_table) / sizeof( cs_table[0]) ; count ++)
 	{
 		size_t  nlen ;
@@ -210,7 +281,7 @@ parse_key(
 		return  UNKNOWN_CS ;
 	}
 
-	font = DEFAULT_FONT(cs) ;
+	font = NORMAL_FONT_OF(cs) ;
 
 	if( key_len >= 8 && strstr( key , "_BIWIDTH"))
 	{
@@ -225,34 +296,37 @@ parse_key(
 	return  font ;
 }
 
+/*
+ * If entry == "" or ";", font_name is "" and font_size is 0.
+ */
 static int
 parse_entry(
 	char **  font_name ,	/* if entry is "" or illegal format, not changed. */
 	u_int *  font_size ,	/* if entry is "" or illegal format, not changed. */
-	char *  entry
+	char *  entry		/* Don't specify NULL. */
 	)
 {
-	if( *entry == '\0')
-	{
-		return  0 ;
-	}
-	else if( strchr( entry , ','))
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Parsing %s => " , entry) ;
+#endif
+
+	if( strchr( entry , ','))
 	{
 		/*
 		 * for each size.
 		 * [size],[font name]
 		 */
-
 		char *  size_str ;
 
-		if( ( size_str = kik_str_sep( &entry , ",")) == NULL || entry == NULL)
-		{
-			return  0 ;
-		}
-
+		/*
+		 * kik_str_sep() never returns NULL and and entry never becomes NULL
+		 * because strchr( entry , ',') is succeeded.
+		 */
+		size_str = kik_str_sep( &entry , ",") ;
+		
 		if( ! kik_str_to_uint( font_size , size_str))
 		{
-			kik_msg_printf( "a font size %s is not valid.\n" , size_str) ;
+			kik_msg_printf( "font size %s is not valid.\n" , size_str) ;
 
 			return  0 ;
 		}
@@ -265,18 +339,21 @@ parse_entry(
 	*font_name = entry ;
 	
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " setting font [size %d name %s]\n" ,
-		*font_size , *font_name) ;
+	kik_msg_printf( "size %d name %s\n" , *font_size , *font_name) ;
 #endif
 
 	return  1 ;
 }
 
+/*
+ * value = "" or ";" => Reset default font name.
+ * value = ";12,b;" => Reset deafult font name and set "b" as font name for size 12.
+ */
 static int
 parse_conf(
 	x_font_config_t *  font_config ,
 	const char *  key,
-	char *  value	/* Includes multiple entries. Destroyed in this function. */
+	char *  value		/* Includes multiple entries. Destroyed in this function. */
 	)
 {
 	ml_font_t  font ;
@@ -287,10 +364,19 @@ parse_conf(
 		return  0 ;
 	}
 
+	if( *value == '\0')
+	{
+		/* Remove current setting. */
+		x_customize_default_font_name( font_config , font , value) ;
+
+		return  1 ;
+	}
+	
 	/*
 	 * [entry];[entry];[entry];....
+	 * kik_str_sep() returns NULL only if value == NULL.
 	 */
-	while( value != NULL && ( entry = kik_str_sep( &value , ";")) != NULL)
+	while( ( entry = kik_str_sep( &value , ";")) != NULL)
 	{
 		char *  font_name ;
 		u_int  font_size ;
@@ -313,6 +399,12 @@ parse_conf(
 				x_customize_font_name( font_config , font , font_name , font_size) ;
 			}
 		}
+		
+		if( value && *value == '\0')
+		{
+			/* Last ';' of "....;" was parsed. Be careful in kik_str_sep( val , ";") */
+			break ;
+		}
 	}
 
 	return  1 ;
@@ -332,7 +424,7 @@ apply_custom_cache(
 		{
 			char *  p ;
 
-		#ifdef  DEBUG
+		#ifdef  __DEBUG
 			kik_debug_printf( "Appling customization %s=%s\n" ,
 				custom_cache[count].key , custom_cache[count].value) ;
 		#endif
@@ -357,7 +449,7 @@ read_conf(
 	char *  key ;
 	char *  value ;
 
-#ifdef  DEBUG
+#ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " read_conf( %s)\n" , filename) ;
 #endif
 
@@ -372,7 +464,12 @@ read_conf(
 
 	while( kik_conf_io_read( from , &key , &value))
 	{
-		parse_conf( font_config, key, value) ;
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Read line from %s => %s = %s\n" ,
+			filename , key , value) ;
+	#endif
+	
+		parse_conf( font_config , key , value) ;
 	}
 	
 	kik_file_close( from) ;
@@ -484,158 +581,203 @@ read_all_conf(
 	return  1 ;
 }
 
+/*
+ * <Return value>
+ * "<default font name>;<font size>,<font name>;...;"
+ * NULL: error(including the case of ow_value having no valid entry) happen.
+ *       In this case, orig_value is not destroyed.
+ * ""  : Removing succesfully ow_value from orig_value results in no entries.
+ * ";" : Default font name == "".
+ *
+ * <Note>
+ * If ow_value or orig_value has invalid format entries, they are ignored.
+ */
 static char *
-overwrite_value(
-	int *  is_changed ,	/* can be NULL. If _value is changed, *is_changed becomes 1. */
-	char *  value ,		/* Overwriting value. Destroyed in this function. */
-	char *  _value ,	/* Original value. Destroyed in this function. */
-	int  do_remove		/* If 1, overwritten value is removed. */
+create_value(
+	int *  is_changed ,	/* can be NULL. If orig_value is changed, *is_changed becomes 1. */
+	char *  ow_value ,	/* Overwriting value. Destroyed in this function. */
+	char *  orig_value ,	/* Original value(can be NULL). Destroyed in this function. */
+	int  operate		/* 0=add, 1=remove. */
 	)
 {
 	char *  new_value ;
+	size_t  new_value_len ;
 	struct
 	{
 		char *  font_name ;
 		u_int  font_size ;
-	} *  values , * _values ;
-	u_int  num ;
-	u_int  _num ;
+	} *  ow_values , *  orig_values ;
+	u_int  num ;	/* for ow_value */
+	u_int  _num ;	/* for orig_value */
+	int  count ;	/* for ow_value */
+	int  _count ;	/* for orig_value */
 	char *  p ;
-	int  count ;
-	int  _count ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( "Overwriting %s with %s => " , _value , value) ;
+	kik_debug_printf( "%s %s with %s => " ,
+		operate ? "Removing" : "Overwriting" , orig_value , ow_value) ;
 #endif
 
-	if( *value == '\0')
-	{
-		/* _value is completely removed. */
-		
-		if( is_changed)
-		{
-			*is_changed = 1 ;
-		}
-
-		return  strdup( value) ;
-	}
-
-	if( ( values = alloca( sizeof( *values) *
-			( kik_count_char_in_str( value , ';') + 1))) == NULL ||
-	    ( _values = alloca( sizeof( *_values) *
-			( kik_count_char_in_str( _value , ';') + 1))) == NULL ||
-	    /* If value = "a" and _value = "b", new_value = "a;b;" */
-	    ( new_value = malloc( strlen( value) + strlen( _value) + 3)) == NULL)
+	if( ( ow_values = alloca( sizeof( *ow_values) *
+		( kik_count_char_in_str( ow_value , ';') + 1))) == NULL ||
+	    ( orig_values = alloca( sizeof( *orig_values) *
+		( ( orig_value ? kik_count_char_in_str( orig_value , ';') : 0)  + 1))) == NULL)
 	{
 		return  NULL ;
 	}
 
-	_num = 0 ;
-	while( _value != NULL && ( p = kik_str_sep( &_value , ";")) != NULL)
-	{
-		if( parse_entry( &(_values[_num].font_name) , &(_values[_num].font_size) , p))
-		{
-			_num ++ ;
-		}
-	}
+	/* If ow_value = "a" and orig_value = "b", new_value = "a;b;" */
+	new_value_len = strlen( ow_value) + (orig_value ? strlen( orig_value) : 0) + 3 ;
 
 	num = 0 ;
-	while( value != NULL && ( p = kik_str_sep( &value , ";")) != NULL)
+	/* kik_str_sep() returns NULL only if ow_value == NULL. */
+	while( ( p = kik_str_sep( &ow_value , ";")) != NULL)
 	{
-		if( parse_entry( &(values[num].font_name) , &(values[num].font_size) , p))
+		if( parse_entry( &(ow_values[num].font_name) , &(ow_values[num].font_size) , p))
 		{
 			num ++ ;
 		}
+		
+		if( ow_value && *ow_value == '\0')
+		{
+			/* Last ';' of "....;" was parsed. Be careful in kik_str_sep( val , ";") */
+			break ;
+		}
 	}
 
-	*new_value = '\0' ;
+	if( num == 0)
+	{
+		/* ow_value doesn't have valid entry. */
+		return  NULL ;
+	}
+
+	if( ( new_value = malloc( new_value_len)) == NULL)
+	{
+		return  NULL ;
+	}
+	
+	_num = 0 ;
+	/* kik_str_sep() returns NULL only if orig_value == NULL. */
+	while( ( p = kik_str_sep( &orig_value , ";")) != NULL)
+	{
+		if( parse_entry( &(orig_values[_num].font_name) ,
+				&(orig_values[_num].font_size) , p))
+		{
+			_num ++ ;
+		}
+
+		if( orig_value && *orig_value == '\0')
+		{
+			/* Last ';' of "....;" was parsed. Be careful in kik_str_sep( val , ";") */
+			break ;
+		}
+	}
+
+	*(p = new_value) = '\0' ;
 	
 	for( _count = 0 ; _count < _num ; _count++)	/* Original value */
 	{
 		for( count = 0 ; count < num ; count++)	/* Overwriting value */
 		{
-			if( values[count].font_name &&
-				_values[_count].font_size == values[count].font_size)
+			if( ow_values[count].font_name &&
+				orig_values[_count].font_size == ow_values[count].font_size)
 			{
-				if( ! do_remove && strcmp( _values[_count].font_name ,
-							values[count].font_name) == 0)
+				if( operate == 0 && strcmp( orig_values[_count].font_name ,
+							ow_values[count].font_name) == 0)
 				{
 					/* Overwriting value is ignored. */
-					values[count].font_name = NULL ;
+					ow_values[count].font_name = NULL ;
 				}
 				else
 				{
-					/* Original value is overwritten(removed) */
-					_values[_count].font_name = NULL ;
-					
-					if( _count == 0 && ! do_remove &&
-						values[count].font_size == 0)
-					{
-						/* Overwriting default font name. */
-						sprintf( new_value , "%s;" ,
-							values[count].font_name) ;
-					}
+					/* Original value is overwritten. */
+					orig_values[_count].font_name = NULL ;
 				}
 
-				/* In case same font_size exists in _values, don't break here. */
+				/* In case same font_size exist in orig_values, don't break here */
 			}
 		}
 
-		/* If default font name isn't overwritten(removed) above, copy original one. */
-		if( _values[_count].font_size == 0 && _values[_count].font_name)
+		/* If default font name isn't overwritten above, copy original one. */
+		if( orig_values[_count].font_size == 0 && orig_values[_count].font_name)
 		{
-			sprintf( new_value , "%s;" , _values[_count].font_name) ;
+			sprintf( p , "%s;" , orig_values[_count].font_name) ;
+			p += strlen(p) ;
 		}
 	}
-
-	p = new_value + strlen(new_value) ;
 
 	if( is_changed)
 	{
 		*is_changed = 0 ;
 	}
 	
-	/* Copy original values which are not overwritten(removed). */
+	if( operate == 0)
+	{
+		/* Adding overwriting values. */
+		for( count = 0 ; count < num ; count++)
+		{
+			/*
+			 * If ow_values[count].font_name is NULL, original value is not changed.
+			 */
+			if( ow_values[count].font_name)
+			{
+				if( ow_values[count].font_size == 0)
+				{
+					/* default font name. */
+
+					if( new_value == p)
+					{
+						sprintf( new_value , "%s;" ,
+							ow_values[count].font_name) ;
+					}
+					else
+					{
+						size_t  ow_len ;
+						
+						ow_len = strlen( ow_values[count].font_name) ;
+						memmove( new_value + ow_len + 1 , new_value ,
+							strlen( new_value) + 1) ; 
+						memcpy( new_value , ow_values[count].font_name ,
+							ow_len) ;
+						memcpy( new_value + ow_len , ";" , 1) ;
+					}
+				}
+				else /* if( ow_values[count].font_size > 0) */
+				{
+					sprintf( p , "%d,%s;" , ow_values[count].font_size ,
+						ow_values[count].font_name) ;
+				}
+				
+				p += strlen(p) ;
+				
+				if( is_changed)
+				{
+					*is_changed = 1 ;
+				}
+			}
+		}
+	}
+
+	/* Copy original values which are not overwritten. */
 	for( _count = 0 ; _count < _num ; _count++)
 	{
-		/* If _values[count].font_name is NULL , this is overwritten(removed) above. */
-		if( _values[_count].font_name)
+		/* If orig_values[count].font_name is NULL , this is overwritten above. */
+		if( orig_values[_count].font_name)
 		{
-			if( _values[_count].font_size > 0)
+			/*
+			 * That of orig_values[_count].font_size == 0 is added to new_line in
+			 * for loop above.
+			 */
+			if( orig_values[_count].font_size > 0)
 			{
-				sprintf( p , "%d,%s;" , _values[_count].font_size ,
-					_values[_count].font_name) ;
+				sprintf( p , "%d,%s;" , orig_values[_count].font_size ,
+					orig_values[_count].font_name) ;
 				p += strlen(p) ;
 			}
 		}
 		else if( is_changed)
 		{
 			*is_changed = 1 ;
-		}
-	}
-
-	if( ! do_remove)
-	{
-		/* Adding overwriting values. */
-		for( count = 0 ; count < num ; count++)
-		{
-			/*
-			 * If values[count].font_name is NULL, original value is not changed.
-			 * If values[count].font_name is "", original value is not overwritten
-			 * but removed.
-			 */
-			if( values[count].font_name && *values[count].font_name &&
-				values[count].font_size > 0)
-			{
-				sprintf( p , "%d,%s;" , values[count].font_size ,
-					values[count].font_name) ;
-				p += strlen(p) ;
-
-				if( is_changed)
-				{
-					*is_changed = 1 ;
-				}
-			}
 		}
 	}
 
@@ -650,8 +792,8 @@ static int
 operate_custom_cache(
 	const char *  file ,
 	const char *  key ,
-	char *  value ,
-	int  operate	/* 0=add, 1=remove (according to argument of overwrite_value()). */
+	char *  value ,	/* Destroyed in this function. */
+	int  operate	/* 0=add, 1=remove (same as create_value()). */
 	)
 {
 	void *  p ;
@@ -665,9 +807,14 @@ operate_custom_cache(
 			int  is_changed ;
 			char *  new_value ;
 			
-			if( ( new_value = overwrite_value( &is_changed , value ,
+			if( ( new_value = create_value( &is_changed , value ,
 						custom_cache[count].value , operate)) == NULL)
 			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					" Failed to create value in operate_custom_cache.\n") ;
+			#endif
+			
 				return  0 ;
 			}
 
@@ -679,9 +826,9 @@ operate_custom_cache(
 			else
 			{
 				/*
-				 * value is removed completely in overwrite_value().
+				 * value is removed completely in create_value().
 				 */
-				
+
 				free( new_value) ;
 				free( custom_cache[count].key) ;
 				free( custom_cache[count].value) ;
@@ -690,19 +837,24 @@ operate_custom_cache(
 				{
 					free( custom_cache) ;
 					custom_cache = NULL ;
+					
+				#ifdef  __DEBUG
+					kik_debug_printf( "Custom cache is completely freed.\n") ;
+				#endif
 				}
 			}
 
 			if( ! is_changed)
 			{
 			#ifdef  DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG " Not changed\n") ;
+				kik_debug_printf( KIK_DEBUG_TAG
+					" custom_cache is not changed.\n") ;
 			#endif
 			
 				return  0 ;
 			}
 
-		#if  0
+		#ifdef  __DEBUG
 			kik_debug_printf( "%s=%s\n" , key , new_value) ;
 		#endif
 		
@@ -723,14 +875,119 @@ operate_custom_cache(
 	}
 
 	custom_cache = p ;
-	
-	custom_cache[num_of_customs].file = file ;
-	custom_cache[num_of_customs].key = strdup( key) ;
-	custom_cache[num_of_customs++].value = strdup( value) ;
 
-#if  0
-	kik_debug_printf( "%s=%s\n" , key , value) ;
+	if( ( value = create_value( NULL , value , NULL , 0)) == NULL)
+	{
+		return  0 ;
+	}
+	
+	if( ( custom_cache[num_of_customs].key = strdup( key)) == NULL)
+	{
+		free( value) ;
+
+		return  0 ;
+	}
+	
+	custom_cache[num_of_customs].value = value ;
+	custom_cache[num_of_customs++].file = file ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( "%s=%s is newly added to custom cache.\n" , key , value) ;
 #endif
+
+	return  1 ;
+}
+
+static int
+write_conf(
+	char *  path ,		/* Can be destroyed in this function. */
+	const char *  key ,
+	char *  value		/* Includes multiple entries. Destroyed in this function. */
+	)
+{
+	char *  cleaned_value ;
+	char *  cv_p ;
+	char *  v_p ;
+	kik_conf_write_t *  conf ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Clean value %s => " , value) ;
+#endif
+
+	/*
+	 * ";10,;11,a11" => "11,a11"
+	 */
+	cv_p = cleaned_value = value ;
+	while( 1)
+	{
+		int  do_break ;
+
+		if( ( v_p = strchr( value , ';')))
+		{
+			*v_p = '\0' ;
+			if( *(v_p + 1) == '\0')
+			{
+				do_break = 1 ;
+			}
+			else
+			{
+				do_break = 0 ;
+			}
+		}
+		else
+		{
+			v_p = value + strlen(value) ;
+			do_break = 1 ;
+		}
+
+		if( v_p != value)
+		{
+			if( *(v_p - 1) != ',')
+			{
+				size_t  len ;
+
+				len = strlen( value) ;
+				memmove( cv_p , value , len) ;
+				cv_p += len ;
+				if( ! do_break)
+				{
+					/*
+					 * If value is not terminated by ';' like "12,a12",
+					 * don't append ';'. Appending ';' can break
+					 * memory of 'value'.
+					 */
+					memcpy( cv_p , ";" , 1) ;
+					cv_p ++ ;
+				}
+			}
+		}
+
+		if( do_break)
+		{
+			break ;
+		}
+		else
+		{
+			/* goto next entry. */
+			value = v_p + 1 ;
+		}
+	}
+
+	*cv_p = '\0' ;
+
+#ifdef  __DEBUG
+	kik_msg_printf( "%s\n" , cleaned_value) ;
+#endif
+
+	conf = kik_conf_write_open( path) ;
+	if( conf == NULL)
+	{
+		return  0 ;
+	}
+
+	kik_conf_io_write( conf , key , cleaned_value) ;
+
+	kik_conf_write_close( conf) ;
 
 	return  1 ;
 }
@@ -745,7 +1002,7 @@ save_conf(
 	char *  path ;
 	kik_file_t *  kfile ;
 	char *  new_value ;
-	kik_conf_write_t *  conf ;
+	char *  p ;
 
 	if( ( path = kik_get_user_rc_path( file)) == NULL)
 	{
@@ -769,19 +1026,26 @@ save_conf(
 		{
 			int  is_changed ;
 
-			if( ( new_value = overwrite_value( &is_changed , value , _value , 0))
+			if( ( new_value = create_value( &is_changed , value , _value , 0))
 						== NULL || ! is_changed)
 			{
 				free( new_value) ;
 				free( path) ;
 				kik_file_close( kfile) ;
 
-				#ifdef  DEBUG
+				operate_custom_cache( file , key , value , 1 /* remove */) ;
+
+			#ifdef  DEBUG
 				if( ! is_changed)
 				{
-					kik_debug_printf( KIK_DEBUG_TAG " Not changed.\n") ;
+					kik_debug_printf( KIK_DEBUG_TAG " Not changed.") ;
 				}
-				#endif
+				else
+				{
+					kik_debug_printf( KIK_DEBUG_TAG " create_value failed.") ;
+				}
+				kik_msg_printf( " => Not saved.\n") ;
+			#endif
 				
 				return  0 ;
 			}
@@ -800,51 +1064,60 @@ save_conf(
 		value = new_value ;
 	}
 
-	conf = kik_conf_write_open( path) ;
-	free( path) ;
-	if( conf == NULL)
+	p = kik_str_alloca_dup( value) ;
+	
+	/* Remove from custom_cache */
+	operate_custom_cache( file , key , value , 1 /* remove */) ;
+	free( new_value) ;
+
+	if( p)
 	{
+		int  ret ;
+		
+		ret = write_conf( path , key , p) ;
+		free( path) ;
+
+		return  ret ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG
+			" kik_str_alloca_dup failed and configuration is not written.\n") ;
+	#endif
+	
 		return  0 ;
 	}
-
-	kik_conf_io_write( conf , key , value) ;
-
-	kik_conf_write_close( conf) ;
-
-	/* Remove from config_cache */
-	operate_custom_cache( file , key , value, 1 /* remove */) ;
-
-	if( new_value)
-	{
-		free( new_value) ;
-	}
-
-	return  1 ;
 }
 
+/*
+ * <Return value>
+ * 1: Valid "%d" or no '%' is found.
+ * 0: Invalid '%' is found.
+ */
 static int
-is_valid_format(
+is_valid_default_font_format(
 	const char *  format
 	)
 {
-	char *  p;
+	char *  p ;
 
 	if( ( p = strchr( format, '%')))
 	{
-		/* '%' can happen only once at most */
-		if( p != strrchr( format, '%'))
-		{
-			return  0 ;
-		}
-
 		/* force to be '%d' */
 		if( p[1] != 'd')
 		{
 			return  0 ;
 		}
-	}
 
-	return 1;
+		/* '%' can happen only once at most */
+		if( p != strrchr( format, '%'))
+		{
+			return  0 ;
+		}
+	}
+	
+	return  1 ;
 }
 
 static x_font_config_t *
@@ -914,7 +1187,7 @@ create_shared_font_config(
 						font_configs[count]->type_engine >= type_engine) &&
 		    ( (font_configs[count]->font_present & ~FONT_AA) == (font_present & ~FONT_AA)))
 		{
-		#ifdef  DEBUG
+		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Found sharable font_config.\n") ;
 		#endif
 
@@ -959,7 +1232,8 @@ x_set_font_size_range(
 	if( max_fsize < min_fsize)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " max_font_size %d should be larger than min_font_size %d\n" ,
+		kik_warn_printf( KIK_DEBUG_TAG
+			" max_font_size %d should be larger than min_font_size %d\n" ,
 			max_fsize , min_fsize) ;
 	#endif
 
@@ -970,7 +1244,8 @@ x_set_font_size_range(
 	max_font_size = max_fsize ;
 
 #ifdef  DEBUG
-	TEST_overwrite_value() ;
+	TEST_write_conf() ;
+	TEST_create_value() ;
 #endif
 	
 	return  1 ;
@@ -1074,7 +1349,7 @@ x_release_font_config(
 
 	if( has_share /* && num_of_configs > 0 */)
 	{
-	#ifdef  DEBUG
+	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " Sharable font_config exists.\n") ;
 	#endif
 	
@@ -1147,9 +1422,9 @@ x_font_config_delete(
 		{
 			int  __count ;
 
-			kik_map_get_pairs_array( font_config->font_name_table[count] ,
-				fn_array , size) ;
-				
+			fn_array = get_font_name_pairs_array( &size ,
+					font_config->font_name_table[count]) ;
+			
 			for( __count = 0 ; __count < size ; __count ++)
 			{
 				free( fn_array[__count]->value) ;
@@ -1161,8 +1436,7 @@ x_font_config_delete(
 
 	free( font_config->font_name_table) ;
 
-	kik_map_get_pairs_array( font_config->default_font_name_table ,
-		fn_array , size) ;
+	fn_array = get_font_name_pairs_array( &size , font_config->default_font_name_table) ;
 
 	for( count = 0 ; count < size ; count ++)
 	{
@@ -1176,6 +1450,11 @@ x_font_config_delete(
 	return  1 ;
 }
 
+/*
+ * <Return value>
+ * 0: Not changed(including the case of failure).
+ * 1: Succeeded.
+ */
 int
 x_customize_font_name(
 	x_font_config_t *  font_config ,
@@ -1184,7 +1463,7 @@ x_customize_font_name(
 	u_int  font_size
 	)
 {
-	int  result ;
+	KIK_MAP( x_font_name)  map ;
 	KIK_PAIR( x_font_name)  pair ;
 
 	if( font_size < min_font_size || max_font_size < font_size)
@@ -1192,11 +1471,18 @@ x_customize_font_name(
 		return  0 ;
 	}
 
-	kik_map_get( result , get_font_name_table( font_config , font_size) , font , pair) ;
-	if( result)
+	map = get_font_name_table( font_config , font_size) ;
+	if( ( pair = get_font_name_pair( map , font)))
 	{
-		/* If new fontname is the same as current one, nothing is done. */
-		if( strcmp( pair->value , fontname) != 0)
+		if( *fontname == '\0')
+		{
+			int  result ;
+			
+			/* Curent setting in font_config is removed. */
+			free( pair->value) ;
+			kik_map_erase_simple( result , map , font) ;
+		}
+		else if( strcmp( pair->value , fontname) != 0)
 		{
 			if( ( fontname = strdup( fontname)) == NULL)
 			{
@@ -1206,25 +1492,36 @@ x_customize_font_name(
 			free( pair->value) ;
 			pair->value = fontname ;
 		}
+	#if  0
+		else
+		{
+			/* If new fontname is the same as current one, nothing is done. */
+		}
+	#endif
 	}
 	else
 	{
-		if( ( fontname = strdup( fontname)) == NULL)
+		if( *fontname == '\0' || ( fontname = strdup( fontname)) == NULL)
 		{
 			return  0 ;
 		}
-		
-		kik_map_set( result , get_font_name_table( font_config , font_size) ,
-			font , fontname) ;
+
+		set_font_name_to_table( map , font , fontname) ;
 	}
 
-#ifdef  __DEBUG
-	kik_warn_printf( "fontname %s for size %d\n" , fontname , font_size) ;
+#ifdef  DEBUG
+	kik_warn_printf( "Set %x font size %d => fontname %s for size.\n" ,
+		font , font_size , fontname) ;
 #endif
 
 	return  1 ;
 }
 
+/*
+ * <Return value>
+ * 0: Not changed(including the case of failure).
+ * 1: Succeeded.
+ */
 int
 x_customize_default_font_name(
 	x_font_config_t *  font_config ,
@@ -1232,26 +1529,64 @@ x_customize_default_font_name(
 	char *  fontname
 	)
 {
-	int  result ;
 	KIK_PAIR( x_font_name)  pair ;
 
-	fontname = strdup( fontname) ;
-
-	kik_map_get( result , font_config->default_font_name_table , font , pair) ;
-	if( result)
+	if( is_valid_default_font_format( fontname) == 0)
 	{
-		free( pair->value) ;
-		pair->value = fontname ;
+		kik_warn_printf( " %s is invalid format for font name.\n") ;
+
+		return  0 ;
+	}
+
+	if( ( pair = get_font_name_pair( font_config->default_font_name_table , font)))
+	{
+		if( *fontname == '\0')
+		{
+			int  result ;
+			
+			/* Curent setting in font_config is removed. */
+			free( pair->value) ;
+			kik_map_erase_simple( result , font_config->default_font_name_table , font) ;
+		}
+		else if( strcmp( pair->value , fontname) != 0)
+		{
+			if( ( fontname = strdup( fontname)) == NULL)
+			{
+				return  0 ;
+			}
+			
+			free( pair->value) ;
+			pair->value = fontname ;
+		}
+	#if  0
+		else
+		{
+			/* If new fontname is the same as current one, nothing is done. */
+		}
+	#endif
 	}
 	else
 	{
-		kik_map_set( result , font_config->default_font_name_table ,
-			font , fontname) ;
+		if( *fontname == '\0' || ( fontname = strdup( fontname)) == NULL)
+		{
+			return  0 ;
+		}
+
+		set_font_name_to_table( font_config->default_font_name_table , font , fontname) ;
 	}
 
-	return  result ;
+#ifdef  DEBUG
+	kik_warn_printf( "Set %x default font => fontname %s for size.\n" , font , fontname) ;
+#endif
+
+	return  1 ;
 }
 
+/*
+ * 0 => customization is failed.
+ * -1 => customization is succeeded but saving is failed.
+ * 1 => succeeded.
+ */
 int
 x_customize_font_file(
 	const char *  file ,	/* if null, use "mlterm/font" file. */
@@ -1313,7 +1648,7 @@ x_customize_font_file(
 		return  0 ;
 	}
 
-#ifdef  DEBUG
+#ifdef  __DEBUG
 	if( num_of_targets)
 	{
 		kik_debug_printf( "customize font file %s %s %s\n", file, key, value) ;
@@ -1327,29 +1662,47 @@ x_customize_font_file(
 
 	if( save)
 	{
-	#ifdef  DEBUG
-		kik_debug_printf( "customization is saved.\n") ;
-	#endif
+		char *  p ;
+		int  ret ;
+		
+		if( ( p = kik_str_alloca_dup( value)) &&
+			/* Overwrite custom_cache. */
+			operate_custom_cache( file , key , p , 0 /* overwrite */))
+		{
+			ret = 1 ;
+			for( count = 0 ; count < num_of_targets ; count++)
+			{
+				read_all_conf( targets[count] , file) ;
+			}
+		}
+		else
+		{
+			ret = 0 ;
+		}
 		
 		if( ! save_conf( file , key , value))
 		{
-			return  0 ;
+			return  ret ? -1 : 0 ;
+		}
+		else
+		{
+			return  ret ;
 		}
 	}
 	else
 	{
-		/* Add to custom_cache. */
-		if( ! operate_custom_cache( file , key , value , 0 /* add */))
+		/* Overwrite custom_cache. */
+		if( ! operate_custom_cache( file , key , value , 0 /* overwrite */))
 		{
 			return  0 ;
 		}
+		
+		for( count = 0 ; count < num_of_targets ; count++)
+		{
+			read_all_conf( targets[count] , file) ;
+		}
 	}
-
-	for( count = 0 ; count < num_of_targets ; count++)
-	{
-		read_all_conf( targets[count] , file) ;
-	}
-
+	
 	return  1 ;
 }
 
@@ -1360,39 +1713,93 @@ x_get_config_font_name(
 	ml_font_t  font
 	)
 {
-	KIK_PAIR( x_font_name)  fa_pair ;
-	int  result ;
+	KIK_MAP( x_font_name)  map ;
+	KIK_PAIR( x_font_name)  pair ;
 	char *  font_name ;
+	char *  encoding_name ;
+	int  has_percentd ;
+	size_t  len ;
 	
 	if( font_size < min_font_size || max_font_size < font_size)
 	{
 		return  NULL ;
 	}
 
-	kik_map_get( result , get_font_name_table( font_config , font_size) , font , fa_pair) ;
-	if( result)
+	map = get_font_name_table( font_config , font_size) ;
+
+	if( ( pair = get_font_name_pair( map , font)))
 	{
-		return  strdup( fa_pair->value) ;
+		return  strdup( pair->value) ;
 	}
 
-	kik_map_get( result , font_config->default_font_name_table , font , fa_pair) ;
-	if( ! result)
+	encoding_name = NULL ;
+	if( ( pair = get_font_name_pair( font_config->default_font_name_table , font)) == NULL)
+	{
+		if( ! ( pair = get_font_name_pair( map , DEFAULT_FONT | (font & FONT_BOLD))) &&
+		    ! ( pair = get_font_name_pair( font_config->default_font_name_table ,
+							DEFAULT_FONT | (font & FONT_BOLD))) )
+		{
+			return  NULL ;
+		}
+
+	#ifndef  USE_WIN32GUI
+		if( font_config->type_engine == TYPE_XCORE)
+		{
+			char **  names ;
+
+			if( ( names = x_font_get_encoding_names( FONT_CS(font))) == NULL ||
+				names[0] == NULL)
+			{
+				return  NULL ;
+			}
+
+			encoding_name = names[0] ;
+		}
+	#endif
+	}
+
+	/*
+	 * If pair->value is valid format or not is checked by is_valid_default_font_format()
+	 * in x_customize_default_font_name().
+	 * So all you have to do here is strchr( ... , '%') alone.
+	 */
+	if( strchr( pair->value , '%'))
+	{
+		has_percentd = 1 ;
+	}
+	else if( encoding_name == NULL)
+	{
+		return  strdup( pair->value) ;
+	}
+	else
+	{
+		has_percentd = 0 ;
+	}
+
+	len = strlen( pair->value) +
+		/* -2 is for "%d" */
+		(has_percentd ? DIGIT_STR_LEN(font_size) - 2 : 0) +
+		/* + 1  is for "-" */
+		(encoding_name ? strlen(encoding_name) + 1 : 0) + 1 ;
+
+	if( ( font_name = malloc( len)) == NULL)
 	{
 		return  NULL ;
 	}
 
-	if( !is_valid_format( fa_pair->value))
+	if( has_percentd)
 	{
-		return  NULL ;
+		sprintf( font_name , pair->value , font_size) ;
+	}
+	else
+	{
+		strcpy( font_name , pair->value) ;
 	}
 
-	/* -2 is for "%d" */
-	if( ( font_name = malloc( strlen( fa_pair->value) - 2 + DIGIT_STR_LEN(font_size) + 1)) == NULL)
+	if( encoding_name)
 	{
-		return  NULL ;
+		strcat( font_name , encoding_name) ;
 	}
-
-	sprintf( font_name , fa_pair->value , font_size) ;
 
 	return  font_name ;
 }
@@ -1489,9 +1896,9 @@ x_get_all_config_font_names(
 	size_t  list_len ;
 	char *  p ;
 	int  count ;
-	
-	kik_map_get_pairs_array( get_font_name_table( font_config , font_size) , array , size) ;
-	kik_map_get_pairs_array( font_config->default_font_name_table , d_array , d_size) ;
+
+	array = get_font_name_pairs_array( &size , get_font_name_table( font_config , font_size)) ;
+	d_array = get_font_name_pairs_array( &d_size , font_config->default_font_name_table) ;
 
 	if( d_size + size == 0)
 	{
@@ -1519,14 +1926,25 @@ x_get_all_config_font_names(
 
 	for( count = 0 ; count < size ; count ++)
 	{
-		strcpy( p , array[count]->value) ;
-		p += strlen( p) ;
-		*(p ++) = ',' ;
+		/*
+		 * XXX
+		 * Ignore DEFAULT_FONT setting because it doesn't have encoding name.
+		 */
+		if( array[count]->key != DEFAULT_FONT)
+		{
+			strcpy( p , array[count]->value) ;
+			p += strlen( p) ;
+			*(p ++) = ',' ;
+		}
 	}
 
 	for( count = 0 ; count < d_size ; count ++)
 	{
-		if( is_valid_format( d_array[count]->value))
+		/*
+		 * XXX
+		 * Ignore DEFAULT_FONT setting because it doesn't have encoding name.
+		 */
+		if( d_array[count]->key != DEFAULT_FONT)
 		{
 			sprintf( p , d_array[count]->value , font_size) ;
 			p += strlen( p) ;
@@ -1536,27 +1954,71 @@ x_get_all_config_font_names(
 
 	*(p - 1) = '\0' ;
 
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Font list is %s\n" , font_name_list) ;
+#endif
+
 	return  font_name_list ;
 }
 
 #ifdef  DEBUG
-static int
-TEST_overwrite_value(void)
+static void
+TEST_write_conf(void)
 {
 	struct
 	{
 		char *  data1 ;
 		char *  data2 ;
-		char *  data3 ;
-		char *  data4 ;
+		
 	} data[] =
 	{
-		{ "a10;12,a12;14,a14" , "12,a13" , "a10;14,a14;12,a13;" , "a10;14,a14;" } ,
-		{ "a10;12,a12;14,a14" , "a12" , "a12;12,a12;14,a14;" , "12,a12;14,a14;" } ,
-		{ "a10;a12;a13" , "a14" , "a14;" , "" } ,
-		{ "a10;12,a12;12,a14" , "12,a16" , "a10;12,a16;" , "a10;" } ,
-		{ "12,a12" , "14,a14" , "12,a12;14,a14;" , "12,a12;" } ,
-		{ "a10" , "12,a12" , "a10;12,a12;" , "a10;" } ,
+		{ ";11,a11" , "11,a11" } ,
+		{ ";10,;11,a11" , "11,a11" } ,
+		{ ";;12,;12,;11,a11" , "11,a11" } ,
+		{ ";12,a12" , "12,a12" } ,
+	} ;
+	int  count ;
+
+	for( count = 0 ; count < sizeof(data)  / sizeof(data[0]) ; count++)
+	{
+		char *  p = kik_str_alloca_dup( data[count].data1) ;
+		write_conf( "" , "" , p) ;
+		if( strcmp( p , data[count].data2) != 0)
+		{
+			kik_debug_printf( KIK_DEBUG_TAG " Test failed(write conf(%s) => %s).\n" ,
+				data[count].data1 , p) ;
+		}
+	}
+}
+
+static void
+TEST_create_value(void)
+{
+	struct
+	{
+		char *  data1 ;
+		char *  data2 ;
+		char *  ow_result  ;
+		int  ow_changed ;
+		char *  rm_result ;
+		int  rm_changed ;
+		
+	} data[] =
+	{
+		{ "a10;12,a12;14,a14" , "12,a13" , "a10;12,a13;14,a14;" , 1 , "a10;14,a14;" , 1 } ,
+		{ "a10;12,a12;14,a14" , "a12" , "a12;12,a12;14,a14;" , 1 , "12,a12;14,a14;" , 1 } ,
+		{ "a10;a12;a13" , "a14" , "a14;" , 1 , "" , 1 } ,
+		{ "a10;12,a12;12,a14" , "12,a16" , "a10;12,a16;" , 1 , "a10;" , 1 } ,
+		{ "12,a12" , "14,a14" , "14,a14;12,a12;" , 1 , "12,a12;" , 0 } ,
+		{ "a10" , "12,a12" , "a10;12,a12;" , 1 , "a10;" , 0 } ,
+		{ "a10;a11;a12" , "a13" , "a13;" , 1 , "" , 1 } ,
+		{ "10,a10;10,a12" , "11,a12" , "11,a12;10,a10;10,a12;" , 1 , "10,a10;10,a12;" , 0 } ,
+		{ "10,a10;10,a12" , "10,a14" , "10,a14;" , 1 , "" , 1 } ,
+		{ "10,a10;10,a12;11,a11" , "10,a14" , "10,a14;11,a11;" , 1 , "11,a11;" , 1 } ,
+		{ "a10" , "" , ";" , 1 , "" , 1 } ,
+		{ NULL , ",a14;" , NULL , 0 , NULL , 0 } ,
+		{ "" , ";;;a14" , "a14;" , 1 , "" , 1 /* XXX It can't be helped... */ } ,
+		{ NULL , ";;;a14" , "a14;;;;" /* XXX It can't be helped... */ , 1 , "" , 0 } ,
 	} ;
 	int  count ;
 
@@ -1565,43 +2027,63 @@ TEST_overwrite_value(void)
 		char * ret ;
 		int  is_changed ;
 		
-		ret = overwrite_value( &is_changed ,
+		ret = create_value( &is_changed ,
 			kik_str_alloca_dup( data[count].data2) ,
-			kik_str_alloca_dup( data[count].data1) , 0) ;
+			data[count].data1 ? kik_str_alloca_dup( data[count].data1) : NULL , 0) ;
 
-		if( strcmp( data[count].data3 , ret) != 0)
+		if( ret == NULL || data[count].ow_result == NULL)
 		{
-			kik_debug_printf( KIK_DEBUG_TAG " Test failed(%s + %s => %s).\n" ,
-				data[count].data1 , data[count].data2 , ret) ;
+			if( ret != data[count].ow_result)
+			{
+				kik_debug_printf( KIK_DEBUG_TAG
+					" Test failed(create_value(%s + %s) => %s).\n" ,
+					data[count].data1 , data[count].data2 , ret) ;
+			}
 		}
-		else if( is_changed == 0)
+		else if( strcmp( data[count].ow_result , ret) != 0)
 		{
 			kik_debug_printf( KIK_DEBUG_TAG
-				" Test failed(%s + %s => %s is *not* changed?).\n" ,
+				" Test failed(create_value(%s + %s) => %s).\n" ,
 				data[count].data1 , data[count].data2 , ret) ;
+		}
+		else if( is_changed != data[count].ow_changed)
+		{
+			kik_debug_printf( KIK_DEBUG_TAG
+				" Test failed(create_value(%s + %s) => %s : %s ?).\n" ,
+				data[count].data1 , data[count].data2 , ret ,
+				is_changed ? "is changed" : "is not changed") ;
 		}
 
 		free( ret) ;
 		
-		ret = overwrite_value( &is_changed ,
+		ret = create_value( &is_changed ,
 			kik_str_alloca_dup( data[count].data2) ,
-			kik_str_alloca_dup( data[count].data1) , 1) ;
+			data[count].data1 ? kik_str_alloca_dup( data[count].data1) : NULL , 1) ;
 
-		if( strcmp( data[count].data4 , ret) != 0)
+		if( ret == NULL || data[count].ow_result == NULL)
 		{
-			kik_debug_printf( KIK_DEBUG_TAG " Test failed(%s - %s => %s).\n" ,
-				data[count].data1 , data[count].data2 , ret) ;
+			if( ret != data[count].ow_result)
+			{
+				kik_debug_printf( KIK_DEBUG_TAG
+					" Test failed(create_value(%s - %s) => %s).\n" ,
+					data[count].data1 , data[count].data2 , ret) ;
+			}
 		}
-		else if( count < 4 && is_changed == 0)
+		else if( strcmp( data[count].rm_result , ret) != 0)
 		{
 			kik_debug_printf( KIK_DEBUG_TAG
-				" Test failed(%s - %s => %s is *not* changed?).\n" ,
+				" Test failed(create_value(%s - %s) => %s).\n" ,
 				data[count].data1 , data[count].data2 , ret) ;
+		}
+		else if( is_changed != data[count].rm_changed)
+		{
+			kik_debug_printf( KIK_DEBUG_TAG
+				" Test failed(create_value(%s - %s) => %s : %s ?).\n" ,
+				data[count].data1 , data[count].data2 , ret ,
+				is_changed ? "is changed" : "is not changed") ;
 		}
 
 		free( ret) ;
 	}
-
-	return  1 ;
 }
 #endif

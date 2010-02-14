@@ -224,8 +224,7 @@ typedef struct  __ ## name ## _map \
 	} \
 }
 
-#define  kik_map_erase( result , map , __key) \
-{ \
+#define  __kik_map_erase_simple( result , map , __key) \
 	int  hash_key ; \
 	int  count ; \
 	\
@@ -262,7 +261,26 @@ typedef struct  __ ## name ## _map \
 		} \
 		\
 		hash_key = kik_map_rehash( hash_key , (map)->map_size) ; \
-	} \
+	}
+
+/*
+ * Not shrink map.
+ */
+#define  kik_map_erase_simple( result , map , __key) \
+{ \
+	__kik_map_erase_simple( result , map , __key) ; \
+}
+
+/*
+ * Shrink map.
+ */
+#define  kik_map_erase( result , map , __key) \
+{ \
+	__kik_map_erase_simple( result , map , __key) ; \
+	\
+	/* \
+	 * hash_key and count are declared in __kik_map_erase_simple(). \
+	 */ \
 	\
 	if( result == 1) \
 	{ \

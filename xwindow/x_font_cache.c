@@ -70,7 +70,7 @@ init_usascii_font(
 	
 	beg_font_size = font_cache->font_size ;
 	while( ( font_cache->usascii_font = x_font_cache_get_xfont( font_cache ,
-					DEFAULT_FONT(font_cache->usascii_font_cs))) == NULL)
+					NORMAL_FONT_OF(font_cache->usascii_font_cs))) == NULL)
 	{
 		if( ++ font_cache->font_size > x_get_max_font_size())
 		{
@@ -276,7 +276,7 @@ x_font_cache_get_xfont(
 		return  font_cache->prev_cache.xfont ;
 	}
 
-	if( font == DEFAULT_FONT(font_cache->usascii_font_cs))
+	if( font == NORMAL_FONT_OF(font_cache->usascii_font_cs))
 	{
 		col_width = 0 ;
 	}
@@ -293,8 +293,8 @@ x_font_cache_get_xfont(
 
 	use_medium_for_bold = 0 ;
 	
-	if( ( fontname = x_get_config_font_name( font_cache->font_config , font_cache->font_size , font))
-		== NULL)
+	if( ( fontname = x_get_config_font_name( font_cache->font_config , font_cache->font_size ,
+							font)) == NULL)
 	{
 		if( font & FONT_BOLD)
 		{
@@ -333,7 +333,8 @@ x_font_cache_get_xfont(
 	font_cache->prev_cache.xfont = xfont ;
 
 #ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " font %x for id %x was cached.\n" , xfont , font) ;
+	kik_warn_printf( KIK_DEBUG_TAG " Font %x for id %x was cached.%s\n" ,
+		xfont , font , use_medium_for_bold ? "(medium font is used for bold.)" : "") ;
 #endif
 
 	return  xfont ;

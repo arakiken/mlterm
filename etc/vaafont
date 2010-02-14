@@ -1,35 +1,37 @@
-#ISO8859_1=Courier 10 Pitch-iso10646-1;
-#ISO8859_2=Thryomanes-iso10646-1;
-#ISO8859_3=Thryomanes-iso10646-1;
-#ISO8859_4=Thryomanes-iso10646-1;
-#ISO8859_5=Thryomanes-iso10646-1;
-#ISO8859_7=Thryomanes-iso10646-1;
-#ISO8859_9=Thryomanes-iso10646-1;
-#ISO8859_10=Thryomanes-iso10646-1;
-#ISO8859_13=Thryomanes-iso10646-1;
-#ISO8859_14=Thryomanes-iso10646-1;
-#ISO8859_15=Thryomanes-iso10646-1;
-#KOI8_R=Nimbus Mono L-iso10646-1;
-#KOI8_U=Nimbus Mono L-iso10646-1;
-#JISX0208_1978=Kochi Gothic-iso10646-1;
-#JISX0208_1983=Kochi Gothic-iso10646-1;
-#JISX0208_1990=Kochi Gothic-iso10646-1;
-#KSX1001_1997=dotum-iso10646-1;
-#BIG5=AR PL Mingti2L Big5-iso10646-1;
-#GB2312_80=AR PL SungtiL GB-iso10646-1;
-#GBK=AR PL SungtiL GB-iso10646-1;
+#DEFAULT=Kochi Gothic
 
-#ISO10646_UCS4_1=Courier 10 Pitch-iso10646-1;
-#ISO10646_UCS4_1=Thryomanes-iso10646-1;
+#ISO8859_1=Courier 10 Pitch
+#ISO8859_2=Thryomanes
+#ISO8859_3=Thryomanes
+#ISO8859_4=Thryomanes
+#ISO8859_5=Thryomanes
+#ISO8859_7=Thryomanes
+#ISO8859_9=Thryomanes
+#ISO8859_10=Thryomanes
+#ISO8859_13=Thryomanes
+#ISO8859_14=Thryomanes
+#ISO8859_15=Thryomanes
+#KOI8_R=Nimbus Mono L
+#KOI8_U=Nimbus Mono L
+#JISX0208_1978=Kochi Gothic
+#JISX0208_1983=Kochi Gothic
+#JISX0208_1990=Kochi Gothic
+#KSX1001_1997=dotum
+#BIG5=AR PL Mingti2L Big5
+#GB2312_80=AR PL SungtiL GB
+#GBK=AR PL SungtiL GB
+
+#ISO10646_UCS4_1=Courier 10 Pitch
+#ISO10646_UCS4_1=Thryomanes
 
 # Japanese speakers may want to enable the following setting.
-#ISO10646_UCS4_1_BIWIDTH=Kochi Gothic-iso10646-1;
+#ISO10646_UCS4_1_BIWIDTH=Kochi Gothic
 
 # Korean speakers may want to enable the following setting.
-#ISO10646_UCS4_1_BIWIDTH=dotum-iso10646-1;
+#ISO10646_UCS4_1_BIWIDTH=dotum
 
 # Traditional Chinese speakers may want to enable the following setting.
-#ISO10646_UCS4_1_BIWIDTH=AR PL Mingti2L Big5-iso10646-1;
+#ISO10646_UCS4_1_BIWIDTH=AR PL Mingti2L Big5
 
 # Simplified Chinese speakers may want to enable the following setting.
-#ISO10646_UCS4_1_BIWIDTH=AR PL SungtiL GB-iso10646-1;
+#ISO10646_UCS4_1_BIWIDTH=AR PL SungtiL GB

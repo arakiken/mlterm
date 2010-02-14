@@ -644,7 +644,7 @@ set_xft_font(
 			}
 		}
 
-		kik_msg_printf( " font %s (for size %f) couln't be loaded.\n" ,
+		kik_warn_printf( "Font %s (for size %f) couldn't be loaded.\n" ,
 			fontname , fontsize_d) ;
 	}
 
@@ -825,8 +825,8 @@ calculate_char_width(
 static int
 parse_xfont_name(
 	char **  font_xlfd ,
-	char **  percent ,
-	char *  font_name	/* broken in this function */
+	char **  percent ,	/* NULL can be returned. */
+	char *  font_name	/* Don't specify NULL. Broken in this function */
 	)
 {
 	/*
@@ -834,16 +834,9 @@ parse_xfont_name(
 	 * [Font XLFD](:[Percentage])
 	 */
 
-	if( ( *font_xlfd = kik_str_sep( &font_name , ":")) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " illegal true type font name(%s).\n" ,
-			font_name) ;
-	#endif
-
-		return  0 ;
-	}
-
+	/* kik_str_sep() never returns NULL because font_name isn't NULL. */
+	*font_xlfd = kik_str_sep( &font_name , ":") ;
+	
 	/* may be NULL */
 	*percent = font_name ;
 
@@ -1004,7 +997,7 @@ set_xfont(
 				goto  font_found ;
 			}
 
-			kik_msg_printf( " font %s couln't be loaded.\n" , font_xlfd) ;
+			kik_warn_printf( "Font %s couldn't be loaded.\n" , font_xlfd) ;
 		}
 	}
 
@@ -1277,9 +1270,9 @@ font_found:
 			if( font->width != col_width * font->cols)
 			{
 				kik_warn_printf(
-					"Font width(%d) is not matched with standard width(%d).\n"
-					"Because of this, characters are drawn one by one in order"
-					"to fit standard width.\n" ,
+					"Font width(%d) is not matched with standard width(%d)."
+					"Characters are drawn one by one in order to fit"
+					"standard width.\n" ,
 					font->width , col_width * font->cols) ;
 
 				font->is_proportional = 1 ;
@@ -1547,7 +1540,7 @@ x_calculate_char_width(
 }
 
 char **
-x_font_get_cs_names(
+x_font_get_encoding_names(
 	mkf_charset_t  cs
 	)
 {

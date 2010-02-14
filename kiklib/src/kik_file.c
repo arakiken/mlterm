@@ -4,6 +4,7 @@
 
 #include  <fcntl.h>		/* fcntl() */
 #include  <sys/file.h>          /* flock() */
+#include  <string.h>		/* memcpy */
 #include  "kik_file.h"
 
 #include  "kik_config.h"
@@ -87,7 +88,8 @@ kik_file_close(
 #ifdef  HAVE_FGETLN
 
 /*
- * this is the wrapper function of fgetln().
+ * This is a wrapper function of fgetln().
+ * If 'from' file doesn't end with '\n', '\0' is automatically appended to the end of file.
  */
 char *
 kik_file_get_line(
@@ -95,17 +97,36 @@ kik_file_get_line(
 	size_t *  len
 	)
 {
-	return  fgetln( from->file , len) ;
+	char *  line ;
+	
+	if( ( line = fgetln( from->file , len)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	if( line[*len - 1] != '\n')
+	{
+		if( ( from->buffer = realloc( from->buffer , *len + 1)) == NULL)
+		{
+			return  NULL ;
+		}
+		memcpy( from->buffer , line , *len) ;
+		from->buffer[*len] = '\0' ;
+		from->buf_size = ++(*len) ;
+	}
+
+	return  line ;
 }
 
 #else
 
 /*
- * this behaves like fgetln().
+ * This behaves like fgetln().
  *
- * this returns the pointer to the beginning of line , and it becomes invalid
+ * This returns the pointer to the beginning of line , and it becomes invalid
  * after the next kik_file_get_line() (whether successful or not) or as soon as
  * kik_file_close() is executed.
+ * If 'from' file doesn't end with '\n', '\0' is automatically appended to the end of file.
  */
 char *
 kik_file_get_line(
@@ -130,18 +151,23 @@ kik_file_get_line(
 			from->buf_size += BUF_UNIT_SIZE ;
 			from->buffer = realloc( from->buffer , from->buf_size) ;
 		}
-		
-		from->buffer[filled++] = c ;
 
-		if( c == '\n')
+		if( c < 0)
 		{
+			from->buffer[filled++] = '\0' ;
 			break ;
 		}
-
-		if( ( c = fgetc( from->file)) < 0)
+		else
 		{
-			break ;
+			from->buffer[filled++] = c ;
+			
+			if( c == '\n')
+			{
+				break ;
+			}
 		}
+
+		c = fgetc( from->file) ;
 	}
 
 	*len = filled ;

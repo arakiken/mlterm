@@ -1,3 +1,38 @@
+2010-02-14  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_file.c: If a file which doesn't end with '\n' is read, '\0' is appended
+	  to the end of file in kik_file_get_line(). Configuration files which don't
+	  end with '\n' is treated correctly by this.
+
+	* mc_font.c: If "Variable column width" check box is toggled, font name entry
+	  is reset.
+
+	* kik_map.h: kik_map_erase_simple() is added.
+
+	* x_mod_meta_mode.c, x_sb_mode.c, x_bel_mode.c: Simplified.
+
+	* x_scrollbar.c: x_window_update( ..., FGCOLOR_CHANGED|BGCOLOR_CHANGED) is
+	  called after sb->view->realized() in x_scrollbar_(un)set_transparent and
+	  x_scrollbar_change_view.
+
+	* x_screen.c:
+	  If specified picture is loaded successfully, screen->pic_file_path retains
+	  in spite of failure of x_window_set_transparent() in set_wall_picture().
+
+	* x_window_win32.c:
+	  Sound and visual bell are supported.
+	  x_window_bell() is implemented.
+	  x_window_fill_all() is renamed to x_window_blank() and implemented.
+
+	* doc/ja/README.fontproto: Added.
+
+	* x_gc_new() in x_gc.c: Fixed a bug which makes background color
+	  forcibly black until color except white is spcified.
+
+	* x_font_config.c: Fixed. "DEFAULT" key is avaiable.
+	  
+	* x_color_config.c: Fixed.
+
 2010-02-05  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_config.c:

@@ -9,7 +9,7 @@
 #include  <mkf/mkf_charset.h>
 
 
-#define  DEFAULT_FONT(cs)  (cs)
+#define  NORMAL_FONT_OF(cs)  (cs)
 #define  FONT_CS(font)  ((font) & MAX_CHARSET)
 
 

@@ -6,6 +6,15 @@
 #include  "x_sb_mode.h"
 
 
+/* --- static variables --- */
+
+/* Order of this table must be same as x_sb_mode_t. */
+static char *   sb_mode_name_table[] =
+{
+	"none" , "left" , "right" ,
+} ;
+
+
 /* --- global functions --- */
 
 x_sb_mode_t
@@ -13,18 +22,18 @@ x_get_sb_mode(
 	char *  name
 	)
 {
-	if( strcmp( name , "right") == 0)
+	x_sb_mode_t  mode ;
+
+	for( mode = 0 ; mode < SBM_MAX ; mode++)
 	{
-		return  SBM_RIGHT ;
+		if( strcmp( sb_mode_name_table[mode] , name) == 0)
+		{
+			return  mode ;
+		}
 	}
-	else if( strcmp( name , "left") == 0)
-	{
-		return  SBM_LEFT ;
-	}
-	else /* if( strcmp( name , "none") == 0) */
-	{
-		return  SBM_NONE ;
-	}
+	
+	/* default value */
+	return  SBM_NONE ;
 }
 
 char *
@@ -32,16 +41,11 @@ x_get_sb_mode_name(
 	x_sb_mode_t  mode
 	)
 {
-	if( mode == SBM_RIGHT)
+	if( mode < 0 || SBM_MAX <= mode)
 	{
-		return  "right" ;
+		/* default value */
+		mode = SBM_NONE ;
 	}
-	else if( mode == SBM_LEFT)
-	{
-		return  "left" ;
-	}
-	else /* if( mode == SBM_NONE) */
-	{
-		return  "none" ;
-	}
+
+	return  sb_mode_name_table[mode] ;
 }

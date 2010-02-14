@@ -765,7 +765,7 @@ x_calculate_char_width(
 }
 
 char **
-x_font_get_cs_names(
+x_font_get_encoding_names(
 	mkf_charset_t  cs
 	)
 {

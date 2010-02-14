@@ -161,7 +161,9 @@ typedef struct  x_window
 
 	void (*window_realized)( struct x_window *) ;
 	void (*window_finalized)( struct x_window *) ;
+	/* Win32: gc->gc is not None. */
 	void (*window_exposed)( struct x_window * , int , int , u_int , u_int) ;
+	/* Win32: gc->gc is not None. */
 	void (*update_window)( struct x_window * , int) ;
 	void (*window_focused)( struct x_window *) ;
 	void (*window_unfocused)( struct x_window *) ;
@@ -259,9 +261,12 @@ int  x_window_fill( x_window_t *  win , int  x , int  y , u_int  width , u_int  
 int  x_window_fill_with( x_window_t *  win , x_color_t *  color ,
 	int  x , int  y , u_int  width , u_int  height) ;
 
-int  x_window_fill_all( x_window_t *  win) ;
+int  x_window_blank( x_window_t *  win) ;
 
-int  x_window_fill_all_with( x_window_t *  win , x_color_t *  color) ;
+#if  0
+/* Not used */
+int  x_window_blank_with( x_window_t *  win , x_color_t *  color) ;
+#endif
 
 /* if flag is 0, no update. */
 int  x_window_update( x_window_t *  win , int  flag) ;
@@ -373,7 +378,7 @@ int  x_window_translate_coordinates( x_window_t *  win, int x, int y,
 	int *  global_x, int *  global_y, Window *  child) ;
 
 #if  0
-/* not used */
+/* Not used */
 int  x_window_paste( x_window_t *  win , Drawable  src , int  src_x , int  src_y ,
 	u_int  src_width , u_int  src_height , int  dst_x , int  dst_y) ;
 #endif

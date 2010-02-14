@@ -7,6 +7,15 @@
 #include  <string.h>		/* strcmp */
 
 
+/* --- static variables --- */
+
+/* Order of this table must be same as x_bel_mode_t. */
+static char *   bel_mode_name_table[] =
+{
+	"none" , "sound" , "visual" ,
+} ;
+
+
 /* --- global functions --- */
 
 x_bel_mode_t
@@ -14,20 +23,18 @@ x_get_bel_mode(
 	char *  name
 	)
 {
-	if( strcmp( name , "none") == 0)
+	x_bel_mode_t  mode ;
+
+	for( mode = 0 ; mode < BEL_MODE_MAX ; mode++)
 	{
-		return  BEL_NONE ;
+		if( strcmp( bel_mode_name_table[mode] , name) == 0)
+		{
+			return  mode ;
+		}
 	}
-	else if( strcmp( name , "visual") == 0)
-	{
-		return  BEL_VISUAL ;
-	}
-	else /* if( strcmp( name , "sound") == 0) */
-	{
-		/* default */
-		
-		return  BEL_SOUND ;
-	}
+	
+	/* default value */
+	return  BEL_SOUND ;
 }
 
 char *
@@ -35,16 +42,11 @@ x_get_bel_mode_name(
 	x_bel_mode_t  mode
 	)
 {
-	if( mode == BEL_NONE)
+	if( mode < 0 || BEL_MODE_MAX <= mode)
 	{
-		return  "none" ;
+		/* default value */
+		mode = BEL_SOUND ;
 	}
-	else if( mode == BEL_VISUAL)
-	{
-		return  "visual" ;
-	}
-	else /* if( mode == BEL_SOUND) */
-	{
-		return  "sound" ;
-	}
+
+	return  bel_mode_name_table[mode] ;
 }

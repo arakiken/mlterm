@@ -30,12 +30,12 @@ typedef struct  x_sb_view_ver0
 		int *  down_button_y , unsigned int *  down_button_height) ;
 	void (*get_default_color)( struct x_sb_view_ver0 * ,
 		char **  fg_color , char **  bg_color) ;
-	
+
 	void (*realized)( struct  x_sb_view_ver0 *  , Display * , int  screen , Window ,
 		GC , unsigned int  height) ;
 	void (*resized)( struct x_sb_view_ver0 * , Window , unsigned int  height) ;
 	void (*delete)( struct  x_sb_view_ver0 *) ;
-	
+
 	void (*draw_decoration)( struct  x_sb_view_ver0 *) ;
 	/* drawing bar and background of bar. */
 	void (*draw_scrollbar)( struct  x_sb_view_ver0 * ,
@@ -70,13 +70,19 @@ typedef struct  x_sb_view_ver1
 		int *  down_button_y , unsigned int *  down_button_height) ;
 	void (*get_default_color)( struct x_sb_view_ver1 * ,
 		char **  fg_color , char **  bg_color) ;
-	
+
+	/* Win32: GC is None. */	
 	void (*realized)( struct  x_sb_view_ver1 *  , Display * , int  screen , Window ,
 		GC , unsigned int  height) ;
 	void (*resized)( struct x_sb_view_ver1 * , Window , unsigned int  height) ;
 	void (*color_changed)( struct x_sb_view_ver1 * , int) ;
 	void (*delete)( struct  x_sb_view_ver1 *) ;
 
+	/*
+	 * Win32: x_sb_view_t::gc is set by x_scrollbar.c before following draw_XXX
+	 *        functions is called.
+	 */
+	
 	/* drawing bar only. */	
 	void (*draw_scrollbar)( struct  x_sb_view_ver1 * ,
 		int  bar_top_y , unsigned int  bar_height) ;

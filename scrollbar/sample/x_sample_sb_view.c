@@ -110,7 +110,7 @@ color_changed(
 		sample_sb_view_t *  sample ;
 
 		sample = (sample_sb_view_t*) view ;
-		
+
 		x_draw_icon_pixmap_fg( view , sample->arrow_up , arrow_up_src ,
 			WIDTH , TOP_MARGIN) ;
 		x_draw_icon_pixmap_fg( view , sample->arrow_down , arrow_down_src ,

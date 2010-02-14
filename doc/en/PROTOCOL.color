@@ -14,3 +14,5 @@ version 20090628
   key		   = see doc/en/README.ja
   value		   = see doc/en/README.ja
   
+* Note
+  If you specify "" as <value>, previous setting of <key> color is cleared.
