@@ -121,15 +121,7 @@ comment $Id$
     フォントのアンチエイリアス表示をサポートしています。
     これには、X の Xrender extension に対応した Xft を利用しています。
 
-    アンチエイリアスフォントと通常の X フォントのどちらを使うかは、動的に切替え
-    可能です。
-
-    KDE(Qt) と同じ設定でアンチエイリアスを使用できるようになりますので、Xft の設
-    定の詳細については、KDE ユーザ会の web ページなどを参照して下さい。
-    (http://www.KDE.gr.jp/~kom/aa.html)
-
-    また、KDE(Qt) で発生する不具合は、mlterm でもほぼ同様に再現します。
-    問題が発生した場合は、KDE(Qt) と同じように対処してください。
+    Xft と通常の X フォントのどちらを使うかは、動的に切替え可能です。
 
   o 壁紙、背景透過
     imlib または gdk-pixbuf がインストールされている環境で、いずれかを組み込んで
@@ -626,6 +618,12 @@ comment $Id$
         o aafont/vaafont/taafont
           [font family]( Bold Italic [font size]-[font encoding]:[percentage])
 
+	  -[font encoding] の前方に - を含む場合は \ によりエスケープする必要が
+	  あります。
+
+	  e.g.)
+	  ISO8859_1 = Hoge Semi\-Condensed
+	  
 	  font size は、実際に表示するピクセルサイズであり、小数点数を指定する
 	  こともできます。
 
@@ -648,7 +646,7 @@ comment $Id$
           トを使用する場合は、必ず適切な指定を行なってください。
 
           e.g.)
-          JISX0208_1983 = Hoge-iso10646-1:100;
+          JISX0208_1983 = Hoge:100;
 
           但し、表示の際に基準となるフォント(US-ASCII相当のグリフを表示するフォ
           ント) 以外のフォントの percentage 指定は無視され、できるだけ基準フォ

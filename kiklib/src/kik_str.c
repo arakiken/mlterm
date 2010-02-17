@@ -258,7 +258,7 @@ kik_str_chop_spaces(
 	char *  str
 	)
 {
-	int  pos ;
+	size_t  pos ;
 	
 	pos = strlen( str) ;
 

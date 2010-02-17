@@ -517,15 +517,17 @@ my_gtk_font_selection_dialog_get_font_name(
 		return  NULL ;
 	}
 
-	/* Escape '-' */
+	/* Escape '-' in Xft. */
 	count = 0 ;
 	p = str ;
 	while( *p)
 	{
+	#ifndef  USE_WIN32GUI
 		if( *p == '-')
 		{
 			dup_str[count++] = '\\' ;
 		}
+	#endif
 
 		dup_str[count++] = *(p++) ;
 	}

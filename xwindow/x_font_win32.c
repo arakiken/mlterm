@@ -226,28 +226,6 @@ parse_font_name(
 		{
 			char *  orig_p ;
 
-			/*
-			 * Portable values.
-			 */
-			/* slant */
-			char  italic[] = "italic" ;
-			/* weight */
-			char  bold[] = "bold" ;
-
-			/*
-			 * Hack for values which can be returned by
-			 * gtk_font_selection_dialog_get_font_name().
-			 */
-			/* slant */
-			char  oblique[] = "oblique" ;
-			/* weight */
-			char  light[] = "light" ;	/* e.g. "Bookman Old Style Light" */
-			char  semibold[] = "semi-bold" ;
-			char  heavy[] = "heavy" ;	/* e.g. "Arial Black Heavy" */
-			/* other */
-			char  semicondensed[] = "semi-condensed" ;
-			
-			float  size_f ;
 
 			orig_p = p ;
 			do
@@ -257,79 +235,97 @@ parse_font_name(
 			}
 			while( *p == ' ') ;
 
-			/* XXX strncasecmp is not portable? */
-
 			if( len == 0)
 			{
 				*orig_p = '\0' ;
 				
 				break ;
 			}
-			else if( strncasecmp( p , italic , K_MIN(len,sizeof(italic) - 1)) == 0)
-			{
-				*orig_p = '\0' ;
-				*is_italic = TRUE ;
-				step = sizeof(italic) - 1 ;
-			}
-			else if( strncasecmp( p , bold , K_MIN(len,(sizeof(bold) - 1))) == 0)
-			{
-				*orig_p = '\0' ;
-				*font_weight = FW_BOLD ;
-				step = sizeof(bold) - 1 ;
-			}
-			else if( strncasecmp( p , oblique , K_MIN(len,sizeof(oblique) - 1)) == 0)
-			{
-				/* This style is ignored. */
-				
-				*orig_p = '\0' ;
-				step = sizeof(oblique) - 1 ;
-			}
-			else if( strncasecmp( p , light , K_MIN(len,(sizeof(light) - 1))) == 0)
-			{
-				*orig_p = '\0' ;
-				*font_weight = FW_LIGHT ;
-				step = sizeof(light) - 1 ;
-			}
-			else if( strncasecmp( p , semibold ,
-					K_MIN(len,(sizeof(semibold) - 1))) == 0)
-			{
-				*orig_p = '\0' ;
-				*font_weight = FW_SEMIBOLD ;
-				step = sizeof(semibold) - 1 ;
-			}
-			else if( strncasecmp( p , heavy , K_MIN(len,(sizeof(heavy) - 1))) == 0)
-			{
-				*orig_p = '\0' ;
-				*font_weight = FW_HEAVY ;
-				step = sizeof(heavy) - 1 ;
-			}
-			else if( strncasecmp( p , semicondensed ,
-					K_MIN(len,(sizeof(semicondensed) - 1))) == 0)
-			{
-				/* XXX This style is ingored */
-				
-				*orig_p = '\0' ;
-				step = sizeof(semicondensed) - 1 ;
-			}
-			else if( sscanf( p , "%f" , &size_f) == 1)
-			{
-				/* If matched with %f, p has no more parameters. */
-
-				*orig_p = '\0' ;
-				*font_size = size_f ;
-				
-				break ;
-			}
 			else
 			{
-				step = 1 ;
+				int  count ;
+				struct
+				{
+					char *  style ;
+					int  weight ;
+					int  is_italic ;
+
+				} styles[] =
+				{
+					/*
+					 * Portable styles.
+					 */
+					/* slant */
+					{ "italic" , 0 , 1 , } ,
+					/* weight */
+					{ "bold" , FW_BOLD , 0 , } ,
+
+					/*
+					 * Hack for styles which can be returned by
+					 * gtk_font_selection_dialog_get_font_name().
+					 */
+					/* slant */
+					{ "oblique" ,	/* XXX This style is ignored. */
+						0 , 0 , } ,
+					/* weight */
+					{ "light" , /* e.g. "Bookman Old Style Light" */
+						FW_LIGHT , 0 , } ,
+					{ "semi-bold" , FW_SEMIBOLD , 0 , } ,
+					{ "heavy" , /* e.g. "Arial Black Heavy" */
+						FW_HEAVY , 0 , }	,
+					/* other */
+					{ "semi-condensed" , /* XXX This style is ignored. */
+						0 , 0 , } ,
+				} ;
+				float  size_f ;
+				
+				for( count = 0 ; count < sizeof(styles) / sizeof(styles[0]) ;
+					count ++)
+				{
+					size_t  len_v ;
+
+					len_v = strlen( styles[count].style) ;
+					
+					/* XXX strncasecmp is not portable? */
+					if( len >= len_v &&
+					    strncasecmp( p , styles[count].style , len_v) == 0)
+					{
+						*orig_p = '\0' ;
+						step = len_v ;
+						if( styles[count].weight)
+						{
+							*font_weight = styles[count].weight ;
+						}
+						else if( styles[count].is_italic)
+						{
+							*is_italic = 1 ;
+						}
+
+						goto  next_char ;
+					}
+				}
+				
+				if( sscanf( p , "%f" , &size_f) == 1)
+				{
+					/* If matched with %f, p has no more parameters. */
+
+					*orig_p = '\0' ;
+					*font_size = size_f ;
+
+					break ;
+				}
+				else
+				{
+					step = 1 ;
+				}
 			}
 		}
 		else
 		{
 			step = 1 ;
 		}
-		
+
+next_char:
 		p += step ;
 		len -= step ;
 	}
