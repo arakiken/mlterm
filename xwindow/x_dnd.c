@@ -14,6 +14,10 @@
 #include  <mkf/mkf_utf8_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
 
+#if  0
+#define  SELF_TEST
+#endif
+
 #define  SUCCESS 0
 #define  FAILURE -1
 
@@ -146,49 +150,50 @@ parse_text_unicode(
 static int
 parse_text_uri_list(
 	x_window_t *  win,
-	unsigned char *  src,
+	unsigned char *  src,	/* src[len - 1] is not necessarily NULL. */
 	int  len)
 {
-	int pos ;
-	unsigned char *  delim ;
+	unsigned char *  pos ;
+	unsigned char *  end ;
 
 	if( len <= 0)
 		return  FAILURE ;
 	if( !(win->utf_selection_notified))
 		return  FAILURE ;
-	pos = 0 ;
-	src[len-1] = '\0'; /* force termination for malicious peers */
+	pos = src ;
+	end = src + len ;
 
-	delim = src ;
-	while( pos < len -1){
-		/* according to RFC, 0x0d is the delimiter */
-		delim = (unsigned char *)strchr( (char *)(src + pos), 13) ;
-		if( delim )
+	while( pos < end)
+	{
+		unsigned char *  delim ;
+
+		/* 
+		 * According to RFC, 0x0d is the delimiter.
+		 * (Don't use strchr() because src is not necessarily terminated with NULL.)
+		 */
+		delim = pos ;
+		while( delim < end)
 		{
-			/* output one ' ' as a separator */
-			*delim = ' ' ;
+			if( *delim == 13)
+			{
+				/* Output one ' ' as a separator. */
+				*delim++ = ' ' ;
+				break ;
+			}
+			else
+			{
+				delim ++ ;
+			}
 		}
-		else
+
+		if( pos + 5 <= end && strncmp( (char *)pos , "file:" , 5) == 0)
 		{
-			delim = src + len -1 ;
+			/* skip "file:". */
+			pos += 5 ;
 		}
-		if( strncmp( (char *)(src + pos), "file:",5) == 0)
-		{
-			/* remove garbage("file:").
-			   new length should be (length - "file:" + " ")*/
-			(*win->utf_selection_notified)( win ,
-				(unsigned char *)(src + pos + 5),
-				delim -  src- pos -5 +1 ) ;
-		}
-		else
-		{
-			/* original string + " " */
-			(*win->utf_selection_notified)( win ,
-				(unsigned char *)(src + pos),
-				delim - src- pos +1) ;
-		}
+		(*win->utf_selection_notified)( win , (unsigned char *)pos, delim - pos) ;
 		/* skip trailing 0x0A */
-		pos = (delim - src) +2 ;
+		pos = delim + 1 ;
 	}
 
 	return  SUCCESS;
@@ -1007,3 +1012,47 @@ x_dnd_filter_event(
 	/* the event was processed. mlterm main loop don't have to know about it*/
 	return  1 ;
 }
+
+#ifdef  SELF_TEST
+static void
+TEST_parse_text_uri_list_utf_selection_notified(
+	x_window_t *  win ,
+	u_char *  data ,
+	size_t  len
+	)
+{
+	kik_msg_printf( "[") ;
+	write( 2 , data , len) ;
+	kik_msg_printf( "]\n") ;
+}
+
+static int
+TEST_parse_text_uri_list(void)
+{
+	x_window_t   win ;
+	u_char  buf[100] ;
+	u_char *  data[] =
+	{ "http://abcdefg\r\nfile:///hijklmn" , } ;
+	int  count ;
+	
+	memset( &win , 0 , sizeof(win)) ;
+	win.utf_selection_notified = TEST_parse_text_uri_list_utf_selection_notified ;
+
+	for( count = 0 ; count < sizeof(data) / sizeof(data[0]) ; count++)
+	{
+		memset( buf , 0xff , sizeof(buf)) ;
+		memcpy( buf , data[count] , strlen(data[count])) ;
+		parse_text_uri_list( &win , buf , strlen(data[count])) ;
+	}
+
+	return  1 ;
+}
+
+int
+main(void)
+{
+	TEST_parse_text_uri_list() ;
+
+	return  0 ;
+}
+#endif

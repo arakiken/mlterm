@@ -25,6 +25,11 @@
 #include  "table/mkf_ucs4_to_cp1258.table"
 
 
+#if  0
+#define  SELF_TEST
+#endif
+
+
 /* --- global functions --- */
 
 int
@@ -515,7 +520,7 @@ mkf_map_ucs4_to_cp1258(
 }
 
 
-#ifdef  __DEBUG
+#ifdef  SELF_TEST
 int
 main(void)
 {

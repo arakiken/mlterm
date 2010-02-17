@@ -8,6 +8,11 @@
 #include  "table/mkf_uhc_to_johab.table"
 
 
+#if  0
+#define  SELF_TEST
+#endif
+
+
 /* --- global functions --- */
 
 int
@@ -56,7 +61,7 @@ mkf_map_uhc_to_johab(
 	return  0 ;
 }
 
-#ifdef  __DEBUG
+#ifdef  SELF_TEST
 int
 main(void)
 {

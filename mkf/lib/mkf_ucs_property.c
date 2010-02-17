@@ -13,11 +13,10 @@
 #define  DEFAULT_INTERVAL  BIT_SHIFT_32(sizeof(ucs_property_table) / sizeof(ucs_property_table[0]))
 
 #if  0
-#define  __DEBUG
+#define  SELF_TEST
 #endif
 
-
-#ifdef  __DEBUG
+#ifdef  SELF_TEST
 static int  debug_count ;
 #endif
 
@@ -36,13 +35,13 @@ mkf_get_ucs_property(
 	interval = DEFAULT_INTERVAL ;
 	idx = interval ;
 
-#ifdef  __DEBUG
+#ifdef  SELF_TEST
 	debug_count = 0 ;
 #endif
 
 	while( 1)
 	{
-	#ifdef  __DEBUG
+	#ifdef  SELF_TEST
 		debug_count ++ ;
 	#endif
 	
@@ -92,7 +91,7 @@ mkf_get_ucs_property(
 #endif
 }
 
-#ifdef  __DEBUG
+#ifdef  SELF_TEST
 int
 main(void)
 {
