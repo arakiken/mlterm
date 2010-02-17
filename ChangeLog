@@ -1,3 +1,18 @@
+2010-02-17  Araki Ken  <arakiken@users.sf.net>
+
+	* tool/mlconfig/mc_font.c: my_gtk_font_selection_dialog_set_font_name()
+	  doesn't escape '-' in win32.
+
+	* x_font.c, x_font_win32.c: A bug which can cause buffer overrun in
+	  parse_(xft_)font_name() is fixed. (e.g. If "Hoge L" is passed to old
+	  parse_(xft_)font_name() as font name, then
+	  if( strncasecmp( p(=="L") , "light" , K_MIN(1,5)) == 0) becomes true and
+	  "p += 5" (not "p += 1") is processed.
+
+	* etc/font.win32: Added.
+
+	* README.dev: Removed.
+
 2010-02-14  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_file.c: If a file which doesn't end with '\n' is read, '\0' is appended
