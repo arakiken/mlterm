@@ -1,3 +1,7 @@
+2010-02-18  Araki Ken  <arakiken@users.sf.net>
+
+	* x_dnd.c: Merged id:2879800 patch(fixed a little). (Thanks to Kouichi Kusanagi)
+
 2010-02-17  Araki Ken  <arakiken@users.sf.net>
 
 	* tool/mlconfig/mc_font.c: my_gtk_font_selection_dialog_set_font_name()
