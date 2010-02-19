@@ -49,11 +49,12 @@ WIN32 native GUI 対応に関するメモ
 
 * 環境設定
   (MSYS-DTK or Cygwin でビルドした場合)
-  $HOME/.mlterm/ 以下に設定ファイル(ソースツリーの etc/ 以下のファイル)を
-  配置することにより環境設定を行うことができます。
+  SYSCONFDIR/mlterm 及び各ユーザごとの $HOME/.mlterm/ 以下に設定ファイル
+  (ソースツリーの etc/ 以下のファイル)を配置することにより環境設定を行う
+  ことができます。
 
   (MinGW or Cygwin(-mno-cygwin) でビルドした場合)
-  [mlterm がインストールされたディレクトリ]\mlterm\ ,
+  [mlterm がインストールされたディレクトリ]\mlterm\ 及び各ユーザごとの
   %HOMEPATH%\mlterm\ (%HOMEPATH% が存在しないディレクトリの場合は %HOME%\.mlterm\)
   以下の設定ファイル(ソースツリーの etc/ 以下のファイル) を配置することにより
   環境設定を行うことができます。
@@ -109,6 +110,7 @@ WIN32 native GUI 対応に関するメモ
     なる場合があるため)
   o use_variable_column_width オプションは無視します。
   o スクロールバーは、"simple" 又は "sample" のみ使用できます。
+  o DnD はできません。
 
 * ソースコード
   o USE_WIN32APIマクロ: MinGW 又は CYGWIN(-mno-cygwin) でビルドする際に define されます。

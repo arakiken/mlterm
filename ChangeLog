@@ -1,3 +1,19 @@
+2010-02-20  Araki Ken  <arakiken@users.sf.net>
+
+	* scrollbar/*/Makefile.in, inputmethod/*/Makefile.in: Target library names
+	  are renamed to 'lib[name].la'.
+
+	* x_term_manager.c,mlclient/main.c: Merged id:1574764 patch(fixed a little).
+	  Unix domain socket file is changed from /tmp/.mlterm-[UID] to ~/.mlterm/socket.
+	  (Thanks to Christian Biere)
+
+	* ml_config_proto.c: "~/.mlterm" directory is created before ml_gen_proto_challenge()
+	  in ml_config_proto_init().
+	
+	* kik_conf_io.c: kik_fopen_with_mkdir() is used in kik_conf_write_open().
+	
+	* kik_file.c: kik_fopen_with_mkdir() and kik_mkdir_for_file() are added.
+
 2010-02-18  Araki Ken  <arakiken@users.sf.net>
 
 	* x_dnd.c: Merged id:2879800 patch(fixed a little). (Thanks to Kouichi Kusanagi)

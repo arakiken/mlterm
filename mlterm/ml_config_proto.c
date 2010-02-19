@@ -95,6 +95,8 @@ ml_config_proto_init(void)
 		return  0 ;
 	}
 
+	kik_mkdir_for_file( path , 0700) ;
+	
 	return  ml_gen_proto_challenge() ;
 }
 

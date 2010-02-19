@@ -27,26 +27,26 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 .SUFFIXES: .o .c
 
-all: athena motif mozmodern next
-athena: $(ATHENA_OBJ)
+all: libathena.la libmotif.la libmozmodern.la libnext.la
+libathena.la: $(ATHENA_OBJ)
 	$(LIBTOOL_LINK) -o libathena.la $(ATHENA_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ \
 	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 
-motif: $(MOTIF_OBJ)
+libmotif.la: $(MOTIF_OBJ)
 	$(LIBTOOL_LINK) -o libmotif.la $(MOTIF_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ \
 	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 
-mozmodern: $(MOZMODERN_OBJ)
+libmozmodern.la: $(MOZMODERN_OBJ)
 	$(LIBTOOL_LINK) -o libmozmodern.la $(MOZMODERN_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ \
 	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 
-next: $(NEXT_OBJ)
+libnext.la: $(NEXT_OBJ)
 	$(LIBTOOL_LINK) -o libnext.la $(NEXT_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ \

@@ -2,13 +2,18 @@
  *	$Id$
  */
 
+#include  "kik_file.h"
+
 #include  <fcntl.h>		/* fcntl() */
 #include  <sys/file.h>          /* flock() */
 #include  <string.h>		/* memcpy */
-#include  "kik_file.h"
+#include  <errno.h>
+#include  <sys/stat.h>		/* stat */
 
 #include  "kik_config.h"
 #include  "kik_mem.h"		/* malloc */
+#include  "kik_str.h"		/* kik_str_alloca_dup */
+#include  "kik_debug.h"
 
 
 #define  BUF_UNIT_SIZE  512
@@ -83,6 +88,28 @@ kik_file_close(
 	result |= kik_file_delete( file) ;
 
 	return  result ;
+}
+
+FILE *
+kik_fopen_with_mkdir(
+	const char *  file_path ,
+	const char *  mode
+	)
+{
+	FILE *  fp ;
+	char *  p ;
+
+	if( ( fp = fopen( file_path , mode)))
+	{
+		return  fp ;
+	}
+
+	if( ( p = kik_str_alloca_dup( file_path)) == NULL || ! kik_mkdir_for_file( p , 0700))
+	{
+		return  NULL ;
+	}
+
+	return  fopen( file_path , mode) ;
 }
 
 #ifdef  HAVE_FGETLN
@@ -296,3 +323,58 @@ kik_file_unset_cloexec(
 }
 
 #endif
+
+/*
+ * /a/b/c  => mkdir /a ; mkdir /a/b
+ * /a/b/c/ => mkdir /a ; mkdir /a/b ; mkdir /a/b/c
+ * /a => do nothing
+ */
+int
+kik_mkdir_for_file(
+	char *  file_path ,	/* Not const. Don't specify read only data. */
+	mode_t  dir_mode
+	)
+{
+	char *  p ;
+	
+	p = file_path + 1 ;
+	while( *p)
+	{
+		if( *p == '/'
+		#ifdef  USE_WIN32API
+			|| *p == '\\'
+		#endif
+			)
+		{
+			struct stat  s ;
+			char  c ;
+
+			c = *p ;	/* save */
+			
+			*p = '\0' ;
+			if( stat( file_path , &s) != 0)
+			{
+				if( errno == ENOENT &&
+				#ifdef  USE_WIN32API
+					mkdir( file_path) != 0
+				#else
+					mkdir( file_path , dir_mode) != 0
+				#endif
+					)
+				{
+					kik_warn_printf( " Failed to mkdir %s\n" , file_path) ;
+
+					*p = c ;	/* restore */
+					
+					return  0 ;
+				}
+			}
+			
+			*p = c ;	/* restore */
+		}
+
+		p ++ ;
+	}
+
+	return  1 ;
+}

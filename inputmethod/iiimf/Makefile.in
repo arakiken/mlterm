@@ -37,9 +37,9 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 .SUFFIXES: .o .c
 
-all: im-iiimf
+all: libim-iiimf.la
 
-im-iiimf: $(IM_IIIMF_OBJ)
+libim-iiimf.la: $(IM_IIIMF_OBJ)
 	$(LIBTOOL_LINK) -o libim-iiimf.la $(IM_IIIMF_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)

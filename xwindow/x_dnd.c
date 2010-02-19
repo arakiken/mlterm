@@ -174,7 +174,7 @@ parse_text_uri_list(
 		delim = pos ;
 		while( delim < end)
 		{
-			if( *delim == 13)
+			if( *delim == 0x0d)
 			{
 				/* Output one ' ' as a separator. */
 				*delim++ = ' ' ;
@@ -186,12 +186,19 @@ parse_text_uri_list(
 			}
 		}
 
-		if( pos + 5 <= end && strncmp( (char *)pos , "file:" , 5) == 0)
+		if( pos + 5 < end && strncmp( (char *)pos , "file:" , 5) == 0)
 		{
-			/* skip "file:". */
+			/*
+			 * Skip "file:".
+			 * But if pos == 'file:'(with no trailing bytes), not skipped
+			 * by checking pos + 5 < end because it doesn't conform to
+			 * "file:/..." format.
+			 */
 			pos += 5 ;
 		}
+		
 		(*win->utf_selection_notified)( win , (unsigned char *)pos, delim - pos) ;
+
 		/* skip trailing 0x0A */
 		pos = delim + 1 ;
 	}

@@ -3,10 +3,12 @@
  */
 
 #include  <stdio.h>
+#include  <stdlib.h>		/* free */
 #include  <sys/types.h>
 #include  <unistd.h>		/* write */
 #include  <string.h>		/* memset */
 #include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
+#include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
 
 
 /* --- static variables --- */
@@ -48,6 +50,29 @@ help(void)
 	{
 		printf( "  %s\n" , na_options[count]) ;
 	}
+}
+
+static int
+set_daemon_socket_path(
+	struct sockaddr_un *  addr
+	)
+{
+	const char name[] = "/.mlterm/socket" ;
+	const char *  dir ;
+
+	if( ( dir = getenv( "HOME")) == NULL || '/' != dir[0] )
+	{
+	       return  0 ;
+	}
+
+	if( strlen( dir) + sizeof(name) > sizeof( addr->sun_path))
+	{
+	       return  0 ;
+	}
+
+	sprintf( addr->sun_path , "%s%s" , dir , name) ;
+	
+	return  1 ;
 }
 
 
@@ -104,21 +129,22 @@ main(
 		
 		return  1 ;
 	}
-	
+
 	memset( &servaddr , 0 , sizeof( servaddr)) ;
 	servaddr.sun_family = AF_LOCAL ;
-	sprintf( servaddr.sun_path ,
-	#ifdef  USE_WIN32GUI
-		"/tmp/mlterm-%d.unix" ,
-	#else
-		"/tmp/.mlterm-%d.unix" ,
-	#endif
-		getuid()) ;
-	
+	if( ! set_daemon_socket_path( &servaddr))
+	{
+		close( sock_fd) ;
+
+		return  1 ;
+	}
+
 	if( connect( sock_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) < 0)
 	{
 		fprintf( stderr , "Mlterm server dead.\n") ;
 
+		close( sock_fd) ;
+		
 		return  1 ;
 	}
 

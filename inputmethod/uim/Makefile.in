@@ -37,9 +37,9 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 .SUFFIXES: .o .c
 
-all: im-uim
+all: libim-uim.la
 
-im-uim: $(IM_UIM_OBJ)
+libim-uim.la: $(IM_UIM_OBJ)
 	$(LIBTOOL_LINK) -o libim-uim.la $(IM_UIM_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)

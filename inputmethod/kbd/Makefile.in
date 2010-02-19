@@ -35,9 +35,9 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 .SUFFIXES: .o .c
 
-all: im-kbd
+all: libim-kbd.la
 
-im-kbd: $(IM_KBD_OBJ)
+libim-kbd.la: $(IM_KBD_OBJ)
 	$(LIBTOOL_LINK) -o libim-kbd.la $(IM_KBD_OBJ:.o=.lo) \
 	-rpath $(libdir)/mlterm \
 	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)

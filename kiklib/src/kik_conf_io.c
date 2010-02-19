@@ -7,8 +7,9 @@
 #include  <stdio.h>	/* sprintf */
 #include  <string.h>	/* strlen */
 #include  <stdlib.h>	/* getenv */
-#include  <sys/stat.h>	/* stat */
-#include  <errno.h>
+#ifdef  USE_WIN32API
+#include  <sys/stat.h>
+#endif
 
 #include  "kik_str.h"	/* kik_str_sep/kik_str_chop_spaces */
 #include  "kik_mem.h"	/* malloc */
@@ -119,7 +120,6 @@ kik_conf_write_open(
 {
 	kik_conf_write_t *  conf ;
 	kik_file_t *  from ;
-	char *  p ;
 
 	if( ( conf = malloc( sizeof( kik_conf_write_t))) == NULL)
 	{
@@ -169,43 +169,7 @@ kik_conf_write_open(
 		kik_file_close( from) ;
 	}
 
-	/*
-	 * Prepare directory for creating a configuration file.
-	 */
-	p = name + 1 ;
-	while( *p)
-	{
-		if( *p == '/'
-		#ifdef  USE_WIN32API
-			|| *p == '\\'
-		#endif
-			)
-		{
-			struct stat  s ;
-			char  c ;
-
-			c = *p ;	/* save */
-			
-			*p = '\0' ;
-			if( stat( name , &s) != 0)
-			{
-				if( errno == ENOENT)
-				{
-					if( mkdir( name , 0755))  goto  error ;
-				}
-				else
-				{
-					goto  error ;
-				}
-			}
-			
-			*p = c ;	/* restore */
-		}
-
-		p ++ ;
-	}
-	
-	if( ( conf->to = fopen( name , "w")) == NULL)
+	if( ( conf->to = kik_fopen_with_mkdir( name , "w")) == NULL)
 	{
 		goto  error ;
 	}

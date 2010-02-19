@@ -1144,17 +1144,28 @@ start_daemon(void)
 	pid_t  pid ;
 	int  fd ;
 	struct sockaddr_un  servaddr ;
-	char * const path = servaddr.sun_path ;
+	char *  path ;
 
+	if( ( path = kik_get_user_rc_path( "mlterm/socket")) == NULL)
+	{
+		return  -1 ;
+	}
+
+	if( strlen( path) >= sizeof(servaddr.sun_path) || ! kik_mkdir_for_file( path , 0700))
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Failed mkdir for %s\n" , path) ;
+	#endif
+		free( path) ;
+		
+		return  -1 ;
+	}
+	
 	memset( &servaddr , 0 , sizeof( servaddr)) ;
 	servaddr.sun_family = AF_LOCAL ;
-	kik_snprintf( path , sizeof( servaddr.sun_path) - 1 ,
-	#ifdef  USE_WIN32GUI
-		"/tmp/mlterm-%d.unix" ,
-	#else
-		"/tmp/.mlterm-%d.unix" ,
-	#endif
-		getuid()) ;
+	strcpy( servaddr.sun_path , path) ;
+	free( path) ;
+	path = servaddr.sun_path ;
 
 	if( ( fd = socket( PF_LOCAL , SOCK_STREAM , 0)) < 0)
 	{
@@ -1165,9 +1176,22 @@ start_daemon(void)
 	}
 	kik_file_set_cloexec( fd);
 	
-	while( bind( fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) < 0)
+	for( ;;)
 	{
-		if( errno == EADDRINUSE)
+		int  ret ;
+		int  saved_errno ;
+		mode_t  mode ;
+
+		mode = umask( 077) ;
+		ret = bind( fd , (struct sockaddr *) &servaddr , sizeof( servaddr)) ;
+		saved_errno = errno ;
+		umask( mode) ;
+
+		if( ret == 0)
+		{
+			break ;
+		}
+		else if( saved_errno == EADDRINUSE)
 		{
 			if( connect( fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) == 0)
 			{
@@ -1189,7 +1213,8 @@ start_daemon(void)
 		{
 			close( fd) ;
 
-			kik_msg_printf( "failed to lock file %s: %s\n" , path , strerror(errno)) ;
+			kik_msg_printf( "failed to lock file %s: %s\n" ,
+				path , strerror(saved_errno)) ;
 
 			return  -1 ;
 		}
