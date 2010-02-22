@@ -2069,6 +2069,14 @@ x_window_receive_event(
 	 */
 	x_xic_filter_event( x_get_root_window( win), event) ;
 
+#ifndef  DISABLE_XDND
+	if( x_dnd_filter_event( event, win))
+	{
+		/* event was consumed by xdnd handlers */
+		return 1 ;
+	}
+#endif
+
   	switch(event->msg)
         {
         case WM_DESTROY:
@@ -2259,6 +2267,7 @@ x_window_receive_event(
 
 		break ;
 
+	case WM_MOUSEWHEEL:
 	case WM_LBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 	case WM_RBUTTONDOWN:
@@ -2307,8 +2316,19 @@ x_window_receive_event(
 			{
 				bev.state |= ControlMask ;
 			}
-			
-			if( event->msg == WM_LBUTTONDOWN || event->msg == WM_LBUTTONUP)
+
+			if( event->msg == WM_MOUSEWHEEL)
+			{
+				if( HIWORD(event->wparam) > 0)
+				{
+					bev.button = 4 ;
+				}
+				else
+				{
+					bev.button = 5 ;
+				}
+			}
+			else if( event->msg == WM_LBUTTONDOWN || event->msg == WM_LBUTTONUP)
 			{
 				bev.button = 1 ;
 			}

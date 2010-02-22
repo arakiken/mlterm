@@ -22928,7 +22928,7 @@ fi
 if test "$dnd" = "no" ; then
 	DND_CFLAGS="-DDISABLE_XDND"
 else
-	DND_LIBS="x_dnd.o"
+	DND_LIBS="x_dnd${WIN32TAG}.o"
 fi
 
 

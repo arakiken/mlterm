@@ -74,4 +74,3 @@ Memo about WIN32 native GUI.
   o Background image is not supported.
   o use_variable_column_width option is ignored.
   o Supported scrollbars are "simple" and "sample" alone.
-  o DnD is not supported.

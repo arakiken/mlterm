@@ -1856,7 +1856,7 @@ x_window_receive_event(
 	}
 	
 #ifndef  DISABLE_XDND
-	if( x_dnd_filter_event( event, win) != 0)
+	if( x_dnd_filter_event( event, win))
 	{
 		/* event was consumed by xdnd handlers */
 		return 1 ;

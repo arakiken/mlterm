@@ -1,3 +1,17 @@
+2010-02-23  Araki Ken  <arakiken@users.sf.net>
+
+	* x_dnd_win32.c: Added for supporting simple drag and drop in win32.
+
+	* x_dnd.c: "src[len-1] = '\0'" in parse_mlterm_config() is removed and
+	  strchr() is used instead of while() loop in parse_text_uri_list() because
+	  XGetWindowProperty() always allocates one extra byte in prop_return and
+	  sets it to zero. (Thanks to Kouichi Kusanagi san)
+
+	* x_window_win32.c: WM_MOUSEHWEEL message is processed. (Not tested yet.)
+
+	* mkf_utf16_parser.c: Fixed typo. (Renamed utf16_parser_init() to
+	  utf16le_parser_init() in mkf_utf16le_parser_new().)
+
 2010-02-20  Araki Ken  <arakiken@users.sf.net>
 
 	* scrollbar/*/Makefile.in, inputmethod/*/Makefile.in: Target library names
@@ -16,7 +30,7 @@
 
 2010-02-18  Araki Ken  <arakiken@users.sf.net>
 
-	* x_dnd.c: Merged id:2879800 patch(fixed a little). (Thanks to Kouichi Kusanagi)
+	* x_dnd.c: Merged id:2879800 patch(fixed a little). (Thanks to Kouichi Kusanagi san)
 
 2010-02-17  Araki Ken  <arakiken@users.sf.net>
 

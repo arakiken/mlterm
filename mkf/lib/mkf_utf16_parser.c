@@ -222,7 +222,7 @@ mkf_utf16le_parser_new(void)
 		return  NULL ;
 	}
 
-	utf16_parser_init( ( mkf_parser_t*) utf16_parser) ;
+	utf16le_parser_init( ( mkf_parser_t*) utf16_parser) ;
 
 	utf16_parser->parser.init = utf16le_parser_init ;
 	utf16_parser->parser.set_str = utf16_parser_set_str ;

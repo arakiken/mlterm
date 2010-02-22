@@ -1263,6 +1263,8 @@ window_realized(
 
 #ifdef  USE_WIN32GUI
 	x_xic_activate( win, NULL, NULL) ;
+	
+	DragAcceptFiles( win->my_window , TRUE) ;
 #else
 	if( screen->input_method)
 	{

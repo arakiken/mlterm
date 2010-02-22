@@ -110,7 +110,6 @@ WIN32 native GUI 対応に関するメモ
     なる場合があるため)
   o use_variable_column_width オプションは無視します。
   o スクロールバーは、"simple" 又は "sample" のみ使用できます。
-  o DnD はできません。
 
 * ソースコード
   o USE_WIN32APIマクロ: MinGW 又は CYGWIN(-mno-cygwin) でビルドする際に define されます。

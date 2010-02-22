@@ -169,21 +169,15 @@ parse_text_uri_list(
 
 		/* 
 		 * According to RFC, 0x0d is the delimiter.
-		 * (Don't use strchr() because src is not necessarily terminated with NULL.)
 		 */
-		delim = pos ;
-		while( delim < end)
+		if( ( delim = strchr( pos , 0x0d)))
 		{
-			if( *delim == 0x0d)
-			{
-				/* Output one ' ' as a separator. */
-				*delim++ = ' ' ;
-				break ;
-			}
-			else
-			{
-				delim ++ ;
-			}
+			/* Output one ' ' as a separator. */
+			*delim++ = ' ' ;
+		}
+		else
+		{
+			delim = end ;
 		}
 
 		if( pos + 5 < end && strncmp( (char *)pos , "file:" , 5) == 0)
@@ -257,7 +251,6 @@ parse_mlterm_config(
 		return  FAILURE ;
 	if( !(win->set_xdnd_config))
 		return  FAILURE ;
-	src[len-1] = '\0'; /* force termination for malicious peers */
 	value = strchr( (char *)src, '=') ;
 	if( !value)
 		return  FAILURE ;
@@ -292,7 +285,7 @@ parse_app_color(
 #ifdef  DEBUG
 	kik_debug_printf( "bgcolor: %s\n" , buffer) ;
 #endif
-	parse_mlterm_config( win, buffer, strlen(buffer)+1) ;
+	parse_mlterm_config( win, buffer, strlen(buffer)) ;
 
 	return  SUCCESS ;
 }
@@ -539,7 +532,8 @@ finish(
 /**parse dnd data and send them to the pty
  *\param win mlterm window
  *\param atom type of data
- *\param src data from dnd
+ *\param src data from dnd (src is prop_return of XGetWindowProperty() which always allocated
+ * one extra byte in prop_return and sets it to zero. So src[len] is always NULL.)
  *\param len size of data in bytes
  */
 static int

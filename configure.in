@@ -446,7 +446,7 @@ AC_ARG_ENABLE(dnd,
 if test "$dnd" = "no" ; then
 	DND_CFLAGS="-DDISABLE_XDND"
 else
-	DND_LIBS="x_dnd.o"
+	DND_LIBS="x_dnd${WIN32TAG}.o"
 fi
 AC_SUBST(DND_CFLAGS)
 AC_SUBST(DND_LIBS)
