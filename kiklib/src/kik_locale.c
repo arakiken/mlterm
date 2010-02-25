@@ -51,6 +51,7 @@ static char *  sys_codeset = NULL ;
 /* for sys_lang and sys_country memory */
 static char *  sys_lang_country = NULL ;
 
+#ifndef  USE_WIN32API
 static lang_codeset_table_t  lang_codeset_table[] =
 {
 	{ "en" , "ISO8859-1" , } ,
@@ -83,6 +84,7 @@ static lang_codeset_table_t  lang_codeset_table[] =
 	{ "zh_HK" , "Big5HKSCS" , } ,
 	
 } ;
+#endif
 
 static alias_codeset_table_t  alias_codeset_table[] =
 {

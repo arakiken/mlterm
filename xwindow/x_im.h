@@ -121,11 +121,11 @@ void  x_im_delete( x_im_t *  xim) ;
 void  x_im_redraw_preedit( x_im_t *  im , int  is_focused) ;
 
 #define  IM_API_VERSION  0x08
-#define  IM_API_COMPAT_CHECK_MAGIC			\
-	 ((IM_API_VERSION & 0xf << 28) |		\
-	 ((sizeof( x_im_t) & 0xff) << 20) |		\
-	 ((sizeof( x_im_export_syms_t) & 0xff) << 12) |	\
-	 (sizeof( x_im_candidate_screen_t) & 0xfff))
+#define  IM_API_COMPAT_CHECK_MAGIC				\
+	 (((IM_API_VERSION & 0x0f) << 28) |			\
+	  ((sizeof( x_im_t) & 0xff) << 20) |			\
+	  ((sizeof( x_im_export_syms_t) & 0xff) << 12) |	\
+	  (sizeof( x_im_candidate_screen_t) & 0xfff))
 
 #endif
 

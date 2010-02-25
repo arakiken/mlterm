@@ -16,7 +16,7 @@
 #define  SYSCONFDIR  "/usr/local/etc"
 #endif
 
-#define  MENU_FILE  SYSCONFDIR "/mlterm/menu"
+#define  MENU_FILE  SYSCONFDIR "/mlterm/menu-simple"
 
 #define  FONT_NAME  "-*-fixed-*-*-*--12-*-*-*-*-*-iso8859-1"
 
@@ -116,7 +116,7 @@ open_menu_file(void)
 			return  fd ;
 		}
 	}
-	
+
 	return  open( MENU_FILE , O_RDONLY , 0600) ;
 }
 
@@ -169,6 +169,7 @@ init_entries(
 		buf = p ;
 		p = line ;
 
+		/* Ignore leading white space and tab. */
 		while( *p == ' ' || *p == '\t')
 		{
 			p ++ ;
@@ -181,6 +182,9 @@ init_entries(
 
 		name = p ;
 
+		/*
+		 * '\t' is the separator of name and seq.
+		 */
 		while(1)
 		{
 			if( *p == '\0')
@@ -189,7 +193,7 @@ init_entries(
 				
 				goto  end ;
 			}
-			else if( *p != ' ' && *p != '\t' && *p != '\n')
+			else if( *p != '\t' && *p != '\n')
 			{
 				p ++ ;
 			}
@@ -200,12 +204,13 @@ init_entries(
 			}
 		}
 
+		/* Ignore tab(separator) and trailing white space. */
 		while( *p == ' ' || *p == '\t')
 		{
 			p ++ ;
 		}
 		seq = p ;
-		
+
 		while( *p != ' ' && *p != '\t' && *p != '\n' && *p != '\0')
 		{
 			p ++ ;
@@ -348,9 +353,10 @@ init(void)
 			&x , &y , &mask) ;
 	}
 
-	if( ( win = XCreateSimpleWindow( disp , DefaultRootWindow(disp) , x , y , width , height , 1 ,
-		BlackPixel( disp , DefaultScreen(disp)) ,
-		WhitePixel( disp , DefaultScreen(disp))) ) == NULL)
+	if( ! ( win = XCreateSimpleWindow( disp , DefaultRootWindow(disp) , x , y ,
+			width , height , 1 ,
+			BlackPixel( disp , DefaultScreen(disp)) ,
+			WhitePixel( disp , DefaultScreen(disp))) ) )
 	{
 		return  0 ;
 	}
@@ -447,7 +453,7 @@ mouse_motion(
 {
 	int  entry ;
 
-	entry = y / 10 ;
+	entry = y / (xfont->ascent + xfont->descent) ;
 	if( entry != cur_ent)
 	{
 		if( cur_ent >= 0)

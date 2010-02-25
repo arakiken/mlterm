@@ -1804,8 +1804,10 @@ x_term_manager_init(
 		"font size range for GUI configurator [6-30]") ;
 	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , 
 		"word-separating characters for double-click [,.:;/@]") ;
+#ifndef  USE_WIN32GUI
 	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
 		"compose dec special font [false]") ;
+#endif
 #ifdef  USE_TYPE_XFT
 	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
 		"use CP932-Unicode mapping table for JISX0208 [false]") ;

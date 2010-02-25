@@ -37,7 +37,7 @@ WIN32 native GUI 対応に関するメモ
     コピーしてください。今のところ、リモートホストへの接続には plink.exe を
     使用しています。
   o MSYS-DTK or Cygwin でビルドした場合は、ソースツリーの
-    tool/mlclient/mlclient.exe もコピーしてください。
+    contrib/tool/mlcc/mlcc.exe, tool/mlclient/mlclient.exe もコピーしてください。
   o mlconfig,mlterm-menu をビルドできた場合(あらかじめ GTK+ をインストール
     しておく必要があります)は、ソースツリーの
     tool/mlconfig/.libs/mlconfig.exe
@@ -46,12 +46,15 @@ WIN32 native GUI 対応に関するメモ
     なお、mlterm-menu は、MinGW でビルドする場合には win32 native の GTK+ と、
     Cygwin でビルドする場合には Cygwin 用の GTK+ とリンクしないと、設定ファイ
     ル(menu)の読み込みができず正常に動作しません。
+  o MSYS-DTK or Cygwin でビルドした場合は、make install でインストールしても
+    構いませんが、libmkf の relink に失敗することがあるため、make install の
+    前に libmkf.la の relink_command 行を削除してから make install してください。
 
 * 環境設定
   (MSYS-DTK or Cygwin でビルドした場合)
   SYSCONFDIR/mlterm 及び各ユーザごとの $HOME/.mlterm/ 以下に設定ファイル
-  (ソースツリーの etc/ 以下のファイル)を配置することにより環境設定を行う
-  ことができます。
+  (ソースツリーの etc/ 以下のファイル)を配置することにより環境設定を行うことが
+  できます。
 
   (MinGW or Cygwin(-mno-cygwin) でビルドした場合)
   [mlterm がインストールされたディレクトリ]\mlterm\ 及び各ユーザごとの
@@ -100,6 +103,7 @@ WIN32 native GUI 対応に関するメモ
 
 * WIN32 GUI 版の制限
   o -g オプションは [COL]x[ROW]+[x]+[y] の x y を無視します。
+  o -Y/--decsp, -&/--borderless オプションは使用できません。
   o mlterm server 機能で genuine モードは使用できません(対応予定もありません。)。
     また、MinGW 版では、mlterm server 機能自体が使用できません(対応予定もありません。)。
   o 背景画像は使用できません。

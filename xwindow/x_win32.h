@@ -167,25 +167,22 @@ typedef struct
 #define XK_Return	VK_RETURN
 
 /*
- * :Windows9x
- * #define XK_Shift_R	VK_SHIFT
- * #define XK_Shift_L	VK_SHIFT
- * #define XK_Control_L	VK_CONTROL
- * #define XK_Control_R	VK_CONTROL
- * #define XK_Alt_L	VK_MENU
- * #define XK_Alt_R	VK_MENU
- * #define XK_Meta_L	VK_MENU
- * #define XK_Meta_R	VK_MENU
+ * VK_L... and VK_R... are available by GetKeyState(VK_SHIFT, VK_CONTROL or VK_MENU),
+ * but mlerm doesn't support fow now.
  */
-/*
- * :WindowsNT
- */
+#if  1
+#define XK_Shift_L	VK_SHIFT
+#define XK_Control_L	VK_CONTROL
+#define XK_Alt_L	VK_MENU
+#else
 #define XK_Shift_L	VK_LSHIFT
-#define XK_Shift_R	VK_RSHIFT
 #define XK_Control_L	VK_LCONTROL
-#define XK_Control_R	VK_RCONTROL
 #define XK_Alt_L	VK_LMENU
+#endif
+#define XK_Shift_R	VK_RSHIFT
+#define XK_Control_R	VK_RCONTROL
 #define XK_Alt_R	VK_RMENU
+
 #define XK_Meta_L	0xfff9	/* dummy */
 #define XK_Meta_R	0xfff8	/* dummy */
  

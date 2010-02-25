@@ -40,7 +40,7 @@ The default is \fBfalse\fR.
 Specify a background color of a scrollbar.
 A valid value for \fIcolor\fR is a color name or a RGB value.
 The color name should be defined in rgb.txt or "\fBcolor\fR" configuration file.
-The RGB value's format should be "#RRGGBB".
+The RGB value's format should be "#RRGGBB" or rgb:RR/GG/BB.
 .TP
 \fB\-C\fR, \fB\-\-iscii\fR=\fIlanguage\fR
 Specify a language to be used in ISCII encoding.
@@ -211,7 +211,7 @@ The default is \fBtrue\fR.
 \fB\-0\fR, \fB\-\-crbg\fR=\fIcolor\fR
 Specify background color for cursor (default is same to foreground color).
 Valid values for \fIcolor\fR are color names defined in rgb.txt and "\fBcolor\fR"
-configuration file and color rgb string whose format is "#RRGGBB".
+configuration file and color rgb string whose format is "#RRGGBB" or "rgb:RR/GG/BB".
 .TP
 \fB\-1\fR, \fB\-\-wscr\fR=\fIvalue\fR
 Specify actual window width, by percentage against 
@@ -257,7 +257,7 @@ Use ISO8859-1 fonts for US-ASCII part of various encodings.
 \fB\-9\fR, \fB\-\-crfg\fR=\fIcolor\fR
 Specify foreground color for cursor (default is same to background color).
 Valid values for \fIcolor\fR are color names defined in rgb.txt and "\fBcolor\fR"
-configuration file and color rgb string whose format is "#RRGGBB".
+configuration file and color rgb string whose format is "#RRGGBB" or "rgb:RR/GG/BB".
 .TP
 \fB\-$\fR, \fB\-\-mc\fR=\fIvalue\fR
 Doubleclick/tripleclick interval in millisecond.
@@ -305,7 +305,7 @@ East Asian Width found at Unicode web site for details.
 \fB\-b\fR, \fB\-\-bg\fR=\fIcolor\fR
 Specify background color (default \fBwhite\fR).
 Valid values for \fIcolor\fR are color names defined in rgb.txt and "\fBcolor\fR"
-configuration file and color rgb string whose format is "#RRGGBB".
+configuration file and color rgb string whose format is "#RRGGBB" or "rgb:RR/GG/BB".
 .TP
 \fB\-c\fR, \fB\-\-cp932\fR(=\fIbool\fR)
 Use CP932 mapping table to convert from JIS X 0208 to Unicode
@@ -343,7 +343,7 @@ must be the last option on the command line.
 \fB\-f\fR, \fB\-\-fg\fR=\fIcolor\fR
 Foreground color (default \fBblack\fR).
 Valid values for \fIcolor\fR are color names defined in rgb.txt and "\fBcolor\fR"
-configuration file and color rgb string whose format is "#RRGGBB".
+configuration file and color rgb string whose format is "#RRGGBB" or "rgb:RR/GG/BB".
 .TP
 \fB\-g\fR, \fB\-\-geometry\fR=\fIgeometry\fR
 Specify size and position of the window; see \fBX\fR(7).
@@ -1265,6 +1265,7 @@ The color configuration file "\fBcolor\fR" has the following key.
 \fICOLORNAME\fR=\fIRGB\fR
 Assign a concrete color for the name \fICOLORNAME\fR.
 Default colors used by mlterm are
+\fBblack\fR,
 \fBred\fR,
 \fBgreen\fR,
 \fByellow\fR,
@@ -1276,12 +1277,16 @@ Default colors used by mlterm are
 For hilighted colors, a name with "hl_" prefix will be automatically searched.
 i.e. for bold read character, "hl_red" is searched instead of "red".
 
+\fB17\fR - \fB230\fR and \fB232\fR - \fB255\fR in 256 color can be also overridden.
+(\fB16\fR and \fB231\fR cannot be overwritten because they are treated as
+\fBblack\fR and \fBwhite\fR internally.)
+
 The format of \fIRGB\fR is either "\fIRRRR\fB\-\fIGGGG\fB\-\fIBBBB\fR"
 (where 
 \fIRRRR\fR,
 \fIGGGG\fR, and
-\fIBBBB\fR are hexadecimal value from 0 to ffff)
-or "\fB#\fIRRGGBB\fR" (where
+\fIBBBB\fR are hexadecimal value from 0 to ffff),
+"\fB#\fIRRGGBB\fR" or "\fIrgb:RR/GG/BB\fR"(where
 \fIRR\fR,
 \fIGG\fR, and
 \fIBB\fR are hexadecimal value from 00 to ff).

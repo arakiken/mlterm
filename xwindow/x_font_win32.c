@@ -129,8 +129,6 @@ static cs_info_t  cs_info_table[] =
 
 } ;
 
-static int  compose_dec_special_font ;
-
 
 /* --- static functions --- */
 
@@ -339,13 +337,8 @@ next_char:
 int
 x_compose_dec_special_font(void)
 {
-#ifdef  USE_WIN32GUI
+	/* Do nothing for now in win32. */
 	return  0 ;
-#else
-	compose_dec_special_font = 1 ;
-
-	return  1 ;
-#endif
 }
 
 

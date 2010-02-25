@@ -53,10 +53,10 @@ x_prepare_for_main_config(
 		"click interval(milisecond) [250]") ;
 	kik_conf_add_opt( conf , '%' , "logseq" , 1 , "logging_vt_seq" ,
 		"enable logging vt100 sequence [false]") ;
-	kik_conf_add_opt( conf , '&' , "borderless" , 1 , "borderless" ,
-		"override redirect [false]") ;
 
 #ifndef  USE_WIN32GUI
+	kik_conf_add_opt( conf , '&' , "borderless" , 1 , "borderless" ,
+		"override redirect [false]") ;
 #if  defined(USE_TYPE_XCORE)
 	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
 		"type engine [xcore]") ;

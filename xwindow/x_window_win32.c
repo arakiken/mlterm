@@ -54,6 +54,7 @@ static mkf_parser_t *  m_cp_parser ;
 
 /* --- static functions --- */
 
+#ifndef  USE_WIN32GUI
 /*
  * only for double buffering
  */
@@ -66,7 +67,6 @@ restore_view(
 	u_int	height
 	)
 {
-#ifndef  USE_WIN32GUI
 	if( win->buffer == win->drawable)
 	{
 		if( win->width < x + width)
@@ -106,12 +106,17 @@ restore_view(
 		return  1 ;
 	}
 	else
-#endif
 	{
 		return  0 ;
 	}
 }
+#endif
 
+#if  0
+/*
+ * XXX
+ * Not used for now.
+ */
 static int
 restore_view_all(
 	x_window_t *  win
@@ -119,6 +124,7 @@ restore_view_all(
 {
 	return	restore_view( win , 0 , 0 , win->width , win->height) ;
 }
+#endif
 
 #ifdef  USE_WIN32GUI
 static int
@@ -590,6 +596,10 @@ notify_property_to_children(
 	}
 }
 
+#if  0
+/*
+ * Not used for now in win32.
+ */
 static int
 is_descendant_window(
 	x_window_t *  win ,
@@ -614,6 +624,9 @@ is_descendant_window(
 	return  0 ;
 }
 
+/*
+ * Not used for now in win32.
+ */
 static int
 is_in_the_same_window_family(
 	x_window_t *  win ,
@@ -622,6 +635,7 @@ is_in_the_same_window_family(
 {
 	return  is_descendant_window( x_get_root_window( win) , window) ;
 }
+#endif
 
 static u_int
 total_min_width(
@@ -1703,39 +1717,7 @@ x_window_set_override_redirect(
 	int  flag
 	)
 {
-#ifndef  USE_WIN32GUI
-	x_window_t *  root ;
-	XSetWindowAttributes  s_attr ;
-	XWindowAttributes  g_attr ;
-
-	root = x_get_root_window(win) ;
-
-	XGetWindowAttributes( root->display , root->my_window , &g_attr) ;
-	if( flag)
-	{
-		s_attr.override_redirect = True ;
-	}
-	else
-	{
-		s_attr.override_redirect = False ;
-	}
-
-	if( g_attr.override_redirect == s_attr.override_redirect)
-	{
-		return  1 ;
-	}
-
-	XChangeWindowAttributes( root->display , root->my_window ,
-				 CWOverrideRedirect , &s_attr) ;
-
-	if( g_attr.map_state != IsUnmapped)
-	{
-		XUnmapWindow( root->display , root->my_window) ;
-		XMapWindow( root->display , root->my_window) ;
-	}
-#endif
-
-	return  1 ;
+	return  0 ;
 }
 
 int
@@ -1744,46 +1726,7 @@ x_window_set_borderless_flag(
 	int  flag
 	)
 {
-#ifndef  USE_WIN32GUI
-	/*
-	 * XXX
-	 * Support borderless with _MOTIF_WM_HINTS.
-	 * (See Eterm/src/windows.c)
-	 */
-
-	x_window_t *  root ;
-	Atom  atom ;
-
-	root = x_get_root_window(win) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( "MOTIF_WM_HINTS: %x\nMOTIF_WM_INFO: %x\n" ,
-		XInternAtom( root->display , "_MOTIF_WM_HINTS" , True) ,
-		XInternAtom( root->display , "_MOTIF_WM_INFO" , True)) ;
-#endif
-
-	if( ( atom = XA_MWM_HINTS(root->display)) != None)
-	{
-		if( flag)
-		{
-			MWMHints_t  mwmhints = { MWM_HINTS_DECORATIONS, 0, 0, 0, 0 } ;
-
-			XChangeProperty( root->display, root->my_window, atom , atom , 32,
-				PropModeReplace, (u_char *)&mwmhints, sizeof(MWMHints_t)/4) ;
-		}
-		else
-		{
-			XDeleteProperty( root->display, root->my_window, atom) ;
-		}
-	}
-	else
-	{
-		/* fall back to override redirect */
-		x_window_set_override_redirect( win , flag) ;
-	}
-#endif
-
-	return  1 ;
+	return  0 ;
 }
 
 int
@@ -2319,7 +2262,7 @@ x_window_receive_event(
 
 			if( event->msg == WM_MOUSEWHEEL)
 			{
-				if( HIWORD(event->wparam) > 0)
+				if( ((SHORT)HIWORD(event->wparam)) > 0)
 				{
 					bev.button = 4 ;
 				}
@@ -2341,8 +2284,8 @@ x_window_receive_event(
 				bev.button = 2 ;
 			}
 
-			if( event->msg == WM_LBUTTONDOWN || event->msg == WM_RBUTTONDOWN ||
-				event->msg == WM_MBUTTONDOWN)
+			if( event->msg == WM_MOUSEWHEEL || event->msg == WM_LBUTTONDOWN ||
+				event->msg == WM_RBUTTONDOWN || event->msg == WM_MBUTTONDOWN)
 			{
 				if( win->click_num == MAX_CLICK)
 				{

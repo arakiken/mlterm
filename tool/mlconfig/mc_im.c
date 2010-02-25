@@ -11,6 +11,7 @@
 #include <kiklib/kik_dlfcn.h>
 #include <kiklib/kik_map.h>
 #include <kiklib/kik_str.h>
+#include <kiklib/kik_config.h>		/* USE_WIN32API */
 #include <glib.h>
 #include <c_intl.h>
 #include <dirent.h>
@@ -24,10 +25,12 @@
 #define __DEBUG
 #endif
 
-#ifndef SYSCONFDIR
-#define CONFIG_PATH "/etc"
-#else
+#if  defined(USE_WIN32API)
+#define CONFIG_PATH "."
+#elif  defined(SYSCONFDIR)
 #define CONFIG_PATH SYSCONFDIR
+#else
+#define CONFIG_PATH "/etc"
 #endif
 
 #ifndef LIBDIR
@@ -245,7 +248,7 @@ xim_widget_new(const char *xim_name, const char *xim_locale, const char *cur_loc
 		    kik_map_compare_str);
 
 	kik_set_sys_conf_dir(CONFIG_PATH);
-	
+
 	if ((rcpath = kik_get_sys_rc_path("mlterm/xim"))) {
 		read_xim_conf(xim_locale_table, rcpath);
 		free(rcpath);

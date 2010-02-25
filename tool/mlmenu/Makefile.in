@@ -13,7 +13,7 @@ INSTALL = @INSTALL@
 
 DESTDIR =
 LIBEXECDIR = $(DESTDIR)$(libexecdir)
-SYSCONFDIR = $(DESTDIR)$(sysconfdir)/mlterm
+SYSCONFDIR = $(DESTDIR)$(sysconfdir)
 
 CFLAGS = $(CFLAGS_LOCAL) @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ -DSYSCONFDIR=\"$(SYSCONFDIR)\"
 LIBS = $(LIBS_LOCAL) @X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
@@ -36,6 +36,7 @@ mlmenu: $(OBJS)
 
 install: $(LIBEXECDIR)
 	$(LIBTOOL_INSTALL) -m 755 mlmenu $(LIBEXECDIR)
+	$(INSTALL) -m 644 ${top_srcdir}/tool/mlmenu/menu-simple $(SYSCONFDIR)/mlterm
 
 $(LIBEXECDIR):
 	mkdir -p $(LIBEXECDIR)

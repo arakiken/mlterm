@@ -142,6 +142,11 @@ restore_view(
 	}
 }
 
+#if  0
+/*
+ * XXX
+ * Not used for now.
+ */
 static int
 restore_view_all(
 	x_window_t *  win
@@ -149,6 +154,7 @@ restore_view_all(
 {
 	return	restore_view( win , 0 , 0 , win->width , win->height) ;
 }
+#endif
 
 static int
 set_transparent(

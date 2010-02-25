@@ -27,18 +27,19 @@ Memo about WIN32 native GUI.
   o (Built with MinGW)
     Copy win32/plink/plink.exe which mlterm uses to connect remote host for now.
   o (Built with MSYS or cygwin)
-    Copy tool/mlclient/mlclient.exe.
+    Copy tool/mlclient/mlclient.exe and contrib/tool/mlcc/mlcc.exe.
   o If you can build mlconfig and mlterm-menu which require GTK+,
     Copy tool/mlconfig/.libs/mlconfig.exe and
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
 
 * Configuration
   (Built with MSYS-DTK or Cygwin)
-  Place configuration files in $HOME/.mlterm/ directory.
+  Place configuration files in SYSCONFDIR/mlterm and each user's $HOME/.mlterm/
+  directory.
   
   (Built with MinGW or Cygwin(-mno-cygwin))
-  Place configuration files in [Mlterm installed directory]\mlterm\ ,
-  %HOMEPATH%\mlterm\ or %HOME%\.mlterm\ directory.
+  Place configuration files in [Mlterm installed directory]\mlterm\ and
+  each user's %HOMEPATH%\mlterm\ or %HOME%\.mlterm\ directory.
 
   (Font Configuration)
   Format of font,vfont,tfont is as follows.
@@ -69,6 +70,7 @@ Memo about WIN32 native GUI.
 
 * Caution
   o -g [column]x[row] option is ignored.
+  o -Y/--decsp and -&/--borderless options are not available.
   o 'genuine' of daemon mode is not supported in MSYS-DTK or Cygwin version.
     Daemon mode itself is not supported in MinGW version.
   o Background image is not supported.

@@ -1,3 +1,4 @@
+#include <stdio.h>  /* printf */
 #include <signal.h> /* sigaction */
 #include <stdlib.h>
 #include <string.h>
@@ -49,6 +50,19 @@ int select_entry(config_data_t *data);
 
 int query_exit(window_t *parent);
 int init_data(config_data_t *data);
+
+static void help_msg(void){
+	printf( "[Usage]\n");
+	printf( " mlcc               : Show configuration screen.\n");
+	printf( " mlcc -h/--help     : Show this message.\n");
+	printf( " mlcc [key]         : Get current value of [key].\n");
+	printf( " mlcc [key] [value] : Set [value] for [key].\n");
+	printf( " mlcc [font file name] [charset],[font size] : Get font name of [charset] and [font size] in [font file name].\n");
+	printf( " mlcc [font file name] [charset] [font name] : Set [font name] for [charset] in [font file name].\n");
+	printf( " mlcc color [color name] [rgb] : Set [rgb] for [color name].\n") ;
+	printf( " (See doc/en/PROTOCOL, PROTOCOL.font and PROTOCOL.color for configuration details.)\n") ;
+}
+
 /*
  *  backyard
  */
@@ -353,13 +367,20 @@ int main(int argc, char **argv){
 	window_t *win_root =NULL, *win_section = NULL, *win_entry = NULL;
 
 	if(argc == 2){
-		mlterm_get_param(argv[1]);
+		if(strcmp(argv[1],"-h") == 0 || strcmp(argv[1],"--help") == 0)
+		{
+			help_msg();
+		}
+		else
+		{
+			mlterm_get_param(argv[1]);
+		}
 		exit(0);
 	}
-	if( argc == 3 || argc == 4){
+	else if(argc == 3 || argc == 4){
 		char * p;
 		
-		if( argv[1][0] == 't' || argv[1][0] == 'v'){
+		if(argv[1][0] == 't' || argv[1][0] == 'v'){
 			p = argv[1] + 1;
 		}else{
 			p = argv[1];

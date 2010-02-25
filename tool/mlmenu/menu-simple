@@ -1,0 +1,15 @@
+#
+# Format: "<label>\t<key>=<value>" or "pty_list"
+#         <label> accepts any text except tab.
+#	  \t is separator of <label> and <key>=<value>
+#	  <key>=<value> conforms to configuration protocol(doc/en/PROTOCOL).
+#         "pty_list" shows opened ptys.
+#
+
+Font size larger	fontsize=larger
+Font size Smaller	fontsize=smaller
+Encoding auto		encoding=auto
+Encoding UTF-8		encoding=UTF-8
+Full Reset		full_reset
+pty_list
+New PTY			open_pty

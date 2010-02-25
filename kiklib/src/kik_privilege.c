@@ -11,11 +11,13 @@
 
 /* --- static variables --- */
 
+#if defined(HAVE_SETEUID) && defined(HAVE_GETEUID)
 static int  euid_is_changed ;
 static uid_t  saved_euid ;
 
 static int  egid_is_changed ;
 static gid_t  saved_egid ;
+#endif
 
 
 /* --- global functions --- */

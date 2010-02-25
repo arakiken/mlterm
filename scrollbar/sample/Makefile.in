@@ -55,7 +55,7 @@ $(LIBDIR):
 	mkdir -p $(LIBDIR)
 
 install: $(LIBDIR)
-	$(LIBTOOL_INSTALL) libsample.la libsample2.la $(LIBDIR)
+	$(LIBTOOL_INSTALL) $(TARGETS) $(LIBDIR)
 
 clean:
 	rm -rf $(SAMPLE_OBJ) $(SAMPLE_OBJ:.o=.lo) $(SAMPLE2_OBJ) $(SAMPLE2_OBJ:.o=.lo) \

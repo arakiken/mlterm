@@ -1,3 +1,35 @@
+2010-02-26  Araki Ken  <arakiken@users.sf.net>
+
+	* tool/mlconfig/main.c, contrib/tool/mlterm-menu/mlterm-menu.c:
+	  kik_set_sys_conf_dir(".") in win32 without cygwin or msys.
+
+	* winrs.rs: ',' is added after label text. (Fixed syntax error).
+	
+	* configure.in: If CC="cc -mno-cygwin" in cygwin, $(OBJ) contains
+	  x_connect_dialog.o.
+
+	* tool/mlmenu/main.c: Fixed.
+
+	* tool/mlmenu/menu-simple: Added for mlmenu.
+
+	* x_sb_screen.c: button_pressed event is dispatched to x_screen.c in win32
+	  because WM_MOUSEWHEEL message is sent to root window.
+
+	* x_win32.h: Use VK_SHIFT, VK_CONTROL and VK_MENU for XK_Shift_L, XK_Control_L and
+	  XK_Alt_L instead of VK_LSHIFT, VK_LCONTROL and VK_LMENU.
+
+	* mkf/script/config.guess, kiklib/script/config.guess,
+	  script/config.guess: updated (timestamp='2009-12-30')
+
+	* mkf/script/config.sub, kiklib/script/config.sub,
+	  script/config.sub: updated (timestamp='2010-01-22')
+	
+	* doc/en/README.win32,doc/ja/README.win32,README.ja,mlterm.1,README.server: Updated.
+
+	* PROTOCOL.color, README.fontproto: Fixed.
+
+	* contrib/tool/mlcc/main.c: Help messages are shown by -h or --help option.
+
 2010-02-23  Araki Ken  <arakiken@users.sf.net>
 
 	* x_dnd_win32.c: Added for supporting simple drag and drop in win32.

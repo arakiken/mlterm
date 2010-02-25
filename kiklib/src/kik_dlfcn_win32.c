@@ -41,6 +41,14 @@ kik_dl_open(
 	path = winpath ;
 #else
 	sprintf( path , "%slib%s.dll" , dirpath , name) ;
+	
+	if( ( module = LoadLibrary( path)))
+	{
+		return  ( kik_dl_handle_t)module ;
+	}
+
+	/* Assume cygwin(-mno-cygwin) */
+	sprintf( path , "%scyg%s.dll" , dirpath , name) ;
 #endif
 
 	if( ( module = LoadLibrary( path)))

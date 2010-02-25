@@ -14,11 +14,14 @@
 
 #include <kiklib/kik_debug.h>
 #include <kiklib/kik_conf_io.h>
+#include <kiklib/kik_config.h>		/* USE_WIN32API */
 
-#ifndef SYSCONFDIR
-#  define CONFIG_PATH "/etc"
+#if  defined(USE_WIN32API)
+#define CONFIG_PATH "."
+#elif  defined(SYSCONFDIR)
+#define CONFIG_PATH SYSCONFDIR
 #else
-#  define CONFIG_PATH SYSCONFDIR
+#define CONFIG_PATH "/etc"
 #endif
 
 #define MENU_RCFILE "mlterm/menu"

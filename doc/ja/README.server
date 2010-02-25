@@ -20,12 +20,13 @@ mlterm server
   動することもできますし、すべての端末ウィンドウを閉じ、X との接続を切って、X の
   shutdown にまきこまれないようにすれば、X 終了後も動作しつづけることが可能です。
   
-  mlterm server は、/tmp/.mlterm-[uid].unix を使った Unix Domain Socket にて、
-  client プログラムと通信します。
-  起動時に、/tmp/.mlterm-[uid].unix が存在し、mlterm server が生きている場合に
-  は、自身は daemon process になりませんので注意してください。
-  /tmp/.mlterm-[uid].unix が存在していても、mlterm server が死んでいる場合には、
-  daemon process になります。
+  mlterm server は、~/.mlterm/socket を使った Unix Domain Socket にて、client
+  プログラムと通信します。
+  起動時に、既に ~/.mlterm/socket があり、mlterm server プロセスが動いている場合
+  には、 daemon process になりませんので注意してください(各ユーザごとに 1 つの
+  mlterm server しか起動できません。)。なお、~/.mlterm/socket があっても、
+  mlterm server プロセスが動いていない(異常終了など)場合には、daemon process
+  になります。
 
 * client の起動
   ビルドに成功すると、mlclient というプログラムがインストールされます。

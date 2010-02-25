@@ -21409,6 +21409,7 @@ cygwin*)
 	case "${CC} ${CFLAGS}" in
 	*mno-cygwin*)
 		ML_PTY_OBJ="ml_pty_pipewin32.o"
+		WIN32DIALOG_OBJ="x_connect_dialog.o"
 		ml_cv_is_posix="no"
 		;;
 	*)

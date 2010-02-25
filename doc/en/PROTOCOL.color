@@ -11,8 +11,8 @@ version 20090628
   get(GUI menu)	   = "\x1b" "]" "5390" ";" <key> "\x07"
 #endif
   set&save         = "\x1b" "]" "5391" ";" <key> "=" <value> "\x07"
-  key		   = see doc/en/README.ja
-  value		   = see doc/en/README.ja
+  key		   = see man/mlterm.1
+  value		   = see man/mlterm.1
   
 * Note
   If you specify "" as <value>, previous setting of <key> color is cleared.
