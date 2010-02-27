@@ -263,8 +263,14 @@ xft)
 		AA_CFLAGS="-DUSE_TYPE_XFT  ${XFT_CFLAGS} ${AA_CFLAGS}"
 		AA_LIBS="${XFT_LIBS} ${AA_LIBS}"
 	else
-		AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
-		AA_LIBS="-lXft ${AA_LIBS}"
+		AC_CHECK_PROG(xft_config,xft-config,yes)
+		if test "$xft_config" = "yes" ; then
+			AA_CFLAGS="`xft-config --cflags` -DUSE_TYPE_XFT ${AA_CFLAGS}"
+			AA_LIBS="`xft-config --libs` ${AA_LIBS}"
+		else
+			AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
+			AA_LIBS="-lXft ${AA_LIBS}"
+		fi
 	fi
 	type_engines_result="$type_engines_result xft"
 	;;

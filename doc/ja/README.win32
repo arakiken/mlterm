@@ -43,9 +43,6 @@ WIN32 native GUI 対応に関するメモ
     tool/mlconfig/.libs/mlconfig.exe
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
     もコピーしてください。
-    なお、mlterm-menu は、MinGW でビルドする場合には win32 native の GTK+ と、
-    Cygwin でビルドする場合には Cygwin 用の GTK+ とリンクしないと、設定ファイ
-    ル(menu)の読み込みができず正常に動作しません。
   o MSYS-DTK or Cygwin でビルドした場合は、make install でインストールしても
     構いませんが、libmkf の relink に失敗することがあるため、make install の
     前に libmkf.la の relink_command 行を削除してから make install してください。
@@ -130,3 +127,7 @@ WIN32 native GUI 対応に関するメモ
   o MinGW / Gtk+(win32 native) でビルドした mlconfig.exe 及び
     mlterm-menu.exe は、MSYS や Cygwin でビルドした mlterm と
     一緒に使用することができます。
+
+  o mlterm-menu は、MinGW でビルドする場合には win32 native の GTK+ と、
+    Cygwin でビルドする場合には Cygwin 用の GTK+ とリンクしないと、設定ファイ
+    ル(menu)の読み込みができず正常に動作しません。

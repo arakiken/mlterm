@@ -1,3 +1,12 @@
+2010-02-28  Araki Ken  <arakiken@users.sf.net>
+
+	* */Makefile.in: Remove @X_PRE_LIBS@ because mlterm doesn't depend on them.
+
+	* mkf/libtbl/table/mkf_ucs_property.table, mkf_ucs4_unified_hangul_to_uhc.table:
+	  Removed. (2009/12/30 commit failure.)
+
+	* doc/en/README.win32, doc/ja/README.win32: Fixed.
+	
 2010-02-26  Araki Ken  <arakiken@users.sf.net>
 
 	* tool/mlconfig/main.c, contrib/tool/mlterm-menu/mlterm-menu.c:

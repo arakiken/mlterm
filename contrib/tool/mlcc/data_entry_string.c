@@ -22,7 +22,11 @@ int entry_string_edit(window_t *window, entry_t *entry, int x, int y){
 
 void entry_string_reset(entry_t *entry){
 	entry_string_t * data = entry->data;
-	mlterm_set_param(entry->key, data->initial);
+	if( data->initial){
+		mlterm_set_param(entry->key, data->initial);
+	}else{
+		mlterm_set_param(entry->key, "");
+	}
 }
 
 void entry_string_apply(entry_t *entry){

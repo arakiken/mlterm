@@ -31,6 +31,9 @@ Memo about WIN32 native GUI.
   o If you can build mlconfig and mlterm-menu which require GTK+,
     Copy tool/mlconfig/.libs/mlconfig.exe and
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
+  o 'make install' is available for installation in MSYS-DTK or Cygwin, but
+    remove 'relink_command' line in libmkf.la in advance because relinking
+    libmkf in 'make install' can be failed.
 
 * Configuration
   (Built with MSYS-DTK or Cygwin)
