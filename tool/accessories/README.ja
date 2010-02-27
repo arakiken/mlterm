@@ -3,19 +3,6 @@ comment $Id: README,v 1.1 2003/08/14 14:33:45 ken Exp
 
 mlterm を使用する上で便利(かもしれない)スクリプトです。
 
-* viewsfml.sh
-  o 機能
-    sourceforge の ML アーカイブのメールを、文字化けを修正して取得します。
-
-  o 使い方
-    $ viewsfml.sh [thread id]
-
-    [thread id] には、sourceforge の ML アーカイブのスレッド番号を指定してくださ
-    い。取得されたメールは、~/.mlterm/[thread id].html として保存されます。
-
-  o 問題点
-    ブラウザによっては、&<> の 3 文字が正しく表示されない可能性があります。
-
 * xconsole.sh
   o 機能
     /dev/console を監視します。

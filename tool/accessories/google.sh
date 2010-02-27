@@ -11,4 +11,4 @@ else
 	cmd="mlterm"
 fi
 
-mlclient -T google --initstr "				\n${1}\n	\n" -e w3m http://www.google.com
+mlclient -T google --initstr "													\n${1}\n	\n" -e w3m http://www.google.com

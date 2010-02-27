@@ -1,5 +1,14 @@
 2010-02-28  Araki Ken  <arakiken@users.sf.net>
 
+	* x_term_manager.c: -pw option of plink is specified only with SSH in
+	  open_pty_intern().
+
+	* x_term_manager.c: 'init_str' is output after open_pty_intern() in
+	  open_screen_intern().
+
+	* tool/accessories/Makefile, README.ja, google.sh: Fixed.
+	  tool/accessories/viewsfml.sh: Removed.
+
 	* */Makefile.in: Remove @X_PRE_LIBS@ because mlterm doesn't depend on them.
 
 	* mkf/libtbl/table/mkf_ucs_property.table, mkf_ucs4_unified_hangul_to_uhc.table:

@@ -406,7 +406,8 @@ open_pty_intern(
 							cmd_argv[idx++] = "-l" ;
 							cmd_argv[idx++] = user ;
 						}
-						if( pass)
+						/* -pw option can only be used with SSH. */
+						if( pass && count == 0 /* SSH */)
 						{
 							cmd_argv[idx++] = "-pw" ;
 							cmd_argv[idx++] = pass ;
@@ -618,11 +619,6 @@ open_screen_intern(
 		}
 	}
 
-	if( main_config.init_str)
-	{
-		ml_term_write( term , main_config.init_str , strlen( main_config.init_str) , 0) ;
-	}
-	
 	if( ( disp = x_display_open( main_config.disp_name)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -782,17 +778,20 @@ open_screen_intern(
 	 * New screen is successfully created here except ml_pty.
 	 */
 	
-	if( pty && main_config.cmd_argv)
+	if( pty)
 	{
-		int  count ;
-		for( count = 0 ; main_config.cmd_argv[count] ; count ++)
+		if( main_config.cmd_argv)
 		{
-			ml_term_write( term , main_config.cmd_argv[count] ,
-				strlen( main_config.cmd_argv[count]) , 0) ;
-			ml_term_write( term , " " , 1 , 0) ;
-		}
+			int  count ;
+			for( count = 0 ; main_config.cmd_argv[count] ; count ++)
+			{
+				ml_term_write( term , main_config.cmd_argv[count] ,
+					strlen( main_config.cmd_argv[count]) , 0) ;
+				ml_term_write( term , " " , 1 , 0) ;
+			}
 
-		ml_term_write( term , "\n" , 1 , 0) ;
+			ml_term_write( term , "\n" , 1 , 0) ;
+		}
 	}
 	else
 	{
@@ -820,6 +819,11 @@ open_screen_intern(
 		}
 	}
 
+	if( main_config.init_str)
+	{
+		ml_term_write( term , main_config.init_str , strlen( main_config.init_str) , 0) ;
+	}
+	
 	if( main_config.icon_path)
 	{
 		x_display_set_icon( root, main_config.icon_path);
