@@ -12,7 +12,6 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-DESTDIR =
 LIBEXECDIR = $(DESTDIR)$(libexecdir)
 SYSCONFDIR = $(DESTDIR)$(sysconfdir)
 

@@ -1,6 +1,6 @@
 mlterm|multi lingual terminal emulator,
 	am, eslok, km, mc5i, mir, msgr, npc, xenl,
-	colors#8, cols#80, it#8, lines#24, pairs#64,
+	colors#256, cols#80, it#8, lines#24, pairs#64,
 	acsc=00``aaffgghhjjkkllmmnnooppqqrrssttuuvvwwxxyyzz{{||}}~~,
 	bel=^G, bold=\E[1m, cbt=\E[Z, civis=\E[?25l, clear=\E[H\E[2J,
 	cnorm=\E[?25h, cr=^M, csr=\E[%i%p1%d;%p2%dr, cub=\E[%p1%dD, cub1=^H,

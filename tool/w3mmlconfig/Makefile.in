@@ -8,8 +8,8 @@ bindir		= @bindir@
 libdir		= @libdir@
 libexecdir	= @libexecdir@
 
-BIN_DIR		= $(prefix)/bin
-LIB_DIR		= $(libexecdir)/w3mmlconfig
+BIN_DIR		= $(DESTDIR)$(prefix)/bin
+LIB_DIR		= $(DESTDIR)$(libexecdir)/w3mmlconfig
 
 TARGETS		= w3mmlconfig
 LIB_TARGETS	= mlconfig.cgi

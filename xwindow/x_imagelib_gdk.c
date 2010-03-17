@@ -16,6 +16,17 @@
 
 #include "x_imagelib.h"
 
+/*
+ * 'data' which is malloc'ed for XCreateImage() in pixbuf_to_ximage_truecolor()
+ * is free'ed in XDestroyImage().
+ * If malloc is replaced kik_mem_malloc in kik_mem.h, kik_mem_free_all() will
+ * free 'data' which is already free'ed in XDestroyImage() and
+ * segmentation fault error can happen.
+ */
+#if  defined(KIK_DEBUG) && defined(malloc)
+#undef malloc
+#endif
+
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif

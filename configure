@@ -21377,11 +21377,6 @@ if test "${with_gui+set}" = set; then
 fi
 
 
-MAKE_DIRS="mlterm ${MAKE_DIRS} xwindow man etc"
-OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
-ML_PTY_OBJ="ml_pty.o"
-ml_cv_is_posix="yes"
-
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then
   enableval=$enable_debug; debug=$enable_debug
@@ -21392,6 +21387,9 @@ if test "$debug" = "yes" ; then
 fi
 
 
+
+ML_PTY_OBJ="ml_pty.o"
+ml_cv_is_posix="yes"
 
 case "${host_os}" in
 mingw32*)
@@ -26371,6 +26369,9 @@ if test "${SUBDIRS}" != "" ; then
 subdirs="$subdirs ${SUBDIRS}"
 
 fi
+
+MAKE_DIRS="mlterm xwindow man etc ${MAKE_DIRS}"
+OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
 
 
 

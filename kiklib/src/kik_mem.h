@@ -36,6 +36,8 @@ void   kik_mem_free( void *  ptr , const char *  file , int  line , const char *
 
 #ifdef  KIK_DEBUG
 
+void  kik_mem_dump_all(void) ;
+
 int  kik_mem_free_all(void) ;
 
 #else

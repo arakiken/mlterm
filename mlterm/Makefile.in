@@ -9,9 +9,8 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)
-INCDIR = $(DESTDIR)$(PREFIX)/include
+INCDIR = $(DESTDIR)$(prefix)/include
 LIBEXECDIR = $(libexecdir)
 
 VPATH = $(top_srcdir)/mlterm

@@ -4,8 +4,6 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
 
-DESTDIR =
-PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
 VPATH = ${top_srcdir}/inputmethod/m17nlib

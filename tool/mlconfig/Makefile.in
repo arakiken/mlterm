@@ -14,8 +14,8 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-DESTDIR =
-DATADIR = $(DESTDIR)$(datadir)
+# Avoid conflicting with DATADIR structure in w32api/objidl.h.
+XDATADIR = $(DESTDIR)$(datadir)
 LIBDIR = $(DESTDIR)$(libdir)
 LIBEXECDIR = $(DESTDIR)$(libexecdir)
 SYSCONFDIR = $(DESTDIR)$(sysconfdir)
@@ -35,7 +35,7 @@ CFLAGS = `$(GTK_CONFIG) --cflags|sed 's/\\\r//g'` $(CFLAGS_LOCAL) \
 	-I${top_srcdir}/inputmethod \
 	-I/usr/local/include \
 	-DSYSCONFDIR=\"$(SYSCONFDIR)\" -DLOCALEDIR=\"$(LOCALEDIR)\" \
-	-DDATADIR=\"$(DATADIR)\" -DLIBDIR=\"$(LIBDIR)\"
+	-DXDATADIR=\"$(XDATADIR)\" -DLIBDIR=\"$(LIBDIR)\"
 
 # "sed ..." is hack for cygwin(removing \r which is output by pkg-config).
 LIBS1 = @INTL_LIBS@ @DL_SELF@ @DL_LIBS_IM@ `$(GTK_CONFIG) --libs|sed 's/\\\r//g'` $(LIBS_LOCAL) \

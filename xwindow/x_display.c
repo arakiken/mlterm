@@ -13,6 +13,7 @@
 #include  "x_window.h"
 #include  "x_xim.h"
 #include  "x_picture.h"
+#include  "x_imagelib.h"
 
 
 #if  0
@@ -185,14 +186,6 @@ open_display(
 		goto  error3 ;
 	}
 	
-	disp->group_leader = XCreateSimpleWindow( disp->display,
-						     disp->my_window,
-						     0, 0, 1, 1, 0, 0, 0) ;
-	disp->icon_path = NULL;
-	disp->icon = None ;
-	disp->mask = None ;
-	disp->cardinal = NULL ;
-
 	disp->roots = NULL ;
 	disp->num_of_roots = 0 ;
 
@@ -240,24 +233,6 @@ close_display(
 	x_gc_delete( disp->gc) ;
 
 	modmap_final( &(disp->modmap)) ;
-
-	if(  disp->group_leader)
-	{
-		XDestroyWindow( disp->display, disp->group_leader) ;
-	}
-
-	free(  disp->icon_path) ;
-
-	if( disp->icon)
-	{
-		XFreePixmap( disp->display, disp->icon) ;
-	}
-	if( disp->mask)
-	{
-		XFreePixmap( disp->display, disp->mask) ;
-	}
-
-	free( disp->cardinal) ;
 
 	for( count = 0 ; count < (sizeof(disp->cursors)/sizeof(disp->cursors[0])) ; count++)
 	{
@@ -423,6 +398,10 @@ x_display_show_root(
 		root->app_name = app_name ;
 	}
 
+	/*
+	 * root is added to disp->roots before x_window_show() because
+	 * x_display_get_group_leader() is called in x_window_show().
+	 */
 	disp->roots[disp->num_of_roots++] = root ;
 
 	x_window_show( root , hint) ;
@@ -456,6 +435,22 @@ x_display_remove_root(
 				memcpy( &disp->roots[count] ,
 					&disp->roots[disp->num_of_roots] ,
 					sizeof( disp->roots[0])) ;
+				
+				if( count == 0)
+				{
+					/* Group leader is changed. */
+
+				#if  0
+					kik_debug_printf( KIK_DEBUG_TAG
+						" Changing group_leader -> %x\n" ,
+						disp->roots[0]->my_window) ;
+				#endif
+				
+					for( count = 0 ; count < disp->num_of_roots ; count++)
+					{
+						x_window_reset_group( disp->roots[count]) ;
+					}
+				}
 			}
 
 			return  1 ;
@@ -557,15 +552,6 @@ x_display_clear_selection(
 }
 
 
-XID
-x_display_get_group(
-	x_display_t *  disp
-	)
-{
-	return  disp->group_leader ;
-}
-
-
 XModifierKeymap *
 x_display_get_modifier_mapping(
 	x_display_t *  disp
@@ -627,56 +613,17 @@ x_display_get_cursor(
 	return  disp->cursors[idx] ;
 }
 
-int
-x_display_set_icon(
-	x_window_t *  win ,
-	char *  icon_path
+XID
+x_display_get_group_leader(
+	x_display_t *  disp
 	)
 {
-	x_display_t *  disp ;
-
-	disp = win->disp ;
-
-	if( !icon_path && !disp->icon_path)
+	if( disp->num_of_roots > 0)
 	{
-		/* dont't need icon at all? */
-		return  0 ;
-	}
-
-	if( !disp->icon_path)
-	{
-		x_window_t  dummy = {NULL};
-
-		/* register the default icon */
-		if(!(disp->icon_path = strdup( icon_path)))
-		{
-			return  0 ;
-		}
-		dummy.my_window = disp->group_leader ;
-		dummy.disp = disp ;
-		dummy.icon_pix = None ;
-		dummy.icon_mask = None ;
-		dummy.icon_card = NULL ;
-		x_window_set_icon_from_file( &dummy, icon_path);
-
-		disp->icon = dummy.icon_pix ;
-		disp->mask = dummy.icon_mask ;
-		disp->cardinal = dummy.icon_card ;
-
-	}
-
-	if( !icon_path || strcmp( icon_path, disp->icon_path) ==0)
-	{
-		x_window_remove_icon( win) ;
-		/* use a default icon from window manager */
-		return x_window_set_icon( win,
-					  disp->icon,
-					  disp->mask,
-					  disp->cardinal) ;
+		return  disp->roots[0]->my_window ;
 	}
 	else
 	{
-		/* load new icon from "icon_path" */
-		return x_window_set_icon_from_file( win, icon_path);
+		return  None ;
 	}
 }

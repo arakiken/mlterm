@@ -4,7 +4,6 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
 
-PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)
 INCDIR = $(DESTDIR)$(prefix)/include
 

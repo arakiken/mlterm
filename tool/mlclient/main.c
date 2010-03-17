@@ -23,6 +23,7 @@ static char *  na_options[] =
 	"-c/--cp932" ,
 	"-i/--xim" ,
 	"-j/--daemon" ,
+	"   --maxptys" ,
 } ;
 
 
@@ -43,7 +44,8 @@ help(void)
 	printf( "prefix optioins:\n") ;
 	printf( "  /dev/...: specify pty with which a new window is opened.\n\n") ;
 	printf( "options:\n") ;
-	printf( "  -P/--ptylist: print pty list.\n\n") ;
+	printf( "  -P/--ptylist: print pty list.\n") ;
+	printf( "     --kill: kill mlterm server.\n\n") ;
 	printf( "  N.A. options among those of mlterm.\n") ;
 
 	for( count = 0 ; count < sizeof( na_options) / sizeof( na_options[0]) ; count ++)

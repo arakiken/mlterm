@@ -100,9 +100,11 @@ WIN32 native GUI 対応に関するメモ
 
 * WIN32 GUI 版の制限
   o -g オプションは [COL]x[ROW]+[x]+[y] の x y を無視します。
-  o -Y/--decsp, -&/--borderless オプションは使用できません。
+  o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless オプションは使用できません。
   o mlterm server 機能で genuine モードは使用できません(対応予定もありません。)。
     また、MinGW 版では、mlterm server 機能自体が使用できません(対応予定もありません。)。
+    代わりに、"\x1b]5379;mlclient <prefix opitions> <options>\x07" を使用してください
+    (see doc/en/PROTOCOL)。
   o 背景画像は使用できません。
   o 背景透過は、win32 のレイヤードウィンドウの機能をそのまま使用しているだけ
     です。

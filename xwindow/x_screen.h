@@ -5,6 +5,8 @@
 #ifndef  __X_SCREEN_H__
 #define  __X_SCREEN_H__
 
+
+#include  <stdio.h>			/* FILE */
 #include  <mkf/mkf_parser.h>
 #include  <kiklib/kik_types.h>		/* u_int/int8_t/size_t */
 #include  <ml_term.h>
@@ -26,7 +28,7 @@ typedef struct x_system_event_listener
 {
 	void *  self ;
 
-	void  (*open_screen)( void *) ;
+	void  (*open_screen)( void * , x_screen_ptr_t) ;
 	void  (*close_screen)( void * , x_screen_ptr_t) ;
 	
 	void  (*open_pty)( void * , x_screen_ptr_t , char *) ;
@@ -39,6 +41,8 @@ typedef struct x_system_event_listener
 	ml_term_t *  (*get_pty)( void * , char *) ;
 
 	char *  (*pty_list)( void *) ;
+
+	int  (*mlclient)( void * , x_screen_ptr_t , char * , size_t , FILE *) ;
 
 	/* for debug */
 	void  (*exit)( void * , int) ;
@@ -126,6 +130,8 @@ typedef struct  x_screen
 
 	char *  pic_file_path ;
 	x_picture_modifier_t  pic_mod ;
+
+	x_icon_picture_t *  icon ;
 
 	/*
 	 * These members mustn't be changed by mlterm configuration protocol,

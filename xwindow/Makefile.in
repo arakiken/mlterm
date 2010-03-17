@@ -12,12 +12,12 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-PREFIX = $(DESTDIR)$(prefix)
 BINDIR = $(DESTDIR)$(bindir)
 LIBDIR = $(DESTDIR)$(libdir)
-DATADIR = $(DESTDIR)$(datadir)
-SYSCONFDIR = $(sysconfdir)
-LIBEXECDIR = $(libexecdir)
+# Avoid conflicting with DATADIR structure in w32api/objidl.h.
+XDATADIR = $(DESTDIR)$(datadir)
+SYSCONFDIR = $(DESTDIR)$(sysconfdir)
+LIBEXECDIR = $(DESTDIR)$(libexecdir)
 
 VPATH = $(top_srcdir)/xwindow
 
@@ -46,7 +46,7 @@ CFLAGS = $(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ \
 	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @IMAGELIB_CFLAGS@ @X_CFLAGS@ @GUI_CFLAGS@ \
 	@XUTF8_CFLAGS@ @DND_CFLAGS@ @IM_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
-	-DLIBEXECDIR=\"$(LIBEXECDIR)\" -DDATADIR=\"$(DATADIR)\"\
+	-DLIBEXECDIR=\"$(LIBEXECDIR)\" -DXDATADIR=\"$(XDATADIR)\"\
 	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/local/include
 
 LIBS1 = $(LIBS_LOCAL) $(LMLTERM) $(LMKF) $(LKIK) \

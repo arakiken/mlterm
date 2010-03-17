@@ -61,6 +61,7 @@ typedef struct x_dnd_context *  x_dnd_context_ptr_t ;
 
 /* Defined in x_picture.h */
 typedef struct x_picture_modifier *  x_picture_modifier_ptr_t ;
+typedef struct x_icon_picture *  x_icon_picture_ptr_t ;
 
 typedef struct  x_window
 {
@@ -134,13 +135,6 @@ typedef struct  x_window
 	 */
 	char *  app_name ;
 
-	
-	/*
-	 * per-window icon
-	 */
-	Pixmap icon_pix;
-	Pixmap icon_mask;
-	u_int32_t *  icon_card;
 	
 	/*
 	 * flags etc.
@@ -355,11 +349,11 @@ int  x_set_window_name( x_window_t *  win , u_char *  name) ;
 
 int  x_set_icon_name( x_window_t *  win , u_char *  name) ;
 
-int  x_window_set_icon( x_window_t *  win , Pixmap  icon , Pixmap  mask , u_int32_t *  cardinal) ;
+int  x_window_set_icon( x_window_t *  win , x_icon_picture_ptr_t  icon) ;
 
-int x_window_remove_icon( x_window_t *  win) ;
+int  x_window_remove_icon( x_window_t *  win) ;
 
-int  x_window_set_icon_from_file( x_window_t *  win , char *  path) ;
+int  x_window_reset_group( x_window_t *  win) ;
 
 int  x_window_get_visible_geometry( x_window_t *  win ,
 	int *  x , int *  y , int *  my_x , int *  my_y , u_int *  width , u_int *  height) ;

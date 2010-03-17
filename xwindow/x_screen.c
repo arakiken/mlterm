@@ -811,6 +811,10 @@ redraw_screen(
 		}
 		else
 		{
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " not redrawing -> line %d\n" , count) ;
+		#endif
+
 			y += x_line_height( screen) ;
 		}
 
@@ -1123,31 +1127,31 @@ set_wall_picture(
 	x_screen_t *  screen
 	)
 {
-	x_picture_t  pic ;
+	x_bg_picture_t  pic ;
 
 	if( ! screen->pic_file_path)
 	{
 		return  0 ;
 	}
 
-	if( ! x_picture_init( &pic , &screen->window , x_screen_get_picture_modifier( screen)))
+	if( ! x_bg_picture_init( &pic , &screen->window , x_screen_get_picture_modifier( screen)))
 	{
 		goto  error ;
 	}
 
-	if( ! x_picture_load_file( &pic , screen->pic_file_path))
+	if( ! x_bg_picture_load_file( &pic , screen->pic_file_path))
 	{
 		kik_msg_printf( "Wall picture file %s is not found.\n" ,
 			screen->pic_file_path) ;
 
-		x_picture_final( &pic) ;
+		x_bg_picture_final( &pic) ;
 
 		goto  error ;
 	}
 
 	if( ! x_window_set_wall_picture( &screen->window , pic.pixmap))
 	{
-		x_picture_final( &pic) ;
+		x_bg_picture_final( &pic) ;
 
 		/* Because picture is loaded successfully, screen->pic_file_path retains. */
 
@@ -1155,7 +1159,7 @@ set_wall_picture(
 	}
 	else
 	{
-		x_picture_final( &pic) ;
+		x_bg_picture_final( &pic) ;
 
 		return  1 ;
 	}
@@ -1168,6 +1172,54 @@ error:
 
 	return  0 ;
 }
+
+static int
+set_icon(
+	x_screen_t *  screen
+	)
+{
+	x_icon_picture_t *  icon ;
+	char *  path ;
+
+	if( ( path = ml_term_icon_path( screen->term)))
+	{
+		if( screen->icon && strcmp( path , screen->icon->file_path) == 0)
+		{
+			/* Not changed. */
+			return  0 ;
+		}
+
+		if( ( icon = x_acquire_icon_picture( screen->window.disp->display , path)))
+		{
+			x_window_set_icon( &screen->window , icon) ;
+		}
+		else
+		{
+			x_window_remove_icon( &screen->window) ;
+		}
+	}
+	else
+	{
+		if( screen->icon == NULL)
+		{
+			/* Not changed. */
+			return  0 ;
+		}
+
+		icon = NULL ;
+		x_window_remove_icon( &screen->window) ;
+	}
+
+	if( screen->icon)
+	{
+		x_release_icon_picture( screen->icon) ;
+	}
+	
+	screen->icon = icon ;
+
+	return  1 ;
+}
+
 
 /* referred in update_special_visual */
 static void  change_font_present( x_screen_t *  screen , x_type_engine_t  type_engine ,
@@ -1303,6 +1355,8 @@ window_realized(
 		x_set_icon_name( &screen->window , name) ;
 	}
 
+	set_icon( screen) ;
+	
 	if( screen->borderless)
 	{
 		x_window_set_borderless_flag( &screen->window , 1) ;
@@ -1772,7 +1826,8 @@ key_pressed(
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_screen))
 		{
-			(*screen->system_listener->open_screen)( screen->system_listener->self) ;
+			(*screen->system_listener->open_screen)( screen->system_listener->self ,
+								screen) ;
 		}
 
 		return ;
@@ -4386,20 +4441,6 @@ snapshot(
 	fclose( file) ;
 }
 
-static void
-change_icon(
-	x_screen_t *  screen,
-	char *new_icon
-	)
-{
-	if( new_icon)
-	{
-		ml_term_set_icon_path( screen->term, new_icon);
-	}
-
-	x_display_set_icon( x_get_root_window( &screen->window), ml_term_icon_path( screen->term));
-}
-
 
 /*
  * Callbacks of x_config_event_listener_t events.
@@ -5781,6 +5822,8 @@ x_screen_new(
 	screen->pic_mod.blend_color = 0 ;
 	screen->pic_mod.alpha = alpha ;
 
+	screen->icon = NULL ;
+
 	screen->fade_ratio = fade_ratio ;
 
 	screen->screen_width_ratio = screen_width_ratio ;
@@ -5883,7 +5926,7 @@ x_screen_new(
 	{
 		screen->pic_file_path = NULL ;
 	}
-
+	
 	if( conf_menu_path_1)
 	{
 		screen->conf_menu_path_1 = strdup( conf_menu_path_1) ;
@@ -6059,6 +6102,11 @@ x_screen_delete(
 
 	x_sel_final( &screen->sel) ;
 
+	if( screen->icon)
+	{
+		x_release_icon_picture( screen->icon) ;
+	}
+
 	free( screen->mod_meta_key) ;
 	free( screen->pic_file_path) ;
 	free( screen->conf_menu_path_1) ;
@@ -6159,7 +6207,7 @@ x_screen_attach(
 	x_set_icon_name( &screen->window , ml_term_icon_name( screen->term)) ;
 
 	/* reset icon to screen->term's one */
-	change_icon( screen, NULL) ;
+	set_icon( screen) ;
 
 #ifndef  USE_WIN32GUI
 	if( screen->im)
@@ -6190,16 +6238,15 @@ x_screen_detach(
 
 	/* This should be done before screen->term is NULL */
 	x_sel_clear( &screen->sel) ;
-
+	
 #if  1
 	exit_backscroll_mode( screen) ;
 #endif
 
 	ml_term_detach( screen->term) ;
-
+	
 	term = screen->term ;
 	screen->term = NULL ;
-	x_window_remove_icon( &screen->window) ;
 	x_window_clear_all( &screen->window) ;
 
 	return  term ;
@@ -6556,6 +6603,25 @@ x_screen_set_config(
 	{
 		change_sb_mode( screen , x_get_sb_mode( value)) ;
 	}
+	else if( strcmp( key , "static_backscroll_mode") == 0)
+	{
+		ml_bs_mode_t  mode ;
+		
+		if( strcmp( value , true) == 0)
+		{
+			mode = BSM_STATIC ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			mode = BSM_VOLATILE ;
+		}
+		else
+		{
+			return ;
+		}
+		
+		ml_term_set_backscroll_mode( screen->term , mode) ;
+	}
 	else if( strcmp( key , "use_combining") == 0)
 	{
 		int  flag ;
@@ -6825,8 +6891,8 @@ x_screen_set_config(
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_pty))
 		{
-			(*screen->system_listener->open_pty)( screen->system_listener->self , screen ,
-				value) ;
+			(*screen->system_listener->open_pty)( screen->system_listener->self ,
+				screen , value) ;
 		}
 	}
 	else if( strcmp( key , "open_pty") == 0)
@@ -6841,7 +6907,8 @@ x_screen_set_config(
 	{
 		if( HAS_SYSTEM_LISTENER(screen,open_screen))
 		{
-			(*screen->system_listener->open_screen)( screen->system_listener->self) ;
+			(*screen->system_listener->open_screen)( screen->system_listener->self ,
+								screen) ;
 		}
 	}
 	else if( strcmp( key , "snapshot") == 0)
@@ -6881,12 +6948,14 @@ x_screen_set_config(
 	}
 	else if( strcmp( key , "icon_path") == 0)
 	{
-		change_icon( screen, value) ;
+		ml_term_set_icon_path( screen->term , value) ;
+		set_icon( screen) ;
 	}
 	else if( strcmp( key , "title") == 0)
 	{
-		if(screen->xterm_listener.set_window_name){
-			screen->xterm_listener.set_window_name( screen, value) ;
+		if( screen->xterm_listener.set_window_name)
+		{
+			(*screen->xterm_listener.set_window_name)( screen, value) ;
 		}
 	}
 	else if( strcmp( key , "logging_vt_seq") == 0)
@@ -6907,6 +6976,14 @@ x_screen_set_config(
 		}
 
 		ml_term_set_logging_vt_seq( screen->term , flag) ;
+	}
+	else if( strlen(key) >= 8 && strncmp( key , "mlclient" , 8) == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,mlclient))
+		{
+			(*screen->system_listener->mlclient)( screen->system_listener->self ,
+				key[8] == 'x' ? screen : NULL , key , strlen(key) + 1 , stdout) ;
+		}
 	}
 }
 

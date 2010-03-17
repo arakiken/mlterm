@@ -225,6 +225,10 @@ ml_model_get_line(
 {
 	if( row < 0 || model->num_of_rows <= row)
 	{
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " row %d is out of range.\n" , row) ;
+	#endif
+	
 		return  NULL ;
 	}
 

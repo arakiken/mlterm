@@ -3,7 +3,6 @@ top_srcdir = @top_srcdir@
 prefix = @prefix@
 datadir = @datadir@
 
-DESTDIR=
 DATADIR = $(DESTDIR)$(datadir)/mlterm/scrollbars/sample3
 
 FILES = bg_body.png bg_bottom.png bg_top.png button_down.png button_down_pressed.png button_up.png button_up_pressed.png rc slider_body.png slider_bottom.png slider_knob.png slider_top.png

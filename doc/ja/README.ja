@@ -219,7 +219,7 @@ comment $Id$
         アイコン名
 
       o icon_path
-        アイコンのファイル名
+        アイコン画像のファイル名
 
       o screen_width_ratio  (*100*) (#)
         実スクリーンの横幅(百分率)
@@ -234,8 +234,11 @@ comment $Id$
       o termtype (*xterm*)
         端末タイプ
         デフォルトは xterm だが、mlterm を推奨。
-        (terminfo: doc/term/mlterm.ti, termcap: 協力者募集中)
+        (terminfo: doc/term/mlterm.ti, termcap: doc/term/mlterm.tc)
 
+      o max_ptys (*32*)
+        同時に立ち上げることができる pty の最大数 (32の倍数で指定)
+      
       o startup_ptys  (*1*)
         起動時に立ち上げる pty の数
 
@@ -911,7 +914,9 @@ comment $Id$
     -x/--tw=value      : tabsize
     -y/--term=value    : term_type
     -z/--largesmall=value : step_in_changing_font_size
-       --input_method=value: input_method
+       --im=value: input_method
+       --iconpath=value : path to a imagefile to be used as a window icon
+       --maxptys=value : max ptys to open simultaneously (X)
 
     -e ... : 指定したコマンドを起動
 

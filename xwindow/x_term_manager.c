@@ -47,7 +47,9 @@
 #include  "x_connect_dialog.h"
 #endif
 
-#define  MAX_SCREENS  (8*sizeof(dead_mask))
+#define  MAX_SCREENS  (MSU * max_screens_multiple)	/* Default MAX_SCREENS is 32. */
+#define  MSU          (8 * sizeof(dead_mask[0]))	/* MAX_SCREENS_UNIT */
+
 #define MAX_ADDTIONAL_FDS  3
 
 #if  0
@@ -57,9 +59,11 @@
 
 /* --- static variables --- */
 
+static u_int  max_screens_multiple ;
+static u_int32_t *  dead_mask ;
+
 static x_screen_t **  screens ;
 static u_int  num_of_screens ;
-static u_long  dead_mask ;
 
 static u_int  num_of_startup_screens ;
 static u_int  num_of_startup_ptys ;
@@ -824,11 +828,6 @@ open_screen_intern(
 		ml_term_write( term , main_config.init_str , strlen( main_config.init_str) , 0) ;
 	}
 	
-	if( main_config.icon_path)
-	{
-		x_display_set_icon( root, main_config.icon_path);
-	}
-
 	return  1 ;
 	
 error:
@@ -895,6 +894,9 @@ __exit(
 	{
 		SendMessage( x_get_root_window( &screens[count]->window) , WM_CLOSE , 0 , 0) ;
 	}
+#endif
+#if  1
+	kik_mem_dump_all() ;
 #endif
 
 	x_term_manager_final() ;
@@ -1088,15 +1090,25 @@ pty_closed(
 
 static void
 open_screen(
-	void *  p
+	void *  p ,
+	x_screen_t *  screen	/* Screen which triggers this event. */
 	)
 {
+	char *  disp_name ;
+
+	/* Saving default disp_name option. */
+	disp_name = main_config.disp_name ;
+	main_config.disp_name = screen->window.disp->name ;
+	
 	if( ! open_screen_intern(NULL))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern failed.\n") ;
 	#endif
 	}
+
+	/* Restoring default disp_name option. */
+	main_config.disp_name = disp_name ;
 }
 
 static void
@@ -1111,12 +1123,15 @@ close_screen(
 	{
 		if( screen == screens[count])
 		{
+			u_int  idx ;
+			
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " screen %p is registered to be closed.\n",
 				screen) ;
 		#endif
-		
-			dead_mask |= (1 << count) ;
+
+			idx = count / MSU ;	/* count / 8 */
+			dead_mask[idx] |= (1 << (count - MSU * idx)) ;
 
 			return ;
 		}
@@ -1138,6 +1153,222 @@ pty_list(
 	)
 {
 	return  ml_get_pty_list() ;
+}
+
+static int
+mlclient(
+	void *  self ,
+	x_screen_t *  screen ,
+	char *  args ,
+	size_t  args_len ,	/* Including '\0' */
+	FILE *  fp		/* Stream to output response of mlclient. */
+	)
+{
+	char **  argv ;
+	int  argc ;
+	char *  args_dup ;
+	char *  p ;
+	
+	/*
+	 * parsing options.
+	 */
+
+	argc = 0 ;
+
+	if( ( argv = alloca( sizeof( char*) * ( args_len + 1))) == NULL)
+	{
+		return  0 ;
+	}
+
+	if( ( args_dup = alloca( args_len)) == NULL)
+	{
+		return  0 ;
+	}
+	
+	p = args_dup ;
+
+	while( *args)
+	{
+		int  quoted ;
+
+		while( *args == ' ' || *args == '\t')
+		{
+			if( *args == '\0')
+			{
+				goto  parse_end ;
+			}
+
+			args ++ ;
+		}
+
+		if( *args == '\"')
+		{
+			quoted = 1 ;
+			args ++ ;
+		}
+		else
+		{
+			quoted = 0 ;
+		}
+		
+		while( *args)
+		{
+			if( quoted)
+			{
+				if( *args == '\"')
+				{
+					args ++ ;
+					
+					break ;
+				}
+			}
+			else
+			{
+				if( *args == ' ' || *args == '\t')
+				{
+					args ++ ;
+					
+					break ;
+				}
+			}
+			
+			if( *args == '\\' && *(args + 1) == '\"')
+			{
+				*(p ++) = *(++ args) ;
+			}
+			else
+			{
+				*(p ++) = *args ;
+			}
+
+			args ++ ;
+		}
+
+		*(p ++) = '\0' ;
+		argv[argc ++] = args_dup ;
+		args_dup = p ;
+	}
+
+parse_end:
+
+	/* NULL terminator (POSIX exec family style) */
+	argv[argc] = NULL ;
+
+#ifdef  __DEBUG
+	{
+		int  i ;
+
+		for( i = 0 ; i < argc ; i ++)
+		{
+			kik_msg_printf( "%s\n" , argv[i]) ;
+		}
+	}
+#endif
+
+	if( argc == 0)
+	{
+		return  0 ;
+	}
+
+	if( argc == 2 && ( strcmp( argv[1] , "-P") == 0 || strcmp( argv[1] , "--ptylist") == 0))
+	{
+		/*
+		 * mlclient -P or mlclient --ptylist
+		 */
+
+		ml_term_t **  terms ;
+		u_int  num ;
+		int  count ;
+	
+		num = ml_get_all_terms( &terms) ;
+		for( count = 0 ; count < num ; count ++)
+		{
+			fprintf( fp , "%s" , ml_term_get_slave_name( terms[count])) ;
+			if( ml_term_window_name( terms[count]))
+			{
+				fprintf( fp , "(whose title is %s)" , ml_term_window_name( terms[count])) ;
+			}
+			if( ml_term_is_attached( terms[count]))
+			{
+				fprintf( fp , " is active:)\n") ;
+			}
+			else
+			{
+				fprintf( fp , " is sleeping.zZ\n") ;
+			}
+		}
+	}
+	else if( argc == 2 && strcmp( argv[1] , "--kill") == 0)
+	{
+		if( un_file)
+		{
+			unlink( un_file) ;
+		}
+		fprintf( fp, "bye\n") ;
+		exit( 0) ;
+	}
+	else
+	{
+		kik_conf_t *  conf ;
+		x_main_config_t  orig_conf ;
+		char *  pty ;
+		
+		if( argc >= 2 && *argv[1] != '-')
+		{
+			/*
+			 * mlclient [dev] [options...]
+			 */
+			 
+			pty = argv[1] ;
+			argv[1] = argv[0] ;
+			argv = &argv[1] ;
+			argc -- ;
+		}
+		else
+		{
+			pty = NULL ;
+		}
+
+		if( ( conf = conf_new()) == NULL)
+		{
+			return  0 ;
+		}
+		
+		x_prepare_for_main_config(conf) ;
+
+		if( ! kik_conf_parse_args( conf , &argc , &argv))
+		{
+			kik_conf_delete( conf) ;
+
+			return  0 ;
+		}
+
+		orig_conf = main_config ;
+
+		x_main_config_init( &main_config , conf , argc , argv) ;
+
+		kik_conf_delete( conf) ;
+
+		if( screen)
+		{
+			open_pty( p , screen , pty) ;
+		}
+		else
+		{
+			if( ! open_screen_intern( pty))
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;
+			#endif
+			}
+		}
+		
+		x_main_config_final( &main_config) ;
+
+		main_config = orig_conf ;
+	}
+	
+	return  1 ;
 }
 
 
@@ -1291,10 +1522,6 @@ client_connected(void)
 	char *  line ;
 	size_t  line_len ;
 	char *  args ;
-	char **  argv ;
-	int  argc ;
-	char *  args_dup ;
-	char *  p ;
 
 	fp = NULL ;
 
@@ -1323,14 +1550,14 @@ client_connected(void)
 
 	if( ( from = kik_file_new( fp)) == NULL)
 	{
-		goto  crit_error ;
+		goto  error ;
 	}
 
 	if( ( line = kik_file_get_line( from , &line_len)) == NULL)
 	{
 		kik_file_delete( from) ;
 		
-		goto  crit_error ;
+		goto  error ;
 	}
 
 	if( ( args = alloca( line_len)) == NULL)
@@ -1348,212 +1575,23 @@ client_connected(void)
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s\n" , args) ;
 #endif
-	
-	/*
-	 * parsing options.
-	 */
 
-	argc = 0 ;
-
-	if( ( argv = alloca( sizeof( char*) * ( line_len + 1))) == NULL)
+	if( ! mlclient( NULL , NULL , args , line_len , fp))
 	{
 		goto  error ;
-	}
-
-	if( ( args_dup = alloca( line_len)) == NULL)
-	{
-		goto  error ;
-	}
-	
-	p = args_dup ;
-
-	while( *args)
-	{
-		int  quoted ;
-
-		while( *args == ' ' || *args == '\t')
-		{
-			if( *args == '\0')
-			{
-				goto  parse_end ;
-			}
-
-			args ++ ;
-		}
-
-		if( *args == '\"')
-		{
-			quoted = 1 ;
-			args ++ ;
-		}
-		else
-		{
-			quoted = 0 ;
-		}
-		
-		while( *args)
-		{
-			if( quoted)
-			{
-				if( *args == '\"')
-				{
-					args ++ ;
-					
-					break ;
-				}
-			}
-			else
-			{
-				if( *args == ' ' || *args == '\t')
-				{
-					args ++ ;
-					
-					break ;
-				}
-			}
-			
-			if( *args == '\\' && *(args + 1) == '\"')
-			{
-				*(p ++) = *(++ args) ;
-			}
-			else
-			{
-				*(p ++) = *args ;
-			}
-
-			args ++ ;
-		}
-
-		*(p ++) = '\0' ;
-		argv[argc ++] = args_dup ;
-		args_dup = p ;
-	}
-
-parse_end:
-
-	/* NULL terminator (POSIX exec family style) */
-	argv[argc] = NULL ;
-
-#ifdef  __DEBUG
-	{
-		int  i ;
-
-		for( i = 0 ; i < argc ; i ++)
-		{
-			kik_msg_printf( "%s\n" , argv[i]) ;
-		}
-	}
-#endif
-
-	if( argc == 0)
-	{
-		goto  error ;
-	}
-
-	if( argc == 2 &&
-		( strncmp( argv[1] , "-P" , 2) == 0 || strncmp( argv[1] , "--ptylist" , 9) == 0))
-	{
-		/*
-		 * mlclient -P or mlclient --ptylist
-		 */
-
-		ml_term_t **  terms ;
-		u_int  num ;
-		int  count ;
-	
-		num = ml_get_all_terms( &terms) ;
-		for( count = 0 ; count < num ; count ++)
-		{
-			fprintf( fp , "%s" , ml_term_get_slave_name( terms[count])) ;
-			if( ml_term_window_name( terms[count]))
-			{
-				fprintf( fp , "(whose title is %s)" , ml_term_window_name( terms[count])) ;
-			}
-			if( ml_term_is_attached( terms[count]))
-			{
-				fprintf( fp , " is active:)\n") ;
-			}
-			else
-			{
-				fprintf( fp , " is sleeping.zZ\n") ;
-			}
-		}
-	}
-	else if( argc == 2 && strncmp( argv[1] , "--kill" , 6) == 0)
-	{
-		if( un_file)
-		{
-			unlink( un_file) ;
-		}
-		fprintf( fp, "bye\n") ;
-		exit( 0) ;
-	}
-	else
-	{
-		kik_conf_t *  conf ;
-		x_main_config_t  orig_conf ;
-		char *  pty ;
-		
-		if( argc >= 2 && *argv[1] != '-')
-		{
-			/*
-			 * mlclient [dev] [options...]
-			 */
-			 
-			pty = argv[1] ;
-			argv[1] = argv[0] ;
-			argv = &argv[1] ;
-			argc -- ;
-		}
-		else
-		{
-			pty = NULL ;
-		}
-
-		if( ( conf = conf_new()) == NULL)
-		{
-			goto  error ;
-		}
-		
-		x_prepare_for_main_config(conf) ;
-
-		if( ! kik_conf_parse_args( conf , &argc , &argv))
-		{
-			kik_conf_delete( conf) ;
-
-			goto  error ;
-		}
-
-		orig_conf = main_config ;
-
-		x_main_config_init( &main_config , conf , argc , argv) ;
-
-		kik_conf_delete( conf) ;
-
-		if( ! open_screen_intern( pty))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " open_screen_intern() failed.\n") ;
-		#endif
-		}
-		
-		x_main_config_final( &main_config) ;
-
-		main_config = orig_conf ;
 	}
 
 	fclose( fp) ;
-	
-	return ;
 
+	return ;
+	
 error:
 	{
 		char  msg[] = "Error happened.\n" ;
 
-		write( fd , msg , sizeof( msg)) ;
+		write( fd , msg , sizeof( msg) - 1) ;
 	}
-
-	/* If fd may be invalid, jump to here directly. */
+	
 crit_error:
 	if( fp)
 	{
@@ -1760,6 +1798,7 @@ x_term_manager_init(
 	u_int  min_font_size ;
 	u_int  max_font_size ;
 	int  count ;
+	char *  invalid_msg = "%s %s is not valid.\n" ;
 
 	if( ! x_color_config_init( &color_config))
 	{
@@ -1830,6 +1869,8 @@ x_term_manager_init(
 	#endif
 		) ;
 #endif
+	kik_conf_add_opt( conf , '\0' , "maxptys" , 0 , "max_ptys" ,
+		"max ptys to open simultaneously (multiple of 32)") ;
 
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
 	{
@@ -1842,7 +1883,7 @@ x_term_manager_init(
 	{
 		if( ! get_font_size_range( &min_font_size , &max_font_size , value))
 		{
-			kik_msg_printf( "font_size_range = %s is illegal.\n" , value) ;
+			kik_msg_printf( invalid_msg , "font_size_range" , value) ;
 
 			/* default values are used */
 			min_font_size = 6 ;
@@ -1918,6 +1959,10 @@ x_term_manager_init(
 		{
 			x_set_click_interval( interval) ;
 		}
+		else
+		{
+			kik_msg_printf( invalid_msg , "click_interval" , value) ;
+		}
 	}
 
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
@@ -1936,6 +1981,39 @@ x_term_manager_init(
 	}
 #endif
 
+	max_screens_multiple = 1 ;
+
+	if( ( value = kik_conf_get_value( conf , "max_ptys")))
+	{
+		u_int  max_ptys ;
+		
+		if( kik_str_to_uint( &max_ptys , value))
+		{
+			u_int  multiple ;
+
+			multiple = max_ptys / 32 ;
+			
+			if( multiple * 32 != max_ptys)
+			{
+				kik_msg_printf( "max_ptys %s is not multiple of 32.\n" , value) ;
+			}
+
+			if( multiple > 1)
+			{
+				max_screens_multiple = multiple ;
+			}
+		}
+		else
+		{
+			kik_msg_printf( invalid_msg , "max_ptys" , value) ;
+		}
+	}
+
+	if( ( dead_mask = calloc( sizeof( *dead_mask) , max_screens_multiple)) == NULL)
+	{
+		return  0 ;
+	}
+
 	num_of_startup_screens = 1 ;
 	
 	if( ( value = kik_conf_get_value( conf , "startup_screens")))
@@ -1944,7 +2022,7 @@ x_term_manager_init(
 		
 		if( ! kik_str_to_uint( &n , value) || ( ! is_genuine_daemon && n == 0))
 		{
-			kik_msg_printf( "startup_screens %s is not valid.\n" , value) ;
+			kik_msg_printf( invalid_msg , "startup_screens" , value) ;
 		}
 		else
 		{
@@ -1965,7 +2043,7 @@ x_term_manager_init(
 		
 		if( ! kik_str_to_uint( &n , value) || ( ! is_genuine_daemon && n == 0))
 		{
-			kik_msg_printf( "startup_ptys %s is not valid.\n" , value) ;
+			kik_msg_printf( invalid_msg , "startup_ptys" , value) ;
 		}
 		else
 		{
@@ -2026,6 +2104,7 @@ x_term_manager_init(
 	system_listener.pty_closed = pty_closed ;
 	system_listener.get_pty = get_pty ;
 	system_listener.pty_list = pty_list ;
+	system_listener.mlclient = mlclient ;
 
 #ifndef  USE_WIN32API
 	signal( SIGHUP , sig_fatal) ;
@@ -2038,7 +2117,12 @@ x_term_manager_init(
 	SetTimer( NULL, 0, 100, timer_proc) ;
 #endif
 
-	ml_term_manager_init() ;
+	if( ! ml_term_manager_init( max_screens_multiple))
+	{
+		free( dead_mask) ;
+
+		return  0 ;
+	}
 	
 	kik_alloca_garbage_collect() ;
 
@@ -2061,13 +2145,15 @@ x_term_manager_final(void)
 	x_main_config_final( &main_config) ;
 	
 	ml_free_word_separators() ;
-	
+
 	for( count = 0 ; count < num_of_screens ; count ++)
 	{
 		close_screen_intern( screens[count]) ;
 	}
 
 	free( screens) ;
+
+	free( dead_mask) ;
 
 	ml_term_manager_final() ;
 
@@ -2138,7 +2224,6 @@ x_term_manager_event_loop(void)
 
 	while( 1)
 	{
-		int  count ;
 	#ifdef  USE_WIN32API
 		u_int  num_of_displays ;
 		x_display_t **  displays ;
@@ -2175,32 +2260,42 @@ x_term_manager_event_loop(void)
 		}
 	#endif
 
-		if( dead_mask)
+		if( num_of_screens > 0)
 		{
-			for( count = num_of_screens - 1 ; count >= 0 ; count --)
+			int  idx ;
+			
+			for( idx = (num_of_screens - 1) / MSU ; idx >= 0 ; idx --)
 			{
-				if( dead_mask & (0x1 << count))
+				if( dead_mask[idx])
 				{
-					x_screen_t *  screen ;
+					for( count = MSU - 1 ; count >= 0 ; count --)
+					{
+						if( dead_mask[idx] & (0x1 << count))
+						{
+							x_screen_t *  screen ;
 
-				#ifdef  __DEBUG
-					kik_debug_printf( KIK_DEBUG_TAG " closing screen %d.") ;
-				#endif
-				
-					screen = screens[count] ;
-					screens[count] = screens[--num_of_screens] ;
-					close_screen_intern( screen) ;
+						#ifdef  __DEBUG
+							kik_debug_printf( KIK_DEBUG_TAG
+								" closing screen %d.") ;
+						#endif
 
-				#ifdef  __DEBUG
-					kik_msg_printf( " => Finished. Rest %d\n" ,
-							num_of_screens) ;
-				#endif
+							screen = screens[idx * MSU + count] ;
+							screens[idx * MSU + count] =
+								screens[--num_of_screens] ;
+							close_screen_intern( screen) ;
+
+						#ifdef  __DEBUG
+							kik_msg_printf( " => Finished. Rest %d\n" ,
+									num_of_screens) ;
+						#endif
+						}
+					}
+
+					memset( &dead_mask[idx] , 0 , sizeof(dead_mask[idx])) ;
 				}
 			}
-			
-			dead_mask = 0 ;
 		}
-
+		
 		kik_alloca_end_stack_frame() ;
 
 		if( num_of_screens == 0 && ! is_genuine_daemon)

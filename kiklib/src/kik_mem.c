@@ -254,6 +254,28 @@ kik_mem_realloc(
 	return  new_ptr ;
 }
 
+void
+kik_mem_dump_all(void)
+{
+	KIK_ITERATOR( mem_log_t)   iterator = NULL ;
+
+	iterator = kik_list_first( get_mem_logs()) ;
+	if( iterator)
+	{
+		while( iterator)
+		{
+			fprintf( stderr , "%p(size %d , alloced at %s[l.%d in %s] is allocated.\n" ,
+				kik_iterator_indirect( iterator)->ptr ,
+				kik_iterator_indirect( iterator)->size ,
+				kik_iterator_indirect( iterator)->func ,
+				kik_iterator_indirect( iterator)->line ,
+				kik_iterator_indirect( iterator)->file) ;
+
+			iterator = kik_iterator_next( iterator) ;
+		}
+	}
+}
+
 int
 kik_mem_free_all(void)
 {

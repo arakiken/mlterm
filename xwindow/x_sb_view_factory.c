@@ -20,10 +20,10 @@
 #define  SBLIB_DIR  LIBDIR "/mlterm/"
 #endif
 
-#ifndef  DATADIR
+#ifndef  XDATADIR
 #define  SB_DIR  "/usr/local/share/mlterm/scrollbars"
 #else
-#define  SB_DIR  DATADIR "/mlterm/scrollbars"
+#define  SB_DIR  XDATADIR "/mlterm/scrollbars"
 #endif
 
 #if  1

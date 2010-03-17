@@ -227,7 +227,7 @@ ml_config_menu_start(
 	 * use the wShowWindow flags.
 	 */
 
-	if( ( cmd_line = alloca( strlen( cmd_path) + 1 + strlen( geometry) + 1 +
+	if( ( cmd_line = alloca( strlen( cmd_path) + 1 + sizeof( geometry) +
 				(1 + DIGIT_STR_LEN(int)) * 2 + 1)) == NULL)
 	{
 	#ifdef  DEBUG
@@ -381,7 +381,7 @@ error2:
 				char  dir[] = LIBEXECDIR ;
 
 				/* not freed, since this process soon execv() */
-				if( ( p = malloc( strlen( cmd_path) + sizeof(dir) + 2)) == NULL)
+				if( ( p = malloc( sizeof(dir) + strlen( cmd_path) + 1)) == NULL)
 				{
 					exit(1) ;
 				}

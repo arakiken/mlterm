@@ -153,7 +153,8 @@ x_acquire_font_cache(
 
 	font_cache->font_config = font_config ;
 
-	kik_map_new( ml_font_t , x_font_t * , font_cache->xfont_table , font_hash , font_compare) ;
+	kik_map_new_with_size( ml_font_t , x_font_t * ,
+		font_cache->xfont_table , font_hash , font_compare , 32) ;
 
 	font_cache->display = display ;
 	font_cache->font_size = font_size ;
@@ -225,7 +226,8 @@ x_font_cache_unload(
 	/*
 	 * Creating new cache.
 	 */
-	kik_map_new( ml_font_t , x_font_t * , font_cache->xfont_table , font_hash , font_compare) ;
+	kik_map_new_with_size( ml_font_t , x_font_t * ,
+		font_cache->xfont_table , font_hash , font_compare , 32) ;
 	if( ! init_usascii_font( font_cache))
 	{
 	#ifdef  DEBUG

@@ -262,23 +262,23 @@ update_pic_transparent(
 	)
 {
 #ifndef  USE_WIN32GUI
-	x_picture_t  pic ;
+	x_bg_picture_t  pic ;
 
-	if( ! x_picture_init( &pic , win , win->pic_mod))
+	if( ! x_bg_picture_init( &pic , win , win->pic_mod))
 	{
 		return  0 ;
 	}
 
-	if( ! x_picture_load_background( &pic))
+	if( ! x_bg_picture_get_transparency( &pic))
 	{
-		x_picture_final( &pic) ;
+		x_bg_picture_final( &pic) ;
 
 		return  0 ;
 	}
 
 	set_transparent( win , pic.pixmap) ;
 
-	x_picture_final( &pic) ;
+	x_bg_picture_final( &pic) ;
 #endif
 
 	return  1 ;
@@ -979,10 +979,6 @@ x_window_init(
 	win->dnd = NULL ;
 	win->app_name = "mlterm" ;
 
-	win->icon_pix = None;
-	win->icon_mask = None;
-	win->icon_card = NULL;
-	
 	win->window_realized = NULL ;
 	win->window_finalized = NULL ;
 	win->window_exposed = NULL ;
@@ -1042,14 +1038,6 @@ x_window_final(
 	}
 
 	XDestroyWindow( win->display , win->my_window) ;
-
-	if( win->icon_pix){
-		XFreePixmap( win->display , win->icon_pix) ;
-	}
-	if( win->icon_mask){
-		XFreePixmap( win->display , win->icon_mask) ;
-	}
-	free( win->icon_card) ;
 #endif
 
 	x_xic_deactivate( win) ;
@@ -3228,123 +3216,28 @@ x_set_icon_name(
 }
 
 int
+x_window_set_icon(
+	x_window_t *  win ,
+	x_icon_picture_t *  icon
+	)
+{
+	return  0 ;
+}
+
+int
 x_window_remove_icon(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
-	XWMHints *hints ;
-
-	hints = XGetWMHints( win->display, win->my_window) ;
-
-	if( hints)
-	{
-
-		hints->flags &= ~IconPixmapHint ;
-		hints->flags &= ~IconMaskHint ;
-
-		XSetWMHints( win->display, win->my_window, hints) ;
-		XFree( hints) ;
-	}
-	/* do not use hints->icon_*. they may be shared! */
-	if( win->icon_pix != None)
-	{
-		XFreePixmap( win->display, win->icon_pix);
-		win->icon_pix = None ;
-	}
-	if( win->icon_mask != None)
-	{
-		XFreePixmap( win->display, win->icon_mask);
-		win->icon_mask = None ;
-	}
-	free( win->icon_card);
-	win->icon_card = NULL ;
-
-	XDeleteProperty( win->display, win->my_window,XA_NET_WM_ICON( win->display)) ;
-#endif
-
-	return  1 ;
+	return  0 ;
 }
 
 int
-x_window_set_icon(
-	x_window_t *  win,
-	Pixmap  icon,
-	Pixmap  mask,
-	u_int32_t *  cardinal
+x_window_reset_group(
+	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
-	XWMHints *  hints = NULL ;
-
-	/* set extended window manager hint's icon */
-	if( cardinal && cardinal[0] && cardinal[1])
-	{
-		/*it should be possible to set multiple icons...*/
-		XChangeProperty( win->display, win->my_window,
-				 XA_NET_WM_ICON( win->display),
-				 XA_CARDINAL, 32, PropModeReplace,
-				 (unsigned char *)(cardinal),
-				 /* (cardinal[0])*(cardinal[1])
-				  *          = width * height */
-				 (cardinal[0])*(cardinal[1]) +2) ;
-	}
-	/* set old style window manager hint's icon */
-	if (icon || mask)
-	{
-		hints = XGetWMHints( win->display, win->my_window) ;
-	}
-	if (!hints){
-		hints = XAllocWMHints() ;
-	}
-	if (!hints){
-		return 0 ;
-	}
-
-	if( icon)
-	{
-		hints->flags |= IconPixmapHint ;
-		hints->icon_pixmap = icon ;
-	}
-	if( mask)
-	{
-		hints->flags |= IconMaskHint ;
-		hints->icon_mask = mask ;
-	}
-
-	XSetWMHints( win->display, win->my_window, hints) ;
-	XFree( hints) ;
-#endif
-
-	return 1 ;
-}
-
-int
-x_window_set_icon_from_file(
-	x_window_t *  win,
-	char *  path
-	)
-{
-#ifndef  USE_WIN32GUI
-	int icon_size = 48;
-
-	x_window_remove_icon( win);
-
-	if( !x_imagelib_load_file( win->display ,
-				   path,
-				   &(win->icon_card),
-				   &(win->icon_pix),
-				   &(win->icon_mask),
-				   &icon_size ,&icon_size))
-	{
-		return  0 ;
-	}
-#endif
-
-	return x_window_set_icon( win,
-				  win->icon_pix,
-				  win->icon_mask,
-				  win->icon_card) ;
+	return  0 ;
 }
 
 int

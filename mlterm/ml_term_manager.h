@@ -9,7 +9,7 @@
 #include  "ml_term.h"
 
 
-int  ml_term_manager_init( void) ;
+int  ml_term_manager_init( u_int  multiple) ;
 
 int  ml_term_manager_final( void) ;
 

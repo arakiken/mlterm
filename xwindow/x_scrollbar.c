@@ -798,7 +798,7 @@ x_scrollbar_init(
 	x_picture_modifier_t *  pic_mod
 	)
 {
-	char  default_view_name[] = "simple" ;
+	char *  default_view_name = "simple" ;
 	u_int  width ;
 
 	/* dynamically allocated */

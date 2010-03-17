@@ -29,19 +29,13 @@ typedef struct  x_display
 	 */
 	Display *  display ;
 	int  screen ;		/* DefaultScreen */
+	char *  name ;
 
 	/*
 	 * Private
 	 */
-	char *  name ;
 	Window  my_window ;	/* DefaultRootWindow */
 	x_gc_t *  gc ;
-
-	Window group_leader ;
-	char *  icon_path ;
-	Pixmap  icon ;
-	Pixmap  mask ;
-	u_int32_t *  cardinal ;
 
 	x_window_ptr_t *  roots ;
 	u_int  num_of_roots ;
@@ -57,7 +51,7 @@ typedef struct  x_display
 } x_display_t ;
 
 
-x_display_t *  x_display_open( char *  name) ;
+x_display_t *  x_display_open( char *  disp_name) ;
 
 int  x_display_close( x_display_t *  disp) ;
 
@@ -85,8 +79,6 @@ int  x_display_own_selection( x_display_t *  disp , x_window_ptr_t  win) ;
 
 int  x_display_clear_selection( x_display_t *  disp , x_window_ptr_t  win) ;
 
-XID  x_display_get_group( x_display_t *  disp) ;
-
 XModifierKeymap *  x_display_get_modifier_mapping( x_display_t *  disp) ;
 
 #ifndef  USE_WIN32GUI
@@ -95,7 +87,7 @@ Cursor  x_display_get_cursor( x_display_t *  disp , u_int  shape) ;
 
 void  x_display_update_modifier_mapping( x_display_t *  disp ,	u_int  serial) ;
 
-int x_display_set_icon( x_window_ptr_t  win , char *  icon_path) ;
+XID  x_display_get_group_leader( x_display_t *  disp) ;
 
 
 #endif

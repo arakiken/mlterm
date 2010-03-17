@@ -132,7 +132,7 @@ receive_bytes(
 			vt100_parser->left * sizeof( u_char)) ;
 	}
 
-	left = PTYMSG_BUFFER_SIZE - vt100_parser->left ;
+	left = PTY_RD_BUFFER_SIZE - vt100_parser->left ;
 
 	if( ( ret = ml_read_pty( vt100_parser->pty ,
 		&vt100_parser->seq[vt100_parser->left] , left)) == 0)
@@ -294,7 +294,7 @@ put_char(
 	int  is_biwidth ;
 	int  is_comb ;
 
-	if( vt100_parser->buffer.len == PTYMSG_BUFFER_SIZE)
+	if( vt100_parser->buffer.len == PTY_WR_BUFFER_SIZE)
 	{
 		flush_buffer( vt100_parser) ;
 	}
@@ -2009,7 +2009,8 @@ parse_vt100_escape_sequence(
 						/* vt100 answerback */
 						char  seq[] = "\x1b[?1;2c" ;
 						
-						ml_write_to_pty( vt100_parser->pty , seq , strlen( seq)) ;
+						ml_write_to_pty( vt100_parser->pty ,
+							seq , sizeof(seq) - 1) ;
 					}
 					else if( *str_p == 'd')
 					{
@@ -2160,7 +2161,7 @@ parse_vt100_escape_sequence(
 							seq[2] = ps[0] + 2 + 0x30 ;
 							
 							ml_write_to_pty( vt100_parser->pty ,
-								seq , sizeof( seq)) ;
+								seq , sizeof( seq) - 1) ;
 						}
 					}
 				#ifdef  DEBUG
@@ -2663,7 +2664,7 @@ ml_vt100_parser_new(
 	vt100_parser->left = 0 ;
 	vt100_parser->len = 0 ;
 
-	ml_str_init( vt100_parser->buffer.chars , PTYMSG_BUFFER_SIZE) ;	
+	ml_str_init( vt100_parser->buffer.chars , PTY_WR_BUFFER_SIZE) ;	
 	vt100_parser->buffer.len = 0 ;
 	vt100_parser->buffer.output_func = ml_screen_overwrite_chars ;
 
@@ -2734,7 +2735,7 @@ ml_vt100_parser_delete(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
-	ml_str_final( vt100_parser->buffer.chars , PTYMSG_BUFFER_SIZE) ;
+	ml_str_final( vt100_parser->buffer.chars , PTY_WR_BUFFER_SIZE) ;
 	(*vt100_parser->cc_parser->delete)( vt100_parser->cc_parser) ;
 	(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
 
@@ -2991,16 +2992,21 @@ ml_parse_vt100_sequence(
 		if( ! parse_vt100_escape_sequence( vt100_parser))
 		{
 			/* shortage of chars */
-			if(vt100_parser->left >= PTYMSG_BUFFER_SIZE){
-				/* the sequence seems to be	 longer than PTY buffer, or
+			if( vt100_parser->left >= PTY_RD_BUFFER_SIZE)
+			{
+				/*
+				 * the sequence seems to be longer than PTY buffer, or
 				 * broken/unsupported.
-				 * try to recover from error by dropping bytes... */
+				 * try to recover from error by dropping bytes...
+				 */
 #ifdef DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG
 					  "escape sequence too long. dropped\n") ;
 #endif
 				vt100_parser->left--;
-			}else{
+			}
+			else
+			{
 				/* expect more input */
 				break ;
 			}

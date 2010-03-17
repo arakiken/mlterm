@@ -3,7 +3,6 @@ top_srcdir = @top_srcdir@
 prefix=@prefix@
 mandir=@mandir@
 
-DESTDIR=
 MANDIR=$(DESTDIR)$(mandir)
 MAN1DIR=$(MANDIR)/man1
 

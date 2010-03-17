@@ -4,7 +4,6 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 
-DESTDIR =
 BINDIR = $(DESTDIR)$(bindir)
 
 VPATH = ${top_srcdir}/contrib/tool/mlcc

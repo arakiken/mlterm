@@ -19,7 +19,6 @@
 
 #include  "x_xic.h"
 #include  "x_picture.h"
-#include  "x_imagelib.h"
 
 #ifndef  DISABLE_XDND
 #include  "x_dnd.h"
@@ -43,6 +42,7 @@
 #define  XA_TAKE_FOCUS(display) (XInternAtom(display , "WM_TAKE_FOCUS" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 #define  XA_XROOTPMAP_ID(display) (XInternAtom(display, "_XROOTPMAP_ID", False))
+#define  XA_WM_CLIENT_LEADER(display) (XInternAtom(display , "WM_CLIENT_LEADER" , False))
 
 /*
  * Extended Window Manager Hint support
@@ -204,23 +204,23 @@ update_pic_transparent(
 	x_window_t *  win
 	)
 {
-	x_picture_t  pic ;
+	x_bg_picture_t  pic ;
 
-	if( ! x_picture_init( &pic , win , win->pic_mod))
+	if( ! x_bg_picture_init( &pic , win , win->pic_mod))
 	{
 		return  0 ;
 	}
 
-	if( ! x_picture_load_background( &pic))
+	if( ! x_bg_picture_get_transparency( &pic))
 	{
-		x_picture_final( &pic) ;
+		x_bg_picture_final( &pic) ;
 
 		return  0 ;
 	}
 
 	set_transparent( win , pic.pixmap) ;
 
-	x_picture_final( &pic) ;
+	x_bg_picture_final( &pic) ;
 
 	return  1 ;
 }
@@ -516,6 +516,27 @@ total_height_inc(
 	return  height_inc ;
 }
 
+static XID
+reset_client_leader(
+	x_window_t *  root
+	)
+{
+	Window  leader ;
+
+	if( ( leader = x_display_get_group_leader( root->disp)) == None)
+	{
+		leader = root->my_window ;
+	}
+
+	XChangeProperty( root->disp->display , root->my_window ,
+			 XA_WM_CLIENT_LEADER(root->disp->display) ,
+			 XA_WINDOW , 32 , PropModeReplace ,
+			 (unsigned char *)(&leader) , 1) ;
+
+	return  leader ;
+}
+
+
 /* --- global functions --- */
 
 int
@@ -537,6 +558,8 @@ x_window_init(
 	 * these values are set later
 	 */
 
+	win->disp = NULL ;
+	
 	win->my_window = None ;
 
 	win->drawable = None ;
@@ -604,12 +627,8 @@ x_window_init(
 	win->click_num = 0 ;
 	win->button_is_pressing = 0 ;
 	win->dnd = NULL ;
-	win->app_name = "mlterm" ;
+	win->app_name = "mlterm" ;	/* Can be changed in x_display_show_root(). */
 
-	win->icon_pix = None;
-	win->icon_mask = None;
-	win->icon_card = NULL;
-	
 	win->window_realized = NULL ;
 	win->window_finalized = NULL ;
 	win->window_exposed = NULL ;
@@ -653,7 +672,7 @@ x_window_final(
 	}
 
 	free( win->children) ;
-
+	
 	x_display_clear_selection( win->disp , win) ;
 	
 	x_xic_deactivate( win) ;
@@ -666,14 +685,6 @@ x_window_final(
 #ifdef  USE_TYPE_XFT
 	XftDrawDestroy( win->xft_draw) ;
 #endif
-
-	if( win->icon_pix){
-		XFreePixmap( win->disp->display , win->icon_pix) ;
-	}
-	if( win->icon_mask){
-		XFreePixmap( win->disp->display , win->icon_mask) ;
-	}
-	free( win->icon_card) ;
 
 	if( win->create_gc)
 	{
@@ -1287,15 +1298,14 @@ x_window_show(
 		class_hint.res_name = win->app_name ;
 		class_hint.res_class = win->app_name ;
 
-		wm_hints.window_group = x_display_get_group( win->disp) ;
 		wm_hints.initial_state = NormalState ;	/* or IconicState */
 		wm_hints.input = True ;			/* wants FocusIn/FocusOut */
-		wm_hints.flags = WindowGroupHint | StateHint | InputHint ;
-		XChangeProperty( win->disp->display, win->my_window,
-				 XInternAtom( win->disp->display, "WM_CLIENT_LEADER", False),
-				 XA_WINDOW, 32, PropModeReplace,
-				 (unsigned char *)(&wm_hints.window_group), 1) ;
-
+		wm_hints.window_group = reset_client_leader( win) ;
+		wm_hints.flags = StateHint | InputHint | WindowGroupHint ;
+	#if  0
+		kik_debug_printf( KIK_DEBUG_TAG " Group leader -> %x\n" , wm_hints.window_group) ;
+	#endif
+	
 		/* notify to window manager */
 	#if  1
 		XmbSetWMProperties( win->disp->display , win->my_window , win->app_name ,
@@ -3115,117 +3125,106 @@ x_set_icon_name(
 }
 
 int
-x_window_remove_icon(
-	x_window_t *  win
-	)
-{
-	XWMHints *hints ;
-
-	hints = XGetWMHints( win->disp->display, win->my_window) ;
-
-	if( hints)
-	{
-
-		hints->flags &= ~IconPixmapHint ;
-		hints->flags &= ~IconMaskHint ;
-
-		XSetWMHints( win->disp->display, win->my_window, hints) ;
-		XFree( hints) ;
-	}
-	/* do not use hints->icon_*. they may be shared! */
-	if( win->icon_pix != None)
-	{
-		XFreePixmap( win->disp->display, win->icon_pix);
-		win->icon_pix = None ;
-	}
-	if( win->icon_mask != None)
-	{
-		XFreePixmap( win->disp->display, win->icon_mask);
-		win->icon_mask = None ;
-	}
-	free( win->icon_card);
-	win->icon_card = NULL ;
-
-	XDeleteProperty( win->disp->display, win->my_window,XA_NET_WM_ICON( win->disp->display)) ;
-
-	return  1 ;
-}
-
-int
 x_window_set_icon(
-	x_window_t *  win,
-	Pixmap  icon,
-	Pixmap  mask,
-	u_int32_t *  cardinal
+	x_window_t *  win ,
+	x_icon_picture_t *  icon
 	)
 {
-	XWMHints *  hints = NULL ;
+	x_window_t *  root ;
+	XWMHints *  hints ;
+
+	root = x_get_root_window( win) ;
 
 	/* set extended window manager hint's icon */
-	if( cardinal && cardinal[0] && cardinal[1])
+	if( icon->cardinal && icon->cardinal[0] && icon->cardinal[1])
 	{
 		/*it should be possible to set multiple icons...*/
-		XChangeProperty( win->disp->display, win->my_window,
-				 XA_NET_WM_ICON( win->disp->display),
+		XChangeProperty( root->disp->display, root->my_window,
+				 XA_NET_WM_ICON( root->disp->display),
 				 XA_CARDINAL, 32, PropModeReplace,
-				 (unsigned char *)(cardinal),
+				 (unsigned char *)(icon->cardinal),
 				 /* (cardinal[0])*(cardinal[1])
 				  *          = width * height */
-				 (cardinal[0])*(cardinal[1]) +2) ;
-	}
-	/* set old style window manager hint's icon */
-	if (icon || mask)
-	{
-		hints = XGetWMHints( win->disp->display, win->my_window) ;
-	}
-	if (!hints){
-		hints = XAllocWMHints() ;
-	}
-	if (!hints){
-		return 0 ;
+				 (icon->cardinal[0])*(icon->cardinal[1]) +2) ;
 	}
 
-	if( icon)
+	if( ( hints = XGetWMHints( root->disp->display , root->my_window)) == NULL &&
+		( hints = XAllocWMHints()) == NULL)
+	{
+		return  0 ;
+	}
+	
+	if( icon->pixmap)
 	{
 		hints->flags |= IconPixmapHint ;
-		hints->icon_pixmap = icon ;
+		hints->icon_pixmap = icon->pixmap ;
 	}
-	if( mask)
+	
+	if( icon->mask)
 	{
 		hints->flags |= IconMaskHint ;
-		hints->icon_mask = mask ;
+		hints->icon_mask = icon->mask ;
 	}
 
-	XSetWMHints( win->disp->display, win->my_window, hints) ;
+	XSetWMHints( root->disp->display, root->my_window, hints) ;
 	XFree( hints) ;
 
 	return 1 ;
 }
 
 int
-x_window_set_icon_from_file(
-	x_window_t *  win,
-	char *  path
+x_window_remove_icon(
+	x_window_t *  win
 	)
 {
-	int icon_size = 48;
+	x_window_t *  root ;
+	XWMHints *  hints ;
 
-	x_window_remove_icon( win);
+	root = x_get_root_window( win) ;
+	
+	if( ( hints = XGetWMHints( root->disp->display , root->my_window)))
+	{
+	#if  0
+		kik_debug_printf( " Removing icon.\n") ;
+	#endif
+	
+		hints->flags &= ~(IconPixmapHint | IconMaskHint) ;
+		hints->icon_pixmap = None ;
+		hints->icon_mask = None ;
 
-	if( !x_imagelib_load_file( win->disp->display ,
-				   path,
-				   &(win->icon_card),
-				   &(win->icon_pix),
-				   &(win->icon_mask),
-				   &icon_size ,&icon_size))
+		XSetWMHints( root->disp->display, root->my_window, hints) ;
+		XFree( hints) ;
+	}
+	
+	XDeleteProperty( root->disp->display, root->my_window ,
+		XA_NET_WM_ICON( root->disp->display)) ;
+
+	return  1 ;
+}
+
+int
+x_window_reset_group(
+	x_window_t *  win
+	)
+{
+	x_window_t *  root ;
+	XWMHints *  hints ;
+
+	root = x_get_root_window( win) ;
+
+	if( ( hints = XGetWMHints( root->disp->display , root->my_window)) == NULL &&
+		( hints = XAllocWMHints()) == NULL)
 	{
 		return  0 ;
 	}
+	
+	hints->flags |= WindowGroupHint ;
+	hints->window_group = reset_client_leader( root) ;
 
-	return x_window_set_icon( win,
-				  win->icon_pix,
-				  win->icon_mask,
-				  win->icon_card) ;
+	XSetWMHints( root->disp->display, root->my_window, hints) ;
+	XFree( hints) ;
+
+	return  1 ;
 }
 
 int

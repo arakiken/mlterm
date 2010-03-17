@@ -1,6 +1,6 @@
 mlterm|multi lingual terminal emulator:\
 	:am:km:mi:ms:xn:\
-	:Co#8:co#80:it#8:li#24:pa#64:\
+	:Co#256:co#80:it#8:li#24:pa#64:\
 	:*6=\E[4~:@0=\E[1~:@7=\EOF:AB=\E[4%dm:AF=\E[3%dm:\
 	:AL=\E[%dL:DC=\E[%dP:DL=\E[%dM:DO=\E[%dB:F1=\E[23~:\
 	:F2=\E[24~:IC=\E[%d@:Km=\E[M:LE=\E[%dD:\

@@ -112,8 +112,10 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
 		"brightness of background image in percent [100]") ;
 #endif
+#ifndef  USE_WIN32GUI
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
+#endif
 	kik_conf_add_opt( conf , 'J' , "dyncomb" , 1 , "use_dynamic_comb" ,
 		"use dynamic combining [false]") ;
 	kik_conf_add_opt( conf , 'K' , "metakey" , 0 , "mod_meta_key" ,
@@ -182,12 +184,12 @@ x_prepare_for_main_config(
 		"terminal type for TERM variable [xterm]") ;
 	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
 		"step in changing font size in GUI configurator [1]") ;
-	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
-		"input method (xim/kbd/uim/iiimf/m17nlib/scim/none) [xim]") ;
 #if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
 	kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
 		"path to an imagefile to be use as an window icon") ;
 #endif
+	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
+		"input method (xim/kbd/uim/iiimf/m17nlib/scim/none) [xim]") ;
 #ifdef  USE_WIN32API
 	kik_conf_add_opt( conf , '\0' , "servlist" , 0 , "server_list" ,
 		"list of servers to connect") ;
@@ -209,6 +211,7 @@ x_main_config_init(
 	)
 {
 	char *  value ;
+	char *  invalid_msg = "%s %s is not valid.\n" ;
 	
 	if( ( value = kik_conf_get_value( conf , "display")) == NULL)
 	{
@@ -226,7 +229,7 @@ x_main_config_init(
 	}
 	else if( ! kik_str_to_uint( &main_config->font_size , value))
 	{
-		kik_msg_printf( "font size %s is not valid.\n" , value) ;
+		kik_msg_printf( invalid_msg , "font size" , value) ;
 
 		/* default value is used. */
 		main_config->font_size = 16 ;
@@ -349,7 +352,7 @@ x_main_config_init(
 		}
 		else
 		{
-			kik_msg_printf( "step in changing font size %s is not valid.\n" , value) ;
+			kik_msg_printf( invalid_msg , "step in changing font size" , value) ;
 		}
 	}
 
@@ -358,6 +361,7 @@ x_main_config_init(
 #else
 	main_config->type_engine = TYPE_XFT ;
 #endif
+
 	if( ( value = kik_conf_get_value( conf , "type_engine")))
 	{
 	#ifdef  USE_TYPE_XFT
@@ -519,6 +523,10 @@ x_main_config_init(
 		{
 			main_config->screen_width_ratio = ratio ;
 		}
+		else
+		{
+			kik_msg_printf( invalid_msg , "screen_width_ratio" , value) ;
+		}
 	}
 
 	main_config->screen_height_ratio = 100 ;
@@ -530,6 +538,10 @@ x_main_config_init(
 		if( kik_str_to_uint( &ratio , value) && ratio)
 		{
 			main_config->screen_height_ratio = ratio ;
+		}
+		else
+		{
+			kik_msg_printf( invalid_msg , "screen_height_ratio" , value) ;
 		}
 	}
 	
@@ -555,7 +567,7 @@ x_main_config_init(
 		}
 		else
 		{
-			kik_msg_printf( "line space %s is not valid.\n" , value) ;
+			kik_msg_printf( invalid_msg , "line space" , value) ;
 		}
 	}
 
@@ -565,7 +577,7 @@ x_main_config_init(
 	}
 	else if( ! kik_str_to_uint( &main_config->num_of_log_lines , value))
 	{
-		kik_msg_printf( "log size %s is not valid.\n" , value) ;
+		kik_msg_printf( invalid_msg , "log size" , value) ;
 
 		/* default value is used. */
 		main_config->num_of_log_lines = 128 ;
@@ -578,7 +590,7 @@ x_main_config_init(
 	}
 	else if( ! kik_str_to_uint( &main_config->tab_size , value))
 	{
-		kik_msg_printf( "tab size %s is not valid.\n" , value) ;
+		kik_msg_printf( invalid_msg , "tab size" , value) ;
 
 		/* default value is used. */
 		main_config->tab_size = 8 ;
@@ -686,7 +698,7 @@ x_main_config_init(
 		}
 		else
 		{
-			kik_msg_printf( "col size of width a %s is not valid.\n" , value) ;
+			kik_msg_printf( invalid_msg , "col size of width a" , value) ;
 		}
 	}
 
@@ -731,10 +743,10 @@ x_main_config_init(
 		}
 		else
 		{
-			kik_msg_printf( "shade ratio %s is not valid.\n" , value) ;
+			kik_msg_printf( invalid_msg , "shade ratio" , value) ;
 		}
 	}
-	
+
 	main_config->contrast = 100 ;
 
 	if( ( value = kik_conf_get_value( conf , "contrast")))
@@ -747,7 +759,7 @@ x_main_config_init(
 		}
 		else
 		{
-			kik_msg_printf( "contrast ratio %s is not valid.\n" , value) ;
+			kik_msg_printf( invalid_msg , "contrast ratio" , value) ;
 		}
 	}
 	
@@ -763,7 +775,7 @@ x_main_config_init(
 		}
 		else
 		{
-			kik_msg_printf( "gamma ratio %s is not valid.\n" , value) ;
+			kik_msg_printf( invalid_msg , "gamma ratio" , value) ;
 		}
 	}
 
@@ -779,7 +791,7 @@ x_main_config_init(
 		}
 		else
 		{
-			kik_msg_printf( "alpha %s is not valid.\n" , value) ;
+			kik_msg_printf( invalid_msg , "alpha" , value) ;
 		}
 	}
 	
@@ -795,7 +807,7 @@ x_main_config_init(
 		}
 		else
 		{
-			kik_msg_printf( "fade ratio %s is not valid.\n" , value) ;
+			kik_msg_printf( invalid_msg , "fade ratio" , value) ;
 		}
 	}
 
@@ -873,7 +885,7 @@ x_main_config_init(
 	}
 	
 	main_config->iscii_lang_type = ISCIILANG_MALAYALAM ;
-	
+
 	if( ( value = kik_conf_get_value( conf , "iscii_lang")))
 	{
 		ml_iscii_lang_type_t  type ;
@@ -895,7 +907,7 @@ x_main_config_init(
 	}
 
 	main_config->borderless = 0 ;
-
+	
 	if( ( value = kik_conf_get_value( conf , "borderless")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -922,7 +934,6 @@ x_main_config_init(
 	{
 		main_config->icon_path = NULL ;
 	}
-
 
 	if( ( value = kik_conf_get_value( conf , "input_method")))
 	{
@@ -1088,8 +1099,8 @@ x_main_config_final(
 	free( main_config->cursor_bg_color) ;
 	free( main_config->sb_fg_color) ;
 	free( main_config->sb_bg_color) ;
-	free( main_config->icon_path) ;
 	free( main_config->mod_meta_key) ;
+	free( main_config->icon_path) ;
 	free( main_config->input_method) ;
 	free( main_config->init_str) ;
 

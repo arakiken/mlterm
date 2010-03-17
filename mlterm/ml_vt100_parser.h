@@ -15,8 +15,13 @@
 #include  "ml_char_encoding.h"
 
 
-/* the same as kterm BUF_SIZE in ptyx.h */
-#define  PTYMSG_BUFFER_SIZE	4096
+/*
+ * kterm BUF_SIZE in ptyx.h is 4096.
+ * Following size is adjusted to suppress sizeof(ml_vt100_parser_t) to 4KB.
+ * 3984 bytes in ILP32, 4020 bytes in LP64.
+ */
+#define  PTY_RD_BUFFER_SIZE  3072
+#define  PTY_WR_BUFFER_SIZE  100
 
 
 typedef enum  ml_unicode_font_policy
@@ -31,7 +36,7 @@ typedef enum  ml_unicode_font_policy
 
 typedef struct  ml_char_buffer
 {
-	ml_char_t  chars[PTYMSG_BUFFER_SIZE] ;
+	ml_char_t  chars[PTY_WR_BUFFER_SIZE] ;
 	
 	u_int  len ;
 	int (*output_func)( ml_screen_t * , ml_char_t *  chars , u_int) ;
@@ -79,12 +84,13 @@ typedef struct  ml_config_event_listener
 
 typedef struct  ml_vt100_storable_states
 {
-	int is_saved;
-	ml_color_t  fg_color ;
-	ml_color_t  bg_color ;
+	int8_t  is_saved ;
+	
 	int8_t  is_bold ;
 	int8_t  is_underlined ;
 	int8_t  is_reversed ;
+	ml_color_t  fg_color ;
+	ml_color_t  bg_color ;
 	mkf_charset_t  cs ;
 
 } ml_vt100_storable_states_t ;
@@ -92,7 +98,7 @@ typedef struct  ml_vt100_storable_states
 
 typedef struct  ml_vt100_parser
 {
-	u_char  seq[PTYMSG_BUFFER_SIZE] ;
+	u_char  seq[PTY_RD_BUFFER_SIZE] ;
 	size_t  len ;
 	size_t  left ;
 

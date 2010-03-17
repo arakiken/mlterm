@@ -81,10 +81,15 @@ is_word_separator(
 	return  0 ;
 }
 
+
 /*
  * callbacks of ml_edit_scroll_event_listener_t.
  */
- 
+
+/*
+ * Don't operate ml_model_t in this function because ml_model_t is not scrolled yet.
+ * Operate ml_model_t in scrolled_out_lines_finished().
+ */ 
 static void
 receive_scrolled_out_line(
 	void *  p ,
@@ -111,17 +116,24 @@ receive_scrolled_out_line(
 	
 	ml_log_add( &screen->logs , line) ;
 
-	switch( ml_screen_is_backscrolling( p))
+	if( ml_screen_is_backscrolling( screen) == BSM_STATIC)
 	{
-	case  BSM_STATIC:
 		screen->backscroll_rows ++ ;
-		break ;
-	case  BSM_VOLATILE:
+	}
+}
+
+static void
+scrolled_out_lines_finished(
+	void *  p
+	)
+{
+	ml_screen_t *  screen ;
+
+	screen = p ;
+	
+	if( ml_screen_is_backscrolling( screen) == BSM_VOLATILE)
+	{
 		ml_screen_set_modified_all( screen) ;
-		break ;
-	case  BSM_NONE:
-	default:
-		break ;
 	}
 }
 
@@ -139,6 +151,10 @@ window_scroll_upward_region(
 
 	if( screen->is_backscrolling)
 	{
+		/*
+		 * Not necessary to scrolling window. If backscroll_mode is BSM_VOLATILE,
+		 * ml_screen_set_modified_all() in scrolled_out_lines_finished() later.
+		 */
 		return  1 ;
 	}
 
@@ -150,6 +166,7 @@ window_scroll_upward_region(
 	return  (*screen->screen_listener->window_scroll_upward_region)(
 			screen->screen_listener->self , beg_row , end_row , size) ;
 }
+
 
 static int
 window_scroll_downward_region(
@@ -165,6 +182,10 @@ window_scroll_downward_region(
 
 	if( screen->is_backscrolling)
 	{
+		/*
+		 * Not necessary to scrolling window. If backscroll_mode is BSM_VOLATILE,
+		 * ml_screen_set_modified_all() in scrolled_out_lines_finished() later.
+		 */
 		return  1 ;
 	}
 	
@@ -635,6 +656,7 @@ ml_screen_new(
 
 	screen->edit_scroll_listener.self = screen ;
 	screen->edit_scroll_listener.receive_scrolled_out_line = receive_scrolled_out_line ;
+	screen->edit_scroll_listener.scrolled_out_lines_finished = scrolled_out_lines_finished ;
 	screen->edit_scroll_listener.window_scroll_upward_region = window_scroll_upward_region ;
 	screen->edit_scroll_listener.window_scroll_downward_region = window_scroll_downward_region ;
 

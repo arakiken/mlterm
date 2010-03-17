@@ -150,6 +150,9 @@ scroll_upward_region(
 		edit->cursor.col = 0 ;
 		edit->cursor.char_index = 0 ;
 
+		(*edit->scroll_listener->scrolled_out_lines_finished)(
+			edit->scroll_listener->self) ;
+
 		return  clear_lines_to_eol( edit , boundary_beg , boundary_end - boundary_beg + 1) ;
 	}
 
@@ -225,6 +228,12 @@ scroll_upward_region(
 		clear_lines_to_eol( edit , boundary_end - size + 1 , size) ;
 	}
 
+	/*
+	 * This must be called after ml_model_scroll_upward() because scrolled_out_lines_finished()
+	 * can change ml_model_t.
+	 */
+	(*edit->scroll_listener->scrolled_out_lines_finished)( edit->scroll_listener->self) ;
+	
 	return  1 ;
 }
 

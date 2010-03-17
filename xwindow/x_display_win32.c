@@ -106,7 +106,7 @@ hide_console(void)
 
 x_display_t *
 x_display_open(
-	char *  name
+	char *  disp_name	/* Ignored */
 	)
 {
 #ifndef  UTF16_IME_CHAR
@@ -146,14 +146,10 @@ x_display_open(
 	}
 
 	_disp.screen = 0 ;
+	_disp.name = NULL ;
+	
 	_disp.my_window = None ;
-	_disp.group_leader = None ;
 
-	_disp.icon_path = NULL;
-	_disp.icon = None ;
-	_disp.mask = None ;
-	_disp.cardinal = NULL ;
- 
 	_disp.roots = NULL ;
 	_disp.num_of_roots = 0 ;
 
@@ -201,21 +197,6 @@ x_display_close(
 	}
 
 	x_gc_delete( disp->gc) ;
-
-	free( disp->icon_path);
-
-#ifndef  USE_WIN32GUI
-	if( disp->icon)
-	{
-		XFreePixmap( disp->display, disp->icon) ;
-	}
-	if( disp->mask)
-	{
-		XFreePixmap( disp->display, disp->mask) ;
-	}
-#endif
-
-	free( disp->cardinal) ;
 
 	for( count = 0 ; count < disp->num_of_roots ; count ++)
 	{
@@ -462,14 +443,6 @@ x_display_clear_selection(
 }
 
 
-XID
-x_display_get_group(
-	x_display_t *  disp
-	)
-{
-	return  disp->group_leader ;
-}
-
 
 XModifierKeymap *
 x_display_get_modifier_mapping(
@@ -488,55 +461,10 @@ x_display_update_modifier_mapping(
 	/* dummy */
 }
 
-int x_display_set_icon(
-	x_window_t *  win,
-	char *  icon_path
+XID
+x_display_get_group_leader(
+	x_display_t *  disp
 	)
 {
-	x_display_t *  disp ;
-
-	disp = win->disp ;
-
-	if( !icon_path && !disp->icon_path)
-	{
-		/* dont't need icon at all? */
-		return  0 ;
-	}
-
-	if( !disp->icon_path)
-	{
-		x_window_t  dummy = {NULL};
-
-		/* register the default icon */
-		if(!(disp->icon_path = strdup( icon_path)))
-		{
-			return  0 ;
-		}
-		dummy.my_window = disp->group_leader ;
-		dummy.disp = disp ;
-		dummy.icon_pix = None ;
-		dummy.icon_mask = None ;
-		dummy.icon_card = NULL ;
-		x_window_set_icon_from_file( &dummy, icon_path);
-
-		disp->icon = dummy.icon_pix ;
-		disp->mask = dummy.icon_mask ;
-		disp->cardinal = dummy.icon_card ;
-
-	}
-
-	if( !icon_path || strcmp( icon_path, disp->icon_path) ==0)
-	{
-		x_window_remove_icon( win) ;
-		/* use a default icon from window manager */
-		return x_window_set_icon( win,
-					  disp->icon,
-					  disp->mask,
-					  disp->cardinal) ;
-	}
-	else
-	{
-		/* load new icon from "icon_path" */
-		return x_window_set_icon_from_file( win, icon_path);
-	}
+	return  None ;
 }

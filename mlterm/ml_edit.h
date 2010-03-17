@@ -19,6 +19,7 @@ typedef struct ml_edit_scroll_event_listener
 	void *  self ;
 
 	void (*receive_scrolled_out_line)( void * , ml_line_t *) ;
+	void (*scrolled_out_lines_finished)( void *) ;
 	
 	int  (*window_scroll_upward_region)( void * , int , int , u_int) ;
 	int  (*window_scroll_downward_region)( void * , int , int , u_int) ;

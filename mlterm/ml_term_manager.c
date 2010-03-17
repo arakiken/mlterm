@@ -13,7 +13,8 @@
 #include  "ml_config_proto.h"
 
 
-#define  MAX_TERMS  (8*sizeof(dead_mask))
+#define  MAX_TERMS  (MTU * max_terms_multiple)	/* Default MAX_TERMS is 32. */
+#define  MTU        (8 * sizeof(*dead_mask))	/* MAX_TERMS unit */
 
 #if  0
 #define  __DEBUG
@@ -22,9 +23,16 @@
 
 /* --- static variables --- */
 
-static u_long  dead_mask ;
-static ml_term_t *  terms[MAX_TERMS] ;
+static u_int  max_terms_multiple ;
+static u_int32_t *  dead_mask ;
+
+/*
+ * 'terms' pointer must not be changed because ml_get_all_terms returns it directly.
+ * So 'terms' array must be allocated only once.
+ */
+static ml_term_t **  terms ;
 static u_int  num_of_terms ;
+
 static char *  pty_list ;
 
 
@@ -56,11 +64,14 @@ sig_child(
 	{
 		if( pid == ml_term_get_child_pid( terms[count]))
 		{
+			u_int  idx ;
+			
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " pty %d is dead.\n" , count) ;
 		#endif
-		
-			dead_mask |= (1 << count) ;
+
+			idx = count / MTU ;
+			dead_mask[idx] |= (1 << (count - MTU * idx)) ;
 
 			return ;
 		}
@@ -71,8 +82,32 @@ sig_child(
 /* --- global functions --- */
 
 int
-ml_term_manager_init(void)
+ml_term_manager_init(
+	u_int  multiple
+	)
 {
+	if( multiple > 0)
+	{
+		max_terms_multiple = multiple ;
+	}
+	else
+	{
+		max_terms_multiple = 1 ;
+	}
+
+	if( ( terms = malloc( sizeof( ml_term_t*) * MAX_TERMS)) == NULL)
+	{
+		return  0 ;
+	}
+
+	if( ( dead_mask = calloc( sizeof( *dead_mask) , max_terms_multiple)) == NULL)
+	{
+		free( terms) ;
+		terms = NULL ;
+
+		return  0 ;
+	}
+
 	kik_add_sig_child_listener( NULL , sig_child) ;
 	ml_config_proto_init() ;
 	
@@ -102,6 +137,9 @@ ml_term_manager_final(void)
 		ml_term_delete( terms[count]) ;
 	}
 
+	free( terms) ;
+	
+	free( dead_mask) ;
 	free( pty_list) ;
 
 	return  1 ;
@@ -127,6 +165,11 @@ ml_create_term(
 	ml_iscii_lang_type_t  iscii_lang_type
 	)
 {
+	if( num_of_terms == MAX_TERMS)
+	{
+		return  NULL ;
+	}
+	
 	/*
 	 * Before modifying terms and num_of_terms, do ml_close_dead_terms().
 	 */
@@ -136,11 +179,6 @@ ml_create_term(
 	 * XXX
 	 * If sig_child here...
 	 */
-	
-	if( num_of_terms == MAX_TERMS)
-	{
-		return  NULL ;
-	}
 
 	if( ( terms[num_of_terms] = ml_term_new( cols , rows , tab_size , log_size , encoding ,
 				is_auto_encoding ,
@@ -170,7 +208,7 @@ ml_destroy_term(
 	 * XXX
 	 * If sig_child here...
 	 */
-	
+
 	for( count = 0 ; count < num_of_terms ; count++)
 	{
 		if( terms[count] == term)
@@ -299,6 +337,10 @@ ml_prev_term(
 	return  NULL ;
 }
 
+/*
+ * Return value: Number of opened terms. Don't trust it after ml_create_term(),
+ * ml_destroy_term() or ml_close_dead_terms() which can change it is called.
+ */
 u_int
 ml_get_all_terms(
 	ml_term_t ***  _terms
@@ -312,37 +354,46 @@ ml_get_all_terms(
 int
 ml_close_dead_terms(void)
 {
-	if( dead_mask)
+	if( num_of_terms > 0)
 	{
-		int  count ;
+		int  idx ;
 
-		for( count = num_of_terms - 1 ; count >= 0 ; count --)
+		for( idx = (num_of_terms - 1) / MTU ; idx >= 0 ; idx --)
 		{
-			if( dead_mask & (0x1 << count))
+			if( dead_mask[idx])
 			{
-				ml_term_t *  term ;
+				int  count ;
 
-			#ifdef  __DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG " closing dead term %d." ,
-					count) ;
-			#endif
-			
-				term = terms[count] ;
-				/*
-				 * Update terms and num_of_terms before ml_term_delete.
-				 * ml_term_delete calls ml_pty_event_listener::pty_close
-				 * in which ml_term_manager can be used.
-				 */
-				terms[count] = terms[--num_of_terms] ;
-				ml_term_delete( term) ;
+				for( count = MTU - 1 ; count >= 0 ; count --)
+				{
+					if( dead_mask[idx] & (0x1 << count))
+					{
+						ml_term_t *  term ;
 
-			#ifdef  __DEBUG
-				kik_msg_printf( " => Finished.\n") ;
-			#endif
+					#ifdef  __DEBUG
+						kik_debug_printf( KIK_DEBUG_TAG
+							" closing dead term %d." , count) ;
+					#endif
+
+						term = terms[idx * MTU + count] ;
+						/*
+						 * Update terms and num_of_terms before
+						 * ml_term_delete, which calls
+						 * ml_pty_event_listener::pty_close in which
+						 * ml_term_manager can be used.
+						 */
+						terms[idx * MTU + count] = terms[--num_of_terms] ;
+						ml_term_delete( term) ;
+
+					#ifdef  __DEBUG
+						kik_msg_printf( " => Finished.\n") ;
+					#endif
+					}
+				}
+
+				memset( &dead_mask[idx] , 0 , sizeof(dead_mask[idx])) ;
 			}
 		}
-
-		dead_mask = 0 ;
 	}
 	
 	return  1 ;

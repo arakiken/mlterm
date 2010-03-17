@@ -18,12 +18,13 @@ version 20091211
                      receive_string_via_ucs | input_method | wall_picture |
                      full_reset | brightness | gamma | contrast | line_space |
                      screen_width_ratio | screen_height_ratio | vertical_mode |
-                     scrollbar_mode | use_multi_column_char |
+                     scrollbar_mode | stataic_backscroll_mode | use_multi_column_char |
                      scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | cursor_fg_color |
                      cursor_bg_color | open_pty | open_screen | select_pty |
                      snapshot | gen_proto_challenge | icon_path | logging_vt_seq |
-		     title
+		     title | mlclient <prefix options> <options> |
+		     mlclientx <prefix options> <options>
   get key          = encoding | is_auto_encoding | fg_color | bg_color |
                      tabsize | logsize | fontsize | fade_ratio | mod_meta_key |
                      mod_meta_mode | bel_mode | type_engine | use_anti_alias |
@@ -66,6 +67,8 @@ version 20091211
   line_space = <any ASCII decimal digit>
   locale = <locale name>
   logsize = <any ASCII decimal digit>
+  mlclient = <none>
+  mlclientx = <none>
   mod_meta_key = none | mod1 | mod2 | mod3 | mod4 | meta | alt | super | hyper
   mod_meta_mode = none | esc | 8bit
   open_pty = <none>
@@ -83,8 +86,10 @@ version 20091211
   scrollbar_view_name = <name>
   select_pty = <pty dev name>
   snapshot = <encoding name>:<file name> | <none>
+  stataic_backscroll_mode = true | false
   tabsize = <any ASCII decimal digit>
   title = <pty title>
+  type_engine = xcore | xft
   use_anti_alias = true | false
   use_bidi = true | false
   use_combining = true | false
@@ -113,3 +118,7 @@ version 20091211
   o /dev/... in 5379,5382,5383 proto is ignored for now.
   o If "snapshot" protocol issued without <file name> or with no value,
     screen snapshot is output to ~/.mlterm/[tty].snp.
+  o "mlclient" protocol accepts arguments like mlclient command.
+    e.g. "\x1b]5379;mlclient --km utf8\x07"
+  o "mlclientx" protocol is similar to "mlclient" one except for not creating
+    any new window.

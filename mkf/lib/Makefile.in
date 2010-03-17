@@ -8,7 +8,6 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)
 INCDIR = $(DESTDIR)$(prefix)/include
 

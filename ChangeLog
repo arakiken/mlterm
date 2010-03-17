@@ -1,3 +1,40 @@
+2010-03-17  Araki Ken  <arakiken@users.sf.net>
+
+	* xwindow/Makefile.in, tool/mlconfig/Makefile.in, x_sb_view_factory.c, mc_sb_view.c:
+	  DATADIR macro is renamed to XDATADIR to avoid conflicting with DATADIR
+	  structure in w32api/objidl.h.
+
+	* "static_backscroll_mode" option is added to configuration protocol.
+	  ('set' only)
+
+	* "open_screen" configuration protocol or Ctrl+F1 opens a new
+	  screen in the display which the screen where it is executed
+	  belongs to.
+
+	* scrolled_out_lines_finished event is added to ml_edit_scroll_event_listener_t.
+	  If ml_screen_set_modified_all() is called in receive_scrolled_out_line event
+	  in which ml_model_t is not scrolled yet, redrawing screen can fail.
+
+	* --maxptys option which specifies maximum number of ptys to open
+	  simultaneously is added.
+
+	* 'mlclient <prefix options> <options>' and 'mlclientx <prefix options> <options>'
+	  are supported in configuration protocol. (see doc/en/PROTOCOL.)
+
+	* x_screen instead of x_display and x_window manages an icon picture.
+
+	* x_picture.[ch]: x_icon_picture_t and related functions are added.
+
+	* etc/main.ja: Updated.
+
+	* doc/en/README.win32, doc/ja/README.win32: Updated.
+
+	* doc/term/mlterm.ti: colors#8 => colors#256
+
+	* doc/term/mlterm.tc: Co#8 => Co#256
+
+	* x_main_config.c: -I/--icon option is removed in win32.
+
 2010-02-28  Araki Ken  <arakiken@users.sf.net>
 
 	* x_term_manager.c: -pw option of plink is specified only with SSH in

@@ -16,10 +16,10 @@
 #include  "mc_combo.h"
 #include  "mc_io.h"
 
-#ifndef  DATADIR
+#ifndef  XDATADIR
 #define  SB_DIR  "/usr/local/share/mlterm/scrollbars"
 #else
-#define  SB_DIR  DATADIR "/mlterm/scrollbars"
+#define  SB_DIR  XDATADIR "/mlterm/scrollbars"
 #endif
 
 #define MAX_SCROLLBARS 100

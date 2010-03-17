@@ -5,8 +5,6 @@ exec_prefix = @exec_prefix@
 datadir = @datadir@
 libdir = @libdir@
 
-DESTDIR =
-PREFIX = $(DESTDIR)$(prefix)
 LIBDIR = $(DESTDIR)$(libdir)/mlterm
 DATADIR = $(DESTDIR)$(datadir)/mlterm
 
