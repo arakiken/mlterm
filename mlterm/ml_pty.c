@@ -14,6 +14,9 @@
 #include  <kiklib/kik_mem.h>	/* realloc/alloca */
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_pty.h>
+#ifdef  USE_UTMP
+#include  <kiklib/kik_utmp.h>
+#endif
 
 
 #if  0
