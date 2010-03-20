@@ -8,7 +8,7 @@ LIBDIR = $(DESTDIR)$(libdir)/mlterm
 
 VPATH = ${top_srcdir}/inputmethod/scim
 
-IM_SCIM_OBJ = im_scim_mod_if.o im_scim_@SCIM_VERSION@.o
+IM_SCIM_OBJ = im_scim_mod_if.o im_scim.o
 
 CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @DEB_CFLAGS@			\

@@ -587,16 +587,8 @@ AC_ARG_ENABLE(scim,
 	scim=$enable_scim)
 if test "x$scim" = "xyes" ; then
 	AC_PROG_CXX
-	PKG_CHECK_MODULES(SCIM, scim >= 1.4.0, have_scim_1_4=yes , have_scim=no)
-	PKG_CHECK_MODULES(SCIM, scim >= 1.2.0, have_scim_1_2=yes , have_scim=no)
-	if test "x$have_scim_1_4" = xyes ; then
-		SCIM_VERSION="1.4"
-		have_scim=yes
-	elif test "x$have_scim_1_2" = xyes ; then
-		SCIM_VERSION="1.2"
-		have_scim=yes
-	fi
-	if test "x$have_scim" = xyes ; then
+	PKG_CHECK_MODULES(SCIM, scim >= 1.4.0, has_scim=yes , has_scim=no)
+	if test "x$has_scim" = xyes ; then
 		IM_CFLAGS="$IM_CFLAGS -DUSE_SCIM"
 		MAKE_DIRS="inputmethod/scim ${MAKE_DIRS}"
 		OUTPUT_FILES="inputmethod/scim/Makefile ${OUTPUT_FILES}"
@@ -608,7 +600,6 @@ if test "x$scim" = "xyes" ; then
 fi
 AC_SUBST(SCIM_CFLAGS)
 AC_SUBST(SCIM_LIBS)
-AC_SUBST(SCIM_VERSION)
 
 
 if test "x$IM_CFLAGS" != x ; then
