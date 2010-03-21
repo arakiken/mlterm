@@ -109,8 +109,8 @@ Supported platforms
   * OpenSolaris 2009.06 (CC=cc) (x86)
   * MS Windows XP SP3 (x86)
   * MS Windows XP SP3/MSYS 1.0.10 (x86)
-  * MS Windows XP SP3/Cygwin 1.5.25-15 (x86)
-  * MS Windows XP SP3/Cygwin 1.5.25-15 with X (x86)
+  * MS Windows XP SP3/Cygwin 1.7.1-1 (x86)
+  * MS Windows XP SP3/Cygwin 1.7.1-1 with X (x86)
 
   Following platforms are not actually tested by developers, but were supported
   in the past and are probably supported now.
