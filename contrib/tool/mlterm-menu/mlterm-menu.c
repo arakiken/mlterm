@@ -26,8 +26,8 @@
 
 #define MENU_RCFILE "mlterm/menu"
 
-/* XXX Hack */
-#ifdef  NO_G_LOCALE
+/* XXX Adhoc */
+#if  (GTK_MAJOR_VERSION < 2)
 #define  g_locale_to_utf8(a,b,c,d,e) (a)
 #endif
 

@@ -1,3 +1,13 @@
+2010-03-28  Araki Ken  <arakiken@users.sf.net>
+
+	* tool/mlconfig/gtkxlfdsel.[ch]: Added. GtkXlfdSel which is ported from
+	  gtkfontsel.[ch] in GTK+-1.2.10 shows XLFD font in GTK+ >= 2.0.
+	  mc_font.c: Fixed around gtkxlfdsel.[ch].
+
+	* kik_utmp_sysv.c: /dev/ttypN format is supported.
+
+	* configure.in, tool/mlconfig/Makefile, contrib/tool/mlterm-menu/Makefile: Fixed.
+
 2010-03-21  Araki Ken  <arakiken@users.sf.net>
 
 	* README: updated.

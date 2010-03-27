@@ -146,8 +146,7 @@ AC_ARG_ENABLE(fribidi,
 if test "$fribidi" = "yes" ; then
 	PKG_CHECK_MODULES(FRIBIDI, fribidi, have_fribidi=yes, have_fribidi=no)
 	if test "$have_fribidi" = "yes" ; then
-		FRIBIDI_CFLAGS="`$PKG_CONFIG --cflags fribidi|sed 's/\\\r//g'` -DUSE_FRIBIDI"
-		FRIBIDI_LIBS="`$PKG_CONFIG --libs fribidi|sed 's/\\\r//g'`"
+		FRIBIDI_CFLAGS="${FRIBIDI_CFLAGS} -DUSE_FRIBIDI"
 	else
 		AC_CHECK_PROG(fribidi_config,fribidi-config,yes,fribidi="no")
 		if test "$fribidi_config" = "yes" ; then
@@ -156,6 +155,9 @@ if test "$fribidi" = "yes" ; then
 		fi
 	fi
 fi
+# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
+FRIBIDI_CFLAGS="`echo ${FRIBIDI_CFLAGS} | tr -d '\r'`"
+FRIBIDI_LIBS="`echo ${FRIBIDI_LIBS} | tr -d '\r'`"
 AC_SUBST(FRIBIDI_CFLAGS)
 AC_SUBST(FRIBIDI_LIBS)
 
@@ -212,8 +214,8 @@ gdk-pixbuf2)
 	])
 	;;
 gdk-pixbuf1)
-	AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
-	if test "$pkg_config" = "yes" ; then
+	AC_CHECK_PROG(gdk_pixbuf_config,gdk-pixbuf-config,yes)
+	if test "$gdk_pixbuf_config" = "yes" ; then
 		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF"
 		IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
 		IMAGELIB_NAME=gdk
@@ -324,20 +326,25 @@ AC_SUBST(INSTALL_OPT)
 PKG_CHECK_MODULES(GTK, gtk+-2.0, have_gtk2=yes, have_gtk2=no)
 if test "$have_gtk2" = "yes" ; then
 	gtk_config=yes
-	GTK_CONFIG="$PKG_CONFIG gtk+-2.0"
 else
 	AC_CHECK_PROG(gtk_config,gtk-config,yes)
 	if test "$gtk_config" = "yes" ; then
-		AC_PATH_PROG(GTK_CONFIG,gtk-config,/usr/local/bin/gtk-config,$PATH)
+		GTK_CFLAGS="`gtk-config --cflags`"
+		GTK_LIBS="`gtk-config --libs`"
 	else
 		# for Daichi Goto-san:)
 		AC_CHECK_PROG(gtk_config,gtk12-config,yes)
 		if test "$gtk_config" = "yes" ; then
-			AC_PATH_PROG(GTK_CONFIG,gtk12-config,/usr/X11R6/bin/gtk12-config,$PATH)
+			GTK_CFLAGS="`gtk12-config --cflags`"
+			GTK_LIBS="`gtk12-config --libs`"
 		fi
 	fi
 fi
-AC_SUBST(GTK_CONFIG)
+# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
+GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
+GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
+AC_SUBST(GTK_CFLAGS)
+AC_SUBST(GTK_LIBS)
 
 tools="mlclient,mlconfig,mlcc,mlterm-menu"
 AC_ARG_WITH(tools,
@@ -423,16 +430,6 @@ mlterm-zoom)
 	;;
 esac
 done
-
-case ${tools_result} in
-*mlconfig*|*mlterm-menu*)
-	# 2nd argument 'c' is dummy...
-	AC_SEARCH_LIBS(g_locale_to_utf8, c, 
-		G_LOCALE_CFLAGS="", G_LOCALE_CFLAGS="-DNO_G_LOCALE" ,
-		`$GTK_CONFIG --libs|sed 's/\\\r//g'`)
-	AC_SUBST(G_LOCALE_CFLAGS)
-	;;
-esac
 
 #
 # --- libltdl ---

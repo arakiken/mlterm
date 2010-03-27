@@ -45,7 +45,7 @@ CFLAGS="$RPM_OPT_FLAGS" \
 	    --libexecdir=%{libexecdir} \
 	    --datadir=%{datadir} \
 	    --sysconfdir=%{sysconfdir}\
-	    --with-imagelib=imlib # --enable-anti-alias
+	    --with-imagelib=gdk-pixbuf # --enable-anti-alias
 make
 
 %install

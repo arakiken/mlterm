@@ -28,7 +28,7 @@ Memo about WIN32 native GUI.
     Copy win32/plink/plink.exe which mlterm uses to connect remote host for now.
   o (Built with MSYS or cygwin)
     Copy tool/mlclient/mlclient.exe and contrib/tool/mlcc/mlcc.exe.
-  o If you can build mlconfig and mlterm-menu which require GTK+,
+  o If you can build mlconfig and mlterm-menu which require GTK+ >= 2.0,
     Copy tool/mlconfig/.libs/mlconfig.exe and
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe
   o 'make install' is available for installation in MSYS-DTK or Cygwin, but

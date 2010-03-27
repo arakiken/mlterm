@@ -23,13 +23,8 @@ LOCALEDIR = $(DESTDIR)$(datadir)/locale
 
 LKIK = @LKIK@
 
-GTK_CONFIG=@GTK_CONFIG@
-
-# "sed ..." is hack for cygwin(removing \r which is output by pkg-config).
-CFLAGS = `$(GTK_CONFIG) --cflags|sed 's/\\\r//g'` $(CFLAGS_LOCAL) \
-	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @AA_CFLAGS@ @IMAGELIB_CFLAGS@ \
-	@DEB_CFLAGS@ @KIK_CFLAGS@ @GUI_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
-	@G_LOCALE_CFLAGS@ \
+CFLAGS = $(CFLAGS_LOCAL) @GTK_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ @AA_CFLAGS@ \
+	@IMAGELIB_CFLAGS@ @DEB_CFLAGS@ @KIK_CFLAGS@ @GUI_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-I${top_srcdir}/xwindow -I${top_srcdir}/mlterm \
 	-I${top_builddir}/common -I${top_srcdir}/common \
 	-I${top_srcdir}/inputmethod \
@@ -37,8 +32,7 @@ CFLAGS = `$(GTK_CONFIG) --cflags|sed 's/\\\r//g'` $(CFLAGS_LOCAL) \
 	-DSYSCONFDIR=\"$(SYSCONFDIR)\" -DLOCALEDIR=\"$(LOCALEDIR)\" \
 	-DXDATADIR=\"$(XDATADIR)\" -DLIBDIR=\"$(LIBDIR)\"
 
-# "sed ..." is hack for cygwin(removing \r which is output by pkg-config).
-LIBS1 = @INTL_LIBS@ @DL_SELF@ @DL_LIBS_IM@ `$(GTK_CONFIG) --libs|sed 's/\\\r//g'` $(LIBS_LOCAL) \
+LIBS1 = $(LIBS_LOCAL) @INTL_LIBS@ @DL_SELF@ @DL_LIBS_IM@ @GTK_LIBS@
 
 LIBS2 = $(LKIK) -L/usr/local/lib -R/usr/local/lib
 
@@ -54,11 +48,13 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
+_OBJ = gtkxlfdsel.o
+
 OBJ = main.o mc_combo.o mc_char_encoding.o mc_im.o mc_tabsize.o mc_logsize.o mc_check.o \
 	mc_font.o mc_color.o mc_mod_meta.o mc_bel.o mc_iscii_lang.o \
 	mc_fade.o mc_brightness.o mc_contrast.o mc_gamma.o mc_screen_ratio.o \
 	mc_line_space.o mc_vertical.o mc_sb.o mc_sb_view.o mc_wall_pic.o \
-	mc_bgtype.o mc_io.o mc_pty.o mc_flags.o
+	mc_bgtype.o mc_io.o mc_pty.o mc_flags.o $(_OBJ@WIN32TAG@)
 
 LKIK_DEB=-lkik_deb
 

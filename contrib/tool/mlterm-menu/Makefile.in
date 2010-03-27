@@ -17,15 +17,10 @@ SYSCONFDIR = $(DESTDIR)$(sysconfdir)
 
 LKIK = @LKIK@
 
-GTK_CONFIG=@GTK_CONFIG@
-
-# "sed ..." is hack for cygwin(removing \r which is output by pkg-config).
-CFLAGS = `$(GTK_CONFIG) --cflags|sed 's/\\\r//g'` $(CFLAGS_LOCAL) \
-	@KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @G_LOCALE_CFLAGS@ \
+CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @GTK_CFLAGS@ \
 	-DSYSCONFDIR=\"$(SYSCONFDIR)\"
 
-# "sed ..." is hack for cygwin(removing \r which is output by pkg-config).
-LIBS1 = `$(GTK_CONFIG) --libs|sed 's/\\\r//g'` $(LIBS_LOCAL) @DL_SELF@
+LIBS1 = $(LIBS_LOCAL) @DL_SELF@ @GTK_LIBS@
 
 LIBS2 = $(LKIK)
 

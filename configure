@@ -798,9 +798,7 @@ UIM_LIBS
 UIM_CFLAGS
 DND_LIBS
 DND_CFLAGS
-G_LOCALE_CFLAGS
 PERL
-GTK_CONFIG
 gtk_config
 GTK_LIBS
 GTK_CFLAGS
@@ -815,6 +813,7 @@ xft_config
 XFT_LIBS
 XFT_CFLAGS
 IMAGELIB_NAME
+gdk_pixbuf_config
 pkg_config
 IMAGELIB_LIBS
 IMAGELIB_CFLAGS
@@ -4498,7 +4497,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4501 "configure"' > conftest.$ac_ext
+  echo '#line 4500 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7067,11 +7066,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7070: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7069: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7074: \$? = $ac_status" >&5
+   echo "$as_me:7073: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7357,11 +7356,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7360: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7359: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7364: \$? = $ac_status" >&5
+   echo "$as_me:7363: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7461,11 +7460,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7464: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7463: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7468: \$? = $ac_status" >&5
+   echo "$as_me:7467: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9486,7 +9485,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9489 "configure"
+#line 9488 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9586,7 +9585,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9589 "configure"
+#line 9588 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11927,11 +11926,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11930: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11929: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11934: \$? = $ac_status" >&5
+   echo "$as_me:11933: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12031,11 +12030,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12034: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12033: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12038: \$? = $ac_status" >&5
+   echo "$as_me:12037: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13614,11 +13613,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13617: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13616: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13621: \$? = $ac_status" >&5
+   echo "$as_me:13620: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13718,11 +13717,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13721: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13720: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13725: \$? = $ac_status" >&5
+   echo "$as_me:13724: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15879,11 +15878,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15882: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15881: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15886: \$? = $ac_status" >&5
+   echo "$as_me:15885: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16169,11 +16168,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16172: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16171: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16176: \$? = $ac_status" >&5
+   echo "$as_me:16175: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16273,11 +16272,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16276: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16275: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16280: \$? = $ac_status" >&5
+   echo "$as_me:16279: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19946,8 +19945,7 @@ $as_echo "yes" >&6; }
 	have_fribidi=yes
 fi
 	if test "$have_fribidi" = "yes" ; then
-		FRIBIDI_CFLAGS="`$PKG_CONFIG --cflags fribidi|sed 's/\\\r//g'` -DUSE_FRIBIDI"
-		FRIBIDI_LIBS="`$PKG_CONFIG --libs fribidi|sed 's/\\\r//g'`"
+		FRIBIDI_CFLAGS="${FRIBIDI_CFLAGS} -DUSE_FRIBIDI"
 	else
 		# Extract the first word of "fribidi-config", so it can be a program name with args.
 set dummy fribidi-config; ac_word=$2
@@ -19993,6 +19991,9 @@ fi
 		fi
 	fi
 fi
+# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
+FRIBIDI_CFLAGS="`echo ${FRIBIDI_CFLAGS} | tr -d '\r'`"
+FRIBIDI_LIBS="`echo ${FRIBIDI_LIBS} | tr -d '\r'`"
 
 
 
@@ -20336,11 +20337,11 @@ gdk-pixbuf1)
 set dummy gdk-pixbuf-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_pkg_config+set}" = set; then :
+if test "${ac_cv_prog_gdk_pixbuf_config+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
-  if test -n "$pkg_config"; then
-  ac_cv_prog_pkg_config="$pkg_config" # Let the user override the test.
+  if test -n "$gdk_pixbuf_config"; then
+  ac_cv_prog_gdk_pixbuf_config="$gdk_pixbuf_config" # Let the user override the test.
 else
 as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
@@ -20349,7 +20350,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_pkg_config="yes"
+    ac_cv_prog_gdk_pixbuf_config="yes"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -20359,17 +20360,17 @@ IFS=$as_save_IFS
 
 fi
 fi
-pkg_config=$ac_cv_prog_pkg_config
-if test -n "$pkg_config"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $pkg_config" >&5
-$as_echo "$pkg_config" >&6; }
+gdk_pixbuf_config=$ac_cv_prog_gdk_pixbuf_config
+if test -n "$gdk_pixbuf_config"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gdk_pixbuf_config" >&5
+$as_echo "$gdk_pixbuf_config" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
 
-	if test "$pkg_config" = "yes" ; then
+	if test "$gdk_pixbuf_config" = "yes" ; then
 		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF"
 		IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
 		IMAGELIB_NAME=gdk
@@ -20701,7 +20702,6 @@ $as_echo "yes" >&6; }
 fi
 if test "$have_gtk2" = "yes" ; then
 	gtk_config=yes
-	GTK_CONFIG="$PKG_CONFIG gtk+-2.0"
 else
 	# Extract the first word of "gtk-config", so it can be a program name with args.
 set dummy gtk-config; ac_word=$2
@@ -20741,47 +20741,8 @@ fi
 
 
 	if test "$gtk_config" = "yes" ; then
-		# Extract the first word of "gtk-config", so it can be a program name with args.
-set dummy gtk-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_path_GTK_CONFIG+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $GTK_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_GTK_CONFIG="$GTK_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_path_GTK_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_GTK_CONFIG" && ac_cv_path_GTK_CONFIG="/usr/local/bin/gtk-config"
-  ;;
-esac
-fi
-GTK_CONFIG=$ac_cv_path_GTK_CONFIG
-if test -n "$GTK_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_CONFIG" >&5
-$as_echo "$GTK_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
+		GTK_CFLAGS="`gtk-config --cflags`"
+		GTK_LIBS="`gtk-config --libs`"
 	else
 		# for Daichi Goto-san:)
 		# Extract the first word of "gtk12-config", so it can be a program name with args.
@@ -20822,50 +20783,15 @@ fi
 
 
 		if test "$gtk_config" = "yes" ; then
-			# Extract the first word of "gtk12-config", so it can be a program name with args.
-set dummy gtk12-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_path_GTK_CONFIG+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $GTK_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_GTK_CONFIG="$GTK_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_path_GTK_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_GTK_CONFIG" && ac_cv_path_GTK_CONFIG="/usr/X11R6/bin/gtk12-config"
-  ;;
-esac
-fi
-GTK_CONFIG=$ac_cv_path_GTK_CONFIG
-if test -n "$GTK_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_CONFIG" >&5
-$as_echo "$GTK_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
+			GTK_CFLAGS="`gtk12-config --cflags`"
+			GTK_LIBS="`gtk12-config --libs`"
 		fi
 	fi
 fi
+# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
+GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
+GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
+
 
 
 tools="mlclient,mlconfig,mlcc,mlterm-menu"
@@ -20995,71 +20921,6 @@ mlterm-zoom)
 	;;
 esac
 done
-
-case ${tools_result} in
-*mlconfig*|*mlterm-menu*)
-	# 2nd argument 'c' is dummy...
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing g_locale_to_utf8" >&5
-$as_echo_n "checking for library containing g_locale_to_utf8... " >&6; }
-if test "${ac_cv_search_g_locale_to_utf8+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char g_locale_to_utf8 ();
-int
-main ()
-{
-return g_locale_to_utf8 ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' c; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib `$GTK_CONFIG --libs|sed 's/\\\r//g'` $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_g_locale_to_utf8=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if test "${ac_cv_search_g_locale_to_utf8+set}" = set; then :
-  break
-fi
-done
-if test "${ac_cv_search_g_locale_to_utf8+set}" = set; then :
-
-else
-  ac_cv_search_g_locale_to_utf8=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_g_locale_to_utf8" >&5
-$as_echo "$ac_cv_search_g_locale_to_utf8" >&6; }
-ac_res=$ac_cv_search_g_locale_to_utf8
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-  G_LOCALE_CFLAGS=""
-else
-  G_LOCALE_CFLAGS="-DNO_G_LOCALE"
-fi
-
-
-	;;
-esac
 
 #
 # --- libltdl ---

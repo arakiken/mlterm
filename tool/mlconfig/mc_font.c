@@ -11,6 +11,8 @@
 #include  <glib.h>
 #include  <c_intl.h>
 
+#include  "gtkxlfdsel.h"
+
 #include  "mc_combo.h"
 #include  "mc_flags.h"
 #include  "mc_vertical.h"
@@ -20,8 +22,8 @@
 #define  __DEBUG
 #endif
 
-/* XXX Hack */
-#ifdef  NO_G_LOCALE
+/* XXX Adhoc */
+#if  (GTK_MAJOR_VERSION < 2)
 #define  g_locale_to_utf8(a,b,c,d,e) (a)
 #endif
 
@@ -33,8 +35,11 @@ typedef struct  cs_info
 	/*
 	 * Default font encoding name.
 	 * This used only if xcore font is used.
+	 *
+	 * !! Notice !!
+	 * The last element must be NULL.
 	 */
-	char *   encoding ;
+	char *   encoding_names[3] ;
 
 } cs_info_t ;
 
@@ -46,39 +51,38 @@ typedef struct  cs_info
  */
 static cs_info_t  cs_info_table[] =
 {
-#if  (GTK_MAJOR_VERSION >= 2)
-	{ "DEFAULT" , NULL , } ,
-#endif
-
+	{ "DEFAULT" , { NULL , NULL , NULL , } , } ,
+	
 	/*
 	 * ISO10646_1 => ISO10646_UCS4_1 in get_correct_cs().
 	 */
-	{ "ISO10646_1" , "iso10646-1" , } ,
-	{ "ISO10646_1_BIWIDTH" , "iso10646-1" , } ,
+	{ "ISO10646_1" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "ISO10646_1_BIWIDTH" , { "iso10646-1" , NULL , NULL , } , } ,
+
 #if  0
 	/*
 	 * Font of these charsets is not manipulated by mlconfig at present.
 	 */
-	{ "ISO10646_UCS2_1" , "iso10646-1" , } ,
-	{ "ISO10646_UCS2_1_BIWIDTH" , "iso10646-1" , } ,
+	{ "ISO10646_UCS2_1" , { "iso10646-1" , NULL , NULL , } , } ,
+	{ "ISO10646_UCS2_1_BIWIDTH" , { "iso10646-1"  , NULL , NULL , } , } ,
 #endif
 
-	{ "DEC_SPECIAL" , "iso8859-1" , } ,
-	{ "ISO8859_1" , "iso8859-1" , } ,
-	{ "ISO8859_2" , "iso8859-2" , } ,
-	{ "ISO8859_3" , "iso8859-3" , } ,
-	{ "ISO8859_4" , "iso8859-4" , } ,
-	{ "ISO8859_5" , "iso8859-5" , } ,
-	{ "ISO8859_6" , "iso8859-6" , } ,
-	{ "ISO8859_7" , "iso8859-7" , } ,
-	{ "ISO8859_8" , "iso8859-8" , } ,
-	{ "ISO8859_9" , "iso8859-9" , } ,
-	{ "ISO8859_10" , "iso8859-10" , } ,
-	{ "TIS620_2533" , "tis620.2533-1" , } ,
-	{ "ISO8859_13" , "iso8859-13" , } ,
-	{ "ISO8859_14" , "iso8859-14" , } ,
-	{ "ISO8859_15" , "iso8859-15" , } ,
-	{ "ISO8859_16" , "iso8859-16" , } ,
+	{ "DEC_SPECIAL" , { "iso8859-1" , NULL , NULL , } , } ,
+	{ "ISO8859_1" , { "iso8859-1" , NULL , NULL , } , } ,
+	{ "ISO8859_2" , { "iso8859-2" , NULL , NULL , } , } ,
+	{ "ISO8859_3" , { "iso8859-3" , NULL , NULL , } , } ,
+	{ "ISO8859_4" , { "iso8859-4" , NULL , NULL , } , } ,
+	{ "ISO8859_5" , { "iso8859-5" , NULL , NULL , } , } ,
+	{ "ISO8859_6" , { "iso8859-6" , NULL , NULL , } , } ,
+	{ "ISO8859_7" , { "iso8859-7" , NULL , NULL , } , } ,
+	{ "ISO8859_8" , { "iso8859-8" , NULL , NULL , } , } ,
+	{ "ISO8859_9" , { "iso8859-9" , NULL , NULL , } , } ,
+	{ "ISO8859_10" , { "iso8859-10" , NULL , NULL , } , } ,
+	{ "TIS620" , { "tis620.2533-1" , "tis620.2529-1" , NULL , } , } ,
+	{ "ISO8859_13" , { "iso8859-13" , NULL , NULL , } , } ,
+	{ "ISO8859_14" , { "iso8859-14" , NULL , NULL , } , } ,
+	{ "ISO8859_15" , { "iso8859-15" , NULL , NULL , } , } ,
+	{ "ISO8859_16" , { "iso8859-16" , NULL , NULL , } , } ,
 
 	/*
 	 * XXX
@@ -86,41 +90,42 @@ static cs_info_t  cs_info_table[] =
 	 * .VnTime or .VnTimeH ...
 	 * How to deal with it ?
 	 */
-	{ "TCVN5712" , NULL , } ,
-	{ "ISCII" , NULL , } ,
+	{ "TCVN5712" , { NULL , NULL , NULL , } , } ,
 
-	{ "VISCII" , "viscii-1" , } ,
-	{ "KOI8_R" , "koi8-r" , } ,
-	{ "KOI8_U" , "koi8-u" , } ,
+	{ "ISCII" , { NULL , NULL , NULL , } , } ,
+	{ "VISCII" , { "viscii-1" , NULL , NULL , } , } ,
+	{ "KOI8_R" , { "koi8-r" , NULL , NULL , } , } ,
+	{ "KOI8_U" , { "koi8-u" , NULL , NULL , } , } ,
+
 #if  0
 	/*
 	 * XXX
 	 * KOI8_T, GEORGIAN_PS and CP125X charset can be shown by unicode font only.
 	 */
-	{ "KOI8_T" , NULL , } ,
-	{ "GEORGIAN_PS" , NULL , } ,
+	{ "KOI8_T" , { NULL , NULL , NULL , } , } ,
+	{ "GEORGIAN_PS" , { NULL , NULL , NULL , } , } ,
 #endif
 #ifdef  USE_WIN32GUI
-	{ "CP1250" , NULL , } ,
-	{ "CP1251" , NULL , } ,
-	{ "CP1252" , NULL , } ,
-	{ "CP1253" , NULL , } ,
-	{ "CP1254" , NULL , } ,
-	{ "CP1255" , NULL , } ,
-	{ "CP1256" , NULL , } ,
-	{ "CP1257" , NULL , } ,
-	{ "CP1258" , NULL , } ,
+	{ "CP1250" , { NULL , NULL , NULL , } , } ,
+	{ "CP1251" , { NULL , NULL , NULL , } , } ,
+	{ "CP1252" , { NULL , NULL , NULL , } , } ,
+	{ "CP1253" , { NULL , NULL , NULL , } , } ,
+	{ "CP1254" , { NULL , NULL , NULL , } , } ,
+	{ "CP1255" , { NULL , NULL , NULL , } , } ,
+	{ "CP1256" , { NULL , NULL , NULL , } , } ,
+	{ "CP1257" , { NULL , NULL , NULL , } , } ,
+	{ "CP1258" , { NULL , NULL , NULL , } , } ,
 #endif
 
-	{ "JISX0201_KATA" , "jisx0201.1976-0" , } ,
-	{ "JISX0201_ROMAN" , "jisx0201.1976-0" , } ,
-	{ "JISC6226_1978" , "jisx0208.1978-0" , } ,
-	{ "JISX0208_1983" , "jisx0208.1983-0" , } ,
-	{ "JISX0208_1990" , "jisx0208.1990-0" , } ,
-	{ "JISX0212_1990" , "jisx0212.1990-0" , } ,
-	{ "JISX0213_2000_1" , "jisx0213.2000-1" , } ,
-	{ "JISX0213_2000_2" , "jisx0213.2000-2" , } ,
-	{ "KSC5601_1987" , "ksc5601.1987-0" , } ,
+	{ "JISX0201_KATA" , { "jisx0201.1976-0" , NULL , NULL , } , } ,
+	{ "JISX0201_ROMAN" , { "jisx0201.1976-0" , NULL , NULL , } , } ,
+	{ "JISX0208_1978" , { "jisx0208.1978-0" , "jisx0208.1983-0" , NULL , } , } ,
+	{ "JISX0208_1983" , { "jisx0208.1983-0" , "jisx0208.1990-0" , NULL , } , } ,
+	{ "JISX0208_1990" , { "jisx0208.1990-0" , "jisx0208.1983-0" , NULL , } , } ,
+	{ "JISX0212_1990" , { "jisx0212.1990-0" , NULL , NULL , } , } ,
+	{ "JISX0213_2000_1" , { "jisx0213.2000-1" , NULL , NULL , } , } ,
+	{ "JISX0213_2000_2" , { "jisx0213.2000-2" , NULL , NULL , } , } ,
+	{ "KSX1001_1997" , { "ksc5601.1987-0" , "ksx1001.1997-0" , NULL , } , } ,
 
 #if  0
 	/*
@@ -128,21 +133,21 @@ static cs_info_t  cs_info_table[] =
 	 * UHC and JOHAB fonts are not used at the present time.
 	 * see ml_vt100_parser.c:ml_parse_vt100_sequence().
 	 */
-	{ "UHC" , NULL , } ,
-	{ "JOHAB" , "johabsh-1" , } ,
+	{ "UHC" , { NULL , NULL , NULL , } , } ,
+	{ "JOHAB" , { "johabsh-1" , /* "johabs-1" , */ "johab-1" , NULL , } , } ,
 #endif
 
-	{ "GB2312_80" , "gb2312.1980-0" , } ,
-	{ "GBK" , "gbk-0" , } ,
-	{ "BIG5" , "big5.eten-0" , } ,
-	{ "HKSCS" , "big5hkscs-0" , } ,
-	{ "CNS11643_1992_1" , "cns11643.1992-1" , } ,
-	{ "CNS11643_1992_2" , "cns11643.1992-2" , } ,
-	{ "CNS11643_1992_3" , "cns11643.1992-3" , } ,
-	{ "CNS11643_1992_4" , "cns11643.1992-4" , } ,
-	{ "CNS11643_1992_5" , "cns11643.1992-5" , } ,
-	{ "CNS11643_1992_6" , "cns11643.1992-6" , } ,
-	{ "CNS11643_1992_7" , "cns11643.1992-7" , } ,
+	{ "GB2312_80" , { "gb2312.1980-0" , NULL , NULL , } , } ,
+	{ "GBK" , { "gbk-0" , NULL , NULL , } , } ,
+	{ "BIG5" , { "big5.eten-0" , "big5.hku-0" , NULL , } , } ,
+	{ "HKSCS" , { "big5hkscs-0" , "big5-0" , NULL , } , } ,
+	{ "CNS11643_1992_1" , { "cns11643.1992-1" , "cns11643.1992.1-0" , NULL , } , } ,
+	{ "CNS11643_1992_2" , { "cns11643.1992-2" , "cns11643.1992.2-0" , NULL , } , } ,
+	{ "CNS11643_1992_3" , { "cns11643.1992-3" , "cns11643.1992.3-0" , NULL , } , } ,
+	{ "CNS11643_1992_4" , { "cns11643.1992-4" , "cns11643.1992.4-0" , NULL , } , } ,
+	{ "CNS11643_1992_5" , { "cns11643.1992-5" , "cns11643.1992.5-0" , NULL , } , } ,
+	{ "CNS11643_1992_6" , { "cns11643.1992-6" , "cns11643.1992.6-0" , NULL , } , } ,
+	{ "CNS11643_1992_7" , { "cns11643.1992-7" , "cns11643.1992.7-0" , NULL , } , } ,
 
 } ;
 
@@ -151,7 +156,7 @@ static char *  old_fontsize = NULL ;
 static int is_fontsize_changed ;
 
 static char *  new_fontname_list[sizeof(cs_info_table)/sizeof(cs_info_table[0])] ;
-static int selected_cs ;	/* 0 = ISO10646_UCS4_1(gtk+ < 1.2) or DEFAULT(gtk+ > 2.0) */
+static int  selected_cs = 0 ;	/* 0 = DEFAULT */
 static GtkWidget *  fontname_entry ;
 static GtkWidget *  select_font_button ;
 static GtkWidget *  xft_flag ;
@@ -271,15 +276,13 @@ aa_flag_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-	#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 0) ;
-	#elif  (GTK_MAJOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 1) ;
-	#endif
-
 	#ifdef  USE_TYPE_XFT
 		if( ! GTK_TOGGLE_BUTTON(xft_flag)->active)
 		{
+		#if  (GTK_MAJOR_VERSION < 2)
+			gtk_widget_set_sensitive( select_font_button, 0);
+		#endif
+
 			gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(xft_flag) , 1) ;
 
 			reset_fontname_list() ;
@@ -301,22 +304,18 @@ xft_flag_checked(
 	gpointer  data
 	)
 {
-	if( GTK_TOGGLE_BUTTON(widget)->active)
+	if( ! GTK_TOGGLE_BUTTON(widget)->active)
 	{
-	#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 0) ;
-	#elif  (GTK_MAJOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 1) ;
+	#if  (GTK_MAJOR_VERSION < 2)
+		gtk_widget_set_sensitive( select_font_button, 1);
 	#endif
+	
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(aa_flag) , 0) ;
 	}
 	else
 	{
-		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(aa_flag) , 0) ;
-
-	#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 1) ;
-	#elif  (GTK_MAJOR_VERSION >= 2)
-		gtk_widget_set_sensitive( select_font_button , 0) ;
+	#if  (GTK_MAJOR_VERSION < 2)
+		gtk_widget_set_sensitive( select_font_button, 0);
 	#endif
 	}
 
@@ -425,78 +424,156 @@ fontcs_selected(
 	return  0 ;
 }
 
-#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
 
-void ok_pressed(GtkWidget *widget, gpointer  dialog)
+#ifndef  USE_WIN32GUI
+
+static gchar *
+get_xlfd_font_name(
+	gpointer  dialog
+	)
 {
 	char *  name ;
+	
+	name = gtk_xlfd_selection_dialog_get_font_name( GTK_XLFD_SELECTION_DIALOG(dialog)) ;
+	if( selected_cs == 0 && name && *name)	/* DEFAULT */
+	{
+		/*
+		 * Removing font encoding such as "iso8859-1".
+		 */
+		 
+		char *  p ;
+		
+		if( ( p = strrchr( name , '-')))
+		{
+			*p = '\0' ;
+			if( ( p = strrchr( name , '-')))
+			{
+				*(p + 1) = '\0' ;
+			}
+		}
+	}
 
-	name = gtk_font_selection_dialog_get_font_name( GTK_FONT_SELECTION_DIALOG(dialog)) ;
+	return  name ;
+}
+
+static void
+ok_pressed(
+	GtkWidget *  widget,
+	gpointer  dialog
+	)
+{
+	gchar *  name ;
+
+	name = get_xlfd_font_name(dialog) ;
 	gtk_entry_set_text( GTK_ENTRY(fontname_entry), name) ;
 	g_free( name) ;
 	
 	gtk_widget_destroy( GTK_WIDGET(dialog)) ;
 }
 
-void apply_pressed(GtkWidget *widget, gpointer  dialog)
+static void
+apply_pressed(
+	GtkWidget *  widget,
+	gpointer  dialog
+	)
 {
-	char *  name ;
+	gchar *  name ;
 
-	name = gtk_font_selection_dialog_get_font_name( GTK_FONT_SELECTION_DIALOG(dialog)) ;
+	name = get_xlfd_font_name(dialog) ;
 	gtk_entry_set_text( GTK_ENTRY(fontname_entry), name) ;
 	g_free( name) ;
 }
 
-void cancel_pressed(GtkWidget *widget, gpointer  dialog)
+static void
+cancel_pressed(
+	GtkWidget *  widget,
+	gpointer  dialog
+	)
 {
 	gtk_widget_destroy( GTK_WIDGET(dialog)) ;
 }
 
-void select_font(GtkWidget *widget, gpointer label)
+static int
+set_current_font_name(
+	GtkWidget *  dialog
+	)
 {
-	GtkWidget *  dialog ;
-	char *  font_name ;
-
-	dialog = gtk_font_selection_dialog_new( "Select Font") ;
+	gchar *  font_name ;
 
 	font_name = gtk_entry_get_text(GTK_ENTRY(fontname_entry)) ;
-	if( ! font_name || ! *font_name ||
-		! gtk_font_selection_dialog_set_font_name(
-			GTK_FONT_SELECTION_DIALOG(dialog) , font_name))
+	if( font_name && *font_name)
+	{
+		char *  p ;
+
+		/*
+		 * Modify DEFAULT font name. "-*-...-*-" => "-*-...-*-*-*"
+		 */
+		if( selected_cs == 0 && ( p = alloca( strlen( font_name) + 4)))
+		{
+			sprintf( p , "%s*-*" , font_name) ;
+			font_name = p ;
+		}
+
+		return  gtk_xlfd_selection_dialog_set_font_name(
+				GTK_XLFD_SELECTION_DIALOG(dialog) , font_name) ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+static void
+select_xlfd_font(
+	GtkWidget *  widget ,
+	gpointer label
+	)
+{
+	GtkWidget *  dialog ;
+
+	dialog = gtk_xlfd_selection_dialog_new( "Select Font") ;
+	if( ! set_current_font_name( dialog))
 	{
 		char *  encoding ;
+		char *  font_name ;
 		char  format[] = "-misc-fixed-medium-*-normal--%s-*-*-*-*-*-%s" ;
 		
-		if( ( encoding = cs_info_table[selected_cs].encoding) == NULL)
+		if( ( encoding = cs_info_table[selected_cs].encoding_names[0]) == NULL)
 		{
 			encoding = "*-*" ;
 		}
 
-		if( ( font_name = malloc( sizeof(format) + strlen(new_fontsize)
-					+ strlen(encoding))) == NULL)
+		if( ( font_name = alloca( sizeof(format) + strlen(new_fontsize)
+					+ strlen(encoding))))
 		{
-			return ;
+			sprintf( font_name , format , new_fontsize , encoding) ;
+
+			gtk_xlfd_selection_dialog_set_font_name(
+				GTK_XLFD_SELECTION_DIALOG(dialog) , font_name) ;
 		}
-
-		sprintf( font_name , format , new_fontsize , encoding) ;
-	
-		gtk_font_selection_dialog_set_font_name(
-			GTK_FONT_SELECTION_DIALOG(dialog) , font_name) ;
-
-		free( font_name) ;
 	}
-	
-	gtk_signal_connect(GTK_OBJECT(GTK_FONT_SELECTION_DIALOG(dialog)->ok_button) ,
+
+	if( cs_info_table[selected_cs].encoding_names[0])
+	{
+		gtk_xlfd_selection_dialog_set_filter( GTK_XLFD_SELECTION_DIALOG(dialog) ,
+			GTK_XLFD_FILTER_USER , GTK_XLFD_ALL , NULL , NULL , NULL , NULL , NULL ,
+			cs_info_table[selected_cs].encoding_names) ;
+	}
+
+	gtk_signal_connect(GTK_OBJECT(GTK_XLFD_SELECTION_DIALOG(dialog)->ok_button) ,
 		"clicked" , GTK_SIGNAL_FUNC(ok_pressed) , dialog) ;
-	gtk_signal_connect(GTK_OBJECT(GTK_FONT_SELECTION_DIALOG(dialog)->apply_button) ,
+	gtk_signal_connect(GTK_OBJECT(GTK_XLFD_SELECTION_DIALOG(dialog)->apply_button) ,
 		"clicked" , GTK_SIGNAL_FUNC(apply_pressed) , dialog) ;
-	gtk_signal_connect(GTK_OBJECT(GTK_FONT_SELECTION_DIALOG(dialog)->cancel_button) ,
+	gtk_signal_connect(GTK_OBJECT(GTK_XLFD_SELECTION_DIALOG(dialog)->cancel_button) ,
 		"clicked" , GTK_SIGNAL_FUNC(cancel_pressed) , dialog) ;
 
 	gtk_widget_show_all( dialog) ;
 }
 
-#elif  (GTK_MAJOR_VERSION >= 2)
+#endif
+
+
+#if  (GTK_MAJOR_VERSION >= 2)
 
 static char *
 my_gtk_font_selection_dialog_get_font_name(
@@ -568,7 +645,11 @@ get_gtk_font_name(
 	return  str ;
 }
 
-void select_font(GtkWidget *  widget, gpointer  p)
+static void
+select_xft_font(
+	GtkWidget *  widget,
+	gpointer  p
+	)
 {
 	GtkWidget *  dialog ;
 	char *  font_name ;
@@ -607,13 +688,27 @@ void select_font(GtkWidget *  widget, gpointer  p)
 	gtk_widget_destroy( dialog) ;
 }
 
-#else
+#endif /* GTK_MAJOR_VERSION >= 2 */
 
-void select_font(GtkWidget *  widget , gpointer  p)
+static void
+select_font(
+	GtkWidget *  widget ,
+	gpointer  p
+	)
 {
-}
-
+#ifndef  USE_WIN32GUI
+	if( ! GTK_TOGGLE_BUTTON(xft_flag)->active)
+	{
+		select_xlfd_font( widget , p) ;
+	}
+	else
 #endif
+	{
+#if  (GTK_MAJOR_VERSION >= 2)
+		select_xft_font( widget , p) ;
+#endif
+	}
+}
 
 
 /* --- global functions --- */
@@ -720,22 +815,16 @@ mc_font_config_widget_new(void)
 	gtk_signal_connect(GTK_OBJECT(select_font_button) , "clicked" ,
 		GTK_SIGNAL_FUNC(select_font) , NULL) ;
 
+#if  (GTK_MAJOR_VERSION < 2)
 	if( ! mc_gui_is_win32())
 	{
 		if( GTK_TOGGLE_BUTTON(xft_flag)->active)
 		{
-		#if (GTK_MAJOR_VERSION == 1 && GTK_MINOR_VERSION >= 2)
-			gtk_widget_set_sensitive( select_font_button , 0) ;
-		#endif
-		}
-		else
-		{
-		#if (GTK_MAJOR_VERSION >= 2)
-			gtk_widget_set_sensitive( select_font_button , 0) ;
-		#endif
+			gtk_widget_set_sensitive( select_font_button, 0) ;
 		}
 	}
-	
+#endif
+
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
 
 	return  vbox ;

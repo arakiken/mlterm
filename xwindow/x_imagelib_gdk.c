@@ -42,6 +42,12 @@
 #define USE_FS 1
 #define SUCCESS 0
 
+#if  (GDK_PIXBUF_MAJOR < 2)
+#define  g_object_ref( pixbuf) gdk_pixbuf_ref( pixbuf)
+#define  g_object_unref( pixbuf) gdk_pixbuf_unref( pixbuf)
+#endif
+
+
 /** Pixmap cache per display. */
 typedef struct  pixmap_cache_tag
 {
@@ -117,20 +123,12 @@ load_file(
 		/* free caches */
 		if( data)
 		{
-#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( data) ;
-#else
-			gdk_pixbuf_unref( data) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 			data = NULL ;
 		}
 		if( scaled)
 		{
-#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( scaled) ;
-#else
-			gdk_pixbuf_unref( scaled) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 			scaled = NULL ;
 		}
 		return  NULL ;
@@ -155,20 +153,12 @@ load_file(
 		name = strdup( path) ;
 		if( data)
 		{
-#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( data) ;
-#else
-			gdk_pixbuf_unref( data) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 		}
 
 		if( scaled) /* scaled one is not vaild now */
 		{
-#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( scaled) ;
-#else
-			gdk_pixbuf_unref( scaled) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 		}
 		scaled = NULL ;
 
@@ -206,11 +196,7 @@ load_file(
 		{
 			if( scaled)
 			{
-#if GDK_PIXBUF_MAJOR >= 2
 				g_object_unref( scaled) ;
-#else
-				gdk_pixbuf_unref( scaled) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 			}
 #ifdef __DEBUG
 			kik_warn_printf(KIK_DEBUG_TAG "creating a scaled pixbuf(%d x %d) from %d %d \n", width, height) ;
@@ -222,11 +208,7 @@ load_file(
 	}
 	/* scaling ends here */
 
-#if GDK_PIXBUF_MAJOR >= 2
-		g_object_ref( pixbuf) ;
-#else
-		gdk_pixbuf_ref( pixbuf) ;
-#endif /*GDK_PIXBUF_MAJOR*/
+	g_object_ref( pixbuf) ;
 
 	return  pixbuf ;
 }
@@ -289,11 +271,7 @@ create_pixbuf_from_cardinals(
 
 	if( scaled)
 	{
-#if GDK_PIXBUF_MAJOR >= 2
 		g_object_unref( pixbuf) ;
-#else
-		gdk_pixbuf_unref( pixbuf) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 		return  scaled ;
 	}
 	else
@@ -364,11 +342,7 @@ create_cardinals_from_bixbuf(
 		}
 	}
 
-#if GDK_PIXBUF_MAJOR >= 2
 	g_object_unref( pixbuf) ;
-#else
-	gdk_pixbuf_unref( pixbuf) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 
 	return  SUCCESS ;
 }
@@ -1539,11 +1513,7 @@ x_imagelib_load_file_for_background(
 
 		if( cached_pixbuf)
 		{
-#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( cached_pixbuf) ;
-#else
-			gdk_pixbuf_unref( cached_pixbuf) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 		}
 
 		free(cached_mod) ;
@@ -1558,11 +1528,7 @@ x_imagelib_load_file_for_background(
 		else
 		{
 			cached_pixbuf = gdk_pixbuf_copy(pixbuf) ;
-#if GDK_PIXBUF_MAJOR >= 2
 			g_object_unref( pixbuf) ;
-#else
-			gdk_pixbuf_unref( pixbuf) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 			modify_image( cached_pixbuf, pic_mod) ;
 		}
 
@@ -1808,11 +1774,7 @@ int x_imagelib_load_file(
 						       DefaultScreen( display),
 						       pixbuf, pixmap, mask) != SUCCESS)
 			{
-#if GDK_PIXBUF_MAJOR >= 2
 				g_object_unref( pixbuf) ;
-#else
-				gdk_pixbuf_unref( pixbuf) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 				XFreePixmap( display, *pixmap) ;
 				*pixmap = None ;
 				XFreePixmap( display, *mask) ;
@@ -1827,11 +1789,7 @@ int x_imagelib_load_file(
 			if( pixbuf_to_pixmap( display, DefaultScreen( display),
 					      pixbuf, *pixmap) != SUCCESS)
 			{
-#if GDK_PIXBUF_MAJOR >= 2
 				g_object_unref( pixbuf) ;
-#else
-				gdk_pixbuf_unref( pixbuf) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 				XFreePixmap( display, *pixmap) ;
 				*pixmap = None ;
 
@@ -1849,10 +1807,6 @@ int x_imagelib_load_file(
 		*height = dst_height ;
 	}
 
-#if GDK_PIXBUF_MAJOR >= 2
 	g_object_unref( pixbuf) ;
-#else
-	gdk_pixbuf_unref( pixbuf) ;
-#endif /*GDK_PIXBUF_MAJOR*/
 	return  1 ;
 }

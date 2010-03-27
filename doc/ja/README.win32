@@ -38,7 +38,7 @@ WIN32 native GUI 対応に関するメモ
     使用しています。
   o MSYS-DTK or Cygwin でビルドした場合は、ソースツリーの
     contrib/tool/mlcc/mlcc.exe, tool/mlclient/mlclient.exe もコピーしてください。
-  o mlconfig,mlterm-menu をビルドできた場合(あらかじめ GTK+ をインストール
+  o mlconfig,mlterm-menu をビルドできた場合(あらかじめ GTK+ >= 2.0 をインストール
     しておく必要があります)は、ソースツリーの
     tool/mlconfig/.libs/mlconfig.exe
     contrib/tool/mlterm-menu/.libs/mlterm-menu.exe

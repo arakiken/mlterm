@@ -97,7 +97,7 @@ kik_utmp_new(
     /* skip /dev/ prefix */
     tty += 5 ;
   }
-	
+  
   if (
       (strncmp(tty, "pts", K_MIN(3,strlen(tty))) != 0) &&
       (strncmp(tty, "pty", K_MIN(3,strlen(tty))) != 0) &&
@@ -109,11 +109,23 @@ kik_utmp_new(
     return NULL;
   }
 
+  if((tty_num = strchr(tty, '/')))
+  {
+    tty_num++;
+  }
+  else if((strncmp(tty + 1, "typ", K_MIN(3,strlen(tty + 1)))) == 0)
+  {
+    /* /dev/ttypN or /dev/ptypN */
+    tty_num = tty + 4;
+  }
+  else
+  {
+    free(utmp);
+
+    return NULL;
+  }
+
   strncpy( ut.ut_user, pw_name, K_MIN(sizeof(ut.ut_user), strlen(pw_name)) );
-
-  tty_num = strstr(tty, "/");
-  tty_num++;
-
   memcpy( ut.ut_id, tty_num, K_MIN(sizeof(ut.ut_id), strlen(tty_num)) );
   memcpy( ut.ut_line, tty, K_MIN(sizeof(ut.ut_line), strlen(tty)) );
 
@@ -146,6 +158,8 @@ kik_utmp_new(
   if ( !pututline(&ut) )
 #endif
   {
+    free(utmp);
+    
     return NULL;
   }
 
