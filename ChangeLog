@@ -1,4 +1,9 @@
-2010-03-30  Araki Ken  <arakiken@users.sf.net>
+2010-04-01  Araki Ken  <arakiken@users.sf.net>
+
+	* tool/mlconfig/mc_font.c, gtkxlfdsel.c: If G_PLATFORM_WIN32 is defined,
+	  GtkXlfdSelection is not used.
+
+2010-03-31  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/PROTOCOL: Fixed.
 
@@ -13,7 +18,7 @@
 
 2010-03-28  Araki Ken  <arakiken@users.sf.net>
 
-	* tool/mlconfig/gtkxlfdsel.[ch]: Added. GtkXlfdSel which is ported from
+	* tool/mlconfig/gtkxlfdsel.[ch]: Added. GtkXlfdSelection which is ported from
 	  gtkfontsel.[ch] in GTK+-1.2.10 shows XLFD font in GTK+ >= 2.0.
 	  mc_font.c: Fixed around gtkxlfdsel.[ch].
 

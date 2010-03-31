@@ -425,7 +425,7 @@ fontcs_selected(
 }
 
 
-#ifndef  USE_WIN32GUI
+#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32)
 
 static gchar *
 get_xlfd_font_name(
@@ -696,7 +696,7 @@ select_font(
 	gpointer  p
 	)
 {
-#ifndef  USE_WIN32GUI
+#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32)
 	if( ! GTK_TOGGLE_BUTTON(xft_flag)->active)
 	{
 		select_xlfd_font( widget , p) ;

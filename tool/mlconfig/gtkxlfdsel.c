@@ -72,6 +72,8 @@
 
 #include "gtkxlfdsel.h"
 
+#ifndef  G_PLATFORM_WIN32	/* In case of compiling with cygwin + X11 + win32 native gtk+. */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -3602,3 +3604,5 @@ gtk_xlfd_selection_dialog_on_configure (GtkWidget         *widget,
   
   return FALSE;
 }
+
+#endif	/* G_PLATFORM_WIN32 */
