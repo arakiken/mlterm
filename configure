@@ -20836,11 +20836,9 @@ mlterm-menu)
 	fi
 	;;
 mlclient)
-	if test "$ml_cv_is_posix" = "yes" ; then
-		MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
-		OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
-		tools_result="$tools_result $tool"
-	fi
+	MAKE_DIRS="tool/mlclient ${MAKE_DIRS}"
+	OUTPUT_FILES="tool/mlclient/Makefile ${OUTPUT_FILES}"
+	tools_result="$tools_result $tool"
 	;;
 w3mmlconfig)
 	# Extract the first word of "perl", so it can be a program name with args.

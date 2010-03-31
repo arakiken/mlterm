@@ -1,3 +1,16 @@
+2010-03-30  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/PROTOCOL: Fixed.
+
+	* doc/en/README.win32, doc/ja/README.win32: Updated.
+
+	* tool/mlclient/Makefile.in: mlclientx command is added.
+	
+	* tool/mlclient/main.c: mlclient tries "\x1b]5379;mlclient...\x07" sequence
+	  if mlterm server is dead.
+
+	* x_display_win32.c: kik_file_set_cloexec(Display::fd) is added.
+
 2010-03-28  Araki Ken  <arakiken@users.sf.net>
 
 	* tool/mlconfig/gtkxlfdsel.[ch]: Added. GtkXlfdSel which is ported from

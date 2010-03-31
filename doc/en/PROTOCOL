@@ -67,8 +67,8 @@ version 20091211
   line_space = <any ASCII decimal digit>
   locale = <locale name>
   logsize = <any ASCII decimal digit>
-  mlclient = <none>
-  mlclientx = <none>
+  mlclient <prefix options> <options> = <none>
+  mlclientx <prefix options> <options> = <none>
   mod_meta_key = none | mod1 | mod2 | mod3 | mod4 | meta | alt | super | hyper
   mod_meta_mode = none | esc | 8bit
   open_pty = <none>
@@ -118,7 +118,8 @@ version 20091211
   o /dev/... in 5379,5382,5383 proto is ignored for now.
   o If "snapshot" protocol issued without <file name> or with no value,
     screen snapshot is output to ~/.mlterm/[tty].snp.
-  o "mlclient" protocol accepts arguments like mlclient command.
+  o "mlclient" protocol accepts arguments like mlclient comman except '='.
+    mlclient or mlclientx command is recommended to use.
     e.g. "\x1b]5379;mlclient --km utf8\x07"
   o "mlclientx" protocol is similar to "mlclient" one except for not creating
     any new window.

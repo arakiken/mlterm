@@ -1362,11 +1362,14 @@ parse_end:
 			#endif
 			}
 		}
-		
+
 		x_main_config_final( &main_config) ;
 
 		main_config = orig_conf ;
 	}
+
+	/* Flush fp stream because write(2) is called after this function is called. */
+	fflush( fp) ;
 	
 	return  1 ;
 }

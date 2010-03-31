@@ -7,8 +7,10 @@
 #include  <sys/types.h>
 #include  <unistd.h>		/* write */
 #include  <string.h>		/* memset */
-#include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
 #include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
+#ifndef  USE_WIN32API
+#include  <kiklib/kik_net.h>	/* socket/bind/listen/sockaddr_un */
+#endif
 
 
 /* --- static variables --- */
@@ -32,7 +34,7 @@ static char *  na_options[] =
 static void
 version(void)
 {
-	printf( "mlclient\n") ;
+	printf( "mlclient(x)\n") ;
 }
 
 static void
@@ -40,20 +42,25 @@ help(void)
 {
 	int  count ;
 
-	printf( "mlclient [prefix options] [options]\n\n") ;
+	printf( "mlclient(x) [prefix options] [options]\n\n") ;
 	printf( "prefix optioins:\n") ;
 	printf( "  /dev/...: specify pty with which a new window is opened.\n\n") ;
 	printf( "options:\n") ;
 	printf( "  -P/--ptylist: print pty list.\n") ;
-	printf( "     --kill: kill mlterm server.\n\n") ;
+	printf( "     --kill: kill mlterm server.\n") ;
+	printf( "  (--ptylist and --kill options are available if mlterm server is alive.)\n\n") ;
 	printf( "  N.A. options among those of mlterm.\n") ;
 
 	for( count = 0 ; count < sizeof( na_options) / sizeof( na_options[0]) ; count ++)
 	{
 		printf( "  %s\n" , na_options[count]) ;
 	}
+
+	printf( "  (Options related to window, font, color and appearance aren't\n") ;
+	printf( "   available in mlclientx.)\n") ;
 }
 
+#ifndef  USE_WIN32API
 static int
 set_daemon_socket_path(
 	struct sockaddr_un *  addr
@@ -76,7 +83,76 @@ set_daemon_socket_path(
 	
 	return  1 ;
 }
+#endif
 
+static int
+write_argv(
+	int  argc ,
+	char **  argv ,
+	int  fd
+	)
+{
+	char *  p ;
+	int  count ;
+	
+	/* Extract program name. */
+	if( ( p = strrchr( argv[0] , '/')))
+	{
+		argv[0] = p + 1 ;
+	}
+
+	/* Don't quote argv[0] by "" for "\x1b]5379;mlclient" sequence. */
+	write( fd , argv[0] , strlen(argv[0])) ;
+
+	if( argc == 1)
+	{
+		write( fd , "\n" , 1) ;
+		
+		return  1 ;
+	}
+	
+	count = 1 ;
+	while( 1)
+	{
+		p = argv[count] ;
+
+		write( fd , " \"" , 2) ;
+		
+		while( *p)
+		{
+			if( *p == '\"')
+			{
+				write( fd , "\\\"" , 2) ;
+			}
+			else if( *p == '=')
+			{
+				/*
+				 * "\x1b]5379;mlclient" sequence doesn't accept '='.
+				 */
+				write( fd , "\" \"" , 3) ;
+			}
+			else
+			{
+				write( fd , p , 1) ;
+			}
+
+			p ++ ;
+		}
+
+		if( ++ count < argc)
+		{
+			write( fd , "\" " , 2) ;
+		}
+		else
+		{
+			write( fd , "\"\n" , 2) ;
+
+			break ;
+		}
+	}
+
+	return  1 ;
+}
 
 /* --- global functions --- */
 
@@ -86,12 +162,8 @@ main(
 	char **  argv
 	)
 {
-	char *  p ;
-	int  sock_fd ;
-	struct sockaddr_un  servaddr ;
-	char  buf[256] ;
-	size_t  len ;
 	int  count ;
+	char *  p ;
 	
 	for( count = 1 ; count < argc ; count ++)
 	{
@@ -125,84 +197,47 @@ main(
 		}
 	}
 
-	if( ( sock_fd = socket( AF_LOCAL , SOCK_STREAM , 0)) < 0)
+#ifndef  USE_WIN32API
+	if( strstr( argv[0] , "mlclientx") == NULL)
 	{
-		fprintf( stderr , "Mlterm server dead.\n") ;
+		int  fd ;
+		struct sockaddr_un  servaddr ;
 		
-		return  1 ;
-	}
+		if( ( fd = socket( AF_LOCAL , SOCK_STREAM , 0)) != -1)
+		{
+			memset( &servaddr , 0 , sizeof( servaddr)) ;
+			servaddr.sun_family = AF_LOCAL ;
+			if( set_daemon_socket_path( &servaddr))
+			{
+				if( connect( fd , (struct sockaddr*) &servaddr ,
+					sizeof( servaddr)) != -1)
+				{
+					char  buf[256] ;
+					ssize_t  len ;
+				
+					write_argv( argc , argv , fd) ;
 
-	memset( &servaddr , 0 , sizeof( servaddr)) ;
-	servaddr.sun_family = AF_LOCAL ;
-	if( ! set_daemon_socket_path( &servaddr))
-	{
-		close( sock_fd) ;
+					while( ( len = read( fd , buf , sizeof( buf))) > 0)
+					{
+						write( STDOUT_FILENO , buf , len) ;
+					}
+			
+					close( fd) ;
 
-		return  1 ;
-	}
-
-	if( connect( sock_fd , (struct sockaddr*) &servaddr , sizeof( servaddr)) < 0)
-	{
-		fprintf( stderr , "Mlterm server dead.\n") ;
-
-		close( sock_fd) ;
+					return  0 ;
+				}
+			}
+			
+			close( fd) ;
+		}
 		
-		return  1 ;
-	}
-
-#if  0
-	/* Extract program name. */
-	if( ( p = strrchr( argv[0] , '/')))
-	{
-		argv[0] = p + 1 ;
+		fprintf( stderr , "Mlterm server dead.\n") ;
 	}
 #endif
 
-	count = 0 ;
-	while( 1)
-	{
-		p = argv[count] ;
-
-		write( sock_fd , " \"" , 2) ;
-
-		while( *p)
-		{
-			if( *p == '\"')
-			{
-				write( sock_fd , "\\\"" , 2) ;
-			}
-			else
-			{
-				write( sock_fd , p , 1) ;
-			}
-
-			p ++ ;
-		}
-
-		if( ++ count < argc)
-		{
-			write( sock_fd , "\" " , 2) ;
-		}
-		else
-		{
-			write( sock_fd , "\"\n" , 2) ;
-
-			break ;
-		}
-	}
-
-#ifndef  USE_WIN32GUI
-	/*
-	 * XXX
-	 * read() is blocked in win32.
-	 */
-	while( ( len = read( sock_fd , buf , sizeof( buf))) > 0)
-	{
-		write( STDOUT_FILENO , buf , len) ;
-	}
-#endif
-
-	close( sock_fd) ;
+	write( STDOUT_FILENO , "\x1b]5379;" , 7) ;
+	write_argv( argc , argv , STDOUT_FILENO) ;
+	write( STDOUT_FILENO , "\x07" , 1) ;
 
 	return  0 ;
 }

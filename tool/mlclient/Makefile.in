@@ -21,6 +21,7 @@ all: $(PROG)
 
 $(PROG): $(OBJ)
 	$(CC) -o $(PROG) $(OBJ) $(LIBS)
+	ln -sf $(PROG) $(PROG)x
 
 .SUFFIXES: .c.o
 
@@ -37,4 +38,4 @@ $(BINDIR):
 	mkdir -p $(BINDIR)
 
 install: $(BINDIR)
-	$(INSTALL) -m 755 $(PROG) $(BINDIR)
+	$(INSTALL) -m 755 $(PROG) $(PROG)x $(BINDIR)

@@ -76,8 +76,8 @@ Memo about WIN32 native GUI.
   o -Y/--decsp and -&/--borderless options are not available.
   o 'genuine' of daemon mode is not supported in MSYS-DTK or Cygwin version.
     Daemon mode itself is not supported in MinGW version. Instead,
-    "\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence is avaiable
-    (see doc/en/PROTOCOL).
+    "\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence (which
+    mlclient or mlclientx command supports) is avaiable. (see doc/en/PROTOCOL).
   o Background image is not supported.
   o use_variable_column_width option is ignored.
   o Supported scrollbars are "simple" and "sample" alone.

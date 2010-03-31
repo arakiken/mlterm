@@ -10,6 +10,7 @@
 #include  <fcntl.h>		/* open */
 #endif
 #include  <unistd.h>		/* close */
+#include  <kiklib/kik_file.h>
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>
 
@@ -162,6 +163,8 @@ x_display_open(
 	{
 		return  NULL ;
 	}
+	
+	kik_file_set_cloexec( fd) ;
 #endif
 
 	if( ( _disp.gc = x_gc_new( &_display)) == NULL)
