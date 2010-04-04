@@ -1771,8 +1771,10 @@ parse_vt100_escape_sequence(
 						ml_screen_insert_blank_chars( vt100_parser->screen ,
 							ps[0]) ;
 					}
-					else if( *str_p == 'A' || *str_p == 'e')
+					else if( *str_p == 'A' || *str_p == 'k')
 					{
+						/* 'A' = CUU , 'k' = VPB */
+						
 						if( num == 0)
 						{
 							ps[0] = 1 ;
@@ -1780,8 +1782,10 @@ parse_vt100_escape_sequence(
 
 						ml_screen_go_upward( vt100_parser->screen , ps[0]) ;
 					}
-					else if( *str_p == 'B')
+					else if( *str_p == 'B' || *str_p == 'e')
 					{
+						/* 'B' = CUD , 'e' = VPR */
+						
 						if( num == 0)
 						{
 							ps[0] = 1 ;
@@ -1791,6 +1795,8 @@ parse_vt100_escape_sequence(
 					}
 					else if( *str_p == 'C' || *str_p == 'a')
 					{
+						/* 'C' = CUF , 'a' = HPR */
+						
 						if( num == 0)
 						{
 							ps[0] = 1 ;
@@ -1798,8 +1804,10 @@ parse_vt100_escape_sequence(
 
 						ml_screen_go_forward( vt100_parser->screen , ps[0]) ;
 					}
-					else if( *str_p == 'D')
+					else if( *str_p == 'D' || *str_p == 'j')
 					{
+						/* 'D' = CUB , 'j' = HPB */
+						
 						if( num == 0)
 						{
 							ps[0] = 1 ;

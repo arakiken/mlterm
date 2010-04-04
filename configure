@@ -746,7 +746,7 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 MAKE_DIRS
 subdirs
-CVS_REVISION
+CHANGE_DATE
 DL_SELF
 MKF_LIBS_FOR_MODULE
 KIK_LIBS_FOR_MODULE
@@ -23800,8 +23800,7 @@ fi
 
 
 
-# CVS revision
-CVS_REVISION=`tail -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^.Id: .* \(.*\) .* .* .* Exp .$/\1/p'`
+CHANGE_DATE=`head -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^\([0-9]*-[0-9]*-[0-9]*\).*$/\1/p'`
 
 OUTPUT_FILES="xwindow/version.h ${OUTPUT_FILES}"
 

@@ -99,8 +99,9 @@ WIN32 native GUI 対応に関するメモ
        default_server が server_list に追加されます。
 
 * WIN32 GUI 版の制限
-  o -g オプションは [COL]x[ROW]+[x]+[y] の x y を無視します。
-  o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless オプションは使用できません。
+  o -g [col]x[row]+[x]+[y] オプションの x, y は無視します。
+  o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless 及び -d/--display オプション
+    は使用できません。
   o mlterm server 機能で genuine モードは使用できません(対応予定もありません。)。
     MinGW 版では、mlterm server 機能自体が使用できません(対応予定もありません。)。
     代わりに、"\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence

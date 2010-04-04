@@ -1,3 +1,17 @@
+2010-04-04  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja, doc/en/README.win32, doc/ja/README.win32:
+	  Updated
+	
+	* x_main_config.c: -d/--display option is removed in win32.
+
+	* ml_vt100_parser.c: Fixed a bug which treated VPR as VPB wrongly. (See
+	  http://slashdot.jp/~doda/journal/503828 in detail.)
+	  VPB and HPB sequences are supported.
+
+	* configure.in, version.h.in, x_term_manager.c: CVS_REVISION is replaced
+	  by CHANGE_DATE. mlterm -v shows "mlterm version N.N.N pre(or post)/YYYY-MM-DD".
+
 2010-04-01  Araki Ken  <arakiken@users.sf.net>
 
 	* tool/mlconfig/mc_font.c, gtkxlfdsel.c: If G_PLATFORM_WIN32 is defined,

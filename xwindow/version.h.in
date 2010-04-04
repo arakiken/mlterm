@@ -12,11 +12,11 @@
 #define  PATCH_LEVEL	0
 
 #if  1
-#define  CVS_REVISION   "pre/cvs-@CVS_REVISION@"
+#define  CHANGE_DATE  "pre/@CHANGE_DATE@"
 #elif  0
-#define  CVS_REVISION   "post/cvs-@CVS_REVISION@"
+#define  CHANGE_DATE  "post/@CHANGE_DATE@"
 #else
-#define  CVS_REVISION   ""
+#define  CHANGE_DATE  ""
 #endif
 
 

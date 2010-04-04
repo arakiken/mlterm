@@ -126,7 +126,7 @@ conf_new(void)
 	kik_conf_t *  conf ;
 	
 	if( ( conf = kik_conf_new( "mlterm" ,
-		MAJOR_VERSION , MINOR_VERSION , REVISION , PATCH_LEVEL , CVS_REVISION)) == NULL)
+		MAJOR_VERSION , MINOR_VERSION , REVISION , PATCH_LEVEL , CHANGE_DATE)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " kik_conf_new() failed.\n") ;

@@ -72,8 +72,9 @@ Memo about WIN32 native GUI.
   o server_list(--servlist) = (<user>@)(<protocol>:)<server>(:<encoding>),(<user>@)(<protocol>:)<server>(:<encoding>),...
 
 * Caution
-  o -g [column]x[row] option is ignored.
-  o -Y/--decsp and -&/--borderless options are not available.
+  o x, y of -g [col]x[row]+[x]+[y] option is ignored.
+  o -I/--icon, --iconpath, -Y/--decsp, -&/--borderless and -d/--display options
+    are not available.
   o 'genuine' of daemon mode is not supported in MSYS-DTK or Cygwin version.
     Daemon mode itself is not supported in MinGW version. Instead,
     "\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence (which

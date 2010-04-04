@@ -146,8 +146,10 @@ x_prepare_for_main_config(
 		"columns for Unicode \"EastAsianAmbiguous\" character [1]") ;
 	kik_conf_add_opt( conf , 'b' , "bg" , 0 , "bg_color" , 
 		"background color") ;
+#ifndef  USE_WIN32GUI
 	kik_conf_add_opt( conf , 'd' , "display" , 0 , "display" , 
 		"X server to connect") ;
+#endif
 	kik_conf_add_opt( conf , 'f' , "fg" , 0 , "fg_color" , 
 		"foreground color") ;
 	kik_conf_add_opt( conf , 'g' , "geometry" , 0 , "geometry" , 

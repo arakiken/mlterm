@@ -21,7 +21,7 @@ all: $(PROG)
 
 $(PROG): $(OBJ)
 	$(CC) -o $(PROG) $(OBJ) $(LIBS)
-	ln -sf $(PROG) $(PROG)x
+	cp $(PROG) $(PROG)x
 
 .SUFFIXES: .c.o
 

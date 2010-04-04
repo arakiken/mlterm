@@ -732,9 +732,8 @@ fi
 AC_SUBST(DL_SELF)
 
 
-# CVS revision
-CVS_REVISION=`tail -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^.Id: .* \(.*\) .* .* .* Exp .$/\1/p'`
-AC_SUBST(CVS_REVISION)
+CHANGE_DATE=`head -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^\(@<:@0-9@:>@*-@<:@0-9@:>@*-@<:@0-9@:>@*\).*$/\1/p'`
+AC_SUBST(CHANGE_DATE)
 OUTPUT_FILES="xwindow/version.h ${OUTPUT_FILES}"
 
 if test "${SUBDIRS}" != "" ; then
