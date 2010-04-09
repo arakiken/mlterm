@@ -1,10 +1,10 @@
-2010-04-07  Araki Ken  <arakiken@users.sf.net>
+2010-04-10  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.0.0 released.
 	  (tag "rel-3_0_0")
 
 	* configure.in, mlterm.spec, xwindow/version.h.in,
-	  doc/en/ReleaseNote: updated for 2.9.4
+	  doc/en/ReleaseNote: updated for 3.0.0
 
 	* configure: re-generated
 
