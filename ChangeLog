@@ -1,3 +1,22 @@
+2010-04-07  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.0.0 released.
+	  (tag "rel-3_0_0")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 2.9.4
+
+	* configure: re-generated
+
+	* x_sb_view_factory.c: If mlterm is not built with -export-dynamic option,
+	  functions related to pixmap_engine are removed from x_sb_view_factory.c.
+	
+	* x_sb_view.c: ver0_color_changed which is a wrapper function of version 0
+	  library calls x_sb_view_ver0_t::draw_decoration for update_color of motif.c.
+	
+	* ml_line.c: if LTR-base is changed to RTL-base, line is redrawn in
+	  ml_line_bidi_render().
+
 2010-04-04  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, doc/ja/README.ja, doc/en/README.win32, doc/ja/README.win32:

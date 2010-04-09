@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 2.9.4
+%define version 3.0.0
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
@@ -34,7 +34,6 @@ You can dynamically change various xims.
 
 %prep
 %setup
-rm -rf doc/{en,ja}/CVS
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" \
@@ -64,9 +63,11 @@ rm -rf $RPM_BUILD_ROOT
 %doc ChangeLog LICENCE README doc/{en,ja}
 %{bindir}/mlterm
 %{bindir}/mlclient
+%{bindir}/mlclientx
 %{bindir}/mlcc
 %{libdir}/libkik.*
 %{libdir}/libmkf.*
+%{libdir}/mkf/
 %{libdir}/mlterm/
 %{libexecdir}/
 %{sysconfdir}/mlterm/
@@ -76,6 +77,9 @@ rm -rf $RPM_BUILD_ROOT
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
 
 %changelog
+* Sat Apr 10 2010 Araki Ken <arakiken@users.sf.net>
+- Source version 3.0.0
+
 * Fri Nov 30 2007 Seiichi SATO <me@seiichisato.jp>
 - Source version 2.9.4
 

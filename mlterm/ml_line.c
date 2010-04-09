@@ -1181,9 +1181,12 @@ ml_line_bidi_render(
 
 	result = ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars) ;
 
-	if( base_is_rtl && ! line->bidi_state->base_is_rtl)
+	if( base_is_rtl != line->bidi_state->base_is_rtl)
 	{
-		/* shifting RTL-base to LTR-base (which requires redrawing line all) */
+		/*
+		 * shifting RTL-base to LTR-base or LTR-base to RTL-base.
+		 * (which requires redrawing line all)
+		 */
 		ml_line_set_modified_all( line) ;
 	}
 	else if( line->bidi_state->has_rtl && IS_MODIFIED(line->flag))

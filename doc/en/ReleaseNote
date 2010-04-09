@@ -1,3 +1,26 @@
+ver 3.0.0
+* Support 256 colors. (Thanks to Shinichiro Hamaji san)
+* Character convertion tables are separated from libmkf library.
+* Support win32(Windows 2000-XP) native GUI.
+  ('--with-gui=win32' in mingw, msys and cygwin)
+* Support font and color configuration protocol.
+  (doc/en/PROTOCOL.font,PROTOCOL.color)
+* Change 'aafont' format as follows. (Elements in parentheses are optional.)
+  [Family]-[Encoding](:[Percentage])
+  => [Family]( [Weight] [Slant] [Size]-[Encoding]:[Percentage])
+* Add 'DEFAULT' key which specifies fonts used by default
+  for font configuration files.
+* Add --maxptys option.
+* Add 'mlclient', 'mlclientx', 'static_backscroll_mode' and 'type_engine' to
+  configuration protocol. (doc/en/PROTOCOL)
+* Add 'mlclientx' command.
+* Merge SF patches -
+  #1574764 (Thanks to Christian Biere)
+  #        (Thanks to Frederic Heulin)
+  #2879800 (Thanks to Kouichi Kusanagi san)
+* Other bug fixes:
+  #1999220 (Thanks to Christian Biere)
+
 ver 2.9.4
 * Arabic translation of mlconfig [Khaled Hosny]
 * Selected region can be expanded by right-clicking [minami]

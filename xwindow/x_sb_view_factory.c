@@ -56,7 +56,9 @@ typedef struct x_sb_view_wrapper
 
 /* --- static variables --- */
 
+#ifdef  SUPPORT_PIXMAP_ENGINE
 static KIK_LIST( x_sb_view_conf_t)  view_conf_list = NULL ;
+#endif
 
 
 /* --- static functions --- */
@@ -158,6 +160,26 @@ ver0_delete(
 	}
 
 	free( wrapper) ;
+}
+
+static void
+ver0_color_changed(
+	x_sb_view_t *  view ,
+	int  is_fg
+	)
+{
+	x_sb_view_wrapper_t *  wrapper ;
+
+	wrapper = (x_sb_view_wrapper_t*) view ;
+
+	/*
+	 * XXX Hack
+	 * motif.c updates colors in the timing of draw_decoration.
+	 */
+	if( wrapper->u.ver0->draw_decoration)
+	{
+		(*wrapper->u.ver0->draw_decoration)( wrapper->u.ver0) ;
+	}
 }
 
 static void
@@ -264,7 +286,7 @@ check_version(
 	view->get_default_color = ver0_get_default_color ;
 	view->realized = ver0_realized ;
 	view->resized = ver0_resized ;
-	view->color_changed = NULL ;
+	view->color_changed = ver0_color_changed ;
 	view->delete = ver0_delete ;
 	view->draw_scrollbar = ver0_draw_scrollbar ;
 	view->draw_background = NULL ;
@@ -279,7 +301,6 @@ check_version(
 
 #endif
 }
-
 
 static x_sb_view_new_func_t
 dlsym_sb_view_new_func(
@@ -345,6 +366,12 @@ dlsym_sb_view_new_func(
 
 	return  func ;
 }
+
+/*
+ * pixmap_engine is supported only if mlterm is built with -export-dynamic option of ld
+ * because shared library of pixmap_engine refers to x_imagelib_load_file.
+ */
+#ifdef  SUPPORT_PIXMAP_ENGINE
 
 static x_sb_engine_new_func_t
 dlsym_sb_engine_new_func(
@@ -614,6 +641,8 @@ find_view_rcfile(
 	return  conf ;
 }
 
+#endif
+
 
 /* --- global functions --- */
 
@@ -623,6 +652,7 @@ x_sb_view_new(
 	)
 {
 	x_sb_view_new_func_t  func ;
+#ifdef  SUPPORT_PIXMAP_ENGINE
 	x_sb_view_conf_t *  conf ;
 
 	/* new style plugin ? (requires rcfile and engine library) */
@@ -647,6 +677,7 @@ x_sb_view_new(
 		 */
 		return  check_version( (*func_engine)( conf , 0)) ;
 	}
+#endif
 
 	if( strcmp( name , "simple") == 0)
 	{
@@ -670,6 +701,7 @@ x_transparent_scrollbar_view_new(
 	)
 {
 	x_sb_view_new_func_t  func ;
+#ifdef  SUPPORT_PIXMAP_ENGINE
 	x_sb_view_conf_t *  conf ;
 
 	/* new style plugin? (requires an rcfile and an engine library) */
@@ -686,6 +718,7 @@ x_transparent_scrollbar_view_new(
 
 		return  check_version( (*func_engine)( conf , 1)) ;
 	}
+#endif
 
 	if( strcmp( name , "simple") == 0)
 	{
@@ -708,6 +741,7 @@ x_unload_scrollbar_view_lib(
 	char *  name
 	)
 {
+#ifdef  SUPPORT_PIXMAP_ENGINE
 	x_sb_view_conf_t *  conf ;
 
 	/* new style plugin? (requires an rcfile and an engine library) */
@@ -734,6 +768,7 @@ x_unload_scrollbar_view_lib(
 		}
 	#endif
 	}
+#endif
 		
 	return  1 ;
 }
