@@ -1,5 +1,8 @@
 2010-04-17  Araki Ken  <arakiken@users.sf.net>
 
+	* configure.in, mkf/Makefile.in, tool/mlclient/Makefile.in:
+	  Merged id:2987646 patch. (Thanks to Ahmed El-Mahmoudy)
+
 	* ml_vt100_parser.[ch]: xterm_listener->start or xterm_listener->stop
 	  event is called once from ml_parse_vt100_sequence().
 	  Maximum size read from pty in ml_parse_vt100_sequence() is increased
