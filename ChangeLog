@@ -1,3 +1,12 @@
+2010-04-17  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.[ch]: xterm_listener->start or xterm_listener->stop
+	  event is called once from ml_parse_vt100_sequence().
+	  Maximum size read from pty in ml_parse_vt100_sequence() is increased
+	  from PTY_RD_BUFFER_SIZE to PTY_RD_BUFFER_SIZE * 3.
+
+	* xwindow/version.h.in: 3.0.0 -> 3.0.0 post
+
 2010-04-10  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.0.0 released.

@@ -29,7 +29,7 @@ $(PROG): $(OBJ)
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -f $(OBJ) $(PROG) $(PROG).exe $(PROG).core
+	rm -f $(OBJ) $(PROG) $(PROG).exe $(PROG).core $(PROG)x
 
 distclean: clean
 	rm -f Makefile

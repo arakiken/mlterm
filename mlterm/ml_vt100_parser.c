@@ -75,7 +75,8 @@
 
 static void
 start_vt100_cmd(
-	ml_vt100_parser_t *  vt100_parser
+	ml_vt100_parser_t *  vt100_parser ,
+	int  trigger_xterm_event	/* dispatch to x_screen or not. */
 	)
 {
 	if( vt100_parser->use_char_combining)
@@ -96,7 +97,7 @@ start_vt100_cmd(
 		ml_unuse_multi_col_char() ;
 	}
 
-	if( HAS_XTERM_LISTENER(vt100_parser,start))
+	if( trigger_xterm_event && HAS_XTERM_LISTENER(vt100_parser,start))
 	{
 		(*vt100_parser->xterm_listener->start)( vt100_parser->xterm_listener->self) ;
 	}
@@ -106,13 +107,14 @@ start_vt100_cmd(
 
 static void
 stop_vt100_cmd(
-	ml_vt100_parser_t *  vt100_parser
+	ml_vt100_parser_t *  vt100_parser ,
+	int  trigger_xterm_event	/* dispatch to x_screen or not. */
 	)
 {
 	ml_screen_render( vt100_parser->screen) ;
 	ml_screen_visual( vt100_parser->screen) ;
 
-	if( HAS_XTERM_LISTENER(vt100_parser,stop))
+	if( trigger_xterm_event && HAS_XTERM_LISTENER(vt100_parser,stop))
 	{
 		(*vt100_parser->xterm_listener->stop)( vt100_parser->xterm_listener->self) ;
 	}
@@ -124,19 +126,19 @@ receive_bytes(
 	)
 {
 	size_t  ret ;
-	size_t  left ;
 
-	if( vt100_parser->left > 0)
+	if( 0 < vt100_parser->left && vt100_parser->left < vt100_parser->len)
 	{
 		memmove( vt100_parser->seq , CURRENT_STR_P(vt100_parser) ,
 			vt100_parser->left * sizeof( u_char)) ;
 	}
 
-	left = PTY_RD_BUFFER_SIZE - vt100_parser->left ;
-
-	if( ( ret = ml_read_pty( vt100_parser->pty ,
-		&vt100_parser->seq[vt100_parser->left] , left)) == 0)
+	if( ( ret = ml_read_pty( vt100_parser->pty , &vt100_parser->seq[vt100_parser->left] ,
+			/* vt100_parser->left must be always less than PTY_RD_BUFFER_SIZE. */
+			PTY_RD_BUFFER_SIZE - vt100_parser->left)) == 0)
 	{
+		vt100_parser->len = vt100_parser->left ;
+	
 		return  0 ;
 	}
 
@@ -552,7 +554,7 @@ config_protocol_set(
 		char *  key ;
 		char *  val ;
 
-		stop_vt100_cmd( vt100_parser) ;
+		stop_vt100_cmd( vt100_parser , 0) ;
 
 		/*
 		 * accept multiple key=value pairs.
@@ -584,7 +586,7 @@ config_protocol_set(
 			}
 		}
 
-		start_vt100_cmd( vt100_parser) ;
+		start_vt100_cmd( vt100_parser , 0) ;
 
 		return  1 ;
 	}
@@ -670,7 +672,7 @@ config_protocol_get(
 		char *  key ;
 		int  ret ;
 		
-		stop_vt100_cmd( vt100_parser) ;
+		stop_vt100_cmd( vt100_parser , 0) ;
 
 		ret = ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0) ;
 		if( ret == -1)
@@ -697,7 +699,7 @@ config_protocol_get(
 				NULL , msg , to_menu) ;
 		}
 
-		start_vt100_cmd( vt100_parser) ;
+		start_vt100_cmd( vt100_parser , 0) ;
 
 		return  1 ;
 	}
@@ -723,14 +725,14 @@ config_protocol_set_font(
 		char *  key ;
 		char *  val ;
 
-		stop_vt100_cmd( vt100_parser) ;
+		stop_vt100_cmd( vt100_parser , 0) ;
 
 		if( ml_parse_proto2( &file , &key , &val , pt , 0) && key && val)
 		{
 			(*vt100_parser->config_listener->set_font)( file , key , val, save) ;
 		}
 
-		start_vt100_cmd( vt100_parser) ;
+		start_vt100_cmd( vt100_parser , 0) ;
 
 		return  1 ;
 	}
@@ -757,7 +759,7 @@ config_protocol_get_font(
 		char *  cs ;
 		int  ret ;
 
-		stop_vt100_cmd( vt100_parser) ;
+		stop_vt100_cmd( vt100_parser , 0) ;
 
 		ret = ml_parse_proto2( &file , &key , NULL , pt , to_menu == 0) ;
 		if( ret == -1)
@@ -789,7 +791,7 @@ config_protocol_get_font(
 				NULL , msg , msg , to_menu) ;
 		}
 
-		start_vt100_cmd( vt100_parser) ;
+		start_vt100_cmd( vt100_parser , 0) ;
 
 		return  1 ;
 	}
@@ -815,14 +817,14 @@ config_protocol_set_color(
 		char *  key ;
 		char *  val ;
 
-		stop_vt100_cmd( vt100_parser) ;
+		stop_vt100_cmd( vt100_parser , 0) ;
 
 		if( ml_parse_proto2( &file , &key , &val , pt , 0) && key && val)
 		{
 			(*vt100_parser->config_listener->set_color)( file , key , val, save) ;
 		}
 
-		start_vt100_cmd( vt100_parser) ;
+		start_vt100_cmd( vt100_parser , 0) ;
 
 		return  1 ;
 	}
@@ -1179,10 +1181,10 @@ parse_vt100_escape_sequence(
 
 				if( HAS_XTERM_LISTENER(vt100_parser,set_app_keypad))
 				{
-					stop_vt100_cmd( vt100_parser) ;
+					stop_vt100_cmd( vt100_parser , 0) ;
 					(*vt100_parser->xterm_listener->set_app_keypad)(
 						vt100_parser->xterm_listener->self , 1) ;
-					start_vt100_cmd( vt100_parser) ;
+					start_vt100_cmd( vt100_parser , 0) ;
 				}
 			}
 			else if( *str_p == '>')
@@ -1191,10 +1193,10 @@ parse_vt100_escape_sequence(
 
 				if( HAS_XTERM_LISTENER(vt100_parser,set_app_keypad))
 				{
-					stop_vt100_cmd( vt100_parser) ;
+					stop_vt100_cmd( vt100_parser , 0) ;
 					(*vt100_parser->xterm_listener->set_app_keypad)(
 						vt100_parser->xterm_listener->self , 0) ;
-					start_vt100_cmd( vt100_parser) ;
+					start_vt100_cmd( vt100_parser , 0) ;
 				}
 			}
 			else if( *str_p == 'D')
@@ -1387,10 +1389,10 @@ parse_vt100_escape_sequence(
 						{
 							if( HAS_XTERM_LISTENER(vt100_parser,set_app_cursor_keys))
 							{
-								stop_vt100_cmd( vt100_parser) ;
+								stop_vt100_cmd( vt100_parser , 0) ;
 								(*vt100_parser->xterm_listener->set_app_cursor_keys)(
 									vt100_parser->xterm_listener->self , 1) ;
-								start_vt100_cmd( vt100_parser) ;
+								start_vt100_cmd( vt100_parser , 0) ;
 							}
 						}
 					#if  0
@@ -1404,10 +1406,10 @@ parse_vt100_escape_sequence(
 							clear_display_all( vt100_parser) ; /* XTERM compatibility [#1048321] */
 							if( HAS_XTERM_LISTENER(vt100_parser,resize_columns))
 							{
-								stop_vt100_cmd( vt100_parser) ;
+								stop_vt100_cmd( vt100_parser , 0) ;
 								(*vt100_parser->xterm_listener->resize_columns)(
 									vt100_parser->xterm_listener->self , 132) ;
-								start_vt100_cmd( vt100_parser) ;
+								start_vt100_cmd( vt100_parser , 0) ;
 							}
 						}
 					#if  0
@@ -1420,10 +1422,10 @@ parse_vt100_escape_sequence(
 						{
 							if( HAS_XTERM_LISTENER(vt100_parser,reverse_video))
 							{
-								stop_vt100_cmd( vt100_parser) ;
+								stop_vt100_cmd( vt100_parser , 0) ;
 								(*vt100_parser->xterm_listener->reverse_video)(
 									vt100_parser->xterm_listener->self , 1) ;
-								start_vt100_cmd( vt100_parser) ;
+								start_vt100_cmd( vt100_parser , 0) ;
 							}
 						}
 						else if( ps[0] == 6)
@@ -1492,10 +1494,10 @@ parse_vt100_escape_sequence(
 						{
 							if( HAS_XTERM_LISTENER(vt100_parser,set_mouse_report))
 							{
-								stop_vt100_cmd( vt100_parser) ;
+								stop_vt100_cmd( vt100_parser , 0) ;
 								(*vt100_parser->xterm_listener->set_mouse_report)(
 									vt100_parser->xterm_listener->self , 1) ;
-								start_vt100_cmd( vt100_parser) ;
+								start_vt100_cmd( vt100_parser , 0) ;
 							}
 						}
 					#if  0
@@ -1556,10 +1558,10 @@ parse_vt100_escape_sequence(
 						{
 							if( HAS_XTERM_LISTENER(vt100_parser,set_app_cursor_keys))
 							{
-								stop_vt100_cmd( vt100_parser) ;
+								stop_vt100_cmd( vt100_parser , 0) ;
 								(*vt100_parser->xterm_listener->set_app_cursor_keys)(
 									vt100_parser->xterm_listener->self , 0) ;
-								start_vt100_cmd( vt100_parser) ;
+								start_vt100_cmd( vt100_parser , 0) ;
 							}
 						}
 					#if  0
@@ -1573,10 +1575,10 @@ parse_vt100_escape_sequence(
 							clear_display_all( vt100_parser) ; /* XTERM compatibility [#1048321] */
 							if( HAS_XTERM_LISTENER(vt100_parser,resize_columns))
 							{
-								stop_vt100_cmd( vt100_parser) ;
+								stop_vt100_cmd( vt100_parser , 0) ;
 								(*vt100_parser->xterm_listener->resize_columns)(
 									vt100_parser->xterm_listener->self , 80) ;
-								start_vt100_cmd( vt100_parser) ;
+								start_vt100_cmd( vt100_parser , 0) ;
 							}
 						}
 					#if  0
@@ -1589,10 +1591,10 @@ parse_vt100_escape_sequence(
 						{
 							if( HAS_XTERM_LISTENER(vt100_parser,reverse_video))
 							{
-								stop_vt100_cmd( vt100_parser) ;
+								stop_vt100_cmd( vt100_parser , 0) ;
 								(*vt100_parser->xterm_listener->reverse_video)(
 									vt100_parser->xterm_listener->self , 0) ;
-								start_vt100_cmd( vt100_parser) ;
+								start_vt100_cmd( vt100_parser , 0) ;
 							}
 						}
 						else if( ps[0] == 6)
@@ -1660,10 +1662,10 @@ parse_vt100_escape_sequence(
 						{
 							if( HAS_XTERM_LISTENER(vt100_parser,set_mouse_report))
 							{
-								stop_vt100_cmd( vt100_parser) ;
+								stop_vt100_cmd( vt100_parser , 0) ;
 								(*vt100_parser->xterm_listener->set_mouse_report)(
 									vt100_parser->xterm_listener->self , 0) ;
-								start_vt100_cmd( vt100_parser) ;
+								start_vt100_cmd( vt100_parser , 0) ;
 							}
 						}
 					#if  0
@@ -2257,18 +2259,18 @@ parse_vt100_escape_sequence(
 						
 						if( HAS_XTERM_LISTENER(vt100_parser,set_window_name))
 						{
-							stop_vt100_cmd( vt100_parser) ;
+							stop_vt100_cmd( vt100_parser , 0) ;
 							(*vt100_parser->xterm_listener->set_window_name)(
 								vt100_parser->xterm_listener->self , pt) ;
-							start_vt100_cmd( vt100_parser) ;
+							start_vt100_cmd( vt100_parser , 0) ;
 						}
 						
 						if( HAS_XTERM_LISTENER(vt100_parser,set_icon_name))
 						{
-							stop_vt100_cmd( vt100_parser) ;
+							stop_vt100_cmd( vt100_parser , 0) ;
 							(*vt100_parser->xterm_listener->set_icon_name)(
 								vt100_parser->xterm_listener->self , pt) ;
-							start_vt100_cmd( vt100_parser) ;
+							start_vt100_cmd( vt100_parser , 0) ;
 						}
 					}
 					else if( ps == 1)
@@ -2277,10 +2279,10 @@ parse_vt100_escape_sequence(
 						
 						if( HAS_XTERM_LISTENER(vt100_parser,set_icon_name))
 						{
-							stop_vt100_cmd( vt100_parser) ;
+							stop_vt100_cmd( vt100_parser , 0) ;
 							(*vt100_parser->xterm_listener->set_icon_name)(
 								vt100_parser->xterm_listener->self , pt) ;
-							start_vt100_cmd( vt100_parser) ;
+							start_vt100_cmd( vt100_parser , 0) ;
 						}
 					}
 					else if( ps == 2)
@@ -2289,10 +2291,10 @@ parse_vt100_escape_sequence(
 						
 						if( HAS_XTERM_LISTENER(vt100_parser,set_window_name))
 						{
-							stop_vt100_cmd( vt100_parser) ;
+							stop_vt100_cmd( vt100_parser , 0) ;
 							(*vt100_parser->xterm_listener->set_window_name)(
 								vt100_parser->xterm_listener->self , pt) ;
-							start_vt100_cmd( vt100_parser) ;
+							start_vt100_cmd( vt100_parser , 0) ;
 						}
 					}
 					else if( ps == 4)
@@ -2335,22 +2337,22 @@ parse_vt100_escape_sequence(
 								return  0 ;
 							}
 
-							stop_vt100_cmd( vt100_parser) ;
+							stop_vt100_cmd( vt100_parser , 0) ;
 							(*vt100_parser->config_listener->set)(
 								vt100_parser->config_listener->self ,
 								NULL , "wall_picture" , pt) ;
-							start_vt100_cmd( vt100_parser) ;
+							start_vt100_cmd( vt100_parser , 0) ;
 						}
 					}
 					else if( ps == 39)
 					{
 						if( HAS_CONFIG_LISTENER(vt100_parser,set))
 						{
-							stop_vt100_cmd( vt100_parser) ;
+							stop_vt100_cmd( vt100_parser , 0) ;
 							(*vt100_parser->config_listener->set)(
 								vt100_parser->config_listener->self ,
 								NULL , "fg_color" , pt) ;
-							start_vt100_cmd( vt100_parser) ;
+							start_vt100_cmd( vt100_parser , 0) ;
 						}
 					}
 					else if( ps == 46)
@@ -2361,11 +2363,11 @@ parse_vt100_escape_sequence(
 					{
 						if( HAS_CONFIG_LISTENER(vt100_parser,set))
 						{
-							stop_vt100_cmd( vt100_parser) ;
+							stop_vt100_cmd( vt100_parser , 0) ;
 							(*vt100_parser->config_listener->set)(
 								vt100_parser->config_listener->self ,
 								NULL , "bg_color" , pt) ;
-							start_vt100_cmd( vt100_parser) ;
+							start_vt100_cmd( vt100_parser , 0) ;
 						}
 					}
 					else if( ps == 50)
@@ -2623,9 +2625,9 @@ parse_vt100_escape_sequence(
 
 			if( HAS_XTERM_LISTENER(vt100_parser,bel))
 			{
-				stop_vt100_cmd( vt100_parser) ;
+				stop_vt100_cmd( vt100_parser , 0) ;
 				(*vt100_parser->xterm_listener->bel)( vt100_parser->xterm_listener->self) ;
-				start_vt100_cmd( vt100_parser) ;
+				start_vt100_cmd( vt100_parser , 0) ;
 			}
 		}
 		else
@@ -2649,177 +2651,14 @@ parse_vt100_escape_sequence(
 	}
 }
 
- 
-/* --- global functions --- */
-
-ml_vt100_parser_t *
-ml_vt100_parser_new(
-	ml_screen_t *  screen ,
-	ml_char_encoding_t  encoding ,
-	ml_unicode_font_policy_t  policy ,
-	u_int  col_size_a ,
-	int  use_char_combining ,
-	int  use_multi_col_char
-	)
-{
-	ml_vt100_parser_t *  vt100_parser ;
-
-	if( ( vt100_parser = malloc( sizeof( ml_vt100_parser_t))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	vt100_parser->left = 0 ;
-	vt100_parser->len = 0 ;
-
-	ml_str_init( vt100_parser->buffer.chars , PTY_WR_BUFFER_SIZE) ;	
-	vt100_parser->buffer.len = 0 ;
-	vt100_parser->buffer.output_func = ml_screen_overwrite_chars ;
-
-	vt100_parser->screen = screen ;
-	vt100_parser->pty = NULL ;
-
-	vt100_parser->xterm_listener = NULL ;
-	vt100_parser->config_listener = NULL ;
-
-	vt100_parser->log_file = -1 ;
-	
-	vt100_parser->cs = UNKNOWN_CS ;
-	vt100_parser->fg_color = ML_FG_COLOR ;
-	vt100_parser->bg_color = ML_BG_COLOR ;
-	vt100_parser->is_bold = 0 ;
-	vt100_parser->is_underlined = 0 ;
-	vt100_parser->is_reversed = 0 ;
-	vt100_parser->use_char_combining = use_char_combining ;
-	vt100_parser->use_multi_col_char = use_multi_col_char ;
-	vt100_parser->logging_vt_seq = 0 ;
-
-	vt100_parser->unicode_font_policy = policy ;
-
-	if( ( vt100_parser->cc_conv = ml_conv_new( encoding)) == NULL)
-	{
-		goto  error ;
-	}
-
-	if( ( vt100_parser->cc_parser = ml_parser_new( encoding)) == NULL)
-	{
-		(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
-
-		goto  error ;
-	}
-
-	vt100_parser->encoding = encoding ;
-
-	vt100_parser->is_dec_special_in_gl = 0 ;
-	vt100_parser->is_so = 0 ;
-	vt100_parser->is_dec_special_in_g0 = 0 ;
-	vt100_parser->is_dec_special_in_g1 = 1 ;
-
-	if( col_size_a == 1 || col_size_a == 2)
-	{
-		vt100_parser->col_size_of_east_asian_width_a = col_size_a ;
-	}
-	else
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " col size should be 1 or 2. default value 1 is used.\n") ;
-	#endif
-	
-		vt100_parser->col_size_of_east_asian_width_a = 1 ;
-	}
-
-	vt100_parser->saved_normal.is_saved = 0 ;
-        vt100_parser->saved_alternate.is_saved = 0 ;
-	return  vt100_parser ;
-
-error:
-	free( vt100_parser) ;
-
-	return  NULL ;
-}
-
-int
-ml_vt100_parser_delete(
-	ml_vt100_parser_t *  vt100_parser
-	)
-{
-	ml_str_final( vt100_parser->buffer.chars , PTY_WR_BUFFER_SIZE) ;
-	(*vt100_parser->cc_parser->delete)( vt100_parser->cc_parser) ;
-	(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
-
-	if( vt100_parser->log_file != -1)
-	{
-		close( vt100_parser->log_file) ;
-	}
-
-	free( vt100_parser) ;
-	
-	return  1 ;
-}
-
-int
-ml_vt100_parser_set_pty(
-	ml_vt100_parser_t *  vt100_parser ,
-	ml_pty_ptr_t  pty
-	)
-{
-	vt100_parser->pty = pty ;
-	
-	return  1 ;
-}
-
-int
-ml_vt100_parser_set_xterm_listener(
-	ml_vt100_parser_t *  vt100_parser ,
-	ml_xterm_event_listener_t *  xterm_listener
-	)
-{
-	vt100_parser->xterm_listener = xterm_listener ;
-
-	return  1 ;
-}
-
-int
-ml_vt100_parser_set_config_listener(
-	ml_vt100_parser_t *  vt100_parser ,
-	ml_config_event_listener_t *  config_listener
-	)
-{
-	vt100_parser->config_listener = config_listener ;
-
-	return  1 ;
-}
-
-int
-ml_vt100_parser_set_unicode_font_policy(
-	ml_vt100_parser_t *  vt100_parser ,
-	ml_unicode_font_policy_t  policy
-	)
-{
-	vt100_parser->unicode_font_policy = policy ;
-
-	return  1 ;
-}
-
-int
-ml_parse_vt100_sequence(
+static int
+parse_vt100_sequence(
 	ml_vt100_parser_t *  vt100_parser
 	)
 {
 	mkf_char_t  ch ;
 	size_t  prev_left ;
-
-	if( ! vt100_parser->pty || receive_bytes( vt100_parser) == 0)
-        {
-            	return  0 ;
-        }
-  
-	start_vt100_cmd( vt100_parser) ;
-
-	/*
-	 * bidi and visual-indian is always stopped from here.
-	 */
-		 
+ 
 	while( 1)
 	{
 		prev_left = vt100_parser->left ;
@@ -3040,8 +2879,192 @@ ml_parse_vt100_sequence(
 			break ;
 		}
 	}
-		
-	stop_vt100_cmd( vt100_parser) ;
+
+	return  1 ;
+}
+
+/* --- global functions --- */
+
+ml_vt100_parser_t *
+ml_vt100_parser_new(
+	ml_screen_t *  screen ,
+	ml_char_encoding_t  encoding ,
+	ml_unicode_font_policy_t  policy ,
+	u_int  col_size_a ,
+	int  use_char_combining ,
+	int  use_multi_col_char
+	)
+{
+	ml_vt100_parser_t *  vt100_parser ;
+
+	if( ( vt100_parser = malloc( sizeof( ml_vt100_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	vt100_parser->left = 0 ;
+	vt100_parser->len = 0 ;
+
+	ml_str_init( vt100_parser->buffer.chars , PTY_WR_BUFFER_SIZE) ;	
+	vt100_parser->buffer.len = 0 ;
+	vt100_parser->buffer.output_func = ml_screen_overwrite_chars ;
+
+	vt100_parser->screen = screen ;
+	vt100_parser->pty = NULL ;
+
+	vt100_parser->xterm_listener = NULL ;
+	vt100_parser->config_listener = NULL ;
+
+	vt100_parser->log_file = -1 ;
+	
+	vt100_parser->cs = UNKNOWN_CS ;
+	vt100_parser->fg_color = ML_FG_COLOR ;
+	vt100_parser->bg_color = ML_BG_COLOR ;
+	vt100_parser->is_bold = 0 ;
+	vt100_parser->is_underlined = 0 ;
+	vt100_parser->is_reversed = 0 ;
+	vt100_parser->use_char_combining = use_char_combining ;
+	vt100_parser->use_multi_col_char = use_multi_col_char ;
+	vt100_parser->logging_vt_seq = 0 ;
+
+	vt100_parser->unicode_font_policy = policy ;
+
+	if( ( vt100_parser->cc_conv = ml_conv_new( encoding)) == NULL)
+	{
+		goto  error ;
+	}
+
+	if( ( vt100_parser->cc_parser = ml_parser_new( encoding)) == NULL)
+	{
+		(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
+
+		goto  error ;
+	}
+
+	vt100_parser->encoding = encoding ;
+
+	vt100_parser->is_dec_special_in_gl = 0 ;
+	vt100_parser->is_so = 0 ;
+	vt100_parser->is_dec_special_in_g0 = 0 ;
+	vt100_parser->is_dec_special_in_g1 = 1 ;
+
+	if( col_size_a == 1 || col_size_a == 2)
+	{
+		vt100_parser->col_size_of_east_asian_width_a = col_size_a ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " col size should be 1 or 2. default value 1 is used.\n") ;
+	#endif
+	
+		vt100_parser->col_size_of_east_asian_width_a = 1 ;
+	}
+
+	vt100_parser->saved_normal.is_saved = 0 ;
+        vt100_parser->saved_alternate.is_saved = 0 ;
+	return  vt100_parser ;
+
+error:
+	free( vt100_parser) ;
+
+	return  NULL ;
+}
+
+int
+ml_vt100_parser_delete(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	ml_str_final( vt100_parser->buffer.chars , PTY_WR_BUFFER_SIZE) ;
+	(*vt100_parser->cc_parser->delete)( vt100_parser->cc_parser) ;
+	(*vt100_parser->cc_conv->delete)( vt100_parser->cc_conv) ;
+
+	if( vt100_parser->log_file != -1)
+	{
+		close( vt100_parser->log_file) ;
+	}
+
+	free( vt100_parser) ;
+	
+	return  1 ;
+}
+
+int
+ml_vt100_parser_set_pty(
+	ml_vt100_parser_t *  vt100_parser ,
+	ml_pty_ptr_t  pty
+	)
+{
+	vt100_parser->pty = pty ;
+	
+	return  1 ;
+}
+
+int
+ml_vt100_parser_set_xterm_listener(
+	ml_vt100_parser_t *  vt100_parser ,
+	ml_xterm_event_listener_t *  xterm_listener
+	)
+{
+	vt100_parser->xterm_listener = xterm_listener ;
+
+	return  1 ;
+}
+
+int
+ml_vt100_parser_set_config_listener(
+	ml_vt100_parser_t *  vt100_parser ,
+	ml_config_event_listener_t *  config_listener
+	)
+{
+	vt100_parser->config_listener = config_listener ;
+
+	return  1 ;
+}
+
+int
+ml_vt100_parser_set_unicode_font_policy(
+	ml_vt100_parser_t *  vt100_parser ,
+	ml_unicode_font_policy_t  policy
+	)
+{
+	vt100_parser->unicode_font_policy = policy ;
+
+	return  1 ;
+}
+
+int
+ml_parse_vt100_sequence(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	int  count ;
+	
+	if( ! vt100_parser->pty || receive_bytes( vt100_parser) == 0)
+	{
+		return  0 ;
+	}
+
+	start_vt100_cmd( vt100_parser , 1) ;
+
+	/*
+	 * bidi and visual-indian is always stopped from here.
+	 * If you want to call {start|stop}_vt100_cmd (where ml_xterm_event_listener is called),
+	 * the second argument of it shoule be 0.
+	 */
+
+	/* Maximum size of sequence parsed once is PTY_RD_BUFFER_SIZE * 3. */
+	count = 0 ;
+	do
+	{
+		parse_vt100_sequence( vt100_parser) ;
+	}
+	while(  /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
+		vt100_parser->len >= (PTY_RD_BUFFER_SIZE / 2) &&
+		(++count) < 3 && receive_bytes( vt100_parser)) ;
+	
+	stop_vt100_cmd( vt100_parser , 1) ;
 
 	return  1 ;
 }

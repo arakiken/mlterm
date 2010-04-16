@@ -6,7 +6,7 @@ bindir = @bindir@
 
 BINDIR = $(DESTDIR)$(bindir)
 
-VPATH = ${top_srcdir}/contrib/tool/mlcc
+VPATH = ${top_srcdir}
 
 CC = @CC@
 PROG = mlcc

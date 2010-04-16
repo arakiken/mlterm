@@ -5,4 +5,4 @@ all .DEFAULT:
 	cd libtbl ; $(MAKE) $@
 
 distclean : clean
-	rm -f Makefile config.log config.cache config.status libtool config.mk lib/Makefile
+	rm -f Makefile config.log config.cache config.status libtool config.mk lib/Makefile libtbl/Makefile

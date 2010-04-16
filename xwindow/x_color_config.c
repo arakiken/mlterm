@@ -275,7 +275,7 @@ x_color_config_get_rgb(
 }
 
 /*
- * Return value 0 means customization failed.
+ * Return value 0 means customization failed or not changed.
  * Return value -1 means saving failed.
  */
 int

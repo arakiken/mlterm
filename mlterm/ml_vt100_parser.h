@@ -18,7 +18,9 @@
 /*
  * kterm BUF_SIZE in ptyx.h is 4096.
  * Following size is adjusted to suppress sizeof(ml_vt100_parser_t) to 4KB.
- * 3984 bytes in ILP32, 4020 bytes in LP64.
+ * (3984 bytes in ILP32, 4020 bytes in LP64.)
+ * Maximum size of sequence parsed once is PTY_RD_BUFFER_SIZE * 3.
+ * (see ml_parse_vt100_sequence)
  */
 #define  PTY_RD_BUFFER_SIZE  3072
 #define  PTY_WR_BUFFER_SIZE  100
