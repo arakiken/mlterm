@@ -18,7 +18,7 @@ int
 x_load_named_xcolor(
 	Display *  display ,
 	int  screen ,
-	XColor *  xcolor ,
+	x_color_t *  xcolor ,
 	char *  name
 	)
 {
@@ -56,7 +56,7 @@ int
 x_load_rgb_xcolor(
 	Display *  display ,
 	int  screen ,
-	XColor *  xcolor ,
+	x_color_t *  xcolor ,
 	u_int8_t  red ,
 	u_int8_t  green ,
 	u_int8_t  blue
@@ -71,7 +71,7 @@ int
 x_unload_xcolor(
 	Display *  display ,
 	int  screen ,
-	XColor *  xcolor
+	x_color_t *  xcolor
 	)
 {
 	return  1 ;
@@ -82,7 +82,7 @@ x_get_xcolor_rgb(
 	u_int8_t *  red ,
 	u_int8_t *  green ,
 	u_int8_t *  blue ,
-	XColor *  xcolor
+	x_color_t *  xcolor
 	)
 {
 	*red = GetRValue( xcolor->pixel) ;

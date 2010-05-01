@@ -11,25 +11,27 @@
 #include  "x_color_config.h"
 
 
+typedef struct x_color_cache_256
+{
+	x_color_t  xcolors[240] ;
+
+	u_int  ref_count ;
+
+} x_color_cache_256_t ;
+
 typedef struct x_color_cache
 {
 	Display *  display ;
 	int  screen ;
 
-	x_color_t  xcolors[MAX_VTSYS_COLORS] ;
-	int8_t  is_loaded[MAX_VTSYS_COLORS] ;
-
-	x_color_t  xcolor_256 ;
-	ml_color_t  color_256 ;
+	x_color_t  xcolors[16] ;
+	x_color_cache_256_t *  cache_256 ;
 
 	x_color_t  black ;
 	
 	x_color_config_t *  color_config ;
 	u_int8_t  fade_ratio ;
 
-	/*
-	 * Private
-	 */
 	u_int  ref_count ;
 
 } x_color_cache_t ;

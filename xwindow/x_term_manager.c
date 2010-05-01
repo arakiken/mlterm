@@ -1637,7 +1637,6 @@ receive_next_event(void)
 {
 	int  count ;
 	ml_term_t **  terms ;
-	ml_term_t *  term ;
 	u_int  num_of_terms ;
 	int  xfd ;
 	int  ptyfd ;

@@ -97,14 +97,6 @@ typedef int XSelectionRequestEvent ;	/* dummy */
 
 typedef int XFontSet ;	/* dummy */
 
-typedef struct
-{
-	unsigned long  pixel ;
-	HPEN  pen ;
-	HBRUSH  brush ;
-
-} XColor ;
-
 #define None		0L	/* Same as definition in X11/X.h */
 #define NoSymbol	0L	/* Same as definition in X11/X.h */
 

@@ -471,50 +471,50 @@ Specify an input method.
 .RS
 .B Examples:
 .TP
---im=xim
+\-\-im=xim
 Use XIM with the default XIM server specified by standard way (i.e.,
 \fBXMODIFIERS\fR environmental variable).
 .TP
---im=xim:Ami
+\-\-im=xim:Ami
 Use XIM with Ami on the system locale.
 .TP
---im=xim:kinput2:ja_JP.EUC-JP
+\-\-im=xim:kinput2:ja_JP.EUC-JP
 Use XIM with kinput2 on ja_JP.EUC-JP locale.
 .TP
---im=kbd:arabic
+\-\-im=kbd:arabic
 Use keyboard mapping input method in Arabic.
 .TP
---im=kbd:hebrew
+\-\-im=kbd:hebrew
 Use keyboard mapping input method in Hebrew.
 .TP
---im=kbd:iscii
+\-\-im=kbd:iscii
 Use keyboard mapping input method in Indic.
 .TP
---im=uim
+\-\-im=uim
 Use uim with the default conversion engine.
 .TP
---im=uim:prime
+\-\-im=uim:prime
 Use uim with prime conversion engine.
 .TP
---im=iiimf
+\-\-im=iiimf
 Use IIIMF in the system language.
 .TP
---im=iiimf:ar
+\-\-im=iiimf:ar
 Use IIIMF in Arabic.
 .TP
---im=iiimf:ja:CannaLE
+\-\-im=iiimf:ja:CannaLE
 Use IIIMF in Japanese using CannaLE language engine.
 .TP
---im=m17nlib:ru
+\-\-im=m17nlib:ru
 Use m17n library in Russian.
 .TP
---im=m17nlib:or:itrans
+\-\-im=m17nlib:or:itrans
 Use m17n library in Oriya using ITRANS method.
 .TP
---im=scim
+\-\-im=scim
 Use SCIM.
 .TP
---im=none
+\-\-im=none
 Don't use input method.
 .TP
 \fB\-\-maxptys\fR=\fIvalue\fR
@@ -1009,7 +1009,7 @@ Parentheses show the corresponding command-line options.
 See the explanation on these command-line options for detail.
 .TP
 \fBalpha=\fIname\fR
-Alpha in transparent. (--with-gui=win32 only)
+Alpha in transparent. (\-\-with-gui=win32 only)
 .TP
 \fBapp_name=\fIname\fR (\fB\-N\fR, \fB\-\-name\fR) 
 Application name.
@@ -1287,7 +1287,7 @@ i.e. for bold read character, "hl_red" is searched instead of "red".
 
 \fB17\fR - \fB230\fR and \fB232\fR - \fB255\fR in 256 color can be also overridden.
 (\fB16\fR and \fB231\fR cannot be overwritten because they are treated as
-\fBblack\fR and \fBwhite\fR internally.)
+\fBblack\fR and \fBhl_white\fR internally.)
 
 The format of \fIRGB\fR is either "\fIRRRR\fB\-\fIGGGG\fB\-\fIBBBB\fR"
 (where 

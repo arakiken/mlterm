@@ -86,12 +86,12 @@ intern_color(
 		if( ex_color == 0x10)
 		{
 			/* avoid batting internal presentation of ML_FG_COLOR. */
-			return  0x00 ;
+			return  ML_BLACK ;
 		}
 		else if( ex_color == 0xe7)
 		{
 			/* avoid batting internal presentation of ML_BG_COLOR. */
-			return  0x07 ;
+			return  ML_WHITE | ML_BOLD_COLOR_MASK ;
 		}
 	}
 	

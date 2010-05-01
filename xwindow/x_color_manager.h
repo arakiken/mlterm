@@ -15,14 +15,14 @@
 
 typedef struct  x_color_manager
 {
+	/* normal or faded color cache */
 	x_color_cache_t *  color_cache ;
+	x_color_cache_t *  alt_color_cache ;
 	
 	/* for fg, bg, cursor_fg and cursor_bg */
 	struct sys_color
 	{
-		x_color_t  xcolor ;
-		int8_t  is_loaded ;
-		
+		x_color_t  xcolor ;		
 		char *  name ;
 	
 	} sys_colors[4] ;

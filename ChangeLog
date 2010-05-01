@@ -1,3 +1,19 @@
+2010-04-29  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_char.c: ML_WHITE | ML_BOLD_COLOR_MASK is used to replace
+	  0xe7 color internally instead of ML_WHITE.
+
+	* x_color_cache.h: x_color_cache_256_t is added for caching
+	    all 256 colors.
+	  x_color_cache.c: Fixed.
+
+	* x_color.h: x_color_t structure is defined instead of
+	    typedef X(ft)Color x_color_t in order to shrink x_color_t size.
+	  x_color.c: Fixed.
+
+	* man/mlclient.1, man/mlterm.1:
+	  Merged id:2988801 patch. (Thanks to Ahmed El-Mahmoudy)
+
 2010-04-17  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, mkf/Makefile.in, tool/mlclient/Makefile.in:

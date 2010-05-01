@@ -38,12 +38,11 @@ sys_color_set(
 {
 	free( color_man->sys_colors[color].name) ;
 	
-	if( color_man->sys_colors[color].is_loaded)
+	if( color_man->sys_colors[color].xcolor.is_loaded)
 	{
 		x_unload_xcolor( color_man->color_cache->display ,
 			color_man->color_cache->screen ,
 			&color_man->sys_colors[color].xcolor) ;
-		color_man->sys_colors[color].is_loaded = 0 ;
 	}
 
 	if( name == NULL)
@@ -103,6 +102,8 @@ x_color_manager_new(
 		return  NULL ;
 	}
 
+	color_man->alt_color_cache = NULL ;
+
 	if( fg_color == NULL)
 	{
 		fg_color = default_fg_color ;
@@ -136,7 +137,7 @@ x_color_manager_new(
 	
 	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
 	{
-		color_man->sys_colors[count].is_loaded = 0 ;
+		color_man->sys_colors[count].xcolor.is_loaded = 0 ;
 	}
 		
 	color_man->is_reversed = 0 ;
@@ -155,7 +156,7 @@ x_color_manager_delete(
 	{
 		free( color_man->sys_colors[count].name) ;
 		
-		if( color_man->sys_colors[count].is_loaded)
+		if( color_man->sys_colors[count].xcolor.is_loaded)
 		{
 			x_unload_xcolor( color_man->color_cache->display,
 				color_man->color_cache->screen,
@@ -165,6 +166,11 @@ x_color_manager_delete(
 
 	x_release_color_cache( color_man->color_cache) ;
 
+	if( color_man->alt_color_cache)
+	{
+		x_release_color_cache( color_man->alt_color_cache) ;
+	}
+	
 	free( color_man) ;
 	
 	return  1 ;
@@ -258,7 +264,7 @@ x_get_xcolor(
 
 	if( color == ML_FG_COLOR)
 	{
-		if( ! color_man->sys_colors[_FG_COLOR].is_loaded)
+		if( ! color_man->sys_colors[_FG_COLOR].xcolor.is_loaded)
 		{
 			if( ! x_load_xcolor( color_man->color_cache,
 				&color_man->sys_colors[_FG_COLOR].xcolor,
@@ -267,14 +273,12 @@ x_get_xcolor(
 				return  &color_man->color_cache->black ;
 			}
 		}
-
-		color_man->sys_colors[_FG_COLOR].is_loaded = 1 ;
 		
 		return  &color_man->sys_colors[_FG_COLOR].xcolor ;
 	}
 	else if( color == ML_BG_COLOR)
 	{
-		if( ! color_man->sys_colors[_BG_COLOR].is_loaded)
+		if( ! color_man->sys_colors[_BG_COLOR].xcolor.is_loaded)
 		{
 			if( ! x_load_xcolor( color_man->color_cache,
 				&color_man->sys_colors[_BG_COLOR].xcolor,
@@ -283,8 +287,6 @@ x_get_xcolor(
 				return  &color_man->color_cache->black ;
 			}
 		}
-		
-		color_man->sys_colors[_BG_COLOR].is_loaded = 1 ;
 		
 		return  &color_man->sys_colors[_BG_COLOR].xcolor ;
 	}
@@ -310,33 +312,49 @@ x_color_manager_fade(
 	{
 		return  0 ;
 	}
-	
+
 	if( fade_ratio == color_man->color_cache->fade_ratio)
 	{
 		return  0 ;
 	}
-
-	if( ( color_cache = x_acquire_color_cache( color_man->color_cache->display,
-				color_man->color_cache->screen,
-				color_man->color_cache->color_config, fade_ratio)) == NULL)
+	
+	if( color_man->alt_color_cache && fade_ratio == color_man->alt_color_cache->fade_ratio)
 	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " x_aquire_color_cache failed.\n") ;
-	#endif
-		return  0 ;
+		color_cache = color_man->alt_color_cache ;
+		color_man->alt_color_cache = color_man->color_cache ;
 	}
-	
-	x_release_color_cache( color_man->color_cache) ;
+	else
+	{
+		if( ( color_cache = x_acquire_color_cache( color_man->color_cache->display,
+					color_man->color_cache->screen,
+					color_man->color_cache->color_config, fade_ratio)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " x_aquire_color_cache failed.\n") ;
+		#endif
+			return  0 ;
+		}
+
+		if( color_man->color_cache->fade_ratio == 100)
+		{
+			if( color_man->alt_color_cache)
+			{
+				x_release_color_cache( color_man->alt_color_cache) ;
+			}
+
+			color_man->alt_color_cache = color_man->color_cache ;
+		}
+	}
+		
 	color_man->color_cache = color_cache ;
-	
+
 	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
 	{
-		if( color_man->sys_colors[count].is_loaded)
+		if( color_man->sys_colors[count].xcolor.is_loaded)
 		{
 			x_unload_xcolor( color_man->color_cache->display,
 				color_man->color_cache->screen,
 				&color_man->sys_colors[count].xcolor) ;
-			color_man->sys_colors[count].is_loaded = 0 ;
 		}
 	}
 	
@@ -353,33 +371,23 @@ x_color_manager_unfade(
 {
 	x_color_cache_t *  color_cache ;
 	int  count ;
-	
-	if( color_man->color_cache->fade_ratio == 100)
+
+	if( color_man->alt_color_cache == NULL || color_man->color_cache->fade_ratio == 100)
 	{
 		return  0 ;
 	}
 
-	if( ( color_cache = x_acquire_color_cache( color_man->color_cache->display,
-				color_man->color_cache->screen,
-				color_man->color_cache->color_config, 100)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " x_aquire_color_cache failed.\n") ;
-	#endif
-		return  0 ;
-	}
-	
-	x_release_color_cache( color_man->color_cache) ;
+	color_cache = color_man->alt_color_cache ;
+	color_man->alt_color_cache = color_man->color_cache ;
 	color_man->color_cache = color_cache ;
 
 	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
 	{
-		if( color_man->sys_colors[count].is_loaded)
+		if( color_man->sys_colors[count].xcolor.is_loaded)
 		{
 			x_unload_xcolor( color_man->color_cache->display,
 				color_man->color_cache->screen,
 				&color_man->sys_colors[count].xcolor) ;
-			color_man->sys_colors[count].is_loaded = 0 ;
 		}
 	}
 
@@ -474,12 +482,11 @@ x_color_manager_unload(
 	
 	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
 	{
-		if( color_man->sys_colors[count].is_loaded)
+		if( color_man->sys_colors[count].xcolor.is_loaded)
 		{
 			x_unload_xcolor( color_man->color_cache->display,
 				color_man->color_cache->screen,
 				&color_man->sys_colors[count].xcolor) ;
-			color_man->sys_colors[count].is_loaded = 0 ;
 		}
 	}
 

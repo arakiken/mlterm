@@ -2882,6 +2882,7 @@ x_window_draw_image_string16(
 #endif
 
 #ifdef  USE_TYPE_XFT
+
 int
 x_window_xft_draw_string8(
 	x_window_t *  win ,
@@ -2893,12 +2894,16 @@ x_window_xft_draw_string8(
 	size_t  len
 	)
 {
-	XftDrawString8( win->xft_draw , fg_color , font->xft_font ,
+	XftColor  xftcolor ;
+
+	x_color_to_xft( &xftcolor , fg_color) ;
+
+	XftDrawString8( win->xft_draw , &xftcolor , font->xft_font ,
 		x + win->margin , y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XftDrawString8( win->xft_draw , fg_color , font->xft_font ,
+		XftDrawString8( win->xft_draw , &xftcolor , font->xft_font ,
 			x + win->margin + 1 , y + win->margin , str , len) ;
 	}
 
@@ -2916,12 +2921,16 @@ x_window_xft_draw_string32(
 	u_int  len
 	)
 {
-	XftDrawString32( win->xft_draw , fg_color , font->xft_font ,
+	XftColor  xftcolor ;
+
+	x_color_to_xft( &xftcolor , fg_color) ;
+	
+	XftDrawString32( win->xft_draw , &xftcolor , font->xft_font ,
 		x + win->margin , y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XftDrawString32( win->xft_draw , fg_color , font->xft_font ,
+		XftDrawString32( win->xft_draw , &xftcolor , font->xft_font ,
 			x + win->margin + 1 , y + win->margin , str , len) ;
 	}
 
