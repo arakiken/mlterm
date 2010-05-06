@@ -397,12 +397,16 @@ x_restore_selected_region_color(
 	return  1 ;
 }
 
+/*
+ * Not used for now.
+ */
+#if  0
 int
 x_reverse_selected_region_color(
 	x_selection_t *  sel
 	)
 {
-	if( ! sel->is_selecting || sel->is_reversed)
+	if( sel->is_reversed)
 	{
 		return  0 ;
 	}
@@ -419,6 +423,7 @@ x_reverse_selected_region_color(
 
 	return  1 ;
 }
+#endif
 
 int
 x_sel_line_scrolled_out(

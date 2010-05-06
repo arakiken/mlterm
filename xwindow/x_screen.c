@@ -77,6 +77,18 @@ enum
 } ;
 
 
+/* --- static variables --- */
+
+/* 0 = traditional, 1 = conf_menu_path_1 , 2 = conf_menu_path_2 , 3 = conf_menu_path_3 */
+static int  button3_open_menu =
+#ifdef  USE_WIN32GUI
+	0
+#else
+	1
+#endif
+	;
+
+
 /* --- static functions --- */
 
 static int
@@ -855,10 +867,11 @@ highlight_cursor(
 
 static int
 unhighlight_cursor(
-	x_screen_t *  screen
+	x_screen_t *  screen ,
+	int  revert_visual
 	)
 {
-	return  ml_term_unhighlight_cursor( screen->term) ;
+	return  ml_term_unhighlight_cursor( screen->term , revert_visual) ;
 }
 
 
@@ -913,7 +926,7 @@ bs_scroll_upward(
 {
 	if( ml_term_backscroll_upward( screen->term , 1))
 	{
-		unhighlight_cursor( screen) ;
+		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
@@ -931,7 +944,7 @@ bs_scroll_downward(
 {
 	if( ml_term_backscroll_downward( screen->term , 1))
 	{
-		unhighlight_cursor( screen) ;
+		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
@@ -949,7 +962,7 @@ bs_half_page_upward(
 {
 	if( ml_term_backscroll_upward( screen->term , ml_term_get_rows( screen->term) / 2))
 	{
-		unhighlight_cursor( screen) ;
+		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
@@ -969,7 +982,7 @@ bs_half_page_downward(
 {
 	if( ml_term_backscroll_downward( screen->term , ml_term_get_rows( screen->term) / 2))
 	{
-		unhighlight_cursor( screen) ;
+		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
@@ -989,7 +1002,7 @@ bs_page_upward(
 {
 	if( ml_term_backscroll_upward( screen->term , ml_term_get_rows( screen->term)))
 	{
-		unhighlight_cursor( screen) ;
+		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_upward))
@@ -1009,7 +1022,7 @@ bs_page_downward(
 {
 	if( ml_term_backscroll_downward( screen->term , ml_term_get_rows( screen->term)))
 	{
-		unhighlight_cursor( screen) ;
+		unhighlight_cursor( screen , 1) ;
 		x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 		if( HAS_SCROLL_LISTENER(screen,scrolled_downward))
@@ -1024,11 +1037,10 @@ bs_page_downward(
 
 
 /*
- * !! Notice !!
- * don't call x_restore_selected_region_color() directly.
+ * Utility function to execute both x_restore_selected_region_color() and x_window_update().
  */
 static void
-restore_selected_region_color(
+restore_selected_region_color_instantly(
 	x_screen_t *  screen
 	)
 {
@@ -1470,10 +1482,10 @@ window_resized(
 
 	/* This is necessary since ml_term_t size is changed. */
 	x_stop_selecting( &screen->sel) ;
-	restore_selected_region_color( screen) ;
+	x_restore_selected_region_color( &screen->sel) ;
 	exit_backscroll_mode( screen) ;
 
-	unhighlight_cursor( screen) ;
+	unhighlight_cursor( screen , 1) ;
 
 	/*
 	 * visual width/height => logical cols/rows
@@ -1656,6 +1668,42 @@ use_utf_selection(
 	}
 }
 
+#ifdef  NL_TO_CR_IN_PAST_TEXT
+static void
+convert_nl_to_cr1(
+	u_char *  str ,
+	size_t  len
+	)
+{
+	size_t  count ;
+
+	for( count = 0 ; count < len ; count ++)
+	{
+		if( str[count] == '\n')
+		{
+			str[count] = '\r' ;
+		}
+	}
+}
+
+static void
+convert_nl_to_cr2(
+	ml_char_t *  str ,
+	u_int  len
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < len ; count ++)
+	{
+		if( ml_char_bytes_is( &str[count] , "\n" , 1 , US_ASCII))
+		{
+			ml_char_set_bytes( &str[count] , "\r") ;
+		}
+	}
+}
+#endif
+
 static int
 yank_event_received(
 	x_screen_t *  screen ,
@@ -1670,21 +1718,11 @@ yank_event_received(
 		}
 
 	#ifdef  NL_TO_CR_IN_PAST_TEXT
-		{
-			int  count ;
-
-			/*
-			 * Convert normal newline chars to carriage return chars which are
-			 * common return key sequences.
-			 */
-			for( count = 0 ; count < screen->sel.sel_len ; count ++)
-			{
-				if( ml_char_bytes_is( &screen->sel.sel_str[count] , "\n" , 1 , US_ASCII))
-				{
-					ml_char_set_bytes( &screen->sel.sel_str[count] , "\r") ;
-				}
-			}
-		}
+		/*
+		 * Convert normal newline chars to carriage return chars which are
+		 * common return key sequences.
+		 */
+		convert_nl_to_cr2( screen->sel.sel_str , screen->sel.sel_len) ;
 	#endif
 
 		(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
@@ -2696,19 +2734,11 @@ xct_selection_notified(
 	x_screen_t *  screen ;
 
 #ifdef  NL_TO_CR_IN_PAST_TEXT
-	int  count ;
-
 	/*
 	 * Convert normal newline chars to carriage return chars which are
 	 * common return key sequences.
 	 */
-	for( count = 0 ; count < len ; count ++)
-	{
-		if( str[count] == '\n')
-		{
-			str[count] = '\r' ;
-		}
-	}
+	convert_nl_to_cr1( str , len) ;
 #endif
 
 	screen = (x_screen_t*) win ;
@@ -2772,19 +2802,11 @@ utf_selection_notified(
 	)
 {
 #ifdef  NL_TO_CR_IN_PAST_TEXT
-	int  count ;
-
 	/*
 	 * Convert normal newline chars to carriage return chars which are
 	 * common return key sequences.
 	 */
-	for( count = 0 ; count < len ; count ++)
-	{
-		if( str[count] == '\n')
-		{
-			str[count] = '\r' ;
-		}
-	}
+	convert_nl_to_cr1( str , len) ;
 #endif
 
 	write_to_pty( (x_screen_t*) win , str , len , ( (x_screen_t*) win)->utf_parser) ;
@@ -2991,7 +3013,7 @@ selecting_with_motion(
 
 	if( ! screen->sel.is_selecting)
 	{
-		restore_selected_region_color( screen) ;
+		restore_selected_region_color_instantly( screen) ;
 
 		if( ! x_window_set_selection_owner( &screen->window , time))
 		{
@@ -3121,7 +3143,7 @@ selecting_word(
 
 	if( ! screen->sel.is_selecting)
 	{
-		restore_selected_region_color( screen) ;
+		restore_selected_region_color_instantly( screen) ;
 
 		if( ! x_window_set_selection_owner( &screen->window , time))
 		{
@@ -3171,7 +3193,7 @@ selecting_line(
 
 	if( ! screen->sel.is_selecting)
 	{
-		restore_selected_region_color( screen) ;
+		restore_selected_region_color_instantly( screen) ;
 
 		if( ! x_window_set_selection_owner( &screen->window , time))
 		{
@@ -3323,10 +3345,10 @@ button_pressed(
 
 	screen = (x_screen_t*)win ;
 
-	if( ml_term_is_mouse_pos_sending( screen->term) && ! (event->state & (ShiftMask | ControlMask)))
+	if( ml_term_is_mouse_pos_sending( screen->term) &&
+		! (event->state & (ShiftMask | ControlMask)))
 	{
-		restore_selected_region_color( screen) ;
-
+		restore_selected_region_color_instantly( screen) ;
 		report_mouse_tracking( screen , event , 0) ;
 
 		return ;
@@ -3338,63 +3360,94 @@ button_pressed(
 		{
 			config_menu( screen , event->x , event->y , screen->conf_menu_path_2) ;
 		}
+
 		return ;
 	}
-	else if( click_num == 2 && event->button == 1)
+	else if( event->button == 1)
 	{
-		/* double clicked */
-
-		selecting_word( screen , event->x , event->y , event->time) ;
-	}
-	else if( click_num == 3 && event->button == 1)
-	{
-		/* triple click */
-
-		selecting_line( screen , event->y , event->time) ;
-	}
-	else if( event->button == 1 && (event->state & ControlMask))
-	{
-		if( screen->conf_menu_path_1)
+		if( click_num == 2)
 		{
-			config_menu( screen , event->x , event->y , screen->conf_menu_path_1) ;
+			/* double clicked */
+			selecting_word( screen , event->x , event->y , event->time) ;
+
+			return ;
 		}
-		else
+		else if( click_num == 3)
+		{
+			/* triple click */
+			selecting_line( screen , event->y , event->time) ;
+
+			return ;
+		}
+		else if( event->state & ControlMask)
 		{
 			config_menu( screen , event->x , event->y ,
-			#ifdef  HAVE_WINDOWS_H
-				"mlterm-menu.exe"
-			#else
-				"mlterm-menu"
-			#endif
+				screen->conf_menu_path_1 ?
+					screen->conf_menu_path_1 : "mlterm-menu"
+				#ifdef  HAVE_WINDOWS_H
+					".exe"
+				#endif
 				) ;
-		}
-	}
-	else if( event->button == 3 && (event->state & ControlMask))
-	{
-		if( screen->conf_menu_path_3)
-		{
-			config_menu( screen , event->x , event->y , screen->conf_menu_path_3) ;
-		}
-		else
-		{
-			config_menu( screen , event->x , event->y ,
-			#ifdef  HAVE_WINDOWS_H
-				"mlconfig.exe"
-			#else
-				"mlconfig"
-			#endif
-				) ;
+
+			return ;
 		}
 	}
 	else if( event->button == 3)
 	{
-		/* expand if current selection exists. */
-		/* FIXME: move sel.* stuff should be in x_selection.c */
-		if(screen->sel.is_reversed)
+		if( event->state & ControlMask)
 		{
+			config_menu( screen , event->x , event->y ,
+				screen->conf_menu_path_3 ?
+					screen->conf_menu_path_3 : "mlconfig"
+				#ifdef  HAVE_WINDOWS_H
+					".exe"
+				#endif
+				) ;
+
+			return ;
+		}
+		else if( button3_open_menu)
+		{
+			if( button3_open_menu == 1)
+			{
+				config_menu( screen , event->x , event->y ,
+					screen->conf_menu_path_1 ?
+						screen->conf_menu_path_1 : "mlterm-menu"
+					#ifdef  HAVE_WINDOWS_H
+						".exe"
+					#endif
+					) ;
+			}
+			else if( button3_open_menu == 2)
+			{
+				if( screen->conf_menu_path_2)
+				{
+					config_menu( screen , event->x , event->y ,
+						screen->conf_menu_path_2) ;
+				}
+			}
+			else /* if( button3_open_menu == 3) */
+			{
+				config_menu( screen , event->x , event->y ,
+					screen->conf_menu_path_3 ?
+						screen->conf_menu_path_3 : "mlconfig"
+					#ifdef  HAVE_WINDOWS_H
+						".exe"
+					#endif
+					) ;
+			}
+
+			return ;
+		}
+		else if( screen->sel.is_reversed)
+		{
+			/* expand if current selection exists. */
+			/* FIXME: move sel.* stuff should be in x_selection.c */
 			screen->sel.is_selecting = 1 ;
 			selecting_with_motion( screen, event->x, event->y, event->time);
 			/* keep sel as selected to handle succeeding MotionNotify */
+
+			return ;
 		}
 	}
 	else if ( event->button == 4)
@@ -3414,6 +3467,8 @@ button_pressed(
 		{
 			bs_half_page_downward(screen) ;
 		}
+
+		return ;
 	}
 	else if ( event->button == 5)
 	{
@@ -3432,11 +3487,11 @@ button_pressed(
 		{
 			bs_half_page_upward(screen) ;
 		}
+
+		return ;
 	}
-	else
-	{
-		restore_selected_region_color( screen) ;
-	}
+	
+	restore_selected_region_color_instantly( screen) ;
 }
 
 static void
@@ -3464,7 +3519,7 @@ button_released(
 		}
 		else
 		{
-			restore_selected_region_color( screen) ;
+			restore_selected_region_color_instantly( screen) ;
 
 			yank_event_received( screen , event->time) ;
 		}
@@ -3746,7 +3801,7 @@ change_log_size(
 	 * this is necessary since ml_logs_t size is changed.
 	 */
 	x_stop_selecting( &screen->sel) ;
-	restore_selected_region_color( screen) ;
+	restore_selected_region_color_instantly( screen) ;
 	exit_backscroll_mode( screen) ;
 
 	ml_term_change_log_size( screen->term , logsize) ;
@@ -5455,10 +5510,11 @@ start_vt100_cmd(
 	}
 	else
 	{
-		restore_selected_region_color( screen) ;
+		x_restore_selected_region_color( &screen->sel) ;
 	}
 
-	unhighlight_cursor( screen) ;
+	/* Not reverting to visual mode. */
+	unhighlight_cursor( screen , 0) ;
 }
 
 static void
@@ -5472,6 +5528,11 @@ stop_vt100_cmd(
 
 	if( screen->sel.is_selecting)
 	{
+		/*
+		 * XXX Fixme XXX
+		 * If some lines are scrolled out after start_vt100_cmd(),
+		 * color of them is not reversed.
+		 */
 		x_reverse_selected_region_color_except_logs( &screen->sel) ;
 	}
 
@@ -5589,7 +5650,7 @@ xterm_set_mouse_report(
 	if( flag)
 	{
 		x_stop_selecting( &screen->sel) ;
-		restore_selected_region_color( screen) ;
+		restore_selected_region_color_instantly( screen) ;
 		exit_backscroll_mode( screen) ;
 	}
 
@@ -5693,6 +5754,25 @@ pty_read_ready(
 
 
 /* --- global functions --- */
+
+int
+x_set_button3_behavior( char *  mode)
+{
+	if( strcmp( mode , "xterm") == 0)
+	{
+		button3_open_menu = 0 ;
+	}
+	else if( strlen( mode) == 5 && '1' <= mode[4] && mode[4] <= '3')
+	{
+		button3_open_menu = mode[4] - '0' ;
+	}
+	else
+	{
+		return  0 ;
+	}
+	
+	return  1 ;
+}
 
 x_screen_t *
 x_screen_new(
@@ -6305,7 +6385,7 @@ x_screen_scroll_upward(
 	u_int  size
 	)
 {
-	unhighlight_cursor( screen) ;
+	unhighlight_cursor( screen , 1) ;
 
 	if( ! ml_term_is_backscrolling( screen->term))
 	{
@@ -6325,7 +6405,7 @@ x_screen_scroll_downward(
 	u_int  size
 	)
 {
-	unhighlight_cursor( screen) ;
+	unhighlight_cursor( screen , 1) ;
 
 	if( ! ml_term_is_backscrolling( screen->term))
 	{
@@ -6345,7 +6425,7 @@ x_screen_scroll_to(
 	int  row
 	)
 {
-	unhighlight_cursor( screen) ;
+	unhighlight_cursor( screen , 1) ;
 
 	if( ! ml_term_is_backscrolling( screen->term))
 	{
@@ -6977,6 +7057,10 @@ x_screen_set_config(
 
 		ml_term_set_logging_vt_seq( screen->term , flag) ;
 	}
+	else if( strcmp( key , "paste") == 0)
+	{
+		yank_event_received( screen , 0) ;
+	}
 	else if( strlen(key) >= 8 && strncmp( key , "mlclient" , 8) == 0)
 	{
 		if( HAS_SYSTEM_LISTENER(screen,mlclient))
@@ -7389,6 +7473,69 @@ x_screen_get_config(
 	#else
 		value = "xlib" ;
 	#endif
+	}
+	else if( strlen(key) >= 13 && strncmp( key , "selected_text" , 13) == 0)
+	{
+		ml_term_write( screen->term , "#" , 1 , to_menu) ;
+		ml_term_write( screen->term , key , strlen(key) , to_menu) ;
+		ml_term_write( screen->term , "=" , 1 , to_menu) ;
+		
+		if( screen->window.is_sel_owner || screen->sel.sel_str || screen->sel.sel_len > 0)
+		{
+		#ifndef  NL_TO_CR_IN_PAST_TEXT
+			if( to_menu)
+		#endif
+			{
+				/*
+				 * Convert NL to CR because menu programs regard NL as terminator
+				 * of returned value.
+				 * Notice that menu programs must convert CR to NL in receiving
+				 * selected text.
+				 */
+				convert_nl_to_cr2( screen->sel.sel_str , screen->sel.sel_len) ;
+			}
+		
+			(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
+			ml_str_parser_set_str( screen->ml_str_parser ,
+				screen->sel.sel_str , screen->sel.sel_len) ;
+
+			if( to_menu)
+			{
+				mkf_conv_t *  conv ;
+				
+				if( ( conv = ml_conv_new( ml_get_char_encoding( key + 14))) ||
+					/* Use UTF8 by default */
+					( conv = ml_conv_new( ML_UTF8)))
+				{
+					u_char  buf[512] ;
+					size_t  len ;
+
+					(*conv->init)( conv) ;
+
+					while( ! screen->ml_str_parser->is_eos)
+					{
+						if( ( len = (*conv->convert)( conv ,
+								buf , sizeof(buf) ,
+								screen->ml_str_parser)) == 0)
+						{
+							break ;
+						}
+
+						ml_term_write( screen->term , buf , len , to_menu) ;
+					}
+
+					(*conv->delete)( conv) ;
+				}
+			}
+			else
+			{
+				write_to_pty( screen , NULL , 0 , screen->ml_str_parser) ;
+			}
+		}
+
+		ml_term_write( screen->term , "\n" , 1 , to_menu) ;
+
+		return ;
 	}
 
 	if( value == NULL)

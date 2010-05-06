@@ -475,28 +475,34 @@ ml_term_cursor_row_in_screen(
 
 int
 ml_term_unhighlight_cursor(
-	ml_term_t *  term
+	ml_term_t *  term ,
+	int  revert_visual
 	)
 {
 	ml_line_t *  line ;
+	int  ret ;
 
 	ml_screen_logical( term->screen) ;
 	
 	if( ( line = ml_screen_get_cursor_line( term->screen)) == NULL || ml_line_is_empty( line))
 	{
-		/* ml_screen_render( term->screen) ; */
-		ml_screen_visual( term->screen) ;
+		ret = 0 ;
+	}
+	else
+	{
+		ml_line_set_modified( line , ml_screen_cursor_char_index( term->screen) ,
+			ml_screen_cursor_char_index( term->screen)) ;
 
-		return  0 ;
+		ret = 1 ;
 	}
 
-	ml_line_set_modified( line , ml_screen_cursor_char_index( term->screen) ,
-		ml_screen_cursor_char_index( term->screen)) ;
+	if( revert_visual)
+	{
+		/* ml_screen_render( term->screen) ; */
+		ml_screen_visual( term->screen) ;
+	}
 
-	/* ml_screen_render( term->screen) ; */
-	ml_screen_visual( term->screen) ;
-
-	return  1 ;
+	return  ret ;
 }
 
 u_int
@@ -1223,5 +1229,6 @@ ml_term_start_config_menu(
 	char *  display
 	)
 {
-	return  ml_config_menu_start( &term->config_menu , cmd_path , x , y , display, ml_pty_get_slave_fd( term->pty)) ;
+	return  ml_config_menu_start( &term->config_menu , cmd_path ,
+			x , y , display, ml_pty_get_slave_fd( term->pty)) ;
 }

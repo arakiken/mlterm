@@ -99,10 +99,16 @@ start_vt100_cmd(
 
 	if( trigger_xterm_event && HAS_XTERM_LISTENER(vt100_parser,start))
 	{
+		/*
+		 * XXX Adhoc implementation.
+		 * Converting visual -> logical in xterm_listener->start.
+		 */
 		(*vt100_parser->xterm_listener->start)( vt100_parser->xterm_listener->self) ;
 	}
-
-	ml_screen_logical( vt100_parser->screen) ;
+	else
+	{
+		ml_screen_logical( vt100_parser->screen) ;
+	}
 }
 
 static void

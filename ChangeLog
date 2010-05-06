@@ -1,3 +1,22 @@
+2010-05-05  Araki Ken  <arakiken@users.sf.net>
+
+	* --button3/button3_behavior option is added.
+	  Now pressing button3 shows conf_menu_path_1 program (mlterm-menu)
+	  like gnome-terminal by default except in win32. If "xterm" is
+	  specified as a value of this option, pressing button3 works like
+	  xterm as before.
+
+	* mlterm-menu.c: "Copy" and "Paste" menus are added.
+	  "Copy" copys selected text to clipboard.
+	  "Paste" works like INSERT_SELECTION.
+
+	* x_screen.c: "selected_text" and "paste" options are added
+	  to configuration protocol.
+
+	* ml_term.c: revert_visual argument is added to ml_term_unhighlight_cursor().
+	  If revert_visual is 0, ml_term_unhighlight_cursor() leaves ml_term_t logical.
+	  start_vt100_cmd functions in x_screen.c and ml_vt100_parser.c are also fixed.
+
 2010-04-29  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_char.c: ML_WHITE | ML_BOLD_COLOR_MASK is used to replace

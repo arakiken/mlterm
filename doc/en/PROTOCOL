@@ -23,7 +23,7 @@ version 20091211
                      iscii_lang | use_dynamic_comb | cursor_fg_color |
                      cursor_bg_color | open_pty | open_screen | select_pty |
                      snapshot | gen_proto_challenge | icon_path | logging_vt_seq |
-		     title | mlclient <prefix options> <options> |
+		     title | paste | mlclient <prefix options> <options> |
 		     mlclientx <prefix options> <options>
   get key          = encoding | is_auto_encoding | fg_color | bg_color |
                      tabsize | logsize | fontsize | fade_ratio | mod_meta_key |
@@ -36,7 +36,7 @@ version 20091211
                      scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | rows | cols |
                      cursor_fg_color | cursor_bg_color | pty_list | pty_name
-		     icon_path | logging_vt_seq | gui
+		     icon_path | logging_vt_seq | selected_text(:encoding) | gui
 
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
@@ -100,6 +100,8 @@ version 20091211
   vertical_mode = none | cjk | mongol
   wall_picture = <file path>
   logging_vt_seq = true | false
+  selected_text(:encoding) = <none>
+  paste = <none>
 
 * Note
   o Encoding names are regularized , that is , `-' , `_' are removed , and only
@@ -123,3 +125,6 @@ version 20091211
     e.g. "\x1b]5379;mlclient --km utf8\x07"
   o "mlclientx" protocol is similar to "mlclient" one except for not creating
     any new window.
+  o "selected_text(:encoding)" protocol returns selected text in which NL is
+    replaced to CR.
+  o "paste" protocol works like INSERT_SELECTION.

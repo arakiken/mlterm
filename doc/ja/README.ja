@@ -519,7 +519,7 @@ comment $Id$
         soundの場合はビープ音で、visualの場合は画面ブランクでBELを通知します。
 
       o conf_menu_path_[1-3]
-        GUI 設定コマンドのパス
+        GUI 設定プログラムのパス
         conf_menu_path_1 は Ctrl+Button1、conf_menu_path_2 は Ctrl+Button2、
         conf_menu_path_3 は Ctrl+Button3 により起動されます。
 
@@ -547,6 +547,12 @@ comment $Id$
 
       o logging_vt_seq (true/*false*)
         pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
+
+      o button3_behavior (xterm/*menu1*/menu2/menu3)
+        button3 を押下したときの挙動を指定する。
+	xterm = xterm 互換
+	menuN = conf_menu_path_N で指定したプログラムを起動
+	※ --with-gui=win32 の場合は xterm がデフォルト値
 
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
@@ -917,6 +923,7 @@ comment $Id$
        --im=value: input_method
        --iconpath=value : path to a imagefile to be used as a window icon
        --maxptys=value : max ptys to open simultaneously (X)
+       --button3=value : specify button3 behavior. (0=traditional, N=open conf_menu_path_N) [1]
 
     -e ... : 指定したコマンドを起動
 

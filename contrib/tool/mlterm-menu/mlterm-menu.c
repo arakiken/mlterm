@@ -68,6 +68,9 @@ int append_menu_from_scanner(GtkMenu* menu, GScanner* scanner, int level);
 int append_pty_list(GtkMenu* menu);
 
 void activate_callback(GtkWidget* widget, gpointer data);
+#if  (GTK_MAJOR_VERSION >= 2) && ! defined(G_PLATFORM_WIN32)
+void activate_callback_copy(GtkWidget* widget, gpointer data);
+#endif
 void toggled_callback(GtkWidget* widget, gpointer data);
 char* get_value(char* dev, char* key);
 
@@ -100,6 +103,37 @@ GtkWidget* create_menu(void)
     int userexist = 0;
 
     menu = gtk_menu_new();
+
+#if  (GTK_MAJOR_VERSION >= 2) && ! defined(G_PLATFORM_WIN32)
+    {
+        GtkWidget* item;
+        char* sel = get_value(NULL, "selected_text:utf8");
+        GtkClipboard* clipboard;
+
+        item = gtk_menu_item_new_with_label("Copy");
+	if (sel && *sel) {
+	    gtk_signal_connect(GTK_OBJECT(item), "activate",
+                           GTK_SIGNAL_FUNC(activate_callback_copy),
+                           (gpointer) sel);
+        } else {
+	    gtk_widget_set_sensitive(item, 0);
+	}
+        gtk_menu_append(GTK_MENU(menu), item);
+
+	item = gtk_menu_item_new_with_label("Paste");
+        if ((clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD)) &&
+	     gtk_clipboard_wait_is_text_available(clipboard)) {
+	     gtk_signal_connect(GTK_OBJECT(item), "activate",
+                           GTK_SIGNAL_FUNC(activate_callback), "paste");
+	     
+	} else {
+	     gtk_widget_set_sensitive(item, 0);
+	}
+	gtk_menu_append(GTK_MENU(menu), item);
+	
+	gtk_menu_append(GTK_MENU(menu), gtk_menu_item_new());
+    }
+#endif
 
     if ((rc_path = kik_get_user_rc_path(MENU_RCFILE))) {
         userexist = append_menu_from_file(GTK_MENU(menu), rc_path);
@@ -269,10 +303,40 @@ void activate_callback(GtkWidget* widget, gpointer data)
 }
 
 
+#if  (GTK_MAJOR_VERSION >= 2) && ! defined(G_PLATFORM_WIN32)
+void activate_callback_copy(GtkWidget* widget, gpointer data)
+{
+    u_char* sel = (u_char*)data;
+    size_t len = strlen( sel);
+    size_t count;
+    GtkClipboard* clipboard;
+    
+    if (!(clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD))) {
+        return;
+    }
+    
+    /* Replace CR to NL. */
+    for (count = 0 ; count < len ; count++) {
+        if (sel[count] == '\r') {
+	    sel[count] = '\n' ;
+	}
+    }
+
+    gtk_clipboard_set_text(clipboard, sel, len);
+
+    /*
+     * Gtk+ win32 doesn't support gtk_clipboard_store for now.
+     * (see gdk_display_store_clipboard() in gdk/win32/gdkdisplay-win32.c).
+     */
+    gtk_clipboard_store(clipboard);
+}
+#endif
+
+
 void toggled_callback(GtkWidget* widget, gpointer data)
 {
     char* command = data;
-
+    
     if(GTK_CHECK_MENU_ITEM(widget)->active) {
       printf("\x1b]5379;%s\x07", command);
     }
@@ -281,8 +345,9 @@ void toggled_callback(GtkWidget* widget, gpointer data)
 
 char* get_value(char* dev, char* key)
 {
-    int count;
-    char ret[1024];
+    size_t count;
+    char * ret;
+    size_t len;
     char c;
 
     if (dev)
@@ -291,31 +356,24 @@ char* get_value(char* dev, char* key)
         printf("\x1b]5381;%s\x07", key);
     fflush(stdout);
 
-    for (count = 0; count < 1024; count++) {
-        if (read(STDIN_FILENO, &c, 1) == 1) {
-            if (c != '\n') {
-                ret[count] = c;
-            } else {
-                ret[count] = '\0';
+    len = 1024;
+    ret = malloc(len);
+    count = 0;
+    while (read(STDIN_FILENO, &c, 1) == 1 && c != '\n') {
+        ret[count] = c;
+	if (++count >= len) {
+	    ret = realloc( ret , (len += 1024));
+	}
+    }
+    
+    ret[count] = '\0';
 
-                if (count < 2 + strlen(key) || strcmp(ret, "#error") == 0) {
-                    return NULL;
-                }
-
-                /*
-                 * #key=value
-                 */
-                return strdup(ret + 2 + strlen(key));
-            }
-        } else {
-#ifdef  DEBUG
-            kik_debug_printf(KIK_DEBUG_TAG
-                             " %s return from mlterm is illegal.\n", key);
-#endif
-
-            return NULL;
-        }
+    if (count < 2 + strlen(key) || strcmp(ret, "#error") == 0) {
+	return NULL;
     }
 
-    return NULL;
+    /*
+     * #key=value
+     */
+    return ret + 2 + strlen(key);
 }

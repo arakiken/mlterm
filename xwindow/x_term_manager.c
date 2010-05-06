@@ -1876,6 +1876,14 @@ x_term_manager_init(
 #endif
 	kik_conf_add_opt( conf , '\0' , "maxptys" , 0 , "max_ptys" ,
 		"max ptys to open simultaneously (multiple of 32)") ;
+	kik_conf_add_opt( conf , '\0' , "button3" , 0 , "button3_behavior" ,
+		"specify button3 behavior. (xterm/menu1/menu2/menu3) "
+	#ifdef  USE_WIN32GUI
+		"[xterm]"
+	#else
+		"[menu1]"
+	#endif
+		) ;
 
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
 	{
@@ -2072,6 +2080,12 @@ x_term_manager_init(
 	{
 		ml_set_word_separators( value) ;
 	}
+
+	if( ( value = kik_conf_get_value( conf , "button3_behavior")))
+	{
+		x_set_button3_behavior( value) ;
+	}
+	
 
 	if( ( version = kik_conf_get_version( conf)) == NULL)
 	{

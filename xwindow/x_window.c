@@ -2297,13 +2297,15 @@ x_window_receive_event(
 			}
 			else if( event->xselection.target == xa_compound_text)
 			{
-				XConvertSelection( win->disp->display , XA_PRIMARY , xa_text ,
-					xa_selection , win->my_window , CurrentTime) ;
+				XConvertSelection( win->disp->display , XA_PRIMARY ,
+					xa_text , xa_selection , win->my_window ,
+					CurrentTime) ;
 			}
 			else if( event->xselection.target == xa_text)
 			{
-				XConvertSelection( win->disp->display , XA_PRIMARY , XA_STRING ,
-					xa_selection , win->my_window , CurrentTime) ;
+				XConvertSelection( win->disp->display , XA_PRIMARY ,
+					XA_STRING , xa_selection , win->my_window ,
+					CurrentTime) ;
 			}
 
 			return  1 ;
@@ -2423,7 +2425,6 @@ x_window_receive_event(
 	}
 	else if( event->type == PropertyNotify)
 	{
-
 		if( event->xproperty.atom == XA_SELECTION( win->disp->display) &&
 		    event->xproperty.state == PropertyNewValue)
 		{
