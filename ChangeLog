@@ -1,3 +1,13 @@
+2010-05-08  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: "ESC[9Nm" and "ESC[10Nm" sequences are supported.
+
+	* x_color_cache.c: get_cached_vtsys_xcolor() returns colors compatible
+	  with xterm.
+
+	* x_screen.c: Even if screen is not selection owner, "selected_text"
+	  protocol returns former value.
+
 2010-05-05  Araki Ken  <arakiken@users.sf.net>
 
 	* --button3/button3_behavior option is added.

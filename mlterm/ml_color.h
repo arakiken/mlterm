@@ -21,6 +21,10 @@ typedef enum  ml_color
 {
 	ML_UNKNOWN_COLOR = -1 ,
 
+	/*
+	 * Don't change this order, which ml_vt100_parser.c(change_char_attr etc) and
+	 * x_color_cache.c etc depend on.
+	 */
 	ML_BLACK = 0x0 ,
 	ML_RED = 0x1 ,
 	ML_GREEN = 0x2 ,

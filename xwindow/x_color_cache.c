@@ -109,8 +109,8 @@ get_cached_vtsys_xcolor(
 	u_int8_t  red ;
 	u_int8_t  green ;
 	u_int8_t  blue ;
-	char *  name ;
 	char *  tag ;
+	char *  name ;
 
 	if( ! IS_VTSYS_COLOR(color))
 	{
@@ -131,7 +131,26 @@ get_cached_vtsys_xcolor(
 		return  NULL ;
 	}
 
-	if( strncmp( tag, "hl_", 3) == 0)
+	/* Hack for compatibility with xterm vtsys colors. */
+	if( ML_RED <= color && color <= (ML_BLACK|ML_BOLD_COLOR_MASK))
+	{
+		char *  name_tbl[] = {
+			"#CD0000" ,	/* ML_RED */
+			"#00CD00" ,
+			"#CDCD00" ,
+			"#0000EE" ,
+			"#CD00CD" ,
+			"#00CDCD" ,
+			"#E5E5E5" ,	/* ML_WHITE */
+			"#7F7F7F" , } ;	/* ML_BLACK|ML_BOLD_COLOR_MASK */
+
+		name = name_tbl[color - ML_RED] ;
+	}
+	else if( color == (ML_BLUE|ML_BOLD_COLOR_MASK))
+	{
+		name = "#5C5CFF" ;
+	}
+	else if( strncmp( tag, "hl_", 3) == 0)
 	{
 		name = tag + 3 ;
 	}
@@ -152,24 +171,7 @@ get_cached_vtsys_xcolor(
 	if( x_load_named_xcolor( color_cache->display , color_cache->screen ,
 		&color_cache->xcolors[color] , name))
 	{
-		if( color < MAX_BASIC_VTSYS_COLORS)
-		{
-			x_get_xcolor_rgb( &red , &green , &blue , &color_cache->xcolors[color]) ;
-
-			x_unload_xcolor( color_cache->display , color_cache->screen ,
-				&color_cache->xcolors[color]) ;
-			
-			if( x_load_rgb_xcolor( color_cache->display , color_cache->screen ,
-				&color_cache->xcolors[color] ,
-				red * 90 / 100 , green * 90 / 100 , blue * 90 / 100))
-			{
-				goto  found ;
-			}
-		}
-		else
-		{
-			goto  found ;
-		}
+		goto  found ;
 	}
 
 	return  NULL ;
@@ -185,8 +187,9 @@ found:
 	}
 	
 #ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " new color %x %x\n",
-		color, color_cache->xcolors[color].pixel) ;
+	kik_debug_printf( KIK_DEBUG_TAG " new color %x %s red %x green %x blue %x\n",
+		color, name , color_cache->xcolors[color].red , color_cache->xcolors[color].green ,
+		color_cache->xcolors[color].blue) ;
 #endif
 
 	return  &color_cache->xcolors[color] ;

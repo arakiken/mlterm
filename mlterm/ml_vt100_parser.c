@@ -898,78 +898,32 @@ change_char_attr(
 	{
 		vt100_parser->is_reversed = 0 ;
 	}
-	else if( flag == 30)
+	else if( 30 <= flag && flag <= 37)
 	{
-		fg_color = ML_BLACK ;
-	}
-	else if( flag == 31)
-	{
-		fg_color = ML_RED ;
-	}
-	else if( flag == 32)
-	{
-		fg_color = ML_GREEN ;
-	}
-	else if( flag == 33)
-	{
-		fg_color = ML_YELLOW ;
-	}
-	else if( flag == 34)
-	{
-		fg_color = ML_BLUE ;
-	}
-	else if( flag == 35)
-	{
-		fg_color = ML_MAGENTA ;
-	}
-	else if( flag == 36)
-	{
-		fg_color = ML_CYAN ;
-	}
-	else if( flag == 37)
-	{
-		fg_color = ML_WHITE ;
+		/* 30=ML_BLACK(0) ... 37=ML_WHITE(7) */
+		fg_color = flag - 30 ;
 	}
 	else if( flag == 39)
 	{
 		/* default fg */
 		fg_color = ML_FG_COLOR ;
 	}
-	else if( flag == 40)
+	else if( 40 <= flag && flag <= 47)
 	{
-		bg_color = ML_BLACK ;
-	}
-	else if( flag == 41)
-	{
-		bg_color = ML_RED ;
-	}
-	else if( flag == 42)
-	{
-		bg_color = ML_GREEN ;
-	}
-	else if( flag == 43)
-	{
-		bg_color = ML_YELLOW ;
-	}
-	else if( flag == 44)
-	{
-		bg_color = ML_BLUE ;
-	}
-	else if( flag == 45)
-	{
-		bg_color = ML_MAGENTA ;
-	}
-	else if( flag == 46)
-	{
-		bg_color = ML_CYAN ;
-	}
-	else if( flag == 47)
-	{
-		bg_color = ML_WHITE ;
+		/* 40=ML_BLACK(0) ... 47=ML_WHITE(7) */
+		bg_color = flag - 40 ;
 	}
 	else if( flag == 49)
 	{
 		bg_color = ML_BG_COLOR ;
+	}
+	else if( 90 <= flag && flag <= 97)
+	{
+		fg_color = (flag - 90) | ML_BOLD_COLOR_MASK ;
+	}
+	else if( 100 <= flag && flag <= 107)
+	{
+		bg_color = (flag - 100) | ML_BOLD_COLOR_MASK ;
 	}
 #ifdef  DEBUG
 	else

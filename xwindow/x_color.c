@@ -348,8 +348,8 @@ x_get_xcolor_rgb(
 	)
 {
 	*red = xcolor->red ;
-	*blue = xcolor->blue ;
 	*green = xcolor->green ;
+	*blue = xcolor->blue ;
 
 	return  1 ;
 }
