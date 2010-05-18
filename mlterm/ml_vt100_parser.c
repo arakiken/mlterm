@@ -327,7 +327,7 @@ put_char(
 			}
 		#if  1
 			/* XTERM compatibility */
-			else if( ch[0] == 0x0 && ch[1] == 0x0 && ch[2] == 0x30 &&
+			else if( ch[2] == 0x30 && ch[0] == 0x0 && ch[1] == 0x0 &&
 				(ch[3] == 0x0a || ch[3] == 0x0b || ch[3] == 0x1a || ch[3] == 0x1b) )
 			{
 				is_biwidth = 1 ;
@@ -735,7 +735,8 @@ config_protocol_set_font(
 
 		if( ml_parse_proto2( &file , &key , &val , pt , 0) && key && val)
 		{
-			(*vt100_parser->config_listener->set_font)( file , key , val, save) ;
+			(*vt100_parser->config_listener->set_font)(
+				vt100_parser->config_listener->self , file , key , val, save) ;
 		}
 
 		start_vt100_cmd( vt100_parser , 0) ;
@@ -827,7 +828,8 @@ config_protocol_set_color(
 
 		if( ml_parse_proto2( &file , &key , &val , pt , 0) && key && val)
 		{
-			(*vt100_parser->config_listener->set_color)( file , key , val, save) ;
+			(*vt100_parser->config_listener->set_color)(
+				vt100_parser->config_listener->self , file , key , val, save) ;
 		}
 
 		start_vt100_cmd( vt100_parser , 0) ;

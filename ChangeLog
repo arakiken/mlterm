@@ -1,3 +1,12 @@
+2010-05-19  Araki Ken  <arakiken@users.sf.net>
+
+	* Performance of 256colors2.pl(1999/07/11 version) is improved by reducing
+	  number of redrawing screen in "\x1b]4;%d;rgb:..." seqeunce. (Thanks to
+	  Konosuke Watanabe san.)
+	  (set_{font|color}_config in x_term_manager.c are moved to x_screen.c, and
+	  {font|color}_updated which are called from stop_vt100_cmd() in x_screen.c
+	  are added to x_term_manager.c.)
+
 2010-05-08  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: "ESC[9Nm" and "ESC[10Nm" sequences are supported.

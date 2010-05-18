@@ -162,19 +162,9 @@ config_saved(void)
 }
 
 static void
-set_font_config(
-	char *  file ,	/* can be NULL */
-	char *  key ,
-	char *  val ,
-	int  save
-	)
+font_config_updated(void)
 {
-	int  count ;
-	
-	if( ! x_customize_font_file( file, key, val, save))
-	{
-		return ;
-	}
+	u_int  count ;
 	
 	x_font_cache_unload_all() ;
 
@@ -185,20 +175,9 @@ set_font_config(
 }
 
 static void
-set_color_config(
-	char *  file ,	/* ignored */
-	char *  key ,
-	char *  val ,
-	int  save
-	)
-
+color_config_updated(void)
 {
-	int  count ;
-	
-	if( ! x_customize_color_file( &color_config, key, val, save))
-	{
-		return ;
-	}
+	u_int  count ;
 	
 	x_color_cache_unload_all() ;
 
@@ -725,8 +704,6 @@ open_screen_intern(
 
 	/* Override config event listener. */
 	screen->config_listener.saved = config_saved ;
-	screen->config_listener.set_font = set_font_config ;
-	screen->config_listener.set_color = set_color_config ;
 	
 	if( ! x_set_system_listener( screen , &system_listener))
 	{
@@ -2124,6 +2101,8 @@ x_term_manager_init(
 	system_listener.get_pty = get_pty ;
 	system_listener.pty_list = pty_list ;
 	system_listener.mlclient = mlclient ;
+	system_listener.font_config_updated = font_config_updated ;
+	system_listener.color_config_updated = color_config_updated ;
 
 #ifndef  USE_WIN32API
 	signal( SIGHUP , sig_fatal) ;

@@ -185,63 +185,77 @@ x_color_config_set_rgb(
 		return  0 ;
 	}
 
-	/*
-	 * 256 color: Same rgb as default is rejected.
-	 * Sys color: Any rgb is accepted, because RGB of ml_get_color_rgb is not
-	 *            always same as that of XAllocNamedColor(=rgb.txt)
-	 */
-	if( IS_256_COLOR( _color))
-	{
-		u_int8_t  _red ;
-		u_int8_t  _green ;
-		u_int8_t  _blue ;
-		
-		if( ! ml_get_color_rgb( _color, &_red, &_green, &_blue))
-		{
-			return  0 ;
-		}
-
-		if( red == _red && green == _green && blue == _blue)
-		{
-			/* Not changed */
-			
-		#ifdef  DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG
-				" color %d'rgb(%02x%02x%02x) not changed.\n",
-				_color, red, green, blue) ;
-		#endif
-
-			return  0 ;
-		}
-	#ifdef  DEBUG
-		else
-		{
-			kik_debug_printf( KIK_DEBUG_TAG
-				" color %d's rgb(%02x%02x%02x) changed => %02x%02x%02x.\n",
-				_color, _red, _green, _blue, red, green, blue) ;
-		}
-	#endif
-	}
-	
 	rgb.red = red ;
 	rgb.green = green ;
 	rgb.blue = blue ;
 
 	if( ( pair = get_color_rgb_pair( color_config->color_rgb_table , color)))
 	{
+		if( pair->value.red == red && pair->value.green == green &&
+			pair->value.blue == blue)
+		{
+			/* Not changed */
+			
+			return  0 ;
+		}
+
 		pair->value = rgb ;
 	}
 	else
 	{
-		char *  _color ;
 		int  result ;
 
-		if( ! ( _color = strdup( color)))
+		/*
+		 * 256 color: Same rgb as default is rejected.
+		 * Sys color: Any rgb is accepted, because RGB of ml_get_color_rgb is not
+		 *            always same as that of XAllocNamedColor(=rgb.txt)
+		 */
+		if( IS_256_COLOR( _color))
+		{
+			u_int8_t  _red ;
+			u_int8_t  _green ;
+			u_int8_t  _blue ;
+
+			if( ! ml_get_color_rgb( _color, &_red, &_green, &_blue))
+			{
+				return  0 ;
+			}
+
+			if( red == _red && green == _green && blue == _blue)
+			{
+				/* Not changed */
+
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG
+					" color %d'rgb(%02x%02x%02x) not changed.\n",
+					_color, red, green, blue) ;
+			#endif
+
+				return  0 ;
+			}
+		#ifdef  DEBUG
+			else
+			{
+				kik_debug_printf( KIK_DEBUG_TAG
+					" color %d's rgb(%02x%02x%02x) changed => %02x%02x%02x.\n",
+					_color, _red, _green, _blue, red, green, blue) ;
+			}
+		#endif
+		}
+		
+		if( ! ( color = strdup( color)))
 		{
 			return  0 ;
 		}
 		
-		kik_map_set( result , color_config->color_rgb_table , _color , rgb) ;
+		kik_map_set( result , color_config->color_rgb_table , color , rgb) ;
+		
+		if( ! result)
+		{
+			free( color) ;
+			
+			return  0 ;
+		}
 	}
 
 	return  1 ;

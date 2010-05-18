@@ -4524,6 +4524,25 @@ get_config(
 }
 
 static void
+set_font_config(
+	void *  p ,
+	char *  file ,	/* can be NULL */
+	char *  key ,
+	char *  val ,
+	int  save
+	)
+{
+	x_screen_t *  screen ;
+	
+	screen = p ;
+	
+	if( x_customize_font_file( file, key, val, save))
+	{
+		screen->font_or_color_config_updated |= 0x1 ;
+	}
+}
+
+static void
 get_font_config(
 	void *  p ,
 	char *  file ,		/* can be NULL */
@@ -4567,6 +4586,28 @@ get_font_config(
 
 error:
 	ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
+}
+
+static void
+set_color_config(
+	void *  p ,
+	char *  file ,	/* ignored */
+	char *  key ,
+	char *  val ,
+	int  save
+	)
+
+{
+	x_screen_t *  screen ;
+	
+	screen = p ;
+	
+	if( x_customize_color_file(
+		screen->color_man->color_cache->color_config ,	/* XXX */
+		key , val , save))
+	{
+		screen->font_or_color_config_updated |= 0x2 ;
+	}
 }
 
 
@@ -5536,6 +5577,20 @@ stop_vt100_cmd(
 		x_reverse_selected_region_color_except_logs( &screen->sel) ;
 	}
 
+	if( ( screen->font_or_color_config_updated & 0x1) &&
+		screen->system_listener->font_config_updated)
+	{
+		(*screen->system_listener->font_config_updated)() ;
+	}
+
+	if( ( screen->font_or_color_config_updated & 0x2) &&
+		screen->system_listener->color_config_updated)
+	{
+		(*screen->system_listener->color_config_updated)() ;
+	}
+
+	screen->font_or_color_config_updated = 0 ;
+
 	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 }
 
@@ -5839,7 +5894,9 @@ x_screen_new(
 	screen->config_listener.self = screen ;
 	screen->config_listener.get = get_config ;
 	screen->config_listener.set = set_config ;
+	screen->config_listener.set_font = set_font_config ;
 	screen->config_listener.get_font = get_font_config ;
+	screen->config_listener.set_color = set_color_config ;
 
 	screen->pty_listener.self = screen ;
 	screen->pty_listener.closed = pty_closed ;
@@ -5986,6 +6043,7 @@ x_screen_new(
 #ifndef  DISABLE_XDND
 	screen->window.set_xdnd_config = set_xdnd_config ;
 #endif
+
 	if( use_transbg)
 	{
 		if( screen->pic_mod.alpha == 255)
@@ -6054,6 +6112,8 @@ x_screen_new(
 	screen->use_extended_scroll_shortcut = use_extended_scroll_shortcut ;
 
 	screen->borderless = override_redirect ;
+
+	screen->font_or_color_config_updated = 0 ;
 
 	/*
 	 * for receiving selection.

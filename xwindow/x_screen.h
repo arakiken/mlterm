@@ -39,10 +39,12 @@ typedef struct x_system_event_listener
 	void  (*pty_closed)( void * , x_screen_ptr_t) ;
 
 	ml_term_t *  (*get_pty)( void * , char *) ;
-
 	char *  (*pty_list)( void *) ;
 
 	int  (*mlclient)( void * , x_screen_ptr_t , char * , size_t , FILE *) ;
+
+	void  (*font_config_updated)(void) ;
+	void  (*color_config_updated)(void) ;
 
 	/* for debug */
 	void  (*exit)( void * , int) ;
@@ -146,6 +148,7 @@ typedef struct  x_screen
 	int8_t  use_vertical_cursor ;
 	int8_t  use_extended_scroll_shortcut ;
 	int8_t  borderless ;
+	int8_t  font_or_color_config_updated ;	/* 0x1 = font updated, 0x2 = color updated */
 
 } x_screen_t ;
 

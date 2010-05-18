@@ -115,7 +115,7 @@ update_sel_region(
 
 	if( do_reverse)
 	{
-		sel->sel_listener->reverse_color( sel->sel_listener->self ,
+		(*sel->sel_listener->reverse_color)( sel->sel_listener->self ,
 			rv_beg_col , rv_beg_row , rv_end_col , rv_end_row) ;
 
 	#ifdef  __DEBUG
@@ -126,7 +126,7 @@ update_sel_region(
 
 	if( do_restore)
 	{
-		sel->sel_listener->restore_color( sel->sel_listener->self ,
+		(*sel->sel_listener->restore_color)( sel->sel_listener->self ,
 			rs_beg_col , rs_beg_row , rs_end_col , rs_end_row) ;
 
 	#ifdef  __DEBUG
@@ -209,7 +209,7 @@ x_start_selection(
 	sel->prev_col = col_r ;
 	sel->prev_row = row_r ;
 
-	sel->sel_listener->reverse_color( sel->sel_listener->self ,
+	(*sel->sel_listener->reverse_color)( sel->sel_listener->self ,
 		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
 
 #ifdef  __DEBUG
@@ -266,7 +266,7 @@ x_stop_selecting(
 
 	sel->is_selecting = 0 ;
 
-	if( ! sel->sel_listener->select_in_window( sel->sel_listener->self ,
+	if( ! (*sel->sel_listener->select_in_window)( sel->sel_listener->self ,
 		&sel->sel_str , &sel->sel_len , sel->beg_col , sel->beg_row , sel->end_col , sel->end_row))
 	{
 	#ifdef  __DEBUG
@@ -334,7 +334,7 @@ x_restore_selected_region_color_except_logs(
 		beg_col = sel->beg_col ;
 	}
 	
-	sel->sel_listener->restore_color( sel->sel_listener->self ,
+	(*sel->sel_listener->restore_color)( sel->sel_listener->self ,
 		beg_col , beg_row , sel->end_col , sel->end_row) ;
 
 	return  1 ;
@@ -368,7 +368,7 @@ x_reverse_selected_region_color_except_logs(
 		beg_col = sel->beg_col ;
 	}
 
-	sel->sel_listener->reverse_color( sel->sel_listener->self ,
+	(*sel->sel_listener->reverse_color)( sel->sel_listener->self ,
 		beg_col , beg_row , sel->end_col , sel->end_row) ;
 
 	return  1 ;
@@ -389,7 +389,7 @@ x_restore_selected_region_color(
 		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
 #endif
 
-	sel->sel_listener->restore_color( sel->sel_listener->self ,
+	(*sel->sel_listener->restore_color)( sel->sel_listener->self ,
 		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
 
 	sel->is_reversed = 0 ;
@@ -416,7 +416,7 @@ x_reverse_selected_region_color(
 		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
 #endif
 
-	sel->sel_listener->reverse_color( sel->sel_listener->self ,
+	(*sel->sel_listener->reverse_color)( sel->sel_listener->self ,
 		sel->beg_col , sel->beg_row , sel->end_col , sel->end_row) ;
 
 	sel->is_reversed = 1 ;
