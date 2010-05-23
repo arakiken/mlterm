@@ -243,7 +243,7 @@ create_term_intern(void)
 			main_config.tab_size , main_config.num_of_log_lines ,
 			main_config.encoding , main_config.is_auto_encoding , 
 			main_config.unicode_font_policy ,
-			main_config.col_size_a , main_config.use_char_combining ,
+			main_config.col_size_of_width_a , main_config.use_char_combining ,
 			main_config.use_multi_col_char , main_config.use_bidi ,
 			x_termcap_get_bool_field(
 				x_termcap_get_entry( &termcap , main_config.term_type) , ML_BCE) ,

@@ -53,6 +53,7 @@ get_pty_entry(char *dev)
 
 	title = get_pty_title(dev);
 
+	/* Assumed that dev always starts with "/dev/". */
 	if (title == NULL) return dev+5;
 	if (strcmp(title, dev)==0 || strlen(title)==0) {
 		free(title);

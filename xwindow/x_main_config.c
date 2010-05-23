@@ -688,15 +688,15 @@ x_main_config_init(
 	}
 	
 	/* default value is used */
-	main_config->col_size_a = 1 ;
+	main_config->col_size_of_width_a = 1 ;
 	
 	if( ( value = kik_conf_get_value( conf , "col_size_of_width_a")))
 	{
-		u_int  col_size_a ;
+		u_int  col_size_of_width_a ;
 		
-		if( kik_str_to_uint( &col_size_a , value))
+		if( kik_str_to_uint( &col_size_of_width_a , value))
 		{
-			main_config->col_size_a = col_size_a ;
+			main_config->col_size_of_width_a = col_size_of_width_a ;
 		}
 		else
 		{

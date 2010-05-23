@@ -204,6 +204,10 @@ int  ml_term_set_multi_col_char_flag( ml_term_t *  term , int  flag) ;
 
 int  ml_term_is_using_multi_col_char( ml_term_t *  term) ;
 
+int  ml_term_set_col_size_of_width_a( ml_term_t *  term , u_int  col_size_a) ;
+
+u_int  ml_term_get_col_size_of_width_a( ml_term_t *  term) ;
+
 int  ml_term_set_mouse_report( ml_term_t *  term , int  flag) ;
 
 int  ml_term_is_mouse_pos_sending( ml_term_t *  term) ;

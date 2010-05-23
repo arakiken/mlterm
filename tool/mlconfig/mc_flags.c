@@ -29,7 +29,8 @@ static char *configname[MC_FLAG_MODES] = {
 	"use_dynamic_comb",
 	"receive_string_via_ucs",
 	"use_multi_column_char",
-	"use_bidi"
+	"use_bidi" ,
+	"col_size_of_width_a"
 };
 
 static char *label[MC_FLAG_MODES] = {
@@ -40,7 +41,8 @@ static char *label[MC_FLAG_MODES] = {
 	N_("Combining = 1 (or 0) logical column(s)"),
 	N_("Process received strings via Unicode"),
 	N_("Fullwidth = 2 (or 1) logical column(s)"),
-	N_("Bidi (UTF8 only)")
+	N_("Bidi (UTF8 only)"),
+	N_("Ambiguouswidth = fullwidth (UTF8 only)")
 };
 
 static GtkWidget *widget[MC_FLAG_MODES];
@@ -53,6 +55,11 @@ GtkWidget * mc_flag_config_widget_new(int id)
 	{
 		old_flag_mode[id] = new_flag_mode[id] = 
 			( strcmp( mc_get_str_value( configname[id]) , "xft") == 0) ;
+	}
+	else if( id == MC_FLAG_AWIDTH)
+	{
+		old_flag_mode[id] = new_flag_mode[id] =
+			( strcmp( mc_get_str_value( configname[id]) , "2") == 0) ;
 	}
 	else
 	{
@@ -83,6 +90,17 @@ void mc_update_flag_mode(int id)
 			else
 			{
 				mc_set_str_value( configname[id] , "xcore") ;
+			}
+		}
+		else if( id == MC_FLAG_AWIDTH)
+		{
+			if( new_flag_mode[id])
+			{
+				mc_set_str_value( configname[id] , "2") ;
+			}
+			else
+			{
+				mc_set_str_value( configname[id] , "1") ;
 			}
 		}
 		else

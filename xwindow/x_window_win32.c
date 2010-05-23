@@ -3039,16 +3039,17 @@ x_window_xct_selection_request(
 	OpenClipboard( win->my_window) ;
 	hmem = GetClipboardData( CF_TEXT) ;
 
-	len = GlobalSize(hmem) ;
-	if( ( l_data = malloc( len)) == NULL)
+	g_data = GlobalLock( hmem) ;
+	len = strlen( g_data) ;
+	if( ( l_data = alloca( len + 1)) == NULL)
 	{
+		GlobalUnlock( hmem) ;
 		CloseClipboard() ;
 		
 		return  0 ;
 	}
 
-	g_data = GlobalLock( hmem) ;
-	strcpy( l_data, g_data) ;
+	strcpy( l_data , g_data) ;
 	GlobalUnlock( hmem) ;
 
 	CloseClipboard() ;
@@ -3058,8 +3059,6 @@ x_window_xct_selection_request(
 #endif
 
 	(*win->xct_selection_notified)( win, l_data, len) ;
-
-	free( l_data) ;
 	
 	return  1 ;
 }
@@ -3083,23 +3082,22 @@ x_window_utf_selection_request(
 	OpenClipboard( win->my_window) ;
 	hmem = GetClipboardData( CF_UNICODETEXT) ;
 
-	len = GlobalSize(hmem) ;
-	if( ( l_data = malloc( len)) == NULL)
+	g_data = GlobalLock( hmem) ;
+	len = lstrlenW( g_data) ;
+	if( ( l_data = alloca( (len + 1) * 2)) == NULL)
 	{
+		GlobalUnlock( hmem) ;
 		CloseClipboard() ;
 		
 		return  0 ;
 	}
 
-	g_data = GlobalLock( hmem) ;
-	strcpy( l_data, g_data) ;
+	lstrcpyW( l_data , g_data) ;
 	GlobalUnlock( hmem) ;
 
 	CloseClipboard() ;
 
-	(*win->utf_selection_notified)( win, l_data, len) ;
-
-	free( l_data) ;
+	(*win->utf_selection_notified)( win, l_data, len * 2) ;
 	
 	return  1 ;
 }
@@ -3122,9 +3120,9 @@ x_window_send_selection(
 	{
 		return  0 ;
 	}
-
-	/* +2 for 0x0000(UTF16) */
-	if( ( hmem = GlobalAlloc( GHND, sel_len + 2)) == NULL)
+	
+	/* +1 for 0x00, +2 for 0x0000(UTF16) */
+	if( ( hmem = GlobalAlloc( GHND, sel_len + (sel_type == CF_UNICODETEXT ? 2 : 1))) == NULL)
 	{
 		return  0 ;
 	}
@@ -3135,6 +3133,7 @@ x_window_send_selection(
 	{
 		*(g_data++) = *(sel_data++) ;
 	}
+	/* *(g_data++) = 0x0 is not necessary because GlobalAlloc already cleared memory. */
 
 	GlobalUnlock( hmem) ;
 

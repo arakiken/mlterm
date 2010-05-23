@@ -34,7 +34,6 @@ typedef struct x_main_config
 	x_mod_meta_mode_t  mod_meta_mode ;
 	x_bel_mode_t  bel_mode ;
 	x_sb_mode_t  sb_mode ;
-	u_int  col_size_a ;
 	ml_char_encoding_t  encoding ;
 	int  is_auto_encoding ;
 	x_type_engine_t  type_engine ;
@@ -70,6 +69,7 @@ typedef struct x_main_config
 	char *  cmd_path ;
 	char **  cmd_argv ;
 	
+	u_int8_t  col_size_of_width_a ;
 	u_int8_t  step_in_changing_font_size ;
 	u_int16_t  brightness ;
 	u_int16_t  contrast ;

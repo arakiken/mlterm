@@ -343,7 +343,9 @@ ml_term_set_logging_vt_seq(
 	int  flag
 	)
 {
-	return  ml_vt100_parser_set_logging_vt_seq( term->parser , flag) ;
+	term->parser->logging_vt_seq = flag ;
+	
+	return  1 ;
 }
 
 int
@@ -1101,6 +1103,23 @@ ml_term_is_using_multi_col_char(
 	)
 {
 	return  term->parser->use_multi_col_char ;
+}
+
+int
+ml_term_set_col_size_of_width_a(
+	ml_term_t *  term ,
+	u_int  col_size_a
+	)
+{
+	return  ml_vt100_parser_set_col_size_of_width_a( term->parser , col_size_a) ;
+}
+
+u_int
+ml_term_get_col_size_of_width_a(
+	ml_term_t *  term
+	)
+{
+	return  ml_vt100_parser_get_col_size_of_width_a( term->parser) ;
 }
 
 int

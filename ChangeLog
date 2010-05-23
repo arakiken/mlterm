@@ -1,3 +1,14 @@
+2010-05-22  Araki Ken  <arakiken@users.sf.net>
+
+	* xwindow/version.h.in: 3.0.0 post -> 3.0.1 pre
+
+	* mc_flags.c: "Ambiguouswidth = fullwidth (UTF8 only)" checkbox
+	  is added for "col_size_of_width_a" option.
+	  
+	* x_screen.c: "col_size_of_width_a" option is added to configuration protocol.
+
+	* x_screen.c: Screen is redrawn in selection_cleared().
+
 2010-05-19  Araki Ken  <arakiken@users.sf.net>
 
 	* Performance of 256colors2.pl(1999/07/11 version) is improved by reducing

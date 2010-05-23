@@ -2563,7 +2563,11 @@ selection_cleared(
 	x_window_t *  win
 	)
 {
-	x_sel_clear( &((x_screen_t*)win)->sel) ;
+	if( x_sel_clear( &((x_screen_t*)win)->sel))
+	{
+		x_window_update( win , UPDATE_SCREEN|UPDATE_CURSOR) ;
+	}
+	
 }
 
 static size_t
@@ -3490,7 +3494,7 @@ button_pressed(
 
 		return ;
 	}
-	
+
 	restore_selected_region_color_instantly( screen) ;
 }
 
@@ -3519,8 +3523,6 @@ button_released(
 		}
 		else
 		{
-			restore_selected_region_color_instantly( screen) ;
-
 			yank_event_received( screen , event->time) ;
 		}
 	}
@@ -6977,6 +6979,17 @@ x_screen_set_config(
 
 		change_multi_col_char_flag( screen , flag) ;
 	}
+	else if( strcmp( key , "col_size_of_width_a") == 0)
+	{
+		u_int  size ;
+
+		if( ! kik_str_to_uint( &size , value))
+		{
+			return ;
+		}
+
+		ml_term_set_col_size_of_width_a( screen->term , size) ;
+	}
 	else if( strcmp( key , "use_bidi") == 0)
 	{
 		int  flag ;
@@ -7418,6 +7431,17 @@ x_screen_get_config(
 		else
 		{
 			value = false ;
+		}
+	}
+	else if( strcmp( key , "col_size_of_width_a") == 0)
+	{
+		if( ml_term_get_col_size_of_width_a( screen->term) == 2)
+		{
+			value = "2" ;
+		}
+		else
+		{
+			value = "1" ;
 		}
 	}
 	else if( strcmp( key , "use_bidi") == 0)

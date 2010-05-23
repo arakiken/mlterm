@@ -19,7 +19,7 @@ version 20091211
                      full_reset | brightness | gamma | contrast | line_space |
                      screen_width_ratio | screen_height_ratio | vertical_mode |
                      scrollbar_mode | stataic_backscroll_mode | use_multi_column_char |
-                     scrollbar_view_name | sb_fg_color | sb_bg_color |
+                     col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | cursor_fg_color |
                      cursor_bg_color | open_pty | open_screen | select_pty |
                      snapshot | gen_proto_challenge | icon_path | logging_vt_seq |
@@ -33,7 +33,7 @@ version 20091211
                      wall_picture | pwd | brightness | gamma | contrast |
                      line_space | screen_width_ratio | screen_height_ratio |
                      vertical_mode | scrollbar_mode | use_multi_column_char |
-                     scrollbar_view_name | sb_fg_color | sb_bg_color |
+                     col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | rows | cols |
                      cursor_fg_color | cursor_bg_color | pty_list | pty_name
 		     icon_path | logging_vt_seq | selected_text(:encoding) | gui
@@ -51,6 +51,7 @@ version 20091211
   bg_color = <color name> | <color rgb>
   brightness = <any ASCII decimal digit>
   cols = <any ASCII decimal digit>
+  col_size_of_width_a = 1 | 2
   contrast = <any ASCII decimal digit>
   cursor_bg_color = <color name> | <color rgb>
   cursor_fg_color = <color name> | <color rgb>

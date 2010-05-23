@@ -321,7 +321,7 @@ put_char(
 		}
 		else if( prop & MKF_AWIDTH)
 		{
-			if( vt100_parser->col_size_of_east_asian_width_a == 2)
+			if( vt100_parser->col_size_of_width_a == 2)
 			{
 				is_biwidth = 1 ;
 			}
@@ -2910,21 +2910,11 @@ ml_vt100_parser_new(
 	vt100_parser->is_dec_special_in_g0 = 0 ;
 	vt100_parser->is_dec_special_in_g1 = 1 ;
 
-	if( col_size_a == 1 || col_size_a == 2)
-	{
-		vt100_parser->col_size_of_east_asian_width_a = col_size_a ;
-	}
-	else
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " col size should be 1 or 2. default value 1 is used.\n") ;
-	#endif
+	ml_vt100_parser_set_col_size_of_width_a( vt100_parser , col_size_a) ;
 	
-		vt100_parser->col_size_of_east_asian_width_a = 1 ;
-	}
-
 	vt100_parser->saved_normal.is_saved = 0 ;
         vt100_parser->saved_alternate.is_saved = 0 ;
+	
 	return  vt100_parser ;
 
 error:
@@ -3137,12 +3127,32 @@ ml_init_encoding_conv(
 }
 
 int
-ml_vt100_parser_set_logging_vt_seq(
-        ml_vt100_parser_t *  vt100_parser ,
-        int  flag
+ml_vt100_parser_set_col_size_of_width_a(
+	ml_vt100_parser_t *  vt100_parser ,
+	u_int  col_size_a
 	)
 {
-	vt100_parser->logging_vt_seq = flag ;
+	if( col_size_a == 1 || col_size_a == 2)
+	{
+		vt100_parser->col_size_of_width_a = col_size_a ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" col size should be 1 or 2. default value 1 is used.\n") ;
+	#endif
+	
+		vt100_parser->col_size_of_width_a = 1 ;
+	}
 
 	return  1 ;
+}
+
+u_int
+ml_vt100_parser_get_col_size_of_width_a(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	return  vt100_parser->col_size_of_width_a ;
 }

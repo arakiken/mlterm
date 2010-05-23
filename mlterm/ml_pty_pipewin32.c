@@ -942,5 +942,5 @@ ml_pty_get_slave_name(
 	ml_pty_t *  pty
 	)
 {
-	return  "" ;
+	return  "/dev/pipewin32" ;
 }

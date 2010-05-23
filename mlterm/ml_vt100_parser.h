@@ -134,11 +134,16 @@ typedef struct  ml_vt100_parser
 	int8_t  not_use_unicode_font ;
 	int8_t  only_use_unicode_font ;
 	
-	u_int8_t  col_size_of_east_asian_width_a ;	/* 1 or 2 */
-	
 	int8_t  is_bold ;
 	int8_t  is_underlined ;
 	int8_t  is_reversed ;
+
+	u_int8_t  col_size_of_width_a ;	/* 1 or 2 */
+
+	/*
+	 * XXX
+	 * ml_term can access these 3 flags directly.
+	 */
 	int8_t  use_char_combining ;
 	int8_t  use_multi_col_char ;
 	int8_t  logging_vt_seq ;
@@ -180,7 +185,10 @@ int  ml_init_encoding_parser( ml_vt100_parser_t *  vt100_parser) ;
 
 int  ml_init_encoding_conv( ml_vt100_parser_t *  vt100_parser) ;
 
-int  ml_vt100_parser_set_logging_vt_seq( ml_vt100_parser_t *  vt100_parser , int  size) ;
+int  ml_vt100_parser_set_col_size_of_width_a( ml_vt100_parser_t *  vt100_parser ,
+	u_int  col_size_a) ;
+
+u_int  ml_vt100_parser_get_col_size_of_width_a( ml_vt100_parser_t *  vt100_parser) ;
 
 
 #endif

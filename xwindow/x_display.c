@@ -540,7 +540,7 @@ x_display_clear_selection(
 	}
 
 	disp->selection_owner->is_sel_owner = 0 ;
-
+	
 	if( disp->selection_owner->selection_cleared)
 	{
 		(*disp->selection_owner->selection_cleared)( disp->selection_owner) ;
