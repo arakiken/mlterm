@@ -548,11 +548,10 @@ comment $Id$
       o logging_vt_seq (true/*false*)
         pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
 
-      o button3_behavior (xterm/*menu1*/menu2/menu3)
+      o button3_behavior (*xterm*/menu1/menu2/menu3)
         button3 を押下したときの挙動を指定する。
 	xterm = xterm 互換
 	menuN = conf_menu_path_N で指定したプログラムを起動
-	※ --with-gui=win32 の場合は xterm がデフォルト値
 
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)

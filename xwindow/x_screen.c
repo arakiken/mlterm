@@ -80,13 +80,7 @@ enum
 /* --- static variables --- */
 
 /* 0 = traditional, 1 = conf_menu_path_1 , 2 = conf_menu_path_2 , 3 = conf_menu_path_3 */
-static int  button3_open_menu =
-#ifdef  USE_WIN32GUI
-	0
-#else
-	1
-#endif
-	;
+static int  button3_open_menu = 0 ;
 
 
 /* --- static functions --- */
@@ -3243,9 +3237,10 @@ report_mouse_tracking(
 	else
 	{
 		button = event->button - Button1 ;
-		while( button >= 3){
-			key_state += 64;
-			button -= 3;
+		while( button >= 3)
+		{
+			key_state += 64 ;
+			button -= 3 ;
 		}
 	}
 
@@ -3358,7 +3353,7 @@ button_pressed(
 		return ;
 	}
 
-	if( event->button == 2)
+	if( event->button == Button2)
 	{
 		if( (event->state & ControlMask) && screen->conf_menu_path_2)
 		{
@@ -3367,7 +3362,7 @@ button_pressed(
 
 		return ;
 	}
-	else if( event->button == 1)
+	else if( event->button == Button1)
 	{
 		if( click_num == 2)
 		{
@@ -3396,7 +3391,7 @@ button_pressed(
 			return ;
 		}
 	}
-	else if( event->button == 3)
+	else if( event->button == Button3)
 	{
 		if( event->state & ControlMask)
 		{
@@ -3454,7 +3449,7 @@ button_pressed(
 			return ;
 		}
 	}
-	else if ( event->button == 4)
+	else if ( event->button == Button4)
 	{
 		/* wheel mouse */
 
@@ -3474,7 +3469,7 @@ button_pressed(
 
 		return ;
 	}
-	else if ( event->button == 5)
+	else if ( event->button == Button5)
 	{
 		/* wheel mouse */
 
@@ -3510,11 +3505,19 @@ button_released(
 
 	if( ml_term_is_mouse_pos_sending( screen->term) && ! (event->state & ShiftMask))
 	{
-		report_mouse_tracking( screen , event , 1) ;
+		if( event->button >= Button4)
+		{
+			/* Release events for the wheel buttons are not reported. */
+		}
+		else
+		{
+			report_mouse_tracking( screen , event , 1) ;
+		}
+		
 		return ;
 	}
 
-	if( event->button == 2)
+	if( event->button == Button2)
 	{
 		if( (event->state & ControlMask) && screen->conf_menu_path_2)
 		{

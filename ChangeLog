@@ -1,3 +1,12 @@
+2010-05-23  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* x_screen.c: The default value of button3_behavior option is changed
+	  from "menu1" to "xterm".
+
+	* x_screen.c: Release events for the wheel buttons are not reported.
+
 2010-05-22  Araki Ken  <arakiken@users.sf.net>
 
 	* xwindow/version.h.in: 3.0.0 post -> 3.0.1 pre

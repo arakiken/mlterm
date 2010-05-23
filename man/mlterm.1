@@ -526,15 +526,13 @@ The default is \fB32\fR.
 See \fBMULTIPLE PTY\fR section for detail.
 .TP
 \fB\-\-button3\fR=\fIvalue\fR
-Specify behavior in pressing button3.
+Specify behavior in pressing button3. The default is \fBxterm\fR.
 .nf
 xterm: compatible with xterm
 menu1: open external configurator of conf_menu_path_1 option.
 menu2: open external configurator of conf_menu_path_2 option.
 menu3: open external configurator of conf_menu_path_3 option.
 .fi
-The default is \fBmenu1\fR. (If --with-gui=win32 is specified in configuration,
-the default is \fBxterm\fR.)
 
 .\" ********************************************************************
 .SH GUI CONFIGURATOR
@@ -1036,11 +1034,14 @@ Background color.
 \fBbrightness=\fIvalue\fR (\fB\-H\fR, \fB\-\-brightness\fR) 
 Specify the amount of darkening or lightening the background image.
 .TP
+\fBbig5_buggy=\fIbool\fR (\fB\-5\fR, \fB\-\-big5bug\fR) 
+Support Big5 CTEXT bugs (which exist in XFree86 4.1.0 or before).
+.TP
 \fBborderless=\fIbool\fR (\fB\-&\fR, \fB\-\-borderless\fR) 
 Don't draw window decorations.
 .TP
-\fBbig5_buggy=\fIbool\fR (\fB\-5\fR, \fB\-\-big5bug\fR) 
-Support Big5 CTEXT bugs (which exist in XFree86 4.1.0 or before).
+\fBbutton3_behavior=\fIvalue\fR
+Specify behavior in pressing button3.
 .TP
 \fBcol_size_of_width_a=\fIvalue\fR (\fB\-a\fR, \fB\-\-ac\fR) 
 Number of columns of Unicode characters with EastAsianAmbiguous property.
@@ -1110,6 +1111,9 @@ Specify size and position of the window; see \fBX\fR(7).
 \fBicon_name=\fIname\fR (\fB\-I\fR, \fB\-\-icon\fR) 
 Icon name.
 .TP
+\fBicon_path=\fIpath\fR
+Path for the image file to be used as window icon.
+.TP
 \fBinput_method\fR= \fIinput method\fR : \fB[\fR\fI arguments\fR \fB... ]\fR (\fB\-\-im\fR)
 Specify input method.
 .TP
@@ -1124,6 +1128,9 @@ Specify number of extra dots between lines.
 .TP
 \fBlogsize=\fIvalue\fR (\fB\-l\fR, \fB\-\-sl\fR) 
 Specify number of lines of backlog.
+.TP
+\fBmax_ptys=\fIvalue\fR (\fB\-\-maxptys\fR)
+Specify maximum number of ptys (sessions) to be opened simultaneously.
 .TP
 \fBmod_meta_mode=\fImode\fR (\fB\-k\fR, \fB\-\-meta\fR) 
 Behavior of META key.
@@ -1223,9 +1230,6 @@ Delimiter characters used for word selection.
 .TP
 \fBstatic_backscroll_mode=\fIbool\fR (\fB\-6\fR, \fB\-\-stbs\fR)
 Don't exit backscroll mode when console applications output something.
-.TP
-\fBicon_path=\fIpath\fR
-Path for the image file to be used as window icon.
 .\" ******************************************************
 .SS Font Configuration Files
 The font configuration files "\fBfont\fR", "\fBvfont\fR", "\fBtfont\fR",
