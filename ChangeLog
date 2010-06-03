@@ -1,3 +1,16 @@
+2010-06-03  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font.c: Returned value of get_cs_info() is checked.
+
+	* x_screen.c:
+	  Modifier keys with Del/Home/End are distinguished.
+	  The keypad middle key (XK_Begin, XK_KP_Begin) is mapped to ^[[E, ^[[1;5E etc.
+	  (SF Bug #2818015, Thanks to Thomas Wolff)
+
+	* x_screen.c: If Num_Lock is pressed, application keypad is ignored.
+	
+	* x_window.c: XK_Num_Lock is not ignored in XModifierKeymap by default.
+
 2010-05-23  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, doc/ja/README.ja: Updated.
@@ -6,6 +19,7 @@
 	  from "menu1" to "xterm".
 
 	* x_screen.c: Release events for the wheel buttons are not reported.
+	  (SF Bug #2818018, Thanks to Thomas Wolff)
 
 2010-05-22  Araki Ken  <arakiken@users.sf.net>
 

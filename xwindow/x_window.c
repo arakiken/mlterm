@@ -3347,7 +3347,7 @@ x_window_get_mod_ignore_mask(
 	int  count ;
 	u_int  ignore ;
 	u_int  masks[] = { Mod1Mask , Mod2Mask , Mod3Mask , Mod4Mask , Mod5Mask } ;
-	KeySym default_keysyms[] = { XK_Num_Lock, XK_Scroll_Lock, XK_ISO_Level3_Lock,
+	KeySym default_keysyms[] = { XK_Scroll_Lock, XK_ISO_Level3_Lock,
 				     NoSymbol} ;
 
 	if( !keysyms)

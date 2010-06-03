@@ -1048,7 +1048,7 @@ key_event(
 							event->state ,
 							&is_shift , &is_lock ,
 							&is_ctl , &is_alt ,
-							&is_meta , &is_super ,
+							&is_meta , NULL , &is_super ,
 							&is_hyper) ;
 
 	if( is_shift && (uim->pressing_mod_key & UMod_Shift))

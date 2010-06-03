@@ -1539,11 +1539,16 @@ x_font_get_encoding_names(
 	mkf_charset_t  cs
 	)
 {
-	cs_info_t  * info ;
+	cs_info_t *  info ;
 
-	info = get_cs_info( cs) ;
-
-	return  info->encoding_names ;
+	if( ( info = get_cs_info( cs)))
+	{
+		return  info->encoding_names ;
+	}
+	else
+	{
+		return  NULL ;
+	}
 }
 
 #ifdef  DEBUG

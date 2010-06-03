@@ -139,7 +139,7 @@ xksym_to_msymbol(
 						m17nlib->im.listener->self ,
 						state ,
 						&is_shift , &is_lock , &is_ctl ,
-						&is_alt , &is_meta , &is_super ,
+						&is_alt , &is_meta , NULL , &is_super ,
 						&is_hyper) ;
 
 	/* Latin 1 */

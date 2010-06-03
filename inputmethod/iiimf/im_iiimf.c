@@ -1089,7 +1089,7 @@ key_event(
 						iiimf->im.listener->self ,
 						xevent->state ,
 						&is_shift , &is_lock , &is_ctl ,
-						&is_alt , &is_meta , &is_super ,
+						&is_alt , &is_meta , NULL , &is_super ,
 						&is_hyper) ;
 
 	if( is_shift) key.modifier |= IIIMF_SHIFT_MODIFIER ;
