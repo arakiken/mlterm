@@ -7,7 +7,6 @@
 #include  <signal.h>
 #include  <stdio.h>		/* sprintf */
 #include  <unistd.h>            /* getcwd */
-#include  <X11/Xutil.h>		/* IsKeypadKey */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* strdup, kik_snprintf */
@@ -2208,8 +2207,12 @@ key_pressed(
 				{
 					KEY_ESCSEQ( 'O' , 0 , 'y') ;
 				}
+				else
+				{
+					return ;
+				}
 				
-				return ;
+				goto  write_buf ;
 			}
 			else
 			{
@@ -2554,6 +2557,7 @@ key_pressed(
 			return ;
 		}
 
+write_buf:
 		if( intermediate_ch)
 		{
 			if( modcode) /* ESC <intermediate> Ps ; Ps <final> */

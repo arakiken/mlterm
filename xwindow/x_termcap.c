@@ -321,8 +321,10 @@ read_conf(
 			{
 				if( ( entry = search_entry( termcap , field)))
 				{
+				#if  0
 					entry_final( entry) ;
 					entry_init( entry , field) ;
+				#endif
 					parse_entry_db( entry , db_p) ;
 				}
 				else if( ( p = realloc( termcap->entries ,

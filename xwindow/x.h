@@ -13,6 +13,7 @@
 #include  <X11/Xlib.h>
 #include  <X11/keysym.h>	/* XK_xxx */
 #include  <X11/Xatom.h>		/* XA_xxx */
+#include  <X11/Xutil.h>		/* IsKeypadKey */
 #endif
 
 /*

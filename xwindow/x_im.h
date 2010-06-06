@@ -38,7 +38,7 @@ typedef struct x_im_event_listener
 	int (*draw_preedit_str)( void * , ml_char_t * , u_int , int) ;
 	void (*im_changed)( void * , char *) ;
 	int (*compare_key_state_with_modmap)( void * , u_int , int * , int * ,
-					      int * , int * , int * , int * ,
+					      int * , int * , int * , int * , int * ,
 					      int *) ;
 	void (*write_to_term)( void * , u_char * , size_t) ;
 

@@ -237,23 +237,25 @@ typedef int XFontSet ;	/* dummy */
 #define XK_Scroll_Lock	VK_SCROLL
 #define XK_Find		0xffeb	/* dummy */
 #define XK_Menu		0xffea	/* dummy */
+#define XK_Begin	0xffe9	/* dummy */
 /* #define XXX	VK_PLAY */
 /* #define XXX	VK_ZOOM */
 
-#define XK_KP_Prior	0xffe9	/* dummy */
-#define XK_KP_Next	0xffe8	/* dummy */
-#define XK_KP_End	0xffe7	/* dummy */
-#define XK_KP_Home	0xffe6	/* dummy */
-#define XK_KP_Left	0xffe5	/* dummy */
-#define XK_KP_Up	0xffe4	/* dummy */
-#define XK_KP_Right	0xffe3	/* dummy */
-#define XK_KP_Down	0xffe2	/* dummy */
-#define XK_KP_Insert	0xffe1	/* dummy */
-#define XK_KP_Delete	0xffe0	/* dummy */
-#define XK_KP_F1	0xffdf	/* dummy */
-#define XK_KP_F2	0xffde	/* dummy */
-#define XK_KP_F3	0xffdd	/* dummy */
-#define XK_KP_F4	0xffdc	/* dummy */
+#define XK_KP_Prior	0xffe8	/* dummy */
+#define XK_KP_Next	0xffe7	/* dummy */
+#define XK_KP_End	0xffe6	/* dummy */
+#define XK_KP_Home	0xffe5	/* dummy */
+#define XK_KP_Left	0xffe4	/* dummy */
+#define XK_KP_Up	0xffe3	/* dummy */
+#define XK_KP_Right	0xffe2	/* dummy */
+#define XK_KP_Down	0xffe1	/* dummy */
+#define XK_KP_Insert	0xffe0	/* dummy */
+#define XK_KP_Delete	0xffdf	/* dummy */
+#define XK_KP_F1	0xffde	/* dummy */
+#define XK_KP_F2	0xffdd	/* dummy */
+#define XK_KP_F3	0xffdc	/* dummy */
+#define XK_KP_F4	0xffdb	/* dummy */
+#define XK_KP_Begin	0xffda	/* dummy */
 #define XK_KP_Multiply	VK_MULTIPLY
 #define XK_KP_Add	VK_ADD
 #define XK_KP_Separator	VK_SEPARATOR
@@ -271,11 +273,11 @@ typedef int XFontSet ;	/* dummy */
 #define XK_KP_8		VK_NUMPAD8
 #define XK_KP_9		VK_NUMPAD9
 
-#define XK_ISO_Level3_Lock	0xffdb	/* dummy */
-#define XK_u	0xffdc	/* dummy */
-#define XK_d	0xffdb	/* dummy */
-#define XK_k	0xffda	/* dummy */
-#define XK_j	0xffd9	/* dummy */
+#define XK_ISO_Level3_Lock	0xffd9	/* dummy */
+#define XK_u	0xffd8	/* dummy */
+#define XK_d	0xffd7	/* dummy */
+#define XK_k	0xffd6	/* dummy */
+#define XK_j	0xffd5	/* dummy */
 
 /* XPoint(short x, short y) in Xlib. POINT(long x, long y) in win32. */
 #define XPoint  POINT
@@ -287,6 +289,8 @@ typedef int XFontSet ;	/* dummy */
 #define XKeysymToString(ks)	""
 #define DisplayString(disp)	":0.0"
 #define DefaultScreen(disp)	(0)
+/* VK_NUMPAD0 = 0x60, VK_DIVIDE = 0x6f */
+#define IsKeypadKey(ksym)	(VK_NUMPAD0 <= (ksym) && (ksym) <= VK_DIVIDE)
 
 #define BlackPixel(disp,screen)	RGB(0,0,0)
 #define WhitePixel(disp,screen) RGB(0xff,0xff,0xff)

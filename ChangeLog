@@ -1,3 +1,13 @@
+2010-06-06  Araki Ken  <arakiken@users.sf.net>
+
+	* x_win32.h: XK_Begin, XK_KP_Begin and IsKeypadKey macros are added
+	  for win32.
+
+	* etc/termcap: kh and @7 definitions are added to "xterm" and "*".
+
+	* x_screen.c: Fixed a bug which disabled keyboard input in application
+	  keypad mode.
+
 2010-06-03  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font.c: Returned value of get_cs_info() is checked.
