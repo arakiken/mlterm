@@ -1,3 +1,17 @@
+ver 3.0.1
+* Improvements for performance of changing 256 colors by
+  "\x1b]4;N;rgb:RR/GG/BB\x07" sequence. (Thanks to Konosuke Watanabe san)
+* Support "ESC[9Nm" and "ESC[10Nm" sequences.
+* Add --button3/button3_behavior option. (If "menu1" is specified, pressing
+  button3 shows conf_menu_path_1 program (mlterm-menu) like gnome-terminal.)
+* Add "Copy" & "Paste" menus to mlterm-menu.
+* Improvements for compatibility with xterm about RGB of system colors.
+* Add 'col_size_of_width_a' to configuration protocol. (doc/en/PROTOCOL)
+* Merge SF patches:
+  #2988801, #2987646 (Thanks to Ahmed El-Mahmoudy)
+* Other bug fixes:
+  #2818015(partly),#2818018 (Thanks to Thomas Wolff)
+
 ver 3.0.0
 * Support 256 colors. (Thanks to Shinichiro Hamaji san)
 * Character convertion tables are separated from libmkf library.

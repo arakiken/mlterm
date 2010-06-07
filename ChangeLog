@@ -1,3 +1,13 @@
+2010-06-07  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.0.1 released.
+	  (tag "rel-3_0_1")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.0.1
+
+	* configure: re-generated
+
 2010-06-06  Araki Ken  <arakiken@users.sf.net>
 
 	* x_win32.h: XK_Begin, XK_KP_Begin and IsKeypadKey macros are added
