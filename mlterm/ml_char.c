@@ -280,10 +280,17 @@ ml_char_combine(
 		return  0 ;
 	}
 
+	/*
+	 * This check should be excluded, because characters whose is_comb flag
+	 * (combining property of mkf) is NULL can be combined
+	 * if ml_is_arabic_combining(them) returns non-NULL.
+	 */
+#if  0
 	if( ! is_comb)
 	{
 		return  0 ;
 	}
+#endif
 
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{

@@ -2295,7 +2295,11 @@ key_pressed(
 				return  ;
 			}
 		}
-		else if( ( ksym == XK_Delete && size == 1) || ksym == XK_KP_Delete)
+		else if( ( ksym == XK_Delete
+		#ifndef  USE_WIN32GUI
+			&& size == 1
+		#endif
+			) || ksym == XK_KP_Delete)
 		{
 			if( modcode)
 			{

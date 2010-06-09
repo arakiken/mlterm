@@ -1,3 +1,13 @@
+2010-06-10  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: Fixed a bug which disabled delete key in win32.
+	
+	* ml_char.c: 'is_comb' flag check which destroys Lam Alef ligature
+	  is excluded in ml_char_combine.
+	  (SF Bug #3012762, Thanks to Khaled Hosny)
+	
+	* xwindow/version.h.in: 3.0.1 => 3.0.1 post
+
 2010-06-07  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.0.1 released.

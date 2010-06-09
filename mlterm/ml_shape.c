@@ -216,7 +216,7 @@ shape_arabic(
 	for( count = 0 ; count < src_len && count < dst_len ; count ++)
 	{
 		comb = ml_get_combining_chars( cur , &size) ;
-		
+
 		if( comb &&
 			( code = ml_is_arabic_combining( count + 1 >= src_len ? NULL : &src[count + 1] ,
 					ml_get_base_char( cur) , comb)))
