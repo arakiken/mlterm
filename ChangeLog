@@ -1,3 +1,9 @@
+2010-06-22  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: Fixed a bug which disabled transparency of mlterm
+	  without image library like gdk-pixbuf.
+	  (SF Bug #3014219, Thanks to Khaled Hosny)
+
 2010-06-10  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: Fixed a bug which disabled delete key in win32.

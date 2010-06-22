@@ -4230,12 +4230,15 @@ change_transparent_flag(
 
 	if( is_transparent)
 	{
+	#ifdef  USE_WIN32GUI
+		/* See x_screen_new(). */
 		if( screen->pic_mod.alpha == 255)
 		{
-			/* Default translucent alpha value. */
+			/* Default translucent alpha value in win32. */
 			screen->pic_mod.alpha = 210 ;
 		}
-		
+	#endif
+	
 		x_window_set_transparent( &screen->window ,
 			x_screen_get_picture_modifier( screen)) ;
 	}
@@ -6157,12 +6160,15 @@ x_screen_new(
 
 	if( use_transbg)
 	{
+	#ifdef  USE_WIN32GUI
+		/* See change_transparent_flag(). */
 		if( screen->pic_mod.alpha == 255)
 		{
-			/* Default translucent alpha value. */
+			/* Default translucent alpha value in win32. */
 			screen->pic_mod.alpha = 210 ;
 		}
-		
+	#endif
+	
 		x_window_set_transparent( &screen->window ,
 			x_screen_get_picture_modifier( screen)) ;
 	}
