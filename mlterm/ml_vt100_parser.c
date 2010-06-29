@@ -2056,6 +2056,12 @@ parse_vt100_escape_sequence(
 								vt100_parser->fg_color =
 									ps[count + 2] ;
 								count += 2 ;
+								
+							#ifndef  IGNORE_SPACE_FG_COLOR
+								ml_screen_set_bce_fg_color(
+									vt100_parser->screen ,
+									vt100_parser->fg_color) ;
+							#endif
 							}
 							else if( ps[count] == 48 && num >= 3
 								&& ps[count + 1] == 5)
@@ -2063,6 +2069,10 @@ parse_vt100_escape_sequence(
 								vt100_parser->bg_color =
 									ps[count + 2] ;
 								count += 2 ;
+								
+								ml_screen_set_bce_bg_color(
+									vt100_parser->screen ,
+									vt100_parser->bg_color) ;
 							}
 							else
 							{
@@ -2737,11 +2747,11 @@ parse_vt100_sequence(
 				}
 			}
 
-			if( ch.size == 1 && ch.ch[0] == 0x0)
+			if( ch.size == 1 && (ch.ch[0] == 0x0 || ch.ch[0] == 0x7f))
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG
-					" 0x0 sequence is received , ignored...\n") ;
+					" 0x0/0x7f sequence is received , ignored...\n") ;
 			#endif
 			}
 			else if( ch.size == 1 && 0x1 <= ch.ch[0] && ch.ch[0] <= 0x1f)
