@@ -62,7 +62,7 @@ x_display_t **  x_get_opened_displays( u_int *  num) ;
 int  x_display_fd( x_display_t *  disp) ;
 
 int  x_display_show_root( x_display_t *  disp , x_window_ptr_t  root ,
-	int  x , int  y , int  hint , char *  app_name) ;
+	int  x , int  y , int  hint , char *  app_name , Window  parent_window) ;
 
 int  x_display_remove_root( x_display_t *  disp , x_window_ptr_t  root) ;
 

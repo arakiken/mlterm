@@ -659,7 +659,7 @@ x_window_final(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( "[deleting child windows]\n") ;
@@ -2008,6 +2008,12 @@ x_window_receive_event(
 			win->button_is_pressing = 1 ;
 			win->prev_button_press_event = event->xbutton ;
 		}
+
+		if( ! win->is_focused)
+		{
+			XSetInputFocus( win->disp->display , win->my_window ,
+				RevertToParent , CurrentTime) ;
+		}
 	}
 	else if( event->type == Expose /* && event->xexpose.count == 0 */)
 	{
@@ -2414,8 +2420,9 @@ x_window_receive_event(
 				exit(0) ;
 			}
 		}
-#if 0
-		if( event->xclient.format == 32 &&
+		
+#if  0
+		else if( event->xclient.format == 32 &&
 			event->xclient.data.l[0] == XA_TAKE_FOCUS( win->disp->display))
 		{
 			kik_warn_printf( KIK_DEBUG_TAG

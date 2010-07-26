@@ -41,6 +41,7 @@ typedef struct x_main_config
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bs_mode_t  bs_mode ;
 	ml_unicode_font_policy_t  unicode_font_policy ;
+	u_int  parent_window ;
 
 	char *  disp_name ;
 	char *  app_name ;

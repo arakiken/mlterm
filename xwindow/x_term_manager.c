@@ -732,7 +732,7 @@ open_screen_intern(
 	}
 
 	if( ! x_display_show_root( disp, root, main_config.x, main_config.y,
-		main_config.geom_hint, main_config.app_name))
+		main_config.geom_hint, main_config.app_name , main_config.parent_window))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_display_show_root() failed.\n") ;

@@ -192,6 +192,8 @@ x_prepare_for_main_config(
 #endif
 	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
 		"input method (xim/kbd/uim/iiimf/m17nlib/scim/none) [xim]") ;
+	kik_conf_add_opt( conf , '\0' , "parent" , 0 , "parent_window" ,
+		"parent window") ;
 #ifdef  USE_WIN32API
 	kik_conf_add_opt( conf , '\0' , "servlist" , 0 , "server_list" ,
 		"list of servers to connect") ;
@@ -1003,6 +1005,22 @@ x_main_config_init(
 		main_config->init_str = NULL ;
 	}
 
+	main_config->parent_window = 0 ;
+	
+	if( ( value = kik_conf_get_value( conf , "parent_window")))
+	{
+		u_int  parent_window ;
+		
+		if( kik_str_to_uint( &parent_window , value))
+		{
+			main_config->parent_window = parent_window ;
+		}
+		else
+		{
+			kik_msg_printf( invalid_msg , "parent window" , value) ;
+		}
+	}
+	
 #ifdef  USE_WIN32API
 	main_config->server_list = NULL ;
 	

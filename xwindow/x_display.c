@@ -369,7 +369,8 @@ x_display_show_root(
 	int  x ,
 	int  y ,
 	int  hint ,
-	char *  app_name
+	char *  app_name ,
+	Window  parent_window
 	)
 {
 	void *  p ;
@@ -388,7 +389,14 @@ x_display_show_root(
 
 	root->disp = disp ;
 	root->parent = NULL ;
-	root->parent_window = disp->my_window ;
+	if( parent_window)
+	{
+		root->parent_window = parent_window ;
+	}
+	else
+	{
+		root->parent_window = disp->my_window ;
+	}
 	root->gc = disp->gc ;
 	root->x = x ;
 	root->y = y ;

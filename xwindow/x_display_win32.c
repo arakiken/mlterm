@@ -261,7 +261,8 @@ x_display_show_root(
 	int  x ,
 	int  y ,
 	int  hint ,
-	char *  app_name
+	char *  app_name ,
+	Window  parent_window	/* Ignored */
 	)
 {
 	void *  p ;
