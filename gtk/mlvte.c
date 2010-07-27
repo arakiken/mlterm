@@ -46,26 +46,29 @@ static Atom xembedatom ;
 
 #ifdef  USE_XEMBED
 static void
-sendxembed(
+send_xembed(
 	Display *  disp ,
 	Window  win ,
-	long msg ,
-	long detail,
-	long d1 ,
-	long d2
+	long  msg ,
+	long  d1 ,
+	long  d2 ,
+	long  d3
 	)
 {
-	XEvent e = { 0 };
+	XEvent e ;
 
-	e.xclient.window = win ;
 	e.xclient.type = ClientMessage ;
+	e.xclient.serial = 0 ;
+	e.xclient.send_event = 0 ;
+	e.xclient.display = 0 ;
+	e.xclient.window = win ;
 	e.xclient.message_type = xembedatom ;
 	e.xclient.format = 32 ;
 	e.xclient.data.l[0] = CurrentTime ;
 	e.xclient.data.l[1] = msg ;
-	e.xclient.data.l[2] = detail ;
-	e.xclient.data.l[3] = d1 ;
-	e.xclient.data.l[4] = d2 ;
+	e.xclient.data.l[2] = d1 ;
+	e.xclient.data.l[3] = d2 ;
+	e.xclient.data.l[4] = d3 ;
 
 	XSendEvent( disp , win , False , NoEventMask , &e) ;
 }
@@ -80,8 +83,8 @@ focus_in(
 	XSetInputFocus( disp , win , RevertToParent , CurrentTime) ;
 
 #ifdef  USE_XEMBED
-	sendxembed( disp , win , XEMBED_FOCUS_IN, XEMBED_FOCUS_CURRENT, 0, 0) ;
-	sendxembed( disp , win , XEMBED_WINDOW_ACTIVATE, 0, 0, 0) ;
+	send_xembed( disp , win , XEMBED_FOCUS_IN, XEMBED_FOCUS_CURRENT, 0, 0) ;
+	send_xembed( disp , win , XEMBED_WINDOW_ACTIVATE, 0, 0, 0) ;
 #endif
 }
 
@@ -89,46 +92,85 @@ static Bool
 check_createnotify(
 	Display *  disp ,
 	XEvent *  ev ,
-	XPointer  p
+	XPointer  p	/* Mlvte */
 	)
 {
-	Mlvte *  mlvte ;
+	GtkWidget *  widget ;
 
-	mlvte = (Mlvte*)p ;
+	widget = (GtkWidget*)p ;
 	
 	if( ev->type == CreateNotify)
 	{
-	#ifdef  USE_XEMBED
-		XEvent e ;
-		
-		mlvte->child = ev->xcreatewindow.window ;
+	#ifdef  USE_XEMBED		
+		MLVTE(widget)->child = ev->xcreatewindow.window ;
 
-		e.xclient.window = mlvte->child ;
-		e.xclient.type = ClientMessage ;
-		e.xclient.message_type = xembedatom ;
-		e.xclient.format = 32 ;
-		e.xclient.data.l[0] = CurrentTime ;
-		e.xclient.data.l[1] = XEMBED_EMBEDDED_NOTIFY ;
-		e.xclient.data.l[2] = 0 ;
-		e.xclient.data.l[3] = mlvte->child ;
-		e.xclient.data.l[4] = 0 ;
-		XSendEvent( disp , DefaultRootWindow( disp) , False , NoEventMask , &e) ;
-
+		send_xembed( disp , DefaultRootWindow( disp) , XEMBED_EMBEDDED_NOTIFY , 0 ,
+			MLVTE(widget)->child , 0) ;
+			
 		XSync( disp , False) ;
 	#endif
 
 	#if  1
 		printf( "Child window %d(parent %d) is created.\n" ,
-			mlvte->child , ev->xcreatewindow.parent) ;
+			MLVTE(widget)->child , ev->xcreatewindow.parent) ;
 		fflush( NULL) ;
 	#endif
 	}
-	else if( ev->type == MapNotify && ev->xmap.window == mlvte->child)
+	else if( ev->type == MapNotify && ev->xmap.window == MLVTE(widget)->child)
 	{
 		return  True ;
 	}
 	
 	return  False ;
+}
+
+static void
+reset_size(
+	GtkWidget *  widget	/* Mlvte */
+	)
+{
+	Display *  disp ;
+	
+	XSizeHints  hints ;
+	u_long  supplied ;
+
+	Window  root ;
+	int  x ;
+	int  y ;
+	u_int  width ;
+	u_int  height ;
+	u_int  border_width ;
+	u_int  depth ;
+
+	disp = gdk_x11_drawable_get_xdisplay(widget->window) ;
+	
+	if( XGetWMNormalHints( disp , MLVTE(widget)->child , &hints , &supplied))
+	{
+		GtkWidget *  window ;
+		GdkGeometry   geom ;
+
+	#if  1	
+		printf( "Width inc %d  Height inc %d\n" , hints.width_inc , hints.height_inc) ;
+		fflush( NULL) ;
+	#endif
+	
+		geom.width_inc = hints.width_inc ;
+		geom.height_inc = hints.height_inc ;
+		window = gtk_widget_get_toplevel(widget) ;
+		gtk_window_set_geometry_hints( GTK_WINDOW(window) , window ,  &geom ,
+			GDK_HINT_RESIZE_INC) ;
+	}
+	
+	if( XGetGeometry( disp , MLVTE(widget)->child , &root , &x , &y ,
+		&width , &height , &border_width , &depth))
+	{
+	#if  1
+		printf( "Width %d  Height %d\n" , width , height) ;
+		fflush( NULL) ;
+	#endif
+	
+		gtk_widget_set_size_request( widget , width , height) ;
+	}
 }
 
 /*
@@ -139,32 +181,36 @@ static GdkFilterReturn
 mlvte_filter(
 	GdkXEvent *  xevent ,
 	GdkEvent *  event ,
-	gpointer  data
+	gpointer  data		/* Mlvte */
 	)
 {
-	Mlvte *  mlvte ;
+	GtkWidget *  widget ;
 
-	mlvte = (Mlvte*)data ;
+	widget = data ;
 
-	if( ((XEvent*)xevent)->xdestroywindow.window == mlvte->child)
+	if( ((XEvent*)xevent)->xdestroywindow.window == MLVTE(widget)->child)
 	{
 		if( ((XEvent*)xevent)->type == DestroyNotify)
 		{
 		#if  1
-			printf( "Child window %d is destroyed\n" , mlvte->child) ;
+			printf( "Child window %d is destroyed\n" , MLVTE(widget)->child) ;
 			fflush( NULL) ;
 		#endif
 
-			mlvte->child = 0 ;
+			MLVTE(widget)->child = 0 ;
 
-			gtk_widget_destroy( GTK_WIDGET(mlvte)) ;
+			gtk_widget_destroy( widget) ;
 
 			return  GDK_FILTER_REMOVE ;
 		}
 		else if( ((XEvent*)xevent)->type == ConfigureNotify)
 		{
-			gtk_widget_queue_resize( GTK_WIDGET(mlvte)) ;
-
+		#if  0
+			gtk_widget_queue_resize( widget) ;
+		#else
+			reset_size( widget) ;
+		#endif
+		
 			return  GDK_FILTER_REMOVE ;
 		}
 	}
@@ -243,7 +289,7 @@ mlvte_realize(
 				GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL | GDK_WA_COLORMAP) ;
 	gdk_window_set_user_data( widget->window , widget) ;
 	widget->style = gtk_style_attach( widget->style , widget->window) ;
-	gdk_window_add_filter( widget->window , mlvte_filter , MLVTE(widget)) ;
+	gdk_window_add_filter( widget->window , mlvte_filter , widget) ;
 	
 	disp = gdk_x11_drawable_get_xdisplay( widget->window) ;
 	win = gdk_x11_drawable_get_xid( widget->window) ;
@@ -284,20 +330,7 @@ mlvte_realize(
 		XIfEvent( disp , &ev , check_createnotify , widget) ;
 	}
 
-#if  0
-	{
-		XSizeHints  hints ;
-		u_long  supplied ;
-		if( XGetWMNormalHints( disp , MLVTE(widget)->child , &hints , &supplied))
-		{
-			printf( "%d %d\n" , hints.width_inc , hints.height_inc) ;
-		}
-
-		XSetWMNormalHints( disp ,
-			gdk_x11_drawable_get_xid( gtk_widget_get_toplevel(widget)->window) ,
-			&hints) ;
-	}
-#endif
+	reset_size( widget) ;
 
 	g_signal_connect( gtk_widget_get_toplevel( widget) , "delete-event" ,
 		G_CALLBACK(mlvte_delete_event) , widget) ;

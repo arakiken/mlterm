@@ -1,3 +1,7 @@
+2010-07-28  Araki Ken  <arakiken@users.sf.net>
+
+	* mlvte.c: reset_size() is added.
+
 2010-07-27  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window.c: XSetInputFocus() is called in ButtonPress event.
