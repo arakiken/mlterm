@@ -11,7 +11,7 @@ gmlterm: $(OBJ)
 	gcc $(OBJ) $(CFLAGS) -o gmlterm $(LIBS)
 
 .c.o:
-	gcc $(CFLAGS) -c $<
+	gcc $(CFLAGS) -g -c $<
 
 clean:
 	rm -rf $(OBJ) gmlterm *.core .libs

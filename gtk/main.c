@@ -38,11 +38,18 @@ main_focus_in_event(
 	)
 {
 	GtkWidget *  notebook ;
+	gint  nth ;
 
 	notebook = data ;
 
-	g_signal_emit_by_name( gtk_notebook_get_nth_page( GTK_NOTEBOOK(notebook) ,
-		gtk_notebook_get_current_page( GTK_NOTEBOOK(notebook))) , "focus-in-event") ;
+	if( ( nth = gtk_notebook_get_current_page( GTK_NOTEBOOK(notebook))) != -1)
+	{
+		nth = 0 ;
+	}
+
+	g_signal_emit_by_name(
+		gtk_notebook_get_nth_page( GTK_NOTEBOOK(notebook) , nth) ,
+		"focus-in-event" , 0 , event) ;
 
 	return  FALSE ;
 }
@@ -100,7 +107,7 @@ new_window(
 	gtk_widget_show( vbox) ;
 
 	notebook = gtk_notebook_new() ;
-	
+
 	g_signal_connect( G_OBJECT(window) , "focus-in-event" , G_CALLBACK(main_focus_in_event) ,
 		notebook) ;
 	

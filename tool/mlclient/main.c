@@ -231,13 +231,17 @@ main(
 			close( fd) ;
 		}
 		
-		fprintf( stderr , "Mlterm server dead.\n") ;
+		fprintf( stderr , "Mlterm server is dead.\n") ;
+
+		return  1 ;
 	}
+	else
 #endif
+	{
+		write( STDOUT_FILENO , "\x1b]5379;" , 7) ;
+		write_argv( argc , argv , STDOUT_FILENO) ;
+		write( STDOUT_FILENO , "\x07" , 1) ;
 
-	write( STDOUT_FILENO , "\x1b]5379;" , 7) ;
-	write_argv( argc , argv , STDOUT_FILENO) ;
-	write( STDOUT_FILENO , "\x07" , 1) ;
-
-	return  0 ;
+		return  0 ;
+	}
 }

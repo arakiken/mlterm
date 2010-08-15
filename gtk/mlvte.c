@@ -5,6 +5,7 @@
 #include "mlvte.h"
 
 #include <unistd.h>	/* setsid etc */
+#include <sys/wait.h>
 #include <X11/keysym.h>
 #include <gdk/gdkx.h>
 #include <gtk/gtksignal.h>
@@ -73,6 +74,20 @@ send_xembed(
 	XSendEvent( disp , win , False , NoEventMask , &e) ;
 }
 #endif
+
+static void
+sig_int(
+	int  sig
+	)
+{
+	char *  argv[2] ;
+
+	argv[0] = "mlclient" ;
+	argv[1] = "--kill" ;
+	argv[2] = NULL ;
+	
+	execvp( argv[0] , argv) ;
+}
 
 static void
 focus_in(
@@ -258,7 +273,8 @@ mlvte_realize(
 	GtkWidget *  widget
 	)
 {
-#if  0
+	pid_t  pid ;
+#if  1
 	int  status ;
 #endif
 	GdkWindowAttr  attr ;
@@ -294,11 +310,14 @@ mlvte_realize(
 	disp = gdk_x11_drawable_get_xdisplay( widget->window) ;
 	win = gdk_x11_drawable_get_xid( widget->window) ;
 
+	/* Ensure widget->window exits, otherwise child process can fail. */
+	XFlush( disp) ;
+
 #ifdef  USE_XEMBED
 	xembedatom = XInternAtom(disp, "_XEMBED", False) ;
 #endif
 
-	if( fork() == 0)
+	if( ( pid = fork()) == 0)
 	{
 		/* Child */
 		char  wid[1024] ;
@@ -307,7 +326,7 @@ mlvte_realize(
 		sprintf( wid , "%d" , win) ;
 		
 		argv[0] = "mlclient" ;
-		argv[1] = "-parent" ;
+		argv[1] = "--parent" ;
 		argv[2] = wid ;
 		argv[3] = NULL ;
 		
@@ -315,21 +334,19 @@ mlvte_realize(
 		execvp( argv[0] , argv) ;
 	}
 
-#if  0
+#if  1
 	/* Parent */
-	wait( &status) ;
+	waitpid( pid , &status , 0) ;
 
-	if( status)
+	if( WIFEXITED(status) && WEXITSTATUS(status) != 0)
 	{
 		printf( "Start mlterm with --parent %d option.\n" , win) ;
 		fflush( NULL) ;
 	}
-	else
 #endif
-	{
-		XIfEvent( disp , &ev , check_createnotify , widget) ;
-	}
 
+	XIfEvent( disp , &ev , check_createnotify , widget) ;
+	
 	reset_size( widget) ;
 
 	g_signal_connect( gtk_widget_get_toplevel( widget) , "delete-event" ,
@@ -400,6 +417,8 @@ mlvte_class_init(
 	kclass->map = mlvte_map ;
 	kclass->focus_in_event = mlvte_focus_in_event ;
 	kclass->size_allocate = mlvte_size_allocate ;
+
+	signal( SIGINT , sig_int) ;
 }
 
 static void

@@ -1,3 +1,13 @@
+2010-08-16  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/main.c: Wrong arguments of g_signal_emit_by_name( "focus-in-event" ... ) are fixed.
+
+	* gtk/mlvte.c: sig_int() is added for SIGINT.
+	               waitpid() after fork() is added.
+
+	* mlclient/main.c: If mlterm server is daed, mlclient returns 1 instead of
+	  writing "\x1b]5379;mlclient\x07".
+
 2010-07-28  Araki Ken  <arakiken@users.sf.net>
 
 	* mlvte.c: reset_size() is added.
