@@ -905,6 +905,7 @@ exit_backscroll_mode(
 	}
 
 	ml_term_exit_backscroll_mode( screen->term) ;
+	x_window_update( &screen->window , UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 	if( HAS_SCROLL_LISTENER(screen,bs_mode_exited))
 	{

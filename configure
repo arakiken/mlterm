@@ -20795,6 +20795,10 @@ GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
 
 
 
+if test "${gtk_config}" = "yes" ; then
+	OUTPUT_FILES="gtk/Makefile"
+fi
+
 tools="mlclient,mlconfig,mlcc,mlterm-menu"
 
 # Check whether --with-tools was given.

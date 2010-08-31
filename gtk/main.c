@@ -69,7 +69,7 @@ mlvte_destroy(
 	{
 		gtk_widget_destroy( gtk_widget_get_toplevel( notebook)) ;
 
-	#if  1	
+	#if  1
 		printf( "destroy toplevel window\n") ;
 		fflush( NULL) ;
 	#endif

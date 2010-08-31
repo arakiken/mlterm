@@ -1010,7 +1010,7 @@ prev_pty(
 		}
 	}
 }
-	
+
 static void
 pty_closed(
 	void *  p ,

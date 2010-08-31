@@ -20,13 +20,14 @@ G_BEGIN_DECLS
 #define IS_MLVTE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), MLVTE_TYPE))
 
 
-typedef struct _Mlvte       Mlvte;
-typedef struct _MlvteClass  MlvteClass;
+typedef struct _Mlvte       Mlvte ;
+typedef struct _MlvteClass  MlvteClass ;
+typedef struct mlterm *  mlterm_ptr_t ;
 
 struct _Mlvte
 {
 	GtkWidget  widget ;
-	unsigned int  child ;
+	mlterm_ptr_t  mlterm ;
 } ;
 
 struct _MlvteClass

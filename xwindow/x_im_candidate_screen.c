@@ -1053,10 +1053,10 @@ x_im_candidate_screen_new(
 	cand_screen->listener.selected = NULL ;
 
 	if( ! x_display_show_root( disp , &cand_screen->window , x , y , 0 ,
-					  "mlterm-candidate-window"))
+					  "mlterm-candidate-window" , 0))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_window_manager_show_root() failed.\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG " x_display_show_root() failed.\n") ;
 	#endif
 
 		goto  error ;

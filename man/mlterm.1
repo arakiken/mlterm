@@ -518,6 +518,10 @@ Use SCIM.
 Don't use input method.
 .RE
 .TP
+\fB\-\-parent\fR=\fIvalue\fR
+Specify parent Window ID.
+The default is \fB0\fR.
+.TP
 \fB\-\-maxptys\fR=\fIvalue\fR
 Specify maximum number of ptys (sessions) to be opened simultaneously.
 It should be multiple of 32.
@@ -1143,6 +1147,9 @@ Use non-Unicode fonts even when \fBmlterm\fR encoding is UTF-8.
 .TP
 \fBonly_use_unicode_font=\fIbool\fR (\fB\-u\fR, \fB\-\-onlyucsfont\fR) 
 Use Unicode fonts even when \fBmlterm\fR encoding is not UTF-8.
+.TP
+\fBparent_window=\fIvalue\fR (\fB\-\-parent\fR)
+Specify parent Window ID.
 .TP
 \fBptys=\fIvalue\fR (\fB\-P\fR, \fB\-\-ptys\fR) 
 Number of pty windows to be opened on start up.

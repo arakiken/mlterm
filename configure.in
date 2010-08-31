@@ -346,6 +346,10 @@ GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 
+if test "${gtk_config}" = "yes" ; then
+	OUTPUT_FILES="gtk/Makefile"
+fi
+
 tools="mlclient,mlconfig,mlcc,mlterm-menu"
 AC_ARG_WITH(tools,
 	[  --with-tools@<:@=ARG@:>@      external tools @<:@default=mlclient,mlconfig,mlterm-menu,mlcc@:>@],

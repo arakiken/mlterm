@@ -206,6 +206,9 @@ comment $Id$
       o display
         X の DISPLAY を指定
 
+      o parent_window (*0*)
+        親 Window の Window ID を指定
+
       o geometry
         表示位置を指定
 
@@ -920,7 +923,8 @@ comment $Id$
     -x/--tw=value      : tabsize
     -y/--term=value    : term_type
     -z/--largesmall=value : step_in_changing_font_size
-       --im=value: input_method
+       --im=value      : input method
+       --parent=value  : parent window
        --iconpath=value : path to a imagefile to be used as a window icon
        --maxptys=value : max ptys to open simultaneously (X)
        --button3=value : specify button3 behavior. (0=traditional, N=open conf_menu_path_N) [1]

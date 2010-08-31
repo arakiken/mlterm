@@ -1,3 +1,17 @@
+2010-09-01  Araki Ken  <arakiken@users.sf.net>
+
+	* x_im_candidate_screen.c, x_im_status_screen.c: Fixed a bug of argument of
+	  x_display_show_root().
+	  (SF Bug #3051467, Thanks to Khaled Hosny)
+
+	* man/mlterm.1, doc/ja/README.ja: parent_window option is added.
+
+	* gtk/Makefile: Renamed to Makefile.in
+	
+	* gtk/mlvte-in.c: Added. It wraps xwindow/x_screen.c.
+	
+	* gtk/mlvte.c: Renamed to mlvte-ex.c
+
 2010-08-16  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/main.c: Wrong arguments of g_signal_emit_by_name( "focus-in-event" ... ) are fixed.

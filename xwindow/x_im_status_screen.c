@@ -368,10 +368,8 @@ x_im_status_screen_new(
 	stat_screen->set_spot = set_spot ;
 	stat_screen->set = set ;
 
-	if( ! x_display_show_root( disp ,
-					&stat_screen->window ,
-					x , y , 0 ,
-					"mlterm-status-window"))
+	if( ! x_display_show_root( disp , &stat_screen->window ,
+					x , y , 0 , "mlterm-status-window" , 0))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_display_show_root() failed.\n") ;

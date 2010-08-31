@@ -5,6 +5,7 @@
 #include "mlvte.h"
 
 #include <unistd.h>	/* setsid etc */
+#include <stdlib.h>	/* malloc */
 #include <sys/wait.h>
 #include <X11/keysym.h>
 #include <gdk/gdkx.h>
@@ -41,6 +42,13 @@
 #ifdef  USE_XEMBED
 static Atom xembedatom ;
 #endif
+
+
+typedef struct mlterm
+{
+	Window  win ;
+
+} mlterm_t ;
 
 
 /* --- static functions --- */
@@ -117,21 +125,21 @@ check_createnotify(
 	if( ev->type == CreateNotify)
 	{
 	#ifdef  USE_XEMBED		
-		MLVTE(widget)->child = ev->xcreatewindow.window ;
+		MLVTE(widget)->mlterm->win = ev->xcreatewindow.window ;
 
 		send_xembed( disp , DefaultRootWindow( disp) , XEMBED_EMBEDDED_NOTIFY , 0 ,
-			MLVTE(widget)->child , 0) ;
+			MLVTE(widget)->mlterm->win , 0) ;
 			
 		XSync( disp , False) ;
 	#endif
 
 	#if  1
 		printf( "Child window %d(parent %d) is created.\n" ,
-			MLVTE(widget)->child , ev->xcreatewindow.parent) ;
+			MLVTE(widget)->mlterm->win , ev->xcreatewindow.parent) ;
 		fflush( NULL) ;
 	#endif
 	}
-	else if( ev->type == MapNotify && ev->xmap.window == MLVTE(widget)->child)
+	else if( ev->type == MapNotify && ev->xmap.window == MLVTE(widget)->mlterm->win)
 	{
 		return  True ;
 	}
@@ -159,7 +167,7 @@ reset_size(
 
 	disp = gdk_x11_drawable_get_xdisplay(widget->window) ;
 	
-	if( XGetWMNormalHints( disp , MLVTE(widget)->child , &hints , &supplied))
+	if( XGetWMNormalHints( disp , MLVTE(widget)->mlterm->win , &hints , &supplied))
 	{
 		GtkWidget *  window ;
 		GdkGeometry   geom ;
@@ -176,7 +184,7 @@ reset_size(
 			GDK_HINT_RESIZE_INC) ;
 	}
 	
-	if( XGetGeometry( disp , MLVTE(widget)->child , &root , &x , &y ,
+	if( XGetGeometry( disp , MLVTE(widget)->mlterm->win , &root , &x , &y ,
 		&width , &height , &border_width , &depth))
 	{
 	#if  1
@@ -203,17 +211,18 @@ mlvte_filter(
 
 	widget = data ;
 
-	if( ((XEvent*)xevent)->xdestroywindow.window == MLVTE(widget)->child)
+	if( ((XEvent*)xevent)->xdestroywindow.window == MLVTE(widget)->mlterm->win)
 	{
 		if( ((XEvent*)xevent)->type == DestroyNotify)
 		{
 		#if  1
-			printf( "Child window %d is destroyed\n" , MLVTE(widget)->child) ;
+			printf( "Child window %d is destroyed\n" , MLVTE(widget)->mlterm->win) ;
 			fflush( NULL) ;
 		#endif
 
-			MLVTE(widget)->child = 0 ;
+			MLVTE(widget)->mlterm->win = 0 ;
 
+			gdk_window_destroy( widget->window) ;
 			gtk_widget_destroy( widget) ;
 
 			return  GDK_FILTER_REMOVE ;
@@ -248,20 +257,20 @@ mlvte_delete_event(
 	xev.xclient.serial = 0 ;
 	xev.xclient.send_event = False ;
 	xev.xclient.display = gdk_x11_drawable_get_xdisplay(widget->window) ;
-	xev.xclient.window = MLVTE(widget)->child ;
+	xev.xclient.window = MLVTE(widget)->mlterm->win ;
 	xev.xclient.message_type = 0 ;
 	xev.xclient.format = 32 ;
 	xev.xclient.data.l[0] = XInternAtom( xev.xclient.display , "WM_DELETE_WINDOW" , False) ;
 
 	/* Detach mlterm window. Otherwise mlterm server will die. */
-	XUnmapWindow( xev.xclient.display , MLVTE(widget)->child) ;
-	XReparentWindow( xev.xclient.display , MLVTE(widget)->child ,
+	XUnmapWindow( xev.xclient.display , MLVTE(widget)->mlterm->win) ;
+	XReparentWindow( xev.xclient.display , MLVTE(widget)->mlterm->win ,
 		DefaultRootWindow( xev.xclient.display) , 0 , 0) ;
 		
-	XSendEvent( xev.xclient.display , MLVTE(widget)->child , False , None , &xev) ;
+	XSendEvent( xev.xclient.display , MLVTE(widget)->mlterm->win , False , None , &xev) ;
 
 #if  1
-	printf( "DELETE_EVENT => child %d\n" , MLVTE(widget)->child) ;
+	printf( "DELETE_EVENT => child %d\n" , MLVTE(widget)->mlterm->win) ;
 	fflush( NULL) ;
 #endif
 
@@ -282,7 +291,7 @@ mlvte_realize(
 	Window  win ;
 	XEvent  ev ;
 	
-	if( MLVTE(widget)->child)
+	if( MLVTE(widget)->mlterm->win)
 	{
 		return ;
 	}
@@ -372,14 +381,14 @@ mlvte_focus_in_event(
 	GdkEventFocus *  event
 	)
 {
-	if( MLVTE(widget)->child)
+	if( ( GTK_WIDGET_FLAGS(widget) & GTK_MAPPED) && MLVTE(widget)->mlterm->win)
 	{
 	#if  1
 		printf( "focus in\n") ;
 		fflush( NULL) ;
 	#endif
 	
-		focus_in( gdk_x11_drawable_get_xdisplay( widget->window) , MLVTE( widget)->child) ;
+		focus_in( gdk_x11_drawable_get_xdisplay( widget->window) , MLVTE( widget)->mlterm->win) ;
 	}
 
 	return  FALSE ;
@@ -401,7 +410,7 @@ mlvte_size_allocate(
 	}
 
 	XResizeWindow( gdk_x11_drawable_get_xdisplay( widget->window) ,
-		MLVTE(widget)->child , allocation->width , allocation->height) ;
+		MLVTE(widget)->mlterm->win , allocation->width , allocation->height) ;
 }
 
 static void
@@ -426,7 +435,8 @@ mlvte_init(
 	Mlvte *  mlvte
 	)
 {
-	mlvte->child = 0 ;
+	mlvte->mlterm = malloc( sizeof(mlterm_t)) ;
+	mlvte->mlterm->win = None ;
 }
 
 GtkWidget*

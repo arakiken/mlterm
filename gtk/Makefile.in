@@ -1,0 +1,46 @@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+sysconfdir = @sysconfdir@
+exec_prefix = @exec_prefix@
+datadir = @datadir@
+bindir = @bindir@
+libdir = @libdir@
+libexecdir = @libexecdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+VPATH = $(top_srcdir)/gtk
+
+CFLAGS = -Wall $(CFLAGS_LOCAL) `pkg-config gtk+-2.0 --cflags`
+
+LIBS = $(LIBS_LOCAL) `pkg-config gtk+-2.0 --libs`
+
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+OBJ-IN = main.o mlvte-in.o
+OBJ-EX = main.o mlvte-ex.o
+
+gmlterm-in: $(OBJ-IN)
+	$(LIBTOOL_LINK) $(OBJ-IN) $(CFLAGS) -o gmlterm ../mlterm/libmlterm.a \
+	`echo ../xwindow/*.o|sed 's/..\/xwindow\/main.o//g'` \
+	$(top_builddir)/kiklib/src/libkik.la $(top_builddir)/mkf/lib/libmkf.la \
+	@FRIBIDI_LIBS@ @IND_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ $(LIBS)
+
+gmlterm-ex: $(OBJ-EX)
+	gcc $(OBJ-EX) $(CFLAGS) -o gmlterm $(LIBS)
+
+.c.o:
+	gcc $(CFLAGS) -I$(top_srcdir)/mlterm -I$(top_srcdir)/xwindow -I../mkf/include -I../kiklib/include -g -c $<
+
+clean:
+	rm -rf $(OBJ-IN) $(OBJ-EX) gmlterm *.core .libs
+
+distclean: clean
+	rm -f Makefile
+
+install:
+	install -c gmlterm /usr/local/bin
