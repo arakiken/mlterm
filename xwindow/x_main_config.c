@@ -9,6 +9,12 @@
 #include  <kiklib/kik_str.h>	/* kik_str_to_uint */
 
 
+/* --- static variables --- */
+
+static char *  true = "true" ;
+static char *  false = "false" ;
+
+
 /* --- global functions --- */
 
 int
@@ -90,7 +96,7 @@ x_prepare_for_main_config(
 		"cursor background color") ;
 #ifdef  USE_TYPE_XFT
 	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , 
-		"use anti-alias font by using Xft [false]") ;
+		"forcibly use anti alias font by using Xft") ;
 #endif
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
 		"scrollbar background color") ;
@@ -310,7 +316,7 @@ x_main_config_init(
 	
 	if( ( value = kik_conf_get_value( conf , "use_combining")))
 	{
-		if( strcmp( value , "false") == 0)
+		if( strcmp( value , false) == 0)
 		{
 			main_config->use_char_combining = 0 ;
 		}
@@ -319,7 +325,7 @@ x_main_config_init(
 	main_config->use_dynamic_comb = 0 ;
 	if( ( value = kik_conf_get_value( conf , "use_dynamic_comb")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->use_dynamic_comb = 1 ;
 		}
@@ -328,7 +334,7 @@ x_main_config_init(
 	main_config->logging_vt_seq = 0 ;
 	if( ( value = kik_conf_get_value( conf , "logging_vt_seq")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->logging_vt_seq = 1 ;
 		}
@@ -338,7 +344,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "use_variable_column_width")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->font_present |= FONT_VAR_WIDTH ;
 		}
@@ -391,11 +397,15 @@ x_main_config_init(
 #ifdef  USE_TYPE_XFT
 	if( ( value = kik_conf_get_value( conf , "use_anti_alias")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->font_present |= FONT_AA ;
 			/* forcibly use xft */
 			main_config->type_engine = TYPE_XFT ;
+		}
+		else if( strcmp( value , false) == 0)
+		{
+			main_config->font_present |= FONT_NOAA ;
 		}
 	}
 #endif
@@ -553,7 +563,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "use_multi_column_char")))
 	{
-		if( strcmp( value , "false") == 0)
+		if( strcmp( value , false) == 0)
 		{
 			main_config->use_multi_col_char = 0 ;
 		}
@@ -604,7 +614,7 @@ x_main_config_init(
 	
 	if( ( value = kik_conf_get_value( conf , "use_login_shell")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->use_login_shell = 1 ;
 		}
@@ -614,7 +624,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "big5_buggy")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->big5_buggy = 1 ;
 		}
@@ -624,7 +634,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "use_scrollbar")))
 	{
-		if( strcmp( value , "false") == 0)
+		if( strcmp( value , false) == 0)
 		{
 			main_config->use_scrollbar = 0 ;
 		}
@@ -643,7 +653,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "iso88591_font_for_usascii")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->iso88591_font_for_usascii = 1 ;
 		}
@@ -653,7 +663,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "not_use_unicode_font")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->unicode_font_policy = NOT_USE_UNICODE_FONT ;
 		}
@@ -661,7 +671,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "only_use_unicode_font")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			if( main_config->unicode_font_policy == NOT_USE_UNICODE_FONT)
 			{
@@ -683,7 +693,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "receive_string_via_ucs")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->receive_string_via_ucs = 1 ;
 		}
@@ -720,7 +730,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "use_transbg")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->use_transbg = 1 ;
 		}
@@ -843,7 +853,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "use_bidi")))
 	{
-		if( strcmp( value , "false") == 0)
+		if( strcmp( value , false) == 0)
 		{
 			main_config->use_bidi = 0 ;
 		}
@@ -882,7 +892,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "use_vertical_cursor")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->use_vertical_cursor = 1 ;
 		}
@@ -904,7 +914,7 @@ x_main_config_init(
 	
 	if( ( value = kik_conf_get_value( conf , "use_extended_scroll_shortcut")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->use_extended_scroll_shortcut = 1 ;
 		}
@@ -914,7 +924,7 @@ x_main_config_init(
 	
 	if( ( value = kik_conf_get_value( conf , "borderless")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->borderless = 1 ;
 		}
@@ -924,7 +934,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "static_backscroll_mode")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			main_config->bs_mode = BSM_STATIC ;
 		}
@@ -1064,7 +1074,7 @@ x_main_config_init(
 	}
 #endif
 
-	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , "true") == 0)
+	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , true) == 0)
 	{
 		if( ( main_config->cmd_argv = malloc( sizeof( char*) * (argc + 1))) == NULL)
 		{

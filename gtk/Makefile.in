@@ -14,33 +14,50 @@ INSTALL = @INSTALL@
 
 VPATH = $(top_srcdir)/gtk
 
-CFLAGS = -Wall $(CFLAGS_LOCAL) `pkg-config gtk+-2.0 --cflags`
+CFLAGS = -Wall $(CFLAGS_LOCAL) @AA_CFLAGS@ -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
+	`pkg-config gtk+-2.0 --cflags`
 
 LIBS = $(LIBS_LOCAL) `pkg-config gtk+-2.0 --libs`
 
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
-OBJ-IN = main.o mlvte-in.o
-OBJ-EX = main.o mlvte-ex.o
+OBJ_VTE = vte.o marshal.o
+OBJ_IN = main.o mlvte-in.o
+OBJ_EX = main.o mlvte-ex.o
 
-gmlterm-in: $(OBJ-IN)
-	$(LIBTOOL_LINK) $(OBJ-IN) $(CFLAGS) -o gmlterm ../mlterm/libmlterm.a \
-	`echo ../xwindow/*.o|sed 's/..\/xwindow\/main.o//g'` \
+libvte: $(OBJ_VTE)
+	$(LIBTOOL_LINK) -o libvte.la $(OBJ_VTE:.o=.lo) ../mlterm/*.lo \
+	`echo ../xwindow/*.lo|sed 's/..\/xwindow\/main.lo//g' | \
+	sed 's/..\/xwindow\/x_term_manager.lo//g' | \
+	sed 's/..\/xwindow\/x_sb_screen.lo//g' | \
+	sed 's/..\/xwindow\/x_scrollbar.lo//g' | \
+	sed 's/..\/xwindow\/x_simple_sb_view.lo//g'` \
 	$(top_builddir)/kiklib/src/libkik.la $(top_builddir)/mkf/lib/libmkf.la \
-	@FRIBIDI_LIBS@ @IND_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ $(LIBS)
+	@FRIBIDI_LIBS@ @IND_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ \
+	-rpath $(libdir) -version-info 9:0:0
 
-gmlterm-ex: $(OBJ-EX)
-	gcc $(OBJ-EX) $(CFLAGS) -o gmlterm $(LIBS)
+gmlterm-in: $(OBJ_IN)
+	$(LIBTOOL_LINK) -o gmlterm $(OBJ_IN:.o=.lo) ../mlterm/libmlterm.a \
+	`echo ../xwindow/*.lo|sed 's/..\/xwindow\/main.lo//g'` \
+	$(top_builddir)/kiklib/src/libkik.la $(top_builddir)/mkf/lib/libmkf.la \
+	@FRIBIDI_LIBS@ @IND_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@
+
+gmlterm-ex: $(OBJ_EX)
+	$(LIBTOOL_LINK) -o gmlterm $(OBJ_EX:.o=.lo) $(LIBS)
 
 .c.o:
-	gcc $(CFLAGS) -I$(top_srcdir)/mlterm -I$(top_srcdir)/xwindow -I../mkf/include -I../kiklib/include -g -c $<
+	$(LIBTOOL_CC) $(CFLAGS) -I$(top_srcdir)/mlterm -I$(top_srcdir)/xwindow -I$(top_builddir)/xwindow -I../mkf/include -I../kiklib/include -g -c $<
 
 clean:
-	rm -rf $(OBJ-IN) $(OBJ-EX) gmlterm *.core .libs
+	rm -rf $(OBJ_LIB) $(OBJ_IN) $(OBJ_EX) gmlterm *.core .libs
 
 distclean: clean
 	rm -f Makefile
 
 install:
-	install -c gmlterm /usr/local/bin
+	$(LIBTOOL_INSTALL) libvte.la $(libdir)
+
+install-gmlterm:
+	$(LIBTOOL_INSTALL) gmlterm $(bindir)

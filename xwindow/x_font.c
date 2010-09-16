@@ -501,7 +501,7 @@ set_xft_font(
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
 	int  use_medium_for_bold ,
-	int  is_aa
+	int  aa_opt		/* 0 = default , 1 = enable , 2 = disable */
 	)
 {
 	int  weight ;
@@ -615,8 +615,8 @@ set_xft_font(
 						XFT_WEIGHT , XftTypeInteger , weight ,
 						XFT_SLANT , XftTypeInteger , slant ,
 						XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
-						XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,
-						NULL)))
+						aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
+							aa_opt == 1 ? True : False , NULL)))
 				{
 					goto  font_found ;
 				}
@@ -631,8 +631,8 @@ set_xft_font(
 						XFT_SLANT , XftTypeInteger , slant ,
 						XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
 						XFT_SPACING , XftTypeInteger , XFT_MONO ,
-						XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,
-						NULL)))
+						aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
+							aa_opt == 1 ? True : False , NULL)))
 				{
 					goto  font_found ;
 				}
@@ -683,8 +683,8 @@ set_xft_font(
 					XFT_WEIGHT , XftTypeInteger , weight ,
 					XFT_SLANT , XftTypeInteger , slant ,
 					XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
-					XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,
-					NULL)))
+					aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
+						aa_opt == 1 ? True : False , NULL)))
 			{
 				goto  font_found ;
 			}
@@ -698,8 +698,8 @@ set_xft_font(
 					XFT_SLANT , XftTypeInteger , slant ,
 					XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
 					XFT_SPACING , XftTypeInteger , XFT_CHARCELL ,
-					XFT_ANTIALIAS , XftTypeBool , is_aa ? True : False ,
-					NULL)))
+					aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
+						aa_opt == 1 ? True : False , NULL)))
 			{
 				goto  font_found ;
 			}
@@ -1406,7 +1406,8 @@ x_font_new(
 #ifdef  USE_TYPE_XFT
 	case  TYPE_XFT:
 		if( ! set_xft_font( font , fontname , fontsize , col_width , use_medium_for_bold ,
-			(font_present & FONT_AA) == FONT_AA))
+			(font_present & FONT_AA) == FONT_AA ?
+				1 : ((font_present & FONT_NOAA) == FONT_NOAA ? -1 : 0)))
 		{
 			free( font) ;
 

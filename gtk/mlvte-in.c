@@ -309,7 +309,7 @@ mlvte_focus_in_event(
 	GdkEventFocus *  event
 	)
 {
-	if( ( GTK_WIDGET_FLAGS(widget) & GTK_MAPPED) && MLVTE(widget)->mlterm->win)
+	if( ( GTK_WIDGET_FLAGS(widget) & GTK_MAPPED))
 	{
 	#if  1
 		printf( "focus in\n") ;

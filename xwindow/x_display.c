@@ -332,7 +332,7 @@ x_display_close(
 int
 x_display_close_all(void)
 {
-	while( num_of_displays >0 )
+	while( num_of_displays > 0)
 	{
 		close_display( displays[-- num_of_displays]) ;
 	}

@@ -63,8 +63,7 @@ GtkWidget * mc_flag_config_widget_new(int id)
 	}
 	else
 	{
-		old_flag_mode[id] = new_flag_mode[id] = 
-			mc_get_flag_value(configname[id]);
+		old_flag_mode[id] = new_flag_mode[id] = mc_get_flag_value(configname[id]);
 	}
 	is_changed[id] = 0;
 	widget[id] = gtk_check_button_new_with_label(_(label[id]));

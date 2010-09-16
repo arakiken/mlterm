@@ -1334,7 +1334,7 @@ window_realized(
 		}
 		else
 		{
-			x_xic_activate( &screen->window , "none" , "");
+			x_xic_activate( &screen->window , "none" , "") ;
 
 			if( ! ( screen->im = x_im_new(
 					ml_term_get_encoding( screen->term) ,
@@ -4614,7 +4614,7 @@ set_config(
 	char *  value		/* can be NULL */
 	)
 {
-	x_screen_set_config( p, dev, key, value) ;
+	x_screen_set_config( p , dev , key , value) ;
 }
 
 static void
@@ -4625,7 +4625,509 @@ get_config(
 	int  to_menu
 	)
 {
-	x_screen_get_config( p, dev, key, to_menu) ;
+	x_screen_t *  screen ;
+	ml_term_t *  term ;
+	char *  value ;
+	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
+	char *  true = "true" ;
+	char *  false = "false" ;
+	char  cwd[PATH_MAX] ;
+
+	screen = p ;
+	
+	if( dev && HAS_SYSTEM_LISTENER(screen,get_pty))
+	{
+		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
+				dev)) == NULL)
+		{
+			return  NULL ;
+		}
+	}
+	else
+	{
+		term = screen->term ;
+	}
+
+	value = NULL ;
+
+	if( strcmp( key , "encoding") == 0)
+	{
+		value = ml_get_char_encoding_name( ml_term_get_encoding( term)) ;
+	}
+	else if( strcmp( key , "is_auto_encoding") == 0)
+	{
+		if( ml_term_is_auto_encoding( term))
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "iscii_lang") == 0)
+	{
+		value = ml_iscii_get_lang_name( term->iscii_lang_type) ;
+	}
+	else if( strcmp( key , "fg_color") == 0)
+	{
+		value = x_color_manager_get_fg_color( screen->color_man) ;
+	}
+	else if( strcmp( key , "bg_color") == 0)
+	{
+		value = x_color_manager_get_bg_color( screen->color_man) ;
+	}
+	else if( strcmp( key , "cursor_fg_color") == 0)
+	{
+		if( ( value = x_color_manager_get_cursor_fg_color( screen->color_man)) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "cursor_bg_color") == 0)
+	{
+		if( ( value = x_color_manager_get_cursor_bg_color( screen->color_man)) == NULL)
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "sb_fg_color") == 0)
+	{
+		if( screen->screen_scroll_listener && screen->screen_scroll_listener->fg_color)
+		{
+			value = (*screen->screen_scroll_listener->fg_color)(
+					screen->screen_scroll_listener->self) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "sb_bg_color") == 0)
+	{
+		if( screen->screen_scroll_listener && screen->screen_scroll_listener->bg_color)
+		{
+			value = (*screen->screen_scroll_listener->bg_color)(
+					screen->screen_scroll_listener->self) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "tabsize") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_tab_size( term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "logsize") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_log_size( term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "fontsize") == 0)
+	{
+		sprintf( digit , "%d" , x_get_font_size( screen->font_man)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "line_space") == 0)
+	{
+		sprintf( digit , "%d" , screen->line_space) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "screen_width_ratio") == 0)
+	{
+		sprintf( digit , "%d" , screen->screen_width_ratio) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "screen_height_ratio") == 0)
+	{
+		sprintf( digit , "%d" , screen->screen_height_ratio) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "scrollbar_view_name") == 0)
+	{
+		if( screen->screen_scroll_listener && screen->screen_scroll_listener->view_name)
+		{
+			value = (*screen->screen_scroll_listener->view_name)(
+					screen->screen_scroll_listener->self) ;
+		}
+		else
+		{
+			value = NULL ;
+		}
+	}
+	else if( strcmp( key , "mod_meta_key") == 0)
+	{
+		if( screen->mod_meta_key == NULL)
+		{
+			value = "none" ;
+		}
+		else
+		{
+			value = screen->mod_meta_key ;
+		}
+	}
+	else if( strcmp( key , "mod_meta_mode") == 0)
+	{
+		value = x_get_mod_meta_mode_name( screen->mod_meta_mode) ;
+	}
+	else if( strcmp( key , "bel_mode") == 0)
+	{
+		value = x_get_bel_mode_name( screen->bel_mode) ;
+	}
+	else if( strcmp( key , "vertical_mode") == 0)
+	{
+		value = ml_get_vertical_mode_name( term->vertical_mode) ;
+	}
+	else if( strcmp( key , "scrollbar_mode") == 0)
+	{
+		if( screen->screen_scroll_listener &&
+			screen->screen_scroll_listener->sb_mode)
+		{
+			value = x_get_sb_mode_name( (*screen->screen_scroll_listener->sb_mode)(
+				screen->screen_scroll_listener->self)) ;
+		}
+		else
+		{
+			value = x_get_sb_mode_name( SBM_NONE) ;
+		}
+	}
+	else if( strcmp( key , "use_combining") == 0)
+	{
+		if( ml_term_is_using_char_combining( term))
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_dynamic_comb") == 0)
+	{
+		if( term->use_dynamic_comb)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "receive_string_via_ucs") == 0 ||
+		/* backward compatibility with 2.6.1 or before */
+		strcmp( key , "copy_paste_via_ucs") == 0)
+	{
+		if( screen->receive_string_via_ucs)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_transbg") == 0)
+	{
+		if( screen->window.is_transparent)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "brightness") == 0)
+	{
+		sprintf( digit , "%d" , screen->pic_mod.brightness) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "contrast") == 0)
+	{
+		sprintf( digit , "%d" , screen->pic_mod.contrast) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "gamma") == 0)
+	{
+		sprintf( digit , "%d" , screen->pic_mod.gamma) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "alpha") == 0)
+	{
+		sprintf( digit , "%d" , screen->pic_mod.alpha) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "fade_ratio") == 0)
+	{
+		sprintf( digit , "%d" , screen->fade_ratio) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "type_engine") == 0)
+	{
+		x_type_engine_t  engine ;
+
+		engine = x_get_type_engine( screen->font_man) ;
+		if( engine == TYPE_XFT)
+		{
+			value = "xft" ;
+		}
+		else if( engine == TYPE_XCORE)
+		{
+			value = "xcore" ;
+		}
+	}
+	else if( strcmp( key , "use_anti_alias") == 0)
+	{
+		x_font_present_t  font_present ;
+
+		font_present = x_get_font_present( screen->font_man) ;
+		if( font_present & FONT_AA)
+		{
+			value = true ;
+		}
+		else if( font_present & FONT_NOAA)
+		{
+			value = false ;
+		}
+		else
+		{
+			value = "default" ;
+		}
+	}
+	else if( strcmp( key , "use_variable_column_width") == 0)
+	{
+		if( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_multi_column_char") == 0)
+	{
+		if( x_is_using_multi_col_char( screen->font_man))
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "col_size_of_width_a") == 0)
+	{
+		if( ml_term_get_col_size_of_width_a( screen->term) == 2)
+		{
+			value = "2" ;
+		}
+		else
+		{
+			value = "1" ;
+		}
+	}
+	else if( strcmp( key , "use_bidi") == 0)
+	{
+		if( term->use_bidi)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "input_method") == 0)
+	{
+		if( screen->input_method)
+		{
+			value = screen->input_method ;
+		}
+		else
+		{
+			value = "none" ;
+		}
+	}
+	else if( strcmp( key , "default_xim_name") == 0)
+	{
+	#ifdef  USE_WIN32GUI
+		value = "" ;
+	#else
+		value = x_xic_get_default_xim_name() ;
+	#endif
+	}
+	else if( strcmp( key , "locale") == 0)
+	{
+		value = kik_get_locale() ;
+	}
+	else if( strcmp( key , "borderless") == 0)
+	{
+		if( screen->borderless)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "wall_picture") == 0)
+	{
+		if( screen->pic_file_path)
+		{
+			value = screen->pic_file_path ;
+		}
+		else
+		{
+			value = "" ;
+		}
+	}
+	else if( strcmp( key , "pwd") == 0)
+	{
+		value = getcwd( cwd , sizeof(cwd)) ;
+	}
+	else if( strcmp( key , "rows") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_rows( term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "cols") == 0)
+	{
+		sprintf( digit , "%d" , ml_term_get_cols( term)) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "pty_list") == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,pty_list))
+		{
+			value = (*screen->system_listener->pty_list)( screen->system_listener->self) ;
+		}
+	}
+	else if( strcmp( key , "pty_name") == 0)
+	{
+		if( dev)
+		{
+			if( ( value = ml_term_window_name( term)) == NULL)
+			{
+				value = dev ;
+			}
+		}
+		else
+		{
+			value = ml_term_get_slave_name( term) ;
+		}
+	}
+	else if( strcmp( key , "icon_path") == 0)
+	{
+		value = ml_term_icon_path( term) ;
+	}
+	else if( strcmp( key , "logging_vt_seq") == 0)
+	{
+		if( term->parser->logging_vt_seq)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "gui") == 0)
+	{
+	#ifdef  USE_WIN32GUI
+		value = "win32" ;
+	#else
+		value = "xlib" ;
+	#endif
+	}
+	else if( strlen(key) >= 13 && strncmp( key , "selected_text" , 13) == 0)
+	{
+		ml_term_write( screen->term , "#" , 1 , to_menu) ;
+		ml_term_write( screen->term , key , strlen(key) , to_menu) ;
+		ml_term_write( screen->term , "=" , 1 , to_menu) ;
+		
+		if( /* screen->window.is_sel_owner || */
+			screen->sel.sel_str || screen->sel.sel_len > 0)
+		{
+		#ifndef  NL_TO_CR_IN_PAST_TEXT
+			if( to_menu)
+		#endif
+			{
+				/*
+				 * Convert NL to CR because menu programs regard NL as terminator
+				 * of returned value.
+				 * Notice that menu programs must convert CR to NL in receiving
+				 * selected text.
+				 */
+				convert_nl_to_cr2( screen->sel.sel_str , screen->sel.sel_len) ;
+			}
+		
+			(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
+			ml_str_parser_set_str( screen->ml_str_parser ,
+				screen->sel.sel_str , screen->sel.sel_len) ;
+
+			if( to_menu)
+			{
+				mkf_conv_t *  conv ;
+				
+				if( ( conv = ml_conv_new( ml_get_char_encoding( key + 14))) ||
+					/* Use UTF8 by default */
+					( conv = ml_conv_new( ML_UTF8)))
+				{
+					u_char  buf[512] ;
+					size_t  len ;
+
+					(*conv->init)( conv) ;
+
+					while( ! screen->ml_str_parser->is_eos)
+					{
+						if( ( len = (*conv->convert)( conv ,
+								buf , sizeof(buf) ,
+								screen->ml_str_parser)) == 0)
+						{
+							break ;
+						}
+
+						ml_term_write( screen->term , buf , len , to_menu) ;
+					}
+
+					(*conv->delete)( conv) ;
+				}
+			}
+			else
+			{
+				write_to_pty( screen , NULL , 0 , screen->ml_str_parser) ;
+			}
+		}
+
+		ml_term_write( screen->term , "\n" , 1 , to_menu) ;
+
+		return ;
+	}
+
+	if( value == NULL)
+	{
+		ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " #error\n") ;
+	#endif
+	}
+	else
+	{
+		ml_term_write( screen->term , "#" , 1 , to_menu) ;
+		ml_term_write( screen->term , key , strlen( key) , to_menu) ;
+		ml_term_write( screen->term , "=" , 1 , to_menu) ;
+		ml_term_write( screen->term , value , strlen( value) , to_menu) ;
+		ml_term_write( screen->term , "\n" , 1 , to_menu) ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
+	#endif
+	}
 }
 
 static void
@@ -4638,10 +5140,10 @@ set_font_config(
 	)
 {
 	x_screen_t *  screen ;
-	
+
 	screen = p ;
-	
-	if( x_customize_font_file( file, key, val, save))
+
+	if( x_customize_font_file( file , key , val , save))
 	{
 		screen->font_or_color_config_updated |= 0x1 ;
 	}
@@ -7040,15 +7542,18 @@ x_screen_set_config(
 
 		if( strcmp( value , true) == 0)
 		{
+			font_present &= ~FONT_NOAA ;
 			font_present |= FONT_AA ;
 		}
 		else if( strcmp( value , false) == 0)
 		{
+			font_present |= FONT_NOAA ;
 			font_present &= ~FONT_AA ;
 		}
-		else
+		else /* if( strcmp( value , "default") == 0) */
 		{
-			return ;
+			font_present &= ~FONT_AA ;
+			font_present &= ~FONT_NOAA ;
 		}
 
 		change_font_present( screen , x_get_type_engine( screen->font_man) ,
@@ -7258,512 +7763,6 @@ x_screen_set_config(
 				key[8] == 'x' ? screen : NULL , key , strlen(key) + 1 , stdout) ;
 		}
 	}
-}
-
-void
-x_screen_get_config(
-	x_screen_t *  screen ,
-	char *  dev ,
-	char *  key ,
-	int  to_menu
-	)
-{
-	ml_term_t *  term ;
-	char *  value = NULL ;
-	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
-	char *  true = "true" ;
-	char *  false = "false" ;
-	char  cwd[PATH_MAX] ;
-
-	if( dev)
-	{
-		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
-				dev)) == NULL)
-		{
-			goto  error ;
-		}
-	}
-	else
-	{
-		term = screen->term ;
-	}
-
-	if( strcmp( key , "encoding") == 0)
-	{
-		value = ml_get_char_encoding_name( ml_term_get_encoding( term)) ;
-	}
-	else if( strcmp( key , "is_auto_encoding") == 0)
-	{
-		if( ml_term_is_auto_encoding( term))
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "iscii_lang") == 0)
-	{
-		value = ml_iscii_get_lang_name( term->iscii_lang_type) ;
-	}
-	else if( strcmp( key , "fg_color") == 0)
-	{
-		value = x_color_manager_get_fg_color( screen->color_man) ;
-	}
-	else if( strcmp( key , "bg_color") == 0)
-	{
-		value = x_color_manager_get_bg_color( screen->color_man) ;
-	}
-	else if( strcmp( key , "cursor_fg_color") == 0)
-	{
-		if( ( value = x_color_manager_get_cursor_fg_color( screen->color_man)) == NULL)
-		{
-			value = "" ;
-		}
-	}
-	else if( strcmp( key , "cursor_bg_color") == 0)
-	{
-		if( ( value = x_color_manager_get_cursor_bg_color( screen->color_man)) == NULL)
-		{
-			value = "" ;
-		}
-	}
-	else if( strcmp( key , "sb_fg_color") == 0)
-	{
-		if( screen->screen_scroll_listener && screen->screen_scroll_listener->fg_color)
-		{
-			value = (*screen->screen_scroll_listener->fg_color)(
-					screen->screen_scroll_listener->self) ;
-		}
-		else
-		{
-			value = NULL ;
-		}
-	}
-	else if( strcmp( key , "sb_bg_color") == 0)
-	{
-		if( screen->screen_scroll_listener && screen->screen_scroll_listener->bg_color)
-		{
-			value = (*screen->screen_scroll_listener->bg_color)(
-					screen->screen_scroll_listener->self) ;
-		}
-		else
-		{
-			value = NULL ;
-		}
-	}
-	else if( strcmp( key , "tabsize") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_tab_size( term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "logsize") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_log_size( term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "fontsize") == 0)
-	{
-		sprintf( digit , "%d" , x_get_font_size( screen->font_man)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "line_space") == 0)
-	{
-		sprintf( digit , "%d" , screen->line_space) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "screen_width_ratio") == 0)
-	{
-		sprintf( digit , "%d" , screen->screen_width_ratio) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "screen_height_ratio") == 0)
-	{
-		sprintf( digit , "%d" , screen->screen_height_ratio) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "scrollbar_view_name") == 0)
-	{
-		if( screen->screen_scroll_listener && screen->screen_scroll_listener->view_name)
-		{
-			value = (*screen->screen_scroll_listener->view_name)(
-					screen->screen_scroll_listener->self) ;
-		}
-		else
-		{
-			value = NULL ;
-		}
-	}
-	else if( strcmp( key , "mod_meta_key") == 0)
-	{
-		if( screen->mod_meta_key == NULL)
-		{
-			value = "none" ;
-		}
-		else
-		{
-			value = screen->mod_meta_key ;
-		}
-	}
-	else if( strcmp( key , "mod_meta_mode") == 0)
-	{
-		value = x_get_mod_meta_mode_name( screen->mod_meta_mode) ;
-	}
-	else if( strcmp( key , "bel_mode") == 0)
-	{
-		value = x_get_bel_mode_name( screen->bel_mode) ;
-	}
-	else if( strcmp( key , "vertical_mode") == 0)
-	{
-		value = ml_get_vertical_mode_name( term->vertical_mode) ;
-	}
-	else if( strcmp( key , "scrollbar_mode") == 0)
-	{
-		if( screen->screen_scroll_listener &&
-			screen->screen_scroll_listener->sb_mode)
-		{
-			value = x_get_sb_mode_name( (*screen->screen_scroll_listener->sb_mode)(
-				screen->screen_scroll_listener->self)) ;
-		}
-		else
-		{
-			value = x_get_sb_mode_name( SBM_NONE) ;
-		}
-	}
-	else if( strcmp( key , "use_combining") == 0)
-	{
-		if( ml_term_is_using_char_combining( term))
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "use_dynamic_comb") == 0)
-	{
-		if( term->use_dynamic_comb)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "receive_string_via_ucs") == 0 ||
-		/* backward compatibility with 2.6.1 or before */
-		strcmp( key , "copy_paste_via_ucs") == 0)
-	{
-		if( screen->receive_string_via_ucs)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "use_transbg") == 0)
-	{
-		if( screen->window.is_transparent)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "brightness") == 0)
-	{
-		sprintf( digit , "%d" , screen->pic_mod.brightness) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "contrast") == 0)
-	{
-		sprintf( digit , "%d" , screen->pic_mod.contrast) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "gamma") == 0)
-	{
-		sprintf( digit , "%d" , screen->pic_mod.gamma) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "alpha") == 0)
-	{
-		sprintf( digit , "%d" , screen->pic_mod.alpha) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "fade_ratio") == 0)
-	{
-		sprintf( digit , "%d" , screen->fade_ratio) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "type_engine") == 0)
-	{
-		x_type_engine_t  engine ;
-
-		engine = x_get_type_engine( screen->font_man) ;
-		if( engine == TYPE_XFT)
-		{
-			value = "xft" ;
-		}
-		else if( engine == TYPE_XCORE)
-		{
-			value = "xcore" ;
-		}
-	}
-	else if( strcmp( key , "use_anti_alias") == 0)
-	{
-		if( x_get_font_present( screen->font_man) & FONT_AA)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "use_variable_column_width") == 0)
-	{
-		if( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "use_multi_column_char") == 0)
-	{
-		if( x_is_using_multi_col_char( screen->font_man))
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "col_size_of_width_a") == 0)
-	{
-		if( ml_term_get_col_size_of_width_a( screen->term) == 2)
-		{
-			value = "2" ;
-		}
-		else
-		{
-			value = "1" ;
-		}
-	}
-	else if( strcmp( key , "use_bidi") == 0)
-	{
-		if( term->use_bidi)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "input_method") == 0)
-	{
-		if( screen->input_method)
-		{
-			value = screen->input_method ;
-		}
-		else
-		{
-			value = "none" ;
-		}
-	}
-	else if( strcmp( key , "default_xim_name") == 0)
-	{
-	#ifdef  USE_WIN32GUI
-		value = "" ;
-	#else
-		value = x_xic_get_default_xim_name() ;
-	#endif
-	}
-	else if( strcmp( key , "locale") == 0)
-	{
-		value = kik_get_locale() ;
-	}
-	else if( strcmp( key , "borderless") == 0)
-	{
-		if( screen->borderless)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "wall_picture") == 0)
-	{
-		if( screen->pic_file_path)
-		{
-			value = screen->pic_file_path ;
-		}
-		else
-		{
-			value = "" ;
-		}
-	}
-	else if( strcmp( key , "pwd") == 0)
-	{
-		value = getcwd( cwd , sizeof(cwd)) ;
-	}
-	else if( strcmp( key , "rows") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_rows( term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "cols") == 0)
-	{
-		sprintf( digit , "%d" , ml_term_get_cols( term)) ;
-		value = digit ;
-	}
-	else if( strcmp( key , "pty_list") == 0)
-	{
-		if( HAS_SYSTEM_LISTENER(screen,pty_list))
-		{
-			value = (*screen->system_listener->pty_list)( screen->system_listener->self) ;
-		}
-	}
-	else if( strcmp( key , "pty_name") == 0)
-	{
-		if( dev)
-		{
-			if( ( value = ml_term_window_name( term)) == NULL)
-			{
-				value = dev ;
-			}
-		}
-		else
-		{
-			value = ml_term_get_slave_name( term) ;
-		}
-	}
-	else if( strcmp( key , "icon_path") == 0)
-	{
-		value = ml_term_icon_path( term) ;
-	}
-	else if( strcmp( key , "logging_vt_seq") == 0)
-	{
-		if( term->parser->logging_vt_seq)
-		{
-			value = true ;
-		}
-		else
-		{
-			value = false ;
-		}
-	}
-	else if( strcmp( key , "gui") == 0)
-	{
-	#ifdef  USE_WIN32GUI
-		value = "win32" ;
-	#else
-		value = "xlib" ;
-	#endif
-	}
-	else if( strlen(key) >= 13 && strncmp( key , "selected_text" , 13) == 0)
-	{
-		ml_term_write( screen->term , "#" , 1 , to_menu) ;
-		ml_term_write( screen->term , key , strlen(key) , to_menu) ;
-		ml_term_write( screen->term , "=" , 1 , to_menu) ;
-		
-		if( /* screen->window.is_sel_owner || */
-			screen->sel.sel_str || screen->sel.sel_len > 0)
-		{
-		#ifndef  NL_TO_CR_IN_PAST_TEXT
-			if( to_menu)
-		#endif
-			{
-				/*
-				 * Convert NL to CR because menu programs regard NL as terminator
-				 * of returned value.
-				 * Notice that menu programs must convert CR to NL in receiving
-				 * selected text.
-				 */
-				convert_nl_to_cr2( screen->sel.sel_str , screen->sel.sel_len) ;
-			}
-		
-			(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
-			ml_str_parser_set_str( screen->ml_str_parser ,
-				screen->sel.sel_str , screen->sel.sel_len) ;
-
-			if( to_menu)
-			{
-				mkf_conv_t *  conv ;
-				
-				if( ( conv = ml_conv_new( ml_get_char_encoding( key + 14))) ||
-					/* Use UTF8 by default */
-					( conv = ml_conv_new( ML_UTF8)))
-				{
-					u_char  buf[512] ;
-					size_t  len ;
-
-					(*conv->init)( conv) ;
-
-					while( ! screen->ml_str_parser->is_eos)
-					{
-						if( ( len = (*conv->convert)( conv ,
-								buf , sizeof(buf) ,
-								screen->ml_str_parser)) == 0)
-						{
-							break ;
-						}
-
-						ml_term_write( screen->term , buf , len , to_menu) ;
-					}
-
-					(*conv->delete)( conv) ;
-				}
-			}
-			else
-			{
-				write_to_pty( screen , NULL , 0 , screen->ml_str_parser) ;
-			}
-		}
-
-		ml_term_write( screen->term , "\n" , 1 , to_menu) ;
-
-		return ;
-	}
-
-	if( value == NULL)
-	{
-		goto  error ;
-	}
-
-	ml_term_write( screen->term , "#" , 1 , to_menu) ;
-	ml_term_write( screen->term , key , strlen( key) , to_menu) ;
-	ml_term_write( screen->term , "=" , 1 , to_menu) ;
-	ml_term_write( screen->term , value , strlen( value) , to_menu) ;
-	ml_term_write( screen->term , "\n" , 1 , to_menu) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " #%s=%s\n" , key , value) ;
-#endif
-
-	return ;
-
-error:
-	ml_term_write( screen->term , "#error\n" , 7 , to_menu) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " #error\n") ;
-#endif
-
-	return ;
 }
 
 

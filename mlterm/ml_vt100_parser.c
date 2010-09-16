@@ -70,6 +70,10 @@
 #define  IGNORE_SPACE_FG_COLOR
 #endif
 
+#if  0
+#define  SUPPORT_VTE_CJK_WIDTH
+#endif
+
 
 /* --- static functions --- */
 
@@ -321,6 +325,16 @@ put_char(
 		}
 		else if( prop & MKF_AWIDTH)
 		{
+		#ifdef  SUPPORT_VTE_CJK_WIDTH
+			char *  env ;
+
+			if( ( env = getenv( "VTE_CJK_WIDTH")) &&
+			    ( strcmp( env , "wide") == 0 || strcmp( env , "1") == 0))
+			{
+				is_biwidth = 1 ;
+			}
+		#endif
+		
 			if( vt100_parser->col_size_of_width_a == 2)
 			{
 				is_biwidth = 1 ;
@@ -331,6 +345,12 @@ put_char(
 				(ch[3] == 0x0a || ch[3] == 0x0b || ch[3] == 0x1a || ch[3] == 0x1b) )
 			{
 				is_biwidth = 1 ;
+			}
+		#endif
+		#ifdef  SUPPORT_VTE_CJK_WIDTH
+			else
+			{
+				is_biwidth = 0 ;
 			}
 		#endif
 		}

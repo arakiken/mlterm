@@ -64,6 +64,7 @@ LIBS = $(LIBS1) $(LIBS2@WIN32TAG@)
 PROG = mlterm
 INSTALL_OPT = @INSTALL_OPT@
 
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
@@ -78,7 +79,7 @@ $(PROG): $(OBJ) $(LMLTERM)
 .SUFFIXES: .c .o
 
 .c.o:
-	$(CC) $(CFLAGS) -c $<
+	$(LIBTOOL_CC) $(CFLAGS) -c $<
 
 winrs.o: winrs.rs
 	cp $(top_srcdir)/contrib/icon/mlterm-icon-win32.ico .

@@ -617,7 +617,8 @@ im_scim_finalize( void)
 im_scim_context_t
 im_scim_create_context(
 	void *  self ,
-	im_scim_callbacks_t *  callbacks)
+	im_scim_callbacks_t *  callbacks
+	)
 {
 	im_scim_context_private_t *  context = NULL ;
 
@@ -742,7 +743,6 @@ im_scim_key_event(
 {
 	im_scim_context_private_t *  context ;
 	FrontEndHotkeyAction  hotkey_action ;
-	int  key_type ;
 	KeyEvent  scim_key ;
 	PanelFactoryInfo  info ;
 
@@ -917,14 +917,8 @@ im_scim_get_panel_fd( void)
 int
 im_scim_receive_panel_event( void)
 {
-	im_scim_context_private_t *  context ;
-	int  command ;
-	TransactionDataType  type ;
-	String  string ;
-	uint32  data_uint32 ;
-	int  id ;
-
 	panel_client.filter_event() ;
+
 	return  1 ;
 }
 

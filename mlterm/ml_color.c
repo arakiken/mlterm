@@ -6,6 +6,7 @@
 
 #include  <stdio.h>		/* NULL */
 #include  <string.h>		/* strcmp */
+#include  <kiklib/kik_debug.h>
 
 
 /* --- static variables --- */
@@ -437,9 +438,9 @@ ml_color_parse_rgb_name(
 		kik_debug_printf( KIK_DEBUG_TAG " %x %x %x\n" , _red , _green , _blue) ;
 	#endif
 	
-		*red = (_red >> 4) & 0xff ;
-		*green = (_green >> 4) & 0xff ;
-		*blue = (_blue >> 4) & 0xff ;
+		*red = (_red >> 8) & 0xff ;
+		*green = (_green >> 8) & 0xff ;
+		*blue = (_blue >> 8) & 0xff ;
 
 		return 1 ;
 	}

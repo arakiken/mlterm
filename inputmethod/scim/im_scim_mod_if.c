@@ -33,10 +33,6 @@
 
 #include  "im_scim.h"
 
-#if  1
-#define  IM_SCIM_DEBUG  1
-#endif
-
 typedef struct  im_scim
 {
 	/* input method common object */
@@ -490,10 +486,6 @@ candidate_update(
 	{
 		u_char *  p = NULL ;
 
-	#ifdef  IM_UIM_DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " %d| %s\n", i , _p) ;
-	#endif
-
 		if( scim->term_encoding != ML_UTF8)
 		{
 			(*parser_utf8->init)( parser_utf8) ;
@@ -595,7 +587,7 @@ im_scim_new(
 		return  NULL ;
 	}
 
-#if 1
+#if  1
 #define  RESTORE_LOCALE
 #endif
 

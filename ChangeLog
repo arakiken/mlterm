@@ -1,3 +1,26 @@
+2010-09-16  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/marshal.[ch], vte.c: Added for vte compatible api.
+
+	* man/mlterm.1, doc/ja/README.ja: updated
+
+	* "default" value which makes mlterm follow default setting
+	  of anti-alias is added to "use_anti_alias" option.
+	  If -A option is not specified in startup, the value of
+	  "use_anti_alias" is "default" by default.
+	  If you want to disable anti alias explicitly, specify
+	  "use_anti_alias=false" or -A=false.
+
+	* scim/im_scim_mod_if.c, im_scim.cpp: code clean up.
+
+	* ml_color.c: Fixed a bug of shifting 16 bit color to 8 bit
+	  in ml_color_parse_rgb_name(). (">> 4" => ">> 8")
+
+	* ml_vt100_parser.c: Check of VTE_CJK_WIDTH environment is added
+	  (but disabled for now).
+
+	* x_screen.[ch]: x_screen_get_config is removed (not public).
+
 2010-09-01  Araki Ken  <arakiken@users.sf.net>
 
 	* x_im_candidate_screen.c, x_im_status_screen.c: Fixed a bug of argument of

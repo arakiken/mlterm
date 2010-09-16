@@ -27,9 +27,10 @@
 
 typedef enum x_font_present
 {
-	FONT_VAR_WIDTH = 0x01 ,
-	FONT_AA = 0x02 ,
-	FONT_VERTICAL = 0x04 ,
+	FONT_VAR_WIDTH = 0x1 ,
+	FONT_VERTICAL = 0x2 ,
+	FONT_AA = 0x4 ,
+	FONT_NOAA = 0x8 ,	/* Don't specify with FONT_AA */
 
 } x_font_present_t ;
 
