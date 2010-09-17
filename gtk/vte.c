@@ -44,7 +44,8 @@
 #endif
 
 #define  VTE_WIDGET(screen)  ((VteTerminal*)(screen)->system_listener->self)
-
+/* XXX Hack to distinguish x_screen_t from x_{candidate|status}_screent_t */
+#define  IS_MLTERM_SCREEN(win)  ((win)->parent_window != None)
 #define  WINDOW_MARGIN  2
 
 
@@ -92,6 +93,10 @@ static char *  false = "false" ;
 
 /* --- static functions --- */
 
+/*
+ * x_system_event_listener_t handlers
+ */
+
 static void
 pty_closed(
 	void *  p ,
@@ -117,7 +122,43 @@ pty_closed(
 	}
 }
 
+static void
+font_config_updated(void)
+{
+	u_int  count ;
+	
+	x_font_cache_unload_all() ;
 
+	for( count = 0 ; count < disp.num_of_roots ; count++)
+	{
+		if( IS_MLTERM_SCREEN(disp.roots[count]))
+		{
+			x_screen_reset_view( (x_screen_t*)disp.roots[count]) ;
+		}
+	}
+}
+
+static void
+color_config_updated(void)
+{
+	u_int  count ;
+	
+	x_color_cache_unload_all() ;
+
+	for( count = 0 ; count < disp.num_of_roots ; count++)
+	{
+		if( IS_MLTERM_SCREEN(disp.roots[count]))
+		{
+			x_screen_reset_view( (x_screen_t*)disp.roots[count]) ;
+		}
+	}
+}
+
+
+/*
+ * ml_screen_event_listener_t (overriding) handler
+ */
+ 
 static void
 line_scrolled_out(
 	void *  p		/* must be x_screen_t */
@@ -157,6 +198,11 @@ line_scrolled_out(
 #endif
 }
 
+
+/*
+ * x_screen_scroll_event_listener_t handlers
+ */
+ 
 static void
 bs_mode_exited(
 	void *  p
@@ -267,6 +313,7 @@ log_size_changed(
 	gtk_adjustment_changed( terminal->adjustment) ;
 #endif
 }
+
 
 static void
 adjustment_value_changed(
@@ -396,6 +443,48 @@ vte_terminal_io(
 	return  TRUE ;
 }
 
+static void
+menu_position(
+	GtkMenu *  menu ,
+	gint *  x ,
+	gint *  y ,
+	gboolean *  push_in ,
+	gpointer  data
+	)
+{
+	XButtonEvent *  ev ;
+	int  global_x ;
+	int  global_y ;
+	Window  child ;
+
+	ev = data ;
+
+	XTranslateCoordinates( ev->display , ev->window , DefaultRootWindow( ev->display) ,
+		ev->x , ev->y , &global_x , &global_y , &child) ;
+	
+	*x = global_x ;
+	*y = global_y ;
+	*push_in = FALSE ;
+}
+
+static void
+activate_copy(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	vte_terminal_copy_clipboard( data) ;
+}
+
+static void
+activate_paste(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	vte_terminal_paste_clipboard( data) ;
+}
+
 /*
  * Don't call ml_close_dead_terms() before returning GDK_FILTER_CONTINUE,
  * because ml_close_dead_terms() will destroy widget in pty_closed and
@@ -405,7 +494,7 @@ static GdkFilterReturn
 vte_terminal_filter(
 	GdkXEvent *  xevent ,
 	GdkEvent *  event ,
-	gpointer  data		/* Mlvte */
+	gpointer  data
 	)
 {
 	u_int  count ;
@@ -417,20 +506,44 @@ vte_terminal_filter(
 	
 	for( count = 0 ; count < disp.num_of_roots ; count++)
 	{
-		if( x_window_receive_event( disp.roots[count] , (XEvent*)xevent))
+		if( ((XEvent*)xevent)->type == ButtonPress &&
+			((XEvent*)xevent)->xbutton.button == Button3 &&
+			(((XEvent*)xevent)->xbutton.state & ControlMask) == 0 &&
+			((XEvent*)xevent)->xbutton.window == disp.roots[count]->my_window &&
+			IS_MLTERM_SCREEN(disp.roots[count]))
+		{
+			GtkWidget *  menu ;
+			GtkWidget *  item ;
+
+			menu = gtk_menu_new() ;
+			
+			item = gtk_menu_item_new_with_label( "Copy") ;
+			g_signal_connect( G_OBJECT(item) , "activate" ,
+				G_CALLBACK(activate_copy) ,
+				VTE_WIDGET((x_screen_t*)disp.roots[count])) ;
+			gtk_menu_append(GTK_MENU(menu), item) ;
+			
+			item = gtk_menu_item_new_with_label( "Paste") ;
+			g_signal_connect( G_OBJECT(item) , "activate" ,
+				G_CALLBACK(activate_paste) ,
+				VTE_WIDGET((x_screen_t*)disp.roots[count])) ;
+			gtk_menu_append(GTK_MENU(menu), item) ;
+
+			gtk_widget_show_all(menu) ;
+			gtk_menu_popup( GTK_MENU(menu) , NULL , NULL ,
+				menu_position , xevent , 0 , 0) ;
+		}
+		else if( x_window_receive_event( disp.roots[count] , (XEvent*)xevent))
 		{
 			return  GDK_FILTER_REMOVE ;
 		}
 		else if( ((XEvent*)xevent)->xconfigure.window == disp.roots[count]->my_window)
 		{
-			if( ((XEvent*)xevent)->type == ConfigureNotify)
+			if( IS_MLTERM_SCREEN(disp.roots[count]) &&
+				((XEvent*)xevent)->type == ConfigureNotify)
 			{
 				VteTerminal *  terminal ;
 
-				/*
-				 * XXX Hack
-				 * disp.roots[count] may not be VteTerminal.
-				 */
 				terminal = VTE_WIDGET((x_screen_t*)disp.roots[count]) ;
 
 				if( ((XEvent*)xevent)->xconfigure.width !=
@@ -1086,6 +1199,8 @@ vte_terminal_init(
 	memset( &terminal->pvt->system_listener , 0 , sizeof(x_system_event_listener_t)) ;
 	terminal->pvt->system_listener.self = terminal ;
 	terminal->pvt->system_listener.pty_closed = pty_closed ;
+	terminal->pvt->system_listener.font_config_updated = font_config_updated ;
+	terminal->pvt->system_listener.color_config_updated = color_config_updated ;
 	x_set_system_listener( terminal->pvt->screen , &terminal->pvt->system_listener) ;
 
 	memset( &terminal->pvt->screen_scroll_listener , 0 ,
@@ -1210,6 +1325,35 @@ vte_terminal_copy_clipboard(
 	VteTerminal *  terminal
 	)
 {
+	GtkClipboard *  clipboard ;
+	u_char *  buf ;
+	size_t  len ;
+
+	if( ! terminal->pvt->screen->sel.sel_str || terminal->pvt->screen->sel.sel_len == 0 ||
+		! (clipboard = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD)))
+	{
+		return ;
+	}
+
+	/* UTF8 max len = 8 */
+	len = terminal->pvt->screen->sel.sel_len * 8 ;
+	if( ! ( buf = alloca( len)))
+	{
+		return ;
+	}
+	
+	(*terminal->pvt->screen->ml_str_parser->init)( terminal->pvt->screen->ml_str_parser) ;
+	ml_str_parser_set_str( terminal->pvt->screen->ml_str_parser ,
+		terminal->pvt->screen->sel.sel_str , terminal->pvt->screen->sel.sel_len) ;
+	(*terminal->pvt->screen->utf_conv->init)( terminal->pvt->screen->utf_conv) ;
+
+	len = (*terminal->pvt->screen->utf_conv->convert)( terminal->pvt->screen->utf_conv ,
+						buf , len , terminal->pvt->screen->ml_str_parser) ;
+	
+	gtk_clipboard_set_text( clipboard , buf , len) ;
+	gtk_clipboard_store( clipboard) ;
+
+	write( 0 , buf , len) ;
 }
 
 void
@@ -1217,6 +1361,7 @@ vte_terminal_paste_clipboard(
 	VteTerminal *  terminal
 	)
 {
+	x_screen_set_config( terminal->pvt->screen , NULL , "paste" , NULL) ;
 }
 
 void
@@ -1627,8 +1772,11 @@ vte_terminal_set_font(
 	style = pango_font_description_get_style( font_desc) ;
 	size = pango_font_description_get_size( font_desc) ;
 
-	name = alloca( strlen( family) + 6 /* " Light" */ + 7 /* " ITALIC" */ +
-		DIGIT_STR_LEN(size) + 1) ;
+	if( ! ( name = alloca( strlen( family) + 6 /* " Light" */ + 7 /* " ITALIC" */ +
+		DIGIT_STR_LEN(size) + 1)))
+	{
+		return ;
+	}
 
 	strcpy( name , family) ;
 	

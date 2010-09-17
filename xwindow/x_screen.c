@@ -5049,8 +5049,8 @@ get_config(
 		ml_term_write( screen->term , key , strlen(key) , to_menu) ;
 		ml_term_write( screen->term , "=" , 1 , to_menu) ;
 		
-		if( /* screen->window.is_sel_owner || */
-			screen->sel.sel_str || screen->sel.sel_len > 0)
+		if( /* screen->window.is_sel_owner && */
+			screen->sel.sel_str && screen->sel.sel_len > 0)
 		{
 		#ifndef  NL_TO_CR_IN_PAST_TEXT
 			if( to_menu)

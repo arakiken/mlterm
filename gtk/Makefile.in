@@ -23,7 +23,7 @@ LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
-OBJ_VTE = vte.o marshal.o
+OBJ_VTE = vte.o marshal.o vtetypebuiltins.o
 OBJ_IN = main.o mlvte-in.o
 OBJ_EX = main.o mlvte-ex.o
 

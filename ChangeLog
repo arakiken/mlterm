@@ -1,3 +1,12 @@
+2010-09-18  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  Font and color configuration protocol updates font setting immediately.
+	  Pressing button3 opens menu whose items are still just "Copy" (which copys
+	  selected text to clipboard) and "Paste".
+
+	* vtetypebuitins.c: Added
+
 2010-09-16  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/marshal.[ch], vte.c: Added for vte compatible api.
