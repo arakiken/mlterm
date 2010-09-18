@@ -1,6 +1,11 @@
 2010-09-18  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:
+	  pango_font_description_to_string() is used in vte_terminal_set_font().
+	
+2010-09-18  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
 	  Font and color configuration protocol updates font setting immediately.
 	  Pressing button3 opens menu whose items are still just "Copy" (which copys
 	  selected text to clipboard) and "Paste".

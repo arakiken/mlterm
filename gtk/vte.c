@@ -1761,46 +1761,17 @@ vte_terminal_set_font(
 	const PangoFontDescription *  font_desc
 	)
 {
-	char *  family ;
-	PangoWeight  weight ;
-	PangoStyle  style ;
-	gint  size ;
 	char *  name ;
 
-	family = pango_font_description_get_family( font_desc) ;
-	weight = pango_font_description_get_weight( font_desc) ;
-	style = pango_font_description_get_style( font_desc) ;
-	size = pango_font_description_get_size( font_desc) ;
-
-	if( ! ( name = alloca( strlen( family) + 6 /* " Light" */ + 7 /* " ITALIC" */ +
-		DIGIT_STR_LEN(size) + 1)))
-	{
-		return ;
-	}
-
-	strcpy( name , family) ;
-	
-	if( weight < PANGO_WEIGHT_NORMAL)
-	{
-		strcat( name , " Light") ;
-	}
-	else if( weight > PANGO_WEIGHT_NORMAL)
-	{
-		strcat( name , " Bold") ;
-	}
-
-	if( style == PANGO_STYLE_ITALIC)
-	{
-		strcat( name , " Italic") ;
-	}
-
-	sprintf( name + strlen(name) , "%d" , size) ;
+	name = pango_font_description_to_string( font_desc) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( "set_font %s\n" , name) ;
 #endif
 
 	vte_terminal_set_font_from_string( terminal , name) ;
+	
+	g_free( name) ;
 }
 
 void
