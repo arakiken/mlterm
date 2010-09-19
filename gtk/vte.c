@@ -178,8 +178,16 @@ line_scrolled_out(
 		return ;
 	}
 
-	value = gtk_adjustment_get_value( VTE_WIDGET(screen)->adjustment) ;
+	/*
+	 * line_scrolled_out is called in vt100 mode
+	 * (after ml_xterm_event_listener_t::start_vt100 event), so
+	 * don't call x_screen_scroll_to() in adjustment_value_changed()
+	 * in this context.
+	 */
+	VTE_WIDGET(screen)->pvt->adj_value_changed_by_myself = 1 ;
 
+	value = gtk_adjustment_get_value( VTE_WIDGET(screen)->adjustment) ;
+	
 #if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 14)
 	gtk_adjustment_set_upper( VTE_WIDGET(screen)->adjustment , upper + 1) ;
 	gtk_adjustment_set_value( VTE_WIDGET(screen)->adjustment , value + 1) ;
@@ -188,9 +196,6 @@ line_scrolled_out(
 	VTE_WIDGET(screen)->adjustment->value ++ ;
 	gtk_adjustment_changed( VTE_WIDGET(screen)->adjustment) ;
 	gtk_adjustment_value_changed( VTE_WIDGET(screen)->adjustment) ;
-#endif
-#if  0
-	VTE_WIDGET(screen)->pvt->adj_value_changed_by_myself = 1 ;
 #endif
 
 #ifdef  __DEBUG
@@ -214,6 +219,8 @@ bs_mode_exited(
 
 	terminal = p ;
 
+	terminal->pvt->adj_value_changed_by_myself = 1 ;
+
 	upper = gtk_adjustment_get_upper( terminal->adjustment) ;
 	page_size = gtk_adjustment_get_page_size( terminal->adjustment) ;
 
@@ -223,7 +230,6 @@ bs_mode_exited(
 	terminal->adjustment->value = upper - page_size ;
 	gtk_adjustment_value_changed( terminal->adjustment) ;
 #endif
-	terminal->pvt->adj_value_changed_by_myself = 1 ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( "bs_mode_exited upper %d page_size %d\n" , upper , page_size) ;
@@ -257,13 +263,14 @@ scrolled_upward(
 		size = upper - value - page_size ;
 	}
 
+	terminal->pvt->adj_value_changed_by_myself = 1 ;
+
 #if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 14)
 	gtk_adjustment_set_value( terminal->adjustment , value + size) ;
 #else
 	terminal->adjustment->value += size ;
 	gtk_adjustment_value_changed( terminal->adjustment) ;
 #endif
-	terminal->pvt->adj_value_changed_by_myself = 1 ;
 }
 
 static void
@@ -287,13 +294,14 @@ scrolled_downward(
 		value = size ;
 	}
 
+	terminal->pvt->adj_value_changed_by_myself = 1 ;
+
 #if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 14)
 	gtk_adjustment_set_value( terminal->adjustment , value - size) ;
 #else
 	terminal->adjustment->value -= size ;
 	gtk_adjustment_value_changed( terminal->adjustment) ;
 #endif
-	terminal->pvt->adj_value_changed_by_myself = 1 ;
 }
 
 static void

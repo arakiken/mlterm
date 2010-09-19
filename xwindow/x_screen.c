@@ -4640,7 +4640,7 @@ get_config(
 		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
 				dev)) == NULL)
 		{
-			return  NULL ;
+			return ;
 		}
 	}
 	else
@@ -6171,8 +6171,12 @@ start_vt100_cmd(
 		x_restore_selected_region_color( &screen->sel) ;
 	}
 
-	/* Not reverting to visual mode. */
 	unhighlight_cursor( screen , 0) ;
+	
+	/*
+	 * ml_screen_logical() is called in ml_term_unhighlight_cursor(), so
+	 * not called directly from start_vt100_cmd().
+	 */
 }
 
 static void

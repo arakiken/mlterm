@@ -1,3 +1,14 @@
+2010-09-19  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  adj_value_changed_by_myself is set to 1 in line_scrolled_out(),
+	  otherwise bidi text is not correctly drawn.
+	  (Thanks to Usama Akkad)
+	
+	* tool/mlconfig/Makefile.in
+	  -lX11 is added to LIBS2 variable.
+	  (Thanks to Hicham Haouari)
+
 2010-09-18  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:
