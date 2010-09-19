@@ -51,7 +51,8 @@ gmlterm-ex: $(OBJ_EX)
 	$(LIBTOOL_CC) $(CFLAGS) -I$(top_srcdir)/mlterm -I$(top_srcdir)/xwindow -I$(top_builddir)/xwindow -I../mkf/include -I../kiklib/include -g -c $<
 
 clean:
-	rm -rf $(OBJ_LIB) $(OBJ_IN) $(OBJ_EX) gmlterm *.core .libs
+	rm -rf $(OBJ_VTE) $(OBJ_IN) $(OBJ_EX) \
+	$(OBJ_VTE:.o=.lo) $(OBJ_IN:.o=.lo) $(OBJ_EX:.o=.lo) libvte.la gmlterm *.core .libs
 
 distclean: clean
 	rm -f Makefile

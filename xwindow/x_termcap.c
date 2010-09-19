@@ -121,9 +121,9 @@ entry_init(
 	entry->name = strdup( name) ;
 	entry->str_fields[ML_DELETE] = strdup( "\x1b[3~") ;
 	entry->str_fields[ML_BACKSPACE] = strdup( "\x7f") ;
-	/* "\x1b[H" in xterm(258), but doc/term/mlterm.ti defined "\x1bOH" before. */
+	/* "\x1b[H" in xterm(258), but doc/term/mlterm.ti defined "\x1bOH" from before. */
 	entry->str_fields[ML_HOME] = strdup( "\x1bOH") ;
-	/* "\x1b[F" in xterm(258), but doc/term/mlterm.ti defined "\x1bOF" before. */
+	/* "\x1b[F" in xterm(258), but doc/term/mlterm.ti defined "\x1bOF" from before. */
 	entry->str_fields[ML_END] = strdup( "\x1bOF") ;
 
 	for( count = 0 ; count < MAX_TERMCAP_BOOL_FIELDS ; count ++)

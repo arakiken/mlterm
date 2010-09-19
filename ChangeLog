@@ -1,3 +1,10 @@
+2010-09-20  Araki Ken  <arakiken@users.sf.net>
+
+	* vtetypebuitins.c: Added
+
+	* vte.c:
+	  vte_terminal_set_{backspace|delete}_binding() are implemented.
+	  
 2010-09-19  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:
@@ -20,8 +27,6 @@
 	  Font and color configuration protocol updates font setting immediately.
 	  Pressing button3 opens menu whose items are still just "Copy" (which copys
 	  selected text to clipboard) and "Paste".
-
-	* vtetypebuitins.c: Added
 
 2010-09-16  Araki Ken  <arakiken@users.sf.net>
 

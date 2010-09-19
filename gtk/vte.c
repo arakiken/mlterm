@@ -17,6 +17,7 @@
 #include  <kiklib/kik_unistd.h>
 #include  <kiklib/kik_locale.h>
 #include  <kiklib/kik_conf_io.h>
+#include  <ml_str_parser.h>
 #include  <ml_term_manager.h>
 #include  <x_screen.h>
 #include  <x_xim.h>
@@ -47,6 +48,7 @@
 /* XXX Hack to distinguish x_screen_t from x_{candidate|status}_screent_t */
 #define  IS_MLTERM_SCREEN(win)  ((win)->parent_window != None)
 #define  WINDOW_MARGIN  2
+#define  TERM_TYPE  "xterm"
 
 
 struct _VteTerminalPrivate
@@ -642,7 +644,7 @@ vte_terminal_realize(
 		*(env_p ++) = disp_env ;
 	}
 
-	strcpy( term_env , "TERM=xterm") ;
+	strcpy( term_env , "TERM=" TERM_TYPE) ;
 	*(env_p ++) = term_env ;
 
 	strcpy( colorfgbg_env , "COLORFGBG=default;default") ;
@@ -1859,6 +1861,38 @@ vte_terminal_set_backspace_binding(
 	VteTerminalEraseBinding  binding
 	)
 {
+	x_termcap_entry_t *  entry ;
+	char *  seq ;
+
+	if( binding == VTE_ERASE_ASCII_BACKSPACE)
+	{
+		seq = "\x08" ;
+	}
+	else if( binding == VTE_ERASE_ASCII_DELETE)
+	{
+		seq = "\x7f" ;
+	}
+	else if( binding == VTE_ERASE_DELETE_SEQUENCE)
+	{
+		seq = "\x1b[3~" ;
+	}
+#ifdef  VTE_CHECK_VERSION
+#if  VTE_CHECK_VERSION(0,20,4)
+	else if( binding == VTE_ERASE_TTY)
+	{
+		return ;
+	}
+#endif
+#endif
+	else
+	{
+		return ;
+	}
+	
+	entry = x_termcap_get_entry( &termcap , TERM_TYPE) ;
+	free( entry->str_fields[ML_BACKSPACE]) ;
+	/* ^H (compatible with libvte) */
+	entry->str_fields[ML_BACKSPACE] = strdup(seq) ;
 }
 
 void
@@ -1867,6 +1901,38 @@ vte_terminal_set_delete_binding(
 	VteTerminalEraseBinding  binding
 	)
 {
+	x_termcap_entry_t *  entry ;
+	char *  seq ;
+
+	if( binding == VTE_ERASE_ASCII_BACKSPACE)
+	{
+		seq = "\x08" ;
+	}
+	else if( binding == VTE_ERASE_ASCII_DELETE)
+	{
+		seq = "\x7f" ;
+	}
+	else if( binding == VTE_ERASE_DELETE_SEQUENCE)
+	{
+		seq = "\x1b[3~" ;
+	}
+#ifdef  VTE_CHECK_VERSION
+#if  VTE_CHECK_VERSION(0,20,4)
+	else if( binding == VTE_ERASE_TTY)
+	{
+		return ;
+	}
+#endif
+#endif
+	else
+	{
+		return ;
+	}
+	
+	entry = x_termcap_get_entry( &termcap , TERM_TYPE) ;
+	free( entry->str_fields[ML_DELETE]) ;
+	/* ^H (compatible with libvte) */
+	entry->str_fields[ML_DELETE] = strdup(seq) ;
 }
 
 void
@@ -1941,6 +2007,8 @@ vte_terminal_get_cursor_position(
 	glong *  row
 	)
 {
+	*column = ml_term_cursor_col( terminal->pvt->screen->term) ;
+	*row = ml_term_cursor_row( terminal->pvt->screen->term) ;
 }
 
 void
