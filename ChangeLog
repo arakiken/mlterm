@@ -1,3 +1,19 @@
+2010-09-22  Araki Ken  <arakiken@users.sf.net>
+
+	* Imlib support is dropped.
+	  x_imagelib_imlib.c and x_imagelib_imlib2.c: Removed
+	  configure.in and configure: 'imlib' is removed from value of
+	    --with-imagelib option. (To tell the truth, 'imlib' is still
+	    possible to specify as a value of --with-imagelib option if
+	    x_imagelib_imlib.c file is revived.)
+	  README, README.ja, mlterm.1, mlterm.spec: Updated
+
+	* gtk-1.x support is dropped.
+	  mc_font.c, gtkxlfdsel.c, tool/mlconfig/main.c mlterm-menu.c:
+	    Anything related to gtk-1.x is removed.
+	  configure.in: gtk-1.x is not supported.
+	  README, README.ja, mlterm.1: Updated
+	
 2010-09-20  Araki Ken  <arakiken@users.sf.net>
 
 	* vtetypebuitins.c: Added

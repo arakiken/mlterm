@@ -1832,25 +1832,14 @@ gtk_xlfd_selection_update_preview (GtkXlfdSelection *fontsel)
   g_message("In update_preview\n");
 #endif
   style = gtk_style_new ();
-#if  (GTK_MAJOR_VERSION >= 2)
   gtk_style_set_font( style , fontsel->font) ;
-#else
-  gdk_font_unref (style->font);
-  style->font = fontsel->font;
-  gdk_font_ref (style->font);
-#endif
 
   preview_entry = fontsel->preview_entry;
   gtk_widget_set_style (preview_entry, style);
   gtk_style_unref(style);
 
-#if  (GTK_MAJOR_VERSION >= 2)
   text_height = gtk_style_get_font( preview_entry->style)->ascent
     + gtk_style_get_font( preview_entry->style)->descent;
-#else
-  text_height = preview_entry->style->font->ascent
-    + preview_entry->style->font->descent;
-#endif
 
   /* We don't ever want to be over MAX_PREVIEW_HEIGHT pixels high. */
   new_height = text_height + 20;
@@ -1934,12 +1923,8 @@ gtk_xlfd_selection_show_font_info (GtkXlfdSelection *fontsel)
   
   if (fontsel->font)
     {
-#if  (GTK_MAJOR_VERSION >= 2)
       font_atom = gdk_x11_atom_to_xatom_for_display (gtk_widget_get_display (GTK_WIDGET(fontsel)) ,
 				gdk_atom_intern ("FONT", FALSE)) ;
-#else
-      font_atom = gdk_atom_intern("FONT", FALSE) ;
-#endif
 
       if (fontsel->font->type == GDK_FONT_FONTSET)
 	{
@@ -1960,12 +1945,8 @@ gtk_xlfd_selection_show_font_info (GtkXlfdSelection *fontsel)
 
       if (status == True)
 	{
-#if  (GTK_MAJOR_VERSION >= 2)
 	  name = gdk_atom_name (gdk_x11_xatom_to_atom_for_display (
 					gtk_widget_get_display(GTK_WIDGET(fontsel)), atom));
-#else
-	  name = gdk_atom_name (atom);
-#endif
 	  gtk_entry_set_text(GTK_ENTRY(fontsel->actual_font_name), name);
 	  
 	  for (i = 0; i < GTK_XLFD_NUM_FIELDS; i++)
@@ -2272,10 +2253,8 @@ gtk_xlfd_selection_show_available_fonts     (GtkXlfdSelection *fontsel)
   if (font_row == -1)
     {
       fontsel->font_index = -1;
-#if  (GTK_MAJOR_VERSION < 2)
       if (fontsel->font)
 	gdk_font_unref(fontsel->font);
-#endif
       fontsel->font = NULL;
       gtk_entry_set_text(GTK_ENTRY(fontsel->font_entry), "");
       gtk_clist_clear (GTK_CLIST(fontsel->font_style_clist));

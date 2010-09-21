@@ -22,11 +22,6 @@
 #define  __DEBUG
 #endif
 
-/* XXX Adhoc */
-#if  (GTK_MAJOR_VERSION < 2)
-#define  g_locale_to_utf8(a,b,c,d,e) (a)
-#endif
-
 
 typedef struct  cs_info
 {
@@ -279,10 +274,6 @@ aa_flag_checked(
 	#ifdef  USE_TYPE_XFT
 		if( ! GTK_TOGGLE_BUTTON(xft_flag)->active)
 		{
-		#if  (GTK_MAJOR_VERSION < 2)
-			gtk_widget_set_sensitive( select_font_button, 0);
-		#endif
-
 			gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(xft_flag) , 1) ;
 
 			reset_fontname_list() ;
@@ -306,17 +297,7 @@ xft_flag_checked(
 {
 	if( ! GTK_TOGGLE_BUTTON(widget)->active)
 	{
-	#if  (GTK_MAJOR_VERSION < 2)
-		gtk_widget_set_sensitive( select_font_button, 1);
-	#endif
-	
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(aa_flag) , 0) ;
-	}
-	else
-	{
-	#if  (GTK_MAJOR_VERSION < 2)
-		gtk_widget_set_sensitive( select_font_button, 0);
-	#endif
 	}
 
 	reset_fontname_list() ;
@@ -573,8 +554,6 @@ select_xlfd_font(
 #endif
 
 
-#if  (GTK_MAJOR_VERSION >= 2)
-
 static char *
 my_gtk_font_selection_dialog_get_font_name(
 	GtkFontSelectionDialog *  dialog
@@ -688,8 +667,6 @@ select_xft_font(
 	gtk_widget_destroy( dialog) ;
 }
 
-#endif /* GTK_MAJOR_VERSION >= 2 */
-
 static void
 select_font(
 	GtkWidget *  widget ,
@@ -704,9 +681,7 @@ select_font(
 	else
 #endif
 	{
-#if  (GTK_MAJOR_VERSION >= 2)
 		select_xft_font( widget , p) ;
-#endif
 	}
 }
 
@@ -814,16 +789,6 @@ mc_font_config_widget_new(void)
 	gtk_box_pack_start(GTK_BOX(hbox) , select_font_button , TRUE , TRUE , 1) ;
 	gtk_signal_connect(GTK_OBJECT(select_font_button) , "clicked" ,
 		GTK_SIGNAL_FUNC(select_font) , NULL) ;
-
-#if  (GTK_MAJOR_VERSION < 2)
-	if( ! mc_gui_is_win32())
-	{
-		if( GTK_TOGGLE_BUTTON(xft_flag)->active)
-		{
-			gtk_widget_set_sensitive( select_font_button, 0) ;
-		}
-	}
-#endif
 
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
 

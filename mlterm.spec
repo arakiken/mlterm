@@ -19,9 +19,9 @@ Group:	     User Interface/X
 URL:         http://mlterm.sourceforge.net/
 Source0:     http://prdownloads.sourceforge.net/mlterm/mlterm-%{version}.tar.gz
 Packager:    The mlterm team
-Requires:    imlib, gtk+
+Requires:    gtk+
 BuildRoot:   /var/tmp/%{name}-%{version}-root
-BuildPreReq: imlib-devel, gtk+-devel
+BuildPreReq: gtk+-devel
 
 %description
 mlterm is a multi-lingual terminal emulator written from

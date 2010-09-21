@@ -26,11 +26,6 @@
 
 #define MENU_RCFILE "mlterm/menu"
 
-/* XXX Adhoc */
-#if  (GTK_MAJOR_VERSION < 2)
-#define  g_locale_to_utf8(a,b,c,d,e) (a)
-#endif
-
 static GScannerConfig menu_scanner_config = {
     " \t\n",
     G_CSET_A_2_Z G_CSET_a_2_z "-_",
@@ -68,7 +63,7 @@ int append_menu_from_scanner(GtkMenu* menu, GScanner* scanner, int level);
 int append_pty_list(GtkMenu* menu);
 
 void activate_callback(GtkWidget* widget, gpointer data);
-#if  (GTK_MAJOR_VERSION >= 2) && ! defined(G_PLATFORM_WIN32)
+#if  ! defined(G_PLATFORM_WIN32)
 void activate_callback_copy(GtkWidget* widget, gpointer data);
 #endif
 void toggled_callback(GtkWidget* widget, gpointer data);
@@ -104,7 +99,7 @@ GtkWidget* create_menu(void)
 
     menu = gtk_menu_new();
 
-#if  (GTK_MAJOR_VERSION >= 2) && ! defined(G_PLATFORM_WIN32)
+#if ! defined(G_PLATFORM_WIN32)
     {
         GtkWidget* item;
         char* sel = get_value(NULL, "selected_text:utf8");
@@ -303,7 +298,7 @@ void activate_callback(GtkWidget* widget, gpointer data)
 }
 
 
-#if  (GTK_MAJOR_VERSION >= 2) && ! defined(G_PLATFORM_WIN32)
+#if ! defined(G_PLATFORM_WIN32)
 void activate_callback_copy(GtkWidget* widget, gpointer data)
 {
     u_char* sel = (u_char*)data;

@@ -164,7 +164,7 @@ AC_SUBST(FRIBIDI_LIBS)
 # default value
 IMAGELIB_NAME=none
 AC_ARG_WITH(imagelib,
-	[  --with-imagelib@<:@=ARG@:>@   image library (imlib|gdk-pixbuf) @<:@default=no@:>@],
+	[  --with-imagelib@<:@=ARG@:>@   image library (gdk-pixbuf) @<:@default=no@:>@],
 	imagelib=$with_imagelib)
 case ${imagelib} in
 imlib)
@@ -176,6 +176,10 @@ imlib)
 		echo ""
 		exit 1
 	fi
+	echo ""
+	echo "** WARNING **"
+	echo " imlib is no longer supported."
+	echo ""
 	IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_IMLIB"
 	IMAGELIB_LIBS="`imlib-config --libs`"
 	IMAGELIB_NAME=imlib
@@ -189,6 +193,10 @@ imlib2)
 		echo ""
 		exit 1
 	fi
+	echo ""
+	echo "** WARNING **"
+	echo " imlib2 is no longer supported."
+	echo ""
 	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DUSE_IMLIB"
 	IMAGELIB_LIBS="`imlib2-config --libs`"
 	IMAGELIB_NAME=imlib2
@@ -205,6 +213,10 @@ gdk-pixbuf)
 			IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
 			IMAGELIB_NAME=gdk
 		fi
+		echo ""
+		echo "** WARNING **"
+		echo " gdk-pixbuf1 is no longer supported."
+		echo ""
 	fi
 	;;
 gdk-pixbuf2)
@@ -220,6 +232,10 @@ gdk-pixbuf1)
 		IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
 		IMAGELIB_NAME=gdk
 	fi
+	echo ""
+	echo "** WARNING **"
+	echo " gdk-pixbuf1 is no longer supported."
+	echo ""
 	;;
 *)
 	if test "${imagelib}" != "" ; then
@@ -326,19 +342,6 @@ AC_SUBST(INSTALL_OPT)
 PKG_CHECK_MODULES(GTK, gtk+-2.0, have_gtk2=yes, have_gtk2=no)
 if test "$have_gtk2" = "yes" ; then
 	gtk_config=yes
-else
-	AC_CHECK_PROG(gtk_config,gtk-config,yes)
-	if test "$gtk_config" = "yes" ; then
-		GTK_CFLAGS="`gtk-config --cflags`"
-		GTK_LIBS="`gtk-config --libs`"
-	else
-		# for Daichi Goto-san:)
-		AC_CHECK_PROG(gtk_config,gtk12-config,yes)
-		if test "$gtk_config" = "yes" ; then
-			GTK_CFLAGS="`gtk12-config --cflags`"
-			GTK_LIBS="`gtk12-config --libs`"
-		fi
-	fi
 fi
 # "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
 GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
@@ -372,7 +375,7 @@ mlconfig)
 	else
 		echo ""
 		echo "** WARNING  **"
-		echo " couldn't compile mlconfig since headers/libraries of GTK are missing."
+		echo " couldn't compile mlconfig since headers/libraries of GTK+-2 are missing."
 		echo ""
 	fi
 	;;
@@ -384,7 +387,7 @@ mlterm-menu)
 	else
 		echo ""
 		echo "** WARNING  **"
-		echo " couldn't compile mlterm-menu since headers/libraries of GTK are missing."
+		echo " couldn't compile mlterm-menu since headers/libraries of GTK+-2 are missing."
 		echo ""
 	fi
 	;;

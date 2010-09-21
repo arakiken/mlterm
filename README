@@ -26,8 +26,9 @@ Options for configure
   --with-gui=(xlib|win32)
     Use specified gui library.
   
-  --with-imagelib=(imlib|gdk-pixbuf2|gdk-pixbuf1)
+  --with-imagelib=(gdk-pixbuf)
     Use specified image library for image processing
+    (Imlib is not supported from 3.0.2)
 
   --with-libltdl
     load modules with libltdl
@@ -91,9 +92,11 @@ What you need for compilation
   XFree86 4.0.2 or above and FreeType 2.0.2 or above are needed for
   anti-alias.
 
-  Imlib (1.9.x ?) or gdk-pixbuf (0.16 or higher) for background image.
+  gdk-pixbuf (Gtk+ 2.0.1 or higher) for background image.
 
-  Gtk+ (1.2.x ?) for GUI configurator "mlconfig" and "mlterm-menu".
+  Gtk+ (2.x ?) for GUI configurator "mlconfig" and "mlterm-menu".
+
+  Gtk+ (2.x ?) for libvte.
 
   Fribidi (0.9.0 - ?) for Bidi.
 

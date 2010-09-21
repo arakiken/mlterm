@@ -15,8 +15,8 @@ comment $Id$
     (たとえば、libc に ja_JP.UTF-8 ローケールがなくても、ja_JP.eucJP ローケール
     があれば、UTF-8 エンコーディングの端末に日本語入力できる、など)
 
-    gtk+ で作られた設定変更ツール (mlconfig) を使用する場合は、GTK+ (1.2 以上)
-    が必要となります。
+    gtk+ で作られた設定変更ツール (mlconfig, mlterm-menu) を使用する場合は、
+    GTK+ (2.x 以上) が必要となります。
     (mlterm 本体にはリンクしません)
 
     アンチエイリアスフォントを利用する場合は、
@@ -24,8 +24,7 @@ comment $Id$
     freetype 2.0.2 以上
     が必要です。
 
-    壁紙を貼るには、imlib (1.9.x ?) または gdk-pixbuf (0.16 以上 または GTK+ 
-    2.0.1 以上) が必要です。
+    壁紙を貼るには、gdk-pixbuf (GTK+ 2.0.1 以上) が必要です。
 
     Unicode の Bidi レンダリングには、Fribidi 0.9.x 以上(?) が必要です。
 
@@ -49,9 +48,9 @@ comment $Id$
       文字プロパティテーブルを組み込みません。
       この場合、結合文字や BIDI 等を扱えなくなります。
 
-    --with-imagelib=(imlib|gdk-pixbuf)
-      imlib/gdk-pixbuf を使って、
-      壁紙を貼れるようにします。
+    --with-imagelib=(gdk-pixbuf)
+      gdk-pixbuf を使って、壁紙を貼れるようにします。
+      また、壁紙又は透過背景の brightness/contrast/gamma を調整できるようにします。
 
     --with-libltdl
       モジュールの動的ローディングに libltdl を使用します。
@@ -124,10 +123,10 @@ comment $Id$
     Xft と通常の X フォントのどちらを使うかは、動的に切替え可能です。
 
   o 壁紙、背景透過
-    imlib または gdk-pixbuf がインストールされている環境で、いずれかを組み込んで
-    ビルドした mlterm には、壁紙をはり付けることができます。
-    背景透過も可能です。imlib または gdk-pixbuf がリンクされていれば、透過した背
-    景の輝度/コントラスト/ガンマを調節することもできます。
+    configure --with-imagelib=gdk-pixbuf でビルドした mlterm には、壁紙をはり
+    付けることができます。
+    背景透過も可能です。gdk-pixbuf がリンクされていれば、透過した背景の輝度/
+    コントラスト/ガンマを調節することもできます。
 
   o マルチPTY
     単一プロセス中から、--maxptys オプションで指定した上限数(デフォルトでは 32)
