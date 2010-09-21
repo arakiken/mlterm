@@ -1,5 +1,21 @@
 2010-09-22  Araki Ken  <arakiken@users.sf.net>
 
+	* vte.c: vte_terminal_set_alternative_screen_scroll() function
+	  (which is empty yet) is added.
+	  (Thanks to Usama Akkad)
+
+	* x_imagelib_none.c: cleanup
+
+	* gtk/Makefile.in: '-lX11' is added to 'gmlterm-in' and 'gmlterm-ex'
+	  targets. (Thanks to to Hicham Haouari)
+
+	* xwindow.c:
+	  Code related to Pseudo transparency (especially around ParentRelative
+	  transparency) is cleaned up.
+	  PropertyNotify of "_XSETROOT_ID" is supported.
+	
+2010-09-22  Araki Ken  <arakiken@users.sf.net>
+
 	* Imlib support is dropped.
 	  x_imagelib_imlib.c and x_imagelib_imlib2.c: Removed
 	  configure.in and configure: 'imlib' is removed from value of

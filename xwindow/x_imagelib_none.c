@@ -8,6 +8,11 @@
 #include  <kiklib/kik_debug.h>
 
 
+#if  0
+#define  __DEBUG
+#endif
+
+
 /* --- global functions --- */
 
 int
@@ -69,28 +74,29 @@ x_imagelib_get_transparent_background(
 	u_long  bytes_after ;
 	u_char *  prop ;
 
-	if( pic_mod && pic_mod->brightness != 100)
+	if( pic_mod && ! x_picture_modifier_is_normal( pic_mod))
 	{
 		/*
 		 * XXX
-		 * image is never modified without Imlib.
+		 * image is never modified without gdk-pixbuf.
 		 */
 		
 		return  None ;
 	}
-	
+
+	if( ! x_window_get_visible_geometry( win , &x , &y , &_x , &_y , &width , &height))
+	{
+		return  None ;
+	}
+
 	if( ( id = XInternAtom( win->disp->display , "_XROOTPMAP_ID" , True)) == None)
 	{
 		return  None ;
 	}
 	
-	if( ! x_window_get_visible_geometry( win , &x , &y , &_x , &_y , &width , &height))
-	{
-		return  None ;
-	}
-	
-	if( XGetWindowProperty( win->disp->display , DefaultRootWindow(win->disp->display) , id , 0 , 1 , False ,
-		XA_PIXMAP , &act_type , &act_format , &nitems , &bytes_after , &prop) != Success ||
+	if( XGetWindowProperty( win->disp->display , DefaultRootWindow(win->disp->display) ,
+		id , 0 , 1 , False , XA_PIXMAP ,
+		&act_type , &act_format , &nitems , &bytes_after , &prop) != Success ||
 		prop == NULL)
 	{
 		return  None ;
@@ -102,16 +108,19 @@ x_imagelib_get_transparent_background(
 
 		return  None ;
 	}
-	
+
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " root pixmap %d found.\n" , *prop) ;
 #endif
 
-	pixmap = XCreatePixmap( win->disp->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+	pixmap = XCreatePixmap( win->disp->display , win->my_window ,
+			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 			DefaultDepth( win->disp->display , win->disp->screen)) ;
 
 	XCopyArea( win->disp->display , (*(Drawable*)prop) , pixmap , win->gc->gc ,
 		x , y , width , height , _x , _y) ;
+
+	XFree( prop) ;
 
 	return  pixmap ;
 }

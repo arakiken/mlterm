@@ -42,10 +42,10 @@ gmlterm-in: $(OBJ_IN)
 	$(LIBTOOL_LINK) -o gmlterm $(OBJ_IN:.o=.lo) ../mlterm/libmlterm.a \
 	`echo ../xwindow/*.lo|sed 's/..\/xwindow\/main.lo//g'` \
 	$(top_builddir)/kiklib/src/libkik.la $(top_builddir)/mkf/lib/libmkf.la \
-	@FRIBIDI_LIBS@ @IND_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@
+	@FRIBIDI_LIBS@ @IND_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ -lX11
 
 gmlterm-ex: $(OBJ_EX)
-	$(LIBTOOL_LINK) -o gmlterm $(OBJ_EX:.o=.lo) $(LIBS)
+	$(LIBTOOL_LINK) -o gmlterm $(OBJ_EX:.o=.lo) $(LIBS) -lX11
 
 .c.o:
 	$(LIBTOOL_CC) $(CFLAGS) -I$(top_srcdir)/mlterm -I$(top_srcdir)/xwindow -I$(top_builddir)/xwindow -I../mkf/include -I../kiklib/include -g -c $<

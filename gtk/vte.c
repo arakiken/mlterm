@@ -547,6 +547,13 @@ vte_terminal_filter(
 		{
 			return  GDK_FILTER_REMOVE ;
 		}
+		/*
+		 * xconfigure.window: window whose size, position, border, and/or stacking
+		 *                    order was changed.
+		 *                    => processed in following.
+		 * xconfigure.event(=XAnyEvent.window): reconfigured window or to its parent.
+		 *                    => processed in x_window_receive_event()
+		 */
 		else if( ((XEvent*)xevent)->xconfigure.window == disp.roots[count]->my_window)
 		{
 			if( IS_MLTERM_SCREEN(disp.roots[count]) &&
@@ -2337,6 +2344,15 @@ set_font:
 }
 
 #endif
+
+/* Ubuntu original function ? */
+void
+vte_terminal_set_alternate_screen_scroll(
+	VteTerminal *  terminal ,
+	gboolean  scroll
+	)
+{
+}
 
 
 /* Hack for input method module */

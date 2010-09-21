@@ -42,6 +42,7 @@
 #define  XA_TAKE_FOCUS(display) (XInternAtom(display , "WM_TAKE_FOCUS" , False))
 #define  XA_INCR(display) (XInternAtom(display, "INCR", False))
 #define  XA_XROOTPMAP_ID(display) (XInternAtom(display, "_XROOTPMAP_ID", False))
+#define  XA_XSETROOT_ID(display) (XInternAtom(display, "_XSETROOT_ID" , False))
 #define  XA_WM_CLIENT_LEADER(display) (XInternAtom(display , "WM_CLIENT_LEADER" , False))
 
 /*
@@ -55,6 +56,10 @@
  */
 #define  XA_MWM_INFO(display) (XInternAtom(display, "_MOTIF_WM_INFO", True))
 #define  XA_MWM_HINTS(display) (XInternAtom(display, "_MOTIF_WM_HINTS", True))
+
+#define  IS_INHERIT_TRANSPARENT(win) \
+	((win)->pic_mod && ! x_picture_modifier_is_normal( (win)->pic_mod))
+
 
 typedef struct {
 	u_int32_t  flags ;
@@ -156,8 +161,9 @@ restore_view_all(
 }
 #endif
 
+/* Only used for set_transparent|update_modified_transparent */
 static int
-set_transparent(
+set_transparent_picture(
 	x_window_t *  win ,
 	Pixmap  pixmap
 	)
@@ -182,11 +188,125 @@ set_transparent(
 	return  1 ;
 }
 
+/* Only used for set_transparent */
+static int
+update_transparent_picture(
+	x_window_t *  win
+	)
+{
+	x_bg_picture_t  pic ;
+
+	if( ! x_bg_picture_init( &pic , win , win->pic_mod))
+	{
+		goto  error ;
+	}
+
+	if( ! x_bg_picture_get_transparency( &pic))
+	{
+		x_bg_picture_final( &pic) ;
+
+		goto  error ;
+	}
+
+	set_transparent_picture( win , pic.pixmap) ;
+
+	x_bg_picture_final( &pic) ;
+
+	return  1 ;
+
+error:
+	win->is_transparent = 0 ;
+	win->pic_mod = NULL ;
+
+	return  0 ;
+}
+
+static int
+set_transparent(
+	x_window_t *  win
+	)
+{
+	if( ! IS_INHERIT_TRANSPARENT(win))
+	{
+		/*
+		 * XXX
+		 * If previous mode is not modified transparent,
+		 * ParentRelative mode of parent windows should be unset.
+		 */
+		 
+		if( x_root_pixmap_available( win->disp->display))
+		{
+			/*
+			 * win->is_transparent is set appropriately in
+			 * update_transparent_picture().
+			 */
+			return  update_transparent_picture( win) ;
+		}
+		else
+		{
+			win->is_transparent = 0 ;
+			win->pic_mod = NULL ;
+
+			return  0 ;
+		}
+	}
+	else
+	{
+		/*
+		 * Root - Window A - Window C
+		 *      - Window B - Window D
+		 *                 - Window E
+		 * If Window C is set_transparent(), C -> A -> Root are set ParentRelative.
+		 * Window B,D and E are not set ParentRelative.
+		 */
+		 
+		Window  parent ;
+		
+		while( win->parent)
+		{
+			/* win->is_transparent is set appropriately in set_transparent() */
+			set_transparent_picture( win , ParentRelative) ;
+
+			win = win->parent ;
+		}
+
+		set_transparent_picture( win , ParentRelative) ;
+
+		parent = win->my_window ;
+		while( 1)
+		{
+			Window  root ;
+			Window *  list ;
+			u_int  n ;
+
+			XQueryTree( win->disp->display , parent , &root , &parent , &list , &n) ;
+			XFree( list) ;
+
+			if( parent == DefaultRootWindow( win->disp->display))
+			{
+				break ;
+			}
+			
+			XSetWindowBackgroundPixmap( win->disp->display , parent , ParentRelative) ;
+
+			
+		}
+
+		return  1 ;
+	}
+}
+
 static int
 unset_transparent(
 	x_window_t *  win
 	)
 {
+	/*
+	 * XXX
+	 * If previous mode is not modified transparent,
+	 * ParentRelative mode of parent windows should be unset.
+	 */
+
 	/*
 	 * !! Notice !!
 	 * this must be done before x_window_unset_wall_picture() because
@@ -197,32 +317,6 @@ unset_transparent(
 	win->pic_mod = NULL ;
 
 	return  x_window_unset_wall_picture( win) ;
-}
-
-static int
-update_pic_transparent(
-	x_window_t *  win
-	)
-{
-	x_bg_picture_t  pic ;
-
-	if( ! x_bg_picture_init( &pic , win , win->pic_mod))
-	{
-		return  0 ;
-	}
-
-	if( ! x_bg_picture_get_transparency( &pic))
-	{
-		x_bg_picture_final( &pic) ;
-
-		return  0 ;
-	}
-
-	set_transparent( win , pic.pixmap) ;
-
-	x_bg_picture_final( &pic) ;
-
-	return  1 ;
 }
 
 static void
@@ -282,19 +376,17 @@ notify_configure_to_children(
 {
 	int  count ;
 
-	if( win->is_transparent)
+	if( win->is_transparent &&
+		( ! IS_INHERIT_TRANSPARENT(win) || win->wall_picture_is_set))
 	{
-		if( win->pic_mod || x_root_pixmap_available( win->disp->display))
-		{
-			update_pic_transparent( win) ;
-		}
-		else
-		{
-		#if  0
-			x_window_clear_all( win) ;
-		#endif
-			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-		}
+		set_transparent( win) ;
+	}
+	else
+	{
+	#if  0
+		x_window_clear_all( win) ;
+	#endif
+		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -312,7 +404,17 @@ notify_reparent_to_children(
 
 	if( win->is_transparent)
 	{
-		x_window_set_transparent( win , win->pic_mod) ;
+		if( ! IS_INHERIT_TRANSPARENT(win) || win->wall_picture_is_set)
+		{
+			set_transparent( win) ;
+		}
+		else
+		{
+		#if  0
+			x_window_clear_all( win) ;
+		#endif
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}		
 	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -328,9 +430,21 @@ notify_property_to_children(
 {
 	int  count ;
 
-	if( win->is_transparent && x_root_pixmap_available( win->disp->display))
+	if( win->is_transparent)
 	{
-		update_pic_transparent( win) ;
+		/* Background image of desktop is changed. */
+
+		if( ! IS_INHERIT_TRANSPARENT(win) || win->wall_picture_is_set)
+		{
+			set_transparent( win) ;
+		}
+		else
+		{
+		#if  0
+			x_window_clear_all( win) ;
+		#endif
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
 	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -891,15 +1005,11 @@ x_window_unset_wall_picture(
 
 int
 x_window_set_transparent(
-	x_window_t *  win ,
+	x_window_t *  win ,		/* Transparency is applied to all children recursively */
 	x_picture_modifier_t *  pic_mod
 	)
 {
-	Window  parent ;
-	Window  root ;
-	Window *  list ;
-	u_int  n ;
-	int  count ;
+	u_int  count ;
 
 	win->pic_mod = pic_mod ;
 
@@ -912,45 +1022,12 @@ x_window_set_transparent(
 		 */
 
 		win->is_transparent = 1 ;
-
-		goto  end ;
-	}
-
-	if( win->pic_mod || x_root_pixmap_available( win->disp->display))
-	{
-		update_pic_transparent( win) ;
 	}
 	else
 	{
-		set_transparent( win , ParentRelative) ;
-
-		XSetWindowBackgroundPixmap( win->disp->display , win->my_window , ParentRelative) ;
-
-		parent = win->my_window ;
-
-		while( 1)
-		{
-			XQueryTree( win->disp->display , parent , &root , &parent , &list , &n) ;
-			XFree(list) ;
-
-			if( parent == DefaultRootWindow(win->disp->display))
-			{
-				break ;
-			}
-
-			XSetWindowBackgroundPixmap( win->disp->display , parent , ParentRelative) ;
-		}
-
-		if( win->window_exposed)
-		{
-		#if  0
-			x_window_clear_all( win) ;
-		#endif
-			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-		}
+		set_transparent( win) ;
 	}
 
-end:
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		x_window_set_transparent( win->children[count] , win->pic_mod) ;
@@ -980,26 +1057,6 @@ x_window_unset_transparent(
 	}
 
 	unset_transparent( win) ;
-
-#if  0
-	/*
-	 * XXX
-	 * is this necessary ?
-	 */
-	parent = win->my_window ;
-
-	for( count = 0 ; count < 2 ; count ++)
-	{
-		XQueryTree( win->disp->display , parent , &root , &parent , &list , &n) ;
-		XFree(list) ;
-		if( parent == DefaultRootWindow(win->disp->display))
-		{
-			break ;
-		}
-
-		XSetWindowBackgroundPixmap( win->disp->display , parent , None) ;
-	}
-#endif
 
 	if( win->window_exposed)
 	{
@@ -1817,6 +1874,7 @@ x_window_receive_event(
 			return  1 ;
 		}
 	}
+
 	if( win->my_window != event->xany.window)
 	{
 		/*
@@ -1837,11 +1895,20 @@ x_window_receive_event(
 			}
 		}
 
-		if( x_root_pixmap_available( win->disp->display) &&
-			( event->type == PropertyNotify) &&
-			( win == x_get_root_window( win)) &&
-			( event->xproperty.atom == XA_XROOTPMAP_ID(win->disp->display)))
+		if( event->type == PropertyNotify &&
+			win == x_get_root_window( win) &&
+			(event->xproperty.atom == XA_XSETROOT_ID(win->disp->display) ||
+			 event->xproperty.atom == XA_XROOTPMAP_ID(win->disp->display)) )
 		{
+			/*
+			 * Background image is changed.
+			 * (notify_property_to_children() is called here because
+			 * event->xproperty.window is not win->my_window.)
+			 *
+			 * twm => XA_XSETROOT_ID
+			 * englightment => XA_XROOTPMAP_ID
+			 */
+			 
 			notify_property_to_children( win) ;
 
 			return  1 ;
@@ -2097,6 +2164,17 @@ x_window_receive_event(
 		int  is_changed ;
 		XEvent  next_ev ;
 
+		/*
+		 * Optimize transparent processing in notify_configure_to_children.
+		 */
+		while( XCheckMaskEvent( win->disp->display , StructureNotifyMask , &next_ev))
+		{
+			if( next_ev.type == ConfigureNotify)
+			{
+				*event = next_ev ;
+			}
+		}
+
 		is_changed = 0 ;
 
 		if( event->xconfigure.x != win->x || event->xconfigure.y != win->y)
@@ -2158,21 +2236,6 @@ x_window_receive_event(
 			is_changed = 1 ;
 		}
 
-		/*
-		 * transparent processing.
-		 */
-
-		if( is_changed &&
-			XCheckMaskEvent( win->disp->display , StructureNotifyMask , &next_ev))
-		{
-			if( next_ev.type == ConfigureNotify)
-			{
-				is_changed = 0 ;
-			}
-
-			XPutBackEvent( win->disp->display , &next_ev) ;
-		}
-
 		if( is_changed)
 		{
 			notify_configure_to_children( win) ;
@@ -2180,10 +2243,19 @@ x_window_receive_event(
 	}
 	else if( event->type == ReparentNotify)
 	{
+		XEvent  next_ev ;
+		
 		/*
-		 * transparent processing.
+		 * Optimize transparent processing in notify_reparent_to_children.
 		 */
-
+		while( XCheckMaskEvent( win->disp->display , StructureNotifyMask , &next_ev))
+		{
+			if( next_ev.type == ReparentNotify)
+			{
+				*event = next_ev ;
+			}
+		}
+		
 		win->x = event->xreparent.x ;
 		win->y = event->xreparent.y ;
 
