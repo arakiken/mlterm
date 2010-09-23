@@ -95,7 +95,7 @@ kik_priv_restore_euid(void)
 
 int
 kik_priv_change_egid(
-	uid_t  uid
+	uid_t  gid
 	)
 {
 	if( egid_is_changed)
@@ -107,7 +107,7 @@ kik_priv_change_egid(
 
 	saved_egid = getegid() ;
 
-	if( setegid( uid) == 0)
+	if( setegid( gid) == 0)
 	{
 		egid_is_changed = 1 ;
 		

@@ -180,7 +180,7 @@ imlib)
 	echo "** WARNING **"
 	echo " imlib is no longer supported."
 	echo ""
-	IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_IMLIB"
+	IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_IMAGELIB"
 	IMAGELIB_LIBS="`imlib-config --libs`"
 	IMAGELIB_NAME=imlib
 	;;
@@ -197,19 +197,19 @@ imlib2)
 	echo "** WARNING **"
 	echo " imlib2 is no longer supported."
 	echo ""
-	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DUSE_IMLIB"
+	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DUSE_IMAGELIB"
 	IMAGELIB_LIBS="`imlib2-config --libs`"
 	IMAGELIB_NAME=imlib2
 	;;
 gdk-pixbuf)
 	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
 		IMAGELIB_NAME=gdk
-		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_GDK_PIXBUF"
+		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_IMAGELIB"
 	])
 	if test "x$IMAGELIB_NAME" = "xnone" ; then
 		AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
 		if test "$pkg_config" = "yes" ; then
-			IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF"
+			IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_IMAGELIB"
 			IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
 			IMAGELIB_NAME=gdk
 		fi
@@ -222,13 +222,13 @@ gdk-pixbuf)
 gdk-pixbuf2)
 	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
 		IMAGELIB_NAME=gdk
-		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_GDK_PIXBUF"
+		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_IMAGELIB"
 	])
 	;;
 gdk-pixbuf1)
 	AC_CHECK_PROG(gdk_pixbuf_config,gdk-pixbuf-config,yes)
 	if test "$gdk_pixbuf_config" = "yes" ; then
-		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_GDK_PIXBUF"
+		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_IMAGELIB"
 		IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
 		IMAGELIB_NAME=gdk
 	fi

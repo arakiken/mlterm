@@ -1,3 +1,21 @@
+2010-09-23  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_pty_streams.c: '#if && defined(I_PUSH)' is added at ioctl( .. I_PUSH .. ).
+	
+	* kik_utmp_sysv.c (kik_utmp_new):
+	  - setut(x)ent() is moved after kik_priv_restore_egid() from before it.
+	    (putut(x)line() could fail without this fix.)
+	  - kik_priv_change_egid(getgid()) is called not only if pututxline()
+	    succeeds but also if it fails.
+	  - endut(x)ent() is called after putut(x)line().
+	  - ut.ut_session = getsid(0) is added.
+
+	* gtk/INSTALL: Added
+
+	* gtk/mlvte.h, mlvte-in.c, mlvte-ex.c, main.c: Removed
+
+	* USE_IMLIB, USE_GDK_PIXBUF => USE_IMAGELIB
+
 2010-09-22  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: vte_terminal_set_alternative_screen_scroll() function

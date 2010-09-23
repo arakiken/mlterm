@@ -76,7 +76,7 @@ x_prepare_for_main_config(
 		"screen width in percent against font width [100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
 		"screen height in percent against font height [100]") ;
-#if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
+#ifdef  USE_IMAGELIB
 	kik_conf_add_opt( conf , '3' , "contrast" , 0 , "contrast" ,
 		"contrast of background image in percent [100]") ;
 	kik_conf_add_opt( conf , '4' , "gamma" , 0 , "gamma" ,
@@ -114,7 +114,7 @@ x_prepare_for_main_config(
 		"scrollbar foreground color") ;
 	kik_conf_add_opt( conf , 'G' , "vertical" , 0 , "vertical_mode" ,
 		"vertical mode (none/cjk/mongol) [none]") ;
-#if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
+#ifdef  USE_IMAGELIB
 	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
 		"brightness of background image in percent [100]") ;
 #endif
@@ -170,7 +170,7 @@ x_prepare_for_main_config(
 		"use non-Unicode fonts even in UTF-8 mode [false]") ;
 	kik_conf_add_opt( conf , 'o' , "lsp" , 0 , "line_space" ,
 		"extra space between lines in pixels [0]") ;
-#if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
+#ifdef  USE_IMAGELIB
 	kik_conf_add_opt( conf , 'p' , "pic" , 0 , "wall_picture" , 
 		"path for wallpaper (background) image") ;
 #endif
@@ -192,7 +192,7 @@ x_prepare_for_main_config(
 		"terminal type for TERM variable [xterm]") ;
 	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
 		"step in changing font size in GUI configurator [1]") ;
-#if defined(USE_IMLIB) || defined(USE_GDK_PIXBUF)
+#ifdef  USE_IMAGELIB
 	kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
 		"path to an imagefile to be use as an window icon") ;
 #endif

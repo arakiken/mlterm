@@ -1,0 +1,36 @@
+comment -*- mode: text -*-
+
+How to build & install libvte compatible library using mlterm engine.
+
+* Requirements
+  o vte library and headers
+  o gtk+ 2.x
+  o terminal emulators using libvte (gnome-terminal, roxterm or etc)
+
+* Build
+  $ ./configure --with-type-engine=xcore,xft ...
+    (Xft is not required, but strongly recommended because it is impossible
+     to change font settings from preferences menu without xft.)
+  $ make
+  $ cd gtk ; make
+
+* Install (Replace official libvte)
+  $ cp gtk/.libs/libvte.so.9.0.0 [where official libvte is installed]/
+  $ ln -sf libvte.so.9.0.0 [where official libvte is installed]/libvte.so.9
+
+* Start terminal emulators using libvte
+  $ gnome-terminal (roxterm or etc)
+  => mlterm inside gnome-terminal is started.
+
+* Notice
+  o Because it is mlterm that works in gnome-terminal or etc,
+    - Configuration files in ~/.mlterm/ are applied.
+    - Configuration protocol (like '$ mlcc [key] [value]') is mostly available.
+    - Pressing Ctrl+Button3 shows 'mlconfig' menu.
+    
+  o Following functions that normal mlterm provides are not available.
+    - Daemon mode
+    - Multiple ptys using Ctrl+F1 / Ctrl+F2 / Ctrl+F3
+    
+  o Following functions are still faulty.
+    - Pseudo transparency

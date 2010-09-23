@@ -71,13 +71,6 @@ kik_utmp_new(
     return NULL;
   }
 
-  /* reset the input stream to the beginning of the file */
-#ifdef UTMPX
-  setutxent();
-#else
-  setutent();
-#endif
-
   memset( &ut, 0, sizeof(ut) );
 
   if (
@@ -141,6 +134,7 @@ kik_utmp_new(
 
 #ifdef UTMPX
   memcpy(ut.ut_host, host, K_MIN(sizeof(ut.ut_host), strlen(host)));
+  ut.ut_session = getsid(0) ;
 #endif
 
   memcpy( utmp->ut_line, tty,
@@ -151,18 +145,40 @@ kik_utmp_new(
   kik_priv_restore_euid();	/* useless? */
   kik_priv_restore_egid();
 
+  /* reset the input stream to the beginning of the file */
+#ifdef UTMPX
+  setutxent();
+#else
+  setutent();
+#endif
+
   /* insert new entry */
 #ifdef UTMPX
   if ( !pututxline(&ut) )
-#else
-  if ( !pututline(&ut) )
-#endif
   {
     free(utmp);
-    
-    return NULL;
+    utmp = NULL;
   }
+#else
+  /* pututline doesn't return value in XPG2 and SVID2 */
+  pututline(&ut) ;
+#endif
 
+#ifdef  DEBUG
+  if( ! utmp)
+  {
+	kik_debug_printf( KIK_DEBUG_TAG "pututline failed. EUID %d EGID %d => " ,
+		geteuid() , getegid()) ;
+	perror(NULL);
+  }
+#endif
+
+#ifdef UTMPX
+  endutxent();
+#else
+  endutent();
+#endif
+  
   kik_priv_change_euid(getuid());
   kik_priv_change_egid(getgid());
 
@@ -178,16 +194,6 @@ kik_utmp_delete(
   struct utmpx	ut;
 #else
   struct utmp	ut;
-#endif
-
-  kik_priv_restore_euid();
-  kik_priv_restore_egid();
-
-  /* reset the input stream to the beginning of the file */
-#ifdef UTMPX
-  setutxent();
-#else
-  setutent();
 #endif
 
   memset( &ut, 0, sizeof(ut) );
@@ -208,20 +214,30 @@ kik_utmp_delete(
   ut.ut_time	= 0;
 #endif
 
+  kik_priv_restore_euid();
+  kik_priv_restore_egid();
+
+  /* reset the input stream to the beginning of the file */
+#ifdef UTMPX
+  setutxent();
+#else
+  setutent();
+#endif
+
 #ifdef UTMPX
   pututxline(&ut);
 #else
   pututline(&ut);
 #endif
 
-  kik_priv_change_euid(getuid());
-  kik_priv_change_egid(getgid());
-
 #ifdef UTMPX
   endutxent();
 #else
   endutent();
 #endif
+
+  kik_priv_change_euid(getuid());
+  kik_priv_change_egid(getgid());
 
   free(utmp);
 

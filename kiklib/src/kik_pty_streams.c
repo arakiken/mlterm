@@ -124,7 +124,7 @@ kik_pty_fork(
 	/*
 	 * cygwin doesn't have isastream.
 	 */
-#ifdef  HAVE_ISASTREAM
+#if  defined(HAVE_ISASTREAM) && defined(I_PUSH)
 	if( isastream(*slave) == 1)
 	{
 		ioctl(*slave, I_PUSH, "ptem");
