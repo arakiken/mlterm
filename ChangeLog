@@ -1,3 +1,7 @@
+2010-09-24  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_utmp_sysv.c, gtk/INSTALL: Minor fixes
+
 2010-09-23  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_pty_streams.c: '#if && defined(I_PUSH)' is added at ioctl( .. I_PUSH .. ).
@@ -5,6 +9,7 @@
 	* kik_utmp_sysv.c (kik_utmp_new):
 	  - setut(x)ent() is moved after kik_priv_restore_egid() from before it.
 	    (putut(x)line() could fail without this fix.)
+	    (SF Bug #3051467, Thanks to David Kolovratnik)
 	  - kik_priv_change_egid(getgid()) is called not only if pututxline()
 	    succeeds but also if it fails.
 	  - endut(x)ent() is called after putut(x)line().

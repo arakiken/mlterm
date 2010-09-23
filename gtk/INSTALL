@@ -15,8 +15,11 @@ How to build & install libvte compatible library using mlterm engine.
   $ cd gtk ; make
 
 * Install (Replace official libvte)
-  $ cp gtk/.libs/libvte.so.9.0.0 [where official libvte is installed]/
-  $ ln -sf libvte.so.9.0.0 [where official libvte is installed]/libvte.so.9
+  $ cd kiklib ; make install
+  $ cd mkf ; make install
+  $ cd gtk ; make install
+  $ ln -sf [where libvte of mlterm is installed]/libvte.so.9.0.0 \
+	   [where official libvte is installed]/libvte.so.9
 
 * Start terminal emulators using libvte
   $ gnome-terminal (roxterm or etc)

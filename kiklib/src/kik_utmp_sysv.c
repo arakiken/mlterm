@@ -28,7 +28,9 @@
 
 #include "kik_util.h"	/* K_MIN */
 #include "kik_mem.h"	/* malloc/free */
-#include  "kik_privilege.h"
+#include "kik_privilege.h"
+#include "kik_debug.h"
+
 
 #ifdef UTMPX
 #define LINE_WIDTH 32
@@ -220,19 +222,11 @@ kik_utmp_delete(
   /* reset the input stream to the beginning of the file */
 #ifdef UTMPX
   setutxent();
-#else
-  setutent();
-#endif
-
-#ifdef UTMPX
   pututxline(&ut);
-#else
-  pututline(&ut);
-#endif
-
-#ifdef UTMPX
   endutxent();
 #else
+  setutent();
+  pututline(&ut);
   endutent();
 #endif
 
