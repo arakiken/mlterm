@@ -1,3 +1,10 @@
+2010-09-25  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window.c: XK_Num_Lock is added to default_keysyms in
+	  x_window_get_mod_ignore_mask() to fix SF Bug #3072833
+	  which was caused by 2010-06-03 fix.
+	  (Thanks to Andreas Metzler)
+
 2010-09-24  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_utmp_sysv.c, gtk/INSTALL: Minor fixes

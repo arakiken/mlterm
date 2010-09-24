@@ -2057,7 +2057,7 @@ key_pressed(
 		is_app_cursor_keys = ml_term_is_app_cursor_keys( screen->term) ;
 		is_app_keypad = ml_term_is_app_keypad( screen->term) ;
 
-		if ( event->state)
+		if ( event->state)	/* Check unmasked (raw) state of event. */
 		{
 			int  is_shift ;
 			int  is_meta ;
@@ -2210,7 +2210,7 @@ key_pressed(
 				}
 				else
 				{
-					return ;
+					goto  no_keypad ;
 				}
 				
 				goto  write_buf ;
@@ -2239,7 +2239,8 @@ key_pressed(
 						sizeof(table) / sizeof(table[0])) ;
 			}
 		}
-		
+
+no_keypad:
 		if( ( buf = x_shortcut_str( screen->shortcut , ksym , masked_state)))
 		{
 			if( strncmp( buf , "proto:" , 6) == 0)
@@ -2588,6 +2589,7 @@ write_buf:
 
 			buf = buf_escseq ;
 		}
+		/* Check unmasked (raw) state of event. */
 		else if( screen->mod_meta_mask & event->state)
 		{
 			if( screen->mod_meta_mode == MOD_META_OUTPUT_ESC)
