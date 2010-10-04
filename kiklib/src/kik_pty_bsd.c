@@ -79,8 +79,7 @@ login_tty(
 static int
 open_pty(
 	int *  master ,
-	int *  slave ,
-	char **  slave_name
+	int *  slave
 	)
 {
 	char  name[] = "/dev/XtyXX" ;
@@ -131,14 +130,7 @@ open_pty(
 				
 				if( ( *slave = open( name, O_RDWR, 0)) != -1)
 				{
-					if( ( *slave_name = strdup( name)) == NULL)
-					{
-						close( *slave) ;
-					}
-					else
-					{
-						return  1 ;
-					}
+					return  1 ;
 				}
 
 				close( *master);
@@ -152,21 +144,17 @@ open_pty(
 
 /* --- global functions --- */
 
-/*
- * slave_name memory must be freed by a caller.
- */
 pid_t
 kik_pty_fork(
 	int *  master ,
-	int *  slave ,
-	char **  slave_name
+	int *  slave
 	)
 {
 	pid_t pid ;
 	struct termios  tio ;
 	int  fd ;
 
-	if( ! open_pty( master , slave , slave_name))
+	if( ! open_pty( master , slave))
 	{
 		return  -1 ;
 	}
@@ -176,8 +164,6 @@ kik_pty_fork(
 	{
 		/* fork failed */
 
-		free( *slave_name) ;
-		
 		return  -1 ;
 	}
 	else if( pid == 0)
@@ -304,4 +290,21 @@ kik_pty_fork(
 	kik_file_set_cloexec( *slave) ;	
 	
 	return  pid ;
+}
+
+int
+kik_pty_helper_close(
+	int  pty
+	)
+{
+	return  0 ;
+}
+
+void
+kik_pty_helper_set_flag(
+	int  lastlog ,
+	int  utmp ,
+	int  wtmp
+	)
+{
 }

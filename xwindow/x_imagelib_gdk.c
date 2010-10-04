@@ -634,7 +634,7 @@ root_pixmap(
 #ifdef DEBUG
 		else
 		{
-			kik_warn_printf(KIK_DEBUG_TAG "failed tp read prop\n") ;
+			kik_warn_printf(KIK_DEBUG_TAG "failed to read prop\n") ;
 		}
 #endif
 	}

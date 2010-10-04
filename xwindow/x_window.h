@@ -142,7 +142,7 @@ typedef struct  x_window
 
 	int8_t  is_sel_owner ;
 	int8_t  use_buffer ;
-	int8_t  wall_picture_is_set ;
+	int8_t  wall_picture_is_set ;	/* Actually set picture (including transparency) or not. */
 	int8_t  is_transparent ;
 	int8_t  is_scrollable ;
 	int8_t  is_focused ;

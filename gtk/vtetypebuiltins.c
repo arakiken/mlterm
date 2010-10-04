@@ -3,6 +3,10 @@
 
 #include <vte/vte.h>
 
+#ifndef  VTE_CHECK_VERSION
+#define  VTE_CHECK_VERSION(a,b,c)  (0)
+#endif
+
 /* enumerations from "vte.h" */
 GType
 vte_terminal_erase_binding_get_type (void)
@@ -15,10 +19,8 @@ vte_terminal_erase_binding_get_type (void)
       { VTE_ERASE_ASCII_BACKSPACE, "VTE_ERASE_ASCII_BACKSPACE", "ascii-backspace" },
       { VTE_ERASE_ASCII_DELETE, "VTE_ERASE_ASCII_DELETE", "ascii-delete" },
       { VTE_ERASE_DELETE_SEQUENCE, "VTE_ERASE_DELETE_SEQUENCE", "delete-sequence" },
-#ifdef  VTE_CHECK_VERSION
 #if  VTE_CHECK_VERSION(0,20,4)
       { VTE_ERASE_TTY, "VTE_ERASE_TTY", "tty" },
-#endif
 #endif
       { 0, NULL, NULL }
     };
@@ -31,7 +33,6 @@ vte_terminal_erase_binding_get_type (void)
   return g_define_type_id__volatile;
 }
 
-#ifdef  VTE_CHECK_VERSION
 #if  VTE_CHECK_VERSION(0,17,1)
 GType
 vte_terminal_cursor_blink_mode_get_type (void)
@@ -75,9 +76,7 @@ vte_terminal_cursor_shape_get_type (void)
   return g_define_type_id__volatile;
 }
 #endif
-#endif
 
-#ifdef  VTE_CHECK_VERSION
 #if  VTE_CHECK_VERSION(0,23,4)
 GType
 vte_terminal_write_flags_get_type (void)
@@ -97,7 +96,6 @@ vte_terminal_write_flags_get_type (void)
     
   return g_define_type_id__volatile;
 }
-#endif
 #endif
 
 #ifndef  VTE_DISABLE_DEPRECATED

@@ -52,6 +52,12 @@
 
 #undef  HAVE_GETGID
 
+#undef  HAVE_RECVMSG
+
+#undef  HAVE_SETPGID
+
+#undef  HAVE_SOCKETPAIR
+
 #undef  HAVE_SNPRINTF
 
 #undef  CONCATABLE_FUNCTION

@@ -325,7 +325,10 @@ AC_SUBST(IND_CFLAGS)
 AC_ARG_ENABLE(utmp,
 	[  --enable-utmp           utmp (Experimental) @<:@default=disabled@:>@],
 	utmp=$enable_utmp, utmp="no")
-if test "$utmp" = "yes" ; then
+AC_ARG_ENABLE(pty_helper,
+	[  --enable-pty-helper     use pty helper @<:@default=disabled@:>@],
+	pty_helper=$enable_pty_helper)
+if test "$utmp" = "yes" -a "$pty_helper" = "no" ; then
 	UTMP_CFLAGS="-DUSE_UTMP"
 	has_utmp=`grep utmp /etc/group 2>/dev/null`
 	if test "$has_utmp" ; then

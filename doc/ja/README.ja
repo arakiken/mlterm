@@ -100,6 +100,11 @@ comment $Id$
       SCIM (Smart Common Input Method platform) をサポートします。
       libscim が必要です。
 
+    --enable-pty-helper
+      gnome-pty-helper をサポートします。(BSD style pty のシステムでは無効です。)
+      なお、gnome-pty-helper は ${libexecdir}/ ディレクトリに配置する必要があり
+      ます。
+
     --with-tools
       tool/ か contrib/tool/ 以下の指定されたツールをビルドします。
 

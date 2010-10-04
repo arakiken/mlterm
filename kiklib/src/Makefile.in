@@ -3,6 +3,7 @@ top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
+libexecdir = @libexecdir@
 
 LIBDIR = $(DESTDIR)$(libdir)
 INCDIR = $(DESTDIR)$(prefix)/include
@@ -15,7 +16,8 @@ CC = @CC@
 INSTALL = @INSTALL@
 LIBTOOL = @LIBTOOL@
 
-CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @DL_CFLAGS@
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @DL_CFLAGS@ \
+	-DLIBEXECDIR=\"${libexecdir}\"
 LIBS = $(LIBS_LOCAL) @XPG4_LIBS@ @DL_LIBS@ @UTMP_LIBS@
 
 COMOBJ = kik_debug.o kik_map.o kik_args.o kik_mem.o kik_conf.o kik_file.o kik_path.o \
@@ -33,7 +35,7 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 LIBNAME=libkik
 LIBNAME_DEB=libkik_deb
-MAJOR = 11
+MAJOR = 12
 MINOR = 0
 
 SUBDIRS = config util io collection sys i18n

@@ -47,14 +47,10 @@
 
 /* --- global functions --- */
 
-/*
- * slave_name memory must be freed by a caller.
- */
 pid_t
 kik_pty_fork(
 	int *  master ,
-	int *  slave ,
-	char **  slave_name
+	int *  slave
 	)
 {
 	pid_t pid ;
@@ -219,21 +215,12 @@ kik_pty_fork(
 		}
 	}
 
-	if( ( *slave_name = strdup( ttydev)) == NULL)
-	{
-		close( *master) ;
-		close( *slave) ;
-
-		return  -1 ;
-	}
-	
 	pid = fork() ;
 
 	if( pid == -1)
 	{
 		/* fork failed */
 
-		free( *slave_name) ;
 		close( *master) ;
 		close( *slave) ;
 
@@ -326,4 +313,21 @@ kik_pty_fork(
 	kik_file_set_cloexec( *slave) ;
 
 	return  pid ;
+}
+
+int
+kik_pty_helper_close(
+	int  pty
+	)
+{
+	return  0 ;
+}
+
+void
+kik_pty_helper_set_flag(
+	int  lastlog ,
+	int  utmp ,
+	int  wtmp
+	)
+{
 }

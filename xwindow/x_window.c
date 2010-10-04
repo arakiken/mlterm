@@ -58,7 +58,8 @@
 #define  XA_MWM_HINTS(display) (XInternAtom(display, "_MOTIF_WM_HINTS", True))
 
 #define  IS_INHERIT_TRANSPARENT(win) \
-	((win)->pic_mod && ! x_picture_modifier_is_normal( (win)->pic_mod))
+	( ( (win)->pic_mod == NULL || x_picture_modifier_is_normal( (win)->pic_mod)) && \
+	  inherit_transparent)
 
 
 typedef struct {
@@ -87,6 +88,7 @@ typedef struct {
 /* --- static variables --- */
 
 static int  click_interval = 250 ;	/* millisecond, same as xterm. */
+static int  inherit_transparent = 0 ;
 
 
 /* --- static functions --- */
@@ -222,6 +224,29 @@ error:
 }
 
 static int
+unset_transparent(
+	x_window_t *  win
+	)
+{
+	/*
+	 * XXX
+	 * If previous mode is not modified transparent,
+	 * ParentRelative mode of parent windows should be unset.
+	 */
+
+	/*
+	 * !! Notice !!
+	 * this must be done before x_window_unset_wall_picture() because
+	 * x_window_unset_wall_picture() doesn't do anything if is_transparent
+	 * flag is on.
+	 */
+	win->is_transparent = 0 ;
+	win->pic_mod = NULL ;
+
+	return  x_window_unset_wall_picture( win) ;
+}
+
+static int
 set_transparent(
 	x_window_t *  win
 	)
@@ -233,7 +258,7 @@ set_transparent(
 		 * If previous mode is not modified transparent,
 		 * ParentRelative mode of parent windows should be unset.
 		 */
-		 
+
 		if( x_root_pixmap_available( win->disp->display))
 		{
 			/*
@@ -244,13 +269,14 @@ set_transparent(
 		}
 		else
 		{
-			win->is_transparent = 0 ;
-			win->pic_mod = NULL ;
-
-			return  0 ;
+			kik_msg_printf( " _X_ROOTPMAP_ID is not found."
+				" Using ParentRelative for transparency instead.\n") ;
+			
+			inherit_transparent = 1 ;
 		}
 	}
-	else
+	
+	if( IS_INHERIT_TRANSPARENT(win))
 	{
 		/*
 		 * Root - Window A - Window C
@@ -261,7 +287,7 @@ set_transparent(
 		 */
 		 
 		Window  parent ;
-		
+				
 		while( win->parent)
 		{
 			/* win->is_transparent is set appropriately in set_transparent() */
@@ -288,35 +314,16 @@ set_transparent(
 			}
 			
 			XSetWindowBackgroundPixmap( win->disp->display , parent , ParentRelative) ;
-
-			
 		}
 
 		return  1 ;
 	}
-}
-
-static int
-unset_transparent(
-	x_window_t *  win
-	)
-{
-	/*
-	 * XXX
-	 * If previous mode is not modified transparent,
-	 * ParentRelative mode of parent windows should be unset.
-	 */
-
-	/*
-	 * !! Notice !!
-	 * this must be done before x_window_unset_wall_picture() because
-	 * x_window_unset_wall_picture() doesn't do anything if is_transparent
-	 * flag is on.
-	 */
-	win->is_transparent = 0 ;
-	win->pic_mod = NULL ;
-
-	return  x_window_unset_wall_picture( win) ;
+	else
+	{
+		unset_transparent( win) ;
+		
+		return  0 ;
+	}
 }
 
 static void
@@ -324,7 +331,7 @@ notify_focus_in_to_children(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	if( ! win->is_focused)
 	{
@@ -349,7 +356,7 @@ notify_focus_out_to_children(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	if( win->is_focused)
 	{
@@ -374,11 +381,18 @@ notify_configure_to_children(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
+	kik_debug_printf( "HELO\n") ;
 	if( win->is_transparent &&
-		( ! IS_INHERIT_TRANSPARENT(win) || win->wall_picture_is_set))
+		/*
+		 * If transparent is by ParentRelative and it is already set,
+		 * set_transparent(win) is not necessary to be called anymore
+		 * in ConfigureNotify event.
+		 */
+		( ! IS_INHERIT_TRANSPARENT(win) || ! win->wall_picture_is_set))
 	{
+	kik_debug_printf( "HELO2\n") ;
 		set_transparent( win) ;
 	}
 	else
@@ -400,21 +414,13 @@ notify_reparent_to_children(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	if( win->is_transparent)
 	{
-		if( ! IS_INHERIT_TRANSPARENT(win) || win->wall_picture_is_set)
-		{
-			set_transparent( win) ;
-		}
-		else
-		{
-		#if  0
-			x_window_clear_all( win) ;
-		#endif
-			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-		}		
+		/* Parent window is changed. => Reset transparent. */
+		
+		set_transparent( win) ;
 	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -428,22 +434,18 @@ notify_property_to_children(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	if( win->is_transparent)
 	{
-		/* Background image of desktop is changed. */
+		/*
+		 * Background image of desktop is changed.
+		 * => Reset non-ParentRelative transparent.
+		 */
 
-		if( ! IS_INHERIT_TRANSPARENT(win) || win->wall_picture_is_set)
+		if( ! IS_INHERIT_TRANSPARENT(win))
 		{
 			set_transparent( win) ;
-		}
-		else
-		{
-		#if  0
-			x_window_clear_all( win) ;
-		#endif
-			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 		}
 	}
 
@@ -459,7 +461,7 @@ is_descendant_window(
 	Window  window
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	if( win->my_window == window)
 	{
@@ -491,7 +493,7 @@ total_min_width(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 	u_int  min_width ;
 
 	min_width = win->min_width + win->margin * 2 ;
@@ -512,7 +514,7 @@ total_min_height(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 	u_int  min_height ;
 
 	min_height = win->min_height + win->margin * 2 ;
@@ -533,7 +535,7 @@ total_base_width(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 	u_int  base_width ;
 
 	base_width = win->base_width + win->margin * 2 ;
@@ -554,7 +556,7 @@ total_base_height(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 	u_int  base_height ;
 
 	base_height = win->base_height + win->margin * 2 ;
@@ -575,7 +577,7 @@ total_width_inc(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 	u_int  width_inc ;
 
 	width_inc = win->width_inc ;
@@ -605,7 +607,7 @@ total_height_inc(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 	u_int  height_inc ;
 
 	height_inc = win->height_inc ;
@@ -960,12 +962,23 @@ x_window_unset_wall_picture(
 		return  0 ;
 	}
 
+	/*
+	 * win->wall_picture_is_set == 0 doesn't mean that following codes
+	 * to disable wall picture is already processed.
+	 * e.g.) If x_window_unset_transparent() is called after
+	 * x_window_set_transparent() before my_window is created,
+	 * XSetWindowBackground() which is not called in x_window_set_bg_color()
+	 * (because is_transparent flag is set by x_window_set_transparent())
+	 * is never called in startup by checking win->wall_picture_is_set as follows.
+	 */
+#if  0
 	if( ! win->wall_picture_is_set)
 	{
 		/* already unset */
 
 		return  1 ;
 	}
+#endif
 
 	if( win->is_transparent)
 	{
@@ -1003,6 +1016,10 @@ x_window_unset_wall_picture(
 	return  1 ;
 }
 
+/*
+ * This function is possible to be called before my_window is created.
+ * (because x_screen_t doesn't contain transparent flag.)
+ */
 int
 x_window_set_transparent(
 	x_window_t *  win ,		/* Transparency is applied to all children recursively */
@@ -1036,34 +1053,32 @@ x_window_set_transparent(
 	return  1 ;
 }
 
+/*
+ * This function is possible to be called before my_window is created.
+ * (because x_screen_t doesn't contain transparent flag.)
+ */
 int
 x_window_unset_transparent(
 	x_window_t *  win
 	)
 {
-	int  count ;
-#if  0
-	Window  parent ;
-	Window  root ;
-	Window *  list ;
-	int  n ;
-#endif
+	u_int  count ;
 
-	if( ! win->is_transparent)
+	if( win->my_window == None)
 	{
-		/* already unset */
-
-		return  1 ;
+		win->is_transparent = 0 ;
 	}
-
-	unset_transparent( win) ;
-
-	if( win->window_exposed)
+	else if( win->is_transparent)
 	{
-	#if  0
-		x_window_clear_all( win) ;
-	#endif
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		unset_transparent( win) ;
+
+		if( win->window_exposed)
+		{
+		#if  0
+			x_window_clear_all( win) ;
+		#endif
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
 	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -1215,7 +1230,7 @@ x_window_show(
 	int  hint
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	if( win->my_window)
 	{
@@ -1517,7 +1532,15 @@ x_window_resize_with_margin(
 	x_event_dispatch_t  flag	/* NOTIFY_TO_PARENT , NOTIFY_TO_MYSELF */
 	)
 {
-	return  x_window_resize( win , width - win->margin * 2 , height - win->margin * 2 , flag) ;
+	u_int  min_width ;
+	u_int  min_height ;
+
+	min_width = total_min_width( win) ;
+	min_height = total_min_height( win) ;
+	
+	return  x_window_resize( win ,
+			width <= min_width ? min_width : width - win->margin * 2 ,
+			height <= min_height ? min_height : height - win->margin * 2 , flag) ;
 }
 
 int
@@ -1835,7 +1858,7 @@ x_window_idling(
 	x_window_t *  win
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -1865,7 +1888,7 @@ x_window_receive_event(
 	XEvent *  event
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
@@ -2167,12 +2190,10 @@ x_window_receive_event(
 		/*
 		 * Optimize transparent processing in notify_configure_to_children.
 		 */
-		while( XCheckMaskEvent( win->disp->display , StructureNotifyMask , &next_ev))
+		while( XCheckTypedWindowEvent( win->disp->display , win->my_window ,
+			ConfigureNotify , &next_ev))
 		{
-			if( next_ev.type == ConfigureNotify)
-			{
-				*event = next_ev ;
-			}
+			*event = next_ev ;
 		}
 
 		is_changed = 0 ;
@@ -2248,12 +2269,10 @@ x_window_receive_event(
 		/*
 		 * Optimize transparent processing in notify_reparent_to_children.
 		 */
-		while( XCheckMaskEvent( win->disp->display , StructureNotifyMask , &next_ev))
+		while( XCheckTypedWindowEvent( win->disp->display , win->my_window ,
+			ReparentNotify , &next_ev))
 		{
-			if( next_ev.type == ReparentNotify)
-			{
-				*event = next_ev ;
-			}
+			*event = next_ev ;
 		}
 		
 		win->x = event->xreparent.x ;

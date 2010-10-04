@@ -76,6 +76,11 @@ Options for configure
   --enable-scim
     Support SCIM (Smart Common Input Method platform) if available.
 
+  --enable-pty-helper
+    Support gnome-pty-helper. (Note that it is impossible to enable
+    gnome-pty-helper in BSD style pty system and that gnome-pty-helper must be
+    placed at ${libexecdir}/ directory.)
+
   --disable-shared
     Disable shared libraries
 

@@ -27,7 +27,6 @@ typedef struct  ml_pty
 {
 	int  master ;		/* master pty fd */
 	int  slave ;
-	char *  slave_name ;
 	pid_t  child_pid ;
 
 #ifdef  USE_UTMP
@@ -65,7 +64,7 @@ ml_pty_new(
 		return  NULL ;
 	}
 
-	pid = kik_pty_fork( &pty->master , &pty->slave , &pty->slave_name) ;
+	pid = kik_pty_fork( &pty->master , &pty->slave) ;
 
 	if( pid == -1)
 	{
@@ -132,7 +131,7 @@ ml_pty_new(
 	/* parent process */
 
 #ifdef  USE_UTMP
-	if( ( pty->utmp = kik_utmp_new( pty->slave_name , host , pty->master)) == NULL)
+	if( ( pty->utmp = kik_utmp_new( ttyname( pty->slave) , host , pty->master)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG "utmp failed.\n") ;
@@ -178,9 +177,10 @@ ml_pty_delete(
 	kik_debug_printf( "%d fd is closed\n" , pty->master) ;
 #endif
 
+	kik_pty_helper_close( pty->master) ;
+
 	close( pty->master) ;
 	close( pty->slave) ;
-	free( pty->slave_name) ;
 		
 	free( pty) ;
 
@@ -451,5 +451,5 @@ ml_pty_get_slave_name(
 	ml_pty_t *  pty
 	)
 {
-	return  pty->slave_name ;
+	return  ttyname( pty->slave) ;
 }

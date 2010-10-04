@@ -3,6 +3,7 @@
  */
 
 #include  <vte/vte.h>
+#include  <vte/reaper.h>
 
 #include  <X11/keysym.h>
 #include  <gdk/gdkx.h>
@@ -17,6 +18,7 @@
 #include  <kiklib/kik_unistd.h>
 #include  <kiklib/kik_locale.h>
 #include  <kiklib/kik_conf_io.h>
+#include  <kiklib/kik_pty.h>		/* kik_pty_helper_set_flag */
 #include  <ml_str_parser.h>
 #include  <ml_term_manager.h>
 #include  <x_screen.h>
@@ -49,6 +51,10 @@
 #define  IS_MLTERM_SCREEN(win)  ((win)->parent_window != None)
 #define  WINDOW_MARGIN  2
 #define  TERM_TYPE  "xterm"
+
+#ifndef  VTE_CHECK_VERSION
+#define  VTE_CHECK_VERSION(a,b,c)  (0)
+#endif
 
 
 struct _VteTerminalPrivate
@@ -87,7 +93,9 @@ static x_display_t  disp ;
 static int  display_opened ;
 static int  timeout_registered ;
 
-static guint signals[LAST_SIGNAL];
+#if  VTE_CHECK_VERSION(0,19,0)
+static guint signals[LAST_SIGNAL] ;
+#endif
 
 static char *  true = "true" ;
 static char *  false = "false" ;
@@ -201,7 +209,8 @@ line_scrolled_out(
 #endif
 
 #ifdef  __DEBUG
-	kik_debug_printf( "line_scrolled_out upper %d value %d\n" , upper + 1 , value + 1) ;
+	kik_debug_printf( KIK_DEBUG_TAG " line_scrolled_out upper %d value %d\n" ,
+		upper + 1 , value + 1) ;
 #endif
 }
 
@@ -234,7 +243,8 @@ bs_mode_exited(
 #endif
 	
 #ifdef  __DEBUG
-	kik_debug_printf( "bs_mode_exited upper %d page_size %d\n" , upper , page_size) ;
+	kik_debug_printf( KIK_DEBUG_TAG " bs_mode_exited upper %d page_size %d\n" ,
+		upper , page_size) ;
 #endif
 }
 
@@ -346,7 +356,7 @@ adjustment_value_changed(
 	page_size = gtk_adjustment_get_page_size( terminal->adjustment) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( "scroll to %d\n" , value - (upper - page_size)) ;
+	kik_debug_printf( KIK_DEBUG_TAG " scroll to %d\n" , value - (upper - page_size)) ;
 #endif
 
 	x_screen_scroll_to( terminal->pvt->screen , value - (upper - page_size)) ;
@@ -394,7 +404,7 @@ reset_vte_size_member(
 	{
 		emit = 1 ;
 	}
-	
+
 	terminal->row_count = ml_term_get_rows( terminal->pvt->screen->term) ;
 	terminal->column_count = ml_term_get_cols( terminal->pvt->screen->term) ;
 
@@ -421,8 +431,40 @@ reset_vte_size_member(
 	#endif
 	}
 
-	GTK_WIDGET(terminal)->requisition.width = ACTUAL_WIDTH( &terminal->pvt->screen->window) ;
-	GTK_WIDGET(terminal)->requisition.height = ACTUAL_HEIGHT( &terminal->pvt->screen->window) ;
+	/*
+	 * XXX
+	 * Vertical writing mode is not supported.
+	 */
+	GTK_WIDGET(terminal)->requisition.width =
+		terminal->column_count * terminal->char_width + WINDOW_MARGIN * 2 ;
+	GTK_WIDGET(terminal)->requisition.height =
+		terminal->row_count * terminal->char_height + WINDOW_MARGIN * 2 ;
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG
+		" char_width %d char_height %d row_count %d column_count %d width %d height %d\n" ,
+		terminal->char_width , terminal->char_height ,
+		terminal->row_count , terminal->column_count ,
+		GTK_WIDGET(terminal)->requisition.width ,
+		GTK_WIDGET(terminal)->requisition.height) ;
+	#if  VTE_CHECK_VERSION(0,23,2)
+	{
+		GtkBorder *  border = NULL ;
+		
+		gtk_widget_style_get( terminal , "inner-border" , &border , NULL) ;
+		if( border)
+		{
+			kik_debug_printf( " inner-border is { %d, %d, %d, %d }\n",
+				border->left, border->right, border->top, border->bottom) ;
+			gtk_border_free(border) ;
+		}
+		else
+		{
+			kik_debug_printf( " inner-border is not found.\n") ;
+		}
+	}
+	#endif
+#endif
 }
 
 static gboolean
@@ -494,6 +536,9 @@ activate_paste(
 {
 	vte_terminal_paste_clipboard( data) ;
 }
+
+
+static void vte_terminal_size_allocate( GtkWidget *  widget , GtkAllocation *  allocation) ;
 
 /*
  * Don't call ml_close_dead_terms() before returning GDK_FILTER_CONTINUE,
@@ -568,15 +613,18 @@ vte_terminal_filter(
 				    ((XEvent*)xevent)->xconfigure.height !=
 					GTK_WIDGET(terminal)->allocation.height)
 				{
-					reset_vte_size_member( terminal) ;
+					GtkAllocation  alloc ;
 
-					gtk_widget_queue_resize_no_redraw( GTK_WIDGET(terminal)) ;
-
+					alloc.x = GTK_WIDGET(terminal)->allocation.x ;
+					alloc.y = GTK_WIDGET(terminal)->allocation.y ;
+					alloc.width = ((XEvent*)xevent)->xconfigure.width ;
+					alloc.height = ((XEvent*)xevent)->xconfigure.height ;
+					
 				#ifdef  __DEBUG
-					kik_debug_printf( "reset size %d %d\n" ,
-					       ACTUAL_WIDTH(&terminal->pvt->screen->window) ,
-					       ACTUAL_HEIGHT(&terminal->pvt->screen->window)) ;
+					kik_debug_printf( KIK_DEBUG_TAG " child is resized\n") ;
 				#endif
+				
+					vte_terminal_size_allocate( terminal , &alloc) ;
 				}
 
 				return  GDK_FILTER_REMOVE ;
@@ -585,6 +633,34 @@ vte_terminal_filter(
 	}
 
 	return  GDK_FILTER_CONTINUE ;
+}
+
+static void
+vte_terminal_finalize(
+	GObject *  obj
+	)
+{
+	VteTerminal *  terminal ;
+	GtkSettings *  settings ;
+
+	terminal = VTE_TERMINAL(obj) ;
+
+	if( terminal->adjustment)
+	{
+		g_signal_handlers_disconnect_by_func( terminal->adjustment ,
+				adjustment_value_changed , terminal) ;
+		g_object_unref( terminal->adjustment) ;
+	}
+
+	settings = gtk_widget_get_settings( GTK_WIDGET(obj)) ;
+	g_signal_handlers_disconnect_matched( settings , G_SIGNAL_MATCH_DATA ,
+		0 , 0 , NULL , NULL , terminal) ;
+
+	G_OBJECT_CLASS(vte_terminal_parent_class)->finalize(obj) ;
+	
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " vte_terminal_unrealize\n") ;
+#endif
 }
 
 static void
@@ -609,7 +685,7 @@ vte_terminal_realize(
 	}
 
 #ifdef  __DEBUG
-	kik_debug_printf( "vte_realized %d %d %d %d\n" ,
+	kik_debug_printf( KIK_DEBUG_TAG " vte_realized %d %d %d %d\n" ,
 		widget->allocation.x , widget->allocation.y ,
 		widget->allocation.width , widget->allocation.height) ;
 #endif
@@ -660,12 +736,9 @@ vte_terminal_realize(
 	/* NULL terminator */
 	*env_p = NULL ;
 
+#if  0
 	vte_terminal_forkpty( VTE_TERMINAL(widget) , env , NULL , FALSE, FALSE, FALSE) ;
-
-	VTE_TERMINAL(widget)->pvt->io = g_io_channel_unix_new(
-				ml_term_get_pty_fd( VTE_TERMINAL(widget)->pvt->screen->term)) ;
-	VTE_TERMINAL(widget)->pvt->src_id = g_io_add_watch( VTE_TERMINAL(widget)->pvt->io ,
-						G_IO_IN , vte_terminal_io , widget) ;
+#endif
 
 	if( ! timeout_registered)
 	{
@@ -683,7 +756,7 @@ vte_terminal_realize(
 	 * allocation passed by size_allocate is not necessarily same as requisition
 	 * passed by size_request, so x_window_resize must be called here.
 	 */
-	x_window_resize( &VTE_TERMINAL(widget)->pvt->screen->window ,
+	x_window_resize_with_margin( &VTE_TERMINAL(widget)->pvt->screen->window ,
 		widget->allocation.width , widget->allocation.height , NOTIFY_TO_MYSELF) ;
 }
 
@@ -696,15 +769,16 @@ vte_terminal_unrealize(
 
 	terminal = VTE_TERMINAL(widget) ;
 
-	g_source_destroy( g_main_context_find_source_by_id( NULL , terminal->pvt->src_id)) ;
-#if  0
-	kik_debug_printf( "g_io_channel %d\n" , terminal->pvt->io->ref_count) ;
-#endif
-	g_io_channel_unref( terminal->pvt->io) ;
-#if  0
-	g_io_channel_shutdown( terminal->pvt->io , FALSE , NULL) ;
-#endif
-	terminal->pvt->io = NULL ;
+	if( terminal->pvt->io)
+	{
+		g_source_destroy(
+			g_main_context_find_source_by_id( NULL , terminal->pvt->src_id)) ;
+		g_io_channel_unref( terminal->pvt->io) ;
+	#if  0
+		g_io_channel_shutdown( terminal->pvt->io , FALSE , NULL) ;
+	#endif
+		terminal->pvt->io = NULL ;
+	}
 	
 	x_screen_detach( terminal->pvt->screen) ;
 	x_font_manager_delete( terminal->pvt->screen->font_man) ;
@@ -713,8 +787,6 @@ vte_terminal_unrealize(
 	x_display_remove_root( &disp , &terminal->pvt->screen->window) ;
 
 	terminal->pvt->screen = NULL ;
-	
-	free( terminal->pvt) ;
 
 	if( GTK_WIDGET_MAPPED( widget))
 	{
@@ -728,7 +800,7 @@ vte_terminal_unrealize(
 	GTK_WIDGET_UNSET_FLAGS( widget , GTK_REALIZED) ;
 	
 #ifdef  __DEBUG
-	kik_debug_printf( "vte_terminal_unrealize\n") ;
+	kik_debug_printf( KIK_DEBUG_TAG " vte_terminal_unrealize\n") ;
 #endif
 }
 
@@ -741,7 +813,7 @@ vte_terminal_focus_in_event(
 	if( ( GTK_WIDGET_FLAGS(widget) & GTK_MAPPED))
 	{
 	#ifdef  __DEBUG
-		kik_debug_printf( "focus in\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " focus in\n") ;
 	#endif
 
 		XSetInputFocus( gdk_x11_drawable_get_xdisplay( widget->window) ,
@@ -761,7 +833,7 @@ vte_terminal_size_request(
 	*req = widget->requisition ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( "req %d %d cur alloc %d %d\n" , req->width , req->height ,
+	kik_debug_printf( KIK_DEBUG_TAG " req %d %d cur alloc %d %d\n" , req->width , req->height ,
 			widget->allocation.width , widget->allocation.height) ;
 #endif
 }
@@ -772,52 +844,48 @@ vte_terminal_size_allocate(
 	GtkAllocation *  allocation
 	)
 {
-	widget->allocation = *allocation ;
-	widget->requisition.width = allocation->width ;
-	widget->requisition.height = allocation->height ;
-
+	int  is_not_resized ;
+	
 #ifdef  __DEBUG
-	kik_debug_printf( "alloc %d %d %d %d\n" ,
+	kik_debug_printf( KIK_DEBUG_TAG " alloc %d %d %d %d => %d %d %d %d\n" ,
+		widget->allocation.x , widget->allocation.y ,
+		widget->allocation.width , widget->allocation.height ,
 		allocation->x , allocation->y , allocation->width , allocation->height) ;
 #endif
 
+	if( (is_not_resized = (widget->allocation.width == allocation->width &&
+	                       widget->allocation.height == allocation->height)) &&
+	    widget->allocation.x == allocation->x &&
+	    widget->allocation.y == allocation->y)
+	{
+		return ;
+	}
+	
+	widget->allocation = *allocation ;
+
 	if( GTK_WIDGET_REALIZED(widget))
 	{
+		if( ! is_not_resized)
+		{
+			x_window_resize_with_margin( &VTE_TERMINAL(widget)->pvt->screen->window ,
+				allocation->width , allocation->height , NOTIFY_TO_MYSELF) ;
+		
+			reset_vte_size_member( VTE_TERMINAL(widget)) ;
+		
+			gtk_widget_queue_resize_no_redraw( widget) ;
+		}
+		
 		gdk_window_move_resize( widget->window,
-					allocation->x, allocation->y,
-					allocation->width, allocation->height);
-
-		x_window_resize( &VTE_TERMINAL(widget)->pvt->screen->window ,
-			allocation->width , allocation->height , NOTIFY_TO_MYSELF) ;
+				allocation->x, allocation->y,
+				allocation->width, allocation->height) ;
 	}
-}
-
-static void
-vte_terminal_finalize(
-	GObject *  obj
-	)
-{
-	VteTerminal *  terminal ;
-	GtkSettings *  settings ;
-
-	terminal = VTE_TERMINAL(obj) ;
-
-	if( terminal->adjustment)
+	else
 	{
-		g_signal_handlers_disconnect_by_func( terminal->adjustment ,
-				adjustment_value_changed , terminal) ;
-		g_object_unref( terminal->adjustment) ;
+		/*
+		 * x_window_resize_with_margin( widget->allocation.width, height)
+		 * will be called in vte_terminal_realize().
+		 */
 	}
-
-	settings = gtk_widget_get_settings( GTK_WIDGET(obj)) ;
-	g_signal_handlers_disconnect_matched( settings , G_SIGNAL_MATCH_DATA ,
-		0 , 0 , NULL , NULL , terminal) ;
-
-	G_OBJECT_CLASS(vte_terminal_parent_class)->finalize(obj) ;
-	
-#ifdef  __DEBUG
-	kik_debug_printf( "vte_terminal_unrealize\n") ;
-#endif
 }
 
 static void
@@ -834,14 +902,19 @@ vte_terminal_class_init(
 	
 	kik_priv_change_euid( kik_getuid()) ;
 	kik_priv_change_egid( kik_getgid()) ;
-	
+
+#if  0
+	bindtextdomain( "vte" , LOCALEDIR) ;
+	binid_textdomain_codeset( "vte" , "UTF-8") ;
+#endif
+
 	if( ! kik_locale_init( ""))
 	{
 		kik_msg_printf( "locale settings failed.\n") ;
 	}
 
 	kik_set_sys_conf_dir( CONFIG_PATH) ;
-	
+
 	ml_term_manager_init( 1) ;
 	x_color_config_init( &color_config) ;
 	x_shortcut_init( &shortcut) ;
@@ -853,6 +926,8 @@ vte_terminal_class_init(
 	x_prepare_for_main_config( conf) ;
 	x_main_config_init( &main_config , conf , 1 , argv) ;
 	kik_conf_delete( conf) ;
+
+	g_type_class_add_private( vclass , sizeof(VteTerminalPrivate)) ;
 	
 	oclass = G_OBJECT_CLASS(vclass) ;
 	wclass = GTK_WIDGET_CLASS(vclass) ;
@@ -1082,20 +1157,26 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__INT ,
 			G_TYPE_NONE , 1 , G_TYPE_INT) ;
 
-#ifdef  VTE_CHECK_VERSION
-#if  VTE_CHECK_VERSION(0,24,0)
+#if  VTE_CHECK_VERSION(0,23,2)
+	/*
+	 * doc/references/html/VteTerminal.html describes that inner-border property
+	 * is since 0.24.0, but actually it is added at Nov 30 2009 (between 0.23.1 and 0.23.2)
+	 * in ChangeLog.
+	 */
 	gtk_widget_class_install_style_property( wclass ,
 		g_param_spec_boxed( "inner-border" , NULL , NULL , GTK_TYPE_BORDER ,
 			G_PARAM_READABLE | G_PARAM_STATIC_STRINGS)) ;
 
 	gtk_rc_parse_string( "style \"vte-default-style\" {\n"
-			"VteTerminal::inner-border = { 1, 1, 1, 1 }\n"
+			"VteTerminal::inner-border = { "
+			KIK_INT_TO_STR(WINDOW_MARGIN) " , "
+			KIK_INT_TO_STR(WINDOW_MARGIN) " , "
+			KIK_INT_TO_STR(WINDOW_MARGIN) " , "
+			KIK_INT_TO_STR(WINDOW_MARGIN) " }\n"
 			"}\n"
 			"class \"VteTerminal\" style : gtk \"vte-default-style\"\n") ;
 #endif
-#endif
 
-#ifdef  VTE_CHECK_VERSION
 #if  VTE_CHECK_VERSION(0,19,0)
 	signals[COPY_CLIPBOARD] =
 		g_signal_new( I_("copy-clipboard") ,
@@ -1113,7 +1194,6 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 #endif
-#endif
 }
 
 static void
@@ -1129,8 +1209,12 @@ vte_terminal_init(
 
 	GTK_WIDGET_SET_FLAGS( terminal , GTK_CAN_FOCUS) ;
 
-	terminal->pvt = calloc( 1 , sizeof(VteTerminalPrivate)) ;
-	
+	terminal->pvt = G_TYPE_INSTANCE_GET_PRIVATE( terminal , VTE_TYPE_TERMINAL ,
+				VteTerminalPrivate) ;
+
+	/* We do our own redrawing. */
+	gtk_widget_set_redraw_on_allocate( &terminal->widget , FALSE) ;
+
 	terminal->adjustment = GTK_ADJUSTMENT(gtk_adjustment_new( 0 , 0 ,
 				main_config.rows , 1 , main_config.rows , main_config.rows)) ;
 	g_object_ref_sink( terminal->adjustment) ;
@@ -1239,6 +1323,8 @@ vte_terminal_init(
 	terminal->window_title = vte_terminal_get_window_title( terminal) ;
 	terminal->window_title = vte_terminal_get_window_title( terminal) ;
 
+	gtk_widget_ensure_style( &terminal->widget) ;
+
 	reset_vte_size_member( terminal) ;
 }
 
@@ -1263,8 +1349,21 @@ vte_terminal_fork_command(
 	gboolean  wtmp
 	)
 {
-	ml_term_open_pty( terminal->pvt->screen->term , command , argv , envv ,
-		gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal)))) ;
+	if( ! terminal->pvt->screen->term->pty)
+	{
+		kik_pty_helper_set_flag( lastlog , utmp , wtmp) ;
+		
+		if( ! ml_term_open_pty( terminal->pvt->screen->term , command , argv , envv ,
+			gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal)))))
+		{
+			return  -1 ;
+		}
+
+		terminal->pvt->io = g_io_channel_unix_new(
+					ml_term_get_pty_fd( terminal->pvt->screen->term)) ;
+		terminal->pvt->src_id = g_io_add_watch( terminal->pvt->io ,
+							G_IO_IN , vte_terminal_io , terminal) ;
+	}
 	
 	return  ml_term_get_child_pid( terminal->pvt->screen->term) ;
 }
@@ -1303,11 +1402,9 @@ vte_terminal_forkpty(
 #endif
 
 	argv[1] = NULL ;
-
-	ml_term_open_pty( terminal->pvt->screen->term , cmd_path , argv , envv ,
-		gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal)))) ;
-
-	return  ml_term_get_child_pid( terminal->pvt->screen->term) ;
+	
+	return  vte_terminal_fork_command( terminal , cmd_path , argv , envv ,
+			directory , lastlog , utmp , wtmp) ;
 }
 
 void
@@ -1417,13 +1514,11 @@ vte_terminal_set_size(
 	)
 {
 #ifdef  __DEBUG
-	kik_debug_printf( "set_size %d %d\n" , columns , rows) ;
+	kik_debug_printf( KIK_DEBUG_TAG " set cols %d rows %d\n" , columns , rows) ;
 #endif
 
-	GTK_WIDGET(terminal)->requisition.width =
-		x_col_width( terminal->pvt->screen) * columns + WINDOW_MARGIN * 2 ;
-	GTK_WIDGET(terminal)->requisition.height =
-		x_line_height( terminal->pvt->screen) * rows + WINDOW_MARGIN * 2 ;
+	ml_term_resize( terminal->pvt->screen->term , columns , rows) ;
+	reset_vte_size_member( terminal) ;
 
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
@@ -1556,7 +1651,7 @@ vte_terminal_set_color_foreground(
 	str = gdk_color_to_string( foreground) ;
 	
 #ifdef  __DEBUG
-	kik_debug_printf( "set_color_foreground %s\n" , str) ;
+	kik_debug_printf( KIK_DEBUG_TAG " set_color_foreground %s\n" , str) ;
 #endif
 
 	free( main_config.fg_color) ;
@@ -1594,7 +1689,7 @@ vte_terminal_set_color_background(
 	str = gdk_color_to_string( background) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( "set_color_background %s\n" , str) ;
+	kik_debug_printf( KIK_DEBUG_TAG " set_color_background %s\n" , str) ;
 #endif
 
 	free( main_config.bg_color) ;
@@ -1708,7 +1803,7 @@ vte_terminal_set_background_transparent(
 	{
 		value = false ;
 	}
-	
+
 	x_screen_set_config( terminal->pvt->screen , NULL , "use_transbg" , value) ;
 }
 
@@ -1720,7 +1815,6 @@ vte_terminal_set_opacity(
 {
 }
 
-#ifdef  VTE_CHECK_VERSION
 #if  VTE_CHECK_VERSION(0,17,1)
 void
 vte_terminal_set_cursor_blink_mode(
@@ -1754,7 +1848,6 @@ vte_terminal_get_cursor_shape(
 	return  VTE_CURSOR_SHAPE_IBEAM ;
 }
 #endif
-#endif
 
 void
 vte_terminal_set_scrollback_lines(
@@ -1783,7 +1876,7 @@ vte_terminal_set_font(
 	name = pango_font_description_to_string( font_desc) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( "set_font %s\n" , name) ;
+	kik_debug_printf( KIK_DEBUG_TAG " set_font %s\n" , name) ;
 #endif
 
 	vte_terminal_set_font_from_string( terminal , name) ;
@@ -1798,18 +1891,34 @@ vte_terminal_set_font_from_string(
 	)
 {
 #ifdef  __DEBUG
-	kik_debug_printf( "set_font_from_string %s\n" , name) ;
+	kik_debug_printf( KIK_DEBUG_TAG " set_font_from_string %s\n" , name) ;
 #endif
 
 	if( x_customize_font_file( "aafont" , "DEFAULT" , name , 0))
 	{
 		x_font_cache_unload_all() ;
-		reset_vte_size_member( terminal) ;
-		
+	
 		if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 		{
 			x_screen_reset_view( terminal->pvt->screen) ;
 		}
+		else
+		{
+			/*
+			 * XXX
+			 * Forcibly fix width and height members of x_window_t,
+			 * or widget->requisition is not set correctly in
+			 * reset_vte_size_member.
+			 */
+			terminal->pvt->screen->window.width =
+				x_col_width( terminal->pvt->screen) *
+				ml_term_get_cols( terminal->pvt->screen->term) ;
+			terminal->pvt->screen->window.height =
+				x_line_height( terminal->pvt->screen) *
+				ml_term_get_rows( terminal->pvt->screen->term) ;
+		}
+		
+		reset_vte_size_member( terminal) ;
 	}
 }
 
@@ -1883,13 +1992,11 @@ vte_terminal_set_backspace_binding(
 	{
 		seq = "\x1b[3~" ;
 	}
-#ifdef  VTE_CHECK_VERSION
 #if  VTE_CHECK_VERSION(0,20,4)
 	else if( binding == VTE_ERASE_TTY)
 	{
 		return ;
 	}
-#endif
 #endif
 	else
 	{
@@ -1923,13 +2030,11 @@ vte_terminal_set_delete_binding(
 	{
 		seq = "\x1b[3~" ;
 	}
-#ifdef  VTE_CHECK_VERSION
 #if  VTE_CHECK_VERSION(0,20,4)
 	else if( binding == VTE_ERASE_TTY)
 	{
 		return ;
 	}
-#endif
 #endif
 	else
 	{
@@ -2298,11 +2403,11 @@ vte_terminal_set_font_full(
 	
 	if( antialias == VTE_ANTI_ALIAS_FORCE_ENABLE)
 	{
-		value = "true" ;
+		value = true ;
 	}
 	else if( antialias == VTE_ANTI_ALIAS_FORCE_ENABLE)
 	{
-		value = "false" ;
+		value = false ;
 	}
 	else
 	{
@@ -2326,11 +2431,11 @@ vte_terminal_set_font_from_string_full(
 	
 	if( antialias == VTE_ANTI_ALIAS_FORCE_ENABLE)
 	{
-		value = "true" ;
+		value = true ;
 	}
 	else if( antialias == VTE_ANTI_ALIAS_FORCE_ENABLE)
 	{
-		value = "false" ;
+		value = false ;
 	}
 	else
 	{
@@ -2343,7 +2448,23 @@ set_font:
 	vte_terminal_set_font_from_string( terminal , name) ;
 }
 
-#endif
+/* VteReaper * */
+VteReaper *
+vte_reaper_get(void)
+{
+	return  g_object_new( VTE_TYPE_REAPER , NULL) ;
+}
+
+int
+vte_reaper_add_child(
+	GPid  pid
+	)
+{
+	return  0 ;
+}
+
+#endif	/* VTE_DISABLE_DEPRECATED */
+
 
 /* Ubuntu original function ? */
 void
@@ -2368,8 +2489,10 @@ x_term_manager_add_fd(
 {
 	if( gio)
 	{
-		kik_debug_printf( " x_term_manager_add_fd failed\n") ;
-		
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " x_term_manager_add_fd failed\n") ;
+	#endif
+	
 		return  0 ;
 	}
 

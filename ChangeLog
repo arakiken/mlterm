@@ -1,3 +1,36 @@
+2010-10-01  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window.c:
+	  - XCheckTypedWindoEvent is used instead of XCheckMaskEvent
+	    in x_window_receive_event.
+	  - Checking win->wall_picture_is_set is removed in
+	    x_window_unset_wall_picture().
+	  - x_window_resize_with_margin() checks if width or height is larger
+	    than win->margin * 2.
+	  - Fixed wrong definition of IS_INHERIT_TRANSPARENT macro.
+	  - x_window_enable_inherit_transparent() is added.
+
+	* kiklib/src/Makefile.in: increased MAJOR version. (11->12)
+
+	* kiklib/src/kik_pty*:
+	  - slave_name is removed from arguments of kik_pty_fork().
+	  - kik_pty_helper_close and kik_pty_helper_set_flag functions
+	    are added.
+	
+	* kiklib/src/kik_pty_helper.c: Added for gnome-pty-helper.
+
+	* kiklib/configure.in:
+	  - --enable-pty-helper option is added.
+	  - recvmsg, setpgid and socketpair are checked.
+
+	* gtk/vte.c:
+	  - vte_terminal_forkpty is not called in vte_terminal_realize().
+	  - vte_reaper_get and vte_reaper_add_child functions are added.
+	  - width and height members of x_window_t are set if GtkWidget
+	    is not still realized in vte_terminal_set_font_from_string().
+	  - "inner-border" property is available.
+	  - vte_terminal_size_allocate() is fixed.
+
 2010-09-25  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window.c: XK_Num_Lock is added to default_keysyms in

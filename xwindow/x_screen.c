@@ -6592,7 +6592,7 @@ x_screen_new(
 	if( x_window_init( &screen->window ,
 		screen_width( screen) , screen_height( screen) ,
 		x_col_width( screen) , x_line_height( screen) , 0 , 0 ,
-		x_col_width( screen) , x_line_height( screen) , 2, 0) == 0)	/* min: 1x1 */
+		x_col_width( screen) , x_line_height( screen) , 2 , 0) == 0)	/* min: 1x1 */
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init failed.\n") ;
