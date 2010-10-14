@@ -181,8 +181,12 @@ pty_closed(
 	GtkWidget *  widget ;
 
 	widget = p ;
-	
-	if( ( VTE_TERMINAL(widget)->pvt->term = ml_get_detached_term( NULL)) == NULL)
+
+	/*
+	 * x_screen_attach can be called after widget is reailzed.
+	 */
+	if( ! GTK_WIDGET_REALIZED(widget) ||
+	    ( VTE_TERMINAL(widget)->pvt->term = ml_get_detached_term( NULL)) == NULL)
 	{
 		destroy_io( VTE_TERMINAL(widget)) ;
 		g_signal_emit_by_name( VTE_TERMINAL(widget) , "child-exited") ;
@@ -424,7 +428,14 @@ adjustment_value_changed(
 	kik_debug_printf( KIK_DEBUG_TAG " scroll to %d\n" , value - (upper - page_size)) ;
 #endif
 
-	x_screen_scroll_to( terminal->pvt->screen , value - (upper - page_size)) ;
+	/*
+	 * If pty is already closed and new pty is not attached yet.
+	 * synaptic failed without this check.
+	 */
+	if( terminal->pvt->term)
+	{
+		x_screen_scroll_to( terminal->pvt->screen , value - (upper - page_size)) ;
+	}
 }
 
 
@@ -849,11 +860,7 @@ vte_terminal_realize(
 		return ;
 	}
 
-	if( ! x_screen_attached( VTE_TERMINAL(widget)->pvt->screen))
-	{
-		x_screen_attach( VTE_TERMINAL(widget)->pvt->screen ,
-				VTE_TERMINAL(widget)->pvt->term) ;
-	}
+	x_screen_attach( VTE_TERMINAL(widget)->pvt->screen , VTE_TERMINAL(widget)->pvt->term) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " vte_realized %d %d %d %d\n" ,
@@ -1594,7 +1601,6 @@ vte_terminal_fork_command(
 		create_io( terminal) ;
 
 		vte_reaper_add_child( ml_term_get_child_pid( terminal->pvt->term)) ;
-		x_screen_attach( terminal->pvt->screen , terminal->pvt->term) ;
 	}
 	
 	return  ml_term_get_child_pid( terminal->pvt->term) ;
@@ -1634,7 +1640,6 @@ vte_terminal_forkpty(
 		create_io( terminal) ;
 
 		vte_reaper_add_child( ml_term_get_child_pid( terminal->pvt->term)) ;
-		x_screen_attach( terminal->pvt->screen , terminal->pvt->term) ;
 	}
 	
 	return  ml_term_get_child_pid( terminal->pvt->term) ;

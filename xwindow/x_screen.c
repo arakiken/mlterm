@@ -6459,8 +6459,9 @@ x_set_button3_behavior( char *  mode)
 }
 
 /*
- * If term is NULL, don't call other functions until x_screen_attach() which
- * will be called before x_screen_t is realized.
+ * If term is NULL, don't call other functions of x_screen until
+ * x_screen_attach() is called. (x_screen_attach() must be called
+ * before x_screen_t is realized.)
  */
 x_screen_t *
 x_screen_new(
@@ -6944,6 +6945,11 @@ x_screen_delete(
 	return  1 ;
 }
 
+/*
+ * Be careful that mlterm can die if x_screen_attach is called
+ * before x_screen_t is realized, because callbacks of ml_term
+ * may touch uninitialized object of x_screen_t.
+ */
 int
 x_screen_attach(
 	x_screen_t *  screen ,

@@ -21,7 +21,7 @@ LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
-OBJ = vte.o marshal.o vtetypebuiltins.o
+OBJ = vte.o marshal.o vtetypebuiltins.o reaper.o
 
 libvte: $(OBJ)
 	$(LIBTOOL_LINK) -o libvte.la $(OBJ:.o=.lo) ../mlterm/*.lo \

@@ -1,4 +1,4 @@
-2010-10-14  Araki Ken  <arakiken@users.sf.net>
+2010-10-15  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font.c: x_font_use_point_size() is added.
 
