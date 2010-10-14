@@ -1,3 +1,6 @@
+/*
+ * This file is based on marshal.h of vte-0.24.0.
+ */
 
 /* Generated data (by glib-mkenums) */
 

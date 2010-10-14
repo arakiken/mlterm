@@ -1134,50 +1134,44 @@ set_wall_picture(
 	x_screen_t *  screen
 	)
 {
-	x_bg_picture_t  pic ;
+	x_bg_picture_t *  pic ;
 
 	if( ! screen->pic_file_path)
 	{
 		return  0 ;
 	}
 
-	if( ! x_bg_picture_init( &pic , &screen->window , x_screen_get_picture_modifier( screen)))
-	{
-		goto  error ;
-	}
-
-	if( ! x_bg_picture_load_file( &pic , screen->pic_file_path))
+	if( ! ( pic = x_acquire_bg_picture( &screen->window ,
+			x_screen_get_picture_modifier( screen) , screen->pic_file_path)))
 	{
 		kik_msg_printf( "Wall picture file %s is not found.\n" ,
 			screen->pic_file_path) ;
 
-		x_bg_picture_final( &pic) ;
+		free( screen->pic_file_path) ;
+		screen->pic_file_path = NULL ;
 
-		goto  error ;
+		x_window_unset_wall_picture( &screen->window) ;
+
+		return  0 ;
 	}
 
-	if( ! x_window_set_wall_picture( &screen->window , pic.pixmap))
+	if( ! x_window_set_wall_picture( &screen->window , pic->pixmap))
 	{
-		x_bg_picture_final( &pic) ;
-
+		x_release_bg_picture( pic) ;
+		
 		/* Because picture is loaded successfully, screen->pic_file_path retains. */
 
 		return  0 ;
 	}
-	else
-	{
-		x_bg_picture_final( &pic) ;
 
-		return  1 ;
+	if( screen->bg_pic)
+	{
+		x_release_bg_picture( screen->bg_pic) ;
 	}
 
-error:
-	free( screen->pic_file_path) ;
-	screen->pic_file_path = NULL ;
-
-	x_window_unset_wall_picture( &screen->window) ;
-
-	return  0 ;
+	screen->bg_pic = pic ;
+	
+	return  1 ;
 }
 
 static int
@@ -1352,6 +1346,10 @@ window_realized(
 	x_window_set_fg_color( win , x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
 	x_window_set_bg_color( win , x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
+	x_get_xcolor_rgb( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
+			&screen->pic_mod.blend_blue ,
+			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
+	
 	if( ( name = ml_term_window_name( screen->term)))
 	{
 		x_set_window_name( &screen->window , name) ;
@@ -4081,6 +4079,8 @@ change_fg_color(
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
 
+static void picture_modifier_changed( x_screen_t *  screen) ;
+
 static void
 change_bg_color(
 	x_screen_t *  screen ,
@@ -4100,6 +4100,12 @@ change_bg_color(
 #ifndef  USE_WIN32GUI
 	x_xic_bg_color_changed( &screen->window) ;
 #endif
+
+	x_get_xcolor_rgb( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
+			&screen->pic_mod.blend_blue ,
+			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
+
+	picture_modifier_changed( screen) ;
 
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 }
@@ -6404,7 +6410,7 @@ pty_closed(
 	x_screen_t *  screen ;
 
 	screen = p ;
-
+	
 	/* This should be done before screen->term is NULL */
 	x_sel_clear( &screen->sel) ;
 
@@ -6452,9 +6458,13 @@ x_set_button3_behavior( char *  mode)
 	return  1 ;
 }
 
+/*
+ * If term is NULL, don't call other functions until x_screen_attach() which
+ * will be called before x_screen_t is realized.
+ */
 x_screen_t *
 x_screen_new(
-	ml_term_t *  term ,
+	ml_term_t *  term ,		/* can be NULL */
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
 	x_termcap_entry_t *  termcap ,
@@ -6527,11 +6537,6 @@ x_screen_new(
 	screen->pty_listener.read_ready = pty_read_ready ;
 #endif
 
-	ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
-		&screen->screen_listener , &screen->pty_listener) ;
-
-	screen->term = term ;
-
 	/* NULL initialization here for error: processing. */
 	screen->utf_parser = NULL ;
 	screen->xct_parser = NULL ;
@@ -6543,21 +6548,29 @@ x_screen_new(
 
 	screen->font_man = font_man ;
 
-	if( ml_term_get_encoding( screen->term) == ML_ISCII)
+	if( ( screen->term = term))
 	{
-		/*
-		 * ISCII needs variable column width and character combining.
-		 * (similar processing is done in change_char_encoding)
-		 */
-
-		if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
+		ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
+			&screen->screen_listener , &screen->pty_listener) ;
+	
+		if( ml_term_get_encoding( screen->term) == ML_ISCII)
 		{
-			x_change_font_present( screen->font_man ,
-				x_get_type_engine( screen->font_man) ,
-				x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
-		}
+			/*
+			 * ISCII needs variable column width and character combining.
+			 * (similar processing is done in change_char_encoding)
+			 */
 
-		ml_term_set_char_combining_flag( screen->term , 1) ;
+			if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
+			{
+				x_change_font_present( screen->font_man ,
+					x_get_type_engine( screen->font_man) ,
+					x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
+			}
+
+			ml_term_set_char_combining_flag( screen->term , 1) ;
+		}
+		
+		update_special_visual( screen) ;
 	}
 
 	screen->color_man = color_man ;
@@ -6576,11 +6589,29 @@ x_screen_new(
 		goto  error ;
 	}
 
+	if( pic_file_path)
+	{
+		screen->pic_file_path = strdup( pic_file_path) ;
+	}
+	else
+	{
+		screen->pic_file_path = NULL ;
+	}
+	
 	screen->pic_mod.brightness = brightness ;
 	screen->pic_mod.contrast = contrast ;
 	screen->pic_mod.gamma = gamma ;
-	screen->pic_mod.blend_color = 0 ;
 	screen->pic_mod.alpha = alpha ;
+	/*
+	 * blend_xxx members will be set in window_realized().
+	 */
+#if  0
+	x_get_xcolor_rgb( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
+			&screen->pic_mod.blend_blue ,
+			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
+#endif
+
+	screen->bg_pic = NULL ;
 
 	screen->icon = NULL ;
 
@@ -6590,7 +6621,8 @@ x_screen_new(
 	screen->screen_height_ratio = screen_height_ratio ;
 
 	if( x_window_init( &screen->window ,
-		screen_width( screen) , screen_height( screen) ,
+		screen->term ? screen_width( screen) : x_col_width(screen) ,
+		screen->term ? screen_height( screen) : x_line_height(screen) ,
 		x_col_width( screen) , x_line_height( screen) , 0 , 0 ,
 		x_col_width( screen) , x_line_height( screen) , 2 , 0) == 0)	/* min: 1x1 */
 	{
@@ -6682,15 +6714,6 @@ x_screen_new(
 			x_screen_get_picture_modifier( screen)) ;
 	}
 
-	if( pic_file_path)
-	{
-		screen->pic_file_path = strdup( pic_file_path) ;
-	}
-	else
-	{
-		screen->pic_file_path = NULL ;
-	}
-	
 	if( conf_menu_path_1)
 	{
 		screen->conf_menu_path_1 = strdup( conf_menu_path_1) ;
@@ -6815,8 +6838,6 @@ x_screen_new(
 	screen->scroll_cache_boundary_start = 0 ;
 	screen->scroll_cache_boundary_end = 0 ;
 
-	update_special_visual( screen) ;
-
 	return  screen ;
 
 error:
@@ -6868,13 +6889,18 @@ x_screen_delete(
 
 	x_sel_final( &screen->sel) ;
 
+	if( screen->bg_pic)
+	{
+		x_release_bg_picture( screen->bg_pic) ;
+	}
+	free( screen->pic_file_path) ;
+	
 	if( screen->icon)
 	{
 		x_release_icon_picture( screen->icon) ;
 	}
 
 	free( screen->mod_meta_key) ;
-	free( screen->pic_file_path) ;
 	free( screen->conf_menu_path_1) ;
 	free( screen->conf_menu_path_2) ;
 	free( screen->conf_menu_path_3) ;
@@ -6938,6 +6964,7 @@ x_screen_attach(
 	{
 		/*
 		 * ISCII needs variable column width and character combining.
+		 * (similar processing is done in change_char_encoding)
 		 */
 
 		if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
@@ -6948,6 +6975,11 @@ x_screen_attach(
 		}
 
 		ml_term_set_char_combining_flag( screen->term , 1) ;
+	}
+
+	if( ! screen->window.my_window)
+	{
+		return  1 ;
 	}
 
 	usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
@@ -7016,6 +7048,14 @@ x_screen_detach(
 	x_window_clear_all( &screen->window) ;
 
 	return  term ;
+}
+
+int
+x_screen_attached(
+	x_screen_t *  screen
+	)
+{
+	return  (screen->term != NULL) ;
 }
 
 int
@@ -7801,4 +7841,3 @@ x_screen_get_picture_modifier(
 		return  &screen->pic_mod ;
 	}
 }
-

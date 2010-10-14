@@ -17,8 +17,6 @@ VPATH = $(top_srcdir)/gtk
 CFLAGS = -Wall $(CFLAGS_LOCAL) @AA_CFLAGS@ -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	`pkg-config gtk+-2.0 --cflags`
 
-LIBS = $(LIBS_LOCAL) `pkg-config gtk+-2.0 --libs`
-
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
 LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)

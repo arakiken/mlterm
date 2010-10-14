@@ -123,6 +123,91 @@ AC_SUBST(ML_PTY_OBJ)
 AC_SUBST(WIN32DIALOG_OBJ)
 AC_SUBST(SUBSYSTEM)
 
+
+AC_ARG_WITH(imagelib,
+	[  --with-imagelib@<:@=ARG@:>@   image library (gdk-pixbuf) @<:@default=no@:>@],
+	imagelib=$with_imagelib)
+case ${imagelib} in
+imlib)
+	AC_CHECK_PROG(imlib_config,imlib-config,yes,no)
+	if test "x$imlib_config" = "xno" ; then
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find imlib-config."
+		echo ""
+		exit 1
+	fi
+	echo ""
+	echo "** WARNING **"
+	echo " imlib is no longer supported."
+	echo ""
+	IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_EXT_IMAGELIB"
+	IMAGELIB_LIBS="`imlib-config --libs`"
+	# XXX Hack (WIN32TAG is deverted for non-supported image library.)
+	WIN32TAG="_imlib"
+	;;
+imlib2)
+	AC_CHECK_PROG(imlib2_config,imlib2-config,yes,no)
+	if test "x$imlib2_config" = "xno" ; then
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find imlib2-config."
+		echo ""
+		exit 1
+	fi
+	echo ""
+	echo "** WARNING **"
+	echo " imlib2 is no longer supported."
+	echo ""
+	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DUSE_EXT_IMAGELIB"
+	IMAGELIB_LIBS="`imlib2-config --libs`"
+	# XXX Hack (WIN32TAG is deverted for non-supported image library.)
+	WIN32TAG="_win32"
+	;;
+gdk-pixbuf)
+	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
+		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_EXT_IMAGELIB"
+	],[
+		AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
+		if test "$pkg_config" = "yes" ; then
+			IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_EXT_IMAGELIB"
+			IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
+		fi
+		echo ""
+		echo "** WARNING **"
+		echo " gdk-pixbuf1 is no longer supported."
+		echo ""
+	])
+	;;
+gdk-pixbuf2)
+	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
+		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_EXT_IMAGELIB"
+	])
+	;;
+gdk-pixbuf1)
+	AC_CHECK_PROG(gdk_pixbuf_config,gdk-pixbuf-config,yes)
+	if test "$gdk_pixbuf_config" = "yes" ; then
+		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_EXT_IMAGELIB"
+		IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
+	fi
+	echo ""
+	echo "** WARNING **"
+	echo " gdk-pixbuf1 is no longer supported."
+	echo ""
+	;;
+*)
+	if test "${imagelib}" != "" ; then
+		echo ""
+		echo "** ERROR **"
+		echo "${imagelib} library is NOT supported."
+		echo ""
+		exit 1
+	fi
+	;;
+esac
+AC_SUBST(IMAGELIB_CFLAGS)
+AC_SUBST(IMAGELIB_LIBS)
+
 if test "$gui" = "win32" ; then
 	WIN32TAG="_win32"
 	GUI_CFLAGS="-DUSE_WIN32GUI"
@@ -139,6 +224,16 @@ else
 	LDFLAGS="$ldflags" CFLAGS="$cflags"
 	AC_SUBST(XUTF8_CFLAGS)
 fi
+
+# XXX For pow in libm.so which is used in x_imagelib.c
+SYSLIBDIR="/lib/"
+for ml_cv_lib_path in `echo $LIBRARY_PATH | tr ":" " "` ; do
+	libm_file=`ls "$ml_cv_lib_path/" | grep 'libm\\.' 2> /dev/null`
+	if test -n "$libm_file" ; then
+		SYSLIBDIR="$ml_cv_lib_path/"
+	fi
+done
+AC_SUBST(SYSLIBDIR)
 
 AC_ARG_ENABLE(fribidi,
 	[  --enable-fribidi        bidi @<:@default=disabled@:>@],
@@ -160,96 +255,6 @@ FRIBIDI_CFLAGS="`echo ${FRIBIDI_CFLAGS} | tr -d '\r'`"
 FRIBIDI_LIBS="`echo ${FRIBIDI_LIBS} | tr -d '\r'`"
 AC_SUBST(FRIBIDI_CFLAGS)
 AC_SUBST(FRIBIDI_LIBS)
-
-# default value
-IMAGELIB_NAME=none
-AC_ARG_WITH(imagelib,
-	[  --with-imagelib@<:@=ARG@:>@   image library (gdk-pixbuf) @<:@default=no@:>@],
-	imagelib=$with_imagelib)
-case ${imagelib} in
-imlib)
-	AC_CHECK_PROG(imlib_config,imlib-config,yes,no)
-	if test "x$imlib_config" = "xno" ; then
-		echo ""
-		echo "** ERROR **"
-		echo "Could not find imlib-config."
-		echo ""
-		exit 1
-	fi
-	echo ""
-	echo "** WARNING **"
-	echo " imlib is no longer supported."
-	echo ""
-	IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_IMAGELIB"
-	IMAGELIB_LIBS="`imlib-config --libs`"
-	IMAGELIB_NAME=imlib
-	;;
-imlib2)
-	AC_CHECK_PROG(imlib2_config,imlib2-config,yes,no)
-	if test "x$imlib2_config" = "xno" ; then
-		echo ""
-		echo "** ERROR **"
-		echo "Could not find imlib2-config."
-		echo ""
-		exit 1
-	fi
-	echo ""
-	echo "** WARNING **"
-	echo " imlib2 is no longer supported."
-	echo ""
-	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DUSE_IMAGELIB"
-	IMAGELIB_LIBS="`imlib2-config --libs`"
-	IMAGELIB_NAME=imlib2
-	;;
-gdk-pixbuf)
-	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
-		IMAGELIB_NAME=gdk
-		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_IMAGELIB"
-	])
-	if test "x$IMAGELIB_NAME" = "xnone" ; then
-		AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
-		if test "$pkg_config" = "yes" ; then
-			IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_IMAGELIB"
-			IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
-			IMAGELIB_NAME=gdk
-		fi
-		echo ""
-		echo "** WARNING **"
-		echo " gdk-pixbuf1 is no longer supported."
-		echo ""
-	fi
-	;;
-gdk-pixbuf2)
-	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
-		IMAGELIB_NAME=gdk
-		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_IMAGELIB"
-	])
-	;;
-gdk-pixbuf1)
-	AC_CHECK_PROG(gdk_pixbuf_config,gdk-pixbuf-config,yes)
-	if test "$gdk_pixbuf_config" = "yes" ; then
-		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_IMAGELIB"
-		IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
-		IMAGELIB_NAME=gdk
-	fi
-	echo ""
-	echo "** WARNING **"
-	echo " gdk-pixbuf1 is no longer supported."
-	echo ""
-	;;
-*)
-	if test "${imagelib}" != "" ; then
-		echo ""
-		echo "** ERROR **"
-		echo "${imagelib} library is NOT supported."
-		echo ""
-		exit 1
-	fi
-	;;
-esac
-AC_SUBST(IMAGELIB_CFLAGS)
-AC_SUBST(IMAGELIB_LIBS)
-AC_SUBST(IMAGELIB_NAME)
 
 # --enable-anti-alias is backward compatibility for --with-type-engines
 AC_ARG_ENABLE(anti_alias,
@@ -669,7 +674,7 @@ pixmap_engine)
 		echo ""
 		exit 1
 	fi
-	if test "$IMAGELIB_NAME" = "gdk" -o "$IMAGELIB_NAME" = "imlib" -o "$IMAGELIB_NAME" = "imlib2" ; then
+	if test -n "$IMAGELIB_CFLAGS" ; then
 		MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
@@ -682,8 +687,8 @@ pixmap_engine)
 	else
 		echo ""
 		echo "** ERROR **"
-		echo "To use pixmap_engine for scrollbar, you need any image library such as"
-		echo "gdk-pixbuf and imlib. (e.g. --with-imagelib=imlib)"
+		echo "To use pixmap_engine for scrollbar, you need gdk-pixbuf library."
+		echo "(e.g. --with-imagelib=gdk-pixbuf)"
 		echo ""
 		exit 1
 	fi

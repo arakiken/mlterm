@@ -475,23 +475,17 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox2), hbox, FALSE, FALSE, 0);
 
 	if (!(config_widget = mc_brightness_config_widget_new())) return 0;
-#ifndef  USE_IMAGELIB
 	gtk_widget_set_sensitive(config_widget, 0);
-#endif
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
 
 	if (!(config_widget = mc_contrast_config_widget_new())) return 0;
-#ifndef  USE_IMAGELIB
 	gtk_widget_set_sensitive(config_widget, 0);
-#endif
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(hbox), config_widget, FALSE, FALSE, 0);
 
 	if (!(config_widget = mc_gamma_config_widget_new())) return 0;
-#ifndef  USE_IMAGELIB
 	gtk_widget_set_sensitive(config_widget, 0);
-#endif
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox2), config_widget, FALSE, FALSE, 0);
 

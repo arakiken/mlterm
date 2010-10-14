@@ -49,7 +49,8 @@ ml_term_new(
 	term->pty = NULL ;
 	term->pty_listener = NULL ;
 
-	if( ( term->screen = ml_screen_new( cols , rows , tab_size , log_size , use_bce , bs_mode)) == NULL)
+	if( ( term->screen = ml_screen_new( cols , rows ,
+				tab_size , log_size , use_bce , bs_mode)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_screen_new failed.\n") ;
@@ -58,8 +59,8 @@ ml_term_new(
 		goto  error ;
 	}
 
-	if( ( term->parser = ml_vt100_parser_new( term->screen , encoding , policy ,
-					col_size_a , use_char_combining , use_multi_col_char)) == NULL)
+	if( ( term->parser = ml_vt100_parser_new( term->screen , encoding , policy , col_size_a ,
+				use_char_combining , use_multi_col_char)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_vt100_parser_new failed.\n") ;
@@ -1063,8 +1064,8 @@ ml_term_get_word_region(
 	int  base_row
 	)
 {
-	return  ml_screen_get_word_region( term->screen , beg_char_index , beg_row , end_char_index ,
-			end_row , base_char_index , base_row) ;
+	return  ml_screen_get_word_region( term->screen , beg_char_index , beg_row ,
+			end_char_index , end_row , base_char_index , base_row) ;
 }
 
 int

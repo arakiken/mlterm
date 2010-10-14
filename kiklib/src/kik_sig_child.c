@@ -119,11 +119,16 @@ kik_add_sig_child_listener(
 {
 	void *  p ;
 
+	/*
+	 * #if 0 - #endif is for mlterm-libvte.
+	 */
+#if  0
 	if( ! is_init)
-        {
-          	return  0 ;
-        }
-	
+	{
+		return  0 ;
+	}
+#endif
+
 	if( ( p = realloc( listeners , sizeof( *listeners) * (num_of_listeners + 1))) == NULL)
 	{
 	#ifdef  DEBUG

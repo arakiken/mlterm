@@ -106,6 +106,8 @@ u_int  x_calculate_char_width( x_font_t *  font ,
 
 char **  x_font_get_encoding_names( mkf_charset_t  cs) ;
 
+void  x_font_use_point_size_for_xft( int  bool) ;
+
 #ifdef  DEBUG
 int  x_font_dump( x_font_t *  font) ;
 #endif

@@ -58,8 +58,7 @@
 #define  XA_MWM_HINTS(display) (XInternAtom(display, "_MOTIF_WM_HINTS", True))
 
 #define  IS_INHERIT_TRANSPARENT(win) \
-	( ( (win)->pic_mod == NULL || x_picture_modifier_is_normal( (win)->pic_mod)) && \
-	  inherit_transparent)
+		( use_inherit_transparent && x_picture_modifier_is_normal( (win)->pic_mod))
 
 
 typedef struct {
@@ -88,7 +87,8 @@ typedef struct {
 /* --- static variables --- */
 
 static int  click_interval = 250 ;	/* millisecond, same as xterm. */
-static int  inherit_transparent = 0 ;
+/* ParentRelative isn't used for transparency by default */
+static int  use_inherit_transparent = 0 ;
 
 
 /* --- static functions --- */
@@ -196,27 +196,26 @@ update_transparent_picture(
 	x_window_t *  win
 	)
 {
-	x_bg_picture_t  pic ;
+	x_bg_picture_t *  pic ;
 
-	if( ! x_bg_picture_init( &pic , win , win->pic_mod))
+	if( ! ( pic = x_acquire_bg_picture( win , win->pic_mod , "root")))
 	{
-		goto  error ;
+		goto  error1 ;
 	}
 
-	if( ! x_bg_picture_get_transparency( &pic))
+	if( ! set_transparent_picture( win , pic->pixmap))
 	{
-		x_bg_picture_final( &pic) ;
-
-		goto  error ;
+		goto  error2 ;
 	}
 
-	set_transparent_picture( win , pic.pixmap) ;
-
-	x_bg_picture_final( &pic) ;
+	x_release_bg_picture( pic) ;
 
 	return  1 ;
 
-error:
+error2:
+	x_release_bg_picture( pic) ;
+
+error1:
 	win->is_transparent = 0 ;
 	win->pic_mod = NULL ;
 
@@ -251,6 +250,8 @@ set_transparent(
 	x_window_t *  win
 	)
 {
+	Window  parent ;
+
 	if( ! IS_INHERIT_TRANSPARENT(win))
 	{
 		/*
@@ -269,61 +270,67 @@ set_transparent(
 		}
 		else
 		{
-			kik_msg_printf( " _X_ROOTPMAP_ID is not found."
-				" Using ParentRelative for transparency instead.\n") ;
+			kik_msg_printf( "_X_ROOTPMAP_ID is not found."
+				" Trying ParentRelative for transparency instead.\n") ;
 			
-			inherit_transparent = 1 ;
+			if( ! x_picture_modifier_is_normal( win->pic_mod))
+			{
+				kik_msg_printf( "(brightness, contrast, gamma and alpha "
+					"options are ignored)\n") ;
+				
+				win->pic_mod = NULL ;
+			}
+
+			use_inherit_transparent = 1 ;
 		}
 	}
+
+	/*
+	 * It is not necessary to set ParentRelative more than once, so
+	 * this function should be used as follows.
+	 * if( ! IS_INHERIT_TRANSPARENT(win) || ! win->wall_picture_is_set)
+	 * {
+	 *	set_transparent( win) ;
+	 * }
+	 */
 	
-	if( IS_INHERIT_TRANSPARENT(win))
+	/*
+	 * Root - Window A - Window C
+	 *      - Window B - Window D
+	 *                 - Window E
+	 * If Window C is set_transparent(), C -> A -> Root are set ParentRelative.
+	 * Window B,D and E are not set ParentRelative.
+	 */
+
+	while( win->parent)
 	{
-		/*
-		 * Root - Window A - Window C
-		 *      - Window B - Window D
-		 *                 - Window E
-		 * If Window C is set_transparent(), C -> A -> Root are set ParentRelative.
-		 * Window B,D and E are not set ParentRelative.
-		 */
-		 
-		Window  parent ;
-				
-		while( win->parent)
-		{
-			/* win->is_transparent is set appropriately in set_transparent() */
-			set_transparent_picture( win , ParentRelative) ;
-
-			win = win->parent ;
-		}
-
+		/* win->is_transparent is set appropriately in set_transparent() */
 		set_transparent_picture( win , ParentRelative) ;
 
-		parent = win->my_window ;
-		while( 1)
+		win = win->parent ;
+	}
+
+	set_transparent_picture( win , ParentRelative) ;
+
+	parent = win->my_window ;
+	while( 1)
+	{
+		Window  root ;
+		Window *  list ;
+		u_int  n ;
+
+		XQueryTree( win->disp->display , parent , &root , &parent , &list , &n) ;
+		XFree( list) ;
+
+		if( parent == DefaultRootWindow( win->disp->display))
 		{
-			Window  root ;
-			Window *  list ;
-			u_int  n ;
-
-			XQueryTree( win->disp->display , parent , &root , &parent , &list , &n) ;
-			XFree( list) ;
-
-			if( parent == DefaultRootWindow( win->disp->display))
-			{
-				break ;
-			}
-			
-			XSetWindowBackgroundPixmap( win->disp->display , parent , ParentRelative) ;
+			break ;
 		}
 
-		return  1 ;
+		XSetWindowBackgroundPixmap( win->disp->display , parent , ParentRelative) ;
 	}
-	else
-	{
-		unset_transparent( win) ;
-		
-		return  0 ;
-	}
+
+	return  1 ;
 }
 
 static void
@@ -383,24 +390,22 @@ notify_configure_to_children(
 {
 	u_int  count ;
 
-	kik_debug_printf( "HELO\n") ;
-	if( win->is_transparent &&
-		/*
-		 * If transparent is by ParentRelative and it is already set,
-		 * set_transparent(win) is not necessary to be called anymore
-		 * in ConfigureNotify event.
-		 */
-		( ! IS_INHERIT_TRANSPARENT(win) || ! win->wall_picture_is_set))
+	if( win->is_transparent)
 	{
-	kik_debug_printf( "HELO2\n") ;
-		set_transparent( win) ;
-	}
-	else
-	{
-	#if  0
-		x_window_clear_all( win) ;
-	#endif
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		if( ! IS_INHERIT_TRANSPARENT(win) || ! win->wall_picture_is_set)
+		{
+		#ifdef  __DEBUG
+			kik_debug_printf( "configure notify for transparency\n") ;
+		#endif
+			set_transparent( win) ;
+		}
+		else
+		{
+		#if  0
+			x_window_clear_all( win) ;
+		#endif
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		}
 	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -419,10 +424,13 @@ notify_reparent_to_children(
 	if( win->is_transparent)
 	{
 		/* Parent window is changed. => Reset transparent. */
-		
+
+		#ifdef  __DEBUG
+			kik_debug_printf( "reparent notify for transparency\n") ;
+		#endif
 		set_transparent( win) ;
 	}
-
+	
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		notify_reparent_to_children( win->children[count]) ;
@@ -438,13 +446,13 @@ notify_property_to_children(
 
 	if( win->is_transparent)
 	{
-		/*
-		 * Background image of desktop is changed.
-		 * => Reset non-ParentRelative transparent.
-		 */
+		/* Background image of desktop is changed. */
 
 		if( ! IS_INHERIT_TRANSPARENT(win))
 		{
+		#ifdef  __DEBUG
+			kik_debug_printf( "property notify for transparency\n") ;
+		#endif
 			set_transparent( win) ;
 		}
 	}
@@ -2274,16 +2282,21 @@ x_window_receive_event(
 		{
 			*event = next_ev ;
 		}
-		
+
 		win->x = event->xreparent.x ;
 		win->y = event->xreparent.y ;
 
 		notify_reparent_to_children( win) ;
 	}
+#if  0
 	else if( event->type == MapNotify)
 	{
-		notify_reparent_to_children( win) ;
+		if( win->is_transparent && ! win->wall_picture_is_set)
+		{
+			set_transparent( win) ;
+		}
 	}
+#endif
 	else if( event->type == SelectionClear)
 	{
 		/*

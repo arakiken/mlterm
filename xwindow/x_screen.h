@@ -132,6 +132,7 @@ typedef struct  x_screen
 
 	char *  pic_file_path ;
 	x_picture_modifier_t  pic_mod ;
+	x_bg_picture_t *  bg_pic ;
 
 	x_icon_picture_t *  icon ;
 
@@ -171,6 +172,8 @@ x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 int  x_screen_delete( x_screen_t *  screen) ;
 
 int  x_screen_attach( x_screen_t *  screen , ml_term_t *  term) ;
+
+int  x_screen_attached( x_screen_t *  screen) ;
 
 ml_term_t *  x_screen_detach( x_screen_t *  screen) ;
 

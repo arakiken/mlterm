@@ -132,6 +132,9 @@ static cs_info_t  cs_info_table[] =
 } ;
 
 static int  compose_dec_special_font ;
+#ifdef  USE_TYPE_XFT
+static char *  xft_size_type = XFT_PIXEL_SIZE ;
+#endif
 
 
 /* --- static functions --- */
@@ -468,7 +471,7 @@ get_xft_col_width(
 	 */
 	if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
 		XFT_FAMILY , XftTypeString , family ,
-		XFT_PIXEL_SIZE , XftTypeDouble , fontsize ,
+		xft_size_type , XftTypeDouble , fontsize ,
 		XFT_WEIGHT , XftTypeInteger , weight ,
 		XFT_SLANT , XftTypeInteger , slant ,
 		XFT_ENCODING , XftTypeString , "iso8859-1" ,
@@ -610,7 +613,7 @@ set_xft_font(
 			{
 				if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
 						XFT_FAMILY , XftTypeString , font_family ,
-						XFT_PIXEL_SIZE , XftTypeDouble , fontsize_d ,
+						xft_size_type , XftTypeDouble , fontsize_d ,
 						XFT_ENCODING , XftTypeString , font_encoding ,
 						XFT_WEIGHT , XftTypeInteger , weight ,
 						XFT_SLANT , XftTypeInteger , slant ,
@@ -625,7 +628,7 @@ set_xft_font(
 			{
 				if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
 						XFT_FAMILY , XftTypeString , font_family ,
-						XFT_PIXEL_SIZE , XftTypeDouble , fontsize_d ,
+						xft_size_type , XftTypeDouble , fontsize_d ,
 						XFT_ENCODING , XftTypeString , font_encoding ,
 						XFT_WEIGHT , XftTypeInteger , weight ,
 						XFT_SLANT , XftTypeInteger , slant ,
@@ -678,7 +681,7 @@ set_xft_font(
 		if( font->is_var_col_width)
 		{
 			if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
-					XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+					xft_size_type , XftTypeDouble , (double)fontsize ,
 					XFT_ENCODING , XftTypeString , *font_encoding_p ,
 					XFT_WEIGHT , XftTypeInteger , weight ,
 					XFT_SLANT , XftTypeInteger , slant ,
@@ -692,7 +695,7 @@ set_xft_font(
 		else
 		{
 			if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
-					XFT_PIXEL_SIZE , XftTypeDouble , (double)fontsize ,
+					xft_size_type , XftTypeDouble , (double)fontsize ,
 					XFT_ENCODING , XftTypeString , *font_encoding_p ,
 					XFT_WEIGHT , XftTypeInteger , weight ,
 					XFT_SLANT , XftTypeInteger , slant ,
@@ -1550,6 +1553,24 @@ x_font_get_encoding_names(
 	{
 		return  NULL ;
 	}
+}
+
+/* For mlterm-libvte */
+void
+x_font_use_point_size_for_xft(
+	int  bool
+	)
+{
+#ifdef  USE_TYPE_XFT
+	if( bool)
+	{
+		xft_size_type = XFT_SIZE ;
+	}
+	else
+	{
+		xft_size_type = XFT_PIXEL_SIZE ;
+	}
+#endif
 }
 
 #ifdef  DEBUG

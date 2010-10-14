@@ -1,3 +1,6 @@
+/*
+ * This file is based on marshal.h of vte-0.24.0.
+ */
 
 #ifndef ___vte_marshal_MARSHAL_H__
 #define ___vte_marshal_MARSHAL_H__

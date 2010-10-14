@@ -1,4 +1,44 @@
-2010-10-01  Araki Ken  <arakiken@users.sf.net>
+2010-10-14  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font.c: x_font_use_point_size() is added.
+
+	* vte.c:
+	  - configure_toplevel() is added to process ConfigureNotify event
+	    of top level window for transparency.
+	  - vte_terminal_set_opacity() is implemented.
+	  - kik_sig_child_init is not called. VteReaper is used to manage child
+	    process instead.
+	  - vte_terminal_forkpty() returns 0 for child process.
+	  - vte_terminal_hierarchy_changed() is added.
+	  - x_font_use_point_size(1) is called in vte_terminal_class_init().
+	
+	* reaper.c: Added.
+
+	* configure.in:
+	  - SYSLIBDIR is added.
+	  - USE_IMAGELIB => USE_EXT_IMAGELIB
+
+	* x_window.c: MapNotify is ignored.
+
+	* x_imagelib_none.c, x_imagelib_gdk => x_image_lib.c
+	  - x_imagelib_get_transparent_background() is supported without
+	    gdk-pixbuf. (alpha option is enabled not only in win32 but
+	    also in xlib.)
+	  - Cashing mechanism in x_imagelib_load_file_for_background() and
+	    x_imagelib_get_transparent_background() is mostly moved to x_picture.c.
+
+	* x_picture.h: blend_color => blend_red, blend_green and blend_blue.
+	
+	* x_picture.c:
+	  - x_picture_modifiers_equal() is added.
+	    Then, x_picture_modifier_is_normal() is rewritten as macro using
+	    x_picture_modifiers_equal(), and is_picmod_eq() in x_imagelib.c
+	    is removed.
+	  - x_bg_picture_init(), x_bg_picture_final(), x_bg_picture_load_file(),
+	    x_bg_picture_get_transparency()
+	    => x_acquire_bg_picture(), x_release_bg_picture()
+
+2010-10-04  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window.c:
 	  - XCheckTypedWindoEvent is used instead of XCheckMaskEvent

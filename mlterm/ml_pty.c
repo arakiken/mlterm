@@ -43,14 +43,13 @@ typedef struct  ml_pty
 } ml_pty_t ;
 
 
-
 /* --- global functions --- */
 
 ml_pty_t *
 ml_pty_new(
-	char *  cmd_path ,
-	char **  cmd_argv ,
-	char **  env ,
+	char *  cmd_path ,	/* can be NULL */
+	char **  cmd_argv ,	/* can be NULL(only if cmd_path is NULL) */
+	char **  env ,		/* can be NULL */
 	char *  host ,
 	u_int  cols ,
 	u_int  rows
@@ -75,22 +74,43 @@ ml_pty_new(
 	{
 		/* child process */
 
-		/*
-		 * setting environmental variables.
-		 */
-		while( *env)
-		{
-			/* an argument string of putenv() must be allocated memory.(see SUSV2) */
-			putenv( strdup( *env)) ;
-
-			env ++ ;
-		}
-
 		/* reset signals and spin off the command interpreter */
 		signal(SIGINT, SIG_DFL) ;
 		signal(SIGQUIT, SIG_DFL) ;
 		signal(SIGCHLD, SIG_DFL) ;
 		signal(SIGPIPE, SIG_DFL) ;
+
+		if( ! cmd_path)
+		{
+			pty->child_pid = 0 ;
+		#ifdef  USE_UTMP
+			pty->utmp = NULL ;
+		#endif
+			pty->buf = NULL ;
+			pty->left = 0 ;
+			pty->size = 0 ;
+
+			pty->pty_listener = NULL ;
+			
+			return  pty ;
+		}
+		
+		/*
+		 * setting environmental variables.
+		 */
+		if( env)
+		{
+			while( *env)
+			{
+				/*
+				 * an argument string of putenv() must be allocated memory.
+				 * (see SUSV2)
+				 */
+				putenv( strdup( *env)) ;
+
+				env ++ ;
+			}
+		}
 
 	#if  0
 		/*
@@ -111,8 +131,6 @@ ml_pty_new(
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " execve(%s) failed.\n" , cmd_path) ;
 			#endif
-			
-				exit(1) ;
 			}
 		}
 		else

@@ -76,12 +76,10 @@ x_prepare_for_main_config(
 		"screen width in percent against font width [100]") ;
 	kik_conf_add_opt( conf , '2' , "hscr" , 0 , "screen_height_ratio" ,
 		"screen height in percent against font height [100]") ;
-#ifdef  USE_IMAGELIB
 	kik_conf_add_opt( conf , '3' , "contrast" , 0 , "contrast" ,
 		"contrast of background image in percent [100]") ;
 	kik_conf_add_opt( conf , '4' , "gamma" , 0 , "gamma" ,
 		"gamma of background image in percent [100]") ;
-#endif
 	kik_conf_add_opt( conf , '5' , "big5bug" , 1 , "big5_buggy" ,
 		"manage buggy Big5 CTEXT in XFree86 4.1 or earlier [false]") ;
 	kik_conf_add_opt( conf , '6' , "stbs" , 1 , "static_backscroll_mode" ,
@@ -114,10 +112,8 @@ x_prepare_for_main_config(
 		"scrollbar foreground color") ;
 	kik_conf_add_opt( conf , 'G' , "vertical" , 0 , "vertical_mode" ,
 		"vertical mode (none/cjk/mongol) [none]") ;
-#ifdef  USE_IMAGELIB
 	kik_conf_add_opt( conf , 'H' , "bright" , 0 , "brightness" ,
 		"brightness of background image in percent [100]") ;
-#endif
 #ifndef  USE_WIN32GUI
 	kik_conf_add_opt( conf , 'I' , "icon" , 0 , "icon_name" , 
 		"icon name") ;
@@ -170,7 +166,7 @@ x_prepare_for_main_config(
 		"use non-Unicode fonts even in UTF-8 mode [false]") ;
 	kik_conf_add_opt( conf , 'o' , "lsp" , 0 , "line_space" ,
 		"extra space between lines in pixels [0]") ;
-#ifdef  USE_IMAGELIB
+#ifdef  USE_EXT_IMAGELIB
 	kik_conf_add_opt( conf , 'p' , "pic" , 0 , "wall_picture" , 
 		"path for wallpaper (background) image") ;
 #endif
@@ -192,7 +188,7 @@ x_prepare_for_main_config(
 		"terminal type for TERM variable [xterm]") ;
 	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
 		"step in changing font size in GUI configurator [1]") ;
-#ifdef  USE_IMAGELIB
+#ifdef  USE_EXT_IMAGELIB
 	kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
 		"path to an imagefile to be use as an window icon") ;
 #endif

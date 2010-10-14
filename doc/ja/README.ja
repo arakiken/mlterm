@@ -50,7 +50,6 @@ comment $Id$
 
     --with-imagelib=(gdk-pixbuf)
       gdk-pixbuf を使って、壁紙を貼れるようにします。
-      また、壁紙又は透過背景の brightness/contrast/gamma を調整できるようにします。
 
     --with-libltdl
       モジュールの動的ローディングに libltdl を使用します。
@@ -128,10 +127,9 @@ comment $Id$
     Xft と通常の X フォントのどちらを使うかは、動的に切替え可能です。
 
   o 壁紙、背景透過
+    背景を擬似的に透過させることができます。
     configure --with-imagelib=gdk-pixbuf でビルドした mlterm には、壁紙をはり
     付けることができます。
-    背景透過も可能です。gdk-pixbuf がリンクされていれば、透過した背景の輝度/
-    コントラスト/ガンマを調節することもできます。
 
   o マルチPTY
     単一プロセス中から、--maxptys オプションで指定した上限数(デフォルトでは 32)
@@ -439,8 +437,8 @@ comment $Id$
         背景画像(透過処理含む)のガンマ値(百分率)
 
       o alpha (*255*)
-        背景透過のアルファ値[0-255]
-	※ --with-gui=win32 で use_transbg=true の場合のみ使用
+        背景画像(透過処理含む)のアルファ値[0-255]
+	bg_color で指定された色とブレンドされます。
       
       o line_space  (*0*) (#)
         行間の広さ
