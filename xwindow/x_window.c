@@ -942,7 +942,6 @@ x_window_set_wall_picture(
 	}
 
 	XSetWindowBackgroundPixmap( win->disp->display , win->my_window , pic) ;
-
 	win->wall_picture_is_set = 1 ;
 
 	if( win->window_exposed)
@@ -1705,8 +1704,8 @@ x_window_clear(
 	}
 	else if( win->drawable == win->my_window)
 	{
-		XClearArea( win->disp->display , win->drawable , x + win->margin , y + win->margin ,
-			width , height , 0) ;
+		XClearArea( win->disp->display , win->drawable ,
+			x + win->margin , y + win->margin , width , height , False) ;
 	}
 	else
 	{
@@ -1965,10 +1964,10 @@ x_window_receive_event(
 				(*win->mapping_notify)( win);
 			}
 		}
-		
+
 		return  0 ;
 	}
-	
+
 #ifndef  DISABLE_XDND
 	if( x_dnd_filter_event( event, win))
 	{

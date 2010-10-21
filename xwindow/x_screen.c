@@ -6410,12 +6410,16 @@ pty_closed(
 	x_screen_t *  screen ;
 
 	screen = p ;
-	
+
+	/*
+	 * Don't use x_screen_detach() here because screen->term is deleting just now.
+	 */
+	 
 	/* This should be done before screen->term is NULL */
 	x_sel_clear( &screen->sel) ;
 
 	/*
-	 * term is already deleted in this context.
+	 * term is being deleted in this context.
 	 * ml_close_dead_terms => ml_term_delete => ml_pty_delete => pty_closed.
 	 */
 	screen->term = NULL ;

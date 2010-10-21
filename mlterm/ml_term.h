@@ -66,6 +66,8 @@ ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  l
 
 int  ml_term_delete( ml_term_t *  term) ;
 
+int  ml_term_zombie( ml_term_t *  term) ;
+
 int  ml_term_open_pty( ml_term_t *  term , char *  cmd_path , char **  argv , char **  env , char *  host) ;
 
 int  ml_term_attach( ml_term_t *  term , ml_xterm_event_listener_t *  xterm_listener ,

@@ -35,6 +35,8 @@ static u_int  num_of_terms ;
 
 static char *  pty_list ;
 
+static int  zombie_pty ;
+
 
 /* --- static functions --- */
 
@@ -383,7 +385,14 @@ ml_close_dead_terms(void)
 						 * ml_term_manager can be used.
 						 */
 						terms[idx * MTU + count] = terms[--num_of_terms] ;
-						ml_term_delete( term) ;
+						if( zombie_pty)
+						{
+							ml_term_zombie( term) ;
+						}
+						else
+						{
+							ml_term_delete( term) ;
+						}
 
 					#ifdef  __DEBUG
 						kik_msg_printf( " => Finished.\n") ;
@@ -430,4 +439,12 @@ ml_get_pty_list(void)
 	}
 
 	return  pty_list ;
+}
+
+void
+ml_term_manager_enable_zombie_pty(
+	int  bool
+	)
+{
+	zombie_pty = bool ;
 }

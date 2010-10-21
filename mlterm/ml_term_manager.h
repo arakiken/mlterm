@@ -35,5 +35,7 @@ int  ml_close_dead_terms(void) ;
 
 char *  ml_get_pty_list(void) ;
 
+void  ml_term_manager_enable_zombie_pty( int  bool) ;
+
 
 #endif

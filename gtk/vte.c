@@ -50,7 +50,9 @@
 #define  VTE_WIDGET(screen)  ((VteTerminal*)(screen)->system_listener->self)
 /* XXX Hack to distinguish x_screen_t from x_{candidate|status}_screent_t */
 #define  IS_MLTERM_SCREEN(win)  ((win)->parent_window != None)
+
 #define  WINDOW_MARGIN  2
+
 #define  TERM_TYPE  "xterm"
 
 #ifndef  VTE_CHECK_VERSION
@@ -60,8 +62,8 @@
 
 struct _VteTerminalPrivate
 {
-	x_screen_t *  screen ;
-	ml_term_t *  term ;
+	x_screen_t *  screen ;		/* Not NULL until unrealized */
+	ml_term_t *  term ;		/* Not NULL until unrealized */
 
 	x_system_event_listener_t  system_listener ;
 
@@ -72,7 +74,7 @@ struct _VteTerminalPrivate
 	GIOChannel *  io ;
 	guint  src_id ;
 
-	GdkPixbuf *  image ;
+	GdkPixbuf *  image ;	/* Original image which vte_terminal_set_background_image passed */
 	Pixmap  pixmap ;
 	u_int  pix_width ;
 	u_int  pix_height ;
@@ -164,42 +166,59 @@ destroy_io(
 	#if  0
 		g_io_channel_shutdown( terminal->pvt->io , FALSE , NULL) ;
 	#endif
+		terminal->pvt->src_id = 0 ;
 		terminal->pvt->io = NULL ;
 	}
 }
 
 /*
- * x_system_event_listener_t handlers
+ * ml_pty_event_listener_t overriding handler.
  */
-
 static void
 pty_closed(
-	void *  p ,
-	x_screen_t *  screen	/* screen->term was already deleted. */
+	void *  p	/* screen->term->pty is NULL */
 	)
 {
-	GtkWidget *  widget ;
+	x_screen_t *  screen ;
+	ml_term_t *  term ;
 
-	widget = p ;
+	screen = p ;
 
-	/*
-	 * x_screen_attach can be called after widget is reailzed.
-	 */
-	if( ! GTK_WIDGET_REALIZED(widget) ||
-	    ( VTE_TERMINAL(widget)->pvt->term = ml_get_detached_term( NULL)) == NULL)
+	destroy_io( VTE_WIDGET(screen)) ;
+
+	if( ( term = ml_get_detached_term( NULL)))
 	{
-		destroy_io( VTE_TERMINAL(widget)) ;
-		g_signal_emit_by_name( VTE_TERMINAL(widget) , "child-exited") ;
-
-	#ifdef  __DEBUG
-		kik_debug_printf( "pty_closed\n") ;
-	#endif
+		VTE_WIDGET(screen)->pvt->term = term ;
+		create_io( VTE_WIDGET(screen)) ;
+		
+		/*
+		 * Not screen->term but screen->term->pty is being deleted in ml_close_dead_terms()
+		 * because of ml_term_manager_enable_zombie_pty(1) in vte_terminal_class_init().
+		 */
+		term = screen->term ;
+		x_screen_detach( screen) ;
+		ml_term_delete( term) ;
+		
+		/* It is after widget is reailzed that x_screen_attach can be called. */
+		if( GTK_WIDGET_REALIZED(GTK_WIDGET(VTE_WIDGET(screen))))
+		{
+			x_screen_attach( screen , VTE_WIDGET(screen)->pvt->term) ;
+		}
 	}
 	else
 	{
-		x_screen_attach( screen , VTE_TERMINAL(widget)->pvt->term) ;
+		g_signal_emit_by_name( VTE_WIDGET(screen) , "child-exited") ;
 	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( "pty_closed\n") ;
+#endif
 }
+
+
+/*
+ * x_system_event_listener_t handlers
+ */
 
 static void
 font_config_updated(void)
@@ -231,6 +250,42 @@ color_config_updated(void)
 			x_screen_reset_view( (x_screen_t*)disp.roots[count]) ;
 		}
 	}
+}
+
+/*
+ * EXIT_PROGRAM shortcut calls this at last.
+ * this is for debugging.
+ */
+#ifdef  KIK_DEBUG
+#include  <kiklib/kik_locale.h>		/* kik_locale_final */
+#endif
+static void
+__exit(
+	void *  p ,
+	int  status
+	)
+{
+#ifdef  KIK_DEBUG
+#if  1
+	kik_mem_dump_all() ;
+#endif
+
+	ml_term_manager_final() ;
+	kik_locale_final() ;
+	x_main_config_final( &main_config) ;
+	x_color_config_final( &color_config) ;
+	x_shortcut_final( &shortcut) ;
+	x_termcap_final( &termcap) ;
+	x_xim_final() ;
+	x_imagelib_display_closed( disp.display) ;
+
+	kik_alloca_garbage_collect() ;
+
+	kik_msg_printf( "reporting unfreed memories --->\n") ;
+	kik_mem_free_all() ;
+#endif
+	
+	exit(status) ;
 }
 
 
@@ -428,14 +483,7 @@ adjustment_value_changed(
 	kik_debug_printf( KIK_DEBUG_TAG " scroll to %d\n" , value - (upper - page_size)) ;
 #endif
 
-	/*
-	 * If pty is already closed and new pty is not attached yet.
-	 * synaptic failed without this check.
-	 */
-	if( terminal->pvt->term)
-	{
-		x_screen_scroll_to( terminal->pvt->screen , value - (upper - page_size)) ;
-	}
+	x_screen_scroll_to( terminal->pvt->screen , value - (upper - page_size)) ;
 }
 
 
@@ -509,7 +557,7 @@ reset_vte_size_member(
 
 	/*
 	 * XXX
-	 * Vertical writing mode is not supported.
+	 * Vertical writing mode and screen_(width|height)_ratio option are not supported.
 	 */
 	GTK_WIDGET(terminal)->requisition.width =
 		terminal->column_count * terminal->char_width + WINDOW_MARGIN * 2 ;
@@ -726,6 +774,10 @@ vte_terminal_filter(
 			#endif
 
 				vte_terminal_size_allocate( GTK_WIDGET(terminal) , &alloc) ;
+				if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+				{
+					gtk_widget_queue_resize_no_redraw( GTK_WIDGET(terminal)) ;
+				}
 			}
 
 			return  GDK_FILTER_REMOVE ;
@@ -770,6 +822,7 @@ update_wall_picture(
 	)
 {
 	x_window_t *  win ;
+	x_picture_modifier_t *  pic_mod ;
 	GdkPixbuf *  image ;
 	char  file[7 + DIGIT_STR_LEN(terminal->pvt->pixmap) + 1] ;
 
@@ -779,11 +832,19 @@ update_wall_picture(
 	}
 	
 	win = &terminal->pvt->screen->window ;
+	pic_mod = x_screen_get_picture_modifier( terminal->pvt->screen) ;
 
-	if( gdk_pixbuf_get_width(terminal->pvt->image) != terminal->pvt->pix_width ||
-	    gdk_pixbuf_get_height(terminal->pvt->image) != terminal->pvt->pix_height)
+	if( terminal->pvt->pix_width == ACTUAL_WIDTH(win) &&
+	    terminal->pvt->pix_height == ACTUAL_WIDTH(win) &&
+	    x_picture_modifiers_equal( pic_mod , terminal->pvt->pic_mod) &&
+	    terminal->pvt->pixmap )
 	{
-	#if  1
+		goto  end ;
+	}
+	else if( gdk_pixbuf_get_width(terminal->pvt->image) != ACTUAL_WIDTH(win) ||
+	         gdk_pixbuf_get_height(terminal->pvt->image) != ACTUAL_HEIGHT(win) )
+	{
+	#ifdef  __DEBUG
 		kik_debug_printf( "Scaling %d %d => %d %d\n" ,
 				gdk_pixbuf_get_width(terminal->pvt->image) ,
 				gdk_pixbuf_get_height(terminal->pvt->image) ,
@@ -794,17 +855,12 @@ update_wall_picture(
 					ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 					GDK_INTERP_BILINEAR) ;
 	}
-	else if( x_picture_modifiers_equal( win->pic_mod , terminal->pvt->pic_mod) &&
-		terminal->pvt->pixmap)
-	{
-		goto  end ;
-	}
 	else
 	{
 		image = terminal->pvt->image ;
 	}
 
-	terminal->pvt->pixmap = x_imagelib_pixbuf_to_pixmap( win , win->pic_mod , image) ;
+	terminal->pvt->pixmap = x_imagelib_pixbuf_to_pixmap( win , pic_mod , image) ;
 
 	if( image != terminal->pvt->image)
 	{
@@ -826,14 +882,14 @@ update_wall_picture(
 
 	terminal->pvt->pix_width = ACTUAL_WIDTH(win) ;
 	terminal->pvt->pix_height = ACTUAL_HEIGHT(win) ;
-	if( win->pic_mod)
+	if( pic_mod)
 	{
 		if( terminal->pvt->pic_mod == NULL)
 		{
 			terminal->pvt->pic_mod = malloc( sizeof( x_picture_modifier_t)) ;
 		}
 		
-		*terminal->pvt->pic_mod = *win->pic_mod ;
+		*terminal->pvt->pic_mod = *pic_mod ;
 	}
 	else
 	{
@@ -861,6 +917,8 @@ vte_terminal_realize(
 	}
 
 	x_screen_attach( VTE_TERMINAL(widget)->pvt->screen , VTE_TERMINAL(widget)->pvt->term) ;
+	/* overriding */
+	VTE_TERMINAL(widget)->pvt->screen->pty_listener.closed = pty_closed ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " vte_realized %d %d %d %d\n" ,
@@ -949,9 +1007,15 @@ vte_terminal_realize(
 	 * allocation passed by size_allocate is not necessarily same as requisition
 	 * passed by size_request, so x_window_resize must be called here.
 	 */
-	x_window_resize_with_margin( &VTE_TERMINAL(widget)->pvt->screen->window ,
-		widget->allocation.width , widget->allocation.height , NOTIFY_TO_MYSELF) ;
-
+	if( VTE_TERMINAL(widget)->pvt->term->pty &&
+	   /* { -1 , -1 , 1 , 1 } is default value of GdkAllocation. */
+	   (widget->allocation.x != -1 || widget->allocation.y != -1 ||
+	    widget->allocation.width != 1 || widget->allocation.height != 1) )
+	{
+		x_window_resize_with_margin( &VTE_TERMINAL(widget)->pvt->screen->window ,
+			widget->allocation.width , widget->allocation.height , NOTIFY_TO_MYSELF) ;
+	}
+	
 	update_wall_picture( VTE_TERMINAL(widget)) ;
 }
 
@@ -965,6 +1029,14 @@ vte_terminal_unrealize(
 	terminal = VTE_TERMINAL(widget) ;
 
 	x_screen_detach( terminal->pvt->screen) ;
+
+	if( ! terminal->pvt->term->pty)
+	{
+		/* terminal->pvt->term is not deleted in pty_closed() */
+		ml_term_delete( terminal->pvt->term) ;
+		terminal->pvt->term = NULL ;
+	}
+	
 	x_font_manager_delete( terminal->pvt->screen->font_man) ;
 	x_color_manager_delete( terminal->pvt->screen->color_man) ;
 
@@ -979,6 +1051,8 @@ vte_terminal_unrealize(
 		XFreePixmap( disp.display , terminal->pvt->pixmap) ;
 		terminal->pvt->pixmap = None ;
 	}
+
+	free( terminal->pvt->pic_mod) ;
 
 	x_display_remove_root( &disp , &terminal->pvt->screen->window) ;
 
@@ -1040,7 +1114,7 @@ vte_terminal_size_allocate(
 	GtkAllocation *  allocation
 	)
 {
-	int  is_not_resized ;
+	int  is_resized ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " alloc %d %d %d %d => %d %d %d %d\n" ,
@@ -1049,8 +1123,8 @@ vte_terminal_size_allocate(
 		allocation->x , allocation->y , allocation->width , allocation->height) ;
 #endif
 
-	if( (is_not_resized = (widget->allocation.width == allocation->width &&
-	                       widget->allocation.height == allocation->height)) &&
+	if( ! (is_resized = (widget->allocation.width != allocation->width ||
+	                       widget->allocation.height != allocation->height)) &&
 	    widget->allocation.x == allocation->x &&
 	    widget->allocation.y == allocation->y)
 	{
@@ -1061,21 +1135,15 @@ vte_terminal_size_allocate(
 
 	if( GTK_WIDGET_REALIZED(widget))
 	{
-		if( ! is_not_resized &&
-			/*
-			 * If pty is already closed and new pty is not attached yet.
-			 * synaptic failed without this check.
-			 */
-			VTE_TERMINAL(widget)->pvt->term)
+		if( is_resized && VTE_TERMINAL(widget)->pvt->term->pty)
 		{
-			x_window_resize_with_margin( &VTE_TERMINAL(widget)->pvt->screen->window ,
-				allocation->width , allocation->height , NOTIFY_TO_MYSELF) ;
-		
-			reset_vte_size_member( VTE_TERMINAL(widget)) ;
-			
-			update_wall_picture( VTE_TERMINAL(widget)) ;
-		
-			gtk_widget_queue_resize_no_redraw( widget) ;
+			if( x_window_resize_with_margin(
+				&VTE_TERMINAL(widget)->pvt->screen->window ,
+				allocation->width , allocation->height , NOTIFY_TO_MYSELF))
+			{
+				reset_vte_size_member( VTE_TERMINAL(widget)) ;
+				update_wall_picture( VTE_TERMINAL(widget)) ;
+			}
 		}
 		
 		gdk_window_move_resize( widget->window,
@@ -1086,7 +1154,7 @@ vte_terminal_size_allocate(
 	{
 		/*
 		 * x_window_resize_with_margin( widget->allocation.width, height)
-		 * will be called in vte_terminal_realize().
+		 * will be called in vte_terminal_realize() or vte_terminal_fork*().
 		 */
 	}
 }
@@ -1122,6 +1190,7 @@ vte_terminal_class_init(
 	x_termcap_init( &termcap) ;
 	x_xim_init( 1) ;
 	x_font_use_point_size_for_xft( 1) ;
+	ml_term_manager_enable_zombie_pty( 1) ;
 
 	conf = kik_conf_new( "mlterm" , MAJOR_VERSION , MINOR_VERSION , REVISION ,
 			PATCH_LEVEL , CHANGE_DATE) ;
@@ -1453,25 +1522,6 @@ vte_terminal_init(
 			main_config.use_dynamic_comb , main_config.bs_mode ,
 			main_config.vertical_mode , main_config.iscii_lang_type) ;
 
-#if  0
-	if( ! display_opened)
-	{
-		memset( &disp , 0 , sizeof(x_display_t)) ;
-		disp.display = gdk_x11_display_get_xdisplay( gdk_display_get_default()) ;
-		disp.screen = DefaultScreen(disp.display) ;
-		disp.my_window = DefaultRootWindow(disp.display) ;
-		disp.modmap.serial = 0 ;
-		disp.modmap.map = XGetModifierMapping( disp.display) ;
-
-		x_xim_display_opened( disp.display) ;
-		x_picture_display_opened( disp.display) ;
-
-		gdk_window_add_filter( NULL , vte_terminal_filter , &disp) ;
-
-		display_opened = 1 ;
-	}
-#endif
-
 	if( main_config.unicode_font_policy == NOT_USE_UNICODE_FONT ||
 		main_config.iso88591_font_for_usascii)
 	{
@@ -1522,9 +1572,9 @@ vte_terminal_init(
 
 	memset( &terminal->pvt->system_listener , 0 , sizeof(x_system_event_listener_t)) ;
 	terminal->pvt->system_listener.self = terminal ;
-	terminal->pvt->system_listener.pty_closed = pty_closed ;
 	terminal->pvt->system_listener.font_config_updated = font_config_updated ;
 	terminal->pvt->system_listener.color_config_updated = color_config_updated ;
+	terminal->pvt->system_listener.exit = __exit ;
 	x_set_system_listener( terminal->pvt->screen , &terminal->pvt->system_listener) ;
 
 	memset( &terminal->pvt->screen_scroll_listener , 0 ,
@@ -1540,8 +1590,9 @@ vte_terminal_init(
 	terminal->pvt->line_scrolled_out =
 		terminal->pvt->screen->screen_listener.line_scrolled_out ;
 	terminal->pvt->screen->screen_listener.line_scrolled_out = line_scrolled_out ;
-	
+
 	terminal->pvt->io = NULL ;
+	terminal->pvt->src_id = 0 ;
 
 	terminal->pvt->image = NULL ;
 	terminal->pvt->pixmap = None ;
@@ -1550,7 +1601,7 @@ vte_terminal_init(
 	terminal->pvt->pic_mod = NULL ;
 
 	terminal->window_title = vte_terminal_get_window_title( terminal) ;
-	terminal->window_title = vte_terminal_get_window_title( terminal) ;
+	terminal->icon_title = vte_terminal_get_window_title( terminal) ;
 
 	gtk_widget_ensure_style( &terminal->widget) ;
 	
@@ -1586,6 +1637,10 @@ vte_terminal_fork_command(
 {
 	if( ! terminal->pvt->term->pty)
 	{
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " forking with %s\n" , command) ;
+	#endif
+	
 		kik_pty_helper_set_flag( lastlog , utmp , wtmp) ;
 		
 		if( ! ml_term_open_pty( terminal->pvt->term , command , argv , envv ,
@@ -1601,6 +1656,18 @@ vte_terminal_fork_command(
 		create_io( terminal) ;
 
 		vte_reaper_add_child( ml_term_get_child_pid( terminal->pvt->term)) ;
+
+		if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+		{
+			if( x_window_resize_with_margin( &terminal->pvt->screen->window ,
+				GTK_WIDGET(terminal)->allocation.width ,
+				GTK_WIDGET(terminal)->allocation.height ,
+				NOTIFY_TO_MYSELF))
+			{
+				reset_vte_size_member( terminal) ;
+				update_wall_picture( terminal) ;
+			}
+		}
 	}
 	
 	return  ml_term_get_child_pid( terminal->pvt->term) ;
@@ -1618,6 +1685,10 @@ vte_terminal_forkpty(
 {
 	if( ! terminal->pvt->term->pty)
 	{
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " forking pty\n") ;
+	#endif
+	
 		kik_pty_helper_set_flag( lastlog , utmp , wtmp) ;
 		
 		if( ! ml_term_open_pty( terminal->pvt->term , NULL , NULL , NULL ,
@@ -1640,6 +1711,18 @@ vte_terminal_forkpty(
 		create_io( terminal) ;
 
 		vte_reaper_add_child( ml_term_get_child_pid( terminal->pvt->term)) ;
+		
+		if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+		{
+			if( x_window_resize_with_margin( &terminal->pvt->screen->window ,
+				GTK_WIDGET(terminal)->allocation.width ,
+				GTK_WIDGET(terminal)->allocation.height ,
+				NOTIFY_TO_MYSELF))
+			{
+				reset_vte_size_member( terminal) ;
+				update_wall_picture( terminal) ;
+			}
+		}
 	}
 	
 	return  ml_term_get_child_pid( terminal->pvt->term) ;
@@ -1983,7 +2066,7 @@ vte_terminal_set_default_colors(
 void
 vte_terminal_set_background_image(
 	VteTerminal *  terminal ,
-	GdkPixbuf *  image
+	GdkPixbuf *  image		/* can be NULL */
 	)
 {
 	if( terminal->pvt->image)
@@ -1991,8 +2074,19 @@ vte_terminal_set_background_image(
 		g_object_unref( terminal->pvt->image) ;
 	}
 	
-	terminal->pvt->image = image ;
+	if( ( terminal->pvt->image = image) == NULL)
+	{
+		vte_terminal_set_background_image_file( terminal , "") ;
+
+		return ;
+	}
+
 	g_object_ref( image) ;
+
+	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		update_wall_picture( terminal) ;
+	}
 }
 
 void
@@ -2001,6 +2095,10 @@ vte_terminal_set_background_image_file(
 	const char *  path
 	)
 {
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Setting image file %s\n" , path) ;
+#endif
+
 	free( main_config.pic_file_path) ;
 	main_config.pic_file_path = strdup( path) ;
 	
@@ -2011,8 +2109,8 @@ vte_terminal_set_background_image_file(
 	}
 	else
 	{
+		free( terminal->pvt->screen->pic_file_path) ;
 		terminal->pvt->screen->pic_file_path = strdup( main_config.pic_file_path) ;
-		kik_debug_printf( "HELO\n") ;
 	}
 }
 
@@ -2030,6 +2128,7 @@ vte_terminal_set_background_saturation(
 	double  saturation
 	)
 {
+	vte_terminal_set_opacity( terminal , 0xffff * (1 - saturation)) ;
 }
 
 void
@@ -2038,22 +2137,22 @@ vte_terminal_set_background_transparent(
 	gboolean  transparent
 	)
 {
-	char *  value ;
-	
-	if( transparent)
-	{
-		value = true ;
-	}
-	else
-	{
-		value = false ;
-	}
-
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
+		char *  value ;
+
+		if( transparent)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+
 		x_screen_set_config( terminal->pvt->screen , NULL , "use_transbg" , value) ;
 	}
-	else
+	else if( transparent)
 	{
 		x_window_set_transparent( &terminal->pvt->screen->window ,
 			x_screen_get_picture_modifier( terminal->pvt->screen)) ;
@@ -2066,17 +2165,28 @@ vte_terminal_set_opacity(
 	guint16  opacity
 	)
 {
-	char  alpha[DIGIT_STR_LEN(u_int8_t)] ;
+	u_int8_t  alpha ;
+	
+	alpha = 255 - ((opacity >> 8) & 0xff) ;
 
-	sprintf( alpha , "%d" , (opacity = 255 - (opacity >> 8) & 0xff)) ;
-
+	/* XXX (roxterm always sets opacity 0xffff. roxterm changes saturation instead.) */
+	if( alpha == 0)
+	{
+		return ;
+	}
+	
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
-		x_screen_set_config( terminal->pvt->screen , NULL , "alpha" , alpha) ;
+		char  value[DIGIT_STR_LEN(u_int8_t)] ;
+
+		sprintf( value , "%d" , alpha) ;
+
+		x_screen_set_config( terminal->pvt->screen , NULL , "alpha" , value) ;
+		update_wall_picture( terminal) ;
 	}
 	else
 	{
-		terminal->pvt->screen->pic_mod.alpha = opacity ;
+		terminal->pvt->screen->pic_mod.alpha = alpha ;
 	}
 }
 
@@ -2715,39 +2825,6 @@ set_font:
 
 #endif	/* VTE_DISABLE_DEPRECATED */
 
-#if  0
-
-G_DEFINE_TYPE(VteReaper , vte_reaper , G_TYPE_OBJECT)
-
-static void
-vte_reaper_init(
-	VteReaper *  reaper
-	)
-{
-}
-
-static void
-vte_reaper_class_init(
-	VteReaperClass *  klass
-	)
-{
-}
-
-VteReaper *
-vte_reaper_get(void)
-{
-	return  g_object_new(VTE_TYPE_REAPER , NULL) ;
-}
-
-int
-vte_reaper_add_child(
-	GPid  pid
-	)
-{
-	return  0 ;
-}
-
-#endif
 
 /* Ubuntu original function ? */
 void

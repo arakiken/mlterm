@@ -1443,6 +1443,12 @@ x_imagelib_load_file_for_background(
 
 	if( ! x_picture_modifier_is_normal( pic_mod))
 	{
+		/* pixbuf which load_file() returned is cached, so don't modify it. */
+		GdkPixbuf *  p ;
+
+		p = gdk_pixbuf_copy( pixbuf) ;
+		g_object_unref( pixbuf) ;
+		pixbuf = p ;
 		modify_image( pixbuf , pic_mod) ;
 	}
 

@@ -1,3 +1,18 @@
+2010-10-22  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - VteTerminal doesn't catch x_system_event_listener_t::pty_closed
+	    but ml_pty_event_listener_t::pty_closed event.
+	  - vte_terminal_set_background_saturation() is implemented.
+	  - Minor fixes.
+
+	* x_imagelib.c: GdkPixbuf which load_file() returns is copyed before
+	  modify_image.
+	
+	* ml_term.c: ml_term_zombie() is added.
+	
+	* ml_term_manager.c: ml_term_manager_enable_zombie_pty() is added.
+
 2010-10-15  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font.c: x_font_use_point_size() is added.

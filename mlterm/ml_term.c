@@ -149,6 +149,21 @@ ml_term_delete(
 }
 
 int
+ml_term_zombie(
+	ml_term_t *  term
+	)
+{
+	ml_pty_ptr_t  pty ;
+
+	pty = term->pty ;
+	term->pty = NULL ;
+	
+	ml_pty_delete( pty) ;
+
+	return  1 ;
+}
+
+int
 ml_term_open_pty(
 	ml_term_t *  term ,
 	char *  cmd_path ,
@@ -199,7 +214,7 @@ ml_term_attach(
 {
   	if( term->is_attached)
         {
-          	/* already attached or pty not opened. */
+          	/* already attached */
           	return  0 ;
         }
 
@@ -209,7 +224,7 @@ ml_term_attach(
 	
 	if( term->pty)
 	{
-		ml_pty_set_listener( term->pty, pty_listener) ;
+		ml_pty_set_listener( term->pty , pty_listener) ;
 	}
 	else
 	{
@@ -228,7 +243,7 @@ ml_term_detach(
 {
   	if( ! term->is_attached)
         {
-          	/* already detached or pty not opened. */
+          	/* already detached. */
           	return  0 ;
         }
 
@@ -238,7 +253,7 @@ ml_term_detach(
 
 	if( term->pty)
 	{
-		ml_pty_set_listener( term->pty, NULL) ;
+		ml_pty_set_listener( term->pty , NULL) ;
 	}
 	else
 	{
