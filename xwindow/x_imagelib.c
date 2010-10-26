@@ -56,6 +56,10 @@
 #define  SYSLIBDIR  "/lib/"
 #endif
 
+#if  0
+#define  __DEBUG
+#endif
+
 
 /* --- static variables --- */
 
@@ -79,7 +83,7 @@ fetch_colormap(
 	*color_list = calloc( sizeof(XColor), num_cells) ;
 	if( !*color_list)
 	{
-	#ifdef DEBUG
+	#ifdef  DEBUG
 		kik_warn_printf(KIK_DEBUG_TAG "couldn't allocate color table\n") ;
 	#endif
 		return  0 ;
@@ -728,7 +732,7 @@ pixbuf_to_pixmap_pseudocolor(
 	char *  diff_next ;
 	char *  diff_cur ;
 	char *  temp;
-#endif /* USE_SF */
+#endif /* USE_FS */
 
 	unsigned char *  line;
 	unsigned char *  pixel;
@@ -758,7 +762,7 @@ pixbuf_to_pixmap_pseudocolor(
 		free( diff_cur) ;
 		return  -2 ;
 	}
-#endif /* USE_SF */
+#endif /* USE_FS */
 
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
 	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
@@ -795,7 +799,7 @@ pixbuf_to_pixmap_pseudocolor(
 					       pixel[0],
 					       pixel[1],
 					       pixel[2])
-#endif /* USE_SF */
+#endif /* USE_FS */
 
 		XSetForeground( display, gc, closest) ;
 		XDrawPoint( display, pixmap, gc, 0, y) ;
@@ -832,7 +836,7 @@ pixbuf_to_pixmap_pseudocolor(
 						       pixel[0] ,
 						       pixel[1] ,
 						       pixel[2]) ;
-#endif /* USE_SF */
+#endif /* USE_FS */
 
 			XSetForeground( display, gc, closest) ;
 			XDrawPoint( display, pixmap, gc, x, y) ;
@@ -864,7 +868,7 @@ pixbuf_to_pixmap_pseudocolor(
 					       pixel[0],
 					       pixel[1],
 					       pixel[2]) ;
-#endif /* USE_SF */
+#endif /* USE_FS */
 
 		XSetForeground( display, gc, closest) ;
 		XDrawPoint( display, pixmap, gc, x, y) ;
@@ -876,7 +880,7 @@ pixbuf_to_pixmap_pseudocolor(
 #ifdef USE_FS
 	free( diff_cur) ;
 	free( diff_next) ;
-#endif /* USE_SF */
+#endif /* USE_FS */
 
 	return  0 ;
 }
@@ -1418,7 +1422,7 @@ x_imagelib_load_file_for_background(
 #endif
 	Pixmap pixmap ;
 
-	if( ! file_path)
+	if( ! file_path || ! *file_path)
 	{
 		return  None ;
 	}

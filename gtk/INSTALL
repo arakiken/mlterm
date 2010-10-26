@@ -31,8 +31,87 @@ How to build & install libvte compatible library using mlterm engine.
     - Configuration protocol (like '$ mlcc [key] [value]') is mostly available.
     - Pressing Ctrl+Button3 shows 'mlconfig' menu.
     
-  o Following functions that normal mlterm provides are not available.
+  o Following functions which normal mlterm provides are not available.
     - Daemon mode
     - Multiple ptys using Ctrl+F1 / Ctrl+F2 / Ctrl+F3
     - Vertical writing mode
     - screen_width_ratio and screen_height_ratio options
+
+  o Unsupported vte api functions
+    - vte_terminal_feed
+    - vte_terminal_feed_child
+    - vte_terminal_feed_child_binary
+    - vte_terminal_copy_primary
+    - vte_terminal_paste_primary
+    - vte_terminal_set_scroll_background
+    - vte_terminal_set_scroll_on_output
+    - vte_terminal_set_scroll_on_keystroke
+    - vte_terminal_set_color_dim
+    - vte_terminal_set_color_bold
+    - vte_terminal_set_color_highlight
+    - vte_terminal_set_colors (inocmplete)
+    - vte_terminal_set_default_colors
+    - vte_terminal_set_background_tint_color
+    - vte_terminal_set_color_blink_mode
+    - vte_terminal_set_cursor_shape
+    - vte_terminal_set_scrollback_lines
+    - vte_terminal_im_append_menuitems
+    - vte_terminal_get_font
+    - vte_terminal_set_allow_bold
+    - vte_terminal_get_allow_bold
+    - vte_terminal_set_bas_selection
+    - vte_terminal_set_word_chars
+    - vte_terminal_is_word_char
+    - vte_terminal_set_mouse_autohide
+    - vte_terminal_get_mouse_autohide
+    - vte_terminal_reset
+    - vte_terminal_get_text
+    - vte_terminal_get_text_include_trailing_spaces
+    - vte_terminal_get_text_range
+    - vte_terminal_match_clear_all
+    - vte_terminal_match_add_gregex
+    - vte_terminal_match_set_cursor
+    - vte_terminal_match_set_cursor_type
+    - vte_terminal_match_set_cursor_name
+    - vte_terminal_match_remove
+    - vte_terminal_match_check
+    - vte_terminal_set_emulation
+    - vte_terminal_get_status_line
+    - vte_terminal_set_pty
+    - vte_terminal_get_child_exit_status
+    - vte_terminal_set_cursor_blinks
+    - vte_terminal_match_add
+    - vte_terminal_set_alternate_screen_scroll
+
+  o Unsupported vte signals and properties
+    - signals
+      "eof"
+      "window-title-changed"
+      "icon-title-changed"
+      "encoding-changed"
+      "commit"
+      "emulation-changed"
+      "selection-changed"
+      "contents-changed"
+      "cursor-moved"
+      "deiconify-window"
+      "iconify-window"
+      "raise-window"
+      "lower-window"
+      "refresh-window"
+      "restore-window"
+      "maximize-window"
+      "resize-window"
+      "move-window"
+      "status-line-changed"
+      "increase-font-size"
+      "decrease-font-size"
+      "text-modified"
+      "text-inserted"
+      "text-deleted"
+      "text-scrolled"
+      "copy-clipboard"
+      "paste-clipboard"
+
+    - property
+      "inner-border"

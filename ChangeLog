@@ -1,3 +1,26 @@
+2010-10-27  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - If backscroll mode is BSM_STATIC, GtkAdjustnemt::value
+	    is not changed when line is scrolled out.
+	  - gtk_widget_queue_resize_no_redraw() is added to vte_terminal_size_allocate()
+	    because gnome-terminal(2.29.6) isn't resized correctly without it.
+	  - Following functions are implemented.
+	    vte_terminal_select_all
+	    vte_terminal_select_none
+	    vte_terminal_set_color_cursor
+	    vte_terminal_get_emulation
+	    vte_terminal_get_default_emulation
+	    vte_terminal_get_window_title
+	    vte_terminal_get_icon_title
+
+	* gtk/INSTALL: Unsupported vte api functions, signals and property
+	  are enumerated.
+
+	* x_imagelib.c: Checking if *file_path is '\0' or not is added to
+	  x_imagelib_load_file_for_background() because following
+	  strncmp( "" , "pixmap:" , 0) can return 0.
+
 2010-10-22  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:

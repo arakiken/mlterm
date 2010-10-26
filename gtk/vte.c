@@ -109,6 +109,8 @@ static guint signals[LAST_SIGNAL] ;
 static char *  true = "true" ;
 static char *  false = "false" ;
 
+static char *  term_type = TERM_TYPE ;
+
 
 /* --- static functions --- */
 
@@ -266,10 +268,16 @@ __exit(
 	)
 {
 #ifdef  KIK_DEBUG
+	VteTerminal *  terminal ;
+	
 #if  1
 	kik_mem_dump_all() ;
 #endif
 
+	terminal = p ;
+
+	gtk_widget_destroy( GTK_WIDGET(terminal)) ;
+	
 	ml_term_manager_final() ;
 	kik_locale_final() ;
 	x_main_config_final( &main_config) ;
@@ -285,7 +293,7 @@ __exit(
 	kik_mem_free_all() ;
 #endif
 	
-	exit(status) ;
+	gtk_main_quit() ;
 }
 
 
@@ -324,12 +332,18 @@ line_scrolled_out(
 	
 #if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 14)
 	gtk_adjustment_set_upper( VTE_WIDGET(screen)->adjustment , upper + 1) ;
-	gtk_adjustment_set_value( VTE_WIDGET(screen)->adjustment , value + 1) ;
+	if( ml_term_is_backscrolling( VTE_WIDGET(screen)->pvt->term) != BSM_STATIC)
+	{
+		gtk_adjustment_set_value( VTE_WIDGET(screen)->adjustment , value + 1) ;
+	}
 #else
 	VTE_WIDGET(screen)->adjustment->upper ++ ;
-	VTE_WIDGET(screen)->adjustment->value ++ ;
 	gtk_adjustment_changed( VTE_WIDGET(screen)->adjustment) ;
-	gtk_adjustment_value_changed( VTE_WIDGET(screen)->adjustment) ;
+	if( ml_term_is_backscrolling( VTE_WIDGET(screen)->pvt->term) != BSM_STATIC)
+	{
+		VTE_WIDGET(screen)->adjustment->value ++ ;
+		gtk_adjustment_value_changed( VTE_WIDGET(screen)->adjustment) ;
+	}
 #endif
 
 #ifdef  __DEBUG
@@ -909,7 +923,6 @@ vte_terminal_realize(
 	)
 {
 	GdkWindowAttr  attr ;
-	Window  xid ;
 	
 	if( widget->window)
 	{
@@ -946,49 +959,6 @@ vte_terminal_realize(
 
 	widget->style = gtk_style_attach( widget->style , widget->window) ;
 
-	xid = gdk_x11_drawable_get_xid( widget->window) ;
-
-#if  0
-	{
-		char *  env[6] ;	/* MLTERM,TERM,WINDOWID,DISPLAY,COLORFGBG,NULL */
-		char **  env_p ;
-		/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
-		char  wid_env[9 + DIGIT_STR_LEN(Window) + 1] ;
-		char  ver_env[13] ;
-		char *  disp_name ;
-		char *  disp_env ;
-		char  term_env[11] ;
-		char  colorfgbg_env[26] ;
-
-		env_p = env ;
-
-		strcpy( ver_env , "MLTERM=3.0.1") ;
-		*(env_p ++) = ver_env ;
-
-		sprintf( wid_env , "WINDOWID=%ld" , xid) ;
-		*(env_p ++) = wid_env ;
-
-		disp_name = gdk_display_get_name( gtk_widget_get_display( widget)) ;
-		/* "DISPLAY="(8) + NULL(1) */
-		if( disp_name && ( disp_env = alloca( 8 + strlen( disp_name) + 1)))
-		{
-			sprintf( disp_env , "DISPLAY=%s" , disp_name) ;
-			*(env_p ++) = disp_env ;
-		}
-
-		strcpy( term_env , "TERM=" TERM_TYPE) ;
-		*(env_p ++) = term_env ;
-
-		strcpy( colorfgbg_env , "COLORFGBG=default;default") ;
-		*(env_p ++) = colorfgbg_env ;
-
-		/* NULL terminator */
-		*env_p = NULL ;
-
-		vte_terminal_fork_pty( terminal , env , NULL , FALSE , FALSE , FALSE) ;
-	}
-#endif
-
 	if( ! timeout_registered)
 	{
 		/* 100 miliseconds */
@@ -1001,19 +971,22 @@ vte_terminal_realize(
 
 	VTE_TERMINAL(widget)->pvt->screen->window.create_gc = 1 ;
 	x_display_show_root( &disp , &VTE_TERMINAL(widget)->pvt->screen->window ,
-		0 , 0 , 0 , "mlterm" , xid) ;
-		
+		0 , 0 , 0 , "mlterm" , gdk_x11_drawable_get_xid( widget->window)) ;
+	
 	/*
-	 * allocation passed by size_allocate is not necessarily same as requisition
-	 * passed by size_request, so x_window_resize must be called here.
+	 * allocation passed by size_allocate is not necessarily to be reflected
+	 * to x_window_t or ml_term_t, so x_window_resize must be called here.
 	 */
 	if( VTE_TERMINAL(widget)->pvt->term->pty &&
 	   /* { -1 , -1 , 1 , 1 } is default value of GdkAllocation. */
 	   (widget->allocation.x != -1 || widget->allocation.y != -1 ||
 	    widget->allocation.width != 1 || widget->allocation.height != 1) )
 	{
-		x_window_resize_with_margin( &VTE_TERMINAL(widget)->pvt->screen->window ,
-			widget->allocation.width , widget->allocation.height , NOTIFY_TO_MYSELF) ;
+		if( x_window_resize_with_margin( &VTE_TERMINAL(widget)->pvt->screen->window ,
+			widget->allocation.width , widget->allocation.height , NOTIFY_TO_MYSELF))
+		{
+			reset_vte_size_member( VTE_TERMINAL(widget)) ;
+		}
 	}
 	
 	update_wall_picture( VTE_TERMINAL(widget)) ;
@@ -1143,6 +1116,9 @@ vte_terminal_size_allocate(
 			{
 				reset_vte_size_member( VTE_TERMINAL(widget)) ;
 				update_wall_picture( VTE_TERMINAL(widget)) ;
+
+				/* gnome-terminal(2.29.6) is not resized correctly without this. */
+				gtk_widget_queue_resize_no_redraw( widget) ;
 			}
 		}
 		
@@ -1555,7 +1531,12 @@ vte_terminal_init(
 			&color_config , main_config.fg_color , main_config.bg_color ,
 			main_config.cursor_fg_color , main_config.cursor_bg_color) ;
 
-	terminal->pvt->screen = x_screen_new( NULL , font_man , color_man ,
+	/*
+	 * XXX
+	 * terminal->pvt->term is specified to x_screen_new in order to set
+	 * x_window_t::width and height property, but screen->term is NULL until pty is forked.
+	 */
+	terminal->pvt->screen = x_screen_new( terminal->pvt->term , font_man , color_man ,
 			x_termcap_get_entry( &termcap , main_config.term_type) ,
 			main_config.brightness , main_config.contrast , main_config.gamma ,
 			main_config.alpha , main_config.fade_ratio , &shortcut ,
@@ -1569,6 +1550,8 @@ vte_terminal_init(
 			main_config.use_extended_scroll_shortcut ,
 			main_config.borderless , main_config.line_space ,
 			main_config.input_method) ;
+	ml_term_detach( terminal->pvt->term) ;
+	terminal->pvt->screen->term = NULL ;
 
 	memset( &terminal->pvt->system_listener , 0 , sizeof(x_system_event_listener_t)) ;
 	terminal->pvt->system_listener.self = terminal ;
@@ -1607,6 +1590,47 @@ vte_terminal_init(
 	
 	reset_vte_size_member( terminal) ;
 }
+
+#if  0
+static char **
+modify_envv(
+	VteTerminal *  terminal ,
+	char **  envv
+	)
+{
+	/* TERM, DISPLAY and COLORFGBG are not modified. */
+
+	char **  p ;
+
+	p = envv ;
+	while( *p)
+	{
+		if( **p && strncmp( *p , "WINDOWID" , K_MIN(strlen(*p),8)) == 0)
+		{
+			char *  wid_env ;
+
+			/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
+			wid_env = g_malloc( 9 + DIGIT_STR_LEN(Window) + 1) ;
+			sprintf( wid_env , "WINDOWID=%ld" ,
+				gdk_x11_drawable_get_xid( GTK_WIDGET(terminal)->window)) ;
+			g_free( *p) ;
+			*p = wid_env ;
+		}
+	#if  0
+		else
+		{
+			char *  ver_env ;
+			
+			ver_env = g_strdup( "MLTERM=3.0.1") ;
+		}
+	#endif
+
+		p ++ ;
+	}
+
+	return  envv ;
+}
+#endif
 
 
 /* --- global functions --- */
@@ -1691,7 +1715,7 @@ vte_terminal_forkpty(
 	
 		kik_pty_helper_set_flag( lastlog , utmp , wtmp) ;
 		
-		if( ! ml_term_open_pty( terminal->pvt->term , NULL , NULL , NULL ,
+		if( ! ml_term_open_pty( terminal->pvt->term , NULL , NULL , envv ,
 			gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal)))))
 		{
 		#ifdef  DEBUG
@@ -1816,6 +1840,39 @@ vte_terminal_select_all(
 	VteTerminal *  terminal
 	)
 {
+	x_selection_t *  sel ;
+	u_int  row ;
+	ml_line_t *  line ;
+	
+	if( ! GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		return ;
+	}
+	
+	sel = &terminal->pvt->screen->sel ;
+	
+	x_sel_clear( sel) ;
+
+	row = - ml_term_get_num_of_logged_lines( terminal->pvt->term) ;
+	x_start_selection( sel , -1 , row , 0 , row) ;
+
+	for( row = ml_term_get_rows( terminal->pvt->term) - 1 ; row > 0 ; row --)
+	{
+		line = ml_term_get_line( terminal->pvt->term , row) ;
+		if( ! ml_line_is_empty( line))
+		{
+			break ;
+		}
+	}
+
+	if( row == 0)
+	{
+		line = ml_term_get_line( terminal->pvt->term , 0) ;
+	}
+	
+	x_selecting( sel , ml_line_get_num_of_filled_cols( line) - 1 , row) ;
+
+	x_stop_selecting( sel) ;
 }
 
 void
@@ -1823,6 +1880,12 @@ vte_terminal_select_none(
 	VteTerminal *  terminal
 	)
 {
+	if( ! GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		return ;
+	}
+	
+	x_sel_clear( &terminal->pvt->screen->sel) ;
 }
 
 void
@@ -2033,6 +2096,36 @@ vte_terminal_set_color_cursor(
 	const GdkColor *  cursor_background
 	)
 {
+	/* gdk_color_to_string() was not supported. */
+#if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 12)
+	gchar *  str ;
+
+	if( ! cursor_background)
+	{
+		return ;
+	}
+
+	/* #rrrrggggbbbb */
+	str = gdk_color_to_string( cursor_background) ;
+	
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " set_color_cursor %s\n" , str) ;
+#endif
+
+	free( main_config.cursor_bg_color) ;
+	main_config.cursor_bg_color = strdup( str) ;
+
+	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		x_screen_set_config( terminal->pvt->screen , NULL , "cursor_bg_color" , str) ;
+	}
+	else
+	{
+		x_color_manager_set_cursor_bg_color( terminal->pvt->screen->color_man , str) ;
+	}
+
+	g_free( str) ;
+#endif
 }
 
 void
@@ -2577,7 +2670,7 @@ vte_terminal_get_emulation(
 	VteTerminal *terminal
 	)
 {
-	return  "" ;
+	return  term_type ;
 }
 
 const char *
@@ -2585,7 +2678,7 @@ vte_terminal_get_default_emulation(
 	VteTerminal *  terminal
 	)
 {
-	return  "" ;
+	return  term_type ;
 }
 
 void
@@ -2698,7 +2791,7 @@ vte_terminal_get_window_title(
 	VteTerminal *  terminal
 	)
 {
-	return  "mlterm" ;
+	return  terminal->window_title ;
 }
 
 const char *
@@ -2706,7 +2799,7 @@ vte_terminal_get_icon_title(
 	VteTerminal *  terminal
 	)
 {
-	return  "mlterm" ;
+	return  terminal->icon_title ;
 }
 
 int

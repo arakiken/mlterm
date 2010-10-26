@@ -1516,7 +1516,8 @@ x_window_resize(
 		(*win->parent->child_window_resized)( win->parent , win) ;
 	}
 
-	XResizeWindow( win->disp->display , win->my_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+	XResizeWindow( win->disp->display , win->my_window ,
+		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 
 	if( (flag & NOTIFY_TO_MYSELF) && win->window_resized)
 	{

@@ -18,7 +18,7 @@ version 20091211
                      receive_string_via_ucs | input_method | wall_picture |
                      full_reset | brightness | gamma | contrast | line_space |
                      screen_width_ratio | screen_height_ratio | vertical_mode |
-                     scrollbar_mode | stataic_backscroll_mode | use_multi_column_char |
+                     scrollbar_mode | static_backscroll_mode | use_multi_column_char |
                      col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | cursor_fg_color |
                      cursor_bg_color | open_pty | open_screen | select_pty |
