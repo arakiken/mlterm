@@ -17,6 +17,8 @@
 
 #define  FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p) \
 	for( (font_encoding_p) = &csinfo->encoding_names[0] ; *(font_encoding_p) ; (font_encoding_p) ++)
+#define  DIVIDE_ROUNDING(a,b)  ( ((int)((a)*10 + (b)*5)) / ((int)((b)*10)) )
+#define  DIVIDE_ROUNDINGUP(a,b) ( ((int)((a)*10 + (b)*10 - 1)) / ((int)((b)*10)) )
 
 #if  0
 #define  __DEBUG
@@ -454,6 +456,41 @@ next_char:
 	return  1 ;
 }
 
+#if  1
+static u_int
+get_xft_col_width(
+	x_font_t *  font ,
+	double  fontsize_d ,
+	u_int  percent
+	)
+{
+	if( percent > 0)
+	{
+		return  DIVIDE_ROUNDING(fontsize_d * font->cols * percent , 100 * 2) ;
+	}
+	else if( font->is_var_col_width)
+	{
+		return  0 ;
+	}
+	else if( strcmp( xft_size_type , XFT_SIZE) == 0)
+	{
+		double  widthpix ;
+		double  widthmm ;
+		u_int  dpi ;
+
+		widthpix = DisplayWidth( font->display , DefaultScreen(font->display)) ;
+		widthmm = DisplayWidthMM( font->display , DefaultScreen(font->display)) ;
+
+		dpi = DIVIDE_ROUNDING(widthpix * 254 , widthmm * 10) ;
+
+		return  DIVIDE_ROUNDINGUP(dpi * fontsize_d * font->cols , 72 * 2) ;
+	}
+	else
+	{
+		return  DIVIDE_ROUNDINGUP(fontsize_d * font->cols , 2) ;
+	}
+}
+#else
 static u_int
 get_xft_col_width(
 	x_font_t *  font ,
@@ -496,6 +533,7 @@ get_xft_col_width(
 	/* XXX this may be inaccurate. */
 	return  fontsize / 2 ;
 }
+#endif
 
 static int
 set_xft_font(
@@ -504,25 +542,16 @@ set_xft_font(
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
 	int  use_medium_for_bold ,
-	int  aa_opt		/* 0 = default , 1 = enable , 2 = disable */
+	int  aa_opt		/* 0 = default , 1 = enable , -1 = disable */
 	)
 {
 	int  weight ;
 	int  slant ;
-	cs_info_t *  csinfo ;
 	u_int  ch_width ;
 	XftFont *  xfont ;
-	char **  font_encoding_p ;
-
-	if( ( csinfo = get_cs_info( FONT_CS(font->id))) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " charset(0x%.2x) is not supported.\n" ,
-			FONT_CS(font->id)) ;
-	#endif
-
-		return  0 ;
-	}
+	char *  iso10646 ;
+	
+	iso10646 = "iso10646-1" ;
 
 	/*
 	 * weight and slant can be modified in parse_xft_font_name().
@@ -543,8 +572,8 @@ set_xft_font(
 	{
 		char *  p ;
 		char *  font_family ;
-		char *  font_encoding ;
 		double  fontsize_d ;
+		char *  font_encoding ;
 		u_int  percent ;
 
 		if( ( p = kik_str_alloca_dup( fontname)) == NULL)
@@ -556,8 +585,8 @@ set_xft_font(
 			return  0 ;
 		}
 
-		font_encoding = "iso10646-1" ;
 		fontsize_d = (double)fontsize ;
+		font_encoding = iso10646 ;
 		percent = 0 ;
 		if( parse_xft_font_name( &font_family , &weight , &slant , &fontsize_d ,
 						&font_encoding , &percent , p))
@@ -566,15 +595,12 @@ set_xft_font(
 			{
 				/* basic font (e.g. usascii) width */
 
-				if( percent == 0)
-				{
-					ch_width = get_xft_col_width( font , font_family ,
-							weight , slant , fontsize_d) ;
-				}
-				else
-				{
-					ch_width = (fontsize_d * font->cols * percent) / 200 ;
-				}
+			#if  0
+				ch_width = get_xft_col_width( font , font_family ,
+						weight , slant , fontsize_d)
+			#else
+				ch_width = get_xft_col_width( font , fontsize_d , percent) ;
+			#endif
 
 				if( font->is_vertical)
 				{
@@ -601,17 +627,18 @@ set_xft_font(
 				}
 			}
 
-		#if  0
-			kik_debug_printf( "Loading font %s%s%s %f\n" , font_family ,
+		#ifdef  DEBUG
+			kik_debug_printf( "Loading font %s%s%s %f %d\n" , font_family ,
 				weight == XFT_WEIGHT_BOLD ? ":Bold" :
 					weight == XFT_WEIGHT_LIGHT ? " Light" : "" ,
 				slant == XFT_SLANT_ITALIC ? ":Italic" : "" ,
-				fontsize_d) ;
+				fontsize_d , font->is_var_col_width) ;
 		#endif
 		
-			if( font->is_var_col_width)
+			if( ch_width == 0)
 			{
-				if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
+				if( ( xfont = XftFontOpen( font->display ,
+						DefaultScreen( font->display) ,
 						XFT_FAMILY , XftTypeString , font_family ,
 						xft_size_type , XftTypeDouble , fontsize_d ,
 						XFT_ENCODING , XftTypeString , font_encoding ,
@@ -621,21 +648,25 @@ set_xft_font(
 						aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
 							aa_opt == 1 ? True : False , NULL)))
 				{
+					ch_width = xft_calculate_char_width( font->display ,
+							xfont , "W" , 1) ;
+
 					goto  font_found ;
 				}
 			}
 			else
 			{
-				if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
+				if( ( xfont = XftFontOpen( font->display ,
+						DefaultScreen( font->display) ,
 						XFT_FAMILY , XftTypeString , font_family ,
 						xft_size_type , XftTypeDouble , fontsize_d ,
 						XFT_ENCODING , XftTypeString , font_encoding ,
 						XFT_WEIGHT , XftTypeInteger , weight ,
 						XFT_SLANT , XftTypeInteger , slant ,
-						XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
 						XFT_SPACING , XftTypeInteger , XFT_MONO ,
+						XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
 						aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
-							aa_opt == 1 ? True : False , NULL)))
+							aa_opt == 1 ? True : False , NULL)) )
 				{
 					goto  font_found ;
 				}
@@ -649,14 +680,19 @@ set_xft_font(
 	if( col_width == 0)
 	{
 		/* basic font (e.g. usascii) width */
-		ch_width = get_xft_col_width( font , "" , weight , slant , (double)fontsize) ;
 
-		/*
-		 * !! Notice !!
-		 * The width of full and half character font is the same.
-		 */
+	#if  0
+		ch_width = get_xft_col_width( font , "" , weight , slant , (double)fontsize) ;
+	#else
+		ch_width = get_xft_col_width( font , (double)fontsize , 0) ;
+	#endif
+	
 		if( font->is_vertical)
 		{
+			/*
+			 * !! Notice !!
+			 * The width of full and half character font is the same.
+			 */
 			ch_width *= 2 ;
 		}
 	}
@@ -676,36 +712,36 @@ set_xft_font(
 		}
 	}
 
-	FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p)
+	if( ch_width == 0)
 	{
-		if( font->is_var_col_width)
+		if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
+				xft_size_type , XftTypeDouble , (double)fontsize ,
+				XFT_ENCODING , XftTypeString , iso10646 ,
+				XFT_WEIGHT , XftTypeInteger , weight ,
+				XFT_SLANT , XftTypeInteger , slant ,
+				XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
+				aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
+					aa_opt == 1 ? True : False , NULL)))
 		{
-			if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
-					xft_size_type , XftTypeDouble , (double)fontsize ,
-					XFT_ENCODING , XftTypeString , *font_encoding_p ,
-					XFT_WEIGHT , XftTypeInteger , weight ,
-					XFT_SLANT , XftTypeInteger , slant ,
-					XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
-					aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
-						aa_opt == 1 ? True : False , NULL)))
-			{
-				goto  font_found ;
-			}
+			ch_width = xft_calculate_char_width( font->display ,
+					xfont , "W" , 1) ;
+
+			goto  font_found ;
 		}
-		else
+	}
+	else
+	{
+		if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
+				xft_size_type , XftTypeDouble , (double)fontsize ,
+				XFT_ENCODING , XftTypeString , iso10646 ,
+				XFT_WEIGHT , XftTypeInteger , weight ,
+				XFT_SLANT , XftTypeInteger , slant ,
+				XFT_SPACING , XftTypeInteger , XFT_MONO ,
+				XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
+				aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
+					aa_opt == 1 ? True : False , NULL)) )
 		{
-			if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
-					xft_size_type , XftTypeDouble , (double)fontsize ,
-					XFT_ENCODING , XftTypeString , *font_encoding_p ,
-					XFT_WEIGHT , XftTypeInteger , weight ,
-					XFT_SLANT , XftTypeInteger , slant ,
-					XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
-					XFT_SPACING , XftTypeInteger , XFT_CHARCELL ,
-					aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
-						aa_opt == 1 ? True : False , NULL)))
-			{
-				goto  font_found ;
-			}
+			goto  font_found ;
 		}
 	}
 
@@ -1204,11 +1240,11 @@ font_found:
 				 * !! Notice !!
 				 * The width of full and half character font is the same.
 				 */
-				ch_width = fontsize * percent / 100 ;
+				ch_width = DIVIDE_ROUNDING( fontsize * percent , 100) ;
 			}
 			else
 			{
-				ch_width = fontsize * percent / 200 ;
+				ch_width = DIVIDE_ROUNDING( fontsize * percent , 200) ;
 			}
 
 			if( font->width != ch_width)
@@ -1299,7 +1335,7 @@ font_found:
 		font->is_proportional = 1 ;
 
 		/* XXX this may be inaccurate. */
-		font->width = (fontsize / 2) * font->cols ;
+		font->width = DIVIDE_ROUNDINGUP( fontsize * font->cols , 2) ;
 	}
 
 	if( font->height == 0)

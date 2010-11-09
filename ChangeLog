@@ -1,3 +1,18 @@
+2010-11-10  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  term_type static variable and TERM_TYPE macro are removed
+	  and main_config.term_type is used instead.
+
+	* doc/en/PROTOCOL, man/mlterm.1, doc/ja/README.ja:
+	  Explanation about "bidi_mode" is added.
+	
+	* ml_bidi.[ch], ml_line.[ch], ml_logical_visual.[ch], ml_term.[ch],
+	  ml_term_manager.[ch], x_main_config.[ch], x_screen.c, x_term_manager.c:
+	  "bidi_mode" option is added.
+
+	* x_font.c: get_xft_col_width() is rewritten.
+
 2010-10-27  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:

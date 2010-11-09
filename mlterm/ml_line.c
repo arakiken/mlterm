@@ -980,7 +980,7 @@ ml_line_copy_line(
 	if( ml_line_is_using_bidi( src))
 	{
 		ml_line_use_bidi( dst) ;
-		ml_line_bidi_render( dst) ;
+		ml_line_bidi_render( dst , src->bidi_state->bidi_mode) ;
 	}
 	else
 	{
@@ -1162,7 +1162,8 @@ ml_line_is_rtl(
 
 int
 ml_line_bidi_render(
-	ml_line_t *  line
+	ml_line_t *  line ,
+	ml_bidi_mode_t  bidi_mode
 	)
 {
 	int  base_is_rtl ;
@@ -1179,7 +1180,7 @@ ml_line_bidi_render(
 
 	base_is_rtl = line->bidi_state->base_is_rtl ;
 
-	result = ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars) ;
+	result = ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars , bidi_mode) ;
 
 	if( base_is_rtl != line->bidi_state->base_is_rtl)
 	{

@@ -53,8 +53,6 @@
 
 #define  WINDOW_MARGIN  2
 
-#define  TERM_TYPE  "xterm"
-
 #ifndef  VTE_CHECK_VERSION
 #define  VTE_CHECK_VERSION(a,b,c)  (0)
 #endif
@@ -108,8 +106,6 @@ static guint signals[LAST_SIGNAL] ;
 
 static char *  true = "true" ;
 static char *  false = "false" ;
-
-static char *  term_type = TERM_TYPE ;
 
 
 /* --- static functions --- */
@@ -923,7 +919,7 @@ vte_terminal_realize(
 	)
 {
 	GdkWindowAttr  attr ;
-	
+
 	if( widget->window)
 	{
 		return ;
@@ -954,7 +950,7 @@ vte_terminal_realize(
 	widget->window = gdk_window_new( gtk_widget_get_parent_window( widget) , &attr ,
 				GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL | GDK_WA_COLORMAP) ;
 	gdk_window_set_user_data( widget->window , widget) ;
-	
+
 	GTK_WIDGET_SET_FLAGS( widget , GTK_REALIZED) ;
 
 	widget->style = gtk_style_attach( widget->style , widget->window) ;
@@ -972,7 +968,7 @@ vte_terminal_realize(
 	VTE_TERMINAL(widget)->pvt->screen->window.create_gc = 1 ;
 	x_display_show_root( &disp , &VTE_TERMINAL(widget)->pvt->screen->window ,
 		0 , 0 , 0 , "mlterm" , gdk_x11_drawable_get_xid( widget->window)) ;
-	
+
 	/*
 	 * allocation passed by size_allocate is not necessarily to be reflected
 	 * to x_window_t or ml_term_t, so x_window_resize must be called here.
@@ -1490,9 +1486,9 @@ vte_terminal_init(
 		ml_create_term( 80 /* main_config.cols */ , 25 /* main_config.rows */ ,
 			main_config.tab_size , main_config.num_of_log_lines ,
 			main_config.encoding , main_config.is_auto_encoding , 
-			main_config.unicode_font_policy ,
-			main_config.col_size_of_width_a , main_config.use_char_combining ,
-			main_config.use_multi_col_char , main_config.use_bidi ,
+			main_config.unicode_font_policy , main_config.col_size_of_width_a ,
+			main_config.use_char_combining , main_config.use_multi_col_char ,
+			main_config.use_bidi , main_config.bidi_mode , 
 			x_termcap_get_bool_field(
 				x_termcap_get_entry( &termcap , main_config.term_type) , ML_BCE) ,
 			main_config.use_dynamic_comb , main_config.bs_mode ,
@@ -1516,7 +1512,8 @@ vte_terminal_init(
 		usascii_font_cs_changable = 1 ;
 	}
 
-	font_man = x_font_manager_new( disp.display , /* main_config.type_engine */
+	font_man = x_font_manager_new( disp.display ,
+			/* main_config.type_engine */
 		#ifdef  USE_TYPE_XFT
 			TYPE_XFT ,
 		#else
@@ -1526,7 +1523,7 @@ vte_terminal_init(
 			main_config.font_size , usascii_font_cs ,
 			usascii_font_cs_changable , main_config.use_multi_col_char ,
 			main_config.step_in_changing_font_size) ;
-		
+
 	color_man = x_color_manager_new( disp.display , DefaultScreen(disp.display) ,
 			&color_config , main_config.fg_color , main_config.bg_color ,
 			main_config.cursor_fg_color , main_config.cursor_bg_color) ;
@@ -2471,7 +2468,7 @@ vte_terminal_set_backspace_binding(
 		return ;
 	}
 	
-	entry = x_termcap_get_entry( &termcap , TERM_TYPE) ;
+	entry = x_termcap_get_entry( &termcap , main_config.term_type) ;
 	free( entry->str_fields[ML_BACKSPACE]) ;
 	/* ^H (compatible with libvte) */
 	entry->str_fields[ML_BACKSPACE] = strdup(seq) ;
@@ -2509,7 +2506,7 @@ vte_terminal_set_delete_binding(
 		return ;
 	}
 	
-	entry = x_termcap_get_entry( &termcap , TERM_TYPE) ;
+	entry = x_termcap_get_entry( &termcap , main_config.term_type) ;
 	free( entry->str_fields[ML_DELETE]) ;
 	/* ^H (compatible with libvte) */
 	entry->str_fields[ML_DELETE] = strdup(seq) ;
@@ -2670,7 +2667,7 @@ vte_terminal_get_emulation(
 	VteTerminal *terminal
 	)
 {
-	return  term_type ;
+	return  main_config.term_type ;
 }
 
 const char *
@@ -2678,7 +2675,7 @@ vte_terminal_get_default_emulation(
 	VteTerminal *  terminal
 	)
 {
-	return  term_type ;
+	return  main_config.term_type ;
 }
 
 void

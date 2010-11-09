@@ -133,7 +133,7 @@ int  ml_line_unuse_bidi( ml_line_t *  line) ;
 
 int  ml_line_is_rtl( ml_line_t *  line) ;
 
-int  ml_line_bidi_render( ml_line_t *  line) ;
+int  ml_line_bidi_render( ml_line_t *  line , ml_bidi_mode_t  mode) ;
 
 int  ml_line_bidi_visual( ml_line_t *  line) ;
 

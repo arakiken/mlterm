@@ -4,17 +4,33 @@
 
 #include  "ml_bidi.h"
 
+#include  <string.h>		/* strcmp */
+
 
 #if  0
 #define  __DEBUG
 #endif
 
 
+/* --- static variables --- */
+
+/* Order of this table must be same as x_bidi_mode_t. */
+static char *   bidi_mode_name_table[] =
+{
+	"normal" , "cmd_l" , "cmd_r" ,
+} ;
+
+
 #ifdef  USE_FRIBIDI
 
+#include  <ctype.h>		/* isalpha */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* alloca/realloc/free */
 #include  <fribidi/fribidi.h>
+
+
+#define  DIR_LTR_MARK 0x200e
+#define  DIR_RTL_MARK 0x200f
 
 
 /* --- global functions --- */
@@ -33,6 +49,7 @@ ml_bidi_new(void)
 	state->size = 0 ;
 	state->base_is_rtl = 0 ;
 	state->has_rtl = 0 ;
+	state->bidi_mode = BIDI_NORMAL_MODE ;
 
 	return  state ;
 }
@@ -62,14 +79,15 @@ int
 ml_bidi(
 	ml_bidi_state_t *  state ,
 	ml_char_t *  src ,
-	u_int  size
+	u_int  size ,
+	ml_bidi_mode_t  bidi_mode
 	)
 {
 	FriBidiChar *  fri_src ;
 	FriBidiCharType  fri_type ;
 	FriBidiStrIndex *  fri_order ;
 	u_char *  bytes ;
-	int  count ;
+	u_int  count ;
 
 	if( size == 0)
 	{
@@ -105,7 +123,31 @@ ml_bidi(
 
 		if( ml_char_cs( &src[count]) == US_ASCII)
 		{
-			fri_src[count] = bytes[0] ;
+			if( bidi_mode == BIDI_CMD_MODE_L && bytes[0] == ' ')
+			{
+				fri_src[count] = DIR_LTR_MARK ;
+			}
+			else if( bidi_mode == BIDI_CMD_MODE_R && ! isalpha(bytes[0]))
+			{
+				if( bytes[0] == ' ')
+				{
+					fri_src[count] = DIR_RTL_MARK ;
+				}
+				else
+				{
+					/*
+					 * Without this hack, following NG happens.
+					 * $ ls test.txt test1.txt =>          test.txt ls $
+					 * ./text.txt ./test1.txt  => test1.txt/. text.txt/. <- NG
+					 *                                     ^^         ^^
+					 */
+					fri_src[count] = DIR_LTR_MARK ;
+				}
+			}
+			else
+			{
+				fri_src[count] = bytes[0] ;
+			}
 		}
 		else if( ml_char_cs( &src[count]) == ISO10646_UCS4_1)
 		{
@@ -113,9 +155,7 @@ ml_bidi(
 		}
 		else if( ml_char_cs( &src[count]) == DEC_SPECIAL)
 		{
-			/*
-			 * Regarded as LTR character.
-			 */
+			/* Regarded as LTR character. */
 			fri_src[count] = 'a' ;
 		}
 		else
@@ -145,7 +185,14 @@ ml_bidi(
 	kik_msg_printf( "\n") ;
 #endif
 
-	fri_type = FRIBIDI_TYPE_ON ;
+	if( bidi_mode == BIDI_CMD_MODE_R)
+	{
+		fri_type = FRIBIDI_TYPE_RTL ;
+	}
+	else
+	{
+		fri_type = FRIBIDI_TYPE_ON ;
+	}
 
 	fribidi_log2vis( fri_src , size , &fri_type , NULL , fri_order , NULL , NULL) ;
 
@@ -181,6 +228,8 @@ ml_bidi(
 	{
 		state->base_is_rtl = 0 ;
 	}
+
+	state->bidi_mode = bidi_mode ;
 
 #ifdef  __DEBUG
 	kik_msg_printf( "visual order => ") ;
@@ -247,7 +296,8 @@ int
 ml_bidi(
 	ml_bidi_state_t *  state ,
 	ml_char_t *  src ,
-	u_int  size
+	u_int  size ,
+	ml_bidi_mode_t  bidi_mode
 	)
 {
 	return  0 ;
@@ -255,3 +305,37 @@ ml_bidi(
 
 
 #endif
+
+
+ml_bidi_mode_t
+ml_get_bidi_mode(
+	char *  name
+	)
+{
+	ml_bidi_mode_t  mode ;
+
+	for( mode = 0 ; mode < BIDI_MODE_MAX ; mode++)
+	{
+		if( strcmp( bidi_mode_name_table[mode] , name) == 0)
+		{
+			return  mode ;
+		}
+	}
+	
+	/* default value */
+	return  BIDI_NORMAL_MODE ;
+}
+
+char *
+ml_get_bidi_mode_name(
+	ml_bidi_mode_t  mode
+	)
+{
+	if( mode < 0 || BIDI_MODE_MAX <= mode)
+	{
+		/* default value */
+		mode = BIDI_NORMAL_MODE ;
+	}
+
+	return  bidi_mode_name_table[mode] ;
+}

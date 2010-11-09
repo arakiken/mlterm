@@ -281,6 +281,16 @@ comment $Id$
       o use_bidi  (*true*/false) (#)
         BiDi レンダリングを行う
 
+      o bidi_mode  (*normal*/cmd_l/cmd_r)
+        BiDi レンダリングの方法を指定する
+	        +---------------------+
+	logical |$ ls -l ABC DEF      |
+	normal  |$ ls -l FED CBA      |
+	cmd_l   |$ ls -l CBA FED      |
+	cmd_r   |      FED CBA -l ls $|
+	        +---------------------+
+		(大文字は RTL 文字を示します。)
+
       o use_combining  (*true*/false) (#)
         結合文字を処理する
 

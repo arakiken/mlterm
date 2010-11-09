@@ -14,7 +14,7 @@ version 20091211
   set key          = encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
-                     use_combining | use_transbg | use_bidi |
+                     use_combining | use_transbg | use_bidi | bidi_mode |
                      receive_string_via_ucs | input_method | wall_picture |
                      full_reset | brightness | gamma | contrast | line_space |
                      screen_width_ratio | screen_height_ratio | vertical_mode |
@@ -28,7 +28,7 @@ version 20091211
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
 		     bel_mode | type_engine | use_anti_alias | use_variable_column_width |
-		     use_combining | use_transbg | use_bidi |
+		     use_combining | use_transbg | use_bidi | bidi_mode |
 		     receive_string_via_ucs | xim | locale | wall_picture |
 		     pwd | brightness | gamma | contrast | line_space |
 		     screen_width_ratio | screen_height_ratio | vertical_mode |

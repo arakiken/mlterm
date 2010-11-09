@@ -192,6 +192,10 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
 		"path to an imagefile to be use as an window icon") ;
 #endif
+#ifdef  USE_FRIBIDI
+	kik_conf_add_opt( conf , '\0' , "bimode" , 0 , "bidi_mode" ,
+		"bidi mode [normal]") ;
+#endif
 	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
 		"input method (xim/kbd/uim/iiimf/m17nlib/scim/none) [xim]") ;
 	kik_conf_add_opt( conf , '\0' , "parent" , 0 , "parent_window" ,
@@ -853,6 +857,13 @@ x_main_config_init(
 		{
 			main_config->use_bidi = 0 ;
 		}
+	}
+
+	main_config->bidi_mode = BIDI_NORMAL_MODE ;
+	
+	if( ( value = kik_conf_get_value( conf , "bidi_mode")))
+	{
+		main_config->bidi_mode = ml_get_bidi_mode( value) ;
 	}
 
 	/* If value is "none" or not is also checked in x_screen.c */

@@ -28,6 +28,7 @@ ml_term_new(
 	int  use_char_combining ,
 	int  use_multi_col_char ,
 	int  use_bidi ,
+	ml_bidi_mode_t  bidi_mode ,
 	int  use_bce ,
 	int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode ,
@@ -82,6 +83,7 @@ ml_term_new(
 	term->iscii_lang = NULL ;
 	term->iscii_lang_type = iscii_lang_type ;
 	term->vertical_mode = vertical_mode ;
+	term->bidi_mode = bidi_mode ;
 	term->use_bidi = use_bidi ;
 	term->use_dynamic_comb = use_dynamic_comb ;
 
@@ -873,9 +875,9 @@ ml_term_update_special_visual(
 			}
 
 		#if  1
-			if( ( logvis = ml_logvis_bidi_new( 0)) == NULL)
+			if( ( logvis = ml_logvis_bidi_new( 0 , term->bidi_mode)) == NULL)
 		#else
-			if( ( logvis = ml_logvis_bidi_new( 1)) == NULL)
+			if( ( logvis = ml_logvis_bidi_new( 1 , term->bidi_mode)) == NULL)
 		#endif
 			{
 			#ifdef  DEBUG

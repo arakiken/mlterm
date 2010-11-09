@@ -38,6 +38,7 @@ typedef struct x_main_config
 	int  is_auto_encoding ;
 	x_type_engine_t  type_engine ;
 	x_font_present_t  font_present ;
+	ml_bidi_mode_t  bidi_mode ;
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bs_mode_t  bs_mode ;
 	ml_unicode_font_policy_t  unicode_font_policy ;

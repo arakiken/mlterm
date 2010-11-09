@@ -462,6 +462,19 @@ Specify the step of changing font size in pixel when you pushed
 GUI configurator.
 The default is \fB1\fR.
 .TP
+\fB\-\-bimode\fR=\fIvalue\fR
+Specify bidi mode. Valid values are: \fBnormal\fR, \fBcmd_l\fR and \fBcmd_r\fR.
+The default is \fBnormal\fR.
+.nf
+        +---------------------+
+logical |$ ls -l ABC DEF      |
+normal  |$ ls -l FED CBA      |
+cmd_l   |$ ls -l CBA FED      |
+cmd_r   |      FED CBA -l ls $|
+        +---------------------+
+        (Upper case characters represent RTL ones.)
+.fi
+.TP
 \fB\-\-iconpath\fR=\fIpath\fR
 Specify the file to be used as a window icon.
 .TP
@@ -1084,6 +1097,9 @@ Specify X server to connect.
 .TP
 \fBbel_mode=\fImode\fR (\fB\-7\fR, \fB\-\-bel\fR) 
 Behavior when BEL (0x07) is received.
+.TP
+\fBbidi_mode=\fImode\fR (\fB-\-bimode\fR)
+Specify bidi mode.
 .TP
 \fBcontrast=\fIvalue\fR (\fB\-3\fR, \fB\-\-contrast\fR) 
 Contrast of background image in percent.

@@ -4281,19 +4281,30 @@ change_multi_col_char_flag(
 static void
 change_bidi_flag(
 	x_screen_t *  screen ,
-	int  use_bidi
+	int  use_bidi ,
+	ml_bidi_mode_t  bidi_mode
 	)
 {
-	if( screen->term->use_bidi == use_bidi)
+	int  do_update ;
+	
+	if( screen->term->use_bidi == use_bidi &&
+	    screen->term->bidi_mode == bidi_mode)
 	{
 		/* not changed */
 
 		return ;
 	}
 
+	/*
+	 * If use_bidi flag is false and not changed, it is not necessary to update even if
+	 * bidi_mode flag is changed.
+	 */
+	do_update = ( use_bidi != screen->term->use_bidi) || screen->term->use_bidi ;
+	
 	screen->term->use_bidi = use_bidi ;
+	screen->term->bidi_mode = bidi_mode ;
 
-	if( update_special_visual( screen))
+	if( do_update && update_special_visual( screen))
 	{
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
@@ -4947,6 +4958,10 @@ get_config(
 		{
 			value = false ;
 		}
+	}
+	else if( strcmp( key , "bidi_mode") == 0)
+	{
+		value = ml_get_bidi_mode_name( screen->term->bidi_mode) ;
 	}
 	else if( strcmp( key , "input_method") == 0)
 	{
@@ -7684,7 +7699,11 @@ x_screen_set_config(
 			return ;
 		}
 
-		change_bidi_flag( screen , flag) ;
+		change_bidi_flag( screen , flag , screen->term->bidi_mode) ;
+	}
+	else if( strcmp( key , "bidi_mode") == 0)
+	{
+		change_bidi_flag( screen , screen->term->use_bidi , ml_get_bidi_mode( value)) ;
 	}
 	else if( strcmp( key , "input_method") == 0)
 	{

@@ -40,6 +40,7 @@ typedef struct  bidi_logical_visual
 	int  cursor_logical_char_index ;
 	int  cursor_logical_col ;
 	int  ltr_rtl_meet_pos ;
+	ml_bidi_mode_t  bidi_mode ;
 
 	int8_t  adhoc_right_align ;
 
@@ -85,6 +86,15 @@ typedef struct  vert_logical_visual
 	int8_t  is_init ;
 
 } vert_logical_visual_t ;
+
+
+/* --- static variables --- */
+
+/* Order of this table must be same as x_vertical_mode_t. */
+static char *   vertical_mode_name_table[] =
+{
+	"none" , "mongol" , "cjk" ,
+} ;
 
 
 /* --- static functions --- */
@@ -361,7 +371,8 @@ bidi_render(
 
 		need_render = 0 ;
 		
-		if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align && line->num_of_filled_chars > 0)
+		if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align &&
+			line->num_of_filled_chars > 0)
 		{
 			ml_line_fill( line , ml_sp_ch() , line->num_of_filled_chars ,
 				logvis->model->num_of_cols - ml_line_get_num_of_filled_cols( line)) ;
@@ -377,7 +388,8 @@ bidi_render(
 
 		if( ml_line_is_modified( line) || need_render)
 		{
-			if( ! ml_line_bidi_render( line))
+			if( ! ml_line_bidi_render( line ,
+						((bidi_logical_visual_t*)logvis)->bidi_mode))
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " ml_line_bidi_render failed.\n") ;
@@ -507,7 +519,7 @@ bidi_visual_line(
 
 	if( ml_line_is_modified( line) || need_render)
 	{
-		if( ! ml_line_bidi_render( line))
+		if( ! ml_line_bidi_render( line , ((bidi_logical_visual_t*)logvis)->bidi_mode))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_line_bidi_render failed.\n") ;
@@ -1516,7 +1528,8 @@ ml_logvis_container_add(
 
 ml_logical_visual_t *
 ml_logvis_bidi_new(
-	int  adhoc_right_align
+	int  adhoc_right_align ,
+	ml_bidi_mode_t   bidi_mode
 	)
 {
 	bidi_logical_visual_t *  bidi_logvis ;
@@ -1529,6 +1542,7 @@ ml_logvis_bidi_new(
 	bidi_logvis->cursor_logical_char_index = 0 ;
 	bidi_logvis->cursor_logical_col = 0 ;
 	bidi_logvis->ltr_rtl_meet_pos = 0 ;
+	bidi_logvis->bidi_mode = bidi_mode ;
 	bidi_logvis->adhoc_right_align = adhoc_right_align ;
 
 	bidi_logvis->logvis.model = NULL ;
@@ -1668,23 +1682,24 @@ ml_logvis_vert_new(
 	return  (ml_logical_visual_t*) vert_logvis ;
 }
 
+
 ml_vertical_mode_t
 ml_get_vertical_mode(
 	char *  name
 	)
 {
-	if( strcmp( name , "cjk") == 0)
+	ml_vertical_mode_t  mode ;
+
+	for( mode = 0 ; mode < VERT_MODE_MAX ; mode++)
 	{
-		return  VERT_RTL ;
+		if( strcmp( vertical_mode_name_table[mode] , name) == 0)
+		{
+			return  mode ;
+		}
 	}
-	else if( strcmp( name , "mongol") == 0)
-	{
-		return  VERT_LTR ;
-	}
-	else /* if( strcmp( name , "none") == 0 */
-	{
-		return  0 ;
-	}
+	
+	/* default value */
+	return  0 ;
 }
 
 char *
@@ -1692,16 +1707,11 @@ ml_get_vertical_mode_name(
 	ml_vertical_mode_t  mode
 	)
 {
-	if( mode == VERT_RTL)
+	if( mode < 0 || VERT_MODE_MAX <= mode)
 	{
-		return  "cjk" ;
+		/* default value */
+		mode = 0 ;
 	}
-	else if( mode == VERT_LTR)
-	{
-		return  "mongol" ;
-	}
-	else
-	{
-		return  "none" ;
-	}
+
+	return  vertical_mode_name_table[mode] ;
 }
