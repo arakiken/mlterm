@@ -29,6 +29,7 @@ libvte: $(OBJ)
 	sed 's/..\/xwindow\/x_term_manager.lo//g' | \
 	sed 's/..\/xwindow\/x_sb_screen.lo//g' | \
 	sed 's/..\/xwindow\/x_scrollbar.lo//g' | \
+	sed 's/..\/xwindow\/x_sb_view_factory.lo//g' | \
 	sed 's/..\/xwindow\/x_simple_sb_view.lo//g'` \
 	$(top_builddir)/kiklib/src/libkik.la $(top_builddir)/mkf/lib/libmkf.la \
 	@FRIBIDI_LIBS@ @IND_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ \

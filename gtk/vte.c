@@ -57,6 +57,8 @@
 #define  VTE_CHECK_VERSION(a,b,c)  (0)
 #endif
 
+#define  STATIC_PARAMS (G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB)
+
 
 struct _VteTerminalPrivate
 {
@@ -66,6 +68,8 @@ struct _VteTerminalPrivate
 	x_system_event_listener_t  system_listener ;
 
 	void (*line_scrolled_out)( void *) ;
+	void (*set_window_name)( void * , u_char *) ;
+	void (*set_icon_name)( void * , u_char *) ;
 	x_screen_scroll_event_listener_t  screen_scroll_listener ;
 	int8_t  adj_value_changed_by_myself ;
 
@@ -86,6 +90,35 @@ enum
 	LAST_SIGNAL
 } ;
 
+enum
+{
+	PROP_0 ,
+	PROP_ALLOW_BOLD,
+	PROP_AUDIBLE_BELL,
+	PROP_BACKGROUND_IMAGE_FILE,
+	PROP_BACKGROUND_IMAGE_PIXBUF,
+	PROP_BACKGROUND_OPACITY,
+	PROP_BACKGROUND_SATURATION,
+	PROP_BACKGROUND_TINT_COLOR,
+	PROP_BACKGROUND_TRANSPARENT,
+	PROP_BACKSPACE_BINDING,
+	PROP_CURSOR_BLINK_MODE,
+	PROP_CURSOR_SHAPE,
+	PROP_DELETE_BINDING,
+	PROP_EMULATION,
+	PROP_ENCODING,
+	PROP_FONT_DESC,
+	PROP_ICON_TITLE,
+	PROP_MOUSE_POINTER_AUTOHIDE,
+	PROP_PTY,
+	PROP_SCROLL_BACKGROUND,
+	PROP_SCROLLBACK_LINES,
+	PROP_SCROLL_ON_KEYSTROKE,
+	PROP_SCROLL_ON_OUTPUT,
+	PROP_WINDOW_TITLE,
+	PROP_WORD_CHARS,
+	PROP_VISIBLE_BELL
+} ;
 
 G_DEFINE_TYPE(VteTerminal , vte_terminal , GTK_TYPE_WIDGET) ;
 
@@ -290,6 +323,55 @@ __exit(
 #endif
 	
 	gtk_main_quit() ;
+}
+
+
+/*
+ * ml_xterm_event_listener_t (overriding) handlers
+ */
+
+static void
+set_window_name(
+	void *  p ,
+	u_char *  name
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+	ml_term_set_window_name( screen->term , name) ;
+	VTE_WIDGET(screen)->window_title = ml_term_window_name( screen->term) ;
+	
+	gdk_window_set_title( GTK_WIDGET(VTE_WIDGET(screen))->window ,
+		VTE_WIDGET(screen)->window_title) ;
+	g_signal_emit_by_name( VTE_WIDGET(screen) , "window-title-changed") ;
+
+#if  VTE_CHECK_VERSION(0,20,0)
+	g_object_notify( G_OBJECT(VTE_WIDGET(screen)) , "window-title") ;
+#endif
+}
+
+static void
+set_icon_name(
+	void *  p ,
+	u_char *  name
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+	ml_term_set_icon_name( screen->term , name) ;
+	VTE_WIDGET(screen)->icon_title = ml_term_icon_name( screen->term) ;
+
+	gdk_window_set_icon_name( GTK_WIDGET(VTE_WIDGET(screen))->window ,
+		VTE_WIDGET(screen)->icon_title) ;
+	g_signal_emit_by_name( VTE_WIDGET(screen) , "icon-title-changed") ;
+
+#if  VTE_CHECK_VERSION(0,20,0)
+	g_object_notify( G_OBJECT(VTE_WIDGET(screen)) , "icon-title") ;
+#endif
 }
 
 
@@ -827,6 +909,34 @@ vte_terminal_finalize(
 }
 
 static void
+vte_terminal_get_property(
+	GObject *  obj ,
+	guint  prop_id ,
+	GValue *  value ,
+	GParamSpec *  pspec
+	)
+{
+	VteTerminal *  terminal ;
+
+	terminal = VTE_TERMINAL(obj) ;
+
+	switch( prop_id)
+	{
+		case  PROP_ICON_TITLE:
+			g_value_set_string( value , vte_terminal_get_icon_title( terminal)) ;
+			break ;
+			
+		case  PROP_WINDOW_TITLE:
+			g_value_set_string( value , vte_terminal_get_window_title( terminal)) ;
+			break ;
+			
+		default:
+			G_OBJECT_WARN_INVALID_PROPERTY_ID( obj , prop_id , pspec) ;
+	}
+}
+
+
+static void
 update_wall_picture(
 	VteTerminal *  terminal
 	)
@@ -1140,7 +1250,7 @@ vte_terminal_class_init(
 	char *  argv[] = { "mlterm" , NULL } ;
 	GObjectClass *  oclass ;
 	GtkWidgetClass *  wclass ;
-
+	
 	kik_priv_change_euid( kik_getuid()) ;
 	kik_priv_change_egid( kik_getgid()) ;
 
@@ -1191,6 +1301,7 @@ vte_terminal_class_init(
 	wclass = GTK_WIDGET_CLASS(vclass) ;
 
 	oclass->finalize = vte_terminal_finalize ;
+	oclass->get_property = vte_terminal_get_property ;
 	wclass->realize = vte_terminal_realize ;
 	wclass->unrealize = vte_terminal_unrealize ;
 	wclass->focus_in_event = vte_terminal_focus_in_event ;
@@ -1415,6 +1526,16 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__INT ,
 			G_TYPE_NONE , 1 , G_TYPE_INT) ;
 
+#if  VTE_CHECK_VERSION(0,20,0)
+	g_object_class_install_property( oclass , PROP_WINDOW_TITLE ,
+		g_param_spec_string( "window-title" , NULL , NULL , NULL ,
+			G_PARAM_READABLE | STATIC_PARAMS)) ;
+
+	g_object_class_install_property( oclass , PROP_ICON_TITLE ,
+		g_param_spec_string( "icon-title" , NULL , NULL , NULL ,
+			G_PARAM_READABLE | STATIC_PARAMS)) ;
+#endif
+
 #if  VTE_CHECK_VERSION(0,23,2)
 	/*
 	 * doc/references/html/VteTerminal.html describes that inner-border property
@@ -1523,7 +1644,7 @@ vte_terminal_init(
 			main_config.font_size , usascii_font_cs ,
 			usascii_font_cs_changable , main_config.use_multi_col_char ,
 			main_config.step_in_changing_font_size) ;
-
+	
 	color_man = x_color_manager_new( disp.display , DefaultScreen(disp.display) ,
 			&color_config , main_config.fg_color , main_config.bg_color ,
 			main_config.cursor_fg_color , main_config.cursor_bg_color) ;
@@ -1570,6 +1691,13 @@ vte_terminal_init(
 	terminal->pvt->line_scrolled_out =
 		terminal->pvt->screen->screen_listener.line_scrolled_out ;
 	terminal->pvt->screen->screen_listener.line_scrolled_out = line_scrolled_out ;
+	
+	terminal->pvt->set_window_name =
+		terminal->pvt->screen->xterm_listener.set_window_name ;
+	terminal->pvt->screen->xterm_listener.set_window_name = set_window_name ;
+	terminal->pvt->set_icon_name =
+		terminal->pvt->screen->xterm_listener.set_icon_name ;
+	terminal->pvt->screen->xterm_listener.set_icon_name = set_icon_name ;
 
 	terminal->pvt->io = NULL ;
 	terminal->pvt->src_id = 0 ;
@@ -1580,8 +1708,8 @@ vte_terminal_init(
 	terminal->pvt->pix_height = 0 ;
 	terminal->pvt->pic_mod = NULL ;
 
-	terminal->window_title = vte_terminal_get_window_title( terminal) ;
-	terminal->icon_title = vte_terminal_get_window_title( terminal) ;
+	terminal->window_title = ml_term_window_name( terminal->pvt->term) ;
+	terminal->icon_title = ml_term_icon_name( terminal->pvt->term) ;
 
 	gtk_widget_ensure_style( &terminal->widget) ;
 	

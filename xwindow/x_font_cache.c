@@ -85,6 +85,17 @@ init_usascii_font(
 	return  1 ;
 }
 
+static KIK_MAP( x_font)
+xfont_table_new(void)
+{
+	KIK_MAP( x_font)  xfont_table ;
+	
+	kik_map_new_with_size( ml_font_t , x_font_t * , xfont_table ,
+		font_hash , font_compare , 16) ;
+
+	return  xfont_table ;
+}
+
 static int
 xfont_table_delete(
 	KIK_MAP( x_font)  xfont_table
@@ -153,8 +164,7 @@ x_acquire_font_cache(
 
 	font_cache->font_config = font_config ;
 
-	kik_map_new_with_size( ml_font_t , x_font_t * ,
-		font_cache->xfont_table , font_hash , font_compare , 32) ;
+	font_cache->xfont_table = xfont_table_new() ;
 
 	font_cache->display = display ;
 	font_cache->font_size = font_size ;
@@ -226,8 +236,8 @@ x_font_cache_unload(
 	/*
 	 * Creating new cache.
 	 */
-	kik_map_new_with_size( ml_font_t , x_font_t * ,
-		font_cache->xfont_table , font_hash , font_compare , 32) ;
+	font_cache->xfont_table = xfont_table_new() ;
+
 	if( ! init_usascii_font( font_cache))
 	{
 	#ifdef  DEBUG

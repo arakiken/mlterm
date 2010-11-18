@@ -1,3 +1,12 @@
+2010-11-19  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: "window-title-changed" / "icon-title-changed" signals and
+	  "window-titel" / "icon-title" properties are supported.
+
+	* gtk/Makefile.in: x_simple_sb_view.lo is removed.
+
+	* x_font_cache.c: Call of kik_map_new_with_size() is collected to xfont_table_new().
+
 2010-11-10  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:
