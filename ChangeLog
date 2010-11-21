@@ -1,3 +1,10 @@
+2010-11-21  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: Value of type_engine option can be specified in ~/.mlterm/main
+	  in vte compatible library.
+
+	* reaper.c: #include <gtk/gtktypeutils.h> is added.
+
 2010-11-19  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: "window-title-changed" / "icon-title-changed" signals and

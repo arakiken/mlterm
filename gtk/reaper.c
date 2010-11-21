@@ -33,6 +33,8 @@
 
 #include "marshal.h"
 #include <vte/reaper.h>
+/* In case GTK_CHECK_CAST which is defined in gtktypeutils.h is used in VTE_REAPER macro. */
+#include <gtk/gtktypeutils.h>
 
 static VteReaper *singleton_reaper = NULL;
 

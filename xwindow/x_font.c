@@ -541,7 +541,7 @@ set_xft_font(
 	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
-	int  use_medium_for_bold ,
+	int  use_medium_for_bold ,	/* Not used for now. */
 	int  aa_opt		/* 0 = default , 1 = enable , -1 = disable */
 	)
 {

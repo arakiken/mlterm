@@ -395,6 +395,8 @@ ignore_badwin(
 		return  1;
 	default:
 		abort() ;
+		/* Not reached. */
+		return  0;
 	}
 }
 

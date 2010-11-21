@@ -1058,7 +1058,9 @@ vte_terminal_realize(
 				GDK_SUBSTRUCTURE_MASK ;		/* DestroyNotify from child */
 
 	widget->window = gdk_window_new( gtk_widget_get_parent_window( widget) , &attr ,
-				GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL | GDK_WA_COLORMAP) ;
+				GDK_WA_X | GDK_WA_Y |
+				(attr.visual ? GDK_WA_VISUAL : 0) |
+				(attr.colormap ? GDK_WA_COLORMAP : 0) ) ;
 	gdk_window_set_user_data( widget->window , widget) ;
 
 	GTK_WIDGET_SET_FLAGS( widget , GTK_REALIZED) ;
@@ -1278,6 +1280,25 @@ vte_terminal_class_init(
 			PATCH_LEVEL , CHANGE_DATE) ;
 	x_prepare_for_main_config( conf) ;
 	x_main_config_init( &main_config , conf , 1 , argv) ;
+
+#ifdef  USE_TYPE_XFT
+	if( main_config.type_engine == TYPE_XCORE)
+	{
+		/*
+		 * Hack
+		 * Default value of type_engine is TYPE_XCORE in normal mlterm,
+		 * but default value in libvte compatible library of mlterm is TYPE_XFT.
+		 */
+		char *  value ;
+		
+		if( ( value = kik_conf_get_value( conf , "type_engine")) == NULL ||
+			strcmp( value , "xcore") != 0)
+		{
+			main_config.type_engine = TYPE_XFT ;
+		}
+	}
+#endif
+
 	kik_conf_delete( conf) ;
 
 	g_signal_connect( vte_reaper_get() , "child-exited" ,
@@ -1634,12 +1655,7 @@ vte_terminal_init(
 	}
 
 	font_man = x_font_manager_new( disp.display ,
-			/* main_config.type_engine */
-		#ifdef  USE_TYPE_XFT
-			TYPE_XFT ,
-		#else
-			TYPE_XCORE ,
-		#endif
+			main_config.type_engine ,
 			main_config.font_present ,
 			main_config.font_size , usascii_font_cs ,
 			usascii_font_cs_changable , main_config.use_multi_col_char ,
