@@ -728,48 +728,6 @@ vte_terminal_timeout(
 	return  TRUE ;
 }
 
-static void
-menu_position(
-	GtkMenu *  menu ,
-	gint *  x ,
-	gint *  y ,
-	gboolean *  push_in ,
-	gpointer  data
-	)
-{
-	XButtonEvent *  ev ;
-	int  global_x ;
-	int  global_y ;
-	Window  child ;
-
-	ev = data ;
-
-	XTranslateCoordinates( ev->display , ev->window , DefaultRootWindow( ev->display) ,
-		ev->x , ev->y , &global_x , &global_y , &child) ;
-	
-	*x = global_x ;
-	*y = global_y ;
-	*push_in = FALSE ;
-}
-
-static void
-activate_copy(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
-{
-	vte_terminal_copy_clipboard( data) ;
-}
-
-static void
-activate_paste(
-	GtkWidget *  widget ,
-	gpointer  data
-	)
-{
-	vte_terminal_paste_clipboard( data) ;
-}
-
 
 static void vte_terminal_size_allocate( GtkWidget *  widget , GtkAllocation *  allocation) ;
 
@@ -786,54 +744,84 @@ vte_terminal_filter(
 	)
 {
 	u_int  count ;
+	int  is_key_event ;
 
 	if( XFilterEvent( (XEvent*)xevent , None))
 	{
 		return  GDK_FILTER_REMOVE ;
 	}
+
+	if( ( ((XEvent*)xevent)->xany.type == KeyPress ||
+		((XEvent*)xevent)->xany.type == KeyRelease) )
+	{
+		is_key_event = 1 ;
+	}
+	else
+	{
+		is_key_event = 0 ;
+	}
 	
 	for( count = 0 ; count < disp.num_of_roots ; count++)
 	{
-		if( IS_MLTERM_SCREEN(disp.roots[count]) &&
-			! VTE_WIDGET((x_screen_t*)disp.roots[count])->pvt->term)
+		VteTerminal *  terminal ;
+
+		if( IS_MLTERM_SCREEN(disp.roots[count]))
 		{
-			/* pty is already closed and new pty is not attached yet. */
-			continue ;
+			terminal = VTE_WIDGET((x_screen_t*)disp.roots[count]) ;
+
+			if( ! terminal->pvt->term)
+			{
+				/* pty is already closed and new pty is not attached yet. */
+				continue ;
+			}
+
+			/*
+			 * Key events are ignored if window isn't focused.
+			 * This processing is added for key binding of popup menu.
+			 */
+			if( is_key_event &&
+			    ((XEvent*)xevent)->xany.window == disp.roots[count]->my_window &&
+			    ! disp.roots[count]->is_focused)
+			{
+				((XEvent*)xevent)->xany.window =
+					gdk_x11_drawable_get_xid( GTK_WIDGET(terminal)->window) ;
+
+				return  GDK_FILTER_CONTINUE ;
+			}
 		}
-		
-		if( ((XEvent*)xevent)->type == ButtonPress &&
-			((XEvent*)xevent)->xbutton.button == Button3 &&
-			(((XEvent*)xevent)->xbutton.state & ControlMask) == 0 &&
-			((XEvent*)xevent)->xbutton.window == disp.roots[count]->my_window &&
-			IS_MLTERM_SCREEN(disp.roots[count]))
+		else
 		{
-			GtkWidget *  menu ;
-			GtkWidget *  item ;
-
-			menu = gtk_menu_new() ;
-			
-			item = gtk_menu_item_new_with_label( "Copy") ;
-			g_signal_connect( G_OBJECT(item) , "activate" ,
-				G_CALLBACK(activate_copy) ,
-				VTE_WIDGET((x_screen_t*)disp.roots[count])) ;
-			gtk_menu_append(GTK_MENU(menu), item) ;
-			
-			item = gtk_menu_item_new_with_label( "Paste") ;
-			g_signal_connect( G_OBJECT(item) , "activate" ,
-				G_CALLBACK(activate_paste) ,
-				VTE_WIDGET((x_screen_t*)disp.roots[count])) ;
-			gtk_menu_append(GTK_MENU(menu), item) ;
-
-			gtk_widget_show_all(menu) ;
-			gtk_menu_popup( GTK_MENU(menu) , NULL , NULL ,
-				menu_position , xevent , 0 , 0) ;
-
-			return  GDK_FILTER_REMOVE ;
+			terminal = NULL ;
 		}
 
 		if( x_window_receive_event( disp.roots[count] , (XEvent*)xevent))
 		{
-			return  GDK_FILTER_REMOVE ;
+			if( ! terminal)
+			{
+				return  GDK_FILTER_REMOVE ;
+			}
+			
+			/* XXX Hack for waiting for config menu program exiting. */
+			if( terminal->pvt->term->config_menu.pid)
+			{
+				vte_reaper_add_child( terminal->pvt->term->config_menu.pid) ;
+			}
+
+			switch( ((XEvent*)xevent)->type)
+			{
+			case  KeyPress:
+			case  KeyRelease:
+			case  ButtonPress:
+			case  ButtonRelease:
+				/* Hook key and button events for popup menu. */
+				((XEvent*)xevent)->xany.window =
+					gdk_x11_drawable_get_xid( GTK_WIDGET(terminal)->window) ;
+
+				return  GDK_FILTER_CONTINUE ;
+				
+			default:
+				return  GDK_FILTER_REMOVE ;
+			}
 		}
 		/*
 		 * xconfigure.window:  window whose size, position, border, and/or stacking
@@ -843,12 +831,8 @@ vte_terminal_filter(
 		 * (=XAnyEvent.window)  => processed in x_window_receive_event()
 		 */
 		else if( ((XEvent*)xevent)->xconfigure.window == disp.roots[count]->my_window &&
-			((XEvent*)xevent)->type == ConfigureNotify)
+			((XEvent*)xevent)->type == ConfigureNotify /* && terminal */)
 		{
-			VteTerminal *  terminal ;
-
-			terminal = VTE_WIDGET((x_screen_t*)disp.roots[count]) ;
-
 			if( ((XEvent*)xevent)->xconfigure.width !=
 				GTK_WIDGET(terminal)->allocation.width ||
 			    ((XEvent*)xevent)->xconfigure.height !=
@@ -866,10 +850,6 @@ vte_terminal_filter(
 			#endif
 
 				vte_terminal_size_allocate( GTK_WIDGET(terminal) , &alloc) ;
-				if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
-				{
-					gtk_widget_queue_resize_no_redraw( GTK_WIDGET(terminal)) ;
-				}
 			}
 
 			return  GDK_FILTER_REMOVE ;
@@ -1055,6 +1035,10 @@ vte_terminal_realize(
 	attr.colormap = gtk_widget_get_colormap( widget) ;
 	attr.event_mask = gtk_widget_get_events( widget) |
 				GDK_FOCUS_CHANGE_MASK |
+				GDK_BUTTON_PRESS_MASK |
+				GDK_BUTTON_RELEASE_MASK |
+				GDK_KEY_PRESS_MASK |
+				GDK_KEY_RELEASE_MASK |
 				GDK_SUBSTRUCTURE_MASK ;		/* DestroyNotify from child */
 
 	widget->window = gdk_window_new( gtk_widget_get_parent_window( widget) , &attr ,
@@ -1156,11 +1140,13 @@ vte_terminal_unrealize(
 }
 
 static gboolean
-vte_terminal_focus_in_event(
+vte_terminal_focus_in(
 	GtkWidget *  widget ,
 	GdkEventFocus *  event
 	)
 {
+	GTK_WIDGET_SET_FLAGS( widget , GTK_HAS_FOCUS) ;
+
 	if( ( GTK_WIDGET_FLAGS(widget) & GTK_MAPPED))
 	{
 	#ifdef  __DEBUG
@@ -1171,6 +1157,17 @@ vte_terminal_focus_in_event(
 			VTE_TERMINAL( widget)->pvt->screen->window.my_window ,
 			RevertToParent , CurrentTime) ;
 	}
+
+	return  FALSE ;
+}
+
+static gboolean
+vte_terminal_focus_out(
+	GtkWidget *  widget ,
+	GdkEventFocus *  event
+	)
+{
+	GTK_WIDGET_UNSET_FLAGS( widget , GTK_HAS_FOCUS) ;
 
 	return  FALSE ;
 }
@@ -1211,7 +1208,7 @@ vte_terminal_size_allocate(
 	{
 		return ;
 	}
-	
+
 	widget->allocation = *allocation ;
 
 	if( GTK_WIDGET_REALIZED(widget))
@@ -1274,6 +1271,7 @@ vte_terminal_class_init(
 	x_termcap_init( &termcap) ;
 	x_xim_init( 1) ;
 	x_font_use_point_size_for_xft( 1) ;
+	x_set_button3_behavior( "none") ;
 	ml_term_manager_enable_zombie_pty( 1) ;
 
 	conf = kik_conf_new( "mlterm" , MAJOR_VERSION , MINOR_VERSION , REVISION ,
@@ -1325,7 +1323,8 @@ vte_terminal_class_init(
 	oclass->get_property = vte_terminal_get_property ;
 	wclass->realize = vte_terminal_realize ;
 	wclass->unrealize = vte_terminal_unrealize ;
-	wclass->focus_in_event = vte_terminal_focus_in_event ;
+	wclass->focus_in_event = vte_terminal_focus_in ;
+	wclass->focus_out_event = vte_terminal_focus_out ;
 	wclass->size_allocate = vte_terminal_size_allocate ;
 	wclass->size_request = vte_terminal_size_request ;
 
@@ -1929,7 +1928,7 @@ vte_terminal_copy_clipboard(
 	u_char *  buf ;
 	size_t  len ;
 
-	if( ! terminal->pvt->screen->sel.sel_str || terminal->pvt->screen->sel.sel_len == 0 ||
+	if( ! vte_terminal_get_has_selection( terminal) ||
 		! (clipboard = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD)))
 	{
 		return ;
@@ -2560,7 +2559,14 @@ vte_terminal_get_has_selection(
 	VteTerminal *  terminal
 	)
 {
-	return  FALSE ;
+	if( terminal->pvt->screen->sel.sel_str && terminal->pvt->screen->sel.sel_len > 0)
+	{
+		return  TRUE ;
+	}
+	else
+	{
+		return  FALSE ;
+	}
 }
 
 void
@@ -2679,6 +2685,10 @@ vte_terminal_reset(
 	gboolean  clear_history
 	)
 {
+	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		x_screen_set_config( terminal->pvt->screen , NULL , "full_reset" , NULL) ;
+	}
 }
 
 char *
@@ -2690,7 +2700,7 @@ vte_terminal_get_text(
 	GArray *  attributes
 	)
 {
-	return  "" ;
+	return  NULL ;
 }
 
 char *
@@ -2702,7 +2712,7 @@ vte_terminal_get_text_include_trailing_spaces(
 	GArray *  attributes
 	)
 {
-	return  "" ;
+	return  NULL ;
 }
 
 char *
@@ -2718,7 +2728,7 @@ vte_terminal_get_text_range(
 	GArray *  attributes
 	)
 {
-	return  "" ;
+	return  NULL ;
 }
 
 void
@@ -2795,7 +2805,7 @@ vte_terminal_match_check(
 	int *  tag
 	)
 {
-	return  "" ;
+	return  NULL ;
 }
 
 void

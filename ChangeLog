@@ -1,3 +1,18 @@
+2010-11-25  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: Hidden value "none" is added to button3_behavior option.
+
+	* vte.c:
+	  - Button and key signals to enable popup menu of gnome-terminal, roxterm and etc
+	    are supported.
+	  - vte_terminal_get_has_selection is implemented.
+	  - vte_terminal_reset is partially implemented.
+	  - vte_terminal_get_text, vte_terminal_get_text_include_trailing_spaces,
+	    vte_terminal_get_text_range and vte_terminal_match_check return NULL
+	    instead of "".
+	  - gtk_widget_queue_resize_no_redraw in processing ConfigureNotify event
+	    in vte_terminal_filter is removed. (Fixed a problem of resizing gnome-terminal.)
+
 2010-11-21  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: Value of type_engine option can be specified in ~/.mlterm/main

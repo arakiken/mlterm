@@ -3522,7 +3522,7 @@ button_pressed(
 						screen->conf_menu_path_2) ;
 				}
 			}
-			else /* if( button3_open_menu == 3) */
+			else if( button3_open_menu == 3)
 			{
 				config_menu( screen , event->x , event->y ,
 					screen->conf_menu_path_3 ?
@@ -6467,7 +6467,13 @@ x_set_button3_behavior( char *  mode)
 	}
 	else if( strlen( mode) == 5 && '1' <= mode[4] && mode[4] <= '3')
 	{
+		/* menu1, menu2, menu3 */
 		button3_open_menu = mode[4] - '0' ;
+	}
+	else if( strcmp( mode , "none") == 0)
+	{
+		/* Hidden option for libvte */
+		button3_open_menu = 4 ;
 	}
 	else
 	{
