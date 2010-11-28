@@ -27,9 +27,14 @@ How to build & install libvte compatible library using mlterm engine.
 
 * Notice
   o Because it is mlterm that works inside gnome-terminal or etc,
-    - Configuration files in ~/.mlterm/ are applied.
+    - Configuration files in ~/.mlterm/ are applied. (*)
     - Configuration protocol (like '$ mlcc [key] [value]') is mostly available.
     - Pressing Ctrl+Button3 shows 'mlconfig' menu.
+
+    (*) Following configurations are invalidated by gnome-terminal or etc in startup.
+       - 'DEFAULT' settings in ~/.mlterm/(v)(aa)font
+       - 'bel_mode', 'fg_color', 'bg_color', 'cursor_bg_color', 'wall_picture',
+         'use_transbg', 'alpha' and 'encoding' options in ~/.mlterm/main
 
   o Default value of following options are not same as that of normal mlterm.
     [Option]       [Default Value]                            (Normal mlterm)
@@ -88,9 +93,6 @@ How to build & install libvte compatible library using mlterm engine.
   o Unsupported vte signals and properties
     - signals
       "eof"
-      "window-title-changed"
-      "icon-title-changed"
-      "encoding-changed"
       "commit"
       "emulation-changed"
       "selection-changed"
@@ -115,5 +117,30 @@ How to build & install libvte compatible library using mlterm engine.
       "copy-clipboard"
       "paste-clipboard"
 
-    - property
+    - class property
+      "allow-bold"
+      "audible-bell"
+      "background-image-file"
+      "background-image-pixbuf"
+      "background-opacity"
+      "background-saturation"
+      "background-tint-color"
+      "background-transparent"
+      "backspace-binding"
+      "cursor-blink-mode"
+      "cursor-shape"
+      "delete-binding"
+      "emulation"
+      "encoding"
+      "font-desc"
+      "pointer-autohide"
+      "pty"
+      "scroll-background"
+      "scrollback-lines"
+      "scroll-on-keystroke"
+      "scroll-on-output"
+      "word-chars"
+      "visible-bell"
+
+    - style property
       "inner-border"

@@ -1,3 +1,13 @@
+2010-11-28  Araki Ken  <arakiken@users.sf.net>
+
+	* version.h.in:
+	  3.0.1 post -> 3.0.2 pre
+
+	* vte.c:
+	  - vte_terminal_key_press is added.
+	  - "encoding-changed" signal is supported.
+	  - Minor fixes.
+
 2010-11-25  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: Hidden value "none" is added to button3_behavior option.

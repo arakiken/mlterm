@@ -796,7 +796,9 @@ vte_terminal_filter(
 
 		if( x_window_receive_event( disp.roots[count] , (XEvent*)xevent))
 		{
-			if( ! terminal)
+			if( ! terminal || /* SCIM etc window */ 
+			    /* XFilterEvent in x_window_receive_event. */
+			    ((XEvent*)xevent)->xany.window != disp.roots[count]->my_window)
 			{
 				return  GDK_FILTER_REMOVE ;
 			}
@@ -807,19 +809,18 @@ vte_terminal_filter(
 				vte_reaper_add_child( terminal->pvt->term->config_menu.pid) ;
 			}
 
-			switch( ((XEvent*)xevent)->type)
+			if( is_key_event ||
+			    ((XEvent*)xevent)->type == ButtonPress ||
+			    ((XEvent*)xevent)->type == ButtonRelease)
 			{
-			case  KeyPress:
-			case  KeyRelease:
-			case  ButtonPress:
-			case  ButtonRelease:
 				/* Hook key and button events for popup menu. */
 				((XEvent*)xevent)->xany.window =
 					gdk_x11_drawable_get_xid( GTK_WIDGET(terminal)->window) ;
 
 				return  GDK_FILTER_CONTINUE ;
-				
-			default:
+			}
+			else
+			{
 				return  GDK_FILTER_REMOVE ;
 			}
 		}
@@ -830,14 +831,24 @@ vte_terminal_filter(
 		 * xconfigure.event:   reconfigured window or to its parent.
 		 * (=XAnyEvent.window)  => processed in x_window_receive_event()
 		 */
-		else if( ((XEvent*)xevent)->xconfigure.window == disp.roots[count]->my_window &&
-			((XEvent*)xevent)->type == ConfigureNotify /* && terminal */)
+		else if( /* terminal && */ ((XEvent*)xevent)->type == ConfigureNotify &&
+			((XEvent*)xevent)->xconfigure.window == disp.roots[count]->my_window)
 		{
+		#if  0
+			/*
+			 * This check causes resize problem in opening tab in
+			 * gnome-terminal(2.29.6).
+			 */
 			if( ((XEvent*)xevent)->xconfigure.width !=
 				GTK_WIDGET(terminal)->allocation.width ||
 			    ((XEvent*)xevent)->xconfigure.height !=
 				GTK_WIDGET(terminal)->allocation.height)
+		#else
+			if( terminal->char_width != x_col_width( terminal->pvt->screen) ||
+			    terminal->char_height != x_line_height( terminal->pvt->screen))
+		#endif
 			{
+				/* Window was changed due to change of font size inside mlterm. */
 				GtkAllocation  alloc ;
 
 				alloc.x = GTK_WIDGET(terminal)->allocation.x ;
@@ -1215,16 +1226,20 @@ vte_terminal_size_allocate(
 	{
 		if( is_resized && VTE_TERMINAL(widget)->pvt->term->pty)
 		{
-			if( x_window_resize_with_margin(
+			/*
+			 * Even if x_window_resize_with_margin returns 0,
+			 * reset_vte_size_member etc functions must be called,
+			 * because VTE_TERMNAL(widget)->pvt->screen can be already
+			 * resized and vte_terminal_size_allocate can be called
+			 * from vte_terminal_filter.
+			 */
+			x_window_resize_with_margin(
 				&VTE_TERMINAL(widget)->pvt->screen->window ,
-				allocation->width , allocation->height , NOTIFY_TO_MYSELF))
-			{
-				reset_vte_size_member( VTE_TERMINAL(widget)) ;
-				update_wall_picture( VTE_TERMINAL(widget)) ;
-
-				/* gnome-terminal(2.29.6) is not resized correctly without this. */
-				gtk_widget_queue_resize_no_redraw( widget) ;
-			}
+				allocation->width , allocation->height , NOTIFY_TO_MYSELF) ;
+			reset_vte_size_member( VTE_TERMINAL(widget)) ;
+			update_wall_picture( VTE_TERMINAL(widget)) ;
+			/* gnome-terminal(2.29.6) is not resized correctly without this. */
+			gtk_widget_queue_resize_no_redraw( widget) ;
 		}
 		
 		gdk_window_move_resize( widget->window,
@@ -1238,6 +1253,22 @@ vte_terminal_size_allocate(
 		 * will be called in vte_terminal_realize() or vte_terminal_fork*().
 		 */
 	}
+}
+
+static gboolean
+vte_terminal_key_press(
+	GtkWidget *  widget ,
+	GdkEventKey *  event
+	)
+{
+	/* Check if GtkWidget's behavior already does something with this key. */
+	if( GTK_WIDGET_CLASS(vte_terminal_parent_class)->key_press_event)
+	{
+		GTK_WIDGET_CLASS(vte_terminal_parent_class)->key_press_event( widget , event) ;
+	}
+
+	/* If FALSE is returned, tab operation is unexpectedly started in gnome-terminal. */
+	return  TRUE ;
 }
 
 static void
@@ -1327,6 +1358,7 @@ vte_terminal_class_init(
 	wclass->focus_out_event = vte_terminal_focus_out ;
 	wclass->size_allocate = vte_terminal_size_allocate ;
 	wclass->size_request = vte_terminal_size_request ;
+	wclass->key_press_event = vte_terminal_key_press ;
 
 	vclass->eof_signal =
 		g_signal_new( I_("eof") ,
@@ -2852,6 +2884,8 @@ vte_terminal_set_encoding(
 		ml_term_change_encoding( terminal->pvt->term ,
 			ml_get_char_encoding( codeset)) ;
 	}
+
+	g_signal_emit_by_name( terminal , "encoding-changed") ;
 }
 
 const char *

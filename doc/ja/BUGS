@@ -2,12 +2,6 @@
   背景がずれる。
   (当面直す予定なし)
 
-* Imlib を使用かつ deamon process で動作している時に、Display との接続が切
-  られた場合、Imlib 中に不正なデータ構造が static に残り、core dump しうる。
-  また、core dump しないまでも、輝度調節された背景画像や壁紙が、うまく表示
-  されなくなる。
-  ImlibData のデストラクタ API が存在しないため、対処の方法なし。
-
 * Gnome + Sawfish 0.36-7 にて、app_name または title を指定しないと、Window
   タイトルが化ける。
   (reported by K.Kawabata san)

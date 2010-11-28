@@ -1,3 +1,13 @@
+* Drop imlib, gdk-pixbuf1 and gtk-1.x support.
+* Add libvte compatible library using mlterm engine. (Experimental)
+* Support gnome-pty-helper.
+* Support "alpha" option in X11.
+* Add "bidi_mode" option.
+* Other bug fixes:
+  #3072833 (Thanks to Andreas Metzler)
+  #3051467 (Thanks to David Kolovratnik)
+  #3014219 (Thanks to Khaled Hosny)
+
 ver 3.0.1
 * Improvements for performance of changing 256 colors by
   "\x1b]4;N;rgb:RR/GG/BB\x07" sequence. (Thanks to Konosuke Watanabe san)
