@@ -50,6 +50,7 @@ parse_conf(
 	u_int8_t  red ;
 	u_int8_t  green ;
 	u_int8_t  blue ;
+	u_int8_t  alpha ;
 
 	if( *rgb == '\0')
 	{
@@ -69,7 +70,7 @@ parse_conf(
 		
 		return  1 ;
 	}
-	else if( ! ml_color_parse_rgb_name( &red, &green, &blue, rgb))
+	else if( ! ml_color_parse_rgb_name( &red , &green , &blue , &alpha , rgb))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " illegal rgblist format (%s,%s)\n" ,
@@ -83,7 +84,7 @@ parse_conf(
 	kik_debug_printf( "%s = red %x green %x blue %x\n" , color , red , green , blue) ;
 #endif
 
-	return  x_color_config_set_rgb( color_config , color , red , green , blue) ;
+	return  x_color_config_set_rgb( color_config , color , red , green , blue , alpha) ;
 }
 
 static int
@@ -170,7 +171,8 @@ x_color_config_set_rgb(
 	char *  color ,
 	u_int8_t  red ,
 	u_int8_t  green ,
-	u_int8_t  blue
+	u_int8_t  blue ,
+	u_int8_t  alpha
 	)
 {
 	ml_color_t  _color ;
@@ -188,11 +190,12 @@ x_color_config_set_rgb(
 	rgb.red = red ;
 	rgb.green = green ;
 	rgb.blue = blue ;
+	rgb.alpha = alpha ;
 
 	if( ( pair = get_color_rgb_pair( color_config->color_rgb_table , color)))
 	{
 		if( pair->value.red == red && pair->value.green == green &&
-			pair->value.blue == blue)
+			pair->value.blue == blue && pair->value.alpha == alpha)
 		{
 			/* Not changed */
 			
@@ -216,19 +219,19 @@ x_color_config_set_rgb(
 			u_int8_t  _green ;
 			u_int8_t  _blue ;
 
-			if( ! ml_get_color_rgb( _color, &_red, &_green, &_blue))
+			if( ! ml_get_color_rgb( _color , &_red , &_green , &_blue))
 			{
 				return  0 ;
 			}
 
-			if( red == _red && green == _green && blue == _blue)
+			if( red == _red && green == _green && blue == _blue && alpha == 0xff)
 			{
 				/* Not changed */
 
 			#ifdef  DEBUG
 				kik_debug_printf( KIK_DEBUG_TAG
-					" color %d'rgb(%02x%02x%02x) not changed.\n",
-					_color, red, green, blue) ;
+					" color %d'rgb(%02x%02x%02x%02x) not changed.\n",
+					_color , red , green , blue , alpha) ;
 			#endif
 
 				return  0 ;
@@ -238,7 +241,7 @@ x_color_config_set_rgb(
 			{
 				kik_debug_printf( KIK_DEBUG_TAG
 					" color %d's rgb(%02x%02x%02x) changed => %02x%02x%02x.\n",
-					_color, _red, _green, _blue, red, green, blue) ;
+					_color , _red , _green , _blue , red , green , blue) ;
 			}
 		#endif
 		}
@@ -267,6 +270,7 @@ x_color_config_get_rgb(
 	u_int8_t *  red ,
 	u_int8_t *  green ,
 	u_int8_t *  blue ,
+	u_int8_t *  alpha ,	/* can be NULL */
 	char *  color
 	)
 {
@@ -280,6 +284,10 @@ x_color_config_get_rgb(
 	*red = pair->value.red ;
 	*blue = pair->value.blue ;
 	*green = pair->value.green ;
+	if( alpha)
+	{
+		*alpha = pair->value.alpha ;
+	}
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s's rgb => %d %d %d\n", color , *red, *blue, *green) ;

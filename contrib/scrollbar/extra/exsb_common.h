@@ -72,13 +72,13 @@ static unsigned long
 exsb_get_pixel(
 	Display *  display ,
 	int  screen ,
+	Colormap  cmap ,
+	Visual *  visual ,
 	char *  color_name
 	)
 {
 	XColor  color ;
 	XColor  closest_color ;
-	Colormap cmap = DefaultColormap( display , screen) ;
-	Visual * visual = DefaultVisual( display , screen) ;
 
 	if ( XParseColor( display , cmap , color_name , &color )  == 0)
 	{

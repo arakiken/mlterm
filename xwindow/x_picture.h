@@ -44,7 +44,7 @@ typedef struct x_bg_picture
 
 typedef struct x_icon_picture
 {
-	Display *  display ;
+	x_display_t *  disp ;
 	char *  file_path ;
 	
 	Pixmap  pixmap ;
@@ -69,7 +69,7 @@ x_bg_picture_t *  x_acquire_bg_picture( x_window_t *  win , x_picture_modifier_t
 
 int  x_release_bg_picture( x_bg_picture_t *  pic) ;
 
-x_icon_picture_t *  x_acquire_icon_picture( Display *  display , char *  file_path) ;
+x_icon_picture_t *  x_acquire_icon_picture( x_display_t *  disp , char *  file_path) ;
 
 int  x_release_icon_picture( x_icon_picture_t *  pic) ;
 

@@ -342,7 +342,7 @@ xft_draw_str(
 			/*
 			 * clearing background
 			 */
-			if( window->wall_picture_is_set && bg_color == ML_BG_COLOR)
+			if( bg_color == ML_BG_COLOR)
 			{
 				x_window_clear( window ,
 					x , y , current_width - x , height) ;
@@ -831,7 +831,7 @@ xcore_draw_str(
 				bottom_margin + top_margin > 0 /* == line space XXX */|| 
 				( xfont->is_proportional && ! xfont->is_var_col_width))
 			{
-				if( window->wall_picture_is_set && bg_color == ML_BG_COLOR)
+				if( bg_color == ML_BG_COLOR)
 				{
 					x_window_clear( window ,
 						x , y , current_width - x , height) ;

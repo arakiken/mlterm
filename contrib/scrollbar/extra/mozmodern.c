@@ -19,6 +19,8 @@ typedef struct  mozmod_sb_view
 
 	GC  gc ;
 
+	unsigned int  depth ;
+
 	Pixmap  background ;
 	Pixmap  arrow_up ;
 	Pixmap  arrow_up_pressed ;
@@ -125,7 +127,8 @@ get_pixmap(
 	int  y ;
 
 	pix = XCreatePixmap( view->display , view->window , width , height ,
-		DefaultDepth( view->display , view->screen)) ;
+				((mozmod_sb_view_t*)view)->depth) ;
+
 	cur = '\0' ;
 	for( y = 0 ; y < height ; y ++)
 	{
@@ -189,8 +192,7 @@ ml_create_sb_bg_pixmap(
 
 	mozmod_sb = (mozmod_sb_view_t*) view ;
 
-	pix = XCreatePixmap( view->display , view->window , width , height ,
-		DefaultDepth( view->display , view->screen)) ;
+	pix = XCreatePixmap( view->display , view->window , width , height , mozmod_sb->depth) ;
 
 	XSetForeground( view->display , mozmod_sb->gc , mozmod_sb->pixels[12]) ;
 	XFillRectangle( view->display , pix , mozmod_sb->gc ,
@@ -230,6 +232,7 @@ realized(
 	)
 {
 	mozmod_sb_view_t *  mozmod_sb ;
+	XWindowAttributes  attr ;
 	XGCValues  gc_value ;
 	int  i ;
 
@@ -241,10 +244,15 @@ realized(
 	view->gc = gc ;
 	view->height = height ;
 
+	XGetWindowAttributes( view->display , view->window , &attr) ;
+	mozmod_sb->depth = attr.depth ;
+
 	for( i = 0 ; i < NR_COLOR ; i ++)
 	{
 		mozmod_sb->pixels[i] = exsb_get_pixel( view->display ,
 						       view->screen ,
+						       attr.colormap ,
+						       attr.visual ,
 						       color_name[i]) ;
 	}
 
@@ -257,7 +265,7 @@ realized(
 			&gc_value) ;
 
 	mozmod_sb->background = ml_create_sb_bg_pixmap( view ,
-		WIDTH , view->height - MARGIN * 2);
+				WIDTH , view->height - MARGIN * 2);
 	mozmod_sb->arrow_up = get_pixmap( view , mozmod_sb->gc ,
 				arrow_up_src , WIDTH , MARGIN) ;
 	mozmod_sb->arrow_down = get_pixmap( view , mozmod_sb->gc ,

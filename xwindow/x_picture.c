@@ -118,7 +118,7 @@ delete_bg_picture(
 
 static x_icon_picture_t *
 create_icon_picture(
-	Display *  display ,
+	x_display_t *  disp ,
 	char *  file_path	/* Don't specify NULL. */
 	)
 {
@@ -137,7 +137,7 @@ create_icon_picture(
 		return  NULL ;
 	}
 	
-	if( ! x_imagelib_load_file( display , file_path ,
+	if( ! x_imagelib_load_file( disp , file_path ,
 		&(pic->cardinal) , &(pic->pixmap) , &(pic->mask) , &icon_size , &icon_size))
 	{
 		free( pic->file_path) ;
@@ -148,7 +148,7 @@ create_icon_picture(
 		return  NULL ;
 	}
 
-	pic->display = display ;
+	pic->disp = disp ;
 	pic->ref_count = 1 ;
 
 #if  0
@@ -168,8 +168,8 @@ delete_icon_picture(
 #endif
 
 #ifndef  USE_WIN32GUI
-	XFreePixmap( pic->display , pic->pixmap) ;
-	XFreePixmap( pic->display , pic->mask) ;
+	XFreePixmap( pic->disp->display , pic->pixmap) ;
+	XFreePixmap( pic->disp->display , pic->mask) ;
 #endif
 
 	free( pic->cardinal) ;
@@ -212,7 +212,7 @@ x_picture_display_closed(
 
 		for( count = num_of_icon_pics - 1 ; count >= 0 ; count--)
 		{
-			if( icon_pics[count]->display == display)
+			if( icon_pics[count]->disp->display == display)
 			{
 				delete_icon_picture( icon_pics[count]) ;
 				icon_pics[count] = icon_pics[--num_of_icon_pics] ;
@@ -385,7 +385,7 @@ x_release_bg_picture(
 
 x_icon_picture_t *
 x_acquire_icon_picture(
-	Display *  display ,
+	x_display_t *  disp ,
 	char *  file_path	/* Don't specify NULL. */
 	)
 {
@@ -395,7 +395,7 @@ x_acquire_icon_picture(
 	for( count = 0 ; count < num_of_icon_pics ; count++)
 	{
 		if( strcmp( file_path , icon_pics[count]->file_path) == 0 &&
-			display == icon_pics[count]->display)
+			disp == icon_pics[count]->disp)
 		{
 		#ifdef  __DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Use cached icon(%s).\n" , file_path) ;
@@ -411,7 +411,7 @@ x_acquire_icon_picture(
 		return  NULL ;
 	}
 
-	if( ( p[num_of_icon_pics] = create_icon_picture( display , file_path)) == NULL)
+	if( ( p[num_of_icon_pics] = create_icon_picture( disp , file_path)) == NULL)
 	{
 		if( num_of_icon_pics == 0 /* icon_pics == NULL */)
 		{

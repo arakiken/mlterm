@@ -28,7 +28,8 @@ Pixmap  x_get_icon_pixmap( x_sb_view_t *  view ,
 #ifdef  USE_WIN32GUI
 	GC  memgc ,
 #endif
-	char **  data , unsigned int  width , unsigned int  height) ;
+	char **  data , unsigned int  width , unsigned int  height , unsigned int  depth ,
+	unsigned long  black , unsigned long  white) ;
 
 int  x_draw_icon_pixmap_fg( x_sb_view_t *  view ,
 #ifdef  USE_WIN32GUI

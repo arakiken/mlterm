@@ -30,11 +30,18 @@ typedef struct  x_display
 	Display *  display ;
 	int  screen ;		/* DefaultScreen */
 	char *  name ;
+	Window  my_window ;	/* DefaultRootWindow */
+
+#ifndef  USE_WIN32GUI
+	/* Only one visual, colormap or depth is permitted per display. */
+	Visual *  visual ;
+	Colormap  colormap ;
+#endif
+	u_int  depth ;
 
 	/*
 	 * Private
 	 */
-	Window  my_window ;	/* DefaultRootWindow */
 	x_gc_t *  gc ;
 
 	x_window_ptr_t *  roots ;
@@ -51,7 +58,7 @@ typedef struct  x_display
 } x_display_t ;
 
 
-x_display_t *  x_display_open( char *  disp_name) ;
+x_display_t *  x_display_open( char *  disp_name , int  depth) ;
 
 int  x_display_close( x_display_t *  disp) ;
 

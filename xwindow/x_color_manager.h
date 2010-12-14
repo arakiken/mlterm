@@ -22,17 +22,19 @@ typedef struct  x_color_manager
 	/* for fg, bg, cursor_fg and cursor_bg */
 	struct sys_color
 	{
-		x_color_t  xcolor ;		
+		x_color_t  xcolor ;
 		char *  name ;
+		u_int8_t  is_loaded ;
 	
 	} sys_colors[4] ;
-	
+
+	u_int8_t  alpha ;	
 	int8_t  is_reversed ;
 
 } x_color_manager_t ;
 
 
-x_color_manager_t *  x_color_manager_new( Display *  display , int  screen ,
+x_color_manager_t *  x_color_manager_new( x_display_t *  disp ,
 	x_color_config_t *  color_config , char *  fg_color , char *  bg_color ,
 	char *  cursor_fg_color , char *  cursor_bg_color) ;
 
@@ -69,6 +71,8 @@ int  x_color_manager_adjust_cursor_fg( x_color_manager_t *  color_man) ;
 int  x_color_manager_adjust_cursor_bg( x_color_manager_t *  color_man) ;
 
 int  x_color_manager_unload( x_color_manager_t *  color_man) ;
+
+int  x_color_manager_change_alpha( x_color_manager_t *  color_man , u_int8_t  alpha) ;
 
 
 #endif

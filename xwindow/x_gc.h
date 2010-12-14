@@ -28,7 +28,7 @@ typedef struct x_gc
 } x_gc_t ;
 
 
-x_gc_t *  x_gc_new( Display *  display) ;
+x_gc_t *  x_gc_new( Display *  display , Drawable  drawable) ;
 
 int  x_gc_delete( x_gc_t *  gc) ;
 

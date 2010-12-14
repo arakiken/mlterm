@@ -700,7 +700,7 @@ x_sb_screen_new(
 
 	if( x_window_init( &sb_screen->window ,
 		actual_width , ACTUAL_HEIGHT( &screen->window) ,
-		min_width , 0 , min_width , 0 , 0 , 0 , 0, 0) == 0)
+		min_width , 0 , min_width , 0 , 0 , 0 , 0 , 0) == 0)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_window_init() failed.\n") ;

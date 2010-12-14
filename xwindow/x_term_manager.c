@@ -65,6 +65,8 @@ static u_int32_t *  dead_mask ;
 static x_screen_t **  screens ;
 static u_int  num_of_screens ;
 
+static u_int  depth ;
+
 static u_int  num_of_startup_screens ;
 static u_int  num_of_startup_ptys ;
 
@@ -602,7 +604,7 @@ open_screen_intern(
 		}
 	}
 
-	if( ( disp = x_display_open( main_config.disp_name)) == NULL)
+	if( ( disp = x_display_open( main_config.disp_name , depth)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_display_open failed.\n") ;
@@ -672,8 +674,7 @@ open_screen_intern(
 		goto  error ;
 	}
 
-	if( ( color_man = x_color_manager_new( disp->display ,
-				DefaultScreen( disp->display) , &color_config ,
+	if( ( color_man = x_color_manager_new( disp , &color_config ,
 				main_config.fg_color , main_config.bg_color ,
 				main_config.cursor_fg_color , main_config.cursor_bg_color)) == NULL)
 	{
@@ -1851,6 +1852,8 @@ x_term_manager_init(
 	#endif
 		) ;
 #endif
+	kik_conf_add_opt( conf , '\0' , "depth" , 0 , "depth" ,
+		"specify visual depth") ;
 	kik_conf_add_opt( conf , '\0' , "maxptys" , 0 , "max_ptys" ,
 		"max ptys to open simultaneously (multiple of 32)") ;
 	kik_conf_add_opt( conf , '\0' , "button3" , 0 , "button3_behavior" ,
@@ -1971,6 +1974,11 @@ x_term_manager_init(
 	}
 #endif
 
+	if( ( value = kik_conf_get_value( conf , "depth")))
+	{
+		kik_str_to_uint( &depth , value) ;
+	}
+	
 	max_screens_multiple = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "max_ptys")))

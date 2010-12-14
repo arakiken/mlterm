@@ -17,6 +17,7 @@ typedef struct  motif_sb_view
 	x_sb_view_t  view ;
 
 	GC  gc ;
+	Colormap  cmap ;
 
 	unsigned long  fg_lighter_color ;
 	unsigned long  fg_darker_color ;
@@ -72,6 +73,7 @@ realized(
 	)
 {
 	motif_sb_view_t *  motif_sb ;
+	XWindowAttributes  attr ;
 	XGCValues  gc_value ;
 
 	motif_sb = (motif_sb_view_t*) view ;
@@ -89,6 +91,9 @@ realized(
 	motif_sb->gc = XCreateGC( view->display , view->window ,
 			GCForeground | GCBackground | GCGraphicsExposures ,
 			&gc_value) ;
+
+	XGetWindowAttributes( view->display , view->window , &attr) ;
+	motif_sb->cmap = attr.colormap ;
 }
 
 static void
@@ -354,17 +359,14 @@ update_color(
 
 	/* fg highlight color / shade color */
 	color.pixel = gc_value_ret.foreground ;
-	XQueryColor( view->display ,
-		DefaultColormap( view->display , view->screen) , &color ) ;
+	XQueryColor( view->display , motif_sb->cmap , &color ) ;
 	color_lighter.red = adjust_rgb( color.red , 1.5) ;
 	color_lighter.green = adjust_rgb( color.green , 1.5) ;
 	color_lighter.blue = adjust_rgb( color.blue , 1.5) ;
 	color_darker.red = adjust_rgb( color.red , 0.5) ;
 	color_darker.green = adjust_rgb( color.green , 0.5) ;
 	color_darker.blue = adjust_rgb( color.blue , 0.5) ;
-	if(XAllocColor( view->display ,
-			DefaultColormap( view->display , view->screen) ,
-			&color_lighter))
+	if(XAllocColor( view->display , motif_sb->cmap , &color_lighter))
 	{
 		motif_sb->fg_lighter_color = color_lighter.pixel ;
 	}
@@ -373,9 +375,7 @@ update_color(
 		motif_sb->fg_lighter_color = WhitePixel( view->display ,
 							 view->screen) ;
 	}
-	if(XAllocColor( view->display ,
-			DefaultColormap( view->display , view->screen) ,
-			&color_darker))
+	if(XAllocColor( view->display , motif_sb->cmap , &color_darker))
 	{
 		motif_sb->fg_darker_color = color_darker.pixel ;
 	}
@@ -387,17 +387,14 @@ update_color(
 
 	/* bg highlight color / shade color */
 	color.pixel = gc_value_ret.background ;
-	XQueryColor( view->display ,
-		DefaultColormap( view->display , view->screen) , &color ) ;
+	XQueryColor( view->display , motif_sb->cmap , &color ) ;
 	color_lighter.red = adjust_rgb( color.red , 1.5) ;
 	color_lighter.green = adjust_rgb( color.green , 1.5) ;
 	color_lighter.blue = adjust_rgb( color.blue , 1.5) ;
 	color_darker.red = adjust_rgb( color.red , 0.5) ;
 	color_darker.green = adjust_rgb( color.green , 0.5) ;
 	color_darker.blue = adjust_rgb( color.blue , 0.5) ;
-	if(XAllocColor( view->display ,
-			DefaultColormap( view->display , view->screen) ,
-			&color_lighter))
+	if(XAllocColor( view->display , motif_sb->cmap , &color_lighter))
 	{
 		motif_sb->bg_lighter_color = color_lighter.pixel ;
 	}
@@ -406,9 +403,7 @@ update_color(
 		motif_sb->bg_lighter_color = WhitePixel( view->display ,
 							 view->screen) ;
 	}
-	if(XAllocColor( view->display ,
-			DefaultColormap( view->display , view->screen) ,
-			&color_darker))
+	if(XAllocColor( view->display , motif_sb->cmap , &color_darker))
 	{
 		motif_sb->bg_darker_color = color_darker.pixel ;
 	}

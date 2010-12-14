@@ -566,16 +566,24 @@ draw_cursor(
 		ml_color_t orig_bg ;
 
 		orig_bg = ml_char_bg_color(&ch);
+
 		/* if fg/bg color should be overriden, reset ch's color to default */
-		if( x_color_manager_adjust_cursor_fg( screen->color_man)){
+		if( x_color_manager_adjust_cursor_fg( screen->color_man))
+		{
 			/* for curosr's bg, *FG* color should be used */
-			ml_char_set_bg_color( &ch, ML_FG_COLOR);
-		}else{
-			ml_char_set_bg_color( &ch, ml_char_fg_color(&ch));
+			ml_char_set_bg_color( &ch, ML_FG_COLOR) ;
 		}
-		if( x_color_manager_adjust_cursor_bg( screen->color_man)){
+		else
+		{
+			ml_char_set_bg_color( &ch, ml_char_fg_color(&ch)) ;
+		}
+
+		if( x_color_manager_adjust_cursor_bg( screen->color_man))
+		{
 			ml_char_set_fg_color( &ch, ML_BG_COLOR);
-		}else{
+		}
+		else
+		{
 			ml_char_set_fg_color( &ch, orig_bg);
 		}
 	}
@@ -1190,7 +1198,7 @@ set_icon(
 			return  0 ;
 		}
 
-		if( ( icon = x_acquire_icon_picture( screen->window.disp->display , path)))
+		if( ( icon = x_acquire_icon_picture( screen->window.disp , path)))
 		{
 			x_window_set_icon( &screen->window , icon) ;
 		}
@@ -1311,11 +1319,13 @@ window_realized(
 
 	screen = (x_screen_t*) win ;
 
-	screen->mod_meta_mask = x_window_get_mod_meta_mask( win, screen->mod_meta_key) ;
-	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win, NULL) ;
+	x_window_set_xft( win , (x_get_type_engine( screen->font_man) == TYPE_XFT)) ;
+
+	screen->mod_meta_mask = x_window_get_mod_meta_mask( win , screen->mod_meta_key) ;
+	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win , NULL) ;
 
 #ifdef  USE_WIN32GUI
-	x_xic_activate( win, NULL, NULL) ;
+	x_xic_activate( win , NULL , NULL) ;
 	
 	DragAcceptFiles( win->my_window , TRUE) ;
 #else
@@ -1347,7 +1357,7 @@ window_realized(
 	x_window_set_bg_color( win , x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
 	x_get_xcolor_rgb( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
-			&screen->pic_mod.blend_blue ,
+			&screen->pic_mod.blend_blue , NULL ,
 			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 	
 	if( ( name = ml_term_window_name( screen->term)))
@@ -3782,7 +3792,9 @@ change_font_present(
 	{
 		return ;
 	}
-	
+
+	x_window_set_xft( &screen->window , (x_get_type_engine( screen->font_man) == TYPE_XFT)) ;
+
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
@@ -4069,14 +4081,15 @@ change_fg_color(
 
 	x_color_manager_set_fg_color( screen->color_man , name) ;
 
-	x_window_set_fg_color( &screen->window ,
-		x_get_xcolor( screen->color_man , ML_FG_COLOR)) ;
+	if( x_window_set_fg_color( &screen->window ,
+		x_get_xcolor( screen->color_man , ML_FG_COLOR)))
+	{
+	#ifndef  USE_WIN32GUI
+		x_xic_fg_color_changed( &screen->window) ;
+	#endif
 
-#ifndef  USE_WIN32GUI
-	x_xic_fg_color_changed( &screen->window) ;
-#endif
-
-	ml_term_set_modified_all_lines_in_screen( screen->term) ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
+	}
 }
 
 static void picture_modifier_changed( x_screen_t *  screen) ;
@@ -4094,20 +4107,21 @@ change_bg_color(
 
 	x_color_manager_set_bg_color( screen->color_man , name) ;
 
-	x_window_set_bg_color( &screen->window ,
-		x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
+	if( x_window_set_bg_color( &screen->window ,
+		x_get_xcolor( screen->color_man , ML_BG_COLOR)))
+	{
+	#ifndef  USE_WIN32GUI
+		x_xic_bg_color_changed( &screen->window) ;
+	#endif
 
-#ifndef  USE_WIN32GUI
-	x_xic_bg_color_changed( &screen->window) ;
-#endif
+		x_get_xcolor_rgb( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
+				&screen->pic_mod.blend_blue , NULL ,
+				x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 
-	x_get_xcolor_rgb( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
-			&screen->pic_mod.blend_blue ,
-			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
+		picture_modifier_changed( screen) ;
 
-	picture_modifier_changed( screen) ;
-
-	ml_term_set_modified_all_lines_in_screen( screen->term) ;
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
+	}
 }
 
 static void
@@ -4446,6 +4460,21 @@ change_alpha(
 
 	screen->pic_mod.alpha = alpha ;
 
+	if( x_color_manager_change_alpha( screen->color_man , alpha))
+	{
+		/* Same processing as change_bg_color */
+	
+		if( x_window_set_bg_color( &screen->window ,
+			x_get_xcolor( screen->color_man , ML_BG_COLOR)))
+		{
+		#ifndef  USE_WIN32GUI
+			x_xic_bg_color_changed( &screen->window) ;
+		#endif
+
+			ml_term_set_modified_all_lines_in_screen( screen->term) ;
+		}
+	}
+	
 	picture_modifier_changed( screen) ;
 }
 
@@ -6633,9 +6662,11 @@ x_screen_new(
 	 */
 #if  0
 	x_get_xcolor_rgb( &screen->pic_mod.blend_red , &screen->pic_mod.blend_green ,
-			&screen->pic_mod.blend_blue ,
+			&screen->pic_mod.blend_blue , NULL ,
 			x_get_xcolor( screen->color_man , ML_BG_COLOR)) ;
 #endif
+
+	x_color_manager_change_alpha( color_man , alpha) ;
 
 	screen->bg_pic = NULL ;
 

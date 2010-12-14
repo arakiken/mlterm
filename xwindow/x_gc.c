@@ -13,7 +13,8 @@
 
 x_gc_t *
 x_gc_new(
-	Display *  display
+	Display *  display ,
+	Drawable  drawable
 	)
 {
 	x_gc_t *  gc ;
@@ -39,14 +40,21 @@ x_gc_new(
 	gc->pen = None ;
 	gc->brush = None ;
 #else
-	gc_value.graphics_exposures = 0 ;
-	/*
-	 * Overwriting default value (1) of backgrond, meanwhile default value (0)
-	 * of foreground is not necessary to overwrite.
-	 */
-	gc_value.background = gc->bg_color ;
-	gc->gc = XCreateGC( gc->display, DefaultRootWindow( gc->display),
-			GCBackground | GCGraphicsExposures, &gc_value) ;
+	if( drawable)
+	{
+		gc_value.graphics_exposures = 0 ;
+		/*
+		 * Overwriting default value (1) of backgrond, meanwhile default value (0)
+		 * of foreground is not necessary to overwrite.
+		 */
+		gc_value.background = gc->bg_color ;
+		gc->gc = XCreateGC( gc->display , drawable ,
+				GCBackground | GCGraphicsExposures , &gc_value) ;
+	}
+	else
+	{
+		gc->gc = DefaultGC( display , DefaultScreen( display)) ;
+	}
 #endif
 
 	return  gc ;
@@ -58,7 +66,10 @@ x_gc_delete(
 	)
 {
 #ifndef  USE_WIN32GUI
-	XFreeGC( gc->display , gc->gc) ;
+	if( ( gc->gc != DefaultGC( gc->display , DefaultScreen(gc->display))))
+	{
+		XFreeGC( gc->display , gc->gc) ;
+	}
 #endif
 
 	free( gc) ;

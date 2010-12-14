@@ -796,6 +796,8 @@ vte_terminal_filter(
 
 		if( x_window_receive_event( disp.roots[count] , (XEvent*)xevent))
 		{
+			static pid_t  config_menu_pid = 0 ;
+
 			if( ! terminal || /* SCIM etc window */ 
 			    /* XFilterEvent in x_window_receive_event. */
 			    ((XEvent*)xevent)->xany.window != disp.roots[count]->my_window)
@@ -804,9 +806,12 @@ vte_terminal_filter(
 			}
 			
 			/* XXX Hack for waiting for config menu program exiting. */
-			if( terminal->pvt->term->config_menu.pid)
+			if( config_menu_pid != terminal->pvt->term->config_menu.pid)
 			{
-				vte_reaper_add_child( terminal->pvt->term->config_menu.pid) ;
+				if( ( config_menu_pid = terminal->pvt->term->config_menu.pid))
+				{
+					vte_reaper_add_child( config_menu_pid) ;
+				}
 			}
 
 			if( is_key_event ||
@@ -1020,6 +1025,7 @@ vte_terminal_realize(
 	)
 {
 	GdkWindowAttr  attr ;
+	XID  xid ;
 
 	if( widget->window)
 	{
@@ -1072,9 +1078,32 @@ vte_terminal_realize(
 	g_signal_connect_swapped( gtk_widget_get_toplevel( widget) , "configure-event" ,
 		G_CALLBACK(toplevel_configure) , VTE_TERMINAL(widget)) ;
 
-	VTE_TERMINAL(widget)->pvt->screen->window.create_gc = 1 ;
+	xid = gdk_x11_drawable_get_xid( widget->window) ;
+
+	if( disp.visual == DefaultVisual( disp.display , disp.screen))
+	{
+		XWindowAttributes  attr ;
+		XGCValues  gc_value ;
+
+		XGetWindowAttributes( disp.display , xid , &attr) ;
+		disp.visual = attr.visual ;
+		disp.colormap = attr.colormap ;
+		disp.depth = attr.depth ;
+
+		/* x_gc_t using DefaultGC is already created in vte_terminal_init */
+		gc_value.background = disp.gc->bg_color ;
+		gc_value.graphics_exposures = 0 ;
+		disp.gc->gc = XCreateGC( disp.display , xid ,
+					GCBackground | GCGraphicsExposures , &gc_value) ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Visual %x Colormap %x Depth %d\n" ,
+			disp.visual , disp.colormap , disp.depth) ;
+	#endif
+	}
+
 	x_display_show_root( &disp , &VTE_TERMINAL(widget)->pvt->screen->window ,
-		0 , 0 , 0 , "mlterm" , gdk_x11_drawable_get_xid( widget->window)) ;
+		0 , 0 , 0 , "mlterm" , xid) ;
 
 	/*
 	 * allocation passed by size_allocate is not necessarily to be reflected
@@ -1339,6 +1368,10 @@ vte_terminal_class_init(
 	disp.display = gdk_x11_display_get_xdisplay( gdk_display_get_default()) ;
 	disp.screen = DefaultScreen(disp.display) ;
 	disp.my_window = DefaultRootWindow(disp.display) ;
+	disp.visual = DefaultVisual( disp.display , disp.screen) ;
+	disp.colormap = DefaultColormap( disp.display , disp.screen) ;
+	disp.depth = DefaultDepth( disp.display , disp.screen) ;
+	disp.gc = x_gc_new( disp.display , None) ;
 	disp.modmap.serial = 0 ;
 	disp.modmap.map = XGetModifierMapping( disp.display) ;
 
@@ -1692,8 +1725,8 @@ vte_terminal_init(
 			usascii_font_cs_changable , main_config.use_multi_col_char ,
 			main_config.step_in_changing_font_size) ;
 	
-	color_man = x_color_manager_new( disp.display , DefaultScreen(disp.display) ,
-			&color_config , main_config.fg_color , main_config.bg_color ,
+	color_man = x_color_manager_new( &disp , &color_config ,
+			main_config.fg_color , main_config.bg_color ,
 			main_config.cursor_fg_color , main_config.cursor_bg_color) ;
 
 	/*

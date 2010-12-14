@@ -77,8 +77,8 @@ typedef struct  x_window
 	void *  xft_draw ; /* dummy to keep the size of x_window_t */
 #endif
 
-	u_long  fg_color ;
-	u_long  bg_color ;
+	x_color_t  fg_color ;
+	x_color_t  bg_color ;
 
 	x_gc_t *  gc ;
 
@@ -190,6 +190,18 @@ int  x_window_init( x_window_t *  win ,
 
 int  x_window_final( x_window_t *  win) ;
 
+int  x_window_set_xft( x_window_t *  win , int  use_xft) ;
+
+int  x_window_init_event_mask( x_window_t *  win , long  event_mask) ;
+
+int  x_window_add_event_mask( x_window_t *  win , long  event_mask) ;
+
+int  x_window_remove_event_mask( x_window_t *  win , long  event_mask) ;
+
+/* int  x_window_grab_pointer( x_window_t *  win) ; */
+
+int  x_window_ungrab_pointer( x_window_t *  win) ;
+
 int  x_window_set_wall_picture( x_window_t *  win , Pixmap  pic) ;
 
 int  x_window_unset_wall_picture( x_window_t *  win) ;
@@ -213,16 +225,6 @@ x_window_t *  x_get_root_window( x_window_t *  win) ;
 GC  x_window_get_fg_gc( x_window_t *  win) ;
 
 GC  x_window_get_bg_gc( x_window_t *  win) ;
-
-int  x_window_init_event_mask( x_window_t *  win , long  event_mask) ;
-
-int  x_window_add_event_mask( x_window_t *  win , long  event_mask) ;
-
-int  x_window_remove_event_mask( x_window_t *  win , long  event_mask) ;
-
-/* int  x_window_grab_pointer( x_window_t *  win) ; */
-
-int  x_window_ungrab_pointer( x_window_t *  win) ;
 
 int  x_window_show( x_window_t *  win , int  hint) ;
 

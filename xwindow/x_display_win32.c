@@ -151,6 +151,8 @@ x_display_open(
 	
 	_disp.my_window = None ;
 
+	_disp.depth = 24 ;
+
 	_disp.roots = NULL ;
 	_disp.num_of_roots = 0 ;
 

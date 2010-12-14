@@ -55,6 +55,8 @@ typedef struct  pixmap_sb_view
 
 	GC  gc ;
 
+	unsigned int  depth ;
+
 	char *  dir ;
 	int  is_transparent ;
 	unsigned int  width ;
@@ -179,8 +181,7 @@ create_bg_cache(
 		return ;
 	}
 
-	ps->bg_cache = XCreatePixmap( d , win , ps->width , bg_h ,
-				DefaultDepth( d , ps->view.screen)) ;
+	ps->bg_cache = XCreatePixmap( d , win , ps->width , bg_h , ps->depth) ;
 
 	if( ps->bg_body_h && ps->bg_body)
 	{
@@ -252,7 +253,7 @@ resize_slider(
 	free_pixmap( d , ps->slider_tiled_cache) ;
 
 	ps->slider_tiled_cache = XCreatePixmap( d , win , ps->slider_width ,
-			body_height , DefaultDepth( d , ps->view.screen)) ;
+					body_height , ps->depth) ;
 
 	if( ps->slider_body_h && ps->slider_body)
 	{
@@ -348,6 +349,7 @@ realized(
 {
 	pixmap_sb_view_t *  ps ;
 	XGCValues  gc_value ;
+	XWindowAttributes  attr ;
 
 	ps = (pixmap_sb_view_t*) view ;
 
@@ -362,6 +364,9 @@ realized(
 	gc_value.graphics_exposures = 0 ;
 
 	ps->gc = XCreateGC( display , window , GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
+
+	XGetWindowAttributes( view->display , view->window , &attr) ;
+	ps->depth = attr.depth ;
 
 	/*
 	 * load background images (separated three parts: top, body and bottom.)

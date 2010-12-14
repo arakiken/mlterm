@@ -28,39 +28,36 @@ native_color_to_xcolor(
 	xcolor->red = (ncolor->color.red >> 8) & 0xff ;
 	xcolor->green = (ncolor->color.green >> 8) & 0xff ;
 	xcolor->blue = (ncolor->color.blue >> 8) & 0xff ;
+	xcolor->alpha = (ncolor->color.alpha >> 8) & 0xff ;
 #else
 	xcolor->red = (ncolor->red >> 8) & 0xff ;
 	xcolor->green = (ncolor->green >> 8) & 0xff ;
 	xcolor->blue = (ncolor->blue >> 8) & 0xff ;
+	xcolor->alpha = 0xff ;
 #endif
-	xcolor->is_loaded = 1 ;
 }
 
 static int
 alloc_closest_xcolor_pseudo(
-	Display *  display ,
-	int  screen ,
+	x_display_t *  disp ,
 	unsigned short  red ,		/* 0 to 0xffff */
 	unsigned short  green ,		/* 0 to 0xffff */
 	unsigned short  blue ,		/* 0 to 0xffff */
 	x_color_t *  ret_xcolor
 	)
 {
-	Visual *  visual = DefaultVisual( display , screen) ;
 	XColor *  all_colors ;	/* colors exist in the shared color map */
 	XColor  closest_color ;
-
-	Colormap  cmap = DefaultColormap( display , screen) ;
 
 	int  closest_index = -1 ;
 	unsigned long  min_diff = 0xffffffff ;
 	unsigned long  diff ;
 	unsigned long  diff_r = 0 , diff_g = 0 , diff_b = 0 ;
-	int  ncells = DisplayCells( display , screen) ;
+	int  ncells = disp->visual->map_entries ;
 	int  i ;
 
 	/* FIXME: When visual class is StaticColor, should not be return? */
-	if ( ! visual->class == PseudoColor && ! visual->class == GrayScale)
+	if ( ! disp->visual->class == PseudoColor && ! disp->visual->class == GrayScale)
 	{
 		return  0 ;
 	}
@@ -79,7 +76,7 @@ alloc_closest_xcolor_pseudo(
 	{
 		all_colors[i].pixel = i ;
 	}
-	XQueryColors( display , cmap , all_colors, ncells) ;
+	XQueryColors( disp->display , disp->colormap , all_colors, ncells) ;
 
 	/* find the closest color */
 	for( i = 0 ; i < ncells ; i ++)
@@ -113,7 +110,7 @@ alloc_closest_xcolor_pseudo(
 	closest_color.flags = DoRed | DoGreen | DoBlue;
 	free( all_colors) ;
 
-	if ( ! XAllocColor( display , cmap , &closest_color))
+	if ( ! XAllocColor( disp->display , disp->colormap , &closest_color))
 	{
 		return 0 ;
 	}
@@ -122,7 +119,7 @@ alloc_closest_xcolor_pseudo(
 	ret_xcolor->red = (closest_color.red >> 8) & 0xff ;
 	ret_xcolor->green = (closest_color.green >> 8) & 0xff ;
 	ret_xcolor->blue = (closest_color.blue >> 8) & 0xff ;
-	ret_xcolor->is_loaded = 1 ;
+	ret_xcolor->alpha = 0xff ;
 
 	return 1 ;
 }
@@ -134,8 +131,7 @@ alloc_closest_xcolor_pseudo(
 
 int
 x_load_named_xcolor(
-	Display *  display ,
-	int  screen ,
+	x_display_t *  disp ,
 	x_color_t *  xcolor ,
 	char *  name
 	)
@@ -144,40 +140,38 @@ x_load_named_xcolor(
 	u_int8_t  red ;
 	u_int8_t  green ;
 	u_int8_t  blue ;
+	u_int8_t  alpha ;
 	
-	if( ml_color_parse_rgb_name( &red , &green , &blue , name))
+	if( ml_color_parse_rgb_name( &red , &green , &blue , &alpha , name))
 	{
-		return  x_load_rgb_xcolor( display , screen , xcolor , red , green , blue) ;
+		return  x_load_rgb_xcolor( disp , xcolor , red , green , blue , alpha) ;
 	}
 	
-	if( ! XftColorAllocName( display , DefaultVisual( display , screen) ,
-		DefaultColormap( display , screen) , name , &ncolor))
+	if( ! XftColorAllocName( disp->display , disp->visual , disp->colormap , name , &ncolor))
 	{
 		XColor  exact ;
 
 		/* try to find closest color */
-		if( XParseColor( display , DefaultColormap( display , screen) ,
-				name , &exact))
+		if( XParseColor( disp->display , disp->colormap , name , &exact))
 		{
-			return  alloc_closest_xcolor_pseudo( display , screen ,
-					exact.red , exact.green , exact.blue ,
-					xcolor) ;
+			return  alloc_closest_xcolor_pseudo( disp , exact.red , exact.green ,
+					exact.blue , xcolor) ;
 		}
 		else
 		{
 			/* fallback to sane defaults */
 			if( strcmp( name, "white") == 0)
 			{
-				return  x_load_rgb_xcolor( display, screen, xcolor,
-						0xFF, 0xFF, 0xFF) ;
+				return  x_load_rgb_xcolor( disp , xcolor ,
+						0xff , 0xff , 0xff , 0xff) ;
 			}
 			else if ( strcmp( name, "black") == 0)
 			{
-				return  x_load_rgb_xcolor( display, screen, xcolor, 0,0,0) ;
+				return  x_load_rgb_xcolor( disp , xcolor , 0 , 0 , 0 , 0xff) ;
 			}
 		}
 
-		return 0 ;
+		return  0 ;
 	}
 
 	native_color_to_xcolor( xcolor , &ncolor) ;
@@ -187,28 +181,27 @@ x_load_named_xcolor(
 
 int
 x_load_rgb_xcolor(
-	Display *  display ,
-	int  screen ,
+	x_display_t *  disp ,
 	x_color_t *  xcolor ,
 	u_int8_t  red ,
 	u_int8_t  green ,
-	u_int8_t  blue
+	u_int8_t  blue ,
+	u_int8_t  alpha
 	)
 {
 	XftColor  ncolor ;
 	XRenderColor  rend_color ;
-	
+
 	rend_color.red = (red << 8) + red ;
 	rend_color.green = (green << 8) + green ;
 	rend_color.blue = (blue << 8) + blue ;
-	rend_color.alpha = 0xffff ;
+	rend_color.alpha = (alpha << 8) + alpha ;
 
-	if( ! XftColorAllocValue( display , DefaultVisual( display , screen) ,
-		DefaultColormap( display , screen) , &rend_color , &ncolor))
+	if( ! XftColorAllocValue( disp->display , disp->visual , disp->colormap ,
+		&rend_color , &ncolor))
 	{
 		/* try to find closest color */
-		return  alloc_closest_xcolor_pseudo( display , screen ,
-				red , green , blue , xcolor) ;
+		return  alloc_closest_xcolor_pseudo( disp , red , green , blue , xcolor) ;
 	}
 
 	native_color_to_xcolor( xcolor , &ncolor) ;
@@ -218,23 +211,19 @@ x_load_rgb_xcolor(
 
 int
 x_unload_xcolor(
-	Display *  display ,
-	int  screen ,
+	x_display_t *  disp ,
 	x_color_t *  xcolor
 	)
 {
 #if 0
-	XftColorFree( display , DefaultVisual( display , screen) ,
-		DefaultColormap( display , screen) , xcolor) ;
+	XftColorFree( disp->display , disp->visual , disp->colormap , xcolor) ;
 #endif
-
-	xcolor->is_loaded = 0 ;
 
 	return  1 ;
 }
 
-void
-x_color_to_xft(
+XftColor *
+_x_color_to_xft(
 	XftColor *  xftcolor ,
 	x_color_t *  xcolor
 	)
@@ -243,15 +232,16 @@ x_color_to_xft(
 	xftcolor->color.red = (xcolor->red << 8) + xcolor->red ;
 	xftcolor->color.green = (xcolor->green << 8) + xcolor->green ;
 	xftcolor->color.blue = (xcolor->blue << 8) + xcolor->blue ;
-	xftcolor->color.alpha = 0xffff ;
+	xftcolor->color.alpha = (xcolor->alpha << 8) + xcolor->alpha ;
+
+	return  xftcolor ;
 }
 
 #else	/* USE_TYPE_XFT */
 
 int
 x_load_named_xcolor(
-	Display *  display ,
-	int  screen ,
+	x_display_t *  disp ,
 	x_color_t *  xcolor ,
 	char *  name
 	)
@@ -261,19 +251,19 @@ x_load_named_xcolor(
 	u_int8_t  red ;
 	u_int8_t  green ;
 	u_int8_t  blue ;
+	u_int8_t  alpha ;
 	
-	if( ml_color_parse_rgb_name( &red , &green , &blue , name))
+	if( ml_color_parse_rgb_name( &red , &green , &blue , &alpha , name))
 	{
-		return  x_load_rgb_xcolor( display , screen , xcolor , red , green , blue) ;
+		return  x_load_rgb_xcolor( disp , xcolor , red , green , blue , alpha) ;
 	}
 
-	if( ! XAllocNamedColor( display , DefaultColormap( display , screen) , name , &near , &exact))
+	if( ! XAllocNamedColor( disp->display , disp->colormap , name , &near , &exact))
 	{
 		/* try to find closest color */
-		if( XParseColor( display , DefaultColormap( display , screen) ,
-				name , &exact))
+		if( XParseColor( disp->display , disp->colormap , name , &exact))
 		{
-			return  alloc_closest_xcolor_pseudo( display , screen ,
+			return  alloc_closest_xcolor_pseudo( disp ,
 					exact.red , exact.green , exact.blue , xcolor) ;
 		}
 		else
@@ -290,26 +280,25 @@ x_load_named_xcolor(
 
 int
 x_load_rgb_xcolor(
-	Display *  display ,
-	int  screen ,
+	x_display_t *  disp ,
 	x_color_t *  xcolor ,
 	u_int8_t  red ,
 	u_int8_t  green ,
-	u_int8_t  blue
+	u_int8_t  blue ,
+	u_int8_t  alpha
 	)
 {
 	XColor  ncolor ;
-	
+
 	ncolor.red = (red << 8) + red ;
 	ncolor.green = (green << 8) + green ;
 	ncolor.blue = (blue << 8) + blue ;
 	ncolor.flags = 0 ;
 
-	if( ! XAllocColor( display , DefaultColormap( display , screen) , &ncolor))
+	if( ! XAllocColor( disp->display , disp->colormap , &ncolor))
 	{
 		/* try to find closest color */
-		return  alloc_closest_xcolor_pseudo( display , screen ,
-				red , green , blue , xcolor) ;
+		return  alloc_closest_xcolor_pseudo( disp , red , green , blue , xcolor) ;
 	}
 
 	native_color_to_xcolor( xcolor , &ncolor) ;
@@ -319,8 +308,7 @@ x_load_rgb_xcolor(
 
 int
 x_unload_xcolor(
-	Display *  display ,
-	int  screen ,
+	x_display_t *  disp ,
 	x_color_t *  xcolor
 	)
 {
@@ -329,10 +317,8 @@ x_unload_xcolor(
 
 	pixel[0] = xcolor->pixel ;
 	
-	XFreeColors( display , DefaultColormap( display , screen) , pixel , 1 , 0) ;
+	XFreeColors( disp->display , disp->colormap , pixel , 1 , 0) ;
 #endif
-
-	xcolor->is_loaded = 0 ;
 
 	return  1 ;
 }
@@ -344,6 +330,7 @@ x_get_xcolor_rgb(
 	u_int8_t *  red ,
 	u_int8_t *  green ,
 	u_int8_t *  blue ,
+	u_int8_t *  alpha ,	/* can be NULL */
 	x_color_t *  xcolor
 	)
 {
@@ -351,13 +338,21 @@ x_get_xcolor_rgb(
 	*green = xcolor->green ;
 	*blue = xcolor->blue ;
 
+	if( alpha)
+	{
+	#ifdef  USE_TYPE_XFT
+		*alpha = xcolor->alpha ;
+	#else
+		*alpha = 0xff ;
+	#endif
+	}
+
 	return  1 ;
 }
 
 int
 x_xcolor_fade(
-	Display *  display ,
-	int  screen ,
+	x_display_t *  disp ,
 	x_color_t *  xcolor ,
 	u_int  fade_ratio
 	)
@@ -365,8 +360,9 @@ x_xcolor_fade(
 	u_int8_t  red ;
 	u_int8_t  green ;
 	u_int8_t  blue ;
+	u_int8_t  alpha ;
 
-	x_get_xcolor_rgb( &red , &green , &blue , xcolor) ;
+	x_get_xcolor_rgb( &red , &green , &blue , &alpha , xcolor) ;
 
 #if  0
 	kik_msg_printf( "Fading R%d G%d B%d => " , red , green , blue) ;
@@ -376,11 +372,11 @@ x_xcolor_fade(
 	green = (green * fade_ratio) / 100 ;
 	blue = (blue * fade_ratio) / 100 ;
 
-	x_unload_xcolor( display , screen , xcolor) ;
+	x_unload_xcolor( disp , xcolor) ;
 
 #if  0
 	kik_msg_printf( "R%d G%d B%d\n" , red , green , blue) ;
 #endif
 
-	return  x_load_rgb_xcolor( display , screen , xcolor , red, green , blue) ;
+	return  x_load_rgb_xcolor( disp , xcolor , red , green , blue , alpha) ;
 }

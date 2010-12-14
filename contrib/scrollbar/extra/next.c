@@ -25,6 +25,8 @@ typedef struct  next_sb_view
 
 	GC  gc ;
 
+	unsigned int  depth ;
+
 	Pixmap  background ;
 	Pixmap  bar_relief ;
 	Pixmap  arrow_up ;
@@ -61,8 +63,7 @@ get_icon_pixmap(
 
 	next_sb = (next_sb_view_t*) view ;
 
-	pix = XCreatePixmap( view->display , view->window , width , height ,
-		DefaultDepth( view->display , view->screen)) ;
+	pix = XCreatePixmap( view->display , view->window , width , height , next_sb->depth) ;
 
 	if( (xpoint = malloc( ( width * height) * sizeof( XPoint))) == NULL)
 	{
@@ -177,9 +178,8 @@ create_bg(
 
 	next_sb = (next_sb_view_t*) view ;
 
-
 	pix = XCreatePixmap( view->display , view->window , width , height ,
-		DefaultDepth( view->display , view->screen)) ;
+			((next_sb_view_t*)view)->depth) ;
 
 	XSetForeground( view->display , next_sb->gc , next_sb->gray_light) ;
 	XFillRectangle( view->display , pix , next_sb->gc ,
@@ -228,6 +228,7 @@ realized(
 	)
 {
 	next_sb_view_t *  next_sb ;
+	XWindowAttributes  attr ;
 	XGCValues  gc_value ;
 
 	next_sb = (next_sb_view_t*) view ;
@@ -246,10 +247,13 @@ realized(
 			GCForeground | GCBackground | GCGraphicsExposures ,
 			&gc_value) ;
 
+	XGetWindowAttributes( view->display , view->window , &attr) ;
+	next_sb->depth = attr.depth ;
+
 	next_sb->gray_light = exsb_get_pixel( view->display , view->screen ,
-					      "rgb:ae/aa/ae") ;
+					attr.colormap , attr.visual , "rgb:ae/aa/ae") ;
 	next_sb->gray_dark  = exsb_get_pixel( view->display , view->screen ,
-					      "rgb:51/55/51") ;
+					attr.colormap , attr.visual , "rgb:51/55/51") ;
 
 	next_sb->background = create_bg( view , WIDTH , view->height);
 	next_sb->bar_relief = get_icon_pixmap( view , next_sb->gc ,

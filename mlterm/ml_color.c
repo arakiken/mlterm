@@ -400,31 +400,27 @@ ml_color_parse_rgb_name(
 	u_int8_t *  red ,
 	u_int8_t *  green ,
 	u_int8_t *  blue ,
+	u_int8_t *  alpha ,
 	const char *  name
 	)
 {
 	int  _red ;
 	int  _green ;
 	int  _blue ;
+	int  _alpha ;
 	size_t  name_len ;
+	char *  format ;
+	int  has_alpha ;
+	int  long_color ;
+
+	_alpha = 0xffff ;
+	has_alpha = 0 ;
+	long_color = 0 ;
 
 	name_len = strlen( name) ;
-	
-	if( ( name_len == 7 && sscanf( name, "#%2x%2x%2x" , &_red , &_green , &_blue) == 3) ||
-		( name_len == 12 && sscanf( name, "rgb:%2x/%2x/%2x", &_red, &_green, &_blue) == 3))
+
+	if( name_len >= 14)
 	{
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " %x %x %x\n" , _red , _green , _blue) ;
-	#endif
-
-		*red = _red ;
-		*green = _green ;
-		*blue = _blue ;
-
-		return  1 ;
-	}
-	else if( ( name_len == 13 && sscanf( name, "#%4x%4x%4x" , &_red , &_green , &_blue) == 3) ||
-		( name_len == 18 && sscanf( name, "rgb:%4x/%4x/%4x", &_red, &_green, &_blue) == 3) ||
 		/*
 		 * XXX
 		 * "RRRR-GGGG-BBBB" length is 14, but 2.4.0 or before accepts
@@ -432,19 +428,89 @@ ml_color_parse_rgb_name(
 		 * what is worse "RRRR-GGGG-BBBB;" appears in etc/color sample file.
 		 * So, more than 14 length is also accepted for backward compatiblity.
 		 */
-		( name_len >= 14 && sscanf( name, "%4x-%4x-%4x" , &_red , &_green , &_blue) == 3))
+		if( sscanf( name, "%4x-%4x-%4x" , &_red , &_green , &_blue) == 3)
+		{
+			goto  end ;
+		}
+		else if( name_len == 16)
+		{
+			format = "rgba:%2x/%2x/%2x/%2x" ;
+			has_alpha = 1 ;
+		}
+		else if( name_len == 17)
+		{
+			format = "#%4x%4x%4x%4x" ;
+			has_alpha = 1 ;
+			long_color = 1 ;
+		}
+		else if( name_len == 18)
+		{
+			format = "rgb:%4x/%4x/%4x" ;
+			long_color = 1 ;
+		}
+		else if( name_len == 24)
+		{
+			format = "rgba:%4x/%4x/%4x/%4x" ;
+			long_color = 1 ;
+			has_alpha = 1 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+	}
+	else
 	{
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " %x %x %x\n" , _red , _green , _blue) ;
-	#endif
+		if( name_len == 7)
+		{
+			format = "#%2x%2x%2x" ;
+		}
+		else if( name_len == 9)
+		{
+			format = "#%2x%2x%2x%2x" ;
+			has_alpha = 1 ;
+		}
+		else if( name_len == 12)
+		{
+			format = "rgb:%2x/%2x/%2x" ;
+		}
+		else if( name_len == 13)
+		{
+			format = "#%4x%4x%4x" ;
+			long_color = 1 ;
+		}
+		else
+		{
+			return  0 ;
+		}
+	}
+
+	if( sscanf( name , format , &_red , &_green , &_blue , &_alpha) != (3 + has_alpha))
+	{
+		return  0 ;
+	}
 	
+end:
+	if( long_color)
+	{
 		*red = (_red >> 8) & 0xff ;
 		*green = (_green >> 8) & 0xff ;
 		*blue = (_blue >> 8) & 0xff ;
-
-		return 1 ;
+		*alpha = (_alpha >> 8) & 0xff ;
 	}
-	
-	return  0 ;
+	else
+	{
+		*red = _red ;
+		*green = _green ;
+		*blue = _blue ;
+		*alpha = _alpha & 0xff ;
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s => %x %x %x %x\n" ,
+		name , *red , *green , *blue , *alpha) ;
+#endif
+
+	return  1 ;
 }
 

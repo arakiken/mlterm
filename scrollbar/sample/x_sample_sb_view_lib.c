@@ -15,7 +15,10 @@ x_get_icon_pixmap(
 	GC  gc ,
 	char **  data ,
 	unsigned int  width ,
-	unsigned int  height
+	unsigned int  height ,
+	unsigned int  depth ,
+	unsigned long  black ,
+	unsigned long  white
 	)
 {
 	Pixmap  pix ;
@@ -23,8 +26,7 @@ x_get_icon_pixmap(
 	int  x ;
 	int  y ;
 	
-	pix = XCreatePixmap( view->display , view->window , width , height ,
-		DefaultDepth( view->display , view->screen)) ;
+	pix = XCreatePixmap( view->display , view->window , width , height , depth) ;
 
 	cur = '\0' ;
 	for( y = 0 ; y < height ; y ++)
@@ -35,13 +37,11 @@ x_get_icon_pixmap(
 			{
 				if( data[y][x] == ' ')
 				{
-					XSetForeground( view->display , gc ,
-						WhitePixel( view->display , view->screen)) ;
+					XSetForeground( view->display , gc , white) ;
 				}
 				else if( data[y][x] == '#')
 				{
-					XSetForeground( view->display , gc ,
-						BlackPixel( view->display , view->screen)) ;
+					XSetForeground( view->display , gc , black) ;
 				}
 				else
 				{

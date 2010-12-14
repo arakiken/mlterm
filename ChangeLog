@@ -1,3 +1,38 @@
+2010-12-15  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  If visual of parent window is not default one, visual, colormap and depth
+	  attributes from parent window are set to x_display members.
+
+	* scrollbar/sample, contrib/scrollbar/extra, contrib/scrollbar/pixmap_engine:
+	  visual, colormap and depth are obtained from window attributes.
+
+	* x_window.c:
+          - Type of {fg|bg}_color members is changed from u_long to x_color_t.
+	  - x_window_set_xft function which creates or destroys xft_draw member
+	    of x_window_t is added.
+	  - XCreateWindow is used instead of XCreateSimpleWindow in order to
+	    specify visual and colormap.
+	  - XftDrawRect is used instead of xlib functions in xft mode.
+	
+	* x_color.c, x_color_win32.c, x_color_cache.c, x_imagelib.c:
+	  x_display_t is used instead of Display in order to use visual, colormap and
+	  depth of x_display_t.
+
+	* x_display.c:
+	  visual, colormap and depth are managed in x_display_t.
+
+	* x_term_manager.c, x_display.c, doc/ja/README.ja, man/mlterm.1:
+	  'depth' option is added.
+
+	* x_gc.c:
+	  DefaultGC is used in x_gc_new if drawable is not specified.
+	
+	* x_color.c, ml_color.c:
+	  alpha is processed.
+
+	* gtk/INSTALL: Minor fixes.
+
 2010-11-28  Araki Ken  <arakiken@users.sf.net>
 
 	* version.h.in:

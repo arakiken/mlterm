@@ -38,11 +38,11 @@ sys_color_set(
 {
 	free( color_man->sys_colors[color].name) ;
 	
-	if( color_man->sys_colors[color].xcolor.is_loaded)
+	if( color_man->sys_colors[color].is_loaded)
 	{
-		x_unload_xcolor( color_man->color_cache->display ,
-			color_man->color_cache->screen ,
+		x_unload_xcolor( color_man->color_cache->disp ,
 			&color_man->sys_colors[color].xcolor) ;
+		color_man->sys_colors[color].is_loaded = 0 ;
 	}
 
 	if( name == NULL)
@@ -73,8 +73,7 @@ sys_color_set(
 
 x_color_manager_t *
 x_color_manager_new(
-	Display *  display ,
-	int  screen ,
+	x_display_t *  disp ,
 	x_color_config_t *  color_config ,
 	char *  fg_color ,	/* can be NULL(If NULL, use "black".) */
 	char *  bg_color ,	/* can be NULL(If NULL, use "white".) */
@@ -90,7 +89,7 @@ x_color_manager_new(
 		return  NULL ;
 	}
 
-	if( ( color_man->color_cache = x_acquire_color_cache( display, screen, color_config, 100))
+	if( ( color_man->color_cache = x_acquire_color_cache( disp , color_config , 100))
 					== NULL)
 	{
 	#ifdef  DEBUG
@@ -137,9 +136,11 @@ x_color_manager_new(
 	
 	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
 	{
-		color_man->sys_colors[count].xcolor.is_loaded = 0 ;
+		color_man->sys_colors[count].is_loaded = 0 ;
 	}
-		
+
+	color_man->alpha = 0xff ;
+	
 	color_man->is_reversed = 0 ;
 		
 	return  color_man ;
@@ -156,11 +157,11 @@ x_color_manager_delete(
 	{
 		free( color_man->sys_colors[count].name) ;
 		
-		if( color_man->sys_colors[count].xcolor.is_loaded)
+		if( color_man->sys_colors[count].is_loaded)
 		{
-			x_unload_xcolor( color_man->color_cache->display,
-				color_man->color_cache->screen,
+			x_unload_xcolor( color_man->color_cache->disp ,
 				&color_man->sys_colors[count].xcolor) ;
+			color_man->sys_colors[count].is_loaded = 0 ;
 		}
 	}
 
@@ -264,35 +265,61 @@ x_get_xcolor(
 
 	if( color == ML_FG_COLOR)
 	{
-		if( ! color_man->sys_colors[_FG_COLOR].xcolor.is_loaded)
+		if( ! color_man->sys_colors[_FG_COLOR].is_loaded)
 		{
-			if( ! x_load_xcolor( color_man->color_cache,
-				&color_man->sys_colors[_FG_COLOR].xcolor,
+			if( ! x_load_xcolor( color_man->color_cache ,
+				&color_man->sys_colors[_FG_COLOR].xcolor ,
 				color_man->sys_colors[_FG_COLOR].name))
 			{
 				return  &color_man->color_cache->black ;
 			}
+
+			color_man->sys_colors[_FG_COLOR].is_loaded = 1 ;
 		}
 		
 		return  &color_man->sys_colors[_FG_COLOR].xcolor ;
 	}
 	else if( color == ML_BG_COLOR)
 	{
-		if( ! color_man->sys_colors[_BG_COLOR].xcolor.is_loaded)
+		if( ! color_man->sys_colors[_BG_COLOR].is_loaded)
 		{
-			if( ! x_load_xcolor( color_man->color_cache,
-				&color_man->sys_colors[_BG_COLOR].xcolor,
+			if( ! x_load_xcolor( color_man->color_cache ,
+				&color_man->sys_colors[_BG_COLOR].xcolor ,
 				color_man->sys_colors[_BG_COLOR].name))
 			{
 				return  &color_man->color_cache->black ;
 			}
+
+			if( color_man->alpha < 0xff)
+			{
+				u_int8_t  red ;
+				u_int8_t  green ;
+				u_int8_t  blue ;
+				u_int8_t  alpha ;
+
+				x_get_xcolor_rgb( &red , &green , &blue , &alpha ,
+					&color_man->sys_colors[_BG_COLOR].xcolor) ;
+
+				/*
+				 * If alpha of bg color is already less than 0xff,
+				 * default alpha value is not applied.
+				 */
+				if( alpha == 0xff)
+				{
+					x_load_rgb_xcolor( color_man->color_cache->disp ,
+						&color_man->sys_colors[_BG_COLOR].xcolor ,
+						red , green , blue , color_man->alpha) ;
+				}
+			}
+
+			color_man->sys_colors[_BG_COLOR].is_loaded = 1 ;
 		}
 		
 		return  &color_man->sys_colors[_BG_COLOR].xcolor ;
 	}
 	else
 	{
-		return  x_get_cached_xcolor( color_man->color_cache, color) ;
+		return  x_get_cached_xcolor( color_man->color_cache , color) ;
 	}
 }
 
@@ -325,8 +352,7 @@ x_color_manager_fade(
 	}
 	else
 	{
-		if( ( color_cache = x_acquire_color_cache( color_man->color_cache->display,
-					color_man->color_cache->screen,
+		if( ( color_cache = x_acquire_color_cache( color_man->color_cache->disp ,
 					color_man->color_cache->color_config, fade_ratio)) == NULL)
 		{
 		#ifdef  DEBUG
@@ -350,11 +376,11 @@ x_color_manager_fade(
 
 	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
 	{
-		if( color_man->sys_colors[count].xcolor.is_loaded)
+		if( color_man->sys_colors[count].is_loaded)
 		{
-			x_unload_xcolor( color_man->color_cache->display,
-				color_man->color_cache->screen,
+			x_unload_xcolor( color_man->color_cache->disp ,
 				&color_man->sys_colors[count].xcolor) ;
+			color_man->sys_colors[count].is_loaded = 0 ;
 		}
 	}
 	
@@ -383,11 +409,11 @@ x_color_manager_unfade(
 
 	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
 	{
-		if( color_man->sys_colors[count].xcolor.is_loaded)
+		if( color_man->sys_colors[count].is_loaded)
 		{
-			x_unload_xcolor( color_man->color_cache->display,
-				color_man->color_cache->screen,
+			x_unload_xcolor( color_man->color_cache->disp ,
 				&color_man->sys_colors[count].xcolor) ;
+			color_man->sys_colors[count].is_loaded = 0 ;
 		}
 	}
 
@@ -482,13 +508,37 @@ x_color_manager_unload(
 	
 	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
 	{
-		if( color_man->sys_colors[count].xcolor.is_loaded)
+		if( color_man->sys_colors[count].is_loaded)
 		{
-			x_unload_xcolor( color_man->color_cache->display,
-				color_man->color_cache->screen,
+			x_unload_xcolor( color_man->color_cache->disp ,
 				&color_man->sys_colors[count].xcolor) ;
+			color_man->sys_colors[count].is_loaded = 0 ;
 		}
 	}
+
+	return  1 ;
+}
+
+int
+x_color_manager_change_alpha(
+	x_color_manager_t *  color_man ,
+	u_int8_t  alpha
+	)
+{
+	if( color_man->color_cache->disp->depth != 32 ||
+	    alpha == color_man->alpha)
+	{
+		return  0 ;
+	}
+
+	if( color_man->sys_colors[_BG_COLOR].is_loaded)
+	{
+		x_unload_xcolor( color_man->color_cache->disp ,
+			&color_man->sys_colors[_BG_COLOR].xcolor) ;
+		color_man->sys_colors[_BG_COLOR].is_loaded = 0 ;
+	}
+
+	color_man->alpha = alpha ;
 
 	return  1 ;
 }

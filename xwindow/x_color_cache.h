@@ -14,6 +14,7 @@
 typedef struct x_color_cache_256
 {
 	x_color_t  xcolors[240] ;
+	u_int8_t  is_loaded[240] ;
 
 	u_int  ref_count ;
 
@@ -21,10 +22,11 @@ typedef struct x_color_cache_256
 
 typedef struct x_color_cache
 {
-	Display *  display ;
-	int  screen ;
+	x_display_t *  disp ;
 
 	x_color_t  xcolors[16] ;
+	u_int8_t  is_loaded[16] ;
+
 	x_color_cache_256_t *  cache_256 ;
 
 	x_color_t  black ;
@@ -37,7 +39,7 @@ typedef struct x_color_cache
 } x_color_cache_t ;
 
 
-x_color_cache_t *  x_acquire_color_cache( Display *  display, int  screen,
+x_color_cache_t *  x_acquire_color_cache( x_display_t *  disp ,
 	x_color_config_t *  color_config, u_int8_t  fade_ratio) ;
 
 int  x_release_color_cache( x_color_cache_t *  color_cache) ;

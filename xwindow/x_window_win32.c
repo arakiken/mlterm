@@ -155,7 +155,7 @@ set_transparent(
 			SetLayeredWindowAttributes( win->my_window , 0 , pic_mod->alpha ,
 				LWA_ALPHA) ;
 		#else
-			SetLayeredWindowAttributes( win->my_window , win->bg_color ,
+			SetLayeredWindowAttributes( win->my_window , win->bg_color.pixel ,
 				0 , LWA_COLORKEY) ;
 		#endif
 		}
@@ -917,8 +917,8 @@ x_window_init(
 	win->drawable = None ;
 	win->buffer = None ;
 
-	win->fg_color = 0 ;
-	win->bg_color = 0 ;
+	memset( &win->fg_color , 0 , sizeof(win->fg_color)) ;
+	memset( &win->bg_color , 0 , sizeof(win->bg_color)) ;
 
 	win->parent = NULL ;
 	win->children = NULL ;
@@ -1055,6 +1055,15 @@ x_window_final(
 }
 
 int
+x_window_set_xft(
+	x_window_t *  win ,
+	int  use_xft
+	)
+{
+	return  0 ;
+}
+
+int
 x_window_init_event_mask(
 	x_window_t *  win ,
 	long  event_mask
@@ -1179,7 +1188,7 @@ x_window_unset_wall_picture(
 	}
 
 	XSetWindowBackgroundPixmap( win->display , win->my_window , None) ;
-	XSetWindowBackground( win->display , win->my_window , win->bg_color) ;
+	XSetWindowBackground( win->display , win->my_window , win->bg_color.pixel) ;
 
 	win->wall_picture_is_set = 0 ;
 
@@ -1342,7 +1351,12 @@ x_window_set_fg_color(
 	x_color_t *  fg_color
 	)
 {
-	win->fg_color = fg_color->pixel ;
+	if( win->fg_color.pixel == fg_color->pixel)
+	{
+		return  0 ;
+	}
+
+	win->fg_color = *fg_color ;
 
 	return  1 ;
 }
@@ -1353,7 +1367,12 @@ x_window_set_bg_color(
 	x_color_t *  bg_color
 	)
 {
-	win->bg_color = bg_color->pixel ;
+	if( win->bg_color.pixel == bg_color->pixel)
+	{
+		return  0 ;
+	}
+
+	win->bg_color = *bg_color ;
 
 	if( win->my_window != None)
 	{
@@ -1420,12 +1439,12 @@ x_window_get_fg_gc(
 	}
 	
 #if  0
-	x_gc_set_fg_color( win->gc , win->fg_color) ;
-	x_gc_set_bg_color( win->gc , win->bg_color) ;
+	x_gc_set_fg_color( win->gc , win->fg_color.pixel) ;
+	x_gc_set_bg_color( win->gc , win->bg_color.pixel) ;
 #endif
 
-	x_release_pen( x_gc_set_pen( win->gc , x_acquire_pen( win->fg_color))) ;
-	x_release_brush( x_gc_set_brush( win->gc , x_acquire_brush( win->fg_color))) ;
+	x_release_pen( x_gc_set_pen( win->gc , x_acquire_pen( win->fg_color.pixel))) ;
+	x_release_brush( x_gc_set_brush( win->gc , x_acquire_brush( win->fg_color.pixel))) ;
 
 	return  win->gc->gc ;
 }
@@ -1441,12 +1460,12 @@ x_window_get_bg_gc(
 	}
 	
 #if  0
-	x_gc_set_fg_color( win->gc , win->bg_color) ;
-	x_gc_set_bg_color( win->gc , win->fg_color) ;
+	x_gc_set_fg_color( win->gc , win->bg_color.pixel) ;
+	x_gc_set_bg_color( win->gc , win->fg_color.pixel) ;
 #endif
 
 	x_release_pen( x_gc_set_pen( win->gc , GetStockObject(NULL_PEN))) ;
-	x_release_brush( x_gc_set_brush( win->gc , x_acquire_brush( win->bg_color))) ;
+	x_release_brush( x_gc_set_brush( win->gc , x_acquire_brush( win->bg_color.pixel))) ;
 
 	return  win->gc->gc ;
 }
@@ -1761,7 +1780,8 @@ x_window_clear(
 	else
 	{
 		x_release_pen( x_gc_set_pen( win->gc, GetStockObject(NULL_PEN))) ;
-		x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( win->bg_color))) ;
+		x_release_brush( x_gc_set_brush( win->gc,
+			x_acquire_brush( win->bg_color.pixel))) ;
 		
 		Rectangle( win->gc->gc, r.left, r.top, r.right, r.bottom) ;
 
@@ -1785,7 +1805,8 @@ x_window_clear_margin_area(
 	else
 	{
 		x_release_pen( x_gc_set_pen( win->gc, GetStockObject(NULL_PEN))) ;
-		x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( win->bg_color))) ;
+		x_release_brush( x_gc_set_brush( win->gc,
+			x_acquire_brush( win->bg_color.pixel))) ;
 
 		Rectangle( win->gc->gc, 0, 0, win->margin, ACTUAL_HEIGHT(win)) ;
 		Rectangle( win->gc->gc, win->margin, 0, win->width + win->margin, win->margin) ;
@@ -1820,7 +1841,7 @@ x_window_fill(
 		return  0 ;
 	}
 	
-	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color))) ;
+	x_release_pen( x_gc_set_pen( win->gc , x_acquire_pen( win->fg_color.pixel))) ;
 
 	if( height == 1)
 	{
@@ -1829,7 +1850,8 @@ x_window_fill(
 	}
 	else
 	{
-		x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( win->fg_color))) ;
+		x_release_brush( x_gc_set_brush( win->gc ,
+			x_acquire_brush( win->fg_color.pixel))) ;
 
 		Rectangle( win->gc->gc, win->margin + x, win->margin + y,
 					win->margin + x + width, win->margin + y + height) ;
@@ -2105,7 +2127,7 @@ x_window_receive_event(
 			if( win->parent != NULL)	/* XXX Hack for not flashing. */
 			{
 				old = SelectObject( (HDC)event->wparam,
-						x_acquire_brush( win->bg_color)) ;
+						x_acquire_brush( win->bg_color.pixel)) ;
 				GetClientRect( win->my_window, &rt) ;
 				PatBlt( (HDC)event->wparam, rt.left, rt.top,
 					rt.right-rt.left, rt.bottom-rt.top, PATCOPY) ;
@@ -2958,7 +2980,7 @@ x_window_draw_rect_frame(
 		return  0 ;
 	}
 
-	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color))) ;
+	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color.pixel))) ;
 	x_release_brush( x_gc_set_brush( win->gc, GetStockObject(NULL_BRUSH))) ;
 	
 	Rectangle( win->gc->gc, x1, y1, x2, y2) ;
@@ -2980,7 +3002,7 @@ x_window_draw_line(
 		return  0 ;
 	}
 
-	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color))) ;
+	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( win->fg_color.pixel))) ;
 
 	MoveToEx( win->gc->gc, x1, y1, NULL) ;
 	LineTo( win->gc->gc, x2, y2) ;

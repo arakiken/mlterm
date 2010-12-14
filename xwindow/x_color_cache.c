@@ -17,8 +17,7 @@ static u_int  num_of_caches ;
 
 static x_color_cache_256_t *
 acquire_color_cache_256(
-	Display *  display ,
-	int  screen
+	x_display_t *  disp
 	)
 {
 	u_int  count ;
@@ -26,8 +25,7 @@ acquire_color_cache_256(
 
 	for( count = 0 ; count < num_of_caches ; count++)
 	{
-		if( color_caches[count]->display == display &&
-			color_caches[count]->screen == screen &&
+		if( color_caches[count]->disp == disp &&
 			color_caches[count]->cache_256)
 		{
 			color_caches[count]->cache_256->ref_count ++ ;
@@ -56,6 +54,7 @@ get_cached_256_xcolor(
 	u_int8_t  red ;
 	u_int8_t  green ;
 	u_int8_t  blue ;
+	u_int8_t  alpha ;
 	char *  name ;
 
 	if( ! IS_256_COLOR(color))
@@ -64,23 +63,24 @@ get_cached_256_xcolor(
 	}
 
 	if( ! color_cache->cache_256 &&
-	    ! ( color_cache->cache_256 =
-			acquire_color_cache_256( color_cache->display , color_cache->screen)))
+	    ! ( color_cache->cache_256 = acquire_color_cache_256( color_cache->disp)))
 	{
 		return  NULL ;
 	}
 
-	if( color_cache->cache_256->xcolors[color - 16].is_loaded)
+	if( color_cache->cache_256->is_loaded[color - 16])
 	{
 		return  &color_cache->cache_256->xcolors[color - 16] ;
 	}
 
+	alpha = 0xff ;
 	if( ( ( name = ml_get_color_name( color)) &&
-		x_color_config_get_rgb( color_cache->color_config , &red , &green , &blue , name) )
-		  || ml_get_color_rgb( color, &red, &green, &blue))
+	      x_color_config_get_rgb( color_cache->color_config ,
+					&red , &green , &blue , &alpha , name) )
+	    || ml_get_color_rgb( color , &red , &green , &blue))
 	{
-		if( ! x_load_rgb_xcolor( color_cache->display , color_cache->screen ,
-				&color_cache->cache_256->xcolors[color - 16] , red , green , blue))
+		if( ! x_load_rgb_xcolor( color_cache->disp ,
+			&color_cache->cache_256->xcolors[color - 16] , red , green , blue , alpha))
 		{
 			return  NULL ;
 		}
@@ -88,11 +88,13 @@ get_cached_256_xcolor(
 		/*
 		 * 16-255 colors ignore color_cache->fade_ratio.
 		 */
-		
+
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " new color %x %x\n" ,
 			color , color_cache->cache_256->xcolors[color - 16].pixel) ;
 	#endif
+
+		color_cache->cache_256->is_loaded[color - 16] = 1 ;
 
 		return  &color_cache->cache_256->xcolors[color - 16] ;
 	}
@@ -109,6 +111,7 @@ get_cached_vtsys_xcolor(
 	u_int8_t  red ;
 	u_int8_t  green ;
 	u_int8_t  blue ;
+	u_int8_t  alpha ;
 	char *  tag ;
 	char *  name ;
 
@@ -117,7 +120,7 @@ get_cached_vtsys_xcolor(
 		return  NULL ;
 	}
 	
-	if( color_cache->xcolors[color].is_loaded)
+	if( color_cache->is_loaded[color])
 	{
 		return  &color_cache->xcolors[color] ;
 	}
@@ -159,16 +162,17 @@ get_cached_vtsys_xcolor(
 		name = tag ;
 	}
 	
-	if( x_color_config_get_rgb( color_cache->color_config , &red , &green , &blue , tag))
+	if( x_color_config_get_rgb( color_cache->color_config ,
+					&red , &green , &blue , &alpha , tag))
 	{
-		if( x_load_rgb_xcolor( color_cache->display , color_cache->screen ,
-			&color_cache->xcolors[color] , red , green , blue))
+		if( x_load_rgb_xcolor( color_cache->disp ,
+			&color_cache->xcolors[color] , red , green , blue , alpha))
 		{
 			goto  found ;
 		}
 	}
 
-	if( x_load_named_xcolor( color_cache->display , color_cache->screen ,
+	if( x_load_named_xcolor( color_cache->disp ,
 		&color_cache->xcolors[color] , name))
 	{
 		goto  found ;
@@ -179,7 +183,7 @@ get_cached_vtsys_xcolor(
 found:
 	if( color_cache->fade_ratio < 100)
 	{
-		if( ! x_xcolor_fade( color_cache->display , color_cache->screen ,
+		if( ! x_xcolor_fade( color_cache->disp ,
 			&color_cache->xcolors[color] , color_cache->fade_ratio))
 		{
 			return  NULL ;
@@ -192,6 +196,8 @@ found:
 		color_cache->xcolors[color].blue) ;
 #endif
 
+	color_cache->is_loaded[color] = 1 ;
+
 	return  &color_cache->xcolors[color] ;
 }
 
@@ -200,8 +206,7 @@ found:
 
 x_color_cache_t *
 x_acquire_color_cache(
-	Display *  display,
-	int  screen,
+	x_display_t *  disp ,
 	x_color_config_t *  color_config,
 	u_int8_t  fade_ratio
 	)
@@ -212,8 +217,7 @@ x_acquire_color_cache(
 
 	for( count = 0 ; count < num_of_caches ; count ++)
 	{
-		if( color_caches[count]->display == display &&
-			color_caches[count]->screen == screen &&
+		if( color_caches[count]->disp == disp &&
 			color_caches[count]->color_config == color_config &&
 			color_caches[count]->fade_ratio == fade_ratio)
 		{
@@ -235,21 +239,20 @@ x_acquire_color_cache(
 	{
 		return  NULL ;
 	}
-	
+
 	memset( color_cache->xcolors , 0 , sizeof( color_cache->xcolors)) ;
-	
-	color_cache->display = display ;
-	color_cache->screen = screen ;
+
+	color_cache->disp = disp ;
 	color_cache->cache_256 = NULL ;
 
 	color_cache->color_config = color_config ;
 	color_cache->fade_ratio = fade_ratio ;
 
-	if( ! x_load_named_xcolor( color_cache->display , color_cache->screen ,
-		&color_cache->black , "black"))
+	if( ! x_load_rgb_xcolor( color_cache->disp , &color_cache->black ,
+					0 , 0 , 0 , 0xff))
 	{
 		free( color_cache) ;
-		
+
 		return  NULL ;
 	}
 
@@ -279,8 +282,7 @@ x_release_color_cache(
 			color_caches[count] = color_caches[--num_of_caches] ;
 
 			x_color_cache_unload( color_cache) ;
-			x_unload_xcolor( color_cache->display , color_cache->screen ,
-				&color_cache->black) ;
+			x_unload_xcolor( color_cache->disp , &color_cache->black) ;
 
 			free( color_cache) ;
 
@@ -307,10 +309,10 @@ x_color_cache_unload(
 	for( color = 0 ;
 	     color < sizeof(color_cache->xcolors) / sizeof(color_cache->xcolors[0]) ; color ++)
 	{
-		if( color_cache->xcolors[color].is_loaded)
+		if( color_cache->is_loaded[color])
 		{
-			x_unload_xcolor( color_cache->display , color_cache->screen ,
-				&color_cache->xcolors[color]) ;
+			x_unload_xcolor( color_cache->disp , &color_cache->xcolors[color]) ;
+			color_cache->is_loaded[color] = 0 ;
 		}
 	}
 
@@ -322,10 +324,10 @@ x_color_cache_unload(
 		for( color = 0 ; color < sizeof(cache->xcolors) / sizeof(cache->xcolors[0]) ;
 			color++)
 		{
-			if( cache->xcolors[color].is_loaded)
+			if( cache->is_loaded[color])
 			{
-				x_unload_xcolor( color_cache->display , color_cache->screen ,
-					&cache->xcolors[color]) ;
+				x_unload_xcolor( color_cache->disp , &cache->xcolors[color]) ;
+				color_cache->is_loaded[color] = 0 ;
 			}
 		}
 
@@ -360,11 +362,12 @@ x_load_xcolor(
 	u_int8_t  red ;
 	u_int8_t  green ;
 	u_int8_t  blue ;
+	u_int8_t  alpha ;
 
-	if( x_color_config_get_rgb( color_cache->color_config , &red , &green , &blue , name))
+	if( x_color_config_get_rgb( color_cache->color_config ,
+					&red , &green , &blue , &alpha , name))
 	{
-		if( x_load_rgb_xcolor( color_cache->display , color_cache->screen ,
-			xcolor , red , green , blue))
+		if( x_load_rgb_xcolor( color_cache->disp , xcolor , red , green , blue , alpha))
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " new color %x\n",
@@ -375,7 +378,7 @@ x_load_xcolor(
 		}
 	}
 
-	if( x_load_named_xcolor( color_cache->display , color_cache->screen , xcolor , name))
+	if( x_load_named_xcolor( color_cache->disp , xcolor , name))
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " new color %x\n",
@@ -390,13 +393,12 @@ x_load_xcolor(
 found:
 	if( color_cache->fade_ratio < 100)
 	{
-		if( ! x_xcolor_fade( color_cache->display , color_cache->screen ,
-			xcolor , color_cache->fade_ratio))
+		if( ! x_xcolor_fade( color_cache->disp , xcolor , color_cache->fade_ratio))
 		{
 			return  0 ;
 		}
 	}
-	
+
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " new color %s %x\n", name , xcolor->pixel) ;
 #endif

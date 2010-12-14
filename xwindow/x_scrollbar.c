@@ -359,14 +359,12 @@ window_realized(
 
 	sb = (x_scrollbar_t*) win ;
 
-	if( x_load_named_xcolor(  win->disp->display ,  win->disp->screen ,
-		&sb->fg_xcolor , sb->fg_color))
+	if( x_load_named_xcolor( win->disp , &sb->fg_xcolor , sb->fg_color))
 	{
 		x_window_set_fg_color( win , &sb->fg_xcolor) ;
 	}
 	
-	if( x_load_named_xcolor(  win->disp->display ,  win->disp->screen ,
-		&sb->bg_xcolor , sb->bg_color))
+	if( x_load_named_xcolor( win->disp , &sb->bg_xcolor , sb->bg_color))
 	{
 		x_window_set_bg_color( win , &sb->bg_xcolor) ;
 	}
@@ -981,8 +979,8 @@ x_scrollbar_final(
 	(*sb->view->delete)( sb->view) ;
 	x_unload_scrollbar_view_lib( sb->view_name) ;
 
-	x_unload_xcolor(  sb->window.disp->display , sb->window.disp->screen , &sb->fg_xcolor) ;
-	x_unload_xcolor(  sb->window.disp->display , sb->window.disp->screen , &sb->bg_xcolor) ;
+	x_unload_xcolor(  sb->window.disp , &sb->fg_xcolor) ;
+	x_unload_xcolor(  sb->window.disp , &sb->bg_xcolor) ;
 	free( sb->fg_color) ;
 	free( sb->bg_color) ;
 	free( sb->view_name) ;
@@ -1205,13 +1203,11 @@ x_scrollbar_set_fg_color(
 	)
 {
 	free( sb->fg_color) ;
-	x_unload_xcolor(  sb->window.disp->display ,
-		 sb->window.disp->screen , &sb->fg_xcolor) ;
+	x_unload_xcolor( sb->window.disp , &sb->fg_xcolor) ;
 
 	sb->fg_color = strdup( fg_color) ;
 	
-	if( x_load_named_xcolor(  sb->window.disp->display , sb->window.disp->screen ,
-		&sb->fg_xcolor , sb->fg_color))
+	if( x_load_named_xcolor( sb->window.disp , &sb->fg_xcolor , sb->fg_color))
 	{
 		x_window_set_fg_color( &sb->window , &sb->fg_xcolor) ;
 
@@ -1229,12 +1225,11 @@ x_scrollbar_set_bg_color(
 	)
 {
 	free( sb->bg_color) ;
-	x_unload_xcolor(  sb->window.disp->display , sb->window.disp->screen , &sb->bg_xcolor) ;
+	x_unload_xcolor( sb->window.disp , &sb->bg_xcolor) ;
 
 	sb->bg_color = strdup( bg_color) ;
 
-	if( x_load_named_xcolor(  sb->window.disp->display , sb->window.disp->screen ,
-		&sb->bg_xcolor , sb->bg_color))
+	if( x_load_named_xcolor( sb->window.disp , &sb->bg_xcolor , sb->bg_color))
 	{
 		x_window_set_bg_color( &sb->window , &sb->bg_xcolor) ;
 

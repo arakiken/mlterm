@@ -208,6 +208,11 @@ comment $Id$
       o display
         X の DISPLAY を指定
 
+      o depth
+        Visual の深さ (8, 16, 24, 32)
+        なお、compiz 上で動作する場合、depth == 32 であれば、背景色に対し
+        alpha で指定する透明度が適用されます。
+
       o parent_window (*0*)
         親 Window の Window ID を指定
 
@@ -449,6 +454,7 @@ comment $Id$
       o alpha (*255*)
         背景画像(透過処理含む)のアルファ値[0-255]
 	bg_color で指定された色とブレンドされます。
+	なお、depth オプションの説明も参照のこと。
       
       o line_space  (*0*) (#)
         行間の広さ
@@ -937,9 +943,11 @@ comment $Id$
     -x/--tw=value      : tabsize
     -y/--term=value    : term_type
     -z/--largesmall=value : step_in_changing_font_size
+       --iconpath=value : icon_path
+       --bimode=value  : bidi mode
        --im=value      : input_method
        --parent=value  : parent_window
-       --iconpath=value : icon_path
+       --depth=value   : visual depth
        --maxptys=value : max_ptys (X)
        --button3=value : button3_behavior
 

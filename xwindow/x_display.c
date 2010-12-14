@@ -153,10 +153,12 @@ hide_console(void)
 
 static x_display_t *
 open_display(
-	char *  name
+	char *  name ,
+	u_int  depth
 	)
 {
 	x_display_t *  disp ;
+	XVisualInfo  vinfo ;
 
 	if( ( disp = malloc( sizeof( x_display_t))) == NULL)
 	{
@@ -181,11 +183,41 @@ open_display(
 	disp->screen = DefaultScreen( disp->display) ;
 	disp->my_window = DefaultRootWindow( disp->display) ;
 
-	if( ( disp->gc = x_gc_new( disp->display)) == NULL)
+	if( depth &&
+	    XMatchVisualInfo( disp->display , disp->screen , depth , TrueColor , &vinfo) &&
+	    vinfo.visual != DefaultVisual( disp->display , disp->screen) )
 	{
-		goto  error3 ;
+		XSetWindowAttributes  s_attr ;
+		Window  win ;
+
+		disp->depth = depth ;
+		disp->visual = vinfo.visual ;
+		disp->colormap = XCreateColormap( disp->display ,
+					disp->my_window , vinfo.visual , AllocNone) ;
+
+		s_attr.background_pixel = BlackPixel(disp->display,disp->screen) ;
+		s_attr.border_pixel = BlackPixel(disp->display,disp->screen) ;
+		s_attr.colormap = disp->colormap ;
+		win = XCreateWindow( disp->display , disp->my_window ,
+				0 , 0 , 1 , 1 , 0 , disp->depth , InputOutput , disp->visual ,
+				CWColormap | CWBackPixel | CWBorderPixel , &s_attr) ;
+		if( ( disp->gc = x_gc_new( disp->display , win)) == NULL)
+		{
+			goto  error3 ;
+		}
+		XDestroyWindow( disp->display , win) ;
 	}
-	
+	else
+	{
+		disp->depth = DefaultDepth( disp->display , disp->screen) ;
+		disp->visual = DefaultVisual( disp->display , disp->screen) ;
+		disp->colormap = DefaultColormap( disp->display , disp->screen) ;
+		if( ( disp->gc = x_gc_new( disp->display , None)) == NULL)
+		{
+			goto  error3 ;
+		}
+	}
+
 	disp->roots = NULL ;
 	disp->num_of_roots = 0 ;
 
@@ -198,6 +230,7 @@ open_display(
 	default_error_handler = XSetErrorHandler( error_handler) ;
 #ifdef  __DEBUG
 	XSetIOErrorHandler( ioerror_handler) ;
+	XSynchronize( disp->display , True) ;
 #endif
 
 	x_xim_display_opened( disp->display) ;
@@ -264,7 +297,8 @@ close_display(
 
 x_display_t *
 x_display_open(
-	char *  disp_name
+	char *  disp_name ,
+	int  depth
 	)
 {
 	int  count ;
@@ -279,7 +313,7 @@ x_display_open(
 		}
 	}
 
-	if( ( disp = open_display( disp_name)) == NULL)
+	if( ( disp = open_display( disp_name , depth)) == NULL)
 	{
 		return  NULL ;
 	}
@@ -389,6 +423,7 @@ x_display_show_root(
 
 	root->disp = disp ;
 	root->parent = NULL ;
+
 	if( parent_window)
 	{
 		root->parent_window = parent_window ;
@@ -397,6 +432,7 @@ x_display_show_root(
 	{
 		root->parent_window = disp->my_window ;
 	}
+
 	root->gc = disp->gc ;
 	root->x = x ;
 	root->y = y ;

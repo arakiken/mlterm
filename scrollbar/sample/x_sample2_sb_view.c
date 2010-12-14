@@ -62,6 +62,9 @@ realized(
 {
 	sample_sb_view_t *  sample ;
 	XGCValues  gc_value ;
+	XWindowAttributes  attr ;
+	XColor  black = { 0 , 0 , 0 , 0 , 0 , 0 , } ;
+	XColor  white = { 0 , 0xffff , 0xffff , 0xffff , 0 , 0 , } ;
 
 	sample = (sample_sb_view_t*) view ;
 	
@@ -77,15 +80,19 @@ realized(
 
 	sample->gc = XCreateGC( view->display , view->window ,
 			GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
-	
+
+	XGetWindowAttributes( view->display , view->window , &attr) ;
+	XAllocColor( view->display , attr.colormap , &black) ;
+	XAllocColor( view->display , attr.colormap , &white) ;
+
 	sample->arrow_up = x_get_icon_pixmap( view , sample->gc , arrow_up_src ,
-				WIDTH , BOTTOM_MARGIN / 2) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 	sample->arrow_down = x_get_icon_pixmap( view , sample->gc , arrow_down_src ,
-				WIDTH , BOTTOM_MARGIN / 2) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 	sample->arrow_up_dent = x_get_icon_pixmap( view , sample->gc , arrow_up_dent_src ,
-					WIDTH , BOTTOM_MARGIN / 2) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 	sample->arrow_down_dent = x_get_icon_pixmap( view , sample->gc , arrow_down_dent_src ,
-					WIDTH , BOTTOM_MARGIN / 2) ;
+			WIDTH , BOTTOM_MARGIN / 2 , attr.depth , black.pixel , white.pixel) ;
 }
 
 static void
