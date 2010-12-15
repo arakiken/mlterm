@@ -68,8 +68,6 @@ typedef struct  x_window
 	x_display_t *  disp ;
 	
 	Window  my_window ;
-	Drawable  drawable ;
-	Pixmap  buffer ;
 
 #ifdef  USE_TYPE_XFT
 	XftDraw *  xft_draw ;
@@ -141,7 +139,6 @@ typedef struct  x_window
 	 */
 
 	int8_t  is_sel_owner ;
-	int8_t  use_buffer ;
 	int8_t  wall_picture_is_set ;	/* Actually set picture (including transparency) or not. */
 	int8_t  is_transparent ;
 	int8_t  is_scrollable ;
@@ -209,8 +206,6 @@ int  x_window_unset_wall_picture( x_window_t *  win) ;
 int  x_window_set_transparent( x_window_t *  win , x_picture_modifier_ptr_t  pic_mod) ;
 
 int  x_window_unset_transparent( x_window_t *  win) ;
-
-int  x_window_use_buffer( x_window_t *  win) ;
 
 int  x_window_set_cursor( x_window_t *  win , u_int  cursor_shape) ;
 

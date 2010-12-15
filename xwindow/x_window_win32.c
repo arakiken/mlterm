@@ -2,12 +2,6 @@
  *	$Id$
  */
 
-/*
- * Functions designed and implemented by Minami Hirokazu(minami@mistfall.net) are:
- * - XDND support
- * - Extended Window Manager Hint(Icon) support
- */
-
 #include  "x_window.h"
 
 #include  <stdlib.h>		/* abs */
@@ -53,78 +47,6 @@ static mkf_parser_t *  m_cp_parser ;
 
 
 /* --- static functions --- */
-
-#ifndef  USE_WIN32GUI
-/*
- * only for double buffering
- */
-static int
-restore_view(
-	x_window_t *  win ,
-	int  x ,
-	int  y ,
-	u_int	width ,
-	u_int	height
-	)
-{
-	if( win->buffer == win->drawable)
-	{
-		if( win->width < x + width)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" update size (x)%d (w)%d is overflowed.(screen width %d)\n" ,
-				x , width , win->width) ;
-		#endif
-
-			width = win->width - x ;
-
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " width is modified -> %d\n" , width) ;
-		#endif
-		}
-
-		if( win->height < y + height)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" update size (y)%d (h)%d is overflowed.(screen height is %d)\n" ,
-				y , height , win->height) ;
-		#endif
-
-			height = win->height - y ;
-
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " height is modified -> %d\n" , height) ;
-		#endif
-		}
-
-		XCopyArea( win->display , win->drawable , win->my_window , win->gc ,
-			x + win->margin , y + win->margin , width , height ,
-			x + win->margin , y + win->margin) ;
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-#endif
-
-#if  0
-/*
- * XXX
- * Not used for now.
- */
-static int
-restore_view_all(
-	x_window_t *  win
-	)
-{
-	return	restore_view( win , 0 , 0 , win->width , win->height) ;
-}
-#endif
 
 #ifdef  USE_WIN32GUI
 static int
@@ -293,11 +215,7 @@ check_scrollable(
 	x_window_t *  win	/* Assume root window. */
 	)
 {
-	if( win->use_buffer)
-	{
-		return  1 ;
-	}
-	else if( win->is_focused)
+	if( win->is_focused)
 	{
 	#if  0
 		kik_debug_printf( "SCREEN W %d H %d WINDOW W %d H %d X %d Y %d " ,
@@ -914,17 +832,12 @@ x_window_init(
 	win->parent_window = None ;
 	win->my_window = None ;
 
-	win->drawable = None ;
-	win->buffer = None ;
-
 	memset( &win->fg_color , 0 , sizeof(win->fg_color)) ;
 	memset( &win->bg_color , 0 , sizeof(win->bg_color)) ;
 
 	win->parent = NULL ;
 	win->children = NULL ;
 	win->num_of_children = 0 ;
-
-	win->use_buffer = 0 ;
 
 	win->pic_mod = NULL ;
 
@@ -1032,11 +945,6 @@ x_window_final(
 	 * If you want to close window, call SendMessage( WM_CLOSE ) instead of x_window_final().
 	 */
 #else
-	if( win->buffer)
-	{
-		XFreePixmap( win->display , win->buffer) ;
-	}
-
 	XDestroyWindow( win->display , win->my_window) ;
 #endif
 
@@ -1105,15 +1013,6 @@ x_window_set_wall_picture(
 	)
 {
 #ifndef  USE_WIN32GUI
-	if( win->drawable != win->my_window)
-	{
-		/*
-		 * wall picture can not be used in double buffering mode.
-		 */
-
-		return  0 ;
-	}
-
 	if( win->is_transparent)
 	{
 		/*
@@ -1151,15 +1050,6 @@ x_window_unset_wall_picture(
 	)
 {
 #ifndef  USE_WIN32GUI
-	if( win->drawable != win->my_window)
-	{
-		/*
-		 * wall picture can not be used in double buffering mode.
-		 */
-
-		return  0 ;
-	}
-
 	if( ! win->wall_picture_is_set)
 	{
 		/* already unset */
@@ -1312,26 +1202,6 @@ x_window_unset_transparent(
 
 	return  1 ;
 #endif
-}
-
-/*
- * Double buffering.
- */
-int
-x_window_use_buffer(
-	x_window_t *  win
-	)
-{
-#ifndef  USE_WIN32GUI
-	win->use_buffer = 1 ;
-
-	win->event_mask &= ~VisibilityChangeMask ;
-
-	/* always true */
-	win->is_scrollable = 1 ;
-#endif
-
-	return  1 ;
 }
 
 int
@@ -1531,15 +1401,6 @@ x_window_show(
           	return  0 ;
         }
 
-#ifndef  USE_WIN32GUI
-	if( win->use_buffer)
-	{
-		win->drawable = win->buffer = XCreatePixmap( win->display , win->parent_window ,
-				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-				DefaultDepth( win->display , win->screen)) ;
-	}
-#endif
-
 	/*
 	 * This should be called after Window Manager settings, because
 	 * x_set_{window|icon}_name() can be called in win->window_realized().
@@ -1629,17 +1490,6 @@ x_window_resize(
 
 	win->width = width ;
 	win->height = height ;
-
-#ifndef  USE_WIN32GUI
-	if( win->buffer)
-	{
-		XFreePixmap( win->display , win->buffer) ;
-		win->buffer = XCreatePixmap( win->display ,
-			win->parent_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-			DefaultDepth( win->display , win->screen)) ;
-		win->drawable = win->buffer ;
-	}
-#endif
 
 	if( (flag & NOTIFY_TO_PARENT) && win->parent && win->parent->child_window_resized)
 	{
@@ -2434,7 +2284,7 @@ x_window_receive_event(
 		return  1 ;
 
 	case  WM_MOVE:
-		if( ! win->use_buffer && win->parent == NULL)
+		if( win->parent == NULL)
 		{
 			win->x = LOWORD(event->lparam) ;
 			win->y = HIWORD(event->lparam) ;
@@ -2518,22 +2368,6 @@ x_window_receive_event(
 				{
 					win->width = width - win->margin * 2 ;
 					win->height = height - win->margin * 2 ;
-
-				#ifndef  USE_WIN32GUI
-					if( win->buffer)
-					{
-						XFreePixmap( win->display , win->buffer) ;
-						win->buffer = XCreatePixmap( win->display ,
-							win->parent_window ,
-							ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-							DefaultDepth( win->display , win->screen)) ;
-						win->drawable = win->buffer ;
-
-					#ifdef  USE_TYPE_XFT
-						XftDrawChange( win->xft_draw , win->drawable) ;
-					#endif
-					}
-				#endif
 
 					x_window_clear_all( win) ;
 
@@ -2691,7 +2525,7 @@ x_window_scroll_leftward_region(
 	}
 
 #ifndef  USE_WIN32GUI
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
+	XCopyArea( win->display , win->my_window , win->my_window , win->gc ,
 		win->margin + boundary_start + width , win->margin ,	/* src */
 		boundary_end - boundary_start - width , win->height ,	/* size */
 		win->margin + boundary_start , win->margin) ;		/* dst */
@@ -2735,7 +2569,7 @@ x_window_scroll_rightward_region(
 	}
 
 #ifndef  USE_WIN32GUI
-	XCopyArea( win->display , win->drawable , win->drawable , win->gc ,
+	XCopyArea( win->display , win->my_window , win->my_window , win->gc ,
 		win->margin + boundary_start , win->margin ,
 		boundary_end - boundary_start - width , win->height ,
 		win->margin + boundary_start + width , win->margin) ;
@@ -2784,13 +2618,13 @@ x_window_draw_decsp_image_string(
 		{
 			XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
 			x_decsp_font_draw_image_string( font->decsp_font ,
-						  win->display , win->drawable , win->ch_gc ,
+						  win->display , win->my_window , win->ch_gc ,
 						  x + win->margin , y + win->margin , str , len) ;
 		}
 		else
 		{
 			x_decsp_font_draw_string( font->decsp_font ,
-						  win->display , win->drawable , win->ch_gc ,
+						  win->display , win->my_window , win->ch_gc ,
 						  x + win->margin , y + win->margin , str , len) ;
 		}
 		return  1 ;
@@ -3449,7 +3283,7 @@ x_window_paste(
 		kik_warn_printf( KIK_DEBUG_TAG " height is modified -> %d\n" , src_height) ;
 	}
 
-	XCopyArea( win->display , src , win->drawable , win->gc ,
+	XCopyArea( win->display , src , win->my_window , win->gc ,
 		src_x , src_y , src_width , src_height ,
 		dst_x + win->margin , dst_y + win->margin) ;
 

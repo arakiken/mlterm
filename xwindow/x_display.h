@@ -58,7 +58,7 @@ typedef struct  x_display
 } x_display_t ;
 
 
-x_display_t *  x_display_open( char *  disp_name , int  depth) ;
+x_display_t *  x_display_open( char *  disp_name , u_int  depth) ;
 
 int  x_display_close( x_display_t *  disp) ;
 

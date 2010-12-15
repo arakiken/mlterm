@@ -298,7 +298,7 @@ close_display(
 x_display_t *
 x_display_open(
 	char *  disp_name ,
-	int  depth
+	u_int  depth
 	)
 {
 	int  count ;

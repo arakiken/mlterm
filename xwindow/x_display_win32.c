@@ -107,7 +107,8 @@ hide_console(void)
 
 x_display_t *
 x_display_open(
-	char *  disp_name	/* Ignored */
+	char *  disp_name ,	/* Ignored */
+	u_int  depth		/* Ignored */
 	)
 {
 #ifndef  UTF16_IME_CHAR
@@ -169,7 +170,7 @@ x_display_open(
 	kik_file_set_cloexec( fd) ;
 #endif
 
-	if( ( _disp.gc = x_gc_new( &_display)) == NULL)
+	if( ( _disp.gc = x_gc_new( &_display , None)) == NULL)
 	{
 		return  NULL ;
 	}

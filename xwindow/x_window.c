@@ -93,76 +93,6 @@ static int  use_inherit_transparent = 0 ;
 
 /* --- static functions --- */
 
-/*
- * only for double buffering
- */
-static int
-restore_view(
-	x_window_t *  win ,
-	int  x ,
-	int  y ,
-	u_int	width ,
-	u_int	height
-	)
-{
-	if( win->buffer == win->drawable)
-	{
-		if( win->width < x + width)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" update size (x)%d (w)%d is overflowed.(screen width %d)\n" ,
-				x , width , win->width) ;
-		#endif
-
-			width = win->width - x ;
-
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " width is modified -> %d\n" , width) ;
-		#endif
-		}
-
-		if( win->height < y + height)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" update size (y)%d (h)%d is overflowed.(screen height is %d)\n" ,
-				y , height , win->height) ;
-		#endif
-
-			height = win->height - y ;
-
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " height is modified -> %d\n" , height) ;
-		#endif
-		}
-
-		XCopyArea( win->disp->display , win->drawable , win->my_window , win->gc->gc ,
-			x + win->margin , y + win->margin , width , height ,
-			x + win->margin , y + win->margin) ;
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
-#if  0
-/*
- * XXX
- * Not used for now.
- */
-static int
-restore_view_all(
-	x_window_t *  win
-	)
-{
-	return	restore_view( win , 0 , 0 , win->width , win->height) ;
-}
-#endif
-
 /* Only used for set_transparent|update_modified_transparent */
 static int
 set_transparent_picture(
@@ -686,9 +616,6 @@ x_window_init(
 	
 	win->my_window = None ;
 
-	win->drawable = None ;
-	win->buffer = None ;
-
 	win->xft_draw = NULL ;
 
 	win->gc = NULL ;
@@ -700,8 +627,6 @@ x_window_init(
 	win->parent = NULL ;
 	win->children = NULL ;
 	win->num_of_children = 0 ;
-
-	win->use_buffer = 0 ;
 
 	win->pic_mod = NULL ;
 
@@ -801,11 +726,6 @@ x_window_final(
 	
 	x_xic_deactivate( win) ;
 
-	if( win->buffer)
-	{
-		XFreePixmap( win->disp->display , win->buffer) ;
-	}
-
 #ifdef  USE_TYPE_XFT
 	x_window_set_xft( win , 0) ;
 #endif
@@ -837,7 +757,7 @@ x_window_set_xft(
 #ifdef  USE_TYPE_XFT
 	if( use_xft && ! win->xft_draw)
 	{
-		win->xft_draw = XftDrawCreate( win->disp->display , win->drawable ,
+		win->xft_draw = XftDrawCreate( win->disp->display , win->my_window ,
 					win->disp->visual , win->disp->colormap) ;
 
 		return  1 ;
@@ -944,15 +864,6 @@ x_window_set_wall_picture(
 	Pixmap  pic
 	)
 {
-	if( win->drawable != win->my_window)
-	{
-		/*
-		 * wall picture can not be used in double buffering mode.
-		 */
-
-		return  0 ;
-	}
-
 	if( win->is_transparent)
 	{
 		/*
@@ -989,15 +900,6 @@ x_window_unset_wall_picture(
 	x_window_t *  win
 	)
 {
-	if( win->drawable != win->my_window)
-	{
-		/*
-		 * wall picture can not be used in double buffering mode.
-		 */
-
-		return  0 ;
-	}
-
 	/*
 	 * win->wall_picture_is_set == 0 doesn't mean that following codes
 	 * to disable wall picture is already processed.
@@ -1121,25 +1023,6 @@ x_window_unset_transparent(
 	{
 		x_window_unset_transparent( win->children[count]) ;
 	}
-
-	return  1 ;
-}
-
-/*
- * Double buffering.
- * If double buffering is used or not is not changeable after x_window_show().
- */
-int
-x_window_use_buffer(
-	x_window_t *  win
-	)
-{
-	win->use_buffer = 1 ;
-
-	win->event_mask &= ~VisibilityChangeMask ;
-
-	/* always true */
-	win->is_scrollable = 1 ;
 
 	return  1 ;
 }
@@ -1338,19 +1221,6 @@ x_window_show(
 		}
 	}
 
-	if( win->use_buffer)
-	{
-		win->drawable = win->buffer =
-			XCreatePixmap( win->disp->display ,
-				win->parent_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-				win->disp->depth) ;
-	}
-	else
-	{
-		win->drawable = win->my_window ;
-		win->buffer = 0 ;
-	}
-
 	if( win->cursor_shape)
 	{
 		Cursor  cursor ;
@@ -1545,22 +1415,6 @@ x_window_resize(
 	win->width = width ;
 	win->height = height ;
 
-	if( win->buffer)
-	{
-		XFreePixmap( win->disp->display , win->buffer) ;
-		win->buffer = XCreatePixmap( win->disp->display ,
-				win->parent_window , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-				win->disp->depth) ;
-		win->drawable = win->buffer ;
-
-	#ifdef  USE_TYPE_XFT
-		if( win->xft_draw)
-		{
-			XftDrawChange( win->xft_draw , win->drawable) ;
-		}
-	#endif
-	}
-
 	if( (flag & NOTIFY_TO_PARENT) && win->parent && win->parent->child_window_resized)
 	{
 		(*win->parent->child_window_resized)( win->parent , win) ;
@@ -1746,31 +1600,17 @@ x_window_clear(
 	u_int	height
 	)
 {
-	if( win->drawable == win->buffer)
+#ifdef  USE_TYPE_XFT
+	if( ! win->wall_picture_is_set && win->xft_draw)
 	{
-		x_gc_set_fg_color( win->gc, win->bg_color.pixel) ;
-
-		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
+		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
 			x + win->margin , y + win->margin , width , height) ;
 	}
-	else if( win->drawable == win->my_window)
-	{
-	#ifdef  USE_TYPE_XFT
-		if( ! win->wall_picture_is_set && win->xft_draw)
-		{
-			XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-				x + win->margin , y + win->margin , width , height) ;
-		}
-		else
-	#endif
-		{
-			XClearArea( win->disp->display , win->drawable ,
-				x + win->margin , y + win->margin , width , height , False) ;
-		}
-	}
 	else
+#endif
 	{
-		return  0 ;
+		XClearArea( win->disp->display , win->my_window ,
+			x + win->margin , y + win->margin , width , height , False) ;
 	}
 
 	return  1 ;
@@ -1785,50 +1625,31 @@ x_window_clear_margin_area(
 	{
 		return  1 ;
 	}
-	else if( win->drawable == win->buffer)
-	{
-		x_gc_set_fg_color( win->gc, win->bg_color.pixel) ;
 
-		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
-			0 , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
-		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
-			win->margin , 0 , win->width , win->margin) ;
-		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
-			win->width + win->margin , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
-		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
-			win->margin , win->height + win->margin , win->width , win->margin) ;
-	}
-	else if( win->drawable == win->my_window)
+#ifdef  USE_TYPE_XFT
+	if( ! win->wall_picture_is_set && win->xft_draw)
 	{
-	#ifdef  USE_TYPE_XFT
-		if( ! win->wall_picture_is_set && win->xft_draw)
-		{
-			XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-				0 , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
-			XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-				win->margin , 0 , win->width , win->margin) ;
-			XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-				win->width + win->margin , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
-			XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-				win->margin , win->height + win->margin ,
-				win->width , win->margin) ;
-		}
-		else
-	#endif
-		{
-			XClearArea( win->disp->display , win->drawable ,
-				0 , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-			XClearArea( win->disp->display , win->drawable ,
-				win->margin , 0 , win->width , win->margin , 0) ;
-			XClearArea( win->disp->display , win->drawable , win->width + win->margin ,
-				0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-			XClearArea( win->disp->display , win->drawable , win->margin ,
-				win->height + win->margin , win->width , win->margin , 0) ;
-		}
+		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
+			0 , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
+		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
+			win->margin , 0 , win->width , win->margin) ;
+		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
+			win->width + win->margin , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
+		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
+			win->margin , win->height + win->margin ,
+			win->width , win->margin) ;
 	}
 	else
+#endif
 	{
-		return  0 ;
+		XClearArea( win->disp->display , win->my_window ,
+			0 , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
+		XClearArea( win->disp->display , win->my_window ,
+			win->margin , 0 , win->width , win->margin , 0) ;
+		XClearArea( win->disp->display , win->my_window , win->width + win->margin ,
+			0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
+		XClearArea( win->disp->display , win->my_window , win->margin ,
+			win->height + win->margin , win->width , win->margin , 0) ;
 	}
 
 	return  1 ;
@@ -1839,31 +1660,17 @@ x_window_clear_all(
 	x_window_t *  win
 	)
 {
-	if( win->drawable == win->buffer)
+#ifdef  USE_TYPE_XFT
+	if( ! win->wall_picture_is_set && win->xft_draw)
 	{
-		x_gc_set_fg_color( win->gc, win->bg_color.pixel) ;
-		
-		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
+		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
 			0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 	}
-	else if( win->drawable == win->my_window)
-	{
-	#ifdef  USE_TYPE_XFT
-		if( ! win->wall_picture_is_set && win->xft_draw)
-		{
-			XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-				0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-		}
-		else
-	#endif
-		{
-			XClearArea( win->disp->display , win->drawable , 0 , 0 ,
-				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , 0) ;
-		}
-	}
 	else
+#endif
 	{
-		return  0 ;
+		XClearArea( win->disp->display , win->my_window , 0 , 0 ,
+			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , 0) ;
 	}
 
 	return  1 ;
@@ -1889,7 +1696,7 @@ x_window_fill(
 	{
 		restore_fg_color( win) ;
 
-		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
+		XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
 			x + win->margin , y + win->margin , width , height) ;
 	}
 
@@ -1917,7 +1724,7 @@ x_window_fill_with(
 	{
 		x_gc_set_fg_color( win->gc, color->pixel) ;
 
-		XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
+		XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
 			x + win->margin , y + win->margin , width , height) ;
 	}
 
@@ -1940,7 +1747,7 @@ x_window_blank(
 	{
 		restore_fg_color( win) ;
 
-		XFillRectangle( win->disp->display , win->drawable , win->gc->gc , 0 , 0 ,
+		XFillRectangle( win->disp->display , win->my_window , win->gc->gc , 0 , 0 ,
 			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 	}
 
@@ -1960,7 +1767,7 @@ x_window_blank_with(
 {
 	x_gc_set_fg_color( win->gc, color->pixel) ;
 
-	XFillRectangle( win->disp->display , win->drawable , win->gc->gc ,
+	XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
 		0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 
 	return  1 ;
@@ -2299,12 +2106,9 @@ x_window_receive_event(
 			}
 		}
 
-		if( ! restore_view( win , x , y , width , height))
+		if( win->window_exposed)
 		{
-			if( win->window_exposed)
-			{
-				(*win->window_exposed)( win , x , y , width , height) ;
-			}
+			(*win->window_exposed)( win , x , y , width , height) ;
 		}
 	}
 	else if( event->type == ConfigureNotify)
@@ -2355,23 +2159,6 @@ x_window_receive_event(
 		{
 			win->width = event->xconfigure.width - win->margin * 2 ;
 			win->height = event->xconfigure.height - win->margin * 2 ;
-
-			if( win->buffer)
-			{
-				XFreePixmap( win->disp->display , win->buffer) ;
-				win->buffer = XCreatePixmap( win->disp->display ,
-							win->parent_window ,
-							ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
-							win->disp->depth) ;
-				win->drawable = win->buffer ;
-
-			#ifdef  USE_TYPE_XFT
-				if( win->xft_draw)
-				{
-					XftDrawChange( win->xft_draw , win->drawable) ;
-				}
-			#endif
-			}
 
 		#if  0
 			x_window_clear_all( win) ;
@@ -2800,7 +2587,7 @@ x_window_scroll_upward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->disp->display , win->drawable , win->drawable , win->gc->gc ,
+	XCopyArea( win->disp->display , win->my_window , win->my_window , win->gc->gc ,
 		win->margin , win->margin + boundary_start + height ,	/* src */
 		win->width , boundary_end - boundary_start - height ,	/* size */
 		win->margin , win->margin + boundary_start) ;		/* dst */
@@ -2841,7 +2628,7 @@ x_window_scroll_downward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->disp->display , win->drawable , win->drawable , win->gc->gc ,
+	XCopyArea( win->disp->display , win->my_window , win->my_window , win->gc->gc ,
 		win->margin , win->margin + boundary_start ,
 		win->width , boundary_end - boundary_start - height ,
 		win->margin , win->margin + boundary_start + height) ;
@@ -2882,7 +2669,7 @@ x_window_scroll_leftward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->disp->display , win->drawable , win->drawable , win->gc->gc ,
+	XCopyArea( win->disp->display , win->my_window , win->my_window , win->gc->gc ,
 		win->margin + boundary_start + width , win->margin ,	/* src */
 		boundary_end - boundary_start - width , win->height ,	/* size */
 		win->margin + boundary_start , win->margin) ;		/* dst */
@@ -2922,7 +2709,7 @@ x_window_scroll_rightward_region(
 		return  0 ;
 	}
 
-	XCopyArea( win->disp->display , win->drawable , win->drawable , win->gc->gc ,
+	XCopyArea( win->disp->display , win->my_window , win->my_window , win->gc->gc ,
 		win->margin + boundary_start , win->margin ,
 		boundary_end - boundary_start - width , win->height ,
 		win->margin + boundary_start + width , win->margin) ;
@@ -2946,7 +2733,7 @@ x_window_draw_decsp_string(
 		x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
 		return  x_decsp_font_draw_image_string( font->decsp_font , win->disp->display ,
-				win->drawable , win->gc->gc , x + win->margin , y + win->margin ,
+				win->my_window , win->gc->gc , x + win->margin , y + win->margin ,
 				str , len) ;
 	}
 #ifdef  USE_TYPE_XCORE
@@ -2979,7 +2766,7 @@ x_window_draw_decsp_image_string(
 		x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
 		return  x_decsp_font_draw_image_string( font->decsp_font , win->disp->display ,
-				win->drawable , win->gc->gc , x + win->margin , y + win->margin ,
+				win->my_window , win->gc->gc , x + win->margin , y + win->margin ,
 				str , len) ;
 	}
 #ifdef  USE_TYPE_XCORE
@@ -3010,13 +2797,13 @@ x_window_draw_string(
 	x_gc_set_fid( win->gc, font->xfont->fid) ;
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
-	XDrawString( win->disp->display , win->drawable , win->gc->gc ,
+	XDrawString( win->disp->display , win->my_window , win->gc->gc ,
 		x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 		y + win->margin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString( win->disp->display , win->drawable , win->gc->gc ,
+		XDrawString( win->disp->display , win->my_window , win->gc->gc ,
 			x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			y + win->margin , (char *)str , len) ;
 	}
@@ -3038,13 +2825,13 @@ x_window_draw_string16(
 	x_gc_set_fid( win->gc, font->xfont->fid) ;
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
-	XDrawString16( win->disp->display , win->drawable , win->gc->gc ,
+	XDrawString16( win->disp->display , win->my_window , win->gc->gc ,
 		       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 		       y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString16( win->disp->display , win->drawable , win->gc->gc ,
+		XDrawString16( win->disp->display , win->my_window , win->gc->gc ,
 			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			       y + win->margin , str , len) ;
 	}
@@ -3068,13 +2855,13 @@ x_window_draw_image_string(
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
-	XDrawImageString( win->disp->display , win->drawable , win->gc->gc ,
+	XDrawImageString( win->disp->display , win->my_window , win->gc->gc ,
 			  x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 			  y + win->margin , (char *)str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString( win->disp->display , win->drawable , win->gc->gc ,
+		XDrawString( win->disp->display , win->my_window , win->gc->gc ,
 			     x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			     y + win->margin , (char *)str , len) ;
 	}
@@ -3098,13 +2885,13 @@ x_window_draw_image_string16(
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 	x_gc_set_bg_color( win->gc, bg_color->pixel) ;
 
-	XDrawImageString16( win->disp->display , win->drawable , win->gc->gc ,
+	XDrawImageString16( win->disp->display , win->my_window , win->gc->gc ,
 			    x + (font->is_var_col_width ? 0 : font->x_off) + win->margin ,
 			    y + win->margin , str , len) ;
 
 	if( font->is_double_drawing)
 	{
-		XDrawString16( win->disp->display , win->drawable , win->gc->gc ,
+		XDrawString16( win->disp->display , win->my_window , win->gc->gc ,
 			       x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1 ,
 			       y + win->margin , str , len) ;
 	}
@@ -3205,7 +2992,7 @@ x_window_draw_rect_frame(
 
 		restore_fg_color(win) ;
 
-		XDrawLines( win->disp->display , win->drawable , win->gc->gc , points , 5 ,
+		XDrawLines( win->disp->display , win->my_window , win->gc->gc , points , 5 ,
 			CoordModeOrigin) ;
 	}
 
@@ -3232,7 +3019,7 @@ x_window_draw_line(
 	{
 		restore_fg_color(win) ;
 
-		XDrawLine( win->disp->display , win->drawable , win->gc->gc , x1 , y1 , x2 , y2) ;
+		XDrawLine( win->disp->display , win->my_window , win->gc->gc , x1 , y1 , x2 , y2) ;
 	}
 
 	return  1 ;
@@ -3818,7 +3605,7 @@ x_window_paste(
 		kik_warn_printf( KIK_DEBUG_TAG " height is modified -> %d\n" , src_height) ;
 	}
 
-	XCopyArea( win->disp->display , src , win->drawable , win->gc->gc ,
+	XCopyArea( win->disp->display , src , win->my_window , win->gc->gc ,
 		src_x , src_y , src_width , src_height ,
 		dst_x + win->margin , dst_y + win->margin) ;
 

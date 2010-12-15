@@ -1,3 +1,13 @@
+2010-12-16  Araki Ken  <arakiken@users.sf.net>
+
+	* x_im_{candidate|status}_screen.c:
+	  x_window_set_xft is added to x_window_t::realized event handler.
+
+	* x_display.c: Minor fixes.
+
+	* x_window.c, x_window_win32.c:
+	  Double buffering code is removed.
+
 2010-12-15  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:
