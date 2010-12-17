@@ -1,3 +1,10 @@
+2010-12-18  Araki Ken  <arakiken@users.sf.net>
+
+	* x_color.c: fall-backs code for "black"/"white" (see 2006-03-14 ChangeLog)
+	  is removed because color_cache->black is loaded by rgb, not "black".
+
+	* doc/ja/README.ja, man/mlterm.1: Minor fixes.
+
 2010-12-16  Araki Ken  <arakiken@users.sf.net>
 
 	* x_im_{candidate|status}_screen.c:
@@ -39,7 +46,8 @@
 	  DefaultGC is used in x_gc_new if drawable is not specified.
 	
 	* x_color.c, ml_color.c:
-	  alpha is processed.
+	  - alpha is processed.
+	  - "rgba:RR/GG/BB/AA" or "#RRGGBBAA" format is supported.
 
 	* gtk/INSTALL: Minor fixes.
 

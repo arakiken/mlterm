@@ -157,19 +157,6 @@ x_load_named_xcolor(
 			return  alloc_closest_xcolor_pseudo( disp , exact.red , exact.green ,
 					exact.blue , xcolor) ;
 		}
-		else
-		{
-			/* fallback to sane defaults */
-			if( strcmp( name, "white") == 0)
-			{
-				return  x_load_rgb_xcolor( disp , xcolor ,
-						0xff , 0xff , 0xff , 0xff) ;
-			}
-			else if ( strcmp( name, "black") == 0)
-			{
-				return  x_load_rgb_xcolor( disp , xcolor , 0 , 0 , 0 , 0xff) ;
-			}
-		}
 
 		return  0 ;
 	}

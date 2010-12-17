@@ -1,8 +1,10 @@
 * Drop imlib, gdk-pixbuf1 and gtk-1.x support.
 * Add libvte compatible library using mlterm engine. (Experimental)
-* Support gnome-pty-helper.
+* Support gnome-pty-helper. (configure with --enable-pty-helper option)
 * Support "alpha" option in X11.
+* Add "depth" option.
 * Add "bidi_mode" option.
+* Support "rgba:RR/GG/BB/AA" format to specify rgba color.
 * Other bug fixes:
   #3072833 (Thanks to Andreas Metzler)
   #3051467 (Thanks to David Kolovratnik)

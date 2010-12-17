@@ -414,7 +414,8 @@ comment $Id$
         端末画面の前景色
 
         fg_color,bg_colorに指定できる値は、rgb.txt で定義された色名、color ファ
-        イルで定義した色名、#RRGGBB 形式、又は rgb:RR/GG/BB 形式の色指定です。
+        イルで定義した色名、#RRGGBB、#RRGGBBAA、rgb:RR/GG/BB 又は rgba:RR/GG/BB/AA
+	形式の色指定です。
 
         e.g.)
         fg_color = blue
@@ -750,8 +751,8 @@ comment $Id$
       color_name = [red]-[green]-[blue]
                    ([red],[green],[blue]は、それぞれ 16 bit 16 進数表記です)
       color_name = #RRGGBB (RR,GG,BB は、それぞれ 8 bit 16 進数表記です)
-      color_name = rgb:RR/GG/BB
-      color_name = rgb:RRRR/GGGG/BBBB
+      color_name = rgb:RR/GG/BB or rgba:RR/GG/BB/AA
+      color_name = rgb:RRRR/GGGG/BBBB or rgba:RRRR/GGGG/BBBB/AAAA
 
       色名の先頭に hl_ を付けると、16 色対応における強調色の RGB 値を指定でき
       ます。
