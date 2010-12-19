@@ -16,7 +16,10 @@ x_get_icon_pixmap(
 	GC  memgc ,
 	char **  data ,
 	unsigned int  width ,
-	unsigned int  height
+	unsigned int  height ,
+	unsigned int  depth ,	/* Not used */
+	unsigned long  black ,	/* Not used */
+	unsigned long  white	/* Not used */
 	)
 {
 	Pixmap  pix ;

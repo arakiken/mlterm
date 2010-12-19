@@ -51,9 +51,10 @@ x_imagelib_get_transparent_background(
 	return  None ;
 }
 
-int x_imagelib_load_file(
-	Display *  display,
-	char *  path,
+int
+x_imagelib_load_file(
+	x_display_t *  disp ,
+	char *  path ,
 	u_int32_t **  cardinal,
 	Pixmap *  pixmap,
 	Pixmap *  mask,

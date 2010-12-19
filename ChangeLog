@@ -1,3 +1,12 @@
+2010-12-20  Araki Ken  <arakiken@users.sf.net>
+
+	* x_sample_sb_view_win32.c, x_sample_sb_viwe_lib_win32.c:
+	  Wrong arguments of x_get_icon_pixmap are fixed.
+
+	* x_imagelib_win32.c: Wrong argument of x_imagelib_load_file is fixed.
+
+	* x_window_win32.c: x_set_window_name is partially implemented.
+
 2010-12-18  Araki Ken  <arakiken@users.sf.net>
 
 	* x_color.c: fall-backs code for "black"/"white" (see 2006-03-14 ChangeLog)

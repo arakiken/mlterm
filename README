@@ -115,6 +115,7 @@ Supported platforms
 
   * NetBSD 3.0.1 (x86)
   * OpenSolaris 2009.06 (CC=cc) (x86)
+  * Ubuntu 10.04 (x86)
   * MS Windows XP SP3 (x86)
   * MS Windows XP SP3/MSYS 1.0.10 (x86)
   * MS Windows XP SP3/Cygwin 1.7.1-1 (x86)

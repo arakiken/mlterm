@@ -1,6 +1,6 @@
 mlterm:\
 	kD=\E[3~:kb=^?
-xterm|rxvt:\
+xterm|xterm-256color|rxvt|rxvt-unicode:\
 	kD=^?:kb=^H:kh=\E[H:@7=\E[F:ut
 *:\
 	kD=^?:kb=^H:kh=\E[H:@7=\E[F

@@ -74,13 +74,13 @@ realized(
 	sample->gc = CreateCompatibleDC( gc) ;
 	
 	sample->arrow_up = x_get_icon_pixmap( view , gc , sample->gc , arrow_up_src ,
-					WIDTH , TOP_MARGIN) ;
+					WIDTH , TOP_MARGIN , 24 , 0 , 0) ;
 	sample->arrow_down = x_get_icon_pixmap( view , gc , sample->gc , arrow_down_src ,
-					WIDTH , BOTTOM_MARGIN) ;
+					WIDTH , BOTTOM_MARGIN , 24 , 0 , 0) ;
 	sample->arrow_up_dent = x_get_icon_pixmap( view , gc , sample->gc , arrow_up_dent_src ,
-					WIDTH , TOP_MARGIN) ;
+					WIDTH , TOP_MARGIN , 24 , 0 , 0) ;
 	sample->arrow_down_dent = x_get_icon_pixmap( view , gc , sample->gc , arrow_down_dent_src ,
-					WIDTH , BOTTOM_MARGIN) ;
+					WIDTH , BOTTOM_MARGIN , 24 , 0 , 0) ;
 
 	ReleaseDC( window , gc) ;
 }

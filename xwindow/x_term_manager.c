@@ -655,6 +655,10 @@ open_screen_intern(
 		}
 		else if( names[1] == NULL)
 		{
+			/*
+			 * names[0] exists but x_font_manager_new failed.
+			 * It means that no fonts for names[0] exit in your system.
+			 */
 			kik_msg_printf(
 			  "No fonts found for charset \"%s\".  "
 			  "Please install fonts or use Unicode font "

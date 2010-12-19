@@ -48,7 +48,6 @@ static mkf_parser_t *  m_cp_parser ;
 
 /* --- static functions --- */
 
-#ifdef  USE_WIN32GUI
 static int
 set_transparent(
 	x_window_t *  win ,
@@ -96,33 +95,6 @@ set_transparent(
 	return  0 ;
 #endif
 }
-#else	/* USE_WIN32GUI */
-static int
-set_transparent(
-	x_window_t *  win ,
-	Pixmap  pixmap
-	)
-{
-	/*
-	 * !! Notice !!
-	 * is_transparent must be on before x_window_set_wall_picture() because
-	 * x_window_set_wall_picture() doesn't do anything if is_transparent
-	 * flag is off.
-	 */
-	win->is_transparent = 0 ;
-
-	if( ! x_window_set_wall_picture( win , pixmap))
-	{
-		win->pic_mod = NULL ;
-
-		return  0 ;
-	}
-
-	win->is_transparent = 1 ;
-
-	return  1 ;
-}
-#endif
 
 static int
 unset_transparent(
@@ -161,20 +133,6 @@ unset_transparent(
 	return  1 ;
 #else
 	return  0 ;
-#endif
-
-#ifndef  USE_WIN32GUI
-	/*
-	 * !! Notice !!
-	 * is_transparent must be off before x_window_unset_wall_picture() because
-	 * x_window_unset_wall_picture() doesn't do anything if is_transparent
-	 * flag is on.
-	 */
-	win->is_transparent = 0 ;
-	
-	win->pic_mod = NULL ;
-
-	return  x_window_unset_wall_picture( win) ;
 #endif
 }
 
@@ -890,7 +848,11 @@ x_window_init(
 	win->click_num = 0 ;
 	win->button_is_pressing = 0 ;
 	win->dnd = NULL ;
+#ifndef  UTF16_IME_CHAR
 	win->app_name = "mlterm" ;
+#else
+	win->app_name = L"mlterm" ;
+#endif
 
 	win->window_realized = NULL ;
 	win->window_finalized = NULL ;
@@ -1104,70 +1066,6 @@ x_window_set_transparent(
 	}
 	
 	return  set_transparent( x_get_root_window( win) , pic_mod) ;
-
-#ifndef  USE_WIN32GUI
-	int  count ;
-	Window  parent ;
-	Window  root ;
-	Window *  list ;
-	u_int  n ;
-	int  count ;
-
-	win->pic_mod = pic_mod ;
-
-	if( win->my_window == None)
-	{
-		/*
-		 * If Window is not still created , actual drawing is delayed and
-		 * ReparentNotify event will do transparent processing automatically after
-		 * x_window_show().
-		 */
-
-		win->is_transparent = 1 ;
-
-		goto  end ;
-	}
-
-	if( win->pic_mod || x_root_pixmap_available( win->display))
-	{
-		update_pic_transparent( win) ;
-	}
-	else
-	{
-		set_transparent( win , ParentRelative) ;
-
-		XSetWindowBackgroundPixmap( win->display , win->my_window , ParentRelative) ;
-
-		parent = win->my_window ;
-
-		while( 1)
-		{
-			XQueryTree( win->display , parent , &root , &parent , &list , &n) ;
-			XFree(list) ;
-
-			if( parent == DefaultRootWindow(win->display))
-			{
-				break ;
-			}
-
-			XSetWindowBackgroundPixmap( win->display , parent , ParentRelative) ;
-		}
-
-		if( win->window_exposed)
-		{
-			x_window_clear_all( win) ;
-			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-		}
-	}
-	
-end:
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		x_window_set_transparent( win->children[count] , win->pic_mod) ;
-	}
-
-	return  1 ;
-#endif
 }
 
 int
@@ -1176,32 +1074,6 @@ x_window_unset_transparent(
 	)
 {
 	return  unset_transparent( x_get_root_window( win)) ;
-
-#ifndef  USE_WIN32GUI
-	int  count ;
-
-	if( ! win->is_transparent)
-	{
-		/* already unset */
-
-		return  1 ;
-	}
-
-	unset_transparent( win) ;
-
-	if( win->window_exposed)
-	{
-		x_window_clear_all( win) ;
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-	}
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		x_window_unset_transparent( win->children[count]) ;
-	}
-
-	return  1 ;
-#endif
 }
 
 int
@@ -1383,9 +1255,9 @@ x_window_show(
 #endif
 
 #ifndef  UTF16_IME_CHAR
-	win->my_window = CreateWindowEx( 0 , "MLTERM" , "mlterm" ,
+	win->my_window = CreateWindowEx( 0 , "MLTERM" , win->app_name ,
 #else
-	win->my_window = CreateWindowExW( 0 , L"MLTERM" , L"mlterm" ,
+	win->my_window = CreateWindowExW( 0 , L"MLTERM" , win->app_name ,
 #endif
 			win->parent_window ? WS_CHILD | WS_VISIBLE : WS_OVERLAPPEDWINDOW ,
 			win->parent_window ? win->x : CW_USEDEFAULT ,
@@ -1536,34 +1408,12 @@ x_window_set_normal_hints(
 	u_int  height_inc
 	)
 {
-#ifndef  USE_WIN32GUI
-	XSizeHints  size_hints ;
-	x_window_t *  root ;
-#endif
-
 	win->min_width = min_width ;
 	win->min_height = min_height  ;
 	win->base_width = base_width ;
 	win->base_height = base_height  ;
 	win->width_inc = width_inc ;
 	win->height_inc = height_inc ;
-
-#ifndef  USE_WIN32GUI
-	root = x_get_root_window(win) ;
-
-	/*
-	 * these hints must be set at the same time !
-	 */
-	size_hints.width_inc = total_width_inc( root) ;
-	size_hints.height_inc = total_height_inc( root) ;
-	size_hints.min_width = total_min_width( root) ;
-	size_hints.min_height = total_min_height( root) ;
-	size_hints.base_width = total_base_width( root) ;
-	size_hints.base_height = total_base_height( root) ;
-	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
-
-	XSetWMNormalHints( root->display , root->my_window , &size_hints) ;
-#endif
 
 	return  1 ;
 }
@@ -2532,6 +2382,7 @@ x_window_scroll_leftward_region(
 
 	return  1 ;
 #else
+	/* XXX Not implemented yet. */
 	return  0 ;
 #endif
 }
@@ -2576,6 +2427,7 @@ x_window_scroll_rightward_region(
 
 	return  1 ;
 #else
+	/* XXX Not implemented yet. */
 	return  0 ;
 #endif
 }
@@ -3008,9 +2860,7 @@ x_set_window_name(
 	u_char *  name
 	)
 {
-#ifndef  USE_WIN32GUI
 	x_window_t *  root ;
-	XTextProperty  prop ;
 
 	root = x_get_root_window( win) ;
 
@@ -3019,19 +2869,12 @@ x_set_window_name(
 		name = root->app_name ;
 	}
 
-	if( XmbTextListToTextProperty( root->display , (char**)&name , 1 , XStdICCTextStyle , &prop)
-		>= Success)
-	{
-		XSetWMName( root->display , root->my_window , &prop) ;
-
-		XFree( prop.value) ;
-	}
-	else
-	{
-		/* XXX which is better , doing this or return 0 without doing anything ? */
-		XStoreName( root->display , root->my_window , name) ;
-	}
-#endif
+	/*
+	 * XXX
+	 * Convert name to current locale encoding or UTF16.
+	 * Use SetWindowTextW if UTF16_IME_CHAR is defined.
+	 */
+	SetWindowText( root->my_window , name) ;
 
 	return  1 ;
 }
