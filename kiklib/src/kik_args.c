@@ -9,6 +9,11 @@
 #include  "kik_debug.h"
 
 
+#if  0
+#define  __DEBUG
+#endif
+
+
 /* --- global functions --- */
 
 /*
@@ -79,3 +84,113 @@ kik_parse_options(
 
 	return  1 ;
 }
+
+char **
+_kik_arg_str_to_array(
+	char **  argv ,
+	int *  argc ,
+	char *  args
+	)
+{
+	char *  args_dup ;
+	char *  p ;
+	
+	/*
+	 * parsing options.
+	 */
+
+	*argc = 0 ;
+	args_dup = args ;
+	if( ( args = kik_str_alloca_dup( args)) == NULL)
+	{
+		return  0 ;
+	}
+	
+	p = args_dup ;
+
+	while( *args)
+	{
+		int  quoted ;
+
+		while( *args == ' ' /* || *args == '\t' */)
+		{
+			if( *(++args) == '\0')
+			{
+				goto  parse_end ;
+			}
+		}
+
+		if( *args == '\"' || *args == '\'')
+		{
+			quoted = 1 ;
+			args ++ ;
+		}
+		else
+		{
+			quoted = 0 ;
+		}
+		
+		while( *args)
+		{
+			if( quoted)
+			{
+				if( *args == '\"' || *args == '\'')
+				{
+					args ++ ;
+					
+					break ;
+				}
+			}
+			else
+			{
+				if( *args == ' ' /* || *args == '\t' */)
+				{
+					args ++ ;
+					
+					break ;
+				}
+			}
+			
+			if( *args == '\\' && ( *(args + 1) == '\"' || *(args + 1) == '\''))
+			{
+				*(p ++) = *(++ args) ;
+			}
+			else
+			{
+				*(p ++) = *args ;
+			}
+
+			args ++ ;
+		}
+
+		*(p ++) = '\0' ;
+		argv[(*argc) ++] = args_dup ;
+		args_dup = p ;
+	}
+
+parse_end:
+	/* NULL terminator (POSIX exec family style) */
+	argv[*argc] = NULL ;
+
+	return  argv ;
+}
+
+
+#ifdef  __DEBUG
+void
+main(void)
+{
+	int  argc ;
+	char **  argv ;
+	char  args[] = "mlclient -l \"hoge fuga \\\" \" \' a b c \' \\\' \\\"" ;
+	int  count ;
+
+	argv = kik_arg_str_to_array( &argc , args) ;
+
+	printf( "%d\n" , argc) ;
+	for( count = 0 ; count < argc ; count++)
+	{
+		printf( "=>%s<=\n" , argv[count]) ;
+	}
+}
+#endif

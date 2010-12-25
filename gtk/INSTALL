@@ -72,7 +72,6 @@ How to build & install libvte compatible library using mlterm engine.
     - vte_terminal_get_font
     - vte_terminal_set_allow_bold
     - vte_terminal_get_allow_bold
-    - vte_terminal_set_word_chars
     - vte_terminal_is_word_char
     - vte_terminal_set_mouse_autohide
     - vte_terminal_get_mouse_autohide
@@ -80,12 +79,12 @@ How to build & install libvte compatible library using mlterm engine.
     - vte_terminal_get_text_include_trailing_spaces
     - vte_terminal_get_text_range
     - vte_terminal_match_clear_all
-    - vte_terminal_match_add_gregex
+    - vte_terminal_match_add_gregex (incomplete)
     - vte_terminal_match_set_cursor
     - vte_terminal_match_set_cursor_type
     - vte_terminal_match_set_cursor_name
     - vte_terminal_match_remove
-    - vte_terminal_match_check
+    - vte_terminal_match_check (incomplete)
     - vte_terminal_set_emulation
     - vte_terminal_get_status_line
     - vte_terminal_set_pty

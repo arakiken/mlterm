@@ -21,7 +21,6 @@
 /* --- static variables --- */
 
 static char *  word_separators = " ,.:;/@" ;
-static int  separators_are_allocated = 0 ;
 
 
 /* --- static functions --- */
@@ -602,28 +601,31 @@ ml_set_word_separators(
 	char *  seps
 	)
 {
-	if( separators_are_allocated)
+	static char *  default_word_separators ;
+
+	if( default_word_separators)
 	{
 		free( word_separators) ;
+
+		if( seps == NULL || *seps == '\0')
+		{
+			/* Fall back to default. */
+			word_separators = default_word_separators ;
+
+			return  1 ;
+		}
+	}
+	else if( seps == NULL || *seps == '\0')
+	{
+		/* Not changed */
+		return  1 ;
 	}
 	else
 	{
-		separators_are_allocated = 1 ;
+		default_word_separators = word_separators ;
 	}
-	
+
 	word_separators = strdup( seps) ;
-
-	return  1 ;
-}
-
-int
-ml_free_word_separators(void)
-{
-	if( separators_are_allocated)
-	{
-		free( word_separators) ;
-		separators_are_allocated = 0 ;
-	}
 
 	return  1 ;
 }

@@ -23,8 +23,8 @@ version 20091211
                      iscii_lang | use_dynamic_comb | cursor_fg_color |
                      cursor_bg_color | open_pty | open_screen | select_pty |
                      snapshot | gen_proto_challenge | icon_path | logging_vt_seq |
-		     title | paste | mlclient <prefix options> <options> |
-		     mlclientx <prefix options> <options>
+		     title | word_separators | button3_behavior | paste |
+		     mlclient <prefix options> <options> | mlclientx <prefix options> <options>
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
 		     bel_mode | type_engine | use_anti_alias | use_variable_column_width |

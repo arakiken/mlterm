@@ -13,7 +13,8 @@
 #include  <kiklib/kik_util.h>	/* K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <kiklib/kik_conf_io.h>	/* kik_get_user_rc_path */
-#include  <kiklib/kik_def.h>		/* PATH_MAX , HAVE_WINDOWS_H */
+#include  <kiklib/kik_def.h>	/* PATH_MAX , HAVE_WINDOWS_H */
+#include  <kiklib/kik_args.h>	/* kik_arg_str_to_array */
 #include  <mkf/mkf_xct_parser.h>
 #include  <mkf/mkf_xct_conv.h>
 #ifndef  USE_WIN32GUI
@@ -33,6 +34,7 @@
  * char length is max 8 bytes.
  * I think this is enough , but I'm not sure.
  * This macro used for UTF8 and UTF16.
+ * (Same as vte.c)
  */
 #define  UTF_MAX_CHAR_SIZE  (8 * (MAX_COMB_SIZE + 1))
 
@@ -79,8 +81,16 @@ enum
 
 /* --- static variables --- */
 
-/* 0 = traditional, 1 = conf_menu_path_1 , 2 = conf_menu_path_2 , 3 = conf_menu_path_3 */
-static int  button3_open_menu = 0 ;
+/*
+ * 0 = traditional (not open)
+ * 1 = conf_menu_path_1
+ * 2 = conf_menu_path_2
+ * 3 = conf_menu_path_3
+ * 4 = mlclient -e w3m
+ * 5 = do nothing
+ */
+static int  button3_open = 0 ;
+static char *  button3_command ;
 
 
 /* --- static functions --- */
@@ -1646,6 +1656,58 @@ config_menu(
 
 	ml_term_start_config_menu( screen->term , conf_menu_path , global_x , global_y ,
 		DisplayString( screen->window.disp->display)) ;
+}
+
+static void
+open_button3_command(
+	x_screen_t *  screen
+	)
+{
+	size_t  cmd_len ;
+	char *  key ;
+	size_t  key_len ;
+
+	if( screen->sel.sel_str == NULL || screen->sel.sel_len == 0)
+	{
+		return ;
+	}
+
+	cmd_len = strlen( button3_command) + 1 ;
+	
+	key_len = cmd_len + screen->sel.sel_len * UTF_MAX_CHAR_SIZE + 1 ;
+	key = alloca( key_len) ;
+
+	strcpy( key , button3_command) ;
+	key[cmd_len - 1] = ' ' ;
+
+	(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
+	ml_str_parser_set_str( screen->ml_str_parser , screen->sel.sel_str , screen->sel.sel_len) ;
+
+	ml_term_init_encoding_conv( screen->term) ;
+	key_len = ml_term_convert_to( screen->term , key + cmd_len , key_len - cmd_len ,
+				screen->ml_str_parser) + cmd_len ;
+	key[key_len] = '\0' ;
+
+	if( strncmp( key , "mlclient" , K_MIN(cmd_len - 1,8)) == 0)
+	{
+		x_screen_set_config( screen , NULL , key , NULL) ;
+	}
+#ifndef  USE_WIN32API
+	else
+	{
+		char **  argv ;
+		int  argc ;
+
+		argv = kik_arg_str_to_array( &argc , key) ;
+
+		if( fork() == 0)
+		{
+			/* child process */
+			execv( argv[0] , argv) ;
+			exit( 1) ;
+		}
+	}
+#endif
 }
 
 static int
@@ -3512,9 +3574,9 @@ button_pressed(
 
 			return ;
 		}
-		else if( button3_open_menu)
+		else if( button3_open)
 		{
-			if( button3_open_menu == 1)
+			if( button3_open == 1)
 			{
 				config_menu( screen , event->x , event->y ,
 					screen->conf_menu_path_1 ?
@@ -3524,7 +3586,7 @@ button_pressed(
 					#endif
 					) ;
 			}
-			else if( button3_open_menu == 2)
+			else if( button3_open == 2)
 			{
 				if( screen->conf_menu_path_2)
 				{
@@ -3532,7 +3594,7 @@ button_pressed(
 						screen->conf_menu_path_2) ;
 				}
 			}
-			else if( button3_open_menu == 3)
+			else if( button3_open == 3)
 			{
 				config_menu( screen , event->x , event->y ,
 					screen->conf_menu_path_3 ?
@@ -3541,6 +3603,10 @@ button_pressed(
 						".exe"
 					#endif
 					) ;
+			}
+			else if( button3_open == 4)
+			{
+				open_button3_command( screen) ;
 			}
 
 			return ;
@@ -6488,25 +6554,28 @@ pty_read_ready(
 /* --- global functions --- */
 
 int
-x_set_button3_behavior( char *  mode)
+x_set_button3_behavior(
+	const char *  mode
+	)
 {
 	if( strcmp( mode , "xterm") == 0)
 	{
-		button3_open_menu = 0 ;
+		button3_open = 0 ;
 	}
 	else if( strlen( mode) == 5 && '1' <= mode[4] && mode[4] <= '3')
 	{
 		/* menu1, menu2, menu3 */
-		button3_open_menu = mode[4] - '0' ;
+		button3_open = mode[4] - '0' ;
 	}
 	else if( strcmp( mode , "none") == 0)
 	{
 		/* Hidden option for libvte */
-		button3_open_menu = 4 ;
+		button3_open = 5 ;
 	}
-	else
+	else if( ( button3_command = strdup( mode)))	/* XXX Not free'ed. Leaked */
 	{
-		return  0 ;
+		/* Hidden option (e.g. w3m, lynx) */
+		button3_open = 4 ;
 	}
 	
 	return  1 ;
@@ -7863,6 +7932,14 @@ x_screen_set_config(
 
 		ml_term_set_logging_vt_seq( screen->term , flag) ;
 	}
+	else if( strcmp( key , "button3_behavior") == 0)
+	{
+		x_set_button3_behavior( value) ;
+	}
+	else if( strcmp( key , "word_separators") == 0)
+	{
+		ml_set_word_separators( value) ;
+	}
 	else if( strcmp( key , "paste") == 0)
 	{
 		yank_event_received( screen , 0) ;
@@ -7872,7 +7949,7 @@ x_screen_set_config(
 		if( HAS_SYSTEM_LISTENER(screen,mlclient))
 		{
 			(*screen->system_listener->mlclient)( screen->system_listener->self ,
-				key[8] == 'x' ? screen : NULL , key , strlen(key) + 1 , stdout) ;
+				key[8] == 'x' ? screen : NULL , key , stdout) ;
 		}
 	}
 }

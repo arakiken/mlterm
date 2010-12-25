@@ -1,3 +1,22 @@
+2010-12-25  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - vte_terminal_set_word_chars is implemented.
+	  - vte_terminal_match_add_regex and vte_terminal_match_check are partially implemented.
+	  
+	* button3_behavior option accepts "mlclient -e w3m", "/usr/bin/emacs" and so on.
+	  In this case, specified program which gets selected text as arguments
+	  starts when button3 is clicked.
+	  (Experimental)
+
+	* word_separators and button3_behavior options are possible to change by
+	  configuration protocol.
+
+	* kiklib/src/Makefile.in:
+	  MINOR = 0 => MINOR = 1
+
+	* kik_args.[ch]: kik_arg_str_to_array is added.
+
 2010-12-20  Araki Ken  <arakiken@users.sf.net>
 
 	* x_sample_sb_view_win32.c, x_sample_sb_viwe_lib_win32.c:

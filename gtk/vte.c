@@ -19,6 +19,7 @@
 #include  <kiklib/kik_locale.h>
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_pty.h>		/* kik_pty_helper_set_flag */
+#include  <mkf/mkf_utf8_conv.h>
 #include  <ml_str_parser.h>
 #include  <ml_term_manager.h>
 #include  <x_screen.h>
@@ -58,6 +59,15 @@
 #endif
 
 #define  STATIC_PARAMS (G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB)
+
+/*
+ * XXX
+ * char length is max 8 bytes.
+ * I think this is enough , but I'm not sure.
+ * This macro used for UTF8 and UTF16.
+ * (Same as x_screen.c)
+ */
+#define  UTF_MAX_CHAR_SIZE  (8 * (MAX_COMB_SIZE + 1))
 
 
 struct _VteTerminalPrivate
@@ -1999,8 +2009,7 @@ vte_terminal_copy_clipboard(
 		return ;
 	}
 
-	/* UTF8 max len = 8 */
-	len = terminal->pvt->screen->sel.sel_len * 8 ;
+	len = terminal->pvt->screen->sel.sel_len * UTF_MAX_CHAR_SIZE ;
 	if( ! ( buf = alloca( len)))
 	{
 		return ;
@@ -2640,6 +2649,7 @@ vte_terminal_set_word_chars(
 	const char *  spec
 	)
 {
+	ml_set_word_separators( spec) ;
 }
 
 gboolean
@@ -2823,7 +2833,18 @@ vte_terminal_match_add_gregex(
 	GRegexMatchFlags  flags
 	)
 {
-	return  1 ;
+	/* XXX */
+
+	if( strstr( g_regex_get_pattern( regex) , "http"))
+	{
+		/* tag == 1 */
+		return  1 ;
+	}
+	else
+	{
+		/* tag == 0 */
+		return  0 ;
+	}
 }
 #endif
 
@@ -2870,7 +2891,38 @@ vte_terminal_match_check(
 	int *  tag
 	)
 {
-	return  NULL ;
+	u_char *  buf ;
+	size_t  len ;
+	mkf_conv_t *  conv ;
+
+	if( ! vte_terminal_get_has_selection( terminal))
+	{
+		return  NULL ;
+	}
+
+	len = terminal->pvt->screen->sel.sel_len * UTF_MAX_CHAR_SIZE + 1 ;
+	if( ! ( buf = g_malloc( len)))
+	{
+		return  NULL ;
+	}
+	
+	(*terminal->pvt->screen->ml_str_parser->init)( terminal->pvt->screen->ml_str_parser) ;
+	ml_str_parser_set_str( terminal->pvt->screen->ml_str_parser ,
+		terminal->pvt->screen->sel.sel_str , terminal->pvt->screen->sel.sel_len) ;
+
+	conv = mkf_utf8_conv_new() ;
+	(*conv->init)( conv) ;
+
+	len = (*conv->convert)( conv , buf , len , terminal->pvt->screen->ml_str_parser) ;
+
+	buf[len] = '\0' ;
+
+	(*conv->delete)( conv) ;
+
+	/* XXX */
+	*tag = 1 ;	/* For pattern including "http" (see vte_terminal_match_add_gregex) */
+
+	return  buf ;
 }
 
 void

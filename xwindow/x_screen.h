@@ -41,7 +41,7 @@ typedef struct x_system_event_listener
 	ml_term_t *  (*get_pty)( void * , char *) ;
 	char *  (*pty_list)( void *) ;
 
-	int  (*mlclient)( void * , x_screen_ptr_t , char * , size_t , FILE *) ;
+	int  (*mlclient)( void * , x_screen_ptr_t , char * , FILE *) ;
 
 	void  (*font_config_updated)(void) ;
 	void  (*color_config_updated)(void) ;
@@ -155,7 +155,7 @@ typedef struct  x_screen
 
 
 /* xterm = traditional, menuN = conf_menu_path_N */
-int  x_set_button3_behavior( char *  mode) ;
+int  x_set_button3_behavior( const char *  mode) ;
 
 x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man , x_termcap_entry_t *  termcap ,
