@@ -48,12 +48,14 @@ typedef struct  ml_edit
 	
 	int8_t  is_relative_origin ;
 	int8_t  is_auto_wrap ;
+	int8_t  use_bce ;
 
 } ml_edit_t ;
 
 
 int  ml_edit_init( ml_edit_t *  edit , ml_edit_scroll_event_listener_t *  scroll_listener ,
-	u_int  num_of_cols , u_int  num_of_rows , u_int  tab_size , int  is_logging) ;
+	u_int  num_of_cols , u_int  num_of_rows , u_int  tab_size , int  is_logging ,
+	int  use_bce) ;
 
 int  ml_edit_final( ml_edit_t *  edit) ;
 
@@ -67,11 +69,7 @@ int  ml_edit_overwrite_chars( ml_edit_t *  edit , ml_char_t *  chars , u_int  nu
 
 int  ml_edit_delete_cols( ml_edit_t *  edit , u_int  delete_cols) ;
 
-int  ml_edit_delete_cols_bce( ml_edit_t *  edit , u_int  delete_cols) ;
-
 int  ml_edit_clear_cols( ml_edit_t *  edit , u_int  cols) ;
-
-int  ml_edit_clear_cols_bce( ml_edit_t *  edit , u_int  cols) ;
 
 int  ml_edit_insert_new_line( ml_edit_t *  edit) ;
 
@@ -79,19 +77,11 @@ int  ml_edit_delete_line( ml_edit_t *  edit) ;
 
 int  ml_edit_clear_line_to_right( ml_edit_t *  edit) ;
 
-int  ml_edit_clear_line_to_right_bce( ml_edit_t *  edit) ;
-
 int  ml_edit_clear_line_to_left( ml_edit_t *  edit) ;
-
-int  ml_edit_clear_line_to_left_bce( ml_edit_t *  edit) ;
 
 int  ml_edit_clear_below( ml_edit_t *  edit) ;
 
-int  ml_edit_clear_below_bce( ml_edit_t *  edit) ;
-
 int  ml_edit_clear_above( ml_edit_t *  edit) ;
-
-int  ml_edit_clear_above_bce( ml_edit_t *  edit) ;
 
 int  ml_edit_fill_all( ml_edit_t *  edit , ml_char_t *  ch) ;
 	

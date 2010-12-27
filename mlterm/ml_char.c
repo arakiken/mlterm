@@ -957,7 +957,8 @@ ml_sp_ch(void)
 	if( sp_ch.u.ch.attr == 0)
 	{
 		ml_char_init( &sp_ch) ;
-		ml_char_set( &sp_ch , (u_char *)" " , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
+		ml_char_set( &sp_ch , (u_char *)" " , 1 , US_ASCII , 0 , 0 ,
+			ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
 	}
 
 	return  &sp_ch ;

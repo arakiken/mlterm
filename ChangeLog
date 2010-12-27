@@ -1,3 +1,15 @@
+2010-12-28  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit.c:
+	  - 'use_bce' flag is managed in ml_edit.c, not in ml_screen.c.
+	  - Bug which disabled vttest 11.4.5 are fixed.
+
+	* ml_edit_util.c:
+	  Bug which disabled vttest 11.4.6 are fixed.
+
+	* ml_screen.c:
+	  "|()[]{}" is added to default value of word_separators option.
+
 2010-12-25  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:
@@ -7,7 +19,6 @@
 	* button3_behavior option accepts "mlclient -e w3m", "/usr/bin/emacs" and so on.
 	  In this case, specified program which gets selected text as arguments
 	  starts when button3 is clicked.
-	  (Experimental)
 
 	* word_separators and button3_behavior options are possible to change by
 	  configuration protocol.

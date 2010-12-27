@@ -217,236 +217,6 @@ line_full:
 	return  1 ;
 }
 
-/*
- * deleting cols within a line.
- */
-static int
-delete_cols(
-	ml_edit_t *  edit ,
-	u_int  del_cols ,
-	int  use_bce
-	)
-{
-	int  char_index ;
-	ml_char_t *  buffer ;
-	u_int  buf_len ;
-	u_int  filled_len ;
-	ml_line_t *  cursor_line ;
-	ml_char_t *  sp_ch ;
-
-#ifdef  CURSOR_DEBUG
-	ml_cursor_dump( &edit->cursor) ;
-#endif
-
-	reset_wraparound_checker( edit) ;
-
-	cursor_line = CURSOR_LINE(edit) ;
-
-	if( edit->cursor.char_index + del_cols == cursor_line->num_of_filled_chars)
-	{
-		/* no need to overwrite */
-		ml_line_clear( cursor_line , edit->cursor.char_index) ;
-
-		return  1 ;
-	}
-	
-	if( use_bce)
-	{
-		sp_ch = &edit->bce_ch ;
-	}
-	else
-	{
-		sp_ch = ml_sp_ch() ;
-	}
-
-	/*
-	 * collecting chars after cursor line.
-	 */
-	 
-	buf_len = cursor_line->num_of_filled_chars ;
-
-	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	filled_len = 0 ;
-
-	/* before cursor(including cursor) */
-
-	if( edit->cursor.col_in_char)
-	{
-		int  cols_after ;
-		int  count ;
-
-	#ifdef  DEBUG
-		if( ml_char_cols( CURSOR_CHAR(edit)) <= edit->cursor.col_in_char)
-		{
-			kik_warn_printf( KIK_DEBUG_TAG " illegal col_in_char.\n") ;
-		}
-	#endif
-	
-		cols_after = ml_char_cols( CURSOR_CHAR(edit)) - edit->cursor.col_in_char ;
-		
-		/*
-		 * padding spaces before cursor.
-		 */
-		for( count = 0 ; count < edit->cursor.col_in_char ; count ++)
-		{
-			ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
-		}
-
-		if( del_cols >= cols_after)
-		{
-			del_cols -= cols_after ;
-		}
-		else
-		{
-			del_cols = 0 ;
-
-			/*
-			 * padding spaces after cursor.
-			 */
-			for( count = 0 ; count < cols_after - del_cols ; count ++)
-			{
-				ml_char_copy( &buffer[filled_len ++] , sp_ch) ;
-			}
-		}
-		
-		char_index = edit->cursor.char_index + 1 ;
-	}
-	else
-	{
-		char_index = edit->cursor.char_index ;
-	}
-
-	/* after cursor(excluding cursor) + del_cols */
-
-	if( del_cols)
-	{
-		u_int  cols ;
-		
-		cols = ml_char_cols( ml_char_at( cursor_line , char_index ++)) ;
-		while( cols < del_cols && char_index < cursor_line->num_of_filled_chars)
-		{
-			cols += ml_char_cols( ml_char_at( cursor_line , char_index ++)) ;
-		}
-	}
-
-	ml_str_copy( buffer + filled_len , ml_char_at( cursor_line , char_index) ,
-		cursor_line->num_of_filled_chars - char_index) ;
-	filled_len += (cursor_line->num_of_filled_chars - char_index) ;
-
-	if( filled_len > 0)
-	{
-		/*
-		 * overwriting.
-		 */
-
-		ml_line_clear( cursor_line , edit->cursor.char_index) ;
-		ml_line_overwrite( cursor_line , edit->cursor.char_index ,
-			buffer , filled_len , ml_str_cols( buffer , filled_len)) ;
-	}
-	else
-	{
-		ml_line_reset( cursor_line) ;
-	}
-
-	ml_str_final( buffer , buf_len) ;
-
-	if( edit->cursor.col_in_char)
-	{
-		ml_cursor_moveh_by_char( &edit->cursor ,
-			edit->cursor.char_index + edit->cursor.col_in_char) ;
-	}
-
-	if( use_bce)
-	{
-		ml_line_fill( cursor_line , sp_ch , cursor_line->num_of_filled_chars ,
-			edit->model.num_of_cols - ml_line_get_num_of_filled_cols( cursor_line)) ;
-	}
-
-#ifdef  CURSOR_DEBUG
-	ml_cursor_dump( &edit->cursor) ;
-#endif
-	
-	return  1 ;
-}
-
-static int
-clear_cols(
-	ml_edit_t *  edit ,
-	u_int  cols ,
-	int  use_bce
-	)
-{
-	ml_line_t *  cursor_line ;
-	
-	if( edit->cursor.col + cols >= edit->model.num_of_cols)
-	{
-		if( use_bce)
-		{
-			return  ml_edit_clear_line_to_right_bce( edit) ;
-		}
-		else
-		{
-			return  ml_edit_clear_line_to_right( edit) ;
-		}
-	}
-
-	cursor_line = CURSOR_LINE(edit) ;
-
-	if( edit->cursor.col_in_char)
-	{
-		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
-			edit->cursor.col_in_char) ;
-
-		ml_cursor_char_is_cleared( &edit->cursor) ;
-	}
-
-	if( use_bce)
-	{
-		ml_line_fill( cursor_line , &edit->bce_ch , edit->cursor.char_index , cols) ;
-	}
-	else
-	{
-		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index , cols) ;
-	}
-
-	return  1 ;
-}
-
-static int
-clear_line_to_left(
-	ml_edit_t *  edit ,
-	int  use_bce
-	)
-{
-	ml_line_t *  cursor_line ;
-	ml_char_t *  sp_ch ;
-
-	cursor_line = CURSOR_LINE(edit) ;
-
-	if( use_bce)
-	{
-		sp_ch = &edit->bce_ch ;
-	}
-	else
-	{
-		sp_ch = ml_sp_ch() ;
-	}
-
-	ml_line_fill( cursor_line , sp_ch , 0 , edit->cursor.col + 1) ;
-
-	ml_cursor_left_chars_in_line_are_cleared( &edit->cursor) ;
-	
-	return  1 ;
-}
-
 static int
 vertical_tabs(
 	ml_edit_t *  edit ,
@@ -507,7 +277,8 @@ ml_edit_init(
 	u_int  num_of_cols ,
 	u_int  num_of_rows ,
 	u_int  tab_size ,
-	int  is_logging
+	int  is_logging ,
+	int  use_bce
 	)
 {
 	if( ! ml_model_init( &edit->model , num_of_cols , num_of_rows))
@@ -520,7 +291,9 @@ ml_edit_init(
 	ml_line_assure_boundary( CURSOR_LINE(edit) , 0) ;
 
 	ml_char_init( &edit->bce_ch) ;
-	ml_char_set( &edit->bce_ch , " " , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
+	ml_char_copy( &edit->bce_ch , ml_sp_ch()) ;
+
+	edit->use_bce = use_bce ;
 
 	edit->is_logging = is_logging ;
 
@@ -649,6 +422,7 @@ ml_edit_insert_blank_chars(
 {
 	int  count ;
 	ml_char_t *  blank_chars ;
+	ml_char_t *  sp_ch ;
 
 	reset_wraparound_checker( edit) ;
 
@@ -661,9 +435,22 @@ ml_edit_insert_blank_chars(
 		return  0 ;
 	}
 
+	if( edit->use_bce)
+	{
+		/*
+		 * If bce_ch is not used here, vttest 11.4.5 "If your terminal
+		 * has the ANSI 'Insert Character' function..." will fail.
+		 */
+		sp_ch = &edit->bce_ch ;
+	}
+	else
+	{
+		sp_ch = ml_sp_ch() ;
+	}
+
 	for( count = 0 ; count < num_of_blank_chars ; count ++)
 	{
-		ml_char_copy( &blank_chars[count] , ml_sp_ch()) ;
+		ml_char_copy( &blank_chars[count] , sp_ch) ;
 	}
 
 	ml_str_final( blank_chars , num_of_blank_chars) ;
@@ -825,22 +612,149 @@ ml_edit_overwrite_chars(
 	return  1 ;
 }
 
+/*
+ * deleting cols within a line.
+ */
 int
 ml_edit_delete_cols(
 	ml_edit_t *  edit ,
-	u_int  cols
+	u_int  del_cols
 	)
 {
-	return  delete_cols( edit , cols , 0) ;
-}
+	int  char_index ;
+	ml_char_t *  buffer ;
+	u_int  buf_len ;
+	u_int  filled_len ;
+	ml_line_t *  cursor_line ;
 
-int
-ml_edit_delete_cols_bce(
-	ml_edit_t *  edit ,
-	u_int  cols
-	)
-{
-	return  delete_cols( edit , cols , 1) ;
+#ifdef  CURSOR_DEBUG
+	ml_cursor_dump( &edit->cursor) ;
+#endif
+
+	reset_wraparound_checker( edit) ;
+
+	cursor_line = CURSOR_LINE(edit) ;
+
+	/* XXX del_cols should be converted to del_chars */
+	if( edit->cursor.char_index + del_cols >= cursor_line->num_of_filled_chars)
+	{
+		/* no need to overwrite */
+
+		ml_edit_clear_line_to_right( edit) ;	/* Considering BCE */
+
+		return  1 ;
+	}
+
+	/*
+	 * collecting chars after cursor line.
+	 */
+	 
+	buf_len = cursor_line->num_of_filled_chars ;
+
+	if( ( buffer = ml_str_alloca( buf_len)) == NULL)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
+	#endif
+	
+		return  0 ;
+	}
+
+	filled_len = 0 ;
+
+	/* before cursor(including cursor) */
+
+	if( edit->cursor.col_in_char)
+	{
+		int  cols_after ;
+		int  count ;
+
+	#ifdef  DEBUG
+		if( ml_char_cols( CURSOR_CHAR(edit)) <= edit->cursor.col_in_char)
+		{
+			kik_warn_printf( KIK_DEBUG_TAG " illegal col_in_char.\n") ;
+		}
+	#endif
+	
+		cols_after = ml_char_cols( CURSOR_CHAR(edit)) - edit->cursor.col_in_char ;
+		
+		/*
+		 * padding spaces before cursor.
+		 */
+		for( count = 0 ; count < edit->cursor.col_in_char ; count ++)
+		{
+			ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
+		}
+
+		if( del_cols >= cols_after)
+		{
+			del_cols -= cols_after ;
+		}
+		else
+		{
+			del_cols = 0 ;
+
+			/*
+			 * padding spaces after cursor.
+			 */
+			for( count = 0 ; count < cols_after - del_cols ; count ++)
+			{
+				ml_char_copy( &buffer[filled_len ++] , ml_sp_ch()) ;
+			}
+		}
+		
+		char_index = edit->cursor.char_index + 1 ;
+	}
+	else
+	{
+		char_index = edit->cursor.char_index ;
+	}
+
+	/* after cursor(excluding cursor) + del_cols */
+
+	if( del_cols)
+	{
+		u_int  cols ;
+		
+		cols = ml_char_cols( ml_char_at( cursor_line , char_index ++)) ;
+		while( cols < del_cols && char_index < cursor_line->num_of_filled_chars)
+		{
+			cols += ml_char_cols( ml_char_at( cursor_line , char_index ++)) ;
+		}
+	}
+
+	ml_str_copy( buffer + filled_len , ml_char_at( cursor_line , char_index) ,
+		cursor_line->num_of_filled_chars - char_index) ;
+	filled_len += (cursor_line->num_of_filled_chars - char_index) ;
+
+	if( filled_len > 0)
+	{
+		/*
+		 * overwriting.
+		 */
+
+		ml_edit_clear_line_to_right( edit) ;	/* Considering BCE */
+		ml_line_overwrite( cursor_line , edit->cursor.char_index ,
+			buffer , filled_len , ml_str_cols( buffer , filled_len)) ;
+	}
+	else
+	{
+		ml_line_reset( cursor_line) ;
+	}
+
+	ml_str_final( buffer , buf_len) ;
+
+	if( edit->cursor.col_in_char)
+	{
+		ml_cursor_moveh_by_char( &edit->cursor ,
+			edit->cursor.char_index + edit->cursor.col_in_char) ;
+	}
+
+#ifdef  CURSOR_DEBUG
+	ml_cursor_dump( &edit->cursor) ;
+#endif
+	
+	return  1 ;
 }
 
 int
@@ -849,20 +763,29 @@ ml_edit_clear_cols(
 	u_int  cols
 	)
 {
-	reset_wraparound_checker( edit) ;
-	
-	return  clear_cols( edit , cols , 0) ;
-}
+	ml_line_t *  cursor_line ;
 
-int
-ml_edit_clear_cols_bce(
-	ml_edit_t *  edit ,
-	u_int  cols
-	)
-{
 	reset_wraparound_checker( edit) ;
 	
-	return  clear_cols( edit , cols , 1) ;
+	if( edit->cursor.col + cols >= edit->model.num_of_cols)
+	{
+		return  ml_edit_clear_line_to_right( edit) ;
+	}
+	
+	cursor_line = CURSOR_LINE(edit) ;
+
+	if( edit->cursor.col_in_char)
+	{
+		ml_line_fill( cursor_line , ml_sp_ch() ,
+			edit->cursor.char_index , edit->cursor.col_in_char) ;
+
+		ml_cursor_char_is_cleared( &edit->cursor) ;
+	}
+
+	ml_line_fill( cursor_line , edit->use_bce ? &edit->bce_ch : ml_sp_ch() ,
+		edit->cursor.char_index , cols) ;
+
+	return  1 ;
 }
 
 int
@@ -898,37 +821,21 @@ ml_edit_clear_line_to_right(
 
 	if( edit->cursor.col_in_char)
 	{
-		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
-			edit->cursor.col_in_char) ;
+		ml_line_fill( cursor_line , edit->use_bce ? &edit->bce_ch : ml_sp_ch() ,
+			edit->cursor.char_index , edit->cursor.col_in_char) ;
 		ml_cursor_char_is_cleared( &edit->cursor) ;
 	}
-	
-	ml_line_clear( CURSOR_LINE(edit) , edit->cursor.char_index) ;
 
-	return  1 ;
-}
-
-int
-ml_edit_clear_line_to_right_bce(
-	ml_edit_t *  edit
-	)
-{
-	ml_line_t *  cursor_line ;
-
-	reset_wraparound_checker( edit) ;
-
-	cursor_line = CURSOR_LINE(edit) ;
-	
-	if( edit->cursor.col_in_char)
+	if( edit->use_bce)
 	{
-		ml_line_fill( cursor_line , ml_sp_ch() , edit->cursor.char_index ,
-			edit->cursor.col_in_char) ;
-		ml_cursor_char_is_cleared( &edit->cursor) ;
+		ml_line_fill( cursor_line , &edit->bce_ch , edit->cursor.char_index ,
+			edit->model.num_of_cols -
+				ml_str_cols( cursor_line->chars , edit->cursor.char_index)) ;
 	}
-
-	ml_line_fill( cursor_line , &edit->bce_ch , edit->cursor.char_index ,
-		edit->model.num_of_cols -
-			ml_str_cols( cursor_line->chars , edit->cursor.char_index)) ;
+	else
+	{
+		ml_line_clear( CURSOR_LINE(edit) , edit->cursor.char_index) ;
+	}
 
 	return  1 ;
 }
@@ -938,19 +845,18 @@ ml_edit_clear_line_to_left(
 	ml_edit_t *  edit
 	)
 {
+	ml_line_t *  cursor_line ;
+
 	reset_wraparound_checker( edit) ;
 
-	return  clear_line_to_left( edit , 0) ;
-}
+	cursor_line = CURSOR_LINE(edit) ;
 
-int
-ml_edit_clear_line_to_left_bce(
-	ml_edit_t *  edit
-	)
-{
-	reset_wraparound_checker( edit) ;
+	ml_line_fill( cursor_line , edit->use_bce ? &edit->bce_ch : ml_sp_ch() ,
+		0 , edit->cursor.col + 1) ;
 
-	return  clear_line_to_left( edit , 1) ;
+	ml_cursor_left_chars_in_line_are_cleared( &edit->cursor) ;
+	
+	return  1 ;
 }
 
 int
@@ -960,37 +866,28 @@ ml_edit_clear_below(
 {
 	reset_wraparound_checker( edit) ;
 
-	if( ! ml_edit_clear_line_to_right( edit) ||
-		! ml_edit_clear_lines( edit , edit->cursor.row + 1 ,
-			edit->model.num_of_rows - edit->cursor.row - 1))
+	if( ! ml_edit_clear_line_to_right( edit))
 	{
 		return  0 ;
 	}
 
-	return  1 ;
-}
-
-int
-ml_edit_clear_below_bce(
-	ml_edit_t *  edit
-	)
-{
-	int  row ;
-	
-	reset_wraparound_checker( edit) ;
-
-	if( ! ml_edit_clear_line_to_right_bce( edit))
+	if( edit->use_bce)
 	{
-		return  0 ;
-	}
+		int  row ;
 
-	for( row = edit->cursor.row + 1 ; row < edit->model.num_of_rows ; row ++)
+		for( row = edit->cursor.row + 1 ; row < edit->model.num_of_rows ; row ++)
+		{
+			ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
+				edit->model.num_of_cols) ;
+		}
+
+		return  1 ;
+	}
+	else
 	{
-		ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
-			edit->model.num_of_cols) ;
+		return  ml_edit_clear_lines( edit , edit->cursor.row + 1 ,
+				edit->model.num_of_rows - edit->cursor.row - 1) ;
 	}
-
-	return  1 ;
 }
 
 int
@@ -1000,36 +897,27 @@ ml_edit_clear_above(
 {
 	reset_wraparound_checker( edit) ;
 
-	if( ! ml_edit_clear_lines( edit , 0 , edit->cursor.row) ||
-		! ml_edit_clear_line_to_left( edit))
+	if( ! ml_edit_clear_line_to_left( edit))
 	{
 		return  0 ;
 	}
 
-	return  1 ;
-}
-
-int
-ml_edit_clear_above_bce(
-	ml_edit_t *  edit
-	)
-{
-	int  row ;
-	
-	reset_wraparound_checker( edit) ;
-
-	if( ! ml_edit_clear_line_to_left_bce( edit))
+	if( edit->use_bce)
 	{
-		return  0 ;
-	}
+		int  row ;
 
-	for( row = 0 ; row < edit->cursor.row ; row ++)
+		for( row = 0 ; row < edit->cursor.row ; row ++)
+		{
+			ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
+				edit->model.num_of_cols) ;
+		}
+
+		return  1 ;
+	}
+	else
 	{
-		ml_line_fill( ml_model_get_line( &edit->model , row) , &edit->bce_ch , 0 ,
-			edit->model.num_of_cols) ;
+		return  ml_edit_clear_lines( edit , 0 , edit->cursor.row) ;
 	}
-
-	return  1 ;
 }
 
 int

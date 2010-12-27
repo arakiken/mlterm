@@ -524,7 +524,7 @@ comment $Id$
       o logsize  (*128*) (#)
         ログの行数
 
-      o word_separators  (*" ,.:;/@"*)
+      o word_separators  (*" ,.:;/|@()[]{}"*)
         単語の区切り文字を指定
 
         マウスのダブルクリックで、単語選択する際に使用されます。

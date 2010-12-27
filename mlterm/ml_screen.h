@@ -60,7 +60,6 @@ typedef struct  ml_screen
 	int8_t  is_backscrolling ;
 
 	int8_t  use_dynamic_comb ;	/* public */
-	int8_t  use_bce ;
 	int8_t  is_cursor_visible ;
 
 } ml_screen_t ;
@@ -79,10 +78,6 @@ int  ml_screen_delete( ml_screen_t *  screen) ;
 int  ml_screen_set_listener( ml_screen_t *  screen , ml_screen_event_listener_t *  screen_listener) ;
 
 int  ml_screen_resize( ml_screen_t *  screen , u_int  cols , u_int  rows) ;
-
-int  ml_screen_use_bce( ml_screen_t *  screen) ;
-
-int  ml_screen_unuse_bce( ml_screen_t *  screen) ;
 
 int  ml_screen_set_bce_fg_color( ml_screen_t *  screen , ml_color_t  fg_color) ;
 

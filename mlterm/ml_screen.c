@@ -20,7 +20,7 @@
 
 /* --- static variables --- */
 
-static char *  word_separators = " ,.:;/@" ;
+static char *  word_separators = " .,:;/|@()[]{}" ;
 
 
 /* --- static functions --- */
@@ -663,7 +663,7 @@ ml_screen_new(
 	screen->edit_scroll_listener.window_scroll_downward_region = window_scroll_downward_region ;
 
 	if( ! ml_edit_init( &screen->normal_edit , &screen->edit_scroll_listener ,
-		cols , rows , tab_size , 1))
+		cols , rows , tab_size , 1 , use_bce))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_edit_init(normal_edit) failed.\n") ;
@@ -673,7 +673,7 @@ ml_screen_new(
 	}
 
 	if( ! ml_edit_init( &screen->alt_edit , &screen->edit_scroll_listener ,
-		cols , rows , tab_size , 0))
+		cols , rows , tab_size , 0 , use_bce))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " ml_edit_init(alt_edit) failed.\n") ;
@@ -698,7 +698,6 @@ ml_screen_new(
 	screen->is_backscrolling = 0 ;
 
 	screen->use_dynamic_comb = 0 ;
-	screen->use_bce = use_bce ;
 	screen->is_cursor_visible = 1 ;
 
 	return  screen ;
@@ -758,26 +757,6 @@ ml_screen_resize(
 {
 	ml_edit_resize( &screen->normal_edit , cols , rows) ;
 	ml_edit_resize( &screen->alt_edit , cols , rows) ;
-
-	return  1 ;
-}
-
-int
-ml_screen_use_bce(
-	ml_screen_t *  screen
-	)
-{
-	screen->use_bce = 1 ;
-
-	return  1 ;
-}
-
-int
-ml_screen_unuse_bce(
-	ml_screen_t *  screen
-	)
-{
-	screen->use_bce = 0 ;
 
 	return  1 ;
 }
@@ -1755,14 +1734,7 @@ ml_screen_delete_cols(
 	u_int  len
 	)
 {
-	if( screen->use_bce)
-	{
-		return  ml_edit_delete_cols_bce( screen->edit , len) ;
-	}
-	else
-	{
-		return  ml_edit_delete_cols( screen->edit , len) ;
-	}
+	return  ml_edit_delete_cols( screen->edit , len) ;
 }
 
 int
@@ -1771,14 +1743,7 @@ ml_screen_clear_cols(
 	u_int  cols
 	)
 {
-	if( screen->use_bce)
-	{
-		return  ml_edit_clear_cols_bce( screen->edit , cols) ;
-	}
-	else
-	{
-		return  ml_edit_clear_cols( screen->edit , cols) ;
-	}
+	return  ml_edit_clear_cols( screen->edit , cols) ;
 }
 
 int
@@ -1809,14 +1774,7 @@ ml_screen_clear_line_to_right(
 	ml_screen_t *  screen
 	)
 {
-	if( screen->use_bce)
-	{
-		return  ml_edit_clear_line_to_right_bce( screen->edit) ;
-	}
-	else
-	{
-		return  ml_edit_clear_line_to_right( screen->edit) ;
-	}
+	return  ml_edit_clear_line_to_right( screen->edit) ;
 }
 
 int
@@ -1824,14 +1782,7 @@ ml_screen_clear_line_to_left(
 	ml_screen_t *  screen
 	)
 {
-	if( screen->use_bce)
-	{
-		return  ml_edit_clear_line_to_left_bce( screen->edit) ;
-	}
-	else
-	{
-		return  ml_edit_clear_line_to_left( screen->edit) ;
-	}
+	return  ml_edit_clear_line_to_left( screen->edit) ;
 }
 
 int
@@ -1839,14 +1790,7 @@ ml_screen_clear_below(
 	ml_screen_t *  screen
 	)
 {
-	if( screen->use_bce)
-	{
-		return  ml_edit_clear_below_bce( screen->edit) ;
-	}
-	else
-	{
-		return  ml_edit_clear_below( screen->edit) ;
-	}
+	return  ml_edit_clear_below( screen->edit) ;
 }
 
 int
@@ -1854,14 +1798,7 @@ ml_screen_clear_above(
 	ml_screen_t *  screen
 	)
 {
-	if( screen->use_bce)
-	{
-		return  ml_edit_clear_above_bce( screen->edit) ;
-	}
-	else
-	{
-		return  ml_edit_clear_above( screen->edit) ;
-	}
+	return  ml_edit_clear_above( screen->edit) ;
 }
 
 int

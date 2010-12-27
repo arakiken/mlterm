@@ -35,9 +35,20 @@ ml_edit_clear_lines(
 		return  0 ;
 	}
 
-	for( count = 0 ; count < size ; count ++)
+	if( edit->use_bce)
 	{
-		ml_line_reset( ml_model_get_line( &edit->model , beg_row + count)) ;
+		for( count = 0 ; count < size ; count ++)
+		{
+			ml_line_fill( ml_model_get_line( &edit->model , beg_row + count) ,
+				&edit->bce_ch , 0 , edit->model.num_of_cols) ;
+		}
+	}
+	else
+	{
+		for( count = 0 ; count < size ; count ++)
+		{
+			ml_line_reset( ml_model_get_line( &edit->model , beg_row + count)) ;
+		}
 	}
 
 	if( beg_row <= edit->cursor.row && edit->cursor.row <= beg_row + size - 1)
