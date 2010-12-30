@@ -1,3 +1,9 @@
+2010-12-29  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c:
+	  "ESC [ r" and "ESC c" reset scrolling region.
+	  (Thanks to Iwamoto Kouichi san)
+
 2010-12-28  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit.c:
