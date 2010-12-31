@@ -635,12 +635,13 @@ open_screen_intern(
 		main_config.type_engine , main_config.font_present ,
 		main_config.font_size , usascii_font_cs ,
 		usascii_font_cs_changable , main_config.use_multi_col_char ,
-		main_config.step_in_changing_font_size)) == NULL)
+		main_config.step_in_changing_font_size ,
+		main_config.letter_space)) == NULL)
 	{
 		char **  names ;
 
 		names = x_font_get_encoding_names( usascii_font_cs) ;
-		if( names[0] == NULL)
+		if( names == NULL || names[0] == NULL)
 		{
 			kik_msg_printf(
 			  "Current encoding \"%s\" is supported only with "
@@ -648,7 +649,7 @@ open_screen_intern(
 			  "Please use \"-u\" option.\n",
 			  ml_get_char_encoding_name(ml_term_get_encoding(term))) ;
 		}
-		else if( strcmp( names[0] , "iso10646-1" ) == 0 )
+		else if( strcmp( names[0] , "iso10646-1") == 0)
 		{
 			kik_msg_printf(
 			  "No fonts found for charset \"%s\".  "
@@ -672,6 +673,7 @@ open_screen_intern(
 			  "Please install fonts or use Unicode font "
 			  "(\"-u\" option).\n" , names[0] , names[1] );
 		}
+
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_font_manager_new() failed.\n") ;
 	#endif
@@ -1989,7 +1991,7 @@ x_term_manager_init(
 	{
 		x_set_button3_behavior( value) ;
 	}
-	
+
 
 	if( ( version = kik_conf_get_version( conf)) == NULL)
 	{

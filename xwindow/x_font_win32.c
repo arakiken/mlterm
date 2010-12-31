@@ -351,7 +351,8 @@ x_font_new(
 	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,
-	int  use_medium_for_bold
+	int  use_medium_for_bold ,
+	u_int  letter_space	/* Ignored for now. */
 	)
 {
 	x_font_t *  font ;

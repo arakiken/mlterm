@@ -351,7 +351,7 @@ x_shortcut_final(
 	x_shortcut_t *  shortcut
 	)
 {
-	int  count ;
+	u_int  count ;
 	
 	for( count = 0 ; count < shortcut->str_map_size ; count ++)
 	{
@@ -410,7 +410,7 @@ x_shortcut_str(
 	u_int  state
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	/* ingoring except ModMask / ControlMask / ShiftMask */
 	state &= (ModMask | ControlMask | ShiftMask) ;

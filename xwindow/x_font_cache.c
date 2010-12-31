@@ -129,7 +129,8 @@ x_acquire_font_cache(
 	u_int  font_size ,
 	mkf_charset_t  usascii_font_cs ,
 	x_font_config_t *  font_config ,
-	int  use_multi_col_char
+	int  use_multi_col_char ,
+	u_int  letter_space
 	)
 {
 	int  count ;
@@ -142,7 +143,8 @@ x_acquire_font_cache(
 			font_caches[count]->font_size == font_size &&
 			font_caches[count]->usascii_font_cs == usascii_font_cs &&
 			font_caches[count]->font_config == font_config &&
-			font_caches[count]->use_multi_col_char == use_multi_col_char)
+			font_caches[count]->use_multi_col_char == use_multi_col_char &&
+			font_caches[count]->letter_space == letter_space)
 		{
 			font_caches[count]->ref_count ++ ;
 
@@ -170,6 +172,7 @@ x_acquire_font_cache(
 	font_cache->font_size = font_size ;
 	font_cache->usascii_font_cs = usascii_font_cs ;
 	font_cache->use_multi_col_char = use_multi_col_char ;
+	font_cache->letter_space = letter_space ;
 	font_cache->ref_count = 1 ;
 
 	if( ! init_usascii_font( font_cache))
@@ -318,9 +321,11 @@ x_font_cache_get_xfont(
 		}
 	}
 
-	if( ( xfont = x_font_new( font_cache->display , font , font_cache->font_config->type_engine ,
-			font_cache->font_config->font_present , fontname ,
-			font_cache->font_size , col_width , use_medium_for_bold)))
+	if( ( xfont = x_font_new( font_cache->display , font ,
+				font_cache->font_config->type_engine ,
+				font_cache->font_config->font_present , fontname ,
+				font_cache->font_size , col_width , use_medium_for_bold ,
+				font_cache->letter_space)))
 	{
 		if( ! font_cache->use_multi_col_char)
 		{

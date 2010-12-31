@@ -456,50 +456,15 @@ next_char:
 	return  1 ;
 }
 
-#if  1
 static u_int
 get_xft_col_width(
 	x_font_t *  font ,
 	double  fontsize_d ,
-	u_int  percent
+	u_int  percent ,
+	u_int  letter_space
 	)
 {
-	if( percent > 0)
-	{
-		return  DIVIDE_ROUNDING(fontsize_d * font->cols * percent , 100 * 2) ;
-	}
-	else if( font->is_var_col_width)
-	{
-		return  0 ;
-	}
-	else if( strcmp( xft_size_type , XFT_SIZE) == 0)
-	{
-		double  widthpix ;
-		double  widthmm ;
-		u_int  dpi ;
-
-		widthpix = DisplayWidth( font->display , DefaultScreen(font->display)) ;
-		widthmm = DisplayWidthMM( font->display , DefaultScreen(font->display)) ;
-
-		dpi = DIVIDE_ROUNDING(widthpix * 254 , widthmm * 10) ;
-
-		return  DIVIDE_ROUNDINGUP(dpi * fontsize_d * font->cols , 72 * 2) ;
-	}
-	else
-	{
-		return  DIVIDE_ROUNDINGUP(fontsize_d * font->cols , 2) ;
-	}
-}
-#else
-static u_int
-get_xft_col_width(
-	x_font_t *  font ,
-	const char *  family ,
-	int  weight ,
-	int  slant ,
-	double  fontsize
-	)
-{
+#if  0
 	XftFont *  xfont ;
 
 	/*
@@ -516,7 +481,8 @@ get_xft_col_width(
 	{
 		u_int  w_width ;
 
-		w_width = xft_calculate_char_width( font->display , xfont , "W" , 1) ;
+		w_width = xft_calculate_char_width( font->display , xfont , "W" , 1)
+				+ letter_space ;
 
 		XftFontClose( font->display , xfont) ;
 
@@ -529,11 +495,35 @@ get_xft_col_width(
 			return  w_width ;
 		}
 	}
-
-	/* XXX this may be inaccurate. */
-	return  fontsize / 2 ;
-}
 #endif
+
+	if( percent > 0)
+	{
+		return  DIVIDE_ROUNDING(fontsize_d * font->cols * percent , 100 * 2) +
+			letter_space ;
+	}
+	else if( font->is_var_col_width)
+	{
+		return  0 ;
+	}
+	else if( strcmp( xft_size_type , XFT_SIZE) == 0)
+	{
+		double  widthpix ;
+		double  widthmm ;
+		u_int  dpi ;
+
+		widthpix = DisplayWidth( font->display , DefaultScreen(font->display)) ;
+		widthmm = DisplayWidthMM( font->display , DefaultScreen(font->display)) ;
+
+		dpi = DIVIDE_ROUNDING(widthpix * 254 , widthmm * 10) ;
+
+		return  DIVIDE_ROUNDINGUP(dpi * fontsize_d * font->cols , 72 * 2) + letter_space ;
+	}
+	else
+	{
+		return  DIVIDE_ROUNDINGUP(fontsize_d * font->cols , 2) + letter_space ;
+	}
+}
 
 static int
 set_xft_font(
@@ -542,6 +532,7 @@ set_xft_font(
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
 	int  use_medium_for_bold ,	/* Not used for now. */
+	u_int  letter_space ,
 	int  aa_opt		/* 0 = default , 1 = enable , -1 = disable */
 	)
 {
@@ -595,12 +586,8 @@ set_xft_font(
 			{
 				/* basic font (e.g. usascii) width */
 
-			#if  0
-				ch_width = get_xft_col_width( font , font_family ,
-						weight , slant , fontsize_d)
-			#else
-				ch_width = get_xft_col_width( font , fontsize_d , percent) ;
-			#endif
+				ch_width = get_xft_col_width( font , fontsize_d , percent ,
+								letter_space) ;
 
 				if( font->is_vertical)
 				{
@@ -637,6 +624,8 @@ set_xft_font(
 		
 			if( ch_width == 0)
 			{
+				/* Proportional (font->is_var_col_width is true) */
+
 				if( ( xfont = XftFontOpen( font->display ,
 						DefaultScreen( font->display) ,
 						XFT_FAMILY , XftTypeString , font_family ,
@@ -648,6 +637,7 @@ set_xft_font(
 						aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
 							aa_opt == 1 ? True : False , NULL)))
 				{
+					/* letter_space is ignored in variable column width mode */
 					ch_width = xft_calculate_char_width( font->display ,
 							xfont , "W" , 1) ;
 
@@ -681,11 +671,7 @@ set_xft_font(
 	{
 		/* basic font (e.g. usascii) width */
 
-	#if  0
-		ch_width = get_xft_col_width( font , "" , weight , slant , (double)fontsize) ;
-	#else
-		ch_width = get_xft_col_width( font , (double)fontsize , 0) ;
-	#endif
+		ch_width = get_xft_col_width( font , (double)fontsize , 0 , letter_space) ;
 	
 		if( font->is_vertical)
 		{
@@ -714,6 +700,8 @@ set_xft_font(
 
 	if( ch_width == 0)
 	{
+		/* Proportional (font->is_var_col_width is true) */
+
 		if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
 				xft_size_type , XftTypeDouble , (double)fontsize ,
 				XFT_ENCODING , XftTypeString , iso10646 ,
@@ -723,6 +711,7 @@ set_xft_font(
 				aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
 					aa_opt == 1 ? True : False , NULL)))
 		{
+			/* letter_space is ignored in variable column width mode. */
 			ch_width = xft_calculate_char_width( font->display ,
 					xfont , "W" , 1) ;
 
@@ -969,7 +958,8 @@ set_xfont(
 	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set */
-	int  use_medium_for_bold
+	int  use_medium_for_bold ,
+	u_int  letter_space
 	)
 {
 	XFontStruct *  xfont ;
@@ -1253,6 +1243,19 @@ font_found:
 
 				if( font->width < ch_width)
 				{
+					/*
+					 * If width(2) of '1' doesn't match ch_width(4)
+					 * x_off = (4-2)/2 = 1.
+					 * It means that starting position of drawing '1' is 1
+					 * as follows.
+					 *
+					 *  0123
+					 * +----+
+					 * | ** |
+					 * |  * |
+					 * |  * |
+					 * +----+
+					 */
 					font->x_off = (ch_width - font->width) / 2 ;
 				}
 
@@ -1269,6 +1272,14 @@ font_found:
 			font->is_proportional = 1 ;
 			font->x_off = font->width / 2 ;
 			font->width *= 2 ;
+		}
+
+		/* letter_space is ignored in variable column width mode. */
+		if( ! font->is_var_col_width && letter_space > 0)
+		{
+			font->is_proportional = 1 ;
+			font->width += letter_space ;
+			font->x_off += (letter_space / 2) ;
 		}
 	}
 	else
@@ -1375,7 +1386,6 @@ x_compose_dec_special_font(void)
 	return  1 ;
 }
 
-
 x_font_t *
 x_font_new(
 	Display *  display ,
@@ -1385,7 +1395,8 @@ x_font_new(
 	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,
-	int  use_medium_for_bold
+	int  use_medium_for_bold ,
+	u_int  letter_space		/* ignored in variable column width mode. */
 	)
 {
 	x_font_t *  font ;
@@ -1445,8 +1456,9 @@ x_font_new(
 #ifdef  USE_TYPE_XFT
 	case  TYPE_XFT:
 		if( ! set_xft_font( font , fontname , fontsize , col_width , use_medium_for_bold ,
-			(font_present & FONT_AA) == FONT_AA ?
-				1 : ((font_present & FONT_NOAA) == FONT_NOAA ? -1 : 0)))
+				letter_space ,
+				(font_present & FONT_AA) == FONT_AA ?
+					1 : ((font_present & FONT_NOAA) == FONT_NOAA ? -1 : 0)))
 		{
 			free( font) ;
 
@@ -1462,7 +1474,8 @@ x_font_new(
 		{
 			return  NULL ;
 		}
-		else if( ! set_xfont( font , fontname , fontsize , col_width , use_medium_for_bold))
+		else if( ! set_xfont( font , fontname , fontsize , col_width ,
+				use_medium_for_bold , letter_space))
 		{
 			free( font) ;
 
@@ -1472,6 +1485,10 @@ x_font_new(
 		break ;
 #endif
 	}
+
+#ifdef  DEBUG
+	x_font_dump( font) ;
+#endif
 
 	return  font ;
 }
@@ -1540,7 +1557,7 @@ x_calculate_char_width(
 	mkf_charset_t  cs
 	)
 {
-	if( font->is_var_col_width && ! font->decsp_font)
+	if( font->is_var_col_width && font->is_proportional && ! font->decsp_font)
 	{
 	#ifdef  USE_TYPE_XFT
 		if( font->xft_font)
@@ -1558,7 +1575,8 @@ x_calculate_char_width(
 				len = 4 ;
 			}
 
-			return  xft_calculate_char_width( font->display , font->xft_font , ch , len) ;
+			return  xft_calculate_char_width( font->display , font->xft_font ,
+								ch , len) ;
 		}
 	#endif
 	#ifdef  USE_TYPE_XCORE
@@ -1617,16 +1635,35 @@ x_font_dump(
 	)
 {
 #ifdef  USE_TYPE_XCORE
-	kik_msg_printf( "  id %x: XFont %p" , font->id , font->xfont) ;
+	kik_msg_printf( "Font id %x: XFont %p" , font->id , font->xfont) ;
 #endif
 #ifdef  USE_TYPE_XFT
-	kik_msg_printf( " XftFont %p" , font->id , font->xft_font) ;
+	kik_msg_printf( "Font id %x: XftFont %p" , font->id , font->xft_font) ;
 #endif
+
+	kik_msg_printf( " (width %d, height %d, height_to_baseline %d, x_off %d)" ,
+		font->width , font->height , font->height_to_baseline , font->x_off) ;
 
 	if( font->is_proportional)
 	{
 		kik_msg_printf( " (proportional)") ;
 	}
+
+	if( font->is_var_col_width)
+	{
+		kik_msg_printf( " (var col width)") ;
+	}
+
+	if( font->is_vertical)
+	{
+		kik_msg_printf( " (vertical)") ;
+	}
+	
+	if( font->is_double_drawing)
+	{
+		kik_msg_printf( " (double drawing)") ;
+	}
+
 	kik_msg_printf( "\n") ;
 
 	return  1 ;

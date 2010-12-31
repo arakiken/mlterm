@@ -111,8 +111,6 @@ typedef struct  x_screen
 
 	x_bel_mode_t  bel_mode ;
 
-	u_int  line_space ;
-
 	u_int  screen_width_ratio ;
 	u_int  screen_height_ratio ;
 
@@ -145,6 +143,7 @@ typedef struct  x_screen
 	char *  conf_menu_path_3 ;
 
 	u_int8_t  fade_ratio ;
+	u_int8_t  line_space ;
 	int8_t  receive_string_via_ucs ;
 	int8_t  use_vertical_cursor ;
 	int8_t  use_extended_scroll_shortcut ;

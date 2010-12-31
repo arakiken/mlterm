@@ -441,16 +441,16 @@ comment $Id$
 	なお、use_transbg が true となっている間は、壁紙の表示は行なわれません。
 
       o fade_ratio  (*100*) (#)
-        Focus から外れたときの前景/背景色の Fade 率(百分率)
+        Focus から外れたときの前景/背景色の Fade 率(百分率)[0-100]
 
       o brightness  (*100*) (#)
-        背景画像(透過処理含む)の輝度調整(百分率)
+        背景画像(透過処理含む)の輝度調整(百分率)[0-100]
 
       o contrast (*100*) (#)
-        背景画像(透過処理含む)のコントラスト(百分率)
+        背景画像(透過処理含む)のコントラスト(百分率)[0-100]
 
       o gamma (*100*) (#)
-        背景画像(透過処理含む)のガンマ値(百分率)
+        背景画像(透過処理含む)のガンマ値(百分率)[0-100]
 
       o alpha (*255*)
         背景画像(透過処理含む)のアルファ値[0-255]
@@ -458,7 +458,13 @@ comment $Id$
 	なお、depth オプションの説明も参照のこと。
       
       o line_space  (*0*) (#)
-        行間の広さ
+        行間の広さ[0-255]
+
+      o letter_space (*0*)
+        字間の広さ[0-255]
+	なお、-V オプションと同時に指定すると無効になります。
+	また、type_engine=xcore で letter_space に 1 以上の値を指定すると、
+	描画パフォーマンスが大幅に低下します。
 
       o borderless (true/*false*) (#)
         Window Manager の飾りを外す。
@@ -467,7 +473,7 @@ comment $Id$
       o use_xim  (*true*/false)
         XIM を使う
 
-        これを false にすると、XIM は一切使用できなくなります
+        これを false にすると、XIM は一切使用できなくなります。
 
       o input_method
         使用するインプットメソッド
@@ -945,10 +951,11 @@ comment $Id$
     -y/--term=value    : term_type
     -z/--largesmall=value : step_in_changing_font_size
        --iconpath=value : icon_path
-       --bimode=value  : bidi mode
+       --bimode=value  : bidi_mode
        --im=value      : input_method
        --parent=value  : parent_window
-       --depth=value   : visual depth
+       --csp=value     : letter_space
+       --depth=value   : depth
        --maxptys=value : max_ptys (X)
        --button3=value : button3_behavior
 

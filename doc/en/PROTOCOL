@@ -16,7 +16,7 @@ version 20091211
                      bel_mode | type_engine | use_anti_alias | use_variable_column_width |
                      use_combining | use_transbg | use_bidi | bidi_mode |
                      receive_string_via_ucs | input_method | wall_picture |
-                     full_reset | brightness | gamma | contrast | line_space |
+                     full_reset | brightness | gamma | contrast | line_space | letter_space |
                      screen_width_ratio | screen_height_ratio | vertical_mode |
                      scrollbar_mode | static_backscroll_mode | use_multi_column_char |
                      col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
@@ -30,7 +30,7 @@ version 20091211
 		     bel_mode | type_engine | use_anti_alias | use_variable_column_width |
 		     use_combining | use_transbg | use_bidi | bidi_mode |
 		     receive_string_via_ucs | xim | locale | wall_picture |
-		     pwd | brightness | gamma | contrast | line_space |
+		     pwd | brightness | gamma | contrast | line_space | letter_space |
 		     screen_width_ratio | screen_height_ratio | vertical_mode |
 		     scrollbar_mode | use_multi_column_char |
                      col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |

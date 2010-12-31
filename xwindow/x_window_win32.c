@@ -3055,7 +3055,7 @@ x_window_get_mod_meta_mask(
 	char *  mod_key
 	)
 {
-	return  0 ;
+	return  ModMask ;
 }
 
 int

@@ -3785,6 +3785,17 @@ change_line_space(
 }
 
 static void
+change_letter_space(
+	x_screen_t *  screen ,
+	u_int  letter_space
+	)
+{
+	x_set_letter_space( screen->font_man , letter_space) ;
+
+	font_size_changed( screen) ;
+}
+
+static void
 change_screen_width_ratio(
 	x_screen_t *  screen ,
 	u_int  ratio
@@ -4728,6 +4739,14 @@ set_config(
 	char *  value		/* can be NULL */
 	)
 {
+	/* Executing value of "-e" option is dangerous in case 'cat dangerousfile'. */
+	if( strstr( key , "mlclient") && strstr( key , "-e "))
+	{
+		kik_warn_printf( "\"%s\" is prohibited in configuration protocol.\n" , key) ;
+
+		return ;
+	}
+
 	x_screen_set_config( p , dev , key , value) ;
 }
 
@@ -4847,6 +4866,11 @@ get_config(
 	else if( strcmp( key , "line_space") == 0)
 	{
 		sprintf( digit , "%d" , screen->line_space) ;
+		value = digit ;
+	}
+	else if( strcmp( key , "letter_space") == 0)
+	{
+		sprintf( digit , "%d" , x_get_letter_space( screen->font_man)) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "screen_width_ratio") == 0)
@@ -7493,6 +7517,17 @@ x_screen_set_config(
 		}
 
 		change_line_space( screen , line_space) ;
+	}
+	else if( strcmp( key , "letter_space") == 0)
+	{
+		u_int  letter_space ;
+
+		if( ! kik_str_to_uint( &letter_space , value))
+		{
+			return ;
+		}
+
+		change_letter_space( screen , letter_space) ;
 	}
 	else if( strcmp( key , "screen_width_ratio") == 0)
 	{

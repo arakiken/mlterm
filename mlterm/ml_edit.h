@@ -31,21 +31,20 @@ typedef struct  ml_edit
 	ml_model_t  model ;
 	ml_cursor_t  cursor ;
 
-	int8_t  is_logging ;
-
-	u_int8_t *  tab_stops ;
 	u_int  tab_size ;
+	u_int8_t *  tab_stops ;
 
 	ml_char_t  bce_ch ;
 
 	/* used for line overlapping */
 	ml_line_t *  wraparound_ready_line ;
-	
+
 	int  scroll_region_beg ;
 	int  scroll_region_end ;
 
 	ml_edit_scroll_event_listener_t *  scroll_listener ;
-	
+
+	int8_t  is_logging ;
 	int8_t  is_relative_origin ;
 	int8_t  is_auto_wrap ;
 	int8_t  use_bce ;

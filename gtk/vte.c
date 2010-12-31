@@ -1733,7 +1733,8 @@ vte_terminal_init(
 			main_config.font_present ,
 			main_config.font_size , usascii_font_cs ,
 			usascii_font_cs_changable , main_config.use_multi_col_char ,
-			main_config.step_in_changing_font_size) ;
+			main_config.step_in_changing_font_size ,
+			main_config.letter_space) ;
 	
 	color_man = x_color_manager_new( &disp , &color_config ,
 			main_config.fg_color , main_config.bg_color ,
@@ -1911,6 +1912,36 @@ vte_terminal_fork_command(
 	
 	return  ml_term_get_child_pid( terminal->pvt->term) ;
 }
+
+#if  VTE_CHECK_VERSION(0,26,0)
+gboolean
+vte_terminal_fork_command_full(
+	VteTerminal *  terminal ,
+	VtePtyFlags pty_flags ,
+	const char *  working_directory ,
+	char **  argv ,
+	char **  envv ,
+	GSpawnFlags  spawn_flags ,
+	GSpawnChildSetupFunc  child_setup ,
+	gpointer  child_setup_data ,
+	GPid *  child_pid /* out */ ,
+	GError **  error
+	)
+{
+	if( ( *child_pid = vte_terminal_fork_command( terminal , argv[0] , argv + 1 , envv ,
+				working_directory ,
+				(pty_flags & VTE_PTY_NO_LASTLOG) ? FALSE : TRUE ,
+				(pty_flags & VTE_PTY_NO_UTMP) ? FALSE : TRUE ,
+				(pty_flags & VTE_PTY_NO_WTMP) ? FALSE : TRUE)) > 0)
+	{
+		return  TRUE ;
+	}
+	else
+	{
+		return  FALSE ;
+	}
+}
+#endif
 
 pid_t
 vte_terminal_forkpty(
@@ -2923,6 +2954,57 @@ vte_terminal_match_check(
 	*tag = 1 ;	/* For pattern including "http" (see vte_terminal_match_add_gregex) */
 
 	return  buf ;
+}
+
+/* GRegex was not supported */
+#if  (GLIB_MAJOR_VERSION >= 2) && (GLIB_MINOR_VERSION >= 14)
+void
+vte_terminal_search_set_gregex(
+	VteTerminal *  terminal ,
+	GRegex *  regex
+	)
+{
+}
+
+GRegex *
+vte_terminal_search_get_gregex(
+	VteTerminal *  terminal
+	)
+{
+	return  NULL ;
+}
+#endif
+
+void
+vte_terminal_search_set_wrap_around(
+	VteTerminal *  terminal ,
+        gboolean  wrap_around
+	)
+{
+}
+
+gboolean
+vte_terminal_search_get_wrap_around(
+	VteTerminal *  terminal
+	)
+{
+	return  FALSE ;
+}
+
+gboolean
+vte_terminal_search_find_previous(
+	VteTerminal *  terminal
+	)
+{
+	return  FALSE ;
+}
+
+gboolean
+vte_terminal_search_find_next(
+	VteTerminal *  terminal
+	)
+{
+	return  FALSE ;
 }
 
 void

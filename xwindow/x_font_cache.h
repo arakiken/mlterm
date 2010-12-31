@@ -27,6 +27,7 @@ typedef struct  x_font_cache
 	mkf_charset_t  usascii_font_cs ;
 	x_font_config_t *  font_config ;
 	int8_t  use_multi_col_char ;
+	u_int8_t  letter_space ;
 
 	x_font_t *  usascii_font ;
 
@@ -47,7 +48,8 @@ typedef struct  x_font_cache
 
 
 x_font_cache_t *  x_acquire_font_cache( Display *  display , u_int  font_size ,
-	mkf_charset_t  usascii_font_cs , x_font_config_t *  font_config , int  use_multi_col_char) ;
+	mkf_charset_t  usascii_font_cs , x_font_config_t *  font_config ,
+	int  use_multi_col_char , u_int  letter_space) ;
 
 int  x_release_font_cache( x_font_cache_t *  font_cache) ;
 

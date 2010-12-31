@@ -23,7 +23,7 @@ x_prepare_for_main_config(
 	)
 {
 	char *  rcpath ;
-	
+
 	/*
 	 * XXX
 	 * "mlterm/core" is for backward compatibility with 1.9.44
@@ -40,7 +40,7 @@ x_prepare_for_main_config(
 		kik_conf_read( conf , rcpath) ;
 		free( rcpath) ;
 	}
-	
+
 	if( ( rcpath = kik_get_sys_rc_path( "mlterm/main")))
 	{
 		kik_conf_read( conf , rcpath) ;
@@ -206,6 +206,8 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "serv" , 0 , "default_server" ,
 		"connecting server by default") ;
 #endif
+	kik_conf_add_opt( conf , '\0' , "csp" , 0 , "letter_space" ,
+		"extra space between letters in pixels [0]") ;
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
 
@@ -582,6 +584,22 @@ x_main_config_init(
 		else
 		{
 			kik_msg_printf( invalid_msg , "line space" , value) ;
+		}
+	}
+
+	main_config->letter_space = 0 ;
+	
+	if( ( value = kik_conf_get_value( conf , "letter_space")))
+	{
+		u_int  size ;
+		
+		if( kik_str_to_uint( &size , value))
+		{
+			main_config->letter_space = size ;
+		}
+		else
+		{
+			kik_msg_printf( invalid_msg , "letter space" , value) ;
 		}
 	}
 

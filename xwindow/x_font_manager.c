@@ -116,7 +116,8 @@ x_font_manager_new(
 	mkf_charset_t  usascii_font_cs ,
 	int  usascii_font_cs_changable ,
 	int  use_multi_col_char ,
-	int  step_in_changing_font_size
+	u_int  step_in_changing_font_size ,
+	u_int  letter_space
 	)
 {
 	x_font_manager_t *  font_man ;
@@ -138,7 +139,8 @@ x_font_manager_new(
 	}
 
 	if( ( font_man->font_cache = x_acquire_font_cache( display , font_size , usascii_font_cs ,
-					font_man->font_config , use_multi_col_char)) == NULL)
+					font_man->font_config , use_multi_col_char ,
+					letter_space)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " x_acquire_font_cache() failed.\n") ;
@@ -226,7 +228,8 @@ x_font_manager_usascii_font_cs_changed(
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
 				font_man->font_cache->font_size , usascii_font_cs ,
 				font_man->font_config ,
-				font_man->font_cache->use_multi_col_char)) == NULL)
+				font_man->font_cache->use_multi_col_char ,
+				font_man->font_cache->letter_space)) == NULL)
 	{
 		return  0 ;
 	}
@@ -280,7 +283,8 @@ x_change_font_present(
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
 				font_man->font_cache->font_size ,
 				font_man->font_cache->usascii_font_cs ,
-				font_config , font_man->font_cache->use_multi_col_char)) == NULL)
+				font_config , font_man->font_cache->use_multi_col_char ,
+				font_man->font_cache->letter_space)) == NULL)
 	{
 		x_release_font_config( font_config) ;
 
@@ -334,7 +338,8 @@ x_change_font_size(
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
 				font_size , font_man->font_cache->usascii_font_cs , 
 				font_man->font_config ,
-				font_man->font_cache->use_multi_col_char)) == NULL)
+				font_man->font_cache->use_multi_col_char ,
+				font_man->font_cache->letter_space)) == NULL)
 	{
 		return  0 ;
 	}
@@ -364,7 +369,8 @@ x_larger_font(
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
 				font_size , font_man->font_cache->usascii_font_cs , 
 				font_man->font_config ,
-				font_man->font_cache->use_multi_col_char)) == NULL)
+				font_man->font_cache->use_multi_col_char ,
+				font_man->font_cache->letter_space)) == NULL)
 	{
 		return  0 ;
 	}
@@ -394,7 +400,8 @@ x_smaller_font(
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
 				font_size , font_man->font_cache->usascii_font_cs , 
 				font_man->font_config ,
-				font_man->font_cache->use_multi_col_char)) == NULL)
+				font_man->font_cache->use_multi_col_char ,
+				font_man->font_cache->letter_space)) == NULL)
 	{
 		return  0 ;
 	}
@@ -428,7 +435,8 @@ x_set_multi_col_char_flag(
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
 				font_man->font_cache->font_size ,
 				font_man->font_cache->usascii_font_cs ,
-				font_man->font_config , flag)) == NULL)
+				font_man->font_config , flag ,
+				font_man->font_cache->letter_space)) == NULL)
 	{
 		return  0 ;
 	}
@@ -444,6 +452,41 @@ x_is_using_multi_col_char(
 	)
 {
 	return  font_man->font_cache->use_multi_col_char ;
+}
+
+int
+x_set_letter_space(
+	x_font_manager_t *  font_man ,
+	u_int  letter_space
+	)
+{
+	x_font_cache_t *  font_cache ;
+
+	if( font_man->font_cache->letter_space == letter_space)
+	{
+		return  0 ;
+	}
+
+	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
+				font_man->font_cache->font_size ,
+				font_man->font_cache->usascii_font_cs ,
+				font_man->font_config , font_man->font_cache->use_multi_col_char ,
+				letter_space)) == NULL)
+	{
+		return  0 ;
+	}
+
+	change_font_cache( font_man , font_cache) ;
+
+	return  1 ;
+}
+
+u_int
+x_get_letter_space(
+	x_font_manager_t *  font_man
+	)
+{
+	return  font_man->font_cache->letter_space ;
 }
 
 XFontSet
@@ -533,7 +576,8 @@ x_activate_local_font_config(
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
 				font_man->font_cache->font_size ,
 				font_man->font_cache->usascii_font_cs ,
-				font_config , font_man->font_cache->use_multi_col_char)) == NULL)
+				font_config , font_man->font_cache->use_multi_col_char ,
+				font_man->font_cache->letter_space)) == NULL)
 	{
 		return  0 ;
 	}
@@ -568,8 +612,9 @@ x_deactivate_local_font_config(
 	
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
 				font_man->font_cache->font_size ,
-				font_man->font_cache->usascii_font_cs ,
-				font_man->font_config , font_man->font_cache->use_multi_col_char)) == NULL)
+				font_man->font_cache->usascii_font_cs , font_man->font_config ,
+				font_man->font_cache->use_multi_col_char ,
+				font_man->font_cache->letter_space)) == NULL)
 	{
 		x_release_font_config( font_config) ;
 		

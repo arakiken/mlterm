@@ -4,6 +4,7 @@
 * Support "alpha" option in X11.
 * Add "depth" option.
 * Add "bidi_mode" option.
+* Add "letter_space" option.
 * Support "rgba:RR/GG/BB/AA" format to specify rgba color.
 * Support execution of command like "mlclient -e w3m" in "button3_behavior" option.
 * Other bug fixes:

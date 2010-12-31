@@ -539,6 +539,10 @@ Don't use input method.
 Specify parent Window ID.
 The default is \fB0\fR.
 .TP
+\fB\-\-csp\fR=\fIvalue\fR
+Specify number of extra pixels between lines. (ignored if you specify \fB\-\-V\fR option.)
+The default is \fB0\fR.
+.TP
 \fB\-\-depth\fR=\fIvalue\fR
 Specify visual depth. (8,16,24,32)
 .TP
@@ -1152,6 +1156,9 @@ Specify iscii language.
 .TP
 \fBiso88591_font_for_usascii=\fIbool\fR (\fB\-8\fR, \fB\-\-88591\fR) 
 Use ISO8859-1 fonts for US-ASCII part of various encodings.
+.TP
+\fBletter_space=\fIvalue\fR (\fB\-\-csp\fR) 
+Specify number of extra dots between letters. (ignored if you specify \fB\-\-V\fR option.)
 .TP
 \fBline_space=\fIvalue\fR (\fB\-o\fR, \fB\-\-lsp\fR) 
 Specify number of extra dots between lines.

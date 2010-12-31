@@ -177,6 +177,7 @@ typedef struct  x_window
 #endif
 	void (*window_deleted)( struct x_window *) ;
 	void (*mapping_notify)( struct x_window *) ;
+
 } x_window_t ;
 
 

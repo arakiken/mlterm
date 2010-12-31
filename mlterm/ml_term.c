@@ -158,8 +158,10 @@ ml_term_zombie(
 	ml_pty_ptr_t  pty ;
 
 	pty = term->pty ;
+
+	/* Should be NULL because ml_pty_delete calls term->pty_listener->closed. */
 	term->pty = NULL ;
-	
+
 	ml_pty_delete( pty) ;
 
 	return  1 ;

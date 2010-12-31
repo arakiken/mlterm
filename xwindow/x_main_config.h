@@ -24,12 +24,11 @@ typedef struct x_main_config
 	int  geom_hint ;
 	u_int  cols ;
 	u_int  rows ;
+	u_int  font_size ;
+	u_int  tab_size ;
 	u_int  screen_width_ratio ;
 	u_int  screen_height_ratio ;
-	u_int  font_size ;
 	u_int  num_of_log_lines ;
-	u_int  line_space ;
-	u_int  tab_size ;
 	ml_iscii_lang_type_t  iscii_lang_type ;
 	x_mod_meta_mode_t  mod_meta_mode ;
 	x_bel_mode_t  bel_mode ;
@@ -78,6 +77,8 @@ typedef struct x_main_config
 	u_int16_t  gamma ;
 	u_int8_t  alpha ;
 	u_int8_t  fade_ratio ;
+	u_int8_t  line_space ;
+	u_int8_t  letter_space ;
 	int8_t  use_scrollbar ;
 	int8_t  use_login_shell ;
 	int8_t  use_bidi ;

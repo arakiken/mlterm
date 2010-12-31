@@ -345,7 +345,7 @@ ml_char_combine(
 			return  0 ;
 		}
 
-#if !defined(__GLIBC__)
+	#if !defined(__GLIBC__)
 		if( sizeof( multi_ch) >= 8 && ((long)( multi_ch) & 0x1UL) != 0)
 		{
 			kik_msg_printf( "Your malloc() doesn't return 2 bits aligned address."
@@ -353,7 +353,7 @@ ml_char_combine(
 
 			return  0 ;
 		}
-#endif
+	#endif
 
 		SET_COMB_TRAILING( multi_ch[comb_size].u.ch.attr) ;
 		ml_char_init( multi_ch + comb_size + 1) ;
@@ -972,8 +972,8 @@ ml_nl_ch(void)
 	if( nl_ch.u.ch.attr == 0)
 	{
 		ml_char_init( &nl_ch) ;
-		ml_char_set( &nl_ch , (u_char *)"\n" , 1 , US_ASCII , 0 , 0 , ML_FG_COLOR , ML_BG_COLOR ,
-			0 , 0) ;
+		ml_char_set( &nl_ch , (u_char *)"\n" , 1 , US_ASCII , 0 , 0 ,
+			ML_FG_COLOR , ML_BG_COLOR , 0 , 0) ;
 	}
 
 	return  &nl_ch ;

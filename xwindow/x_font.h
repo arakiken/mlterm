@@ -61,13 +61,13 @@ typedef struct x_font
 	/*
 	 * These members are never zero.
 	 */
-	u_int  cols ;
-	u_int  width ;
-	u_int  height ;
-	u_int  height_to_baseline ;
+	u_int8_t  cols ;
+	u_int8_t  width ;
+	u_int8_t  height ;
+	u_int8_t  height_to_baseline ;
 
 	/* This is not zero only when is_proportional is true and xfont is set. */
-	int  x_off ;
+	int8_t  x_off ;
 
 	/*
 	 * If is_var_col_width is false and is_proportional is true,
@@ -75,7 +75,6 @@ typedef struct x_font
 	 */
 	int8_t  is_var_col_width ;
 	int8_t  is_proportional ;
-	
 	int8_t  is_vertical ;
 	int8_t  is_double_drawing ;
 
@@ -84,10 +83,9 @@ typedef struct x_font
 
 int  x_compose_dec_special_font(void) ;
 
-
 x_font_t *  x_font_new( Display *  display , ml_font_t  id , x_type_engine_t  type_engine ,
 	x_font_present_t  font_present , const char *  fontname , u_int  fontsize ,
-	u_int  col_width , int  use_medium_for_bold) ;
+	u_int  col_width , int  use_medium_for_bold , u_int  letter_space) ;
 
 int  x_font_delete( x_font_t *  font) ;
 

@@ -12,7 +12,11 @@
 
 #define  kik_arg_str_to_array( argc , args)  \
 	_kik_arg_str_to_array( \
-		/* '\t' is not recognized as separator. */ \
+		/* \
+		 * '\t' is not recognized as separator. \
+		 * If you try to recognize '\t', don't forget to add checking "-e\t" in \
+		 * set_config("mlclient") in x_screen.c. \
+		 */ \
 		alloca( sizeof( char*) * ( kik_count_char_in_str( args , ' ') + 2)) ,\
 		argc , args)
 
