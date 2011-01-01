@@ -34,12 +34,11 @@ acquire_color_cache_256(
 		}
 	}
 
-	if( ( cache = malloc( sizeof( x_color_cache_256_t))) == NULL)
+	if( ( cache = calloc( 1 , sizeof( x_color_cache_256_t))) == NULL)
 	{
 		return  NULL ;
 	}
 
-	memset( cache->xcolors , 0 , sizeof( cache->xcolors)) ;
 	cache->ref_count = 1 ;
 
 	return  cache ;
@@ -241,6 +240,7 @@ x_acquire_color_cache(
 	}
 
 	memset( color_cache->xcolors , 0 , sizeof( color_cache->xcolors)) ;
+	memset( color_cache->is_loaded , 0 , sizeof( color_cache->is_loaded)) ;
 
 	color_cache->disp = disp ;
 	color_cache->cache_256 = NULL ;

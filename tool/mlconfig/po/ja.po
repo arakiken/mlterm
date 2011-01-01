@@ -267,6 +267,14 @@ msgstr "Unicodeの曖昧な幅の文字を全角文字として扱う"
 msgid "Font size (pixels)"
 msgstr "フォントサイズ(ピクセル)"
 
+#: tool/mlconfig/mc_font.c:62
+msgid "Font name"
+msgstr "フォント名"
+
+#: tool/mlconfig/mc_font.c:62
+msgid "Select"
+msgstr "選択"
+
 #: tool/mlconfig/mc_gamma.c:69
 msgid "Gamma"
 msgstr "ガンマ"
@@ -278,6 +286,10 @@ msgstr "ISCII言語"
 #: tool/mlconfig/mc_line_space.c:65
 msgid "Line space (pixels)"
 msgstr "行間隔(ピクセル)"
+
+#: tool/mlconfig/mc_letter_space.c:65
+msgid "Letter space (pixels)"
+msgstr "字間(ピクセル)"
 
 #: tool/mlconfig/mc_logsize.c:63
 msgid "Backlog size (lines)"

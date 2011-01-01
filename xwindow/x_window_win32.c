@@ -1259,12 +1259,17 @@ x_window_show(
 #else
 	win->my_window = CreateWindowExW( 0 , L"MLTERM" , win->app_name ,
 #endif
-			win->parent_window ? WS_CHILD | WS_VISIBLE : WS_OVERLAPPEDWINDOW ,
-			win->parent_window ? win->x : CW_USEDEFAULT ,
-			win->parent_window ? win->y : CW_USEDEFAULT ,
-        		win->parent_window ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win) ,
-			win->parent_window ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win) ,
-			win->parent_window , NULL , win->disp->display->hinst , NULL) ;
+				PARENT_WINDOWID_IS_TOP(win) ?
+					WS_OVERLAPPEDWINDOW : WS_CHILD | WS_VISIBLE ,
+				PARENT_WINDOWID_IS_TOP(win) ?
+					CW_USEDEFAULT : win->x ,
+				PARENT_WINDOWID_IS_TOP(win) ?
+					CW_USEDEFAULT : win->y ,
+				PARENT_WINDOWID_IS_TOP(win) ?
+					ACTUAL_WINDOW_WIDTH(win) : ACTUAL_WIDTH(win) ,
+				PARENT_WINDOWID_IS_TOP(win) ?
+					ACTUAL_WINDOW_HEIGHT(win) : ACTUAL_HEIGHT(win) ,
+				win->parent_window , NULL , win->disp->display->hinst , NULL) ;
 
   	if( ! win->my_window)
         {

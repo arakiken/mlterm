@@ -460,7 +460,7 @@ comment $Id$
       o line_space  (*0*) (#)
         行間の広さ[0-255]
 
-      o letter_space (*0*)
+      o letter_space (*0*) (#)
         字間の広さ[0-255]
 	なお、-V オプションと同時に指定すると無効になります。
 	また、type_engine=xcore で letter_space に 1 以上の値を指定すると、
@@ -582,6 +582,8 @@ comment $Id$
         button3 を押下したときの挙動を指定する。
 	xterm = xterm 互換
 	menuN = conf_menu_path_N で指定したプログラムを起動
+	また、"mlclient -e w3m" のようにコマンド文字列を指定すると、領域選択
+	した文字列を引数に、指定したコマンドを実行させることができます。
 
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)

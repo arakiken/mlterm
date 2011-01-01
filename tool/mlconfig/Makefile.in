@@ -53,7 +53,7 @@ _OBJ = gtkxlfdsel.o
 OBJ = main.o mc_combo.o mc_char_encoding.o mc_im.o mc_tabsize.o mc_logsize.o mc_check.o \
 	mc_font.o mc_color.o mc_mod_meta.o mc_bel.o mc_iscii_lang.o \
 	mc_fade.o mc_brightness.o mc_contrast.o mc_gamma.o mc_screen_ratio.o \
-	mc_line_space.o mc_vertical.o mc_sb.o mc_sb_view.o mc_wall_pic.o \
+	mc_line_space.o mc_letter_space.o mc_vertical.o mc_sb.o mc_sb_view.o mc_wall_pic.o \
 	mc_bgtype.o mc_io.o mc_pty.o mc_flags.o $(_OBJ@WIN32TAG@)
 
 LKIK_DEB=-lkik_deb

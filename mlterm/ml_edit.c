@@ -951,7 +951,6 @@ ml_edit_set_scroll_region(
 	 *   2. if beg and end are smaller than 0, ignore the sequence.
 	 *   3. if end is smaller than beg, ignore the sequence.
 	 *   4. if beg and end are out of window, ignore the sequence.
-	 *   5. finally reset cursor position.
 	 *
 	 *   (default = full size of window)
 	 */
@@ -993,8 +992,6 @@ ml_edit_set_scroll_region(
 
 	edit->scroll_region_beg = beg ;
 	edit->scroll_region_end = end ;
-
-	ml_edit_goto( edit , 0 , 0) ;
 
 	return  1 ;
 }
@@ -1206,6 +1203,9 @@ ml_edit_goto_beg_of_line(
 	return  1 ;
 }
 
+/*
+ * Note that this function ignores edit->is_relative_origin.
+ */
 int
 ml_edit_goto_home(
 	ml_edit_t *  edit

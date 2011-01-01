@@ -56,6 +56,9 @@
 # BiDi レンダリングを行う
 # use_bidi = true
 
+# BiDi レンダリングの方法(normal,cmd_l,cmd_r)
+# bidi_mode = normal
+
 # 結合文字を処理する  
 # use_combining = true
 
@@ -124,8 +127,11 @@
 # 背景透過する
 # use_transbg = false
 
-# 背景透過のアルファ値(--with-gui=win32 のみ)
+# 背景透過のアルファ値
 # alpha = 255
+
+# Visual の深さ (8,16,24,32)
+# depth = 0
 
 # スクロールバーをつける
 # use_scrollbar = true
@@ -172,6 +178,9 @@
 
 # 行間の広さ
 # line_space = 0
+
+# 字間の広さ
+# letter_space = 0
 
 # Window Manager の飾りを外す
 # borderless = false
@@ -228,3 +237,7 @@
 
 # pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
 # logging_vt_seq = false
+
+# button3 を押下したときの挙動を指定
+# (xterm,menu1,menu2,menu3, or command string like "mlclient -e w3m")
+# button3_behavior = xterm

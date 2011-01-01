@@ -50,7 +50,7 @@
 
 #define  VTE_WIDGET(screen)  ((VteTerminal*)(screen)->system_listener->self)
 /* XXX Hack to distinguish x_screen_t from x_{candidate|status}_screent_t */
-#define  IS_MLTERM_SCREEN(win)  ((win)->parent_window != None)
+#define  IS_MLTERM_SCREEN(win)  (! PARENT_WINDOWID_IS_TOP(win))
 
 #define  WINDOW_MARGIN  2
 
@@ -1832,14 +1832,6 @@ modify_envv(
 			g_free( *p) ;
 			*p = wid_env ;
 		}
-	#if  0
-		else
-		{
-			char *  ver_env ;
-			
-			ver_env = g_strdup( "MLTERM=3.0.1") ;
-		}
-	#endif
 
 		p ++ ;
 	}

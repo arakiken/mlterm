@@ -27,7 +27,7 @@ typedef struct  x_display
 	/*
 	 * Public(read only)
 	 */
-	Display *  display ;
+	Display *  display ;	/* Don't change position, which pixmap_engine depends on. */
 	int  screen ;		/* DefaultScreen */
 	char *  name ;
 	Window  my_window ;	/* DefaultRootWindow */

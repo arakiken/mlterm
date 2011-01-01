@@ -111,8 +111,12 @@ typedef struct  pixmap_sb_view
 
 /* --- static functions --- */
 
-/* declared in x_imagelib.h */
-int  x_imagelib_load_file( Display *  display, char *  path, u_int32_t **  cardinal,
+/* XXX Hack (declared in x_display.h) */
+typedef struct x_display_t *  x_display_ptr_t ;
+x_display_ptr_t *  x_get_opened_displays( u_int *  num) ;
+
+/* XXX Hack (declared in x_imagelib.h) */
+int  x_imagelib_load_file( x_display_ptr_t  disp, char *  path, u_int32_t **  cardinal,
 	Pixmap *  pixmap, Pixmap *  mask, int *  width, int *  height) ;
 
 static void
@@ -128,6 +132,9 @@ load_image(
 {
 	char *  path ;
 	int  len ;
+	x_display_ptr_t *  disps ;
+	u_int  ndisps ;
+	u_int  count ;
 
 	if( height == NULL || width == NULL)
 	{
@@ -138,7 +145,31 @@ load_image(
 	path = malloc( sizeof( char) * ( len + 1)) ;
 	sprintf( path , "%s/%s.png" , dir , file);
 
-	if( ! x_imagelib_load_file( display , path , NULL , pixmap , mask ,
+	disps = x_get_opened_displays( &ndisps) ;
+	count = 0 ;
+	while( 1)
+	{
+		/*
+		 * XXX Hack
+		 * (*disps) == (x_display_t*) == (Display**)
+		 * (Display* is the first member of x_display_t.)
+		 */
+		if( *((Display**)(*disps)) == display)
+		{
+			break ;
+		}
+
+		if( ++count >= ndisps)
+		{
+			break ;
+		}
+		else
+		{
+			disps ++ ;
+		}
+	}
+	
+	if( ! x_imagelib_load_file( *disps , path , NULL , pixmap , mask ,
 				width , height))
 	{
 #ifdef __DEBUG

@@ -115,7 +115,8 @@ Supported platforms
 
   * NetBSD 3.0.1 (x86)
   * OpenSolaris 2009.06 (CC=cc) (x86)
-  * Ubuntu 10.04 (x86)
+  * Ubuntu 10.10 (x86)
+  * CentOS 5 (x86)
   * MS Windows XP SP3 (x86)
   * MS Windows XP SP3/MSYS 1.0.10 (x86)
   * MS Windows XP SP3/Cygwin 1.7.1-1 (x86)
@@ -139,6 +140,7 @@ Supported platforms
   * NetBSD 1.6Q current (x86)
   * NetBSD 1.6.2 (x86)
   * RedHat Linux 7.1
+  * Ubuntu 10.04 (x86)
   * MS Windows 98/Cygwin 1.5.13 with x-org 6.8.2.0-1 (x86)
 
 

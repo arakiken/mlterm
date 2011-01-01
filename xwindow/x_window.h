@@ -29,6 +29,8 @@
 #define  ACTUAL_WIDTH(win)  ((win)->width + (win)->margin * 2)
 #define  ACTUAL_HEIGHT(win)  ((win)->height + (win)->margin * 2)
 
+#define  PARENT_WINDOWID_IS_TOP(win)  ((win)->parent_window == (win)->disp->my_window)
+
 
 typedef enum  x_event_dispatch
 {

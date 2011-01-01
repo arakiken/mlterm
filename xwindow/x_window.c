@@ -1231,9 +1231,10 @@ x_window_show(
 		}
 	}
 
-	if( win->parent_window == win->disp->my_window)
+	/* Don't use win->parent here in case mlterm works as libvte. */
+	if( PARENT_WINDOWID_IS_TOP(win))
 	{
-		/* Top level window */
+		/* Root window */
 
 		XSizeHints  size_hints ;
 		XClassHint  class_hint ;

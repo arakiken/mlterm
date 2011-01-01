@@ -21,6 +21,7 @@
 #include  "mc_logsize.h"
 #include  "mc_font.h"
 #include  "mc_line_space.h"
+#include  "mc_letter_space.h"
 #include  "mc_screen_ratio.h"
 #include  "mc_mod_meta.h"
 #include  "mc_bel.h"
@@ -75,6 +76,7 @@ update(
     mc_update_logsize() ;
     mc_update_font_misc() ;
     mc_update_line_space() ;
+    mc_update_letter_space() ;
     mc_update_screen_width_ratio() ;
     mc_update_screen_height_ratio() ;
     mc_update_mod_meta_mode() ;
@@ -383,7 +385,7 @@ show(void)
 
 	hbox = gtk_hbox_new(TRUE, 5);
 	gtk_widget_show(hbox);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);	
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
 	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_BIDI)))
 	    return 0;
@@ -420,9 +422,17 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 	
 
+	hbox = gtk_hbox_new(TRUE, 5);
+	gtk_widget_show(hbox);
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
+
 	if (!(config_widget = mc_line_space_config_widget_new())) return 0;
 	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
+
+	if (!(config_widget = mc_letter_space_config_widget_new())) return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
 
 
 	frame = gtk_frame_new(_("Screen ratio against font size"));

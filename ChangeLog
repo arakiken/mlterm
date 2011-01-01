@@ -1,3 +1,38 @@
+2011-01-02  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.0.2 released.
+	  (tag "rel-3_0_2")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.0.2
+
+	* configure: re-generated
+
+	* pixmap_engine.c: First argument of x_imagelib_load_file() is changed
+	  from Display to x_display_t.
+
+	* mc_letter_space.[ch]: Added.
+
+	* etc/main.ja: Updated.
+
+	* x_color_cache.c:
+	  x_color_cache_t::is_loaded and x_color_cache_256_t::is_loaded are
+	  initialized to zero.
+
+	* vte.c:
+	  IS_MLTERM_SCREEN() macro uses PARENT_WINDOWID_IS_TOP() instead of
+	  checking win->parent_window is None or not, because win->parent_window
+	  is never None in xlib.
+	
+	* ml_vt100_parser.c:
+	  - "ESC [ ! p"(DECSTR) is partially supported.
+	  - ml_screen_goto_home() is called with ml_screen_set_scroll_region()
+	    in "ESC [ r" sequence.
+	
+	* ml_edit.c:
+	  ml_edit_set_scroll_region() doesn't let cursor go home in order to
+	  support DECSTR which resets terminal but doesn't reset cursor position.
+
 2011-01-01  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/vte.c: vte_terminal_fork_command_full, vte_terminal_search_set_gregex,
