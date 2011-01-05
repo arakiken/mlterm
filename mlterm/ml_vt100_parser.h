@@ -39,8 +39,11 @@ typedef enum  ml_unicode_font_policy
 typedef struct  ml_char_buffer
 {
 	ml_char_t  chars[PTY_WR_BUFFER_SIZE] ;
-	
 	u_int  len ;
+
+	/* for "CSI b"(REP) sequence */
+	ml_char_t *  last_ch ;
+
 	int (*output_func)( ml_screen_t * , ml_char_t *  chars , u_int) ;
 
 }  ml_char_buffer_t ;

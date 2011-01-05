@@ -225,9 +225,7 @@ vertical_tabs(
 	)
 {
 	int  col ;
-	int  count ;
-	
-	reset_wraparound_checker( edit) ;
+	u_int  count ;
 
 	col = edit->cursor.col ;
 	
@@ -239,19 +237,21 @@ vertical_tabs(
 			{
 				if( col >= edit->model.num_of_cols - 1)
 				{
-					goto  end ;
+					return  1 ;
 				}
 
 				col ++ ;
+				ml_edit_go_forward( edit , WRAPAROUND) ;
 			}
 			else
 			{
 				if( col <= 0)
 				{
-					goto  end ;
+					return  1 ;
 				}
 
 				col -- ;
+				ml_edit_go_back( edit , WRAPAROUND) ;
 			}
 
 			if( edit->tab_stops[col / 8] & ( 1 << (7 - col % 8)))
@@ -261,9 +261,6 @@ vertical_tabs(
 		}
 	}
 
-end:
-	ml_cursor_moveh_by_col( &edit->cursor , col) ;
-	
 	return  1 ;
 }
 
@@ -949,7 +946,7 @@ ml_edit_set_scroll_region(
 	 *
 	 *   1. if beg and end is -1, use default.
 	 *   2. if beg and end are smaller than 0, ignore the sequence.
-	 *   3. if end is smaller than beg, ignore the sequence.
+	 *   3. if end is not larger than beg, ignore the sequence.
 	 *   4. if beg and end are out of window, ignore the sequence.
 	 *
 	 *   (default = full size of window)
@@ -970,7 +967,7 @@ ml_edit_set_scroll_region(
 		return  0 ;
 	}
 
-	if ( beg > end)
+	if ( beg >= end)
 	{
 		return  0 ;
 	}

@@ -446,7 +446,7 @@ parse_escape(
 				{
 				#ifdef  DEBUG
 					kik_warn_printf( KIK_DEBUG_TAG
-						" illegal ISO2022 designation char %c" , to_GN) ;
+						" illegal ISO2022 designation char %c\n" , to_GN) ;
 				#endif
 
 					mkf_parser_increment( iso2022_parser) ;

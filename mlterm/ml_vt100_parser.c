@@ -235,6 +235,10 @@ end:
 	return  1 ;
 }
 
+/*
+ * If buffer exists, vt100_parser->buffer.last_ch is cached.
+ * If buffer doesn't exist, vt100_parser->buffer.last_ch is cleared.
+ */
 static int
 flush_buffer(
 	ml_vt100_parser_t *  vt100_parser
@@ -246,6 +250,9 @@ flush_buffer(
 
 	if( buffer->len == 0)
 	{
+		/* last_ch is cleared. */
+		buffer->last_ch = NULL ;
+
 		return  0 ;
 	}
 	
@@ -284,8 +291,10 @@ flush_buffer(
 
 	(*buffer->output_func)( vt100_parser->screen , buffer->chars , buffer->len) ;
 
-	/* buffer is cleared */
-	vt100_parser->buffer.len = 0 ;
+	/* last_ch which will be used & cleared in REP sequence is cached. */
+	buffer->last_ch = &buffer->chars[buffer->len - 1] ;
+	/* buffer is cleared. */
+	buffer->len = 0 ;
 
 #ifdef  EDIT_DEBUG
 	ml_edit_dump( vt100_parser->screen->edit) ;
@@ -1261,20 +1270,7 @@ parse_vt100_escape_sequence(
 				return  0 ;
 			}
 
-			if( *str_p == '#')
-			{
-				if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) == 0)
-				{
-					return  0 ;
-				}
-
-				if( *str_p == '8')
-				{
-					ml_screen_fill_all_with_e( vt100_parser->screen) ;
-				}
-			}
-			else if( *str_p == '7')
+			if( *str_p == '7')
 			{
 				/* "ESC 7" save cursor */
 
@@ -1474,10 +1470,13 @@ parse_vt100_escape_sequence(
 				}
 
 				/*
-				 * XXX
-				 * 0 ps of something like ESC [ 0 n is ignored.
-				 * if there are multiple ps , no ps is ignored.
-				 * adhoc for vttest.
+				 * XXX adhoc for vttest.
+				 * 0 ps of something like "ESC [ 0 ft" is ignored.
+				 * If there are multiple ps , no ps is ignored.
+				 *
+				 * If "ESC [ 0 ft" has different meaning from "ESC [ ft",
+				 * check if *(str_p - 1) is '0' or not.
+				 * (see CHT and CBT)
 				 */
 				if( num == 1 && ps[0] == 0)
 				{
@@ -2000,11 +1999,18 @@ parse_vt100_escape_sequence(
 				}
 				else if( *str_p == 'I')
 				{
-					/* "CSI I" cursor forward tabulation */
+					/* "CSI I" cursor forward tabulation (CHT) */
 
 					if( num == 0)
 					{
-						ps[0] = 1 ;
+						/*
+						 * "CSI 0 I" => No tabulation.
+						 * "CSI I" => 1 taburation.
+						 */
+						if( *(str_p - 1) != '0')
+						{
+							ps[0] = 1 ;
+						}
 					}
 
 					ml_screen_vertical_forward_tabs(
@@ -2129,15 +2135,45 @@ parse_vt100_escape_sequence(
 				}
 				else if( *str_p == 'Z')
 				{
-					/* "CSI Z" cursor backward tabulation */
+					/* "CSI Z" cursor backward tabulation (CBT) */
 
 					if( num == 0)
 					{
-						ps[0] = 1 ;
+						/*
+						 * "CSI 0 Z" => No tabulation.
+						 * "CSI Z" => 1 taburation.
+						 */
+						if( *(str_p - 1) != '0')
+						{
+							ps[0] = 1 ;
+						}
 					}
 
 					ml_screen_vertical_backward_tabs(
 						vt100_parser->screen , ps[0]) ;
+				}
+				else if( *str_p == 'b')
+				{
+					/* "CSI b" repeat the preceding graphic character(REP) */
+
+					if( vt100_parser->buffer.last_ch)
+					{
+						int  count ;
+
+						if( num == 0)
+						{
+							ps[0] = 1 ;
+						}
+
+						for( count = 0 ; count < ps[0] ; count++)
+						{
+							(*vt100_parser->buffer.output_func)(
+								vt100_parser->screen ,
+								vt100_parser->buffer.last_ch , 1) ;
+						}
+
+						vt100_parser->buffer.last_ch = NULL ;
+					}
 				}
 				else if( *str_p == 'c')
 				{
@@ -2282,9 +2318,13 @@ parse_vt100_escape_sequence(
 
 					if( num == 2)
 					{
-						ml_screen_set_scroll_region( vt100_parser->screen ,
-								ps[0] - 1 , ps[1] - 1) ;
-						ml_screen_goto( vt100_parser->screen , 0 , 0) ;
+						if( ml_screen_set_scroll_region(
+								vt100_parser->screen ,
+								ps[0] - 1 , ps[1] - 1))
+						{
+							ml_screen_goto( vt100_parser->screen ,
+								0 , 0) ;
+						}
 					}
 				}
 				else if( *str_p == 's')
@@ -2319,6 +2359,21 @@ parse_vt100_escape_sequence(
 
 						ml_write_to_pty( vt100_parser->pty ,
 							seq , sizeof( seq) - 1) ;
+					}
+				}
+				else if( *str_p == ' ' || *str_p == '\"' || *str_p == '\'')
+				{
+					/*
+					 * "CSI SP q"(DECSCUSR), "CSI SP t"(DECSWBV),
+					 * "CSI SP u"(DECSMBV)
+					 * "CSI " p"(DECSCL), "CSI " q"(DECSCA)
+					 * "CSI ' {"(DECSLE), "CSI ' |"(DECRQLP)
+					 */
+					
+					if( inc_str_in_esc_seq( vt100_parser->screen ,
+								&str_p , &left , 0) == 0)
+					{
+						return  0 ;
 					}
 				}
 			#ifdef  DEBUG
@@ -2595,6 +2650,30 @@ parse_vt100_escape_sequence(
 						*str_p) ;
 				}
 			#endif
+			}
+			else if( *str_p == '#')
+			{
+				if( inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0) == 0)
+				{
+					return  0 ;
+				}
+
+				if( *str_p == '8')
+				{
+					/* "ESC # 8" DEC screen alignment test */
+					ml_screen_fill_all_with_e( vt100_parser->screen) ;
+				}
+			}
+			else if( *str_p == ' ')
+			{
+				/* "ESC SP F", "ESC SP G", "ESC SP L", "ESC SP M", "ESC SP N" */
+
+				if( inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0) == 0)
+				{
+					return  0 ;
+				}
 			}
 			else if( *str_p == '(')
 			{
@@ -2968,6 +3047,7 @@ parse_vt100_sequence(
 
 		/*
 		 * parsing other vt100 sequences.
+		 * (vt100_parser->buffer is always flushed here.)
 		 */
 
 		if( ! parse_vt100_escape_sequence( vt100_parser))
@@ -3041,6 +3121,7 @@ ml_vt100_parser_new(
 
 	ml_str_init( vt100_parser->buffer.chars , PTY_WR_BUFFER_SIZE) ;	
 	vt100_parser->buffer.len = 0 ;
+	vt100_parser->buffer.last_ch = NULL ;
 	vt100_parser->buffer.output_func = ml_screen_overwrite_chars ;
 
 	vt100_parser->screen = screen ;
