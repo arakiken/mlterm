@@ -697,10 +697,15 @@ ml_char_bg_color(
 			color = extern_color(ch->u.ch.bg_color) ;
 		}
 
+		/*
+		 * xterm doesn't use hilighted color for bold background color.
+		 */
+	#if  0
 		if( color < MAX_VTSYS_COLORS && IS_BOLD(ch->u.ch.attr))
 		{
 			color |= ML_BOLD_COLOR_MASK ;
 		}
+	#endif
 
 		return  color ;
 	}

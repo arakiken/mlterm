@@ -2751,6 +2751,10 @@ parse_vt100_escape_sequence(
 						vt100_parser->is_dec_special_in_g1 ;
 				}
 			}
+			else if( *str_p == '6' || *str_p == '9')
+			{
+				/* hack for vttest 11.2.1.1 11.2.1.2 */
+			}
 			else
 			{
 				/* not VT100 control sequence. */
@@ -2839,7 +2843,8 @@ parse_vt100_escape_sequence(
 			if( HAS_XTERM_LISTENER(vt100_parser,bel))
 			{
 				stop_vt100_cmd( vt100_parser , 0) ;
-				(*vt100_parser->xterm_listener->bel)( vt100_parser->xterm_listener->self) ;
+				(*vt100_parser->xterm_listener->bel)(
+					vt100_parser->xterm_listener->self) ;
 				start_vt100_cmd( vt100_parser , 0) ;
 			}
 		}

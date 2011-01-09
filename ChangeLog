@@ -1,3 +1,8 @@
+2011-01-09  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_char.c:
+	  ML_BOLD_COLOR_MASK is not set for background color.
+
 2011-01-06  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit.c:
