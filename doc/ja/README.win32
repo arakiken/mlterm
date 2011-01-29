@@ -107,9 +107,10 @@ WIN32 native GUI 対応に関するメモ
     代わりに、"\x1b]5379;mlclient <prefix opitions> <options>\x07" sequence
     (see doc/en/PROTOCOL) が使用できます(mlclient 又は mlclientx コマンドも、
     同 sequence に対応しています。)。
-  o 背景画像は使用できません。
+  o 背景画像は、BMP 形式のファイルしか指定できません。
   o 背景透過は、win32 のレイヤードウィンドウの機能をそのまま使用しているだけ
     です。
+  o -3/--contrast, -4/--gamma, -H/--bright オプションは使用できません。
   o Bold な文字は、設定ファイルで使用するフォントを指定しない限り、基本的には、
     重ね打ちによる擬似的な bold 表示を行います(Bold と Normal でフォント幅が異
     なる場合があるため)

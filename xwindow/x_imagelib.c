@@ -1740,3 +1740,14 @@ x_imagelib_pixbuf_to_pixmap(
 
 	return  None ;
 }
+
+int
+x_delete_image(
+	Display *  display ,
+	Pixmap  pixmap
+	)
+{
+	XFreePixmap( display , pixmap) ;
+
+	return  1 ;
+}

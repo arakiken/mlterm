@@ -31,5 +31,7 @@ int  x_imagelib_load_file( x_display_t *  disp, char *  path, u_int32_t **  card
 Pixmap  x_imagelib_pixbuf_to_pixmap( x_window_t *  win , x_picture_modifier_t *  pic_mod ,
 	GdkPixbufPtr  pixbuf) ;
 
+int  x_delete_image( Display *  display , Pixmap  pixmap) ;
+
 
 #endif

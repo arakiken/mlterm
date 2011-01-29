@@ -112,6 +112,7 @@ typedef struct  x_window
 
 #ifdef  USE_WIN32GUI
 	WORD  update_window_flag ;
+	Pixmap  wall_picture ;
 #endif
 
 	/* button */

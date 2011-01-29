@@ -97,13 +97,11 @@ delete_bg_picture(
 	x_bg_picture_t *  pic
 	)
 {
-#ifndef  USE_WIN32GUI
 	/* XXX Pixmap of "pixmap:<ID>" is managed by others, so don't free here. */
 	if( strncmp( pic->file_path , "pixmap:" , K_MIN(strlen(pic->file_path),7)) != 0)
 	{
-		XFreePixmap( pic->display , pic->pixmap) ;
+		x_delete_image( pic->display , pic->pixmap) ;
 	}
-#endif
 
 	free( pic->file_path) ;
 	free( pic->mod) ;
@@ -167,10 +165,7 @@ delete_icon_picture(
 	kik_debug_printf( KIK_DEBUG_TAG " %s icon will be deleted.\n" , pic->file_path) ;
 #endif
 
-#ifndef  USE_WIN32GUI
-	XFreePixmap( pic->disp->display , pic->pixmap) ;
-	XFreePixmap( pic->disp->display , pic->mask) ;
-#endif
+	x_delete_image( pic->disp->display , pic->pixmap) ;
 
 	free( pic->cardinal) ;
 	free( pic->file_path) ;

@@ -1,3 +1,13 @@
+2011-01-29  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c:
+	  Unsupported but valid escape / CSI sequence format is correctly ignored.
+	  (Thanks to Iwamoto Kouichi san)
+
+	* x_imagelib_win32.c, x_window_win32.c:
+	  "wall_picture" option is partially supported in win32.
+	  (Supported BMP format only.)
+
 2011-01-09  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_char.c:

@@ -320,15 +320,19 @@ notify_focus_in_to_children(
 
 	win->is_focused = 1 ;
 
-	if( ! win->parent)
+	/* If win->wall_picture_is_set is true, is_scrollable is always 0. */
+	if( ! win->wall_picture_is_set)
 	{
-		win->is_scrollable = check_scrollable( win) ;
+		if( ! win->parent)
+		{
+			win->is_scrollable = check_scrollable( win) ;
+		}
+		else
+		{
+			win->is_scrollable = win->parent->is_scrollable ;
+		}
 	}
-	else
-	{
-		win->is_scrollable = win->parent->is_scrollable ;
-	}
-	
+
 	x_xic_set_focus( win) ;
 
 	if( win->window_focused)
@@ -801,6 +805,7 @@ x_window_init(
 
 	win->wall_picture_is_set = 0 ;
 	win->is_transparent = 0 ;
+	win->wall_picture = None ;
 
 	win->cursor_shape = 0 ;
 
@@ -974,7 +979,6 @@ x_window_set_wall_picture(
 	Pixmap  pic
 	)
 {
-#ifndef  USE_WIN32GUI
 	if( win->is_transparent)
 	{
 		/*
@@ -984,24 +988,9 @@ x_window_set_wall_picture(
 		return  0 ;
 	}
 
-	if( win->event_mask & VisibilityChangeMask)
-	{
-		/* rejecting VisibilityNotify event. is_scrollable is always false */
-		win->event_mask &= ~VisibilityChangeMask ;
-		XSelectInput( win->display , win->my_window , win->event_mask) ;
-		win->is_scrollable = 0 ;
-	}
-
-	XSetWindowBackgroundPixmap( win->display , win->my_window , pic) ;
-
+	win->is_scrollable = 0 ;
+	win->wall_picture = pic ;
 	win->wall_picture_is_set = 1 ;
-
-	if( win->window_exposed)
-	{
-		x_window_clear_all( win) ;
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-	}
-#endif
 
 	return  1 ;
 }
@@ -1011,13 +1000,14 @@ x_window_unset_wall_picture(
 	x_window_t *  win
 	)
 {
-#ifndef  USE_WIN32GUI
+#if  0
 	if( ! win->wall_picture_is_set)
 	{
 		/* already unset */
 
 		return  1 ;
 	}
+#endif
 
 	if( win->is_transparent)
 	{
@@ -1029,27 +1019,11 @@ x_window_unset_wall_picture(
 		return  1 ;
 	}
 
-	if( !( win->event_mask & VisibilityChangeMask))
-	{
-		/* accepting VisibilityNotify event. is_scrollable is changed dynamically. */
-		win->event_mask |= VisibilityChangeMask ;
-		XSelectInput( win->display , win->my_window , win->event_mask) ;
-
-		/* setting 0 in case the current status is VisibilityPartiallyObscured. */
-		win->is_scrollable = 0 ;
-	}
-
-	XSetWindowBackgroundPixmap( win->display , win->my_window , None) ;
-	XSetWindowBackground( win->display , win->my_window , win->bg_color.pixel) ;
-
-	win->wall_picture_is_set = 0 ;
-
-	if( win->window_exposed)
-	{
-		x_window_clear_all( win) ;
-		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-	}
+#if  0
+	win->is_scrollable = 1 ;
 #endif
+	win->wall_picture = None ;
+	win->wall_picture_is_set = 0 ;
 
 	return  1 ;
 }
@@ -1484,11 +1458,21 @@ x_window_clear(
 	}
 	else
 	{
-		x_release_pen( x_gc_set_pen( win->gc, GetStockObject(NULL_PEN))) ;
-		x_release_brush( x_gc_set_brush( win->gc,
-			x_acquire_brush( win->bg_color.pixel))) ;
-		
-		Rectangle( win->gc->gc, r.left, r.top, r.right, r.bottom) ;
+
+		if( win->wall_picture)
+		{
+			BitBlt( win->gc->gc ,
+				r.left , r.top , r.right - r.left , r.bottom - r.top ,
+				win->wall_picture , r.left , r.top , SRCCOPY) ;
+		}
+		else
+		{
+			x_release_pen( x_gc_set_pen( win->gc, GetStockObject(NULL_PEN))) ;
+			x_release_brush( x_gc_set_brush( win->gc,
+				x_acquire_brush( win->bg_color.pixel))) ;
+
+			Rectangle( win->gc->gc, r.left, r.top, r.right, r.bottom) ;
+		}
 
 		return  1 ;
 	}

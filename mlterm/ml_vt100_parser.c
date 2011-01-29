@@ -1378,21 +1378,6 @@ parse_vt100_escape_sequence(
 					return  0 ;
 				}
 
-				if( *str_p == '?' || *str_p == '>' || *str_p == '!')
-				{
-					pre_ch = *str_p ;
-
-					if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) == 0)
-					{
-						return  0 ;
-					}
-				}
-				else
-				{
-					pre_ch = '\0' ;
-				}
-
 				num = 0 ;
 				while( num < MAX_NUM_OF_PS)
 				{
@@ -1481,6 +1466,26 @@ parse_vt100_escape_sequence(
 				if( num == 1 && ps[0] == 0)
 				{
 					num = 0 ;
+				}
+
+				/*
+				 * Intermediate character (0x20 - 0x2f) or
+				 * parameter character except numeric(< = > ?).
+				 */
+				if( (0x20 <= *str_p && *str_p <= 0x2f) ||
+					(0x3c <= *str_p && *str_p <= 0x3f))
+				{
+					pre_ch = *str_p ;
+
+					if( inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0) == 0)
+					{
+						return  0 ;
+					}
+				}
+				else
+				{
+					pre_ch = '\0' ;
 				}
 
 				if( pre_ch == '?')
@@ -1848,22 +1853,9 @@ parse_vt100_escape_sequence(
 					else
 					{
 						kik_warn_printf( KIK_DEBUG_TAG
-							" received unknown csi sequence ESC [ ? %c.\n"
-							, *str_p) ;
+							" received unknown csi sequence ESC [ ? %c.\n" ,
+							*str_p) ;
 					}
-				#endif
-				}
-				else if( pre_ch == '>')
-				{
-					/*
-					 * "CSI > T", "CSI > c", "CSI > p", "CSI > m", "CSI > n",
-					 * "CSI > t"
-					 */
-
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" received unknown csi sequence ESC [ > %c.\n"
-						, *str_p) ;
 				#endif
 				}
 				else if( pre_ch == '!')
@@ -1874,6 +1866,41 @@ parse_vt100_escape_sequence(
 
 						soft_reset( vt100_parser) ;
 					}
+				}
+				/* Other pre_ch */
+				else if( pre_ch)
+				{
+					/*
+					 * "CSI > T", "CSI > c", "CSI > p", "CSI > m", "CSI > n",
+					 * "CSI > t" etc
+					 */
+
+				#ifdef  DEBUG
+					kik_warn_printf( KIK_DEBUG_TAG
+						" received unknown csi sequence ESC [ %c" ,
+						pre_ch) ;
+				#endif
+
+					/*
+					 * In case more than one intermediate(0x20-0x2f)/
+					 * parameter(0x30-0x3f) chars.
+					 */
+					while( 0x20 <= *str_p && *str_p <= 0x3f)
+					{
+					#ifdef  DEBUG
+						kik_msg_printf( " %c" , *str_p) ;
+					#endif
+
+						if( inc_str_in_esc_seq( vt100_parser->screen ,
+									&str_p , &left , 0) == 0)
+						{
+							return  0 ;
+						}
+					}
+					
+				#ifdef  DEBUG
+					kik_msg_printf( " %c\n" , *str_p) ;
+				#endif
 				}
 				else if( *str_p == '@')
 				{
@@ -2380,7 +2407,7 @@ parse_vt100_escape_sequence(
 				else
 				{
 					kik_warn_printf( KIK_DEBUG_TAG
-						" received unknown csi sequence ESC [ 0x%x.\n" ,
+						" received unknown csi sequence ESC [ %c.\n" ,
 						*str_p) ;
 				}
 			#endif
@@ -2389,7 +2416,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "ESC ]" (OSC) */
 
-				char  digit[10] ;
+				char  digit[DIGIT_STR_LEN(int)] ;
 				int  count ;
 				int  ps ;
 				u_char *  pt ;
@@ -2400,15 +2427,21 @@ parse_vt100_escape_sequence(
 					return  0 ;
 				}
 
-				count = 0 ;
-				while( '0' <= *str_p && *str_p <= '9')
+				for( count = 0 ; count < DIGIT_STR_LEN(int) ; count++)
 				{
-					digit[count++] = *str_p ;
-
-					if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) == 0)
+					if( '0' <= *str_p && *str_p <= '9')
 					{
-						return  0 ;
+						digit[count] = *str_p ;
+
+						if( inc_str_in_esc_seq( vt100_parser->screen ,
+								&str_p , &left , 0) == 0)
+						{
+							return  0 ;
+						}
+					}
+					else
+					{
+						break ;
 					}
 				}
 
@@ -2751,9 +2784,40 @@ parse_vt100_escape_sequence(
 						vt100_parser->is_dec_special_in_g1 ;
 				}
 			}
-			else if( *str_p == '6' || *str_p == '9')
+			/* Other intermediate character */
+			else if( 0x20 <= *str_p && *str_p <= 0x2f)
 			{
-				/* hack for vttest 11.2.1.1 11.2.1.2 */
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" received unknown esc sequence ESC") ;
+			#endif
+
+				/* In case more than one intermediate(0x20-0x2f) chars. */
+				do
+				{
+				#ifdef  DEBUG
+					kik_msg_printf( " %c" , *str_p) ;
+				#endif
+
+					if( inc_str_in_esc_seq( vt100_parser->screen ,
+								&str_p , &left , 0) == 0)
+					{
+						return  0 ;
+					}
+				}
+				while( 0x20 <= *str_p && *str_p <= 0x2f) ;
+
+			#ifdef  DEBUG
+				kik_msg_printf( " %c\n" , *str_p) ;
+			#endif
+			}
+			/* Other final character */
+			else if( 0x30 <= *str_p && *str_p <= 0x7e)
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" received unknown esc sequence ESC %c.\n" , *str_p) ;
+			#endif
 			}
 			else
 			{

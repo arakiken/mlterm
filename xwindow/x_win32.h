@@ -19,6 +19,8 @@
 #define  WM_IME_CHAR 0x286
 #endif
 
+#define  USE_EXT_IMAGELIB
+
 
 typedef struct
 {
@@ -34,7 +36,7 @@ typedef int  XIMStyle ;		/* dummy */
 typedef HANDLE XID ;
 typedef HANDLE Window ;
 typedef HDC Drawable ;
-typedef HBITMAP Pixmap ;
+typedef HDC Pixmap ;
 typedef HDC GC ;
 typedef HFONT Font ;
 typedef HCURSOR Cursor ;
