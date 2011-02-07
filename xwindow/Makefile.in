@@ -75,7 +75,7 @@ debug:
 	$(MAKE) LKIK="$(LKIK_DEB)" LMKF="$(LMKF_DEB)" all
 
 $(PROG): $(OBJ) $(LMLTERM)
-	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) $(OBJ) $(LIBS)
+	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) $(OBJ:.o=.lo) $(LIBS)
 
 .SUFFIXES: .c .o
 
@@ -97,7 +97,7 @@ wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 
 clean:
-	rm -rf $(PROG) $(PROG).exe *.core $(OBJ) .libs
+	rm -rf $(PROG) $(PROG).exe *.core $(OBJ) $(OBJ:.o=.lo).libs
 
 distclean: clean
 	rm -f Makefile

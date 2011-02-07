@@ -1,3 +1,11 @@
+2011-02-08  Araki Ken  <arakiken@users.sf.net>
+
+	* xwindow/Makefile.in: Fixed SF Bug #3158963.
+	  (Thanks to Jyun-Yan You)
+
+	* ml_vt100_parser.c: Fixed a bug in previous commit.
+	  (Thanks to Iwamoto Kouichi san)
+
 2011-01-29  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c:

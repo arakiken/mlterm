@@ -7,6 +7,7 @@
 #include  <stdio.h>		/* sprintf */
 #include  <string.h>		/* memmove */
 #include  <stdlib.h>		/* atoi */
+#include  <stdarg.h>		/* va_list */
 #include  <fcntl.h>		/* open */
 #include  <unistd.h>		/* write */
 #include  <kiklib/kik_debug.h>
@@ -222,7 +223,14 @@ end:
 		for( count = 0 ; count < vt100_parser->left ; count ++)
 		{
 		#ifdef  DUMP_HEX
-			kik_msg_printf( "[%.2x]" , vt100_parser->seq[count]) ;
+			if( isprint( vt100_parser->seq[count]))
+			{
+				kik_msg_printf( "%c " , vt100_parser->seq[count]) ;
+			}
+			else
+			{
+				kik_msg_printf( "%.2x " , vt100_parser->seq[count]) ;
+			}
 		#else
 			kik_msg_printf( "%c" , vt100_parser->seq[count]) ;
 		#endif
@@ -1238,7 +1246,65 @@ inc_str_in_esc_seq(
 	}
 }
 
+static char *
+get_pt_in_esc_seq(
+	ml_screen_t *  screen ,
+	u_char **  str ,
+	size_t *  left ,
+	int  bel_terminate	/* OSC is terminated by not only ST(ESC \) but also BEL. */
+	)
+{
+	u_char *  pt ;
 
+	pt = *str ;
+
+	while( 0x20 <= (**str & 0x7f) && **str != 0x7f)
+	{
+		if( ! increment_str( str , left))
+		{
+			return  NULL ;
+		}
+	}
+
+	if( bel_terminate && **str == CTLKEY_BEL)
+	{
+		**str = '\0' ;
+	}
+	else if( **str == CTLKEY_ESC && increment_str( str , left) && **str == '\\')
+	{
+		*((*str) - 1) = '\0' ;
+	}
+	else
+	{
+		return  NULL ;
+	}
+
+	return  pt ;
+}
+
+#ifdef  DEBUG
+static void
+debug_print_unknown(
+	const char *  format ,
+	...
+	)
+{
+	va_list  arg_list ;
+
+	va_start( arg_list , format) ;
+
+	kik_debug_printf( KIK_DEBUG_TAG " received unknown sequence ") ;
+	vfprintf( stderr , format , arg_list) ;
+}
+#endif
+
+
+/*
+ * Return value:
+ * 0 => vt100_parser->left == 0
+ * 1 => Finished parsing. (If current vt100_parser->seq is not escape sequence,
+ *      return without doing anthing.)
+ */
 static int
 parse_vt100_escape_sequence(
 	ml_vt100_parser_t *  vt100_parser
@@ -1265,7 +1331,7 @@ parse_vt100_escape_sequence(
             		kik_msg_printf( "RECEIVED ESCAPE SEQUENCE(current left = %d: ESC", left) ;
 		#endif
 
-			if( inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0) == 0)
+			if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
 			{
 				return  0 ;
 			}
@@ -1307,15 +1373,12 @@ parse_vt100_escape_sequence(
 				ml_screen_line_feed( vt100_parser->screen) ;
 				ml_screen_goto_beg_of_line( vt100_parser->screen) ;
 			}
+		#if  0
 			else if( *str_p == 'F')
 			{
 				/* "ESC F" cursor to lower left corner of screen */
-
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" cursor to lower left corner is not implemented.\n") ;
-			#endif
 			}
+		#endif
 			else if( *str_p == 'H')
 			{
 				/* "ESC H" set tab */
@@ -1328,15 +1391,12 @@ parse_vt100_escape_sequence(
 
 				ml_screen_reverse_index( vt100_parser->screen) ;
 			}
+		#if  0
 			else if( *str_p == 'Z')
 			{
 				/* "ESC Z" return terminal id */
-
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" return terminal id is not implemented.\n") ;
-			#endif
 			}
+		#endif
 			else if( *str_p == 'c')
 			{
 				/* "ESC c" full reset */
@@ -1344,24 +1404,18 @@ parse_vt100_escape_sequence(
 				soft_reset( vt100_parser) ;
 				clear_display_all( vt100_parser) ; /* cursor goes home in it. */
 			}
+		#if  0
 			else if( *str_p == 'l')
 			{
 				/* "ESC l" memory lock */
-
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" memory lock is not implemented.\n") ;
-			#endif
 			}
+		#endif
+		#if  0
 			else if( *str_p == 'm')
 			{
 				/* "ESC m" memory unlock */
-
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" memory unlock is not implemented.\n") ;
-			#endif
 			}
+		#endif
 			else if( *str_p == '[')
 			{
 				/* "ESC [" (CSI) */
@@ -1372,10 +1426,24 @@ parse_vt100_escape_sequence(
 				int  ps[MAX_NUM_OF_PS] ;
 				int  num ;
 
-				if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) == 0)
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0))
 				{
 					return  0 ;
+				}
+
+				pre_ch = '\0' ;
+
+				/* parameter character except numeric and ';' (< = > ?). */
+				if( 0x3c <= *str_p && *str_p <= 0x3f)
+				{
+					pre_ch = *str_p ;
+
+					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0))
+					{
+						return  0 ;
+					}
 				}
 
 				num = 0 ;
@@ -1383,8 +1451,8 @@ parse_vt100_escape_sequence(
 				{
 					while( '0' == *str_p)
 					{
-						if( inc_str_in_esc_seq( vt100_parser->screen ,
-									&str_p , &left , 0) == 0)
+						if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+									&str_p , &left , 0))
 						{
 							return  0 ;
 						}
@@ -1399,9 +1467,9 @@ parse_vt100_escape_sequence(
 						for( count = 1 ; count < DIGIT_STR_LEN(int) -1 ;
 							count ++)
 						{
-							if( inc_str_in_esc_seq(
+							if( ! inc_str_in_esc_seq(
 								vt100_parser->screen ,
-								&str_p , &left , 0) == 0)
+								&str_p , &left , 0))
 							{
 								return  0 ;
 							}
@@ -1447,8 +1515,8 @@ parse_vt100_escape_sequence(
 						break ;
 					}
 					
-					if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) == 0)
+					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0))
 					{
 						return  0 ;
 					}
@@ -1468,24 +1536,16 @@ parse_vt100_escape_sequence(
 					num = 0 ;
 				}
 
-				/*
-				 * Intermediate character (0x20 - 0x2f) or
-				 * parameter character except numeric(< = > ?).
-				 */
-				if( (0x20 <= *str_p && *str_p <= 0x2f) ||
-					(0x3c <= *str_p && *str_p <= 0x3f))
+				/* Intermediate character (0x20 - 0x2f) */
+				if( pre_ch == '\0' && 0x20 <= *str_p && *str_p <= 0x2f)
 				{
 					pre_ch = *str_p ;
 
-					if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) == 0)
+					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0))
 					{
 						return  0 ;
 					}
-				}
-				else
-				{
-					pre_ch = '\0' ;
 				}
 
 				if( pre_ch == '?')
@@ -1654,8 +1714,7 @@ parse_vt100_escape_sequence(
 						else
 						{
 						#ifdef  DEBUG
-							kik_warn_printf( KIK_DEBUG_TAG
-								" ESC [ ? %d h is not implemented.\n" ,
+							debug_print_unknown( "ESC [ ? %d h\n" ,
 								ps[0]) ;
 						#endif
 						}
@@ -1823,38 +1882,27 @@ parse_vt100_escape_sequence(
 						else
 						{
 						#ifdef  DEBUG
-							kik_warn_printf( KIK_DEBUG_TAG
-								" ESC [ ? %d l is not implemented.\n" ,
+							debug_print_unknown("ESC [ ? %d l\n" ,
 								ps[0]) ;
 						#endif
 						}
 					}
+				#if  0
 					else if( *str_p == 'r')
 					{
 						/* "CSI ? r"  Restore DEC Private Mode */
-						
-					#ifdef  DEBUG
-						kik_warn_printf( KIK_DEBUG_TAG
-							" ESC [ ? %d r is not implemented.\n" ,
-							ps[0]) ;
-					#endif
 					}
+				#endif
+				#if  0
 					else if( *str_p == 's')
 					{
 						/* "CSI ? s" Save DEC Private Mode */
-						
-					#ifdef  DEBUG
-						kik_warn_printf( KIK_DEBUG_TAG
-							" ESC [ ? %d s is not implemented.\n" ,
-							ps[0]) ;
-					#endif
 					}
+				#endif
 				#ifdef  DEBUG
 					else
 					{
-						kik_warn_printf( KIK_DEBUG_TAG
-							" received unknown csi sequence ESC [ ? %c.\n" ,
-							*str_p) ;
+						debug_print_unknown( "ESC [ ? %c\n" , *str_p) ;
 					}
 				#endif
 				}
@@ -1867,18 +1915,21 @@ parse_vt100_escape_sequence(
 						soft_reset( vt100_parser) ;
 					}
 				}
-				/* Other pre_ch */
+				/* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
 				else if( pre_ch)
 				{
 					/*
 					 * "CSI > T", "CSI > c", "CSI > p", "CSI > m", "CSI > n",
-					 * "CSI > t" etc
+					 * "CSI > t"
+					 * "CSI SP q"(DECSCUSR), "CSI SP t"(DECSWBV),
+					 * "CSI SP u"(DECSMBV)
+					 * "CSI " p"(DECSCL), "CSI " q"(DECSCA)
+					 * "CSI ' {"(DECSLE), "CSI ' |"(DECRQLP)
+					 * etc
 					 */
 
 				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" received unknown csi sequence ESC [ %c" ,
-						pre_ch) ;
+					debug_print_unknown( "ESC [ %c" , pre_ch) ;
 				#endif
 
 					/*
@@ -1891,8 +1942,8 @@ parse_vt100_escape_sequence(
 						kik_msg_printf( " %c" , *str_p) ;
 					#endif
 
-						if( inc_str_in_esc_seq( vt100_parser->screen ,
-									&str_p , &left , 0) == 0)
+						if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+									&str_p , &left , 0))
 						{
 							return  0 ;
 						}
@@ -2139,15 +2190,6 @@ parse_vt100_escape_sequence(
 					ml_screen_scroll_downward(
 						vt100_parser->screen , ps[0]) ;
 				}
-				else if( *str_p == '^')
-				{
-					/* "CSI ^" initiate hilite mouse tracking. */
-
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" ESC [ ^ is not implemented.\n") ;
-				#endif
-				}
 				else if( *str_p == 'X')
 				{
 					/* "CSI X" erase characters */
@@ -2388,29 +2430,29 @@ parse_vt100_escape_sequence(
 							seq , sizeof( seq) - 1) ;
 					}
 				}
-				else if( *str_p == ' ' || *str_p == '\"' || *str_p == '\'')
+			#if  0
+				else if( *str_p == '^')
 				{
-					/*
-					 * "CSI SP q"(DECSCUSR), "CSI SP t"(DECSWBV),
-					 * "CSI SP u"(DECSMBV)
-					 * "CSI " p"(DECSCL), "CSI " q"(DECSCA)
-					 * "CSI ' {"(DECSLE), "CSI ' |"(DECRQLP)
-					 */
-					
-					if( inc_str_in_esc_seq( vt100_parser->screen ,
-								&str_p , &left , 0) == 0)
-					{
-						return  0 ;
-					}
-				}
-			#ifdef  DEBUG
-				else
-				{
-					kik_warn_printf( KIK_DEBUG_TAG
-						" received unknown csi sequence ESC [ %c.\n" ,
-						*str_p) ;
+					/* "CSI ^" initiate hilite mouse tracking. */
 				}
 			#endif
+				/* Other final character */
+				else if( 0x40 <= *str_p && *str_p <= 0x7e)
+				{
+				#ifdef  DEBUG
+					debug_print_unknown( "ESC [ %c\n" , *str_p) ;
+				#endif
+				}
+				else
+				{
+					/* not VT100 control sequence. */
+
+				#ifdef  ESCSEQ_DEBUG
+					kik_msg_printf( "=> not VT100 control sequence.\n") ;
+				#endif
+
+					return  1 ;
+				}
 			}
 			else if( *str_p == ']')
 			{
@@ -2421,8 +2463,8 @@ parse_vt100_escape_sequence(
 				int  ps ;
 				u_char *  pt ;
 
-				if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) == 0)
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0))
 				{
 					return  0 ;
 				}
@@ -2433,8 +2475,8 @@ parse_vt100_escape_sequence(
 					{
 						digit[count] = *str_p ;
 
-						if( inc_str_in_esc_seq( vt100_parser->screen ,
-								&str_p , &left , 0) == 0)
+						if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+								&str_p , &left , 0))
 						{
 							return  0 ;
 						}
@@ -2445,249 +2487,222 @@ parse_vt100_escape_sequence(
 					}
 				}
 
-				digit[count] = '\0' ;
-
-				/* if digit is illegal , ps is set 0. */
-				ps = atoi( digit) ;
-
-				if( *str_p == ';')
+				if( count > 0 && *str_p == ';')
 				{
-					u_char  prev_ch ;
-					
-					if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 1) == 0)
+					digit[count] = '\0' ;
+
+					/* if digit is illegal , ps is set 0. */
+					ps = atoi( digit) ;
+
+					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 1))
 					{
 						return  0 ;
 					}
-					
-					pt = str_p ;
-					prev_ch = 0 ;
-					/* OSC is terminated by BEL or ST(ESC \) */
-					while( *str_p != CTLKEY_BEL &&
-						( prev_ch != CTLKEY_ESC || *str_p != '\\'))
-					{
-						prev_ch = *str_p ;
-						
-						if( *str_p == CTLKEY_LF)
-						{
-							/* stop to parse as escape seq. */
-							return  1 ;
-						}
-						
-						if( inc_str_in_esc_seq( vt100_parser->screen ,
-								&str_p , &left , 1) == 0)
-						{
-							return  0 ;
-						}
-					}
-
-					if( *str_p == '\\')
-					{
-						*(str_p - 1) = '\0' ;
-					}
-					else
-					{
-						*str_p = '\0' ;
-					}
-
-					if( ps == 0)
-					{
-						/* "OSC 0" change icon name and window title */
-
-						set_window_name( vt100_parser , pt) ;
-						set_icon_name( vt100_parser , pt) ;
-					}
-					else if( ps == 1)
-					{
-						/* "OSC 1" change icon name */
-
-						set_icon_name( vt100_parser , pt) ;
-					}
-					else if( ps == 2)
-					{
-						/* "OSC 2" change window title */
-
-						set_window_name( vt100_parser , pt) ;
-					}
-					else if( ps == 4)
-					{
-						/* "OSC 4" change 256 color */
-
-						if( ! change_color_rgb( vt100_parser, pt))
-						{
-						#ifdef  DEBUG
-							kik_debug_printf( KIK_DEBUG_TAG
-							" change_color_rgb failed.\n") ;
-						#endif
-						}
-					}
-					else if( ps == 20)
-					{
-						/* "OSC 20" */
-
-						if( HAS_CONFIG_LISTENER(vt100_parser,set))
-						{
-							/* edit commands */
-							char *  p ;
-
-							/* XXX discard all adjust./op. settings.*/
-							/* XXX may break multi-byte char string. */
-							if( ( p = strchr( pt , ';')))
-							{
-								*p = '\0';
-							}
-							if( ( p = strchr( pt , ':')))
-							{
-								*p = '\0';
-							}
-
-							if( *pt == '\0')
-							{
-								/*
-								 * Do not change current edit but
-								 * alter diaplay setting.
-								 * XXX nothing can be done for now.
-								 */
-
-								return  0 ;
-							}
-
-							stop_vt100_cmd( vt100_parser , 0) ;
-							(*vt100_parser->config_listener->set)(
-								vt100_parser->config_listener->self ,
-								NULL , "wall_picture" , pt) ;
-							start_vt100_cmd( vt100_parser , 0) ;
-						}
-					}
-					else if( ps == 39)
-					{
-						/* "OSC 39"  */
-
-						if( HAS_CONFIG_LISTENER(vt100_parser,set))
-						{
-							stop_vt100_cmd( vt100_parser , 0) ;
-							(*vt100_parser->config_listener->set)(
-								vt100_parser->config_listener->self ,
-								NULL , "fg_color" , pt) ;
-							start_vt100_cmd( vt100_parser , 0) ;
-						}
-					}
-					else if( ps == 46)
-					{
-						/* "OSC 46" change log file */
-					}
-					else if( ps == 49)
-					{
-						/* "OSC 49" */
-
-						if( HAS_CONFIG_LISTENER(vt100_parser,set))
-						{
-							stop_vt100_cmd( vt100_parser , 0) ;
-							(*vt100_parser->config_listener->set)(
-								vt100_parser->config_listener->self ,
-								NULL , "bg_color" , pt) ;
-							start_vt100_cmd( vt100_parser , 0) ;
-						}
-					}
-					else if( ps == 50)
-					{
-						/* "OSC 50" set font */
-					}
-					else if( ps == 5379)
-					{
-						/* "OSC 5379" set */
-						
-						config_protocol_set( vt100_parser , pt) ;
-					}
-					else if( ps == 5380)
-					{
-						/* "OSC 5380" get */
-
-						config_protocol_get( vt100_parser , pt , 0) ;
-					}
-					else if( ps == 5381)
-					{
-						/* "OSC 5381" get(menu) */
-
-						config_protocol_get( vt100_parser , pt , 1) ;
-					}
-					else if( ps == 5382)
-					{
-						/* "OSC 5382" save */
-						
-						config_protocol_save( vt100_parser , pt) ;
-					}
-					else if( ps == 5383)
-					{
-						/* "OSC 5383" set&save */
-						
-						char *  p ;
-
-						p = kik_str_alloca_dup( pt) ;
-						
-						config_protocol_set( vt100_parser , pt) ;
-
-						if( p)
-						{
-							config_protocol_save( vt100_parser , p) ;
-						}
-					}
-					else if( ps == 5384)
-					{
-						/* "OSC 5384" set font */
-
-						config_protocol_set_font( vt100_parser, pt, 0) ;
-					}
-					else if( ps == 5385)
-					{
-						/* "OSC 5385" set font(pty) */
-
-						config_protocol_get_font( vt100_parser, pt, 0) ;
-					}
-					else if( ps == 5386)
-					{
-						/* "OSC 5386" set font(GUI menu) */
-
-						config_protocol_get_font( vt100_parser, pt, 1) ;
-					}
-					else if( ps == 5387)
-					{
-						/* "OSC 5387" set&save font */
-						config_protocol_set_font( vt100_parser, pt, 1) ;
-					}
-					else if( ps == 5388)
-					{
-						/* "OSC 5388" set color */
-
-						config_protocol_set_color( vt100_parser, pt, 0) ;
-					}
-					else if( ps == 5391)
-					{
-						/* "OSC 5391" set&save color */
-						config_protocol_set_color( vt100_parser, pt, 1) ;
-					}
-				#ifdef  DEBUG
-					else
-					{
-						kik_warn_printf( KIK_DEBUG_TAG
-							" unknown sequence ESC ] %d ; %s is received.\n" ,
-							ps , pt) ;
-					}
-				#endif
 				}
-			#ifdef  DEBUG
 				else
 				{
-					kik_warn_printf( KIK_DEBUG_TAG
-						" unknown sequence ESC ] %c is received.\n" ,
-						*str_p) ;
+					/* Illegal OSC format */
+					ps = -1 ;
+				}
+
+				if( ( pt = get_pt_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 1)) == NULL && left == 0)
+				{
+					return  0 ;
+				}
+
+				if( ps == 0)
+				{
+					/* "OSC 0" change icon name and window title */
+
+					set_window_name( vt100_parser , pt) ;
+					set_icon_name( vt100_parser , pt) ;
+				}
+				else if( ps == 1)
+				{
+					/* "OSC 1" change icon name */
+
+					set_icon_name( vt100_parser , pt) ;
+				}
+				else if( ps == 2)
+				{
+					/* "OSC 2" change window title */
+
+					set_window_name( vt100_parser , pt) ;
+				}
+				else if( ps == 4)
+				{
+					/* "OSC 4" change 256 color */
+
+					if( ! change_color_rgb( vt100_parser, pt))
+					{
+					#ifdef  DEBUG
+						kik_debug_printf( KIK_DEBUG_TAG
+						" change_color_rgb failed.\n") ;
+					#endif
+					}
+				}
+				else if( ps == 20)
+				{
+					/* "OSC 20" */
+
+					if( HAS_CONFIG_LISTENER(vt100_parser,set))
+					{
+						/* edit commands */
+						char *  p ;
+
+						/* XXX discard all adjust./op. settings.*/
+						/* XXX may break multi-byte char string. */
+						if( ( p = strchr( pt , ';')))
+						{
+							*p = '\0';
+						}
+						if( ( p = strchr( pt , ':')))
+						{
+							*p = '\0';
+						}
+
+						if( *pt == '\0')
+						{
+							/*
+							 * Do not change current edit but
+							 * alter diaplay setting.
+							 * XXX nothing can be done for now.
+							 */
+
+							return  0 ;
+						}
+
+						stop_vt100_cmd( vt100_parser , 0) ;
+						(*vt100_parser->config_listener->set)(
+							vt100_parser->config_listener->self ,
+							NULL , "wall_picture" , pt) ;
+						start_vt100_cmd( vt100_parser , 0) ;
+					}
+				}
+				else if( ps == 39)
+				{
+					/* "OSC 39"  */
+
+					if( HAS_CONFIG_LISTENER(vt100_parser,set))
+					{
+						stop_vt100_cmd( vt100_parser , 0) ;
+						(*vt100_parser->config_listener->set)(
+							vt100_parser->config_listener->self ,
+							NULL , "fg_color" , pt) ;
+						start_vt100_cmd( vt100_parser , 0) ;
+					}
+				}
+				else if( ps == 46)
+				{
+					/* "OSC 46" change log file */
+				}
+				else if( ps == 49)
+				{
+					/* "OSC 49" */
+
+					if( HAS_CONFIG_LISTENER(vt100_parser,set))
+					{
+						stop_vt100_cmd( vt100_parser , 0) ;
+						(*vt100_parser->config_listener->set)(
+							vt100_parser->config_listener->self ,
+							NULL , "bg_color" , pt) ;
+						start_vt100_cmd( vt100_parser , 0) ;
+					}
+				}
+				else if( ps == 50)
+				{
+					/* "OSC 50" set font */
+				}
+				else if( ps == 5379)
+				{
+					/* "OSC 5379" set */
+
+					config_protocol_set( vt100_parser , pt) ;
+				}
+				else if( ps == 5380)
+				{
+					/* "OSC 5380" get */
+
+					config_protocol_get( vt100_parser , pt , 0) ;
+				}
+				else if( ps == 5381)
+				{
+					/* "OSC 5381" get(menu) */
+
+					config_protocol_get( vt100_parser , pt , 1) ;
+				}
+				else if( ps == 5382)
+				{
+					/* "OSC 5382" save */
+
+					config_protocol_save( vt100_parser , pt) ;
+				}
+				else if( ps == 5383)
+				{
+					/* "OSC 5383" set&save */
+
+					char *  p ;
+
+					p = kik_str_alloca_dup( pt) ;
+
+					config_protocol_set( vt100_parser , pt) ;
+
+					if( p)
+					{
+						config_protocol_save( vt100_parser , p) ;
+					}
+				}
+				else if( ps == 5384)
+				{
+					/* "OSC 5384" set font */
+
+					config_protocol_set_font( vt100_parser, pt, 0) ;
+				}
+				else if( ps == 5385)
+				{
+					/* "OSC 5385" set font(pty) */
+
+					config_protocol_get_font( vt100_parser, pt, 0) ;
+				}
+				else if( ps == 5386)
+				{
+					/* "OSC 5386" set font(GUI menu) */
+
+					config_protocol_get_font( vt100_parser, pt, 1) ;
+				}
+				else if( ps == 5387)
+				{
+					/* "OSC 5387" set&save font */
+					config_protocol_set_font( vt100_parser, pt, 1) ;
+				}
+				else if( ps == 5388)
+				{
+					/* "OSC 5388" set color */
+
+					config_protocol_set_color( vt100_parser, pt, 0) ;
+				}
+				else if( ps == 5391)
+				{
+					/* "OSC 5391" set&save color */
+					config_protocol_set_color( vt100_parser, pt, 1) ;
+				}
+			#ifdef  DEBUG
+				else if( ps == -1)
+				{
+					debug_print_unknown( "ESC ] %s\n" , pt) ;
+				}
+				else
+				{
+					debug_print_unknown( "ESC ] %d ; %s\n" , ps , pt) ;
 				}
 			#endif
 			}
 			else if( *str_p == '#')
 			{
-				if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) == 0)
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0))
 				{
 					return  0 ;
 				}
@@ -2698,12 +2713,10 @@ parse_vt100_escape_sequence(
 					ml_screen_fill_all_with_e( vt100_parser->screen) ;
 				}
 			}
-			else if( *str_p == ' ')
+			else if( *str_p == 'P' || *str_p == 'X' || *str_p == '^' || *str_p == '_')
 			{
-				/* "ESC SP F", "ESC SP G", "ESC SP L", "ESC SP M", "ESC SP N" */
-
-				if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) == 0)
+				if( ! get_pt_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0) && left == 0)
 				{
 					return  0 ;
 				}
@@ -2716,11 +2729,15 @@ parse_vt100_escape_sequence(
 				{
 					/* not VT100 control sequence */
 
+				#ifdef  ESCSEQ_DEBUG
+					kik_msg_printf( "=> not VT100 control sequence.\n") ;
+				#endif
+
 					return  1 ;
 				}
 
-				if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) == 0)
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0))
 				{
 					return  0 ;
 				}
@@ -2736,6 +2753,10 @@ parse_vt100_escape_sequence(
 				else
 				{
 					/* not VT100 control sequence */
+
+				#ifdef  ESCSEQ_DEBUG
+					kik_msg_printf( "=> not VT100 control sequence.\n") ;
+				#endif
 
 					return  1 ;
 				}
@@ -2754,11 +2775,15 @@ parse_vt100_escape_sequence(
 				{
 					/* not VT100 control sequence */
 
+				#ifdef  ESCSEQ_DEBUG
+					kik_msg_printf( "=> not VT100 control sequence.\n") ;
+				#endif
+
 					return  1 ;
 				}
 
-				if( inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) == 0)
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0))
 				{
 					return  0 ;
 				}
@@ -2775,6 +2800,10 @@ parse_vt100_escape_sequence(
 				{
 					/* not VT100 control sequence */
 
+				#ifdef  ESCSEQ_DEBUG
+					kik_msg_printf( "=> not VT100 control sequence.\n") ;
+				#endif
+
 					return  1 ;
 				}
 				
@@ -2787,9 +2816,13 @@ parse_vt100_escape_sequence(
 			/* Other intermediate character */
 			else if( 0x20 <= *str_p && *str_p <= 0x2f)
 			{
+				/*
+				 * "ESC SP F", "ESC SP G", "ESC SP L", "ESC SP M", "ESC SP N"
+				 * etc ...
+				 */
+
 			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" received unknown esc sequence ESC") ;
+				debug_print_unknown( "ESC") ;
 			#endif
 
 				/* In case more than one intermediate(0x20-0x2f) chars. */
@@ -2799,8 +2832,8 @@ parse_vt100_escape_sequence(
 					kik_msg_printf( " %c" , *str_p) ;
 				#endif
 
-					if( inc_str_in_esc_seq( vt100_parser->screen ,
-								&str_p , &left , 0) == 0)
+					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+								&str_p , &left , 0))
 					{
 						return  0 ;
 					}
@@ -2815,8 +2848,7 @@ parse_vt100_escape_sequence(
 			else if( 0x30 <= *str_p && *str_p <= 0x7e)
 			{
 			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" received unknown esc sequence ESC %c.\n" , *str_p) ;
+				debug_print_unknown( "ESC %c\n" , *str_p) ;
 			#endif
 			}
 			else
