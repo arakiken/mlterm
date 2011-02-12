@@ -1,3 +1,16 @@
+2011-02-13  Araki Ken  <arakiken@users.sf.net>
+
+	* README, doc/ja/README.ja: Updated.
+
+	* tool/mlimgloader/main.c, Makefile.in: mlimgloader which depends on gdk-pixbuf
+	  loads image files. If --with-imagelib option is not specified to configure,
+	  mlterm uses mlimgloader for wall picture, icon picture and pixmap_engine.
+
+	* xwindow/dexport.map: Added. It specifies dynamic symbols for pixmap_engine.
+
+	* ml_shape.c, ml_logical_visual.c: If USE_FRIBIDI or USE_IND is not defined,
+	  related codes are removed in building mlterm binary.
+
 2011-02-08  Araki Ken  <arakiken@users.sf.net>
 
 	* xwindow/Makefile.in: Fixed SF Bug #3158963.

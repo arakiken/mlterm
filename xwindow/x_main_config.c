@@ -166,10 +166,8 @@ x_prepare_for_main_config(
 		"use non-Unicode fonts even in UTF-8 mode [false]") ;
 	kik_conf_add_opt( conf , 'o' , "lsp" , 0 , "line_space" ,
 		"extra space between lines in pixels [0]") ;
-#ifdef  USE_EXT_IMAGELIB
 	kik_conf_add_opt( conf , 'p' , "pic" , 0 , "wall_picture" , 
 		"path for wallpaper (background) image") ;
-#endif
 	kik_conf_add_opt( conf , 'q' , "extkey" , 1 , "use_extended_scroll_shortcut" ,
 		"use extended scroll shortcut keys [false]") ;
 	kik_conf_add_opt( conf , 'r' , "fade" , 0 , "fade_ratio" , 
@@ -188,10 +186,8 @@ x_prepare_for_main_config(
 		"terminal type for TERM variable [xterm]") ;
 	kik_conf_add_opt( conf , 'z' ,  "largesmall" , 0 , "step_in_changing_font_size" ,
 		"step in changing font size in GUI configurator [1]") ;
-#ifdef  USE_EXT_IMAGELIB
 	kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
 		"path to an imagefile to be use as an window icon") ;
-#endif
 #ifdef  USE_FRIBIDI
 	kik_conf_add_opt( conf , '\0' , "bimode" , 0 , "bidi_mode" ,
 		"bidi mode [normal]") ;

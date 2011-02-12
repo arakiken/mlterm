@@ -2203,7 +2203,8 @@ x_term_manager_event_loop(void)
 
 						#ifdef  __DEBUG
 							kik_debug_printf( KIK_DEBUG_TAG
-								" closing screen %d.") ;
+								" closing screen %d-%d." ,
+								idx , count) ;
 						#endif
 
 							screen = screens[idx * MSU + count] ;

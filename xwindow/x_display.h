@@ -38,12 +38,11 @@ typedef struct  x_display
 	Colormap  colormap ;
 #endif
 	u_int  depth ;
+	x_gc_t *  gc ;
 
 	/*
 	 * Private
 	 */
-	x_gc_t *  gc ;
-
 	x_window_ptr_t *  roots ;
 	u_int  num_of_roots ;
 

@@ -49,7 +49,10 @@ comment $Id$
       この場合、結合文字や BIDI 等を扱えなくなります。
 
     --with-imagelib=(gdk-pixbuf)
-      gdk-pixbuf を使って、壁紙を貼れるようにします。
+      mlterm 本体に gdk-pixbuf をリンクし、壁紙やアイコンの画像を
+      扱えるようにします。
+      このオプションを使用しない場合、mlimgloader を使って画像表示を
+      行います。
 
     --with-libltdl
       モジュールの動的ローディングに libltdl を使用します。
@@ -127,9 +130,7 @@ comment $Id$
     Xft と通常の X フォントのどちらを使うかは、動的に切替え可能です。
 
   o 壁紙、背景透過
-    背景を擬似的に透過させることができます。
-    configure --with-imagelib=gdk-pixbuf でビルドした mlterm には、壁紙をはり
-    付けることができます。
+    壁紙を貼ったり背景を擬似的に透過させることができます。
 
   o マルチPTY
     単一プロセス中から、--maxptys オプションで指定した上限数(デフォルトでは 32)

@@ -10,7 +10,6 @@
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_conf_io.h>
-#include  <kiklib/kik_list.h>
 
 #include  "x_simple_sb_view.h"
 
@@ -34,8 +33,6 @@
 typedef  x_sb_view_t * (*x_sb_view_new_func_t)(void) ;
 typedef  x_sb_view_t * (*x_sb_engine_new_func_t)( x_sb_view_conf_t *  conf, int is_transparent) ;
 
-KIK_LIST_TYPEDEF( x_sb_view_conf_t) ;
-
 
 #ifdef  COMPAT_VER0
 
@@ -57,7 +54,8 @@ typedef struct x_sb_view_wrapper
 /* --- static variables --- */
 
 #ifdef  SUPPORT_PIXMAP_ENGINE
-static KIK_LIST( x_sb_view_conf_t)  view_conf_list = NULL ;
+static x_sb_view_conf_t **  view_confs ;
+static u_int  num_of_view_confs ;
 #endif
 
 
@@ -259,8 +257,10 @@ check_version(
 	x_sb_view_t *  view
 	)
 {
+#ifdef  COMPAT_VER0
 	x_sb_view_wrapper_t *  wrapper ;
-	
+#endif
+
 	if( view->version == 1)
 	{
 		return  view ;
@@ -410,28 +410,14 @@ search_view_conf(
 	char *  sb_name
 	)
 {
-	KIK_ITERATOR( x_sb_view_conf_t)  iterator = NULL ;
+	u_int  count ;
 
-	if( view_conf_list == NULL)
+	for( count = 0 ; count < num_of_view_confs ; count++)
 	{
-		return  NULL ;
-	}
-
-	iterator = kik_list_first( view_conf_list) ;
-	while( iterator)
-	{
-		if( kik_iterator_indirect( iterator) == NULL)
+		if( strcmp( view_confs[count]->sb_name , sb_name) == 0)
 		{
-			kik_error_printf(
-				"iterator found , but it has no logs."
-				"don't you cross over memory boundaries anywhere?\n") ;
+			return  view_confs[count] ;
 		}
-		else if( strcmp(kik_iterator_indirect( iterator)->sb_name , sb_name) == 0)
-		{
-			return  kik_iterator_indirect( iterator) ;
-		}
-
-		iterator = kik_iterator_next( iterator) ;
 	}
 
 	return  NULL ;
@@ -471,6 +457,7 @@ register_new_view_conf(
 	char *  key ;
 	char *  value ;
 	int  len ;
+	void *  p ;
 
 	if( ( conf = malloc( sizeof( x_sb_view_conf_t))) == NULL)
 	{
@@ -488,8 +475,7 @@ register_new_view_conf(
 	len = strlen( rcfile_path) - 3 ;
 	if( ( conf->dir = malloc(sizeof( char) * ( len + 1))) == NULL)
 	{
-		free_conf( conf) ;
-		return  NULL ;
+		goto  error ;
 	}
 	strncpy( conf->dir , rcfile_path , len) ;
 	conf->dir[len] = '\0' ;
@@ -506,15 +492,14 @@ register_new_view_conf(
 		{
 			x_sb_view_rc_t *  p ;
 
-			if( ( p = realloc( conf->rc , sizeof( x_sb_view_rc_t) * (conf->rc_num + 1))) == NULL)
+			if( ( p = realloc( conf->rc ,
+					sizeof( x_sb_view_rc_t) * (conf->rc_num + 1))) == NULL)
 			{
 			#ifdef __DEBUG
 				kik_debug_printf( "realloc() failed.") ;
 			#endif
 				
-				free_conf( conf) ;
-				
-				return  NULL ;
+				goto  error ;
 			}
 			conf->rc = p ;
 			p = &conf->rc[conf->rc_num] ;
@@ -526,9 +511,7 @@ register_new_view_conf(
 
 	if( conf->engine_name == NULL)
 	{
-		free_conf( conf) ;
-		
-		return  NULL ;
+		goto  error ;
 	}
 
 #ifdef __DEBUG
@@ -536,17 +519,24 @@ register_new_view_conf(
 		conf->sb_name , conf->dir);
 #endif
 
-	if( view_conf_list == NULL)
+	if( ( p = realloc( view_confs , sizeof(x_sb_view_conf_t*) * (num_of_view_confs + 1)))
+			== NULL)
 	{
-	#ifdef __DEBUG
-		kik_debug_printf( "view_conf_list is NULL. creating\n") ;
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " realloc failed.\n") ;
 	#endif
-		kik_list_new( x_sb_view_conf_t , view_conf_list) ;
+
+		goto  error ;
 	}
 
-	kik_list_insert_head( x_sb_view_conf_t , view_conf_list , conf) ;
+	view_confs = p ;
+	view_confs[num_of_view_confs ++] = conf ;
 	
 	return  conf ;
+
+error:	
+	free_conf( conf) ;
+	return  NULL ;
 }
 
 static int
@@ -554,17 +544,21 @@ unregister_view_conf(
 	x_sb_view_conf_t *  conf
 	)
 {
-	kik_list_search_and_remove( x_sb_view_conf_t , view_conf_list , conf) ;
+	u_int  count ;
 
-	free_conf( conf) ;
-
-	if( kik_list_is_empty( view_conf_list))
+	for( count = 0 ; count < num_of_view_confs ; count++)
 	{
-	#ifdef __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " view_conf_list is empty. freeing\n");
-	#endif
-		kik_list_delete( x_sb_view_conf_t , view_conf_list) ;
-		view_conf_list = NULL ;
+		if( view_confs[count] == conf)
+		{
+			free_conf( conf) ;
+			view_confs[count] = view_confs[--num_of_view_confs] ;
+
+			if( num_of_view_confs == 0)
+			{
+				free( view_confs) ;
+				view_confs = NULL ;
+			}
+		}
 	}
 
 	return  1 ;

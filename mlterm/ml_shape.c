@@ -42,6 +42,8 @@ typedef struct iscii_shape
 
 /* --- static variables --- */
 
+#ifdef  USE_FRIBIDI
+
 static arabic_present_t  arabic_present_table[] =
 {
 	{ 0x0621 , 0xFE80 , 0x0000 , 0x0000 , 0x0000 , } ,
@@ -131,8 +133,12 @@ static arabic_comb_t  arabic_comb_table[] =
 
 } ;
 
+#endif	/* USE_FRIBIDI */
+
 
 /* --- static functions --- */
+
+#ifdef  USE_FRIBIDI
 
 static arabic_present_t *
 get_arabic_present(
@@ -327,6 +333,11 @@ arabic_delete(
 	return  1 ;
 }
 
+#endif	/* USE_FRIBIDI */
+
+
+#ifdef  USE_IND
+
 static u_int
 shape_iscii(
 	ml_shape_t *  shape ,
@@ -487,12 +498,15 @@ iscii_delete(
 	return  1 ;
 }
 
+#endif	/* USE_IND */
+
 
 /* --- global functions --- */
 
 ml_shape_t *
 ml_arabic_shape_new(void)
 {
+#ifdef  USE_FRIBIDI
 	ml_shape_t *  shape ;
 	
 	if( ( shape = malloc( sizeof( ml_shape_t))) == NULL)
@@ -504,6 +518,9 @@ ml_arabic_shape_new(void)
 	shape->delete = arabic_delete ;
 
 	return  shape ;
+#else
+	return  NULL ;
+#endif
 }
 
 u_int16_t
@@ -513,6 +530,7 @@ ml_is_arabic_combining(
 	ml_char_t *  ch			/* must be ISO10646_UCS4_1 character */
 	)
 {
+#ifdef  USE_FRIBIDI
 	ml_char_t *  seq[4] ;		/* reverse order */
 	u_int16_t  ucs_seq[4] ;		/* reverse order */
 	int  count ;
@@ -598,6 +616,7 @@ ml_is_arabic_combining(
 			}
 		}
 	}
+#endif	/* USE_FRIBIDI */
 
 	return  0 ;
 }
@@ -607,6 +626,7 @@ ml_iscii_shape_new(
 	ml_iscii_lang_t  iscii_lang
 	)
 {
+#ifdef  USE_IND
 	iscii_shape_t *  iscii_shape ;
 	
 	if( ( iscii_shape = malloc( sizeof( iscii_shape_t))) == NULL)
@@ -619,4 +639,7 @@ ml_iscii_shape_new(
 	iscii_shape->iscii_lang = iscii_lang ;
 
 	return  (ml_shape_t*) iscii_shape ;
+#else
+	return  NULL ;
+#endif
 }

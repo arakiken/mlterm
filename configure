@@ -750,6 +750,7 @@ LIBOBJS
 MAKE_DIRS
 subdirs
 CHANGE_DATE
+XWINDOW_OBJ_SUFFIX
 DL_SELF
 MKF_LIBS_FOR_MODULE
 KIK_LIBS_FOR_MODULE
@@ -803,8 +804,6 @@ UIM_CFLAGS
 DND_LIBS
 DND_CFLAGS
 PERL
-GTK_LIBS
-GTK_CFLAGS
 INSTALL_OPT
 UTMP_CFLAGS
 IND_CFLAGS
@@ -822,12 +821,15 @@ SYSLIBDIR
 XUTF8_CFLAGS
 GUI_CFLAGS
 WIN32TAG
-gdk_pixbuf_config
-pkg_config
 IMAGELIB_LIBS
 IMAGELIB_CFLAGS
 imlib2_config
 imlib_config
+pkg_config
+GDK_PIXBUF_LIBS
+GDK_PIXBUF_CFLAGS
+GTK_LIBS
+GTK_CFLAGS
 SUBSYSTEM
 WIN32DIALOG_OBJ
 ML_PTY_OBJ
@@ -976,14 +978,14 @@ F77
 FFLAGS
 XMKMF
 PKG_CONFIG
-IMAGELIB_CFLAGS
-IMAGELIB_LIBS
+GTK_CFLAGS
+GTK_LIBS
+GDK_PIXBUF_CFLAGS
+GDK_PIXBUF_LIBS
 FRIBIDI_CFLAGS
 FRIBIDI_LIBS
 XFT_CFLAGS
 XFT_LIBS
-GTK_CFLAGS
-GTK_LIBS
 UIM_CFLAGS
 UIM_LIBS
 IIIMCF_CFLAGS
@@ -1671,18 +1673,18 @@ Some influential environment variables:
   FFLAGS      Fortran 77 compiler flags
   XMKMF       Path to xmkmf, Makefile generator for X Window System
   PKG_CONFIG  path to pkg-config utility
-  IMAGELIB_CFLAGS
-              C compiler flags for IMAGELIB, overriding pkg-config
-  IMAGELIB_LIBS
-              linker flags for IMAGELIB, overriding pkg-config
+  GTK_CFLAGS  C compiler flags for GTK, overriding pkg-config
+  GTK_LIBS    linker flags for GTK, overriding pkg-config
+  GDK_PIXBUF_CFLAGS
+              C compiler flags for GDK_PIXBUF, overriding pkg-config
+  GDK_PIXBUF_LIBS
+              linker flags for GDK_PIXBUF, overriding pkg-config
   FRIBIDI_CFLAGS
               C compiler flags for FRIBIDI, overriding pkg-config
   FRIBIDI_LIBS
               linker flags for FRIBIDI, overriding pkg-config
   XFT_CFLAGS  C compiler flags for XFT, overriding pkg-config
   XFT_LIBS    linker flags for XFT, overriding pkg-config
-  GTK_CFLAGS  C compiler flags for GTK, overriding pkg-config
-  GTK_LIBS    linker flags for GTK, overriding pkg-config
   UIM_CFLAGS  C compiler flags for UIM, overriding pkg-config
   UIM_LIBS    linker flags for UIM, overriding pkg-config
   IIIMCF_CFLAGS
@@ -4526,7 +4528,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4529 "configure"' > conftest.$ac_ext
+  echo '#line 4531 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7095,11 +7097,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7098: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7100: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7102: \$? = $ac_status" >&5
+   echo "$as_me:7104: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7385,11 +7387,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7388: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7390: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7392: \$? = $ac_status" >&5
+   echo "$as_me:7394: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7489,11 +7491,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7492: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7494: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7496: \$? = $ac_status" >&5
+   echo "$as_me:7498: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9514,7 +9516,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9517 "configure"
+#line 9519 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9614,7 +9616,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9617 "configure"
+#line 9619 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11955,11 +11957,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11958: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11960: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11962: \$? = $ac_status" >&5
+   echo "$as_me:11964: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12059,11 +12061,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12062: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12064: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12066: \$? = $ac_status" >&5
+   echo "$as_me:12068: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13642,11 +13644,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13645: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13647: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13649: \$? = $ac_status" >&5
+   echo "$as_me:13651: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13746,11 +13748,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13749: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13751: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13753: \$? = $ac_status" >&5
+   echo "$as_me:13755: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15907,11 +15909,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15910: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15912: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15914: \$? = $ac_status" >&5
+   echo "$as_me:15916: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16197,11 +16199,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16200: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16202: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16204: \$? = $ac_status" >&5
+   echo "$as_me:16206: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16301,11 +16303,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16304: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16306: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16308: \$? = $ac_status" >&5
+   echo "$as_me:16310: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19728,6 +19730,360 @@ fi
 
 
 
+if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
+	if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_path_PKG_CONFIG"; then
+  ac_pt_PKG_CONFIG=$PKG_CONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_ac_pt_PKG_CONFIG+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $ac_pt_PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
+if test -n "$ac_pt_PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKG_CONFIG" >&5
+$as_echo "$ac_pt_PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_pt_PKG_CONFIG" = x; then
+    PKG_CONFIG=""
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    PKG_CONFIG=$ac_pt_PKG_CONFIG
+  fi
+else
+  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
+fi
+
+fi
+if test -n "$PKG_CONFIG"; then
+	_pkg_min_version=0.9.0
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
+$as_echo_n "checking pkg-config is at least version $_pkg_min_version... " >&6; }
+	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		PKG_CONFIG=""
+	fi
+
+fi
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTK" >&5
+$as_echo_n "checking for GTK... " >&6; }
+
+if test -n "$GTK_CFLAGS"; then
+    pkg_cv_GTK_CFLAGS="$GTK_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gtk+-2.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GTK_CFLAGS=`$PKG_CONFIG --cflags "gtk+-2.0" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$GTK_LIBS"; then
+    pkg_cv_GTK_LIBS="$GTK_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gtk+-2.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GTK_LIBS=`$PKG_CONFIG --libs "gtk+-2.0" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gtk+-2.0" 2>&1`
+        else
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --print-errors "gtk+-2.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$GTK_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_gtk2=no
+elif test $pkg_failed = untried; then
+	have_gtk2=no
+else
+	GTK_CFLAGS=$pkg_cv_GTK_CFLAGS
+	GTK_LIBS=$pkg_cv_GTK_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_gtk2=yes
+fi
+if test "$have_gtk2" = "yes" ; then
+	gtk_config=yes
+fi
+# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
+GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
+GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
+
+
+
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GDK_PIXBUF" >&5
+$as_echo_n "checking for GDK_PIXBUF... " >&6; }
+
+if test -n "$GDK_PIXBUF_CFLAGS"; then
+    pkg_cv_GDK_PIXBUF_CFLAGS="$GDK_PIXBUF_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gdk-pixbuf-2.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gdk-pixbuf-2.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GDK_PIXBUF_CFLAGS=`$PKG_CONFIG --cflags "gdk-pixbuf-2.0" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$GDK_PIXBUF_LIBS"; then
+    pkg_cv_GDK_PIXBUF_LIBS="$GDK_PIXBUF_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gdk-pixbuf-2.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gdk-pixbuf-2.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_GDK_PIXBUF_LIBS=`$PKG_CONFIG --libs "gdk-pixbuf-2.0" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        GDK_PIXBUF_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gdk-pixbuf-2.0" 2>&1`
+        else
+	        GDK_PIXBUF_PKG_ERRORS=`$PKG_CONFIG --print-errors "gdk-pixbuf-2.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$GDK_PIXBUF_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+	# Extract the first word of "gdk-pixbuf-config", so it can be a program name with args.
+set dummy gdk-pixbuf-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_pkg_config+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$pkg_config"; then
+  ac_cv_prog_pkg_config="$pkg_config" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_pkg_config="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+pkg_config=$ac_cv_prog_pkg_config
+if test -n "$pkg_config"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $pkg_config" >&5
+$as_echo "$pkg_config" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+	if test "$pkg_config" = "yes" ; then
+		have_gdk_pixbuf1="yes"
+		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags`"
+		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs`"
+	fi
+
+elif test $pkg_failed = untried; then
+
+	# Extract the first word of "gdk-pixbuf-config", so it can be a program name with args.
+set dummy gdk-pixbuf-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_prog_pkg_config+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$pkg_config"; then
+  ac_cv_prog_pkg_config="$pkg_config" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_pkg_config="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+pkg_config=$ac_cv_prog_pkg_config
+if test -n "$pkg_config"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $pkg_config" >&5
+$as_echo "$pkg_config" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+	if test "$pkg_config" = "yes" ; then
+		have_gdk_pixbuf1="yes"
+		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags`"
+		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs`"
+	fi
+
+else
+	GDK_PIXBUF_CFLAGS=$pkg_cv_GDK_PIXBUF_CFLAGS
+	GDK_PIXBUF_LIBS=$pkg_cv_GDK_PIXBUF_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+	have_gdk_pixbuf2="yes"
+
+fi
+
+
+
+if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
+	OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
+	MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
+fi
+
+
 # Check whether --with-imagelib was given.
 if test "${with_imagelib+set}" = set; then :
   withval=$with_imagelib; imagelib=$with_imagelib
@@ -19845,420 +20201,50 @@ fi
 	WIN32TAG="_win32"
 	;;
 gdk-pixbuf)
-
-
-if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
-	if test -n "$ac_tool_prefix"; then
-  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
-set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_path_PKG_CONFIG+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $PKG_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-PKG_CONFIG=$ac_cv_path_PKG_CONFIG
-if test -n "$PKG_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
-$as_echo "$PKG_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-fi
-if test -z "$ac_cv_path_PKG_CONFIG"; then
-  ac_pt_PKG_CONFIG=$PKG_CONFIG
-  # Extract the first word of "pkg-config", so it can be a program name with args.
-set dummy pkg-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_path_ac_pt_PKG_CONFIG+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $ac_pt_PKG_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
-if test -n "$ac_pt_PKG_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKG_CONFIG" >&5
-$as_echo "$ac_pt_PKG_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-  if test "x$ac_pt_PKG_CONFIG" = x; then
-    PKG_CONFIG=""
-  else
-    case $cross_compiling:$ac_tool_warned in
-yes:)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
-$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
-ac_tool_warned=yes ;;
-esac
-    PKG_CONFIG=$ac_pt_PKG_CONFIG
-  fi
-else
-  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
-fi
-
-fi
-if test -n "$PKG_CONFIG"; then
-	_pkg_min_version=0.9.0
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
-$as_echo_n "checking pkg-config is at least version $_pkg_min_version... " >&6; }
-	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+	if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
+		IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
+		IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
+		if test "$have_gdk_pixbuf1" = "yes" ; then
+			echo ""
+			echo "** WARNING **"
+			echo " gdk-pixbuf1 is no longer supported."
+			echo ""
+		fi
 	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		PKG_CONFIG=""
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find gdk-pixbuf"
+		echo ""
+		exit 1
 	fi
-
-fi
-
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for IMAGELIB" >&5
-$as_echo_n "checking for IMAGELIB... " >&6; }
-
-if test -n "$IMAGELIB_CFLAGS"; then
-    pkg_cv_IMAGELIB_CFLAGS="$IMAGELIB_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gdk-pixbuf-2.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "gdk-pixbuf-2.0") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_IMAGELIB_CFLAGS=`$PKG_CONFIG --cflags "gdk-pixbuf-2.0" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$IMAGELIB_LIBS"; then
-    pkg_cv_IMAGELIB_LIBS="$IMAGELIB_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gdk-pixbuf-2.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "gdk-pixbuf-2.0") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_IMAGELIB_LIBS=`$PKG_CONFIG --libs "gdk-pixbuf-2.0" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        IMAGELIB_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gdk-pixbuf-2.0" 2>&1`
-        else
-	        IMAGELIB_PKG_ERRORS=`$PKG_CONFIG --print-errors "gdk-pixbuf-2.0" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$IMAGELIB_PKG_ERRORS" >&5
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-		# Extract the first word of "gdk-pixbuf-config", so it can be a program name with args.
-set dummy gdk-pixbuf-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_pkg_config+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$pkg_config"; then
-  ac_cv_prog_pkg_config="$pkg_config" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_pkg_config="yes"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-pkg_config=$ac_cv_prog_pkg_config
-if test -n "$pkg_config"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $pkg_config" >&5
-$as_echo "$pkg_config" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-		if test "$pkg_config" = "yes" ; then
-			IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_EXT_IMAGELIB"
-			IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
-		fi
-		echo ""
-		echo "** WARNING **"
-		echo " gdk-pixbuf1 is no longer supported."
-		echo ""
-
-elif test $pkg_failed = untried; then
-
-		# Extract the first word of "gdk-pixbuf-config", so it can be a program name with args.
-set dummy gdk-pixbuf-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_pkg_config+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$pkg_config"; then
-  ac_cv_prog_pkg_config="$pkg_config" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_pkg_config="yes"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-pkg_config=$ac_cv_prog_pkg_config
-if test -n "$pkg_config"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $pkg_config" >&5
-$as_echo "$pkg_config" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-		if test "$pkg_config" = "yes" ; then
-			IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_EXT_IMAGELIB"
-			IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
-		fi
-		echo ""
-		echo "** WARNING **"
-		echo " gdk-pixbuf1 is no longer supported."
-		echo ""
-
-else
-	IMAGELIB_CFLAGS=$pkg_cv_IMAGELIB_CFLAGS
-	IMAGELIB_LIBS=$pkg_cv_IMAGELIB_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_EXT_IMAGELIB"
-
-fi
 	;;
 gdk-pixbuf2)
-
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for IMAGELIB" >&5
-$as_echo_n "checking for IMAGELIB... " >&6; }
-
-if test -n "$IMAGELIB_CFLAGS"; then
-    pkg_cv_IMAGELIB_CFLAGS="$IMAGELIB_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gdk-pixbuf-2.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "gdk-pixbuf-2.0") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_IMAGELIB_CFLAGS=`$PKG_CONFIG --cflags "gdk-pixbuf-2.0" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$IMAGELIB_LIBS"; then
-    pkg_cv_IMAGELIB_LIBS="$IMAGELIB_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gdk-pixbuf-2.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "gdk-pixbuf-2.0") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_IMAGELIB_LIBS=`$PKG_CONFIG --libs "gdk-pixbuf-2.0" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        IMAGELIB_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gdk-pixbuf-2.0" 2>&1`
-        else
-	        IMAGELIB_PKG_ERRORS=`$PKG_CONFIG --print-errors "gdk-pixbuf-2.0" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$IMAGELIB_PKG_ERRORS" >&5
-
-	as_fn_error "Package requirements (gdk-pixbuf-2.0) were not met:
-
-$IMAGELIB_PKG_ERRORS
-
-Consider adjusting the PKG_CONFIG_PATH environment variable if you
-installed software in a non-standard prefix.
-
-Alternatively, you may set the environment variables IMAGELIB_CFLAGS
-and IMAGELIB_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-" "$LINENO" 5
-elif test $pkg_failed = untried; then
-	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error "The pkg-config script could not be found or is too old.  Make sure it
-is in your PATH or set the PKG_CONFIG environment variable to the full
-path to pkg-config.
-
-Alternatively, you may set the environment variables IMAGELIB_CFLAGS
-and IMAGELIB_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.
-See \`config.log' for more details." "$LINENO" 5; }
-else
-	IMAGELIB_CFLAGS=$pkg_cv_IMAGELIB_CFLAGS
-	IMAGELIB_LIBS=$pkg_cv_IMAGELIB_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_EXT_IMAGELIB"
-
-fi
+	if test "$have_gdk_pixbuf2" = "yes" ; then
+		IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
+		IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
+	else
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find gdk-pixbuf2"
+		echo ""
+		exit 1
+	fi
 	;;
 gdk-pixbuf1)
-	# Extract the first word of "gdk-pixbuf-config", so it can be a program name with args.
-set dummy gdk-pixbuf-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_gdk_pixbuf_config+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$gdk_pixbuf_config"; then
-  ac_cv_prog_gdk_pixbuf_config="$gdk_pixbuf_config" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_gdk_pixbuf_config="yes"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-gdk_pixbuf_config=$ac_cv_prog_gdk_pixbuf_config
-if test -n "$gdk_pixbuf_config"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gdk_pixbuf_config" >&5
-$as_echo "$gdk_pixbuf_config" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-	if test "$gdk_pixbuf_config" = "yes" ; then
-		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_EXT_IMAGELIB"
-		IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
+	if test "$have_gdk_pixbuf1" = "yes" ; then
+		IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
+		IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
+		echo ""
+		echo "** WARNING **"
+		echo " gdk-pixbuf1 is no longer supported."
+		echo ""
+	else
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find gdk-pixbuf2"
+		echo ""
+		exit 1
 	fi
-	echo ""
-	echo "** WARNING **"
-	echo " gdk-pixbuf1 is no longer supported."
-	echo ""
 	;;
 *)
 	if test "${imagelib}" != "" ; then
@@ -20715,84 +20701,8 @@ fi
 
 
 
-
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTK" >&5
-$as_echo_n "checking for GTK... " >&6; }
-
-if test -n "$GTK_CFLAGS"; then
-    pkg_cv_GTK_CFLAGS="$GTK_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "gtk+-2.0") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_GTK_CFLAGS=`$PKG_CONFIG --cflags "gtk+-2.0" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$GTK_LIBS"; then
-    pkg_cv_GTK_LIBS="$GTK_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "gtk+-2.0") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_GTK_LIBS=`$PKG_CONFIG --libs "gtk+-2.0" 2>/dev/null`
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        GTK_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gtk+-2.0" 2>&1`
-        else
-	        GTK_PKG_ERRORS=`$PKG_CONFIG --print-errors "gtk+-2.0" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$GTK_PKG_ERRORS" >&5
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-                have_gtk2=no
-elif test $pkg_failed = untried; then
-	have_gtk2=no
-else
-	GTK_CFLAGS=$pkg_cv_GTK_CFLAGS
-	GTK_LIBS=$pkg_cv_GTK_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	have_gtk2=yes
-fi
-if test "$have_gtk2" = "yes" ; then
-	gtk_config=yes
-fi
-# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
-GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
-GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
-
-
-
 if test "${gtk_config}" = "yes" ; then
-	OUTPUT_FILES="gtk/Makefile"
+	OUTPUT_FILES="gtk/Makefile ${OUTPUT_FILES}"
 fi
 
 tools="mlclient,mlconfig,mlcc,mlterm-menu"
@@ -21854,13 +21764,16 @@ pixmap_engine)
 		echo ""
 		exit 1
 	fi
-	if test -n "$IMAGELIB_CFLAGS" ; then
+	if test "$have_gdk_pixbuf1" = "yes" -o "$have_gdk_pixbuf2" = "yes" ; then
 		MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
 			DL_LIBS_SB="-export-dynamic -dlopen \$(top_builddir)/contrib/scrollbar/pixmap_engine/libpixmap_engine.la ${DL_LIBS_SB}"
 		else
-			DL_LIBS_SB="-export-dynamic"
+			DL_LIBS_SB="-export-dynamic ${DL_LIBS_SB}"
+		fi
+		if test "$with_gnu_ld" = "yes" ; then
+			DL_LIBS_SB="-Wl,--version-script=\$(top_srcdir)/xwindow/dexport.map ${DL_LIBS_SB}"
 		fi
 		SB_CFLAGS="-DSUPPORT_PIXMAP_ENGINE"
 		scrollbars_result="$scrollbars_result $scrollbar"
@@ -21868,7 +21781,6 @@ pixmap_engine)
 		echo ""
 		echo "** ERROR **"
 		echo "To use pixmap_engine for scrollbar, you need gdk-pixbuf library."
-		echo "(e.g. --with-imagelib=gdk-pixbuf)"
 		echo ""
 		exit 1
 	fi
@@ -23803,6 +23715,12 @@ if test "x$with_libltdl" != "xno" ; then
 	DL_SELF="-dlopen self"
 fi
 
+
+# Because pic object files are fat, non-pic ones are linked unless --disable-static
+# option is specified.
+if test "$enable_static" = "no" ; then
+	XWINDOW_OBJ_SUFFIX=":.o=.lo"
+fi
 
 
 CHANGE_DATE=`head -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^\([0-9]*-[0-9]*-[0-9]*\).*$/\1/p'`

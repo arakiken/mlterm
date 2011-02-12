@@ -1,0 +1,61 @@
+top_builddir = ../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+sysconfdir = @sysconfdir@
+exec_prefix = @exec_prefix@
+datadir = @datadir@
+bindir = @bindir@
+libdir = @libdir@
+libexecdir = @libexecdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+LIBEXECDIR = $(DESTDIR)$(libexecdir)
+
+VPATH = $(top_srcdir)/tool/mlimgloader
+
+OBJ = main.o
+
+LKIK = @LKIK@
+LKIK_DEB = -lkik_deb
+
+CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @DEB_CFLAGS@ \
+	@GDK_PIXBUF_CFLAGS@ @X_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -I/usr/local/include
+
+LIBS = $(LIBS_LOCAL) $(LKIK) \
+	-L/usr/local/lib -R/usr/local/lib \
+	@GDK_PIXBUF_LIBS@ @X_LIBS@ -lX11 @X_EXTRA_LIBS@
+
+PROG = mlimgloader
+INSTALL_OPT = @INSTALL_OPT@
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+all: $(PROG)
+
+$(PROG): $(OBJ)
+	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) $(OBJ:.o=.lo) $(LIBS)
+
+.SUFFIXES: .c .o
+
+.c.o:
+	$(LIBTOOL_CC) $(CFLAGS) -c $<
+
+$(LIBEXECDIR):
+	mkdir -p $(LIBEXECDIR)
+
+install : $(LIBEXECDIR)
+	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG) $(LIBEXECDIR)
+
+wc :
+	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
+
+clean:
+	rm -rf $(PROG) $(PROG).exe *.core $(OBJ) $(OBJ:.o=.lo).libs
+
+distclean: clean
+	rm -f Makefile

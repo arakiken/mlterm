@@ -56,6 +56,10 @@
 #define  SYSLIBDIR  "/lib/"
 #endif
 
+#ifndef  LIBEXECDIR
+#define  LIBEXECDIR  "/usr/local/libexec"
+#endif
+
 #if  0
 #define  __DEBUG
 #endif
@@ -67,6 +71,24 @@ static int  display_count = 0 ;
 
 
 /* --- static functions --- */
+
+static Status
+get_drawable_size(
+	Display *  display ,
+	Drawable  drawable ,
+	u_int *  width ,
+	u_int *  height
+	)
+{
+	Window  root ;
+	int  x ;
+	int  y ;
+	u_int  border ;
+	u_int  depth ;
+	
+	return  XGetGeometry( display , drawable , &root , &x , &y , width , height ,
+			&border , &depth) ;
+}
 
 /* returned cmap shuold be freed by the caller */
 static int
@@ -291,45 +313,36 @@ value_table_refresh(
 static int
 modify_pixmap(
 	x_display_t *  disp ,
-	Pixmap  pixmap ,
-	x_picture_modifier_t *  pic_mod
+	Pixmap  src_pixmap ,
+	Pixmap  dst_pixmap ,		/* Can be same as src_pixmap */
+	x_picture_modifier_t *  pic_mod	/* Mustn't be normal */
 	)
 {
 	int  i, j ;
-	int  width, height ;
-	int  border, depth, x, y ;
-	Window  root ;
+	u_int  width, height ;
 	XImage *  image ;
-
 	int  r_offset, g_offset, b_offset ;
 	int  r_mask, g_mask, b_mask ;
 	int  matched ;
 	XVisualInfo *  vinfolist ;
 	XVisualInfo  vinfo ;
-
 	unsigned char  value_table[256] ;
-
-	if ( !pixmap)
-		return  -1 ;
-
-	if( x_picture_modifier_is_normal( pic_mod))
-		return  0 ;
-
-	
 
 	vinfo.visualid = XVisualIDFromVisual( disp->visual) ;
 	vinfolist = XGetVisualInfo( disp->display, VisualIDMask, &vinfo, &matched) ;
-	if( !vinfolist)
-		return  -2;
-	if ( !matched)
+	if( ! vinfolist)
 	{
-		XFree( vinfolist) ;
-		return  -3;
+		return  -2 ;
 	}
 
-	XGetGeometry( disp->display, pixmap, &root, &x, &y,
-		      &width, &height, &border, &depth) ;
-	image = XGetImage( disp->display, pixmap, 0, 0, width, height, AllPlanes, ZPixmap) ;
+	if( ! matched)
+	{
+		XFree( vinfolist) ;
+		return  -3 ;
+	}
+
+	get_drawable_size( disp->display , src_pixmap , &width , &height) ;
+	image = XGetImage( disp->display, src_pixmap, 0, 0, width, height, AllPlanes, ZPixmap) ;
 
 	switch( vinfolist[0].class)
 	{
@@ -376,7 +389,8 @@ modify_pixmap(
 					   (b >> b_limit) << b_offset) ;
 			}
 		}
-		XPutImage( disp->display, pixmap, disp->gc->gc, image, 0, 0, 0, 0, width, height) ;
+		XPutImage( disp->display, dst_pixmap, disp->gc->gc, image,
+			0, 0, 0, 0, width, height) ;
 		break ;
 	}
 	case PseudoColor:
@@ -418,7 +432,7 @@ modify_pixmap(
 
 			}
 
-			XPutImage( disp->display, pixmap, disp->gc->gc, image, 0, 0, 0, 0,
+			XPutImage( disp->display, dst_pixmap, disp->gc->gc, image, 0, 0, 0, 0,
 				   width, height) ;
 			free( color_list) ;
 			break ;
@@ -440,8 +454,7 @@ modify_pixmap(
  * don't modify returned pixbuf since the pixbuf
  * is stored in the cache and may be reused.
  */
-static
-GdkPixbuf *
+static GdkPixbuf *
 load_file(
 	char *  path ,			/* If NULL is specified, cache is cleared. */
 	unsigned int  width ,		/* 0 == image width */
@@ -450,8 +463,8 @@ load_file(
 	)
 {
 	static char *  name = NULL ;
-	static GdkPixbuf *  data = NULL ;
-	static GdkPixbuf *  scaled = NULL ;
+	static GdkPixbuf *  orig_cache = NULL ;
+	static GdkPixbuf *  scaled_cache = NULL ;
 	GdkPixbuf *  pixbuf ;
 
 	pixbuf = NULL ;
@@ -459,16 +472,16 @@ load_file(
 	if( ! path)
 	{
 		/* free caches */
-		if( data)
+		if( orig_cache)
 		{
-			g_object_unref( data) ;
-			data = NULL ;
+			g_object_unref( orig_cache) ;
+			orig_cache = NULL ;
 		}
 		
-		if( scaled)
+		if( scaled_cache)
 		{
-			g_object_unref( scaled) ;
-			scaled = NULL ;
+			g_object_unref( scaled_cache) ;
+			scaled_cache = NULL ;
 		}
 		
 		return  NULL ;
@@ -498,55 +511,56 @@ load_file(
 		free( name) ;
 		name = strdup( path) ;
 		
-		if( data)
+		if( orig_cache)
 		{
-			g_object_unref( data) ;
+			g_object_unref( orig_cache) ;
 		}
-		data = pixbuf ;
+		orig_cache = pixbuf ;
 
-		if( scaled) /* scaled one is not vaild now */
+		if( scaled_cache) /* scaled_cache one is not vaild now */
 		{
-			g_object_unref( scaled) ;
-			scaled = NULL ;
+			g_object_unref( scaled_cache) ;
+			scaled_cache = NULL ;
 		}
 	}
 	else
 	{
 	#ifdef __DEBUG
-			kik_warn_printf(KIK_DEBUG_TAG " using the pixbuf from cache\n") ;
+		kik_warn_printf(KIK_DEBUG_TAG " using the pixbuf from cache\n") ;
 	#endif
-		pixbuf = data ;
+		pixbuf = orig_cache ;
 	}
 	/* loading from file/cache ends here */
 
 	if( width == 0)
 	{
-		width = gdk_pixbuf_get_width( data) ;
+		width = gdk_pixbuf_get_width( orig_cache) ;
 	}
 	if( height == 0)
 	{
-		height = gdk_pixbuf_get_height( data) ;
+		height = gdk_pixbuf_get_height( orig_cache) ;
 	}
 	
-	/* It is necessary to scale data if width/height don't correspond. */
-	if( ( width != gdk_pixbuf_get_width( data)) ||
-	    ( height != gdk_pixbuf_get_height( data)))
+	/* It is necessary to scale orig_cache if width/height don't correspond. */
+	if( ( width != gdk_pixbuf_get_width( orig_cache)) ||
+	    ( height != gdk_pixbuf_get_height( orig_cache)))
 	{
-		/* Old cached scaled pixbuf became obsolete if width/height is changed */
-		if( scaled &&
-		    gdk_pixbuf_get_width( scaled) == width &&
-		    gdk_pixbuf_get_height( scaled) == height)
+		/* Old cached scaled_cache pixbuf became obsolete if width/height is changed */
+		if( scaled_cache &&
+		    gdk_pixbuf_get_width( scaled_cache) == width &&
+		    gdk_pixbuf_get_height( scaled_cache) == height)
 		{
 		#ifdef __DEBUG
 			kik_warn_printf(KIK_DEBUG_TAG
-				" using the scaled pixbuf(%d x %d) from cache\n", width, height) ;
+				" using the scaled_cache pixbuf(%u x %u) from cache\n" ,
+				width , height) ;
 		#endif
 		
-			pixbuf = scaled ;
+			pixbuf = scaled_cache ;
 		}
 		else
 		{
-			if( ! ( pixbuf = gdk_pixbuf_scale_simple( data ,
+			if( ! ( pixbuf = gdk_pixbuf_scale_simple( orig_cache ,
 						width , height , scale_type)))
 			{
 				return  NULL ;
@@ -554,14 +568,14 @@ load_file(
 			
 		#ifdef __DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG
-				"creating a scaled pixbuf(%d x %d)\n", width, height) ;
+				"creating a scaled_cache pixbuf(%u x %u)\n", width, height) ;
 		#endif
 
-			if( scaled)
+			if( scaled_cache)
 			{
-				g_object_unref( scaled) ;
+				g_object_unref( scaled_cache) ;
 			}
-			scaled = pixbuf ;
+			scaled_cache = pixbuf ;
 		}
 	}
 	/* scaling ends here */
@@ -644,10 +658,10 @@ create_pixbuf_from_cardinals(
  * Failure: <0
  */
 static int
-create_cardinals_from_bixbuf(
+create_cardinals_from_pixbuf(
 	u_int32_t **  cardinal,
-	int  width,
-	int  height,
+	u_int  width,
+	u_int  height,
 	GdkPixbuf *  pixbuf
 	)
 {
@@ -730,8 +744,6 @@ pixbuf_to_pixmap_pseudocolor(
 	unsigned char *  pixel;
 	XColor *  color_list ;
 	int  closest ;
-	GC  gc;
-	XGCValues  gcv ;
 	int  diff_r, diff_g, diff_b ;
 
 	num_cells = fetch_colormap( disp, &color_list) ;
@@ -760,7 +772,6 @@ pixbuf_to_pixmap_pseudocolor(
 	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
 
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
-	gc = XCreateGC (disp->display, pixmap, 0, &gcv) ;
 
 	for ( y = 0 ; y < height ; y++)
 	{
@@ -793,8 +804,8 @@ pixbuf_to_pixmap_pseudocolor(
 					       pixel[2])
 #endif /* USE_FS */
 
-		XSetForeground( disp->display, gc, closest) ;
-		XDrawPoint( disp->display, pixmap, gc, 0, y) ;
+		XSetForeground( disp->display, disp->gc->gc, closest) ;
+		XDrawPoint( disp->display, pixmap, disp->gc->gc, 0, y) ;
 		pixel += bytes_per_pixel ;
 
 		for ( x = 1 ; x < width -2 ; x++)
@@ -830,8 +841,8 @@ pixbuf_to_pixmap_pseudocolor(
 						       pixel[2]) ;
 #endif /* USE_FS */
 
-			XSetForeground( disp->display, gc, closest) ;
-			XDrawPoint( disp->display, pixmap, gc, x, y) ;
+			XSetForeground( disp->display, disp->gc->gc, closest) ;
+			XDrawPoint( disp->display, pixmap, disp->gc->gc, x, y) ;
 
 			pixel += bytes_per_pixel ;
 		}
@@ -862,12 +873,11 @@ pixbuf_to_pixmap_pseudocolor(
 					       pixel[2]) ;
 #endif /* USE_FS */
 
-		XSetForeground( disp->display, gc, closest) ;
-		XDrawPoint( disp->display, pixmap, gc, x, y) ;
+		XSetForeground( disp->display, disp->gc->gc, closest) ;
+		XDrawPoint( disp->display, pixmap, disp->gc->gc, x, y) ;
 		line += rowstride ;
 	}
 	free( color_list) ;
-	XFreeGC( disp->display, gc) ;
 
 #ifdef USE_FS
 	free( diff_cur) ;
@@ -1062,7 +1072,7 @@ pixbuf_to_pixmap_and_mask(
 		int  width, height, rowstride ;
 		unsigned char *  line ;
 		unsigned char *  pixel ;
-		GC  gc ;
+		GC  mask_gc ;
 		XGCValues  gcv ;
 
 		width = gdk_pixbuf_get_width (pixbuf) ;
@@ -1076,12 +1086,11 @@ pixbuf_to_pixmap_and_mask(
 		*mask = XCreatePixmap( disp->display,
 				       x_display_get_group_leader( disp),
 				       width, height, 1) ;
-		gc = XCreateGC (disp->display, *mask, 0, &gcv) ;
+		mask_gc = XCreateGC( disp->display , *mask , 0 , &gcv) ;
 
-		XSetForeground( disp->display, gc, 0) ;
-		XFillRectangle( disp->display, *mask, gc,
-				0, 0, width, height) ;
-		XSetForeground( disp->display, gc, 1) ;
+		XSetForeground( disp->display, mask_gc, 0) ;
+		XFillRectangle( disp->display, *mask, mask_gc, 0, 0, width, height) ;
+		XSetForeground( disp->display, mask_gc, 1) ;
 
 		line = gdk_pixbuf_get_pixels( pixbuf) ;
 		rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
@@ -1092,15 +1101,17 @@ pixbuf_to_pixmap_and_mask(
 			for (j = 0; j < width; j++)
 			{
 				if( *pixel > 127)
-					XDrawPoint( disp->display, *mask, gc, j, i) ;
+					XDrawPoint( disp->display, *mask, mask_gc, j, i) ;
 				pixel += 4 ;
 			}
 			line += rowstride ;
 		}
-		XFreeGC( disp->display, gc) ;
+
+		XFreeGC( disp->display , mask_gc) ;
 	}
 	else
-	{ /* no mask */
+	{
+		/* no mask */
 		*mask = None ;
 	}
 
@@ -1342,6 +1353,190 @@ modify_image(
 	return  0 ;
 }
 
+#else  /* USE_EXT_IMAGELIB */
+
+static int
+load_file(
+	x_display_t *  disp ,
+	u_int  width ,
+	u_int  height ,
+	char *  path ,
+	x_picture_modifier_t *  pic_mod ,
+	Pixmap *  pixmap ,
+	Pixmap *  mask		/* Can be NULL */
+	)
+{
+	pid_t  pid ;
+	int  fds1[2] ;
+	int  fds2[2] ;
+	char  pix_str[DIGIT_STR_LEN(Pixmap) + DIGIT_STR_LEN(Pixmap)] ;
+	Pixmap  pixmap_tmp ;
+	Pixmap  mask_tmp ;
+	ssize_t  size ;
+
+	if( pipe( fds1) == -1)
+	{
+		return  -1 ;
+	}
+	if( pipe( fds2) == -1)
+	{
+		close( fds1[0]) ;
+		close( fds1[1]) ;
+
+		return  -1 ;
+	}
+
+	pid = fork() ;
+	if( pid == -1)
+	{
+		return  -1 ;
+	}
+
+	if( pid == 0)
+	{
+		/* child process */
+
+		char *  args[4] ;
+		char  win_str[DIGIT_STR_LEN(Window)] ;
+		char  width_str[DIGIT_STR_LEN(u_int)] ;
+		char  height_str[DIGIT_STR_LEN(u_int)] ;
+
+		args[0] = LIBEXECDIR "/mlimgloader" ;
+		sprintf( win_str , "%lu" , x_display_get_group_leader( disp)) ;
+		args[1] = win_str ;
+		sprintf( width_str , "%u" , width) ;
+		args[2] = width_str ;
+		sprintf( height_str , "%u" , height) ;
+		args[3] = height_str ;
+		args[4] = path ;
+		args[5] = NULL ;
+
+		close( fds1[1]) ;
+		close( fds2[0]) ;
+		if( dup2( fds1[0] , STDIN_FILENO) != -1 && dup2( fds2[1] , STDOUT_FILENO) != -1)
+		{
+			execv( args[0] , args) ;
+		}
+
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " %s failed to start.\n" , args[0]) ;
+	#endif
+
+		exit(1) ;
+	}
+
+	close( fds1[0]) ;
+	close( fds2[1]) ;
+
+	if( ( size = read( fds2[0] , pix_str , sizeof(pix_str) - 1)) <= 0)
+	{
+		goto  error ;
+	}
+
+	pix_str[size] = '\0' ;
+
+	if( sscanf( pix_str , "%lu %lu" , &pixmap_tmp , &mask_tmp) != 2)
+	{
+		goto  error ;
+	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Receiving pixmap %lu %lu\n" , pixmap_tmp , mask_tmp) ;
+#endif
+
+	if( width == 0 || height == 0)
+	{
+		get_drawable_size( disp->display , pixmap_tmp , &width , &height) ;
+	}
+
+	if( ( *pixmap = XCreatePixmap( disp->display , x_display_get_group_leader( disp) ,
+				width , height , disp->depth)) == None)
+	{
+		goto  error ;
+	}
+
+	if( ! x_picture_modifier_is_normal( pic_mod))
+	{
+		modify_pixmap( disp , pixmap_tmp , *pixmap , pic_mod) ;
+	}
+	else
+	{
+		XCopyArea( disp->display , pixmap_tmp , *pixmap , disp->gc->gc ,
+			0 , 0 , width , height , 0 , 0) ;
+	}
+
+	if( mask)
+	{
+		if( mask_tmp &&
+		    ( *mask = XCreatePixmap( disp->display ,
+				x_display_get_group_leader( disp) , width , height , 1)))
+		{
+			GC  mask_gc ;
+			XGCValues  gcv ;
+
+			mask_gc = XCreateGC( disp->display , *mask , 0 , &gcv) ;
+			XCopyArea( disp->display , mask_tmp , *mask , mask_gc ,
+				0 , 0 , width , height , 0 , 0) ;
+
+			XFreeGC( disp->display , mask_gc) ;
+		}
+		else
+		{
+			*mask = None ;
+		}
+	}
+
+	XSync( disp->display , False) ;
+
+	close( fds2[0]) ;
+	close( fds1[1]) ; /* child process exited by this. pix1 is alive until here. */
+
+	return  0 ;
+
+error:
+	close( fds2[0]) ;
+	close( fds1[1]) ;
+
+	return  -1 ;
+}
+
+/*
+ * create an CARDINAL array for_NET_WM_ICON data
+ * Success: 0
+ * Failure: <0
+ */
+static int
+create_cardinals_from_image(
+	u_int32_t **  cardinal ,
+	u_int  width ,
+	u_int  height ,
+	XImage *  image
+	)
+{
+	int i, j ;
+
+	if( width > ((SIZE_MAX / 4) -2) / height)
+		return -1; /* integer overflow */
+
+	*cardinal = malloc( ((size_t)width * height + 2) *4) ;
+	if( !(*cardinal))
+		return  -1 ;
+
+	/* format of the array is {width, height, ARGB[][]} */
+	(*cardinal)[0] = width ;
+	(*cardinal)[1] = height ;
+	for( i = 0 ; i < height ; i++)
+	{
+		for( j = 0 ; j < width ; j++)
+		{
+			/* all pixels are completely opaque (0xFF) */
+			(*cardinal)[(i*width+j)+2] = XGetPixel( image , j , i) ;
+		}
+	}
+
+	return  0 ;
+}
+
 #endif	/* USE_EXT_IMAGELIB */
 
 
@@ -1403,19 +1598,19 @@ x_imagelib_load_file_for_background(
 	{
 		return  None ;
 	}
-	
-	if( strncmp( file_path , "pixmap:" , K_MIN(strlen(file_path),7)) == 0)
-	{
-		sscanf( file_path + 7 , "%d" , &pixmap) ;
 
+	if( strncmp( file_path , "pixmap:" , K_MIN(strlen(file_path),7)) == 0 &&
+		sscanf( file_path + 7 , "%lu" , &pixmap) == 1)
+	{
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " pixmap:%d is used.\n" , pixmap) ;
+		kik_debug_printf( KIK_DEBUG_TAG " pixmap:%lu is used.\n" , pixmap) ;
 	#endif
 
 		return  pixmap ;
 	}
 
 #ifdef  USE_EXT_IMAGELIB
+
 	if( ! ( pixbuf = load_file( file_path , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
 				   GDK_INTERP_BILINEAR)))
 	{
@@ -1460,9 +1655,22 @@ x_imagelib_load_file_for_background(
 error:
 	XFreePixmap( win->disp->display, pixmap) ;
 	g_object_unref( pixbuf) ;
-#endif
 
 	return  None ;
+
+#else	/* USE_EXT_IMAGELIB */
+
+	if( load_file( win->disp , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
+				file_path , pic_mod , &pixmap , NULL) == 0)
+	{
+		return  pixmap ;
+	}
+	else
+	{
+		return  None ;
+	}
+
+#endif	/* USE_EXT_IMAGELIB */
 }
 
 /** Answer whether pseudo transparency is available
@@ -1505,13 +1713,8 @@ x_imagelib_get_transparent_background(
 	u_int  height ;
 	Pixmap  root ;
 	Pixmap  pixmap ;
-	Window  dummy ;
-	int  root_x ;
-	int  root_y ;
 	u_int  root_width ;
 	u_int  root_height ;
-	u_int  root_bw ;
-	u_int  root_depth ;
 
 	if( ( root = root_pixmap( win->disp->display)) == None)
 	{
@@ -1531,9 +1734,7 @@ x_imagelib_get_transparent_background(
 		return  None ;
 	}
 
-	/* border width is not used */
-	XGetGeometry( win->disp->display , root , &dummy , &root_x , &root_y ,
-			&root_width , &root_height , &root_bw , &root_depth) ;
+	get_drawable_size( win->disp->display , root , &root_width , &root_height) ;
 
 	if ( root_width < DisplayWidth( win->disp->display , win->disp->screen) ||
 	     root_height < DisplayHeight( win->disp->display , win->disp->screen))
@@ -1563,7 +1764,7 @@ x_imagelib_get_transparent_background(
 
 	if( ! x_picture_modifier_is_normal( pic_mod))
 	{
-		modify_pixmap( win->disp , pixmap , pic_mod) ;
+		modify_pixmap( win->disp , pixmap , pixmap , pic_mod) ;
 	}
 
 	return  pixmap ;
@@ -1580,7 +1781,8 @@ x_imagelib_get_transparent_background(
  *
  *\return  Success => 1, Failure => 0
  */
-int x_imagelib_load_file(
+int
+x_imagelib_load_file(
 	x_display_t *  disp,
 	char *  path,
 	u_int32_t **  cardinal,
@@ -1590,10 +1792,10 @@ int x_imagelib_load_file(
 	unsigned int *  height
 	)
 {
-#ifdef  USE_EXT_IMAGELIB
-
-	GdkPixbuf *  pixbuf ;
 	unsigned int  dst_height, dst_width ;
+#ifdef  USE_EXT_IMAGELIB
+	GdkPixbuf *  pixbuf ;
+#endif
 
 	if( !width)
 	{
@@ -1612,6 +1814,8 @@ int x_imagelib_load_file(
 		dst_height = *height ;
 	}
 
+#ifdef  USE_EXT_IMAGELIB
+
 	if( path)
 	{
 		/* create a pixbuf from the file and create a cardinal array */
@@ -1623,7 +1827,7 @@ int x_imagelib_load_file(
 			return  0 ;
 		}
 		if ( cardinal)
-			create_cardinals_from_bixbuf( cardinal, dst_width, dst_height, pixbuf) ;
+			create_cardinals_from_pixbuf( cardinal, dst_width, dst_height, pixbuf) ;
 	}
 	else
 	{
@@ -1651,8 +1855,7 @@ int x_imagelib_load_file(
 		 * Use x_display_get_group_leader instead.
 		 */
 		*pixmap = XCreatePixmap( disp->display, x_display_get_group_leader( disp),
-					 dst_width, dst_height,
-					 disp->depth) ;
+					 dst_width, dst_height, disp->depth) ;
 		if( mask)
 		{
 			if( pixbuf_to_pixmap_and_mask( disp, pixbuf, pixmap, mask) != 0)
@@ -1679,6 +1882,42 @@ int x_imagelib_load_file(
 			}
 		}
 	}
+
+	g_object_unref( pixbuf) ;
+
+#else	/* USE_EXT_IMAGELIB */
+
+	if( load_file( disp , dst_width , dst_height , path , NULL , pixmap , mask) != 0)
+	{
+		return  0 ;
+	}
+
+	/* XXX Duplicated in load_file */
+	if( dst_width == 0 || dst_height == 0)
+	{
+		get_drawable_size( disp->display , *pixmap , &dst_width , &dst_height) ;
+	}
+
+	if( cardinal)
+	{
+		XImage *  image ;
+
+		image = XGetImage( disp->display , *pixmap ,
+				0 , 0 , dst_width , dst_height , AllPlanes , ZPixmap) ;
+
+		if( create_cardinals_from_image( cardinal , dst_width , dst_height , image) != 0)
+		{
+			XDestroyImage( image) ;
+			XFreePixmap( disp->display , *pixmap) ;
+
+			return  0 ;
+		}
+
+		XDestroyImage( image) ;
+	}
+
+#endif	/* USE_EXT_IMAGELIB */
+
 	if( width && *width == 0)
 	{
 		*width = dst_width ;
@@ -1689,15 +1928,7 @@ int x_imagelib_load_file(
 		*height = dst_height ;
 	}
 
-	g_object_unref( pixbuf) ;
-
 	return  1 ;
-
-#else	/* USE_EXT_IMAGELIB */
-
-	return  0 ;
-
-#endif	/* USE_EXT_IMAGELIB */
 }
 
 Pixmap

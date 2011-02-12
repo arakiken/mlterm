@@ -110,7 +110,6 @@ typedef struct x_sb_view_rc
 	
 }  x_sb_view_rc_t ;
 
-
 typedef struct  x_sb_view_conf
 {
 	char *  sb_name ;

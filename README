@@ -24,14 +24,15 @@ Options for configure
     Remove character property table
 
   --with-gui=(xlib|win32)
-    Use specified gui library.
+    Use specified gui library
   
   --with-imagelib=(gdk-pixbuf)
-    Use specified image library for image processing
+    Link specified image library to mlterm for image processing
+    mlimgloader program is used for image processing in --without-imagelib.
     (Imlib is not supported from 3.0.2)
 
   --with-libltdl
-    load modules with libltdl
+    Load modules with libltdl
 
   --with-type-engines=(xcore|xft)
     Use specified type engines for rendering text

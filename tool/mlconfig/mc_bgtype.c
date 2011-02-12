@@ -148,9 +148,6 @@ mc_bgtype_config_widget_new(void)
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox), wall_picture, TRUE, TRUE, 0);
-#ifndef  USE_EXT_IMAGELIB
-    gtk_widget_set_sensitive(radio, 0);
-#endif
 
     /* transparent button */
     radio = gtk_radio_button_new_with_label(group, _("Transparent"));

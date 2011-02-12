@@ -19,8 +19,6 @@
 #define  WM_IME_CHAR 0x286
 #endif
 
-#define  USE_EXT_IMAGELIB
-
 
 typedef struct
 {

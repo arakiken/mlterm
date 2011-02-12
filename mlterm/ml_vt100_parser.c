@@ -935,7 +935,7 @@ config_protocol_get_font(
 		}
 		else
 		{
-			char  msg[] = "error" ;
+			char *  msg = "error" ;
 			
 			(*vt100_parser->config_listener->get_font)(
 				vt100_parser->config_listener->self ,

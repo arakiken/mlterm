@@ -50,7 +50,7 @@ CFLAGS = $(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ \
 	-DSYSLIBDIR=\"$(SYSLIBDIR)\" \
 	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/local/include
 
-LIBS1 = $(LIBS_LOCAL) $(LMLTERM) $(LMKF) $(LKIK) \
+LIBS1 = $(LIBS_LOCAL) $(LMKF) $(LKIK) $(LMLTERM) \
 	-L/usr/local/lib -R/usr/local/lib @FRIBIDI_LIBS@
 
 LIBS2 = @IND_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ \
@@ -75,7 +75,7 @@ debug:
 	$(MAKE) LKIK="$(LKIK_DEB)" LMKF="$(LMKF_DEB)" all
 
 $(PROG): $(OBJ) $(LMLTERM)
-	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) $(OBJ:.o=.lo) $(LIBS)
+	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) $(OBJ@XWINDOW_OBJ_SUFFIX@) $(LIBS)
 
 .SUFFIXES: .c .o
 

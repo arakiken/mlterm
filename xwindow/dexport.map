@@ -1,0 +1,7 @@
+mlterm {
+global:
+	x_imagelib_load_file ;
+	x_get_opened_displays ;
+local:
+	* ;
+} ;

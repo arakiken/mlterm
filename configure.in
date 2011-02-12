@@ -123,6 +123,33 @@ AC_SUBST(ML_PTY_OBJ)
 AC_SUBST(WIN32DIALOG_OBJ)
 AC_SUBST(SUBSYSTEM)
 
+PKG_CHECK_MODULES(GTK, gtk+-2.0, have_gtk2=yes, have_gtk2=no)
+if test "$have_gtk2" = "yes" ; then
+	gtk_config=yes
+fi
+# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
+GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
+GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
+AC_SUBST(GTK_CFLAGS)
+AC_SUBST(GTK_LIBS)
+
+PKG_CHECK_MODULES(GDK_PIXBUF, gdk-pixbuf-2.0, [
+	have_gdk_pixbuf2="yes"
+],[
+	AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
+	if test "$pkg_config" = "yes" ; then
+		have_gdk_pixbuf1="yes"
+		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags`"
+		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs`"
+	fi
+])
+AC_SUBST(GDK_PIXBUF_CFLAGS)
+AC_SUBST(GDK_PIXBUF_LIBS)
+
+if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
+	OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
+	MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
+fi
 
 AC_ARG_WITH(imagelib,
 	[  --with-imagelib@<:@=ARG@:>@   image library (gdk-pixbuf) @<:@default=no@:>@],
@@ -165,35 +192,50 @@ imlib2)
 	WIN32TAG="_win32"
 	;;
 gdk-pixbuf)
-	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
-		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_EXT_IMAGELIB"
-	],[
-		AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
-		if test "$pkg_config" = "yes" ; then
-			IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_EXT_IMAGELIB"
-			IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
+	if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
+		IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
+		IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
+		if test "$have_gdk_pixbuf1" = "yes" ; then
+			echo ""
+			echo "** WARNING **"
+			echo " gdk-pixbuf1 is no longer supported."
+			echo ""
 		fi
+	else
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find gdk-pixbuf"
+		echo ""
+		exit 1
+	fi
+	;;
+gdk-pixbuf2)
+	if test "$have_gdk_pixbuf2" = "yes" ; then
+		IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
+		IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
+	else
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find gdk-pixbuf2"
+		echo ""
+		exit 1
+	fi
+	;;
+gdk-pixbuf1)
+	if test "$have_gdk_pixbuf1" = "yes" ; then
+		IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
+		IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
 		echo ""
 		echo "** WARNING **"
 		echo " gdk-pixbuf1 is no longer supported."
 		echo ""
-	])
-	;;
-gdk-pixbuf2)
-	PKG_CHECK_MODULES(IMAGELIB, gdk-pixbuf-2.0, [
-		IMAGELIB_CFLAGS="${IMAGELIB_CFLAGS} -DUSE_EXT_IMAGELIB"
-	])
-	;;
-gdk-pixbuf1)
-	AC_CHECK_PROG(gdk_pixbuf_config,gdk-pixbuf-config,yes)
-	if test "$gdk_pixbuf_config" = "yes" ; then
-		IMAGELIB_CFLAGS="`gdk-pixbuf-config --cflags` -DUSE_EXT_IMAGELIB"
-		IMAGELIB_LIBS="`gdk-pixbuf-config --libs`"
+	else
+		echo ""
+		echo "** ERROR **"
+		echo "Could not find gdk-pixbuf2"
+		echo ""
+		exit 1
 	fi
-	echo ""
-	echo "** WARNING **"
-	echo " gdk-pixbuf1 is no longer supported."
-	echo ""
 	;;
 *)
 	if test "${imagelib}" != "" ; then
@@ -347,18 +389,8 @@ fi
 AC_SUBST(UTMP_CFLAGS)
 AC_SUBST(INSTALL_OPT)
 
-PKG_CHECK_MODULES(GTK, gtk+-2.0, have_gtk2=yes, have_gtk2=no)
-if test "$have_gtk2" = "yes" ; then
-	gtk_config=yes
-fi
-# "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
-GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
-GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
-AC_SUBST(GTK_CFLAGS)
-AC_SUBST(GTK_LIBS)
-
 if test "${gtk_config}" = "yes" ; then
-	OUTPUT_FILES="gtk/Makefile"
+	OUTPUT_FILES="gtk/Makefile ${OUTPUT_FILES}"
 fi
 
 tools="mlclient,mlconfig,mlcc,mlterm-menu"
@@ -674,13 +706,16 @@ pixmap_engine)
 		echo ""
 		exit 1
 	fi
-	if test -n "$IMAGELIB_CFLAGS" ; then
+	if test "$have_gdk_pixbuf1" = "yes" -o "$have_gdk_pixbuf2" = "yes" ; then
 		MAKE_DIRS="contrib/scrollbar/pixmap_engine ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/scrollbar/pixmap_engine/Makefile contrib/scrollbar/pixmap_engine/sample3/Makefile ${OUTPUT_FILES}"
 		if test "x$with_libltdl" != "xno" ; then
 			DL_LIBS_SB="-export-dynamic -dlopen \$(top_builddir)/contrib/scrollbar/pixmap_engine/libpixmap_engine.la ${DL_LIBS_SB}"
 		else
-			DL_LIBS_SB="-export-dynamic"
+			DL_LIBS_SB="-export-dynamic ${DL_LIBS_SB}"
+		fi
+		if test "$with_gnu_ld" = "yes" ; then
+			DL_LIBS_SB="-Wl,--version-script=\$(top_srcdir)/xwindow/dexport.map ${DL_LIBS_SB}"
 		fi
 		SB_CFLAGS="-DSUPPORT_PIXMAP_ENGINE"
 		scrollbars_result="$scrollbars_result $scrollbar"
@@ -688,7 +723,6 @@ pixmap_engine)
 		echo ""
 		echo "** ERROR **"
 		echo "To use pixmap_engine for scrollbar, you need gdk-pixbuf library."
-		echo "(e.g. --with-imagelib=gdk-pixbuf)"
 		echo ""
 		exit 1
 	fi
@@ -750,6 +784,12 @@ if test "x$with_libltdl" != "xno" ; then
 fi
 AC_SUBST(DL_SELF)
 
+# Because pic object files are fat, non-pic ones are linked unless --disable-static
+# option is specified.
+if test "$enable_static" = "no" ; then
+	XWINDOW_OBJ_SUFFIX=":.o=.lo"
+fi
+AC_SUBST(XWINDOW_OBJ_SUFFIX)
 
 CHANGE_DATE=`head -n 1 ${top_srcdir-$srcdir}/ChangeLog | sed -n 's/^\(@<:@0-9@:>@*-@<:@0-9@:>@*-@<:@0-9@:>@*\).*$/\1/p'`
 AC_SUBST(CHANGE_DATE)
