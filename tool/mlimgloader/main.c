@@ -184,10 +184,6 @@ load_file(
 		return  NULL ;
 	}
 
-#ifdef DEBUG
-	kik_warn_printf(KIK_DEBUG_TAG " adding pixbuf to cache(%s)\n", path) ;
-#endif
-
 	/* loading from file/cache ends here */
 
 	if( width == 0)

@@ -1489,7 +1489,7 @@ load_file(
 	XSync( disp->display , False) ;
 
 	close( fds2[0]) ;
-	close( fds1[1]) ; /* child process exited by this. pix1 is alive until here. */
+	close( fds1[1]) ; /* child process exited by this. pixmap_tmp is alive until here. */
 
 	return  0 ;
 
@@ -1516,11 +1516,14 @@ create_cardinals_from_image(
 	int i, j ;
 
 	if( width > ((SIZE_MAX / 4) -2) / height)
-		return -1; /* integer overflow */
+	{
+		return  -1 ; /* integer overflow */
+	}
 
-	*cardinal = malloc( ((size_t)width * height + 2) *4) ;
-	if( !(*cardinal))
+	if( ( *cardinal = malloc( ((size_t)width * height + 2) *4)) == NULL)
+	{
 		return  -1 ;
+	}
 
 	/* format of the array is {width, height, ARGB[][]} */
 	(*cardinal)[0] = width ;
@@ -1529,8 +1532,12 @@ create_cardinals_from_image(
 	{
 		for( j = 0 ; j < width ; j++)
 		{
-			/* all pixels are completely opaque (0xFF) */
-			(*cardinal)[(i*width+j)+2] = XGetPixel( image , j , i) ;
+			/*
+			 * ARGB - all pixels are completely opaque (0xFF)
+			 *
+			 * XXX see how to process pixel in compose_truecolor/compose_pseudocolor.
+			 */
+			(*cardinal)[(i*width+j)+2] = 0xff000000 + XGetPixel( image , j , i) ;
 		}
 	}
 

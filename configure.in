@@ -109,7 +109,9 @@ cygwin*)
 	;;
 *)
 	if test "$gui" != "xlib" ; then
-		echo "$gui is not supported in ${host_os}. Use xlib."
+		if test "$gui" != "" ; then
+			echo "$gui is not supported in ${host_os}. Use xlib."
+		fi
 		gui="xlib"
 	fi
 	;;

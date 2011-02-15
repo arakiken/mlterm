@@ -1,9 +1,14 @@
+2011-02-16  Araki Ken  <arakiken@users.sf.net>
+
+	* x_imagelib.c: Fixed create_cardinals_from_image().
+
 2011-02-13  Araki Ken  <arakiken@users.sf.net>
 
 	* README, doc/ja/README.ja: Updated.
 
-	* tool/mlimgloader/main.c, Makefile.in: mlimgloader which depends on gdk-pixbuf
-	  loads image files. If --with-imagelib option is not specified to configure,
+	* tool/mlimgloader/main.c, Makefile.in: Added.
+	  mlimgloader which depends on gdk-pixbuf loads image files.
+	  If --with-imagelib option is not specified to configure,
 	  mlterm uses mlimgloader for wall picture, icon picture and pixmap_engine.
 
 	* xwindow/dexport.map: Added. It specifies dynamic symbols for pixmap_engine.
