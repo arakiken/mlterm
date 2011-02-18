@@ -1,3 +1,7 @@
+2011-02-18  Araki Ken  <arakiken@users.sf.net>
+
+	* pixmap_engine.c: Common pixmaps are shared by multiple scrollbar views.
+
 2011-02-16  Araki Ken  <arakiken@users.sf.net>
 
 	* x_imagelib.c: Fixed create_cardinals_from_image().

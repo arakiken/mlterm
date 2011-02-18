@@ -37,7 +37,6 @@
 		} \
 	} while ( 0)
 
-/* --- static variables --- */
 
 typedef enum  button_layout
 {
@@ -47,38 +46,22 @@ typedef enum  button_layout
 	BTN_SOUTHGRAVITY ,
 } button_layout_t ;
 
-typedef struct  pixmap_sb_view
+typedef struct  shared_image
 {
-	x_sb_view_t  view ;
-
+	Display *  display ;
 	x_sb_view_conf_t *  conf ;
 
-	GC  gc ;
-
-	unsigned int  depth ;
-
-	char *  dir ;
-	int  is_transparent ;
-	unsigned int  width ;
-	unsigned int  top_margin ;
-	unsigned int  bottom_margin ;
-	unsigned int  pre_slider_h ;
+	/* Don't access directly from ps */
+	unsigned int  btn_up_h ;
+	unsigned int  btn_dw_h ;
 
 	/* background */
 	unsigned int  bg_top_h ;
-	unsigned int  bg_body_h ;
 	unsigned int  bg_bottom_h ;
 	Pixmap  bg_top ;
-	Pixmap  bg_body ;
 	Pixmap  bg_bottom ;
-	Pixmap  bg_cache ;
-	int  bg_enable_trans ;
-	int  bg_tile ;
-
+	
 	/* up/down buttons */
-	button_layout_t  btn_layout ;
-	unsigned int  btn_up_h ;
-	unsigned int  btn_dw_h ;
 	Pixmap  btn_up ;
 	Pixmap  btn_dw ;
 	Pixmap  btn_up_pressed ;
@@ -91,29 +74,71 @@ typedef struct  pixmap_sb_view
 	/* slider */
 	unsigned int  slider_width ;
 	unsigned int  slider_top_h ;
-	unsigned int  slider_body_h ;
 	unsigned int  slider_bottom_h ;
 	unsigned int  slider_knob_h ;
 	Pixmap  slider_top ;
-	Pixmap  slider_body ;
 	Pixmap  slider_bottom ;
 	Pixmap  slider_knob ;
 	Pixmap  slider_top_mask ;
-	Pixmap  slider_body_mask ;
 	Pixmap  slider_bottom_mask ;
 	Pixmap  slider_knob_mask ;
-	Pixmap  slider_tiled_cache ;
-	Pixmap  slider_tiled_cache_mask ;
+
+	unsigned int  use_count ;
+
+} shared_image_t ;
+
+typedef struct  pixmap_sb_view
+{
+	x_sb_view_t  view ;
+
+	x_sb_view_conf_t *  conf ;
+
+	GC  gc ;
+
+	unsigned int  depth ;
+
+	int  is_transparent ;
+
+	/* rc settings */
+	unsigned int  width ;
+	unsigned int  top_margin ;
+	unsigned int  bottom_margin ;
+	unsigned int  btn_up_h ;
+	unsigned int  btn_dw_h ;
+	unsigned int  pre_slider_h ;
+	int  bg_enable_trans ;
+	int  bg_tile ;
+	button_layout_t  btn_layout ;
 	int  slider_tile ;
 
+	shared_image_t *  si ;
+	
+	/* background */
+	unsigned int  bg_body_h ;
+	Pixmap  bg_body ;
+	Pixmap  bg_cache ;
+
+	/* slider */
+	unsigned int  slider_body_h ;
+	Pixmap  slider_body ;
+	Pixmap  slider_body_mask ;
+	Pixmap  slider_tiled_cache ;
+	Pixmap  slider_tiled_cache_mask ;
+
 } pixmap_sb_view_t ;
+
+
+/* --- static variables --- */
+
+static shared_image_t **  shared_images ;
+static unsigned int  num_of_shared_images ;
 
 
 /* --- static functions --- */
 
 /* XXX Hack (declared in x_display.h) */
 typedef struct x_display_t *  x_display_ptr_t ;
-x_display_ptr_t *  x_get_opened_displays( u_int *  num) ;
+x_display_ptr_t *  x_get_opened_displays( unsigned int *  num) ;
 
 /* XXX Hack (declared in x_imagelib.h) */
 int  x_imagelib_load_file( x_display_ptr_t  disp, char *  path, u_int32_t **  cardinal,
@@ -124,22 +149,17 @@ load_image(
 	Display *  display ,
 	const char *  dir ,
 	const char *  file ,
-	Pixmap *  pixmap ,
-	Pixmap *  mask ,
-	unsigned int *  width ,
-	unsigned int *  height
+	Pixmap *  pixmap ,	/* not NULL */
+	Pixmap *  mask ,	/* can be NULL */
+	unsigned int *  width ,	/* not NULL or 0 */
+	unsigned int *  height	/* not NULL */
 	)
 {
 	char *  path ;
 	int  len ;
 	x_display_ptr_t *  disps ;
-	u_int  ndisps ;
-	u_int  count ;
-
-	if( height == NULL || width == NULL)
-	{
-		return  ;
-	}
+	unsigned int  ndisps ;
+	unsigned int  count ;
 
 	len = strlen( dir) + strlen( file) + 5 ;
 	path = malloc( sizeof( char) * ( len + 1)) ;
@@ -185,6 +205,130 @@ load_image(
 	return  ;
 }
 
+static shared_image_t *
+acquire_shared_image(
+	Display *  display ,
+	x_sb_view_conf_t *  conf ,
+	unsigned int *  width ,		/* not NULL or 0 */
+	unsigned int *  btn_up_h ,	/* not NULL */
+	unsigned int *  btn_dw_h	/* not NULL */
+	)
+{
+	unsigned int  count ;
+	shared_image_t *  si ;
+	void *  p ;
+
+	for( count = 0 ; count < num_of_shared_images ; count++)
+	{
+		if( shared_images[count]->display == display &&
+			shared_images[count]->conf == conf)
+		{
+			if( *btn_up_h == 0)
+			{
+				*btn_up_h = shared_images[count]->btn_up_h ;
+			}
+			if( *btn_dw_h == 0)
+			{
+				*btn_dw_h = shared_images[count]->btn_dw_h ;
+			}
+			
+			shared_images[count]->use_count ++ ;
+
+			return  shared_images[count] ;
+		}
+	}
+	
+	if( ( si = calloc( 1 , sizeof( shared_image_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	if( ( p = realloc( shared_images , sizeof( shared_image_t*) * (num_of_shared_images + 1)))
+		== NULL)
+	{
+		free( si) ;
+
+		return  NULL ;
+	}
+
+	shared_images = p ;
+	shared_images[num_of_shared_images++] = si ;
+
+	si->display = display ;
+	si->conf = conf ;
+
+	/*
+	 * load background images (separated three parts: top, body and bottom.)
+	 */
+	load_image( display , si->conf->dir , "bg_top" , &si->bg_top , NULL ,
+			width , &si->bg_top_h) ;
+	load_image( display , si->conf->dir , "bg_bottom" , &si->bg_bottom , NULL ,
+				width , &si->bg_bottom_h) ;
+
+	/* up/down buttons */
+	load_image( display , si->conf->dir , "button_up" , &si->btn_up ,
+			&si->btn_up_mask , width , btn_up_h) ;
+	load_image( display , si->conf->dir , "button_down" , &si->btn_dw ,
+			&si->btn_dw_mask , width , btn_dw_h) ;
+	load_image( display , si->conf->dir , "button_up_pressed" , &si->btn_up_pressed ,
+			&si->btn_up_pressed_mask , width , btn_up_h) ;
+	load_image( display , si->conf->dir , "button_down_pressed" , &si->btn_dw_pressed ,
+			&si->btn_dw_pressed_mask , width , btn_dw_h) ;
+
+	/*
+	 * load slider images (separated three parts: top, body and bottom.)
+	 */
+	load_image( display , si->conf->dir , "slider_top" , &si->slider_top ,
+		&si->slider_top_mask , &si->slider_width , &si->slider_top_h) ;
+	load_image( display , si->conf->dir , "slider_bottom" , &si->slider_bottom ,
+		&si->slider_bottom_mask , &si->slider_width , &si->slider_bottom_h) ;
+	load_image( display , si->conf->dir , "slider_knob" , &si->slider_knob ,
+		&si->slider_knob_mask , &si->slider_width , &si->slider_knob_h) ;
+
+	si->btn_up_h = *btn_up_h ;
+	si->btn_dw_h = *btn_dw_h ;
+
+	si->use_count = 1 ;
+
+#ifdef  __DEBUG
+	fprintf( stderr , "Loading new pixmap scrollbar %s\n" , si->conf->sb_name) ;
+#endif
+
+	return  si ;
+}
+
+static void
+release_shared_image(
+	shared_image_t *  si
+	)
+{
+	if( -- si->use_count > 0)
+	{
+		return ;
+	}
+
+	free_pixmap( si->display , si->bg_top) ;
+	free_pixmap( si->display , si->bg_bottom) ;
+	free_pixmap( si->display , si->btn_up) ;
+	free_pixmap( si->display , si->btn_dw) ;
+	free_pixmap( si->display , si->btn_up_pressed) ;
+	free_pixmap( si->display , si->btn_dw_pressed) ;
+	free_pixmap( si->display , si->btn_up_mask) ;
+	free_pixmap( si->display , si->btn_dw_mask) ;
+	free_pixmap( si->display , si->btn_up_pressed_mask) ;
+	free_pixmap( si->display , si->btn_dw_pressed_mask) ;
+	free_pixmap( si->display , si->slider_top) ;
+	free_pixmap( si->display , si->slider_bottom) ;
+	free_pixmap( si->display , si->slider_knob) ;
+	free_pixmap( si->display , si->slider_top_mask) ;
+	free_pixmap( si->display , si->slider_bottom_mask) ;
+	free_pixmap( si->display , si->slider_knob_mask) ;
+
+#ifdef  __DEBUG	
+	fprintf( stderr , "Freeing pixmap scrollbar %s\n" , si->conf->sb_name) ;
+#endif
+}
+
 static void
 create_bg_cache(
 	pixmap_sb_view_t *  ps
@@ -207,7 +351,7 @@ create_bg_cache(
 		return ;
 	}
 
-	if( ! ps->bg_top && ! ps->bg_body && ! ps->bg_bottom)
+	if( ! ps->si->bg_top && ! ps->bg_body && ! ps->si->bg_bottom)
 	{
 		return ;
 	}
@@ -218,7 +362,7 @@ create_bg_cache(
 	{
 		int  cached_body_h ;
 
-		cached_body_h = bg_h - ps->bg_top_h - ps->bg_bottom_h ;
+		cached_body_h = bg_h - ps->si->bg_top_h - ps->si->bg_bottom_h ;
 		if( cached_body_h <= 0)
 		{
 			/* height of background is too small, do nothing */
@@ -229,17 +373,17 @@ create_bg_cache(
 			XSetTSOrigin( d , gc , 0 , 0) ;
 			XSetFillStyle( d , gc , FillTiled) ;
 			XFillRectangle( d , ps->bg_cache , gc , 0 ,
-				ps->bg_top_h , ps->width , cached_body_h) ;
+				ps->si->bg_top_h , ps->width , cached_body_h) ;
 		}
-		else /* ! ps->tile (scale) */
+		else /* ! ps->bg_tile (scale) */
 		{
 			free_pixmap( d , ps->bg_body) ;
-			load_image( d , ps->dir , "bg_body" ,
+			load_image( d , ps->conf->dir , "bg_body" ,
 				&ps->bg_body , NULL , &ps->width ,
 				&cached_body_h) ;
 			XCopyArea( d , ps->bg_body , ps->bg_cache , gc ,
 				0 , 0 , ps->width , cached_body_h ,
-				0 , ps->bg_top_h) ;
+				0 , ps->si->bg_top_h) ;
 		}
 	}
 	else
@@ -247,17 +391,17 @@ create_bg_cache(
 		XFillRectangle( d , ps->bg_cache , gc , 0 , 0 , ps->width , bg_h) ;
 	}
 
-	if( ps->bg_top_h && ps->bg_top)
+	if( ps->si->bg_top_h && ps->si->bg_top)
 	{
-		XCopyArea( d , ps->bg_top , ps->bg_cache , gc ,
-			0 , 0 , ps->width , ps->bg_top_h , 0 , 0) ;
+		XCopyArea( d , ps->si->bg_top , ps->bg_cache , gc ,
+			0 , 0 , ps->width , ps->si->bg_top_h , 0 , 0) ;
 	}
 
-	if( ps->bg_bottom_h && ps->bg_bottom)
+	if( ps->si->bg_bottom_h && ps->si->bg_bottom)
 	{
-		XCopyArea( d , ps->bg_bottom , ps->bg_cache , gc ,
-			0 , 0 , ps->width , ps->bg_bottom_h , 0 ,
-			bg_h - ps->bg_bottom_h) ;
+		XCopyArea( d , ps->si->bg_bottom , ps->bg_cache , gc ,
+			0 , 0 , ps->width , ps->si->bg_bottom_h , 0 ,
+			bg_h - ps->si->bg_bottom_h) ;
 	}
 
 }
@@ -276,14 +420,14 @@ resize_slider(
 	win = ps->view.window ;
 	gc = ps->gc ;
 
-	if( body_height <= 0 || ! ps->slider_width)
+	if( body_height <= 0 || ! ps->si->slider_width)
 	{
 		return ;
 	}
 
 	free_pixmap( d , ps->slider_tiled_cache) ;
 
-	ps->slider_tiled_cache = XCreatePixmap( d , win , ps->slider_width ,
+	ps->slider_tiled_cache = XCreatePixmap( d , win , ps->si->slider_width ,
 					body_height , ps->depth) ;
 
 	if( ps->slider_body_h && ps->slider_body)
@@ -295,16 +439,16 @@ resize_slider(
 			XSetTSOrigin( d , gc , 0 , 0) ;
 			XSetFillStyle( d , gc , FillTiled) ;
 			XFillRectangle( d , ps->slider_tiled_cache , gc , 0 ,
-					0 , ps->slider_width , body_height) ;
+					0 , ps->si->slider_width , body_height) ;
 		}
 		else
 		{
 			/* scale */
 			free_pixmap( d , ps->slider_body) ;
 			free_pixmap( d , ps->slider_body_mask) ;
-			load_image( d , ps->dir , "slider_body" ,
+			load_image( d , ps->conf->dir , "slider_body" ,
 				&ps->slider_body , &ps->slider_body_mask ,
-				&ps->slider_width , &body_height) ;
+				&ps->si->slider_width , &body_height) ;
 		}
 	}
 }
@@ -399,51 +543,28 @@ realized(
 	XGetWindowAttributes( view->display , view->window , &attr) ;
 	ps->depth = attr.depth ;
 
+	ps->si = acquire_shared_image( display , ps->conf , &ps->width ,
+			&ps->btn_up_h , &ps->btn_dw_h) ;
+	
 	/*
 	 * load background images (separated three parts: top, body and bottom.)
 	 */
-	if( ! (ps->is_transparent && ps->bg_enable_trans))
-	{
-		load_image( display , ps->dir , "bg_top" ,
-				&ps->bg_top , NULL ,
-				&ps->width , &ps->bg_top_h) ;
-		load_image( display , ps->dir , "bg_body" ,
-				&ps->bg_body , NULL ,
-				&ps->width , &ps->bg_body_h) ;
-		load_image( display , ps->dir , "bg_bottom" ,
-				&ps->bg_bottom , NULL ,
-				&ps->width , &ps->bg_bottom_h) ;
-		create_bg_cache( ps) ;
-	}
-
-	/* up/down buttons */
-	load_image( display , ps->dir , "button_up" , &ps->btn_up ,
-			&ps->btn_up_mask , &ps->width , &ps->btn_up_h) ;
-	load_image( display , ps->dir , "button_down" , &ps->btn_dw ,
-			&ps->btn_dw_mask , &ps->width , &ps->btn_dw_h) ;
-	load_image( display , ps->dir , "button_up_pressed" , &ps->btn_up_pressed ,
-			&ps->btn_up_pressed_mask , &ps->width , &ps->btn_up_h) ;
-	load_image( display , ps->dir , "button_down_pressed" , &ps->btn_dw_pressed ,
-			&ps->btn_dw_pressed_mask , &ps->width , &ps->btn_dw_h) ;
+	load_image( display , ps->conf->dir , "bg_body" , &ps->bg_body , NULL ,
+			&ps->width , &ps->bg_body_h) ;
+	create_bg_cache( ps) ;
 
 	/*
 	 * load slider images (separated three parts: top, body and bottom.)
 	 */
-	load_image( display , ps->dir , "slider_top" , &ps->slider_top ,
-		&ps->slider_top_mask , &ps->slider_width , &ps->slider_top_h) ;
-	load_image( display , ps->dir , "slider_body" , &ps->slider_body ,
-		&ps->slider_body_mask , &ps->slider_width , &ps->slider_body_h) ;
-	load_image( display , ps->dir , "slider_bottom" , &ps->slider_bottom ,
-		&ps->slider_bottom_mask , &ps->slider_width , &ps->slider_bottom_h) ;
-	load_image( display , ps->dir , "slider_knob" , &ps->slider_knob ,
-		&ps->slider_knob_mask , &ps->slider_width , &ps->slider_knob_h) ;
+	load_image( display , ps->conf->dir , "slider_body" , &ps->slider_body ,
+		&ps->slider_body_mask , &ps->si->slider_width , &ps->slider_body_h) ;
 
 	/*
 	 * verify the size
 	 */
-	if( ps->width < ps->slider_width)
+	if( ps->width < ps->si->slider_width)
 	{
-		ps->slider_width = ps->width ;
+		ps->si->slider_width = ps->width ;
 	}
 }
 
@@ -482,26 +603,12 @@ delete(
 		return ;
 	}
 
-	free_pixmap( view->display , ps->bg_top) ;
+	release_shared_image( ps->si) ;
+
 	free_pixmap( view->display , ps->bg_body) ;
-	free_pixmap( view->display , ps->bg_bottom) ;
 	free_pixmap( view->display , ps->bg_cache) ;
-	free_pixmap( view->display , ps->btn_up) ;
-	free_pixmap( view->display , ps->btn_dw) ;
-	free_pixmap( view->display , ps->btn_up_pressed) ;
-	free_pixmap( view->display , ps->btn_dw_pressed) ;
-	free_pixmap( view->display , ps->btn_up_mask) ;
-	free_pixmap( view->display , ps->btn_dw_mask) ;
-	free_pixmap( view->display , ps->btn_up_pressed_mask) ;
-	free_pixmap( view->display , ps->btn_dw_pressed_mask) ;
-	free_pixmap( view->display , ps->slider_top) ;
 	free_pixmap( view->display , ps->slider_body) ;
-	free_pixmap( view->display , ps->slider_bottom) ;
-	free_pixmap( view->display , ps->slider_knob) ;
-	free_pixmap( view->display , ps->slider_top_mask) ;
 	free_pixmap( view->display , ps->slider_body_mask) ;
-	free_pixmap( view->display , ps->slider_bottom_mask) ;
-	free_pixmap( view->display , ps->slider_knob_mask) ;
 	free_pixmap( view->display , ps->slider_tiled_cache) ;
 	free_pixmap( view->display , ps->slider_tiled_cache_mask) ;
 
@@ -509,9 +616,7 @@ delete(
 
 	ps->conf->use_count -- ;
 
-	free( ps->dir) ;
 	free( ps) ;
-
 }
 
 static void
@@ -555,23 +660,23 @@ draw_button(
 
 	if( up)
 	{
-		if( ! ps->btn_up_pressed)
+		if( ! ps->si->btn_up_pressed)
 		{
 			pressed = 0 ;
 		}
-		src = pressed ?  ps->btn_up_pressed : ps->btn_up ;
-		mask = pressed ?  ps->btn_up_pressed_mask : ps->btn_up_mask ;
+		src = pressed ?  ps->si->btn_up_pressed : ps->si->btn_up ;
+		mask = pressed ?  ps->si->btn_up_pressed_mask : ps->si->btn_up_mask ;
 		y = up_y ;
 		h = ps->btn_up_h ;
 	}
 	else
 	{
-		if( ! ps->btn_dw_pressed)
+		if( ! ps->si->btn_dw_pressed)
 		{
 			pressed = 0 ;
 		}
-		src = pressed ? ps->btn_dw_pressed : ps->btn_dw ;
-		mask = pressed ? ps->btn_dw_pressed_mask : ps->btn_dw_mask ;
+		src = pressed ? ps->si->btn_dw_pressed : ps->si->btn_dw ;
+		mask = pressed ? ps->si->btn_dw_pressed_mask : ps->si->btn_dw_mask ;
 		y = dw_y ;
 		h = ps->btn_dw_h ;
 	}
@@ -663,7 +768,7 @@ draw_scrollbar(
 	win = view->window ;
 	gc = ps->gc ;
 	bg_h = ps->view.height - ps->btn_up_h - ps->btn_dw_h ;
-	offset_x = (ps->width - ps->slider_width) / 2 ;
+	offset_x = (ps->width - ps->si->slider_width) / 2 ;
 
 	/*
 	 * background
@@ -684,11 +789,10 @@ draw_scrollbar(
 			break ;
 	}
 
-
 	if( ! (ps->is_transparent && ps->bg_enable_trans) && ps->bg_cache)
 	{
-		XCopyArea( d , ps->bg_cache , win , gc , 0 , bg_y , ps->width ,
-			bg_h , 0 , bg_y) ;
+	        XCopyArea( d , ps->bg_cache , win , gc , 0 , bg_y , ps->width ,
+	                bg_h , 0 , bg_y) ;
 	}
 	else
 	{
@@ -702,31 +806,33 @@ draw_scrollbar(
 	/*
 	 * slider
 	 */
-	if( ps->slider_top)
+	if( ps->si->slider_top)
 	{
-		XSetClipMask( d , gc , ps->slider_top_mask) ;
-		XSetClipOrigin( d , gc , offset_x , slider_top_y) ;
-		XCopyArea( d , ps->slider_top , win , gc , 0 , 0 ,
-			ps->slider_width ,
-			ps->slider_top_h < slider_height ? ps->slider_top_h : slider_height ,
+	        XSetClipMask( d , gc , ps->si->slider_top_mask) ;
+	        XSetClipOrigin( d , gc , offset_x , slider_top_y) ;
+	        XCopyArea( d , ps->si->slider_top , win , gc , 0 , 0 ,
+	                ps->si->slider_width ,
+			ps->si->slider_top_h < slider_height ?
+				ps->si->slider_top_h : slider_height ,
 			offset_x , slider_top_y) ;
 		XSetClipMask(d , gc , None) ;
 	}
 
-	if( ps->slider_bottom)
+	if( ps->si->slider_bottom)
 	{
 		unsigned int  y ;
-		y = slider_top_y + slider_height - ps->slider_bottom_h ;
-		XSetClipMask( d , gc , ps->slider_bottom_mask) ;
+		y = slider_top_y + slider_height - ps->si->slider_bottom_h ;
+		XSetClipMask( d , gc , ps->si->slider_bottom_mask) ;
 		XSetClipOrigin( d , gc , offset_x , y) ;
-		XCopyArea( d , ps->slider_bottom , win , gc , 0 , 0 ,
-				ps->slider_width ,
-				ps->slider_bottom_h < slider_height ? ps->slider_bottom_h : slider_height ,
-				offset_x , y) ;
+		XCopyArea( d , ps->si->slider_bottom , win , gc , 0 , 0 ,
+			ps->si->slider_width ,
+			ps->si->slider_bottom_h < slider_height ?
+				ps->si->slider_bottom_h : slider_height ,
+			offset_x , y) ;
 		XSetClipMask(d , gc , None) ;
 	}
 
-	slr_body_h = slider_height - ps->slider_top_h - ps->slider_bottom_h ;
+	slr_body_h = slider_height - ps->si->slider_top_h - ps->si->slider_bottom_h ;
 
 	if( ( ps->slider_tile && slider_height > ps->pre_slider_h) ||
 		( ! ps->slider_tile && ps->pre_slider_h != slider_height))
@@ -746,30 +852,30 @@ draw_scrollbar(
 		{
 			XCopyArea( d , ps->slider_tiled_cache ,
 				win , gc , 0 , 0 ,
-				ps->slider_width , slr_body_h ,
-				offset_x , slider_top_y + ps->slider_top_h) ;
+				ps->si->slider_width , slr_body_h ,
+				offset_x , slider_top_y + ps->si->slider_top_h) ;
 		}
 		else /* ! ps->slider_tile (scale) */
 		{
 			XSetClipMask( d , gc , ps->slider_body_mask) ;
-			XSetClipOrigin( d , gc , offset_x , slider_top_y + ps->slider_top_h) ;
+			XSetClipOrigin( d , gc , offset_x , slider_top_y + ps->si->slider_top_h) ;
 			XCopyArea( d , ps->slider_body ,
 				win , gc , 0 , 0 ,
-				ps->slider_width , slr_body_h ,
-				offset_x , slider_top_y + ps->slider_top_h) ;
+				ps->si->slider_width , slr_body_h ,
+				offset_x , slider_top_y + ps->si->slider_top_h) ;
 			XSetClipMask(d , gc , None) ;
 		}
 	}
 
-	if( ps->slider_knob && slr_body_h > ps->slider_knob_h)
+	if( ps->si->slider_knob && slr_body_h > ps->si->slider_knob_h)
 	{
 		int knob_y ;
-		knob_y = slider_top_y + (slider_height - ps->slider_knob_h)/2 ;
+		knob_y = slider_top_y + (slider_height - ps->si->slider_knob_h)/2 ;
 
-		XSetClipMask( d , gc , ps->slider_knob_mask) ;
+		XSetClipMask( d , gc , ps->si->slider_knob_mask) ;
 		XSetClipOrigin( d , gc , offset_x , knob_y) ;
-		XCopyArea( d , ps->slider_knob , win , gc , 0 , 0 ,
-				ps->slider_width , ps->slider_knob_h ,
+		XCopyArea( d , ps->si->slider_knob , win , gc , 0 , 0 ,
+				ps->si->slider_width , ps->si->slider_knob_h ,
 				offset_x , knob_y) ;
 		XSetClipMask(d , gc , None) ;
 	}
@@ -850,8 +956,6 @@ parse(
 #endif
 	}
 
-	ps->dir = strdup( conf->dir) ;
-
 	return  1 ;
 }
 
@@ -916,6 +1020,8 @@ x_pixmap_engine_sb_engine_new(
 	ps->view.up_button_released = up_button_released ;
 	ps->view.down_button_released = down_button_released ;
 
+	ps->si = NULL ;
+	
 	ps->is_transparent = is_transparent ;
 
 	/* use_count decrement. when it is 0, this plugin will be unloaded. */
