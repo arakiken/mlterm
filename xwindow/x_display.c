@@ -657,6 +657,23 @@ x_display_get_cursor(
 	return  disp->cursors[idx] ;
 }
 
+/*
+ * Called from x_imagelib.c alone.
+ */
+XVisualInfo *
+x_display_get_visual_info(
+	x_display_t *  disp
+	)
+{
+	XVisualInfo  vinfo_template ;
+	int  nitems ;
+
+	vinfo_template.visualid = XVisualIDFromVisual( disp->visual) ;
+
+	/* Return pointer to the first element of VisualInfo list. */
+	return  XGetVisualInfo( disp->display , VisualIDMask , &vinfo_template , &nitems) ;
+}
+
 XID
 x_display_get_group_leader(
 	x_display_t *  disp

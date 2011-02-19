@@ -1,3 +1,16 @@
+2011-02-19  Araki Ken  <arakiken@users.sf.net>
+
+	* kik_debug.c: Wrong modification in 2011-02-08 is fixed.
+
+	* configure.in, xwindow/Makefile.in:
+	  - Check if libm is possible to dlopen by 'objdump -T libm.so'.
+	  - SYSLIBDIR => LIBMDIR
+	  - MATH_CFLAGS and MATH_LIBS are added.
+
+	* x_display.c: x_display_get_visual_info() is added.
+
+	* x_imagelib.c, mlimgloader/main.c: code clean up.
+
 2011-02-18  Araki Ken  <arakiken@users.sf.net>
 
 	* pixmap_engine.c: Common pixmaps are shared by multiple scrollbar views.

@@ -270,14 +270,20 @@ else
 fi
 
 # XXX For pow in libm.so which is used in x_imagelib.c
-SYSLIBDIR="/lib/"
-for ml_cv_lib_path in `echo $LIBRARY_PATH | tr ":" " "` ; do
-	libm_file=`ls "$ml_cv_lib_path/" | grep 'libm\\.' 2> /dev/null`
-	if test -n "$libm_file" ; then
-		SYSLIBDIR="$ml_cv_lib_path/"
-	fi
+for ml_cv_lib_path in /lib /usr/lib `echo $LIBRARY_PATH | tr ":" " "` ; do
+	libm_files=`ls $ml_cv_lib_path/libm\\.so $ml_cv_lib_path/libm\\.sl 2> /dev/null`
+	for libm_file in $libm_files ; do
+		libm_dynamic_symbol_found=`$OBJDUMP -T $libm_file | $GREP pow`
+		if test -n "$libm_dynamic_symbol_found" ; then
+			MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_lib_path\\\""
+		fi
+	done
 done
-AC_SUBST(SYSLIBDIR)
+if test -z "$libm_dynamic_symbol_found" ; then
+	AC_CHECK_LIB(m, pow, MATH_LIBS=-lm)
+fi
+AC_SUBST(MATH_LIBS)
+AC_SUBST(MATH_CFLAGS)
 
 AC_ARG_ENABLE(fribidi,
 	[  --enable-fribidi        bidi @<:@default=disabled@:>@],

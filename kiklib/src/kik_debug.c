@@ -28,7 +28,7 @@ kik_debug_printf(
 	)
 {
 	va_list  arg_list ;
-	char *  prefix = "DEBUG: " ;
+	char  prefix[] = "DEBUG: " ;
 	char *  new_format = NULL ;
 	int  ret ;
 
@@ -63,7 +63,7 @@ kik_warn_printf(
 	)
 {
 	va_list  arg_list ;
-	char *  prefix = "WARN: " ;
+	char  prefix[] = "WARN: " ;
 	char *  new_format = NULL ;
 	int  ret ;
 
@@ -99,7 +99,7 @@ kik_error_printf(
 	)
 {
 	va_list  arg_list ;
-	char *  prefix = "*** ERROR HAPPEND ***  " ;
+	char  prefix[] = "*** ERROR HAPPEND ***  " ;
 	char *  new_format = NULL ;
 	int  ret ;
 

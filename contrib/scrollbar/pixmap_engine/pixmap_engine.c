@@ -141,8 +141,8 @@ typedef struct x_display_t *  x_display_ptr_t ;
 x_display_ptr_t *  x_get_opened_displays( unsigned int *  num) ;
 
 /* XXX Hack (declared in x_imagelib.h) */
-int  x_imagelib_load_file( x_display_ptr_t  disp, char *  path, u_int32_t **  cardinal,
-	Pixmap *  pixmap, Pixmap *  mask, int *  width, int *  height) ;
+int  x_imagelib_load_file( x_display_ptr_t  disp , char *  path , u_int32_t **  cardinal ,
+	Pixmap *  pixmap , Pixmap *  mask , unsigned int *  width , unsigned int *  height) ;
 
 static void
 load_image(
@@ -302,9 +302,26 @@ release_shared_image(
 	shared_image_t *  si
 	)
 {
+	unsigned int  count ;
+
 	if( -- si->use_count > 0)
 	{
 		return ;
+	}
+
+	for( count = 0 ; count < num_of_shared_images ; count++)
+	{
+		if( shared_images[count] == si)
+		{
+			shared_images[count] = shared_images[--num_of_shared_images] ;
+			if( num_of_shared_images == 0)
+			{
+				free( shared_images) ;
+				shared_images = NULL ;
+			}
+
+			break ;
+		}
 	}
 
 	free_pixmap( si->display , si->bg_top) ;
@@ -327,6 +344,8 @@ release_shared_image(
 #ifdef  __DEBUG	
 	fprintf( stderr , "Freeing pixmap scrollbar %s\n" , si->conf->sb_name) ;
 #endif
+
+	free( si) ;
 }
 
 static void
@@ -342,12 +361,13 @@ create_bg_cache(
 	d = ps->view.display ;
 	win = ps->view.window ;
 	gc = ps->gc ;
-	bg_h = ps->view.height;
+	bg_h = ps->view.height ;
 
 	free_pixmap( d , ps->bg_cache) ;
 
 	if( bg_h <= 0)
 	{
+		/* ps->view.height is larger than 65536 */
 		return ;
 	}
 

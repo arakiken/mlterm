@@ -53,19 +53,22 @@ fetch_colormap(
 	XColor **  color_list
 	)
 {
-	int  num_cells, i ;
+	int  num_cells , i ;
 
 	num_cells = visual->map_entries ;
-	*color_list = calloc( sizeof(XColor), num_cells) ;
-	if( !*color_list)
+
+	if( ( *color_list = calloc( sizeof(XColor), num_cells)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf(KIK_DEBUG_TAG "couldn't allocate color table\n") ;
 	#endif
 		return  0 ;
 	}
+	
 	for( i = 0 ; i < num_cells ; i ++)
+	{
 		((*color_list)[i]).pixel = i ;
+	}
 
 	XQueryColors( display , colormap , *color_list, num_cells) ;
 
@@ -86,7 +89,7 @@ closest_color_index(
 	int  i ;
 	unsigned long  min = 0xffffff ;
 	unsigned long  diff ;
-	int  diff_r, diff_g, diff_b ;
+	int  diff_r , diff_g , diff_b ;
 
 	for( i = 0 ; i < len ; i++)
 	{
@@ -101,31 +104,35 @@ closest_color_index(
 			closest = i ;
 			/* no one may notice the difference */
 			if ( diff < 31)
-				goto enough ;
+			{
+				break ;
+			}
 		}
 	}
-enough:
+
 	return  closest ;
 }
 
-/**Return  position of the least significant bit
+/**Return position of the least significant bit
  *
  *\param val value to count
  *
  */
 static int
 lsb(
-	unsigned int  val
+	u_int  val
 	)
 {
 	int nth = 0 ;
 
 	if( val == 0)
+	{
 		return  0 ;
+	}
 
 	while((val & 1) == 0)
 	{
-		val = val >>1 ;
+		val = val >> 1 ;
 		nth ++ ;
 	}
 
@@ -139,18 +146,22 @@ lsb(
  */
 static int
 msb(
-	unsigned int val
+	u_int val
 	)
 {
 	int nth ;
 
 	if( val == 0)
+	{
 		return  0 ;
+	}
 
-	nth = lsb( val) +1 ;
+	nth = lsb( val) + 1 ;
 
 	while(val & (1 << nth))
+	{
 		nth++ ;
+	}
 
 	return  nth ;
 }
@@ -164,10 +175,10 @@ msb(
  */
 static GdkPixbuf *
 load_file(
-	char *  path ,			/* If NULL is specified, cache is cleared. */
-	unsigned int  width ,		/* 0 == image width */
-	unsigned int  height ,		/* 0 == image height */
-	GdkInterpType scale_type
+	char *  path ,		/* If NULL is specified, cache is cleared. */
+	u_int  width ,		/* 0 == image width */
+	u_int  height ,		/* 0 == image height */
+	GdkInterpType  scale_type
 	)
 {
 	GdkPixbuf *  pixbuf_tmp ;
@@ -204,7 +215,7 @@ load_file(
 
 #ifdef __DEBUG
 	kik_warn_printf( KIK_DEBUG_TAG
-		"creating a scaled pixbuf(%d x %d)\n", width, height) ;
+		"creating a scaled pixbuf(%d x %d)\n" , width , height) ;
 #endif
 
 	/* scaling ends here */
@@ -222,160 +233,157 @@ pixbuf_to_pixmap_pseudocolor(
 	Pixmap  pixmap
 	)
 {
-	unsigned int  width, height, rowstride, bytes_per_pixel ;
-	int  x, y ;
-	int  num_cells;
+	int  width , height , rowstride ;
+	u_int  bytes_per_pixel ;
+	int  x , y ;
+	int  num_cells ;
 #ifdef USE_FS
 	char *  diff_next ;
 	char *  diff_cur ;
-	char *  temp;
+	char *  temp ;
 #endif /* USE_FS */
-
-	unsigned char *  line;
-	unsigned char *  pixel;
+	u_char *  line ;
+	u_char *  pixel ;
 	XColor *  color_list ;
 	int  closest ;
-	int  diff_r, diff_g, diff_b ;
+	int  diff_r , diff_g , diff_b ;
+	int  ret_val = 0 ;
 
-	num_cells = fetch_colormap( display , visual , colormap , &color_list) ;
+	if( ( num_cells = fetch_colormap( display , visual , colormap , &color_list)) == 0)
+	{
+		return  0 ;
+	}
 
-	if( !num_cells)
-		return  -8 ;
-
-	width = gdk_pixbuf_get_width (pixbuf) ;
-	height = gdk_pixbuf_get_height (pixbuf) ;
+	width = gdk_pixbuf_get_width( pixbuf) ;
+	height = gdk_pixbuf_get_height( pixbuf) ;
 
 #ifdef USE_FS
-	diff_cur = calloc( width*3, 1) ;
-	if( !diff_cur)
+	if( ( diff_cur = calloc( 1 , width * 3)) == NULL)
 	{
-		return  -1 ;
+		goto  error1 ;
 	}
-	diff_next = calloc( width*3, 1) ;
-	if( !diff_next)
+	if( ( diff_next = calloc( 1 , width * 3)) == NULL)
 	{
-		free( diff_cur) ;
-		return  -2 ;
+		goto  error2 ;
 	}
 #endif /* USE_FS */
 
-	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
-	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
+	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4 : 3 ;
+	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
-	for ( y = 0 ; y < height ; y++)
+	for( y = 0 ; y < height ; y++)
 	{
 		pixel = line ;
 #ifdef USE_FS
-		closest = closest_color_index( color_list, num_cells,
-					       pixel[0] - diff_cur[0],
-					       pixel[1] - diff_cur[1],
+		closest = closest_color_index( color_list , num_cells ,
+					       pixel[0] - diff_cur[0] ,
+					       pixel[1] - diff_cur[1] ,
 					       pixel[2] - diff_cur[2]) ;
-		diff_r = (color_list[closest].red   >>8) - pixel[0];
-		diff_g = (color_list[closest].green >>8) - pixel[1];
-		diff_b = (color_list[closest].blue  >>8) - pixel[2];
+		diff_r = (color_list[closest].red   >>8) - pixel[0] ;
+		diff_g = (color_list[closest].green >>8) - pixel[1] ;
+		diff_b = (color_list[closest].blue  >>8) - pixel[2] ;
 
-		diff_cur[3*1 + 0 ] += diff_r /2;
-		diff_cur[3*1 + 1 ] += diff_g /2;
-		diff_cur[3*1 + 2 ] += diff_b /2;
+		diff_cur[3*1 + 0 ] += diff_r /2 ;
+		diff_cur[3*1 + 1 ] += diff_g /2 ;
+		diff_cur[3*1 + 2 ] += diff_b /2 ;
 
 		/* initialize next line */
-		diff_next[3*0 +0] = diff_r /4;
-		diff_next[3*0 +1] = diff_g /4;
-		diff_next[3*0 +2] = diff_b /4;
+		diff_next[3*0 +0] = diff_r /4 ;
+		diff_next[3*0 +1] = diff_g /4 ;
+		diff_next[3*0 +2] = diff_b /4 ;
 
-		diff_next[3*1 +0] = diff_r /4;
-		diff_next[3*1 +1] = diff_g /4;
-		diff_next[3*1 +2] = diff_b /4;
+		diff_next[3*1 +0] = diff_r /4 ;
+		diff_next[3*1 +1] = diff_g /4 ;
+		diff_next[3*1 +2] = diff_b /4 ;
 #else
-		closest = closest_color_index( color_list, num_cells,
-					       pixel[0],
-					       pixel[1],
-					       pixel[2])
+		closest = closest_color_index( color_list , num_cells ,
+					       pixel[0] , pixel[1] , pixel[2]) ;
 #endif /* USE_FS */
 
-		XSetForeground( display, gc, closest) ;
-		XDrawPoint( display, pixmap, gc, 0, y) ;
+		XSetForeground( display , gc , closest) ;
+		XDrawPoint( display , pixmap , gc , 0 , y) ;
 		pixel += bytes_per_pixel ;
 
-		for ( x = 1 ; x < width -2 ; x++)
+		for( x = 1 ; x < width -2 ; x++)
 		{
 #ifdef USE_FS
-			closest = closest_color_index( color_list, num_cells,
-						       pixel[0] - diff_cur[3*x +0],
-						       pixel[1] - diff_cur[3*x +1],
+			closest = closest_color_index( color_list , num_cells ,
+						       pixel[0] - diff_cur[3*x +0] ,
+						       pixel[1] - diff_cur[3*x +1] ,
 						       pixel[2] - diff_cur[3*x +2]) ;
-			diff_r = (color_list[closest].red   >>8) - pixel[0];
-			diff_g = (color_list[closest].green >>8) - pixel[1];
-			diff_b = (color_list[closest].blue  >>8) - pixel[2];
+			diff_r = (color_list[closest].red   >>8) - pixel[0] ;
+			diff_g = (color_list[closest].green >>8) - pixel[1] ;
+			diff_b = (color_list[closest].blue  >>8) - pixel[2] ;
 
-			diff_cur[3*(x+1) + 0 ] += diff_r /2;
-			diff_cur[3*(x+1) + 1 ] += diff_g /2;
-			diff_cur[3*(x+1) + 2 ] += diff_b /2;
+			diff_cur[3*(x+1) + 0 ] += diff_r /2 ;
+			diff_cur[3*(x+1) + 1 ] += diff_g /2 ;
+			diff_cur[3*(x+1) + 2 ] += diff_b /2 ;
 
-			diff_next[3*(x-1) +0] += diff_r /8;
-			diff_next[3*(x-1) +1] += diff_g /8;
-			diff_next[3*(x-1) +2] += diff_b /8;
+			diff_next[3*(x-1) +0] += diff_r /8 ;
+			diff_next[3*(x-1) +1] += diff_g /8 ;
+			diff_next[3*(x-1) +2] += diff_b /8 ;
 
-			diff_next[3*(x+0) +0] += diff_r /8;
-			diff_next[3*(x+0) +1] += diff_g /8;
-			diff_next[3*(x+0) +2] += diff_b /8;
+			diff_next[3*(x+0) +0] += diff_r /8 ;
+			diff_next[3*(x+0) +1] += diff_g /8 ;
+			diff_next[3*(x+0) +2] += diff_b /8 ;
 			/* initialize next line */
-			diff_next[3*(x+1) +0] = diff_r /4;
-			diff_next[3*(x+1) +1] = diff_g /4;
-			diff_next[3*(x+1) +2] = diff_b /4;
+			diff_next[3*(x+1) +0] = diff_r /4 ;
+			diff_next[3*(x+1) +1] = diff_g /4 ;
+			diff_next[3*(x+1) +2] = diff_b /4 ;
 #else
-			closest = closest_color_index( color_list, num_cells,
-						       pixel[0] ,
-						       pixel[1] ,
-						       pixel[2]) ;
+			closest = closest_color_index( color_list , num_cells ,
+						       pixel[0] , pixel[1] , pixel[2]) ;
 #endif /* USE_FS */
 
-			XSetForeground( display, gc, closest) ;
-			XDrawPoint( display, pixmap, gc, x, y) ;
+			XSetForeground( display , gc , closest) ;
+			XDrawPoint( display , pixmap , gc , x , y) ;
 
 			pixel += bytes_per_pixel ;
 		}
 #ifdef USE_FS
-		closest = closest_color_index( color_list, num_cells,
-					       pixel[0] - diff_cur[3*x +0],
-					       pixel[1] - diff_cur[3*x +1],
+		closest = closest_color_index( color_list , num_cells ,
+					       pixel[0] - diff_cur[3*x +0] ,
+					       pixel[1] - diff_cur[3*x +1] ,
 					       pixel[2] - diff_cur[3*x +2]) ;
-		diff_r = (color_list[closest].red   >>8) - pixel[0];
-		diff_g = (color_list[closest].green >>8) - pixel[1];
-		diff_b = (color_list[closest].blue  >>8) - pixel[2];
+		diff_r = (color_list[closest].red   >>8) - pixel[0] ;
+		diff_g = (color_list[closest].green >>8) - pixel[1] ;
+		diff_b = (color_list[closest].blue  >>8) - pixel[2] ;
 
-		diff_next[3*(x-1) +0] += diff_r /4;
-		diff_next[3*(x-1) +1] += diff_g /4;
-		diff_next[3*(x-1) +2] += diff_b /4;
+		diff_next[3*(x-1) +0] += diff_r /4 ;
+		diff_next[3*(x-1) +1] += diff_g /4 ;
+		diff_next[3*(x-1) +2] += diff_b /4 ;
 
-		diff_next[3*(x+0) +0] += diff_r /4;
-		diff_next[3*(x+0) +1] += diff_g /4;
-		diff_next[3*(x+0) +2] += diff_b /4;
+		diff_next[3*(x+0) +0] += diff_r /4 ;
+		diff_next[3*(x+0) +1] += diff_g /4 ;
+		diff_next[3*(x+0) +2] += diff_b /4 ;
 
-		temp = diff_cur;
-		diff_cur = diff_next;
-		diff_next = temp;
+		temp = diff_cur ;
+		diff_cur = diff_next ;
+		diff_next = temp ;
 #else
-		closest = closest_color_index( color_list, num_cells,
-					       pixel[0],
-					       pixel[1],
-					       pixel[2]) ;
+		closest = closest_color_index( color_list , num_cells ,
+					       pixel[0] , pixel[1] , pixel[2]) ;
 #endif /* USE_FS */
 
-		XSetForeground( display, gc, closest) ;
-		XDrawPoint( display, pixmap, gc, x, y) ;
+		XSetForeground( display , gc , closest) ;
+		XDrawPoint( display , pixmap , gc , x , y) ;
 		line += rowstride ;
 	}
-	free( color_list) ;
+
+	ret_val = 1 ;
 
 #ifdef USE_FS
+error2:
 	free( diff_cur) ;
 	free( diff_next) ;
 #endif /* USE_FS */
 
-	return  0 ;
+error1:
+	free( color_list) ;
+
+	return  ret_val ;
 }
 
 static XImage *
@@ -385,61 +393,77 @@ pixbuf_to_ximage_truecolor(
 	Colormap  colormap ,
 	GC  gc ,
 	u_int  depth ,
-	GdkPixbuf *  pixbuf ,
-	XVisualInfo *  vinfo
+	GdkPixbuf *  pixbuf
 	)
 {
-	unsigned int  i, j ;
-	unsigned int  width, height, rowstride, bytes_per_pixel ;
-	unsigned char *  line ;
-	unsigned char *  pixel ;
-	long  r_mask, g_mask, b_mask ;
-	int  r_offset, g_offset, b_offset;
+	XVisualInfo  vinfo_template ;
+	XVisualInfo *  vinfolist ;
+	int  nitem ;
+	u_int  i , j ;
+	u_int  width , height , rowstride , bytes_per_pixel ;
+	u_char *  line ;
+	u_char *  pixel ;
+	long  r_mask , g_mask , b_mask ;
+	int  r_offset , g_offset , b_offset ;
+	XImage *  image = NULL ;
 
-	XImage *  image = NULL;
+	vinfo_template.visualid = XVisualIDFromVisual( visual) ;
 
-	width = gdk_pixbuf_get_width( pixbuf) ;
-	height = gdk_pixbuf_get_height( pixbuf) ;
+	if( ! ( vinfolist = XGetVisualInfo( display , VisualIDMask , &vinfo_template , &nitem)))
+	{
+		return  0 ;
+	}
 
-	if( !width || !height)
-		return  NULL ;
+	r_mask = vinfolist[0].red_mask ;
+	g_mask = vinfolist[0].green_mask ;
+	b_mask = vinfolist[0].blue_mask ;
 
-	r_mask = vinfo[0].red_mask ;
-	g_mask = vinfo[0].green_mask ;
-	b_mask = vinfo[0].blue_mask ;
+	XFree( vinfolist) ;
+
 	r_offset = lsb( r_mask) ;
 	g_offset = lsb( g_mask) ;
 	b_offset = lsb( b_mask) ;
 
-	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4:3 ;
-	rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
+	width = gdk_pixbuf_get_width( pixbuf) ;
+	height = gdk_pixbuf_get_height( pixbuf) ;
+
+	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4 : 3 ;
+	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
-	switch ( depth)
+	if( depth == 15 || depth == 16)
 	{
-	case 15:
-	case 16:
-	{
-		int r_limit, g_limit, b_limit ;
-		u_int16_t *data ;
+		int  r_limit , g_limit , b_limit ;
+		u_int16_t *  data ;
 
 		if( width > (SIZE_MAX / 2) / height)
+		{
 			return  NULL ;
+		}
 
-		data = (u_int16_t *)malloc( (size_t)width * height * 2) ;
-		if( !data)
+		if( ! ( data = (u_int16_t *)malloc( (size_t)width * height * 2)))
+		{
 			return  NULL ;
-		image = XCreateImage( display , visual , depth , ZPixmap , 0 ,
-				      (char *)data , width , height , 16 , width *  2) ;
+		}
+
+		if( ! ( image = XCreateImage( display , visual , depth , ZPixmap , 0 ,
+				      (char *)data , width , height , 16 , width *  2)))
+		{
+			free( data) ;
+
+			return  NULL ;
+		}
+
 		r_limit = 8 + r_offset - msb( r_mask) ;
 		g_limit = 8 + g_offset - msb( g_mask) ;
 		b_limit = 8 + b_offset - msb( b_mask) ;
-		for (i = 0; i < height; i++)
+
+		for( i = 0 ; i < height ; i++)
 		{
 			pixel = line ;
-			for (j = 0; j < width; j++)
+			for( j = 0 ; j < width ; j++)
 			{
-				XPutPixel( image, j, i,
+				XPutPixel( image , j , i ,
 					   ( ( (pixel[0] >> r_limit) << r_offset) & r_mask) |
 					   ( ( (pixel[1] >> g_limit) << g_offset) & g_mask) |
 					   ( ( (pixel[2] >> b_limit) << b_offset) & b_mask)) ;
@@ -447,45 +471,51 @@ pixbuf_to_ximage_truecolor(
 			}
 			line += rowstride ;
 		}
-		break;
 	}
-	case 24:
-	case 32:
+	else if( depth == 24 || depth == 32)
 	{
 		u_int32_t *  data ;
 
 		if( width > (SIZE_MAX / 4) / height)
+		{
 			return  NULL ;
+		}
 
-		data = (u_int32_t *)malloc( (size_t)width *  height * 4) ;
-		if( !data)
-			return  NULL;
+		if( ! ( data = (u_int32_t *)malloc( (size_t)width *  height * 4)))
+		{
+			return  NULL ;
+		}
 
-		image = XCreateImage( display, visual , depth , ZPixmap , 0 ,
-				      (char *)data , width , height , 32 , width * 4) ;
-		for( i = 0; i < height; i++)
+		if( ! ( image = XCreateImage( display, visual , depth , ZPixmap , 0 ,
+				      (char *)data , width , height , 32 , width * 4)))
+		{
+			free( data) ;
+
+			return  NULL ;
+		}
+
+		for( i = 0 ; i < height ; i++)
 		{
 			pixel = line ;
-			for( j = 0; j < width; j++)
+			for( j = 0 ; j < width ; j++)
 			{
-				XPutPixel( image, j, i, pixel[0] <<r_offset | pixel[1] <<g_offset | pixel[2]<<b_offset) ;
+				XPutPixel( image , j , i ,
+					pixel[0] << r_offset |
+					pixel[1] << g_offset |
+					pixel[2] << b_offset) ;
 				pixel +=bytes_per_pixel ;
 			}
 			line += rowstride ;
 		}
-		break ;
 	}
-	default:
-		break;
+	else
+	{
+		return  NULL ;
 	}
 
 	return  image ;
 }
 
-/*
- * Success: 0
- * Failure: <0
- */ 
 static int
 pixbuf_to_pixmap(
 	Display *  display ,
@@ -497,64 +527,30 @@ pixbuf_to_pixmap(
 	Pixmap  pixmap
 	)
 {
-	XImage *  image = NULL;
-	int  matched ;
-	XVisualInfo *  vinfolist ;
-	XVisualInfo  vinfo ;
+	if( visual->class == TrueColor)
+	{
+		XImage *  image ;
 
-	if( !pixbuf)
-		return  -1 ;
-
-	vinfo.visualid = XVisualIDFromVisual( visual) ;
-	if (!vinfo.visualid)
-		return  -2 ;
-	vinfolist = XGetVisualInfo( display, VisualIDMask, &vinfo, &matched) ;
-	if( !vinfolist)
-		return  -3 ;
-	if ( !matched)
-	{
-		XFree( vinfolist) ;
-		return  -4 ;
-	}
-	switch( vinfolist[0].class)
-	{
-	case TrueColor:
-	{
-		image = pixbuf_to_ximage_truecolor( display , visual , colormap , gc , depth ,
-				pixbuf , vinfolist) ;
-		XFree( vinfolist) ;
-		if( image)
+		if( ( image = pixbuf_to_ximage_truecolor( display , visual ,
+					colormap , gc , depth , pixbuf)))
 		{
-			XPutImage( display, pixmap, gc, image, 0, 0, 0, 0,
-				   gdk_pixbuf_get_width( pixbuf),gdk_pixbuf_get_height( pixbuf)) ;
+			XPutImage( display , pixmap , gc , image , 0 , 0 , 0 , 0 ,
+				   gdk_pixbuf_get_width( pixbuf) ,
+				   gdk_pixbuf_get_height( pixbuf)) ;
 			XDestroyImage( image) ;
-			return  0 ;
+
+			return  1 ;
 		}
-		break ;
 	}
-	case PseudoColor:
+	else if( visual->class == PseudoColor)
 	{
-		XFree( vinfolist) ;
-		if( pixbuf_to_pixmap_pseudocolor( display , visual , colormap , gc ,
-				pixbuf, pixmap) != 0)
-			return  -1;
-		return  0 ;
-		break ;
-	}
-	default:
-	{
-		XFree( vinfolist) ;
-		break ;
-	}
+		return  pixbuf_to_pixmap_pseudocolor( display , visual , colormap , gc ,
+				pixbuf , pixmap) ;
 	}
 
-	return  -1 ;
+	return  0 ;
 }
 
-/*
- * Success: 0
- * Failure: <0
- */ 
 static int
 pixbuf_to_pixmap_and_mask(
 	Display *  display ,
@@ -576,20 +572,20 @@ pixbuf_to_pixmap_and_mask(
 
 	if( ( *pixmap = XCreatePixmap( display , win , width , height , depth)) == None)
 	{
-		return  -1 ;
+		return  0 ;
 	}
 
-	if( pixbuf_to_pixmap( display , visual , colormap , gc , depth , pixbuf , *pixmap) == -1)
+	if( ! pixbuf_to_pixmap( display , visual , colormap , gc , depth , pixbuf , *pixmap))
 	{
-		return  -1 ;
+		return  0 ;
 	}
 
 	if( gdk_pixbuf_get_has_alpha( pixbuf))
 	{
-		int  i, j ;
+		int  i , j ;
 		int  rowstride ;
-		unsigned char *  line ;
-		unsigned char *  pixel ;
+		u_char *  line ;
+		u_char *  pixel ;
 		GC  mask_gc ;
 		XGCValues  gcv ;
 
@@ -601,20 +597,22 @@ pixbuf_to_pixmap_and_mask(
 		*mask = XCreatePixmap( display , win , width , height , 1) ;
 		mask_gc = XCreateGC( display , *mask , 0 , &gcv) ;
 
-		XSetForeground( display, mask_gc, 0) ;
-		XFillRectangle( display, *mask, mask_gc, 0, 0, width, height) ;
-		XSetForeground( display, mask_gc, 1) ;
+		XSetForeground( display , mask_gc , 0) ;
+		XFillRectangle( display , *mask , mask_gc , 0 , 0 , width , height) ;
+		XSetForeground( display , mask_gc , 1) ;
 
 		line = gdk_pixbuf_get_pixels( pixbuf) ;
 		rowstride = gdk_pixbuf_get_rowstride (pixbuf) ;
 
-		for (i = 0; i < height; i++)
+		for( i = 0 ; i < height ; i++)
 		{
-			pixel = line + 3;
-			for (j = 0; j < width; j++)
+			pixel = line + 3 ;
+			for( j = 0 ; j < width ; j++)
 			{
 				if( *pixel > 127)
-					XDrawPoint( display, *mask, mask_gc, j, i) ;
+				{
+					XDrawPoint( display , *mask , mask_gc , j , i) ;
+				}
 				pixel += 4 ;
 			}
 			line += rowstride ;
@@ -628,7 +626,7 @@ pixbuf_to_pixmap_and_mask(
 		*mask = None ;
 	}
 
-	return  0 ;
+	return  1 ;
 }
 
 
@@ -696,8 +694,8 @@ main(
 		return  -1 ;
 	}
 
-	if( pixbuf_to_pixmap_and_mask( display , win , visual , colormap , gc , depth ,
-			pixbuf , &pixmap , &mask) != 0)
+	if( ! pixbuf_to_pixmap_and_mask( display , win , visual , colormap , gc , depth ,
+			pixbuf , &pixmap , &mask))
 	{
 		return  -1 ;
 	}
@@ -705,7 +703,7 @@ main(
 	XSync( display , False) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " Loaded pixmap %d %d\n" , pixmap , mask) ;
+	kik_debug_printf( KIK_DEBUG_TAG " Loaded pixmap %lu %lu\n" , pixmap , mask) ;
 #endif
 
 	fprintf( stdout , "%lu %lu" , pixmap , mask) ;

@@ -89,6 +89,8 @@ XModifierKeymap *  x_display_get_modifier_mapping( x_display_t *  disp) ;
 
 #ifndef  USE_WIN32GUI
 Cursor  x_display_get_cursor( x_display_t *  disp , u_int  shape) ;
+
+XVisualInfo *  x_display_get_visual_info( x_display_t *  disp) ;
 #endif
 
 void  x_display_update_modifier_mapping( x_display_t *  disp ,	u_int  serial) ;

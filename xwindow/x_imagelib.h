@@ -25,8 +25,8 @@ Pixmap  x_imagelib_load_file_for_background( x_window_t *  win ,
 Pixmap  x_imagelib_get_transparent_background( x_window_t *  win ,
 	x_picture_modifier_t *  pic_mod) ;
 
-int  x_imagelib_load_file( x_display_t *  disp, char *  path, u_int32_t **  cardinal,
-	Pixmap *  pixmap, Pixmap *  mask, unsigned int *  width, unsigned int *   height) ;
+int  x_imagelib_load_file( x_display_t *  disp , char *  path , u_int32_t **  cardinal ,
+	Pixmap *  pixmap , Pixmap *  mask , u_int *  width , u_int *   height) ;
 
 Pixmap  x_imagelib_pixbuf_to_pixmap( x_window_t *  win , x_picture_modifier_t *  pic_mod ,
 	GdkPixbufPtr  pixbuf) ;
