@@ -273,7 +273,7 @@ fi
 for ml_cv_lib_path in /lib /usr/lib `echo $LIBRARY_PATH | tr ":" " "` ; do
 	libm_files=`ls $ml_cv_lib_path/libm\\.so $ml_cv_lib_path/libm\\.sl 2> /dev/null`
 	for libm_file in $libm_files ; do
-		libm_dynamic_symbol_found=`$OBJDUMP -T $libm_file | $GREP pow`
+		libm_dynamic_symbol_found=`$NM -D $libm_file | $GREP pow`
 		if test -n "$libm_dynamic_symbol_found" ; then
 			MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_lib_path\\\""
 		fi

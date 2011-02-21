@@ -392,7 +392,9 @@ ml_write_to_pty(
 	
 	memcpy( pty->buf , &w_buf[written_size] , pty->left) ;
 
+#if  0
 	kik_debug_printf( "%d is not written.\n" , pty->left) ;
+#endif
 
 	return  0 ;
 }

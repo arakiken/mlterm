@@ -1,3 +1,12 @@
+2011-02-21  Araki Ken  <arakiken@users.sf.net>
+
+	* xwindow/Makefile.in: $(LMLTERM) is moved before $(LMKF) in LIBS1.
+	  (This bug causes link error in win32.)
+
+	* configure, aclocal.m4, ltmain.sh: Updated to libtool 2.2.6b.
+
+	* configure.in: 'nm -D libm.so' is used instead of 'objdump -T libm.so'.
+
 2011-02-19  Araki Ken  <arakiken@users.sf.net>
 
 	* kik_debug.c: Wrong modification in 2011-02-08 is fixed.
