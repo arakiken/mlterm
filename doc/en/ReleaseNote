@@ -1,3 +1,10 @@
+ver 3.0.3
+* Even if gdk-pixbuf is not linked to mlterm, wall picture, icon picture
+  and pixmap_engine are supported by mlimgdisplay using gdk-pixbuf.
+* Unsupported but valid escape / CSI sequence is correctly ignored.
+  (Thanks to Iwamoto Kouichi san)
+* "wall_picture" option is partially (BMP format alone) supported.
+
 ver 3.0.2
 * Drop imlib, gdk-pixbuf1 and gtk-1.x support.
 * Add libvte compatible library using mlterm engine. (Experimental)

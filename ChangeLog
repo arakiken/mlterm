@@ -1,3 +1,11 @@
+2011-02-23  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in, Makefile.in: @DL_LIBS_SB@ is removed from gtk/Makefile.in
+	  in order to avoid --version-script=\$(top_srcdir)/xwindow/dexport.map
+	  option in building libvte library.
+
+	* version.h.in: 3.0.2 post -> 3.0.3 pre
+
 2011-02-21  Araki Ken  <arakiken@users.sf.net>
 
 	* xwindow/Makefile.in: $(LMLTERM) is moved before $(LMKF) in LIBS1.
