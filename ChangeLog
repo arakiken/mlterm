@@ -1,3 +1,14 @@
+2011-02-23  Araki Kenaaaa  <arakiken@users.sf.net>
+
+	* x_window.c: x_decsp_font_draw_string() is used instead of
+	  x_decsp_draw_image_string() in x_window_draw_decsp_string().
+	  (Thanks to Iwamoto Kouichi san)
+
+	* vte.c: Returned value of gdk_screen_get_resolution() is used for DPI
+	  of xft font.
+	
+	* x_font.c: x_font_set_dpi_for_xft() is added.
+
 2011-02-23  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in, Makefile.in: @DL_LIBS_SB@ is removed from gtk/Makefile.in

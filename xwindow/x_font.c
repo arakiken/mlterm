@@ -136,6 +136,7 @@ static cs_info_t  cs_info_table[] =
 static int  compose_dec_special_font ;
 #ifdef  USE_TYPE_XFT
 static char *  xft_size_type = XFT_PIXEL_SIZE ;
+static double  dpi_for_xft ;
 #endif
 
 
@@ -510,12 +511,19 @@ get_xft_col_width(
 	{
 		double  widthpix ;
 		double  widthmm ;
-		u_int  dpi ;
+		double  dpi ;
 
 		widthpix = DisplayWidth( font->display , DefaultScreen(font->display)) ;
 		widthmm = DisplayWidthMM( font->display , DefaultScreen(font->display)) ;
 
-		dpi = DIVIDE_ROUNDING(widthpix * 254 , widthmm * 10) ;
+		if( dpi_for_xft)
+		{
+			dpi = dpi_for_xft ;
+		}
+		else
+		{
+			dpi = (widthpix * 254) / (widthmm * 10) ;
+		}
 
 		return  DIVIDE_ROUNDINGUP(dpi * fontsize_d * font->cols , 72 * 2) + letter_space ;
 	}
@@ -1624,6 +1632,16 @@ x_font_use_point_size_for_xft(
 	{
 		xft_size_type = XFT_PIXEL_SIZE ;
 	}
+#endif
+}
+
+void
+x_font_set_dpi_for_xft(
+	double  dpi
+	)
+{
+#ifdef  USE_TYPE_XFT
+	dpi_for_xft = dpi ;
 #endif
 }
 

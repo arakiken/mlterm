@@ -1679,6 +1679,7 @@ vte_terminal_init(
 	x_font_manager_t *  font_man ;
 	mkf_charset_t  usascii_font_cs ;
 	int  usascii_font_cs_changable ;
+	gdouble  dpi ;
 
 	GTK_WIDGET_SET_FLAGS( terminal , GTK_CAN_FOCUS) ;
 
@@ -1726,6 +1727,17 @@ vte_terminal_init(
 		usascii_font_cs = x_get_usascii_font_cs(
 					ml_term_get_encoding(terminal->pvt->term)) ;
 		usascii_font_cs_changable = 1 ;
+	}
+
+	/* related to x_font_use_point_size_for_xft(1) in vte_terminal_class_init. */
+	if( ( dpi = gdk_screen_get_resolution(
+		gtk_widget_get_screen( GTK_WIDGET(terminal)))) != -1)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Setting dpi %f\n" , dpi) ;
+	#endif
+
+		x_font_set_dpi_for_xft( dpi) ;
 	}
 
 	font_man = x_font_manager_new( disp.display ,

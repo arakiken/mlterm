@@ -2733,7 +2733,7 @@ x_window_draw_decsp_string(
 	{
 		x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 
-		return  x_decsp_font_draw_image_string( font->decsp_font , win->disp->display ,
+		return  x_decsp_font_draw_string( font->decsp_font , win->disp->display ,
 				win->my_window , win->gc->gc , x + win->margin , y + win->margin ,
 				str , len) ;
 	}
