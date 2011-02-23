@@ -1,4 +1,6 @@
-2011-02-23  Araki Kenaaaa  <arakiken@users.sf.net>
+2011-02-23  Araki Ken  <arakiken@users.sf.net>
+
+	* libtool: version down to 1.5.26
 
 	* x_window.c: x_decsp_font_draw_string() is used instead of
 	  x_decsp_draw_image_string() in x_window_draw_decsp_string().
