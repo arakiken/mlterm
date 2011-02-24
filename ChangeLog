@@ -1,3 +1,11 @@
+2011-02-24  Araki Ken  <arakiken@users.sf.net>
+
+	* x_imagelib.c: "/" is appended to LIBMDIR in kik_dl_open().
+	    (Thanks to Iwamoto Kouichi san)
+
+	* configure.in: If gdk-pixbuf is linked to mlterm, DLOPEN_LIBM
+	  and LIBMDIR macros are never defined.
+
 2011-02-23  Araki Ken  <arakiken@users.sf.net>
 
 	* libtool: version down to 1.5.26

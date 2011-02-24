@@ -274,13 +274,14 @@ for ml_cv_lib_path in /lib /usr/lib `echo $LIBRARY_PATH | tr ":" " "` ; do
 	libm_files=`ls $ml_cv_lib_path/libm\\.so $ml_cv_lib_path/libm\\.sl 2> /dev/null`
 	for libm_file in $libm_files ; do
 		libm_dynamic_symbol_found=`$NM -D $libm_file | $GREP pow`
-		if test -n "$libm_dynamic_symbol_found" ; then
-			MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_lib_path\\\""
-		fi
 	done
 done
-if test -z "$libm_dynamic_symbol_found" ; then
-	AC_CHECK_LIB(m, pow, MATH_LIBS=-lm)
+if test -z "$IMAGELIB_LIBS" ; then
+	if test -n "$libm_dynamic_symbol_found" ; then
+		MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_lib_path\\\""
+	else
+		AC_CHECK_LIB(m, pow, MATH_LIBS=-lm)
+	fi
 fi
 AC_SUBST(MATH_LIBS)
 AC_SUBST(MATH_CFLAGS)

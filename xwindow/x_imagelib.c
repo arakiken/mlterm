@@ -54,8 +54,9 @@
 #define  g_object_unref( pixbuf) gdk_pixbuf_unref( pixbuf)
 #endif
 
+/* Trailing "/" is appended in value_table_refresh(). */
 #ifndef  LIBMDIR
-#define  LIBMDIR  "/lib/"
+#define  LIBMDIR  "/lib"
 #endif
 
 #ifndef  LIBEXECDIR
@@ -277,12 +278,17 @@ value_table_refresh(
 	#ifdef  DLOPEN_LIBM
 		kik_dl_handle_t  handle ;
 
-		if( ! ( handle = kik_dl_open( LIBMDIR , "m")) ||
+		if( ! ( handle = kik_dl_open( LIBMDIR "/" , "m")) ||
 		    ! ( pow_func = kik_dl_func_symbol( handle , "pow")))
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Failed to load pow in libm.so\n") ;
 		#endif
+
+			if( handle)
+			{
+				kik_dl_close( handle) ;
+			}
 
 			/*
 			 * gamma, contrast and brightness options are ignored.
@@ -293,16 +299,11 @@ value_table_refresh(
 				value_table[i] = i ;
 			}
 
-			if( handle)
-			{
-				kik_dl_close( handle) ;
-			}
-
 			return ;
 		}
-	#else
+	#else  /* DLOPEN_LIBM */
 		pow_func = pow ;
-	#endif
+	#endif /* USE_EXT_IMAGELIB */
 	}
 	
 	for( i = 0 ; i < 256 ; i++)

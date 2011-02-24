@@ -20337,13 +20337,13 @@ for ml_cv_lib_path in /lib /usr/lib `echo $LIBRARY_PATH | tr ":" " "` ; do
 	libm_files=`ls $ml_cv_lib_path/libm\\.so $ml_cv_lib_path/libm\\.sl 2> /dev/null`
 	for libm_file in $libm_files ; do
 		libm_dynamic_symbol_found=`$NM -D $libm_file | $GREP pow`
-		if test -n "$libm_dynamic_symbol_found" ; then
-			MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_lib_path\\\""
-		fi
 	done
 done
-if test -z "$libm_dynamic_symbol_found" ; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pow in -lm" >&5
+if test -z "$IMAGELIB_LIBS" ; then
+	if test -n "$libm_dynamic_symbol_found" ; then
+		MATH_CFLAGS="-DDLOPEN_LIBM -DLIBMDIR=\\\"$ml_cv_lib_path\\\""
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pow in -lm" >&5
 $as_echo_n "checking for pow in -lm... " >&6; }
 if test "${ac_cv_lib_m_pow+set}" = set; then :
   $as_echo_n "(cached) " >&6
@@ -20383,6 +20383,7 @@ if test "x$ac_cv_lib_m_pow" = x""yes; then :
   MATH_LIBS=-lm
 fi
 
+	fi
 fi
 
 
