@@ -7139,10 +7139,9 @@ x_screen_attach(
 
 	usascii_font_cs_changed( screen , ml_term_get_encoding( screen->term)) ;
 
-	if( update_special_visual( screen))
-	{
-		ml_term_set_modified_all_lines_in_screen( screen->term) ;
-	}
+	update_special_visual( screen) ;
+	/* Even if update_special_visual succeeded or not, all screen should be redrawn. */
+	ml_term_set_modified_all_lines_in_screen( screen->term) ;
 
 	if( HAS_SCROLL_LISTENER(screen,term_changed))
 	{

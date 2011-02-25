@@ -1047,9 +1047,13 @@ ml_screen_delete_logical_visual(
 		(*screen->logvis->delete)( screen->logvis) ;
 		screen->logvis = NULL ;
 		screen->container_logvis = NULL ;
-	}
 
-	return  1 ;
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
 }
 
 int

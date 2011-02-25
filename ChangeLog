@@ -1,3 +1,12 @@
+2011-02-26  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: ml_term_set_modified all_lines_in_screen() is always called
+	  in x_screen_attach() regardless of result of update_special_visual().
+
+	* ml_term.c, ml_screen.c: Meaning of return value of
+	  ml_term_update_special_visual() and ml_screen_delete_logical_visual()
+	  is changed.
+
 2011-02-24  Araki Ken  <arakiken@users.sf.net>
 
 	* x_imagelib.c: "/" is appended to LIBMDIR in kik_dl_open().

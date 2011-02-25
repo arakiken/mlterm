@@ -766,12 +766,19 @@ ml_term_updated_all(
 	return  1 ;
 }
 
+/*
+ * Return value:
+ *  1 => Updated
+ *  0 => Not updated(== not necessary to redraw)
+ */
 int
 ml_term_update_special_visual(
 	ml_term_t *  term
 	)
 {
 	ml_logical_visual_t *  logvis ;
+	int  had_logvis = 0 ;
+	int  has_logvis = 0 ;
 
 	if( term->shape)
 	{
@@ -784,140 +791,158 @@ ml_term_update_special_visual(
 		ml_iscii_lang_delete( term->iscii_lang) ;
 		term->iscii_lang = NULL ;
 	}
-	
+
 	term->screen->use_dynamic_comb = 0 ;
-	ml_screen_delete_logical_visual( term->screen) ;
+	had_logvis = ml_screen_delete_logical_visual( term->screen) ;
 
 	if( ml_term_get_encoding( term) == ML_ISCII)
 	{
 		/*
-		 * It is impossible to process ISCII with other encoding proper auxes.
+		 * It is impossible to process ISCII with special visual of other encoding.
 		 */
 
-		if( ( term->iscii_lang = ml_iscii_lang_new( term->iscii_lang_type)) == NULL)
+		if( ( term->iscii_lang = ml_iscii_lang_new( term->iscii_lang_type)) &&
+		    ( term->shape = ml_iscii_shape_new( term->iscii_lang)) &&
+		    ( logvis = ml_logvis_iscii_new( term->iscii_lang)))
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_new() failed.\n") ;
-		#endif
+			if( ml_screen_add_logical_visual( term->screen , logvis))
+			{
+				has_logvis = 1 ;
+			}
+			else
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" ml_screen_add_logical_visual failed.\n") ;
+			#endif
 
-			return  0 ;
+				(*logvis->delete)( logvis) ;
+			}
 		}
-
-		if( ( term->shape = ml_iscii_shape_new( term->iscii_lang)) == NULL)
+	#ifdef  DEBUG
+		else
 		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_shape_new() failed.\n") ;
-		#endif
-
-			goto  error ;
+			kik_warn_printf( KIK_DEBUG_TAG
+				" ml_iscii_xxx_new()/ml_logvis_iscii_new() failed.\n") ;
 		}
-
-		if( ( logvis = ml_logvis_iscii_new( term->iscii_lang)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_iscii_new() failed.\n") ;
-		#endif
-
-			goto  error ;
-		}
-
-		if( ! ml_screen_add_logical_visual( term->screen , logvis))
-		{
-			goto  error ;
-		}
+	#endif
 	}
 	else
 	{
 		if( term->use_dynamic_comb)
 		{
-			if( ( logvis = ml_logvis_comb_new()) == NULL)
+			if( ( logvis = ml_logvis_comb_new()))
 			{
-			#ifdef  DEBUG
+				if( ml_screen_add_logical_visual( term->screen , logvis))
+				{
+					has_logvis = 1 ;
+					term->screen->use_dynamic_comb = 1 ;
+				}
+				else
+				{
+				#ifdef  DEBUG
+					kik_warn_printf( KIK_DEBUG_TAG
+						" ml_screen_add_logical_visual failed.\n") ;
+				#endif
+
+					(*logvis->delete)( logvis) ;
+				}
+			}
+		#ifdef  DEBUG
+			else
+			{
 				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_comb_new() failed.\n") ;
-			#endif
-
-				goto  error ;
 			}
-
-			if( ! ml_screen_add_logical_visual( term->screen , logvis))
-			{
-				(*logvis->delete)( logvis) ;
-				
-				goto  error ;
-			}
-
-			term->screen->use_dynamic_comb = 1 ;
+		#endif
 		}
 		
 		if( term->vertical_mode)
 		{
-			if( ( logvis = ml_logvis_vert_new( term->vertical_mode)) == NULL)
+			if( ( logvis = ml_logvis_vert_new( term->vertical_mode)))
 			{
-			#ifdef  DEBUG
+				if( ml_screen_add_logical_visual( term->screen , logvis))
+				{
+					has_logvis = 1 ;
+				}
+				else
+				{
+				#ifdef  DEBUG
+					kik_warn_printf( KIK_DEBUG_TAG
+						" ml_screen_add_logical_visual failed.\n") ;
+				#endif
+
+					(*logvis->delete)( logvis) ;
+				}
+			}
+		#ifdef  DEBUG
+			else
+			{
 				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_vert_new() failed.\n") ;
-			#endif
-
-				goto  error ;
 			}
-
-			if( ! ml_screen_add_logical_visual( term->screen , logvis))
-			{
-				goto  error ;
-			}
+		#endif
 		}
 		else if( term->use_bidi && ml_term_get_encoding( term) == ML_UTF8)
 		{
-			if( ( term->shape = ml_arabic_shape_new()) == NULL)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " x_arabic_shape_new() failed.\n") ;
-			#endif
-
-				goto  error ;
-			}
-
+			if( ( term->shape = ml_arabic_shape_new()) &&
 		#if  1
-			if( ( logvis = ml_logvis_bidi_new( 0 , term->bidi_mode)) == NULL)
+			    ( logvis = ml_logvis_bidi_new( 0 , term->bidi_mode)))
 		#else
-			if( ( logvis = ml_logvis_bidi_new( 1 , term->bidi_mode)) == NULL)
+			    ( logvis = ml_logvis_bidi_new( 1 , term->bidi_mode)))
 		#endif
 			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_bidi_new() failed.\n") ;
-			#endif
+				if( ml_screen_add_logical_visual( term->screen , logvis))
+				{
+					has_logvis = 1 ;
+				}
+				else
+				{
+				#ifdef  DEBUG
+					kik_warn_printf( KIK_DEBUG_TAG
+						" ml_screen_add_logical_visual failed.\n") ;
+				#endif
 
-				goto  error ;
+					(*logvis->delete)( logvis) ;
+				}
 			}
-
-			if( ! ml_screen_add_logical_visual( term->screen , logvis))
+		#ifdef  DEBUG
+			else
 			{
-				goto  error ;
+				kik_warn_printf( KIK_DEBUG_TAG
+					" x_arabic_shape_new()/ml_logvis_bidi_new() failed.\n") ;
 			}
+		#endif
 		}
 	}
+
+	if( ! has_logvis)
+	{
+		if( term->shape)
+		{
+			(*term->shape->delete)( term->shape) ;
+			term->shape = NULL ;
+		}
+
+		if( term->iscii_lang)
+		{
+			ml_iscii_lang_delete( term->iscii_lang) ;
+			term->iscii_lang = NULL ;
+		}
+
+		term->screen->use_dynamic_comb = 0 ;
+		ml_screen_delete_logical_visual( term->screen) ;
+	}
 	
-	ml_screen_render( term->screen) ;
-	ml_screen_visual( term->screen) ;
-
-	return  1 ;
-
-error:
-	if( term->shape)
+	if( had_logvis || has_logvis)
 	{
-		(*term->shape->delete)( term->shape) ;
-		term->shape = NULL ;
-	}
+		ml_screen_render( term->screen) ;
+		ml_screen_visual( term->screen) ;
 
-	if( term->iscii_lang)
+		return  1 ;
+	}
+	else
 	{
-		ml_iscii_lang_delete( term->iscii_lang) ;
-		term->iscii_lang = NULL ;
+		return  0 ;
 	}
-
-	term->screen->use_dynamic_comb = 0 ;
-	ml_screen_delete_logical_visual( term->screen) ;
-
-	return  0 ;
 }
 
 ml_bs_mode_t
