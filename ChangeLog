@@ -1,5 +1,9 @@
 2011-02-26  Araki Ken  <arakiken@users.sf.net>
 
+	* tool/mlconfig/po/Makefile.in.in: $(mkinstalldirs) is removed and
+	  $(MKINSTALLDIRS) is used directly.
+	  (Thanks to Iwamoto Kouichi san)
+
 	* x_screen.c: ml_term_set_modified all_lines_in_screen() is always called
 	  in x_screen_attach() regardless of result of update_special_visual().
 
