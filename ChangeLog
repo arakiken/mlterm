@@ -1,5 +1,12 @@
 2011-02-27  Araki Ken  <arakiken@users.sf.net>
 
+	* x_imagelib.c: Size of args array in load_file() is fixed from 4 to 6.
+
+	* configure.in:
+	  - '\r' which can be output by pkg-config in win32 is removed
+	    from GDK_PIXBUF_CFLAGS and GDK_PIXBUF_LIBS.
+	  - mlimgloader is not built in win32.
+
 	* mkf_iso2022_parser.c: iso2022_parser->g1_is_decsp = 0 if cs except
 	  decsp is set to g1.
 

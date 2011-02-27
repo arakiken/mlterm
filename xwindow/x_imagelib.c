@@ -1375,7 +1375,7 @@ load_file(
 	{
 		/* child process */
 
-		char *  args[4] ;
+		char *  args[6] ;
 		char  win_str[DIGIT_STR_LEN(Window)] ;
 		char  width_str[DIGIT_STR_LEN(u_int)] ;
 		char  height_str[DIGIT_STR_LEN(u_int)] ;

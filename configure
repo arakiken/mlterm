@@ -20092,12 +20092,16 @@ $as_echo "yes" >&6; }
 	have_gdk_pixbuf2="yes"
 
 fi
+GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS | tr -d '\r'`"
+GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS | tr -d '\r'`"
 
 
 
-if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
-	OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
-	MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
+if test "$gui" != "win32" ; then
+	if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
+		OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
+		MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
+	fi
 fi
 
 
