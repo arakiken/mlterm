@@ -406,21 +406,26 @@ parse_escape(
 					ft = *iso2022_parser->parser.str ;
 				}
 
-			#ifdef  DECSP_HACK
-				if( ft == '0' && ! is_mb && to_GN == CS94_TO_G1)
-				{
-					iso2022_parser->g1_is_decsp = 1 ;
-				}
-				else
-			#endif
-			
 				if( to_GN == CS94_TO_G0)
 				{
 					iso2022_parser->g0 = get_charset( ft , is_mb , 94 , rev) ;
 				}
 				else if( to_GN == CS94_TO_G1)
 				{
-					iso2022_parser->g1 = get_charset( ft , is_mb , 94 , rev) ;
+				#ifdef  DECSP_HACK
+					if( ft == '0' && ! is_mb)
+					{
+						iso2022_parser->g1_is_decsp = 1 ;
+					}
+					else
+				#endif
+					{
+					#ifdef  DECSP_HACK
+						iso2022_parser->g1_is_decsp = 0 ;
+					#endif
+						iso2022_parser->g1 = get_charset( ft , is_mb ,
+									94 , rev) ;
+					}
 				}
 				else if( to_GN == CS94_TO_G2)
 				{
@@ -432,6 +437,9 @@ parse_escape(
 				}
 				else if( to_GN == CS96_TO_G1)
 				{
+				#ifdef  DECSP_HACK
+					iso2022_parser->g1_is_decsp = 0 ;
+				#endif
 					iso2022_parser->g1 = get_charset( ft , is_mb , 96 , rev) ;
 				}
 				else if( to_GN == CS96_TO_G2)
@@ -700,7 +708,9 @@ iso2022_parser_init(
 	iso2022_parser->non_iso2022_cs = UNKNOWN_CS ;
 
 	iso2022_parser->is_single_shifted = 0 ;
+#ifdef  DECSP_HACK
 	iso2022_parser->g1_is_decsp = 0 ;
+#endif
 }
 
 

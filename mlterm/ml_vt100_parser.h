@@ -129,6 +129,7 @@ typedef struct  ml_vt100_parser
 
 	int  log_file ;
 
+	/* Used for non iso2022 encoding */
 	int8_t  is_dec_special_in_gl ;
 	int8_t  is_so ;
 	int8_t  is_dec_special_in_g0 ;

@@ -1,3 +1,8 @@
+2011-02-27  Araki Ken  <arakiken@users.sf.net>
+
+	* mkf_iso2022_parser.c: iso2022_parser->g1_is_decsp = 0 if cs except
+	  decsp is set to g1.
+
 2011-02-26  Araki Ken  <arakiken@users.sf.net>
 
 	* tool/mlconfig/po/Makefile.in.in: $(mkinstalldirs) is removed and

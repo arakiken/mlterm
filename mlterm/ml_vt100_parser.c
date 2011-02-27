@@ -2727,12 +2727,7 @@ parse_vt100_escape_sequence(
 
 				if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 				{
-					/* not VT100 control sequence */
-
-				#ifdef  ESCSEQ_DEBUG
-					kik_msg_printf( "=> not VT100 control sequence.\n") ;
-				#endif
-
+					/* ESC ( will be processed in mkf. */
 					return  1 ;
 				}
 
@@ -2750,16 +2745,14 @@ parse_vt100_escape_sequence(
 				{
 					vt100_parser->is_dec_special_in_g0 = 0 ;
 				}
+			#ifdef  DEBUG
 				else
 				{
-					/* not VT100 control sequence */
-
-				#ifdef  ESCSEQ_DEBUG
-					kik_msg_printf( "=> not VT100 control sequence.\n") ;
-				#endif
-
-					return  1 ;
+					kik_debug_printf( KIK_DEBUG_TAG " ESC ( %c is "
+						"illegal sequence in current encoding" ,
+						*str_p) ;
 				}
+			#endif
 
 				if( ! vt100_parser->is_so)
 				{
@@ -2773,12 +2766,7 @@ parse_vt100_escape_sequence(
 
 				if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 				{
-					/* not VT100 control sequence */
-
-				#ifdef  ESCSEQ_DEBUG
-					kik_msg_printf( "=> not VT100 control sequence.\n") ;
-				#endif
-
+					/* ESC ) will be processed in mkf. */
 					return  1 ;
 				}
 
@@ -2796,17 +2784,15 @@ parse_vt100_escape_sequence(
 				{
 					vt100_parser->is_dec_special_in_g1 = 0 ;
 				}
+			#ifdef  DEBUG
 				else
 				{
-					/* not VT100 control sequence */
-
-				#ifdef  ESCSEQ_DEBUG
-					kik_msg_printf( "=> not VT100 control sequence.\n") ;
-				#endif
-
-					return  1 ;
+					kik_debug_printf( KIK_DEBUG_TAG " ESC ) %c is "
+						"illegal sequence in current encoding" ,
+						*str_p) ;
 				}
-				
+			#endif
+
 				if( vt100_parser->is_so)
 				{
 					vt100_parser->is_dec_special_in_gl =
@@ -2870,8 +2856,7 @@ parse_vt100_escape_sequence(
 		{
 			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 			{
-				/* not VT100 control sequence */
-				
+				/* SI will be processed in mkf. */
 				return  1 ;
 			}
 			
@@ -2886,8 +2871,7 @@ parse_vt100_escape_sequence(
 		{
 			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 			{
-				/* not VT100 control sequence */
-
+				/* SO will be processed in mkf. */
 				return  1 ;
 			}
 			

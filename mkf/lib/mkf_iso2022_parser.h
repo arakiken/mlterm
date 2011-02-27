@@ -11,6 +11,12 @@
 #include  "mkf_parser.h"
 
 
+/*
+ * If enacs=\E(B\E)0,smacs=^N,rmacs=^O, G1 of current encoding is unexpectedly changed
+ * by enacs. DECSP_HACK is a hack to avoid this problem. (If enacs=,smacs=\E(0,rmacs=\E(B,
+ * no problem.)
+ * (enacs:initialize, smacs: start decsp, rmacs: end decsp)
+ */
 #if  1
 #define  DECSP_HACK
 #endif
@@ -45,7 +51,7 @@ typedef struct  mkf_iso2022_parser
 mkf_iso2022_parser_t *  mkf_iso2022_parser_new(void) ;
 
 int  mkf_iso2022_parser_init_func( mkf_iso2022_parser_t *  iso2022_parser) ;
-	
+
 void  mkf_iso2022_parser_set_str( mkf_parser_t *  parser , u_char *  str , size_t  size) ;
 
 void  mkf_iso2022_parser_delete( mkf_parser_t *  parser) ;
