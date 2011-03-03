@@ -138,6 +138,13 @@ main( int  argc , char **  argv)
 	mkf_conv_t *  conv ;
 	size_t  size ;
 
+	if( argc != 6)
+	{
+		usage() ;
+
+		return  1 ;
+	}
+	
 	in = NULL ;
 	out = NULL ;
 	while( ( c = getopt( argc , argv , "i:o:")) != -1)

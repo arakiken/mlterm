@@ -49,7 +49,12 @@ int  kik_mem_free_all(void) ;
 
 #ifndef  HAVE_ALLOCA
 
-#define alloca(size)  kik_alloca(size)
+
+#ifdef  KIK_DEBUG
+#define  alloca(size)  memset( kik_alloca(size) , 0xff , size)
+#else
+#define  alloca(size)  kik_alloca(size)
+#endif
 
 void *  kik_alloca( size_t  size) ;
 
@@ -63,10 +68,12 @@ int  kik_alloca_garbage_collect(void) ;
 #else	/* HAVE_ALLOCA */
 
 
+#ifdef  KIK_DEBUG
+#define  alloca(size)  memset( alloca(size) , 0xff , size)
+#endif
+
 #define  kik_alloca_begin_stack_frame()  1
-
 #define  kik_alloca_end_stack_frame()  1
-
 #define  kik_alloca_garbage_collect()  1
 
 /* AIX requires this to be the first thing in the file.  */
@@ -101,6 +108,7 @@ char *  alloca () ;
 #endif   /* HAVE_ALLOCA_H */
 
 #endif	/* __GNUC__ */
+
 
 #endif	/* HAVE_ALLOCA */
 

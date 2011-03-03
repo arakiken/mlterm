@@ -51,8 +51,6 @@
 #define  MAX_SCREENS  (MSU * max_screens_multiple)	/* Default MAX_SCREENS is 32. */
 #define  MSU          (8 * sizeof(dead_mask[0]))	/* MAX_SCREENS_UNIT */
 
-#define MAX_ADDTIONAL_FDS  3
-
 #if  0
 #define  __DEBUG
 #endif
@@ -90,7 +88,8 @@ static struct
 	int  fd ;
 	void (*handler)( void) ;
 
-} additional_fds[MAX_ADDTIONAL_FDS] ;
+} * additional_fds ;
+static u_int  num_of_additional_fds ;
 
 
 /* --- static functions --- */
@@ -1598,7 +1597,7 @@ receive_next_event(void)
 			}
 		}
 
-		for( count = 0 ; count < MAX_ADDTIONAL_FDS ; count++)
+		for( count = 0 ; count < num_of_additional_fds ; count++)
 		{
 			if( additional_fds[count].fd >= 0)
 			{
@@ -1619,6 +1618,14 @@ receive_next_event(void)
 		for( count = 0 ; count < num_of_displays ; count ++)
 		{
 			x_display_idling( displays[count]) ;
+		}
+		
+		for( count = 0 ; count < num_of_additional_fds ; count++)
+		{
+			if( additional_fds[count].fd < 0)
+			{
+				(*additional_fds[count].handler)() ;
+			}
 		}
 	}
 	
@@ -1669,7 +1676,7 @@ receive_next_event(void)
 		}
 	}
 
-	for( count = 0 ; count < MAX_ADDTIONAL_FDS ; count++)
+	for( count = 0 ; count < num_of_additional_fds ; count++)
 	{
 		if( additional_fds[count].fd >= 0)
 		{
@@ -1701,7 +1708,6 @@ x_term_manager_init(
 	int  use_xim ;
 	u_int  min_font_size ;
 	u_int  max_font_size ;
-	int  count ;
 	char *  invalid_msg = "%s %s is not valid.\n" ;
 
 	if( ! x_color_config_init( &color_config))
@@ -2053,12 +2059,6 @@ x_term_manager_init(
 	
 	kik_alloca_garbage_collect() ;
 
-	for( count = 0 ; count < MAX_ADDTIONAL_FDS ; count++)
-	{
-		additional_fds[count].fd = -1 ;
-		additional_fds[count].handler = NULL ;
-	}
-
 	return  1 ;
 }
 
@@ -2081,6 +2081,8 @@ x_term_manager_final(void)
 	free( screens) ;
 
 	free( dead_mask) ;
+
+	free( additional_fds) ;
 
 	ml_term_manager_final() ;
 
@@ -2266,30 +2268,40 @@ x_term_manager_event_loop(void)
 	}
 }
 
+/*
+ * fd >= 0  -> Normal file descriptor. handler is invoked if fd is ready.
+ * fd < 0 -> Special ID. handler is invoked at interval of 0.1 sec.
+ */
 int
 x_term_manager_add_fd(
 	int  fd ,
 	void  (*handler)(void)
 	)
 {
-	int  i ;
+	void *  p ;
 
 	if( ! handler)
 	{
-		return  1 ;
+		return  0 ;
 	}
 
-	for( i = 0 ; i < MAX_ADDTIONAL_FDS ; i++)
+	if( ( p = realloc( additional_fds ,
+			sizeof(*additional_fds) * (num_of_additional_fds + 1))) == NULL)
 	{
-		if( additional_fds[i].fd == -1)
-		{
-			additional_fds[i].fd = fd ;
-			additional_fds[i].handler = handler ;
-			kik_file_set_cloexec( fd);
-
-			return  0 ;
-		}
+		return  0 ;
 	}
+
+	additional_fds = p ;
+	additional_fds[num_of_additional_fds].fd = fd ;
+	additional_fds[num_of_additional_fds++].handler = handler ;
+	if( fd >= 0)
+	{
+		kik_file_set_cloexec( fd) ;
+	}
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %d is added to additional fds.\n" , fd) ;
+#endif
 
 	return  1 ;
 }
@@ -2299,19 +2311,22 @@ x_term_manager_remove_fd(
 	int  fd
 	)
 {
-	int  i ;
+	u_int  count ;
 
-	for( i = 0 ; i < MAX_ADDTIONAL_FDS ; i++)
+	for( count = 0 ; count < num_of_additional_fds ; count++)
 	{
-		if( additional_fds[i].fd == fd)
+		if( additional_fds[count].fd == fd)
 		{
-			additional_fds[i].fd = -1 ;
-			additional_fds[i].handler = NULL ;
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Additional fd %d is removed.\n" , fd) ;
+		#endif
+		
+			additional_fds[count] = additional_fds[--num_of_additional_fds] ;
 
-			return  0 ;
+			return  1 ;
 		}
 	}
 
-	return  1 ;
+	return  0 ;
 }
 

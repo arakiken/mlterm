@@ -529,7 +529,8 @@ kik_alloca_garbage_collect(void)
 	alloca_page_t *  page ;
 	
 #ifdef  __DEBUG
-	fprintf( stderr , "allocated memory(size %d) for alloca() is discarded.\n" , total_allocated_size) ;
+	fprintf( stderr , "allocated memory(size %d) for alloca() is discarded.\n" ,
+		total_allocated_size) ;
 #endif
 
 	page = alloca_page ;

@@ -77,6 +77,9 @@ Options for configure
   --enable-scim
     Support SCIM (Smart Common Input Method platform) if available.
 
+  --enable-ibus
+    Support iBUS (Intelligent Input Bus) if available.
+
   --enable-pty-helper
     Support gnome-pty-helper. (Note that it is impossible to enable
     gnome-pty-helper in BSD style pty system and that gnome-pty-helper must be
@@ -116,12 +119,12 @@ Supported platforms
 
   * NetBSD 3.0.1 (x86)
   * OpenSolaris 2009.06 (CC=cc) (x86)
-  * Ubuntu 10.10 (x86)
+  * Ubuntu 10.10 (CC=gcc, CC=llvm-gcc-4.2) (x86)
   * CentOS 5 (x86)
-  * MS Windows XP SP3 (x86)
-  * MS Windows XP SP3/MSYS 1.0.10 (x86)
-  * MS Windows XP SP3/Cygwin 1.7.1-1 (x86)
-  * MS Windows XP SP3/Cygwin 1.7.1-1 with X (x86)
+  * MS Windows 7 SP3 (x86)
+  * MS Windows 7 SP3/MSYS 1.0.10 (x86)
+  * MS Windows 7 SP3/Cygwin 1.7.7-1 (CC=gcc, CC="gcc -mno-cygwin") (x86)
+  * MS Windows 7 SP3/Cygwin 1.7.1-1 with X (x86)
 
   Following platforms are not actually tested by developers, but were supported
   in the past and are probably supported now.
@@ -143,6 +146,10 @@ Supported platforms
   * RedHat Linux 7.1
   * Ubuntu 10.04 (x86)
   * MS Windows 98/Cygwin 1.5.13 with x-org 6.8.2.0-1 (x86)
+  * MS Windows XP SP3 (x86)
+  * MS Windows XP SP3/MSYS 1.0.10 (x86)
+  * MS Windows XP SP3/Cygwin 1.7.1-1 (x86)
+  * MS Windows XP SP3/Cygwin 1.7.1-1 with X (x86)
 
 
 USAGE

@@ -206,6 +206,16 @@ x_im_delete(
 	)
 {
 	kik_dl_handle_t  handle ;
+	int  is_ibus ;
+
+	if( strcmp( im->name , "ibus") == 0)
+	{
+		is_ibus = 1 ;
+	}
+	else
+	{
+		is_ibus = 0 ;
+	}
 
 	free( im->name) ;
 
@@ -228,7 +238,14 @@ x_im_delete(
 
 	(*im->delete)( im) ;
 
-	kik_dl_close( handle) ;
+	/*
+	 * Don't unload libim-ibus.so because it depends on glib which works
+	 * unexpectedly.
+	 */
+	if( ! is_ibus)
+	{
+		kik_dl_close( handle) ;
+	}
 }
 
 void

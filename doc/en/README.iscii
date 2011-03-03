@@ -26,8 +26,7 @@ Following is a instruction of setting up mlterm ISCII support.
   o -V option enables variable width column.
     This option is automatically turned on in ISCII encoding. (optional)
   o -m option enables character combining, which is necessary since mlterm
-    diverts characters
-    combining framework for rendering ISCII glyph internally.
+    diverts character combining framework for rendering ISCII glyph internally.
     This option is automatically turned on in ISCII encoding. (optional)
   o -C [lang] enables [lang] glyph of ISCII. Without -C option, Malayalam is
     used by default.

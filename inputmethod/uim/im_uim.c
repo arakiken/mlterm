@@ -68,9 +68,10 @@ typedef struct im_uim
 
 	char *  encoding_name ;		/* encoding of conversion engine */
 
+	/* parser_uim and conv are NULL if term_encoding == uim encoding  */
 	mkf_parser_t *  parser_uim ;	/* for uim encoding  */
-	mkf_parser_t *  parser_term ;	/* for term encoding  */
-	mkf_conv_t *  conv ;
+	mkf_parser_t *  parser_term ;	/* for term encoding */
+	mkf_conv_t *  conv ;		/* for term encoding */
 
 	u_int  pressing_mod_key ;
 	u_int  mod_ignore_mask ;

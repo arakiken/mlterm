@@ -1,3 +1,12 @@
+2011-03-03  Araki Ken  <arakiken@users.sf.net>
+
+	* inputmethod/ibus: Native iBus support is added. (Experimental)
+
+	* ml_vt100_parser.c: ISO2022 escape sequence which was wrongly parsed by
+	  parse_vt100_escape_sequence() in ml_vt100_parser.c is correctly passed to mkf.
+
+	* kik_mem.h: alloca is wrapped by memset(..0xff..) if KIK_DEBUG is defined.
+
 2011-02-27  Araki Ken  <arakiken@users.sf.net>
 
 	* x_imagelib.c: Size of args array in load_file() is fixed from 4 to 6.

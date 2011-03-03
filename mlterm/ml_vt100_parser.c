@@ -24,15 +24,15 @@
 #include  "ml_config_proto.h"
 
 
-#define  CTLKEY_BEL	0x07
-#define  CTLKEY_BS	0x08
-#define  CTLKEY_TAB	0x09
-#define  CTLKEY_LF	0x0a
-#define  CTLKEY_VT	0x0b
-#define  CTLKEY_CR	0x0d
-#define  CTLKEY_SO	0x0e
-#define  CTLKEY_SI	0x0f
-#define  CTLKEY_ESC	0x1b
+#define  CTL_BEL	0x07
+#define  CTL_BS	0x08
+#define  CTL_TAB	0x09
+#define  CTL_LF	0x0a
+#define  CTL_VT	0x0b
+#define  CTL_CR	0x0d
+#define  CTL_SO	0x0e
+#define  CTL_SI	0x0f
+#define  CTL_ESC	0x1b
 
 #define  CURRENT_STR_P(vt100_parser)  (&vt100_parser->seq[(vt100_parser)->len - (vt100_parser)->left])
 
@@ -559,7 +559,7 @@ restore_cursor(
 			 && ( src->cs != vt100_parser->cs) )
 			{
 				/* force grapchics mode by sending \E(0 to current parser*/
-				u_char  DEC_SEQ[] = { CTLKEY_ESC, '(', '0'} ;
+				u_char  DEC_SEQ[] = { CTL_ESC, '(', '0'} ;
 				mkf_char_t  ch ;
 				mkf_parser_t *  parser;
 					
@@ -1215,15 +1215,15 @@ inc_str_in_esc_seq(
 			/*
 			 * cursor-control characters inside ESC sequences
 			 */
-			if( **str_p == CTLKEY_LF || **str_p == CTLKEY_VT)
+			if( **str_p == CTL_LF || **str_p == CTL_VT)
 			{
 				ml_screen_line_feed( screen) ;
 			}
-			else if( **str_p == CTLKEY_CR)
+			else if( **str_p == CTL_CR)
 			{
 				ml_screen_goto_beg_of_line( screen) ;
 			}
-			else if( **str_p == CTLKEY_BS)
+			else if( **str_p == CTL_BS)
 			{
 				ml_screen_go_back( screen , 1) ;
 			}
@@ -1266,11 +1266,11 @@ get_pt_in_esc_seq(
 		}
 	}
 
-	if( bel_terminate && **str == CTLKEY_BEL)
+	if( bel_terminate && **str == CTL_BEL)
 	{
 		**str = '\0' ;
 	}
-	else if( **str == CTLKEY_ESC && increment_str( str , left) && **str == '\\')
+	else if( **str == CTL_ESC && increment_str( str , left) && **str == '\\')
 	{
 		*((*str) - 1) = '\0' ;
 	}
@@ -1300,1140 +1300,604 @@ debug_print_unknown(
 
 
 /*
+ * Parse escape/control sequence. Note that *any* valid format sequence
+ * is parsed even if mlterm doesn't support it.
+ *
  * Return value:
  * 0 => vt100_parser->left == 0
  * 1 => Finished parsing. (If current vt100_parser->seq is not escape sequence,
  *      return without doing anthing.)
  */
-static int
+inline static int
 parse_vt100_escape_sequence(
-	ml_vt100_parser_t *  vt100_parser
+	ml_vt100_parser_t *  vt100_parser	/* vt100_parser->left must be more than 0 */
 	)
 {
 	u_char *  str_p ;
 	size_t  left ;
 
+#if  0
 	if( vt100_parser->left == 0)
 	{
 		/* end of string */
 
 		return  1 ;
 	}
+#endif
 
 	str_p = CURRENT_STR_P(vt100_parser) ;
 	left = vt100_parser->left ;
 
-	while( 1)
+	if( *str_p == CTL_ESC)
 	{
-		if( *str_p == CTLKEY_ESC)
+	#ifdef  ESCSEQ_DEBUG
+		kik_msg_printf( "RECEIVED ESCAPE SEQUENCE(current left = %d: ESC", left) ;
+	#endif
+
+		if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
 		{
-		#ifdef  ESCSEQ_DEBUG
-            		kik_msg_printf( "RECEIVED ESCAPE SEQUENCE(current left = %d: ESC", left) ;
-		#endif
+			return  0 ;
+		}
+
+		if( *str_p == '7')
+		{
+			/* "ESC 7" save cursor */
+
+			save_cursor( vt100_parser) ;
+		}
+		else if( *str_p == '8')
+		{
+			/* "ESC 8" restore cursor */
+
+			restore_cursor( vt100_parser) ;
+		}
+		else if( *str_p == '=')
+		{
+			/* "ESC =" application keypad */
+
+			set_app_keypad( vt100_parser , 1) ;
+		}
+		else if( *str_p == '>')
+		{
+			/* "ESC >" normal keypad */
+
+			set_app_keypad( vt100_parser , 0) ;
+		}
+		else if( *str_p == 'D')
+		{
+			/* "ESC D" index(scroll up) */
+
+			ml_screen_index( vt100_parser->screen) ;
+		}
+		else if( *str_p == 'E')
+		{
+			/* "ESC E" next line */
+
+			ml_screen_line_feed( vt100_parser->screen) ;
+			ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+		}
+	#if  0
+		else if( *str_p == 'F')
+		{
+			/* "ESC F" cursor to lower left corner of screen */
+		}
+	#endif
+		else if( *str_p == 'H')
+		{
+			/* "ESC H" set tab */
+
+			ml_screen_set_tab_stop( vt100_parser->screen) ;
+		}
+		else if( *str_p == 'M')
+		{
+			/* "ESC M" reverse index(scroll down) */
+
+			ml_screen_reverse_index( vt100_parser->screen) ;
+		}
+	#if  0
+		else if( *str_p == 'Z')
+		{
+			/* "ESC Z" return terminal id */
+		}
+	#endif
+		else if( *str_p == 'c')
+		{
+			/* "ESC c" full reset */
+
+			soft_reset( vt100_parser) ;
+			clear_display_all( vt100_parser) ; /* cursor goes home in it. */
+		}
+	#if  0
+		else if( *str_p == 'l')
+		{
+			/* "ESC l" memory lock */
+		}
+	#endif
+	#if  0
+		else if( *str_p == 'm')
+		{
+			/* "ESC m" memory unlock */
+		}
+	#endif
+		else if( *str_p == '[')
+		{
+			/* "ESC [" (CSI) */
+
+		#define  MAX_NUM_OF_PS  10
+
+			u_char  pre_ch ;
+			int  ps[MAX_NUM_OF_PS] ;
+			int  num ;
 
 			if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
 			{
 				return  0 ;
 			}
 
-			if( *str_p == '7')
-			{
-				/* "ESC 7" save cursor */
+			pre_ch = '\0' ;
 
-				save_cursor( vt100_parser) ;
-			}
-			else if( *str_p == '8')
+			/* parameter character except numeric and ';' (< = > ?). */
+			if( 0x3c <= *str_p && *str_p <= 0x3f)
 			{
-				/* "ESC 8" restore cursor */
-
-				restore_cursor( vt100_parser) ;
-			}
-			else if( *str_p == '=')
-			{
-				/* "ESC =" application keypad */
-
-				set_app_keypad( vt100_parser , 1) ;
-			}
-			else if( *str_p == '>')
-			{
-				/* "ESC >" normal keypad */
-
-				set_app_keypad( vt100_parser , 0) ;
-			}
-			else if( *str_p == 'D')
-			{
-				/* "ESC D" index(scroll up) */
-
-				ml_screen_index( vt100_parser->screen) ;
-			}
-			else if( *str_p == 'E')
-			{
-				/* "ESC E" next line */
-
-				ml_screen_line_feed( vt100_parser->screen) ;
-				ml_screen_goto_beg_of_line( vt100_parser->screen) ;
-			}
-		#if  0
-			else if( *str_p == 'F')
-			{
-				/* "ESC F" cursor to lower left corner of screen */
-			}
-		#endif
-			else if( *str_p == 'H')
-			{
-				/* "ESC H" set tab */
-
-				ml_screen_set_tab_stop( vt100_parser->screen) ;
-			}
-			else if( *str_p == 'M')
-			{
-				/* "ESC M" reverse index(scroll down) */
-
-				ml_screen_reverse_index( vt100_parser->screen) ;
-			}
-		#if  0
-			else if( *str_p == 'Z')
-			{
-				/* "ESC Z" return terminal id */
-			}
-		#endif
-			else if( *str_p == 'c')
-			{
-				/* "ESC c" full reset */
-
-				soft_reset( vt100_parser) ;
-				clear_display_all( vt100_parser) ; /* cursor goes home in it. */
-			}
-		#if  0
-			else if( *str_p == 'l')
-			{
-				/* "ESC l" memory lock */
-			}
-		#endif
-		#if  0
-			else if( *str_p == 'm')
-			{
-				/* "ESC m" memory unlock */
-			}
-		#endif
-			else if( *str_p == '[')
-			{
-				/* "ESC [" (CSI) */
-
-			#define  MAX_NUM_OF_PS  10
-
-				u_char  pre_ch ;
-				int  ps[MAX_NUM_OF_PS] ;
-				int  num ;
+				pre_ch = *str_p ;
 
 				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0))
+						&str_p , &left , 0))
 				{
 					return  0 ;
 				}
+			}
 
-				pre_ch = '\0' ;
-
-				/* parameter character except numeric and ';' (< = > ?). */
-				if( 0x3c <= *str_p && *str_p <= 0x3f)
+			num = 0 ;
+			while( num < MAX_NUM_OF_PS)
+			{
+				while( '0' == *str_p)
 				{
-					pre_ch = *str_p ;
-
 					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0))
+								&str_p , &left , 0))
 					{
 						return  0 ;
 					}
 				}
-
-				num = 0 ;
-				while( num < MAX_NUM_OF_PS)
+				if( '0' <= *str_p && *str_p <= '9')
 				{
-					while( '0' == *str_p)
+					char  digit[DIGIT_STR_LEN(int)] ;
+					int  count ;
+
+					digit[0] = *str_p ;
+
+					for( count = 1 ; count < DIGIT_STR_LEN(int) -1 ;
+						count ++)
 					{
 						if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-									&str_p , &left , 0))
+								&str_p , &left , 0))
 						{
 							return  0 ;
 						}
-					}
-					if( '0' <= *str_p && *str_p <= '9')
-					{
-						char  digit[DIGIT_STR_LEN(int)] ;
-						int  count ;
 
-						digit[0] = *str_p ;
-
-						for( count = 1 ; count < DIGIT_STR_LEN(int) -1 ;
-							count ++)
+						if( *str_p < '0' || '9' < *str_p)
 						{
-							if( ! inc_str_in_esc_seq(
-								vt100_parser->screen ,
-								&str_p , &left , 0))
-							{
-								return  0 ;
-							}
-
-							if( *str_p < '0' || '9' < *str_p)
-							{
-								break ;
-							}
-							
-							digit[count] = *str_p ;
-						}
-
-						digit[count] = '\0' ;
-
-						ps[num ++] = atoi( digit) ;
-
-						if( *str_p != ';')
-						{
-							/*
-							 * "ESC [ 0 n" is regarded as it is.
-							 */
 							break ;
 						}
-					}
-					else if( *str_p == ';')
-					{
-						/*
-						 * "ESC [ ; n " is regarded as "ESC [ 0 ; n"
-						 */
-						ps[num ++] = 0 ;
-					}
-					else
-					{
-						/*
-						 * "ESC [ n" is regarded as "ESC [ 0 n"
-						 * => this 0 is ignored after exiting this while
-						 *    block.
-						 *
-						 * "ESC [ 1 ; n" is regarded as "ESC [ 1 ; 0 n"
-						 */
-						ps[num ++] = 0 ;
 
+						digit[count] = *str_p ;
+					}
+
+					digit[count] = '\0' ;
+
+					ps[num ++] = atoi( digit) ;
+
+					if( *str_p != ';')
+					{
+						/*
+						 * "ESC [ 0 n" is regarded as it is.
+						 */
 						break ;
 					}
-					
-					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0))
-					{
-						return  0 ;
-					}
+				}
+				else if( *str_p == ';')
+				{
+					/*
+					 * "ESC [ ; n " is regarded as "ESC [ 0 ; n"
+					 */
+					ps[num ++] = 0 ;
+				}
+				else
+				{
+					/*
+					 * "ESC [ n" is regarded as "ESC [ 0 n"
+					 * => this 0 is ignored after exiting this while
+					 *    block.
+					 *
+					 * "ESC [ 1 ; n" is regarded as "ESC [ 1 ; 0 n"
+					 */
+					ps[num ++] = 0 ;
+
+					break ;
 				}
 
-				/*
-				 * XXX adhoc for vttest.
-				 * 0 ps of something like "ESC [ 0 ft" is ignored.
-				 * If there are multiple ps , no ps is ignored.
-				 *
-				 * If "ESC [ 0 ft" has different meaning from "ESC [ ft",
-				 * check if *(str_p - 1) is '0' or not.
-				 * (see CHT and CBT)
-				 */
-				if( num == 1 && ps[0] == 0)
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0))
 				{
-					num = 0 ;
+					return  0 ;
 				}
+			}
 
-				/* Intermediate character (0x20 - 0x2f) */
-				if( pre_ch == '\0' && 0x20 <= *str_p && *str_p <= 0x2f)
+			/*
+			 * XXX adhoc for vttest.
+			 * 0 ps of something like "ESC [ 0 ft" is ignored.
+			 * If there are multiple ps , no ps is ignored.
+			 *
+			 * If "ESC [ 0 ft" has different meaning from "ESC [ ft",
+			 * check if *(str_p - 1) is '0' or not.
+			 * (see CHT and CBT)
+			 */
+			if( num == 1 && ps[0] == 0)
+			{
+				num = 0 ;
+			}
+
+			/* Intermediate character (0x20 - 0x2f) */
+			if( pre_ch == '\0' && 0x20 <= *str_p && *str_p <= 0x2f)
+			{
+				pre_ch = *str_p ;
+
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0))
 				{
-					pre_ch = *str_p ;
-
-					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0))
-					{
-						return  0 ;
-					}
+					return  0 ;
 				}
+			}
 
-				if( pre_ch == '?')
+			if( pre_ch == '?')
+			{
+				if( *str_p == 'h')
 				{
-					if( *str_p == 'h')
+					/* "CSI ? h" DEC Private Mode Set */
+
+					if( ps[0] == 1)
 					{
-						/* "CSI ? h" DEC Private Mode Set */
+						/* "CSI ? 1 h" */
 
-						if( ps[0] == 1)
-						{
-							/* "CSI ? 1 h" */
-
-							set_app_cursor_keys( vt100_parser , 1) ;
-						}
-					#if  0
-						else if( ps[0] == 2)
-						{
-							/* "CSI ? 2 h" reset charsets to USASCII */
-						}
-					#endif
-						else if( ps[0] == 3)
-						{
-							/* "CSI ? 3 h" */
-
-							/* XTERM compatibility [#1048321] */
-							clear_display_all( vt100_parser) ;
-
-							resize_columns( vt100_parser , 132) ;
-						}
-					#if  0
-						else if( ps[0] == 4)
-						{
-							/* "CSI ? 4 h" smooth scrolling */
-						}
-					#endif
-						else if( ps[0] == 5)
-						{
-							/* "CSI ? 5 h" */
-
-							reverse_video( vt100_parser , 1) ;
-						}
-						else if( ps[0] == 6)
-						{
-							/* "CSI ? 6 h" relative origins */
-
-							ml_screen_set_relative_origin(
-								vt100_parser->screen) ;
-						}
-						else if( ps[0] == 7)
-						{
-							/* "CSI ? 7 h" auto wrap */
-
-							ml_screen_set_auto_wrap(
-								vt100_parser->screen) ;
-						}
-					#if  0
-						else if( ps[0] == 8)
-						{
-							/* "CSI ? 8 h" auto repeat */
-						}
-					#endif
-					#if  0
-						else if( ps[0] == 9)
-						{
-							/* "CSI ? 9 h" X10 mouse reporting */
-						}
-					#endif
-						else if( ps[0] == 25)
-						{
-							/* "CSI ? 25 h" */
-							ml_screen_cursor_visible(
-								vt100_parser->screen) ;
-						}
-					#if  0
-						else if( ps[0] == 35)
-						{
-							/* "CSI ? 35 h" shift keys */
-						}
-					#endif
-					#if  0
-						else if( ps[0] == 40)
-						{
-							/* "CSI ? 40 h" 80 <-> 132 */
-						}
-					#endif
-						else if( ps[0] == 47)
-						{
-							/*
-							 * "CSI ? 47 h"
-							 * Use alternate screen buffer
-							 */
-
-							ml_screen_use_alternative_edit(
-								vt100_parser->screen) ;
-						}
-						else if( ps[0] == 66)
-						{
-							/* "CSI ? 66 h" application key pad */
-							set_app_keypad( vt100_parser , 1) ;
-						}
-					#if  0
-						else if( ps[0] == 67)
-						{
-							/* "CSI ? 67 h" have back space */
-						}
-					#endif
-						else if( ps[0] == 1000)
-						{
-							/* "CSI ? 1000 h" */
-
-							set_mouse_report( vt100_parser , 1) ;
-						}
-					#if  0
-						else if( ps[0] == 1001)
-						{
-							/* "CSI ? 1001 h" X11 mouse highlighting */
-						}
-					#endif
-					#if  0
-						else if( ps[0] == 1010)
-						{
-							/*
-							 * "CSI ? 1010 h"
-							 * scroll to bottom on tty output inhibit
-							 */
-						}
-					#endif
-					#if  0
-						else if( ps[0] == 1011)
-						{
-							/*
-							 * "CSI ? 1011 h"
-							 * "scroll to bottom on key press
-							 */
-						}
-					#endif
-						else if( ps[0] == 1047)
-						{
-							/* "CSI ? 1047 h" */
-
-							/* if( !titeInhibit)*/
-							save_cursor( vt100_parser) ;
-							ml_screen_use_alternative_edit(
-								vt100_parser->screen) ;
-							/* */
-						}
-						else if( ps[0] == 1048)
-						{
-							/* "CSI ? 1048 h" */
-
-							/* if( !titeInhibit)*/
-							save_cursor( vt100_parser) ;
-							/* */
-						}
-						else if( ps[0] == 1049)
-						{
-							/* "CSI ? 1049 h" */
-
-							/* if( !titeInhibit)*/
-							save_cursor( vt100_parser) ;
-							ml_screen_use_alternative_edit(
-								vt100_parser->screen) ;
-							clear_display_all( vt100_parser) ;
-							/* */
-						}
-						else
-						{
-						#ifdef  DEBUG
-							debug_print_unknown( "ESC [ ? %d h\n" ,
-								ps[0]) ;
-						#endif
-						}
-					}
-					else if( *str_p == 'l')
-					{
-						/* DEC Private Mode Reset */
-
-						if( ps[0] == 1)
-						{
-							/* "CSI ? 1 l" */
-
-							set_app_cursor_keys( vt100_parser , 0) ;
-						}
-					#if  0
-						else if( ps[0] == 2)
-						{
-							/* "CSI ? 2 l" reset charsets to USASCII */
-						}
-					#endif
-						else if( ps[0] == 3)
-						{
-							/* "CSI ? 3 l" */
-
-							/* XTERM compatibility [#1048321] */
-							clear_display_all( vt100_parser) ;
-
-							resize_columns( vt100_parser , 80) ;
-						}
-					#if  0
-						else if( ps[0] == 4)
-						{
-							/* "CSI ? 4 l" smooth scrolling */
-						}
-					#endif
-						else if( ps[0] == 5)
-						{
-							/* "CSI ? 5 l" */
-
-							reverse_video( vt100_parser , 0) ;
-						}
-						else if( ps[0] == 6)
-						{
-							/* "CSI ? 6 l" absolute origins */
-
-							ml_screen_set_absolute_origin(
-								vt100_parser->screen) ;
-						}
-						else if( ps[0] == 7)
-						{
-							/* "CSI ? 7 l" auto wrap */
-							
-							ml_screen_unset_auto_wrap(
-								vt100_parser->screen) ;
-						}
-					#if  0
-						else if( ps[0] == 8)
-						{
-							/* "CSI ? 8 l" auto repeat */
-						}
-					#endif
-					#if  0
-						else if( ps[0] == 9)
-						{
-							/* "CSI ? 9 l" X10 mouse reporting */
-						}
-					#endif
-						else if( ps[0] == 25)
-						{
-							/* "CSI ? 25 l" */
-
-							ml_screen_cursor_invisible(
-								vt100_parser->screen) ;
-						}
-					#if  0
-						else if( ps[0] == 35)
-						{
-							/* "CSI ? 35 l" shift keys */
-						}
-					#endif
-					#if  0
-						else if( ps[0] == 40)
-						{
-							/* "CSI ? 40 l" 80 <-> 132 */
-						}
-					#endif
-						else if( ps[0] == 47)
-						{
-							/* "CSI ? 47 l" Use normal screen buffer */
-
-							ml_screen_use_normal_edit(
-								vt100_parser->screen) ;
-						}
-						else if( ps[0] == 66)
-						{
-							/* "CSI ? 66 l" application key pad */
-
-							set_app_keypad( vt100_parser , 0) ;
-						}
-					#if  0
-						else if( ps[0] == 67)
-						{
-							/* "CSI ? 67 l" have back space */
-						}
-					#endif
-						else if( ps[0] == 1000)
-						{
-							/* "CSI ? 1000 l" */
-
-							set_mouse_report( vt100_parser , 0) ;
-						}
-					#if  0
-						else if( ps[0] == 1001)
-						{
-							/* "CSI ? 1001 l" X11 mouse highlighting */
-						}
-					#endif
-					#if  0
-						else if( ps[0] == 1010)
-						{
-							/*
-							 * "CSI ? 1010 l"
-							 * scroll to bottom on tty output inhibit
-							 */
-						}
-					#endif
-					#if  0
-						else if( ps[0] == 1011)
-						{
-							/*
-							 * "CSI ? 1011 l"
-							 * scroll to bottom on key press
-							 */
-						}
-					#endif
-						else if( ps[0] == 1047)
-						{
-							/* "CSI ? 1047 l" */
-
-							/* if( !titeInhibit)*/
-							clear_display_all( vt100_parser) ;
-							ml_screen_use_normal_edit(
-								vt100_parser->screen) ;
-							restore_cursor( vt100_parser) ;
-							/* */
-						}
-						else if( ps[0] == 1048)
-						{
-							/* "CSI ? 1048 l" */
-
-							/* if( !titeInhibit)*/
-							restore_cursor( vt100_parser) ;
-							/* */
-						}
-						else if( ps[0] == 1049)
-						{
-							/* "CSI ? 1049 l" */
-
-							/* if( !titeInhibit)*/
-							ml_screen_use_normal_edit(
-								vt100_parser->screen) ;
-							restore_cursor( vt100_parser) ;
-							/* */
-						}
-						else
-						{
-						#ifdef  DEBUG
-							debug_print_unknown("ESC [ ? %d l\n" ,
-								ps[0]) ;
-						#endif
-						}
+						set_app_cursor_keys( vt100_parser , 1) ;
 					}
 				#if  0
-					else if( *str_p == 'r')
+					else if( ps[0] == 2)
 					{
-						/* "CSI ? r"  Restore DEC Private Mode */
+						/* "CSI ? 2 h" reset charsets to USASCII */
+					}
+				#endif
+					else if( ps[0] == 3)
+					{
+						/* "CSI ? 3 h" */
+
+						/* XTERM compatibility [#1048321] */
+						clear_display_all( vt100_parser) ;
+
+						resize_columns( vt100_parser , 132) ;
+					}
+				#if  0
+					else if( ps[0] == 4)
+					{
+						/* "CSI ? 4 h" smooth scrolling */
+					}
+				#endif
+					else if( ps[0] == 5)
+					{
+						/* "CSI ? 5 h" */
+
+						reverse_video( vt100_parser , 1) ;
+					}
+					else if( ps[0] == 6)
+					{
+						/* "CSI ? 6 h" relative origins */
+
+						ml_screen_set_relative_origin(
+							vt100_parser->screen) ;
+					}
+					else if( ps[0] == 7)
+					{
+						/* "CSI ? 7 h" auto wrap */
+
+						ml_screen_set_auto_wrap(
+							vt100_parser->screen) ;
+					}
+				#if  0
+					else if( ps[0] == 8)
+					{
+						/* "CSI ? 8 h" auto repeat */
 					}
 				#endif
 				#if  0
-					else if( *str_p == 's')
+					else if( ps[0] == 9)
 					{
-						/* "CSI ? s" Save DEC Private Mode */
+						/* "CSI ? 9 h" X10 mouse reporting */
 					}
 				#endif
-				#ifdef  DEBUG
+					else if( ps[0] == 25)
+					{
+						/* "CSI ? 25 h" */
+						ml_screen_cursor_visible(
+							vt100_parser->screen) ;
+					}
+				#if  0
+					else if( ps[0] == 35)
+					{
+						/* "CSI ? 35 h" shift keys */
+					}
+				#endif
+				#if  0
+					else if( ps[0] == 40)
+					{
+						/* "CSI ? 40 h" 80 <-> 132 */
+					}
+				#endif
+					else if( ps[0] == 47)
+					{
+						/*
+						 * "CSI ? 47 h"
+						 * Use alternate screen buffer
+						 */
+
+						ml_screen_use_alternative_edit(
+							vt100_parser->screen) ;
+					}
+					else if( ps[0] == 66)
+					{
+						/* "CSI ? 66 h" application key pad */
+						set_app_keypad( vt100_parser , 1) ;
+					}
+				#if  0
+					else if( ps[0] == 67)
+					{
+						/* "CSI ? 67 h" have back space */
+					}
+				#endif
+					else if( ps[0] == 1000)
+					{
+						/* "CSI ? 1000 h" */
+
+						set_mouse_report( vt100_parser , 1) ;
+					}
+				#if  0
+					else if( ps[0] == 1001)
+					{
+						/* "CSI ? 1001 h" X11 mouse highlighting */
+					}
+				#endif
+				#if  0
+					else if( ps[0] == 1010)
+					{
+						/*
+						 * "CSI ? 1010 h"
+						 * scroll to bottom on tty output inhibit
+						 */
+					}
+				#endif
+				#if  0
+					else if( ps[0] == 1011)
+					{
+						/*
+						 * "CSI ? 1011 h"
+						 * "scroll to bottom on key press
+						 */
+					}
+				#endif
+					else if( ps[0] == 1047)
+					{
+						/* "CSI ? 1047 h" */
+
+						/* if( !titeInhibit)*/
+						save_cursor( vt100_parser) ;
+						ml_screen_use_alternative_edit(
+							vt100_parser->screen) ;
+						/* */
+					}
+					else if( ps[0] == 1048)
+					{
+						/* "CSI ? 1048 h" */
+
+						/* if( !titeInhibit)*/
+						save_cursor( vt100_parser) ;
+						/* */
+					}
+					else if( ps[0] == 1049)
+					{
+						/* "CSI ? 1049 h" */
+
+						/* if( !titeInhibit)*/
+						save_cursor( vt100_parser) ;
+						ml_screen_use_alternative_edit(
+							vt100_parser->screen) ;
+						clear_display_all( vt100_parser) ;
+						/* */
+					}
 					else
-					{
-						debug_print_unknown( "ESC [ ? %c\n" , *str_p) ;
-					}
-				#endif
-				}
-				else if( pre_ch == '!')
-				{
-					if( *str_p == 'p')
-					{
-						/* "CSI ! p" Soft terminal reset */
-
-						soft_reset( vt100_parser) ;
-					}
-				}
-				/* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
-				else if( pre_ch)
-				{
-					/*
-					 * "CSI > T", "CSI > c", "CSI > p", "CSI > m", "CSI > n",
-					 * "CSI > t"
-					 * "CSI SP q"(DECSCUSR), "CSI SP t"(DECSWBV),
-					 * "CSI SP u"(DECSMBV)
-					 * "CSI " p"(DECSCL), "CSI " q"(DECSCA)
-					 * "CSI ' {"(DECSLE), "CSI ' |"(DECRQLP)
-					 * etc
-					 */
-
-				#ifdef  DEBUG
-					debug_print_unknown( "ESC [ %c" , pre_ch) ;
-				#endif
-
-					/*
-					 * In case more than one intermediate(0x20-0x2f)/
-					 * parameter(0x30-0x3f) chars.
-					 */
-					while( 0x20 <= *str_p && *str_p <= 0x3f)
 					{
 					#ifdef  DEBUG
-						kik_msg_printf( " %c" , *str_p) ;
+						debug_print_unknown( "ESC [ ? %d h\n" ,
+							ps[0]) ;
 					#endif
-
-						if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-									&str_p , &left , 0))
-						{
-							return  0 ;
-						}
-					}
-					
-				#ifdef  DEBUG
-					kik_msg_printf( " %c\n" , *str_p) ;
-				#endif
-				}
-				else if( *str_p == '@')
-				{
-					/* "CSI @" insert blank chars */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					/* inserting ps[0] blank characters. */
-					ml_screen_insert_blank_chars(
-							vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'A' || *str_p == 'k')
-				{
-					/* "CSI A" = CUU , "CSI k" = VPB */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_go_upward( vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'B' || *str_p == 'e')
-				{
-					/* "CSI B" = CUD , "CSI e" = VPR */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_go_downward( vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'C' || *str_p == 'a')
-				{
-					/* "CSI C" = CUF , "CSI a" = HPR */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_go_forward( vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'D' || *str_p == 'j')
-				{
-					/* "CSI D" = CUB , "CSI j" = HPB */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_go_back( vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'E')
-				{
-					/* "CSI E" down and goto first column */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_go_downward( vt100_parser->screen , ps[0]) ;
-					ml_screen_goto_beg_of_line( vt100_parser->screen) ;
-				}
-				else if( *str_p == 'F')
-				{
-					/* "CSI F" up and goto first column */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_go_upward( vt100_parser->screen , ps[0]) ;
-					ml_screen_goto_beg_of_line( vt100_parser->screen) ;
-				}
-				else if( *str_p == 'G' || *str_p == '`')
-				{
-					/*
-					 * "CSI G"(CHA) "CSI `"(HPA)
-					 * cursor position absolute.
-					 */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_go_horizontally( vt100_parser->screen ,
-						ps[0] - 1) ;
-				}
-				else if( *str_p == 'H' || *str_p == 'f')
-				{
-					/* "CSI H" "CSI f" */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-						ps[1] = 1 ;
-					}
-					else
-					{
-						/* some applications e.g. vin sometimes use 0 :( */
-						if( ps[0] == 0)
-						{
-							ps[0] = 1 ;
-						}
-
-						if( ps[1] == 0)
-						{
-							ps[1] = 1 ;
-						}
-					}
-
-					ml_screen_goto( vt100_parser->screen ,
-						ps[1] - 1 , ps[0] - 1) ;
-				}
-				else if( *str_p == 'I')
-				{
-					/* "CSI I" cursor forward tabulation (CHT) */
-
-					if( num == 0)
-					{
-						/*
-						 * "CSI 0 I" => No tabulation.
-						 * "CSI I" => 1 taburation.
-						 */
-						if( *(str_p - 1) != '0')
-						{
-							ps[0] = 1 ;
-						}
-					}
-
-					ml_screen_vertical_forward_tabs(
-						vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'J')
-				{
-					/* "CSI J" Erase in Display */
-
-					if( num == 0 || ps[0] == 0)
-					{
-						ml_screen_clear_below( vt100_parser->screen) ;
-					}
-					else if( ps[0] == 1)
-					{
-						ml_screen_clear_above( vt100_parser->screen) ;
-					}
-					else if( ps[0] == 2)
-					{
-						clear_display_all( vt100_parser) ;
-					}
-				}
-				else if( *str_p == 'K')
-				{
-					/* "CSI K" Erase in Line */
-
-					if( num == 0 || ps[0] == 0)
-					{
-						ml_screen_clear_line_to_right(
-							vt100_parser->screen) ;
-					}
-					else if( ps[0] == 1)
-					{
-						ml_screen_clear_line_to_left(
-							vt100_parser->screen) ;
-					}
-					else if( ps[0] == 2)
-					{
-						clear_line_all( vt100_parser) ;
-					}
-				}
-				else if( *str_p == 'L')
-				{
-					/* "CSI L" */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_insert_new_lines(
-						vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'M')
-				{
-					/* "CSI M" */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_delete_lines(
-						vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'P')
-				{
-					/* "CSI P" delete chars */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_delete_cols(
-						vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'S')
-				{
-					/* "CSI S" scroll up */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_scroll_upward(
-						vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'T')
-				{
-					/* "CSI T" scroll down */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_scroll_downward(
-						vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'X')
-				{
-					/* "CSI X" erase characters */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_clear_cols(
-						vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'Z')
-				{
-					/* "CSI Z" cursor backward tabulation (CBT) */
-
-					if( num == 0)
-					{
-						/*
-						 * "CSI 0 Z" => No tabulation.
-						 * "CSI Z" => 1 taburation.
-						 */
-						if( *(str_p - 1) != '0')
-						{
-							ps[0] = 1 ;
-						}
-					}
-
-					ml_screen_vertical_backward_tabs(
-						vt100_parser->screen , ps[0]) ;
-				}
-				else if( *str_p == 'b')
-				{
-					/* "CSI b" repeat the preceding graphic character(REP) */
-
-					if( vt100_parser->buffer.last_ch)
-					{
-						int  count ;
-
-						if( num == 0)
-						{
-							ps[0] = 1 ;
-						}
-
-						for( count = 0 ; count < ps[0] ; count++)
-						{
-							(*vt100_parser->buffer.output_func)(
-								vt100_parser->screen ,
-								vt100_parser->buffer.last_ch , 1) ;
-						}
-
-						vt100_parser->buffer.last_ch = NULL ;
-					}
-				}
-				else if( *str_p == 'c')
-				{
-					/* "CSI c" send device attributes */
-
-					/* vt100 answerback */
-					char  seq[] = "\x1b[?1;2c" ;
-
-					ml_write_to_pty( vt100_parser->pty ,
-						seq , sizeof(seq) - 1) ;
-				}
-				else if( *str_p == 'd')
-				{
-					/* "CSI d" line position absolute(VPA) */
-
-					if( num == 0)
-					{
-						ps[0] = 1 ;
-					}
-
-					ml_screen_go_vertically(
-						vt100_parser->screen , ps[0] - 1) ;
-				}
-				else if( *str_p == 'g')
-				{
-					/* "CSI g" tab clear */
-
-					if( num == 0)
-					{
-						ml_screen_clear_tab_stop( vt100_parser->screen) ;
-					}
-					else if( num == 1 && ps[0] == 3)
-					{
-						ml_screen_clear_all_tab_stops(
-							vt100_parser->screen) ;
 					}
 				}
 				else if( *str_p == 'l')
 				{
-					/* "CSI l" */
+					/* DEC Private Mode Reset */
 
-					if( num == 1 && ps[0] == 4)
+					if( ps[0] == 1)
 					{
-						/* replace mode */
+						/* "CSI ? 1 l" */
 
-						vt100_parser->buffer.output_func =
-							ml_screen_overwrite_chars ;
+						set_app_cursor_keys( vt100_parser , 0) ;
 					}
-				}
-				else if( *str_p == 'h')
-				{
-					/* "CSI h" */
-
-					if( num == 1 && ps[0] == 4)
+				#if  0
+					else if( ps[0] == 2)
 					{
-						/* insert mode */
-
-						vt100_parser->buffer.output_func =
-							ml_screen_insert_chars ;
+						/* "CSI ? 2 l" reset charsets to USASCII */
 					}
-				}
-				else if( *str_p == 'm')
-				{
-					/* "CSI m" */
-
-					int  count ;
-
-					if( num == 0)
+				#endif
+					else if( ps[0] == 3)
 					{
-						ps[0] = 0 ;
-						num = 1 ;
+						/* "CSI ? 3 l" */
+
+						/* XTERM compatibility [#1048321] */
+						clear_display_all( vt100_parser) ;
+
+						resize_columns( vt100_parser , 80) ;
 					}
-
-					for( count = 0 ; count < num ; count ++)
+				#if  0
+					else if( ps[0] == 4)
 					{
-						if( ps[count] == 38 && num >= 3
-							&& ps[count + 1] == 5)
-						{
-							vt100_parser->fg_color =
-								ps[count + 2] ;
-							count += 2 ;
-
-						#ifndef  IGNORE_SPACE_FG_COLOR
-							ml_screen_set_bce_fg_color(
-								vt100_parser->screen ,
-								vt100_parser->fg_color) ;
-						#endif
-						}
-						else if( ps[count] == 48 && num >= 3
-							&& ps[count + 1] == 5)
-						{
-							vt100_parser->bg_color = ps[count + 2] ;
-							count += 2 ;
-
-							ml_screen_set_bce_bg_color(
-								vt100_parser->screen ,
-								vt100_parser->bg_color) ;
-						}
-						else
-						{
-							change_char_attr( vt100_parser ,
-								ps[count]) ;
-						}
+						/* "CSI ? 4 l" smooth scrolling */
 					}
-				}
-				else if( *str_p == 'n')
-				{
-					/* "CSI n" device status report */
-
-					if( num == 1)
+				#endif
+					else if( ps[0] == 5)
 					{
-						if( ps[0] == 5)
-						{
-							ml_write_to_pty( vt100_parser->pty ,
-								"\x1b[0n" , 4) ;
-						}
-						else if( ps[0] == 6)
-						{
-							char  seq[4 + DIGIT_STR_LEN(u_int) + 1] ;
+						/* "CSI ? 5 l" */
 
-							sprintf( seq , "\x1b[%d;%dR" ,
-							    ml_screen_cursor_row(
-							      vt100_parser->screen) + 1 ,
-							    ml_screen_cursor_col(
-							      vt100_parser->screen) + 1) ;
-
-							ml_write_to_pty( vt100_parser->pty ,
-								seq , strlen( seq)) ;
-						}
+						reverse_video( vt100_parser , 0) ;
 					}
-				}
-				else if( *str_p == 'r')
-				{
-					/* "CSI r" set scroll region */
-
-					if( num == 0)
+					else if( ps[0] == 6)
 					{
-						ps[0] = 0 ;
-						ps[1] = 0 ;
-						num = 2 ;
+						/* "CSI ? 6 l" absolute origins */
+
+						ml_screen_set_absolute_origin(
+							vt100_parser->screen) ;
 					}
-
-					if( num == 2)
+					else if( ps[0] == 7)
 					{
-						if( ml_screen_set_scroll_region(
-								vt100_parser->screen ,
-								ps[0] - 1 , ps[1] - 1))
-						{
-							ml_screen_goto( vt100_parser->screen ,
-								0 , 0) ;
-						}
+						/* "CSI ? 7 l" auto wrap */
+
+						ml_screen_unset_auto_wrap(
+							vt100_parser->screen) ;
 					}
-				}
-				else if( *str_p == 's')
-				{
-					/* "CSI s" */
-
-					save_cursor( vt100_parser) ;
-				}
-				else if( *str_p == 'u')
-				{
-					/* "CSI u" */
-
-					restore_cursor( vt100_parser) ;
-				}
-				else if( *str_p == 'x')
-				{
-					/* "CSI x" request terminal parameters */
-
-					/* XXX the same as rxvt */
-
-					if( num == 0)
+				#if  0
+					else if( ps[0] == 8)
 					{
-						ps[0] = 0 ;
+						/* "CSI ? 8 l" auto repeat */
 					}
-
-					if( ps[0] == 0 || ps[0] == 1)
+				#endif
+				#if  0
+					else if( ps[0] == 9)
 					{
-						char seq[] = "\x1b[X;1;1;112;112;1;0x" ;
+						/* "CSI ? 9 l" X10 mouse reporting */
+					}
+				#endif
+					else if( ps[0] == 25)
+					{
+						/* "CSI ? 25 l" */
 
-						/* '+ 0x30' lets int to char */
-						seq[2] = ps[0] + 2 + 0x30 ;
+						ml_screen_cursor_invisible(
+							vt100_parser->screen) ;
+					}
+				#if  0
+					else if( ps[0] == 35)
+					{
+						/* "CSI ? 35 l" shift keys */
+					}
+				#endif
+				#if  0
+					else if( ps[0] == 40)
+					{
+						/* "CSI ? 40 l" 80 <-> 132 */
+					}
+				#endif
+					else if( ps[0] == 47)
+					{
+						/* "CSI ? 47 l" Use normal screen buffer */
 
-						ml_write_to_pty( vt100_parser->pty ,
-							seq , sizeof( seq) - 1) ;
+						ml_screen_use_normal_edit(
+							vt100_parser->screen) ;
+					}
+					else if( ps[0] == 66)
+					{
+						/* "CSI ? 66 l" application key pad */
+
+						set_app_keypad( vt100_parser , 0) ;
+					}
+				#if  0
+					else if( ps[0] == 67)
+					{
+						/* "CSI ? 67 l" have back space */
+					}
+				#endif
+					else if( ps[0] == 1000)
+					{
+						/* "CSI ? 1000 l" */
+
+						set_mouse_report( vt100_parser , 0) ;
+					}
+				#if  0
+					else if( ps[0] == 1001)
+					{
+						/* "CSI ? 1001 l" X11 mouse highlighting */
+					}
+				#endif
+				#if  0
+					else if( ps[0] == 1010)
+					{
+						/*
+						 * "CSI ? 1010 l"
+						 * scroll to bottom on tty output inhibit
+						 */
+					}
+				#endif
+				#if  0
+					else if( ps[0] == 1011)
+					{
+						/*
+						 * "CSI ? 1011 l"
+						 * scroll to bottom on key press
+						 */
+					}
+				#endif
+					else if( ps[0] == 1047)
+					{
+						/* "CSI ? 1047 l" */
+
+						/* if( !titeInhibit)*/
+						clear_display_all( vt100_parser) ;
+						ml_screen_use_normal_edit(
+							vt100_parser->screen) ;
+						restore_cursor( vt100_parser) ;
+						/* */
+					}
+					else if( ps[0] == 1048)
+					{
+						/* "CSI ? 1048 l" */
+
+						/* if( !titeInhibit)*/
+						restore_cursor( vt100_parser) ;
+						/* */
+					}
+					else if( ps[0] == 1049)
+					{
+						/* "CSI ? 1049 l" */
+
+						/* if( !titeInhibit)*/
+						ml_screen_use_normal_edit(
+							vt100_parser->screen) ;
+						restore_cursor( vt100_parser) ;
+						/* */
+					}
+					else
+					{
+					#ifdef  DEBUG
+						debug_print_unknown("ESC [ ? %d l\n" ,
+							ps[0]) ;
+					#endif
 					}
 				}
 			#if  0
-				else if( *str_p == '^')
+				else if( *str_p == 'r')
 				{
-					/* "CSI ^" initiate hilite mouse tracking. */
+					/* "CSI ? r"  Restore DEC Private Mode */
+				}
+			#endif
+			#if  0
+				else if( *str_p == 's')
+				{
+					/* "CSI ? s" Save DEC Private Mode */
 				}
 			#endif
 				/* Other final character */
@@ -2454,365 +1918,37 @@ parse_vt100_escape_sequence(
 					return  1 ;
 				}
 			}
-			else if( *str_p == ']')
+			else if( pre_ch == '!')
 			{
-				/* "ESC ]" (OSC) */
-
-				char  digit[DIGIT_STR_LEN(int)] ;
-				int  count ;
-				int  ps ;
-				u_char *  pt ;
-
-				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0))
+				if( *str_p == 'p')
 				{
-					return  0 ;
-				}
+					/* "CSI ! p" Soft terminal reset */
 
-				for( count = 0 ; count < DIGIT_STR_LEN(int) ; count++)
-				{
-					if( '0' <= *str_p && *str_p <= '9')
-					{
-						digit[count] = *str_p ;
-
-						if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-								&str_p , &left , 0))
-						{
-							return  0 ;
-						}
-					}
-					else
-					{
-						break ;
-					}
-				}
-
-				if( count > 0 && *str_p == ';')
-				{
-					digit[count] = '\0' ;
-
-					/* if digit is illegal , ps is set 0. */
-					ps = atoi( digit) ;
-
-					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 1))
-					{
-						return  0 ;
-					}
-				}
-				else
-				{
-					/* Illegal OSC format */
-					ps = -1 ;
-				}
-
-				if( ( pt = get_pt_in_esc_seq( vt100_parser->screen ,
-						&str_p , &left , 1)) == NULL && left == 0)
-				{
-					return  0 ;
-				}
-
-				if( ps == 0)
-				{
-					/* "OSC 0" change icon name and window title */
-
-					set_window_name( vt100_parser , pt) ;
-					set_icon_name( vt100_parser , pt) ;
-				}
-				else if( ps == 1)
-				{
-					/* "OSC 1" change icon name */
-
-					set_icon_name( vt100_parser , pt) ;
-				}
-				else if( ps == 2)
-				{
-					/* "OSC 2" change window title */
-
-					set_window_name( vt100_parser , pt) ;
-				}
-				else if( ps == 4)
-				{
-					/* "OSC 4" change 256 color */
-
-					if( ! change_color_rgb( vt100_parser, pt))
-					{
-					#ifdef  DEBUG
-						kik_debug_printf( KIK_DEBUG_TAG
-						" change_color_rgb failed.\n") ;
-					#endif
-					}
-				}
-				else if( ps == 20)
-				{
-					/* "OSC 20" */
-
-					if( HAS_CONFIG_LISTENER(vt100_parser,set))
-					{
-						/* edit commands */
-						char *  p ;
-
-						/* XXX discard all adjust./op. settings.*/
-						/* XXX may break multi-byte char string. */
-						if( ( p = strchr( pt , ';')))
-						{
-							*p = '\0';
-						}
-						if( ( p = strchr( pt , ':')))
-						{
-							*p = '\0';
-						}
-
-						if( *pt == '\0')
-						{
-							/*
-							 * Do not change current edit but
-							 * alter diaplay setting.
-							 * XXX nothing can be done for now.
-							 */
-
-							return  0 ;
-						}
-
-						stop_vt100_cmd( vt100_parser , 0) ;
-						(*vt100_parser->config_listener->set)(
-							vt100_parser->config_listener->self ,
-							NULL , "wall_picture" , pt) ;
-						start_vt100_cmd( vt100_parser , 0) ;
-					}
-				}
-				else if( ps == 39)
-				{
-					/* "OSC 39"  */
-
-					if( HAS_CONFIG_LISTENER(vt100_parser,set))
-					{
-						stop_vt100_cmd( vt100_parser , 0) ;
-						(*vt100_parser->config_listener->set)(
-							vt100_parser->config_listener->self ,
-							NULL , "fg_color" , pt) ;
-						start_vt100_cmd( vt100_parser , 0) ;
-					}
-				}
-				else if( ps == 46)
-				{
-					/* "OSC 46" change log file */
-				}
-				else if( ps == 49)
-				{
-					/* "OSC 49" */
-
-					if( HAS_CONFIG_LISTENER(vt100_parser,set))
-					{
-						stop_vt100_cmd( vt100_parser , 0) ;
-						(*vt100_parser->config_listener->set)(
-							vt100_parser->config_listener->self ,
-							NULL , "bg_color" , pt) ;
-						start_vt100_cmd( vt100_parser , 0) ;
-					}
-				}
-				else if( ps == 50)
-				{
-					/* "OSC 50" set font */
-				}
-				else if( ps == 5379)
-				{
-					/* "OSC 5379" set */
-
-					config_protocol_set( vt100_parser , pt) ;
-				}
-				else if( ps == 5380)
-				{
-					/* "OSC 5380" get */
-
-					config_protocol_get( vt100_parser , pt , 0) ;
-				}
-				else if( ps == 5381)
-				{
-					/* "OSC 5381" get(menu) */
-
-					config_protocol_get( vt100_parser , pt , 1) ;
-				}
-				else if( ps == 5382)
-				{
-					/* "OSC 5382" save */
-
-					config_protocol_save( vt100_parser , pt) ;
-				}
-				else if( ps == 5383)
-				{
-					/* "OSC 5383" set&save */
-
-					char *  p ;
-
-					p = kik_str_alloca_dup( pt) ;
-
-					config_protocol_set( vt100_parser , pt) ;
-
-					if( p)
-					{
-						config_protocol_save( vt100_parser , p) ;
-					}
-				}
-				else if( ps == 5384)
-				{
-					/* "OSC 5384" set font */
-
-					config_protocol_set_font( vt100_parser, pt, 0) ;
-				}
-				else if( ps == 5385)
-				{
-					/* "OSC 5385" set font(pty) */
-
-					config_protocol_get_font( vt100_parser, pt, 0) ;
-				}
-				else if( ps == 5386)
-				{
-					/* "OSC 5386" set font(GUI menu) */
-
-					config_protocol_get_font( vt100_parser, pt, 1) ;
-				}
-				else if( ps == 5387)
-				{
-					/* "OSC 5387" set&save font */
-					config_protocol_set_font( vt100_parser, pt, 1) ;
-				}
-				else if( ps == 5388)
-				{
-					/* "OSC 5388" set color */
-
-					config_protocol_set_color( vt100_parser, pt, 0) ;
-				}
-				else if( ps == 5391)
-				{
-					/* "OSC 5391" set&save color */
-					config_protocol_set_color( vt100_parser, pt, 1) ;
-				}
-			#ifdef  DEBUG
-				else if( ps == -1)
-				{
-					debug_print_unknown( "ESC ] %s\n" , pt) ;
-				}
-				else
-				{
-					debug_print_unknown( "ESC ] %d ; %s\n" , ps , pt) ;
-				}
-			#endif
-			}
-			else if( *str_p == '#')
-			{
-				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0))
-				{
-					return  0 ;
-				}
-
-				if( *str_p == '8')
-				{
-					/* "ESC # 8" DEC screen alignment test */
-					ml_screen_fill_all_with_e( vt100_parser->screen) ;
+					soft_reset( vt100_parser) ;
 				}
 			}
-			else if( *str_p == 'P' || *str_p == 'X' || *str_p == '^' || *str_p == '_')
-			{
-				if( ! get_pt_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0) && left == 0)
-				{
-					return  0 ;
-				}
-			}
-			else if( *str_p == '(')
-			{
-				/* "ESC (" */
-
-				if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
-				{
-					/* ESC ( will be processed in mkf. */
-					return  1 ;
-				}
-
-				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0))
-				{
-					return  0 ;
-				}
-
-				if( *str_p == '0')
-				{
-					vt100_parser->is_dec_special_in_g0 = 1 ;
-				}
-				else if( *str_p == 'B')
-				{
-					vt100_parser->is_dec_special_in_g0 = 0 ;
-				}
-			#ifdef  DEBUG
-				else
-				{
-					kik_debug_printf( KIK_DEBUG_TAG " ESC ( %c is "
-						"illegal sequence in current encoding" ,
-						*str_p) ;
-				}
-			#endif
-
-				if( ! vt100_parser->is_so)
-				{
-					vt100_parser->is_dec_special_in_gl =
-						vt100_parser->is_dec_special_in_g0 ;
-				}
-			}
-			else if( *str_p == ')')
-			{
-				/* "ESC )" */
-
-				if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
-				{
-					/* ESC ) will be processed in mkf. */
-					return  1 ;
-				}
-
-				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-							&str_p , &left , 0))
-				{
-					return  0 ;
-				}
-			
-				if( *str_p == '0')
-				{
-					vt100_parser->is_dec_special_in_g1 = 1 ;
-				}
-				else if( *str_p == 'B')
-				{
-					vt100_parser->is_dec_special_in_g1 = 0 ;
-				}
-			#ifdef  DEBUG
-				else
-				{
-					kik_debug_printf( KIK_DEBUG_TAG " ESC ) %c is "
-						"illegal sequence in current encoding" ,
-						*str_p) ;
-				}
-			#endif
-
-				if( vt100_parser->is_so)
-				{
-					vt100_parser->is_dec_special_in_gl =
-						vt100_parser->is_dec_special_in_g1 ;
-				}
-			}
-			/* Other intermediate character */
-			else if( 0x20 <= *str_p && *str_p <= 0x2f)
+			/* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
+			else if( pre_ch)
 			{
 				/*
-				 * "ESC SP F", "ESC SP G", "ESC SP L", "ESC SP M", "ESC SP N"
-				 * etc ...
+				 * "CSI > T", "CSI > c", "CSI > p", "CSI > m", "CSI > n",
+				 * "CSI > t"
+				 * "CSI SP q"(DECSCUSR), "CSI SP t"(DECSWBV),
+				 * "CSI SP u"(DECSMBV)
+				 * "CSI " p"(DECSCL), "CSI " q"(DECSCA)
+				 * "CSI ' {"(DECSLE), "CSI ' |"(DECRQLP)
+				 * etc
 				 */
 
 			#ifdef  DEBUG
-				debug_print_unknown( "ESC") ;
+				debug_print_unknown( "ESC [ %c" , pre_ch) ;
 			#endif
 
-				/* In case more than one intermediate(0x20-0x2f) chars. */
-				do
+				/*
+				 * In case more than one intermediate(0x20-0x2f)/
+				 * parameter(0x30-0x3f) chars.
+				 */
+				while( 0x20 <= *str_p && *str_p <= 0x3f)
 				{
 				#ifdef  DEBUG
 					kik_msg_printf( " %c" , *str_p) ;
@@ -2824,17 +1960,480 @@ parse_vt100_escape_sequence(
 						return  0 ;
 					}
 				}
-				while( 0x20 <= *str_p && *str_p <= 0x2f) ;
 
 			#ifdef  DEBUG
 				kik_msg_printf( " %c\n" , *str_p) ;
 			#endif
 			}
+			else if( *str_p == '@')
+			{
+				/* "CSI @" insert blank chars */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				/* inserting ps[0] blank characters. */
+				ml_screen_insert_blank_chars(
+						vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'A' || *str_p == 'k')
+			{
+				/* "CSI A" = CUU , "CSI k" = VPB */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_go_upward( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'B' || *str_p == 'e')
+			{
+				/* "CSI B" = CUD , "CSI e" = VPR */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_go_downward( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'C' || *str_p == 'a')
+			{
+				/* "CSI C" = CUF , "CSI a" = HPR */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_go_forward( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'D' || *str_p == 'j')
+			{
+				/* "CSI D" = CUB , "CSI j" = HPB */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_go_back( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'E')
+			{
+				/* "CSI E" down and goto first column */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_go_downward( vt100_parser->screen , ps[0]) ;
+				ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+			}
+			else if( *str_p == 'F')
+			{
+				/* "CSI F" up and goto first column */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_go_upward( vt100_parser->screen , ps[0]) ;
+				ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+			}
+			else if( *str_p == 'G' || *str_p == '`')
+			{
+				/*
+				 * "CSI G"(CHA) "CSI `"(HPA)
+				 * cursor position absolute.
+				 */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_go_horizontally( vt100_parser->screen , ps[0] - 1) ;
+			}
+			else if( *str_p == 'H' || *str_p == 'f')
+			{
+				/* "CSI H" "CSI f" */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+					ps[1] = 1 ;
+				}
+				else
+				{
+					/* some applications e.g. vin sometimes use 0 :( */
+					if( ps[0] == 0)
+					{
+						ps[0] = 1 ;
+					}
+
+					if( ps[1] == 0)
+					{
+						ps[1] = 1 ;
+					}
+				}
+
+				ml_screen_goto( vt100_parser->screen , ps[1] - 1 , ps[0] - 1) ;
+			}
+			else if( *str_p == 'I')
+			{
+				/* "CSI I" cursor forward tabulation (CHT) */
+
+				if( num == 0)
+				{
+					/*
+					 * "CSI 0 I" => No tabulation.
+					 * "CSI I" => 1 taburation.
+					 */
+					if( *(str_p - 1) != '0')
+					{
+						ps[0] = 1 ;
+					}
+				}
+
+				ml_screen_vertical_forward_tabs( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'J')
+			{
+				/* "CSI J" Erase in Display */
+
+				if( num == 0 || ps[0] == 0)
+				{
+					ml_screen_clear_below( vt100_parser->screen) ;
+				}
+				else if( ps[0] == 1)
+				{
+					ml_screen_clear_above( vt100_parser->screen) ;
+				}
+				else if( ps[0] == 2)
+				{
+					clear_display_all( vt100_parser) ;
+				}
+			}
+			else if( *str_p == 'K')
+			{
+				/* "CSI K" Erase in Line */
+
+				if( num == 0 || ps[0] == 0)
+				{
+					ml_screen_clear_line_to_right( vt100_parser->screen) ;
+				}
+				else if( ps[0] == 1)
+				{
+					ml_screen_clear_line_to_left( vt100_parser->screen) ;
+				}
+				else if( ps[0] == 2)
+				{
+					clear_line_all( vt100_parser) ;
+				}
+			}
+			else if( *str_p == 'L')
+			{
+				/* "CSI L" */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_insert_new_lines( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'M')
+			{
+				/* "CSI M" */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_delete_lines( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'P')
+			{
+				/* "CSI P" delete chars */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_delete_cols( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'S')
+			{
+				/* "CSI S" scroll up */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_scroll_upward( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'T')
+			{
+				/* "CSI T" scroll down */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_scroll_downward( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'X')
+			{
+				/* "CSI X" erase characters */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_clear_cols( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'Z')
+			{
+				/* "CSI Z" cursor backward tabulation (CBT) */
+
+				if( num == 0)
+				{
+					/*
+					 * "CSI 0 Z" => No tabulation.
+					 * "CSI Z" => 1 taburation.
+					 */
+					if( *(str_p - 1) != '0')
+					{
+						ps[0] = 1 ;
+					}
+				}
+
+				ml_screen_vertical_backward_tabs( vt100_parser->screen , ps[0]) ;
+			}
+			else if( *str_p == 'b')
+			{
+				/* "CSI b" repeat the preceding graphic character(REP) */
+
+				if( vt100_parser->buffer.last_ch)
+				{
+					int  count ;
+
+					if( num == 0)
+					{
+						ps[0] = 1 ;
+					}
+
+					for( count = 0 ; count < ps[0] ; count++)
+					{
+						(*vt100_parser->buffer.output_func)(
+							vt100_parser->screen ,
+							vt100_parser->buffer.last_ch , 1) ;
+					}
+
+					vt100_parser->buffer.last_ch = NULL ;
+				}
+			}
+			else if( *str_p == 'c')
+			{
+				/* "CSI c" send device attributes */
+
+				/* vt100 answerback */
+				char  seq[] = "\x1b[?1;2c" ;
+
+				ml_write_to_pty( vt100_parser->pty , seq , sizeof(seq) - 1) ;
+			}
+			else if( *str_p == 'd')
+			{
+				/* "CSI d" line position absolute(VPA) */
+
+				if( num == 0)
+				{
+					ps[0] = 1 ;
+				}
+
+				ml_screen_go_vertically( vt100_parser->screen , ps[0] - 1) ;
+			}
+			else if( *str_p == 'g')
+			{
+				/* "CSI g" tab clear */
+
+				if( num == 0)
+				{
+					ml_screen_clear_tab_stop( vt100_parser->screen) ;
+				}
+				else if( num == 1 && ps[0] == 3)
+				{
+					ml_screen_clear_all_tab_stops( vt100_parser->screen) ;
+				}
+			}
+			else if( *str_p == 'l')
+			{
+				/* "CSI l" */
+
+				if( num == 1 && ps[0] == 4)
+				{
+					/* replace mode */
+
+					vt100_parser->buffer.output_func =
+						ml_screen_overwrite_chars ;
+				}
+			}
+			else if( *str_p == 'h')
+			{
+				/* "CSI h" */
+
+				if( num == 1 && ps[0] == 4)
+				{
+					/* insert mode */
+
+					vt100_parser->buffer.output_func =
+						ml_screen_insert_chars ;
+				}
+			}
+			else if( *str_p == 'm')
+			{
+				/* "CSI m" */
+
+				int  count ;
+
+				if( num == 0)
+				{
+					ps[0] = 0 ;
+					num = 1 ;
+				}
+
+				for( count = 0 ; count < num ; count ++)
+				{
+					if( ps[count] == 38 && num >= 3
+						&& ps[count + 1] == 5)
+					{
+						vt100_parser->fg_color = ps[count + 2] ;
+						count += 2 ;
+
+					#ifndef  IGNORE_SPACE_FG_COLOR
+						ml_screen_set_bce_fg_color(
+							vt100_parser->screen ,
+							vt100_parser->fg_color) ;
+					#endif
+					}
+					else if( ps[count] == 48 && num >= 3
+						&& ps[count + 1] == 5)
+					{
+						vt100_parser->bg_color = ps[count + 2] ;
+						count += 2 ;
+
+						ml_screen_set_bce_bg_color(
+							vt100_parser->screen ,
+							vt100_parser->bg_color) ;
+					}
+					else
+					{
+						change_char_attr( vt100_parser , ps[count]) ;
+					}
+				}
+			}
+			else if( *str_p == 'n')
+			{
+				/* "CSI n" device status report */
+
+				if( num == 1)
+				{
+					if( ps[0] == 5)
+					{
+						ml_write_to_pty( vt100_parser->pty ,
+							"\x1b[0n" , 4) ;
+					}
+					else if( ps[0] == 6)
+					{
+						char  seq[4 + DIGIT_STR_LEN(u_int) + 1] ;
+
+						sprintf( seq , "\x1b[%d;%dR" ,
+							ml_screen_cursor_row(
+								vt100_parser->screen) + 1 ,
+							ml_screen_cursor_col(
+								vt100_parser->screen) + 1) ;
+
+						ml_write_to_pty( vt100_parser->pty ,
+							seq , strlen( seq)) ;
+					}
+				}
+			}
+			else if( *str_p == 'r')
+			{
+				/* "CSI r" set scroll region */
+
+				if( num == 0)
+				{
+					ps[0] = 0 ;
+					ps[1] = 0 ;
+					num = 2 ;
+				}
+
+				if( num == 2)
+				{
+					if( ml_screen_set_scroll_region( vt100_parser->screen ,
+							ps[0] - 1 , ps[1] - 1))
+					{
+						ml_screen_goto( vt100_parser->screen , 0 , 0) ;
+					}
+				}
+			}
+			else if( *str_p == 's')
+			{
+				/* "CSI s" */
+
+				save_cursor( vt100_parser) ;
+			}
+			else if( *str_p == 'u')
+			{
+				/* "CSI u" */
+
+				restore_cursor( vt100_parser) ;
+			}
+			else if( *str_p == 'x')
+			{
+				/* "CSI x" request terminal parameters */
+
+				/* XXX the same as rxvt */
+
+				if( num == 0)
+				{
+					ps[0] = 0 ;
+				}
+
+				if( ps[0] == 0 || ps[0] == 1)
+				{
+					char seq[] = "\x1b[X;1;1;112;112;1;0x" ;
+
+					/* '+ 0x30' lets int to char */
+					seq[2] = ps[0] + 2 + 0x30 ;
+
+					ml_write_to_pty( vt100_parser->pty ,
+						seq , sizeof( seq) - 1) ;
+				}
+			}
+		#if  0
+			else if( *str_p == '^')
+			{
+				/* "CSI ^" initiate hilite mouse tracking. */
+			}
+		#endif
 			/* Other final character */
-			else if( 0x30 <= *str_p && *str_p <= 0x7e)
+			else if( 0x40 <= *str_p && *str_p <= 0x7e)
 			{
 			#ifdef  DEBUG
-				debug_print_unknown( "ESC %c\n" , *str_p) ;
+				debug_print_unknown( "ESC [ %c\n" , *str_p) ;
 			#endif
 			}
 			else
@@ -2847,106 +2446,495 @@ parse_vt100_escape_sequence(
 
 				return  1 ;
 			}
+		}
+		else if( *str_p == ']')
+		{
+			/* "ESC ]" (OSC) */
 
-		#ifdef  ESCSEQ_DEBUG
-			kik_msg_printf( "\n") ;
+			char  digit[DIGIT_STR_LEN(int)] ;
+			int  count ;
+			int  ps ;
+			u_char *  pt ;
+
+			if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0))
+			{
+				return  0 ;
+			}
+
+			for( count = 0 ; count < DIGIT_STR_LEN(int) ; count++)
+			{
+				if( '0' <= *str_p && *str_p <= '9')
+				{
+					digit[count] = *str_p ;
+
+					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0))
+					{
+						return  0 ;
+					}
+				}
+				else
+				{
+					break ;
+				}
+			}
+
+			if( count > 0 && *str_p == ';')
+			{
+				digit[count] = '\0' ;
+
+				/* if digit is illegal , ps is set 0. */
+				ps = atoi( digit) ;
+
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 1))
+				{
+					return  0 ;
+				}
+			}
+			else
+			{
+				/* Illegal OSC format */
+				ps = -1 ;
+			}
+
+			if( ( pt = get_pt_in_esc_seq( vt100_parser->screen ,
+					&str_p , &left , 1)) == NULL && left == 0)
+			{
+				return  0 ;
+			}
+
+			if( ps == 0)
+			{
+				/* "OSC 0" change icon name and window title */
+
+				set_window_name( vt100_parser , pt) ;
+				set_icon_name( vt100_parser , pt) ;
+			}
+			else if( ps == 1)
+			{
+				/* "OSC 1" change icon name */
+
+				set_icon_name( vt100_parser , pt) ;
+			}
+			else if( ps == 2)
+			{
+				/* "OSC 2" change window title */
+
+				set_window_name( vt100_parser , pt) ;
+			}
+			else if( ps == 4)
+			{
+				/* "OSC 4" change 256 color */
+
+				if( ! change_color_rgb( vt100_parser, pt))
+				{
+				#ifdef  DEBUG
+					kik_debug_printf( KIK_DEBUG_TAG
+					" change_color_rgb failed.\n") ;
+				#endif
+				}
+			}
+			else if( ps == 20)
+			{
+				/* "OSC 20" */
+
+				if( HAS_CONFIG_LISTENER(vt100_parser,set))
+				{
+					/* edit commands */
+					char *  p ;
+
+					/* XXX discard all adjust./op. settings.*/
+					/* XXX may break multi-byte char string. */
+					if( ( p = strchr( pt , ';')))
+					{
+						*p = '\0';
+					}
+					if( ( p = strchr( pt , ':')))
+					{
+						*p = '\0';
+					}
+
+					if( *pt == '\0')
+					{
+						/*
+						 * Do not change current edit but
+						 * alter diaplay setting.
+						 * XXX nothing can be done for now.
+						 */
+
+						return  0 ;
+					}
+
+					stop_vt100_cmd( vt100_parser , 0) ;
+					(*vt100_parser->config_listener->set)(
+						vt100_parser->config_listener->self ,
+						NULL , "wall_picture" , pt) ;
+					start_vt100_cmd( vt100_parser , 0) ;
+				}
+			}
+			else if( ps == 39)
+			{
+				/* "OSC 39"  */
+
+				if( HAS_CONFIG_LISTENER(vt100_parser,set))
+				{
+					stop_vt100_cmd( vt100_parser , 0) ;
+					(*vt100_parser->config_listener->set)(
+						vt100_parser->config_listener->self ,
+						NULL , "fg_color" , pt) ;
+					start_vt100_cmd( vt100_parser , 0) ;
+				}
+			}
+			else if( ps == 46)
+			{
+				/* "OSC 46" change log file */
+			}
+			else if( ps == 49)
+			{
+				/* "OSC 49" */
+
+				if( HAS_CONFIG_LISTENER(vt100_parser,set))
+				{
+					stop_vt100_cmd( vt100_parser , 0) ;
+					(*vt100_parser->config_listener->set)(
+						vt100_parser->config_listener->self ,
+						NULL , "bg_color" , pt) ;
+					start_vt100_cmd( vt100_parser , 0) ;
+				}
+			}
+			else if( ps == 50)
+			{
+				/* "OSC 50" set font */
+			}
+			else if( ps == 5379)
+			{
+				/* "OSC 5379" set */
+
+				config_protocol_set( vt100_parser , pt) ;
+			}
+			else if( ps == 5380)
+			{
+				/* "OSC 5380" get */
+
+				config_protocol_get( vt100_parser , pt , 0) ;
+			}
+			else if( ps == 5381)
+			{
+				/* "OSC 5381" get(menu) */
+
+				config_protocol_get( vt100_parser , pt , 1) ;
+			}
+			else if( ps == 5382)
+			{
+				/* "OSC 5382" save */
+
+				config_protocol_save( vt100_parser , pt) ;
+			}
+			else if( ps == 5383)
+			{
+				/* "OSC 5383" set&save */
+
+				char *  p ;
+
+				p = kik_str_alloca_dup( pt) ;
+
+				config_protocol_set( vt100_parser , pt) ;
+
+				if( p)
+				{
+					config_protocol_save( vt100_parser , p) ;
+				}
+			}
+			else if( ps == 5384)
+			{
+				/* "OSC 5384" set font */
+
+				config_protocol_set_font( vt100_parser, pt, 0) ;
+			}
+			else if( ps == 5385)
+			{
+				/* "OSC 5385" set font(pty) */
+
+				config_protocol_get_font( vt100_parser, pt, 0) ;
+			}
+			else if( ps == 5386)
+			{
+				/* "OSC 5386" set font(GUI menu) */
+
+				config_protocol_get_font( vt100_parser, pt, 1) ;
+			}
+			else if( ps == 5387)
+			{
+				/* "OSC 5387" set&save font */
+				config_protocol_set_font( vt100_parser, pt, 1) ;
+			}
+			else if( ps == 5388)
+			{
+				/* "OSC 5388" set color */
+
+				config_protocol_set_color( vt100_parser, pt, 0) ;
+			}
+			else if( ps == 5391)
+			{
+				/* "OSC 5391" set&save color */
+				config_protocol_set_color( vt100_parser, pt, 1) ;
+			}
+		#ifdef  DEBUG
+			else if( ps == -1)
+			{
+				debug_print_unknown( "ESC ] %s\n" , pt) ;
+			}
+			else
+			{
+				debug_print_unknown( "ESC ] %d ; %s\n" , ps , pt) ;
+			}
 		#endif
 		}
-		else if( *str_p == CTLKEY_SI)
+		else if( *str_p == '#')
 		{
+			if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0))
+			{
+				return  0 ;
+			}
+
+			if( *str_p == '8')
+			{
+				/* "ESC # 8" DEC screen alignment test */
+				ml_screen_fill_all_with_e( vt100_parser->screen) ;
+			}
+		}
+		else if( *str_p == 'P' || *str_p == 'X' || *str_p == '^' || *str_p == '_')
+		{
+			if( ! get_pt_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0) && left == 0)
+			{
+				return  0 ;
+			}
+		}
+		else if( *str_p == '(')
+		{
+			/* "ESC (" */
+
 			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 			{
-				/* SI will be processed in mkf. */
+				/* ESC ( will be processed in mkf. */
 				return  1 ;
 			}
-			
-		#ifdef  ESCSEQ_DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " receiving SI\n") ;
+
+			if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0))
+			{
+				return  0 ;
+			}
+
+			if( *str_p == '0')
+			{
+				vt100_parser->is_dec_special_in_g0 = 1 ;
+			}
+			else if( *str_p == 'B')
+			{
+				vt100_parser->is_dec_special_in_g0 = 0 ;
+			}
+		#ifdef  DEBUG
+			else
+			{
+				kik_debug_printf( KIK_DEBUG_TAG " ESC ( %c is "
+					"illegal sequence in current encoding" ,
+					*str_p) ;
+			}
 		#endif
 
-			vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g0 ;
-			vt100_parser->is_so = 0 ;
+			if( ! vt100_parser->is_so)
+			{
+				vt100_parser->is_dec_special_in_gl =
+					vt100_parser->is_dec_special_in_g0 ;
+			}
 		}
-		else if( *str_p == CTLKEY_SO)
+		else if( *str_p == ')')
 		{
+			/* "ESC )" */
+
 			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 			{
-				/* SO will be processed in mkf. */
+				/* ESC ) will be processed in mkf. */
 				return  1 ;
 			}
-			
-		#ifdef  ESCSEQ_DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " receiving SO\n") ;
-		#endif
 
-			vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g1 ;
-			vt100_parser->is_so = 1 ;
-		}
-		else if( *str_p == CTLKEY_LF || *str_p == CTLKEY_VT)
-		{
-		#ifdef  ESCSEQ_DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " receiving LF\n") ;
-		#endif
-
-			ml_screen_line_feed( vt100_parser->screen) ;
-		}
-		else if( *str_p == CTLKEY_CR)
-		{
-		#ifdef  ESCSEQ_DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " receiving CR\n") ;
-		#endif
-
-			ml_screen_goto_beg_of_line( vt100_parser->screen) ;
-		}
-		else if( *str_p == CTLKEY_TAB)
-		{
-		#ifdef  ESCSEQ_DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " receiving TAB\n") ;
-		#endif
-
-			ml_screen_vertical_forward_tabs( vt100_parser->screen , 1) ;
-		}
-		else if( *str_p == CTLKEY_BS)
-		{
-		#ifdef  ESCSEQ_DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " receiving BS\n") ;
-		#endif
-
-			ml_screen_go_back( vt100_parser->screen , 1) ;
-		}
-		else if( *str_p == CTLKEY_BEL)
-		{
-		#ifdef  ESCSEQ_DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " receiving BEL\n") ;
-		#endif
-
-			if( HAS_XTERM_LISTENER(vt100_parser,bel))
+			if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+						&str_p , &left , 0))
 			{
-				stop_vt100_cmd( vt100_parser , 0) ;
-				(*vt100_parser->xterm_listener->bel)(
-					vt100_parser->xterm_listener->self) ;
-				start_vt100_cmd( vt100_parser , 0) ;
+				return  0 ;
 			}
+
+			if( *str_p == '0')
+			{
+				vt100_parser->is_dec_special_in_g1 = 1 ;
+			}
+			else if( *str_p == 'B')
+			{
+				vt100_parser->is_dec_special_in_g1 = 0 ;
+			}
+		#ifdef  DEBUG
+			else
+			{
+				kik_debug_printf( KIK_DEBUG_TAG " ESC ) %c is "
+					"illegal sequence in current encoding" ,
+					*str_p) ;
+			}
+		#endif
+
+			if( vt100_parser->is_so)
+			{
+				vt100_parser->is_dec_special_in_gl =
+					vt100_parser->is_dec_special_in_g1 ;
+			}
+		}
+		/* Other intermediate character */
+		else if( 0x20 <= *str_p && *str_p <= 0x2f)
+		{
+			/*
+			 * "ESC SP F", "ESC SP G", "ESC SP L", "ESC SP M", "ESC SP N"
+			 * etc ...
+			 */
+
+		#ifdef  DEBUG
+			debug_print_unknown( "ESC") ;
+		#endif
+
+			/* In case more than one intermediate(0x20-0x2f) chars. */
+			do
+			{
+			#ifdef  DEBUG
+				kik_msg_printf( " %c" , *str_p) ;
+			#endif
+
+				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
+							&str_p , &left , 0))
+				{
+					return  0 ;
+				}
+			}
+			while( 0x20 <= *str_p && *str_p <= 0x2f) ;
+
+		#ifdef  DEBUG
+			kik_msg_printf( " %c\n" , *str_p) ;
+		#endif
+		}
+		/* Other final character */
+		else if( 0x30 <= *str_p && *str_p <= 0x7e)
+		{
+		#ifdef  DEBUG
+			debug_print_unknown( "ESC %c\n" , *str_p) ;
+		#endif
 		}
 		else
 		{
-			/* not VT100 control sequence */
-			
+			/* not VT100 control sequence. */
+
+		#ifdef  ESCSEQ_DEBUG
+			kik_msg_printf( "=> not VT100 control sequence.\n") ;
+		#endif
+
 			return  1 ;
 		}
 
-	#ifdef  EDIT_DEBUG
-		ml_edit_dump( vt100_parser->screen->edit) ;
+	#ifdef  ESCSEQ_DEBUG
+		kik_msg_printf( "\n") ;
+	#endif
+	}
+	else if( *str_p == CTL_SI)
+	{
+		if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+		{
+			/* SI will be processed in mkf. */
+			return  1 ;
+		}
+
+	#ifdef  ESCSEQ_DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " receiving SI\n") ;
 	#endif
 
-		left -- ;
-		str_p ++ ;
-		
-		if( ( vt100_parser->left = left) == 0)
+		vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g0 ;
+		vt100_parser->is_so = 0 ;
+	}
+	else if( *str_p == CTL_SO)
+	{
+		if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
 		{
+			/* SO will be processed in mkf. */
 			return  1 ;
 		}
+
+	#ifdef  ESCSEQ_DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " receiving SO\n") ;
+	#endif
+
+		vt100_parser->is_dec_special_in_gl = vt100_parser->is_dec_special_in_g1 ;
+		vt100_parser->is_so = 1 ;
 	}
+	else if( *str_p == CTL_LF || *str_p == CTL_VT)
+	{
+	#ifdef  ESCSEQ_DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " receiving LF\n") ;
+	#endif
+
+		ml_screen_line_feed( vt100_parser->screen) ;
+	}
+	else if( *str_p == CTL_CR)
+	{
+	#ifdef  ESCSEQ_DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " receiving CR\n") ;
+	#endif
+
+		ml_screen_goto_beg_of_line( vt100_parser->screen) ;
+	}
+	else if( *str_p == CTL_TAB)
+	{
+	#ifdef  ESCSEQ_DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " receiving TAB\n") ;
+	#endif
+
+		ml_screen_vertical_forward_tabs( vt100_parser->screen , 1) ;
+	}
+	else if( *str_p == CTL_BS)
+	{
+	#ifdef  ESCSEQ_DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " receiving BS\n") ;
+	#endif
+
+		ml_screen_go_back( vt100_parser->screen , 1) ;
+	}
+	else if( *str_p == CTL_BEL)
+	{
+	#ifdef  ESCSEQ_DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " receiving BEL\n") ;
+	#endif
+
+		if( HAS_XTERM_LISTENER(vt100_parser,bel))
+		{
+			stop_vt100_cmd( vt100_parser , 0) ;
+			(*vt100_parser->xterm_listener->bel)(
+				vt100_parser->xterm_listener->self) ;
+			start_vt100_cmd( vt100_parser , 0) ;
+		}
+	}
+	else
+	{
+		/* not VT100 control sequence */
+
+		return  1 ;
+	}
+
+#ifdef  EDIT_DEBUG
+	ml_edit_dump( vt100_parser->screen->edit) ;
+#endif
+
+	vt100_parser->left = left - 1 ;
+
+	return  1 ;
 }
 
 static int
@@ -2988,7 +2976,7 @@ parse_vt100_sequence(
 
 					mkf_char_t  non_ucs ;
 
-					if( mkf_map_locale_ucs4_to( &non_ucs , &ch) == 0)
+					if( ! mkf_map_locale_ucs4_to( &non_ucs , &ch) )
 					{
 					#ifdef  DEBUG
 						kik_warn_printf( KIK_DEBUG_TAG
@@ -2996,10 +2984,8 @@ parse_vt100_sequence(
 					#endif
 						continue ;
 					}
-					else
-					{
-						ch = non_ucs ;
-					}
+
+					ch = non_ucs ;
 				}
 			}
 			else if( ( (vt100_parser->unicode_font_policy == ONLY_USE_UNICODE_FONT)
@@ -3020,37 +3006,84 @@ parse_vt100_sequence(
 			{
 				mkf_char_t  ucs ;
 
-				if( mkf_map_to_ucs4( &ucs , &ch))
+				if( ! mkf_map_to_ucs4( &ucs , &ch))
 				{
-					ucs.property = mkf_get_ucs_property(
-							mkf_bytes_to_int( ucs.ch , ucs.size)) ;
-
-					ch = ucs ;
-				}
-			#ifdef  DEBUG
-				else
-				{
+				#ifdef  DEBUG
 					kik_warn_printf( KIK_DEBUG_TAG
-						" mkf_convert_to_ucs4_char() failed.\n") ;
+						" failed to convert other cs to ucs4.\n") ;
+				#endif
+					continue ;
 				}
-			#endif
+				
+				ucs.property = mkf_get_ucs_property(
+							mkf_bytes_to_int( ucs.ch , ucs.size)) ;
+				ch = ucs ;
 			}
 
 			/*
 			 * NON UCS <-> NON UCS
 			 */
-			
+
+			if( ch.size == 1)
 			{
+				/* single byte cs */
+
+				if( (ch.ch[0] == 0x0 || ch.ch[0] == 0x7f))
+				{
+				#ifdef  DEBUG
+					kik_warn_printf( KIK_DEBUG_TAG
+						" 0x0/0x7f sequence is received , ignored...\n") ;
+				#endif
+					continue ;
+				}
+				else if( /* 0x1 <= ch.ch[0] && */ ch.ch[0] <= 0x1f)
+				{
+					/*
+					 * this is a control sequence.
+					 * reparsing this char in vt100_escape_sequence() ...
+					 */
+
+					vt100_parser->cc_parser->left ++ ;
+					vt100_parser->cc_parser->is_eos = 0 ;
+
+					break ;
+				}
+
+				if( ml_is_msb_set( ch.cs))
+				{
+					SET_MSB( ch.ch[0]) ;
+				}
+				else if( ( ch.cs == US_ASCII &&
+						vt100_parser->is_dec_special_in_gl) ||
+					ch.cs == DEC_SPECIAL)
+				{
+					if( ch.ch[0] == 0x5f)
+					{
+						ch.ch[0] = 0x7f ;
+					}
+					else if( 0x5f < ch.ch[0] && ch.ch[0] < 0x7f)
+					{
+						ch.ch[0] -= 0x5f ;
+					}
+
+					ch.cs = DEC_SPECIAL ;
+					ch.property = 0 ;
+				}
+			}
+			else
+			{
+				/* multi byte cs */
+
 				/*
 				 * XXX hack
 				 * how to deal with johab 10-4-4(8-4-4) font ?
 				 * is there any uhc font ?
 				 */
-				 
-				mkf_char_t  uhc ;
 
 				if( ch.cs == JOHAB)
 				{
+					mkf_char_t  uhc ;
+
 					if( mkf_map_johab_to_uhc( &uhc , &ch) == 0)
 					{
 						continue ;
@@ -3066,59 +3099,20 @@ parse_vt100_sequence(
 				 */
 				if( ch.cs == UHC)
 				{
-					if( mkf_map_uhc_to_ksc5601_1987( &ch , &uhc) == 0)
+					mkf_char_t  ksc ;
+
+					if( mkf_map_uhc_to_ksc5601_1987( &ksc , &ch) == 0)
 					{
 						continue ;
 					}
+
+					ch = ksc ;
 				}
 			}
 
-			if( ch.size == 1 && (ch.ch[0] == 0x0 || ch.ch[0] == 0x7f))
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" 0x0/0x7f sequence is received , ignored...\n") ;
-			#endif
-			}
-			else if( ch.size == 1 && 0x1 <= ch.ch[0] && ch.ch[0] <= 0x1f)
-			{
-				/*
-				 * this is a control sequence.
-				 * reparsing this char in vt100_escape_sequence() ...
-				 */
+			put_char( vt100_parser , ch.ch , ch.size , ch.cs , ch.property) ;
 
-				vt100_parser->cc_parser->left ++ ;
-				vt100_parser->cc_parser->is_eos = 0 ;
-
-				break ;
-			}
-			else
-			{
-				vt100_parser->left = vt100_parser->cc_parser->left ;
-
-				if( ml_is_msb_set( ch.cs))
-				{
-					SET_MSB( ch.ch[0]) ;
-				}
-				if( ( ch.cs == US_ASCII && vt100_parser->is_dec_special_in_gl) ||
-					ch.cs == DEC_SPECIAL)
-				{
-					if( ch.ch[0] == 0x5f)
-					{
-						ch.ch[0] = 0x7f ;
-					}
-					else if( 0x5f < ch.ch[0] && ch.ch[0] < 0x7f)
-					{
-						ch.ch[0] -= 0x5f ;
-					}
-
-					ch.cs = DEC_SPECIAL ;
-					ch.property = 0 ;
-				}
-
-				put_char( vt100_parser , ch.ch , ch.size , ch.cs ,
-					ch.property) ;
-			}
+			vt100_parser->left = vt100_parser->cc_parser->left ;
 		}
 
 		vt100_parser->left = vt100_parser->cc_parser->left ;
@@ -3127,6 +3121,7 @@ parse_vt100_sequence(
 
 		if( vt100_parser->cc_parser->is_eos)
 		{
+			/* expect more input */
 			break ;
 		}
 
@@ -3137,25 +3132,8 @@ parse_vt100_sequence(
 
 		if( ! parse_vt100_escape_sequence( vt100_parser))
 		{
-			/* shortage of chars */
-			if( vt100_parser->left >= PTY_RD_BUFFER_SIZE)
-			{
-				/*
-				 * the sequence seems to be longer than PTY buffer, or
-				 * broken/unsupported.
-				 * try to recover from error by dropping bytes...
-				 */
-			#ifdef DEBUG
-				kik_debug_printf( KIK_DEBUG_TAG
-					  "escape sequence too long. dropped\n") ;
-			#endif
-				vt100_parser->left--;
-			}
-			else
-			{
-				/* expect more input */
-				break ;
-			}
+			/* expect more input */
+			break ;
 		}
 
 	#ifdef  EDIT_ROUGH_DEBUG

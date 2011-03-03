@@ -1,0 +1,59 @@
+top_builddir = ../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+
+LIBDIR = $(DESTDIR)$(libdir)/mlterm
+
+VPATH = ${top_srcdir}/inputmethod/ibus
+
+IM_IBUS_OBJ = im_ibus.o
+
+CFLAGS = $(CFLAGS_LOCAL) 		\
+	 @KIK_CFLAGS@			\
+	 @MKF_CFLAGS@			\
+	 @DEB_CFLAGS@			\
+	 @X_CFLAGS@			\
+	 @CFLAGS@			\
+	 @CPPFLAGS@			\
+	 @IM_CFLAGS@			\
+	 @IBUS_CFLAGS@			\
+	 -I$(top_srcdir)/mlterm		\
+	 -I${top_srcdir}/xwindow	\
+	 -I/usr/local/include
+
+LIBS = $(LIBS_LOCAL) @KIK_LIBS_FOR_MODULE@ @IBUS_LIBS@
+
+CC      = @CC@
+INSTALL = @INSTALL@
+LIBTOOL = @LIBTOOL@
+
+LIBTOOL_CC      = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK    = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+.SUFFIXES: .o .c
+
+all: libim-ibus.la
+
+libim-ibus.la: $(IM_IBUS_OBJ)
+	$(LIBTOOL_LINK) -o libim-ibus.la $(IM_IBUS_OBJ:.o=.lo) \
+	-rpath $(libdir)/mlterm \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
+
+.c.o:
+	$(LIBTOOL_CC) -c $<
+
+$(LIBDIR):
+	mkdir -p $(LIBDIR)
+
+install: $(LIBDIR)
+	$(LIBTOOL_INSTALL) libim-ibus.la $(LIBDIR)
+
+clean:
+	rm -rf $(IM_IBUS_OBJ) $(IM_IBUS_OBJ:.o=.lo) libim-ibus.la *.core .libs
+
+distclean: clean
+	rm -f Makefile
+

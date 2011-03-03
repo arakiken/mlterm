@@ -1905,16 +1905,9 @@ key_pressed(
 	{
 		u_char  kchar = 0 ;
 
-		if( x_shortcut_match( screen->shortcut , IM_HOTKEY , ksym , masked_state))
-		{
-			if( (*screen->im->switch_mode)( screen->im))
-			{
-				return ;
-			}
-		}
-
-		/* for backward compatibility */
-		if( x_shortcut_match( screen->shortcut , EXT_KBD , ksym , masked_state))
+		if( x_shortcut_match( screen->shortcut , IM_HOTKEY , ksym , masked_state) ||
+		    /* for backward compatibility */
+		    x_shortcut_match( screen->shortcut , EXT_KBD , ksym , masked_state))
 		{
 			if( (*screen->im->switch_mode)( screen->im))
 			{
@@ -5822,7 +5815,8 @@ draw_preedit_str(
 	void *  p ,
 	ml_char_t *  chars ,
 	u_int  num_of_chars ,
-	int  cursor_offset)
+	int  cursor_offset
+	)
 {
 	x_screen_t *  screen ;
 	ml_line_t *  line ;

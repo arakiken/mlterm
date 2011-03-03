@@ -1,9 +1,17 @@
 ver 3.0.3
-* Even if gdk-pixbuf is not linked to mlterm, wall picture, icon picture
+* Add support for iBus. (Experimental)
+* Even if gdk-pixbuf is not linked to mlterm (--with-imagelib=gdk-pixbuf
+  option is not specified in configure), wall picture, icon picture
   and pixmap_engine are supported by mlimgdisplay using gdk-pixbuf.
-* Unsupported but valid escape / CSI sequence is correctly ignored.
+* Unsupported but valid formatted escape / CSI sequence is correctly ignored.
   (Thanks to Iwamoto Kouichi san)
-* "wall_picture" option is partially (BMP format alone) supported.
+* "wall_picture" option is partially (BMP format alone) supported in win32.
+* libvte uses dpi of gdk for xft font instead of manually calculated one
+  by DisplayWidthMM (,which can return wrong value in vmware) etc.
+* Other bug fixes:
+  Fix wrong drawing of background of DEC Special characters. (Thanks to Iwamoto Kouichi san)
+  Unhighlight background of bold characters. (Thanks to Iwamoto Kouichi san)
+  #3158963 (Thanks to Jyun-Yan You)
 
 ver 3.0.2
 * Drop imlib, gdk-pixbuf1 and gtk-1.x support.
