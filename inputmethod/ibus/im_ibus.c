@@ -7,7 +7,6 @@
 #include  <x_im.h>
 #include  <kiklib/kik_list.h>
 #include  <kiklib/kik_debug.h>
-#include  "../im_common.h"
 #include  "../im_info.h"
 
 #if  0
@@ -49,6 +48,49 @@ static int  mod_key_debug = 0 ;
 
 /* --- static functions --- */
 
+static ml_color_t
+get_color(
+	u_int  rgb
+	)
+{
+	u_int  rgb_bit = 0 ;
+
+	if( ( rgb & 0xff0000) > 0x7f0000)
+	{
+		rgb_bit |= 0x4 ;
+	}
+	if( ( rgb & 0xff00) > 0x7f00)
+	{
+		rgb_bit |= 0x2 ;
+	}
+	if( ( rgb & 0xff) > 0x7f)
+	{
+		rgb_bit |= 0x1 ;
+	}
+
+	switch( rgb_bit)
+	{
+	case  0:
+		return  ML_BLACK ;
+	case  1:
+		return  ML_BLUE ;
+	case  2:
+		return  ML_GREEN ;
+	case  3:
+		return  ML_CYAN ;
+	case  4:
+		return  ML_RED ;
+	case  5:
+		return  ML_MAGENTA ;
+	case  6:
+		return  ML_YELLOW ;
+	case  7:
+		return  ML_WHITE ;
+	default:
+		return  ML_BLACK ;
+	}
+}
+
 static void
 update_preedit_text(
 	IBusInputContext *  context ,
@@ -76,10 +118,12 @@ update_preedit_text(
 	}
 
 	ibus->im.preedit.filled_len = 0 ;
-	ibus->im.preedit.cursor_offset = 0 ;
+	ibus->im.preedit.cursor_offset = cursor_pos ;
 
 	if( ( ibus->im.preedit.num_of_chars = strlen( text->text)) > 0)
 	{
+		u_int  index ;
+
 		if( ( p = realloc( ibus->im.preedit.chars ,
 				sizeof(ml_char_t) * ibus->im.preedit.num_of_chars)) == NULL)
 		{
@@ -92,22 +136,37 @@ update_preedit_text(
 		(*ibus->parser_ibus->set_str)( ibus->parser_ibus ,
 			text->text , strlen( text->text)) ;
 
+		index = 0 ;
 		while( (*ibus->parser_ibus->next_char)( ibus->parser_ibus , &ch))
 		{
+			u_int  count ;
+			IBusAttribute *  attr ;
 			int  is_biwidth = 0 ;
 			int  is_comb = 0 ;
-			ml_color_t  fg_color ;
-			ml_color_t  bg_color ;
+			int  is_underlined = 0 ;
+			ml_color_t  fg_color = ML_FG_COLOR ;
+			ml_color_t  bg_color = ML_BG_COLOR ;
 
-			if( cursor_pos == ibus->im.preedit.filled_len)
+			for( count = 0 ; ( attr = ibus_attr_list_get( text->attrs , count)) ;
+				count++)
 			{
-				fg_color = ML_BG_COLOR ;
-				bg_color = ML_FG_COLOR ;
-			}
-			else
-			{
-				fg_color = ML_FG_COLOR ;
-				bg_color = ML_BG_COLOR ;
+				if( attr->start_index <= index && index < attr->end_index)
+				{
+					if( attr->type == IBUS_ATTR_TYPE_UNDERLINE)
+					{
+						is_underlined =
+							(attr->value != IBUS_ATTR_UNDERLINE_NONE) ;
+
+					}
+					else if( attr->type == IBUS_ATTR_TYPE_FOREGROUND)
+					{
+						fg_color = get_color( attr->value) ;
+					}
+					else if( attr->type == IBUS_ATTR_TYPE_BACKGROUND)
+					{
+						bg_color = get_color( attr->value) ;
+					}
+				}
 			}
 
 			if( ch.cs == ISO10646_UCS4_1)
@@ -134,9 +193,9 @@ update_preedit_text(
 							      ch.size , ch.cs ,
 							      is_biwidth , is_comb ,
 							      fg_color , bg_color ,
-							      0 , 0))
+							      0 , 1))
 				{
-					continue ;
+					goto  end ;
 				}
 
 				/*
@@ -152,10 +211,13 @@ update_preedit_text(
 			(*syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
 					      is_biwidth , is_comb ,
 					      fg_color , bg_color ,
-					      0 , 0) ;
+					      0 , 1) ;
 
-			p++ ;
-			ibus->im.preedit.filled_len++ ;
+			p ++ ;
+			ibus->im.preedit.filled_len ++ ;
+
+		end:
+			index ++ ;
 		}
 	}
 
@@ -511,4 +573,29 @@ error:
 	}
 
 	return  NULL ;
+}
+
+
+/* --- module entry point for external tools --- */
+
+im_info_t *
+im_ibus_get_info(
+	char *  locale ,
+	char *  encoding
+	)
+{
+	im_info_t *  result ;
+
+	if( ! ( result = malloc( sizeof( im_info_t))))
+	{
+		return  NULL ;
+	}
+
+	result->id = strdup( "iBus") ;
+	result->name = strdup( "iBus") ;
+	result->num_of_args = 0;
+	result->args = NULL ;
+	result->readable_args = NULL ;
+
+	return  result;
 }

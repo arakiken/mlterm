@@ -1,3 +1,9 @@
+2011-03-05  Araki Ken  <arakiken@users.sf.net>
+
+	* im_ibus.c:
+	  - im_ibus_get_info() is added.
+	  - IBusText->attrs is applied.
+
 2011-03-03  Araki Ken  <arakiken@users.sf.net>
 
 	* inputmethod/ibus: Native iBus support is added. (Experimental)
