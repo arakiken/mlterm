@@ -83,6 +83,16 @@ struct _VteTerminalPrivate
 	x_screen_scroll_event_listener_t  screen_scroll_listener ;
 	int8_t  adj_value_changed_by_myself ;
 
+	/*
+	 * Keep 'is_visible' value of vte_terminal_set_visible_bell() and
+	 * 'is_audible' value of vte_terminal_set_audible_bell() to prepare for
+	 * vte_terminal_set_audible_bell( FALSE ) and
+	 * vte_terminal_set_visible_bell( FALSE ),
+	 * because mlterm doesn't keep values of both visible and sound.
+	 */
+	int8_t  audible_bell ;
+	int8_t  visible_bell ;
+
 	GIOChannel *  io ;
 	guint  src_id ;
 
@@ -1130,7 +1140,7 @@ vte_terminal_realize(
 			reset_vte_size_member( VTE_TERMINAL(widget)) ;
 		}
 	}
-	
+
 	update_wall_picture( VTE_TERMINAL(widget)) ;
 }
 
@@ -1366,6 +1376,8 @@ vte_terminal_class_init(
 		}
 	}
 #endif
+	/* Default value of vte "audible-bell" is TRUE, while "visible-bell" is FALSE. */
+	main_config.bel_mode = BEL_SOUND ;
 
 	kik_conf_delete( conf) ;
 
@@ -1811,11 +1823,24 @@ vte_terminal_init(
 	terminal->pvt->pix_height = 0 ;
 	terminal->pvt->pic_mod = NULL ;
 
+	/* audible_bell and visible_bell member is initialized by settings of main_config. */
+	terminal->pvt->audible_bell = (main_config.bel_mode == BEL_SOUND) ;
+	terminal->pvt->visible_bell = (main_config.bel_mode == BEL_VISUAL) ;
+
 	terminal->window_title = ml_term_window_name( terminal->pvt->term) ;
 	terminal->icon_title = ml_term_icon_name( terminal->pvt->term) ;
 
+#if  0
 	gtk_widget_ensure_style( &terminal->widget) ;
-	
+#else
+	/*
+	 * XXX
+	 * I don't know why, but gtk_widget_ensure_style() doesn't apply "inner-border"
+	 * and min width/height of roxterm are not correctly set.
+	 */
+	gtk_widget_set_rc_style( &terminal->widget) ;
+#endif
+
 	reset_vte_size_member( terminal) ;
 }
 
@@ -2163,16 +2188,20 @@ vte_terminal_set_audible_bell(
 	gboolean is_audible
 	)
 {
+	terminal->pvt->audible_bell = (is_audible == TRUE) ;
+
 	if( is_audible)
 	{
-		main_config.bel_mode = BEL_SOUND ;
+		x_screen_set_config( terminal->pvt->screen , NULL , "bel_mode" , "sound") ;
+	}
+	else if( terminal->pvt->visible_bell)
+	{
+		x_screen_set_config( terminal->pvt->screen , NULL , "bel_mode" , "visual") ;
 	}
 	else
 	{
-		main_config.bel_mode = BEL_VISUAL ;
+		x_screen_set_config( terminal->pvt->screen , NULL , "bel_mode" , "none") ;
 	}
-	
-	x_screen_set_config( terminal->pvt->screen , NULL , "bel_mode" , "sound") ;
 }
 
 gboolean
@@ -2196,16 +2225,9 @@ vte_terminal_set_visible_bell(
 	gboolean  is_visible
 	)
 {
-	if( is_visible)
-	{
-		main_config.bel_mode = BEL_VISUAL ;
-	}
-	else
-	{
-		main_config.bel_mode = BEL_SOUND ;
-	}
+	terminal->pvt->visible_bell = (is_visible == TRUE) ;
 
-	x_screen_set_config( terminal->pvt->screen , NULL , "bel_mode" , "visual") ;
+	vte_terminal_set_audible_bell( terminal , ! is_visible && terminal->pvt->audible_bell) ;
 }
 
 gboolean
@@ -2285,9 +2307,6 @@ vte_terminal_set_color_foreground(
 	kik_debug_printf( KIK_DEBUG_TAG " set_color_foreground %s\n" , str) ;
 #endif
 
-	free( main_config.fg_color) ;
-	main_config.fg_color = strdup( str) ;
-
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
 		x_screen_set_config( terminal->pvt->screen , NULL , "fg_color" , str) ;
@@ -2323,9 +2342,6 @@ vte_terminal_set_color_background(
 	kik_debug_printf( KIK_DEBUG_TAG " set_color_background %s\n" , str) ;
 #endif
 
-	free( main_config.bg_color) ;
-	main_config.bg_color = strdup( str) ;
-	
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
 		x_screen_set_config( terminal->pvt->screen , NULL , "bg_color" , str) ;
@@ -2356,13 +2372,10 @@ vte_terminal_set_color_cursor(
 
 	/* #rrrrggggbbbb */
 	str = gdk_color_to_string( cursor_background) ;
-	
+
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " set_color_cursor %s\n" , str) ;
 #endif
-
-	free( main_config.cursor_bg_color) ;
-	main_config.cursor_bg_color = strdup( str) ;
 
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
@@ -2441,18 +2454,14 @@ vte_terminal_set_background_image_file(
 	kik_debug_printf( KIK_DEBUG_TAG " Setting image file %s\n" , path) ;
 #endif
 
-	free( main_config.pic_file_path) ;
-	main_config.pic_file_path = strdup( path) ;
-	
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
-		x_screen_set_config( terminal->pvt->screen , NULL ,
-			"wall_picture" , main_config.pic_file_path) ;
+		x_screen_set_config( terminal->pvt->screen , NULL , "wall_picture" , path) ;
 	}
 	else
 	{
 		free( terminal->pvt->screen->pic_file_path) ;
-		terminal->pvt->screen->pic_file_path = strdup( main_config.pic_file_path) ;
+		terminal->pvt->screen->pic_file_path = strdup( path) ;
 	}
 }
 

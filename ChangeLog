@@ -1,3 +1,16 @@
+2011-03-06  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - Members of x_main_config_t is not changed dynamically.
+	  - gtk_widget_set_rc_style is used instead of gtk_widget_ensure_style
+	    in vte_terminal_init.
+
+	* im_ibus.c:
+	  - RGB of foreground or background of IBusAttribute is not used,
+	    but if background of IBusAttribute is specified, ML_FG_COLOR and ML_BG_COLOR
+	    are reversed in update_preedit_text().
+	  - DBus functions are used directly in connection_handler(_idling).
+
 2011-03-05  Araki Ken  <arakiken@users.sf.net>
 
 	* im_ibus.c:

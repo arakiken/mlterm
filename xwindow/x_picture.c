@@ -13,6 +13,11 @@
 #include  "x_imagelib.h"
 
 
+#if  0
+#define  __DEBUG
+#endif
+
+
 /* --- static varaibles --- */
 
 static x_bg_picture_t **  bg_pics ;
@@ -75,7 +80,7 @@ create_bg_picture(
 	}
 
 #ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " New pixmap is created\n") ;
+	kik_debug_printf( KIK_DEBUG_TAG " New pixmap %ul is created.\n" , pic->pixmap) ;
 #endif
 
 	pic->ref_count = 1 ;

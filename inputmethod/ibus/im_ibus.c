@@ -48,8 +48,9 @@ static int  mod_key_debug = 0 ;
 
 /* --- static functions --- */
 
+#if  0
 static ml_color_t
-get_color(
+get_near_color(
 	u_int  rgb
 	)
 {
@@ -90,6 +91,7 @@ get_color(
 		return  ML_BLACK ;
 	}
 }
+#endif
 
 static void
 update_preedit_text(
@@ -102,39 +104,41 @@ update_preedit_text(
 {
 	im_ibus_t *  ibus ;
 	ml_char_t *  p ;
+	u_int  len ;
 	mkf_char_t  ch ;
 
 	ibus = (im_ibus_t*) data ;
-
-	if( ibus->im.preedit.filled_len == 0)
-	{
-		int  x ;
-		int  y ;
-
-		if( (*ibus->im.listener->get_spot)( ibus->im.listener->self , NULL , 0 , &x , &y))
-		{
-			ibus_input_context_set_cursor_location( ibus->context , x , y , 10 , 10) ;
-		}
-	}
-
-	ibus->im.preedit.filled_len = 0 ;
-	ibus->im.preedit.cursor_offset = cursor_pos ;
-
-	if( ( ibus->im.preedit.num_of_chars = strlen( text->text)) > 0)
+	
+	if( ( len = ibus_text_get_length( text)) > 0)
 	{
 		u_int  index ;
 
-		if( ( p = realloc( ibus->im.preedit.chars ,
-				sizeof(ml_char_t) * ibus->im.preedit.num_of_chars)) == NULL)
+		if( ibus->im.preedit.filled_len == 0)
+		{
+			/* Start preediting. */
+			int  x ;
+			int  y ;
+
+			if( (*ibus->im.listener->get_spot)(
+					ibus->im.listener->self , NULL , 0 , &x , &y))
+			{
+				ibus_input_context_set_cursor_location(
+					ibus->context , x , y , 10 , 10) ;
+			}
+		}
+		
+		if( ( p = realloc( ibus->im.preedit.chars , sizeof(ml_char_t) * len)) == NULL)
 		{
 			return ;
 		}
 
-		(*syms->ml_str_init)( ibus->im.preedit.chars = p , ibus->im.preedit.num_of_chars) ;
+		(*syms->ml_str_init)( ibus->im.preedit.chars = p ,
+				ibus->im.preedit.num_of_chars = len) ;
+		ibus->im.preedit.filled_len = 0 ;
 
 		(*ibus->parser_ibus->init)( ibus->parser_ibus) ;
 		(*ibus->parser_ibus->set_str)( ibus->parser_ibus ,
-			text->text , strlen( text->text)) ;
+				text->text , strlen( text->text)) ;
 
 		index = 0 ;
 		while( (*ibus->parser_ibus->next_char)( ibus->parser_ibus , &ch))
@@ -158,14 +162,22 @@ update_preedit_text(
 							(attr->value != IBUS_ATTR_UNDERLINE_NONE) ;
 
 					}
+				#if  0
 					else if( attr->type == IBUS_ATTR_TYPE_FOREGROUND)
 					{
-						fg_color = get_color( attr->value) ;
+						fg_color = get_near_color( attr->value) ;
 					}
 					else if( attr->type == IBUS_ATTR_TYPE_BACKGROUND)
 					{
-						bg_color = get_color( attr->value) ;
+						bg_color = get_near_color( attr->value) ;
 					}
+				#else
+					else if( attr->type == IBUS_ATTR_TYPE_BACKGROUND)
+					{
+						fg_color = ML_BG_COLOR ;
+						bg_color = ML_FG_COLOR ;
+					}
+				#endif
 				}
 			}
 
@@ -187,39 +199,43 @@ update_preedit_text(
 				is_comb = 1 ;
 			}
 
-			if( is_comb)
+			if( ! is_comb ||
+			    ! (*syms->ml_char_combine)( p - 1 , ch.ch , ch.size , ch.cs ,
+					is_biwidth , is_comb , fg_color , bg_color , 0 , 1))
 			{
-				if( (*syms->ml_char_combine)( p - 1 , ch.ch ,
-							      ch.size , ch.cs ,
-							      is_biwidth , is_comb ,
-							      fg_color , bg_color ,
-							      0 , 1))
+				/*
+				 * If char is not a combination or failed to be combined ,
+				 * it is normally appended.
+				 */
+				if( (*syms->ml_is_msb_set)( ch.cs))
 				{
-					goto  end ;
+					SET_MSB( ch.ch[0]) ;
 				}
 
-				/*
-				 * if combining failed , char is normally appended.
-				 */
+				(*syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
+						      is_biwidth , is_comb ,
+						      fg_color , bg_color ,
+						      0 , 1) ;
+
+				p ++ ;
+				ibus->im.preedit.filled_len ++ ;
 			}
 
-			if( (*syms->ml_is_msb_set)( ch.cs))
-			{
-				SET_MSB( ch.ch[0]) ;
-			}
-
-			(*syms->ml_char_set)( p , ch.ch , ch.size , ch.cs ,
-					      is_biwidth , is_comb ,
-					      fg_color , bg_color ,
-					      0 , 1) ;
-
-			p ++ ;
-			ibus->im.preedit.filled_len ++ ;
-
-		end:
 			index ++ ;
 		}
 	}
+	else
+	{
+		if( ibus->im.preedit.filled_len == 0)
+		{
+			return ;
+		}
+
+		/* Stop preediting. */
+		ibus->im.preedit.filled_len = 0 ;
+	}
+
+	ibus->im.preedit.cursor_offset = cursor_pos ;
 
 	(*ibus->im.listener->draw_preedit_str)( ibus->im.listener->self ,
 					       ibus->im.preedit.chars ,
@@ -239,12 +255,23 @@ commit_text(
 	u_char  conv_buf[256] ;
 	size_t  filled_len ;
 
-	if( strlen( text->text) == 0)
+	ibus = (im_ibus_t*) data ;
+
+	if( ibus->im.preedit.filled_len > 0)
+	{
+		/* Reset preedit */
+		ibus->im.preedit.filled_len = 0 ;
+		ibus->im.preedit.cursor_offset = 0 ;
+		(*ibus->im.listener->draw_preedit_str)( ibus->im.listener->self ,
+						       ibus->im.preedit.chars ,
+						       ibus->im.preedit.filled_len ,
+						       ibus->im.preedit.cursor_offset) ;
+	}
+
+	if( ibus_text_get_length( text) == 0)
 	{
 		return ;
 	}
-
-	ibus = (im_ibus_t*) data ;
 
 	if( ibus->term_encoding == ML_UTF8)
 	{
@@ -440,18 +467,25 @@ unfocused(
 static void
 connection_handler_idling(void)
 {
-	ibus_connection_read_write_dispatch( ibus_bus_get_connection( ibus_bus) , 0) ;
+	DBusConnection *  connection ;
+
+	connection = ibus_connection_get_connection( ibus_bus_get_connection( ibus_bus)) ;
+
+	dbus_connection_read_write( connection , 0) ;
+
+	while( ! dbus_connection_dispatch( connection)) ;
 }
 
 static void
 connection_handler(void)
 {
-	int  count ;
+	DBusConnection *  connection ;
 
-	for( count = 0 ; count < 10 ; count++)
-	{
-		ibus_connection_read_write_dispatch( ibus_bus_get_connection( ibus_bus) , 5) ;
-	}
+	connection = ibus_connection_get_connection( ibus_bus_get_connection( ibus_bus)) ;
+
+	dbus_connection_read_write( connection , 0) ;
+
+	while( ! dbus_connection_dispatch( connection)) ;
 }
 
 
@@ -487,7 +521,9 @@ im_ibus_new(
 		syms = export_syms ;
 
 		ibus_init() ;
+	#if  0
 		ibus_set_display( ":0.0") ;
+	#endif
 		ibus_bus = ibus_bus_new() ;
 
 		if( ! ibus_bus_is_connected( ibus_bus))

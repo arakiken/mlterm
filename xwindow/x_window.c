@@ -1261,6 +1261,14 @@ x_window_show(
 		size_hints.base_width = total_base_width( win) ;
 		size_hints.base_height = total_base_height( win) ;
 
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG
+			" Size hints => w %d h %d wi %d hi %d mw %d mh %d bw %d bh %d\n" ,
+			size_hints.width , size_hints.height , size_hints.width_inc ,
+			size_hints.height_inc , size_hints.min_width , size_hints.min_height ,
+			size_hints.base_width , size_hints.base_height) ;
+	#endif
+
 		if( hint & XNegative)
 		{
 			if( hint & YNegative)
@@ -1489,6 +1497,14 @@ x_window_set_normal_hints(
 	size_hints.base_width = total_base_width( root) ;
 	size_hints.base_height = total_base_height( root) ;
 	size_hints.flags = PMinSize | PResizeInc | PBaseSize ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG
+		" Size hints => w %d h %d wi %d hi %d mw %d mh %d bw %d bh %d\n" ,
+		size_hints.width , size_hints.height , size_hints.width_inc ,
+		size_hints.height_inc , size_hints.min_width , size_hints.min_height ,
+		size_hints.base_width , size_hints.base_height) ;
+#endif
 
 	XSetWMNormalHints( root->disp->display , root->my_window , &size_hints) ;
 
