@@ -318,20 +318,20 @@ x_color_cache_unload(
 
 	if( color_cache->cache_256 && -- color_cache->cache_256->ref_count == 0)
 	{
-		x_color_cache_256_t *  cache ;
+		x_color_cache_256_t *  cache_256 ;
 
-		cache = color_cache->cache_256 ;
-		for( color = 0 ; color < sizeof(cache->xcolors) / sizeof(cache->xcolors[0]) ;
-			color++)
+		cache_256 = color_cache->cache_256 ;
+		for( color = 0 ;
+		     color < sizeof(cache_256->xcolors) / sizeof(cache_256->xcolors[0]) ; color++)
 		{
-			if( cache->is_loaded[color])
+			if( cache_256->is_loaded[color])
 			{
-				x_unload_xcolor( color_cache->disp , &cache->xcolors[color]) ;
-				color_cache->is_loaded[color] = 0 ;
+				x_unload_xcolor( color_cache->disp , &cache_256->xcolors[color]) ;
+				cache_256->is_loaded[color] = 0 ;
 			}
 		}
 
-		free( cache) ;
+		free( cache_256) ;
 		color_cache->cache_256 = NULL ;
 	}
 

@@ -42,7 +42,7 @@
 #define  I_(a)  a
 #endif
 
-#if  ! ((GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 14))
+#if  (GTK_MAJOR_VERSION == 1) || ((GTK_MAJOR_VERSION == 2) && (GTK_MINOR_VERSION < 14))
 #define  gtk_adjustment_get_upper(adj)  ((adj)->upper)
 #define  gtk_adjustment_get_value(adj)  ((adj)->value)
 #define  gtk_adjustment_get_page_size(adj)  ((adj)->page_size)
@@ -162,6 +162,37 @@ static char *  false = "false" ;
 
 
 /* --- static functions --- */
+
+#if  (GTK_MAJOR_VERSION == 1) || ((GTK_MAJOR_VERSION == 2) && (GTK_MINOR_VERSION < 12))
+/* gdk_color_to_string() was not supported by gtk+ < 2.12. */
+gchar *
+gdk_color_to_string(
+	const GdkColor *  color
+	)
+{
+	gchar *  str ;
+
+	if( ( str = g_malloc( 14)) == NULL)
+	{
+		return  NULL ;
+	}
+
+	sprintf( str , "#%04x%04x%04x" , color->red , color->green , color->blue) ;
+
+	return  str ;
+}
+#endif
+
+static int
+is_initial_allocation(
+	GtkAllocation *  allocation
+	)
+{
+	/* { -1 , -1 , 1 , 1 } is default value of GtkAllocation. */
+	return  (allocation->x == -1 && allocation->y == -1 &&
+		 allocation->width == 1 && allocation->height == 1) ;
+}
+
 
 static void
 catch_child_exited(
@@ -1034,7 +1065,7 @@ update_wall_picture(
 	}
 
 end:
-	sprintf( file , "pixmap:%d" , terminal->pvt->pixmap) ;
+	sprintf( file , "pixmap:%lu" , terminal->pvt->pixmap) ;
 
 	vte_terminal_set_background_image_file( terminal , file) ;
 }
@@ -1130,9 +1161,7 @@ vte_terminal_realize(
 	 * to x_window_t or ml_term_t, so x_window_resize must be called here.
 	 */
 	if( VTE_TERMINAL(widget)->pvt->term->pty &&
-	   /* { -1 , -1 , 1 , 1 } is default value of GdkAllocation. */
-	   (widget->allocation.x != -1 || widget->allocation.y != -1 ||
-	    widget->allocation.width != 1 || widget->allocation.height != 1) )
+	    ! is_initial_allocation( &widget->allocation))
 	{
 		if( x_window_resize_with_margin( &VTE_TERMINAL(widget)->pvt->screen->window ,
 			widget->allocation.width , widget->allocation.height , NOTIFY_TO_MYSELF))
@@ -1926,7 +1955,8 @@ vte_terminal_fork_command(
 
 		vte_reaper_add_child( ml_term_get_child_pid( terminal->pvt->term)) ;
 
-		if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+		if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)) &&
+		    ! is_initial_allocation( &GTK_WIDGET(terminal)->allocation))
 		{
 			if( x_window_resize_with_margin( &terminal->pvt->screen->window ,
 				GTK_WIDGET(terminal)->allocation.width ,
@@ -2011,7 +2041,8 @@ vte_terminal_forkpty(
 
 		vte_reaper_add_child( ml_term_get_child_pid( terminal->pvt->term)) ;
 		
-		if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+		if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)) &&
+		    ! is_initial_allocation( &GTK_WIDGET(terminal)->allocation))
 		{
 			if( x_window_resize_with_margin( &terminal->pvt->screen->window ,
 				GTK_WIDGET(terminal)->allocation.width ,
@@ -2291,8 +2322,6 @@ vte_terminal_set_color_foreground(
 	const GdkColor *  foreground
 	)
 {
-	/* gdk_color_to_string() was not supported. */
-#if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 12)
 	gchar *  str ;
 
 	if( ! foreground)
@@ -2317,7 +2346,6 @@ vte_terminal_set_color_foreground(
 	}
 
 	g_free( str) ;
-#endif
 }
 
 void
@@ -2326,8 +2354,6 @@ vte_terminal_set_color_background(
 	const GdkColor *  background
 	)
 {
-	/* gdk_color_to_string() was not supported. */
-#if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 12)
 	gchar *  str ;
 
 	if( ! background)
@@ -2345,6 +2371,11 @@ vte_terminal_set_color_background(
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
 		x_screen_set_config( terminal->pvt->screen , NULL , "bg_color" , str) ;
+
+		if( terminal->pvt->image && terminal->pvt->pic_mod->alpha < 255)
+		{
+			update_wall_picture( terminal) ;
+		}
 	}
 	else
 	{
@@ -2352,7 +2383,6 @@ vte_terminal_set_color_background(
 	}
 
 	g_free( str) ;
-#endif
 }
 
 void
@@ -2361,8 +2391,6 @@ vte_terminal_set_color_cursor(
 	const GdkColor *  cursor_background
 	)
 {
-	/* gdk_color_to_string() was not supported. */
-#if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 12)
 	gchar *  str ;
 
 	if( ! cursor_background)
@@ -2387,7 +2415,6 @@ vte_terminal_set_color_cursor(
 	}
 
 	g_free( str) ;
-#endif
 }
 
 void
@@ -2421,9 +2448,14 @@ vte_terminal_set_default_colors(
 void
 vte_terminal_set_background_image(
 	VteTerminal *  terminal ,
-	GdkPixbuf *  image		/* can be NULL */
+	GdkPixbuf *  image		/* can be NULL and same as current terminal->pvt->image */
 	)
 {
+	if( terminal->pvt->image == image)
+	{
+		return ;
+	}
+	
 	if( terminal->pvt->image)
 	{
 		g_object_unref( terminal->pvt->image) ;
@@ -2453,6 +2485,18 @@ vte_terminal_set_background_image_file(
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " Setting image file %s\n" , path) ;
 #endif
+
+	if( terminal->pvt->image &&
+	    /*
+	     * Don't unref terminal->pvt->image if path is
+	     * "pixmap:<pixmap id>" (Ex. the case of vte_terminal_set_background_image_file()
+	     * being called from update_wall_picture().)
+	     */
+	    (strlen(path) <= 7 || strncmp( path , "pixmap:" , 7) != 0))
+	{
+		g_object_unref( terminal->pvt->image) ;
+		terminal->pvt->image = NULL ;
+	}
 
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
@@ -2517,7 +2561,7 @@ vte_terminal_set_opacity(
 	)
 {
 	u_int8_t  alpha ;
-	
+
 	alpha = 255 - ((opacity >> 8) & 0xff) ;
 
 	/* XXX (roxterm always sets opacity 0xffff. roxterm changes saturation instead.) */
@@ -2530,7 +2574,7 @@ vte_terminal_set_opacity(
 	{
 		char  value[DIGIT_STR_LEN(u_int8_t)] ;
 
-		sprintf( value , "%d" , alpha) ;
+		sprintf( value , "%d" , (int)alpha) ;
 
 		x_screen_set_config( terminal->pvt->screen , NULL , "alpha" , value) ;
 		update_wall_picture( terminal) ;

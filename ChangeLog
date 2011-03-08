@@ -1,3 +1,22 @@
+2011-03-09  Araki Ken  <arakiken@users.sf.net>
+
+	* im_iiimf_aux.c: Compilation error is fixed.
+
+	* x_color_cache.c: x_color_cache_256_t.is_loaded is cleared
+	  in unloading 256 colors in x_color_cache_unload() instead of
+	  x_color_cache_t.is_loaded.
+
+	* vte.c:
+	  - Implementation of gdk_color_to_string() is added for gtk+ < 2.12.
+	  - Checking if GtkWidget.allocation is a initial one or not is added
+	    before x_window_resize() in vte_terminal_fork_command and vte_terminal_forkpty.
+	  - If a wall picture is set and 'alpha' option is less than 255,
+	    run-time change of 'bg_color' option automatically causes
+	    alpha blending of wall picture.
+
+	* x_screen.c: If 'use_transbg' option is unset, screen->pic_mod.alpha
+	  is never reset.
+
 2011-03-06  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:

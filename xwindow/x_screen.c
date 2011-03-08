@@ -4337,9 +4337,6 @@ change_transparent_flag(
 	}
 	else
 	{
-		/* Reset alpha */
-		screen->pic_mod.alpha = 255 ;
-
 		x_window_unset_transparent( &screen->window) ;
 		set_wall_picture( screen) ;
 	}

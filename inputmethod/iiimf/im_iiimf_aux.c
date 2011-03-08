@@ -1134,7 +1134,7 @@ service_display(
 		return  NULL ;
 	}
 
-	return  ((x_window_t *)aux->iiimf->im.listener->self)->display ;
+	return  ((x_window_t *)aux->iiimf->im.listener->self)->disp->display ;
 }
 
 static Window
@@ -1458,7 +1458,7 @@ service_screen_number(
 		return  -1 ;
 	}
 
-	return  ((x_window_t *)aux->iiimf->im.listener->self)->screen ;
+	return  ((x_window_t *)aux->iiimf->im.listener->self)->disp->screen ;
 }
 
 static int
@@ -1491,7 +1491,7 @@ service_point_screen(
 	point->x = (x > SHRT_MAX) ? SHRT_MAX : x ;
 	point->y = (y > SHRT_MAX) ? SHRT_MAX : y ;
 
-	return  ((x_window_t *)aux->iiimf->im.listener->self)->screen ;
+	return  ((x_window_t *)aux->iiimf->im.listener->self)->disp->screen ;
 }
 
 static int
