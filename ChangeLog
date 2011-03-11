@@ -1,3 +1,10 @@
+2011-03-11  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: palette settings are reflected in vte_terminal_set_colors().
+
+	* x_screen.c: "--initstr" option is prohibited in "mlclient"
+	  configuration protocol.
+
 2011-03-09  Araki Ken  <arakiken@users.sf.net>
 
 	* im_iiimf_aux.c: Compilation error is fixed.

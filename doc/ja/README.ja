@@ -726,7 +726,7 @@ comment $Id$
 	文字集合ごとに適切な encoding を自動的に末尾に追記しますので、注意して
 	ください。
 	また、DEFAULT を指定したフォント名は、Input Method で使用するフォント
-	(FontSet) には影響しないので、注意してください。
+	(FontSet) には影響しません。
 
 	e.g.)
 	DEFAULT = -kochi-mincho-medium-*--%d-*-;12,-kochi-gothic-medium-*--12-*-
@@ -756,6 +756,29 @@ comment $Id$
         アンチエイリアス中は、font , vfont から適当なフォントを探します。
         ただし、縦用フォントについては、tfont , taafont ではなく、font で指定し
         たフォントが使用されます。
+
+        なお、フォント指定については、Ctrl+右ボタンで表示される設定画面の
+        "フォント" タブの "Select" ボタンで選択することができます("Select" ボタン
+        を押下したときに、XLFD か Xft のどちらの選択画面が表示されるかは、"Xft"
+        チェックボックスがチェックされているかどうかによります。)。
+
+        例えば、"DEFAULT" として、
+        Font:       => fixed (misc)
+        Font Style: => medium [C]
+        Size:       => 14
+        を選択すると、次のように設定されます。
+
+        DEFAULT = -misc-fixed-medium-r-normal-*-14-*-*-*-c-*-
+        (この結果、fontsize オプションを変更しても常に 14 pixel のフォントが
+        表示されることになるため、注意してください。)
+
+	また、"ISO10646_1" として、
+	Font:       => fixed (misc)
+	Font Style: => medium [C]
+	Size:       => 20
+	を選択すると、次のように設定されます。
+
+	ISO10646_UCS4_1 = -misc-fixed-medium-r-normal--20-200-75-75-c-100-iso10646-1
 
     o color
       新しい色名を定義したり、または、既存の色名の RGB 値を変更することができ

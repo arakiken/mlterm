@@ -4729,8 +4729,12 @@ set_config(
 	char *  value		/* can be NULL */
 	)
 {
-	/* Executing value of "-e" option is dangerous in case 'cat dangerousfile'. */
-	if( strstr( key , "mlclient") && strstr( key , "-e "))
+	/*
+	 * Executing value of "-e" or "--initstr" option is dangerous
+	 * in case 'cat dangerousfile'.
+	 */
+	if( strstr( key , "mlclient") &&
+	    (strstr( key , "-e ") || strstr( key , "-initstr ") || strstr( key , "-#")))
 	{
 		kik_warn_printf( "\"%s\" is prohibited in configuration protocol.\n" , key) ;
 

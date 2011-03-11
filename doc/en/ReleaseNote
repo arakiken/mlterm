@@ -4,15 +4,17 @@ ver 3.0.3
   option is not specified in configure), wall picture, icon picture
   and pixmap_engine are supported by an external program (mlimgdisplay)
   which uses gdk-pixbuf.
-* Unsupported but valid formatted escape / CSI sequence is correctly ignored.
-  (Thanks to Iwamoto Kouichi san)
 * Support "wall_picture" option partially (BMP format alone) in win32.
+* Support palette settings in libvte.
 * libvte uses dpi of gdk for xft font instead of manually calculated one
   by DisplayWidthMM (,which can return wrong value in vmware) etc.
+* Unsupported but valid formatted escape / CSI sequence is correctly ignored.
+  (Thanks to Iwamoto Kouichi san)
 * Other bug fixes:
   Fix wrong drawing of background of DEC Special characters. (Thanks to Iwamoto Kouichi san)
   Unhighlight background of bold characters. (Thanks to Iwamoto Kouichi san)
-  #3158963 (Thanks to Jyun-Yan You)
+  SF Bug #3158963 (Thanks to Jyun-Yan You)
+  SF Bug #3053107 (Thanks to Nezmer, Thanks to Iwamoto Kouichi san)
 
 ver 3.0.2
 * Drop imlib, gdk-pixbuf1 and gtk-1.x support.
@@ -26,9 +28,9 @@ ver 3.0.2
 * Support execution of command like "mlclient -e w3m" in "button3_behavior" option.
 * Other bug fixes:
   "ESC [ r" and "ESC c" reset scrolling region. (Thanks to Iwamoto Kouichi san)
-  #3072833 (Thanks to Andreas Metzler)
-  #3051467 (Thanks to David Kolovratnik)
-  #3014219 (Thanks to Khaled Hosny)
+  SF Bug #3072833 (Thanks to Andreas Metzler)
+  SF Bug #3051467 (Thanks to David Kolovratnik)
+  SF Bug #3014219 (Thanks to Khaled Hosny)
 
 ver 3.0.1
 * Improvements for performance of changing 256 colors by
@@ -42,7 +44,7 @@ ver 3.0.1
 * Merge SF patches:
   #2988801, #2987646 (Thanks to Ahmed El-Mahmoudy)
 * Other bug fixes:
-  #2818015(partly),#2818018 (Thanks to Thomas Wolff)
+  SF Bug #2818015(partly),#2818018 (Thanks to Thomas Wolff)
 
 ver 3.0.0
 * Support 256 colors. (Thanks to Shinichiro Hamaji san)
@@ -65,7 +67,7 @@ ver 3.0.0
   #        (Thanks to Frederic Heulin)
   #2879800 (Thanks to Kouichi Kusanagi san)
 * Other bug fixes:
-  #1999220 (Thanks to Christian Biere)
+  SF Bug #1999220 (Thanks to Christian Biere)
 
 ver 2.9.4
 * Arabic translation of mlconfig [Khaled Hosny]

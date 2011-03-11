@@ -348,16 +348,34 @@ __exit(
 	)
 {
 #ifdef  KIK_DEBUG
-	VteTerminal *  terminal ;
-	
+	u_int  count ;
+
 #if  1
 	kik_mem_dump_all() ;
 #endif
 
-	terminal = p ;
+	ml_free_word_separators() ;
 
-	gtk_widget_destroy( GTK_WIDGET(terminal)) ;
-	
+	/*
+	 * Don't loop from 0 to dis.num_of_roots owing to processing inside x_display_remove_root.
+	 */
+	for( count = disp.num_of_roots ; count > 0 ; count--)
+	{
+		if( IS_MLTERM_SCREEN( disp.roots[count - 1]))
+		{
+			gtk_widget_destroy(
+				GTK_WIDGET( VTE_WIDGET((x_screen_t*)disp.roots[count - 1]))) ;
+		}
+		else
+		{
+			x_display_remove_root( &disp , disp.roots[count - 1]) ;
+		}
+	}
+	free( disp.roots) ;
+	x_gc_delete( disp.gc) ;
+	x_xim_display_closed( disp.display) ;
+	x_picture_display_closed( disp.display) ;
+
 	ml_term_manager_final() ;
 	kik_locale_final() ;
 	x_main_config_final( &main_config) ;
@@ -365,15 +383,18 @@ __exit(
 	x_shortcut_final( &shortcut) ;
 	x_termcap_final( &termcap) ;
 	x_xim_final() ;
-	x_imagelib_display_closed( disp.display) ;
 
 	kik_alloca_garbage_collect() ;
 
 	kik_msg_printf( "reporting unfreed memories --->\n") ;
 	kik_mem_free_all() ;
 #endif
-	
+
+#if  1
+	exit(1) ;
+#else
 	gtk_main_quit() ;
+#endif
 }
 
 
@@ -849,7 +870,7 @@ vte_terminal_filter(
 		{
 			static pid_t  config_menu_pid = 0 ;
 
-			if( ! terminal || /* SCIM etc window */ 
+			if( ! terminal || /* SCIM etc window */
 			    /* XFilterEvent in x_window_receive_event. */
 			    ((XEvent*)xevent)->xany.window != disp.roots[count]->my_window)
 			{
@@ -2434,6 +2455,57 @@ vte_terminal_set_colors(
 	glong palette_size
 	)
 {
+	if( palette_size != 0 && palette_size != 8 && palette_size != 16 &&
+	    ( palette_size < 24 || 256 < palette_size))
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " palette_size %d is illegal\n" , palette_size) ;
+	#endif
+
+		return ;
+	}
+
+	if( palette_size >= 8)
+	{
+		ml_color_t  color ;
+		x_color_config_t *  color_config ;
+		int  need_redraw = 0 ;
+
+		if( foreground == NULL)
+		{
+			foreground = &palette[7] ;
+		}
+		if( background == NULL)
+		{
+			background = &palette[0] ;
+		}
+
+		color_config = terminal->pvt->screen->color_man->color_cache->color_config ;
+
+		for( color = 0 ; color < palette_size ; color++)
+		{
+			gchar *  rgb ;
+			char *  name ;
+
+			rgb = gdk_color_to_string( palette + color) ;
+			name = ml_get_color_name( color) ;
+
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Setting rgb %s=%s\n" , name , rgb) ;
+		#endif
+
+			need_redraw |= x_customize_color_file( color_config , name , rgb , 0) ;
+
+			g_free( rgb) ;
+		}
+
+		if( need_redraw && GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+		{
+			x_color_cache_unload_all() ;
+			x_screen_reset_view( terminal->pvt->screen) ;
+		}
+	}
+
 	vte_terminal_set_color_foreground( terminal , foreground) ;
 	vte_terminal_set_color_background( terminal , background) ;
 }
