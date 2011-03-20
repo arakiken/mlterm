@@ -574,10 +574,23 @@ x_display_own_selection(
 
 int
 x_display_clear_selection(
-	x_display_t *  disp ,
+	x_display_t *  disp ,	/* NULL means all selection owner windows. */
 	x_window_t *  win
 	)
 {
+	if( disp == NULL)
+	{
+		u_int  count ;
+
+		for( count = 0 ; count < num_of_displays ; count++)
+		{
+			x_display_clear_selection( displays[count] ,
+				displays[count]->selection_owner) ;
+		}
+
+		return  1 ;
+	}
+
 	if( disp->selection_owner == NULL || disp->selection_owner != win)
 	{
 		return  0 ;

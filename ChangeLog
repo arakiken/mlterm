@@ -1,3 +1,22 @@
+2011-03-20  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.0.3 released.
+	  (tag "rel-3_0_3")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.0.3
+
+	* configure: re-generated
+
+	* man/mlterm.1, doc/en/README.win32, doc/ja/README.win32, README.ja: Updated
+
+	* win32/setup-msys.bat: "set CYGWIN=tty" is added.
+
+	* x_term_manager.c, x_window.c: "use_clipboard" option which enables CLIPBOARD
+	  selection (not only PRIMARY selection) is added.
+
+	* tool/mlconfig/main.c, mc_flags.c: "use_clipboard" option is added.
+
 2011-03-11  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: palette settings are reflected in vte_terminal_set_colors().

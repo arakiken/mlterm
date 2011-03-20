@@ -29,6 +29,7 @@
  * Not cached because Atom may differ on each display
  */
 
+#define  XA_CLIPBOARD(display)  (XInternAtom(display , "CLIPBOARD" , False))
 #define  XA_COMPOUND_TEXT(display)  (XInternAtom(display , "COMPOUND_TEXT" , False))
 #define  XA_TARGETS(display)  (XInternAtom(display , "TARGETS" , False))
 #ifdef  DEBUG
@@ -89,6 +90,7 @@ typedef struct {
 static int  click_interval = 250 ;	/* millisecond, same as xterm. */
 /* ParentRelative isn't used for transparency by default */
 static int  use_inherit_transparent = 0 ;
+static int  use_clipboard = 0 ;
 
 
 /* --- static functions --- */
@@ -3043,6 +3045,35 @@ x_window_draw_line(
 }
 
 int
+x_set_clipboard_selection(
+	int  use_it
+	)
+{
+	if( use_clipboard == use_it)
+	{
+		return  0 ;
+	}
+
+	use_clipboard = use_it ;
+
+	/*
+	 * 'is_sel_owner' member of all x_window_t is reset.
+	 * If 'is_sel_owner' is not reset and value of 'use_clipboard' option
+	 * is changed from false to true dynamically,
+	 * x_window_set_selection_owner() returns before calling XSetSelectionOwner().
+	 */
+	x_display_clear_selection( NULL , NULL) ;
+
+	return  1 ;
+}
+
+int
+x_is_using_clipboard_selection(void)
+{
+	return  use_clipboard ;
+}
+
+int
 x_window_set_selection_owner(
 	x_window_t *  win ,
 	Time  time
@@ -3051,13 +3082,28 @@ x_window_set_selection_owner(
 	if( win->is_sel_owner)
 	{
 		/* Already owner */
-		
+
 		return  1 ;
 	}
-	
-	XSetSelectionOwner( win->disp->display , XA_PRIMARY , win->my_window , time) ;
 
-	if( win->my_window != XGetSelectionOwner( win->disp->display , XA_PRIMARY))
+	XSetSelectionOwner( win->disp->display , XA_PRIMARY , win->my_window , time) ;
+	if( use_clipboard)
+	{
+		XSetSelectionOwner( win->disp->display , XA_CLIPBOARD(win->disp->display) ,
+			win->my_window , time) ;
+	}
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " XA_PRIMARY => %lu, XA_CLIPBOARD => %lu (mywin %lu)\n" ,
+		XGetSelectionOwner( win->disp->display , XA_PRIMARY) ,
+		XGetSelectionOwner( win->disp->display , XA_CLIPBOARD(win->disp->display)) ,
+		win->my_window) ;
+#endif
+
+	if( win->my_window != XGetSelectionOwner( win->disp->display , XA_PRIMARY) &&
+	    ( ! use_clipboard ||
+	      win->my_window != XGetSelectionOwner( win->disp->display ,
+					XA_CLIPBOARD(win->disp->display))) )
 	{
 		return  0 ;
 	}
@@ -3125,7 +3171,8 @@ x_window_send_selection(
 			 */
 			req_ev->property = req_ev->target;
 		}
-		if( req_ev->property != None){
+		if( req_ev->property != None)
+		{
 			XChangeProperty( win->disp->display , req_ev->requestor ,
 				req_ev->property , sel_type ,
 				sel_format , PropModeReplace , sel_data , sel_len) ;

@@ -1709,6 +1709,7 @@ x_term_manager_init(
 	u_int  min_font_size ;
 	u_int  max_font_size ;
 	char *  invalid_msg = "%s %s is not valid.\n" ;
+	char *  true = "true" ;
 
 	if( ! x_color_config_init( &color_config))
 	{
@@ -1744,6 +1745,15 @@ x_term_manager_init(
 	}
 	
 	x_prepare_for_main_config( conf) ;
+
+	/*
+	 * Following options are not possible to specify as arguments of mlclient.
+	 * 1) Options which are used only when mlterm starts up and which aren't
+	 *    changed dynamically. (e.g. "startup_screens")
+	 * 2) Options which change status of all ptys or windows. (Including ones
+	 *    which are possible to change dynamically.)
+	 *    (e.g. "button3_behavior")
+	 */
 
 	kik_conf_add_opt( conf , '@' , "screens" , 0 , "startup_screens" ,
 		"number of screens to open in start up [1]") ;
@@ -1791,6 +1801,8 @@ x_term_manager_init(
 		"[menu1]"
 	#endif
 		) ;
+	kik_conf_add_opt( conf , '\0' , "clip" , 1 , "use_clipboard" ,
+		"use CLIPBOARD (not only PRIMARY) selection. [false]") ;
 
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
 	{
@@ -1887,7 +1899,7 @@ x_term_manager_init(
 
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
 	{
-		if( strcmp( value , "true") == 0)
+		if( strcmp( value , true) == 0)
 		{
 			x_compose_dec_special_font() ;
 		}
@@ -1895,7 +1907,7 @@ x_term_manager_init(
 
 #ifdef  USE_TYPE_XFT
 	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")) == NULL ||
-		strcmp( value , "true") == 0)
+		strcmp( value , true) == 0)
 	{
 		ml_use_cp932_ucs_for_xft() ;
 	}
@@ -1996,6 +2008,14 @@ x_term_manager_init(
 	if( ( value = kik_conf_get_value( conf , "button3_behavior")))
 	{
 		x_set_button3_behavior( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_clipboard")))
+	{
+		if( strcmp( value , true) == 0)
+		{
+			x_set_clipboard_selection( 1) ;
+		}
 	}
 
 

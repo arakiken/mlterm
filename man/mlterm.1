@@ -531,6 +531,9 @@ Use m17n library in Oriya using ITRANS method.
 \-\-im=scim
 Use SCIM.
 .TP
+\-\-im=ibus
+Use IBus.
+.TP
 \-\-im=none
 Don't use input method.
 .RE
@@ -562,6 +565,10 @@ menu2: open external configurator of conf_menu_path_2 option.
 menu3: open external configurator of conf_menu_path_3 option.
 or command string like "mlclient -e w3m"
 .fi
+.TP
+\fB\-\-clip\fR(=\fIbool\fR)
+Whether to enable CLIPBOARD (not only PRIMARY) selection.
+The default is \fBfalse\fR.
 
 .\" ********************************************************************
 .SH GUI CONFIGURATOR
@@ -676,6 +683,16 @@ Vertical mode
 Vertical writing mode. (\fB\-G\fR, \fB\-\-vertical\fR)
 Line space
 Specify number of extra dots between lines. (\fB\-o\fR, \fB\-\-lsp\fR) 
+.TP
+Font name
+Specify XLFD or Xft font for character sets.
+"Select" button shows a dialog to choose it.
+.TP
+Line space
+Line space in pixel. (\fB\-o\fR, \fB\-\-lsp\fR)
+.TP
+Letter space
+Letter space in pixel. (\fB\-\-csp\fR)
 .TP
 Width ratio
 Specify actual screen width. (\fB\-1\fR, \fB\-\-wscr\fR) 
@@ -1069,7 +1086,7 @@ Support Big5 CTEXT bugs (which exist in XFree86 4.1.0 or before).
 \fBborderless=\fIbool\fR (\fB\-&\fR, \fB\-\-borderless\fR) 
 Don't draw window decorations.
 .TP
-\fBbutton3_behavior=\fIvalue\fR
+\fBbutton3_behavior=\fIvalue\fR (\fB\-\-button3\fR)
 Specify behavior in pressing button3.
 .TP
 \fBcol_size_of_width_a=\fIvalue\fR (\fB\-a\fR, \fB\-\-ac\fR) 
@@ -1223,6 +1240,9 @@ Rendering engine for drawing fonts.
 .TP
 \fBuse_anti_alias=\fIbool\fR (\fB\-A\fR, \fB\-\-aa\fR) 
 Use anti alias font.
+.TP
+\fBuse_clipboard=\fIbool\fR (\fB\-\-clip\fR) 
+Use CLIPBOARD (not only PRIMARY) selection.
 .TP
 \fBuse_bidi=\fIbool\fR (\fB\-D\fR, \fB\-\-bi\fR) 
 Use BiDi rendering on UTF8 encoding.

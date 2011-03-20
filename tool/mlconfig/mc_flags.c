@@ -30,7 +30,8 @@ static char *configname[MC_FLAG_MODES] = {
 	"receive_string_via_ucs",
 	"use_multi_column_char",
 	"use_bidi" ,
-	"col_size_of_width_a"
+	"col_size_of_width_a" ,
+	"use_clipboard"
 };
 
 static char *label[MC_FLAG_MODES] = {
@@ -42,7 +43,8 @@ static char *label[MC_FLAG_MODES] = {
 	N_("Process received strings via Unicode"),
 	N_("Fullwidth = 2 (or 1) logical column(s)"),
 	N_("Bidi (UTF8 only)"),
-	N_("Ambiguouswidth = fullwidth (UTF8 only)")
+	N_("Ambiguouswidth = fullwidth (UTF8 only)"),
+	N_("CLIPBOARD Selection")
 };
 
 static GtkWidget *widget[MC_FLAG_MODES];

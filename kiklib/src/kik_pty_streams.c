@@ -63,7 +63,7 @@ kik_pty_fork(
 #else
 	*master = open( "/dev/ptmx", O_RDWR | O_NOCTTY, 0);
 #endif
-	if( *master  < 0)
+	if( *master < 0)
 	{
 		kik_msg_printf( "Unable to open a master pseudo-terminal device.\n") ;
 		return  -1;
@@ -230,7 +230,13 @@ kik_pty_fork(
 	{
 		/* child */
 
-	#if  defined(__MSYS__)
+	#ifdef  __MSYS__
+		/*
+		 * XXX
+		 * I don't know why but following hack doesn't effect in MSYS/Windows7.
+		 * Set "CYGWIN=tty" environmental variable in msys.bat instead.
+		 */
+	#if  0
 		/*
 		 * XXX
 		 * I don't know why but FreeConsole() is called in setsid()
@@ -248,7 +254,8 @@ kik_pty_fork(
 			}
 		}
 	#endif
-	
+	#endif
+
 		close(*master) ;
 
 	#ifdef HAVE_SETSID

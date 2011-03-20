@@ -59,6 +59,7 @@ Memo about WIN32 native GUI.
 * Start
   (Built with MSYS-DTK or Cygwin)
   set HOME=c:\msys\...\home\...
+  set CYGWIN=tty
   mlterm.exe (options...) -e /bin/sh --login -i
 
   (Built with MinGW or Cygwin(-mno-cygwin))

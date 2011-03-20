@@ -95,6 +95,7 @@ update(
     mc_update_flag_mode(MC_FLAG_MCOL);
     mc_update_flag_mode(MC_FLAG_BIDI);
     mc_update_flag_mode(MC_FLAG_AWIDTH);
+    mc_update_flag_mode(MC_FLAG_CLIPBOARD);
 
     mc_flush(io) ;
 
@@ -578,6 +579,11 @@ show(void)
 
 
 	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_AWIDTH)))
+	    return 0;
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
+
+	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_CLIPBOARD)))
 	    return 0;
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);

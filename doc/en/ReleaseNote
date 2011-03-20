@@ -10,6 +10,8 @@ ver 3.0.3
   by DisplayWidthMM (,which can return wrong value in vmware) etc.
 * Unsupported but valid formatted escape / CSI sequence is correctly ignored.
   (Thanks to Iwamoto Kouichi san)
+* Support "use_clipboard" option which enables CLIPBOARD selection not only
+  PRIMARY selection.
 * Other bug fixes:
   Fix wrong drawing of background of DEC Special characters. (Thanks to Iwamoto Kouichi san)
   Unhighlight background of bold characters. (Thanks to Iwamoto Kouichi san)

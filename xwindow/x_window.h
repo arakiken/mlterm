@@ -335,6 +335,10 @@ int  x_window_draw_rect_frame( x_window_t *  win , int  x1 , int  y1 , int  x2 ,
 
 int  x_window_draw_line( x_window_t *  win, int  x1, int  y1, int  x2, int  y2) ;
 
+int  x_set_clipboard_selection( int  use_it) ;
+
+int  x_is_using_clipboard_selection( void) ;
+
 int  x_window_set_selection_owner( x_window_t *  win , Time  time) ;
 
 int  x_window_string_selection_request( x_window_t *  win , Time  time) ;

@@ -457,7 +457,12 @@ parse_escape(
 						" illegal ISO2022 designation char %c\n" , to_GN) ;
 				#endif
 
+					/* No increment in case VT100 sequence like "ESC # 8" */
+				#if  0
 					mkf_parser_increment( iso2022_parser) ;
+				#else
+					mkf_parser_reset( iso2022_parser) ;
+				#endif
 
 					return  0 ;
 				}

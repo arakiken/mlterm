@@ -156,9 +156,9 @@ comment $Id$
     (see doc/ja/README.xim)
 
   o インプットメソッド プラグイン
-    IIIMF、uim、m17n library、scim に対応しています。プラグインとして使用時だ
-    けロードされます。マルチXIMと同様に動的変更が可能で端末のエンコーディング
-    に依存しません。
+    IIIMF、uim、m17n library、scim、ibus に対応しています。プラグインとして使用
+    時だけロードされます。マルチXIMと同様に動的変更が可能で端末のエンコーディン
+    グに依存しません。
 
   o プロポーショナルフォント
     プロポーショナルフォントも使用できます。
@@ -348,7 +348,12 @@ comment $Id$
 
       -- Font 関連 --
       o fontsize  (*16*) (#)
-        デフォルトフォントサイズ
+        フォントサイズ
+        なお、例えば、(tv)font 設定ファイルで、
+	DEFAULT=-kochi-mincho-medium-*--14-*-iso8859-1
+	のように、特定のサイズ(上記例では 14 pixel)のフォントをデフォルトとして
+	指定した場合には、fontsize オプションを変更しても、フォントサイズは(上記
+	例では 14 pixel のまま)変わらなくなるため、注意してください。
 
       o font_size_range  (*6-30*)
         変更可能なフォントサイズの範囲
@@ -471,7 +476,7 @@ comment $Id$
 	また、type_engine=xcore で letter_space に 1 以上の値を指定すると、
 	描画パフォーマンスが大幅に低下します。
 
-      o borderless (true/*false*) (#)
+      o borderless (true/*false*)
         Window Manager の飾りを外す。
 
       -- その他 --
@@ -590,6 +595,9 @@ comment $Id$
 	また、"mlclient -e w3m" のようにコマンド文字列を指定すると、領域選択
 	した文字列を引数に、指定したコマンドを実行させることができます。
 
+      o use_clipboard (true/*false*)
+        領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
+
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
@@ -644,7 +652,7 @@ comment $Id$
 
         例えば、
 
-        ISO8859_1 = -kochi-mincho-medium-*-%d-*-iso8859-1;10,a10;
+        ISO8859_1 = -kochi-mincho-medium-*--%d-*-iso8859-1;10,a10;
 
         このように指定すると、10 point を除くすべてのサイズで東風フォントを使
         用し、 10 point については、a10 フォントを使用することができます。
@@ -985,9 +993,10 @@ comment $Id$
        --im=value      : input_method
        --parent=value  : parent_window
        --csp=value     : letter_space
-       --depth=value   : depth
+       --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
-       --button3=value : button3_behavior
+       --button3=value : button3_behavior (X)
+       --clip(=bool)   : use_clipboard (X)
 
     -e ... : 指定したコマンドを起動
 

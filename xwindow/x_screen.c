@@ -91,9 +91,30 @@ enum
  */
 static int  button3_open = 0 ;
 static char *  button3_command ;
+static char *  true = "true" ;
+static char *  false = "false" ;
 
 
 /* --- static functions --- */
+
+static int
+true_or_false(
+	char *  str
+	)
+{
+	if( strcmp( str , true) == 0)
+	{
+		return  1 ;
+	}
+	else if( strcmp( str , false) == 0)
+	{
+		return  0 ;
+	}
+	else
+	{
+		return  -1 ;
+	}
+}
 
 static int
 convert_row_to_y(
@@ -4756,8 +4777,6 @@ get_config(
 	ml_term_t *  term ;
 	char *  value ;
 	char  digit[DIGIT_STR_LEN(u_int) + 1] ;
-	char *  true = "true" ;
-	char *  false = "false" ;
 	char  cwd[PATH_MAX] ;
 
 	screen = p ;
@@ -5178,6 +5197,17 @@ get_config(
 	#else
 		value = "xlib" ;
 	#endif
+	}
+	else if( strcmp( key , "use_clipboard") == 0)
+	{
+		if( x_is_using_clipboard_selection())
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
 	}
 	else if( strlen(key) >= 13 && strncmp( key , "selected_text" , 13) == 0)
 	{
@@ -7365,9 +7395,6 @@ x_screen_set_config(
 	char *  value		/* can be NULL */
 	)
 {
-	char *  true = "true" ;
-	char *  false = "false" ;
-
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
 #endif
@@ -7592,15 +7619,7 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
+		if( ( flag = true_or_false( value)) == -1)
 		{
 			return ;
 		}
@@ -7611,15 +7630,7 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
+		if( ( flag = true_or_false( value)) == -1)
 		{
 			return ;
 		}
@@ -7632,15 +7643,7 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
+		if( ( flag = true_or_false( value)) == -1)
 		{
 			return ;
 		}
@@ -7651,15 +7654,7 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
+		if( ( flag = true_or_false( value)) == -1)
 		{
 			return ;
 		}
@@ -7791,15 +7786,7 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
+		if( ( flag = true_or_false( value)) == -1)
 		{
 			return ;
 		}
@@ -7821,15 +7808,7 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
+		if( ( flag = true_or_false( value)) == -1)
 		{
 			return ;
 		}
@@ -7848,15 +7827,7 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
+		if( ( flag = true_or_false( value)) == -1)
 		{
 			return ;
 		}
@@ -7946,15 +7917,7 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( strcmp( value , true) == 0)
-		{
-			flag = 1 ;
-		}
-		else if( strcmp( value , false) == 0)
-		{
-			flag = 0 ;
-		}
-		else
+		if( ( flag = true_or_false( value)) == -1)
 		{
 			return ;
 		}
@@ -7968,6 +7931,17 @@ x_screen_set_config(
 	else if( strcmp( key , "word_separators") == 0)
 	{
 		ml_set_word_separators( value) ;
+	}
+	else if( strcmp( key , "use_clipboard") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) == -1)
+		{
+			return ;
+		}
+
+		x_set_clipboard_selection( flag) ;
 	}
 	else if( strcmp( key , "paste") == 0)
 	{

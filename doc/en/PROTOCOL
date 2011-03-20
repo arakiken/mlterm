@@ -23,7 +23,7 @@ version 20091211
                      iscii_lang | use_dynamic_comb | cursor_fg_color |
                      cursor_bg_color | open_pty | open_screen | select_pty |
                      snapshot | gen_proto_challenge | icon_path | logging_vt_seq |
-		     title | word_separators | button3_behavior | paste |
+		     title | word_separators | button3_behavior | paste | use_clipboard |
 		     mlclient <prefix options> <options> | mlclientx <prefix options> <options>
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
@@ -35,7 +35,7 @@ version 20091211
 		     scrollbar_mode | use_multi_column_char |
                      col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
                      iscii_lang | use_dynamic_comb | rows | cols |
-                     cursor_fg_color | cursor_bg_color | pty_list | pty_name
+                     cursor_fg_color | cursor_bg_color | pty_list | pty_name | use_clipboard |
 		     icon_path | logging_vt_seq | selected_text(:encoding) | gui
 
   value            = <values for each key>

@@ -76,6 +76,7 @@ WIN32 native GUI 対応に関するメモ
   
   (MSYS-DTK or Cygwin でビルドした場合)
   set HOME=c:\msys\...\home\...
+  set CYGWIN=tty
   mlterm.exe (options...) -e /bin/sh --login -i
 
   (MinGW or Cygwin(-mno-cygwin) でビルドした場合)
@@ -137,3 +138,9 @@ WIN32 native GUI 対応に関するメモ
   o mlterm-menu は、MinGW でビルドする場合には win32 native の GTK+ と、
     Cygwin でビルドする場合には Cygwin 用の GTK+ とリンクしないと、設定ファイ
     ル(menu)の読み込みができず正常に動作しません。
+
+  o MSYS でビルドした mlterm は、CYGWIN=tty 環境変数をセットした上で、
+    実行してください。そうしないと、mlterm 上で Windows native のコン
+    ソールアプリケーション(MinGW の gcc 等)を実行した場合に、console
+    が継承されず、新しい console window が表示されてしまう問題が生じ
+    ることがあります。

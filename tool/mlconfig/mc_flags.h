@@ -8,7 +8,7 @@
 
 #include  <gtk/gtk.h>
 
-#define MC_FLAG_MODES 9
+#define MC_FLAG_MODES 10
 
 #define MC_FLAG_XFT 0
 #define MC_FLAG_AA 1
@@ -19,6 +19,7 @@
 #define MC_FLAG_MCOL 6
 #define MC_FLAG_BIDI 7
 #define MC_FLAG_AWIDTH 8
+#define MC_FLAG_CLIPBOARD 9
 
 GtkWidget * mc_flag_config_widget_new(int id);
 void mc_update_flag_mode(int id);
