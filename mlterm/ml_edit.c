@@ -32,17 +32,10 @@
  */
 #define  TAB_STOPS_SIZE(edit)  (((edit)->model.num_of_cols - 1) / 8 + 1)
 
+#define  reset_wraparound_checker(edit)  ((edit)->wraparound_ready_line = NULL)
+
 
 /* --- static functions --- */
-
-static void
-reset_wraparound_checker(
-	ml_edit_t *  edit
-	)
-{
-	edit->wraparound_ready_line = NULL ;
-}
-
 
 /*
  * inserting chars within a line.
@@ -560,6 +553,9 @@ ml_edit_overwrite_chars(
 			{
 				edit->cursor.row ++ ;
 			}
+
+			/* Reset edit->wraparound_ready_line because it is not cursor line now. */
+			reset_wraparound_checker( edit) ;
 
 			if( ml_char_cols( &buffer[count]) >= edit->model.num_of_cols)
 			{

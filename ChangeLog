@@ -1,3 +1,12 @@
+2011-03-22  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_edit.c: Fixed wraparound problem in ml_edit_overwrite_chars().
+
+	* configure.in: Fixed a bug which forcibly disabled "--with-imagelib=gdk-pixbuf1"
+	  option of configure if gdk-pixbuf2 was installed to your system.
+
+	* mlimgloader/main.c: Fixed error in compiling with gdk-pixbuf1.
+
 2011-03-20  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.0.3 released.

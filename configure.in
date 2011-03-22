@@ -135,20 +135,8 @@ GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 
-PKG_CHECK_MODULES(GDK_PIXBUF, gdk-pixbuf-2.0, [
-	have_gdk_pixbuf2="yes"
-],[
-	AC_CHECK_PROG(pkg_config,gdk-pixbuf-config,yes)
-	if test "$pkg_config" = "yes" ; then
-		have_gdk_pixbuf1="yes"
-		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags`"
-		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs`"
-	fi
-])
-GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS | tr -d '\r'`"
-GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS | tr -d '\r'`"
-AC_SUBST(GDK_PIXBUF_CFLAGS)
-AC_SUBST(GDK_PIXBUF_LIBS)
+PKG_CHECK_MODULES(GDK_PIXBUF, gdk-pixbuf-2.0, have_gdk_pixbuf2="yes")
+AC_CHECK_PROG(have_gdk_pixbuf1,gdk-pixbuf-config,yes)
 
 if test "$gui" != "win32" ; then
 	if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
@@ -176,8 +164,6 @@ imlib)
 	echo ""
 	IMAGELIB_CFLAGS="`imlib-config --cflags` -DUSE_EXT_IMAGELIB"
 	IMAGELIB_LIBS="`imlib-config --libs`"
-	# XXX Hack (WIN32TAG is deverted for non-supported image library.)
-	WIN32TAG="_imlib"
 	;;
 imlib2)
 	AC_CHECK_PROG(imlib2_config,imlib2-config,yes,no)
@@ -194,19 +180,12 @@ imlib2)
 	echo ""
 	IMAGELIB_CFLAGS="`imlib2-config --cflags` -DUSE_EXT_IMAGELIB"
 	IMAGELIB_LIBS="`imlib2-config --libs`"
-	# XXX Hack (WIN32TAG is deverted for non-supported image library.)
-	WIN32TAG="_win32"
 	;;
 gdk-pixbuf)
-	if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
-		IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
-		IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
-		if test "$have_gdk_pixbuf1" = "yes" ; then
-			echo ""
-			echo "** WARNING **"
-			echo " gdk-pixbuf1 is no longer supported."
-			echo ""
-		fi
+	if test "$have_gdk_pixbuf2" = "yes" ; then
+		gdk_pixbuf_version=2
+	elif test "$have_gdk_pixbuf1" = "yes" ; then
+		gdk_pixbuf_version=1
 	else
 		echo ""
 		echo "** ERROR **"
@@ -217,8 +196,7 @@ gdk-pixbuf)
 	;;
 gdk-pixbuf2)
 	if test "$have_gdk_pixbuf2" = "yes" ; then
-		IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
-		IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
+		gdk_pixbuf_version=2
 	else
 		echo ""
 		echo "** ERROR **"
@@ -229,16 +207,11 @@ gdk-pixbuf2)
 	;;
 gdk-pixbuf1)
 	if test "$have_gdk_pixbuf1" = "yes" ; then
-		IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
-		IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
-		echo ""
-		echo "** WARNING **"
-		echo " gdk-pixbuf1 is no longer supported."
-		echo ""
+		gdk_pixbuf_version=1
 	else
 		echo ""
 		echo "** ERROR **"
-		echo "Could not find gdk-pixbuf2"
+		echo "Could not find gdk-pixbuf1"
 		echo ""
 		exit 1
 	fi
@@ -253,8 +226,32 @@ gdk-pixbuf1)
 	fi
 	;;
 esac
+
+if test "$gdk_pixbuf_version" != "" ; then
+	if test "$gdk_pixbuf_version" = "1" ; then
+		# Override GDK_PIXBUF_XXX variables.
+		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags`"
+		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs`"
+		echo ""
+		echo "** WARNING **"
+		echo " gdk-pixbuf1 is no longer supported."
+		echo ""
+	fi
+
+	GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS | tr -d '\r'`"
+	GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS | tr -d '\r'`"
+
+	IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
+	IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
+fi
+
+# Used by mlimgloader.
+AC_SUBST(GDK_PIXBUF_CFLAGS)
+AC_SUBST(GDK_PIXBUF_LIBS)
+
 AC_SUBST(IMAGELIB_CFLAGS)
 AC_SUBST(IMAGELIB_LIBS)
+
 
 if test "$gui" = "win32" ; then
 	WIN32TAG="_win32"

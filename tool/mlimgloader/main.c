@@ -2,6 +2,7 @@
  *	$Id: ccheader,v 1.2 2001/12/01 23:37:26 ken Exp $
  */
 
+#include <stdio.h>
 #include <unistd.h>
 #include <X11/Xutil.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
