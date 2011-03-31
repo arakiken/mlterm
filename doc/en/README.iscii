@@ -7,10 +7,24 @@ Following is a instruction of setting up mlterm ISCII support.
 
 * Requirement
   mlterm depends on libind.tar.gz and truetype.tar.gz at
-  http://www.tenet.res.in/Donlab/Indlinux/X-Windows/download.html , and xfstt
+  http://www.tenet.res.in/Donlab/Indlinux/X-Windows/download.html(*) , and xfstt
   or XFree86-4.x with truetype backend.
   So install and setup them in advance.
   Don't forget to install indian.h to where cc can find(e.g /usr/local/include).
+
+  (*) This site is closed now. So original libind.tar.gz and a patch to fix
+      some problems are placed as follows.
+      http://mlterm.sourceforge.net/libind-1.0a.tar.gz
+      http://mlterm.sourceforge.net/libind-1.0a-1.patch
+
+      (Installation of libind)
+      $ tar xzvf libind-1.0a.tar.gz
+      $ cd libind
+      $ patch -p1 < libind-1.0a-1.patch
+      $ ./configure
+      $ make ; make install
+      => Then, edit /etc/libind.conf (especially "FONT" parameters) according
+         to your system.
 
 * Installation
   $ ./configure --enable-ind
@@ -21,7 +35,7 @@ Following is a instruction of setting up mlterm ISCII support.
   $ make install
 
 * Usage
-  $ LIBIND_PATH=[LIBIND_PATH] mlterm -E iscii -w 16 -m -V -C Malayalam --im=kbd
+  $ LIBIND_PATH=[LIBIND_PATH] mlterm -E iscii -w 16 -m -V -C Malayalam --im=kbd -lsp 2
 
   o -V option enables variable width column.
     This option is automatically turned on in ISCII encoding. (optional)
@@ -34,6 +48,8 @@ Following is a instruction of setting up mlterm ISCII support.
   o -w [font size] specifies font size you want to use. (optional)
   o --im option specifies input method to be used. For ISCII use kbd input
     method.
+  o --lsp [line space size] specifies pixels of line space according to appearance of
+    a selected font. (optional)
 
   Pressing the key defined as IM_HOTKEY in ~/.mlterm/key lets you use ISCII
   inputting.

@@ -73,13 +73,9 @@ typedef struct ml_char
 } ml_char_t ;
 
 
-int  ml_use_char_combining(void) ;
+int  ml_set_use_char_combining( int  use_it) ;
 
-int  ml_unuse_char_combining(void) ;
-
-int  ml_use_multi_col_char(void) ;
-
-int  ml_unuse_multi_col_char(void) ;
+int  ml_set_use_multi_col_char( int  use_it) ;
 
 int  ml_char_init( ml_char_t *  ch) ;
 

@@ -411,28 +411,22 @@ ml_edsl_insert_new_line(
 	)
 {
 	int  start_row ;
+	int  start_col ;
 	int  end_row ;
 
-	if( edit->cursor.row < edit->scroll_region_beg)
+	if( edit->cursor.row < edit->scroll_region_beg ||
+	    edit->scroll_region_end < edit->cursor.row)
 	{
-		start_row = edit->scroll_region_beg ;
-	}
-	else
-	{
-		start_row = edit->cursor.row ;
-	}
-	
-	if( edit->scroll_region_end < ml_model_end_row( &edit->model))
-	{
-		end_row = edit->scroll_region_end ;
-	}
-	else
-	{
-		end_row = ml_model_end_row( &edit->model) ;
+		return  0 ;
 	}
 
-	copy_lines( edit , start_row + 1 , start_row , end_row - start_row , 1) ;
-	ml_edit_clear_lines( edit , start_row , 1) ;
+	start_row = edit->cursor.row ;
+	start_col = edit->cursor.col ;
+	end_row = edit->scroll_region_end ;
+
+	scroll_downward_region( edit , start_row , end_row , 1) ;
+	ml_cursor_goto_by_col( &edit->cursor , start_col , start_row) ;
+	ml_edit_clear_line_to_right( edit) ;
 
 	return  1 ;
 }
@@ -443,28 +437,28 @@ ml_edsl_delete_line(
 	)
 {
 	int  start_row ;
+	int  start_col ;
 	int  end_row ;
+	int  is_logging ;
 
-	if( edit->cursor.row < edit->scroll_region_beg)
+	if( edit->cursor.row < edit->scroll_region_beg ||
+	    edit->scroll_region_end < edit->cursor.row)
 	{
-		start_row = edit->scroll_region_beg ;
-	}
-	else
-	{
-		start_row = edit->cursor.row ;
+		return  0 ;
 	}
 
-	if( edit->scroll_region_end < ml_model_end_row( &edit->model))
-	{
-		end_row = edit->scroll_region_end ;
-	}
-	else
-	{
-		end_row = ml_model_end_row( &edit->model) ;
-	}
-	
-	copy_lines( edit , start_row , start_row + 1 , end_row - start_row , 1) ;
+	is_logging = edit->is_logging ;
+	edit->is_logging = 0 ;
+
+	start_row = edit->cursor.row ;
+	start_col = edit->cursor.col ;
+	end_row = edit->scroll_region_end ;
+
+	scroll_upward_region( edit , start_row , end_row , 1) ;
 	ml_edit_clear_lines( edit , end_row , 1) ;
-	
+	ml_cursor_goto_by_col( &edit->cursor , start_col , start_row) ;
+
+	edit->is_logging = is_logging ;
+
 	return  1 ;
 }

@@ -2014,7 +2014,7 @@ x_term_manager_init(
 	{
 		if( strcmp( value , true) == 0)
 		{
-			x_set_clipboard_selection( 1) ;
+			x_set_use_clipboard_selection( 1) ;
 		}
 	}
 

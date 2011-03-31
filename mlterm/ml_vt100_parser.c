@@ -84,23 +84,8 @@ start_vt100_cmd(
 	int  trigger_xterm_event	/* dispatch to x_screen or not. */
 	)
 {
-	if( vt100_parser->use_char_combining)
-	{
-		ml_use_char_combining() ;
-	}
-	else
-	{
-		ml_unuse_char_combining() ;
-	}
-
-	if( vt100_parser->use_multi_col_char)
-	{
-		ml_use_multi_col_char() ;
-	}
-	else
-	{
-		ml_unuse_multi_col_char() ;
-	}
+	ml_set_use_char_combining( vt100_parser->use_char_combining) ;
+	ml_set_use_multi_col_char( vt100_parser->use_multi_col_char) ;
 
 	if( trigger_xterm_event && HAS_XTERM_LISTENER(vt100_parser,start))
 	{

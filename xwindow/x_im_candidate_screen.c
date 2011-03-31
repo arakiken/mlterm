@@ -864,7 +864,7 @@ window_realized(
 
 	cand_screen = (x_im_candidate_screen_t*) win ;
 
-	x_window_set_xft( &cand_screen->window ,
+	x_window_set_use_xft( &cand_screen->window ,
 		x_get_type_engine( cand_screen->font_man) == TYPE_XFT) ;
 
 	x_window_set_fg_color( win , x_get_xcolor( cand_screen->color_man , ML_FG_COLOR)) ;

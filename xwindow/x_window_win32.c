@@ -930,7 +930,7 @@ x_window_final(
 }
 
 int
-x_window_set_xft(
+x_window_set_use_xft(
 	x_window_t *  win ,
 	int  use_xft
 	)
@@ -2682,6 +2682,20 @@ x_window_draw_line(
 	MoveToEx( win->gc->gc, x1, y1, NULL) ;
 	LineTo( win->gc->gc, x2, y2) ;
 
+	return  1 ;
+}
+
+int
+x_set_use_clipboard_selection(
+	int  use_it
+	)
+{
+	return  1 ;
+}
+
+int
+x_is_using_clipboard_selection(void)
+{
 	return  1 ;
 }
 

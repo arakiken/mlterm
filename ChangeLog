@@ -1,3 +1,25 @@
+2011-03-30  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_iscii.c:
+	  - Support "%d" which is converted to font size in "FONT" entry
+	    of /etc/libind.conf.
+	  - Fixed minor bugs.
+
+	* ml_edit_scroll.c: ml_edsl_delete_line() and ml_edsl_insert_new_line()
+	  use CopyArea or BitBlt in scrolling.
+
+	* x_window_win32.c: x_set_use_clipboard_selection() and
+	  x_is_using_clipboard_selection() are added.
+
+	* x_window.c:
+	  x_set_clipboard_selection() -> x_set_use_clipboard_selection()
+
+	* ml_char.c:
+	  ml_(un)use_multi_col_char() -> ml_set_use_multi_col_char()
+	  ml_(un)use_char_combining() -> ml_set_use_char_combining()
+
+	* man/mlterm.1: Merged ID:3243508 patch. (Thanks to Ahmed El-Mahmoudy)
+
 2011-03-22  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_edit.c: Fixed wraparound problem in ml_edit_overwrite_chars().

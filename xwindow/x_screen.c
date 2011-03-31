@@ -1350,7 +1350,7 @@ window_realized(
 
 	screen = (x_screen_t*) win ;
 
-	x_window_set_xft( win , (x_get_type_engine( screen->font_man) == TYPE_XFT)) ;
+	x_window_set_use_xft( win , (x_get_type_engine( screen->font_man) == TYPE_XFT)) ;
 
 	screen->mod_meta_mask = x_window_get_mod_meta_mask( win , screen->mod_meta_key) ;
 	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win , NULL) ;
@@ -3884,7 +3884,8 @@ change_font_present(
 		return ;
 	}
 
-	x_window_set_xft( &screen->window , (x_get_type_engine( screen->font_man) == TYPE_XFT)) ;
+	x_window_set_use_xft( &screen->window ,
+		(x_get_type_engine( screen->font_man) == TYPE_XFT)) ;
 
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -6276,8 +6277,8 @@ write_to_term(
 
 	screen = p ;
 
-#ifdef  DEBUG
-	kik_debug_printf("written str: %s\n", str);
+#ifdef  __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " written str: %s\n", str);
 #endif
 
 	ml_term_write( screen->term , str , len , 0) ;
@@ -7941,7 +7942,7 @@ x_screen_set_config(
 			return ;
 		}
 
-		x_set_clipboard_selection( flag) ;
+		x_set_use_clipboard_selection( flag) ;
 	}
 	else if( strcmp( key , "paste") == 0)
 	{

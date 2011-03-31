@@ -83,8 +83,8 @@ struct  ml_iscii_lang
 	 * lang
 	 */
 
-	char  font_name_prefix[256] ;
-	char *  font_name_suffix ;
+	/* Max length of font name is assumed to be 256 in indian_init(). (see indian.c) */
+	char  font_name_format[256] ;
 	char *  font_name ;
 	struct tabl  glyph_map[MAXLEN] ;
 	int  glyph_map_size ;
@@ -114,8 +114,6 @@ ml_iscii_lang_new(
 	ml_iscii_lang_type_t  type
 	)
 {
-	char *  p ;
-	int  count ;
 	ml_iscii_lang_t  lang ;
 	
 	if( type < 0 || MAX_ISCIILANGS <= type)
@@ -129,7 +127,7 @@ ml_iscii_lang_new(
 	}
 
 	if( ( lang->glyph_map_size = indian_init( lang->glyph_map , iscii_langs[type] ,
-					lang->font_name_prefix , ":")) == -1)
+					lang->font_name_format , ":")) == -1)
 	{
 		free( lang) ;
 		
@@ -145,49 +143,10 @@ ml_iscii_lang_new(
 #endif
 	
 	/*
-	 * XXX
-	 * font name is assumed not to be abbriviated.
-	 */
-	p = lang->font_name_prefix ;
-
-	for( count = 0 ; count < 7 ; count ++)
-	{
-		if( ( p = strchr( p , '-')) == NULL || *(++ p) == '\0')
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " font name %s is illegal ! \n" ,
-				lang->font_name_prefix) ;
-		#endif
-		
-			if( *(p = lang->font_name_prefix) != '\0')
-			{
-				*(p ++) = '\0' ;
-			}
-			
-			goto  end ;
-		}
-	}
-	
-	*(p ++) = '\0' ;
-
-	while( isdigit( *p))
-	{
-		p ++ ;
-	}
-
-end:
-	lang->font_name_suffix = p ;
-	
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s?%s\n" ,
-		lang->font_name_prefix , lang->font_name_suffix) ;
-#endif
-
-	/*
 	 * Allocate enough memory to be used in ml_iscii_get_font_name().
 	 */
-	if( ( lang->font_name = malloc( strlen( lang->font_name_prefix) +
-			DIGIT_STR_LEN(u_int) + strlen( lang->font_name_suffix) + 1)) == NULL)
+	if( ( lang->font_name = malloc( strlen( lang->font_name_format) +
+					DIGIT_STR_LEN(u_int) + 1)) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
@@ -210,7 +169,9 @@ ml_iscii_lang_delete(
 	{
 		free( lang->font_name) ;
 	}
-	
+
+	/* XXX lang->glyph_map[N].iscii and lang->glyph_map[N].font should be free'ed. */
+
 	free( lang) ;
 
 	return  1 ;
@@ -222,15 +183,11 @@ ml_iscii_get_font_name(
 	u_int  font_size
 	)
 {
-	/*
-	 * XXX
-	 * font_size + 2 seems appropriate.
-	 */
-	sprintf( lang->font_name , "%s%d%s" ,
-		lang->font_name_prefix , font_size + 2 , lang->font_name_suffix) ;
+	/* If font_name_format contains '%d', it is replaced by specified font_size */
+	sprintf( lang->font_name , lang->font_name_format , font_size) ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %s\n" , lang->font_name) ;
+	kik_debug_printf( KIK_DEBUG_TAG " font name %s\n" , lang->font_name) ;
 #endif
 	
 	return  lang->font_name ;
@@ -244,6 +201,17 @@ ml_iscii_shape(
 	u_char *  src
 	)
 {
+	/*
+	 * XXX
+	 * iscii2font() expects dst to be terminated by zero.
+	 * int iscii2font(struct tabl table[MAXLEN], char *input, char *output, int sz) {
+	 *	...
+	 *	bzero(output,strlen(output));
+	 *	...          ^^^^^^^^^^^^^^
+	 * }
+	 */
+	dst[0] = '\0' ;
+
 	return  iscii2font( lang->glyph_map , src , dst , lang->glyph_map_size) ;
 }
 
@@ -315,7 +283,12 @@ ml_convert_ascii_to_iscii(
 {
 	u_char *  dup ;
 
-	if( ( dup = alloca( ascii_len + 1)) == NULL)
+	/*
+	 * ins2iscii() and iitk2iscii() return 2nd argument variable whose memory
+	 * is modified by converted iscii bytes.
+	 * So, enough memory (* MAXBUFF) should be allocated here.
+	 */
+	if( ( dup = alloca( ascii_len * MAXBUFF)) == NULL)
 	{
 		goto  no_conv ;
 	}
@@ -325,13 +298,14 @@ ml_convert_ascii_to_iscii(
 
 	if( keymap->is_inscript)
 	{
-		kik_snprintf( iscii , ascii_len + 1 , "%s" ,
+		kik_snprintf( iscii , iscii_len , "%s" ,
 			ins2iscii( keymap->a2i_map , dup , keymap->a2i_map_size)) ;
 	}
 	else
 	{
-		iitk2iscii( keymap->a2i_map , dup , keymap->prev_key , keymap->a2i_map_size) ;
-		kik_snprintf( iscii , strlen( dup) + 1 , "%s" , dup) ;
+		kik_snprintf( iscii , iscii_len , "%s" ,
+			iitk2iscii( keymap->a2i_map , dup , keymap->prev_key ,
+				keymap->a2i_map_size)) ;
 
 		keymap->prev_key[0] = ascii[0] ;
 		keymap->prev_key[1] = '\0' ;

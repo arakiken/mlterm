@@ -729,7 +729,7 @@ x_window_final(
 	x_xic_deactivate( win) ;
 
 #ifdef  USE_TYPE_XFT
-	x_window_set_xft( win , 0) ;
+	x_window_set_use_xft( win , 0) ;
 #endif
 
 	if( win->create_gc)
@@ -751,7 +751,7 @@ x_window_final(
  * Call this function in window_realized event at first.
  */
 int
-x_window_set_xft(
+x_window_set_use_xft(
 	x_window_t *  win ,
 	int  use_xft
 	)
@@ -3045,7 +3045,7 @@ x_window_draw_line(
 }
 
 int
-x_set_clipboard_selection(
+x_set_use_clipboard_selection(
 	int  use_it
 	)
 {

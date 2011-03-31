@@ -121,33 +121,21 @@ extern_color(
 /* --- global functions --- */
 
 int
-ml_use_char_combining(void)
+ml_set_use_char_combining(
+	int  use_it
+	)
 {
-	use_char_combining = 1 ;
+	use_char_combining = use_it ;
 
 	return  1 ;
 }
 
 int
-ml_unuse_char_combining(void)
+ml_set_use_multi_col_char(
+	int  use_it
+	)
 {
-	use_char_combining = 0 ;
-
-	return  1 ;
-}
-
-int
-ml_use_multi_col_char(void)
-{
-	use_multi_col_char = 1 ;
-
-	return  1 ;
-}
-
-int
-ml_unuse_multi_col_char(void)
-{
-	use_multi_col_char = 0 ;
+	use_multi_col_char = use_it ;
 
 	return  1 ;
 }
