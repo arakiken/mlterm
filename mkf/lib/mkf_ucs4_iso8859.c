@@ -50,3 +50,4 @@ mkf_map_func( "mkf_8bits", mkf_map_iso8859_16_r_to_ucs4, 16)
 mkf_map_func( "mkf_8bits", mkf_map_tcvn5712_3_1993_to_ucs4, 16)
 
 #endif
+

@@ -1,3 +1,16 @@
+2011-04-02  Araki Ken  <arakiken@users.sf.net>
+
+	* mkf/lib/Makefile.in: increased MAJOR version. (14->15)
+
+	* ml_char_encoding.[ch], mkf_8bit_conv.[ch], mkf_8bit_parser.[ch],
+	  mkf_charset.h, mkf_ucs4_cp125x.[ch], mkf_ucs4_map.c, mc_font.c,
+	  x_font.c, x_font_manager.c: CP874 which requires "-u" option is
+	  supported.
+
+	* x_draw_str.c: All fonts use the same ascent (ascent of US-ASCII font)
+	  in order to align baseline.
+	  (Merged a part of ID:3243231 patch, Thanks to Kusanagi Kouichi san)
+
 2011-03-30  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_iscii.c:

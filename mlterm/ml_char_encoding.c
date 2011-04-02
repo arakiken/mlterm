@@ -100,6 +100,7 @@ static encoding_table_t  encoding_table[] =
 	{ ML_CP1256 , "CP1256" , mkf_cp1256_parser_new , mkf_cp1256_conv_new , } ,
 	{ ML_CP1257 , "CP1257" , mkf_cp1257_parser_new , mkf_cp1257_conv_new , } ,
 	{ ML_CP1258 , "CP1258" , mkf_cp1258_parser_new , mkf_cp1258_conv_new , } ,
+	{ ML_CP874 , "CP874" , mkf_cp874_parser_new , mkf_cp874_conv_new , } ,
 
 	{ ML_UTF8 , "UTF8" , mkf_utf8_parser_new , mkf_utf8_conv_new , } ,
 	

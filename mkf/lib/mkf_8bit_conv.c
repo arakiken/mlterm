@@ -253,6 +253,17 @@ convert_to_cp1258(
 	return  convert_to_intern( conv , dst , dst_size , parser , CP1258) ;
 }
 
+static size_t
+convert_to_cp874(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_intern( conv , dst , dst_size , parser , CP874) ;
+}
+
 static void
 conv_init(
 	mkf_conv_t *  conv
@@ -498,6 +509,24 @@ mkf_cp1258_conv_new(void)
 	}
 
 	conv->convert = convert_to_cp1258 ;
+	conv->init = conv_init ;
+	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
+
+	return  conv ;
+}
+
+mkf_conv_t *
+mkf_cp874_conv_new(void)
+{
+	mkf_conv_t *  conv ;
+
+	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	conv->convert = convert_to_cp874 ;
 	conv->init = conv_init ;
 	conv->delete = conv_delete ;
 	conv->illegal_char = NULL ;

@@ -29,6 +29,8 @@ int  mkf_map_cp1257_to_ucs4( mkf_char_t *  ucs4 , u_int16_t  cp_code) ;
 
 int  mkf_map_cp1258_to_ucs4( mkf_char_t *  ucs4 , u_int16_t  cp_code) ;
 
+int  mkf_map_cp874_to_ucs4( mkf_char_t *  ucs4 , u_int16_t  cp_code) ;
+
 
 int  mkf_map_ucs4_to_cp1250( mkf_char_t *  non_ucs , u_int32_t  ucs4_code) ;
 
@@ -47,6 +49,8 @@ int  mkf_map_ucs4_to_cp1256( mkf_char_t *  non_ucs , u_int32_t  ucs4_code) ;
 int  mkf_map_ucs4_to_cp1257( mkf_char_t *  non_ucs , u_int32_t  ucs4_code) ;
 
 int  mkf_map_ucs4_to_cp1258( mkf_char_t *  non_ucs , u_int32_t  ucs4_code) ;
+
+int  mkf_map_ucs4_to_cp874( mkf_char_t *  non_ucs , u_int32_t  ucs4_code) ;
 
 
 #endif

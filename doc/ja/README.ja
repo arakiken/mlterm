@@ -267,7 +267,7 @@ comment $Id$
         サポートしているエンコーディングは、以下の通りです。
 
         ISO-8859-[1-11], ISO-8859-[13-16], TIS-620(same as ISO-8859-11),
-        KOI8-[RUT], ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP125[0-8],
+        KOI8-[RUT], ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP125[0-8], CP874,
         EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213, ISO-2022-JP[1-3],
         EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK, GB18030,
         ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO
@@ -281,9 +281,9 @@ comment $Id$
           UNICODE の結合クラス結合文字については、結合文字を動的合成できますの
           で、それらを使う場合は、-m オプションをつけて、結合文字サポートを有
           効にしてください。
-        o KOI8_T, GEORGIAN_PS, CP125[0-8] については、専用のフォントは存在せ
-          ず、Unicode 経由でしか利用できないため、必ず -u オプションを併用してく
-          ださい。
+        o KOI8_T, GEORGIAN_PS, CP125[0-8], CP874 については、専用のフォントは存
+          在せず、Unicode 経由でしか利用できないため、必ず -u オプションを併用し
+          てください。
         o AUTO を指定した場合、nl_langinfo -> LC_ALL -> LC_CTYPE -> LANGを順番に
           調べ、適当なエンコーディングを選択します。
           ENCODING 指定を行なわなかった場合も同様です。
@@ -293,13 +293,13 @@ comment $Id$
 
       o bidi_mode  (*normal*/cmd_l/cmd_r)
         BiDi レンダリングの方法を指定する
-	        +---------------------+
-	logical |$ ls -l ABC DEF      |
-	normal  |$ ls -l FED CBA      |
-	cmd_l   |$ ls -l CBA FED      |
-	cmd_r   |      FED CBA -l ls $|
-	        +---------------------+
-		(大文字は RTL 文字を示します。)
+                +---------------------+
+        logical |$ ls -l ABC DEF      |
+        normal  |$ ls -l FED CBA      |
+        cmd_l   |$ ls -l CBA FED      |
+        cmd_r   |      FED CBA -l ls $|
+                +---------------------+
+                (大文字は RTL 文字を示します。)
 
       o use_combining  (*true*/false) (#)
         結合文字を処理する
@@ -350,10 +350,10 @@ comment $Id$
       o fontsize  (*16*) (#)
         フォントサイズ
         なお、例えば、(tv)font 設定ファイルで、
-	DEFAULT=-kochi-mincho-medium-*--14-*-iso8859-1
-	のように、特定のサイズ(上記例では 14 pixel)のフォントをデフォルトとして
-	指定した場合には、fontsize オプションを変更しても、フォントサイズは(上記
-	例では 14 pixel のまま)変わらなくなるため、注意してください。
+        DEFAULT=-kochi-mincho-medium-*--14-*-iso8859-1
+        のように、特定のサイズ(上記例では 14 pixel)のフォントをデフォルトとして
+        指定した場合には、fontsize オプションを変更しても、フォントサイズは(上記
+        例では 14 pixel のまま)変わらなくなるため、注意してください。
 
       o font_size_range  (*6-30*)
         変更可能なフォントサイズの範囲
@@ -373,13 +373,13 @@ comment $Id$
 
       o type_engine (*xcore*/xft)
         xcore フォントか xft フォントのいずれを使用するかを指定する。
-	なお、use_anti_alias = true にした場合は、自動的に type_engine = xft と
-	なります。
+        なお、use_anti_alias = true にした場合は、自動的に type_engine = xft と
+        なります。
       
       o use_anti_alias  (true/false/*default*) (#)
         アンチエイリアスフォントを強制的に使用する。
-	なお、このオプションを指定しなかった場合又は use_anti_alias = default
-	にした場合、アンチエイリアスするかどうかは、システムの設定によります。
+        なお、このオプションを指定しなかった場合又は use_anti_alias = default
+        にした場合、アンチエイリアスするかどうかは、システムの設定によります。
 
       o use_cp932_ucs_for_xft  (*true*/false)
         アンチエイリアス(Xft)時、JISX0208 の Unicode 変換に CP932 の変換テーブル
@@ -425,7 +425,7 @@ comment $Id$
 
         fg_color,bg_colorに指定できる値は、rgb.txt で定義された色名、color ファ
         イルで定義した色名、#RRGGBB、#RRGGBBAA、rgb:RR/GG/BB 又は rgba:RR/GG/BB/AA
-	形式の色指定です。
+        形式の色指定です。
 
         e.g.)
         fg_color = blue
@@ -448,7 +448,7 @@ comment $Id$
 
       o wall_picture  (*なし*) (#)
         壁紙にする画像ファイルのパス
-	なお、use_transbg が true となっている間は、壁紙の表示は行なわれません。
+        なお、use_transbg が true となっている間は、壁紙の表示は行なわれません。
 
       o fade_ratio  (*100*) (#)
         Focus から外れたときの前景/背景色の Fade 率(百分率)[0-100]
@@ -464,17 +464,21 @@ comment $Id$
 
       o alpha (*255*)
         背景画像(透過処理含む)のアルファ値[0-255]
-	bg_color で指定された色とブレンドされます。
-	なお、depth オプションの説明も参照のこと。
+        bg_color で指定された色とブレンドされます。
+        なお、depth オプションの説明も参照してください。
       
       o line_space  (*0*) (#)
         行間の広さ[0-255]
+        高さが不揃いの複数のフォントを使用する場合は、このオプションで行間を適宜
+        調整してください。
 
       o letter_space (*0*) (#)
         字間の広さ[0-255]
-	なお、-V オプションと同時に指定すると無効になります。
-	また、type_engine=xcore で letter_space に 1 以上の値を指定すると、
-	描画パフォーマンスが大幅に低下します。
+        幅が不揃いの複数のフォントを使用する場合は、このオプションで字間を適宜
+        調整してください。
+        なお、-V オプションと同時に指定すると無効になります。
+        また、type_engine=xcore で letter_space に 1 以上の値を指定すると、
+        描画パフォーマンスが大幅に低下します。
 
       o borderless (true/*false*)
         Window Manager の飾りを外す。
@@ -590,10 +594,10 @@ comment $Id$
 
       o button3_behavior (*xterm*/menu1/menu2/menu3)
         button3 を押下したときの挙動を指定する。
-	xterm = xterm 互換
-	menuN = conf_menu_path_N で指定したプログラムを起動
-	また、"mlclient -e w3m" のようにコマンド文字列を指定すると、領域選択
-	した文字列を引数に、指定したコマンドを実行させることができます。
+        xterm = xterm 互換
+        menuN = conf_menu_path_N で指定したプログラムを起動
+        また、"mlclient -e w3m" のようにコマンド文字列を指定すると、領域選択
+        した文字列を引数に、指定したコマンドを実行させることができます。
 
       o use_clipboard (true/*false*)
         領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
@@ -633,7 +637,7 @@ comment $Id$
       o ISO10646_UCS4_1    ... UNICODEフォント(1カラム用)
       o ISO10646_UCS4_1_BIWIDTH ... UNICODEフォント(2カラム用)
 
-      (*) KOI8_T,GEORGIAN_PS,CP125[0-8] は -u オプションを指定して
+      (*) KOI8_T,GEORGIAN_PS,CP125[0-8],CP874 は -u オプションを指定して
           Unicode フォントを使用する必要があります。
           UHC,JOHAB は 自動的に KSX1001 フォントが使用されます。
 
@@ -661,28 +665,28 @@ comment $Id$
         aafont , vaafont(Xft用フォント) で異なります。
 
         o font/vfont/tfont
-	  (--with-gui=xlib の場合)
+          (--with-gui=xlib の場合)
           [XLFD(*)](:[percentage])
-	  (--with-gui=win32 の場合)
-	  [font family]( Bold Italic [font size]:[percentage])
+          (--with-gui=win32 の場合)
+          [font family]( Bold Italic [font size]:[percentage])
 
           (*) もしくは、fonts.aliasで定義している省略記法。
 
         o aafont/vaafont/taafont
           [font family]( Bold Italic [font size]-[font encoding]:[percentage])
 
-	  -[font encoding] の前方に - を含む場合は \ によりエスケープする必要が
-	  あります。
+          -[font encoding] の前方に - を含む場合は \ によりエスケープする必要が
+          あります。
 
-	  e.g.)
-	  ISO8859_1 = Hoge Semi\-Condensed
-	  
-	  font size は、実際に表示するピクセルサイズであり、小数点数を指定する
-	  こともできます。
+          e.g.)
+          ISO8859_1 = Hoge Semi\-Condensed
+          
+          font size は、実際に表示するピクセルサイズであり、小数点数を指定する
+          こともできます。
 
-	  e.g.)
-	  ISO8859_1 = 12,Hoge 11.5
-	  
+          e.g.)
+          ISO8859_1 = 12,Hoge 11.5
+          
           percentage は、そのフォントのグリフを表示するに、フォントサイズの何
           パーセント分の幅をとるかを指定します。
           例えば、フォントサイズが 12 の場合に、percentage として 100 を指定す
@@ -730,18 +734,18 @@ comment $Id$
         また、アンチエイリアスフォントについては、いずれにせよ、重ねうちはしませ
         ん。
 
-	DEFAULT を font, vfont 及び tfont で指定した場合は、フォント名の末尾に
-	文字集合ごとに適切な encoding を自動的に末尾に追記しますので、注意して
-	ください。
-	また、DEFAULT を指定したフォント名は、Input Method で使用するフォント
-	(FontSet) には影響しません。
+        DEFAULT を font, vfont 及び tfont で指定した場合は、フォント名の末尾に
+        文字集合ごとに適切な encoding を自動的に末尾に追記しますので、注意して
+        ください。
+        また、DEFAULT を指定したフォント名は、Input Method で使用するフォント
+        (FontSet) には影響しません。
 
-	e.g.)
-	DEFAULT = -kochi-mincho-medium-*--%d-*-;12,-kochi-gothic-medium-*--12-*-
-	=> フォントサイズ 13 で ISO8859_1 を表示する場合、
-	   -kochi-mincho-medium-*--13-*-iso8859-1 となり、
-	   フォントサイズ 12 で ISO8859_1 を表示する場合、
-	   -kochi-gothic-medium-*--12-*-iso8859-1 となります。
+        e.g.)
+        DEFAULT = -kochi-mincho-medium-*--%d-*-;12,-kochi-gothic-medium-*--12-*-
+        => フォントサイズ 13 で ISO8859_1 を表示する場合、
+           -kochi-mincho-medium-*--13-*-iso8859-1 となり、
+           フォントサイズ 12 で ISO8859_1 を表示する場合、
+           -kochi-gothic-medium-*--12-*-iso8859-1 となります。
 
         DEC_SPECIAL は、罫線文字の含まれている iso8859-1 フォントを指定してくだ
         さい。
@@ -780,13 +784,13 @@ comment $Id$
         (この結果、fontsize オプションを変更しても常に 14 pixel のフォントが
         表示されることになるため、注意してください。)
 
-	また、"ISO10646_1" として、
-	Font:       => fixed (misc)
-	Font Style: => medium [C]
-	Size:       => 20
-	を選択すると、次のように設定されます。
+        また、"ISO10646_1" として、
+        Font:       => fixed (misc)
+        Font Style: => medium [C]
+        Size:       => 20
+        を選択すると、次のように設定されます。
 
-	ISO10646_UCS4_1 = -misc-fixed-medium-r-normal--20-200-75-75-c-100-iso10646-1
+        ISO10646_UCS4_1 = -misc-fixed-medium-r-normal--20-200-75-75-c-100-iso10646-1
 
     o color
       新しい色名を定義したり、または、既存の色名の RGB 値を変更することができ
@@ -902,7 +906,7 @@ comment $Id$
 
       o kD
         delete キーを押下(ただし、Shift, Control 又は Mod キーと一緒に押下された
-	場合を除く。以下同じ。)したときのシーケンス
+        場合を除く。以下同じ。)したときのシーケンス
         デフォルトでは、`\E[3~'
       o kb
         バックスペースキーを押下したときのシーケンス
@@ -927,7 +931,7 @@ comment $Id$
     -%/--logseq        : logging_vt_seq
     -$/--mc=value      : click_interval
     -&/--borderless    : borderless
-    -*/--type	       : type engine
+    -*/--type          : type engine
     -0/--crbg=value    : cursor_bg_color
     -1/--wscr=value    : screen_width_ratio
     -2/--hscr=value    : screen_height_ratio

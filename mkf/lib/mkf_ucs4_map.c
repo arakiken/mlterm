@@ -71,6 +71,7 @@ static map_t  map_table[] =
 	{ CP1256 , mkf_map_ucs4_to_cp1256 , mkf_map_cp1256_to_ucs4 } ,
 	{ CP1257 , mkf_map_ucs4_to_cp1257 , mkf_map_cp1257_to_ucs4 } ,
 	{ CP1258 , mkf_map_ucs4_to_cp1258 , mkf_map_cp1258_to_ucs4 } ,
+	{ CP874 , mkf_map_ucs4_to_cp874 , mkf_map_cp874_to_ucs4 } ,
 	
 	{ JISX0201_ROMAN , mkf_map_ucs4_to_jisx0201_roman , mkf_map_jisx0201_roman_to_ucs4 } ,
 	{ JISX0201_KATA , mkf_map_ucs4_to_jisx0201_kata , mkf_map_jisx0201_kata_to_ucs4 } ,
@@ -263,6 +264,13 @@ mkf_map_to_ucs4(
 {
 	int  count ;
 	u_int32_t  code ;
+
+	if( non_ucs->cs == ISO10646_UCS4_1)
+	{
+		*ucs4 = *non_ucs ;
+
+		return  1 ;
+	}
 	
 	code = mkf_char_to_int( non_ucs) ;
 	

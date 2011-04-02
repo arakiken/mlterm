@@ -64,6 +64,7 @@ static encoding_to_cs_table_t  usascii_font_cs_table[] =
 	{ ML_CP1256 , CP1256 } ,
 	{ ML_CP1257 , CP1257 } ,
 	{ ML_CP1258 , CP1258 } ,
+	{ ML_CP874 , CP874 } ,
 
 	{ ML_UTF8 , ISO10646_UCS4_1 } ,
 	

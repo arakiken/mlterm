@@ -110,6 +110,7 @@ static cs_info_t  cs_info_table[] =
 	{ "CP1256" , { NULL , NULL , NULL , } , } ,
 	{ "CP1257" , { NULL , NULL , NULL , } , } ,
 	{ "CP1258" , { NULL , NULL , NULL , } , } ,
+	{ "CP874" , { NULL , NULL , NULL , } , } ,
 #endif
 
 	{ "JISX0201_KATA" , { "jisx0201.1976-0" , NULL , NULL , } , } ,

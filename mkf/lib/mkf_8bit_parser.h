@@ -35,5 +35,7 @@ mkf_parser_t *  mkf_cp1257_parser_new(void) ;
 
 mkf_parser_t *  mkf_cp1258_parser_new(void) ;
 
+mkf_parser_t *  mkf_cp874_parser_new(void) ;
+
 
 #endif

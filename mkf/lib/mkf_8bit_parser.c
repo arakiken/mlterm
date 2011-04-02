@@ -45,7 +45,16 @@ parser_next_char_intern(
 		return  0 ;
 	}
 
-	ch->property = 0 ;
+	if( ch->cs == CP874 &&
+	   (ch->ch[0] == 0xd1 || ( 0xd4 <= ch->ch[0] && ch->ch[0] <= 0xda) ||
+			( 0xe7 <= ch->ch[0] && ch->ch[0] <= 0xee)) )
+	{
+		ch->property = MKF_COMBINING ;
+	}
+	else
+	{
+		ch->property = 0 ;
+	}
 
 	mkf_parser_increment( parser) ;
 	
@@ -167,6 +176,15 @@ cp1258_parser_next_char(
 	)
 {
 	return  parser_next_char_intern( parser , ch , CP1258) ;
+}
+
+static int
+cp874_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , CP874) ;
 }
 
 static void
@@ -447,6 +465,26 @@ mkf_cp1258_parser_new(void)
 
 	parser->init = mkf_parser_init ;
 	parser->next_char = cp1258_parser_next_char ;
+	parser->set_str = parser_set_str ;
+	parser->delete = parser_delete ;
+
+	return  parser ;
+}
+
+mkf_parser_t *
+mkf_cp874_parser_new(void)
+{
+	mkf_parser_t *  parser ;
+	
+	if( ( parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( parser) ;
+
+	parser->init = mkf_parser_init ;
+	parser->next_char = cp874_parser_next_char ;
 	parser->set_str = parser_set_str ;
 	parser->delete = parser_delete ;
 

@@ -82,12 +82,23 @@ static mkf_factory_table_t  factories[] =
 	{ "viscii" , mkf_viscii_parser_new , mkf_viscii_conv_new } ,
 	{ "koi8-r" , mkf_koi8_r_parser_new , mkf_koi8_r_conv_new } ,
 	{ "koi8-u" , mkf_koi8_u_parser_new , mkf_koi8_u_conv_new } ,
+	{ "cp1250" , mkf_cp1250_parser_new , mkf_cp1250_conv_new } ,
+	{ "cp1251" , mkf_cp1251_parser_new , mkf_cp1251_conv_new } ,
+	{ "cp1252" , mkf_cp1252_parser_new , mkf_cp1252_conv_new } ,
+	{ "cp1253" , mkf_cp1253_parser_new , mkf_cp1253_conv_new } ,
+	{ "cp1254" , mkf_cp1250_parser_new , mkf_cp1254_conv_new } ,
+	{ "cp1255" , mkf_cp1250_parser_new , mkf_cp1255_conv_new } ,
+	{ "cp1256" , mkf_cp1250_parser_new , mkf_cp1256_conv_new } ,
+	{ "cp1257" , mkf_cp1250_parser_new , mkf_cp1257_conv_new } ,
+	{ "cp1258" , mkf_cp1250_parser_new , mkf_cp1258_conv_new } ,
+	{ "cp874" , mkf_cp874_parser_new , mkf_cp874_conv_new } ,
 	{ "eucjp" , mkf_eucjp_parser_new , mkf_eucjp_conv_new } ,
 	{ "eucjisx0213" , mkf_eucjisx0213_parser_new , mkf_eucjisx0213_conv_new } ,
 	{ "sjis" , mkf_sjis_parser_new , mkf_sjis_conv_new } ,
 	{ "sjisx0213" , mkf_sjisx0213_parser_new , mkf_sjisx0213_conv_new } ,
 	{ "utf8" , mkf_utf8_parser_new , mkf_utf8_conv_new } ,
 	{ "utf16" , mkf_utf16_parser_new , mkf_utf16_conv_new } ,
+	{ "utf16le" , mkf_utf16le_parser_new , mkf_utf16le_conv_new } ,
 	{ "utf32" , mkf_utf32_parser_new , mkf_utf32_conv_new } ,
 	{ "junet8" , mkf_iso2022jp_8_parser_new , mkf_iso2022jp_8_conv_new } ,
 	{ "junet7" , mkf_iso2022jp_7_parser_new , mkf_iso2022jp_7_conv_new } ,
@@ -114,7 +125,7 @@ static void
 usage()
 {
 	kik_msg_printf( "usage: mkf -i [input code] -o [output code] [file]\n") ;
-	kik_msg_printf( "supported codes: iso8859-[1-10] tis620 iso8859-[13-16] tcvn5712 xct viscii koi8-r koi8-u eucjp eucjisx0213 sjis sjisx0213 utf8 utf16 utf32 junet8 junet7 iso2022jp2 iso2022jp3 euckr uhc iso2022kr johab euccn gbk gb18030 iso2022cn hz big5 big5hkscs euctw\n") ;
+	kik_msg_printf( "supported codes: iso8859-[1-10] tis620 iso8859-[13-16] tcvn5712 xct viscii koi8-r koi8-u cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp874 eucjp eucjisx0213 sjis sjisx0213 utf8 utf16 utf16le utf32 junet8 junet7 iso2022jp2 iso2022jp3 euckr uhc iso2022kr johab euccn gbk gb18030 iso2022cn hz big5 big5hkscs euctw\n") ;
 }
 
 

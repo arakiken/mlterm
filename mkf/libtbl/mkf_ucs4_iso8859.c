@@ -2,6 +2,12 @@
  *	$Id$
  */
 
+/*
+ * !!!NOTICE!!!
+ *
+ * ISO8859_N msb bit is 0 in mkf , and including 0x20 and 0x7f.
+ */
+
 #include  "../lib/mkf_ucs4_iso8859.h"
 
 #include  <string.h>
@@ -25,12 +31,6 @@
 
 #include  "../lib/mkf_ucs4_tcvn5712_1.h"
 
-
-/*
- * !!!NOTICE!!!
- *
- * ISO8859_N msb bit is 0 in mkf , and including 0x20 and 0x7f.
- */
 
 /* --- static functions --- */
 
@@ -791,7 +791,7 @@ mkf_map_tis620_2533_to_ucs4(
 		ucs4->ch[2] = 0x0 ;
 		ucs4->ch[3] = 0xa0 ;
 	}
-	if( 0x21 <= tis620_code && tis620_code <= 0x7f)
+	else if( 0x21 <= tis620_code && tis620_code <= 0x7f)
 	{
 		ucs4->ch[0] = 0x0 ;
 		ucs4->ch[1] = 0x0 ;

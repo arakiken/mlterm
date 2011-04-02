@@ -124,7 +124,7 @@ typedef enum  mkf_charset
 	
 	/*
 	 * Those who are not ISO2022 registed characterset or do not confirm to ISO2022.
-	 * 0xe0 - 0xef
+	 * 0xe0 - 0xf1
 	 */
 	VISCII = 0xe0 ,			/* Excluding US_ASCII(0x0-0x7f) */
 	TCVN5712_1_1993 = 0xe1 ,	/* ISO2022 compat */
@@ -142,28 +142,29 @@ typedef enum  mkf_charset
 	CP1256 = 0xed ,			/* Excluding US_ASCII(0x0-0x7f) */
 	CP1257 = 0xee ,			/* Excluding US_ASCII(0x0-0x7f) */
 	CP1258 = 0xef ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP874 = 0xf0 ,			/* Excluding US_ASCII(0x0-0x7f) */
 
 	/*
 	 * Those who are not ISO2022 registed characterset but confirm to ISO2022.
 	 * (Bi-width)
-	 * 0xf0 - 0xf2
+	 * 0xf2 - 0xf5
 	 */
-	JISC6226_1978_NEC_EXT = 0xf0 ,
-	JISC6226_1978_NECIBM_EXT = 0xf1 ,
-	JISX0208_1983_MAC_EXT = 0xf2 ,
+	JISC6226_1978_NEC_EXT = 0xf2 ,
+	JISC6226_1978_NECIBM_EXT = 0xf3 ,
+	JISX0208_1983_MAC_EXT = 0xf4 ,
 
 	/*
 	 * Those who are not ISO2022 registed characterset or do not confirm to ISO2022.
 	 * (Bi-width)
-	 * 0xf3 - 0xff
+	 * 0xf6 - 0xff
 	 */
-	SJIS_IBM_EXT = 0xf3 ,
-	UHC = 0xf4 ,
-	BIG5 = 0xf5 ,
-	CNS11643_1992_EUCTW_G2 = 0xf6 ,
-	GBK = 0xf7 ,
-	JOHAB = 0xf8 ,
-	HKSCS = 0xf9 ,
+	SJIS_IBM_EXT = 0xf6 ,
+	UHC = 0xf7 ,
+	BIG5 = 0xf8 ,
+	CNS11643_1992_EUCTW_G2 = 0xf9 ,
+	GBK = 0xfa ,
+	JOHAB = 0xfb ,
+	HKSCS = 0xfc ,
 
 
 	/* Followings are ISO2022 based charsets with revisions. */

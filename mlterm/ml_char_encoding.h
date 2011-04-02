@@ -51,6 +51,7 @@ typedef enum  ml_char_encoding
 	ML_CP1256 ,
 	ML_CP1257 ,
 	ML_CP1258 ,
+	ML_CP874 ,
 	
 	ML_UTF8 ,
 

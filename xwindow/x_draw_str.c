@@ -118,7 +118,7 @@ xft_draw_str(
 	int  x ,
 	int  y ,
 	u_int  height ,
-	u_int  std_height_to_baseline ,
+	u_int  height_to_baseline ,
 	u_int  top_margin ,
 	u_int  bottom_margin
 	)
@@ -126,7 +126,6 @@ xft_draw_str(
 	int  count ;
 	int  start_draw ;
 	int  end_of_str ;
-	u_int  height_to_baseline ;
 	u_int	current_width ;
 	XftChar8 *  str8 ;
 	XftChar32 *  str32 ;
@@ -329,15 +328,6 @@ xft_draw_str(
 		#ifdef  PERF_DEBUG
 			draw_count ++ ;
 		#endif
-
-			if( height == xfont->height)
-			{
-				height_to_baseline = xfont->height_to_baseline ;
-			}
-			else
-			{
-				height_to_baseline = std_height_to_baseline ;
-			}
 
 			/*
 			 * clearing background
@@ -599,7 +589,7 @@ xcore_draw_str(
 	int  x ,
 	int  y ,
 	u_int  height ,
-	u_int  std_height_to_baseline ,
+	u_int  height_to_baseline ,
 	u_int  top_margin ,
 	u_int  bottom_margin
 	)
@@ -607,7 +597,6 @@ xcore_draw_str(
 	int  count ;
 	int  start_draw ;
 	int  end_of_str ;
-	u_int  height_to_baseline ;
 	u_int	current_width ;
 	u_char *  str ;
 	XChar2b *  str2b ;
@@ -817,15 +806,6 @@ xcore_draw_str(
 		#ifdef  PERF_DEBUG
 			draw_count ++ ;
 		#endif
-
-			if( xfont->height == height)
-			{
-				height_to_baseline = xfont->height_to_baseline ;
-			}
-			else
-			{
-				height_to_baseline = std_height_to_baseline ;
-			}
 
 			if( ( window->wall_picture_is_set && bg_color == ML_BG_COLOR) ||
 				bottom_margin + top_margin > 0 /* == line space XXX */|| 
