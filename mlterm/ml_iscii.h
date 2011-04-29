@@ -7,42 +7,23 @@
 
 
 #include  <kiklib/kik_types.h>		/* u_int/u_char */
+#include  <mkf/mkf_charset.h>		/* mkf_iscii_lang_t */
 
 
 typedef struct ml_iscii_lang *  ml_iscii_lang_t ;
 
 typedef struct ml_iscii_keymap *  ml_iscii_keymap_t ;
 
-typedef enum  ml_iscii_lang_type
-{
-	ISCIILANG_UNKNOWN = -1 ,
-	
-	ISCIILANG_ASSAMESE = 0 ,
-	ISCIILANG_BENGALI ,
-	ISCIILANG_GUJARATI ,
-	ISCIILANG_HINDI ,
-	ISCIILANG_KANNADA ,
-	ISCIILANG_MALAYALAM ,
-	ISCIILANG_ORIYA ,
-	ISCIILANG_PUNJABI ,
-	ISCIILANG_ROMAN ,
-	ISCIILANG_TAMIL ,
-	ISCIILANG_TELUGU ,
 
-	MAX_ISCIILANGS
+mkf_iscii_lang_t  ml_iscii_get_lang( char *  name) ;
 
-} ml_iscii_lang_type_t ;
-
-
-ml_iscii_lang_type_t  ml_iscii_get_lang( char *  name) ;
-
-char *  ml_iscii_get_lang_name( ml_iscii_lang_type_t  lang) ;
+char *  ml_iscii_get_lang_name( mkf_iscii_lang_t  lang) ;
 
 /*
  * lang
  */
  
-ml_iscii_lang_t  ml_iscii_lang_new( ml_iscii_lang_type_t  type) ;
+ml_iscii_lang_t  ml_iscii_lang_new( mkf_iscii_lang_t  type) ;
 
 int  ml_iscii_lang_delete( ml_iscii_lang_t  lang) ;
 

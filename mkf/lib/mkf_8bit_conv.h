@@ -37,5 +37,9 @@ mkf_conv_t *  mkf_cp1258_conv_new(void) ;
 
 mkf_conv_t *  mkf_cp874_conv_new(void) ;
 
+mkf_conv_t *  mkf_viscii_conv_new(void) ;
+
+mkf_conv_t *  mkf_iscii_conv_new(void) ;
+
 
 #endif

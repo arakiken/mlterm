@@ -10,8 +10,6 @@
 #include  <kiklib/kik_locale.h>		/* kik_get_codeset */
 
 #include  <mkf/mkf_iso8859_parser.h>
-#include  <mkf/mkf_viscii_parser.h>
-#include  <mkf/mkf_iscii_parser.h>
 #include  <mkf/mkf_8bit_parser.h>
 #include  <mkf/mkf_eucjp_parser.h>
 #include  <mkf/mkf_euckr_parser.h>
@@ -27,8 +25,6 @@
 #include  <mkf/mkf_utf8_parser.h>
 
 #include  <mkf/mkf_iso8859_conv.h>
-#include  <mkf/mkf_viscii_conv.h>
-#include  <mkf/mkf_iscii_conv.h>
 #include  <mkf/mkf_8bit_conv.h>
 #include  <mkf/mkf_eucjp_conv.h>
 #include  <mkf/mkf_euckr_conv.h>

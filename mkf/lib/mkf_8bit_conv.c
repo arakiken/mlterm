@@ -33,6 +33,16 @@ map_direct(
 	{
 		return  mkf_map_koi8_r_to_koi8_u( dst , src) ;
 	}
+	else if( src->cs == ISO10646_UCS4_1 &&
+	         src->ch[0] == 0 && src->ch[1] == 0 && src->ch[2] == 0 && src->ch[3] <= 0x7f)
+	{
+		dst->cs = US_ASCII ;
+		dst->size = 1 ;
+		dst->property = 0 ;
+		dst->ch[0] = src->ch[3] ;
+
+		return  1 ;
+	}
 
 	return  0 ;
 }
@@ -56,6 +66,15 @@ remap_unsupported_charset(
 	else if( mkf_map_via_ucs( &c , ch , to_cs))
 	{
 		*ch = c ;
+	}
+
+	if( to_cs == VISCII && ch->cs == US_ASCII)
+	{
+		if( ch->ch[0] == 0x02 || ch->ch[0] == 0x05 || ch->ch[0] == 0x06 ||
+			ch->ch[0] == 0x14 || ch->ch[0] == 0x19 || ch->ch[0] == 0x1e)
+		{
+			ch->cs = VISCII ;
+		}
 	}
 }
 
@@ -94,7 +113,8 @@ convert_to_intern(
 			size_t  size ;
 			int  is_full ;
 			
-			size = (*conv->illegal_char)( conv , dst , dst_size - filled_size , &is_full , &ch) ;
+			size = (*conv->illegal_char)( conv , dst , dst_size - filled_size ,
+					&is_full , &ch) ;
 			if( is_full)
 			{
 				mkf_parser_reset( parser) ;
@@ -262,6 +282,28 @@ convert_to_cp874(
 	)
 {
 	return  convert_to_intern( conv , dst , dst_size , parser , CP874) ;
+}
+
+static size_t
+convert_to_viscii(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_intern( conv , dst , dst_size , parser , VISCII) ;
+}
+
+static size_t
+convert_to_iscii(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	mkf_parser_t *  parser
+	)
+{
+	return  convert_to_intern( conv , dst , dst_size , parser , ISCII) ;
 }
 
 static void
@@ -527,6 +569,42 @@ mkf_cp874_conv_new(void)
 	}
 
 	conv->convert = convert_to_cp874 ;
+	conv->init = conv_init ;
+	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
+
+	return  conv ;
+}
+
+mkf_conv_t *
+mkf_viscii_conv_new(void)
+{
+	mkf_conv_t *  conv ;
+
+	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	conv->convert = convert_to_viscii ;
+	conv->init = conv_init ;
+	conv->delete = conv_delete ;
+	conv->illegal_char = NULL ;
+
+	return  conv ;
+}
+
+mkf_conv_t *
+mkf_iscii_conv_new(void)
+{
+	mkf_conv_t *  conv ;
+
+	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	conv->convert = convert_to_iscii ;
 	conv->init = conv_init ;
 	conv->delete = conv_delete ;
 	conv->illegal_char = NULL ;

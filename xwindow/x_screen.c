@@ -774,22 +774,36 @@ flush_scroll_cache(
 	return  1 ;
 }
 
-static void
+static int
 set_scroll_boundary(
 	x_screen_t *  screen ,
 	int  boundary_start ,
 	int  boundary_end
 	)
 {
-	if( screen->scroll_cache_rows &&
-		(screen->scroll_cache_boundary_start != boundary_start ||
-		screen->scroll_cache_boundary_end != boundary_end))
+	if( screen->scroll_cache_rows)
 	{
-		flush_scroll_cache( screen , 0) ;
+		if( screen->scroll_cache_boundary_end - screen->scroll_cache_boundary_start
+		    > boundary_end - boundary_start)
+		{
+			/*
+			 * Don't call flush_scroll_cache() if new boundary is smaller
+			 * in order to avoid convergence of flush_scroll_cache().
+			 */
+			return  0 ;
+		}
+
+		if( screen->scroll_cache_boundary_start != boundary_start ||
+		    screen->scroll_cache_boundary_end != boundary_end)
+		{
+			flush_scroll_cache( screen , 0) ;
+		}
 	}
 
 	screen->scroll_cache_boundary_start = boundary_start ;
 	screen->scroll_cache_boundary_end = boundary_end ;
+
+	return  1 ;
 }
 
 /*
@@ -1281,12 +1295,8 @@ update_special_visual(
 		char *  font_name ;
 		x_font_config_t *  font_config ;
 
-		/*
-		 * XXX
-		 * anti alias ISCII font is not supported.
-		 */
-		if( ( font_config = x_font_config_new( TYPE_XCORE ,
-					x_get_font_present( screen->font_man) & ~FONT_AA)) == NULL)
+		if( ( font_config = x_font_config_new( x_get_type_engine( screen->font_man) ,
+						x_get_font_present( screen->font_man))) == NULL)
 		{
 			return  0 ;
 		}
@@ -3963,7 +3973,7 @@ change_char_encoding(
 static void
 change_iscii_lang(
 	x_screen_t *  screen ,
-	ml_iscii_lang_type_t  type
+	mkf_iscii_lang_t  type
 	)
 {
 	if( screen->term->iscii_lang_type == type)
@@ -5538,12 +5548,11 @@ window_scroll_upward_region(
 
 	screen = p ;
 
-	if( ! x_window_is_scrollable( &screen->window))
+	if( ! x_window_is_scrollable( &screen->window) ||
+	    ! set_scroll_boundary( screen , beg_row , end_row))
 	{
 		return  0 ;
 	}
-
-	set_scroll_boundary( screen , beg_row , end_row) ;
 
 	screen->scroll_cache_rows += size ;
 
@@ -5562,12 +5571,11 @@ window_scroll_downward_region(
 
 	screen = p ;
 
-	if( ! x_window_is_scrollable( &screen->window))
+	if( ! x_window_is_scrollable( &screen->window) ||
+	    ! set_scroll_boundary( screen , beg_row , end_row))
 	{
 		return  0 ;
 	}
-
-	set_scroll_boundary( screen , beg_row , end_row) ;
 
 	screen->scroll_cache_rows -= size ;
 
@@ -6278,7 +6286,17 @@ write_to_term(
 	screen = p ;
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " written str: %s\n", str);
+	{
+		size_t  count ;
+
+		kik_debug_printf( KIK_DEBUG_TAG " written str: ") ;
+
+		for( count = 0 ; count < len ; count++)
+		{
+			kik_msg_printf( "%.2x ", str[count]) ;
+		}
+		kik_msg_printf( "\n") ;
+	}
 #endif
 
 	ml_term_write( screen->term , str , len , 0) ;
@@ -7452,7 +7470,7 @@ x_screen_set_config(
 	}
 	else if( strcmp( key , "iscii_lang") == 0)
 	{
-		ml_iscii_lang_type_t  type ;
+		mkf_iscii_lang_t  type ;
 
 		if( ( type = ml_iscii_get_lang( value)) == ISCIILANG_UNKNOWN)
 		{

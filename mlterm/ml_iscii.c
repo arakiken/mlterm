@@ -36,12 +36,12 @@ static char *  iscii_langs[] =
 
 /* --- global functions --- */
 
-ml_iscii_lang_type_t
+mkf_iscii_lang_t
 ml_iscii_get_lang(
 	char *  name
 	)
 {
-	ml_iscii_lang_type_t  lang ;
+	mkf_iscii_lang_t  lang ;
 
 	for( lang = 0 ; lang < MAX_ISCIILANGS ; lang ++)
 	{
@@ -56,7 +56,7 @@ ml_iscii_get_lang(
 
 char *
 ml_iscii_get_lang_name(
-	ml_iscii_lang_type_t  type
+	mkf_iscii_lang_t  type
 	)
 {
 	if( ISCIILANG_UNKNOWN < type && type < MAX_ISCIILANGS)
@@ -111,7 +111,7 @@ struct  ml_iscii_keymap
 
 ml_iscii_lang_t 
 ml_iscii_lang_new(
-	ml_iscii_lang_type_t  type
+	mkf_iscii_lang_t  type
 	)
 {
 	ml_iscii_lang_t  lang ;
@@ -327,7 +327,7 @@ no_conv:
 
 ml_iscii_lang_t
 ml_iscii_lang_new(
-	ml_iscii_lang_type_t  type
+	mkf_iscii_lang_t  type
 	)
 {
 	return  NULL ;

@@ -923,7 +923,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "iscii_lang")))
 	{
-		ml_iscii_lang_type_t  type ;
+		mkf_iscii_lang_t  type ;
 		
 		if( ( type = ml_iscii_get_lang( value)) != ISCIILANG_UNKNOWN)
 		{

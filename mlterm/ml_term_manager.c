@@ -165,7 +165,7 @@ ml_create_term(
 	int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode ,
-	ml_iscii_lang_type_t  iscii_lang_type
+	mkf_iscii_lang_t  iscii_lang_type
 	)
 {
 	if( num_of_terms == MAX_TERMS)

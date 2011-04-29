@@ -34,7 +34,7 @@ typedef struct ml_term
 	 * public(read/write)
 	 */
 	ml_shape_t *  shape ;
-	ml_iscii_lang_type_t  iscii_lang_type ;
+	mkf_iscii_lang_t  iscii_lang_type ;
 	ml_iscii_lang_t  iscii_lang ;
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bidi_mode_t  bidi_mode ;
@@ -63,7 +63,7 @@ ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  l
 	ml_char_encoding_t  encoding , int  is_auto_encoding , ml_unicode_font_policy_t  policy ,
 	int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
 	ml_bidi_mode_t  bidi_mode , int  use_bce , int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
-	ml_vertical_mode_t  vertical_mode , ml_iscii_lang_type_t  iscii_lang_type) ;
+	ml_vertical_mode_t  vertical_mode , mkf_iscii_lang_t  iscii_lang_type) ;
 
 int  ml_term_delete( ml_term_t *  term) ;
 

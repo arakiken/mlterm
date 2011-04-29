@@ -29,7 +29,7 @@ typedef struct x_main_config
 	u_int  screen_width_ratio ;
 	u_int  screen_height_ratio ;
 	u_int  num_of_log_lines ;
-	ml_iscii_lang_type_t  iscii_lang_type ;
+	mkf_iscii_lang_t  iscii_lang_type ;
 	x_mod_meta_mode_t  mod_meta_mode ;
 	x_bel_mode_t  bel_mode ;
 	x_sb_mode_t  sb_mode ;

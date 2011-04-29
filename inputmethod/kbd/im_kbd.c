@@ -440,6 +440,7 @@ key_event_iscii(
 	im_kbd_t *  kbd ;
 	u_char  buf[512] ;
 	size_t  len ;
+	u_char  conv_buf[10] ;
 
 	kbd = (im_kbd_t*) im ;
 
@@ -462,8 +463,25 @@ key_event_iscii(
 						  buf , sizeof( buf) ,
 						  &key_char , 1) ;
 
-	(*kbd->im.listener->write_to_term)( kbd->im.listener->self ,
-					    buf , len) ;
+	(*kbd->parser->init)( kbd->parser) ;
+	(*kbd->parser->set_str)( kbd->parser , buf , len) ;
+
+	(*kbd->conv->init)( kbd->conv) ;
+
+	while( ! kbd->parser->is_eos)
+	{
+		len = (*kbd->conv->convert)( kbd->conv , conv_buf ,
+					     sizeof( conv_buf) , kbd->parser) ;
+
+		if( len == 0)
+		{
+			/* finished converting */
+			break ;
+		}
+		
+		(*kbd->im.listener->write_to_term)( kbd->im.listener->self ,
+						    conv_buf , len) ;
+	}
 
 	return  0 ;
 }
@@ -710,6 +728,13 @@ im_kbd_new(
 	if( kbd->type == KBD_TYPE_ARABIC || kbd->type == KBD_TYPE_HEBREW)
 	{
 		if( ! ( kbd->parser = mkf_utf16_parser_new()))
+		{
+			goto  error ;
+		}
+	}
+	else /* if( kbd->type == KBD_TYPE_ISCII */
+	{
+		if( ! ( kbd->parser = mkf_iscii_parser_new()))
 		{
 			goto  error ;
 		}

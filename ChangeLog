@@ -1,3 +1,30 @@
+2011-04-25  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: Fixed SF Bug #3280196 by accepting 0x80-0x9f characters
+	  as Pt in get_pt_in_esc_seq().
+	  (Thanks to Yoshiaki Kasahara san)
+
+	* im_ibus.c: Fixed result->id in im_ibus_get_info(). ("iBus" => "ibus")
+	  (Thanks to shitamo san)
+
+	* im_kbd.c, x_screen.c, ml_term.c: If 'not_use_unicode_font' option
+	  is specified, indic characters in unicode are drawn as iscii ones.
+
+	* x_screen.c: Number of calling flush_scroll_cache() is decreased.
+
+	* mkf_charset.h, ml_iscii.h: ml_iscii_lang_type_t in ml_iscii.h is
+	  replaced by mkf_iscii_lang_t in mkf_charset.h.
+
+	* mkf_ucs4_map.c, mkf_locale_ucs4_map.c: Mapping function used previously
+	  is cached to improve performance.
+
+	* mkf_{viscii|iscii}_{conv|parser}.[ch]: Integrated to mkf_8bit_{conv|parser}.[ch]
+	  and removed.
+
+	* mkf_ucs4_iscii.[ch]: Added.
+
+	* version.h.in: 3.0.3 -> 3.0.4 pre
+
 2011-04-02  Araki Ken  <arakiken@users.sf.net>
 
 	* mkf/lib/Makefile.in: increased MAJOR version. (14->15)

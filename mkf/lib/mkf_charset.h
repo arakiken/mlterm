@@ -130,7 +130,7 @@ typedef enum  mkf_charset
 	TCVN5712_1_1993 = 0xe1 ,	/* ISO2022 compat */
 	KOI8_R = 0xe2 ,			/* Excluding US_ASCII(0x0-0x7f) */
 	KOI8_U = 0xe3 ,			/* Excluding US_ASCII(0x0-0x7f) */
-	ISCII = 0xe4 ,
+	ISCII = 0xe4 ,			/* Excluding US_ASCII(0x0-0x7f) */
 	KOI8_T = 0xe5 ,			/* Excluding US_ASCII(0x0-0x7f) */
 	GEORGIAN_PS = 0xe6 ,		/* Excluding US_ASCII(0x0-0x7f) */
 	CP1250 = 0xe7 ,			/* Excluding US_ASCII(0x0-0x7f) */
@@ -175,6 +175,26 @@ typedef enum  mkf_charset
 	MAX_CHARSET = 0x2ff
 	
 } mkf_charset_t ;
+
+typedef enum  mkf_iscii_lang
+{
+	ISCIILANG_UNKNOWN = -1 ,
+
+	ISCIILANG_ASSAMESE = 0 ,
+	ISCIILANG_BENGALI ,
+	ISCIILANG_GUJARATI ,
+	ISCIILANG_HINDI ,
+	ISCIILANG_KANNADA ,
+	ISCIILANG_MALAYALAM ,
+	ISCIILANG_ORIYA ,
+	ISCIILANG_PUNJABI ,
+	ISCIILANG_ROMAN ,
+	ISCIILANG_TAMIL ,
+	ISCIILANG_TELUGU ,
+
+	MAX_ISCIILANGS
+
+} mkf_iscii_lang_t ;
 
 
 #endif

@@ -27,9 +27,10 @@ Options for configure
     Use specified gui library
   
   --with-imagelib=(gdk-pixbuf)
-    Link specified image library to mlterm for image processing
-    mlimgloader program is used for image processing in --without-imagelib.
-    (Imlib is not supported from 3.0.2)
+    Link specified image library to mlterm for image processing.
+    mlimgloader program is used for image processing if this option
+    is not specified.
+    (Imlib is not supported since mlterm 3.0.2)
 
   --with-libltdl
     Load modules with libltdl

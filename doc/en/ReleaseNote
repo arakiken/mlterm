@@ -1,3 +1,16 @@
+ver 3.0.4
+* Support 'not_use_unicode_font' option in indian characters of unicode.
+  (libind is required.)
+* Merge SF patches:
+  #3243508 (Thanks to Ahmed El-Mahmoudy)
+  #3243231(partially) (Thanks to Kusanagi Kouichi san)
+* Other bug fixes:
+  Fix error in setting "iBus" from mlconfig. (Thanks to shitamo san)
+  Fix wraparound failure if terminal column size is 100.
+  Fix compilation failure of mlimgloader with gdk-pixbuf1.
+  Fix compilation failure in win32.
+  SF Bug #3280196 (Thanks to Yoshiaki Kasahara san)
+
 ver 3.0.3
 * Add support for iBus. (Experimental)
 * Even if gdk-pixbuf is not linked to mlterm (--with-imagelib=gdk-pixbuf
@@ -193,7 +206,7 @@ ver 2.9.0
 * Cleanups and refactorings for ml_* APIs [karaki]
 * New svg icons [Tobias Kieslich <tobias@justdreams.de>]
 
-ver 2.8.0p1
+ver 2.8.0pl1
 * New '--borderless' option [karaki]
 * After options saved by 5382 or 5383 protocol, new terminals start
   with the new options. [karaki]

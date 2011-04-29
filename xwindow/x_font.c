@@ -1325,7 +1325,7 @@ font_found:
 			{
 				kik_warn_printf(
 					"Font width(%d) is not matched with standard width(%d)."
-					"Characters are drawn one by one in order to fit"
+					"Characters are drawn one by one in order to fit "
 					"standard width.\n" ,
 					font->width , col_width * font->cols) ;
 

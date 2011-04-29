@@ -33,7 +33,7 @@ ml_term_new(
 	int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode ,
-	ml_iscii_lang_type_t  iscii_lang_type
+	mkf_iscii_lang_t  iscii_lang_type
 	)
 {
 	ml_term_t *  term ;
@@ -795,10 +795,19 @@ ml_term_update_special_visual(
 	term->screen->use_dynamic_comb = 0 ;
 	had_logvis = ml_screen_delete_logical_visual( term->screen) ;
 
-	if( ml_term_get_encoding( term) == ML_ISCII)
+	if( ml_term_get_encoding( term) == ML_ISCII
+	#ifdef  USE_IND
+	    /*
+	     * XXX
+	     * In accurate, indic unicode characters are supported only if
+	     * vt100_parser->unicode_font_policy == NOT_USE_UNICODE_FONT.
+	     */
+	    || (ml_term_get_encoding( term) == ML_UTF8 && ! term->use_bidi)
+	#endif
+	    )
 	{
 		/*
-		 * It is impossible to process ISCII with special visual of other encoding.
+		 * It is impossible to process ISCII with other special visuals.
 		 */
 
 		if( ( term->iscii_lang = ml_iscii_lang_new( term->iscii_lang_type)) &&

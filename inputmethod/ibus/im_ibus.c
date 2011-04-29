@@ -627,7 +627,7 @@ im_ibus_get_info(
 		return  NULL ;
 	}
 
-	result->id = strdup( "iBus") ;
+	result->id = strdup( "ibus") ;
 	result->name = strdup( "iBus") ;
 	result->num_of_args = 0;
 	result->args = NULL ;

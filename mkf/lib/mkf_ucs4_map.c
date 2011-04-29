@@ -11,6 +11,7 @@
 #include  "mkf_ucs4_iso8859.h"
 #include  "mkf_ucs4_viscii.h"
 #include  "mkf_ucs4_koi8.h"
+#include  "mkf_ucs4_iscii.h"
 #include  "mkf_ucs4_georgian_ps.h"
 #include  "mkf_ucs4_cp125x.h"
 #include  "mkf_ucs4_jisx0201.h"
@@ -24,6 +25,9 @@
 #include  "mkf_ucs4_gbk.h"
 #include  "mkf_ucs4_big5.h"
 #include  "mkf_ucs4_cns11643.h"
+
+
+#define  DEBUG
 
 
 typedef struct  map
@@ -60,6 +64,7 @@ static map_t  map_table[] =
 	{ VISCII , mkf_map_ucs4_to_viscii , mkf_map_viscii_to_ucs4 } ,
 	{ KOI8_R , mkf_map_ucs4_to_koi8_r , mkf_map_koi8_r_to_ucs4 } ,
 	{ KOI8_U , mkf_map_ucs4_to_koi8_u , mkf_map_koi8_u_to_ucs4 } ,
+	{ ISCII , mkf_map_ucs4_to_iscii , mkf_map_iscii_to_ucs4 } ,
 	{ KOI8_T , mkf_map_ucs4_to_koi8_t , mkf_map_koi8_t_to_ucs4 } ,
 	{ GEORGIAN_PS , mkf_map_ucs4_to_georgian_ps , mkf_map_georgian_ps_to_ucs4 } ,
 	{ CP1250 , mkf_map_ucs4_to_cp1250 , mkf_map_cp1250_to_ucs4 } ,
@@ -109,42 +114,57 @@ mkf_map_ucs4_to_cs(
 	mkf_charset_t  cs
 	)
 {
-	int  count ;
 	u_int32_t  ucs4_code ;
+	map_t *  map ;
+	static map_t *  cached_map ;
 
+#ifdef  DEBUG
 	if( ucs4->cs != ISO10646_UCS4_1)
 	{
+		kik_debug_printf( KIK_DEBUG_TAG " ucs4 is not ucs4.\n") ;
+
+		return  0 ;
+	}
+#endif
+
+	ucs4_code = mkf_char_to_int( ucs4) ;
+
+	if( ! ( map = cached_map) || map->cs != cs)
+	{
+		size_t  count ;
+
+		for( count = 0 ; count < sizeof( map_table) / sizeof( map_t) ; count++)
+		{
+			if( map_table[count].cs == cs)
+			{
+				cached_map = map = &map_table[count] ;
+
+				goto  found ;
+			}
+		}
+
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " %x cs is not supported to map to ucs4.\n" , cs) ;
+	#endif
+
 		return  0 ;
 	}
 
-	ucs4_code = mkf_char_to_int( ucs4) ;
-	
-	for( count = 0 ; count < sizeof( map_table) / sizeof( map_t) ; count ++)
+found:
+	if( (*map->map_ucs4_to)( non_ucs , ucs4_code))
 	{
-		if( map_table[count].cs == cs)
-		{
-			if( (*map_table[count].map_ucs4_to)( non_ucs , ucs4_code))
-			{
-				return  1 ;
-			}
-			else
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" UCS4 char(0x%.2x%.2x%.2x%.2x) is not supported.\n" ,
-					ucs4->ch[0] , ucs4->ch[1] , ucs4->ch[2] , ucs4->ch[3]) ;
-			#endif
-
-				return  0 ;
-			}
-		}
+		return  1 ;
 	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" UCS4 char(0x%.2x%.2x%.2x%.2x) is not supported to %x cs.\n" ,
+			ucs4->ch[0] , ucs4->ch[1] , ucs4->ch[2] , ucs4->ch[3] , cs) ;
+	#endif
 
-#ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " %x cs is not supported to map to ucs4.\n" , cs) ;
-#endif
-	
-	return  0 ;
+		return  0 ;
+	}
 }
 
 int
@@ -155,13 +175,17 @@ mkf_map_ucs4_to_with_funcs(
 	size_t  list_size
 	)
 {
-	int  count ;
+	size_t  count ;
 	u_int32_t  ucs4_code ;
 
+#ifdef  DEBUG
 	if( ucs4->cs != ISO10646_UCS4_1)
 	{
+		kik_debug_printf( KIK_DEBUG_TAG " ucs4 is not ucs4.\n") ;
+
 		return  0 ;
 	}
+#endif
 
 	ucs4_code = mkf_char_to_int( ucs4) ;
 	
@@ -190,21 +214,33 @@ mkf_map_ucs4_to(
 	mkf_char_t *  ucs4
 	)
 {
-	int  count ;
+	size_t  count ;
 	u_int32_t  ucs4_code ;
+	map_t *  map ;
+	static map_t *  cached_map ;
 
+#ifdef  DEBUG
 	if( ucs4->cs != ISO10646_UCS4_1)
 	{
+		kik_debug_printf( KIK_DEBUG_TAG " ucs4 is not ucs4.\n") ;
+
 		return  0 ;
 	}
+#endif
 
 	ucs4_code = mkf_char_to_int( ucs4) ;
 
-	for( count = 0 ; count < sizeof( map_table) / sizeof( map_table[0]) ;
-		count ++)
+	if( ( map = cached_map) && (*map->map_ucs4_to)( non_ucs , ucs4_code))
+	{
+		return  1 ;
+	}
+	
+	for( count = 0 ; count < sizeof( map_table) / sizeof( map_table[0]) ; count++)
 	{
 		if( (*map_table[count].map_ucs4_to)( non_ucs , ucs4_code))
 		{
+			cached_map = &map_table[count] ;
+
 			return  1 ;
 		}
 	}
@@ -226,23 +262,35 @@ mkf_map_ucs4_to_iso2022cs(
 	mkf_char_t *  ucs4
 	)
 {
-	int  count ;
+	size_t  count ;
 	u_int32_t  ucs4_code ;
+	map_t *  map ;
+	static map_t *  cached_map ;
 
+#ifdef  DEBUG
 	if( ucs4->cs != ISO10646_UCS4_1)
 	{
+		kik_debug_printf( KIK_DEBUG_TAG " ucs4 is not ucs4.\n") ;
+
 		return  0 ;
 	}
+#endif
 
 	ucs4_code = mkf_char_to_int( ucs4) ;
 
-	for( count = 0 ; count < sizeof( map_table) / sizeof( map_table[0]) ;
-		count ++)
+	if( ( map = cached_map) && (*map->map_ucs4_to)( non_ucs , ucs4_code))
+	{
+		return  1 ;
+	}
+
+	for( count = 0 ; count < sizeof( map_table) / sizeof( map_table[0]) ; count ++)
 	{
 		if( IS_CS_BASED_ON_ISO2022(map_table[count].cs))
 		{
 			if( (*map_table[count].map_ucs4_to)( non_ucs , ucs4_code))
 			{
+				cached_map = &map_table[count] ;
+
 				return  1 ;
 			}
 		}
@@ -262,8 +310,9 @@ mkf_map_to_ucs4(
 	mkf_char_t *  non_ucs
 	)
 {
-	int  count ;
 	u_int32_t  code ;
+	map_t *  map ;
+	static map_t *  cached_map ;
 
 	if( non_ucs->cs == ISO10646_UCS4_1)
 	{
@@ -273,24 +322,44 @@ mkf_map_to_ucs4(
 	}
 	
 	code = mkf_char_to_int( non_ucs) ;
-	
-	for( count = 0 ; count < sizeof( map_table) / sizeof( map_t) ; count ++)
+
+	if( ! ( map = cached_map) || map->cs != non_ucs->cs)
 	{
-		if( map_table[count].cs == non_ucs->cs)
+		size_t  count ;
+
+		for( count = 0 ; count < sizeof( map_table) / sizeof( map_t) ; count ++)
 		{
-			if( (*map_table[count].map_to_ucs4)( ucs4 , code))
+			if( map_table[count].cs == non_ucs->cs)
 			{
-				return  1 ;
+				cached_map = map = &map_table[count] ;
+
+				goto  found ;
 			}
 		}
-	}
-	
-#ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " this cs(%x) (code %x) cannot be mapped to UCS4.\n" ,
-		non_ucs->cs , code) ;
-#endif
 
-	return  0 ;
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" %x cs is not supported to map to ucs4.\n" , non_ucs->cs) ;
+	#endif
+
+		return  0 ;
+	}
+
+found:
+	if( (*map->map_to_ucs4)( ucs4 , code))
+	{
+		return  1 ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" this cs(%x) (code %x) cannot be mapped to UCS4.\n" ,
+			non_ucs->cs , code) ;
+	#endif
+
+		return  0 ;
+	}
 }
 
 int

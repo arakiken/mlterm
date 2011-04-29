@@ -59,25 +59,34 @@ static map_ucs4_to_func_table_t  map_ucs4_to_func_table[] =
 static map_func_t
 get_map_ucs4_to_func_for_current_locale(void)
 {
-	int  count ;
+	size_t  count ;
 	char *  lang ;
 	char *  country ;
+	map_ucs4_to_func_table_t *  tablep ;
+	static map_ucs4_to_func_table_t *  cached_table ;
 
 	lang = kik_get_lang() ;
 	country = kik_get_country() ;
+
+	if( ( tablep = cached_table) &&
+	    ( ! tablep->lang || ! strcmp( tablep->lang , lang)) &&
+	    ( ! tablep->country || ! strcmp( tablep->country , country)))
+	{
+		return  tablep->func ;
+	}
 
 	for( count = 0 ;
 		count < sizeof( map_ucs4_to_func_table) / sizeof( map_ucs4_to_func_table[0]) ;
 		count ++)
 	{
-		map_ucs4_to_func_table_t *  tablep ;
-		
 		tablep = map_ucs4_to_func_table + count ;
 
 		if( ( ! tablep->lang || ! strcmp( tablep->lang, lang)) &&
 			( ! tablep->country || ! strcmp( tablep->country, country)))
 		{
-			return  map_ucs4_to_func_table[count].func ;
+			cached_table = tablep ;
+
+			return  tablep->func ;
 		}
 	}
 

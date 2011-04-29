@@ -1011,6 +1011,12 @@ change_char_attr(
 		/* Inverse */
 		vt100_parser->is_reversed = 1 ;
 	}
+#if  0
+	else if( flag == 8)
+	{
+		/* Hidden */
+	}
+#endif
 	else if( flag == 22)
 	{
 		/* Bold */
@@ -1028,6 +1034,12 @@ change_char_attr(
 	{
 		vt100_parser->is_reversed = 0 ;
 	}
+#if  0
+	else if( flag == 28)
+	{
+		/* Not hidden */
+	}
+#endif
 	else if( 30 <= flag && flag <= 37)
 	{
 		/* 30=ML_BLACK(0) ... 37=ML_WHITE(7) */
@@ -1243,7 +1255,8 @@ get_pt_in_esc_seq(
 
 	pt = *str ;
 
-	while( 0x20 <= (**str & 0x7f) && **str != 0x7f)
+	/* UTF-8 uses 0x80-0x9f as printable characters. */
+	while( 0x20 <= **str && **str != 0x7f)
 	{
 		if( ! increment_str( str , left))
 		{
@@ -2485,12 +2498,20 @@ parse_vt100_escape_sequence(
 			}
 
 			if( ( pt = get_pt_in_esc_seq( vt100_parser->screen ,
-					&str_p , &left , 1)) == NULL && left == 0)
+						&str_p , &left , 1)) == NULL)
 			{
-				return  0 ;
+				if( left == 0)
+				{
+					return  0 ;
+				}
+			#ifdef  DEBUG
+				else
+				{
+					debug_print_unknown( "ESC ] %d ; ???\n" , ps) ;
+				}
+			#endif
 			}
-
-			if( ps == 0)
+			else if( ps == 0)
 			{
 				/* "OSC 0" change icon name and window title */
 

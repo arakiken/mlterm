@@ -17,43 +17,34 @@ parser_next_char_intern(
 	mkf_charset_t  cs
 	)
 {
+	u_char c ;
+	
 	if( parser->is_eos)
 	{
 		return  0 ;
 	}
 
 	mkf_parser_mark( parser) ;
-	
-	if( /* 0x0 <= *parser->str && */ *parser->str <= 0x7f)
+
+	ch->ch[0] = c = *parser->str ;
+	ch->size = 1 ;
+	ch->property = 0 ;
+
+	if( /* 0x0 <= c && */ c <= 0x7f &&
+		(cs != VISCII ||
+		(c != 0x02 && c != 0x05 && c != 0x06 && c != 0x14 && c != 0x19 && c != 0x1e)) )
 	{
-		ch->ch[0] = *parser->str ;
-		ch->size = 1 ;
 		ch->cs = US_ASCII ;
 	}
-	else if( 0x80 <= *parser->str)
+	else
 	{
-		ch->ch[0] = *parser->str ;
-		ch->size = 1 ;
+		if( cs == CP874 &&
+		    (c == 0xd1 || ( 0xd4 <= c && c <= 0xda) || ( 0xe7 <= c && c <= 0xee)) )
+		{
+			ch->property = MKF_COMBINING ;
+		}
+
 		ch->cs = cs ;
-	}
-	else
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " %x char not supported.\n" , *parser->str) ;
-	#endif
-
-		return  0 ;
-	}
-
-	if( ch->cs == CP874 &&
-	   (ch->ch[0] == 0xd1 || ( 0xd4 <= ch->ch[0] && ch->ch[0] <= 0xda) ||
-			( 0xe7 <= ch->ch[0] && ch->ch[0] <= 0xee)) )
-	{
-		ch->property = MKF_COMBINING ;
-	}
-	else
-	{
-		ch->property = 0 ;
 	}
 
 	mkf_parser_increment( parser) ;
@@ -185,6 +176,24 @@ cp874_parser_next_char(
 	)
 {
 	return  parser_next_char_intern( parser , ch , CP874) ;
+}
+
+static int
+viscii_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , VISCII) ;
+}
+
+static int
+iscii_parser_next_char(
+	mkf_parser_t *  parser ,
+	mkf_char_t *  ch
+	)
+{
+	return  parser_next_char_intern( parser , ch , ISCII) ;
 }
 
 static void
@@ -489,4 +498,44 @@ mkf_cp874_parser_new(void)
 	parser->delete = parser_delete ;
 
 	return  parser ;
+}
+
+mkf_parser_t *
+mkf_viscii_parser_new(void)
+{
+	mkf_parser_t *  viscii_parser ;
+	
+	if( ( viscii_parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( viscii_parser) ;
+
+	viscii_parser->init = mkf_parser_init ;
+	viscii_parser->next_char = viscii_parser_next_char ;
+	viscii_parser->set_str = parser_set_str ;
+	viscii_parser->delete = parser_delete ;
+
+	return  viscii_parser ;
+}
+
+mkf_parser_t *
+mkf_iscii_parser_new(void)
+{
+	mkf_parser_t *  iscii_parser ;
+	
+	if( ( iscii_parser = malloc( sizeof( mkf_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( iscii_parser) ;
+
+	iscii_parser->init = mkf_parser_init ;
+	iscii_parser->next_char = iscii_parser_next_char ;
+	iscii_parser->set_str = parser_set_str ;
+	iscii_parser->delete = parser_delete ;
+
+	return  iscii_parser ;
 }
