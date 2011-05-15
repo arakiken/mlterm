@@ -323,10 +323,12 @@ kik_pty_fork(
 }
 
 int
-kik_pty_helper_close(
-	int  pty
+kik_pty_close(
+	int  master
 	)
 {
+	close( master) ;
+
 	return  0 ;
 }
 

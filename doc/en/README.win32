@@ -69,8 +69,8 @@ Memo about WIN32 native GUI.
   If -e option is not specified, a dialog window which decides server to connect
   is shown.
   You can specify following options which customize a dialog in ~/.mlterm/main file.
-  o default_server(--serv) = (<user>@)(<protocol>:)<server>(:<encoding>)
-  o server_list(--servlist) = (<user>@)(<protocol>:)<server>(:<encoding>),(<user>@)(<protocol>:)<server>(:<encoding>),...
+  o default_server(--serv) = (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
+  o server_list(--servlist) = (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>),(<protocol>://)(<user>@)<server>(:<port>)(:<encoding>),...
 
 * Caution
   o x, y of -g [col]x[row]+[x]+[y] option is ignored.

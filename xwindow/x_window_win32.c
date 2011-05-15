@@ -2870,6 +2870,12 @@ x_set_window_name(
 	if( name == NULL)
 	{
 		name = root->app_name ;
+
+	#ifdef  UTF16_IME_CHAR
+		SetWindowTextW( root->my_window , name) ;
+
+		return  1 ;
+	#endif
 	}
 
 	/*

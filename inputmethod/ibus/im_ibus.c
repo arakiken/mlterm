@@ -521,9 +521,12 @@ im_ibus_new(
 		syms = export_syms ;
 
 		ibus_init() ;
+
+		/* g_getenv( "DISPLAY") will be called in ibus_get_socket_path(). */
 	#if  0
-		ibus_set_display( ":0.0") ;
+		ibus_set_display( g_getenv( "DISPLAY")) ;
 	#endif
+
 		ibus_bus = ibus_bus_new() ;
 
 		if( ! ibus_bus_is_connected( ibus_bus))

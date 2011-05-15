@@ -7,7 +7,7 @@
 
 
 #include  <kiklib/kik_config.h>	/* USE_WIN32API */
-#include  <kiklib/kik_types.h>	/* u_int/u_char/uid_t/gid_t */
+#include  <kiklib/kik_types.h>	/* u_int/u_char */
 
 
 typedef struct  ml_pty_event_listener
@@ -26,8 +26,8 @@ typedef struct  ml_pty_event_listener
 typedef struct  ml_pty *  ml_pty_ptr_t ;
 
 
-ml_pty_ptr_t  ml_pty_new( char *  cmd_path , char **  cmd_argv , char **  env , char *  host ,
-	u_int  cols , u_int  rows) ;
+ml_pty_ptr_t  ml_pty_new( char *  cmd_path , char **  cmd_argv ,
+	char **  env , char *  host , char *  pass , u_int  cols , u_int  rows) ;
 
 int  ml_pty_delete( ml_pty_ptr_t  pty) ;
 
@@ -39,7 +39,7 @@ size_t  ml_write_to_pty( ml_pty_ptr_t  pty , u_char *  buf , size_t  len) ;
 
 size_t  ml_flush_pty( ml_pty_ptr_t  pty) ;
 
-size_t  ml_read_pty( ml_pty_ptr_t  pty , u_char *  bytes , size_t  left) ;
+size_t  ml_read_pty( ml_pty_ptr_t  pty , u_char *  buf , size_t  left) ;
 
 pid_t  ml_pty_get_pid( ml_pty_ptr_t  pty) ;
 
@@ -48,6 +48,10 @@ int  ml_pty_get_master_fd( ml_pty_ptr_t  pty) ;
 int  ml_pty_get_slave_fd( ml_pty_ptr_t  pty) ;
 
 char *  ml_pty_get_slave_name( ml_pty_ptr_t  pty) ;
+
+#ifdef  USE_LIBSSH2
+void *  ml_search_ssh_session( char *  host , char *  port , char *  user) ;
+#endif
 
 
 #endif

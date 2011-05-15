@@ -11,7 +11,7 @@
 
 pid_t  kik_pty_fork( int *  master , int *  slave) ;
 
-int  kik_pty_helper_close( int  pty) ;
+int  kik_pty_close( int  master) ;
 
 void  kik_pty_helper_set_flag( int  lastlog , int  utmp , int  wtmp) ;
 

@@ -26,15 +26,23 @@
 #define  PTY_WR_BUFFER_SIZE  100
 
 
-typedef enum  ml_unicode_font_policy
+/*
+ * Possible patterns are:
+ *  NOT_USE_UNICODE_FONT(0x1)
+ *  USE_UNICODE_PROPERTY(0x2)
+ *  NOT_USE_UNICODE_FONT|USE_UNICODE_PROPERTY(0x3)
+ *  ONLY_USE_UNICODE_FONT(0x4)
+ */
+typedef enum  ml_unicode_policy
 {
-	NO_UNICODE_FONT_POLICY = 0x0 ,
-	NOT_USE_UNICODE_FONT ,
-	ONLY_USE_UNICODE_FONT ,
+	NO_UNICODE_POLICY = 0x0 ,
+	NOT_USE_UNICODE_FONT = 0x1 ,
+	USE_UNICODE_PROPERTY = 0x2 ,
+	ONLY_USE_UNICODE_FONT = 0x4 ,
 	
-	UNICODE_FONT_POLICY_MAX
+	UNICODE_POLICY_MAX
 
-} ml_unicode_font_policy_t ;
+} ml_unicode_policy_t ;
 
 typedef struct  ml_char_buffer
 {
@@ -122,7 +130,7 @@ typedef struct  ml_vt100_parser
 	
 	mkf_charset_t  cs ;
 
-	ml_unicode_font_policy_t  unicode_font_policy ;
+	ml_unicode_policy_t  unicode_policy ;
 
 	ml_xterm_event_listener_t *  xterm_listener ;
 	ml_config_event_listener_t *  config_listener ;
@@ -134,9 +142,6 @@ typedef struct  ml_vt100_parser
 	int8_t  is_so ;
 	int8_t  is_dec_special_in_g0 ;
 	int8_t  is_dec_special_in_g1 ;
-	
-	int8_t  not_use_unicode_font ;
-	int8_t  only_use_unicode_font ;
 	
 	int8_t  is_bold ;
 	int8_t  is_underlined ;
@@ -160,7 +165,7 @@ typedef struct  ml_vt100_parser
 
 
 ml_vt100_parser_t *  ml_vt100_parser_new( ml_screen_t *  screen , ml_char_encoding_t  encoding ,
-	ml_unicode_font_policy_t  policy , u_int  col_size_a ,
+	ml_unicode_policy_t  policy , u_int  col_size_a ,
 	int  use_char_combining , int  use_multi_col_char) ;
 
 int  ml_vt100_parser_delete( ml_vt100_parser_t *  vt100_parser) ;
@@ -173,8 +178,8 @@ int  ml_vt100_parser_set_xterm_listener( ml_vt100_parser_t *  vt100_parser ,
 int  ml_vt100_parser_set_config_listener( ml_vt100_parser_t *  vt100_parser ,
 	ml_config_event_listener_t *  config_listener) ;
 
-int  ml_vt100_parser_set_unicode_font_policy( ml_vt100_parser_t *  vt100_parser ,
-	ml_unicode_font_policy_t  policy) ;
+int  ml_vt100_parser_set_unicode_policy( ml_vt100_parser_t *  vt100_parser ,
+	ml_unicode_policy_t  policy) ;
 
 int  ml_parse_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
 

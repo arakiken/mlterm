@@ -27,7 +27,7 @@ OBJ1 = x_term_manager.o x_display@WIN32TAG@.o x_window@WIN32TAG@.o x_screen.o x_
 	x_shortcut.o x_bel_mode.o x_sb_mode.o x_mod_meta_mode.o main.o \
 	x_termcap.o x_font_cache.o x_draw_str.o x_gc.o x_color_cache.o @DND_LIBS@ \
 	x_scrollbar.o x_sb_screen.o x_sb_view_factory.o x_simple_sb_view@WIN32TAG@.o \
-	x_imagelib@WIN32TAG@.o @WIN32DIALOG_OBJ@
+	x_imagelib@WIN32TAG@.o x_connect_dialog.o
 
 OBJ2 = x_decsp_font.o x_im.o x_im_candidate_screen.o x_im_status_screen.o x_xim.o
 
@@ -42,21 +42,21 @@ LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
 
 CFLAGS = $(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @MATH_CFLAGS@ \
-	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @IMAGELIB_CFLAGS@ @X_CFLAGS@ @GUI_CFLAGS@ \
+	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @IMAGELIB_CFLAGS@ @X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ \
 	@XUTF8_CFLAGS@ @DND_CFLAGS@ @IM_CFLAGS@ @SB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
 	-DLIBEXECDIR=\"$(LIBEXECDIR)\" -DXDATADIR=\"$(XDATADIR)\"\
 	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/local/include
 
 LIBS1 = $(LIBS_LOCAL) $(LMLTERM) $(LMKF) $(LKIK) \
-	-L/usr/local/lib -R/usr/local/lib @FRIBIDI_LIBS@
+	-L/usr/local/lib -R/usr/local/lib @FRIBIDI_LIBS@ @SSH2_LIBS@
 
 LIBS2 = @IND_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ \
 	@DL_LIBS_IM@ @DL_LIBS_SB@ @MATH_LIBS@ \
 	@X_LIBS@ -lX11 @X_EXTRA_LIBS@
 #	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 
-LIBS2_win32 = -mwindows -limm32 @SUBSYSTEM@
+LIBS2_win32 = -mwindows -limm32 @SUBSYSTEM@ @WINSOCK_LIBS@
 
 LIBS = $(LIBS1) $(LIBS2@WIN32TAG@)
 
@@ -83,7 +83,7 @@ $(PROG): $(OBJ) $(LMLTERM)
 winrs.o: winrs.rs
 	cp $(top_srcdir)/contrib/icon/mlterm-icon-win32.ico .
 	# windres-2.11.90(included in MSYS-DTK 1.0.1) doesn't accept '-I[DIR]' option.
-	windres `echo "@KIK_CFLAGS@"|sed 's/-I/--include-dir /'` @GUI_CFLAGS@ $< winrs.o
+	windres `echo "@KIK_CFLAGS@"|sed 's/-I/--include-dir /'` @GUI_CFLAGS@ @SSH2_CFLAGS@ $< winrs.o
 
 $(BINDIR):
 	mkdir -p $(BINDIR)

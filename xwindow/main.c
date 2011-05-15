@@ -12,6 +12,10 @@
 #include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_debug.h>
 
+#if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
+#include  <windows.h>
+#endif
+
 #include  "x.h"
 #include  "x_term_manager.h"
 
@@ -47,6 +51,12 @@ main(
 	)
 #endif
 {
+#if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
+	WSADATA wsadata ;
+
+	WSAStartup( MAKEWORD(2,0), &wsadata) ;
+#endif
+
 	kik_sig_child_init() ;
 
 	/* normal user */
@@ -78,6 +88,10 @@ main(
 
 	x_term_manager_final() ;
 	kik_locale_final() ;
+
+#if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
+	WSACleanup() ;
+#endif
 
 	return  0 ;
 }

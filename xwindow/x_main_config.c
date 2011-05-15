@@ -196,14 +196,20 @@ x_prepare_for_main_config(
 		"input method (xim/kbd/uim/iiimf/m17nlib/scim/none) [xim]") ;
 	kik_conf_add_opt( conf , '\0' , "parent" , 0 , "parent_window" ,
 		"parent window") ;
-#ifdef  USE_WIN32API
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	kik_conf_add_opt( conf , '\0' , "servlist" , 0 , "server_list" ,
 		"list of servers to connect") ;
 	kik_conf_add_opt( conf , '\0' , "serv" , 0 , "default_server" ,
 		"connecting server by default") ;
 #endif
+#if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
+	kik_conf_add_opt( conf , '\0' , "nodialog" , 1 , "skip_dialog" ,
+		"if possible, skip dialog to input server address, password and so on") ;
+#endif
 	kik_conf_add_opt( conf , '\0' , "csp" , 0 , "letter_space" ,
 		"extra space between letters in pixels [0]") ;
+	kik_conf_add_opt( conf , '\0' , "ucsprop" , 1 , "use_unicode_property" ,
+		"use unicode property for characters") ;
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
 
@@ -673,13 +679,13 @@ x_main_config_init(
 		}
 	}
 
-	main_config->unicode_font_policy = 0 ;
+	main_config->unicode_policy = 0 ;
 
 	if( ( value = kik_conf_get_value( conf , "not_use_unicode_font")))
 	{
 		if( strcmp( value , true) == 0)
 		{
-			main_config->unicode_font_policy = NOT_USE_UNICODE_FONT ;
+			main_config->unicode_policy = NOT_USE_UNICODE_FONT ;
 		}
 	}
 
@@ -687,18 +693,35 @@ x_main_config_init(
 	{
 		if( strcmp( value , true) == 0)
 		{
-			if( main_config->unicode_font_policy == NOT_USE_UNICODE_FONT)
+			if( main_config->unicode_policy == NOT_USE_UNICODE_FONT)
 			{
 				kik_msg_printf(
 					"only_use_unicode_font and not_use_unicode_font options "
 					"cannot be used at the same time.\n") ;
 
 				/* default values are used */
-				main_config->unicode_font_policy = 0 ;
+				main_config->unicode_policy = 0 ;
 			}
 			else
 			{
-				main_config->unicode_font_policy = ONLY_USE_UNICODE_FONT ;
+				main_config->unicode_policy = ONLY_USE_UNICODE_FONT ;
+			}
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_unicode_property")))
+	{
+		if( strcmp( value , true) == 0)
+		{
+			if( main_config->unicode_policy == ONLY_USE_UNICODE_FONT)
+			{
+				kik_msg_printf(
+					"only_use_unicode_font and use_unicode_property "
+					"cannot be used at the same time.\n") ;
+			}
+			else
+			{
+				main_config->unicode_policy |= USE_UNICODE_PROPERTY ;
 			}
 		}
 	}
@@ -1052,7 +1075,7 @@ x_main_config_init(
 		}
 	}
 	
-#ifdef  USE_WIN32API
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	main_config->server_list = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "server_list")))
@@ -1082,15 +1105,29 @@ x_main_config_init(
 			}
 		}
 	}
-	
+
 	main_config->default_server = NULL ;
 	
 	if( ( value = kik_conf_get_value( conf , "default_server")))
 	{
-		if( ( main_config->default_server = strdup( value)))
+		if( *value && ( main_config->default_server = strdup( value)))
 		{
+		#ifdef  USE_WIN32API
 			x_main_config_add_to_server_list( main_config ,
 				main_config->default_server) ;
+		#endif
+		}
+	}
+#endif
+
+#if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
+	main_config->skip_dialog = 0 ;
+	
+	if( ( value = kik_conf_get_value( conf , "skip_dialog")))
+	{
+		if( strcmp( value , true) == 0)
+		{
+			main_config->skip_dialog = 1 ;
 		}
 	}
 #endif
@@ -1155,12 +1192,13 @@ x_main_config_final(
 	free( main_config->input_method) ;
 	free( main_config->init_str) ;
 
-#ifdef  USE_WIN32API
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	if( main_config->server_list)
 	{
 		free( main_config->server_list[0]) ;
 		free( main_config->server_list) ;
 	}
+
 	free( main_config->default_server) ;
 #endif
 
@@ -1169,7 +1207,7 @@ x_main_config_final(
 	return  1 ;
 }
 
-#ifdef  USE_WIN32API
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 int
 x_main_config_add_to_server_list(
 	x_main_config_t *  main_config ,
@@ -1216,7 +1254,7 @@ x_main_config_add_to_server_list(
 	if( p && ( pp = realloc( main_config->server_list ,
 				sizeof(char*) * (nlist + 2))))
 	{
-		int  count ;
+		u_int  count ;
 		
 		main_config->server_list = pp ;
 

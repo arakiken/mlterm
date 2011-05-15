@@ -163,6 +163,10 @@ scroll_upward_region(
 	 * This should be done before ml_edit_t data structure is chanegd
 	 * for the listener object to clear existing cache.
 	 */
+#if  0
+	kik_debug_printf( " SCROLL UP region %d %d size %d\n" ,
+		boundary_beg , boundary_end , size) ;
+#endif
 	window_is_scrolled = (*edit->scroll_listener->window_scroll_upward_region)(
 				edit->scroll_listener->self , boundary_beg , boundary_end , size) ;
 	 
@@ -267,6 +271,10 @@ scroll_downward_region(
 	 * This should be done before ml_edit_t data structure is chanegd
 	 * for the listener object to clear existing cache.
 	 */
+#if  0
+	kik_debug_printf( " SCROLL DOWN region %d %d size %d\n" ,
+		boundary_beg , boundary_end , size) ;
+#endif
 	window_is_scrolled = (*edit->scroll_listener->window_scroll_downward_region)(
 				edit->scroll_listener->self , boundary_beg , boundary_end , size) ;
 	

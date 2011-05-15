@@ -87,14 +87,14 @@ WIN32 native GUI 対応に関するメモ
      ます。なお、main 設定ファイルにおいて、あらかじめ次のオプションを指定
      することもできます(括弧書きは mlterm の起動時の引数として指定する場合
      のオプション名)。
-     o default_server(--serv) = (<user>@)(<protocol>:)<server>(:<encoding>)
+     o default_server(--serv) = (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
        ダイアログの既定値として表示するユーザ名、プロトコル及びサーバを
        指定します(ユーザ名又はプロトコルを省略した場合は、ユーザ名は環境変数
        USERNAME の値、プロトコルは SSH となります。)。
        このオプションが指定されていない場合、起動時のダイアログに入力した
        内容が、その後 pty を開く場合のダイアログの既定値となります。
      o server_list(--servlist) =
-       (<user>@)(<protocol>:)<server>(:<encoding>),(<user>@)(<protocol>:)<server>(:<encoding>),...
+       (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>),(<protocol>://)(<user>@)<server>(:<port>)(:<encoding>),...
        ダイアログの "List" 欄に、接続するサーバの候補を表示します。
        default_server で指定したサーバが server_list にない場合、自動的に
        default_server が server_list に追加されます。

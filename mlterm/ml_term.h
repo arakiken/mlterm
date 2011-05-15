@@ -60,7 +60,7 @@ typedef struct ml_term
 
 
 ml_term_t *  ml_term_new( u_int  cols , u_int  rows , u_int  tab_size , u_int  log_size ,
-	ml_char_encoding_t  encoding , int  is_auto_encoding , ml_unicode_font_policy_t  policy ,
+	ml_char_encoding_t  encoding , int  is_auto_encoding , ml_unicode_policy_t  policy ,
 	int  col_size_a , int  use_char_combining , int  use_multi_col_char , int  use_bidi ,
 	ml_bidi_mode_t  bidi_mode , int  use_bce , int  use_dynamic_comb , ml_bs_mode_t  bs_mode ,
 	ml_vertical_mode_t  vertical_mode , mkf_iscii_lang_t  iscii_lang_type) ;
@@ -69,10 +69,12 @@ int  ml_term_delete( ml_term_t *  term) ;
 
 int  ml_term_zombie( ml_term_t *  term) ;
 
-int  ml_term_open_pty( ml_term_t *  term , char *  cmd_path , char **  argv , char **  env , char *  host) ;
+int  ml_term_open_pty( ml_term_t *  term , char *  cmd_path , char **  argv ,
+	char **  env , char *  host , char *  pass) ;
 
 int  ml_term_attach( ml_term_t *  term , ml_xterm_event_listener_t *  xterm_listener ,
-	ml_config_event_listener_t *  config_listener , ml_screen_event_listener_t *  screen_listener ,
+	ml_config_event_listener_t *  config_listener ,
+	ml_screen_event_listener_t *  screen_listener ,
 	ml_pty_event_listener_t *  pty_listner) ;
 
 int  ml_term_detach( ml_term_t *  term) ;
@@ -89,7 +91,7 @@ int  ml_term_set_auto_encoding( ml_term_t *  term , int  is_auto_encoding) ;
 
 int  ml_term_is_auto_encoding( ml_term_t *  term) ;
 
-int  ml_term_set_unicode_font_policy( ml_term_t *  term , ml_unicode_font_policy_t  policy) ;
+int  ml_term_set_unicode_policy( ml_term_t *  term , ml_unicode_policy_t  policy) ;
 
 size_t  ml_term_convert_to( ml_term_t *  term , u_char *  dst , size_t  len , mkf_parser_t *  parser) ;
 

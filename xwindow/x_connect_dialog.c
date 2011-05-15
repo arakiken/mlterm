@@ -1,14 +1,19 @@
 /*
  *	$Id$
+ *
+ *	Note that protocols except ssh aren't supported if USE_LIBSSH2 is defined.
  */
 
 #include  "x_connect_dialog.h"
-
 
 #include  <stdio.h>		/* sprintf */
 #include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_path.h>
+
+
+#if  defined(USE_WIN32API) || (defined(USE_WIN32GUI) && defined(USE_LIBSSH2))
 
 
 /* --- static variables --- */
@@ -17,8 +22,10 @@ static int  selected_proto = -1 ;
 
 static char **  server_list ;
 static char *  default_server ;
-static char *  selected_server ;
 
+/* These variables are set in IDOK. If empty string is input, nothing is set (==NULL). */
+static char *  selected_server ;
+static char *  selected_port ;
 static char *  selected_user ;
 static char *  selected_pass ;
 static char *  selected_encoding ;
@@ -27,82 +34,78 @@ static char *  selected_encoding ;
 /* --- static functions --- */
 
 /*
- * Parsing "<user>@<proto>:<host>:<encoding>".
+ * Parsing "<proto>://<user>@<host>:<port>:<encoding>".
  */
 static int
 parse(
-	char **  user ,		/* If seq doesn't have user, NULL is set. */
-	int *  proto ,		/* If seq doesn't have proto, -1 is set. */
-	char **  server ,
-	char **  encoding ,	/* If seq doesn't have encoding, NULL is set. */
-	char *  seq		/* broken in this function. */
+	int *  protoid ,		/* If seq doesn't have proto, -1 is set. */
+	char **  user ,			/* If seq doesn't have user, NULL is set. */
+	char **  host ,
+	char **  port ,
+	char **  encoding ,		/* If seq doesn't have encoding, NULL is set. */
+	char *  seq			/* broken in this function. */
 	)
 {
-	char *  p ;
-	size_t  len ;
+	char *  proto ;
 
-	/*
-	 * This hack enables the way of calling this function like
-	 * 'parse( ... , kik_str_alloca_dup( "string"))'
-	 */
-	if( ! seq)
+	if( ! kik_parse_uri( &proto , user , host , port , NULL , encoding , seq))
 	{
 		return  0 ;
 	}
 
-	if( ( p = strchr( seq , '@')))
+	if( proto)
 	{
-		*p = '\0' ;
-		*user = seq ;
-		seq = p + 1 ;
+		if( strcmp( proto , "ssh") == 0)
+		{
+			*protoid = IDD_SSH ;
+		}
+		else if( strcmp( proto , "telnet") == 0)
+		{
+			*protoid = IDD_TELNET ;
+		}
+		else if( strcmp( proto , "rlogin") == 0)
+		{
+			*protoid = IDD_RLOGIN ;
+		}
+		else
+		{
+			*protoid = -1 ;
+		}
 	}
 	else
 	{
-		*user = NULL ;
+		*protoid = -1 ;
 	}
 
-	len = strlen( seq) ;
-	*proto = -1 ;
-	if( len > 4 && strncmp( seq , "ssh:" , 4) == 0)
-	{
-		seq += 4 ;
-		*proto = IDD_SSH ;
-	}
-	else if( len > 7)
-	{
-		if( strncmp( seq , "telnet:" , 7) == 0)
-		{
-			seq += 7 ;
-			*proto = IDD_TELNET ;
-		}
-		else if( strncmp( seq , "rlogin:" , 7) == 0)
-		{
-			seq += 7 ;
-			*proto = IDD_RLOGIN ;
-		}
-	}
-
-	*server = seq ;
-	
-	if( ( p = strchr( seq , ':')))
-	{
-		*p = '\0' ;
-		*encoding = p + 1 ;
-	}
-	else
-	{
-		*encoding = NULL ;
-	}
-	
 	return  1 ;
 }
 
+static char *
+get_window_text(
+	HWND  win
+	)
+{
+	char *  p ;
+	int  len ;
+
+	if( ( len = GetWindowTextLength( win)) > 0 && ( p = malloc( len + 1)) )
+	{
+		if( GetWindowText( win , p , len + 1) > 0)
+		{
+			return  p ;
+		}
+		
+		free( p) ;
+	}
+
+	return  NULL ;
+}
 
 LRESULT CALLBACK dialog_proc(
-	HWND dlgwin ,
-	UINT msg ,
-	WPARAM wparam ,
-	LPARAM lparam
+	HWND  dlgwin ,
+	UINT  msg ,
+	WPARAM  wparam ,
+	LPARAM  lparam
 	)
 {
 	switch(msg)
@@ -145,6 +148,7 @@ LRESULT CALLBACK dialog_proc(
 				char *  user ;
 				int  proto ;
 				char *  server ;
+				char *  port ;
 				char *  encoding ;
 
 				res = SendMessage( win , CB_FINDSTRINGEXACT , 0 ,
@@ -154,21 +158,29 @@ LRESULT CALLBACK dialog_proc(
 					SendMessage( win , CB_SETCURSEL , res , 0) ;
 				}
 
-				if( parse( &user , &proto , &server , &encoding ,
+				if( parse( &proto , &user , &server , &port , &encoding ,
 						kik_str_alloca_dup( default_server)) )
 				{
 					SetWindowText( GetDlgItem( dlgwin , IDD_SERVER) , server) ;
+
+					if( port)
+					{
+						SetWindowText( GetDlgItem( dlgwin , IDD_PORT) ,
+							port) ;
+					}
 
 					if( user || ( user = user_env))
 					{
 						SetWindowText( GetDlgItem( dlgwin , IDD_USER) ,
 							user) ;
 					}
-					
+
+				#ifndef  USE_LIBSSH2
 					if( proto != -1)
 					{
 						selected_proto = proto ;
 					}
+				#endif
 
 					if( encoding)
 					{
@@ -182,8 +194,14 @@ LRESULT CALLBACK dialog_proc(
 				SetWindowText( GetDlgItem( dlgwin , IDD_USER) , user_env) ;
 			}
 
+		#ifdef  USE_LIBSSH2
+			EnableWindow( GetDlgItem( dlgwin , IDD_TELNET) , FALSE) ;
+			EnableWindow( GetDlgItem( dlgwin , IDD_RLOGIN) , FALSE) ;
+			CheckRadioButton( dlgwin , IDD_SSH , IDD_RLOGIN , IDD_SSH) ;
+		#else
 			CheckRadioButton( dlgwin , IDD_SSH , IDD_RLOGIN , selected_proto) ;
-			
+		#endif
+
 			if( focus_win)
 			{
 				SetFocus( focus_win) ;
@@ -201,65 +219,16 @@ LRESULT CALLBACK dialog_proc(
 		{
 		case  IDOK:
 			{
-				Window  win ;
-				int  len ;
-				char *  p ;
-				
-				win = GetDlgItem( dlgwin , IDD_SERVER) ;
-				if( ( len = GetWindowTextLength( win)) > 0 &&
-					( p = malloc( len + 1)) )
-				{
-					if( GetWindowText( win , p , len + 1) == 0)
-					{
-						free( p) ;
-					}
-					else
-					{
-						selected_server = p ;
-					}
-				}
-
-				win = GetDlgItem( dlgwin , IDD_USER) ;
-				if( ( len = GetWindowTextLength( win)) > 0 &&
-					( p = malloc( len + 1)) )
-				{
-					if( GetWindowText( win , p , len + 1) == 0)
-					{
-						free( p) ;
-					}
-					else
-					{
-						selected_user = p ;
-					}
-				}
-				
-				win = GetDlgItem( dlgwin , IDD_PASS) ;
-				if( ( len = GetWindowTextLength( win)) > 0 &&
-					( p = malloc( len + 1)) )
-				{
-					if( GetWindowText( win , p , len + 1) == 0)
-					{
-						free( p) ;
-					}
-					else
-					{
-						selected_pass = p ;
-					}
-				}
-				
-				win = GetDlgItem( dlgwin , IDD_ENCODING) ;
-				if( ( len = GetWindowTextLength( win)) > 0 &&
-					( p = malloc( len + 1)) )
-				{
-					if( GetWindowText( win , p , len + 1) == 0)
-					{
-						free( p) ;
-					}
-					else
-					{
-						selected_encoding = p ;
-					}
-				}
+				selected_server = get_window_text(
+							GetDlgItem( dlgwin , IDD_SERVER)) ;
+				selected_port = get_window_text(
+							GetDlgItem( dlgwin , IDD_PORT)) ;
+				selected_user = get_window_text(
+							GetDlgItem( dlgwin , IDD_USER)) ;
+				selected_pass = get_window_text(
+							GetDlgItem( dlgwin , IDD_PASS)) ;
+				selected_encoding = get_window_text(
+							GetDlgItem( dlgwin , IDD_ENCODING)) ;
 				
 				EndDialog( dlgwin , IDOK) ;
 				
@@ -282,6 +251,7 @@ LRESULT CALLBACK dialog_proc(
 				char *  user ;
 				int  proto ;
 				char *  server ;
+				char *  port ;
 				char *  encoding ;
 
 				win = GetDlgItem( dlgwin , IDD_LIST) ;
@@ -294,16 +264,23 @@ LRESULT CALLBACK dialog_proc(
 					seq = NULL ;
 				}
 
-				if( seq && parse( &user , &proto , &server , &encoding , seq))
+				if( seq &&
+				    parse( &proto , &user , &server , &port , &encoding , seq))
 				{
 					SetWindowText( GetDlgItem( dlgwin , IDD_SERVER) , server) ;
 
+					if( port)
+					{
+						SetWindowText( GetDlgItem( dlgwin , IDD_PORT) ,
+							port) ;
+					}
+					
 					if( user || ( user = getenv( "USERNAME")) || ( user = ""))
 					{
 						SetWindowText( GetDlgItem( dlgwin , IDD_USER) ,
 							user) ;
 					}
-					
+
 					if( proto == -1)
 					{
 						selected_proto = IDD_SSH ;
@@ -313,7 +290,7 @@ LRESULT CALLBACK dialog_proc(
 						selected_proto = proto ;
 					}
 					
-					if( encoding || ( encoding = ""))
+					if( encoding)
 					{
 						SetWindowText( GetDlgItem( dlgwin , IDD_ENCODING) ,
 							encoding) ;
@@ -350,18 +327,16 @@ LRESULT CALLBACK dialog_proc(
 
 int
 x_connect_dialog(
-	char **  server ,/* Should be free'ed by those who call this. Format:<proto>:<server> */
-	char **  user ,		/* Same as above. If user is not input, NULL is set. */
-	char **  pass ,		/* Same as above. If pass is not input, NULL is set. */
-	char **  encoding ,	/* Same as above. If encoding is not input, NULL is set. */
+	char **  uri ,		/* Should be free'ed by those who call this. */
+	char **  pass ,		/* Same as above. If pass is not input, "" is set. */
+	char *  display_name ,
 	Window  parent_window ,
 	char **  sv_list ,
-	char *   def_server	/* (<user>@)(<proto>:)<server address>. */
+	char *   def_server	/* (<user>@)(<proto>:)<server address>(:<encoding>). */
 	)
 {
-	size_t  len ;
 	int  ret ;
-	char *  format ;
+	char *  proto ;
 
 	server_list = sv_list ;
 	default_server = def_server ;
@@ -395,33 +370,55 @@ x_connect_dialog(
 	}
 	else if( selected_proto == IDD_SSH)
 	{
-		len = 4 + strlen( selected_server) + 1 ;
-		format = "ssh:%s" ;
+		proto = "ssh://" ;
 	}
 	else if( selected_proto == IDD_TELNET)
 	{
-		len = 7 + strlen( selected_server) + 1 ;
-		format = "telnet:%s" ;
+		proto = "telnet://" ;
 	}
 	else if( selected_proto == IDD_RLOGIN)
 	{
-		len = 7 + strlen( selected_server) + 1 ;
-		format = "rlogin:%s" ;
+		proto = "rlogin://" ;
 	}
 	else
 	{
 		goto  end ;
 	}
 
-	if( ( *server = malloc( len)) == NULL)
+	if( ! ( *uri = malloc( strlen(proto) +
+			        (selected_user ? strlen(selected_user) + 1 : 0) +
+			        strlen(selected_server) + 1 +
+				(selected_port ? strlen(selected_port) + 1 : 0) +
+			        (selected_encoding ? strlen(selected_encoding) + 1 : 0))) )
 	{
 		goto  end ;
 	}
 
-	sprintf( *server , format , selected_server) ;
-	*user = selected_user ;
-	*pass = selected_pass ;
-	*encoding = selected_encoding ;
+	(*uri)[0] = '\0' ;
+
+	strcat( *uri , proto) ;
+
+	if( selected_user)
+	{
+		strcat( *uri , selected_user) ;
+		strcat( *uri , "@") ;
+	}
+
+	strcat( *uri , selected_server) ;
+
+	if( selected_port)
+	{
+		strcat( *uri , ":") ;
+		strcat( *uri , selected_port) ;
+	}
+
+	if( selected_encoding)
+	{
+		strcat( *uri , ":") ;
+		strcat( *uri , selected_encoding) ;
+	}
+
+	*pass = selected_pass ? selected_pass : strdup( "") ;
 
 	/* Successfully */
 	ret = 1 ;
@@ -434,15 +431,225 @@ end:
 	
 	free( selected_server) ;
 	selected_server = NULL ;
-	
+	free( selected_port) ;
+	selected_port = NULL ;
+	free( selected_user) ;
+	selected_user = NULL ;
+	free( selected_encoding) ;
+	selected_encoding = NULL ;
+
 	if( ret == 0)
 	{
-		free( selected_user) ;
 		free( selected_pass) ;
+		selected_pass = NULL ;
 	}
-	selected_user = NULL ;
-	selected_pass = NULL ;
-	selected_encoding = NULL ;
-	
+
 	return  ret ;
 }
+
+
+#elif  defined(USE_LIBSSH2)
+
+
+#include  <ctype.h>
+#include  <kiklib/kik_util.h>
+#include  <ml_pty.h>
+
+
+#define  LINESPACE   10
+#define  BEGENDSPACE  8
+
+#define  CLEAR_DRAW   1
+#define  DRAW         2
+#define  DRAW_EXPOSE  3
+
+
+int
+x_connect_dialog(
+	char **  uri ,		/* Should be free'ed by those who call this. */
+	char **  pass ,		/* Same as above. If pass is not input, "" is set. */
+	char *  display_name ,
+	Window  parent_window ,
+	char **  sv_list ,
+	char *   def_server	/* (<user>@)(<proto>:)<server address>(:<encoding>). */
+	)
+{
+	Display *  display ;
+	int  screen ;
+	Window  window ;
+	GC  gc ;
+	XFontStruct *  font ;
+	u_int  width ;
+	u_int  height ;
+	u_int  ncolumns ;
+	char *  title ;
+	size_t  pass_len ;
+
+	if( ! ( title = alloca( (ncolumns = 20 + strlen( def_server)))))
+	{
+		return  0 ;
+	}
+	sprintf( title , "Enter password for %s" , def_server) ;
+	
+	if( ! ( display = XOpenDisplay( display_name)))
+	{
+		return  0 ;
+	}
+
+	screen = DefaultScreen( display) ;
+	gc = DefaultGC( display , screen) ;
+
+	if( ! ( font = XLoadQueryFont( display , "-*-r-normal--*-*-*-*-c-*-iso8859-1")))
+	{
+		XCloseDisplay( display) ;
+
+		return  0 ;
+	}
+
+	XSetFont( display , gc , font->fid) ;
+
+	width = font->max_bounds.width * ncolumns + BEGENDSPACE ;
+	height = (font->ascent + font->descent + LINESPACE) * 2 ;
+
+	if( ! ( window = XCreateSimpleWindow( display ,
+				DefaultRootWindow( display) ,
+				(DisplayWidth( display , screen) - width) / 2 ,
+				(DisplayHeight( display , screen) - height) / 2 ,
+				width , height , 0 ,
+				BlackPixel( display , screen) , WhitePixel( display , screen))))
+	{
+		XFreeFont( display , font) ;
+		XCloseDisplay( display) ;
+
+		return  0 ;
+	}
+
+	XStoreName( display , window , title) ;
+	XSetIconName( display , window , title) ;
+	XSelectInput( display , window , KeyReleaseMask|ExposureMask|StructureNotifyMask) ;
+	XMapWindow( display , window) ;
+
+	*pass = strdup( "") ;
+	pass_len = 1 ;
+
+	while( 1)
+	{
+		XEvent  ev ;
+		int  redraw = 0 ;
+
+		XWindowEvent( display , window ,
+			KeyReleaseMask|ExposureMask|StructureNotifyMask , &ev) ;
+
+		if( ev.type == KeyRelease)
+		{
+			char  buf[10] ;
+			void *  p ;
+			size_t  len ;
+
+			if( ( len = XLookupString( &ev.xkey , buf , sizeof(buf) ,
+							NULL , NULL)) > 0)
+			{
+				if( buf[0] == 0x08)	/* Backspace */
+				{
+					if( pass_len > 1)
+					{
+						(*pass)[--pass_len] = '\0' ;
+						redraw = CLEAR_DRAW ;
+					}
+				}
+				else if( isprint( (int)buf[0]))
+				{
+					if( ! ( p = realloc( *pass , (pass_len += len))))
+					{
+						break ;
+					}
+
+					memcpy( (*pass = p) + pass_len - len - 1 , buf , len) ;
+					(*pass)[pass_len - 1] = '\0' ;
+
+					redraw = DRAW ;
+				}
+				else
+				{
+					/* Exit loop */
+					break ;
+				}
+			}
+		}
+		else if( ev.type == Expose)
+		{
+			redraw = DRAW_EXPOSE ;
+		}
+		else if( ev.type == MapNotify)
+		{
+			XSetInputFocus( display , window , RevertToPointerRoot , CurrentTime) ;
+		}
+
+		if( redraw)
+		{
+			XPoint  points[5] =
+			{
+				{ BEGENDSPACE / 2 , font->ascent + font->descent + LINESPACE } ,
+				{ width - BEGENDSPACE / 2 ,
+					font->ascent + font->descent + LINESPACE } ,
+				{ width - BEGENDSPACE / 2 ,
+					(font->ascent + font->descent) * 2 + LINESPACE * 3 / 2} ,
+				{ BEGENDSPACE / 2 ,
+					(font->ascent + font->descent) * 2 + LINESPACE * 3 / 2} ,
+				{ BEGENDSPACE / 2 ,
+					font->ascent + font->descent + LINESPACE } ,
+			} ;
+
+			if( redraw == DRAW_EXPOSE)
+			{
+				XDrawString( display , window , gc ,
+					BEGENDSPACE / 2 , font->ascent + LINESPACE / 2 ,
+					title , strlen(title)) ;
+
+				XDrawLines( display , window , gc , points , 5 , CoordModeOrigin) ;
+			}
+			else  if( redraw == CLEAR_DRAW)
+			{
+				XClearArea( display , window , points[0].x + 1 , points[0].y + 1 ,
+					points[2].x - points[0].x - 1 ,
+					points[2].y - points[0].y - 1 , False) ;
+			}
+			
+			if( *pass)
+			{
+				char *  input ;
+				size_t  count ;
+
+				if( ! ( input = alloca( pass_len - 1)))
+				{
+					break ;
+				}
+
+				for( count = 0 ; count < pass_len - 1 ; count++)
+				{
+					input[count] = '*' ;
+				}
+
+				XDrawString( display , window , gc ,
+					BEGENDSPACE / 2 + font->max_bounds.width / 2 ,
+					font->ascent * 2 + font->descent + LINESPACE * 3 / 2 ,
+					input , K_MIN(pass_len - 1,ncolumns - 1)) ;
+			}
+		}
+	}
+
+	XDestroyWindow( display , window) ;
+	XFreeFont( display , font) ;
+	XCloseDisplay( display) ;
+
+	*uri = strdup( def_server) ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Connecting to %s %s\n" , *uri , *pass) ;
+#endif
+
+	return  1 ;
+}
+
+
+#endif

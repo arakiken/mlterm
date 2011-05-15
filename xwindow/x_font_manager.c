@@ -588,7 +588,7 @@ x_activate_local_font_config(
 	release_font_config( font_man) ;
 	font_man->font_config = font_config ;
 	font_man->is_local_font_config = 1 ;
-		
+
 	return  1 ;
 }
 
@@ -613,7 +613,7 @@ x_deactivate_local_font_config(
 	
 	if( ( font_cache = x_acquire_font_cache( font_man->font_cache->display ,
 				font_man->font_cache->font_size ,
-				font_man->font_cache->usascii_font_cs , font_man->font_config ,
+				font_man->font_cache->usascii_font_cs , font_config ,
 				font_man->font_cache->use_multi_col_char ,
 				font_man->font_cache->letter_space)) == NULL)
 	{
@@ -626,6 +626,7 @@ x_deactivate_local_font_config(
 
 	x_font_config_delete( font_man->font_config) ;
 	font_man->font_config = font_config ;
+	font_man->is_local_font_config = 0 ;
 
 	return  1 ;
 }

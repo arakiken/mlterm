@@ -39,6 +39,7 @@
 #include  <kiklib/kik_str.h>	/* kik_snprintf */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <mkf/mkf_utf16_parser.h>
+#include  <mkf/mkf_8bit_parser.h>
 #include  <ml_iscii.h>
 
 #include  <x_im.h>

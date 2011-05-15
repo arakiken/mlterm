@@ -68,6 +68,9 @@ comment $Id$
     --enable-ind
       libind を用いて ISCII を表示します。
 
+    --enable-ssh2
+      libssh2 を用いて ssh サーバに接続できるようにします。
+
     --enable-utmp
       utmp に対応します。
 

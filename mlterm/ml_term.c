@@ -23,7 +23,7 @@ ml_term_new(
 	u_int  log_size ,
 	ml_char_encoding_t  encoding ,
 	int  is_auto_encoding ,
-	ml_unicode_font_policy_t  policy ,
+	ml_unicode_policy_t  policy ,
 	int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char ,
@@ -173,7 +173,8 @@ ml_term_open_pty(
 	char *  cmd_path ,
 	char **  argv ,
 	char **  env ,
-	char *  host
+	char *  host ,
+	char *  pass
 	)
 {
 	if( term->pty)
@@ -184,7 +185,7 @@ ml_term_open_pty(
 	}
 	else
 	{
-		if( ( term->pty = ml_pty_new( cmd_path , argv , env , host ,
+		if( ( term->pty = ml_pty_new( cmd_path , argv , env , host , pass ,
 					ml_screen_get_logical_cols( term->screen) ,
 					ml_screen_get_logical_rows( term->screen))) == NULL)
 		{
@@ -322,12 +323,12 @@ ml_term_is_auto_encoding(
 }
 
 int
-ml_term_set_unicode_font_policy(
+ml_term_set_unicode_policy(
 	ml_term_t *  term ,
-	ml_unicode_font_policy_t  policy
+	ml_unicode_policy_t  policy
 	)
 {
-	return  ml_vt100_parser_set_unicode_font_policy( term->parser , policy) ;
+	return  ml_vt100_parser_set_unicode_policy( term->parser , policy) ;
 }
 
 size_t
@@ -800,7 +801,7 @@ ml_term_update_special_visual(
 	    /*
 	     * XXX
 	     * In accurate, indic unicode characters are supported only if
-	     * vt100_parser->unicode_font_policy == NOT_USE_UNICODE_FONT.
+	     * vt100_parser->unicode_policy & NOT_USE_UNICODE_FONT.
 	     */
 	    || (ml_term_get_encoding( term) == ML_UTF8 && ! term->use_bidi)
 	#endif

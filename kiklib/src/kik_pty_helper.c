@@ -554,15 +554,15 @@ kik_pty_fork(
 }
 
 int
-kik_pty_helper_close(
-	int  pty
+kik_pty_close(
+	int  master
 	)
 {
 	u_int  count ;
 
 	for( count = 0 ; count < num_of_pty_helper_tags ; count++)
 	{
-		if( pty_helper_tags[count].pty == pty)
+		if( pty_helper_tags[count].pty == master)
 		{
 			void *  tag ;
 			GnomePtyOps  ops ;
@@ -593,6 +593,8 @@ kik_pty_helper_close(
 			return  1 ;
 		}
 	}
+
+	close( master) ;
 
 	return  0 ;
 }

@@ -2,7 +2,7 @@
  *	$Id$
  */
 
-#include  "ml_pty.h"
+#include  "ml_pty_intern.h"
 
 #include  <windows.h>
 #include  <stdio.h>
@@ -14,14 +14,18 @@
 #include  <kiklib/kik_str.h>	/* strdup */
 #include  <kiklib/kik_pty.h>
 #include  <kiklib/kik_sig_child.h>
+#include  <kiklib/kik_path.h>
 
 
 #if  0
 #define  __DEBUG
 #endif
 
-typedef struct ml_pty
+
+typedef struct ml_pty_pipe
 {
+	ml_pty_t  pty ;
+
 	HANDLE  master_input ;	/* master read(stdout,stderr) */
 	HANDLE  master_output ;	/* master write */
 	HANDLE  slave_stdout ;	/* slave write */
@@ -30,17 +34,9 @@ typedef struct ml_pty
 
 	u_char  rd_ch ;
 	int8_t  rd_ready ;
-
-	/* model to be written */
-	u_char *  buf ;
-	size_t  left ;
-	size_t  size ;
-
 	HANDLE  rd_ev ;
 
-	ml_pty_event_listener_t *  pty_listener ;
-
-} ml_pty_t ;
+} ml_pty_pipe_t ;
 
 
 static HANDLE *  child_procs ;		/* Notice: The first element is "ADDED_CHILD" event */
@@ -98,14 +94,14 @@ wait_child_exited(
 }
 
 /*
- * Monitors handle for input. Exits when child exits or pipe breaks.
+ * Monitors handle for input. Exits when child exits or pipe is broken.
  */
 static DWORD WINAPI
 wait_pty_read(
 	LPVOID thr_param
   	)
 {
-	ml_pty_t *  pty = (ml_pty_t*)thr_param ;
+	ml_pty_pipe_t *  pty = (ml_pty_pipe_t*)thr_param ;
 	DWORD n_rd ;
 
 #ifdef  __DEBUG
@@ -141,9 +137,9 @@ wait_pty_read(
 			break ;
 		}
 
-		if( pty->pty_listener && pty->pty_listener->read_ready)
+		if( pty->pty.pty_listener && pty->pty.pty_listener->read_ready)
 		{
-			(*pty->pty_listener->read_ready)( pty->pty_listener->self) ;
+			(*pty->pty.pty_listener->read_ready)( pty->pty.pty_listener->self) ;
 		}
 
 		WaitForSingleObject( pty->rd_ev, INFINITE) ;
@@ -169,7 +165,7 @@ wait_pty_read(
 
 static int
 pty_open(
-  	ml_pty_t *  pty,
+  	ml_pty_pipe_t *  pty,
 	char *  cmd_path ,
 	char **  cmd_argv
 	)
@@ -389,165 +385,20 @@ error2:
 	return  0 ;
 }
 
-
-/* --- global functions --- */
-
-ml_pty_t *
-ml_pty_new(
-	char *  cmd_path ,
-	char **  cmd_argv ,
-	char **  env ,
-	char *  host ,
-	u_int  cols ,
-	u_int  rows
+static int
+delete(
+	ml_pty_t *  p
 	)
 {
-	ml_pty_t *  pty ;
-	HANDLE  thrd ;
-	DWORD  tid ;
-	char  ev_name[25] ;
-	void *  p ;
-
-	if( num_of_child_procs == 0)
-	{
-		/*
-		 * Initialize child_procs array.
-		 */
-
-		if( ( child_procs = malloc( sizeof(HANDLE))) == NULL)
-		{
-			return  NULL ;
-		}
-
-		child_procs[0] = CreateEvent(NULL, FALSE, FALSE, "ADDED_CHILD") ;
-		num_of_child_procs = 1 ;
-
-		/* Launch the thread that wait for child exited. */
-		if( ! ( thrd = CreateThread(NULL,0,wait_child_exited,NULL,0,&tid)))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
-		#endif
-
-			return  NULL ;
-		}
-
-		CloseHandle( thrd) ;
-	}
-
-	if( ( pty = malloc( sizeof( ml_pty_t))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	if( env)
-	{
-		while( *env)
-		{
-			char *  p ;
-			char *  key ;
-			char *  val ;
-
-			if( ( key = kik_str_alloca_dup( *env)) && ( p = strchr( key, '=')))
-			{
-				*p = '\0' ;
-				val = ++p ;
-				SetEnvironmentVariable( key, val) ;
-			#ifdef  __DEBUG
-				kik_debug_printf( "Env: %s=%s\n" , key , val) ;
-			#endif
-			}
-
-			env ++ ;
-		}
-	}
-
-	if( ! ( pty_open( pty, cmd_path, cmd_argv)))
-	{
-		free(pty) ;
-
-		return  NULL ;
-	}
-
-	pty->rd_ch = '\0' ;
-	pty->rd_ready = 0 ;
-
-	pty->buf = NULL ;
-	pty->left = 0 ;
-	pty->size = 0 ;
-
-	snprintf( ev_name, sizeof(ev_name), "PTY_READ_READY%x", (int)pty->child_proc) ;
-	pty->rd_ev = CreateEvent(NULL, FALSE, FALSE, ev_name) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( "Created pty read event: %s\n", ev_name) ;
-#endif
-
-	pty->pty_listener = NULL ;
-
-	if( ml_set_pty_winsize( pty , cols , rows) == 0)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
-	#endif
-	}
-
-	/* Launch the thread that read the child's output. */
-	if( ! ( thrd = CreateThread(NULL,0,wait_pty_read,(LPVOID)pty,0,&tid)))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
-	#endif
-
-		ml_pty_delete(pty) ;
-
-		return  NULL ;
-	}
-
-	CloseHandle( thrd) ;
-
-	/* Add to child_procs */
-
-	if( ( p = realloc( child_procs, sizeof(HANDLE) * (num_of_child_procs + 1))) == NULL)
-	{
-		ml_pty_delete( pty) ;
-
-		return  NULL ;
-	}
-
-	child_procs = p ;
-	child_procs[num_of_child_procs++] = pty->child_proc ;
-
-	/*
-	 * Exit WaitForMultipleObjects in wait_child_proc and do WaitForMultipleObjects again
-	 * with new child_procs
-	 */
-	SetEvent( child_procs[0]) ;
-
-#ifdef  __DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " Added child procs NUM %d ADDED-HANDLE %d:%d.\n",
-			num_of_child_procs, child_procs[num_of_child_procs - 1], pty->child_proc) ;
-#endif
-
-	return  pty ;
-}
-
-int
-ml_pty_delete(
-	ml_pty_t *  pty
-	)
-{
+	ml_pty_pipe_t *  pty ;
 	int  count ;
 	DWORD  size ;
+
+	pty = (ml_pty_pipe_t*)p ;
 	
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " ml_pty_delete is called for %p.\n" , pty) ;
 #endif
-
-	if( pty->pty_listener && pty->pty_listener->closed)
-	{
-		(*pty->pty_listener->closed)( pty->pty_listener->self) ;
-	}
 
 	/*
 	 * TerminateProcess must be called before CloseHandle.
@@ -598,31 +449,19 @@ ml_pty_delete(
 	CloseHandle( pty->master_output) ;
 	CloseHandle( pty->rd_ev) ;
 
-	free( pty->buf) ;
 	free( pty) ;
 
 	return  1 ;
 }
 
-int
-ml_pty_set_listener(
-  	ml_pty_t *  pty,
-  	ml_pty_event_listener_t *  pty_listener
-	)
-{
-	pty->pty_listener = pty_listener ;
-
-	return  1 ;
-}
-
-int
-ml_set_pty_winsize(
+static int
+set_winsize(
 	ml_pty_t *  pty ,
 	u_int  cols ,
 	u_int  rows
 	)
 {
-	if( pty->is_plink)
+	if( ((ml_pty_pipe_t*)pty)->is_plink)
 	{
 		/*
 		 * XXX Hack
@@ -647,181 +486,40 @@ ml_set_pty_winsize(
 /*
  * Return size of lost bytes.
  */
-size_t
-ml_write_to_pty(
+static ssize_t
+write_to_pty(
 	ml_pty_t *  pty ,
 	u_char *  buf ,
 	size_t  len
 	)
 {
-	u_char *  w_buf ;
-	size_t  w_buf_size ;
 	DWORD  written_size ;
-	void *  p ;
 
-	w_buf_size = pty->left + len ;
-	if( w_buf_size == 0)
-	{
-		return  0 ;
-	}
-#if  0
-	/*
-	 * Little influence without this buffering.
-	 */
-	else if( len > 0 && w_buf_size < 16)
-	{
-		/*
-		 * Buffering until 16 bytes.
-		 */
-
-		if( pty->size < 16)
-		{
-			if( ( p = realloc( pty->buf , 16)) == NULL)
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG
-					" realloc failed. %d characters not written.\n" , len) ;
-			#endif
-
-				return  len ;
-			}
-
-			pty->size = 16 ;
-			pty->buf = p ;
-		}
-
-		memcpy( &pty->buf[pty->left] , buf , len) ;
-		pty->left = w_buf_size ;
-
-	#ifdef  __DEBUG
-		kik_debug_printf( "buffered(not written) %d characters.\n" , pty->left) ;
-	#endif
-
-		return  0 ;
-	}
-#endif
-
-	if( /* pty->buf && */ len == 0)
-	{
-		w_buf = pty->buf ;
-	}
-  	else if( pty->buf == NULL && pty->left == 0)
-        {
-          	w_buf = buf ;
-        }
-  	else if( ( w_buf = alloca( w_buf_size)))
-        {
-          	memcpy( w_buf , pty->buf , pty->left) ;
-		memcpy( &w_buf[pty->left] , buf , len) ;
-	}
-	else
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" alloca() failed. %d characters not written.\n" , len) ;
-	#endif
-	
-		return  len ;
-	}
-
-#ifdef  __DEBUG
-	{
-		int  i ;
-		for( i = 0 ; i < w_buf_size ; i++)
-		{
-			kik_msg_printf( "%.2x" , w_buf[i]) ;
-		}
-		kik_msg_printf( "\n") ;
-	}
-#endif
-
-	if( ! WriteFile( pty->master_output, w_buf, w_buf_size, &written_size, NULL))
+	if( ! WriteFile( ((ml_pty_pipe_t*)pty)->master_output , buf , len ,
+			&written_size , NULL))
 	{
                 if( GetLastError() == ERROR_BROKEN_PIPE)
                 {
-			pty->left = 0 ;
-			
-                        return  0 ; /* pipe done - normal exit path. */
+			return  -1 ;
                 }
-		
-		kik_warn_printf( KIK_DEBUG_TAG " WriteFile() failed.\n") ;
-		written_size = 0 ;
         }
 
-	FlushFileBuffers( pty->master_output) ;
+	FlushFileBuffers( ((ml_pty_pipe_t*)pty)->master_output) ;
 
-	if( written_size == w_buf_size)
-	{
-		pty->left = 0 ;
-	
-		return  0 ;
-	}
-
-	/* w_buf_size - written_size == not_written_size */
-	if( w_buf_size - written_size > pty->size)
-	{
-		if( ( p = realloc( pty->buf , w_buf_size - written_size)) == NULL)
-		{
-			size_t  lost ;
-			
-			if( pty->size == 0)
-			{
-				lost = w_buf_size - written_size ;
-				pty->left = 0 ;
-			}
-			else
-			{
-				lost = w_buf_size - written_size - pty->size ;
-				memcpy( pty->buf , &w_buf[written_size] , pty->size) ;
-				pty->left = pty->size ;
-			}
-
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG
-				" realloc failed. %d characters are not written.\n" , lost) ;
-		#endif
-
-			return  lost ;
-		}
-		else
-		{
-			pty->size = pty->left = w_buf_size - written_size ;
-			pty->buf = p ;
-		}
-	}
-	else
-	{
-		pty->left = w_buf_size - written_size ;
-	}
-	
-	memcpy( pty->buf , &w_buf[written_size] , pty->left) ;
-
-#ifdef  DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " %d is not written.\n" , pty->left) ;
-#endif
-
-	return  0 ;
+	return  written_size ;
 }
 
-/*
- * Flush pty->buf/pty->left.
- */
-size_t
-ml_flush_pty(
-	ml_pty_t *  pty
-	)
-{
-	return  ml_write_to_pty( pty, NULL, 0) ;
-}
-
-size_t
-ml_read_pty(
-	ml_pty_t *  pty ,
+static ssize_t
+read_pty(
+	ml_pty_t *  p ,
 	u_char *  buf ,
-	size_t  left		/* buffer length */
+	size_t  len
 	)
 {
-	size_t  n_rd ;
+	ml_pty_pipe_t *  pty ;
+	ssize_t  n_rd ;
+
+	pty = (ml_pty_pipe_t*)p ;
 
 	if( pty->rd_ch == '\0' && ! pty->rd_ready)
 	{
@@ -832,7 +530,7 @@ ml_read_pty(
 	{
 		buf[0] = pty->rd_ch ;
 		n_rd = 1 ;
-		left -- ;
+		len -- ;
 		pty->rd_ch = '\0' ;
 		pty->rd_ready = 1 ;
 	}
@@ -841,18 +539,18 @@ ml_read_pty(
 		n_rd = 0 ;
 	}
 
-	while( left > 0)
+	while( len > 0)
 	{
 		DWORD  ret ;
 
 		if( ! PeekNamedPipe( pty->master_input, NULL, 0, NULL, &ret, NULL) || ret == 0 ||
-			! ReadFile( pty->master_input, &buf[n_rd], left, &ret, NULL) || ret == 0)
+			! ReadFile( pty->master_input, &buf[n_rd], len, &ret, NULL) || ret == 0)
 		{
 			break ;
 		}
 
 		n_rd += ret ;
-		left -= ret ;
+		len -= ret ;
 	}
 
 	if( n_rd == 0)
@@ -882,65 +580,197 @@ ml_read_pty(
 	return  n_rd ;
 }
 
-/*
- * XXX
- * Return child process HANDLE as pid_t.
- * Don't trust return value as valid pid_t.
- */
-pid_t
-ml_pty_get_pid(
-  	ml_pty_t *  pty
-  	)
-{
-  	/* Cast HANDLE => pid_t */
-  	return  (pid_t)pty->child_proc ;
-}
 
-/*
- * XXX
- * Return file HANDLE as file descriptor.
- * Don't trust return value as valid file descriptor.
- */
-int
-ml_pty_get_master_fd(
-	ml_pty_t *  pty
+/* --- global functions --- */
+
+ml_pty_t *
+ml_pty_pipe_new(
+	char *  cmd_path ,	/* can be NULL */
+	char **  cmd_argv ,	/* can be NULL(only if cmd_path is NULL) */
+	char **  env ,		/* can be NULL */
+	char *  uri ,
+	char *  pass ,
+	u_int  cols ,
+	u_int  rows
 	)
 {
-#if  0
-  	/* _open_osfhandle( pty->master_output, 0) */
-	return  0 ;
-#else
-	/* Cast HANDLE => int */
-	return  (int)pty->master_output ;
+	ml_pty_pipe_t *  pty ;
+	HANDLE  thrd ;
+	DWORD  tid ;
+	char  ev_name[25] ;
+	void *  p ;
+	char *  user ;
+	char *  proto ;
+	char *  host ;
+	char *  port ;
+	int  idx ;
+
+	if( num_of_child_procs == 0)
+	{
+		/*
+		 * Initialize child_procs array.
+		 */
+
+		if( ( child_procs = malloc( sizeof(HANDLE))) == NULL)
+		{
+			return  NULL ;
+		}
+
+		child_procs[0] = CreateEvent( NULL, FALSE, FALSE, "ADDED_CHILD") ;
+		num_of_child_procs = 1 ;
+
+		/* Launch the thread that wait for child exited. */
+		if( ! ( thrd = CreateThread( NULL , 0 , wait_child_exited , NULL , 0 , &tid)))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
+		#endif
+
+			return  NULL ;
+		}
+
+		CloseHandle( thrd) ;
+	}
+
+	if( ( pty = malloc( sizeof( ml_pty_pipe_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	if( env)
+	{
+		while( *env)
+		{
+			char *  p ;
+			char *  key ;
+			char *  val ;
+
+			if( ( key = kik_str_alloca_dup( *env)) && ( p = strchr( key, '=')))
+			{
+				*p = '\0' ;
+				val = ++p ;
+				SetEnvironmentVariable( key, val) ;
+			#ifdef  __DEBUG
+				kik_debug_printf( "Env: %s=%s\n" , key , val) ;
+			#endif
+			}
+
+			env ++ ;
+		}
+	}
+
+	if( /* cmd_path && */ cmd_argv)
+	{
+		goto  next_step ;
+	}
+
+	if( ! ( cmd_argv = alloca( sizeof(char*) * 8)) ||
+	    ! kik_parse_uri( &proto , &user , &host , &port , NULL , NULL ,
+		kik_str_alloca_dup( uri)))
+	{
+		free( pty) ;
+
+		return  NULL ;
+	}
+
+	if( proto && ( p = alloca( strlen( proto) + 2)))
+	{
+		sprintf( p , "-%s" , proto) ;
+		proto = p ;
+	}
+
+	cmd_path = "plink.exe" ;
+
+	idx = 0 ;
+	cmd_argv[idx++] = cmd_path ;
+	cmd_argv[idx++] = proto ;
+	if( user)
+	{
+		cmd_argv[idx++] = "-l" ;
+		cmd_argv[idx++] = user ;
+	}
+	/* -pw option can only be used with SSH. */
+	if( strcmp( proto , "-ssh") == 0)
+	{
+		cmd_argv[idx++] = "-pw" ;
+		cmd_argv[idx++] = pass ;
+	}
+	cmd_argv[idx++] = host ;
+	cmd_argv[idx++] = NULL ;
+
+next_step:
+	if( ! ( pty_open( pty, cmd_path, cmd_argv)))
+	{
+		free(pty) ;
+
+		return  NULL ;
+	}
+
+	pty->rd_ch = '\0' ;
+	pty->rd_ready = 0 ;
+
+	snprintf( ev_name, sizeof(ev_name), "PTY_READ_READY%x", (int)pty->child_proc) ;
+	pty->rd_ev = CreateEvent( NULL, FALSE, FALSE, ev_name) ;
+#ifdef  __DEBUG
+	kik_debug_printf( "Created pty read event: %s\n", ev_name) ;
 #endif
-}
 
-/*
- * XXX
- * Return file HANDLE as file descriptor.
- * Don't trust return value as valid file descriptor.
- */
-int
-ml_pty_get_slave_fd(
-	ml_pty_t *  pty
-	)
-{
-#if  0
-  	/* _open_osfhandle( pty->slave_stdout, 0) */
-	return  0 ;
-#else
-	/* Cast HANDLE => int */
-	return  (int)pty->slave_stdout ;
+	pty->pty.master = (int)pty->master_output ;	/* XXX Cast HANDLE => int */
+	pty->pty.slave = (int)pty->slave_stdout ;	/* XXX Cast HANDLE => int */
+	pty->pty.child_pid = (pid_t)pty->child_proc ;	/* Cast HANDLE => pid_t */
+	pty->pty.buf = NULL ;
+	pty->pty.left = 0 ;
+	pty->pty.size = 0 ;
+	pty->pty.delete = delete ;
+	pty->pty.set_winsize = set_winsize ;
+	pty->pty.write = write_to_pty ;
+	pty->pty.read = read_pty ;
+
+	pty->pty.pty_listener = NULL ;
+
+	if( set_winsize( &pty->pty , cols , rows) == 0)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
+	#endif
+	}
+
+	/* Launch the thread that read the child's output. */
+	if( ! ( thrd = CreateThread( NULL , 0 , wait_pty_read , (LPVOID)pty , 0 , &tid)))
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
+	#endif
+
+		ml_pty_delete( &pty->pty) ;
+
+		return  NULL ;
+	}
+
+	CloseHandle( thrd) ;
+
+	/* Add to child_procs */
+
+	if( ( p = realloc( child_procs, sizeof(HANDLE) * (num_of_child_procs + 1))) == NULL)
+	{
+		ml_pty_delete( &pty->pty) ;
+
+		return  NULL ;
+	}
+
+	child_procs = p ;
+	child_procs[num_of_child_procs++] = pty->child_proc ;
+
+	/*
+	 * Exit WaitForMultipleObjects in wait_child_proc and do WaitForMultipleObjects again
+	 * with new child_procs
+	 */
+	SetEvent( child_procs[0]) ;
+
+#ifdef  __DEBUG
+	kik_warn_printf( KIK_DEBUG_TAG " Added child procs NUM %d ADDED-HANDLE %d:%d.\n",
+			num_of_child_procs, child_procs[num_of_child_procs - 1], pty->child_proc) ;
 #endif
-}
 
-/*
- * DUMMY
- */
-char *
-ml_pty_get_slave_name(
-	ml_pty_t *  pty
-	)
-{
-	return  "/dev/pipewin32" ;
+	return  &pty->pty ;
 }

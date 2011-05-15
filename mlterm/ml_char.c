@@ -586,7 +586,7 @@ ml_char_is_biwidth(
 {
 	if( IS_SINGLE_CH(ch->u.ch.attr))
 	{
-		return  IS_BIWIDTH(ch->u.ch.attr) || IS_BIWIDTH_CS( CHARSET(ch->u.ch.attr)) ;
+		return  IS_BIWIDTH(ch->u.ch.attr) ;
 	}
 	else
 	{

@@ -109,8 +109,6 @@ write_argv(
 
 	if( argc == 1)
 	{
-		write( fd , "\n" , 1) ;
-		
 		return  1 ;
 	}
 	
@@ -148,7 +146,7 @@ write_argv(
 		}
 		else
 		{
-			write( fd , "\"\n" , 2) ;
+			write( fd , "\"" , 1) ;
 
 			break ;
 		}
@@ -219,6 +217,7 @@ main(
 					ssize_t  len ;
 				
 					write_argv( argc , argv , fd) ;
+					write( fd , "\n" , 1) ;
 
 					while( ( len = read( fd , buf , sizeof( buf))) > 0)
 					{

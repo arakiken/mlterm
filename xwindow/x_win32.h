@@ -6,6 +6,7 @@
 #define  __X_WIN32_H__
 
 
+#undef  _WIN32_WINNT
 #define  _WIN32_WINNT  0x0500	/* for WS_EX_LAYERED , LWA_XXX , SetLayeredWindowAttributes */
 #define  _WINSOCK2_H		/* Don't include winsock2.h */
 #include  <windows.h>

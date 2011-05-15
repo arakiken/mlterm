@@ -822,6 +822,10 @@ DND_CFLAGS
 PERL
 INSTALL_OPT
 UTMP_CFLAGS
+WINSOCK_LIBS
+ML_PTY_OBJ
+SSH2_CFLAGS
+SSH2_LIBS
 IND_CFLAGS
 IND_LIBS
 PROG
@@ -848,8 +852,6 @@ GDK_PIXBUF_CFLAGS
 GTK_LIBS
 GTK_CFLAGS
 SUBSYSTEM
-WIN32DIALOG_OBJ
-ML_PTY_OBJ
 OPT_CFLAGS
 DEB_CFLAGS
 X_EXTRA_LIBS
@@ -960,6 +962,7 @@ enable_fribidi
 enable_anti_alias
 with_type_engines
 enable_ind
+enable_ssh2
 enable_utmp
 enable_pty_helper
 with_tools
@@ -1642,6 +1645,7 @@ Optional Features:
   --enable-fribidi        bidi [default=disabled]
   --enable-anti-alias     (obsoleted by --with-type-engines)anti alias [default=disabled]
   --enable-ind            libind [default=disabled]
+  --enable-ssh2            libssh2 [default=disabled]
   --enable-utmp           utmp (Experimental) [default=disabled]
   --enable-pty-helper     use pty helper [default=disabled]
   --disable-dnd           dnd [default=enabled]
@@ -4551,7 +4555,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4554 "configure"' > conftest.$ac_ext
+  echo '#line 4558 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7120,11 +7124,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7123: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7127: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7127: \$? = $ac_status" >&5
+   echo "$as_me:7131: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7410,11 +7414,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7413: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7417: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7417: \$? = $ac_status" >&5
+   echo "$as_me:7421: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7514,11 +7518,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7517: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7521: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7521: \$? = $ac_status" >&5
+   echo "$as_me:7525: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9539,7 +9543,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9542 "configure"
+#line 9546 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9639,7 +9643,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9642 "configure"
+#line 9646 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11980,11 +11984,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:11983: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:11987: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:11987: \$? = $ac_status" >&5
+   echo "$as_me:11991: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12084,11 +12088,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12087: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12091: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12091: \$? = $ac_status" >&5
+   echo "$as_me:12095: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13667,11 +13671,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13670: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13674: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13674: \$? = $ac_status" >&5
+   echo "$as_me:13678: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13771,11 +13775,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13774: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13778: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13778: \$? = $ac_status" >&5
+   echo "$as_me:13782: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15932,11 +15936,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15935: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15939: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15939: \$? = $ac_status" >&5
+   echo "$as_me:15943: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16222,11 +16226,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16225: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16229: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16229: \$? = $ac_status" >&5
+   echo "$as_me:16233: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16326,11 +16330,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16329: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16333: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16333: \$? = $ac_status" >&5
+   echo "$as_me:16337: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19693,14 +19697,11 @@ fi
 
 
 
-ML_PTY_OBJ="ml_pty.o"
 ml_cv_is_posix="yes"
 
 case "${host_os}" in
 mingw32*)
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
-		ML_PTY_OBJ="ml_pty_pipewin32.o"
-		WIN32DIALOG_OBJ="x_connect_dialog.o"
 		ml_cv_is_posix="no"
 	fi
 
@@ -19712,8 +19713,6 @@ mingw32*)
 cygwin*)
 	case "${CC} ${CFLAGS}" in
 	*mno-cygwin*)
-		ML_PTY_OBJ="ml_pty_pipewin32.o"
-		WIN32DIALOG_OBJ="x_connect_dialog.o"
 		ml_cv_is_posix="no"
 		;;
 	*)
@@ -19748,9 +19747,6 @@ esac
 if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 	SUBSYSTEM="-Wl,--subsystem,console"
 fi
-
-
-
 
 
 
@@ -20031,6 +20027,9 @@ else
 $as_echo "yes" >&6; }
 	have_gdk_pixbuf2="yes"
 fi
+GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS | tr -d '\r'`"
+GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS | tr -d '\r'`"
+
 # Extract the first word of "gdk-pixbuf-config", so it can be a program name with args.
 set dummy gdk-pixbuf-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -20238,16 +20237,13 @@ esac
 if test "$gdk_pixbuf_version" != "" ; then
 	if test "$gdk_pixbuf_version" = "1" ; then
 		# Override GDK_PIXBUF_XXX variables.
-		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags`"
-		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs`"
+		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags|tr -d '\r'`"
+		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs|tr -d '\r'`"
 		echo ""
 		echo "** WARNING **"
 		echo " gdk-pixbuf1 is no longer supported."
 		echo ""
 	fi
-
-	GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS | tr -d '\r'`"
-	GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS | tr -d '\r'`"
 
 	IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
 	IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
@@ -20720,6 +20716,80 @@ else
 fi
 
 fi
+
+
+
+# Check whether --enable-ssh2 was given.
+if test "${enable_ssh2+set}" = set; then :
+  enableval=$enable_ssh2; ssh2=$enable_ssh2
+else
+  ssh2="no"
+fi
+
+if test "$ssh2" = "yes" ; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libssh2_init in -lssh2" >&5
+$as_echo_n "checking for libssh2_init in -lssh2... " >&6; }
+if test "${ac_cv_lib_ssh2_libssh2_init+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lssh2  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char libssh2_init ();
+int
+main ()
+{
+return libssh2_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ssh2_libssh2_init=yes
+else
+  ac_cv_lib_ssh2_libssh2_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ssh2_libssh2_init" >&5
+$as_echo "$ac_cv_lib_ssh2_libssh2_init" >&6; }
+if test "x$ac_cv_lib_ssh2_libssh2_init" = x""yes; then :
+
+		SSH2_CFLAGS="-DUSE_LIBSSH2"
+		SSH2_LIBS="-lssh2"
+
+else
+  ssh2="no"
+fi
+
+fi
+
+if test "$ml_cv_is_posix" = "no" ; then
+	if test "$ssh2" = "yes" ; then
+		ML_PTY_OBJ="ml_pty_ssh.o"
+		WINSOCK_LIBS="-lwsock32 -lws2_32"
+	else
+		ML_PTY_OBJ="ml_pty_pipewin32.o"
+	fi
+else
+	if test "$ssh2" = "yes" ; then
+		ML_PTY_OBJ="ml_pty_unix.o ml_pty_ssh.o"
+	else
+		ML_PTY_OBJ="ml_pty_unix.o"
+	fi
+fi
+
+
 
 
 

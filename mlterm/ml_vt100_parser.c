@@ -25,13 +25,13 @@
 
 
 #define  CTL_BEL	0x07
-#define  CTL_BS	0x08
+#define  CTL_BS		0x08
 #define  CTL_TAB	0x09
-#define  CTL_LF	0x0a
-#define  CTL_VT	0x0b
-#define  CTL_CR	0x0d
-#define  CTL_SO	0x0e
-#define  CTL_SI	0x0f
+#define  CTL_LF		0x0a
+#define  CTL_VT		0x0b
+#define  CTL_CR		0x0d
+#define  CTL_SO		0x0e
+#define  CTL_SI		0x0f
 #define  CTL_ESC	0x1b
 
 #define  CURRENT_STR_P(vt100_parser)  (&vt100_parser->seq[(vt100_parser)->len - (vt100_parser)->left])
@@ -315,50 +315,52 @@ put_char(
 		flush_buffer( vt100_parser) ;
 	}
 
+	/*
+	 * checking width property of the char.
+	 */
+
 	is_biwidth = 0 ;
 
-	if( cs == ISO10646_UCS4_1)
+	if( prop & MKF_BIWIDTH)
 	{
-		/*
-		 * checking width property of the char.
-		 */
-		 
-		if( prop & MKF_BIWIDTH)
+		is_biwidth = 1 ;
+	}
+	else if( prop & MKF_AWIDTH)
+	{
+	#ifdef  SUPPORT_VTE_CJK_WIDTH
+		char *  env ;
+
+		if( ( env = getenv( "VTE_CJK_WIDTH")) &&
+		    ( strcmp( env , "wide") == 0 || strcmp( env , "1") == 0))
 		{
 			is_biwidth = 1 ;
 		}
-		else if( prop & MKF_AWIDTH)
-		{
-		#ifdef  SUPPORT_VTE_CJK_WIDTH
-			char *  env ;
+	#endif
 
-			if( ( env = getenv( "VTE_CJK_WIDTH")) &&
-			    ( strcmp( env , "wide") == 0 || strcmp( env , "1") == 0))
-			{
-				is_biwidth = 1 ;
-			}
-		#endif
-		
-			if( vt100_parser->col_size_of_width_a == 2)
-			{
-				is_biwidth = 1 ;
-			}
-		#if  1
-			/* XTERM compatibility */
-			else if( ch[2] == 0x30 && ch[0] == 0x0 && ch[1] == 0x0 &&
-				(ch[3] == 0x0a || ch[3] == 0x0b || ch[3] == 0x1a || ch[3] == 0x1b) )
-			{
-				is_biwidth = 1 ;
-			}
-		#endif
-		#ifdef  SUPPORT_VTE_CJK_WIDTH
-			else
-			{
-				is_biwidth = 0 ;
-			}
-		#endif
+		if( vt100_parser->col_size_of_width_a == 2)
+		{
+			is_biwidth = 1 ;
 		}
+	#if  1
+		/* XTERM compatibility */
+		else if( ch[2] == 0x30 && ch[0] == 0x0 && ch[1] == 0x0 &&
+			(ch[3] == 0x0a || ch[3] == 0x0b || ch[3] == 0x1a || ch[3] == 0x1b) )
+		{
+			is_biwidth = 1 ;
+		}
+	#endif
+	#ifdef  SUPPORT_VTE_CJK_WIDTH
+		else
+		{
+			is_biwidth = 0 ;
+		}
+	#endif
 	}
+
+#ifdef  __DEBUG
+	kik_debug_printf( "%.2x%.2x%.2x%.2x %d %x => %s\n" , ch[0] , ch[1] , ch[2] , ch[3] ,
+			len , cs , is_biwidth ? "Biwidth" : "Single") ;
+#endif
 
 	if( prop & MKF_COMBINING)
 	{
@@ -2976,7 +2978,7 @@ parse_vt100_sequence(
 					ch.size = 1 ;
 					ch.cs = US_ASCII ;
 				}
-				else if( vt100_parser->unicode_font_policy == NOT_USE_UNICODE_FONT)
+				else if( vt100_parser->unicode_policy & NOT_USE_UNICODE_FONT)
 				{
 					/* convert ucs4 to appropriate charset */
 
@@ -2991,11 +2993,21 @@ parse_vt100_sequence(
 						continue ;
 					}
 
+					if( vt100_parser->unicode_policy & USE_UNICODE_PROPERTY)
+					{
+						non_ucs.property = ch.property ;
+					}
+					else if( IS_BIWIDTH_CS( non_ucs.cs))
+					{
+						non_ucs.property = MKF_BIWIDTH ;
+					}
+
 					ch = non_ucs ;
 				}
 			}
-			else if( ( (vt100_parser->unicode_font_policy == ONLY_USE_UNICODE_FONT)
-				&& ch.cs != US_ASCII)
+			else if( ( /* ONLY_USE_UNICODE_FONT or USE_UNICODE_PROPERTY */
+				   vt100_parser->unicode_policy > NOT_USE_UNICODE_FONT &&
+				   ch.cs != US_ASCII)
 			#if  0
 				/* GB18030_2000 2-byte chars(==GBK) are converted to UCS */
 				|| ( vt100_parser->encoding == ML_GB18030 && ch.cs == GBK)
@@ -3007,8 +3019,7 @@ parse_vt100_sequence(
 				|| ch.cs == JISC6226_1978_NEC_EXT
 				|| ch.cs == JISC6226_1978_NECIBM_EXT
 				|| ch.cs == JISX0208_1983_MAC_EXT
-				|| ch.cs == SJIS_IBM_EXT
-				)
+				|| ch.cs == SJIS_IBM_EXT)
 			{
 				mkf_char_t  ucs ;
 
@@ -3020,10 +3031,18 @@ parse_vt100_sequence(
 				#endif
 					continue ;
 				}
-				
-				ucs.property = mkf_get_ucs_property(
+
+				if( vt100_parser->unicode_policy & ONLY_USE_UNICODE_FONT)
+				{
+					ch = ucs ;
+				}
+
+				ch.property = mkf_get_ucs_property(
 							mkf_bytes_to_int( ucs.ch , ucs.size)) ;
-				ch = ucs ;
+			}
+			else if( IS_BIWIDTH_CS( ch.cs))
+			{
+				ch.property = MKF_BIWIDTH ;
 			}
 
 			/*
@@ -3172,7 +3191,7 @@ ml_vt100_parser_t *
 ml_vt100_parser_new(
 	ml_screen_t *  screen ,
 	ml_char_encoding_t  encoding ,
-	ml_unicode_font_policy_t  policy ,
+	ml_unicode_policy_t  policy ,
 	u_int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char
@@ -3211,7 +3230,7 @@ ml_vt100_parser_new(
 	vt100_parser->use_multi_col_char = use_multi_col_char ;
 	vt100_parser->logging_vt_seq = 0 ;
 
-	vt100_parser->unicode_font_policy = policy ;
+	vt100_parser->unicode_policy = policy ;
 
 	if( ( vt100_parser->cc_conv = ml_conv_new( encoding)) == NULL)
 	{
@@ -3298,12 +3317,12 @@ ml_vt100_parser_set_config_listener(
 }
 
 int
-ml_vt100_parser_set_unicode_font_policy(
+ml_vt100_parser_set_unicode_policy(
 	ml_vt100_parser_t *  vt100_parser ,
-	ml_unicode_font_policy_t  policy
+	ml_unicode_policy_t  policy
 	)
 {
-	vt100_parser->unicode_font_policy = policy ;
+	vt100_parser->unicode_policy = policy ;
 
 	return  1 ;
 }

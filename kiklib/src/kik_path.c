@@ -6,8 +6,14 @@
 
 #include  <stdio.h>	/* NULL */
 #include  <string.h>
+#include  <ctype.h>	/* isdigit */
 
 #include  "kik_str.h"	/* kik_str_alloca_dup */
+
+
+#if  0
+#define  __DEBUG
+#endif
 
 
 /* --- global functions --- */
@@ -154,3 +160,165 @@ kik_path_cleanname(
 }
 
 #endif /* REMOVE_FUNCS_MLTERM_UNUSE */
+
+/*
+ * Parsing "<user>@<proto>:<host>:<port>:<aux>".
+ */
+int
+kik_parse_uri(
+	char **  proto ,	/* proto can be NULL. If seq doesn't have proto, NULL is set. */
+	char **  user ,		/* user can be NULL. If seq doesn't have user, NULL is set. */
+	char **  host ,		/* host can be NULL. */
+	char **  port ,		/* port can be NULL. If seq doesn't have port, NULL is set. */
+	char **  path ,		/* path can be NULL. If seq doesn't have path, NULL is set. */
+	char **  aux ,		/* aux can be NULL. If seq doesn't have aux string, NULL is set. */
+	char *  seq		/* broken in this function. If NULL, return 0. */
+	)
+{
+	char *  p ;
+	size_t  len ;
+
+	/*
+	 * This hack enables the way of calling this function like
+	 * 'kik_parse_uri( ... , kik_str_alloca_dup( "string"))'
+	 */
+	if( ! seq)
+	{
+		return  0 ;
+	}
+
+	len = strlen( seq) ;
+	if( len > 6 &&
+		( strncmp( seq , "ssh://" , 6) == 0 || strncmp( seq , "ftp://" , 6) == 0))
+	{
+		seq = (p = seq) + 6 ;
+		*(seq - 3) = '\0' ;
+	}
+	else if( len > 9 &&
+		( strncmp( seq , "telnet://" , 9) == 0 || strncmp( seq , "rlogin://" , 9) == 0))
+	{
+		seq = (p = seq) + 9 ;
+		*(seq - 3) = '\0' ;
+	}
+	else
+	{
+		p = NULL ;
+	}
+
+	if( proto)
+	{
+		*proto = p ;
+	}
+
+	if( ( p = strchr( seq , '/')))
+	{
+		*(p ++) = '\0' ;
+		if( *p == '\0')
+		{
+			p = NULL ;
+		}
+	}
+
+	if( path)
+	{
+		*path = p ;
+	}
+
+	if( ( p = strchr( seq , '@')))
+	{
+		*p = '\0' ;
+		if( user)
+		{
+			*user = seq ;
+		}
+		seq = p + 1 ;
+	}
+	else if( user)
+	{
+		*user = NULL ;
+	}
+
+	if( host)
+	{
+		*host = seq ;
+	}
+
+	if( ( p = strchr( seq , ':')))
+	{
+		*(p ++) = '\0' ;
+
+		if( isdigit( (int)*p))
+		{
+			seq = p ;
+			while( isdigit( (int)(*(++p))) ) ;
+			if( *p == '\0')
+			{
+				p = NULL ;
+			}
+			else
+			{
+				*(p ++) = '\0' ;
+			}
+		}
+		else
+		{
+			seq = NULL ;
+		}
+	}
+	else
+	{
+		seq = NULL ;
+	}
+
+	if( port)
+	{
+		*port = seq ;
+	}
+
+	if( aux)
+	{
+		*aux = p ;
+	}
+	
+	return  1 ;
+}
+
+#ifdef  __DEBUG
+int
+main(void)
+{
+	char  uri1[] = "ssh://ken@localhost.localdomain:22" ;
+	char  uri2[] = "ken@localhost.localdomain:22" ;
+	char  uri3[] = "ken@localhost.localdomain:22" ;
+	char  uri4[] = "ken@localhost.localdomain" ;
+	char  uri5[] = "ssh://localhost.localdomain" ;
+	char  uri6[] = "telnet://ken@localhost.localdomain:22:eucjp/usr/local/" ;
+	char  uri7[] = "ssh://ken@localhost.localdomain:22:eucjp/" ;
+	char  uri8[] = "ssh://localhost:eucjp/usr/local" ;
+	char *  user ;
+	char *  proto ;
+	char *  host ;
+	char *  port ;
+	char *  encoding ;
+	char *  path ;
+
+	kik_parse_uri( &proto , &user , &host , &port , &path , &encoding , uri1) ;
+	printf( "%s %s %s %s %s %s\n" , proto , user , host , port , path , encoding) ;
+	kik_parse_uri( &proto , &user , &host , &port , &path , &encoding , uri2) ;
+	printf( "%s %s %s %s %s %s\n" , proto , user , host , port , path , encoding) ;
+	kik_parse_uri( &proto , &user , &host , &port , &path , &encoding , uri3) ;
+	printf( "%s %s %s %s %s %s\n" , proto , user , host , port , path , encoding) ;
+	kik_parse_uri( &proto , &user , &host , &port , &path , &encoding , uri4) ;
+	printf( "%s %s %s %s %s %s\n" , proto , user , host , port , path , encoding) ;
+	kik_parse_uri( &proto , &user , &host , &port , &path , &encoding , uri5) ;
+	printf( "%s %s %s %s %s %s\n" , proto , user , host , port , path , encoding) ;
+	kik_parse_uri( &proto , &user , &host , &port , &path , &encoding , uri6) ;
+	printf( "%s %s %s %s %s %s\n" , proto , user , host , port , path , encoding) ;
+	kik_parse_uri( &proto , &user , &host , &port , &path , &encoding , uri7) ;
+	printf( "%s %s %s %s %s %s\n" , proto , user , host , port , path , encoding) ;
+	kik_parse_uri( &proto , &user , &host , &port , &path , &encoding , uri8) ;
+	printf( "%s %s %s %s %s %s\n" , proto , user , host , port , path , encoding) ;
+
+	return  0 ;
+}
+#endif

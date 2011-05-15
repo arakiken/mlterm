@@ -40,7 +40,7 @@ typedef struct x_main_config
 	ml_bidi_mode_t  bidi_mode ;
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bs_mode_t  bs_mode ;
-	ml_unicode_font_policy_t  unicode_font_policy ;
+	ml_unicode_policy_t  unicode_policy ;
 	u_int  parent_window ;
 
 	char *  disp_name ;
@@ -63,7 +63,7 @@ typedef struct x_main_config
 	char *  icon_path ;
 	char *  input_method ;
 	char *  init_str ;
-#ifdef  USE_WIN32API
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	char **  server_list ;
 	char *  default_server ;
 #endif
@@ -93,6 +93,9 @@ typedef struct x_main_config
 	int8_t  borderless ;
 	int8_t  use_dynamic_comb ;
 	int8_t  logging_vt_seq ;
+#if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
+	int8_t  skip_dialog ;
+#endif
 
 } x_main_config_t ;
 
@@ -103,8 +106,9 @@ int  x_main_config_init( x_main_config_t *  main_config , kik_conf_t *  conf , i
 
 int  x_main_config_final( x_main_config_t *  main_config) ;
 
-#ifdef  USE_WIN32API
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 int  x_main_config_add_to_server_list( x_main_config_t *  main_config , char *  server) ;
 #endif
+
 
 #endif

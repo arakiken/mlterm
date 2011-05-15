@@ -65,14 +65,11 @@ fi
 AC_SUBST(DEB_CFLAGS)
 AC_SUBST(OPT_CFLAGS)
 
-ML_PTY_OBJ="ml_pty.o"
 ml_cv_is_posix="yes"
 
 case "${host_os}" in
 mingw32*)
 	if test ! -f "/lib/libmsys-1.0.dll.a" ; then
-		ML_PTY_OBJ="ml_pty_pipewin32.o"
-		WIN32DIALOG_OBJ="x_connect_dialog.o"
 		ml_cv_is_posix="no"
 	fi
 
@@ -84,8 +81,6 @@ mingw32*)
 cygwin*)
 	case "${CC} ${CFLAGS}" in
 	*mno-cygwin*)
-		ML_PTY_OBJ="ml_pty_pipewin32.o"
-		WIN32DIALOG_OBJ="x_connect_dialog.o"
 		ml_cv_is_posix="no"
 		;;
 	*)
@@ -120,9 +115,6 @@ esac
 if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 	SUBSYSTEM="-Wl,--subsystem,console"
 fi
-
-AC_SUBST(ML_PTY_OBJ)
-AC_SUBST(WIN32DIALOG_OBJ)
 AC_SUBST(SUBSYSTEM)
 
 PKG_CHECK_MODULES(GTK, gtk+-2.0, have_gtk2=yes, have_gtk2=no)
@@ -136,6 +128,9 @@ AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 
 PKG_CHECK_MODULES(GDK_PIXBUF, gdk-pixbuf-2.0, have_gdk_pixbuf2="yes")
+GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS | tr -d '\r'`"
+GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS | tr -d '\r'`"
+
 AC_CHECK_PROG(have_gdk_pixbuf1,gdk-pixbuf-config,yes)
 
 if test "$gui" != "win32" ; then
@@ -230,16 +225,13 @@ esac
 if test "$gdk_pixbuf_version" != "" ; then
 	if test "$gdk_pixbuf_version" = "1" ; then
 		# Override GDK_PIXBUF_XXX variables.
-		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags`"
-		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs`"
+		GDK_PIXBUF_CFLAGS="`gdk-pixbuf-config --cflags|tr -d '\r'`"
+		GDK_PIXBUF_LIBS="`gdk-pixbuf-config --libs|tr -d '\r'`"
 		echo ""
 		echo "** WARNING **"
 		echo " gdk-pixbuf1 is no longer supported."
 		echo ""
 	fi
-
-	GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS | tr -d '\r'`"
-	GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS | tr -d '\r'`"
 
 	IMAGELIB_CFLAGS="${GDK_PIXBUF_CFLAGS} -DUSE_EXT_IMAGELIB"
 	IMAGELIB_LIBS="${GDK_PIXBUF_LIBS}"
@@ -378,6 +370,36 @@ if test "$ind" = "yes" ; then
 fi
 AC_SUBST(IND_LIBS)
 AC_SUBST(IND_CFLAGS)
+
+AC_ARG_ENABLE(ssh2,
+	[  --enable-ssh2            libssh2 @<:@default=disabled@:>@],
+	ssh2=$enable_ssh2, ssh2="no")
+if test "$ssh2" = "yes" ; then
+	AC_CHECK_LIB(ssh2,libssh2_init,
+		[
+		SSH2_CFLAGS="-DUSE_LIBSSH2"
+		SSH2_LIBS="-lssh2"
+		], ssh2="no")
+fi
+
+if test "$ml_cv_is_posix" = "no" ; then
+	if test "$ssh2" = "yes" ; then
+		ML_PTY_OBJ="ml_pty_ssh.o"
+		WINSOCK_LIBS="-lwsock32 -lws2_32"
+	else
+		ML_PTY_OBJ="ml_pty_pipewin32.o"
+	fi
+else
+	if test "$ssh2" = "yes" ; then
+		ML_PTY_OBJ="ml_pty_unix.o ml_pty_ssh.o"
+	else
+		ML_PTY_OBJ="ml_pty_unix.o"
+	fi
+fi
+AC_SUBST(SSH2_LIBS)
+AC_SUBST(SSH2_CFLAGS)
+AC_SUBST(ML_PTY_OBJ)
+AC_SUBST(WINSOCK_LIBS)
 
 AC_ARG_ENABLE(utmp,
 	[  --enable-utmp           utmp (Experimental) @<:@default=disabled@:>@],

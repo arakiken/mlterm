@@ -27,9 +27,6 @@
 #include  "mkf_ucs4_cns11643.h"
 
 
-#define  DEBUG
-
-
 typedef struct  map
 {
 	mkf_charset_t  cs ;

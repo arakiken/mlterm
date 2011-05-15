@@ -1765,7 +1765,7 @@ vte_terminal_init(
 		ml_create_term( 80 /* main_config.cols */ , 25 /* main_config.rows */ ,
 			main_config.tab_size , main_config.num_of_log_lines ,
 			main_config.encoding , main_config.is_auto_encoding , 
-			main_config.unicode_font_policy , main_config.col_size_of_width_a ,
+			main_config.unicode_policy , main_config.col_size_of_width_a ,
 			main_config.use_char_combining , main_config.use_multi_col_char ,
 			main_config.use_bidi , main_config.bidi_mode , 
 			x_termcap_get_bool_field(
@@ -1773,13 +1773,13 @@ vte_terminal_init(
 			main_config.use_dynamic_comb , main_config.bs_mode ,
 			main_config.vertical_mode , main_config.iscii_lang_type) ;
 
-	if( main_config.unicode_font_policy == NOT_USE_UNICODE_FONT ||
+	if( main_config.unicode_policy & NOT_USE_UNICODE_FONT ||
 		main_config.iso88591_font_for_usascii)
 	{
 		usascii_font_cs = x_get_usascii_font_cs( ML_ISO8859_1) ;
 		usascii_font_cs_changable = 0 ;
 	}
-	else if( main_config.unicode_font_policy == ONLY_USE_UNICODE_FONT)
+	else if( main_config.unicode_policy & ONLY_USE_UNICODE_FONT)
 	{
 		usascii_font_cs = x_get_usascii_font_cs( ML_UTF8) ;
 		usascii_font_cs_changable = 0 ;
@@ -1963,7 +1963,8 @@ vte_terminal_fork_command(
 		kik_pty_helper_set_flag( lastlog , utmp , wtmp) ;
 		
 		if( ! ml_term_open_pty( terminal->pvt->term , command , argv , envv ,
-			gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal)))))
+			gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal))) ,
+			NULL) )
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " fork failed\n") ;
@@ -2042,7 +2043,8 @@ vte_terminal_forkpty(
 		kik_pty_helper_set_flag( lastlog , utmp , wtmp) ;
 		
 		if( ! ml_term_open_pty( terminal->pvt->term , NULL , NULL , envv ,
-			gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal)))))
+			gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal))) ,
+			NULL) )
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " fork failed\n") ;
@@ -2468,7 +2470,7 @@ vte_terminal_set_colors(
 	if( palette_size >= 8)
 	{
 		ml_color_t  color ;
-		x_color_config_t *  color_config ;
+		x_color_config_t *  config ;
 		int  need_redraw = 0 ;
 
 		if( foreground == NULL)
@@ -2480,7 +2482,7 @@ vte_terminal_set_colors(
 			background = &palette[0] ;
 		}
 
-		color_config = terminal->pvt->screen->color_man->color_cache->color_config ;
+		config = terminal->pvt->screen->color_man->color_cache->color_config ;
 
 		for( color = 0 ; color < palette_size ; color++)
 		{
@@ -2494,7 +2496,7 @@ vte_terminal_set_colors(
 			kik_debug_printf( KIK_DEBUG_TAG " Setting rgb %s=%s\n" , name , rgb) ;
 		#endif
 
-			need_redraw |= x_customize_color_file( color_config , name , rgb , 0) ;
+			need_redraw |= x_customize_color_file( config , name , rgb , 0) ;
 
 			g_free( rgb) ;
 		}

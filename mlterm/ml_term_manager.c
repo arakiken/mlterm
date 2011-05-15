@@ -155,7 +155,7 @@ ml_create_term(
 	u_int  log_size ,
 	ml_char_encoding_t  encoding ,
 	int  is_auto_encoding ,
-	ml_unicode_font_policy_t  policy ,
+	ml_unicode_policy_t  policy ,
 	int  col_size_a ,
 	int  use_char_combining ,
 	int  use_multi_col_char ,

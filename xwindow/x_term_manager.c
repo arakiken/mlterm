@@ -14,7 +14,6 @@
 #include  <fcntl.h>
 
 #include  <kiklib/kik_config.h>	/* USE_WIN32API */
-
 #ifndef  USE_WIN32API
 #include  <pwd.h>		/* getpwuid */
 #endif
@@ -44,7 +43,7 @@
 #include  "x_xim.h"
 #endif
 
-#ifdef  USE_WIN32API
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 #include  "x_connect_dialog.h"
 #endif
 
@@ -244,7 +243,7 @@ create_term_intern(void)
 	if( ( term = ml_create_term( main_config.cols , main_config.rows ,
 			main_config.tab_size , main_config.num_of_log_lines ,
 			main_config.encoding , main_config.is_auto_encoding , 
-			main_config.unicode_font_policy , main_config.col_size_of_width_a ,
+			main_config.unicode_policy , main_config.col_size_of_width_a ,
 			main_config.use_char_combining , main_config.use_multi_col_char ,
 			main_config.use_bidi , main_config.bidi_mode ,
 			x_termcap_get_bool_field(
@@ -284,9 +283,7 @@ open_pty_intern(
 	char *  cmd_path ,
 	char **  cmd_argv ,
 	char *  display ,
-	Window  window ,
-	char *  term_type ,
-	int  use_login_shell
+	Window  window
 	)
 {
 	char *  env[6] ;	/* MLTERM,TERM,WINDOWID,DISPLAY,COLORFGBG,NULL */
@@ -296,6 +293,9 @@ open_pty_intern(
 	char *  disp_env ;
 	char *  term_env ;
 	char *  colorfgbg_env ;
+	char *  uri ;
+	char *  pass ;
+	int  ret ;
 
 	env_p = env ;
 
@@ -316,9 +316,10 @@ open_pty_intern(
 	}
 
 	/* "TERM="(5) + NULL(1) */
-	if( term_type && ( term_env = alloca( 5 + strlen( term_type) + 1)))
+	if( main_config.term_type &&
+	    ( term_env = alloca( 5 + strlen( main_config.term_type) + 1)))
 	{
-		sprintf( term_env , "TERM=%s" , term_type) ;
+		sprintf( term_env , "TERM=%s" , main_config.term_type) ;
 		*(env_p ++) = term_env ;
 	}
 
@@ -331,184 +332,62 @@ open_pty_intern(
 	/* NULL terminator */
 	*env_p = NULL ;
 
-	if( ! cmd_path)
-	{
-#ifdef  USE_WIN32API
-		char *  server ;
-		char *  user ;
-		char *  pass ;
-		char *  encoding ;
-		int  ret ;
+	uri = NULL ;
+	pass = NULL ;
 
-		if( ! x_connect_dialog( &server , &user , &pass , &encoding , window ,
+#if  ! defined(USE_WIN32API) && defined(USE_LIBSSH2)
+	if( main_config.default_server)
+#endif
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+	{
+		char *  user ;
+		char *  host ;
+		char *  port ;
+		char *  encoding ;
+		ml_char_encoding_t  e ;
+
+	#ifdef  USE_LIBSSH2
+		if(
+		#ifdef  USE_WIN32API
+		    main_config.skip_dialog && main_config.default_server &&
+		#endif
+		    kik_parse_uri( NULL , &user , &host , &port , NULL , &encoding ,
+			kik_str_alloca_dup( main_config.default_server)) &&
+		    ml_search_ssh_session( host , port , user))
+		{
+			uri = strdup( main_config.default_server) ;
+			pass = strdup( "") ;
+		}
+		else
+	#endif
+		if( ! x_connect_dialog( &uri , &pass , display , window ,
 				main_config.server_list , main_config.default_server))
 		{
 			kik_warn_printf( "Connect dialog is canceled.\n") ;
-			
+
 			return  0 ;
+		}
+		else if( ! kik_parse_uri( NULL , NULL , NULL , NULL , NULL , &encoding ,
+				kik_str_alloca_dup( uri)) )
+		{
+			encoding = NULL ;
 		}
 
 	#ifdef  __DEBUG
-		kik_debug_printf( "Connect dialog: Server %s user %s pass %s encoding %s\n" ,
-			server , user , pass , encoding) ;
+		kik_debug_printf( "Connect dialog: URI %s pass %s\n" , uri , pass) ;
 	#endif
 
-		ret = 0 ;
-		if( ( cmd_argv = alloca( sizeof(char*) * 8)))
+		if( encoding && ( e = ml_get_char_encoding( encoding)) != ML_UNKNOWN_ENCODING)
 		{
-			int  count ;
-			char *  protos[] = { "-ssh" , "-telnet" , "-rlogin" } ;
-			size_t  len ;
-			
-			len = strlen( server) ;
-			for( count = 0 ; count < sizeof( protos) / sizeof( protos[0]) ; count++)
-			{
-				size_t  protolen ;
-
-				protolen = strlen( (protos[count]) + 1) ;
-				if( len > protolen &&
-					strncmp( server , (protos[count]) + 1 , protolen) == 0)
-				{
-					if( *(server + protolen) == ':')
-					{
-						int  idx ;
-						ml_char_encoding_t  enc ;
-						
-						if( encoding &&
-							( enc = ml_get_char_encoding( encoding)) !=
-								ML_UNKNOWN_ENCODING)
-						{
-							ml_term_change_encoding( term ,	enc) ;
-						}
-						
-						cmd_path = "plink.exe" ;
-						
-						idx = 0 ;
-						cmd_argv[idx++] = cmd_path ;
-						cmd_argv[idx++] = protos[count] ;
-						if( user)
-						{
-							cmd_argv[idx++] = "-l" ;
-							cmd_argv[idx++] = user ;
-						}
-						/* -pw option can only be used with SSH. */
-						if( pass && count == 0 /* SSH */)
-						{
-							cmd_argv[idx++] = "-pw" ;
-							cmd_argv[idx++] = pass ;
-						}
-						cmd_argv[idx++] = server + protolen + 1 ;
-						cmd_argv[idx++] = NULL ;
-
-						ret = ml_term_open_pty( term , cmd_path ,
-							cmd_argv , env , display) ;
-
-						break ;
-					}
-				}
-			}
+			ml_term_change_encoding( term , e) ;
 		}
-
-		if( ret)
-		{
-			size_t  len ;
-			char *  p ;
-
-			len = (user ? (strlen( user) + 1) : 0) + strlen( server) +
-				(encoding ? ( 1 + strlen(encoding)) : 0) + 1 ;
-			
-			if( ( p = malloc( len)))
-			{
-				char  format[] = "%s@%s:%s" ;
-
-				if( ! encoding)
-				{
-					/* Removing ";%s" from format. */
-					format[5] = '\0' ;
-				}
-				
-				if( user)
-				{
-					sprintf( p , format , user , server , encoding) ;
-				}
-				else
-				{
-					sprintf( p , &format[3] , server , encoding) ;
-				}
-
-				x_main_config_add_to_server_list( &main_config , p) ;
-			}
-
-			if( ! main_config.default_server)
-			{
-				main_config.default_server = p ;
-			}
-			else
-			{
-				free( p) ;
-			}
-		}
-
-		free( server) ;
-		free( user) ;
-		free( pass) ;
-		free( encoding) ;
-		
-		return  ret ;
-#else
-		/*
-		 * SHELL env var -> /etc/passwd -> /bin/sh
-		 */
-		if( ( cmd_path = getenv( "SHELL")) == NULL || *cmd_path == '\0')
-		{
-			struct passwd *  pw ;
-
-			if( ( pw = getpwuid(getuid())) == NULL ||
-				*( cmd_path = pw->pw_shell) == '\0')
-			{
-				cmd_path = "/bin/sh" ;
-			}
-		}
+	}
 #endif
-	}
 
-	if( ! cmd_argv)
+
+#if  0
+	if( argv)
 	{
-		char *  cmd_file ;
-		
-		if( ( cmd_argv = alloca( sizeof( char*) * 2)) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " alloca() failed.\n") ;
-		#endif
-
-			return  0 ;
-		}
-
-		cmd_file = kik_basename( cmd_path) ;
-
-		/* 2 = `-' and NULL */
-		if( ( cmd_argv[0] = alloca( strlen( cmd_file) + 2)) == NULL)
-		{
-			return  0 ;
-		}
-
-		if( use_login_shell)
-		{
-			sprintf( cmd_argv[0] , "-%s" , cmd_file) ;
-		}
-		else
-		{
-			strcpy( cmd_argv[0] , cmd_file) ;
-		}
-
-		cmd_argv[1] = NULL ;
-
-		return  ml_term_open_pty( term , cmd_path , cmd_argv , env , display) ;
-	}
-	else
-	{
-	#if  0
 		char **  p ;
 
 		kik_debug_printf( KIK_DEBUG_TAG " %s", cmd_path) ;
@@ -519,10 +398,86 @@ open_pty_intern(
 			p++ ;
 		}
 		kik_msg_printf( "\n") ;
-	#endif
-
-		return  ml_term_open_pty( term , cmd_path , cmd_argv , env , display) ;
 	}
+#endif
+
+	/*
+	 * If cmd_path and pass are NULL, set default shell as cmd_path.
+	 * If uri is not NULL (= connecting to ssh/telnet/rlogin etc servers),
+	 * cmd_path is not changed.
+	 */
+	if( ! uri && ! cmd_path)
+	{
+		/*
+		 * SHELL env var -> /etc/passwd -> /bin/sh
+		 */
+		if( ( cmd_path = getenv( "SHELL")) == NULL || *cmd_path == '\0')
+		{
+		#ifndef  USE_WIN32API
+			struct passwd *  pw ;
+
+			if( ( pw = getpwuid(getuid())) == NULL ||
+				*( cmd_path = pw->pw_shell) == '\0')
+		#endif
+			{
+				cmd_path = "/bin/sh" ;
+			}
+		}
+	}
+
+	/*
+	 * Set cmd_argv by cmd_path.
+	 */
+	if( cmd_path && ! cmd_argv)
+	{
+		char *  cmd_file ;
+
+		cmd_file = kik_basename( cmd_path) ;
+
+		if( ( cmd_argv = alloca( sizeof( char*) * 2)) == NULL)
+		{
+			return  0 ;
+		}
+
+		/* 2 = `-' and NULL */
+		if( ( cmd_argv[0] = alloca( strlen( cmd_file) + 2)) == NULL)
+		{
+			return  0 ;
+		}
+
+		if( main_config.use_login_shell)
+		{
+			sprintf( cmd_argv[0] , "-%s" , cmd_file) ;
+		}
+		else
+		{
+			strcpy( cmd_argv[0] , cmd_file) ;
+		}
+
+		cmd_argv[1] = NULL ;
+	}
+
+	ret = ml_term_open_pty( term , cmd_path , cmd_argv , env , uri ? uri : display , pass) ;
+
+#if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
+	if( uri)
+	{
+		if( ret)
+		{
+			x_main_config_add_to_server_list( &main_config , uri) ;
+			free( main_config.default_server) ;
+			main_config.default_server = uri ;
+		}
+		else
+		{
+			free( uri) ;
+		}
+
+		free( pass) ;
+	}
+#endif
+
+	return  ret ;
 }
 
 static int
@@ -613,13 +568,13 @@ open_screen_intern(
 		goto  error ;
 	}
 
-	if( main_config.unicode_font_policy == NOT_USE_UNICODE_FONT ||
+	if( main_config.unicode_policy & NOT_USE_UNICODE_FONT ||
 		main_config.iso88591_font_for_usascii)
 	{
 		usascii_font_cs = x_get_usascii_font_cs( ML_ISO8859_1) ;
 		usascii_font_cs_changable = 0 ;
 	}
-	else if( main_config.unicode_font_policy == ONLY_USE_UNICODE_FONT)
+	else if( main_config.unicode_policy & ONLY_USE_UNICODE_FONT)
 	{
 		usascii_font_cs = x_get_usascii_font_cs( ML_UTF8) ;
 		usascii_font_cs_changable = 0 ;
@@ -784,8 +739,7 @@ open_screen_intern(
 	else
 	{
 		if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
-			DisplayString( disp->display) , root->my_window ,
-			main_config.term_type , main_config.use_login_shell))
+			DisplayString( disp->display) , root->my_window))
 		{
 			x_screen_detach( screen) ;
 			ml_destroy_term( term) ;
@@ -933,8 +887,7 @@ open_pty(
 				if( ! open_pty_intern( new , main_config.cmd_path ,
 					main_config.cmd_argv ,
 					DisplayString(  screen->window.disp->display) ,
-					x_get_root_window( &screen->window)->my_window ,
-					main_config.term_type , main_config.use_login_shell))
+					x_get_root_window( &screen->window)->my_window))
 				{
 					ml_destroy_term( new) ;
 					
@@ -2165,7 +2118,7 @@ x_term_manager_event_loop(void)
 		}
 
 		if( ! open_pty_intern( term , main_config.cmd_path , main_config.cmd_argv ,
-			display , 0 , main_config.term_type , main_config.use_login_shell))
+			display , 0))
 		{
 			return ;
 		}

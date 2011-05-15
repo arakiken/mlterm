@@ -1305,7 +1305,7 @@ x_release_font_config(
 	x_font_config_t *  font_config
 	)
 {
-	int  count ;
+	u_int  count ;
 	int  has_share ;
 	int  found ;
 	
@@ -1393,7 +1393,7 @@ x_font_config_new(
 		
 		return  NULL ;
 	}
-	
+
 	memset( font_config->font_name_table , 0 ,
 		sizeof( KIK_MAP( x_font_name)) * (max_font_size - min_font_size + 1)) ;
 

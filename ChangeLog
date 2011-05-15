@@ -1,3 +1,34 @@
+2011-05-15  Araki Ken  <arakiken@users.sf.net>
+
+	* "use_unicode_property" option which enables properties of unicode in
+	  other codesets is added.(Thanks to Hidetaka KOIE san)
+	  - ml_vt100_parser.[ch]:
+	    Unicode property of received characters is checked.
+	  - x_main_config.[ch]: "use_unicode_property" option is added.
+	  - ml_char.c: IS_BIWIDTH_CS is removed from ml_char_biwidth() and
+	    is checked in ml_vt100_parser.c. Its result is given to ml_char_set().
+
+	* Support libssh2.
+	  - ml_pty_ssh.c, ml_pty_intern.h are added.
+	  - configure.in: --enable-ssh2 option is added.
+	  - "default_server" option is available in unix and value format of it
+	    is changed.
+	  - x_connect_dialog is partially implemented in unix.
+	  - kiklib/src/kik_path.c: kik_parse_uri() is added.
+	  - xwindow/main.c: WSAStartup and WSACleanup are added in win32.
+
+	* winrs.rs, x_connect_dialog.c:
+	  Port number is possible to specify in dialog.
+	
+	* kiklib/src/Makefile.in: MAJOR.MINOR version 12.1 => 13.0
+
+	* kik_pty_xxx.c: kik_pty_helper_close(int) => kik_pty_close(int)
+
+	* mlclient/main.c
+	  - A bug which has broken mlclientx since 3.0.3 is fixed.
+
+	* x_font_config.c: Bug fix in x_deactivate_local_font_config().
+
 2011-04-25  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c: Fixed SF Bug #3280196 by accepting 0x80-0x9f characters

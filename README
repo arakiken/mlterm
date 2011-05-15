@@ -28,8 +28,9 @@ Options for configure
   
   --with-imagelib=(gdk-pixbuf)
     Link specified image library to mlterm for image processing.
-    mlimgloader program is used for image processing if this option
-    is not specified.
+    Note that this option is not necessary for image processing, because
+    'mlimgloader' program (which is compiled with gdk-pixbuf if this option
+    is not specified) can process images and pass them to mlterm.
     (Imlib is not supported since mlterm 3.0.2)
 
   --with-libltdl
@@ -44,6 +45,10 @@ Options for configure
 
   --enable-ind
     Use libind for ISCII rendering
+
+  --enable-ssh2
+    Use libssh2 to connect ssh2 server.
+    (Usage: mlterm --serv ssh://user@xxx.xxx.xxx)
 
   --enable-utmp
     Use utmp,wtmp,lastlog
