@@ -8,8 +8,6 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>	/* K_MIN */
 
-#include  "ml_char_encoding.h"	/* IS_BIWIDTH_CS */
-
 
 /*
  * !! Notice !!

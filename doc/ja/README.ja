@@ -398,6 +398,10 @@ comment $Id$
       o only_use_unicode_font (true/*false*)
         すべての文字を UNICODE フォントだけを使って表示する
 
+      o use_unicode_property (true/*false*)
+        UTF-8 以外のエンコーディングの文字について、対応する UNICODE のプロパテ
+	ィ(文字幅等)を適用する。
+
       o iso88591_font_for_usascii (true/*false*)
         US_ASCII の表示には、必ず ISO8859-1 フォントを使用する
 
@@ -604,6 +608,13 @@ comment $Id$
 
       o use_clipboard (true/*false*)
         領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
+
+      o default_server
+        ssh 等により直接ログインするサーバを指定する。
+	MinGW 又は --enable-ssh2 オプションでビルドした場合に有効。
+	値の形式は、(<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
+
+	例) mlterm --serv ssh://user@host:22:eucjp
 
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
@@ -980,7 +991,7 @@ comment $Id$
     -g/--geometry=value : geometry
     -i/--xim(=bool)    : use_xim (X)
     -j/--daemon=value  : daemon_mode (X)
-    -k/--meta(=value)  : mod_meta_mode
+    -k/--meta=value  : mod_meta_mode
     -l/--sl=value      : logsize
     -m/--comb(=bool)   : use_combining
     -n/--noucsfont(=bool) : not_use_unicode_font
@@ -999,7 +1010,9 @@ comment $Id$
        --bimode=value  : bidi_mode
        --im=value      : input_method
        --parent=value  : parent_window
+       --serv=value    : default_server
        --csp=value     : letter_space
+       --ucsprop(=bool): use_unicode_property
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --button3=value : button3_behavior (X)

@@ -697,7 +697,7 @@ text_out(
 	{
 		/* TextOutW is supported in windows 9x. */
 		return  TextOutW( gc , x , y , (WCHAR*)str , len / 2) ;
-	} 
+	}
 	else
 	{
 		return  TextOutA( gc , x , y , str , len) ;
@@ -749,7 +749,7 @@ draw_string(
 	if( font->is_double_drawing)
 	{
 		SetBkMode( win->gc->gc , TRANSPARENT) ;
-		
+
 		text_out( win->gc->gc,
 			x + (font->is_var_col_width ? 0 : font->x_off) + win->margin + 1,
 			y + win->margin, str, len , FONT_CS(font->id)) ;
@@ -1449,7 +1449,7 @@ x_window_clear(
 	/* XXX Garbage is left in screen in scrolling without +1. Related to NULL_PEN ? */
 	r.right = x + win->margin + width + 1 ;
 	r.bottom = y + win->margin + height + 1 ;
-	
+
 	if( win->gc->gc == None)
 	{
 		InvalidateRect( win->my_window, &r, TRUE) ;
@@ -1467,11 +1467,11 @@ x_window_clear(
 		}
 		else
 		{
-			x_release_pen( x_gc_set_pen( win->gc, GetStockObject(NULL_PEN))) ;
-			x_release_brush( x_gc_set_brush( win->gc,
-				x_acquire_brush( win->bg_color.pixel))) ;
+			HBRUSH  brush ;
 
-			Rectangle( win->gc->gc, r.left, r.top, r.right, r.bottom) ;
+			brush = x_acquire_brush( win->bg_color.pixel) ;
+			FillRect( win->gc->gc , &r , brush) ;
+			x_release_brush( brush) ;
 		}
 
 		return  1 ;
@@ -1493,17 +1493,42 @@ x_window_clear_margin_area(
 	}
 	else
 	{
-		x_release_pen( x_gc_set_pen( win->gc, GetStockObject(NULL_PEN))) ;
-		x_release_brush( x_gc_set_brush( win->gc,
-			x_acquire_brush( win->bg_color.pixel))) ;
+		if( win->wall_picture)
+		{
+			BitBlt( win->gc->gc , 0, 0, win->margin, ACTUAL_HEIGHT(win),
+				win->wall_picture , 0 , 0 , SRCCOPY) ;
+			BitBlt( win->gc->gc, win->margin, 0,
+				win->width + win->margin, win->margin,
+				win->wall_picture , win->margin , 0 , SRCCOPY) ;
+			BitBlt( win->gc->gc, win->width + win->margin, 0,
+				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win) ,
+				win->wall_picture , win->width + win->margin, 0 , SRCCOPY) ;
+			BitBlt( win->gc->gc, win->margin, win->height + win->margin,
+				win->width + win->margin, ACTUAL_HEIGHT(win) ,
+				win->wall_picture, win->margin, win->height + win->margin,
+				SRCCOPY) ;
+		}
+		else
+		{
+			HBRUSH  brush ;
+			RECT  r ;
 
-		Rectangle( win->gc->gc, 0, 0, win->margin, ACTUAL_HEIGHT(win)) ;
-		Rectangle( win->gc->gc, win->margin, 0, win->width + win->margin, win->margin) ;
-		Rectangle( win->gc->gc, win->width + win->margin, 0,
-			ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)) ;
-		Rectangle( win->gc->gc, win->margin, win->height + win->margin,
-			win->width + win->margin, ACTUAL_HEIGHT(win)) ;
+			brush = x_acquire_brush( win->bg_color.pixel) ;
 
+			SetRect( &r, 0, 0, win->margin, ACTUAL_HEIGHT(win)) ;
+			FillRect( win->gc->gc , &r , brush) ;
+			SetRect( &r, win->margin, 0, win->width + win->margin, win->margin) ;
+			FillRect( win->gc->gc , &r , brush) ;
+			SetRect( &r, win->width + win->margin, 0,
+				ACTUAL_WIDTH(win), ACTUAL_HEIGHT(win)) ;
+			FillRect( win->gc->gc , &r , brush) ;
+			SetRect( &r, win->margin, win->height + win->margin,
+				win->width + win->margin, ACTUAL_HEIGHT(win)) ;
+			FillRect( win->gc->gc , &r , brush) ;
+
+			x_release_brush( brush) ;
+		}
+		
 		return  1 ;
 	}
 }
@@ -1525,28 +1550,7 @@ x_window_fill(
 	u_int	height
 	)
 {
-	if( win->gc->gc == None)
-	{
-		return  0 ;
-	}
-	
-	x_release_pen( x_gc_set_pen( win->gc , x_acquire_pen( win->fg_color.pixel))) ;
-
-	if( height == 1)
-	{
-		MoveToEx( win->gc->gc , win->margin + x , win->margin + y , NULL) ;
-		LineTo( win->gc->gc , win->margin + x + width , win->margin + y) ;
-	}
-	else
-	{
-		x_release_brush( x_gc_set_brush( win->gc ,
-			x_acquire_brush( win->fg_color.pixel))) ;
-
-		Rectangle( win->gc->gc, win->margin + x, win->margin + y,
-					win->margin + x + width, win->margin + y + height) ;
-	}
-	
-	return  1 ;
+	return  x_window_fill_with( win , &win->fg_color , x , y , width , height) ;
 }
 
 int
@@ -1563,22 +1567,25 @@ x_window_fill_with(
 	{
 		return  0 ;
 	}
-	
-	x_release_pen( x_gc_set_pen( win->gc, x_acquire_pen( color->pixel))) ;
 
 	if( height == 1)
 	{
+		x_release_pen( x_gc_set_pen( win->gc , x_acquire_pen( color->pixel))) ;
 		MoveToEx( win->gc->gc , win->margin + x , win->margin + y , NULL) ;
 		LineTo( win->gc->gc , win->margin + x + width , win->margin + y) ;
 	}
 	else
 	{
-		x_release_brush( x_gc_set_brush( win->gc, x_acquire_brush( color->pixel))) ;
+		HBRUSH  brush ;
+		RECT  r ;
 
-		Rectangle( win->gc->gc, win->margin + x, win->margin + y,
-					win->margin + x + width, win->margin + y + height) ;
+		brush = x_acquire_brush( color->pixel) ;
+		SetRect( &r , win->margin + x, win->margin + y,
+				win->margin + x + width, win->margin + y + height) ;
+		FillRect( win->gc->gc , &r , brush) ;
+		x_release_brush( brush) ;
 	}
-
+	
 	return  1 ;
 }
 
@@ -1591,6 +1598,8 @@ x_window_blank(
 	)
 {
 	int  get_dc ;
+	HBRUSH  brush ;
+	RECT  r ;
 
 	if( win->gc->gc == None)
 	{
@@ -1602,7 +1611,10 @@ x_window_blank(
 		get_dc = 0 ;
 	}
 
-	Rectangle( win->gc->gc , 0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+	brush = x_acquire_brush( win->fg_color.pixel) ;
+	SetRect( &r , 0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+	FillRect( win->gc->gc , &r , brush) ;
+	x_release_brush( brush) ;
 
 	if( get_dc)
 	{

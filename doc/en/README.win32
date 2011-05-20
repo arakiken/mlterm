@@ -82,6 +82,8 @@ Memo about WIN32 native GUI.
     mlclient or mlclientx command supports) is avaiable. (see doc/en/PROTOCOL).
   o Only BMP format is supported for background image.
   o -3/--contrast, -4/--gamma and -H/--bright options are not available.
+  o -X/--alpha option is available with -t/--transbg option but isn't available
+    with -p/--pic option.
   o use_variable_column_width and letter_space options are ignored.
   o Supported scrollbars are "simple" and "sample" alone.
   o It is not supported to show DEC Special characters for now.

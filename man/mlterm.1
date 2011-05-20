@@ -266,7 +266,7 @@ configuration file and color rgb string whose format is "#RRGGBB", "#RRGGBBAA",
 Doubleclick/tripleclick interval in millisecond.
 The default is \fB250\fR.
 .TP
-\fB\-&\fR, \fB\-\-borderless\fR=\fIbool\fR
+\fB\-&\fR, \fB\-\-borderless\fR(=\fIbool\fR)
 Asks the window manager to use no decorations at all. Warning: You will
 not be able to resize the window. You probably want to use \fB\-\-geometry\fR
 as well.
@@ -286,7 +286,7 @@ Specify the rendering engine to be used to draw fonts.
 means Xft mechanism.
 The default is \fBxcore\fR. 
 .TP
-\fB\-%\fR, \fB\-\-logseq\fR=\fIbool\fR
+\fB\-%\fR, \fB\-\-logseq\fR(=\fIbool\fR)
 Enable logging. Contents of stream received by mlterm will be logged under 
 ~/.mlterm/.
 This option is mainly intended to be used for debugging purposes.
@@ -542,6 +542,18 @@ Don't use input method.
 \fB\-\-parent\fR=\fIvalue\fR
 Specify parent Window ID.
 The default is \fB0\fR.
+.TP
+\fB\-\-serv\fR=\fIvalue\fR
+Specify a host you want to connect via ssh etc.
+This option is enabled only if mlterm is built with MinGW or \-\-enable\-ssh2 option.
+
+Value format: (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
+
+e.g.) mlterm --serv ssh://user@host:22:eucjp
+.TP
+\fB\-\-ucsprop\fR(=\fIbool\fR)
+Use unicode properties in encodings excepting UTF-8.
+The default is \fBfalse\fR.
 .TP
 \fB\-\-csp\fR=\fIvalue\fR
 Specify number of extra pixels between lines. (ignored if you specify \fB\-\-V\fR option.)
@@ -1075,8 +1087,14 @@ Alpha in transparent.
 \fBapp_name=\fIname\fR (\fB\-N\fR, \fB\-\-name\fR) 
 Application name.
 .TP
+\fBbel_mode=\fImode\fR (\fB\-7\fR, \fB\-\-bel\fR) 
+Behavior when BEL (0x07) is received.
+.TP
 \fBbg_color=\fIcolor\fR (\fB\-b\fR, \fB\-\-bg\fR) 
 Background color.
+.TP
+\fBbidi_mode=\fImode\fR (\fB-\-bimode\fR)
+Specify bidi mode.
 .TP
 \fBbrightness=\fIvalue\fR (\fB\-H\fR, \fB\-\-brightness\fR) 
 Specify the amount of darkening or lightening the background image.
@@ -1122,15 +1140,6 @@ Path for external GUI configurator mapped to control key and mouse button 2
 Path for external GUI configurator mapped to control key and mouse button 3
 (default \fBmlconfig\fR).
 .TP
-\fBdisplay=\fIvalue\fR (\fB\-d\fR, \fB\-\-display\fR) 
-Specify X server to connect.
-.TP
-\fBbel_mode=\fImode\fR (\fB\-7\fR, \fB\-\-bel\fR) 
-Behavior when BEL (0x07) is received.
-.TP
-\fBbidi_mode=\fImode\fR (\fB-\-bimode\fR)
-Specify bidi mode.
-.TP
 \fBcontrast=\fIvalue\fR (\fB\-3\fR, \fB\-\-contrast\fR) 
 Contrast of background image in percent.
 .TP
@@ -1140,8 +1149,14 @@ Specify encoding.
 \fBdaemon_mode=\fImode\fR (\fB\-j\fR, \fB\-\-daemon\fR) 
 Start as a daemon process.
 .TP
+\fBdefault_server=\fIvalue\fR (\fB\-\-serv\fR)
+Specify a host you want to connect via ssh etc.
+.TP
 \fBdepth\fR=\fIvalue\fR (\fB\-\-depth\fR)
 Specify visual depth.
+.TP
+\fBdisplay=\fIvalue\fR (\fB\-d\fR, \fB\-\-display\fR) 
+Specify X server to connect.
 .TP
 \fBfade_ratio=\fIratio\fR (\fB\-r\fR, \fB\-\-fade_ratio\fR) 
 Specify fading ratio when window is unfocused.
@@ -1273,6 +1288,9 @@ Use scrollbar.
 .TP
 \fBuse_transbg=\fIbool\fR (\fB\-t\fR, \fB\-\-transbg\fR) 
 Use transparent background.
+.TP
+\fBuse_unicode_property=\fIbool\fR (\fB\-\-ucsprop\fR)
+Use unicode properties in encodings excepting UTF-8.
 .TP
 \fBuse_variable_column_width=\fIbool\fR (\fB\-V\fR, \fB\-\-varwidth\fR) 
 Use variable column width.

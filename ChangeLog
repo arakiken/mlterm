@@ -1,3 +1,16 @@
+2011-05-21  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, README.win32: Updated.
+
+	* x_font_win32.c: Proportional font is not assumed in order to prefer
+	  drawing performance.
+
+	* x_font.c, x_font_win32.c: IS_BIWIDTH_CS is removed from x_font_new().
+
+	* x_window_win32.c: Rectangle() is replaced by FillRect().
+
+	* vte.c: Hack for roxterm is added.
+
 2011-05-15  Araki Ken  <arakiken@users.sf.net>
 
 	* "use_unicode_property" option which enables properties of unicode in

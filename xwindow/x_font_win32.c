@@ -24,6 +24,10 @@
 #define  __DEBUG
 #endif
 
+#if  0
+#define  ENABLE_PROPORTIONAL
+#endif
+
 
 typedef struct  wincs_info
 {
@@ -375,7 +379,7 @@ x_font_new(
 	font->display = display ;
 	font->id = id ;
 
-	if( (font->id & FONT_BIWIDTH) || IS_BIWIDTH_CS(FONT_CS(font->id)))
+	if( font->id & FONT_BIWIDTH)
 	{
 		font->cols = 2 ;
 	}
@@ -499,34 +503,12 @@ x_font_new(
 		gc = GetDC( win) ;
 		SelectObject( gc, font->fid) ;
 		GetTextMetrics( gc, &tm) ;
-		/* XXX */
-		if( font->cols == 2)
-		{
-			font->width = tm.tmMaxCharWidth ;
-		}
-		else
-		{
-			font->width = tm.tmAveCharWidth ;
-		}
-		font->height = tm.tmHeight ;
-		font->height_to_baseline = tm.tmAscent ;
 		ReleaseDC( win, gc) ;
 		DestroyWindow( win) ;
 	#else
 		gc = CreateIC( "Display", NULL, NULL, NULL) ;
 		SelectObject( gc, font->fid) ;
 		GetTextMetrics( gc, &tm) ;
-		/* XXX */
-		if( font->cols == 2)
-		{
-			font->width = tm.tmMaxCharWidth ;
-		}
-		else
-		{
-			font->width = tm.tmAveCharWidth ;
-		}
-		font->height = tm.tmHeight ;
-		font->height_to_baseline = tm.tmAscent ;
 		DeleteDC( gc) ;
 	#endif
 	#if  0
@@ -538,11 +520,34 @@ x_font_new(
 		tm.tmPitchAndFamily , tm.tmWeight) ;
 	#endif
 
+	#ifdef  ENABLE_PROPORTIONAL
+		if( font->cols == 2)
+		{
+			/* XXX */
+			font->width = tm.tmMaxCharWidth ;
+		}
+		else
+		{
+			font->width = tm.tmAveCharWidth ;
+		}
+	#else
+		font->width = tm.tmAveCharWidth * font->cols ;
+	#endif
+		font->height = tm.tmHeight ;
+		font->height_to_baseline = tm.tmAscent ;
+
+	#ifdef  ENABLE_PROPORTIONAL
+		/*
+		 * XXX
+		 * Note that fixed pitch font containing both Hankaku and Zenkaku characters like
+		 * MS Gothic is regarded as VARIABLE_PITCH.
+		 */
 		if( tm.tmPitchAndFamily & VARIABLE_PITCH)
 		{
 			font->is_proportional = 1 ;
 		}
 		else
+	#endif
 		{
 			font->is_proportional = 0 ;
 		}
@@ -640,10 +645,8 @@ x_font_new(
 		{
 			if( font->width != col_width * font->cols)
 			{
-				kik_warn_printf(
-					"Font width(%d) is not matched with standard width(%d).\n"
-					"Because of this, characters are drawn one by one in order"
-					"to fit standard width.\n" ,
+				kik_warn_printf( "Font width(%d) is not matched with "
+					"standard width(%d).\n" ,
 					font->width , col_width * font->cols) ;
 
 				font->is_proportional = 1 ;
@@ -675,6 +678,14 @@ x_font_new(
 	}
 	
 	font->decsp_font = NULL ;
+
+	if( font->is_proportional && ! font->is_var_col_width)
+	{
+		kik_warn_printf(
+			"Characters (cs %d) are drawn *one by one* to arrange column width.\n" ,
+			FONT_CS(font->id)) ;
+
+	}
 
 	return  font ;
 }
@@ -715,7 +726,7 @@ x_change_font_cols(
 {
 	if( cols == 0)
 	{
-		if( (font->id & FONT_BIWIDTH) || IS_BIWIDTH_CS(FONT_CS(font->id)))
+		if( font->id & FONT_BIWIDTH)
 		{
 			font->cols = 2 ;
 		}

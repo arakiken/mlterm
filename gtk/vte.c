@@ -1880,16 +1880,20 @@ vte_terminal_init(
 	terminal->window_title = ml_term_window_name( terminal->pvt->term) ;
 	terminal->icon_title = ml_term_icon_name( terminal->pvt->term) ;
 
-#if  0
-	gtk_widget_ensure_style( &terminal->widget) ;
-#else
-	/*
-	 * XXX
-	 * I don't know why, but gtk_widget_ensure_style() doesn't apply "inner-border"
-	 * and min width/height of roxterm are not correctly set.
-	 */
-	gtk_widget_set_rc_style( &terminal->widget) ;
-#endif
+	/* XXX */
+	if( strstr( g_get_prgname() , "roxterm"))
+	{
+		/*
+		 * XXX
+		 * I don't know why, but gtk_widget_ensure_style() doesn't apply "inner-border"
+		 * and min width/height of roxterm are not correctly set.
+		 */
+		gtk_widget_set_rc_style( &terminal->widget) ;
+	}
+	else
+	{
+		gtk_widget_ensure_style( &terminal->widget) ;
+	}
 
 	reset_vte_size_member( terminal) ;
 }

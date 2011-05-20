@@ -1323,10 +1323,8 @@ font_found:
 		{
 			if( font->width != col_width * font->cols)
 			{
-				kik_warn_printf(
-					"Font width(%d) is not matched with standard width(%d)."
-					"Characters are drawn one by one in order to fit "
-					"standard width.\n" ,
+				kik_warn_printf( "Font width(%d) is not matched with "
+					"standard width(%d).\n" ,
 					font->width , col_width * font->cols) ;
 
 				font->is_proportional = 1 ;
@@ -1422,7 +1420,7 @@ x_font_new(
 	font->display = display ;
 	font->id = id ;
 
-	if( (font->id & FONT_BIWIDTH) || IS_BIWIDTH_CS(FONT_CS(font->id)))
+	if( font->id & FONT_BIWIDTH)
 	{
 		font->cols = 2 ;
 	}
@@ -1495,6 +1493,14 @@ x_font_new(
 #endif
 	}
 
+	if( font->is_proportional && ! font->is_var_col_width)
+	{
+		kik_warn_printf(
+			"Characters (cs %d) are drawn *one by one* to arrange column width.\n" ,
+			FONT_CS(font->id)) ;
+
+	}
+
 #ifdef  DEBUG
 	x_font_dump( font) ;
 #endif
@@ -1541,7 +1547,7 @@ x_change_font_cols(
 {
 	if( cols == 0)
 	{
-		if( (font->id & FONT_BIWIDTH) || IS_BIWIDTH_CS(FONT_CS(font->id)))
+		if( font->id & FONT_BIWIDTH)
 		{
 			font->cols = 2 ;
 		}
