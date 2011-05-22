@@ -383,6 +383,7 @@ __exit(
 	x_shortcut_final( &shortcut) ;
 	x_termcap_final( &termcap) ;
 	x_xim_final() ;
+	kik_sig_child_final() ;
 
 	kik_alloca_garbage_collect() ;
 
@@ -1379,7 +1380,9 @@ vte_terminal_class_init(
 	char *  argv[] = { "mlterm" , NULL } ;
 	GObjectClass *  oclass ;
 	GtkWidgetClass *  wclass ;
-	
+
+	kik_sig_child_init() ;
+
 	kik_priv_change_euid( kik_getuid()) ;
 	kik_priv_change_egid( kik_getgid()) ;
 

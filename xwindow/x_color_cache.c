@@ -190,9 +190,11 @@ found:
 	}
 	
 #ifdef  DEBUG
+#ifndef  USE_WIN32GUI
 	kik_debug_printf( KIK_DEBUG_TAG " new color %x %s red %x green %x blue %x\n",
 		color, name , color_cache->xcolors[color].red , color_cache->xcolors[color].green ,
 		color_cache->xcolors[color].blue) ;
+#endif
 #endif
 
 	color_cache->is_loaded[color] = 1 ;

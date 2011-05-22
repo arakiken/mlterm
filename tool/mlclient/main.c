@@ -203,7 +203,7 @@ main(
 	{
 		int  fd ;
 		struct sockaddr_un  servaddr ;
-		
+
 		if( ( fd = socket( AF_LOCAL , SOCK_STREAM , 0)) != -1)
 		{
 			memset( &servaddr , 0 , sizeof( servaddr)) ;
@@ -221,7 +221,14 @@ main(
 
 					while( ( len = read( fd , buf , sizeof( buf))) > 0)
 					{
-						write( STDOUT_FILENO , buf , len) ;
+						write( STDERR_FILENO , buf , len) ;
+
+						if( len == 16 &&
+						    strncmp( buf , "Error happened.\n" , 16) == 0)
+						{
+							close( fd) ;
+							goto  config_proto ;
+						}
 					}
 			
 					close( fd) ;
@@ -232,18 +239,17 @@ main(
 			
 			close( fd) ;
 		}
-		
+
 		fprintf( stderr , "Mlterm server is dead.\n") ;
-
-		return  1 ;
 	}
-	else
+
+config_proto:
+	fprintf( stderr , "Retrying by configuration protocol.\n") ;
 #endif
-	{
-		write( STDOUT_FILENO , "\x1b]5379;" , 7) ;
-		write_argv( argc , argv , STDOUT_FILENO) ;
-		write( STDOUT_FILENO , "\x07" , 1) ;
 
-		return  0 ;
-	}
+	write( STDOUT_FILENO , "\x1b]5379;" , 7) ;
+	write_argv( argc , argv , STDOUT_FILENO) ;
+	write( STDOUT_FILENO , "\x07" , 1) ;
+
+	return  0 ;
 }

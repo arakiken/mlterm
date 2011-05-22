@@ -50,6 +50,7 @@ int  kik_mem_free_all(void) ;
 #ifndef  HAVE_ALLOCA
 
 
+#undef  alloca
 #ifdef  KIK_DEBUG
 #define  alloca(size)  memset( kik_alloca(size) , 0xff , size)
 #else
@@ -69,6 +70,7 @@ int  kik_alloca_garbage_collect(void) ;
 
 
 #ifdef  KIK_DEBUG
+#undef  alloca
 #define  alloca(size)  memset( alloca(size) , 0xff , size)
 #endif
 

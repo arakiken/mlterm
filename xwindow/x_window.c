@@ -1502,9 +1502,9 @@ x_window_set_normal_hints(
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG
-		" Size hints => w %d h %d wi %d hi %d mw %d mh %d bw %d bh %d\n" ,
-		size_hints.width , size_hints.height , size_hints.width_inc ,
-		size_hints.height_inc , size_hints.min_width , size_hints.min_height ,
+		" Size hints => wi %u hi %u mw %u mh %u bw %u bh %u\n" ,
+		size_hints.width_inc , size_hints.height_inc ,
+		size_hints.min_width , size_hints.min_height ,
 		size_hints.base_width , size_hints.base_height) ;
 #endif
 

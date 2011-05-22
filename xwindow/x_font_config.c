@@ -283,12 +283,22 @@ parse_key(
 
 	font = NORMAL_FONT_OF(cs) ;
 
-	if( key_len >= 8 && strstr( key , "_BIWIDTH"))
+	if( font & FONT_BIWIDTH)
 	{
-		font |= FONT_BIWIDTH ;
+		if( strstr( key , "_NARROW"))
+		{
+			font &= ~FONT_BIWIDTH ;
+		}
+	}
+	else
+	{
+		if( strstr( key , "_BIWIDTH"))
+		{
+			font |= FONT_BIWIDTH ;
+		}
 	}
 
-	if( key_len >= 5 && strstr( key , "_BOLD"))
+	if( strstr( key , "_BOLD"))
 	{
 		font |= FONT_BOLD ;
 	}
@@ -1929,8 +1939,12 @@ x_get_all_config_font_names(
 		/*
 		 * XXX
 		 * Ignore DEFAULT_FONT setting because it doesn't have encoding name.
+		 * Also ignore XXXX_NARROW and XXX_BIWIDTH except ISO10646_UCS4_1_BIWIDTH.
 		 */
-		if( array[count]->key != DEFAULT_FONT)
+		if( array[count]->key != DEFAULT_FONT &&
+		    (FONT_CS(array[count]->key) == ISO10646_UCS4_1 ||
+		     (IS_BIWIDTH_CS(FONT_CS(array[count]->key)) ==
+		      ((array[count]->key & FONT_BIWIDTH) == FONT_BIWIDTH))) )
 		{
 			strcpy( p , array[count]->value) ;
 			p += strlen( p) ;
@@ -1943,8 +1957,12 @@ x_get_all_config_font_names(
 		/*
 		 * XXX
 		 * Ignore DEFAULT_FONT setting because it doesn't have encoding name.
+		 * Also ignore XXXX_NARROW and XXX_BIWIDTH except ISO10646_UCS4_BIWIDTH.
 		 */
-		if( d_array[count]->key != DEFAULT_FONT)
+		if( d_array[count]->key != DEFAULT_FONT &&
+		    ( FONT_CS(d_array[count]->key) == ISO10646_UCS4_1 ||
+		      (IS_BIWIDTH_CS(FONT_CS(d_array[count]->key)) ==
+		        ((d_array[count]->key & FONT_BIWIDTH) == FONT_BIWIDTH))) )
 		{
 			sprintf( p , d_array[count]->value , font_size) ;
 			p += strlen( p) ;

@@ -798,12 +798,9 @@ ml_term_update_special_visual(
 
 	if( ml_term_get_encoding( term) == ML_ISCII
 	#ifdef  USE_IND
-	    /*
-	     * XXX
-	     * In accurate, indic unicode characters are supported only if
-	     * vt100_parser->unicode_policy & NOT_USE_UNICODE_FONT.
-	     */
-	    || (ml_term_get_encoding( term) == ML_UTF8 && ! term->use_bidi)
+	    /* XXX */
+	    || (ml_term_get_encoding( term) == ML_UTF8 && ! term->use_bidi &&
+	        (term->parser->unicode_policy & NOT_USE_UNICODE_FONT))
 	#endif
 	    )
 	{

@@ -1,3 +1,21 @@
+2011-05-22  Araki Ken  <arakiken@users.sf.net>
+
+	* README.ja: Updated.
+
+	* mkf_charset.h: Error of IS_BIWIDTH_CS macro is fixed.
+
+	* x_font_config.c: "XXX_NARROW" key for font configuration is supported.
+	  (JISX0208_1983 for biwidth font, JISX0208_1983_NARROW for narrow font.)
+
+	* ml_font.h: NORMAL_FONT_OF checks IS_BIWIDTH_CS and sets FONT_BIWIDTH.
+
+	* mlclient/main.c: If mlterm server returns error, retry by configuration
+	  protocol(ESC ] 5379 ; mlclient BEL).
+
+	* vte.c: kik_sig_child_init and kik_sig_child_final are called.
+
+	* kik_mem.h: undef alloca before defining it.
+
 2011-05-21  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, README.win32: Updated.
@@ -14,7 +32,7 @@
 2011-05-15  Araki Ken  <arakiken@users.sf.net>
 
 	* "use_unicode_property" option which enables properties of unicode in
-	  other codesets is added.(Thanks to Hidetaka KOIE san)
+	  other codesets is added.(Thanks to Hidetaka Koie san)
 	  - ml_vt100_parser.[ch]:
 	    Unicode property of received characters is checked.
 	  - x_main_config.[ch]: "use_unicode_property" option is added.

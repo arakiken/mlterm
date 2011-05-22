@@ -1,5 +1,5 @@
 %define name mlterm
-%define version 3.0.3
+%define version 3.0.4
 %define release 1
 %define prefix /usr
 %define bindir /usr/bin
@@ -43,8 +43,9 @@ CFLAGS="$RPM_OPT_FLAGS" \
 	    --mandir=%{mandir} \
 	    --libexecdir=%{libexecdir} \
 	    --datadir=%{datadir} \
-	    --sysconfdir=%{sysconfdir}\
-	    --with-imagelib=gdk-pixbuf # --enable-anti-alias
+	    --sysconfdir=%{sysconfdir} \
+	    # --with-imagelib=gdk-pixbuf \
+	    # --enable-anti-alias
 make
 
 %install
@@ -77,6 +78,9 @@ rm -rf $RPM_BUILD_ROOT
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
 
 %changelog
+* XXX XXX XX 2011 Araki Ken <arakiken@users.sf.net>
+- Source version 3.0.4
+
 * Sun Mar 20 2011 Araki Ken <arakiken@users.sf.net>
 - Source version 3.0.3
 

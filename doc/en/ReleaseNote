@@ -1,14 +1,17 @@
 ver 3.0.4
-* Support 'not_use_unicode_font' option in indian characters of unicode.
+* Add support for libssh2. (Experimental)
+* Support "use_unicode_property" option. (Thanks to Hidetaka Koie san)
+* Support "not_use_unicode_font" option in indian characters of unicode.
   (libind is required.)
 * Merge SF patches:
   #3243508 (Thanks to Ahmed El-Mahmoudy)
   #3243231(partially) (Thanks to Kusanagi Kouichi san)
 * Other bug fixes:
-  Fix error in setting "iBus" from mlconfig. (Thanks to shitamo san)
+  Fix an error in setting "iBus" from mlconfig. (Thanks to shitamo san)
   Fix wraparound failure if terminal column size is 100.
   Fix compilation failure of mlimgloader with gdk-pixbuf1.
   Fix compilation failure in win32.
+  Fix an error in opening a new pty by mlclient(x) which uses configuration protocol.
   SF Bug #3280196 (Thanks to Yoshiaki Kasahara san)
 
 ver 3.0.3
