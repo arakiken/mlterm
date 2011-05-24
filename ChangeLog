@@ -1,3 +1,12 @@
+2011-05-25  Araki Ken  <arakiken@users.sf.net>
+
+	* mlterm/ml_pty.c: Revived.
+	  (Thanks to Koie Hidetaka san)
+
+	* xwindow/Makefile.in, mlimgloader/Makefile.in:
+	  $(OBJ:.o=.lo).libs => $(OBJ:.o=.lo) .libs
+	  (Thanks to Koie Hidetaka san)
+
 2011-05-22  Araki Ken  <arakiken@users.sf.net>
 
 	* README.ja: Updated.
