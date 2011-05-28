@@ -1,3 +1,23 @@
+2011-05-29  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.0.4 released.
+	  (tag "rel-3_0_4")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.0.4.
+
+	* configure.in: configure script doesn't stop if gdk-pixbuf-2.0 is not found.
+
+	* configure: re-generated
+
+	* mlconfig/main.c, mc_font.c: Tooltip text is set to widgets changing font size.
+
+	* x_font.c: "-*-biwidth-*-" font is automatically loaded only for unicode characters.
+
+	* etc/main, etc/main.ja: Updated.
+
+	* mlclient.1: Fixed.
+
 2011-05-25  Araki Ken  <arakiken@users.sf.net>
 
 	* mlterm/ml_pty.c: Revived.

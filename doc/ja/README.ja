@@ -49,10 +49,11 @@ comment $Id$
       この場合、結合文字や BIDI 等を扱えなくなります。
 
     --with-imagelib=(gdk-pixbuf)
-      mlterm 本体に gdk-pixbuf をリンクし、壁紙やアイコンの画像を
-      扱えるようにします。
-      このオプションを使用しない場合、mlimgloader を使って画像表示を
-      行います。
+      mlterm 本体に gdk-pixbuf をリンクし、壁紙やアイコンの画像を扱えるようにし
+      ます。
+      このオプションを使用しない場合、--with-tools オプションで mlimgloader (外
+      部プログラム)をインストールしていれば、mlimgloader を使用して画像表示を行
+      います(mlterm 本体に gdk-pixbuf をリンクしなくても、画像表示が可能です。)。
 
     --with-libltdl
       モジュールの動的ローディングに libltdl を使用します。
@@ -186,6 +187,18 @@ comment $Id$
     mlterm server が起動していれば、mlclient をフロントエンドとして使用すること
     で、端末ウィンドウを開けます。
     (see doc/ja/README.server)
+
+  o vte compatible library
+    mlterm の機能(一部制限あり)を libvte (ほぼ)互換の API で wrap したライブラリ
+    (libvte.so.9) を提供しています。
+    システムにインストールされている libvte.so.9 を置きかえることにより、
+    gnome-terminal や roxterm 等の中で、mlterm を動作させることができます。
+    GTK+ (2.x 以上) が必要となります。
+
+  o ssh client
+    ssh client として直接 ssh server に接続することができます。
+    libssh2 が必要となります。
+    (例 mlterm(mlclient) --serv ssh://user@host:22)
 
 * 設定
   o 設定ファイル

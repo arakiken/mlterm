@@ -127,18 +127,11 @@ GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 
-PKG_CHECK_MODULES(GDK_PIXBUF, gdk-pixbuf-2.0, have_gdk_pixbuf2="yes")
+PKG_CHECK_MODULES(GDK_PIXBUF, gdk-pixbuf-2.0, have_gdk_pixbuf2=yes, have_gdk_pixbuf2=no)
 GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS | tr -d '\r'`"
 GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS | tr -d '\r'`"
 
 AC_CHECK_PROG(have_gdk_pixbuf1,gdk-pixbuf-config,yes)
-
-if test "$gui" != "win32" ; then
-	if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
-		OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
-		MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
-	fi
-fi
 
 AC_ARG_WITH(imagelib,
 	[  --with-imagelib@<:@=ARG@:>@   image library (gdk-pixbuf) @<:@default=no@:>@],
@@ -422,10 +415,11 @@ AC_SUBST(UTMP_CFLAGS)
 AC_SUBST(INSTALL_OPT)
 
 if test "${gtk_config}" = "yes" ; then
+	MAKE_DIRS="gtk ${MAKE_DIRS}"
 	OUTPUT_FILES="gtk/Makefile ${OUTPUT_FILES}"
 fi
 
-tools="mlclient,mlconfig,mlcc,mlterm-menu"
+tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader"
 AC_ARG_WITH(tools,
 	[  --with-tools@<:@=ARG@:>@      external tools @<:@default=mlclient,mlconfig,mlterm-menu,mlcc@:>@],
 	[
@@ -484,7 +478,6 @@ w3mmlconfig)
 mlcc)
 	if test "$ml_cv_is_posix" = "yes" ; then
 		MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
-		OUTPUT_FILES="contrib/tool/mlcc/Makefile ${OUTPUT_FILES}"
 		SUBDIRS="${SUBDIRS} contrib/tool/mlcc"
 		tools_result="$tools_result $tool"
 	fi
@@ -501,6 +494,15 @@ mlterm-zoom)
 		MAKE_DIRS="contrib/tool/mlterm-zoom ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlterm-zoom/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
+	fi
+	;;
+mlimgloader)
+	if test "$gui" = "xlib" ; then
+		if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
+			OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
+			MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
+			tools_result="$tools_result $tool"
+		fi
 	fi
 	;;
 *)
@@ -594,7 +596,7 @@ if test "x$iiimf" = xyes ; then
 		AC_CHECK_LIB(iiimcf, iiimcf_create_context,
 			[
 			found_iiimcf=yes
-			IIIMCF_CFLAGS=""
+			IIIMCF_CFLAGS="-I/usr/include/iiim"
 			IIIMCF_LIBS="-liiimcf"
 			])
 	fi
@@ -799,7 +801,7 @@ if test "$optimize_redrawing" = "yes" ; then
 fi
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,3.0.3)
+AM_INIT_AUTOMAKE(mlterm,3.0.4)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)
@@ -876,7 +878,7 @@ dnl echo "Character mapping table           : "
 dnl echo "Character property table          : "
 echo "Build shared libraries            : $enable_shared"
 echo "Build static libraries            : $enable_static"
-echo "Optimization for redrawing a line : $optimize_redrawing"
+dnl echo "Optimization for redrawing a line : $optimize_redrawing"
 echo "BiDi rendering (Fribidi)          : $fribidi"
 echo "ISCII rendering (libind)          : $ind"
 echo "External tools                    :$tools_result"
@@ -886,5 +888,5 @@ echo "Type engines                      :$type_engines_result"
 echo "DnD                               : $dnd"
 echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"
+echo "libssh2                           : $ssh2"
 echo
-

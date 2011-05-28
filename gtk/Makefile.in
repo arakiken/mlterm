@@ -23,7 +23,9 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 OBJ = vte.o marshal.o vtetypebuiltins.o reaper.o
 
-libvte: $(OBJ)
+all: libvte.la
+
+libvte.la: $(OBJ)
 	$(LIBTOOL_LINK) -o libvte.la $(OBJ:.o=.lo) ../mlterm/*.lo \
 	`echo ../xwindow/*.lo|sed 's/..\/xwindow\/main.lo//g' | \
 	sed 's/..\/xwindow\/x_term_manager.lo//g' | \

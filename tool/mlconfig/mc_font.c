@@ -713,6 +713,11 @@ mc_font_config_widget_new(void)
 		sizeof(fontlist) / sizeof(fontlist[0]), new_fontsize , 1 ,
 		fontsize_selected, NULL, 80) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , combo , TRUE , TRUE , 0) ;
+#if  GTK_MAJOR_VERSION > 2 || (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION > 12)
+	gtk_widget_set_tooltip_text(combo ,
+		"If you change fonts from \"Select\" button, "
+		"it is not recommended to change font size here.") ;
+#endif
 
 
 	hbox = gtk_hbox_new(FALSE , 0) ;

@@ -1,4 +1,3 @@
-
 .\" mlterm.1   -*- nroff -*-
 .TH MLTERM 1 "2005-02-18"
 .SH NAME
@@ -549,7 +548,7 @@ This option is enabled only if mlterm is built with MinGW or \-\-enable\-ssh2 op
 
 Value format: (<protocol>://)(<user>@)<server>(:<port>)(:<encoding>)
 
-e.g.) mlterm --serv ssh://user@host:22:eucjp
+e.g.) mlterm \-\-serv ssh://user@host:22:eucjp
 .TP
 \fB\-\-ucsprop\fR(=\fIbool\fR)
 Use unicode properties in encodings excepting UTF-8.
@@ -607,7 +606,7 @@ ISCII language
 Specify ISCII language. (\fB\-C\fR, \fB\-\-iscii\fR) 
 .TP
 Input Method
-Specify which input method to be used. (\fB\--\im\fR)
+Specify which input method to be used. (\fB\-\-im\fR)
 .PP
 .RS
 .B XIM:
@@ -954,8 +953,8 @@ UTF-8.
 .TP
 (b) subset of Unicode and ISO-2022-compliant
 "Subset of Unicode" means that Unicode supports round-trip compatibility
-for the encoding, i.e., the conversion of the encoding --> Unicode
---> the encoding doesn't lose any information.
+for the encoding, i.e., the conversion of the encoding \-\-> Unicode
+\-\-> the encoding doesn't lose any information.
 "ISO-2022-compliant" means that the encoding can be regarded as a
 subset of ISO-2022 where a part of ISO-2022 control codes and escape
 sequences are not supported.  Many popular encodings belong to this
@@ -993,7 +992,7 @@ in the selection (received copy-and-paste string).
 If you want to receive characters which are equivalent to
 characters which are supported in the current \fBmlterm\fR encoding
 (i.e., characters which share the same codepoint in Unicode),
-you can use \fB\-U\fR (or \fB--viaucs\fR) option.  Otherwise,
+you can use \fB\-U\fR (or \fB\-\-viaucs\fR) option.  Otherwise,
 these characters are pasted into \fBmlterm\fR using ISO-2022
 escape sequence (when \fBmlterm\fR encoding is category b).
 Note such ISO-2022 escape sequences are illegal in the current
@@ -1093,7 +1092,7 @@ Behavior when BEL (0x07) is received.
 \fBbg_color=\fIcolor\fR (\fB\-b\fR, \fB\-\-bg\fR) 
 Background color.
 .TP
-\fBbidi_mode=\fImode\fR (\fB-\-bimode\fR)
+\fBbidi_mode=\fImode\fR (\fB\-\-bimode\fR)
 Specify bidi mode.
 .TP
 \fBbrightness=\fIvalue\fR (\fB\-H\fR, \fB\-\-brightness\fR) 

@@ -251,6 +251,12 @@ font_large_small(void)
 	addbutton(_("Larger"),  larger_clicked,  hbox);
 	addbutton(_("Smaller"), smaller_clicked, hbox);
 
+#if  GTK_MAJOR_VERSION > 2 || (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION > 12)
+	gtk_widget_set_tooltip_text(frame ,
+		"If you change fonts from \"Select\" button in \"Font\" tab, "
+		"it is not recommended to change font size here.") ;
+#endif
+
 	return frame;
 }
 

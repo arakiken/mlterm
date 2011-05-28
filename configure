@@ -19996,36 +19996,17 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$GDK_PIXBUF_PKG_ERRORS" >&5
 
-	as_fn_error "Package requirements (gdk-pixbuf-2.0) were not met:
-
-$GDK_PIXBUF_PKG_ERRORS
-
-Consider adjusting the PKG_CONFIG_PATH environment variable if you
-installed software in a non-standard prefix.
-
-Alternatively, you may set the environment variables GDK_PIXBUF_CFLAGS
-and GDK_PIXBUF_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-" "$LINENO" 5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_gdk_pixbuf2=no
 elif test $pkg_failed = untried; then
-	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error "The pkg-config script could not be found or is too old.  Make sure it
-is in your PATH or set the PKG_CONFIG environment variable to the full
-path to pkg-config.
-
-Alternatively, you may set the environment variables GDK_PIXBUF_CFLAGS
-and GDK_PIXBUF_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.
-See \`config.log' for more details." "$LINENO" 5; }
+	have_gdk_pixbuf2=no
 else
 	GDK_PIXBUF_CFLAGS=$pkg_cv_GDK_PIXBUF_CFLAGS
 	GDK_PIXBUF_LIBS=$pkg_cv_GDK_PIXBUF_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	have_gdk_pixbuf2="yes"
+	have_gdk_pixbuf2=yes
 fi
 GDK_PIXBUF_CFLAGS="`echo $GDK_PIXBUF_CFLAGS | tr -d '\r'`"
 GDK_PIXBUF_LIBS="`echo $GDK_PIXBUF_LIBS | tr -d '\r'`"
@@ -20067,13 +20048,6 @@ $as_echo "no" >&6; }
 fi
 
 
-
-if test "$gui" != "win32" ; then
-	if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
-		OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
-		MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
-	fi
-fi
 
 
 # Check whether --with-imagelib was given.
@@ -20820,10 +20794,11 @@ fi
 
 
 if test "${gtk_config}" = "yes" ; then
+	MAKE_DIRS="gtk ${MAKE_DIRS}"
 	OUTPUT_FILES="gtk/Makefile ${OUTPUT_FILES}"
 fi
 
-tools="mlclient,mlconfig,mlcc,mlterm-menu"
+tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader"
 
 # Check whether --with-tools was given.
 if test "${with_tools+set}" = set; then :
@@ -20925,7 +20900,6 @@ fi
 mlcc)
 	if test "$ml_cv_is_posix" = "yes" ; then
 		MAKE_DIRS="contrib/tool/mlcc ${MAKE_DIRS}"
-		OUTPUT_FILES="contrib/tool/mlcc/Makefile ${OUTPUT_FILES}"
 		SUBDIRS="${SUBDIRS} contrib/tool/mlcc"
 		tools_result="$tools_result $tool"
 	fi
@@ -20942,6 +20916,15 @@ mlterm-zoom)
 		MAKE_DIRS="contrib/tool/mlterm-zoom ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlterm-zoom/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
+	fi
+	;;
+mlimgloader)
+	if test "$gui" = "xlib" ; then
+		if test "$have_gdk_pixbuf2" = "yes" -o "$have_gdk_pixbuf1" = "yes" ; then
+			OUTPUT_FILES="tool/mlimgloader/Makefile ${OUTPUT_FILES}"
+			MAKE_DIRS="tool/mlimgloader ${MAKE_DIRS}"
+			tools_result="$tools_result $tool"
+		fi
 	fi
 	;;
 *)
@@ -21256,7 +21239,7 @@ $as_echo "$ac_cv_lib_iiimcf_iiimcf_create_context" >&6; }
 if test "x$ac_cv_lib_iiimcf_iiimcf_create_context" = x""yes; then :
 
 			found_iiimcf=yes
-			IIIMCF_CFLAGS=""
+			IIIMCF_CFLAGS="-I/usr/include/iiim"
 			IIIMCF_LIBS="-liiimcf"
 
 fi
@@ -22677,7 +22660,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=mlterm
- VERSION=3.0.3
+ VERSION=3.0.4
 
 
 cat >>confdefs.h <<_ACEOF
@@ -26457,7 +26440,6 @@ echo
 echo "Installation path prefix          : $prefix"
 echo "Build shared libraries            : $enable_shared"
 echo "Build static libraries            : $enable_static"
-echo "Optimization for redrawing a line : $optimize_redrawing"
 echo "BiDi rendering (Fribidi)          : $fribidi"
 echo "ISCII rendering (libind)          : $ind"
 echo "External tools                    :$tools_result"
@@ -26467,5 +26449,5 @@ echo "Type engines                      :$type_engines_result"
 echo "DnD                               : $dnd"
 echo "Input Methods                     : XIM$input_methods_result"
 echo "Scrollbars                        : simple${scrollbars_result}"
+echo "libssh2                           : $ssh2"
 echo
-

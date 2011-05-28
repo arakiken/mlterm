@@ -1,8 +1,10 @@
 ver 3.0.4
 * Add support for libssh2. (Experimental)
-* Support "use_unicode_property" option. (Thanks to Hidetaka Koie san)
+* Support "use_unicode_property" option.
 * Support "not_use_unicode_font" option in indian characters of unicode.
   (libind is required.)
+* Mlimgloader is possible to avoid to build if you don't specify it
+  as a value of configure's --with-tools option.
 * Merge SF patches:
   #3243508 (Thanks to Ahmed El-Mahmoudy)
   #3243231(partially) (Thanks to Kusanagi Kouichi san)

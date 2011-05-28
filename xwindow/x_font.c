@@ -904,7 +904,7 @@ load_xfont(
 	kik_snprintf( fontname , max_len , "-*-%s-%s-%s-%s--%d-*-*-*-%s-*-%s" ,
 		family , weight , slant , width , fontsize , spacing , encoding) ;
 
-#ifdef  __DEBUG
+#ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " loading %s.\n" , fontname) ;
 #endif
 
@@ -920,7 +920,7 @@ load_xfont(
 		kik_snprintf( fontname , max_len , "-*-*-%s-%s-%s-%s-%d-*-*-*-%s-*-%s" ,
 			weight , slant , width , kik_get_lang() , fontsize , spacing , encoding) ;
 
-	#ifdef  __DEBUG
+	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " loading %s.\n" , fontname) ;
 	#endif
 
@@ -934,7 +934,7 @@ load_xfont(
 			kik_snprintf( fontname , max_len , "-*-*-%s-%s-%s-ja-%d-*-*-*-%s-*-%s" ,
 				weight , slant , width , fontsize , spacing , encoding) ;
 
-		#ifdef  __DEBUG
+		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " loading %s.\n" , fontname) ;
 		#endif
 
@@ -949,7 +949,7 @@ load_xfont(
 		kik_snprintf( fontname , max_len , "-gnu-unifont-%s-%s-%s--%d-*-*-*-%s-*-%s" ,
 			weight , slant , width , fontsize , spacing , encoding) ;
 
-	#ifdef  __DEBUG
+	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " loading %s.\n" , fontname) ;
 	#endif
 
@@ -1057,7 +1057,7 @@ set_xfont(
 
 	width = "normal" ;
 
-	if( font->id & FONT_BIWIDTH)
+	if( (font->id & FONT_BIWIDTH) && (FONT_CS(font->id) == ISO10646_UCS4_1) )
 	{
 		family = "biwidth" ;
 	}
