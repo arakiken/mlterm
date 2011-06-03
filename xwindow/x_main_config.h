@@ -67,6 +67,10 @@ typedef struct x_main_config
 	char **  server_list ;
 	char *  default_server ;
 #endif
+#ifdef  USE_LIBSSH2
+	char *  public_key ;
+	char *  private_key ;
+#endif
 	char *  cmd_path ;
 	char **  cmd_argv ;
 	

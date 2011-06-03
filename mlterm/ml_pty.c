@@ -27,6 +27,8 @@ ml_pty_new(
 	char **  env ,		/* can be NULL */
 	char *  host ,
 	char *  pass ,		/* can be NULL */
+	char *  pubkey ,	/* can be NULL */
+	char *  privkey ,	/* can be NULL */
 	u_int  cols ,
 	u_int  rows
 	)
@@ -42,7 +44,8 @@ ml_pty_new(
 	{
 		/* host is not DISPLAY => ssh */
 	#if  defined(USE_LIBSSH2)
-		return  ml_pty_ssh_new( cmd_path , cmd_argv , env , host , pass , cols , rows) ;
+		return  ml_pty_ssh_new( cmd_path , cmd_argv , env , host , pass ,
+				pubkey , privkey , cols , rows) ;
 	#elif  defined(USE_WIN32API)
 		return  ml_pty_pipe_new( cmd_path , cmd_argv , env , host , pass , cols , rows) ;
 	#else

@@ -1,3 +1,10 @@
+ver 3.0.5
+* Fix a problem of failing in compilation in gtk/ in the system where
+  vte isn't installed.
+* Fix a problem that may overwrite genuine libvte.so by mlterm's one in
+  installation without intension.
+* Support "ssh_public_key" and "ssh_private_key" options.
+
 ver 3.0.4
 * Add support for libssh2. (Experimental)
 * Support "use_unicode_property" option.

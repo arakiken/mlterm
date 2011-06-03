@@ -216,7 +216,9 @@ scrollbar_view_name = sample
   
 # GUI 設定コマンドのパス
 # conf_menu_path_1
+
 # conf_menu_path_2
+
 # conf_menu_path_3
 
 # daemon process となるかどうか(none,blend,genuine)
@@ -239,7 +241,7 @@ scrollbar_view_name = sample
 # pty から流れてくる VT sequence を ~/.mlterm/[device].log に記録する。
 # logging_vt_seq = false
 
-# button3 を押下したときの挙動を指定
+# button3 を押下したときの挙動を指定する。
 # (xterm,menu1,menu2,menu3, or command string like "mlclient -e w3m")
 # button3_behavior = xterm
 
@@ -249,3 +251,12 @@ scrollbar_view_name = sample
 # UTF-8 以外のエンコーディングの文字について、対応する UNICODE のプロパティ(文字
 # 幅等)を適用する。
 # use_unicode_property = false
+
+# ssh 等により直接ログインするサーバを指定する。
+# default_server =
+
+# ssh 接続の認証で使用する公開鍵のファイルを指定する。
+# ssh_public_key = 
+
+# ssh 接続の認証で使用する秘密鍵のファイルを指定する。
+# ssh_private_key = 

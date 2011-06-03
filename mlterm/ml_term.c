@@ -174,7 +174,9 @@ ml_term_open_pty(
 	char **  argv ,
 	char **  env ,
 	char *  host ,
-	char *  pass
+	char *  pass ,
+	char *  pubkey ,
+	char *  privkey
 	)
 {
 	if( term->pty)
@@ -186,6 +188,7 @@ ml_term_open_pty(
 	else
 	{
 		if( ( term->pty = ml_pty_new( cmd_path , argv , env , host , pass ,
+					pubkey , privkey ,
 					ml_screen_get_logical_cols( term->screen) ,
 					ml_screen_get_logical_rows( term->screen))) == NULL)
 		{

@@ -35,5 +35,7 @@ int  kik_path_cleanname( char *  cleaned_path , size_t  size , const char *  pat
 int  kik_parse_uri( char **  proto , char **  user , char **  host , char **  port ,
 		char **  path , char **  aux , char *  seq) ;
 
+char *  kik_get_home_dir(void) ;
+
 
 #endif

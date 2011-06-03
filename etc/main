@@ -154,7 +154,9 @@ scrollbar_view_name = sample
 # bel_mode = sound
   
 # conf_menu_path_1
+
 # conf_menu_path_2
+
 # conf_menu_path_3
 
 # (none,blend,genuine)
@@ -176,3 +178,9 @@ scrollbar_view_name = sample
 # use_clipboard = false
 
 # use_unicode_property = false
+
+# default_server =
+
+# ssh_public_key = 
+
+# ssh_private_key = 

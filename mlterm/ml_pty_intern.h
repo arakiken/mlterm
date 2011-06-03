@@ -33,7 +33,7 @@ ml_pty_t *  ml_pty_unix_new( char *  cmd_path ,	char **  cmd_argv , char **  env
 	u_int  cols , u_int  rows) ;
 
 ml_pty_t *  ml_pty_ssh_new( char *  cmd_path ,	char **  cmd_argv , char **  env , char *  host ,
-	char *  pass , u_int  cols , u_int  rows) ;
+	char *  pass , 	char *  pubkey , char *  privkey , u_int  cols , u_int  rows) ;
 
 ml_pty_t *  ml_pty_pipe_new( char *  cmd_path ,	char **  cmd_argv , char **  env , char *  host ,
 	char *  pass , u_int  cols , u_int  rows) ;

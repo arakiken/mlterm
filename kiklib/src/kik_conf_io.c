@@ -7,12 +7,10 @@
 #include  <stdio.h>	/* sprintf */
 #include  <string.h>	/* strlen */
 #include  <stdlib.h>	/* getenv */
-#ifdef  USE_WIN32API
-#include  <sys/stat.h>
-#endif
 
 #include  "kik_str.h"	/* kik_str_sep/kik_str_chop_spaces */
 #include  "kik_mem.h"	/* malloc */
+#include  "kik_path.h"
 
 
 /* --- static variables --- */
@@ -71,29 +69,10 @@ kik_get_user_rc_path(
 	{
 		kik_msg_printf("using %s as an user config dir.\n", homedir);
 		/* conf path is overridden */ ;
-	}else
-#endif
-
-#ifdef  USE_WIN32API
-	if( ( homedir = getenv( "HOMEPATH")))
-	{
-		struct stat s ;
-
-		/* HOMEPATH is corrupt if built with MSYS-DTK 1.0.1. */
-		if( stat( homedir , &s) == 0)
-		{
-			/* Enough for "%s/.%s" */
-			if( ( dotrcpath = malloc( strlen( homedir) + 1 + strlen( rcfile) + 1)))
-			{
-				sprintf( dotrcpath , "%s\\%s" , homedir , rcfile) ;
-
-				return  dotrcpath ;
-			}
-		}
 	}
+	else
 #endif
-
-	if( ( homedir = getenv( "HOME")) == NULL)
+	if( ( homedir = kik_get_home_dir()) == NULL)
 	{
 		return  NULL ;
 	}
@@ -105,7 +84,8 @@ kik_get_user_rc_path(
 	}
 
 #ifdef  USE_WIN32API
-	sprintf( dotrcpath , "%s\\.%s" , homedir , rcfile) ;
+	/* subdir doesn't contain "." in win32 native. */
+	sprintf( dotrcpath , "%s\\%s" , homedir , rcfile) ;
 #else
 	sprintf( dotrcpath , "%s/.%s" , homedir , rcfile) ;
 #endif

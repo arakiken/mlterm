@@ -1971,7 +1971,7 @@ vte_terminal_fork_command(
 		
 		if( ! ml_term_open_pty( terminal->pvt->term , command , argv , envv ,
 			gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal))) ,
-			NULL) )
+			NULL , NULL , NULL) )
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " fork failed\n") ;
@@ -2051,7 +2051,7 @@ vte_terminal_forkpty(
 		
 		if( ! ml_term_open_pty( terminal->pvt->term , NULL , NULL , envv ,
 			gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal))) ,
-			NULL) )
+			NULL , NULL , NULL) )
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " fork failed\n") ;

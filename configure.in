@@ -415,8 +415,14 @@ AC_SUBST(UTMP_CFLAGS)
 AC_SUBST(INSTALL_OPT)
 
 if test "${gtk_config}" = "yes" ; then
-	MAKE_DIRS="gtk ${MAKE_DIRS}"
-	OUTPUT_FILES="gtk/Makefile ${OUTPUT_FILES}"
+	PKG_CHECK_MODULES(VTE, vte, have_vte=yes, have_vte=no)
+	if test "$have_vte" = "yes" ; then
+		OUTPUT_FILES="gtk/Makefile ${OUTPUT_FILES}"
+		# "tr ..." is hack for cygwin.
+		# (removing \r which is output by win32 native pkg-config.)
+		VTE_CFLAGS="`echo $VTE_CFLAGS | tr -d '\r'`"
+		AC_SUBST(VTE_CFLAGS)
+	fi
 fi
 
 tools="mlclient,mlconfig,mlcc,mlterm-menu,mlimgloader"
@@ -801,7 +807,7 @@ if test "$optimize_redrawing" = "yes" ; then
 fi
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,3.0.4)
+AM_INIT_AUTOMAKE(mlterm,3.0.5)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)

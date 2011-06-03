@@ -25,7 +25,8 @@ Memo about WIN32 native GUI.
   xwindow/.libs/mlterm.exe
 
   o (Built with MinGW)
-    Copy win32/plink/plink.exe which mlterm uses to connect remote host for now.
+    If you build mlterm without libssh2 (--enable-ssh2 configure option),
+    copy win32/plink/plink.exe which mlterm uses to connect remote host.
   o (Built with MSYS or cygwin)
     Copy tool/mlclient/mlclient.exe and contrib/tool/mlcc/mlcc.exe.
   o If you can build mlconfig and mlterm-menu which require GTK+ >= 2.0,

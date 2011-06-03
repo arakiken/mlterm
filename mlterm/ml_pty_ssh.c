@@ -166,7 +166,9 @@ ssh_connect(
 	char *  host ,
 	char *  port ,
 	char *  user ,
-	char *  pass
+	char *  pass ,
+	char *  pubkey ,
+	char *  privkey
 	)
 {
 	ssh_session_t *  session ;
@@ -252,6 +254,10 @@ ssh_connect(
 		goto  error3 ;
 	}
 
+#ifdef  DEBUG
+	libssh2_trace( session->obj , LIBSSH2_TRACE_AUTH) ;
+#endif
+
 	libssh2_session_set_blocking( session->obj , 1) ;
 
 	if( libssh2_session_startup( session->obj , session->sock) != 0)
@@ -284,26 +290,54 @@ ssh_connect(
 	if( strstr( userauthlist , "publickey"))
 	{
 		char *  home ;
-		char *  pubkey ;
-		char *  privkey ;
+		char *  p ;
 
-		if( ( home = getenv(
-			#ifdef  USE_WIN32API
-				"HOMEPATH"
-			#else
-				"HOME"
-			#endif
-				)) &&
-		    ( ( pubkey = alloca( strlen(home) * 2 + 30))) )
+		if( ( home = kik_get_home_dir()) &&
+		    ( ( p = alloca( strlen(home) * 2 + 38))) )
 		{
-			privkey = pubkey + strlen(home) + 17 ;
-			sprintf( pubkey , "%s/.ssh/id_rsa.pub" , home) ;
-			sprintf( privkey , "%s/.ssh/id_rsa" , home) ;
+			if( ! pubkey)
+			{
+				pubkey = p ;
+
+			#ifdef  USE_WIN32API
+				sprintf( pubkey , "%s\\mlterm\\id_rsa.pub" , home) ;
+			#else
+				sprintf( pubkey , "%s/.ssh/id_rsa.pub" , home) ;
+			#endif
+
+				p += (strlen( pubkey) + 1) ;
+			}
+
+			if( ! privkey)
+			{
+				privkey = p ;
+
+			#ifdef  USE_WIN32API
+				sprintf( privkey , "%s\\mlterm\\id_rsa" , home) ;
+			#else
+				sprintf( privkey , "%s/.ssh/id_rsa" , home) ;
+			#endif
+			}
 		}
 		else
 		{
-			pubkey = "/etc/ssh/ssh_host_rsa_key.pub" ;
-			privkey = "/etc/ssh/ssh_host_rsa_key" ;
+			if( ! pubkey)
+			{
+			#ifdef  USE_WIN32API
+				pubkey = "mlterm\\ssh_host_rsa_key.pub" ;
+			#else
+				pubkey = "/etc/ssh/ssh_host_rsa_key.pub" ;
+			#endif
+			}
+
+			if( ! privkey)
+			{
+			#ifdef  USE_WIN32API
+				privkey = "mlterm\\ssh_host_rsa_key" ;
+			#else
+				privkey = "/etc/ssh/ssh_host_rsa_key" ;
+			#endif
+			}
 		}
 
 		if( libssh2_userauth_publickey_fromfile( session->obj , user ,
@@ -540,6 +574,8 @@ ml_pty_ssh_new(
 	char **  env ,		/* can be NULL */
 	char *  uri ,
 	char *  pass ,
+	char *  pubkey ,	/* can be NULL */
+	char *  privkey ,	/* can be NULL */
 	u_int  cols ,
 	u_int  rows
 	)
@@ -573,7 +609,8 @@ ml_pty_ssh_new(
 		goto  error1 ;
 	}
 
-	if( ( pty->session = ssh_connect( host , port ? port : "22" , user , pass)) == NULL)
+	if( ( pty->session = ssh_connect( host , port ? port : "22" , user , pass ,
+					pubkey , privkey)) == NULL)
 	{
 		goto  error1 ;
 	}

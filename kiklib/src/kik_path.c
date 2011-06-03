@@ -7,6 +7,9 @@
 #include  <stdio.h>	/* NULL */
 #include  <string.h>
 #include  <ctype.h>	/* isdigit */
+#ifdef  USE_WIN32API
+#include  <sys/stat.h>
+#endif
 
 #include  "kik_str.h"	/* kik_str_alloca_dup */
 
@@ -282,6 +285,27 @@ kik_parse_uri(
 	
 	return  1 ;
 }
+
+char *
+kik_get_home_dir(void)
+{
+	char *  dir ;
+
+#ifdef  USE_WIN32API
+	if( ( dir = getenv( "HOMEPATH")) && *dir)
+	{
+		return  dir ;
+	}
+#endif
+
+	if( ( dir = getenv( "HOME")) && *dir)
+	{
+		return  dir ;
+	}
+
+	return  NULL ;
+}
+
 
 #ifdef  __DEBUG
 int

@@ -1,3 +1,22 @@
+2011-05-30  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.0.5 released.
+	  (tag "rel-3_0_5")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.0.5.
+
+	* configure.in: gtk/ directory is added to compilation targets
+	  only if vte library is installed to system.
+
+	* doc/en/README.win32, doc/ja/README.win32: Updated.
+
+	* "ssh_public_key" and "ssh_private_key" options are added.
+	  - ml_pty_ssh.c, x_term_manager.c: Modified.
+	  - mlterm.1, README.ja: Updated.
+
+	* kik_path.c: kik_get_home_dir() is added.
+
 2011-05-29  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.0.4 released.
@@ -12,7 +31,8 @@
 
 	* mlconfig/main.c, mc_font.c: Tooltip text is set to widgets changing font size.
 
-	* x_font.c: "-*-biwidth-*-" font is automatically loaded only for unicode characters.
+	* x_font.c: "-*-biwidth-*-" font is automatically loaded only for unicode
+	  biwidth characters.
 
 	* etc/main, etc/main.ja: Updated.
 

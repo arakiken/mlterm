@@ -457,7 +457,13 @@ open_pty_intern(
 		cmd_argv[1] = NULL ;
 	}
 
-	ret = ml_term_open_pty( term , cmd_path , cmd_argv , env , uri ? uri : display , pass) ;
+	ret = ml_term_open_pty( term , cmd_path , cmd_argv , env , uri ? uri : display , pass ,
+		#ifdef  USE_LIBSSH2
+			main_config.public_key , main_config.private_key
+		#else
+			NULL , NULL
+		#endif
+			) ;
 
 #if  defined(USE_WIN32API) || defined(USE_LIBSSH2)
 	if( uri)
@@ -1743,11 +1749,11 @@ x_term_manager_init(
 		) ;
 #endif
 	kik_conf_add_opt( conf , '\0' , "depth" , 0 , "depth" ,
-		"specify visual depth") ;
+		"visual depth") ;
 	kik_conf_add_opt( conf , '\0' , "maxptys" , 0 , "max_ptys" ,
 		"max ptys to open simultaneously (multiple of 32)") ;
 	kik_conf_add_opt( conf , '\0' , "button3" , 0 , "button3_behavior" ,
-		"specify button3 behavior. (xterm/menu1/menu2/menu3) "
+		"button3 behavior. (xterm/menu1/menu2/menu3) "
 	#ifdef  USE_WIN32GUI
 		"[xterm]"
 	#else
@@ -1755,7 +1761,7 @@ x_term_manager_init(
 	#endif
 		) ;
 	kik_conf_add_opt( conf , '\0' , "clip" , 1 , "use_clipboard" ,
-		"use CLIPBOARD (not only PRIMARY) selection. [false]") ;
+		"use CLIPBOARD (not only PRIMARY) selection [false]") ;
 
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
 	{

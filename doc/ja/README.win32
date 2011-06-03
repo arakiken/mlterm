@@ -33,9 +33,9 @@ WIN32 native GUI 対応に関するメモ
   xwindow/.libs/mlterm.exe
   をコピーしてください。
 
-  o MinGW or Cygwin(-mno-cygwin) でビルドした場合は、win32/plink/plink.exe も
-    コピーしてください。今のところ、リモートホストへの接続には plink.exe を
-    使用しています。
+  o MinGW or Cygwin(-mno-cygwin) で --enable-ssh2 なしでビルドした場合は、
+    win32/plink/plink.exe もコピーしてください。libssh2 を使用しない場合、リモー
+    トホストへの接続には plink.exe を使用しています。
   o MSYS-DTK or Cygwin でビルドした場合は、ソースツリーの
     contrib/tool/mlcc/mlcc.exe, tool/mlclient/mlclient.exe もコピーしてください。
   o mlconfig,mlterm-menu をビルドできた場合(あらかじめ GTK+ >= 2.0 をインストール

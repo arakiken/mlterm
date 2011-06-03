@@ -26,8 +26,9 @@ typedef struct  ml_pty_event_listener
 typedef struct  ml_pty *  ml_pty_ptr_t ;
 
 
-ml_pty_ptr_t  ml_pty_new( char *  cmd_path , char **  cmd_argv ,
-	char **  env , char *  host , char *  pass , u_int  cols , u_int  rows) ;
+ml_pty_ptr_t  ml_pty_new( char *  cmd_path , char **  cmd_argv , char **  env ,
+	char *  host , char *  pass , char *  pubkey , char *  privkey ,
+	u_int  cols , u_int  rows) ;
 
 int  ml_pty_delete( ml_pty_ptr_t  pty) ;
 

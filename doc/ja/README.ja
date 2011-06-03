@@ -189,7 +189,7 @@ comment $Id$
     (see doc/ja/README.server)
 
   o vte compatible library
-    mlterm の機能(一部制限あり)を libvte (ほぼ)互換の API で wrap したライブラリ
+    mlterm の機能(一部制限あり)を、(ほぼ) vte 互換の API で wrap したライブラリ
     (libvte.so.9) を提供しています。
     システムにインストールされている libvte.so.9 を置きかえることにより、
     gnome-terminal や roxterm 等の中で、mlterm を動作させることができます。
@@ -629,6 +629,12 @@ comment $Id$
 
 	例) mlterm --serv ssh://user@host:22:eucjp
 
+      o ssh_public_key (~/.ssh/id_rsa.pub (win32 では %HOMEPATH%\mlterm\id_rsa.pub))
+        ssh 接続の認証で使用する公開鍵のファイルを指定する。
+
+      o ssh_private_key (~/.ssh/id_rsa (win32 では %HOMEPATH%\mlterm\id_rsa))
+        ssh 接続の認証で使用する秘密鍵のファイルを指定する。
+
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
@@ -1035,6 +1041,8 @@ comment $Id$
        --maxptys=value : max_ptys (X)
        --button3=value : button3_behavior (X)
        --clip(=bool)   : use_clipboard (X)
+       --pubkey=value  : ssh public key file
+       --privkey=value : ssh private key file
 
     -e ... : 指定したコマンドを起動
 

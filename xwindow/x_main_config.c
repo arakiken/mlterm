@@ -121,7 +121,7 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'J' , "dyncomb" , 1 , "use_dynamic_comb" ,
 		"use dynamic combining [false]") ;
 	kik_conf_add_opt( conf , 'K' , "metakey" , 0 , "mod_meta_key" ,
-		"specify meta key [none]") ;
+		"meta key [none]") ;
 	kik_conf_add_opt( conf , 'L' , "ls" , 1 , "use_login_shell" , 
 		"turn on login shell [false]") ;
 	kik_conf_add_opt( conf , 'M' , "menu" , 0 , "conf_menu_path_3" ,
@@ -205,6 +205,24 @@ x_prepare_for_main_config(
 #if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
 	kik_conf_add_opt( conf , '\0' , "nodialog" , 1 , "skip_dialog" ,
 		"if possible, skip dialog to input server address, password and so on") ;
+#endif
+#ifdef  USE_LIBSSH2
+	kik_conf_add_opt( conf , '\0' , "pubkey" , 0 , "ssh_public_key" ,
+		"ssh public key file "
+	#ifdef  USE_WIN32API
+		"[%HOMEPATH%\\mlterm\\id_rsa.pub]"
+	#else
+		"[~/.ssh/id_rsa.pub]"
+	#endif
+		) ;
+	kik_conf_add_opt( conf , '\0' , "privkey" , 0 , "ssh_private_key" ,
+		"ssh private key file "
+	#ifdef  USE_WIN32API
+		"[%HOMEPATH%\\mlterm\\id_rsa]"
+	#else
+		"[~/.ssh/id_rsa]"
+	#endif
+		) ;
 #endif
 	kik_conf_add_opt( conf , '\0' , "csp" , 0 , "letter_space" ,
 		"extra space between letters in pixels [0]") ;
@@ -1132,6 +1150,22 @@ x_main_config_init(
 	}
 #endif
 
+#ifdef  USE_LIBSSH2
+	main_config->public_key = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "ssh_public_key")))
+	{
+		main_config->public_key = strdup( value) ;
+	}
+
+	main_config->private_key = NULL ;
+
+	if( ( value = kik_conf_get_value( conf , "ssh_private_key")))
+	{
+		main_config->private_key = strdup( value) ;
+	}
+#endif
+
 	if( ( value = kik_conf_get_value( conf , "exec_cmd")) && strcmp( value , true) == 0)
 	{
 		if( ( main_config->cmd_argv = malloc( sizeof( char*) * (argc + 1))) == NULL)
@@ -1200,6 +1234,11 @@ x_main_config_final(
 	}
 
 	free( main_config->default_server) ;
+#endif
+
+#ifdef  USE_LIBSSH2
+	free( main_config->public_key) ;
+	free( main_config->private_key) ;
 #endif
 
 	free( main_config->cmd_argv) ;
