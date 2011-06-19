@@ -133,7 +133,7 @@ x_color_manager_new(
 	{
 		color_man->sys_colors[_CUR_BG_COLOR].name = NULL ;
 	}
-	
+
 	for( count = 0 ; count < MAX_SYS_COLORS ; count++)
 	{
 		color_man->sys_colors[count].is_loaded = 0 ;
@@ -455,7 +455,7 @@ x_color_manager_restore_video(
  * Deal ML_BG_COLOR as cursor fg color.
  */
 int
-x_color_manager_adjust_cursor_fg(
+x_color_manager_adjust_cursor_fg_color(
 	x_color_manager_t *  color_man
 	)
 {
@@ -478,7 +478,7 @@ x_color_manager_adjust_cursor_fg(
  * Deal ML_FG_COLOR as cursor bg color.
  */
 int
-x_color_manager_adjust_cursor_bg(
+x_color_manager_adjust_cursor_bg_color(
 	x_color_manager_t *  color_man
 	)
 {

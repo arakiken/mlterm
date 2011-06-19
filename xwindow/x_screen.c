@@ -77,6 +77,9 @@ static int  button3_open = 0 ;
 static char *  button3_command ;
 static char *  true = "true" ;
 static char *  false = "false" ;
+#ifdef  USE_IM_CURSOR_COLOR
+static char *  im_cursor_color = NULL ;
+#endif
 
 
 /* --- static functions --- */
@@ -518,6 +521,8 @@ draw_line(
 	return  1 ;
 }
 
+static int xterm_im_is_active( void *  p) ;
+
 /*
  * Don't call this function directly.
  * Call this function via highlight_cursor.
@@ -533,6 +538,10 @@ draw_cursor(
 	ml_line_t *  line ;
 	ml_line_t *  orig ;
 	ml_char_t  ch ;
+#ifdef  USE_IM_CURSOR_COLOR
+	char *  orig_cursor_bg ;
+	int  cursor_bg_is_replaced = 0 ;
+#endif
 
 	if( screen->is_preediting)
 	{
@@ -577,15 +586,29 @@ draw_cursor(
 
 	ml_char_init( &ch) ;
 	ml_char_copy( &ch , ml_char_at( line , ml_term_cursor_char_index( screen->term))) ;
-
+	
 	if( screen->window.is_focused)
 	{
-		ml_color_t orig_bg ;
+		ml_color_t orig_ch_bg ;
 
-		orig_bg = ml_char_bg_color(&ch);
+	#ifdef  USE_IM_CURSOR_COLOR
+		if( im_cursor_color && xterm_im_is_active( screen))
+		{
+			if( ( orig_cursor_bg = x_color_manager_get_cursor_bg_color(
+							screen->color_man)))
+			{
+				orig_cursor_bg = strdup( orig_cursor_bg) ;
+			}
+
+			x_color_manager_set_cursor_bg_color( screen->color_man , im_cursor_color) ;
+			cursor_bg_is_replaced = 1 ;
+		}
+	#endif
+
+		orig_ch_bg = ml_char_bg_color(&ch);
 
 		/* if fg/bg color should be overriden, reset ch's color to default */
-		if( x_color_manager_adjust_cursor_fg( screen->color_man))
+		if( x_color_manager_adjust_cursor_fg_color( screen->color_man))
 		{
 			/* for curosr's bg, *FG* color should be used */
 			ml_char_set_bg_color( &ch, ML_FG_COLOR) ;
@@ -595,13 +618,13 @@ draw_cursor(
 			ml_char_set_bg_color( &ch, ml_char_fg_color(&ch)) ;
 		}
 
-		if( x_color_manager_adjust_cursor_bg( screen->color_man))
+		if( x_color_manager_adjust_cursor_bg_color( screen->color_man))
 		{
 			ml_char_set_fg_color( &ch, ML_BG_COLOR);
 		}
 		else
 		{
-			ml_char_set_fg_color( &ch, orig_bg);
+			ml_char_set_fg_color( &ch, orig_ch_bg);
 		}
 	}
 
@@ -614,8 +637,16 @@ draw_cursor(
 
 	if( screen->window.is_focused)
 	{
-		x_color_manager_adjust_cursor_fg( screen->color_man);
-		x_color_manager_adjust_cursor_bg( screen->color_man);
+		x_color_manager_adjust_cursor_fg_color( screen->color_man) ;
+		x_color_manager_adjust_cursor_bg_color( screen->color_man) ;
+
+	#ifdef  USE_IM_CURSOR_COLOR
+		if( cursor_bg_is_replaced)
+		{
+			x_color_manager_set_cursor_bg_color( screen->color_man , orig_cursor_bg);
+			free( orig_cursor_bg) ;
+		}
+	#endif
 	}
 	else
 	{
@@ -6720,6 +6751,46 @@ xterm_bel(
 	}
 }
 
+static int
+xterm_im_is_active(
+	void *  p
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+#ifndef  USE_WIN32GUI
+	if( screen->im)
+	{
+		return  (*screen->im->is_active)( screen->im) ;
+	}
+#endif
+
+	return  x_xic_is_active( &screen->window) ;
+}
+
+static void
+xterm_switch_im_mode(
+	void *  p
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+#ifndef  USE_WIN32GUI
+	if( screen->im)
+	{
+		(*screen->im->switch_mode)( screen->im) ;
+
+		return ;
+	}
+#endif
+
+	x_xic_switch_mode( &screen->window) ;
+}
+
 
 /*
  * callbacks of ml_pty_event_listener_t
@@ -6794,6 +6865,19 @@ x_set_button3_behavior(
 	return  1 ;
 }
 
+#ifdef  USE_IM_CURSOR_COLOR
+int
+x_set_im_cursor_color(
+	char *  color
+	)
+{
+	im_cursor_color = strdup( color) ;
+
+	return  1 ;
+}
+#endif
+
+
 /*
  * If term is NULL, don't call other functions of x_screen until
  * x_screen_attach() is called. (x_screen_attach() must be called
@@ -6859,6 +6943,8 @@ x_screen_new(
 	screen->xterm_listener.set_window_name = xterm_set_window_name ;
 	screen->xterm_listener.set_icon_name = xterm_set_icon_name ;
 	screen->xterm_listener.bel = xterm_bel ;
+	screen->xterm_listener.im_is_active = xterm_im_is_active ;
+	screen->xterm_listener.switch_im_mode = xterm_switch_im_mode ;
 
 	memset( &screen->config_listener, 0, sizeof( ml_config_event_listener_t)) ;
 	screen->config_listener.self = screen ;

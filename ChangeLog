@@ -1,3 +1,17 @@
+2011-06-20  Araki Ken  <arakiken@users.sf.net>
+
+	* "CSI < r", "CSI < s" and "CSI < t" sequences are supported.
+	  - x_im.h, im_ibus.c, im_iiimf.c, im_kbd.c, im_m17nlib.c, im_scim_mod_if.c,
+	    im_uim.c: is_activate() method is added.
+	  - im_ibus.c, im_scim.c: switch_mod() method is implemented.
+	  - x_xic.c, x_xic_win32.c: x_xic_is_active() and x_xic_switch_mode()
+	    are added.
+	  - ml_vt100_parser.c: sequences above are parsed.
+
+	* x_term_manager.c, x_screen.c: Cursor color if input method is activated
+	  is changeable by "im_cursor_color" option.
+	  (Available only if built with USE_IM_CURSOR_COLOR macro.)
+
 2011-06-19  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:

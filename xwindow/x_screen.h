@@ -157,6 +157,8 @@ typedef struct  x_screen
 /* xterm = traditional, menuN = conf_menu_path_N */
 int  x_set_button3_behavior( const char *  mode) ;
 
+int  x_set_im_cursor_color( char *  color) ;
+
 x_screen_t *  x_screen_new( ml_term_t *  term , x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man , x_termcap_entry_t *  termcap ,
 	u_int  brightness , u_int contrast , u_int gamma , u_int  alpha ,

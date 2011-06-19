@@ -38,6 +38,8 @@ im_scim_context_t  im_scim_create_context( void *  self ,
 
 int  im_scim_destroy_context(  im_scim_context_t  context) ;
 
+int  im_scim_is_on( im_scim_context_t  context) ;
+int  im_scim_switch_mode( im_scim_context_t  context) ;
 int  im_scim_key_event( im_scim_context_t  context ,
 			KeySym  ksym ,
 			XKeyEvent *  event) ;

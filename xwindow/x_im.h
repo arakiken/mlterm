@@ -101,10 +101,17 @@ typedef struct x_im
 
 	x_im_preedit_t  preedit ;
 
-	/* methods */
+	/*
+	 * methods
+	 */
+
 	int (*delete)( struct x_im *) ;
+	/* Return 1 if key event to be processed is still left. */
 	int (*key_event)( struct x_im * , u_char , KeySym , XKeyEvent *) ;
+	/* Return 1 if switching is succeeded. */
 	int (*switch_mode)( struct x_im *) ;
+	/* Return 1 if input method is active. */
+	int (*is_active)( struct x_im *) ;
 	void (*focused)( struct x_im *) ;
 	void (*unfocused)( struct x_im *) ;
 

@@ -1100,6 +1100,14 @@ switch_mode(
 	return  0 ;
 }
 
+static int
+is_active(
+	x_im_t *  im
+	)
+{
+	return  0 ;
+}
+
 static void
 focused(
 	x_im_t *  im
@@ -1615,6 +1623,7 @@ im_uim_new(
 	uim->im.delete = delete ;
 	uim->im.key_event = key_event ;
 	uim->im.switch_mode = switch_mode ;
+	uim->im.is_active = is_active ;
 	uim->im.focused = focused ;
 	uim->im.unfocused = unfocused ;
 

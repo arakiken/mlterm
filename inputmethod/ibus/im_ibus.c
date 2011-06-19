@@ -415,14 +415,22 @@ switch_mode(
 
 	if( ibus_input_context_is_enabled( ibus->context))
 	{
-		return  0 ;
+		ibus_input_context_disable( ibus->context) ;
 	}
 	else
 	{
 		ibus_input_context_enable( ibus->context) ;
-
-		return  1 ;
 	}
+	
+	return  1 ;
+}
+
+static int
+is_active(
+	x_im_t *  im
+	)
+{
+	return  ibus_input_context_is_enabled( ((im_ibus_t*)im)->context) ;
 }
 
 static void
@@ -581,6 +589,7 @@ im_ibus_new(
 	ibus->im.delete = delete ;
 	ibus->im.key_event = key_event ;
 	ibus->im.switch_mode = switch_mode ;
+	ibus->im.is_active = is_active ;
 	ibus->im.focused = focused ;
 	ibus->im.unfocused = unfocused ;
 

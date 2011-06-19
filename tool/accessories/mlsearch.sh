@@ -16,7 +16,7 @@ elif test "$1" = "-h" -o ${#} != 2 ; then
 	exit  0
 fi
 
-echo "Press Enter key to continue searching $1. Press ^C to exit."
+echo "Press Enter key to continue searching. Press ^C to exit."
 
 trap "reset_state $1" 2
 stty -echo 

@@ -465,6 +465,100 @@ cb_panel_trigger_property(
 	panel_client.send() ;
 }
 
+static int
+hotkey(
+	im_scim_context_t  _context ,
+	const KeyEvent & scim_key
+	)
+{
+	im_scim_context_private_t *  context ;
+	FrontEndHotkeyAction  hotkey_action ;
+	PanelFactoryInfo  info ;
+
+	context = (im_scim_context_private_t *) _context ;
+
+	keymatcher_frontend.push_key_event( scim_key) ;
+	keymatcher_imengine.push_key_event( scim_key) ;
+
+	hotkey_action = keymatcher_frontend.get_match_result() ;
+
+	if( hotkey_action == SCIM_FRONTEND_HOTKEY_OFF && ! context->on)
+	{
+		return  0 ;
+	}
+
+	if( hotkey_action == SCIM_FRONTEND_HOTKEY_ON && context->on)
+	{
+		return  0 ;
+	}
+
+	if( hotkey_action == SCIM_FRONTEND_HOTKEY_TRIGGER)
+	{
+		if( context->on)
+		{
+			hotkey_action = SCIM_FRONTEND_HOTKEY_OFF ;
+		}
+		else
+		{
+			hotkey_action = SCIM_FRONTEND_HOTKEY_ON ;
+		}
+	}
+
+	info = PanelFactoryInfo( context->factory->get_uuid() ,
+				 utf8_wcstombs( context->factory->get_name()) ,
+				 context->factory->get_language() ,
+				 context->factory->get_icon_file()) ;
+
+	switch( hotkey_action)
+	{
+	case SCIM_FRONTEND_HOTKEY_ON:
+		if( panel_client.is_connected())
+		{
+			panel_client.prepare( context->id) ;
+			panel_client.update_factory_info( context->id , info) ;
+			panel_client.turn_on( context->id) ;
+			panel_client.focus_in( context->id , context->instance->get_factory_uuid ()) ;
+			panel_client.send() ;
+		}
+
+		(*context->cb->preedit_update)( context->self ,
+						C_STR( context->preedit_str) ,
+						context->preedit_caret) ;
+		(*context->cb->candidate_show)( context->self) ;
+
+		context->instance->focus_in() ;
+
+		context->on = 1 ;
+
+		return  0 ;
+	case SCIM_FRONTEND_HOTKEY_OFF:
+		if( panel_client.is_connected())
+		{
+			panel_client.prepare( context->id) ;
+			panel_client.turn_off( context->id) ;
+			panel_client.focus_out( context->id) ;
+			panel_client.send() ;
+		}
+
+		(*context->cb->preedit_update)( context->self ,
+						NULL , 0) ;
+		(*context->cb->candidate_hide)( context->self) ;
+
+		context->instance->focus_out() ;
+
+		context->on = 0 ;
+
+		return  0 ;
+	case SCIM_FRONTEND_HOTKEY_NEXT_FACTORY:
+	case SCIM_FRONTEND_HOTKEY_PREVIOUS_FACTORY:
+	case SCIM_FRONTEND_HOTKEY_SHOW_FACTORY_MENU:
+		// not implemented yet
+		return  0 ;
+	default:
+		return  1 ;
+	}
+}
+
 
 // --- global functions ---
 
@@ -735,109 +829,61 @@ im_scim_unfocused(
 }
 
 int
+im_scim_is_on(
+	im_scim_context_t  context
+	)
+{
+	if( ((im_scim_context_private_t*) context)->on)
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+int
+im_scim_switch_mode(
+	im_scim_context_t  context
+	)
+{
+	KeyEventList  keys ;
+	size_t  size ;
+
+	if( ( size = keymatcher_frontend.find_hotkeys( SCIM_FRONTEND_HOTKEY_TRIGGER , keys)) > 0)
+	{
+		return  (hotkey( context , keys[0]) == 0) ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+int
 im_scim_key_event(
-	im_scim_context_t  _context ,
+	im_scim_context_t  context ,
 	KeySym  ksym ,
 	XKeyEvent *  event
 	)
 {
-	im_scim_context_private_t *  context ;
-	FrontEndHotkeyAction  hotkey_action ;
 	KeyEvent  scim_key ;
-	PanelFactoryInfo  info ;
-
-	context = (im_scim_context_private_t *) _context ;
 
 	scim_key.mask = event->state & valid_key_mask;
 	scim_key.code = ksym ;
 
-	keymatcher_frontend.push_key_event( scim_key) ;
-	keymatcher_imengine.push_key_event( scim_key) ;
-
-	hotkey_action = keymatcher_frontend.get_match_result() ;
-
-	if( hotkey_action == SCIM_FRONTEND_HOTKEY_OFF && ! context->on)
+	if( hotkey( context , scim_key) == 0)
 	{
 		return  0 ;
 	}
 
-	if( hotkey_action == SCIM_FRONTEND_HOTKEY_ON && context->on)
-	{
-		return  0 ;
-	}
-
-	if( hotkey_action == SCIM_FRONTEND_HOTKEY_TRIGGER)
-	{
-		if( context->on)
-		{
-			hotkey_action = SCIM_FRONTEND_HOTKEY_OFF ;
-		}
-		else
-		{
-			hotkey_action = SCIM_FRONTEND_HOTKEY_ON ;
-		}
-	}
-
-	info = PanelFactoryInfo( context->factory->get_uuid() ,
-				 utf8_wcstombs( context->factory->get_name()) ,
-				 context->factory->get_language() ,
-				 context->factory->get_icon_file()) ;
-
-	switch( hotkey_action)
-	{
-	case SCIM_FRONTEND_HOTKEY_ON:
-		if( panel_client.is_connected())
-		{
-			panel_client.prepare( context->id) ;
-			panel_client.update_factory_info( context->id , info) ;
-			panel_client.turn_on( context->id) ;
-			panel_client.focus_in( context->id , context->instance->get_factory_uuid ()) ;
-			panel_client.send() ;
-		}
-
-		(*context->cb->preedit_update)( context->self ,
-						C_STR( context->preedit_str) ,
-						context->preedit_caret) ;
-		(*context->cb->candidate_show)( context->self) ;
-
-		context->instance->focus_in() ;
-
-		context->on = 1 ;
-
-		return  0 ;
-	case SCIM_FRONTEND_HOTKEY_OFF:
-		if( panel_client.is_connected())
-		{
-			panel_client.prepare( context->id) ;
-			panel_client.turn_off( context->id) ;
-			panel_client.focus_out( context->id) ;
-			panel_client.send() ;
-		}
-
-		(*context->cb->preedit_update)( context->self ,
-						NULL , 0) ;
-		(*context->cb->candidate_hide)( context->self) ;
-
-		context->instance->focus_out() ;
-
-		context->on = 0 ;
-
-		return  0 ;
-	case SCIM_FRONTEND_HOTKEY_NEXT_FACTORY:
-	case SCIM_FRONTEND_HOTKEY_PREVIOUS_FACTORY:
-	case SCIM_FRONTEND_HOTKEY_SHOW_FACTORY_MENU:
-		// not implemented yet
-		return  0 ;
-	default:
-		break ;
-	}
-
-	if( ! context->on)
+	if( ! ((im_scim_context_private_t *)context)->on)
 	{
 		return  1 ;
 	}
 
-	if( context->instance->process_key_event( scim_key))
+	if( ((im_scim_context_private_t *)context)->instance->process_key_event( scim_key))
 	{
 		return  0 ;
 	}

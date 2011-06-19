@@ -61,6 +61,10 @@ int  x_xic_set_focus( x_window_t *  win) ;
 
 int  x_xic_unset_focus( x_window_t *  win) ;
 
+int  x_xic_is_active( x_window_t *  win) ;
+
+int  x_xic_switch_mode( x_window_t *  win) ;
+
 
 int  x_xim_activated( x_window_t *  win) ;
 

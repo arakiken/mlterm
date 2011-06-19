@@ -71,6 +71,8 @@ typedef struct  ml_xterm_event_listener
 	void (*set_window_name)( void * , u_char *) ;
 	void (*set_icon_name)( void * , u_char *) ;
 	void (*bel)( void *) ;
+	int (*im_is_active)( void *) ;
+	void (*switch_im_mode)( void *) ;
 
 } ml_xterm_event_listener_t ;
 
@@ -156,6 +158,8 @@ typedef struct  ml_vt100_parser
 	int8_t  use_char_combining ;
 	int8_t  use_multi_col_char ;
 	int8_t  logging_vt_seq ;
+
+	int8_t  im_is_active ;
 
 	/* for save/restore cursor */
 	ml_vt100_storable_states_t  saved_normal ;

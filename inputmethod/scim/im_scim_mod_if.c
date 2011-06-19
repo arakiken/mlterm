@@ -49,7 +49,6 @@ typedef struct  im_scim
 
 } im_scim_t ;
 
-
 /* --- static variables --- */
 
 static int  ref_count = 0 ;
@@ -127,7 +126,15 @@ switch_mode(
 	x_im_t *  im
 	)
 {
-	return  0 ;
+	return  im_scim_switch_mode( ( (im_scim_t*) im)->context) ;
+}
+
+static int
+is_active(
+	x_im_t *  im
+	)
+{
+	return  im_scim_is_on( ( (im_scim_t*) im)->context) ;
 }
 
 static void
@@ -679,6 +686,7 @@ im_scim_new(
 	scim->im.delete = delete ;
 	scim->im.key_event = key_event ;
 	scim->im.switch_mode = switch_mode ;
+	scim->im.is_active = is_active ;
 	scim->im.focused = focused ;
 	scim->im.unfocused = unfocused ;
 

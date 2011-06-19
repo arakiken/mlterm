@@ -919,6 +919,18 @@ switch_mode(
 	return  1 ;
 }
 
+static int
+is_active(
+	x_im_t *  im
+	)
+{
+	im_m17nlib_t *  m17nlib ;
+
+	m17nlib = (im_m17nlib_t*) im ;
+
+	return  m17nlib->input_context->active ;
+}
+
 static void
 focused(
 	x_im_t *  im
@@ -1101,6 +1113,7 @@ im_m17nlib_new(
 	m17nlib->im.delete = delete ;
 	m17nlib->im.key_event = key_event ;
 	m17nlib->im.switch_mode = switch_mode ;
+	m17nlib->im.is_active = is_active ;
 	m17nlib->im.focused = focused ;
 	m17nlib->im.unfocused = unfocused ;
 

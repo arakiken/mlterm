@@ -1762,6 +1762,10 @@ x_term_manager_init(
 		) ;
 	kik_conf_add_opt( conf , '\0' , "clip" , 1 , "use_clipboard" ,
 		"use CLIPBOARD (not only PRIMARY) selection [false]") ;
+#ifdef  USE_IM_CURSOR_COLOR
+	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
+		"cursor color when input method is activated.") ;
+#endif
 
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
 	{
@@ -1976,6 +1980,16 @@ x_term_manager_init(
 			x_set_use_clipboard_selection( 1) ;
 		}
 	}
+
+#ifdef  USE_IM_CURSOR_COLOR
+	if( ( value = kik_conf_get_value( conf , "im_cursor_color")))
+	{
+		if( *value)
+		{
+			x_set_im_cursor_color( value) ;
+		}
+	}
+#endif
 
 
 	if( ( version = kik_conf_get_version( conf)) == NULL)

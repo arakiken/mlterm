@@ -597,6 +597,87 @@ x_xic_unset_focus(
 	return  1 ;
 }
 
+int
+x_xic_is_active(
+	x_window_t *  win
+	)
+{
+#ifdef  XNPreeditState
+	XIMPreeditState  preedit_state ;
+	XVaNestedList preedit_attr ;
+	int  res ;
+
+	if( ! win->xic)
+	{
+		return  0 ;
+	}
+
+	preedit_attr = XVaCreateNestedList( 0 , XNPreeditState , &preedit_state , NULL) ;
+
+	if( XGetICValues( win->xic->ic , XNPreeditAttributes , preedit_attr , NULL) != NULL)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " XIM doesn't support XNPreeditState.\n") ;
+	#endif
+
+		res = 0 ;
+	}
+	else
+	{
+		res = (preedit_state == XIMPreeditEnable) ;
+
+	#ifdef  DEBUG
+		if( res)
+		{
+			kik_debug_printf( KIK_DEBUG_TAG " XIM is enabled.\n") ;
+		}
+		else
+		{
+			kik_debug_printf( KIK_DEBUG_TAG " XIM is disabled.\n") ;
+		}
+	#endif
+	}
+
+	XFree( preedit_attr) ;
+
+	return  res ;
+#else
+	return  0 ;
+#endif
+}
+
+int
+x_xic_switch_mode(
+	x_window_t *  win
+	)
+{
+#ifdef  XNPreeditState
+	XVaNestedList preedit_attr ;
+
+	if( ! win->xic)
+	{
+		return  0 ;
+	}
+
+	preedit_attr = XVaCreateNestedList( 0 , XNPreeditState ,
+			x_xic_is_active( win) ? XIMPreeditDisable : XIMPreeditEnable , NULL) ;
+
+	if( XSetICValues( win->xic->ic , XNPreeditAttributes , preedit_attr , NULL) != NULL)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " XIM doesn't support XNPreeditState.\n") ;
+	#endif
+	}
+	
+	XFree( preedit_attr) ;
+
+	return  1 ;
+#else
+	return  0 ;
+#endif
+}
+
+
 /*
  * x_xim.c <-> x_xic.c communication functions
  */

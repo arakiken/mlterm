@@ -398,6 +398,32 @@ x_xic_unset_focus(
 	return  1 ;
 }
 
+int
+x_xic_is_active(
+	x_window_t *  win
+	)
+{
+	if( win->xic == NULL)
+	{
+		return  0 ;
+	}
+
+	return  ImmGetOpenStatus( win->xic->ic) ;
+}
+
+int
+x_xic_switch_mode(
+	x_window_t *  win
+	)
+{
+	if( win->xic == NULL)
+	{
+		return  0 ;
+	}
+
+	return  ImmSetOpenStatus( win->xic->ic , (ImmGetOpenStatus( win->xic->ic) == FALSE)) ;
+}
+
 /*
  * x_xim.c <-> x_xic.c communication functions
  * Not necessary in win32.

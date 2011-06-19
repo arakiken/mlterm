@@ -28,7 +28,7 @@ typedef struct  x_color_manager
 	
 	} sys_colors[4] ;
 
-	u_int8_t  alpha ;	
+	u_int8_t  alpha ;
 	int8_t  is_reversed ;
 
 } x_color_manager_t ;
@@ -66,9 +66,9 @@ int  x_color_manager_reverse_video( x_color_manager_t *  color_man) ;
 
 int  x_color_manager_restore_video( x_color_manager_t *  color_man) ;
 
-int  x_color_manager_adjust_cursor_fg( x_color_manager_t *  color_man) ;
+int  x_color_manager_adjust_cursor_fg_color( x_color_manager_t *  color_man) ;
 
-int  x_color_manager_adjust_cursor_bg( x_color_manager_t *  color_man) ;
+int  x_color_manager_adjust_cursor_bg_color( x_color_manager_t *  color_man) ;
 
 int  x_color_manager_unload( x_color_manager_t *  color_man) ;
 

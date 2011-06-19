@@ -620,6 +620,14 @@ switch_mode(
 	return  1 ;
 }
 
+static int
+is_active(
+	x_im_t *  im
+	)
+{
+	return  ( ((im_kbd_t*)im)->mode != KBD_MODE_ASCII) ;
+}
+
 static void
 focused(
 	x_im_t *  im
@@ -753,6 +761,7 @@ im_kbd_new(
 	kbd->im.key_event = (kbd->type == KBD_TYPE_ISCII) ?
 			    key_event_iscii : key_event_arabic_hebrew ;
 	kbd->im.switch_mode = switch_mode ;
+	kbd->im.is_active = is_active ;
 	kbd->im.focused = focused ;
 	kbd->im.unfocused = unfocused ;
 

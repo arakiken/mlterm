@@ -509,7 +509,7 @@ save_cursor(
 {
 	ml_vt100_storable_states_t *  dest ;
 
-	dest = (ml_screen_is_alternative_edit(  vt100_parser->screen) ) ?
+	dest = (ml_screen_is_alternative_edit( vt100_parser->screen)) ?
 		&(vt100_parser->saved_alternate)
 		: &(vt100_parser->saved_normal) ;
 	dest->is_saved = 1 ;
@@ -675,6 +675,35 @@ set_icon_name(
 		start_vt100_cmd( vt100_parser , 0) ;
 	}
 }
+
+static void
+switch_im_mode(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	if( HAS_XTERM_LISTENER(vt100_parser,switch_im_mode))
+	{
+		return  (*vt100_parser->xterm_listener->switch_im_mode)(
+					vt100_parser->xterm_listener->self) ;
+	}
+}
+
+static int
+im_is_active(
+	ml_vt100_parser_t *  vt100_parser
+	)
+{
+	if( HAS_XTERM_LISTENER(vt100_parser,im_is_active))
+	{
+		return  (*vt100_parser->xterm_listener->im_is_active)(
+					vt100_parser->xterm_listener->self) ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
 
 /*
  * This function will destroy the content of pt.
@@ -1188,6 +1217,11 @@ soft_reset(
 	change_char_attr( vt100_parser , 0) ;
 
 	ml_init_encoding_parser( vt100_parser) ;
+
+	( ml_screen_is_alternative_edit( vt100_parser->screen) ?
+		&vt100_parser->saved_alternate
+		: &vt100_parser->saved_normal)->is_saved = 0 ;
+	vt100_parser->im_is_active = 0 ;
 }
 
 
@@ -1959,29 +1993,32 @@ parse_vt100_escape_sequence(
 			}
 			else if( pre_ch == '<')
 			{
-			#if  0
 				/* Teraterm compatible IME control sequence */
 
 				if( *str_p == 'r')
 				{
 					/* Restore IME state */
+					if( vt100_parser->im_is_active !=
+						im_is_active( vt100_parser))
+					{
+						switch_im_mode( vt100_parser) ;
+					}
 				}
 				else if( *str_p == 's')
 				{
 					/* Save IME state */
+
+					vt100_parser->im_is_active = im_is_active( vt100_parser) ;
 				}
 				else if( *str_p == 't')
 				{
-					if( ps[0] == 0)
+					/* ps[0] = 0 (Close), ps[0] = 1 (Open) */
+
+					if( ps[0] != im_is_active( vt100_parser))
 					{
-						/* Open IME */
-					}
-					else if( ps[0] == 1)
-					{
-						/* Close IME */
+						switch_im_mode( vt100_parser) ;
 					}
 				}
-			#endif
 			}
 			/* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
 			else if( pre_ch)
