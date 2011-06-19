@@ -59,6 +59,7 @@ typedef struct  x_screen_scroll_event_listener
 	void  (*bs_mode_exited)( void *) ;
 	void  (*scrolled_upward)( void * , u_int) ;
 	void  (*scrolled_downward)( void * , u_int) ;
+	void  (*scrolled_to)( void * , int) ;
 	void  (*log_size_changed)( void * , u_int) ;
 	void  (*line_height_changed)( void * , u_int) ;
 	void  (*change_fg_color)( void * , char *) ;

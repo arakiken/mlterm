@@ -1534,13 +1534,13 @@ ml_logvis_container_add(
 	return  1 ;
 }
 
+#ifdef  USE_FRIBIDI
 ml_logical_visual_t *
 ml_logvis_bidi_new(
 	int  adhoc_right_align ,
 	ml_bidi_mode_t   bidi_mode
 	)
 {
-#ifdef  USE_FRIBIDI
 	bidi_logical_visual_t *  bidi_logvis ;
 
 	if( ( bidi_logvis = malloc( sizeof( bidi_logical_visual_t))) == NULL)
@@ -1568,10 +1568,8 @@ ml_logvis_bidi_new(
 	bidi_logvis->logvis.visual_line = bidi_visual_line ;
 
 	return  (ml_logical_visual_t*) bidi_logvis ;
-#else
-	return  NULL ;
-#endif
 }
+#endif
 
 ml_logical_visual_t *
 ml_logvis_comb_new(void)
@@ -1602,12 +1600,12 @@ ml_logvis_comb_new(void)
 	return  (ml_logical_visual_t*) comb_logvis ;
 }
 
+#ifdef  USE_IND
 ml_logical_visual_t *
 ml_logvis_iscii_new(
 	ml_iscii_lang_t  iscii_lang
 	)
 {
-#ifdef  USE_IND
 	iscii_logical_visual_t *  iscii_logvis ;
 
 	if( ( iscii_logvis = malloc( sizeof( iscii_logical_visual_t))) == NULL)
@@ -1638,10 +1636,8 @@ ml_logvis_iscii_new(
 	iscii_logvis->logvis.visual_line = iscii_visual_line ;
 
 	return  (ml_logical_visual_t*) iscii_logvis ;
-#else
-	return  NULL ;
-#endif
 }
+#endif
 
 ml_logical_visual_t *
 ml_logvis_vert_new(

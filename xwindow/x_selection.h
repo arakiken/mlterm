@@ -26,6 +26,13 @@ typedef struct  x_selection
 	ml_char_t *  sel_str ;
 	u_int  sel_len ;
 
+	/*
+	 * Be careful that value of col must be munis in rtl line.
+	 * +-----------------------------+
+	 * |          a  a  a  a  a  a  a|<= RTL line
+	 *           -7 -6 -5 -4 -3 -2 -1 <= index
+	 */
+
 	int  base_col_l ;
 	int  base_row_l ;
 	int  base_col_r ;

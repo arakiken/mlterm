@@ -121,5 +121,12 @@ int  ml_use_cp932_ucs_for_xft(void) ;
 int  ml_convert_to_xft_ucs4( u_char *  ucs4_bytes , const u_char *  src_bytes , size_t  src_size ,
 	mkf_charset_t  cs) ;
 
+size_t  ml_char_encoding_convert( u_char *  dst , size_t  dst_len ,
+		ml_char_encoding_t  dst_encoding , u_char *  src , size_t  src_len ,
+		ml_char_encoding_t  src_encoding) ;
+
+size_t  ml_char_encoding_convert_with_parser( u_char *  dst , size_t  dst_len ,
+		ml_char_encoding_t  dst_encoding , mkf_parser_t *  parser) ;
+
 
 #endif

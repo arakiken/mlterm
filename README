@@ -49,7 +49,7 @@ Options for configure
 
   --enable-ssh2
     Use libssh2 to connect ssh2 server.
-    (Usage: mlterm --serv ssh://user@xxx.xxx.xxx)
+    (Usage: mlterm(mlclient) --serv ssh://user@xxx.xxx.xxx)
 
   --enable-utmp
     Use utmp,wtmp,lastlog
@@ -112,11 +112,13 @@ What you need for compilation
 
   Gtk+ (2.x ?) for GUI configurator "mlconfig" and "mlterm-menu".
 
-  Gtk+ (2.x ?) for libvte.
+  Gtk+ (2.x ?) for libvte compatible library. (see gtk/INSTALL)
 
   Fribidi (0.9.0 - ?) for Bidi.
 
   libind for ISCII.
+
+  libssh2 for ssh2 client.
 
 
 Supported platforms

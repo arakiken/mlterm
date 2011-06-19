@@ -325,42 +325,6 @@ no_conv:
 
 /* --- global functions --- */
 
-ml_iscii_lang_t
-ml_iscii_lang_new(
-	mkf_iscii_lang_t  type
-	)
-{
-	return  NULL ;
-}
-
-int
-ml_iscii_lang_delete(
-	ml_iscii_lang_t  lang
-	)
-{
-	return  0 ;
-}
-
-char *
-ml_iscii_get_font_name(
-	ml_iscii_lang_t  lang ,
-	u_int  font_size
-	)
-{
-	return  NULL ;
-}
-
-u_int
-ml_iscii_shape(
-	ml_iscii_lang_t  lang ,
-	u_char *  dst ,
-	size_t  dst_size ,
-	u_char *  src
-	)
-{
-	return   0 ;
-}
-
 ml_iscii_keymap_t
 ml_iscii_keymap_new(
 	int  is_inscript

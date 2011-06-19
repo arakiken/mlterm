@@ -88,10 +88,12 @@ ml_line_final(
 	ml_line_t *  line
 	)
 {
+#ifdef  USE_FRIBIDI
 	if( line->bidi_state)
 	{
 		ml_line_unuse_bidi( line) ;
 	}
+#endif
 
 	if( line->chars)
 	{
@@ -958,7 +960,7 @@ ml_line_restore_color(
  */
 int
 ml_line_copy_line(
-	ml_line_t *  dst ,
+	ml_line_t *  dst ,	/* should be initialized ahead */
 	ml_line_t *  src
 	)
 {
@@ -977,6 +979,7 @@ ml_line_copy_line(
 	/*
 	 * bidi parameters.
 	 */
+#ifdef  USE_FRIBIDI
 	if( ml_line_is_using_bidi( src))
 	{
 		ml_line_use_bidi( dst) ;
@@ -986,6 +989,7 @@ ml_line_copy_line(
 	{
 		ml_line_unuse_bidi( dst) ;
 	}
+#endif
 
 	return  1 ;
 }
@@ -998,7 +1002,7 @@ ml_line_share(
 {
 	dst->chars = src->chars ;
 	dst->num_of_filled_chars = src->num_of_filled_chars ;
-	
+
 	dst->bidi_state = src->bidi_state ;
 
 	dst->change_beg_col = src->change_beg_col ;
@@ -1098,6 +1102,7 @@ ml_get_num_of_filled_chars_except_spaces(
  * Functions which must care about visual order.
  */
 
+#ifdef  USE_FRIBIDI
 int
 ml_line_is_using_bidi(
 	ml_line_t *  line
@@ -1143,21 +1148,6 @@ ml_line_unuse_bidi(
 	}
 
 	return  1 ;
-}
-
-int
-ml_line_is_rtl(
-	ml_line_t *  line
-	)
-{
-	if( line->bidi_state)
-	{
-		return  line->bidi_state->base_is_rtl ;
-	}
-	else
-	{
-		return  0 ;
-	}
 }
 
 int
@@ -1349,13 +1339,14 @@ ml_bidi_convert_logical_char_index_to_visual(
 					line->bidi_state->visual_order[count + 1] >
 						line->bidi_state->visual_order[count + 2] + 1)
 				{
-					if( *ltr_rtl_meet_pos != line->bidi_state->visual_order[count + 2])
+					if( *ltr_rtl_meet_pos !=
+						line->bidi_state->visual_order[count + 2])
 					{
 						*ltr_rtl_meet_pos =
 							line->bidi_state->visual_order[count + 2] ;
 
 						if( line->bidi_state->visual_order[count + 2] ==
-							line->bidi_state->visual_order[char_index] + 1)
+						    line->bidi_state->visual_order[char_index] + 1)
 						{
 							return  line->bidi_state->visual_order[count + 1] ;
 						}
@@ -1384,63 +1375,25 @@ ml_bidi_convert_logical_char_index_to_visual(
 		return  char_index ;
 	}
 }
+#endif	/* USE_FRIBIDI */
 
 int
-ml_line_copy_str(
-	ml_line_t *  line ,
-	ml_char_t *  dst ,
-	int  beg ,
-	u_int  len
+ml_line_is_rtl(
+	ml_line_t *  line
 	)
 {
-	if( line->bidi_state == NULL || line->bidi_state->size == 0)
+	if( line->bidi_state)
 	{
-		return  ml_str_copy( dst , line->chars + beg , len) ;
+		return  line->bidi_state->base_is_rtl ;
 	}
 	else
 	{
-		/*
-		 * XXX
-		 * adhoc implementation.
-		 */
-		 
-		int *  flags ;
-		int  bidi_pos ;
-		int  norm_pos ;
-		int  dst_pos ;
-
-		if( ( flags = alloca( sizeof( int) * line->bidi_state->size)) == NULL)
-		{
-			return  0 ;
-		}
-
-		memset( flags , 0 , sizeof( int) * line->bidi_state->size) ;
-
-		for( bidi_pos = beg ; bidi_pos < beg + len ; bidi_pos ++)
-		{
-			for( norm_pos = 0 ; norm_pos < line->bidi_state->size ; norm_pos ++)
-			{
-				if( line->bidi_state->visual_order[norm_pos] == bidi_pos)
-				{
-					flags[norm_pos] = 1 ;
-				}
-			}
-		}
-
-		for( dst_pos = norm_pos = 0 ; norm_pos < line->bidi_state->size ; norm_pos ++)
-		{
-			if( flags[norm_pos])
-			{
-				ml_char_copy( &dst[dst_pos ++] ,
-					line->chars + line->bidi_state->visual_order[norm_pos]) ;
-			}
-		}
-
-		return  1 ;
+		return  0 ;
 	}
 }
 
 
+#ifdef  USE_IND
 int
 ml_line_iscii_visual(
 	ml_line_t *  line ,
@@ -1715,6 +1668,92 @@ end:
 
 	return  visual_char_index ;
 }
+#endif	/* USE_IND */
+
+
+/*
+ * It is assumed that this function is called in *visual* context. 
+ */
+int
+ml_line_copy_logical_str(
+	ml_line_t *  line ,
+	ml_char_t *  dst ,
+	int  beg ,		/* visual position */
+	u_int  len
+	)
+{
+	if( line->bidi_state == NULL || line->bidi_state->size == 0)
+	{
+		return  ml_str_copy( dst , line->chars + beg , len) ;
+	}
+	else
+	{
+		/*
+		 * XXX
+		 * adhoc implementation.
+		 */
+		 
+		int *  flags ;
+		int  bidi_pos ;
+		int  norm_pos ;
+		int  dst_pos ;
+
+		if( ( flags = alloca( sizeof( int) * line->bidi_state->size)) == NULL)
+		{
+			return  0 ;
+		}
+
+		memset( flags , 0 , sizeof( int) * line->bidi_state->size) ;
+
+		for( bidi_pos = beg ; bidi_pos < beg + len ; bidi_pos ++)
+		{
+			for( norm_pos = 0 ; norm_pos < line->bidi_state->size ; norm_pos ++)
+			{
+				if( line->bidi_state->visual_order[norm_pos] == bidi_pos)
+				{
+					flags[norm_pos] = 1 ;
+				}
+			}
+		}
+
+		for( dst_pos = norm_pos = 0 ; norm_pos < line->bidi_state->size ; norm_pos ++)
+		{
+			if( flags[norm_pos])
+			{
+				ml_char_copy( &dst[dst_pos ++] ,
+					line->chars + line->bidi_state->visual_order[norm_pos]) ;
+			}
+		}
+
+		return  1 ;
+	}
+}
+
+int
+ml_line_convert_logical_char_index_to_visual(
+	ml_line_t *  line ,
+	int  char_index ,
+	int *  meet_pos
+	)
+{
+	return
+	#ifdef  USE_IND
+		ml_iscii_convert_logical_char_index_to_visual( line ,
+	#endif
+		#ifdef  USE_FRIBIDI
+			ml_bidi_convert_logical_char_index_to_visual( line ,
+		#endif
+				char_index
+		#ifdef  USE_FRIBIDI
+				, meet_pos)
+		#endif
+	#ifdef  USE_IND
+			)
+	#endif
+		;
+}
+
+
 
 ml_line_t *
 ml_line_shape(

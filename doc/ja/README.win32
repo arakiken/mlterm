@@ -4,11 +4,12 @@ comment $Id$
 WIN32 native GUI 対応に関するメモ
 
 * テスト環境
-  Windows XP SP3 + MinGW 5.1.4
-                 + MSYS 1.0.10(MSYS-DTK 1.0.1)
-                 + Cygwin 1.5.25-15
-		 + GTK+ 2.12.9(win32 native)
-		 + Fribidi 0.19.2(win32 native)
+  Windows 7 + MinGW 5.1.4
+            + MSYS 1.0.10(MSYS-DTK 1.0.1)
+            + Cygwin 1.7.7-1
+            + libssh2 1.2.7
+            + GTK+ 2.12.9(win32 native)
+            + Fribidi 0.19.2(win32 native)
 
 * ビルド
   (CC="gcc -mno-cygwin") ./configure (--with-gui=win32) (--config-cache) \

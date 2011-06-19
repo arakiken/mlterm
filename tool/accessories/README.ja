@@ -26,3 +26,12 @@ mlterm を使用する上で便利(かもしれない)スクリプトです。
   o 問題点
     mlterm を daemon 化していない場合にも mlclient を使用する可能性があります。
     そもそもあまり意味がない。
+
+* mlsearch.sh
+  o 機能
+    端末画面中の文字列を検索します。
+    (mlterm-3.0.6以降のみ対応)
+
+  o 使い方
+    $ mlsearch prev [keyword]
+    $ mlsearch next [keyword]

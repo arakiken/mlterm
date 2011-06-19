@@ -175,6 +175,9 @@ x_acquire_font_cache(
 	font_cache->letter_space = letter_space ;
 	font_cache->ref_count = 1 ;
 
+	font_cache->prev_cache.font = 0 ;
+	font_cache->prev_cache.xfont = NULL ;
+
 	if( ! init_usascii_font( font_cache))
 	{
 		free( font_cache) ;
@@ -183,9 +186,6 @@ x_acquire_font_cache(
 		return  NULL ;
 	}
 
-	font_cache->prev_cache.font = 0 ;
-	font_cache->prev_cache.xfont = NULL ;
-	
 	return  font_caches[num_of_caches++] = font_cache ;
 }
 

@@ -15,8 +15,20 @@
 #include  "ml_color.h"
 
 
-#define  MAX_CHAR_SIZE  4
-#define  MAX_COMB_SIZE  7	/* Used in ml_shape.c,x_screen.c */
+#define  MLCHAR_SIZE  4
+#define  MAX_COMB_SIZE    7	/* Used in ml_shape.c,x_screen.c */
+#define  UTF_MAX_SIZE     8
+/*
+ * XXX
+ * char prefixes are max 4 bytes.
+ * additional 3 bytes + cs name len ("viscii1.1-1" is max 11 bytes) = 14 bytes for iso2022
+ * extension.
+ * char length is max 2 bytes.
+ * (total 20 bytes)
+ */
+#define  XCT_MAX_SIZE     20
+#define  MLCHAR_UTF_MAX_SIZE  (UTF_MAX_SIZE * (MAX_COMB_SIZE + 1))
+#define  MLCHAR_XCT_MAX_SIZE  (XCT_MAX_SIZE * (MAX_COMB_SIZE + 1))
 
 
 /*
@@ -50,7 +62,7 @@ typedef struct ml_char
 			 * 1 bit : is_single_ch(0 or 1)
 			 */
 		#ifdef  WORDS_BIGENDIAN
-			u_char  bytes[MAX_CHAR_SIZE] ;	/* 32 bit */
+			u_char  bytes[MLCHAR_SIZE] ;	/* 32 bit */
 			u_int8_t  fg_color ;
 			u_int8_t  bg_color ;
 			u_int16_t  attr ;
@@ -58,7 +70,7 @@ typedef struct ml_char
 			u_int16_t  attr ;
 			u_int8_t  fg_color ;
 			u_int8_t  bg_color ;
-			u_char  bytes[MAX_CHAR_SIZE] ;	/* 32 bit */
+			u_char  bytes[MLCHAR_SIZE] ;	/* 32 bit */
 		#endif
 		} ch ;
 

@@ -5,7 +5,8 @@ How to build & install libvte compatible library using mlterm engine.
 * Requirements
   o vte library and headers
   o gtk+ 2.x
-  o terminal emulators using libvte (gnome-terminal, roxterm or etc)
+  o terminal emulators or other applications using libvte 
+    (gnome-terminal, roxterm, synaptic or etc)
 
 * Build
   $ ./configure (--with-type-engine=xcore,xft ...)

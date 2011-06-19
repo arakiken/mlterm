@@ -25,7 +25,7 @@ enum
  */
 typedef struct  ml_line
 {
-	/* public(readonly) */
+	/* public(readonly) -- If you access &chars[at], use ml_char_at(). */
 	ml_char_t *  chars ;
 
 	/* private */
@@ -125,13 +125,15 @@ int  ml_line_get_word_pos( ml_line_t *  line , int *  beg_char_index , int *  en
 	int  char_index) ;
 
 
+/*
+ * use/render/visual/logical/convert functions are used only by ml_logical_visual.
+ */
+#ifdef  USE_FRIBIDI
 int  ml_line_is_using_bidi( ml_line_t *  line) ;
 	
 int  ml_line_use_bidi( ml_line_t *  line) ;
 
 int  ml_line_unuse_bidi( ml_line_t *  line) ;
-
-int  ml_line_is_rtl( ml_line_t *  line) ;
 
 int  ml_line_bidi_render( ml_line_t *  line , ml_bidi_mode_t  mode) ;
 
@@ -141,13 +143,25 @@ int  ml_line_bidi_logical( ml_line_t *  line) ;
 
 int  ml_bidi_convert_logical_char_index_to_visual( ml_line_t *  line , int  char_index ,
 	int *  ltr_rtl_meet_pos) ;
+#endif
 
-int  ml_line_copy_str( ml_line_t *  line , ml_char_t *  dst , int  beg , u_int  len) ;
+int  ml_line_is_rtl( ml_line_t *  line) ;
 
 
+/*
+ * visual/convert functions are used only by ml_logical_visual.
+ */
+#ifdef  USE_IND
 int  ml_line_iscii_visual( ml_line_t *  line , ml_iscii_lang_t  iscii_lang) ;
 
 int  ml_iscii_convert_logical_char_index_to_visual( ml_line_t *  line , int  logical_char_index) ;
+#endif
+
+
+int  ml_line_copy_logical_str( ml_line_t *  line , ml_char_t *  dst , int  beg , u_int  len) ;
+
+int  ml_line_convert_logical_char_index_to_visual( ml_line_t *  line , int  logical_char_index ,
+			int *  meet_pos) ;
 
 
 ml_line_t *  ml_line_shape( ml_line_t *  line , ml_shape_t *  shape) ;

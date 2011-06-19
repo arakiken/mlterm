@@ -265,47 +265,10 @@ ml_bidi(
 }
 
 
-#else
+#endif	/* USE_FRIBIDI */
 
 
 /* --- global functions --- */
-
-ml_bidi_state_t *
-ml_bidi_new(void)
-{
-	return  NULL ;
-}
-
-int
-ml_bidi_delete(
-	ml_bidi_state_t *  state
-	)
-{
-	return  0 ;
-}
-
-int
-ml_bidi_reset(
-	ml_bidi_state_t *  state
-	)
-{
-	return  0 ;
-}
-
-int
-ml_bidi(
-	ml_bidi_state_t *  state ,
-	ml_char_t *  src ,
-	u_int  size ,
-	ml_bidi_mode_t  bidi_mode
-	)
-{
-	return  0 ;
-}
-
-
-#endif
-
 
 ml_bidi_mode_t
 ml_get_bidi_mode(

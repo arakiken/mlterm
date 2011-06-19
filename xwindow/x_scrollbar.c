@@ -239,10 +239,13 @@ calculate_current_row(
 	else
 	{
 		/*
-		 * sb->bar_top_y / (sb->num_of_filled_log_lines / (MAX_BAR_HEIGHT(sb) - sb->bar_height))
-		 * => (sb->num_of_filled_log_lines / (MAX_BAR_HEIGHT(sb) - sb->bar_height)) = pixel per line
+		 * sb->bar_top_y / (sb->num_of_filled_log_lines /
+		 *	(MAX_BAR_HEIGHT(sb) - sb->bar_height))
+		 * => (sb->num_of_filled_log_lines / (MAX_BAR_HEIGHT(sb) - sb->bar_height))
+		 *    = pixel per line
 		 */
-		return  sb->bar_top_y * sb->num_of_filled_log_lines / (MAX_BAR_HEIGHT(sb) - sb->bar_height) -
+		return  sb->bar_top_y * sb->num_of_filled_log_lines /
+				(MAX_BAR_HEIGHT(sb) - sb->bar_height) -
 			sb->num_of_filled_log_lines ;
 	}
 }
@@ -1127,22 +1130,7 @@ x_scrollbar_move_upward(
 		return  0 ;
 	}
 
-	if( sb->num_of_filled_log_lines < abs( sb->current_row) + size)
-	{
-		sb->current_row = -(sb->num_of_filled_log_lines) ;
-	}
-	else
-	{
-		sb->current_row -= size ;
-	}
-
-	set_redraw_area( sb, sb->bar_top_y, sb->bar_height) ;
-
-	sb->bar_top_y = calculate_bar_top_y(sb) ;
-
-	x_window_update( &sb->window, UPDATE_SCROLLBAR) ;
-
-	return  1 ;
+	return  x_scrollbar_move( sb , sb->current_row - size) ;
 }
 
 int
@@ -1156,14 +1144,25 @@ x_scrollbar_move_downward(
 		return  0 ;
 	}
 
-	if( abs( sb->current_row) < size)
+	return  x_scrollbar_move( sb , sb->current_row + size) ;
+}
+
+int
+x_scrollbar_move(
+	x_scrollbar_t *  sb ,
+	int  row
+	)
+{
+	if( 0 < row)
 	{
-		sb->current_row = 0 ;
+		row = 0 ;
 	}
-	else
+	else if( row + (int)sb->num_of_filled_log_lines < 0)
 	{
-		sb->current_row += size ;
+		row = -(sb->num_of_filled_log_lines) ;
 	}
+
+	sb->current_row = row ;
 
 	set_redraw_area( sb, sb->bar_top_y, sb->bar_height) ;
 	

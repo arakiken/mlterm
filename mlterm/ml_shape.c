@@ -223,8 +223,8 @@ shape_arabic(
 	{
 		comb = ml_get_combining_chars( cur , &size) ;
 
-		if( comb &&
-			( code = ml_is_arabic_combining( count + 1 >= src_len ? NULL : &src[count + 1] ,
+		if( comb && ( code = ml_is_arabic_combining(
+					count + 1 >= src_len ? NULL : &src[count + 1] ,
 					ml_get_base_char( cur) , comb)))
 		{
 			u_char  bytes[4] ;
@@ -234,7 +234,7 @@ shape_arabic(
 				mkf_int_to_bytes( bytes , ml_char_size(cur) , code)) ;
 		}
 		else if( list[count])
-		{			
+		{
 		#if  0
 			/*
 			 * Tanween characters combining their proceeded characters will

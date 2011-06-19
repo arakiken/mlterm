@@ -15,10 +15,6 @@ comment $Id$
     (たとえば、libc に ja_JP.UTF-8 ローケールがなくても、ja_JP.eucJP ローケール
     があれば、UTF-8 エンコーディングの端末に日本語入力できる、など)
 
-    gtk+ で作られた設定変更ツール (mlconfig, mlterm-menu) を使用する場合は、
-    GTK+ (2.x 以上) が必要となります。
-    (mlterm 本体にはリンクしません)
-
     アンチエイリアスフォントを利用する場合は、
     XFree86 4.0.2 以上
     freetype 2.0.2 以上
@@ -26,9 +22,17 @@ comment $Id$
 
     壁紙を貼るには、gdk-pixbuf (GTK+ 2.0.1 以上) が必要です。
 
+    gtk+ で作られた設定変更ツール (mlconfig, mlterm-menu) を使用する場合は、
+    GTK+ (2.x 以上) が必要となります。
+    (mlterm 本体にはリンクしません)
+
+    libvte compatible library を利用する場合は、GTK+ (2.x 以上) が必要です。
+
     Unicode の Bidi レンダリングには、Fribidi 0.9.x 以上(?) が必要です。
 
     ISCII の表示には、libind が必要です。
+
+    ssh2 client として使用する場合は、libssh2 が必要です。
 
     これらは、すべて、configure 時に有無をチェックします。
 
@@ -193,10 +197,10 @@ comment $Id$
     (libvte.so.9) を提供しています。
     システムにインストールされている libvte.so.9 を置きかえることにより、
     gnome-terminal や roxterm 等の中で、mlterm を動作させることができます。
-    GTK+ (2.x 以上) が必要となります。
+    GTK+ (2.x 以上) が必要となります。(gtk/INSTALL 参照)
 
-  o ssh client
-    ssh client として直接 ssh server に接続することができます。
+  o ssh2 client
+    ssh2 client として直接 ssh2 server に接続することができます。
     libssh2 が必要となります。
     (例 mlterm(mlclient) --serv ssh://user@host:22)
 

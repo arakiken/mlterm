@@ -201,11 +201,11 @@ ml_char_set(
 		return  0 ;
 	}
 
-	if( size > MAX_CHAR_SIZE)
+	if( size > MLCHAR_SIZE)
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " size %d is over MAX CHAR SIZE %d\n",
-			size, MAX_CHAR_SIZE) ;
+			size, MLCHAR_SIZE) ;
 	#endif
 		return  0 ;
 	}
@@ -213,7 +213,7 @@ ml_char_set(
 	ml_char_final( ch) ;
 
 	memcpy( ch->u.ch.bytes , bytes , size) ;
-	memset( ch->u.ch.bytes + size , 0 , MAX_CHAR_SIZE - size) ;
+	memset( ch->u.ch.bytes + size , 0 , MLCHAR_SIZE - size) ;
 
 #ifdef  DEBUG
 	if( cs >= MAX_CHARSET)

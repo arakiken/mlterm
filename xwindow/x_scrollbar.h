@@ -84,6 +84,8 @@ int  x_scrollbar_move_upward( x_scrollbar_t *  sb , u_int  size) ;
 
 int  x_scrollbar_move_downward( x_scrollbar_t *  sb , u_int  size) ;
 
+int  x_scrollbar_move( x_scrollbar_t *  sb , int  row) ;
+
 int  x_scrollbar_set_line_height( x_scrollbar_t *  sb , u_int  line_height) ;
 
 int  x_scrollbar_set_fg_color( x_scrollbar_t *  sb , char *  fg_color) ;

@@ -92,12 +92,13 @@ ml_term_new(
 	term->win_name = NULL ;
 	term->icon_name = NULL ;
 	term->icon_path = NULL ;
+
 	term->is_mouse_pos_sending = 0 ;
 	term->is_app_keypad = 0 ;
 	term->is_app_cursor_keys = 0 ;
 
 	term->is_attached = 0 ;
-	
+
 	return  term ;
 
 error:
@@ -144,7 +145,7 @@ ml_term_delete(
 	ml_vt100_parser_delete( term->parser) ;
 
 	ml_config_menu_final( &term->config_menu) ;
-	
+
 	free( term) ;
 
 	return  1 ;
@@ -282,31 +283,6 @@ ml_term_is_attached(
 }
 
 int
-ml_term_parse_vt100_sequence(
-	ml_term_t *  term
-	)
-{
-	return  ml_parse_vt100_sequence( term->parser) ;
-}
-
-int
-ml_term_change_encoding(
-	ml_term_t *  term ,
-	ml_char_encoding_t  encoding
-	)
-{
-	return  ml_vt100_parser_change_encoding( term->parser , encoding) ;
-}
-
-ml_char_encoding_t
-ml_term_get_encoding(
-	ml_term_t *  term
-	)
-{
-	return  ml_vt100_parser_get_encoding( term->parser) ;
-}
-
-int
 ml_term_set_auto_encoding(
 	ml_term_t *  term ,
 	int  is_auto_encoding
@@ -323,42 +299,6 @@ ml_term_is_auto_encoding(
 	)
 {
 	return  term->is_auto_encoding ;
-}
-
-int
-ml_term_set_unicode_policy(
-	ml_term_t *  term ,
-	ml_unicode_policy_t  policy
-	)
-{
-	return  ml_vt100_parser_set_unicode_policy( term->parser , policy) ;
-}
-
-size_t
-ml_term_convert_to(
-	ml_term_t *  term ,
-	u_char *  dst ,
-	size_t  len ,
-	mkf_parser_t *  parser
-	)
-{
-	return  ml_vt100_parser_convert_to( term->parser , dst , len , parser) ;
-}
-
-int
-ml_term_init_encoding_parser(
-	ml_term_t *  term
-	)
-{
-	return  ml_init_encoding_parser( term->parser) ;
-}
-
-int
-ml_term_init_encoding_conv(
-	ml_term_t *  term
-	)
-{
-	return  ml_init_encoding_conv( term->parser) ;
 }
 
 int
@@ -468,38 +408,6 @@ ml_term_resize(
 }
 
 int
-ml_term_cursor_col(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_cursor_col( term->screen) ;
-}
-
-int
-ml_term_cursor_char_index(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_cursor_char_index( term->screen) ;
-}
-
-int
-ml_term_cursor_row(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_cursor_row( term->screen) ;
-}
-
-int
-ml_term_cursor_row_in_screen(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_cursor_row_in_screen( term->screen) ;
-}
-
-int
 ml_term_unhighlight_cursor(
 	ml_term_t *  term ,
 	int  revert_visual
@@ -529,106 +437,6 @@ ml_term_unhighlight_cursor(
 	}
 
 	return  ret ;
-}
-
-u_int
-ml_term_get_cols(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_get_cols( term->screen) ;
-}
-
-u_int
-ml_term_get_rows(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_get_rows( term->screen) ;
-}
-
-u_int
-ml_term_get_logical_cols(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_get_logical_cols( term->screen) ;
-}
-
-u_int
-ml_term_get_logical_rows(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_get_logical_rows( term->screen) ;
-}
-
-u_int
-ml_term_get_log_size(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_get_log_size( term->screen) ;
-}
-
-int
-ml_term_change_log_size(
-	ml_term_t *  term ,
-	u_int  log_size
-	)
-{
-	return  ml_screen_change_log_size( term->screen , log_size) ;
-}
-
-u_int
-ml_term_get_num_of_logged_lines(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_get_num_of_logged_lines( term->screen) ;
-}
-
-int
-ml_term_convert_scr_row_to_abs(
-	ml_term_t *  term ,
-	int  row
-	)
-{
-	return  ml_screen_convert_scr_row_to_abs( term->screen , row) ;
-}
-
-ml_line_t *
-ml_term_get_line(
-	ml_term_t *  term ,
-	int  row
-	)
-{
-	return  ml_screen_get_line( term->screen , row) ;
-}
-
-ml_line_t *
-ml_term_get_line_in_screen(
-	ml_term_t *  term ,
-	int  row
-	)
-{
-	return  ml_screen_get_line_in_screen( term->screen , row) ;
-}
-
-ml_line_t *
-ml_term_get_cursor_line(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_get_cursor_line( term->screen) ;
-}
-
-int
-ml_term_is_cursor_visible(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_is_cursor_visible( term->screen) ;
 }
 
 /*
@@ -955,23 +763,6 @@ ml_term_update_special_visual(
 	}
 }
 
-ml_bs_mode_t
-ml_term_is_backscrolling(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_is_backscrolling( term->screen) ;
-}
-
-int
-ml_term_set_backscroll_mode(
-	ml_term_t *  term ,
-	ml_bs_mode_t  mode
-	)
-{
-	return  ml_set_backscroll_mode( term->screen , mode) ;
-}
-
 int
 ml_term_enter_backscroll_mode(
 	ml_term_t *  term
@@ -986,140 +777,6 @@ ml_term_enter_backscroll_mode(
 	}
 	
 	return  ml_enter_backscroll_mode( term->screen) ;
-}
-
-int
-ml_term_exit_backscroll_mode(
-	ml_term_t *  term
-	)
-{
-	return  ml_exit_backscroll_mode( term->screen) ;
-}
-
-int
-ml_term_backscroll_to(
-	ml_term_t *  term ,
-	int  row
-	)
-{
-	return  ml_screen_backscroll_to( term->screen , row) ;
-}
-
-int
-ml_term_backscroll_upward(
-	ml_term_t *  term ,
-	u_int  size
-	)
-{
-	return  ml_screen_backscroll_upward( term->screen , size) ;
-}
-
-int
-ml_term_backscroll_downward(
-	ml_term_t *  term ,
-	u_int  size
-	)
-{
-	return  ml_screen_backscroll_downward( term->screen , size) ;
-}
-
-u_int
-ml_term_get_tab_size(
-	ml_term_t *  term
-	)
-{
-	return  ml_screen_get_tab_size( term->screen) ;
-}
-
-int
-ml_term_set_tab_size(
-	ml_term_t *  term ,
-	u_int  tab_size
-	)
-{
-	return  ml_screen_set_tab_size( term->screen , tab_size) ;
-}
-
-int
-ml_term_reverse_color(
-	ml_term_t *  term ,
-	int  beg_char_index ,
-	int  beg_row ,
-	int  end_char_index ,
-	int  end_row
-	)
-{
-	return  ml_screen_reverse_color( term->screen , beg_char_index , beg_row ,
-			end_char_index , end_row) ;
-}
-
-int
-ml_term_restore_color(
-	ml_term_t *  term ,
-	int  beg_char_index ,
-	int  beg_row ,
-	int  end_char_index ,
-	int  end_row
-	)
-{
-	return  ml_screen_restore_color( term->screen , beg_char_index , beg_row ,
-			end_char_index , end_row) ;
-}
-
-u_int
-ml_term_copy_region(
-	ml_term_t *  term ,
-	ml_char_t *  chars ,
-	u_int  num_of_chars ,
-	int  beg_char_index ,
-	int  beg_row ,
-	int  end_char_index ,
-	int  end_row
-	)
-{
-	return  ml_screen_copy_region( term->screen , chars , num_of_chars ,
-			beg_char_index , beg_row , end_char_index , end_row) ;
-}
-
-u_int
-ml_term_get_region_size(
-	ml_term_t *  term ,
-	int  beg_char_index ,
-	int  beg_row ,
-	int  end_char_index ,
-	int  end_row
-	)
-{
-	return  ml_screen_get_region_size( term->screen , beg_char_index , beg_row ,
-			end_char_index , end_row) ;
-}
-
-int
-ml_term_get_line_region(
-	ml_term_t *  term ,
-	int *  beg_row ,
-	int *  end_char_index ,
-	int *  end_row ,
-	int  base_row
-	)
-{
-	return  ml_screen_get_line_region( term->screen , beg_row , end_char_index ,
-			end_row , base_row) ;
-}
-
-int
-ml_term_get_word_region(
-	ml_term_t *  term ,
-	int *  beg_char_index ,
-	int *  beg_row ,
-	int *  end_char_index ,
-	int *  end_row ,
-	int  base_char_index ,
-	int  base_row
-	)
-{
-	return  ml_screen_get_word_region( term->screen , beg_char_index , beg_row ,
-			end_char_index , end_row , base_char_index , base_row) ;
 }
 
 int
@@ -1158,23 +815,6 @@ ml_term_is_using_multi_col_char(
 	)
 {
 	return  term->parser->use_multi_col_char ;
-}
-
-int
-ml_term_set_col_size_of_width_a(
-	ml_term_t *  term ,
-	u_int  col_size_a
-	)
-{
-	return  ml_vt100_parser_set_col_size_of_width_a( term->parser , col_size_a) ;
-}
-
-u_int
-ml_term_get_col_size_of_width_a(
-	ml_term_t *  term
-	)
-{
-	return  ml_vt100_parser_get_col_size_of_width_a( term->parser) ;
 }
 
 int

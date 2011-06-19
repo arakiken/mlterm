@@ -115,7 +115,8 @@ child_window_resized(
 		}
 		else
 		{
-			actual_width = ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_screen->scrollbar.window) +
+			actual_width = ACTUAL_WIDTH(child) +
+					ACTUAL_WIDTH( &sb_screen->scrollbar.window) +
 					SEPARATOR_WIDTH ;
 		}
 
@@ -139,8 +140,8 @@ child_window_resized(
 		}
 
 		x_window_resize_with_margin( &sb_screen->window ,
-			ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_screen->screen->window) + SEPARATOR_WIDTH ,
-			ACTUAL_HEIGHT(child) , NOTIFY_TO_NONE) ;
+			ACTUAL_WIDTH(child) + ACTUAL_WIDTH( &sb_screen->screen->window) +
+			SEPARATOR_WIDTH , ACTUAL_HEIGHT(child) , NOTIFY_TO_NONE) ;
 
 		if( sb_screen->sb_mode == SBM_LEFT)
 		{
@@ -358,6 +359,7 @@ screen_is_static(
 	}
 }
 
+
 /*
  * callbacks of x_screen_scroll_event_listener_t events.
  */
@@ -398,6 +400,19 @@ scrolled_downward(
 	sb_screen = p ;
 
 	x_scrollbar_move_upward( &sb_screen->scrollbar , size) ;
+}
+
+static void
+scrolled_to(
+	void *  p ,
+	int  row
+	)
+{
+	x_sb_screen_t *  sb_screen  ;
+
+	sb_screen = p ;
+
+	x_scrollbar_move( &sb_screen->scrollbar , row) ;
 }
 
 static void
@@ -664,6 +679,7 @@ x_sb_screen_new(
 	sb_screen->screen_scroll_listener.bs_mode_exited = bs_mode_exited ;
 	sb_screen->screen_scroll_listener.scrolled_upward = scrolled_upward ;
 	sb_screen->screen_scroll_listener.scrolled_downward = scrolled_downward ;
+	sb_screen->screen_scroll_listener.scrolled_to = scrolled_to ;
 	sb_screen->screen_scroll_listener.log_size_changed = log_size_changed ;
 	sb_screen->screen_scroll_listener.line_height_changed = line_height_changed ;
 	sb_screen->screen_scroll_listener.change_fg_color = change_fg_color ;
@@ -725,20 +741,23 @@ x_sb_screen_new(
 	}
 	else if( sb_screen->sb_mode == SBM_LEFT)
 	{
-		if( x_window_add_child( &sb_screen->window , &sb_screen->scrollbar.window , 0 , 0 , 1) == 0)
+		if( x_window_add_child( &sb_screen->window , &sb_screen->scrollbar.window ,
+			0 , 0 , 1) == 0)
 		{
 			goto  error ;
 		}
 		
 		if( x_window_add_child( &sb_screen->window , &screen->window ,
-			ACTUAL_WIDTH( &sb_screen->scrollbar.window) + SEPARATOR_WIDTH , 0 , 1) == 0)
+			ACTUAL_WIDTH( &sb_screen->scrollbar.window) + SEPARATOR_WIDTH ,
+			0 , 1) == 0)
 		{
 			goto  error ;
 		}
 	}
 	else /* if( sb_screen->sb_mode == SBM_NONE) */
 	{
-		if( x_window_add_child( &sb_screen->window , &sb_screen->scrollbar.window , 0 , 0 , 0) == 0)
+		if( x_window_add_child( &sb_screen->window , &sb_screen->scrollbar.window ,
+			0 , 0 , 0) == 0)
 		{
 			goto  error ;
 		}

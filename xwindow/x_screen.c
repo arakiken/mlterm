@@ -17,10 +17,7 @@
 #include  <kiklib/kik_args.h>	/* kik_arg_str_to_array */
 #include  <mkf/mkf_xct_parser.h>
 #include  <mkf/mkf_xct_conv.h>
-#ifndef  USE_WIN32GUI
-#include  <mkf/mkf_utf8_conv.h>
-#include  <mkf/mkf_utf8_parser.h>
-#else
+#ifdef  USE_WIN32GUI
 #include  <mkf/mkf_utf16_conv.h>
 #include  <mkf/mkf_utf16_parser.h>
 #endif
@@ -29,29 +26,6 @@
 #include  "x_xic.h"
 #include  "x_draw_str.h"
 
-/*
- * XXX
- * char length is max 8 bytes.
- * I think this is enough , but I'm not sure.
- * This macro used for UTF8 and UTF16.
- * (Same as vte.c)
- */
-#define  UTF_MAX_CHAR_SIZE  (8 * (MAX_COMB_SIZE + 1))
-
-/*
- * XXX
- *
- * char prefixes are max 4 bytes.
- * additional 3 bytes + cs name len ("viscii1.1-1" is max 11 bytes) = 14 bytes for iso2022
- * extension.
- * char length is max 2 bytes.
- * (total 20 bytes)
- *
- * combining chars is max 3 per char.
- *
- * I think this is enough , but I'm not sure.
- */
-#define  XCT_MAX_CHAR_SIZE  (20 * 4)
 
 /* the same as rxvt. if this size is too few , we may drop sequences from kinput2. */
 #define  KEY_BUF_SIZE  512
@@ -70,8 +44,18 @@
 #define  NL_TO_CR_IN_PAST_TEXT
 #endif
 
+#if  1
+#define  SEARCH_REGEX
+#endif
 
-/* For x_window_update() */
+
+/*
+ * For x_window_update()
+ *
+ * XXX
+ * Note that vte.c calls x_window_update( ... , 1), so if you change following enums,
+ * vte.c must be changed at the same time.
+ */
 enum
 {
 	UPDATE_SCREEN = 0x1 ,
@@ -431,7 +415,8 @@ draw_line(
 {
 	if( ml_line_is_empty( line))
 	{
-		x_window_clear( &screen->window , 0 , y , screen->window.width , x_line_height(screen)) ;
+		x_window_clear( &screen->window , 0 , y ,
+			screen->window.width , x_line_height(screen)) ;
 	}
 	else
 	{
@@ -479,7 +464,8 @@ draw_line(
 		{
 			if( ml_line_is_rtl( line))
 			{
-				x_window_clear( &screen->window , 0 , y , beg_x , x_line_height( screen)) ;
+				x_window_clear( &screen->window , 0 , y ,
+					beg_x , x_line_height( screen)) ;
 
 				if( ! x_draw_str( &screen->window ,
 					screen->font_man , screen->color_man ,
@@ -1311,7 +1297,8 @@ update_special_visual(
 				continue ;
 			}
 
-			x_customize_font_name( font_config , NORMAL_FONT_OF(ISCII) , font_name , font_size) ;
+			x_customize_font_name( font_config , NORMAL_FONT_OF(ISCII) ,
+				font_name , font_size) ;
 		}
 
 		x_activate_local_font_config( screen->font_man , font_config) ;
@@ -1705,7 +1692,7 @@ open_button3_command(
 
 	cmd_len = strlen( button3_command) + 1 ;
 	
-	key_len = cmd_len + screen->sel.sel_len * UTF_MAX_CHAR_SIZE + 1 ;
+	key_len = cmd_len + screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE + 1 ;
 	key = alloca( key_len) ;
 
 	strcpy( key , button3_command) ;
@@ -2754,7 +2741,6 @@ selection_cleared(
 	{
 		x_window_update( win , UPDATE_SCREEN|UPDATE_CURSOR) ;
 	}
-	
 }
 
 static size_t
@@ -2868,7 +2854,7 @@ xct_selection_requested(
 		size_t  xct_len ;
 		size_t  filled_len ;
 
-		xct_len = screen->sel.sel_len * XCT_MAX_CHAR_SIZE ;
+		xct_len = screen->sel.sel_len * MLCHAR_XCT_MAX_SIZE ;
 
 		if( ( xct_str = alloca( xct_len)) == NULL)
 		{
@@ -2902,7 +2888,7 @@ utf_selection_requested(
 		size_t  utf_len ;
 		size_t  filled_len ;
 
-		utf_len = screen->sel.sel_len * UTF_MAX_CHAR_SIZE ;
+		utf_len = screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE ;
 
 		if( ( utf_str = alloca( utf_len)) == NULL)
 		{
@@ -3732,6 +3718,207 @@ button_released(
 }
 
 
+#ifdef  SEARCH_REGEX
+
+#include  <regex.h>
+
+static int
+match(
+	size_t *  beg ,
+	size_t *  len ,
+	void *  regex ,
+	u_char *  str ,
+	int  backward
+	)
+{
+	regmatch_t  pmatch[1] ;
+
+	if( regexec( regex , str , 1 , pmatch , 0) != 0)
+	{
+		return  0 ;
+	}
+
+	*beg = pmatch[0].rm_so ;
+	*len = pmatch[0].rm_eo - pmatch[0].rm_so ;
+
+	if( backward)
+	{
+		while( 1)
+		{
+			str += pmatch[0].rm_eo ;
+
+			if( regexec( regex , str , 1 , pmatch , 0) != 0)
+			{
+				break ;
+			}
+
+			(*beg) += ((*len) + pmatch[0].rm_so) ;
+			*len = pmatch[0].rm_eo - pmatch[0].rm_so ;
+		}
+	}
+
+	return  1 ;
+}
+
+#else	/* SEARCH_REGEX */
+
+static int
+match(
+	size_t *  beg ,
+	size_t *  len ,
+	void *  regex ,
+	u_char *  str ,
+	int  backward
+	)
+{
+	size_t  regex_len ;
+	size_t  str_len ;
+	u_char *  p ;
+
+	if( ( regex_len = strlen( regex)) > (str_len = strlen( str)))
+	{
+		return  0 ;
+	}
+
+#if  0
+	{
+		kik_msg_printf( "S T R => ") ;
+		p = str ;
+		while( *p)
+		{
+			kik_msg_printf( "%.2x" , *p) ;
+			p ++ ;
+		}
+		kik_msg_printf( "\nREGEX => ") ;
+
+		p = regex ;
+		while( *p)
+		{
+			kik_msg_printf( "%.2x" , *p) ;
+			p ++ ;
+		}
+		kik_msg_printf( "\n") ;
+	}
+#endif
+
+	if( backward)
+	{
+		p = str + str_len - regex_len ;
+
+		do
+		{
+			if( strncasecmp( p , regex , regex_len) == 0)
+			{
+				goto  found ;
+			}
+		}
+		while( p -- != str) ;
+
+		return  0 ;
+	}
+	else
+	{
+		p = str ;
+
+		do
+		{
+			if( strncasecmp( p , regex , regex_len) == 0)
+			{
+				goto  found ;
+			}
+		}
+		while( *(++p)) ;
+
+		return  0 ;
+	}
+
+found:
+	*beg = p - str ;
+	*len = regex_len ;
+
+	return  1 ;
+}
+
+#endif	/* SEARCH_REGEX */
+
+static int
+search_find(
+	x_screen_t *  screen ,
+	u_char *  pattern ,
+	int  backward
+	)
+{
+	int  beg_char_index ;
+	int  beg_row ;
+	int  end_char_index ;
+	int  end_row ;
+#ifdef  SEARCH_REGEX
+	regex_t  regex ;
+#endif
+
+	if( *pattern
+	#ifdef  SEARCH_REGEX
+		&& regcomp( &regex , pattern , REG_EXTENDED|REG_ICASE) == 0
+	#endif
+		)
+	{
+		ml_term_search_init( screen->term , match) ;
+		if( ml_term_search_find( screen->term , &beg_char_index , &beg_row ,
+				&end_char_index , &end_row , &regex , backward))
+		{
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Search find %d %d - %d %d\n" ,
+					beg_char_index , beg_row , end_char_index , end_row) ;
+		#endif
+
+			x_sel_clear( &screen->sel) ;
+			start_selection( screen , beg_char_index , beg_row) ;
+			selecting( screen , end_char_index , end_row) ;
+			x_stop_selecting( &screen->sel) ;
+
+			x_screen_scroll_to( screen , beg_row) ;
+			if( HAS_SCROLL_LISTENER(screen,scrolled_to))
+			{
+				(*screen->screen_scroll_listener->scrolled_to)(
+					screen->screen_scroll_listener->self , beg_row) ;
+			}
+		}
+
+	#ifdef  SEARCH_REGEX
+		regfree( &regex) ;
+	#endif
+	}
+	else
+	{
+		ml_term_search_final( screen->term) ;
+	}
+
+	return  1 ;
+}
+
+
+static void
+resize_window(
+	x_screen_t *  screen
+	)
+{
+	/* screen will redrawn in window_resized() */
+	if( x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
+		NOTIFY_TO_PARENT))
+	{
+		/*
+		 * !! Notice !!
+		 * x_window_resize() will invoke ConfigureNotify event but window_resized()
+		 * won't be called , since xconfigure.width , xconfigure.height are the same
+		 * as the already resized window.
+		 */
+		if( screen->window.window_resized)
+		{
+			(*screen->window.window_resized)( &screen->window) ;
+		}
+	}
+}
+
 static void
 font_size_changed(
 	x_screen_t *  screen
@@ -3747,21 +3934,7 @@ font_size_changed(
 		x_col_width( screen) , x_line_height( screen) , 0 , 0 ,
 		x_col_width( screen) , x_line_height( screen)) ;
 
-	/* screen will redrawn in window_resized() */
-	if( x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
-		NOTIFY_TO_PARENT))
-	{
-		/*
-		 * !! Notice !!
-		 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
-		 * called , since xconfigure.width , xconfigure.height are the same as the already
-		 * resized window.
-		 */
-		if( screen->window.window_resized)
-		{
-			(*screen->window.window_resized)( &screen->window) ;
-		}
-	}
+	resize_window( screen) ;
 }
 
 static void
@@ -3803,6 +3976,13 @@ change_line_space(
 	u_int  line_space
 	)
 {
+	if( screen->line_space == line_space)
+	{
+		/* not changed */
+
+		return ;
+	}
+
 	screen->line_space = line_space ;
 
 	font_size_changed( screen) ;
@@ -3814,7 +3994,10 @@ change_letter_space(
 	u_int  letter_space
 	)
 {
-	x_set_letter_space( screen->font_man , letter_space) ;
+	if( ! x_set_letter_space( screen->font_man , letter_space))
+	{
+		return ;
+	}
 
 	font_size_changed( screen) ;
 }
@@ -3832,20 +4015,7 @@ change_screen_width_ratio(
 
 	screen->screen_width_ratio = ratio ;
 
-	if( x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
-		NOTIFY_TO_PARENT))
-	{
-		/*
-		 * !! Notice !!
-		 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
-		 * called , since xconfigure.width , xconfigure.height are the same as the already
-		 * resized window.
-		 */
-		if( screen->window.window_resized)
-		{
-			(*screen->window.window_resized)( &screen->window) ;
-		}
-	}
+	resize_window( screen) ;
 }
 
 static void
@@ -3861,20 +4031,7 @@ change_screen_height_ratio(
 
 	screen->screen_height_ratio = ratio ;
 
-	if( x_window_resize( &screen->window , screen_width( screen) , screen_height( screen) ,
-		NOTIFY_TO_PARENT))
-	{
-		/*
-		 * !! Notice !!
-		 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
-		 * called , since xconfigure.width , xconfigure.height are the same as the already
-		 * resized window.
-		 */
-		if( screen->window.window_resized)
-		{
-			(*screen->window.window_resized)( &screen->window) ;
-		}
-	}
+	resize_window( screen) ;
 }
 
 static void
@@ -3909,7 +4066,8 @@ usascii_font_cs_changed(
 	ml_char_encoding_t  encoding
 	)
 {
-	x_font_manager_usascii_font_cs_changed( screen->font_man , x_get_usascii_font_cs( encoding)) ;
+	x_font_manager_usascii_font_cs_changed( screen->font_man ,
+				x_get_usascii_font_cs( encoding)) ;
 
 	font_size_changed( screen) ;
 
@@ -4102,20 +4260,7 @@ change_vertical_mode(
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
 	}
 
-	if( x_window_resize( &screen->window , screen_width(screen) , screen_height(screen) ,
-		NOTIFY_TO_PARENT))
-	{
-		/*
-		 * !! Notice !!
-		 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
-		 * called , since xconfigure.width , xconfigure.height are the same as the already
-		 * resized window.
-		 */
-		if( screen->window.window_resized)
-		{
-			(*screen->window.window_resized)( &screen->window) ;
-		}
-	}
+	resize_window( screen) ;
 }
 
 static void
@@ -4692,12 +4837,13 @@ snapshot(
 		return ;
 	}
 
-	if( ( file = fopen( path , "w")) == NULL)
+	file = fopen( path , "w") ;
+	free( path) ;
+
+	if( ! file)
 	{
 		return ;
 	}
-
-	free( path) ;
 
 	beg = - ml_term_get_num_of_logged_lines( screen->term) ;
 	end = ml_term_get_rows( screen->term) ;
@@ -4720,8 +4866,8 @@ snapshot(
 	{
 		while( ! screen->ml_str_parser->is_eos)
 		{
-			if( ( num = ml_term_convert_to( screen->term ,
-						conv_buf , sizeof( conv_buf) , screen->ml_str_parser)) == 0)
+			if( ( num = ml_term_convert_to( screen->term , conv_buf ,
+					sizeof( conv_buf) , screen->ml_str_parser)) == 0)
 			{
 				break ;
 			}
@@ -5157,12 +5303,12 @@ get_config(
 	}
 	else if( strcmp( key , "rows") == 0)
 	{
-		sprintf( digit , "%d" , ml_term_get_rows( term)) ;
+		sprintf( digit , "%d" , ml_term_get_logical_rows( term)) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "cols") == 0)
 	{
-		sprintf( digit , "%d" , ml_term_get_cols( term)) ;
+		sprintf( digit , "%d" , ml_term_get_logical_cols( term)) ;
 		value = digit ;
 	}
 	else if( strcmp( key , "pty_list") == 0)
@@ -5241,7 +5387,7 @@ get_config(
 				 */
 				convert_nl_to_cr2( screen->sel.sel_str , screen->sel.sel_len) ;
 			}
-		
+
 			(*screen->ml_str_parser->init)( screen->ml_str_parser) ;
 			ml_str_parser_set_str( screen->ml_str_parser ,
 				screen->sel.sel_str , screen->sel.sel_len) ;
@@ -5251,8 +5397,7 @@ get_config(
 				mkf_conv_t *  conv ;
 				
 				if( ( conv = ml_conv_new( ml_get_char_encoding( key + 14))) ||
-					/* Use UTF8 by default */
-					( conv = ml_conv_new( ML_UTF8)))
+				    ( conv = ml_conv_new( ml_term_get_encoding( screen->term))))
 				{
 					u_char  buf[512] ;
 					size_t  len ;
@@ -6453,9 +6598,9 @@ xterm_resize_columns(
 	{
 		/*
 		 * !! Notice !!
-		 * x_window_resize() will invoke ConfigureNotify event but window_resized() won't be
-		 * called , since xconfigure.width , xconfigure.height are the same as the already
-		 * resized window.
+		 * x_window_resize() will invoke ConfigureNotify event but window_resized()
+		 * won't be called , since xconfigure.width , xconfigure.height are the same
+		 * as the already resized window.
 		 */
 		if( screen->window.window_resized)
 		{
@@ -6974,7 +7119,7 @@ x_screen_new(
 		goto  error ;
 	}
 #else
-	if( ( screen->utf_parser = mkf_utf8_parser_new()) == NULL)
+	if( ( screen->utf_parser = ml_parser_new( ML_UTF8)) == NULL)
 	{
 		goto  error ;
 	}
@@ -7005,7 +7150,7 @@ x_screen_new(
 		goto  error ;
 	}
 #else
-	if( ( screen->utf_conv = mkf_utf8_conv_new()) == NULL)
+	if( ( screen->utf_conv = ml_conv_new( ML_UTF8)) == NULL)
 	{
 		goto  error ;
 	}
@@ -7966,12 +8111,44 @@ x_screen_set_config(
 	{
 		yank_event_received( screen , 0) ;
 	}
-	else if( strlen(key) >= 8 && strncmp( key , "mlclient" , 8) == 0)
+	else if( strlen(key) >= 8)
 	{
-		if( HAS_SYSTEM_LISTENER(screen,mlclient))
+		if( strncmp( key , "mlclient" , 8) == 0)
 		{
-			(*screen->system_listener->mlclient)( screen->system_listener->self ,
-				key[8] == 'x' ? screen : NULL , key , stdout) ;
+			if( HAS_SYSTEM_LISTENER(screen,mlclient))
+			{
+				(*screen->system_listener->mlclient)(
+					screen->system_listener->self ,
+					key[8] == 'x' ? screen : NULL , key , stdout) ;
+			}
+		}
+		else if( strncmp( key , "search_" , 7) == 0)
+		{
+			ml_char_encoding_t  encoding ;
+			
+			if( ( encoding = ml_term_get_encoding( screen->term)) != ML_UTF8)
+			{
+				char *  p ;
+				size_t  len ;
+
+				len = UTF_MAX_SIZE * strlen( value) + 1 ;
+				if( ( p = alloca( len)))
+				{
+					*(p + ml_char_encoding_convert( p , len - 1 , ML_UTF8 ,
+						value , strlen(value) , encoding)) = '\0' ;
+
+					value = p ;
+				}
+			}
+
+			if( strcmp( key + 7 , "prev") == 0)
+			{
+				search_find( screen , value , 1) ;
+			}
+			else if( strcmp( key + 7 , "next") == 0)
+			{
+				search_find( screen , value , 0) ;
+			}
 		}
 	}
 }

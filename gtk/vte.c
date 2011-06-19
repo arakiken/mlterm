@@ -19,7 +19,6 @@
 #include  <kiklib/kik_locale.h>
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_pty.h>		/* kik_pty_helper_set_flag */
-#include  <mkf/mkf_utf8_conv.h>
 #include  <ml_str_parser.h>
 #include  <ml_term_manager.h>
 #include  <x_screen.h>
@@ -60,15 +59,6 @@
 
 #define  STATIC_PARAMS (G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB)
 
-/*
- * XXX
- * char length is max 8 bytes.
- * I think this is enough , but I'm not sure.
- * This macro used for UTF8 and UTF16.
- * (Same as x_screen.c)
- */
-#define  UTF_MAX_CHAR_SIZE  (8 * (MAX_COMB_SIZE + 1))
-
 
 struct _VteTerminalPrivate
 {
@@ -101,6 +91,8 @@ struct _VteTerminalPrivate
 	u_int  pix_width ;
 	u_int  pix_height ;
 	x_picture_modifier_t *  pic_mod ;
+
+	GRegex *  regex ;
 } ;
 
 enum
@@ -163,9 +155,119 @@ static char *  false = "false" ;
 
 /* --- static functions --- */
 
+static int
+selection(
+	x_selection_t *  sel ,
+	int  char_index_1 ,
+	int  row_1 ,
+	int  char_index_2 ,
+	int  row_2
+	)
+{
+	x_sel_clear( sel) ;
+
+	x_start_selection( sel , char_index_1 - 1 , row_1 , char_index_1 , row_1) ;
+	x_selecting( sel , char_index_2 , row_2) ;
+	x_stop_selecting( sel) ;
+
+	return  1 ;
+}
+
+static int
+match(
+	size_t *  beg ,
+	size_t *  len ,
+	void *  regex ,
+	u_char *  str ,
+	int  backward
+	)
+{
+	GMatchInfo *  info ;
+
+	if( g_regex_match( regex , str , 0 , &info))
+	{
+		gchar *  word ;
+		u_char *  p ;
+
+		p = str ;
+
+		do
+		{
+			word = g_match_info_fetch( info , 0) ;
+
+			p = strstr( p , word) ;
+			*beg = p - str ;
+			*len = strlen( word) ;
+
+			g_free( word) ;
+
+			p += (*len) ;
+		}
+		while( g_match_info_next( info , NULL)) ;
+
+		g_match_info_free( info) ;
+
+		return  1 ;
+	}
+	
+	return  0 ;
+}
+
+static gboolean
+search_find(
+	VteTerminal *  terminal ,
+	int  backward
+	)
+{
+	int  beg_char_index ;
+	int  beg_row ;
+	int  end_char_index ;
+	int  end_row ;
+
+	if( ! GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+	{
+		return  FALSE ;
+	}
+
+	if( ml_term_search_find( terminal->pvt->term , &beg_char_index , &beg_row ,
+			&end_char_index , &end_row , terminal->pvt->regex , backward))
+	{
+		gdouble  value ;
+
+		selection( &terminal->pvt->screen->sel ,
+			beg_char_index , beg_row , end_char_index , end_row) ;
+
+		value = ml_term_get_num_of_logged_lines( terminal->pvt->term) +
+				(beg_row >= 0 ? 0 : beg_row) ;
+
+	#if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 14)
+		gtk_adjustment_set_value( terminal->adjustment , value) ;
+	#else
+		VTE_WIDGET(screen)->adjustment->value = value ;
+		gtk_adjustment_value_changed( terminal->adjustment) ;
+	#endif
+
+	#if  1
+		/*
+		 * XXX
+		 * Dirty hack, but without this, selection() above is not reflected to window
+		 * if aother word is hit in the same line. (If row is not changed,
+		 * gtk_adjustment_set_value() doesn't call x_screen_scroll_to().)
+		 */
+		x_window_update( &terminal->pvt->screen->window , 1 /* UPDATE_SCREEN */) ;
+	#endif
+
+		return  TRUE ;
+	}
+	else
+	{
+		return  FALSE ;
+	}
+}
+
 #if  (GTK_MAJOR_VERSION == 1) || ((GTK_MAJOR_VERSION == 2) && (GTK_MINOR_VERSION < 12))
 /* gdk_color_to_string() was not supported by gtk+ < 2.12. */
-gchar *
+static gchar *
 gdk_color_to_string(
 	const GdkColor *  color
 	)
@@ -218,7 +320,7 @@ vte_terminal_io(
 	gpointer  data		/* ml_term_t */
 	)
 {
-	ml_term_parse_vt100_sequence( data) ;
+	ml_term_parse_vt100_sequence( (ml_term_t*)data) ;
 	
 	ml_close_dead_terms() ;
 	
@@ -458,18 +560,12 @@ line_scrolled_out(
 	)
 {
 	x_screen_t *  screen ;
-	int  upper ;
-	int  value ;
+	gdouble  upper ;
+	gdouble  value ;
 	
 	screen = p ;
 
 	VTE_WIDGET(screen)->pvt->line_scrolled_out( p) ;
-
-	if( ( upper = gtk_adjustment_get_upper( VTE_WIDGET(screen)->adjustment))
-		== ml_term_get_log_size( VTE_WIDGET(screen)->pvt->term))
-	{
-		return ;
-	}
 
 	/*
 	 * line_scrolled_out is called in vt100 mode
@@ -480,26 +576,42 @@ line_scrolled_out(
 	VTE_WIDGET(screen)->pvt->adj_value_changed_by_myself = 1 ;
 
 	value = gtk_adjustment_get_value( VTE_WIDGET(screen)->adjustment) ;
-	
-#if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 14)
-	gtk_adjustment_set_upper( VTE_WIDGET(screen)->adjustment , upper + 1) ;
-	if( ml_term_is_backscrolling( VTE_WIDGET(screen)->pvt->term) != BSM_STATIC)
+
+	if( ( upper = gtk_adjustment_get_upper( VTE_WIDGET(screen)->adjustment))
+	    < ml_term_get_log_size( VTE_WIDGET(screen)->pvt->term) + VTE_WIDGET(screen)->row_count)
 	{
-		gtk_adjustment_set_value( VTE_WIDGET(screen)->adjustment , value + 1) ;
+	#if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 14)
+		gtk_adjustment_set_upper( VTE_WIDGET(screen)->adjustment , upper + 1) ;
+	#else
+		VTE_WIDGET(screen)->adjustment->upper ++ ;
+		gtk_adjustment_changed( VTE_WIDGET(screen)->adjustment) ;
+	#endif
+
+		if( ml_term_is_backscrolling( VTE_WIDGET(screen)->pvt->term) != BSM_STATIC)
+		{
+		#if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 14)
+			gtk_adjustment_set_value( VTE_WIDGET(screen)->adjustment , value + 1) ;
+		#else
+			VTE_WIDGET(screen)->adjustment->value ++ ;
+			gtk_adjustment_value_changed( VTE_WIDGET(screen)->adjustment) ;
+		#endif
+		}
 	}
-#else
-	VTE_WIDGET(screen)->adjustment->upper ++ ;
-	gtk_adjustment_changed( VTE_WIDGET(screen)->adjustment) ;
-	if( ml_term_is_backscrolling( VTE_WIDGET(screen)->pvt->term) != BSM_STATIC)
+	else if( ml_term_is_backscrolling( VTE_WIDGET(screen)->pvt->term) == BSM_STATIC &&
+			value > 0)
 	{
-		VTE_WIDGET(screen)->adjustment->value ++ ;
+	#if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 14)
+		gtk_adjustment_set_value( VTE_WIDGET(screen)->adjustment , value - 1) ;
+	#else
+		VTE_WIDGET(screen)->adjustment->value -- ;
 		gtk_adjustment_value_changed( VTE_WIDGET(screen)->adjustment) ;
+	#endif
 	}
-#endif
 
 #ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " line_scrolled_out upper %d value %d\n" ,
-		upper + 1 , value + 1) ;
+	kik_debug_printf( KIK_DEBUG_TAG " line_scrolled_out upper %f value %f\n" ,
+		gtk_adjustment_get_upper( VTE_WIDGET(screen)->adjustment) ,
+		gtk_adjustment_get_value( VTE_WIDGET(screen)->adjustment)) ;
 #endif
 }
 
@@ -853,13 +965,18 @@ vte_terminal_filter(
 			 * This processing is added for key binding of popup menu.
 			 */
 			if( is_key_event &&
-			    ((XEvent*)xevent)->xany.window == disp.roots[count]->my_window &&
-			    ! disp.roots[count]->is_focused)
+			    ((XEvent*)xevent)->xany.window == disp.roots[count]->my_window)
 			{
-				((XEvent*)xevent)->xany.window =
-					gdk_x11_drawable_get_xid( GTK_WIDGET(terminal)->window) ;
+				ml_term_search_reset_position( terminal->pvt->term) ;
 
-				return  GDK_FILTER_CONTINUE ;
+				if( ! disp.roots[count]->is_focused)
+				{
+					((XEvent*)xevent)->xany.window =
+						gdk_x11_drawable_get_xid(
+							GTK_WIDGET(terminal)->window) ;
+
+					return  GDK_FILTER_CONTINUE ;
+				}
 			}
 		}
 		else
@@ -1765,7 +1882,7 @@ vte_terminal_init(
 		G_CALLBACK(vte_terminal_hierarchy_changed) , NULL) ;
 
 	terminal->pvt->term =
-		ml_create_term( 80 /* main_config.cols */ , 25 /* main_config.rows */ ,
+		ml_create_term( main_config.cols , main_config.rows ,
 			main_config.tab_size , main_config.num_of_log_lines ,
 			main_config.encoding , main_config.is_auto_encoding , 
 			main_config.unicode_policy , main_config.col_size_of_width_a ,
@@ -1880,6 +1997,8 @@ vte_terminal_init(
 	terminal->pvt->audible_bell = (main_config.bel_mode == BEL_SOUND) ;
 	terminal->pvt->visible_bell = (main_config.bel_mode == BEL_VISUAL) ;
 
+	terminal->pvt->regex = NULL ;
+	
 	terminal->window_title = ml_term_window_name( terminal->pvt->term) ;
 	terminal->icon_title = ml_term_icon_name( terminal->pvt->term) ;
 
@@ -2130,7 +2249,7 @@ vte_terminal_copy_clipboard(
 		return ;
 	}
 
-	len = terminal->pvt->screen->sel.sel_len * UTF_MAX_CHAR_SIZE ;
+	len = terminal->pvt->screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE ;
 	if( ! ( buf = alloca( len)))
 	{
 		return ;
@@ -2175,8 +2294,8 @@ vte_terminal_select_all(
 	VteTerminal *  terminal
 	)
 {
-	x_selection_t *  sel ;
-	u_int  row ;
+	int  beg_row ;
+	int  end_row ;
 	ml_line_t *  line ;
 	
 	if( ! GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
@@ -2184,30 +2303,19 @@ vte_terminal_select_all(
 		return ;
 	}
 	
-	sel = &terminal->pvt->screen->sel ;
-	
-	x_sel_clear( sel) ;
+	beg_row = - ml_term_get_num_of_logged_lines( terminal->pvt->term) ;
 
-	row = - ml_term_get_num_of_logged_lines( terminal->pvt->term) ;
-	x_start_selection( sel , -1 , row , 0 , row) ;
-
-	for( row = ml_term_get_rows( terminal->pvt->term) - 1 ; row > 0 ; row --)
+	for( end_row = ml_term_get_rows( terminal->pvt->term) - 1 ; end_row >= 0 ; end_row --)
 	{
-		line = ml_term_get_line( terminal->pvt->term , row) ;
-		if( ! ml_line_is_empty( line))
+		if( (line = ml_term_get_line( terminal->pvt->term , end_row)) &&
+		    ! ml_line_is_empty( line))
 		{
 			break ;
 		}
 	}
 
-	if( row == 0)
-	{
-		line = ml_term_get_line( terminal->pvt->term , 0) ;
-	}
-	
-	x_selecting( sel , ml_line_get_num_of_filled_cols( line) - 1 , row) ;
-
-	x_stop_selecting( sel) ;
+	selection( &terminal->pvt->screen->sel , 0 , beg_row ,
+			line->num_of_filled_chars - 1 , end_row) ;
 }
 
 void
@@ -3062,31 +3170,25 @@ vte_terminal_match_check(
 {
 	u_char *  buf ;
 	size_t  len ;
-	mkf_conv_t *  conv ;
 
 	if( ! vte_terminal_get_has_selection( terminal))
 	{
 		return  NULL ;
 	}
 
-	len = terminal->pvt->screen->sel.sel_len * UTF_MAX_CHAR_SIZE + 1 ;
+	len = terminal->pvt->screen->sel.sel_len * MLCHAR_UTF_MAX_SIZE + 1 ;
 	if( ! ( buf = g_malloc( len)))
 	{
 		return  NULL ;
 	}
-	
+
 	(*terminal->pvt->screen->ml_str_parser->init)( terminal->pvt->screen->ml_str_parser) ;
 	ml_str_parser_set_str( terminal->pvt->screen->ml_str_parser ,
 		terminal->pvt->screen->sel.sel_str , terminal->pvt->screen->sel.sel_len) ;
 
-	conv = mkf_utf8_conv_new() ;
-	(*conv->init)( conv) ;
-
-	len = (*conv->convert)( conv , buf , len , terminal->pvt->screen->ml_str_parser) ;
-
-	buf[len] = '\0' ;
-
-	(*conv->delete)( conv) ;
+	(*terminal->pvt->screen->utf_conv->init)( terminal->pvt->screen->utf_conv) ;
+	*(buf + (*terminal->pvt->screen->utf_conv->convert)( terminal->pvt->screen->utf_conv ,
+			buf , len , terminal->pvt->screen->ml_str_parser)) = '\0' ;
 
 	/* XXX */
 	*tag = 1 ;	/* For pattern including "http" (see vte_terminal_match_add_gregex) */
@@ -3096,12 +3198,26 @@ vte_terminal_match_check(
 
 /* GRegex was not supported */
 #if  (GLIB_MAJOR_VERSION >= 2) && (GLIB_MINOR_VERSION >= 14)
+
 void
 vte_terminal_search_set_gregex(
 	VteTerminal *  terminal ,
 	GRegex *  regex
 	)
 {
+	if( regex)
+	{
+		if( ! terminal->pvt->regex)
+		{
+			ml_term_search_init( terminal->pvt->term , match) ;
+		}
+	}
+	else
+	{
+		ml_term_search_final( terminal->pvt->term) ;
+	}
+	
+	terminal->pvt->regex = regex ;
 }
 
 GRegex *
@@ -3109,7 +3225,7 @@ vte_terminal_search_get_gregex(
 	VteTerminal *  terminal
 	)
 {
-	return  NULL ;
+	return  terminal->pvt->regex ;
 }
 #endif
 
@@ -3134,7 +3250,7 @@ vte_terminal_search_find_previous(
 	VteTerminal *  terminal
 	)
 {
-	return  FALSE ;
+	return  search_find( terminal , 1) ;
 }
 
 gboolean
@@ -3142,7 +3258,7 @@ vte_terminal_search_find_next(
 	VteTerminal *  terminal
 	)
 {
-	return  FALSE ;
+	return  search_find( terminal , 0) ;
 }
 
 void

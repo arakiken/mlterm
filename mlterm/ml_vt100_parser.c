@@ -713,12 +713,9 @@ config_protocol_set(
 					vt100_parser->config_listener->self , dev , key , val) ;
 			}
 
-			/* XXX */
-			if( vt100_parser->config_listener == NULL)
+			if( ! vt100_parser->config_listener)
 			{
-				/*
-				 * pty changed.
-				 */
+				/* pty changed. */
 				break ;
 			}
 		}
@@ -808,8 +805,15 @@ config_protocol_get(
 		char *  dev ;
 		char *  key ;
 		int  ret ;
-		
+
+		/*
+		 * It is assumed that screen is not redrawn not in
+		 * vt100_parser->config_listener->get, so vt100_parser->config_listener->get
+		 * is not held between stop_vt100_cmd and start_vt100_cmd.
+		 */
+	#if  0
 		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
 
 		ret = ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0) ;
 		if( ret == -1)
@@ -830,13 +834,15 @@ config_protocol_get(
 		}
 		else /* if( ret < 0) */
 		{
-			char  msg[] = "error" ;
+			char *  msg = "error" ;
 			
 			(*vt100_parser->config_listener->get)(
 				vt100_parser->config_listener->self , NULL , msg , to_menu) ;
 		}
 
+	#if  0
 		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 
 		return  1 ;
 	}
@@ -862,15 +868,25 @@ config_protocol_set_font(
 		char *  key ;
 		char *  val ;
 
+		/*
+		 * Screen is redrawn not in vt100_parser->config_listener->set_font
+		 * but in stop_vt100_cmd, so it is not necessary to hold
+		 * vt100_parser->config_listener->set_font between stop_vt100_cmd and
+		 * start_vt100_cmd.
+		 */
+	#if  0
 		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
 
 		if( ml_parse_proto2( &file , &key , &val , pt , 0) && key && val)
 		{
 			(*vt100_parser->config_listener->set_font)(
-				vt100_parser->config_listener->self , file , key , val, save) ;
+				vt100_parser->config_listener->self , file , key , val , save) ;
 		}
 
+	#if  0
 		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 
 		return  1 ;
 	}
@@ -897,7 +913,9 @@ config_protocol_get_font(
 		char *  cs ;
 		int  ret ;
 
+	#if  0
 		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
 
 		ret = ml_parse_proto2( &file , &key , NULL , pt , to_menu == 0) ;
 		if( ret == -1)
@@ -929,7 +947,9 @@ config_protocol_get_font(
 				NULL , msg , msg , to_menu) ;
 		}
 
+	#if  0
 		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 
 		return  1 ;
 	}
@@ -955,15 +975,25 @@ config_protocol_set_color(
 		char *  key ;
 		char *  val ;
 
+		/*
+		 * Screen is redrawn not in vt100_parser->config_listener->set_color
+		 * but in stop_vt100_cmd, so it is not necessary to hold
+		 * vt100_parser->config_listener->set_font between stop_vt100_cmd and
+		 * start_vt100_cmd.
+		 */
+	#if  0
 		stop_vt100_cmd( vt100_parser , 0) ;
-
+	#endif
+	
 		if( ml_parse_proto2( &file , &key , &val , pt , 0) && key && val)
 		{
 			(*vt100_parser->config_listener->set_color)(
 				vt100_parser->config_listener->self , file , key , val, save) ;
 		}
 
+	#if  0
 		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 
 		return  1 ;
 	}
@@ -1926,6 +1956,32 @@ parse_vt100_escape_sequence(
 
 					soft_reset( vt100_parser) ;
 				}
+			}
+			else if( pre_ch == '<')
+			{
+			#if  0
+				/* Teraterm compatible IME control sequence */
+
+				if( *str_p == 'r')
+				{
+					/* Restore IME state */
+				}
+				else if( *str_p == 's')
+				{
+					/* Save IME state */
+				}
+				else if( *str_p == 't')
+				{
+					if( ps[0] == 0)
+					{
+						/* Open IME */
+					}
+					else if( ps[0] == 1)
+					{
+						/* Close IME */
+					}
+				}
+			#endif
 			}
 			/* Other pre_ch(0x20-0x2f or 0x3a-0x3f) */
 			else if( pre_ch)

@@ -56,11 +56,19 @@ ml_logical_visual_t *  ml_logvis_container_new(void) ;
 
 int  ml_logvis_container_add( ml_logical_visual_t *  logvis , ml_logical_visual_t *  child) ;
 
+#ifdef  USE_FRIBIDI
 ml_logical_visual_t *  ml_logvis_bidi_new( int  adhoc_right_align , ml_bidi_mode_t  mode) ;
+#else
+#define  ml_logvis_bidi_new( adhoc_right_align , mode)  (NULL)
+#endif
 
 ml_logical_visual_t *  ml_logvis_comb_new(void) ;
 
+#ifdef  USE_IND
 ml_logical_visual_t *  ml_logvis_iscii_new( ml_iscii_lang_t  iscii_lang) ;
+#else
+#define  ml_logvis_iscii_new( iscii_lang)  (NULL)
+#endif
 
 ml_logical_visual_t *  ml_logvis_vert_new( ml_vertical_mode_t  vertical_mode) ;
 

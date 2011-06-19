@@ -1,4 +1,42 @@
-2011-05-30  Araki Ken  <arakiken@users.sf.net>
+2011-06-19  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - vte_terminal_search_set_gregex(), vte_terminal_search_get_gregex(),
+	    vte_terminal_search_previous() and vte_terminal_search_next() are
+	    implemented.
+	  - Columns and rows which are passed to ml_term_create() are
+	    replaced by main_config.cols and main_config.rows, not 80 and 25.
+	  - line_scrolled_out() is fixed.
+
+	* "search_prev" and "search_next" which search specified pattern (regex)
+	  in mlterm screen are added to configuration protocol.
+	  - ml_screen.[ch]:
+	    ml_screen_t::search member is added.
+	    ml_screen_search_{init|final|reset|find}() are added.
+	  - tool/accessories/mlsearch.sh: Added
+	  - x_scrollbar.[ch]: x_scrollbar_move_to() is added.
+	  - x_screen.c: match() and search_find() are added.
+
+	* gtk/Makefile.in: "-Wall" is replaced by @CFLAGS@ and @CPPFLAGS@ in CFLAGS.
+
+	* x_font_cache.c: x_font_cache_t::prev_cache is initialized in
+	  x_acquire_font_cache() before init_usascii_font() which
+	  accesses x_font_cache_t::prev_cache in x_font_cache_get_xfont()
+	  is called.
+
+	* UTF_MAX_CHAR_SIZE and XCT_MAX_CHAR_SIZE are moved to ml_char.h and
+	  renamed to MLCHAR_UTF_MAX_SIZE and MLCHAR_XCT_MAX_SIZE.
+
+	* ml_line.[ch]: ml_line_copy_str() is renamed to ml_line_copy_logical_str().
+
+	* ml_char_encoding.[ch]: ml_char_encoding_convert{_with_parser}()
+	  are added.
+
+	* README, README.ja, README.win32: Updated.
+
+	* version.h.in: 3.0.5 -> 3.0.5 post
+
+2011-06-04  Araki Ken  <arakiken@users.sf.net>
 
 	* 3.0.5 released.
 	  (tag "rel-3_0_5")

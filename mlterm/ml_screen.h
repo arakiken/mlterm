@@ -55,6 +55,16 @@ typedef struct  ml_screen
 
 	ml_screen_event_listener_t *  screen_listener ;
 
+	struct
+	{
+		int (*match)( size_t * , size_t * , void * , u_char * , int) ;
+
+		/* Logical order */
+		int  char_index ;
+		int  row ;
+
+	} *  search ;
+
 	u_int  backscroll_rows ;
 	ml_bs_mode_t  backscroll_mode ;
 	int8_t  is_backscrolling ;
@@ -261,6 +271,16 @@ int  ml_screen_is_alternative_edit( ml_screen_t *  screen) ;
 int  ml_screen_fill_all_with_e( ml_screen_t *  screen) ;
 
 ml_bs_mode_t  ml_screen_is_backscrolling( ml_screen_t *  screen) ;
+
+int  ml_screen_search_init( ml_screen_t *  screen ,
+	int (*match)( size_t * , size_t * , void * , u_char * , int)) ;
+
+int  ml_screen_search_final( ml_screen_t *  screen) ;
+
+int  ml_screen_search_reset_position( ml_screen_t *  screen) ;
+
+int  ml_screen_search_find( ml_screen_t *  screen , int *  beg_char_index , int *  beg_row ,
+	int *  end_char_index , int *  end_row , void *  regex , int  backward) ;
 
 
 #endif
