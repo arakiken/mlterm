@@ -8,6 +8,14 @@
 #include  <kiklib/kik_debug.h>
 
 
+typedef struct  mkf_iscii_parser
+{
+	mkf_parser_t  parser ;
+	mkf_charset_t  cs ;
+
+} mkf_iscii_parser_t ;
+
+
 /* --- static functions --- */
 
 static int
@@ -193,7 +201,7 @@ iscii_parser_next_char(
 	mkf_char_t *  ch
 	)
 {
-	return  parser_next_char_intern( parser , ch , ISCII) ;
+	return  parser_next_char_intern( parser , ch , ((mkf_iscii_parser_t*)parser)->cs) ;
 }
 
 static void
@@ -215,6 +223,29 @@ parser_delete(
 	)
 {
 	free( s) ;
+}
+
+static mkf_parser_t *
+iscii_parser_new(
+	mkf_charset_t  cs
+	)
+{
+	mkf_iscii_parser_t *  iscii_parser ;
+	
+	if( ( iscii_parser = malloc( sizeof( mkf_iscii_parser_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	mkf_parser_init( &iscii_parser->parser) ;
+
+	iscii_parser->parser.init = mkf_parser_init ;
+	iscii_parser->parser.next_char = iscii_parser_next_char ;
+	iscii_parser->parser.set_str = parser_set_str ;
+	iscii_parser->parser.delete = parser_delete ;
+	iscii_parser->cs = cs ;
+
+	return  &iscii_parser->parser ;
 }
 
 
@@ -521,21 +552,67 @@ mkf_viscii_parser_new(void)
 }
 
 mkf_parser_t *
-mkf_iscii_parser_new(void)
+mkf_iscii_assamese_parser_new(void)
 {
-	mkf_parser_t *  iscii_parser ;
-	
-	if( ( iscii_parser = malloc( sizeof( mkf_parser_t))) == NULL)
-	{
-		return  NULL ;
-	}
+	return  iscii_parser_new( ISCII_ASSAMESE) ;
+}
 
-	mkf_parser_init( iscii_parser) ;
+mkf_parser_t *
+mkf_iscii_bengali_parser_new(void)
+{
+	return  iscii_parser_new( ISCII_BENGALI) ;
+}
 
-	iscii_parser->init = mkf_parser_init ;
-	iscii_parser->next_char = iscii_parser_next_char ;
-	iscii_parser->set_str = parser_set_str ;
-	iscii_parser->delete = parser_delete ;
+mkf_parser_t *
+mkf_iscii_gujarati_parser_new(void)
+{
+	return  iscii_parser_new( ISCII_GUJARATI) ;
+}
 
-	return  iscii_parser ;
+mkf_parser_t *
+mkf_iscii_hindi_parser_new(void)
+{
+	return  iscii_parser_new( ISCII_HINDI) ;
+}
+
+mkf_parser_t *
+mkf_iscii_kannada_parser_new(void)
+{
+	return  iscii_parser_new( ISCII_KANNADA) ;
+}
+
+mkf_parser_t *
+mkf_iscii_malayalam_parser_new(void)
+{
+	return  iscii_parser_new( ISCII_MALAYALAM) ;
+}
+
+mkf_parser_t *
+mkf_iscii_oriya_parser_new(void)
+{
+	return  iscii_parser_new( ISCII_ORIYA) ;
+}
+
+mkf_parser_t *
+mkf_iscii_punjabi_parser_new(void)
+{
+	return  iscii_parser_new( ISCII_PUNJABI) ;
+}
+
+mkf_parser_t *
+mkf_iscii_roman_parser_new(void)
+{
+	return  iscii_parser_new( ISCII_ROMAN) ;
+}
+
+mkf_parser_t *
+mkf_iscii_tamil_parser_new(void)
+{
+	return  iscii_parser_new( ISCII_TAMIL) ;
+}
+
+mkf_parser_t *
+mkf_iscii_telugu_parser_new(void)
+{
+	return  iscii_parser_new( ISCII_TELUGU) ;
 }

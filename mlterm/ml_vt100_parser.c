@@ -3097,6 +3097,24 @@ parse_vt100_sequence(
 
 					ch = non_ucs ;
 				}
+			#ifdef  USE_IND
+				else
+				{
+					mkf_char_t  non_ucs ;
+
+					/* XXX */
+					if( mkf_map_ucs4_to_iscii( &non_ucs ,
+						mkf_bytes_to_int( ch.ch , ch.size)))
+					{
+						if( vt100_parser->unicode_policy &
+							USE_UNICODE_PROPERTY)
+						{
+							non_ucs.property = ch.property ;
+						}
+						ch = non_ucs ;
+					}
+				}
+			#endif
 			}
 			else if( ( /* ONLY_USE_UNICODE_FONT or USE_UNICODE_PROPERTY */
 				   vt100_parser->unicode_policy > NOT_USE_UNICODE_FONT &&
@@ -3449,7 +3467,7 @@ ml_parse_vt100_sequence(
 	while(  /* (PTY_RD_BUFFER_SIZE / 2) is baseless. */
 		vt100_parser->len >= (PTY_RD_BUFFER_SIZE / 2) &&
 		(++count) < 3 && receive_bytes( vt100_parser)) ;
-	
+
 	stop_vt100_cmd( vt100_parser , 1) ;
 
 	return  1 ;

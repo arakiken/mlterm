@@ -293,11 +293,11 @@ convert_to_xct_intern(
 
 			filled_size += ( strlen( prefix) + 2) ;
 		}
-		else if( ch.cs == ISCII || ch.cs == KOI8_R || ch.cs == KOI8_U || ch.cs == VISCII)
+		else if( IS_ISCII( ch.cs) || ch.cs == KOI8_R || ch.cs == KOI8_U || ch.cs == VISCII)
 		{
 			char *  prefix ;
 
-			if( ch.cs == ISCII)
+			if( IS_ISCII(ch.cs))
 			{
 				prefix = "\x1b\x25\x2f\x31\x80\x8b" "iscii-dev" "\x02" ;
 			}

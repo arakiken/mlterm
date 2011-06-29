@@ -74,7 +74,7 @@ xft_draw_combining_chars(
 				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , ch_bytes , ch_size) ;
 		}
-		else if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
+		else if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R || IS_ISCII(ch_cs))
 		{
 			x_window_xft_draw_string8( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
@@ -185,7 +185,7 @@ xft_draw_str(
 	ch_size = ml_char_size( &chars[count]) ;
 	ch_cs = ml_char_cs( &chars[count]) ;
 
-	if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
+	if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R || IS_ISCII(ch_cs))
 	{
 		state = 0 ;
 	}
@@ -274,7 +274,7 @@ xft_draw_str(
 			next_is_underlined = ml_char_is_underlined( &chars[count]) ;
 			next_xfont = x_get_font( font_man , ml_char_font( &chars[count])) ;
 
-			if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R)
+			if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R || IS_ISCII(ch_cs))
 			{
 				next_state = 0 ;
 			}
@@ -368,7 +368,8 @@ xft_draw_str(
 
 			if( comb_chars)
 			{
-				xft_draw_combining_chars( window , font_man , color_man , comb_chars , comb_size ,
+				xft_draw_combining_chars( window , font_man , color_man ,
+					comb_chars , comb_size ,
 					current_width - ch_width , y + height_to_baseline) ;
 			}
 

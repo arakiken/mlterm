@@ -55,6 +55,30 @@ ml_bidi_new(void)
 }
 
 int
+ml_bidi_copy(
+	ml_bidi_state_t *  dst ,
+	ml_bidi_state_t *  src
+	)
+{
+	u_int16_t *  p ;
+
+	if( ! ( p = realloc( dst->visual_order , sizeof( u_int16_t) * src->size)))
+	{
+		return  0 ;
+	}
+
+	dst->visual_order = p ;
+	dst->size = src->size ;
+	dst->base_is_rtl = src->base_is_rtl ;
+	dst->has_rtl = src->has_rtl ;
+	dst->bidi_mode = src->bidi_mode ;
+
+	memcpy( dst->visual_order , src->visual_order , sizeof( u_int16_t) * src->size) ;
+
+	return  1 ;
+}
+
+int
 ml_bidi_delete(
 	ml_bidi_state_t *  state
 	)

@@ -173,7 +173,7 @@ int  ml_screen_get_word_region( ml_screen_t *  screen , int *  beg_char_index ,
 
 
 /*
- * VT100 commands
+ * VT100 commands (called in logical context)
  */
  
 ml_char_t *  ml_screen_get_n_prev_char( ml_screen_t *  screen , int  n) ;

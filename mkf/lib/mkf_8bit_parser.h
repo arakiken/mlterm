@@ -39,7 +39,27 @@ mkf_parser_t *  mkf_cp874_parser_new(void) ;
 
 mkf_parser_t *  mkf_viscii_parser_new(void) ;
 
-mkf_parser_t *  mkf_iscii_parser_new(void) ;
+mkf_parser_t *  mkf_iscii_assamese_parser_new(void) ;
+
+mkf_parser_t *  mkf_iscii_bengali_parser_new(void) ;
+
+mkf_parser_t *  mkf_iscii_gujarati_parser_new(void) ;
+
+mkf_parser_t *  mkf_iscii_hindi_parser_new(void) ;
+
+mkf_parser_t *  mkf_iscii_kannada_parser_new(void) ;
+
+mkf_parser_t *  mkf_iscii_malayalam_parser_new(void) ;
+
+mkf_parser_t *  mkf_iscii_oriya_parser_new(void) ;
+
+mkf_parser_t *  mkf_iscii_punjabi_parser_new(void) ;
+
+mkf_parser_t *  mkf_iscii_roman_parser_new(void) ;
+
+mkf_parser_t *  mkf_iscii_tamil_parser_new(void) ;
+
+mkf_parser_t *  mkf_iscii_telugu_parser_new(void) ;
 
 
 #endif

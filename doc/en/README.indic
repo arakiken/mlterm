@@ -1,0 +1,44 @@
+comment -*- mode: text -*-
+comment $Id$
+
+mlterm indic support
+
+Following is a instruction of setting up mlterm indic support.
+
+* Installation
+  $ ./configure --enable-ind (--enable-anti-alias)
+  $ make
+  $ make install
+  
+  Then, setup ~/.mlterm/font or ~/.mlterm/aafont.
+  (etc/font.indic and etc/aafont.indic are samples.)
+
+* Usage
+  $ mlterm -E utf8 -w 16 -m -V --im=kbd:isciihindi --lsp 2 --bi=false --ind --type=xft
+
+  o -E option specifies character encoding.
+    "utf8" or "isciixxx"(like "isciihindi") are available.
+  o -V option enables variable width column.
+    This option is automatically turned on in ISCII encoding. (optional)
+  o -m option enables character combining, which is necessary since mlterm
+    diverts character combining framework for rendering ISCII glyph internally.
+    This option is automatically turned on in ISCII encoding. (optional)
+  o -w [font size] specifies font size you want to use. (optional)
+  o --im option specifies input method to be used. For ISCII use kbd input
+    method.
+  o --lsp [line space size] specifies pixels of line space according to appearance of
+    a selected font. (optional)
+  o --bi=false is necessary because bidi and ind can't coexist.
+  o --ind enables rendering indic characters.
+  o --type=xft enables xft. (optional)
+
+  Pressing the key defined as IM_HOTKEY in ~/.mlterm/key lets you use ISCII
+  inputting.
+  IM_HOTKEY switches the loop Inscript => Phonetic => US ASCII => Inscript ...
+
+* Note
+  We are not a native speaker and mlterm indic support itself may be still
+  unstable.
+  So if you find something strange or wrong about it, please report it without
+  reservation to Mlterm-dev-en.
+  (http://lists.sourceforge.net/lists/listinfo/mlterm-dev-en)

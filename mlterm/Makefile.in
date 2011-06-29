@@ -17,7 +17,7 @@ VPATH = $(top_srcdir)/mlterm
 
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @SSH2_CFLAGS@ \
 	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @UTMP_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
-	-I/usr/local/include -DLIBEXECDIR=\"$(LIBEXECDIR)\"
+	-I/usr/local/include -DLIBEXECDIR=\"$(LIBEXECDIR)\" -DLIBDIR=\"$(LIBDIR)\"
 LIBS = $(LIBS_LOCAL)
 
 OBJ = ml_bidi.o ml_char.o ml_str.o ml_char_encoding.o ml_color.o ml_edit.o \

@@ -9,8 +9,6 @@
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_util.h>	/* K_MIN */
 
-#include  "ml_iscii.h"
-
 
 #ifdef  DEBUG
 #define  END_CHAR_INDEX(line) \
@@ -89,9 +87,15 @@ ml_line_final(
 	)
 {
 #ifdef  USE_FRIBIDI
-	if( line->bidi_state)
+	if( line->ctl_info_type == VINFO_BIDI)
 	{
 		ml_line_unuse_bidi( line) ;
+	}
+#endif
+#ifdef  USE_IND
+	if( line->ctl_info_type == VINFO_ISCII)
+	{
+		ml_line_unuse_iscii( line) ;
 	}
 #endif
 
@@ -213,10 +217,18 @@ ml_line_reset(
 	
 	line->num_of_filled_chars = 0 ;
 
-	if( line->bidi_state)
+#ifdef  USE_FRIBIDI
+	if( line->ctl_info_type == VINFO_BIDI)
 	{
-		ml_bidi_reset( line->bidi_state) ;
+		ml_bidi_reset( line->ctl_info.bidi) ;
 	}
+#endif
+#ifdef  USE_IND
+	if( line->ctl_info_type == VINFO_ISCII)
+	{
+		ml_iscii_reset( line->ctl_info.iscii) ;
+	}
+#endif
 
 	UNSET_CONTINUED_TO_NEXT(line->flag) ;
 	
@@ -976,18 +988,34 @@ ml_line_copy_line(
 	
 	dst->flag = src->flag ;
 
-	/*
-	 * bidi parameters.
-	 */
 #ifdef  USE_FRIBIDI
 	if( ml_line_is_using_bidi( src))
 	{
 		ml_line_use_bidi( dst) ;
-		ml_line_bidi_render( dst , src->bidi_state->bidi_mode) ;
+		/*
+		 * Don't use ml_line_bidi_render() here,
+		 * or it is impossible to call this function in visual context.
+		 */
+		ml_bidi_copy( dst->ctl_info.bidi , src->ctl_info.bidi) ;
 	}
 	else
 	{
 		ml_line_unuse_bidi( dst) ;
+	}
+#endif
+#ifdef  USE_IND
+	if( ml_line_is_using_iscii( src))
+	{
+		ml_line_use_iscii( dst) ;
+		/*
+		 * Don't use ml_line_iscii_render() here,
+		 * or it is impossible to call this function in visual context.
+		 */
+		ml_iscii_copy( dst->ctl_info.iscii , src->ctl_info.iscii) ;
+	}
+	else
+	{
+		ml_line_unuse_iscii( dst) ;
 	}
 #endif
 
@@ -1003,7 +1031,10 @@ ml_line_share(
 	dst->chars = src->chars ;
 	dst->num_of_filled_chars = src->num_of_filled_chars ;
 
-	dst->bidi_state = src->bidi_state ;
+#if  defined(USE_FRIBIDI) || defined(USE_IND)
+	dst->ctl_info = src->ctl_info ;
+	dst->ctl_info_type = src->ctl_info_type ;
+#endif
 
 	dst->change_beg_col = src->change_beg_col ;
 	dst->change_end_col = src->change_end_col ;
@@ -1108,7 +1139,7 @@ ml_line_is_using_bidi(
 	ml_line_t *  line
 	)
 {
-	if( line->bidi_state)
+	if( line->ctl_info_type == VINFO_BIDI)
 	{
 		return  1 ;
 	}
@@ -1123,15 +1154,21 @@ ml_line_use_bidi(
 	ml_line_t *  line
 	)
 {
-	if( line->bidi_state)
+	if( line->ctl_info_type == VINFO_BIDI)
 	{
 		return  1 ;
 	}
-
-	if( ( line->bidi_state = ml_bidi_new()) == NULL)
+	else if( line->ctl_info_type != 0)
 	{
 		return  0 ;
 	}
+
+	if( ( line->ctl_info.bidi = ml_bidi_new()) == NULL)
+	{
+		return  0 ;
+	}
+
+	line->ctl_info_type = VINFO_BIDI ;
 
 	return  1 ;
 }
@@ -1141,10 +1178,10 @@ ml_line_unuse_bidi(
         ml_line_t *  line
         )
 {
-	if( line->bidi_state)
+	if( line->ctl_info_type == VINFO_BIDI)
 	{
-		ml_bidi_delete( line->bidi_state) ;
-		line->bidi_state = NULL ;
+		ml_bidi_delete( line->ctl_info.bidi) ;
+		line->ctl_info_type = 0 ;
 	}
 
 	return  1 ;
@@ -1159,20 +1196,22 @@ ml_line_bidi_render(
 	int  base_is_rtl ;
 	int  result ;
 	
-	if( ! line->bidi_state)
+	if( line->ctl_info_type != VINFO_BIDI)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " render failed. bidi_state is NULL\n") ;
+		kik_warn_printf( KIK_DEBUG_TAG
+			" Rendering failed. ctl_info_type isn't VINFO_BIDI.\n") ;
 	#endif
 
 		return  0 ;
 	}
 
-	base_is_rtl = line->bidi_state->base_is_rtl ;
+	base_is_rtl = line->ctl_info.bidi->base_is_rtl ;
 
-	result = ml_bidi( line->bidi_state , line->chars , line->num_of_filled_chars , bidi_mode) ;
+	result = ml_bidi( line->ctl_info.bidi ,
+			line->chars , line->num_of_filled_chars , bidi_mode) ;
 
-	if( base_is_rtl != line->bidi_state->base_is_rtl)
+	if( base_is_rtl != line->ctl_info.bidi->base_is_rtl)
 	{
 		/*
 		 * shifting RTL-base to LTR-base or LTR-base to RTL-base.
@@ -1180,7 +1219,7 @@ ml_line_bidi_render(
 		 */
 		ml_line_set_modified_all( line) ;
 	}
-	else if( line->bidi_state->has_rtl && IS_MODIFIED(line->flag))
+	else if( line->ctl_info.bidi->has_rtl && IS_MODIFIED(line->flag))
 	{
 		/* if line contains RTL chars, line is redrawn all */
 		ml_line_set_modified( line , 0 , END_CHAR_INDEX(line)) ;
@@ -1197,37 +1236,31 @@ ml_line_bidi_visual(
 	int  count ;
 	ml_char_t *  src ;
 	
-	if( ! line->bidi_state)
+	if( line->ctl_info_type != VINFO_BIDI ||
+	    line->ctl_info.bidi->size == 0 ||
+	    ! line->ctl_info.bidi->has_rtl)
 	{
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " bidi_state is NULL\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " Not need to visualize.\n") ;
 	#endif
 
 		return  0 ;
 	}
 
-	if( line->bidi_state->size == 0)
-	{
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " not rendered yet.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	if( ( src = ml_str_alloca( line->bidi_state->size)) == NULL)
+	if( ( src = ml_str_alloca( line->ctl_info.bidi->size)) == NULL)
 	{
 		return  0 ;
 	}
 
-	ml_str_copy( src , line->chars , line->bidi_state->size) ;
+	ml_str_copy( src , line->chars , line->ctl_info.bidi->size) ;
 
-	for( count = 0 ; count < line->bidi_state->size ; count ++)
+	for( count = 0 ; count < line->ctl_info.bidi->size ; count ++)
 	{
-		ml_char_copy( line->chars + line->bidi_state->visual_order[count] , src + count) ;
+		ml_char_copy( line->chars + line->ctl_info.bidi->visual_order[count] ,
+				src + count) ;
 	}
 
-	ml_str_final( src , line->bidi_state->size) ;
+	ml_str_final( src , line->ctl_info.bidi->size) ;
 
 	return  1 ;
 }
@@ -1240,37 +1273,31 @@ ml_line_bidi_logical(
 	int  count ;
 	ml_char_t *  src ;
 	
-	if( ! line->bidi_state)
+	if( line->ctl_info_type != VINFO_BIDI ||
+	    line->ctl_info.bidi->size == 0 ||
+	    ! line->ctl_info.bidi->has_rtl)
 	{
 	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " bidi_state is NULL\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " Not need to logicalize.\n") ;
 	#endif
 
 		return  0 ;
 	}
 
-	if( line->bidi_state->size == 0)
-	{
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " not rendered yet.\n") ;
-	#endif
-	
-		return  0 ;
-	}
-
-	if( ( src = ml_str_alloca( line->bidi_state->size)) == NULL)
+	if( ( src = ml_str_alloca( line->ctl_info.bidi->size)) == NULL)
 	{
 		return  0 ;
 	}
 	
-	ml_str_copy( src , line->chars , line->bidi_state->size) ;
+	ml_str_copy( src , line->chars , line->ctl_info.bidi->size) ;
 
-	for( count = 0 ; count < line->bidi_state->size ; count ++)
+	for( count = 0 ; count < line->ctl_info.bidi->size ; count ++)
 	{
-		ml_char_copy( line->chars + count , src + line->bidi_state->visual_order[count]) ;
+		ml_char_copy( line->chars + count ,
+			src + line->ctl_info.bidi->visual_order[count]) ;
 	}
 
-	ml_str_final( src , line->bidi_state->size) ;
+	ml_str_final( src , line->ctl_info.bidi->size) ;
 
 	/*
 	 * !! Notice !!
@@ -1287,37 +1314,65 @@ ml_bidi_convert_logical_char_index_to_visual(
 	int *  ltr_rtl_meet_pos
 	)
 {
-	if( ! line->bidi_state)
-	{
-	#ifdef  __DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " bidi_state is NULL\n") ;
-	#endif
-	
-		return  char_index ;
-	}
-
-	if( 0 <= char_index && char_index < line->bidi_state->size)
+	if( line->ctl_info_type == VINFO_BIDI &&
+	    0 <= char_index && char_index < line->ctl_info.bidi->size &&
+	    line->ctl_info.bidi->has_rtl)
 	{
 		int  count ;
 
-		if( ! line->bidi_state->base_is_rtl && char_index >= 2)
+		if( ! line->ctl_info.bidi->base_is_rtl && char_index >= 1)
 		{
 			for( count = char_index - 2 ; count >= 0 ; count --)
 			{
-				if( line->bidi_state->visual_order[count] <
-						line->bidi_state->visual_order[count + 1] &&
-					line->bidi_state->visual_order[count + 1] + 1 <
-						line->bidi_state->visual_order[count + 2])
+				/*
+				 * visual order -> 1 2 4 3 5
+				 *                   ^ ^   ^- char index
+				 *                   | |
+				 * cursor position --+ +-- meet position
+				 *
+				 * visual order -> 1 2*5*4 3 6
+				 *                 ^ ^ ^     ^- char index
+				 *                   | |
+				 * cursor position --+ +-- meet position
+				 *
+				 * visual order -> 1 2 3 6 5 4 7
+				 *                   ^ ^ ^     ^- char index
+				 *                     | |
+				 *   cursor position --+ +-- meet position
+				 */
+			#if  0
+				kik_debug_printf(
+				" Normal pos %d - Current pos %d %d %d - Meet position %d\n" ,
+					line->ctl_info.bidi->visual_order[char_index] ,
+					count >= 0 ? line->ctl_info.bidi->visual_order[count] : 0 ,
+				        line->ctl_info.bidi->visual_order[count + 1] ,
+				        line->ctl_info.bidi->visual_order[count + 2] ,
+					*ltr_rtl_meet_pos) ;
+			#endif
+				if( (count < 0 ||
+				        line->ctl_info.bidi->visual_order[count] <
+				        line->ctl_info.bidi->visual_order[count + 1]) &&
+				    line->ctl_info.bidi->visual_order[count + 1] + 1 <
+				        line->ctl_info.bidi->visual_order[count + 2])
 				{
-					if( *ltr_rtl_meet_pos != line->bidi_state->visual_order[count + 2])
+					/*
+					 * If meet position is not changed, text isn't changed
+					 * but cursor is moved. In this case cursor position should
+					 * not be fixed to visual_order[count + 1].
+					 */
+					if( *ltr_rtl_meet_pos !=
+						line->ctl_info.bidi->visual_order[count + 1] +
+					        line->ctl_info.bidi->visual_order[count + 2])
 					{
 						*ltr_rtl_meet_pos =
-							line->bidi_state->visual_order[count + 2] ;
-
-						if( line->bidi_state->visual_order[count + 2] + 1 ==
-							line->bidi_state->visual_order[char_index])
+						    line->ctl_info.bidi->visual_order[count + 1] +
+						    line->ctl_info.bidi->visual_order[count + 2] ;
+						
+						if( line->ctl_info.bidi->visual_order[char_index] ==
+							line->ctl_info.bidi->visual_order[count + 2] + 1)
 						{
-							return  line->bidi_state->visual_order[count + 1] ;
+							return  line->ctl_info.bidi->visual_order[
+									count + 1] ;
 						}
 					}
 
@@ -1330,25 +1385,58 @@ ml_bidi_convert_logical_char_index_to_visual(
 				*ltr_rtl_meet_pos = 0 ;
 			}
 		}
-		else if( line->bidi_state->base_is_rtl && char_index >= 2)
+		else if( line->ctl_info.bidi->base_is_rtl && char_index >= 1)
 		{
 			for( count = char_index - 2 ; count >= 0 ; count --)
 			{
-				if( line->bidi_state->visual_order[count] >
-						line->bidi_state->visual_order[count + 1] &&
-					line->bidi_state->visual_order[count + 1] >
-						line->bidi_state->visual_order[count + 2] + 1)
+				/*
+				 * visual order -> 6 5 4 2 3 1
+				 *                   ^ ^ ^   ^- char index
+				 *                     |
+				 *                     +-- meet position & cursor position
+				 * visual order -> 7 6 5 2 3*4*1
+				 *                   ^ ^ ^     ^- char index
+				 *                     |
+				 *                     +-- meet position & cursor position
+				 *
+				 * visual order -> 7 6 4 5 3 2 1
+				 *                 ^ ^ ^   ^- char index
+				 *                   | |
+				 * cursor position --+ +-- meet position
+				 * visual order -> 7 6 3 4*5*2 1
+				 *                 ^ ^ ^     ^- char index
+				 *                   | |
+				 * cursor position --+ +-- meet position
+				 */
+			#if  0
+				kik_debug_printf(
+				" Normal pos %d - Current pos %d %d %d - Meet position %d\n" ,
+					line->ctl_info.bidi->visual_order[char_index] ,
+					count >= 0 ? line->ctl_info.bidi->visual_order[count] : 0 ,
+				        line->ctl_info.bidi->visual_order[count + 1] ,
+				        line->ctl_info.bidi->visual_order[count + 2] ,
+					*ltr_rtl_meet_pos) ;
+			#endif
+
+				if( (count < 0 ||
+				        line->ctl_info.bidi->visual_order[count] >
+				        line->ctl_info.bidi->visual_order[count + 1]) &&
+				    line->ctl_info.bidi->visual_order[count + 1] >
+				        line->ctl_info.bidi->visual_order[count + 2] + 1)
 				{
 					if( *ltr_rtl_meet_pos !=
-						line->bidi_state->visual_order[count + 2])
+						line->ctl_info.bidi->visual_order[count + 1] +
+						line->ctl_info.bidi->visual_order[count + 2])
 					{
 						*ltr_rtl_meet_pos =
-							line->bidi_state->visual_order[count + 2] ;
+						    line->ctl_info.bidi->visual_order[count + 1] +
+						    line->ctl_info.bidi->visual_order[count + 2] ;
 
-						if( line->bidi_state->visual_order[count + 2] ==
-						    line->bidi_state->visual_order[char_index] + 1)
+						if( line->ctl_info.bidi->visual_order[char_index] + 1 ==
+					            line->ctl_info.bidi->visual_order[count + 2])
 						{
-							return  line->bidi_state->visual_order[count + 1] ;
+							return  line->ctl_info.bidi->visual_order[
+									count + 1] ;
 						}
 					}
 
@@ -1366,7 +1454,7 @@ ml_bidi_convert_logical_char_index_to_visual(
 			*ltr_rtl_meet_pos = 0 ;
 		}
 		
-		return  line->bidi_state->visual_order[char_index] ;
+		return  line->ctl_info.bidi->visual_order[char_index] ;
 	}
 	else
 	{
@@ -1382,11 +1470,13 @@ ml_line_is_rtl(
 	ml_line_t *  line
 	)
 {
-	if( line->bidi_state)
+#ifdef  USE_FRIBIDI
+	if( line->ctl_info_type == VINFO_BIDI)
 	{
-		return  line->bidi_state->base_is_rtl ;
+		return  line->ctl_info.bidi->base_is_rtl ;
 	}
 	else
+#endif
 	{
 		return  0 ;
 	}
@@ -1395,9 +1485,90 @@ ml_line_is_rtl(
 
 #ifdef  USE_IND
 int
+ml_line_is_using_iscii(
+	ml_line_t *  line
+	)
+{
+	if( line->ctl_info_type == VINFO_ISCII)
+	{
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+int
+ml_line_use_iscii(
+	ml_line_t *  line
+	)
+{
+	if( line->ctl_info_type == VINFO_ISCII)
+	{
+		return  1 ;
+	}
+	else if( line->ctl_info_type != 0)
+	{
+		return  0 ;
+	}
+
+	if( ( line->ctl_info.iscii = ml_iscii_new()) == NULL)
+	{
+		return  0 ;
+	}
+
+	line->ctl_info_type = VINFO_ISCII ;
+
+	return  1 ;
+}
+
+int
+ml_line_unuse_iscii(
+        ml_line_t *  line
+        )
+{
+	if( line->ctl_info_type == VINFO_ISCII)
+	{
+		ml_iscii_delete( line->ctl_info.iscii) ;
+		line->ctl_info_type = 0 ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_line_iscii_render(
+	ml_line_t *  line
+	)
+{
+	if( line->ctl_info_type != VINFO_ISCII)
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG
+			" Rendering failed. ctl_info_type isn't VINFO_ISCII.\n") ;
+	#endif
+
+		return  0 ;
+	}
+
+	if( ! ml_iscii( line->ctl_info.iscii , line->chars , line->num_of_filled_chars))
+	{
+		return  0 ;
+	}
+
+	if( line->ctl_info.iscii->has_iscii && IS_MODIFIED(line->flag))
+	{
+		/* if line contains ISCII chars, line is redrawn all */
+		ml_line_set_modified( line , 0 , END_CHAR_INDEX(line)) ;
+	}
+
+	return  1 ;
+}
+
+int
 ml_line_iscii_visual(
-	ml_line_t *  line ,
-	ml_iscii_lang_t  iscii_lang
+	ml_line_t *  line
 	)
 {
 	ml_char_t *  src ;
@@ -1406,24 +1577,15 @@ ml_line_iscii_visual(
 	u_int  dst_len ;
 	int  dst_pos ;
 	int  src_pos ;
-	ml_char_t *  ch ;
-	u_char *  iscii_buf ;
-	u_int  iscii_buf_len ;
-	u_char *  font_buf ;
-	u_int  font_buf_len ;
-	u_int  prev_font_filled ;
-	u_int  iscii_filled ;
-	int  count ;
 
-	iscii_buf_len = line->num_of_filled_chars * 4 + 1 ;
-	if( ( iscii_buf = alloca( iscii_buf_len)) == NULL)
+	if( line->ctl_info_type != VINFO_ISCII ||
+	    line->ctl_info.iscii->size == 0 ||
+	    ! line->ctl_info.iscii->has_iscii)
 	{
-		return  0 ;
-	}
+	#ifdef  __DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " Not need to visualize.\n") ;
+	#endif
 
-	font_buf_len = line->num_of_chars * 4 + 1 ;
-	if( ( font_buf = alloca( font_buf_len)) == NULL)
-	{
 		return  0 ;
 	}
 
@@ -1433,161 +1595,43 @@ ml_line_iscii_visual(
 		return  0 ;
 	}
 	
-	ml_str_copy( src , line->chars , line->num_of_filled_chars) ;
+	ml_str_copy( src , line->chars , src_len) ;
 
 	dst = line->chars ;
-	dst_len = line->num_of_chars ;
-	
-	dst_pos = -1 ;
-	prev_font_filled = 0 ;
-	iscii_filled = 0 ;
-	for( src_pos = 0 ; src_pos < src_len ; src_pos ++)
+	dst_len = K_MIN(line->num_of_chars,line->ctl_info.iscii->size) ;
+
+	src_pos = 0 ;
+	for( dst_pos = 0 ; dst_pos < dst_len ; dst_pos ++)
 	{
-		ch = src + src_pos ;
-		
-		if( ml_char_cs( ch) == ISCII)
+		if( line->ctl_info.iscii->num_of_chars_array[dst_pos] == 0)
 		{
-			u_int  font_filled ;
-			
-			iscii_buf[iscii_filled ++] = ml_char_bytes( ch)[0] ;
-			iscii_buf[iscii_filled] = '\0' ;
-			font_filled = ml_iscii_shape( iscii_lang , font_buf , font_buf_len , iscii_buf) ;
-
-			if( font_filled < prev_font_filled)
-			{
-				ml_char_t *  c ;
-				ml_char_t *  comb ;
-				u_int  comb_size ;
-
-				if( prev_font_filled - font_filled > dst_pos)
-				{
-					font_filled = prev_font_filled - dst_pos ;
-				}
-				
-				dst_pos -= (prev_font_filled - font_filled) ;
-				
-				for( count = 1 ; count <= prev_font_filled - font_filled ; count ++)
-				{
-					int  comb_pos ;
-					
-					c = dst + dst_pos + count ;
-
-					if( ml_char_is_null( c))
-					{
-						continue ;
-					}
-					
-					comb = ml_get_combining_chars( c , &comb_size) ;
-
-					comb_pos = 0 ;
-					while( 1)
-					{
-						if( ml_char_is_null( dst + dst_pos))
-						{
-							/*
-							 * combining is forbidden if base character is null
-							 */
-							ml_char_copy( dst + dst_pos , c) ;
-						}
-						else if( ! ml_combine_chars( dst + dst_pos , c))
-						{
-						#ifdef  DEBUG
-							kik_warn_printf( KIK_DEBUG_TAG
-								" combining failed.\n") ;
-						#endif
-						
-							break ;
-						}
-
-						if( comb_pos >= comb_size)
-						{
-							break ;
-						}
-
-						c = &comb[comb_pos++] ;
-					}
-				}
-
-				prev_font_filled = font_filled ;
-			}
-
-			if( dst_pos >= 0 && font_filled == prev_font_filled)
-			{
-				if( ml_char_is_null( dst + dst_pos))
-				{
-					/*
-					 * combining is forbidden if base character is null
-					 */
-					ml_char_copy( dst + dst_pos , ch) ;
-				}
-				else if( ! ml_combine_chars( dst + dst_pos , ch))
-				{
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" combining failed.\n") ;
-				#endif
-				}
-			}
-			else
-			{
-				if( ++ dst_pos >= dst_len)
-				{
-					goto  end ;
-				}
-
-				ml_char_copy( dst + dst_pos , ch) ;
-				
-				if( font_filled > prev_font_filled + 1)
-				{
-					for( count = 0 ; count < font_filled - prev_font_filled - 1 ;
-						count ++)
-					{
-						if( ++ dst_pos >= dst_len)
-						{
-							goto  end ;
-						}
-
-						ml_char_copy( dst + dst_pos , ch) ;
-						
-						/* NULL */
-						ml_char_set_bytes( dst + dst_pos , "\x0") ;
-					}
-				}
-			}
-
-			prev_font_filled = font_filled ;
+			ml_char_copy( dst + dst_pos , src + src_pos - 1) ;
+			/* NULL */
+			ml_char_set_bytes( dst + dst_pos , "\x0") ;
 		}
 		else
 		{
-			if( ++ dst_pos >= dst_len)
-			{
-				goto  end ;
-			}
-			
-			ml_char_copy( dst + dst_pos , ch) ;
+			u_int  count ;
 
-			prev_font_filled = 0 ;
-			iscii_filled = 0 ;
+			ml_char_copy( dst + dst_pos , src + (src_pos ++)) ;
+
+			for( count = 1 ;
+			     count < line->ctl_info.iscii->num_of_chars_array[dst_pos] ; count++)
+			{
+				ml_combine_chars( dst + dst_pos , src + (src_pos ++)) ;
+			}
 		}
 	}
 
-	dst_pos ++ ;
-
-end:
 	ml_str_final( src , src_len) ;
 
 	line->num_of_filled_chars = dst_pos ;
-
-	if( IS_MODIFIED(line->flag))
-	{
-		ml_line_set_modified_all( line) ;
-	}
 
 	return  1 ;
 }
 
 /*
- * This should be called after ml_line_iscii_visaul()
+ * This should be called after ml_line_iscii_visual()
  */
 int
 ml_iscii_convert_logical_char_index_to_visual(
@@ -1595,75 +1639,31 @@ ml_iscii_convert_logical_char_index_to_visual(
 	int  logical_char_index
 	)
 {
-	int  count ;
 	int  visual_char_index ;
-	u_int  comb_size ;
 
 	if( IS_EMPTY(line))
 	{
 		return  0 ;
 	}
 
-	visual_char_index = 0 ;
-
-	for( count = 0 ; count < logical_char_index && count < END_CHAR_INDEX(line) ; count ++)
+	if( line->ctl_info_type != VINFO_ISCII ||
+	    line->ctl_info.iscii->size == 0 ||
+	    ! line->ctl_info.iscii->has_iscii)
 	{
-		if( ml_char_cs( line->chars + count) == ISCII)
-		{
-			/*
-			 * skipping trailing null characters of previous character.
-			 */
-			while( ml_char_is_null( line->chars + count))
-			{
-				if( ++ count >= line->num_of_filled_chars)
-				{
-					goto  end ;
-				}
-
-				logical_char_index ++ ;
-				visual_char_index ++ ;
-			}
-
-			if( ml_get_combining_chars( line->chars + count , &comb_size))
-			{
-				logical_char_index -= comb_size ;
-			}
-		}
-		
-		visual_char_index ++ ;
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " logical char_index is same as visual one.\n") ;
+	#endif
+		return  logical_char_index ;
 	}
 
-	do
+	for( visual_char_index = 0 ; visual_char_index < END_CHAR_INDEX(line) ;
+		visual_char_index++)
 	{
-		if( count >= line->num_of_filled_chars || ! ml_char_is_null( line->chars + count))
+		if( ( logical_char_index -=
+			line->ctl_info.iscii->num_of_chars_array[visual_char_index]) < 0)
 		{
 			break ;
 		}
-
-		count ++ ;
-		visual_char_index ++ ;
-	}
-	while( 1) ;
-
-end:
-	if( visual_char_index >= line->num_of_filled_chars)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG
-			" visual_char_index %d (of logical %d) is over num_of_filled_chars %d\n" ,
-			visual_char_index , logical_char_index , line->num_of_filled_chars) ;
-	#endif
-
-	#ifdef  __DEBUG
-		/*
-		 * XXX
-		 * This must never happens, so abort() should be done here.
-		 * But since this happens not a few times, this is enclosed by __DEBUG.
-		 */
-		abort() ;
-	#endif
-	
-		visual_char_index = END_CHAR_INDEX(line) ;
 	}
 
 	return  visual_char_index ;
@@ -1682,10 +1682,13 @@ ml_line_copy_logical_str(
 	u_int  len
 	)
 {
-	if( line->bidi_state == NULL || line->bidi_state->size == 0)
+#ifdef  USE_FRIBIDI
+	if( line->ctl_info_type != VINFO_BIDI || line->ctl_info.bidi->size == 0)
+#endif
 	{
 		return  ml_str_copy( dst , line->chars + beg , len) ;
 	}
+#ifdef  USE_FRIBIDI
 	else
 	{
 		/*
@@ -1698,35 +1701,38 @@ ml_line_copy_logical_str(
 		int  norm_pos ;
 		int  dst_pos ;
 
-		if( ( flags = alloca( sizeof( int) * line->bidi_state->size)) == NULL)
+		if( ( flags = alloca( sizeof( int) * line->ctl_info.bidi->size)) == NULL)
 		{
 			return  0 ;
 		}
 
-		memset( flags , 0 , sizeof( int) * line->bidi_state->size) ;
+		memset( flags , 0 , sizeof( int) * line->ctl_info.bidi->size) ;
 
 		for( bidi_pos = beg ; bidi_pos < beg + len ; bidi_pos ++)
 		{
-			for( norm_pos = 0 ; norm_pos < line->bidi_state->size ; norm_pos ++)
+			for( norm_pos = 0 ; norm_pos < line->ctl_info.bidi->size ; norm_pos ++)
 			{
-				if( line->bidi_state->visual_order[norm_pos] == bidi_pos)
+				if( line->ctl_info.bidi->visual_order[norm_pos] == bidi_pos)
 				{
 					flags[norm_pos] = 1 ;
 				}
 			}
 		}
 
-		for( dst_pos = norm_pos = 0 ; norm_pos < line->bidi_state->size ; norm_pos ++)
+		for( dst_pos = norm_pos = 0 ; norm_pos < line->ctl_info.bidi->size ;
+			norm_pos ++)
 		{
 			if( flags[norm_pos])
 			{
 				ml_char_copy( &dst[dst_pos ++] ,
-					line->chars + line->bidi_state->visual_order[norm_pos]) ;
+					line->chars +
+					line->ctl_info.bidi->visual_order[norm_pos]) ;
 			}
 		}
 
 		return  1 ;
 	}
+#endif
 }
 
 int
@@ -1773,6 +1779,8 @@ ml_line_shape(
 	
 	if( ( shaped = ml_str_new( line->num_of_chars)) == NULL)
 	{
+		free( orig) ;
+
 		return  NULL ;
 	}
 

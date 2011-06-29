@@ -66,7 +66,6 @@
 #include  <kiklib/kik_file.h>
 #include  <kiklib/kik_list.h>
 #include  <kiklib/kik_debug.h>
-#include  <mkf/mkf_iso8859_conv.h>
 
 #include  "im_iiimf.h"
 #include  "../im_common.h"

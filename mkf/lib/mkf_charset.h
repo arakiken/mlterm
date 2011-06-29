@@ -45,10 +45,11 @@
 #define  IS_CS94MB(cs)  (0x80 <= ((cs) & 0xff) && ((cs) & 0xff) <= 0x9f)
 #define  IS_CS96MB(cs)  (0)			/* always false */
 #define  IS_CS_BASED_ON_ISO2022(cs)  ( 0x0 <= ((cs) & 0xff) && ((cs) & 0xff) <= 0x9f)
+/* without "(cs) != UNKNOWN_CS &&", 0xa0 <= (UNKNOWN_CS & 0xff) returns true. */
+#define  IS_NON_ISO2022(cs)  ((cs) != UNKNOWN_CS && 0xa0 <= ((cs) & 0xff))
+#define  IS_ISCII(cs)  (0xf0 <= (cs) && (cs) <= 0xfa)
 
-#define  IS_NON_ISO2022(cs)  (0xa0 <= (cs) && (cs) <= 0xff)
-
-#define  IS_BIWIDTH_CS(cs) (IS_CS94MB(cs) || IS_CS96MB(cs) || (0xf2 <= (cs) && (cs) <= 0xff))
+#define  IS_BIWIDTH_CS(cs) (IS_CS94MB(cs) || IS_CS96MB(cs) || (0x1e0 <= (cs) && (cs) <= 0x1ff))
 #define  CS_SIZE(cs) \
 	((cs) == ISO10646_UCS4_1 ? 4 : ((IS_BIWIDTH_CS(cs) || (cs) == ISO10646_UCS2_1) ? 2 : 1))
 
@@ -108,6 +109,7 @@ typedef enum  mkf_charset
 	JISX0213_2000_2 = CS94MB_ID('P') ,
 
 	/* 96 mb cs */
+	/* Nothing */
 
 	/* NOT ISO2022 class 1 (ESC 2/5 Ft) */
 	UTF1 = NON_ISO2022_1_ID('B') ,
@@ -124,47 +126,35 @@ typedef enum  mkf_charset
 	
 	/*
 	 * Those who are not ISO2022 registed characterset or do not confirm to ISO2022.
-	 * 0xe0 - 0xf1
+	 * 0xe0 - 0xfa
 	 */
 	VISCII = 0xe0 ,			/* Excluding US_ASCII(0x0-0x7f) */
 	TCVN5712_1_1993 = 0xe1 ,	/* ISO2022 compat */
 	KOI8_R = 0xe2 ,			/* Excluding US_ASCII(0x0-0x7f) */
 	KOI8_U = 0xe3 ,			/* Excluding US_ASCII(0x0-0x7f) */
-	ISCII = 0xe4 ,			/* Excluding US_ASCII(0x0-0x7f) */
-	KOI8_T = 0xe5 ,			/* Excluding US_ASCII(0x0-0x7f) */
-	GEORGIAN_PS = 0xe6 ,		/* Excluding US_ASCII(0x0-0x7f) */
-	CP1250 = 0xe7 ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1251 = 0xe8 ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1252 = 0xe9 ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1253 = 0xea ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1254 = 0xeb ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1255 = 0xec ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1256 = 0xed ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1257 = 0xee ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP1258 = 0xef ,			/* Excluding US_ASCII(0x0-0x7f) */
-	CP874 = 0xf0 ,			/* Excluding US_ASCII(0x0-0x7f) */
-
-	/*
-	 * Those who are not ISO2022 registed characterset but confirm to ISO2022.
-	 * (Bi-width)
-	 * 0xf2 - 0xf5
-	 */
-	JISC6226_1978_NEC_EXT = 0xf2 ,
-	JISC6226_1978_NECIBM_EXT = 0xf3 ,
-	JISX0208_1983_MAC_EXT = 0xf4 ,
-
-	/*
-	 * Those who are not ISO2022 registed characterset or do not confirm to ISO2022.
-	 * (Bi-width)
-	 * 0xf6 - 0xff
-	 */
-	SJIS_IBM_EXT = 0xf6 ,
-	UHC = 0xf7 ,
-	BIG5 = 0xf8 ,
-	CNS11643_1992_EUCTW_G2 = 0xf9 ,
-	GBK = 0xfa ,
-	JOHAB = 0xfb ,
-	HKSCS = 0xfc ,
+	KOI8_T = 0xe4 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	GEORGIAN_PS = 0xe5 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	CP1250 = 0xe6 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1251 = 0xe7 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1252 = 0xe8 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1253 = 0xe9 ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1254 = 0xea ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1255 = 0xeb ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1256 = 0xec ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1257 = 0xed ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP1258 = 0xee ,			/* Excluding US_ASCII(0x0-0x7f) */
+	CP874 = 0xef ,			/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_ASSAMESE = 0xf0 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_BENGALI = 0xf1 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_GUJARATI = 0xf2 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_HINDI = 0xf3 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_KANNADA = 0xf4 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_MALAYALAM = 0xf5 ,	/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_ORIYA = 0xf6 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_PUNJABI = 0xf7 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_ROMAN = 0xf8 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_TAMIL = 0xf9 ,		/* Excluding US_ASCII(0x0-0x7f) */
+	ISCII_TELUGU = 0xfa ,		/* Excluding US_ASCII(0x0-0x7f) */
 
 
 	/* Followings are ISO2022 based charsets with revisions. */
@@ -172,29 +162,34 @@ typedef enum  mkf_charset
 	/* Revision 1 */
 	JISX0208_1990 = CS_REVISION_1( JISX0208_1983) ,
 
+
+	/* Followings are mkf original classifications */
+
+	/*
+	 * Those who are not ISO2022 registed characterset but confirm to ISO2022.
+	 * (Bi-width)
+	 * 0x1e0 - 0xf5
+	 */
+	JISC6226_1978_NEC_EXT = 0x1e0 ,
+	JISC6226_1978_NECIBM_EXT = 0x1e1 ,
+	JISX0208_1983_MAC_EXT = 0x1e2 ,
+
+	/*
+	 * Those who are not ISO2022 registed characterset or do not confirm to ISO2022.
+	 * (Bi-width)
+	 * 0x1e3 - 0x1e9
+	 */
+	SJIS_IBM_EXT = 0x1e3 ,
+	UHC = 0x1e4 ,
+	BIG5 = 0x1e5 ,
+	CNS11643_1992_EUCTW_G2 = 0x1e6 ,
+	GBK = 0x1e7 ,
+	JOHAB = 0x1e8 ,
+	HKSCS = 0x1e9 ,
+
 	MAX_CHARSET = 0x2ff
 	
 } mkf_charset_t ;
-
-typedef enum  mkf_iscii_lang
-{
-	ISCIILANG_UNKNOWN = -1 ,
-
-	ISCIILANG_ASSAMESE = 0 ,
-	ISCIILANG_BENGALI ,
-	ISCIILANG_GUJARATI ,
-	ISCIILANG_HINDI ,
-	ISCIILANG_KANNADA ,
-	ISCIILANG_MALAYALAM ,
-	ISCIILANG_ORIYA ,
-	ISCIILANG_PUNJABI ,
-	ISCIILANG_ROMAN ,
-	ISCIILANG_TAMIL ,
-	ISCIILANG_TELUGU ,
-
-	MAX_ISCIILANGS
-
-} mkf_iscii_lang_t ;
 
 
 #endif

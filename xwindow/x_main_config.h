@@ -29,7 +29,6 @@ typedef struct x_main_config
 	u_int  screen_width_ratio ;
 	u_int  screen_height_ratio ;
 	u_int  num_of_log_lines ;
-	mkf_iscii_lang_t  iscii_lang_type ;
 	x_mod_meta_mode_t  mod_meta_mode ;
 	x_bel_mode_t  bel_mode ;
 	x_sb_mode_t  sb_mode ;
@@ -86,6 +85,7 @@ typedef struct x_main_config
 	int8_t  use_scrollbar ;
 	int8_t  use_login_shell ;
 	int8_t  use_bidi ;
+	int8_t  use_ind ;
 	int8_t  big5_buggy ;
 	int8_t  iso88591_font_for_usascii ;
 	int8_t  receive_string_via_ucs ;

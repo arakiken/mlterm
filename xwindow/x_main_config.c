@@ -99,8 +99,8 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
 		"scrollbar background color") ;
 #ifdef  USE_IND
-	kik_conf_add_opt( conf , 'C' , "iscii" , 0 , "iscii_lang" , 
-		"language to be used in ISCII encoding") ;
+	kik_conf_add_opt( conf , 'C' , "ind" , 1 , "use_ind" , 
+		"use indic (ligature text) [true(if use_bidi is false)]") ;
 #endif
 #ifdef  USE_FRIBIDI
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , 
@@ -921,6 +921,16 @@ x_main_config_init(
 		main_config->bidi_mode = ml_get_bidi_mode( value) ;
 	}
 
+	main_config->use_ind = 1 ;
+
+	if( ( value = kik_conf_get_value( conf , "use_ind")))
+	{
+		if( strcmp( value , false) == 0)
+		{
+			main_config->use_ind = 0 ;
+		}
+	}
+
 	/* If value is "none" or not is also checked in x_screen.c */
 	if( ( value = kik_conf_get_value( conf , "mod_meta_key")) &&
 		strcmp( value , "none") != 0)
@@ -960,18 +970,6 @@ x_main_config_init(
 		}
 	}
 	
-	main_config->iscii_lang_type = ISCIILANG_MALAYALAM ;
-
-	if( ( value = kik_conf_get_value( conf , "iscii_lang")))
-	{
-		mkf_iscii_lang_t  type ;
-		
-		if( ( type = ml_iscii_get_lang( value)) != ISCIILANG_UNKNOWN)
-		{
-			main_config->iscii_lang_type = type ;
-		}
-	}
-
 	main_config->use_extended_scroll_shortcut = 0 ;
 	
 	if( ( value = kik_conf_get_value( conf , "use_extended_scroll_shortcut")))

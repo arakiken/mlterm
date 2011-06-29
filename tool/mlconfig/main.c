@@ -28,7 +28,6 @@
 #include  "mc_sb.h"
 #include  "mc_im.h"
 #include  "mc_check.h"
-#include  "mc_iscii_lang.h"
 #include  "mc_sb_view.h"
 #include  "mc_io.h"
 #include  "mc_pty.h"
@@ -67,7 +66,6 @@ update(
 	)
 {
     mc_update_char_encoding() ;
-    mc_update_iscii_lang() ;
     mc_update_color(MC_COLOR_FG) ;
     mc_update_bgtype() ;
     mc_update_color(MC_COLOR_SBFG) ;
@@ -94,6 +92,7 @@ update(
     mc_update_flag_mode(MC_FLAG_RECVUCS);
     mc_update_flag_mode(MC_FLAG_MCOL);
     mc_update_flag_mode(MC_FLAG_BIDI);
+    mc_update_flag_mode(MC_FLAG_IND);
     mc_update_flag_mode(MC_FLAG_AWIDTH);
     mc_update_flag_mode(MC_FLAG_CLIPBOARD);
 
@@ -377,14 +376,6 @@ show(void)
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
 
 
-	if (!(config_widget = mc_iscii_lang_config_widget_new())) return 0;
-#ifndef USE_IND
-	gtk_widget_set_sensitive(config_widget, 0);
-#endif
-	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
-
-
 	if (!(config_widget = mc_im_config_widget_new())) return 0;
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(vbox), config_widget, FALSE, FALSE, 0);
@@ -397,6 +388,14 @@ show(void)
 	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_BIDI)))
 	    return 0;
 #ifndef USE_FRIBIDI
+	gtk_widget_set_sensitive(config_widget, 0);
+#endif
+	gtk_widget_show(config_widget);
+	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
+
+	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_IND)))
+	    return 0;
+#ifndef USE_IND
 	gtk_widget_set_sensitive(config_widget, 0);
 #endif
 	gtk_widget_show(config_widget);

@@ -48,7 +48,7 @@ INC = $(PARSER_OBJ:.o=.h) $(CONV_OBJ:.o=.h) $(MAP_OBJ:.o=.h) mkf_char.h mkf_sjis
 
 LIBNAME = libmkf
 LIBNAME_DEB = libmkf_deb
-MAJOR = 15
+MAJOR = 16
 MINOR = 0
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
@@ -62,7 +62,7 @@ debug :
 	$(MAKE) LIBNAME=$(LIBNAME_DEB) $(LIBNAME_DEB).a
 
 $(LIBNAME).a : $(OBJ)
-	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ)
+	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ:.o=.lo)
 
 $(LIBNAME).la : $(OBJ)
 	$(LIBTOOL_LINK) -o $(LIBNAME).la $(OBJ:.o=.lo) -rpath $(libdir) \

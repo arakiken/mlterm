@@ -30,8 +30,6 @@ comment $Id$
 
     Unicode の Bidi レンダリングには、Fribidi 0.9.x 以上(?) が必要です。
 
-    ISCII の表示には、libind が必要です。
-
     ssh2 client として使用する場合は、libssh2 が必要です。
 
     これらは、すべて、configure 時に有無をチェックします。
@@ -71,7 +69,7 @@ comment $Id$
       Fribidi を用いて Bidi レンダリングを行ないます。
 
     --enable-ind
-      libind を用いて ISCII を表示します。
+      インド諸語の表示を行います。
 
     --enable-ssh2
       libssh2 を用いて ssh サーバに接続できるようにします。
@@ -287,10 +285,11 @@ comment $Id$
         サポートしているエンコーディングは、以下の通りです。
 
         ISO-8859-[1-11], ISO-8859-[13-16], TIS-620(same as ISO-8859-11),
-        KOI8-[RUT], ISCII, VISCII, TCVN5712, GEORGIAN_PS, CP125[0-8], CP874,
-        EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213, ISO-2022-JP[1-3],
-        EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK, GB18030,
-        ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO
+	KOI8-[RUT], ISCII_(ASSAMESE|BENGALI|GUJARATI|HINDI|KANNADA|MALAYALAM|
+	ORIYA|PUNJABI|ROMAN|TAMIL|TELUGU), VISCII, TCVN5712, GEORGIAN_PS,
+	CP125[0-8], CP874, EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213,
+	ISO-2022-JP[1-3], EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK,
+	GB18030, ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, UTF-8, AUTO
 
         '-' , '_' および、大文字小文字は無視されます。
 
@@ -309,10 +308,10 @@ comment $Id$
           ENCODING 指定を行なわなかった場合も同様です。
 
       o use_bidi  (*true*/false) (#)
-        BiDi レンダリングを行う
+        BiDi レンダリングを行う。
 
       o bidi_mode  (*normal*/cmd_l/cmd_r)
-        BiDi レンダリングの方法を指定する
+        BiDi レンダリングの方法を指定する。
                 +---------------------+
         logical |$ ls -l ABC DEF      |
         normal  |$ ls -l FED CBA      |
@@ -320,6 +319,9 @@ comment $Id$
         cmd_r   |      FED CBA -l ls $|
                 +---------------------+
                 (大文字は RTL 文字を示します。)
+
+      o use_ind  (*true*/false) (#)
+        インド諸語の表示を行う。use_bidi が false の場合のみ有効。
 
       o use_combining  (*true*/false) (#)
         結合文字を処理する
@@ -330,10 +332,6 @@ comment $Id$
         端末アプリケーションが結合文字をサポートしていない場合でも、結合文字を正
         しく表示できるようにします。
         use_combining が true でないと、有効になりません。
-
-      o iscii_lang  (assamese/bengali/gujarati/hindi/kannada/*malayalam*/oriya/
-                     punjabi/roman/tamil/telugu) (#)
-        ISCII にて、使用する言語を指定する
 
       o big5_buggy  (true/*false*)
         Big5 CTEXT のバグ (XFree86 4.1.0 以前) に対応する
@@ -987,7 +985,7 @@ comment $Id$
     -@/--screens=value : startup_screens (X)
     -A/--aa(=bool)     : use_anti_alias
     -B/--sbbg=value    : sb_bg_color
-    -C/--iscii=value   : iscii_lang
+    -C/--ind(=bool)    : use_ind
     -D/--bi(=bool)     : use_bidi
     -E/--km=value      : ENCODING
     -F/--sbfg=value    : sb_fg_color

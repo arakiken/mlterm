@@ -64,7 +64,7 @@ get_cs_bytelen(
 	{
 		return  2 ;
 	}
-	else if( cs == ISCII || cs == KOI8_R || cs == KOI8_U || cs == VISCII)
+	else if( IS_ISCII(cs) || cs == KOI8_R || cs == KOI8_U || cs == VISCII)
 	{
 		return  1 ;
 	}

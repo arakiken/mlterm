@@ -123,7 +123,7 @@ static mkf_factory_table_t  factories[] =
 static void
 usage()
 {
-	kik_msg_printf( "usage: mkf -i [input code] -o [output code] [file]\n") ;
+	kik_msg_printf( "usage: mkf -i [input code] -o [output code] ([file])\n") ;
 	kik_msg_printf( "supported codes: iso8859-[1-10] tis620 iso8859-[13-16] tcvn5712 xct viscii iscii koi8-r koi8-u cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp874 eucjp eucjisx0213 sjis sjisx0213 utf8 utf16 utf16le utf32 junet8 junet7 iso2022jp2 iso2022jp3 euckr uhc iso2022kr johab euccn gbk gb18030 iso2022cn hz big5 big5hkscs euctw\n") ;
 }
 
@@ -148,7 +148,7 @@ main( int  argc , char **  argv)
 	mkf_conv_t *  conv ;
 	size_t  size ;
 
-	if( argc != 6)
+	if( argc != 5 && argc != 6)
 	{
 		usage() ;
 

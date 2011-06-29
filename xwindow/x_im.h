@@ -64,9 +64,9 @@ typedef struct x_im_export_syms
 	char * (*ml_get_char_encoding_name)( ml_char_encoding_t) ;
 	ml_char_encoding_t (*ml_get_char_encoding)( const char *) ;
 	int (*ml_is_msb_set)( mkf_charset_t  cs) ;
-	ml_iscii_keymap_t (*ml_iscii_keymap_new)( int) ;
-	int (*ml_iscii_keymap_delete)( ml_iscii_keymap_t) ;
-	size_t (*ml_convert_ascii_to_iscii)( ml_iscii_keymap_t , u_char * ,
+	ml_isciikey_state_t (*ml_isciikey_state_new)( int) ;
+	int (*ml_isciikey_state_delete)( ml_isciikey_state_t) ;
+	size_t (*ml_convert_ascii_to_iscii)( ml_isciikey_state_t , u_char * ,
 					     size_t , u_char * , size_t) ;
 	mkf_parser_t * (*ml_parser_new)( ml_char_encoding_t) ;
 	mkf_conv_t * (*ml_conv_new)( ml_char_encoding_t) ;

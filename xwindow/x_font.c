@@ -76,7 +76,17 @@ static cs_info_t  cs_info_table[] =
 	 */
 	{ TCVN5712_3_1993 , { NULL , NULL , NULL , } , } ,
 
-	{ ISCII , { NULL , NULL , NULL , } , } ,
+	{ ISCII_ASSAMESE , { NULL , NULL , NULL , } , } ,
+	{ ISCII_BENGALI , { NULL , NULL , NULL , } , } ,
+	{ ISCII_GUJARATI , { NULL , NULL , NULL , } , } ,
+	{ ISCII_HINDI , { NULL , NULL , NULL , } , } ,
+	{ ISCII_KANNADA , { NULL , NULL , NULL , } , } ,
+	{ ISCII_MALAYALAM , { NULL , NULL , NULL , } , } ,
+	{ ISCII_ORIYA , { NULL , NULL , NULL , } , } ,
+	{ ISCII_PUNJABI , { NULL , NULL , NULL , } , } ,
+	{ ISCII_ROMAN , { NULL , NULL , NULL , } , } ,
+	{ ISCII_TAMIL , { NULL , NULL , NULL , } , } ,
+	{ ISCII_TELUGU , { NULL , NULL , NULL , } , } ,
 	{ VISCII , { "viscii-1" , NULL , NULL , } , } ,
 	{ KOI8_R , { "koi8-r" , NULL , NULL , } , } ,
 	{ KOI8_U , { "koi8-u" , NULL , NULL , } , } ,
@@ -348,7 +358,7 @@ parse_xft_font_name(
 	while( len > 0)
 	{
 		size_t  step = 0 ;
-		
+
 		if( *p == ' ')
 		{
 			char *  orig_p ;
@@ -430,7 +440,8 @@ parse_xft_font_name(
 					}
 				}
 				
-				if( sscanf( p , "%f" , &size_f) == 1)
+				if( *p != '0' &&	/* In case of "DevLys 010" font family. */
+				    sscanf( p , "%f" , &size_f) == 1)
 				{
 					/* If matched with %f, p has no more parameters. */
 
@@ -609,7 +620,11 @@ set_xft_font(
 			}
 			else
 			{
-				if( font->is_vertical)
+				if( font->is_var_col_width)
+				{
+					ch_width = 0 ;
+				}
+				else if( font->is_vertical)
 				{
 					/*
 					 * !! Notice !!
@@ -646,9 +661,8 @@ set_xft_font(
 						aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
 							aa_opt == 1 ? True : False , NULL)))
 				{
-					/* letter_space is ignored in variable column width mode */
-					ch_width = xft_calculate_char_width( font->display ,
-							xfont , "W" , 1) ;
+					ch_width = xft_calculate_char_width(
+							font->display , xfont , "W" , 1) ;
 
 					goto  font_found ;
 				}
@@ -693,7 +707,11 @@ set_xft_font(
 	}
 	else
 	{
-		if( font->is_vertical)
+		if( font->is_var_col_width)
+		{
+			ch_width = 0 ;
+		}
+		else if( font->is_vertical)
 		{
 			/*
 			 * !! Notice !!
@@ -1579,7 +1597,7 @@ x_calculate_char_width(
 		{
 			u_char  ucs4[4] ;
 
-			if( cs != US_ASCII)
+			if( cs != US_ASCII && ! IS_ISCII(cs))
 			{
 				if( ! ml_convert_to_xft_ucs4( ucs4 , ch , len , cs))
 				{

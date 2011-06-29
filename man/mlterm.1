@@ -11,8 +11,7 @@ mlterm \- Multi Lingual TERMinal emulator on X
 scratch, which supports various character sets and encodings
 in the world and complex characters such as double width for East
 Asian, combining for Thai, Vietnamese, and so on, and bi-direction for
-Arabic and Hebrew.  Indic scripts in ISCII encoding are experimentally
-supported using libind library.
+Arabic and Hebrew.  Indic scripts are experimentally supported.
 It also supports various unique feature such
 as anti-alias using FreeType, multiple XIM, multiple windows,
 scrollbar API, scroll by mouse wheel, automatic selection of
@@ -20,8 +19,9 @@ encoding, daemon mode, and so on.
 .PP
 Supported encodings are:
 ISO-8859-[1-11], ISO-8859-[13-16], TIS-620 (same as ISO-8859-11), KOI8-R,
-KOI8-U, KOI8-T, GEORGIAN-PS, TCVN5712, VISCII, CP125[0-8], CP874
-EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213,
+KOI8-U, KOI8-T, GEORGIAN-PS, TCVN5712, ISCII_(ASSAMESE|BENGALI|GUJARATI|
+HINDI|KANNADA|MALAYALAM|ORIYA|PUNJABI|ROMAN|TAMIL|TELUGU), VISCII, CP125[0-8],
+CP874, EUC-JP, EUC-JISX0213, Shift_JIS, Shift_JISX0213,
 ISO-2022-JP[1-3], EUC-KR, UHC, JOHAB, ISO-2022-KR, GB2312 (EUC-CN), GBK,
 GB18030, ISO-2022-CN, HZ, EUC-TW, BIG5, BIG5HKSCS, and UTF-8.
 If you have already set locale (for example LANG variable;
@@ -42,21 +42,10 @@ A valid value for \fIcolor\fR is a color name or a RGB value.
 The color name should be defined in rgb.txt or "\fBcolor\fR" configuration file.
 The RGB value's format should be "#RRGGBB", "#RRGGBBAA", "rgb:RR/GG/BB" or "rgba:RR/GG/BB/AA".
 .TP
-\fB\-C\fR, \fB\-\-iscii\fR=\fIlanguage\fR
-Specify a language to be used in ISCII encoding.
-Valid names for \fIlanguage\fR are
-\fBAssamese\fR,
-\fBBengali\fR, 
-\fBGujarati\fR, 
-\fBHindi\fR, 
-\fBKannada\fR, 
-\fBMalayalam\fR, 
-\fBOriya\fR, 
-\fBPunjabi\fR, 
-\fBRoman\fR, 
-\fBTamil\fR, and
-\fBTelugu\fR.
-Please read documents of the libind library for detail.
+\fB\-C\fR, \fB\-\-ind\fR(=\fIbool\fR)
+Enable Indic rendering.
+The default is \fBtrue\fR. (Note that this option is avaialable
+only if \-\-bi option is not enabled.)
 .TP
 \fB\-D\fR, \fB\-\-bi\fR(=\fIbool\fR)
 Enable BiDi (bi-directional) processing on UTF8 encoding
@@ -504,7 +493,7 @@ Use keyboard mapping input method in Arabic.
 \-\-im=kbd:hebrew
 Use keyboard mapping input method in Hebrew.
 .TP
-\-\-im=kbd:iscii
+\-\-im=kbd:isciixxx
 Use keyboard mapping input method in Indic.
 .TP
 \-\-im=uim
@@ -609,9 +598,6 @@ Note that configurations will be enabled when you push Apply button.
 .TP
 Encoding
 Specify encoding.  (\fB\-E\fR, \fB\-\-km\fR) 
-.TP
-ISCII language
-Specify ISCII language. (\fB\-C\fR, \fB\-\-iscii\fR) 
 .TP
 Input Method
 Specify which input method to be used. (\fB\-\-im\fR)
@@ -1192,9 +1178,6 @@ Path for the image file to be used as window icon.
 \fBinput_method\fR= \fIinput method\fR : \fB[\fR\fI arguments\fR \fB... ]\fR (\fB\-\-im\fR)
 Specify input method.
 .TP
-\fBiscii_lang=\fIvalue\fR (\fB\-C\fR, \fB\-\-iscii\fR) 
-Specify iscii language.
-.TP
 \fBiso88591_font_for_usascii=\fIbool\fR (\fB\-8\fR, \fB\-\-88591\fR) 
 Use ISO8859-1 fonts for US-ASCII part of various encodings.
 .TP
@@ -1272,11 +1255,14 @@ Rendering engine for drawing fonts.
 \fBuse_anti_alias=\fIbool\fR (\fB\-A\fR, \fB\-\-aa\fR) 
 Use anti alias font.
 .TP
-\fBuse_clipboard=\fIbool\fR (\fB\-\-clip\fR) 
-Use CLIPBOARD (not only PRIMARY) selection.
-.TP
 \fBuse_bidi=\fIbool\fR (\fB\-D\fR, \fB\-\-bi\fR) 
 Use BiDi rendering on UTF8 encoding.
+.TP
+\fBuse_ind=\fIbool\fR (\fB\-C\fR, \fB\-\-bi\fR) 
+Use Indic rendering on UTF8 or ISCII encoding.
+.TP
+\fBuse_clipboard=\fIbool\fR (\fB\-\-clip\fR) 
+Use CLIPBOARD (not only PRIMARY) selection.
 .TP
 \fBuse_combining=\fIbool\fR (\fB\-m\fR, \fB\-\-comb\fR) 
 Enable combining characters.
@@ -1335,6 +1321,18 @@ The font configuration files "\fBfont\fR", "\fBvfont\fR", "\fBtfont\fR",
 \fBDEC_SPECIAL=\fIfonts\fR
 \fBISO8859_\fIn\fB=\fIfonts\fR
 \fBTIS620=\fIfonts\fR
+\fBISCII_HINDI=\fIfonts\fR
+\fBISCII_MALAYALAM=\fIfonts\fR
+\fBISCII_ASSAMESE=\fIfonts\fR
+\fBISCII_BENGALI=\fIfonts\fR
+\fBISCII_GUJARATI=\fIfonts\fR
+\fBISCII_KANNADA=\fIfonts\fR
+\fBISCII_MALAYALAM=\fIfonts\fR
+\fBISCII_ORIYA=\fIfonts\fR
+\fBISCII_PUNJABI=\fIfonts\fR
+\fBISCII_ROMAN=\fIfonts\fR
+\fBISCII_TAMIL=\fIfonts\fR
+\fBISCII_TELUGU=\fIfonts\fR
 \fBVISCII=\fIfonts\fR
 \fBKOI8_R=\fIfonts\fR
 \fBKOI8_U=\fIfonts\fR
@@ -1622,11 +1620,6 @@ which explains East Asian Width properties, and
 \fBEastAsianWidth.txt\fR, which defines EastAsianAmbiguous
 characters in Unicode, are supplied by Unicode Consortium
 (http://www.unicode.org).
-.PP
-See the web page of "Linux Technology Development for Indian
-Languages" (http://www.cse.iitk.ac.in/~moona/isciig/) for
-libind library and related needed resources for ISCII support
-by \fBmlterm\fR.
 .\" ********************************************************************
 .SH FILES
 .TP

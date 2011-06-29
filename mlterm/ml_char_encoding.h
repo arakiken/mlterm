@@ -36,7 +36,17 @@ typedef enum  ml_char_encoding
 	ML_ISO8859_16 ,
 	ML_TCVN5712 ,
 
-	ML_ISCII ,	
+	ML_ISCII_ASSAMESE ,
+	ML_ISCII_BENGALI ,
+	ML_ISCII_GUJARATI ,
+	ML_ISCII_HINDI ,
+	ML_ISCII_KANNADA ,
+	ML_ISCII_MALAYALAM ,
+	ML_ISCII_ORIYA ,
+	ML_ISCII_PUNJABI ,
+	ML_ISCII_ROMAN ,
+	ML_ISCII_TAMIL ,
+	ML_ISCII_TELUGU ,
 	ML_VISCII ,
 	ML_KOI8_R ,
 	ML_KOI8_U ,
@@ -101,6 +111,9 @@ typedef enum  ml_char_encoding
 #define  IS_STATEFUL_ENCODING(encoding) \
 	( (encoding) == ML_ISO2022JP || (encoding) == ML_ISO2022JP2 || (encoding) == ML_ISO2022JP3 || \
 		(encoding) == ML_ISO2022KR || (encoding) == ML_ISO2022CN || (encoding) == ML_HZ )
+
+#define  IS_ISCII_ENCODING(encoding) \
+	( ML_ISCII_ASSAMESE <= (encoding) && (encoding) <= ML_ISCII_TELUGU)
 
 
 char *  ml_get_char_encoding_name( ml_char_encoding_t  encoding) ;

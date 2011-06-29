@@ -4,203 +4,154 @@
 
 #include  "ml_iscii.h"
 
-#include  <string.h>		/* memset */
-#include  <kiklib/kik_mem.h>
-#include  <kiklib/kik_debug.h>
-#include  <kiklib/kik_util.h>
-
 
 #if  0
 #define  __DEBUG
 #endif
 
 
-/* --- static variables --- */
-
-static char *  iscii_langs[] =
-{
-	"Assamese" ,
-	"Bengali",
-	"Gujarati",
-	"Hindi",
-	"Kannada",
-	"Malayalam",
-	"Oriya",
-	"Punjabi",
-	"Roman",
-	"Tamil",
-	"Telugu",
-	
-} ;
-
-
-/* --- global functions --- */
-
-mkf_iscii_lang_t
-ml_iscii_get_lang(
-	char *  name
-	)
-{
-	mkf_iscii_lang_t  lang ;
-
-	for( lang = 0 ; lang < MAX_ISCIILANGS ; lang ++)
-	{
-		if( strcasecmp( iscii_langs[lang] , name) == 0)
-		{
-			return  lang ;
-		}
-	}
-
-	return  ISCIILANG_UNKNOWN ;
-}
-
-char *
-ml_iscii_get_lang_name(
-	mkf_iscii_lang_t  type
-	)
-{
-	if( ISCIILANG_UNKNOWN < type && type < MAX_ISCIILANGS)
-	{
-		return  iscii_langs[type] ;
-	}
-	else
-	{
-		return  NULL ;
-	}
-}
-
-
 #ifdef  USE_IND
 
 #include  <ctype.h>		/* isdigit */
-#include  <indian.h>
 #include  <kiklib/kik_str.h>	/* kik_snprintf */
+#include  <kiklib/kik_dlfcn.h>
+#include  <kiklib/kik_mem.h>
+#include  <kiklib/kik_debug.h>
+#include  <indian.h>
 
 
-struct  ml_iscii_lang
+#ifndef  LIBDIR
+#define  INDLIB_DIR  "/usr/local/lib/mlterm/"
+#else
+#define  INDLIB_DIR  LIBDIR "/mlterm/"
+#endif
+
+#define  A2IMAXBUFF  30
+
+
+struct  ml_isciikey_state
 {
-	/*
-	 * lang
-	 */
-
-	/* Max length of font name is assumed to be 256 in indian_init(). (see indian.c) */
-	char  font_name_format[256] ;
-	char *  font_name ;
-	struct tabl  glyph_map[MAXLEN] ;
-	int  glyph_map_size ;
-} ;
-
-struct  ml_iscii_keymap
-{
-	/*
-	 * keymap
-	 */
-	
-	struct a2i_tabl a2i_map[A2IMAXLEN] ;
-	int  a2i_map_size ;
-
 	/* used for iitkeyb */
-	char  prev_key[512] ;
+	char  prev_key[A2IMAXBUFF] ;
 
 	int8_t  is_inscript ;
 
 } ;
 
 
+/* --- static variables --- */
+
+static char *  iscii_table_files[] =
+{
+	"ind_assamese" ,
+	"ind_bengali" ,
+	"ind_gujarati" ,
+	"ind_hindi" ,
+	"ind_kannada" ,
+	"ind_malayalam" ,
+	"ind_oriya" ,
+	"ind_punjabi" ,
+	"ind_roman" ,
+	"ind_tamil" ,
+	"ind_telugu" ,
+} ;
+
+static struct tabl *  (*get_iscii_tables[11])( u_int *) ;
+static struct a2i_tabl *  (*get_inscript_table)( u_int *) ;
+static struct a2i_tabl *  (*get_iitkeyb_table)( u_int *) ;
+
+
+/* --- static functions --- */
+
+static void *
+load_symbol(
+	char *  file
+	)
+{
+	void *  handle ;
+	void *  sym ;
+
+	if( ! ( handle = kik_dl_open( INDLIB_DIR , file)))
+	{
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to open %s\n" , file) ;
+		return  NULL ;
+	}
+
+	if( ! ( sym = kik_dl_func_symbol( handle , "libind_get_table")))
+	{
+		kik_dl_close( handle) ;
+	}
+
+	return  sym ;
+}
+
+static struct tabl *
+get_iscii_table(
+	int  idx ,
+	size_t *  size
+	)
+{
+	if( ! get_iscii_tables[idx] &&
+	    ! (get_iscii_tables[idx] = load_symbol( iscii_table_files[idx])))
+	{
+		return  NULL ;
+	}
+
+	return  (*get_iscii_tables[idx])( size) ;
+}
+
+static struct a2i_tabl *
+get_isciikey_table(
+	int  is_inscript ,
+	size_t *  size
+	)
+{
+	if( is_inscript)
+	{
+		if( ! get_inscript_table &&
+		    ! ( get_inscript_table = load_symbol( "ind_inscript")))
+		{
+			return  NULL ;
+		}
+
+		return  (*get_inscript_table)( size) ;
+	}
+	else
+	{
+		if( ! get_iitkeyb_table &&
+		    ! ( get_iitkeyb_table = load_symbol( "ind_iitkeyb")))
+		{
+			return  NULL ;
+		}
+
+		return  (*get_iitkeyb_table)( size) ;
+	}
+}
+
+
 /* --- global functions --- */
-
-ml_iscii_lang_t 
-ml_iscii_lang_new(
-	mkf_iscii_lang_t  type
-	)
-{
-	ml_iscii_lang_t  lang ;
-	
-	if( type < 0 || MAX_ISCIILANGS <= type)
-	{
-		return  NULL ;
-	}
-
-	if( ( lang = malloc( sizeof( struct  ml_iscii_lang))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	if( ( lang->glyph_map_size = indian_init( lang->glyph_map , iscii_langs[type] ,
-					lang->font_name_format , ":")) == -1)
-	{
-		free( lang) ;
-		
-		return  NULL ;
-	}
-
-#ifdef  DEBUG
-	if( lang->glyph_map_size > sizeof( lang->glyph_map))
-	{
-		kik_warn_printf( KIK_DEBUG_TAG " iscii glyph map size %d is larger than array size %d.\n" ,
-			lang->glyph_map_size , sizeof( lang->glyph_map)) ;
-	}
-#endif
-	
-	/*
-	 * Allocate enough memory to be used in ml_iscii_get_font_name().
-	 */
-	if( ( lang->font_name = malloc( strlen( lang->font_name_format) +
-					DIGIT_STR_LEN(u_int) + 1)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
-	#endif
-
-		free( lang) ;
-	
-		return  NULL ;
-	}
-	
-	return  lang ;
-}
-
-int
-ml_iscii_lang_delete(
-	ml_iscii_lang_t  lang
-	)
-{
-	if( lang->font_name)
-	{
-		free( lang->font_name) ;
-	}
-
-	/* XXX lang->glyph_map[N].iscii and lang->glyph_map[N].font should be free'ed. */
-
-	free( lang) ;
-
-	return  1 ;
-}
-
-char *
-ml_iscii_get_font_name(
-	ml_iscii_lang_t  lang ,
-	u_int  font_size
-	)
-{
-	/* If font_name_format contains '%d', it is replaced by specified font_size */
-	sprintf( lang->font_name , lang->font_name_format , font_size) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " font name %s\n" , lang->font_name) ;
-#endif
-	
-	return  lang->font_name ;
-}
 
 u_int
 ml_iscii_shape(
-	ml_iscii_lang_t  lang ,
+	mkf_charset_t  cs ,
 	u_char *  dst ,
 	size_t  dst_size ,
 	u_char *  src
 	)
 {
+	struct tabl *  table ;
+	size_t  size ;
+
+	if( ! IS_ISCII(cs))
+	{
+		return  0 ;
+	}
+
+	if( ( table = get_iscii_table( cs - ISCII_ASSAMESE , &size)) == NULL)
+	{
+		return  0 ;
+	}
+
 	/*
 	 * XXX
 	 * iscii2font() expects dst to be terminated by zero.
@@ -212,83 +163,223 @@ ml_iscii_shape(
 	 */
 	dst[0] = '\0' ;
 
-	return  iscii2font( lang->glyph_map , src , dst , lang->glyph_map_size) ;
+	return  iscii2font( table , src , dst , size) ;
 }
 
-ml_iscii_keymap_t
-ml_iscii_keymap_new(
-	int  is_inscript
-	)
-{
-	ml_iscii_keymap_t  keymap ;
 
-	if( ( keymap = malloc( sizeof( struct ml_iscii_keymap))) == NULL)
+ml_iscii_state_t *
+ml_iscii_new(void)
+{
+	ml_iscii_state_t *  state ;
+	
+	if( ! ( state = malloc( sizeof( ml_iscii_state_t))))
 	{
 		return  NULL ;
 	}
 
-	if( is_inscript)
-	{
-		if( ( keymap->a2i_map_size = readkeymap( keymap->a2i_map , "inscript" , ",")) == -1)
-		{
-			free( keymap) ;
+	state->num_of_chars_array = NULL ;
+	state->size = 0 ;
 
-			return  NULL ;
-		}
-	}
-	else
-	{
-		if( ( keymap->a2i_map_size = readkeymap( keymap->a2i_map , "iitkeyb" , ":")) == -1)
-		{
-			free( keymap) ;
+	state->has_iscii = 0 ;
 
-			return  NULL ;
-		}
-		
-		memset( keymap->prev_key , 0 , sizeof( keymap->prev_key)) ;
-	}
-		
-#ifdef  DEBUG
-	if( keymap->a2i_map_size > sizeof( keymap->a2i_map))
-	{
-		kik_warn_printf( KIK_DEBUG_TAG
-			" ascii2iscii map size %d is larger than array size %d.\n" ,
-			keymap->a2i_map_size , sizeof( keymap->a2i_map)) ;
-	}
-#endif
-
-	keymap->is_inscript = is_inscript ;
-	
-	return  keymap ;
+	return  state ;
 }
 
 int
-ml_iscii_keymap_delete(
-	ml_iscii_keymap_t  keymap
+ml_iscii_copy(
+	ml_iscii_state_t *  dst ,
+	ml_iscii_state_t *  src
 	)
 {
-	free( keymap) ;
+	u_int8_t *  p ;
+
+	if( ! ( p = realloc( dst->num_of_chars_array , sizeof( u_int8_t) * src->size)))
+	{
+		return  0 ;
+	}
+
+	dst->num_of_chars_array = p ;
+	dst->size = src->size ;
+
+	memcpy( dst->num_of_chars_array , src->num_of_chars_array ,
+			sizeof( u_int8_t) * src->size) ;
+
+	return  1 ;
+}
+
+int
+ml_iscii_delete(
+	ml_iscii_state_t *  state
+	)
+{
+	free( state->num_of_chars_array) ;
+	free( state) ;
+
+	return  1 ;
+}
+
+int
+ml_iscii_reset(
+	ml_iscii_state_t *  state
+	)
+{
+	state->size = 0 ;
+
+	return  1 ;
+}
+
+int
+ml_iscii(
+	ml_iscii_state_t *  state ,
+	ml_char_t *  src ,
+	u_int  src_len
+	)
+{
+	int  dst_pos ;
+	int  src_pos ;
+	u_char *  iscii_buf ;
+	u_int  iscii_buf_len ;
+	u_char *  font_buf ;
+	u_int  font_buf_len ;
+	u_int  prev_font_filled ;
+	u_int  iscii_filled ;
+	mkf_charset_t  cs ;
+
+	iscii_buf_len = src_len * 4 + 1 ;
+	if( ( iscii_buf = alloca( iscii_buf_len)) == NULL)
+	{
+		return  0 ;
+	}
+
+	font_buf_len = src_len * 4 + 1 ;
+	if( ( font_buf = alloca( font_buf_len)) == NULL)
+	{
+		return  0 ;
+	}
+
+	if( ( state->num_of_chars_array = realloc( state->num_of_chars_array ,
+						font_buf_len * sizeof(u_int8_t))) == NULL)
+	{
+		return  0 ;
+	}
+
+	state->has_iscii = 0 ;
+	dst_pos = -1 ;
+	prev_font_filled = 0 ;
+	iscii_filled = 0 ;
+	cs = UNKNOWN_CS ;
+	for( src_pos = 0 ; src_pos < src_len ; src_pos ++)
+	{
+		if( cs != ml_char_cs( src + src_pos))
+		{
+			prev_font_filled = 0 ;
+			iscii_filled = 0 ;
+		}
+
+		cs = ml_char_cs( src + src_pos) ;
+		
+		if( IS_ISCII( cs))
+		{
+			u_int  font_filled ;
+			
+			iscii_buf[iscii_filled ++] = ml_char_bytes( src + src_pos)[0] ;
+			iscii_buf[iscii_filled] = '\0' ;
+			font_filled = ml_iscii_shape( cs , font_buf , font_buf_len , iscii_buf) ;
+
+			if( font_filled < prev_font_filled)
+			{
+				if( prev_font_filled - font_filled > dst_pos)
+				{
+					font_filled = prev_font_filled - dst_pos ;
+				}
+				
+				dst_pos -= (prev_font_filled - font_filled) ;
+				prev_font_filled = font_filled ;
+			}
+
+			if( dst_pos >= 0 && font_filled == prev_font_filled)
+			{
+				state->num_of_chars_array[dst_pos] ++ ;
+			}
+			else
+			{
+				u_int  count ;
+
+				state->num_of_chars_array[++dst_pos] = 1 ;
+
+				for( count = 1 ; count < font_filled - prev_font_filled ; count++)
+				{
+					state->num_of_chars_array[++dst_pos] = 0 ;
+				}
+			}
+
+			prev_font_filled = font_filled ;
+
+			state->has_iscii = 1 ;
+		}
+		else
+		{
+			state->num_of_chars_array[++dst_pos] = 1 ;
+		}
+	}
+
+	state->size = dst_pos + 1 ;
+
+	return  1 ;
+}
+
+ml_isciikey_state_t
+ml_isciikey_state_new(
+	int  is_inscript
+	)
+{
+	ml_isciikey_state_t  state ;
+
+	if( ( state = malloc( sizeof( struct ml_isciikey_state))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	state->is_inscript = is_inscript ;
+	state->prev_key[0] = '\0' ;
+
+	return  state ;
+}
+
+int
+ml_isciikey_state_delete(
+	ml_isciikey_state_t  state
+	)
+{
+	free( state) ;
 
 	return  1 ;
 }
 
 size_t
 ml_convert_ascii_to_iscii(
-	ml_iscii_keymap_t  keymap ,
+	ml_isciikey_state_t  state ,
 	u_char *  iscii ,
 	size_t  iscii_len ,
 	u_char *  ascii ,
 	size_t  ascii_len
 	)
 {
+	struct a2i_tabl *  table ;
+	size_t  size ;
 	u_char *  dup ;
 
 	/*
 	 * ins2iscii() and iitk2iscii() return 2nd argument variable whose memory
 	 * is modified by converted iscii bytes.
-	 * So, enough memory (* MAXBUFF) should be allocated here.
+	 * So, enough memory (* A2IMAXBUFF) should be allocated here.
 	 */
-	if( ( dup = alloca( ascii_len * MAXBUFF)) == NULL)
+	if( ( dup = alloca( ascii_len * A2IMAXBUFF)) == NULL)
+	{
+		goto  no_conv ;
+	}
+
+	if( ( table = get_isciikey_table( state->is_inscript , &size)) == NULL)
 	{
 		goto  no_conv ;
 	}
@@ -296,19 +387,18 @@ ml_convert_ascii_to_iscii(
 	strncpy( dup , ascii , ascii_len) ;
 	dup[ascii_len] = '\0' ;
 
-	if( keymap->is_inscript)
+	if( state->is_inscript)
 	{
 		kik_snprintf( iscii , iscii_len , "%s" ,
-			ins2iscii( keymap->a2i_map , dup , keymap->a2i_map_size)) ;
+			ins2iscii( table , dup , size)) ;
 	}
 	else
 	{
 		kik_snprintf( iscii , iscii_len , "%s" ,
-			iitk2iscii( keymap->a2i_map , dup , keymap->prev_key ,
-				keymap->a2i_map_size)) ;
+			iitk2iscii( table , dup , state->prev_key , size)) ;
 
-		keymap->prev_key[0] = ascii[0] ;
-		keymap->prev_key[1] = '\0' ;
+		state->prev_key[0] = ascii[0] ;
+		state->prev_key[1] = '\0' ;
 	}
 
 	return  strlen( iscii) ;
@@ -325,8 +415,8 @@ no_conv:
 
 /* --- global functions --- */
 
-ml_iscii_keymap_t
-ml_iscii_keymap_new(
+ml_isciikey_state_t
+ml_isciikey_state_new(
 	int  is_inscript
 	)
 {
@@ -334,8 +424,8 @@ ml_iscii_keymap_new(
 }
 
 int
-ml_iscii_keymap_delete(
-	ml_iscii_keymap_t  keymap
+ml_isciikey_state_delete(
+	ml_isciikey_state_t  state
 	)
 {
 	return  0 ;
@@ -343,7 +433,7 @@ ml_iscii_keymap_delete(
 
 size_t
 ml_convert_ascii_to_iscii(
-	ml_iscii_keymap_t  keymap ,
+	ml_isciikey_state_t  state ,
 	u_char *  iscii ,
 	size_t  iscii_len ,
 	u_char *  ascii ,

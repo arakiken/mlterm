@@ -36,21 +36,13 @@ typedef struct  ml_bidi_state
 
 ml_bidi_state_t *  ml_bidi_new(void) ;
 
+int  ml_bidi_copy( ml_bidi_state_t *  dst , ml_bidi_state_t *  src) ;
+
 int  ml_bidi_delete( ml_bidi_state_t *  state) ;
 
 int  ml_bidi_reset( ml_bidi_state_t *  state) ;
 
 int  ml_bidi( ml_bidi_state_t *  state , ml_char_t *  src , u_int  size , ml_bidi_mode_t  mode) ;
-
-#else	/* USE_FRIBIDI */
-
-#define  ml_bidi_new()  (NULL)
-
-#define  ml_bidi_delete(state)  (0)
-
-#define  ml_bidi_reset(state)  (0)
-
-#define  ml_bidi( state , src , size , mode)  (0)
 
 #endif	/* USE_FRIBIDI */
 

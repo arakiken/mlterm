@@ -1722,7 +1722,7 @@ ml_screen_insert_new_lines(
 	)
 {
 	u_int  count ;
-		
+
 	for( count = 0 ; count < size ; count ++)
 	{
 		ml_edit_insert_new_line( screen->edit) ;

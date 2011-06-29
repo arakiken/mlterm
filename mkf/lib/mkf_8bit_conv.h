@@ -39,7 +39,27 @@ mkf_conv_t *  mkf_cp874_conv_new(void) ;
 
 mkf_conv_t *  mkf_viscii_conv_new(void) ;
 
-mkf_conv_t *  mkf_iscii_conv_new(void) ;
+mkf_conv_t *  mkf_iscii_assamese_conv_new(void) ;
+
+mkf_conv_t *  mkf_iscii_bengali_conv_new(void) ;
+
+mkf_conv_t *  mkf_iscii_gujarati_conv_new(void) ;
+
+mkf_conv_t *  mkf_iscii_hindi_conv_new(void) ;
+
+mkf_conv_t *  mkf_iscii_kannada_conv_new(void) ;
+
+mkf_conv_t *  mkf_iscii_malayalam_conv_new(void) ;
+
+mkf_conv_t *  mkf_iscii_oriya_conv_new(void) ;
+
+mkf_conv_t *  mkf_iscii_punjabi_conv_new(void) ;
+
+mkf_conv_t *  mkf_iscii_roman_conv_new(void) ;
+
+mkf_conv_t *  mkf_iscii_tamil_conv_new(void) ;
+
+mkf_conv_t *  mkf_iscii_telugu_conv_new(void) ;
 
 
 #endif

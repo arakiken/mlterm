@@ -34,12 +34,12 @@
  *	$Id$
  */
 
+#include  <stdio.h>		/* sprintf */
 #include  <X11/keysym.h>	/* XK_xxx */
 #include  <kiklib/kik_mem.h>	/* malloc/alloca/free */
 #include  <kiklib/kik_str.h>	/* kik_snprintf */
 #include  <kiklib/kik_locale.h>	/* kik_get_locale */
 #include  <mkf/mkf_utf16_parser.h>
-#include  <mkf/mkf_8bit_parser.h>
 #include  <ml_iscii.h>
 
 #include  <x_im.h>
@@ -83,7 +83,7 @@ typedef struct im_kbd
 	kbd_type_t  type ;
 	kbd_mode_t  mode ;
 
-	ml_iscii_keymap_t  keymap ;
+	ml_isciikey_state_t  keymap ;
 
 	mkf_parser_t *  parser ;
 	mkf_conv_t *  conv ;
@@ -322,7 +322,7 @@ delete(
 
 	if( kbd->keymap)
 	{
-		(*syms->ml_iscii_keymap_delete)( kbd->keymap) ;
+		(*syms->ml_isciikey_state_delete)( kbd->keymap) ;
 	}
 
 	if( kbd->parser)
@@ -516,7 +516,7 @@ switch_mode(
 	{
 		if( kbd->keymap)
 		{
-			(*syms->ml_iscii_keymap_delete)( kbd->keymap) ;
+			(*syms->ml_isciikey_state_delete)( kbd->keymap) ;
 			kbd->keymap = NULL ;
 		}
 
@@ -525,7 +525,7 @@ switch_mode(
 
 		if( kbd->mode == KBD_MODE_ASCII)
 		{
-			kbd->keymap = (*syms->ml_iscii_keymap_new)( 1) ;
+			kbd->keymap = (*syms->ml_isciikey_state_new)( 1) ;
 			kbd->mode = KBD_MODE_ISCII_INSCRIPT ;
 
 		#ifdef  IM_KBD_DEBUG
@@ -535,7 +535,7 @@ switch_mode(
 		}
 		else if( kbd->mode == KBD_MODE_ISCII_INSCRIPT)
 		{
-			kbd->keymap = (*syms->ml_iscii_keymap_new)( 0) ;
+			kbd->keymap = (*syms->ml_isciikey_state_new)( 0) ;
 			kbd->mode = KBD_MODE_ISCII_PHONETIC ;
 
 		#ifdef  IM_KBD_DEBUG
@@ -556,7 +556,7 @@ switch_mode(
 		    ( kbd->keymap == NULL))
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_iscii_keymap_new() failed.\n");
+			kik_warn_printf( KIK_DEBUG_TAG " ml_isciikey_state_new() failed.\n");
 		#endif
 			kbd->mode = KBD_MODE_ASCII ;
 		}
@@ -688,7 +688,7 @@ im_kbd_new(
 	{
 		type = KBD_TYPE_HEBREW ;
 	}
-	else if( opt && strcmp( opt , "iscii") == 0)
+	else if( opt && strlen( opt) >= 5 && strncmp( opt , "iscii" , 5) == 0)
 	{
 		type = KBD_TYPE_ISCII ;
 	}
@@ -699,7 +699,7 @@ im_kbd_new(
 
 	if( type == KBD_TYPE_UNKNOWN)
 	{
-		if( term_encoding == ML_ISCII)
+		if( IS_ISCII_ENCODING( term_encoding))
 		{
 			type = KBD_TYPE_ISCII ;
 		}
@@ -743,7 +743,22 @@ im_kbd_new(
 	}
 	else /* if( kbd->type == KBD_TYPE_ISCII */
 	{
-		if( ! ( kbd->parser = mkf_iscii_parser_new()))
+		ml_char_encoding_t  iscii_encoding ;
+		
+		if( IS_ISCII_ENCODING( term_encoding))
+		{
+			iscii_encoding = term_encoding ;
+		}
+		else
+		{
+			if( ( iscii_encoding = (*syms->ml_get_char_encoding)( opt)) ==
+							ML_UNKNOWN_ENCODING)
+			{
+				iscii_encoding = ISCII_HINDI ;
+			}
+		}
+		
+		if( ! ( kbd->parser = (*syms->ml_parser_new)( iscii_encoding)))
 		{
 			goto  error ;
 		}
@@ -802,7 +817,7 @@ im_info_t *
 im_kbd_get_info(
 	char *  locale ,
 	char *  encoding
-)
+	)
 {
 	im_info_t *  result ;
 
@@ -813,7 +828,7 @@ im_kbd_get_info(
 
 	result->id = strdup( "kbd") ;
 	result->name = strdup( "keyboard") ;
-	result->num_of_args = 4 ;
+	result->num_of_args = 14 ;
 
 	if( ! ( result->args = malloc( sizeof(char*) * result->num_of_args)))
 	{
@@ -836,13 +851,12 @@ im_kbd_get_info(
 	case KBD_TYPE_HEBREW:
 		result->readable_args[0] = strdup( "Hebrew") ;
 		break ;
-	case KBD_TYPE_ISCII:
-		result->readable_args[0] = strdup( "ISCII") ;
-		break ;
 	case KBD_TYPE_UNKNOWN:
-		if( strcmp( encoding , "ISCII") == 0)
+		if( strlen(encoding) > 5 && strncmp( encoding , "ISCII" , 5) == 0)
 		{
-			result->readable_args[0] = strdup( "Indic") ;
+			result->readable_args[0] = malloc( 6 /* "Indic " */ + 2 /* () */ +
+							strlen( encoding + 5) + 1) ;
+			sprintf( result->readable_args[0] , "Indic (%s)" , encoding + 5) ;
 		}
 		else
 		{
@@ -855,12 +869,33 @@ im_kbd_get_info(
 
 	result->readable_args[1] = strdup("Arabic") ;
 	result->readable_args[2] = strdup("Hebrew") ;
-	result->readable_args[3] = strdup("ISCII") ;
+	result->readable_args[3] = strdup("Indic (ASSAMESE)") ;
+	result->readable_args[4] = strdup("Indic (BENGALI)") ;
+	result->readable_args[5] = strdup("Indic (GUJARATI)") ;
+	result->readable_args[6] = strdup("Indic (HINDI)") ;
+	result->readable_args[7] = strdup("Indic (KANNADA)") ;
+	result->readable_args[8] = strdup("Indic (MALAYALAM)") ;
+	result->readable_args[9] = strdup("Indic (ORIYA)") ;
+	result->readable_args[10] = strdup("Indic (PUNJABI)") ;
+	result->readable_args[11] = strdup("Indic (ROMAN)") ;
+	result->readable_args[12] = strdup("Indic (TAMIL)") ;
+	result->readable_args[13] = strdup("Indic (TELUGU)") ;
+
 
 	result->args[0] = strdup( "") ;
 	result->args[1] = strdup("arabic") ;
 	result->args[2] = strdup("hebrew") ;
-	result->args[3] = strdup("iscii") ;
+	result->args[3] = strdup( "isciiassamese") ;
+	result->args[4] = strdup( "isciibengali") ;
+	result->args[5] = strdup( "isciigujarati") ;
+	result->args[6] = strdup( "isciihindi") ;
+	result->args[7] = strdup( "isciikannada") ;
+	result->args[8] = strdup( "isciimalayalam") ;
+	result->args[9] = strdup( "isciioriya") ;
+	result->args[10] = strdup( "isciipunjabi") ;
+	result->args[11] = strdup( "isciiroman") ;
+	result->args[12] = strdup( "isciitamil") ;
+	result->args[13] = strdup( "isciitelugu") ;
 
 	return  result ;
 }

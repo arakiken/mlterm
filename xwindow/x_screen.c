@@ -44,10 +44,6 @@
 #define  NL_TO_CR_IN_PAST_TEXT
 #endif
 
-#if  1
-#define  SEARCH_REGEX
-#endif
-
 
 /*
  * For x_window_update()
@@ -1304,39 +1300,6 @@ update_special_visual(
 	if( ! ml_term_update_special_visual( screen->term))
 	{
 		return  0 ;
-	}
-
-	if( screen->term->iscii_lang)
-	{
-		u_int  font_size ;
-		char *  font_name ;
-		x_font_config_t *  font_config ;
-
-		if( ( font_config = x_font_config_new( x_get_type_engine( screen->font_man) ,
-						x_get_font_present( screen->font_man))) == NULL)
-		{
-			return  0 ;
-		}
-
-		for( font_size = x_get_min_font_size() ;
-			font_size <= x_get_max_font_size() ;
-			font_size ++)
-		{
-			if( ( font_name = ml_iscii_get_font_name( screen->term->iscii_lang ,
-						font_size)) == NULL)
-			{
-				continue ;
-			}
-
-			x_customize_font_name( font_config , NORMAL_FONT_OF(ISCII) ,
-				font_name , font_size) ;
-		}
-
-		x_activate_local_font_config( screen->font_man , font_config) ;
-	}
-	else
-	{
-		x_deactivate_local_font_config( screen->font_man) ;
 	}
 
 	/*
@@ -3749,7 +3712,7 @@ button_released(
 }
 
 
-#ifdef  SEARCH_REGEX
+#ifdef  HAVE_REGEX
 
 #include  <regex.h>
 
@@ -3791,7 +3754,7 @@ match(
 	return  1 ;
 }
 
-#else	/* SEARCH_REGEX */
+#else	/* HAVE_REGEX */
 
 static int
 match(
@@ -3870,7 +3833,7 @@ found:
 	return  1 ;
 }
 
-#endif	/* SEARCH_REGEX */
+#endif	/* HAVE_REGEX */
 
 static int
 search_find(
@@ -3883,19 +3846,24 @@ search_find(
 	int  beg_row ;
 	int  end_char_index ;
 	int  end_row ;
-#ifdef  SEARCH_REGEX
+#ifdef  HAVE_REGEX
 	regex_t  regex ;
 #endif
 
 	if( *pattern
-	#ifdef  SEARCH_REGEX
+	#ifdef  HAVE_REGEX
 		&& regcomp( &regex , pattern , REG_EXTENDED|REG_ICASE) == 0
 	#endif
 		)
 	{
 		ml_term_search_init( screen->term , match) ;
+	#ifdef  HAVE_REGEX
 		if( ml_term_search_find( screen->term , &beg_char_index , &beg_row ,
 				&end_char_index , &end_row , &regex , backward))
+	#else
+		if( ml_term_search_find( screen->term , &beg_char_index , &beg_row ,
+				&end_char_index , &end_row , pattern , backward))
+	#endif
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " Search find %d %d - %d %d\n" ,
@@ -3915,7 +3883,7 @@ search_find(
 			}
 		}
 
-	#ifdef  SEARCH_REGEX
+	#ifdef  HAVE_REGEX
 		regfree( &regex) ;
 	#endif
 	}
@@ -4124,7 +4092,7 @@ change_char_encoding(
 		return ;
 	}
 
-	if( encoding == ML_ISCII)
+	if( IS_ISCII_ENCODING( encoding))
 	{
 		/*
 		 * ISCII needs variable column width and character combining.
@@ -4157,27 +4125,6 @@ change_char_encoding(
 		change_im( screen , kik_str_alloca_dup( screen->input_method)) ;
 	}
 #endif
-}
-
-static void
-change_iscii_lang(
-	x_screen_t *  screen ,
-	mkf_iscii_lang_t  type
-	)
-{
-	if( screen->term->iscii_lang_type == type)
-	{
-		/* not changed */
-
-		return ;
-	}
-
-	screen->term->iscii_lang_type = type ;
-
-	if( update_special_visual( screen))
-	{
-		ml_term_set_modified_all_lines_in_screen( screen->term) ;
-	}
 }
 
 static void
@@ -4600,6 +4547,27 @@ change_bidi_flag(
 }
 
 static void
+change_ind_flag(
+	x_screen_t *  screen ,
+	int  use_ind
+	)
+{
+	if( screen->term->use_ind == use_ind)
+	{
+		/* not changed */
+
+		return ;
+	}
+
+	screen->term->use_ind = use_ind ;
+
+	if( update_special_visual( screen))
+	{
+		ml_term_set_modified_all_lines_in_screen( screen->term) ;
+	}
+}
+
+static void
 change_borderless_flag(
 	x_screen_t *  screen ,
 	int  flag
@@ -4999,10 +4967,6 @@ get_config(
 			value = false ;
 		}
 	}
-	else if( strcmp( key , "iscii_lang") == 0)
-	{
-		value = ml_iscii_get_lang_name( term->iscii_lang_type) ;
-	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
 		value = x_color_manager_get_fg_color( screen->color_man) ;
@@ -5271,6 +5235,17 @@ get_config(
 	else if( strcmp( key , "use_bidi") == 0)
 	{
 		if( term->use_bidi)
+		{
+			value = true ;
+		}
+		else
+		{
+			value = false ;
+		}
+	}
+	else if( strcmp( key , "use_ind") == 0)
+	{
+		if( term->use_ind)
 		{
 			value = true ;
 		}
@@ -6976,7 +6951,7 @@ x_screen_new(
 		ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
 			&screen->screen_listener , &screen->pty_listener) ;
 	
-		if( ml_term_get_encoding( screen->term) == ML_ISCII)
+		if( IS_ISCII_ENCODING( ml_term_get_encoding( screen->term)))
 		{
 			/*
 			 * ISCII needs variable column width and character combining.
@@ -7390,7 +7365,7 @@ x_screen_attach(
 	ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
 		&screen->screen_listener , &screen->pty_listener) ;
 
-	if( ml_term_get_encoding( screen->term) == ML_ISCII)
+	if( IS_ISCII_ENCODING( ml_term_get_encoding( screen->term)))
 	{
 		/*
 		 * ISCII needs variable column width and character combining.
@@ -7698,17 +7673,6 @@ x_screen_set_config(
 		}
 
 		change_char_encoding( screen , encoding) ;
-	}
-	else if( strcmp( key , "iscii_lang") == 0)
-	{
-		mkf_iscii_lang_t  type ;
-
-		if( ( type = ml_iscii_get_lang( value)) == ISCIILANG_UNKNOWN)
-		{
-			return ;
-		}
-
-		change_iscii_lang( screen , type) ;
 	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
@@ -8068,6 +8032,17 @@ x_screen_set_config(
 	else if( strcmp( key , "bidi_mode") == 0)
 	{
 		change_bidi_flag( screen , screen->term->use_bidi , ml_get_bidi_mode( value)) ;
+	}
+	else if( strcmp( key , "use_ind") == 0)
+	{
+		int  flag ;
+
+		if( ( flag = true_or_false( value)) == -1)
+		{
+			return ;
+		}
+
+		change_ind_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "input_method") == 0)
 	{

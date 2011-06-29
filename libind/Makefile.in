@@ -1,0 +1,72 @@
+top_builddir = ..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+libexecdir = @libexecdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+LIBDIR = $(DESTDIR)$(libdir)
+INCDIR = $(DESTDIR)$(prefix)/include
+LIBEXECDIR = $(libexecdir)
+
+VPATH = $(top_srcdir)/libind
+
+CFLAGS = $(CFLAGS_LOCAL) @CFLAGS@ @CPPFLAGS@ -I$(top_srcdir)/libind \
+	-I/usr/local/include -DLIBDIR=\"$(LIBDIR)\"
+LIBS = $(LIBS_LOCAL)
+
+OBJ = indian.o keyboard.o lex.split.o
+TBL_OBJ = assamese.o bengali.o gujarati.o hindi.o iitkeyb.o indian.o inscript.o \
+	kannada.o malayalam.o oriya.o punjabi.o roman.o tamil.o telugu.o
+
+LIBNAME = libind
+MAJOR = 0
+MINOR = 0
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+
+all : $(LIBNAME).a $(TBL_OBJ:.o=.la) collect-headers
+
+debug : $(LIBNAME).a
+
+.SUFFIXES : .c.o 
+
+.c.o :
+	$(LIBTOOL_CC) -c $<
+
+.SUFFIXES : .o .la
+
+.o.la : $(TBL_OBJ)
+	$(LIBTOOL_LINK)	-o libind_$(<:.o=.la) $(<:.o=.lo) -rpath $(LIBDIR) \
+		-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
+
+$(LIBNAME).a : $(OBJ)
+	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ:.o=.lo) $(LIBS)
+
+clean :
+	rm -rf $(OBJ) $(OBJ:.o=.lo) $(TBL_OBJ) $(TBL_OBJ:.o=.lo) .libs *.a *.so *.la lex.split.c
+
+distclean: clean
+	rm -f Makefile
+
+wc :
+	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
+
+lex.split.c :
+	@LEX@ -Psplit $(top_srcdir)/libind/syllable.lex
+
+collect-headers:
+	cp $(top_srcdir)/libind/indian.h $(top_builddir)/libind/
+
+$(LIBDIR)/mlterm:
+	mkdir -p $(LIBDIR)/mlterm
+
+install: $(LIBDIR)/mlterm
+	$(LIBTOOL_INSTALL) *.la $(LIBDIR)/mlterm

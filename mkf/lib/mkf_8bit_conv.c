@@ -16,6 +16,14 @@
 #endif
 
 
+typedef struct  mkf_iscii_conv
+{
+	mkf_conv_t  conv ;
+	mkf_charset_t  cs ;
+
+} mkf_iscii_conv_t ;
+
+
 /* --- static functions --- */
 
 static int
@@ -303,7 +311,8 @@ convert_to_iscii(
 	mkf_parser_t *  parser
 	)
 {
-	return  convert_to_intern( conv , dst , dst_size , parser , ISCII) ;
+	return  convert_to_intern( conv , dst , dst_size , parser ,
+			((mkf_iscii_conv_t*)conv)->cs) ;
 }
 
 static void
@@ -319,6 +328,27 @@ conv_delete(
 	)
 {
 	free( conv) ;
+}
+
+static mkf_conv_t *
+iscii_conv_new(
+	mkf_charset_t  cs
+	)
+{
+	mkf_iscii_conv_t *  iscii_conv ;
+
+	if( ( iscii_conv = malloc( sizeof( mkf_iscii_conv_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	iscii_conv->conv.convert = convert_to_iscii ;
+	iscii_conv->conv.init = conv_init ;
+	iscii_conv->conv.delete = conv_delete ;
+	iscii_conv->conv.illegal_char = NULL ;
+	iscii_conv->cs = cs ;
+
+	return  &iscii_conv->conv ;
 }
 
 
@@ -595,19 +625,67 @@ mkf_viscii_conv_new(void)
 }
 
 mkf_conv_t *
-mkf_iscii_conv_new(void)
+mkf_iscii_assamese_conv_new(void)
 {
-	mkf_conv_t *  conv ;
+	return  iscii_conv_new( ISCII_ASSAMESE) ;
+}
 
-	if( ( conv = malloc( sizeof( mkf_conv_t))) == NULL)
-	{
-		return  NULL ;
-	}
+mkf_conv_t *
+mkf_iscii_bengali_conv_new(void)
+{
+	return  iscii_conv_new( ISCII_BENGALI) ;
+}
 
-	conv->convert = convert_to_iscii ;
-	conv->init = conv_init ;
-	conv->delete = conv_delete ;
-	conv->illegal_char = NULL ;
+mkf_conv_t *
+mkf_iscii_gujarati_conv_new(void)
+{
+	return  iscii_conv_new( ISCII_GUJARATI) ;
+}
 
-	return  conv ;
+mkf_conv_t *
+mkf_iscii_hindi_conv_new(void)
+{
+	return  iscii_conv_new( ISCII_HINDI) ;
+}
+
+mkf_conv_t *
+mkf_iscii_kannada_conv_new(void)
+{
+	return  iscii_conv_new( ISCII_KANNADA) ;
+}
+
+mkf_conv_t *
+mkf_iscii_malayalam_conv_new(void)
+{
+	return  iscii_conv_new( ISCII_MALAYALAM) ;
+}
+
+mkf_conv_t *
+mkf_iscii_oriya_conv_new(void)
+{
+	return  iscii_conv_new( ISCII_ORIYA) ;
+}
+
+mkf_conv_t *
+mkf_iscii_punjabi_conv_new(void)
+{
+	return  iscii_conv_new( ISCII_PUNJABI) ;
+}
+
+mkf_conv_t *
+mkf_iscii_roman_conv_new(void)
+{
+	return  iscii_conv_new( ISCII_ROMAN) ;
+}
+
+mkf_conv_t *
+mkf_iscii_tamil_conv_new(void)
+{
+	return  iscii_conv_new( ISCII_TAMIL) ;
+}
+
+mkf_conv_t *
+mkf_iscii_telugu_conv_new(void)
+{
+	return  iscii_conv_new( ISCII_TELUGU) ;
 }

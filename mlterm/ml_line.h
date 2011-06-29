@@ -9,6 +9,7 @@
 #include  "ml_str.h"
 #include  "ml_shape.h"
 #include  "ml_bidi.h"		/* ml_bidi_state_t */
+#include  "ml_iscii.h"		/* ml_iscii_state_t */
 
 
 enum
@@ -19,6 +20,19 @@ enum
 } ;
 
 
+enum
+{
+	VINFO_BIDI = 0x01 ,
+	VINFO_ISCII = 0x02
+} ;
+
+typedef union  ctl_info
+{
+	ml_bidi_state_t *  bidi ;
+	ml_iscii_state_t *  iscii ;
+
+} ctl_info_t ;
+
 /*
  * This object size should be kept as small as possible.
  * (160bit ILP32) (224bit ILP64)
@@ -28,9 +42,6 @@ typedef struct  ml_line
 	/* public(readonly) -- If you access &chars[at], use ml_char_at(). */
 	ml_char_t *  chars ;
 
-	/* private */
-	ml_bidi_state_t *  bidi_state ;
-
 	/* public(readonly) */
 	u_int16_t  num_of_chars ;		/* 0 - 65536 */
 	u_int16_t  num_of_filled_chars ;	/* 0 - 65536 */
@@ -38,6 +49,12 @@ typedef struct  ml_line
 	/* private */
 	u_int16_t  change_beg_col ;	/* 0 - 65536 */
 	u_int16_t  change_end_col ;	/* 0 - 65536 */
+
+#if  defined(USE_FRIBIDI) || defined(USE_IND)
+	/* private */
+	ctl_info_t  ctl_info ;
+	u_int8_t  ctl_info_type ;
+#endif
 
 	/*
 	 * private
@@ -152,7 +169,15 @@ int  ml_line_is_rtl( ml_line_t *  line) ;
  * visual/convert functions are used only by ml_logical_visual.
  */
 #ifdef  USE_IND
-int  ml_line_iscii_visual( ml_line_t *  line , ml_iscii_lang_t  iscii_lang) ;
+int  ml_line_is_using_iscii( ml_line_t *  line) ;
+	
+int  ml_line_use_iscii( ml_line_t *  line) ;
+
+int  ml_line_unuse_iscii( ml_line_t *  line) ;
+
+int  ml_line_iscii_render( ml_line_t *  line) ;
+
+int  ml_line_iscii_visual( ml_line_t *  line) ;
 
 int  ml_iscii_convert_logical_char_index_to_visual( ml_line_t *  line , int  logical_char_index) ;
 #endif

@@ -1,3 +1,67 @@
+2011-06-29  Araki Ken  <arakiken@users.sf.net>
+
+	* mlconfig/main.c, mc_flags.c:
+	  - Button of "use_iscii" option is added.
+	  - Combo box of "iscii_lang" option is removed.
+
+	* mc_iscii_lang.c: Removed.
+
+	* mc_font.c: Fonts for ISCII_XXX encodings are possible to select.
+
+	* x_font_manager.[ch]: x_(de)activate_local_font_config() are removed.
+	
+	* x_term_manager.c, x_main_config.c, x_screen.c: "use_iscii" option is added.
+
+	* ml_vt100_parser.c: Indic unicode characters are always converted to ISCII.
+	
+	* ml_logical_visual.c: iscii_logical_visual_t::visual_lines are removed.
+
+	* ml_line.[ch]:
+	  - Cursor movement is fixed in ml_bidi_convert_logical_char_index_to_visual().
+	  - ml_line_t::bidi_state -> ml_line_t::ctl_info.bidi
+	                          -> ml_line_t::ctl_info.iscii
+	  - ml_line_is_using_iscii(), ml_line_use_iscii(), ml_line_unuse_iscii() and
+	    ml_line_iscii_render() are added.
+
+	* ml_iscii.[ch]:
+	  - ml_iscii_get_lang(), ml_iscii_get_lang_name(), ml_iscii_lang_new() and
+	    ml_iscii_lang_delete() are removed.
+	  - ml_iscii_keymap_new() and ml_iscii_keymap_delete() are renamed to
+	    ml_isciikey_state_new() and ml_isciikey_state_delete().
+	  - ml_iscii_new(), ml_iscii_delete(), ml_iscii_copy(), ml_iscii_reset()
+	    and ml_iscii() are added.
+	  - ml_iscii_lang_t -> ml_iscii_state_t
+	  - Iscii conversion tables are loaded dynamically.
+	
+	* ml_bidi.c: ml_bidi_copy() is added.
+	
+	* ml_char_encoding.[ch]:
+	  - ML_ISCII -> ML_ISCII_XXX
+	  - mkf_iscii_lang_t is removed.
+
+	* mkf/lib/Makefile.in: MAJOR.MINOR version 15.0 -> 16.0
+	
+	* mkf_8bit_conv.[ch], mkf_8bit_parser.[ch]:
+	  mkf_iscii_conv_new -> mkf_iscii_xxx_conv_new
+	  mkf_iscii_parser_new -> mkf_iscii_xxx_parser_new
+
+	* mkf_charset.h: ISCII -> ISCII_XXX
+
+	* mkf/lib/mkf_ucs4_iscii.c:
+	  mkf_map_iscii_to_ucs4 -> mkf_map_iscii_xxx_to_ucs4
+
+	* mkf/libtbl/mkf_ucs4_iscii.c: Added.
+
+	* libind/: Added for processing indic characters.
+
+	* etc/aafont.indic, etc/font.indic: Added.
+
+	* README.iscii: Renamed to README.indic and updated.
+
+	* README, README.ja, man/mlterm.1, PROTOCOL: Updated.
+
+	* configure.in, xwindow/Makefile.in: Checking if regex.h exists or not is added.
+
 2011-06-20  Araki Ken  <arakiken@users.sf.net>
 
 	* "CSI < r", "CSI < s" and "CSI < t" sequences are supported.

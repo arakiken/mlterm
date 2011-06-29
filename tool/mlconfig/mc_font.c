@@ -87,7 +87,17 @@ static cs_info_t  cs_info_table[] =
 	 */
 	{ "TCVN5712" , { NULL , NULL , NULL , } , } ,
 
-	{ "ISCII" , { NULL , NULL , NULL , } , } ,
+	{ "ISCII_ASSAMESE" , { NULL , NULL , NULL , } , } ,
+	{ "ISCII_BENGALI" , { NULL , NULL , NULL , } , } ,
+	{ "ISCII_GUJARATI" , { NULL , NULL , NULL , } , } ,
+	{ "ISCII_HINDI" , { NULL , NULL , NULL , } , } ,
+	{ "ISCII_KANNADA" , { NULL , NULL , NULL , } , } ,
+	{ "ISCII_MALAYALAM" , { NULL , NULL , NULL , } , } ,
+	{ "ISCII_ORIYA" , { NULL , NULL , NULL , } , } ,
+	{ "ISCII_PUNJABI" , { NULL , NULL , NULL , } , } ,
+	{ "ISCII_ROMAN" , { NULL , NULL , NULL , } , } ,
+	{ "ISCII_TAMIL" , { NULL , NULL , NULL , } , } ,
+	{ "ISCII_TELUGU" , { NULL , NULL , NULL , } , } ,
 	{ "VISCII" , { "viscii-1" , NULL , NULL , } , } ,
 	{ "KOI8_R" , { "koi8-r" , NULL , NULL , } , } ,
 	{ "KOI8_U" , { "koi8-u" , NULL , NULL , } , } ,

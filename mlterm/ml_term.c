@@ -29,11 +29,11 @@ ml_term_new(
 	int  use_multi_col_char ,
 	int  use_bidi ,
 	ml_bidi_mode_t  bidi_mode ,
+	int  use_ind ,
 	int  use_bce ,
 	int  use_dynamic_comb ,
 	ml_bs_mode_t  bs_mode ,
-	ml_vertical_mode_t  vertical_mode ,
-	mkf_iscii_lang_t  iscii_lang_type
+	ml_vertical_mode_t  vertical_mode
 	)
 {
 	ml_term_t *  term ;
@@ -80,11 +80,10 @@ ml_term_new(
 	}
 
 	term->shape = NULL ;
-	term->iscii_lang = NULL ;
-	term->iscii_lang_type = iscii_lang_type ;
 	term->vertical_mode = vertical_mode ;
 	term->bidi_mode = bidi_mode ;
 	term->use_bidi = use_bidi ;
+	term->use_ind = use_ind ;
 	term->use_dynamic_comb = use_dynamic_comb ;
 
 	term->is_auto_encoding = is_auto_encoding ;
@@ -130,11 +129,6 @@ ml_term_delete(
 	if( term->shape)
 	{
 		(*term->shape->delete)( term->shape) ;
-	}
-
-	if( term->iscii_lang)
-	{
-		ml_iscii_lang_delete( term->iscii_lang) ;
 	}
 
 	free( term->win_name) ;
@@ -499,7 +493,10 @@ ml_term_set_modified_lines(
 	int  row ;
 	ml_line_t *  line ;
 
-	ml_screen_logical( term->screen) ;
+	if( term->vertical_mode)
+	{
+		ml_screen_logical( term->screen) ;
+	}
 
 	for( row = beg ; row <= end ; row ++)
 	{
@@ -509,8 +506,11 @@ ml_term_set_modified_lines(
 		}
 	}
 
-	/* ml_screen_render( term->screen) ; */
-	ml_screen_visual( term->screen) ;
+	if( term->vertical_mode)
+	{
+		/* ml_screen_render( term->screen) ; */
+		ml_screen_visual( term->screen) ;
+	}
 
 	return  1 ;
 }
@@ -525,7 +525,10 @@ ml_term_set_modified_lines_in_screen(
 	int  row ;
 	ml_line_t *  line ;
 
-	ml_screen_logical( term->screen) ;
+	if( term->vertical_mode)
+	{
+		ml_screen_logical( term->screen) ;
+	}
 
 	for( row = beg ; row <= end ; row ++)
 	{
@@ -535,8 +538,11 @@ ml_term_set_modified_lines_in_screen(
 		}
 	}
 
-	/* ml_screen_render( term->screen) ; */
-	ml_screen_visual( term->screen) ;
+	if( term->vertical_mode)
+	{
+		/* ml_screen_render( term->screen) ; */
+		ml_screen_visual( term->screen) ;
+	}
 
 	return  1 ;
 }
@@ -546,10 +552,18 @@ ml_term_set_modified_all_lines_in_screen(
 	ml_term_t *  term
 	)
 {
-	ml_screen_logical( term->screen) ;
+	if( term->vertical_mode)
+	{
+		ml_screen_logical( term->screen) ;
+	}
+
 	ml_screen_set_modified_all( term->screen) ;
-	/* ml_screen_render( term->screen) ; */
-	ml_screen_visual( term->screen) ;
+
+	if( term->vertical_mode)
+	{
+		/* ml_screen_render( term->screen) ; */
+		ml_screen_visual( term->screen) ;
+	}
 
 	return  1 ;
 }
@@ -562,7 +576,10 @@ ml_term_updated_all(
 	int  row ;
 	ml_line_t *  line ;
 
-	ml_screen_logical( term->screen) ;
+	if( term->vertical_mode)
+	{
+		ml_screen_logical( term->screen) ;
+	}
 
 	for( row = 0 ; row < ml_edit_get_rows( term->screen->edit) ; row ++)
 	{
@@ -572,8 +589,11 @@ ml_term_updated_all(
 		}
 	}
 
-	/* ml_screen_render( term->screen) ; */
-	ml_screen_visual( term->screen) ;
+	if( term->vertical_mode)
+	{
+		/* ml_screen_render( term->screen) ; */
+		ml_screen_visual( term->screen) ;
+	}
 
 	return  1 ;
 }
@@ -598,30 +618,19 @@ ml_term_update_special_visual(
 		term->shape = NULL ;
 	}
 
-	if( term->iscii_lang)
-	{
-		ml_iscii_lang_delete( term->iscii_lang) ;
-		term->iscii_lang = NULL ;
-	}
-
 	term->screen->use_dynamic_comb = 0 ;
 	had_logvis = ml_screen_delete_logical_visual( term->screen) ;
 
-	if( ml_term_get_encoding( term) == ML_ISCII
-	#ifdef  USE_IND
-	    /* XXX */
-	    || (ml_term_get_encoding( term) == ML_UTF8 && ! term->use_bidi &&
-	        (term->parser->unicode_policy & NOT_USE_UNICODE_FONT))
-	#endif
+	if( IS_ISCII_ENCODING( ml_term_get_encoding( term))
+	    || (ml_term_get_encoding( term) == ML_UTF8 && ! term->use_bidi && term->use_ind)
 	    )
 	{
 		/*
 		 * It is impossible to process ISCII with other special visuals.
 		 */
 
-		if( ( term->iscii_lang = ml_iscii_lang_new( term->iscii_lang_type)) &&
-		    ( term->shape = ml_iscii_shape_new( term->iscii_lang)) &&
-		    ( logvis = ml_logvis_iscii_new( term->iscii_lang)))
+		if( ( term->shape = ml_iscii_shape_new()) &&
+		    ( logvis = ml_logvis_iscii_new()))
 		{
 			if( ml_screen_add_logical_visual( term->screen , logvis))
 			{
@@ -641,7 +650,7 @@ ml_term_update_special_visual(
 		else
 		{
 			kik_warn_printf( KIK_DEBUG_TAG
-				" ml_iscii_xxx_new()/ml_logvis_iscii_new() failed.\n") ;
+				" ml_iscii_shape_new()/ml_logvis_iscii_new() failed.\n") ;
 		}
 	#endif
 	}
@@ -738,12 +747,6 @@ ml_term_update_special_visual(
 		{
 			(*term->shape->delete)( term->shape) ;
 			term->shape = NULL ;
-		}
-
-		if( term->iscii_lang)
-		{
-			ml_iscii_lang_delete( term->iscii_lang) ;
-			term->iscii_lang = NULL ;
 		}
 
 		term->screen->use_dynamic_comb = 0 ;
