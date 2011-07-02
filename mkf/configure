@@ -18707,7 +18707,7 @@ fi
 
 
 if test "$with_gnu_ld" = "yes" ; then
-	DEXPORT="-Wl,--version-script=\$(top_srcdir)/xwindow/dexport.map"
+	DEXPORT="-Wl,--version-script=\$(top_srcdir)/lib/dexport.map"
 fi
 
 
