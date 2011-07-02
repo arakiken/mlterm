@@ -357,7 +357,7 @@ ml_char_combine(
 }
 
 int
-ml_combine_chars(
+ml_char_combine_simple(
 	ml_char_t *  ch ,
 	ml_char_t *  comb
 	)
@@ -404,6 +404,10 @@ ml_get_combining_chars(
 	}
 }
 
+/*
+ * Not used for now.
+ */
+#if  0
 int
 ml_char_move(
 	ml_char_t *  dst ,
@@ -426,6 +430,7 @@ ml_char_move(
 
 	return  1 ;
 }
+#endif
 
 int
 ml_char_copy(

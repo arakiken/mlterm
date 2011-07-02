@@ -625,7 +625,7 @@ comb_visual(
 					dst_pos >= 2 ? ml_char_at( line , dst_pos - 2) : NULL ,
 					ml_char_at( line , dst_pos - 1) , cur)))
 			{
-				ml_combine_chars( ml_char_at( line , dst_pos - 1) , cur) ;
+				ml_char_combine_simple( ml_char_at( line , dst_pos - 1) , cur) ;
 
 			#if  0
 				/*
@@ -810,7 +810,7 @@ comb_visual_line(
 			ml_is_arabic_combining( dst_pos >= 2 ? ml_char_at( line , dst_pos - 2) : NULL ,
 				ml_char_at( line , dst_pos - 1) , cur)))
 		{
-			ml_combine_chars( ml_char_at( line , dst_pos - 1) , cur) ;
+			ml_char_combine_simple( ml_char_at( line , dst_pos - 1) , cur) ;
 		}
 		else
 		{

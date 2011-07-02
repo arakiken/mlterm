@@ -136,7 +136,7 @@ int  ml_line_end_char_index( ml_line_t *  line) ;
 
 int  ml_line_beg_char_index_regarding_rtl( ml_line_t *  line) ;
 
-u_int  ml_get_num_of_filled_chars_except_spaces( ml_line_t *  line) ;
+u_int  ml_line_get_num_of_filled_chars_except_spaces( ml_line_t *  line) ;
 
 int  ml_line_get_word_pos( ml_line_t *  line , int *  beg_char_index , int *  end_char_index ,
 	int  char_index) ;

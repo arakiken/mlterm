@@ -83,7 +83,7 @@ typedef struct im_kbd
 	kbd_type_t  type ;
 	kbd_mode_t  mode ;
 
-	ml_isciikey_state_t  keymap ;
+	ml_isciikey_state_t  isciikey_state ;
 
 	mkf_parser_t *  parser ;
 	mkf_conv_t *  conv ;
@@ -320,9 +320,9 @@ delete(
 
 	kbd = (im_kbd_t*) im ;
 
-	if( kbd->keymap)
+	if( kbd->isciikey_state)
 	{
-		(*syms->ml_isciikey_state_delete)( kbd->keymap) ;
+		(*syms->ml_isciikey_state_delete)( kbd->isciikey_state) ;
 	}
 
 	if( kbd->parser)
@@ -460,7 +460,7 @@ key_event_iscii(
 		return  1 ;
 	}
 
-	len = (*syms->ml_convert_ascii_to_iscii)( kbd->keymap ,
+	len = (*syms->ml_convert_ascii_to_iscii)( kbd->isciikey_state ,
 						  buf , sizeof( buf) ,
 						  &key_char , 1) ;
 
@@ -514,10 +514,10 @@ switch_mode(
 	}
 	else /* kbd->type == KBD_TYPE_ISCII */
 	{
-		if( kbd->keymap)
+		if( kbd->isciikey_state)
 		{
-			(*syms->ml_isciikey_state_delete)( kbd->keymap) ;
-			kbd->keymap = NULL ;
+			(*syms->ml_isciikey_state_delete)( kbd->isciikey_state) ;
+			kbd->isciikey_state = NULL ;
 		}
 
 
@@ -525,7 +525,7 @@ switch_mode(
 
 		if( kbd->mode == KBD_MODE_ASCII)
 		{
-			kbd->keymap = (*syms->ml_isciikey_state_new)( 1) ;
+			kbd->isciikey_state = (*syms->ml_isciikey_state_new)( 1) ;
 			kbd->mode = KBD_MODE_ISCII_INSCRIPT ;
 
 		#ifdef  IM_KBD_DEBUG
@@ -535,7 +535,7 @@ switch_mode(
 		}
 		else if( kbd->mode == KBD_MODE_ISCII_INSCRIPT)
 		{
-			kbd->keymap = (*syms->ml_isciikey_state_new)( 0) ;
+			kbd->isciikey_state = (*syms->ml_isciikey_state_new)( 0) ;
 			kbd->mode = KBD_MODE_ISCII_PHONETIC ;
 
 		#ifdef  IM_KBD_DEBUG
@@ -553,7 +553,7 @@ switch_mode(
 
 		if( ( kbd->type == KBD_MODE_ISCII_INSCRIPT ||
 		      kbd->type == KBD_MODE_ISCII_PHONETIC) &&
-		    ( kbd->keymap == NULL))
+		    ( kbd->isciikey_state == NULL))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_isciikey_state_new() failed.\n");
@@ -730,7 +730,7 @@ im_kbd_new(
 
 	kbd->type = type ;
 	kbd->mode = KBD_MODE_ASCII ;
-	kbd->keymap = NULL ;
+	kbd->isciikey_state = NULL ;
 	kbd->parser = NULL ;
 	kbd->conv = NULL ;
 
@@ -749,15 +749,13 @@ im_kbd_new(
 		{
 			iscii_encoding = term_encoding ;
 		}
-		else
+		else if( ! opt ||
+			(iscii_encoding = (*syms->ml_get_char_encoding)( opt))
+				== ML_UNKNOWN_ENCODING)
 		{
-			if( ( iscii_encoding = (*syms->ml_get_char_encoding)( opt)) ==
-							ML_UNKNOWN_ENCODING)
-			{
-				iscii_encoding = ISCII_HINDI ;
-			}
+			iscii_encoding = ML_ISCII_HINDI ;
 		}
-		
+
 		if( ! ( kbd->parser = (*syms->ml_parser_new)( iscii_encoding)))
 		{
 			goto  error ;

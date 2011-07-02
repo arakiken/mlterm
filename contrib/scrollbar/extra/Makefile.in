@@ -13,7 +13,7 @@ MOTIF_OBJ = motif.o
 MOZMODERN_OBJ = mozmodern.o
 NEXT_OBJ = next.o
 
-CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @KIK_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ -I/usr/include/include -DSB_VIEW_VERSION=0
+CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ -I/usr/include/include -DSB_VIEW_VERSION=0
 
 CC = @CC@
 INSTALL = @INSTALL@

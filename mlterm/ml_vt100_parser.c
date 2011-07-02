@@ -683,7 +683,7 @@ switch_im_mode(
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,switch_im_mode))
 	{
-		return  (*vt100_parser->xterm_listener->switch_im_mode)(
+		(*vt100_parser->xterm_listener->switch_im_mode)(
 					vt100_parser->xterm_listener->self) ;
 	}
 }

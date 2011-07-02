@@ -1100,7 +1100,7 @@ ml_line_get_num_of_filled_cols(
 }
 
 u_int
-ml_get_num_of_filled_chars_except_spaces(
+ml_line_get_num_of_filled_chars_except_spaces(
 	ml_line_t *  line
 	)
 {
@@ -1618,7 +1618,7 @@ ml_line_iscii_visual(
 			for( count = 1 ;
 			     count < line->ctl_info.iscii->num_of_chars_array[dst_pos] ; count++)
 			{
-				ml_combine_chars( dst + dst_pos , src + (src_pos ++)) ;
+				ml_char_combine_simple( dst + dst_pos , src + (src_pos ++)) ;
 			}
 		}
 	}

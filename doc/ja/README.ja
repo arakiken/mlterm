@@ -652,7 +652,9 @@ comment $Id$
       o TIS620             ... TIS 620 フォント
       o VISCII             ... VISCII フォント
       o TCVN5712_3_1993    ... TCVN5712_3_1993 フォント
-      o ISCII              ... ISCII フォント
+      o ISCII_XXX          ... ISCII フォント(XXX は、ASSAMESE, BENGALI,
+                               GUJARATI, HINDI, KANNADA, MALAYALAM, ORIYA,
+			       PUNJABI, ROMAN, TAMIL, TELUGU のいずれか)
       o KOI8_R             ... KOI8_R フォント
       o KOI8_U             ... KOI8_U フォント
       o JISX0201_ROMAN     ... JISX0201左面フォント

@@ -101,7 +101,7 @@ int  ml_char_combine( ml_char_t *  ch , u_char *  bytes , size_t  size ,
 	mkf_charset_t  cs , int  is_biwidth , int  is_comb ,
 	ml_color_t  fg_color , ml_color_t  bg_color , int  is_bold , int  is_underlined) ;
 
-int  ml_combine_chars( ml_char_t *  ch , ml_char_t *  comb) ;
+int  ml_char_combine_simple( ml_char_t *  ch , ml_char_t *  comb) ;
 
 int  ml_remove_combining_char( ml_char_t *  ch) ;
 
@@ -109,7 +109,12 @@ ml_char_t *  ml_get_base_char( ml_char_t *  ch) ;
 
 ml_char_t *  ml_get_combining_chars( ml_char_t *  ch , u_int *  size) ;
 
+#if  0
+/*
+ * Not used for now.
+ */
 int  ml_char_move( ml_char_t *  dst , ml_char_t *  src) ;
+#endif
 
 int  ml_char_copy( ml_char_t *  dst , ml_char_t *  src) ;
 

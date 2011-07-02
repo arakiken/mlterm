@@ -11,7 +11,8 @@ Following is a instruction of setting up mlterm indic support.
   $ make install
   
   Then, setup ~/.mlterm/font or ~/.mlterm/aafont.
-  (etc/font.indic and etc/aafont.indic are samples.)
+  (etc/font.indic and etc/aafont.indic are samples. Note that mlterm supports
+  ISCII fonts alone. Unicode fonts of indic characters are not supported.)
 
 * Usage
   $ mlterm -E utf8 -w 16 -m -V --im=kbd:isciihindi --lsp 2 --bi=false --ind --type=xft

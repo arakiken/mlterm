@@ -136,7 +136,7 @@ ml_model_resize(
 		 * This is problematic, since the value of 'slide' can be incorrect when
 		 * cursor is located at the line which contains white spaces alone.
 		 */
-		else if( ml_get_num_of_filled_chars_except_spaces( ml_model_get_line( model , count)) > 0)
+		else if( ml_line_get_num_of_filled_chars_except_spaces( ml_model_get_line( model , count)) > 0)
 	#else
 		else if( ! ml_line_is_empty( ml_model_get_line( model , count)))
 	#endif

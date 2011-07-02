@@ -859,15 +859,11 @@ AC_ARG_ENABLE(ind,
 	[  --enable-ind            libind @<:@default=disabled@:>@],
 	ind=$enable_ind, ind="no")
 if test "$ind" = "yes" ; then
-	AC_PATH_PROG(LEX,lex,"no")
-	if test "$have_lex" != "no" ; then
-		IND_CFLAGS='-DUSE_IND -I${top_builddir}/libind'
-		IND_LIBS='${top_builddir}/libind/libind.a'
-		MAKE_DIRS="libind ${MAKE_DIRS}"
-		OUTPUT_FILES="libind/Makefile ${OUTPUT_FILES}"
-	fi
+	IND_CFLAGS='-DUSE_IND -I${top_builddir}/libind'
+	IND_LIBS='${top_builddir}/libind/libind.a'
+	MAKE_DIRS="libind ${MAKE_DIRS}"
+	OUTPUT_FILES="libind/Makefile ${OUTPUT_FILES}"
 fi
-AC_SUBST(LEX)
 AC_SUBST(IND_LIBS)
 AC_SUBST(IND_CFLAGS)
 

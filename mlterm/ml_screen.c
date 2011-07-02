@@ -113,7 +113,7 @@ receive_scrolled_out_line(
 	}
 	else
 	{
-		line->num_of_filled_chars = ml_get_num_of_filled_chars_except_spaces( line) ;
+		line->num_of_filled_chars = ml_line_get_num_of_filled_chars_except_spaces( line) ;
 	}
 	
 	ml_log_add( &screen->logs , line) ;
@@ -239,7 +239,7 @@ reverse_or_restore_color(
 		}
 		else
 		{
-			if( ( end_char_index = ml_get_num_of_filled_chars_except_spaces( line)) > 0)
+			if( ( end_char_index = ml_line_get_num_of_filled_chars_except_spaces( line)) > 0)
 			{
 				end_char_index -- ;
 			}
@@ -260,7 +260,7 @@ reverse_or_restore_color(
 			}
 		}
 
-		size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+		size_except_spaces = ml_line_get_num_of_filled_chars_except_spaces( line) ;
 		beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
 
 		if( row > beg_row)
@@ -341,7 +341,7 @@ reverse_or_restore_color(
 				continue ;
 			}
 
-			size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+			size_except_spaces = ml_line_get_num_of_filled_chars_except_spaces( line) ;
 			beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
 			
 			for( char_index = beg_regarding_rtl ;
@@ -357,7 +357,7 @@ reverse_or_restore_color(
 			return  1 ;
 		}
 
-		size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+		size_except_spaces = ml_line_get_num_of_filled_chars_except_spaces( line) ;
 		beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
 
 		if( end_char_index < 0)
@@ -425,7 +425,7 @@ check_or_copy_region(
 		}
 		else
 		{
-			if( ( end_char_index = ml_get_num_of_filled_chars_except_spaces( line)) > 0)
+			if( ( end_char_index = ml_line_get_num_of_filled_chars_except_spaces( line)) > 0)
 			{
 				end_char_index -- ;
 			}
@@ -446,7 +446,7 @@ check_or_copy_region(
 			}
 		}
 
-		size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+		size_except_spaces = ml_line_get_num_of_filled_chars_except_spaces( line) ;
 		beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
 
 		if( row > beg_row)
@@ -537,7 +537,7 @@ check_or_copy_region(
 		{
 			line = ml_screen_get_line( screen , row) ;
 
-			size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+			size_except_spaces = ml_line_get_num_of_filled_chars_except_spaces( line) ;
 			beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
 
 			if( chars)
@@ -560,7 +560,7 @@ check_or_copy_region(
 
 		line = ml_screen_get_line( screen , row) ;
 
-		size_except_spaces = ml_get_num_of_filled_chars_except_spaces( line) ;
+		size_except_spaces = ml_line_get_num_of_filled_chars_except_spaces( line) ;
 		beg_regarding_rtl = ml_line_beg_char_index_regarding_rtl( line) ;
 
 		if( end_char_index < 0)
@@ -2306,7 +2306,7 @@ ml_screen_search_find(
 		size_t  match_beg ;
 		size_t  match_len ;
 
-		if( ( line_len = ml_get_num_of_filled_chars_except_spaces( line)) == 0)
+		if( ( line_len = ml_line_get_num_of_filled_chars_except_spaces( line)) == 0)
 		{
 			continue ;
 		}

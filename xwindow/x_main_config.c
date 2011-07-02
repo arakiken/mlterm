@@ -244,8 +244,10 @@ x_main_config_init(
 {
 	char *  value ;
 	char *  invalid_msg = "%s %s is not valid.\n" ;
-	
+
+#ifndef  USE_WIN32GUI
 	if( ( value = kik_conf_get_value( conf , "display")) == NULL)
+#endif
 	{
 		value = "" ;
 	}
@@ -298,10 +300,12 @@ x_main_config_init(
 
 	main_config->icon_name = NULL ;
 
+#ifndef  USE_WIN32GUI
 	if( ( value = kik_conf_get_value( conf , "icon_name")))
 	{
 		main_config->icon_name = strdup( value) ;
 	}
+#endif
 
 	/* Not changeable. */
 	main_config->conf_menu_path_1 = NULL ;
@@ -904,6 +908,7 @@ x_main_config_init(
 		main_config->encoding = ML_ISO8859_1 ;
 	}
 
+#ifdef  USE_FRIBIDI
 	main_config->use_bidi = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_bidi")))
@@ -920,7 +925,12 @@ x_main_config_init(
 	{
 		main_config->bidi_mode = ml_get_bidi_mode( value) ;
 	}
+#else
+	main_config->use_bidi = 0 ;
+	main_config->bidi_mode = BIDI_NORMAL_MODE ;
+#endif
 
+#ifdef  USE_IND
 	main_config->use_ind = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_ind")))
@@ -941,6 +951,9 @@ x_main_config_init(
 	{
 		main_config->mod_meta_key = NULL ;
 	}
+#else
+	main_config->use_ind = 0 ;
+#endif
 	
 	if( ( value = kik_conf_get_value( conf , "mod_meta_mode")))
 	{

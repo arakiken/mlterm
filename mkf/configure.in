@@ -91,6 +91,13 @@ AC_SUBST(NO_UNDEFINED_FLAG)
 AC_SUBST(MKF_CHAR_LO)
 AC_SUBST(KIK_LIBS)
 
+
+if test "$with_gnu_ld" = "yes" ; then
+	DEXPORT="-Wl,--version-script=\$(top_srcdir)/xwindow/dexport.map"
+fi
+AC_SUBST(DEXPORT)
+
+
 # This should be uncommented if mkf and kiklib alone are distributed in a package.
 #if test "${SUBDIRS}" != "" ; then
 #	AC_CONFIG_SUBDIRS(${SUBDIRS})
