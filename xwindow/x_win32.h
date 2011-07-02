@@ -12,8 +12,6 @@
 #include  <windows.h>
 #include  <imm.h>
 
-#include  <kiklib/kik_types.h>
-
 
 /* for msys-1.0 dvlpr */
 #ifndef  WM_IME_CHAR
@@ -72,8 +70,8 @@ typedef struct
 
 } XKeyEvent ;
 
-typedef u_long Time ;	/* Same as definition in X11/X.h */
-typedef u_long Atom ;	/* Same as definition in X11/X.h */
+typedef unsigned long  Time ;	/* Same as definition in X11/X.h */
+typedef unsigned long  Atom ;	/* Same as definition in X11/X.h */
 
 typedef struct
 {

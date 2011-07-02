@@ -116,8 +116,8 @@ typedef struct  x_sb_view_conf
 	char *  engine_name ;
 	char *  dir ;
 	x_sb_view_rc_t *  rc ;
-	u_int  rc_num ;
-	u_int  use_count ;
+	unsigned int  rc_num ;
+	unsigned int  use_count ;
 	
 } x_sb_view_conf_t ;
 
