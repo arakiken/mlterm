@@ -1,3 +1,12 @@
+2011-07-04  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: If command and argv arguments of vte_terminal_fork_command()
+	  is NULL, default shell is executed in child process.
+
+	* x_gdiobj_pool.h: Include <kiklib/kik_types.h>.
+ 
+	* README.ja, gtk/INSTALL: Updated.
+
 2011-07-02  Araki Ken  <arakiken@users.sf.net>
 
 	* x_sb_view.h, x_win32.h: Independent from kik_types.h.

@@ -6,6 +6,8 @@
 #define  __X_GDIOBJ_POOL_H__
 
 
+#include  <kiklib/kik_types.h>
+
 #include  "x.h"
 
 

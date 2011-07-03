@@ -5,6 +5,7 @@
 #include  <vte/vte.h>
 #include  <vte/reaper.h>
 
+#include  <pwd.h>			/* getpwuid */
 #include  <X11/keysym.h>
 #include  <gdk/gdkx.h>
 #include  <gtk/gtksignal.h>
@@ -1887,11 +1888,11 @@ vte_terminal_init(
 			main_config.encoding , main_config.is_auto_encoding , 
 			main_config.unicode_policy , main_config.col_size_of_width_a ,
 			main_config.use_char_combining , main_config.use_multi_col_char ,
-			main_config.use_bidi , main_config.bidi_mode , 
+			main_config.use_bidi , main_config.bidi_mode , main_config.use_ind ,
 			x_termcap_get_bool_field(
 				x_termcap_get_entry( &termcap , main_config.term_type) , ML_BCE) ,
 			main_config.use_dynamic_comb , main_config.bs_mode ,
-			main_config.vertical_mode , main_config.iscii_lang_type) ;
+			main_config.vertical_mode) ;
 
 	if( main_config.unicode_policy & NOT_USE_UNICODE_FONT ||
 		main_config.iso88591_font_for_usascii)
@@ -2071,8 +2072,8 @@ vte_terminal_new()
 pid_t
 vte_terminal_fork_command(
 	VteTerminal *  terminal ,
-	const char *  command ,
-	char **  argv ,
+	const char *  command ,		/* If NULL, open default shell. */
+	char **  argv ,			/* If NULL, open default shell. */
 	char **  envv ,
 	const char *  directory ,
 	gboolean  lastlog ,
@@ -2082,12 +2083,30 @@ vte_terminal_fork_command(
 {
 	if( ! terminal->pvt->term->pty)
 	{
-	#ifdef  __DEBUG
+	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " forking with %s\n" , command) ;
 	#endif
 	
+		if( ! command)
+		{
+			if( ! ( command = getenv( "SHELL")) || *command == '\0')
+			{
+				struct passwd *  pw ;
+
+				if( ( pw = getpwuid( getuid())) == NULL ||
+				    *( command = pw->pw_shell) == '\0')
+				{
+					command = "/bin/sh" ;
+				}
+			}
+
+			argv = alloca( sizeof(char*) * 2) ;
+			argv[0] = command ;
+			argv[1] = NULL ;
+		}
+
 		kik_pty_helper_set_flag( lastlog , utmp , wtmp) ;
-		
+
 		if( ! ml_term_open_pty( terminal->pvt->term , command , argv , envv ,
 			gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal))) ,
 			NULL , NULL , NULL) )
@@ -2162,7 +2181,7 @@ vte_terminal_forkpty(
 {
 	if( ! terminal->pvt->term->pty)
 	{
-	#ifdef  __DEBUG
+	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " forking pty\n") ;
 	#endif
 	
@@ -2849,7 +2868,7 @@ vte_terminal_set_font_from_string(
 	const char *  name
 	)
 {
-#ifdef  __DEBUG
+#ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " set_font_from_string %s\n" , name) ;
 #endif
 

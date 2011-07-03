@@ -1,7 +1,10 @@
 ver 3.0.6
-* Improve support of unicode indic characters.
+* Support unicode indic characters (using ISCII fonts though).
 * Support searching text in terminal screen. (Add "mlsearch.sh" tool.)
 * Improve cursor movement in bi-direction text.
+* Support searching text in libvte.
+* Gtkterm2 works with libvte.
+* Other bug fixes:
 
 ver 3.0.5
 * Fix a problem of failing in compilation in gtk/ in the system where

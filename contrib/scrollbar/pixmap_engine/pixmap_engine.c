@@ -141,7 +141,8 @@ typedef struct x_display_t *  x_display_ptr_t ;
 x_display_ptr_t *  x_get_opened_displays( unsigned int *  num) ;
 
 /* XXX Hack (declared in x_imagelib.h) */
-int  x_imagelib_load_file( x_display_ptr_t  disp , char *  path , u_int32_t **  cardinal ,
+int  x_imagelib_load_file( x_display_ptr_t  disp , char *  path ,
+	/* u_int32_t */ unsigned int **  cardinal /* Not used in this file */ ,
 	Pixmap *  pixmap , Pixmap *  mask , unsigned int *  width , unsigned int *  height) ;
 
 static void
