@@ -166,8 +166,8 @@ wait_pty_read(
 static int
 pty_open(
   	ml_pty_pipe_t *  pty,
-	char *  cmd_path ,
-	char **  cmd_argv
+	const char *  cmd_path ,
+	char * const  cmd_argv[]
 	)
 {
 	HANDLE  output_read_tmp , output_write ;
@@ -585,11 +585,11 @@ read_pty(
 
 ml_pty_t *
 ml_pty_pipe_new(
-	char *  cmd_path ,	/* can be NULL */
+	const char *  cmd_path ,	/* can be NULL */
 	char **  cmd_argv ,	/* can be NULL(only if cmd_path is NULL) */
 	char **  env ,		/* can be NULL */
-	char *  uri ,
-	char *  pass ,
+	const char *  uri ,
+	const char *  pass ,
 	u_int  cols ,
 	u_int  rows
 	)
@@ -598,7 +598,6 @@ ml_pty_pipe_new(
 	HANDLE  thrd ;
 	DWORD  tid ;
 	char  ev_name[25] ;
-	void *  p ;
 	char *  user ;
 	char *  proto ;
 	char *  host ;
@@ -659,46 +658,45 @@ ml_pty_pipe_new(
 		}
 	}
 
-	if( /* cmd_path && */ cmd_argv)
+	if( /* ! cmd_path || */ ! cmd_argv)
 	{
-		goto  next_step ;
+		char *  p ;
+
+		if( ! ( cmd_argv = alloca( sizeof(char*) * 8)) ||
+		    ! kik_parse_uri( &proto , &user , &host , &port , NULL , NULL ,
+			kik_str_alloca_dup( uri)))
+		{
+			free( pty) ;
+
+			return  NULL ;
+		}
+
+		if( proto && ( p = alloca( strlen( proto) + 2)))
+		{
+			sprintf( p , "-%s" , proto) ;
+			proto = p ;
+		}
+
+		cmd_path = "plink.exe" ;
+
+		idx = 0 ;
+		cmd_argv[idx++] = cmd_path ;
+		cmd_argv[idx++] = proto ;
+		if( user)
+		{
+			cmd_argv[idx++] = "-l" ;
+			cmd_argv[idx++] = user ;
+		}
+		/* -pw option can only be used with SSH. */
+		if( strcmp( proto , "-ssh") == 0)
+		{
+			cmd_argv[idx++] = "-pw" ;
+			cmd_argv[idx++] = pass ;
+		}
+		cmd_argv[idx++] = host ;
+		cmd_argv[idx++] = NULL ;
 	}
 
-	if( ! ( cmd_argv = alloca( sizeof(char*) * 8)) ||
-	    ! kik_parse_uri( &proto , &user , &host , &port , NULL , NULL ,
-		kik_str_alloca_dup( uri)))
-	{
-		free( pty) ;
-
-		return  NULL ;
-	}
-
-	if( proto && ( p = alloca( strlen( proto) + 2)))
-	{
-		sprintf( p , "-%s" , proto) ;
-		proto = p ;
-	}
-
-	cmd_path = "plink.exe" ;
-
-	idx = 0 ;
-	cmd_argv[idx++] = cmd_path ;
-	cmd_argv[idx++] = proto ;
-	if( user)
-	{
-		cmd_argv[idx++] = "-l" ;
-		cmd_argv[idx++] = user ;
-	}
-	/* -pw option can only be used with SSH. */
-	if( strcmp( proto , "-ssh") == 0)
-	{
-		cmd_argv[idx++] = "-pw" ;
-		cmd_argv[idx++] = pass ;
-	}
-	cmd_argv[idx++] = host ;
-	cmd_argv[idx++] = NULL ;
-
-next_step:
 	if( ! ( pty_open( pty, cmd_path, cmd_argv)))
 	{
 		free(pty) ;
@@ -746,31 +744,35 @@ next_step:
 
 		return  NULL ;
 	}
-
-	CloseHandle( thrd) ;
-
-	/* Add to child_procs */
-
-	if( ( p = realloc( child_procs, sizeof(HANDLE) * (num_of_child_procs + 1))) == NULL)
+	else
 	{
-		ml_pty_delete( &pty->pty) ;
+		void *  p ;
 
-		return  NULL ;
-	}
+		CloseHandle( thrd) ;
 
-	child_procs = p ;
-	child_procs[num_of_child_procs++] = pty->child_proc ;
+		/* Add to child_procs */
 
-	/*
-	 * Exit WaitForMultipleObjects in wait_child_proc and do WaitForMultipleObjects again
-	 * with new child_procs
-	 */
-	SetEvent( child_procs[0]) ;
+		if( ! ( p = realloc( child_procs, sizeof(HANDLE) * (num_of_child_procs + 1))))
+		{
+			ml_pty_delete( &pty->pty) ;
 
-#ifdef  __DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " Added child procs NUM %d ADDED-HANDLE %d:%d.\n",
+			return  NULL ;
+		}
+
+		child_procs = p ;
+		child_procs[num_of_child_procs++] = pty->child_proc ;
+
+		/*
+		 * Exit WaitForMultipleObjects in wait_child_proc and do WaitForMultipleObjects
+		 * again with new child_procs.
+		 */
+		SetEvent( child_procs[0]) ;
+
+	#ifdef  __DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " Added child procs NUM %d ADDED-HANDLE %d:%d.\n",
 			num_of_child_procs, child_procs[num_of_child_procs - 1], pty->child_proc) ;
-#endif
+	#endif
 
-	return  &pty->pty ;
+		return  &pty->pty ;
+	}
 }

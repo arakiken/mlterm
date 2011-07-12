@@ -1,5 +1,5 @@
 /*
- *	$Id: ccheader,v 1.2 2001/12/01 23:37:26 ken Exp $
+ *	$Id$
  */
 
 #include <stdio.h>

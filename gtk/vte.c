@@ -1,5 +1,5 @@
 /*
- *	$Id: ccheader,v 1.2 2001/12/01 23:37:26 ken Exp $
+ *	$Id$
  */
 
 #include  <vte/vte.h>
@@ -36,6 +36,10 @@
 
 #if  0
 #define  __DEBUG
+#endif
+
+#if  0
+#define  ATTACH_STYLE
 #endif
 
 #ifndef  I_
@@ -937,8 +941,8 @@ vte_terminal_filter(
 		return  GDK_FILTER_REMOVE ;
 	}
 
-	if( ( ((XEvent*)xevent)->xany.type == KeyPress ||
-		((XEvent*)xevent)->xany.type == KeyRelease) )
+	if( ( ((XEvent*)xevent)->type == KeyPress ||
+		((XEvent*)xevent)->type == KeyRelease) )
 	{
 		is_key_event = 1 ;
 	}
@@ -1253,11 +1257,42 @@ vte_terminal_realize(
 				GDK_WA_X | GDK_WA_Y |
 				(attr.visual ? GDK_WA_VISUAL : 0) |
 				(attr.colormap ? GDK_WA_COLORMAP : 0) ) ;
+
+	/*
+	 * Note that hook key and button events in vte_terminal_filter doesn't work without this.
+	 */
 	gdk_window_set_user_data( widget->window , widget) ;
 
 	GTK_WIDGET_SET_FLAGS( widget , GTK_REALIZED) ;
 
+#if  1
+	if( widget->style->font_desc)
+	{
+		pango_font_description_free( widget->style->font_desc) ;
+		widget->style->font_desc = NULL ;
+	}
+#endif
+
+#ifdef  ATTACH_STYLE
 	widget->style = gtk_style_attach( widget->style , widget->window) ;
+#endif
+
+	/*
+	 * private_font(_desc) should be NULL if widget->style->font_desc is set NULL above.
+	 */
+#if  0
+	if( widget->style->private_font)
+	{
+		gdk_font_unref( widget->style->private_font) ;
+		widget->style->private_font = NULL ;
+	}
+
+	if( widget->style->private_font_desc)
+	{
+		pango_font_description_free( widget->style->private_font_desc) ;
+		widget->style->private_font_desc = NULL ;
+	}
+#endif
 
 	if( ! timeout_registered)
 	{
@@ -1357,7 +1392,9 @@ vte_terminal_unrealize(
 		gtk_widget_unmap( widget) ;
 	}
 
+#ifdef  ATTACH_STYLE
 	gtk_style_detach( widget->style) ;
+#endif
 	gdk_window_destroy( widget->window) ;
 	widget->window = NULL ;
 
@@ -2099,7 +2136,10 @@ vte_terminal_fork_command(
 					command = "/bin/sh" ;
 				}
 			}
+		}
 
+		if( ! argv)
+		{
 			argv = alloca( sizeof(char*) * 2) ;
 			argv[0] = command ;
 			argv[1] = NULL ;
@@ -2871,6 +2911,11 @@ vte_terminal_set_font_from_string(
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " set_font_from_string %s\n" , name) ;
 #endif
+
+	if( ! name)
+	{
+		name = "monospace" ;
+	}
 
 	if( x_customize_font_file( "aafont" , "DEFAULT" , name , 0))
 	{

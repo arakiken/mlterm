@@ -46,7 +46,7 @@ int  ml_bidi( ml_bidi_state_t *  state , ml_char_t *  src , u_int  size , ml_bid
 
 #endif	/* USE_FRIBIDI */
 
-ml_bidi_mode_t  ml_get_bidi_mode( char *  name) ;
+ml_bidi_mode_t  ml_get_bidi_mode( const char *  name) ;
 
 char *  ml_get_bidi_mode_name( ml_bidi_mode_t  mode) ;
 

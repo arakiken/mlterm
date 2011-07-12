@@ -1,6 +1,5 @@
-
 /*
- *	$Id: ccheader,v 1.2 2001/12/01 23:37:26 ken Exp $
+ *	$Id$
  */
 
 #include  "ml_pty_intern.h"
@@ -163,12 +162,12 @@ kbd_callback(
  */
 static ssh_session_t *
 ssh_connect(
-	char *  host ,
-	char *  port ,
-	char *  user ,
-	char *  pass ,
-	char *  pubkey ,
-	char *  privkey
+	const char *  host ,
+	const char *  port ,
+	const char *  user ,
+	const char *  pass ,
+	const char *  pubkey ,
+	const char *  privkey
 	)
 {
 	ssh_session_t *  session ;
@@ -297,26 +296,25 @@ ssh_connect(
 		{
 			if( ! pubkey)
 			{
-				pubkey = p ;
-
 			#ifdef  USE_WIN32API
-				sprintf( pubkey , "%s\\mlterm\\id_rsa.pub" , home) ;
+				sprintf( p , "%s\\mlterm\\id_rsa.pub" , home) ;
 			#else
-				sprintf( pubkey , "%s/.ssh/id_rsa.pub" , home) ;
+				sprintf( p , "%s/.ssh/id_rsa.pub" , home) ;
 			#endif
 
+				pubkey = p ;
 				p += (strlen( pubkey) + 1) ;
 			}
 
 			if( ! privkey)
 			{
-				privkey = p ;
-
 			#ifdef  USE_WIN32API
-				sprintf( privkey , "%s\\mlterm\\id_rsa" , home) ;
+				sprintf( p , "%s\\mlterm\\id_rsa" , home) ;
 			#else
-				sprintf( privkey , "%s/.ssh/id_rsa" , home) ;
+				sprintf( p , "%s/.ssh/id_rsa" , home) ;
 			#endif
+
+				privkey = p ;
 			}
 		}
 		else
@@ -569,13 +567,13 @@ read_pty(
 
 ml_pty_ptr_t
 ml_pty_ssh_new(
-	char *  cmd_path ,	/* can be NULL */
+	const char *  cmd_path ,	/* can be NULL */
 	char **  cmd_argv ,	/* can be NULL(only if cmd_path is NULL) */
 	char **  env ,		/* can be NULL */
-	char *  uri ,
-	char *  pass ,
-	char *  pubkey ,	/* can be NULL */
-	char *  privkey ,	/* can be NULL */
+	const char *  uri ,
+	const char *  pass ,
+	const char *  pubkey ,	/* can be NULL */
+	const char *  privkey ,	/* can be NULL */
 	u_int  cols ,
 	u_int  rows
 	)
@@ -771,9 +769,9 @@ error1:
 
 void *
 ml_search_ssh_session(
-	char *  host ,
-	char *  port ,	/* can be NULL */
-	char *  user	/* can be NULL */
+	const char *  host ,
+	const char *  port ,	/* can be NULL */
+	const char *  user	/* can be NULL */
 	)
 {
 	u_int  count ;

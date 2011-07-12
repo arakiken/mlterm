@@ -22,6 +22,7 @@ global:
 	mkf_map_uhc_to_ksc5601_1987 ;
 
 	mkf_map_ucs4_to_iscii ;
+
 	mkf_bytes_to_int ;
 	mkf_int_to_bytes ;
 

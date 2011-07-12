@@ -296,7 +296,7 @@ ml_bidi(
 
 ml_bidi_mode_t
 ml_get_bidi_mode(
-	char *  name
+	const char *  name
 	)
 {
 	ml_bidi_mode_t  mode ;

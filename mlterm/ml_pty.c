@@ -22,13 +22,13 @@
 
 ml_pty_t *
 ml_pty_new(
-	char *  cmd_path ,	/* can be NULL */
-	char **  cmd_argv ,	/* can be NULL(only if cmd_path is NULL) */
-	char **  env ,		/* can be NULL */
-	char *  host ,
-	char *  pass ,		/* can be NULL */
-	char *  pubkey ,	/* can be NULL */
-	char *  privkey ,	/* can be NULL */
+	const char *  cmd_path ,	/* can be NULL */
+	char **  cmd_argv ,		/* can be NULL(only if cmd_path is NULL) */
+	char **  env ,			/* can be NULL */
+	const char *  host ,
+	const char *  pass ,		/* can be NULL */
+	const char *  pubkey ,		/* can be NULL */
+	const char *  privkey ,		/* can be NULL */
 	u_int  cols ,
 	u_int  rows
 	)

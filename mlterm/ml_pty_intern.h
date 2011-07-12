@@ -1,5 +1,5 @@
 /*
- *	$Id: ccheader,v 1.2 2001/12/01 23:37:26 ken Exp $
+ *	$Id$
  */
 
 #ifndef  __ML_PTY_INTERN_H__
@@ -29,14 +29,15 @@ typedef struct  ml_pty
 } ml_pty_t ;
 
 
-ml_pty_t *  ml_pty_unix_new( char *  cmd_path ,	char **  cmd_argv , char **  env , char *  host ,
-	u_int  cols , u_int  rows) ;
+ml_pty_t *  ml_pty_unix_new( const char *  cmd_path , char **  cmd_argv , char **  env ,
+	const char *  host , u_int  cols , u_int  rows) ;
 
-ml_pty_t *  ml_pty_ssh_new( char *  cmd_path ,	char **  cmd_argv , char **  env , char *  host ,
-	char *  pass , 	char *  pubkey , char *  privkey , u_int  cols , u_int  rows) ;
+ml_pty_t *  ml_pty_ssh_new( const char *  cmd_path , char **  cmd_argv , char **  env ,
+	const char *  host , const char *  pass ,
+	const char *  pubkey , const char *  privkey , u_int  cols , u_int  rows) ;
 
-ml_pty_t *  ml_pty_pipe_new( char *  cmd_path ,	char **  cmd_argv , char **  env , char *  host ,
-	char *  pass , u_int  cols , u_int  rows) ;
+ml_pty_t *  ml_pty_pipe_new( const char *  cmd_path , char **  cmd_argv , char **  env ,
+	const char *  host , const char *  pass , u_int  cols , u_int  rows) ;
 
 
 #endif

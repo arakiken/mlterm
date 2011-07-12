@@ -68,8 +68,8 @@ int  ml_term_delete( ml_term_t *  term) ;
 
 int  ml_term_zombie( ml_term_t *  term) ;
 
-int  ml_term_open_pty( ml_term_t *  term , char *  cmd_path , char **  argv ,
-	char **  env , char *  host , char *  pass , char *  pubkey , char *  privkey) ;
+int  ml_term_open_pty( ml_term_t *  term , const char *  cmd_path , char ** argv , char **  env ,
+	const char *  host , const char *  pass , const char *  pubkey , const char *  privkey) ;
 
 int  ml_term_attach( ml_term_t *  term , ml_xterm_event_listener_t *  xterm_listener ,
 	ml_config_event_listener_t *  config_listener ,

@@ -71,8 +71,6 @@ enum
  */
 static int  button3_open = 0 ;
 static char *  button3_command ;
-static char *  true = "true" ;
-static char *  false = "false" ;
 #ifdef  USE_IM_CURSOR_COLOR
 static char *  im_cursor_color = NULL ;
 #endif
@@ -85,11 +83,11 @@ true_or_false(
 	char *  str
 	)
 {
-	if( strcmp( str , true) == 0)
+	if( strcmp( str , "true") == 0)
 	{
 		return  1 ;
 	}
-	else if( strcmp( str , false) == 0)
+	else if( strcmp( str , "false") == 0)
 	{
 		return  0 ;
 	}
@@ -4960,11 +4958,11 @@ get_config(
 	{
 		if( ml_term_is_auto_encoding( term))
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "fg_color") == 0)
@@ -5100,22 +5098,22 @@ get_config(
 	{
 		if( ml_term_is_using_char_combining( term))
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "use_dynamic_comb") == 0)
 	{
 		if( term->use_dynamic_comb)
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "receive_string_via_ucs") == 0 ||
@@ -5124,22 +5122,22 @@ get_config(
 	{
 		if( screen->receive_string_via_ucs)
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "use_transbg") == 0)
 	{
 		if( screen->window.is_transparent)
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "brightness") == 0)
@@ -5188,11 +5186,11 @@ get_config(
 		font_present = x_get_font_present( screen->font_man) ;
 		if( font_present & FONT_AA)
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else if( font_present & FONT_NOAA)
 		{
-			value = false ;
+			value = "false" ;
 		}
 		else
 		{
@@ -5203,22 +5201,22 @@ get_config(
 	{
 		if( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH)
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "use_multi_column_char") == 0)
 	{
 		if( x_is_using_multi_col_char( screen->font_man))
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "col_size_of_width_a") == 0)
@@ -5236,22 +5234,22 @@ get_config(
 	{
 		if( term->use_bidi)
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "use_ind") == 0)
 	{
 		if( term->use_ind)
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "bidi_mode") == 0)
@@ -5285,11 +5283,11 @@ get_config(
 	{
 		if( screen->borderless)
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "wall_picture") == 0)
@@ -5346,11 +5344,11 @@ get_config(
 	{
 		if( term->parser->logging_vt_seq)
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strcmp( key , "gui") == 0)
@@ -5365,11 +5363,11 @@ get_config(
 	{
 		if( x_is_using_clipboard_selection())
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 	}
 	else if( strlen(key) >= 13 && strncmp( key , "selected_text" , 13) == 0)
@@ -7814,11 +7812,11 @@ x_screen_set_config(
 	{
 		ml_bs_mode_t  mode ;
 		
-		if( strcmp( value , true) == 0)
+		if( strcmp( value , "true") == 0)
 		{
 			mode = BSM_STATIC ;
 		}
-		else if( strcmp( value , false) == 0)
+		else if( strcmp( value , "false") == 0)
 		{
 			mode = BSM_VOLATILE ;
 		}
@@ -7955,12 +7953,12 @@ x_screen_set_config(
 
 		font_present = x_get_font_present( screen->font_man) ;
 
-		if( strcmp( value , true) == 0)
+		if( strcmp( value , "true") == 0)
 		{
 			font_present &= ~FONT_NOAA ;
 			font_present |= FONT_AA ;
 		}
-		else if( strcmp( value , false) == 0)
+		else if( strcmp( value , "false") == 0)
 		{
 			font_present |= FONT_NOAA ;
 			font_present &= ~FONT_AA ;
@@ -7980,11 +7978,11 @@ x_screen_set_config(
 
 		font_present = x_get_font_present( screen->font_man) ;
 
-		if( strcmp( value , true) == 0)
+		if( strcmp( value , "true") == 0)
 		{
 			font_present |= FONT_VAR_WIDTH ;
 		}
-		else if( strcmp( value , false) == 0)
+		else if( strcmp( value , "false") == 0)
 		{
 			font_present &= ~FONT_VAR_WIDTH ;
 		}

@@ -119,10 +119,10 @@ read_pty(
 
 ml_pty_t *
 ml_pty_unix_new(
-	char *  cmd_path ,	/* can be NULL */
+	const char *  cmd_path ,	/* can be NULL */
 	char **  cmd_argv ,	/* can be NULL(only if cmd_path is NULL) */
 	char **  env ,		/* can be NULL */
-	char *  host ,
+	const char *  host ,
 	u_int  cols ,
 	u_int  rows
 	)

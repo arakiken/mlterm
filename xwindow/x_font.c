@@ -556,18 +556,18 @@ set_xft_font(
 	int  aa_opt		/* 0 = default , 1 = enable , -1 = disable */
 	)
 {
+	char *  font_encoding ;
 	int  weight ;
 	int  slant ;
 	u_int  ch_width ;
 	XftFont *  xfont ;
-	char *  iso10646 ;
-	
-	iso10646 = "iso10646-1" ;
 
 	/*
-	 * weight and slant can be modified in parse_xft_font_name().
+	 * encoding, weight and slant can be modified in parse_xft_font_name().
 	 */
-	 
+	
+	font_encoding = "iso10646-1" ;
+
 	if( font->id & FONT_BOLD)
 	{
 		weight = XFT_WEIGHT_BOLD ;
@@ -584,7 +584,6 @@ set_xft_font(
 		char *  p ;
 		char *  font_family ;
 		double  fontsize_d ;
-		char *  font_encoding ;
 		u_int  percent ;
 
 		if( ( p = kik_str_alloca_dup( fontname)) == NULL)
@@ -597,7 +596,6 @@ set_xft_font(
 		}
 
 		fontsize_d = (double)fontsize ;
-		font_encoding = iso10646 ;
 		percent = 0 ;
 		if( parse_xft_font_name( &font_family , &weight , &slant , &fontsize_d ,
 						&font_encoding , &percent , p))
@@ -658,6 +656,9 @@ set_xft_font(
 						XFT_WEIGHT , XftTypeInteger , weight ,
 						XFT_SLANT , XftTypeInteger , slant ,
 						XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
+					#if  0
+						"embeddedbitmap" , XftTypeBool , True ,
+					#endif
 						aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
 							aa_opt == 1 ? True : False , NULL)))
 				{
@@ -678,6 +679,9 @@ set_xft_font(
 						XFT_SLANT , XftTypeInteger , slant ,
 						XFT_SPACING , XftTypeInteger , XFT_MONO ,
 						XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
+					#if  0
+						"embeddedbitmap" , XftTypeBool , True ,
+					#endif
 						aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
 							aa_opt == 1 ? True : False , NULL)) )
 				{
@@ -731,10 +735,13 @@ set_xft_font(
 
 		if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
 				xft_size_type , XftTypeDouble , (double)fontsize ,
-				XFT_ENCODING , XftTypeString , iso10646 ,
+				XFT_ENCODING , XftTypeString , font_encoding ,
 				XFT_WEIGHT , XftTypeInteger , weight ,
 				XFT_SLANT , XftTypeInteger , slant ,
 				XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
+			#if  0
+				"embeddedbitmap" , XftTypeBool , True ,
+			#endif
 				aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
 					aa_opt == 1 ? True : False , NULL)))
 		{
@@ -749,7 +756,7 @@ set_xft_font(
 	{
 		if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
 				xft_size_type , XftTypeDouble , (double)fontsize ,
-				XFT_ENCODING , XftTypeString , iso10646 ,
+				XFT_ENCODING , XftTypeString , font_encoding ,
 				XFT_WEIGHT , XftTypeInteger , weight ,
 				XFT_SLANT , XftTypeInteger , slant ,
 				XFT_SPACING , XftTypeInteger , XFT_MONO ,

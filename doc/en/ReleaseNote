@@ -1,9 +1,9 @@
 ver 3.0.6
 * Support unicode indic characters (using ISCII fonts though).
 * Support searching text in terminal screen. (Add "mlsearch.sh" tool.)
+* "CSI < r", "CSI < s" and "CSI < t" sequences are supported.
 * Improve cursor movement in bi-direction text.
-* Support searching text in libvte.
-* Gtkterm2 works with libvte.
+* Improve compatibility of libvte. (Gtkterm2, evilvte and sakura work.)
 * Other bug fixes:
 
 ver 3.0.5

@@ -1,3 +1,21 @@
+2011-07-12  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - If command is not NULL and argv is NULL, argv(= {command,NULL})
+	    is allocated in vte_terminal_fork_command().
+	  - If name is NULL, "monospace" font is loaded in
+	    vte_terminal_set_font_from_string().
+
+	* mlconfig/main.c: "Indic" checkbox is selectable only if "Bidi(UTF8 only)"
+	  checkbox is not selected.
+
+	* version.h.in: 3.0.5 post -> 3.0.6 pre
+
+	* vte.c: gtk_style_{attach|detach}() and gdk_window_set_user_data() are
+	  not called.
+
+	* README: Updated
+
 2011-07-04  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: If command and argv arguments of vte_terminal_fork_command()

@@ -192,7 +192,7 @@ static int
 get_font_size_range(
 	u_int *  min ,
 	u_int *  max ,
-	char *  str
+	const char *  str
 	)
 {
 	char *  str_p ;
@@ -1668,7 +1668,6 @@ x_term_manager_init(
 	u_int  min_font_size ;
 	u_int  max_font_size ;
 	char *  invalid_msg = "%s %s is not valid.\n" ;
-	char *  true = "true" ;
 
 	if( ! x_color_config_init( &color_config))
 	{
@@ -1862,7 +1861,7 @@ x_term_manager_init(
 
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
 	{
-		if( strcmp( value , true) == 0)
+		if( strcmp( value , "true") == 0)
 		{
 			x_compose_dec_special_font() ;
 		}
@@ -1870,7 +1869,7 @@ x_term_manager_init(
 
 #ifdef  USE_TYPE_XFT
 	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")) == NULL ||
-		strcmp( value , true) == 0)
+		strcmp( value , "true") == 0)
 	{
 		ml_use_cp932_ucs_for_xft() ;
 	}
@@ -1975,7 +1974,7 @@ x_term_manager_init(
 
 	if( ( value = kik_conf_get_value( conf , "use_clipboard")))
 	{
-		if( strcmp( value , true) == 0)
+		if( strcmp( value , "true") == 0)
 		{
 			x_set_use_clipboard_selection( 1) ;
 		}

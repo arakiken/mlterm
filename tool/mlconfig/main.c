@@ -56,6 +56,23 @@ end_application(
 	return  FALSE ;
 }
 
+
+static gint
+bidi_flag_checked(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	GtkWidget *  ind_flag ;
+
+	ind_flag = data ;
+
+	gtk_widget_set_sensitive( ind_flag , ! GTK_TOGGLE_BUTTON(widget)->active) ;
+
+	return  1 ;
+}
+
+
 /*
  *  ********  procedures when buttons are clicked  ********
  */
@@ -322,6 +339,7 @@ show(void)
 	GtkWidget *  frame ;
 	GtkWidget *  label ;
 	GtkWidget *  config_widget ;
+	GtkWidget *  bidi_flag ;
 	GtkWidget *  separator ;
 	
 	window = gtk_window_new( GTK_WINDOW_TOPLEVEL) ;
@@ -385,22 +403,28 @@ show(void)
 	gtk_widget_show(hbox);
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
-	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_BIDI)))
+	if (!(bidi_flag = mc_flag_config_widget_new(MC_FLAG_BIDI)))
 	    return 0;
 #ifndef USE_FRIBIDI
-	gtk_widget_set_sensitive(config_widget, 0);
+	gtk_widget_set_sensitive(bidi_flag, 0);
 #endif
-	gtk_widget_show(config_widget);
-	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
+	gtk_widget_show(bidi_flag);
+	gtk_box_pack_start(GTK_BOX(hbox), bidi_flag, TRUE, TRUE, 0);
 
 	if (!(config_widget = mc_flag_config_widget_new(MC_FLAG_IND)))
 	    return 0;
-#ifndef USE_IND
-	gtk_widget_set_sensitive(config_widget, 0);
-#endif
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
 
+#ifdef  USE_IND
+#ifdef  USE_FRIBIDI
+	gtk_signal_connect(GTK_OBJECT(bidi_flag), "toggled" ,
+		GTK_SIGNAL_FUNC(bidi_flag_checked), config_widget);
+	gtk_widget_set_sensitive(config_widget, ! GTK_TOGGLE_BUTTON(bidi_flag)->active);
+#endif
+#else
+	gtk_widget_set_sensitive(config_widget, 0);
+#endif
 
 	if(!(config_widget = mc_flag_config_widget_new(MC_FLAG_COMB)))
 	    return 0;

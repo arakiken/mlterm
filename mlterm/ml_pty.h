@@ -26,8 +26,8 @@ typedef struct  ml_pty_event_listener
 typedef struct  ml_pty *  ml_pty_ptr_t ;
 
 
-ml_pty_ptr_t  ml_pty_new( char *  cmd_path , char **  cmd_argv , char **  env ,
-	char *  host , char *  pass , char *  pubkey , char *  privkey ,
+ml_pty_ptr_t  ml_pty_new( const char *  cmd_path , char **  cmd_argv , char **  env ,
+	const char *  host , const char *  pass , const char *  pubkey , const char *  privkey ,
 	u_int  cols , u_int  rows) ;
 
 int  ml_pty_delete( ml_pty_ptr_t  pty) ;
@@ -51,7 +51,7 @@ int  ml_pty_get_slave_fd( ml_pty_ptr_t  pty) ;
 char *  ml_pty_get_slave_name( ml_pty_ptr_t  pty) ;
 
 #ifdef  USE_LIBSSH2
-void *  ml_search_ssh_session( char *  host , char *  port , char *  user) ;
+void *  ml_search_ssh_session( const char *  host , const char *  port , const char *  user) ;
 #endif
 
 

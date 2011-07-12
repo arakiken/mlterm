@@ -165,13 +165,13 @@ ml_term_zombie(
 int
 ml_term_open_pty(
 	ml_term_t *  term ,
-	char *  cmd_path ,
+	const char *  cmd_path ,
 	char **  argv ,
 	char **  env ,
-	char *  host ,
-	char *  pass ,
-	char *  pubkey ,
-	char *  privkey
+	const char *  host ,
+	const char *  pass ,
+	const char *  pubkey ,
+	const char *  privkey
 	)
 {
 	if( term->pty)
