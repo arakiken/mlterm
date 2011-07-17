@@ -14,23 +14,19 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-# Avoid conflicting with DATADIR structure in w32api/objidl.h.
-XDATADIR = $(DESTDIR)$(datadir)
-LIBDIR = $(DESTDIR)$(libdir)
 LIBEXECDIR = $(DESTDIR)$(libexecdir)
-SYSCONFDIR = $(DESTDIR)$(sysconfdir)
-LOCALEDIR = $(DESTDIR)$(datadir)/locale
 
 LKIK = @LKIK@
 
+# XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
 CFLAGS = $(CFLAGS_LOCAL) @GTK_CFLAGS@ @FRIBIDI_CFLAGS@ @IND_CFLAGS@ @AA_CFLAGS@ \
 	@IMAGELIB_CFLAGS@ @DEB_CFLAGS@ @KIK_CFLAGS@ @GUI_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-I${top_srcdir}/xwindow -I${top_srcdir}/mlterm \
 	-I${top_builddir}/common -I${top_srcdir}/common \
 	-I${top_srcdir}/inputmethod \
 	-I/usr/local/include \
-	-DSYSCONFDIR=\"$(SYSCONFDIR)\" -DLOCALEDIR=\"$(LOCALEDIR)\" \
-	-DXDATADIR=\"$(XDATADIR)\" -DLIBDIR=\"$(LIBDIR)\"
+	-DSYSCONFDIR=\"$(sysconfdir)\" -DLOCALEDIR=\"$(datadir)/locale\" \
+	-DXDATADIR=\"$(datadir)\" -DLIBDIR=\"$(libdir)\"
 
 LIBS1 = $(LIBS_LOCAL) @INTL_LIBS@ @DL_SELF@ @DL_LIBS_IM@ @GTK_LIBS@
 

@@ -17,7 +17,7 @@ typedef enum  x_sb_mode
 } x_sb_mode_t ;
 
 
-x_sb_mode_t  x_get_sb_mode( char *  name) ;
+x_sb_mode_t  x_get_sb_mode_by_name( char *  name) ;
 
 char *  x_get_sb_mode_name( x_sb_mode_t  mode) ;
 

@@ -43,10 +43,10 @@ char_combining_is_supported(
  * drawing string
  */
 
-#ifdef  USE_TYPE_XFT
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 
 static int
-xft_draw_combining_chars(
+fc_draw_combining_chars(
 	x_window_t *  window ,
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
@@ -76,18 +76,18 @@ xft_draw_combining_chars(
 		}
 		else if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R || IS_ISCII(ch_cs))
 		{
-			x_window_xft_draw_string8( window ,
+			x_window_fc_draw_string8( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
 				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , ch_bytes , ch_size) ;
 		}
 		else
 		{
-			XftChar32  xch ;
+			FcChar32  xch ;
 
 			char  ucs4_bytes[4] ;
 
-			if( ! ml_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
+			if( ! x_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
 			{
 				return  0 ;
 			}
@@ -97,7 +97,7 @@ xft_draw_combining_chars(
 				((ucs4_bytes[2] << 8) & 0xff00) |
 				(ucs4_bytes[3] & 0xff) ;
 
-			x_window_xft_draw_string32( window ,
+			x_window_fc_draw_string32( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
 				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , &xch , 1) ;
@@ -108,7 +108,7 @@ xft_draw_combining_chars(
 }
 
 static int
-xft_draw_str(
+fc_draw_str(
 	x_window_t *  window ,
 	x_font_manager_t *  font_man ,
 	x_color_manager_t *  color_man ,
@@ -127,8 +127,8 @@ xft_draw_str(
 	int  start_draw ;
 	int  end_of_str ;
 	u_int	current_width ;
-	XftChar8 *  str8 ;
-	XftChar32 *  str32 ;
+	FcChar8 *  str8 ;
+	FcChar32 *  str32 ;
 	u_int	str_len ;
 	int  state ;
 	int  next_state ;
@@ -208,12 +208,12 @@ xft_draw_str(
 
 	is_underlined = ml_char_is_underlined( &chars[count]) ;
 
-	if( ( str8 = alloca( sizeof( XftChar8) * num_of_chars)) == NULL)
+	if( ( str8 = alloca( sizeof( FcChar8) * num_of_chars)) == NULL)
 	{
 		return	0 ;
 	}
 
-	if( ( str32 = alloca( sizeof( XftChar32) * num_of_chars)) == NULL)
+	if( ( str32 = alloca( sizeof( FcChar32) * num_of_chars)) == NULL)
 	{
 		return  0 ;
 	}
@@ -234,7 +234,7 @@ xft_draw_str(
 		{
 			char  ucs4_bytes[4] ;
 
-			if( ! ml_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
+			if( ! x_convert_to_xft_ucs4( ucs4_bytes , ch_bytes , ch_size , ch_cs))
 			{
 			#ifdef  DEBUG
 				kik_warn_printf( KIK_DEBUG_TAG " strange character , ignored.\n") ;
@@ -247,8 +247,9 @@ xft_draw_str(
 			}
 
 			str32[str_len++] = ((ucs4_bytes[0] << 24) & 0xff000000) |
-				((ucs4_bytes[1] << 16) & 0xff0000) | ((ucs4_bytes[2] << 8) & 0xff00) |
-				(ucs4_bytes[3] & 0xff) ;
+						((ucs4_bytes[1] << 16) & 0xff0000) |
+						((ucs4_bytes[2] << 8) & 0xff00) |
+						(ucs4_bytes[3] & 0xff) ;
 		}
 
 		comb_chars = ml_get_combining_chars( &chars[count] , &comb_size) ;
@@ -349,7 +350,7 @@ xft_draw_str(
 			 */
 			if( state == 0)
 			{
-				x_window_xft_draw_string8( window ,
+				x_window_fc_draw_string8( window ,
 					xfont , x_get_xcolor( color_man , fg_color) ,
 					x , y + height_to_baseline , str8 , str_len) ;
 			}
@@ -361,14 +362,14 @@ xft_draw_str(
 			}
 			else /* if( state == 2) */
 			{
-				x_window_xft_draw_string32( window ,
+				x_window_fc_draw_string32( window ,
 					xfont , x_get_xcolor( color_man , fg_color) ,
 					x , y + height_to_baseline , str32 , str_len) ;
 			}
 
 			if( comb_chars)
 			{
-				xft_draw_combining_chars( window , font_man , color_man ,
+				fc_draw_combining_chars( window , font_man , color_man ,
 					comb_chars , comb_size ,
 					current_width - ch_width , y + height_to_baseline) ;
 			}
@@ -959,9 +960,10 @@ x_draw_str(
 	default:
 		return  0 ;
 
-#ifdef  USE_TYPE_XFT
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	case  TYPE_XFT:
-		if( ! xft_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
+	case  TYPE_CAIRO:
+		if( ! fc_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))
 		{
 			return  0 ;
@@ -1007,9 +1009,10 @@ x_draw_str_to_eol(
 	default:
 		return  0 ;
 
-#ifdef  USE_TYPE_XFT
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	case  TYPE_XFT:
-		if( ! xft_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
+	case  TYPE_CAIRO:
+		if( ! fc_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))
 		{
 			return  0 ;

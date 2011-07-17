@@ -19,7 +19,7 @@ static char *   bel_mode_name_table[] =
 /* --- global functions --- */
 
 x_bel_mode_t
-x_get_bel_mode(
+x_get_bel_mode_by_name(
 	char *  name
 	)
 {

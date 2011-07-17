@@ -17,7 +17,7 @@ typedef enum  x_bel_mode
 } x_bel_mode_t ;
 
 
-x_bel_mode_t  x_get_bel_mode( char *  name) ;
+x_bel_mode_t  x_get_bel_mode_by_name( char *  name) ;
 
 char *  x_get_bel_mode_name( x_bel_mode_t  mode) ;
 

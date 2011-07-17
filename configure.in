@@ -335,6 +335,14 @@ xft)
 	fi
 	type_engines_result="$type_engines_result xft"
 	;;
+cairo)
+	PKG_CHECK_MODULES(CAIRO, cairo, have_cairo=yes, have_cairo=no)
+	if test "$have_cairo" = "yes" ; then
+		AA_CFLAGS="-DUSE_TYPE_CAIRO ${CAIRO_CFLAGS} ${AA_CFLAGS}"
+		AA_LIBS="${CAIRO_LIBS} ${AA_LIBS}"
+		type_engines_result="$type_engines_result cairo"
+	fi
+	;;
 xcore)
 	AA_CFLAGS="-DUSE_TYPE_XCORE ${AA_CFLAGS}"
 	type_engines_result="$type_engines_result xcore"

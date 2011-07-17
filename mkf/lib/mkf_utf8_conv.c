@@ -51,23 +51,8 @@ convert_to_utf8(
 		{
 			u_int32_t  ucs_ch ;
 
-			if( ch.cs == ISO10646_UCS4_1)
-			{
-				/* UCS4 */
-				
-				ucs_ch = ((ch.ch[0] << 24) & 0xff000000) +
-					((ch.ch[1] << 16) & 0x00ff0000) +
-					((ch.ch[2] << 8) & 0x0000ff00) +
-					(ch.ch[3] & 0x000000ff) ;
-			}
-			else
-			{
-				/* UCS2 */
-				
-				ucs_ch = ((ch.ch[0] << 8) & 0xff00) +
-					(ch.ch[1] & 0x00ff) ;
-			}
-			
+			ucs_ch = mkf_bytes_to_int( ch.ch , ch.size) ;
+
 			/* ucs_ch is unsigned */
 			if( /* 0x00 <= ucs_ch && */ ucs_ch <= 0x7f)
 			{
@@ -83,7 +68,7 @@ convert_to_utf8(
 				*(dst ++) = ucs_ch ;
 				filled_size ++ ;
 			}
-			else if( 0x80 <= ucs_ch && ucs_ch <= 0x07ff)
+			else if( ucs_ch <= 0x07ff)
 			{
 				/* encoded to 16bit */
 
@@ -98,7 +83,7 @@ convert_to_utf8(
 				*(dst ++) = (ucs_ch & 0x3f) | 0x80 ;
 				filled_size += 2 ;
 			}
-			else if( 0x0800 <= ucs_ch && ucs_ch <= 0xffff)
+			else if( ucs_ch <= 0xffff)
 			{
 				if( filled_size + 3 > dst_size)
 				{
@@ -112,7 +97,7 @@ convert_to_utf8(
 				*(dst ++) = (ucs_ch & 0x3f) | 0x80 ;
 				filled_size += 3 ;
 			}
-			else if( 0x010000 <= ucs_ch && ucs_ch <= 0x1fffff)
+			else if( ucs_ch <= 0x1fffff)
 			{
 				if( filled_size + 4 > dst_size)
 				{
@@ -127,7 +112,7 @@ convert_to_utf8(
 				*(dst ++) = (ucs_ch & 0x3f) | 0x80 ;
 				filled_size += 4 ;
 			}
-			else if( 0x200000 <= ucs_ch && ucs_ch <= 0x03ffffff)
+			else if( ucs_ch <= 0x03ffffff)
 			{
 				if( filled_size + 5 > dst_size)
 				{
@@ -143,7 +128,7 @@ convert_to_utf8(
 				*(dst ++) = (ucs_ch & 0x3f) | 0x80 ;
 				filled_size += 5 ;
 			}
-			else if( 0x04000000 <= ucs_ch && ucs_ch <= 0x7fffffff)
+			else if( ucs_ch <= 0x7fffffff)
 			{
 				if( filled_size + 6 > dst_size)
 				{

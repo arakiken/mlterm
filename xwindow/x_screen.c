@@ -1340,6 +1340,7 @@ window_realized(
 	screen = (x_screen_t*) win ;
 
 	x_window_set_use_xft( win , (x_get_type_engine( screen->font_man) == TYPE_XFT)) ;
+	x_window_set_use_cairo( win , (x_get_type_engine( screen->font_man) == TYPE_CAIRO)) ;
 
 	screen->mod_meta_mask = x_window_get_mod_meta_mask( win , screen->mod_meta_key) ;
 	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win , NULL) ;
@@ -4050,6 +4051,8 @@ change_font_present(
 
 	x_window_set_use_xft( &screen->window ,
 		(x_get_type_engine( screen->font_man) == TYPE_XFT)) ;
+	x_window_set_use_cairo( &screen->window ,
+		(x_get_type_engine( screen->font_man) == TYPE_CAIRO)) ;
 
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -5167,17 +5170,7 @@ get_config(
 	}
 	else if( strcmp( key , "type_engine") == 0)
 	{
-		x_type_engine_t  engine ;
-
-		engine = x_get_type_engine( screen->font_man) ;
-		if( engine == TYPE_XFT)
-		{
-			value = "xft" ;
-		}
-		else if( engine == TYPE_XCORE)
-		{
-			value = "xcore" ;
-		}
+		value = x_get_type_engine_name( x_get_type_engine( screen->font_man)) ;
 	}
 	else if( strcmp( key , "use_anti_alias") == 0)
 	{
@@ -7794,11 +7787,11 @@ x_screen_set_config(
 	}
 	else if( strcmp( key , "mod_meta_mode") == 0)
 	{
-		change_mod_meta_mode( screen , x_get_mod_meta_mode( value)) ;
+		change_mod_meta_mode( screen , x_get_mod_meta_mode_by_name( value)) ;
 	}
 	else if( strcmp( key , "bel_mode") == 0)
 	{
-		change_bel_mode( screen , x_get_bel_mode( value)) ;
+		change_bel_mode( screen , x_get_bel_mode_by_name( value)) ;
 	}
 	else if( strcmp( key , "vertical_mode") == 0)
 	{
@@ -7806,7 +7799,7 @@ x_screen_set_config(
 	}
 	else if( strcmp( key , "scrollbar_mode") == 0)
 	{
-		change_sb_mode( screen , x_get_sb_mode( value)) ;
+		change_sb_mode( screen , x_get_sb_mode_by_name( value)) ;
 	}
 	else if( strcmp( key , "static_backscroll_mode") == 0)
 	{
@@ -7930,22 +7923,8 @@ x_screen_set_config(
 	}
 	else if( strcmp( key , "type_engine") == 0)
 	{
-		x_type_engine_t  type_engine ;
-		
-		if( strcasecmp( value , "xft") == 0)
-		{
-			type_engine = TYPE_XFT ;
-		}
-		else if( strcasecmp( value , "xcore") == 0)
-		{
-			type_engine = TYPE_XCORE ;
-		}
-		else
-		{
-			return ;
-		}
-
-		change_font_present( screen , type_engine , x_get_font_present(screen->font_man)) ;
+		change_font_present( screen , x_get_type_engine_by_name( value) ,
+			x_get_font_present(screen->font_man)) ;
 	}
 	else if( strcmp( key , "use_anti_alias") == 0)
 	{

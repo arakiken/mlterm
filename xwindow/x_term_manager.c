@@ -1871,7 +1871,7 @@ x_term_manager_init(
 	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")) == NULL ||
 		strcmp( value , "true") == 0)
 	{
-		ml_use_cp932_ucs_for_xft() ;
+		x_use_cp932_ucs_for_xft() ;
 	}
 #endif
 

@@ -37,7 +37,7 @@ Options for configure
   --with-libltdl
     Load modules with libltdl
 
-  --with-type-engines=(xcore|xft)
+  --with-type-engines=(xcore|xft|cairo)
     Use specified type engines for rendering text
     (--enable-anti-alias == --with-type-engines=xcore,xft)
 

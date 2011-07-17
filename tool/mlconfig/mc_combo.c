@@ -10,7 +10,7 @@
 
 GtkWidget *
 mc_combo_new(
-	char *  label_name ,
+	const char *  label_name ,
 	char **  item_names ,
 	u_int  item_num ,
 	char *  selected_item_name ,
@@ -26,7 +26,7 @@ mc_combo_new(
 
 GtkWidget *
 mc_combo_new_with_width(
-	char *  label_name ,
+	const char *  label_name ,
 	char **  item_names ,
 	u_int  item_num ,
 	char *  selected_item_name ,

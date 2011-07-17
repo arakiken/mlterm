@@ -166,6 +166,7 @@ static int  selected_cs = 0 ;	/* 0 = DEFAULT */
 static GtkWidget *  fontname_entry ;
 static GtkWidget *  select_font_button ;
 static GtkWidget *  xft_flag ;
+static GtkWidget *  cairo_flag ;
 static GtkWidget *  aa_flag ;
 static GtkWidget *  vcol_flag ;
 
@@ -242,7 +243,7 @@ get_correct_cs(
 static char *
 get_font_file(void)
 {
-	if( GTK_TOGGLE_BUTTON(xft_flag)->active)
+	if( GTK_TOGGLE_BUTTON(xft_flag)->active || GTK_TOGGLE_BUTTON(cairo_flag)->active)
 	{
 		if( GTK_TOGGLE_BUTTON(vcol_flag)->active)
 		{
@@ -282,19 +283,24 @@ aa_flag_checked(
 {
 	if( GTK_TOGGLE_BUTTON(widget)->active)
 	{
-	#ifdef  USE_TYPE_XFT
-		if( ! GTK_TOGGLE_BUTTON(xft_flag)->active)
+		if( ! GTK_TOGGLE_BUTTON(xft_flag)->active &&
+		    ! GTK_TOGGLE_BUTTON(cairo_flag)->active)
 		{
+		#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+		#ifdef  USE_TYPE_XFT
 			gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(xft_flag) , 1) ;
-
+		#else
+			gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(cairo_flag) , 1) ;
+		#endif
+		
 			reset_fontname_list() ;
 			gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
 				g_locale_to_utf8(
 					mc_get_font_name( get_font_file() , new_fontsize ,
 						get_correct_cs( selected_cs)) ,
 					-1 , NULL , NULL , NULL) ) ;
+		#endif
 		}
-	#endif
 	}
 	
 	return  1 ;
@@ -309,6 +315,35 @@ xft_flag_checked(
 	if( ! GTK_TOGGLE_BUTTON(widget)->active)
 	{
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(aa_flag) , 0) ;
+	}
+	else
+	{
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(cairo_flag) , 0) ;
+	}
+
+	reset_fontname_list() ;
+	gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
+		g_locale_to_utf8(
+			mc_get_font_name( get_font_file() , new_fontsize ,
+						get_correct_cs( selected_cs)) ,
+			-1 , NULL , NULL , NULL) ) ;
+
+	return  1 ;
+}
+
+static gint
+cairo_flag_checked(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	if( ! GTK_TOGGLE_BUTTON(widget)->active)
+	{
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(aa_flag) , 0) ;
+	}
+	else
+	{
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(xft_flag) , 0) ;
 	}
 
 	reset_fontname_list() ;
@@ -636,7 +671,7 @@ get_gtk_font_name(
 }
 
 static void
-select_xft_font(
+select_fc_font(
 	GtkWidget *  widget,
 	gpointer  p
 	)
@@ -685,14 +720,15 @@ select_font(
 	)
 {
 #if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32)
-	if( ! GTK_TOGGLE_BUTTON(xft_flag)->active)
+	if( ! GTK_TOGGLE_BUTTON(xft_flag)->active &&
+	    ! GTK_TOGGLE_BUTTON(cairo_flag)->active)
 	{
 		select_xlfd_font( widget , p) ;
 	}
 	else
 #endif
 	{
-		select_xft_font( widget , p) ;
+		select_fc_font( widget , p) ;
 	}
 }
 
@@ -743,8 +779,18 @@ mc_font_config_widget_new(void)
 		gtk_widget_set_sensitive(xft_flag, 0);
 	}
 	
+	cairo_flag = mc_flag_config_widget_new( MC_FLAG_CAIRO) ;
+	gtk_widget_show( cairo_flag) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , cairo_flag , TRUE , TRUE , 0) ;
+	gtk_signal_connect(GTK_OBJECT(cairo_flag) , "toggled" ,
+		GTK_SIGNAL_FUNC(cairo_flag_checked) , NULL) ;
+	if( mc_gui_is_win32())
+	{
+		gtk_widget_set_sensitive(cairo_flag, 0);
+	}
+
 	aa_flag = mc_flag_config_widget_new( MC_FLAG_AA) ;
-#if  ! defined(USE_TYPE_XFT) && ! defined(USE_WIN32GUI)
+#if  ! defined(USE_TYPE_XFT) && ! defined(USE_TYPE_CAIRO) && ! defined(USE_WIN32GUI)
 	gtk_widget_set_sensitive(aa_flag, 0) ;
 #endif
 	gtk_widget_show( aa_flag) ;
@@ -754,7 +800,11 @@ mc_font_config_widget_new(void)
 	
 	if( GTK_TOGGLE_BUTTON(aa_flag)->active)
 	{
+	#if  defined(USE_TYPE_XFT)
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(xft_flag) , 1) ;
+	#elif  defined(USE_TYPE_CAIRO)
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(cairo_flag) , 1) ;
+	#endif
 	}
 	
 	vcol_flag = mc_flag_config_widget_new( MC_FLAG_VCOL) ;
@@ -824,12 +874,13 @@ mc_update_font_misc(void)
 	}
 
 	/*
-	 * MC_FLAG_XFT should be updated last because MC_FLAG_XFT is
+	 * MC_FLAG_{XFT|CAIRO} should be updated last because MC_FLAG_{XFT|CAIRO} are
 	 * invalid in some environments.
 	 */
 	mc_update_flag_mode( MC_FLAG_AA) ;
 	mc_update_flag_mode( MC_FLAG_VCOL) ;
 	mc_update_flag_mode( MC_FLAG_XFT) ;
+	mc_update_flag_mode( MC_FLAG_CAIRO) ;
 	mc_update_vertical_mode() ;
 }
 

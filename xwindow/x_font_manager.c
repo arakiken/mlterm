@@ -251,9 +251,14 @@ x_change_font_present(
 	{
 		font_present &= ~FONT_AA ;
 	}
-	else if( ( font_present & FONT_AA) && ( font_man->font_config->type_engine == TYPE_XCORE))
+	else if( ( font_present & FONT_AA) &&
+		font_man->font_config->type_engine == TYPE_XCORE && type_engine == TYPE_XCORE)
 	{
+	#ifdef  USE_TYPE_XFT
 		type_engine = TYPE_XFT ;
+	#else
+		type_engine = TYPE_CAIRO ;
+	#endif
 	}
 #endif
 

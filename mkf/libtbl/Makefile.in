@@ -13,7 +13,8 @@ INCDIR = $(DESTDIR)$(prefix)/include
 
 VPATH = $(top_srcdir)/libtbl
 
-CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @TABLE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -DLIBDIR=\"$(LIBDIR)\" -I/usr/local/include
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @TABLE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	-I/usr/local/include
 
 JAJP_TABLE_OBJ = mkf_ucs4_jisx0208.o mkf_ucs4_jisx0212.o mkf_ucs4_jisx0213.o
 KOKR_TABLE_OBJ = mkf_ucs4_uhc.o mkf_uhc_johab.o

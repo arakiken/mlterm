@@ -14,6 +14,9 @@
 #include  <string.h>		/* memset/memcpy */
 #include  <X11/Xutil.h>		/* for XSizeHints */
 #include  <X11/Xatom.h>
+#ifdef  USE_TYPE_CAIRO
+#include  <cairo/cairo-xlib.h>
+#endif
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_mem.h>	/* realloc/free */
 
@@ -619,6 +622,7 @@ x_window_init(
 	win->my_window = None ;
 
 	win->xft_draw = NULL ;
+	win->cairo_draw = NULL ;
 
 	win->gc = NULL ;
 
@@ -759,8 +763,11 @@ x_window_set_use_xft(
 #ifdef  USE_TYPE_XFT
 	if( use_xft && ! win->xft_draw)
 	{
-		win->xft_draw = XftDrawCreate( win->disp->display , win->my_window ,
-					win->disp->visual , win->disp->colormap) ;
+		if( ( win->xft_draw = XftDrawCreate( win->disp->display , win->my_window ,
+					win->disp->visual , win->disp->colormap)))
+		{
+			x_window_set_use_cairo( win , 0) ;
+		}
 
 		return  1 ;
 	}
@@ -768,6 +775,40 @@ x_window_set_use_xft(
 	{
 		XftDrawDestroy( win->xft_draw) ;
 		win->xft_draw = NULL ;
+
+		return  1 ;
+	}
+#endif
+
+	return  0 ;
+}
+
+/*
+ * Call this function in window_realized event at first.
+ */
+int
+x_window_set_use_cairo(
+	x_window_t *  win ,
+	int  use_cairo
+	)
+{
+#ifdef  USE_TYPE_CAIRO
+	if( use_cairo && ! win->cairo_draw)
+	{
+		if( ( win->cairo_draw = cairo_create( cairo_xlib_surface_create(
+						win->disp->display , win->my_window ,
+						win->disp->visual ,
+						ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)))))
+		{
+			x_window_set_use_xft( win , 0) ;
+		}
+
+		return  1 ;
+	}
+	else if( ! use_cairo && win->cairo_draw)
+	{
+		cairo_destroy( win->cairo_draw) ;
+		win->cairo_draw = NULL ;
 
 		return  1 ;
 	}
@@ -1438,6 +1479,14 @@ x_window_resize(
 	{
 		(*win->window_resized)( win) ;
 	}
+
+#ifdef  USE_TYPE_CAIRO
+	if( win->cairo_draw)
+	{
+		cairo_xlib_surface_set_size( cairo_get_target( win->cairo_draw) ,
+			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+	}
+#endif
 
 	return  1 ;
 }
@@ -2189,6 +2238,14 @@ x_window_receive_event(
 			}
 
 			is_changed = 1 ;
+
+		#ifdef  USE_TYPE_CAIRO
+			if( win->cairo_draw)
+			{
+				cairo_xlib_surface_set_size( cairo_get_target( win->cairo_draw) ,
+					ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
+			}
+		#endif
 		}
 
 		if( is_changed)
@@ -2919,10 +2976,9 @@ x_window_draw_image_string16(
 }
 #endif
 
-#ifdef  USE_TYPE_XFT
-
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 int
-x_window_xft_draw_string8(
+x_window_fc_draw_string8(
 	x_window_t *  win ,
 	x_font_t *  font ,
 	x_color_t *  fg_color ,
@@ -2932,44 +2988,124 @@ x_window_xft_draw_string8(
 	size_t  len
 	)
 {
-	XftColor *  xftcolor ;
-
-	xftcolor = x_color_to_xft( fg_color) ;
-
-	XftDrawString8( win->xft_draw , xftcolor , font->xft_font ,
-		x + win->margin , y + win->margin , str , len) ;
-
-	if( font->is_double_drawing)
+#ifdef  USE_TYPE_CAIRO
+	if( win->cairo_draw)
 	{
+		u_char *  buf ;
+
+		if( ! ( buf = alloca( len + 1)))
+		{
+			return  0 ;
+		}
+
+		memcpy( buf , str , len) ;
+		buf[len] = '\0' ;
+
+		cairo_set_antialias( win->cairo_draw , CAIRO_ANTIALIAS_NONE) ;
+		cairo_set_scaled_font( win->cairo_draw , font->cairo_font) ;
+		cairo_set_source_rgb( win->cairo_draw ,
+			(double)fg_color->red / 255.0 , (double)fg_color->green / 255.0 ,
+			(double)fg_color->blue / 255.0) ;
+		cairo_move_to( win->cairo_draw , x + win->margin , y + win->margin) ;
+		cairo_show_text( win->cairo_draw , buf) ;
+
+		if( font->is_double_drawing)
+		{
+			cairo_move_to( win->cairo_draw , x + win->margin + 1 , y + win->margin) ;
+			cairo_show_text( win->cairo_draw , str) ;
+		}
+	}
+	else
+#endif
+#ifdef  USE_TYPE_XFT
+	if( win->xft_draw)
+	{
+		XftColor *  xftcolor ;
+
+		xftcolor = x_color_to_xft( fg_color) ;
+
 		XftDrawString8( win->xft_draw , xftcolor , font->xft_font ,
-			x + win->margin + 1 , y + win->margin , str , len) ;
+			x + win->margin , y + win->margin , str , len) ;
+
+		if( font->is_double_drawing)
+		{
+			XftDrawString8( win->xft_draw , xftcolor , font->xft_font ,
+				x + win->margin + 1 , y + win->margin , str , len) ;
+		}
+	}
+	else
+#endif
+	{
+		return  0 ;
 	}
 
 	return  1 ;
 }
 
 int
-x_window_xft_draw_string32(
+x_window_fc_draw_string32(
 	x_window_t *  win ,
 	x_font_t *  font ,
 	x_color_t *  fg_color ,
 	int  x ,
 	int  y ,
-	XftChar32 *  str ,
+	FcChar32 *  str ,
 	u_int  len
 	)
 {
-	XftColor *  xftcolor ;
-
-	xftcolor = x_color_to_xft( fg_color) ;
-
-	XftDrawString32( win->xft_draw , xftcolor , font->xft_font ,
-		x + win->margin , y + win->margin , str , len) ;
-
-	if( font->is_double_drawing)
+#ifdef  USE_TYPE_CAIRO
+	if( win->cairo_draw)
 	{
+		u_char *  buf ;
+		u_int  count ;
+		char *  p ;
+
+		if( ! ( p = buf = alloca( 8 * len + 1)))
+		{
+			return  0 ;
+		}
+
+		for( count = 0 ; count < len ; count++)
+		{
+			p += x_convert_ucs_to_utf8( p , str[count]) ;
+		}
+		*p = '\0' ;
+
+		cairo_set_scaled_font( win->cairo_draw , font->cairo_font) ;
+		cairo_set_source_rgb( win->cairo_draw ,
+			(double)fg_color->red / 255.0 , (double)fg_color->green / 255.0 ,
+			(double)fg_color->blue / 255.0) ;
+		cairo_move_to( win->cairo_draw , x + win->margin , y + win->margin) ;
+		cairo_show_text( win->cairo_draw , buf) ;
+
+		if( font->is_double_drawing)
+		{
+			cairo_move_to( win->cairo_draw , x + win->margin + 1 , y + win->margin) ;
+			cairo_show_text( win->cairo_draw , buf) ;
+		}
+	}
+	else
+#endif
+#ifdef  USE_TYPE_XFT
+	if( win->xft_draw)
+	{
+		XftColor *  xftcolor ;
+
+		xftcolor = x_color_to_xft( fg_color) ;
+
 		XftDrawString32( win->xft_draw , xftcolor , font->xft_font ,
-			x + win->margin + 1 , y + win->margin , str , len) ;
+			x + win->margin , y + win->margin , str , len) ;
+
+		if( font->is_double_drawing)
+		{
+			XftDrawString32( win->xft_draw , xftcolor , font->xft_font ,
+				x + win->margin + 1 , y + win->margin , str , len) ;
+		}
+	}
+	else
+#endif
+	{
+		return  0 ;
 	}
 
 	return  1 ;

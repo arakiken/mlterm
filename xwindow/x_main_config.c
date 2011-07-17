@@ -57,13 +57,14 @@ x_prepare_for_main_config(
 #ifndef  USE_WIN32GUI
 	kik_conf_add_opt( conf , '&' , "borderless" , 1 , "borderless" ,
 		"override redirect [false]") ;
-#if  defined(USE_TYPE_XCORE)
 	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
+	#if  defined(USE_TYPE_XCORE)
 		"type engine [xcore]") ;
-#elif  defined(USE_TYPE_XFT)
-	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
+	#elif  defined(USE_TYPE_XFT)
 		"type engine [xft]") ;
-#endif
+	#elif  defined(USE_TYPE_CAIRO)
+		"type engine [cairo]") ;
+	#endif
 #endif	/* USE_WIN32GUI */
 
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
@@ -86,9 +87,9 @@ x_prepare_for_main_config(
 		"cursor foreground color") ;
 	kik_conf_add_opt( conf , '0' , "crbg" , 0 , "cursor_bg_color" ,
 		"cursor background color") ;
-#ifdef  USE_TYPE_XFT
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , 
-		"forcibly use anti alias font by using Xft") ;
+		"forcibly use anti alias font by using Xft or cairo") ;
 #endif
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
 		"scrollbar background color") ;
@@ -386,42 +387,34 @@ x_main_config_init(
 		}
 	}
 
-#ifdef  USE_TYPE_XCORE
+#if  defined(USE_TYPE_XCORE)
 	main_config->type_engine = TYPE_XCORE ;
-#else
+#elif  defined(USE_TYPE_XFT)
 	main_config->type_engine = TYPE_XFT ;
+#else
+	main_config->type_engine = TYPE_CAIRO ;
 #endif
 
 	if( ( value = kik_conf_get_value( conf , "type_engine")))
 	{
-	#ifdef  USE_TYPE_XFT
-		if( strcmp( value , "xft") == 0)
-		{
-			main_config->type_engine = TYPE_XFT ;
-		}
-		else
-	#endif
-
-	#ifdef  USE_TYPE_XCORE
-		if( strcmp( value , "xcore") == 0)
-		{
-			main_config->type_engine = TYPE_XCORE ;
-		}
-		else
-	#endif
-		{
-			kik_msg_printf( "%s is unsupported type engine.\n" , value) ;
-		}
+		main_config->type_engine = x_get_type_engine_by_name( value) ;
 	}
 
-#ifdef  USE_TYPE_XFT
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	if( ( value = kik_conf_get_value( conf , "use_anti_alias")))
 	{
 		if( strcmp( value , "true") == 0)
 		{
 			main_config->font_present |= FONT_AA ;
-			/* forcibly use xft */
-			main_config->type_engine = TYPE_XFT ;
+			if( main_config->type_engine == TYPE_XCORE)
+			{
+				/* forcibly use xft or cairo */
+			#ifdef  USE_TYPE_XFT
+				main_config->type_engine = TYPE_XFT ;
+			#else
+				main_config->type_engine = TYPE_CAIRO ;
+			#endif
+			}
 		}
 		else if( strcmp( value , "false") == 0)
 		{
@@ -678,7 +671,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "scrollbar_mode")))
 	{
-		main_config->sb_mode = x_get_sb_mode( value) ;
+		main_config->sb_mode = x_get_sb_mode_by_name( value) ;
 	}
 	else
 	{
@@ -951,7 +944,7 @@ x_main_config_init(
 	
 	if( ( value = kik_conf_get_value( conf , "mod_meta_mode")))
 	{
-		main_config->mod_meta_mode = x_get_mod_meta_mode( value) ;
+		main_config->mod_meta_mode = x_get_mod_meta_mode_by_name( value) ;
 	}
 	else
 	{
@@ -960,7 +953,7 @@ x_main_config_init(
 
 	if( ( value = kik_conf_get_value( conf , "bel_mode")))
 	{
-		main_config->bel_mode = x_get_bel_mode( value) ;
+		main_config->bel_mode = x_get_bel_mode_by_name( value) ;
 	}
 	else
 	{

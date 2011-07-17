@@ -508,7 +508,7 @@ read_all_conf(
 	char *  font_rcfile2 ;	/* prior to font_rcfile */
 	char *  rcpath ;
 	
-	/* '>= XFT' means XFT or STSF */
+	/* '>= XFT' means XFT or Cairo */
 	if( font_config->type_engine >= TYPE_XFT)
 	{
 		font_rcfile = aafont_file ;
@@ -1178,7 +1178,7 @@ match_font_configs(
 	for( count = 0 ; count < num_of_configs ; count++)
 	{
 		if( (is_xcore ? font_configs[count]->type_engine == TYPE_XCORE :
-				/* '>= XFT' means XFT or STSF */
+				/* '>= XFT' means XFT or Cairo */
 				font_configs[count]->type_engine >= TYPE_XFT) &&
 		    (present_mask ? (font_configs[count]->font_present & present_mask) : 1) )
 		{
@@ -1203,8 +1203,9 @@ create_shared_font_config(
 	
 	for( count = 0 ; count < num_of_configs ; count ++)
 	{
-		if( ( type_engine == TYPE_XCORE ? font_configs[count]->type_engine == type_engine :
-						font_configs[count]->type_engine >= type_engine) &&
+		if( ( type_engine == TYPE_XCORE ? font_configs[count]->type_engine == TYPE_XCORE :
+						/* '>= XFT' means XFT or Cairo */
+						font_configs[count]->type_engine >= TYPE_XFT) &&
 		    ( (font_configs[count]->font_present & ~FONT_AA) == (font_present & ~FONT_AA)))
 		{
 		#ifdef  __DEBUG
@@ -1347,8 +1348,9 @@ x_release_font_config(
 			continue ;
 		}
 		else if( ( font_config->type_engine == TYPE_XCORE ?
-				font_configs[count]->type_engine == font_config->type_engine :
-				font_configs[count]->type_engine >= font_config->type_engine) &&
+				font_configs[count]->type_engine == TYPE_XCORE :
+				/* '>= XFT' means XFT or Cairo */
+				font_configs[count]->type_engine >= TYPE_XFT) &&
 			( (font_configs[count]->font_present & ~FONT_AA) ==
 				(font_config->font_present & ~FONT_AA)) )
 		{

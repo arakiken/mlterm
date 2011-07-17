@@ -17,7 +17,7 @@ typedef enum  x_mod_meta_mode
 } x_mod_meta_mode_t ;
 
 
-x_mod_meta_mode_t  x_get_mod_meta_mode( char *  name) ;
+x_mod_meta_mode_t  x_get_mod_meta_mode_by_name( char *  name) ;
 
 char *  x_get_mod_meta_mode_name( x_mod_meta_mode_t  mode) ;
 

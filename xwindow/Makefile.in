@@ -13,11 +13,6 @@ LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
 BINDIR = $(DESTDIR)$(bindir)
-LIBDIR = $(DESTDIR)$(libdir)
-# Avoid conflicting with DATADIR structure in w32api/objidl.h.
-XDATADIR = $(DESTDIR)$(datadir)
-SYSCONFDIR = $(DESTDIR)$(sysconfdir)
-LIBEXECDIR = $(DESTDIR)$(libexecdir)
 
 VPATH = $(top_srcdir)/xwindow
 
@@ -27,7 +22,7 @@ OBJ1 = x_term_manager.o x_display@WIN32TAG@.o x_window@WIN32TAG@.o x_screen.o x_
 	x_shortcut.o x_bel_mode.o x_sb_mode.o x_mod_meta_mode.o main.o \
 	x_termcap.o x_font_cache.o x_draw_str.o x_gc.o x_color_cache.o @DND_LIBS@ \
 	x_scrollbar.o x_sb_screen.o x_sb_view_factory.o x_simple_sb_view@WIN32TAG@.o \
-	x_imagelib@WIN32TAG@.o x_connect_dialog.o
+	x_imagelib@WIN32TAG@.o x_connect_dialog.o x_type_engine.o
 
 OBJ2 = x_decsp_font.o x_im.o x_im_candidate_screen.o x_im_status_screen.o x_xim.o
 
@@ -41,11 +36,12 @@ LMLTERM = ../mlterm/libmlterm.a
 LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
 
+# XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
 CFLAGS = $(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @MATH_CFLAGS@ \
 	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @IMAGELIB_CFLAGS@ @X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ \
 	@XUTF8_CFLAGS@ @DND_CFLAGS@ @IM_CFLAGS@ @SB_CFLAGS@ @CFLAGS@ @CPPFLAGS@ @REGEX_CFLAGS@ \
-	-DLIBDIR=\"$(LIBDIR)\" -DSYSCONFDIR=\"$(SYSCONFDIR)\" \
-	-DLIBEXECDIR=\"$(LIBEXECDIR)\" -DXDATADIR=\"$(XDATADIR)\"\
+	-DLIBDIR=\"$(libdir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
+	-DLIBEXECDIR=\"$(libexecdir)\" -DXDATADIR=\"$(datadir)\"\
 	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/local/include
 
 LIBS1 = $(LIBS_LOCAL) $(LMLTERM) $(LMKF) $(LKIK) \

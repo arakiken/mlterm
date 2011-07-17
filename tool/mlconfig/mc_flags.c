@@ -23,6 +23,7 @@ static int old_flag_mode[MC_FLAG_MODES], new_flag_mode[MC_FLAG_MODES];
 static int is_changed[MC_FLAG_MODES];
 static char *configname[MC_FLAG_MODES] = {
 	"type_engine" ,
+	"type_engine" ,
 	"use_anti_alias",
 	"use_variable_column_width",
 	"use_combining",
@@ -37,6 +38,7 @@ static char *configname[MC_FLAG_MODES] = {
 
 static char *label[MC_FLAG_MODES] = {
 	N_("Xft"),
+	N_("Cairo"),
 	N_("Anti Alias"),
 	N_("Variable column width"),
 	N_("Combining"),
@@ -59,6 +61,11 @@ GtkWidget * mc_flag_config_widget_new(int id)
 	{
 		old_flag_mode[id] = new_flag_mode[id] = 
 			( strcmp( mc_get_str_value( configname[id]) , "xft") == 0) ;
+	}
+	else if( id == MC_FLAG_CAIRO)
+	{
+		old_flag_mode[id] = new_flag_mode[id] = 
+			( strcmp( mc_get_str_value( configname[id]) , "cairo") == 0) ;
 	}
 	else if( id == MC_FLAG_AWIDTH)
 	{
@@ -89,6 +96,17 @@ void mc_update_flag_mode(int id)
 			if( new_flag_mode[id])
 			{
 				mc_set_str_value( configname[id] , "xft") ;
+			}
+			else
+			{
+				mc_set_str_value( configname[id] , "xcore") ;
+			}
+		}
+		else if( id == MC_FLAG_CAIRO)
+		{
+			if( new_flag_mode[id])
+			{
+				mc_set_str_value( configname[id] , "cairo") ;
 			}
 			else
 			{

@@ -1558,7 +1558,7 @@ vte_terminal_class_init(
 	x_shortcut_init( &shortcut) ;
 	x_termcap_init( &termcap) ;
 	x_xim_init( 1) ;
-	x_font_use_point_size_for_xft( 1) ;
+	x_font_use_point_size_for_fc( 1) ;
 	x_set_button3_behavior( "none") ;
 	ml_term_manager_enable_zombie_pty( 1) ;
 
@@ -1567,7 +1567,7 @@ vte_terminal_class_init(
 	x_prepare_for_main_config( conf) ;
 	x_main_config_init( &main_config , conf , 1 , argv) ;
 
-#ifdef  USE_TYPE_XFT
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	if( main_config.type_engine == TYPE_XCORE)
 	{
 		/*
@@ -1580,7 +1580,11 @@ vte_terminal_class_init(
 		if( ( value = kik_conf_get_value( conf , "type_engine")) == NULL ||
 			strcmp( value , "xcore") != 0)
 		{
+		#ifdef  USE_TYPE_XFT
 			main_config.type_engine = TYPE_XFT ;
+		#else
+			main_config.type_engine = TYPE_CAIRO ;
+		#endif
 		}
 	}
 #endif
@@ -1949,7 +1953,7 @@ vte_terminal_init(
 		usascii_font_cs_changable = 1 ;
 	}
 
-	/* related to x_font_use_point_size_for_xft(1) in vte_terminal_class_init. */
+	/* related to x_font_use_point_size_for_fc(1) in vte_terminal_class_init. */
 	if( ( dpi = gdk_screen_get_resolution(
 		gtk_widget_get_screen( GTK_WIDGET(terminal)))) != -1)
 	{
@@ -1957,7 +1961,7 @@ vte_terminal_init(
 		kik_debug_printf( KIK_DEBUG_TAG " Setting dpi %f\n" , dpi) ;
 	#endif
 
-		x_font_set_dpi_for_xft( dpi) ;
+		x_font_set_dpi_for_fc( dpi) ;
 	}
 
 	font_man = x_font_manager_new( disp.display ,
@@ -3010,6 +3014,10 @@ vte_terminal_set_backspace_binding(
 {
 	x_termcap_entry_t *  entry ;
 	char *  seq ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " set backtrace binding => %d\n") ;
+#endif
 
 	if( binding == VTE_ERASE_ASCII_BACKSPACE)
 	{

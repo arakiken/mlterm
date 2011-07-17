@@ -67,7 +67,7 @@ screen_height_ratio_selected(
 
 static GtkWidget *
 config_widget_new(
-	char *  title ,
+	const char *  title ,
 	char *  ratio ,
 	gint (*ratio_selected)(GtkWidget *,gpointer)
 	)

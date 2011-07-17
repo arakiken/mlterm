@@ -5,20 +5,26 @@
 #include  "x_font.h"
 
 #include  <string.h>		/* memset/strncasecmp */
+#ifdef  USE_TYPE_CAIRO
+#include  <cairo/cairo-xlib.h>
+#include  <cairo/cairo-ft.h>
+#endif
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_snprintf */
 #include  <kiklib/kik_mem.h>	/* alloca */
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN/K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_lang() */
-
-#include  "ml_char_encoding.h"	/* x_convert_to_xft_ucs4 */
-
+#include  <mkf/mkf_ucs4_map.h>
+#include  <ml_char_encoding.h>	/* ml_is_msb_set */
 
 #define  FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p) \
 	for( (font_encoding_p) = &csinfo->encoding_names[0] ; *(font_encoding_p) ; (font_encoding_p) ++)
 #define  DIVIDE_ROUNDING(a,b)  ( ((int)((a)*10 + (b)*5)) / ((int)((b)*10)) )
 #define  DIVIDE_ROUNDINGUP(a,b) ( ((int)((a)*10 + (b)*10 - 1)) / ((int)((b)*10)) )
+
+/* Be careful not to round down 5.99999... to 5 */
+#define  DOUBLE_ROUNDUP_TO_INT(a)  ((a) + 0.9)
 
 #if  0
 #define  __DEBUG
@@ -145,9 +151,9 @@ static cs_info_t  cs_info_table[] =
 } ;
 
 static int  compose_dec_special_font ;
-#ifdef  USE_TYPE_XFT
-static char *  xft_size_type = XFT_PIXEL_SIZE ;
-static double  dpi_for_xft ;
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+static char *  fc_size_type = FC_PIXEL_SIZE ;
+static double  dpi_for_fc ;
 #endif
 
 
@@ -214,53 +220,10 @@ set_decsp_font(
 	return  1 ;
 }
 
-#ifdef  USE_TYPE_XFT
-
-static u_int
-xft_calculate_char_width(
-	Display *  display ,
-	XftFont *  xfont ,
-	const u_char *  ch ,		/* US-ASCII or Unicode */
-	size_t  len
-	)
-{
-	XGlyphInfo  extents ;
-
-	if( len == 1)
-	{
-		XftTextExtents8( display , xfont , ch , 1 , &extents) ;
-	}
-	else if( len == 2)
-	{
-		XftChar16  xch ;
-
-		xch = ((ch[0] << 8) & 0xff00) | (ch[1] & 0xff) ;
-
-		XftTextExtents16( display , xfont , &xch , 1 , &extents) ;
-	}
-	else if( len == 4)
-	{
-		XftChar32  xch ;
-
-		xch = ((ch[0] << 24) & 0xff000000) | ((ch[1] << 16) & 0xff0000) |
-			((ch[2] << 8) & 0xff00) | (ch[3] & 0xff) ;
-
-		XftTextExtents32( display , xfont , &xch , 1 , &extents) ;
-	}
-	else
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " char size %d is too large.\n" , len) ;
-	#endif
-
-		return  0 ;
-	}
-
-	return  extents.xOff ;
-}
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 
 static int
-parse_xft_font_name(
+parse_fc_font_name(
 	char **  font_family ,
 	int *  font_weight ,	/* if weight is not specified in font_name , not changed. */
 	int *  font_slant ,	/* if slant is not specified in font_name , not changed. */
@@ -346,7 +309,7 @@ parse_xft_font_name(
 	/*
 	 * Parsing "[Family] [WEIGHT] [SLANT] [SIZE]".
 	 * Following is the same as x_font_win32.c:parse_font_name()
-	 * except XFT_*.
+	 * except FC_*.
 	 */
 
 #if  0
@@ -392,22 +355,22 @@ parse_xft_font_name(
 					 * Portable styles.
 					 */
 					/* slant */
-					{ "italic" , 0 , XFT_SLANT_ITALIC , } ,
+					{ "italic" , 0 , FC_SLANT_ITALIC , } ,
 					/* weight */
-					{ "bold" , XFT_WEIGHT_BOLD , 0 , } ,
+					{ "bold" , FC_WEIGHT_BOLD , 0 , } ,
 
 					/*
 					 * Hack for styles which can be returned by
 					 * gtk_font_selection_dialog_get_font_name().
 					 */
 					/* slant */
-					{ "oblique" , 0 , XFT_SLANT_OBLIQUE , } ,
+					{ "oblique" , 0 , FC_SLANT_OBLIQUE , } ,
 					/* weight */
 					{ "light" , /* e.g. "Bookman Old Style Light" */
-						XFT_WEIGHT_LIGHT , 0 , } ,
-					{ "semi-bold" , XFT_WEIGHT_DEMIBOLD , 0 , } ,
+						FC_WEIGHT_LIGHT , 0 , } ,
+					{ "semi-bold" , FC_WEIGHT_DEMIBOLD , 0 , } ,
 					{ "heavy" , /* e.g. "Arial Black Heavy" */
-						XFT_WEIGHT_BLACK , 0 , }	,
+						FC_WEIGHT_BLACK , 0 , }	,
 					/* other */
 					{ "semi-condensed" , /* XXX This style is ignored. */
 						0 , 0 , } ,
@@ -470,7 +433,7 @@ next_char:
 }
 
 static u_int
-get_xft_col_width(
+get_fc_col_width(
 	x_font_t *  font ,
 	double  fontsize_d ,
 	u_int  percent ,
@@ -478,6 +441,7 @@ get_xft_col_width(
 	)
 {
 #if  0
+#ifdef  USE_TYPE_XFT
 	XftFont *  xfont ;
 
 	/*
@@ -486,7 +450,7 @@ get_xft_col_width(
 	 */
 	if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
 		XFT_FAMILY , XftTypeString , family ,
-		xft_size_type , XftTypeDouble , fontsize ,
+		fc_size_type , XftTypeDouble , fontsize ,
 		XFT_WEIGHT , XftTypeInteger , weight ,
 		XFT_SLANT , XftTypeInteger , slant ,
 		XFT_ENCODING , XftTypeString , "iso8859-1" ,
@@ -509,6 +473,7 @@ get_xft_col_width(
 		}
 	}
 #endif
+#endif
 
 	if( percent > 0)
 	{
@@ -519,7 +484,7 @@ get_xft_col_width(
 	{
 		return  0 ;
 	}
-	else if( strcmp( xft_size_type , XFT_SIZE) == 0)
+	else if( strcmp( fc_size_type , FC_SIZE) == 0)
 	{
 		double  widthpix ;
 		double  widthmm ;
@@ -528,9 +493,9 @@ get_xft_col_width(
 		widthpix = DisplayWidth( font->display , DefaultScreen(font->display)) ;
 		widthmm = DisplayWidthMM( font->display , DefaultScreen(font->display)) ;
 
-		if( dpi_for_xft)
+		if( dpi_for_fc)
 		{
-			dpi = dpi_for_xft ;
+			dpi = dpi_for_fc ;
 		}
 		else
 		{
@@ -545,39 +510,330 @@ get_xft_col_width(
 	}
 }
 
+static FcPattern *
+fc_pattern_create(
+	char *  family ,	/* can be NULL */
+	double  size ,
+	char *  encoding ,	/* can be NULL */
+	int  weight ,
+	int  slant ,
+	int  ch_width ,		/* can be 0 */
+	int  aa_opt
+	)
+{
+	FcPattern *  pattern ;
+
+	if( ! ( pattern = FcPatternCreate()))
+	{
+		return  NULL ;
+	}
+
+	if( family)
+	{
+		FcPatternAddString( pattern , FC_FAMILY , family) ;
+	}
+	FcPatternAddDouble( pattern , fc_size_type , size) ;
+	FcPatternAddInteger( pattern , FC_WEIGHT , weight) ;
+	FcPatternAddInteger( pattern , FC_SLANT , slant) ;
+	FcPatternAddInteger( pattern , FC_SPACING , ch_width > 0 ? FC_MONO : FC_PROPORTIONAL) ;
+	if( ch_width > 0)
+	{
+		/* XXX FC_CHAR_WIDTH doesn't make effect in cairo ... */
+		FcPatternAddInteger( pattern , FC_CHAR_WIDTH , ch_width) ;
+	}
+	if( aa_opt)
+	{
+		FcPatternAddBool( pattern , FC_ANTIALIAS , aa_opt == 1 ? True : False) ;
+	}
+	if( dpi_for_fc)
+	{
+		FcPatternAddDouble( pattern , FC_DPI , dpi_for_fc) ;
+	}
+#ifdef  USE_TYPE_XFT
+	if( encoding)
+	{
+		FcPatternAddString( pattern , XFT_ENCODING , encoding) ;
+	}
+#endif
+#if  0
+	FcPatternAddBool( pattern , "embeddedbitmap" , True) ;
+#endif
+
+	return  pattern ;
+}
+
+#endif	/* USE_TYPE_XFT / USE_TYPE_CAIRO */
+
+#ifdef  USE_TYPE_XFT
+
+static u_int
+xft_calculate_char_width(
+	Display *  display ,
+	XftFont *  xfont ,
+	const u_char *  ch ,		/* US-ASCII or Unicode */
+	size_t  len
+	)
+{
+	XGlyphInfo  extents ;
+
+	if( len == 1)
+	{
+		XftTextExtents8( display , xfont , ch , 1 , &extents) ;
+	}
+	else if( len == 2)
+	{
+		XftChar16  xch ;
+
+		xch = ((ch[0] << 8) & 0xff00) | (ch[1] & 0xff) ;
+
+		XftTextExtents16( display , xfont , &xch , 1 , &extents) ;
+	}
+	else if( len == 4)
+	{
+		XftChar32  xch ;
+
+		xch = ((ch[0] << 24) & 0xff000000) | ((ch[1] << 16) & 0xff0000) |
+			((ch[2] << 8) & 0xff00) | (ch[3] & 0xff) ;
+
+		XftTextExtents32( display , xfont , &xch , 1 , &extents) ;
+	}
+	else
+	{
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " char size %d is too large.\n" , len) ;
+	#endif
+
+		return  0 ;
+	}
+
+	return  extents.xOff ;
+}
+
+static XftFont *
+xft_font_open(
+	x_font_t *  font ,
+	char *  family ,	/* can be NULL */
+	double  size ,
+	char *  encoding ,	/* can be NULL */
+	int  weight ,
+	int  slant ,
+	int  ch_width ,
+	int  aa_opt
+	)
+{
+	FcPattern *  pattern ;
+	FcPattern *  match ;
+	FcResult  result ;
+	XftFont *  xfont ;
+
+	if( ! ( pattern = fc_pattern_create( family , size , encoding , weight , slant ,
+				ch_width , aa_opt)))
+	{
+		return  NULL ;
+	}
+
+	match = XftFontMatch( font->display , DefaultScreen( font->display) , pattern ,
+				&result) ;
+	FcPatternDestroy( pattern) ;
+	if( ! match)
+	{
+		return  NULL ;
+	}
+	
+#if  0
+	FcPatternPrint( match) ;
+#endif
+
+	if( ! ( xfont = XftFontOpenPattern( font->display , match)))
+	{
+		FcPatternDestroy( match) ;
+
+		return  NULL ;
+	}
+	
+	return  xfont ;
+}
+
+#endif
+
+#ifdef  USE_TYPE_CAIRO
+
+static u_int
+cairo_calculate_char_width(
+	cairo_scaled_font_t *  xfont ,
+	const u_char *  ch ,
+	size_t  len
+	)
+{
+	u_char  utf8[9] ;
+	cairo_text_extents_t  extents ;
+
+	utf8[ x_convert_ucs_to_utf8( utf8 , mkf_bytes_to_int( ch , len))] = '\0' ;
+	cairo_scaled_font_text_extents( xfont , utf8 , &extents) ;
+
+#if  0
+	kik_debug_printf( "%f %f %f\n" , extents.x_bearing , extents.width , extents.x_advance) ;
+#endif
+
+	return  DOUBLE_ROUNDUP_TO_INT(extents.x_advance) ;
+}
+
+static cairo_scaled_font_t *
+cairo_font_open(
+	x_font_t *  font ,
+	char *  family ,	/* can be NULL */
+	double  size ,
+	char *  encoding ,	/* can be NULL */
+	int  weight ,
+	int  slant ,
+	int  ch_width ,
+	int  aa_opt
+	)
+{
+	cairo_font_options_t *  options ;
+	cairo_t *  cairo ;
+	FcPattern *  pattern ;
+	FcPattern *  match ;
+	FcResult  result ;
+	cairo_font_face_t *  font_face ;
+	cairo_matrix_t  font_matrix ;
+	cairo_matrix_t  ctm ;
+	cairo_scaled_font_t *  xfont ;
+	double  pixel_size ;
+
+	if( ! ( pattern = fc_pattern_create( family , size , encoding , weight , slant ,
+				ch_width , aa_opt)))
+	{
+		return  NULL ;
+	}
+
+	FcConfigSubstitute( NULL , pattern , FcMatchPattern) ;
+
+	if( ! ( cairo = cairo_create( cairo_xlib_surface_create( font->display ,
+				DefaultRootWindow( font->display) ,
+				DefaultVisual( font->display , DefaultScreen( font->display)) ,
+				DisplayWidth( font->display , DefaultScreen( font->display)) ,
+				DisplayHeight( font->display , DefaultScreen( font->display))))))
+	{
+		FcPatternDestroy( pattern) ;
+
+		return  NULL ;
+	}
+
+	options = cairo_font_options_create() ;
+	cairo_get_font_options( cairo , options) ;
+	cairo_ft_font_options_substitute( options , pattern) ;
+
+	FcDefaultSubstitute( pattern) ;
+
+	if( ! ( match = FcFontMatch( NULL , pattern , &result)))
+	{
+		cairo_destroy( cairo) ;
+		cairo_font_options_destroy( options) ;
+		FcPatternDestroy( pattern) ;
+
+		return  NULL ;
+	}
+
+#if  0
+	FcPatternPrint( match) ;
+#endif
+
+	font_face = cairo_ft_font_face_create_for_pattern( match) ;
+
+	FcPatternGetDouble( match , FC_PIXEL_SIZE , 0 , &pixel_size) ;
+	
+	cairo_matrix_init_identity( &font_matrix) ;
+	cairo_matrix_scale( &font_matrix , pixel_size , pixel_size) ;
+	cairo_get_matrix( cairo , &ctm) ;
+
+	xfont = cairo_scaled_font_create( font_face , &font_matrix , &ctm , options) ;
+
+	cairo_destroy( cairo) ;
+	cairo_font_options_destroy( options) ;
+	cairo_font_face_destroy( font_face) ;
+	FcPatternDestroy( pattern) ;
+	FcPatternDestroy( match) ;
+
+	if( cairo_scaled_font_status( xfont))
+	{
+		cairo_scaled_font_destroy( xfont) ;
+
+		return  NULL ;
+	}
+
+	return  xfont ;
+}
+
+#endif
+
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+
+static void *
+fc_font_open(
+	x_font_t *  font ,
+	char *  family ,
+	double  size ,
+	char *  encoding ,
+	int  weight ,
+	int  slant ,
+	int  ch_width ,
+	int  aa_opt ,
+	int  use_xft
+	)
+{
+	if( use_xft)
+	{
+	#ifdef  USE_TYPE_XFT
+		return  xft_font_open( font , family , size , encoding , weight , slant ,
+				ch_width , aa_opt) ;
+	#endif
+	}
+	else
+	{
+	#ifdef  USE_TYPE_CAIRO
+		return  cairo_font_open( font , family , size , encoding , weight , slant ,
+				ch_width , aa_opt) ;
+	#endif
+	}
+
+	return  NULL ;
+}
+
 static int
-set_xft_font(
+set_fc_font(
 	x_font_t *  font ,
 	const char *  fontname ,
 	u_int  fontsize ,
 	u_int  col_width ,	/* if usascii font wants to be set , 0 will be set. */
 	int  use_medium_for_bold ,	/* Not used for now. */
 	u_int  letter_space ,
-	int  aa_opt		/* 0 = default , 1 = enable , -1 = disable */
+	int  aa_opt ,		/* 0 = default , 1 = enable , -1 = disable */
+	int  use_xft
 	)
 {
 	char *  font_encoding ;
 	int  weight ;
 	int  slant ;
 	u_int  ch_width ;
-	XftFont *  xfont ;
+	void *  xfont ;
 
 	/*
-	 * encoding, weight and slant can be modified in parse_xft_font_name().
+	 * encoding, weight and slant can be modified in parse_fc_font_name().
 	 */
 	
-	font_encoding = "iso10646-1" ;
+	font_encoding = NULL ;
 
 	if( font->id & FONT_BOLD)
 	{
-		weight = XFT_WEIGHT_BOLD ;
+		weight = FC_WEIGHT_BOLD ;
 	}
 	else
 	{
-		weight = XFT_WEIGHT_MEDIUM ;
+		weight = FC_WEIGHT_MEDIUM ;
 	}
 
-	slant = XFT_SLANT_ROMAN ;
+	slant = FC_SLANT_ROMAN ;
 
 	if( fontname)
 	{
@@ -597,14 +853,14 @@ set_xft_font(
 
 		fontsize_d = (double)fontsize ;
 		percent = 0 ;
-		if( parse_xft_font_name( &font_family , &weight , &slant , &fontsize_d ,
+		if( parse_fc_font_name( &font_family , &weight , &slant , &fontsize_d ,
 						&font_encoding , &percent , p))
 		{
 			if( col_width == 0)
 			{
 				/* basic font (e.g. usascii) width */
 
-				ch_width = get_xft_col_width( font , fontsize_d , percent ,
+				ch_width = get_fc_col_width( font , fontsize_d , percent ,
 								letter_space) ;
 
 				if( font->is_vertical)
@@ -643,50 +899,12 @@ set_xft_font(
 				slant == XFT_SLANT_ITALIC ? ":Italic" : "" ,
 				fontsize_d , font->is_var_col_width) ;
 		#endif
-		
-			if( ch_width == 0)
-			{
-				/* Proportional (font->is_var_col_width is true) */
 
-				if( ( xfont = XftFontOpen( font->display ,
-						DefaultScreen( font->display) ,
-						XFT_FAMILY , XftTypeString , font_family ,
-						xft_size_type , XftTypeDouble , fontsize_d ,
-						XFT_ENCODING , XftTypeString , font_encoding ,
-						XFT_WEIGHT , XftTypeInteger , weight ,
-						XFT_SLANT , XftTypeInteger , slant ,
-						XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
-					#if  0
-						"embeddedbitmap" , XftTypeBool , True ,
-					#endif
-						aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
-							aa_opt == 1 ? True : False , NULL)))
-				{
-					ch_width = xft_calculate_char_width(
-							font->display , xfont , "W" , 1) ;
-
-					goto  font_found ;
-				}
-			}
-			else
+			if( ( xfont = fc_font_open( font , font_family , fontsize_d ,
+					font_encoding , weight , slant , ch_width ,
+					aa_opt , use_xft)))
 			{
-				if( ( xfont = XftFontOpen( font->display ,
-						DefaultScreen( font->display) ,
-						XFT_FAMILY , XftTypeString , font_family ,
-						xft_size_type , XftTypeDouble , fontsize_d ,
-						XFT_ENCODING , XftTypeString , font_encoding ,
-						XFT_WEIGHT , XftTypeInteger , weight ,
-						XFT_SLANT , XftTypeInteger , slant ,
-						XFT_SPACING , XftTypeInteger , XFT_MONO ,
-						XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
-					#if  0
-						"embeddedbitmap" , XftTypeBool , True ,
-					#endif
-						aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
-							aa_opt == 1 ? True : False , NULL)) )
-				{
-					goto  font_found ;
-				}
+				goto  font_found ;
 			}
 		}
 
@@ -698,7 +916,7 @@ set_xft_font(
 	{
 		/* basic font (e.g. usascii) width */
 
-		ch_width = get_xft_col_width( font , (double)fontsize , 0 , letter_space) ;
+		ch_width = get_fc_col_width( font , (double)fontsize , 0 , letter_space) ;
 	
 		if( font->is_vertical)
 		{
@@ -729,59 +947,27 @@ set_xft_font(
 		}
 	}
 
-	if( ch_width == 0)
+	if( ( xfont = fc_font_open( font , NULL , (double)fontsize , font_encoding ,
+				weight , slant , ch_width , aa_opt , use_xft)))
 	{
-		/* Proportional (font->is_var_col_width is true) */
-
-		if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
-				xft_size_type , XftTypeDouble , (double)fontsize ,
-				XFT_ENCODING , XftTypeString , font_encoding ,
-				XFT_WEIGHT , XftTypeInteger , weight ,
-				XFT_SLANT , XftTypeInteger , slant ,
-				XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL ,
-			#if  0
-				"embeddedbitmap" , XftTypeBool , True ,
-			#endif
-				aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
-					aa_opt == 1 ? True : False , NULL)))
-		{
-			/* letter_space is ignored in variable column width mode. */
-			ch_width = xft_calculate_char_width( font->display ,
-					xfont , "W" , 1) ;
-
-			goto  font_found ;
-		}
-	}
-	else
-	{
-		if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
-				xft_size_type , XftTypeDouble , (double)fontsize ,
-				XFT_ENCODING , XftTypeString , font_encoding ,
-				XFT_WEIGHT , XftTypeInteger , weight ,
-				XFT_SLANT , XftTypeInteger , slant ,
-				XFT_SPACING , XftTypeInteger , XFT_MONO ,
-				XFT_CHAR_WIDTH , XftTypeInteger , ch_width ,
-				aa_opt ? XFT_ANTIALIAS : NULL , XftTypeBool ,
-					aa_opt == 1 ? True : False , NULL)) )
-		{
-			goto  font_found ;
-		}
+		goto  font_found ;
 	}
 
 #ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " XftFontOpen(%s) failed.\n" , fontname) ;
+	kik_warn_printf( KIK_DEBUG_TAG " fc_font_open(%s) failed.\n" , fontname) ;
 #endif
 
 	return  0 ;
 
 font_found:
 
-#ifdef FC_EMBOLDEN /* Synthetic emboldening (fontconfig >= 2.3.0) */
+#if  defined(FC_EMBOLDEN) /* Synthetic emboldening (fontconfig >= 2.3.0) */ \
+	|| defined(USE_TYPE_CAIRO)
 	font->is_double_drawing = 0 ;
 #else
-	if( weight == XFT_WEIGHT_BOLD &&
-		XftPatternGetInteger( xfont->pattern , XFT_WEIGHT , 0 , &weight) == XftResultMatch &&
-		weight != XFT_WEIGHT_BOLD)
+	if( weight == FC_WEIGHT_BOLD &&
+	    XftPatternGetInteger( xfont->pattern , FC_WEIGHT , 0 , &weight) == XftResultMatch &&
+	    weight != FC_WEIGHT_BOLD)
 	{
 		font->is_double_drawing = 1 ;
 	}
@@ -791,15 +977,72 @@ font_found:
 	}
 #endif
 
-	font->xft_font = xfont ;
-
-	font->height = xfont->height ;
-	font->height_to_baseline = xfont->ascent ;
-
 	font->x_off = 0 ;
-	font->width = ch_width ;
 
 	font->is_proportional = font->is_var_col_width ;
+
+	if( use_xft)
+	{
+	#ifdef  USE_TYPE_XFT
+		font->xft_font = xfont ;
+
+		font->height = font->xft_font->height ;
+		font->height_to_baseline = font->xft_font->ascent ;
+
+		if( ch_width == 0)
+		{
+			/*
+			 * Proportional (font->is_var_col_width is true)
+			 * letter_space is ignored in variable column width mode.
+			 */
+			font->width = xft_calculate_char_width( font->display , xfont , "W" , 1) ;
+		}
+		else
+		{
+			font->width = ch_width ;
+		}
+	#endif	/* USE_TYPE_XFT */
+	}
+	else
+	{
+	#ifdef  USE_TYPE_CAIRO
+		cairo_font_extents_t  extents ;
+
+		font->cairo_font = xfont ;
+
+		cairo_scaled_font_extents( font->cairo_font , &extents) ;
+		font->height = DOUBLE_ROUNDUP_TO_INT(extents.height) ;
+		font->height_to_baseline = DOUBLE_ROUNDUP_TO_INT(extents.ascent) ;
+
+		/* XXX letter_space is always ignored. */
+		if( font->cols == 2)
+		{
+			font->width = DOUBLE_ROUNDUP_TO_INT(extents.max_x_advance) ;
+		}
+		else
+		{
+			font->width = cairo_calculate_char_width( font->cairo_font , "W" , 1) ;
+		}
+
+	#if  0
+		if( col_width > 0 /* is not usascii */ && ! font->is_proportional &&
+		    ch_width != font->width)
+		{
+			kik_warn_printf( "Font width(%d) is not matched with "
+				"standard width(%d).\n" , font->width , ch_width) ;
+
+			font->is_proportional = 1 ;
+
+			if( font->width < ch_width)
+			{
+				font->x_off = (ch_width - font->width) / 2 ;
+			}
+
+			font->width = ch_width ;
+		}
+	#endif
+	#endif	/* USE_TYPE_CAIRO */
+	}
 
 	/*
 	 * checking if font height/height_to_baseline member is sane.
@@ -1478,6 +1721,9 @@ x_font_new(
 #ifdef  USE_TYPE_XFT
 	font->xft_font = NULL ;
 #endif
+#ifdef  USE_TYPE_CAIRO
+	font->cairo_font = NULL ;
+#endif
 	font->decsp_font = NULL ;
 
 	switch( type_engine)
@@ -1485,12 +1731,14 @@ x_font_new(
 	default:
 		return  NULL ;
 
-#ifdef  USE_TYPE_XFT
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	case  TYPE_XFT:
-		if( ! set_xft_font( font , fontname , fontsize , col_width , use_medium_for_bold ,
+	case  TYPE_CAIRO:
+		if( ! set_fc_font( font , fontname , fontsize , col_width , use_medium_for_bold ,
 				letter_space ,
 				(font_present & FONT_AA) == FONT_AA ?
-					1 : ((font_present & FONT_NOAA) == FONT_NOAA ? -1 : 0)))
+					1 : ((font_present & FONT_NOAA) == FONT_NOAA ? -1 : 0) ,
+				type_engine == TYPE_XFT))
 		{
 			free( font) ;
 
@@ -1523,7 +1771,6 @@ x_font_new(
 		kik_warn_printf(
 			"Characters (cs %d) are drawn *one by one* to arrange column width.\n" ,
 			FONT_CS(font->id)) ;
-
 	}
 
 #ifdef  DEBUG
@@ -1543,6 +1790,13 @@ x_font_delete(
 	{
 		XftFontClose( font->display , font->xft_font) ;
 		font->xft_font = NULL ;
+	}
+#endif
+#ifdef  USE_TYPE_CAIRO
+	if( font->cairo_font)
+	{
+		cairo_scaled_font_destroy( font->cairo_font) ;
+		font->cairo_font = NULL ;
 	}
 #endif
 #ifdef  USE_TYPE_XCORE
@@ -1606,7 +1860,7 @@ x_calculate_char_width(
 
 			if( cs != US_ASCII && ! IS_ISCII(cs))
 			{
-				if( ! ml_convert_to_xft_ucs4( ucs4 , ch , len , cs))
+				if( ! x_convert_to_xft_ucs4( ucs4 , ch , len , cs))
 				{
 					return  0 ;
 				}
@@ -1617,6 +1871,25 @@ x_calculate_char_width(
 
 			return  xft_calculate_char_width( font->display , font->xft_font ,
 								ch , len) ;
+		}
+	#endif
+	#ifdef  USE_TYPE_CAIRO
+		if( font->cairo_font)
+		{
+			u_char  ucs4[4] ;
+
+			if( cs != US_ASCII && ! IS_ISCII(cs))
+			{
+				if( ! x_convert_to_xft_ucs4( ucs4 , ch , len , cs))
+				{
+					return  0 ;
+				}
+
+				ch = ucs4 ;
+				len = 4 ;
+			}
+
+			return  cairo_calculate_char_width( font->cairo_font , ch , len) ;
 		}
 	#endif
 	#ifdef  USE_TYPE_XCORE
@@ -1651,31 +1924,229 @@ x_font_get_encoding_names(
 
 /* For mlterm-libvte */
 void
-x_font_use_point_size_for_xft(
+x_font_use_point_size_for_fc(
 	int  bool
 	)
 {
-#ifdef  USE_TYPE_XFT
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	if( bool)
 	{
-		xft_size_type = XFT_SIZE ;
+		fc_size_type = FC_SIZE ;
 	}
 	else
 	{
-		xft_size_type = XFT_PIXEL_SIZE ;
+		fc_size_type = FC_PIXEL_SIZE ;
 	}
 #endif
 }
 
 void
-x_font_set_dpi_for_xft(
+x_font_set_dpi_for_fc(
 	double  dpi
 	)
 {
-#ifdef  USE_TYPE_XFT
-	dpi_for_xft = dpi ;
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+	dpi_for_fc = dpi ;
 #endif
 }
+
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+
+static int  use_cp932_ucs_for_xft = 0 ;
+
+static int
+convert_to_ucs4(
+	u_char *  ucs4_bytes ,
+	const u_char *  src_bytes ,
+	size_t  src_size ,
+	mkf_charset_t  cs
+	)
+{
+	if( cs == ISO10646_UCS4_1)
+	{
+		memcpy( ucs4_bytes , src_bytes , 4) ;
+	}
+	else
+	{
+		mkf_char_t  non_ucs ;
+		mkf_char_t  ucs4 ;
+
+		if( ml_is_msb_set( cs))
+		{
+			int  count ;
+
+			for( count = 0 ; count < src_size ; count ++)
+			{
+				non_ucs.ch[count] = src_bytes[count] & 0x7f ;
+			}
+		}
+		else
+		{
+			memcpy( non_ucs.ch , src_bytes , src_size) ;
+		}
+		
+		non_ucs.size = src_size ;
+		non_ucs.property = 0 ;
+		non_ucs.cs = cs ;
+
+		if( mkf_map_to_ucs4( &ucs4 , &non_ucs))
+		{
+			memcpy( ucs4_bytes , ucs4.ch , 4) ;
+		}
+		else
+		{
+			return  0 ;
+		}
+	}
+
+	return  1 ;
+}
+
+int
+x_use_cp932_ucs_for_xft(void)
+{
+	use_cp932_ucs_for_xft = 1 ;
+
+	return  1 ;
+}
+
+/*
+ * used only for xft or cairo.
+ */
+int
+x_convert_to_xft_ucs4(
+	u_char *  ucs4_bytes ,
+	const u_char *  src_bytes ,
+	size_t  src_size ,
+	mkf_charset_t  cs	/* US_ASCII and ISO8859_1_R is not accepted */
+	)
+{
+	if( cs == US_ASCII || cs == ISO8859_1_R)
+	{
+		return  0 ;
+	}
+	else if( use_cp932_ucs_for_xft && cs == JISX0208_1983)
+	{
+		u_int16_t  code ;
+
+		code = mkf_bytes_to_int( src_bytes , src_size) ;
+
+		if( code == 0x2140)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0x3c ;
+		}
+		else if( code == 0x2141)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0x5e ;
+		}
+		else if( code == 0x2142)
+		{
+			ucs4_bytes[2] = 0x22 ;
+			ucs4_bytes[3] = 0x25 ;
+		}
+		else if( code == 0x215d)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0x0d ;
+		}
+		else if( code == 0x2171)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0xe0 ;
+		}
+		else if( code == 0x2172)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0xe1 ;
+		}
+		else if( code == 0x224c)
+		{
+			ucs4_bytes[2] = 0xff ;
+			ucs4_bytes[3] = 0xe2 ;
+		}
+		else
+		{
+			goto  no_diff ;
+		}
+		
+		ucs4_bytes[0] = 0x0 ;
+		ucs4_bytes[1] = 0x0 ;
+		
+		return  1 ;
+	}
+
+no_diff:
+	return  convert_to_ucs4( ucs4_bytes , src_bytes , src_size , cs) ;
+}
+
+size_t
+x_convert_ucs_to_utf8(
+	u_char *  utf8 ,	/* size of utf8 should be greater than 7. */
+	u_int32_t  ucs
+	)
+{
+	/* ucs is unsigned */
+	if( /* 0x00 <= ucs && */ ucs <= 0x7f)
+	{
+		*utf8 = ucs ;
+
+		return  1 ;
+	}
+	else if( ucs <= 0x07ff)
+	{
+		*(utf8 ++) = ((ucs >> 6) & 0xff) | 0xc0 ;
+		*utf8 = (ucs & 0x3f) | 0x80 ;
+
+		return  2 ;
+	}
+	else if( ucs <= 0xffff)
+	{
+		*(utf8 ++) = ((ucs >> 12) & 0x0f) | 0xe0 ;
+		*(utf8 ++) = ((ucs >> 6) & 0x3f) | 0x80 ;
+		*utf8 = (ucs & 0x3f) | 0x80 ;
+
+		return  3 ;
+	}
+	else if( ucs <= 0x1fffff)
+	{
+		*(utf8 ++) = ((ucs >> 18) & 0x07) | 0xf0 ;
+		*(utf8 ++) = ((ucs >> 12) & 0x3f) | 0x80 ;
+		*(utf8 ++) = ((ucs >> 6) & 0x3f) | 0x80 ;
+		*utf8 = (ucs & 0x3f) | 0x80 ;
+
+		return  4 ;
+	}
+	else if( ucs <= 0x03ffffff)
+	{
+		*(utf8 ++) = ((ucs >> 24) & 0x03) | 0xf8 ;
+		*(utf8 ++) = ((ucs >> 18) & 0x3f) | 0x80 ;
+		*(utf8 ++) = ((ucs >> 12) & 0x3f) | 0x80 ;
+		*(utf8 ++) = ((ucs >> 6) & 0x3f) | 0x80 ;
+		*utf8 = (ucs & 0x3f) | 0x80 ;
+
+		return  5 ;
+	}
+	else if( ucs <= 0x7fffffff)
+	{
+		*(utf8 ++) = ((ucs >> 30) & 0x01) | 0xfc ;
+		*(utf8 ++) = ((ucs >> 24) & 0x3f) | 0x80 ;
+		*(utf8 ++) = ((ucs >> 18) & 0x3f) | 0x80 ;
+		*(utf8 ++) = ((ucs >> 12) & 0x3f) | 0x80 ;
+		*(utf8 ++) = ((ucs >> 6) & 0x3f) | 0x80 ;
+		*utf8 = (ucs & 0x3f) | 0x80 ;
+
+		return  6 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
+#endif	/* USE_TYPE_XFT / USE_TYPE_CAIRO */
+
 
 #ifdef  DEBUG
 
@@ -1689,6 +2160,9 @@ x_font_dump(
 #endif
 #ifdef  USE_TYPE_XFT
 	kik_msg_printf( "Font id %x: XftFont %p" , font->id , font->xft_font) ;
+#endif
+#ifdef  USE_TYPE_CAIRO
+	kik_msg_printf( "Font id %x: CairoFont %p" , font->id , font->cairo_font) ;
 #endif
 
 	kik_msg_printf( " (width %d, height %d, height_to_baseline %d, x_off %d)" ,

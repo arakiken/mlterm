@@ -41,8 +41,6 @@
 
 #include  <mkf/mkf_iso2022_conv.h>	/* mkf_iso2022_illegal_char */
 
-#include  <mkf/mkf_ucs4_map.h>
-
 
 typedef struct  encoding_table
 {
@@ -197,8 +195,6 @@ static mkf_charset_t  msb_set_cs_table[] =
 
 static void (*iso2022kr_conv_init)( mkf_conv_t *) ;
 static void (*iso2022kr_parser_init)( mkf_parser_t *) ;
-
-static int  use_cp932_ucs_for_xft = 0 ;
 
 
 /* --- static functions --- */
@@ -429,137 +425,6 @@ ml_is_msb_set(
 	}
 
 	return  0 ;
-}
-
-/*
- * used for general ucs4 conversion.
- * (not used for now)
- */
-int
-ml_convert_to_ucs4(
-	u_char *  ucs4_bytes ,
-	const u_char *  src_bytes ,
-	size_t  src_size ,
-	mkf_charset_t  cs
-	)
-{
-	if( cs == ISO10646_UCS4_1)
-	{
-		memcpy( ucs4_bytes , src_bytes , 4) ;
-	}
-	else
-	{
-		mkf_char_t  non_ucs ;
-		mkf_char_t  ucs4 ;
-
-		if( ml_is_msb_set( cs))
-		{
-			int  count ;
-
-			for( count = 0 ; count < src_size ; count ++)
-			{
-				non_ucs.ch[count] = src_bytes[count] & 0x7f ;
-			}
-		}
-		else
-		{
-			memcpy( non_ucs.ch , src_bytes , src_size) ;
-		}
-		
-		non_ucs.size = src_size ;
-		non_ucs.property = 0 ;
-		non_ucs.cs = cs ;
-
-		if( mkf_map_to_ucs4( &ucs4 , &non_ucs))
-		{
-			memcpy( ucs4_bytes , ucs4.ch , 4) ;
-		}
-		else
-		{
-			return  0 ;
-		}
-	}
-
-	return  1 ;
-}
-
-int
-ml_use_cp932_ucs_for_xft(void)
-{
-	use_cp932_ucs_for_xft = 1 ;
-
-	return  1 ;
-}
-
-/*
- * used only for xft
- */
-int
-ml_convert_to_xft_ucs4(
-	u_char *  ucs4_bytes ,
-	const u_char *  src_bytes ,
-	size_t  src_size ,
-	mkf_charset_t  cs	/* US_ASCII and ISO8859_1_R is not accepted */
-	)
-{
-	if( cs == US_ASCII || cs == ISO8859_1_R)
-	{
-		return  0 ;
-	}
-	else if( use_cp932_ucs_for_xft && cs == JISX0208_1983)
-	{
-		u_int16_t  code ;
-
-		code = mkf_bytes_to_int( src_bytes , src_size) ;
-
-		if( code == 0x2140)
-		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0x3c ;
-		}
-		else if( code == 0x2141)
-		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0x5e ;
-		}
-		else if( code == 0x2142)
-		{
-			ucs4_bytes[2] = 0x22 ;
-			ucs4_bytes[3] = 0x25 ;
-		}
-		else if( code == 0x215d)
-		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0x0d ;
-		}
-		else if( code == 0x2171)
-		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0xe0 ;
-		}
-		else if( code == 0x2172)
-		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0xe1 ;
-		}
-		else if( code == 0x224c)
-		{
-			ucs4_bytes[2] = 0xff ;
-			ucs4_bytes[3] = 0xe2 ;
-		}
-		else
-		{
-			goto  no_diff ;
-		}
-		
-		ucs4_bytes[0] = 0x0 ;
-		ucs4_bytes[1] = 0x0 ;
-		
-		return  1 ;
-	}
-
-no_diff:
-	return  ml_convert_to_ucs4( ucs4_bytes , src_bytes , src_size , cs) ;
 }
 
 size_t

@@ -16,6 +16,9 @@
 #ifdef  USE_TYPE_XFT
 #include  <X11/Xft/Xft.h>
 #endif
+#ifdef  USE_TYPE_CAIRO
+#include  <cairo/cairo.h>
+#endif
 
 #include  <kiklib/kik_types.h>	/* u_int */
 #include  <mkf/mkf_charset.h>	/* mkf_charset_t */
@@ -48,6 +51,9 @@ typedef struct x_font
 	 */
 #ifdef  USE_TYPE_XFT
 	XftFont *  xft_font ;
+#endif
+#ifdef  USE_TYPE_CAIRO
+	cairo_scaled_font_t *  cairo_font ;
 #endif
 #ifdef  USE_WIN32GUI
 	Font  fid ;
@@ -104,9 +110,19 @@ u_int  x_calculate_char_width( x_font_t *  font ,
 
 char **  x_font_get_encoding_names( mkf_charset_t  cs) ;
 
-void  x_font_use_point_size_for_xft( int  bool) ;
+void  x_font_use_point_size_for_fc( int  bool) ;
 
-void  x_font_set_dpi_for_xft( double  dpi) ;
+void  x_font_set_dpi_for_fc( double  dpi) ;
+
+#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+int  x_use_cp932_ucs_for_xft(void) ;
+
+int  x_convert_to_xft_ucs4( u_char *  ucs4_bytes , const u_char *  src_bytes , size_t  src_size ,
+	mkf_charset_t  cs) ;
+
+size_t  x_convert_ucs_to_utf8( u_char *  utf8 , u_int32_t  ucs) ;
+#endif
+
 
 #ifdef  DEBUG
 int  x_font_dump( x_font_t *  font) ;

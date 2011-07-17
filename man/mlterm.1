@@ -33,7 +33,7 @@ proper encoding.
 Note that \fIbool\fR is to be substituted by \fBtrue\fR or \fBfalse\fR.
 .TP
 \fB\-A\fR, \fB\-\-aa\fR(=\fIbool\fR)
-Use anti-aliased fonts. This option works only with Xft for now.
+Use anti-aliased fonts. This option works only with Xft or cairo for now.
 The default is \fBfalse\fR.
 .TP
 \fB\-B\fR, \fB\-\-sbbg\fR=\fIcolor\fR
@@ -183,7 +183,7 @@ The default is "\fB ,.:;/|@()[]{}\fR")
 Use dynamically composed line drawing character set.
 This overrides DEC_SPECIAL in "font" configuration file.
 The default is \fBfalse\fR.
-This option is automatically turned on when Xft is used.
+This option is automatically turned on when Xft or cairo is used.
 .TP
 \fB\-Z\fR, \fB\-\-multicol\fR(=\fIbool\fR)
 Treat fullwidth characters (east Asian characters in most cases;
@@ -270,8 +270,8 @@ See \fBMULTIPLE PTY\fR section for details.
 .TP
 \fB\-*\fR, \fB\-\-type\fR=\fIvalue\fR
 Specify the rendering engine to be used to draw fonts.
-\fBxcore\fR is conventional X11 core font mechanism and \fBxft\fR
-means Xft mechanism.
+\fBxcore\fR is conventional X11 core font mechanism.
+\fBxft\fR means Xft mechanism and \fBcairo\fR means cairo mechanism.
 The default is \fBxcore\fR. 
 .TP
 \fB\-%\fR, \fB\-\-logseq\fR(=\fIbool\fR)
@@ -303,7 +303,7 @@ configuration file and color rgb string whose format is "#RRGGBB", "#RRGGBBAA",
 \fB\-c\fR, \fB\-\-cp932\fR(=\fIbool\fR)
 Use CP932 mapping table to convert from JIS X 0208 to Unicode
 when displaying JIS X 0208 characters using Unicode font in
-anti-alias (Xft) mode.  This is useful when you use proprietary
+Xft or cairo mode.  This is useful when you use proprietary
 Japanese true type fonts which are intended to be used with Microsoft
 Windows, with \fBmlterm\fR with encodings (such as EUC-JP,
 Shift_JIS, ISO-2022-JP, and so on) which contain JIS X 0208 as
@@ -679,8 +679,11 @@ Font size in pixel. (\fB\-w\fR, \fB\-\-fontsize\fR)
 Xft
 Use xft for rendering engine. (\fB\-*\fR, \fB\-\-type\fR)
 .TP
+Cairo
+Use cairo for rendering engine. (\fB\-*\fR, \fB\-\-type\fR)
+.TP
 Anti alias
-Use anti-alias fonts by using Xft. (\fB\-A\fR, \fB\-\-aa\fR) 
+Use anti-alias fonts by using Xft or cairo. (\fB\-A\fR, \fB\-\-aa\fR) 
 .TP
 Variable column width
 Use variable column width. (\fB\-V\fR, \fB\-\-varwidth\fR) 
@@ -691,7 +694,7 @@ Line space
 Specify number of extra dots between lines. (\fB\-o\fR, \fB\-\-lsp\fR) 
 .TP
 Font name
-Specify XLFD or Xft font for character sets.
+Specify XLFD, Xft or cairo font for character sets.
 "Select" button shows a dialog to choose it.
 .TP
 Line space
@@ -1031,13 +1034,13 @@ Configurations for ordinary X fonts of variable column width.
 Configurations for ordinary X fonts of vertical writing.
 .TP
 \fBaafont\fR
-Configurations for Xft fonts.
+Configurations for Xft or cairo fonts.
 .TP
 \fBvaafont\fR
-Configurations for Xft fonts of variable column width.
+Configurations for Xft or cairo fonts of variable column width.
 .TP
 \fBtaafont\fR
-Configurations for Xft fonts of vertical writing.
+Configurations for Xft or cairo fonts of vertical writing.
 .TP
 \fBcolor\fR
 Designate concrete RGB values for color names.
@@ -1268,7 +1271,7 @@ Use CLIPBOARD (not only PRIMARY) selection.
 Enable combining characters.
 .TP
 \fBuse_cp932_ucs_for_xft=\fIbool\fR (\fB\-c\fR, \fB\-\-cp932\fR) 
-Use CP932 - UCS mapping for displaying JISX0208 by Xft.
+Use CP932 - UCS mapping for displaying JISX0208 by Xft or cairo.
 .TP
 \fBuse_dynamic_comb=\fIbool\fR (\fB\-J\fR, \fB\-\-dyncomb\fR)
 Enable dynamic character combining.

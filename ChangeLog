@@ -1,3 +1,28 @@
+2011-07-17  Araki Ken  <arakiken@users.sf.net>
+
+	* README, README.ja, gtk/INSTALL, man/mlterm.1: Updated
+
+	* gtk/Makefile.in: Set valid value to SYSCONFDIR macro in CFLAGS.
+	
+	* cairo is supported for type_engine option.
+	  - x_window.[ch]:
+	    x_window_xft_draw_string{8|32} => x_window_fc_draw_string{8|12}.
+	    x_window_set_use_cairo() is added.
+	  - x_font.[ch]: cairo_calculate_char_width() and cairo_font_open() are
+	    implemented.
+	  - mc_font.c, mc_flags.[ch]: "cairo" checkbox is added.
+	  - configure.in: --with-type-engines option accepts "cairo" as value.
+	  - doc/en/README.cairo: Added.
+
+	* x_font_config.c: The way of searching shared font tables in
+	  create_shared_font_config() and x_release_font_config() is fixed.
+
+	* ml_char_encoding.[ch]:
+	  ml_convert_to_ucs4, ml_use_cp932_ucs_for_xft and ml_convert_to_xft_ucs4,
+	  are moved to x_font.c
+
+	* x_type_engine.c: Added
+
 2011-07-12  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:
