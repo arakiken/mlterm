@@ -336,10 +336,10 @@ int  x_window_draw_image_string16( x_window_t *  win , x_font_t *  font ,
 #endif
 
 #if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
-int  x_window_fc_draw_string8( x_window_t *  win , x_font_t *  font ,
+int  x_window_ft_draw_string8( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , int  x , int  y , u_char *  str , size_t  len) ;
 
-int  x_window_fc_draw_string32( x_window_t *  win , x_font_t *  font ,
+int  x_window_ft_draw_string32( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , int  x , int  y , FcChar32 *  str , u_int  len) ;
 #endif
 

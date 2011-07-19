@@ -78,7 +78,6 @@ static mkf_factory_table_t  factories[] =
 	{ "tcvn5712" , mkf_tcvn5712_3_1993_parser_new , mkf_tcvn5712_3_1993_conv_new } ,
 	{ "xct" , mkf_xct_parser_new , mkf_xct_conv_new } ,
 	{ "viscii" , mkf_viscii_parser_new , mkf_viscii_conv_new } ,
-	{ "iscii" , mkf_iscii_parser_new , mkf_iscii_conv_new } ,
 	{ "koi8-r" , mkf_koi8_r_parser_new , mkf_koi8_r_conv_new } ,
 	{ "koi8-u" , mkf_koi8_u_parser_new , mkf_koi8_u_conv_new } ,
 	{ "cp1250" , mkf_cp1250_parser_new , mkf_cp1250_conv_new } ,
@@ -91,6 +90,17 @@ static mkf_factory_table_t  factories[] =
 	{ "cp1257" , mkf_cp1250_parser_new , mkf_cp1257_conv_new } ,
 	{ "cp1258" , mkf_cp1250_parser_new , mkf_cp1258_conv_new } ,
 	{ "cp874" , mkf_cp874_parser_new , mkf_cp874_conv_new } ,
+	{ "isciiassamese" , mkf_iscii_assamese_parser_new , mkf_iscii_assamese_conv_new , } ,
+	{ "isciibengali" , mkf_iscii_bengali_parser_new , mkf_iscii_bengali_conv_new , } ,
+	{ "isciigujarati" , mkf_iscii_gujarati_parser_new , mkf_iscii_gujarati_conv_new , } ,
+	{ "isciihindi" , mkf_iscii_hindi_parser_new , mkf_iscii_hindi_conv_new , } ,
+	{ "isciikannada" , mkf_iscii_kannada_parser_new , mkf_iscii_kannada_conv_new , } ,
+	{ "isciimalayalam" , mkf_iscii_malayalam_parser_new , mkf_iscii_malayalam_conv_new , } ,
+	{ "isciioriya" , mkf_iscii_oriya_parser_new , mkf_iscii_oriya_conv_new , } ,
+	{ "isciipunjabi" , mkf_iscii_punjabi_parser_new , mkf_iscii_punjabi_conv_new , } ,
+	{ "isciiroman" , mkf_iscii_roman_parser_new , mkf_iscii_roman_conv_new , } ,
+	{ "isciitamil" , mkf_iscii_tamil_parser_new , mkf_iscii_tamil_conv_new , } ,
+	{ "isciitelugu" , mkf_iscii_telugu_parser_new , mkf_iscii_telugu_conv_new , } ,
 	{ "eucjp" , mkf_eucjp_parser_new , mkf_eucjp_conv_new } ,
 	{ "eucjisx0213" , mkf_eucjisx0213_parser_new , mkf_eucjisx0213_conv_new } ,
 	{ "sjis" , mkf_sjis_parser_new , mkf_sjis_conv_new } ,
@@ -124,7 +134,7 @@ static void
 usage()
 {
 	kik_msg_printf( "usage: mkf -i [input code] -o [output code] ([file])\n") ;
-	kik_msg_printf( "supported codes: iso8859-[1-10] tis620 iso8859-[13-16] tcvn5712 xct viscii iscii koi8-r koi8-u cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp874 eucjp eucjisx0213 sjis sjisx0213 utf8 utf16 utf16le utf32 junet8 junet7 iso2022jp2 iso2022jp3 euckr uhc iso2022kr johab euccn gbk gb18030 iso2022cn hz big5 big5hkscs euctw\n") ;
+	kik_msg_printf( "supported codes: iso8859-[1-10] tis620 iso8859-[13-16] tcvn5712 xct viscii iscii koi8-r koi8-u cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp874 iscii(assamese|bengali|gujarati|hindi|kannada|malayalam|oriya|punjabi|roman|tamil|telugu) eucjp eucjisx0213 sjis sjisx0213 utf8 utf16 utf16le utf32 junet8 junet7 iso2022jp2 iso2022jp3 euckr uhc iso2022kr johab euccn gbk gb18030 iso2022cn hz big5 big5hkscs euctw\n") ;
 }
 
 

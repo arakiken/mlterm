@@ -76,7 +76,7 @@ fc_draw_combining_chars(
 		}
 		else if( ch_cs == US_ASCII || ch_cs == ISO8859_1_R || IS_ISCII(ch_cs))
 		{
-			x_window_fc_draw_string8( window ,
+			x_window_ft_draw_string8( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
 				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , ch_bytes , ch_size) ;
@@ -97,7 +97,7 @@ fc_draw_combining_chars(
 				((ucs4_bytes[2] << 8) & 0xff00) |
 				(ucs4_bytes[3] & 0xff) ;
 
-			x_window_fc_draw_string32( window ,
+			x_window_ft_draw_string32( window ,
 				x_get_font( font_man , ml_char_font( &chars[count])) ,
 				x_get_xcolor( color_man , ml_char_fg_color( &chars[count])) ,
 				x , y , &xch , 1) ;
@@ -350,7 +350,7 @@ fc_draw_str(
 			 */
 			if( state == 0)
 			{
-				x_window_fc_draw_string8( window ,
+				x_window_ft_draw_string8( window ,
 					xfont , x_get_xcolor( color_man , fg_color) ,
 					x , y + height_to_baseline , str8 , str_len) ;
 			}
@@ -362,7 +362,7 @@ fc_draw_str(
 			}
 			else /* if( state == 2) */
 			{
-				x_window_fc_draw_string32( window ,
+				x_window_ft_draw_string32( window ,
 					xfont , x_get_xcolor( color_man , fg_color) ,
 					x , y + height_to_baseline , str32 , str_len) ;
 			}

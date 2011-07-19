@@ -8,7 +8,7 @@
 
 typedef enum x_type_engine
 {
-	TYPE_XCORE ,
+	TYPE_XCORE ,	/* Contains WIN32 native fonts. */
 	TYPE_XFT ,
 	TYPE_CAIRO ,
 

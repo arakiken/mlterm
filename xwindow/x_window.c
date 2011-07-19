@@ -2978,7 +2978,7 @@ x_window_draw_image_string16(
 
 #if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 int
-x_window_fc_draw_string8(
+x_window_ft_draw_string8(
 	x_window_t *  win ,
 	x_font_t *  font ,
 	x_color_t *  fg_color ,
@@ -3043,7 +3043,7 @@ x_window_fc_draw_string8(
 }
 
 int
-x_window_fc_draw_string32(
+x_window_ft_draw_string32(
 	x_window_t *  win ,
 	x_font_t *  font ,
 	x_color_t *  fg_color ,

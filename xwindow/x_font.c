@@ -17,6 +17,7 @@
 #include  <kiklib/kik_locale.h>	/* kik_get_lang() */
 #include  <mkf/mkf_ucs4_map.h>
 #include  <ml_char_encoding.h>	/* ml_is_msb_set */
+#include  <ml_char.h>		/* UTF_MAX_SIZE */
 
 #define  FOREACH_FONT_ENCODINGS(csinfo,font_encoding_p) \
 	for( (font_encoding_p) = &csinfo->encoding_names[0] ; *(font_encoding_p) ; (font_encoding_p) ++)
@@ -24,7 +25,7 @@
 #define  DIVIDE_ROUNDINGUP(a,b) ( ((int)((a)*10 + (b)*10 - 1)) / ((int)((b)*10)) )
 
 /* Be careful not to round down 5.99999... to 5 */
-#define  DOUBLE_ROUNDUP_TO_INT(a)  ((a) + 0.9)
+#define  DOUBLE_ROUNDUP_TO_INT(a)  ((int)((a) + 0.9))
 
 #if  0
 #define  __DEBUG
@@ -440,41 +441,6 @@ get_fc_col_width(
 	u_int  letter_space
 	)
 {
-#if  0
-#ifdef  USE_TYPE_XFT
-	XftFont *  xfont ;
-
-	/*
-	 * XXX
-	 * DefaultScreen() should not be used , but ...
-	 */
-	if( ( xfont = XftFontOpen( font->display , DefaultScreen( font->display) ,
-		XFT_FAMILY , XftTypeString , family ,
-		fc_size_type , XftTypeDouble , fontsize ,
-		XFT_WEIGHT , XftTypeInteger , weight ,
-		XFT_SLANT , XftTypeInteger , slant ,
-		XFT_ENCODING , XftTypeString , "iso8859-1" ,
-		XFT_SPACING , XftTypeInteger , XFT_PROPORTIONAL , NULL)))
-	{
-		u_int  w_width ;
-
-		w_width = xft_calculate_char_width( font->display , xfont , "W" , 1)
-				+ letter_space ;
-
-		XftFontClose( font->display , xfont) ;
-
-	#if  0
-		kik_debug_printf( "%s(%f): Max width is %d\n" , family , fontsize , w_width) ;
-	#endif
-	
-		if( w_width > 0)
-		{
-			return  w_width ;
-		}
-	}
-#endif
-#endif
-
 	if( percent > 0)
 	{
 		return  DIVIDE_ROUNDING(fontsize_d * font->cols * percent , 100 * 2) +
@@ -533,8 +499,14 @@ fc_pattern_create(
 		FcPatternAddString( pattern , FC_FAMILY , family) ;
 	}
 	FcPatternAddDouble( pattern , fc_size_type , size) ;
-	FcPatternAddInteger( pattern , FC_WEIGHT , weight) ;
-	FcPatternAddInteger( pattern , FC_SLANT , slant) ;
+	if( weight >= 0)
+	{
+		FcPatternAddInteger( pattern , FC_WEIGHT , weight) ;
+	}
+	if( slant >= 0)
+	{
+		FcPatternAddInteger( pattern , FC_SLANT , slant) ;
+	}
 	FcPatternAddInteger( pattern , FC_SPACING , ch_width > 0 ? FC_MONO : FC_PROPORTIONAL) ;
 	if( ch_width > 0)
 	{
@@ -665,7 +637,7 @@ cairo_calculate_char_width(
 	size_t  len
 	)
 {
-	u_char  utf8[9] ;
+	u_char  utf8[UTF_MAX_SIZE + 1] ;
 	cairo_text_extents_t  extents ;
 
 	utf8[ x_convert_ucs_to_utf8( utf8 , mkf_bytes_to_int( ch , len))] = '\0' ;
@@ -722,6 +694,10 @@ cairo_font_open(
 
 	options = cairo_font_options_create() ;
 	cairo_get_font_options( cairo , options) ;
+	/* cairo_font_options_set_antialias( options , CAIRO_ANTIALIAS_GRAY) ; */
+	/* cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ; */
+	/* CAIRO_HINT_METRICS_ON disarranges column width by boldening etc. */
+	cairo_font_options_set_hint_metrics( options , CAIRO_HINT_METRICS_OFF) ;
 	cairo_ft_font_options_substitute( options , pattern) ;
 
 	FcDefaultSubstitute( pattern) ;
@@ -770,7 +746,7 @@ cairo_font_open(
 #if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 
 static void *
-fc_font_open(
+ft_font_open(
 	x_font_t *  font ,
 	char *  family ,
 	double  size ,
@@ -801,7 +777,7 @@ fc_font_open(
 }
 
 static int
-set_fc_font(
+set_ft_font(
 	x_font_t *  font ,
 	const char *  fontname ,
 	u_int  fontsize ,
@@ -830,10 +806,10 @@ set_fc_font(
 	}
 	else
 	{
-		weight = FC_WEIGHT_MEDIUM ;
+		weight = -1 ;	/* use default value */
 	}
 
-	slant = FC_SLANT_ROMAN ;
+	slant = -1 ;	/* use default value */
 
 	if( fontname)
 	{
@@ -900,7 +876,7 @@ set_fc_font(
 				fontsize_d , font->is_var_col_width) ;
 		#endif
 
-			if( ( xfont = fc_font_open( font , font_family , fontsize_d ,
+			if( ( xfont = ft_font_open( font , font_family , fontsize_d ,
 					font_encoding , weight , slant , ch_width ,
 					aa_opt , use_xft)))
 			{
@@ -947,14 +923,14 @@ set_fc_font(
 		}
 	}
 
-	if( ( xfont = fc_font_open( font , NULL , (double)fontsize , font_encoding ,
+	if( ( xfont = ft_font_open( font , NULL , (double)fontsize , font_encoding ,
 				weight , slant , ch_width , aa_opt , use_xft)))
 	{
 		goto  font_found ;
 	}
 
 #ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " fc_font_open(%s) failed.\n" , fontname) ;
+	kik_warn_printf( KIK_DEBUG_TAG " ft_font_open(%s) failed.\n" , fontname) ;
 #endif
 
 	return  0 ;
@@ -1734,7 +1710,7 @@ x_font_new(
 #if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	case  TYPE_XFT:
 	case  TYPE_CAIRO:
-		if( ! set_fc_font( font , fontname , fontsize , col_width , use_medium_for_bold ,
+		if( ! set_ft_font( font , fontname , fontsize , col_width , use_medium_for_bold ,
 				letter_space ,
 				(font_present & FONT_AA) == FONT_AA ?
 					1 : ((font_present & FONT_NOAA) == FONT_NOAA ? -1 : 0) ,

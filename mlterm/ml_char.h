@@ -15,9 +15,9 @@
 #include  "ml_color.h"
 
 
-#define  MLCHAR_SIZE  4
-#define  MAX_COMB_SIZE    7	/* Used in ml_shape.c,x_screen.c */
-#define  UTF_MAX_SIZE     8
+#define  MLCHAR_SIZE	4
+#define  MAX_COMB_SIZE	7	/* Used in ml_shape.c,x_screen.c */
+#define  UTF_MAX_SIZE	6
 /*
  * XXX
  * char prefixes are max 4 bytes.

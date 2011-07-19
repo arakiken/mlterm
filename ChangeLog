@@ -1,3 +1,14 @@
+2011-07-19  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window_win32.c: x_window_set_use_cairo() is added.
+
+	* x_im_candidate_screen.c, x_im_status_screeen.c:
+	  x_window_set_use_cairo() is called in window_realized().
+
+	* x_font.c: CAIRO_HINT_METRICS_OFF is set in cairo_font_open.
+
+	* UTF_MAX_SIZE in ml_char.h is changed from 8 to 6.
+
 2011-07-17  Araki Ken  <arakiken@users.sf.net>
 
 	* README, README.ja, gtk/INSTALL, man/mlterm.1: Updated

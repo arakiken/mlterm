@@ -939,6 +939,15 @@ x_window_set_use_xft(
 }
 
 int
+x_window_set_use_cairo(
+	x_window_t *  win ,
+	int  use_cairo
+	)
+{
+	return  0 ;
+}
+
+int
 x_window_init_event_mask(
 	x_window_t *  win ,
 	long  event_mask
