@@ -20634,7 +20634,9 @@ fi
 			AA_LIBS="`xft-config --libs` ${AA_LIBS}"
 		else
 			AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
-			AA_LIBS="-lXft ${AA_LIBS}"
+			# -lfontconfig is necessary because x_font.c refers FcXXX
+			# functions directly.
+			AA_LIBS="-lXft -lfontconfig ${AA_LIBS}"
 		fi
 	fi
 	type_engines_result="$type_engines_result xft"
@@ -22771,7 +22773,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=mlterm
- VERSION=3.0.5
+ VERSION=3.0.6
 
 
 cat >>confdefs.h <<_ACEOF

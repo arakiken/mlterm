@@ -43,7 +43,7 @@ CFLAGS="$RPM_OPT_FLAGS" \
 	    --mandir=%{mandir} \
 	    --libexecdir=%{libexecdir} \
 	    --datadir=%{datadir} \
-	    --sysconfdir=%{sysconfdir} \
+	    --sysconfdir=%{sysconfdir}
 	    # --with-imagelib=gdk-pixbuf \
 	    # --enable-anti-alias
 make
@@ -78,6 +78,9 @@ rm -rf $RPM_BUILD_ROOT
 %{datadir}/locale/*/LC_MESSAGES/mlconfig.mo
 
 %changelog
+* Sat Jul 23 2011 Araki Ken <arakiken@users.sf.net>
+- Source version 3.0.6
+
 * Sat Jun 04 2011 Araki Ken <arakiken@users.sf.net>
 - Source version 3.0.5
 

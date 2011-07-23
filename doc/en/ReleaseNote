@@ -1,11 +1,13 @@
 ver 3.0.6
 * Support cairo for text rendering. (Experimental)
   (See doc/en/README.cairo in detail.)
-* Support unicode indic characters (using ISCII fonts though).
 * Support searching text in terminal screen. (Add "mlsearch.sh" tool.)
 * "CSI < r", "CSI < s" and "CSI < t" sequences are supported.
 * Improve cursor movement in bi-direction text.
 * Improve compatibility of libvte. (Gtkterm2, evilvte and sakura work.)
+* Ignore all spaces at the end of lines in selecting text regardless of their
+  fg/bg colors.
+* Support unicode indic characters (using ISCII fonts though). (Experimental)
 * Other bug fixes:
   Fix a mistake which disabled configuration in $prefix/etc/mlterm in libvte.
 

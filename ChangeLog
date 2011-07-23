@@ -1,3 +1,16 @@
+2011-07-23  Araki Ken  <arakiken@users.sf.net>
+
+	* 3.0.6 released.
+	  (tag "rel-3_0_6")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.0.6.
+
+	* etc/main, etc/main.ja, mlterm.1, README.ja: Updated
+
+	* ml_line.c: ml_char_bytes_equal() is used instead of ml_char_equal()
+	  in ml_line_get_num_of_filled_chars_except_spaces().
+
 2011-07-19  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window_win32.c: x_window_set_use_cairo() is added.
@@ -88,7 +101,7 @@
 2011-06-29  Araki Ken  <arakiken@users.sf.net>
 
 	* mlconfig/main.c, mc_flags.c:
-	  - Button of "use_iscii" option is added.
+	  - Button of "use_ind" option is added.
 	  - Combo box of "iscii_lang" option is removed.
 
 	* mc_iscii_lang.c: Removed.
@@ -97,7 +110,7 @@
 
 	* x_font_manager.[ch]: x_(de)activate_local_font_config() are removed.
 	
-	* x_term_manager.c, x_main_config.c, x_screen.c: "use_iscii" option is added.
+	* x_term_manager.c, x_main_config.c, x_screen.c: "use_ind" option is added.
 
 	* ml_vt100_parser.c: Indic unicode characters are always converted to ISCII.
 	

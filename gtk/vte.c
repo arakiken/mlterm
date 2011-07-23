@@ -97,7 +97,10 @@ struct _VteTerminalPrivate
 	u_int  pix_height ;
 	x_picture_modifier_t *  pic_mod ;
 
+/* GRegex was not supported */
+#if  (GLIB_MAJOR_VERSION >= 2) && (GLIB_MINOR_VERSION >= 14)
 	GRegex *  regex ;
+#endif
 } ;
 
 enum
@@ -178,6 +181,8 @@ selection(
 	return  1 ;
 }
 
+/* GRegex was not supported */
+#if  (GLIB_MAJOR_VERSION >= 2) && (GLIB_MINOR_VERSION >= 14)
 static int
 match(
 	size_t *  beg ,
@@ -269,6 +274,7 @@ search_find(
 		return  FALSE ;
 	}
 }
+#endif
 
 #if  (GTK_MAJOR_VERSION == 1) || ((GTK_MAJOR_VERSION == 2) && (GTK_MINOR_VERSION < 12))
 /* gdk_color_to_string() was not supported by gtk+ < 2.12. */
@@ -2039,8 +2045,11 @@ vte_terminal_init(
 	terminal->pvt->audible_bell = (main_config.bel_mode == BEL_SOUND) ;
 	terminal->pvt->visible_bell = (main_config.bel_mode == BEL_VISUAL) ;
 
+/* GRegex was not supported */
+#if  (GLIB_MAJOR_VERSION >= 2) && (GLIB_MINOR_VERSION >= 14)
 	terminal->pvt->regex = NULL ;
-	
+#endif
+
 	terminal->window_title = ml_term_window_name( terminal->pvt->term) ;
 	terminal->icon_title = ml_term_icon_name( terminal->pvt->term) ;
 
@@ -3270,7 +3279,6 @@ vte_terminal_match_check(
 
 /* GRegex was not supported */
 #if  (GLIB_MAJOR_VERSION >= 2) && (GLIB_MINOR_VERSION >= 14)
-
 void
 vte_terminal_search_set_gregex(
 	VteTerminal *  terminal ,
@@ -3299,6 +3307,22 @@ vte_terminal_search_get_gregex(
 {
 	return  terminal->pvt->regex ;
 }
+
+gboolean
+vte_terminal_search_find_previous(
+	VteTerminal *  terminal
+	)
+{
+	return  search_find( terminal , 1) ;
+}
+
+gboolean
+vte_terminal_search_find_next(
+	VteTerminal *  terminal
+	)
+{
+	return  search_find( terminal , 0) ;
+}
 #endif
 
 void
@@ -3315,22 +3339,6 @@ vte_terminal_search_get_wrap_around(
 	)
 {
 	return  FALSE ;
-}
-
-gboolean
-vte_terminal_search_find_previous(
-	VteTerminal *  terminal
-	)
-{
-	return  search_find( terminal , 1) ;
-}
-
-gboolean
-vte_terminal_search_find_next(
-	VteTerminal *  terminal
-	)
-{
-	return  search_find( terminal , 0) ;
 }
 
 void

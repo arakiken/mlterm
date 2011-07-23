@@ -321,7 +321,8 @@ comment $Id$
                 (大文字は RTL 文字を示します。)
 
       o use_ind  (*true*/false) (#)
-        インド諸語の表示を行う。use_bidi が false の場合のみ有効。
+        インド諸語の表示を行う。
+	エンコーディングが UTF-8 の場合は use_bidi が false の場合のみ有効。
 
       o use_combining  (*true*/false) (#)
         結合文字を処理する

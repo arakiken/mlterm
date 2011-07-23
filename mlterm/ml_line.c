@@ -1118,7 +1118,13 @@ ml_line_get_num_of_filled_chars_except_spaces(
 	{
 		for( char_index = END_CHAR_INDEX(line) ; char_index >= 0 ; char_index --)
 		{
+		#if  1
+			/* >= 3.0.6 */
+			if( ! ml_char_bytes_equal( line->chars + char_index , ml_sp_ch()))
+		#else
+			/* <= 3.0.5 */
 			if( ! ml_char_equal( line->chars + char_index , ml_sp_ch()))
+		#endif
 			{
 				return  char_index + 1 ;
 			}

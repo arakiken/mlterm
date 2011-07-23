@@ -11,7 +11,7 @@
 #define  REVISION	6
 #define  PATCH_LEVEL	0
 
-#if  1
+#if  0
 #define  CHANGE_DATE  "pre/@CHANGE_DATE@"
 #elif  0
 #define  CHANGE_DATE  "post/@CHANGE_DATE@"

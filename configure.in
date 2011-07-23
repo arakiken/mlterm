@@ -330,7 +330,9 @@ xft)
 			AA_LIBS="`xft-config --libs` ${AA_LIBS}"
 		else
 			AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
-			AA_LIBS="-lXft ${AA_LIBS}"
+			# -lfontconfig is necessary because x_font.c refers FcXXX
+			# functions directly.
+			AA_LIBS="-lXft -lfontconfig ${AA_LIBS}"
 		fi
 	fi
 	type_engines_result="$type_engines_result xft"
@@ -805,7 +807,7 @@ if test "$optimize_redrawing" = "yes" ; then
 fi
 
 # gettext
-AM_INIT_AUTOMAKE(mlterm,3.0.5)
+AM_INIT_AUTOMAKE(mlterm,3.0.6)
 AM_GNU_GETTEXT([external])
 
 # XXX(maybe not portable)

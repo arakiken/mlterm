@@ -622,8 +622,7 @@ ml_term_update_special_visual(
 	had_logvis = ml_screen_delete_logical_visual( term->screen) ;
 
 	if( IS_ISCII_ENCODING( ml_term_get_encoding( term))
-	    || (ml_term_get_encoding( term) == ML_UTF8 && ! term->use_bidi && term->use_ind)
-	    )
+	    || (ml_term_get_encoding( term) == ML_UTF8 && ! term->use_bidi && term->use_ind) )
 	{
 		/*
 		 * It is impossible to process ISCII with other special visuals.

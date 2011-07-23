@@ -59,6 +59,10 @@
 # BiDi レンダリングの方法(normal,cmd_l,cmd_r)
 # bidi_mode = normal
 
+# インド諸語の表示を行う。
+# エンコーディングが UTF-8 の場合は use_bidi が false の場合のみ有効。
+# use_ind = true
+
 # 結合文字を処理する  
 # use_combining = true
 
@@ -101,7 +105,7 @@
 # 可変長コラム幅を使用する
 # use_variable_column_width = false 
 
-# xcore フォントか xft フォントのいずれを使用するかを指定する
+# テキスト表示に xcore, xft, cairo のいずれを使用するかを指定する
 # type_engine = xcore
 
 # アンチエイリアスフォントを使用する
