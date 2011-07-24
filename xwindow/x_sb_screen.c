@@ -183,22 +183,6 @@ key_pressed(
 	(*sb_screen->screen->window.key_pressed)( &sb_screen->screen->window , event) ;
 }
 
-static void
-utf_selection_notified(
-	x_window_t *  win ,
-	u_char *  buf ,
-	size_t  len
-	)
-{
-	x_sb_screen_t *  sb_screen ;
-
-	sb_screen = (x_sb_screen_t*) win ;
-
-	/* dispatch to screen */
-	(*sb_screen->screen->window.utf_selection_notified)( &sb_screen->screen->window ,
-		buf , len) ;
-}
-
 #ifdef  USE_WIN32GUI
 static void
 button_pressed(
@@ -222,6 +206,22 @@ button_pressed(
 			event , click_num) ;
 }
 #endif
+
+static void
+utf_selection_notified(
+	x_window_t *  win ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	x_sb_screen_t *  sb_screen ;
+
+	sb_screen = (x_sb_screen_t*) win ;
+
+	/* dispatch to screen */
+	(*sb_screen->screen->window.utf_selection_notified)( &sb_screen->screen->window ,
+		buf , len) ;
+}
 
 static void
 xct_selection_notified(

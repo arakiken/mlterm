@@ -52,6 +52,7 @@ typedef struct ml_term
 	int8_t  is_mouse_pos_sending ;
 	int8_t  is_app_keypad ;
 	int8_t  is_app_cursor_keys ;
+	int8_t  is_bracketed_paste_mode ;
 
 	int8_t  is_attached ;
 
@@ -218,11 +219,11 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 
 int  ml_term_set_char_combining_flag( ml_term_t *  term , int  flag) ;
 
-int  ml_term_is_using_char_combining( ml_term_t *  term) ;
+#define  ml_term_is_using_char_combining( term)  ((term)->parser->use_char_combining)
 
 int  ml_term_set_multi_col_char_flag( ml_term_t *  term , int  flag) ;
 
-int  ml_term_is_using_multi_col_char( ml_term_t *  term) ;
+#define  ml_term_is_using_multi_col_char( term)  ((term)->is_using_multi_col_char)
 
 #define  ml_term_set_col_size_of_width_a( term , col_size_a) \
 		ml_vt100_parser_set_col_size_of_width_a( (term)->parser , col_size_a)
@@ -232,15 +233,15 @@ int  ml_term_is_using_multi_col_char( ml_term_t *  term) ;
 
 int  ml_term_set_mouse_report( ml_term_t *  term , int  flag) ;
 
-int  ml_term_is_mouse_pos_sending( ml_term_t *  term) ;
+#define  ml_term_is_mouse_pos_sending( term)  ((term)->is_mouse_pos_sending)
 
 int  ml_term_set_app_keypad( ml_term_t *  term , int  flag) ;
 
-int  ml_term_is_app_keypad( ml_term_t *  term) ;
+#define  ml_term_is_app_keypad( term)  ((term)->is_app_keypad)
 
 int  ml_term_set_app_cursor_keys( ml_term_t *  term , int  flag) ;
 
-int  ml_term_is_app_cursor_keys( ml_term_t *  term) ;
+#define  ml_term_is_app_cursor_keys( term)  ((term)->is_app_cursor_keys)
 
 int  ml_term_set_window_name( ml_term_t *  term , char *  name) ;
 
@@ -248,11 +249,15 @@ int  ml_term_set_icon_name( ml_term_t *  term , char *  name) ;
 
 int  ml_term_set_icon_path( ml_term_t *  term , char *  path) ;
 
-char *  ml_term_window_name( ml_term_t *  term) ;
+#define  ml_term_window_name( term)  ((term)->win_name)
 
-char *  ml_term_icon_name( ml_term_t *  term) ;
+#define  ml_term_icon_name( term)  ((term)->icon_name)
 
-char *  ml_term_icon_path( ml_term_t *  term) ;
+#define  ml_term_icon_path( term)  ((term)->icon_path)
+
+int  ml_term_set_bracketed_paste_mode( ml_term_t *  term , int  flag) ;
+
+#define  ml_term_is_bracketed_paste_mode( term)  ((term)->is_bracketed_paste_mode)
 
 int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path ,
 		int  x , int  y , char *  display) ;

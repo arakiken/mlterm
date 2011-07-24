@@ -106,9 +106,9 @@ ml_line_t *  ml_edit_get_line( ml_edit_t *  edit , int  row) ;
 
 int  ml_edit_set_modified_all( ml_edit_t *  edit) ;
 
-u_int ml_edit_get_cols( ml_edit_t *  edit) ;
+#define  ml_edit_get_cols( edit)  ((edit)->model.num_of_cols)
 
-u_int ml_edit_get_rows( ml_edit_t *  edit) ;
+#define  ml_edit_get_rows( edit)  ((edit)->model.num_of_rows)
 
 int  ml_edit_go_forward( ml_edit_t *  edit , int  flag) ;
 
@@ -136,11 +136,11 @@ int  ml_edit_save_cursor( ml_edit_t *  edit) ;
 
 int  ml_edit_restore_cursor( ml_edit_t *  edit) ;
 
-int  ml_cursor_char_index( ml_edit_t *  edit) ;
+#define  ml_cursor_char_index( edit)  ((edit)->cursor.char_index)
 
-int  ml_cursor_col( ml_edit_t *  edit) ;
+#define  ml_cursor_col( edit)  ((edit)->cursor.col)
 
-int  ml_cursor_row( ml_edit_t *  edit) ;
+#define  ml_cursor_row( edit)  ((edit)->cursor.row)
 
 #ifdef  DEBUG
 

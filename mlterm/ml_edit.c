@@ -1168,22 +1168,6 @@ ml_edit_set_modified_all(
 	return  1 ;
 }
 
-u_int
-ml_edit_get_cols(
-	ml_edit_t *  edit
-	)
-{
-	return  edit->model.num_of_cols ;
-}
-
-u_int
-ml_edit_get_rows(
-	ml_edit_t *  edit
-	)
-{
-	return  edit->model.num_of_rows ;
-}
-
 int
 ml_edit_goto_beg_of_line(
 	ml_edit_t *  edit
@@ -1510,30 +1494,6 @@ ml_edit_restore_cursor(
 	)
 {
 	return  ml_cursor_restore( &edit->cursor) ;
-}
-
-int
-ml_cursor_char_index(
-	ml_edit_t *  edit
-	)
-{
-	return  edit->cursor.char_index ;
-}
-
-int
-ml_cursor_col(
-	ml_edit_t *  edit
-	)
-{
-	return  edit->cursor.col ;
-}
-
-int
-ml_cursor_row(
-	ml_edit_t *  edit
-	)
-{
-	return  edit->cursor.row ;
 }
 
 /*

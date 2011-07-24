@@ -579,10 +579,14 @@ set_app_keypad(
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,set_app_keypad))
 	{
+	#if  0
 		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
 		(*vt100_parser->xterm_listener->set_app_keypad)(
 			vt100_parser->xterm_listener->self , flag) ;
+	#if  0
 		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 	}
 }
 
@@ -594,10 +598,14 @@ set_app_cursor_keys(
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,set_app_cursor_keys))
 	{
+	#if  0
 		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
 		(*vt100_parser->xterm_listener->set_app_cursor_keys)(
 			vt100_parser->xterm_listener->self , flag) ;
+	#if  0
 		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 	}
 }
 
@@ -654,10 +662,14 @@ set_window_name(
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,set_window_name))
 	{
+	#if  0
 		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
 		(*vt100_parser->xterm_listener->set_window_name)(
 			vt100_parser->xterm_listener->self , name) ;
+	#if  0
 		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 	}
 }
 
@@ -669,10 +681,14 @@ set_icon_name(
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,set_icon_name))
 	{
+	#if  0
 		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
 		(*vt100_parser->xterm_listener->set_icon_name)(
 			vt100_parser->xterm_listener->self , name) ;
+	#if  0
 		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 	}
 }
 
@@ -683,8 +699,14 @@ switch_im_mode(
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,switch_im_mode))
 	{
+	#if  0
+		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
 		(*vt100_parser->xterm_listener->switch_im_mode)(
 					vt100_parser->xterm_listener->self) ;
+	#if  0
+		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 	}
 }
 
@@ -701,6 +723,25 @@ im_is_active(
 	else
 	{
 		return  0 ;
+	}
+}
+
+static void
+set_bracketed_paste_mode(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  flag
+	)
+{
+	if( HAS_XTERM_LISTENER( vt100_parser,set_bracketed_paste_mode))
+	{
+	#if  0
+		stop_vt100_cmd( vt100_parser , 0) ;
+	#endif
+		(*vt100_parser->xterm_listener->set_bracketed_paste_mode)(
+			vt100_parser->xterm_listener->self , flag) ;
+	#if  0
+		start_vt100_cmd( vt100_parser , 0) ;
+	#endif
 	}
 }
 
@@ -1776,6 +1817,12 @@ parse_vt100_escape_sequence(
 						clear_display_all( vt100_parser) ;
 						/* */
 					}
+					else if( ps[0] == 2004)
+					{
+						/* "CSI ? 2004 h" */
+
+						set_bracketed_paste_mode( vt100_parser , 1) ;
+					}
 					else
 					{
 					#ifdef  DEBUG
@@ -1943,6 +1990,12 @@ parse_vt100_escape_sequence(
 							vt100_parser->screen) ;
 						restore_cursor( vt100_parser) ;
 						/* */
+					}
+					else if( ps[0] == 2004)
+					{
+						/* "CSI ? 2004 l" */
+
+						set_bracketed_paste_mode( vt100_parser , 0) ;
 					}
 					else
 					{

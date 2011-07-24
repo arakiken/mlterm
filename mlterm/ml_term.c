@@ -95,6 +95,7 @@ ml_term_new(
 	term->is_mouse_pos_sending = 0 ;
 	term->is_app_keypad = 0 ;
 	term->is_app_cursor_keys = 0 ;
+	term->is_bracketed_paste_mode = 0 ;
 
 	term->is_attached = 0 ;
 
@@ -793,14 +794,6 @@ ml_term_set_char_combining_flag(
 }
 
 int
-ml_term_is_using_char_combining(
-	ml_term_t *  term
-	)
-{
-	return  term->parser->use_char_combining ;
-}
-
-int
 ml_term_set_multi_col_char_flag(
 	ml_term_t *  term ,
 	int  flag
@@ -809,14 +802,6 @@ ml_term_set_multi_col_char_flag(
 	term->parser->use_multi_col_char = flag ;
 
 	return  1 ;
-}
-
-int
-ml_term_is_using_multi_col_char(
-	ml_term_t *  term
-	)
-{
-	return  term->parser->use_multi_col_char ;
 }
 
 int
@@ -829,15 +814,6 @@ ml_term_set_mouse_report(
 
 	return  1 ;
 }
-
-int
-ml_term_is_mouse_pos_sending(
-	ml_term_t *  term
-	)
-{
-	return  term->is_mouse_pos_sending ;
-}
-
 int
 ml_term_set_app_keypad(
 	ml_term_t *  term ,
@@ -850,14 +826,6 @@ ml_term_set_app_keypad(
 }
 
 int
-ml_term_is_app_keypad(
-	ml_term_t *  term
-	)
-{
-	return  term->is_app_keypad ;
-}
-
-int
 ml_term_set_app_cursor_keys(
 	ml_term_t *  term ,
 	int  flag
@@ -866,14 +834,6 @@ ml_term_set_app_cursor_keys(
 	term->is_app_cursor_keys = flag ;
 
 	return  1 ;
-}
-
-int
-ml_term_is_app_cursor_keys(
-	ml_term_t *  term
-	)
-{
-	return  term->is_app_cursor_keys ;
 }
 
 int
@@ -912,28 +872,15 @@ ml_term_set_icon_path(
 	return 1 ;
 }
 
-char *
-ml_term_window_name(
-	ml_term_t *  term
+int
+ml_term_set_bracketed_paste_mode(
+	ml_term_t *  term ,
+	int  flag
 	)
 {
-	return  term->win_name ;
-}
+	term->is_bracketed_paste_mode = flag ;
 
-char *
-ml_term_icon_name(
-	ml_term_t *  term
-	)
-{
-	return  term->icon_name ;
-}
-
-char *
-ml_term_icon_path(
-	ml_term_t *  term
-	)
-{
-	return term->icon_path ;
+	return  1 ;
 }
 
 int

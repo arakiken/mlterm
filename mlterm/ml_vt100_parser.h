@@ -60,19 +60,20 @@ typedef struct  ml_xterm_event_listener
 {
 	void *  self ;
 
-	void (*start)( void *) ;
-	void (*stop)( void *) ;
+	void (*start)( void *) ;	/* called in *visual* context. (Note that not logical) */
+	void (*stop)( void *) ;		/* called in visual context. */
 	
-	void (*set_app_keypad)( void * , int) ;
-	void (*set_app_cursor_keys)( void * , int) ;
-	void (*resize_columns)( void * , u_int) ;
-	void (*reverse_video)( void * , int) ;
-	void (*set_mouse_report)( void * , int) ;
-	void (*set_window_name)( void * , u_char *) ;
-	void (*set_icon_name)( void * , u_char *) ;
-	void (*bel)( void *) ;
-	int (*im_is_active)( void *) ;
-	void (*switch_im_mode)( void *) ;
+	void (*set_app_keypad)( void * , int) ;		/* called in logical context. */
+	void (*set_app_cursor_keys)( void * , int) ;	/* called in logical context. */
+	void (*resize_columns)( void * , u_int) ;	/* called in visual context. */
+	void (*reverse_video)( void * , int) ;		/* called in visual context. */
+	void (*set_mouse_report)( void * , int) ;	/* called in visual context. */
+	void (*set_window_name)( void * , u_char *) ;	/* called in logical context. */
+	void (*set_icon_name)( void * , u_char *) ;	/* called in logical context. */
+	void (*bel)( void *) ;				/* called in visual context. */
+	int (*im_is_active)( void *) ;			/* called in logical context. */
+	void (*switch_im_mode)( void *) ;		/* called in logical context. */
+	void (*set_bracketed_paste_mode)( void * , int) ;	/* called in logical context. */
 
 } ml_xterm_event_listener_t ;
 

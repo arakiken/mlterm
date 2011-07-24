@@ -657,7 +657,7 @@ ml_char_set_fg_color(
 	}
 	else
 	{
-		int  count ;
+		u_int  count ;
 		u_int  comb_size ;
 
 		comb_size = get_comb_size( ch->u.multi_ch) ;
@@ -720,7 +720,7 @@ ml_char_set_bg_color(
 	}
 	else
 	{
-		int  count ;
+		u_int  count ;
 		u_int  comb_size ;
 
 		comb_size = get_comb_size( ch->u.multi_ch) ;
@@ -766,7 +766,7 @@ ml_char_reverse_color(
 	}
 	else
 	{
-		int  count ;
+		u_int  count ;
 		u_int  comb_size ;
 
 		comb_size = get_comb_size( ch->u.multi_ch) ;
@@ -797,7 +797,7 @@ ml_char_restore_color(
 	}
 	else
 	{
-		int  count ;
+		u_int  count ;
 		u_int  comb_size ;
 
 		comb_size = get_comb_size( ch->u.multi_ch) ;
@@ -911,7 +911,7 @@ ml_char_bytes_equal(
 	ml_char_t *  comb2 ;
 	u_int  comb1_size ;
 	u_int  comb2_size ;
-	int  count ;
+	u_int  count ;
 
 	size1 = ml_char_size( ch1) ;
 	size2 = ml_char_size( ch2) ;

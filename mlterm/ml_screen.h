@@ -260,7 +260,7 @@ int  ml_screen_cursor_visible( ml_screen_t *  screen) ;
 
 int  ml_screen_cursor_invisible( ml_screen_t *  screen) ;
 
-int  ml_screen_is_cursor_visible( ml_screen_t *  screen) ;
+#define  ml_screen_is_cursor_visible( screen)  ((screen)->is_cursor_visible)
 
 int  ml_screen_use_normal_edit( ml_screen_t *  screen) ;
 

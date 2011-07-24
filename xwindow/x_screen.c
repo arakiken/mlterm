@@ -1805,7 +1805,17 @@ yank_event_received(
 		ml_str_parser_set_str( screen->ml_str_parser ,
 			screen->sel.sel_str , screen->sel.sel_len) ;
 
+		if( ml_term_is_bracketed_paste_mode( screen->term))
+		{
+			write_to_pty( screen , "\x1b[200~" , 6 , NULL) ;
+		}
+
 		write_to_pty( screen , NULL , 0 , screen->ml_str_parser) ;
+
+		if( ml_term_is_bracketed_paste_mode( screen->term))
+		{
+			write_to_pty( screen , "\x1b[201~" , 6 , NULL) ;
+		}
 
 		return  1 ;
 	}
@@ -2913,6 +2923,11 @@ xct_selection_notified(
 
 	screen = (x_screen_t*) win ;
 
+	if( ml_term_is_bracketed_paste_mode( screen->term))
+	{
+		write_to_pty( screen , "\x1b[200~" , 6 , NULL) ;
+	}
+
 #ifndef  USE_WIN32GUI
 	/*
 	 * XXX
@@ -2962,6 +2977,11 @@ xct_selection_notified(
 
 		write_to_pty( screen , str , len , screen->xct_parser) ;
 	}
+
+	if( ml_term_is_bracketed_paste_mode( screen->term))
+	{
+		write_to_pty( screen , "\x1b[201~" , 6 , NULL) ;
+	}
 }
 
 static void
@@ -2971,6 +2991,8 @@ utf_selection_notified(
 	size_t  len
 	)
 {
+	x_screen_t *  screen ;
+
 #ifdef  NL_TO_CR_IN_PAST_TEXT
 	/*
 	 * Convert normal newline chars to carriage return chars which are
@@ -2979,7 +3001,19 @@ utf_selection_notified(
 	convert_nl_to_cr1( str , len) ;
 #endif
 
-	write_to_pty( (x_screen_t*) win , str , len , ( (x_screen_t*) win)->utf_parser) ;
+	screen = (x_screen_t*) win ;
+
+	if( ml_term_is_bracketed_paste_mode( screen->term))
+	{
+		write_to_pty( screen , "\x1b[200~" , 6 , NULL) ;
+	}
+
+	write_to_pty( screen , str , len , screen->utf_parser) ;
+
+	if( ml_term_is_bracketed_paste_mode( screen->term))
+	{
+		write_to_pty( screen , "\x1b[201~" , 6 , NULL) ;
+	}
 }
 
 #ifndef  DISABLE_XDND
@@ -6757,6 +6791,19 @@ xterm_switch_im_mode(
 	x_xic_switch_mode( &screen->window) ;
 }
 
+static void
+xterm_set_bracketed_paste_mode(
+	void *  p ,
+	int  flag
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = p ;
+
+	ml_term_set_bracketed_paste_mode( screen->term , flag) ;
+}
+
 
 /*
  * callbacks of ml_pty_event_listener_t
@@ -6911,6 +6958,7 @@ x_screen_new(
 	screen->xterm_listener.bel = xterm_bel ;
 	screen->xterm_listener.im_is_active = xterm_im_is_active ;
 	screen->xterm_listener.switch_im_mode = xterm_switch_im_mode ;
+	screen->xterm_listener.set_bracketed_paste_mode = xterm_set_bracketed_paste_mode ;
 
 	memset( &screen->config_listener, 0, sizeof( ml_config_event_listener_t)) ;
 	screen->config_listener.self = screen ;
