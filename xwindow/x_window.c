@@ -3001,7 +3001,6 @@ x_window_ft_draw_string8(
 		memcpy( buf , str , len) ;
 		buf[len] = '\0' ;
 
-		cairo_set_antialias( win->cairo_draw , CAIRO_ANTIALIAS_NONE) ;
 		cairo_set_scaled_font( win->cairo_draw , font->cairo_font) ;
 		cairo_set_source_rgb( win->cairo_draw ,
 			(double)fg_color->red / 255.0 , (double)fg_color->green / 255.0 ,
@@ -3012,7 +3011,7 @@ x_window_ft_draw_string8(
 		if( font->is_double_drawing)
 		{
 			cairo_move_to( win->cairo_draw , x + win->margin + 1 , y + win->margin) ;
-			cairo_show_text( win->cairo_draw , str) ;
+			cairo_show_text( win->cairo_draw , buf) ;
 		}
 	}
 	else

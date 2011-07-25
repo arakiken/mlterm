@@ -1,3 +1,17 @@
+2011-07-25  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window.c: Fixed typo in x_window_ft_draw_string8().
+	  (cairo_show_text( ... , str) -> cairo_show_text( ... , buf))
+
+	* x_font.c:
+	  - If x_font_t::id has FONT_BOLD, x_font_t::is_double_drawing
+	    is always 1 in cairo because the width of normal font is different
+	    from that of bold font in some cases.
+	  - pixel_size passed to cairo_matrix_scale() is rounded up to multiple of 2.
+
+	* x_window_win32.c: x_set_use_clipboard_selection() and
+	  x_is_using_clipboard_selection() return 0 in win32.
+
 2011-07-24  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.c, ml_term.[ch], x_screen.c: Bracketed paste mode

@@ -27,6 +27,15 @@
 /* Be careful not to round down 5.99999... to 5 */
 #define  DOUBLE_ROUNDUP_TO_INT(a)  ((int)((a) + 0.9))
 
+/*
+ * XXX
+ * cairo always uses double drawing fow now, because width of normal font is not
+ * always the same as that of bold font in cairo.
+ */
+#if  1
+#define  CAIRO_FORCE_DOUBLE_DRAWING
+#endif
+
 #if  0
 #define  __DEBUG
 #endif
@@ -644,7 +653,8 @@ cairo_calculate_char_width(
 	cairo_scaled_font_text_extents( xfont , utf8 , &extents) ;
 
 #if  0
-	kik_debug_printf( "%f %f %f\n" , extents.x_bearing , extents.width , extents.x_advance) ;
+	kik_debug_printf( KIK_DEBUG_TAG " CHAR(%x) x_bearing %f width %f x_advance %f\n" ,
+		ch[0] , extents.x_bearing , extents.width , extents.x_advance) ;
 #endif
 
 	return  DOUBLE_ROUNDUP_TO_INT(extents.x_advance) ;
@@ -672,6 +682,7 @@ cairo_font_open(
 	cairo_matrix_t  ctm ;
 	cairo_scaled_font_t *  xfont ;
 	double  pixel_size ;
+	int  pixel_size2 ;
 
 	if( ! ( pattern = fc_pattern_create( family , size , encoding , weight , slant ,
 				ch_width , aa_opt)))
@@ -694,10 +705,10 @@ cairo_font_open(
 
 	options = cairo_font_options_create() ;
 	cairo_get_font_options( cairo , options) ;
-	/* cairo_font_options_set_antialias( options , CAIRO_ANTIALIAS_GRAY) ; */
-	/* cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ; */
 	/* CAIRO_HINT_METRICS_ON disarranges column width by boldening etc. */
 	cairo_font_options_set_hint_metrics( options , CAIRO_HINT_METRICS_OFF) ;
+	/* cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ; */
+	/* cairo_font_options_set_antialias( options , CAIRO_ANTIALIAS_GRAY) ; */
 	cairo_ft_font_options_substitute( options , pattern) ;
 
 	FcDefaultSubstitute( pattern) ;
@@ -718,9 +729,19 @@ cairo_font_open(
 	font_face = cairo_ft_font_face_create_for_pattern( match) ;
 
 	FcPatternGetDouble( match , FC_PIXEL_SIZE , 0 , &pixel_size) ;
-	
+	/*
+	 * 10.5 / 2.0 = 5.25 ->(roundup) 6 -> 6 * 2 = 12
+	 * 11.5 / 2.0 = 5.75 ->(roundup) 6 -> 6 * 2 = 12
+	 *
+	 * If half width is 5.25 -> 6 and full width is 5.25 * 2 = 10.5 -> 11,
+	 * half width char -> x_bearing = 1 / width 5
+	 * full width char -> x_bearing = 1 / width 10.
+	 * This results in gap between chars.
+	 */
+	pixel_size2 = DIVIDE_ROUNDINGUP(pixel_size,2.0) * 2 ;
+
 	cairo_matrix_init_identity( &font_matrix) ;
-	cairo_matrix_scale( &font_matrix , pixel_size , pixel_size) ;
+	cairo_matrix_scale( &font_matrix , pixel_size2 , pixel_size2) ;
 	cairo_get_matrix( cairo , &ctm) ;
 
 	xfont = cairo_scaled_font_create( font_face , &font_matrix , &ctm , options) ;
@@ -800,7 +821,11 @@ set_ft_font(
 	
 	font_encoding = NULL ;
 
-	if( font->id & FONT_BOLD)
+	if(
+	#ifdef  CAIRO_FORCE_DOUBLE_DRAWING
+	    use_xft &&
+	#endif
+	    (font->id & FONT_BOLD))
 	{
 		weight = FC_WEIGHT_BOLD ;
 	}
@@ -937,29 +962,28 @@ set_ft_font(
 
 font_found:
 
-#if  defined(FC_EMBOLDEN) /* Synthetic emboldening (fontconfig >= 2.3.0) */ \
-	|| defined(USE_TYPE_CAIRO)
-	font->is_double_drawing = 0 ;
-#else
-	if( weight == FC_WEIGHT_BOLD &&
-	    XftPatternGetInteger( xfont->pattern , FC_WEIGHT , 0 , &weight) == XftResultMatch &&
-	    weight != FC_WEIGHT_BOLD)
-	{
-		font->is_double_drawing = 1 ;
-	}
-	else
-	{
-		font->is_double_drawing = 0 ;
-	}
-#endif
-
 	font->x_off = 0 ;
-
 	font->is_proportional = font->is_var_col_width ;
 
 	if( use_xft)
 	{
 	#ifdef  USE_TYPE_XFT
+	#if  defined(FC_EMBOLDEN) /* Synthetic emboldening (fontconfig >= 2.3.0) */
+		font->is_double_drawing = 0 ;
+	#else	/* FC_EMBOLDEN */
+		if( weight == FC_WEIGHT_BOLD &&
+		    XftPatternGetInteger( xfont->pattern , FC_WEIGHT , 0 , &weight) ==
+			XftResultMatch &&
+		    weight != FC_WEIGHT_BOLD)
+		{
+			font->is_double_drawing = 1 ;
+		}
+		else
+		{
+			font->is_double_drawing = 0 ;
+		}
+	#endif	/* FC_EMBOLDEN */
+
 		font->xft_font = xfont ;
 
 		font->height = font->xft_font->height ;
@@ -984,6 +1008,17 @@ font_found:
 	#ifdef  USE_TYPE_CAIRO
 		cairo_font_extents_t  extents ;
 
+	#ifdef  CAIRO_FORCE_DOUBLE_DRAWING
+		if( font->id & FONT_BOLD)
+		{
+			font->is_double_drawing = 1 ;
+		}
+		else
+	#endif
+		{
+			font->is_double_drawing = 0 ;
+		}
+
 		font->cairo_font = xfont ;
 
 		cairo_scaled_font_extents( font->cairo_font , &extents) ;
@@ -1000,23 +1035,30 @@ font_found:
 			font->width = cairo_calculate_char_width( font->cairo_font , "W" , 1) ;
 		}
 
-	#if  0
 		if( col_width > 0 /* is not usascii */ && ! font->is_proportional &&
 		    ch_width != font->width)
 		{
-			kik_warn_printf( "Font width(%d) is not matched with "
-				"standard width(%d).\n" , font->width , ch_width) ;
+			kik_warn_printf( "Font(id %x) width(%d) is not matched with "
+				"standard width(%d).\n" , font->id , font->width , ch_width) ;
 
+			/*
+			 * XXX
+			 * Surrounded by #if 0 ... #endif,
+			 * because the case like ch_width = 12 and
+			 * extents.max_x_advance = 12.28(dealt as 13 though should be dealt as 12)
+			 * happens.
+			 */
+		#if  0
 			font->is_proportional = 1 ;
 
 			if( font->width < ch_width)
 			{
 				font->x_off = (ch_width - font->width) / 2 ;
 			}
+		#endif
 
 			font->width = ch_width ;
 		}
-	#endif
 	#endif	/* USE_TYPE_CAIRO */
 	}
 
@@ -1567,9 +1609,9 @@ font_found:
 		{
 			if( font->width != col_width * font->cols)
 			{
-				kik_warn_printf( "Font width(%d) is not matched with "
+				kik_warn_printf( "Font(id %x) width(%d) is not matched with "
 					"standard width(%d).\n" ,
-					font->width , col_width * font->cols) ;
+					font->id , font->width , col_width * font->cols) ;
 
 				font->is_proportional = 1 ;
 

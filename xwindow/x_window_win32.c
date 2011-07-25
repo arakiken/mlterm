@@ -2711,13 +2711,13 @@ x_set_use_clipboard_selection(
 	int  use_it
 	)
 {
-	return  1 ;
+	return  0 ;
 }
 
 int
 x_is_using_clipboard_selection(void)
 {
-	return  1 ;
+	return  0 ;
 }
 
 int
