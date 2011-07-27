@@ -1,3 +1,12 @@
+2011-07-27  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: A problem which overwrites disp.gc->gc more than once and
+	  causes leak of GC resource is fixed.
+
+	* ml_screen.h: ml_screen_logical_visual_is_reversible() is added.
+
+	* ml_logical_visual.[ch]: "is_reversible" flag is added to ml_logical_visual_t.
+
 2011-07-25  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window.c: Fixed typo in x_window_ft_draw_string8().

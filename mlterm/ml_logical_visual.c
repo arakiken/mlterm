@@ -102,7 +102,7 @@ container_delete(
 	)
 {
 	container_logical_visual_t *  container ;
-	int  count ;
+	u_int  count ;
 
 	container = (container_logical_visual_t*) logvis ;
 
@@ -129,7 +129,7 @@ container_init(
 	)
 {
 	container_logical_visual_t *  container ;
-	int  count ;
+	u_int  count ;
 
 	logvis->model = model ;
 	logvis->cursor = cursor ;
@@ -190,7 +190,7 @@ container_render(
 	)
 {
 	container_logical_visual_t *  container ;
-	int  count ;
+	u_int  count ;
 
 	container = (container_logical_visual_t*) logvis ;
 
@@ -212,7 +212,7 @@ container_visual(
 	)
 {
 	container_logical_visual_t *  container ;
-	int  count ;
+	u_int  count ;
 
 	if( logvis->is_visual)
 	{
@@ -237,7 +237,7 @@ container_logical(
 	)
 {
 	container_logical_visual_t *  container ;
-	int  count ;
+	u_int  count ;
 
 	if( ! logvis->is_visual)
 	{
@@ -268,7 +268,7 @@ container_visual_line(
 	)
 {
 	container_logical_visual_t *  container ;
-	int  count ;
+	u_int  count ;
 
 	container = (container_logical_visual_t*) logvis ;
 
@@ -1440,6 +1440,8 @@ ml_logvis_container_new(void)
 	container->logvis.logical = container_logical ;
 	container->logvis.visual_line = container_visual_line ;
 
+	container->logvis.is_reversible = 1 ;
+
 	return  (ml_logical_visual_t*) container ;
 }
 
@@ -1463,6 +1465,11 @@ ml_logvis_container_add(
 	container->children = p ;
 	
 	container->children[container->num_of_children ++] = child ;
+
+	if( ! child->is_reversible)
+	{
+		container->logvis.is_reversible = 0 ;
+	}
 
 	return  1 ;
 }
@@ -1500,6 +1507,8 @@ ml_logvis_bidi_new(
 	bidi_logvis->logvis.logical = bidi_logical ;
 	bidi_logvis->logvis.visual_line = bidi_visual_line ;
 
+	bidi_logvis->logvis.is_reversible = 1 ;
+
 	return  (ml_logical_visual_t*) bidi_logvis ;
 }
 #endif
@@ -1530,6 +1539,8 @@ ml_logvis_comb_new(void)
 	comb_logvis->logvis.logical = comb_logical ;
 	comb_logvis->logvis.visual_line = comb_visual_line ;
 
+	comb_logvis->logvis.is_reversible = 1 ;
+	
 	return  (ml_logical_visual_t*) comb_logvis ;
 }
 
@@ -1563,6 +1574,8 @@ ml_logvis_iscii_new(void)
 	iscii_logvis->logvis.visual = iscii_visual ;
 	iscii_logvis->logvis.logical = iscii_logical ;
 	iscii_logvis->logvis.visual_line = iscii_visual_line ;
+
+	iscii_logvis->logvis.is_reversible = 0 ;
 
 	return  (ml_logical_visual_t*) iscii_logvis ;
 }
@@ -1603,6 +1616,8 @@ ml_logvis_vert_new(
 	vert_logvis->logvis.logical = vert_logical ;
 	vert_logvis->logvis.visual_line = vert_visual_line ;
 
+	vert_logvis->logvis.is_reversible = 0 ;
+	
 	if( vertical_mode == VERT_RTL)
 	{
 		/*

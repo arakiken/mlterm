@@ -26,11 +26,16 @@ typedef enum  ml_vertical_mode
 
 typedef struct  ml_logical_visual
 {
+	/* Private */
+	
 	int  is_visual ;
 
 	ml_model_t *  model ;
 	ml_cursor_t *  cursor ;
 
+
+	/* Public */
+	
 	int  (*init)( struct ml_logical_visual * , ml_model_t * , ml_cursor_t *) ;
 	
 	int  (*delete)( struct ml_logical_visual *) ;
@@ -48,6 +53,9 @@ typedef struct  ml_logical_visual
 	int  (*logical)( struct ml_logical_visual *) ;
 	
 	int  (*visual_line)( struct ml_logical_visual * , ml_line_t *  line) ;
+
+	/* Whether logical <=> visual is reversible. */
+	int  is_reversible ;
 	
 } ml_logical_visual_t ;
 

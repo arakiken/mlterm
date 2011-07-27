@@ -12,34 +12,6 @@
 /* --- static functions --- */
 
 /*
- * Not used for now.
- */
-#if  0
-static int
-char_combining_is_supported(
-	mkf_charset_t  cs
-	)
-{
-	/*
-	 * some thai fonts (e.g. -thai-fixed-medium-r-normal--14-100-100-100-m-70-tis620.2529-1
-	 * distributed by ZzzThai(http://zzzthai.fedu.uec.ac.jp/ZzzThai/))
-	 * automatically draws combining chars ...
-	 */
-	if( cs == TIS620_2533)
-	{
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-#else
-#define  char_combining_is_supported(cs)  0
-#endif
-
-
-/*
  * drawing string
  */
 
@@ -371,7 +343,20 @@ fc_draw_str(
 			{
 				fc_draw_combining_chars( window , font_man , color_man ,
 					comb_chars , comb_size ,
-					current_width - ch_width , y + height_to_baseline) ;
+				/*
+				 * 'current_width' is for some thai fonts which automatically
+				 * draw combining chars.
+				 * e.g.)
+				 *  -thai-fixed-medium-r-normal--14-100-100-100-m-70-tis620.2529-1
+				 *  (distributed by ZzzThai http://zzzthai.fedu.uec.ac.jp/ZzzThai/)
+				 *  win32 unicode font.
+				 */
+				#if  0
+					current_width
+				#else
+					x
+				#endif
+					, y + height_to_baseline) ;
 			}
 
 			if( is_underlined)
@@ -877,12 +862,20 @@ xcore_draw_str(
 			{
 				xcore_draw_combining_chars( window , font_man , color_man ,
 					comb_chars , comb_size ,
+				/*
+				 * 'current_width' is for some thai fonts which automatically
+				 * draw combining chars.
+				 * e.g.)
+				 *  -thai-fixed-medium-r-normal--14-100-100-100-m-70-tis620.2529-1
+				 *  (distributed by ZzzThai http://zzzthai.fedu.uec.ac.jp/ZzzThai/)
+				 *  win32 unicode font.
+				 */
 				#if  0
-					current_width ,	/* Thai comb chars needs this in win32. */
+					current_width
 				#else
-					current_width - ch_width ,
+					x
 				#endif
-					y + height_to_baseline) ;
+					, y + height_to_baseline) ;
 			}
 
 			if( is_underlined)

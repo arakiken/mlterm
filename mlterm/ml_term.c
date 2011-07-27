@@ -411,6 +411,15 @@ ml_term_unhighlight_cursor(
 	ml_line_t *  line ;
 	int  ret ;
 
+#ifdef  DEBUG
+	if( term->screen->logvis && ! term->screen->logvis->is_visual)
+	{
+		kik_debug_printf( KIK_DEBUG_TAG
+			" ml_term_unhighlight_cursor() should be called in visual context but"
+			" is called in logical context.\n") ;
+	}
+#endif
+
 	ml_screen_logical( term->screen) ;
 	
 	if( ( line = ml_screen_get_cursor_line( term->screen)) == NULL || ml_line_is_empty( line))
@@ -467,7 +476,10 @@ ml_term_set_modified_region_in_screen(
 	int  row ;
 	ml_line_t *  line ;
 
-	ml_screen_logical( term->screen) ;
+	if( ! ml_screen_logical_visual_is_reversible( term->screen))
+	{
+		ml_screen_logical( term->screen) ;
+	}
 
 	for( row = beg_row ; row < beg_row + nrows ; row ++)
 	{
@@ -477,8 +489,11 @@ ml_term_set_modified_region_in_screen(
 		}
 	}
 
-	/* ml_screen_render( term->screen) ; */
-	ml_screen_visual( term->screen) ;
+	if( ! ml_screen_logical_visual_is_reversible( term->screen))
+	{
+		/* ml_screen_render( term->screen) ; */
+		ml_screen_visual( term->screen) ;
+	}
 
 	return  1 ;
 }
@@ -494,7 +509,16 @@ ml_term_set_modified_lines(
 	int  row ;
 	ml_line_t *  line ;
 
-	if( term->vertical_mode)
+#ifdef  DEBUG
+	if( term->screen->logvis && ! term->screen->logvis->is_visual)
+	{
+		kik_debug_printf( KIK_DEBUG_TAG
+			" ml_term_set_modified_lines() should be called in visual context but"
+			" is called in logical context.\n") ;
+	}
+#endif
+
+	if( ! ml_screen_logical_visual_is_reversible( term->screen))
 	{
 		ml_screen_logical( term->screen) ;
 	}
@@ -507,7 +531,7 @@ ml_term_set_modified_lines(
 		}
 	}
 
-	if( term->vertical_mode)
+	if( ! ml_screen_logical_visual_is_reversible( term->screen))
 	{
 		/* ml_screen_render( term->screen) ; */
 		ml_screen_visual( term->screen) ;
@@ -526,7 +550,16 @@ ml_term_set_modified_lines_in_screen(
 	int  row ;
 	ml_line_t *  line ;
 
-	if( term->vertical_mode)
+#ifdef  DEBUG
+	if( term->screen->logvis && ! term->screen->logvis->is_visual)
+	{
+		kik_debug_printf( KIK_DEBUG_TAG
+			" ml_term_set_modified_lines_in_screen() should be called in visual "
+			" context but is called in logical context.\n") ;
+	}
+#endif
+
+	if( ! ml_screen_logical_visual_is_reversible( term->screen))
 	{
 		ml_screen_logical( term->screen) ;
 	}
@@ -539,7 +572,7 @@ ml_term_set_modified_lines_in_screen(
 		}
 	}
 
-	if( term->vertical_mode)
+	if( ! ml_screen_logical_visual_is_reversible( term->screen))
 	{
 		/* ml_screen_render( term->screen) ; */
 		ml_screen_visual( term->screen) ;
@@ -553,14 +586,23 @@ ml_term_set_modified_all_lines_in_screen(
 	ml_term_t *  term
 	)
 {
-	if( term->vertical_mode)
+#ifdef  DEBUG
+	if( term->screen->logvis && ! term->screen->logvis->is_visual)
+	{
+		kik_debug_printf( KIK_DEBUG_TAG
+			" ml_term_set_modified_all_lines_in_screen() should be called in "
+			" visual context but is called in logical context.\n") ;
+	}
+#endif
+
+	if( ! ml_screen_logical_visual_is_reversible( term->screen))
 	{
 		ml_screen_logical( term->screen) ;
 	}
 
 	ml_screen_set_modified_all( term->screen) ;
 
-	if( term->vertical_mode)
+	if( ! ml_screen_logical_visual_is_reversible( term->screen))
 	{
 		/* ml_screen_render( term->screen) ; */
 		ml_screen_visual( term->screen) ;
@@ -577,7 +619,16 @@ ml_term_updated_all(
 	int  row ;
 	ml_line_t *  line ;
 
-	if( term->vertical_mode)
+#ifdef  DEBUG
+	if( term->screen->logvis && ! term->screen->logvis->is_visual)
+	{
+		kik_debug_printf( KIK_DEBUG_TAG
+			" ml_term_updated_all() should be called in visual context but"
+			" is called in logical context.\n") ;
+	}
+#endif
+
+	if( ! ml_screen_logical_visual_is_reversible( term->screen))
 	{
 		ml_screen_logical( term->screen) ;
 	}
@@ -590,7 +641,7 @@ ml_term_updated_all(
 		}
 	}
 
-	if( term->vertical_mode)
+	if( ! ml_screen_logical_visual_is_reversible( term->screen))
 	{
 		/* ml_screen_render( term->screen) ; */
 		ml_screen_visual( term->screen) ;

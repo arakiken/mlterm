@@ -135,6 +135,9 @@ int  ml_screen_visual( ml_screen_t *  screen) ;
 
 int  ml_screen_logical( ml_screen_t *  screen) ;
 
+#define  ml_screen_logical_visual_is_reversible( screen) \
+		((screen)->logvis && (screen)->logvis->is_reversible)
+
 ml_bs_mode_t  ml_is_backscroll_mode( ml_screen_t *  screen) ;
 
 int  ml_set_backscroll_mode( ml_screen_t *  screen , ml_bs_mode_t  mode) ;

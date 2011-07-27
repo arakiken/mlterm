@@ -1312,8 +1312,14 @@ vte_terminal_realize(
 
 	xid = gdk_x11_drawable_get_xid( widget->window) ;
 
-	if( disp.visual == DefaultVisual( disp.display , disp.screen))
+	if( disp.gc->gc == DefaultGC( disp.display , disp.screen))
 	{
+		/*
+		 * Replace visual, colormap, depth and gc with those inherited from parent xid.
+		 * In some cases that those of parent xid is not DefaultVisual, DefaultColormap
+		 * and so on (e.g. compiz), BadMatch error can happen.
+		 */
+
 		XWindowAttributes  attr ;
 		XGCValues  gc_value ;
 
@@ -1322,7 +1328,7 @@ vte_terminal_realize(
 		disp.colormap = attr.colormap ;
 		disp.depth = attr.depth ;
 
-		/* x_gc_t using DefaultGC is already created in vte_terminal_init */
+		/* x_gc_t using DefaultGC is already created in vte_terminal_class_init */
 		gc_value.background = disp.gc->bg_color ;
 		gc_value.graphics_exposures = 0 ;
 		disp.gc->gc = XCreateGC( disp.display , xid ,
@@ -1961,7 +1967,7 @@ vte_terminal_init(
 
 	/* related to x_font_use_point_size_for_fc(1) in vte_terminal_class_init. */
 	if( ( dpi = gdk_screen_get_resolution(
-		gtk_widget_get_screen( GTK_WIDGET(terminal)))) != -1)
+			gtk_widget_get_screen( GTK_WIDGET(terminal)))) != -1)
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " Setting dpi %f\n" , dpi) ;

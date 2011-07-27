@@ -4352,7 +4352,7 @@ change_fg_color(
 	}
 }
 
-static void picture_modifier_changed( x_screen_t *  screen) ;
+static void  picture_modifier_changed( x_screen_t *  screen) ;
 
 static void
 change_bg_color(

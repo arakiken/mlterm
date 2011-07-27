@@ -1,5 +1,7 @@
 * Support bracketed paste mode. (CSI ? 2004 h , CSI ? 2004 l)
 * Improve the way of determining width of cairo fonts.
+* Other bug fixes:
+  Fix a problem which causes leak of graphic context resource in libvte.
 
 ver 3.0.6
 * Support cairo for text rendering. (Experimental)
