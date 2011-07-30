@@ -1375,12 +1375,17 @@ get_pt_in_esc_seq(
 	{
 		**str = '\0' ;
 	}
-	else if( **str == CTL_ESC && increment_str( str , left) && **str == '\\')
+	else if( **str == CTL_ESC && *left > 0 && *((*str) + 1) == '\\')
 	{
-		*((*str) - 1) = '\0' ;
+		**str = '\0' ;
+		increment_str( str , left) ;
 	}
 	else
 	{
+		/* Reset position ahead of unprintable character for compat with xterm. */
+		(*str) -- ;
+		(*left) ++ ;
+
 		return  NULL ;
 	}
 
@@ -2848,8 +2853,7 @@ parse_vt100_escape_sequence(
 		}
 		else if( *str_p == '#')
 		{
-			if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-						&str_p , &left , 0))
+			if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
 			{
 				return  0 ;
 			}

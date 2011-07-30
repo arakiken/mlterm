@@ -253,7 +253,7 @@ search_find(
 	#if  (GTK_MAJOR_VERSION >= 2) && (GTK_MINOR_VERSION >= 14)
 		gtk_adjustment_set_value( terminal->adjustment , value) ;
 	#else
-		VTE_WIDGET(screen)->adjustment->value = value ;
+		terminal->adjustment->value = value ;
 		gtk_adjustment_value_changed( terminal->adjustment) ;
 	#endif
 

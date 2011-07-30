@@ -1,3 +1,9 @@
+2011-07-30  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/vte.c: Fixed typo.
+
+	* ml_vt100_parser.c: CSI sequence inside OSC is interpreted.
+
 2011-07-27  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: A problem which overwrites disp.gc->gc more than once and
