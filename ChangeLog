@@ -1,3 +1,10 @@
+2011-07-31  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.win32, doc/ja/README.win32: Updated.
+
+	* x_font_win32.c, x_window_win32.c:
+	  "Tera Special" font is used for DEC Special characters.
+
 2011-07-30  Araki Ken  <arakiken@users.sf.net>
 
 	* gtk/vte.c: Fixed typo.

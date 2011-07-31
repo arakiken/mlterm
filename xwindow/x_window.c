@@ -595,6 +595,28 @@ reset_client_leader(
 	return  leader ;
 }
 
+static void
+convert_to_decsp_font_index(
+	u_char *  str ,
+	u_int  len
+	)
+{
+	while( len != 0)
+	{
+		if( *str == 0x5f)
+		{
+			*str = 0x7f ;
+		}
+		else if( 0x5f < *str && *str < 0x7f)
+		{
+			(*str) -= 0x5f ;
+		}
+
+		len -- ;
+		str ++ ;
+	}
+}
+
 
 /* --- global functions --- */
 
@@ -2804,6 +2826,8 @@ x_window_draw_decsp_string(
 	u_int  len
 	)
 {
+	convert_to_decsp_font_index( str , len) ;
+
 	if( font->decsp_font)
 	{
 		x_gc_set_fg_color( win->gc, fg_color->pixel) ;
@@ -2836,6 +2860,8 @@ x_window_draw_decsp_image_string(
 	u_int  len
 	)
 {
+	convert_to_decsp_font_index( str , len) ;
+
 	if( font->decsp_font)
 	{
 		x_gc_set_fg_color( win->gc, fg_color->pixel) ;

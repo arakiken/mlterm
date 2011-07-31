@@ -88,4 +88,6 @@ Memo about WIN32 native GUI.
     with -p/--pic option.
   o use_variable_column_width and letter_space options are ignored.
   o Supported scrollbars are "simple" and "sample" alone.
-  o It is not supported to show DEC Special characters for now.
+  o In order to show DEC SPECIAL characters, it is necessary to install
+    "Tera Special" font (TSPECIAL1.TTF) which is a part of Tera Term
+    (http://teraterm.sourceforge.jp/).

@@ -2453,7 +2453,7 @@ x_window_draw_decsp_string(
 	u_int  len
 	)
 {
-	return  0 ;
+	return  x_window_draw_string( win , font , fg_color , x , y , str , len) ;
 }
 
 int
@@ -2468,46 +2468,8 @@ x_window_draw_decsp_image_string(
 	u_int  len
 	)
 {
-#ifndef  USE_WIN32GUI
-	if( font->decsp_font)
-	{
-		if( fg_color)
-		{
-			XSetForeground( win->display , win->ch_gc , fg_color->pixel) ;
-		}
-
-		if( bg_color)
-		{
-			XSetBackground( win->display , win->ch_gc , bg_color->pixel) ;
-			x_decsp_font_draw_image_string( font->decsp_font ,
-						  win->display , win->my_window , win->ch_gc ,
-						  x + win->margin , y + win->margin , str , len) ;
-		}
-		else
-		{
-			x_decsp_font_draw_string( font->decsp_font ,
-						  win->display , win->my_window , win->ch_gc ,
-						  x + win->margin , y + win->margin , str , len) ;
-		}
-		return  1 ;
-	}
-	else if( font->xfont)
-	{
-		if( bg_color)
-		{
-			return  x_window_draw_image_string( win , font , fg_color , bg_color ,
-					x , y , str , len) ;
-		}
-		else
-		{
-			return  x_window_draw_string( win , font , fg_color , x , y , str , len) ;
-		}
-	}
-	else
-#endif
-	{
-		return  0 ;
-	}
+	return  x_window_draw_image_string( win , font , fg_color , bg_color ,
+			x , y , str , len) ;
 }
 
 int

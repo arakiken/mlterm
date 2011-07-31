@@ -73,7 +73,7 @@ static cs_info_t  cs_info_table[] =
 	{ ISO10646_UCS4_1 , DEFAULT_CHARSET , } ,
 	{ ISO10646_UCS2_1 , DEFAULT_CHARSET , } ,
 	
-	{ DEC_SPECIAL , DEFAULT_CHARSET , } ,
+	{ DEC_SPECIAL , SYMBOL_CHARSET , } ,
 	{ ISO8859_1_R , ANSI_CHARSET , } ,
 	{ ISO8859_2_R , DEFAULT_CHARSET , } ,
 	{ ISO8859_3_R , EASTEUROPE_CHARSET , } ,
@@ -454,8 +454,12 @@ x_font_new(
 	font_family = NULL ;
 	percent = 0 ;
 	fontsize_d = (double)fontsize ;
-	
-	if( fontname)
+
+	if( FONT_CS(font->id) == DEC_SPECIAL)
+	{
+		font_family = "Tera Special" ;
+	}
+	else if( fontname)
 	{
 		char *  p ;
 
@@ -533,7 +537,11 @@ x_font_new(
 	#ifdef  ENABLE_PROPORTIONAL
 		if( font->cols == 2)
 		{
-			/* XXX */
+			/*
+			 * XXX
+			 * MaxCharWidth of MS Gothic is AveCharWidth * 2 + 1.
+			 *                                               ^^^
+			 */
 			font->width = tm.tmMaxCharWidth ;
 		}
 		else
@@ -672,15 +680,14 @@ x_font_new(
 	}
 
 
-	if( wincsinfo->cs == ANSI_CHARSET || FONT_CS(font->id) == ISO10646_UCS4_1)
+	if( wincsinfo->cs == ANSI_CHARSET || wincsinfo->cs == SYMBOL_CHARSET ||
+	    FONT_CS(font->id) == ISO10646_UCS4_1)
 	{
 		font->conv = NULL ;
 	}
 	else
 	{
-		font->conv = ml_conv_new( wincsinfo->encoding) ;
-
-		if( ! font->conv)
+		if( ! ( font->conv = ml_conv_new( wincsinfo->encoding)))
 		{
 			kik_warn_printf( KIK_DEBUG_TAG " ml_conv_new(font id %x) failed.\n" ,
 				font->id) ;

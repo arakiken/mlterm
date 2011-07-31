@@ -207,6 +207,13 @@ set_decsp_font(
 		font->xft_font = NULL ;
 	}
 #endif
+#ifdef  USE_TYPE_CAIRO
+	if( font->cairo_font)
+	{
+		cairo_scaled_font_destroy( font->cairo_font) ;
+		font->cairo_font = NULL ;
+	}
+#endif
 #ifdef  USE_TYPE_XCORE
 	if( font->xfont)
 	{

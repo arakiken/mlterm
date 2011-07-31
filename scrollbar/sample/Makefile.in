@@ -21,7 +21,7 @@ _TARGETS_win32 = libsample.la
 TARGETS = $(_TARGETS@WIN32TAG@)
 
 CFLAGS = $(CFLAGS_LOCAL) -I$(top_srcdir)/xwindow @CFLAGS@ @CPPFLAGS@ @X_CFLAGS@ \
-	@GUI_CFLAGS@ -I/usr/include/include
+	@GUI_CFLAGS@ -I/usr/include
 
 _LIBS = @X_LIBS@ -lX11 @X_EXTRA_LIBS@
 #_LIBS = @X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@

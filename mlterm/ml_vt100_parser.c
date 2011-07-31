@@ -3250,15 +3250,6 @@ parse_vt100_sequence(
 						vt100_parser->is_dec_special_in_gl) ||
 					ch.cs == DEC_SPECIAL)
 				{
-					if( ch.ch[0] == 0x5f)
-					{
-						ch.ch[0] = 0x7f ;
-					}
-					else if( 0x5f < ch.ch[0] && ch.ch[0] < 0x7f)
-					{
-						ch.ch[0] -= 0x5f ;
-					}
-
 					ch.cs = DEC_SPECIAL ;
 					ch.property = 0 ;
 				}
