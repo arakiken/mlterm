@@ -1303,17 +1303,6 @@ inc_str_in_esc_seq(
 			return  0 ;
 		}
 
-	#ifdef  ESCSEQ_DEBUG
-		if( **str_p < 0x20 || 0x7e < **str_p)
-		{
-			kik_msg_printf( " - 0x%x" , **str_p) ;
-		}
-		else
-		{
-			kik_msg_printf( " - %c" , **str_p) ;
-		}
-	#endif
-
 		if( **str_p < 0x20 || 0x7e < **str_p)
 		{
 			/*
@@ -1531,7 +1520,11 @@ parse_vt100_escape_sequence(
 	#endif
 		else if( *str_p == '[')
 		{
-			/* "ESC [" (CSI) */
+			/*
+			 * "ESC [" (CSI)
+			 * CSI P.....P I.....I F
+			 *     060-077 040-057 100-176
+			 */
 
 		#define  MAX_NUM_OF_PS  10
 
@@ -1546,38 +1539,27 @@ parse_vt100_escape_sequence(
 
 			pre_ch = '\0' ;
 
-			/* parameter character except numeric and ';' (< = > ?). */
-			if( 0x3c <= *str_p && *str_p <= 0x3f)
-			{
-				pre_ch = *str_p ;
-
-				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-						&str_p , &left , 0))
-				{
-					return  0 ;
-				}
-			}
-
+			/* Parameter characters */
 			num = 0 ;
-			while( num < MAX_NUM_OF_PS)
+			while( 1)
 			{
-				while( '0' == *str_p)
+				if( *str_p == '0')
 				{
-					if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-								&str_p , &left , 0))
+					/* 000000001 -> 01 */
+					while( left > 1 && *(str_p + 1) == '0')
 					{
-						return  0 ;
+						str_p ++ ;
+						left -- ;
 					}
 				}
 				if( '0' <= *str_p && *str_p <= '9')
 				{
-					char  digit[DIGIT_STR_LEN(int)] ;
+					u_char  digit[DIGIT_STR_LEN(int)] ;
 					int  count ;
 
 					digit[0] = *str_p ;
 
-					for( count = 1 ; count < DIGIT_STR_LEN(int) -1 ;
-						count ++)
+					for( count = 1 ; count < DIGIT_STR_LEN(int) - 1 ; count++)
 					{
 						if( ! inc_str_in_esc_seq( vt100_parser->screen ,
 								&str_p , &left , 0))
@@ -1594,35 +1576,48 @@ parse_vt100_escape_sequence(
 					}
 
 					digit[count] = '\0' ;
-
-					ps[num ++] = atoi( digit) ;
-
-					if( *str_p != ';')
+					if( num < MAX_NUM_OF_PS)
 					{
-						/*
-						 * "ESC [ 0 n" is regarded as it is.
-						 */
-						break ;
+						ps[num ++] = atoi( digit) ;
 					}
+
+					/* *str_p can be ';' here. */
 				}
 				else if( *str_p == ';')
 				{
 					/*
-					 * "ESC [ ; n " is regarded as "ESC [ 0 ; n"
+					 * "ESC [ ; n" is regarded as "ESC [ -1 ; n"
 					 */
-					ps[num ++] = 0 ;
+					if( num < MAX_NUM_OF_PS)
+					{
+						ps[num ++] = -1 ;
+					}
 				}
-				else
+
+				if( 0x3c <= *str_p && *str_p <= 0x3f)
+				{
+					/* parameter character except numeric and ';' (< = > ?). */
+					if( pre_ch == '\0')
+					{
+						pre_ch = *str_p ;
+					}
+				}
+				else if( *str_p != ';')
 				{
 					/*
-					 * "ESC [ n" is regarded as "ESC [ 0 n"
-					 * => this 0 is ignored after exiting this while
-					 *    block.
-					 *
-					 * "ESC [ 1 ; n" is regarded as "ESC [ 1 ; 0 n"
+					 * "ESC 0 n" is *not* regarded as "ESC 0 ; -1 n"
+					 * "ESC n" is regarded as "ESC [ -1 n"
+					 * "ESC [ 0 ; n" is regarded as "ESC [ 0 ; -1 n"
+					 * "ESC [ ; n" is regarded as "ESC [ -1 ; -1 n"
 					 */
-					ps[num ++] = 0 ;
+					if( num == 0 ||
+					    (*(str_p - 1) == ';' && num < MAX_NUM_OF_PS) )
+					{
+						ps[num ++] = -1 ;
+					}
 
+					/* num is always greater than 0 */
+					
 					break ;
 				}
 
@@ -1634,23 +1629,15 @@ parse_vt100_escape_sequence(
 			}
 
 			/*
-			 * XXX adhoc for vttest.
-			 * 0 ps of something like "ESC [ 0 ft" is ignored.
-			 * If there are multiple ps , no ps is ignored.
-			 *
-			 * If "ESC [ 0 ft" has different meaning from "ESC [ ft",
-			 * check if *(str_p - 1) is '0' or not.
-			 * (see CHT and CBT)
+			 * Skip trailing paremeter(0x30-0x3f) and intermediate(0x20-0x2f)
+			 * characters.
 			 */
-			if( num == 1 && ps[0] == 0)
+			while( 0x20 <= *str_p && *str_p <= 0x3f)
 			{
-				num = 0 ;
-			}
-
-			/* Intermediate character (0x20 - 0x2f) */
-			if( pre_ch == '\0' && 0x20 <= *str_p && *str_p <= 0x2f)
-			{
-				pre_ch = *str_p ;
+				if( pre_ch == '\0')
+				{
+					pre_ch = *str_p ;
+				}
 
 				if( ! inc_str_in_esc_seq( vt100_parser->screen ,
 						&str_p , &left , 0))
@@ -2120,7 +2107,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI @" insert blank chars */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2133,7 +2120,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI A" = CUU , "CSI k" = VPB */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2144,7 +2131,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI B" = CUD , "CSI e" = VPR */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2155,7 +2142,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI C" = CUF , "CSI a" = HPR */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2166,7 +2153,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI D" = CUB , "CSI j" = HPB */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2177,7 +2164,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI E" down and goto first column */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2189,7 +2176,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI F" up and goto first column */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2204,7 +2191,7 @@ parse_vt100_escape_sequence(
 				 * cursor position absolute.
 				 */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2215,23 +2202,14 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI H" "CSI f" */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
-					ps[1] = 1 ;
 				}
-				else
-				{
-					/* some applications e.g. vin sometimes use 0 :( */
-					if( ps[0] == 0)
-					{
-						ps[0] = 1 ;
-					}
 
-					if( ps[1] == 0)
-					{
-						ps[1] = 1 ;
-					}
+				if( num <= 1 || ps[1] <= 0)
+				{
+					ps[1] = 1 ;
 				}
 
 				ml_screen_goto( vt100_parser->screen , ps[1] - 1 , ps[0] - 1) ;
@@ -2240,16 +2218,13 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI I" cursor forward tabulation (CHT) */
 
-				if( num == 0)
+				if( ps[0] == -1)
 				{
 					/*
 					 * "CSI 0 I" => No tabulation.
 					 * "CSI I" => 1 taburation.
 					 */
-					if( *(str_p - 1) != '0')
-					{
-						ps[0] = 1 ;
-					}
+					ps[0] = 1 ;
 				}
 
 				ml_screen_vertical_forward_tabs( vt100_parser->screen , ps[0]) ;
@@ -2258,7 +2233,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI J" Erase in Display */
 
-				if( num == 0 || ps[0] == 0)
+				if( ps[0] <= 0)
 				{
 					ml_screen_clear_below( vt100_parser->screen) ;
 				}
@@ -2275,7 +2250,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI K" Erase in Line */
 
-				if( num == 0 || ps[0] == 0)
+				if( ps[0] <= 0)
 				{
 					ml_screen_clear_line_to_right( vt100_parser->screen) ;
 				}
@@ -2292,7 +2267,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI L" */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2303,7 +2278,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI M" */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2314,7 +2289,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI P" delete chars */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2325,7 +2300,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI S" scroll up */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2336,7 +2311,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI T" scroll down */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2347,7 +2322,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI X" erase characters */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2358,16 +2333,13 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI Z" cursor backward tabulation (CBT) */
 
-				if( num == 0)
+				if( ps[0] == -1)
 				{
 					/*
 					 * "CSI 0 Z" => No tabulation.
 					 * "CSI Z" => 1 taburation.
 					 */
-					if( *(str_p - 1) != '0')
-					{
-						ps[0] = 1 ;
-					}
+					ps[0] = 1 ;
 				}
 
 				ml_screen_vertical_backward_tabs( vt100_parser->screen , ps[0]) ;
@@ -2380,7 +2352,7 @@ parse_vt100_escape_sequence(
 				{
 					int  count ;
 
-					if( num == 0)
+					if( ps[0] <= 0)
 					{
 						ps[0] = 1 ;
 					}
@@ -2408,7 +2380,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI d" line position absolute(VPA) */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 1 ;
 				}
@@ -2419,11 +2391,11 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI g" tab clear */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ml_screen_clear_tab_stop( vt100_parser->screen) ;
 				}
-				else if( num == 1 && ps[0] == 3)
+				else if( ps[0] == 3)
 				{
 					ml_screen_clear_all_tab_stops( vt100_parser->screen) ;
 				}
@@ -2432,7 +2404,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI l" */
 
-				if( num == 1 && ps[0] == 4)
+				if( ps[0] == 4)
 				{
 					/* replace mode */
 
@@ -2444,7 +2416,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI h" */
 
-				if( num == 1 && ps[0] == 4)
+				if( ps[0] == 4)
 				{
 					/* insert mode */
 
@@ -2458,16 +2430,9 @@ parse_vt100_escape_sequence(
 
 				int  count ;
 
-				if( num == 0)
-				{
-					ps[0] = 0 ;
-					num = 1 ;
-				}
-
 				for( count = 0 ; count < num ; count ++)
 				{
-					if( ps[count] == 38 && num >= 3
-						&& ps[count + 1] == 5)
+					if( ps[count] == 38 && num >= 3 && ps[count + 1] == 5)
 					{
 						vt100_parser->fg_color = ps[count + 2] ;
 						count += 2 ;
@@ -2478,8 +2443,7 @@ parse_vt100_escape_sequence(
 							vt100_parser->fg_color) ;
 					#endif
 					}
-					else if( ps[count] == 48 && num >= 3
-						&& ps[count + 1] == 5)
+					else if( ps[count] == 48 && num >= 3 && ps[count + 1] == 5)
 					{
 						vt100_parser->bg_color = ps[count + 2] ;
 						count += 2 ;
@@ -2490,6 +2454,11 @@ parse_vt100_escape_sequence(
 					}
 					else
 					{
+						if( ps[count] <= 0)
+						{
+							ps[count] = 0 ;
+						}
+
 						change_char_attr( vt100_parser , ps[count]) ;
 					}
 				}
@@ -2498,46 +2467,40 @@ parse_vt100_escape_sequence(
 			{
 				/* "CSI n" device status report */
 
-				if( num == 1)
+				if( ps[0] == 5)
 				{
-					if( ps[0] == 5)
-					{
-						ml_write_to_pty( vt100_parser->pty ,
-							"\x1b[0n" , 4) ;
-					}
-					else if( ps[0] == 6)
-					{
-						char  seq[4 + DIGIT_STR_LEN(u_int) + 1] ;
+					ml_write_to_pty( vt100_parser->pty , "\x1b[0n" , 4) ;
+				}
+				else if( ps[0] == 6)
+				{
+					char  seq[4 + DIGIT_STR_LEN(u_int) + 1] ;
 
-						sprintf( seq , "\x1b[%d;%dR" ,
-							ml_screen_cursor_row(
-								vt100_parser->screen) + 1 ,
-							ml_screen_cursor_col(
-								vt100_parser->screen) + 1) ;
+					sprintf( seq , "\x1b[%d;%dR" ,
+						ml_screen_cursor_row( vt100_parser->screen) + 1 ,
+						ml_screen_cursor_col( vt100_parser->screen) + 1) ;
 
-						ml_write_to_pty( vt100_parser->pty ,
-							seq , strlen( seq)) ;
-					}
+					ml_write_to_pty( vt100_parser->pty ,
+						seq , strlen( seq)) ;
 				}
 			}
 			else if( *str_p == 'r')
 			{
 				/* "CSI r" set scroll region */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 0 ;
-					ps[1] = 0 ;
-					num = 2 ;
 				}
 
-				if( num == 2)
+				if( num <= 1 || ps[1] <= 0)
 				{
-					if( ml_screen_set_scroll_region( vt100_parser->screen ,
-							ps[0] - 1 , ps[1] - 1))
-					{
-						ml_screen_goto( vt100_parser->screen , 0 , 0) ;
-					}
+					ps[1] = 0 ;
+				}
+
+				if( ml_screen_set_scroll_region( vt100_parser->screen ,
+						ps[0] - 1 , ps[1] - 1))
+				{
+					ml_screen_goto( vt100_parser->screen , 0 , 0) ;
 				}
 			}
 			else if( *str_p == 's')
@@ -2558,7 +2521,7 @@ parse_vt100_escape_sequence(
 
 				/* XXX the same as rxvt */
 
-				if( num == 0)
+				if( ps[0] <= 0)
 				{
 					ps[0] = 0 ;
 				}
@@ -2851,19 +2814,6 @@ parse_vt100_escape_sequence(
 			}
 		#endif
 		}
-		else if( *str_p == '#')
-		{
-			if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
-			{
-				return  0 ;
-			}
-
-			if( *str_p == '8')
-			{
-				/* "ESC # 8" DEC screen alignment test */
-				ml_screen_fill_all_with_e( vt100_parser->screen) ;
-			}
-		}
 		else if( *str_p == 'P' || *str_p == 'X' || *str_p == '^' || *str_p == '_')
 		{
 			if( ! get_pt_in_esc_seq( vt100_parser->screen ,
@@ -2872,91 +2822,25 @@ parse_vt100_escape_sequence(
 				return  0 ;
 			}
 		}
-		else if( *str_p == '(')
+		/* Other final character */
+		else if( 0x30 <= *str_p && *str_p <= 0x7e)
 		{
-			/* "ESC (" */
-
-			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
-			{
-				/* ESC ( will be processed in mkf. */
-				return  1 ;
-			}
-
-			if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-						&str_p , &left , 0))
-			{
-				return  0 ;
-			}
-
-			if( *str_p == '0')
-			{
-				vt100_parser->is_dec_special_in_g0 = 1 ;
-			}
-			else if( *str_p == 'B')
-			{
-				vt100_parser->is_dec_special_in_g0 = 0 ;
-			}
 		#ifdef  DEBUG
-			else
-			{
-				kik_debug_printf( KIK_DEBUG_TAG " ESC ( %c is "
-					"illegal sequence in current encoding" ,
-					*str_p) ;
-			}
+			debug_print_unknown( "ESC %c\n" , *str_p) ;
 		#endif
-
-			if( ! vt100_parser->is_so)
-			{
-				vt100_parser->is_dec_special_in_gl =
-					vt100_parser->is_dec_special_in_g0 ;
-			}
 		}
-		else if( *str_p == ')')
-		{
-			/* "ESC )" */
-
-			if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
-			{
-				/* ESC ) will be processed in mkf. */
-				return  1 ;
-			}
-
-			if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-						&str_p , &left , 0))
-			{
-				return  0 ;
-			}
-
-			if( *str_p == '0')
-			{
-				vt100_parser->is_dec_special_in_g1 = 1 ;
-			}
-			else if( *str_p == 'B')
-			{
-				vt100_parser->is_dec_special_in_g1 = 0 ;
-			}
-		#ifdef  DEBUG
-			else
-			{
-				kik_debug_printf( KIK_DEBUG_TAG " ESC ) %c is "
-					"illegal sequence in current encoding" ,
-					*str_p) ;
-			}
-		#endif
-
-			if( vt100_parser->is_so)
-			{
-				vt100_parser->is_dec_special_in_gl =
-					vt100_parser->is_dec_special_in_g1 ;
-			}
-		}
-		/* Other intermediate character */
+		/* intermediate character */
 		else if( 0x20 <= *str_p && *str_p <= 0x2f)
 		{
 			/*
-			 * "ESC SP F", "ESC SP G", "ESC SP L", "ESC SP M", "ESC SP N"
-			 * etc ...
+			 * ESC I.....I  F
+			 * 033 040-057  060-176
 			 */
+			u_char  ic1 ;
+			u_int  ic_num ;
+
+			ic1 = *str_p ;
+			ic_num = 0 ;
 
 		#ifdef  DEBUG
 			debug_print_unknown( "ESC") ;
@@ -2965,6 +2849,8 @@ parse_vt100_escape_sequence(
 			/* In case more than one intermediate(0x20-0x2f) chars. */
 			do
 			{
+				ic_num ++ ;
+
 			#ifdef  DEBUG
 				kik_msg_printf( " %c" , *str_p) ;
 			#endif
@@ -2980,13 +2866,91 @@ parse_vt100_escape_sequence(
 		#ifdef  DEBUG
 			kik_msg_printf( " %c\n" , *str_p) ;
 		#endif
-		}
-		/* Other final character */
-		else if( 0x30 <= *str_p && *str_p <= 0x7e)
-		{
-		#ifdef  DEBUG
-			debug_print_unknown( "ESC %c\n" , *str_p) ;
-		#endif
+
+			if( ic_num == 1)
+			{
+				if( ic1 == '#')
+				{
+					if( *str_p == '8')
+					{
+						/* "ESC # 8" DEC screen alignment test */
+						ml_screen_fill_all_with_e( vt100_parser->screen) ;
+					}
+				}
+				else if( ic1 == '(')
+				{
+					/* "ESC (" */
+
+					if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+					{
+						/* ESC ( will be processed in mkf. */
+						return  1 ;
+					}
+
+					if( *str_p == '0')
+					{
+						vt100_parser->is_dec_special_in_g0 = 1 ;
+					}
+					else if( *str_p == 'B')
+					{
+						vt100_parser->is_dec_special_in_g0 = 0 ;
+					}
+				#ifdef  DEBUG
+					else
+					{
+						kik_debug_printf( KIK_DEBUG_TAG " ESC ( %c is "
+							"illegal sequence in current encoding" ,
+							*str_p) ;
+					}
+				#endif
+
+					if( ! vt100_parser->is_so)
+					{
+						vt100_parser->is_dec_special_in_gl =
+							vt100_parser->is_dec_special_in_g0 ;
+					}
+				}
+				else if( ic1 == ')')
+				{
+					/* "ESC )" */
+
+					if( IS_ENCODING_BASED_ON_ISO2022(vt100_parser->encoding))
+					{
+						/* ESC ) will be processed in mkf. */
+						return  1 ;
+					}
+
+					if( *str_p == '0')
+					{
+						vt100_parser->is_dec_special_in_g1 = 1 ;
+					}
+					else if( *str_p == 'B')
+					{
+						vt100_parser->is_dec_special_in_g1 = 0 ;
+					}
+				#ifdef  DEBUG
+					else
+					{
+						kik_debug_printf( KIK_DEBUG_TAG " ESC ) %c is "
+							"illegal sequence in current encoding" ,
+							*str_p) ;
+					}
+				#endif
+
+					if( vt100_parser->is_so)
+					{
+						vt100_parser->is_dec_special_in_gl =
+							vt100_parser->is_dec_special_in_g1 ;
+					}
+				}
+				else
+				{
+					/*
+					 * "ESC SP F", "ESC SP G", "ESC SP L", "ESC SP M",
+					 * "ESC SP N" etc ...
+					 */
+				}
+			}
 		}
 		else
 		{

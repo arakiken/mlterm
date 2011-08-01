@@ -1,3 +1,8 @@
+2011-08-01  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.c: The way of parsing intermediate or parameter
+	  characters is improved.
+
 2011-07-31  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.win32, doc/ja/README.win32: Updated.
