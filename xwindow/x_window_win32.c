@@ -24,15 +24,22 @@
 
 #define  WM_APP_PAINT  (WM_APP + 0x0)
 
-/* ACTUAL_WIDTH is the width of client area, ACTUAL_WINDOW_WIDTH is that of window area. */
+/*
+ * ACTUAL_(WIDTH|HEIGHT) is the width of client area, ACTUAL_WINDOW_(WIDTH|HEIGHT) is
+ * that of window area.
+ */
+#if  1
+#define  ACTUAL_WINDOW_WIDTH(win) (ACTUAL_WIDTH(win) + decorate_width)
+#define  ACTUAL_WINDOW_HEIGHT(win) (ACTUAL_HEIGHT(win) + decorate_height)
+#else
 #define  ACTUAL_WINDOW_WIDTH(win) \
 	ACTUAL_WIDTH(win) + GetSystemMetrics(SM_CXEDGE) * 2 + \
 	/* GetSystemMetrics(SM_CXBORDER) * 2 + */ GetSystemMetrics(SM_CXFRAME)
-/* ACTUAL_HEIGHT is the height of client area, ACTUAL_WINDOW_HEIGHT is that of window area. */
 #define  ACTUAL_WINDOW_HEIGHT(win) \
 	ACTUAL_HEIGHT(win) + GetSystemMetrics(SM_CYEDGE) * 2 + \
 	/* GetSystemMetrics(SM_CXBORDER) * 2 + */ GetSystemMetrics(SM_CYFRAME) + \
 	GetSystemMetrics(SM_CYCAPTION)
+#endif
 
 
 #if  0
@@ -44,6 +51,8 @@
 
 static int  click_interval = 250 ;	/* millisecond, same as xterm. */
 static mkf_parser_t *  m_cp_parser ;
+static LONG  decorate_width ;
+static LONG  decorate_height ;		/* Height of Title bar etc. */
 
 
 /* --- static functions --- */
@@ -769,6 +778,48 @@ draw_string(
 	return  1 ;
 }
 
+/*
+ * Return 1 => decorate size is changed.
+ *        0 => decorate size is not changed.
+ */
+static int
+update_decorate_size(
+	x_window_t *  win
+	)
+{
+	RECT  wr ;
+	RECT  cr ;
+	LONG  width ;
+	LONG  height ;
+
+	if( win->parent)
+	{
+		return  0 ;
+	}
+	
+	GetWindowRect( win->my_window , &wr) ;
+	GetClientRect( win->my_window , &cr) ;
+	width = wr.right - wr.left - cr.right + cr.left ;
+	height = wr.bottom - wr.top - cr.bottom + cr.top ;
+
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " DECORATE W %d H %d -> W %d H %d\n" ,
+		decorate_width , decorate_height , width , height) ;
+#endif
+
+	if( width != decorate_width || height != decorate_height)
+	{
+		decorate_width = width ;
+		decorate_height = height ;
+
+		return  1 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
 
 /* --- global functions --- */
 
@@ -1242,16 +1293,11 @@ x_window_show(
 #else
 	win->my_window = CreateWindowExW( 0 , L"MLTERM" , win->app_name ,
 #endif
-				PARENT_WINDOWID_IS_TOP(win) ?
-					WS_OVERLAPPEDWINDOW : WS_CHILD | WS_VISIBLE ,
-				PARENT_WINDOWID_IS_TOP(win) ?
-					CW_USEDEFAULT : win->x ,
-				PARENT_WINDOWID_IS_TOP(win) ?
-					CW_USEDEFAULT : win->y ,
-				PARENT_WINDOWID_IS_TOP(win) ?
-					ACTUAL_WINDOW_WIDTH(win) : ACTUAL_WIDTH(win) ,
-				PARENT_WINDOWID_IS_TOP(win) ?
-					ACTUAL_WINDOW_HEIGHT(win) : ACTUAL_HEIGHT(win) ,
+				! win->parent ? WS_OVERLAPPEDWINDOW : WS_CHILD | WS_VISIBLE ,
+				! win->parent ? CW_USEDEFAULT : win->x ,
+				! win->parent ? CW_USEDEFAULT : win->y ,
+				! win->parent ? ACTUAL_WINDOW_WIDTH(win) : ACTUAL_WIDTH(win) ,
+				! win->parent ? ACTUAL_WINDOW_HEIGHT(win) : ACTUAL_HEIGHT(win) ,
 				win->parent_window , NULL , win->disp->display->hinst , NULL) ;
 
   	if( ! win->my_window)
@@ -1282,6 +1328,14 @@ x_window_show(
 	/*
 	 * really visualized.
 	 */
+
+	/* Don't place this before x_window_show(children). */
+	if( update_decorate_size( win))
+	{
+		SetWindowPos( win->my_window , 0 , 0 , 0 ,
+			ACTUAL_WINDOW_WIDTH(win) , ACTUAL_WINDOW_HEIGHT(win) ,
+			SWP_NOMOVE | SWP_NOZORDER) ;
+	}
 
 	if( win->is_mapped)
 	{
@@ -1356,9 +1410,10 @@ x_window_resize(
 		(*win->parent->child_window_resized)( win->parent , win) ;
 	}
 
-	SetWindowPos( win->my_window, 0, 0, 0,
-		win->parent ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win),
-		win->parent ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win),
+	update_decorate_size( win) ;
+	SetWindowPos( win->my_window , 0 , 0 , 0 ,
+		win->parent ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win) ,
+		win->parent ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win) ,
 		SWP_NOMOVE | SWP_NOZORDER) ;
 		
 	if( (flag & NOTIFY_TO_MYSELF) && win->window_resized)
@@ -1431,8 +1486,14 @@ x_window_move(
 	int  y
 	)
 {
-	SetWindowPos( win->my_window, 0, x, y,
-		ACTUAL_WINDOW_WIDTH(win), ACTUAL_WINDOW_HEIGHT(win),
+	win->x = x ;
+	win->y = y ;
+
+	update_decorate_size( win) ;
+
+	SetWindowPos( win->my_window , 0 , x , y ,
+		win->parent ? ACTUAL_WIDTH(win) : ACTUAL_WINDOW_WIDTH(win) ,
+		win->parent ? ACTUAL_HEIGHT(win) : ACTUAL_WINDOW_HEIGHT(win) ,
 		SWP_NOSIZE | SWP_NOZORDER) ;
 
 	return  1 ;
@@ -2217,6 +2278,9 @@ x_window_receive_event(
 							  total_height_inc(win) ) ;
 				}
 				
+				win->width = width - win->margin * 2 ;
+				win->height = height - win->margin * 2 ;
+
 				if( width_surplus > 0 || height_surplus > 0)
 				{
 					x_window_resize( win,
@@ -2226,9 +2290,6 @@ x_window_receive_event(
 				}
 				else
 				{
-					win->width = width - win->margin * 2 ;
-					win->height = height - win->margin * 2 ;
-
 					x_window_clear_all( win) ;
 
 					(*win->window_resized)( win) ;
@@ -2239,6 +2300,14 @@ x_window_receive_event(
 		}
 
 		return  1 ;
+
+	/* Not necessary */
+#if  0
+	case  WM_THEMECHANGED:
+		update_decorate_size( win) ;
+
+		return  1 ;
+#endif
 	}
 
 	return  -1 ;

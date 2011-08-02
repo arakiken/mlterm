@@ -1,7 +1,9 @@
 * Support bracketed paste mode. (CSI ? 2004 h , CSI ? 2004 l)
 * Improve the way of determining width of cairo fonts.
+* Support DEC Special characters in win32. ("Tera Special" font is necessary.)
 * Other bug fixes:
   Fix a problem which causes leak of graphic context resource in libvte.
+  Fix a problem which can minimize window in some themes in win32. (Thanks to Iwamoto Kouichi san)
 
 ver 3.0.6
 * Support cairo for text rendering. (Experimental)

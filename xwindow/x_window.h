@@ -34,6 +34,14 @@
 #define  ACTUAL_WIDTH(win)  ((win)->width + (win)->margin * 2)
 #define  ACTUAL_HEIGHT(win)  ((win)->height + (win)->margin * 2)
 
+/*
+ * Don't use win->parent in xlib to check if win is root window or not
+ * because mlterm can work as libvte.
+ *   vte window
+ *      |
+ *   mlterm window ... x_window_t::parent == NULL
+ *                     x_window_t::parent_window == vte window
+ */
 #define  PARENT_WINDOWID_IS_TOP(win)  ((win)->parent_window == (win)->disp->my_window)
 
 

@@ -134,7 +134,11 @@ x_display_open(
   	wc.hIcon = LoadIcon( _display.hinst , "MLTERM_ICON") ;
   	wc.hCursor = LoadCursor(NULL,IDC_ARROW) ;
   	wc.hbrBackground = 0 ;
-  	wc.lpszClassName = L"MLTERM" ;
+#ifndef  UTF16_IME_CHAR
+	wc.lpszClassName = "MLTERM" ;
+#else
+	wc.lpszClassName = L"MLTERM" ;
+#endif
 
 #ifndef  UTF16_IME_CHAR
 	if( ! RegisterClass(&wc))

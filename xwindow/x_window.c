@@ -1676,6 +1676,9 @@ x_window_move(
 	int  y
 	)
 {
+	win->x = x ;
+	win->y = y ;
+
 	XMoveWindow( win->disp->display , win->my_window , x , y) ;
 
 	return  1 ;
