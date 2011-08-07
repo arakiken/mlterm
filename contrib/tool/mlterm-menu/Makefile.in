@@ -55,6 +55,9 @@ install: $(LIBEXECDIR) $(SYSCONFDIR)/mlterm
 	$(LIBTOOL_INSTALL) -m 755 mlterm-menu $(LIBEXECDIR)
 	$(INSTALL) -m 644 ${top_srcdir}/contrib/tool/mlterm-menu/menu $(SYSCONFDIR)/mlterm
 
+uninstall:
+	rm -f $(LIBEXECDIR)/mlterm-menu $(SYSCONFDIR)/mlterm/menu
+
 $(LIBEXECDIR):
 	mkdir -p $(LIBEXECDIR)
 

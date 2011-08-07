@@ -51,6 +51,9 @@ $(LIBDIR):
 install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) libim-uim.la $(LIBDIR)
 
+uninstall:
+	rm -f $(LIBDIR)/*im-uim.*
+
 clean:
 	rm -rf $(IM_UIM_OBJ) $(IM_UIM_OBJ:.o=.lo) libim-uim.la *.core .libs
 

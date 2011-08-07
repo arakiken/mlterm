@@ -18,5 +18,8 @@ $(DATADIR):
 install: $(DATADIR)
 	for file in $(FILES) ; do $(INSTALL) -m 644 $(top_srcdir)/contrib/scrollbar/pixmap_engine/sample3/$${file} $(DATADIR)/$${file} ; done
 
+uninstall:
+	rm -rf $(DATADIR)
+
 distclean:
 	rm -f Makefile

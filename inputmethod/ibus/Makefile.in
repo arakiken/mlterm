@@ -51,6 +51,9 @@ $(LIBDIR):
 install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) libim-ibus.la $(LIBDIR)
 
+uninstall:
+	rm -f $(LIBDIR)/*im-ibus.*
+
 clean:
 	rm -rf $(IM_IBUS_OBJ) $(IM_IBUS_OBJ:.o=.lo) libim-ibus.la *.core .libs
 

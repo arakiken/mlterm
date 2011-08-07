@@ -42,6 +42,8 @@ $(LIBNAME).a : $(OBJ)
 
 install :
 
+uninstall :
+
 clean :
 	rm -rf $(OBJ) $(OBJ:.o=.lo) .libs *.a
 

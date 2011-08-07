@@ -63,6 +63,9 @@ $(LIBDIR):
 install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) libathena.la libmotif.la libmozmodern.la libnext.la $(LIBDIR)
 
+uninstall:
+	rm -f $(LIBDIR)/*athena.* $(LIBDIR)/*motif.* $(LIBDIR)/*mozmodern.* $(LIBDIR)/*next.*
+
 clean:
 	rm -rf $(ATHENA_OBJ) $(ATHENA_OBJ:.o=.lo) \
 		$(MOTIF_OBJ) $(MOTIF_OBJ:.o=.lo) \

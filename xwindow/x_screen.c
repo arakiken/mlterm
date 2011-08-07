@@ -3035,6 +3035,170 @@ set_xdnd_config(
 }
 #endif
 
+static int
+report_mouse_tracking(
+	x_screen_t *  screen ,
+	XButtonEvent *  event ,
+	int  is_released
+	)
+{
+	ml_line_t *  line ;
+	int  button ;
+	int  key_state ;
+	int  col ;
+	int  row ;
+	u_char  buf[6] ;
+
+	if( is_released)
+	{
+		/* PointerMotion or ButtonRelease */
+		key_state = 0 ;
+		button = 3 ;
+	}
+	else
+	{
+		/*
+		 * Shift = 4
+		 * Meta = 8
+		 * Control = 16
+		 * Button Motion = 32
+		 *
+		 * NOTE: with Ctrl/Shift, the click is interpreted as region selection at present.
+		 * So Ctrl/Shift will never be catched here.
+		 */
+		key_state = ((event->state & ShiftMask) ? 4 : 0) +
+			((event->state & screen->mod_meta_mask) ? 8 : 0) +
+			((event->state & ControlMask) ? 16 : 0) +
+			((event->state & (Button1Mask|Button2Mask|Button3Mask)) ? 32 : 0) ;
+
+		if( event->state & Button1Mask)
+		{
+			/* ButtonMotion */
+			button = 0 ;
+		}
+		else if( event->state & Button2Mask)
+		{
+			/* ButtonMotion */
+			button = 1 ;
+		}
+		else if( event->state & Button3Mask)
+		{
+			/* ButtonMotion */
+			button = 2 ;
+		}
+		else
+		{
+			/* ButtonPress */
+			button = event->button - Button1 ;
+
+			while( button >= 3)
+			{
+				key_state += 64 ;
+				button -= 3 ;
+			}
+		}
+	}
+
+	if( screen->term->vertical_mode)
+	{
+		u_int  x_rest ;
+
+		col = convert_y_to_row( screen , NULL , event->y) ;
+
+		if( 0x20 + col + 1 > 0xff){
+			/* mouse position can't be reported using this protocol */
+			return  0 ;
+		}
+	#if  0
+		if( x_is_using_multi_col_char( screen->font_man))
+		{
+			/*
+			 * XXX
+			 * col can be inaccurate if full width characters are used.
+			 */
+		}
+	#endif
+
+		if( ( line = ml_term_get_line_in_screen( screen->term , col)) == NULL)
+		{
+			return  0 ;
+		}
+
+		row = ml_convert_char_index_to_col( line ,
+			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) , 0) ;
+
+		if( screen->term->vertical_mode & VERT_RTL)
+		{
+			row = ml_term_get_cols( screen->term) - row - 1 ;
+		}
+
+		if( 0x20 + row + 1 > 0xff){
+			return  0 ;
+		}
+	#if  0
+		if( x_is_using_multi_col_char( screen->font_man))
+		{
+			/*
+			 * XXX
+			 * row can be inaccurate if full width characters are used.
+			 */
+		}
+	#endif
+	}
+	else
+	{
+		int x_rest;
+		int width;
+		row = convert_y_to_row( screen , NULL , event->y) ;
+
+		if( 0x20 + row + 1 > 0xff){
+			return  0 ;
+		}
+
+		if( ( line = ml_term_get_line_in_screen( screen->term , row)) == NULL)
+		{
+			return  0 ;
+		}
+		col = ml_convert_char_index_to_col( line ,
+			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) , 0) ;
+
+		width = x_calculate_char_width(
+			x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,
+			ml_char_bytes( ml_sp_ch()) , 1 , US_ASCII);
+		if( x_rest > width){
+			col += x_rest / width ;
+		}
+		if( 0x20 + col + 1 > 0xff){
+			return  0 ;
+		}
+	}
+
+	strcpy( buf , "\x1b[M") ;
+
+	buf[3] = 0x20 + button + key_state ;
+	buf[4] = 0x20 + col + 1 ;
+	buf[5] = 0x20 + row + 1 ;
+
+	if( memcmp( screen->prev_mouse_report_seq , buf + 3 , 3) != 0)
+	{
+		write_to_pty( screen , buf , 6 , NULL) ;
+		memcpy( screen->prev_mouse_report_seq , buf + 3 , 3) ;
+
+	#ifdef  __DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;
+	#endif
+	}
+#ifdef  __DEBUG
+	else
+	{
+		kik_debug_printf( KIK_DEBUG_TAG
+			" cursor pos %d %d is not changed and not reported.\n") ;
+	}
+#endif
+
+	return  1 ;
+}
+
 /*
  * Functions related to selection.
  */
@@ -3254,6 +3418,25 @@ selecting_with_motion(
 }
 
 static void
+pointer_motion(
+	x_window_t *  win ,
+	XMotionEvent *  event
+	)
+{
+	x_screen_t *  screen ;
+
+	screen = (x_screen_t*) win ;
+
+	if( ! (event->state & (ShiftMask|ControlMask)) &&
+		ml_term_get_mouse_report_mode( screen->term) == ANY_EVENT_MOUSE_REPORT)
+	{
+		restore_selected_region_color_instantly( screen) ;
+		/* report_mouse_tracking() can deal with X(Motion|Button)Event. */
+		report_mouse_tracking( screen , event , 1) ;
+	}
+}
+
+static void
 button_motion(
 	x_window_t *  win ,
 	XMotionEvent *  event
@@ -3268,8 +3451,16 @@ button_motion(
 	 * not 'pointer'_motion.
 	 */
 
-	if( ml_term_is_mouse_pos_sending( screen->term) && ! (event->state & ShiftMask))
+	if( ! (event->state & (ShiftMask|ControlMask)) &&
+		ml_term_get_mouse_report_mode( screen->term))
 	{
+		if( ml_term_get_mouse_report_mode( screen->term) >= BUTTON_EVENT_MOUSE_REPORT)
+		{
+			restore_selected_region_color_instantly( screen) ;
+			/* report_mouse_tracking() can deal with X(Motion|Button)Event. */
+			report_mouse_tracking( screen , event , 0) ;
+		}
+
 		return ;
 	}
 
@@ -3289,8 +3480,7 @@ button_press_continued(
 
 	screen = (x_screen_t*) win ;
 
-	if( screen->sel.is_selecting &&
-		(event->y < 0 || win->height < event->y))
+	if( screen->sel.is_selecting && (event->y < 0 || win->height < event->y))
 	{
 		selecting_with_motion( screen , event->x , event->y , event->time) ;
 	}
@@ -3410,135 +3600,6 @@ selecting_line(
 	selecting( screen , end_char_index , end_row) ;
 }
 
-static int
-report_mouse_tracking(
-	x_screen_t *  screen ,
-	XButtonEvent *  event ,
-	int  is_released
-	)
-{
-	ml_line_t *  line ;
-	int  button ;
-	int  key_state ;
-	int  col ;
-	int  row ;
-	u_char  buf[7] ;
-
-	/*
-	 * Shift = 4
-	 * Meta = 8
-	 * Control = 16
-	 */
-	
-	/* NOTE: with Ctrl/Shift, the click is interpreted as region selection at present.
-	   So Ctrl/Shift will never be catched here.*/
-	key_state = ((event->state & ShiftMask) ? 4 : 0) +
-		((event->state & screen->mod_meta_mask) ? 8 : 0) +
-		((event->state & ControlMask) ? 16 : 0) ;
-
-	if( is_released)
-	{
-		button = 3 ;
-	}
-	else
-	{
-		button = event->button - Button1 ;
-		while( button >= 3)
-		{
-			key_state += 64 ;
-			button -= 3 ;
-		}
-	}
-
-	if( screen->term->vertical_mode)
-	{
-		u_int  x_rest ;
-
-		col = convert_y_to_row( screen , NULL , event->y) ;
-
-		if( 0x20 + col + 1 > 0xff){
-			/* mouse position can't be reported using this protocol */
-			return  0 ;
-		}
-	#if  0
-		if( x_is_using_multi_col_char( screen->font_man))
-		{
-			/*
-			 * XXX
-			 * col can be inaccurate if full width characters are used.
-			 */
-		}
-	#endif
-
-		if( ( line = ml_term_get_line_in_screen( screen->term , col)) == NULL)
-		{
-			return  0 ;
-		}
-
-		row = ml_convert_char_index_to_col( line ,
-			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) , 0) ;
-
-		if( screen->term->vertical_mode & VERT_RTL)
-		{
-			row = ml_term_get_cols( screen->term) - row - 1 ;
-		}
-
-		if( 0x20 + row + 1 > 0xff){
-			return  0 ;
-		}
-	#if  0
-		if( x_is_using_multi_col_char( screen->font_man))
-		{
-			/*
-			 * XXX
-			 * row can be inaccurate if full width characters are used.
-			 */
-		}
-	#endif
-	}
-	else
-	{
-		int x_rest;
-		int width;
-		row = convert_y_to_row( screen , NULL , event->y) ;
-
-		if( 0x20 + row + 1 > 0xff){
-			return  0 ;
-		}
-
-		if( ( line = ml_term_get_line_in_screen( screen->term , row)) == NULL)
-		{
-			return  0 ;
-		}
-		col = ml_convert_char_index_to_col( line ,
-			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) , 0) ;
-
-		width = x_calculate_char_width(
-			x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,
-			ml_char_bytes( ml_sp_ch()) , 1 , US_ASCII);
-		if( x_rest > width){
-			col += x_rest / width ;
-		}
-		if( 0x20 + col + 1 > 0xff){
-			return  0 ;
-		}
-	}
-
-	strcpy( buf , "\x1b[M") ;
-
-	buf[3] = 0x20 + button + key_state ;
-	buf[4] = 0x20 + col +1 ;
-	buf[5] = 0x20 + row +1 ;
-
-	write_to_pty( screen , buf , 6 , NULL) ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [reported cursor pos] %d %d\n" , col , row) ;
-#endif
-
-	return  1 ;
-}
-
 static void
 button_pressed(
 	x_window_t *  win ,
@@ -3550,8 +3611,8 @@ button_pressed(
 
 	screen = (x_screen_t*)win ;
 
-	if( ml_term_is_mouse_pos_sending( screen->term) &&
-		! (event->state & (ShiftMask | ControlMask)))
+	if( ml_term_get_mouse_report_mode( screen->term) &&
+		! (event->state & (ShiftMask|ControlMask)))
 	{
 		restore_selected_region_color_instantly( screen) ;
 		report_mouse_tracking( screen , event , 0) ;
@@ -3713,7 +3774,8 @@ button_released(
 
 	screen = (x_screen_t*) win ;
 
-	if( ml_term_is_mouse_pos_sending( screen->term) && ! (event->state & ShiftMask))
+	if( ml_term_get_mouse_report_mode( screen->term) &&
+		! (event->state & (ShiftMask|ControlMask)))
 	{
 		if( event->button >= Button4)
 		{
@@ -6678,21 +6740,32 @@ xterm_reverse_video(
 static void
 xterm_set_mouse_report(
 	void *  p ,
-	int  flag
+	ml_mouse_report_mode_t  mode
 	)
 {
 	x_screen_t *  screen ;
 
 	screen = p ;
 
-	if( flag)
+	if( mode)
 	{
 		x_stop_selecting( &screen->sel) ;
 		restore_selected_region_color_instantly( screen) ;
 		exit_backscroll_mode( screen) ;
 	}
 
-	ml_term_set_mouse_report( screen->term , flag) ;
+	if( mode == ANY_EVENT_MOUSE_REPORT)
+	{
+		screen->window.pointer_motion = pointer_motion ;
+		x_window_add_event_mask( &screen->window , PointerMotionMask) ;
+	}
+	else
+	{
+		screen->window.pointer_motion = NULL ;
+		x_window_remove_event_mask( &screen->window , PointerMotionMask) ;
+	}
+
+	ml_term_set_mouse_report( screen->term , mode) ;
 }
 
 static void
@@ -7123,6 +7196,7 @@ x_screen_new(
 	screen->window.window_unfocused = window_unfocused ;
 	screen->window.key_pressed = key_pressed ;
 	screen->window.window_resized = window_resized ;
+	screen->window.pointer_motion = pointer_motion ;
 	screen->window.button_motion = button_motion ;
 	screen->window.button_released = button_released ;
 	screen->window.button_pressed = button_pressed ;
@@ -7276,6 +7350,8 @@ x_screen_new(
 	screen->scroll_cache_rows = 0 ;
 	screen->scroll_cache_boundary_start = 0 ;
 	screen->scroll_cache_boundary_end = 0 ;
+
+	memset( screen->prev_mouse_report_seq , 0 , 3) ;
 
 	return  screen ;
 

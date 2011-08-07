@@ -51,6 +51,9 @@ $(LIBDIR):
 install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) libim-iiimf.la $(LIBDIR)
 
+uninstall:
+	rm -f $(LIBDIR)/*im-iiimf.*
+
 clean:
 	rm -rf $(IM_IIIMF_OBJ) $(IM_IIIMF_OBJ:.o=.lo) libim-iiimf.la core *.core .libs
 

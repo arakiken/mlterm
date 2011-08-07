@@ -143,6 +143,8 @@ typedef struct  x_screen
 	char *  conf_menu_path_2 ;
 	char *  conf_menu_path_3 ;
 
+	char  prev_mouse_report_seq[3] ;
+
 	u_int8_t  fade_ratio ;
 	u_int8_t  line_space ;
 	int8_t  receive_string_via_ucs ;

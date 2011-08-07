@@ -1,7 +1,28 @@
 comment -*- mode: text -*-
 comment $Id$
 
-platforms where transparent background feature supported.
+Platforms where transparent background feature is supported.
+(--with-imagelib=gdk-pixbuf option is not necessary in configure.)
+
+@ -> -t and -alpha/-contrast/-gamma/-bright options work.
+O -> -t option works.
+X -> -t option doesn't work.
+
+o NetBSD 3.0.1 + XFree86 4.5.0
+  twm 4.5.0 ... O
+  mwm 0.92.26 ... O
+
+o CentOS 5
+  gnome 2.16.0 ... @
+  afterstep 2.2.9 ... @
+
+o Ubuntu 10.10
+  gnome 2.32.0 ... @
+  Blackbox 0.70.1 ... @
+
+
+Transparent background worked in the past in following platforms
+where it is not tested now.
 
 o NetBSD 1.5 Y current + XFree86 4.1.0
   twm-4.1.0 ... OK

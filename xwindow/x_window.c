@@ -713,6 +713,7 @@ x_window_init(
 	win->window_focused = NULL ;
 	win->window_unfocused = NULL ;
 	win->key_pressed = NULL ;
+	win->pointer_motion = NULL ;
 	win->button_motion = NULL ;
 	win->button_released = NULL ;
 	win->button_pressed = NULL ;
@@ -2032,7 +2033,7 @@ x_window_receive_event(
 	else if( event->type == MotionNotify)
 	{
 		XEvent  ahead ;
-
+		
 		while( XEventsQueued(win->disp->display , QueuedAfterReading))
 		{
 			XPeekEvent( win->disp->display , &ahead) ;
@@ -2068,9 +2069,12 @@ x_window_receive_event(
 			win->prev_button_press_event.y = event->xmotion.y ;
 			win->prev_button_press_event.time = event->xmotion.time ;
 		}
-		else
+		else if( win->pointer_motion)
 		{
-			/* (*win->pointer_motion)( ... ) */
+			event->xmotion.x -= win->margin ;
+			event->xmotion.y -= win->margin ;
+
+			(*win->pointer_motion)( win , &event->xmotion) ;
 		}
 	}
 	else if( event->type == ButtonRelease)

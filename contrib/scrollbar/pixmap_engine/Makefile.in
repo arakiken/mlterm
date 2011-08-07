@@ -42,6 +42,10 @@ install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) libpixmap_engine.la $(LIBDIR)
 	for dir in $(SAMPLES) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
 
+uninstall:
+	rm -f $(LIBDIR)/*pixmap_engine.*
+	for dir in $(SAMPLES) ; do (cd $${dir} ; $(MAKE) $@) || exit $? ; done
+
 clean:
 	rm -rf $(PIXMAP_ENGINE_OBJ) $(PIXMAP_ENGINE_OBJ:.o=.lo) \
 		libpixmap_engine.la *.core .libs *~

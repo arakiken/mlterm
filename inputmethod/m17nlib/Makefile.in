@@ -51,6 +51,9 @@ $(LIBDIR):
 install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) libim-m17nlib.la $(LIBDIR)
 
+uninstall:
+	rm -f $(LIBDIR)/*im-m17nlib.*
+
 clean:
 	rm -rf $(IM_M17NLIB_OBJ) $(IM_M17NLIB_OBJ:.o=.lo) libim-m17nlib.la *.core .libs
 

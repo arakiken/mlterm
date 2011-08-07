@@ -36,11 +36,8 @@ typedef struct ml_term
 	ml_shape_t *  shape ;
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bidi_mode_t  bidi_mode ;
+	ml_mouse_report_mode_t  mouse_mode ;
 	
-	int8_t  use_bidi ;
-	int8_t  use_ind ;
-	int8_t  use_dynamic_comb ;
-
 	/*
 	 * private
 	 */
@@ -48,8 +45,17 @@ typedef struct ml_term
 	char *  icon_name ;
 	char *  icon_path ;
 
+	/*
+	 * public(read/write)
+	 */
+	int8_t  use_bidi ;
+	int8_t  use_ind ;
+	int8_t  use_dynamic_comb ;
+
+	/*
+	 * private
+	 */
 	int8_t  is_auto_encoding ;
-	int8_t  is_mouse_pos_sending ;
 	int8_t  is_app_keypad ;
 	int8_t  is_app_cursor_keys ;
 	int8_t  is_bracketed_paste_mode ;
@@ -231,9 +237,9 @@ int  ml_term_set_multi_col_char_flag( ml_term_t *  term , int  flag) ;
 #define  ml_term_get_col_size_of_width_a( term) \
 		ml_vt100_parser_get_col_size_of_width_a( (term)->parser)
 
-int  ml_term_set_mouse_report( ml_term_t *  term , int  flag) ;
+int  ml_term_set_mouse_report( ml_term_t *  term , ml_mouse_report_mode_t  mode) ;
 
-#define  ml_term_is_mouse_pos_sending( term)  ((term)->is_mouse_pos_sending)
+#define  ml_term_get_mouse_report_mode( term)  ((term)->mouse_mode)
 
 int  ml_term_set_app_keypad( ml_term_t *  term , int  flag) ;
 

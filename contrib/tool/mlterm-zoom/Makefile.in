@@ -38,6 +38,9 @@ mlterm-zoom: $(OBJS)
 install: $(LIBEXECDIR) $(SYSCONFDIR)/mlterm
 	$(LIBTOOL_INSTALL) -m 755 mlterm-zoom $(LIBEXECDIR)
 
+uninstall:
+	rm -f $(LIBEXECDIR)/mlterm-zoom
+
 $(LIBEXECDIR):
 	mkdir -p $(LIBEXECDIR)
 

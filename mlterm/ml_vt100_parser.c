@@ -642,14 +642,14 @@ reverse_video(
 static void
 set_mouse_report(
 	ml_vt100_parser_t *  vt100_parser ,
-	int  flag
+	ml_mouse_report_mode_t  mode
 	)
 {
 	if( HAS_XTERM_LISTENER(vt100_parser,set_mouse_report))
 	{
 		stop_vt100_cmd( vt100_parser , 0) ;
 		(*vt100_parser->xterm_listener->set_mouse_report)(
-			vt100_parser->xterm_listener->self , flag) ;
+			vt100_parser->xterm_listener->self , mode) ;
 		start_vt100_cmd( vt100_parser , 0) ;
 	}
 }
@@ -1754,7 +1754,21 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 1000 h" */
 
-						set_mouse_report( vt100_parser , 1) ;
+						set_mouse_report( vt100_parser , MOUSE_REPORT) ;
+					}
+					else if( ps[0] == 1002)
+					{
+						/* "CSI ? 1002 h" */
+
+						set_mouse_report( vt100_parser ,
+							BUTTON_EVENT_MOUSE_REPORT) ;
+					}
+					else if( ps[0] == 1003)
+					{
+						/* "CSI ? 1003 h" */
+
+						set_mouse_report( vt100_parser ,
+							ANY_EVENT_MOUSE_REPORT) ;
 					}
 				#if  0
 					else if( ps[0] == 1001)
@@ -1924,9 +1938,9 @@ parse_vt100_escape_sequence(
 						/* "CSI ? 67 l" have back space */
 					}
 				#endif
-					else if( ps[0] == 1000)
+					else if( ps[0] == 1000 || ps[0] == 1002 || ps[0] == 1003)
 					{
-						/* "CSI ? 1000 l" */
+						/* "CSI ? 1000 l" "CSI ? 1002 l" "CSI ? 1003 l" */
 
 						set_mouse_report( vt100_parser , 0) ;
 					}

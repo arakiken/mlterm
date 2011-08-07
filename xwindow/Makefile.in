@@ -86,6 +86,9 @@ $(BINDIR):
 install : $(BINDIR)
 	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG) $(BINDIR)
 
+uninstall :
+	rm -f $(BINDIR)/$(PROG)
+
 wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 

@@ -1,3 +1,19 @@
+2011-08-07  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.tp: Updated.
+
+	* x_window_win32.c: Position in WM_MOUSEWHEEL event is processed by
+	  ScreenToClient().
+	  (Thanks to Iwamoto Kouichi san)
+
+	* ml_vt100_parser.c, ml_term.[ch], x_screen.c: "CSI ? 1002 h" "CSI ? 1003 h"
+	  "CSI ? 1002 l" "CSI ? 1003 l" sequences are supported.
+
+	* kiklib/configure.in: Not only if posix_openpt and /dev/ptmx exist but
+	  also if they work is checked.
+
+	* Makefile.in: 'make uninstall' is supported.
+
 2011-08-02  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window_win32.c: Width and height of window decorations like caption

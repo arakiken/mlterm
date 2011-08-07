@@ -244,16 +244,21 @@ AC_CACHE_VAL(kik_cv_pty,
 		kik_cv_pty=streams
 	else
 		AC_CHECK_FUNC( posix_openpt,
-			[
-			AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
-			kik_cv_pty=streams
-			], [
-			if test -c /dev/ptmx ; then
+			[AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <fcntl.h>],
+				[return posix_openpt( O_RDWR | O_NOCTTY) == -1;])],
+				[
+				AC_DEFINE(HAVE_POSIX_OPENPT,,"HAVE_POSIX_OPENPT")
 				kik_cv_pty=streams
-			else
-				kik_cv_pty=bsd
-			fi])
-	fi])
+				],
+				[kik_cv_pty=bsd])],
+			[kik_cv_pty=bsd])
+		if test "$kik_cv_pty" = "bsd" ; then
+			AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <fcntl.h>],
+				[return open( "/dev/ptmx", O_RDWR | O_NOCTTY, 0) == -1;])],
+				[kik_cv_pty=streams])
+		fi
+	fi
+	])
 AC_ARG_ENABLE(pty_helper,
 	[  --enable-pty-helper     use pty helper @<:@default=disabled@:>@],
 	pty_helper=$enable_pty_helper)

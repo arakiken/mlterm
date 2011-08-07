@@ -48,10 +48,13 @@ $(PROG): $(OBJ)
 $(LIBEXECDIR):
 	mkdir -p $(LIBEXECDIR)
 
-install : $(LIBEXECDIR)
+install: $(LIBEXECDIR)
 	$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(PROG) $(LIBEXECDIR)
 
-wc :
+uninstall:
+	rm -f $(LIBEXECDIR)/$(PROG)
+
+wc:
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 
 clean:

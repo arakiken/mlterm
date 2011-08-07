@@ -88,6 +88,9 @@ install-la : $(LIBDIR)
 install-ar : $(LIBDIR)
 	$(LIBTOOL_INSTALL) *.a $(LIBDIR)
 
+uninstall:
+	rm -rf $(LIBDIR)/*mkf.* $(INCDIR)/mkf
+
 $(INCDIR)/mkf :
 	mkdir -p $(INCDIR)/mkf
 

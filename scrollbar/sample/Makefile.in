@@ -56,6 +56,9 @@ $(LIBDIR):
 install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) $(TARGETS) $(LIBDIR)
 
+uninstall:
+	rm -f $(LIBDIR)/*sample.* $(LIBDIR)/*sample2.*
+
 clean:
 	rm -rf $(SAMPLE_OBJ) $(SAMPLE_OBJ:.o=.lo) $(SAMPLE2_OBJ) $(SAMPLE2_OBJ:.o=.lo) \
 		libsample.la libsample2.la *.core .libs

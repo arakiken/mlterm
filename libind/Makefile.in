@@ -74,3 +74,6 @@ $(LIBDIR)/mlterm:
 
 install: $(LIBDIR)/mlterm
 	$(LIBTOOL_INSTALL) *.la $(LIBDIR)/mlterm
+
+uninstall:
+	rm -f $(LIBDIR)/mlterm/libind_*

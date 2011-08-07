@@ -44,6 +44,15 @@ typedef enum  ml_unicode_policy
 
 } ml_unicode_policy_t ;
 
+typedef enum  ml_mouse_report_mode
+{
+	NO_MOUSE_REPORT = 0 ,
+	MOUSE_REPORT = 1 ,
+	BUTTON_EVENT_MOUSE_REPORT = 2 ,
+	ANY_EVENT_MOUSE_REPORT = 3 ,
+
+} ml_mouse_report_mode_t ;
+
 typedef struct  ml_char_buffer
 {
 	ml_char_t  chars[PTY_WR_BUFFER_SIZE] ;
@@ -67,7 +76,7 @@ typedef struct  ml_xterm_event_listener
 	void (*set_app_cursor_keys)( void * , int) ;	/* called in logical context. */
 	void (*resize_columns)( void * , u_int) ;	/* called in visual context. */
 	void (*reverse_video)( void * , int) ;		/* called in visual context. */
-	void (*set_mouse_report)( void * , int) ;	/* called in visual context. */
+	void (*set_mouse_report)( void * , ml_mouse_report_mode_t) ;/* called in visual context. */
 	void (*set_window_name)( void * , u_char *) ;	/* called in logical context. */
 	void (*set_icon_name)( void * , u_char *) ;	/* called in logical context. */
 	void (*bel)( void *) ;				/* called in visual context. */

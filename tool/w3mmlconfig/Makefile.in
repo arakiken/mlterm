@@ -29,20 +29,27 @@ mlconfig-data.pl: $(DATA)
 	$(PERL) mk_mlconfig-data.pl mlconfig-data > $@
 
 install: all
-	-$(MKDIR) $(DESTDIR)$(BIN_DIR)
-	-$(MKDIR) $(DESTDIR)$(LIB_DIR)
+	-$(MKDIR) $(BIN_DIR)
+	-$(MKDIR) $(LIB_DIR)
 	for file in $(TARGETS);     \
 	do      \
-		$(INSTALL_SCRIPT) $$file $(DESTDIR)$(BIN_DIR);  \
+		$(INSTALL_SCRIPT) $$file $(BIN_DIR);  \
 	done
 	for file in $(LIB_TARGETS);     \
 	do      \
-		$(INSTALL_SCRIPT) $$file $(DESTDIR)$(LIB_DIR);  \
+		$(INSTALL_SCRIPT) $$file $(LIB_DIR);  \
 	done
 	for file in $(DATA_TARGETS);     \
 	do      \
-		$(INSTALL_DATA) $$file $(DESTDIR)$(LIB_DIR);  \
+		$(INSTALL_DATA) $$file $(LIB_DIR);  \
 	done
+
+uninstall:
+	for file in $(TARGETS);     \
+	do      \
+		rm -f $(BIN_DIR)/$$file;  \
+	done
+	rm -rf $(LIB_DIR)
 
 clean:
 	rm -f $(DATA_TARGETS)

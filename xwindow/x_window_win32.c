@@ -917,6 +917,7 @@ x_window_init(
 	win->window_focused = NULL ;
 	win->window_unfocused = NULL ;
 	win->key_pressed = NULL ;
+	win->pointer_motion = NULL ;
 	win->button_motion = NULL ;
 	win->button_released = NULL ;
 	win->button_pressed = NULL ;
@@ -2016,22 +2017,21 @@ x_window_receive_event(
 
 			bev.time = GetMessageTime() ;
 
-			bev.x = LOWORD(event->lparam) - win->margin ;
-			bev.y = HIWORD(event->lparam) - win->margin ;
-
 			bev.state = 0 ;
+		#if  0
 			if( event->wparam & MK_LBUTTON)
 			{
 				bev.state |= Button1Mask ;
 			}
-			if( event->wparam & MK_RBUTTON)
+			if( event->wparam & MK_MBUTTON)
 			{
 				bev.state |= Button2Mask ;
 			}
-			if( event->wparam & MK_MBUTTON)
+			if( event->wparam & MK_RBUTTON)
 			{
 				bev.state |= Button3Mask ;
 			}
+		#endif
 			if( event->wparam & MK_SHIFT)
 			{
 				bev.state |= ShiftMask ;
@@ -2043,6 +2043,16 @@ x_window_receive_event(
 
 			if( event->msg == WM_MOUSEWHEEL)
 			{
+				POINT  p ;
+				
+				p.x = LOWORD(event->lparam) ;
+				p.y = HIWORD(event->lparam) ;
+
+				ScreenToClient( win->my_window , &p) ;
+
+				bev.x = p.x - win->margin ;
+				bev.y = p.y - win->margin ;
+
 				if( ((SHORT)HIWORD(event->wparam)) > 0)
 				{
 					bev.button = 4 ;
@@ -2052,17 +2062,25 @@ x_window_receive_event(
 					bev.button = 5 ;
 				}
 			}
-			else if( event->msg == WM_LBUTTONDOWN || event->msg == WM_LBUTTONUP)
+			else
 			{
-				bev.button = 1 ;
-			}
-			else if( event->msg == WM_RBUTTONDOWN || event->msg == WM_RBUTTONUP)
-			{
-				bev.button = 3 ;
-			}
-			else /* if( event->msg == WM_MBUTTONDOWN) || event->msg == WM_MBUTTONUP) */
-			{
-				bev.button = 2 ;
+				bev.x = LOWORD(event->lparam) - win->margin ;
+				bev.y = HIWORD(event->lparam) - win->margin ;
+
+				if( event->msg == WM_LBUTTONDOWN || event->msg == WM_LBUTTONUP)
+				{
+					bev.button = 1 ;
+				}
+				else if( event->msg == WM_MBUTTONDOWN ||
+					event->msg == WM_MBUTTONUP)
+				{
+					bev.button = 2 ;
+				}
+				else /* if( event->msg == WM_RBUTTONDOWN ||
+					event->msg == WM_RBUTTONUP) */
+				{
+					bev.button = 3 ;
+				}
 			}
 
 			if( event->msg == WM_MOUSEWHEEL || event->msg == WM_LBUTTONDOWN ||
@@ -2115,7 +2133,7 @@ x_window_receive_event(
 		return  1 ;
 
 	case  WM_MOUSEMOVE:
-		if( win->button_is_pressing)
+		if( win->button_is_pressing || win->pointer_motion)
 		{
 			XMotionEvent  mev ;
 
@@ -2129,11 +2147,11 @@ x_window_receive_event(
 			{
 				mev.state |= Button1Mask ;
 			}
-			if( event->wparam & MK_RBUTTON)
+			if( event->wparam & MK_MBUTTON)
 			{
 				mev.state |= Button2Mask ;
 			}
-			if( event->wparam & MK_MBUTTON)
+			if( event->wparam & MK_RBUTTON)
 			{
 				mev.state |= Button3Mask ;
 			}
@@ -2146,20 +2164,34 @@ x_window_receive_event(
 				mev.state |= ControlMask ;
 			}
 
-			if( win->button_motion)
+			if( win->button_is_pressing)
 			{
-				(*win->button_motion)( win , &mev) ;
-			}
-			
-			/* following button motion ... */
-			win->prev_button_press_event.x = mev.x ;
-			win->prev_button_press_event.y = mev.y ;
-			win->prev_button_press_event.time = mev.time ;
+				if( win->button_motion)
+				{
+					(*win->button_motion)( win , &mev) ;
+				}
 
-		#if  0
-			kik_debug_printf( KIK_DEBUG_TAG " mouse motion... state %d x %d y %d\n",
-				mev.state, mev.x, mev.y) ;
-		#endif
+				/* following button motion ... */
+				win->prev_button_press_event.x = mev.x ;
+				win->prev_button_press_event.y = mev.y ;
+				win->prev_button_press_event.time = mev.time ;
+
+			#if  0
+				kik_debug_printf( KIK_DEBUG_TAG
+					" button motion... state %d x %d y %d\n" ,
+					mev.state , mev.x , mev.y) ;
+			#endif
+			}
+			else /* if( win->pointer_motion) */
+			{
+				(*win->pointer_motion)( win , &mev) ;
+
+			#if  0
+				kik_debug_printf( KIK_DEBUG_TAG
+					" pointer motion... state %d x %d y %d\n" ,
+					mev.state , mev.x , mev.y) ;
+			#endif
+			}
 		}
 		
 		return  1 ;

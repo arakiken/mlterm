@@ -92,7 +92,7 @@ ml_term_new(
 	term->icon_name = NULL ;
 	term->icon_path = NULL ;
 
-	term->is_mouse_pos_sending = 0 ;
+	term->mouse_mode = 0 ;
 	term->is_app_keypad = 0 ;
 	term->is_app_cursor_keys = 0 ;
 	term->is_bracketed_paste_mode = 0 ;
@@ -858,10 +858,10 @@ ml_term_set_multi_col_char_flag(
 int
 ml_term_set_mouse_report(
 	ml_term_t *  term ,
-	int  flag
+	ml_mouse_report_mode_t  mode
 	)
 {
-	term->is_mouse_pos_sending = flag ;
+	term->mouse_mode = mode ;
 
 	return  1 ;
 }

@@ -53,6 +53,9 @@ install-la: $(LIBDIR)/mkf
 
 install-inc:
 
+uninstall:
+	rm -rf $(LIBDIR)/mkf
+
 $(LIBDIR)/mkf :
 	mkdir -p $(LIBDIR)/mkf
 

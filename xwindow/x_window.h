@@ -180,6 +180,7 @@ typedef struct  x_window
 	void (*window_focused)( struct x_window *) ;
 	void (*window_unfocused)( struct x_window *) ;
 	void (*key_pressed)( struct x_window * , XKeyEvent *) ;
+	void (*pointer_motion)( struct x_window * , XMotionEvent *) ;
 	void (*button_motion)( struct x_window * , XMotionEvent *) ;
 	void (*button_released)( struct x_window * , XButtonEvent *) ;
 	void (*button_pressed)( struct x_window * , XButtonEvent * , int) ;

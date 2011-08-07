@@ -38,6 +38,9 @@ install: $(LIBEXECDIR)
 	$(LIBTOOL_INSTALL) -m 755 mlmenu $(LIBEXECDIR)
 	$(INSTALL) -m 644 ${top_srcdir}/tool/mlmenu/menu-simple $(SYSCONFDIR)/mlterm
 
+uninstall:
+	rm -f $(LIBEXECDIR)/mlmenu $(SYSCONFDIR)/mlterm/menu-simple
+
 $(LIBEXECDIR):
 	mkdir -p $(LIBEXECDIR)
 

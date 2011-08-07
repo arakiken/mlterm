@@ -39,3 +39,6 @@ $(BINDIR):
 
 install: $(BINDIR)
 	$(INSTALL) -m 755 $(PROG) $(PROG)x $(BINDIR)
+
+uninstall:
+	rm -f $(BINDIR)/$(PROG) $(BINDIR)/$(PROG)x

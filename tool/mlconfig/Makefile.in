@@ -71,6 +71,10 @@ install: $(LIBEXECDIR)
 	$(LIBTOOL_INSTALL) -m 755 mlconfig $(LIBEXECDIR)
 	cd po ; $(MAKE) install
 
+uninstall:
+	rm -f $(LIBEXECDIR)/mlconfig
+	cd po ; $(MAKE) uninstall
+
 $(LIBEXECDIR):
 	mkdir -p $(LIBEXECDIR)
 

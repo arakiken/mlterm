@@ -8,6 +8,8 @@ bindir = @bindir@
 libdir = @libdir@
 libexecdir = @libexecdir@
 
+LIBDIR = $(DESTDIR)$(libdir)
+
 CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
@@ -49,4 +51,7 @@ distclean: clean
 	rm -f Makefile
 
 install:
-	$(LIBTOOL_INSTALL) libvte.la $(libdir)
+	$(LIBTOOL_INSTALL) libvte.la $(LIBDIR)
+
+uninstall:
+	rm -f $(LIBDIR)/libvte.*

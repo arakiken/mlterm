@@ -20,5 +20,8 @@ install: $(SYSCONFDIR)
 	for file in $(RCFILES) ; do $(INSTALL) -m 644 $(top_srcdir)/etc/$${file} $(SYSCONFDIR)/$${file} ; done
 	# for file in $(GEN_RCFILES) ; do $(INSTALL) -m 644 $(top_builddir)/etc/$${file} $(SYSCONFDIR)/$${file} ; done
 
+uninstall:
+	for file in $(RCFILES) ; do rm -f $(SYSCONFDIR)/$${file} ; done
+
 distclean:
 	rm -f Makefile

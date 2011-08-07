@@ -57,6 +57,9 @@ $(LIBDIR):
 install: $(LIBDIR)
 	$(LIBTOOL_INSTALL) libim-scim.la $(LIBDIR)
 
+uninstall:
+	rm -f $(LIBDIR)/*im-scim.*
+
 clean:
 	rm -rf $(IM_SCIM_OBJ) $(IM_SCIM_OBJ:.o=.lo) libim-scim.la *.core .libs
 

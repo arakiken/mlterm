@@ -60,6 +60,9 @@ install-ar : $(LIBDIR)
 install-deb :
 	$(MAKE) LIBNAME=$(LIBNAME_DEB) $(OVERRIDE_MACROS) install-ar
 
+uninstall:
+	rm -rf $(LIBDIR)/*kik.* $(INCDIR)/kiklib
+
 $(INCDIR)/kiklib :
 	mkdir -p $(INCDIR)/kiklib
 
