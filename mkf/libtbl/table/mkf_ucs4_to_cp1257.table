@@ -562,7 +562,7 @@ static ucs4_to_cp1257_table_t ucs4_to_cp1257_tables[] =
 #define  HI(i)  ( ((i)>>8) & 0xffffff )
 #define  LO(i)  ( (i) & 0xff )
 
-inline u_int8_t
+static u_int8_t
 CONV_UCS4_TO_CP1257(
 	u_int32_t  ch
 	)

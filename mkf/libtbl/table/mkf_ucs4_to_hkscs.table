@@ -35924,7 +35924,7 @@ static ucs4_to_hkscs_table_t ucs4_to_hkscs_tables[] =
 #define  HI(i)  ( ((i)>>8) & 0xffffff )
 #define  LO(i)  ( (i) & 0xff )
 
-inline u_int16_t
+static u_int16_t
 CONV_UCS4_TO_HKSCS(
 	u_int32_t  ch
 	)

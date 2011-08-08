@@ -72,8 +72,6 @@ typedef struct  ml_xterm_event_listener
 	void (*start)( void *) ;	/* called in *visual* context. (Note that not logical) */
 	void (*stop)( void *) ;		/* called in visual context. */
 	
-	void (*set_app_keypad)( void * , int) ;		/* called in logical context. */
-	void (*set_app_cursor_keys)( void * , int) ;	/* called in logical context. */
 	void (*resize_columns)( void * , u_int) ;	/* called in visual context. */
 	void (*reverse_video)( void * , int) ;		/* called in visual context. */
 	void (*set_mouse_report)( void * , ml_mouse_report_mode_t) ;/* called in visual context. */
@@ -82,7 +80,6 @@ typedef struct  ml_xterm_event_listener
 	void (*bel)( void *) ;				/* called in visual context. */
 	int (*im_is_active)( void *) ;			/* called in logical context. */
 	void (*switch_im_mode)( void *) ;		/* called in logical context. */
-	void (*set_bracketed_paste_mode)( void * , int) ;	/* called in logical context. */
 
 } ml_xterm_event_listener_t ;
 
@@ -149,6 +146,8 @@ typedef struct  ml_vt100_parser
 
 	int  log_file ;
 
+	ml_mouse_report_mode_t  mouse_mode ;
+
 	/* Used for non iso2022 encoding */
 	int8_t  is_dec_special_in_gl ;
 	int8_t  is_so ;
@@ -168,6 +167,11 @@ typedef struct  ml_vt100_parser
 	int8_t  use_char_combining ;
 	int8_t  use_multi_col_char ;
 	int8_t  logging_vt_seq ;
+
+	int8_t  is_app_keypad ;
+	int8_t  is_app_cursor_keys ;
+	int8_t  is_app_escape ;
+	int8_t  is_bracketed_paste_mode ;
 
 	int8_t  im_is_active ;
 
@@ -197,7 +201,8 @@ int  ml_vt100_parser_set_unicode_policy( ml_vt100_parser_t *  vt100_parser ,
 
 int  ml_parse_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
 
-int  ml_vt100_parser_change_encoding( ml_vt100_parser_t *  vt100_parser , ml_char_encoding_t  encoding) ;
+int  ml_vt100_parser_change_encoding( ml_vt100_parser_t *  vt100_parser ,
+	ml_char_encoding_t  encoding) ;
 
 ml_char_encoding_t  ml_vt100_parser_get_encoding( ml_vt100_parser_t *  vt100_parser) ;
 
@@ -211,7 +216,18 @@ int  ml_init_encoding_conv( ml_vt100_parser_t *  vt100_parser) ;
 int  ml_vt100_parser_set_col_size_of_width_a( ml_vt100_parser_t *  vt100_parser ,
 	u_int  col_size_a) ;
 
-u_int  ml_vt100_parser_get_col_size_of_width_a( ml_vt100_parser_t *  vt100_parser) ;
+#define  ml_vt100_parser_get_col_size_of_width_a( vt100_parser) \
+		((vt100_parser)->col_size_of_width_a)
 
+#define  ml_vt100_parser_get_mouse_report_mode( vt100_parser)  ((vt100_parser)->mouse_mode)
+
+#define  ml_vt100_parser_is_app_keypad( vt100_parser)  ((vt100_parser)->is_app_keypad)
+
+#define  ml_vt100_parser_is_app_cursor_keys( vt100_parser)  ((vt100_parser)->is_app_cursor_keys)
+
+#define  ml_vt100_parser_is_app_escape( vt100_parser)  ((vt100_parser)->is_app_escape)
+
+#define  ml_vt100_parser_is_bracketed_paste_mode( vt100_parser) \
+		((vt100_parser)->is_bracketed_paste_mode)
 
 #endif

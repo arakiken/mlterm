@@ -8589,7 +8589,7 @@ static jisx0208_1983_to_ucs4_table_t jisx0208_1983_to_ucs4_tables[] =
 #define  HI(i)  ( ((i)>>8) & 0xff )
 #define  LO(i)  ( (i) & 0xff )
 
-inline u_int16_t
+static u_int16_t
 CONV_JISX0208_1983_TO_UCS4(
 	u_int32_t  ch
 	)

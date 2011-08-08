@@ -1193,7 +1193,7 @@ match_font_configs(
 	return  size ;
 }
 
-x_font_config_t *
+static x_font_config_t *
 create_shared_font_config(
 	x_type_engine_t  type_engine ,
 	x_font_present_t  font_present
@@ -1232,6 +1232,7 @@ create_shared_font_config(
 
 	return  NULL ;
 }
+
 
 /* --- global functions --- */
 

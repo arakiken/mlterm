@@ -23352,7 +23352,7 @@ static ucs4_to_cns11643_1992_2_table_t ucs4_to_cns11643_1992_2_tables[] =
 #define  HI(i)  ( ((i)>>8) & 0xffffff )
 #define  LO(i)  ( (i) & 0xff )
 
-inline u_int16_t
+static u_int16_t
 CONV_UCS4_TO_CNS11643_1992_2(
 	u_int32_t  ch
 	)

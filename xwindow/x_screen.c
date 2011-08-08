@@ -2405,6 +2405,10 @@ no_keypad:
 		{
 			buf = x_termcap_get_str_field( screen->termcap , ML_BACKSPACE) ;
 		}
+		else if( ksym == XK_Escape && ml_term_is_app_escape( screen->term))
+		{
+			buf = "\x1bO[" ;
+		}
 		else if( size > 0)
 		{
 			buf = NULL ;
@@ -6640,32 +6644,6 @@ stop_vt100_cmd(
 }
 
 static void
-xterm_set_app_keypad(
-	void *  p ,
-	int  flag
-	)
-{
-	x_screen_t *  screen ;
-
-	screen = p ;
-
-	ml_term_set_app_keypad( screen->term , flag) ;
-}
-
-static void
-xterm_set_app_cursor_keys(
-	void *  p ,
-	int  flag
-	)
-{
-	x_screen_t *  screen ;
-
-	screen = p ;
-
-	ml_term_set_app_cursor_keys( screen->term , flag) ;
-}
-
-static void
 xterm_resize_columns(
 	void *  p ,
 	u_int  cols
@@ -6753,6 +6731,10 @@ xterm_set_mouse_report(
 		restore_selected_region_color_instantly( screen) ;
 		exit_backscroll_mode( screen) ;
 	}
+	else
+	{
+		memset( screen->prev_mouse_report_seq , 0 , 3) ;
+	}
 
 	if( mode == ANY_EVENT_MOUSE_REPORT)
 	{
@@ -6764,8 +6746,6 @@ xterm_set_mouse_report(
 		screen->window.pointer_motion = NULL ;
 		x_window_remove_event_mask( &screen->window , PointerMotionMask) ;
 	}
-
-	ml_term_set_mouse_report( screen->term , mode) ;
 }
 
 static void
@@ -6862,19 +6842,6 @@ xterm_switch_im_mode(
 #endif
 
 	x_xic_switch_mode( &screen->window) ;
-}
-
-static void
-xterm_set_bracketed_paste_mode(
-	void *  p ,
-	int  flag
-	)
-{
-	x_screen_t *  screen ;
-
-	screen = p ;
-
-	ml_term_set_bracketed_paste_mode( screen->term , flag) ;
 }
 
 
@@ -7021,8 +6988,6 @@ x_screen_new(
 	screen->xterm_listener.self = screen ;
 	screen->xterm_listener.start = start_vt100_cmd ;
 	screen->xterm_listener.stop = stop_vt100_cmd ;
-	screen->xterm_listener.set_app_keypad = xterm_set_app_keypad ;
-	screen->xterm_listener.set_app_cursor_keys = xterm_set_app_cursor_keys ;
 	screen->xterm_listener.resize_columns = xterm_resize_columns ;
 	screen->xterm_listener.reverse_video = xterm_reverse_video ;
 	screen->xterm_listener.set_mouse_report = xterm_set_mouse_report ;
@@ -7031,7 +6996,6 @@ x_screen_new(
 	screen->xterm_listener.bel = xterm_bel ;
 	screen->xterm_listener.im_is_active = xterm_im_is_active ;
 	screen->xterm_listener.switch_im_mode = xterm_switch_im_mode ;
-	screen->xterm_listener.set_bracketed_paste_mode = xterm_set_bracketed_paste_mode ;
 
 	memset( &screen->config_listener, 0, sizeof( ml_config_event_listener_t)) ;
 	screen->config_listener.self = screen ;

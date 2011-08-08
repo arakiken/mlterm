@@ -92,11 +92,6 @@ ml_term_new(
 	term->icon_name = NULL ;
 	term->icon_path = NULL ;
 
-	term->mouse_mode = 0 ;
-	term->is_app_keypad = 0 ;
-	term->is_app_cursor_keys = 0 ;
-	term->is_bracketed_paste_mode = 0 ;
-
 	term->is_attached = 0 ;
 
 	return  term ;
@@ -270,14 +265,6 @@ ml_term_detach(
 }
 
 int
-ml_term_is_attached(
-	ml_term_t *  term
-	)
-{
-	return  term->is_attached ;
-}
-
-int
 ml_term_set_auto_encoding(
 	ml_term_t *  term ,
 	int  is_auto_encoding
@@ -286,14 +273,6 @@ ml_term_set_auto_encoding(
 	term->is_auto_encoding = is_auto_encoding ;
 
 	return  1 ;
-}
-
-int
-ml_term_is_auto_encoding(
-	ml_term_t *  term
-	)
-{
-	return  term->is_auto_encoding ;
 }
 
 int
@@ -856,38 +835,6 @@ ml_term_set_multi_col_char_flag(
 }
 
 int
-ml_term_set_mouse_report(
-	ml_term_t *  term ,
-	ml_mouse_report_mode_t  mode
-	)
-{
-	term->mouse_mode = mode ;
-
-	return  1 ;
-}
-int
-ml_term_set_app_keypad(
-	ml_term_t *  term ,
-	int  flag
-	)
-{
-	term->is_app_keypad = flag ;
-
-	return  1 ;
-}
-
-int
-ml_term_set_app_cursor_keys(
-	ml_term_t *  term ,
-	int  flag
-	)
-{
-	term->is_app_cursor_keys = flag ;
-
-	return  1 ;
-}
-
-int
 ml_term_set_window_name(
 	ml_term_t *  term ,
 	char *  name
@@ -921,17 +868,6 @@ ml_term_set_icon_path(
 	term->icon_path = strdup( path) ;
 
 	return 1 ;
-}
-
-int
-ml_term_set_bracketed_paste_mode(
-	ml_term_t *  term ,
-	int  flag
-	)
-{
-	term->is_bracketed_paste_mode = flag ;
-
-	return  1 ;
 }
 
 int

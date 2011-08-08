@@ -13967,7 +13967,7 @@ static johab_to_uhc_table_t johab_to_uhc_tables[] =
 #define  HI(i)  ( ((i)>>8) & 0xff )
 #define  LO(i)  ( (i) & 0xff )
 
-inline u_int16_t
+static u_int16_t
 CONV_JOHAB_TO_UHC(
 	u_int32_t  ch
 	)

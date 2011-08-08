@@ -572,44 +572,6 @@ restore_cursor(
 }
 
 static void
-set_app_keypad(
-	ml_vt100_parser_t *  vt100_parser ,
-	int  flag
-	)
-{
-	if( HAS_XTERM_LISTENER(vt100_parser,set_app_keypad))
-	{
-	#if  0
-		stop_vt100_cmd( vt100_parser , 0) ;
-	#endif
-		(*vt100_parser->xterm_listener->set_app_keypad)(
-			vt100_parser->xterm_listener->self , flag) ;
-	#if  0
-		start_vt100_cmd( vt100_parser , 0) ;
-	#endif
-	}
-}
-
-static void
-set_app_cursor_keys(
-	ml_vt100_parser_t *  vt100_parser ,
-	int  flag
-	)
-{
-	if( HAS_XTERM_LISTENER(vt100_parser,set_app_cursor_keys))
-	{
-	#if  0
-		stop_vt100_cmd( vt100_parser , 0) ;
-	#endif
-		(*vt100_parser->xterm_listener->set_app_cursor_keys)(
-			vt100_parser->xterm_listener->self , flag) ;
-	#if  0
-		start_vt100_cmd( vt100_parser , 0) ;
-	#endif
-	}
-}
-
-static void
 resize_columns(
 	ml_vt100_parser_t *  vt100_parser ,
 	u_int  cols
@@ -648,6 +610,7 @@ set_mouse_report(
 	if( HAS_XTERM_LISTENER(vt100_parser,set_mouse_report))
 	{
 		stop_vt100_cmd( vt100_parser , 0) ;
+		vt100_parser->mouse_mode = mode ;
 		(*vt100_parser->xterm_listener->set_mouse_report)(
 			vt100_parser->xterm_listener->self , mode) ;
 		start_vt100_cmd( vt100_parser , 0) ;
@@ -723,25 +686,6 @@ im_is_active(
 	else
 	{
 		return  0 ;
-	}
-}
-
-static void
-set_bracketed_paste_mode(
-	ml_vt100_parser_t *  vt100_parser ,
-	int  flag
-	)
-{
-	if( HAS_XTERM_LISTENER( vt100_parser,set_bracketed_paste_mode))
-	{
-	#if  0
-		stop_vt100_cmd( vt100_parser , 0) ;
-	#endif
-		(*vt100_parser->xterm_listener->set_bracketed_paste_mode)(
-			vt100_parser->xterm_listener->self , flag) ;
-	#if  0
-		start_vt100_cmd( vt100_parser , 0) ;
-	#endif
 	}
 }
 
@@ -1262,6 +1206,13 @@ soft_reset(
 	( ml_screen_is_alternative_edit( vt100_parser->screen) ?
 		&vt100_parser->saved_alternate
 		: &vt100_parser->saved_normal)->is_saved = 0 ;
+
+	vt100_parser->mouse_mode = 0 ;
+	vt100_parser->is_app_keypad = 0 ;
+	vt100_parser->is_app_cursor_keys = 0 ;
+	vt100_parser->is_app_escape = 0 ;
+	vt100_parser->is_bracketed_paste_mode = 0 ;
+
 	vt100_parser->im_is_active = 0 ;
 }
 
@@ -1454,13 +1405,13 @@ parse_vt100_escape_sequence(
 		{
 			/* "ESC =" application keypad */
 
-			set_app_keypad( vt100_parser , 1) ;
+			vt100_parser->is_app_keypad = 1 ;
 		}
 		else if( *str_p == '>')
 		{
 			/* "ESC >" normal keypad */
 
-			set_app_keypad( vt100_parser , 0) ;
+			vt100_parser->is_app_keypad = 0 ;
 		}
 		else if( *str_p == 'D')
 		{
@@ -1656,7 +1607,7 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 1 h" */
 
-						set_app_cursor_keys( vt100_parser , 1) ;
+						vt100_parser->is_app_cursor_keys = 1 ;
 					}
 				#if  0
 					else if( ps[0] == 2)
@@ -1742,7 +1693,7 @@ parse_vt100_escape_sequence(
 					else if( ps[0] == 66)
 					{
 						/* "CSI ? 66 h" application key pad */
-						set_app_keypad( vt100_parser , 1) ;
+						vt100_parser->is_app_keypad = 1 ;
 					}
 				#if  0
 					else if( ps[0] == 67)
@@ -1827,7 +1778,13 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 2004 h" */
 
-						set_bracketed_paste_mode( vt100_parser , 1) ;
+						vt100_parser->is_bracketed_paste_mode = 1 ;
+					}
+					else if( ps[0] == 7727)
+					{
+						/* "CSI ? 7727 h" */
+
+						vt100_parser->is_app_escape = 1 ;
 					}
 					else
 					{
@@ -1845,7 +1802,7 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 1 l" */
 
-						set_app_cursor_keys( vt100_parser , 0) ;
+						vt100_parser->is_app_cursor_keys = 0 ;
 					}
 				#if  0
 					else if( ps[0] == 2)
@@ -1930,7 +1887,7 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 66 l" application key pad */
 
-						set_app_keypad( vt100_parser , 0) ;
+						vt100_parser->is_app_keypad = 0 ;
 					}
 				#if  0
 					else if( ps[0] == 67)
@@ -2001,7 +1958,13 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 2004 l" */
 
-						set_bracketed_paste_mode( vt100_parser , 0) ;
+						vt100_parser->is_bracketed_paste_mode = 0 ;
+					}
+					else if( ps[0] == 7727)
+					{
+						/* "CSI ? 7727 l" */
+
+						vt100_parser->is_app_escape = 0 ;
 					}
 					else
 					{
@@ -3392,7 +3355,15 @@ ml_vt100_parser_new(
 	
 	vt100_parser->saved_normal.is_saved = 0 ;
         vt100_parser->saved_alternate.is_saved = 0 ;
-	
+
+	vt100_parser->mouse_mode = 0 ;
+	vt100_parser->is_app_keypad = 0 ;
+	vt100_parser->is_app_cursor_keys = 0 ;
+	vt100_parser->is_app_escape = 0 ;
+	vt100_parser->is_bracketed_paste_mode = 0 ;
+
+	vt100_parser->im_is_active = 0 ;
+
 	return  vt100_parser ;
 
 error:
@@ -3625,12 +3596,4 @@ ml_vt100_parser_set_col_size_of_width_a(
 	}
 
 	return  1 ;
-}
-
-u_int
-ml_vt100_parser_get_col_size_of_width_a(
-	ml_vt100_parser_t *  vt100_parser
-	)
-{
-	return  vt100_parser->col_size_of_width_a ;
 }

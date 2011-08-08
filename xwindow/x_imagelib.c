@@ -180,9 +180,9 @@ root_pixmap(
 	id = XInternAtom( display, "_XROOTPMAP_ID", True) ;
 	if( !id)
 	{
-#ifdef DEBUG
+	#ifdef DEBUG
 		kik_warn_printf(KIK_DEBUG_TAG "_XROOTPMAP_ID is not available\n") ;
-#endif
+	#endif
 		return  None ;
 	}
 

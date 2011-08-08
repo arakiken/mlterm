@@ -371,7 +371,7 @@ EOF
 	
 	print TO << "EOF" ;
 
-inline u_int${bits}_t
+static u_int${bits}_t
 CONV_${fromcs_uc}_TO_${tocs_uc}(
 	u_int32_t  ch
 	)

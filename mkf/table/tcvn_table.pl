@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/pkg/bin/perl
 
 # source file is vscii.txt
 

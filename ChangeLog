@@ -1,3 +1,13 @@
+2011-08-08  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_vt100_parser.[ch], x_screen.c: Application escape mode ("CSI ? 7727 h"
+	  "CSI ? 7727 l" sequences are supported.
+
+	* mkf/libtbl/table/*.table: CONV_XXX_TO_XXX is declared as static.
+
+	* ml_vt100_parser.c: Application keypad, application cursor, application escape,
+	  bracketed paste and mouse report modes are reset by DECSTR.
+
 2011-08-07  Araki Ken  <arakiken@users.sf.net>
 
 	* doc/en/README.tp: Updated.

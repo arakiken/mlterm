@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/pkg/bin/perl
 
 
 use  ucs_mappings () ;

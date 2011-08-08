@@ -36,7 +36,6 @@ typedef struct ml_term
 	ml_shape_t *  shape ;
 	ml_vertical_mode_t  vertical_mode ;
 	ml_bidi_mode_t  bidi_mode ;
-	ml_mouse_report_mode_t  mouse_mode ;
 	
 	/*
 	 * private
@@ -56,9 +55,6 @@ typedef struct ml_term
 	 * private
 	 */
 	int8_t  is_auto_encoding ;
-	int8_t  is_app_keypad ;
-	int8_t  is_app_cursor_keys ;
-	int8_t  is_bracketed_paste_mode ;
 
 	int8_t  is_attached ;
 
@@ -85,7 +81,7 @@ int  ml_term_attach( ml_term_t *  term , ml_xterm_event_listener_t *  xterm_list
 
 int  ml_term_detach( ml_term_t *  term) ;
 
-int  ml_term_is_attached( ml_term_t *  term) ;
+#define  ml_term_is_attached( term)  ((term)->is_attached)
 
 #define  ml_term_parse_vt100_sequence( term)  ml_parse_vt100_sequence( (term)->parser)
 
@@ -96,7 +92,7 @@ int  ml_term_is_attached( ml_term_t *  term) ;
 
 int  ml_term_set_auto_encoding( ml_term_t *  term , int  is_auto_encoding) ;
 
-int  ml_term_is_auto_encoding( ml_term_t *  term) ;
+#define  ml_term_is_auto_encoding( term)  ((term)->is_auto_encoding)
 
 #define  ml_term_set_unicode_policy( term , policy) \
 		ml_vt100_parser_set_unicode_policy( (term)->parser , policy)
@@ -237,17 +233,16 @@ int  ml_term_set_multi_col_char_flag( ml_term_t *  term , int  flag) ;
 #define  ml_term_get_col_size_of_width_a( term) \
 		ml_vt100_parser_get_col_size_of_width_a( (term)->parser)
 
-int  ml_term_set_mouse_report( ml_term_t *  term , ml_mouse_report_mode_t  mode) ;
+#define  ml_term_get_mouse_report_mode( term) \
+		ml_vt100_parser_get_mouse_report_mode((term)->parser)
 
-#define  ml_term_get_mouse_report_mode( term)  ((term)->mouse_mode)
+#define  ml_term_is_app_keypad( term) \
+		ml_vt100_parser_is_app_keypad((term)->parser)
 
-int  ml_term_set_app_keypad( ml_term_t *  term , int  flag) ;
+#define  ml_term_is_app_cursor_keys( term) \
+		ml_vt100_parser_is_app_cursor_keys((term)->parser)
 
-#define  ml_term_is_app_keypad( term)  ((term)->is_app_keypad)
-
-int  ml_term_set_app_cursor_keys( ml_term_t *  term , int  flag) ;
-
-#define  ml_term_is_app_cursor_keys( term)  ((term)->is_app_cursor_keys)
+#define  ml_term_is_app_escape( term)  ml_vt100_parser_is_app_escape((term)->parser)
 
 int  ml_term_set_window_name( ml_term_t *  term , char *  name) ;
 
@@ -261,9 +256,8 @@ int  ml_term_set_icon_path( ml_term_t *  term , char *  path) ;
 
 #define  ml_term_icon_path( term)  ((term)->icon_path)
 
-int  ml_term_set_bracketed_paste_mode( ml_term_t *  term , int  flag) ;
-
-#define  ml_term_is_bracketed_paste_mode( term)  ((term)->is_bracketed_paste_mode)
+#define  ml_term_is_bracketed_paste_mode( term) \
+		ml_vt100_parser_is_bracketed_paste_mode((term)->parser)
 
 int  ml_term_start_config_menu( ml_term_t *  term , char *  cmd_path ,
 		int  x , int  y , char *  display) ;
