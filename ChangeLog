@@ -1,3 +1,15 @@
+2011-08-11  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window_win32.c: WM_WHEELMOUSE event which is sent to a top level window
+	  is passed to a child window.
+	  (Thanks to Iwamoto Kouichi san)
+
+	* x_screen.c, ml_line.[ch]:
+	  - Mouse position outside window is not reported.
+	    (Thanks to Iwamoto Kouichi san)
+	  - Mouse report position is not visual but logical one in rtl lines.
+	    (ml_bidi_convert_visual_char_index_to_logical() is added for this.)
+
 2011-08-08  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_vt100_parser.[ch], x_screen.c: Application escape mode ("CSI ? 7727 h"

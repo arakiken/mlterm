@@ -1469,6 +1469,26 @@ ml_bidi_convert_logical_char_index_to_visual(
 		return  char_index ;
 	}
 }
+
+int
+ml_bidi_convert_visual_char_index_to_logical(
+	ml_line_t *  line ,
+	int  char_index
+	)
+{
+	u_int  count ;
+
+	for( count = 0 ; count < line->ctl_info.bidi->size ; count++)
+	{
+		if( line->ctl_info.bidi->visual_order[count] == char_index)
+		{
+			return  count ;
+		}
+	}
+
+	return  0 ;
+}
+
 #endif	/* USE_FRIBIDI */
 
 int

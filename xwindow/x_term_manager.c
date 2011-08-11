@@ -386,7 +386,7 @@ open_pty_intern(
 
 
 #if  0
-	if( argv)
+	if( cmd_argv)
 	{
 		char **  p ;
 

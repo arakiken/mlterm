@@ -471,7 +471,7 @@ x_connect_dialog(
 	char *  display_name ,
 	Window  parent_window ,
 	char **  sv_list ,
-	char *   def_server	/* (<user>@)(<proto>:)<server address>(:<encoding>). */
+	char *  def_server	/* (<user>@)(<proto>:)<server address>(:<encoding>). */
 	)
 {
 	Display *  display ;

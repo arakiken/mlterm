@@ -249,6 +249,11 @@ convert_x_to_char_index(
 
 			x -= width ;
 		}
+
+	/* XXX */
+	#ifdef  USE_FRIBIDI
+		count = ml_bidi_convert_visual_char_index_to_logical( line , count) ;
+	#endif
 	}
 	else
 	{
@@ -3051,6 +3056,7 @@ report_mouse_tracking(
 	int  key_state ;
 	int  col ;
 	int  row ;
+	u_int  x_rest ;
 	u_char  buf[6] ;
 
 	if( is_released)
@@ -3097,6 +3103,7 @@ report_mouse_tracking(
 
 			while( button >= 3)
 			{
+				/* Wheel mouse */
 				key_state += 64 ;
 				button -= 3 ;
 			}
@@ -3105,14 +3112,8 @@ report_mouse_tracking(
 
 	if( screen->term->vertical_mode)
 	{
-		u_int  x_rest ;
-
 		col = convert_y_to_row( screen , NULL , event->y) ;
 
-		if( 0x20 + col + 1 > 0xff){
-			/* mouse position can't be reported using this protocol */
-			return  0 ;
-		}
 	#if  0
 		if( x_is_using_multi_col_char( screen->font_man))
 		{
@@ -3129,16 +3130,14 @@ report_mouse_tracking(
 		}
 
 		row = ml_convert_char_index_to_col( line ,
-			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) , 0) ;
+			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) ,
+			0) ;
 
 		if( screen->term->vertical_mode & VERT_RTL)
 		{
 			row = ml_term_get_cols( screen->term) - row - 1 ;
 		}
 
-		if( 0x20 + row + 1 > 0xff){
-			return  0 ;
-		}
 	#if  0
 		if( x_is_using_multi_col_char( screen->font_man))
 		{
@@ -3151,30 +3150,35 @@ report_mouse_tracking(
 	}
 	else
 	{
-		int x_rest;
-		int width;
-		row = convert_y_to_row( screen , NULL , event->y) ;
+		u_int  width ;
 
-		if( 0x20 + row + 1 > 0xff){
-			return  0 ;
-		}
+		row = convert_y_to_row( screen , NULL , event->y) ;
 
 		if( ( line = ml_term_get_line_in_screen( screen->term , row)) == NULL)
 		{
 			return  0 ;
 		}
+
 		col = ml_convert_char_index_to_col( line ,
-			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) , 0) ;
+			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) ,
+			0) ;
 
 		width = x_calculate_char_width(
-			x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,
-			ml_char_bytes( ml_sp_ch()) , 1 , US_ASCII);
-		if( x_rest > width){
-			col += x_rest / width ;
+				x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,
+				ml_char_bytes( ml_sp_ch()) , 1 , US_ASCII) ;
+		if( x_rest > width)
+		{
+			if( ( col += x_rest / width) >= ml_term_get_cols( screen->term))
+			{
+				col = ml_term_get_cols( screen->term) - 1 ;
+			}
 		}
-		if( 0x20 + col + 1 > 0xff){
-			return  0 ;
-		}
+	}
+
+	if( 0x20 + row + 1 > 0xff || 0x20 + col + 1 > 0xff)
+	{
+		/* mouse position can't be reported using this protocol */
+		return  0 ;
 	}
 
 	strcpy( buf , "\x1b[M") ;
@@ -3183,7 +3187,8 @@ report_mouse_tracking(
 	buf[4] = 0x20 + col + 1 ;
 	buf[5] = 0x20 + row + 1 ;
 
-	if( memcmp( screen->prev_mouse_report_seq , buf + 3 , 3) != 0)
+	if( key_state >= 64 ||						/* Wheeling mouse */
+	    memcmp( screen->prev_mouse_report_seq , buf + 3 , 3) != 0)	/* Position is changed */
 	{
 		write_to_pty( screen , buf , 6 , NULL) ;
 		memcpy( screen->prev_mouse_report_seq , buf + 3 , 3) ;

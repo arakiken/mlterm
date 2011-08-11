@@ -118,9 +118,11 @@ static int color_selected(GtkWidget *widget, gpointer data)
 GtkWidget *
 mc_color_config_widget_new(int id)
 {
+	char *value;
 	init_i18ncolors();
-	color_strncpy(new_color[id], mc_get_str_value(configname[id]));
-	color_strncpy(old_color[id], mc_get_str_value(configname[id]));
+	value = mc_get_str_value(configname[id]) ;
+	color_strncpy(new_color[id], value);
+	color_strncpy(old_color[id], value);
 	is_changed[id] = 0;
 
 	return mc_combo_new(_(label[id]), i18ncolors,

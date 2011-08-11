@@ -2043,12 +2043,39 @@ x_window_receive_event(
 
 			if( event->msg == WM_MOUSEWHEEL)
 			{
+				/* Note that WM_MOUSEWHEEL event is reported to top window. */
+
 				POINT  p ;
+				u_int  count ;
 				
 				p.x = LOWORD(event->lparam) ;
 				p.y = HIWORD(event->lparam) ;
 
 				ScreenToClient( win->my_window , &p) ;
+
+				/*
+				 * XXX
+				 * Children of more than 1 generation are not considered.
+				 *      top window
+				 *       /       \
+				 *     win1      win2
+				 *     /  \      /   \
+				 *   win3 win4 win5 win6 <= Not considered.
+				 */
+				for( count = 0 ; count < win->num_of_children ; count++)
+				{
+					if( win->children[count]->x <= p.x &&
+					    p.x <= win->children[count]->x +
+					           win->children[count]->width &&
+					    win->children[count]->y <= p.y &&
+					    p.y <= win->children[count]->y +
+					           win->children[count]->height)
+					{
+						win = win->children[count] ;
+						p.x -= win->x ;
+						p.y -= win->y ;
+					}
+				}
 
 				bev.x = p.x - win->margin ;
 				bev.y = p.y - win->margin ;
@@ -2143,6 +2170,7 @@ x_window_receive_event(
 			mev.y = HIWORD(event->lparam) - win->margin ;
 
 			mev.state = 0 ;
+
 			if( event->wparam & MK_LBUTTON)
 			{
 				mev.state |= Button1Mask ;
@@ -2155,6 +2183,12 @@ x_window_receive_event(
 			{
 				mev.state |= Button3Mask ;
 			}
+
+			if( ! mev.state)
+			{
+				win->button_is_pressing = 0 ;
+			}
+			
 			if( event->wparam & MK_SHIFT)
 			{
 				mev.state |= ShiftMask ;
