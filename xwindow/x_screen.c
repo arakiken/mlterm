@@ -7165,7 +7165,7 @@ x_screen_new(
 	screen->window.window_unfocused = window_unfocused ;
 	screen->window.key_pressed = key_pressed ;
 	screen->window.window_resized = window_resized ;
-	screen->window.pointer_motion = pointer_motion ;
+	screen->window.pointer_motion = NULL ;
 	screen->window.button_motion = button_motion ;
 	screen->window.button_released = button_released ;
 	screen->window.button_pressed = button_pressed ;

@@ -1,3 +1,17 @@
+2011-08-13  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window_win32.c: Check if win->pointer_motion is NULL or not before
+	  calling win->pointer_motion function.
+	  (Thanks to Iwamoto Kouichi san)
+
+	* x_font.c, x_font.c, x_font_config.c, x_font_win32.c:
+	  ISO10646_UCS2_1(_BIWIDTH) is removed.
+
+	* doc/en/README.indic: E-mail from sumeet inani is added.
+	  (Thanks to sumeet inani)
+
+	* ml_vt100_parser.c: DECOM and DECAWM are reset in DECSTR.
+
 2011-08-11  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window_win32.c: WM_WHEELMOUSE event which is sent to a top level window

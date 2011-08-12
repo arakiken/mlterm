@@ -71,7 +71,6 @@ static wincs_info_t  wincs_info_table[] =
 static cs_info_t  cs_info_table[] =
 {
 	{ ISO10646_UCS4_1 , DEFAULT_CHARSET , } ,
-	{ ISO10646_UCS2_1 , DEFAULT_CHARSET , } ,
 	
 	{ DEC_SPECIAL , SYMBOL_CHARSET , } ,
 	{ ISO8859_1_R , ANSI_CHARSET , } ,

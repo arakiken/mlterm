@@ -52,7 +52,6 @@ static char *  taafont_file = "mlterm/taafont" ;
 static cs_table_t  cs_table[] =
 {
 	{ "ISO10646_UCS4_1" , ISO10646_UCS4_1 } ,
-	{ "ISO10646_UCS2_1" , ISO10646_UCS2_1 } ,
 
 	{ "DEC_SPECIAL" , DEC_SPECIAL } ,
 	{ "ISO8859_1" , ISO8859_1_R } ,

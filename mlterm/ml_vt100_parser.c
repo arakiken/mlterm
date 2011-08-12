@@ -1201,6 +1201,12 @@ soft_reset(
 	/* "CSI m" (SGR) */
 	change_char_attr( vt100_parser , 0) ;
 
+	/* "CSI ? 6 l" (DECOM) */
+	ml_screen_set_absolute_origin( vt100_parser->screen) ;
+
+	/* "CSI ? 7 l" (DECAWM) */
+	ml_screen_unset_auto_wrap( vt100_parser->screen) ;
+
 	ml_init_encoding_parser( vt100_parser) ;
 
 	( ml_screen_is_alternative_edit( vt100_parser->screen) ?
@@ -1647,8 +1653,7 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 7 h" auto wrap */
 
-						ml_screen_set_auto_wrap(
-							vt100_parser->screen) ;
+						ml_screen_set_auto_wrap( vt100_parser->screen) ;
 					}
 				#if  0
 					else if( ps[0] == 8)
@@ -1665,8 +1670,7 @@ parse_vt100_escape_sequence(
 					else if( ps[0] == 25)
 					{
 						/* "CSI ? 25 h" */
-						ml_screen_cursor_visible(
-							vt100_parser->screen) ;
+						ml_screen_cursor_visible( vt100_parser->screen) ;
 					}
 				#if  0
 					else if( ps[0] == 35)
@@ -1842,8 +1846,7 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 7 l" auto wrap */
 
-						ml_screen_unset_auto_wrap(
-							vt100_parser->screen) ;
+						ml_screen_unset_auto_wrap( vt100_parser->screen) ;
 					}
 				#if  0
 					else if( ps[0] == 8)
@@ -1861,8 +1864,7 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 25 l" */
 
-						ml_screen_cursor_invisible(
-							vt100_parser->screen) ;
+						ml_screen_cursor_invisible( vt100_parser->screen) ;
 					}
 				#if  0
 					else if( ps[0] == 35)
@@ -1880,8 +1882,7 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 47 l" Use normal screen buffer */
 
-						ml_screen_use_normal_edit(
-							vt100_parser->screen) ;
+						ml_screen_use_normal_edit( vt100_parser->screen) ;
 					}
 					else if( ps[0] == 66)
 					{
@@ -1931,8 +1932,7 @@ parse_vt100_escape_sequence(
 
 						/* if( !titeInhibit)*/
 						clear_display_all( vt100_parser) ;
-						ml_screen_use_normal_edit(
-							vt100_parser->screen) ;
+						ml_screen_use_normal_edit( vt100_parser->screen) ;
 						restore_cursor( vt100_parser) ;
 						/* */
 					}
@@ -1949,8 +1949,7 @@ parse_vt100_escape_sequence(
 						/* "CSI ? 1049 l" */
 
 						/* if( !titeInhibit)*/
-						ml_screen_use_normal_edit(
-							vt100_parser->screen) ;
+						ml_screen_use_normal_edit( vt100_parser->screen) ;
 						restore_cursor( vt100_parser) ;
 						/* */
 					}
@@ -1969,8 +1968,7 @@ parse_vt100_escape_sequence(
 					else
 					{
 					#ifdef  DEBUG
-						debug_print_unknown("ESC [ ? %d l\n" ,
-							ps[0]) ;
+						debug_print_unknown( "ESC [ ? %d l\n" , ps[0]) ;
 					#endif
 					}
 				}
@@ -2090,8 +2088,7 @@ parse_vt100_escape_sequence(
 				}
 
 				/* inserting ps[0] blank characters. */
-				ml_screen_insert_blank_chars(
-						vt100_parser->screen , ps[0]) ;
+				ml_screen_insert_blank_chars( vt100_parser->screen , ps[0]) ;
 			}
 			else if( *str_p == 'A' || *str_p == 'k')
 			{
@@ -2456,8 +2453,7 @@ parse_vt100_escape_sequence(
 						ml_screen_cursor_row( vt100_parser->screen) + 1 ,
 						ml_screen_cursor_col( vt100_parser->screen) + 1) ;
 
-					ml_write_to_pty( vt100_parser->pty ,
-						seq , strlen( seq)) ;
+					ml_write_to_pty( vt100_parser->pty , seq , strlen( seq)) ;
 				}
 			}
 			else if( *str_p == 'r')
@@ -2547,8 +2543,7 @@ parse_vt100_escape_sequence(
 			int  ps ;
 			u_char *  pt ;
 
-			if( ! inc_str_in_esc_seq( vt100_parser->screen ,
-						&str_p , &left , 0))
+			if( ! inc_str_in_esc_seq( vt100_parser->screen , &str_p , &left , 0))
 			{
 				return  0 ;
 			}

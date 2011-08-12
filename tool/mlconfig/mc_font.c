@@ -54,14 +54,6 @@ static cs_info_t  cs_info_table[] =
 	{ "ISO10646_1" , { "iso10646-1" , NULL , NULL , } , } ,
 	{ "ISO10646_1_BIWIDTH" , { "iso10646-1" , NULL , NULL , } , } ,
 
-#if  0
-	/*
-	 * Font of these charsets is not manipulated by mlconfig at present.
-	 */
-	{ "ISO10646_UCS2_1" , { "iso10646-1" , NULL , NULL , } , } ,
-	{ "ISO10646_UCS2_1_BIWIDTH" , { "iso10646-1"  , NULL , NULL , } , } ,
-#endif
-
 	{ "DEC_SPECIAL" , { "iso8859-1" , NULL , NULL , } , } ,
 	{ "ISO8859_1" , { "iso8859-1" , NULL , NULL , } , } ,
 	{ "ISO8859_2" , { "iso8859-2" , NULL , NULL , } , } ,

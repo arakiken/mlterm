@@ -2216,7 +2216,11 @@ x_window_receive_event(
 					mev.state , mev.x , mev.y) ;
 			#endif
 			}
-			else /* if( win->pointer_motion) */
+			/*
+			 * win->pointer_motion should be checked again here because
+			 * win->button_is_pressing was changed from 1 to 0 above.
+			 */
+			else if( win->pointer_motion)
 			{
 				(*win->pointer_motion)( win , &mev) ;
 

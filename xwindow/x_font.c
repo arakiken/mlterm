@@ -65,7 +65,6 @@ typedef struct  cs_info
 static cs_info_t  cs_info_table[] =
 {
 	{ ISO10646_UCS4_1 , { "iso10646-1" , NULL , NULL , } , } ,
-	{ ISO10646_UCS2_1 , { "iso10646-1" , NULL , NULL , } , } ,
 
 	{ DEC_SPECIAL , { "iso8859-1" , NULL , NULL , } , } ,
 	{ ISO8859_1_R , { "iso8859-1" , NULL , NULL , } , } ,
