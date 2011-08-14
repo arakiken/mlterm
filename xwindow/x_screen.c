@@ -100,7 +100,7 @@ true_or_false(
 static int
 convert_row_to_y(
 	x_screen_t *  screen ,
-	int  row
+	int  row		/* Should be 0 >= and <= ml_term_get_rows() */
 	)
 {
 	/*
@@ -111,6 +111,11 @@ convert_row_to_y(
 	return  x_line_height( screen) * row ;
 }
 
+/*
+ * If y < 0 , return 0 with *y_rest = 0.
+ * If y > screen->window.height , return screen->window.height / line_height with *y_rest =
+ * y - screen->window.height.
+ */
 static int
 convert_y_to_row(
 	x_screen_t *  screen ,
@@ -120,12 +125,24 @@ convert_y_to_row(
 {
 	int  row ;
 
+	if( y < 0)
+	{
+		y = 0 ;
+	}
+	
 	/*
 	 * !! Notice !!
 	 * assumption: line hight is always the same!
 	 */
 
-	row = y / x_line_height( screen) ;
+	if( y >= screen->window.height)
+	{
+		row = (screen->window.height - 1) / x_line_height( screen) ;
+	}
+	else
+	{
+		row = y / x_line_height( screen) ;
+	}
 
 	if( y_rest)
 	{
@@ -139,16 +156,11 @@ static int
 convert_char_index_to_x(
 	x_screen_t *  screen ,
 	ml_line_t *  line ,
-	int  char_index
+	int  char_index		/* Should be 0 >= and <= ml_line_end_char_index() */
 	)
 {
 	int  count ;
 	int  x ;
-
-	if( char_index > ml_line_end_char_index(line))
-	{
-		char_index = ml_line_end_char_index(line) ;
-	}
 
 	if( ml_line_is_rtl( line))
 	{
@@ -218,6 +230,11 @@ convert_char_index_to_x_with_shape(
 	return  x ;
 }
 
+/*
+ * If x < 0 , return 0 with *x_rest = 0.
+ * If x > screen->window.width , return screen->window.width / char_width with *x_rest =
+ * x - screen->window.width.
+ */
 static int
 convert_x_to_char_index(
 	x_screen_t *  screen ,
@@ -231,7 +248,14 @@ convert_x_to_char_index(
 
 	if( ml_line_is_rtl( line))
 	{
-		x = screen->window.width - x ;
+		if( x > screen->window.width)
+		{
+			x = 0 ;
+		}
+		else
+		{
+			x = screen->window.width - x ;
+		}
 
 		for( count = ml_line_end_char_index(line) ; count > 0 ; count --)
 		{
@@ -249,14 +273,14 @@ convert_x_to_char_index(
 
 			x -= width ;
 		}
-
-	/* XXX */
-	#ifdef  USE_FRIBIDI
-		count = ml_bidi_convert_visual_char_index_to_logical( line , count) ;
-	#endif
 	}
 	else
 	{
+		if( x < 0)
+		{
+			x = 0 ;
+		}
+
 		for( count = 0 ; count < ml_line_end_char_index(line) ; count ++)
 		{
 			ml_char_t *  ch ;
@@ -3151,6 +3175,7 @@ report_mouse_tracking(
 	else
 	{
 		u_int  width ;
+		int  char_index ;
 
 		row = convert_y_to_row( screen , NULL , event->y) ;
 
@@ -3159,9 +3184,18 @@ report_mouse_tracking(
 			return  0 ;
 		}
 
-		col = ml_convert_char_index_to_col( line ,
-			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) ,
-			0) ;
+		char_index = convert_x_to_char_index_with_shape( screen , line , &x_rest ,
+					event->x) ;
+		if( ml_line_is_rtl( line))
+		{
+			/* XXX */
+		#ifdef  USE_FRIBIDI
+			char_index = ml_bidi_convert_visual_char_index_to_logical( line ,
+						char_index) ;
+		#endif
+		}
+
+		col = ml_convert_char_index_to_col( line , char_index , 0) ;
 
 		width = x_calculate_char_width(
 				x_get_font( screen->font_man , ml_char_font( ml_sp_ch())) ,

@@ -1,3 +1,11 @@
+2011-08-14  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: If x or y of XButtonEvent is less than 0, it is treated as 0
+	  in reporting mouse position. (Thanks to Iwamoto Kouichi san)
+
+	* ml_char_encoding.c: non_iso2022_illegal_char() is added to enable
+	  copy DEC Special characters in non iso2022 encodings(e.g. UTF-8).
+	
 2011-08-13  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window_win32.c: Check if win->pointer_motion is NULL or not before

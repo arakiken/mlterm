@@ -247,6 +247,42 @@ ovrd_iso2022kr_parser_init(
 	(*conv->delete)( conv) ;
 }
 
+static size_t
+non_iso2022_illegal_char(
+	mkf_conv_t *  conv ,
+	u_char *  dst ,
+	size_t  dst_size ,
+	int *  is_full ,
+	mkf_char_t *  ch
+	)
+{
+	*is_full = 0 ;
+
+	if( ch->cs == DEC_SPECIAL)
+	{
+		if( dst_size < 7)
+		{
+			*is_full = 1 ;
+
+			return  0 ;
+		}
+
+		dst[0] = '\x1b' ;
+		dst[1] = '(' ;
+		dst[2] = '0' ;
+		dst[3] = ch->ch[0] ;
+		dst[4] = '\x1b' ;
+		dst[5] = '(' ;
+		dst[6] = 'B' ;
+
+		return  7 ;
+	}
+	else
+	{
+		return  0 ;
+	}
+}
+
 
 /* --- global functions --- */
 
@@ -404,6 +440,10 @@ ml_conv_new(
 
 			(*conv->init)( conv) ;
 		}
+	}
+	else
+	{
+		conv->illegal_char = non_iso2022_illegal_char ;
 	}
 	
 	return  conv ;

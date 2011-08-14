@@ -746,7 +746,7 @@ ml_pty_ssh_new(
 			kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
 		#endif
 
-			return  NULL ;
+			goto  error3 ;
 		}
 
 		CloseHandle( thrd) ;
