@@ -87,16 +87,16 @@ kik_utmp_new(
     pw_name = pwent->pw_name ;
   }
 
-  if( (strncmp(tty, "/dev/", K_MIN(5,strlen(tty)))) == 0 )
+  if( (strncmp(tty, "/dev/", 5)) == 0)
   {
     /* skip /dev/ prefix */
     tty += 5 ;
   }
   
   if (
-      (strncmp(tty, "pts", K_MIN(3,strlen(tty))) != 0) &&
-      (strncmp(tty, "pty", K_MIN(3,strlen(tty))) != 0) &&
-      (strncmp(tty, "tty", K_MIN(3,strlen(tty))) != 0)
+      (strncmp(tty, "pts", 3) != 0) &&
+      (strncmp(tty, "pty", 3) != 0) &&
+      (strncmp(tty, "tty", 3) != 0)
      )
   {
     free(utmp);
@@ -108,7 +108,7 @@ kik_utmp_new(
   {
     tty_num++;
   }
-  else if((strncmp(tty + 1, "typ", K_MIN(3,strlen(tty + 1)))) == 0)
+  else if((strncmp(tty + 1, "typ", 3)) == 0)
   {
     /* /dev/ttypN or /dev/ptypN */
     tty_num = tty + 4;

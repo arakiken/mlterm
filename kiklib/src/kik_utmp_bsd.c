@@ -211,14 +211,13 @@ kik_utmp_new(
 	
 	strncpy( ut.ut_name , pw_name , K_MIN(sizeof( ut.ut_name),strlen(pw_name))) ;
 	
-	if( strncmp( tty, "/dev/", K_MIN(5,strlen(tty))) == 0)
+	if( strncmp( tty, "/dev/", 5) == 0)
 	{
 		/* skip /dev/ prefix */
 		tty += 5 ;
 	}
 	
-	if( strncmp( tty, "pty", K_MIN(3,strlen(tty))) != 0 &&
-		strncmp(tty, "tty", K_MIN(3,strlen(tty))) != 0)
+	if( strncmp( tty, "pty", 3) != 0 && strncmp(tty, "tty", 3) != 0)
 	{
 		goto  error ;
 	}

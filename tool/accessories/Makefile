@@ -4,7 +4,7 @@ bindir=$(prefix)/bin
 DESTDIR=
 BINDIR=$(DESTDIR)$(bindir)
 
-TARGETS=xconsole.sh google.sh mlsearch.sh
+TARGETS=xconsole.sh google.sh mlsearch.sh mlscp.sh
 
 INSTALL=install -c
 

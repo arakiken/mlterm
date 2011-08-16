@@ -17,6 +17,7 @@
 
 #include  "kik_str.h"		/* strdup */
 #include  "kik_debug.h"
+#include  "kik_file.h"		/* kik_file_set_cloexec */
 
 
 /* Disable special character functions */

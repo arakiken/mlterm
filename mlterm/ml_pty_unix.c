@@ -236,14 +236,13 @@ ml_pty_unix_new(
 	pty->buf = NULL ;
 	pty->left = 0 ;
 	pty->size = 0 ;
-
-  	pty->pty_listener = NULL ;
-
 	pty->delete = delete ;
 	pty->set_winsize = set_winsize ;
 	pty->write = write_to_pty ;
 	pty->read = read_pty ;
-	
+  	pty->pty_listener = NULL ;
+	pty->stored = NULL ;
+
 	if( set_winsize( pty , cols , rows) == 0)
 	{
 	#ifdef  DEBUG

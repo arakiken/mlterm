@@ -1728,7 +1728,7 @@ open_button3_command(
 				screen->ml_str_parser) + cmd_len ;
 	key[key_len] = '\0' ;
 
-	if( strncmp( key , "mlclient" , K_MIN(cmd_len - 1,8)) == 0)
+	if( strncmp( key , "mlclient" , 8) == 0)
 	{
 		x_screen_set_config( screen , NULL , key , NULL) ;
 	}
@@ -5502,7 +5502,7 @@ get_config(
 			value = "false" ;
 		}
 	}
-	else if( strlen(key) >= 13 && strncmp( key , "selected_text" , 13) == 0)
+	else if( strncmp( key , "selected_text" , 13) == 0)
 	{
 		ml_term_write( screen->term , "#" , 1 , to_menu) ;
 		ml_term_write( screen->term , key , strlen(key) , to_menu) ;
@@ -8276,44 +8276,41 @@ x_screen_set_config(
 	{
 		yank_event_received( screen , 0) ;
 	}
-	else if( strlen(key) >= 8)
+	else if( strncmp( key , "mlclient" , 8) == 0)
 	{
-		if( strncmp( key , "mlclient" , 8) == 0)
+		if( HAS_SYSTEM_LISTENER(screen,mlclient))
 		{
-			if( HAS_SYSTEM_LISTENER(screen,mlclient))
+			(*screen->system_listener->mlclient)(
+				screen->system_listener->self ,
+				key[8] == 'x' ? screen : NULL , key , stdout) ;
+		}
+	}
+	else if( strncmp( key , "search_" , 7) == 0)
+	{
+		ml_char_encoding_t  encoding ;
+
+		if( ( encoding = ml_term_get_encoding( screen->term)) != ML_UTF8)
+		{
+			char *  p ;
+			size_t  len ;
+
+			len = UTF_MAX_SIZE * strlen( value) + 1 ;
+			if( ( p = alloca( len)))
 			{
-				(*screen->system_listener->mlclient)(
-					screen->system_listener->self ,
-					key[8] == 'x' ? screen : NULL , key , stdout) ;
+				*(p + ml_char_encoding_convert( p , len - 1 , ML_UTF8 ,
+					value , strlen(value) , encoding)) = '\0' ;
+
+				value = p ;
 			}
 		}
-		else if( strncmp( key , "search_" , 7) == 0)
+
+		if( strcmp( key + 7 , "prev") == 0)
 		{
-			ml_char_encoding_t  encoding ;
-			
-			if( ( encoding = ml_term_get_encoding( screen->term)) != ML_UTF8)
-			{
-				char *  p ;
-				size_t  len ;
-
-				len = UTF_MAX_SIZE * strlen( value) + 1 ;
-				if( ( p = alloca( len)))
-				{
-					*(p + ml_char_encoding_convert( p , len - 1 , ML_UTF8 ,
-						value , strlen(value) , encoding)) = '\0' ;
-
-					value = p ;
-				}
-			}
-
-			if( strcmp( key + 7 , "prev") == 0)
-			{
-				search_find( screen , value , 1) ;
-			}
-			else if( strcmp( key + 7 , "next") == 0)
-			{
-				search_find( screen , value , 0) ;
-			}
+			search_find( screen , value , 1) ;
+		}
+		else if( strcmp( key + 7 , "next") == 0)
+		{
+			search_find( screen , value , 0) ;
 		}
 	}
 }

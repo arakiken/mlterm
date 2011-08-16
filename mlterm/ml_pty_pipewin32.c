@@ -725,6 +725,7 @@ ml_pty_pipe_new(
 	pty->pty.read = read_pty ;
 
 	pty->pty.pty_listener = NULL ;
+	pty->pty.stored = NULL ;
 
 	if( set_winsize( &pty->pty , cols , rows) == 0)
 	{

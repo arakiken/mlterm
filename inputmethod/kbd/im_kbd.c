@@ -688,7 +688,7 @@ im_kbd_new(
 	{
 		type = KBD_TYPE_HEBREW ;
 	}
-	else if( opt && strlen( opt) >= 5 && strncmp( opt , "iscii" , 5) == 0)
+	else if( opt && strncmp( opt , "iscii" , 5) == 0)
 	{
 		type = KBD_TYPE_ISCII ;
 	}
@@ -850,7 +850,7 @@ im_kbd_get_info(
 		result->readable_args[0] = strdup( "Hebrew") ;
 		break ;
 	case KBD_TYPE_UNKNOWN:
-		if( strlen(encoding) > 5 && strncmp( encoding , "ISCII" , 5) == 0)
+		if( strncmp( encoding , "ISCII" , 5) == 0)
 		{
 			result->readable_args[0] = malloc( 6 /* "Indic " */ + 2 /* () */ +
 							strlen( encoding + 5) + 1) ;

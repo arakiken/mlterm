@@ -25,7 +25,7 @@ version 20091211
                      snapshot | gen_proto_challenge | icon_path | logging_vt_seq |
 		     title | word_separators | button3_behavior | paste | use_clipboard |
 		     mlclient <prefix options> <options> | mlclientx <prefix options> <options> |
-		     search_prev | search_next
+		     search_prev | search_next | scp <src> <dst>
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
 		     bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -81,6 +81,7 @@ version 20091211
   rows = <any ASCII decimal digit>
   sb_bg_color = <color name> | <color rgb>
   sb_fg_color = <color name> | <color rgb>
+  scp <src> <dst> = <none>
   screen_height_ratio = <any ASCII decimal digit>
   screen_width_ratio = <any ASCII decimal digit>
   scrollbar_mode = none | left | right

@@ -20782,6 +20782,16 @@ if test "x$ac_cv_lib_ssh2_libssh2_init" = x""yes; then :
 
 		SSH2_CFLAGS="-DUSE_LIBSSH2"
 		SSH2_LIBS="-lssh2"
+		ac_fn_c_check_header_mongrel "$LINENO" "pthread.h" "ac_cv_header_pthread_h" "$ac_includes_default"
+if test "x$ac_cv_header_pthread_h" = x""yes; then :
+
+			SSH2_CFLAGS="$SSH2_CFLAGS -DHAVE_PTHREAD"
+			SSH2_LIBS="$SSH2_LIBS -lpthread"
+
+
+fi
+
+
 
 else
   ssh2="no"

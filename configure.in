@@ -372,6 +372,12 @@ if test "$ssh2" = "yes" ; then
 		[
 		SSH2_CFLAGS="-DUSE_LIBSSH2"
 		SSH2_LIBS="-lssh2"
+		AC_CHECK_HEADER(pthread.h,
+			[
+			SSH2_CFLAGS="$SSH2_CFLAGS -DHAVE_PTHREAD"
+			SSH2_LIBS="$SSH2_LIBS -lpthread"
+			]
+			)
 		], ssh2="no")
 fi
 

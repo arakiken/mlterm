@@ -11,6 +11,7 @@
 #include  <kiklib/kik_str.h>
 #include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_path.h>
+#include  <kiklib/kik_unistd.h>		/* kik_usleep */
 
 #ifdef  USE_WIN32API
 #undef  _WIN32_WINNT
@@ -22,8 +23,12 @@
 #include  <netdb.h>
 #include  <netinet/in.h>
 #endif
-#include  <unistd.h>		/* close */
+#include  <fcntl.h>		/* open */
+#include  <unistd.h>		/* close/pipe */
 #include  <stdio.h>		/* sprintf */
+#if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
+#include  <pthread.h>
+#endif
 
 #ifndef  USE_WIN32API
 #define  closesocket( sock)  close( sock)
@@ -55,6 +60,17 @@ typedef struct ml_pty_ssh
 
 } ml_pty_ssh_t ;
 
+typedef struct scp
+{
+	LIBSSH2_CHANNEL *  remote ;
+	int  local ;
+	int  src_is_remote ;
+	size_t  src_size ;
+
+	ml_pty_ssh_t *  pty_ssh ;
+
+} scp_t ;
+
 
 /* --- static variables --- */
 
@@ -70,7 +86,7 @@ static HANDLE  rd_ev ;
 
 #ifdef  USE_WIN32API
 
-static DWORD WINAPI
+static u_int __stdcall
 wait_pty_read(
 	LPVOID thr_param
   	)
@@ -124,7 +140,10 @@ wait_pty_read(
 	CloseHandle( rd_ev) ;
 	rd_ev = 0 ;
 
+	/* Not necessary if thread started by _beginthreadex */
+#if  0
 	ExitThread(0) ;
+#endif
 
 	return  0 ;
 }
@@ -562,6 +581,98 @@ read_pty(
 	}
 }
 
+#ifdef  USE_WIN32API
+static u_int __stdcall
+#else
+static void *
+#endif
+scp_thread(
+	void *  p
+	)
+{
+	scp_t *  scp ;
+	size_t  rd_len ;
+	char  buf[4096] ;
+	size_t  len ;
+	int  count ;
+	char  msg[] = "\x1b[?25l\r\nTransferring data.\r\n|" ;
+
+#if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
+	pthread_detach( pthread_self()) ;
+#endif
+
+	scp = p ;
+
+	rd_len = 0 ;
+	ml_write_to_pty( &scp->pty_ssh->pty , msg , sizeof(msg) - 1) ;
+
+	while( rd_len < scp->src_size)
+	{
+		if( scp->src_is_remote)
+		{
+			if( ( len = libssh2_channel_read( scp->remote , buf , sizeof(buf))) < 0)
+			{
+				break ;
+			}
+
+			if( write( scp->local , buf , len) < 0)
+			{
+				break ;
+			}
+		}
+		else
+		{
+			if( ( len = read( scp->local , buf , sizeof(buf))) < 0)
+			{
+				break ;
+			}
+
+			if( libssh2_channel_write( scp->remote , buf , len) < 0)
+			{
+				break ;
+			}
+		}
+
+		rd_len += len ;
+
+		for( count = 1 ; count < 51 * rd_len / scp->src_size ; count++)
+		{
+			ml_write_to_pty( &scp->pty_ssh->pty , "*" , 1) ;
+		}
+		for( ; count < 51 ; count++)
+		{
+			ml_write_to_pty( &scp->pty_ssh->pty , " " , 1) ;
+		}
+		ml_write_to_pty( &scp->pty_ssh->pty , "|\r|" , 3) ;
+
+	#ifdef  USE_WIN32API
+		if( scp->pty_ssh->pty.pty_listener && scp->pty_ssh->pty.pty_listener->read_ready)
+		{
+			(*scp->pty_ssh->pty.pty_listener->read_ready)(
+				scp->pty_ssh->pty.pty_listener->self) ;
+		}
+	#endif
+	}
+	ml_write_to_pty( &scp->pty_ssh->pty , "\x1b[?25h\r\n" , 8) ;
+
+	libssh2_session_set_blocking( scp->pty_ssh->session->obj , 0) ;
+
+	kik_usleep( 1000) ;	/* Expect to switch to main thread and call ml_read_pty(). */
+	ml_pty_unuse_loopback( &scp->pty_ssh->pty) ;
+
+	libssh2_channel_free( scp->remote) ;
+	close( scp->local) ;
+
+	free( scp) ;
+
+	/* Not necessary if thread started by _beginthreadex */
+#if  0
+	ExitThread(0) ;
+#endif
+
+	return  0 ;
+}
+
 
 /* --- global functions --- */
 
@@ -720,6 +831,7 @@ ml_pty_ssh_new(
 	pty->pty.write = write_to_pty ;
 	pty->pty.read = read_pty ;
 	pty->pty.pty_listener = NULL ;
+	pty->pty.stored = NULL ;
 
 	if( ml_set_pty_winsize( &pty->pty , cols , rows) == 0)
 	{
@@ -735,12 +847,12 @@ ml_pty_ssh_new(
 	if( ! rd_ev)
 	{
 		HANDLE  thrd ;
-		DWORD  tid ;
+		u_int  tid ;
 
 		rd_ev = CreateEvent( NULL , FALSE , FALSE , "PTY_READ_READY") ;
 
 		/* Launch the thread that wait for receiving data from pty. */
-		if( ! ( thrd = CreateThread( NULL , 0 , wait_pty_read , (LPVOID)pty , 0 , &tid)))
+		if( ! ( thrd = _beginthreadex( NULL , 0 , wait_pty_read , pty , 0 , &tid)))
 		{
 		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " CreateThread() failed.\n") ;
@@ -792,4 +904,194 @@ ml_search_ssh_session(
 	}
 
 	return  NULL ;
+}
+
+int
+ml_pty_ssh_scp(
+	ml_pty_ptr_t  pty ,
+	char *  dst_path ,
+	char *  src_path
+	)
+{
+	int  dst_is_remote ;
+	int  src_is_remote ;
+	scp_t *  scp ;
+	struct stat  st ;
+
+	/* Check if pty is ml_pty_ssh_t or not. */
+	if( pty->delete != delete)
+	{
+		return  0 ;
+	}
+	
+	if( strncmp( dst_path , "remote:" , 7) == 0)
+	{
+		dst_path += 7 ;
+		dst_is_remote = 1 ;
+	}
+	else if( strncmp( dst_path , "local:" , 6) == 0)
+	{
+		dst_path += 6 ;
+		dst_is_remote = 0 ;
+	}
+	else
+	{
+		dst_is_remote = -1 ;
+	}
+	
+	if( strncmp( src_path , "local:" , 6) == 0)
+	{
+		src_path += 6 ;
+		src_is_remote = 0 ;
+	}
+	else if( strncmp( src_path , "remote:" , 7) == 0)
+	{
+		src_path += 7 ;
+		src_is_remote = 1 ;
+	}
+	else
+	{
+		if( dst_is_remote == -1)
+		{
+			src_is_remote = 0 ;
+			dst_is_remote = 1 ;
+		}
+		else
+		{
+			src_is_remote = (! dst_is_remote) ;
+		}
+	}
+
+	if( dst_is_remote == -1)
+	{
+		dst_is_remote = (! src_is_remote) ;
+	}
+	else if( dst_is_remote == src_is_remote)
+	{
+		kik_error_printf( "SCP: Destination host(%s) and source host(%s) is the same.\n" ,
+			dst_path , src_path) ;
+	}
+
+	/* Ensure that strlen(dst_path) is more than 0. */
+	if( *dst_path == '\0')
+	{
+		return  0 ;
+	}
+	/* scp /tmp/TEST /home/user/ => scp /tmp/TEST /home/user/TEST */
+	else if( *(dst_path + strlen(dst_path) - 1) == '/')
+	{
+		char *  file ;
+
+		if( ( file = kik_basename( src_path)))
+		{
+			char *  p ;
+
+			if( ( p = alloca( strlen(dst_path) + strlen( file) + 1)))
+			{
+				strcpy( p , dst_path) ;
+				strcat( p , file) ;
+
+				dst_path = p ;
+			}
+		}
+	}
+
+	if( ! ( scp = malloc( sizeof(scp_t))))
+	{
+		return  0 ;
+	}
+
+	scp->pty_ssh = (ml_pty_ssh_t*)pty ;
+
+	libssh2_session_set_blocking( scp->pty_ssh->session->obj , 1) ;
+
+#if  0
+	kik_debug_printf( "SCP: %s%s -> %s%s\n" ,
+		src_is_remote ? "remote:" : "local:" , src_path ,
+		dst_is_remote ? "remote:" : "local:" , dst_path) ;
+#endif
+
+	if( src_is_remote)
+	{
+		if( ! ( scp->remote = libssh2_scp_recv( scp->pty_ssh->session->obj ,
+							src_path , &st)))
+		{
+			kik_error_printf( "SCP: Failed to open %s%s.\n" ,
+				src_is_remote ? "remote:" : "local:" , src_path) ;
+
+			goto  error ;
+		}
+
+		if( ( scp->local = open( dst_path , O_WRONLY|O_CREAT|O_TRUNC , st.st_mode)) < 0)
+		{
+			kik_error_printf( "SCP: Failed to open %s%s.\n" ,
+				dst_is_remote ? "remote:" : "local:" , dst_path) ;
+			libssh2_channel_free( scp->remote) ;
+
+			goto  error ;
+		}
+
+	}
+	else /* if( dst_is_remote) */
+	{
+	#ifdef  USE_WIN32API
+		if( ( scp->local = open( src_path , O_RDONLY|O_BINARY , 0644)) < 0)
+	#else
+		if( ( scp->local = open( src_path , O_RDONLY , 0644)) < 0)
+	#endif
+		{
+			kik_error_printf( "SCP: Failed to open %s%s.\n" ,
+				src_is_remote ? "remote:" : "local:" , src_path) ;
+	
+			goto  error ;
+		}
+
+		fstat( scp->local , &st) ;
+
+		if( ! ( scp->remote = libssh2_scp_send( scp->pty_ssh->session->obj , dst_path ,
+							st.st_mode & 0777 , (u_long)st.st_size)))
+		{
+			kik_error_printf( "SCP: Failed to open %s%s.\n" ,
+				dst_is_remote ? "remote:" : "local:" , dst_path) ;
+			close( scp->local) ;
+
+			goto  error ;
+		}
+	}
+
+	scp->src_is_remote = src_is_remote ;
+	scp->src_size = st.st_size ;
+
+	if( ! ml_pty_use_loopback( pty))
+	{
+		goto  error ;
+	}
+
+#if  defined(USE_WIN32API)
+	{
+		HANDLE  thrd ;
+		u_int  tid ;
+
+		if( ( thrd = _beginthreadex( NULL , 0 , scp_thread , scp , 0 , &tid)))
+		{
+			CloseHandle( thrd) ;
+		}
+	}
+#elif  defined(HAVE_PTHREAD)
+	{
+		pthread_t  thrd ;
+
+		pthread_create( &thrd , NULL , scp_thread , scp) ;
+	}
+#else
+	scp_thread( scp) ;
+#endif
+
+	return  1 ;
+
+error:
+	libssh2_session_set_blocking( scp->pty_ssh->session->obj , 0) ;
+	free( scp) ;
+
+	return  0 ;
 }

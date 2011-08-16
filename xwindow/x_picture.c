@@ -103,7 +103,7 @@ delete_bg_picture(
 	)
 {
 	/* XXX Pixmap of "pixmap:<ID>" is managed by others, so don't free here. */
-	if( strncmp( pic->file_path , "pixmap:" , K_MIN(strlen(pic->file_path),7)) != 0)
+	if( strncmp( pic->file_path , "pixmap:" , 7) != 0)
 	{
 		x_delete_image( pic->display , pic->pixmap) ;
 	}

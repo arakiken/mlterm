@@ -26,6 +26,15 @@ typedef struct  ml_pty
 
 	ml_pty_event_listener_t *  pty_listener ;
 
+	struct
+	{
+		int  master ;
+		int  slave ;
+		ssize_t (*write)( ml_pty_ptr_t , u_char * , size_t) ;
+		ssize_t (*read)( ml_pty_ptr_t , u_char * , size_t) ;
+
+	} *  stored ;
+
 } ml_pty_t ;
 
 

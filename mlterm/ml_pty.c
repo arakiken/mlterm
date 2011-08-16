@@ -9,12 +9,42 @@
 #include  <kiklib/kik_path.h>
 #include  <kiklib/kik_str.h>
 #include  <string.h>
-#include  <unistd.h>		/* ttyname */
+#include  <unistd.h>		/* ttyname/pipe */
 #include  <stdio.h>		/* sscanf */
+#ifdef  USE_WIN32API
+#include  <fcntl.h>		/* O_BINARY */
+#endif
 
 
 #if  0
 #define  __DEBUG
+#endif
+
+
+/* --- static functions --- */
+
+#ifdef  USE_LIBSSH2
+
+static ssize_t
+lo_read_pty(
+	ml_pty_t *  pty ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	return  read( pty->master , buf , len) ;
+}
+
+static ssize_t
+lo_write_to_pty(
+	ml_pty_t *  pty ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	return  write( pty->slave , buf , len) ;
+}
+
 #endif
 
 
@@ -324,3 +354,68 @@ ml_pty_get_slave_name(
 		return  "/dev/mlpty" ;
 	}
 }
+
+#ifdef  USE_LIBSSH2
+
+int
+ml_pty_use_loopback(
+	ml_pty_t *  pty
+	)
+{
+	int  fds[2] ;
+
+	if( pty->stored)
+	{
+		return  0 ;
+	}
+
+	if( ( pty->stored = malloc( sizeof( *(pty->stored)))) == NULL)
+	{
+		return  0 ;
+	}
+
+	pty->stored->master = pty->master ;
+	pty->stored->slave = pty->slave ;
+	pty->stored->read = pty->read ;
+	pty->stored->write = pty->write ;
+
+#ifdef  USE_WIN32API
+	if( _pipe( fds , 256 , O_BINARY) != 0)
+#else
+	if( pipe( fds) != 0)
+#endif
+	{
+		free( pty->stored) ;
+		pty->stored = NULL ;
+
+		return  0 ;
+	}
+
+	pty->master = fds[0] ;
+	pty->slave = fds[1] ;
+	pty->read = lo_read_pty ;
+	pty->write = lo_write_to_pty ;
+
+	return  1 ;
+}
+
+int
+ml_pty_unuse_loopback(
+	ml_pty_t *  pty
+	)
+{
+	close( pty->slave) ;
+	close( pty->master) ;
+
+	pty->master = pty->stored->master ;
+	pty->slave = pty->stored->slave ;
+	pty->read = pty->stored->read ;
+	pty->write = pty->stored->write ;
+
+	free( pty->stored) ;
+	pty->stored = NULL ;
+
+	return  1 ;
+}
+
+#endif

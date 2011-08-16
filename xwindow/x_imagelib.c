@@ -1586,7 +1586,7 @@ x_imagelib_load_file_for_background(
 		return  None ;
 	}
 
-	if( strncmp( file_path , "pixmap:" , K_MIN(strlen(file_path),7)) == 0 &&
+	if( strncmp( file_path , "pixmap:" , 7) == 0 &&
 		sscanf( file_path + 7 , "%lu" , &pixmap) == 1)
 	{
 	#ifdef  __DEBUG

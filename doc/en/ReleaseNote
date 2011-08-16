@@ -2,6 +2,7 @@
 * Support Button-event and Any event mouse tracking.
   (CSI ? 1002 h , CSI ? 1002 l , CSI ? 1003 h , CSI ? 1003 l)
 * Improve the way of determining width of cairo fonts.
+* Support scp using libssh2. (Add "mlscp.sh" tool.)
 * Support DEC Special characters in win32. ("Tera Special" font is necessary.)
 * Support application escape mode. (CSI ? 7727 h , CSI ? 7727 l)
 * 'make uninstall' is available.

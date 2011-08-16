@@ -1,3 +1,13 @@
+2011-08-16  Araki Ken  <arakiken@users.sf.net>
+
+	* "scp <src> <dst>" is added to configuration protocol.
+	  - ml_pty.[ch], ml_pty_intern.h: ml_pty_(un)use_loopback() are added.
+	  - ml_pty_ssh.c: scp is supported.
+	  - ml_vt100_parser.c: "scp" key of configuration protocol calls ml_pty_ssh_scp().
+	  - doc/en/PROTOCOL: Updated.
+	  - configure.in: If pthread is available or not is checked.
+	  - tool/accessories/mlscp.sh: Added.
+
 2011-08-14  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: If x or y of XButtonEvent is less than 0, it is treated as 0

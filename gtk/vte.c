@@ -2077,6 +2077,9 @@ vte_terminal_init(
 	reset_vte_size_member( terminal) ;
 }
 
+/*
+ * "WINDOWID" is set by terminal applications using vte.
+ */
 #if  0
 static char **
 modify_envv(
@@ -2091,7 +2094,7 @@ modify_envv(
 	p = envv ;
 	while( *p)
 	{
-		if( **p && strncmp( *p , "WINDOWID" , K_MIN(strlen(*p),8)) == 0)
+		if( **p && strncmp( *p , "WINDOWID" , K_MIN(strlen(*p) , 8)) == 0)
 		{
 			char *  wid_env ;
 
@@ -2753,13 +2756,12 @@ vte_terminal_set_background_image_file(
 	kik_debug_printf( KIK_DEBUG_TAG " Setting image file %s\n" , path) ;
 #endif
 
-	if( terminal->pvt->image &&
-	    /*
-	     * Don't unref terminal->pvt->image if path is
-	     * "pixmap:<pixmap id>" (Ex. the case of vte_terminal_set_background_image_file()
-	     * being called from update_wall_picture().)
-	     */
-	    (strlen(path) <= 7 || strncmp( path , "pixmap:" , 7) != 0))
+	/*
+	 * Don't unref terminal->pvt->image if path is
+	 * "pixmap:<pixmap id>" (Ex. the case of vte_terminal_set_background_image_file()
+	 * being called from update_wall_picture().)
+	 */
+	if( terminal->pvt->image && strncmp( path , "pixmap:" , 7) != 0)
 	{
 		g_object_unref( terminal->pvt->image) ;
 		terminal->pvt->image = NULL ;

@@ -15,6 +15,7 @@
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_str.h>	/* kik_str_alloca_dup */
+#include  <kiklib/kik_args.h>
 #include  <mkf/mkf_ucs4_map.h>	/* mkf_map_to_ucs4 */
 #include  <mkf/mkf_ucs_property.h>
 #include  <mkf/mkf_locale_ucs4_map.h>
@@ -721,6 +722,20 @@ config_protocol_set(
 			{
 				ml_gen_proto_challenge() ;
 			}
+		#ifdef  USE_LIBSSH2
+			else if( strncmp( key , "scp " , 4) == 0)
+			{
+				char **  argv ;
+				int  argc ;
+
+				argv = kik_arg_str_to_array( &argc , key) ;
+
+				if( argc == 3)
+				{
+					ml_pty_ssh_scp( vt100_parser->pty , argv[2] , argv[1]) ;
+				}
+			}
+		#endif
 			else
 			{
 				(*vt100_parser->config_listener->set)(

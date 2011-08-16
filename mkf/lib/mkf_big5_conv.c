@@ -29,7 +29,7 @@ remap_unsupported_charset(
 
 		locale = kik_get_locale() ;
 
-		if( strncmp( locale , "zh_HK" , K_MIN(strlen(locale) , 5)) == 0)
+		if( strncmp( locale , "zh_HK" , 5) == 0)
 		{
 			if( ! mkf_map_ucs4_to_zh_hk( &c , ch))
 			{
