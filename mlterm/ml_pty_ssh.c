@@ -22,13 +22,15 @@
 #include  <sys/socket.h>
 #include  <netdb.h>
 #include  <netinet/in.h>
+#ifdef  HAVE_PTHREAD
+#include  <pthread.h>
 #endif
+#endif
+
 #include  <fcntl.h>		/* open */
 #include  <unistd.h>		/* close/pipe */
 #include  <stdio.h>		/* sprintf */
-#if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
-#include  <pthread.h>
-#endif
+
 
 #ifndef  USE_WIN32API
 #define  closesocket( sock)  close( sock)
@@ -592,10 +594,12 @@ scp_thread(
 {
 	scp_t *  scp ;
 	size_t  rd_len ;
-	char  buf[4096] ;
+	char  buf[1024] ;
 	size_t  len ;
 	int  count ;
-	char  msg[] = "\x1b[?25l\r\nTransferring data.\r\n|" ;
+	int  progress ;
+	char  msg1[] = "\x1b[?25l\r\nTransferring data.\r\n|" ;
+	char  msg2[] = "**************************************************|\x1b[?25h\r\n" ;
 
 #if  ! defined(USE_WIN32API) && defined(HAVE_PTHREAD)
 	pthread_detach( pthread_self()) ;
@@ -604,10 +608,14 @@ scp_thread(
 	scp = p ;
 
 	rd_len = 0 ;
-	ml_write_to_pty( &scp->pty_ssh->pty , msg , sizeof(msg) - 1) ;
+	progress = 0 ;
+
+	ml_write_to_pty( &scp->pty_ssh->pty , msg1 , sizeof(msg1) - 1) ;
 
 	while( rd_len < scp->src_size)
 	{
+		int  new_progress ;
+
 		if( scp->src_is_remote)
 		{
 			if( ( len = libssh2_channel_read( scp->remote , buf , sizeof(buf))) < 0)
@@ -635,29 +643,42 @@ scp_thread(
 
 		rd_len += len ;
 
-		for( count = 1 ; count < 51 * rd_len / scp->src_size ; count++)
-		{
-			ml_write_to_pty( &scp->pty_ssh->pty , "*" , 1) ;
-		}
-		for( ; count < 51 ; count++)
-		{
-			ml_write_to_pty( &scp->pty_ssh->pty , " " , 1) ;
-		}
-		ml_write_to_pty( &scp->pty_ssh->pty , "|\r|" , 3) ;
+		new_progress = 50 * rd_len / scp->src_size ;
 
-	#ifdef  USE_WIN32API
-		if( scp->pty_ssh->pty.pty_listener && scp->pty_ssh->pty.pty_listener->read_ready)
+		if( progress < new_progress && new_progress < 50)
 		{
-			(*scp->pty_ssh->pty.pty_listener->read_ready)(
-				scp->pty_ssh->pty.pty_listener->self) ;
+			progress = new_progress ;
+
+			for( count = 0 ; count < new_progress ; count++)
+			{
+				ml_write_to_pty( &scp->pty_ssh->pty , "*" , 1) ;
+			}
+			for( ; count < 50 ; count++)
+			{
+				ml_write_to_pty( &scp->pty_ssh->pty , " " , 1) ;
+			}
+			ml_write_to_pty( &scp->pty_ssh->pty , "|\r|" , 3) ;
+
+		#ifdef  USE_WIN32API
+			if( scp->pty_ssh->pty.pty_listener &&
+			    scp->pty_ssh->pty.pty_listener->read_ready)
+			{
+				(*scp->pty_ssh->pty.pty_listener->read_ready)(
+					scp->pty_ssh->pty.pty_listener->self) ;
+			}
+		#endif
 		}
-	#endif
 	}
-	ml_write_to_pty( &scp->pty_ssh->pty , "\x1b[?25h\r\n" , 8) ;
+	ml_write_to_pty( &scp->pty_ssh->pty , msg2 , sizeof(msg2) - 1) ;
 
 	libssh2_session_set_blocking( scp->pty_ssh->session->obj , 0) ;
 
-	kik_usleep( 1000) ;	/* Expect to switch to main thread and call ml_read_pty(). */
+#if  1
+	kik_usleep( 100000) ;	/* Expect to switch to main thread and call ml_read_pty(). */
+#else
+	pthread_yield() ;
+#endif
+
 	ml_pty_unuse_loopback( &scp->pty_ssh->pty) ;
 
 	libssh2_channel_free( scp->remote) ;
@@ -978,20 +999,29 @@ ml_pty_ssh_scp(
 		return  0 ;
 	}
 	/* scp /tmp/TEST /home/user/ => scp /tmp/TEST /home/user/TEST */
-	else if( *(dst_path + strlen(dst_path) - 1) == '/')
+	else
 	{
-		char *  file ;
+		char *  p ;
 
-		if( ( file = kik_basename( src_path)))
+		p = dst_path + strlen(dst_path) - 1 ;
+
+		if( *p == '/'
+		#ifdef  USE_WIN32API
+		    || ( *p == '\\' && (p - 1 == dst_path || ! IsDBCSLeadByte(*(p - 1))))
+		#endif
+			)
 		{
-			char *  p ;
+			char *  file ;
 
-			if( ( p = alloca( strlen(dst_path) + strlen( file) + 1)))
+			if( ( file = kik_basename( src_path)))
 			{
-				strcpy( p , dst_path) ;
-				strcat( p , file) ;
+				if( ( p = alloca( strlen(dst_path) + strlen( file) + 1)))
+				{
+					strcpy( p , dst_path) ;
+					strcat( p , file) ;
 
-				dst_path = p ;
+					dst_path = p ;
+				}
 			}
 		}
 	}
@@ -1016,15 +1046,19 @@ ml_pty_ssh_scp(
 		if( ! ( scp->remote = libssh2_scp_recv( scp->pty_ssh->session->obj ,
 							src_path , &st)))
 		{
-			kik_error_printf( "SCP: Failed to open %s%s.\n" ,
+			kik_msg_printf( "SCP: Failed to open %s%s.\n" ,
 				src_is_remote ? "remote:" : "local:" , src_path) ;
 
 			goto  error ;
 		}
 
-		if( ( scp->local = open( dst_path , O_WRONLY|O_CREAT|O_TRUNC , st.st_mode)) < 0)
+		if( ( scp->local = open( dst_path , O_WRONLY|O_CREAT|O_TRUNC
+				#ifdef  USE_WIN32API
+					|O_BINARY
+				#endif
+					, st.st_mode)) < 0)
 		{
-			kik_error_printf( "SCP: Failed to open %s%s.\n" ,
+			kik_msg_printf( "SCP: Failed to open %s%s.\n" ,
 				dst_is_remote ? "remote:" : "local:" , dst_path) ;
 			libssh2_channel_free( scp->remote) ;
 
@@ -1034,13 +1068,13 @@ ml_pty_ssh_scp(
 	}
 	else /* if( dst_is_remote) */
 	{
-	#ifdef  USE_WIN32API
-		if( ( scp->local = open( src_path , O_RDONLY|O_BINARY , 0644)) < 0)
-	#else
-		if( ( scp->local = open( src_path , O_RDONLY , 0644)) < 0)
-	#endif
+		if( ( scp->local = open( src_path , O_RDONLY
+				#ifdef  USE_WIN32API
+					|O_BINARY
+				#endif
+					, 0644)) < 0)
 		{
-			kik_error_printf( "SCP: Failed to open %s%s.\n" ,
+			kik_msg_printf( "SCP: Failed to open %s%s.\n" ,
 				src_is_remote ? "remote:" : "local:" , src_path) ;
 	
 			goto  error ;
@@ -1049,9 +1083,9 @@ ml_pty_ssh_scp(
 		fstat( scp->local , &st) ;
 
 		if( ! ( scp->remote = libssh2_scp_send( scp->pty_ssh->session->obj , dst_path ,
-							st.st_mode & 0777 , (u_long)st.st_size)))
+							st.st_mode , (u_long)st.st_size)))
 		{
-			kik_error_printf( "SCP: Failed to open %s%s.\n" ,
+			kik_msg_printf( "SCP: Failed to open %s%s.\n" ,
 				dst_is_remote ? "remote:" : "local:" , dst_path) ;
 			close( scp->local) ;
 

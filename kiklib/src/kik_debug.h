@@ -36,5 +36,7 @@ int  kik_error_printf( const char *  format , ...) ;
 
 int  kik_msg_printf( const char *  format , ...) ;
 
+int  kik_set_msg_log_file_name( const char *  name) ;
+
 
 #endif

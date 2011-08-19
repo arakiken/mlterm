@@ -36,7 +36,7 @@ __kik_usleep(
 		return  -1 ;
 	}
 #else
-	Sleep(microseconds / 1000);
+	Sleep(microseconds / 1000) ;	/* sleep mili-seconds */
 	return  0 ;
 #endif /* USE_WIN32API */
 }

@@ -9,4 +9,4 @@ else
 	dst=$2
 fi
 
-printf "\x1b]5379;scp $src $dst\x07"
+printf "\x1b]5379;scp \"%s\" \"%s\"\x07" "$src" "$dst"

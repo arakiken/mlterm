@@ -10,7 +10,8 @@
 #include  "kik_config.h"
 
 
-#ifdef  HAVE_BASENAME
+/* XXX win32 basename() works strangely if cp932 characters are pssed. */
+#if  defined(HAVE_BASENAME) && ! defined(USE_WIN32API)
 
 #include  <libgen.h>
 

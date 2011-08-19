@@ -5,6 +5,8 @@
 * Support scp using libssh2. (Add "mlscp.sh" tool.)
 * Support DEC Special characters in win32. ("Tera Special" font is necessary.)
 * Support application escape mode. (CSI ? 7727 h , CSI ? 7727 l)
+* Support "logging_msg" option.
+* Support mlconfig in connecting a ssh server by libssh2.
 * 'make uninstall' is available.
 * Other bug fixes:
   Fix a problem which causes leak of graphic context resource in libvte.

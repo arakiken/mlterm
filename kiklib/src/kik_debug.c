@@ -7,13 +7,54 @@
 #include  <stdio.h>
 #include  <stdarg.h>
 #include  <string.h>    /* strlen */
+#include  <unistd.h>	/* getpid */
 
 #include  "kik_mem.h"	/* alloca */
+#include  "kik_util.h"	/* DIGIT_STR_LEN */
+#include  "kik_conf_io.h"	/* kik_get_user_rc_path */
 
 
 #if  0
 #define  __DEBUG
 #endif
+
+
+/* --- static variables --- */
+
+static char *  log_file_path ;
+
+
+/* --- static functions --- */
+
+static FILE *
+open_msg_file(void)
+{
+	FILE *  fp ;
+
+	if( log_file_path && ( fp = fopen( log_file_path , "a")))
+	{
+		return  fp ;
+	}
+
+	return  stderr ;
+}
+
+static void
+close_msg_file(
+	FILE *  fp
+	)
+{
+	if( fp != stderr)
+	{
+		fclose( fp) ;
+	}
+	else
+	{
+	#ifdef  USE_WIN32API
+		fflush( fp) ;
+	#endif
+	}
+}
 
 
 /* --- global functions --- */
@@ -31,6 +72,7 @@ kik_debug_printf(
 	char  prefix[] = "DEBUG: " ;
 	char *  new_format = NULL ;
 	int  ret ;
+	FILE *  fp ;
 
 	va_start( arg_list , format) ;
 
@@ -45,10 +87,9 @@ kik_debug_printf(
 		sprintf( new_format , "%s%s" , prefix , format) ;
 	}
 
-	ret = vfprintf( stderr , new_format , arg_list) ;
-#ifdef  USE_WIN32API
-	fflush(stderr) ;
-#endif
+	fp = open_msg_file() ;
+	ret = vfprintf( fp , new_format , arg_list) ;
+	close_msg_file( fp) ;
 
 	return  ret ;
 }
@@ -66,7 +107,8 @@ kik_warn_printf(
 	char  prefix[] = "WARN: " ;
 	char *  new_format = NULL ;
 	int  ret ;
-
+	FILE *  fp ;
+	
 	va_start( arg_list , format) ;
 
 	if( ( new_format = alloca( sizeof( prefix) + strlen( format) + 1)) == NULL)
@@ -80,10 +122,9 @@ kik_warn_printf(
 		sprintf( new_format , "%s%s" , prefix , format) ;
 	}
 
-	ret = vfprintf( stderr , new_format , arg_list) ;
-#ifdef  USE_WIN32API
-	fflush(stderr) ;
-#endif
+	fp = open_msg_file() ;
+	ret = vfprintf( fp , new_format , arg_list) ;
+	close_msg_file( fp) ;
 
 	return  ret ;
 
@@ -102,6 +143,7 @@ kik_error_printf(
 	char  prefix[] = "*** ERROR HAPPEND ***  " ;
 	char *  new_format = NULL ;
 	int  ret ;
+	FILE *  fp ;
 
 	va_start( arg_list , format) ;
 
@@ -116,10 +158,9 @@ kik_error_printf(
 		sprintf( new_format , "%s%s" , prefix , format) ;
 	}
 
-	ret = vfprintf( stderr , new_format , arg_list) ;
-#ifdef  USE_WIN32API
-	fflush(stderr) ;
-#endif
+	fp = open_msg_file() ;
+	ret = vfprintf( fp , new_format , arg_list) ;
+	close_msg_file( fp) ;
 
 	return  ret ;
 }
@@ -135,13 +176,39 @@ kik_msg_printf(
 {
 	va_list  arg_list ;
 	int  ret ;
+	FILE *  fp ;
 
 	va_start( arg_list , format) ;
 
-	ret = vfprintf( stderr , format , arg_list) ;
-#ifdef  USE_WIN32API
-	fflush(stderr) ;
-#endif
+	fp = open_msg_file() ;
+	ret = vfprintf( fp , format , arg_list) ;
+	close_msg_file( fp) ;
 
 	return  ret ;
+}
+
+int
+kik_set_msg_log_file_name(
+	const char *  name
+	)
+{
+	char *  p ;
+
+	free( log_file_path) ;
+	
+	if( name && *name && ( p = alloca( strlen( name) + DIGIT_STR_LEN(pid_t) + 5)))
+	{
+		pid_t  pid ;
+
+		pid = getpid() ;
+
+		sprintf( p , "%s%d.log" , name , pid) ;
+		log_file_path = kik_get_user_rc_path( p) ;
+	}
+	else
+	{
+		log_file_path = NULL ;
+	}
+
+	return  1 ;
 }

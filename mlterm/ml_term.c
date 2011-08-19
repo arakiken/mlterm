@@ -880,5 +880,5 @@ ml_term_start_config_menu(
 	)
 {
 	return  ml_config_menu_start( &term->config_menu , cmd_path ,
-			x , y , display, ml_pty_get_slave_fd( term->pty)) ;
+				x , y , display , term->pty) ;
 }

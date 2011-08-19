@@ -9,6 +9,7 @@
 #include  <ctype.h>	/* isdigit */
 #ifdef  USE_WIN32API
 #include  <sys/stat.h>
+#include  <windows.h>	/* IsDBCSLeadByte */
 #endif
 
 #include  "kik_str.h"	/* kik_str_alloca_dup */
@@ -21,7 +22,7 @@
 
 /* --- global functions --- */
 
-#ifndef  HAVE_BASENAME
+#if  ! defined(HAVE_BASENAME) || defined(USE_WIN32API)
 
 char *
 __kik_basename(
@@ -36,22 +37,50 @@ __kik_basename(
 	}
 
 	p = path + strlen(path) - 1 ;
-	while( *p == '/' && p != path)
+	while( 1)
 	{
-		*p-- = '\0' ;
+		if( p == path)
+		{
+			return  p ;
+		}
+		else if( *p == '/'
+		#ifdef  USE_WIN32API
+			|| (*p == '\\' && (p - 1 == path || ! IsDBCSLeadByte(*(p - 1))))
+		#endif
+			)
+		{
+			*(p--) = '\0' ;
+		}
+		else
+		{
+			break ;
+		}
 	}
 
-	if( ( p = strrchr( path , '/')) == NULL || p[1] == '\0')
+	while( 1)
 	{
-		return  path ;
-	}
-	else
-	{
-		return  p + 1 ;
+		if( *p == '/'
+		#ifdef  USE_WIN32API
+			|| (*p == '\\' && (p - 1 == path || ! IsDBCSLeadByte(*(p - 1))))
+		#endif
+			)
+		{
+			return  p + 1 ;
+		}
+		else
+		{
+			if( p == path)
+			{
+				return  p ;
+			}
+		}
+
+		p -- ;
 	}
 }
 
 #endif
+
 
 #ifndef  REMOVE_FUNCS_MLTERM_UNUSE
 
@@ -344,5 +373,18 @@ main(void)
 	printf( "%s %s %s %s %s %s\n" , proto , user , host , port , path , encoding) ;
 
 	return  0 ;
+}
+#endif
+
+#ifdef  __DEBUG
+int
+main(
+	int  argc ,
+	char **  argv
+	)
+{
+	printf( "%s\n" , __kik_basename( argv[1])) ;
+
+	return  1 ;
 }
 #endif

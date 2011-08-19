@@ -625,6 +625,9 @@ comment $Id$
       o use_clipboard (true/*false*)
         領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
 
+      o logging_msg (true/*false*)
+        mlterm が出力するメッセージを ~/.mlterm/log.[pid] に出力する。
+
       o default_server
         ssh 等により直接ログインするサーバを指定する。
 	MinGW 又は --enable-ssh2 オプションでビルドした場合に有効。
@@ -1044,12 +1047,13 @@ comment $Id$
        --serv=value    : default_server
        --csp=value     : letter_space
        --ucsprop(=bool): use_unicode_property
+       --logmsg(=bool) : logging_msg
        --depth=value   : depth (X)
        --maxptys=value : max_ptys (X)
        --button3=value : button3_behavior (X)
        --clip(=bool)   : use_clipboard (X)
-       --pubkey=value  : ssh public key file
-       --privkey=value : ssh private key file
+       --pubkey=value  : ssh_public_key
+       --privkey=value : ssh_private_key
 
     -e ... : 指定したコマンドを起動
 

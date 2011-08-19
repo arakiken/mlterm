@@ -36,29 +36,34 @@ wait_child_exited(
 	DWORD  ev ;
 
 #if  0
-  	kik_debug_printf( "wait_child_exited thread.\n") ;
+	kik_debug_printf( "wait_child_exited thread.\n") ;
 #endif
 
 	config_menu = thr_param ;
 
-  	while( 1)
-        {
-          	ev = WaitForSingleObject( config_menu->pid , INFINITE) ;
+	while( 1)
+	{
+		ev = WaitForSingleObject( config_menu->pid , INFINITE) ;
 
 	#if  0
-          	kik_debug_printf( "WaitForMultipleObjects %dth event signaled.\n", ev) ;
+		kik_debug_printf( "WaitForMultipleObjects %dth event signaled.\n", ev) ;
 	#endif
-                
-          	if( ev == WAIT_OBJECT_0)
-                {
+
+		if( ev == WAIT_OBJECT_0)
+		{
 			CloseHandle( config_menu->fd) ;
 			CloseHandle( config_menu->pid) ;
 			config_menu->fd = -1 ;
 			config_menu->pid = 0 ;
 
+		#ifdef  USE_LIBSSH2
+			ml_pty_unuse_loopback( config_menu->pty) ;
+			config_menu->pty = NULL ;
+		#endif
+
 			break ;
-                }
-        }
+		}
+	}
 
   	ExitThread( 0) ;
 
@@ -80,8 +85,14 @@ sig_child(
 	if( config_menu->pid == pid)
 	{
 		config_menu->pid = 0 ;
+
 		close( config_menu->fd) ;
 		config_menu->fd = -1 ;
+
+	#ifdef  USE_LIBSSH2
+		ml_pty_unuse_loopback( config_menu->pty) ;
+		config_menu->pty = NULL ;
+	#endif
 	}
 }
 
@@ -102,6 +113,9 @@ ml_config_menu_init(
 	config_menu->fd = -1 ;
 
 	kik_add_sig_child_listener( config_menu , sig_child) ;
+#endif
+#ifdef  USE_LIBSSH2
+	config_menu->pty = NULL ;
 #endif
 
 	return  1 ;
@@ -126,10 +140,11 @@ ml_config_menu_start(
 	int  x ,
 	int  y ,
 	char *  display ,
-	int  pty_fd
+	ml_pty_ptr_t  pty
 	)
 {
 #ifdef  USE_WIN32API
+
 	HANDLE  input_write_tmp ;
 	HANDLE  input_read ;
 	HANDLE  output_write ;
@@ -140,6 +155,7 @@ ml_config_menu_start(
 	char *  cmd_line ;
 	char  geometry[] = "--geometry" ;
 	DWORD  tid ;
+	int  pty_fd ;
 
 	if( config_menu->pid > 0)
 	{
@@ -147,9 +163,20 @@ ml_config_menu_start(
 		
 		return  0 ;
 	}
-	
+
 	input_read = output_write = error_write = 0 ;
-	
+
+	if( ( pty_fd = ml_pty_get_slave_fd( pty) == -1))
+	{
+	#ifdef  USE_LIBSSH2
+		ml_pty_use_loopback( pty) ;
+		pty_fd = ml_pty_get_slave_fd( pty) ;
+		config_menu->pty = pty ;
+	#else
+		return  0 ;
+	#endif
+	}
+
 	/*
 	 * pty_fd is not inheritable(see ml_pty_pipewin32.c).
 	 * So it is necessary to duplicate inheritable handle.
@@ -165,7 +192,7 @@ ml_config_menu_start(
 		return  0 ;
 	}
 
-	if( ! DuplicateHandle( GetCurrentProcess() , pty_fd,
+	if( ! DuplicateHandle( GetCurrentProcess() , pty_fd ,
 			       GetCurrentProcess() , &error_write , 0 ,
 			       TRUE , DUPLICATE_SAME_ACCESS))
 	{
@@ -175,9 +202,9 @@ ml_config_menu_start(
 
 		goto  error1 ;
 	}
-
+	
 	/* Set up the security attributes struct. */
-	sa.nLength= sizeof(SECURITY_ATTRIBUTES);
+	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 	sa.lpSecurityDescriptor = NULL;
 	sa.bInheritHandle = TRUE;
 
@@ -309,9 +336,12 @@ error2:
 	}
 
 	return  0 ;
-#else
+
+#else	/* USE_WIN32API */
+
 	pid_t  pid ;
 	int  fds[2] ;
+	int  pty_fd ;
 
 	if( config_menu->pid > 0)
 	{
@@ -320,7 +350,18 @@ error2:
 		return  0 ;
 	}
 
-	if( !kik_file_unset_cloexec( pty_fd))
+	if( ( pty_fd = ml_pty_get_slave_fd( pty) == -1))
+	{
+	#ifdef  USE_LIBSSH2
+		ml_pty_use_loopback( pty) ;
+		pty_fd = ml_pty_get_slave_fd( pty) ;
+		config_menu->pty = pty ;
+	#else
+		return  0 ;
+	#endif
+	}
+
+	if( ! kik_file_unset_cloexec( pty_fd))
 	{
 		/* configulators require an inherited pty. */
 		return  0 ;
@@ -387,7 +428,7 @@ error2:
 				}
 
 				sprintf( p , "%s/%s" , dir , cmd_path) ;
-				
+
 				args[0] = cmd_path = p ;
 
 				if( execv( cmd_path , args) == -1)
@@ -413,7 +454,8 @@ error2:
 	kik_file_set_cloexec( config_menu->fd) ;
 
 	return  1 ;
-#endif
+
+#endif	/* USE_WIN32API */
 }
 
 int

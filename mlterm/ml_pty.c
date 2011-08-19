@@ -11,8 +11,9 @@
 #include  <string.h>
 #include  <unistd.h>		/* ttyname/pipe */
 #include  <stdio.h>		/* sscanf */
+#include  <fcntl.h>		/* fcntl/O_BINARY */
 #ifdef  USE_WIN32API
-#include  <fcntl.h>		/* O_BINARY */
+#include  <windows.h>
 #endif
 
 
@@ -24,6 +25,95 @@
 /* --- static functions --- */
 
 #ifdef  USE_LIBSSH2
+
+#ifdef  USE_WIN32API
+static ssize_t
+lo_recv_pty(
+	ml_pty_t *  pty ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	return  recv( pty->master , buf , len , 0) ;
+}
+
+static ssize_t
+lo_send_to_pty(
+	ml_pty_t *  pty ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	return  send( pty->slave , buf , len , 0) ;
+}
+
+static int
+_socketpair(
+	int  af ,
+	int  type ,
+	int  proto ,
+	SOCKET  sock[2]
+	)
+{
+	SOCKET  listen_sock ;
+	SOCKADDR_IN  addr ;
+	int addr_len ;
+
+	if( ( listen_sock = WSASocket( af , type , proto , NULL , 0 , 0)) == -1)
+	{
+		return  -1 ;
+	}
+
+	addr_len = sizeof(addr) ;
+
+	memset( (void*)&addr , 0 , sizeof(addr)) ;
+	addr.sin_family = af ;
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK) ;
+	addr.sin_port = 0 ;
+
+	if( bind( listen_sock , (SOCKADDR*)&addr , addr_len) != 0)
+	{
+		goto  error1 ;
+	}
+
+	if( getsockname( listen_sock , (SOCKADDR*)&addr , &addr_len) != 0)
+	{
+		goto  error1 ;
+	}
+
+	if( listen( listen_sock , 1) != 0)
+	{
+		goto  error1 ;
+	}
+
+	if( ( sock[0] = WSASocket( af , type , proto , NULL , 0 , 0)) == -1)
+	{
+		goto  error1 ;
+	}
+
+	if( connect( sock[0] , (SOCKADDR*)&addr , addr_len) != 0)
+	{
+		goto  error2 ;
+	}
+
+	if( ( sock[1] = accept( listen_sock , 0 , 0)) == -1)
+	{
+		goto  error2 ;
+	}
+
+	closesocket( listen_sock) ;
+
+	return  0 ;
+
+error2:
+	closesocket( sock[0]) ;
+
+error1:
+	closesocket( listen_sock) ;
+
+	return  -1 ;
+}
+#endif	/* USE_WIN32API */
 
 static ssize_t
 lo_read_pty(
@@ -45,7 +135,7 @@ lo_write_to_pty(
 	return  write( pty->slave , buf , len) ;
 }
 
-#endif
+#endif	/* USE_LIBSSH2 */
 
 
 /* --- global functions --- */
@@ -214,7 +304,9 @@ ml_write_to_pty(
 	written_size = (*pty->write)( pty , w_buf , w_buf_size) ;
 	if( written_size < 0)
 	{
+	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " write() failed.\n") ;
+	#endif
 		written_size = 0 ;
 	}
 
@@ -318,7 +410,7 @@ ml_pty_get_pid(
   	ml_pty_t *  pty
   	)
 {
-  	return  (pid_t)pty->child_pid ;
+  	return  pty->child_pid ;
 }
 
 int
@@ -356,7 +448,6 @@ ml_pty_get_slave_name(
 }
 
 #ifdef  USE_LIBSSH2
-
 int
 ml_pty_use_loopback(
 	ml_pty_t *  pty
@@ -380,10 +471,34 @@ ml_pty_use_loopback(
 	pty->stored->write = pty->write ;
 
 #ifdef  USE_WIN32API
-	if( _pipe( fds , 256 , O_BINARY) != 0)
+	if( _socketpair( AF_INET , SOCK_STREAM , 0 , fds) == 0)
+	{
+		u_long  val ;
+
+		val = 1 ;
+		ioctlsocket( fds[0] , FIONBIO , &val) ;
+		val = 1 ;
+		ioctlsocket( fds[1] , FIONBIO , &val) ;
+
+		pty->read = lo_recv_pty ;
+		pty->write = lo_send_to_pty ;
+	}
+	else if( _pipe( fds , 256 , O_BINARY) == 0)
+	{
+		pty->read = lo_read_pty ;
+		pty->write = lo_write_to_pty ;
+	}
 #else
-	if( pipe( fds) != 0)
+	if( pipe( fds) == 0)
+	{
+		fcntl( fds[0] , F_SETFL , O_NONBLOCK|fcntl( pty->master , F_GETFL , 0)) ;
+		fcntl( fds[1] , F_SETFL , O_NONBLOCK|fcntl( pty->slave , F_GETFL , 0)) ;
+
+		pty->read = lo_read_pty ;
+		pty->write = lo_write_to_pty ;
+	}
 #endif
+	else
 	{
 		free( pty->stored) ;
 		pty->stored = NULL ;
@@ -393,8 +508,6 @@ ml_pty_use_loopback(
 
 	pty->master = fds[0] ;
 	pty->slave = fds[1] ;
-	pty->read = lo_read_pty ;
-	pty->write = lo_write_to_pty ;
 
 	return  1 ;
 }
@@ -404,8 +517,23 @@ ml_pty_unuse_loopback(
 	ml_pty_t *  pty
 	)
 {
-	close( pty->slave) ;
-	close( pty->master) ;
+	if( ! pty->stored)
+	{
+		return  0 ;
+	}
+
+#ifdef  USE_WIN32API
+	if( pty->read == lo_recv_pty)
+	{
+		closesocket( pty->slave) ;
+		closesocket( pty->master) ;
+	}
+	else
+#endif
+	{
+		close( pty->slave) ;
+		close( pty->master) ;
+	}
 
 	pty->master = pty->stored->master ;
 	pty->slave = pty->stored->slave ;

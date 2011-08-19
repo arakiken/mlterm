@@ -26,10 +26,10 @@ echo "Press Enter key to continue searching. Press ^C to exit."
 
 trap "reset_state $dir" 2
 stty -echo 
-printf "\x1b]5379;search_$dir=$pat\x07"
+printf "\x1b]5379;search_$dir=%s\x07" "$pat"
 read input
 while  true
-do printf "\x1b]5379;search_$dir=$pat\x07" ; read input
+do printf "\x1b]5379;search_$dir=%s\x07" "$pat" ; read input
 done
 
 reset_state $dir

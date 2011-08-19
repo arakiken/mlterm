@@ -8272,6 +8272,17 @@ x_screen_set_config(
 
 		x_set_use_clipboard_selection( flag) ;
 	}
+	else if( strcmp( key , "logging_msg") == 0)
+	{
+		if( true_or_false( value) > 0)
+		{
+			kik_set_msg_log_file_name( "mlterm/msg") ;
+		}
+		else
+		{
+			kik_set_msg_log_file_name( NULL) ;
+		}
+	}
 	else if( strcmp( key , "paste") == 0)
 	{
 		yank_event_received( screen , 0) ;

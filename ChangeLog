@@ -1,3 +1,25 @@
+2011-08-20  Araki Ken  <arakiken@users.sf.net>
+
+	* --logmsg/logging_msg option which writes messages to ~/.mlterm/msg[pid].log
+	  is added.
+	  - kik_debug.[ch]: kik_set_msg_log_file_name() is added.
+	  - screen.c, x_main_config.[ch]: Fixed.
+
+	* kik_path.[ch]:
+	  - __kik_basename() supports '\' as a separator.
+	  - __kik_basename() is forcibly used in win32 even if system basename()
+	    is provided.
+
+	* ml_pty.c:
+	  - File descriptors by _socketpair() are used for pty loopback in win32
+	    in order to select(2) it.
+	
+	* ml_config_menu.[ch]: mlconfig is available in using libssh2.
+	  - ml_pty_ptr_t is passed to ml_config_menu_start() instead of slave fd.
+	  - pty loopback is enabled by ml_pty_(un)use_loopback() while mlconfig works.
+
+	* ml_vt100_parser.c: DECTCEM is reset in DECSTR.
+
 2011-08-16  Araki Ken  <arakiken@users.sf.net>
 
 	* "scp <src> <dst>" is added to configuration protocol.

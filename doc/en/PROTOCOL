@@ -22,7 +22,7 @@ version 20091211
                      col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
                      use_dynamic_comb | cursor_fg_color |
                      cursor_bg_color | open_pty | open_screen | select_pty |
-                     snapshot | gen_proto_challenge | icon_path | logging_vt_seq |
+                     snapshot | gen_proto_challenge | icon_path | logging_vt_seq | logging_msg |
 		     title | word_separators | button3_behavior | paste | use_clipboard |
 		     mlclient <prefix options> <options> | mlclientx <prefix options> <options> |
 		     search_prev | search_next | scp <src> <dst>
@@ -105,6 +105,7 @@ version 20091211
   vertical_mode = none | cjk | mongol
   wall_picture = <file path>
   logging_vt_seq = true | false
+  logging_msg = true | false
   selected_text(:encoding) = <none>
   paste = <none>
 

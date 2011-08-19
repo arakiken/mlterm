@@ -1207,20 +1207,23 @@ soft_reset(
 	 * XXX insufficient implementation.
 	 */
 
+	/* "CSI ? 25 h" (DECTCEM) */
+	ml_screen_cursor_visible( vt100_parser->screen) ;
+
 	/* "CSI l" (IRM) */
 	vt100_parser->buffer.output_func = ml_screen_overwrite_chars ;
-
-	/* "CSI r" (DECSTBM) */
-	ml_screen_set_scroll_region( vt100_parser->screen , -1 , -1) ;
-
-	/* "CSI m" (SGR) */
-	change_char_attr( vt100_parser , 0) ;
 
 	/* "CSI ? 6 l" (DECOM) */
 	ml_screen_set_absolute_origin( vt100_parser->screen) ;
 
 	/* "CSI ? 7 l" (DECAWM) */
 	ml_screen_unset_auto_wrap( vt100_parser->screen) ;
+
+	/* "CSI r" (DECSTBM) */
+	ml_screen_set_scroll_region( vt100_parser->screen , -1 , -1) ;
+
+	/* "CSI m" (SGR) */
+	change_char_attr( vt100_parser , 0) ;
 
 	ml_init_encoding_parser( vt100_parser) ;
 
