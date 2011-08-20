@@ -81,7 +81,7 @@ version 20091211
   rows = <any ASCII decimal digit>
   sb_bg_color = <color name> | <color rgb>
   sb_fg_color = <color name> | <color rgb>
-  scp <src> <dst> = <none>
+  scp (local:|remote:)<src> (local:|remote:)<dst> = <none>
   screen_height_ratio = <any ASCII decimal digit>
   screen_width_ratio = <any ASCII decimal digit>
   scrollbar_mode = none | left | right
@@ -134,3 +134,22 @@ version 20091211
   o "selected_text(:encoding)" protocol returns selected text in which NL is
     replaced to CR.
   o "paste" protocol works like INSERT_SELECTION.
+  o "scp" protocol works as follows. ("foo.bar" is a remote host.)
+    e.g.)
+     \x1b]5379;scp /bin/ls work/\x07
+       => scp localhost:/bin/ls foo.bar:$HOME/work/ls
+          (If destination path ends up with '/', file name is automatically
+	   completed.)
+          (If destination path doesn't start with '/', home directory in remote
+	   host is automatically completed.)
+     \x1b]5379;scp remote:/bin/ls /usr/bin/\x07
+       => scp foo.bar:/bin/ls localhost:/usr/bin/ls
+     \x1b]5379;scp \"$HOME/my text.txt\" \"./\"\x07
+       => scp "localhost:$HOME/my text.txt" "foo.bar:$HOME/my text.txt"
+     \x1b]5379;scp local:$PWD/hosts remote:/etc/\x07
+       => scp localhost:$PWD/hosts foo.bar:/etc/hosts
+     \x1b]5379;scp c:\users\text.txt ./\x07
+       => scp localhost:c:\users\text.txt foo.bar:$HOME/text.txt
+          ("\" is available as a separator only in win32.)
+    Note)
+    - Character encoding of specified file names depends on terminal encoding.

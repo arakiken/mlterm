@@ -1,5 +1,9 @@
 2011-08-20  Araki Ken  <arakiken@users.sf.net>
 
+	* README, doc/en/PROTOCOL: Updated.
+
+2011-08-20  Araki Ken  <arakiken@users.sf.net>
+
 	* --logmsg/logging_msg option which writes messages to ~/.mlterm/msg[pid].log
 	  is added.
 	  - kik_debug.[ch]: kik_set_msg_log_file_name() is added.

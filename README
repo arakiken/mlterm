@@ -116,7 +116,7 @@ What you need for compilation
 
   Fribidi (0.9.0 - ?) for Bidi.
 
-  libssh2 for ssh2 client.
+  libssh2 for ssh2 client and scp.
 
 
 Supported platforms
