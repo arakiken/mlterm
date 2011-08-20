@@ -1083,7 +1083,7 @@ ml_pty_ssh_scp(
 		fstat( scp->local , &st) ;
 
 		if( ! ( scp->remote = libssh2_scp_send( scp->pty_ssh->session->obj , dst_path ,
-							st.st_mode , (u_long)st.st_size)))
+							st.st_mode & 0777 , (u_long)st.st_size)))
 		{
 			kik_msg_printf( "SCP: Failed to open %s%s.\n" ,
 				dst_is_remote ? "remote:" : "local:" , dst_path) ;
