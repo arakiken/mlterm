@@ -90,8 +90,11 @@ sig_child(
 		config_menu->fd = -1 ;
 
 	#ifdef  USE_LIBSSH2
-		ml_pty_unuse_loopback( config_menu->pty) ;
-		config_menu->pty = NULL ;
+		if( config_menu->pty)
+		{
+			ml_pty_unuse_loopback( config_menu->pty) ;
+			config_menu->pty = NULL ;
+		}
 	#endif
 	}
 }
