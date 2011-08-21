@@ -1,3 +1,15 @@
+2011-08-22  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_pty.c, ml_pty_intern.h : pty->stored->count member is added.
+
+	* ml_pty_ssh.c:
+	  - Destination of scp is always directory.
+	  - Only one scp process works at the same time.
+
+	* tool/mlconfig/main.c: Front-end window for SSH SCP is added.
+
+	* doc/en/PROTOCOL: Fixed.
+
 2011-08-20  Araki Ken  <arakiken@users.sf.net>
 
 	* README, doc/en/PROTOCOL: Updated.

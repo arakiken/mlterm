@@ -57,6 +57,7 @@ end_application(
 }
 
 
+#if  defined(USE_FRIBIDI) && defined(USE_IND)
 static gint
 bidi_flag_checked(
 	GtkWidget *  widget ,
@@ -71,7 +72,7 @@ bidi_flag_checked(
 
 	return  1 ;
 }
-
+#endif
 
 /*
  *  ********  procedures when buttons are clicked  ********
@@ -187,6 +188,157 @@ full_reset_clicked(
 	return  1 ;
 }
 
+#ifdef  USE_LIBSSH2
+
+#define  MY_RESPONSE_SEND  1
+#define  MY_RESPONSE_RECV  2
+
+static void
+drag_data_received(
+	GtkWidget *  widget ,
+	GdkDragContext *  context ,
+	gint  x ,
+	gint  y ,
+	GtkSelectionData *  data ,
+	guint  info ,
+	guint  time
+	)
+{
+	gchar **  uris ;
+	gchar *  filename ;
+
+	uris = g_uri_list_extract_uris( data->data) ;
+	filename = g_filename_from_uri( uris[0] , NULL , NULL) ;
+	gtk_entry_set_text( GTK_ENTRY(widget) , filename) ;
+	g_free( filename) ;
+	g_strfreev( uris) ;
+}
+
+static gint
+ssh_scp_clicked(
+	GtkWidget *  widget ,
+	gpointer  data
+	)
+{
+	GtkWidget *  dialog ;
+	GtkWidget *  content_area ;
+	GtkWidget *  hbox ;
+	GtkWidget *  label ;
+	GtkWidget *  local_entry ;
+	GtkWidget *  remote_entry ;
+	gint  res ;
+	GtkTargetEntry  local_targets[] =
+	{
+		{ "text/uri-list" , 0 , 0 } ,
+	} ;
+
+	dialog = gtk_dialog_new() ;
+	gtk_window_set_title( GTK_WINDOW(dialog) , "mlconfig") ;
+	gtk_dialog_add_button( GTK_DIALOG(dialog) , _("Send") , MY_RESPONSE_SEND) ;
+	gtk_dialog_add_button( GTK_DIALOG(dialog) , _("Recv") , MY_RESPONSE_RECV) ;
+	gtk_dialog_add_button( GTK_DIALOG(dialog) , _("Cancel") , GTK_RESPONSE_CANCEL) ;
+
+	content_area = GTK_DIALOG(dialog)->vbox ;
+	
+	hbox = gtk_hbox_new(FALSE , 0) ;
+	gtk_widget_show(hbox) ;
+
+	label = gtk_label_new( _("Local")) ;
+	gtk_widget_show(label) ;
+	gtk_widget_set_usize( label , 50 , 0) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , TRUE , 1) ;
+	
+	local_entry = gtk_entry_new() ;
+	gtk_widget_show(local_entry) ;
+	gtk_widget_set_usize( local_entry , 220 , 0) ;
+	gtk_drag_dest_set( local_entry , GTK_DEST_DEFAULT_ALL ,
+		local_targets , 1 , GDK_ACTION_COPY) ;
+	g_signal_connect( local_entry , "drag-data-received" ,
+			G_CALLBACK(drag_data_received) , NULL) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , local_entry , FALSE , TRUE , 1) ;
+
+	gtk_container_add( GTK_CONTAINER(content_area) , hbox) ;
+
+	hbox = gtk_hbox_new(FALSE , 0) ;
+	gtk_widget_show(hbox) ;
+
+	label = gtk_label_new( _("Remote")) ;
+	gtk_widget_show(label) ;
+	gtk_widget_set_usize( label , 50 , 0) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , TRUE , 1) ;
+
+	remote_entry = gtk_entry_new() ;
+	gtk_widget_show(remote_entry) ;
+	gtk_widget_set_usize( remote_entry , 220 , 0) ;
+	gtk_box_pack_start(GTK_BOX(hbox) , remote_entry , FALSE , TRUE , 1) ;
+
+	gtk_container_add( GTK_CONTAINER(content_area) , hbox) ;
+
+	while( (res = gtk_dialog_run( GTK_DIALOG(dialog))) != GTK_RESPONSE_CANCEL)
+	{
+		char *  key ;
+		const gchar *  local_path ;
+		const gchar *  remote_path ;
+
+		local_path = gtk_entry_get_text( GTK_ENTRY(local_entry)) ;
+		remote_path = gtk_entry_get_text( GTK_ENTRY(remote_entry)) ;
+
+		if( ( key = alloca( 23 + strlen( local_path) + strlen( remote_path))))
+		{
+			char *  p ;
+
+			if( res == MY_RESPONSE_SEND)
+			{
+				if( ! *local_path)
+				{
+					kik_msg_printf( "Local file path to send "
+						"is not specified.\n") ;
+
+					continue ;
+				}
+
+				sprintf( key , "scp \"local:%s\" \"remote:%s\"" ,
+						local_path , remote_path) ;
+			}
+			else /* if( res == MY_RESPONSE_RECV) */
+			{
+				if( ! *remote_path)
+				{
+					kik_msg_printf( "Remote file path to receive "
+						"is not specified.\n") ;
+
+					continue ;
+				}
+
+				sprintf( key , "scp \"remote:%s\" \"local:%s\"" ,
+						remote_path , local_path) ;
+			}
+
+			p = key + strlen(key) - 2 ;
+			if( *p == '\\')
+			{
+				/*
+				 * Avoid to be parsed as follows.
+				 * "local:c:\foo\bar\" => local:c:\foo\bar"
+				 */
+				*(p++) = '\"' ;
+				*p = '\0' ;
+			}
+			
+			kik_msg_printf( "\r\n%s" , key) ;
+
+			mc_set_str_value( key , "") ;
+			mc_flush(mc_io_set) ;
+		}
+	}
+
+	gtk_widget_destroy( dialog) ;
+
+	return  1 ;
+}
+
+#endif	/* USE_LIBSSH2 */
+
 static gint
 pty_new_button_clicked(
 	GtkWidget *  widget ,
@@ -295,6 +447,27 @@ full_reset(void)
 	return frame;
 }
 
+#ifdef  USE_LIBSSH2
+static GtkWidget *
+ssh_scp(void)
+{
+	GtkWidget *  frame ;
+	GtkWidget *  hbox ;
+
+	frame = gtk_frame_new( _("SSH SCP")) ;
+	gtk_widget_show(frame) ;
+
+	hbox = gtk_hbox_new( FALSE , 5) ;
+	gtk_container_set_border_width(GTK_CONTAINER(hbox) , 5) ;
+	gtk_widget_show(hbox) ;
+	gtk_container_add(GTK_CONTAINER(frame) , hbox) ;
+
+	addbutton(_("SSH SCP"), ssh_scp_clicked, hbox);
+
+	return frame;
+}
+#endif	/* USE_LIBSSH2 */
+
 static GtkWidget *
 pty_list(void)
 {
@@ -375,7 +548,11 @@ show(void)
 	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
 	frame = full_reset();
 	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
-	
+#ifdef  USE_LIBSSH2
+	frame = ssh_scp() ;
+	gtk_box_pack_start( GTK_BOX(hbox) , frame , TRUE , TRUE , 5) ;
+#endif
+
 	frame = pty_list() ;
 	gtk_box_pack_start( GTK_BOX(vbox) , frame , FALSE , FALSE , 0) ;
 	

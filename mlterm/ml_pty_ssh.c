@@ -40,6 +40,10 @@
 #define  __DEBUG
 #endif
 
+#if  1
+#define  PROHIBIT_MULTIPLE_SCP
+#endif
+
 
 typedef struct ssh_session
 {
@@ -81,6 +85,9 @@ static ssh_session_t **  sessions ;
 static u_int  num_of_sessions = 0 ;
 #ifdef  USE_WIN32API
 static HANDLE  rd_ev ;
+#endif
+#ifdef  PROHIBIT_MULTIPLE_SCP
+static int  doing_scp ;
 #endif
 
 
@@ -596,7 +603,6 @@ scp_thread(
 	size_t  rd_len ;
 	char  buf[1024] ;
 	size_t  len ;
-	int  count ;
 	int  progress ;
 	char  msg1[] = "\x1b[?25l\r\nTransferring data.\r\n|" ;
 	char  msg2[] = "**************************************************|\x1b[?25h\r\n" ;
@@ -647,6 +653,8 @@ scp_thread(
 
 		if( progress < new_progress && new_progress < 50)
 		{
+			int  count ;
+
 			progress = new_progress ;
 
 			for( count = 0 ; count < new_progress ; count++)
@@ -685,6 +693,10 @@ scp_thread(
 	close( scp->local) ;
 
 	free( scp) ;
+
+#ifdef  PROHIBIT_MULTIPLE_SCP
+	doing_scp = 0 ;
+#endif
 
 	/* Not necessary if thread started by _beginthreadex */
 #if  0
@@ -936,6 +948,7 @@ ml_pty_ssh_scp(
 {
 	int  dst_is_remote ;
 	int  src_is_remote ;
+	char *  file ;
 	scp_t *  scp ;
 	struct stat  st ;
 
@@ -945,6 +958,17 @@ ml_pty_ssh_scp(
 		return  0 ;
 	}
 	
+#ifdef  PROHIBIT_MULTIPLE_SCP
+	if( doing_scp)
+	{
+		kik_msg_printf( "SCP: Another scp process is working.\n") ;
+
+		return  0 ;
+	}
+
+	doing_scp = 1 ;
+#endif
+
 	if( strncmp( dst_path , "remote:" , 7) == 0)
 	{
 		dst_path += 7 ;
@@ -993,36 +1017,20 @@ ml_pty_ssh_scp(
 			dst_path , src_path) ;
 	}
 
-	/* Ensure that strlen(dst_path) is more than 0. */
-	if( *dst_path == '\0')
+	if( ! *dst_path)
 	{
-		return  0 ;
+		dst_path = "." ;
 	}
-	/* scp /tmp/TEST /home/user/ => scp /tmp/TEST /home/user/TEST */
-	else
+
+	if( ( file = kik_basename( src_path)))
 	{
+		/* scp /tmp/TEST /home/user => scp /tmp/TEST /home/user/TEST */
 		char *  p ;
 
-		p = dst_path + strlen(dst_path) - 1 ;
-
-		if( *p == '/'
-		#ifdef  USE_WIN32API
-		    || ( *p == '\\' && (p - 1 == dst_path || ! IsDBCSLeadByte(*(p - 1))))
-		#endif
-			)
+		if( ( p = alloca( strlen(dst_path) + strlen( file) + 2)))
 		{
-			char *  file ;
-
-			if( ( file = kik_basename( src_path)))
-			{
-				if( ( p = alloca( strlen(dst_path) + strlen( file) + 1)))
-				{
-					strcpy( p , dst_path) ;
-					strcat( p , file) ;
-
-					dst_path = p ;
-				}
-			}
+			sprintf( p , "%s/%s" , dst_path , file) ;
+			dst_path = p ;
 		}
 	}
 
@@ -1098,6 +1106,8 @@ ml_pty_ssh_scp(
 
 	if( ! ml_pty_use_loopback( pty))
 	{
+		libssh2_channel_free( scp->remote) ;
+
 		goto  error ;
 	}
 

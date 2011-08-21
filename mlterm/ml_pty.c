@@ -457,7 +457,9 @@ ml_pty_use_loopback(
 
 	if( pty->stored)
 	{
-		return  0 ;
+		pty->stored->count ++ ;
+
+		return  1 ;
 	}
 
 	if( ( pty->stored = malloc( sizeof( *(pty->stored)))) == NULL)
@@ -509,6 +511,8 @@ ml_pty_use_loopback(
 	pty->master = fds[0] ;
 	pty->slave = fds[1] ;
 
+	pty->stored->count = 1 ;
+
 	return  1 ;
 }
 
@@ -517,9 +521,9 @@ ml_pty_unuse_loopback(
 	ml_pty_t *  pty
 	)
 {
-	if( ! pty->stored)
+	if( ! pty->stored || --(pty->stored->count) > 0)
 	{
-		return  0 ;
+		return  1 ;
 	}
 
 #ifdef  USE_WIN32API

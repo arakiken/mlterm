@@ -33,6 +33,8 @@ typedef struct  ml_pty
 		ssize_t (*write)( ml_pty_ptr_t , u_char * , size_t) ;
 		ssize_t (*read)( ml_pty_ptr_t , u_char * , size_t) ;
 
+		int  count ;
+
 	} *  stored ;
 
 } ml_pty_t ;
