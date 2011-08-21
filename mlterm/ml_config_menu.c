@@ -166,7 +166,7 @@ ml_config_menu_start(
 
 	input_read = output_write = error_write = 0 ;
 
-	if( ( pty_fd = ml_pty_get_slave_fd( pty) == -1))
+	if( ( pty_fd = ml_pty_get_slave_fd( pty)) == -1)
 	{
 	#ifdef  USE_LIBSSH2
 		ml_pty_use_loopback( pty) ;
@@ -350,7 +350,7 @@ error2:
 		return  0 ;
 	}
 
-	if( ( pty_fd = ml_pty_get_slave_fd( pty) == -1))
+	if( ( pty_fd = ml_pty_get_slave_fd( pty)) == -1)
 	{
 	#ifdef  USE_LIBSSH2
 		ml_pty_use_loopback( pty) ;
