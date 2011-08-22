@@ -904,11 +904,7 @@ x_window_init(
 	win->click_num = 0 ;
 	win->button_is_pressing = 0 ;
 	win->dnd = NULL ;
-#ifndef  UTF16_IME_CHAR
-	win->app_name = "mlterm" ;
-#else
-	win->app_name = L"mlterm" ;
-#endif
+	win->app_name = __("mlterm") ;
 
 	win->window_realized = NULL ;
 	win->window_finalized = NULL ;
@@ -1289,11 +1285,7 @@ x_window_show(
 		GetSystemMetrics(SM_CYFRAME), GetSystemMetrics(SM_CYCAPTION)) ;
 #endif
 
-#ifndef  UTF16_IME_CHAR
-	win->my_window = CreateWindowEx( 0 , "MLTERM" , win->app_name ,
-#else
-	win->my_window = CreateWindowExW( 0 , L"MLTERM" , win->app_name ,
-#endif
+	win->my_window = CreateWindowEx( 0 , __("MLTERM") , win->app_name ,
 				! win->parent ? WS_OVERLAPPEDWINDOW : WS_CHILD | WS_VISIBLE ,
 				! win->parent ? CW_USEDEFAULT : win->x ,
 				! win->parent ? CW_USEDEFAULT : win->y ,
@@ -3005,7 +2997,7 @@ x_set_window_name(
 	 * Convert name to current locale encoding or UTF16.
 	 * Use SetWindowTextW if UTF16_IME_CHAR is defined.
 	 */
-	SetWindowText( root->my_window , name) ;
+	SetWindowTextA( root->my_window , name) ;
 
 	return  1 ;
 }

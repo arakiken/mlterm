@@ -81,7 +81,7 @@ version 20091211
   rows = <any ASCII decimal digit>
   sb_bg_color = <color name> | <color rgb>
   sb_fg_color = <color name> | <color rgb>
-  scp (local:|remote:)<src file> (local:|remote:)<dst directory> = <none>
+  scp (local:|remote:)<src file> (local:|remote:)<dst directory> (<encoding>) = <none>
   screen_height_ratio = <any ASCII decimal digit>
   screen_width_ratio = <any ASCII decimal digit>
   scrollbar_mode = none | left | right
@@ -150,5 +150,3 @@ version 20091211
      \x1b]5379;scp c:\users\text.txt ./\x07
        => scp localhost:c:\users\text.txt foo.bar:$HOME/text.txt
           ("\" is available as a separator only in win32.)
-    Note)
-    - Character encoding of specified file names depends on terminal encoding.

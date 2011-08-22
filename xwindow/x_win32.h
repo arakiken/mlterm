@@ -297,10 +297,39 @@ typedef int XFontSet ;	/* dummy */
 /* Same as definition in X11/cursorfont.h */
 #define XC_xterm 152
 
+/* tchar.h doesn't exist in /usr/include/w32api in cygwin. */
+#ifndef  _T
+#if  defined(_UNICODE) || defined(UNICODE)
+#define  _T(a) L##a
+#else
+#define  _T(a) a
+#endif
+#endif	/* _T */
+
 #if  1
 /* Use xxxxW functions for RegisterClass etc. */
 #define  UTF16_IME_CHAR
 #endif
+
+#ifdef  UTF16_IME_CHAR
+ #undef  GetMessage
+ #define  GetMessage(a,b,c,d) GetMessageW(a,b,c,d)
+ #undef  DispatchMessage
+ #define  DispatchMessage(a) DispatchMessageW(a)
+ #undef  PeekMessage
+ #define  PeekMessage(a,b,c,d,e) PeekMessageW(a,b,c,d,e)
+ #undef  DefWindowProc
+ #define  DefWindowProc(a,b,c,d) DefWindowProcW(a,b,c,d)
+ #undef  WNDCLASS
+ #define  WNDCLASS WNDCLASSW
+ #undef  RegisterClass
+ #define  RegisterClass(a) RegisterClassW(a)
+ #undef  CreateWindowEx
+ #define  CreateWindowEx(a,b,c,d,e,f,g,h,i,j,k,l) CreateWindowExW(a,b,c,d,e,f,g,h,i,j,k,l)
+ #define  __(a) L##a
+#else /* UTF16_IME_CHAR */
+ #define  __(a) _T(a)
+#endif	/* UTF16_IME_CHAR */
 
 
 #endif

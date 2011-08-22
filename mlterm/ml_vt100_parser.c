@@ -730,9 +730,20 @@ config_protocol_set(
 
 				argv = kik_arg_str_to_array( &argc , key) ;
 
-				if( argc == 3)
+				if( argc == 3 || argc == 4)
 				{
-					ml_pty_ssh_scp( vt100_parser->pty , argv[2] , argv[1]) ;
+					ml_char_encoding_t  encoding ;
+
+					if( ! argv[3] ||
+					    ( encoding = ml_get_char_encoding( argv[3]))
+					      == ML_UNKNOWN_ENCODING)
+					{
+						encoding = vt100_parser->encoding ;
+					}
+					
+					ml_pty_ssh_scp( vt100_parser->pty ,
+						vt100_parser->encoding , encoding ,
+						argv[2] , argv[1]) ;
 				}
 			}
 		#endif

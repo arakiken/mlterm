@@ -190,8 +190,10 @@ full_reset_clicked(
 
 #ifdef  USE_LIBSSH2
 
-#define  MY_RESPONSE_SEND  1
-#define  MY_RESPONSE_RECV  2
+#define  MY_RESPONSE_RETURN  1
+#define  MY_RESPONSE_EXIT    2
+#define  MY_RESPONSE_SEND    3
+#define  MY_RESPONSE_RECV    4
 
 static void
 drag_data_received(
@@ -232,11 +234,14 @@ ssh_scp_clicked(
 		{ "text/uri-list" , 0 , 0 } ,
 	} ;
 
+	gtk_widget_hide_all( gtk_widget_get_toplevel( widget)) ;
+	
 	dialog = gtk_dialog_new() ;
 	gtk_window_set_title( GTK_WINDOW(dialog) , "mlconfig") ;
 	gtk_dialog_add_button( GTK_DIALOG(dialog) , _("Send") , MY_RESPONSE_SEND) ;
 	gtk_dialog_add_button( GTK_DIALOG(dialog) , _("Recv") , MY_RESPONSE_RECV) ;
-	gtk_dialog_add_button( GTK_DIALOG(dialog) , _("Cancel") , GTK_RESPONSE_CANCEL) ;
+	gtk_dialog_add_button( GTK_DIALOG(dialog) , _("Return") , MY_RESPONSE_RETURN) ;
+	gtk_dialog_add_button( GTK_DIALOG(dialog) , _("Exit") , MY_RESPONSE_EXIT) ;
 
 	content_area = GTK_DIALOG(dialog)->vbox ;
 	
@@ -245,12 +250,12 @@ ssh_scp_clicked(
 
 	label = gtk_label_new( _("Local")) ;
 	gtk_widget_show(label) ;
-	gtk_widget_set_usize( label , 50 , 0) ;
+	gtk_widget_set_usize( label , 70 , 0) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , TRUE , 1) ;
 	
 	local_entry = gtk_entry_new() ;
 	gtk_widget_show(local_entry) ;
-	gtk_widget_set_usize( local_entry , 220 , 0) ;
+	gtk_widget_set_usize( local_entry , 280 , 0) ;
 	gtk_drag_dest_set( local_entry , GTK_DEST_DEFAULT_ALL ,
 		local_targets , 1 , GDK_ACTION_COPY) ;
 	g_signal_connect( local_entry , "drag-data-received" ,
@@ -264,17 +269,17 @@ ssh_scp_clicked(
 
 	label = gtk_label_new( _("Remote")) ;
 	gtk_widget_show(label) ;
-	gtk_widget_set_usize( label , 50 , 0) ;
+	gtk_widget_set_usize( label , 70 , 0) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , label , FALSE , TRUE , 1) ;
 
 	remote_entry = gtk_entry_new() ;
 	gtk_widget_show(remote_entry) ;
-	gtk_widget_set_usize( remote_entry , 220 , 0) ;
+	gtk_widget_set_usize( remote_entry , 280 , 0) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , remote_entry , FALSE , TRUE , 1) ;
 
 	gtk_container_add( GTK_CONTAINER(content_area) , hbox) ;
 
-	while( (res = gtk_dialog_run( GTK_DIALOG(dialog))) != GTK_RESPONSE_CANCEL)
+	while( (res = gtk_dialog_run( GTK_DIALOG(dialog))) >= MY_RESPONSE_SEND)
 	{
 		char *  key ;
 		const gchar *  local_path ;
@@ -283,7 +288,7 @@ ssh_scp_clicked(
 		local_path = gtk_entry_get_text( GTK_ENTRY(local_entry)) ;
 		remote_path = gtk_entry_get_text( GTK_ENTRY(remote_entry)) ;
 
-		if( ( key = alloca( 23 + strlen( local_path) + strlen( remote_path))))
+		if( ( key = alloca( 28 + strlen( local_path) + strlen( remote_path))))
 		{
 			char *  p ;
 
@@ -297,7 +302,7 @@ ssh_scp_clicked(
 					continue ;
 				}
 
-				sprintf( key , "scp \"local:%s\" \"remote:%s\"" ,
+				sprintf( key , "scp \"local:%s\" \"remote:%s\" UTF8" ,
 						local_path , remote_path) ;
 			}
 			else /* if( res == MY_RESPONSE_RECV) */
@@ -310,7 +315,7 @@ ssh_scp_clicked(
 					continue ;
 				}
 
-				sprintf( key , "scp \"remote:%s\" \"local:%s\"" ,
+				sprintf( key , "scp \"remote:%s\" \"local:%s\" UTF8" ,
 						remote_path , local_path) ;
 			}
 
@@ -325,16 +330,24 @@ ssh_scp_clicked(
 				*p = '\0' ;
 			}
 			
-			kik_msg_printf( "\r\n%s" , key) ;
-
 			mc_set_str_value( key , "") ;
 			mc_flush(mc_io_set) ;
 		}
 	}
 
-	gtk_widget_destroy( dialog) ;
+	if( res == MY_RESPONSE_EXIT)
+	{
+		gtk_main_quit() ;
 
-	return  1 ;
+		return  FALSE ;
+	}
+	else /* if( res == MY_RESPONSE_RETURN) */
+	{
+		gtk_widget_destroy( dialog) ;
+		gtk_widget_show_all( gtk_widget_get_toplevel( widget)) ;
+
+		return  TRUE ;
+	}
 }
 
 #endif	/* USE_LIBSSH2 */

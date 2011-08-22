@@ -9,6 +9,10 @@
 #include  <kiklib/kik_config.h>	/* USE_WIN32API */
 #include  <kiklib/kik_types.h>	/* u_int/u_char */
 
+#ifdef  USE_LIBSSH2
+#include  "ml_char_encoding.h"
+#endif
+
 
 typedef struct  ml_pty_event_listener
 {
@@ -51,13 +55,14 @@ int  ml_pty_get_slave_fd( ml_pty_ptr_t  pty) ;
 char *  ml_pty_get_slave_name( ml_pty_ptr_t  pty) ;
 
 #ifdef  USE_LIBSSH2
+void *  ml_search_ssh_session( const char *  host , const char *  port , const char *  user) ;
+
 int  ml_pty_use_loopback( ml_pty_ptr_t  pty) ;
 
 int  ml_pty_unuse_loopback( ml_pty_ptr_t  pty) ;
 
-void *  ml_search_ssh_session( const char *  host , const char *  port , const char *  user) ;
-
-int  ml_pty_ssh_scp( ml_pty_ptr_t  pty , char *  dst_path , char *  src_path) ;
+int  ml_pty_ssh_scp( ml_pty_ptr_t  pty , ml_char_encoding_t  pty_encoding ,
+	ml_char_encoding_t  path_encoding , char *  dst_path , char *  src_path) ;
 #endif
 
 

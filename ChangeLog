@@ -1,3 +1,18 @@
+2011-08-23  Araki Ken  <arakiken@users.sf.net>
+
+	* tool/mlconfig/mc_font.c: Fixed a problem which crashed mlconfig
+	  if type_engine is cairo and use_anti_alias is true.
+
+	* ml_pty_ssh.c:
+	  - SCP is processed in non-blocking mode.
+	  - "Cancel" button is removed. "Return" and "Exit" buttons are added.
+
+	* ml_pty.c: ml_pty_(un)use_loopback() and related fucntions are
+	  moved to ml_pty_ssh.c.
+
+	* ml_pty_ssh.c: Source and destination file names are convered
+	  to system locale encoding and terminal encoding respectively.
+
 2011-08-22  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty.c, ml_pty_intern.h : pty->stored->count member is added.

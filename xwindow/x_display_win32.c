@@ -66,11 +66,7 @@ static LRESULT CALLBACK window_proc(
 		}
 	}
 
-#ifndef  UTF16_IME_CHAR
 	return  DefWindowProc( hwnd, msg, wparam, lparam) ;
-#else
-	return  DefWindowProcW( hwnd, msg, wparam, lparam) ;
-#endif
 }
 
 #ifndef  USE_WIN32API
@@ -134,17 +130,9 @@ x_display_open(
   	wc.hIcon = LoadIcon( _display.hinst , "MLTERM_ICON") ;
   	wc.hCursor = LoadCursor(NULL,IDC_ARROW) ;
   	wc.hbrBackground = 0 ;
-#ifndef  UTF16_IME_CHAR
-	wc.lpszClassName = "MLTERM" ;
-#else
-	wc.lpszClassName = L"MLTERM" ;
-#endif
+	wc.lpszClassName = __("MLTERM") ;
 
-#ifndef  UTF16_IME_CHAR
 	if( ! RegisterClass(&wc))
-#else
-	if( ! RegisterClassW(&wc))
-#endif
 	{
 		MessageBox(NULL,"Failed to register class", NULL, MB_ICONSTOP) ;
 
@@ -365,30 +353,18 @@ x_display_receive_next_event(
 #ifdef  USE_WIN32API
 
 	/* 0: WM_QUIT, -1: Error */
-  #ifndef  UTF16_IME_CHAR
 	if( GetMessage( &msg , NULL , 0 , 0) <= 0)
-  #else
-	if( GetMessageW( &msg , NULL , 0 , 0) <= 0)
-  #endif
 	{
 		return  0 ;
 	}
 
 	TranslateMessage( &msg) ;
 	
-  #ifndef  UTF16_IME_CHAR
 	DispatchMessage( &msg) ;
-  #else
-	DispatchMessageW( &msg) ;
-  #endif
   
 #else
 
-  #ifndef  UTF16_IME_CHAR
 	while( PeekMessage( &msg , NULL , 0 , 0 , PM_REMOVE))
-  #else
-	while( PeekMessageW( &msg , NULL , 0 , 0 , PM_REMOVE))
-  #endif
 	{
 		if( msg.message == WM_QUIT)
 		{
@@ -397,11 +373,7 @@ x_display_receive_next_event(
 
 		TranslateMessage( &msg) ;
 		
-  #ifndef  UTF16_IME_CHAR
 		DispatchMessage( &msg) ;
-  #else
-		DispatchMessageW( &msg) ;
-  #endif
 	}
 	
 #endif	/* USE_WIN32API */

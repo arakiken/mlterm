@@ -733,7 +733,6 @@ mc_font_config_widget_new(void)
 	GtkWidget *  vbox ;
 	GtkWidget *  hbox ;
 	GtkWidget *  combo ;
-	GtkWidget *  button ;
 	char *  fontlist[] =
 	{
 		"6" , "7" , "8" , "9" , "10" ,
@@ -790,15 +789,6 @@ mc_font_config_widget_new(void)
 	gtk_signal_connect(GTK_OBJECT(aa_flag) , "toggled" ,
 		GTK_SIGNAL_FUNC(aa_flag_checked) , NULL) ;
 	
-	if( GTK_TOGGLE_BUTTON(aa_flag)->active)
-	{
-	#if  defined(USE_TYPE_XFT)
-		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(xft_flag) , 1) ;
-	#elif  defined(USE_TYPE_CAIRO)
-		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(cairo_flag) , 1) ;
-	#endif
-	}
-	
 	vcol_flag = mc_flag_config_widget_new( MC_FLAG_VCOL) ;
 	gtk_widget_show( vcol_flag) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , vcol_flag , TRUE , TRUE , 0) ;
@@ -808,9 +798,9 @@ mc_font_config_widget_new(void)
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
 
 
-	button = mc_vertical_config_widget_new() ;
-	gtk_widget_show(button) ;
-	gtk_box_pack_start(GTK_BOX(vbox), button, TRUE, TRUE, 0);
+	hbox = mc_vertical_config_widget_new() ;
+	gtk_widget_show(hbox) ;
+	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);
 
 
 	hbox = gtk_hbox_new(FALSE , 0) ;

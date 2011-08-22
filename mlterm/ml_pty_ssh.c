@@ -12,6 +12,7 @@
 #include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_path.h>
 #include  <kiklib/kik_unistd.h>		/* kik_usleep */
+#include  <kiklib/kik_locale.h>
 
 #ifdef  USE_WIN32API
 #undef  _WIN32_WINNT
@@ -30,6 +31,7 @@
 #include  <fcntl.h>		/* open */
 #include  <unistd.h>		/* close/pipe */
 #include  <stdio.h>		/* sprintf */
+#include  <errno.h>
 
 
 #ifndef  USE_WIN32API
@@ -40,10 +42,6 @@
 #define  __DEBUG
 #endif
 
-#if  1
-#define  PROHIBIT_MULTIPLE_SCP
-#endif
-
 
 typedef struct ssh_session
 {
@@ -52,6 +50,8 @@ typedef struct ssh_session
 	char *  user ;
 	LIBSSH2_SESSION *  obj ;
 	int  sock ;
+
+	int  doing_scp ;
 
 	u_int  ref_count ;
 
@@ -85,9 +85,6 @@ static ssh_session_t **  sessions ;
 static u_int  num_of_sessions = 0 ;
 #ifdef  USE_WIN32API
 static HANDLE  rd_ev ;
-#endif
-#ifdef  PROHIBIT_MULTIPLE_SCP
-static int  doing_scp ;
 #endif
 
 
@@ -590,6 +587,137 @@ read_pty(
 	}
 }
 
+static int
+scp_stop(
+	ml_pty_ssh_t *  pty_ssh
+	)
+{
+	pty_ssh->session->doing_scp = 0 ;
+
+	return  1 ;
+}
+
+#ifdef  USE_WIN32API
+static ssize_t
+lo_recv_pty(
+	ml_pty_t *  pty ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	return  recv( pty->master , buf , len , 0) ;
+}
+
+static ssize_t
+lo_send_to_pty(
+	ml_pty_t *  pty ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	if( len == 1 && buf[0] == '\x03')
+	{
+		/* ^C */
+		scp_stop( pty) ;
+	}
+
+	return  send( pty->slave , buf , len , 0) ;
+}
+
+static int
+_socketpair(
+	int  af ,
+	int  type ,
+	int  proto ,
+	SOCKET  sock[2]
+	)
+{
+	SOCKET  listen_sock ;
+	SOCKADDR_IN  addr ;
+	int addr_len ;
+
+	if( ( listen_sock = WSASocket( af , type , proto , NULL , 0 , 0)) == -1)
+	{
+		return  -1 ;
+	}
+
+	addr_len = sizeof(addr) ;
+
+	memset( (void*)&addr , 0 , sizeof(addr)) ;
+	addr.sin_family = af ;
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK) ;
+	addr.sin_port = 0 ;
+
+	if( bind( listen_sock , (SOCKADDR*)&addr , addr_len) != 0)
+	{
+		goto  error1 ;
+	}
+
+	if( getsockname( listen_sock , (SOCKADDR*)&addr , &addr_len) != 0)
+	{
+		goto  error1 ;
+	}
+
+	if( listen( listen_sock , 1) != 0)
+	{
+		goto  error1 ;
+	}
+
+	if( ( sock[0] = WSASocket( af , type , proto , NULL , 0 , 0)) == -1)
+	{
+		goto  error1 ;
+	}
+
+	if( connect( sock[0] , (SOCKADDR*)&addr , addr_len) != 0)
+	{
+		goto  error2 ;
+	}
+
+	if( ( sock[1] = accept( listen_sock , 0 , 0)) == -1)
+	{
+		goto  error2 ;
+	}
+
+	closesocket( listen_sock) ;
+
+	return  0 ;
+
+error2:
+	closesocket( sock[0]) ;
+
+error1:
+	closesocket( listen_sock) ;
+
+	return  -1 ;
+}
+#endif	/* USE_WIN32API */
+
+static ssize_t
+lo_read_pty(
+	ml_pty_t *  pty ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	return  read( pty->master , buf , len) ;
+}
+
+static ssize_t
+lo_write_to_pty(
+	ml_pty_t *  pty ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	if( len == 1 && buf[0] == '\x03')
+	{
+		/* ^C */
+		scp_stop( ( ml_pty_ssh_t*)pty) ;
+	}
+
+	return  write( pty->slave , buf , len) ;
+}
+
 #ifdef  USE_WIN32API
 static u_int __stdcall
 #else
@@ -602,7 +730,6 @@ scp_thread(
 	scp_t *  scp ;
 	size_t  rd_len ;
 	char  buf[1024] ;
-	size_t  len ;
 	int  progress ;
 	char  msg1[] = "\x1b[?25l\r\nTransferring data.\r\n|" ;
 	char  msg2[] = "**************************************************|\x1b[?25h\r\n" ;
@@ -618,21 +745,27 @@ scp_thread(
 
 	ml_write_to_pty( &scp->pty_ssh->pty , msg1 , sizeof(msg1) - 1) ;
 
-	while( rd_len < scp->src_size)
+	while( rd_len < scp->src_size && scp->pty_ssh->session->doing_scp)
 	{
 		int  new_progress ;
+		ssize_t  len ;
 
 		if( scp->src_is_remote)
 		{
 			if( ( len = libssh2_channel_read( scp->remote , buf , sizeof(buf))) < 0)
 			{
-				break ;
+				if( len == LIBSSH2_ERROR_EAGAIN)
+				{
+					kik_usleep(1) ;
+					continue ;
+				}
+				else
+				{
+					break ;
+				}
 			}
 
-			if( write( scp->local , buf , len) < 0)
-			{
-				break ;
-			}
+			write( scp->local , buf , len) ;
 		}
 		else
 		{
@@ -641,9 +774,10 @@ scp_thread(
 				break ;
 			}
 
-			if( libssh2_channel_write( scp->remote , buf , len) < 0)
+			while( libssh2_channel_write( scp->remote , buf , len) ==
+				LIBSSH2_ERROR_EAGAIN)
 			{
-				break ;
+				kik_usleep(1) ;
 			}
 		}
 
@@ -679,24 +813,20 @@ scp_thread(
 	}
 	ml_write_to_pty( &scp->pty_ssh->pty , msg2 , sizeof(msg2) - 1) ;
 
-	libssh2_session_set_blocking( scp->pty_ssh->session->obj , 0) ;
-
 #if  1
 	kik_usleep( 100000) ;	/* Expect to switch to main thread and call ml_read_pty(). */
 #else
 	pthread_yield() ;
 #endif
 
-	ml_pty_unuse_loopback( &scp->pty_ssh->pty) ;
-
-	libssh2_channel_free( scp->remote) ;
+	while( libssh2_channel_free( scp->remote) == LIBSSH2_ERROR_EAGAIN) ;
 	close( scp->local) ;
 
-	free( scp) ;
+	ml_pty_unuse_loopback( &scp->pty_ssh->pty) ;
 
-#ifdef  PROHIBIT_MULTIPLE_SCP
-	doing_scp = 0 ;
-#endif
+	scp->pty_ssh->session->doing_scp = 0 ;
+	
+	free( scp) ;
 
 	/* Not necessary if thread started by _beginthreadex */
 #if  0
@@ -766,6 +896,8 @@ ml_pty_ssh_new(
 
 		goto  error2 ;
 	}
+
+	pty->session->doing_scp = 0 ;
 
 	term = NULL ;
 	if( env)
@@ -940,8 +1072,112 @@ ml_search_ssh_session(
 }
 
 int
+ml_pty_use_loopback(
+	ml_pty_t *  pty
+	)
+{
+	int  fds[2] ;
+
+	if( pty->stored)
+	{
+		pty->stored->count ++ ;
+
+		return  1 ;
+	}
+
+	if( ( pty->stored = malloc( sizeof( *(pty->stored)))) == NULL)
+	{
+		return  0 ;
+	}
+
+	pty->stored->master = pty->master ;
+	pty->stored->slave = pty->slave ;
+	pty->stored->read = pty->read ;
+	pty->stored->write = pty->write ;
+
+#ifdef  USE_WIN32API
+	if( _socketpair( AF_INET , SOCK_STREAM , 0 , fds) == 0)
+	{
+		u_long  val ;
+
+		val = 1 ;
+		ioctlsocket( fds[0] , FIONBIO , &val) ;
+		val = 1 ;
+		ioctlsocket( fds[1] , FIONBIO , &val) ;
+
+		pty->read = lo_recv_pty ;
+		pty->write = lo_send_to_pty ;
+	}
+	else if( _pipe( fds , 256 , O_BINARY) == 0)
+	{
+		pty->read = lo_read_pty ;
+		pty->write = lo_write_to_pty ;
+	}
+#else
+	if( pipe( fds) == 0)
+	{
+		fcntl( fds[0] , F_SETFL , O_NONBLOCK|fcntl( pty->master , F_GETFL , 0)) ;
+		fcntl( fds[1] , F_SETFL , O_NONBLOCK|fcntl( pty->slave , F_GETFL , 0)) ;
+
+		pty->read = lo_read_pty ;
+		pty->write = lo_write_to_pty ;
+	}
+#endif
+	else
+	{
+		free( pty->stored) ;
+		pty->stored = NULL ;
+
+		return  0 ;
+	}
+
+	pty->master = fds[0] ;
+	pty->slave = fds[1] ;
+
+	pty->stored->count = 1 ;
+
+	return  1 ;
+}
+
+int
+ml_pty_unuse_loopback(
+	ml_pty_t *  pty
+	)
+{
+	if( ! pty->stored || --(pty->stored->count) > 0)
+	{
+		return  1 ;
+	}
+
+#ifdef  USE_WIN32API
+	if( pty->read == lo_recv_pty)
+	{
+		closesocket( pty->slave) ;
+		closesocket( pty->master) ;
+	}
+	else
+#endif
+	{
+		close( pty->slave) ;
+		close( pty->master) ;
+	}
+
+	pty->master = pty->stored->master ;
+	pty->slave = pty->stored->slave ;
+	pty->read = pty->stored->read ;
+	pty->write = pty->stored->write ;
+
+	free( pty->stored) ;
+	pty->stored = NULL ;
+
+	return  1 ;
+}
+
+int
 ml_pty_ssh_scp(
 	ml_pty_ptr_t  pty ,
+	ml_char_encoding_t  pty_encoding ,	/* Not ML_UNKNOWN_ENCODING */
+	ml_char_encoding_t  path_encoding ,	/* Not ML_UNKNOWN_ENCODING */
 	char *  dst_path ,
 	char *  src_path
 	)
@@ -951,23 +1187,34 @@ ml_pty_ssh_scp(
 	char *  file ;
 	scp_t *  scp ;
 	struct stat  st ;
+	char *  _dst_path ;
+	char *  _src_path ;
+	size_t  len ;
+	char *  p ;
+	ml_char_encoding_t  locale_encoding ;
 
+	/* Note that session is non-block mode in this context. */
+	
 	/* Check if pty is ml_pty_ssh_t or not. */
 	if( pty->delete != delete)
 	{
 		return  0 ;
 	}
-	
-#ifdef  PROHIBIT_MULTIPLE_SCP
-	if( doing_scp)
+
+	if( ((ml_pty_ssh_t*)pty)->session->doing_scp)
 	{
 		kik_msg_printf( "SCP: Another scp process is working.\n") ;
 
 		return  0 ;
 	}
 
-	doing_scp = 1 ;
-#endif
+	if( ! ( scp = malloc( sizeof(scp_t))))
+	{
+		return  0 ;
+	}
+	scp->pty_ssh = (ml_pty_ssh_t*)pty ;
+
+	scp->pty_ssh->session->doing_scp = 1 ;
 
 	if( strncmp( dst_path , "remote:" , 7) == 0)
 	{
@@ -1013,8 +1260,10 @@ ml_pty_ssh_scp(
 	}
 	else if( dst_is_remote == src_is_remote)
 	{
-		kik_error_printf( "SCP: Destination host(%s) and source host(%s) is the same.\n" ,
+		kik_msg_printf( "SCP: Destination host(%s) and source host(%s) is the same.\n" ,
 			dst_path , src_path) ;
+
+		goto  error ;
 	}
 
 	if( ! *dst_path)
@@ -1022,26 +1271,13 @@ ml_pty_ssh_scp(
 		dst_path = "." ;
 	}
 
-	if( ( file = kik_basename( src_path)))
+	/* scp /tmp/TEST /home/user => scp /tmp/TEST /home/user/TEST */
+	file = kik_basename( src_path) ;
+	if( ( p = alloca( strlen(dst_path) + strlen( file) + 2)))
 	{
-		/* scp /tmp/TEST /home/user => scp /tmp/TEST /home/user/TEST */
-		char *  p ;
-
-		if( ( p = alloca( strlen(dst_path) + strlen( file) + 2)))
-		{
-			sprintf( p , "%s/%s" , dst_path , file) ;
-			dst_path = p ;
-		}
+		sprintf( p , "%s/%s" , dst_path , file) ;
+		dst_path = p ;
 	}
-
-	if( ! ( scp = malloc( sizeof(scp_t))))
-	{
-		return  0 ;
-	}
-
-	scp->pty_ssh = (ml_pty_ssh_t*)pty ;
-
-	libssh2_session_set_blocking( scp->pty_ssh->session->obj , 1) ;
 
 #if  0
 	kik_debug_printf( "SCP: %s%s -> %s%s\n" ,
@@ -1049,10 +1285,55 @@ ml_pty_ssh_scp(
 		dst_is_remote ? "remote:" : "local:" , dst_path) ;
 #endif
 
+	if( path_encoding != pty_encoding)
+	{
+		/* convert to terminal encoding */
+		len = strlen( dst_path) ;
+		if( ( _dst_path = alloca( len * 2 + 1)))
+		{
+			_dst_path[ ml_char_encoding_convert( _dst_path , len * 2 , pty_encoding ,
+					dst_path , len , path_encoding)] = '\0' ;
+		}
+		len = strlen( src_path) ;
+		if( ( _src_path = alloca( len * 2 + 1)))
+		{
+			_src_path[ml_char_encoding_convert( _src_path , len * 2 , pty_encoding ,
+					src_path , len , path_encoding)] = '\0' ;
+		}
+	}
+	else
+	{
+		_dst_path = dst_path ;
+		_src_path = src_path ;
+	}
+
+	if( ( locale_encoding = ml_get_char_encoding( kik_get_codeset())) == ML_UNKNOWN_ENCODING)
+	{
+		locale_encoding = path_encoding ;
+	}
+
 	if( src_is_remote)
 	{
-		if( ! ( scp->remote = libssh2_scp_recv( scp->pty_ssh->session->obj ,
-							src_path , &st)))
+		/* Remote: convert to terminal encoding */
+		if( _src_path)
+		{
+			src_path = _src_path ;
+		}
+
+		/* Local: convert to locale encoding */
+		len = strlen( dst_path) ;
+		if( locale_encoding != path_encoding && ( p = alloca( len * 2 + 1)))
+		{
+			p[ml_char_encoding_convert( p , len * 2 , locale_encoding ,
+				dst_path , len , path_encoding)] = '\0' ;
+			dst_path = p ;
+		}
+
+		while( ! ( scp->remote = libssh2_scp_recv( scp->pty_ssh->session->obj ,
+						src_path , &st)) &&
+		       libssh2_session_last_errno( scp->pty_ssh->session->obj)
+						== LIBSSH2_ERROR_EAGAIN) ;
+		if( ! scp->remote)
 		{
 			kik_msg_printf( "SCP: Failed to open %s%s.\n" ,
 				src_is_remote ? "remote:" : "local:" , src_path) ;
@@ -1068,14 +1349,28 @@ ml_pty_ssh_scp(
 		{
 			kik_msg_printf( "SCP: Failed to open %s%s.\n" ,
 				dst_is_remote ? "remote:" : "local:" , dst_path) ;
-			libssh2_channel_free( scp->remote) ;
+			while( libssh2_channel_free( scp->remote) == LIBSSH2_ERROR_EAGAIN) ;
 
 			goto  error ;
 		}
-
 	}
 	else /* if( dst_is_remote) */
 	{
+		/* Remote: convert to terminal encoding */
+		if( _dst_path)
+		{
+			dst_path = _dst_path ;
+		}
+
+		/* Local: convert to locale encoding */
+		len = strlen( src_path) ;
+		if( locale_encoding != path_encoding && ( p = alloca( len * 2 + 1)))
+		{
+			p[ ml_char_encoding_convert( p , len * 2 , locale_encoding ,
+				src_path , len , path_encoding)] = '\0' ;
+			src_path = p ;
+		}
+
 		if( ( scp->local = open( src_path , O_RDONLY
 				#ifdef  USE_WIN32API
 					|O_BINARY
@@ -1090,8 +1385,11 @@ ml_pty_ssh_scp(
 
 		fstat( scp->local , &st) ;
 
-		if( ! ( scp->remote = libssh2_scp_send( scp->pty_ssh->session->obj , dst_path ,
-							st.st_mode & 0777 , (u_long)st.st_size)))
+		while( ! ( scp->remote = libssh2_scp_send( scp->pty_ssh->session->obj , dst_path ,
+						st.st_mode & 0777 , (u_long)st.st_size)) &&
+		       libssh2_session_last_errno( scp->pty_ssh->session->obj)
+						== LIBSSH2_ERROR_EAGAIN) ;
+		if( ! scp->remote)
 		{
 			kik_msg_printf( "SCP: Failed to open %s%s.\n" ,
 				dst_is_remote ? "remote:" : "local:" , dst_path) ;
@@ -1106,9 +1404,18 @@ ml_pty_ssh_scp(
 
 	if( ! ml_pty_use_loopback( pty))
 	{
-		libssh2_channel_free( scp->remote) ;
+		while( libssh2_channel_free( scp->remote) == LIBSSH2_ERROR_EAGAIN) ;
 
 		goto  error ;
+	}
+
+	len = 24 + strlen( _src_path) + strlen( _dst_path) + 1 ;
+	if( ( p = alloca( len)))
+	{
+		sprintf( p , "\r\nSCP: %s%s => %s%s" ,
+			src_is_remote ? "remote:" : "local:" , _src_path ,
+			src_is_remote ? "local:" : "remote:" , _dst_path) ;
+		ml_write_to_pty( &scp->pty_ssh->pty , p , len - 1) ;
 	}
 
 #if  defined(USE_WIN32API)
@@ -1134,7 +1441,7 @@ ml_pty_ssh_scp(
 	return  1 ;
 
 error:
-	libssh2_session_set_blocking( scp->pty_ssh->session->obj , 0) ;
+	scp->pty_ssh->session->doing_scp = 0 ;
 	free( scp) ;
 
 	return  0 ;
