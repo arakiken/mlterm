@@ -56,6 +56,32 @@ close_msg_file(
 	}
 }
 
+static int
+debug_printf(
+	const char *  prefix ,
+	const char *  format ,
+	va_list  arg_list
+	)
+{
+	char *  new_format = NULL ;
+	int  ret ;
+	FILE *  fp ;
+
+	if( ( new_format = alloca( strlen( prefix) + strlen( format) + 1)) == NULL)
+	{
+		/* error */
+
+		return  0 ;
+	}
+
+	sprintf( new_format , "%s%s" , prefix , format) ;
+	fp = open_msg_file() ;
+	ret = vfprintf( fp , new_format , arg_list) ;
+	close_msg_file( fp) ;
+
+	return  ret ;
+}
+
 
 /* --- global functions --- */
 
@@ -69,29 +95,10 @@ kik_debug_printf(
 	)
 {
 	va_list  arg_list ;
-	char  prefix[] = "DEBUG: " ;
-	char *  new_format = NULL ;
-	int  ret ;
-	FILE *  fp ;
 
 	va_start( arg_list , format) ;
 
-	if( ( new_format = alloca( sizeof( prefix) + strlen( format) + 1)) == NULL)
-	{
-		/* error */
-
-		return  0 ;
-	}
-	else
-	{
-		sprintf( new_format , "%s%s" , prefix , format) ;
-	}
-
-	fp = open_msg_file() ;
-	ret = vfprintf( fp , new_format , arg_list) ;
-	close_msg_file( fp) ;
-
-	return  ret ;
+	return  debug_printf( "DEBUG: " , format , arg_list) ;
 }
 
 /*
@@ -104,30 +111,10 @@ kik_warn_printf(
 	)
 {
 	va_list  arg_list ;
-	char  prefix[] = "WARN: " ;
-	char *  new_format = NULL ;
-	int  ret ;
-	FILE *  fp ;
-	
+
 	va_start( arg_list , format) ;
 
-	if( ( new_format = alloca( sizeof( prefix) + strlen( format) + 1)) == NULL)
-	{
-		/* error */
-
-		return  0 ;
-	}
-	else
-	{
-		sprintf( new_format , "%s%s" , prefix , format) ;
-	}
-
-	fp = open_msg_file() ;
-	ret = vfprintf( fp , new_format , arg_list) ;
-	close_msg_file( fp) ;
-
-	return  ret ;
-
+	return  debug_printf( "WARN: " , format , arg_list) ;
 }
 
 /*
@@ -140,29 +127,10 @@ kik_error_printf(
 	)
 {
 	va_list  arg_list ;
-	char  prefix[] = "*** ERROR HAPPEND ***  " ;
-	char *  new_format = NULL ;
-	int  ret ;
-	FILE *  fp ;
 
 	va_start( arg_list , format) ;
 
-	if( ( new_format = alloca( sizeof( prefix) + strlen( format) + 1)) == NULL)
-	{
-		/* error */
-
-		return  0 ;
-	}
-	else
-	{
-		sprintf( new_format , "%s%s" , prefix , format) ;
-	}
-
-	fp = open_msg_file() ;
-	ret = vfprintf( fp , new_format , arg_list) ;
-	close_msg_file( fp) ;
-
-	return  ret ;
+	return  debug_printf( "*** ERROR HAPPEND *** " , format , arg_list) ;
 }
 
 /*
@@ -175,16 +143,10 @@ kik_msg_printf(
 	)
 {
 	va_list  arg_list ;
-	int  ret ;
-	FILE *  fp ;
 
 	va_start( arg_list , format) ;
 
-	fp = open_msg_file() ;
-	ret = vfprintf( fp , format , arg_list) ;
-	close_msg_file( fp) ;
-
-	return  ret ;
+	return  debug_printf( "" , format , arg_list) ;
 }
 
 int

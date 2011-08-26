@@ -228,7 +228,7 @@ xim_server_instantiated(
 	int  count ;
 
 #ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " new xim server is instantiated.\n") ;
+	kik_debug_printf( KIK_DEBUG_TAG " new xim server is instantiated.\n") ;
 #endif
 
 	for( count = 0 ; count < num_of_xims ; count ++)

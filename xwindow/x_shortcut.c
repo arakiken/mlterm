@@ -253,7 +253,7 @@ read_conf(
 		    strcmp( value, "XIM_CLOSE") == 0)
 		{
 			/* This warning will be removed. */
-			kik_warn_printf( "%s in %s is no longer supported\n",
+			kik_msg_printf( "%s in %s is no longer supported\n",
 					 value , filename);
 		}
 

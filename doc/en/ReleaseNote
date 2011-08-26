@@ -2,7 +2,8 @@
 * Support Button-event and Any event mouse tracking.
   (CSI ? 1002 h , CSI ? 1002 l , CSI ? 1003 h , CSI ? 1003 l)
 * Improve the way of determining width of cairo fonts.
-* Support scp using libssh2. (Add "mlscp.sh" tool.)
+* Support scp using libssh2.
+  (Add "SSH SCP" front-end to mlconfig and "mlscp.sh" command line tool.)
 * Support DEC Special characters in win32. ("Tera Special" font is necessary.)
 * Support application escape mode. (CSI ? 7727 h , CSI ? 7727 l)
 * Support "logging_msg" option.
@@ -12,6 +13,7 @@
   Fix a problem which causes leak of graphic context resource in libvte.
   Fix a problem which can minimize window in some themes in win32. (Thanks to Iwamoto Kouichi san)
   Fix wrong position in receiving WM_MOUSEWHEEL event in win32. (Thanks to Iwamoto Kouichi san)
+  Fix illegal mouse reports if mouse goes outside the window. (Thanks to Iwamoto Kouichi san)
 
 ver 3.0.6
 * Support cairo for text rendering. (Experimental)

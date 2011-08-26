@@ -388,7 +388,7 @@ start_pty_helper(void)
 	
 	if( access( LIBEXECDIR "/gnome-pty-helper" , X_OK) != 0)
 	{
-		kik_error_printf( KIK_DEBUG_TAG "can not run %s" , LIBEXECDIR "/gnome-pty-helper");
+		kik_error_printf( "Couldn't run %s" , LIBEXECDIR "/gnome-pty-helper");
 		
 		return  0 ;
 	}
@@ -536,7 +536,7 @@ kik_pty_fork(
 	{
 		/* Error */
 
-		kik_error_printf( KIK_DEBUG_TAG " Failed to fork.\n") ;
+		kik_error_printf( "Failed to fork.\n") ;
 
 		close( *master) ;
 		close( *slave) ;

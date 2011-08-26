@@ -415,7 +415,7 @@ prop_label_update(
 	if( len > sizeof( buf))
 	{
 	#ifdef  DEBUG
-		kik_warn_printf( "property label string is too long.");
+		kik_warn_printf( KIK_DEBUG_TAG " property label string is too long.");
 	#endif
 
 		return ;
@@ -1694,8 +1694,8 @@ im_uim_get_info(
 
 	if( uim_init() == -1)
 	{
-	#ifdef  debug
-		kik_warn_printf( kik_debug_tag " failed to initialize uim.") ;
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " failed to initialize uim.") ;
 	#endif
 
 		return  NULL ;

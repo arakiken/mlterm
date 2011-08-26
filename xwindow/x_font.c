@@ -7,7 +7,6 @@
 #include  <string.h>		/* memset/strncasecmp */
 #ifdef  USE_TYPE_CAIRO
 #include  <cairo/cairo-xlib.h>
-#include  <cairo/cairo-ft.h>
 #endif
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_str.h>	/* kik_snprintf */
@@ -714,7 +713,8 @@ cairo_font_open(
 	/* CAIRO_HINT_METRICS_ON disarranges column width by boldening etc. */
 	cairo_font_options_set_hint_metrics( options , CAIRO_HINT_METRICS_OFF) ;
 	/* cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ; */
-	/* cairo_font_options_set_antialias( options , CAIRO_ANTIALIAS_GRAY) ; */
+	/* cairo_font_options_set_antialias( options , CAIRO_ANTIALIAS_SUBPIXEL) ; */
+	/* cairo_font_options_set_subpixel_order( options , CAIRO_SUBPIXEL_ORDER_RGB) ; */
 	cairo_ft_font_options_substitute( options , pattern) ;
 
 	FcDefaultSubstitute( pattern) ;
@@ -915,7 +915,7 @@ set_ft_font(
 			}
 		}
 
-		kik_warn_printf( "Font %s (for size %f) couldn't be loaded.\n" ,
+		kik_msg_printf( "Font %s (for size %f) couldn't be loaded.\n" ,
 			fontname , fontsize_d) ;
 	}
 
@@ -1044,7 +1044,7 @@ font_found:
 		if( col_width > 0 /* is not usascii */ && ! font->is_proportional &&
 		    ch_width != font->width)
 		{
-			kik_warn_printf( "Font(id %x) width(%d) is not matched with "
+			kik_msg_printf( "Font(id %x) width(%d) is not matched with "
 				"standard width(%d).\n" , font->id , font->width , ch_width) ;
 
 			/*
@@ -1322,7 +1322,7 @@ set_xfont(
 				goto  font_found ;
 			}
 
-			kik_warn_printf( "Font %s couldn't be loaded.\n" , font_xlfd) ;
+			kik_msg_printf( "Font %s couldn't be loaded.\n" , font_xlfd) ;
 		}
 	}
 
@@ -1615,7 +1615,7 @@ font_found:
 		{
 			if( font->width != col_width * font->cols)
 			{
-				kik_warn_printf( "Font(id %x) width(%d) is not matched with "
+				kik_msg_printf( "Font(id %x) width(%d) is not matched with "
 					"standard width(%d).\n" ,
 					font->id , font->width , col_width * font->cols) ;
 
@@ -1792,7 +1792,7 @@ x_font_new(
 
 	if( font->is_proportional && ! font->is_var_col_width)
 	{
-		kik_warn_printf(
+		kik_msg_printf(
 			"Characters (cs %d) are drawn *one by one* to arrange column width.\n" ,
 			FONT_CS(font->id)) ;
 	}
@@ -1923,7 +1923,9 @@ x_calculate_char_width(
 		}
 	#endif
 
-		kik_error_printf( KIK_DEBUG_TAG " couldn't calculate correct font width.\n") ;
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " couldn't calculate correct font width.\n") ;
+	#endif
 	}
 
 	return  font->width ;

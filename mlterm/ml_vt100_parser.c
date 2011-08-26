@@ -330,12 +330,6 @@ put_char(
 	{
 	#ifdef  SUPPORT_VTE_CJK_WIDTH
 		char *  env ;
-
-		if( ( env = getenv( "VTE_CJK_WIDTH")) &&
-		    ( strcmp( env , "wide") == 0 || strcmp( env , "1") == 0))
-		{
-			is_biwidth = 1 ;
-		}
 	#endif
 
 		if( vt100_parser->col_size_of_width_a == 2)
@@ -351,9 +345,10 @@ put_char(
 		}
 	#endif
 	#ifdef  SUPPORT_VTE_CJK_WIDTH
-		else
+		else if( ( env = getenv( "VTE_CJK_WIDTH")) &&
+		         ( strcmp( env , "wide") == 0 || strcmp( env , "1") == 0))
 		{
-			is_biwidth = 0 ;
+			is_biwidth = 1 ;
 		}
 	#endif
 	}
@@ -694,6 +689,8 @@ im_is_active(
 /*
  * This function will destroy the content of pt.
  */
+static void  soft_reset( ml_vt100_parser_t *  vt100_parser) ;
+
 static int
 config_protocol_set(
 	ml_vt100_parser_t *  vt100_parser ,
@@ -721,6 +718,10 @@ config_protocol_set(
 			if( strcmp( key , "gen_proto_challenge") == 0)
 			{
 				ml_gen_proto_challenge() ;
+			}
+			else if( strcmp( key , "full_reset") == 0)
+			{
+				soft_reset( vt100_parser) ;
 			}
 		#ifdef  USE_LIBSSH2
 			else if( strncmp( key , "scp " , 4) == 0)

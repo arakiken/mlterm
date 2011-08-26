@@ -82,7 +82,7 @@ error_handler(
 		 * mlterm doesn't stop.
 		 */
 		 
-		kik_error_printf( KIK_DEBUG_TAG "XLoad(Query)Font function is failed.\n") ;
+		kik_msg_printf( "XLoad(Query)Font function is failed.\n") ;
 
 		/* ignored anyway */
 		return  0 ;

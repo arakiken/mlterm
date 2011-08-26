@@ -396,8 +396,8 @@ ml_line_overwrite(
 	if( new_len > line->num_of_chars)
 	{
 	#ifdef  DEBUG
-		kik_warn_printf(
-			KIK_DEBUG_TAG " new line len %d(beg %d ow %d padding %d copy %d) is overflowed\n" ,
+		kik_warn_printf( KIK_DEBUG_TAG
+			" new line len %d(beg %d ow %d padding %d copy %d) is overflowed\n" ,
 			new_len , beg_char_index , len , padding , copy_len) ;
 	#endif
 		

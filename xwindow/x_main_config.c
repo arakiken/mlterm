@@ -197,11 +197,11 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "serv" , 0 , "default_server" ,
 		"connecting server by default") ;
 #endif
-#if  defined(USE_WIN32API) && defined(USE_LIBSSH2)
+#ifdef  USE_LIBSSH2
+	#ifdef  USE_WIN32API
 	kik_conf_add_opt( conf , '\0' , "nodialog" , 1 , "skip_dialog" ,
 		"if possible, skip dialog to input server address, password and so on") ;
-#endif
-#ifdef  USE_LIBSSH2
+	#endif
 	kik_conf_add_opt( conf , '\0' , "pubkey" , 0 , "ssh_public_key" ,
 		"ssh public key file "
 	#ifdef  USE_WIN32API

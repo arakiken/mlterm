@@ -173,6 +173,9 @@ int  ml_term_updated_all( ml_term_t *  term) ;
 
 int  ml_term_update_special_visual( ml_term_t *  term) ;
 
+#define  ml_term_logical_visual_is_reversible( term) \
+		ml_screen_logical_visual_is_reversible( (term)->screen)
+
 #define  ml_term_is_backscrolling( term)  ml_screen_is_backscrolling( (term)->screen)
 
 #define  ml_term_set_backscroll_mode( term , mode)  ml_set_backscroll_mode( (term)->screen , mode)

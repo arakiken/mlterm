@@ -150,3 +150,6 @@ version 20091211
      \x1b]5379;scp c:\users\text.txt ./\x07
        => scp localhost:c:\users\text.txt foo.bar:$HOME/text.txt
           ("\" is available as a separator only in win32.)
+    Note)
+     Source and destination file names are convered to system locale encoding
+     and terminal encoding respectively.

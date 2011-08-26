@@ -4948,14 +4948,6 @@ change_im(
 }
 
 static void
-full_reset(
-	x_screen_t *  screen
-	)
-{
-	ml_term_init_encoding_parser( screen->term) ;
-}
-
-static void
 snapshot(
 	x_screen_t *  screen ,
 	ml_char_encoding_t  encoding ,
@@ -5053,7 +5045,7 @@ set_config(
 	if( strstr( key , "mlclient") &&
 	    (strstr( key , "-e ") || strstr( key , "-initstr ") || strstr( key , "-#")))
 	{
-		kik_warn_printf( "\"%s\" is prohibited in configuration protocol.\n" , key) ;
+		kik_msg_printf( "\"%s\" is prohibited in configuration protocol.\n" , key) ;
 
 		return ;
 	}
@@ -6629,20 +6621,33 @@ start_vt100_cmd(
 	}
 #endif
 
-	if( screen->sel.is_selecting)
+	if( screen->sel.is_reversed)
 	{
-		x_restore_selected_region_color_except_logs( &screen->sel) ;
-	}
-	else
-	{
-		x_restore_selected_region_color( &screen->sel) ;
+		if( screen->sel.is_selecting)
+		{
+			x_restore_selected_region_color_except_logs( &screen->sel) ;
+		}
+		else
+		{
+			x_restore_selected_region_color( &screen->sel) ;
+		}
+
+		if( ! ml_term_logical_visual_is_reversible( screen->term))
+		{
+			/*
+			 * If indic logical<=>visual conversion is enabled, x_window_update()
+			 * in stop_vt100_cmd() can't reflect x_restore_selected_region_color*()
+			 * functions above to screen.
+			 */
+			x_window_update( &screen->window , UPDATE_SCREEN) ;
+		}
 	}
 
 	unhighlight_cursor( screen , 0) ;
 	
 	/*
 	 * ml_screen_logical() is called in ml_term_unhighlight_cursor(), so
-	 * not called directly from start_vt100_cmd().
+	 * not called directly from here.
 	 */
 }
 
@@ -8166,10 +8171,6 @@ x_screen_set_config(
 	else if( strcmp( key , "wall_picture") == 0)
 	{
 		change_wall_picture( screen , value) ;
-	}
-	else if( strcmp( key , "full_reset") == 0)
-	{
-		full_reset( screen) ;
 	}
 	else if( strcmp( key , "select_pty") == 0)
 	{

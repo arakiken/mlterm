@@ -363,7 +363,7 @@ open_pty_intern(
 		if( ! x_connect_dialog( &uri , &pass , display , window ,
 				main_config.server_list , main_config.default_server))
 		{
-			kik_warn_printf( "Connect dialog is canceled.\n") ;
+			kik_msg_printf( "Connect dialog is canceled.\n") ;
 
 			return  0 ;
 		}

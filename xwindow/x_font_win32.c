@@ -498,9 +498,11 @@ x_font_new(
 
 	if( ! font->fid)
 	{
+	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " CreateFont failed.\n") ;
 		free( font) ;
-	
+	#endif
+
 		return  NULL ;
 	}
 	else
@@ -662,7 +664,7 @@ x_font_new(
 		{
 			if( font->width != col_width * font->cols)
 			{
-				kik_warn_printf( "Font width(%d) is not matched with "
+				kik_msg_printf( "Font width(%d) is not matched with "
 					"standard width(%d).\n" ,
 					font->width , col_width * font->cols) ;
 
@@ -688,8 +690,10 @@ x_font_new(
 	{
 		if( ! ( font->conv = ml_conv_new( wincsinfo->encoding)))
 		{
+		#ifdef  DEBUG
 			kik_warn_printf( KIK_DEBUG_TAG " ml_conv_new(font id %x) failed.\n" ,
 				font->id) ;
+		#endif
 		}
 	}
 	
@@ -697,7 +701,7 @@ x_font_new(
 
 	if( font->is_proportional && ! font->is_var_col_width)
 	{
-		kik_warn_printf(
+		kik_msg_printf(
 			"Characters (cs %d) are drawn *one by one* to arrange column width.\n" ,
 			FONT_CS(font->id)) ;
 

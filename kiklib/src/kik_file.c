@@ -362,7 +362,7 @@ kik_mkdir_for_file(
 				#endif
 					)
 				{
-					kik_warn_printf( " Failed to mkdir %s\n" , file_path) ;
+					kik_msg_printf( "Failed to mkdir %s\n" , file_path) ;
 
 					*p = c ;	/* restore */
 					

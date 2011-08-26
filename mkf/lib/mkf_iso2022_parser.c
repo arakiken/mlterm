@@ -649,10 +649,12 @@ sub_next_char(
 	{
 		if( ch->size > bytelen)
 		{
-			kik_error_printf( KIK_DEBUG_TAG
-				" char size(%d) and char byte len(%d) of cs(%x) is illegal ,"
-				" this may cause unexpected error. parsing the sequence stopped.\n" ,
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" Char size(%d) and char byte len(%d) of cs(%x) is illegal. This"
+				" may cause unexpected error. Parsing the sequence stopped.\n" ,
 				ch->size , bytelen , cs) ;
+		#endif
 
 			return  0 ;
 		}

@@ -12,15 +12,6 @@
 #include  <X11/cursorfont.h>	/* for cursor shape */
 #endif
 
-#ifdef  USE_TYPE_XFT
-#include  <X11/Xft/Xft.h>
-#endif
-
-#ifdef  USE_TYPE_CAIRO
-#include  <cairo/cairo.h>
-#include  <fontconfig/fontconfig.h>
-#endif
-
 #include  <kiklib/kik_types.h>
 #include  <mkf/mkf_parser.h>
 #include  <ml_char.h>

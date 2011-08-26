@@ -99,6 +99,9 @@ WIN32 native GUI 対応に関するメモ
        ダイアログの "List" 欄に、接続するサーバの候補を表示します。
        default_server で指定したサーバが server_list にない場合、自動的に
        default_server が server_list に追加されます。
+     o skip_dialog(--nodialog) = true/false
+       既に確立された SSH セッションがある場合に、ダイアログを表示せず、そのセッ
+       ション上に新しいチャンネルを開くようにします。
 
 * WIN32 GUI 版の制限
   o -g [col]x[row]+[x]+[y] オプションの x, y は無視します。

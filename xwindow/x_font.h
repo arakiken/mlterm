@@ -18,6 +18,7 @@
 #endif
 #ifdef  USE_TYPE_CAIRO
 #include  <cairo/cairo.h>
+#include  <cairo/cairo-ft.h>	/* FcChar32 */
 #endif
 
 #include  <kiklib/kik_types.h>	/* u_int */

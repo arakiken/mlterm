@@ -1387,8 +1387,8 @@ ml_edit_go_downward(
 		if( ! ( flag & SCROLL))
 		{
 		#ifdef  DEBUG
-			kik_warn_printf(
-				KIK_DEBUG_TAG " cursor cannot go downward(reaches scroll lower limit).\n") ;
+			kik_warn_printf( KIK_DEBUG_TAG
+				" cursor cannot go downward(reaches scroll lower limit).\n") ;
 		#endif
 
 			return  0 ;

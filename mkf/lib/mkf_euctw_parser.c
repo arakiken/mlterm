@@ -57,7 +57,8 @@ euctw_parser_next_char(
 		else
 		{
 		#ifdef  DEBUG
-			kik_warn_printf( "%x is illegal euctw G2 tag.\n" , ch->ch[0]) ;
+			kik_warn_printf( KIK_DEBUG_TAG " %x is illegal euctw G2 tag.\n" ,
+				ch->ch[0]) ;
 		#endif
 
 			return  0 ;

@@ -1532,7 +1532,7 @@ x_customize_font_name(
 	}
 
 #ifdef  DEBUG
-	kik_warn_printf( "Set %x font size %d => fontname %s for size.\n" ,
+	kik_debug_printf( KIK_DEBUG_TAG " Set %x font size %d => fontname %s.\n" ,
 		font , font_size , fontname) ;
 #endif
 
@@ -1555,7 +1555,7 @@ x_customize_default_font_name(
 
 	if( is_valid_default_font_format( fontname) == 0)
 	{
-		kik_warn_printf( " %s is invalid format for font name.\n") ;
+		kik_msg_printf( "%s is invalid format for font name.\n") ;
 
 		return  0 ;
 	}
@@ -1598,7 +1598,8 @@ x_customize_default_font_name(
 	}
 
 #ifdef  DEBUG
-	kik_warn_printf( "Set %x default font => fontname %s for size.\n" , font , fontname) ;
+	kik_debug_printf( KIK_DEBUG_TAG " Set %x default font => fontname %s.\n" ,
+		font , fontname) ;
 #endif
 
 	return  1 ;

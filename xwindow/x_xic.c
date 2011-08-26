@@ -228,7 +228,7 @@ create_xic(
 	x_window_add_event_mask( win , xim_ev_mask) ;
 
 #ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " XIC activated.\n") ;
+	kik_debug_printf( KIK_DEBUG_TAG " XIC activated.\n") ;
 #endif
 
 	return  1 ;
@@ -288,7 +288,7 @@ x_xic_deactivate(
 	}
 
 #ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " XIC deactivated.\n") ;
+	kik_debug_printf( KIK_DEBUG_TAG " XIC deactivated.\n") ;
 #endif
 
 	return  1 ;

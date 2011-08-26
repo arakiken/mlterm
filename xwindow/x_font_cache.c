@@ -27,7 +27,7 @@ dump_cached_fonts(
 	u_int  size ;
 	KIK_PAIR( x_font) *  f_array ;
 	
-	kik_warn_printf( KIK_DEBUG_TAG " cached fonts info\n") ;
+	kik_debug_printf( KIK_DEBUG_TAG " cached fonts info\n") ;
 	kik_map_get_pairs_array( font_cache->xfont_table , f_array , size) ;
 	for( count = 0 ; count < size ; count++)
 	{
@@ -350,7 +350,7 @@ x_font_cache_get_xfont(
 	font_cache->prev_cache.xfont = xfont ;
 
 #ifdef  DEBUG
-	kik_warn_printf( KIK_DEBUG_TAG " Font %x for id %x was cached.%s\n" ,
+	kik_debug_printf( KIK_DEBUG_TAG " Font %x for id %x was cached.%s\n" ,
 		xfont , font , use_medium_for_bold ? "(medium font is used for bold.)" : "") ;
 #endif
 
