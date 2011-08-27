@@ -1,0 +1,7 @@
+mkf {
+global:
+	vte_* ;
+
+local:
+	* ;
+} ;

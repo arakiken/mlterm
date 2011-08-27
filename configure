@@ -20917,6 +20917,10 @@ fi
 		# "tr ..." is hack for cygwin.
 		# (removing \r which is output by win32 native pkg-config.)
 		VTE_CFLAGS="`echo $VTE_CFLAGS | tr -d '\r'`"
+		if test "$with_gnu_ld" = "yes" ; then
+			VTE_LIBS="${VTE_LIBS} -Wl,--version-script=\$(top_srcdir)/gtk/dexport.map"
+		fi
+
 
 	fi
 fi

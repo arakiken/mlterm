@@ -135,6 +135,16 @@ ml_pty_unix_new(
 		return  NULL ;
 	}
 
+	pty->buf = NULL ;
+	pty->left = 0 ;
+	pty->size = 0 ;
+	pty->delete = delete ;
+	pty->set_winsize = set_winsize ;
+	pty->write = write_to_pty ;
+	pty->read = read_pty ;
+  	pty->pty_listener = NULL ;
+	pty->stored = NULL ;
+
 	pid = kik_pty_fork( &pty->master , &pty->slave) ;
 
 	if( pid == -1)
@@ -155,10 +165,6 @@ ml_pty_unix_new(
 		if( ! cmd_path)
 		{
 			pty->child_pid = 0 ;
-			pty->buf = NULL ;
-			pty->left = 0 ;
-			pty->size = 0 ;
-			pty->pty_listener = NULL ;
 			
 		#ifdef  USE_UTMP
 			((ml_pty_unix_t*)pty)->utmp = NULL ;
@@ -222,6 +228,8 @@ ml_pty_unix_new(
 
 	/* parent process */
 
+	pty->child_pid = pid ;
+
 #ifdef  USE_UTMP
 	if( ( ((ml_pty_unix_t*)pty)->utmp = kik_utmp_new( ml_pty_get_slave_name( pty->slave) ,
 						host , pty->master)) == NULL)
@@ -231,17 +239,6 @@ ml_pty_unix_new(
 	#endif
 	}
 #endif
-
-	pty->child_pid = pid ;
-	pty->buf = NULL ;
-	pty->left = 0 ;
-	pty->size = 0 ;
-	pty->delete = delete ;
-	pty->set_winsize = set_winsize ;
-	pty->write = write_to_pty ;
-	pty->read = read_pty ;
-  	pty->pty_listener = NULL ;
-	pty->stored = NULL ;
 
 	if( set_winsize( pty , cols , rows) == 0)
 	{

@@ -1,4 +1,13 @@
-2011-08-25  Araki Ken  <arakiken@users.sf.net>
+2011-08-27  Araki Ken  <arakiken@users.sf.net>
+
+	* gtk/dexport.map: Added.
+
+	* ml_pty_unix.c: Set delete, write, read and etc members of ml_pty_t
+	  in ml_pty_unix_new() if cmd_path argument is NULL and nothing is
+	  executed in child process. (vte_terminal_forkpty() didn't work
+	  correctly by this bug.)
+
+2011-08-26  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: Fixed a problem which didn't clear selected region
 	  by pressing key if use_ind option was enabled.
