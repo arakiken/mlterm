@@ -1,13 +1,14 @@
+ver 3.0.7
 * Support bracketed paste mode. (CSI ? 2004 h , CSI ? 2004 l)
-* Support Button-event and Any event mouse tracking.
+* Support Button-event and Any-event mouse tracking.
   (CSI ? 1002 h , CSI ? 1002 l , CSI ? 1003 h , CSI ? 1003 l)
-* Improve the way of determining width of cairo fonts.
 * Support scp using libssh2.
   (Add "SSH SCP" front-end to mlconfig and "mlscp.sh" command line tool.)
 * Support DEC Special characters in win32. ("Tera Special" font is necessary.)
 * Support application escape mode. (CSI ? 7727 h , CSI ? 7727 l)
 * Support "logging_msg" option.
 * Support mlconfig in connecting a ssh server by libssh2.
+* Improve the way of determining width of cairo fonts.
 * 'make uninstall' is available.
 * Other bug fixes:
   Fix a problem which causes leak of graphic context resource in libvte.

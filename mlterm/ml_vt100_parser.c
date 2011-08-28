@@ -697,78 +697,91 @@ config_protocol_set(
 	char *  pt
 	)
 {
-	if( HAS_CONFIG_LISTENER(vt100_parser,set))
+	char *  dev ;
+	char *  key ;
+	char *  val ;
+
+	stop_vt100_cmd( vt100_parser , 0) ;
+
+	/*
+	 * accept multiple key=value pairs.
+	 */
+	while( pt)
 	{
-		char *  dev ;
-		char *  key ;
-		char *  val ;
-
-		stop_vt100_cmd( vt100_parser , 0) ;
-
-		/*
-		 * accept multiple key=value pairs.
-		 */
-		while( pt)
+		if( ! ml_parse_proto( &dev , &key , &val , &pt , 0))
 		{
-			if( ! ml_parse_proto( &dev , &key , &val , &pt , 0))
-			{
-				break ;
-			}
-
-			if( strcmp( key , "gen_proto_challenge") == 0)
-			{
-				ml_gen_proto_challenge() ;
-			}
-			else if( strcmp( key , "full_reset") == 0)
-			{
-				soft_reset( vt100_parser) ;
-			}
-		#ifdef  USE_LIBSSH2
-			else if( strncmp( key , "scp " , 4) == 0)
-			{
-				char **  argv ;
-				int  argc ;
-
-				argv = kik_arg_str_to_array( &argc , key) ;
-
-				if( argc == 3 || argc == 4)
-				{
-					ml_char_encoding_t  encoding ;
-
-					if( ! argv[3] ||
-					    ( encoding = ml_get_char_encoding( argv[3]))
-					      == ML_UNKNOWN_ENCODING)
-					{
-						encoding = vt100_parser->encoding ;
-					}
-					
-					ml_pty_ssh_scp( vt100_parser->pty ,
-						vt100_parser->encoding , encoding ,
-						argv[2] , argv[1]) ;
-				}
-			}
-		#endif
-			else
-			{
-				(*vt100_parser->config_listener->set)(
-					vt100_parser->config_listener->self , dev , key , val) ;
-			}
-
-			if( ! vt100_parser->config_listener)
-			{
-				/* pty changed. */
-				break ;
-			}
+			break ;
 		}
 
-		start_vt100_cmd( vt100_parser , 0) ;
+		if( strcmp( key , "gen_proto_challenge") == 0)
+		{
+			ml_gen_proto_challenge() ;
+		}
+		else if( strcmp( key , "full_reset") == 0)
+		{
+			soft_reset( vt100_parser) ;
+		}
+	#ifdef  USE_LIBSSH2
+		else if( strncmp( key , "scp " , 4) == 0)
+		{
+			char **  argv ;
+			int  argc ;
 
-		return  1 ;
+			argv = kik_arg_str_to_array( &argc , key) ;
+
+			if( argc == 3 || argc == 4)
+			{
+				ml_char_encoding_t  encoding ;
+
+				if( ! argv[3] ||
+				    ( encoding = ml_get_char_encoding( argv[3]))
+				      == ML_UNKNOWN_ENCODING)
+				{
+					encoding = vt100_parser->encoding ;
+				}
+
+				ml_pty_ssh_scp( vt100_parser->pty ,
+					vt100_parser->encoding , encoding ,
+					argv[2] , argv[1]) ;
+			}
+		}
+	#endif
+		else if( HAS_CONFIG_LISTENER(vt100_parser,set))
+		{
+			(*vt100_parser->config_listener->set)(
+				vt100_parser->config_listener->self , dev , key , val) ;
+		}
+
+		if( ! vt100_parser->config_listener)
+		{
+			/* pty changed. */
+			break ;
+		}
 	}
-	else
+
+	start_vt100_cmd( vt100_parser , 0) ;
+
+	return  1 ;
+}
+
+static int
+config_protocol_set_simple(
+	ml_vt100_parser_t *  vt100_parser ,
+	char *  key ,
+	char *  val
+	)
+{
+	if( HAS_CONFIG_LISTENER(vt100_parser,set))
 	{
-		return  0 ;
+		stop_vt100_cmd( vt100_parser , 0) ;
+
+		(*vt100_parser->config_listener->set)(
+			vt100_parser->config_listener->self , NULL , key , val) ;
+
+		start_vt100_cmd( vt100_parser , 0) ;
 	}
+
+	return  1 ;
 }
 
 /*
@@ -2660,78 +2673,63 @@ parse_vt100_escape_sequence(
 				#endif
 				}
 			}
+			else if( ps == 10)
+			{
+				/* "OSC 10" fg color */
+				config_protocol_set_simple( vt100_parser , "fg_color" , pt) ;
+			}
+			else if( ps == 11)
+			{
+				/* "OSC 11" bg color */
+				config_protocol_set_simple( vt100_parser , "bg_color" , pt) ;
+			}
+			else if( ps == 12)
+			{
+				/* "OSC 11" cursor bg color */
+				config_protocol_set_simple( vt100_parser ,
+					"cursor_bg_color" , pt) ;
+			}
 			else if( ps == 20)
 			{
-				/* "OSC 20" */
+				/* "OSC 20" (Eterm compatible) */
 
-				if( HAS_CONFIG_LISTENER(vt100_parser,set))
+				/* edit commands */
+				char *  p ;
+
+				/* XXX discard all adjust./op. settings.*/
+				/* XXX may break multi-byte char string. */
+				if( ( p = strchr( pt , ';')))
 				{
-					/* edit commands */
-					char *  p ;
-
-					/* XXX discard all adjust./op. settings.*/
-					/* XXX may break multi-byte char string. */
-					if( ( p = strchr( pt , ';')))
-					{
-						*p = '\0';
-					}
-					if( ( p = strchr( pt , ':')))
-					{
-						*p = '\0';
-					}
-
-					if( *pt == '\0')
-					{
-						/*
-						 * Do not change current edit but
-						 * alter diaplay setting.
-						 * XXX nothing can be done for now.
-						 */
-
-						return  0 ;
-					}
-
-					stop_vt100_cmd( vt100_parser , 0) ;
-					(*vt100_parser->config_listener->set)(
-						vt100_parser->config_listener->self ,
-						NULL , "wall_picture" , pt) ;
-					start_vt100_cmd( vt100_parser , 0) ;
+					*p = '\0';
 				}
-			}
-			else if( ps == 39)
-			{
-				/* "OSC 39"  */
-
-				if( HAS_CONFIG_LISTENER(vt100_parser,set))
+				if( ( p = strchr( pt , ':')))
 				{
-					stop_vt100_cmd( vt100_parser , 0) ;
-					(*vt100_parser->config_listener->set)(
-						vt100_parser->config_listener->self ,
-						NULL , "fg_color" , pt) ;
-					start_vt100_cmd( vt100_parser , 0) ;
+					*p = '\0';
 				}
+
+				if( *pt == '\0')
+				{
+					/*
+					 * Do not change current edit but
+					 * alter diaplay setting.
+					 * XXX nothing can be done for now.
+					 */
+
+					return  0 ;
+				}
+
+				config_protocol_set_simple( vt100_parser , "wall_picture" , pt) ;
 			}
+		#if  0
 			else if( ps == 46)
 			{
 				/* "OSC 46" change log file */
-			}
-			else if( ps == 49)
-			{
-				/* "OSC 49" */
-
-				if( HAS_CONFIG_LISTENER(vt100_parser,set))
-				{
-					stop_vt100_cmd( vt100_parser , 0) ;
-					(*vt100_parser->config_listener->set)(
-						vt100_parser->config_listener->self ,
-						NULL , "bg_color" , pt) ;
-					start_vt100_cmd( vt100_parser , 0) ;
-				}
 			}
 			else if( ps == 50)
 			{
 				/* "OSC 50" set font */
 			}
+		#endif
 			else if( ps == 5379)
 			{
 				/* "OSC 5379" set */

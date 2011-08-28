@@ -16,13 +16,18 @@ o CentOS 5
   gnome 2.16.0 ... @
   afterstep 2.2.9 ... @
 
-o Ubuntu 10.10
-  gnome 2.32.0 ... @
-  Blackbox 0.70.1 ... @
+o Ubuntu 11.04
+  gnome 2.32.1 ... @
 
+o OpenSolaris 2009.06
+  gnome 2.24.2 ... @
 
 Transparent background worked in the past in following platforms
 where it is not tested now.
+
+o Ubuntu 10.10
+  gnome 2.32.0 ... @
+  Blackbox 0.70.1 ... @
 
 o NetBSD 1.5 Y current + XFree86 4.1.0
   twm-4.1.0 ... OK

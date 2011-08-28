@@ -20591,6 +20591,7 @@ fi
 	if test "$have_xft" = "yes" ; then
 		AA_CFLAGS="-DUSE_TYPE_XFT  ${XFT_CFLAGS} ${AA_CFLAGS}"
 		AA_LIBS="${XFT_LIBS} ${AA_LIBS}"
+		type_engines_result="$type_engines_result xft"
 	else
 		# Extract the first word of "xft-config", so it can be a program name with args.
 set dummy xft-config; ac_word=$2
@@ -20632,14 +20633,56 @@ fi
 		if test "$xft_config" = "yes" ; then
 			AA_CFLAGS="`xft-config --cflags` -DUSE_TYPE_XFT ${AA_CFLAGS}"
 			AA_LIBS="`xft-config --libs` ${AA_LIBS}"
+			type_engines_result="$type_engines_result xft"
 		else
-			AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
-			# -lfontconfig is necessary because x_font.c refers FcXXX
-			# functions directly.
-			AA_LIBS="-lXft -lfontconfig ${AA_LIBS}"
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for XftDrawCreate in -lXft" >&5
+$as_echo_n "checking for XftDrawCreate in -lXft... " >&6; }
+if test "${ac_cv_lib_Xft_XftDrawCreate+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXft  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XftDrawCreate ();
+int
+main ()
+{
+return XftDrawCreate ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_Xft_XftDrawCreate=yes
+else
+  ac_cv_lib_Xft_XftDrawCreate=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xft_XftDrawCreate" >&5
+$as_echo "$ac_cv_lib_Xft_XftDrawCreate" >&6; }
+if test "x$ac_cv_lib_Xft_XftDrawCreate" = x""yes; then :
+
+				AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
+				# -lfontconfig is necessary because x_font.c refers FcXXX
+				# functions directly.
+				AA_LIBS="-lXft -lfontconfig ${AA_LIBS}"
+				type_engines_result="$type_engines_result xft"
+
+fi
+
 		fi
 	fi
-	type_engines_result="$type_engines_result xft"
 	;;
 cairo)
 
@@ -20713,6 +20756,53 @@ fi
 		AA_CFLAGS="-DUSE_TYPE_CAIRO ${CAIRO_CFLAGS} ${AA_CFLAGS}"
 		AA_LIBS="${CAIRO_LIBS} ${AA_LIBS}"
 		type_engines_result="$type_engines_result cairo"
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cairo_create in -lcairo" >&5
+$as_echo_n "checking for cairo_create in -lcairo... " >&6; }
+if test "${ac_cv_lib_cairo_cairo_create+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcairo  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cairo_create ();
+int
+main ()
+{
+return cairo_create ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_cairo_cairo_create=yes
+else
+  ac_cv_lib_cairo_cairo_create=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_cairo_cairo_create" >&5
+$as_echo "$ac_cv_lib_cairo_cairo_create" >&6; }
+if test "x$ac_cv_lib_cairo_cairo_create" = x""yes; then :
+
+			AA_CFLAGS="-DUSE_TYPE_CAIRO ${AA_CFLAGS}"
+			# -lfontconfig is necessary because x_font.c refers FcXXX
+			# functions directly.
+			AA_LIBS="-lcairo -lfontconfig ${AA_LIBS}"
+			type_engines_result="$type_engines_result cairo"
+
+fi
+
 	fi
 	;;
 xcore)

@@ -323,19 +323,24 @@ xft)
 	if test "$have_xft" = "yes" ; then
 		AA_CFLAGS="-DUSE_TYPE_XFT  ${XFT_CFLAGS} ${AA_CFLAGS}"
 		AA_LIBS="${XFT_LIBS} ${AA_LIBS}"
+		type_engines_result="$type_engines_result xft"
 	else
 		AC_CHECK_PROG(xft_config,xft-config,yes)
 		if test "$xft_config" = "yes" ; then
 			AA_CFLAGS="`xft-config --cflags` -DUSE_TYPE_XFT ${AA_CFLAGS}"
 			AA_LIBS="`xft-config --libs` ${AA_LIBS}"
+			type_engines_result="$type_engines_result xft"
 		else
-			AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
-			# -lfontconfig is necessary because x_font.c refers FcXXX
-			# functions directly.
-			AA_LIBS="-lXft -lfontconfig ${AA_LIBS}"
+			AC_CHECK_LIB(Xft,XftDrawCreate,
+				[
+				AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
+				# -lfontconfig is necessary because x_font.c refers FcXXX
+				# functions directly.
+				AA_LIBS="-lXft -lfontconfig ${AA_LIBS}"
+				type_engines_result="$type_engines_result xft"
+				])
 		fi
 	fi
-	type_engines_result="$type_engines_result xft"
 	;;
 cairo)
 	PKG_CHECK_MODULES(CAIRO, cairo, have_cairo=yes, have_cairo=no)
@@ -343,6 +348,15 @@ cairo)
 		AA_CFLAGS="-DUSE_TYPE_CAIRO ${CAIRO_CFLAGS} ${AA_CFLAGS}"
 		AA_LIBS="${CAIRO_LIBS} ${AA_LIBS}"
 		type_engines_result="$type_engines_result cairo"
+	else
+		AC_CHECK_LIB(cairo,cairo_create,
+			[
+			AA_CFLAGS="-DUSE_TYPE_CAIRO ${AA_CFLAGS}"
+			# -lfontconfig is necessary because x_font.c refers FcXXX
+			# functions directly.
+			AA_LIBS="-lcairo -lfontconfig ${AA_LIBS}"
+			type_engines_result="$type_engines_result cairo"
+			])
 	fi
 	;;
 xcore)
