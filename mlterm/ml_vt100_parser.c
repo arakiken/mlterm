@@ -190,10 +190,13 @@ receive_bytes(
 	#ifndef  USE_WIN32API
 		fsync( vt100_parser->log_file) ;
 	#endif
-	} else {
-		if ( vt100_parser->log_file != -1) {
+	}
+	else
+	{
+		if ( vt100_parser->log_file != -1)
+		{
 			close( vt100_parser->log_file) ;
-			vt100_parser->log_file = -1;
+			vt100_parser->log_file = -1 ;
 		}
         }
 
@@ -691,80 +694,188 @@ im_is_active(
  */
 static void  soft_reset( ml_vt100_parser_t *  vt100_parser) ;
 
-static int
+static void
 config_protocol_set(
 	ml_vt100_parser_t *  vt100_parser ,
-	char *  pt
+	char *  pt ,
+	int  save
 	)
 {
 	char *  dev ;
-	char *  key ;
-	char *  val ;
 
-	stop_vt100_cmd( vt100_parser , 0) ;
+	dev = ml_parse_proto_prefix( &pt) ;
 
-	/*
-	 * accept multiple key=value pairs.
-	 */
-	while( pt)
+	if( strcmp( pt , "gen_proto_challenge") == 0)
 	{
-		if( ! ml_parse_proto( &dev , &key , &val , &pt , 0))
-		{
-			break ;
-		}
+		ml_gen_proto_challenge() ;
+	}
+	else if( strcmp( pt , "full_reset") == 0)
+	{
+		soft_reset( vt100_parser) ;
+	}
+#ifdef  USE_LIBSSH2
+	else if( strncmp( pt , "scp " , 4) == 0)
+	{
+		char **  argv ;
+		int  argc ;
 
-		if( strcmp( key , "gen_proto_challenge") == 0)
-		{
-			ml_gen_proto_challenge() ;
-		}
-		else if( strcmp( key , "full_reset") == 0)
-		{
-			soft_reset( vt100_parser) ;
-		}
-	#ifdef  USE_LIBSSH2
-		else if( strncmp( key , "scp " , 4) == 0)
-		{
-			char **  argv ;
-			int  argc ;
+		argv = kik_arg_str_to_array( &argc , pt) ;
 
-			argv = kik_arg_str_to_array( &argc , key) ;
+		if( argc == 3 || argc == 4)
+		{
+			ml_char_encoding_t  encoding ;
 
-			if( argc == 3 || argc == 4)
+			if( ! argv[3] ||
+			    ( encoding = ml_get_char_encoding( argv[3])) == ML_UNKNOWN_ENCODING)
 			{
-				ml_char_encoding_t  encoding ;
-
-				if( ! argv[3] ||
-				    ( encoding = ml_get_char_encoding( argv[3]))
-				      == ML_UNKNOWN_ENCODING)
-				{
-					encoding = vt100_parser->encoding ;
-				}
-
-				ml_pty_ssh_scp( vt100_parser->pty ,
-					vt100_parser->encoding , encoding ,
-					argv[2] , argv[1]) ;
+				encoding = vt100_parser->encoding ;
 			}
-		}
-	#endif
-		else if( HAS_CONFIG_LISTENER(vt100_parser,set))
-		{
-			(*vt100_parser->config_listener->set)(
-				vt100_parser->config_listener->self , dev , key , val) ;
-		}
 
-		if( ! vt100_parser->config_listener)
-		{
-			/* pty changed. */
-			break ;
+			ml_pty_ssh_scp( vt100_parser->pty ,
+				vt100_parser->encoding , encoding , argv[2] , argv[1]) ;
 		}
 	}
+#endif
+	else if( dev && strlen( dev) <= 7 && strstr( dev , "font"))
+	{
+		char *  key ;
+		char *  val ;
 
-	start_vt100_cmd( vt100_parser , 0) ;
+		if( ml_parse_proto( NULL , &key , &val , &pt , 0 , 0) && val &&
+		    HAS_CONFIG_LISTENER(vt100_parser,set_font))
+		{
+			/*
+			 * Screen is redrawn not in vt100_parser->config_listener->set_font
+			 * but in stop_vt100_cmd, so it is not necessary to hold
+			 * vt100_parser->config_listener->set_font between stop_vt100_cmd and
+			 * start_vt100_cmd.
+			 */
+		#if  0
+			stop_vt100_cmd( vt100_parser , 0) ;
+		#endif
 
-	return  1 ;
+			(*vt100_parser->config_listener->set_font)(
+				vt100_parser->config_listener->self ,
+				dev , key , val , save) ;
+
+		#if  0
+			start_vt100_cmd( vt100_parser , 0) ;
+		#endif
+		}
+	}
+	else if( dev && strcmp( dev , "color") == 0)
+	{
+		char *  key ;
+		char *  val ;
+
+		if( ml_parse_proto( NULL , &key , &val , &pt , 0 , 0) && val &&
+		    HAS_CONFIG_LISTENER(vt100_parser,set_color))
+		{
+			/*
+			 * Screen is redrawn not in vt100_parser->config_listener->set_color
+			 * but in stop_vt100_cmd, so it is not necessary to hold
+			 * vt100_parser->config_listener->set_font between stop_vt100_cmd and
+			 * start_vt100_cmd.
+			 */
+		#if  0
+			stop_vt100_cmd( vt100_parser , 0) ;
+		#endif
+
+			(*vt100_parser->config_listener->set_color)(
+				vt100_parser->config_listener->self , dev , key , val, save) ;
+
+		#if  0
+			start_vt100_cmd( vt100_parser , 0) ;
+		#endif
+		}
+	}
+	else
+	{
+		stop_vt100_cmd( vt100_parser , 0) ;
+
+		if( ( ! HAS_CONFIG_LISTENER(vt100_parser,exec) ||
+	              ! (*vt100_parser->config_listener->exec)(
+				vt100_parser->config_listener->self , pt)))
+		{
+			kik_conf_write_t *  conf ;
+
+			if( save)
+			{
+				char *  path ;
+
+				/* XXX */
+				if( ( path = kik_get_user_rc_path( "mlterm/main")) == NULL)
+				{
+					return ;
+				}
+
+				conf = kik_conf_write_open( path) ;
+				free( path) ;
+			}
+			else
+			{
+				conf = NULL ;
+			}
+
+			/* accept multiple key=value pairs. */
+			while( pt)
+			{
+				char *  key ;
+				char *  val ;
+
+				if( ! ml_parse_proto( dev ? NULL : &dev ,
+						&key , &val , &pt , 0 , 1))
+				{
+					break ;
+				}
+
+				if( conf)
+				{
+					/* XXX */
+					if( strcmp( key , "encoding") == 0)
+					{
+						key = "ENCODING" ;
+					}
+
+					/* XXX */
+					if( strcmp( key , "xim") != 0)
+					{
+						kik_conf_io_write( conf , key , val) ;
+					}
+				}
+
+				if( HAS_CONFIG_LISTENER(vt100_parser,set))
+				{
+					(*vt100_parser->config_listener->set)(
+						vt100_parser->config_listener->self ,
+						dev , key , val) ;
+
+					if( ! vt100_parser->config_listener)
+					{
+						/* pty changed. */
+						break ;
+					}
+				}
+
+				dev = NULL ;
+			}
+
+			if( conf)
+			{
+				if( HAS_CONFIG_LISTENER(vt100_parser,saved))
+				{
+					(*vt100_parser->config_listener->saved)() ;
+				}
+
+				kik_conf_write_close( conf) ;
+			}
+		}
+
+		start_vt100_cmd( vt100_parser , 0) ;
+	}
 }
 
-static int
+static void
 config_protocol_set_simple(
 	ml_vt100_parser_t *  vt100_parser ,
 	char *  key ,
@@ -780,281 +891,80 @@ config_protocol_set_simple(
 
 		start_vt100_cmd( vt100_parser , 0) ;
 	}
-
-	return  1 ;
 }
 
 /*
  * This function will destroy the content of pt.
  */
-static int
-config_protocol_save(
-	ml_vt100_parser_t *  vt100_parser ,
-	char *  pt
-	)
-{
-	char *  file ;
-	kik_conf_write_t *  conf ;
-	char *  key ;
-	char *  val ;
-
-	/* XXX */
-	if( ( file = kik_get_user_rc_path( "mlterm/main")) == NULL)
-	{
-		return  0 ;
-	}
-
-	conf = kik_conf_write_open( file) ;
-	free( file) ;
-	if( conf == NULL)
-	{
-		return  0 ;
-	}
-
-	/*
-	 * accept multiple key=value pairs.
-	 */
-	while( pt)
-	{
-		if( ! ml_parse_proto( NULL , &key , &val , &pt , 0) || key == NULL)
-		{
-			break ;
-		}
-
-		/* XXX */
-		if( strcmp( key , "encoding") == 0)
-		{
-			key = "ENCODING" ;
-		}
-
-		/* XXX */
-		if( strcmp( key , "xim") != 0)
-		{
-			kik_conf_io_write( conf , key , val) ;
-		}
-	}
-
-	kik_conf_write_close( conf) ;
-
-	if( HAS_CONFIG_LISTENER(vt100_parser,saved))
-	{
-		(*vt100_parser->config_listener->saved)() ;
-	}
-
-	return  1 ;
-}
-
-/*
- * This function will destroy the content of pt.
- */
-static int
+static void
 config_protocol_get(
 	ml_vt100_parser_t *  vt100_parser ,
 	char *  pt ,
 	int  to_menu
 	)
 {
-	if( HAS_CONFIG_LISTENER(vt100_parser,get))
-	{
-		char *  dev ;
-		char *  key ;
-		int  ret ;
+	char *  dev ;
+	char *  key ;
+	int  ret ;
 
+	/*
+	 * It is assumed that screen is not redrawn not in
+	 * vt100_parser->config_listener->get, so vt100_parser->config_listener->get
+	 * is not held between stop_vt100_cmd and start_vt100_cmd.
+	 */
+#if  0
+	stop_vt100_cmd( vt100_parser , 0) ;
+#endif
+
+	ret = ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0 , 0) ;
+	if( ret == -1)
+	{
 		/*
-		 * It is assumed that screen is not redrawn not in
-		 * vt100_parser->config_listener->get, so vt100_parser->config_listener->get
-		 * is not held between stop_vt100_cmd and start_vt100_cmd.
+		 * do_challenge is failed.
+		 * to_menu is necessarily 0, so it is pty that msg should be returned to.
 		 */
-	#if  0
-		stop_vt100_cmd( vt100_parser , 0) ;
-	#endif
 
-		ret = ml_parse_proto( &dev , &key , NULL , &pt , to_menu == 0) ;
-		if( ret == -1)
-		{
-			/*
-			 * do_challenge is failed.
-			 * to_menu is necessarily 0, so it is pty that msg should be returned to.
-			 */
+		char  msg[] = "#forbidden\n" ;
 
-			char  msg[] = "#forbidden\n" ;
+		ml_write_to_pty( vt100_parser->pty , msg , sizeof( msg) - 1) ;
 
-			ml_write_to_pty( vt100_parser->pty , msg , sizeof( msg) - 1) ;
-		}
-		else if( ret > 0)
-		{
-			(*vt100_parser->config_listener->get)(
-				vt100_parser->config_listener->self , dev , key , to_menu) ;
-		}
-		else /* if( ret < 0) */
-		{
-			char *  msg = "error" ;
-			
-			(*vt100_parser->config_listener->get)(
-				vt100_parser->config_listener->self , NULL , msg , to_menu) ;
-		}
-
-	#if  0
-		start_vt100_cmd( vt100_parser , 0) ;
-	#endif
-
-		return  1 ;
+		return ;
 	}
-	else
+
+	if( ret == 0)
 	{
-		return  0 ;
+		key = "error" ;
 	}
-}
 
-/*
- * This function will destroy the content of pt.
- */
-static int
-config_protocol_set_font(
-	ml_vt100_parser_t *  vt100_parser ,
-	char *  pt ,
-	int  save
-	)
-{
-	if( HAS_CONFIG_LISTENER(vt100_parser,set_font))
+	if( dev && strlen( dev) <= 7 && strstr( dev , "font"))
 	{
-		char *  file ;
-		char *  key ;
-		char *  val ;
-
-		/*
-		 * Screen is redrawn not in vt100_parser->config_listener->set_font
-		 * but in stop_vt100_cmd, so it is not necessary to hold
-		 * vt100_parser->config_listener->set_font between stop_vt100_cmd and
-		 * start_vt100_cmd.
-		 */
-	#if  0
-		stop_vt100_cmd( vt100_parser , 0) ;
-	#endif
-
-		if( ml_parse_proto2( &file , &key , &val , pt , 0) && key && val)
-		{
-			(*vt100_parser->config_listener->set_font)(
-				vt100_parser->config_listener->self , file , key , val , save) ;
-		}
-
-	#if  0
-		start_vt100_cmd( vt100_parser , 0) ;
-	#endif
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
-/*
- * This function will destroy the content of pt.
- */
-static int
-config_protocol_get_font(
-	ml_vt100_parser_t *  vt100_parser ,
-	char *  pt ,
-	int  to_menu
-	)
-{
-	if( HAS_CONFIG_LISTENER(vt100_parser,get_font))
-	{
-		char *  file ;
-		char *  key ;
 		char *  cs ;
-		int  ret ;
 
-	#if  0
-		stop_vt100_cmd( vt100_parser , 0) ;
-	#endif
-
-		ret = ml_parse_proto2( &file , &key , NULL , pt , to_menu == 0) ;
-		if( ret == -1)
+		if( ret == 0)
 		{
-			/*
-			 * do_challenge is failed.
-			 * to_menu is necessarily 0, so it is pty that msg should be returned to.
-			 */
-
-			char  msg[] = "#forbidden\n" ;
-
-			ml_write_to_pty( vt100_parser->pty , msg , sizeof( msg) - 1) ;
+			cs = key ;
 		}
-		else if( ret > 0 && key && ( cs = kik_str_sep( &key , ",")) && key)
+		else if( ! ( cs = kik_str_sep( &key , ",")) || ! key)
+		{
+			return ;
+		}
+		
+		if( HAS_CONFIG_LISTENER(vt100_parser,get_font))
 		{
 			(*vt100_parser->config_listener->get_font)(
 				vt100_parser->config_listener->self ,
-				file ,
-				key ,	/* font size */
-				cs ,
-				to_menu) ;
+				dev , key /* font size */ , cs , to_menu) ;
 		}
-		else
-		{
-			char *  msg = "error" ;
-			
-			(*vt100_parser->config_listener->get_font)(
-				vt100_parser->config_listener->self ,
-				NULL , msg , msg , to_menu) ;
-		}
-
-	#if  0
-		start_vt100_cmd( vt100_parser , 0) ;
-	#endif
-
-		return  1 ;
 	}
-	else
+	else if( HAS_CONFIG_LISTENER(vt100_parser,get))
 	{
-		return  0 ;
+		(*vt100_parser->config_listener->get)(
+			vt100_parser->config_listener->self , dev , key , to_menu) ;
 	}
-}
 
-/*
- * This function will destroy the content of pt.
- */
-static int
-config_protocol_set_color(
-	ml_vt100_parser_t *  vt100_parser ,
-	char *  pt ,
-	int  save
-	)
-{
-	if( HAS_CONFIG_LISTENER(vt100_parser,set_color))
-	{
-		char *  file ;
-		char *  key ;
-		char *  val ;
-
-		/*
-		 * Screen is redrawn not in vt100_parser->config_listener->set_color
-		 * but in stop_vt100_cmd, so it is not necessary to hold
-		 * vt100_parser->config_listener->set_font between stop_vt100_cmd and
-		 * start_vt100_cmd.
-		 */
-	#if  0
-		stop_vt100_cmd( vt100_parser , 0) ;
-	#endif
-	
-		if( ml_parse_proto2( &file , &key , &val , pt , 0) && key && val)
-		{
-			(*vt100_parser->config_listener->set_color)(
-				vt100_parser->config_listener->self , file , key , val, save) ;
-		}
-
-	#if  0
-		start_vt100_cmd( vt100_parser , 0) ;
-	#endif
-
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
+#if  0
+	start_vt100_cmd( vt100_parser , 0) ;
+#endif
 }
 
 static void
@@ -1192,7 +1102,14 @@ change_color_rgb(
 	}
 	*p = '=' ;
 
-	config_protocol_set_color( vt100_parser, pt , 0) ;
+	if( ! ( p = alloca( 6 + strlen( pt) + 1)))
+	{
+		return  0 ;
+	}
+
+	sprintf( p , "color:%s" , pt) ;
+
+	config_protocol_set( vt100_parser, p , 0) ;
 
 	return  1 ;
 }
@@ -1241,8 +1158,11 @@ soft_reset(
 	/* "CSI ? 6 l" (DECOM) */
 	ml_screen_set_absolute_origin( vt100_parser->screen) ;
 
-	/* "CSI ? 7 l" (DECAWM) */
-	ml_screen_unset_auto_wrap( vt100_parser->screen) ;
+	/*
+	 * "CSI ? 7 h" (DECAWM) (xterm compatible behavior)
+	 * ("CSI ? 7 l" according to VT220 reference manual)
+	 */
+	ml_screen_set_auto_wrap( vt100_parser->screen) ;
 
 	/* "CSI r" (DECSTBM) */
 	ml_screen_set_scroll_region( vt100_parser->screen , -1 , -1) ;
@@ -1691,6 +1611,12 @@ parse_vt100_escape_sequence(
 
 						ml_screen_set_relative_origin(
 							vt100_parser->screen) ;
+						/*
+						 * cursor position is reset
+						 * (the same behavior of xterm 4.0.3,
+						 * kterm 6.2.0 or so)
+						 */
+						ml_screen_goto( vt100_parser->screen , 0 , 0) ;
 					}
 					else if( ps[0] == 7)
 					{
@@ -1884,6 +1810,12 @@ parse_vt100_escape_sequence(
 
 						ml_screen_set_absolute_origin(
 							vt100_parser->screen) ;
+						/*
+						 * cursor position is reset
+						 * (the same behavior of xterm 4.0.3,
+						 * kterm 6.2.0 or so)
+						 */
+						ml_screen_goto( vt100_parser->screen , 0 , 0) ;
 					}
 					else if( ps[0] == 7)
 					{
@@ -2734,7 +2666,7 @@ parse_vt100_escape_sequence(
 			{
 				/* "OSC 5379" set */
 
-				config_protocol_set( vt100_parser , pt) ;
+				config_protocol_set( vt100_parser , pt , 0) ;
 			}
 			else if( ps == 5380)
 			{
@@ -2748,60 +2680,11 @@ parse_vt100_escape_sequence(
 
 				config_protocol_get( vt100_parser , pt , 1) ;
 			}
-			else if( ps == 5382)
-			{
-				/* "OSC 5382" save */
-
-				config_protocol_save( vt100_parser , pt) ;
-			}
 			else if( ps == 5383)
 			{
 				/* "OSC 5383" set&save */
 
-				char *  p ;
-
-				p = kik_str_alloca_dup( pt) ;
-
-				config_protocol_set( vt100_parser , pt) ;
-
-				if( p)
-				{
-					config_protocol_save( vt100_parser , p) ;
-				}
-			}
-			else if( ps == 5384)
-			{
-				/* "OSC 5384" set font */
-
-				config_protocol_set_font( vt100_parser, pt, 0) ;
-			}
-			else if( ps == 5385)
-			{
-				/* "OSC 5385" set font(pty) */
-
-				config_protocol_get_font( vt100_parser, pt, 0) ;
-			}
-			else if( ps == 5386)
-			{
-				/* "OSC 5386" set font(GUI menu) */
-
-				config_protocol_get_font( vt100_parser, pt, 1) ;
-			}
-			else if( ps == 5387)
-			{
-				/* "OSC 5387" set&save font */
-				config_protocol_set_font( vt100_parser, pt, 1) ;
-			}
-			else if( ps == 5388)
-			{
-				/* "OSC 5388" set color */
-
-				config_protocol_set_color( vt100_parser, pt, 0) ;
-			}
-			else if( ps == 5391)
-			{
-				/* "OSC 5391" set&save color */
-				config_protocol_set_color( vt100_parser, pt, 1) ;
+				config_protocol_set( vt100_parser , pt , 1) ;
 			}
 		#ifdef  DEBUG
 			else if( ps == -1)
@@ -3488,6 +3371,33 @@ ml_parse_vt100_sequence(
 		vt100_parser->len >= (PTY_RD_BUFFER_SIZE / 2) &&
 		(++count) < 3 && receive_bytes( vt100_parser)) ;
 
+	stop_vt100_cmd( vt100_parser , 1) ;
+
+	return  1 ;
+}
+
+int
+ml_parse_vt100_write_loopback(
+	ml_vt100_parser_t *  vt100_parser ,
+	u_char *  buf ,
+	size_t  len
+	)
+{
+	if( vt100_parser->left > 0)
+	{
+		return  0 ;
+	}
+
+	memcpy( vt100_parser->seq , buf , len) ;
+	vt100_parser->len = vt100_parser->left = len ;
+
+	start_vt100_cmd( vt100_parser , 1) ;
+	/*
+	 * bidi and visual-indian is always stopped from here.
+	 * If you want to call {start|stop}_vt100_cmd (where ml_xterm_event_listener is called),
+	 * the second argument of it shoule be 0.
+	 */
+	parse_vt100_sequence( vt100_parser) ;
 	stop_vt100_cmd( vt100_parser , 1) ;
 
 	return  1 ;

@@ -50,6 +50,9 @@ comment $Id$
       文字プロパティテーブルを組み込みません。
       この場合、結合文字や BIDI 等を扱えなくなります。
 
+    --with-gui
+      GUI ライブラリとして xlib か win32 のいずれを使用するか指定します。
+
     --with-imagelib=(gdk-pixbuf)
       mlterm 本体に gdk-pixbuf をリンクし、壁紙やアイコンの画像を扱えるようにし
       ます。
@@ -87,6 +90,9 @@ comment $Id$
       scrollbar/ か contrib/scrollbar/ 以下の指定されたスクロールバーをビルドし
       ます。
 
+    --with-tools
+      tool/ か contrib/tool/ 以下の指定されたツールをビルドします。
+
     --disable-dnd
       XDnD プロトコルによるドラッグアンドドロップサポートを無効にします。
 
@@ -117,8 +123,8 @@ comment $Id$
       なお、gnome-pty-helper は ${libexecdir}/ ディレクトリに配置する必要があり
       ます。
 
-    --with-tools
-      tool/ か contrib/tool/ 以下の指定されたツールをビルドします。
+    --without-compat
+      古い mlterm との互換性を維持するためのコードを組み込みません。
 
     --disable-shared
       共有ライブラリを構築しません。
@@ -128,9 +134,6 @@ comment $Id$
 
     --with-libtool=[path]
       libtool を自動生成せず、システムのlibtoolを使うよう指定します。
-
-    --with-gui
-      GUI ライブラリとして xlib か win32 のいずれを使用するか指定します。
 
 * 主な機能
   o アンチエイリアス
@@ -625,7 +628,7 @@ comment $Id$
       o use_clipboard (true/*false*)
         領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
 
-      o logging_msg (true/*false*)
+      o logging_msg (*true*/false)
         mlterm が出力するメッセージを ~/.mlterm/log.[pid] に出力する。
 
       o default_server

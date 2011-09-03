@@ -206,7 +206,9 @@ u_int  x_line_top_margin( x_screen_t *  screen) ;
 u_int  x_line_bottom_margin( x_screen_t *  screen) ;
 
 
-void  x_screen_set_config( x_screen_t *  screen, char *  dev , char *  key , char *  value) ;
+int  x_screen_exec_cmd( x_screen_t *  screen , char *  cmd) ;
+
+int  x_screen_set_config( x_screen_t *  screen , char *  dev , char *  key , char *  value) ;
 
 
 int  x_screen_reset_view( x_screen_t *  screen) ;

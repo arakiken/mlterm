@@ -91,7 +91,8 @@ typedef struct  ml_config_event_listener
 {
 	void *  self ;
 
-	/* Assume that set and get affect each window. */
+	/* Assume that exec, set and get affect each window. */
+	int (*exec)( void * , char *) ;
 	void (*set)( void * , char * , char * , char *) ;
 	void (*get)( void * , char * , char * , int) ;
 
@@ -200,6 +201,9 @@ int  ml_vt100_parser_set_unicode_policy( ml_vt100_parser_t *  vt100_parser ,
 	ml_unicode_policy_t  policy) ;
 
 int  ml_parse_vt100_sequence( ml_vt100_parser_t *  vt100_parser) ;
+
+int  ml_parse_vt100_write_loopback( ml_vt100_parser_t *  vt100_parser ,
+	u_char *  buf , size_t  len) ;
 
 int  ml_vt100_parser_change_encoding( ml_vt100_parser_t *  vt100_parser ,
 	ml_char_encoding_t  encoding) ;

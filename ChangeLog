@@ -1,3 +1,34 @@
+2011-09-04  Araki Ken  <arakiken@users.sf.net>
+
+	* doc/en/README.win32, doc/ja/README.ja, mlterm.1: Updated.
+
+	* x_main_config.c:
+	  - Default value of "logging_msg" option is changed from false to true.
+	  - mlterm/core configuration file which was used by mlterm 1.9.44 or before
+	    is not read.
+
+	* ml_vt100_parser.c: If "CSI ? 6 l" or "CSI ? 6 h" sequence is received,
+	  cursor position is reset. On the other hand, if "CSI ! p" is received
+	  and origin is reset, cursor position is not reset.
+
+	* ml_edit.c: ml_edit_set_{relative|absolute}_origin() don't reset cursor position.
+
+	* doc/en/PROTOCOL.font, doc/en/PROTOCOL.color: Removed.
+
+	* ml_vt100_parser.[ch], ml_config_proto.[ch], x_screen.[ch], mlcc/comm.c,
+	  mlconfig/mc_io.h, vte.c:
+	  - OSC 5384 - 5391 are integrated to OSC 5379 - 5383.
+	  - Format of "select_pty", "search_prev", "search_next"  "snapshot" in
+	    OSC 5379 sequence is changed as follows.
+	    select_pty=<pty dev name> => select_pty <pty dev name>
+	    search_prev=<pattern> => search_prev <pattern>
+	    search_next=<pattern> => search_next <pattern>
+	    snapshot=<encoding name>:<file name> => snapshot <file name> <encoding name>
+	  - OSC 5382 is dropped.
+
+	* ml_pty.c, ml_term.c: ml_{pty|term}_get_slave_name() always return
+	  non-NULL value.
+
 2011-08-28  Araki Ken  <arakiken@users.sf.net>
 
 	* version.h.in: 3.0.6 post => 3.0.7 pre

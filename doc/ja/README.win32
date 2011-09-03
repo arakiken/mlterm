@@ -12,7 +12,7 @@ WIN32 native GUI 対応に関するメモ
             + Fribidi 0.19.2(win32 native)
 
 * ビルド
-  (CC="gcc -mno-cygwin") ./configure (--with-gui=win32) (--config-cache) \
+  (CC="gcc -mno-cygwin") ./configure (--enable-ssh2) (--with-gui=win32) (--config-cache) \
 		       (--with-libintl-prefix=[GTK+(win32) installed directory]) \
 		       (--with-libiconv-prefix=[GTK+(win32) installed directory])
   make

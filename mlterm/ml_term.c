@@ -299,6 +299,10 @@ ml_term_get_pty_fd(
 	return  ml_pty_get_master_fd( term->pty) ;
 }
 
+/*
+ * Always return non-NULL value.
+ * XXX Static data can be returned. (Not reentrant)
+ */
 char *
 ml_term_get_slave_name(
 	ml_term_t *  term
@@ -306,7 +310,7 @@ ml_term_get_slave_name(
 {
 	if( term->pty == NULL)
 	{
-		return  NULL ;
+		return  "/dev/zombie" ;
 	}
 
 	return  ml_pty_get_slave_name( term->pty) ;

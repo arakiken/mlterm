@@ -269,7 +269,7 @@ int append_pty_list(GtkMenu* menu)
         name_utf8 = g_locale_to_utf8(name_locale, -1, NULL, NULL, NULL);
 
         command = malloc(strlen(pty) + 12);
-        sprintf(command, "select_pty=%s", pty);
+        sprintf(command, "select_pty %s", pty);
 
         item = gtk_radio_menu_item_new_with_label(group, name_utf8);
         group = gtk_radio_menu_item_group(GTK_RADIO_MENU_ITEM(item));

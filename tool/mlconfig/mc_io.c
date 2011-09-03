@@ -109,6 +109,21 @@ get_value(
 /* --- global functions --- */
 
 int
+mc_exec(
+	char *  cmd
+	)
+{
+#ifdef __DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " %s\n" , cmd) ;
+#endif
+
+	printf("\x1b]%d;%s\x07" , mc_io_exec , cmd);
+	fflush( stdout) ;
+
+	return  1 ;
+}
+
+int
 mc_set_str_value(
 	char *  key ,
 	char *  value
@@ -117,7 +132,7 @@ mc_set_str_value(
 	if (value == NULL) return 0;
 
 #ifdef __DEBUG
-	kik_debug_printf( "%s=%s\n" , key , value) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
 #endif
 
 	return append_value(key, value);
@@ -130,7 +145,7 @@ mc_set_flag_value(
 	)
 {
 #ifdef __DEBUG
-	kik_debug_printf( "%s=%s\n" , key , value) ;
+	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
 #endif
 
 	return append_value(key, (flag_val ? "true" : "false"));

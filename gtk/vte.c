@@ -2353,7 +2353,7 @@ vte_terminal_paste_clipboard(
 	VteTerminal *  terminal
 	)
 {
-	x_screen_set_config( terminal->pvt->screen , NULL , "paste" , NULL) ;
+	x_screen_exec_cmd( terminal->pvt->screen , "paste") ;
 }
 
 void
@@ -3128,7 +3128,7 @@ vte_terminal_reset(
 {
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
-		x_screen_set_config( terminal->pvt->screen , NULL , "full_reset" , NULL) ;
+		x_screen_exec_cmd( terminal->pvt->screen , "full_reset") ;
 	}
 }
 

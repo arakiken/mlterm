@@ -55,6 +55,7 @@ static void help_msg(void){
 	printf( "[Usage]\n");
 	printf( " mlcc               : Show configuration screen.\n");
 	printf( " mlcc -h/--help     : Show this message.\n");
+	printf( " mlcc [command]     : Execute mlterm command. (full_reset, mlclient, open_pty and so on)\n") ;
 	printf( " mlcc [key]         : Get current value of [key].\n");
 	printf( " mlcc [key] [value] : Set [value] for [key].\n");
 	printf( " mlcc [font file name] [charset],[font size] : Get font name of [charset] and [font size] in [font file name].\n");
@@ -404,6 +405,9 @@ int main(int argc, char **argv){
 				mlterm_set_color_param(argv[2],argv[3]);
 				exit(0);
 			}
+		}else if(strcmp(p,"exec") == 0){
+			mlterm_exec(argv[2]);
+			exit(0);
 		}else if(argc == 3){
 			mlterm_set_param(argv[1], argv[2]);
 			exit(0);

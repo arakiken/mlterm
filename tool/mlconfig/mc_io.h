@@ -7,18 +7,20 @@
 
 
 typedef enum {
+	mc_io_exec     = 5379,
 	mc_io_set      = 5379,
 	mc_io_get      = 5381,
-	mc_io_save     = 5382,
 	mc_io_set_save = 5383,
-	mc_io_set_font = 5384,
-	mc_io_get_font = 5386,
-	mc_io_set_save_font = 5387,
-	mc_io_set_color = 5388,
-	mc_io_get_color = 5390,
-	mc_io_set_save_color = 5391,
+	mc_io_set_font = 5379,
+	mc_io_get_font = 5381,
+	mc_io_set_save_font = 5383,
+	mc_io_set_color = 5379,
+	mc_io_get_color = 5381,
+	mc_io_set_save_color = 5383,
 } mc_io_t;
 
+
+int  mc_exec( char *  cmd) ;
 
 int  mc_set_str_value( char *  key , char *  value) ;
 

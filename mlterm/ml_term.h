@@ -116,6 +116,10 @@ size_t  ml_term_write( ml_term_t *  term , u_char *  buf , size_t  len , int  to
 
 int  ml_term_flush( ml_term_t *  term) ;
 
+/* Must be called in visual context. */
+#define  ml_term_write_loopback( term , buf , len) \
+		ml_parse_vt100_write_loopback( (term)->parser , buf , len)
+
 int  ml_term_resize( ml_term_t *  term , u_int  cols , u_int  rows) ;
 
 #define  ml_term_cursor_col( term)  ml_screen_cursor_col( (term)->screen)

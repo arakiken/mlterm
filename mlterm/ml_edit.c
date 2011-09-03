@@ -1441,9 +1441,6 @@ ml_edit_set_relative_origin(
 {
 	edit->is_relative_origin = 1 ;
 
-	/* cursor position is reset(the same behavior of xterm 4.0.3, kterm 6.2.0 or so) */
-	ml_edit_goto( edit , 0 , 0) ;
-
 	return  1 ;
 }
 
@@ -1453,9 +1450,6 @@ ml_edit_set_absolute_origin(
 	)
 {
 	edit->is_relative_origin = 0 ;
-
-	/* cursor position is reset(the same behavior of xterm 4.0.3, kterm 6.2.0 or so) */
-	ml_edit_goto( edit , 0 , 0) ;
 
 	return  1 ;
 }

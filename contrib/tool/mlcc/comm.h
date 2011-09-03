@@ -59,6 +59,7 @@ void mlterm_set_color_param(const char * key, char *value);
 void mlterm_set_font_param(const char * file, const char * key, char *value);
 void mlterm_set_param(const char * key, char *value);
 void mlterm_set_value(const char * key, int value);
+void mlterm_exec(const char * cmd);
 
 /*
  *  text window management

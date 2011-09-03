@@ -246,6 +246,7 @@ read_conf(
 
 	while( kik_conf_io_read( from , &key , &value))
 	{
+	#ifdef  ENABLE_BACKWARD_COMPAT
 		/*
 		 * XIM_OPEN and XIM_CLOSE are removed.
 		 */
@@ -256,6 +257,7 @@ read_conf(
 			kik_msg_printf( "%s in %s is no longer supported\n",
 					 value , filename);
 		}
+	#endif
 
 		/*
 		 * [shortcut key]=[operation]

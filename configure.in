@@ -379,7 +379,7 @@ AC_SUBST(AA_LIBS)
 AC_SUBST(PROG)
 
 AC_ARG_ENABLE(ssh2,
-	[  --enable-ssh2            libssh2 @<:@default=disabled@:>@],
+	[  --enable-ssh2           libssh2 @<:@default=disabled@:>@],
 	ssh2=$enable_ssh2, ssh2="no")
 if test "$ssh2" = "yes" ; then
 	AC_CHECK_LIB(ssh2,libssh2_init,
@@ -823,7 +823,7 @@ AC_SUBST(SB_CFLAGS)
 AC_SUBST(DL_LIBS_SB)
 
 AC_ARG_ENABLE(optimize_redrawing,
-	[  --enable-optimize-redrawing optimize redrawing a line @<:@default=disabled@:>@],
+	[  --enable-optimize-redrawing    optimize redrawing a line @<:@default=disabled@:>@],
 	optimize_redrawing=$enable_optimize_redrawing,
 	optimize_redrawing="no")
 if test "$optimize_redrawing" = "yes" ; then

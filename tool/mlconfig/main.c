@@ -182,8 +182,7 @@ full_reset_clicked(
 	gpointer  data
 	)
 {
-	mc_set_str_value( "full_reset" , "") ;
-	mc_flush(mc_io_set);
+	mc_exec( "full_reset") ;
 
 	return  1 ;
 }
@@ -281,14 +280,14 @@ ssh_scp_clicked(
 
 	while( (res = gtk_dialog_run( GTK_DIALOG(dialog))) >= MY_RESPONSE_SEND)
 	{
-		char *  key ;
+		char *  cmd ;
 		const gchar *  local_path ;
 		const gchar *  remote_path ;
 
 		local_path = gtk_entry_get_text( GTK_ENTRY(local_entry)) ;
 		remote_path = gtk_entry_get_text( GTK_ENTRY(remote_entry)) ;
 
-		if( ( key = alloca( 28 + strlen( local_path) + strlen( remote_path))))
+		if( ( cmd = alloca( 28 + strlen( local_path) + strlen( remote_path))))
 		{
 			char *  p ;
 
@@ -302,7 +301,7 @@ ssh_scp_clicked(
 					continue ;
 				}
 
-				sprintf( key , "scp \"local:%s\" \"remote:%s\" UTF8" ,
+				sprintf( cmd , "scp \"local:%s\" \"remote:%s\" UTF8" ,
 						local_path , remote_path) ;
 			}
 			else /* if( res == MY_RESPONSE_RECV) */
@@ -315,11 +314,11 @@ ssh_scp_clicked(
 					continue ;
 				}
 
-				sprintf( key , "scp \"remote:%s\" \"local:%s\" UTF8" ,
+				sprintf( cmd , "scp \"remote:%s\" \"local:%s\" UTF8" ,
 						remote_path , local_path) ;
 			}
 
-			p = key + strlen(key) - 2 ;
+			p = cmd + strlen(cmd) - 2 ;
 			if( *p == '\\')
 			{
 				/*
@@ -330,8 +329,7 @@ ssh_scp_clicked(
 				*p = '\0' ;
 			}
 			
-			mc_set_str_value( key , "") ;
-			mc_flush(mc_io_set) ;
+			mc_exec( cmd) ;
 		}
 	}
 

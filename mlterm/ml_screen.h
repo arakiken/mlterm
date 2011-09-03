@@ -93,27 +93,29 @@ int  ml_screen_set_bce_fg_color( ml_screen_t *  screen , ml_color_t  fg_color) ;
 
 int  ml_screen_set_bce_bg_color( ml_screen_t *  screen , ml_color_t  bg_color) ;
 
-int  ml_screen_cursor_col( ml_screen_t *  screen) ;
+#define  ml_screen_cursor_col( screen)  ml_cursor_col( (screen)->edit)
 
-int  ml_screen_cursor_char_index( ml_screen_t *  screen) ;
+#define  ml_screen_cursor_char_index( screen)  ml_cursor_char_index( (screen)->edit)
 
-int  ml_screen_cursor_row( ml_screen_t *  screen) ;
+#define  ml_screen_cursor_row( screen)  ml_cursor_row( (screen)->edit)
 
 int  ml_screen_cursor_row_in_screen( ml_screen_t *  screen) ;
 
-u_int  ml_screen_get_cols( ml_screen_t *  screen) ;
+#define  ml_screen_get_cols( screen)  ml_edit_get_cols( (screen)->edit)
 
-u_int  ml_screen_get_rows( ml_screen_t *  screen) ;
+#define  ml_screen_get_rows( screen)  ml_edit_get_rows( (screen)->edit)
 
 u_int  ml_screen_get_logical_cols( ml_screen_t *  screen) ;
 
 u_int  ml_screen_get_logical_rows( ml_screen_t *  screen) ;
 
-u_int  ml_screen_get_log_size( ml_screen_t *  screen) ;
+#define  ml_screen_get_log_size( screen)  ml_get_log_size( &(screen)->logs)
 
-u_int  ml_screen_change_log_size( ml_screen_t *  screen , u_int  log_size) ;
+#define  ml_screen_change_log_size( screen , log_size) \
+		ml_change_log_size( &(screen)->logs , log_size)
 
-u_int  ml_screen_get_num_of_logged_lines( ml_screen_t *  screen) ;
+#define  ml_screen_get_num_of_logged_lines( screen) \
+		ml_get_num_of_logged_lines( &(screen)->logs)
 
 int  ml_screen_convert_scr_row_to_abs( ml_screen_t *  screen , int  row) ;
 
@@ -154,7 +156,7 @@ int  ml_screen_backscroll_downward( ml_screen_t *  screen , u_int  size) ;
 
 u_int  ml_screen_get_tab_size( ml_screen_t *  screen) ;
 
-int  ml_screen_set_tab_size( ml_screen_t *  screen , u_int  tab_size) ;
+#define  ml_screen_set_tab_size( screen , tab_size)  ml_edit_set_tab_size( (screen)->edit , tab_size)
 
 int  ml_screen_restore_color( ml_screen_t *  screen , int  beg_char_index , int  beg_row ,
 	int  end_char_index , int  end_row) ;
@@ -187,47 +189,51 @@ int  ml_screen_combine_with_prev_char( ml_screen_t *  screen , u_char *  bytes ,
 
 int  ml_screen_insert_chars( ml_screen_t *  screen , ml_char_t *  chars , u_int  len) ;
 
-int  ml_screen_insert_blank_chars( ml_screen_t *  screen , u_int  len) ;
+#define  ml_screen_insert_blank_chars( screen , len) \
+		ml_edit_insert_blank_chars( (screen)->edit , len)
 
-int  ml_screen_vertical_forward_tabs( ml_screen_t *  screen , u_int  num) ;
+#define  ml_screen_vertical_forward_tabs( screen , num) \
+		ml_edit_vertical_forward_tabs( (screen)->edit , num) \
 
-int  ml_screen_vertical_backward_tabs( ml_screen_t *  screen , u_int  num) ;
+#define  ml_screen_vertical_backward_tabs( screen , num) \
+		ml_edit_vertical_backward_tabs( (screen)->edit , num) \
 
-int  ml_screen_set_tab_stop( ml_screen_t *  screen) ;
+#define  ml_screen_set_tab_stop( screen)  ml_edit_set_tab_stop( (screen)->edit)
 
-int  ml_screen_clear_tab_stop( ml_screen_t *  screen) ;
+#define  ml_screen_clear_tab_stop( screen)  ml_edit_clear_tab_stop( (screen)->edit)
 
-int  ml_screen_clear_all_tab_stops( ml_screen_t *  screen) ;
+#define  ml_screen_clear_all_tab_stops( screen)  ml_edit_clear_all_tab_stops( (screen)->edit)
 
 int  ml_screen_insert_new_lines( ml_screen_t *  screen , u_int  size) ;
 
-int  ml_screen_line_feed( ml_screen_t *  screen) ;
+#define  ml_screen_line_feed( screen)  ml_edit_go_downward( (screen)->edit , SCROLL)
 
 int  ml_screen_overwrite_chars( ml_screen_t *  screen , ml_char_t *  chars , u_int  len) ;
 
-int  ml_screen_delete_cols( ml_screen_t *  screen , u_int  len) ;
+#define  ml_screen_delete_cols( screen , len)  ml_edit_delete_cols( (screen)->edit , len)
 
 int  ml_screen_delete_lines( ml_screen_t *  screen , u_int  size) ;
 
-int  ml_screen_clear_cols( ml_screen_t *  screen , u_int  cols) ;
+#define  ml_screen_clear_cols( screen , cols)  ml_edit_clear_cols( (screen)->edit , cols)
 
-int  ml_screen_clear_line_to_right( ml_screen_t *  screen) ;
+#define  ml_screen_clear_line_to_right( screen)  ml_edit_clear_line_to_right( (screen)->edit)
 
-int  ml_screen_clear_line_to_left( ml_screen_t *  screen) ;
+#define  ml_screen_clear_line_to_left( screen)  ml_edit_clear_line_to_left( (screen)->edit)
 
-int  ml_screen_clear_below( ml_screen_t *  screen) ;
+#define  ml_screen_clear_below( screen)  ml_edit_clear_below( (screen)->edit)
 
-int  ml_screen_clear_above( ml_screen_t *  screen) ;
+#define  ml_screen_clear_above( screen)  ml_edit_clear_above( (screen)->edit)
 
-int  ml_screen_set_scroll_region( ml_screen_t *  screen , int  beg , int  end) ;
+#define  ml_screen_set_scroll_region( screen , beg , end) \
+		ml_edit_set_scroll_region( (screen)->edit , beg , end)
 
-int  ml_screen_index( ml_screen_t *  screen) ;
+#define  ml_screen_index( screen)  ml_edit_go_downward( (screen)->edit , SCROLL)
 
-int  ml_screen_reverse_index( ml_screen_t *  screen) ;
+#define  ml_screen_reverse_index( screen)  ml_edit_go_upward( (screen)->edit , SCROLL)
 
-int  ml_screen_scroll_upward( ml_screen_t *  screen , u_int  size) ;
+#define  ml_screen_scroll_upward( screen , size)  ml_edit_scroll_upward( (screen)->edit , size)
 
-int  ml_screen_scroll_downward( ml_screen_t *  screen , u_int  size) ;
+#define  ml_screen_scroll_downward( screen , size)  ml_edit_scroll_downward( (screen)->edit , size)
 
 int  ml_screen_go_forward( ml_screen_t *  screen , u_int  size) ;
 
@@ -237,27 +243,27 @@ int  ml_screen_go_upward( ml_screen_t *  screen , u_int  size) ;
 
 int  ml_screen_go_downward( ml_screen_t *  screen , u_int  size) ;
 
-int  ml_screen_goto_beg_of_line( ml_screen_t *  screen) ;
+#define  ml_screen_goto_beg_of_line( screen)  ml_edit_goto_beg_of_line( (screen)->edit)
 
 int  ml_screen_go_horizontally( ml_screen_t *  screen , int  col) ;
 
 int  ml_screen_go_vertically( ml_screen_t *  screen , int  row) ;
 
-int  ml_screen_goto_home( ml_screen_t *  screen) ;
+#define  ml_screen_goto_home( screen)  ml_edit_goto_home( (screen)->edit)
 
-int  ml_screen_goto( ml_screen_t *  screen , int  col , int  row) ;
+#define  ml_screen_goto( screen , col , row)  ml_edit_goto( (screen)->edit , col , row)
 
-int  ml_screen_set_relative_origin( ml_screen_t *  screen) ;
+#define  ml_screen_set_relative_origin( screen)  ml_edit_set_relative_origin( (screen)->edit)
 
-int  ml_screen_set_absolute_origin( ml_screen_t *  screen) ;
+#define  ml_screen_set_absolute_origin( screen)  ml_edit_set_absolute_origin( (screen)->edit)
 
-int  ml_screen_set_auto_wrap( ml_screen_t *  screen) ;
+#define  ml_screen_set_auto_wrap( screen)  ml_edit_set_auto_wrap( (screen)->edit)
 
-int  ml_screen_unset_auto_wrap( ml_screen_t *  screen) ;
+#define  ml_screen_unset_auto_wrap( screen)  ml_edit_unset_auto_wrap( (screen)->edit)
 
-int  ml_screen_save_cursor( ml_screen_t *  screen) ;
+#define  ml_screen_save_cursor( screen)  ml_edit_save_cursor( (screen)->edit)
 
-int  ml_screen_restore_cursor( ml_screen_t *  screen) ;
+#define  ml_screen_restore_cursor( screen)  ml_edit_restore_cursor( (screen)->edit)
 
 int  ml_screen_cursor_visible( ml_screen_t *  screen) ;
 

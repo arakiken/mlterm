@@ -115,22 +115,19 @@ mc_select_pty(void)
 {
 	if( strcmp( new_pty , old_pty) != 0)
 	{
-		char *  dev ;
+		char *  cmd ;
 		char *  space ;
 
-		if( ( dev = malloc( 5 + strlen( new_pty) + 1)) == NULL)
+		if( ( cmd = alloca( 11 + 5 + strlen( new_pty) + 1)) == NULL)
 		{
 			return ;
 		}
 
-		sprintf( dev , "/dev/%s" , new_pty) ;
-		space = strchr(dev, ' ');
+		sprintf( cmd , "select_pty /dev/%s" , new_pty) ;
+		space = strchr(cmd + 11, ' ');
 		if (space) *space = 0;
 
-		mc_set_str_value( "select_pty" , dev) ;
-		mc_flush(mc_io_set);
-
-		free( dev) ;
+		mc_exec( cmd) ;
 
 		free( old_pty) ;
 		old_pty = strdup( new_pty) ;

@@ -2358,54 +2358,17 @@ no_keypad:
 		{
 			if( strncmp( buf , "proto:" , 6) == 0)
 			{
-				char *  dev ;
-				char *  key ;
-				char *  val ;
-				char *  p ;
+				char *  seq ;
+				size_t  len ;
 
-				key = kik_str_alloca_dup( buf + 6) ;
-
-				while( key)
+				len = 7 + strlen( buf + 6) + 2 ;
+				if( ( seq = alloca( len)))
 				{
-					if( ( p = strchr( key , ';')))
-					{
-						*(p ++) = '\0' ;
-					}
-
-					if( strncmp( key , "/dev" , 4) == 0)
-					{
-						dev = key ;
-
-						if( ( key = strchr( key , ':')) == NULL)
-						{
-							/* Illegal format */
-
-							goto  next ;
-						}
-
-						key ++ ;
-					}
-					else
-					{
-						dev = NULL ;
-					}
-
-					if( ( val = strchr( key , '=')))
-					{
-						*(val ++) = '\0' ;
-					}
-					else
-					{
-						val = "" ;
-					}
-
-					x_screen_set_config( screen , dev , key , val) ;
-
-				next:
-					key = p ;
+					sprintf( seq , "\x1b]5379;%s\x07" , buf + 6) ;
+					ml_term_write_loopback( screen->term , seq , len - 1) ;
+					x_window_update( &screen->window ,
+						UPDATE_SCREEN|UPDATE_CURSOR) ;
 				}
-
-				x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 
 				return  ;
 			}
@@ -3052,9 +3015,9 @@ utf_selection_notified(
 #ifndef  DISABLE_XDND
 static void
 set_xdnd_config(
-	x_window_t *  win,
-	char *  key,
-	char *  dev,
+	x_window_t *  win ,
+	char *  dev ,
+	char *  key ,
 	char *  value
 	)
 {
@@ -3062,7 +3025,7 @@ set_xdnd_config(
 
 	screen = (x_screen_t*)win ;
 
-	x_screen_set_config( screen, key, dev, value) ;
+	x_screen_set_config( screen , dev , key , value) ;
 
 	x_window_update( &screen->window, UPDATE_SCREEN|UPDATE_CURSOR) ;
 }
@@ -3988,7 +3951,7 @@ search_find(
 	regex_t  regex ;
 #endif
 
-	if( *pattern
+	if( pattern && *pattern
 	#ifdef  HAVE_REGEX
 		&& regcomp( &regex , pattern , REG_EXTENDED|REG_ICASE) == 0
 	#endif
@@ -4963,16 +4926,25 @@ snapshot(
 	u_char  conv_buf[512] ;
 	mkf_conv_t *  conv ;
 
-	if( ( path = kik_get_user_rc_path( file_name)) == NULL)
+	if( ( path = alloca( 7 + strlen( file_name) + 4 + 1)) == NULL)
+	{
+		return ;
+	}
+	sprintf( path , "mlterm/%s.snp" , file_name) ;
+
+	if( ( path = kik_get_user_rc_path( path)) == NULL)
 	{
 		return ;
 	}
 
 	file = fopen( path , "w") ;
 	free( path) ;
-
 	if( ! file)
 	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Failed to open %s\n" , file_name) ;
+	#endif
+
 		return ;
 	}
 
@@ -5029,7 +5001,7 @@ snapshot(
 /*
  * Callbacks of x_config_event_listener_t events.
  */
- 
+
 static void
 set_config(
 	void *  p ,
@@ -5047,7 +5019,7 @@ set_config(
 	{
 		kik_msg_printf( "\"%s\" is prohibited in configuration protocol.\n" , key) ;
 
-		return ;
+		return  1 ;
 	}
 
 	x_screen_set_config( p , dev , key , value) ;
@@ -7043,8 +7015,9 @@ x_screen_new(
 
 	memset( &screen->config_listener, 0, sizeof( ml_config_event_listener_t)) ;
 	screen->config_listener.self = screen ;
-	screen->config_listener.get = get_config ;
+	screen->config_listener.exec = x_screen_exec_cmd ;
 	screen->config_listener.set = set_config ;
+	screen->config_listener.get = get_config ;
 	screen->config_listener.set_font = set_font_config ;
 	screen->config_listener.get_font = get_font_config ;
 	screen->config_listener.set_color = set_color_config ;
@@ -7735,7 +7708,154 @@ x_line_bottom_margin(
 }
 
 
-void
+/*
+ * Return value
+ *  0 -> Not processed
+ *  1 -> Processed (regardless of processing succeeded or not)
+ */
+int
+x_screen_exec_cmd(
+	x_screen_t *  screen ,
+	char *  cmd
+	)
+{
+	/*
+	 * Use strncmp() to check command, because mlterm 3.0.6 or before accepts
+	 * '=' like "paste=".
+	 */
+	if( strncmp( cmd , "paste" , 5) == 0)
+	{
+		yank_event_received( screen , 0) ;
+	}
+	else if( strncmp( cmd , "mlclient" , 8) == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,mlclient))
+		{
+			(*screen->system_listener->mlclient)(
+				screen->system_listener->self ,
+				cmd[8] == 'x' ? screen : NULL , cmd , stdout) ;
+		}
+	}
+	else if( strncmp( cmd , "select_pty" , 10) == 0)
+	{
+		char *  arg ;
+
+		if( ( arg = strchr( cmd + 10 , ' ')))
+		{
+			*arg = '\0' ;
+			while( *(++arg) == ' ') ;
+
+			if( HAS_SYSTEM_LISTENER(screen,open_pty))
+			{
+				(*screen->system_listener->open_pty)(
+					screen->system_listener->self , screen , arg) ;
+			}
+		}
+	}
+	else if( strncmp( cmd , "open_pty" , 8) == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,open_pty))
+		{
+			(*screen->system_listener->open_pty)(
+				screen->system_listener->self , screen , NULL) ;
+		}
+	}
+	else if( strncmp( cmd , "open_screen" , 11) == 0)
+	{
+		if( HAS_SYSTEM_LISTENER(screen,open_screen))
+		{
+			(*screen->system_listener->open_screen)( screen->system_listener->self ,
+								screen) ;
+		}
+	}
+	else if( strncmp( cmd , "snapshot" , 8) == 0)
+	{
+		char **  argv ;
+		int  argc ;
+		ml_char_encoding_t  encoding ;
+		char *  file ;
+
+		/* argc is always > 0 because strncmp( cmd , "snapshot" , 8) == 0 is passed. */
+		argv = kik_arg_str_to_array( &argc , cmd) ;
+		
+		if( argc >= 3)
+		{
+			encoding = ml_get_char_encoding( argv[2]) ;
+		}
+		else
+		{
+			encoding = ML_UNKNOWN_ENCODING ;
+		}
+
+		if( argc >= 2)
+		{
+			file = argv[1] ;
+		}
+		else
+		{
+			/* skip /dev/ */
+			file = ml_term_get_slave_name( screen->term) + 5 ;
+			if( strstr( file , ".."))
+			{
+				/* insecure file name */
+				kik_msg_printf( "%s is insecure file name.\n" , file) ;
+
+				return  1 ;
+			}
+		}
+
+		snapshot( screen , encoding , file) ;
+	}
+	else if( strncmp( cmd , "search_" , 7) == 0)
+	{
+		char *  arg ;
+
+		if( ( arg = strchr( cmd + 10 , ' ')))
+		{
+			ml_char_encoding_t  encoding ;
+
+			*arg = '\0' ;
+			while( *(++arg) == ' ') ;
+
+			if( ( encoding = ml_term_get_encoding( screen->term)) != ML_UTF8)
+			{
+				char *  p ;
+				size_t  len ;
+
+				len = UTF_MAX_SIZE * strlen( arg) + 1 ;
+				if( ( p = alloca( len)))
+				{
+					*(p + ml_char_encoding_convert( p , len - 1 , ML_UTF8 ,
+						arg , strlen(arg) , encoding)) = '\0' ;
+
+					arg = p ;
+				}
+			}
+		}
+
+		if( strcmp( cmd + 7 , "prev") == 0)
+		{
+			search_find( screen , arg , 1) ;
+		}
+		else if( strcmp( cmd + 7 , "next") == 0)
+		{
+			search_find( screen , arg , 0) ;
+		}
+	}
+	else
+	{
+		return  0 ;
+	}
+
+	return  1 ;
+}
+
+/*
+ * Return value
+ *  0 -> Not processed
+ *  1 -> Processed (regardless of processing succeeded or not)
+ */
+int
 x_screen_set_config(
 	x_screen_t *  screen,
 	char *  dev ,		/* can be NULL */
@@ -7743,6 +7863,10 @@ x_screen_set_config(
 	char *  value		/* can be NULL */
 	)
 {
+#if  0
+	ml_term_t *  term ;
+#endif
+
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " %s=%s\n" , key , value) ;
 #endif
@@ -7754,7 +7878,7 @@ x_screen_set_config(
 
 	/*
 	 * XXX
-	 * 'dev' is not used for now, since many static functions used below uses
+	 * 'dev' is not used for now, since many static functions used below use
 	 * screen->term internally.
 	 */
 #if  0
@@ -7763,7 +7887,7 @@ x_screen_set_config(
 		if( ( term = (*screen->system_listener->get_pty)( screen->system_listener->self ,
 				dev)) == NULL)
 		{
-			return ;
+			return  0 ;
 		}
 	}
 	else
@@ -7781,21 +7905,19 @@ x_screen_set_config(
 	{
 		ml_char_encoding_t  encoding ;
 
-		if( ( encoding = ml_get_char_encoding( value)) == ML_UNKNOWN_ENCODING)
+		if( ( encoding = ml_get_char_encoding( value)) != ML_UNKNOWN_ENCODING)
 		{
-			return ;
-		}
+			if( strcasecmp( value , "auto") == 0)
+			{
+				ml_term_set_auto_encoding( screen->term , 1) ;
+			}
+			else
+			{
+				ml_term_set_auto_encoding( screen->term , 0) ;
+			}
 
-		if( strcasecmp( value , "auto") == 0)
-		{
-			ml_term_set_auto_encoding( screen->term , 1) ;
+			change_char_encoding( screen , encoding) ;
 		}
-		else
-		{
-			ml_term_set_auto_encoding( screen->term , 0) ;
-		}
-
-		change_char_encoding( screen , encoding) ;
 	}
 	else if( strcmp( key , "fg_color") == 0)
 	{
@@ -7825,23 +7947,19 @@ x_screen_set_config(
 	{
 		u_int  tab_size ;
 
-		if( ! kik_str_to_uint( &tab_size , value))
+		if( kik_str_to_uint( &tab_size , value))
 		{
-			return ;
+			change_tab_size( screen , tab_size) ;
 		}
-
-		change_tab_size( screen , tab_size) ;
 	}
 	else if( strcmp( key , "logsize") == 0)
 	{
 		u_int  log_size ;
 
-		if( ! kik_str_to_uint( &log_size , value))
+		if( kik_str_to_uint( &log_size , value))
 		{
-			return ;
+			change_log_size( screen , log_size) ;
 		}
-
-		change_log_size( screen , log_size) ;
 	}
 	else if( strcmp( key , "fontsize") == 0)
 	{
@@ -7857,57 +7975,47 @@ x_screen_set_config(
 		}
 		else
 		{
-			if( ! kik_str_to_uint( &font_size , value))
+			if( kik_str_to_uint( &font_size , value))
 			{
-				return ;
+				change_font_size( screen , font_size) ;
 			}
-
-			change_font_size( screen , font_size) ;
 		}
 	}
 	else if( strcmp( key , "line_space") == 0)
 	{
 		u_int  line_space ;
 
-		if( ! kik_str_to_uint( &line_space , value))
+		if( kik_str_to_uint( &line_space , value))
 		{
-			return ;
+			change_line_space( screen , line_space) ;
 		}
-
-		change_line_space( screen , line_space) ;
 	}
 	else if( strcmp( key , "letter_space") == 0)
 	{
 		u_int  letter_space ;
 
-		if( ! kik_str_to_uint( &letter_space , value))
+		if( kik_str_to_uint( &letter_space , value))
 		{
-			return ;
+			change_letter_space( screen , letter_space) ;
 		}
-
-		change_letter_space( screen , letter_space) ;
 	}
 	else if( strcmp( key , "screen_width_ratio") == 0)
 	{
 		u_int  ratio ;
 
-		if( ! kik_str_to_uint( &ratio , value))
+		if( kik_str_to_uint( &ratio , value))
 		{
-			return ;
+			change_screen_width_ratio( screen , ratio) ;
 		}
-
-		change_screen_width_ratio( screen , ratio) ;
 	}
 	else if( strcmp( key , "screen_height_ratio") == 0)
 	{
 		u_int  ratio ;
 
-		if( ! kik_str_to_uint( &ratio , value))
+		if( kik_str_to_uint( &ratio , value))
 		{
-			return ;
+			change_screen_height_ratio( screen , ratio) ;
 		}
-
-		change_screen_height_ratio( screen , ratio) ;
 	}
 	else if( strcmp( key , "scrollbar_view_name") == 0)
 	{
@@ -7947,7 +8055,7 @@ x_screen_set_config(
 		}
 		else
 		{
-			return ;
+			return  1 ;
 		}
 		
 		ml_term_set_backscroll_mode( screen->term , mode) ;
@@ -7956,23 +8064,19 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( ( flag = true_or_false( value)) == -1)
+		if( ( flag = true_or_false( value)) != -1)
 		{
-			return ;
+			change_char_combining_flag( screen , flag) ;
 		}
-
-		change_char_combining_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "use_dynamic_comb") == 0)
 	{
 		int  flag ;
 
-		if( ( flag = true_or_false( value)) == -1)
+		if( ( flag = true_or_false( value)) != -1)
 		{
-			return ;
+			change_dynamic_comb_flag( screen , flag) ;
 		}
-
-		change_dynamic_comb_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "receive_string_via_ucs") == 0 ||
 		/* backward compatibility with 2.6.1 or before */
@@ -7980,78 +8084,64 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( ( flag = true_or_false( value)) == -1)
+		if( ( flag = true_or_false( value)) != -1)
 		{
-			return ;
+			change_receive_string_via_ucs_flag( screen , flag) ;
 		}
-
-		change_receive_string_via_ucs_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "use_transbg") == 0)
 	{
 		int  flag ;
 
-		if( ( flag = true_or_false( value)) == -1)
+		if( ( flag = true_or_false( value)) != -1)
 		{
-			return ;
+			change_transparent_flag( screen , flag) ;
 		}
-
-		change_transparent_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "brightness") == 0)
 	{
 		u_int  brightness ;
 
-		if( ! kik_str_to_uint( &brightness , value))
+		if( kik_str_to_uint( &brightness , value))
 		{
-			return ;
+			change_brightness( screen , brightness) ;
 		}
-
-		change_brightness( screen , brightness) ;
 	}
 	else if( strcmp( key , "contrast") == 0)
 	{
 		u_int  contrast ;
 
-		if( ! kik_str_to_uint( &contrast , value))
+		if( kik_str_to_uint( &contrast , value))
 		{
-			return ;
+			change_contrast( screen , contrast) ;
 		}
-
-		change_contrast( screen , contrast) ;
 	}
 	else if( strcmp( key , "gamma") == 0)
 	{
 		u_int  gamma ;
 
-		if( ! kik_str_to_uint( &gamma , value))
+		if( kik_str_to_uint( &gamma , value))
 		{
-			return ;
+			change_gamma( screen , gamma) ;
 		}
-
-		change_gamma( screen , gamma) ;
 	}
 	else if( strcmp( key , "alpha") == 0)
 	{
 		u_int  alpha ;
 
-		if( ! kik_str_to_uint( &alpha , value))
+		if( kik_str_to_uint( &alpha , value))
 		{
-			return ;
+			change_alpha( screen , alpha) ;
 		}
-
-		change_alpha( screen , alpha) ;
 	}
 	else if( strcmp( key , "fade_ratio") == 0)
 	{
 		u_int  fade_ratio ;
 
-		if( ! kik_str_to_uint( &fade_ratio , value))
+		if( kik_str_to_uint( &fade_ratio , value))
 		{
-			return ;
+			change_fade_ratio( screen , fade_ratio) ;
 		}
-
-		change_fade_ratio( screen , fade_ratio) ;
 	}
 	else if( strcmp( key , "type_engine") == 0)
 	{
@@ -8099,7 +8189,7 @@ x_screen_set_config(
 		}
 		else
 		{
-			return ;
+			return  1 ;
 		}
 
 		change_font_present( screen , x_get_type_engine( screen->font_man) ,
@@ -8109,34 +8199,28 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( ( flag = true_or_false( value)) == -1)
+		if( ( flag = true_or_false( value)) != -1)
 		{
-			return ;
+			change_multi_col_char_flag( screen , flag) ;
 		}
-
-		change_multi_col_char_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "col_size_of_width_a") == 0)
 	{
 		u_int  size ;
 
-		if( ! kik_str_to_uint( &size , value))
+		if( kik_str_to_uint( &size , value))
 		{
-			return ;
+			ml_term_set_col_size_of_width_a( screen->term , size) ;
 		}
-
-		ml_term_set_col_size_of_width_a( screen->term , size) ;
 	}
 	else if( strcmp( key , "use_bidi") == 0)
 	{
 		int  flag ;
 
-		if( ( flag = true_or_false( value)) == -1)
+		if( ( flag = true_or_false( value)) != -1)
 		{
-			return ;
+			change_bidi_flag( screen , flag , screen->term->bidi_mode) ;
 		}
-
-		change_bidi_flag( screen , flag , screen->term->bidi_mode) ;
 	}
 	else if( strcmp( key , "bidi_mode") == 0)
 	{
@@ -8146,12 +8230,10 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( ( flag = true_or_false( value)) == -1)
+		if( ( flag = true_or_false( value)) != -1)
 		{
-			return ;
+			change_ind_flag( screen , flag) ;
 		}
-
-		change_ind_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "input_method") == 0)
 	{
@@ -8161,75 +8243,14 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( ( flag = true_or_false( value)) == -1)
+		if( ( flag = true_or_false( value)) != -1)
 		{
-			return ;
+			change_borderless_flag( screen , flag) ;
 		}
-
-		change_borderless_flag( screen , flag) ;
 	}
 	else if( strcmp( key , "wall_picture") == 0)
 	{
 		change_wall_picture( screen , value) ;
-	}
-	else if( strcmp( key , "select_pty") == 0)
-	{
-		if( HAS_SYSTEM_LISTENER(screen,open_pty))
-		{
-			(*screen->system_listener->open_pty)( screen->system_listener->self ,
-				screen , value) ;
-		}
-	}
-	else if( strcmp( key , "open_pty") == 0)
-	{
-		if( HAS_SYSTEM_LISTENER(screen,open_pty))
-		{
-			(*screen->system_listener->open_pty)(
-				screen->system_listener->self , screen , NULL) ;
-		}
-	}
-	else if( strcmp( key , "open_screen") == 0)
-	{
-		if( HAS_SYSTEM_LISTENER(screen,open_screen))
-		{
-			(*screen->system_listener->open_screen)( screen->system_listener->self ,
-								screen) ;
-		}
-	}
-	else if( strcmp( key , "snapshot") == 0)
-	{
-		char *  encoding ;
-		char *  file ;
-		char *  p ;
-
-		encoding = value ;
-
-		if( ( p = strchr( value , ':')) == NULL || *(p + 1) == '\0')
-		{
-			/* skip /dev/ */
-			p = ml_term_get_slave_name( screen->term) + 5 ;
-		}
-		else
-		{
-			*(p ++) = '\0' ;
-
-			if( strstr( p , "..") != NULL)
-			{
-				/* insecure file name */
-
-				kik_msg_printf( "%s is insecure file name.\n" , p) ;
-
-				return ;
-			}
-		}
-
-		if( ( file = alloca( 7 + strlen( p) + 4 + 1)) == NULL)
-		{
-			return ;
-		}
-		sprintf( file , "mlterm/%s.snp" , p) ;
-
-		snapshot( screen , ml_get_char_encoding( encoding) , file) ;
 	}
 	else if( strcmp( key , "icon_path") == 0)
 	{
@@ -8247,12 +8268,10 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( ( flag = true_or_false( value)) == -1)
+		if( ( flag = true_or_false( value)) != -1)
 		{
-			return ;
+			ml_term_set_logging_vt_seq( screen->term , flag) ;
 		}
-
-		ml_term_set_logging_vt_seq( screen->term , flag) ;
 	}
 	else if( strcmp( key , "button3_behavior") == 0)
 	{
@@ -8266,12 +8285,10 @@ x_screen_set_config(
 	{
 		int  flag ;
 
-		if( ( flag = true_or_false( value)) == -1)
+		if( ( flag = true_or_false( value)) != -1)
 		{
-			return ;
+			x_set_use_clipboard_selection( flag) ;
 		}
-
-		x_set_use_clipboard_selection( flag) ;
 	}
 	else if( strcmp( key , "logging_msg") == 0)
 	{
@@ -8284,47 +8301,12 @@ x_screen_set_config(
 			kik_set_msg_log_file_name( NULL) ;
 		}
 	}
-	else if( strcmp( key , "paste") == 0)
+	else
 	{
-		yank_event_received( screen , 0) ;
+		return  0 ;
 	}
-	else if( strncmp( key , "mlclient" , 8) == 0)
-	{
-		if( HAS_SYSTEM_LISTENER(screen,mlclient))
-		{
-			(*screen->system_listener->mlclient)(
-				screen->system_listener->self ,
-				key[8] == 'x' ? screen : NULL , key , stdout) ;
-		}
-	}
-	else if( strncmp( key , "search_" , 7) == 0)
-	{
-		ml_char_encoding_t  encoding ;
 
-		if( ( encoding = ml_term_get_encoding( screen->term)) != ML_UTF8)
-		{
-			char *  p ;
-			size_t  len ;
-
-			len = UTF_MAX_SIZE * strlen( value) + 1 ;
-			if( ( p = alloca( len)))
-			{
-				*(p + ml_char_encoding_convert( p , len - 1 , ML_UTF8 ,
-					value , strlen(value) , encoding)) = '\0' ;
-
-				value = p ;
-			}
-		}
-
-		if( strcmp( key + 7 , "prev") == 0)
-		{
-			search_find( screen , value , 1) ;
-		}
-		else if( strcmp( key + 7 , "next") == 0)
-		{
-			search_find( screen , value , 0) ;
-		}
-	}
+	return  1 ;
 }
 
 

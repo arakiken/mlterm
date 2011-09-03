@@ -236,7 +236,8 @@ ml_get_term(
 
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
-		if( dev == NULL || strcmp( dev , ml_term_get_slave_name( terms[count])) == 0)
+		if( dev == NULL ||
+		    strcmp( dev , ml_term_get_slave_name( terms[count])) == 0)
 		{
 			return  terms[count] ;
 		}
@@ -254,8 +255,9 @@ ml_get_detached_term(
 
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
-		if( ( dev == NULL || strcmp( dev , ml_term_get_slave_name( terms[count])) == 0) &&
-			! ml_term_is_attached( terms[count]))
+		if( ! ml_term_is_attached( terms[count]) &&
+		    ( dev == NULL ||
+		      strcmp( dev , ml_term_get_slave_name( terms[count])) == 0))
 		{
 			return  terms[count] ;
 		}
@@ -433,7 +435,8 @@ ml_get_pty_list(void)
 	for( count = 0 ; count < num_of_terms ; count ++)
 	{
 		kik_snprintf( p , len , "%s:%d;" ,
-			ml_term_get_slave_name( terms[count]) , ml_term_is_attached( terms[count])) ;
+			ml_term_get_slave_name( terms[count]) ,
+			ml_term_is_attached( terms[count])) ;
 
 		len -= strlen( p) ;
 		p += strlen( p) ;

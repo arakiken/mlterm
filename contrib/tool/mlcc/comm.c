@@ -187,13 +187,13 @@ void term_size(int *w, int *h){
 }
 
 char * mlterm_get_color_param(const char * key){
-#if  0
 	/*
-	 * XXX 5385 sequence is not implemented in mlterm(see doc/en/PROTOCOL.color).
+	 * XXX Not implemented in mlterm.
 	 */
+#if  0
 	reload_passwd() ;
 
-	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5389;%s;%s\007",
+	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5380;%s;color:%s\007",
 		mlterm_pass, key);
 	/*fprintf(stderr, internal_buffer);*/
 	csi(internal_buffer);
@@ -207,7 +207,7 @@ char * mlterm_get_color_param(const char * key){
 char * mlterm_get_font_param(const char * file, const char * key){
 	reload_passwd() ;
 
-	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5385;%s;%s:%s\007",
+	snprintf(internal_buffer, sizeof(internal_buffer) -1, "]5380;%s;%s:%s\007",
 		mlterm_pass, file, key);
 	/*fprintf(stderr, internal_buffer);*/
 	csi(internal_buffer);
@@ -226,13 +226,13 @@ char * mlterm_get_param(const char * key){
 }
 
 void mlterm_set_color_param(const char * key, char *value){
-	snprintf(internal_buffer, sizeof(internal_buffer), "]5388;%s=%s\007", key, value);
+	snprintf(internal_buffer, sizeof(internal_buffer), "]5379;color:%s=%s\007", key, value);
 	/*fprintf(stderr, internal_buffer);*/
 	csi(internal_buffer);
 }
 
 void mlterm_set_font_param(const char * file, const char * key, char *value){
-	snprintf(internal_buffer, sizeof(internal_buffer), "]5384;%s:%s=%s\007", file, key, value);
+	snprintf(internal_buffer, sizeof(internal_buffer), "]5379;%s:%s=%s\007", file, key, value);
 	/*fprintf(stderr, internal_buffer);*/
 	csi(internal_buffer);
 }
@@ -244,6 +244,11 @@ void mlterm_set_value(const char * key, int value){
 
 void mlterm_set_param(const char * key, char *value){
 	snprintf(internal_buffer, sizeof(internal_buffer), "]5379;%s=%s\007",key, value);
+	csi(internal_buffer);
+}
+
+void mlterm_exec(const char * cmd){
+	snprintf(internal_buffer, sizeof(internal_buffer), "]5379;%s\007", cmd);
 	csi(internal_buffer);
 }
 

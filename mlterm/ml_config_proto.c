@@ -138,6 +138,66 @@ ml_gen_proto_challenge(void)
 	return  1 ;
 }
 
+char *
+ml_parse_proto_prefix(
+	char **  str
+	)
+{
+	char *  beg ;
+	char *  p ;
+
+	beg = p = *str ;
+
+	if( strncmp( p , "/dev" , 4) == 0)
+	{
+		p += 3 ;
+		while( *(++p) != ':')
+		{
+			/* Don't contain ';' in "/dev/...". */
+			if( *p == ';' || *p == '\0')
+			{
+				/* Illegal format */
+			#ifndef  KIK_DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG " Illegal protocol format.\n") ;
+			#endif
+
+				return  NULL ;
+			}
+		}
+	}
+	else
+	{
+		if( strncmp( p , "color:" , 6) == 0)
+		{
+			p += 5 ;
+		}
+		else
+		{
+			if( *p == 't' || *p == 'v')
+			{
+				p ++ ;
+			}
+			if( *p == 'a' && *(p + 1) == 'a')
+			{
+				p += 2 ;
+			}
+			if( strncmp( p , "font:" , 5) == 0)
+			{
+				p += 4 ;
+			}
+			else
+			{
+				return  NULL ;
+			}
+		}
+	}
+
+	*(p ++) = '\0' ;
+	*str = p ;
+
+	return  beg ;
+}
+
 /*
  * Returns 0 if error happens.
  * Returns -1 if do_challenge is 1 and challenge failed.
@@ -146,13 +206,15 @@ ml_gen_proto_challenge(void)
 int
 ml_parse_proto(
 	char **  dev ,	/* can be NULL */
-	char **  key ,	/* can be NULL */
+	char **  key ,	/* can be NULL. *key is never NULL. */
 	char **  val ,	/* can be NULL */
 	char **  str ,
-	int  do_challenge
+	int  do_challenge ,
+	int  sep_by_semicolon
 	)
 {
 	char *  p ;
+	char *  _dev ;
 
 	p = *str ;
 	
@@ -184,40 +246,25 @@ ml_parse_proto(
 		}
 	}
 
-	if( ( *str = strchr( p , ';')))
+	if( sep_by_semicolon)
 	{
-		/* *str points next key=value. */
-		*((*str) ++) = '\0' ;
-	}
-
-	if( strncmp( p , "/dev" , 4) == 0)
-	{
-		if( dev)
+		if( ( *str = strchr( p , ';')))
 		{
-			*dev = p ;
+			/* *str points next key=value. */
+			*((*str) ++) = '\0' ;
 		}
-
-		if( ( p = strchr( p , ':')) == NULL)
-		{
-			/* Illegal format */
-
-		#ifndef  KIK_DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Illegal protocol format.\n") ;
-		#endif
-
-			return  0 ;
-		}
-
-		*(p ++) = '\0' ;
 	}
 	else
 	{
-		if( dev)
-		{
-			*dev = NULL ;
-		}
+		*str = NULL ;
 	}
 
+	_dev = ml_parse_proto_prefix( &p) ;
+	if( dev)
+	{
+		*dev = _dev ;
+	}
+	
 	if( key)
 	{
 		*key = p ;
@@ -242,99 +289,6 @@ ml_parse_proto(
 	
 #ifdef  __DEBUG
 	kik_debug_printf( "%s %s %s\n" , key ? *key : NULL , val ? *val : NULL , dev ? *dev : NULL) ;
-#endif
-
-	return  1 ;
-}
-
-/*
- * Returns 0 if error happens.
- * Returns -1 if do_challenge is 1 and challenge failed.
- */
-int
-ml_parse_proto2(
-	char **  file ,	/* can be NULL */
-	char **  key ,	/* can be NULL */
-	char **  val ,	/* can be NULL */
-	char *  str ,
-	int  do_challenge
-	)
-{
-	char *  p ;
-
-	if( do_challenge)
-	{
-		char *  chal ;
-
-		chal = str ;
-
-		if( ( p = strchr( str , ';')) == NULL)
-		{
-			/* Illegal format */
-
-		#ifndef  KIK_DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " Illegal protocol format.\n") ;
-		#endif
-
-			return  0 ;
-		}
-
-		*(p ++) = '\0' ;
-
-		if( ! challenge_it( chal))
-		{
-			kik_msg_printf( "Protocol 5385 is not permitted "
-				"because client password is wrong.\n") ;
-
-			return  -1 ;
-		}
-
-		str = p ;
-	}
-	
-	if( ( p = strchr( str , '=')))
-	{
-		*(p ++) = '\0' ;
-
-		if( val)
-		{
-			*val = p ;
-		}
-	}
-	else
-	{
-		if( val)
-		{
-			*val = NULL ;
-		}
-	}
-	
-	if( ( p = strchr( str , ':')))
-	{
-		if( file)
-		{
-			*file = str ;
-		}
-
-		*(p ++) = '\0' ;
-
-		str = p ;
-	}
-	else
-	{
-		if( file)
-		{
-			*file = NULL ;
-		}
-	}
-
-	if( key)
-	{
-		*key = str ;
-	}
-
-#ifdef  __DEBUG
-	kik_debug_printf( "%s %s %s\n" , key ? *key : NULL , val ? *val : NULL , file ? *file : NULL) ;
 #endif
 
 	return  1 ;

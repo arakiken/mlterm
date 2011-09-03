@@ -78,10 +78,6 @@
 
 #undef  HAVE_POSIX_OPENPT
 
-#undef  PTY_STREAMS
-
-#undef  PTY_BSD
-
 #undef  USE_WIN32API
 
 #undef  HAVE_STDINT_H

@@ -8,6 +8,7 @@
 #include  <kiklib/kik_mem.h>	/* realloc/alloca */
 #include  <kiklib/kik_path.h>
 #include  <kiklib/kik_str.h>
+#include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN */
 #include  <string.h>
 #include  <unistd.h>		/* ttyname/pipe */
 #include  <stdio.h>		/* sscanf */
@@ -37,7 +38,7 @@ ml_pty_new(
 	const char *  cmd_path ,	/* can be NULL */
 	char **  cmd_argv ,		/* can be NULL(only if cmd_path is NULL) */
 	char **  env ,			/* can be NULL */
-	const char *  host ,
+	const char *  host ,		/* DISPLAY env or remote host */
 	const char *  pass ,		/* can be NULL */
 	const char *  pubkey ,		/* can be NULL */
 	const char *  privkey ,		/* can be NULL */
@@ -48,13 +49,11 @@ ml_pty_new(
 #ifndef  USE_WIN32API
 	if( ! pass)
 	{
-		/* host is DISPLAY => unix pty */
 		return  ml_pty_unix_new( cmd_path , cmd_argv , env , host , cols , rows) ;
 	}
 	else
 #endif
 	{
-		/* host is not DISPLAY => ssh */
 	#if  defined(USE_LIBSSH2)
 		return  ml_pty_ssh_new( cmd_path , cmd_argv , env , host , pass ,
 				pubkey , privkey , cols , rows) ;
@@ -322,19 +321,26 @@ ml_pty_get_slave_fd(
 	return  pty->slave ;
 }
 
+/*
+ * Always return non-NULL value.
+ * XXX Static data can be returned. (Not reentrant)
+ */
 char *
 ml_pty_get_slave_name(
 	ml_pty_t *  pty
 	)
 {
+	static char  uniq_name[8 + DIGIT_STR_LEN(int) + 1] ;
 #ifndef  USE_WIN32API
-	if( pty->slave >= 0)
+	char *  name ;
+
+	if( pty->slave >= 0 && (name = ttyname( pty->slave)))
 	{
-		return  ttyname( pty->slave) ;
+		return  name ;
 	}
-	else
 #endif
-	{
-		return  "/dev/mlpty" ;
-	}
+
+	sprintf( uniq_name , "/dev/pty%d" , pty->master) ;
+
+	return  uniq_name ;
 }

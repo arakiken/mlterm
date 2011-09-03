@@ -125,13 +125,16 @@ write_argv(
 			{
 				write( fd , "\\\"" , 2) ;
 			}
+		#if  0
 			else if( *p == '=')
 			{
 				/*
-				 * "\x1b]5379;mlclient" sequence doesn't accept '='.
+				 * mlterm 3.0.6 or before doesn't accept '=' in
+				 * "\x1b]5379;mlclient" sequence.
 				 */
 				write( fd , "\" \"" , 3) ;
 			}
+		#endif
 			else
 			{
 				write( fd , p , 1) ;

@@ -1653,7 +1653,7 @@ Optional Features:
   --enable-debug          debug [default=disabled]
   --enable-fribidi        bidi [default=disabled]
   --enable-anti-alias     (obsoleted by --with-type-engines)anti alias [default=disabled]
-  --enable-ssh2            libssh2 [default=disabled]
+  --enable-ssh2           libssh2 [default=disabled]
   --enable-utmp           utmp (Experimental) [default=disabled]
   --enable-pty-helper     use pty helper [default=disabled]
   --disable-dnd           dnd [default=enabled]
@@ -1663,7 +1663,7 @@ Optional Features:
   --enable-m17nlib        m17n library (Experimental) [default=disabled]
   --enable-ibus           IBUS (Experimental) [default=disabled]
   --enable-scim           SCIM (Experimental) [default=disabled]
-  --enable-optimize-redrawing optimize redrawing a line [default=disabled]
+  --enable-optimize-redrawing    optimize redrawing a line [default=disabled]
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-nls           do not use Native Language Support

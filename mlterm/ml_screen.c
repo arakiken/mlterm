@@ -797,30 +797,6 @@ ml_screen_set_bce_bg_color(
 }
 
 int
-ml_screen_cursor_col(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_cursor_col( screen->edit) ;
-}
-
-int
-ml_screen_cursor_char_index(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_cursor_char_index( screen->edit) ;
-}
-
-int
-ml_screen_cursor_row(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_cursor_row( screen->edit) ;
-}
-
-int
 ml_screen_cursor_row_in_screen(
 	ml_screen_t *  screen
 	)
@@ -838,22 +814,6 @@ ml_screen_cursor_row_in_screen(
 	}
 
 	return  row ;
-}
-
-u_int
-ml_screen_get_cols(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_get_cols( screen->edit) ;
-}
-
-u_int
-ml_screen_get_rows(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_get_rows( screen->edit) ;
 }
 
 u_int
@@ -884,31 +844,6 @@ ml_screen_get_logical_rows(
 	{
 		return  ml_edit_get_rows( screen->edit) ;
 	}
-}
-
-u_int
-ml_screen_get_log_size(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_get_log_size( &screen->logs) ;
-}
-
-u_int
-ml_screen_change_log_size(
-	ml_screen_t *  screen ,
-	u_int  log_size
-	)
-{
-	return  ml_change_log_size( &screen->logs , log_size) ;
-}
-
-u_int
-ml_screen_get_num_of_logged_lines(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_get_num_of_logged_lines( &screen->logs) ;
 }
 
 int
@@ -1322,15 +1257,6 @@ ml_screen_get_tab_size(
 }
 
 int
-ml_screen_set_tab_size(
-	ml_screen_t *  screen ,
-	u_int  tab_size
-	)
-{
-	return  ml_edit_set_tab_size( screen->edit , tab_size) ;
-}
-
-int
 ml_screen_reverse_color(
 	ml_screen_t *  screen ,
 	int  beg_char_index ,
@@ -1340,7 +1266,7 @@ ml_screen_reverse_color(
 	)
 {
 	return  reverse_or_restore_color( screen , beg_char_index , beg_row ,
-		end_char_index , end_row , ml_line_reverse_color) ;
+			end_char_index , end_row , ml_line_reverse_color) ;
 }
 
 int
@@ -1353,7 +1279,7 @@ ml_screen_restore_color(
 	)
 {
 	return  reverse_or_restore_color( screen , beg_char_index , beg_row ,
-		end_char_index , end_row , ml_line_restore_color) ;
+			end_char_index , end_row , ml_line_restore_color) ;
 }
 
 u_int
@@ -1665,57 +1591,6 @@ ml_screen_insert_chars(
 }
 
 int
-ml_screen_insert_blank_chars(
-	ml_screen_t *  screen ,
-	u_int  len
-	)
-{
-	return  ml_edit_insert_blank_chars( screen->edit , len) ;
-}
-
-int
-ml_screen_vertical_forward_tabs(
-	ml_screen_t *  screen ,
-	u_int  num
-	)
-{
-	return  ml_edit_vertical_forward_tabs( screen->edit , num) ;
-}
-
-int
-ml_screen_vertical_backward_tabs(
-	ml_screen_t *  screen ,
-	u_int  num
-	)
-{
-	return  ml_edit_vertical_backward_tabs( screen->edit , num) ;
-}
-
-int
-ml_screen_set_tab_stop(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_set_tab_stop( screen->edit) ;
-}
-
-int
-ml_screen_clear_tab_stop(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_clear_tab_stop( screen->edit) ;
-}
-
-int
-ml_screen_clear_all_tab_stops(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_clear_all_tab_stops( screen->edit) ;
-}
-
-int
 ml_screen_insert_new_lines(
 	ml_screen_t *  screen ,
 	u_int  size
@@ -1732,14 +1607,6 @@ ml_screen_insert_new_lines(
 }
 
 int
-ml_screen_line_feed(
-	ml_screen_t *  screen
-	)
-{	
-	return  ml_edit_go_downward( screen->edit , SCROLL) ;
-}
-
-int
 ml_screen_overwrite_chars(
 	ml_screen_t *  screen ,
 	ml_char_t *  chars ,
@@ -1747,24 +1614,6 @@ ml_screen_overwrite_chars(
 	)
 {
 	return  ml_edit_overwrite_chars( screen->edit , chars , len) ;
-}
-
-int
-ml_screen_delete_cols(
-	ml_screen_t *  screen ,
-	u_int  len
-	)
-{
-	return  ml_edit_delete_cols( screen->edit , len) ;
-}
-
-int
-ml_screen_clear_cols(
-	ml_screen_t *  screen ,
-	u_int  cols
-	)
-{
-	return  ml_edit_clear_cols( screen->edit , cols) ;
 }
 
 int
@@ -1788,82 +1637,6 @@ ml_screen_delete_lines(
 	}
 	
 	return  1 ;
-}
-
-int
-ml_screen_clear_line_to_right(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_clear_line_to_right( screen->edit) ;
-}
-
-int
-ml_screen_clear_line_to_left(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_clear_line_to_left( screen->edit) ;
-}
-
-int
-ml_screen_clear_below(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_clear_below( screen->edit) ;
-}
-
-int
-ml_screen_clear_above(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_clear_above( screen->edit) ;
-}
-
-int
-ml_screen_set_scroll_region(
-	ml_screen_t *  screen ,
-	int  beg ,
-	int  end
-	)
-{
-	return  ml_edit_set_scroll_region( screen->edit , beg , end) ;
-}
-
-int
-ml_screen_index(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_go_downward( screen->edit , SCROLL) ;
-}
-
-int
-ml_screen_reverse_index(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_go_upward( screen->edit , SCROLL) ;
-}
-
-int
-ml_screen_scroll_upward(
-	ml_screen_t *  screen ,
-	u_int  size
-	)
-{
-	return  ml_edit_scroll_upward( screen->edit , size) ;
-}
-
-int
-ml_screen_scroll_downward(
-	ml_screen_t *  screen ,
-	u_int  size
-	)
-{
-	return  ml_edit_scroll_downward( screen->edit , size) ;
 }
 
 int
@@ -1959,14 +1732,6 @@ ml_screen_go_downward(
 }
 
 int
-ml_screen_goto_beg_of_line(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_goto_beg_of_line( screen->edit) ;
-}
-
-int
 ml_screen_go_horizontally(
 	ml_screen_t *  screen ,
 	int  col
@@ -1982,72 +1747,6 @@ ml_screen_go_vertically(
 	)
 {
 	return  ml_screen_goto( screen , ml_cursor_col( screen->edit) , row) ;
-}
-
-int
-ml_screen_goto_home(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_goto_home( screen->edit) ;
-}
-
-int
-ml_screen_goto(
-	ml_screen_t *  screen ,
-	int  col ,
-	int  row
-	)
-{
-	return  ml_edit_goto( screen->edit , col , row) ;
-}
-
-int
-ml_screen_set_relative_origin(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_set_relative_origin( screen->edit) ;
-}
-
-int
-ml_screen_set_absolute_origin(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_set_absolute_origin( screen->edit) ;
-}
-
-int
-ml_screen_set_auto_wrap(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_set_auto_wrap( screen->edit) ;
-}
-
-int
-ml_screen_unset_auto_wrap(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_unset_auto_wrap( screen->edit) ;
-}
-
-int
-ml_screen_save_cursor(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_save_cursor( screen->edit) ;
-}
-
-int
-ml_screen_restore_cursor(
-	ml_screen_t *  screen
-	)
-{
-	return  ml_edit_restore_cursor( screen->edit) ;
 }
 
 int

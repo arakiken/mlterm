@@ -18,6 +18,7 @@ x_prepare_for_main_config(
 {
 	char *  rcpath ;
 
+#ifdef  ENABLE_BACKWARD_COMPAT
 	/*
 	 * XXX
 	 * "mlterm/core" is for backward compatibility with 1.9.44
@@ -34,6 +35,7 @@ x_prepare_for_main_config(
 		kik_conf_read( conf , rcpath) ;
 		free( rcpath) ;
 	}
+#endif
 
 	if( ( rcpath = kik_get_sys_rc_path( "mlterm/main")))
 	{
@@ -222,9 +224,9 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '\0' , "csp" , 0 , "letter_space" ,
 		"extra space between letters in pixels [0]") ;
 	kik_conf_add_opt( conf , '\0' , "ucsprop" , 1 , "use_unicode_property" ,
-		"use unicode property for characters") ;
+		"use unicode property for characters [false]") ;
 	kik_conf_add_opt( conf , '\0' , "logmsg" , 1 , "logging_msg" ,
-		"output messages to ~/.mlterm/msg[pid].log") ;
+		"output messages to ~/.mlterm/msg[pid].log [true]") ;
 	kik_conf_set_end_opt( conf , 'e' , NULL , "exec_cmd" , 
 		"execute external command") ;
 
@@ -242,16 +244,14 @@ x_main_config_init(
 	char *  value ;
 	char *  invalid_msg = "%s %s is not valid.\n" ;
 
-	if( ( value = kik_conf_get_value( conf , "logging_msg")))
+	if( ( value = kik_conf_get_value( conf , "logging_msg")) &&
+	    strcmp( value , "false") == 0)
 	{
-		if( strcmp( value , "true") == 0)
-		{
-			kik_set_msg_log_file_name( "mlterm/msg") ;
-		}
-		else
-		{
-			kik_set_msg_log_file_name( NULL) ;
-		}
+		kik_set_msg_log_file_name( NULL) ;
+	}
+	else
+	{
+		kik_set_msg_log_file_name( "mlterm/msg") ;
 	}
 
 #ifndef  USE_WIN32GUI

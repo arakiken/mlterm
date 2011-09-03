@@ -1,31 +1,47 @@
 comment -*- mode: text -*-
 comment $Id$
 
-mlterm configuration protocol(main)
-version 20091211
+mlterm configuration protocol
+version 20110903
 
 * Protocol
-  set              = "\x1b" "]" "5379" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
-  get(pty)         = "\x1b" "]" "5380" ";" <challenge> ";" [ "/dev/..." ":" ] <key> "\x07"
-  get(GUI menu)    = "\x1b" "]" "5381" ";" [ "/dev/..." ":" ] <key> "\x07"
-  save             = "\x1b" "]" "5382" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
-  set&save         = "\x1b" "]" "5383" ( ";" [ "/dev/..." ":" ] <key> [ "=" <value> ] )* "\x07"
+  exec             = "\x1b" "]" "5379" ";" <command> "\x07"
+  set              = "\x1b" "]" "5379" ( ";" ( "/dev/..." ":" ) <key> "=" <value> )* "\x07"
+  get(pty)         = "\x1b" "]" "5380" ";" <challenge> ";" ( "/dev/..." ":" ) <key> "\x07"
+  get(GUI menu)    = "\x1b" "]" "5381" ";" ( "/dev/..." ":" ) <key> "\x07"
+  set&save         = "\x1b" "]" "5383" ( ";" ( "/dev/..." ":" ) <key> "=" <value> )* "\x07"
+
+  set font         = "\x1b" "]" "5379" ";" <font filename> ":" <key> "=" <value> "\x07"
+  get(pty)	   = "\x1b" "]" "5380" ";" <challenge> ";" <font filename> ":" <key> ","
+                     <fontsize> "\x07"
+  get(GUI menu)	   = "\x1b" "]" "5381" ";" <font filename> ":" <key> "," <fontsize> "\x07"
+  set&save         = "\x1b" "]" "5383" ";" <font filename> ":" <key> "=" <value> "\x07"
+
+  set color        = "\x1b" "]" "5379" ";" "color:" <key> "=" <value> "\x07"
+#if  0
+  get(pty)	   = "\x1b" "]" "5380" ";" <challenge> ";" "color:" <key> "\x07"
+  get(GUI menu)	   = "\x1b" "]" "5381" ";" "color:" <key> "\x07"
+#endif
+  set&save         = "\x1b" "]" "5383" ";" "color:" <key> "=" <value> "\x07"
+  
   return value     = "#" <key> "=" <value> "\x0a" | "#error" "\x0a" | "#forbidden" "\x0a"
-  set key          = encoding | fg_color | bg_color | tabsize | logsize |
-                     fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
-                     bel_mode | type_engine | use_anti_alias | use_variable_column_width |
-                     use_combining | use_transbg | use_bidi | bidi_mode | use_ind |
-                     receive_string_via_ucs | input_method | wall_picture |
-                     full_reset | brightness | gamma | contrast | line_space | letter_space |
-                     screen_width_ratio | screen_height_ratio | vertical_mode |
+  exec command     = paste | select_pty | full_reset | open_pty | open_screen |
+                     snapshot (<file name>) (<encoding name>) | gen_proto_challenge |
+		     mlclient <prefix options> <options> | mlclientx <prefix options> <options> |
+		     search_prev <pattern> | search_next <pattern> |
+		     scp (local:|remote:)<src file name> (local:|remote:)<dst directory name>
+		     (<encoding name>)
+  set key          = encoding | fg_color | bg_color | tabsize | logsize | fontsize |
+                     fade_ratio | mod_meta_key | mod_meta_mode | bel_mode | type_engine |
+                     use_anti_alias | use_variable_column_width | use_combining |
+                     use_transbg | use_bidi | bidi_mode | use_ind | receive_string_via_ucs |
+                     input_method | wall_picture | brightness | gamma | contrast | line_space |
+                     letter_space | screen_width_ratio | screen_height_ratio | vertical_mode |
                      scrollbar_mode | static_backscroll_mode | use_multi_column_char |
                      col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
-                     use_dynamic_comb | cursor_fg_color |
-                     cursor_bg_color | open_pty | open_screen | select_pty |
-                     snapshot | gen_proto_challenge | icon_path | logging_vt_seq | logging_msg |
-		     title | word_separators | button3_behavior | paste | use_clipboard |
-		     mlclient <prefix options> <options> | mlclientx <prefix options> <options> |
-		     search_prev | search_next | scp <src> <dst>
+                     use_dynamic_comb | cursor_fg_color | cursor_bg_color | icon_path |
+                     logging_vt_seq | logging_msg | title | word_separators | button3_behavior |
+		     use_clipboard |
   get key          = encoding | is_auto_encoding | fg_color | bg_color | tabsize | logsize |
                      fontsize | fade_ratio | mod_meta_key | mod_meta_mode |
 		     bel_mode | type_engine | use_anti_alias | use_variable_column_width |
@@ -33,19 +49,20 @@ version 20091211
 		     receive_string_via_ucs | xim | locale | wall_picture |
 		     pwd | brightness | gamma | contrast | line_space | letter_space |
 		     screen_width_ratio | screen_height_ratio | vertical_mode |
-		     scrollbar_mode | use_multi_column_char |
-                     col_size_of_width_a | scrollbar_view_name | sb_fg_color | sb_bg_color |
-                     use_dynamic_comb | rows | cols |
-                     cursor_fg_color | cursor_bg_color | pty_list | pty_name | use_clipboard |
-		     icon_path | logging_vt_seq | selected_text(:encoding) | gui
-
+		     scrollbar_mode | use_multi_column_char | col_size_of_width_a |
+                     scrollbar_view_name | sb_fg_color | sb_bg_color | use_dynamic_comb |
+                     rows | cols | cursor_fg_color | cursor_bg_color | pty_list | pty_name |
+                     use_clipboard | icon_path | logging_vt_seq | selected_text(:encoding) | gui
   value            = <values for each key>
   challenge        = <string in ~/.mlterm/challenge>
 
-* Compatibility with other terminals
-  set fg color     = "\x1b" "]" "39" ";" <color name> "\x07"
-  set bg color     = "\x1b" "]" "49" ";" <color name> "\x07"
-  set picture      = "\x1b" "]" "20" ";" <path> "[" ";" <adjusting> "]" "[" ":" <operation> "]" "\x07"
+  font filename	   = font | aafont | vfont | tfont | vaafont | taafont
+  font key         = see man/mlterm.1
+  font value       = see man/mlterm.1
+  fontsize         = <fontsize digit>
+
+  color key        = see man/mlterm.1
+  color value      = see man/mlterm.1
 
 * Values for each key
   bel_mode = none | sound | visual
@@ -60,20 +77,14 @@ version 20091211
   fade_ratio = <any ASCII decimal digit>
   fg_color = <color name> | <color rgb>
   fontsize = <any ASCII decimal digit> | larger | smaller
-  full_reset = <none>
   gamma = <any ASCII decimal digit>
-  gen_proto_challenge = <none>
   icon_path = <file path>
   input_method = <input method> ":" <input method specific options> ...
   line_space = <any ASCII decimal digit>
   locale = <locale name>
   logsize = <any ASCII decimal digit>
-  mlclient <prefix options> <options> = <none>
-  mlclientx <prefix options> <options> = <none>
   mod_meta_key = none | mod1 | mod2 | mod3 | mod4 | meta | alt | super | hyper
   mod_meta_mode = none | esc | 8bit
-  open_pty = <none>
-  open_screen = <none>
   pty_list = (<pty dev>:<active flag>;)*
   pty_name = <pty dev> | <pty title>
   pwd = <current working directory>
@@ -81,15 +92,10 @@ version 20091211
   rows = <any ASCII decimal digit>
   sb_bg_color = <color name> | <color rgb>
   sb_fg_color = <color name> | <color rgb>
-  scp (local:|remote:)<src file> (local:|remote:)<dst directory> (<encoding>) = <none>
   screen_height_ratio = <any ASCII decimal digit>
   screen_width_ratio = <any ASCII decimal digit>
   scrollbar_mode = none | left | right
   scrollbar_view_name = <name>
-  select_pty = <pty dev name>
-  search_prev = <regular expression>
-  search_next = <regular expression>
-  snapshot = <encoding name>:<file name> | <none>
   stataic_backscroll_mode = true | false
   tabsize = <any ASCII decimal digit>
   title = <pty title>
@@ -107,7 +113,6 @@ version 20091211
   logging_vt_seq = true | false
   logging_msg = true | false
   selected_text(:encoding) = <none>
-  paste = <none>
 
 * Note
   o Encoding names are regularized , that is , `-' , `_' are removed , and only
@@ -150,6 +155,29 @@ version 20091211
      \x1b]5379;scp c:\users\text.txt ./\x07
        => scp localhost:c:\users\text.txt foo.bar:$HOME/text.txt
           ("\" is available as a separator only in win32.)
-    Note)
-     Source and destination file names are convered to system locale encoding
-     and terminal encoding respectively.
+  o Source and destination file names of "scp" protocol are convered to system
+    locale encoding and terminal encoding respectively.
+
+* Note about font configuration
+  If you specify like "12," as <value>, previous setting of 12 pixel font is cleared.
+  If you specify "" as <value>, previous setting of default font is cleared.
+  Values like "12," or "" aren't written to ~/.mlterm/(vt)(aa)font files.
+
+  e.g.)
+  $ printf "\x1b]5384;font:ISO8859_1=12,a12\x07"
+    => Use "a12" for 12 pixel font.
+  $ printf "\x1b]5384;font:ISO8859_1=-*--%d-*-iso8859-1\x07"
+    => Use "-*--%d-*-iso8859-1" for default font.
+  $ printf "\x1b]5384;font:ISO8859_1=12,\x07"
+    => 12 pixel font setting is cleared.
+  $ printf "\x1b]5384;font:ISO8859_1=\x07" or "\x1b]5384;font:ISO8859_1=;\x07"
+    => Default font setting is cleared.
+
+* Note about color configuration
+  If you specify "" as <value>, previous setting of <key> color is cleared.
+
+* Compatibility with other terminals
+  set fg color     = "\x1b" "]" "10" ";" <color name> "\x07"
+  set bg color     = "\x1b" "]" "11" ";" <color name> "\x07"
+  set cursor color = "\x1b" "]" "12" ";" <color name> "\x07"
+  set picture      = "\x1b" "]" "20" ";" <path> "[" ";" <adjusting> "]" "[" ":" <operation> "]" "\x07"
