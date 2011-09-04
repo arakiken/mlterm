@@ -1475,6 +1475,24 @@ ml_edit_unset_auto_wrap(
 }
 
 int
+ml_edit_set_bce_fg_color(
+	ml_edit_t *  edit ,
+	ml_color_t  fg_color
+	)
+{
+	return  ml_char_set_fg_color( &edit->bce_ch , fg_color) ;
+}
+
+int
+ml_edit_set_bce_bg_color(
+	ml_edit_t *  edit ,
+	ml_color_t  bg_color
+	)
+{
+	return  ml_char_set_bg_color( &edit->bce_ch , bg_color) ;
+}
+
+int
 ml_edit_save_cursor(
 	ml_edit_t *  edit
 	)
@@ -1489,6 +1507,7 @@ ml_edit_restore_cursor(
 {
 	return  ml_cursor_restore( &edit->cursor) ;
 }
+
 
 /*
  * for debugging.

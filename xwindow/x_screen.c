@@ -5019,7 +5019,7 @@ set_config(
 	{
 		kik_msg_printf( "\"%s\" is prohibited in configuration protocol.\n" , key) ;
 
-		return  1 ;
+		return ;
 	}
 
 	x_screen_set_config( p , dev , key , value) ;

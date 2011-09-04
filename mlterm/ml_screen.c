@@ -38,8 +38,8 @@ get_n_prev_char_pos(
 {
 	int  count ;
 
-	*char_index = screen->edit->cursor.char_index ;
-	*row = screen->edit->cursor.row ;
+	*char_index = ml_cursor_char_index( screen->edit) ;
+	*row = ml_cursor_row( screen->edit) ;
 
 	for( count = 0 ; count < n ; count ++)
 	{
@@ -779,24 +779,6 @@ ml_screen_resize(
 }
 
 int
-ml_screen_set_bce_fg_color(
-	ml_screen_t *  screen ,
-	ml_color_t  fg_color
-	)
-{
-	return  ml_char_set_fg_color( &screen->edit->bce_ch , fg_color) ;
-}
-
-int
-ml_screen_set_bce_bg_color(
-	ml_screen_t *  screen ,
-	ml_color_t  bg_color
-	)
-{
-	return  ml_char_set_bg_color( &screen->edit->bce_ch , bg_color) ;
-}
-
-int
 ml_screen_cursor_row_in_screen(
 	ml_screen_t *  screen
 	)
@@ -1246,14 +1228,6 @@ ml_screen_backscroll_downward(
 	}
 
 	return  1 ;
-}
-
-u_int
-ml_screen_get_tab_size(
-	ml_screen_t *  screen
-	)
-{
-	return  screen->edit->tab_size ;
 }
 
 int
@@ -1801,7 +1775,8 @@ ml_screen_use_normal_edit(
 
 	if( screen->logvis)
 	{
-		(*screen->logvis->init)( screen->logvis , &screen->edit->model , &screen->edit->cursor) ;
+		(*screen->logvis->init)( screen->logvis ,
+			&screen->edit->model , &screen->edit->cursor) ;
 	}
 
 	ml_edit_set_modified_all( screen->edit) ;
@@ -1821,7 +1796,8 @@ ml_screen_use_alternative_edit(
 
 	if( screen->logvis)
 	{
-		(*screen->logvis->init)( screen->logvis , &screen->edit->model , &screen->edit->cursor) ;
+		(*screen->logvis->init)( screen->logvis ,
+			&screen->edit->model , &screen->edit->cursor) ;
 	}
 
 	ml_edit_set_modified_all( screen->edit) ;

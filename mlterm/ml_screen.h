@@ -89,9 +89,11 @@ int  ml_screen_set_listener( ml_screen_t *  screen , ml_screen_event_listener_t 
 
 int  ml_screen_resize( ml_screen_t *  screen , u_int  cols , u_int  rows) ;
 
-int  ml_screen_set_bce_fg_color( ml_screen_t *  screen , ml_color_t  fg_color) ;
+#define  ml_screen_set_bce_fg_color( screen , fg_color) \
+		ml_edit_set_bce_fg_color( (screen)->edit , fg_color)
 
-int  ml_screen_set_bce_bg_color( ml_screen_t *  screen , ml_color_t  bg_color) ;
+#define  ml_screen_set_bce_bg_color( screen , bg_color) \
+		ml_edit_set_bce_bg_color( (screen)->edit , bg_color)
 
 #define  ml_screen_cursor_col( screen)  ml_cursor_col( (screen)->edit)
 
@@ -154,9 +156,10 @@ int  ml_screen_backscroll_upward( ml_screen_t *  screen , u_int  size) ;
 
 int  ml_screen_backscroll_downward( ml_screen_t *  screen , u_int  size) ;
 
-u_int  ml_screen_get_tab_size( ml_screen_t *  screen) ;
+#define  ml_screen_get_tab_size( screen)  ml_edit_get_tab_size( (screen)->edit)
 
-#define  ml_screen_set_tab_size( screen , tab_size)  ml_edit_set_tab_size( (screen)->edit , tab_size)
+#define  ml_screen_set_tab_size( screen , tab_size) \
+		ml_edit_set_tab_size( (screen)->edit , tab_size)
 
 int  ml_screen_restore_color( ml_screen_t *  screen , int  beg_char_index , int  beg_row ,
 	int  end_char_index , int  end_row) ;

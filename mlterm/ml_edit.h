@@ -94,6 +94,8 @@ int  ml_edit_vertical_forward_tabs( ml_edit_t *  edit , u_int  num) ;
 
 int  ml_edit_vertical_backward_tabs( ml_edit_t *  edit , u_int  num) ;
 
+#define  ml_edit_get_tab_size( edit)  ((edit)->tab_size)
+
 int  ml_edit_set_tab_size( ml_edit_t *  edit , u_int  tab_size) ;
 
 int  ml_edit_set_tab_stop( ml_edit_t *  edit) ;
@@ -131,6 +133,10 @@ int  ml_edit_set_absolute_origin( ml_edit_t *  edit) ;
 int  ml_edit_set_auto_wrap( ml_edit_t *  edit) ;
 
 int  ml_edit_unset_auto_wrap( ml_edit_t *  edit) ;
+
+int  ml_edit_set_bce_fg_color( ml_edit_t *  edit , ml_color_t  fg_color) ;
+
+int  ml_edit_set_bce_bg_color( ml_edit_t *  edit , ml_color_t  bg_color) ;
 
 int  ml_edit_save_cursor( ml_edit_t *  edit) ;
 
