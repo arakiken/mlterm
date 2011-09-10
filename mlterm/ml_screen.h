@@ -260,9 +260,7 @@ int  ml_screen_go_vertically( ml_screen_t *  screen , int  row) ;
 
 #define  ml_screen_set_absolute_origin( screen)  ml_edit_set_absolute_origin( (screen)->edit)
 
-#define  ml_screen_set_auto_wrap( screen)  ml_edit_set_auto_wrap( (screen)->edit)
-
-#define  ml_screen_unset_auto_wrap( screen)  ml_edit_unset_auto_wrap( (screen)->edit)
+#define  ml_screen_set_auto_wrap( screen , flag)  ml_edit_set_auto_wrap( (screen)->edit , flag)
 
 #define  ml_screen_save_cursor( screen)  ml_edit_save_cursor( (screen)->edit)
 

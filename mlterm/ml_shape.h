@@ -20,11 +20,26 @@ typedef struct  ml_shape
 } ml_shape_t ;
 
 
+#ifndef  NO_DYNAMIC_LOAD_CTL
+
 ml_shape_t *  ml_arabic_shape_new(void) ;
 
 u_int16_t  ml_is_arabic_combining( ml_char_t *  prev2 , ml_char_t *  prev , ml_char_t *  ch) ;
 
 ml_shape_t *  ml_iscii_shape_new( void) ;
+
+#else
+
+#ifndef  USE_FRIBIDI
+#define  ml_arabic_shape_new()  (NULL)
+#define  ml_is_arabic_combining( a , b , c)  (NULL)
+#endif
+
+#ifndef  USE_IND
+#define  ml_iscii_shape_new()  (NULL)
+#endif
+
+#endif
 
 
 #endif

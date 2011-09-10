@@ -52,6 +52,11 @@ AC_SUBST(SOCK_LIBS)
 
 AC_PATH_XTRA
 
+if test "$with_gnu_ld" = "yes" ; then
+	DEXPORT="-Wl,--version-script=\$(VPATH)/dexport.map"
+fi
+AC_SUBST(DEXPORT)
+
 AC_ARG_WITH(gui,
 	[  --with-gui@<:@=ARG@:>@        gui library(xlib|win32)],
 	gui=$with_gui)
@@ -275,26 +280,52 @@ AC_SUBST(MATH_CFLAGS)
 AC_CHECK_HEADER(regex.h,REGEX_CFLAGS="-DHAVE_REGEX")
 AC_SUBST(REGEX_CFLAGS)
 
+AC_ARG_ENABLE(dl-ctl,
+	[  --disable-dl-ctl        dynamic loading ctl library @<:@default=enable@:>@],
+	dl_ctl=$enable_dl_ctl, dl_ctl="yes")
+if test "$dl_ctl" = "yes" ; then
+	LMLTERM_CORE=libmlterm_core.la
+else
+	LMLTERM_CORE=libmlterm_core.a
+	CTL_CFLAGS="-DNO_DYNAMIC_LOAD_CTL"
+	VTE_CTL_LIBS=../mlterm/libctl/*.lo
+fi
+AC_SUBST(LMLTERM_CORE)
+AC_SUBST(CTL_CFLAGS)
+AC_SUBST(VTE_CTL_LIBS)
+
 AC_ARG_ENABLE(fribidi,
 	[  --enable-fribidi        bidi @<:@default=disabled@:>@],
 	fribidi=$enable_fribidi, fribidi="no")
 if test "$fribidi" = "yes" ; then
 	PKG_CHECK_MODULES(FRIBIDI, fribidi, have_fribidi=yes, have_fribidi=no)
-	if test "$have_fribidi" = "yes" ; then
-		FRIBIDI_CFLAGS="${FRIBIDI_CFLAGS} -DUSE_FRIBIDI"
-	else
+	if test "$have_fribidi" != "yes" ; then
 		AC_CHECK_PROG(fribidi_config,fribidi-config,yes,fribidi="no")
 		if test "$fribidi_config" = "yes" ; then
-			FRIBIDI_CFLAGS="`fribidi-config --cflags` -DUSE_FRIBIDI"
+			FRIBIDI_CFLAGS="`fribidi-config --cflags`"
 			FRIBIDI_LIBS="`fribidi-config --libs`"
+			have_fribidi="yes"
 		fi
 	fi
 fi
+if test "$have_fribidi" = "yes" ; then
+	if test "$dl_ctl" = "yes" ; then
+		CTL_LIBS="libctl_bidi.la ${CTL_LIBS}"
+	else
+		CTL_CFLAGS="-DUSE_FRIBIDI ${CTL_CFLAGS}"
+		CTL_LIBS="libctl_bidi.a ${CTL_LIBS}"
+		XCTL_LIBS="../mlterm/libctl/libctl_bidi.a ${XCTL_LIBS}"
+		XFRIBIDI_LIBS="$FRIBIDI_LIBS"
+		FRIBIDI_LIBS=""
+	fi
+fi
+
 # "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
-FRIBIDI_CFLAGS="`echo ${FRIBIDI_CFLAGS} | tr -d '\r'`"
+FRIBIDI_CFLAGS="`echo ${FRIBIDI_CFLAGS} -DUSE_FRIBIDI | tr -d '\r'`"
 FRIBIDI_LIBS="`echo ${FRIBIDI_LIBS} | tr -d '\r'`"
 AC_SUBST(FRIBIDI_CFLAGS)
 AC_SUBST(FRIBIDI_LIBS)
+AC_SUBST(XFRIBIDI_LIBS)
 
 # --enable-anti-alias is backward compatibility for --with-type-engines
 AC_ARG_ENABLE(anti_alias,
@@ -441,9 +472,6 @@ if test "${gtk_config}" = "yes" ; then
 		# "tr ..." is hack for cygwin.
 		# (removing \r which is output by win32 native pkg-config.)
 		VTE_CFLAGS="`echo $VTE_CFLAGS | tr -d '\r'`"
-		if test "$with_gnu_ld" = "yes" ; then
-			VTE_LIBS="${VTE_LIBS} -Wl,--version-script=\$(top_srcdir)/gtk/dexport.map"
-		fi
 		AC_SUBST(VTE_LIBS)
 		AC_SUBST(VTE_CFLAGS)
 	fi
@@ -800,9 +828,6 @@ pixmap_engine)
 		else
 			DL_LIBS_SB="-export-dynamic ${DL_LIBS_SB}"
 		fi
-		if test "$with_gnu_ld" = "yes" ; then
-			DL_LIBS_SB="-Wl,--version-script=\$(top_srcdir)/xwindow/dexport.map ${DL_LIBS_SB}"
-		fi
 		SB_CFLAGS="-DSUPPORT_PIXMAP_ENGINE"
 		scrollbars_result="$scrollbars_result $scrollbar"
 	else
@@ -886,20 +911,29 @@ if test "${SUBDIRS}" != "" ; then
 	AC_CONFIG_SUBDIRS(${SUBDIRS})
 fi
 
-MAKE_DIRS="mlterm xwindow man etc ${MAKE_DIRS}"
-OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
+MAKE_DIRS="mlterm mlterm/libctl xwindow man etc ${MAKE_DIRS}"
+OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
 
 AC_ARG_ENABLE(ind,
 	[  --enable-ind            libind @<:@default=disabled@:>@],
 	ind=$enable_ind, ind="no")
 if test "$ind" = "yes" ; then
-	IND_CFLAGS='-DUSE_IND -I${top_builddir}/libind'
+	IND_CFLAGS='-I${top_builddir}/libind'
 	IND_LIBS='${top_builddir}/libind/libind.a'
 	MAKE_DIRS="libind ${MAKE_DIRS}"
 	OUTPUT_FILES="libind/Makefile ${OUTPUT_FILES}"
+	if test "$dl_ctl" = "yes" ; then
+		CTL_LIBS="libctl_iscii.la ${CTL_LIBS}"
+	else
+		CTL_CFLAGS="-DUSE_IND ${CTL_CFLAGS}"
+		CTL_LIBS="libctl_iscii.a ${CTL_LIBS}"
+		XCTL_LIBS="../mlterm/libctl/libctl_iscii.a ${XCTL_LIBS}"
+	fi
 fi
 AC_SUBST(IND_LIBS)
 AC_SUBST(IND_CFLAGS)
+AC_SUBST(CTL_LIBS)
+AC_SUBST(XCTL_LIBS)
 
 AC_SUBST(MAKE_DIRS)
 

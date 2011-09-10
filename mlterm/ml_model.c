@@ -77,7 +77,7 @@ ml_model_reset(
 	for( count = 0 ; count < model->num_of_rows ; count ++)
 	{
 		ml_line_reset( &model->lines[count]) ;
-		ml_line_updated( &model->lines[count]) ;
+		ml_line_set_updated( &model->lines[count]) ;
 	}
 
 	return  1 ;

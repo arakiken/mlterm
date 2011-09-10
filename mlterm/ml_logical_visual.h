@@ -8,7 +8,7 @@
 
 #include  "ml_model.h"
 #include  "ml_cursor.h"
-#include  "ml_iscii.h"
+#include  "ml_bidi.h"	/* ml_bidi_mode_t */
 
 
 /*
@@ -64,19 +64,7 @@ ml_logical_visual_t *  ml_logvis_container_new(void) ;
 
 int  ml_logvis_container_add( ml_logical_visual_t *  logvis , ml_logical_visual_t *  child) ;
 
-#ifdef  USE_FRIBIDI
-ml_logical_visual_t *  ml_logvis_bidi_new( int  adhoc_right_align , ml_bidi_mode_t  mode) ;
-#else
-#define  ml_logvis_bidi_new( adhoc_right_align , mode)  (NULL)
-#endif
-
 ml_logical_visual_t *  ml_logvis_comb_new(void) ;
-
-#ifdef  USE_IND
-ml_logical_visual_t *  ml_logvis_iscii_new( void) ;
-#else
-#define  ml_logvis_iscii_new()  (NULL)
-#endif
 
 ml_logical_visual_t *  ml_logvis_vert_new( ml_vertical_mode_t  vertical_mode) ;
 
@@ -84,5 +72,23 @@ ml_vertical_mode_t  ml_get_vertical_mode( char *  name) ;
 
 char *  ml_get_vertical_mode_name( ml_vertical_mode_t  mode) ;
 
+#ifndef  NO_DYNAMIC_LOAD_CTL
+
+ml_logical_visual_t *  ml_logvis_bidi_new( ml_bidi_mode_t  mode) ;
+
+ml_logical_visual_t *  ml_logvis_iscii_new(void) ;
+
+#else
+
+#ifndef  USE_FRIBIDI
+#define  ml_logvis_bidi_new( a)  (NULL)
+#endif
+
+#ifndef  USE_IND
+#define  ml_logvis_iscii_new()  (NULL)
+#endif
+
+
+#endif
 
 #endif

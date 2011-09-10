@@ -1918,7 +1918,7 @@ x_get_all_config_font_names(
 	char *  font_name_list ;
 	size_t  list_len ;
 	char *  p ;
-	int  count ;
+	u_int  count ;
 
 	array = get_font_name_pairs_array( &size , get_font_name_table( font_config , font_size)) ;
 	d_array = get_font_name_pairs_array( &d_size , font_config->default_font_name_table) ;
@@ -1983,7 +1983,11 @@ x_get_all_config_font_names(
 		}
 	}
 
-	*(p - 1) = '\0' ;
+	if( p > font_name_list)
+	{
+		--p ;
+	}
+	*p = '\0' ;
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " Font list is %s\n" , font_name_list) ;

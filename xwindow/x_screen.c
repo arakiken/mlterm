@@ -353,7 +353,7 @@ screen_width(
 	 * logical cols/rows => visual width/height.
 	 */
 
-	if( screen->term->vertical_mode)
+	if( ml_term_get_vertical_mode( screen->term))
 	{
 		width = ml_term_get_logical_rows( screen->term) * x_col_width( screen) ;
 	}
@@ -376,7 +376,7 @@ screen_height(
 	 * logical cols/rows => visual width/height.
 	 */
 
-	if( screen->term->vertical_mode)
+	if( ml_term_get_vertical_mode( screen->term))
 	{
 		height = ml_term_get_logical_cols( screen->term) * x_line_height( screen) ;
 	}
@@ -710,7 +710,7 @@ flush_scroll_cache(
 
 	if( scroll_actual_screen && x_window_is_scrollable( &screen->window))
 	{
-		if( ! screen->term->vertical_mode)
+		if( ! ml_term_get_vertical_mode( screen->term))
 		{
 			int  beg_y ;
 			int  end_y ;
@@ -758,7 +758,7 @@ flush_scroll_cache(
 						(screen->scroll_cache_boundary_end -
 						screen->scroll_cache_boundary_start + 1) ;
 
-				if( screen->term->vertical_mode & VERT_RTL)
+				if( ml_term_get_vertical_mode( screen->term) & VERT_RTL)
 				{
 					end_x = screen->window.width - beg_x ;
 					beg_x = screen->window.width - end_x ;
@@ -1333,7 +1333,7 @@ update_special_visual(
 	 * vertical font is automatically used under vertical mode.
 	 * similar processing is done in x_term_manager.c:config_init.
 	 */
-	if( screen->term->vertical_mode)
+	if( ml_term_get_vertical_mode( screen->term))
 	{
 		if( ! ( x_get_font_present( screen->font_man) & FONT_VERTICAL))
 		{
@@ -1445,7 +1445,7 @@ window_exposed(
 
 	screen = (x_screen_t *) win ;
 
-	if( screen->term->vertical_mode)
+	if( ml_term_get_vertical_mode( screen->term))
 	{
 		u_int  ncols ;
 
@@ -1461,7 +1461,7 @@ window_exposed(
 			end_row = ncols - 1 ;
 		}
 
-		if( screen->term->vertical_mode & VERT_RTL)
+		if( ml_term_get_vertical_mode( screen->term) & VERT_RTL)
 		{
 			u_int  swp ;
 
@@ -1547,7 +1547,7 @@ window_resized(
 	width = (screen->window.width * 100) / screen->screen_width_ratio ;
 	height = (screen->window.height * 100) / screen->screen_height_ratio ;
 
-	if( screen->term->vertical_mode)
+	if( ml_term_get_vertical_mode( screen->term))
 	{
 		rows = width / x_col_width( screen) ;
 		cols = height / x_line_height( screen) ;
@@ -2201,7 +2201,7 @@ key_pressed(
 		
 		if( screen->use_vertical_cursor)
 		{
-			if( screen->term->vertical_mode & VERT_RTL)
+			if( ml_term_get_vertical_mode( screen->term) & VERT_RTL)
 			{
 				ksym_conv_t  table[] =
 				{
@@ -2218,7 +2218,7 @@ key_pressed(
 				ksym = convert_ksym( ksym , table ,
 						sizeof(table) / sizeof(table[0])) ;
 			}
-			else if( screen->term->vertical_mode & VERT_LTR)
+			else if( ml_term_get_vertical_mode( screen->term) & VERT_LTR)
 			{
 				ksym_conv_t  table[] =
 				{
@@ -3097,7 +3097,7 @@ report_mouse_tracking(
 		}
 	}
 
-	if( screen->term->vertical_mode)
+	if( ml_term_get_vertical_mode( screen->term))
 	{
 		col = convert_y_to_row( screen , NULL , event->y) ;
 
@@ -3120,7 +3120,7 @@ report_mouse_tracking(
 			convert_x_to_char_index_with_shape( screen , line , &x_rest , event->x) ,
 			0) ;
 
-		if( screen->term->vertical_mode & VERT_RTL)
+		if( ml_term_get_vertical_mode( screen->term) & VERT_RTL)
 		{
 			row = ml_term_get_cols( screen->term) - row - 1 ;
 		}
@@ -3152,10 +3152,8 @@ report_mouse_tracking(
 		if( ml_line_is_rtl( line))
 		{
 			/* XXX */
-		#ifdef  USE_FRIBIDI
-			char_index = ml_bidi_convert_visual_char_index_to_logical( line ,
+			char_index = ml_line_convert_visual_char_index_to_logical( line ,
 						char_index) ;
-		#endif
 		}
 
 		col = ml_convert_char_index_to_col( line , char_index , 0) ;
@@ -3221,7 +3219,7 @@ start_selection(
 	ml_line_t *  line ;
 
 	/* XXX */
-	if( screen->term->vertical_mode)
+	if( ml_term_get_vertical_mode( screen->term))
 	{
 		kik_msg_printf( "Not supported selection in vertical mode.\n") ;
 
@@ -3276,7 +3274,7 @@ selecting(
 	)
 {
 	/* XXX */
-	if( screen->term->vertical_mode)
+	if( ml_term_get_vertical_mode( screen->term))
 	{
 		kik_msg_printf( "Not supported selection in vertical mode.\n") ;
 
@@ -3587,7 +3585,7 @@ selecting_line(
 
 	if( ml_line_is_rtl( ml_term_get_line( screen->term , end_row)))
 	{
-		end_char_index = end_char_index -
+		end_char_index -=
 			ml_line_end_char_index( ml_term_get_line( screen->term , end_row)) ;
 	}
 
@@ -4141,7 +4139,7 @@ change_font_present(
 	x_font_present_t  font_present
 	)
 {
-	if( screen->term->vertical_mode)
+	if( ml_term_get_vertical_mode( screen->term))
 	{
 		font_present &= ~FONT_VAR_WIDTH ;
 	}
@@ -4151,6 +4149,12 @@ change_font_present(
 		return ;
 	}
 
+	/* XXX This function is called from x_screen_new via setup_encoding_aux. */
+	if( ! screen->window.my_window)
+	{
+		return ;
+	}
+	
 	x_window_set_use_xft( &screen->window ,
 		(x_get_type_engine( screen->font_man) == TYPE_XFT)) ;
 	x_window_set_use_cairo( &screen->window ,
@@ -4182,6 +4186,56 @@ usascii_font_cs_changed(
 #endif
 }
 
+/*
+ * ISCII needs variable column width and character combining.
+ * BiDi needs character combining.
+ */
+static void
+setup_encoding_aux(
+	x_screen_t *  screen
+	)
+{
+	ml_char_encoding_t  encoding ;
+
+	encoding = ml_term_get_encoding( screen->term) ;
+
+	if( IS_ISCII_ENCODING( encoding))
+	{
+		goto  var_col_width ;
+	}
+	else if( encoding == ML_UTF8)
+	{
+		if( ! ml_term_is_using_bidi( screen->term))
+		{
+			if( ml_term_is_using_ind( screen->term))
+			{
+				goto  var_col_width ;
+			}
+		}
+		else
+		{
+			goto  char_comb ;
+		}
+	}
+
+	return ;
+
+var_col_width:
+	if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
+	{
+		kik_msg_printf( "Set use_variable_column_widht=true forcibly.\n") ;
+		change_font_present( screen , x_get_type_engine( screen->font_man) ,
+			x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
+	}
+
+char_comb:
+	if( ! ml_term_is_using_char_combining( screen->term))
+	{
+		kik_msg_printf( "Set use_combining=true forcibly.\n") ;
+		ml_term_set_use_char_combining( screen->term , 1) ;
+	}
+}
+
 static void
 change_char_encoding(
 	x_screen_t *  screen ,
@@ -4195,27 +4249,14 @@ change_char_encoding(
 		return ;
 	}
 
-	if( IS_ISCII_ENCODING( encoding))
-	{
-		/*
-		 * ISCII needs variable column width and character combining.
-		 */
-
-		if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
-		{
-			change_font_present( screen , x_get_type_engine( screen->font_man) ,
-				x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
-		}
-
-		ml_term_set_char_combining_flag( screen->term , 1) ;
-	}
-
 	usascii_font_cs_changed( screen , encoding) ;
 
 	if( ! ml_term_change_encoding( screen->term , encoding))
 	{
 		kik_error_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
 	}
+
+	setup_encoding_aux( screen) ;
 
 	if( update_special_visual( screen))
 	{
@@ -4326,14 +4367,14 @@ change_vertical_mode(
 	ml_vertical_mode_t  vertical_mode
 	)
 {
-	if( screen->term->vertical_mode == vertical_mode)
+	if( ml_term_get_vertical_mode( screen->term) == vertical_mode)
 	{
 		/* not changed */
 
 		return ;
 	}
 
-	screen->term->vertical_mode = vertical_mode ;
+	ml_term_set_vertical_mode( screen->term , vertical_mode) ;
 
 	if( update_special_visual( screen))
 	{
@@ -4363,7 +4404,7 @@ change_char_combining_flag(
 	int  flag
 	)
 {
-	ml_term_set_char_combining_flag( screen->term , flag) ;
+	ml_term_set_use_char_combining( screen->term , flag) ;
 }
 
 static void
@@ -4372,14 +4413,14 @@ change_dynamic_comb_flag(
 	int  use_dynamic_comb
 	)
 {
-	if( screen->term->use_dynamic_comb == use_dynamic_comb)
+	if( ml_term_is_using_dynamic_comb( screen->term) == use_dynamic_comb)
 	{
 		/* not changed */
 
 		return ;
 	}
 
-	screen->term->use_dynamic_comb = use_dynamic_comb ;
+	ml_term_set_use_dynamic_comb( screen->term , use_dynamic_comb) ;
 
 	if( update_special_visual( screen))
 	{
@@ -4613,8 +4654,8 @@ change_multi_col_char_flag(
 	int  flag
 	)
 {
-	x_set_multi_col_char_flag( screen->font_man , flag) ;
-	ml_term_set_multi_col_char_flag( screen->term , flag) ;
+	x_set_use_multi_col_char( screen->font_man , flag) ;
+	ml_term_set_use_multi_col_char( screen->term , flag) ;
 }
 
 static void
@@ -4626,8 +4667,8 @@ change_bidi_flag(
 {
 	int  do_update ;
 	
-	if( screen->term->use_bidi == use_bidi &&
-	    screen->term->bidi_mode == bidi_mode)
+	if( ml_term_is_using_bidi( screen->term) == use_bidi &&
+	    ml_term_get_bidi_mode( screen->term) == bidi_mode)
 	{
 		/* not changed */
 
@@ -4638,11 +4679,14 @@ change_bidi_flag(
 	 * If use_bidi flag is false and not changed, it is not necessary to update even if
 	 * bidi_mode flag is changed.
 	 */
-	do_update = ( use_bidi != screen->term->use_bidi) || screen->term->use_bidi ;
-	
-	screen->term->use_bidi = use_bidi ;
-	screen->term->bidi_mode = bidi_mode ;
+	do_update = ( use_bidi != ml_term_is_using_bidi( screen->term)) ||
+			ml_term_is_using_bidi( screen->term) ;
 
+	ml_term_set_use_bidi( screen->term , use_bidi) ;
+	ml_term_set_bidi_mode( screen->term , bidi_mode) ;
+
+	setup_encoding_aux( screen) ;
+	
 	if( do_update && update_special_visual( screen))
 	{
 		ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -4655,14 +4699,16 @@ change_ind_flag(
 	int  use_ind
 	)
 {
-	if( screen->term->use_ind == use_ind)
+	if( ml_term_is_using_ind( screen->term) == use_ind)
 	{
 		/* not changed */
 
 		return ;
 	}
 
-	screen->term->use_ind = use_ind ;
+	ml_term_set_use_ind( screen->term , use_ind) ;
+
+	setup_encoding_aux( screen) ;
 
 	if( update_special_visual( screen))
 	{
@@ -5185,7 +5231,7 @@ get_config(
 	}
 	else if( strcmp( key , "vertical_mode") == 0)
 	{
-		value = ml_get_vertical_mode_name( term->vertical_mode) ;
+		value = ml_get_vertical_mode_name( ml_term_get_vertical_mode( term)) ;
 	}
 	else if( strcmp( key , "scrollbar_mode") == 0)
 	{
@@ -5213,7 +5259,7 @@ get_config(
 	}
 	else if( strcmp( key , "use_dynamic_comb") == 0)
 	{
-		if( term->use_dynamic_comb)
+		if( ml_term_is_using_dynamic_comb( term))
 		{
 			value = "true" ;
 		}
@@ -5328,7 +5374,7 @@ get_config(
 	}
 	else if( strcmp( key , "use_bidi") == 0)
 	{
-		if( term->use_bidi)
+		if( ml_term_is_using_bidi( term))
 		{
 			value = "true" ;
 		}
@@ -5339,7 +5385,7 @@ get_config(
 	}
 	else if( strcmp( key , "use_ind") == 0)
 	{
-		if( term->use_ind)
+		if( ml_term_is_using_ind( term))
 		{
 			value = "true" ;
 		}
@@ -5350,7 +5396,7 @@ get_config(
 	}
 	else if( strcmp( key , "bidi_mode") == 0)
 	{
-		value = ml_get_bidi_mode_name( screen->term->bidi_mode) ;
+		value = ml_get_bidi_mode_name( ml_term_get_bidi_mode( screen->term)) ;
 	}
 	else if( strcmp( key , "input_method") == 0)
 	{
@@ -5438,7 +5484,7 @@ get_config(
 	}
 	else if( strcmp( key , "logging_vt_seq") == 0)
 	{
-		if( term->parser->logging_vt_seq)
+		if( ml_term_is_logging_vt_seq( term))
 		{
 			value = "true" ;
 		}
@@ -5979,7 +6025,7 @@ get_im_spot(
 		return  0 ;
 	}
 
-	if( ! screen->term->vertical_mode)
+	if( ! ml_term_get_vertical_mode( screen->term))
 	{
 		int  row ;
 
@@ -6003,7 +6049,7 @@ get_im_spot(
 	}
 
 
-	if( ! screen->term->vertical_mode)
+	if( ! ml_term_get_vertical_mode( screen->term))
 	{
 		for( i = 0 ; i < segment_offset ; i++)
 		{
@@ -6036,7 +6082,7 @@ get_im_spot(
 		u_int  height ;
 		int  sign = 1 ;
 
-		if( screen->term->vertical_mode == VERT_RTL)
+		if( ml_term_get_vertical_mode( screen->term) == VERT_RTL)
 		{
 			sign = -1;
 		}
@@ -6087,12 +6133,14 @@ is_vertical(
 	void *  p
 	)
 {
-	if( ( (x_screen_t *) p)->term->vertical_mode)
+	if( ml_term_get_vertical_mode( ( (x_screen_t *) p)->term))
 	{
 		return  1 ;
 	}
-
-	return  0 ;
+	else
+	{
+		return  0 ;
+	}
 }
 
 static int
@@ -6121,7 +6169,7 @@ draw_preedit_str(
 
 	if( screen->is_preediting)
 	{
-		if( ! screen->term->vertical_mode)
+		if( ! ml_term_get_vertical_mode( screen->term))
 		{
 			for( row = screen->im_preedit_beg_row ; row <= screen->im_preedit_end_row ; row++)
 			{
@@ -6157,7 +6205,7 @@ draw_preedit_str(
 		return  0 ;
 	}
 
-	if( ! screen->term->vertical_mode)
+	if( ! ml_term_get_vertical_mode( screen->term))
 	{
 		int  row ;
 
@@ -6170,7 +6218,7 @@ draw_preedit_str(
 
 		beg_row = row ;
 	}
-	else if( screen->term->vertical_mode == VERT_RTL)
+	else if( ml_term_get_vertical_mode( screen->term) == VERT_RTL)
 	{
 		u_int  ncols ;
 
@@ -6208,7 +6256,7 @@ draw_preedit_str(
 
 		total_width += width ;
 
-		if( ! screen->term->vertical_mode)
+		if( ! ml_term_get_vertical_mode( screen->term))
 		{
 			if( x + total_width > screen->window.width)
 			{
@@ -6218,7 +6266,7 @@ draw_preedit_str(
 				end_row++ ;
 			}
 		}
-		else if( screen->term->vertical_mode == VERT_RTL)
+		else if( ml_term_get_vertical_mode( screen->term) == VERT_RTL)
 		{
 			need_wraparound = 1 ;
 			_x = x ;
@@ -6251,7 +6299,7 @@ draw_preedit_str(
 
 		if( i == cursor_offset - 1)
 		{
-			if ( ! screen->term->vertical_mode)
+			if ( ! ml_term_get_vertical_mode( screen->term))
 			{
 				preedit_cursor_x = x + total_width ;
 				preedit_cursor_y = y ;
@@ -6282,7 +6330,7 @@ draw_preedit_str(
 			total_width = width ;
 		}
 
-		if( screen->term->vertical_mode)
+		if( ml_term_get_vertical_mode( screen->term))
 		{
 			continue ;
 		}
@@ -6305,7 +6353,7 @@ draw_preedit_str(
 
 	if( cursor_offset == num_of_chars)
 	{
-		if ( ! screen->term->vertical_mode)
+		if ( ! ml_term_get_vertical_mode( screen->term))
 		{
 			preedit_cursor_x = x + total_width;
 			preedit_cursor_y = y ;
@@ -6319,7 +6367,7 @@ draw_preedit_str(
 
 	if( cursor_offset >= 0)
 	{
-		if( ! screen->term->vertical_mode)
+		if( ! ml_term_get_vertical_mode( screen->term))
 		{
 			x_window_draw_line( &screen->window,
 				preedit_cursor_x + 1 ,
@@ -7043,23 +7091,8 @@ x_screen_new(
 	{
 		ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
 			&screen->screen_listener , &screen->pty_listener) ;
-	
-		if( IS_ISCII_ENCODING( ml_term_get_encoding( screen->term)))
-		{
-			/*
-			 * ISCII needs variable column width and character combining.
-			 * (similar processing is done in change_char_encoding)
-			 */
 
-			if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
-			{
-				x_change_font_present( screen->font_man ,
-					x_get_type_engine( screen->font_man) ,
-					x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
-			}
-
-			ml_term_set_char_combining_flag( screen->term , 1) ;
-		}
+		setup_encoding_aux( screen) ;
 		
 		update_special_visual( screen) ;
 	}
@@ -7461,22 +7494,7 @@ x_screen_attach(
 	ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
 		&screen->screen_listener , &screen->pty_listener) ;
 
-	if( IS_ISCII_ENCODING( ml_term_get_encoding( screen->term)))
-	{
-		/*
-		 * ISCII needs variable column width and character combining.
-		 * (similar processing is done in change_char_encoding)
-		 */
-
-		if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
-		{
-			change_font_present( screen ,
-				x_get_type_engine( screen->font_man) ,
-				x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
-		}
-
-		ml_term_set_char_combining_flag( screen->term , 1) ;
-	}
+	setup_encoding_aux( screen) ;
 
 	if( ! screen->window.my_window)
 	{
@@ -8219,12 +8237,13 @@ x_screen_set_config(
 
 		if( ( flag = true_or_false( value)) != -1)
 		{
-			change_bidi_flag( screen , flag , screen->term->bidi_mode) ;
+			change_bidi_flag( screen , flag , ml_term_get_bidi_mode( screen->term)) ;
 		}
 	}
 	else if( strcmp( key , "bidi_mode") == 0)
 	{
-		change_bidi_flag( screen , screen->term->use_bidi , ml_get_bidi_mode( value)) ;
+		change_bidi_flag( screen , ml_term_is_using_bidi( screen->term) ,
+			ml_get_bidi_mode( value)) ;
 	}
 	else if( strcmp( key , "use_ind") == 0)
 	{

@@ -12,7 +12,6 @@
 
 #include  "ml_edit_util.h"
 #include  "ml_edit_scroll.h"
-#include  "ml_bidi.h"
 
 
 #if  0
@@ -527,7 +526,7 @@ ml_edit_overwrite_chars(
 				break ;
 			}
 
-			ml_line_set_continued_to_next( line) ;
+			ml_line_set_continued_to_next( line , 1) ;
 
 			edit->cursor.char_index = edit->cursor.col = 0 ;
 			if( edit->cursor.row + 1 > edit->scroll_region_end)
@@ -592,7 +591,7 @@ ml_edit_overwrite_chars(
 
 	ml_line_overwrite( line , edit->cursor.char_index , &buffer[beg] ,
 		count - beg , cols) ;
-	ml_line_unset_continued_to_next( line) ;
+	ml_line_set_continued_to_next( line , 0) ;
 
 	ml_cursor_moveh_by_char( &edit->cursor , new_char_index) ;
 
@@ -1449,27 +1448,18 @@ ml_edit_set_absolute_origin(
 	ml_edit_t *  edit
 	)
 {
-	edit->is_relative_origin = 0 ;
+	edit->is_relative_origin = 1 ;
 
 	return  1 ;
 }
 
 int
 ml_edit_set_auto_wrap(
-	ml_edit_t *  edit
+	ml_edit_t *  edit ,
+	int  flag
 	)
 {
-	edit->is_auto_wrap = 1 ;
-
-	return  1 ;
-}
-
-int
-ml_edit_unset_auto_wrap(
-	ml_edit_t *  edit
-	)
-{
-	edit->is_auto_wrap = 0 ;
+	edit->is_auto_wrap = flag ;
 
 	return  1 ;
 }

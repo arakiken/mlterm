@@ -15,8 +15,8 @@
 
 #else
 
-mkf_map_func( "mkf_8bits", mkf_map_georgian_ps_to_ucs4, 16)
+mkf_map_func( 8bits, mkf_map_georgian_ps_to_ucs4, 16)
 
-mkf_map_func( "mkf_8bits", mkf_map_ucs4_to_georgian_ps, 32)
+mkf_map_func( 8bits, mkf_map_ucs4_to_georgian_ps, 32)
 
 #endif

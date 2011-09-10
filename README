@@ -47,6 +47,10 @@ Options for configure
   --enable-ind
     Use libind for Indic rendering
 
+  --disable-dl-ctl
+    Disable dynamic loading of BiDi and Indic rendering modules,
+    which are statically linked to mlterm.
+  
   --enable-ssh2
     Use libssh2 to connect ssh2 server.
     (Usage: mlterm(mlclient) --serv ssh://user@xxx.xxx.xxx)

@@ -52,6 +52,7 @@ int  kik_mem_free_all(void) ;
 
 #undef  alloca
 #ifdef  KIK_DEBUG
+#include  <string.h>	/* memset */
 #define  alloca(size)  memset( kik_alloca(size) , 0xff , size)
 #else
 #define  alloca(size)  kik_alloca(size)
@@ -71,6 +72,7 @@ int  kik_alloca_garbage_collect(void) ;
 
 #ifdef  KIK_DEBUG
 #undef  alloca
+#include  <string.h>	/* memset */
 #define  alloca(size)  memset( alloca(size) , 0xff , size)
 #endif
 

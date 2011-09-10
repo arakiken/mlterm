@@ -5,9 +5,10 @@
 #include  "ml_logical_visual.h"
 
 #include  <kiklib/kik_mem.h>		/* realloc/free */
-#include  <kiklib/kik_util.h>		/* K_MIN */
 #include  <kiklib/kik_debug.h>		/* kik_msg_printf */
 #include  <kiklib/kik_str.h>            /* strcmp */
+#include  "ml_ctl_loader.h"
+#include  "ml_shape.h"			/* ml_is_arabic_combining */
 
 #define  CURSOR_LINE(logvis)  (ml_model_get_line((logvis)->model,(logvis)->cursor->row))
 
@@ -33,19 +34,6 @@ typedef struct  container_logical_visual
 
 } container_logical_visual_t ;
 
-typedef struct  bidi_logical_visual
-{
-	ml_logical_visual_t  logvis ;
-	
-	int  cursor_logical_char_index ;
-	int  cursor_logical_col ;
-	int  ltr_rtl_meet_pos ;
-	ml_bidi_mode_t  bidi_mode ;
-
-	int8_t  adhoc_right_align ;
-
-} bidi_logical_visual_t ;
-
 typedef struct  comb_logical_visual
 {
 	ml_logical_visual_t  logvis ;
@@ -54,20 +42,6 @@ typedef struct  comb_logical_visual
 	int  cursor_logical_col ;	
 
 } comb_logical_visual_t ;
-
-typedef struct  iscii_logical_visual
-{
-	ml_logical_visual_t  logvis ;
-	
-	ml_line_t *  logical_lines ;
-	
-	u_int  logical_num_of_cols ;
-	u_int  logical_num_of_rows ;
-
-	int  cursor_logical_char_index ;
-	int  cursor_logical_col ;
-
-} iscii_logical_visual_t ;
 
 typedef struct  vert_logical_visual
 {
@@ -281,266 +255,6 @@ container_visual_line(
 }
 
 
-#ifdef  USE_FRIBIDI
-
-/*
- * Bidi logical <=> visual methods
- */
- 
-static int
-bidi_delete(
-	ml_logical_visual_t *  logvis
-	)
-{
-	int  row ;
-
-	if( logvis->model)
-	{
-		for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
-		{
-			ml_line_unuse_bidi( &logvis->model->lines[row]) ;
-		}
-
-		free( logvis) ;
-	}
-	
-	return  1 ;
-}
-
-static int
-bidi_init(
-	ml_logical_visual_t *  logvis ,
-	ml_model_t *  model ,
-	ml_cursor_t *  cursor
-	)
-{
-	int  row ;
-
-	if( logvis->model)
-	{
-		for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
-		{
-			ml_line_unuse_bidi( &logvis->model->lines[row]) ;
-		}
-	}
-
-	logvis->model = model ;
-	logvis->cursor = cursor ;
-	
-	return  1 ;
-}
-
-static u_int
-bidi_logical_cols(
-	ml_logical_visual_t *  logvis
-	)
-{
-	return  logvis->model->num_of_cols ;
-}
-
-static u_int
-bidi_logical_rows(
-	ml_logical_visual_t *  logvis
-	)
-{
-	return  logvis->model->num_of_rows ;
-}
-
-static int
-bidi_render(
-	ml_logical_visual_t *  logvis
-	)
-{
-	ml_line_t *  line ;
-	int  row ;
-
-	if( logvis->is_visual)
-	{
-		return  1 ;
-	}
-
-	/*
-	 * all lines(not only filled lines) should be rendered.
-	 */
-	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
-	{
-		int  need_render ;
-
-		line = ml_model_get_line( logvis->model , row) ;
-
-		need_render = 0 ;
-		
-		if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align &&
-			line->num_of_filled_chars > 0)
-		{
-			ml_line_fill( line , ml_sp_ch() , line->num_of_filled_chars ,
-				logvis->model->num_of_cols - ml_line_get_num_of_filled_cols( line)) ;
-			need_render = 1 ;
-		}
-
-		if( ! ml_line_is_using_bidi( line))
-		{
-			ml_line_use_bidi( line) ;
-
-			need_render = 1 ;
-		}
-
-		if( ml_line_is_modified( line) || need_render)
-		{
-			if( ! ml_line_bidi_render( line ,
-						((bidi_logical_visual_t*)logvis)->bidi_mode))
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " ml_line_bidi_render failed.\n") ;
-			#endif
-			}
-		}
-	}
-
-	return  1 ;
-}
-
-static int
-bidi_visual(
-	ml_logical_visual_t *  logvis
-	)
-{
-	int  row ;
-
-	if( logvis->is_visual)
-	{
-		return  0 ;
-	}
-
-#ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d (ltrmeet)%d] ->" ,
-		logvis->cursor->char_index , logvis->cursor->col , logvis->cursor->row ,
-		((bidi_logical_visual_t*)logvis)->ltr_rtl_meet_pos) ;
-#endif
-
-	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
-	{
-		if( ! ml_line_bidi_visual( ml_model_get_line( logvis->model , row)))
-		{
-		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " visualize row %d failed.\n" , row) ;
-		#endif
-		}
-	}
-
-	((bidi_logical_visual_t*)logvis)->cursor_logical_char_index = logvis->cursor->char_index ;
-	((bidi_logical_visual_t*)logvis)->cursor_logical_col = logvis->cursor->col ;
-
-	logvis->cursor->char_index = ml_bidi_convert_logical_char_index_to_visual(
-					CURSOR_LINE(logvis) , logvis->cursor->char_index ,
-					&((bidi_logical_visual_t*)logvis)->ltr_rtl_meet_pos) ;
-	/*
-	 * XXX
-	 * col_in_char should not be plused to col, because the character pointed by
-	 * ml_bidi_convert_logical_char_index_to_visual() is not the same as the one
-	 * in logical order.
-	 */
-	logvis->cursor->col = ml_convert_char_index_to_col( CURSOR_LINE(logvis) ,
-					logvis->cursor->char_index , 0) + logvis->cursor->col_in_char ;
-
-#ifdef  CURSOR_DEBUG
-	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d (ltrmeet)%d]\n" ,
-		logvis->cursor->char_index , logvis->cursor->col , logvis->cursor->row ,
-		((bidi_logical_visual_t*)logvis)->ltr_rtl_meet_pos) ;
-#endif
-
-	logvis->is_visual = 1 ;
-
-	return  1 ;
-}
-
-static int
-bidi_logical(
-	ml_logical_visual_t *  logvis
-	)
-{
-	int  row ;
-
-	if( ! logvis->is_visual)
-	{
-		return  0 ;
-	}
-	
-#ifdef  CURSOR_DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [cursor(index)%d (col)%d (row)%d] ->" ,
-		logvis->cursor->char_index , logvis->cursor->col , logvis->cursor->row) ;
-#endif
-
-	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
-	{
-		if( ! ml_line_bidi_logical( ml_model_get_line( logvis->model , row)))
-		{
-		#ifdef  __DEBUG
-			kik_debug_printf( KIK_DEBUG_TAG " visualize row %d failed.\n" , row) ;
-		#endif
-		}
-	}
-
-	logvis->cursor->char_index = ((bidi_logical_visual_t*)logvis)->cursor_logical_char_index ;
-	logvis->cursor->col = ((bidi_logical_visual_t*)logvis)->cursor_logical_col ;
-
-#ifdef  CURSOR_DEBUG
-	kik_msg_printf( "-> [cursor(index)%d (col)%d (row)%d]\n" ,
-		logvis->cursor->char_index , logvis->cursor->col , logvis->cursor->row) ;
-#endif
-	
-	logvis->is_visual = 0 ;
-	
-	return  1 ;
-}
-
-static int
-bidi_visual_line(
-	ml_logical_visual_t *  logvis ,
-	ml_line_t *  line
-	)
-{
-	int  need_render ;
-
-	need_render = 0 ;
-	
-	if( ((bidi_logical_visual_t*)logvis)->adhoc_right_align && line->num_of_filled_chars > 0)
-	{
-		ml_line_fill( line , ml_sp_ch() , line->num_of_filled_chars ,
-			logvis->model->num_of_cols - ml_line_get_num_of_filled_cols( line)) ;
-		need_render = 1 ;
-	}
-
-	if( ! ml_line_is_using_bidi( line))
-	{
-		ml_line_use_bidi( line) ;
-
-		need_render = 1 ;
-	}
-
-	if( ml_line_is_modified( line) || need_render)
-	{
-		if( ! ml_line_bidi_render( line , ((bidi_logical_visual_t*)logvis)->bidi_mode))
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_line_bidi_render failed.\n") ;
-		#endif
-		}
-	}
-	
-	if( ! ml_line_bidi_visual( line))
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_line_bidi_visual() failed.\n") ;
-	#endif
-	}
-
-	return  1 ;
-}
-
-#endif
-
-
 /*
  * dynamic combining
  */
@@ -650,7 +364,7 @@ comb_visual(
 						end -- ;
 					}
 
-					ml_line_updated( line) ;
+					ml_line_set_updated( line) ;
 					ml_line_set_modified( line , beg , end) ;
 				}
 			#endif
@@ -762,7 +476,7 @@ comb_logical(
 							end ++ ;
 						}
 
-						ml_line_updated( line) ;
+						ml_line_set_updated( line) ;
 						ml_line_set_modified( line , beg , end) ;
 					}
 				#endif
@@ -784,8 +498,8 @@ comb_logical(
 	
 	ml_str_final( buf , logvis->model->num_of_cols) ;
 
-	logvis->cursor->char_index = ((bidi_logical_visual_t*)logvis)->cursor_logical_char_index ;
-	logvis->cursor->col = ((bidi_logical_visual_t*)logvis)->cursor_logical_col ;
+	logvis->cursor->char_index = ((comb_logical_visual_t*)logvis)->cursor_logical_char_index ;
+	logvis->cursor->col = ((comb_logical_visual_t*)logvis)->cursor_logical_col ;
 	
 	logvis->is_visual = 0 ;
 
@@ -824,293 +538,6 @@ comb_visual_line(
 
 	return  1 ;
 }
-
-
-#ifdef  USE_IND
-
-/*
- * ISCII logical <=> visual methods
- */
-
-static int
-iscii_delete_cached_lines(
-	iscii_logical_visual_t *  iscii_logvis
-	)
-{
-	int  row ;
-
-	for( row = 0 ; row < iscii_logvis->logical_num_of_rows ; row ++)
-	{
-		ml_line_final( &iscii_logvis->logical_lines[row]) ;
-	}
-
-	free( iscii_logvis->logical_lines) ;
-	iscii_logvis->logical_lines = NULL ;
-	iscii_logvis->logical_num_of_rows = 0 ;
-	iscii_logvis->logical_num_of_cols = 0 ;
-
-	return  1 ;
-}
-
-static int
-iscii_delete(
-	ml_logical_visual_t *  logvis
-	)
-{
-	iscii_delete_cached_lines( (iscii_logical_visual_t*) logvis) ;
-	
-	free( logvis) ;
-	
-	return  1 ;
-}
-
-static int
-iscii_init(
-	ml_logical_visual_t *  logvis ,
-	ml_model_t *  model ,
-	ml_cursor_t *  cursor
-	)
-{
-	logvis->model = model ;
-	logvis->cursor = cursor ;
-
-	return  iscii_delete_cached_lines( (iscii_logical_visual_t*) logvis) ;
-}
-
-static u_int
-iscii_logical_cols(
-	ml_logical_visual_t *  logvis
-	)
-{
-	return  logvis->model->num_of_cols ;
-}
-
-static u_int
-iscii_logical_rows(
-	ml_logical_visual_t *  logvis
-	)
-{
-	return  logvis->model->num_of_rows ;
-}
-
-static int
-iscii_render(
-	ml_logical_visual_t *  logvis
-	)
-{
-	ml_line_t *  line ;
-	int  row ;
-
-	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
-	{
-		int  need_render ;
-
-		line = ml_model_get_line( logvis->model , row) ;
-
-		if( ml_line_is_empty( line))
-		{
-			continue ;
-		}
-
-		need_render = 0 ;
-
-		if( ! ml_line_is_using_iscii( line))
-		{
-			ml_line_use_iscii( line) ;
-
-			need_render = 1 ;
-		}
-
-		if( ml_line_is_modified( line) || need_render)
-		{
-			if( ! ml_line_iscii_render( line))
-			{
-			#ifdef  DEBUG
-				kik_warn_printf( KIK_DEBUG_TAG " ml_line_iscii_render failed.\n") ;
-			#endif
-			}
-		}
-	}
-
-	return  1 ;
-}
-
-static int
-copy_color_reversed_flag(
-	ml_line_t *  dst ,
-	ml_line_t *  src
-	)
-{
-	int  col ;
-	u_int  copy_len ;
-	
-	copy_len = K_MIN(src->num_of_filled_chars,dst->num_of_filled_chars) ;
-
-	for( col = 0 ; col < copy_len ; col ++)
-	{
-		ml_char_copy_color_reversed_flag( dst->chars + col , src->chars + col) ;
-	}
-
-	return  1 ;
-}
-
-static int
-iscii_visual(
-	ml_logical_visual_t *  logvis
-	)
-{
-	iscii_logical_visual_t *  iscii_logvis ;
-	ml_line_t *  line ;
-	int  row ;
-
-	if( logvis->is_visual)
-	{
-		return  0 ;
-	}
-
-	iscii_logvis = (iscii_logical_visual_t*) logvis ;
-
-	if( iscii_logvis->logical_num_of_rows != logvis->model->num_of_rows ||
-		iscii_logvis->logical_num_of_cols != logvis->model->num_of_cols)
-	{
-		/* ml_model_t resized */
-		
-		void *  p ;
-
-		if( iscii_logvis->logical_lines)
-		{
-			for( row = 0 ; row < iscii_logvis->logical_num_of_rows ; row ++)
-			{
-				ml_line_final( &iscii_logvis->logical_lines[row]) ;
-			}
-		}
-
-		if( iscii_logvis->logical_num_of_rows != logvis->model->num_of_rows)
-		{
-			if( ( p = realloc( iscii_logvis->logical_lines ,
-					sizeof( ml_line_t) * logvis->model->num_of_rows)) == NULL)
-			{
-				free( iscii_logvis->logical_lines) ;
-				iscii_logvis->logical_lines = NULL ;
-				
-				return  0 ;
-			}
-
-			iscii_logvis->logical_lines = p ;
-			
-			iscii_logvis->logical_num_of_rows = logvis->model->num_of_rows ;
-		}
-		
-		for( row = 0 ; row < iscii_logvis->logical_num_of_rows ; row ++)
-		{
-			ml_line_init( &iscii_logvis->logical_lines[row] ,
-					logvis->model->num_of_cols) ;
-		}
-
-		iscii_logvis->logical_num_of_cols = logvis->model->num_of_cols ;
-	}
-
-	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
-	{
-		line = ml_model_get_line( logvis->model , row) ;
-
-		if( ml_line_is_empty( line))
-		{
-			continue ;
-		}
-
-		/* caching */
-		ml_line_copy_line( &iscii_logvis->logical_lines[row] , line) ;
-
-		ml_line_iscii_visual( line) ;
-
-		/* XXX Adhoc implementation for shrinking the amount of memory usage XXX */
-		copy_color_reversed_flag( line , &iscii_logvis->logical_lines[row]) ;
-	}
-
-	iscii_logvis->cursor_logical_char_index = logvis->cursor->char_index ;
-	iscii_logvis->cursor_logical_col = logvis->cursor->col ;
-	
-	logvis->cursor->char_index = ml_iscii_convert_logical_char_index_to_visual(
-					CURSOR_LINE(logvis) , logvis->cursor->char_index) ;
-	logvis->cursor->col = ml_convert_char_index_to_col( CURSOR_LINE(logvis) ,
-				logvis->cursor->char_index , 0) + logvis->cursor->col_in_char ;
-
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d]\n" ,
-		logvis->cursor->col , logvis->cursor->char_index) ;
-#endif
-
-	logvis->is_visual = 1 ;
-	
-	return  1 ;
-}
-
-static int
-iscii_logical(
-	ml_logical_visual_t *  logvis
-	)
-{
-	iscii_logical_visual_t *  iscii_logvis ;
-	int  row ;
-
-	if( ! logvis->is_visual)
-	{
-		return  0 ;
-	}
-
-	iscii_logvis = (iscii_logical_visual_t*) logvis ;
-
-	for( row = 0 ; row < logvis->model->num_of_rows ; row ++)
-	{
-		ml_line_t *  vis_line ;
-
-		vis_line = ml_model_get_line( logvis->model , row) ;
-
-		/*
-		 * XXX Adhoc implementation for shrinking the amount of memory usage XXX
-		 *
-		 * If logical lines are changed by vt sequences,
-		 * reversed flag will be all cleared.
-		 */
-		copy_color_reversed_flag( &iscii_logvis->logical_lines[row] , vis_line) ;
-
-		/*
-		 * If line is drawin in visual mode, cache lines are also updated.
-		 */
-		if( ! ml_line_is_modified( vis_line))
-		{
-			ml_line_updated( &iscii_logvis->logical_lines[row]) ;
-		}
-		
-		ml_line_copy_line( vis_line , &iscii_logvis->logical_lines[row]) ;
-	}
-
-	logvis->cursor->char_index = iscii_logvis->cursor_logical_char_index ;
-	logvis->cursor->col = iscii_logvis->cursor_logical_col ;
-	
-#ifdef  __DEBUG
-	kik_debug_printf( KIK_DEBUG_TAG " [col %d index %d]\n" ,
-		logvis->cursor->col , logvis->cursor->char_index) ;
-#endif
-
-	logvis->is_visual = 0 ;
-	
-	return  1 ;
-}
-
-static int
-iscii_visual_line(
-	ml_logical_visual_t *  logvis ,
-	ml_line_t *  line
-	)
-{
-	ml_line_iscii_visual( line) ;
-	
-	return  1 ;
-}
-
-#endif
 
 
 /*
@@ -1221,7 +648,7 @@ vert_visual_intern(
 		return  0 ;
 	}
 
-#ifdef  __DEBUG
+#ifdef  CURSOR_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " logical cursor [col %d index %d row %d]\n" ,
 		logvis->cursor->col , logvis->cursor->char_index , logvis->cursor->row) ;
 #endif
@@ -1346,7 +773,7 @@ vert_visual_intern(
 			vert_logvis->logical_model.num_of_rows - vert_logvis->cursor_logical_row - 1 ;
 	}
 
-#ifdef  __DEBUG
+#ifdef  CURSOR_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " visual cursor [col %d index %d row %d]\n" ,
 		logvis->cursor->col , logvis->cursor->char_index , logvis->cursor->row) ;
 #endif
@@ -1392,7 +819,7 @@ vert_logical(
 	logvis->cursor->col = vert_logvis->cursor_logical_col ;
 	logvis->cursor->row = vert_logvis->cursor_logical_row ;
 	
-#ifdef  __DEBUG
+#ifdef  CURSOR_DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " logical cursor [col %d index %d row %d]\n" ,
 		logvis->cursor->col , logvis->cursor->char_index , logvis->cursor->row) ;
 #endif
@@ -1474,45 +901,6 @@ ml_logvis_container_add(
 	return  1 ;
 }
 
-#ifdef  USE_FRIBIDI
-ml_logical_visual_t *
-ml_logvis_bidi_new(
-	int  adhoc_right_align ,
-	ml_bidi_mode_t   bidi_mode
-	)
-{
-	bidi_logical_visual_t *  bidi_logvis ;
-
-	if( ( bidi_logvis = malloc( sizeof( bidi_logical_visual_t))) == NULL)
-	{
-		return  NULL ;
-	}
-	
-	bidi_logvis->cursor_logical_char_index = 0 ;
-	bidi_logvis->cursor_logical_col = 0 ;
-	bidi_logvis->ltr_rtl_meet_pos = 0 ;
-	bidi_logvis->bidi_mode = bidi_mode ;
-	bidi_logvis->adhoc_right_align = adhoc_right_align ;
-
-	bidi_logvis->logvis.model = NULL ;
-	bidi_logvis->logvis.cursor = NULL ;
-	bidi_logvis->logvis.is_visual = 0 ;
-	
-	bidi_logvis->logvis.delete = bidi_delete ;
-	bidi_logvis->logvis.init = bidi_init ;
-	bidi_logvis->logvis.logical_cols = bidi_logical_cols ;
-	bidi_logvis->logvis.logical_rows = bidi_logical_rows ;
-	bidi_logvis->logvis.render = bidi_render ;
-	bidi_logvis->logvis.visual = bidi_visual ;
-	bidi_logvis->logvis.logical = bidi_logical ;
-	bidi_logvis->logvis.visual_line = bidi_visual_line ;
-
-	bidi_logvis->logvis.is_reversible = 1 ;
-
-	return  (ml_logical_visual_t*) bidi_logvis ;
-}
-#endif
-
 ml_logical_visual_t *
 ml_logvis_comb_new(void)
 {
@@ -1543,43 +931,6 @@ ml_logvis_comb_new(void)
 	
 	return  (ml_logical_visual_t*) comb_logvis ;
 }
-
-#ifdef  USE_IND
-ml_logical_visual_t *
-ml_logvis_iscii_new(void)
-{
-	iscii_logical_visual_t *  iscii_logvis ;
-
-	if( ( iscii_logvis = malloc( sizeof( iscii_logical_visual_t))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	iscii_logvis->logical_lines = NULL ;
-	iscii_logvis->cursor_logical_char_index = 0 ;
-	iscii_logvis->cursor_logical_col = 0 ;
-
-	iscii_logvis->logvis.model = NULL ;
-	iscii_logvis->logvis.cursor = NULL ;
-	iscii_logvis->logvis.is_visual = 0 ;
-	
-	iscii_logvis->logical_num_of_cols = 0 ;
-	iscii_logvis->logical_num_of_rows = 0 ;
-	
-	iscii_logvis->logvis.delete = iscii_delete ;
-	iscii_logvis->logvis.init = iscii_init ;
-	iscii_logvis->logvis.logical_cols = iscii_logical_cols ;
-	iscii_logvis->logvis.logical_rows = iscii_logical_rows ;
-	iscii_logvis->logvis.render = iscii_render ;
-	iscii_logvis->logvis.visual = iscii_visual ;
-	iscii_logvis->logvis.logical = iscii_logical ;
-	iscii_logvis->logvis.visual_line = iscii_visual_line ;
-
-	iscii_logvis->logvis.is_reversible = 0 ;
-
-	return  (ml_logical_visual_t*) iscii_logvis ;
-}
-#endif
 
 ml_logical_visual_t *
 ml_logvis_vert_new(
@@ -1671,3 +1022,35 @@ ml_get_vertical_mode_name(
 
 	return  vertical_mode_name_table[mode] ;
 }
+
+#ifndef  NO_DYNAMIC_LOAD_CTL
+
+ml_logical_visual_t *
+ml_logvis_bidi_new(
+	ml_bidi_mode_t   bidi_mode
+	)
+{
+	ml_logical_visual_t * (*func)( ml_bidi_mode_t) ;
+
+	if( ! (func = ml_load_ctl_bidi_func( ML_LOGVIS_BIDI_NEW)))
+	{
+		return  NULL ;
+	}
+
+	return  (*func)( bidi_mode) ;
+}
+
+ml_logical_visual_t *
+ml_logvis_iscii_new(void)
+{
+	ml_logical_visual_t * (*func)(void) ;
+
+	if( ! (func = ml_load_ctl_iscii_func( ML_LOGVIS_ISCII_NEW)))
+	{
+		return  NULL ;
+	}
+
+	return  (*func)() ;
+}
+
+#endif

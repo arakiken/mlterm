@@ -1,0 +1,71 @@
+top_builddir = ../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+libdir = @libdir@
+
+LIBDIR = $(DESTDIR)$(libdir)/mlterm
+
+VPATH = ${top_srcdir}/mlterm/libctl
+
+CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	-I/usr/local/include -DLIBEXECDIR=\"$(libexecdir)\" -DLIBDIR=\"$(libdir)\" \
+	@FRIBIDI_CFLAGS@ @IND_CFLAGS@
+
+LIBS = $(LIBS_LOCAL) @LKIK@ @LMKF@
+LIBS_BIDI = @FRIBIDI_LIBS@
+LIBS_ISCII = ../../libind/indian.lo ../../libind/keyboard.lo ../../libind/lex.split.lo
+
+BIDI_OBJ = ml_bidi.o ml_logical_visual_bidi.o ml_line_bidi.o ml_shape_bidi.o
+ISCII_OBJ = ml_iscii.o ml_logical_visual_iscii.o ml_line_iscii.o ml_shape_iscii.o
+
+CC = @CC@
+INSTALL = @INSTALL@
+LIBTOOL = @LIBTOOL@
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+all: @CTL_LIBS@
+
+libctl_bidi.la: $(BIDI_OBJ) ml_functbl_bidi.o
+	$(LIBTOOL_LINK) -o libctl_bidi.la $(BIDI_OBJ:.o=.lo) ml_functbl_bidi.lo \
+	-rpath $(libdir)/mlterm \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ @DEXPORT@ ../libmlterm_core.la \
+	$(LIBS) $(LIBS_BIDI)
+
+libctl_iscii.la: $(ISCII_OBJ) ml_functbl_iscii.o
+	$(LIBTOOL_LINK) -o libctl_iscii.la $(ISCII_OBJ:.o=.lo) ml_functbl_iscii.lo \
+	-rpath $(libdir)/mlterm \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ @DEXPORT@ ../libmlterm_core.la \
+	$(LIBS) $(LIBS_ISCII)
+
+libctl_bidi.a: $(BIDI_OBJ)
+	$(LIBTOOL_LINK) -o libctl_bidi.a $(BIDI_OBJ:.o=.lo)
+
+libctl_iscii.a: $(ISCII_OBJ)
+	$(LIBTOOL_LINK) -o libctl_iscii.a $(ISCII_OBJ:.o=.lo) $(LIBS_ISCII)
+
+.SUFFIXES: .o .c
+
+.c.o:
+	$(LIBTOOL_CC) -c $(CFLAGS) $<
+
+$(LIBDIR):
+	mkdir -p $(LIBDIR)
+
+install: $(LIBDIR)
+	if test "`echo @CTL_LIBS@|grep .la`" != "" ; then \
+		$(LIBTOOL_INSTALL) @CTL_LIBS@ $(LIBDIR) ; \
+	fi
+
+uninstall:
+	rm -f $(LIBDIR)/*ctl_bidi.* $(LIBDIR)/*ctl_iscii.*
+
+clean:
+	rm -rf $(BIDI_OBJ) $(BIDI_OBJ:.o=.lo) $(ISCII_OBJ) $(ISCII_OBJ:.o=.lo) ml_functbl_*.o \
+		ml_functbl_*.lo libctl_bidi.la libctl_iscii.la *.core .libs
+
+distclean: clean
+	rm -f Makefile

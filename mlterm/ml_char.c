@@ -9,9 +9,6 @@
 #include  <kiklib/kik_util.h>	/* K_MIN */
 
 
-/*
- * !! Notice !!
- */
 #define  CHARSET(attr)  (((attr) >> 7) & 0x1ff)
 #define  SIZE(attr) (CS_SIZE(CHARSET(attr)))
 

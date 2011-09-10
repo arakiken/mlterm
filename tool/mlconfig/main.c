@@ -57,7 +57,6 @@ end_application(
 }
 
 
-#if  defined(USE_FRIBIDI) && defined(USE_IND)
 static gint
 bidi_flag_checked(
 	GtkWidget *  widget ,
@@ -72,7 +71,6 @@ bidi_flag_checked(
 
 	return  1 ;
 }
-#endif
 
 /*
  *  ********  procedures when buttons are clicked  ********
@@ -593,9 +591,6 @@ show(void)
 
 	if (!(bidi_flag = mc_flag_config_widget_new(MC_FLAG_BIDI)))
 	    return 0;
-#ifndef USE_FRIBIDI
-	gtk_widget_set_sensitive(bidi_flag, 0);
-#endif
 	gtk_widget_show(bidi_flag);
 	gtk_box_pack_start(GTK_BOX(hbox), bidi_flag, TRUE, TRUE, 0);
 
@@ -604,15 +599,9 @@ show(void)
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
 
-#ifdef  USE_IND
-#ifdef  USE_FRIBIDI
 	gtk_signal_connect(GTK_OBJECT(bidi_flag), "toggled" ,
 		GTK_SIGNAL_FUNC(bidi_flag_checked), config_widget);
 	gtk_widget_set_sensitive(config_widget, ! GTK_TOGGLE_BUTTON(bidi_flag)->active);
-#endif
-#else
-	gtk_widget_set_sensitive(config_widget, 0);
-#endif
 
 	if(!(config_widget = mc_flag_config_widget_new(MC_FLAG_COMB)))
 	    return 0;

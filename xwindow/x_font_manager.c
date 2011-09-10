@@ -415,7 +415,7 @@ x_get_font_size(
 }
 
 int
-x_set_multi_col_char_flag(
+x_set_use_multi_col_char(
 	x_font_manager_t *  font_man ,
 	int  flag
 	)

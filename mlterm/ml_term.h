@@ -34,26 +34,21 @@ typedef struct ml_term
 	 * public(read/write)
 	 */
 	ml_shape_t *  shape ;
-	ml_vertical_mode_t  vertical_mode ;
-	ml_bidi_mode_t  bidi_mode ;
-	
+
 	/*
 	 * private
 	 */
+	ml_vertical_mode_t  vertical_mode ;
+	ml_bidi_mode_t  bidi_mode ;
+
 	char *  win_name ;
 	char *  icon_name ;
 	char *  icon_path ;
 
-	/*
-	 * public(read/write)
-	 */
 	int8_t  use_bidi ;
 	int8_t  use_ind ;
 	int8_t  use_dynamic_comb ;
 
-	/*
-	 * private
-	 */
 	int8_t  is_auto_encoding ;
 
 	int8_t  is_attached ;
@@ -97,14 +92,32 @@ int  ml_term_set_auto_encoding( ml_term_t *  term , int  is_auto_encoding) ;
 #define  ml_term_set_unicode_policy( term , policy) \
 		ml_vt100_parser_set_unicode_policy( (term)->parser , policy)
 
+int  ml_term_set_use_bidi( ml_term_t *  term , int  flag) ;
+
+#define  ml_term_is_using_bidi( term)  ((term)->use_bidi)
+
+int  ml_term_set_bidi_mode( ml_term_t *  term , ml_bidi_mode_t  mode) ;
+
+#define  ml_term_get_bidi_mode( term)  ((term)->bidi_mode)
+
+int  ml_term_set_use_ind( ml_term_t *  term , int  flag) ;
+
+#define  ml_term_is_using_ind( term)  ((term)->use_ind)
+
+int  ml_term_set_vertical_mode( ml_term_t *  term , ml_vertical_mode_t  mode) ;
+
+#define  ml_term_get_vertical_mode( term)  ((term)->vertical_mode)
+
+int  ml_term_set_use_dynamic_comb( ml_term_t *  term , int  flag) ;
+
+#define  ml_term_is_using_dynamic_comb( term)  ((term)->use_dynamic_comb)
+
 #define  ml_term_convert_to( term , dst , len , _parser) \
 		ml_vt100_parser_convert_to( (term)->parser , dst , len , _parser)
 
 #define  ml_term_init_encoding_parser( term)  ml_init_encoding_parser( (term)->parser)
 
 #define  ml_term_init_encoding_conv( term)  ml_init_encoding_conv( (term)->parser)
-
-int  ml_term_set_logging_vt_seq( ml_term_t *  term , int  flag) ;
 
 int  ml_term_get_pty_fd( ml_term_t *  term) ;
 
@@ -226,19 +239,28 @@ int  ml_term_enter_backscroll_mode( ml_term_t *  term) ;
 		ml_screen_get_word_region( (term)->screen , beg_char_index , beg_row , \
 			end_char_index , end_row , base_char_index , base_row)
 
-int  ml_term_set_char_combining_flag( ml_term_t *  term , int  flag) ;
-
-#define  ml_term_is_using_char_combining( term)  ((term)->parser->use_char_combining)
-
-int  ml_term_set_multi_col_char_flag( ml_term_t *  term , int  flag) ;
-
-#define  ml_term_is_using_multi_col_char( term)  ((term)->is_using_multi_col_char)
-
 #define  ml_term_set_col_size_of_width_a( term , col_size_a) \
 		ml_vt100_parser_set_col_size_of_width_a( (term)->parser , col_size_a)
 
 #define  ml_term_get_col_size_of_width_a( term) \
 		ml_vt100_parser_get_col_size_of_width_a( (term)->parser)
+
+#define  ml_term_set_use_char_combining( term , flag) \
+		ml_vt100_parser_set_use_char_combining( (term)->parser , flag)
+
+#define  ml_term_is_using_char_combining( term) \
+		ml_vt100_parser_is_using_char_combining((term)->parser)
+
+#define  ml_term_set_use_multi_col_char( term , flag) \
+		ml_vt100_parser_set_use_multi_col_char( (term)->parser , flag)
+
+#define  ml_term_is_using_multi_col_char( term) \
+		ml_vt100_parser_is_using_multi_col_char((term)->parser)
+
+#define  ml_term_is_logging_vt_seq( term)  ml_vt100_parser_is_logging_vt_seq( (term)->parser)
+
+#define  ml_term_set_logging_vt_seq( term , flag) \
+		ml_vt100_parser_set_logging_vt_seq( (term)->parser , flag)
 
 #define  ml_term_get_mouse_report_mode( term) \
 		ml_vt100_parser_get_mouse_report_mode((term)->parser)

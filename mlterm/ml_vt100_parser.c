@@ -862,12 +862,12 @@ config_protocol_set(
 
 			if( conf)
 			{
+				kik_conf_write_close( conf) ;
+
 				if( HAS_CONFIG_LISTENER(vt100_parser,saved))
 				{
 					(*vt100_parser->config_listener->saved)() ;
 				}
-
-				kik_conf_write_close( conf) ;
 			}
 		}
 
@@ -1162,7 +1162,7 @@ soft_reset(
 	 * "CSI ? 7 h" (DECAWM) (xterm compatible behavior)
 	 * ("CSI ? 7 l" according to VT220 reference manual)
 	 */
-	ml_screen_set_auto_wrap( vt100_parser->screen) ;
+	ml_screen_set_auto_wrap( vt100_parser->screen , 1) ;
 
 	/* "CSI r" (DECSTBM) */
 	ml_screen_set_scroll_region( vt100_parser->screen , -1 , -1) ;
@@ -1622,7 +1622,8 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 7 h" auto wrap */
 
-						ml_screen_set_auto_wrap( vt100_parser->screen) ;
+						ml_screen_set_auto_wrap(
+							vt100_parser->screen , 1) ;
 					}
 				#if  0
 					else if( ps[0] == 8)
@@ -1821,7 +1822,8 @@ parse_vt100_escape_sequence(
 					{
 						/* "CSI ? 7 l" auto wrap */
 
-						ml_screen_unset_auto_wrap( vt100_parser->screen) ;
+						ml_screen_set_auto_wrap(
+							vt100_parser->screen , 0) ;
 					}
 				#if  0
 					else if( ps[0] == 8)
@@ -3001,7 +3003,7 @@ parse_vt100_sequence(
 
 					ch = non_ucs ;
 				}
-			#ifdef  USE_IND
+			#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 				else
 				{
 					mkf_char_t  non_ucs ;
@@ -3528,5 +3530,38 @@ ml_vt100_parser_set_col_size_of_width_a(
 		vt100_parser->col_size_of_width_a = 1 ;
 	}
 
+	return  1 ;
+}
+
+int
+ml_vt100_parser_set_use_char_combining(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  flag
+	)
+{
+	vt100_parser->use_char_combining = flag ;
+
+	return  1 ;
+}
+
+int
+ml_vt100_parser_set_use_multi_col_char(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  flag
+	)
+{
+	vt100_parser->use_multi_col_char = flag ;
+
+	return  1 ;
+}
+
+int
+ml_vt100_parser_set_logging_vt_seq(
+	ml_vt100_parser_t *  vt100_parser ,
+	int  flag
+	)
+{
+	vt100_parser->logging_vt_seq = flag ;
+	
 	return  1 ;
 }

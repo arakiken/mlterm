@@ -392,7 +392,7 @@ reverse_or_restore_color(
 
 static u_int
 check_or_copy_region(
-	ml_screen_t *  screen ,
+	ml_screen_t *  screen ,		/* visual */
 	ml_char_t *  chars ,
 	u_int  num_of_chars ,
         int  beg_char_index ,		/* can be over size_except_spaces */
@@ -472,22 +472,18 @@ check_or_copy_region(
 
 		break ;
 	}
-		
+
 	if( row == end_row)
 	{
-		if( end_char_index < 0)
-		{
-			end_char_index = beg_regarding_rtl ;
-		}
-		else if( end_char_index >= size_except_spaces)
-		{
-			end_char_index = K_MAX(size_except_spaces,1) - 1 ;
-		}
-		
 		if( ml_line_is_rtl( line))
 		{
-			count = K_MIN(beg_char_index + 1,size_except_spaces) -
-					K_MAX(end_char_index,beg_regarding_rtl) ;
+			if( end_char_index < beg_regarding_rtl)
+			{
+				end_char_index = beg_regarding_rtl ;
+			}
+
+			count = K_MIN(beg_char_index + 1,size_except_spaces) - end_char_index ;
+
 			if( chars)
 			{
 				ml_line_copy_logical_str( line , chars , end_char_index , count) ;
@@ -495,8 +491,13 @@ check_or_copy_region(
 		}
 		else
 		{
-			count = K_MIN(end_char_index + 1,size_except_spaces) -
-					K_MAX(beg_char_index,beg_regarding_rtl) ;
+			if( end_char_index >= size_except_spaces)
+			{
+				end_char_index = K_MAX(size_except_spaces,1) - 1 ;
+			}
+
+			count = end_char_index + 1 - beg_char_index ;
+
 			if( chars)
 			{
 				ml_line_copy_logical_str( line , chars , beg_char_index , count) ;

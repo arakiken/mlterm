@@ -28,7 +28,7 @@ OBJ = vte.o marshal.o vtetypebuiltins.o reaper.o
 all: libvte.la
 
 libvte.la: $(OBJ)
-	$(LIBTOOL_LINK) -o libvte.la $(OBJ:.o=.lo) ../mlterm/*.lo \
+	$(LIBTOOL_LINK) -o libvte.la $(OBJ:.o=.lo) ../mlterm/*.lo @VTE_CTL_LIBS@ \
 	`echo ../xwindow/*.lo|sed 's/..\/xwindow\/main.lo//g' | \
 	sed 's/..\/xwindow\/x_term_manager.lo//g' | \
 	sed 's/..\/xwindow\/x_sb_screen.lo//g' | \
@@ -37,7 +37,7 @@ libvte.la: $(OBJ)
 	sed 's/..\/xwindow\/x_connect_dialog.lo//g' | \
 	sed 's/..\/xwindow\/x_simple_sb_view.lo//g'` \
 	$(top_builddir)/kiklib/src/libkik.la $(top_builddir)/mkf/lib/libmkf.la \
-	@FRIBIDI_LIBS@ @IND_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS_IM@ @VTE_LIBS@ \
+	@FRIBIDI_LIBS@ @IND_LIBS@ @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS_IM@ @VTE_LIBS@ @DEXPORT@ \
 	-rpath $(libdir) -version-info 9:0:0
 
 .c.o:

@@ -223,6 +223,20 @@ int  ml_vt100_parser_set_col_size_of_width_a( ml_vt100_parser_t *  vt100_parser 
 #define  ml_vt100_parser_get_col_size_of_width_a( vt100_parser) \
 		((vt100_parser)->col_size_of_width_a)
 
+int  ml_vt100_parser_set_use_char_combining( ml_vt100_parser_t *  vt100_parser , int  flag) ;
+
+#define  ml_vt100_parser_is_using_char_combining( vt100_parser) \
+		((vt100_parser)->use_char_combining)
+
+int  ml_vt100_parser_set_use_multi_col_char( ml_vt100_parser_t *  vt100_parser , int  flag) ;
+
+#define  ml_vt100_parser_is_using_multi_col_char( vt100_parser) \
+		((vt100_parser)->use_multi_col_char)
+
+int  ml_vt100_parser_set_logging_vt_seq( ml_vt100_parser_t *  vt100_parser , int  flag) ;
+
+#define  ml_vt100_parser_is_logging_vt_seq( vt100_parser)  ((vt100_parser)->logging_vt_seq)
+
 #define  ml_vt100_parser_get_mouse_report_mode( vt100_parser)  ((vt100_parser)->mouse_mode)
 
 #define  ml_vt100_parser_is_app_keypad( vt100_parser)  ((vt100_parser)->is_app_keypad)

@@ -1,3 +1,35 @@
+2011-09-11  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: Set use_variable_column_width = true or use_combining = true
+	  forcibly in bidi or indic rendering.
+
+	* libctl/ml_bidi.h: base_is_rtl and has_rtl members of ml_bidi_state_t are
+	  integrated to rtl_state, and some macros to operate rtl_state are added.
+
+	* Bidi and indic rendering modules are loaded dynamically.
+	  - mlterm/libctl/: Added.
+	  - ml_line.[ch], ml_logical_visual.[ch], ml_shape.[ch], ml_bidi.[ch],
+	    ml_iscii.[ch]: Separated to mlterm/libctl/.
+	  - x_main_config.c, x_screen.c, mlconfig/main.c:
+	    USE_FRIBIDI, USE_IND macros are removed.
+
+	* configure.in, xwindow/Makefile.in, mlterm/Makefile.in:
+	  --disable-dl-ctl option which disable dynamic loading of
+	  BiDi and Indic rendering modules.
+
+	* mkf/lib/mkf_ucs4_xxx.c, mkf_tblfunc_loader.[ch]:
+	  The way of loading modules is improved.
+
+	* x_font_config.c:
+	  In x_get_all_config_font_names(), when size == 1 and d_size == 0 and
+	  array[0]->key == DEFAULT_FONT, neither strcpy() nor sprintf() are done,
+	  thus p is left at the first character of the blank buffer font_name_list.
+	  In that case it's wrong to do simply *(p - 1) = '\0'.
+	  (Thanks to Noda, Kai san)
+
+	* ml_bidi.c: Double free problem is fixed.
+	  (Thanks to NODA, Kai san)
+
 	* ml_edit.[ch], ml_screen.[ch], x_screen.c, mlterm-menu/menu, etc/key:
 	  Minor fixes.
 

@@ -15,8 +15,8 @@
 
 #else
 
-mkf_map_func( "mkf_8bits", mkf_map_viscii_to_ucs4, 16)
+mkf_map_func( 8bits, mkf_map_viscii_to_ucs4, 16)
 
-mkf_map_func( "mkf_8bits", mkf_map_ucs4_to_viscii, 32)
+mkf_map_func( 8bits, mkf_map_ucs4_to_viscii, 32)
 
 #endif

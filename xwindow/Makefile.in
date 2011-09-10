@@ -32,20 +32,20 @@ OBJ = $(OBJ1) $(OBJ2@WIN32TAG@)
 
 LKIK = @LKIK@
 LMKF = @LMKF@
-LMLTERM = ../mlterm/libmlterm.a
+LMLTERM = ../mlterm/libmlterm.a ../mlterm/@LMLTERM_CORE@ @XCTL_LIBS@
 LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
 CFLAGS = $(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @MATH_CFLAGS@ \
-	@FRIBIDI_CFLAGS@ @IND_CFLAGS@ @IMAGELIB_CFLAGS@ @X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ \
-	@XUTF8_CFLAGS@ @DND_CFLAGS@ @IM_CFLAGS@ @SB_CFLAGS@ @REGEX_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	@IMAGELIB_CFLAGS@ @X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @XUTF8_CFLAGS@ @DND_CFLAGS@ \
+	@IM_CFLAGS@ @SB_CFLAGS@ @REGEX_CFLAGS@ @CTL_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DLIBDIR=\"$(libdir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DLIBEXECDIR=\"$(libexecdir)\" -DXDATADIR=\"$(datadir)\"\
 	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/local/include
 
 LIBS1 = $(LIBS_LOCAL) $(LMLTERM) $(LMKF) $(LKIK) \
-	-L/usr/local/lib -R/usr/local/lib @FRIBIDI_LIBS@ @SSH2_LIBS@ @IND_LIBS@
+	-L/usr/local/lib -R/usr/local/lib @SSH2_LIBS@ @XFRIBIDI_LIBS@
 
 LIBS2 = @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @MATH_LIBS@ \
 	@X_LIBS@ -lX11 @X_EXTRA_LIBS@
@@ -59,7 +59,7 @@ PROG = mlterm
 INSTALL_OPT = @INSTALL_OPT@
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
-LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS)
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all: $(PROG)
@@ -68,12 +68,12 @@ debug:
 	$(MAKE) LKIK="$(LKIK_DEB)" LMKF="$(LMKF_DEB)" all
 
 $(PROG): $(OBJ) $(LMLTERM)
-	$(LIBTOOL_LINK) $(CFLAGS) -o $(PROG) $(OBJ@XWINDOW_OBJ_SUFFIX@) $(LIBS)
+	$(LIBTOOL_LINK) -o $(PROG) $(OBJ@XWINDOW_OBJ_SUFFIX@) @DEXPORT@ $(LIBS)
 
 .SUFFIXES: .c .o
 
 .c.o:
-	$(LIBTOOL_CC) $(CFLAGS) -c $<
+	$(LIBTOOL_CC) -c $<
 
 winrs.o: winrs.rs
 	cp $(top_srcdir)/contrib/icon/mlterm-icon-win32.ico .

@@ -20,8 +20,8 @@
  * at the present time , not used.
  */
 
-mkf_map_func( "mkf_8bits", mkf_map_ucs4_to_tcvn5712_1_1993, 32)
+mkf_map_func( 8bits, mkf_map_ucs4_to_tcvn5712_1_1993, 32)
 
-mkf_map_func( "mkf_8bits", mkf_map_tcvn5712_1_1992_to_ucs4, 16)
+mkf_map_func( 8bits, mkf_map_tcvn5712_1_1992_to_ucs4, 16)
 
 #endif

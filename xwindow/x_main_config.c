@@ -95,14 +95,10 @@ x_prepare_for_main_config(
 #endif
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
 		"scrollbar background color") ;
-#ifdef  USE_IND
 	kik_conf_add_opt( conf , 'C' , "ind" , 1 , "use_ind" , 
 		"use indic (ligature text) [true(if use_bidi is false)]") ;
-#endif
-#ifdef  USE_FRIBIDI
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , 
 		"use bidi (bi-directional text) [true]") ;
-#endif
 	kik_conf_add_opt( conf , 'E' , "km" , 0 , "ENCODING" , 
 		"character encoding (AUTO/ISO-8859-*/EUC-*/UTF-8/...) [AUTO]") ;
 	kik_conf_add_opt( conf , 'F' , "sbfg" , 0 , "sb_fg_color" , 
@@ -185,10 +181,8 @@ x_prepare_for_main_config(
 		"step in changing font size in GUI configurator [1]") ;
 	kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
 		"path to an imagefile to be use as an window icon") ;
-#ifdef  USE_FRIBIDI
 	kik_conf_add_opt( conf , '\0' , "bimode" , 0 , "bidi_mode" ,
 		"bidi mode [normal]") ;
-#endif
 	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
 		"input method (xim/kbd/uim/iiimf/m17nlib/scim/none) [xim]") ;
 	kik_conf_add_opt( conf , '\0' , "parent" , 0 , "parent_window" ,
@@ -909,7 +903,6 @@ x_main_config_init(
 		main_config->encoding = ML_ISO8859_1 ;
 	}
 
-#ifdef  USE_FRIBIDI
 	main_config->use_bidi = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_bidi")))
@@ -926,12 +919,7 @@ x_main_config_init(
 	{
 		main_config->bidi_mode = ml_get_bidi_mode( value) ;
 	}
-#else
-	main_config->use_bidi = 0 ;
-	main_config->bidi_mode = BIDI_NORMAL_MODE ;
-#endif
 
-#ifdef  USE_IND
 	main_config->use_ind = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_ind")))
@@ -952,9 +940,6 @@ x_main_config_init(
 	{
 		main_config->mod_meta_key = NULL ;
 	}
-#else
-	main_config->use_ind = 0 ;
-#endif
 	
 	if( ( value = kik_conf_get_value( conf , "mod_meta_mode")))
 	{

@@ -750,6 +750,8 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 MAKE_DIRS
+XCTL_LIBS
+CTL_LIBS
 IND_CFLAGS
 IND_LIBS
 subdirs
@@ -838,9 +840,13 @@ CAIRO_CFLAGS
 xft_config
 XFT_LIBS
 XFT_CFLAGS
+XFRIBIDI_LIBS
 fribidi_config
 FRIBIDI_LIBS
 FRIBIDI_CFLAGS
+VTE_CTL_LIBS
+CTL_CFLAGS
+LMLTERM_CORE
 REGEX_CFLAGS
 MATH_CFLAGS
 MATH_LIBS
@@ -859,6 +865,7 @@ GTK_CFLAGS
 SUBSYSTEM
 OPT_CFLAGS
 DEB_CFLAGS
+DEXPORT
 X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
@@ -963,6 +970,7 @@ with_x
 with_gui
 enable_debug
 with_imagelib
+enable_dl_ctl
 enable_fribidi
 enable_anti_alias
 with_type_engines
@@ -1651,6 +1659,7 @@ Optional Features:
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-debug          debug [default=disabled]
+  --disable-dl-ctl        dynamic loading ctl library [default=enable]
   --enable-fribidi        bidi [default=disabled]
   --enable-anti-alias     (obsoleted by --with-type-engines)anti alias [default=disabled]
   --enable-ssh2           libssh2 [default=disabled]
@@ -4569,7 +4578,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4572 "configure"' > conftest.$ac_ext
+  echo '#line 4581 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7138,11 +7147,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7141: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7150: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7145: \$? = $ac_status" >&5
+   echo "$as_me:7154: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7428,11 +7437,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7431: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7440: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7435: \$? = $ac_status" >&5
+   echo "$as_me:7444: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7532,11 +7541,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7535: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7544: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7539: \$? = $ac_status" >&5
+   echo "$as_me:7548: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9557,7 +9566,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9560 "configure"
+#line 9569 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9657,7 +9666,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9660 "configure"
+#line 9669 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11998,11 +12007,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12001: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12010: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12005: \$? = $ac_status" >&5
+   echo "$as_me:12014: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12102,11 +12111,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12105: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12114: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12109: \$? = $ac_status" >&5
+   echo "$as_me:12118: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13685,11 +13694,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13688: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13697: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13692: \$? = $ac_status" >&5
+   echo "$as_me:13701: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13789,11 +13798,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13792: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13801: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13796: \$? = $ac_status" >&5
+   echo "$as_me:13805: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15950,11 +15959,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15953: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15962: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15957: \$? = $ac_status" >&5
+   echo "$as_me:15966: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16240,11 +16249,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16243: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16252: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16247: \$? = $ac_status" >&5
+   echo "$as_me:16256: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16344,11 +16353,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16347: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16356: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16351: \$? = $ac_status" >&5
+   echo "$as_me:16360: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19693,6 +19702,11 @@ fi
 fi
 
 
+if test "$with_gnu_ld" = "yes" ; then
+	DEXPORT="-Wl,--version-script=\$(VPATH)/dexport.map"
+fi
+
+
 
 # Check whether --with-gui was given.
 if test "${with_gui+set}" = set; then :
@@ -20365,6 +20379,24 @@ fi
 
 
 
+# Check whether --enable-dl-ctl was given.
+if test "${enable_dl_ctl+set}" = set; then :
+  enableval=$enable_dl_ctl; dl_ctl=$enable_dl_ctl
+else
+  dl_ctl="yes"
+fi
+
+if test "$dl_ctl" = "yes" ; then
+	LMLTERM_CORE=libmlterm_core.la
+else
+	LMLTERM_CORE=libmlterm_core.a
+	CTL_CFLAGS="-DNO_DYNAMIC_LOAD_CTL"
+	VTE_CTL_LIBS=../mlterm/libctl/*.lo
+fi
+
+
+
+
 # Check whether --enable-fribidi was given.
 if test "${enable_fribidi+set}" = set; then :
   enableval=$enable_fribidi; fribidi=$enable_fribidi
@@ -20440,9 +20472,7 @@ else
 $as_echo "yes" >&6; }
 	have_fribidi=yes
 fi
-	if test "$have_fribidi" = "yes" ; then
-		FRIBIDI_CFLAGS="${FRIBIDI_CFLAGS} -DUSE_FRIBIDI"
-	else
+	if test "$have_fribidi" != "yes" ; then
 		# Extract the first word of "fribidi-config", so it can be a program name with args.
 set dummy fribidi-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -20482,14 +20512,28 @@ fi
 
 
 		if test "$fribidi_config" = "yes" ; then
-			FRIBIDI_CFLAGS="`fribidi-config --cflags` -DUSE_FRIBIDI"
+			FRIBIDI_CFLAGS="`fribidi-config --cflags`"
 			FRIBIDI_LIBS="`fribidi-config --libs`"
+			have_fribidi="yes"
 		fi
 	fi
 fi
+if test "$have_fribidi" = "yes" ; then
+	if test "$dl_ctl" = "yes" ; then
+		CTL_LIBS="libctl_bidi.la ${CTL_LIBS}"
+	else
+		CTL_CFLAGS="-DUSE_FRIBIDI ${CTL_CFLAGS}"
+		CTL_LIBS="libctl_bidi.a ${CTL_LIBS}"
+		XCTL_LIBS="../mlterm/libctl/libctl_bidi.a ${XCTL_LIBS}"
+		XFRIBIDI_LIBS="$FRIBIDI_LIBS"
+		FRIBIDI_LIBS=""
+	fi
+fi
+
 # "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
-FRIBIDI_CFLAGS="`echo ${FRIBIDI_CFLAGS} | tr -d '\r'`"
+FRIBIDI_CFLAGS="`echo ${FRIBIDI_CFLAGS} -DUSE_FRIBIDI | tr -d '\r'`"
 FRIBIDI_LIBS="`echo ${FRIBIDI_LIBS} | tr -d '\r'`"
+
 
 
 
@@ -21007,9 +21051,6 @@ fi
 		# "tr ..." is hack for cygwin.
 		# (removing \r which is output by win32 native pkg-config.)
 		VTE_CFLAGS="`echo $VTE_CFLAGS | tr -d '\r'`"
-		if test "$with_gnu_ld" = "yes" ; then
-			VTE_LIBS="${VTE_LIBS} -Wl,--version-script=\$(top_srcdir)/gtk/dexport.map"
-		fi
 
 
 	fi
@@ -22435,9 +22476,6 @@ pixmap_engine)
 			DL_LIBS_SB="-export-dynamic -dlopen \$(top_builddir)/contrib/scrollbar/pixmap_engine/libpixmap_engine.la ${DL_LIBS_SB}"
 		else
 			DL_LIBS_SB="-export-dynamic ${DL_LIBS_SB}"
-		fi
-		if test "$with_gnu_ld" = "yes" ; then
-			DL_LIBS_SB="-Wl,--version-script=\$(top_srcdir)/xwindow/dexport.map ${DL_LIBS_SB}"
 		fi
 		SB_CFLAGS="-DSUPPORT_PIXMAP_ENGINE"
 		scrollbars_result="$scrollbars_result $scrollbar"
@@ -24937,8 +24975,8 @@ subdirs="$subdirs ${SUBDIRS}"
 
 fi
 
-MAKE_DIRS="mlterm xwindow man etc ${MAKE_DIRS}"
-OUTPUT_FILES="Makefile mlterm/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
+MAKE_DIRS="mlterm mlterm/libctl xwindow man etc ${MAKE_DIRS}"
+OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
 
 # Check whether --enable-ind was given.
 if test "${enable_ind+set}" = set; then :
@@ -24948,11 +24986,20 @@ else
 fi
 
 if test "$ind" = "yes" ; then
-	IND_CFLAGS='-DUSE_IND -I${top_builddir}/libind'
+	IND_CFLAGS='-I${top_builddir}/libind'
 	IND_LIBS='${top_builddir}/libind/libind.a'
 	MAKE_DIRS="libind ${MAKE_DIRS}"
 	OUTPUT_FILES="libind/Makefile ${OUTPUT_FILES}"
+	if test "$dl_ctl" = "yes" ; then
+		CTL_LIBS="libctl_iscii.la ${CTL_LIBS}"
+	else
+		CTL_CFLAGS="-DUSE_IND ${CTL_CFLAGS}"
+		CTL_LIBS="libctl_iscii.a ${CTL_LIBS}"
+		XCTL_LIBS="../mlterm/libctl/libctl_iscii.a ${XCTL_LIBS}"
+	fi
 fi
+
+
 
 
 

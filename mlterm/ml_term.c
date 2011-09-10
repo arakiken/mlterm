@@ -276,13 +276,57 @@ ml_term_set_auto_encoding(
 }
 
 int
-ml_term_set_logging_vt_seq(
+ml_term_set_use_bidi(
 	ml_term_t *  term ,
 	int  flag
 	)
 {
-	term->parser->logging_vt_seq = flag ;
-	
+	term->use_bidi = flag ;
+
+	return  1 ;
+}
+
+int
+ml_term_set_bidi_mode(
+	ml_term_t *  term ,
+	ml_bidi_mode_t  mode
+	)
+{
+	term->bidi_mode = mode ;
+
+	return  1 ;
+}
+
+int
+ml_term_set_use_ind(
+	ml_term_t *  term ,
+	int  flag
+	)
+{
+	term->use_ind = flag ;
+
+	return  1 ;
+}
+
+int
+ml_term_set_vertical_mode(
+	ml_term_t *  term ,
+	ml_vertical_mode_t  mode
+	)
+{
+	term->vertical_mode = mode ;
+
+	return  1 ;
+}
+
+int
+ml_term_set_use_dynamic_comb(
+	ml_term_t *  term ,
+	int  flag
+	)
+{
+	term->use_dynamic_comb = flag ;
+
 	return  1 ;
 }
 
@@ -620,7 +664,7 @@ ml_term_updated_all(
 	{
 		if( ( line = ml_screen_get_line_in_screen( term->screen , row)))
 		{
-			ml_line_updated( line) ;
+			ml_line_set_updated( line) ;
 		}
 	}
 
@@ -745,11 +789,7 @@ ml_term_update_special_visual(
 		else if( term->use_bidi && ml_term_get_encoding( term) == ML_UTF8)
 		{
 			if( ( term->shape = ml_arabic_shape_new()) &&
-		#if  1
-			    ( logvis = ml_logvis_bidi_new( 0 , term->bidi_mode)))
-		#else
-			    ( logvis = ml_logvis_bidi_new( 1 , term->bidi_mode)))
-		#endif
+			    ( logvis = ml_logvis_bidi_new( term->bidi_mode)))
 			{
 				if( ml_screen_add_logical_visual( term->screen , logvis))
 				{
@@ -814,28 +854,6 @@ ml_term_enter_backscroll_mode(
 	}
 	
 	return  ml_enter_backscroll_mode( term->screen) ;
-}
-
-int
-ml_term_set_char_combining_flag(
-	ml_term_t *  term ,
-	int  flag
-	)
-{
-	term->parser->use_char_combining = flag ;
-
-	return  1 ;
-}
-
-int
-ml_term_set_multi_col_char_flag(
-	ml_term_t *  term ,
-	int  flag
-	)
-{
-	term->parser->use_multi_col_char = flag ;
-
-	return  1 ;
 }
 
 int

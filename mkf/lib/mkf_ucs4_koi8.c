@@ -15,12 +15,12 @@
 
 #else
 
-mkf_map_func( "mkf_8bits", mkf_map_koi8_r_to_ucs4, 16)
-mkf_map_func( "mkf_8bits", mkf_map_koi8_u_to_ucs4, 16)
-mkf_map_func( "mkf_8bits", mkf_map_koi8_t_to_ucs4, 16)
+mkf_map_func( 8bits, mkf_map_koi8_r_to_ucs4, 16)
+mkf_map_func( 8bits, mkf_map_koi8_u_to_ucs4, 16)
+mkf_map_func( 8bits, mkf_map_koi8_t_to_ucs4, 16)
 
-mkf_map_func( "mkf_8bits", mkf_map_ucs4_to_koi8_r, 32)
-mkf_map_func( "mkf_8bits", mkf_map_ucs4_to_koi8_u, 32)
-mkf_map_func( "mkf_8bits", mkf_map_ucs4_to_koi8_t, 32)
+mkf_map_func( 8bits, mkf_map_ucs4_to_koi8_r, 32)
+mkf_map_func( 8bits, mkf_map_ucs4_to_koi8_u, 32)
+mkf_map_func( 8bits, mkf_map_ucs4_to_koi8_t, 32)
 
 #endif

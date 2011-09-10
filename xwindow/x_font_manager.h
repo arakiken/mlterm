@@ -55,7 +55,7 @@ int  x_smaller_font( x_font_manager_t *  font_man) ;
 
 u_int  x_get_font_size( x_font_manager_t *  font_man) ;
 
-int  x_set_multi_col_char_flag( x_font_manager_t *  font_man , int  flag) ;
+int  x_set_use_multi_col_char( x_font_manager_t *  font_man , int  flag) ;
 
 int  x_is_using_multi_col_char( x_font_manager_t *  font_man) ;
 

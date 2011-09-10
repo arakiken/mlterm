@@ -130,9 +130,7 @@ int  ml_edit_set_relative_origin( ml_edit_t *  edit) ;
 
 int  ml_edit_set_absolute_origin( ml_edit_t *  edit) ;
 
-int  ml_edit_set_auto_wrap( ml_edit_t *  edit) ;
-
-int  ml_edit_unset_auto_wrap( ml_edit_t *  edit) ;
+int  ml_edit_set_auto_wrap( ml_edit_t *  edit , int  flag) ;
 
 int  ml_edit_set_bce_fg_color( ml_edit_t *  edit , ml_color_t  fg_color) ;
 

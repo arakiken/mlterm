@@ -8,8 +8,8 @@
 
 #include  "ml_str.h"
 #include  "ml_shape.h"
-#include  "ml_bidi.h"		/* ml_bidi_state_t */
-#include  "ml_iscii.h"		/* ml_iscii_state_t */
+#include  "ml_bidi.h"	/* ml_bidi_state_t */
+#include  "ml_iscii.h"	/* ml_iscii_state_t */
 
 
 enum
@@ -28,8 +28,8 @@ enum
 
 typedef union  ctl_info
 {
-	ml_bidi_state_t *  bidi ;
-	ml_iscii_state_t *  iscii ;
+	ml_bidi_state_t  bidi ;
+	ml_iscii_state_t  iscii ;
 
 } ctl_info_t ;
 
@@ -50,21 +50,14 @@ typedef struct  ml_line
 	u_int16_t  change_beg_col ;	/* 0 - 65536 */
 	u_int16_t  change_end_col ;	/* 0 - 65536 */
 
-#if  defined(USE_FRIBIDI) || defined(USE_IND)
-	/* private */
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI)
+	/* Don't touch from ml_line.c. ctl_info is used by ml_line_bidi.c and ml_line_iscii.c. */
 	ctl_info_t  ctl_info ;
-	u_int8_t  ctl_info_type ;
 #endif
+	u_int8_t  ctl_info_type ;
 
-	/*
-	 * private
-	 *
-	 * total 8 bit
-	 * 6 bit : unused
-	 * 1 bit : is_modified
-	 * 1 bit : is_continued_to_next
-	 */
-	u_int8_t  flag ;
+	int8_t  is_modified ;
+	int8_t  is_continued_to_next ;
 
 } ml_line_t ;
 
@@ -108,13 +101,11 @@ int  ml_line_get_end_of_modified( ml_line_t *  line) ;
 
 u_int  ml_line_get_num_of_redrawn_chars( ml_line_t *  line , int  to_end) ;
 
-void  ml_line_updated( ml_line_t *  line) ;
+void  ml_line_set_updated( ml_line_t *  line) ;
 
 int  ml_line_is_continued_to_next( ml_line_t *  line) ;
 
-void  ml_line_set_continued_to_next( ml_line_t *  line) ;
-
-void  ml_line_unset_continued_to_next( ml_line_t *  line) ;
+void  ml_line_set_continued_to_next( ml_line_t *  line , int  flag) ;
 
 int  ml_convert_char_index_to_col( ml_line_t *  line , int  char_index , int  flag) ;
 
@@ -142,48 +133,9 @@ int  ml_line_get_word_pos( ml_line_t *  line , int *  beg_char_index , int *  en
 	int  char_index) ;
 
 
-/*
- * use/render/visual/logical/convert functions are used only by ml_logical_visual.
- */
-#ifdef  USE_FRIBIDI
-int  ml_line_is_using_bidi( ml_line_t *  line) ;
-	
-int  ml_line_use_bidi( ml_line_t *  line) ;
-
-int  ml_line_unuse_bidi( ml_line_t *  line) ;
-
-int  ml_line_bidi_render( ml_line_t *  line , ml_bidi_mode_t  mode) ;
-
-int  ml_line_bidi_visual( ml_line_t *  line) ;
-
-int  ml_line_bidi_logical( ml_line_t *  line) ;
-
-int  ml_bidi_convert_logical_char_index_to_visual( ml_line_t *  line , int  char_index ,
-	int *  ltr_rtl_meet_pos) ;
-
-int  ml_bidi_convert_visual_char_index_to_logical( ml_line_t *  line , int  char_index) ;
-#endif
+int  ml_line_convert_visual_char_index_to_logical( ml_line_t *  line , int  char_index) ;
 
 int  ml_line_is_rtl( ml_line_t *  line) ;
-
-
-/*
- * visual/convert functions are used only by ml_logical_visual.
- */
-#ifdef  USE_IND
-int  ml_line_is_using_iscii( ml_line_t *  line) ;
-	
-int  ml_line_use_iscii( ml_line_t *  line) ;
-
-int  ml_line_unuse_iscii( ml_line_t *  line) ;
-
-int  ml_line_iscii_render( ml_line_t *  line) ;
-
-int  ml_line_iscii_visual( ml_line_t *  line) ;
-
-int  ml_iscii_convert_logical_char_index_to_visual( ml_line_t *  line , int  logical_char_index) ;
-#endif
-
 
 int  ml_line_copy_logical_str( ml_line_t *  line , ml_char_t *  dst , int  beg , u_int  len) ;
 

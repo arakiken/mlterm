@@ -80,8 +80,8 @@ mkf_map_ksc5601_1987_to_uhc(
 
 #else
 
-mkf_map_func2( "mkf_kokr", mkf_map_johab_to_uhc)
+mkf_map_func2( kokr, mkf_map_johab_to_uhc)
 
-mkf_map_func2( "mkf_kokr", mkf_map_uhc_to_johab)
+mkf_map_func2( kokr, mkf_map_uhc_to_johab)
 
 #endif
