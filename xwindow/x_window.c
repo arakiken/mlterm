@@ -758,6 +758,9 @@ x_window_final(
 #ifdef  USE_TYPE_XFT
 	x_window_set_use_xft( win , 0) ;
 #endif
+#ifdef  USE_TYPE_CAIRO
+	x_window_set_use_cairo( win , 0) ;
+#endif
 
 	if( win->create_gc)
 	{
@@ -1694,18 +1697,8 @@ x_window_clear(
 	u_int	height
 	)
 {
-#ifdef  USE_TYPE_XFT
-	if( ! win->wall_picture_is_set && win->xft_draw)
-	{
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-			x + win->margin , y + win->margin , width , height) ;
-	}
-	else
-#endif
-	{
-		XClearArea( win->disp->display , win->my_window ,
-			x + win->margin , y + win->margin , width , height , False) ;
-	}
+	XClearArea( win->disp->display , win->my_window ,
+		x + win->margin , y + win->margin , width , height , False) ;
 
 	return  1 ;
 }
@@ -1720,31 +1713,14 @@ x_window_clear_margin_area(
 		return  1 ;
 	}
 
-#ifdef  USE_TYPE_XFT
-	if( ! win->wall_picture_is_set && win->xft_draw)
-	{
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-			0 , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-			win->margin , 0 , win->width , win->margin) ;
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-			win->width + win->margin , 0 , win->margin , ACTUAL_HEIGHT(win)) ;
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-			win->margin , win->height + win->margin ,
-			win->width , win->margin) ;
-	}
-	else
-#endif
-	{
-		XClearArea( win->disp->display , win->my_window ,
-			0 , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-		XClearArea( win->disp->display , win->my_window ,
-			win->margin , 0 , win->width , win->margin , 0) ;
-		XClearArea( win->disp->display , win->my_window , win->width + win->margin ,
-			0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
-		XClearArea( win->disp->display , win->my_window , win->margin ,
-			win->height + win->margin , win->width , win->margin , 0) ;
-	}
+	XClearArea( win->disp->display , win->my_window ,
+		0 , 0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
+	XClearArea( win->disp->display , win->my_window ,
+		win->margin , 0 , win->width , win->margin , 0) ;
+	XClearArea( win->disp->display , win->my_window , win->width + win->margin ,
+		0 , win->margin , ACTUAL_HEIGHT(win) , 0) ;
+	XClearArea( win->disp->display , win->my_window , win->margin ,
+		win->height + win->margin , win->width , win->margin , 0) ;
 
 	return  1 ;
 }
@@ -1754,18 +1730,8 @@ x_window_clear_all(
 	x_window_t *  win
 	)
 {
-#ifdef  USE_TYPE_XFT
-	if( ! win->wall_picture_is_set && win->xft_draw)
-	{
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->bg_color) ,
-			0 , 0 , ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-	}
-	else
-#endif
-	{
-		XClearArea( win->disp->display , win->my_window , 0 , 0 ,
-			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , 0) ;
-	}
+	XClearArea( win->disp->display , win->my_window , 0 , 0 ,
+		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , 0) ;
 
 	return  1 ;
 }
@@ -1779,20 +1745,10 @@ x_window_fill(
 	u_int	height
 	)
 {
-#ifdef  USE_TYPE_XFT
-	if( win->xft_draw)
-	{
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->fg_color) ,
-			x + win->margin , y + win->margin , width , height) ;
-	}
-	else
-#endif
-	{
-		restore_fg_color( win) ;
+	restore_fg_color( win) ;
 
-		XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
-			x + win->margin , y + win->margin , width , height) ;
-	}
+	XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
+		x + win->margin , y + win->margin , width , height) ;
 
 	return  1 ;
 }
@@ -1807,20 +1763,10 @@ x_window_fill_with(
 	u_int	height
 	)
 {
-#ifdef  USE_TYPE_XFT
-	if( win->xft_draw)
-	{
-		XftDrawRect( win->xft_draw , x_color_to_xft( color) ,
-			x + win->margin , y + win->margin , width , height) ;
-	}
-	else
-#endif
-	{
-		x_gc_set_fg_color( win->gc, color->pixel) ;
+	x_gc_set_fg_color( win->gc, color->pixel) ;
 
-		XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
-			x + win->margin , y + win->margin , width , height) ;
-	}
+	XFillRectangle( win->disp->display , win->my_window , win->gc->gc ,
+		x + win->margin , y + win->margin , width , height) ;
 
 	return  1 ;
 }
@@ -1830,20 +1776,10 @@ x_window_blank(
 	x_window_t *  win
 	)
 {
-#ifdef  USE_TYPE_XFT
-	if( win->xft_draw)
-	{
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->fg_color) , 0 , 0 ,
-			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-	}
-	else
-#endif
-	{
-		restore_fg_color( win) ;
+	restore_fg_color( win) ;
 
-		XFillRectangle( win->disp->display , win->my_window , win->gc->gc , 0 , 0 ,
-			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
-	}
+	XFillRectangle( win->disp->display , win->my_window , win->gc->gc , 0 , 0 ,
+		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win)) ;
 
 	return  1 ;
 }
@@ -3153,35 +3089,19 @@ x_window_draw_rect_frame(
 	int  y2
 	)
 {
-#ifdef  USE_TYPE_XFT
-	if( win->xft_draw)
+	XPoint  points[5] =
 	{
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->fg_color) ,
-			x1 , y1 , 1 , y2 - y1 + 1) ;
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->fg_color) ,
-			x1 , y1 , x2 - x1 + 1 , 1) ;
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->fg_color) ,
-			x1 , y2 , x2 - x1 + 1 , 1) ;
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->fg_color) ,
-			x2 , y1 , 1 , y2 - y1 + 1) ;
-	}
-	else
-#endif
-	{
-		XPoint  points[5] =
-		{
-			{ x1 , y1 } ,
-			{ x1 , y2 } ,
-			{ x2 , y2 } ,
-			{ x2 , y1 } ,
-			{ x1 , y1 } ,
-		} ;
+		{ x1 , y1 } ,
+		{ x1 , y2 } ,
+		{ x2 , y2 } ,
+		{ x2 , y1 } ,
+		{ x1 , y1 } ,
+	} ;
 
-		restore_fg_color(win) ;
+	restore_fg_color(win) ;
 
-		XDrawLines( win->disp->display , win->my_window , win->gc->gc , points , 5 ,
-			CoordModeOrigin) ;
-	}
+	XDrawLines( win->disp->display , win->my_window , win->gc->gc , points , 5 ,
+		CoordModeOrigin) ;
 
 	return  1 ;
 }
@@ -3195,19 +3115,9 @@ x_window_draw_line(
 	int  y2
 	)
 {
-#ifdef  USE_TYPE_XFT
-	if( win->xft_draw)
-	{
-		XftDrawRect( win->xft_draw , x_color_to_xft( &win->fg_color) ,
-			x1 , y1 , x2 - x1 + 1 , y2 - y1 + 1) ;
-	}
-	else
-#endif
-	{
-		restore_fg_color(win) ;
+	restore_fg_color(win) ;
 
-		XDrawLine( win->disp->display , win->my_window , win->gc->gc , x1 , y1 , x2 , y2) ;
-	}
+	XDrawLine( win->disp->display , win->my_window , win->gc->gc , x1 , y1 , x2 , y2) ;
 
 	return  1 ;
 }

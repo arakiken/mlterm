@@ -1,3 +1,7 @@
+	* x_window.c: XftDrawRect() is not used.
+
+	* x_color.c: XftColor is not used.
+
 2011-09-11  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: Set use_variable_column_width = true or use_combining = true
