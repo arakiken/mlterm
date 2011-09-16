@@ -200,25 +200,6 @@ x_unload_xcolor(
 	return  1 ;
 }
 
-#ifdef  USE_TYPE_XFT
-
-XftColor *
-_x_color_to_xft(
-	XftColor *  xftcolor ,
-	x_color_t *  xcolor
-	)
-{
-	xftcolor->pixel = xcolor->pixel ;
-	xftcolor->color.red = (xcolor->red << 8) + xcolor->red ;
-	xftcolor->color.green = (xcolor->green << 8) + xcolor->green ;
-	xftcolor->color.blue = (xcolor->blue << 8) + xcolor->blue ;
-	xftcolor->color.alpha = (xcolor->alpha << 8) + xcolor->alpha ;
-
-	return  xftcolor ;
-}
-
-#endif
-
 int
 x_get_xcolor_rgb(
 	u_int8_t *  red ,
@@ -234,11 +215,7 @@ x_get_xcolor_rgb(
 
 	if( alpha)
 	{
-	#ifdef  USE_TYPE_XFT
 		*alpha = xcolor->alpha ;
-	#else
-		*alpha = 0xff ;
-	#endif
 	}
 
 	return  1 ;

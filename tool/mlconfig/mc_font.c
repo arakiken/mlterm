@@ -278,12 +278,7 @@ aa_flag_checked(
 		if( ! GTK_TOGGLE_BUTTON(xft_flag)->active &&
 		    ! GTK_TOGGLE_BUTTON(cairo_flag)->active)
 		{
-		#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
-		#ifdef  USE_TYPE_XFT
 			gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(xft_flag) , 1) ;
-		#else
-			gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(cairo_flag) , 1) ;
-		#endif
 		
 			reset_fontname_list() ;
 			gtk_entry_set_text(GTK_ENTRY(fontname_entry) ,
@@ -291,7 +286,6 @@ aa_flag_checked(
 					mc_get_font_name( get_font_file() , new_fontsize ,
 						get_correct_cs( selected_cs)) ,
 					-1 , NULL , NULL , NULL) ) ;
-		#endif
 		}
 	}
 	
@@ -781,7 +775,7 @@ mc_font_config_widget_new(void)
 	}
 
 	aa_flag = mc_flag_config_widget_new( MC_FLAG_AA) ;
-#if  ! defined(USE_TYPE_XFT) && ! defined(USE_TYPE_CAIRO) && ! defined(USE_WIN32GUI)
+#if  ! defined(USE_WIN32GUI)
 	gtk_widget_set_sensitive(aa_flag, 0) ;
 #endif
 	gtk_widget_show( aa_flag) ;

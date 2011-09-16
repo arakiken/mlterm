@@ -1,3 +1,6 @@
+* 一部の環境(NetBSD 3.0.1) では、mlterm 本体を pthread にリンクしておかないと、
+  pthread に依存する module (libtype_cairo) を dlopen した場合に abort する。
+
 * 背景透過 + 輝度調節中に、スクロールバーの位置を変えると、透過している
   背景がずれる。
   (当面直す予定なし)

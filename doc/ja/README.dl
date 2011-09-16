@@ -1,0 +1,64 @@
+comment -*- mode: text -*-
+comment $Id$
+
+BiDi / Indic と Xft / cairo 対応機能は、実行時に動的にロードする module としてビ
+ルドすることができます。
+Lodable module 化するか、mlterm 本体に static link するかは、configure のオプシ
+ョンで切り替えることができます。
+
+* configure オプション
+  o --disable-dl-ctl
+    BiDi / Indic module の dynamic loading を行わないようにします。
+    --disable-dl-ctl と併せて -enable-fribidi 又は --enable-ind を指定してビルド
+    した場合、BiDi / Indic 対応機能は、mlterm 本体に組み込まれます。
+
+  o --disable-dl-type
+    Xft / cairo module の dynamic loading を行わないようにします。
+    --disable-dl-type と併せて --with-type-engines=xft,cairo を指定してビルド
+    した場合、Xft / cairo 対応機能は、mlterm 本体に組み込まれます。
+
+  o オプション指定の例
+    - オプション指定なし
+      mlterm 本体を BiDi / Indic / Xft / cairo 全ての module の dynamic loading
+      に対応 (Lodable module 自体はビルドしない。この場合、別途ビルドした
+      module を $prefix/lib/mlterm にコピーすることで、mlterm 本体を再ビルドしな
+      くても当該 module の機能を追加可能。)
+
+    - configure --enable-fribidi --enable-ind
+      BiDi / Indic 対応機能を lodable module としてビルド
+      Xft / cairo module はビルドしないが、mlterm 本体は、Xft / cairo module の
+      dynamic loading に対応
+
+    - configure --enable-fribidi --enable-ind --disable-dl-ctl
+      BiDi / Indic 対応機能を mlterm 本体に組み込み(lodable module にはしない)
+      Xft / cairo module はビルドしないが、mlterm 本体は、Xft / cairo module の
+      dynamic loading に対応
+
+    - configure --with-type-engines=xcore,xft,cairo
+      Xft / Cairo 対応機能を loadable module としてビルド
+      (xcore は lodable module にできないため、mlterm 本体に組み込み)
+      BiDi / Indic module はビルドしないが、mlterm 本体は、BiDi / Indic module の
+      dynamic loading に対応
+
+    - configure --with-type-engines=xft,cairo
+      Xft / Cairo 対応機能を loadable module としてビルド
+      (--disable-dl-type が指定されない場合、xcore は必ず mlterm 本体に組み込み)
+      BiDi / Indic module はビルドしないが、mlterm 本体は、BiDi / Indic module の
+      dynamic loading に対応
+
+    - configure --with-type-engines=xcore,xft,cairo --disable-dl-type
+      xcore/ Xft / Cairo 対応機能を mlterm 本体に組み込み
+      BiDi / Indic module はビルドしないが、mlterm 本体は、BiDi / Indic module の
+      dynamic loading に対応
+
+    - configure --with-type-engines=cairo --disable-dl-type
+      Cairo 対応機能のみを mlterm 本体に組み込み
+      BiDi / Indic module はビルドしないが、mlterm 本体は、BiDi / Indic module の
+      dynamic loading に対応
+
+* マクロ
+  o NO_DYNAMIC_LOAD_CTL
+    BiDi / Indic module の dynamic loading に対応しない場合に定義
+
+  o NO_DYNAMIC_LOAD_TYPE
+    Xft / cairo module の dynamic loading に対応しない場合に定義

@@ -1,3 +1,22 @@
+2011-09-16  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c:
+	  - -V and -m options are forcibly enabled if -ind option is specified.
+	  - -m options are forcibly enabled if -bi option is specified.
+
+	* doc/en/README.dl: Added.
+
+	* libctl/ml_functbl_{bidi|iscii}.c, ml_ctl_loader.[ch]:
+	  API compatibility check by CTL_API_COMPAT_CHECK_MAGIC is added.
+
+	* Type engine modules are loaded dynamically.
+	  - xwindow/libtype/: Added.
+	  - x_window.c, x_font.c: Separated to xwindow/libtype/.
+	  - x_main_config.c, x_screen.c, mlconfig/main.c:
+	    USE_FRIBIDI, USE_IND macros are removed.
+
+	* gtk/Makefile.in: @VTE_LIBS@ are not linked.
+
 	* x_window.c: XftDrawRect() is not used.
 
 	* x_color.c: XftColor is not used.

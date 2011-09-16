@@ -15,7 +15,7 @@
  * drawing string
  */
 
-#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 
 static int
 fc_draw_combining_chars(
@@ -55,7 +55,7 @@ fc_draw_combining_chars(
 		}
 		else
 		{
-			FcChar32  xch ;
+			/* FcChar32 */ u_int32_t  xch ;
 
 			char  ucs4_bytes[4] ;
 
@@ -99,8 +99,8 @@ fc_draw_str(
 	int  start_draw ;
 	int  end_of_str ;
 	u_int	current_width ;
-	FcChar8 *  str8 ;
-	FcChar32 *  str32 ;
+	/* FcChar8 */ u_int8_t *  str8 ;
+	/* FcChar32 */ u_int32_t *  str32 ;
 	u_int	str_len ;
 	int  state ;
 	int  next_state ;
@@ -180,12 +180,12 @@ fc_draw_str(
 
 	is_underlined = ml_char_is_underlined( &chars[count]) ;
 
-	if( ( str8 = alloca( sizeof( FcChar8) * num_of_chars)) == NULL)
+	if( ( str8 = alloca( sizeof( /* FcChar8 */ u_int8_t) * num_of_chars)) == NULL)
 	{
 		return	0 ;
 	}
 
-	if( ( str32 = alloca( sizeof( FcChar32) * num_of_chars)) == NULL)
+	if( ( str32 = alloca( sizeof( /* FcChar32 */ u_int32_t) * num_of_chars)) == NULL)
 	{
 		return  0 ;
 	}
@@ -410,7 +410,7 @@ fc_draw_str(
 
 #endif
 
-#ifdef  USE_TYPE_XCORE
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 
 static u_int		/* Return written size of XChar2b */
 convert_ucs4_to_utf16(
@@ -953,7 +953,7 @@ x_draw_str(
 	default:
 		return  0 ;
 
-#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	case  TYPE_XFT:
 	case  TYPE_CAIRO:
 		if( ! fc_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
@@ -965,7 +965,7 @@ x_draw_str(
 		break ;
 #endif
 
-#ifdef  USE_TYPE_XCORE
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	case  TYPE_XCORE:
 		if( ! xcore_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))
@@ -1002,7 +1002,7 @@ x_draw_str_to_eol(
 	default:
 		return  0 ;
 
-#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	case  TYPE_XFT:
 	case  TYPE_CAIRO:
 		if( ! fc_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
@@ -1014,7 +1014,7 @@ x_draw_str_to_eol(
 		break ;
 #endif
 
-#ifdef  USE_TYPE_XCORE
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	case  TYPE_XCORE:
 		if( ! xcore_draw_str( window , font_man , color_man , &updated_width , chars , num_of_chars ,
 			x , y , height , height_to_baseline , top_margin , bottom_margin))

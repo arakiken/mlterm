@@ -978,18 +978,9 @@ x_window_final(
 }
 
 int
-x_window_set_use_xft(
+x_window_set_type_engine(
 	x_window_t *  win ,
-	int  use_xft
-	)
-{
-	return  0 ;
-}
-
-int
-x_window_set_use_cairo(
-	x_window_t *  win ,
-	int  use_cairo
+	x_type_engine_t  type_engine
 	)
 {
 	return  0 ;

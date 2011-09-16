@@ -8,7 +8,8 @@ ver 3.0.7
 * Support application escape mode. (CSI ? 7727 h , CSI ? 7727 l)
 * Support OSC 10, OSC 11 and OSC 12.
 * Add "logging_msg" option whose default value is true.
-* Support loadable modules of BiDi and Indic rendering engines.
+* Support loadable modules of BiDi and Indic.
+* Support loadable modules of xft and cairo.
 * Integrate OSC 5384 - 5391 to OSC 5379 - 5383.
 * Drop OSC 5382.
 * Change format of "select_pty", "search_prev", "search_next"  "snapshot" in  
@@ -26,6 +27,7 @@ ver 3.0.7
   Fix wrong position in receiving WM_MOUSEWHEEL event in win32. (Thanks to Iwamoto Kouichi san)
   Fix illegal mouse reports if mouse goes outside the window. (Thanks to Iwamoto Kouichi san)
   Fix double free in bidi rendering. (Thanks to NODA, Kai san)
+  Remove "-lvte" in linking libvte.so.
 
 ver 3.0.6
 * Support cairo for text rendering. (Experimental)

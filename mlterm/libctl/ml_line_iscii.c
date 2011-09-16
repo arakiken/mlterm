@@ -141,7 +141,7 @@ ml_line_iscii_visual(
 }
 
 int
-ml_iscii_convert_logical_char_index_to_visual(
+ml_line_iscii_convert_logical_char_index_to_visual(
 	ml_line_t *  line ,
 	int  logical_char_index
 	)

@@ -1,0 +1,86 @@
+top_builddir = ../..
+top_srcdir = @top_srcdir@
+prefix = @prefix@
+sysconfdir = @sysconfdir@
+exec_prefix = @exec_prefix@
+datadir = @datadir@
+bindir = @bindir@
+libdir = @libdir@
+libexecdir = @libexecdir@
+
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+INSTALL = @INSTALL@
+
+LIBDIR = $(DESTDIR)$(libdir)/mlterm
+
+VPATH = $(top_srcdir)/xwindow/libtype
+
+XFT_OBJ = x_window_xft.o x_font_xft.o x_functbl_xft.o
+CAIRO_OBJ = x_window_cairo.o x_font_cairo.o x_functbl_cairo.o
+NODL_OBJ = @NODL_OBJ@ x_font_ft.o
+
+LKIK = ${top_builddir}/kiklib/src/libkik.la
+LMKF = ${top_builddir}/mkf/lib/libmkf.la
+LKIK_DEB = -lkik_deb
+LMKF_DEB = -lmkf_deb
+
+# XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
+CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @XFT_CFLAGS@ @CAIRO_CFLAGS@ \
+	@TYPE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -Wall -g -DLIBDIR=\"$(libdir)\" -I/usr/local/include \
+	-I${top_srcdir}/mlterm
+
+XFT_LIBS = @XFT_LIBS@
+CAIRO_LIBS = @CAIRO_LIBS@
+LIBS = $(LIBS_LOCAL) $(LMKF) $(LKIK) -L/usr/local/lib -R/usr/local/lib
+
+INSTALL_OPT = -m 755
+
+LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS)
+LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
+
+TYPE_LIBS = @TYPE_LIBS@
+
+all: $(TYPE_LIBS)
+
+libtype_xft.la: $(XFT_OBJ)
+	$(LIBTOOL_LINK) -o libtype_xft.la $(XFT_OBJ:.o=.lo) \
+	-rpath $(libdir)/mlterm \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ @DEXPORT@ \
+	$(LIBS) $(XFT_LIBS)
+
+libtype_cairo.la: $(CAIRO_OBJ)
+	$(LIBTOOL_LINK) -o libtype_cairo.la $(CAIRO_OBJ:.o=.lo) \
+	-rpath $(libdir)/mlterm \
+	-module -avoid-version @NO_UNDEFINED_FLAG@ @DEXPORT@ \
+	$(LIBS) $(CAIRO_LIBS)
+
+libtype.a: $(NODL_OBJ)
+	$(LIBTOOL_LINK) -o libtype.a $(NODL_OBJ:.o=.lo)
+
+x_font_ft.o:
+	$(LIBTOOL_CC) @TYPE_CFLAGS@ -c $<
+
+.SUFFIXES: .c .o
+
+.c.o:
+	$(LIBTOOL_CC) -c $<
+
+install : $(LIBDIR)
+	if test "$(TYPE_LIBS)" != "" ; then \
+		$(LIBTOOL_INSTALL) $(INSTALL_OPT) $(TYPE_LIBS) $(LIBDIR) ; \
+	fi
+
+uninstall :
+	rm -f $(LIBDIR)/*type_*
+
+wc :
+	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
+
+clean:
+	rm -rf $(TYPE_LIBS) *.core $(XFT_OBJ) $(XFT_OBJ:.o=.lo) \
+		$(CAIRO_OBJ) $(CAIRO_OBJ:.o=.lo) .libs
+
+distclean: clean
+	rm -f Makefile

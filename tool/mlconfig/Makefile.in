@@ -19,7 +19,7 @@ LIBEXECDIR = $(DESTDIR)$(libexecdir)
 LKIK = @LKIK@
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
-CFLAGS = $(CFLAGS_LOCAL) @GTK_CFLAGS@ @AA_CFLAGS@ @IMAGELIB_CFLAGS@ @DEB_CFLAGS@ \
+CFLAGS = $(CFLAGS_LOCAL) @GTK_CFLAGS@ @IMAGELIB_CFLAGS@ @DEB_CFLAGS@ \
 	@KIK_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-I${top_srcdir}/xwindow -I${top_srcdir}/mlterm \
 	-I${top_builddir}/common -I${top_srcdir}/common \

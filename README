@@ -38,8 +38,14 @@ Options for configure
     Load modules with libltdl
 
   --with-type-engines=(xcore|xft|cairo)
-    Use specified type engines for rendering text
+    Use specified type engines for rendering text.
+    xcore is possible to disable only when --with-type-engines=(except xcore)
+    is specified with --disable-dl-type option.
     (--enable-anti-alias == --with-type-engines=xcore,xft)
+
+  --disable-dl-type
+    Disable dynamic loading of type engine modules,
+    which are statically linked to mlterm.
 
   --enable-fribidi
     Use Fribidi for BiDi rendering

@@ -175,13 +175,13 @@ bidi_visual(
 	((bidi_logical_visual_t*)logvis)->cursor_logical_char_index = logvis->cursor->char_index ;
 	((bidi_logical_visual_t*)logvis)->cursor_logical_col = logvis->cursor->col ;
 
-	logvis->cursor->char_index = ml_bidi_convert_logical_char_index_to_visual(
+	logvis->cursor->char_index = ml_line_bidi_convert_logical_char_index_to_visual(
 					CURSOR_LINE(logvis) , logvis->cursor->char_index ,
 					&((bidi_logical_visual_t*)logvis)->ltr_rtl_meet_pos) ;
 	/*
 	 * XXX
 	 * col_in_char should not be plused to col, because the character pointed by
-	 * ml_bidi_convert_logical_char_index_to_visual() is not the same as the one
+	 * ml_line_bidi_convert_logical_char_index_to_visual() is not the same as the one
 	 * in logical order.
 	 */
 	logvis->cursor->col = ml_convert_char_index_to_col( CURSOR_LINE(logvis) ,

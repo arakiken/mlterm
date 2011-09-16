@@ -60,13 +60,15 @@ x_prepare_for_main_config(
 	kik_conf_add_opt( conf , '&' , "borderless" , 1 , "borderless" ,
 		"override redirect [false]") ;
 	kik_conf_add_opt( conf , '*' , "type" , 0 , "type_engine" ,
-	#if  defined(USE_TYPE_XCORE)
-		"type engine [xcore]") ;
-	#elif  defined(USE_TYPE_XFT)
-		"type engine [xft]") ;
-	#elif  defined(USE_TYPE_CAIRO)
-		"type engine [cairo]") ;
+		"type engine "
+	#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
+		"[xcore]"
+	#elif  ! defined(USE_TYPE_XFT) && defined(USE_TYPE_CAIRO)
+		"[cairo]"
+	#else
+		"[xft]"
 	#endif
+		) ;
 #endif	/* USE_WIN32GUI */
 
 	kik_conf_add_opt( conf , '1' , "wscr" , 0 , "screen_width_ratio" ,
@@ -89,16 +91,20 @@ x_prepare_for_main_config(
 		"cursor foreground color") ;
 	kik_conf_add_opt( conf , '0' , "crbg" , 0 , "cursor_bg_color" ,
 		"cursor background color") ;
-#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	kik_conf_add_opt( conf , 'A' , "aa" , 1 , "use_anti_alias" , 
 		"forcibly use anti alias font by using Xft or cairo") ;
 #endif
 	kik_conf_add_opt( conf , 'B' , "sbbg" , 0 , "sb_bg_color" , 
 		"scrollbar background color") ;
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 	kik_conf_add_opt( conf , 'C' , "ind" , 1 , "use_ind" , 
 		"use indic (ligature text) [true(if use_bidi is false)]") ;
+#endif
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , 
 		"use bidi (bi-directional text) [true]") ;
+#endif
 	kik_conf_add_opt( conf , 'E' , "km" , 0 , "ENCODING" , 
 		"character encoding (AUTO/ISO-8859-*/EUC-*/UTF-8/...) [AUTO]") ;
 	kik_conf_add_opt( conf , 'F' , "sbfg" , 0 , "sb_fg_color" , 
@@ -181,8 +187,10 @@ x_prepare_for_main_config(
 		"step in changing font size in GUI configurator [1]") ;
 	kik_conf_add_opt( conf , '\0' , "iconpath" , 0 , "icon_path" ,
 		"path to an imagefile to be use as an window icon") ;
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 	kik_conf_add_opt( conf , '\0' , "bimode" , 0 , "bidi_mode" ,
 		"bidi mode [normal]") ;
+#endif
 	kik_conf_add_opt( conf , '\0' , "im" , 0 , "input_method" ,
 		"input method (xim/kbd/uim/iiimf/m17nlib/scim/none) [xim]") ;
 	kik_conf_add_opt( conf , '\0' , "parent" , 0 , "parent_window" ,
@@ -369,16 +377,6 @@ x_main_config_init(
 		}
 	}
 
-	main_config->font_present = 0 ;
-
-	if( ( value = kik_conf_get_value( conf , "use_variable_column_width")))
-	{
-		if( strcmp( value , "true") == 0)
-		{
-			main_config->font_present |= FONT_VAR_WIDTH ;
-		}
-	}
-
 	main_config->step_in_changing_font_size = 1 ;
 	
 	if( ( value = kik_conf_get_value( conf , "step_in_changing_font_size")))
@@ -395,9 +393,9 @@ x_main_config_init(
 		}
 	}
 
-#if  defined(USE_TYPE_XCORE)
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	main_config->type_engine = TYPE_XCORE ;
-#elif  defined(USE_TYPE_XFT)
+#elif   defined(USE_TYPE_XFT)
 	main_config->type_engine = TYPE_XFT ;
 #else
 	main_config->type_engine = TYPE_CAIRO ;
@@ -408,7 +406,9 @@ x_main_config_init(
 		main_config->type_engine = x_get_type_engine_by_name( value) ;
 	}
 
-#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+	main_config->font_present = 0 ;
+
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	if( ( value = kik_conf_get_value( conf , "use_anti_alias")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -417,10 +417,10 @@ x_main_config_init(
 			if( main_config->type_engine == TYPE_XCORE)
 			{
 				/* forcibly use xft or cairo */
-			#ifdef  USE_TYPE_XFT
-				main_config->type_engine = TYPE_XFT ;
-			#else
+			#if  ! defined(USE_TYPE_XFT) && defined(USE_TYPE_CAIRO)
 				main_config->type_engine = TYPE_CAIRO ;
+			#else
+				main_config->type_engine = TYPE_XFT ;
 			#endif
 			}
 		}
@@ -430,6 +430,14 @@ x_main_config_init(
 		}
 	}
 #endif
+
+	if( ( value = kik_conf_get_value( conf , "use_variable_column_width")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			main_config->font_present |= FONT_VAR_WIDTH ;
+		}
+	}
 
 	main_config->vertical_mode = 0 ;
 	
@@ -903,6 +911,7 @@ x_main_config_init(
 		main_config->encoding = ML_ISO8859_1 ;
 	}
 
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 	main_config->use_bidi = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_bidi")))
@@ -912,14 +921,20 @@ x_main_config_init(
 			main_config->use_bidi = 0 ;
 		}
 	}
+#else
+	main_config->use_bidi = 0 ;
+#endif
 
 	main_config->bidi_mode = BIDI_NORMAL_MODE ;
 	
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 	if( ( value = kik_conf_get_value( conf , "bidi_mode")))
 	{
 		main_config->bidi_mode = ml_get_bidi_mode( value) ;
 	}
+#endif
 
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 	main_config->use_ind = 1 ;
 
 	if( ( value = kik_conf_get_value( conf , "use_ind")))
@@ -929,6 +944,9 @@ x_main_config_init(
 			main_config->use_ind = 0 ;
 		}
 	}
+#else
+	main_config->use_ind = 0 ;
+#endif
 
 	/* If value is "none" or not is also checked in x_screen.c */
 	if( ( value = kik_conf_get_value( conf , "mod_meta_key")) &&

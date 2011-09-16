@@ -39,6 +39,8 @@ ml_load_ctl_bidi_func(
 		if( ( ! ( handle = kik_dl_open( CTLLIB_DIR , "ctl_bidi")) &&
 		      ! ( handle = kik_dl_open( "" , "ctl_bidi"))))
 		{
+			kik_error_printf( "BiDi: Could not load.\n") ;
+
 			return  NULL ;
 		}
 
@@ -47,6 +49,16 @@ ml_load_ctl_bidi_func(
 	#endif
 
 		func_table = kik_dl_func_symbol( handle , "ml_ctl_bidi_func_table") ;
+
+		if( (u_int32_t)func_table[CTL_BIDI_API_COMPAT_CHECK] !=
+			CTL_API_COMPAT_CHECK_MAGIC)
+		{
+			kik_dl_close( handle) ;
+			func_table = NULL ;
+			kik_error_printf( "Incompatible BiDi rendering API.\n") ;
+
+			return  NULL ;
+		}
 	}
 
 	if( func_table)
@@ -76,6 +88,8 @@ ml_load_ctl_iscii_func(
 		if( ( ! ( handle = kik_dl_open( CTLLIB_DIR , "ctl_iscii")) &&
 		      ! ( handle = kik_dl_open( "" , "ctl_iscii"))))
 		{
+			kik_error_printf( "iscii: Could not load.\n") ;
+
 			return  NULL ;
 		}
 
@@ -84,6 +98,16 @@ ml_load_ctl_iscii_func(
 	#endif
 
 		func_table = kik_dl_func_symbol( handle , "ml_ctl_iscii_func_table") ;
+
+		if( (u_int32_t)func_table[CTL_ISCII_API_COMPAT_CHECK] !=
+			CTL_API_COMPAT_CHECK_MAGIC)
+		{
+			kik_dl_close( handle) ;
+			func_table = NULL ;
+			kik_error_printf( "Incompatible indic rendering API.\n") ;
+
+			return  NULL ;
+		}
 	}
 
 	if( func_table)

@@ -439,10 +439,15 @@ draw_line(
 	int  y
 	)
 {
+	int  ret ;
+
+	ret = 0 ;
+	
 	if( ml_line_is_empty( line))
 	{
 		x_window_clear( &screen->window , 0 , y ,
 			screen->window.width , x_line_height(screen)) ;
+		ret = 1 ;
 	}
 	else
 	{
@@ -502,7 +507,7 @@ draw_line(
 					x_line_top_margin( screen) ,
 					x_line_bottom_margin( screen)))
 				{
-					return  0 ;
+					goto  end ;
 				}
 			}
 			else
@@ -516,7 +521,7 @@ draw_line(
 					x_line_top_margin( screen) ,
 					x_line_bottom_margin( screen)))
 				{
-					return  0 ;
+					goto  end ;
 				}
 			}
 		}
@@ -531,17 +536,20 @@ draw_line(
 				x_line_top_margin( screen) ,
 				x_line_bottom_margin( screen)))
 			{
-				return  0 ;
+				goto  end ;
 			}
 		}
 
+		ret = 1 ;
+
+	end:
 		if( orig)
 		{
 			ml_line_unshape( line , orig) ;
 		}
 	}
 
-	return  1 ;
+	return  ret ;
 }
 
 static int xterm_im_is_active( void *  p) ;
@@ -1368,8 +1376,7 @@ window_realized(
 
 	screen = (x_screen_t*) win ;
 
-	x_window_set_use_xft( win , (x_get_type_engine( screen->font_man) == TYPE_XFT)) ;
-	x_window_set_use_cairo( win , (x_get_type_engine( screen->font_man) == TYPE_CAIRO)) ;
+	x_window_set_type_engine( win , x_get_type_engine( screen->font_man)) ;
 
 	screen->mod_meta_mask = x_window_get_mod_meta_mask( win , screen->mod_meta_key) ;
 	screen->mod_ignore_mask = x_window_get_mod_ignore_mask( win , NULL) ;
@@ -4155,10 +4162,7 @@ change_font_present(
 		return ;
 	}
 	
-	x_window_set_use_xft( &screen->window ,
-		(x_get_type_engine( screen->font_man) == TYPE_XFT)) ;
-	x_window_set_use_cairo( &screen->window ,
-		(x_get_type_engine( screen->font_man) == TYPE_CAIRO)) ;
+	x_window_set_type_engine( &screen->window , x_get_type_engine( screen->font_man)) ;
 
 	/* redrawing all lines with new fonts. */
 	ml_term_set_modified_all_lines_in_screen( screen->term) ;
@@ -7044,38 +7048,6 @@ x_screen_new(
 
 	screen->line_space = line_space ;
 
-	screen->screen_listener.self = screen ;
-	screen->screen_listener.window_scroll_upward_region = window_scroll_upward_region ;
-	screen->screen_listener.window_scroll_downward_region = window_scroll_downward_region ;
-	screen->screen_listener.line_scrolled_out = line_scrolled_out ;
-
-	screen->xterm_listener.self = screen ;
-	screen->xterm_listener.start = start_vt100_cmd ;
-	screen->xterm_listener.stop = stop_vt100_cmd ;
-	screen->xterm_listener.resize_columns = xterm_resize_columns ;
-	screen->xterm_listener.reverse_video = xterm_reverse_video ;
-	screen->xterm_listener.set_mouse_report = xterm_set_mouse_report ;
-	screen->xterm_listener.set_window_name = xterm_set_window_name ;
-	screen->xterm_listener.set_icon_name = xterm_set_icon_name ;
-	screen->xterm_listener.bel = xterm_bel ;
-	screen->xterm_listener.im_is_active = xterm_im_is_active ;
-	screen->xterm_listener.switch_im_mode = xterm_switch_im_mode ;
-
-	memset( &screen->config_listener, 0, sizeof( ml_config_event_listener_t)) ;
-	screen->config_listener.self = screen ;
-	screen->config_listener.exec = x_screen_exec_cmd ;
-	screen->config_listener.set = set_config ;
-	screen->config_listener.get = get_config ;
-	screen->config_listener.set_font = set_font_config ;
-	screen->config_listener.get_font = get_font_config ;
-	screen->config_listener.set_color = set_color_config ;
-
-	screen->pty_listener.self = screen ;
-	screen->pty_listener.closed = pty_closed ;
-#ifdef  USE_WIN32API
-	screen->pty_listener.read_ready = pty_read_ready ;
-#endif
-
 	/* NULL initialization here for error: processing. */
 	screen->utf_parser = NULL ;
 	screen->xct_parser = NULL ;
@@ -7086,16 +7058,6 @@ x_screen_new(
 	screen->use_vertical_cursor = use_vertical_cursor ;
 
 	screen->font_man = font_man ;
-
-	if( ( screen->term = term))
-	{
-		ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
-			&screen->screen_listener , &screen->pty_listener) ;
-
-		setup_encoding_aux( screen) ;
-		
-		update_special_visual( screen) ;
-	}
 
 	screen->color_man = color_man ;
 
@@ -7146,6 +7108,9 @@ x_screen_new(
 	screen->screen_width_ratio = screen_width_ratio ;
 	screen->screen_height_ratio = screen_height_ratio ;
 
+	/* screen->term must be set before screen_height() */
+	screen->term = term ;
+
 	if( x_window_init( &screen->window ,
 		screen->term ? screen_width( screen) : x_col_width(screen) ,
 		screen->term ? screen_height( screen) : x_line_height(screen) ,
@@ -7157,6 +7122,49 @@ x_screen_new(
 	#endif
 		
 		goto  error ;
+	}
+
+	screen->screen_listener.self = screen ;
+	screen->screen_listener.window_scroll_upward_region = window_scroll_upward_region ;
+	screen->screen_listener.window_scroll_downward_region = window_scroll_downward_region ;
+	screen->screen_listener.line_scrolled_out = line_scrolled_out ;
+
+	screen->xterm_listener.self = screen ;
+	screen->xterm_listener.start = start_vt100_cmd ;
+	screen->xterm_listener.stop = stop_vt100_cmd ;
+	screen->xterm_listener.resize_columns = xterm_resize_columns ;
+	screen->xterm_listener.reverse_video = xterm_reverse_video ;
+	screen->xterm_listener.set_mouse_report = xterm_set_mouse_report ;
+	screen->xterm_listener.set_window_name = xterm_set_window_name ;
+	screen->xterm_listener.set_icon_name = xterm_set_icon_name ;
+	screen->xterm_listener.bel = xterm_bel ;
+	screen->xterm_listener.im_is_active = xterm_im_is_active ;
+	screen->xterm_listener.switch_im_mode = xterm_switch_im_mode ;
+
+	screen->config_listener.self = screen ;
+	screen->config_listener.exec = x_screen_exec_cmd ;
+	screen->config_listener.set = set_config ;
+	screen->config_listener.get = get_config ;
+	screen->config_listener.saved = NULL ;
+	screen->config_listener.set_font = set_font_config ;
+	screen->config_listener.get_font = get_font_config ;
+	screen->config_listener.set_color = set_color_config ;
+
+	screen->pty_listener.self = screen ;
+	screen->pty_listener.closed = pty_closed ;
+#ifdef  USE_WIN32API
+	screen->pty_listener.read_ready = pty_read_ready ;
+#endif
+
+	if( screen->term)
+	{
+		ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
+			&screen->screen_listener , &screen->pty_listener) ;
+
+		/* setup_encoding_aux() must be called after x_window_init() */
+		setup_encoding_aux( screen) ;
+		
+		update_special_visual( screen) ;
 	}
 
 	screen->xim_listener.self = screen ;

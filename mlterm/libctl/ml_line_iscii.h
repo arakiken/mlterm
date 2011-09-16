@@ -17,7 +17,8 @@ int  ml_line_iscii_render( ml_line_t *  line) ;
 
 int  ml_line_iscii_visual( ml_line_t *  line) ;
 
-int  ml_iscii_convert_logical_char_index_to_visual( ml_line_t *  line , int  logical_char_index) ;
+int  ml_line_iscii_convert_logical_char_index_to_visual( ml_line_t *  line ,
+		int  logical_char_index) ;
 
 
 #endif

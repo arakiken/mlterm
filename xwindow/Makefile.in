@@ -22,7 +22,7 @@ OBJ1 = x_term_manager.o x_display@WIN32TAG@.o x_window@WIN32TAG@.o x_screen.o x_
 	x_shortcut.o x_bel_mode.o x_sb_mode.o x_mod_meta_mode.o main.o \
 	x_termcap.o x_font_cache.o x_draw_str.o x_gc.o x_color_cache.o @DND_LIBS@ \
 	x_scrollbar.o x_sb_screen.o x_sb_view_factory.o x_simple_sb_view@WIN32TAG@.o \
-	x_imagelib@WIN32TAG@.o x_connect_dialog.o x_type_engine.o
+	x_imagelib@WIN32TAG@.o x_connect_dialog.o x_type_engine.o @TYPE_LOADER_OBJ@
 
 OBJ2 = x_decsp_font.o x_im.o x_im_candidate_screen.o x_im_status_screen.o x_xim.o
 
@@ -32,22 +32,22 @@ OBJ = $(OBJ1) $(OBJ2@WIN32TAG@)
 
 LKIK = @LKIK@
 LMKF = @LMKF@
-LMLTERM = ../mlterm/libmlterm.a ../mlterm/@LMLTERM_CORE@ @XCTL_LIBS@
+LMLTERM = ../mlterm/libmlterm.a ../mlterm/@LMLTERM_CORE@
 LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
-CFLAGS = $(CFLAGS_LOCAL) @AA_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @MATH_CFLAGS@ \
+CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @MATH_CFLAGS@ \
 	@IMAGELIB_CFLAGS@ @X_CFLAGS@ @GUI_CFLAGS@ @SSH2_CFLAGS@ @XUTF8_CFLAGS@ @DND_CFLAGS@ \
-	@IM_CFLAGS@ @SB_CFLAGS@ @REGEX_CFLAGS@ @CTL_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	@IM_CFLAGS@ @SB_CFLAGS@ @REGEX_CFLAGS@ @CTL_CFLAGS@ @TYPE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
 	-DLIBDIR=\"$(libdir)\" -DSYSCONFDIR=\"$(sysconfdir)\" \
 	-DLIBEXECDIR=\"$(libexecdir)\" -DXDATADIR=\"$(datadir)\"\
 	-I$(top_srcdir)/mlterm -I${top_builddir}/xwindow -I/usr/local/include
 
 LIBS1 = $(LIBS_LOCAL) $(LMLTERM) $(LMKF) $(LKIK) \
-	-L/usr/local/lib -R/usr/local/lib @SSH2_LIBS@ @XFRIBIDI_LIBS@
+	-L/usr/local/lib -R/usr/local/lib @SSH2_LIBS@
 
-LIBS2 = @IMAGELIB_LIBS@ @AA_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @MATH_LIBS@ \
+LIBS2 = @IMAGELIB_LIBS@ @DL_LIBS_IM@ @DL_LIBS_SB@ @MATH_LIBS@ @TYPE_LIBS_FOR_PROG@ \
 	@X_LIBS@ -lX11 @X_EXTRA_LIBS@
 #	@X_LIBS@ @X_PRE_LIBS@ -lX11 @X_EXTRA_LIBS@
 
@@ -68,7 +68,7 @@ debug:
 	$(MAKE) LKIK="$(LKIK_DEB)" LMKF="$(LMKF_DEB)" all
 
 $(PROG): $(OBJ) $(LMLTERM)
-	$(LIBTOOL_LINK) -o $(PROG) $(OBJ@XWINDOW_OBJ_SUFFIX@) @DEXPORT@ $(LIBS)
+	$(LIBTOOL_LINK) -o $(PROG) $(OBJ@XWINDOW_OBJ_SUFFIX@) @DEXPORT@ $(LIBS) @CTL_LIBS_FOR_PROG@
 
 .SUFFIXES: .c .o
 

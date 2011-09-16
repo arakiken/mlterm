@@ -15,6 +15,7 @@ CFLAGS = $(CFLAGS_LOCAL) 		\
 	 @MKF_CFLAGS@			\
 	 @DEB_CFLAGS@			\
 	 @X_CFLAGS@			\
+	 @TYPE_CFLAGS@			\
 	 @CFLAGS@			\
 	 @CPPFLAGS@			\
 	 -I$(top_srcdir)/mlterm		\

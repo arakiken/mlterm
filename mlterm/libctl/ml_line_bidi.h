@@ -19,7 +19,7 @@ int  ml_line_bidi_visual( ml_line_t *  line) ;
 
 int  ml_line_bidi_logical( ml_line_t *  line) ;
 
-int  ml_bidi_convert_logical_char_index_to_visual( ml_line_t *  line , int  char_index ,
+int  ml_line_bidi_convert_logical_char_index_to_visual( ml_line_t *  line , int  char_index ,
 	int *  ltr_rtl_meet_pos) ;
 
 

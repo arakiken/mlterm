@@ -15,9 +15,12 @@ mkf_load_8bits_func(
 	)
 {
 	static kik_dl_handle_t   handle ;
+	static int  is_tried ;
 
-	if( ! handle)
+	if( ! is_tried)
 	{
+		is_tried = 1 ;
+
 		if( ! ( handle = kik_dl_open( MKFLIB_DIR, "mkf_8bits")) &&
 		    ! ( handle = kik_dl_open( "", "mkf_8bits")))
 		{
@@ -25,7 +28,14 @@ mkf_load_8bits_func(
 		}
 	}
 
-	return  kik_dl_func_symbol( handle , symname) ;
+	if( handle)
+	{
+		return  kik_dl_func_symbol( handle , symname) ;
+	}
+	else
+	{
+		return  NULL ;
+	}
 }
 
 void *
@@ -34,9 +44,12 @@ mkf_load_jajp_func(
 	)
 {
 	static kik_dl_handle_t   handle ;
+	static int  is_tried ;
 
-	if( ! handle)
+	if( ! is_tried)
 	{
+		is_tried = 1 ;
+
 		if( ! ( handle = kik_dl_open( MKFLIB_DIR, "mkf_jajp")) &&
 		    ! ( handle = kik_dl_open( "", "mkf_jajp")))
 		{
@@ -44,7 +57,14 @@ mkf_load_jajp_func(
 		}
 	}
 
-	return  kik_dl_func_symbol( handle , symname) ;
+	if( handle)
+	{
+		return  kik_dl_func_symbol( handle , symname) ;
+	}
+	else
+	{
+		return  NULL ;
+	}
 }
 
 void *
@@ -53,9 +73,12 @@ mkf_load_kokr_func(
 	)
 {
 	static kik_dl_handle_t   handle ;
+	static int  is_tried ;
 
-	if( ! handle)
+	if( ! is_tried)
 	{
+		is_tried = 1 ;
+
 		if( ! ( handle = kik_dl_open( MKFLIB_DIR, "mkf_kokr")) &&
 		    ! ( handle = kik_dl_open( "", "mkf_kokr")))
 		{
@@ -63,7 +86,14 @@ mkf_load_kokr_func(
 		}
 	}
 
-	return  kik_dl_func_symbol( handle , symname) ;
+	if( handle)
+	{
+		return  kik_dl_func_symbol( handle , symname) ;
+	}
+	else
+	{
+		return  NULL ;
+	}
 }
 
 void *
@@ -72,9 +102,12 @@ mkf_load_zh_func(
 	)
 {
 	static kik_dl_handle_t   handle ;
+	static int  is_tried ;
 
-	if( ! handle)
+	if( ! is_tried)
 	{
+		is_tried = 1 ;
+
 		if( ! ( handle = kik_dl_open( MKFLIB_DIR, "mkf_zh")) &&
 		    ! ( handle = kik_dl_open( "", "mkf_zh")))
 		{
@@ -82,5 +115,12 @@ mkf_load_zh_func(
 		}
 	}
 
-	return  kik_dl_func_symbol( handle , symname) ;
+	if( handle)
+	{
+		return  kik_dl_func_symbol( handle , symname) ;
+	}
+	else
+	{
+		return  NULL ;
+	}
 }

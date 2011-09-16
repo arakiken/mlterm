@@ -20,7 +20,7 @@ CFLAGS = $(CFLAGS_LOCAL) @CFLAGS@ @CPPFLAGS@ -I$(top_srcdir)/libind \
 LIBS = $(LIBS_LOCAL)
 
 OBJ = indian.o keyboard.o lex.split.o
-TBL_OBJ = assamese.o bengali.o gujarati.o hindi.o iitkeyb.o indian.o inscript.o \
+TBL_OBJ = assamese.o bengali.o gujarati.o hindi.o iitkeyb.o inscript.o \
 	kannada.o malayalam.o oriya.o punjabi.o roman.o tamil.o telugu.o
 
 LIBNAME = libind
@@ -41,14 +41,14 @@ debug : $(LIBNAME).a
 .c.o :
 	$(LIBTOOL_CC) -c $<
 
+$(LIBNAME).a : $(OBJ)
+	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ:.o=.lo) $(LIBS)
+
 .SUFFIXES : .o .la
 
 .o.la : $(TBL_OBJ)
 	$(LIBTOOL_LINK)	-o libind_$(<:.o=.la) $(<:.o=.lo) -rpath $(LIBDIR) \
 		-module -avoid-version @NO_UNDEFINED_FLAG@ $(LIBS)
-
-$(LIBNAME).a : $(OBJ)
-	$(LIBTOOL_LINK) -o $(LIBNAME).a $(OBJ:.o=.lo) $(LIBS)
 
 clean :
 	rm -rf $(OBJ) $(OBJ:.o=.lo) $(TBL_OBJ) $(TBL_OBJ:.o=.lo) .libs *.a *.so *.la

@@ -60,6 +60,55 @@ ml_line_set_use_bidi(
 }
 
 static int
+ml_line_bidi_convert_visual_char_index_to_logical(
+	ml_line_t *  line ,
+	int  char_index
+	)
+{
+	int (*func)( ml_line_t * , int) ;
+
+	if( ! ( func = ml_load_ctl_bidi_func( ML_LINE_BIDI_CONVERT_VISUAL_CHAR_INDEX_TO_LOGICAL)))
+	{
+		return  char_index ;
+	}
+	
+	return  (*func)( line , char_index) ;
+}
+
+static int
+ml_line_bidi_copy_logical_str(
+	ml_line_t *  line ,
+	ml_char_t *  dst ,
+	int  beg ,		/* visual position */
+	u_int  len
+	)
+{
+	int (*func)( ml_line_t * , ml_char_t * , int , u_int) ;
+
+	if( ! ( func = ml_load_ctl_bidi_func( ML_LINE_BIDI_COPY_LOGICAL_STR)))
+	{
+		return  0 ;
+	}
+	
+	return  (*func)( line , dst , beg , len) ;
+}
+
+static int
+ml_line_bidi_is_rtl(
+	ml_line_t *  line
+	)
+{
+	int (*func)( ml_line_t *) ;
+
+	if( ! ( func = ml_load_ctl_bidi_func( ML_LINE_BIDI_IS_RTL)))
+	{
+		return  0 ;
+	}
+
+	return  (*func)( line) ;
+}
+
+static int
 ml_bidi_copy(
 	ml_bidi_state_t  dst ,
 	ml_bidi_state_t  src
@@ -90,6 +139,7 @@ ml_bidi_reset(
 	return  (*func)( state) ;
 }
 
+
 static int
 ml_line_set_use_iscii(
 	ml_line_t *  line ,
@@ -113,7 +163,7 @@ ml_iscii_copy(
 	)
 {
 	int (*func)( ml_iscii_state_t , ml_iscii_state_t) ;
-
+	
 	if( ! (func = ml_load_ctl_iscii_func( ML_ISCII_COPY)))
 	{
 		return  0 ;
@@ -128,7 +178,7 @@ ml_iscii_reset(
 	)
 {
 	int (*func)( ml_iscii_state_t) ;
-
+	
 	if( ! (func = ml_load_ctl_iscii_func( ML_ISCII_RESET)))
 	{
 		return  0 ;
@@ -141,14 +191,21 @@ ml_iscii_reset(
 
 #ifndef  USE_FRIBIDI
 #define  ml_line_set_use_bidi( line , flag)  (0)
+#define  ml_line_bidi_convert_visual_char_index_to_logical( line , char_index)  (char_index)
+#define  ml_line_bidi_copy_logical_str( line , dst , beg , len)  (0)
+#define  ml_line_bidi_is_rtl( line)  (0)
 #define  ml_bidi_copy( dst , src)  (0)
 #define  ml_bidi_reset( state)  (0)
+#else
+/* Link functions in libctl/ml_*bidi.c */
 #endif
 
 #ifndef  USE_IND
 #define  ml_line_set_use_iscii( line , flag)  (0)
 #define  ml_iscii_copy( dst , src)  (0)
 #define  ml_iscii_reset( state)  (0)
+#else
+/* Link functions in libctl/ml_*iscii.c */
 #endif
 
 #endif
@@ -1088,7 +1145,7 @@ ml_line_copy_line(
 
 	if( ml_line_is_using_bidi( src))
 	{
-		if( ml_line_set_use_bidi( dst , 1))
+		if( ml_line_is_using_bidi( dst) || ml_line_set_use_bidi( dst , 1))
 		{
 			/*
 			 * Don't use ml_line_bidi_render() here,
@@ -1104,7 +1161,7 @@ ml_line_copy_line(
 
 	if( ml_line_is_using_iscii( src))
 	{
-		if( ml_line_set_use_iscii( dst , 1))
+		if( ml_line_is_using_iscii( dst) || ml_line_set_use_iscii( dst , 1))
 		{
 			/*
 			 * Don't use ml_line_iscii_render() here,
@@ -1230,16 +1287,11 @@ ml_line_convert_visual_char_index_to_logical(
 	int  char_index
 	)
 {
-#ifndef  NO_DYNAMIC_LOAD_CTL
-	int (*func)( ml_line_t * , int) ;
-
-	if( ml_line_is_using_bidi( line) &&
-	    ( func = ml_load_ctl_bidi_func( ML_BIDI_CONVERT_VISUAL_CHAR_INDEX_TO_LOGICAL)))
+	if( ml_line_is_using_bidi( line))
 	{
-		return  (*func)( line , char_index) ;
+		return  ml_line_bidi_convert_visual_char_index_to_logical( line , char_index) ;
 	}
 	else
-#endif
 	{
 		return  char_index ;
 	}
@@ -1250,16 +1302,11 @@ ml_line_is_rtl(
 	ml_line_t *  line
 	)
 {
-#ifndef  NO_DYNAMIC_LOAD_CTL
-	int (*func)( ml_line_t *) ;
-
-	if( ml_line_is_using_bidi( line) &&
-	    ( func = ml_load_ctl_bidi_func( ML_LINE_IS_RTL)))
+	if( ml_line_is_using_bidi( line))
 	{
-		return  (*func)( line) ;
+		return  ml_line_bidi_is_rtl( line) ;
 	}
 	else
-#endif
 	{
 		return  0 ;
 	}
@@ -1277,17 +1324,13 @@ ml_line_copy_logical_str(
 	u_int  len
 	)
 {
-#ifndef  NO_DYNAMIC_LOAD_CTL
-	int (*func)( ml_line_t * , ml_char_t * , int , u_int) ;
-	int  ret ;
-
-	if( ml_line_is_using_bidi( line) &&
-	    ( func = ml_load_ctl_bidi_func( ML_LINE_BIDI_COPY_LOGICAL_STR)) &&
-	    ( ret = (*func)( line , dst , beg , len)))
+	if( ml_line_is_using_bidi( line))
 	{
-		return  ret ;
+		if( ml_line_bidi_copy_logical_str( line , dst , beg , len))
+		{
+			return  1 ;
+		}
 	}
-#endif
 
 	return  ml_str_copy( dst , line->chars + beg , len) ;
 }
@@ -1302,10 +1345,10 @@ ml_line_convert_logical_char_index_to_visual(
 #ifdef  NO_DYNAMIC_LOAD_CTL
 	return
 	#ifdef  USE_IND
-		ml_iscii_convert_logical_char_index_to_visual( line ,
+		ml_line_iscii_convert_logical_char_index_to_visual( line ,
 	#endif
 		#ifdef  USE_FRIBIDI
-				ml_bidi_convert_logical_char_index_to_visual( line ,
+				ml_line_bidi_convert_logical_char_index_to_visual( line ,
 		#endif
 					char_index
 		#ifdef  USE_FRIBIDI
@@ -1321,14 +1364,14 @@ ml_line_convert_logical_char_index_to_visual(
 
 	if( ml_line_is_using_bidi( line) &&
 	    ( bidi_func = ml_load_ctl_bidi_func(
-				ML_BIDI_CONVERT_LOGICAL_CHAR_INDEX_TO_VISUAL)))
+				ML_LINE_BIDI_CONVERT_LOGICAL_CHAR_INDEX_TO_VISUAL)))
 	{
 		char_index = (*bidi_func)( line , char_index , meet_pos) ;
 	}
 
 	if( ml_line_is_using_iscii( line) &&
 	    ( iscii_func = ml_load_ctl_bidi_func(
-				ML_ISCII_CONVERT_LOGICAL_CHAR_INDEX_TO_VISUAL)))
+				ML_LINE_ISCII_CONVERT_LOGICAL_CHAR_INDEX_TO_VISUAL)))
 	{
 		char_index = (*iscii_func)( line , char_index) ;
 	}

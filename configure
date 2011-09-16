@@ -750,7 +750,7 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 MAKE_DIRS
-XCTL_LIBS
+CTL_LIBS_FOR_PROG
 CTL_LIBS
 IND_CFLAGS
 IND_LIBS
@@ -833,19 +833,23 @@ ML_PTY_OBJ
 SSH2_CFLAGS
 SSH2_LIBS
 PROG
-AA_LIBS
-AA_CFLAGS
+NODL_OBJ
+TYPE_LIBS_FOR_VTE
+TYPE_LIBS_FOR_PROG
+TYPE_LIBS
+TYPE_CFLAGS
 CAIRO_LIBS
 CAIRO_CFLAGS
 xft_config
 XFT_LIBS
 XFT_CFLAGS
-XFRIBIDI_LIBS
+TYPE_LOADER_OBJ
+CTL_LIBS_FOR_VTE
+CTL_CFLAGS
 fribidi_config
 FRIBIDI_LIBS
 FRIBIDI_CFLAGS
-VTE_CTL_LIBS
-CTL_CFLAGS
+CTL_LOADER_OBJ
 LMLTERM_CORE
 REGEX_CFLAGS
 MATH_CFLAGS
@@ -972,6 +976,7 @@ enable_debug
 with_imagelib
 enable_dl_ctl
 enable_fribidi
+enable_dl_type
 enable_anti_alias
 with_type_engines
 enable_ssh2
@@ -1661,6 +1666,7 @@ Optional Features:
   --enable-debug          debug [default=disabled]
   --disable-dl-ctl        dynamic loading ctl library [default=enable]
   --enable-fribidi        bidi [default=disabled]
+  --disable-dl-type       dynamic loading type engine library [default=enable]
   --enable-anti-alias     (obsoleted by --with-type-engines)anti alias [default=disabled]
   --enable-ssh2           libssh2 [default=disabled]
   --enable-utmp           utmp (Experimental) [default=disabled]
@@ -4578,7 +4584,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4581 "configure"' > conftest.$ac_ext
+  echo '#line 4587 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7147,11 +7153,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7150: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7156: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7154: \$? = $ac_status" >&5
+   echo "$as_me:7160: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7437,11 +7443,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7440: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7446: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7444: \$? = $ac_status" >&5
+   echo "$as_me:7450: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7541,11 +7547,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7544: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7550: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7548: \$? = $ac_status" >&5
+   echo "$as_me:7554: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9566,7 +9572,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9569 "configure"
+#line 9575 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9666,7 +9672,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9669 "configure"
+#line 9675 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12007,11 +12013,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12010: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12016: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12014: \$? = $ac_status" >&5
+   echo "$as_me:12020: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12111,11 +12117,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12114: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12120: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12118: \$? = $ac_status" >&5
+   echo "$as_me:12124: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13694,11 +13700,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13697: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13703: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13701: \$? = $ac_status" >&5
+   echo "$as_me:13707: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13798,11 +13804,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13801: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13807: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13805: \$? = $ac_status" >&5
+   echo "$as_me:13811: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15959,11 +15965,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15962: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15968: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15966: \$? = $ac_status" >&5
+   echo "$as_me:15972: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16249,11 +16255,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16252: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16258: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16256: \$? = $ac_status" >&5
+   echo "$as_me:16262: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16353,11 +16359,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16356: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16362: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16360: \$? = $ac_status" >&5
+   echo "$as_me:16366: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -20388,12 +20394,12 @@ fi
 
 if test "$dl_ctl" = "yes" ; then
 	LMLTERM_CORE=libmlterm_core.la
+	CTL_LOADER_OBJ=ml_ctl_loader.o
 else
 	LMLTERM_CORE=libmlterm_core.a
 	CTL_CFLAGS="-DNO_DYNAMIC_LOAD_CTL"
-	VTE_CTL_LIBS=../mlterm/libctl/*.lo
+	CTL_LIBS_FOR_VTE="../mlterm/libctl/*.lo"
 fi
-
 
 
 
@@ -20524,17 +20530,35 @@ if test "$have_fribidi" = "yes" ; then
 	else
 		CTL_CFLAGS="-DUSE_FRIBIDI ${CTL_CFLAGS}"
 		CTL_LIBS="libctl_bidi.a ${CTL_LIBS}"
-		XCTL_LIBS="../mlterm/libctl/libctl_bidi.a ${XCTL_LIBS}"
-		XFRIBIDI_LIBS="$FRIBIDI_LIBS"
-		FRIBIDI_LIBS=""
+		CTL_LIBS_FOR_PROG="../mlterm/libctl/libctl_bidi.a ${FRIBIDI_LIBS} ${CTL_LIBS_FOR_PROG}"
+		CTL_LIBS_FOR_VTE="${FRIBIDI_LIBS} ${CTL_LIBS_FOR_VTE}"
 	fi
 fi
 
 # "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
-FRIBIDI_CFLAGS="`echo ${FRIBIDI_CFLAGS} -DUSE_FRIBIDI | tr -d '\r'`"
+FRIBIDI_CFLAGS="`echo ${FRIBIDI_CFLAGS} | tr -d '\r'`"
 FRIBIDI_LIBS="`echo ${FRIBIDI_LIBS} | tr -d '\r'`"
 
 
+
+
+
+# Check whether --enable-dl-type was given.
+if test "${enable_dl_type+set}" = set; then :
+  enableval=$enable_dl_type; dl_type=$enable_dl_type
+else
+  dl_type="yes"
+fi
+
+if test "$dl_type" = "yes" ; then
+	TYPE_LOADER_OBJ=x_type_loader.o
+	if test "$gui" = "win32" ; then
+		TYPE_CFLAGS="-DNO_DYNAMIC_LOAD_TYPE"
+	fi
+else
+	TYPE_CFLAGS="-DNO_DYNAMIC_LOAD_TYPE"
+	TYPE_LIBS_FOR_VTE="../xwindow/libtype/*.lo"
+fi
 
 
 # --enable-anti-alias is backward compatibility for --with-type-engines
@@ -20632,11 +20656,7 @@ else
 $as_echo "yes" >&6; }
 	have_xft=yes
 fi
-	if test "$have_xft" = "yes" ; then
-		AA_CFLAGS="-DUSE_TYPE_XFT  ${XFT_CFLAGS} ${AA_CFLAGS}"
-		AA_LIBS="${XFT_LIBS} ${AA_LIBS}"
-		type_engines_result="$type_engines_result xft"
-	else
+	if test "$have_xft" != "yes" ; then
 		# Extract the first word of "xft-config", so it can be a program name with args.
 set dummy xft-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -20675,9 +20695,9 @@ fi
 
 
 		if test "$xft_config" = "yes" ; then
-			AA_CFLAGS="`xft-config --cflags` -DUSE_TYPE_XFT ${AA_CFLAGS}"
-			AA_LIBS="`xft-config --libs` ${AA_LIBS}"
-			type_engines_result="$type_engines_result xft"
+			XFT_CFLAGS="`xft-config --cflags`"
+			XFT_LIBS="`xft-config --libs`"
+			have_xft=yes
 		else
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for XftDrawCreate in -lXft" >&5
 $as_echo_n "checking for XftDrawCreate in -lXft... " >&6; }
@@ -20717,15 +20737,25 @@ fi
 $as_echo "$ac_cv_lib_Xft_XftDrawCreate" >&6; }
 if test "x$ac_cv_lib_Xft_XftDrawCreate" = x""yes; then :
 
-				AA_CFLAGS="-DUSE_TYPE_XFT ${AA_CFLAGS}"
+				have_xft=yes
 				# -lfontconfig is necessary because x_font.c refers FcXXX
 				# functions directly.
-				AA_LIBS="-lXft -lfontconfig ${AA_LIBS}"
-				type_engines_result="$type_engines_result xft"
+				XFT_LIBS="-lXft -lfontconfig"
 
 fi
 
 		fi
+	fi
+
+	if test "$have_xft" = "yes" ; then
+		if test "$dl_type" = "yes" ; then
+			TYPE_LIBS="libtype_xft.la ${TYPE_LIBS}"
+		else
+			NODL_OBJ="x_window_xft.o ${NODL_OBJ}"
+			TYPE_LIBS_FOR_VTE="${XFT_LIBS} ${TYPE_LIBS_FOR_VTE}"
+		fi
+		TYPE_CFLAGS="-DUSE_TYPE_XFT ${TYPE_CFLAGS}"
+		type_engines_result="$type_engines_result xft"
 	fi
 	;;
 cairo)
@@ -20796,11 +20826,7 @@ else
 $as_echo "yes" >&6; }
 	have_cairo=yes
 fi
-	if test "$have_cairo" = "yes" ; then
-		AA_CFLAGS="-DUSE_TYPE_CAIRO ${CAIRO_CFLAGS} ${AA_CFLAGS}"
-		AA_LIBS="${CAIRO_LIBS} ${AA_LIBS}"
-		type_engines_result="$type_engines_result cairo"
-	else
+	if test "$have_cairo" != "yes" ; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cairo_create in -lcairo" >&5
 $as_echo_n "checking for cairo_create in -lcairo... " >&6; }
 if test "${ac_cv_lib_cairo_cairo_create+set}" = set; then :
@@ -20839,18 +20865,28 @@ fi
 $as_echo "$ac_cv_lib_cairo_cairo_create" >&6; }
 if test "x$ac_cv_lib_cairo_cairo_create" = x""yes; then :
 
-			AA_CFLAGS="-DUSE_TYPE_CAIRO ${AA_CFLAGS}"
+			have_cairo=yes
 			# -lfontconfig is necessary because x_font.c refers FcXXX
 			# functions directly.
-			AA_LIBS="-lcairo -lfontconfig ${AA_LIBS}"
-			type_engines_result="$type_engines_result cairo"
+			CAIRO_LIBS="-lcairo -lfontconfig"
 
 fi
 
 	fi
+
+	if test "$have_cairo" = "yes" ; then
+		if test "$dl_type" = "yes" ; then
+			TYPE_LIBS="libtype_cairo.la ${TYPE_LIBS}"
+		else
+			NODL_OBJ="x_window_cairo.o ${NODL_OBJ}"
+			TYPE_LIBS_FOR_VTE="${CAIRO_LIBS} ${TYPE_LIBS_FOR_VTE}"
+		fi
+		TYPE_CFLAGS="-DUSE_TYPE_CAIRO ${TYPE_CFLAGS}"
+		type_engines_result="$type_engines_result cairo"
+	fi
 	;;
 xcore)
-	AA_CFLAGS="-DUSE_TYPE_XCORE ${AA_CFLAGS}"
+	TYPE_CFLAGS="-DUSE_TYPE_XCORE ${TYPE_CFLAGS}"
 	type_engines_result="$type_engines_result xcore"
 	;;
 *)
@@ -20859,10 +20895,22 @@ xcore)
 esac
 done
 
-if test "${AA_CFLAGS}" = "" ; then
-	echo "no type engine specified."
-	exit 1
+if test "${NODL_OBJ}" != "" ; then
+	TYPE_LIBS=libtype.a
+	TYPE_LIBS_FOR_PROG="libtype/libtype.a ${CAIRO_LIBS} ${XFT_LIBS}"
 fi
+
+if test "${TYPE_CFLAGS}" = "" ; then
+	echo "No type engine is specified."
+	exit  1
+fi
+
+
+
+
+
+
+
 
 
 
@@ -21051,7 +21099,6 @@ fi
 		# "tr ..." is hack for cygwin.
 		# (removing \r which is output by win32 native pkg-config.)
 		VTE_CFLAGS="`echo $VTE_CFLAGS | tr -d '\r'`"
-
 
 	fi
 fi
@@ -24975,8 +25022,8 @@ subdirs="$subdirs ${SUBDIRS}"
 
 fi
 
-MAKE_DIRS="mlterm mlterm/libctl xwindow man etc ${MAKE_DIRS}"
-OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
+MAKE_DIRS="mlterm mlterm/libctl xwindow/libtype xwindow man etc ${MAKE_DIRS}"
+OUTPUT_FILES="Makefile mlterm/Makefile mlterm/libctl/Makefile xwindow/libtype/Makefile xwindow/Makefile man/Makefile etc/Makefile ${OUTPUT_FILES}"
 
 # Check whether --enable-ind was given.
 if test "${enable_ind+set}" = set; then :
@@ -24995,7 +25042,7 @@ if test "$ind" = "yes" ; then
 	else
 		CTL_CFLAGS="-DUSE_IND ${CTL_CFLAGS}"
 		CTL_LIBS="libctl_iscii.a ${CTL_LIBS}"
-		XCTL_LIBS="../mlterm/libctl/libctl_iscii.a ${XCTL_LIBS}"
+		CTL_LIBS_FOR_PROG="../mlterm/libctl/libctl_iscii.a ${CTL_LIBS_FOR_PROG}"
 	fi
 fi
 

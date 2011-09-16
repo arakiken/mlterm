@@ -1729,7 +1729,7 @@ x_term_manager_init(
 	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" ,
 		"compose dec special font [false]") ;
 #endif
-#ifdef  USE_TYPE_XFT
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , 
 		"use CP932-Unicode mapping table for JISX0208 [false]") ;
 #endif
@@ -1859,6 +1859,7 @@ x_term_manager_init(
 		}
 	}
 
+#ifndef  USE_WIN32GUI
 	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
 	{
 		if( strcmp( value , "true") == 0)
@@ -1866,8 +1867,9 @@ x_term_manager_init(
 			x_compose_dec_special_font() ;
 		}
 	}
+#endif
 
-#ifdef  USE_TYPE_XFT
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")) == NULL ||
 		strcmp( value , "true") == 0)
 	{

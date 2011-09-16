@@ -306,7 +306,7 @@ ml_iscii_copy(
 		free( dst->num_of_chars_array) ;
 		p = NULL ;
 	}
-	else if( ! ( p = realloc( dst->num_of_chars_array , sizeof( u_int8_t) * src->size)))
+	else if( ( p = realloc( dst->num_of_chars_array , sizeof( u_int8_t) * src->size)))
 	{
 		memcpy( p , src->num_of_chars_array , sizeof( u_int8_t) * src->size) ;
 	}

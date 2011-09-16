@@ -1579,11 +1579,10 @@ vte_terminal_class_init(
 	x_prepare_for_main_config( conf) ;
 	x_main_config_init( &main_config , conf , 1 , argv) ;
 
-#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 	if( main_config.type_engine == TYPE_XCORE)
 	{
 		/*
-		 * Hack
+		 * XXX Hack
 		 * Default value of type_engine is TYPE_XCORE in normal mlterm,
 		 * but default value in libvte compatible library of mlterm is TYPE_XFT.
 		 */
@@ -1592,14 +1591,18 @@ vte_terminal_class_init(
 		if( ( value = kik_conf_get_value( conf , "type_engine")) == NULL ||
 			strcmp( value , "xcore") != 0)
 		{
-		#ifdef  USE_TYPE_XFT
+			/*
+			 * cairo is prefered if mlterm works as libvte because gtk+
+			 * usually depends on cairo.
+			 */
+		#if  ! defined(USE_TYPE_CAIRO) && defined(USE_TYPE_XFT)
 			main_config.type_engine = TYPE_XFT ;
 		#else
 			main_config.type_engine = TYPE_CAIRO ;
 		#endif
 		}
 	}
-#endif
+
 	/* Default value of vte "audible-bell" is TRUE, while "visible-bell" is FALSE. */
 	main_config.bel_mode = BEL_SOUND ;
 

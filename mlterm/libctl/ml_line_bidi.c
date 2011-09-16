@@ -167,7 +167,7 @@ ml_line_bidi_logical(
 }
 
 int
-ml_bidi_convert_logical_char_index_to_visual(
+ml_line_bidi_convert_logical_char_index_to_visual(
 	ml_line_t *  line ,
 	int  char_index ,
 	int *  ltr_rtl_meet_pos
@@ -330,7 +330,7 @@ ml_bidi_convert_logical_char_index_to_visual(
  * module can be loaded unnecessarily).
  */
 int
-ml_bidi_convert_visual_char_index_to_logical(
+ml_line_bidi_convert_visual_char_index_to_logical(
 	ml_line_t *  line ,
 	int  char_index
 	)
@@ -354,7 +354,7 @@ ml_bidi_convert_visual_char_index_to_logical(
  * module can be loaded unnecessarily).
  */
 int
-ml_line_is_rtl(
+ml_line_bidi_is_rtl(
 	ml_line_t *  line
 	)
 {

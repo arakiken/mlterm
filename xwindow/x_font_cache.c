@@ -180,8 +180,8 @@ x_acquire_font_cache(
 
 	if( ! init_usascii_font( font_cache))
 	{
+		xfont_table_delete( font_cache->xfont_table) ;
 		free( font_cache) ;
-		kik_map_delete( font_cache->xfont_table) ;
 
 		return  NULL ;
 	}

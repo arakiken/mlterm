@@ -113,7 +113,7 @@ x_font_manager_new(
 {
 	x_font_manager_t *  font_man ;
 	
-	if( ( font_man = malloc( sizeof( x_font_manager_t))) == NULL)
+	if( ! ( font_man = malloc( sizeof( x_font_manager_t))))
 	{
 	#ifdef  DEBUG
 		kik_warn_printf( KIK_DEBUG_TAG " malloc() failed.\n") ;
@@ -122,25 +122,48 @@ x_font_manager_new(
 		return  NULL ;
 	}
 
-	if( ( font_man->font_config = x_acquire_font_config( type_engine , font_present)) == NULL)
+	if( ( ! ( font_man->font_config = x_acquire_font_config( type_engine , font_present)) ||
+	      ! ( font_man->font_cache = x_acquire_font_cache( display , font_size ,
+						usascii_font_cs , font_man->font_config ,
+						use_multi_col_char , letter_space))))
 	{
-		free( font_man) ;
+		x_type_engine_t  engine ;
 
-		return  NULL ;
-	}
-
-	if( ( font_man->font_cache = x_acquire_font_cache( display , font_size , usascii_font_cs ,
-					font_man->font_config , use_multi_col_char ,
-					letter_space)) == NULL)
-	{
 	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " x_acquire_font_cache() failed.\n") ;
+		kik_debug_printf( KIK_DEBUG_TAG " Could not handle %s fonts.\n" ,
+			x_get_type_engine_name( type_engine)) ;
 	#endif
 
-		x_release_font_config( font_man->font_config) ;
-		free( font_man) ;
-		
-		return  NULL ;
+		for( engine = TYPE_XCORE ; ; engine ++)
+		{
+			if( engine == type_engine)
+			{
+				continue ;
+			}
+
+			if( font_man->font_config)
+			{
+				x_release_font_config( font_man->font_config) ;
+			}
+
+			if( engine >= TYPE_ENGINE_MAX)
+			{
+				free( font_man) ;
+
+				return  NULL ;
+			}
+
+			if( ( font_man->font_config = x_acquire_font_config(
+								engine , font_present)) &&
+			    ( font_man->font_cache = x_acquire_font_cache( display , font_size ,
+						usascii_font_cs , font_man->font_config ,
+						use_multi_col_char , letter_space)) )
+			{
+				break ;
+			}
+		}
+
+		kik_msg_printf( "Fall back to %s.\n" , x_get_type_engine_name( engine)) ;
 	}
 
 	font_man->usascii_font_cs_changable = usascii_font_cs_changable ;
@@ -254,10 +277,10 @@ x_change_font_present(
 	else if( ( font_present & FONT_AA) &&
 		font_man->font_config->type_engine == TYPE_XCORE && type_engine == TYPE_XCORE)
 	{
-	#ifdef  USE_TYPE_XFT
-		type_engine = TYPE_XFT ;
-	#else
+	#if  ! defined(USE_TYPE_XFT) && defined(USE_TYPE_CAIRO)
 		type_engine = TYPE_CAIRO ;
+	#else
+		type_engine = TYPE_XFT ;
 	#endif
 	}
 #endif

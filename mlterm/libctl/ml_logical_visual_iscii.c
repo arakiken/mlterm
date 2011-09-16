@@ -252,7 +252,7 @@ iscii_visual(
 	iscii_logvis->cursor_logical_char_index = logvis->cursor->char_index ;
 	iscii_logvis->cursor_logical_col = logvis->cursor->col ;
 	
-	logvis->cursor->char_index = ml_iscii_convert_logical_char_index_to_visual(
+	logvis->cursor->char_index = ml_line_iscii_convert_logical_char_index_to_visual(
 					CURSOR_LINE(logvis) , logvis->cursor->char_index) ;
 	logvis->cursor->col = ml_convert_char_index_to_col( CURSOR_LINE(logvis) ,
 				logvis->cursor->char_index , 0) + logvis->cursor->col_in_char ;

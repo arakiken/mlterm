@@ -13,14 +13,6 @@
 #include  <mkf/mkf_conv.h>
 #endif
 
-#ifdef  USE_TYPE_XFT
-#include  <X11/Xft/Xft.h>
-#endif
-#ifdef  USE_TYPE_CAIRO
-#include  <cairo/cairo.h>
-#include  <cairo/cairo-ft.h>	/* FcChar32 */
-#endif
-
 #include  <kiklib/kik_types.h>	/* u_int */
 #include  <mkf/mkf_charset.h>	/* mkf_charset_t */
 #include  <ml_font.h>
@@ -38,6 +30,9 @@ typedef enum x_font_present
 
 } x_font_present_t ;
 
+typedef struct _XftFont *  xft_font_ptr_t ;
+typedef struct _cairo_scaled_font *  cairo_scaled_font_ptr_t ;
+
 typedef struct x_font
 {
 	/*
@@ -50,17 +45,19 @@ typedef struct x_font
 	/*
 	 * Public(readonly)
 	 */
-#ifdef  USE_TYPE_XFT
-	XftFont *  xft_font ;
-#endif
-#ifdef  USE_TYPE_CAIRO
-	cairo_scaled_font_t *  cairo_font ;
-#endif
 #ifdef  USE_WIN32GUI
 	Font  fid ;
 	mkf_conv_t *  conv ;
-#elif   USE_TYPE_XCORE
+#else
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
+	xft_font_ptr_t  xft_font ;
+#endif
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
+	cairo_scaled_font_ptr_t  cairo_font ;
+#endif
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 	XFontStruct *  xfont ;
+#endif
 #endif
 
 	x_decsp_font_t *  decsp_font ;

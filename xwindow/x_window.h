@@ -68,6 +68,8 @@ typedef struct x_dnd_context *  x_dnd_context_ptr_t ;
 /* Defined in x_picture.h */
 typedef struct x_picture_modifier *  x_picture_modifier_ptr_t ;
 typedef struct x_icon_picture *  x_icon_picture_ptr_t ;
+typedef struct _XftDraw *  xft_draw_ptr_t ;
+typedef struct _cairo *  cairo_ptr_t ;
 
 typedef struct  x_window
 {
@@ -75,15 +77,11 @@ typedef struct  x_window
 	
 	Window  my_window ;
 
-#ifdef  USE_TYPE_XFT
-	XftDraw *  xft_draw ;
-#else
-	void *  xft_draw ;		/* dummy to keep the size of x_window_t */
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
+	xft_draw_ptr_t  xft_draw ;
 #endif
-#ifdef  USE_TYPE_CAIRO
-	cairo_t *  cairo_draw ;
-#else
-	void *  cairo_draw ;		/* dummy to keep the size of x_window_t */
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
+	cairo_ptr_t  cairo_draw ;
 #endif
 
 	x_color_t  fg_color ;
@@ -201,9 +199,7 @@ int  x_window_init( x_window_t *  win ,
 
 int  x_window_final( x_window_t *  win) ;
 
-int  x_window_set_use_xft( x_window_t *  win , int  use_xft) ;
-
-int  x_window_set_use_cairo( x_window_t *  win , int  use_cairo) ;
+int  x_window_set_type_engine( x_window_t *  win , x_type_engine_t  type_engine) ;
 
 int  x_window_init_event_mask( x_window_t *  win , long  event_mask) ;
 
@@ -319,7 +315,7 @@ int  x_window_draw_decsp_image_string( x_window_t *  win , x_font_t *  font ,
  * Use x_draw_str* functions usually.
  */
 
-#ifdef  USE_TYPE_XCORE
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
 int  x_window_draw_string( x_window_t *  win , x_font_t *  font , x_color_t *  fg_color ,
 	int  x , int  y , u_char *  str , u_int  len) ;
 
@@ -335,12 +331,12 @@ int  x_window_draw_image_string16( x_window_t *  win , x_font_t *  font ,
 	XChar2b *  str , u_int  len) ;
 #endif
 
-#if  defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
+#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT) || defined(USE_TYPE_CAIRO)
 int  x_window_ft_draw_string8( x_window_t *  win , x_font_t *  font ,
 	x_color_t *  fg_color , int  x , int  y , u_char *  str , size_t  len) ;
 
 int  x_window_ft_draw_string32( x_window_t *  win , x_font_t *  font ,
-	x_color_t *  fg_color , int  x , int  y , FcChar32 *  str , u_int  len) ;
+	x_color_t *  fg_color , int  x , int  y , /* FcChar32 */ u_int32_t *  str , u_int  len) ;
 #endif
 
 int  x_window_draw_rect_frame( x_window_t *  win , int  x1 , int  y1 , int  x2 , int  y2) ;

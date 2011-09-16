@@ -254,10 +254,8 @@ window_realized(
 
 	stat_screen = (x_im_status_screen_t*) win ;
 
-	x_window_set_use_xft( &stat_screen->window ,
-		x_get_type_engine( stat_screen->font_man) == TYPE_XFT) ;
-	x_window_set_use_cairo( &stat_screen->window ,
-		x_get_type_engine( stat_screen->font_man) == TYPE_CAIRO) ;
+	x_window_set_type_engine( &stat_screen->window ,
+		x_get_type_engine( stat_screen->font_man)) ;
 
 	x_window_set_fg_color( win , x_get_xcolor( stat_screen->color_man , ML_FG_COLOR)) ;
 	x_window_set_bg_color( win , x_get_xcolor( stat_screen->color_man , ML_BG_COLOR)) ;
