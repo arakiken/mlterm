@@ -26,8 +26,9 @@ LKIK_DEB = -lkik_deb
 LMKF_DEB = -lmkf_deb
 
 # XDATADIR is to avoid conflicting with DATADIR structure in w32api/objidl.h.
-CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @XFT_CFLAGS@ @CAIRO_CFLAGS@ \
-	@TYPE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ -Wall -g -DLIBDIR=\"$(libdir)\" -I/usr/local/include \
+CFLAGS = $(CFLAGS_LOCAL) @KIK_CFLAGS@ @MKF_CFLAGS@ @DEB_CFLAGS@ @X_CFLAGS@ @XFT_CFLAGS@ \
+	@CAIRO_CFLAGS@ @TYPE_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
+	-DLIBDIR=\"$(libdir)\" -I/usr/local/include \
 	-I${top_srcdir}/mlterm
 
 XFT_LIBS = @XFT_LIBS@
