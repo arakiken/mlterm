@@ -33,7 +33,7 @@ ml_line_t *  ml_log_get( ml_logs_t *  logs , int  at) ;
 
 u_int  ml_get_num_of_logged_lines( ml_logs_t *  logs) ;
 
-u_int  ml_get_log_size( ml_logs_t *  logs) ;
+#define  ml_get_log_size( logs)  ((logs)->num_of_rows)
 
 int  ml_log_reverse_color( ml_logs_t *  logs , int  char_index , int  row) ;
 

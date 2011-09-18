@@ -110,10 +110,14 @@ ml_change_log_size(
 	else if( new_num_of_rows > logs->num_of_rows)
 	{
 		ml_line_t *  new_lines ;
-		if(  sizeof( ml_line_t) * new_num_of_rows <  sizeof( ml_line_t) * logs->num_of_rows){
+
+		if( sizeof( ml_line_t) * new_num_of_rows <
+		    sizeof( ml_line_t) * logs->num_of_rows)
+		{
 			/* integer overflow */
 			return  0 ;
 		}
+
 		if( ( new_lines = realloc( logs->lines , sizeof( ml_line_t) * new_num_of_rows))
 			== NULL)
 		{
@@ -279,14 +283,6 @@ ml_get_num_of_logged_lines(
 	{
 		return  kik_get_filled_cycle_index( logs->index) ;
 	}
-}
-
-u_int
-ml_get_log_size(
-	ml_logs_t *  logs
-	)
-{
-	return  logs->num_of_rows ;
 }
 
 int

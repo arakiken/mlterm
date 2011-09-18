@@ -77,12 +77,12 @@ typedef struct  x_window
 	
 	Window  my_window ;
 
-#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
+	/*
+	 * Don't remove if USE_XFT and USE_CAIRO are not defined to keep the size of x_window_t
+	 * for x_im_xxx_screen_t.
+	 */
 	xft_draw_ptr_t  xft_draw ;
-#endif
-#if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
 	cairo_ptr_t  cairo_draw ;
-#endif
 
 	x_color_t  fg_color ;
 	x_color_t  bg_color ;
@@ -132,11 +132,11 @@ typedef struct  x_window
 	/*
 	 * XDND
 	 */
-#ifndef  DISABLE_XDND
+	/*
+	 * Don't remove if DISABLE_XDND is defined to keep the size of x_window_t for
+	 * x_im_xxx_screen_t.
+	 */
 	x_dnd_context_ptr_t  dnd ;
-#else
-	void *  dnd ; /* dummy to keep the size of x_window_t */
-#endif
 
 	/*
 	 * XClassHint
@@ -181,11 +181,11 @@ typedef struct  x_window
 	void (*utf_selection_requested)( struct x_window * , XSelectionRequestEvent * , Atom) ;
 	void (*xct_selection_notified)( struct x_window * , u_char * , size_t) ;
 	void (*utf_selection_notified)( struct x_window * , u_char * , size_t) ;
-#ifndef  DISABLE_XDND
+	/*
+	 * Don't remove if DISABLE_XDND is defined to keep the size of x_window_t
+	 * for x_im_xxx_screen_t.
+	 */
 	void (*set_xdnd_config)( struct x_window * , char * ,  char * , char * ) ;
-#else
-	void *  set_xdnd_config ; /* dummy to the keep size of x_window_t */
-#endif
 	void (*window_deleted)( struct x_window *) ;
 	void (*mapping_notify)( struct x_window *) ;
 

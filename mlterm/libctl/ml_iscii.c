@@ -169,7 +169,7 @@ ml_iscii_new(void)
 {
 	ml_iscii_state_t  state ;
 	
-	if( ! ( state = malloc( sizeof( ml_iscii_state_t))))
+	if( ! ( state = malloc( sizeof( *state))))
 	{
 		return  NULL ;
 	}
@@ -338,7 +338,7 @@ ml_isciikey_state_new(
 {
 	ml_isciikey_state_t  state ;
 
-	if( ( state = malloc( sizeof( struct ml_isciikey_state))) == NULL)
+	if( ( state = malloc( sizeof( *state))) == NULL)
 	{
 		return  NULL ;
 	}

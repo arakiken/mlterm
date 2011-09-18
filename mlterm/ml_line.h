@@ -43,12 +43,17 @@ typedef struct  ml_line
 	ml_char_t *  chars ;
 
 	/* public(readonly) */
-	u_int16_t  num_of_chars ;		/* 0 - 65536 */
-	u_int16_t  num_of_filled_chars ;	/* 0 - 65536 */
+	u_int16_t  num_of_chars ;		/* 0 - 65535 */
+	u_int16_t  num_of_filled_chars ;	/* 0 - 65535 */
 
 	/* private */
-	u_int16_t  change_beg_col ;	/* 0 - 65536 */
-	u_int16_t  change_end_col ;	/* 0 - 65536 */
+	/*
+	 * Type of col should be int, but u_int16_t is used here to shrink memory
+	 * because it is appropriate to assume that change_{beg|end}_col never
+	 * becomes minus value.
+	 */
+	u_int16_t  change_beg_col ;		/* 0 - 65535 */
+	u_int16_t  change_end_col ;		/* 0 - 65535 */
 
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND) || defined(USE_FRIBIDI)
 	/* Don't touch from ml_line.c. ctl_info is used by ml_line_bidi.c and ml_line_iscii.c. */

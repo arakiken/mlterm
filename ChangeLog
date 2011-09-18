@@ -1,3 +1,14 @@
+2011-09-19  Araki Ken  <arakiken@users.sf.net>
+
+	* libctl/ml_bidi.o, libctl/ml_iscii.o: Memory size passed to malloc() is fixed
+	  in ml_bidi_new() and ml_iscii_new().
+
+	* mlterm/Makefile.in: ml_bidi.o and ml_iscii.o are moved from OBJ_CORE to OBJ.
+
+	* x_window.h: xft_draw and cairo_draw are never removed from x_window_t.
+
+	* im_scim.cpp: KeyEvent::layout is initialized explicitly in im_scim_key_event().
+
 2011-09-16  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c:

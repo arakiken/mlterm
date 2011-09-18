@@ -18,8 +18,8 @@ typedef struct  ml_model
 	ml_line_t *  lines ;
 	
 	/* public(readonly) */
-	u_int  num_of_cols ;
-	u_int  num_of_rows ;
+	u_int16_t  num_of_cols ;	/* 0 - 65536 */
+	u_int16_t  num_of_rows ;	/* 0 - 65536 */
 	
 	/* private */
 	int  beg_row ;			/* used for scrolling */

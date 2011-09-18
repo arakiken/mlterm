@@ -32,9 +32,10 @@ typedef struct x_color_cache
 	x_color_t  black ;
 	
 	x_color_config_t *  color_config ;
+
 	u_int8_t  fade_ratio ;
 
-	u_int  ref_count ;
+	u_int16_t  ref_count ;		/* 0 - 65535 */
 
 } x_color_cache_t ;
 

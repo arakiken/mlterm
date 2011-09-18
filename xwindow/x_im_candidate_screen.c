@@ -874,14 +874,6 @@ window_realized(
 }
 
 static void
-window_finalized(
-	x_window_t *  win
-	)
-{
-	/* do nothing */
-}
-
-static void
 window_exposed(
 	x_window_t *  win ,
 	int  x ,
@@ -954,15 +946,6 @@ button_pressed(
 
 }
 
-static void
-button_released(
-	x_window_t *  win ,
-	XButtonEvent *  event
-	)
-{
-	/* do nothing */
-}
-
 
 /* --- global functions --- */
 
@@ -1030,11 +1013,15 @@ x_im_candidate_screen_new(
 
 	/* callbacks for window events */
 	cand_screen->window.window_realized = window_realized ;
+#if  0
 	cand_screen->window.window_finalized = window_finalized ;
+#endif
 	cand_screen->window.window_exposed = window_exposed ;
 	cand_screen->window.window_focused = window_focused ;
 	cand_screen->window.window_unfocused = window_unfocused ;
+#if  0
 	cand_screen->window.button_released = button_released ;
+#endif
 	cand_screen->window.button_pressed = button_pressed ;
 #if 0
 	cand_screen->window.button_press_continued = button_press_continued ;

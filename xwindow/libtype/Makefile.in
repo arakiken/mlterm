@@ -76,6 +76,9 @@ install : $(LIBDIR)
 uninstall :
 	rm -f $(LIBDIR)/*type_*
 
+$(LIBDIR) :
+	mkdir -p $(LIBDIR)
+
 wc :
 	find . -name "*.[ch]" -a \! -name "test_*" | xargs wc -l
 

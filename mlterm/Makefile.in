@@ -9,7 +9,7 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
-LIBDIR = $(DESTDIR)/$(libdir)
+LIBDIR = $(DESTDIR)$(libdir)
 
 VPATH = $(top_srcdir)/mlterm
 
@@ -18,11 +18,11 @@ CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @SSH2_CFLAGS@ \
 	-I/usr/local/include -DLIBEXECDIR=\"$(libexecdir)\" -DLIBDIR=\"$(libdir)\"
 LIBS = $(LIBS_LOCAL)
 
-OBJ_CORE = ml_bidi.o ml_char.o ml_str.o ml_iscii.o ml_line.o ml_model.o @CTL_LOADER_OBJ@
+OBJ_CORE = ml_char.o ml_str.o ml_line.o ml_model.o @CTL_LOADER_OBJ@
 OBJ = ml_char_encoding.o ml_color.o ml_edit.o ml_edit_util.o ml_edit_scroll.o \
 	ml_cursor.o ml_logical_visual.o ml_logs.o ml_screen.o ml_shape.o \
 	ml_str_parser.o ml_term.o ml_vt100_parser.o ml_term_manager.o \
-	ml_config_menu.o ml_config_proto.o ml_pty.o @ML_PTY_OBJ@
+	ml_bidi.o ml_iscii.o ml_config_menu.o ml_config_proto.o ml_pty.o @ML_PTY_OBJ@
 
 LIBNAME = libmlterm
 
@@ -45,12 +45,16 @@ $(LIBNAME)_core.la : $(OBJ_CORE)
 	$(LIBTOOL_LINK) -o $(LIBNAME)_core.la $(OBJ_CORE:.o=.lo) \
 	@NO_UNDEFINED_FLAG@ -rpath $(libdir) -avoid-version @LKIK@ $(LIBS)
 
-install :
+install : $(LIBDIR)
 	if test "`echo @LMLTERM_CORE@|grep .la`" != "" ; then \
 		$(LIBTOOL_INSTALL) @LMLTERM_CORE@ $(LIBDIR) ; \
 	fi
 
 uninstall :
+	rm -f $(LIBDIR)/*mlterm-core.*
+
+$(LIBDIR) :
+	mkdir -p $(LIBDIR)
 
 clean :
 	rm -rf $(OBJ) $(OBJ:.o=.lo) $(OBJ_CORE) $(OBJ_CORE:.o=.lo) .libs *.a *.la

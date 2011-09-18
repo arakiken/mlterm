@@ -264,14 +264,6 @@ window_realized(
 }
 
 static void
-window_finalized(
-	x_window_t *  win
-	)
-{
-	/* do nothing */
-}
-
-static void
 window_exposed(
 	x_window_t *  win ,
 	int  x ,
@@ -359,7 +351,9 @@ x_im_status_screen_new(
 
 	/* callbacks for window events */
 	stat_screen->window.window_realized = window_realized ;
+#if  0
 	stat_screen->window.window_finalized = window_finalized ;
+#endif
 	stat_screen->window.window_exposed = window_exposed ;
 	stat_screen->window.window_focused = window_focused ;
 	stat_screen->window.window_unfocused = window_unfocused ;

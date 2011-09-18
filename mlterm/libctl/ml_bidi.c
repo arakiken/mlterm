@@ -27,7 +27,7 @@ ml_bidi_new(void)
 {
 	ml_bidi_state_t  state ;
 
-	if( ( state = malloc( sizeof( ml_bidi_state_t))) == NULL)
+	if( ( state = malloc( sizeof( *state))) == NULL)
 	{
 		return  NULL ;
 	}

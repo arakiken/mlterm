@@ -87,7 +87,7 @@ static PanelClient  panel_client ;
 static bool  is_vertical_lookup ;
 static int  valid_key_mask = 0 ;
 
-static int  id = 0 ; /* XXX */
+static int  next_new_id = 0 ; /* XXX */
 
 
 // --- static functions ---
@@ -720,7 +720,8 @@ im_scim_create_context(
 
 	context->factory = be->get_default_factory( lang , String( "UTF-8")) ;
 
-	if( ! ( context->instance = context->factory->create_instance( String( "UTF-8") , id)))
+	if( ! ( context->instance = context->factory->create_instance( String( "UTF-8") ,
+					next_new_id)))
 	{
 		kik_error_printf( "Could not create new instance.\n") ;
 		return  NULL ;
@@ -728,7 +729,7 @@ im_scim_create_context(
 
 	context_table.push_back( context) ;
 
-	context->id = id ;
+	context->id = next_new_id ;
 	context->on = 0 ;
 	context->focused = 0 ;
 	context->self = self ;
@@ -736,7 +737,7 @@ im_scim_create_context(
 
 	set_callbacks( context) ;
 
-	id ++ ;
+	next_new_id ++ ;
 
 	return  (im_scim_context_t) context ;
 }
@@ -872,6 +873,7 @@ im_scim_key_event(
 
 	scim_key.mask = event->state & valid_key_mask;
 	scim_key.code = ksym ;
+	scim_key.layout = SCIM_KEYBOARD_Default ;
 
 	if( hotkey( context , scim_key) == 0)
 	{
