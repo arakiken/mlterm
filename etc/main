@@ -179,6 +179,8 @@ scrollbar_view_name = sample
 
 # use_clipboard = false
 
+# logging_msg = true
+
 # use_unicode_property = false
 
 # default_server =

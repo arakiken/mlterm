@@ -636,7 +636,7 @@ comment $Id$
         領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
 
       o logging_msg (*true*/false)
-        mlterm が出力するメッセージを ~/.mlterm/log.[pid] に出力する。
+        mlterm が出力するメッセージを ~/.mlterm/msg[pid].log に出力する。
 
       o default_server
         ssh 等により直接ログインするサーバを指定する。

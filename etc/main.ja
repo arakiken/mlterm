@@ -252,6 +252,9 @@ scrollbar_view_name = sample
 # 領域選択した文字列をコピーする際に PRIMARY だけでなく CLIPBOARD も使用する。
 # use_clipboard = false
 
+# mlterm が出力するメッセージを ~/.mlterm/msg[pid].log に出力する。
+# logging_msg = true
+
 # UTF-8 以外のエンコーディングの文字について、対応する UNICODE のプロパティ(文字
 # 幅等)を適用する。
 # use_unicode_property = false

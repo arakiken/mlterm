@@ -8,10 +8,9 @@ ver 3.0.7
 * Support application escape mode. (CSI ? 7727 h , CSI ? 7727 l)
 * Support OSC 10, OSC 11 and OSC 12.
 * Add "logging_msg" option whose default value is true.
-* Support loadable modules of BiDi and Indic.
-* Support loadable modules of xft and cairo.
-* Integrate OSC 5384 - 5391 to OSC 5379 - 5383.
-* Drop OSC 5382.
+* Support dynamic loading of BiDi and Indic modules.
+* Support dynamic loading of xft and cairo modules.
+* Integrate OSC 5384 - 5391 to OSC 5379 - 5383 and drop OSC 5382.
 * Change format of "select_pty", "search_prev", "search_next"  "snapshot" in  
   OSC 5379 sequence as follows.
   select_pty=<pty dev name> => select_pty <pty dev name>

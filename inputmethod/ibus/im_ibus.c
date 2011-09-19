@@ -388,15 +388,15 @@ key_event(
 	{
 		if( is_enabled != ibus_input_context_is_enabled( ibus->context) ||
 		   (ibus_input_context_is_enabled( ibus->context) &&
-		    (ibus->im.preedit.filled_len > 0 || key_char >= 0x20)))
+		    (ibus->im.preedit.filled_len > 0 || key_char > 0x20)))
 		{
 			return  0 ;
 		}
 		else
 		{
 			/*
-			 * Even if input context is enabled, enter, backspace etc keys are
-			 * avaiable as far as no characters are input.
+			 * Even if input context is enabled, enter, backspace, space etc
+			 * keys are avaiable as far as no characters are input.
 			 */
 		}
 	}

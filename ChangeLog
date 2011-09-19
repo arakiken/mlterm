@@ -1,5 +1,18 @@
 2011-09-19  Araki Ken  <arakiken@users.sf.net>
 
+	* 3.0.7 released.
+	  (tag "rel-3_0_7")
+
+	* configure.in, mlterm.spec, xwindow/version.h.in,
+	  doc/en/ReleaseNote: updated for 3.0.7.
+
+	* man/mlterm.1, doc/ja/README.ja: Updated.
+
+	* inputmethod/ibus/im_ibus.c: ' ' character is available even if input context
+	  is enabled in key_event().
+
+2011-09-19  Araki Ken  <arakiken@users.sf.net>
+
 	* libctl/ml_bidi.o, libctl/ml_iscii.o: Memory size passed to malloc() is fixed
 	  in ml_bidi_new() and ml_iscii_new().
 
