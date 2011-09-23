@@ -45,7 +45,7 @@
 # (normal,cmd_l,cmd_r)
 # bidi_mode = normal
 
-# use_ind = true
+# use_ind = false
 
 # use_combining = true
 

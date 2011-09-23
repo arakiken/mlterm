@@ -1346,24 +1346,16 @@ update_special_visual(
 	if( ml_term_get_vertical_mode( screen->term))
 	{
 		font_present |= FONT_VERTICAL ;
-
-		/* Vertical mode needs fixed-pitch column width. */
-		if( font_present & FONT_VAR_WIDTH)
-		{
-			kik_msg_printf( "Set use_variable_column_widht=false forcibly.\n") ;
-			font_present &= ~FONT_VAR_WIDTH ;
-		}
 	}
-	else if( IS_ISCII_ENCODING( ml_term_get_encoding( screen->term))
-	    || (ml_term_get_encoding( screen->term) == ML_UTF8 &&
-		! ml_term_is_using_bidi( screen->term) && ml_term_is_using_ind( screen->term)) )
+	else if( ( IS_ISCII_ENCODING( ml_term_get_encoding( screen->term))
+	           || (ml_term_get_encoding( screen->term) == ML_UTF8 &&
+		      ! ml_term_is_using_bidi( screen->term) &&
+		      ml_term_is_using_ind( screen->term)) ) &&
+		 ! ( font_present & FONT_VAR_WIDTH))
 	{
-		/* ISCII needs variable column width. */
-		if( ! ( font_present & FONT_VAR_WIDTH))
-		{
-			kik_msg_printf( "Set use_variable_column_widht=true forcibly.\n") ;
-			font_present |= FONT_VAR_WIDTH ;
-		}
+		/* Indic characters need variable column width. */
+		kik_msg_printf( "Set use_variable_column_width=true forcibly.\n") ;
+		font_present |= FONT_VAR_WIDTH ;
 	}
 
 	change_font_present( screen , x_get_type_engine( screen->font_man) , font_present) ;
@@ -4158,7 +4150,11 @@ change_font_present(
 {
 	if( ml_term_get_vertical_mode( screen->term))
 	{
-		font_present &= ~FONT_VAR_WIDTH ;
+		if( font_present & FONT_VAR_WIDTH)
+		{
+			kik_msg_printf( "Set use_variable_column_width=false forcibly.\n") ;
+			font_present &= ~FONT_VAR_WIDTH ;
+		}
 	}
 
 	if( ! x_change_font_present( screen->font_man , type_engine , font_present))

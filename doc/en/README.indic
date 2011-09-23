@@ -20,10 +20,10 @@ Following is a instruction of setting up mlterm indic support.
   o -E option specifies character encoding.
     "utf8" or "isciixxx"(like "isciihindi") are available.
   o -V option enables variable width column.
-    This option is automatically turned on in ISCII encoding. (optional)
+    This option is automatically turned on.
   o -m option enables character combining, which is necessary since mlterm
     diverts character combining framework for rendering ISCII glyph internally.
-    This option is automatically turned on in ISCII encoding. (optional)
+    This option is automatically turned on.
   o -w [font size] specifies font size you want to use. (optional)
   o --im option specifies input method to be used. For ISCII use kbd input
     method.

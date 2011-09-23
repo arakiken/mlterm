@@ -1,4 +1,5 @@
 ver 3.0.8
+* Change default value of "use_ind" option from true to false.
 * Merge SF Patches:
   #3412453 (Thanks to Ahmed El-Mahmoudy)
 * Bug fixes:

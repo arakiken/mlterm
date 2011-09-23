@@ -61,7 +61,7 @@
 
 # インド諸語の表示を行う。
 # エンコーディングが UTF-8 の場合は use_bidi が false の場合のみ有効。
-# use_ind = true
+# use_ind = false
 
 # 結合文字を処理する  
 # use_combining = true

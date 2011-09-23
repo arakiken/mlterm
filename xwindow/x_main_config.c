@@ -99,7 +99,7 @@ x_prepare_for_main_config(
 		"scrollbar background color") ;
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 	kik_conf_add_opt( conf , 'C' , "ind" , 1 , "use_ind" , 
-		"use indic (ligature text) [true(if use_bidi is false)]") ;
+		"use indic (ligature text) [false]") ;
 #endif
 #if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_FRIBIDI)
 	kik_conf_add_opt( conf , 'D' , "bi" , 1 , "use_bidi" , 
@@ -929,18 +929,16 @@ x_main_config_init(
 	}
 #endif
 
-#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
-	main_config->use_ind = 1 ;
+	main_config->use_ind = 0 ;
 
+#if  ! defined(NO_DYNAMIC_LOAD_CTL) || defined(USE_IND)
 	if( ( value = kik_conf_get_value( conf , "use_ind")))
 	{
-		if( strcmp( value , "false") == 0)
+		if( strcmp( value , "true") == 0)
 		{
-			main_config->use_ind = 0 ;
+			main_config->use_ind = 1 ;
 		}
 	}
-#else
-	main_config->use_ind = 0 ;
 #endif
 
 	/* If value is "none" or not is also checked in x_screen.c */

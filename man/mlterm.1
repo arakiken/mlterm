@@ -1,5 +1,5 @@
 .\" mlterm.1   -*- nroff -*-
-.TH MLTERM 1 "2011-09-19"
+.TH MLTERM 1 "2011-09-24"
 .SH NAME
 mlterm \- Multi Lingual TERMinal emulator on X
 .SH SYNOPSIS
@@ -44,8 +44,8 @@ The RGB value's format should be "#RRGGBB", "#RRGGBBAA", "rgb:RR/GG/BB" or "rgba
 .TP
 \fB\-C\fR, \fB\-\-ind\fR(=\fIbool\fR)
 Enable indic rendering.
-The default is \fBtrue\fR. (Note that this option is avaialable
-only if \-\-bi option is not enabled.)
+The default is \fBfalse\fR. (Note that this option is avaialable
+only if \-\-bi option is disabled.)
 .TP
 \fB\-D\fR, \fB\-\-bi\fR(=\fIbool\fR)
 Enable BiDi (bi-directional) processing on UTF8 encoding
@@ -90,7 +90,6 @@ even for combining characters (though not for fullwidth characters;
 see \fB\-Z\fR/\fB\-\-multicol\fR option for handling of fullwidth characters).
 Thus, this mode enables you to use combining characters with
 softwares which do not support combining characters.
-When specifying this option, \fB\-m\fR/\fB\-\-comb\fR option should be used together.
 The default is \fBfalse\fR.
 .TP
 \fB\-K\fR, \fB\-\-metakey\fR=\fIvalue\fR
@@ -170,7 +169,8 @@ The default is \fBfalse\fR.
 \fB\-V\fR, \fB\-\-varwidth\fR(=\fIbool\fR)
 Use variable column width.  You may want to use this
 option when you use proportional fonts.  This option
-is automatically turned on when using ISCII encoding.
+is automatically turned on when using ISCII or UTF-8
+encoding with indic rendering.
 The default is \fBfalse\fR.
 .TP
 \fB\-W\fR, \fB\-\-sep\fR=\fIcharacterlist\fR
@@ -373,6 +373,8 @@ for TIS-620, TCVN5712, and UTF-8).
 Note that fonts which contain combining characters which extend
 backward cannot be used, since \fBmlterm\fR does combine characters
 by controlling the writing positions.
+This option is automatically turned on when using ISCII or UTF-8
+encoding with indic rendering or \fB\-\-dyncomb\fR option.
 The default is \fBtrue\fR.
 .TP
 \fB\-n\fR, \fB\-\-noucsfont\fR(=\fIbool\fR)
