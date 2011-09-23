@@ -76,7 +76,7 @@ container_delete(
 	)
 {
 	container_logical_visual_t *  container ;
-	u_int  count ;
+	int  count ;
 
 	container = (container_logical_visual_t*) logvis ;
 
@@ -211,7 +211,7 @@ container_logical(
 	)
 {
 	container_logical_visual_t *  container ;
-	u_int  count ;
+	int  count ;
 
 	if( ! logvis->is_visual)
 	{

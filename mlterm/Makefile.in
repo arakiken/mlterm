@@ -27,7 +27,7 @@ OBJ = ml_char_encoding.o ml_color.o ml_edit.o ml_edit_util.o ml_edit_scroll.o \
 LIBNAME = libmlterm
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
-LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 

@@ -1448,7 +1448,7 @@ ml_edit_set_absolute_origin(
 	ml_edit_t *  edit
 	)
 {
-	edit->is_relative_origin = 1 ;
+	edit->is_relative_origin = 0 ;
 
 	return  1 ;
 }

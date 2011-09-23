@@ -1,3 +1,10 @@
+ver 3.0.8
+* Merge SF Patches:
+  #3412453 (Thanks to Ahmed El-Mahmoudy)
+* Bug fixes:
+  Fix wrong origin setting by CSI ? 6 l. (Thanks to Konosuke Watanabe san)
+  Fix a problem which causes segmentation fault if both -J and -bi options are specified.
+
 ver 3.0.7
 * Support bracketed paste mode. (CSI ? 2004 h , CSI ? 2004 l)
 * Support Button-event and Any-event mouse tracking.

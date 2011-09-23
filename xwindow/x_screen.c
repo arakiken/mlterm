@@ -1323,7 +1323,7 @@ set_icon(
 }
 
 
-/* referred in update_special_visual */
+/* referred in update_special_visual. */
 static void  change_font_present( x_screen_t *  screen , x_type_engine_t  type_engine ,
 					x_font_present_t  font_present) ;
 
@@ -1332,31 +1332,41 @@ update_special_visual(
 	x_screen_t *  screen
 	)
 {
+	x_font_present_t  font_present ;
+
 	if( ! ml_term_update_special_visual( screen->term))
 	{
+		/* If special visual is not changed, following processing is not necessary. */
 		return  0 ;
 	}
 
-	/*
-	 * vertical font is automatically used under vertical mode.
-	 * similar processing is done in x_term_manager.c:config_init.
-	 */
+	font_present = x_get_font_present( screen->font_man) & ~FONT_VERTICAL ;
+
+	/* Similar if-else conditions exist in ml_term_update_special_visual. */
 	if( ml_term_get_vertical_mode( screen->term))
 	{
-		if( ! ( x_get_font_present( screen->font_man) & FONT_VERTICAL))
+		font_present |= FONT_VERTICAL ;
+
+		/* Vertical mode needs fixed-pitch column width. */
+		if( font_present & FONT_VAR_WIDTH)
 		{
-			change_font_present( screen , x_get_type_engine( screen->font_man) ,
-				( x_get_font_present( screen->font_man) | FONT_VERTICAL) & ~FONT_VAR_WIDTH) ;
+			kik_msg_printf( "Set use_variable_column_widht=false forcibly.\n") ;
+			font_present &= ~FONT_VAR_WIDTH ;
 		}
 	}
-	else
+	else if( IS_ISCII_ENCODING( ml_term_get_encoding( screen->term))
+	    || (ml_term_get_encoding( screen->term) == ML_UTF8 &&
+		! ml_term_is_using_bidi( screen->term) && ml_term_is_using_ind( screen->term)) )
 	{
-		if( x_get_font_present( screen->font_man) & FONT_VERTICAL)
+		/* ISCII needs variable column width. */
+		if( ! ( font_present & FONT_VAR_WIDTH))
 		{
-			change_font_present( screen , x_get_type_engine( screen->font_man) ,
-				x_get_font_present( screen->font_man) & ~FONT_VERTICAL) ;
+			kik_msg_printf( "Set use_variable_column_widht=true forcibly.\n") ;
+			font_present |= FONT_VAR_WIDTH ;
 		}
 	}
+
+	change_font_present( screen , x_get_type_engine( screen->font_man) , font_present) ;
 
 	return  1 ;
 }
@@ -4156,7 +4166,7 @@ change_font_present(
 		return ;
 	}
 
-	/* XXX This function is called from x_screen_new via setup_encoding_aux. */
+	/* XXX This function is called from x_screen_new via update_special_visual. */
 	if( ! screen->window.my_window)
 	{
 		return ;
@@ -4190,56 +4200,6 @@ usascii_font_cs_changed(
 #endif
 }
 
-/*
- * ISCII needs variable column width and character combining.
- * BiDi needs character combining.
- */
-static void
-setup_encoding_aux(
-	x_screen_t *  screen
-	)
-{
-	ml_char_encoding_t  encoding ;
-
-	encoding = ml_term_get_encoding( screen->term) ;
-
-	if( IS_ISCII_ENCODING( encoding))
-	{
-		goto  var_col_width ;
-	}
-	else if( encoding == ML_UTF8)
-	{
-		if( ! ml_term_is_using_bidi( screen->term))
-		{
-			if( ml_term_is_using_ind( screen->term))
-			{
-				goto  var_col_width ;
-			}
-		}
-		else
-		{
-			goto  char_comb ;
-		}
-	}
-
-	return ;
-
-var_col_width:
-	if( ! ( x_get_font_present( screen->font_man) & FONT_VAR_WIDTH))
-	{
-		kik_msg_printf( "Set use_variable_column_widht=true forcibly.\n") ;
-		change_font_present( screen , x_get_type_engine( screen->font_man) ,
-			x_get_font_present( screen->font_man) | FONT_VAR_WIDTH) ;
-	}
-
-char_comb:
-	if( ! ml_term_is_using_char_combining( screen->term))
-	{
-		kik_msg_printf( "Set use_combining=true forcibly.\n") ;
-		ml_term_set_use_char_combining( screen->term , 1) ;
-	}
-}
-
 static void
 change_char_encoding(
 	x_screen_t *  screen ,
@@ -4259,8 +4219,6 @@ change_char_encoding(
 	{
 		kik_error_printf( "VT100 encoding and Terminal screen encoding are discrepant.\n") ;
 	}
-
-	setup_encoding_aux( screen) ;
 
 	if( update_special_visual( screen))
 	{
@@ -4688,8 +4646,6 @@ change_bidi_flag(
 
 	ml_term_set_use_bidi( screen->term , use_bidi) ;
 	ml_term_set_bidi_mode( screen->term , bidi_mode) ;
-
-	setup_encoding_aux( screen) ;
 	
 	if( do_update && update_special_visual( screen))
 	{
@@ -4711,8 +4667,6 @@ change_ind_flag(
 	}
 
 	ml_term_set_use_ind( screen->term , use_ind) ;
-
-	setup_encoding_aux( screen) ;
 
 	if( update_special_visual( screen))
 	{
@@ -7160,10 +7114,11 @@ x_screen_new(
 	{
 		ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
 			&screen->screen_listener , &screen->pty_listener) ;
-
-		/* setup_encoding_aux() must be called after x_window_init() */
-		setup_encoding_aux( screen) ;
 		
+		/*
+		 * setup_encoding_aux() in update_special_visual() must be called
+		 * after x_window_init()
+		 */
 		update_special_visual( screen) ;
 	}
 
@@ -7501,8 +7456,6 @@ x_screen_attach(
 
 	ml_term_attach( term , &screen->xterm_listener , &screen->config_listener ,
 		&screen->screen_listener , &screen->pty_listener) ;
-
-	setup_encoding_aux( screen) ;
 
 	if( ! screen->window.my_window)
 	{

@@ -690,6 +690,7 @@ ml_term_update_special_visual(
 	ml_logical_visual_t *  logvis ;
 	int  had_logvis = 0 ;
 	int  has_logvis = 0 ;
+	int  need_comb = 0 ;
 
 	if( term->shape)
 	{
@@ -700,19 +701,101 @@ ml_term_update_special_visual(
 	term->screen->use_dynamic_comb = 0 ;
 	had_logvis = ml_screen_delete_logical_visual( term->screen) ;
 
-	if( IS_ISCII_ENCODING( ml_term_get_encoding( term))
-	    || (ml_term_get_encoding( term) == ML_UTF8 && ! term->use_bidi && term->use_ind) )
+	if( term->use_dynamic_comb)
 	{
-		/*
-		 * It is impossible to process ISCII with other special visuals.
-		 */
+		if( ( logvis = ml_logvis_comb_new()))
+		{
+			if( ml_screen_add_logical_visual( term->screen , logvis))
+			{
+				has_logvis = 1 ;
+				need_comb = 1 ;
+				term->screen->use_dynamic_comb = 1 ;
+			}
+			else
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" ml_screen_add_logical_visual failed.\n") ;
+			#endif
 
+				(*logvis->delete)( logvis) ;
+			}
+		}
+	#ifdef  DEBUG
+		else
+		{
+			kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_comb_new() failed.\n") ;
+		}
+	#endif
+	}
+
+	/* Vertical mode, BiDi and ISCII can't coexist. */
+
+	/* Similar if-else conditions exist in update_special_visual in x_screen.c. */
+	if( term->vertical_mode)
+	{
+		if( ( logvis = ml_logvis_vert_new( term->vertical_mode)))
+		{
+			if( ml_screen_add_logical_visual( term->screen , logvis))
+			{
+				has_logvis = 1 ;
+			}
+			else
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" ml_screen_add_logical_visual failed.\n") ;
+			#endif
+
+				(*logvis->delete)( logvis) ;
+			}
+		}
+	#ifdef  DEBUG
+		else
+		{
+			kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_vert_new() failed.\n") ;
+		}
+	#endif
+	}
+	else if( term->use_bidi && ml_term_get_encoding( term) == ML_UTF8)
+	{
+		if( ( term->shape = ml_arabic_shape_new()) &&
+		    ( logvis = ml_logvis_bidi_new( term->bidi_mode)))
+		{
+			if( ml_screen_add_logical_visual( term->screen , logvis))
+			{
+				has_logvis = 1 ;
+				need_comb = 1 ;
+			}
+			else
+			{
+			#ifdef  DEBUG
+				kik_warn_printf( KIK_DEBUG_TAG
+					" ml_screen_add_logical_visual failed.\n") ;
+			#endif
+
+				(*logvis->delete)( logvis) ;
+			}
+		}
+	#ifdef  DEBUG
+		else
+		{
+			kik_warn_printf( KIK_DEBUG_TAG
+				" x_arabic_shape_new()/ml_logvis_bidi_new() failed.\n") ;
+		}
+	#endif
+	}
+	else if( IS_ISCII_ENCODING( ml_term_get_encoding( term))
+	         || (/* ! term->use_bidi && */ term->use_ind &&
+	             ml_term_get_encoding( term) == ML_UTF8) )
+	{
 		if( ( term->shape = ml_iscii_shape_new()) &&
 		    ( logvis = ml_logvis_iscii_new()))
 		{
 			if( ml_screen_add_logical_visual( term->screen , logvis))
 			{
 				has_logvis = 1 ;
+				need_comb = 1 ;
 			}
 			else
 			{
@@ -732,87 +815,11 @@ ml_term_update_special_visual(
 		}
 	#endif
 	}
-	else
+
+	if( need_comb && ! ml_term_is_using_char_combining( term))
 	{
-		if( term->use_dynamic_comb)
-		{
-			if( ( logvis = ml_logvis_comb_new()))
-			{
-				if( ml_screen_add_logical_visual( term->screen , logvis))
-				{
-					has_logvis = 1 ;
-					term->screen->use_dynamic_comb = 1 ;
-				}
-				else
-				{
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" ml_screen_add_logical_visual failed.\n") ;
-				#endif
-
-					(*logvis->delete)( logvis) ;
-				}
-			}
-		#ifdef  DEBUG
-			else
-			{
-				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_comb_new() failed.\n") ;
-			}
-		#endif
-		}
-		
-		if( term->vertical_mode)
-		{
-			if( ( logvis = ml_logvis_vert_new( term->vertical_mode)))
-			{
-				if( ml_screen_add_logical_visual( term->screen , logvis))
-				{
-					has_logvis = 1 ;
-				}
-				else
-				{
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" ml_screen_add_logical_visual failed.\n") ;
-				#endif
-
-					(*logvis->delete)( logvis) ;
-				}
-			}
-		#ifdef  DEBUG
-			else
-			{
-				kik_warn_printf( KIK_DEBUG_TAG " ml_logvis_vert_new() failed.\n") ;
-			}
-		#endif
-		}
-		else if( term->use_bidi && ml_term_get_encoding( term) == ML_UTF8)
-		{
-			if( ( term->shape = ml_arabic_shape_new()) &&
-			    ( logvis = ml_logvis_bidi_new( term->bidi_mode)))
-			{
-				if( ml_screen_add_logical_visual( term->screen , logvis))
-				{
-					has_logvis = 1 ;
-				}
-				else
-				{
-				#ifdef  DEBUG
-					kik_warn_printf( KIK_DEBUG_TAG
-						" ml_screen_add_logical_visual failed.\n") ;
-				#endif
-
-					(*logvis->delete)( logvis) ;
-				}
-			}
-		#ifdef  DEBUG
-			else
-			{
-				kik_warn_printf( KIK_DEBUG_TAG
-					" x_arabic_shape_new()/ml_logvis_bidi_new() failed.\n") ;
-			}
-		#endif
-		}
+		kik_msg_printf( "Set use_combining=true forcibly.\n") ;
+		ml_term_set_use_char_combining( term , 1) ;
 	}
 
 	if( ! has_logvis)

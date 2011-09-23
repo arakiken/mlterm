@@ -445,12 +445,7 @@ x_main_config_init(
 	{
 		if( ( main_config->vertical_mode = ml_get_vertical_mode( value)))
 		{
-			/*
-			 * vertical font is automatically used under vertical mode.
-			 * similler processing is done in x_screen.c:change_vertical_mode.
-			 */
 			main_config->font_present |= FONT_VERTICAL ;
-			main_config->font_present &= ~FONT_VAR_WIDTH ;
 		}
 	}
 

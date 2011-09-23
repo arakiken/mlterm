@@ -59,7 +59,7 @@ PROG = mlterm
 INSTALL_OPT = @INSTALL_OPT@
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
-LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all: $(PROG)

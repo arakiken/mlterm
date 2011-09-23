@@ -25,7 +25,7 @@ BYTE_TABLE_OBJ = mkf_ucs4_cp125x.o mkf_ucs4_koi8.o mkf_ucs4_georgian_ps.o \
 OBJ = $(JAJP_TABLE_OBJ) $(KOKR_TABLE_OBJ) $(ZH_TABLE_OBJ) $(BYTE_TABLE_OBJ)
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
-LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 all: libmkf_jajp.la libmkf_kokr.la libmkf_zh.la libmkf_8bits.la

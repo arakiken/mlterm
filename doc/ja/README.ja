@@ -68,11 +68,19 @@ comment $Id$
       (旧来の --enable-anti-alias オプションは、--with-type-engines=xcore,xft
       と同義です。)
 
+    --disable-dl-ttype
+      type engine モジュールの動的ローディングを無効にし、mlterm 本体にリンクする
+      ようにします。
+
     --enable-fribidi
       Fribidi を用いて Bidi レンダリングを行ないます。
 
     --enable-ind
       インド諸語の表示を行います。
+
+    --disable-dl-ctl
+      BiDi 及び インド諸語を表示するためのモジュールの動的ローディングを無効にし、
+      mlterm 本体にリンクするようにします。
 
     --enable-ssh2
       libssh2 を用いて ssh サーバに接続できるようにします。
@@ -339,7 +347,6 @@ comment $Id$
 
         端末アプリケーションが結合文字をサポートしていない場合でも、結合文字を正
         しく表示できるようにします。
-        use_combining が true でないと、有効になりません。
 
       o big5_buggy  (true/*false*)
         Big5 CTEXT のバグ (XFree86 4.1.0 以前) に対応する

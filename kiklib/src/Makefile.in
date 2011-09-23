@@ -30,7 +30,7 @@ OBJ = $(COMOBJ) $(DEPOBJ)
 INC = $(COMOBJ:.o=.h) kik_list.h kik_iterator.h kik_types.h kik_util.h kik_def.h kik_net.h kik_pty.h kik_utmp.h kik_dlfcn.h
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
-LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) $(LIBS)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) $(LIBS) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 LIBNAME=libkik

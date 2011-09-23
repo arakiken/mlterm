@@ -20,7 +20,7 @@ CFLAGS = $(CFLAGS_LOCAL) @TYPE_CFLAGS@ @DEB_CFLAGS@ @SSH2_CFLAGS@ \
 	-DSYSCONFDIR=\"$(sysconfdir)\" @VTE_CFLAGS@ @CFLAGS@ @CPPFLAGS@
 
 LIBTOOL_CC = $(LIBTOOL) --mode=compile $(CC) $(CFLAGS)
-LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 OBJ = vte.o marshal.o vtetypebuiltins.o reaper.o

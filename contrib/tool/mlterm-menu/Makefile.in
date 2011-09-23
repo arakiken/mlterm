@@ -30,7 +30,7 @@ LIBS2_win32 = -mwindows ${top_builddir}/kiklib/src/.libs/libkik.a
 
 LIBS = $(LIBS1) $(LIBS2@WIN32TAG@)
 
-LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC)
+LIBTOOL_LINK = $(LIBTOOL) --mode=link $(CC) @LDFLAGS@
 LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 PACKAGE = @PACKAGE@
