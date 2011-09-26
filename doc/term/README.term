@@ -7,3 +7,5 @@ How to install:
 mlterm.ti - see tic(1).
 mlterm.tc - Add this to /etc/termcap.
 
+Add following line to ~/.mlterm/main.
+termtype = mlterm
