@@ -53,8 +53,7 @@ ml_line_bidi_render(
 	)
 {
 	int  base_is_rtl ;
-	int  result ;
-	
+
 	if( ! ml_line_is_using_bidi( line))
 	{
 	#ifdef  DEBUG
@@ -67,9 +66,12 @@ ml_line_bidi_render(
 
 	base_is_rtl = BASE_IS_RTL( line->ctl_info.bidi) ;
 
-	result = ml_bidi( line->ctl_info.bidi ,
-			line->chars , line->num_of_filled_chars , bidi_mode) ;
+	if( ! ml_bidi( line->ctl_info.bidi , line->chars , line->num_of_filled_chars , bidi_mode))
+	{
+		return  0 ;
+	}
 
+	/* Conforming line->change_{beg|end}_col to visual mode. */
 	if( base_is_rtl != BASE_IS_RTL( line->ctl_info.bidi))
 	{
 		/*
@@ -80,11 +82,15 @@ ml_line_bidi_render(
 	}
 	else if( HAS_RTL( line->ctl_info.bidi) && ml_line_is_modified( line))
 	{
-		/* if line contains RTL chars, line is redrawn all */
+		/*
+		 * If line contains RTL chars, line is redrawn all.
+		 * It is assumed that num of logical characters in line is the same as
+		 * that of visual ones.
+		 */
 		ml_line_set_modified( line , 0 , ml_line_end_char_index( line)) ;
 	}
 	
-	return  result ;
+	return  1 ;
 }
 
 int

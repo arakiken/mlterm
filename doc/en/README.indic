@@ -15,12 +15,10 @@ Following is a instruction of setting up mlterm indic support.
   ISCII fonts alone. Unicode fonts of indic characters are not supported.)
 
 * Usage
-  $ mlterm -E utf8 -w 16 -m -V --im=kbd:isciihindi --lsp 2 --bi=false --ind --type=xft
+  $ mlterm -E utf8 -w 16 -m --im=kbd:isciihindi --lsp 2 --bi=false --ind --type=xft
 
   o -E option specifies character encoding.
     "utf8" or "isciixxx"(like "isciihindi") are available.
-  o -V option enables variable width column.
-    This option is automatically turned on.
   o -m option enables character combining, which is necessary since mlterm
     diverts character combining framework for rendering ISCII glyph internally.
     This option is automatically turned on.
@@ -38,8 +36,6 @@ Following is a instruction of setting up mlterm indic support.
   IM_HOTKEY switches the loop Inscript => Phonetic => US ASCII => Inscript ...
 
 * Notice
-  o Dynamic change of colors by color configuration protocol doesn't affect
-    text which has been already redrawn if use_ind option is enabled.
   o If you use cairo for text rendering, indic characters aren't correctly drawn.
   o We are not a native speaker and mlterm indic support itself may be still
     unstable.
@@ -50,6 +46,7 @@ Following is a instruction of setting up mlterm indic support.
 
 Following e-mail describes how to setup mlterm to show and input hindi characters.
 (Thanks to sumeet inani)
+Note that -V option is no longer necessary since mlterm version 3.0.9.
 --------------------------------------------------------------------------------
 Date: Tue, 9 Aug 2011 12:33:22 +0530
 Subject: Re: installing mterm with indic support

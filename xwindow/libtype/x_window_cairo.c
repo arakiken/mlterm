@@ -8,7 +8,10 @@
 #include  <cairo/cairo-ft.h>	/* FcChar32 */
 #include  <cairo/cairo-xlib.h>
 
+#include  <ml_char.h>	/* UTF_MAX_SIZE */
 
+
+/* Implemented in x_font_ft.c */
 size_t  x_convert_ucs_to_utf8( u_char *  utf8 ,	u_int32_t  ucs) ;
 
 
@@ -93,7 +96,7 @@ x_window_cairo_draw_string32(
 	u_int  count ;
 	char *  p ;
 
-	if( ! ( p = buf = alloca( 8 * len + 1)))
+	if( ! ( p = buf = alloca( UTF_MAX_SIZE * len + 1)))
 	{
 		return  0 ;
 	}

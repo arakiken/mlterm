@@ -465,14 +465,6 @@ x_set_use_multi_col_char(
 }
 
 int
-x_is_using_multi_col_char(
-	x_font_manager_t *  font_man
-	)
-{
-	return  font_man->font_cache->use_multi_col_char ;
-}
-
-int
 x_set_letter_space(
 	x_font_manager_t *  font_man ,
 	u_int  letter_space
@@ -497,14 +489,6 @@ x_set_letter_space(
 	change_font_cache( font_man , font_cache) ;
 
 	return  1 ;
-}
-
-u_int
-x_get_letter_space(
-	x_font_manager_t *  font_man
-	)
-{
-	return  font_man->font_cache->letter_space ;
 }
 
 XFontSet

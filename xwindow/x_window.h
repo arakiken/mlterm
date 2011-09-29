@@ -14,7 +14,6 @@
 
 #include  <kiklib/kik_types.h>
 #include  <mkf/mkf_parser.h>
-#include  <ml_char.h>
 
 #include  "x_display.h"
 #include  "x_font.h"
@@ -278,28 +277,28 @@ void  x_window_idling( x_window_t *  win) ;
 
 int  x_window_receive_event( x_window_t *  win , XEvent *  event) ;
 
-size_t  x_window_get_str( x_window_t *  win , u_char *  seq , size_t  seq_len , mkf_parser_t **  parser ,
-	KeySym *  keysym , XKeyEvent *  event) ;
+size_t  x_window_get_str( x_window_t *  win , u_char *  seq , size_t  seq_len ,
+	mkf_parser_t **  parser , KeySym *  keysym , XKeyEvent *  event) ;
 
 int  x_window_is_scrollable( x_window_t *  win) ;
 
 int  x_window_scroll_upward( x_window_t *  win , u_int  height) ;
 
-int  x_window_scroll_upward_region( x_window_t *  win , int  boundary_start , int  boundary_end ,
-	u_int  height) ;
+int  x_window_scroll_upward_region( x_window_t *  win ,
+	int  boundary_start , int  boundary_end , u_int  height) ;
 
 int  x_window_scroll_downward( x_window_t *  win , u_int  height) ;
 
-int  x_window_scroll_downward_region( x_window_t *  win , int  boundary_start , int  boundary_end ,
-	u_int  height) ;
+int  x_window_scroll_downward_region( x_window_t *  win ,
+	int  boundary_start , int  boundary_end , u_int  height) ;
 
 int  x_window_scroll_leftward( x_window_t *  win , u_int  width) ;
 
-int  x_window_scroll_leftward_region( x_window_t *  win , int  boundary_start , int  boundary_end ,
-	u_int  width) ;
+int  x_window_scroll_leftward_region( x_window_t *  win ,
+	int  boundary_start , int  boundary_end , u_int  width) ;
 
-int  x_window_scroll_rightward_region( x_window_t *  win , int  boundary_start , int  boundary_end ,
-	u_int  width) ;
+int  x_window_scroll_rightward_region( x_window_t *  win ,
+	int  boundary_start , int  boundary_end , u_int  width) ;
 
 int  x_window_scroll_rightward( x_window_t *  win , u_int  width) ;
 

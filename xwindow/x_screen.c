@@ -245,6 +245,9 @@ convert_x_to_char_index(
 {
 	int  count ;
 	u_int  width ;
+	int  end_char_index ;
+
+	end_char_index = ml_line_end_char_index(line) ;
 
 	if( ml_line_is_rtl( line))
 	{
@@ -257,7 +260,7 @@ convert_x_to_char_index(
 			x = screen->window.width - x ;
 		}
 
-		for( count = ml_line_end_char_index(line) ; count > 0 ; count --)
+		for( count = end_char_index ; count > 0 ; count --)
 		{
 			ml_char_t *  ch ;
 
@@ -281,7 +284,7 @@ convert_x_to_char_index(
 			x = 0 ;
 		}
 
-		for( count = 0 ; count < ml_line_end_char_index(line) ; count ++)
+		for( count = 0 ; count < end_char_index ; count ++)
 		{
 			ml_char_t *  ch ;
 
@@ -472,20 +475,22 @@ draw_line(
 
 		present = x_get_font_present( screen->font_man) ;
 
-		beg_char_index = ml_line_get_beg_of_modified( line) ;
-		num_of_redrawn = ml_line_get_num_of_redrawn_chars( line ,
-					(present & FONT_VAR_WIDTH) == FONT_VAR_WIDTH) ;
-		is_cleared_to_end = ml_line_is_cleared_to_end( line) ;
-
-		if( present & FONT_VAR_WIDTH)
+		if( ml_line_is_cleared_to_end( line) || ( present & FONT_VAR_WIDTH))
 		{
-			if( ml_line_is_rtl( line))
-			{
-				num_of_redrawn += beg_char_index ;
-				beg_char_index = 0 ;
-			}
-
 			is_cleared_to_end = 1 ;
+		}
+		else
+		{
+			is_cleared_to_end = 0 ;
+		}
+
+		beg_char_index = ml_line_get_beg_of_modified( line) ;
+		num_of_redrawn = ml_line_get_num_of_redrawn_chars( line , is_cleared_to_end) ;
+
+		if( ( present & FONT_VAR_WIDTH) && ml_line_is_rtl( line))
+		{
+			num_of_redrawn += beg_char_index ;
+			beg_char_index = 0 ;
 		}
 
 		/* don't use _with_shape function since line is already shaped */
@@ -1340,22 +1345,16 @@ update_special_visual(
 		return  0 ;
 	}
 
-	font_present = x_get_font_present( screen->font_man) & ~FONT_VERTICAL ;
+	font_present = x_get_font_present( screen->font_man) ;
 
 	/* Similar if-else conditions exist in ml_term_update_special_visual. */
 	if( ml_term_get_vertical_mode( screen->term))
 	{
 		font_present |= FONT_VERTICAL ;
 	}
-	else if( ( IS_ISCII_ENCODING( ml_term_get_encoding( screen->term))
-	           || (ml_term_get_encoding( screen->term) == ML_UTF8 &&
-		      ! ml_term_is_using_bidi( screen->term) &&
-		      ml_term_is_using_ind( screen->term)) ) &&
-		 ! ( font_present & FONT_VAR_WIDTH))
+	else
 	{
-		/* Indic characters need variable column width. */
-		kik_msg_printf( "Set use_variable_column_width=true forcibly.\n") ;
-		font_present |= FONT_VAR_WIDTH ;
+		font_present &= ~FONT_VERTICAL ;
 	}
 
 	change_font_present( screen , x_get_type_engine( screen->font_man) , font_present) ;

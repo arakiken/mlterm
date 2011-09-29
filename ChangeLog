@@ -1,3 +1,21 @@
+2011-09-29  Araki Ken  <arakiken@users.sf.net>
+
+	* man/mlterm.1, README.ja, README.indic, ReleaseNote: Updated.
+
+	* x_screen.c: -V option is no longer automatically turned on to show
+	  indic characters.
+
+	* x_font_fc.c, x_font.c: If minus value is returned as text width,
+	  xxx_calculate_char_width() returns 0 instead.
+
+	* ml_line_iscii.c: A line who contains indic characters is forced to
+	  be redrawn to EOL in ml_line_iscii_render().
+
+	* ml_line.c: If end_char_index argument of ml_line_set_modified() is larger
+	  than line->num_of_filled_chars, ml_line_is_cleared_to_end() returns true.
+
+	* x_font.c: ISCII font is always loaded as variable column width one.
+
 2011-09-27  Araki Ken  <arakiken@users.sf.net>
 
 	* version.h.in: 3.0.8 => 3.0.8 post

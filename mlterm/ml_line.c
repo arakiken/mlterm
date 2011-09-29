@@ -312,7 +312,7 @@ ml_line_break_boundary(
 	}
 
 	/*
-	 * change char index is not updated , because space has no glyph.
+	 * change_{beg|end}_col is not updated , because space has no glyph.
 	 */
 #if  0
 	ml_line_set_modified( line , END_CHAR_INDEX(line) + 1 , END_CHAR_INDEX(line) + size) ;
@@ -811,27 +811,34 @@ ml_line_set_modified(
 		beg_char_index = END_CHAR_INDEX(line) ;
 	}
 	
-	if( end_char_index >= line->num_of_filled_chars)
-	{
-		end_char_index = END_CHAR_INDEX(line) ;
-	}
-
 	beg_col = 0 ;
 	for( count = 0 ; count < beg_char_index ; count ++)
 	{
 		beg_col += ml_char_cols( line->chars + count) ;
 	}
 
-	end_col = beg_col ;
-	for( ; count <= end_char_index ; count ++)
+	if( end_char_index >= line->num_of_filled_chars)
 	{
 		/*
-		 * This will be executed at least once, because beg_char_index is never
-		 * greater than end_char_index.
+		 * '* 2' assures change_end_col should point over the end of line.
+		 * If triple width(or wider) characters(!) were to exist, this hack would make
+		 * no sense...
 		 */
-		end_col += ml_char_cols( line->chars + count) ;
+		end_col = line->num_of_chars * 2 ;
 	}
-	end_col -- ;
+	else
+	{
+		end_col = beg_col ;
+		for( ; count <= end_char_index ; count ++)
+		{
+			/*
+			 * This will be executed at least once, because beg_char_index is never
+			 * greater than end_char_index.
+			 */
+			end_col += ml_char_cols( line->chars + count) ;
+		}
+		end_col -- ;
+	}
 
 	if( line->is_modified)
 	{

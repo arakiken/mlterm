@@ -919,7 +919,15 @@ xft_calculate_char_width(
 		return  0 ;
 	}
 
-	return  extents.xOff ;
+	if( extents.xOff < 0)
+	{
+		/* Some (indic) fonts could return minus value as text width. */
+		return  0 ;
+	}
+	else
+	{
+		return  extents.xOff ;
+	}
 }
 
 #endif
@@ -1037,6 +1045,7 @@ cairo_calculate_char_width(
 {
 	u_char  utf8[UTF_MAX_SIZE + 1] ;
 	cairo_text_extents_t  extents ;
+	int  width ;
 
 	utf8[ x_convert_ucs_to_utf8( utf8 , mkf_bytes_to_int( ch , len))] = '\0' ;
 	cairo_scaled_font_text_extents( font->cairo_font , utf8 , &extents) ;
@@ -1046,7 +1055,15 @@ cairo_calculate_char_width(
 		ch[0] , extents.x_bearing , extents.width , extents.x_advance) ;
 #endif
 
-	return  DOUBLE_ROUNDUP_TO_INT(extents.x_advance) ;
+	if( ( width = DOUBLE_ROUNDUP_TO_INT(extents.x_advance)) < 0)
+	{
+		return  0 ;
+	}
+	else
+	{
+		/* Some (indic) fonts could return minus value as text width. */
+		return  width ;
+	}
 }
 
 #endif

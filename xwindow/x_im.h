@@ -8,7 +8,7 @@
 #include  <kiklib/kik_dlfcn.h>
 #include  "x.h"			/* KeySym, XKeyEvent */
 
-#include  "ml_term.h"
+#include  <ml_term.h>
 #include  "x_im_candidate_screen.h"
 #include  "x_im_status_screen.h"
 

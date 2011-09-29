@@ -1,3 +1,9 @@
+ver 3.0.9
+* -V option is no longer necessary (and not automatically turned on) to show
+  indic characters.
+* Bug fixes:
+  Fix strange behavior in selecting indic characters.
+
 ver 3.0.8
 * Change default value of "use_ind" option from true to false.
 * Merge SF Patches:

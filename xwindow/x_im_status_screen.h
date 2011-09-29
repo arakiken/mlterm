@@ -5,6 +5,7 @@
 #ifndef  __X_IM_STATUS_SCREEN_H__
 #define  __X_IM_STATUS_SCREEN_H__
 
+#include  <ml_char.h>
 #include  "x_window.h"
 #include  "x_display.h"
 #include  "x_font_manager.h"

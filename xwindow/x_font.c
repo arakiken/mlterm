@@ -264,9 +264,11 @@ xcore_calculate_char_width(
 	size_t  len
 	)
 {
+	int  width ;
+
 	if( len == 1)
 	{
-		return  XTextWidth( xfont , ch , 1) ;
+		width = XTextWidth( xfont , ch , 1) ;
 	}
 	else if( len == 2)
 	{
@@ -275,7 +277,7 @@ xcore_calculate_char_width(
 		c.byte1 = ch[0] ;
 		c.byte2 = ch[1] ;
 
-		return  XTextWidth16( xfont , &c , 1) ;
+		width = XTextWidth16( xfont , &c , 1) ;
 	}
 	else if( len == 4)
 	{
@@ -288,7 +290,7 @@ xcore_calculate_char_width(
 		c.byte1 = ch[2] ;
 		c.byte2 = ch[3] ;
 
-		return  XTextWidth16( xfont , &c , 1) ;
+		width = XTextWidth16( xfont , &c , 1) ;
 	}
 	else
 	{
@@ -297,6 +299,16 @@ xcore_calculate_char_width(
 	#endif
 
 		return  0 ;
+	}
+
+	if( width < 0)
+	{
+		/* Some (indic) fonts could return minus value as text width. */
+		return  0 ;
+	}
+	else
+	{
+		return  width ;
 	}
 }
 
@@ -969,7 +981,7 @@ x_font_new(
 		font->cols = 1 ;
 	}
 
-	if( font_present & FONT_VAR_WIDTH)
+	if( ( font_present & FONT_VAR_WIDTH) || IS_ISCII(FONT_CS(font->id)))
 	{
 		font->is_var_col_width = 1 ;
 	}

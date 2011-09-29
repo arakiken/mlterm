@@ -69,8 +69,14 @@ ml_line_iscii_render(
 
 	if( line->ctl_info.iscii->has_iscii && ml_line_is_modified( line))
 	{
-		/* if line contains ISCII chars, line is redrawn all */
-		ml_line_set_modified( line , 0 , ml_line_end_char_index( line)) ;
+		/*
+		 * Conforming line->change_{beg|end}_col to visual mode.
+		 * If line contains ISCII chars, line is redrawn to end of line.
+		 */
+		ml_line_set_modified( line ,
+			ml_line_iscii_convert_logical_char_index_to_visual( line ,
+				ml_line_get_beg_of_modified( line)) ,
+			line->num_of_chars) ;
 	}
 
 	return  1 ;

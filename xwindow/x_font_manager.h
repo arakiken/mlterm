@@ -57,11 +57,12 @@ u_int  x_get_font_size( x_font_manager_t *  font_man) ;
 
 int  x_set_use_multi_col_char( x_font_manager_t *  font_man , int  flag) ;
 
-int  x_is_using_multi_col_char( x_font_manager_t *  font_man) ;
+#define  x_is_using_multi_col_char( font_man)  \
+		((font_man)->font_cache->use_multi_col_char)
 
 int  x_set_letter_space( x_font_manager_t *  font_man , u_int  letter_space) ;
 
-u_int  x_get_letter_space( x_font_manager_t *  font_man) ;
+#define  x_get_letter_space( font_man)  ((font_man)->font_cache->letter_space)
 
 XFontSet  x_get_fontset( x_font_manager_t *  font_man) ;
 
