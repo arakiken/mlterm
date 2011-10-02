@@ -276,12 +276,7 @@ get_fc_col_width(
 	}
 	else if( strcmp( fc_size_type , FC_SIZE) == 0)
 	{
-		double  widthpix ;
-		double  widthmm ;
 		double  dpi ;
-
-		widthpix = DisplayWidth( font->display , DefaultScreen(font->display)) ;
-		widthmm = DisplayWidthMM( font->display , DefaultScreen(font->display)) ;
 
 		if( dpi_for_fc)
 		{
@@ -289,6 +284,12 @@ get_fc_col_width(
 		}
 		else
 		{
+			double  widthpix ;
+			double  widthmm ;
+
+			widthpix = DisplayWidth( font->display , DefaultScreen(font->display)) ;
+			widthmm = DisplayWidthMM( font->display , DefaultScreen(font->display)) ;
+
 			dpi = (widthpix * 254) / (widthmm * 10) ;
 		}
 
@@ -455,11 +456,18 @@ cairo_font_open(
 
 	options = cairo_font_options_create() ;
 	cairo_get_font_options( cairo , options) ;
-	/* CAIRO_HINT_METRICS_ON disarranges column width by boldening etc. */
+#ifndef  CAIRO_FORCE_DOUBLE_DRAWING
+	/* CAIRO_HINT_STYLE_NONE disarranges column width by boldening etc. */
+#if  1
+	cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ;
+#else
 	cairo_font_options_set_hint_metrics( options , CAIRO_HINT_METRICS_OFF) ;
-	/* cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ; */
-	/* cairo_font_options_set_antialias( options , CAIRO_ANTIALIAS_SUBPIXEL) ; */
-	/* cairo_font_options_set_subpixel_order( options , CAIRO_SUBPIXEL_ORDER_RGB) ; */
+#endif
+#endif	/* CAIRO_FORCE_DOUBLE_DRAWING */
+#if  0
+	cairo_font_options_set_antialias( options , CAIRO_ANTIALIAS_SUBPIXEL) ;
+	cairo_font_options_set_subpixel_order( options , CAIRO_SUBPIXEL_ORDER_RGB) ;
+#endif
 	cairo_ft_font_options_substitute( options , pattern) ;
 
 	FcDefaultSubstitute( pattern) ;

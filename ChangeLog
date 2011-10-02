@@ -1,3 +1,10 @@
+2011-10-02  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font_ft.c: CAIRO_HINT_STYLE_NONE is not applied in cairo_font_open().
+	
+	* gtk/vte.c: If font size is changed, gtk_widget_queue_resize_no_redraw()
+	  is called in vte_terminal_set_font_from_string().
+
 2011-09-29  Araki Ken  <arakiken@users.sf.net>
 
 	* man/mlterm.1, README.ja, README.indic, ReleaseNote: Updated.

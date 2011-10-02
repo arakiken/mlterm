@@ -1505,7 +1505,10 @@ vte_terminal_size_allocate(
 				allocation->width , allocation->height , NOTIFY_TO_MYSELF) ;
 			reset_vte_size_member( VTE_TERMINAL(widget)) ;
 			update_wall_picture( VTE_TERMINAL(widget)) ;
-			/* gnome-terminal(2.29.6) is not resized correctly without this. */
+			/*
+			 * gnome-terminal(2.29.6 or later ?) is not resized correctly
+			 * without this.
+			 */
 			gtk_widget_queue_resize_no_redraw( widget) ;
 		}
 		
@@ -2422,13 +2425,14 @@ vte_terminal_set_size(
 	glong  rows
 	)
 {
-#ifdef  __DEBUG
+#ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " set cols %d rows %d\n" , columns , rows) ;
 #endif
 
 	ml_term_resize( terminal->pvt->term , columns , rows) ;
 	reset_vte_size_member( terminal) ;
 
+	/* gnome-terminal(2.29.6 or later ?) is not resized correctly without this. */
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
 		gtk_widget_queue_resize_no_redraw( GTK_WIDGET(terminal)) ;
@@ -2554,7 +2558,7 @@ vte_terminal_set_color_foreground(
 	/* #rrrrggggbbbb */
 	str = gdk_color_to_string( foreground) ;
 	
-#ifdef  __DEBUG
+#ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " set_color_foreground %s\n" , str) ;
 #endif
 
@@ -2586,7 +2590,7 @@ vte_terminal_set_color_background(
 	/* #rrrrggggbbbb */
 	str = gdk_color_to_string( background) ;
 
-#ifdef  __DEBUG
+#ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " set_color_background %s\n" , str) ;
 #endif
 
@@ -2623,7 +2627,7 @@ vte_terminal_set_color_cursor(
 	/* #rrrrggggbbbb */
 	str = gdk_color_to_string( cursor_background) ;
 
-#ifdef  __DEBUG
+#ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " set_color_cursor %s\n" , str) ;
 #endif
 
@@ -2755,7 +2759,7 @@ vte_terminal_set_background_image_file(
 	const char *  path
 	)
 {
-#ifdef  __DEBUG
+#ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " Setting image file %s\n" , path) ;
 #endif
 
@@ -2917,7 +2921,7 @@ vte_terminal_set_font(
 
 	name = pango_font_description_to_string( font_desc) ;
 
-#ifdef  __DEBUG
+#ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " set_font %s\n" , name) ;
 #endif
 
@@ -2966,6 +2970,15 @@ vte_terminal_set_font_from_string(
 		}
 		
 		reset_vte_size_member( terminal) ;
+
+		if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
+		{
+			/*
+			 * gnome-terminal(2.29.6 or later?) is not resized correctly
+			 * without this.
+			 */
+			gtk_widget_queue_resize_no_redraw( GTK_WIDGET(terminal)) ;
+		}
 	}
 }
 
