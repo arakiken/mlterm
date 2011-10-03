@@ -36,7 +36,6 @@ Following is a instruction of setting up mlterm indic support.
   IM_HOTKEY switches the loop Inscript => Phonetic => US ASCII => Inscript ...
 
 * Notice
-  o If you use cairo for text rendering, indic characters aren't correctly drawn.
   o We are not a native speaker and mlterm indic support itself may be still
     unstable.
     So if you find something strange or wrong about it, please report it without

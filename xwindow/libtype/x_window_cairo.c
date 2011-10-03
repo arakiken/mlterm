@@ -56,14 +56,20 @@ x_window_cairo_draw_string8(
 	)
 {
 	u_char *  buf ;
+	size_t  count ;
+	char *  p ;
 
-	if( ! ( buf = alloca( len + 1)))
+	/* Max utf8 size of 0x80 - 0xff is 2 */
+	if( ! ( p = buf = alloca( 2 * len + 1)))
 	{
 		return  0 ;
 	}
 
-	memcpy( buf , str , len) ;
-	buf[len] = '\0' ;
+	for( count = 0 ; count < len ; count++)
+	{
+		p += x_convert_ucs_to_utf8( p , (u_int32_t)(str[count])) ;
+	}
+	*p = '\0' ;
 
 	cairo_set_scaled_font( win->cairo_draw , font->cairo_font) ;
 	cairo_set_source_rgb( win->cairo_draw ,

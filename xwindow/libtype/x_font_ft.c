@@ -457,14 +457,15 @@ cairo_font_open(
 	options = cairo_font_options_create() ;
 	cairo_get_font_options( cairo , options) ;
 #ifndef  CAIRO_FORCE_DOUBLE_DRAWING
-	/* CAIRO_HINT_STYLE_NONE disarranges column width by boldening etc. */
-#if  1
-	cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ;
-#else
+	/*
+	 * XXX
+	 * CAIRO_HINT_METRICS_OFF has bad effect, but CAIRO_HINT_METRICS_ON disarranges
+	 * column width by boldening etc.
+	 */
 	cairo_font_options_set_hint_metrics( options , CAIRO_HINT_METRICS_OFF) ;
 #endif
-#endif	/* CAIRO_FORCE_DOUBLE_DRAWING */
 #if  0
+	cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ;
 	cairo_font_options_set_antialias( options , CAIRO_ANTIALIAS_SUBPIXEL) ;
 	cairo_font_options_set_subpixel_order( options , CAIRO_SUBPIXEL_ORDER_RGB) ;
 #endif

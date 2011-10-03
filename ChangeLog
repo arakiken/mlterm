@@ -1,6 +1,14 @@
+2011-10-03  Araki Ken  <arakiken@users.sf.net>
+
+	* im_ibus.c: A result of ibus_input_context_is_enabled() is cached in
+	  im_ibus_t.
+
+	* x_window_cairo.c: 0x80 - 0xff characters are converted to UTF-8 in
+	  x_window_cairo_draw_string8().
+
 2011-10-02  Araki Ken  <arakiken@users.sf.net>
 
-	* x_font_ft.c: CAIRO_HINT_STYLE_NONE is not applied in cairo_font_open().
+	* x_font_ft.c: CAIRO_HINT_METRICS_OFF is not applied in cairo_font_open().
 	
 	* gtk/vte.c: If font size is changed, gtk_widget_queue_resize_no_redraw()
 	  is called in vte_terminal_set_font_from_string().

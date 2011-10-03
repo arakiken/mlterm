@@ -27,6 +27,12 @@ typedef struct im_ibus
 
 	mkf_parser_t *  parser_ibus ;	/* for ibus encoding  */
 
+	/*
+	 * Cache a result of ibus_input_context_is_enabled() which uses
+	 * DBus connection internally.
+	 */
+	gboolean  is_enabled ;
+	
 	/* Not used for now */
 	u_int  pressing_mod_key ;
 	u_int  mod_ignore_mask ;
@@ -377,18 +383,19 @@ key_event(
 	)
 {
 	im_ibus_t *  ibus ;
-	int  is_enabled ;
 
 	ibus = (im_ibus_t*) im ;
-
-	is_enabled = ibus_input_context_is_enabled( ibus->context) ;
 
 	if( ibus_input_context_process_key_event( ibus->context , ksym , event->keycode - 8 ,
 			event->state | (event->type == KeyRelease ? IBUS_RELEASE_MASK : 0)))
 	{
-		if( is_enabled != ibus_input_context_is_enabled( ibus->context) ||
-		   (ibus_input_context_is_enabled( ibus->context) &&
-		    (ibus->im.preedit.filled_len > 0 || key_char > 0x20)))
+		gboolean  is_enabled_old ;
+
+		is_enabled_old = ibus->is_enabled ;
+		ibus->is_enabled = ibus_input_context_is_enabled( ibus->context) ;
+
+		if( ibus->is_enabled != is_enabled_old ||
+		   ( ibus->is_enabled && (ibus->im.preedit.filled_len > 0 || key_char > 0x20)))
 		{
 			return  0 ;
 		}
@@ -413,13 +420,15 @@ switch_mode(
 
 	ibus =  (im_ibus_t*)  im ;
 
-	if( ibus_input_context_is_enabled( ibus->context))
+	if( ibus->is_enabled)
 	{
 		ibus_input_context_disable( ibus->context) ;
+		ibus->is_enabled = FALSE ;
 	}
 	else
 	{
 		ibus_input_context_enable( ibus->context) ;
+		ibus->is_enabled = TRUE ;
 	}
 	
 	return  1 ;
@@ -430,7 +439,7 @@ is_active(
 	x_im_t *  im
 	)
 {
-	return  ibus_input_context_is_enabled( ((im_ibus_t*)im)->context) ;
+	return  ((im_ibus_t*)im)->is_enabled ;
 }
 
 static void
@@ -471,18 +480,6 @@ unfocused(
 	ibus->pressing_mod_key = 0 ;
 }
 
-
-static void
-connection_handler_idling(void)
-{
-	DBusConnection *  connection ;
-
-	connection = ibus_connection_get_connection( ibus_bus_get_connection( ibus_bus)) ;
-
-	dbus_connection_read_write( connection , 0) ;
-
-	while( ! dbus_connection_dispatch( connection)) ;
-}
 
 static void
 connection_handler(void)
@@ -551,7 +548,7 @@ im_ibus_new(
 		}
 
 		(*syms->x_term_manager_add_fd)( fd , connection_handler) ;
-		(*syms->x_term_manager_add_fd)( IBUS_ID , connection_handler_idling) ;
+		(*syms->x_term_manager_add_fd)( IBUS_ID , connection_handler) ;
 
 		kik_list_new( im_ibus_t , ibus_list) ;
 	}
@@ -575,6 +572,7 @@ im_ibus_new(
 
 	ibus->term_encoding = term_encoding ;
 	ibus->parser_ibus = NULL ;
+	ibus->is_enabled = FALSE ;
 	ibus->pressing_mod_key = 0 ;
 	ibus->mod_ignore_mask =  mod_ignore_mask ;
 
