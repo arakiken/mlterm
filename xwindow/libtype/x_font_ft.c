@@ -333,11 +333,13 @@ fc_pattern_create(
 		FcPatternAddInteger( pattern , FC_SLANT , slant) ;
 	}
 	FcPatternAddInteger( pattern , FC_SPACING , ch_width > 0 ? FC_MONO : FC_PROPORTIONAL) ;
+#ifdef  USE_TYPE_XFT
 	if( ch_width > 0)
 	{
 		/* XXX FC_CHAR_WIDTH doesn't make effect in cairo ... */
 		FcPatternAddInteger( pattern , FC_CHAR_WIDTH , ch_width) ;
 	}
+#endif
 	if( aa_opt)
 	{
 		FcPatternAddBool( pattern , FC_ANTIALIAS , aa_opt == 1 ? True : False) ;
@@ -463,9 +465,11 @@ cairo_font_open(
 	 * column width by boldening etc.
 	 */
 	cairo_font_options_set_hint_metrics( options , CAIRO_HINT_METRICS_OFF) ;
+#else
+	/* For performance */
+	cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ;
 #endif
 #if  0
-	cairo_font_options_set_hint_style( options , CAIRO_HINT_STYLE_NONE) ;
 	cairo_font_options_set_antialias( options , CAIRO_ANTIALIAS_SUBPIXEL) ;
 	cairo_font_options_set_subpixel_order( options , CAIRO_SUBPIXEL_ORDER_RGB) ;
 #endif

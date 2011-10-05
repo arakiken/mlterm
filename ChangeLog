@@ -1,3 +1,10 @@
+2011-10-05  Araki Ken  <arakiken@users.sf.net>
+
+	* x_font_ft.c: CAIRO_HINT_STYLE_NONE is applied in cairo_font_open().
+
+	* x_window.c: GraphicsExpose event is processed instead of
+	  VisibilityNotify event to improve performance.
+
 2011-10-03  Araki Ken  <arakiken@users.sf.net>
 
 	* im_ibus.c: A result of ibus_input_context_is_enabled() is cached in

@@ -803,9 +803,9 @@ x_window_init(
 
 	win->cursor_shape = 0 ;
 
-	win->event_mask = ExposureMask | VisibilityChangeMask | FocusChangeMask | PropertyChangeMask ;
+	win->event_mask = ExposureMask | FocusChangeMask | PropertyChangeMask ;
 
-	/* if visibility is partially obscured , scrollable will be 0. */
+	/* If wall picture is set, scrollable will be 0. */
 	win->is_scrollable = 1 ;
 
 	/*
@@ -1037,16 +1037,9 @@ x_window_set_wall_picture(
 		return  0 ;
 	}
 
-	if( win->event_mask & VisibilityChangeMask)
-	{
-		/* rejecting VisibilityNotify event. is_scrollable is always false */
-		win->event_mask &= ~VisibilityChangeMask ;
-		XSelectInput( win->disp->display , win->my_window , win->event_mask) ;
-		win->is_scrollable = 0 ;
-	}
-
 	XSetWindowBackgroundPixmap( win->disp->display , win->my_window , pic) ;
 	win->wall_picture_is_set = 1 ;
+	win->is_scrollable = 0 ;
 
 	if( win->window_exposed)
 	{
@@ -1092,20 +1085,11 @@ x_window_unset_wall_picture(
 		return  1 ;
 	}
 
-	if( !( win->event_mask & VisibilityChangeMask))
-	{
-		/* accepting VisibilityNotify event. is_scrollable is changed dynamically. */
-		win->event_mask |= VisibilityChangeMask ;
-		XSelectInput( win->disp->display , win->my_window , win->event_mask) ;
-
-		/* setting 0 in case the current status is VisibilityPartiallyObscured. */
-		win->is_scrollable = 0 ;
-	}
-
 	XSetWindowBackgroundPixmap( win->disp->display , win->my_window , None) ;
 	XSetWindowBackground( win->disp->display , win->my_window , win->bg_color.pixel) ;
 
 	win->wall_picture_is_set = 0 ;
+	win->is_scrollable = 1 ;
 
 	if( win->window_exposed)
 	{
@@ -2164,7 +2148,9 @@ x_window_receive_event(
 				RevertToParent , CurrentTime) ;
 		}
 	}
-	else if( event->type == Expose /* && event->xexpose.count == 0 */)
+	else if( event->type == Expose ||
+	         ( event->type == GraphicsExpose &&
+		   event->xgraphicsexpose.drawable == win->my_window) )
 	{
 		int  x ;
 		int  y ;
@@ -2526,26 +2512,6 @@ x_window_receive_event(
 
 		XDeleteProperty( win->disp->display, event->xselection.requestor,
 			event->xselection.property) ;
-	}
-	else if( event->type == VisibilityNotify)
-	{
-		/* This event is changeable in run time. */
-
-		/*
-		 * VisibilityChangeMask is set or unset in run time(related to wall picture),
-		 * so check current VisibilityChangeMask state.
-		 */
-		if( win->event_mask & VisibilityChangeMask)
-		{
-			if( event->xvisibility.state == VisibilityPartiallyObscured)
-			{
-				win->is_scrollable = 0 ;
-			}
-			else if( event->xvisibility.state == VisibilityUnobscured)
-			{
-				win->is_scrollable = 1 ;
-			}
-		}
 	}
 	else if( event->type == ClientMessage)
 	{
