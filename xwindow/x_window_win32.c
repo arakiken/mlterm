@@ -333,8 +333,8 @@ notify_focus_in_to_children(
 
 	win->is_focused = 1 ;
 
-	/* If win->wall_picture_is_set is true, is_scrollable is always 0. */
-	if( ! win->wall_picture_is_set)
+	/* If win->wall_picture is set, is_scrollable is always 0. */
+	if( ! win->wall_picture)
 	{
 		if( ! win->parent)
 		{
@@ -785,9 +785,8 @@ x_window_init(
 
 	win->pic_mod = NULL ;
 
-	win->wall_picture_is_set = 0 ;
-	win->is_transparent = 0 ;
 	win->wall_picture = None ;
+	win->is_transparent = 0 ;
 
 	win->cursor_shape = 0 ;
 
@@ -960,7 +959,6 @@ x_window_set_wall_picture(
 {
 	win->is_scrollable = 0 ;
 	win->wall_picture = pic ;
-	win->wall_picture_is_set = 1 ;
 
 	if( win->my_window != None)
 	{
@@ -977,7 +975,6 @@ x_window_unset_wall_picture(
 {
 	win->is_scrollable = check_scrollable( win) ;
 	win->wall_picture = None ;
-	win->wall_picture_is_set = 0 ;
 
 	if( win->my_window != None)
 	{

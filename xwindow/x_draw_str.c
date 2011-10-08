@@ -794,7 +794,7 @@ xcore_draw_str(
 			draw_count ++ ;
 		#endif
 
-			if( ( window->wall_picture_is_set && bg_color == ML_BG_COLOR) ||
+			if( ( x_window_has_wall_picture( window) && bg_color == ML_BG_COLOR) ||
 				bottom_margin + top_margin > 0 /* == line space XXX */|| 
 				( xfont->is_proportional && ! xfont->is_var_col_width))
 			{
