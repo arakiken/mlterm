@@ -12,7 +12,6 @@
 #include  <kiklib/kik_str.h>	/* kik_str_sep/kik_str_to_int */
 #include  <kiklib/kik_util.h>	/* DIGIT_STR_LEN/K_MIN */
 #include  <kiklib/kik_locale.h>	/* kik_get_lang() */
-#include  <mkf/mkf_utf16_conv.h>
 
 #include  "ml_char_encoding.h"	/* x_convert_to_xft_ucs4 */
 

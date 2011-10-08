@@ -26,7 +26,7 @@
  * char length is max 2 bytes.
  * (total 20 bytes)
  */
-#define  XCT_MAX_SIZE     20
+#define  XCT_MAX_SIZE   20
 #define  MLCHAR_UTF_MAX_SIZE  (UTF_MAX_SIZE * (MAX_COMB_SIZE + 1))
 #define  MLCHAR_XCT_MAX_SIZE  (XCT_MAX_SIZE * (MAX_COMB_SIZE + 1))
 

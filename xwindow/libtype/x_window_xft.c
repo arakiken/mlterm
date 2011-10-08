@@ -68,6 +68,24 @@ x_window_xft_draw_string8(
 {
 	XftColor *  xftcolor ;
 
+	/* Removing trailing spaces. */
+	while( 1)
+	{
+		if( len == 0)
+		{
+			return  1 ;
+		}
+
+		if( *(str + len - 1) == ' ')
+		{
+			len-- ;
+		}
+		else
+		{
+			break ;
+		}
+	}
+
 	xftcolor = x_color_to_xft( fg_color) ;
 
 	XftDrawString8( win->xft_draw , xftcolor , font->xft_font ,

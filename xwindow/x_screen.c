@@ -933,7 +933,9 @@ redraw_screen(
 		count ++ ;
 	}
 
+#if  0
 	x_window_clear_margin_area( &screen->window) ;
+#endif
 
 	ml_term_updated_all( screen->term) ;
 

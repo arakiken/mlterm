@@ -332,13 +332,17 @@ notify_configure_to_children(
 		#endif
 			set_transparent( win) ;
 		}
+		else if( win->window_exposed)
+		{
+			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+			x_window_clear_margin_area( win) ;
+		}
+	#if  0
 		else
 		{
-		#if  0
 			x_window_clear_all( win) ;
-		#endif
-			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
 		}
+	#endif
 	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -1043,11 +1047,15 @@ x_window_set_wall_picture(
 
 	if( win->window_exposed)
 	{
-	#if  0
-		x_window_clear_all( win) ;
-	#endif
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		x_window_clear_margin_area( win) ;
 	}
+#if  0
+	else
+	{
+		x_window_clear_all( win) ;
+	}
+#endif
 
 	return  1 ;
 }
@@ -1093,11 +1101,15 @@ x_window_unset_wall_picture(
 
 	if( win->window_exposed)
 	{
-	#if  0
-		x_window_clear_all( win) ;
-	#endif
 		(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+		x_window_clear_margin_area( win) ;
 	}
+#if  0
+	else
+	{
+		x_window_clear_all( win) ;
+	}
+#endif
 
 	return  1 ;
 }
@@ -1160,11 +1172,15 @@ x_window_unset_transparent(
 
 		if( win->window_exposed)
 		{
-		#if  0
-			x_window_clear_all( win) ;
-		#endif
 			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
+			x_window_clear_margin_area( win) ;
 		}
+	#if  0
+		else
+		{
+			x_window_clear_all( win) ;
+		}
+	#endif
 	}
 
 	for( count = 0 ; count < win->num_of_children ; count ++)
@@ -2156,9 +2172,13 @@ x_window_receive_event(
 		int  y ;
 		u_int  width ;
 		u_int  height ;
+		int  margin_area_exposed ;
 
+		margin_area_exposed = 0 ;
+		
 		if( event->xexpose.x < win->margin)
 		{
+			margin_area_exposed = 1 ;
 			x = 0 ;
 
 			if( x + event->xexpose.width > win->width)
@@ -2180,6 +2200,7 @@ x_window_receive_event(
 
 			if( x + event->xexpose.width > win->width)
 			{
+				margin_area_exposed = 1 ;
 				width = win->width - x ;
 			}
 			else
@@ -2190,6 +2211,7 @@ x_window_receive_event(
 
 		if( event->xexpose.y < win->margin)
 		{
+			margin_area_exposed = 1 ;
 			y = 0 ;
 
 			if( y + event->xexpose.height > win->height)
@@ -2211,6 +2233,7 @@ x_window_receive_event(
 
 			if( y + event->xexpose.height > win->height)
 			{
+				margin_area_exposed = 1 ;
 				height = win->height - y ;
 			}
 			else
@@ -2222,7 +2245,18 @@ x_window_receive_event(
 		if( win->window_exposed)
 		{
 			(*win->window_exposed)( win , x , y , width , height) ;
+
+			if( margin_area_exposed)
+			{
+				x_window_clear_margin_area( win) ;
+			}
 		}
+	#if  0
+		else
+		{
+			x_window_clear_all( win) ;
+		}
+	#endif
 	}
 	else if( event->type == ConfigureNotify)
 	{
@@ -2272,10 +2306,6 @@ x_window_receive_event(
 		{
 			win->width = event->xconfigure.width - win->margin * 2 ;
 			win->height = event->xconfigure.height - win->margin * 2 ;
-
-		#if  0
-			x_window_clear_all( win) ;
-		#endif
 
 			if( win->window_resized)
 			{
@@ -2898,6 +2928,24 @@ x_window_draw_string(
 	u_int  len
 	)
 {
+	/* Removing trailing spaces. */
+	while( 1)
+	{
+		if( len == 0)
+		{
+			return  1 ;
+		}
+
+		if( *(str + len - 1) == ' ')
+		{
+			len-- ;
+		}
+		else
+		{
+			break ;
+		}
+	}
+
 	x_gc_set_fid( win->gc, font->xfont->fid) ;
 	x_gc_set_fg_color( win->gc, fg_color->pixel) ;
 

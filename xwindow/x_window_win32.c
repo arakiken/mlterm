@@ -10,6 +10,7 @@
 #include  <kiklib/kik_mem.h>	/* realloc/free */
 #include  <kiklib/kik_util.h>	/* K_MIN/K_MAX */
 #include  <mkf/mkf_codepoint_parser.h>
+#include  <ml_char.h>		/* UTF_MAX_SIZE */
 
 #include  "x_xic.h"
 #include  "x_picture.h"
@@ -41,6 +42,9 @@
 	GetSystemMetrics(SM_CYCAPTION)
 #endif
 
+#if  0
+#define  DEBUG_SCROLLABLE
+#endif
 
 #if  0
 #define  __DEBUG
@@ -69,7 +73,7 @@ set_transparent(
  * in older winuser.h and libuser32.a(e.g. MSYS-DTK 1.0.1).
  */
 #if  defined(WS_EX_LAYERED) && defined(LWA_ALPHA)
-	int  count ;
+	u_int  count ;
 
 	if( ! win->parent)
 	{
@@ -184,7 +188,7 @@ check_scrollable(
 {
 	if( win->is_focused)
 	{
-	#if  0
+	#ifdef  DEBUG_SCROLLABLE
 		kik_debug_printf( "SCREEN W %d H %d WINDOW W %d H %d X %d Y %d " ,
 			GetSystemMetrics( SM_CXSCREEN) , GetSystemMetrics( SM_CYSCREEN) ,
 			ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , win->x , win->y) ;
@@ -196,7 +200,7 @@ check_scrollable(
 
 		if( win->y < 0 || win->x < 0)
 		{
-		#if  0
+		#ifdef  DEBUG_SCROLLABLE
 			kik_debug_printf( "NOT SCROLLABLE(1)\n") ;
 		#endif
 			return  0 ;
@@ -209,7 +213,7 @@ check_scrollable(
 
 			if( win->y + ACTUAL_HEIGHT(win) > screen_height)
 			{
-			#if  0
+			#ifdef  DEBUG_SCROLLABLE
 				kik_debug_printf( "NOT SCROLLABLE(2)\n") ;
 			#endif
 				return  0 ;
@@ -222,7 +226,7 @@ check_scrollable(
 
 				if( win->x + ACTUAL_WIDTH(win) > screen_width)
 				{
-				#if  0
+				#ifdef  DEBUG_SCROLLABLE
 					kik_debug_printf( "NOT SCROLLABLE(3)\n") ;
 				#endif
 					return  0 ;
@@ -237,7 +241,7 @@ check_scrollable(
 
 					SHAppBarMessage( ABM_GETTASKBARPOS , &barinfo) ;
 
-				#if  0
+				#ifdef  DEBUG_SCROLLABLE
 					kik_debug_printf( "TASKBAR t %d b %d l %d r %d " ,
 						barinfo.rc.top , barinfo.rc.bottom ,
 						barinfo.rc.left , barinfo.rc.right) ;
@@ -252,7 +256,7 @@ check_scrollable(
 								/* North */
 								if( win->y < barinfo.rc.bottom)
 								{
-								#if  0
+								#ifdef  DEBUG_SCROLLABLE
 									kik_debug_printf(
 									"NOT SCROLLABLE(4)\n") ;
 								#endif
@@ -264,7 +268,7 @@ check_scrollable(
 								/* West */
 								if( win->x < barinfo.rc.right)
 								{
-								#if  0
+								#ifdef  DEBUG_SCROLLABLE
 									kik_debug_printf(
 									"NOT SCROLLABLE(5)\n") ;
 								#endif
@@ -278,7 +282,7 @@ check_scrollable(
 							if( win->x + ACTUAL_WIDTH(win)
 								> barinfo.rc.left)
 							{
-							#if  0
+							#ifdef  DEBUG_SCROLLABLE
 								kik_debug_printf(
 								"NOT SCROLLABLE(6)\n") ;
 							#endif
@@ -291,14 +295,14 @@ check_scrollable(
 						/* South */
 						if( win->y + ACTUAL_HEIGHT(win) > barinfo.rc.top)
 						{
-						#if  0
+						#ifdef  DEBUG_SCROLLABLE
 							kik_debug_printf( "NOT SCROLLABLE(7)\n") ;
 						#endif
 							return  0 ;
 						}
 					}
 				
-				#if  0
+				#ifdef  DEBUG_SCROLLABLE
 					kik_debug_printf( "SCROLLABLE\n") ;
 				#endif
 					return  1 ;
@@ -308,7 +312,7 @@ check_scrollable(
 	}
 	else
 	{
-	#if  0
+	#ifdef  DEBUG_SCROLLABLE
 		kik_debug_printf( "NOT SCROLLABLE(4)\n") ;
 	#endif
 		return  0 ;
@@ -415,73 +419,6 @@ notify_move_to_children(
 	for( count = 0 ; count < win->num_of_children ; count ++)
 	{
 		notify_move_to_children( win->children[count]) ;
-	}
-}
-
-static void
-notify_configure_to_children(
-	x_window_t *  win
-	)
-{
-	int  count ;
-
-	if( win->is_transparent)
-	{
-		if( win->pic_mod || x_root_pixmap_available( win->disp->display))
-		{
-			update_pic_transparent( win) ;
-		}
-		else
-		{
-			x_window_clear_all( win) ;
-			(*win->window_exposed)( win , 0 , 0 , win->width , win->height) ;
-		}
-	}
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		notify_configure_to_children( win->children[count]) ;
-	}
-}
-
-static void
-notify_reparent_to_children(
-	x_window_t *  win
-	)
-{
-	int  count ;
-
-	/*
-	 * XXX
-	 * x_window_set_transparent() must be called once in win32,
-	 * so following code should be modified.
-	 */
-	if( win->is_transparent)
-	{
-		x_window_set_transparent( win , win->pic_mod) ;
-	}
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		notify_reparent_to_children( win->children[count]) ;
-	}
-}
-
-static void
-notify_property_to_children(
-	x_window_t *  win
-	)
-{
-	int  count ;
-
-	if( win->is_transparent && x_root_pixmap_available( win->disp->display))
-	{
-		update_pic_transparent( win) ;
-	}
-
-	for( count = 0 ; count < win->num_of_children ; count ++)
-	{
-		notify_property_to_children( win->children[count]) ;
 	}
 }
 
@@ -730,7 +667,7 @@ draw_string(
 
 	if( font->conv)
 	{
-		if( ( str2 = malloc( len * 8)))	/* assume utf8 */
+		if( ( str2 = alloca( len * UTF_MAX_SIZE)))	/* assume utf8 */
 		{
 			(*m_cp_parser->init)( m_cp_parser) ;
 			/* 3rd argument of cp_parser->set_str is len(16bit) + cs(16bit) */
@@ -738,9 +675,8 @@ draw_string(
 							len | (FONT_CS(font->id) << 16) ) ;
 			
 			(*font->conv->init)( font->conv) ;
-			len = (*font->conv->convert)( font->conv, str2, len * 8, m_cp_parser) ;
-
-			if( len > 0)
+			if( ( len = (*font->conv->convert)( font->conv, str2, len * UTF_MAX_SIZE,
+					m_cp_parser)) > 0)
 			{
 				str = str2 ;
 			}
@@ -768,11 +704,6 @@ draw_string(
 	else if( is_tp)
 	{
 		SetBkMode( win->gc->gc , OPAQUE) ;
-	}
-
-	if( str2)
-	{
-		free( str2) ;
 	}
 
 	return  1 ;
@@ -1027,18 +958,14 @@ x_window_set_wall_picture(
 	Pixmap  pic
 	)
 {
-	if( win->is_transparent)
-	{
-		/*
-		 * unset transparent before setting wall picture !
-		 */
-
-		return  0 ;
-	}
-
 	win->is_scrollable = 0 ;
 	win->wall_picture = pic ;
 	win->wall_picture_is_set = 1 ;
+
+	if( win->my_window != None)
+	{
+		InvalidateRect( win->my_window, NULL, FALSE) ;
+	}
 
 	return  1 ;
 }
@@ -1048,30 +975,14 @@ x_window_unset_wall_picture(
 	x_window_t *  win
 	)
 {
-#if  0
-	if( ! win->wall_picture_is_set)
-	{
-		/* already unset */
-
-		return  1 ;
-	}
-#endif
-
-	if( win->is_transparent)
-	{
-		/*
-		 * transparent background is not a wall picture :)
-		 * this case is regarded as not using a wall picture.
-		 */
-
-		return  1 ;
-	}
-
-#if  0
-	win->is_scrollable = 1 ;
-#endif
+	win->is_scrollable = check_scrollable( win) ;
 	win->wall_picture = None ;
 	win->wall_picture_is_set = 0 ;
+
+	if( win->my_window != None)
+	{
+		InvalidateRect( win->my_window, NULL, FALSE) ;
+	}
 
 	return  1 ;
 }
@@ -1592,7 +1503,8 @@ x_window_clear_all(
 	x_window_t *  win
 	)
 {
-	return  x_window_clear( win, 0, 0, win->width, win->height) ;
+	return  x_window_clear( win, -win->margin , -win->margin ,
+			win->width + win->margin * 2 , win->height + win->margin * 2) ;
 }
 
 int
@@ -1817,6 +1729,7 @@ x_window_receive_event(
 		if( win->window_exposed)
 		{
 			PAINTSTRUCT  ps ;
+			int  margin_area_exposed ;
 			int  x ;
 			int  y ;
 			u_int  width ;
@@ -1824,8 +1737,11 @@ x_window_receive_event(
 
 			x_set_gc( win->gc, BeginPaint( win->my_window, &ps)) ;
 
+			margin_area_exposed = 0 ;
+
 			if( ps.rcPaint.left < win->margin)
 			{
+				margin_area_exposed = 1 ;
 				x = 0 ;
 			}
 			else
@@ -1835,6 +1751,7 @@ x_window_receive_event(
 
 			if( ps.rcPaint.top < win->margin)
 			{
+				margin_area_exposed = 1 ;
 				y = 0 ;
 			}
 			else
@@ -1844,6 +1761,7 @@ x_window_receive_event(
 
 			if( ps.rcPaint.right > win->width - win->margin)
 			{
+				margin_area_exposed = 1 ;
 				width = win->width - win->margin - x ;
 			}
 			else
@@ -1854,6 +1772,7 @@ x_window_receive_event(
 
 			if( ps.rcPaint.bottom > win->height - win->margin)
 			{
+				margin_area_exposed = 1 ;
 				height = win->height - win->margin - y ;
 			}
 			else
@@ -1863,6 +1782,11 @@ x_window_receive_event(
 			}
 
 			(*win->window_exposed)( win, x, y, width, height) ;
+
+			if( margin_area_exposed)
+			{
+				x_window_clear_margin_area( win) ;
+			}
 
 			EndPaint( win->my_window, &ps) ;
 			x_set_gc( win->gc, None) ;
@@ -2608,6 +2532,24 @@ x_window_draw_string(
 	if( win->gc->gc == None)
 	{
 		return  0 ;
+	}
+
+	/* Removing trailing spaces. */
+	while( 1)
+	{
+		if( len == 0)
+		{
+			return  1 ;
+		}
+
+		if( *(str + len - 1) == ' ')
+		{
+			len-- ;
+		}
+		else
+		{
+			break ;
+		}
 	}
 
 	x_gc_set_fid( win->gc, font->fid) ;

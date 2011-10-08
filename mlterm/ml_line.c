@@ -30,10 +30,7 @@
 #define  __DEBUG
 #endif
 
-/*
- * Optimization cooperating with IGNORE_SPACE_FG_COLOR macro defined in ml_vt100_parser.c.
- * You can specify by configure script option.
- */
+/* You can specify this macro by configure script option. */
 #if  0
 #define  OPTIMIZE_REDRAWING
 #endif

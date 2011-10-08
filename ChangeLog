@@ -1,3 +1,18 @@
+2011-10-08  Araki Ken  <arakiken@users.sf.net>
+
+	* x_window_win32.c:
+	  - x_window_{un}set_wall_picture() functions reflect screen immediately.
+	  - Background image is redrawn in margin area.
+
+	* x_window_cairo.c, x_window_xft.c, x_window.c, x_window_win32.c:
+	  Spaces at the end of lines are ignored by x_window_draw_string() and
+	  x_window_{cairo|xft}_draw_string8().
+
+	* x_window_cairo.c: cairo_move_to()/cairo_show_text() is replaced by
+	  cairo_scaled_font_text_to_glyphs()/cairo_show_glyphs().
+
+	* ml_vt100_parser.c: IGNORE_SPACE_FG_COLOR macro is removed.
+
 2011-10-05  Araki Ken  <arakiken@users.sf.net>
 
 	* x_font_ft.c: CAIRO_HINT_STYLE_NONE is applied in cairo_font_open().

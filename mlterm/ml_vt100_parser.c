@@ -67,11 +67,6 @@
 #define  DUMP_HEX
 #endif
 
-/* Optimization cooperating with OPTIMIZE_REDRAWING macro defined in ml_line.c. */
-#if  0
-#define  IGNORE_SPACE_FG_COLOR
-#endif
-
 #if  0
 #define  SUPPORT_VTE_CJK_WIDTH
 #endif
@@ -385,14 +380,6 @@ put_char(
 		fg_color = vt100_parser->fg_color ;
 		bg_color = vt100_parser->bg_color ;
 	}
-
-#ifdef  IGNORE_SPACE_FG_COLOR
-	if( fg_color != ML_FG_COLOR && cs == US_ASCII && ch[0] == ' ' &&
-		! vt100_parser->is_bold && ! vt100_parser->is_underlined)
-	{
-		fg_color = ML_FG_COLOR ;
-	}
-#endif
 
 	if( ! vt100_parser->screen->use_dynamic_comb && is_comb)
 	{
@@ -1073,9 +1060,7 @@ change_char_attr(
 	if( fg_color != vt100_parser->fg_color)
 	{
 		vt100_parser->fg_color = fg_color ;
-	#ifndef  IGNORE_SPACE_FG_COLOR
 		ml_screen_set_bce_fg_color( vt100_parser->screen , fg_color) ;
-	#endif
 	}
 
 	if( bg_color != vt100_parser->bg_color)
@@ -2388,11 +2373,9 @@ parse_vt100_escape_sequence(
 						vt100_parser->fg_color = ps[count + 2] ;
 						count += 2 ;
 
-					#ifndef  IGNORE_SPACE_FG_COLOR
 						ml_screen_set_bce_fg_color(
 							vt100_parser->screen ,
 							vt100_parser->fg_color) ;
-					#endif
 					}
 					else if( ps[count] == 48 && num >= 3 && ps[count + 1] == 5)
 					{
