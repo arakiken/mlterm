@@ -1,5 +1,12 @@
 2011-10-09  Araki Ken  <arakiken@users.sf.net>
 
+	* x_window.c, x_window_win32.c: Edges of a window is cleared,
+	  margin area is cleared at the same time in x_window_clear().
+
+	* im_ibus.c: "forward-key-event" is processed.
+
+2011-10-09  Araki Ken  <arakiken@users.sf.net>
+
 	* x_window.h, x_window_win32.c:
 	  - x_window_t::wall_picture_is_set is removed in win32.
 	  - x_window_has_wall_picture() macro is added.

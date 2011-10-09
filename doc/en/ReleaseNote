@@ -2,6 +2,7 @@ ver 3.0.9
 * -V option is no longer necessary (and not automatically turned on) to show
   indic characters.
 * Improve performance of cairo module and libvte.
+* Improve processing key events of ibus.
 * Bug fixes:
   Fix strange behavior in selecting indic characters.
   Fix a libvte's problem which gets gnome-terminal not to be resized even if font size is changed.

@@ -1405,12 +1405,44 @@ x_window_clear(
 {
 	RECT  r ;
 
-	r.left = x + win->margin ;
-	r.top = y + win->margin ;
+	if( x + width >= win->width)
+	{
+		/* Clearing margin area */
+		width += win->margin ;
+	}
+
+	if( x > 0)
+	{
+		x += win->margin ;
+	}
+	else
+	{
+		/* Clearing margin area */
+		width += win->margin ;
+	}
+
+	if( y + width >= win->height)
+	{
+		/* Clearing margin area */
+		height += win->margin ;
+	}
+
+	if( y > 0)
+	{
+		y += win->margin ;
+	}
+	else
+	{
+		/* Clearing margin area */
+		height += win->margin ;
+	}
+
+	r.left = x ;
+	r.top = y ;
 	
 	/* XXX Garbage is left in screen in scrolling without +1. Related to NULL_PEN ? */
-	r.right = x + win->margin + width + 1 ;
-	r.bottom = y + win->margin + height + 1 ;
+	r.right = x + width + 1 ;
+	r.bottom = y + height + 1 ;
 
 	if( win->gc->gc == None)
 	{
@@ -1500,8 +1532,7 @@ x_window_clear_all(
 	x_window_t *  win
 	)
 {
-	return  x_window_clear( win, -win->margin , -win->margin ,
-			win->width + win->margin * 2 , win->height + win->margin * 2) ;
+	return  x_window_clear( win , 0 , 0 , win->width , win->height) ;
 }
 
 int

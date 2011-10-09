@@ -1791,8 +1791,39 @@ x_window_clear(
 	u_int	height
 	)
 {
-	XClearArea( win->disp->display , win->my_window ,
-		x + win->margin , y + win->margin , width , height , False) ;
+	if( x + width >= win->width)
+	{
+		/* Clearing margin area */
+		width += win->margin ;
+	}
+
+	if( x > 0)
+	{
+		x += win->margin ;
+	}
+	else
+	{
+		/* Clearing margin area */
+		width += win->margin ;
+	}
+
+	if( y + width >= win->height)
+	{
+		/* Clearing margin area */
+		height += win->margin ;
+	}
+
+	if( y > 0)
+	{
+		y += win->margin ;
+	}
+	else
+	{
+		/* Clearing margin area */
+		height += win->margin ;
+	}
+
+	XClearArea( win->disp->display , win->my_window , x , y , width , height , False) ;
 
 	return  1 ;
 }
@@ -1824,10 +1855,7 @@ x_window_clear_all(
 	x_window_t *  win
 	)
 {
-	XClearArea( win->disp->display , win->my_window , 0 , 0 ,
-		ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) , 0) ;
-
-	return  1 ;
+	return  x_window_clear( win , 0 , 0 , win->width , win->height) ;
 }
 
 int

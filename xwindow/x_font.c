@@ -1397,16 +1397,16 @@ x_font_dump(
 	)
 {
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XCORE)
-	kik_msg_printf( "Font id %x: XFont %p" , font->id , font->xfont) ;
+	kik_msg_printf( "Font id %x: XFont %p " , font->id , font->xfont) ;
 #endif
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_XFT)
-	kik_msg_printf( "Font id %x: XftFont %p" , font->id , font->xft_font) ;
+	kik_msg_printf( "Font id %x: XftFont %p " , font->id , font->xft_font) ;
 #endif
 #if  ! defined(NO_DYNAMIC_LOAD_TYPE) || defined(USE_TYPE_CAIRO)
-	kik_msg_printf( "Font id %x: CairoFont %p" , font->id , font->cairo_font) ;
+	kik_msg_printf( "Font id %x: CairoFont %p " , font->id , font->cairo_font) ;
 #endif
 
-	kik_msg_printf( " (width %d, height %d, height_to_baseline %d, x_off %d)" ,
+	kik_msg_printf( "(width %d, height %d, height_to_baseline %d, x_off %d)" ,
 		font->width , font->height , font->height_to_baseline , font->x_off) ;
 
 	if( font->is_proportional)

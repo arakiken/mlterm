@@ -32,10 +32,8 @@ typedef struct im_ibus
 	 * DBus connection internally.
 	 */
 	gboolean  is_enabled ;
-	
-	/* Not used for now */
-	u_int  pressing_mod_key ;
-	u_int  mod_ignore_mask ;
+
+	XKeyEvent  prev_key ;
 
 }  im_ibus_t ;
 
@@ -49,7 +47,9 @@ static KIK_LIST( im_ibus_t)  ibus_list = NULL ;
 
 static int  ref_count = 0 ;
 static x_im_export_syms_t *  syms = NULL ; /* mlterm internal symbols */
+#ifdef  DEBUG_MODKEY
 static int  mod_key_debug = 0 ;
+#endif
 
 
 /* --- static functions --- */
@@ -315,6 +315,26 @@ commit_text(
 	(*conv->delete)( conv) ;
 }
 
+static void
+forward_key_event(
+	IBusInputContext *  context ,
+	guint  keyval ,
+	guint  keycode ,
+	guint  state ,
+	gpointer  data
+	)
+{
+	im_ibus_t *  ibus ;
+
+	ibus = (im_ibus_t*) data ;
+
+	if( ibus->prev_key.keycode == keycode + 8)
+	{
+		ibus->prev_key.state |= IBUS_IGNORED_MASK ;
+		XPutBackEvent( ibus->prev_key.display , &ibus->prev_key) ;
+		memset( &ibus->prev_key , 0 , sizeof(XKeyEvent)) ;
+	}
+}
 
 /*
  * methods of x_im_t
@@ -386,7 +406,12 @@ key_event(
 
 	ibus = (im_ibus_t*) im ;
 
-	if( ibus_input_context_process_key_event( ibus->context , ksym , event->keycode - 8 ,
+	if( event->state & IBUS_IGNORED_MASK)
+	{
+		/* Is put back in forward_key_event */
+		event->state &= ~IBUS_IGNORED_MASK ;
+	}
+	else if( ibus_input_context_process_key_event( ibus->context , ksym , event->keycode - 8 ,
 			event->state | (event->type == KeyRelease ? IBUS_RELEASE_MASK : 0)))
 	{
 		gboolean  is_enabled_old ;
@@ -394,18 +419,21 @@ key_event(
 		is_enabled_old = ibus->is_enabled ;
 		ibus->is_enabled = ibus_input_context_is_enabled( ibus->context) ;
 
-		if( ibus->is_enabled != is_enabled_old ||
-		   ( ibus->is_enabled && (ibus->im.preedit.filled_len > 0 || key_char > 0x20)))
+		if( ibus->is_enabled != is_enabled_old)
 		{
 			return  0 ;
 		}
-		else
+		else if( ibus->is_enabled)
 		{
-			/*
-			 * Even if input context is enabled, enter, backspace, space etc
-			 * keys are avaiable as far as no characters are input.
-			 */
+			memcpy( &ibus->prev_key , event , sizeof(XKeyEvent)) ;
+
+			return  0 ;
 		}
+
+		/*
+		 * Even if input context is enabled, enter, backspace, space etc
+		 * keys are avaiable as far as no characters are input.
+		 */
 	}
 
 	return  1 ;
@@ -457,8 +485,6 @@ focused(
 	{
 		(*ibus->im.cand_screen->show)( ibus->im.cand_screen) ;
 	}
-
-	ibus->pressing_mod_key = 0 ;
 }
 
 static void
@@ -476,8 +502,6 @@ unfocused(
 	{
 		(*ibus->im.cand_screen->hide)( ibus->im.cand_screen) ;
 	}
-
-	ibus->pressing_mod_key = 0 ;
 }
 
 
@@ -502,7 +526,7 @@ im_ibus_new(
 	ml_char_encoding_t  term_encoding ,
 	x_im_export_syms_t *  export_syms ,
 	char *  engine ,
-	u_int  mod_ignore_mask
+	u_int  mod_ignore_mask		/* Not used for now. */
 	)
 {
 	im_ibus_t *  ibus = NULL ;
@@ -514,10 +538,12 @@ im_ibus_new(
 		return  NULL ;
 	}
 
+#ifdef  DEBUG_MODKEY
 	if( getenv( "MOD_KEY_DEBUG"))
 	{
 		mod_key_debug = 1 ;
 	}
+#endif
 
 	if( ! ibus_bus)
 	{
@@ -566,20 +592,22 @@ im_ibus_new(
 	ibus_input_context_set_capabilities( ibus->context ,
 		IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS | IBUS_CAP_SURROUNDING_TEXT) ;
 
-        g_signal_connect( ibus->context , "update-preedit-text" ,
+	g_signal_connect( ibus->context , "update-preedit-text" ,
 			G_CALLBACK( update_preedit_text) , ibus) ;
-        g_signal_connect( ibus->context , "commit-text" , G_CALLBACK( commit_text) , ibus) ;
+	g_signal_connect( ibus->context , "commit-text" , G_CALLBACK( commit_text) , ibus) ;
+	g_signal_connect( ibus->context , "forward-key-event" ,
+			G_CALLBACK( forward_key_event) , ibus) ;
 
 	ibus->term_encoding = term_encoding ;
 	ibus->parser_ibus = NULL ;
 	ibus->is_enabled = FALSE ;
-	ibus->pressing_mod_key = 0 ;
-	ibus->mod_ignore_mask =  mod_ignore_mask ;
 
 	if( ! ( ibus->parser_ibus = (*syms->ml_parser_new)( ML_UTF8)))
 	{
 		goto  error ;
 	}
+
+	memset( &ibus->prev_key , 0 , sizeof(XKeyEvent)) ;
 
 	/*
 	 * set methods of x_im_t
