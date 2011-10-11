@@ -79,14 +79,14 @@ GtkWidget * mc_flag_config_widget_new(int id)
 	is_changed[id] = 0;
 	widget[id] = gtk_check_button_new_with_label(_(label[id]));
 	if (old_flag_mode[id])
-	    gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(widget[id]), TRUE);
+	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget[id]), TRUE);
 
 	return widget[id];
 }
 
 void mc_update_flag_mode(int id)
 {
-	new_flag_mode[id] = GTK_TOGGLE_BUTTON(widget[id])->active;
+	new_flag_mode[id] = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget[id]));
 
 	if (old_flag_mode[id] != new_flag_mode[id]) is_changed[id] = 1;
 

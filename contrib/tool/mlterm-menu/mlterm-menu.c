@@ -26,6 +26,10 @@
 
 #define MENU_RCFILE "mlterm/menu"
 
+#ifndef  gtk_menu_append
+#define  gtk_menu_append(menu,child)  gtk_menu_shell_append((GtkMenuShell*)(menu),(child))
+#endif
+
 static GScannerConfig menu_scanner_config = {
     " \t\n",
     G_CSET_A_2_Z G_CSET_a_2_z "-_",
@@ -73,7 +77,9 @@ int main(int argc, char* argv[])
 {
     GtkWidget* menu;
 
+#if  ! GTK_CHECK_VERSION(2,90,0)
     gtk_set_locale();
+#endif
 
     progname = argv[0];
     gtk_init(&argc, &argv);
@@ -81,8 +87,7 @@ int main(int argc, char* argv[])
 
     menu = create_menu();
 
-    gtk_signal_connect(GTK_OBJECT(menu), "deactivate",
-                       gtk_main_quit, NULL);
+    g_signal_connect(menu, "deactivate", gtk_main_quit, NULL);
     gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, 0, 0);
 
     gtk_main();
@@ -107,8 +112,8 @@ GtkWidget* create_menu(void)
 
         item = gtk_menu_item_new_with_label("Copy");
 	if (sel && *sel) {
-	    gtk_signal_connect(GTK_OBJECT(item), "activate",
-                           GTK_SIGNAL_FUNC(activate_callback_copy),
+	    g_signal_connect(item, "activate",
+                           G_CALLBACK(activate_callback_copy),
                            (gpointer) sel);
         } else {
 	    gtk_widget_set_sensitive(item, 0);
@@ -118,8 +123,8 @@ GtkWidget* create_menu(void)
 	item = gtk_menu_item_new_with_label("Paste");
         if ((clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD)) &&
 	     gtk_clipboard_wait_is_text_available(clipboard)) {
-	     gtk_signal_connect(GTK_OBJECT(item), "activate",
-                           GTK_SIGNAL_FUNC(activate_callback), "paste");
+	     g_signal_connect(item, "activate",
+                           G_CALLBACK(activate_callback), "paste");
 	     
 	} else {
 	     gtk_widget_set_sensitive(item, 0);
@@ -188,8 +193,8 @@ int append_menu_from_scanner(GtkMenu* menu, GScanner* scanner, int level)
                 g_scanner_get_next_token(scanner);
                 tv = g_scanner_cur_value(scanner);
 
-                gtk_signal_connect(GTK_OBJECT(item), "activate",
-                                   GTK_SIGNAL_FUNC(activate_callback),
+                g_signal_connect(item, "activate",
+                                   G_CALLBACK(activate_callback),
                                    (gpointer) strdup(tv.v_string));
                 break;
             case G_TOKEN_LEFT_CURLY:
@@ -272,10 +277,10 @@ int append_pty_list(GtkMenu* menu)
         sprintf(command, "select_pty %s", pty);
 
         item = gtk_radio_menu_item_new_with_label(group, name_utf8);
-        group = gtk_radio_menu_item_group(GTK_RADIO_MENU_ITEM(item));
+        group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(item));
 
-        gtk_signal_connect(GTK_OBJECT(item), "toggled",
-                           GTK_SIGNAL_FUNC(toggled_callback),
+        g_signal_connect(item, "toggled",
+                           G_CALLBACK(toggled_callback),
                            (gpointer) command);
 
         gtk_menu_append(menu, item);
@@ -332,7 +337,7 @@ void toggled_callback(GtkWidget* widget, gpointer data)
 {
     char* command = data;
     
-    if(GTK_CHECK_MENU_ITEM(widget)->active) {
+    if(gtk_check_menu_item_get_active( GTK_CHECK_MENU_ITEM(widget))) {
       printf("\x1b]5379;%s\x07", command);
     }
 }

@@ -39,9 +39,8 @@ mc_combo_new_with_width(
 	GtkWidget * hbox;
 	GtkWidget * label;
 	GtkWidget * combo;
-	GList * items;
 	int item_found;
-	int count;
+	u_int count;
 
 	hbox = gtk_hbox_new(FALSE, 5);
 	gtk_widget_show(hbox);
@@ -50,43 +49,61 @@ mc_combo_new_with_width(
 	gtk_widget_show(label) ;
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 5);
 
-	items = NULL;
+#if  GTK_CHECK_VERSION(2,90,0)
+	combo = gtk_combo_box_text_new_with_entry();
+#else
+	combo = gtk_combo_box_entry_new_text();
+#endif
+	gtk_widget_show(combo);
+
 	item_found = 0;
 	for(count = 0; count < item_num; count++)
 	{
 	    if(strcmp(selected_item_name, item_names[count]) == 0)
 	    {
-		items = g_list_prepend(items, item_names[count]);
+	    #if  GTK_CHECK_VERSION(2,90,0)
+	        gtk_combo_box_text_prepend_text( GTK_COMBO_BOX_TEXT(combo) , item_names[count]) ;
+	    #else
+	        gtk_combo_box_prepend_text( GTK_COMBO_BOX(combo), item_names[count]);
+	    #endif
 		item_found = 1;
 	    }
 	    else
 	    {
-		items = g_list_append(items, item_names[count]);
+	    #if  GTK_CHECK_VERSION(2,90,0)
+	        gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT(combo) , item_names[count]) ;
+	    #else
+	        gtk_combo_box_append_text( GTK_COMBO_BOX(combo), item_names[count]);
+	    #endif
 	    }
 	}
 
 	if(!item_found && !is_readonly)
 	{
-	    items = g_list_prepend(items, selected_item_name);
+	#if  GTK_CHECK_VERSION(2,90,0)
+	    gtk_combo_box_text_prepend_text( GTK_COMBO_BOX_TEXT(combo) , selected_item_name) ;
+	#else
+	    gtk_combo_box_prepend_text( GTK_COMBO_BOX(combo), selected_item_name);
+	#endif
 	}
+
+	gtk_combo_box_set_active( GTK_COMBO_BOX(combo) , 0) ;
 	
-	combo = gtk_combo_new();
-	gtk_widget_show(combo);
-	
-	gtk_combo_set_popdown_strings(GTK_COMBO(combo), items);
-	gtk_signal_connect(GTK_OBJECT(GTK_COMBO(combo)->entry),
-		"changed", GTK_SIGNAL_FUNC(callback), data);
+	g_signal_connect( gtk_bin_get_child( GTK_BIN(combo)),
+		"changed", G_CALLBACK(callback), data);
 
 	if( is_readonly)
 	{
-	    gtk_entry_set_editable(GTK_ENTRY(GTK_COMBO(combo)->entry), FALSE);
+	    gtk_editable_set_editable( GTK_EDITABLE(gtk_bin_get_child( GTK_BIN(combo))), FALSE);
 	}
 	
-	if (entry_width) {
-	    gtk_widget_set_usize(GTK_WIDGET(GTK_COMBO(combo)->entry),
-				 entry_width , 0);
+	if (entry_width)
+	{
+	    gtk_widget_set_size_request( gtk_bin_get_child( GTK_BIN(combo)), entry_width, 0);
 	    gtk_box_pack_start(GTK_BOX(hbox), combo, FALSE, FALSE, 0);
-	} else {
+	}
+	else
+	{
 	    gtk_box_pack_start(GTK_BOX(hbox), combo, TRUE, TRUE, 0);
 	}
 

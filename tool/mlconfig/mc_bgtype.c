@@ -61,7 +61,7 @@ button_color_checked(
 	gpointer  data
 	)
 {
-    if (GTK_TOGGLE_BUTTON(widget)->active) {
+    if (gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget))) {
 	bgtype = MC_BG_COLOR; is_changed = 1;
 	set_sensitive();
     }
@@ -74,7 +74,7 @@ button_transparent_checked(
 	gpointer  data
 	)
 {
-    if (GTK_TOGGLE_BUTTON(widget)->active) {
+    if (gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget))) {
 	bgtype = MC_BG_TRANSPARENT; is_changed = 1;
 	set_sensitive();
     }
@@ -87,7 +87,7 @@ button_picture_checked(
 	gpointer  data
 	)
 {
-    if (GTK_TOGGLE_BUTTON(widget)->active) {
+    if (gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget))) {
 	bgtype = MC_BG_WALLPICTURE; is_changed = 1;
 	set_sensitive();
     }
@@ -123,12 +123,12 @@ mc_bgtype_config_widget_new(void)
 
     /* color button */
     radio = gtk_radio_button_new_with_label(group, _("Color"));
-    group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
-    gtk_signal_connect(GTK_OBJECT(radio), "toggled",
-		       GTK_SIGNAL_FUNC(button_color_checked), NULL);
+    group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
+    g_signal_connect(radio, "toggled",
+		       G_CALLBACK(button_color_checked), NULL);
     gtk_widget_show(GTK_WIDGET(radio));
     if (bgtype == MC_BG_COLOR)
-	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio), TRUE);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
     hbox = gtk_hbox_new(FALSE, 2);
     gtk_widget_show(hbox);
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
@@ -137,12 +137,12 @@ mc_bgtype_config_widget_new(void)
 
     /* picture button */
     radio = gtk_radio_button_new_with_label(group, _("Picture"));
-    group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
-    gtk_signal_connect(GTK_OBJECT(radio), "toggled", 
-		       GTK_SIGNAL_FUNC(button_picture_checked), NULL);
+    group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
+    g_signal_connect(radio, "toggled", 
+		       G_CALLBACK(button_picture_checked), NULL);
     gtk_widget_show(GTK_WIDGET(radio));
     if (bgtype == MC_BG_WALLPICTURE)
-	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio), TRUE);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
     hbox = gtk_hbox_new(FALSE, 2);
     gtk_widget_show(hbox);
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
@@ -151,12 +151,12 @@ mc_bgtype_config_widget_new(void)
 
     /* transparent button */
     radio = gtk_radio_button_new_with_label(group, _("Transparent"));
-    group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
-    gtk_signal_connect(GTK_OBJECT(radio), "toggled",
-		       GTK_SIGNAL_FUNC(button_transparent_checked), NULL);
+    group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
+    g_signal_connect(radio, "toggled",
+		       G_CALLBACK(button_transparent_checked), NULL);
     gtk_widget_show(GTK_WIDGET(radio));
     if (bgtype == MC_BG_TRANSPARENT)
-	gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio), TRUE);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio), TRUE);
     hbox = gtk_hbox_new(FALSE, 2);
     gtk_widget_show(hbox);
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);

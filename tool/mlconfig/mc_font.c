@@ -11,7 +11,9 @@
 #include  <glib.h>
 #include  <c_intl.h>
 
+#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32) && ! GTK_CHECK_VERSION(2,90,0)
 #include  "gtkxlfdsel.h"
+#endif
 
 #include  "mc_combo.h"
 #include  "mc_flags.h"
@@ -235,9 +237,10 @@ get_correct_cs(
 static char *
 get_font_file(void)
 {
-	if( GTK_TOGGLE_BUTTON(xft_flag)->active || GTK_TOGGLE_BUTTON(cairo_flag)->active)
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(xft_flag)) ||
+	    gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(cairo_flag)))
 	{
-		if( GTK_TOGGLE_BUTTON(vcol_flag)->active)
+		if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(vcol_flag)))
 		{
 			return "vaafont" ;
 		}
@@ -252,7 +255,7 @@ get_font_file(void)
 	}
 	else
 	{
-		if( GTK_TOGGLE_BUTTON(vcol_flag)->active)
+		if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(vcol_flag)))
 		{
 			return "vfont" ;
 		}
@@ -273,10 +276,10 @@ aa_flag_checked(
 	gpointer  data
 	)
 {
-	if( GTK_TOGGLE_BUTTON(widget)->active)
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget)))
 	{
-		if( ! GTK_TOGGLE_BUTTON(xft_flag)->active &&
-		    ! GTK_TOGGLE_BUTTON(cairo_flag)->active)
+		if( ! gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(xft_flag)) &&
+		    ! gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(cairo_flag)))
 		{
 			gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(xft_flag) , 1) ;
 		
@@ -298,7 +301,7 @@ xft_flag_checked(
 	gpointer  data
 	)
 {
-	if( ! GTK_TOGGLE_BUTTON(widget)->active)
+	if( ! gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget)))
 	{
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(aa_flag) , 0) ;
 	}
@@ -323,7 +326,7 @@ cairo_flag_checked(
 	gpointer  data
 	)
 {
-	if( ! GTK_TOGGLE_BUTTON(widget)->active)
+	if( ! gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget)))
 	{
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(aa_flag) , 0) ;
 	}
@@ -438,7 +441,7 @@ fontcs_selected(
 }
 
 
-#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32)
+#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32) && ! GTK_CHECK_VERSION(2,90,0)
 
 static gchar *
 get_xlfd_font_name(
@@ -573,12 +576,12 @@ select_xlfd_font(
 			cs_info_table[selected_cs].encoding_names) ;
 	}
 
-	gtk_signal_connect(GTK_OBJECT(GTK_XLFD_SELECTION_DIALOG(dialog)->ok_button) ,
-		"clicked" , GTK_SIGNAL_FUNC(ok_pressed) , dialog) ;
-	gtk_signal_connect(GTK_OBJECT(GTK_XLFD_SELECTION_DIALOG(dialog)->apply_button) ,
-		"clicked" , GTK_SIGNAL_FUNC(apply_pressed) , dialog) ;
-	gtk_signal_connect(GTK_OBJECT(GTK_XLFD_SELECTION_DIALOG(dialog)->cancel_button) ,
-		"clicked" , GTK_SIGNAL_FUNC(cancel_pressed) , dialog) ;
+	g_signal_connect(GTK_XLFD_SELECTION_DIALOG(dialog)->ok_button ,
+		"clicked" , G_CALLBACK(ok_pressed) , dialog) ;
+	g_signal_connect(GTK_XLFD_SELECTION_DIALOG(dialog)->apply_button ,
+		"clicked" , G_CALLBACK(apply_pressed) , dialog) ;
+	g_signal_connect(GTK_XLFD_SELECTION_DIALOG(dialog)->cancel_button ,
+		"clicked" , G_CALLBACK(cancel_pressed) , dialog) ;
 
 	gtk_widget_show_all( dialog) ;
 }
@@ -705,9 +708,9 @@ select_font(
 	gpointer  p
 	)
 {
-#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32)
-	if( ! GTK_TOGGLE_BUTTON(xft_flag)->active &&
-	    ! GTK_TOGGLE_BUTTON(cairo_flag)->active)
+#if  ! defined(USE_WIN32GUI) && ! defined(G_PLATFORM_WIN32) && ! GTK_CHECK_VERSION(2,90,0)
+	if( ! gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(xft_flag)) &&
+	    ! gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(cairo_flag)))
 	{
 		select_xlfd_font( widget , p) ;
 	}
@@ -744,7 +747,7 @@ mc_font_config_widget_new(void)
 		sizeof(fontlist) / sizeof(fontlist[0]), new_fontsize , 1 ,
 		fontsize_selected, NULL, 80) ;
 	gtk_box_pack_start(GTK_BOX(vbox) , combo , TRUE , TRUE , 0) ;
-#if  GTK_MAJOR_VERSION > 2 || (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION > 12)
+#if  GTK_CHECK_VERSION(2,12,0)
 	gtk_widget_set_tooltip_text(combo ,
 		"If you change fonts from \"Select\" button, "
 		"it is not recommended to change font size here.") ;
@@ -757,8 +760,8 @@ mc_font_config_widget_new(void)
 	xft_flag = mc_flag_config_widget_new( MC_FLAG_XFT) ;
 	gtk_widget_show( xft_flag) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , xft_flag , TRUE , TRUE , 0) ;
-	gtk_signal_connect(GTK_OBJECT(xft_flag) , "toggled" ,
-		GTK_SIGNAL_FUNC(xft_flag_checked) , NULL) ;
+	g_signal_connect(xft_flag , "toggled" ,
+		G_CALLBACK(xft_flag_checked) , NULL) ;
 	if( mc_gui_is_win32())
 	{
 		gtk_widget_set_sensitive(xft_flag, 0);
@@ -767,8 +770,8 @@ mc_font_config_widget_new(void)
 	cairo_flag = mc_flag_config_widget_new( MC_FLAG_CAIRO) ;
 	gtk_widget_show( cairo_flag) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , cairo_flag , TRUE , TRUE , 0) ;
-	gtk_signal_connect(GTK_OBJECT(cairo_flag) , "toggled" ,
-		GTK_SIGNAL_FUNC(cairo_flag_checked) , NULL) ;
+	g_signal_connect(cairo_flag , "toggled" ,
+		G_CALLBACK(cairo_flag_checked) , NULL) ;
 	if( mc_gui_is_win32())
 	{
 		gtk_widget_set_sensitive(cairo_flag, 0);
@@ -780,14 +783,14 @@ mc_font_config_widget_new(void)
 #endif
 	gtk_widget_show( aa_flag) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , aa_flag , TRUE , TRUE , 0) ;
-	gtk_signal_connect(GTK_OBJECT(aa_flag) , "toggled" ,
-		GTK_SIGNAL_FUNC(aa_flag_checked) , NULL) ;
+	g_signal_connect(aa_flag , "toggled" ,
+		G_CALLBACK(aa_flag_checked) , NULL) ;
 	
 	vcol_flag = mc_flag_config_widget_new( MC_FLAG_VCOL) ;
 	gtk_widget_show( vcol_flag) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , vcol_flag , TRUE , TRUE , 0) ;
-	gtk_signal_connect(GTK_OBJECT(vcol_flag) , "toggled" ,
-		GTK_SIGNAL_FUNC(vcol_flag_checked) , NULL) ;
+	g_signal_connect(vcol_flag , "toggled" ,
+		G_CALLBACK(vcol_flag_checked) , NULL) ;
 
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
 
@@ -823,14 +826,14 @@ mc_font_config_widget_new(void)
 					get_correct_cs(selected_cs)) ,
 			-1 , NULL , NULL , NULL) ) ;
 	gtk_widget_show(fontname_entry) ;
-	gtk_widget_set_usize(fontname_entry , 100 , 0) ;
+	gtk_widget_set_size_request(fontname_entry , 100 , 0) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , fontname_entry , TRUE , TRUE , 1) ;
 
 	select_font_button = gtk_button_new_with_label( _("Select")) ;
 	gtk_widget_show( select_font_button) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , select_font_button , TRUE , TRUE , 1) ;
-	gtk_signal_connect(GTK_OBJECT(select_font_button) , "clicked" ,
-		GTK_SIGNAL_FUNC(select_font) , NULL) ;
+	g_signal_connect(select_font_button , "clicked" ,
+		G_CALLBACK(select_font) , NULL) ;
 
 	gtk_box_pack_start(GTK_BOX(vbox) , hbox , TRUE , TRUE , 0) ;
 

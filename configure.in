@@ -122,10 +122,17 @@ if test "$ml_cv_is_posix" = "yes" -o "$debug" = "yes" ; then
 fi
 AC_SUBST(SUBSYSTEM)
 
-PKG_CHECK_MODULES(GTK, gtk+-2.0, have_gtk2=yes, have_gtk2=no)
-if test "$have_gtk2" = "yes" ; then
-	gtk_config=yes
+AC_ARG_WITH(gtk,
+	[  --with-gtk@<:@=ARG@:>@        gtk+ version (2.0|3.0)],
+	gtk_version=$with_gtk)
+if test "$gtk_version" = "" ; then
+	gtk_version=2.0
+elif test "$gtk_version" != "2.0" -a "$gtk_version" != "3.0" ; then
+	echo "GTK+ $gtk_version is not supported. Use GTK+ 2.0."
+	gtk_version=2.0
 fi
+
+PKG_CHECK_MODULES(GTK, gtk+-$gtk_version, have_gtk=yes, have_gtk=no)
 # "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
 GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
 GTK_LIBS="`echo $GTK_LIBS | tr -d '\r'`"
@@ -503,8 +510,12 @@ fi
 AC_SUBST(UTMP_CFLAGS)
 AC_SUBST(INSTALL_OPT)
 
-if test "${gtk_config}" = "yes" ; then
-	PKG_CHECK_MODULES(VTE, vte, have_vte=yes, have_vte=no)
+if test "${have_gtk}" = "yes" ; then
+	if test "${gtk_version}" = "3.0" ; then
+		PKG_CHECK_MODULES(VTE, vte-2.90, have_vte=yes, have_vte=no)
+	else
+		PKG_CHECK_MODULES(VTE, vte, have_vte=yes, have_vte=no)
+	fi
 	if test "$have_vte" = "yes" ; then
 		OUTPUT_FILES="gtk/Makefile ${OUTPUT_FILES}"
 		# "tr ..." is hack for cygwin.
@@ -529,10 +540,14 @@ tools=`echo ${tools} | sed 's/,/ /g'`
 for tool in ${tools} ; do
 case ${tool} in
 mlconfig)
-	if test "${gtk_config}" = "yes" ; then
+	if test "${have_gtk}" = "yes" ; then
 		MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
 		OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
+		if test "$gui" = "xlib" -a "$gtk_version" = "2.0" ; then
+			XLFDSEL_OBJ="gtkxlfdsel.o"
+			AC_SUBST(XLFDSEL_OBJ)
+		fi
 	else
 		echo ""
 		echo "** WARNING  **"
@@ -541,7 +556,7 @@ mlconfig)
 	fi
 	;;
 mlterm-menu)
-	if test "${gtk_config}" = "yes" ; then
+	if test "${have_gtk}" = "yes" ; then
 		MAKE_DIRS="contrib/tool/mlterm-menu ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"

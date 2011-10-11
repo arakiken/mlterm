@@ -824,6 +824,7 @@ UIM_CFLAGS
 DND_LIBS
 DND_CFLAGS
 PERL
+XLFDSEL_OBJ
 VTE_LIBS
 VTE_CFLAGS
 INSTALL_OPT
@@ -973,6 +974,7 @@ with_tags
 with_x
 with_gui
 enable_debug
+with_gtk
 with_imagelib
 enable_dl_ctl
 enable_fribidi
@@ -1695,6 +1697,7 @@ Optional Packages:
   --with-tags[=TAGS]      include additional configurations [automatic]
   --with-x                use the X Window System
   --with-gui[=ARG]        gui library(xlib|win32)
+  --with-gtk[=ARG]        gtk+ version (2.0|3.0)
   --with-imagelib[=ARG]   image library (gdk-pixbuf) [default=no]
   --with-type-engines     type engines(xcore, xft) [default=xcore]
   --with-tools[=ARG]      external tools [default=mlclient,mlconfig,mlterm-menu,mlcc]
@@ -4584,7 +4587,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4587 "configure"' > conftest.$ac_ext
+  echo '#line 4590 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7153,11 +7156,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7156: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7159: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7160: \$? = $ac_status" >&5
+   echo "$as_me:7163: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7443,11 +7446,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7446: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7449: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:7450: \$? = $ac_status" >&5
+   echo "$as_me:7453: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -7547,11 +7550,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:7550: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:7553: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:7554: \$? = $ac_status" >&5
+   echo "$as_me:7557: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9572,7 +9575,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9575 "configure"
+#line 9578 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9672,7 +9675,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9675 "configure"
+#line 9678 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12013,11 +12016,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12016: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12019: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12020: \$? = $ac_status" >&5
+   echo "$as_me:12023: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12117,11 +12120,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12120: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12123: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:12124: \$? = $ac_status" >&5
+   echo "$as_me:12127: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13700,11 +13703,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13703: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13706: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13707: \$? = $ac_status" >&5
+   echo "$as_me:13710: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13804,11 +13807,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13807: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13810: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13811: \$? = $ac_status" >&5
+   echo "$as_me:13814: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15965,11 +15968,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:15968: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:15971: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:15972: \$? = $ac_status" >&5
+   echo "$as_me:15975: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16255,11 +16258,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16258: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16261: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:16262: \$? = $ac_status" >&5
+   echo "$as_me:16265: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -16359,11 +16362,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:16362: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:16365: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:16366: \$? = $ac_status" >&5
+   echo "$as_me:16369: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19784,6 +19787,19 @@ fi
 
 
 
+# Check whether --with-gtk was given.
+if test "${with_gtk+set}" = set; then :
+  withval=$with_gtk; gtk_version=$with_gtk
+fi
+
+if test "$gtk_version" = "" ; then
+	gtk_version=2.0
+elif test "$gtk_version" != "2.0" -a "$gtk_version" != "3.0" ; then
+	echo "GTK+ $gtk_version is not supported. Use GTK+ 2.0."
+	gtk_version=2.0
+fi
+
+
 
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
 	if test -n "$ac_tool_prefix"; then
@@ -19908,12 +19924,12 @@ if test -n "$GTK_CFLAGS"; then
     pkg_cv_GTK_CFLAGS="$GTK_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "gtk+-2.0") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-\$gtk_version\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gtk+-$gtk_version") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_GTK_CFLAGS=`$PKG_CONFIG --cflags "gtk+-2.0" 2>/dev/null`
+  pkg_cv_GTK_CFLAGS=`$PKG_CONFIG --cflags "gtk+-$gtk_version" 2>/dev/null`
 else
   pkg_failed=yes
 fi
@@ -19924,12 +19940,12 @@ if test -n "$GTK_LIBS"; then
     pkg_cv_GTK_LIBS="$GTK_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "gtk+-2.0") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-\$gtk_version\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gtk+-$gtk_version") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_GTK_LIBS=`$PKG_CONFIG --libs "gtk+-2.0" 2>/dev/null`
+  pkg_cv_GTK_LIBS=`$PKG_CONFIG --libs "gtk+-$gtk_version" 2>/dev/null`
 else
   pkg_failed=yes
 fi
@@ -19947,27 +19963,24 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        GTK_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gtk+-2.0" 2>&1`
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gtk+-$gtk_version" 2>&1`
         else
-	        GTK_PKG_ERRORS=`$PKG_CONFIG --print-errors "gtk+-2.0" 2>&1`
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --print-errors "gtk+-$gtk_version" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$GTK_PKG_ERRORS" >&5
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-                have_gtk2=no
+                have_gtk=no
 elif test $pkg_failed = untried; then
-	have_gtk2=no
+	have_gtk=no
 else
 	GTK_CFLAGS=$pkg_cv_GTK_CFLAGS
 	GTK_LIBS=$pkg_cv_GTK_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	have_gtk2=yes
-fi
-if test "$have_gtk2" = "yes" ; then
-	gtk_config=yes
+	have_gtk=yes
 fi
 # "tr ..." is hack for cygwin. (removing \r which is output by win32 native pkg-config.)
 GTK_CFLAGS="`echo $GTK_CFLAGS | tr -d '\r'`"
@@ -21026,7 +21039,76 @@ fi
 
 
 
-if test "${gtk_config}" = "yes" ; then
+if test "${have_gtk}" = "yes" ; then
+	if test "${gtk_version}" = "3.0" ; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for VTE" >&5
+$as_echo_n "checking for VTE... " >&6; }
+
+if test -n "$VTE_CFLAGS"; then
+    pkg_cv_VTE_CFLAGS="$VTE_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"vte-2.90\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "vte-2.90") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_VTE_CFLAGS=`$PKG_CONFIG --cflags "vte-2.90" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$VTE_LIBS"; then
+    pkg_cv_VTE_LIBS="$VTE_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"vte-2.90\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "vte-2.90") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_VTE_LIBS=`$PKG_CONFIG --libs "vte-2.90" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        VTE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "vte-2.90" 2>&1`
+        else
+	        VTE_PKG_ERRORS=`$PKG_CONFIG --print-errors "vte-2.90" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$VTE_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+                have_vte=no
+elif test $pkg_failed = untried; then
+	have_vte=no
+else
+	VTE_CFLAGS=$pkg_cv_VTE_CFLAGS
+	VTE_LIBS=$pkg_cv_VTE_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_vte=yes
+fi
+	else
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for VTE" >&5
@@ -21094,6 +21176,7 @@ else
 $as_echo "yes" >&6; }
 	have_vte=yes
 fi
+	fi
 	if test "$have_vte" = "yes" ; then
 		OUTPUT_FILES="gtk/Makefile ${OUTPUT_FILES}"
 		# "tr ..." is hack for cygwin.
@@ -21121,10 +21204,14 @@ tools=`echo ${tools} | sed 's/,/ /g'`
 for tool in ${tools} ; do
 case ${tool} in
 mlconfig)
-	if test "${gtk_config}" = "yes" ; then
+	if test "${have_gtk}" = "yes" ; then
 		MAKE_DIRS="tool/mlconfig ${MAKE_DIRS}"
 		OUTPUT_FILES="tool/mlconfig/Makefile tool/mlconfig/po/Makefile.in ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"
+		if test "$gui" = "xlib" -a "$gtk_version" = "2.0" ; then
+			XLFDSEL_OBJ="gtkxlfdsel.o"
+
+		fi
 	else
 		echo ""
 		echo "** WARNING  **"
@@ -21133,7 +21220,7 @@ mlconfig)
 	fi
 	;;
 mlterm-menu)
-	if test "${gtk_config}" = "yes" ; then
+	if test "${have_gtk}" = "yes" ; then
 		MAKE_DIRS="contrib/tool/mlterm-menu ${MAKE_DIRS}"
 		OUTPUT_FILES="contrib/tool/mlterm-menu/Makefile ${OUTPUT_FILES}"
 		tools_result="$tools_result $tool"

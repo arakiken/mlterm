@@ -27,7 +27,7 @@ mc_check_config_widget_new(
 
 	if( is_checked)
 	{
-		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(check) , TRUE) ;
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(check) , TRUE) ;
 	}
 	
 	return  check ;

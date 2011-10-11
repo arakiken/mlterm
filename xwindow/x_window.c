@@ -255,7 +255,7 @@ set_transparent(
 		XQueryTree( win->disp->display , parent , &root , &parent , &list , &n) ;
 		XFree( list) ;
 
-		if( parent == DefaultRootWindow( win->disp->display))
+		if( parent == root)
 		{
 			break ;
 		}

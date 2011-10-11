@@ -396,7 +396,7 @@ im_widget_new(int nth_im, const char *value, char *locale)
 static gint
 button_xim_checked(GtkWidget *widget, gpointer data)
 {
-	if(GTK_TOGGLE_BUTTON(widget)->active) {
+	if(gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget))) {
 		gtk_widget_show(GTK_WIDGET(data));
 		im_type = IM_XIM;
 	} else {
@@ -415,7 +415,7 @@ button_im_checked(GtkWidget *widget, gpointer  data)
 	int idx = 0;
 
 	if (data == NULL || num_of_info == 0) {
-		if (GTK_TOGGLE_BUTTON(widget)->active) {
+		if (gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget))) {
 			im_type = IM_NONE;
 		}
 	} else {
@@ -423,7 +423,7 @@ button_im_checked(GtkWidget *widget, gpointer  data)
 			if (im_info_table[i] == data)
 				idx = i;
 
-		if (GTK_TOGGLE_BUTTON(widget)->active) {
+		if (gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget))) {
 			im_type = IM_OTHER + idx;
 			selected_im = data;
 			if (im_opt_widget[idx])
@@ -507,35 +507,35 @@ mc_im_config_widget_new(void)
 
 	hbox = gtk_hbox_new(FALSE, 5);
 	radio = gtk_radio_button_new_with_label(NULL, "XIM");
-	gtk_signal_connect(GTK_OBJECT(radio), "toggled",
-			   GTK_SIGNAL_FUNC(button_xim_checked), xim);
+	g_signal_connect(radio, "toggled",
+			   G_CALLBACK(button_xim_checked), xim);
 	gtk_widget_show(GTK_WIDGET(radio));
 	gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
 	if (im_type == IM_XIM)
-		gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio) , TRUE);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio) , TRUE);
 
 	for (i = 0; i < num_of_info; i++) {
-		group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
+		group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
 		radio = gtk_radio_button_new_with_label(group,
 							im_info_table[i]->name);
-		gtk_signal_connect(GTK_OBJECT(radio), "toggled",
-				   GTK_SIGNAL_FUNC(button_im_checked),
+		g_signal_connect(radio, "toggled",
+				   G_CALLBACK(button_im_checked),
 				   im_info_table[i]);
 		gtk_widget_show(GTK_WIDGET(radio));
 		gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
 		if (im_type >= IM_OTHER && index == i)
-			gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio) ,
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio) ,
 						    TRUE);
 	}
 
-	group = gtk_radio_button_group(GTK_RADIO_BUTTON(radio));
+	group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(radio));
 	radio = gtk_radio_button_new_with_label(group, _("None"));
-	gtk_signal_connect(GTK_OBJECT(radio), "toggled",
-			   GTK_SIGNAL_FUNC(button_im_checked), NULL);
+	g_signal_connect(radio, "toggled",
+			   G_CALLBACK(button_im_checked), NULL);
 	gtk_widget_show(GTK_WIDGET(radio));
 	gtk_box_pack_start(GTK_BOX(hbox), radio, FALSE, FALSE, 0);
 	if (im_type == IM_NONE)
-		gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(radio) , TRUE);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio) , TRUE);
 
 	gtk_widget_show(GTK_WIDGET(hbox));
 	gtk_box_pack_start(GTK_BOX(vbox), hbox, TRUE, TRUE, 0);

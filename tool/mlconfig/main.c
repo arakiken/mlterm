@@ -67,7 +67,8 @@ bidi_flag_checked(
 
 	ind_flag = data ;
 
-	gtk_widget_set_sensitive( ind_flag , ! GTK_TOGGLE_BUTTON(widget)->active) ;
+	gtk_widget_set_sensitive( ind_flag ,
+		! gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget))) ;
 
 	return  1 ;
 }
@@ -387,8 +388,8 @@ addbutton(const char *label, gint (func)(GtkWidget *, gpointer), GtkWidget *box)
 {
 	GtkWidget *button;
 	button = gtk_button_new_with_label(label);
-	gtk_signal_connect(GTK_OBJECT(button), "clicked",
-			   GTK_SIGNAL_FUNC(func), NULL);
+	g_signal_connect(button, "clicked",
+			   G_CALLBACK(func), NULL);
 	gtk_widget_show(button);
 	gtk_box_pack_start(GTK_BOX(box), button, TRUE, TRUE, 0);
 }
@@ -428,7 +429,7 @@ font_large_small(void)
 	addbutton(_("Larger"),  larger_clicked,  hbox);
 	addbutton(_("Smaller"), smaller_clicked, hbox);
 
-#if  GTK_MAJOR_VERSION > 2 || (GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION > 12)
+#if  GTK_CHECK_VERSION(2,12,0)
 	gtk_widget_set_tooltip_text(frame ,
 		"If you change fonts from \"Select\" button in \"Font\" tab, "
 		"it is not recommended to change font size here.") ;
@@ -525,8 +526,7 @@ show(void)
 	GtkWidget *  separator ;
 	
 	window = gtk_window_new( GTK_WINDOW_TOPLEVEL) ;
-	gtk_signal_connect( GTK_OBJECT(window) , "delete_event" ,
-		GTK_SIGNAL_FUNC(end_application) , NULL) ;
+	g_signal_connect( window , "delete_event" , G_CALLBACK(end_application) , NULL) ;
 	gtk_window_set_title( GTK_WINDOW(window) , _("mlterm configuration")) ;
 	gtk_container_set_border_width( GTK_CONTAINER(window) , 0) ;
 
@@ -599,9 +599,10 @@ show(void)
 	gtk_widget_show(config_widget);
 	gtk_box_pack_start(GTK_BOX(hbox), config_widget, TRUE, TRUE, 0);
 
-	gtk_signal_connect(GTK_OBJECT(bidi_flag), "toggled" ,
-		GTK_SIGNAL_FUNC(bidi_flag_checked), config_widget);
-	gtk_widget_set_sensitive(config_widget, ! GTK_TOGGLE_BUTTON(bidi_flag)->active);
+	g_signal_connect(bidi_flag, "toggled" ,
+		G_CALLBACK(bidi_flag_checked), config_widget);
+	gtk_widget_set_sensitive(config_widget,
+		! gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(bidi_flag)));
 
 	if(!(config_widget = mc_flag_config_widget_new(MC_FLAG_COMB)))
 	    return 0;
@@ -796,7 +797,9 @@ show(void)
 
 
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_MOUSE);
+#if ! GTK_CHECK_VERSION(2,90,0)
 	gtk_window_set_policy(GTK_WINDOW(window), 0, 0, 0);
+#endif
 	gtk_widget_show(window);
 
 	gtk_main();
@@ -813,7 +816,9 @@ main(
 	char **  argv
 	)
 {
+#if ! GTK_CHECK_VERSION(2,90,0)
 	gtk_set_locale ();
+#endif
 
 	bindtextdomain( "mlconfig" , LOCALEDIR) ;
 	bind_textdomain_codeset ( "mlconfig", "UTF-8") ;

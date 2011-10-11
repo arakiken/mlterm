@@ -1,3 +1,15 @@
+2011-10-10  Araki Ken  <arakiken@users.sf.net>
+
+	* configure.in: --with-gtk=(2.0|3.0) option is added.
+
+	* tool/mlconfig/*.c, contrib/tool/mlterm-menu/mlterm-menu.c:
+	  Experimental support for GTK+ 3.0 is added.
+
+	* gtk/vte.c:
+	  - Experimental support for GTK+ 3.0 is added.
+	  - If child_pid is NULL or not is checked in vte_terminal_fork_full_command_full()
+	    is checked.
+
 2011-10-09  Araki Ken  <arakiken@users.sf.net>
 
 	* x_window.c, x_window_win32.c: Edges of a window is cleared,

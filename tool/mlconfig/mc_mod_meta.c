@@ -33,7 +33,7 @@ button_none_checked(
 	gpointer  data
 	)
 {
-	if( GTK_TOGGLE_BUTTON(widget)->active)
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget)))
 	{
 		new_mod_meta_mode = "none" ;
 	}
@@ -47,7 +47,7 @@ button_esc_checked(
 	gpointer  data
 	)
 {
-	if( GTK_TOGGLE_BUTTON(widget)->active)
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget)))
 	{
 		new_mod_meta_mode = "esc" ;
 	}
@@ -61,7 +61,7 @@ button_8bit_checked(
 	gpointer  data
 	)
 {
-	if( GTK_TOGGLE_BUTTON(widget)->active)
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget)))
 	{
 		new_mod_meta_mode = "8bit" ;
 	}
@@ -92,36 +92,36 @@ mc_mod_meta_config_widget_new(void)
 	group = NULL ;
 
 	radio = gtk_radio_button_new_with_label( group , _("None")) ;
-	group = gtk_radio_button_group( GTK_RADIO_BUTTON(radio)) ;
-	gtk_signal_connect(GTK_OBJECT(radio) , "toggled" , GTK_SIGNAL_FUNC(button_none_checked) , NULL) ;
+	group = gtk_radio_button_get_group( GTK_RADIO_BUTTON(radio)) ;
+	g_signal_connect(radio , "toggled" , G_CALLBACK(button_none_checked) , NULL) ;
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 
 	if( strcmp( mod_meta_mode , "none") == 0)
 	{
-		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 
 	radio = gtk_radio_button_new_with_label( group , _("Esc")) ;
-	group = gtk_radio_button_group( GTK_RADIO_BUTTON(radio)) ;
-	gtk_signal_connect(GTK_OBJECT(radio) , "toggled" , GTK_SIGNAL_FUNC(button_esc_checked) , NULL) ;
+	group = gtk_radio_button_get_group( GTK_RADIO_BUTTON(radio)) ;
+	g_signal_connect(radio , "toggled" , G_CALLBACK(button_esc_checked) , NULL) ;
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
 	if( strcmp( mod_meta_mode , "esc") == 0)
 	{
-		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 	
 	radio = gtk_radio_button_new_with_label( group , _("8bit")) ;
-	group = gtk_radio_button_group( GTK_RADIO_BUTTON(radio)) ;
-	gtk_signal_connect(GTK_OBJECT(radio) , "toggled" , GTK_SIGNAL_FUNC(button_8bit_checked) , NULL) ;
+	group = gtk_radio_button_get_group( GTK_RADIO_BUTTON(radio)) ;
+	g_signal_connect(radio , "toggled" , G_CALLBACK(button_8bit_checked) , NULL) ;
 	gtk_widget_show(GTK_WIDGET(radio)) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , radio , TRUE , TRUE , 0) ;
 	
 	if( strcmp( mod_meta_mode , "8bit") == 0)
 	{
-		gtk_toggle_button_set_state( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(radio) , TRUE) ;
 	}
 
 	new_mod_meta_mode = old_mod_meta_mode = mod_meta_mode ;

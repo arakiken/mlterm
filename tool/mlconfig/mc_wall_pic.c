@@ -22,43 +22,29 @@ static int is_changed;
 /* --- static functions --- */
 
 static gint
-file_sel_cancel_clicked(
-	GtkObject *  object
-	)
-{
-	gtk_widget_destroy( GTK_WIDGET(object)) ;
-	
-	return  FALSE ;
-}
-
-static gint
-file_sel_ok_clicked(
-	GtkObject *  object
-	)
-{
-	gtk_entry_set_text( GTK_ENTRY(entry) ,
-		gtk_file_selection_get_filename( GTK_FILE_SELECTION( object))) ;
-	gtk_widget_destroy( GTK_WIDGET(object)) ;
-
-	return  TRUE ;
-}
-
-static gint
 button_clicked(
-	GtkObject *  object
+	GtkWidget *  widget ,
+	gpointer  data
 	)
 {
-	GtkWidget *  file_sel ;
+	GtkWidget *  dialog ;
 
-	file_sel = gtk_file_selection_new( "Wall Paper") ;
-	gtk_widget_show( GTK_WIDGET(file_sel)) ;
+	dialog = gtk_file_chooser_dialog_new( "Wall Paper" , NULL ,
+			GTK_FILE_CHOOSER_ACTION_OPEN ,
+			GTK_STOCK_CANCEL , GTK_RESPONSE_CANCEL ,
+			GTK_STOCK_OPEN , GTK_RESPONSE_ACCEPT , NULL) ;
 
-	gtk_signal_connect_object( GTK_OBJECT( GTK_FILE_SELECTION(file_sel)->ok_button) ,
-		"clicked" , GTK_SIGNAL_FUNC(file_sel_ok_clicked) , GTK_OBJECT(file_sel)) ;
+	if( gtk_dialog_run( GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+	{
+		gchar *  filename ;
 
-	gtk_signal_connect_object( GTK_OBJECT( GTK_FILE_SELECTION(file_sel)->cancel_button) ,
-		"clicked" , GTK_SIGNAL_FUNC(file_sel_cancel_clicked) , GTK_OBJECT(file_sel)) ;
-		
+		filename = gtk_file_chooser_get_filename( GTK_FILE_CHOOSER(dialog)) ;
+		gtk_entry_set_text( GTK_ENTRY(entry) , filename) ;
+		g_free( filename) ;
+	}
+
+	gtk_widget_destroy( dialog) ;
+
 	return  TRUE ;
 }
 
@@ -90,7 +76,7 @@ mc_wall_pic_config_widget_new(void)
 	
 	button = gtk_button_new_with_label( _(" Select ")) ;
 	gtk_widget_show(button) ;
-	gtk_signal_connect(GTK_OBJECT(button) , "clicked" , GTK_SIGNAL_FUNC(button_clicked) , NULL) ;
+	g_signal_connect(button , "clicked" , G_CALLBACK(button_clicked) , NULL) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , button , FALSE , FALSE , 0) ;
 
 	old_wall_pic = wall_pic ;
