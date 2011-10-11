@@ -87,48 +87,6 @@
 #define  STATIC_PARAMS (G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB)
 
 
-#if  GTK_CHECK_VERSION(2,90,0)
-
-#define  CLASS_PRIV(class)  (class)->priv
-
-struct _VteTerminalClassPrivate
-{
-	guint eof_signal ;
-	guint child_exited_signal ;
-	guint window_title_changed_signal ;
-	guint icon_title_changed_signal ;
-	guint encoding_changed_signal ;
-	guint commit_signal ;
-	guint emulation_changed_signal ;
-	guint char_size_changed_signal ;
-	guint selection_changed_signal ;
-	guint contents_changed_signal ;
-	guint cursor_moved_signal ;
-	guint deiconify_window_signal ;
-	guint iconify_window_signal ;
-	guint raise_window_signal ;
-	guint lower_window_signal ;
-	guint refresh_window_signal ;
-	guint restore_window_signal ;
-	guint maximize_window_signal ;
-	guint resize_window_signal ;
-	guint move_window_signal ;
-	guint status_line_changed_signal ;
-	guint increase_font_size_signal ;
-	guint decrease_font_size_signal ;
-	guint text_modified_signal ;
-	guint text_inserted_signal ;
-	guint text_deleted_signal ;
-	guint text_scrolled_signal ;
-
-} ;
-
-#else
-
-#define  CLASS_PRIV(class)  (class)
-
-#endif
-
 struct _VteTerminalPrivate
 {
 	x_screen_t *  screen ;		/* Not NULL until unrealized */
@@ -176,7 +134,13 @@ enum
 
 enum
 {
-	PROP_0 ,
+	PROP_0,
+#if  GTK_CHECK_VERSION(2,90,0)
+	PROP_HADJUSTMENT,
+	PROP_VADJUSTMENT,
+	PROP_HSCROLL_POLICY,
+	PROP_VSCROLL_POLICY,
+#endif
 	PROP_ALLOW_BOLD,
 	PROP_AUDIBLE_BELL,
 	PROP_BACKGROUND_IMAGE_FILE,
@@ -204,7 +168,23 @@ enum
 	PROP_VISIBLE_BELL
 } ;
 
+
+#if  GTK_CHECK_VERSION(2,90,0)
+
+struct _VteTerminalClassPrivate
+{
+	GtkStyleProvider *  style_provider ;
+} ;
+
+G_DEFINE_TYPE_WITH_CODE(VteTerminal , vte_terminal , GTK_TYPE_WIDGET ,
+	g_type_add_class_private(g_define_type_id , sizeof(VteTerminalClassPrivate)) ;
+	G_IMPLEMENT_INTERFACE(GTK_TYPE_SCROLLABLE, NULL))
+
+#else
+
 G_DEFINE_TYPE(VteTerminal , vte_terminal , GTK_TYPE_WIDGET) ;
+
+#endif
 
 
 /* --- static variables --- */
@@ -926,7 +906,10 @@ reset_vte_size_member(
 		terminal->row_count , terminal->column_count ,
 		GTK_WIDGET(terminal)->requisition.width ,
 		GTK_WIDGET(terminal)->requisition.height) ;
-	#if  VTE_CHECK_VERSION(0,23,2)
+#endif
+#endif	/* ! GTK_CHECK_VERSION(2,90,0) */
+
+#if  defined(__DEBUG) && VTE_CHECK_VERSION(0,23,2)
 	{
 		GtkBorder *  border = NULL ;
 		
@@ -942,10 +925,7 @@ reset_vte_size_member(
 			kik_debug_printf( " inner-border is not found.\n") ;
 		}
 	}
-	#endif
 #endif
-
-#endif	/* ! GTK_CHECK_VERSION(2,90,0) */
 }
 
 static gboolean
@@ -1196,9 +1176,31 @@ vte_terminal_get_property(
 		case  PROP_WINDOW_TITLE:
 			g_value_set_string( value , vte_terminal_get_window_title( terminal)) ;
 			break ;
-			
+	#if  0
 		default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID( obj , prop_id , pspec) ;
+	#endif
+	}
+}
+
+static void
+vte_terminal_set_property(
+	GObject *  obj ,
+	guint  prop_id ,
+	GValue *  value ,
+	GParamSpec *  pspec
+	)
+{
+	VteTerminal *  terminal ;
+
+	terminal = VTE_TERMINAL(obj) ;
+
+	switch( prop_id)
+	{
+	#if  0
+		default:
+			G_OBJECT_WARN_INVALID_PROPERTY_ID( obj , prop_id , pspec) ;
+	#endif
 	}
 }
 
@@ -1774,6 +1776,7 @@ vte_terminal_class_init(
 
 	oclass->finalize = vte_terminal_finalize ;
 	oclass->get_property = vte_terminal_get_property ;
+	oclass->set_property = vte_terminal_set_property ;
 	wclass->realize = vte_terminal_realize ;
 	/* widgetclass::unrealize is left to gtk_widget_real_unrealize. */
 #if  0
@@ -1793,11 +1796,15 @@ vte_terminal_class_init(
 	wclass->key_press_event = vte_terminal_key_press ;
 
 #if  GTK_CHECK_VERSION(2,90,0)
-	/* XXX */
-	vclass->priv = malloc( sizeof( VteTerminalClassPrivate)) ;
+	g_object_class_override_property( oclass , PROP_HADJUSTMENT , "hadjustment") ;
+	g_object_class_override_property( oclass , PROP_VADJUSTMENT , "vadjustment") ;
+	g_object_class_override_property( oclass , PROP_HSCROLL_POLICY , "hscroll-policy") ;
+	g_object_class_override_property( oclass , PROP_VSCROLL_POLICY , "vscroll-policy") ;
 #endif
 
-	CLASS_PRIV(vclass)->eof_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->eof_signal =
+#endif
 		g_signal_new( I_("eof") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1805,7 +1812,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->child_exited_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->child_exited_signal =
+#endif
 		g_signal_new( I_("child-exited") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1813,7 +1822,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->window_title_changed_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->window_title_changed_signal =
+#endif
 		g_signal_new( I_("window-title-changed") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1821,7 +1832,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->icon_title_changed_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->icon_title_changed_signal =
+#endif
 		g_signal_new( I_("icon-title-changed") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1829,7 +1842,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->encoding_changed_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->encoding_changed_signal =
+#endif
 		g_signal_new( I_("encoding-changed") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1837,7 +1852,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->commit_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->commit_signal =
+#endif
 		g_signal_new( I_("commit") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1847,7 +1864,9 @@ vte_terminal_class_init(
 			_vte_marshal_VOID__STRING_UINT ,
 			G_TYPE_NONE , 2 , G_TYPE_STRING , G_TYPE_UINT) ;
 
-	CLASS_PRIV(vclass)->emulation_changed_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->emulation_changed_signal =
+#endif
 		g_signal_new( I_("emulation-changed") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1855,7 +1874,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->char_size_changed_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->char_size_changed_signal =
+#endif
 		g_signal_new( I_("char-size-changed") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1863,7 +1884,9 @@ vte_terminal_class_init(
 			NULL , NULL , _vte_marshal_VOID__UINT_UINT ,
 			G_TYPE_NONE , 2 , G_TYPE_UINT , G_TYPE_UINT) ;
 
-	CLASS_PRIV(vclass)->selection_changed_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->selection_changed_signal =
+#endif
 		g_signal_new ( I_("selection-changed") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1871,7 +1894,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->contents_changed_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->contents_changed_signal =
+#endif
 		g_signal_new( I_("contents-changed") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1879,7 +1904,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->cursor_moved_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->cursor_moved_signal =
+#endif
 		g_signal_new( I_("cursor-moved") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1887,7 +1914,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->deiconify_window_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->deiconify_window_signal =
+#endif
 		g_signal_new( I_("deiconify-window") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1895,7 +1924,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->iconify_window_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->iconify_window_signal =
+#endif
 		g_signal_new( I_("iconify-window") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1903,7 +1934,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->raise_window_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->raise_window_signal =
+#endif
 		g_signal_new( I_("raise-window") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1911,7 +1944,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->lower_window_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->lower_window_signal =
+#endif
 		g_signal_new( I_("lower-window") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1919,7 +1954,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->refresh_window_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->refresh_window_signal =
+#endif
 		g_signal_new( I_("refresh-window") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1927,7 +1964,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->restore_window_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->restore_window_signal =
+#endif
 		g_signal_new( I_("restore-window") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1935,7 +1974,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->maximize_window_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->maximize_window_signal =
+#endif
 		g_signal_new( I_("maximize-window") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1943,7 +1984,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->resize_window_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->resize_window_signal =
+#endif
 		g_signal_new( I_("resize-window") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1951,7 +1994,9 @@ vte_terminal_class_init(
 			NULL , NULL , _vte_marshal_VOID__UINT_UINT ,
 			G_TYPE_NONE , 2 , G_TYPE_UINT , G_TYPE_UINT) ;
 
-	CLASS_PRIV(vclass)->move_window_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->move_window_signal =
+#endif
 		g_signal_new( I_("move-window") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1959,7 +2004,9 @@ vte_terminal_class_init(
 			NULL , NULL , _vte_marshal_VOID__UINT_UINT ,
 			G_TYPE_NONE , 2 , G_TYPE_UINT , G_TYPE_UINT) ;
 
-	CLASS_PRIV(vclass)->status_line_changed_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->status_line_changed_signal =
+#endif
 		g_signal_new( I_("status-line-changed") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1967,7 +2014,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->increase_font_size_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->increase_font_size_signal =
+#endif
 		g_signal_new( I_("increase-font-size") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1975,7 +2024,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->decrease_font_size_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->decrease_font_size_signal =
+#endif
 		g_signal_new( I_("decrease-font-size") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1983,7 +2034,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->text_modified_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->text_modified_signal =
+#endif
 		g_signal_new( I_("text-modified") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1991,7 +2044,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->text_inserted_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->text_inserted_signal =
+#endif
 		g_signal_new( I_("text-inserted") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -1999,7 +2054,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->text_deleted_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->text_deleted_signal =
+#endif
 		g_signal_new( I_("text-deleted") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -2007,7 +2064,9 @@ vte_terminal_class_init(
 			NULL , NULL , g_cclosure_marshal_VOID__VOID ,
 			G_TYPE_NONE , 0) ;
 
-	CLASS_PRIV(vclass)->text_scrolled_signal =
+#if  ! GTK_CHECK_VERSION(2,90,0)
+	vclass->text_scrolled_signal =
+#endif
 		g_signal_new( I_("text-scrolled") ,
 			G_OBJECT_CLASS_TYPE(vclass) ,
 			G_SIGNAL_RUN_LAST ,
@@ -2036,6 +2095,16 @@ vte_terminal_class_init(
 		g_param_spec_boxed( "inner-border" , NULL , NULL , GTK_TYPE_BORDER ,
 			G_PARAM_READABLE | G_PARAM_STATIC_STRINGS)) ;
 
+#if  GTK_CHECK_VERSION(2,90,0)
+	vclass->priv = G_TYPE_CLASS_GET_PRIVATE(vclass , VTE_TYPE_TERMINAL ,
+				VteTerminalClassPrivate) ;
+	vclass->priv->style_provider = GTK_STYLE_PROVIDER(gtk_css_provider_new()) ;
+	gtk_css_provider_load_from_data( GTK_CSS_PROVIDER(vclass->priv->style_provider) ,
+		"VteTerminal {\n"
+		"-VteTerminal-inner-border: " KIK_INT_TO_STR(WINDOW_MARGIN) ";\n"
+		"}\n" ,
+		-1 , NULL) ;
+#else
 	gtk_rc_parse_string( "style \"vte-default-style\" {\n"
 			"VteTerminal::inner-border = { "
 			KIK_INT_TO_STR(WINDOW_MARGIN) " , "
@@ -2045,6 +2114,7 @@ vte_terminal_class_init(
 			"}\n"
 			"class \"VteTerminal\" style : gtk \"vte-default-style\"\n") ;
 #endif
+#endif	/* VTE_CHECK_VERSION(0,23,2) */
 
 #if  VTE_CHECK_VERSION(0,19,0)
 	signals[COPY_CLIPBOARD] =
@@ -2098,6 +2168,17 @@ vte_terminal_init(
 	
 	g_signal_connect( terminal , "hierarchy-changed" ,
 		G_CALLBACK(vte_terminal_hierarchy_changed) , NULL) ;
+
+#if  GTK_CHECK_VERSION(2,90,0)
+	{
+		GtkStyleContext *  context ;
+
+		context = gtk_widget_get_style_context( GTK_WIDGET(terminal)) ;
+		gtk_style_context_add_provider( context ,
+			VTE_TERMINAL_GET_CLASS(terminal)->priv->style_provider ,
+			GTK_STYLE_PROVIDER_PRIORITY_APPLICATION) ;
+	}
+#endif
 
 	terminal->pvt->term =
 		ml_create_term( main_config.cols , main_config.rows ,

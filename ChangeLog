@@ -1,4 +1,8 @@
-2011-10-10  Araki Ken  <arakiken@users.sf.net>
+2011-10-12  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: "inner-border" property is set in GTK+-3.0.
+
+2011-10-11  Araki Ken  <arakiken@users.sf.net>
 
 	* configure.in: --with-gtk=(2.0|3.0) option is added.
 
