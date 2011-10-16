@@ -814,7 +814,7 @@ __exit(
 {
 #ifdef  KIK_DEBUG
 #ifdef  USE_WIN32GUI
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < num_of_screens ; count++)
 	{
@@ -850,7 +850,7 @@ open_pty(
 	char *  dev
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < num_of_screens ; count ++)
 	{
@@ -897,7 +897,7 @@ next_pty(
 	x_screen_t *  screen
 	)
 {
-	int  count ;
+	u_int  count ;
 	
 	for( count = 0 ; count < num_of_screens ; count ++)
 	{
@@ -931,7 +931,7 @@ prev_pty(
 	x_screen_t *  screen
 	)
 {
-	int  count ;
+	u_int  count ;
 	
 	for( count = 0 ; count < num_of_screens ; count ++)
 	{

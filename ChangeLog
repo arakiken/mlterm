@@ -1,3 +1,12 @@
+2011-10-17  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c: pty_list and open_pty of x_system_event_listener_t are
+	  implemented for mlterm-menu.
+
+	* ml_term_manager.c, mlterm/Makefile.in:
+	  If executing auto_restart_cmd failed, do execl(BINDIR "/mlterm")
+	  instead of execlp("mlterm").
+
 2011-10-16  Araki Ken  <arakiken@users.sf.net>
 
 	* kiklib/kik_conf.[ch]:

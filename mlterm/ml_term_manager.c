@@ -13,13 +13,16 @@
 #include  <kiklib/kik_util.h>	/* KIK_DIGIT_STR */
 #include  <kiklib/kik_debug.h>
 #include  <kiklib/kik_file.h>	/* kik_file_unset_cloexec */
-#include  <kiklib/kik_conf.h>	/* kik_get_prog_path */
 
 #include  "ml_config_proto.h"
 
 
 #define  MAX_TERMS  (MTU * max_terms_multiple)	/* Default MAX_TERMS is 32. */
 #define  MTU        (8 * sizeof(*dead_mask))	/* MAX_TERMS unit */
+
+#ifndef  BINDIR
+#define  BINDIR "/usr/local/bin"
+#endif
 
 #if  0
 #define  __DEBUG
@@ -98,11 +101,10 @@ sig_error(
 			{
 				execlp( auto_restart_cmd , auto_restart_cmd , NULL) ;
 			}
-			
-			execlp( kik_get_prog_path() , kik_get_prog_path() , NULL) ;
-			execlp( "mlterm" , "mlterm" , NULL) ;
 
-			kik_error_printf( "Failed to restart.\n") ;
+			execl( BINDIR "/mlterm" , BINDIR "/mlterm" , NULL) ;
+
+			kik_error_printf( "Failed to restart mlterm.\n") ;
 		}
 	}
 

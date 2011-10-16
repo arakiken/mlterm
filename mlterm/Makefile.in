@@ -2,6 +2,7 @@ top_builddir = ..
 top_srcdir = @top_srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
+bindir = @bindir@
 libdir = @libdir@
 libexecdir = @libexecdir@
 
@@ -9,13 +10,15 @@ CC = @CC@
 LIBTOOL = @LIBTOOL@
 INSTALL = @INSTALL@
 
+BINDIR = $(DESTDIR)$(bindir)
 LIBDIR = $(DESTDIR)$(libdir)
 
 VPATH = $(top_srcdir)/mlterm
 
 CFLAGS = $(CFLAGS_LOCAL) @DEB_CFLAGS@ @KIK_CFLAGS@ @MKF_CFLAGS@ @SSH2_CFLAGS@ \
 	@UTMP_CFLAGS@ @CTL_CFLAGS@ @CFLAGS@ @CPPFLAGS@ \
-	-I/usr/local/include -DLIBEXECDIR=\"$(libexecdir)\" -DLIBDIR=\"$(libdir)\"
+	-I/usr/local/include -DLIBEXECDIR=\"$(libexecdir)\" -DBINDIR=\"$(bindir)\" \
+	-DLIBDIR=\"$(libdir)\"
 LIBS = $(LIBS_LOCAL)
 
 OBJ_CORE = ml_char.o ml_str.o ml_line.o ml_model.o @CTL_LOADER_OBJ@

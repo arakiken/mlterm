@@ -497,6 +497,33 @@ color_config_updated(void)
 	}
 }
 
+static void
+open_pty(
+	void *  p ,
+	x_screen_t *  screen ,
+	char *  dev
+	)
+{
+	if( dev)
+	{
+		ml_term_t *  new ;
+
+		if( ( new = ml_get_detached_term( dev)))
+		{
+			x_screen_detach( screen) ;
+			x_screen_attach( screen , new) ;
+		}
+	}
+}
+
+static char *
+pty_list(
+	void *  p
+	)
+{
+	return  ml_get_pty_list() ;
+}
+
 /*
  * EXIT_PROGRAM shortcut calls this at last.
  * this is for debugging.
@@ -2381,6 +2408,8 @@ vte_terminal_init(
 	terminal->pvt->system_listener.self = terminal ;
 	terminal->pvt->system_listener.font_config_updated = font_config_updated ;
 	terminal->pvt->system_listener.color_config_updated = color_config_updated ;
+	terminal->pvt->system_listener.open_pty = open_pty ;
+	terminal->pvt->system_listener.pty_list = pty_list ;
 	terminal->pvt->system_listener.exit = __exit ;
 	x_set_system_listener( terminal->pvt->screen , &terminal->pvt->system_listener) ;
 
