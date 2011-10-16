@@ -69,6 +69,8 @@ int  ml_term_zombie( ml_term_t *  term) ;
 int  ml_term_open_pty( ml_term_t *  term , const char *  cmd_path , char ** argv , char **  env ,
 	const char *  host , const char *  pass , const char *  pubkey , const char *  privkey) ;
 
+int  ml_term_plug_pty( ml_term_t *  term , ml_pty_ptr_t  pty) ;
+
 int  ml_term_attach( ml_term_t *  term , ml_xterm_event_listener_t *  xterm_listener ,
 	ml_config_event_listener_t *  config_listener ,
 	ml_screen_event_listener_t *  screen_listener ,
@@ -119,7 +121,9 @@ int  ml_term_set_use_dynamic_comb( ml_term_t *  term , int  flag) ;
 
 #define  ml_term_init_encoding_conv( term)  ml_init_encoding_conv( (term)->parser)
 
-int  ml_term_get_pty_fd( ml_term_t *  term) ;
+int  ml_term_get_master_fd( ml_term_t *  term) ;
+
+int  ml_term_get_slave_fd( ml_term_t *  term) ;
 
 char *  ml_term_get_slave_name( ml_term_t *  term) ;
 

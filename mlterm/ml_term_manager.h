@@ -21,6 +21,8 @@ ml_term_t *  ml_create_term( u_int  cols , u_int  rows , u_int  tab_size , u_int
 
 int  ml_destroy_term( ml_term_t *  term) ;
 
+int  ml_set_auto_restart_cmd( char *  cmd) ;
+
 ml_term_t *  ml_get_term( char *  dev) ;
 
 ml_term_t *  ml_get_detached_term( char *  dev) ;
@@ -35,7 +37,7 @@ int  ml_close_dead_terms(void) ;
 
 char *  ml_get_pty_list(void) ;
 
-void  ml_term_manager_enable_zombie_pty( int  bool) ;
+void  ml_term_manager_enable_zombie_pty( void) ;
 
 
 #endif

@@ -20,6 +20,7 @@
 #include  <kiklib/kik_locale.h>
 #include  <kiklib/kik_conf_io.h>
 #include  <kiklib/kik_pty.h>		/* kik_pty_helper_set_flag */
+#include  <kiklib/kik_conf.h>
 #include  <ml_str_parser.h>
 #include  <ml_term_manager.h>
 #include  <x_screen.h>
@@ -387,7 +388,12 @@ create_io(
 	VteTerminal *  terminal
 	)
 {
-	terminal->pvt->io = g_io_channel_unix_new( ml_term_get_pty_fd( terminal->pvt->term)) ;
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Create GIO of pty master %d\n" ,
+		ml_term_get_master_fd( terminal->pvt->term)) ;
+#endif
+
+	terminal->pvt->io = g_io_channel_unix_new( ml_term_get_master_fd( terminal->pvt->term)) ;
 	terminal->pvt->src_id = g_io_add_watch( terminal->pvt->io ,
 						G_IO_IN , vte_terminal_io , terminal->pvt->term) ;
 }
@@ -818,6 +824,31 @@ adjustment_value_changed(
 	x_screen_scroll_to( terminal->pvt->screen , value - (upper - page_size)) ;
 }
 
+static void
+set_adjustment(
+	VteTerminal *  terminal ,
+	GtkAdjustment *  adjustment
+	)
+{
+	if( adjustment == terminal->adjustment || adjustment == NULL)
+	{
+		return ;
+	}
+
+	if( terminal->adjustment)
+	{
+		g_signal_handlers_disconnect_by_func( terminal->adjustment ,
+			G_CALLBACK(adjustment_value_changed) , terminal) ;
+		g_object_unref( terminal->adjustment) ;
+	}
+	
+	g_object_ref_sink( adjustment) ;
+	terminal->adjustment = adjustment ;
+	g_signal_connect_swapped( terminal->adjustment , "value-changed" ,
+		G_CALLBACK(adjustment_value_changed) , terminal) ;
+	terminal->pvt->adj_value_changed_by_myself = 0 ;
+}
+
 
 static void
 reset_vte_size_member(
@@ -1169,6 +1200,12 @@ vte_terminal_get_property(
 
 	switch( prop_id)
 	{
+	#if  GTK_CHECK_VERSION(2,90,0)
+		case  PROP_VADJUSTMENT:
+			g_value_set_object( value , terminal->adjustment) ;
+			break ;
+	#endif
+
 		case  PROP_ICON_TITLE:
 			g_value_set_string( value , vte_terminal_get_icon_title( terminal)) ;
 			break ;
@@ -1197,6 +1234,12 @@ vte_terminal_set_property(
 
 	switch( prop_id)
 	{
+	#if  GTK_CHECK_VERSION(2,90,0)
+		case  PROP_VADJUSTMENT:
+			set_adjustment( terminal , g_value_get_object(value)) ;
+			break ;
+	#endif
+
 	#if  0
 		default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID( obj , prop_id , pspec) ;
@@ -1685,6 +1728,7 @@ vte_terminal_class_init(
 	VteTerminalClass *  vclass
 	)
 {
+	char *  value ;
 	kik_conf_t *  conf ;
 	char *  argv[] = { "mlterm" , NULL } ;
 	GObjectClass *  oclass ;
@@ -1714,11 +1758,48 @@ vte_terminal_class_init(
 	x_xim_init( 1) ;
 	x_font_use_point_size_for_fc( 1) ;
 	x_set_button3_behavior( "none") ;
-	ml_term_manager_enable_zombie_pty( 1) ;
+	ml_term_manager_enable_zombie_pty() ;
 
-	conf = kik_conf_new( "mlterm" , MAJOR_VERSION , MINOR_VERSION , REVISION ,
-			PATCH_LEVEL , CHANGE_DATE) ;
+	kik_init_prog( g_get_prgname() , VERSION) ;
+
+	if( ( conf = kik_conf_new()) == NULL)
+	{
+		return ;
+	}
+	
 	x_prepare_for_main_config( conf) ;
+
+	/*
+	 * Same processing as x_term_manager_init().
+	 * Following options are not possible to specify as arguments of mlclient.
+	 * 1) Options which are used only when mlterm starts up and which aren't
+	 *    changed dynamically. (e.g. "startup_screens")
+	 * 2) Options which change status of all ptys or windows. (Including ones
+	 *    which are possible to change dynamically.)
+	 *    (e.g. "font_size_range")
+	 */
+
+#if  0
+	kik_conf_add_opt( conf , 'R' , "fsrange" , 0 , "font_size_range" , NULL) ;
+#endif
+	kik_conf_add_opt( conf , 'W' , "sep" , 0 , "word_separators" , NULL) ;
+	kik_conf_add_opt( conf , 'Y' , "decsp" , 1 , "compose_dec_special_font" , NULL) ;
+	kik_conf_add_opt( conf , 'c' , "cp932" , 1 , "use_cp932_ucs_for_xft" , NULL) ;
+	kik_conf_add_opt( conf , '\0' , "restart" , 1 , "auto_restart" , NULL) ;
+
+#if  0
+	if( ( value = kik_conf_get_value( conf , "font_size_range")))
+	{
+		u_int  min_font_size ;
+		u_int  max_font_size ;
+
+		if( get_font_size_range( &min_font_size , &max_font_size , value))
+		{
+			x_set_font_size_range( min_font_size , max_font_size) ;
+		}
+	}
+#endif
+
 	x_main_config_init( &main_config , conf , 1 , argv) ;
 
 	if( main_config.type_engine == TYPE_XCORE)
@@ -1748,7 +1829,51 @@ vte_terminal_class_init(
 	/* Default value of vte "audible-bell" is TRUE, while "visible-bell" is FALSE. */
 	main_config.bel_mode = BEL_SOUND ;
 
+	if( ( value = kik_conf_get_value( conf , "click_interval")))
+	{
+		int  interval ;
+
+		if( kik_str_to_int( &interval , value))
+		{
+			x_set_click_interval( interval) ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "compose_dec_special_font")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			x_compose_dec_special_font() ;
+		}
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_cp932_ucs_for_xft")) == NULL ||
+		strcmp( value , "true") == 0)
+	{
+		x_use_cp932_ucs_for_xft() ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "word_separators")))
+	{
+		ml_set_word_separators( value) ;
+	}
+
+	if( ( value = kik_conf_get_value( conf , "use_clipboard")))
+	{
+		if( strcmp( value , "true") == 0)
+		{
+			x_set_use_clipboard_selection( 1) ;
+		}
+	}
+
+	if( ! ( value = kik_conf_get_value( conf , "auto_restart")) ||
+	    strcmp( value , "true") == 0)
+	{
+		ml_set_auto_restart_cmd( kik_get_prog_path()) ;
+	}
+
 	kik_conf_delete( conf) ;
+
 
 	g_signal_connect( vte_reaper_get() , "child-exited" ,
 		G_CALLBACK(catch_child_exited) , NULL) ;
@@ -2156,12 +2281,9 @@ vte_terminal_init(
 	/* We do our own redrawing. */
 	gtk_widget_set_redraw_on_allocate( GTK_WIDGET(terminal) , FALSE) ;
 
-	terminal->adjustment = GTK_ADJUSTMENT(gtk_adjustment_new( 0 , 0 ,
-				main_config.rows , 1 , main_config.rows , main_config.rows)) ;
-	g_object_ref_sink( terminal->adjustment) ;
-	g_signal_connect_swapped( terminal->adjustment , "value-changed" ,
-		G_CALLBACK(adjustment_value_changed) , terminal) ;
-	terminal->pvt->adj_value_changed_by_myself = 0 ;
+	terminal->adjustment = NULL ;
+	set_adjustment( terminal , GTK_ADJUSTMENT(gtk_adjustment_new( 0 , 0 , main_config.rows ,
+					1 , main_config.rows , main_config.rows))) ;
 
 	g_signal_connect( GTK_WIDGET(terminal) , "unrealize" ,
 		G_CALLBACK(vte_terminal_unrealize) , NULL) ;
@@ -2318,6 +2440,10 @@ vte_terminal_init(
 	else
 #endif
 	{
+		/*
+		 * gnome-terminal(2.32.1) fails to set "inner-border" and
+		 * min width/height without this.
+		 */
 		gtk_widget_ensure_style( &terminal->widget) ;
 	}
 
@@ -2388,7 +2514,12 @@ vte_terminal_fork_command(
 	gboolean  wtmp
 	)
 {
-	if( ! terminal->pvt->term->pty)
+	/*
+	 * If pty is inherited from dead parent, terminal->pvt->term->pty is non-NULL
+	 * but create_io() and vte_reaper_add_child() aren't executed.
+	 * So terminal->pvt->io is used to check if pty is completely set up.
+	 */
+	if( ! terminal->pvt->io)
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " forking with %s\n" , command) ;
@@ -2499,7 +2630,12 @@ vte_terminal_forkpty(
 	gboolean  wtmp
 	)
 {
-	if( ! terminal->pvt->term->pty)
+	/*
+	 * If pty is inherited from dead parent, terminal->pvt->term->pty is non-NULL
+	 * but create_io() and vte_reaper_add_child() aren't executed.
+	 * So terminal->pvt->io is used to check if pty is completely set up.
+	 */
+	if( ! terminal->pvt->io)
 	{
 	#ifdef  DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " forking pty\n") ;
@@ -3707,7 +3843,7 @@ vte_terminal_get_pty(
 	VteTerminal *  terminal
 	)
 {
-	return  ml_term_get_pty_fd( terminal->pvt->term) ;
+	return  ml_term_get_master_fd( terminal->pvt->term) ;
 }
 
 GtkAdjustment *

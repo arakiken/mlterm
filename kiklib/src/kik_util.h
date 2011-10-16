@@ -25,5 +25,8 @@
 	(sizeof(n) == 4) ? 11 : \
 	(sizeof(n) == 8) ? 20 : (sizeof(n)*3))
 
+#define  KIK_INT_TO_STR(i)  _KIK_INT_TO_STR(i)
+#define  _KIK_INT_TO_STR(i) #i
+
 
 #endif

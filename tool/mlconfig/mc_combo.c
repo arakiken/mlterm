@@ -97,9 +97,9 @@ mc_combo_new_with_width(
 	    gtk_editable_set_editable( GTK_EDITABLE(gtk_bin_get_child( GTK_BIN(combo))), FALSE);
 	}
 	
-	if (entry_width)
+	if( entry_width)
 	{
-	    gtk_widget_set_size_request( gtk_bin_get_child( GTK_BIN(combo)), entry_width, 0);
+	    gtk_widget_set_size_request( gtk_bin_get_child( GTK_BIN(combo)), entry_width, -1);
 	    gtk_box_pack_start(GTK_BOX(hbox), combo, FALSE, FALSE, 0);
 	}
 	else

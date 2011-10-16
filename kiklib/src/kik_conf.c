@@ -18,6 +18,13 @@
 #define  CH2IDX(ch)  ((ch) - 0x20)
 
 
+/* --- static variables --- */
+
+static char *  prog_path ;
+static char *  prog_name ;
+static char *  prog_version ;
+
+
 /* --- static functions --- */
 
 static void
@@ -39,20 +46,7 @@ version(
 	kik_conf_t *  conf
 	)
 {
-	printf( "%s version %d.%d.%d" ,
-		conf->prog_name , conf->major_version , conf->minor_version , conf->revision) ;
-
-	if( conf->patch_level > 0)
-	{
-		printf( " patch level %d" , conf->patch_level) ;
-	}
-
-	if( conf->version_aux_info)
-	{
-		printf( " %s" , conf->version_aux_info) ;
-	}
-
-	printf( "\n") ;
+	printf( "%s version %s\n" , prog_name , prog_version) ;
 }
 
 static void
@@ -63,7 +57,7 @@ usage(
 	int  count ;
 	kik_arg_opt_t *  end_opt ;
 
-	printf( "usage: %s" , conf->prog_name) ;
+	printf( "usage: %s" , prog_name) ;
 	
 	for( count = 0 ; count < conf->num_of_opts ; count ++)
 	{
@@ -210,15 +204,34 @@ create_new_conf_entry(
 
 /* --- global functions --- */
 
-kik_conf_t *
-kik_conf_new(
-	char *  prog_name ,	/* should be static data */
-	int  major_version ,
-	int  minor_version ,
-	int  revision ,
-	int  patch_level ,
-	char *  version_aux_info	/* should be static data */
+int
+kik_init_prog(
+	char *  path ,	/* should be static data */
+	char *  version	/* should be static data */
 	)
+{
+	prog_path = path ;
+
+	if( ! ( prog_name = strrchr( path , '/')) &&
+	    ! ( prog_name = strrchr( path , '\\')))
+	{
+		prog_name = prog_path ;
+	}
+
+	prog_version = version ;
+
+	return  1 ;
+}
+
+char *
+kik_get_prog_path(void)
+{
+	return  prog_path ;
+}
+
+
+kik_conf_t *
+kik_conf_new(void)
 {
 	kik_conf_t *  conf ;
 
@@ -231,14 +244,6 @@ kik_conf_new(
 		return  NULL ;
 	}
 	
-	conf->prog_name = prog_name ;
-
-	conf->major_version = major_version ;
-	conf->minor_version = minor_version ;
-	conf->revision = revision ;
-	conf->patch_level = patch_level ;
-	conf->version_aux_info = version_aux_info ;
-
 	conf->num_of_opts = 0x60 ;
 
 	if( ( conf->arg_opts = malloc( conf->num_of_opts * sizeof( kik_arg_opt_t *))) == NULL)
@@ -691,25 +696,4 @@ kik_conf_set_default_value(
 	entry->default_value = default_value ;
 
 	return  1 ;
-}
-
-char *
-kik_conf_get_version(
-	kik_conf_t *  conf
-	)
-{
-	char *  ver ;
-
-	if( ( ver = malloc( DIGIT_STR_LEN(int) * 3 + 1)) == NULL)
-	{
-		return  NULL ;
-	}
-
-	/*
-	 * XXX
-	 * Ignored patch level and version aux info.
-	 */
-	sprintf( ver , "%d.%d.%d" , conf->major_version , conf->minor_version , conf->revision) ;
-
-	return  ver ;
 }

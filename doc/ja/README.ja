@@ -213,6 +213,11 @@ comment $Id$
     libssh2 が必要となります。
     (例 mlterm(mlclient) --serv ssh://user@host:22)
 
+  o auto-restart
+    バグ等により mlterm が実行不能となった場合でも、(できるだけ)その中で動いてい
+    るコンソールアプリケーションを引き継いだ mlterm を自動的に再起動し、コンソー
+    ルアプリケーションを保護します。
+
 * 設定
   o 設定ファイル
     ${SYSCONFDIR}/mlterm 以下、および、~/.mlterm 以下におかれます。
@@ -660,6 +665,12 @@ comment $Id$
       o ssh_private_key (~/.ssh/id_rsa (win32 では %HOMEPATH%\mlterm\id_rsa))
         ssh 接続の認証で使用する秘密鍵のファイルを指定する。
 
+      o auto_restart (*true*/false)
+        SIGSEGV, SIGBUS, SIGFPE, SIGILL が発生した場合に、mlterm 内部の console
+	application (ssh 接続を除く。)を引き継いだ mlterm を起動し直す。
+
+	デバッグのため core dump を取得する場合は、必ず false にしてください。
+
       --- 廃止されたもの ---
       o xim_open_in_startup  (*true*/false)
         起動時に XIM を open するという機能でしたが、インプットメソッド関連
@@ -1073,6 +1084,7 @@ comment $Id$
        --clip(=bool)   : use_clipboard (X)
        --pubkey=value  : ssh_public_key
        --privkey=value : ssh_private_key
+       --restart(=bool): auto_restart
 
     -e ... : 指定したコマンドを起動
 

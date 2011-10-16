@@ -119,7 +119,7 @@ read_pty(
 
 ml_pty_t *
 ml_pty_unix_new(
-	const char *  cmd_path ,	/* can be NULL */
+	const char *  cmd_path ,/* If NULL, child prcess is not exec'ed. */
 	char **  cmd_argv ,	/* can be NULL(only if cmd_path is NULL) */
 	char **  env ,		/* can be NULL */
 	const char *  host ,
@@ -128,24 +128,11 @@ ml_pty_unix_new(
 	)
 {
 	ml_pty_t *  pty ;
+	int  master ;
+	int  slave ;
 	pid_t  pid ;
 
-	if( ( pty = malloc( sizeof( ml_pty_unix_t))) == NULL)
-	{
-		return  NULL ;
-	}
-
-	pty->buf = NULL ;
-	pty->left = 0 ;
-	pty->size = 0 ;
-	pty->delete = delete ;
-	pty->set_winsize = set_winsize ;
-	pty->write = write_to_pty ;
-	pty->read = read_pty ;
-  	pty->pty_listener = NULL ;
-	pty->stored = NULL ;
-
-	pid = kik_pty_fork( &pty->master , &pty->slave) ;
+	pid = kik_pty_fork( &master , &slave) ;
 
 	if( pid == -1)
 	{
@@ -164,15 +151,9 @@ ml_pty_unix_new(
 
 		if( ! cmd_path)
 		{
-			pty->child_pid = 0 ;
-			
-		#ifdef  USE_UTMP
-			((ml_pty_unix_t*)pty)->utmp = NULL ;
-		#endif
-
-			return  pty ;
+			goto  return_pty ;
 		}
-		
+
 		/*
 		 * setting environmental variables.
 		 */
@@ -228,24 +209,75 @@ ml_pty_unix_new(
 
 	/* parent process */
 
-	pty->child_pid = pid ;
-
-#ifdef  USE_UTMP
-	if( ( ((ml_pty_unix_t*)pty)->utmp = kik_utmp_new( ml_pty_get_slave_name( pty->slave) ,
-						host , pty->master)) == NULL)
+return_pty:
+	if( ! ( pty = ml_pty_unix_new_with( master , slave , pid , cols , rows)))
 	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG "utmp failed.\n") ;
+		close( master) ;
+		close( slave) ;
+	}
+
+	return  pty ;
+}
+
+ml_pty_t *
+ml_pty_unix_new_with(
+	int  master ,
+	int  slave ,
+	pid_t  child_pid ,
+	u_int  cols ,
+	u_int  rows
+	)
+{
+	ml_pty_t *  pty ;
+
+	if( ( pty = malloc( sizeof( ml_pty_unix_t))) == NULL)
+	{
+		return  NULL ;
+	}
+
+	pty->buf = NULL ;
+	pty->left = 0 ;
+	pty->size = 0 ;
+	pty->delete = delete ;
+	pty->set_winsize = set_winsize ;
+	pty->write = write_to_pty ;
+	pty->read = read_pty ;
+  	pty->pty_listener = NULL ;
+	pty->stored = NULL ;
+
+	pty->master = master ;
+	pty->slave = slave ;
+
+	if( ( pty->child_pid = child_pid) > 0)
+	{
+		/* Parent process */
+
+	#ifdef  USE_UTMP
+		if( ( ((ml_pty_unix_t*)pty)->utmp = kik_utmp_new(
+							ml_pty_get_slave_name( pty->slave) ,
+							host , pty->master)) == NULL)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG "utmp failed.\n") ;
+		#endif
+		}
 	#endif
+
+		if( set_winsize( pty , cols , rows) == 0)
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
+		#endif
+		}
+	}
+#ifdef  USE_UTMP
+	else
+	{
+		/* Child process */
+
+		((ml_pty_unix_t*)pty)->utmp = NULL ;
 	}
 #endif
-
-	if( set_winsize( pty , cols , rows) == 0)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " ml_set_pty_winsize() failed.\n") ;
-	#endif
-	}
 
 	return  pty ;
 }

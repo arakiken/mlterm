@@ -34,6 +34,9 @@ ml_pty_ptr_t  ml_pty_new( const char *  cmd_path , char **  cmd_argv , char **  
 	const char *  host , const char *  pass , const char *  pubkey , const char *  privkey ,
 	u_int  cols , u_int  rows) ;
 
+ml_pty_ptr_t  ml_pty_new_with( int  master , int  slave , pid_t  child_pid ,
+	u_int  cols , u_int  rows) ;
+
 int  ml_pty_delete( ml_pty_ptr_t  pty) ;
 
 int  ml_pty_set_listener( ml_pty_ptr_t  pty,  ml_pty_event_listener_t *  pty_listener) ;

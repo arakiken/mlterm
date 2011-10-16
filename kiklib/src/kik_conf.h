@@ -37,14 +37,6 @@ KIK_MAP_TYPEDEF( kik_conf_entry , char * , kik_conf_entry_t *) ;
 
 typedef struct  kik_conf
 {
-	char *  prog_name ;
-	
-	int  major_version ;
-	int  minor_version ;
-	int  revision ;
-	int  patch_level ;
-	char *  version_aux_info ;
-
 	kik_arg_opt_t **  arg_opts ;	/* 0x20 - 0x7f */
 	int  num_of_opts ;
 	char  end_opt ;
@@ -54,8 +46,11 @@ typedef struct  kik_conf
 } kik_conf_t ;
 
 
-kik_conf_t *  kik_conf_new( char *  prog_name , int  major_version ,
-	int  minor_version , int  revision , int  patch_level , char *  version_aux_info) ;
+int  kik_init_prog( char *  path , char *  version) ;
+
+char *  kik_get_prog_path(void) ;
+
+kik_conf_t *  kik_conf_new(void) ;
 
 int  kik_conf_delete( kik_conf_t *  conf) ;
 

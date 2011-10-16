@@ -7,10 +7,8 @@
 
 
 #include  "kik_config.h"
+#include  "kik_util.h"	/* KIK_INT_TO_STR */
 
-
-#define  KIK_INT_TO_STR(i)  _KIK_INT_TO_STR(i)
-#define  _KIK_INT_TO_STR(i) #i
 
 /* for kik_{debug|warn}_printf */
 #if  0

@@ -43,6 +43,9 @@ typedef struct  ml_pty
 ml_pty_t *  ml_pty_unix_new( const char *  cmd_path , char **  cmd_argv , char **  env ,
 	const char *  host , u_int  cols , u_int  rows) ;
 
+ml_pty_t *  ml_pty_unix_new_with( int  master , int  slave , pid_t  child_pid ,
+	u_int  cols , u_int  rows) ;
+
 ml_pty_t *  ml_pty_ssh_new( const char *  cmd_path , char **  cmd_argv , char **  env ,
 	const char *  host , const char *  pass ,
 	const char *  pubkey , const char *  privkey , u_int  cols , u_int  rows) ;

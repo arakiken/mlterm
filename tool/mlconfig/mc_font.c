@@ -826,7 +826,7 @@ mc_font_config_widget_new(void)
 					get_correct_cs(selected_cs)) ,
 			-1 , NULL , NULL , NULL) ) ;
 	gtk_widget_show(fontname_entry) ;
-	gtk_widget_set_size_request(fontname_entry , 100 , 0) ;
+	gtk_widget_set_size_request(fontname_entry , 100 , -1) ;
 	gtk_box_pack_start(GTK_BOX(hbox) , fontname_entry , TRUE , TRUE , 1) ;
 
 	select_font_button = gtk_button_new_with_label( _("Select")) ;

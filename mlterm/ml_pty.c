@@ -65,6 +65,25 @@ ml_pty_new(
 	}
 }
 
+ml_pty_ptr_t
+ml_pty_new_with(
+	int  master ,
+	int  slave ,
+	pid_t  child_pid ,
+	u_int  cols ,
+	u_int  rows
+	)
+{
+	if( ptsname( master))
+	{
+		return  ml_pty_unix_new_with( master , slave , child_pid , cols , rows) ;
+	}
+	else
+	{
+		return  NULL ;
+	}
+}
+
 int
 ml_pty_delete(
 	ml_pty_t *  pty

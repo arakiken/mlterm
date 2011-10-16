@@ -1,3 +1,24 @@
+2011-10-16  Araki Ken  <arakiken@users.sf.net>
+
+	* kiklib/kik_conf.[ch]:
+	  - kik_conf_new(): No argument.
+	  - kik_init_prog(), kik_get_prog_path(): Added.
+
+	* kiklib/Makefile.in: 13.1 => 14.0
+
+	* ml_term_manager.c:
+	  - Even if SIGSEGV, SIGABRT, SIGBUS or SIGQUIT is received, all opened ptys
+	    survive and are inherited to restarted mlterm, unless "auto_restart" option
+	    is "false".
+
+	* mc_combo.c, mc_font.c: gtk_widget_set_size_request(... , 0) ->
+	  gtk_widget_set_size_request(... , -1)
+
+	* vte.c:
+	  - PROP_VADJUSTMENT property is supported.
+	  - "word_separators", "compose_dec_special_font" and "use_cp932_ucs_for_xft"
+	    options in ~/.mlterm/main are avaialble.
+
 2011-10-12  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: "inner-border" property is set in GTK+-3.0.

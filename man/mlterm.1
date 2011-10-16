@@ -582,6 +582,11 @@ The default is \fB~/.ssh/id_rsa.pub\fR(\fB%HOMEPATH%\mlterm\id_rsa.pub\fR in win
 \fB\-\-privkey\fR=\fIvalue\fR
 Specify private key file for ssh connection.
 The default is \fB~/.ssh/id_rsa\fR(\fB%HOMEPATH%\mlterm\id_rsa\fR in win32).
+.TP
+\fB\-\-restart\fR=\fIvalue\fR
+Whether to restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SIGFPE
+or SIGILL is received.
+The default is \fBtrue\fR.
 
 .\" ********************************************************************
 .SH GUI CONFIGURATOR
@@ -1086,6 +1091,10 @@ Alpha in transparent.
 .TP
 \fBapp_name=\fIname\fR (\fB\-N\fR, \fB\-\-name\fR) 
 Application name.
+\fBauto_restart=\fIbool\fR (\fB\-\-restart\fR)
+Restart mlterm with all opened ptys except ssh if SIGSEGV, SIGBUS, SIGFPE or
+SIGILL is received.
+If you want to get core image, specify "false".
 .TP
 \fBbel_mode=\fImode\fR (\fB\-7\fR, \fB\-\-bel\fR) 
 Behavior when BEL (0x07) is received.

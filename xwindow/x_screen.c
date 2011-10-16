@@ -8267,6 +8267,10 @@ x_screen_set_config(
 			x_set_use_clipboard_selection( flag) ;
 		}
 	}
+	else if( strcmp( key , "auto_restart") == 0)
+	{
+		ml_set_auto_restart_cmd( strcmp( value , "false") == 0 ? NULL : value) ;
+	}
 	else if( strcmp( key , "logging_msg") == 0)
 	{
 		if( true_or_false( value) > 0)

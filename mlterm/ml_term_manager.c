@@ -4,11 +4,16 @@
 
 #include  "ml_term_manager.h"
 
+#include  <stdio.h>		/* sprintf/sscanf */
+#include  <unistd.h>		/* fork/exec */
+#include  <signal.h>
 #include  <kiklib/kik_str.h>	/* kik_snprintf */
 #include  <kiklib/kik_mem.h>	/* malloc */
 #include  <kiklib/kik_sig_child.h>
 #include  <kiklib/kik_util.h>	/* KIK_DIGIT_STR */
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_file.h>	/* kik_file_unset_cloexec */
+#include  <kiklib/kik_conf.h>	/* kik_get_prog_path */
 
 #include  "ml_config_proto.h"
 
@@ -37,8 +42,73 @@ static char *  pty_list ;
 
 static int  zombie_pty ;
 
+static char *  auto_restart_cmd ;
+
 
 /* --- static functions --- */
+
+#if  ! defined(USE_WIN32API) && ! defined(DEBUG)
+static void
+sig_error(
+	int  sig
+	)
+{
+	u_int  count ;
+	char  env[1024] ;
+	size_t  len ;
+	
+	env[0] = '\0' ;
+	len = 0 ;
+	for( count = 0 ; count < num_of_terms ; count++)
+	{
+		int  master ;
+
+		if( ( master = ml_term_get_master_fd( terms[count])) >= 0)
+		{
+			int  slave ;
+			size_t  n ;
+		
+			slave = ml_term_get_slave_fd( terms[count]) ;
+			snprintf( env + len , 1024 - len , "%d %d %d," ,
+				master , slave , ml_term_get_child_pid( terms[count])) ;
+			n = strlen( env + len) ;
+			if( n + len >= 1024)
+			{
+				env[len] = '\0' ;
+				break ;
+			}
+			else
+			{
+				len += n ;
+			}
+
+			kik_file_unset_cloexec( master) ;
+			kik_file_unset_cloexec( slave) ;
+		}
+	}
+
+	if( len > 0)
+	{
+		if( fork() > 0)
+		{
+			/* child process */
+			setenv( "INHERIT_PTY_LIST" , env , 1) ;
+
+			if( auto_restart_cmd)
+			{
+				execlp( auto_restart_cmd , auto_restart_cmd , NULL) ;
+			}
+			
+			execlp( kik_get_prog_path() , kik_get_prog_path() , NULL) ;
+			execlp( "mlterm" , "mlterm" , NULL) ;
+
+			kik_error_printf( "Failed to restart.\n") ;
+		}
+	}
+
+	exit(1) ;
+}
+#endif
 
 static void
 sig_child(
@@ -46,7 +116,7 @@ sig_child(
 	pid_t  pid
 	)
 {
-	int  count ;
+	u_int  count ;
 
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " SIG_CHILD received [PID:%d].\n", pid) ;
@@ -112,7 +182,7 @@ ml_term_manager_init(
 
 	kik_add_sig_child_listener( NULL , sig_child) ;
 	ml_config_proto_init() ;
-	
+
 	return  1 ;
 }
 
@@ -143,6 +213,47 @@ ml_term_manager_final(void)
 	
 	free( dead_mask) ;
 	free( pty_list) ;
+	free( auto_restart_cmd) ;
+
+	return  1 ;
+}
+
+int
+ml_set_auto_restart_cmd(
+	char *  cmd
+	)
+{
+#if  ! defined(USE_WIN32API) && ! defined(DEBUG)
+	if( cmd && *cmd)
+	{
+		if( ! auto_restart_cmd)
+		{
+			struct  sigaction  act ;
+
+			act.sa_sigaction = NULL ;
+			act.sa_handler = sig_error ;
+			sigemptyset( &act.sa_mask) ;	/* Not blocking any signals for child. */
+			act.sa_flags = SA_NODEFER ;	/* Not blocking any signals for child. */
+			sigaction( SIGBUS , &act , NULL) ;
+			sigaction( SIGSEGV , &act , NULL) ;
+			sigaction( SIGFPE , &act , NULL) ;
+			sigaction( SIGILL , &act , NULL) ;
+
+			free( auto_restart_cmd) ;
+		}
+
+		auto_restart_cmd = strdup( cmd) ;
+	}
+	else if( auto_restart_cmd)
+	{
+		signal( SIGBUS , SIG_DFL) ;
+		signal( SIGSEGV , SIG_DFL) ;
+		signal( SIGFPE , SIG_DFL) ;
+		signal( SIGILL , SIG_DFL) ;
+		free( auto_restart_cmd) ;
+		auto_restart_cmd = NULL ;
+	}
+#endif
 
 	return  1 ;
 }
@@ -168,11 +279,65 @@ ml_create_term(
 	ml_vertical_mode_t  vertical_mode
 	)
 {
+	char *  list ;
+
 	if( num_of_terms == MAX_TERMS)
 	{
 		return  NULL ;
 	}
-	
+
+#if  ! defined(USE_WIN32API) && ! defined(DEBUG)
+	if( ( list = getenv( "INHERIT_PTY_LIST")) && ( list = kik_str_alloca_dup( list)))
+	{
+		int  master ;
+		int  slave ;
+		pid_t  child_pid ;
+		char *  p ;
+
+		while( ( p = kik_str_sep( &list , ",")))
+		{
+			ml_pty_ptr_t  pty ;
+
+			if( sscanf( p , "%d %d %d" , &master , &slave , &child_pid) == 3)
+			{
+				/*
+				 * cols + 1 is for redrawing screen by ml_set_pty_winsize() below.
+				 */
+				if( ( pty = ml_pty_new_with( master , slave , child_pid ,
+							cols + 1 , rows)))
+				{
+					if( ( terms[num_of_terms] = ml_term_new( cols , rows ,
+						tab_size , log_size , encoding , is_auto_encoding ,
+						policy , col_size_a , use_char_combining ,
+						use_multi_col_char , use_bidi , bidi_mode ,
+						use_ind , use_bce ,
+						use_dynamic_comb , bs_mode , vertical_mode)))
+					{
+						ml_term_plug_pty( terms[num_of_terms++] , pty) ;
+						ml_set_pty_winsize( pty , cols , rows) ;
+
+						continue ;
+					}
+					else
+					{
+						ml_pty_delete( pty) ;
+					}
+				}
+
+				close( master) ;
+				close( slave) ;
+			}
+		}
+
+		unsetenv( "INHERIT_PTY_LIST") ;
+
+		if( num_of_terms > 0)
+		{
+			return  terms[num_of_terms - 1] ;
+		}
+	}
+#endif
+
 	/*
 	 * Before modifying terms and num_of_terms, do ml_close_dead_terms().
 	 */
@@ -446,9 +611,7 @@ ml_get_pty_list(void)
 }
 
 void
-ml_term_manager_enable_zombie_pty(
-	int  bool
-	)
+ml_term_manager_enable_zombie_pty(void)
 {
-	zombie_pty = bool ;
+	zombie_pty = 1 ;
 }

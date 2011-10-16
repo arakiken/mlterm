@@ -70,7 +70,7 @@ static u_int  num_of_startup_ptys ;
 
 static x_system_event_listener_t  system_listener ;
 
-static char *  version ;
+static char *  version = VERSION ;
 
 static x_main_config_t  main_config ;
 
@@ -121,24 +121,6 @@ sig_fatal( int  sig)
  * Callbacks of ml_config_event_listener_t events.
  */
  
-static kik_conf_t *
-conf_new(void)
-{
-	kik_conf_t *  conf ;
-	
-	if( ( conf = kik_conf_new( "mlterm" ,
-		MAJOR_VERSION , MINOR_VERSION , REVISION , PATCH_LEVEL , CHANGE_DATE)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " kik_conf_new() failed.\n") ;
-	#endif
-	
-		return  NULL ;
-	}
-
-	return  conf ;
-}
-
 /*
  * Reload mlterm/main file and reset main_config.
  * Notice: Saved changes are not applied to the screens already opened.
@@ -151,7 +133,7 @@ config_saved(void)
 
 	x_main_config_final( &main_config) ;
 
-	if( ( conf = conf_new()) == NULL)
+	if( ( conf = kik_conf_new()) == NULL)
 	{
 		return ;
 	}
@@ -1186,7 +1168,7 @@ mlclient(
 			pty = NULL ;
 		}
 
-		if( ( conf = conf_new()) == NULL)
+		if( ( conf = kik_conf_new()) == NULL)
 		{
 			return  0 ;
 		}
@@ -1537,7 +1519,7 @@ receive_next_event(void)
 
 		for( count = 0 ; count < num_of_terms ; count ++)
 		{
-			ptyfd = ml_term_get_pty_fd( terms[count]) ;
+			ptyfd = ml_term_get_master_fd( terms[count]) ;
 			FD_SET( ptyfd , &read_fds) ;
 
 			if( ptyfd > maxfd)
@@ -1621,7 +1603,7 @@ receive_next_event(void)
 		ml_term_flush( terms[count]) ;
 	#endif
 	
-		if( FD_ISSET( ml_term_get_pty_fd( terms[count]) , &read_fds))
+		if( FD_ISSET( ml_term_get_master_fd( terms[count]) , &read_fds))
 		{
 			ml_term_parse_vt100_sequence( terms[count]) ;
 		}
@@ -1665,8 +1647,6 @@ x_term_manager_init(
 	kik_conf_t *  conf ;
 	char *  value ;
 	int  use_xim ;
-	u_int  min_font_size ;
-	u_int  max_font_size ;
 	char *  invalid_msg = "%s %s is not valid.\n" ;
 
 	if( ! x_color_config_init( &color_config))
@@ -1697,7 +1677,9 @@ x_term_manager_init(
 	}
 
 
-	if( ( conf = conf_new()) == NULL)
+	kik_init_prog( argv[0] , DETAIL_VERSION) ;
+
+	if( ( conf = kik_conf_new()) == NULL)
 	{
 		return  0 ;
 	}
@@ -1705,12 +1687,13 @@ x_term_manager_init(
 	x_prepare_for_main_config( conf) ;
 
 	/*
+	 * Same processing as vte_terminal_class_init().
 	 * Following options are not possible to specify as arguments of mlclient.
 	 * 1) Options which are used only when mlterm starts up and which aren't
 	 *    changed dynamically. (e.g. "startup_screens")
 	 * 2) Options which change status of all ptys or windows. (Including ones
 	 *    which are possible to change dynamically.)
-	 *    (e.g. "button3_behavior")
+	 *    (e.g. "font_size_range")
 	 */
 
 	kik_conf_add_opt( conf , '@' , "screens" , 0 , "startup_screens" ,
@@ -1761,9 +1744,11 @@ x_term_manager_init(
 		) ;
 	kik_conf_add_opt( conf , '\0' , "clip" , 1 , "use_clipboard" ,
 		"use CLIPBOARD (not only PRIMARY) selection [false]") ;
+	kik_conf_add_opt( conf , '\0' , "restart" , 1 , "auto_restart" ,
+		"restart mlterm automatically if an error like segv happens. [true]") ;
 #ifdef  USE_IM_CURSOR_COLOR
 	kik_conf_add_opt( conf , '\0' , "imcolor" , 0 , "im_cursor_color" ,
-		"cursor color when input method is activated.") ;
+		"cursor color when input method is activated. [false]") ;
 #endif
 
 	if( ! kik_conf_parse_args( conf , &argc , &argv))
@@ -1775,23 +1760,18 @@ x_term_manager_init(
 
 	if( ( value = kik_conf_get_value( conf , "font_size_range")))
 	{
-		if( ! get_font_size_range( &min_font_size , &max_font_size , value))
+		u_int  min_font_size ;
+		u_int  max_font_size ;
+
+		if( get_font_size_range( &min_font_size , &max_font_size , value))
+		{
+			x_set_font_size_range( min_font_size , max_font_size) ;
+		}
+		else
 		{
 			kik_msg_printf( invalid_msg , "font_size_range" , value) ;
-
-			/* default values are used */
-			min_font_size = 6 ;
-			max_font_size = 30 ;
 		}
 	}
-	else
-	{
-		/* default values are used */
-		min_font_size = 6 ;
-		max_font_size = 30 ;
-	}
-
-	x_set_font_size_range( min_font_size , max_font_size) ;
 
 	x_main_config_init( &main_config , conf , argc , argv) ;
 
@@ -1982,6 +1962,12 @@ x_term_manager_init(
 		}
 	}
 
+	if( ! ( value = kik_conf_get_value( conf , "auto_restart")) ||
+	    strcmp( value , "true") == 0)
+	{
+		ml_set_auto_restart_cmd( kik_get_prog_path()) ;
+	}
+
 #ifdef  USE_IM_CURSOR_COLOR
 	if( ( value = kik_conf_get_value( conf , "im_cursor_color")))
 	{
@@ -1991,14 +1977,6 @@ x_term_manager_init(
 		}
 	}
 #endif
-
-
-	if( ( version = kik_conf_get_version( conf)) == NULL)
-	{
-	#ifdef  DEBUG
-		kik_warn_printf( KIK_DEBUG_TAG " version string is NULL\n") ;
-	#endif
-	}
 
 	kik_conf_delete( conf) ;
 

@@ -170,25 +170,30 @@ ml_term_open_pty(
 	const char *  privkey
 	)
 {
+	if( ! term->pty)
+	{
+		ml_term_plug_pty( term ,
+			ml_pty_new( cmd_path , argv , env , host , pass , pubkey , privkey ,
+				ml_screen_get_logical_cols( term->screen) ,
+				ml_screen_get_logical_rows( term->screen))) ;
+	}
+
+	return  1 ;
+}
+
+int
+ml_term_plug_pty(
+	ml_term_t *  term ,
+	ml_pty_ptr_t  pty
+	)
+{
 	if( term->pty)
 	{
 		/* already opened */
-		
-		return  1 ;
 	}
-	else
+	else if( pty)
 	{
-		if( ( term->pty = ml_pty_new( cmd_path , argv , env , host , pass ,
-					pubkey , privkey ,
-					ml_screen_get_logical_cols( term->screen) ,
-					ml_screen_get_logical_rows( term->screen))) == NULL)
-		{
-		#ifdef  DEBUG
-			kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new failed.\n") ;
-		#endif
-
-			return  0 ;
-		}
+		term->pty = pty ;
 
 		if( term->pty_listener)
 		{
@@ -197,9 +202,9 @@ ml_term_open_pty(
 		}
 
 		ml_vt100_parser_set_pty( term->parser , term->pty) ;
-
-		return  1 ;
 	}
+	
+	return  1 ;
 }
 
 int
@@ -331,7 +336,7 @@ ml_term_set_use_dynamic_comb(
 }
 
 int
-ml_term_get_pty_fd(
+ml_term_get_master_fd(
 	ml_term_t *  term
 	)
 {
@@ -341,6 +346,19 @@ ml_term_get_pty_fd(
 	}
 	
 	return  ml_pty_get_master_fd( term->pty) ;
+}
+
+int
+ml_term_get_slave_fd(
+	ml_term_t *  term
+	)
+{
+	if( term->pty == NULL)
+	{
+		return  -1 ;
+	}
+	
+	return  ml_pty_get_slave_fd( term->pty) ;
 }
 
 /*
