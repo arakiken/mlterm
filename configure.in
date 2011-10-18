@@ -513,6 +513,8 @@ AC_SUBST(INSTALL_OPT)
 if test "${have_gtk}" = "yes" ; then
 	if test "${gtk_version}" = "3.0" ; then
 		PKG_CHECK_MODULES(VTE, vte-2.90, have_vte=yes, have_vte=no)
+		LIBVTE_SUFFIX=2_90
+		AC_SUBST(LIBVTE_SUFFIX)
 	else
 		PKG_CHECK_MODULES(VTE, vte, have_vte=yes, have_vte=no)
 	fi

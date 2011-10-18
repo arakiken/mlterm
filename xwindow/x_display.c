@@ -459,13 +459,12 @@ x_display_remove_root(
 	x_window_t *  root
 	)
 {
-	int  count ;
+	u_int  count ;
 
 	for( count = 0 ; count < disp->num_of_roots ; count ++)
 	{
 		if( disp->roots[count] == root)
 		{
-			x_window_unmap( disp->roots[count]) ;
 			x_window_final( root) ;
 
 			disp->num_of_roots -- ;

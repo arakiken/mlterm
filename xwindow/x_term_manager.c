@@ -850,45 +850,35 @@ open_pty(
 	char *  dev
 	)
 {
-	u_int  count ;
+	ml_term_t *  new ;
 
-	for( count = 0 ; count < num_of_screens ; count ++)
+	if( dev)
 	{
-		if( screen == screens[count])
+		if( ( new = ml_get_detached_term( dev)) == NULL)
 		{
-			ml_term_t *  new ;
-
-			if( dev)
-			{
-				if( ( new = ml_get_detached_term( dev)) == NULL)
-				{
-					return ;
-				}
-			}
-			else
-			{
-				if( ( new = create_term_intern()) == NULL)
-				{
-					return ;
-				}
-
-				if( ! open_pty_intern( new , main_config.cmd_path ,
-					main_config.cmd_argv ,
-					DisplayString(  screen->window.disp->display) ,
-					x_get_root_window( &screen->window)->my_window))
-				{
-					ml_destroy_term( new) ;
-					
-					return ;
-				}
-			}
-			
-			x_screen_detach( screen) ;
-			x_screen_attach( screen , new) ;
-			
 			return ;
 		}
 	}
+	else
+	{
+		if( ( new = create_term_intern()) == NULL)
+		{
+			return ;
+		}
+
+		if( ! open_pty_intern( new , main_config.cmd_path ,
+			main_config.cmd_argv ,
+			DisplayString(  screen->window.disp->display) ,
+			x_get_root_window( &screen->window)->my_window))
+		{
+			ml_destroy_term( new) ;
+
+			return ;
+		}
+	}
+
+	x_screen_detach( screen) ;
+	x_screen_attach( screen , new) ;
 }
 
 static void
@@ -897,31 +887,21 @@ next_pty(
 	x_screen_t *  screen
 	)
 {
-	u_int  count ;
-	
-	for( count = 0 ; count < num_of_screens ; count ++)
+	ml_term_t *  old ;
+	ml_term_t *  new ;
+
+	if( ( old = x_screen_detach( screen)) == NULL)
 	{
-		if( screen == screens[count])
-		{
-			ml_term_t *  old ;
-			ml_term_t *  new ;
+		return ;
+	}
 
-			if( ( old = x_screen_detach( screen)) == NULL)
-			{
-				return ;
-			}
-
-			if( ( new = ml_next_term( old)) == NULL)
-			{
-				x_screen_attach( screen , old) ;
-			}
-			else
-			{
-				x_screen_attach( screen , new) ;
-			}
-			
-			return ;
-		}
+	if( ( new = ml_next_term( old)) == NULL)
+	{
+		x_screen_attach( screen , old) ;
+	}
+	else
+	{
+		x_screen_attach( screen , new) ;
 	}
 }
 
@@ -931,31 +911,21 @@ prev_pty(
 	x_screen_t *  screen
 	)
 {
-	u_int  count ;
-	
-	for( count = 0 ; count < num_of_screens ; count ++)
-	{
-		if( screen == screens[count])
-		{
-			ml_term_t *  old ;
-			ml_term_t *  new ;
+	ml_term_t *  old ;
+	ml_term_t *  new ;
 
-			if( ( old = x_screen_detach( screen)) == NULL)
-			{
-				return ;
-			}
-			
-			if( ( new = ml_prev_term( old)) == NULL)
-			{
-				x_screen_attach( screen , old) ;
-			}
-			else
-			{
-				x_screen_attach( screen , new) ;
-			}
-			
-			return ;
-		}
+	if( ( old = x_screen_detach( screen)) == NULL)
+	{
+		return ;
+	}
+
+	if( ( new = ml_prev_term( old)) == NULL)
+	{
+		x_screen_attach( screen , old) ;
+	}
+	else
+	{
+		x_screen_attach( screen , new) ;
 	}
 }
 

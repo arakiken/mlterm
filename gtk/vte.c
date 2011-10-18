@@ -90,8 +90,8 @@
 
 struct _VteTerminalPrivate
 {
-	x_screen_t *  screen ;		/* Not NULL until unrealized */
-	ml_term_t *  term ;		/* Not NULL until unrealized */
+	x_screen_t *  screen ;		/* Not NULL until finalized */
+	ml_term_t *  term ;		/* Not NULL until finalized */
 
 	x_system_event_listener_t  system_listener ;
 
@@ -405,6 +405,11 @@ destroy_io(
 {
 	if( terminal->pvt->io)
 	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " Destroy GIO of pty master %d\n" ,
+			ml_term_get_master_fd( terminal->pvt->term)) ;
+	#endif
+
 		g_source_destroy(
 			g_main_context_find_source_by_id( NULL , terminal->pvt->src_id)) ;
 		g_io_channel_unref( terminal->pvt->io) ;
@@ -510,8 +515,17 @@ open_pty(
 
 		if( ( new = ml_get_detached_term( dev)))
 		{
+			destroy_io( VTE_WIDGET(screen)) ;
+			VTE_WIDGET(screen)->pvt->term = new ;
+			create_io( VTE_WIDGET(screen)) ;
+
 			x_screen_detach( screen) ;
-			x_screen_attach( screen , new) ;
+
+			/* It is after widget is reailzed that x_screen_attach can be called. */
+			if( GTK_WIDGET_REALIZED(GTK_WIDGET(VTE_WIDGET(screen))))
+			{
+				x_screen_attach( screen , new) ;
+			}
 		}
 	}
 }
@@ -1194,13 +1208,31 @@ vte_terminal_finalize(
 
 	terminal = VTE_TERMINAL(obj) ;
 
+	x_font_manager_delete( terminal->pvt->screen->font_man) ;
+	x_color_manager_delete( terminal->pvt->screen->color_man) ;
+
+	if( terminal->pvt->image)
+	{
+		g_object_unref( terminal->pvt->image) ;
+		terminal->pvt->image = NULL ;
+	}
+
+	if( terminal->pvt->pixmap)
+	{
+		XFreePixmap( disp.display , terminal->pvt->pixmap) ;
+		terminal->pvt->pixmap = None ;
+	}
+
+	free( terminal->pvt->pic_mod) ;
+
+	x_window_final( &terminal->pvt->screen->window) ;
+	terminal->pvt->screen = NULL ;
+
+
 	if( terminal->adjustment)
 	{
 		g_object_unref( terminal->adjustment) ;
 	}
-
-	g_signal_handlers_disconnect_by_func( gtk_widget_get_toplevel(GTK_WIDGET(obj)) ,
-		G_CALLBACK(toplevel_configure) , terminal) ;
 
 	settings = gtk_widget_get_settings( GTK_WIDGET(obj)) ;
 	g_signal_handlers_disconnect_matched( settings , G_SIGNAL_MATCH_DATA ,
@@ -1274,6 +1306,76 @@ vte_terminal_set_property(
 	}
 }
 
+
+static void
+init_screen(
+	VteTerminal *  terminal ,
+	x_font_manager_t *  font_man ,
+	x_color_manager_t *  color_man
+	)
+{
+	/*
+	 * XXX
+	 * terminal->pvt->term is specified to x_screen_new in order to set
+	 * x_window_t::width and height property, but screen->term is NULL until pty is forked.
+	 */
+	terminal->pvt->screen = x_screen_new( terminal->pvt->term , font_man , color_man ,
+			x_termcap_get_entry( &termcap , main_config.term_type) ,
+			main_config.brightness , main_config.contrast , main_config.gamma ,
+			main_config.alpha , main_config.fade_ratio , &shortcut ,
+			main_config.screen_width_ratio , main_config.screen_height_ratio ,
+			main_config.mod_meta_key ,
+			main_config.mod_meta_mode , main_config.bel_mode ,
+			main_config.receive_string_via_ucs , main_config.pic_file_path ,
+			main_config.use_transbg , main_config.use_vertical_cursor ,
+			main_config.big5_buggy , main_config.conf_menu_path_1 ,
+			main_config.conf_menu_path_2 , main_config.conf_menu_path_3 ,
+			main_config.use_extended_scroll_shortcut ,
+			main_config.borderless , main_config.line_space ,
+			main_config.input_method) ;
+	if( terminal->pvt->term)
+	{
+		ml_term_detach( terminal->pvt->term) ;
+		terminal->pvt->screen->term = NULL ;
+	}
+	else
+	{
+		/*
+		 * terminal->pvt->term can be NULL if this function is called from
+		 * vte_terminal_unrealize.
+		 */
+	}
+
+	memset( &terminal->pvt->system_listener , 0 , sizeof(x_system_event_listener_t)) ;
+	terminal->pvt->system_listener.self = terminal ;
+	terminal->pvt->system_listener.font_config_updated = font_config_updated ;
+	terminal->pvt->system_listener.color_config_updated = color_config_updated ;
+	terminal->pvt->system_listener.open_pty = open_pty ;
+	terminal->pvt->system_listener.pty_list = pty_list ;
+	terminal->pvt->system_listener.exit = __exit ;
+	x_set_system_listener( terminal->pvt->screen , &terminal->pvt->system_listener) ;
+
+	memset( &terminal->pvt->screen_scroll_listener , 0 ,
+		sizeof(x_screen_scroll_event_listener_t)) ;
+	terminal->pvt->screen_scroll_listener.self = terminal ;
+	terminal->pvt->screen_scroll_listener.bs_mode_exited = bs_mode_exited ;
+	terminal->pvt->screen_scroll_listener.scrolled_upward = scrolled_upward ;
+	terminal->pvt->screen_scroll_listener.scrolled_downward = scrolled_downward ;
+	terminal->pvt->screen_scroll_listener.log_size_changed = log_size_changed ;
+	x_set_screen_scroll_listener( terminal->pvt->screen ,
+		&terminal->pvt->screen_scroll_listener) ;
+
+	terminal->pvt->line_scrolled_out =
+		terminal->pvt->screen->screen_listener.line_scrolled_out ;
+	terminal->pvt->screen->screen_listener.line_scrolled_out = line_scrolled_out ;
+	
+	terminal->pvt->set_window_name =
+		terminal->pvt->screen->xterm_listener.set_window_name ;
+	terminal->pvt->screen->xterm_listener.set_window_name = set_window_name ;
+	terminal->pvt->set_icon_name =
+		terminal->pvt->screen->xterm_listener.set_icon_name ;
+	terminal->pvt->screen->xterm_listener.set_icon_name = set_icon_name ;
+}
 
 static void
 update_wall_picture(
@@ -1504,11 +1606,11 @@ vte_terminal_realize(
 
 static void
 vte_terminal_unrealize(
-	GtkWidget *  widget ,
-	gpointer  data
+	GtkWidget *  widget
 	)
 {
 	VteTerminal *  terminal ;
+	x_screen_t *  screen ;
 
 	terminal = VTE_TERMINAL(widget) ;
 
@@ -1520,33 +1622,20 @@ vte_terminal_unrealize(
 		ml_term_delete( terminal->pvt->term) ;
 		terminal->pvt->term = NULL ;
 	}
-	
-	x_font_manager_delete( terminal->pvt->screen->font_man) ;
-	x_color_manager_delete( terminal->pvt->screen->color_man) ;
 
-	if( terminal->pvt->image)
-	{
-		g_object_unref( terminal->pvt->image) ;
-		terminal->pvt->image = NULL ;
-	}
+	screen = terminal->pvt->screen ;
+	/* Create dummy screen in case terminal will be realized again. */
+	init_screen( terminal , screen->font_man , screen->color_man) ;
+	x_display_remove_root( &disp , &screen->window) ;
 
-	if( terminal->pvt->pixmap)
-	{
-		XFreePixmap( disp.display , terminal->pvt->pixmap) ;
-		terminal->pvt->pixmap = None ;
-	}
-
-	free( terminal->pvt->pic_mod) ;
-
-	x_display_remove_root( &disp , &terminal->pvt->screen->window) ;
-
-	terminal->pvt->screen = NULL ;
+	g_signal_handlers_disconnect_by_func( gtk_widget_get_toplevel( GTK_WIDGET(terminal)) ,
+		G_CALLBACK(toplevel_configure) , terminal) ;
 
 #ifdef  __DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " vte_terminal_unrealize\n") ;
 #endif
 
-	/* widget is unrealized by gtk_widget_real_unrealize(). */
+	GTK_WIDGET_CLASS(vte_terminal_parent_class)->unrealize( widget) ;
 }
 
 static gboolean
@@ -1741,10 +1830,7 @@ vte_terminal_key_press(
 	)
 {
 	/* Check if GtkWidget's behavior already does something with this key. */
-	if( GTK_WIDGET_CLASS(vte_terminal_parent_class)->key_press_event)
-	{
-		GTK_WIDGET_CLASS(vte_terminal_parent_class)->key_press_event( widget , event) ;
-	}
+	GTK_WIDGET_CLASS(vte_terminal_parent_class)->key_press_event( widget , event) ;
 
 	/* If FALSE is returned, tab operation is unexpectedly started in gnome-terminal. */
 	return  TRUE ;
@@ -1930,10 +2016,7 @@ vte_terminal_class_init(
 	oclass->get_property = vte_terminal_get_property ;
 	oclass->set_property = vte_terminal_set_property ;
 	wclass->realize = vte_terminal_realize ;
-	/* widgetclass::unrealize is left to gtk_widget_real_unrealize. */
-#if  0
 	wclass->unrealize = vte_terminal_unrealize ;
-#endif
 	wclass->focus_in_event = vte_terminal_focus_in ;
 	wclass->focus_out_event = vte_terminal_focus_out ;
 	wclass->size_allocate = vte_terminal_size_allocate ;
@@ -2292,8 +2375,7 @@ vte_terminal_init(
 	VteTerminal *  terminal
 	)
 {
-	x_color_manager_t *  color_man ;
-	x_font_manager_t *  font_man ;
+	static int  init_inherit_ptys ;
 	mkf_charset_t  usascii_font_cs ;
 	int  usascii_font_cs_changable ;
 	gdouble  dpi ;
@@ -2312,9 +2394,6 @@ vte_terminal_init(
 	set_adjustment( terminal , GTK_ADJUSTMENT(gtk_adjustment_new( 0 , 0 , main_config.rows ,
 					1 , main_config.rows , main_config.rows))) ;
 
-	g_signal_connect( GTK_WIDGET(terminal) , "unrealize" ,
-		G_CALLBACK(vte_terminal_unrealize) , NULL) ;
-	
 	g_signal_connect( terminal , "hierarchy-changed" ,
 		G_CALLBACK(vte_terminal_hierarchy_changed) , NULL) ;
 
@@ -2340,6 +2419,23 @@ vte_terminal_init(
 				x_termcap_get_entry( &termcap , main_config.term_type) , ML_BCE) ,
 			main_config.use_dynamic_comb , main_config.bs_mode ,
 			main_config.vertical_mode) ;
+	if( ! init_inherit_ptys)
+	{
+		u_int  num ;
+		ml_term_t **  terms ;
+		u_int  count ;
+
+		num = ml_get_all_terms( &terms) ;
+		for( count = 0 ; count < num ; count++)
+		{
+			if( terms[count] != terminal->pvt->term)
+			{
+				vte_reaper_add_child( ml_term_get_child_pid( terms[count])) ;
+			}
+		}
+
+		init_inherit_ptys = 1 ;
+	}
 
 	if( main_config.unicode_policy & NOT_USE_UNICODE_FONT ||
 		main_config.iso88591_font_for_usascii)
@@ -2370,69 +2466,17 @@ vte_terminal_init(
 		x_font_set_dpi_for_fc( dpi) ;
 	}
 
-	font_man = x_font_manager_new( disp.display ,
+	init_screen( terminal ,
+		x_font_manager_new( disp.display ,
 			main_config.type_engine ,
 			main_config.font_present ,
 			main_config.font_size , usascii_font_cs ,
 			usascii_font_cs_changable , main_config.use_multi_col_char ,
 			main_config.step_in_changing_font_size ,
-			main_config.letter_space) ;
-	
-	color_man = x_color_manager_new( &disp , &color_config ,
+			main_config.letter_space) ,
+		x_color_manager_new( &disp , &color_config ,
 			main_config.fg_color , main_config.bg_color ,
-			main_config.cursor_fg_color , main_config.cursor_bg_color) ;
-
-	/*
-	 * XXX
-	 * terminal->pvt->term is specified to x_screen_new in order to set
-	 * x_window_t::width and height property, but screen->term is NULL until pty is forked.
-	 */
-	terminal->pvt->screen = x_screen_new( terminal->pvt->term , font_man , color_man ,
-			x_termcap_get_entry( &termcap , main_config.term_type) ,
-			main_config.brightness , main_config.contrast , main_config.gamma ,
-			main_config.alpha , main_config.fade_ratio , &shortcut ,
-			main_config.screen_width_ratio , main_config.screen_height_ratio ,
-			main_config.mod_meta_key ,
-			main_config.mod_meta_mode , main_config.bel_mode ,
-			main_config.receive_string_via_ucs , main_config.pic_file_path ,
-			main_config.use_transbg , main_config.use_vertical_cursor ,
-			main_config.big5_buggy , main_config.conf_menu_path_1 ,
-			main_config.conf_menu_path_2 , main_config.conf_menu_path_3 ,
-			main_config.use_extended_scroll_shortcut ,
-			main_config.borderless , main_config.line_space ,
-			main_config.input_method) ;
-	ml_term_detach( terminal->pvt->term) ;
-	terminal->pvt->screen->term = NULL ;
-
-	memset( &terminal->pvt->system_listener , 0 , sizeof(x_system_event_listener_t)) ;
-	terminal->pvt->system_listener.self = terminal ;
-	terminal->pvt->system_listener.font_config_updated = font_config_updated ;
-	terminal->pvt->system_listener.color_config_updated = color_config_updated ;
-	terminal->pvt->system_listener.open_pty = open_pty ;
-	terminal->pvt->system_listener.pty_list = pty_list ;
-	terminal->pvt->system_listener.exit = __exit ;
-	x_set_system_listener( terminal->pvt->screen , &terminal->pvt->system_listener) ;
-
-	memset( &terminal->pvt->screen_scroll_listener , 0 ,
-		sizeof(x_screen_scroll_event_listener_t)) ;
-	terminal->pvt->screen_scroll_listener.self = terminal ;
-	terminal->pvt->screen_scroll_listener.bs_mode_exited = bs_mode_exited ;
-	terminal->pvt->screen_scroll_listener.scrolled_upward = scrolled_upward ;
-	terminal->pvt->screen_scroll_listener.scrolled_downward = scrolled_downward ;
-	terminal->pvt->screen_scroll_listener.log_size_changed = log_size_changed ;
-	x_set_screen_scroll_listener( terminal->pvt->screen ,
-		&terminal->pvt->screen_scroll_listener) ;
-
-	terminal->pvt->line_scrolled_out =
-		terminal->pvt->screen->screen_listener.line_scrolled_out ;
-	terminal->pvt->screen->screen_listener.line_scrolled_out = line_scrolled_out ;
-	
-	terminal->pvt->set_window_name =
-		terminal->pvt->screen->xterm_listener.set_window_name ;
-	terminal->pvt->screen->xterm_listener.set_window_name = set_window_name ;
-	terminal->pvt->set_icon_name =
-		terminal->pvt->screen->xterm_listener.set_icon_name ;
-	terminal->pvt->screen->xterm_listener.set_icon_name = set_icon_name ;
+			main_config.cursor_fg_color , main_config.cursor_bg_color)) ;
 
 	terminal->pvt->io = NULL ;
 	terminal->pvt->src_id = 0 ;
@@ -3092,7 +3136,6 @@ vte_terminal_set_colors(
 	if( palette_size >= 8)
 	{
 		ml_color_t  color ;
-		x_color_config_t *  config ;
 		int  need_redraw = 0 ;
 
 		if( foreground == NULL)
@@ -3103,8 +3146,6 @@ vte_terminal_set_colors(
 		{
 			background = &palette[0] ;
 		}
-
-		config = terminal->pvt->screen->color_man->color_cache->color_config ;
 
 		for( color = 0 ; color < palette_size ; color++)
 		{
@@ -3118,7 +3159,7 @@ vte_terminal_set_colors(
 			kik_debug_printf( KIK_DEBUG_TAG " Setting rgb %s=%s\n" , name , rgb) ;
 		#endif
 
-			need_redraw |= x_customize_color_file( config , name , rgb , 0) ;
+			need_redraw |= x_customize_color_file( &color_config , name , rgb , 0) ;
 
 			g_free( rgb) ;
 		}

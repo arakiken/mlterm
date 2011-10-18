@@ -25,10 +25,10 @@ LIBTOOL_INSTALL = $(LIBTOOL) --mode=install $(INSTALL)
 
 OBJ = vte.o marshal.o vtetypebuiltins.o reaper.o
 
-all: libvte.la
+all: libvte@LIBVTE_SUFFIX@.la
 
-libvte.la: $(OBJ)
-	$(LIBTOOL_LINK) -o libvte.la $(OBJ:.o=.lo) ../mlterm/*.lo \
+libvte@LIBVTE_SUFFIX@.la: $(OBJ)
+	$(LIBTOOL_LINK) -o libvte@LIBVTE_SUFFIX@.la $(OBJ:.o=.lo) ../mlterm/*.lo \
 	`echo ../xwindow/*.lo|sed 's/..\/xwindow\/main.lo//g' | \
 	sed 's/..\/xwindow\/x_term_manager.lo//g' | \
 	sed 's/..\/xwindow\/x_sb_screen.lo//g' | \
@@ -45,13 +45,13 @@ libvte.la: $(OBJ)
 		-I$(top_builddir)/xwindow -I../mkf/include -I../kiklib/include -g -c $<
 
 clean:
-	rm -rf $(OBJ) $(OBJ:.o=.lo) libvte.la *.core .libs
+	rm -rf $(OBJ) $(OBJ:.o=.lo) libvte@LIBVTE_SUFFIX@.la *.core .libs
 
 distclean: clean
 	rm -f Makefile
 
 install:
-	$(LIBTOOL_INSTALL) libvte.la $(LIBDIR)
+	$(LIBTOOL_INSTALL) libvte@LIBVTE_SUFFIX@.la $(LIBDIR)
 
 uninstall:
-	rm -f $(LIBDIR)/libvte.*
+	rm -f $(LIBDIR)/libvte@LIBVTE_SUFFIX@.*

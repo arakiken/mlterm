@@ -1,3 +1,15 @@
+2011-10-19  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - Almost all parts of code in vte_terminal_unrealize() is moved to
+	    vte_terminal_finalize().
+	  - Dummy x_screen_t is created before x_display_remove_root() in
+	    vte_terminal_unrealize() in case terminal will be realized again.
+
+	* xwindow.[ch]: x_window_hide() is added.
+
+	* gtk/Makefile.in, configure.in: Name of libvte using gtk+-3.0 is libvte2_90.
+
 2011-10-17  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c: pty_list and open_pty of x_system_event_listener_t are

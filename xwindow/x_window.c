@@ -894,19 +894,27 @@ x_window_final(
 	}
 
 	free( win->children) ;
-	
-	x_display_clear_selection( win->disp , win) ;
-	
-	x_xic_deactivate( win) ;
 
-	x_window_set_type_engine( win , TYPE_XCORE) ;
-
-	if( win->create_gc)
+	if( win->my_window)
 	{
-		x_gc_delete( win->gc) ;
-	}
+		x_display_clear_selection( win->disp , win) ;
 
-	XDestroyWindow( win->disp->display , win->my_window) ;
+		x_xic_deactivate( win) ;
+
+		/* Delete cairo/xft. */
+		x_window_set_type_engine( win , TYPE_XCORE) ;
+
+		XDestroyWindow( win->disp->display , win->my_window) ;
+
+		if( win->create_gc)
+		{
+			x_gc_delete( win->gc) ;
+		}
+	}
+	else
+	{
+		/* x_window_show() is not called yet. */
+	}
 
 	if( win->window_finalized)
 	{
@@ -915,6 +923,7 @@ x_window_final(
 
 	return  1 ;
 }
+
 
 /*
  * Call this function in window_realized event at first.
