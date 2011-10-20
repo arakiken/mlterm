@@ -1111,6 +1111,42 @@ vte_terminal_filter(
 					return  GDK_FILTER_CONTINUE ;
 				}
 			}
+
+			if( terminal->pvt->screen->window.is_transparent &&
+			    ((XEvent*)xevent)->type == ConfigureNotify &&
+			    ((XEvent*)xevent)->xconfigure.event ==
+					gdk_x11_drawable_get_xid(
+						gtk_widget_get_window( GTK_WIDGET(terminal))))
+			{
+				/*
+				 * If terminal position is changed by adding menu bar or tab,
+				 * transparent background is reset.
+				 */
+
+				gint  x ;
+				gint  y ;
+
+				gdk_window_get_position(
+					gtk_widget_get_window( GTK_WIDGET(terminal)) , &x , &y) ;
+
+				/*
+				 * XXX
+				 * I don't know why but the height of menu bar has been already
+				 * added to the position of terminal before first
+				 * GdkConfigureEvent whose x and y is 0 is received.
+				 * But (x != xconfigure.x || y != xconfigure.y) is true eventually
+				 * and x_window_set_transparent() is called expectedly.
+				 */
+				if( x != ((XEvent*)xevent)->xconfigure.x ||
+				    y != ((XEvent*)xevent)->xconfigure.y)
+				{
+					x_window_set_transparent( &terminal->pvt->screen->window ,
+						x_screen_get_picture_modifier(
+							terminal->pvt->screen)) ;
+				}
+
+				return  GDK_FILTER_CONTINUE ;
+			}
 		}
 		else
 		{
@@ -2523,42 +2559,51 @@ vte_terminal_init(
 	reset_vte_size_member( terminal) ;
 }
 
-/*
- * "WINDOWID" is set by terminal applications using vte.
- */
-#if  0
-static char **
-modify_envv(
+static int
+ml_term_open_pty_wrap(
 	VteTerminal *  terminal ,
-	char **  envv
+	const char *  cmd_path ,
+	char **  argv ,
+	char **  envv ,
+	const char *  pass ,
+	const char *  pubkey ,
+	const char *  privkey
 	)
 {
-	/* TERM, DISPLAY and COLORFGBG are not modified. */
+	const char *  host ;
 
-	char **  p ;
+	host = gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal))) ;
 
-	p = envv ;
-	while( *p)
+	if( ! envv && ( envv = alloca( sizeof( char*) * 5)))
 	{
-		if( **p && strncmp( *p , "WINDOWID" , K_MIN(strlen(*p) , 8)) == 0)
-		{
-			char *  wid_env ;
+		char **  env_p ;
 
-			/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
-			wid_env = g_malloc( 9 + DIGIT_STR_LEN(Window) + 1) ;
-			sprintf( wid_env , "WINDOWID=%ld" ,
+		env_p = envv ;
+
+		/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
+		if( ( *env_p = alloca( 9 + DIGIT_STR_LEN(Window) + 1)))
+		{
+			sprintf( *(env_p ++) , "WINDOWID=%ld" ,
 				gdk_x11_drawable_get_xid(
-					gtk_widget_get_window( GTK_WIDGET(terminal))) ;
-			g_free( *p) ;
-			*p = wid_env ;
+					gtk_widget_get_window( GTK_WIDGET(terminal)))) ;
 		}
 
-		p ++ ;
+		/* "DISPLAY="(8) + NULL(1) */
+		if( ( *env_p = alloca( 8 + strlen( host) + 1)))
+		{
+			sprintf( *(env_p ++) , "DISPLAY=%s" , host) ;
+		}
+
+		*(env_p ++) = "TERM=xterm" ;
+		*(env_p ++) = "COLORFGBG=default;default" ;
+
+		/* NULL terminator */
+		*env_p = NULL ;
 	}
 
-	return  envv ;
+	return  ml_term_open_pty( terminal->pvt->term , cmd_path , argv , envv ,
+				host , pass , pubkey , privkey) ;
 }
-#endif
 
 
 /* --- global functions --- */
@@ -2621,9 +2666,8 @@ vte_terminal_fork_command(
 
 		kik_pty_helper_set_flag( lastlog , utmp , wtmp) ;
 
-		if( ! ml_term_open_pty( terminal->pvt->term , command , argv , envv ,
-			gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal))) ,
-			NULL , NULL , NULL) )
+		if( ! ml_term_open_pty_wrap( terminal , command , argv , envv ,
+				NULL , NULL , NULL) )
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " fork failed\n") ;
@@ -2716,9 +2760,7 @@ vte_terminal_forkpty(
 	
 		kik_pty_helper_set_flag( lastlog , utmp , wtmp) ;
 		
-		if( ! ml_term_open_pty( terminal->pvt->term , NULL , NULL , envv ,
-			gdk_display_get_name( gtk_widget_get_display( GTK_WIDGET(terminal))) ,
-			NULL , NULL , NULL) )
+		if( ! ml_term_open_pty_wrap( terminal , NULL , NULL , envv , NULL , NULL , NULL))
 		{
 		#ifdef  DEBUG
 			kik_debug_printf( KIK_DEBUG_TAG " fork failed\n") ;

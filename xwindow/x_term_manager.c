@@ -274,7 +274,6 @@ open_pty_intern(
 	char *  ver_env ;
 	char *  disp_env ;
 	char *  term_env ;
-	char *  colorfgbg_env ;
 	char *  uri ;
 	char *  pass ;
 	int  ret ;
@@ -305,11 +304,7 @@ open_pty_intern(
 		*(env_p ++) = term_env ;
 	}
 
-	/* COLORFGBG=default;default */
-	if( ( colorfgbg_env = kik_str_alloca_dup( "COLORFGBG=default;default")))
-	{
-		*(env_p ++) = colorfgbg_env ;
-	}
+	*(env_p ++) = "COLORFGBG=default;default" ;
 
 	/* NULL terminator */
 	*env_p = NULL ;

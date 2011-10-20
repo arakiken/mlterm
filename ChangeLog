@@ -1,3 +1,12 @@
+2011-10-21  Araki Ken  <arakiken@users.sf.net>
+
+	* vte.c:
+	  - x_window_set_transparent(terminal->pvt->screen) is called if
+	    GdkWindow of VteTerminal is re-configured.
+	  - If envv argument of vte_terminal_fork_command(_full) and
+	    vte_terminal_forkpty is NULL, TERM, WINDOWID, DISPLAY and COLORFGBG
+	    environmental variables are set for a child process.
+
 2011-10-19  Araki Ken  <arakiken@users.sf.net>
 
 	* vte.c:

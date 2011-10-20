@@ -3506,8 +3506,8 @@ x_window_reset_group(
 int
 x_window_get_visible_geometry(
 	x_window_t *  win ,
-	int *  x ,		/* x relative to parent window */
-	int *  y ,		/* y relative to parent window */
+	int *  x ,		/* x relative to root window */
+	int *  y ,		/* y relative to root window */
 	int *  my_x ,		/* x relative to my window */
 	int *  my_y ,		/* y relative to my window */
 	u_int *  width ,

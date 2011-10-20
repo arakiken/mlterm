@@ -4572,7 +4572,13 @@ change_transparent_flag(
 	int  is_transparent
 	)
 {
-	if( screen->window.is_transparent == is_transparent)
+	if( screen->window.is_transparent == is_transparent &&
+	    /*
+	     * If wall picture is not still set, do set it.
+	     * This is necessary for gnome-terminal, because ConfigureNotify event never
+	     * happens when it opens new tab.
+	     */
+	    screen->window.wall_picture_is_set == is_transparent)
 	{
 		/* not changed */
 
@@ -4589,7 +4595,7 @@ change_transparent_flag(
 			screen->pic_mod.alpha = 210 ;
 		}
 	#endif
-	
+
 		x_window_set_transparent( &screen->window ,
 			x_screen_get_picture_modifier( screen)) ;
 	}
