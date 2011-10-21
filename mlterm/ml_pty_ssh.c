@@ -906,7 +906,7 @@ ml_pty_ssh_new(
 		{
 			char *  val ;
 
-			if( ( val = strchr( *env , '=')))
+			if( ( val = strchr( kik_str_alloca_dup( *env) , '=')))
 			{
 				*(val ++) = '\0' ;
 			}

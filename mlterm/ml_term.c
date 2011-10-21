@@ -172,10 +172,21 @@ ml_term_open_pty(
 {
 	if( ! term->pty)
 	{
-		ml_term_plug_pty( term ,
-			ml_pty_new( cmd_path , argv , env , host , pass , pubkey , privkey ,
+		ml_pty_ptr_t  pty ;
+
+		if( ! ( pty = ml_pty_new( cmd_path , argv , env , host , pass , pubkey , privkey ,
 				ml_screen_get_logical_cols( term->screen) ,
-				ml_screen_get_logical_rows( term->screen))) ;
+				ml_screen_get_logical_rows( term->screen))))
+		{
+		#ifdef  DEBUG
+			kik_warn_printf( KIK_DEBUG_TAG " ml_pty_new failed.\n") ;
+		#endif
+
+			return  0 ;
+		}
+
+		ml_term_plug_pty( term , pty) ;
+			
 	}
 
 	return  1 ;
@@ -184,14 +195,10 @@ ml_term_open_pty(
 int
 ml_term_plug_pty(
 	ml_term_t *  term ,
-	ml_pty_ptr_t  pty
+	ml_pty_ptr_t  pty	/* Not NULL */
 	)
 {
-	if( term->pty)
-	{
-		/* already opened */
-	}
-	else if( pty)
+	if( ! term->pty)
 	{
 		term->pty = pty ;
 
