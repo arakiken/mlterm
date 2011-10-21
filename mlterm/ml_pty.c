@@ -74,11 +74,13 @@ ml_pty_new_with(
 	u_int  rows
 	)
 {
+#ifndef  USE_WIN32API
 	if( ptsname( master))
 	{
 		return  ml_pty_unix_new_with( master , slave , child_pid , cols , rows) ;
 	}
 	else
+#endif
 	{
 		return  NULL ;
 	}
