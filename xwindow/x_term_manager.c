@@ -70,8 +70,6 @@ static u_int  num_of_startup_ptys ;
 
 static x_system_event_listener_t  system_listener ;
 
-static char *  version = VERSION ;
-
 static x_main_config_t  main_config ;
 
 static x_color_config_t  color_config ;
@@ -271,7 +269,6 @@ open_pty_intern(
 	char *  env[6] ;	/* MLTERM,TERM,WINDOWID,DISPLAY,COLORFGBG,NULL */
 	char **  env_p ;
 	char  wid_env[9 + DIGIT_STR_LEN(Window) + 1] ;	/* "WINDOWID="(9) + [32bit digit] + NULL(1) */
-	char *  ver_env ;
 	char *  disp_env ;
 	char *  term_env ;
 	char *  uri ;
@@ -280,11 +277,7 @@ open_pty_intern(
 
 	env_p = env ;
 
-	if( version && ( ver_env = alloca( 7 + strlen( version) + 1)))
-	{
-		sprintf( ver_env , "MLTERM=%s" , version) ;
-		*(env_p ++) = ver_env ;
-	}
+	*(env_p ++) = "MLTERM=" VERSION ;
 	
 	sprintf( wid_env , "WINDOWID=%ld" , window) ;
 	*(env_p ++) = wid_env ;
@@ -1007,7 +1000,7 @@ close_screen(
 	x_screen_t *  screen
 	)
 {
-	int  count ;
+	u_int  count ;
 	
 	for( count = 0 ; count < num_of_screens ; count ++)
 	{
@@ -2002,10 +1995,8 @@ x_term_manager_init(
 int
 x_term_manager_final(void)
 {
-	int  count ;
+	u_int  count ;
 
-	free( version) ;
-	
 	x_main_config_final( &main_config) ;
 	
 	ml_free_word_separators() ;

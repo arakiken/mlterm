@@ -1,5 +1,12 @@
 2011-10-21  Araki Ken  <arakiken@users.sf.net>
 
+	* x_term_manager.c: "version" varaible was freed unjustly in
+	  x_term_manager_final() and mlterm@cygwin was prevented from exiting
+	  normally. So "version" variable and so on is removed.
+	  (Thanks to Iwamoto Kouichi san)
+
+2011-10-21  Araki Ken  <arakiken@users.sf.net>
+
 	* vte.c:
 	  - x_window_set_transparent(terminal->pvt->screen) is called if
 	    GdkWindow of VteTerminal is re-configured.
