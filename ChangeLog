@@ -1,3 +1,15 @@
+2011-10-23  Araki Ken  <arakiken@users.sf.net>
+
+	* x_picture.[ch]: x_root_pixmap_available() is removed.
+
+	* x_window.c, x_imagelib.c: If depth of root pixmap isn't equal to one of current
+	  window, background (translucent) pixmap is not set.
+
+	* README, README.ja, etc/main, etc/main.ja: Updated.
+
+	* ml_pty_ssh.c: Previous commit is canceled and libssh2_channel_setenv_ex()
+	  is used instead of libssh2_channel_setenv().
+
 2011-10-22  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_pty_ssh.c: Not *env but kik_str_alloca_dup( *env) is used in

@@ -188,3 +188,5 @@ scrollbar_view_name = sample
 # ssh_public_key = 
 
 # ssh_private_key = 
+
+# auto_restart = true

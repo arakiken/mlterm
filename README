@@ -102,6 +102,9 @@ Options for configure
     gnome-pty-helper in BSD style pty system and that gnome-pty-helper must be
     placed at ${libexecdir}/ directory.)
 
+  --with-gtk=(2.0|3.0)
+    Use specified version of GTK+.
+
   --disable-shared
     Disable shared libraries
 

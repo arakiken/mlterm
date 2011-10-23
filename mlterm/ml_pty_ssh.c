@@ -905,19 +905,28 @@ ml_pty_ssh_new(
 		while( *env)
 		{
 			char *  val ;
+			size_t  key_len ;
 
-			if( ( val = strchr( kik_str_alloca_dup( *env) , '=')))
+			if( ( val = strchr( *env , '=')))
 			{
-				*(val ++) = '\0' ;
+				key_len = val - *env ;
+				val ++ ;
 			}
 			else
 			{
+				key_len = strlen( *env) ;
 				val = "" ;
 			}
+			
+			libssh2_channel_setenv_ex( pty->channel , *env , key_len ,
+				val , strlen( val)) ;
 
-			libssh2_channel_setenv( pty->channel , *env , val) ;
+		#ifdef  __DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG " Env %s => key_len %d val %s\n" ,
+				*env , key_len , val) ;
+		#endif
 
-			if( strcmp( *env , "TERM") == 0)
+			if( strncmp( *env , "TERM=" , 5) == 0)
 			{
 				term = val ;
 			}

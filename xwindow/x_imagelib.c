@@ -1670,26 +1670,6 @@ error:
 #endif	/* USE_EXT_IMAGELIB */
 }
 
-/** Answer whether pseudo transparency is available
- *\param display connection to X server.
- *
- *\return  Success => 1, Failure => 0
- */
-int
-x_imagelib_root_pixmap_available(
-	Display *  display
-	)
-{
-	if( root_pixmap( display))
-	{
-		return  1 ;
-	}
-	else
-	{
-		return  0 ;
-	}
-}
-
 /** Create an pixmap from root window
  *\param win window structure
  *\param pic_mod picture modifier
@@ -1713,7 +1693,9 @@ x_imagelib_get_transparent_background(
 	u_int  root_width ;
 	u_int  root_height ;
 
-	if( ( root = root_pixmap( win->disp->display)) == None)
+	if( win->disp->depth != DefaultDepth( win->disp->display ,
+					DefaultScreen( win->disp->display)) ||
+	    ( root = root_pixmap( win->disp->display)) == None)
 	{
 		return  None ;
 	}

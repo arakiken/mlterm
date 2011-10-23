@@ -131,8 +131,8 @@ comment $Id$
       なお、gnome-pty-helper は ${libexecdir}/ ディレクトリに配置する必要があり
       ます。
 
-    --without-compat
-      古い mlterm との互換性を維持するためのコードを組み込みません。
+    --with-gtk=(2.0|3.0)
+      使用する GTK+ のバージョンを指定します。
 
     --disable-shared
       共有ライブラリを構築しません。

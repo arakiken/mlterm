@@ -62,8 +62,6 @@ int  x_picture_display_closed( Display *  display) ;
 
 int  x_picture_modifiers_equal( x_picture_modifier_t *  a , x_picture_modifier_t *  b) ;
 
-int  x_root_pixmap_available( Display *  display) ;
-
 x_bg_picture_t *  x_acquire_bg_picture( x_window_t *  win , x_picture_modifier_t *  mod ,
 			char *  file_path) ;
 

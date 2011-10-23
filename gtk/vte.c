@@ -208,6 +208,25 @@ static char *  false = "false" ;
 
 /* --- static functions --- */
 
+#ifdef  __DEBUG
+static int
+error_handler(
+	Display *  display ,
+	XErrorEvent *  event
+	)
+{
+	char  buffer[1024] ;
+
+	XGetErrorText( display , event->error_code , buffer , 1024) ;
+
+	kik_msg_printf( "%s\n" , buffer) ;
+
+	abort() ;
+
+	return  1 ;
+}
+#endif
+
 static int
 selection(
 	x_selection_t *  sel ,
@@ -1882,6 +1901,11 @@ vte_terminal_class_init(
 	char *  argv[] = { "mlterm" , NULL } ;
 	GObjectClass *  oclass ;
 	GtkWidgetClass *  wclass ;
+
+#ifdef  __DEBUG
+	XSetErrorHandler( error_handler) ;
+	XSynchronize( gdk_x11_display_get_xdisplay( gdk_display_get_default()) , True) ;
+#endif
 
 	kik_sig_child_init() ;
 
@@ -4129,6 +4153,127 @@ set_font:
 }
 
 #endif	/* VTE_DISABLE_DEPRECATED */
+
+
+/* Dummy functions for VtePty. */
+#if  VTE_CHECK_VERSION(0,26,0)
+
+VtePty *
+vte_terminal_pty_new(
+	VteTerminal *  terminal ,
+	VtePtyFlags  flags ,
+	GError **  error
+	)
+{
+	return  NULL ;
+}
+
+VtePty *
+vte_terminal_get_pty_object(
+	VteTerminal *  terminal
+	)
+{
+	return  NULL ;
+}
+
+void
+vte_terminal_set_pty_object(
+	VteTerminal *  terminal ,
+	VtePty *  pty
+	)
+{
+}
+
+
+VtePty *
+vte_pty_new(
+	VtePtyFlags  flags ,
+	GError **  error
+	)
+{
+	return  NULL ;
+}
+
+VtePty *
+vte_pty_new_foreign(
+	int  fd ,
+	GError **  error
+	)
+{
+	return  NULL ;
+}
+
+void
+vte_pty_close(
+	VtePty *  pty
+	)
+{
+}
+
+void
+vte_pty_child_setup(
+	VtePty *  pty
+	)
+{
+}
+
+int
+vte_pty_get_fd(
+	VtePty *  pty
+	)
+{
+	return  -1 ;
+}
+
+gboolean
+vte_pty_set_size(
+	VtePty *  pty ,
+	int  rows ,
+	int  columns ,
+	GError **  error
+	)
+{
+	return  FALSE ;
+}
+
+gboolean
+vte_pty_get_size(
+	VtePty *  pty ,
+	int *  rows ,
+	int *  columns ,
+	GError **  error
+	)
+{
+	return  FALSE ;
+}
+
+void
+vte_pty_set_term(
+	VtePty *  pty ,
+	const char *  emulation
+	)
+{
+}
+
+gboolean
+vte_pty_set_utf8(
+	VtePty *  pty ,
+	gboolean utf8 ,
+	GError **  error
+	)
+{
+	return  TRUE ;
+}
+
+void
+vte_terminal_watch_child(
+	VteTerminal *  terminal ,
+	GPid  child_pid
+	)
+{
+}
+
+#endif
 
 
 /* Ubuntu original function ? */

@@ -150,7 +150,8 @@ error2:
 
 error1:
 	win->is_transparent = 0 ;
-	win->pic_mod = NULL ;
+
+	/* win->pic_mod = NULL is done in set_transparent. */
 
 	return  0 ;
 }
@@ -193,13 +194,10 @@ set_transparent(
 		 * ParentRelative mode of parent windows should be unset.
 		 */
 
-		if( x_root_pixmap_available( win->disp->display))
+		/* win->is_transparent is set appropriately in update_transparent_picture(). */
+		if( update_transparent_picture( win))
 		{
-			/*
-			 * win->is_transparent is set appropriately in
-			 * update_transparent_picture().
-			 */
-			return  update_transparent_picture( win) ;
+			return  1 ;
 		}
 		else
 		{
@@ -251,6 +249,7 @@ set_transparent(
 		Window  root ;
 		Window *  list ;
 		u_int  n ;
+		XWindowAttributes  attr ;
 
 		XQueryTree( win->disp->display , parent , &root , &parent , &list , &n) ;
 		XFree( list) ;
@@ -260,7 +259,16 @@ set_transparent(
 			break ;
 		}
 
-		XSetWindowBackgroundPixmap( win->disp->display , parent , ParentRelative) ;
+		if( XGetWindowAttributes( win->disp->display , parent , &attr) &&
+		    attr.depth == win->disp->display)
+		{
+			XSetWindowBackgroundPixmap( win->disp->display , parent ,
+				ParentRelative) ;
+		}
+		else
+		{
+			break ;
+		}
 	}
 
 	return  1 ;

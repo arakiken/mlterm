@@ -285,14 +285,6 @@ x_picture_modifiers_equal(
 	return  0 ;
 }
 
-int
-x_root_pixmap_available(
-	Display *  display
-	)
-{
-	return  x_imagelib_root_pixmap_available( display) ;
-}
-
 x_bg_picture_t *
 x_acquire_bg_picture(
 	x_window_t *  win ,

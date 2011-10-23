@@ -232,7 +232,14 @@ ml_set_auto_restart_cmd(
 		{
 			struct  sigaction  act ;
 
+		#if  0
+			/*
+			 * sa_sigaction which is called instead of sa_handler
+			 * if SA_SIGINFO is set to sa_flags is not defined in
+			 * some environments.
+			 */
 			act.sa_sigaction = NULL ;
+		#endif
 			act.sa_handler = sig_error ;
 			sigemptyset( &act.sa_mask) ;	/* Not blocking any signals for child. */
 			act.sa_flags = SA_NODEFER ;	/* Not blocking any signals for child. */
