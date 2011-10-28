@@ -29,31 +29,39 @@ x_gc_new(
 
 	gc->display = display ;
 	
-	/* Default value of GC. */
-	gc->fg_color = BlackPixel(gc->display,DefaultScreen(gc->display)) ;
-	gc->bg_color = WhitePixel(gc->display,DefaultScreen(gc->display)) ;
-	
 	gc->fid = None ;
 	
 #ifdef  USE_WIN32GUI
 	gc->gc = None ;
 	gc->pen = None ;
 	gc->brush = None ;
+
+	/* Default value of GC. */
+	gc->fg_color = 0xff000000 ;
+	gc->bg_color = 0xffffffff ;
 #else
 	if( drawable)
 	{
+		/* Default value of GC. */
+		gc->fg_color = 0xff000000 ;
+		gc->bg_color = 0xffffffff ;
+
 		gc_value.graphics_exposures = 0 ;
 		/*
 		 * Overwriting default value (1) of backgrond, meanwhile default value (0)
 		 * of foreground is not necessary to overwrite.
 		 */
+		gc_value.foreground = gc->fg_color ;
 		gc_value.background = gc->bg_color ;
 		gc->gc = XCreateGC( gc->display , drawable ,
-				GCBackground | GCGraphicsExposures , &gc_value) ;
+				GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
 	}
 	else
 	{
 		gc->gc = DefaultGC( display , DefaultScreen( display)) ;
+		XGetGCValues( display , gc->gc , GCForeground | GCBackground , &gc_value) ;
+		gc->fg_color = gc_value.foreground ;
+		gc->bg_color = gc_value.background ;
 	}
 #endif
 

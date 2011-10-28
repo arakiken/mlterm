@@ -249,8 +249,8 @@ comment $Id$
 
       o depth
         Visual の深さ (8, 16, 24, 32)
-        なお、compiz 上で動作する場合、depth == 32 であれば、背景色に対し
-        alpha で指定する透明度が適用されます。
+        なお、depth が 32 の場合、--alpha オプション又は背景色として
+	"rgba:RR/GG/BB/AA" と指定することで、半透明にすることができます。
 
       o parent_window (*0*)
         親 Window の Window ID を指定
@@ -452,7 +452,7 @@ comment $Id$
 
       -- Appearance 関連 --
       o use_transbg (true/*false*) (#)
-        背景透過する
+        擬似的な背景透過を行う。
 
       o use_scrollbar (*true*/false)
         スクロールバーをつける

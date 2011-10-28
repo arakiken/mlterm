@@ -185,7 +185,7 @@ set_transparent(
 	)
 {
 	Window  parent ;
-
+	
 	if( ! IS_INHERIT_TRANSPARENT(win))
 	{
 		/*
@@ -203,7 +203,7 @@ set_transparent(
 		{
 			kik_msg_printf( "_X_ROOTPMAP_ID is not found."
 				" Trying ParentRelative for transparency instead.\n") ;
-			
+
 			if( ! x_picture_modifier_is_normal( win->pic_mod))
 			{
 				kik_msg_printf( "(brightness, contrast, gamma and alpha "
@@ -260,7 +260,7 @@ set_transparent(
 		}
 
 		if( XGetWindowAttributes( win->disp->display , parent , &attr) &&
-		    attr.depth == win->disp->display)
+		    attr.depth == win->disp->depth)
 		{
 			XSetWindowBackgroundPixmap( win->disp->display , parent ,
 				ParentRelative) ;
@@ -800,8 +800,12 @@ x_window_init(
 
 	win->gc = NULL ;
 
-	memset( &win->fg_color , 0 , sizeof(win->fg_color)) ;
-	memset( &win->bg_color , 0 , sizeof(win->bg_color)) ;
+	win->fg_color.pixel = 0xff000000 ;
+	win->fg_color.red = 0x0 ;
+	win->fg_color.green = 0x0 ;
+	win->fg_color.blue = 0x0 ;
+	win->fg_color.alpha = 0xff ;
+	memset( &win->bg_color , 0xff , sizeof(win->bg_color)) ;
 
 	win->parent_window = None ;
 	win->parent = NULL ;

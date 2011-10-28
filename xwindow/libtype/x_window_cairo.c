@@ -28,22 +28,30 @@ show_text(
 	int  is_double_drawing
 	)
 {
+#if  CAIRO_VERSION_ENCODE(1,4,0) <= CAIRO_VERSION
 	if( cairo_get_user_data( cr , 1) != font)
+#endif
 	{
 		cairo_set_scaled_font( cr , font) ;
+	#if  CAIRO_VERSION_ENCODE(1,4,0) <= CAIRO_VERSION
 		cairo_set_user_data( cr , 1 , font , NULL) ;
+	#endif
 	}
 
+#if  CAIRO_VERSION_ENCODE(1,4,0) <= CAIRO_VERSION
 	/*
 	 * If cairo_get_user_data() returns NULL, it means that source rgb value is default one
 	 * (black == 0).
 	 */
 	if( (u_long)cairo_get_user_data( cr , 2) != fg_color->pixel)
+#endif
 	{
-		cairo_set_source_rgb( cr ,
+		cairo_set_source_rgba( cr ,
 			(double)fg_color->red / 255.0 , (double)fg_color->green / 255.0 ,
-			(double)fg_color->blue / 255.0) ;
+			(double)fg_color->blue / 255.0 , (double)fg_color->alpha / 255.0) ;
+	#if  CAIRO_VERSION_ENCODE(1,4,0) <= CAIRO_VERSION
 		cairo_set_user_data( cr , 2 , fg_color->pixel , NULL) ;
+	#endif
 	}
 
 #if  CAIRO_VERSION_ENCODE(1,8,0) > CAIRO_VERSION

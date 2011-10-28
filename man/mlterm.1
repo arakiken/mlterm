@@ -176,6 +176,9 @@ Delimiter characters used for word selection, which are
 consulted when you double-clicked mlterm, to define what
 is a word.
 The default is "\fB ,.:;/|@()[]{}\fR")
+\fB\-X\fR, \fB\-\-alpha\fR=\fIvalue\fR
+Alpha in pseudo or true transparent.
+The default is 255.
 .TP
 \fB\-Y\fR, \fB\-\-decsp\fR(=\fIbool\fR)
 Use dynamically composed line drawing character set.
@@ -412,7 +415,7 @@ Whether to use a scrollbar.
 The default is \fBtrue\fR.
 .TP
 \fB\-t\fR, \fB\-\-transbg\fR(=\fIbool\fR)
-Whether to enable transparent background.
+Whether to enable pseudo transparent background.
 Note that transparent background cannot be used with wallpaper.
 The default is \fBfalse\fR.
 .TP
@@ -553,6 +556,9 @@ The default is \fB0\fR.
 .TP
 \fB\-\-depth\fR=\fIvalue\fR
 Specify visual depth. (8,16,24,32)
+If depth is 32, you can enable semi-transparency by specifying
+opacity as the value of \-\-alpha option or "rgba:RR/GG/BB/AA"
+as the value of \-\-bg option.
 .TP
 \fB\-\-maxptys\fR=\fIvalue\fR
 Specify maximum number of ptys (sessions) to be opened simultaneously.
@@ -1086,8 +1092,8 @@ The main configuration file "\fBmain\fR" has the following keys.
 Parentheses show the corresponding command-line options.
 See the explanation on these command-line options for detail.
 .TP
-\fBalpha=\fIname\fR
-Alpha in transparent.
+\fBalpha=\fIname\fR (\fB\-X\fR, \fB\-\-alpha\fR)
+Alpha in pseudo or true transparent.
 .TP
 \fBapp_name=\fIname\fR (\fB\-N\fR, \fB\-\-name\fR) 
 Application name.

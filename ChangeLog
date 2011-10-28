@@ -1,3 +1,29 @@
+2011-10-29  Araki Ken  <arakiken@users.sf.net>
+
+	* ml_screen.c: copy_or_check_region() and reverse_or_restore_region() are
+	  rewritten becase chars argument in copy_or_check_region() could be
+	  overflown occasionally.
+
+	* x_gc.c: Initial foreground/background colors of GC always equal to
+	  those of x_gc_t in x_gc_new().
+	
+	* vte.c:
+	  - Fixed mistakes of macros for vte-2.18 or before.
+	  - x_window_update() is called appropriately.
+	  - x_color_manager_change_alpha() and x_window_set_bg_color() are called
+	    in vte_terminal_realize().
+
+	* vtetypebuiltins.c: vte_pty_flags_get_type() and vte_pty_error_get_type()
+	  are added.
+
+	* x_color.c: Alpha blended pixel is set in 32 bit depth in x_load_rgb_xcolor().
+
+	* x_sample(2)_sb_view.c, x_sample_sb_view.h: Black and white pixel are gotten
+	  by XAllocColor(), not BlackPixel and WhitePixel macros.
+
+	* x_gc.c: Default values of fg and bg colors are 0xff000000 and 0xffffffff
+	  respectively instead of BlackPixel and WhitePixel.
+
 2011-10-23  Araki Ken  <arakiken@users.sf.net>
 
 	* x_picture.[ch]: x_root_pixmap_available() is removed.

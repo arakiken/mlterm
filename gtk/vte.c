@@ -51,9 +51,9 @@
 #endif
 
 #if  ! GTK_CHECK_VERSION(2,18,0)
-#define  gtk_widget_set_window(widget,window)  ((widget)->window = (window))
-#define  gtk_widget_set_allocation(widget,allocation)  ((widget)->allocation = *(allocation))
-#define  gtk_widget_get_allocation(widget,allocation)  (*(allocation) = (widget)->allocation)
+#define  gtk_widget_set_window(widget,win)  ((widget)->window = (win))
+#define  gtk_widget_set_allocation(widget,alloc)  ((widget)->allocation = *(alloc))
+#define  gtk_widget_get_allocation(widget,alloc)  (*(alloc) = (widget)->allocation)
 #endif
 
 #if  GTK_CHECK_VERSION(2,90,0)
@@ -321,7 +321,6 @@ search_find(
 		gtk_adjustment_value_changed( terminal->adjustment) ;
 	#endif
 
-	#if  1
 		/*
 		 * XXX
 		 * Dirty hack, but without this, selection() above is not reflected to window
@@ -329,7 +328,6 @@ search_find(
 		 * gtk_adjustment_set_value() doesn't call x_screen_scroll_to().)
 		 */
 		x_window_update( &terminal->pvt->screen->window , 1 /* UPDATE_SCREEN */) ;
-	#endif
 
 		return  TRUE ;
 	}
@@ -1628,10 +1626,11 @@ vte_terminal_realize(
 		disp.depth = attr.depth ;
 
 		/* x_gc_t using DefaultGC is already created in vte_terminal_class_init */
+		gc_value.foreground = disp.gc->fg_color ;
 		gc_value.background = disp.gc->bg_color ;
 		gc_value.graphics_exposures = 0 ;
 		disp.gc->gc = XCreateGC( disp.display , xid ,
-					GCBackground | GCGraphicsExposures , &gc_value) ;
+				GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
 
 	#ifdef  __DEBUG
 		kik_debug_printf( KIK_DEBUG_TAG " Visual %x Colormap %x Depth %d\n" ,
@@ -1657,6 +1656,18 @@ vte_terminal_realize(
 	}
 
 	update_wall_picture( VTE_TERMINAL(widget)) ;
+
+	if( x_color_manager_change_alpha( VTE_TERMINAL(widget)->pvt->screen->color_man ,
+		VTE_TERMINAL(widget)->pvt->screen->pic_mod.alpha))
+	{
+		/* Same processing as change_bg_color in x_screen.c */
+	
+		if( x_window_set_bg_color( &VTE_TERMINAL(widget)->pvt->screen->window ,
+			x_get_xcolor( VTE_TERMINAL(widget)->pvt->screen->color_man , ML_BG_COLOR)))
+		{
+			x_xic_bg_color_changed( &VTE_TERMINAL(widget)->pvt->screen->window) ;
+		}
+	}
 }
 
 static void
@@ -1914,7 +1925,7 @@ vte_terminal_class_init(
 
 #if  0
 	bindtextdomain( "vte" , LOCALEDIR) ;
-	binid_textdomain_codeset( "vte" , "UTF-8") ;
+	bind_textdomain_codeset( "vte" , "UTF-8") ;
 #endif
 
 	if( ! kik_locale_init( ""))
@@ -2445,7 +2456,9 @@ vte_terminal_init(
 	terminal->pvt = G_TYPE_INSTANCE_GET_PRIVATE( terminal , VTE_TYPE_TERMINAL ,
 				VteTerminalPrivate) ;
 
+#if  GTK_CHECK_VERSION(2,18,0)
 	gtk_widget_set_has_window( GTK_WIDGET(terminal) , TRUE) ;
+#endif
 
 	/* We do our own redrawing. */
 	gtk_widget_set_redraw_on_allocate( GTK_WIDGET(terminal) , FALSE) ;
@@ -2582,6 +2595,7 @@ vte_terminal_init(
 
 	reset_vte_size_member( terminal) ;
 }
+
 
 static int
 ml_term_open_pty_wrap(
@@ -2932,6 +2946,8 @@ vte_terminal_select_all(
 
 	selection( &terminal->pvt->screen->sel , 0 , beg_row ,
 			line->num_of_filled_chars - 1 , end_row) ;
+
+	x_window_update( &terminal->pvt->screen->window , 1 /* UPDATE_SCREEN */) ;
 }
 
 void
@@ -2945,6 +2961,9 @@ vte_terminal_select_none(
 	}
 	
 	x_sel_clear( &terminal->pvt->screen->sel) ;
+
+	x_window_update( &terminal->pvt->screen->window ,
+			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
 }
 
 void
@@ -3094,6 +3113,8 @@ vte_terminal_set_color_foreground(
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
 		x_screen_set_config( terminal->pvt->screen , NULL , "fg_color" , str) ;
+		x_window_update( &terminal->pvt->screen->window ,
+			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
 	}
 	else
 	{
@@ -3126,6 +3147,8 @@ vte_terminal_set_color_background(
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
 		x_screen_set_config( terminal->pvt->screen , NULL , "bg_color" , str) ;
+		x_window_update( &terminal->pvt->screen->window ,
+			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
 
 		if( terminal->pvt->image && terminal->pvt->pic_mod->alpha < 255)
 		{
@@ -3136,7 +3159,7 @@ vte_terminal_set_color_background(
 	{
 		x_color_manager_set_bg_color( terminal->pvt->screen->color_man , str) ;
 	}
-
+	
 	g_free( str) ;
 }
 
@@ -3163,6 +3186,8 @@ vte_terminal_set_color_cursor(
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
 		x_screen_set_config( terminal->pvt->screen , NULL , "cursor_bg_color" , str) ;
+		x_window_update( &terminal->pvt->screen->window ,
+			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
 	}
 	else
 	{
@@ -3364,14 +3389,19 @@ vte_terminal_set_opacity(
 {
 	u_int8_t  alpha ;
 
-	alpha = 255 - ((opacity >> 8) & 0xff) ;
-
-	/* XXX (roxterm always sets opacity 0xffff. roxterm changes saturation instead.) */
-	if( alpha == 0)
+	/* XXX roxterm always sets opacity 0xffff after it changes saturation. */
+	if( strstr( g_get_prgname() , "roxterm") && opacity == 0xffff)
 	{
 		return ;
 	}
-	
+
+	alpha = ((opacity >> 8) & 0xff) ;
+
+#ifndef  VTE_MAJOR_VERSION
+	/* gnome-terminal 2.16.0 and libvte 0.14.0 in CentOS 5 use opacity wrongly ? */
+	alpha = 255 - alpha ;
+#endif
+
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
 		char  value[DIGIT_STR_LEN(u_int8_t)] ;
@@ -3379,6 +3409,8 @@ vte_terminal_set_opacity(
 		sprintf( value , "%d" , (int)alpha) ;
 
 		x_screen_set_config( terminal->pvt->screen , NULL , "alpha" , value) ;
+		x_window_update( &terminal->pvt->screen->window ,
+			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
 		update_wall_picture( terminal) ;
 	}
 	else

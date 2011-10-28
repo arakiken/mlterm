@@ -74,16 +74,16 @@ realized(
 	view->gc = gc ;
 	view->height = height ;
 
-	gc_value.foreground = BlackPixel( view->display , view->screen) ;
-	gc_value.background = WhitePixel( view->display , view->screen) ;
+	XGetWindowAttributes( view->display , view->window , &attr) ;
+	XAllocColor( view->display , attr.colormap , &black) ;
+	XAllocColor( view->display , attr.colormap , &white) ;
+
+	sample->black_pixel = gc_value.foreground = black.pixel ;
+	sample->white_pixel = gc_value.background = white.pixel ;
 	gc_value.graphics_exposures = 0 ;
 
 	sample->gc = XCreateGC( view->display , view->window ,
 			GCForeground | GCBackground | GCGraphicsExposures , &gc_value) ;
-
-	XGetWindowAttributes( view->display , view->window , &attr) ;
-	XAllocColor( view->display , attr.colormap , &black) ;
-	XAllocColor( view->display , attr.colormap , &white) ;
 
 	sample->arrow_up = x_get_icon_pixmap( view , sample->gc , arrow_up_src ,
 				WIDTH , TOP_MARGIN , attr.depth , black.pixel , white.pixel) ;
@@ -215,7 +215,7 @@ draw_scrollbar(
 		1 , bar_top_y , WIDTH - 1 , bar_height) ;
 		
 	/* left side shade */
-	XSetForeground( view->display , sample->gc , WhitePixel( view->display , view->screen)) ;
+	XSetForeground( view->display , sample->gc , sample->white_pixel) ;
 	XDrawLine( view->display , view->window , sample->gc ,
 		0 , bar_top_y , 0 , bar_top_y + bar_height - 1) ;
 
@@ -224,7 +224,7 @@ draw_scrollbar(
 		0 , bar_top_y , WIDTH - 1 , bar_top_y) ;
 
 	/* right side shade */
-	XSetForeground( view->display , sample->gc , BlackPixel( view->display , view->screen)) ;
+	XSetForeground( view->display , sample->gc , sample->black_pixel) ;
 	XDrawLine( view->display , view->window , sample->gc ,
 		WIDTH - 1 , bar_top_y , WIDTH - 1 , bar_top_y + bar_height - 1) ;
 

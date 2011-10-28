@@ -276,7 +276,7 @@ x_get_xcolor(
 
 			color_man->sys_colors[_FG_COLOR].is_loaded = 1 ;
 		}
-		
+
 		return  &color_man->sys_colors[_FG_COLOR].xcolor ;
 	}
 	else if( color == ML_BG_COLOR)
@@ -314,7 +314,7 @@ x_get_xcolor(
 
 			color_man->sys_colors[_BG_COLOR].is_loaded = 1 ;
 		}
-		
+
 		return  &color_man->sys_colors[_BG_COLOR].xcolor ;
 	}
 	else
@@ -469,7 +469,7 @@ x_color_manager_adjust_cursor_fg_color(
 	tmp_color = color_man->sys_colors[_BG_COLOR] ;
 	color_man->sys_colors[_BG_COLOR] = color_man->sys_colors[_CUR_FG_COLOR] ;
 	color_man->sys_colors[_CUR_FG_COLOR] = tmp_color ;
-	
+
 	return  1 ;
 }
 

@@ -465,6 +465,9 @@ x_display_remove_root(
 	{
 		if( disp->roots[count] == root)
 		{
+			/* Don't switching on or off screen in exiting. */
+			x_window_unmap( root) ;
+
 			x_window_final( root) ;
 
 			disp->num_of_roots -- ;

@@ -3378,14 +3378,7 @@ selecting_with_motion(
 		x_is_outside = 1 ;
 
 		/* Inform ml_screen that the mouse position is outside of the line. */
-		if( ml_line_is_rtl( line))
-		{
-			char_index -- ;
-		}
-		else
-		{
-			char_index ++ ;
-		}
+		char_index ++ ;
 	}
 
 	if( ml_line_is_rtl( line))

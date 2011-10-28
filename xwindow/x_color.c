@@ -8,6 +8,7 @@
 #include  <stdio.h>		/* sscanf */
 #include  <kiklib/kik_mem.h>
 #include  <kiklib/kik_debug.h>
+#include  <kiklib/kik_util.h>
 #include  <ml_color.h>
 
 
@@ -150,7 +151,7 @@ x_load_named_xcolor(
 	}
 
 	native_color_to_xcolor( xcolor , &near) ;
-	
+
 	return  1 ;
 
 }
@@ -165,21 +166,36 @@ x_load_rgb_xcolor(
 	u_int8_t  alpha
 	)
 {
-	XColor  ncolor ;
-
-	ncolor.red = (red << 8) + red ;
-	ncolor.green = (green << 8) + green ;
-	ncolor.blue = (blue << 8) + blue ;
-	ncolor.flags = 0 ;
-
-	if( ! XAllocColor( disp->display , disp->colormap , &ncolor))
+	if( disp->depth == 32 && alpha < 0xff)
 	{
-		/* try to find closest color */
-		return  alloc_closest_xcolor_pseudo( disp , red , green , blue , xcolor) ;
+		xcolor->red = red ;
+		xcolor->green = green ;
+		xcolor->blue = blue ;
+		xcolor->alpha = alpha ;
+		/* XXX */
+		xcolor->pixel = (alpha << 24) |
+				(((u_int)red * (u_int)alpha / 256) << 16) |
+				(((u_int)green * (u_int)alpha / 256) << 8) |
+				(((u_int)blue * (u_int)alpha / 256)) ;
+	}
+	else
+	{
+		XColor  ncolor ;
+
+		ncolor.red = (red << 8) + red ;
+		ncolor.green = (green << 8) + green ;
+		ncolor.blue = (blue << 8) + blue ;
+		ncolor.flags = 0 ;
+
+		if( ! XAllocColor( disp->display , disp->colormap , &ncolor))
+		{
+			/* try to find closest color */
+			return  alloc_closest_xcolor_pseudo( disp , red , green , blue , xcolor) ;
+		}
+
+		native_color_to_xcolor( xcolor , &ncolor) ;
 	}
 
-	native_color_to_xcolor( xcolor , &ncolor) ;
-	
 	return  1 ;
 }
 
