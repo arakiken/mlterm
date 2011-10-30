@@ -370,11 +370,18 @@ delete(
 	{
 		int  fd ;
 
+	#ifdef  DBUS_H
 		if( dbus_connection_get_unix_fd( ibus_connection_get_connection(
 				ibus_bus_get_connection( ibus_bus)) , &fd))
+	#else
+		if( ( fd = g_socket_get_fd( g_socket_connection_get_socket(
+				g_dbus_connection_get_stream(
+					ibus_bus_get_connection( ibus_bus))))) != -1)
+	#endif
 		{
 			(*syms->x_term_manager_remove_fd)( fd) ;
 		}
+
 		(*syms->x_term_manager_remove_fd)( IBUS_ID) ;
 
 		ibus_object_destroy( (IBusObject*)ibus_bus) ;
@@ -508,13 +515,18 @@ unfocused(
 static void
 connection_handler(void)
 {
+#ifdef  DBUS_H
 	DBusConnection *  connection ;
 
 	connection = ibus_connection_get_connection( ibus_bus_get_connection( ibus_bus)) ;
 
 	dbus_connection_read_write( connection , 0) ;
 
-	while( ! dbus_connection_dispatch( connection)) ;
+	while( dbus_connection_dispatch( connection) == DBUS_DISPATCH_DATA_REMAINS) ;
+#else
+	g_main_context_iteration( g_main_context_default() , FALSE) ;
+	g_dbus_connection_flush_sync( ibus_bus_get_connection( ibus_bus) , NULL , NULL) ;
+#endif
 }
 
 
@@ -567,12 +579,20 @@ im_ibus_new(
 			goto  error ;
 		}
 
+	#ifdef  DBUS_H
 		if( ! dbus_connection_get_unix_fd( ibus_connection_get_connection(
 				ibus_bus_get_connection( ibus_bus)) , &fd))
 		{
 			goto  error ;
 		}
-
+	#else
+		if( ( fd = g_socket_get_fd( g_socket_connection_get_socket(
+				g_dbus_connection_get_stream(
+					ibus_bus_get_connection( ibus_bus))))) == -1)
+		{
+			goto  error ;
+		}
+	#endif
 		(*syms->x_term_manager_add_fd)( fd , connection_handler) ;
 		(*syms->x_term_manager_add_fd)( IBUS_ID , connection_handler) ;
 

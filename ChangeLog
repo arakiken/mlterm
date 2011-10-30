@@ -1,3 +1,14 @@
+2011-10-31  Araki Ken  <arakiken@users.sf.net>
+
+	* im_ibus.c: GDBusConnection ibus-1.4.0 depends on is partially supported.
+	  (Experimental)
+
+	* vte.c: x_color_manager_change_alpha( ... , 0xff) if wall picture is set
+	  in update_wall_picture().
+
+	* x_imagelib.c: 0xff000000 is added to pixel value passed to XPutPixel()
+	  in 32 bit depth in pixbuf_to_ximage_truecolor().
+
 2011-10-29  Araki Ken  <arakiken@users.sf.net>
 
 	* ml_screen.c: copy_or_check_region() and reverse_or_restore_region() are

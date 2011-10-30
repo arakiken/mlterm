@@ -1016,6 +1016,8 @@ pixbuf_to_ximage_truecolor(
 			for( j = 0 ; j < width ; j++)
 			{
 				XPutPixel( image , j , i ,
+					/* XXX */
+					(disp->depth == 32 ? 0xff000000 : 0) |
 					pixel[0] << r_offset |
 					pixel[1] << g_offset |
 					pixel[2] << b_offset) ;
@@ -1932,6 +1934,7 @@ x_imagelib_pixbuf_to_pixmap(
 	)
 {
 #ifdef  USE_EXT_IMAGELIB
+
 	Pixmap  pixmap ;
 	GdkPixbuf *  target ;
 
@@ -1964,7 +1967,12 @@ x_imagelib_pixbuf_to_pixmap(
 	}
 	
 	XFreePixmap( win->disp->display, pixmap) ;
-#endif
+
+#else	/* USE_EXT_IMAEGLIB */
+
+	kik_msg_printf( "Failed to convert pixbuf to pixmap. Rebuild mlterm with gdk-pixbuf.\n") ;
+
+#endif	/* USE_EXT_IMAGELIB */
 
 	return  None ;
 }

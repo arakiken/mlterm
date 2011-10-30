@@ -118,7 +118,7 @@ struct _VteTerminalPrivate
 	Pixmap  pixmap ;
 	u_int  pix_width ;
 	u_int  pix_height ;
-	x_picture_modifier_t *  pic_mod ;
+	x_picture_modifier_t *  pic_mod ; /* caching previous pic_mod in update_wall_picture.*/
 
 /* GRegex was not supported */
 #if  GLIB_CHECK_VERSION(2,14,0)
@@ -201,9 +201,6 @@ static int  timeout_registered ;
 #if  VTE_CHECK_VERSION(0,19,0)
 static guint signals[LAST_SIGNAL] ;
 #endif
-
-static char *  true = "true" ;
-static char *  false = "false" ;
 
 
 /* --- static functions --- */
@@ -1442,7 +1439,7 @@ update_wall_picture(
 
 	if( ! terminal->pvt->image)
 	{
-		return ;
+		goto  set_bg_alpha ;
 	}
 	
 	win = &terminal->pvt->screen->window ;
@@ -1453,7 +1450,7 @@ update_wall_picture(
 	    x_picture_modifiers_equal( pic_mod , terminal->pvt->pic_mod) &&
 	    terminal->pvt->pixmap )
 	{
-		goto  end ;
+		goto  set_bg_image ;
 	}
 	else if( gdk_pixbuf_get_width(terminal->pvt->image) != ACTUAL_WIDTH(win) ||
 	         gdk_pixbuf_get_height(terminal->pvt->image) != ACTUAL_HEIGHT(win) )
@@ -1491,7 +1488,7 @@ update_wall_picture(
 		terminal->pvt->pix_height = 0 ;
 		terminal->pvt->pic_mod = NULL ;
 
-		return ;
+		goto  set_bg_alpha ;
 	}
 
 	terminal->pvt->pix_width = ACTUAL_WIDTH(win) ;
@@ -1511,10 +1508,26 @@ update_wall_picture(
 		terminal->pvt->pic_mod = NULL ;
 	}
 
-end:
-	sprintf( file , "pixmap:%lu" , terminal->pvt->pixmap) ;
+set_bg_image:
+	x_color_manager_change_alpha( terminal->pvt->screen->color_man , 0xff) ;
 
+	sprintf( file , "pixmap:%lu" , terminal->pvt->pixmap) ;
 	vte_terminal_set_background_image_file( terminal , file) ;
+
+	return ;
+
+set_bg_alpha:
+	if( x_color_manager_change_alpha( terminal->pvt->screen->color_man ,
+		terminal->pvt->screen->pic_mod.alpha))
+	{
+		/* Same processing as change_bg_color in x_screen.c */
+
+		if( x_window_set_bg_color( &terminal->pvt->screen->window ,
+			x_get_xcolor( terminal->pvt->screen->color_man , ML_BG_COLOR)))
+		{
+			x_xic_bg_color_changed( &terminal->pvt->screen->window) ;
+		}
+	}
 }
 
 static void
@@ -1656,18 +1669,6 @@ vte_terminal_realize(
 	}
 
 	update_wall_picture( VTE_TERMINAL(widget)) ;
-
-	if( x_color_manager_change_alpha( VTE_TERMINAL(widget)->pvt->screen->color_man ,
-		VTE_TERMINAL(widget)->pvt->screen->pic_mod.alpha))
-	{
-		/* Same processing as change_bg_color in x_screen.c */
-	
-		if( x_window_set_bg_color( &VTE_TERMINAL(widget)->pvt->screen->window ,
-			x_get_xcolor( VTE_TERMINAL(widget)->pvt->screen->color_man , ML_BG_COLOR)))
-		{
-			x_xic_bg_color_changed( &VTE_TERMINAL(widget)->pvt->screen->window) ;
-		}
-	}
 }
 
 static void
@@ -3150,7 +3151,7 @@ vte_terminal_set_color_background(
 		x_window_update( &terminal->pvt->screen->window ,
 			3 /* UPDATE_SCREEN|UPDATE_CURSOR */) ;
 
-		if( terminal->pvt->image && terminal->pvt->pic_mod->alpha < 255)
+		if( terminal->pvt->image && terminal->pvt->screen->pic_mod.alpha < 255)
 		{
 			update_wall_picture( terminal) ;
 		}
@@ -3350,6 +3351,24 @@ vte_terminal_set_background_saturation(
 	double  saturation
 	)
 {
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " SATURATION => %f\n" , saturation) ;
+#endif
+
+#if  1
+	/* XXX old roxterm (1.18.5) always sets opacity 0xffff after it changes saturation. */
+	if( strstr( g_get_prgname() , "roxterm"))
+	{
+		/* "Use solid color" => saturation == 1.0 (roxterm 1.22.2) */
+		if( saturation == 1.0)
+		{
+			vte_terminal_set_opacity( terminal , 0xfffe) ;
+
+			return ;
+		}
+	}
+#endif
+
 	vte_terminal_set_opacity( terminal , 0xffff * (1 - saturation)) ;
 }
 
@@ -3365,11 +3384,11 @@ vte_terminal_set_background_transparent(
 
 		if( transparent)
 		{
-			value = true ;
+			value = "true" ;
 		}
 		else
 		{
-			value = false ;
+			value = "false" ;
 		}
 
 		x_screen_set_config( terminal->pvt->screen , NULL , "use_transbg" , value) ;
@@ -3389,11 +3408,25 @@ vte_terminal_set_opacity(
 {
 	u_int8_t  alpha ;
 
-	/* XXX roxterm always sets opacity 0xffff after it changes saturation. */
-	if( strstr( g_get_prgname() , "roxterm") && opacity == 0xffff)
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " OPACITY => %x\n" , opacity) ;
+#endif
+
+#if  1
+	/* XXX old roxterm (1.18.5) always sets opacity 0xffff after it changes saturation. */
+	if( strstr( g_get_prgname() , "roxterm"))
 	{
-		return ;
+		if( opacity == 0xffff)
+		{
+			return ;
+		}
+		else if( opacity == 0xfffe)
+		{
+			/* 0xfffe seemed to be set in vte_terminal_set_background_saturation(). */
+			opacity = 0xffff ;
+		}
 	}
+#endif
 
 	alpha = ((opacity >> 8) & 0xff) ;
 
@@ -4139,11 +4172,11 @@ vte_terminal_set_font_full(
 	
 	if( antialias == VTE_ANTI_ALIAS_FORCE_ENABLE)
 	{
-		value = true ;
+		value = "true" ;
 	}
 	else if( antialias == VTE_ANTI_ALIAS_FORCE_ENABLE)
 	{
-		value = false ;
+		value = "false" ;
 	}
 	else
 	{
@@ -4167,11 +4200,11 @@ vte_terminal_set_font_from_string_full(
 	
 	if( antialias == VTE_ANTI_ALIAS_FORCE_ENABLE)
 	{
-		value = true ;
+		value = "true" ;
 	}
 	else if( antialias == VTE_ANTI_ALIAS_FORCE_ENABLE)
 	{
-		value = false ;
+		value = "false" ;
 	}
 	else
 	{
@@ -4197,7 +4230,8 @@ vte_terminal_pty_new(
 	GError **  error
 	)
 {
-	return  NULL ;
+	/* XXX */
+	return  (VtePty*)terminal ;
 }
 
 VtePty *
