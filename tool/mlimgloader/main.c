@@ -58,14 +58,14 @@ fetch_colormap(
 
 	num_cells = visual->map_entries ;
 
-	if( ( *color_list = calloc( sizeof(XColor), num_cells)) == NULL)
+	if( ( *color_list = calloc( num_cells , sizeof(XColor))) == NULL)
 	{
 	#ifdef  DEBUG
 		kik_warn_printf(KIK_DEBUG_TAG "couldn't allocate color table\n") ;
 	#endif
 		return  0 ;
 	}
-	
+
 	for( i = 0 ; i < num_cells ; i ++)
 	{
 		((*color_list)[i]).pixel = i ;
@@ -88,8 +88,8 @@ closest_color_index(
 {
 	int  closest = 0 ;
 	int  i ;
-	unsigned long  min = 0xffffff ;
-	unsigned long  diff ;
+	u_long  min = 0xffffff ;
+	u_long  diff ;
 	int  diff_r , diff_g , diff_b ;
 
 	for( i = 0 ; i < len ; i++)
@@ -404,15 +404,16 @@ pixbuf_to_ximage_truecolor(
 	u_int  width , height , rowstride , bytes_per_pixel ;
 	u_char *  line ;
 	u_char *  pixel ;
-	long  r_mask , g_mask , b_mask ;
+	u_long  r_mask , g_mask , b_mask ;
 	int  r_offset , g_offset , b_offset ;
-	XImage *  image = NULL ;
+	int  r_limit , g_limit , b_limit ;
+	XImage *  image ;
+	char *  data ;
 
 	vinfo_template.visualid = XVisualIDFromVisual( visual) ;
-
 	if( ! ( vinfolist = XGetVisualInfo( display , VisualIDMask , &vinfo_template , &nitem)))
 	{
-		return  0 ;
+		return  NULL ;
 	}
 
 	r_mask = vinfolist[0].red_mask ;
@@ -425,6 +426,10 @@ pixbuf_to_ximage_truecolor(
 	g_offset = lsb( g_mask) ;
 	b_offset = lsb( b_mask) ;
 
+	r_limit = 8 + r_offset - msb( r_mask) ;
+	g_limit = 8 + g_offset - msb( g_mask) ;
+	b_limit = 8 + b_offset - msb( b_mask) ;
+
 	width = gdk_pixbuf_get_width( pixbuf) ;
 	height = gdk_pixbuf_get_height( pixbuf) ;
 
@@ -432,86 +437,39 @@ pixbuf_to_ximage_truecolor(
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
-	if( depth == 15 || depth == 16)
+	/* (depth + 7 / 8) => Roundup (depth / 8) */
+	if( width > (SIZE_MAX / ((depth + 7) / 8)) / height)
 	{
-		int  r_limit , g_limit , b_limit ;
-		u_int16_t *  data ;
-
-		if( width > (SIZE_MAX / 2) / height)
-		{
-			return  NULL ;
-		}
-
-		if( ! ( data = (u_int16_t *)malloc( (size_t)width * height * 2)))
-		{
-			return  NULL ;
-		}
-
-		if( ! ( image = XCreateImage( display , visual , depth , ZPixmap , 0 ,
-				      (char *)data , width , height , 16 , width *  2)))
-		{
-			free( data) ;
-
-			return  NULL ;
-		}
-
-		r_limit = 8 + r_offset - msb( r_mask) ;
-		g_limit = 8 + g_offset - msb( g_mask) ;
-		b_limit = 8 + b_offset - msb( b_mask) ;
-
-		for( i = 0 ; i < height ; i++)
-		{
-			pixel = line ;
-			for( j = 0 ; j < width ; j++)
-			{
-				XPutPixel( image , j , i ,
-					   ( ( (pixel[0] >> r_limit) << r_offset) & r_mask) |
-					   ( ( (pixel[1] >> g_limit) << g_offset) & g_mask) |
-					   ( ( (pixel[2] >> b_limit) << b_offset) & b_mask)) ;
-				pixel += bytes_per_pixel ;
-			}
-			line += rowstride ;
-		}
+		return  NULL ;	/* integer overflow */
 	}
-	else if( depth == 24 || depth == 32)
-	{
-		u_int32_t *  data ;
 
-		if( width > (SIZE_MAX / 4) / height)
-		{
-			return  NULL ;
-		}
-
-		if( ! ( data = (u_int32_t *)malloc( (size_t)width *  height * 4)))
-		{
-			return  NULL ;
-		}
-
-		if( ! ( image = XCreateImage( display, visual , depth , ZPixmap , 0 ,
-				      (char *)data , width , height , 32 , width * 4)))
-		{
-			free( data) ;
-
-			return  NULL ;
-		}
-
-		for( i = 0 ; i < height ; i++)
-		{
-			pixel = line ;
-			for( j = 0 ; j < width ; j++)
-			{
-				XPutPixel( image , j , i ,
-					pixel[0] << r_offset |
-					pixel[1] << g_offset |
-					pixel[2] << b_offset) ;
-				pixel +=bytes_per_pixel ;
-			}
-			line += rowstride ;
-		}
-	}
-	else
+	if( ! ( data = malloc( width * height * ((depth + 7) / 8))))
 	{
 		return  NULL ;
+	}
+
+	if( ! ( image = XCreateImage( display , visual , depth , ZPixmap , 0 ,
+			      data , width , height , ((depth + 7) / 8) * 8 ,
+			      width * ((depth + 7) / 8))))
+	{
+		free( data) ;
+
+		return  NULL ;
+	}
+
+	for( i = 0 ; i < height ; i++)
+	{
+		pixel = line ;
+		for( j = 0 ; j < width ; j++)
+		{
+			XPutPixel( image , j , i ,
+				(depth == 32 ? 0xff000000 : 0) |
+				(((pixel[0] >> r_limit) << r_offset) & r_mask) |
+				(((pixel[1] >> g_limit) << g_offset) & g_mask) |
+				(((pixel[2] >> b_limit) << b_offset) & b_mask)) ;
+			pixel += bytes_per_pixel ;
+		}
+		line += rowstride ;
 	}
 
 	return  image ;
@@ -542,14 +500,16 @@ pixbuf_to_pixmap(
 
 			return  1 ;
 		}
+		else
+		{
+			return  0 ;
+		}
 	}
-	else if( visual->class == PseudoColor)
+	else /* if( visual->class == PseudoColor) */
 	{
 		return  pixbuf_to_pixmap_pseudocolor( display , visual , colormap , gc ,
 				pixbuf , pixmap) ;
 	}
-
-	return  0 ;
 }
 
 static int

@@ -251,10 +251,14 @@ set_transparent(
 		u_int  n ;
 		XWindowAttributes  attr ;
 
-		XQueryTree( win->disp->display , parent , &root , &parent , &list , &n) ;
+		if( ! XQueryTree( win->disp->display , parent , &root , &parent , &list , &n))
+		{
+			break ;
+		}
+
 		XFree( list) ;
 
-		if( parent == root)
+		if( ! parent || parent == root)
 		{
 			break ;
 		}

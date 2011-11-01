@@ -7488,10 +7488,17 @@ x_screen_attach(
 #ifndef  USE_WIN32GUI
 	if( screen->im)
 	{
-		x_im_delete( screen->im) ;
+		x_im_t *  im ;
+
+		im = screen->im ;
 		screen->im = x_im_new( ml_term_get_encoding(term) ,
 				&screen->im_listener , screen->input_method ,
 				screen->mod_ignore_mask) ;
+		/*
+		 * Avoid to delete anything inside im-module by calling x_im_delete()
+		 * after x_im_new.
+		 */
+		x_im_delete( im) ;
 	}
 #endif
 

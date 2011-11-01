@@ -3378,6 +3378,11 @@ vte_terminal_set_background_transparent(
 	gboolean  transparent
 	)
 {
+#ifdef  DEBUG
+	kik_debug_printf( KIK_DEBUG_TAG " Pseudo transparent %s.\n" ,
+		transparent ? "on" : "off") ;
+#endif
+
 	if( GTK_WIDGET_REALIZED(GTK_WIDGET(terminal)))
 	{
 		char *  value ;

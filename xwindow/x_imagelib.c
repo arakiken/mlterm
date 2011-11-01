@@ -72,6 +72,32 @@
 #define  __DEBUG
 #endif
 
+#define  PIXEL_RED(pixel,rgbinfo) \
+	((((pixel) & (rgbinfo).r_mask) >> (rgbinfo).r_offset) << (rgbinfo).r_limit)
+#define  PIXEL_BLUE(pixel,rgbinfo) \
+	((((pixel) & (rgbinfo).b_mask) >> (rgbinfo).b_offset) << (rgbinfo).b_limit)
+#define  PIXEL_GREEN(pixel,rgbinfo) \
+	((((pixel) & (rgbinfo).g_mask) >> (rgbinfo).g_offset) << (rgbinfo).g_limit)
+#define  RGB_TO_PIXEL(r,g,b,rgbinfo) \
+	(((((r) >> (rgbinfo).r_limit) << (rgbinfo).r_offset) & (rgbinfo).r_mask) | \
+	 ((((g) >> (rgbinfo).g_limit) << (rgbinfo).g_offset) & (rgbinfo).g_mask) | \
+	 ((((b) >> (rgbinfo).b_limit) << (rgbinfo).b_offset) & (rgbinfo).b_mask) )
+
+
+typedef struct  rgb_info
+{
+	u_long  r_mask ;
+	u_long  g_mask ;
+	u_long  b_mask ;
+	u_int  r_limit ;
+	u_int  g_limit ;
+	u_int  b_limit ;
+	u_int  r_offset ;
+	u_int  g_offset ;
+	u_int  b_offset ;
+
+} rgb_info_t ;
+
 
 /* --- static variables --- */
 
@@ -122,7 +148,7 @@ fetch_colormap(
 		((*color_list)[i]).pixel = i ;
 	}
 
-	XQueryColors( disp->display , disp->colormap , *color_list, num_cells) ;
+	XQueryColors( disp->display , disp->colormap , *color_list , num_cells) ;
 
 	return  num_cells ;
 }
@@ -139,8 +165,8 @@ closest_color_index(
 {
 	int  closest = 0 ;
 	int  i ;
-	unsigned long  min = 0xffffff ;
-	unsigned long  diff ;
+	u_long  min = 0xffffff ;
+	u_long  diff ;
 	int  diff_r , diff_g , diff_b ;
 
 	for( i = 0 ; i < len ; i++)
@@ -168,7 +194,7 @@ closest_color_index(
 /* Get an background pixmap from _XROOTMAP_ID */
 static Pixmap
 root_pixmap(
-	Display *  display
+	x_display_t *  disp
 	)
 {
 	Atom  id ;
@@ -176,37 +202,31 @@ root_pixmap(
 	u_long  nitems ;
 	u_long  bytes_after ;
 	u_char *  prop ;
+	Pixmap  pixmap ;
 
-	id = XInternAtom( display, "_XROOTPMAP_ID", True) ;
-	if( !id)
+	if( ! ( id = XInternAtom( disp->display , "_XROOTPMAP_ID" , False)))
 	{
-	#ifdef DEBUG
-		kik_warn_printf(KIK_DEBUG_TAG "_XROOTPMAP_ID is not available\n") ;
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " _XROOTPMAP_ID atom is not available.\n") ;
 	#endif
+
 		return  None ;
 	}
 
-	if( XGetWindowProperty( display, DefaultRootWindow(display), id, 0, 1,
-				False, XA_PIXMAP, &id, &act_format,
-				&nitems, &bytes_after, &prop) == Success)
+	if( XGetWindowProperty( disp->display , disp->my_window , id , 0 , 1 , False , XA_PIXMAP ,
+		&id , &act_format , &nitems , &bytes_after , &prop) != Success || ! prop)
 	{
-		if( prop)
-		{
-			Pixmap root ;
-			root = *((Drawable *)prop) ;
-			XFree( prop) ;
-
-			return  root ;
-		}
-	#ifdef DEBUG
-		else
-		{
-			kik_warn_printf(KIK_DEBUG_TAG " Failed to read prop\n") ;
-		}
+	#ifdef  DEBUG
+		kik_warn_printf( KIK_DEBUG_TAG " Failed to read prop\n") ;
 	#endif
+
+		return  None ;
 	}
 
-	return  None ;
+	pixmap = *((Drawable *)prop) ;
+	XFree( prop) ;
+
+	return  pixmap ;
 }
 
 /**Return position of the least significant bit
@@ -262,7 +282,24 @@ msb(
 	return  nth ;
 }
 
-#include <dlfcn.h>
+static void
+rgb_info_init(
+	XVisualInfo *  vinfo ,
+	rgb_info_t *  rgb
+	)
+{
+	rgb->r_mask = vinfo->red_mask ;
+	rgb->g_mask = vinfo->green_mask ;
+	rgb->b_mask = vinfo->blue_mask ;
+
+	rgb->r_offset = lsb( rgb->r_mask) ;
+	rgb->g_offset = lsb( rgb->g_mask) ;
+	rgb->b_offset = lsb( rgb->b_mask) ;
+
+	rgb->r_limit = 8 + rgb->r_offset - msb( rgb->r_mask) ;
+	rgb->g_limit = 8 + rgb->g_offset - msb( rgb->g_mask) ;
+	rgb->b_limit = 8 + rgb->b_offset - msb( rgb->b_mask) ;
+}
 
 static void
 value_table_refresh(
@@ -348,13 +385,7 @@ modify_pixmap(
 	u_int  width , height ;
 	XImage *  image ;
 	u_char  r , g , b ;
-	long  data ;
-
-	if( disp->visual->class != TrueColor &&
-		! (disp->visual->class == PseudoColor && disp->depth == 8))
-	{
-		return  0 ;
-	}
+	u_long  pixel ;
 
 	get_drawable_size( disp->display , src_pixmap , &width , &height) ;
 	if( ( image = XGetImage( disp->display , src_pixmap , 0 , 0 , width , height ,
@@ -368,9 +399,7 @@ modify_pixmap(
 	if( disp->visual->class == TrueColor)
 	{
 		XVisualInfo *  vinfo ;
-		int  r_mask , g_mask , b_mask ;
-		int  r_limit , g_limit , b_limit ;
-		int  r_offset , g_offset , b_offset ;
+		rgb_info_t  rgbinfo ;
 
 		if( ! ( vinfo = x_display_get_visual_info( disp)))
 		{
@@ -379,29 +408,18 @@ modify_pixmap(
 			return  0 ;
 		}
 
-		r_mask = vinfo->red_mask ;
-		g_mask = vinfo->green_mask ;
-		b_mask = vinfo->blue_mask ;
-
+		rgb_info_init( vinfo , &rgbinfo) ;
 		XFree( vinfo) ;
-
-		r_offset = lsb( r_mask) ;
-		g_offset = lsb( g_mask) ;
-		b_offset = lsb( b_mask) ;
-
-		r_limit = 8 + r_offset - msb( r_mask) ;
-		g_limit = 8 + g_offset - msb( g_mask) ;
-		b_limit = 8 + b_offset - msb( b_mask) ;
 
 		for( i = 0 ; i < height ; i++)
 		{
 			for( j = 0 ; j < width ; j++)
 			{
-				data = XGetPixel( image , j , i) ;
+				pixel = XGetPixel( image , j , i) ;
 
-				r = ((data & r_mask) >> r_offset) << r_limit ;
-				g = ((data & g_mask) >> g_offset) << g_limit ;
-				b = ((data & b_mask) >> b_offset) << b_limit ;
+				r = PIXEL_RED(pixel,rgbinfo) ;
+				g = PIXEL_GREEN(pixel,rgbinfo) ;
+				b = PIXEL_BLUE(pixel,rgbinfo) ;
 
 				r = (value_table[r] * pic_mod->alpha +
 					pic_mod->blend_red * (255 - pic_mod->alpha)) / 255 ;
@@ -411,13 +429,12 @@ modify_pixmap(
 					pic_mod->blend_blue * (255 - pic_mod->alpha)) / 255 ;
 
 				XPutPixel( image , j , i ,
-					   (r >> r_limit) << r_offset |
-					   (g >> g_limit) << g_offset |
-					   (b >> b_limit) << b_offset) ;
+					RGB_TO_PIXEL(r,g,b,rgbinfo) |
+					(disp->depth == 32 ? 0xff000000 : 0)) ;
 			}
 		}
 	}
-	else /* if( disp->visual->class == PseudoColor && disp->depth == 8) */
+	else /* if( disp->visual->class == PseudoColor) */
 	{
 		XColor *  color_list ;
 		int  num_cells ;
@@ -433,11 +450,18 @@ modify_pixmap(
 		{
 			for( j = 0 ; j < width ; j++)
 			{
-				data = XGetPixel( image, j, i) ;
+				if( ( pixel = XGetPixel( image, j, i)) >= num_cells)
+				{
+				#ifdef  DEBUG
+					kik_debug_printf( KIK_DEBUG_TAG " Pixel %x is illegal.\n" ,
+						pixel) ;
+				#endif
+					continue ;
+				}
 
-				r = (color_list[data].red >>8)  ;
-				g = (color_list[data].green >>8)  ;
-				b = (color_list[data].blue >>8)  ;
+				r = color_list[pixel].red >> 8 ;
+				g = color_list[pixel].green >> 8 ;
+				b = color_list[pixel].blue >> 8 ;
 
 				r = (value_table[r] * pic_mod->alpha +
 					pic_mod->blend_red * (255 - pic_mod->alpha)) / 255 ;
@@ -449,7 +473,6 @@ modify_pixmap(
 				XPutPixel( image , j , i ,
 					closest_color_index( color_list , num_cells , r , g , b)) ;
 			}
-
 		}
 
 		free( color_list) ;
@@ -477,7 +500,7 @@ load_file(
 	char *  path ,		/* If NULL is specified, cache is cleared. */
 	u_int  width ,		/* 0 == image width */
 	u_int  height ,		/* 0 == image height */
-	GdkInterpType scale_type
+	GdkInterpType  scale_type
 	)
 {
 	static char *  name = NULL ;
@@ -698,7 +721,7 @@ create_cardinals_from_pixbuf(
 		return  0 ; /* integer overflow */
 	}
 
-	if( ( *cardinal = malloc( ((size_t)width * height + 2) *4)) == NULL)
+	if( ( *cardinal = malloc( ( width * height + 2) * 4)) == NULL)
 	{
 		return  0 ;
 	}
@@ -916,14 +939,13 @@ pixbuf_to_ximage_truecolor(
 	)
 {
 	XVisualInfo *  vinfo ;
+	rgb_info_t  rgbinfo ;
 	u_int  i , j ;
 	u_int  width , height , rowstride , bytes_per_pixel ;
 	u_char *  line ;
 	u_char *  pixel ;
-	long  r_mask , g_mask , b_mask ;
-	int  r_offset , g_offset , b_offset ;
-
-	XImage *  image = NULL ;
+	XImage *  image ;
+	char *  data ;
 
 	width = gdk_pixbuf_get_width( pixbuf) ;
 	height = gdk_pixbuf_get_height( pixbuf) ;
@@ -933,102 +955,44 @@ pixbuf_to_ximage_truecolor(
 		return  NULL ;
 	}
 
-	r_mask = vinfo->red_mask ;
-	g_mask = vinfo->green_mask ;
-	b_mask = vinfo->blue_mask ;
-
+	rgb_info_init( vinfo , &rgbinfo) ;
 	XFree( vinfo) ;
-	
-	r_offset = lsb( r_mask) ;
-	g_offset = lsb( g_mask) ;
-	b_offset = lsb( b_mask) ;
 
 	bytes_per_pixel = (gdk_pixbuf_get_has_alpha( pixbuf)) ? 4 : 3 ;
 	rowstride = gdk_pixbuf_get_rowstride( pixbuf) ;
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
-	if( disp->depth == 15 || disp->depth == 16)
+	/* (depth + 7 / 8) => Roundup (depth / 8) */
+	if( width > (SIZE_MAX / ((disp->depth + 7) / 8)) / height)
 	{
-		int  r_limit , g_limit , b_limit ;
-		u_int16_t *  data ;
-
-		if( width > (SIZE_MAX / 2) / height)
-		{
-			return  NULL ;
-		}
-
-		if( ! ( data = (u_int16_t *)malloc( (size_t)width * height * 2)))
-		{
-			return  NULL ;
-		}
-
-		if( ! ( image = XCreateImage( disp->display , disp->visual , disp->depth ,
-				ZPixmap , 0 , (char *)data , width , height , 16 , width *  2)))
-		{
-			free( data) ;
-
-			return  NULL ;
-		}
-
-		r_limit = 8 + r_offset - msb( r_mask) ;
-		g_limit = 8 + g_offset - msb( g_mask) ;
-		b_limit = 8 + b_offset - msb( b_mask) ;
-		
-		for( i = 0 ; i < height ; i++)
-		{
-			pixel = line ;
-			for( j = 0 ; j < width ; j++)
-			{
-				XPutPixel( image , j , i ,
-					   ( ( (pixel[0] >> r_limit) << r_offset) & r_mask) |
-					   ( ( (pixel[1] >> g_limit) << g_offset) & g_mask) |
-					   ( ( (pixel[2] >> b_limit) << b_offset) & b_mask)) ;
-				pixel += bytes_per_pixel ;
-			}
-			line += rowstride ;
-		}
+		return  NULL ;	/* integer overflow */
 	}
-	else if( disp->depth == 24 || disp->depth == 32)
-	{
-		u_int32_t *  data ;
 
-		if( width > (SIZE_MAX / 4) / height)
-		{
-			return  NULL ;
-		}
-
-		if( ! ( data = (u_int32_t *)malloc( (size_t)width *  height * 4)))
-		{
-			return  NULL ;
-		}
-
-		if( ! ( image = XCreateImage( disp->display, disp->visual , disp->depth ,
-				ZPixmap , 0 , (char *)data , width , height , 32 , width * 4)))
-		{
-			free( data) ;
-
-			return  NULL ;
-		}
-
-		for( i = 0 ; i < height ; i++)
-		{
-			pixel = line ;
-			for( j = 0 ; j < width ; j++)
-			{
-				XPutPixel( image , j , i ,
-					/* XXX */
-					(disp->depth == 32 ? 0xff000000 : 0) |
-					pixel[0] << r_offset |
-					pixel[1] << g_offset |
-					pixel[2] << b_offset) ;
-				pixel +=bytes_per_pixel ;
-			}
-			line += rowstride ;
-		}
-	}
-	else
+	if( ! ( data = malloc( width * height * ((disp->depth + 7) / 8))))
 	{
 		return  NULL ;
+	}
+
+	if( ! ( image = XCreateImage( disp->display , disp->visual , disp->depth ,
+				ZPixmap , 0 , data , width , height , ((disp->depth + 7) / 8) * 8 ,
+				width *  ((disp->depth + 7) / 8))))
+	{
+		free( data) ;
+
+		return  NULL ;
+	}
+
+	for( i = 0 ; i < height ; i++)
+	{
+		pixel = line ;
+		for( j = 0 ; j < width ; j++)
+		{
+			XPutPixel( image , j , i ,
+				RGB_TO_PIXEL(pixel[0],pixel[1],pixel[2],pixel[3],rgbinfo) |
+				(disp->depth == 32 ? 0xff000000 : 0)) ;
+			pixel += bytes_per_pixel ;
+		}
+		line += rowstride ;
 	}
 
 	return  image ;
@@ -1055,13 +1019,15 @@ pixbuf_to_pixmap(
 
 			return  1 ;
 		}
+		else
+		{
+			return  0 ;
+		}
 	}
-	else if( disp->visual->class == TrueColor)
+	else /* if( disp->visual->class == PseudoColor) */
 	{
 		return  pixbuf_to_pixmap_pseudocolor( disp , pixbuf , pixmap) ;
 	}
-	
-	return  0 ;
 }
 
 static int
@@ -1139,15 +1105,14 @@ compose_truecolor(
 	)
 {
 	XVisualInfo *  vinfo ;
+	rgb_info_t  rgbinfo ;
 	XImage *  image ;
 	int  i , j ;
 	int  width , height , rowstride ;
 	u_char *  line ;
 	u_char *  pixel ;
-	int  r_offset , g_offset , b_offset;
-	long  r_mask , g_mask , b_mask ;
-	long  r , g , b ;
-	long  data ;
+	u_char  r , g , b ;
+	u_long  pixel2 ;
 
 	width = gdk_pixbuf_get_width (pixbuf) ;
 	height = gdk_pixbuf_get_height (pixbuf) ;
@@ -1157,15 +1122,8 @@ compose_truecolor(
 		return  NULL ;
 	}
 
-	r_mask = vinfo->red_mask ;
-	g_mask = vinfo->green_mask ;
-	b_mask = vinfo->blue_mask ;
-
+	rgb_info_init( vinfo , &rgbinfo) ;
 	XFree( vinfo) ;
-
-	r_offset = lsb( r_mask) ;
-	g_offset = lsb( g_mask) ;
-	b_offset = lsb( b_mask) ;
 
 	if( ! ( image = XGetImage( disp->display , pixmap , 0 , 0 , width , height ,
 				AllPlanes , ZPixmap)))
@@ -1181,18 +1139,19 @@ compose_truecolor(
 		pixel = line ;
 		for( j = 0 ; j < width ; j++)
 		{
-			data = XGetPixel( image , j , i) ;
+			pixel2 = XGetPixel( image , j , i) ;
+			
+			r = PIXEL_RED(pixel2,rgbinfo) ;
+			g = PIXEL_BLUE(pixel2,rgbinfo) ;
+			b = PIXEL_GREEN(pixel2,rgbinfo) ;
 
-			r = ((data & r_mask) >>r_offset) ;
-			g = ((data & g_mask) >>g_offset) ;
-			b = ((data & b_mask) >>b_offset) ;
-
-			r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
-			g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
-			b = (b*(256 - pixel[3]) + pixel[2] *  pixel[3])>>8 ;
+			r = (r*(256 - pixel[3]) + pixel[0] * pixel[3])>>8 ;
+			g = (g*(256 - pixel[3]) + pixel[1] * pixel[3])>>8 ;
+			b = (b*(256 - pixel[3]) + pixel[2] * pixel[3])>>8 ;
 
 			XPutPixel( image , j , i ,
-				   (r <<r_offset) | (g <<g_offset) | (b <<b_offset)) ;
+				RGB_TO_PIXEL(r,g,b,rgbinfo) |
+				(disp->depth == 32 ? 0xff000000 | 0)) ;
 			pixel += 4 ;
 		}
 		line += rowstride ;
@@ -1214,7 +1173,7 @@ compose_pseudocolor(
 	u_int  r , g , b ;
 	u_char *  line ;
 	u_char *  pixel ;
-	long  data ;
+	u_long  pixel2 ;
 	XColor *  color_list ;
 
 	if( ( num_cells = fetch_colormap( disp , &color_list)) == 0)
@@ -1240,10 +1199,18 @@ compose_pseudocolor(
 		pixel = line ;
 		for( j = 0 ; j < width ; j++)
 		{
-			data = XGetPixel( image , j , i) ;
-			r = color_list[data].red >>8 ;
-			g = color_list[data].green >>8 ;
-			b = color_list[data].blue >>8 ;
+			if( ( pixel2 = XGetPixel( image , j , i)) >= num_cells)
+			{
+			#ifdef  DEBUG
+				kik_debug_printf( KIK_DEBUG_TAG " Pixel %x is illegal.\n" ,
+					pixel2) ;
+			#endif
+				continue ;
+			}
+
+			r = color_list[pixel2].red >>8 ;
+			g = color_list[pixel2].green >>8 ;
+			b = color_list[pixel2].blue >>8 ;
 
 			r = (r*(256 - pixel[3]) + pixel[0] *  pixel[3])>>8 ;
 			g = (g*(256 - pixel[3]) + pixel[1] *  pixel[3])>>8 ;
@@ -1274,7 +1241,7 @@ compose_to_pixmap(
 	{
 		image = compose_truecolor( disp , pixbuf , pixmap) ;
 	}
-	else
+	else /* if( disp->visual->class == PseudoColor) */
 	{
 		image = compose_pseudocolor( disp , pixbuf , pixmap) ;
 	}
@@ -1497,12 +1464,12 @@ create_cardinals_from_image(
 {
 	int i, j ;
 
-	if( width > ((SIZE_MAX / 4) -2) / height)
+	if( width > ((SIZE_MAX / 4) - 2) / height)
 	{
 		return  0 ; /* integer overflow */
 	}
 
-	if( ( *cardinal = malloc( ((size_t)width * height + 2) *4)) == NULL)
+	if( ( *cardinal = malloc( (width * height + 2) * 4)) == NULL)
 	{
 		return  0 ;
 	}
@@ -1695,9 +1662,7 @@ x_imagelib_get_transparent_background(
 	u_int  root_width ;
 	u_int  root_height ;
 
-	if( win->disp->depth != DefaultDepth( win->disp->display ,
-					DefaultScreen( win->disp->display)) ||
-	    ( root = root_pixmap( win->disp->display)) == None)
+	if( ! ( root = root_pixmap( win->disp)))
 	{
 		return  None ;
 	}
@@ -1706,7 +1671,7 @@ x_imagelib_get_transparent_background(
 	{
 		return  None ;
 	}
-	
+
 	/* The pixmap to be returned */
 	if( ( pixmap = XCreatePixmap( win->disp->display , win->my_window ,
 				ACTUAL_WIDTH(win) , ACTUAL_HEIGHT(win) ,
@@ -1717,7 +1682,76 @@ x_imagelib_get_transparent_background(
 
 	get_drawable_size( win->disp->display , root , &root_width , &root_height) ;
 
-	if ( root_width < DisplayWidth( win->disp->display , win->disp->screen) ||
+	if( win->disp->depth != DefaultDepth( win->disp->display ,
+					DefaultScreen( win->disp->display)))
+	{
+		XImage *  image = NULL ;
+		char *  data = NULL ;
+		XImage *  image2 ;
+		XVisualInfo  vinfo_template ;
+		int  nitems ;
+		XVisualInfo *  vinfo ;
+		rgb_info_t  rgbinfo ;
+		rgb_info_t  rgbinfo2 ;
+		u_int  _x ;
+		u_int  _y ;
+
+		if( win->disp->visual->class != TrueColor ||
+		    ! ( image = XGetImage( win->disp->display , root , x , y , width , height ,
+					AllPlanes , ZPixmap)) ||
+		    width > (SIZE_MAX / ((disp->depth + 7) / 8)) / height ||
+		    ! ( data = malloc( width * height * ((disp->depth + 7) / 8))) ||
+		    ! ( image2 = XCreateImage( win->disp->display , win->disp->visual ,
+					32 , ZPixmap , 0 , (char *)data , width , height ,
+					32 , width * sizeof(*data))))
+		{
+			XFreePixmap( win->disp->display , pixmap) ;
+			if( image)
+			{
+				XDestroyImage( image) ;
+			}
+			if( data)
+			{
+				free( data) ;
+			}
+
+			return  None ;
+		}
+
+		vinfo_template.visualid = XVisualIDFromVisual(
+						DefaultVisual( win->disp->display ,
+							DefaultScreen( win->disp->display))) ;
+		vinfo = XGetVisualInfo( win->disp->display , VisualIDMask ,
+					&vinfo_template , &nitems) ;
+		rgb_info_init( vinfo , &rgbinfo) ;
+		XFree( vinfo) ;
+
+		vinfo = x_display_get_visual_info( win->disp) ;
+		rgb_info_init( vinfo , &rgbinfo2) ;
+		XFree( vinfo) ;
+
+		for( _y = 0 ; _y < height ; _y++)
+		{
+			for( _x = 0 ; _x < width ; _x++)
+			{
+				u_long  pixel ;
+
+				pixel = XGetPixel( image , _x , _y) ;
+				XPutPixel( image2 , _x , _y ,
+					(win->disp->depth == 32 ? 0xff000000 : 0) |
+					RGB_TO_PIXEL( PIXEL_RED(pixel,rgbinfo) ,
+					              PIXEL_GREEN(pixel,rgbinfo) ,
+					              PIXEL_BLUE(pixel,rgbinfo) , rgbinfo2)) ;
+			}
+		}
+
+		XPutImage( win->disp->display , pixmap , win->disp->gc->gc , image2 ,
+			0 , 0 , 0 , 0 , width , height) ;
+
+		XDestroyImage( image) ;
+		XDestroyImage( image2) ;
+	}
+	else if( root_width < DisplayWidth( win->disp->display , win->disp->screen) ||
 	     root_height < DisplayHeight( win->disp->display , win->disp->screen))
 	{
 		GC  gc ;

@@ -1,3 +1,11 @@
+2011-11-02  Araki Ken  <arakiken@users.sf.net>
+
+	* x_screen.c: The order of x_im_new and x_im_delete is reversed in
+	  x_screen_attach() to avoid to delete all resources inside im-module.
+
+	* x_imagelib.c: x_imagelib_get_transparent() supports root pixmap
+	  whose depth is different from that of my window.
+
 2011-10-31  Araki Ken  <arakiken@users.sf.net>
 
 	* im_ibus.c: GDBusConnection ibus-1.4.0 depends on is partially supported.
