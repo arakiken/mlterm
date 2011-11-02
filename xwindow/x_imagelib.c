@@ -988,7 +988,7 @@ pixbuf_to_ximage_truecolor(
 		for( j = 0 ; j < width ; j++)
 		{
 			XPutPixel( image , j , i ,
-				RGB_TO_PIXEL(pixel[0],pixel[1],pixel[2],pixel[3],rgbinfo) |
+				RGB_TO_PIXEL(pixel[0],pixel[1],pixel[2],rgbinfo) |
 				(disp->depth == 32 ? 0xff000000 : 0)) ;
 			pixel += bytes_per_pixel ;
 		}
@@ -1151,7 +1151,7 @@ compose_truecolor(
 
 			XPutPixel( image , j , i ,
 				RGB_TO_PIXEL(r,g,b,rgbinfo) |
-				(disp->depth == 32 ? 0xff000000 | 0)) ;
+				(disp->depth == 32 ? 0xff000000 : 0)) ;
 			pixel += 4 ;
 		}
 		line += rowstride ;
