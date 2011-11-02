@@ -1699,8 +1699,8 @@ x_imagelib_get_transparent_background(
 		if( win->disp->visual->class != TrueColor ||
 		    ! ( image = XGetImage( win->disp->display , root , x , y , width , height ,
 					AllPlanes , ZPixmap)) ||
-		    width > (SIZE_MAX / ((disp->depth + 7) / 8)) / height ||
-		    ! ( data = malloc( width * height * ((disp->depth + 7) / 8))) ||
+		    width > (SIZE_MAX / ((win->disp->depth + 7) / 8)) / height ||
+		    ! ( data = malloc( width * height * ((win->disp->depth + 7) / 8))) ||
 		    ! ( image2 = XCreateImage( win->disp->display , win->disp->visual ,
 					32 , ZPixmap , 0 , (char *)data , width , height ,
 					32 , width * sizeof(*data))))
