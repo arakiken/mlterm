@@ -114,7 +114,7 @@ update_preedit_text(
 	mkf_char_t  ch ;
 
 	ibus = (im_ibus_t*) data ;
-	
+
 	if( ( len = ibus_text_get_length( text)) > 0)
 	{
 		u_int  index ;
@@ -354,7 +354,11 @@ delete(
 		(*ibus->parser_ibus->delete)( ibus->parser_ibus) ;
 	}
 
+#ifdef  DBUS_H
 	ibus_object_destroy( (IBusObject*)ibus->context) ;
+#else
+	ibus_proxy_destroy( (IBusProxy*)ibus->context) ;
+#endif
 
 	ref_count -- ;
 
@@ -432,15 +436,28 @@ key_event(
 		}
 		else if( ibus->is_enabled)
 		{
+		#ifndef  DBUS_H
+		#if  0
+			g_dbus_connection_flush_sync( ibus_bus_get_connection( ibus_bus) ,
+				NULL , NULL) ;
+		#endif
+			g_main_context_iteration( g_main_context_default() , FALSE) ;
+		#endif
+
 			memcpy( &ibus->prev_key , event , sizeof(XKeyEvent)) ;
 
 			return  0 ;
 		}
-
-		/*
-		 * Even if input context is enabled, enter, backspace, space etc
-		 * keys are avaiable as far as no characters are input.
-		 */
+	}
+	else if( ibus->im.preedit.filled_len > 0)
+	{
+		/* Pressing "q" in preediting. */
+	#ifndef  DBUS_H
+	#if  0
+		g_dbus_connection_flush_sync( ibus_bus_get_connection( ibus_bus) , NULL , NULL) ;
+	#endif
+		g_main_context_iteration( g_main_context_default() , FALSE) ;
+	#endif
 	}
 
 	return  1 ;
@@ -524,8 +541,10 @@ connection_handler(void)
 
 	while( dbus_connection_dispatch( connection) == DBUS_DISPATCH_DATA_REMAINS) ;
 #else
-	g_main_context_iteration( g_main_context_default() , FALSE) ;
+#if  0
 	g_dbus_connection_flush_sync( ibus_bus_get_connection( ibus_bus) , NULL , NULL) ;
+#endif
+	g_main_context_iteration( g_main_context_default() , FALSE) ;
 #endif
 }
 

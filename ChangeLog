@@ -1,3 +1,13 @@
+2011-11-05  Araki Ken  <arakiken@users.sf.net>
+
+	* x_imagelib.c: Minor fixes.
+
+	* ml_term.c: Check if term->pty is NULL or not in ml_term_zombie().
+
+	* im_ibus.c:
+	  - ibus_proxy_destroy() is used instead of ibus_object_destroy in ibus-1.4.
+	  - g_main_context_iteration() is called in key_event().
+
 2011-11-02  Araki Ken  <arakiken@users.sf.net>
 
 	* x_screen.c: The order of x_im_new and x_im_delete is reversed in

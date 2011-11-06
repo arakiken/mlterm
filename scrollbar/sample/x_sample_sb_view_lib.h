@@ -15,8 +15,8 @@ typedef struct  sample_sb_view
 
 	GC  gc ;
 
-	u_long  black_pixel ;
-	u_long  white_pixel ;
+	unsigned long  black_pixel ;
+	unsigned long  white_pixel ;
 
 	Pixmap  arrow_up ;
 	Pixmap  arrow_up_dent ;

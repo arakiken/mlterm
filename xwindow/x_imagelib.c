@@ -716,7 +716,7 @@ create_cardinals_from_pixbuf(
 	u_char *pixel ;
 	u_int i , j ;
 
-	if( width > ((SIZE_MAX / 4) -2) / height)
+	if( width > ((SIZE_MAX / 4) - 2) / height)
 	{
 		return  0 ; /* integer overflow */
 	}
@@ -963,7 +963,7 @@ pixbuf_to_ximage_truecolor(
 	line = gdk_pixbuf_get_pixels( pixbuf) ;
 
 	/* (depth + 7 / 8) => Roundup (depth / 8) */
-	if( width > (SIZE_MAX / ((disp->depth + 7) / 8)) / height)
+	if( width > SIZE_MAX / ((disp->depth + 7) / 8) / height)
 	{
 		return  NULL ;	/* integer overflow */
 	}
@@ -974,7 +974,9 @@ pixbuf_to_ximage_truecolor(
 	}
 
 	if( ! ( image = XCreateImage( disp->display , disp->visual , disp->depth ,
-				ZPixmap , 0 , data , width , height , ((disp->depth + 7) / 8) * 8 ,
+				ZPixmap , 0 , data , width , height ,
+				/* in case depth isn't multiple of 8 */
+				((disp->depth + 7) / 8) * 8 ,
 				width *  ((disp->depth + 7) / 8))))
 	{
 		free( data) ;
@@ -1699,11 +1701,13 @@ x_imagelib_get_transparent_background(
 		if( win->disp->visual->class != TrueColor ||
 		    ! ( image = XGetImage( win->disp->display , root , x , y , width , height ,
 					AllPlanes , ZPixmap)) ||
-		    width > (SIZE_MAX / ((win->disp->depth + 7) / 8)) / height ||
+		    width > SIZE_MAX / ((win->disp->depth + 7) / 8) / height ||
 		    ! ( data = malloc( width * height * ((win->disp->depth + 7) / 8))) ||
 		    ! ( image2 = XCreateImage( win->disp->display , win->disp->visual ,
-					32 , ZPixmap , 0 , (char *)data , width , height ,
-					32 , width * sizeof(*data))))
+					win->disp->depth , ZPixmap , 0 , data , width , height ,
+					/* in case depth isn't multiple of 8 */
+					((win->disp->depth + 7) / 8) * 8 ,
+					width * ((win->disp->depth + 7) / 8))))
 		{
 			XFreePixmap( win->disp->display , pixmap) ;
 			if( image)
@@ -2001,10 +2005,6 @@ x_imagelib_pixbuf_to_pixmap(
 	}
 	
 	XFreePixmap( win->disp->display, pixmap) ;
-
-#else	/* USE_EXT_IMAEGLIB */
-
-	kik_msg_printf( "Failed to convert pixbuf to pixmap. Rebuild mlterm with gdk-pixbuf.\n") ;
 
 #endif	/* USE_EXT_IMAGELIB */
 

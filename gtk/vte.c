@@ -463,20 +463,25 @@ pty_closed(
 		x_screen_detach( screen) ;
 		ml_term_delete( term) ;
 		
-		/* It is after widget is reailzed that x_screen_attach can be called. */
+		/* It is after widget is realized that x_screen_attach can be called. */
 		if( GTK_WIDGET_REALIZED(GTK_WIDGET(VTE_WIDGET(screen))))
 		{
 			x_screen_attach( screen , VTE_WIDGET(screen)->pvt->term) ;
+
+		#ifdef  DEBUG
+			kik_debug_printf( KIK_DEBUG_TAG
+				" pty is closed and detached pty is re-attached.\n") ;
+		#endif
 		}
 	}
 	else
 	{
 		g_signal_emit_by_name( VTE_WIDGET(screen) , "child-exited") ;
-	}
 
-#ifdef  __DEBUG
-	kik_debug_printf( "pty_closed\n") ;
-#endif
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG " pty is closed\n") ;
+	#endif
+	}
 }
 
 
@@ -1471,6 +1476,11 @@ update_wall_picture(
 		image = terminal->pvt->image ;
 	}
 
+	if( terminal->pvt->pixmap)
+	{
+		XFreePixmap( disp.display , terminal->pvt->pixmap) ;
+	}
+
 	terminal->pvt->pixmap = x_imagelib_pixbuf_to_pixmap( win , pic_mod , image) ;
 
 	if( image != terminal->pvt->image)
@@ -1480,9 +1490,8 @@ update_wall_picture(
 
 	if( terminal->pvt->pixmap == None)
 	{
-	#ifdef  DEBUG
-		kik_debug_printf( KIK_DEBUG_TAG " x_imagelib_pixbuf_to_pixmap failed.\n") ;
-	#endif
+		kik_msg_printf( "Failed to convert pixbuf to pixmap. "
+			"Rebuild mlterm with gdk-pixbuf.\n") ;
 
 		terminal->pvt->pix_width = 0 ;
 		terminal->pvt->pix_height = 0 ;
@@ -2656,7 +2665,6 @@ vte_terminal_new()
 /*
  * vte_terminal_fork_command or vte_terminal_forkpty functions are possible
  * to call before VteTerminal widget is realized.
- * 
  */
 
 pid_t
@@ -3416,6 +3424,15 @@ vte_terminal_set_opacity(
 #ifdef  DEBUG
 	kik_debug_printf( KIK_DEBUG_TAG " OPACITY => %x\n" , opacity) ;
 #endif
+
+	if( terminal->pvt->screen->pic_file_path)
+	{
+	#ifdef  DEBUG
+		kik_debug_printf( KIK_DEBUG_TAG
+			" OPACITY is ignored because wall picture is already set.\n") ;
+	#endif
+		return ;
+	}
 
 #if  1
 	/* XXX old roxterm (1.18.5) always sets opacity 0xffff after it changes saturation. */
